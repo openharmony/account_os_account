@@ -1,0 +1,76 @@
+# Copyright (c) 2021 Huawei Device Co., Ltd.
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#     http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
+import(
+    "//base/account/os_account/interfaces/innerkits/account_kits_headers.gni")
+import("//base/account/os_account/os_account.gni")
+import("//build/ohos.gni")
+import("//build/test.gni")
+
+module_output_path = "os_account_standard/mstaccountmgr"
+
+# mst test common config defines here
+config("accountmgr_mst_test_config") {
+  include_dirs = [
+    "${common_path}/log/include",
+    "${common_path}/perf_stat/include",
+    "${common_path}/account_error/include",
+    "${services_path}/accountmgr/include",
+    "//third_party/json/include",
+    "${innerkits_path}/include",
+    "//utils/native/base/include",
+    "//utils/system/safwk/native/include",
+  ]
+  configs = []
+}
+
+ohos_moduletest("AccountInnerSdkModuleTest") {
+  module_out_path = module_output_path
+
+  sources = [
+    "${common_path}/log/src/account_log_wrapper.cpp",
+    "${innerkits_path}/accountmgr/src/account_proxy.cpp",
+    "${innerkits_path}/accountmgr/src/ohos_account_kits.cpp",
+    "${innerkits_path}/accountmgr/src/ohos_account_kits_impl.cpp",
+  ]
+
+  sources += [ "account_mgr_inner_sdk_func_test.cpp" ]
+
+  configs = [
+    ":accountmgr_mst_test_config",
+    "${services_path}/accountmgr/test:accountmgr_test_config",
+  ]
+
+  deps = [
+    "//third_party/googletest:gtest_main",
+    "//utils/native/base:utils",
+  ]
+
+  external_deps = [
+    "aafwk_standard:base",
+    "aafwk_standard:intent",
+    "appexecfwk_standard:appexecfwk_base",
+    "appexecfwk_standard:libeventhandler",
+    "hiviewdfx_hilog_native:libhilog",
+    "ipc:ipc_core",
+    "os_account_standard:libaccountkits",
+    "safwk:system_ability_fwk",
+    "samgr_L2:samgr_proxy",
+  ]
+  part_name = "os_account_standard"
+}
+
+group("moduletest") {
+  testonly = true
+  deps = [ ":AccountInnerSdkModuleTest" ]
+}
