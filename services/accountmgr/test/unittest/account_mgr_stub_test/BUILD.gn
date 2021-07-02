@@ -71,6 +71,7 @@ ohos_unittest("AccountSAMgrStubTest") {
     "hisysevent_native:libhisysevent",
     "hiviewdfx_hilog_native:libhilog",
     "ipc:ipc_core",
+    "permission_standard:libpermissionsdk_standard",
     "safwk:system_ability_fwk",
     "samgr_L2:samgr_proxy",
     "startup_l2:syspara",
