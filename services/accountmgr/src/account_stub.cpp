@@ -26,6 +26,7 @@
 #include "ipc_skeleton.h"
 #include "iservice_registry.h"
 #include "ohos_account_kits.h"
+#include "permission/permission_kit.h"
 #include "string_ex.h"
 #include "system_ability_definition.h"
 
@@ -43,7 +44,7 @@ const std::string DEFAULT_ACCOUNT_NAME = "no_name";
 constexpr std::int32_t SYSTEM_UID = 1000;
 constexpr std::int32_t ROOT_UID = 0;
 
-std::int32_t GetBundleNamesForUid(std::int32_t uid, std::vector<std::string> &bundleNameVec)
+std::int32_t GetBundleNamesForUid(std::int32_t uid, std::string &bundleName)
 {
     sptr<ISystemAbilityManager> systemMgr = SystemAbilityManagerClient::GetInstance().GetSystemAbilityManager();
     if (systemMgr == nullptr) {
@@ -63,10 +64,11 @@ std::int32_t GetBundleNamesForUid(std::int32_t uid, std::vector<std::string> &bu
         return ERR_ACCOUNT_ZIDL_ACCOUNT_STUB_ERROR;
     }
 
-    std::string bundleName;
-    if (bundleMgrProxy->GetBundleNameForUid(uid, bundleName)) {
-        bundleNameVec.emplace_back(bundleName);
+    if (!bundleMgrProxy->GetBundleNameForUid(uid, bundleName)) {
+        ACCOUNT_LOGE("Get bundle name failed");
+        return ERR_ACCOUNT_ZIDL_ACCOUNT_STUB_ERROR;
     }
+
     return ERR_OK;
 }
 }
@@ -229,8 +231,25 @@ bool AccountStub::HasAccountRequestPermission(const std::string &permissionName)
         return false;
     }
 
+    if (!IsServiceStarted()) {
+        ACCOUNT_LOGE("account mgr not ready");
+        return false;
+    }
+
+    const std::int32_t uid = IPCSkeleton::GetCallingUid();
+    if (uid == ROOT_UID || uid == SYSTEM_UID) {
+        return true;
+    }
+
+    std::string bundleName;
+    if (GetBundleNamesForUid(uid, bundleName) != ERR_OK) {
+        return false;
+    }
+
     ACCOUNT_LOGI("Check permission: %{public}s", permissionName.c_str());
-    return true;
+    const std::int32_t userId = QueryDeviceAccountIdFromUid(uid);
+    return (Security::Permission::PermissionKit::VerifyPermission(bundleName, permissionName, userId) ==
+        Security::Permission::PermissionState::PERMISSION_GRANTED);
 }
 
 bool AccountStub::IsRootOrSystemAccount()
@@ -251,21 +270,16 @@ bool AccountStub::CheckCallerForTrustList()
         return false;
     }
 
-    std::vector<std::string> bundleNameVec;
-    if (GetBundleNamesForUid(uid, bundleNameVec) != ERR_OK) {
-        return false;
-    }
-
-    if (bundleNameVec.empty()) {
+    std::string bundleName;
+    if (GetBundleNamesForUid(uid, bundleName) != ERR_OK) {
         return false;
     }
 
     std::vector<std::string> trustList = AccountHelperData::GetBundleNameTrustList();
-    for (const auto &bundleName : bundleNameVec) {
-        if (std::find(trustList.begin(), trustList.end(), bundleName) == trustList.end()) {
-            return false;
-        }
+    if (std::find(trustList.begin(), trustList.end(), bundleName) == trustList.end()) {
+        return false;
     }
+
     return true;
 }
 } // namespace AccountSA
