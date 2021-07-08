@@ -15,9 +15,30 @@
 #include <gtest/gtest.h>
 
 #include "ohos_account_manager.h"
+#include "account_helper_data.h"
 #include "account_info.h"
 using namespace testing::ext;
 using namespace OHOS::AccountSA;
+
+namespace {
+const std::string KEY_ACCOUNT_EVENT_LOGIN = "LOGIN";
+const std::string KEY_ACCOUNT_EVENT_LOGOUT = "LOGOUT";
+const std::string KEY_ACCOUNT_EVENT_TOKEN_INVALID = "TOKEN_INVALID";
+std::string g_eventLogin = OHOS_ACCOUNT_EVENT_LOGIN;
+std::string g_eventLogout = OHOS_ACCOUNT_EVENT_LOGOUT;
+std::string g_eventTokenInvalid = OHOS_ACCOUNT_EVENT_TOKEN_INVALID;
+
+std::string GetAccountEventStr(const std::map<std::string, std::string> &accountEventMap,
+    const std::string &eventKey, const std::string &defaultValue)
+{
+    const auto &it = accountEventMap.find(eventKey);
+    if (it != accountEventMap.end()) {
+        return it->second;
+    }
+    return defaultValue;
+}
+}
+
 class OhosAccountManagerTest : public testing::Test {
 public:
     static void SetUpTestCase();
@@ -25,7 +46,16 @@ public:
     void SetUp();
     void TearDown();
 };
-void OhosAccountManagerTest::SetUpTestCase() {}
+
+void OhosAccountManagerTest::SetUpTestCase()
+{
+    const std::map<std::string, std::string> accountEventMap = AccountHelperData::GetAccountEventMap();
+    g_eventLogin = GetAccountEventStr(accountEventMap, KEY_ACCOUNT_EVENT_LOGIN, OHOS_ACCOUNT_EVENT_LOGIN);
+    g_eventLogout = GetAccountEventStr(accountEventMap, KEY_ACCOUNT_EVENT_LOGOUT, OHOS_ACCOUNT_EVENT_LOGOUT);
+    g_eventTokenInvalid = GetAccountEventStr(accountEventMap, KEY_ACCOUNT_EVENT_TOKEN_INVALID,
+        OHOS_ACCOUNT_EVENT_TOKEN_INVALID);
+}
+
 void OhosAccountManagerTest::TearDownTestCase() {}
 void OhosAccountManagerTest::SetUp() {}
 void OhosAccountManagerTest::TearDown() {}
@@ -46,26 +76,26 @@ HWTEST_F(OhosAccountManagerTest, OhosAccountManagerTestTokenInvalid004, TestSize
     std::string invalidUid("NotExistUid");
     std::string name("TestName");
     accountManager.OnInitialize();
-    auto ret = accountManager.LoginOhosAccount(name, uid, OHOS_ACCOUNT_EVENT_LOGIN);
+    auto ret = accountManager.LoginOhosAccount(name, uid, g_eventLogin);
     EXPECT_EQ(true, ret);
     /**
     * @tc.steps: step2. trigger token_invalid event for a different uid
     * @tc.expected: step2. process result is true AND state changes
     */
-    ret = accountManager.HandleOhosAccountTokenInvalidEvent(name, invalidUid, OHOS_ACCOUNT_EVENT_TOKEN_INVALID);
+    ret = accountManager.HandleOhosAccountTokenInvalidEvent(name, invalidUid, g_eventTokenInvalid);
     EXPECT_EQ(true, ret);
     EXPECT_EQ(ACCOUNT_STATE_NOTLOGIN, accountManager.GetAccountState());
     /**
     * @tc.steps: step3. trigger token_invalid event with the same uid
     * @tc.expected: step3. process result is true AND state changes
     */
-    ret = accountManager.HandleOhosAccountTokenInvalidEvent(name, uid, OHOS_ACCOUNT_EVENT_TOKEN_INVALID);
+    ret = accountManager.HandleOhosAccountTokenInvalidEvent(name, uid, g_eventTokenInvalid);
     EXPECT_EQ(true, ret);
     EXPECT_EQ(ACCOUNT_STATE_NOTLOGIN, accountManager.GetAccountState());
     /**
     * @tc.steps: step4. logout the account
     * @tc.expected: step4. The current account logout
     */
-    ret = accountManager.LogoutOhosAccount(name, uid, OHOS_ACCOUNT_EVENT_LOGOUT);
+    ret = accountManager.LogoutOhosAccount(name, uid, g_eventLogout);
     EXPECT_EQ(true, ret);
 }
