@@ -27,32 +27,61 @@ using json = nlohmann::json;
 namespace {
 const std::string ACCOUNTMGR_HELPER_JSON_FILE = "/system/etc/account/accountmgr_helper.json";
 const std::string KEY_BUNDLE_NAME_LIST = "BundleNameTrustList";
-}
+const std::string KEY_ACCOUNT_EVENT_MAP = "AccountEventMap";
+const std::string KEY_ACCOUNT_EVENT_LOGIN = "LOGIN";
+const std::string KEY_ACCOUNT_EVENT_LOGOUT = "LOGOUT";
+const std::string KEY_ACCOUNT_EVENT_TOKEN_INVALID = "TOKEN_INVALID";
+const std::string KEY_ACCOUNT_EVENT_LOGOFF = "LOGOFF";
 
-std::vector<std::string> AccountHelperData::GetBundleNameTrustList()
+static bool ParseJsonData(nlohmann::json &jsonData)
 {
-    std::vector<std::string> result = {""};
     if (!FileExists(ACCOUNTMGR_HELPER_JSON_FILE)) {
-        ACCOUNT_LOGI("file %{public}s not exist, empty default!", ACCOUNTMGR_HELPER_JSON_FILE.c_str());
-        return result;
+        ACCOUNT_LOGI("File %{public}s not exist, empty default!", ACCOUNTMGR_HELPER_JSON_FILE.c_str());
+        return false;
     }
 
     std::ifstream fin(ACCOUNTMGR_HELPER_JSON_FILE);
     if (!fin) {
         ACCOUNT_LOGE("Failed to open file %{public}s", ACCOUNTMGR_HELPER_JSON_FILE.c_str());
-        return result;
+        return false;
     }
 
-    nlohmann::json jsonData = json::parse(fin, nullptr, false);
+    jsonData = json::parse(fin, nullptr, false);
     if (!jsonData.is_structured()) {
         ACCOUNT_LOGE("not valid json file!");
         fin.close();
-        return result;
+        return false;
     }
     fin.close();
+    return true;
+}
+}
+
+std::vector<std::string> AccountHelperData::GetBundleNameTrustList()
+{
+    std::vector<std::string> result = {""};
+    nlohmann::json jsonData;
+    if (!ParseJsonData(jsonData)) {
+        return result;
+    }
 
     if (jsonData.find(KEY_BUNDLE_NAME_LIST) != jsonData.end() && jsonData.at(KEY_BUNDLE_NAME_LIST).is_array()) {
         result = jsonData.at(KEY_BUNDLE_NAME_LIST).get<std::vector<std::string>>();
+    }
+
+    return result;
+}
+
+std::map<std::string, std::string> AccountHelperData::GetAccountEventMap()
+{
+    std::map<std::string, std::string> result = {};
+    nlohmann::json jsonData;
+    if (!ParseJsonData(jsonData)) {
+        return result;
+    }
+
+    if (jsonData.find(KEY_ACCOUNT_EVENT_MAP) != jsonData.end()) {
+        result = jsonData.at(KEY_ACCOUNT_EVENT_MAP).get<std::map<std::string, std::string>>();
     }
 
     return result;

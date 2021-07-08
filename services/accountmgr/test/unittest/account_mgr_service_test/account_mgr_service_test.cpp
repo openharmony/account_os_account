@@ -16,6 +16,7 @@
 #include <gtest/gtest.h>
 
 #include "account_dump_helper.h"
+#include "account_helper_data.h"
 #include "account_info.h"
 #include "account_log_wrapper.h"
 #include "account_proxy.h"
@@ -34,6 +35,15 @@ using namespace OHOS::AccountSA;
 namespace {
 static std::pair<bool, OhosAccountInfo> g_oldInfo;
 
+const std::string KEY_ACCOUNT_EVENT_LOGIN = "LOGIN";
+const std::string KEY_ACCOUNT_EVENT_LOGOUT = "LOGOUT";
+const std::string KEY_ACCOUNT_EVENT_TOKEN_INVALID = "TOKEN_INVALID";
+const std::string KEY_ACCOUNT_EVENT_LOGOFF = "LOGOFF";
+std::string g_eventLogin = OHOS_ACCOUNT_EVENT_LOGIN;
+std::string g_eventLogout = OHOS_ACCOUNT_EVENT_LOGOUT;
+std::string g_eventTokenInvalid = OHOS_ACCOUNT_EVENT_TOKEN_INVALID;
+std::string g_eventLogoff = OHOS_ACCOUNT_EVENT_LOGOFF;
+
 sptr<IAccount> GetAccountMgr()
 {
     sptr<ISystemAbilityManager> systemMgr = SystemAbilityManagerClient::GetInstance().GetSystemAbilityManager();
@@ -43,6 +53,16 @@ sptr<IAccount> GetAccountMgr()
 
     sptr<IRemoteObject> accountObj = systemMgr->GetSystemAbility(SUBSYS_ACCOUNT_SYS_ABILITY_ID_BEGIN);
     return iface_cast<AccountProxy>(accountObj);
+}
+
+std::string GetAccountEventStr(const std::map<std::string, std::string> &accountEventMap,
+    const std::string &eventKey, const std::string &defaultValue)
+{
+    const auto &it = accountEventMap.find(eventKey);
+    if (it != accountEventMap.end()) {
+        return it->second;
+    }
+    return defaultValue;
 }
 }
 
@@ -65,6 +85,13 @@ void AccountMgrServiceTest::SetUpTestCase()
     if (!g_oldInfo.first) {
         std::cout << "AccountMgrServiceTest::SetUpTestCase GET old info failed" << std::endl;
     }
+
+    const std::map<std::string, std::string> accountEventMap = AccountHelperData::GetAccountEventMap();
+    g_eventLogin = GetAccountEventStr(accountEventMap, KEY_ACCOUNT_EVENT_LOGIN, OHOS_ACCOUNT_EVENT_LOGIN);
+    g_eventLogout = GetAccountEventStr(accountEventMap, KEY_ACCOUNT_EVENT_LOGOUT, OHOS_ACCOUNT_EVENT_LOGOUT);
+    g_eventTokenInvalid = GetAccountEventStr(accountEventMap, KEY_ACCOUNT_EVENT_TOKEN_INVALID,
+        OHOS_ACCOUNT_EVENT_TOKEN_INVALID);
+    g_eventLogoff = GetAccountEventStr(accountEventMap, KEY_ACCOUNT_EVENT_LOGOFF, OHOS_ACCOUNT_EVENT_LOGOFF);
 }
 
 void AccountMgrServiceTest::TearDownTestCase()
@@ -78,27 +105,23 @@ void AccountMgrServiceTest::TearDownTestCase()
 
         auto name = g_oldInfo.second.name_;
         auto uid = g_oldInfo.second.uid_;
-        std::string eventStr;
         bool ret = false;
         switch (g_oldInfo.second.status_) {
             case ACCOUNT_STATE_UNBOUND:
             case ACCOUNT_STATE_LOGOFF:
                 break;
             case ACCOUNT_STATE_LOGIN:
-                eventStr = OHOS_ACCOUNT_EVENT_LOGIN;
-                ret = accountMgr->UpdateOhosAccountInfo(name, uid, eventStr);
+                ret = accountMgr->UpdateOhosAccountInfo(name, uid, g_eventLogin);
                 if (!ret) {
                     std::cout << "TearDownTestCase RESUME to LOGIN failed" << std::endl;
                 }
                 break;
             case ACCOUNT_STATE_NOTLOGIN:
-                eventStr = OHOS_ACCOUNT_EVENT_LOGIN;
-                ret = accountMgr->UpdateOhosAccountInfo(name, uid, eventStr);
+                ret = accountMgr->UpdateOhosAccountInfo(name, uid, g_eventLogin);
                 if (!ret) {
                     std::cout << "TearDownTestCase RESUME to LOGIN failed" << std::endl;
                 }
-                eventStr = OHOS_ACCOUNT_EVENT_TOKEN_INVALID;
-                ret = accountMgr->UpdateOhosAccountInfo(name, uid, eventStr);
+                ret = accountMgr->UpdateOhosAccountInfo(name, uid, g_eventTokenInvalid);
                 if (!ret) {
                     std::cout << "TearDownTestCase RESUME to NOTLOGIN failed" << std::endl;
                 }
@@ -135,7 +158,7 @@ HWTEST_F(AccountMgrServiceTest, AccountMgrServiceSetOhosIdStatusLoginTest001, Te
         case ACCOUNT_STATE_LOGIN:
         case ACCOUNT_STATE_NOTLOGIN:
             ret = accountMgr->UpdateOhosAccountInfo(info.second.name_,
-                info.second.uid_, OHOS_ACCOUNT_EVENT_LOGOUT);
+                info.second.uid_, g_eventLogout);
             EXPECT_EQ(true, ret);
             info = accountMgr->QueryOhosAccountInfo();
             EXPECT_EQ(true, info.first);
@@ -148,8 +171,7 @@ HWTEST_F(AccountMgrServiceTest, AccountMgrServiceSetOhosIdStatusLoginTest001, Te
     // update status with test info
     std::string name("User001");
     std::string uid("1001");
-    std::string eventStr(OHOS_ACCOUNT_EVENT_LOGIN);
-    ret = accountMgr->UpdateOhosAccountInfo(name, uid, eventStr);
+    ret = accountMgr->UpdateOhosAccountInfo(name, uid, g_eventLogin);
     EXPECT_EQ(true, ret);
     // param 1: name, param 2: UID, param 3: status
     std::pair<bool, OhosAccountInfo> testInfo = accountMgr->QueryOhosAccountInfo();
@@ -157,8 +179,7 @@ HWTEST_F(AccountMgrServiceTest, AccountMgrServiceSetOhosIdStatusLoginTest001, Te
     EXPECT_EQ(uid, testInfo.second.uid_);
     EXPECT_EQ(ACCOUNT_STATE_LOGIN, testInfo.second.status_);
 
-    eventStr = OHOS_ACCOUNT_EVENT_LOGOUT;
-    ret = accountMgr->UpdateOhosAccountInfo(name, uid, eventStr);
+    ret = accountMgr->UpdateOhosAccountInfo(name, uid, g_eventLogout);
     EXPECT_EQ(true, ret);
 }
 
@@ -181,13 +202,11 @@ HWTEST_F(AccountMgrServiceTest, AccountMgrServiceSetOhosIdStatusLogoffTest002, T
     EXPECT_EQ(true, retInfo.first);
     std::string name(retInfo.second.name_);
     std::string uid(retInfo.second.uid_);
-    std::string eventStr;
     bool ret = false;
     switch (retInfo.second.status_) {
         case ACCOUNT_STATE_LOGIN:
         case ACCOUNT_STATE_NOTLOGIN:
-            eventStr = OHOS_ACCOUNT_EVENT_LOGOUT;
-            ret = accountMgr->UpdateOhosAccountInfo(name, uid, eventStr);
+            ret = accountMgr->UpdateOhosAccountInfo(name, uid, g_eventLogout);
             EXPECT_EQ(true, ret);
             break;
         default:
@@ -196,13 +215,11 @@ HWTEST_F(AccountMgrServiceTest, AccountMgrServiceSetOhosIdStatusLogoffTest002, T
     // update status with test info
     name = "User002";
     uid = "1002";
-    eventStr = OHOS_ACCOUNT_EVENT_LOGIN;
     // param 1: name, param 2: UID, param 3: status
-    ret = accountMgr->UpdateOhosAccountInfo(name, uid, eventStr);
+    ret = accountMgr->UpdateOhosAccountInfo(name, uid, g_eventLogin);
     EXPECT_EQ(true, ret);
 
-    eventStr = OHOS_ACCOUNT_EVENT_LOGOFF;
-    ret = accountMgr->UpdateOhosAccountInfo(name, uid, eventStr);
+    ret = accountMgr->UpdateOhosAccountInfo(name, uid, g_eventLogoff);
     EXPECT_EQ(true, ret);
 
     std::pair<bool, OhosAccountInfo> testInfo = accountMgr->QueryOhosAccountInfo();
