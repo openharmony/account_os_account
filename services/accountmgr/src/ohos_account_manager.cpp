@@ -14,6 +14,7 @@
  */
 
 #include "ohos_account_manager.h"
+#include "account_helper_data.h"
 #include "account_info.h"
 #include "account_log_wrapper.h"
 #include "account_mgr_service.h"
@@ -22,7 +23,23 @@
 
 namespace OHOS {
 namespace AccountSA {
+namespace {
 constexpr std::int32_t MAX_RETRY_TIMES = 2; // give another chance when json file corrupted
+const std::string KEY_ACCOUNT_EVENT_LOGIN = "LOGIN";
+const std::string KEY_ACCOUNT_EVENT_LOGOUT = "LOGOUT";
+const std::string KEY_ACCOUNT_EVENT_TOKEN_INVALID = "TOKEN_INVALID";
+const std::string KEY_ACCOUNT_EVENT_LOGOFF = "LOGOFF";
+
+std::string GetAccountEventStr(const std::map<std::string, std::string> &accountEventMap,
+    const std::string &eventKey, const std::string &defaultValue)
+{
+    const auto &it = accountEventMap.find(eventKey);
+    if (it != accountEventMap.end()) {
+        return it->second;
+    }
+    return defaultValue;
+}
+}
 
 /**
  * Ohos account state change.
@@ -253,26 +270,27 @@ std::int32_t OhosAccountManager::GetUserId()
     return (id == DEVICE_ACCOUNT_ID_INVALID) ? DEVICE_ACCOUNT_OWNER : id;
 }
 
-
 /**
  * Init event mapper.
  */
 void OhosAccountManager::BuildEventsMapper()
 {
-    eventMap_.insert(std::pair<std::string, ACCOUNT_INNER_EVENT_TYPE>(OHOS_ACCOUNT_EVENT_LOGIN,
-        ACCOUNT_BIND_SUCCESS_EVT));
-    eventMap_.insert(std::pair<std::string, ACCOUNT_INNER_EVENT_TYPE>(OHOS_ACCOUNT_EVENT_LOGOUT,
-        ACCOUNT_MANUAL_UNBOUND_EVT));
-    eventMap_.insert(std::pair<std::string, ACCOUNT_INNER_EVENT_TYPE>(OHOS_ACCOUNT_EVENT_TOKEN_INVALID,
-        ACCOUNT_TOKEN_EXPIRED_EVT));
-    eventMap_.insert(std::pair<std::string, ACCOUNT_INNER_EVENT_TYPE>(OHOS_ACCOUNT_EVENT_LOGOFF,
-        ACCOUNT_MANUAL_LOGOFF_EVT));
+    const std::map<std::string, std::string> accountEventMap = AccountHelperData::GetAccountEventMap();
+    std::string eventLogin = GetAccountEventStr(accountEventMap, KEY_ACCOUNT_EVENT_LOGIN, OHOS_ACCOUNT_EVENT_LOGIN);
+    std::string eventLogout = GetAccountEventStr(accountEventMap, KEY_ACCOUNT_EVENT_LOGOUT, OHOS_ACCOUNT_EVENT_LOGOUT);
+    std::string eventTokenInvalid = GetAccountEventStr(accountEventMap, KEY_ACCOUNT_EVENT_TOKEN_INVALID,
+        OHOS_ACCOUNT_EVENT_TOKEN_INVALID);
+    std::string eventLogoff = GetAccountEventStr(accountEventMap, KEY_ACCOUNT_EVENT_LOGOFF, OHOS_ACCOUNT_EVENT_LOGOFF);
 
-    eventFuncMap_.insert(std::make_pair(OHOS_ACCOUNT_EVENT_LOGIN, &OhosAccountManager::LoginOhosAccount));
-    eventFuncMap_.insert(std::make_pair(OHOS_ACCOUNT_EVENT_LOGOUT, &OhosAccountManager::LogoutOhosAccount));
-    eventFuncMap_.insert(std::make_pair(OHOS_ACCOUNT_EVENT_LOGOFF, &OhosAccountManager::LogoffOhosAccount));
-    eventFuncMap_.insert(std::make_pair(OHOS_ACCOUNT_EVENT_TOKEN_INVALID,
-        &OhosAccountManager::HandleOhosAccountTokenInvalidEvent));
+    eventMap_.insert(std::pair<std::string, ACCOUNT_INNER_EVENT_TYPE>(eventLogin, ACCOUNT_BIND_SUCCESS_EVT));
+    eventMap_.insert(std::pair<std::string, ACCOUNT_INNER_EVENT_TYPE>(eventLogout, ACCOUNT_MANUAL_UNBOUND_EVT));
+    eventMap_.insert(std::pair<std::string, ACCOUNT_INNER_EVENT_TYPE>(eventTokenInvalid, ACCOUNT_TOKEN_EXPIRED_EVT));
+    eventMap_.insert(std::pair<std::string, ACCOUNT_INNER_EVENT_TYPE>(eventLogoff, ACCOUNT_MANUAL_LOGOFF_EVT));
+
+    eventFuncMap_.insert(std::make_pair(eventLogin, &OhosAccountManager::LoginOhosAccount));
+    eventFuncMap_.insert(std::make_pair(eventLogout, &OhosAccountManager::LogoutOhosAccount));
+    eventFuncMap_.insert(std::make_pair(eventLogoff, &OhosAccountManager::LogoffOhosAccount));
+    eventFuncMap_.insert(std::make_pair(eventTokenInvalid, &OhosAccountManager::HandleOhosAccountTokenInvalidEvent));
 }
 
 /**

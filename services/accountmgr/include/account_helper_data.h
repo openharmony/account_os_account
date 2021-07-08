@@ -16,6 +16,7 @@
 #ifndef ACCOUNT_HELPER_DATA_H
 #define ACCOUNT_HELPER_DATA_H
 
+#include <map>
 #include <string>
 
 namespace OHOS {
@@ -23,6 +24,7 @@ namespace AccountSA {
 class AccountHelperData {
 public:
     static std::vector<std::string> GetBundleNameTrustList();
+    static std::map<std::string, std::string> GetAccountEventMap();
 };
 } // namespace AccountSA
 } // namespace OHOS
