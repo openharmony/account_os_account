@@ -15,7 +15,8 @@
 <configuration ver="2.0">
     <target name="AccountSADataDealTest">
         <preparer>
-            <option name="push" value="data_deal/. -> /data/test/account/data_deal/" src="res"/>
+            <option name="push" value="data_deal/invalid_format.json -> /data/test/account/data_deal/" src="res"/>
+            <option name="push" value="data_deal/valid.json -> /data/test/account/data_deal/" src="res"/>
         </preparer>
     </target>
 </configuration>
