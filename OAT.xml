@@ -60,6 +60,9 @@ Note:If the text contains special characters, please escape them according to th
             <filefilter name="binaryFileTypePolicyFilter" desc="Filters for binary file policies">
                 <filteritem type="filepath" name="figures/.*" desc="Self-developed binary files, design framework diagrams or other resources used in code repository readme documents"/>
             </filefilter>
+            <filefilter name="defaultFilter" desc="Json format files not to check">
+                <filteritem type="filename" name="*.json|accountmgr.cfg" desc="json desc files"/>
+            </filefilter>
         </filefilterlist>
     </oatconfig>
 </configuration>
