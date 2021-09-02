@@ -49,11 +49,11 @@ ohos_shared_library("accountmgr") {
 
   sources = [
     "src/account_dump_helper.cpp",
+    "src/account_event_provider.cpp",
     "src/account_helper_data.cpp",
     "src/account_mgr_service.cpp",
     "src/account_state_machine.cpp",
     "src/account_stub.cpp",
-    "src/account_event_provider.cpp",
     "src/ohos_account_data_deal.cpp",
     "src/ohos_account_manager.cpp",
   ]
