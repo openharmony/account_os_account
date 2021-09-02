@@ -46,9 +46,9 @@ void AccountEventProviderTest::TearDown() {}
 
 /**
  * @tc.name: AccountEventProviderTest001
- * @tc.desc: Test account info 
+ * @tc.desc: Test account EventPublish interface
  * @tc.type: FUNC
- * @tc.require: 
+ * @tc.require: #I40129
  */
 HWTEST_F(AccountEventProviderTest, AccountEventProviderTest001, TestSize.Level0)
 {
