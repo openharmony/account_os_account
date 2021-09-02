@@ -17,14 +17,12 @@ import("//build/test.gni")
 
 module_output_path = "os_account_standard/accountmgrservice"
 
-config("accountmgr_stub_test_config") {
-  visibility = [ ":*" ]
-
+config("accountmgr_event_provider_test_config") {
   include_dirs = [
     "./include",
     "${common_path}/log/include",
-    "${common_path}/account_error/include",
     "${common_path}/perf_stat/include",
+    "${common_path}/account_error/include",
     "${services_path}/accountmgr/include",
     "${innerkits_path}/include",
     "//third_party/json/include",
@@ -33,27 +31,17 @@ config("accountmgr_stub_test_config") {
   ]
 }
 
-ohos_unittest("AccountSAMgrStubTest") {
+ohos_unittest("AccountEventProviderTest") {
   module_out_path = module_output_path
 
   sources = [
     "${common_path}/log/src/account_log_wrapper.cpp",
-    "${common_path}/perf_stat/src/perf_stat.cpp",
-    "${services_path}/accountmgr/src/account_dump_helper.cpp",
-    "${services_path}/accountmgr/src/account_helper_data.cpp",
-    "${services_path}/accountmgr/src/account_mgr_service.cpp",
-    "${services_path}/accountmgr/src/account_state_machine.cpp",
     "${services_path}/accountmgr/src/account_event_provider.cpp",
-    "${services_path}/accountmgr/src/account_stub.cpp",
-    "${services_path}/accountmgr/src/ohos_account_data_deal.cpp",
-    "${services_path}/accountmgr/src/ohos_account_manager.cpp",
-    "${services_path}/accountmgr/test/mock/src/mock_account_mgr_service.cpp",
   ]
-
-  sources += [ "account_mgr_stub_test.cpp" ]
+  sources += [ "account_event_provider_test.cpp" ]
 
   configs = [
-    ":accountmgr_stub_test_config",
+    ":accountmgr_event_provider_test_config",
     "${services_path}/accountmgr/test:accountmgr_test_config",
   ]
 
@@ -85,5 +73,5 @@ ohos_unittest("AccountSAMgrStubTest") {
 group("unittest") {
   testonly = true
 
-  deps = [ ":AccountSAMgrStubTest" ]
+  deps = [ ":AccountEventProviderTest" ]
 }

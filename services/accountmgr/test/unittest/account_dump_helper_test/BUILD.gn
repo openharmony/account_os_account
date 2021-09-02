@@ -40,6 +40,7 @@ ohos_unittest("AccountDumpHelperTest") {
     "${services_path}/accountmgr/src/account_dump_helper.cpp",
     "${services_path}/accountmgr/src/account_helper_data.cpp",
     "${services_path}/accountmgr/src/account_state_machine.cpp",
+    "${services_path}/accountmgr/src/account_event_provider.cpp",
     "${services_path}/accountmgr/src/ohos_account_data_deal.cpp",
     "${services_path}/accountmgr/src/ohos_account_manager.cpp",
   ]
@@ -59,7 +60,10 @@ ohos_unittest("AccountDumpHelperTest") {
   external_deps = [
     "aafwk_standard:base",
     "aafwk_standard:intent",
+    "aafwk_standard:want",
     "appexecfwk_standard:appexecfwk_base",
+    "ces_standard:cesfwk_core",
+    "ces_standard:cesfwk_innerkits",
     "hisysevent_native:libhisysevent",
     "hiviewdfx_hilog_native:libhilog",
     "ipc:ipc_core",
