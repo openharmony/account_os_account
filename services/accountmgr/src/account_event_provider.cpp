@@ -13,9 +13,9 @@
  * limitations under the License.
  */
 
-#include "account_event_provider.h"
 #include <common_event_data.h>
 #include <common_event_support.h>
+#include "account_event_provider.h"
 #include "account_log_wrapper.h"
 #include "common_event_manager.h"
 #include "ohos/aafwk/content/want.h"
