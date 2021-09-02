@@ -17,8 +17,10 @@
 #include <regex>
 #include <string>
 #include "account_error_no.h"
+#include "account_event_provider.h"
 #include "account_info.h"
 #include "account_log_wrapper.h"
+#include "common_event_support.h"
 #include "ohos_account_manager.h"
 #include "perf_stat.h"
 #include "string_ex.h"
@@ -179,6 +181,14 @@ bool AccountDumpHelper::ProcessTwoParameter(const std::string& arg1, const std::
         retRes = SimulateInputEvent(arg2, result);
         if (retRes) {
             result.append("handle input simulate event ok\n");
+        }
+    } else if (arg1 == ARGS_OUTPUT_SIMULATE) {
+        bool errCode = AccountEventProvider::EventPublish(arg2);
+        if (errCode == true) {
+            result.append("Event outPut simulation success\n");
+            retRes = true;
+        } else {
+            result.append("Event outPut simulation failed\n");
         }
     } else if (arg1 == ARGS_SET_LOG_LEVEL) {
         retRes = SetLogLevel(arg2, result);

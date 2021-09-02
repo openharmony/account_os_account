@@ -53,6 +53,7 @@ ohos_shared_library("accountmgr") {
     "src/account_mgr_service.cpp",
     "src/account_state_machine.cpp",
     "src/account_stub.cpp",
+    "src/account_event_provider.cpp",
     "src/ohos_account_data_deal.cpp",
     "src/ohos_account_manager.cpp",
   ]
@@ -75,6 +76,8 @@ ohos_shared_library("accountmgr") {
     "aafwk_standard:want",
     "appexecfwk_standard:appexecfwk_base",
     "appexecfwk_standard:appexecfwk_core",
+    "ces_standard:cesfwk_core",
+    "ces_standard:cesfwk_innerkits",
     "hisysevent_native:libhisysevent",
     "hiviewdfx_hilog_native:libhilog",
     "ipc:ipc_core",
