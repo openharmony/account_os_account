@@ -16,6 +16,7 @@
 #include "account_mgr_service.h"
 #include "account_dump_helper.h"
 #include "account_log_wrapper.h"
+#include "common_event_support.h"
 #include "datetime_ex.h"
 #include "device_account_info.h"
 #include "directory_ex.h"

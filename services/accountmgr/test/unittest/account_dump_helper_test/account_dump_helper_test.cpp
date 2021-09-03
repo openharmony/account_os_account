@@ -20,6 +20,7 @@
 #include "account_error_no.h"
 #include "account_info.h"
 #include "account_log_wrapper.h"
+#include "account_event_provider.h"
 #include "ohos_account_manager.h"
 
 using namespace testing::ext;
