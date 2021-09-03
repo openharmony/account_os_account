@@ -34,7 +34,7 @@ bool AccountEventProvider::EventPublish(const std::string& event)
     /* publish */
     bool ret = CommonEventManager::PublishCommonEvent(data);
     if (ret != true) {
-        ACCOUNT_LOGE("heruichen publish event failed: %{public}d", ret);
+        ACCOUNT_LOGE("publish event failed: %{public}d", ret);
     }
     return ret;
 }
