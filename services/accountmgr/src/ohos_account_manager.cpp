@@ -14,12 +14,16 @@
  */
 
 #include "ohos_account_manager.h"
+#include "account_event_provider.h"
 #include "account_helper_data.h"
 #include "account_info.h"
 #include "account_log_wrapper.h"
 #include "account_mgr_service.h"
+#include "common_event_support.h"
 #include "hisysevent.h"
 #include "system_ability_definition.h"
+
+using namespace OHOS::EventFwk;
 
 namespace OHOS {
 namespace AccountSA {
@@ -154,6 +158,7 @@ bool OhosAccountManager::HandleEvent(const std::string &eventStr)
 bool OhosAccountManager::LoginOhosAccount(const std::string &name, const std::string &uid, const std::string &eventStr)
 {
     std::lock_guard<std::mutex> mutexLock(mgrMutex_);
+    std::int32_t oldStatus = currentAccount_.ohosAccountStatus_;
     bool ret = HandleEvent(eventStr); // update account status
     if (!ret) {
         ACCOUNT_LOGE("LoginOhosAccount: HandleEvent %{public}s failed", eventStr.c_str());
@@ -166,6 +171,12 @@ bool OhosAccountManager::LoginOhosAccount(const std::string &name, const std::st
     ret = SetAccount(accountInfo); // set account info
     if (!ret) {
         ACCOUNT_LOGE("LoginOhosAccount: SetAccount failed");
+        return false;
+    }
+    bool errCode = AccountEventProvider::EventPublish(EventFwk::CommonEventSupport::COMMON_EVENT_HWID_LOGIN);
+    if (errCode != true) {
+        ACCOUNT_LOGE("publish account login event failed");
+        ReportPublishFailureEvent(errCode, oldStatus);
         return false;
     }
     ACCOUNT_LOGI("LoginOhosAccount success");
@@ -183,6 +194,7 @@ bool OhosAccountManager::LoginOhosAccount(const std::string &name, const std::st
 bool OhosAccountManager::LogoutOhosAccount(const std::string &name, const std::string &uid, const std::string &eventStr)
 {
     std::lock_guard<std::mutex> mutexLock(mgrMutex_);
+    std::int32_t oldStatus = currentAccount_.ohosAccountStatus_;
     bool ret = HandleEvent(eventStr); // update account status
     if (!ret) {
         ACCOUNT_LOGE("LogoutOhosAccount: HandleEvent %{public}s failed", eventStr.c_str());
@@ -192,6 +204,12 @@ bool OhosAccountManager::LogoutOhosAccount(const std::string &name, const std::s
     ret = ClearAccount(); // clear account info with ACCOUNT_STATE_LOGOUT
     if (!ret) {
         ACCOUNT_LOGE("LogoutOhosAccount: ClearAccount failed");
+        return false;
+    }
+    bool errCode = AccountEventProvider::EventPublish(EventFwk::CommonEventSupport::COMMON_EVENT_HWID_LOGOUT);
+    if (errCode != true) {
+        ACCOUNT_LOGE("publish account logout event failed");
+        ReportPublishFailureEvent(errCode, oldStatus);
         return false;
     }
     ACCOUNT_LOGI("LogoutOhosAccount success");
@@ -209,6 +227,7 @@ bool OhosAccountManager::LogoutOhosAccount(const std::string &name, const std::s
 bool OhosAccountManager::LogoffOhosAccount(const std::string &name, const std::string &uid, const std::string &eventStr)
 {
     std::lock_guard<std::mutex> mutexLock(mgrMutex_);
+    std::int32_t oldStatus = currentAccount_.ohosAccountStatus_;
     bool ret = HandleEvent(eventStr); // update account status
     if (!ret) {
         ACCOUNT_LOGE("LogoffOhosAccount: HandleEvent %{public}s failed", eventStr.c_str());
@@ -218,6 +237,12 @@ bool OhosAccountManager::LogoffOhosAccount(const std::string &name, const std::s
     ret = ClearAccount(ACCOUNT_STATE_LOGOFF); // clear account info with ACCOUNT_STATE_LOGOFF
     if (!ret) {
         ACCOUNT_LOGE("LogoffOhosAccount: ClearAccount failed");
+        return false;
+    }
+    bool errCode = AccountEventProvider::EventPublish(EventFwk::CommonEventSupport::COMMON_EVENT_HWID_LOGOFF);
+    if (errCode != true) {
+        ACCOUNT_LOGE("publish account logoff event failed");
+        ReportPublishFailureEvent(errCode, oldStatus);
         return false;
     }
     ACCOUNT_LOGI("LogoffOhosAccount success");
@@ -236,6 +261,7 @@ bool OhosAccountManager::HandleOhosAccountTokenInvalidEvent(const std::string &n
     const std::string &uid, const std::string &eventStr)
 {
     std::lock_guard<std::mutex> mutexLock(mgrMutex_);
+    std::int32_t oldStatus = currentAccount_.ohosAccountStatus_;
     bool ret = HandleEvent(eventStr); // update account status
     if (!ret) {
         ACCOUNT_LOGE("HandleOhosAccountTokenInvalidEvent: HandleEvent %{public}s failed", eventStr.c_str());
@@ -248,6 +274,12 @@ bool OhosAccountManager::HandleOhosAccountTokenInvalidEvent(const std::string &n
     if (!ret) {
         // moving on even if failed to update account info
         ACCOUNT_LOGW("Handle TokenInvalid event: SetAccount failed");
+    }
+    bool errCode = AccountEventProvider::EventPublish(EventFwk::CommonEventSupport::COMMON_EVENT_HWID_TOKEN_INVALID);
+    if (errCode != true) {
+        ACCOUNT_LOGE("publish account token invalid event failed");
+        ReportPublishFailureEvent(errCode, oldStatus);
+        return false;
     }
     ACCOUNT_LOGI("HandleOhosAccountTokenInvalidEvent success");
     return true;

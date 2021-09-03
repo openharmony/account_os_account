@@ -20,6 +20,7 @@
 #include <mutex>
 #include <thread>
 #include "account_dump_helper.h"
+#include "account_event_provider.h"
 #include "account_info.h"
 #include "account_stub.h"
 #include "iaccount.h"

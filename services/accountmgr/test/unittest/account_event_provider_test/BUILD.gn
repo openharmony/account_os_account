@@ -17,7 +17,7 @@ import("//build/test.gni")
 
 module_output_path = "os_account_standard/accountmgrservice"
 
-config("accountmgr_dump_test_config") {
+config("accountmgr_event_provider_test_config") {
   include_dirs = [
     "./include",
     "${common_path}/log/include",
@@ -31,23 +31,17 @@ config("accountmgr_dump_test_config") {
   ]
 }
 
-ohos_unittest("AccountDumpHelperTest") {
+ohos_unittest("AccountEventProviderTest") {
   module_out_path = module_output_path
 
   sources = [
     "${common_path}/log/src/account_log_wrapper.cpp",
-    "${common_path}/perf_stat/src/perf_stat.cpp",
-    "${services_path}/accountmgr/src/account_dump_helper.cpp",
     "${services_path}/accountmgr/src/account_event_provider.cpp",
-    "${services_path}/accountmgr/src/account_helper_data.cpp",
-    "${services_path}/accountmgr/src/account_state_machine.cpp",
-    "${services_path}/accountmgr/src/ohos_account_data_deal.cpp",
-    "${services_path}/accountmgr/src/ohos_account_manager.cpp",
   ]
-  sources += [ "account_dump_helper_test.cpp" ]
+  sources += [ "account_event_provider_test.cpp" ]
 
   configs = [
-    ":accountmgr_dump_test_config",
+    ":accountmgr_event_provider_test_config",
     "${services_path}/accountmgr/test:accountmgr_test_config",
   ]
 
@@ -62,12 +56,16 @@ ohos_unittest("AccountDumpHelperTest") {
     "aafwk_standard:intent",
     "aafwk_standard:want",
     "appexecfwk_standard:appexecfwk_base",
+    "appexecfwk_standard:appexecfwk_core",
     "ces_standard:cesfwk_core",
     "ces_standard:cesfwk_innerkits",
     "hisysevent_native:libhisysevent",
     "hiviewdfx_hilog_native:libhilog",
     "ipc:ipc_core",
+    "permission_standard:libpermissionsdk_standard",
     "safwk:system_ability_fwk",
+    "samgr_L2:samgr_proxy",
+    "startup_l2:syspara",
   ]
   part_name = "os_account_standard"
 }
@@ -75,5 +73,5 @@ ohos_unittest("AccountDumpHelperTest") {
 group("unittest") {
   testonly = true
 
-  deps = [ ":AccountDumpHelperTest" ]
+  deps = [ ":AccountEventProviderTest" ]
 }
