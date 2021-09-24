@@ -236,7 +236,13 @@ napi_value NapiDistributedAccount::UpdateOsAccountDistributedInfo(napi_env env, 
         [](napi_env env, napi_status status, void *data) {
             DistributedAccountAsyncContext *asyncContext = (DistributedAccountAsyncContext*)data;
             napi_value updateResult = nullptr;
-            napi_get_boolean(env, asyncContext->status == napi_ok, &updateResult);
+            if (asyncContext->status == napi_ok) {
+                napi_get_undefined(env, &updateResult);
+            } else {
+                napi_value message = nullptr;
+                napi_create_string_utf8(env, "Update os account distributedInfo failed", NAPI_AUTO_LENGTH, &message);
+                napi_create_error(env, nullptr, message, &updateResult);
+            }
             ProcessCallbackOrPromise(env, asyncContext, updateResult);
             napi_delete_async_work(env, asyncContext->work);
             delete asyncContext;
