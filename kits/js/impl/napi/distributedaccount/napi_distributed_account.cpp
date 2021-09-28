@@ -120,7 +120,7 @@ void ProcessSetNamedProperty(napi_env env, DistributedAccountAsyncContext *async
         napi_set_named_property(env, result[1], PROPERTY_KEY_EVENT.c_str(), value);
         napi_value scalable = nullptr;
         napi_create_object(env, &scalable);
-        for(const auto &[key,value]:asyncContext->scalableData) {
+        for (const auto &[key,value]:asyncContext->scalableData) {
             napi_value jsValue = nullptr;
             napi_create_string_utf8(env, value.c_str(), value.size(), &jsValue);
             napi_set_named_property(env, scalable, key.c_str(), jsValue);
