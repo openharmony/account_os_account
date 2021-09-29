@@ -30,6 +30,7 @@ namespace {
 constexpr std::int32_t MAX_VALUE_LEN = 4096;
 constexpr std::int32_t QUERY_ARGC = 1;
 constexpr std::int32_t UPDATE_ARGC = 2;
+constexpr int RESULT_COUNT = 2;
 const std::string DISTRIBUTED_ACCOUNT_CLASS_NAME = "DistributedAccountAbility";
 const std::string PROPERTY_KEY_NAME = "name";
 const std::string PROPERTY_KEY_ID = "id";
@@ -83,24 +84,55 @@ void ParseAsyncContextFromArgs(napi_env env, napi_callback_info cbInfo, Distribu
     }
 }
 
-void ProcessCallbackOrPromise(napi_env env, DistributedAccountAsyncContext *asyncContext, napi_value result)
+void ProcessCallbackOrPromise(napi_env env, DistributedAccountAsyncContext *asyncContext, napi_value err,
+    napi_value data)
 {
-    napi_value args[1] = { result };
+    napi_value args[RESULT_COUNT] = { err, data };
     if (asyncContext->deferred) {
         ACCOUNT_LOGI("Promise");
         if (asyncContext->status == napi_ok) {
-            napi_resolve_deferred(env, asyncContext->deferred, result);
+            napi_resolve_deferred(env, asyncContext->deferred, args[1]);
         } else {
-            napi_reject_deferred(env, asyncContext->deferred, result);
+            napi_reject_deferred(env, asyncContext->deferred, args[0]);
         }
     } else {
         ACCOUNT_LOGI("Callback");
         napi_value callback = nullptr;
         napi_get_reference_value(env, asyncContext->callbackRef, &callback);
         napi_value returnVal = nullptr;
-        napi_call_function(env, nullptr, callback, 1, args, &returnVal);
+        napi_call_function(env, nullptr, callback, RESULT_COUNT, args, &returnVal);
         napi_delete_reference(env, asyncContext->callbackRef);
     }
+}
+
+void ProcessSetNamedProperty(napi_env env, DistributedAccountAsyncContext *asyncContext)
+{
+    napi_value result[RESULT_COUNT] = {0};
+    if (asyncContext->status == napi_ok) {
+        napi_get_undefined(env, &result[0]);
+        napi_create_object(env, &result[1]);
+        napi_value value = nullptr;
+        napi_create_string_utf8(env, asyncContext->name.c_str(), asyncContext->name.size(), &value);
+        napi_set_named_property(env, result[1], PROPERTY_KEY_NAME.c_str(), value);
+        napi_create_string_utf8(env, asyncContext->id.c_str(), asyncContext->id.size(), &value);
+        napi_set_named_property(env, result[1], PROPERTY_KEY_ID.c_str(), value);
+        napi_create_string_utf8(env, asyncContext->event.c_str(), asyncContext->event.size(), &value);
+        napi_set_named_property(env, result[1], PROPERTY_KEY_EVENT.c_str(), value);
+        napi_value scalable = nullptr;
+        napi_create_object(env, &scalable);
+        for (const auto &[key, value]:asyncContext->scalableData) {
+            napi_value jsValue = nullptr;
+            napi_create_string_utf8(env, value.c_str(), value.size(), &jsValue);
+            napi_set_named_property(env, scalable, key.c_str(), jsValue);
+        }
+        napi_set_named_property(env, result[1], PROPERTY_KEY_SCALABLE.c_str(), scalable);
+    } else {
+        napi_value message = nullptr;
+        napi_create_string_utf8(env, "query ohos account info failed", NAPI_AUTO_LENGTH, &message);
+        napi_create_error(env, nullptr, message, &result[0]);
+        napi_get_undefined(env, &result[1]);
+    }
+    ProcessCallbackOrPromise(env, asyncContext, result[0], result[1]);
 }
 }
 
@@ -176,6 +208,8 @@ napi_value NapiDistributedAccount::QueryOhosAccountInfo(napi_env env, napi_callb
             if (accountInfo.first) {
                 asyncContext->name = accountInfo.second.name_;
                 asyncContext->id = accountInfo.second.uid_;
+                asyncContext->event = "";
+                asyncContext->scalableData = {};
                 asyncContext->status = napi_ok;
             } else {
                 asyncContext->status = napi_generic_failure;
@@ -183,22 +217,7 @@ napi_value NapiDistributedAccount::QueryOhosAccountInfo(napi_env env, napi_callb
         },
         [](napi_env env, napi_status status, void *data) {
             DistributedAccountAsyncContext *asyncContext = (DistributedAccountAsyncContext*)data;
-            napi_value queryResult = nullptr;
-            if (asyncContext->status == napi_ok) {
-                napi_create_object(env, &queryResult);
-                napi_value value = nullptr;
-                napi_create_string_utf8(env, asyncContext->name.c_str(), asyncContext->name.size(), &value);
-                napi_set_named_property(env, queryResult, PROPERTY_KEY_NAME.c_str(), value);
-
-                napi_create_string_utf8(env, asyncContext->id.c_str(), asyncContext->id.size(), &value);
-                napi_set_named_property(env, queryResult, PROPERTY_KEY_ID.c_str(), value);
-            } else {
-                napi_value message = nullptr;
-                napi_create_string_utf8(env, "query ohos account info failed", NAPI_AUTO_LENGTH, &message);
-                napi_create_error(env, nullptr, message, &queryResult);
-            }
-
-            ProcessCallbackOrPromise(env, asyncContext, queryResult);
+            ProcessSetNamedProperty(env, asyncContext);
             napi_delete_async_work(env, asyncContext->work);
             delete asyncContext;
         },
@@ -235,15 +254,17 @@ napi_value NapiDistributedAccount::UpdateOsAccountDistributedInfo(napi_env env, 
         },
         [](napi_env env, napi_status status, void *data) {
             DistributedAccountAsyncContext *asyncContext = (DistributedAccountAsyncContext*)data;
-            napi_value updateResult = nullptr;
+            napi_value result[RESULT_COUNT] = {0};
             if (asyncContext->status == napi_ok) {
-                napi_get_undefined(env, &updateResult);
+                napi_get_undefined(env, &result[0]);
+                napi_get_undefined(env, &result[1]);
             } else {
                 napi_value message = nullptr;
                 napi_create_string_utf8(env, "Update os account distributedInfo failed", NAPI_AUTO_LENGTH, &message);
-                napi_create_error(env, nullptr, message, &updateResult);
+                napi_create_error(env, nullptr, message, &result[0]);
+                napi_get_undefined(env, &result[1]);
             }
-            ProcessCallbackOrPromise(env, asyncContext, updateResult);
+            ProcessCallbackOrPromise(env, asyncContext, result[0], result[1]);
             napi_delete_async_work(env, asyncContext->work);
             delete asyncContext;
         },
