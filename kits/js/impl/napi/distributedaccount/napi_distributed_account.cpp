@@ -255,7 +255,7 @@ napi_value NapiDistributedAccount::UpdateOsAccountDistributedInfo(napi_env env, 
         [](napi_env env, napi_status status, void *data) {
             DistributedAccountAsyncContext *asyncContext = (DistributedAccountAsyncContext*)data;
             napi_value result[RESULT_COUNT] = {0};
-            if (asyncContext->status == napi_ok) {;
+            if (asyncContext->status == napi_ok) {
                 napi_get_undefined(env, &result[0]);
                 napi_get_undefined(env, &result[1]);
             } else {
