@@ -30,13 +30,13 @@ bool AccountProxy::UpdateOhosAccountInfo(const std::string& accountName, const s
         ACCOUNT_LOGE("Write descriptor failed");
         return false;
     }
-    if (!data.WriteString16(Str8ToStr16(accountName.c_str()))) {
+    if (!data.WriteString16(Str8ToStr16(accountName))) {
         return false;
     }
-    if (!data.WriteString16(Str8ToStr16(uid.c_str()))) {
+    if (!data.WriteString16(Str8ToStr16(uid))) {
         return false;
     }
-    if (!data.WriteString16(Str8ToStr16(eventStr.c_str()))) {
+    if (!data.WriteString16(Str8ToStr16(eventStr))) {
         return false;
     }
 
