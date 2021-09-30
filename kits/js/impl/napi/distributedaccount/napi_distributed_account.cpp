@@ -84,7 +84,7 @@ void ParseAsyncContextFromArgs(napi_env env, napi_callback_info cbInfo, Distribu
     }
 }
 
-void ProcessCallbackOrPromise(napi_env env, DistributedAccountAsyncContext *asyncContext, napi_value err,
+void ProcessCallbackOrPromise(napi_env env, const DistributedAccountAsyncContext *asyncContext, napi_value err,
     napi_value data)
 {
     napi_value args[RESULT_COUNT] = { err, data };
@@ -105,7 +105,7 @@ void ProcessCallbackOrPromise(napi_env env, DistributedAccountAsyncContext *asyn
     }
 }
 
-void ProcessSetNamedProperty(napi_env env, DistributedAccountAsyncContext *asyncContext)
+void ProcessSetNamedProperty(napi_env env, const DistributedAccountAsyncContext *asyncContext)
 {
     napi_value result[RESULT_COUNT] = {0};
     if (asyncContext->status == napi_ok) {
