@@ -16,6 +16,7 @@ import("//build/ohos.gni")
 
 ohos_shared_library("distributedaccount") {
   include_dirs = [
+    "include",
     "//third_party/libuv/include",
     "//third_party/node/src",
     "//foundation/ace/napi/interfaces/kits",
@@ -26,7 +27,7 @@ ohos_shared_library("distributedaccount") {
     "-g3",
   ]
 
-  sources = [ "napi_distributed_account.cpp" ]
+  sources = [ "src/napi_distributed_account.cpp" ]
 
   defines = [
     "ACCOUNT_LOG_TAG = \"AccountJsKit\"",

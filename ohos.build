@@ -3,14 +3,14 @@
   "parts": {
     "os_account_standard": {
       "module_list": [
-        "//base/account/os_account/common:common_target",
+        "//base/account/os_account/frameworks/common:common_target",
         "//base/account/os_account/services:services_target",
         "//base/account/os_account/sa_profile:account_sa_profile",
-        "//base/account/os_account/kits/js/impl/napi/distributedaccount:distributedaccount"
+        "//base/account/os_account/interfaces/kits/napi/distributedaccount:distributedaccount"
       ],
       "inner_kits": [
         {
-          "name": "//base/account/os_account/interfaces/innerkits/accountmgr:libaccountkits",
+          "name": "//base/account/os_account/frameworks/ohosaccount/native:libaccountkits",
           "header": {
             "header_files": [
               "account_info.h",
@@ -18,14 +18,14 @@
               "iaccount.h",
               "ohos_account_kits.h"
             ],
-            "header_base": "//base/account/os_account/interfaces/innerkits/include"
+            "header_base": "//base/account/os_account/interfaces/innerkits/ohosaccount/native/include"
           }
         }
       ],
       "test_list": [
-        "//base/account/os_account/common/test:unittest",
+        "//base/account/os_account/frameworks/common/test:unittest",
         "//base/account/os_account/services/accountmgr/test:unittest",
-        "//base/account/os_account/interfaces/innerkits/test:moduletest"
+        "//base/account/os_account/frameworks/ohosaccount/test:moduletest"
       ]
     }
   }
