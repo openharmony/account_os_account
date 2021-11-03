@@ -37,7 +37,7 @@ ohos_unittest("account_mgr_test") {
   sources = [
     "${common_path}/log/src/account_log_wrapper.cpp",
     "${common_path}/perf_stat/src/perf_stat.cpp",
-    "${innerkits_path}/accountmgr/src/account_proxy.cpp",
+    "${innerkits_native_path}/src/account_proxy.cpp",
     "${services_path}/accountmgr/src/account_dump_helper.cpp",
     "${services_path}/accountmgr/src/account_event_provider.cpp",
     "${services_path}/accountmgr/src/account_helper_data.cpp",

@@ -12,9 +12,7 @@
 # limitations under the License.
 
 os_account_path = "//base/account/os_account"
-
-common_path = "${os_account_path}/common"
-
+common_path = "${os_account_path}/frameworks/common"
 services_path = "${os_account_path}/services"
-
-innerkits_path = "${os_account_path}/interfaces/innerkits"
+innerkits_path = "${os_account_path}/interfaces/innerkits/ohosaccount/native"
+innerkits_native_path = "${os_account_path}/frameworks/ohosaccount/native"

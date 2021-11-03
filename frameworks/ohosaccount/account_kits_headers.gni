@@ -19,5 +19,5 @@ account_sdk_headers = {
     "ohos_account_kits.h",
   ]
 
-  header_base = "interfaces/innerkits/include"
+  header_base = "//base/account/os_account/interfaces/innerkits/ohosaccount/native/include"
 }
