@@ -1,0 +1,240 @@
+# Copyright (c) 2021 Huawei Device Co., Ltd.
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#     http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
+import("//base/account/os_account/os_account.gni")
+import("//build/test.gni")
+
+module_output_path = "app_account_standard/services"
+
+config("app_account_service_config_mock") {
+  include_dirs = [
+    "//third_party/googletest/googlemock/include",
+    "${app_account_services_path}/test/mock/app_account",
+  ]
+}
+
+app_account_mock_sources = [
+  "${app_account_services_path}/test/mock/app_account/bundle_mgr_client.cpp",
+  "${app_account_services_path}/test/mock/app_account/mock_app_account_control_manager.cpp",
+  "${app_account_services_path}/test/mock/app_account/mock_app_account_subscribe_manager.cpp",
+  "${app_account_services_path}/test/mock/app_account/mock_inner_app_account_manager.cpp",
+  "${app_account_services_path}/test/mock/app_account/permission_kit.cpp",
+]
+
+config("app_account_service_config_unittest") {
+  visibility = [ ":*" ]
+
+  include_dirs = []
+
+  cflags = []
+  if (target_cpu == "arm") {
+    cflags += [ "-DBINDER_IPC_32BIT" ]
+  }
+
+  defines = [
+    "ACCOUNT_LOG_TAG = \"AppAccountTest\"",
+    "LOG_DOMAIN = 0xD001B00",
+  ]
+}
+
+ohos_moduletest("app_account_control_manager_module_test") {
+  module_out_path = module_output_path
+
+  sources = [ "app_account_control_manager_module_test.cpp" ]
+  sources += app_account_mock_sources
+
+  configs = [
+    ":app_account_service_config_mock",
+    ":app_account_service_config_unittest",
+  ]
+
+  deps = [
+    "${app_account_innerkits_native_path}:app_account_innerkits",
+    "${app_account_services_path}:accountmgr",
+    "${common_path}:libaccount_common",
+    "//third_party/googletest:gmock_main",
+    "//third_party/googletest:gtest_main",
+  ]
+
+  external_deps = [
+    "aafwk_standard:base",
+    "aafwk_standard:want",
+    "appexecfwk_standard:appexecfwk_base",
+    "appexecfwk_standard:appexecfwk_core",
+    "appexecfwk_standard:libeventhandler",
+    "ces_standard:cesfwk_core",
+    "ces_standard:cesfwk_innerkits",
+    "distributeddatamgr:distributeddata_inner",
+    "hiviewdfx_hilog_native:libhilog",
+    "ipc:ipc_core",
+    "safwk:system_ability_fwk",
+    "samgr_standard:samgr_proxy",
+  ]
+}
+
+ohos_moduletest("app_account_manager_service_module_test") {
+  module_out_path = module_output_path
+
+  sources = [ "app_account_manager_service_module_test.cpp" ]
+  sources += app_account_mock_sources
+
+  configs = [
+    ":app_account_service_config_mock",
+    ":app_account_service_config_unittest",
+  ]
+
+  deps = [
+    "${app_account_innerkits_native_path}:app_account_innerkits",
+    "${app_account_services_path}:accountmgr",
+    "${common_path}:libaccount_common",
+    "${innerkits_native_path}:libaccountkits",
+    "//third_party/googletest:gmock_main",
+    "//third_party/googletest:gtest_main",
+  ]
+
+  external_deps = [
+    "aafwk_standard:base",
+    "aafwk_standard:want",
+    "appexecfwk_standard:appexecfwk_base",
+    "appexecfwk_standard:appexecfwk_core",
+    "appexecfwk_standard:libeventhandler",
+    "ces_standard:cesfwk_core",
+    "ces_standard:cesfwk_innerkits",
+    "distributeddatamgr:distributeddata_inner",
+    "hiviewdfx_hilog_native:libhilog",
+    "ipc:ipc_core",
+    "safwk:system_ability_fwk",
+    "samgr_standard:samgr_proxy",
+  ]
+}
+
+ohos_moduletest("app_account_manager_service_subscribe_module_test") {
+  module_out_path = module_output_path
+
+  sources = [ "app_account_manager_service_subscribe_module_test.cpp" ]
+  sources += app_account_mock_sources
+
+  configs = [
+    ":app_account_service_config_mock",
+    ":app_account_service_config_unittest",
+  ]
+
+  deps = [
+    "${app_account_core_path}:app_account_core",
+    "${app_account_innerkits_native_path}:app_account_innerkits",
+    "${app_account_services_path}:accountmgr",
+    "${common_path}:libaccount_common",
+    "${innerkits_native_path}:libaccountkits",
+    "//third_party/googletest:gmock_main",
+    "//third_party/googletest:gtest_main",
+  ]
+
+  external_deps = [
+    "aafwk_standard:base",
+    "aafwk_standard:want",
+    "appexecfwk_standard:appexecfwk_base",
+    "appexecfwk_standard:appexecfwk_core",
+    "appexecfwk_standard:libeventhandler",
+    "ces_standard:cesfwk_core",
+    "ces_standard:cesfwk_innerkits",
+    "distributeddatamgr:distributeddata_inner",
+    "hiviewdfx_hilog_native:libhilog",
+    "ipc:ipc_core",
+    "safwk:system_ability_fwk",
+    "samgr_standard:samgr_proxy",
+  ]
+}
+
+ohos_moduletest("app_account_manager_service_sync_module_test") {
+  module_out_path = module_output_path
+
+  sources = [ "app_account_manager_service_sync_module_test.cpp" ]
+  sources += app_account_mock_sources
+
+  configs = [
+    ":app_account_service_config_mock",
+    ":app_account_service_config_unittest",
+  ]
+
+  deps = [
+    "${app_account_innerkits_native_path}:app_account_innerkits",
+    "${app_account_services_path}:accountmgr",
+    "${common_path}:libaccount_common",
+    "${innerkits_native_path}:libaccountkits",
+    "//third_party/googletest:gmock_main",
+    "//third_party/googletest:gtest_main",
+  ]
+
+  external_deps = [
+    "aafwk_standard:base",
+    "aafwk_standard:want",
+    "appexecfwk_standard:appexecfwk_base",
+    "appexecfwk_standard:appexecfwk_core",
+    "appexecfwk_standard:libeventhandler",
+    "ces_standard:cesfwk_core",
+    "ces_standard:cesfwk_innerkits",
+    "distributeddatamgr:distributeddata_inner",
+    "hiviewdfx_hilog_native:libhilog",
+    "ipc:ipc_core",
+    "safwk:system_ability_fwk",
+    "samgr_standard:samgr_proxy",
+  ]
+}
+
+ohos_moduletest("inner_app_account_manager_module_test") {
+  module_out_path = module_output_path
+
+  sources = [ "inner_app_account_manager_module_test.cpp" ]
+  sources += app_account_mock_sources
+
+  configs = [
+    ":app_account_service_config_mock",
+    ":app_account_service_config_unittest",
+  ]
+
+  deps = [
+    "${app_account_innerkits_native_path}:app_account_innerkits",
+    "${app_account_services_path}:accountmgr",
+    "${common_path}:libaccount_common",
+    "${innerkits_native_path}:libaccountkits",
+    "//third_party/googletest:gmock_main",
+    "//third_party/googletest:gtest_main",
+  ]
+
+  external_deps = [
+    "aafwk_standard:base",
+    "aafwk_standard:want",
+    "appexecfwk_standard:appexecfwk_base",
+    "appexecfwk_standard:appexecfwk_core",
+    "appexecfwk_standard:libeventhandler",
+    "ces_standard:cesfwk_core",
+    "ces_standard:cesfwk_innerkits",
+    "distributeddatamgr:distributeddata_inner",
+    "hiviewdfx_hilog_native:libhilog",
+    "ipc:ipc_core",
+    "safwk:system_ability_fwk",
+    "samgr_standard:samgr_proxy",
+  ]
+}
+
+group("moduletest") {
+  testonly = true
+
+  deps = [
+    ":app_account_control_manager_module_test",
+    ":app_account_manager_service_module_test",
+    ":app_account_manager_service_subscribe_module_test",
+    ":app_account_manager_service_sync_module_test",
+    ":inner_app_account_manager_module_test",
+  ]
+}

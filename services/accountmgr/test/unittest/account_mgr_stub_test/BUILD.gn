@@ -22,8 +22,11 @@ config("accountmgr_stub_test_config") {
 
   include_dirs = [
     "./include",
+    "${services_path}/accountmgr/include",
+    "${services_path}/accountmgr/include/appaccount",
     "${common_path}/log/include",
     "${common_path}/account_error/include",
+    "${common_path}/database/include",
     "${common_path}/perf_stat/include",
     "${services_path}/accountmgr/include",
     "${innerkits_path}/include",
@@ -39,12 +42,24 @@ ohos_unittest("AccountSAMgrStubTest") {
   sources = [
     "${common_path}/log/src/account_log_wrapper.cpp",
     "${common_path}/perf_stat/src/perf_stat.cpp",
+    "${services_path}/accountmgr/src/account_data_storage.cpp",
     "${services_path}/accountmgr/src/account_dump_helper.cpp",
     "${services_path}/accountmgr/src/account_event_provider.cpp",
     "${services_path}/accountmgr/src/account_helper_data.cpp",
+    "${services_path}/accountmgr/src/account_kvstore_death_recipient_callback.cpp",
     "${services_path}/accountmgr/src/account_mgr_service.cpp",
+    "${services_path}/accountmgr/src/account_permission_manager.cpp",
     "${services_path}/accountmgr/src/account_state_machine.cpp",
     "${services_path}/accountmgr/src/account_stub.cpp",
+    "${services_path}/accountmgr/src/appaccount/app_account_bundle_manager.cpp",
+    "${services_path}/accountmgr/src/appaccount/app_account_common_event_oberserver.cpp",
+    "${services_path}/accountmgr/src/appaccount/app_account_common_event_subscriber.cpp",
+    "${services_path}/accountmgr/src/appaccount/app_account_control_manager.cpp",
+    "${services_path}/accountmgr/src/appaccount/app_account_data_storage.cpp",
+    "${services_path}/accountmgr/src/appaccount/app_account_manager_service.cpp",
+    "${services_path}/accountmgr/src/appaccount/app_account_subscribe_death_recipient.cpp",
+    "${services_path}/accountmgr/src/appaccount/app_account_subscribe_manager.cpp",
+    "${services_path}/accountmgr/src/appaccount/inner_app_account_manager.cpp",
     "${services_path}/accountmgr/src/ohos_account_data_deal.cpp",
     "${services_path}/accountmgr/src/ohos_account_manager.cpp",
     "${services_path}/accountmgr/test/mock/src/mock_account_mgr_service.cpp",
@@ -58,6 +73,9 @@ ohos_unittest("AccountSAMgrStubTest") {
   ]
 
   deps = [
+    "${app_account_core_path}:app_account_core",
+    "${app_account_innerkits_native_path}:app_account_innerkits",
+    "${innerkits_native_path}:libaccountkits",
     "//third_party/googletest:gmock_main",
     "//third_party/googletest:gtest_main",
     "//utils/native/base:utils",
@@ -65,12 +83,13 @@ ohos_unittest("AccountSAMgrStubTest") {
 
   external_deps = [
     "aafwk_standard:base",
-    "aafwk_standard:intent",
     "aafwk_standard:want",
     "appexecfwk_standard:appexecfwk_base",
     "appexecfwk_standard:appexecfwk_core",
+    "appexecfwk_standard:libeventhandler",
     "ces_standard:cesfwk_core",
     "ces_standard:cesfwk_innerkits",
+    "distributeddatamgr:distributeddata_inner",
     "hisysevent_native:libhisysevent",
     "hiviewdfx_hilog_native:libhilog",
     "ipc:ipc_core",

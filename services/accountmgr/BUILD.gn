@@ -27,6 +27,7 @@ ohos_prebuilt_etc("accountmgr.init") {
 config("accountmgr_config") {
   include_dirs = [
     "./include",
+    "./include/appaccount",
     "${common_path}/log/include",
     "${common_path}/perf_stat/include",
     "${common_path}/account_error/include",
@@ -36,7 +37,14 @@ config("accountmgr_config") {
     "//utils/system/safwk/native/include",
   ]
 }
+config("accountmgr_public_config") {
+  visibility = [ ":*" ]
 
+  include_dirs = [
+    "${services_path}/accountmgr/include",
+    "${services_path}/accountmgr/include/appaccount",
+  ]
+}
 group("accountmgr_target") {
   deps = [
     ":accountmgr",
@@ -48,12 +56,24 @@ ohos_shared_library("accountmgr") {
   visibility = [ "${os_account_path}/*" ]
 
   sources = [
+    "src/account_data_storage.cpp",
     "src/account_dump_helper.cpp",
     "src/account_event_provider.cpp",
     "src/account_helper_data.cpp",
+    "src/account_kvstore_death_recipient_callback.cpp",
     "src/account_mgr_service.cpp",
+    "src/account_permission_manager.cpp",
     "src/account_state_machine.cpp",
     "src/account_stub.cpp",
+    "src/appaccount/app_account_bundle_manager.cpp",
+    "src/appaccount/app_account_common_event_oberserver.cpp",
+    "src/appaccount/app_account_common_event_subscriber.cpp",
+    "src/appaccount/app_account_control_manager.cpp",
+    "src/appaccount/app_account_data_storage.cpp",
+    "src/appaccount/app_account_manager_service.cpp",
+    "src/appaccount/app_account_subscribe_death_recipient.cpp",
+    "src/appaccount/app_account_subscribe_manager.cpp",
+    "src/appaccount/inner_app_account_manager.cpp",
     "src/ohos_account_data_deal.cpp",
     "src/ohos_account_manager.cpp",
   ]
@@ -65,19 +85,26 @@ ohos_shared_library("accountmgr") {
 
   configs = [ ":accountmgr_config" ]
 
+  public_configs = [ ":accountmgr_public_config" ]
+
   deps = [
+    "${app_account_core_path}:app_account_core",
+    "${app_account_innerkits_native_path}:app_account_innerkits",
     "${common_path}:libaccount_common",
+    "${innerkits_native_path}:libaccountkits",
+    "//third_party/jsoncpp:jsoncpp",
     "//utils/native/base:utils",
   ]
 
   external_deps = [
     "aafwk_standard:base",
-    "aafwk_standard:intent",
     "aafwk_standard:want",
     "appexecfwk_standard:appexecfwk_base",
     "appexecfwk_standard:appexecfwk_core",
+    "appexecfwk_standard:libeventhandler",
     "ces_standard:cesfwk_core",
     "ces_standard:cesfwk_innerkits",
+    "distributeddatamgr:distributeddata_inner",
     "hisysevent_native:libhisysevent",
     "hiviewdfx_hilog_native:libhilog",
     "ipc:ipc_core",

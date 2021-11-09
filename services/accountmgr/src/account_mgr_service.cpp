@@ -16,6 +16,7 @@
 #include "account_mgr_service.h"
 #include "account_dump_helper.h"
 #include "account_log_wrapper.h"
+#include "app_account_manager_service.h"
 #include "common_event_support.h"
 #include "datetime_ex.h"
 #include "device_account_info.h"
@@ -36,8 +37,8 @@ const std::string DEVICE_OWNER_DIR = "/data/system/users/0/";
 constexpr std::int32_t UID_TRANSFORM_DIVISOR = 100000;
 IAccountContext *IAccountContext::instance_ = nullptr;
 
-const bool REGISTER_RESULT = SystemAbility::MakeAndRegisterAbility(
-    &DelayedRefSingleton<AccountMgrService>::GetInstance());
+const bool REGISTER_RESULT =
+    SystemAbility::MakeAndRegisterAbility(&DelayedRefSingleton<AccountMgrService>::GetInstance());
 
 AccountMgrService::AccountMgrService() : SystemAbility(SUBSYS_ACCOUNT_SYS_ABILITY_ID_BEGIN, true)
 {
@@ -45,11 +46,10 @@ AccountMgrService::AccountMgrService() : SystemAbility(SUBSYS_ACCOUNT_SYS_ABILIT
 }
 
 AccountMgrService::~AccountMgrService()
-{
-}
+{}
 
-bool AccountMgrService::UpdateOhosAccountInfo(const std::string& accountName, const std::string& uid,
-    const std::string& eventStr)
+bool AccountMgrService::UpdateOhosAccountInfo(
+    const std::string &accountName, const std::string &uid, const std::string &eventStr)
 {
     ACCOUNT_LOGI("Account event %s", eventStr.c_str());
     if (!ohosAccountMgr_->OhosAccountStateChange(accountName, uid, eventStr)) {
@@ -79,10 +79,17 @@ std::int32_t AccountMgrService::QueryDeviceAccountIdFromUid(std::int32_t uid)
     return uid / UID_TRANSFORM_DIVISOR;
 }
 
-std::int32_t AccountMgrService::QueryDeviceAccountId(std::int32_t& accountId)
+std::int32_t AccountMgrService::QueryDeviceAccountId(std::int32_t &accountId)
 {
     accountId = DEVICE_ACCOUNT_OWNER;
     return ERR_OK;
+}
+
+sptr<IRemoteObject> AccountMgrService::GetAppAccountService()
+{
+    ACCOUNT_LOGI("enter");
+
+    return appAccountManagerService_;
 }
 
 bool AccountMgrService::IsServiceStarted(void) const
@@ -133,8 +140,11 @@ bool AccountMgrService::Init()
     if (!registerToService_) {
         ret = Publish(&DelayedRefSingleton<AccountMgrService>::GetInstance());
         if (!ret) {
-            HiviewDFX::HiSysEvent::Write(HiviewDFX::HiSysEvent::Domain::ACCOUNT, "AccountServiceStartFailed",
-                HiviewDFX::HiSysEvent::EventType::FAULT, "ERROR_TYPE", ERR_ACCOUNT_MGR_ADD_TO_SA_ERROR);
+            HiviewDFX::HiSysEvent::Write(HiviewDFX::HiSysEvent::Domain::ACCOUNT,
+                "AccountServiceStartFailed",
+                HiviewDFX::HiSysEvent::EventType::FAULT,
+                "ERROR_TYPE",
+                ERR_ACCOUNT_MGR_ADD_TO_SA_ERROR);
             ACCOUNT_LOGE("AccountMgrService::Init Publish failed!");
             return false;
         }
@@ -147,17 +157,23 @@ bool AccountMgrService::Init()
     ret = ohosAccountMgr_->OnInitialize();
     if (!ret) {
         ACCOUNT_LOGE("Ohos account manager initialize failed");
-        HiviewDFX::HiSysEvent::Write(HiviewDFX::HiSysEvent::Domain::ACCOUNT, "AccountServiceStartFailed",
-            HiviewDFX::HiSysEvent::EventType::FAULT, "ERROR_TYPE", ret);
+        HiviewDFX::HiSysEvent::Write(HiviewDFX::HiSysEvent::Domain::ACCOUNT,
+            "AccountServiceStartFailed",
+            HiviewDFX::HiSysEvent::EventType::FAULT,
+            "ERROR_TYPE",
+            ret);
         return ret;
     }
     dumpHelper_ = std::make_unique<AccountDumpHelper>(ohosAccountMgr_);
     IAccountContext::SetInstance(this);
+
+    auto appAccountManagerService = new AppAccountManagerService();
+    appAccountManagerService_ = appAccountManagerService->AsObject();
     ACCOUNT_LOGI("init end success");
     return true;
 }
 
-int AccountMgrService::Dump(std::int32_t fd, const std::vector<std::u16string>& args)
+int AccountMgrService::Dump(std::int32_t fd, const std::vector<std::u16string> &args)
 {
     if (fd < 0) {
         ACCOUNT_LOGE("dump fd invalid");
@@ -165,7 +181,7 @@ int AccountMgrService::Dump(std::int32_t fd, const std::vector<std::u16string>& 
     }
 
     std::vector<std::string> argsInStr;
-    for (const auto& arg : args) {
+    for (const auto &arg : args) {
         ACCOUNT_LOGI("Dump args: %s", Str16ToStr8(arg).c_str());
         argsInStr.emplace_back(Str16ToStr8(arg));
     }
@@ -201,5 +217,5 @@ void AccountMgrService::HandleNotificationEvents(const std::string &eventStr)
 
     ACCOUNT_LOGI("Unhandled event: %{public}s", eventStr.c_str());
 }
-} // namespace AccountSA
-} // namespace OHOS
+}  // namespace AccountSA
+}  // namespace OHOS
