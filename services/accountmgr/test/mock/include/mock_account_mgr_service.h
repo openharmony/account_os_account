@@ -24,25 +24,28 @@
 namespace OHOS {
 namespace AccountSA {
 constexpr std::int32_t MAX_SUPPORTED_ACCOUNT_NUMBER = 4;
-class MockAccountMgrService final: public AccountStub {
+class MockAccountMgrService final : public AccountStub {
 public:
     MockAccountMgrService();
-    MockAccountMgrService(const MockAccountMgrService&) = delete;
+    MockAccountMgrService(const MockAccountMgrService &) = delete;
     ~MockAccountMgrService() override;
 
-    void HandleNotificationEvents(const std::string& eventStr) override;
-    std::int32_t QueryDeviceAccountId(std::int32_t& accountId) override;
-    bool UpdateOhosAccountInfo(const std::string& accountName, const std::string& uid,
-                               const std::string& eventStr) override;
+    void HandleNotificationEvents(const std::string &eventStr) override;
+    std::int32_t QueryDeviceAccountId(std::int32_t &accountId) override;
+    bool UpdateOhosAccountInfo(
+        const std::string &accountName, const std::string &uid, const std::string &eventStr) override;
     std::pair<bool, OhosAccountInfo> QueryOhosAccountInfo(void) override;
     std::int32_t QueryDeviceAccountIdFromUid(std::int32_t uid) override;
+    sptr<IRemoteObject> GetAppAccountService() override;
+
     bool IsServiceStarted() const override
     {
         return true;
     }
+
 private:
     std::int32_t devAccountId_;
 };
-} // namespace AccountSA
-} // namespace OHOS
-#endif // BASE_MOCK_ACCOUNT_MGR_SERVICE_H
+}  // namespace AccountSA
+}  // namespace OHOS
+#endif  // BASE_MOCK_ACCOUNT_MGR_SERVICE_H

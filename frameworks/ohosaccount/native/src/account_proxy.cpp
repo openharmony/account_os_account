@@ -21,8 +21,8 @@
 
 namespace OHOS {
 namespace AccountSA {
-bool AccountProxy::UpdateOhosAccountInfo(const std::string& accountName, const std::string& uid,
-    const std::string& eventStr)
+bool AccountProxy::UpdateOhosAccountInfo(
+    const std::string &accountName, const std::string &uid, const std::string &eventStr)
 {
     ACCOUNT_LOGI("UpdateOhosAccountInfo enter");
     MessageParcel data;
@@ -109,7 +109,7 @@ std::int32_t AccountProxy::QueryDeviceAccountIdFromUid(std::int32_t uid)
     return reply.ReadInt32();
 }
 
-std::int32_t AccountProxy::QueryDeviceAccountId(std::int32_t& accountId)
+std::int32_t AccountProxy::QueryDeviceAccountId(std::int32_t &accountId)
 {
     ACCOUNT_LOGI("QueryDeviceAccountId enter");
     MessageParcel data;
@@ -128,5 +128,25 @@ std::int32_t AccountProxy::QueryDeviceAccountId(std::int32_t& accountId)
     accountId = reply.ReadInt32();
     return ERR_OK;
 }
-} // namespace AccountSA
-} // namespace OHOS
+
+sptr<IRemoteObject> AccountProxy::GetAppAccountService()
+{
+    ACCOUNT_LOGI("enter");
+
+    MessageParcel data;
+    if (!data.WriteInterfaceToken(AccountProxy::GetDescriptor())) {
+        ACCOUNT_LOGE("Write descriptor failed");
+        return nullptr;
+    }
+    MessageParcel reply;
+    MessageOption option;
+    auto ret = Remote()->SendRequest(GET_APP_ACCOUNT_SERVICE, data, reply, option);
+    if (ret != ERR_NONE) {
+        ACCOUNT_LOGE("SendRequest failed %d", ret);
+        return nullptr;
+    }
+
+    return reply.ReadParcelable<IRemoteObject>();
+}
+}  // namespace AccountSA
+}  // namespace OHOS

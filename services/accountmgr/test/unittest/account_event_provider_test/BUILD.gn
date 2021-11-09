@@ -20,6 +20,8 @@ module_output_path = "os_account_standard/accountmgrservice"
 config("accountmgr_event_provider_test_config") {
   include_dirs = [
     "./include",
+    "${app_account_core_path}/include",
+    "${app_account_interfaces_native_path}/include",
     "${common_path}/log/include",
     "${common_path}/perf_stat/include",
     "${common_path}/account_error/include",
@@ -53,7 +55,6 @@ ohos_unittest("AccountEventProviderTest") {
 
   external_deps = [
     "aafwk_standard:base",
-    "aafwk_standard:intent",
     "aafwk_standard:want",
     "appexecfwk_standard:appexecfwk_base",
     "appexecfwk_standard:appexecfwk_core",

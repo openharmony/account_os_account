@@ -29,16 +29,16 @@ class AccountStub;
 using AccountStubFunc = std::int32_t (AccountStub::*)(MessageParcel &data, MessageParcel &reply);
 class AccountStub : public IRemoteStub<IAccount>, public IAccountContext {
 public:
-    virtual std::int32_t OnRemoteRequest(std::uint32_t code,
-                                    MessageParcel &data,
-                                    MessageParcel &reply,
-                                    MessageOption &option) override;
+    virtual std::int32_t OnRemoteRequest(
+        std::uint32_t code, MessageParcel &data, MessageParcel &reply, MessageOption &option) override;
+
 private:
     std::int32_t CmdUpdateOhosAccountInfo(MessageParcel &data, MessageParcel &reply);
     std::int32_t CmdQueryOhosAccountInfo(MessageParcel &data, MessageParcel &reply);
     std::int32_t CmdQueryOhosQuitTips(MessageParcel &data, MessageParcel &reply);
     std::int32_t CmdQueryDeviceAccountId(MessageParcel &data, MessageParcel &reply);
     std::int32_t CmdQueryDeviceAccountIdFromUid(MessageParcel &data, MessageParcel &reply);
+    std::int32_t CmdGetAppAccountService(MessageParcel &data, MessageParcel &reply);
     bool HasAccountRequestPermission(const std::string &permissionName);
     bool IsRootOrSystemAccount();
     bool CheckCallerForTrustList();
@@ -46,7 +46,7 @@ private:
 private:
     static const std::map<std::uint32_t, AccountStubFunc> stubFuncMap_;
 };
-} // namespace AccountSA
-} // namespace OHOS
+}  // namespace AccountSA
+}  // namespace OHOS
 
-#endif // ACCOUNT_STUB_H
+#endif  // ACCOUNT_STUB_H

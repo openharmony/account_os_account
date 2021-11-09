@@ -33,19 +33,19 @@ MockAccountMgrService::~MockAccountMgrService()
     IAccountContext::SetInstance(nullptr);
 }
 
-void MockAccountMgrService::HandleNotificationEvents(const std::string& eventStr)
+void MockAccountMgrService::HandleNotificationEvents(const std::string &eventStr)
 {
     ACCOUNT_LOGI("Get event: %{public}s", eventStr.c_str());
 }
 
-std::int32_t MockAccountMgrService::QueryDeviceAccountId(std::int32_t& accountId)
+std::int32_t MockAccountMgrService::QueryDeviceAccountId(std::int32_t &accountId)
 {
     accountId = devAccountId_;
     return ERR_OK;
 }
 
-bool MockAccountMgrService::UpdateOhosAccountInfo(const std::string& accountName, const std::string& uid,
-    const std::string& eventStr)
+bool MockAccountMgrService::UpdateOhosAccountInfo(
+    const std::string &accountName, const std::string &uid, const std::string &eventStr)
 {
     ACCOUNT_LOGI("MockUpdateOhosAccountInfo: success done");
     return true;
@@ -63,5 +63,12 @@ std::int32_t MockAccountMgrService::QueryDeviceAccountIdFromUid(std::int32_t uid
 {
     return (uid / UID_TRANSFORM_DIVISOR);
 }
-} // namespace AccountSA
-} // namespace OHOS
+
+sptr<IRemoteObject> MockAccountMgrService::GetAppAccountService()
+{
+    ACCOUNT_LOGI("enter");
+
+    return nullptr;
+}
+}  // namespace AccountSA
+}  // namespace OHOS
