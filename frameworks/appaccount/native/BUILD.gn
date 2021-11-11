@@ -1,0 +1,67 @@
+# Copyright (c) 2021 Huawei Device Co., Ltd.
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#     http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
+import("//base/account/os_account/os_account.gni")
+import("//build/ohos.gni")
+
+config("app_account_innnerkits_config") {
+  visibility = [ ":*" ]
+
+  include_dirs = []
+
+  cflags = []
+  if (target_cpu == "arm") {
+    cflags += [ "-DBINDER_IPC_32BIT" ]
+  }
+
+  defines = [
+    "ACCOUNT_LOG_TAG = \"AppAccountFwk\"",
+    "LOG_DOMAIN = 0xD001B00",
+  ]
+}
+
+config("app_account_innerkits_public_config") {
+  visibility = [ ":*" ]
+
+  include_dirs = [
+    "${app_account_core_path}/include",
+    "${app_account_interfaces_native_path}/include",
+  ]
+}
+
+ohos_shared_library("app_account_innerkits") {
+  sources = [
+    "${app_account_innerkits_native_path}/src/app_account_info.cpp",
+    "${app_account_innerkits_native_path}/src/app_account_manager.cpp",
+    "${app_account_innerkits_native_path}/src/app_account_subscribe_info.cpp",
+    "${app_account_innerkits_native_path}/src/app_account_subscriber.cpp",
+  ]
+
+  configs = [ ":app_account_innnerkits_config" ]
+
+  public_configs = [ ":app_account_innerkits_public_config" ]
+
+  deps = [
+    "${app_account_core_path}:app_account_core",
+    "${common_path}:libaccount_common",
+    "//utils/native/base:utils",
+  ]
+
+  external_deps = [
+    "hiviewdfx_hilog_native:libhilog",
+    "ipc:ipc_core",
+  ]
+
+  subsystem_name = "account"
+  part_name = "app_account_standard"
+}
