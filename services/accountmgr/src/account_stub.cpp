@@ -37,8 +37,7 @@ const std::string OHOS_ACCOUNT_QUIT_TIPS_TITLE = "";
 const std::string OHOS_ACCOUNT_QUIT_TIPS_CONTENT = "";
 const std::string PERMISSION_MANAGE_USERS = "ohos.permission.MANAGE_LOCAL_ACCOUNTS";
 const std::string PERMISSION_INTERACT_ACROSS_USERS = "ohos.permission.INTERACT_ACROSS_LOCAL_ACCOUNTS";
-const std::string PERMISSION_INTERACT_ACROSS_USERS_FULL =
-    "ohos.permission.INTERACT_ACROSS_LOCAL_ACCOUNTS_EXTENSION";
+const std::string PERMISSION_INTERACT_ACROSS_USERS_FULL = "ohos.permission.INTERACT_ACROSS_LOCAL_ACCOUNTS_EXTENSION";
 const std::string PERMISSION_DISTRIBUTED_DATASYNC = "ohos.permission.DISTRIBUTED_DATASYNC";
 const std::string DEFAULT_ACCOUNT_NAME = "no_name";
 constexpr std::int32_t SYSTEM_UID = 1000;
@@ -71,13 +70,14 @@ std::int32_t GetBundleNamesForUid(std::int32_t uid, std::string &bundleName)
 
     return ERR_OK;
 }
-}
-const std::map<std::uint32_t, AccountStubFunc> AccountStub::stubFuncMap_ {
+}  // namespace
+const std::map<std::uint32_t, AccountStubFunc> AccountStub::stubFuncMap_{
     std::make_pair(UPDATE_OHOS_ACCOUNT_INFO, &AccountStub::CmdUpdateOhosAccountInfo),
     std::make_pair(QUERY_OHOS_ACCOUNT_INFO, &AccountStub::CmdQueryOhosAccountInfo),
     std::make_pair(QUERY_OHOS_ACCOUNT_QUIT_TIPS, &AccountStub::CmdQueryOhosQuitTips),
     std::make_pair(QUERY_DEVICE_ACCOUNT_ID, &AccountStub::CmdQueryDeviceAccountId),
     std::make_pair(QUERY_DEVICE_ACCOUNT_ID_FROM_UID, &AccountStub::CmdQueryDeviceAccountIdFromUid),
+    std::make_pair(GET_APP_ACCOUNT_SERVICE, &AccountStub::CmdGetAppAccountService),
 };
 
 std::int32_t AccountStub::CmdUpdateOhosAccountInfo(MessageParcel &data, MessageParcel &reply)
@@ -198,8 +198,21 @@ std::int32_t AccountStub::CmdQueryDeviceAccountIdFromUid(MessageParcel &data, Me
     return ERR_OK;
 }
 
-std::int32_t AccountStub::OnRemoteRequest(std::uint32_t code, MessageParcel &data,
-                                          MessageParcel &reply, MessageOption &option)
+std::int32_t AccountStub::CmdGetAppAccountService(MessageParcel &data, MessageParcel &reply)
+{
+    ACCOUNT_LOGI("enter");
+
+    auto remoteObject = GetAppAccountService();
+    if (!reply.WriteParcelable(remoteObject)) {
+        ACCOUNT_LOGE("Write result data failed");
+        return ERR_ACCOUNT_ZIDL_WRITE_RESULT_ERROR;
+    }
+
+    return ERR_OK;
+}
+
+std::int32_t AccountStub::OnRemoteRequest(
+    std::uint32_t code, MessageParcel &data, MessageParcel &reply, MessageOption &option)
 {
     ACCOUNT_LOGI("Received stub message: %{public}d", code);
     if (!IsServiceStarted()) {
@@ -249,7 +262,7 @@ bool AccountStub::HasAccountRequestPermission(const std::string &permissionName)
     ACCOUNT_LOGI("Check permission: %{public}s", permissionName.c_str());
     const std::int32_t userId = QueryDeviceAccountIdFromUid(uid);
     return (Security::Permission::PermissionKit::VerifyPermission(bundleName, permissionName, userId) ==
-        Security::Permission::PermissionState::PERMISSION_GRANTED);
+            Security::Permission::PermissionState::PERMISSION_GRANTED);
 }
 
 bool AccountStub::IsRootOrSystemAccount()
@@ -282,5 +295,5 @@ bool AccountStub::CheckCallerForTrustList()
 
     return true;
 }
-} // namespace AccountSA
-} // namespace OHOS
+}  // namespace AccountSA
+}  // namespace OHOS

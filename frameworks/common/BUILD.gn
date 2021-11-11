@@ -20,9 +20,12 @@ group("common_target") {
 
 config("account_common_config") {
   include_dirs = [
+    "account_error/include",
+    "database/include",
     "log/include",
     "perf_stat/include",
     "//utils/native/base/include",
+    "//third_party/json/include",
   ]
 }
 
@@ -42,8 +45,11 @@ ohos_shared_library("libaccount_common") {
     "//utils/native/base:utils_config",
   ]
 
+  deps = [ "//third_party/jsoncpp:jsoncpp" ]
+
   public_deps = [ "//utils/native/base:utils" ]
 
   external_deps = [ "hiviewdfx_hilog_native:libhilog" ]
+
   part_name = "os_account_standard"
 }

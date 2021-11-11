@@ -23,6 +23,7 @@
 #include "account_event_provider.h"
 #include "account_info.h"
 #include "account_stub.h"
+#include "app_account_manager_service.h"
 #include "iaccount.h"
 #include "iremote_object.h"
 #include "ohos_account_manager.h"
@@ -31,31 +32,31 @@
 
 namespace OHOS {
 namespace AccountSA {
-enum ServiceRunningState {
-    STATE_NOT_START,
-    STATE_RUNNING
-};
+enum ServiceRunningState { STATE_NOT_START, STATE_RUNNING };
 
-class AccountMgrService : public SystemAbility, public AccountStub,
-    public OHOS::DelayedRefSingleton<AccountMgrService> {
+class AccountMgrService : public SystemAbility,
+                          public AccountStub,
+                          public OHOS::DelayedRefSingleton<AccountMgrService> {
 public:
     AccountMgrService();
     ~AccountMgrService();
     DISALLOW_COPY_AND_MOVE(AccountMgrService);
     DECLARE_SYSTEM_ABILITY(AccountMgrService);
-    bool UpdateOhosAccountInfo(const std::string& accountName, const std::string& uid,
-        const std::string& eventStr) override;
+    bool UpdateOhosAccountInfo(
+        const std::string &accountName, const std::string &uid, const std::string &eventStr) override;
     std::pair<bool, OhosAccountInfo> QueryOhosAccountInfo(void) override;
-    std::int32_t QueryDeviceAccountId(std::int32_t& accountId) override;
+    std::int32_t QueryDeviceAccountId(std::int32_t &accountId) override;
     std::int32_t QueryDeviceAccountIdFromUid(std::int32_t uid) override;
+    sptr<IRemoteObject> GetAppAccountService() override;
+
     virtual void OnStart() override;
     virtual void OnStop() override;
     bool IsServiceStarted(void) const override;
-    static AccountMgrService& GetInstance()
+    static AccountMgrService &GetInstance()
     {
         return DelayedRefSingleton<AccountMgrService>::GetInstance();
     }
-    int Dump(std::int32_t fd, const std::vector<std::u16string>& args) override;
+    int Dump(std::int32_t fd, const std::vector<std::u16string> &args) override;
     void HandleNotificationEvents(const std::string &eventStr) override;
 
 private:
@@ -67,7 +68,9 @@ private:
     ServiceRunningState state_ = ServiceRunningState::STATE_NOT_START;
     std::unique_ptr<AccountDumpHelper> dumpHelper_{};
     std::shared_ptr<OhosAccountManager> ohosAccountMgr_{};
+
+    sptr<IRemoteObject> appAccountManagerService_;
 };
-} // namespace AccountSA
-} // namespace OHOS
-#endif // BASE_ACCOUNT_INCLUDE_ACCOUNT_SERVICE_H
+}  // namespace AccountSA
+}  // namespace OHOS
+#endif  // BASE_ACCOUNT_INCLUDE_ACCOUNT_SERVICE_H

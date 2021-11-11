@@ -34,17 +34,19 @@ public:
         QUERY_OHOS_ACCOUNT_QUIT_TIPS = 3,
         QUERY_DEVICE_ACCOUNT_ID = 104,
         QUERY_DEVICE_ACCOUNT_ID_FROM_UID = 105,
+        GET_APP_ACCOUNT_SERVICE = 106,
     };
 
-    virtual bool UpdateOhosAccountInfo(const std::string& accountName, const std::string& uid,
-        const std::string& eventStr) = 0;
+    virtual bool UpdateOhosAccountInfo(
+        const std::string &accountName, const std::string &uid, const std::string &eventStr) = 0;
     virtual std::pair<bool, OhosAccountInfo> QueryOhosAccountInfo(void) = 0;
-    virtual std::int32_t QueryDeviceAccountId(std::int32_t& accountId) = 0;
+    virtual std::int32_t QueryDeviceAccountId(std::int32_t &accountId) = 0;
     virtual std::int32_t QueryDeviceAccountIdFromUid(std::int32_t uid) = 0;
+    virtual sptr<IRemoteObject> GetAppAccountService() = 0;
 public:
     DECLARE_INTERFACE_DESCRIPTOR(u"OHOS.AccountSA.IAccount");
 };
-} // namespace AccountSA
-} // namespace OHOS
+}  // namespace AccountSA
+}  // namespace OHOS
 
-#endif // BASE_ACCOUNT_IACCOUNT_H
+#endif  // BASE_ACCOUNT_IACCOUNT_H
