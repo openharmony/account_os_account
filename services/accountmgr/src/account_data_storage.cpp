@@ -22,9 +22,8 @@
 
 namespace OHOS {
 namespace AccountSA {
-
-const int32_t MAX_TIMES = 10;               // 1min
-const int32_t SLEEP_INTERVAL = 100 * 1000;  // 100m
+const int32_t MAX_TIMES = 10;
+const int32_t SLEEP_INTERVAL = 100 * 1000;
 
 AccountDataStorage::AccountDataStorage(const std::string &appId, const std::string &storeId, const bool &autoSync)
 {
