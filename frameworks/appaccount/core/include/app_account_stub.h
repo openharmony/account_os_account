@@ -23,6 +23,8 @@ namespace OHOS {
 namespace AccountSA {
 class AppAccountStub : public IRemoteStub<IAppAccount> {
 public:
+    using MessageProcFunction = ErrCode (AppAccountStub::*)(MessageParcel &data, MessageParcel &reply);
+
     AppAccountStub();
     virtual ~AppAccountStub() override;
 
@@ -36,8 +38,6 @@ private:
     bool WriteParcelableVector(const std::vector<T> &parcelableVector, MessageParcel &data);
     template <typename T>
     bool ReadParcelableVector(std::vector<T> &parcelableInfos, MessageParcel &data);
-
-    void CreateMessageProcMap();
 
     ErrCode ProcAddAccount(MessageParcel &data, MessageParcel &reply);
     ErrCode ProcDeleteAccount(MessageParcel &data, MessageParcel &reply);
@@ -60,8 +60,7 @@ private:
     ErrCode ProcUnsubscribeAccount(MessageParcel &data, MessageParcel &reply);
 
 private:
-    using messageProcFunction = ErrCode (AppAccountStub::*)(MessageParcel &data, MessageParcel &reply);
-    std::map<uint32_t, messageProcFunction> messageProcMap_;
+    static const std::map<uint32_t, MessageProcFunction> messageProcMap_;
 
     DISALLOW_COPY_AND_MOVE(AppAccountStub);
 };
