@@ -46,7 +46,7 @@ private:
 
     static napi_ref constructorRef_;
 };
-} // namespace AccountJsKit
-} // namespace OHOS
+}  // namespace AccountJsKit
+}  // namespace OHOS
 
-#endif // NAPI_APPACCOUNT_ACCOUNT_H
+#endif  // NAPI_APPACCOUNT_ACCOUNT_H

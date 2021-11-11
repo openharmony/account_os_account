@@ -245,7 +245,6 @@ ErrCode AppAccountSubscribeManager::CheckAppAccess(
 
             return true;
         });
-
         if (it == accessibleAccounts.end()) {
             return ERR_APPACCOUNT_SERVICE_SUBSCRIBE_PERMISSON_DENIED;
         }

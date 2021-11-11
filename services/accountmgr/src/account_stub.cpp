@@ -203,7 +203,6 @@ std::int32_t AccountStub::CmdGetAppAccountService(MessageParcel &data, MessagePa
     ACCOUNT_LOGI("enter");
 
     auto remoteObject = GetAppAccountService();
-
     if (!reply.WriteParcelable(remoteObject)) {
         ACCOUNT_LOGE("Write result data failed");
         return ERR_ACCOUNT_ZIDL_WRITE_RESULT_ERROR;

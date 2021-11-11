@@ -13,8 +13,8 @@
  * limitations under the License.
  */
 
-#ifndef OS_ACCOUNT_FRAMEWORKS_APPACCOUNT_CORE_INCLUDE_APP_ACCOUNT_STUB_H
-#define OS_ACCOUNT_FRAMEWORKS_APPACCOUNT_CORE_INCLUDE_APP_ACCOUNT_STUB_H
+#ifndef APP_ACCOUNT_FRAMEWORKS_APPACCOUNT_CORE_INCLUDE_APP_ACCOUNT_STUB_H
+#define APP_ACCOUNT_FRAMEWORKS_APPACCOUNT_CORE_INCLUDE_APP_ACCOUNT_STUB_H
 
 #include "iapp_account.h"
 #include "iremote_stub.h"
@@ -37,9 +37,35 @@ private:
     template <typename T>
     bool ReadParcelableVector(std::vector<T> &parcelableInfos, MessageParcel &data);
 
+    void CreateMessageProcMap();
+
+    ErrCode ProcAddAccount(MessageParcel &data, MessageParcel &reply);
+    ErrCode ProcDeleteAccount(MessageParcel &data, MessageParcel &reply);
+    ErrCode ProcGetAccountExtraInfo(MessageParcel &data, MessageParcel &reply);
+    ErrCode ProcSetAccountExtraInfo(MessageParcel &data, MessageParcel &reply);
+    ErrCode ProcEnableAppAccess(MessageParcel &data, MessageParcel &reply);
+    ErrCode ProcDisableAppAccess(MessageParcel &data, MessageParcel &reply);
+    ErrCode ProcCheckAppAccountSyncEnable(MessageParcel &data, MessageParcel &reply);
+    ErrCode ProcSetAppAccountSyncEnable(MessageParcel &data, MessageParcel &reply);
+    ErrCode ProcGetAssociatedData(MessageParcel &data, MessageParcel &reply);
+    ErrCode ProcSetAssociatedData(MessageParcel &data, MessageParcel &reply);
+    ErrCode ProcGetAccountCredential(MessageParcel &data, MessageParcel &reply);
+    ErrCode ProcSetAccountCredential(MessageParcel &data, MessageParcel &reply);
+    ErrCode ProcGetOAuthToken(MessageParcel &data, MessageParcel &reply);
+    ErrCode ProcSetOAuthToken(MessageParcel &data, MessageParcel &reply);
+    ErrCode ProcClearOAuthToken(MessageParcel &data, MessageParcel &reply);
+    ErrCode ProcGetAllAccounts(MessageParcel &data, MessageParcel &reply);
+    ErrCode ProcGetAllAccessibleAccounts(MessageParcel &data, MessageParcel &reply);
+    ErrCode ProcSubscribeAccount(MessageParcel &data, MessageParcel &reply);
+    ErrCode ProcUnsubscribeAccount(MessageParcel &data, MessageParcel &reply);
+
+private:
+    using messageProcFunction = ErrCode (AppAccountStub::*)(MessageParcel &data, MessageParcel &reply);
+    std::map<uint32_t, messageProcFunction> messageProcMap_;
+
     DISALLOW_COPY_AND_MOVE(AppAccountStub);
 };
 }  // namespace AccountSA
 }  // namespace OHOS
 
-#endif  // OS_ACCOUNT_FRAMEWORKS_APPACCOUNT_CORE_INCLUDE_APP_ACCOUNT_STUB_H
+#endif  // APP_ACCOUNT_FRAMEWORKS_APPACCOUNT_CORE_INCLUDE_APP_ACCOUNT_STUB_H

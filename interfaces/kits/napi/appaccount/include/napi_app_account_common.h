@@ -42,7 +42,7 @@ static const std::int32_t UNSUBSCRIBE_MAX_PARA = 2;
 class SubscriberPtr;
 struct AsyncContextForSubscribe;
 
-static std::map<napi_value, AsyncContextForSubscribe*> subscriberInstances;
+static std::map<napi_value, AsyncContextForSubscribe *> subscriberInstances;
 
 struct AppAccountAsyncContext {
     napi_env env;
@@ -101,7 +101,6 @@ struct AsyncContextForUnsubscribe {
     size_t argc = 0;
 };
 
-
 class SubscriberPtr : public AppAccountSubscriber {
 public:
     SubscriberPtr(const AppAccountSubscribeInfo &subscribeInfo);
@@ -127,56 +126,45 @@ napi_value GetErrorCodeValue(napi_env env, int errCode);
 
 napi_value GetErrorCodeValue(napi_env env, int errCode);
 
-void GetAppAccountInfoForResult(napi_env env,
-    const std::vector<AppAccountInfo> &info, napi_value result);
+void GetAppAccountInfoForResult(napi_env env, const std::vector<AppAccountInfo> &info, napi_value result);
 
-void ParseContextWithExInfo(napi_env env, napi_callback_info cbInfo,
-    AppAccountAsyncContext *asyncContext);
+void ParseContextWithExInfo(napi_env env, napi_callback_info cbInfo, AppAccountAsyncContext *asyncContext);
 
-void ParseContextWithBdName(napi_env env, napi_callback_info cbInfo,
-    AppAccountAsyncContext *asyncContext);
+void ParseContextWithBdName(napi_env env, napi_callback_info cbInfo, AppAccountAsyncContext *asyncContext);
 
-void ParseContextWithIsEnable(napi_env env, napi_callback_info cbInfo,
-    AppAccountAsyncContext *asyncContext);
+void ParseContextWithIsEnable(napi_env env, napi_callback_info cbInfo, AppAccountAsyncContext *asyncContext);
 
-void ParseContextWithTwoPara(napi_env env, napi_callback_info cbInfo,
-    AppAccountAsyncContext *asyncContext);
+void ParseContextWithTwoPara(napi_env env, napi_callback_info cbInfo, AppAccountAsyncContext *asyncContext);
 
-void ParseContextToSetCredential(napi_env env, napi_callback_info cbInfo,
-    AppAccountAsyncContext *asyncContext);
+void ParseContextToSetCredential(napi_env env, napi_callback_info cbInfo, AppAccountAsyncContext *asyncContext);
 
-void ParseContextForAssociatedData(napi_env env, napi_callback_info cbInfo,
-    AppAccountAsyncContext *asyncContext);
+void ParseContextForAssociatedData(napi_env env, napi_callback_info cbInfo, AppAccountAsyncContext *asyncContext);
 
-void ParseContextToGetData(napi_env env, napi_callback_info cbInfo,
-    AppAccountAsyncContext *asyncContext);
+void ParseContextToGetData(napi_env env, napi_callback_info cbInfo, AppAccountAsyncContext *asyncContext);
 
-void ParseContextCBArray(napi_env env, napi_callback_info cbInfo,
-    GetAccountsAsyncContext *asyncContext);
+void ParseContextCBArray(napi_env env, napi_callback_info cbInfo, GetAccountsAsyncContext *asyncContext);
 
-void ParseContextWithCredentialType(napi_env env, napi_callback_info cbInfo,
-    AppAccountAsyncContext *asyncContext);
+void ParseContextWithCredentialType(napi_env env, napi_callback_info cbInfo, AppAccountAsyncContext *asyncContext);
 
-void ParseContextWithStrCBArray(napi_env env, napi_callback_info cbInfo,
-    GetAccountsAsyncContext *asyncContext);
+void ParseContextWithStrCBArray(napi_env env, napi_callback_info cbInfo, GetAccountsAsyncContext *asyncContext);
 
-void ProcessCallbackOrPromise(napi_env env, const AppAccountAsyncContext *asyncContext,
-    napi_value err, napi_value data);
+void ProcessCallbackOrPromise(
+    napi_env env, const AppAccountAsyncContext *asyncContext, napi_value err, napi_value data);
 
-void ProcessCallbackOrPromiseCBArray(napi_env env, const GetAccountsAsyncContext *asyncContext,
-    napi_value err, napi_value data);
+void ProcessCallbackOrPromiseCBArray(
+    napi_env env, const GetAccountsAsyncContext *asyncContext, napi_value err, napi_value data);
 
 napi_value ParseParametersBySubscribe(const napi_env &env, const napi_value (&argv)[SUBSCRIBE_MAX_PARA],
     std::vector<std::string> &owners, napi_ref &callback);
 
-napi_value ParseParametersByUnsubscribe(const napi_env &env, const size_t &argc, 
-    const napi_value (&argv)[UNSUBSCRIBE_MAX_PARA], napi_ref &callback);
+napi_value ParseParametersByUnsubscribe(
+    const napi_env &env, const size_t &argc, const napi_value (&argv)[UNSUBSCRIBE_MAX_PARA], napi_ref &callback);
 
 napi_value GetSubscriberByUnsubscribe(const napi_env &env, const napi_value &thisVar,
     std::shared_ptr<SubscriberPtr> &subscriber, AsyncContextForUnsubscribe *asyncContextForOff, bool &isFind);
 
 void UnsubscribeCallbackCompletedCB(napi_env env, napi_status status, void *data);
-} // AccountJsKit
-} // OHOS
+}  // namespace AccountJsKit
+}  // namespace OHOS
 
-#endif  /* NAPI_APP_ACCOUNT_COMMON */
+#endif /* NAPI_APP_ACCOUNT_COMMON */

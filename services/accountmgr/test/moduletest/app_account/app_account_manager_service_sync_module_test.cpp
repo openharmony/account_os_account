@@ -111,7 +111,6 @@ HWTEST_F(AppAccountManagerServiceSyncModuleTest, AppAccountManagerServiceSync_Ad
 
         std::map<std::string, std::shared_ptr<IAccountInfo>> accounts;
         accounts.clear();
-        EXPECT_EQ(accounts.size(), SIZE_ZERO);
 
         result = dataStoragePtr->LoadAllData(accounts);
         EXPECT_EQ(result, ERR_OK);
@@ -134,7 +133,6 @@ HWTEST_F(AppAccountManagerServiceSyncModuleTest, AppAccountManagerServiceSync_Ad
 
         std::map<std::string, std::shared_ptr<IAccountInfo>> accounts;
         accounts.clear();
-        EXPECT_EQ(accounts.size(), SIZE_ZERO);
 
         result = dataStoragePtr->LoadAllData(accounts);
         EXPECT_EQ(result, ERR_OK);
@@ -170,7 +168,6 @@ HWTEST_F(AppAccountManagerServiceSyncModuleTest, AppAccountManagerServiceSync_Ad
 
         std::map<std::string, std::shared_ptr<IAccountInfo>> accounts;
         accounts.clear();
-        EXPECT_EQ(accounts.size(), SIZE_ZERO);
 
         result = dataStoragePtr->LoadAllData(accounts);
         EXPECT_EQ(result, ERR_OK);
@@ -193,7 +190,6 @@ HWTEST_F(AppAccountManagerServiceSyncModuleTest, AppAccountManagerServiceSync_Ad
 
         std::map<std::string, std::shared_ptr<IAccountInfo>> accounts;
         accounts.clear();
-        EXPECT_EQ(accounts.size(), SIZE_ZERO);
 
         result = dataStoragePtr->LoadAllData(accounts);
         EXPECT_EQ(result, ERR_OK);
@@ -243,7 +239,6 @@ HWTEST_F(AppAccountManagerServiceSyncModuleTest, AppAccountManagerServiceSync_De
 
         std::map<std::string, std::shared_ptr<IAccountInfo>> accounts;
         accounts.clear();
-        EXPECT_EQ(accounts.size(), SIZE_ZERO);
 
         result = dataStoragePtr->LoadAllData(accounts);
         EXPECT_EQ(result, ERR_OK);
@@ -255,7 +250,6 @@ HWTEST_F(AppAccountManagerServiceSyncModuleTest, AppAccountManagerServiceSync_De
 
         std::map<std::string, std::shared_ptr<IAccountInfo>> accounts;
         accounts.clear();
-        EXPECT_EQ(accounts.size(), SIZE_ZERO);
 
         result = dataStoragePtr->LoadAllData(accounts);
         EXPECT_EQ(result, ERR_OK);
@@ -294,7 +288,6 @@ HWTEST_F(AppAccountManagerServiceSyncModuleTest, AppAccountManagerServiceSync_De
 
         std::map<std::string, std::shared_ptr<IAccountInfo>> accounts;
         accounts.clear();
-        EXPECT_EQ(accounts.size(), SIZE_ZERO);
 
         result = dataStoragePtr->LoadAllData(accounts);
         EXPECT_EQ(result, ERR_OK);
@@ -306,7 +299,6 @@ HWTEST_F(AppAccountManagerServiceSyncModuleTest, AppAccountManagerServiceSync_De
 
         std::map<std::string, std::shared_ptr<IAccountInfo>> accounts;
         accounts.clear();
-        EXPECT_EQ(accounts.size(), SIZE_ZERO);
 
         result = dataStoragePtr->LoadAllData(accounts);
         EXPECT_EQ(result, ERR_OK);
@@ -325,7 +317,6 @@ HWTEST_F(AppAccountManagerServiceSyncModuleTest, AppAccountManagerServiceSync_Se
     ACCOUNT_LOGI("AppAccountManagerServiceSync_SetAccountExtraInfo_0100");
 
     auto servicePtr = std::make_shared<AppAccountManagerService>();
-    ASSERT_NE(servicePtr, nullptr);
 
     ErrCode result = servicePtr->AddAccount(STRING_NAME, STRING_EXTRA_INFO);
     EXPECT_EQ(result, ERR_OK);
@@ -341,27 +332,19 @@ HWTEST_F(AppAccountManagerServiceSyncModuleTest, AppAccountManagerServiceSync_Se
         ASSERT_NE(dataStoragePtr, nullptr);
 
         std::map<std::string, std::shared_ptr<IAccountInfo>> accounts;
-        accounts.clear();
-        EXPECT_EQ(accounts.size(), SIZE_ZERO);
 
         result = dataStoragePtr->LoadAllData(accounts);
-        EXPECT_EQ(result, ERR_OK);
-        EXPECT_EQ(accounts.size(), SIZE_ONE);
+        ASSERT_EQ(accounts.size(), SIZE_ONE);
 
         auto accountPtr = accounts.begin();
-        EXPECT_NE(accountPtr, accounts.end());
-
         auto appAccountInfoPtr = std::static_pointer_cast<AppAccountInfo>(accountPtr->second);
-        ASSERT_NE(appAccountInfoPtr, nullptr);
 
         std::string name;
-        result = appAccountInfoPtr->GetName(name);
-        EXPECT_EQ(result, ERR_OK);
+        appAccountInfoPtr->GetName(name);
         EXPECT_EQ(name, STRING_NAME);
 
         std::string extraInfo;
-        result = appAccountInfoPtr->GetExtraInfo(extraInfo);
-        EXPECT_EQ(result, ERR_OK);
+        appAccountInfoPtr->GetExtraInfo(extraInfo);
         EXPECT_EQ(extraInfo, STRING_EXTRA_INFO);
     }
     {
@@ -369,27 +352,19 @@ HWTEST_F(AppAccountManagerServiceSyncModuleTest, AppAccountManagerServiceSync_Se
         ASSERT_NE(dataStoragePtr, nullptr);
 
         std::map<std::string, std::shared_ptr<IAccountInfo>> accounts;
-        accounts.clear();
-        EXPECT_EQ(accounts.size(), SIZE_ZERO);
 
         result = dataStoragePtr->LoadAllData(accounts);
-        EXPECT_EQ(result, ERR_OK);
-        EXPECT_EQ(accounts.size(), SIZE_ONE);
+        ASSERT_EQ(accounts.size(), SIZE_ONE);
 
         auto accountPtr = accounts.begin();
-        EXPECT_NE(accountPtr, accounts.end());
-
         auto appAccountInfoPtr = std::static_pointer_cast<AppAccountInfo>(accountPtr->second);
-        ASSERT_NE(appAccountInfoPtr, nullptr);
 
         std::string name;
-        result = appAccountInfoPtr->GetName(name);
-        EXPECT_EQ(result, ERR_OK);
+        appAccountInfoPtr->GetName(name);
         EXPECT_EQ(name, STRING_NAME);
 
         std::string extraInfo;
-        result = appAccountInfoPtr->GetExtraInfo(extraInfo);
-        EXPECT_EQ(result, ERR_OK);
+        appAccountInfoPtr->GetExtraInfo(extraInfo);
         EXPECT_EQ(extraInfo, STRING_EXTRA_INFO);
     }
 
@@ -408,7 +383,6 @@ HWTEST_F(AppAccountManagerServiceSyncModuleTest, AppAccountManagerServiceSync_Se
     ACCOUNT_LOGI("AppAccountManagerServiceSync_SetAccountExtraInfo_0200");
 
     auto servicePtr = std::make_shared<AppAccountManagerService>();
-    ASSERT_NE(servicePtr, nullptr);
 
     ErrCode result = servicePtr->AddAccount(STRING_NAME, STRING_EXTRA_INFO);
     EXPECT_EQ(result, ERR_OK);
@@ -430,12 +404,9 @@ HWTEST_F(AppAccountManagerServiceSyncModuleTest, AppAccountManagerServiceSync_Se
         ASSERT_NE(dataStoragePtr, nullptr);
 
         std::map<std::string, std::shared_ptr<IAccountInfo>> accounts;
-        accounts.clear();
-        EXPECT_EQ(accounts.size(), SIZE_ZERO);
 
         result = dataStoragePtr->LoadAllData(accounts);
-        EXPECT_EQ(result, ERR_OK);
-        EXPECT_EQ(accounts.size(), SIZE_ONE);
+        ASSERT_EQ(accounts.size(), SIZE_ONE);
 
         auto accountPtr = accounts.begin();
         EXPECT_NE(accountPtr, accounts.end());
@@ -444,13 +415,11 @@ HWTEST_F(AppAccountManagerServiceSyncModuleTest, AppAccountManagerServiceSync_Se
         ASSERT_NE(appAccountInfoPtr, nullptr);
 
         std::string name;
-        result = appAccountInfoPtr->GetName(name);
-        EXPECT_EQ(result, ERR_OK);
+        appAccountInfoPtr->GetName(name);
         EXPECT_EQ(name, STRING_NAME);
 
         std::string extraInfo;
-        result = appAccountInfoPtr->GetExtraInfo(extraInfo);
-        EXPECT_EQ(result, ERR_OK);
+        appAccountInfoPtr->GetExtraInfo(extraInfo);
         EXPECT_EQ(extraInfo, STRING_EXTRA_INFO_TWO);
     }
     {
@@ -458,27 +427,19 @@ HWTEST_F(AppAccountManagerServiceSyncModuleTest, AppAccountManagerServiceSync_Se
         ASSERT_NE(dataStoragePtr, nullptr);
 
         std::map<std::string, std::shared_ptr<IAccountInfo>> accounts;
-        accounts.clear();
-        EXPECT_EQ(accounts.size(), SIZE_ZERO);
 
         result = dataStoragePtr->LoadAllData(accounts);
-        EXPECT_EQ(result, ERR_OK);
-        EXPECT_EQ(accounts.size(), SIZE_ONE);
+        ASSERT_EQ(accounts.size(), SIZE_ONE);
 
         auto accountPtr = accounts.begin();
-        EXPECT_NE(accountPtr, accounts.end());
-
         auto appAccountInfoPtr = std::static_pointer_cast<AppAccountInfo>(accountPtr->second);
-        ASSERT_NE(appAccountInfoPtr, nullptr);
 
         std::string name;
-        result = appAccountInfoPtr->GetName(name);
-        EXPECT_EQ(result, ERR_OK);
+        appAccountInfoPtr->GetName(name);
         EXPECT_EQ(name, STRING_NAME);
 
         std::string extraInfo;
-        result = appAccountInfoPtr->GetExtraInfo(extraInfo);
-        EXPECT_EQ(result, ERR_OK);
+        appAccountInfoPtr->GetExtraInfo(extraInfo);
         EXPECT_EQ(extraInfo, STRING_EXTRA_INFO);
     }
 
@@ -497,7 +458,6 @@ HWTEST_F(AppAccountManagerServiceSyncModuleTest, AppAccountManagerServiceSync_Se
     ACCOUNT_LOGI("AppAccountManagerServiceSync_SetAccountExtraInfo_0300");
 
     auto servicePtr = std::make_shared<AppAccountManagerService>();
-    ASSERT_NE(servicePtr, nullptr);
 
     ErrCode result = servicePtr->AddAccount(STRING_NAME, STRING_EXTRA_INFO);
     EXPECT_EQ(result, ERR_OK);
@@ -522,27 +482,18 @@ HWTEST_F(AppAccountManagerServiceSyncModuleTest, AppAccountManagerServiceSync_Se
         ASSERT_NE(dataStoragePtr, nullptr);
 
         std::map<std::string, std::shared_ptr<IAccountInfo>> accounts;
-        accounts.clear();
-        EXPECT_EQ(accounts.size(), SIZE_ZERO);
-
         result = dataStoragePtr->LoadAllData(accounts);
-        EXPECT_EQ(result, ERR_OK);
-        EXPECT_EQ(accounts.size(), SIZE_ONE);
+        ASSERT_EQ(accounts.size(), SIZE_ONE);
 
         auto accountPtr = accounts.begin();
-        EXPECT_NE(accountPtr, accounts.end());
-
         auto appAccountInfoPtr = std::static_pointer_cast<AppAccountInfo>(accountPtr->second);
-        ASSERT_NE(appAccountInfoPtr, nullptr);
 
         std::string name;
-        result = appAccountInfoPtr->GetName(name);
-        EXPECT_EQ(result, ERR_OK);
+        appAccountInfoPtr->GetName(name);
         EXPECT_EQ(name, STRING_NAME);
 
         std::string extraInfo;
-        result = appAccountInfoPtr->GetExtraInfo(extraInfo);
-        EXPECT_EQ(result, ERR_OK);
+        appAccountInfoPtr->GetExtraInfo(extraInfo);
         EXPECT_EQ(extraInfo, STRING_EXTRA_INFO_TWO);
     }
     {
@@ -550,27 +501,18 @@ HWTEST_F(AppAccountManagerServiceSyncModuleTest, AppAccountManagerServiceSync_Se
         ASSERT_NE(dataStoragePtr, nullptr);
 
         std::map<std::string, std::shared_ptr<IAccountInfo>> accounts;
-        accounts.clear();
-        EXPECT_EQ(accounts.size(), SIZE_ZERO);
-
         result = dataStoragePtr->LoadAllData(accounts);
-        EXPECT_EQ(result, ERR_OK);
-        EXPECT_EQ(accounts.size(), SIZE_ONE);
+        ASSERT_EQ(accounts.size(), SIZE_ONE);
 
         auto accountPtr = accounts.begin();
-        EXPECT_NE(accountPtr, accounts.end());
-
         auto appAccountInfoPtr = std::static_pointer_cast<AppAccountInfo>(accountPtr->second);
-        ASSERT_NE(appAccountInfoPtr, nullptr);
 
         std::string name;
-        result = appAccountInfoPtr->GetName(name);
-        EXPECT_EQ(result, ERR_OK);
+        appAccountInfoPtr->GetName(name);
         EXPECT_EQ(name, STRING_NAME);
 
         std::string extraInfo;
-        result = appAccountInfoPtr->GetExtraInfo(extraInfo);
-        EXPECT_EQ(result, ERR_OK);
+        appAccountInfoPtr->GetExtraInfo(extraInfo);
         EXPECT_EQ(extraInfo, STRING_EXTRA_INFO_TWO);
     }
 
