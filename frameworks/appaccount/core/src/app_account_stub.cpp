@@ -19,6 +19,85 @@
 
 namespace OHOS {
 namespace AccountSA {
+const std::map<uint32_t, AppAccountStub::MessageProcFunction> AppAccountStub::messageProcMap_ = {
+    {
+        static_cast<uint32_t>(IAppAccount::Message::ADD_ACCOUNT),
+        &AppAccountStub::ProcAddAccount,
+    },
+    {
+        static_cast<uint32_t>(IAppAccount::Message::DELETE_ACCOUNT),
+        &AppAccountStub::ProcDeleteAccount,
+    },
+    {
+        static_cast<uint32_t>(IAppAccount::Message::GET_ACCOUNT_EXTRA_INFO),
+        &AppAccountStub::ProcGetAccountExtraInfo,
+    },
+    {
+        static_cast<uint32_t>(IAppAccount::Message::SET_ACCOUNT_EXTRA_INFO),
+        &AppAccountStub::ProcSetAccountExtraInfo,
+    },
+    {
+        static_cast<uint32_t>(IAppAccount::Message::ENABLE_APP_ACCESS),
+        &AppAccountStub::ProcEnableAppAccess,
+    },
+    {
+        static_cast<uint32_t>(IAppAccount::Message::DISABLE_APP_ACCESS),
+        &AppAccountStub::ProcDisableAppAccess,
+    },
+    {
+        static_cast<uint32_t>(IAppAccount::Message::CHECK_APP_ACCOUNT_SYNC_ENABLE),
+        &AppAccountStub::ProcCheckAppAccountSyncEnable,
+    },
+    {
+        static_cast<uint32_t>(IAppAccount::Message::SET_APP_ACCOUNT_SYNC_ENABLE),
+        &AppAccountStub::ProcSetAppAccountSyncEnable,
+    },
+    {
+        static_cast<uint32_t>(IAppAccount::Message::GET_ASSOCIATED_DATA),
+        &AppAccountStub::ProcGetAssociatedData,
+    },
+    {
+        static_cast<uint32_t>(IAppAccount::Message::SET_ASSOCIATED_DATA),
+        &AppAccountStub::ProcSetAssociatedData,
+    },
+    {
+        static_cast<uint32_t>(IAppAccount::Message::GET_ACCOUNT_CREDENTIAL),
+        &AppAccountStub::ProcGetAccountCredential,
+    },
+    {
+        static_cast<uint32_t>(IAppAccount::Message::SET_ACCOUNT_CREDENTIAL),
+        &AppAccountStub::ProcSetAccountCredential,
+    },
+    {
+        static_cast<uint32_t>(IAppAccount::Message::GET_OAUTH_TOKEN),
+        &AppAccountStub::ProcGetOAuthToken,
+    },
+    {
+        static_cast<uint32_t>(IAppAccount::Message::SET_OAUTH_TOKEN),
+        &AppAccountStub::ProcSetOAuthToken,
+    },
+    {
+        static_cast<uint32_t>(IAppAccount::Message::CLEAR_OAUTH_TOKEN),
+        &AppAccountStub::ProcClearOAuthToken,
+    },
+    {
+        static_cast<uint32_t>(IAppAccount::Message::GET_ALL_ACCOUNTS),
+        &AppAccountStub::ProcGetAllAccounts,
+    },
+    {
+        static_cast<uint32_t>(IAppAccount::Message::GET_ALL_ACCESSIBLE_ACCOUNTS),
+        &AppAccountStub::ProcGetAllAccessibleAccounts,
+    },
+    {
+        static_cast<uint32_t>(IAppAccount::Message::SUBSCRIBE_ACCOUNT),
+        &AppAccountStub::ProcSubscribeAccount,
+    },
+    {
+        static_cast<uint32_t>(IAppAccount::Message::UNSUBSCRIBE_ACCOUNT),
+        &AppAccountStub::ProcUnsubscribeAccount,
+    },
+};
+
 AppAccountStub::AppAccountStub()
 {
     ACCOUNT_LOGI("enter");
@@ -88,90 +167,6 @@ bool AppAccountStub::ReadParcelableVector(std::vector<T> &parcelableVector, Mess
     }
 
     return true;
-}
-
-void AppAccountStub::CreateMessageProcMap()
-{
-    ACCOUNT_LOGI("enter");
-
-    messageProcMap_ = {
-        {
-            static_cast<uint32_t>(IAppAccount::Message::ADD_ACCOUNT),
-            &AppAccountStub::ProcAddAccount,
-        },
-        {
-            static_cast<uint32_t>(IAppAccount::Message::DELETE_ACCOUNT),
-            &AppAccountStub::ProcDeleteAccount,
-        },
-        {
-            static_cast<uint32_t>(IAppAccount::Message::GET_ACCOUNT_EXTRA_INFO),
-            &AppAccountStub::ProcGetAccountExtraInfo,
-        },
-        {
-            static_cast<uint32_t>(IAppAccount::Message::SET_ACCOUNT_EXTRA_INFO),
-            &AppAccountStub::ProcSetAccountExtraInfo,
-        },
-        {
-            static_cast<uint32_t>(IAppAccount::Message::ENABLE_APP_ACCESS),
-            &AppAccountStub::ProcEnableAppAccess,
-        },
-        {
-            static_cast<uint32_t>(IAppAccount::Message::DISABLE_APP_ACCESS),
-            &AppAccountStub::ProcDisableAppAccess,
-        },
-        {
-            static_cast<uint32_t>(IAppAccount::Message::CHECK_APP_ACCOUNT_SYNC_ENABLE),
-            &AppAccountStub::ProcCheckAppAccountSyncEnable,
-        },
-        {
-            static_cast<uint32_t>(IAppAccount::Message::SET_APP_ACCOUNT_SYNC_ENABLE),
-            &AppAccountStub::ProcSetAppAccountSyncEnable,
-        },
-        {
-            static_cast<uint32_t>(IAppAccount::Message::GET_ASSOCIATED_DATA),
-            &AppAccountStub::ProcGetAssociatedData,
-        },
-        {
-            static_cast<uint32_t>(IAppAccount::Message::SET_ASSOCIATED_DATA),
-            &AppAccountStub::ProcSetAssociatedData,
-        },
-        {
-            static_cast<uint32_t>(IAppAccount::Message::GET_ACCOUNT_CREDENTIAL),
-            &AppAccountStub::ProcGetAccountCredential,
-        },
-        {
-            static_cast<uint32_t>(IAppAccount::Message::SET_ACCOUNT_CREDENTIAL),
-            &AppAccountStub::ProcSetAccountCredential,
-        },
-        {
-            static_cast<uint32_t>(IAppAccount::Message::GET_OAUTH_TOKEN),
-            &AppAccountStub::ProcGetOAuthToken,
-        },
-        {
-            static_cast<uint32_t>(IAppAccount::Message::SET_OAUTH_TOKEN),
-            &AppAccountStub::ProcSetOAuthToken,
-        },
-        {
-            static_cast<uint32_t>(IAppAccount::Message::CLEAR_OAUTH_TOKEN),
-            &AppAccountStub::ProcClearOAuthToken,
-        },
-        {
-            static_cast<uint32_t>(IAppAccount::Message::GET_ALL_ACCOUNTS),
-            &AppAccountStub::ProcGetAllAccounts,
-        },
-        {
-            static_cast<uint32_t>(IAppAccount::Message::GET_ALL_ACCESSIBLE_ACCOUNTS),
-            &AppAccountStub::ProcGetAllAccessibleAccounts,
-        },
-        {
-            static_cast<uint32_t>(IAppAccount::Message::SUBSCRIBE_ACCOUNT),
-            &AppAccountStub::ProcSubscribeAccount,
-        },
-        {
-            static_cast<uint32_t>(IAppAccount::Message::UNSUBSCRIBE_ACCOUNT),
-            &AppAccountStub::ProcUnsubscribeAccount,
-        },
-    };
 }
 
 ErrCode AppAccountStub::ProcAddAccount(MessageParcel &data, MessageParcel &reply)

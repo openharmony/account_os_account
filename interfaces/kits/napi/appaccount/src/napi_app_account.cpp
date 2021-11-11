@@ -828,7 +828,7 @@ napi_value NapiAppAccount::Subscribe(napi_env env, napi_callback_info cbInfo)
         return NapiGetNull(env);
     }
 
-    AsyncContextForSubscribe *asyncContextForOn = new (std::nothrow) AsyncContextForSubscribe{
+    AsyncContextForSubscribe *asyncContextForOn = new (std::nothrow) AsyncContextForSubscribe {
         .env = env,
         .work = nullptr,
         .callbackRef = nullptr,
@@ -837,16 +837,15 @@ napi_value NapiAppAccount::Subscribe(napi_env env, napi_callback_info cbInfo)
         ACCOUNT_LOGI("asyncContextForOn is null");
         return NapiGetNull(env);
     }
-    ACCOUNT_LOGI("Subscribe  AsyncCallbackInfoSubscribe * asyncContextForOn = %{public}p", asyncContextForOn);
+    ACCOUNT_LOGI("Subscribe AsyncCallbackInfoSubscribe * asyncContextForOn = %{public}p", asyncContextForOn);
 
     // make subscribe info
     AppAccountSubscribeInfo subscribeInfo(owners);
     // make a subscriber
     asyncContextForOn->subscriber = std::make_shared<SubscriberPtr>(subscribeInfo);
     asyncContextForOn->callbackRef = callback;
-    ACCOUNT_LOGI("asyncContextForOn->callbackRef = %{public}p", asyncContextForOn->callbackRef);
+    ACCOUNT_LOGI("callbackRef = %{public}p, thisVar = %{public}p", asyncContextForOn->callbackRef, thisVar);
 
-    ACCOUNT_LOGI("AppAccountManager thisVar = %{public}p", thisVar);
     subscriberInstances[thisVar] = asyncContextForOn;
 
     napi_value resourceName = nullptr;
@@ -863,7 +862,6 @@ napi_value NapiAppAccount::Subscribe(napi_env env, napi_callback_info cbInfo)
                 asyncContextForOn->subscriber->SetCallbackRef(asyncContextForOn->callbackRef);
                 int errCode = AppAccountManager::SubscribeAppAccount(asyncContextForOn->subscriber);
                 asyncContextForOn->subscriber->SetErrorCode(errCode);
-                ACCOUNT_LOGI("Subscribe errCode parameter is %{public}d", errCode);
             },
             [](napi_env env, napi_status status, void *data) {
                 ACCOUNT_LOGI("Subscribe, napi_create_async_work complete.");
@@ -892,7 +890,7 @@ napi_value NapiAppAccount::Unsubscribe(napi_env env, napi_callback_info cbInfo)
     if (ParseParametersByUnsubscribe(env, argc, argv, callback) == nullptr) {
         return NapiGetNull(env);
     }
-    AsyncContextForUnsubscribe *asyncContextForOff = new (std::nothrow) AsyncContextForUnsubscribe{
+    AsyncContextForUnsubscribe *asyncContextForOff = new (std::nothrow) AsyncContextForUnsubscribe {
         .env = env,
         .work = nullptr,
         .callbackRef = nullptr,
