@@ -32,8 +32,8 @@ const std::string STRING_BUNDLE_NAME = "com.example.third_party";
 const std::string STRING_ACCOUNT_ID = "0";
 const std::string STRING_STORE_ID = STRING_ACCOUNT_ID;
 
-const unsigned int SIZE_ZERO = 0;
-const unsigned int SIZE_ONE = 1;
+constexpr size_t SIZE_ZERO = 0;
+constexpr size_t SIZE_ONE = 1;
 }  // namespace
 
 class AppAccountDataStorageTest : public testing::Test {

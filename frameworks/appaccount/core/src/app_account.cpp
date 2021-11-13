@@ -125,6 +125,11 @@ ErrCode AppAccount::EnableAppAccess(const std::string &name, const std::string &
         return ERR_APPACCOUNT_KIT_AUTHORIZED_APP_IS_EMPTY;
     }
 
+    if (authorizedApp.size() > AUTHORIZED_APP_MAX_SIZE) {
+        ACCOUNT_LOGE("authorizedApp is out of range");
+        return ERR_APPACCOUNT_KIT_AUTHORIZED_APP_OUT_OF_RANGE;
+    }
+
     result = GetAppAccountProxy();
     if (result != ERR_OK) {
         ACCOUNT_LOGE("failed to get appAccountProxy_");
@@ -150,6 +155,11 @@ ErrCode AppAccount::DisableAppAccess(const std::string &name, const std::string 
     if (authorizedApp.size() == 0) {
         ACCOUNT_LOGE("authorizedApp is empty");
         return ERR_APPACCOUNT_KIT_AUTHORIZED_APP_IS_EMPTY;
+    }
+
+    if (authorizedApp.size() > AUTHORIZED_APP_MAX_SIZE) {
+        ACCOUNT_LOGE("authorizedApp is out of range");
+        return ERR_APPACCOUNT_KIT_AUTHORIZED_APP_OUT_OF_RANGE;
     }
 
     result = GetAppAccountProxy();
