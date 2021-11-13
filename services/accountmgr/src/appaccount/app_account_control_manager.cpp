@@ -27,6 +27,33 @@ namespace AccountSA {
 AppAccountControlManager::AppAccountControlManager()
 {
     ACCOUNT_LOGI("enter");
+
+    fileOperator_ = std::make_shared<AccountFileOperator>();
+    if (fileOperator_->IsExistFile(CONFIG_PATH) == false) {
+        ACCOUNT_LOGE("end, config file does not exist");
+        return;
+    }
+
+    std::string content;
+    if (fileOperator_->GetFileContentByPath(CONFIG_PATH, content) != ERR_OK) {
+        ACCOUNT_LOGE("end, failed to get file content by path");
+        return;
+    }
+
+    ACCOUNT_LOGI("content = %{public}s", content.c_str());
+    auto jsonObject = Json::parse(content, nullptr, false);
+    if (!jsonObject.is_discarded()) {
+        auto it = jsonObject.find(ACCOUNT_MAX_SIZE_KEY);
+        if (it != jsonObject.end() && jsonObject[ACCOUNT_MAX_SIZE_KEY] <= ACCOUNT_MAX_SIZE) {
+            account_max_size = jsonObject[ACCOUNT_MAX_SIZE_KEY];
+        } else {
+            ACCOUNT_LOGE("failed to update account_max_size");
+        }
+    } else {
+        ACCOUNT_LOGE("jsonObject is discarded");
+    }
+
+    ACCOUNT_LOGI("end, account_max_size = %{public}d", account_max_size);
 }
 
 AppAccountControlManager::~AppAccountControlManager()
@@ -877,7 +904,26 @@ ErrCode AppAccountControlManager::AddAccountInfoIntoDataStorage(AppAccountInfo &
         return ERR_APPACCOUNT_SERVICE_DATA_STORAGE_PTR_IS_NULLPTR;
     }
 
-    ErrCode result = dataStoragePtr->AddAccountInfoIntoDataStorage(appAccountInfo);
+    std::string owner;
+    ErrCode result = appAccountInfo.GetOwner(owner);
+    if (result != ERR_OK) {
+        ACCOUNT_LOGE("failed to get owner");
+        return ERR_APPACCOUNT_SERVICE_GET_OWNER;
+    }
+
+    std::map<std::string, std::shared_ptr<IAccountInfo>> accounts;
+    result = dataStoragePtr->LoadDataByLocalFuzzyQuery(owner, accounts);
+    if (result != ERR_OK) {
+        ACCOUNT_LOGE("failed to get accounts by owner");
+        return ERR_APPACCOUNT_SERVICE_GET_IACCOUNT_INFO_BY_OWNER;
+    }
+
+    if (accounts.size() == account_max_size) {
+        ACCOUNT_LOGE("account exceeds max size");
+        return ERR_APPACCOUNT_SERVICE_ACCOUNT_MAX_SIZE;
+    }
+
+    result = dataStoragePtr->AddAccountInfoIntoDataStorage(appAccountInfo);
     if (result != ERR_OK) {
         ACCOUNT_LOGE("failed to add account info into data storage");
         return result;

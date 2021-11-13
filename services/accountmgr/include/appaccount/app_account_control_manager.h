@@ -16,6 +16,7 @@
 #ifndef OS_ACCOUNT_SERVICES_ACCOUNTMGR_INCLUDE_APP_ACCOUNT_CONTROL_MANAGER_H
 #define OS_ACCOUNT_SERVICES_ACCOUNTMGR_INCLUDE_APP_ACCOUNT_CONTROL_MANAGER_H
 
+#include "account_file_operator.h"
 #include "iapp_account_control.h"
 #include "singleton.h"
 
@@ -88,6 +89,12 @@ private:
 
 private:
     std::map<std::string, std::string> dataCache_;
+    std::shared_ptr<AccountFileOperator> fileOperator_;
+
+    const std::string CONFIG_PATH = "/system/etc/account/app_account.json";
+    const std::string ACCOUNT_MAX_SIZE_KEY = "account_max_size";
+    std::int32_t ACCOUNT_MAX_SIZE = 32;
+    std::int32_t account_max_size = 32;
 };
 }  // namespace AccountSA
 }  // namespace OHOS

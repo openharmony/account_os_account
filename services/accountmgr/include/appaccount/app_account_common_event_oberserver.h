@@ -46,9 +46,9 @@ private:
     CommonEventCallback callback_;
     unsigned int counter_;
 
-    const unsigned int DELAY_FOR_COMMON_EVENT_SERVICE = 5 * 1000;  // 5s
-    const unsigned int DELAY_FOR_TIME_INTERVAL = 1 * 1000;         // 1s
-    const unsigned int MAX_TRY_TIMES = 10;
+    static constexpr std::int32_t DELAY_FOR_COMMON_EVENT_SERVICE = 5 * 1000;  // 5s
+    static constexpr std::int32_t DELAY_FOR_TIME_INTERVAL = 1 * 1000;         // 1s
+    static constexpr std::int32_t MAX_TRY_TIMES = 10;
 };
 }  // namespace AccountSA
 }  // namespace OHOS

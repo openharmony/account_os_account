@@ -61,8 +61,8 @@ const std::string STRING_NAME_EMPTY = STRING_EMPTY;
 const std::string STRING_EXTRA_INFO_EMPTY = STRING_EMPTY;
 const std::string STRING_OWNER = "com.example.owner";
 
-const unsigned int SUBSCRIBER_ZERO = 0;
-const unsigned int SUBSCRIBER_ONE = 1;
+constexpr std::int32_t SUBSCRIBER_ZERO = 0;
+constexpr std::int32_t SUBSCRIBER_ONE = 1;
 }  // namespace
 
 class AppAccountTest : public testing::Test {
