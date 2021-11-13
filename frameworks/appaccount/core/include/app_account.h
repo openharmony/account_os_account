@@ -115,15 +115,16 @@ private:
     std::map<std::shared_ptr<AppAccountSubscriber>, sptr<AppAccountEventListener>> eventListeners_;
     sptr<IRemoteObject::DeathRecipient> deathRecipient_;
 
-    const unsigned int SUBSCRIBER_MAX_SIZE = 200;
-    const unsigned int NAME_MAX_SIZE = 1024;
-    const unsigned int EXTRA_INFO_MAX_SIZE = 1024;
-    const unsigned int ASSOCIATED_KEY_MAX_SIZE = 1024;
-    const unsigned int ASSOCIATED_VALUE_MAX_SIZE = 1024;
-    const unsigned int CREDENTIAL_TYPE_MAX_SIZE = 1024;
-    const unsigned int CREDENTIAL_MAX_SIZE = 1024;
-    const unsigned int TOKEN_MAX_SIZE = 1024;
-    const unsigned int OWNER_MAX_SIZE = 1024;
+    static constexpr std::int32_t SUBSCRIBER_MAX_SIZE = 200;
+    static constexpr std::int32_t NAME_MAX_SIZE = 1024;
+    static constexpr std::int32_t EXTRA_INFO_MAX_SIZE = 1024;
+    static constexpr std::int32_t AUTHORIZED_APP_MAX_SIZE = 1024;
+    static constexpr std::int32_t ASSOCIATED_KEY_MAX_SIZE = 1024;
+    static constexpr std::int32_t ASSOCIATED_VALUE_MAX_SIZE = 1024;
+    static constexpr std::int32_t CREDENTIAL_TYPE_MAX_SIZE = 1024;
+    static constexpr std::int32_t CREDENTIAL_MAX_SIZE = 1024;
+    static constexpr std::int32_t TOKEN_MAX_SIZE = 1024;
+    static constexpr std::int32_t OWNER_MAX_SIZE = 1024;
 };
 }  // namespace AccountSA
 }  // namespace OHOS

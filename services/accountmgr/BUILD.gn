@@ -24,6 +24,12 @@ ohos_prebuilt_etc("accountmgr.init") {
   part_name = "os_account_standard"
 }
 
+ohos_prebuilt_etc("app_account.json") {
+  source = "app_account.json"
+  relative_install_dir = "account"
+  part_name = "os_account_standard"
+}
+
 config("accountmgr_config") {
   include_dirs = [
     "./include",
@@ -49,6 +55,7 @@ group("accountmgr_target") {
   deps = [
     ":accountmgr",
     ":accountmgr.init",
+    ":app_account.json",
   ]
 }
 
@@ -59,6 +66,7 @@ ohos_shared_library("accountmgr") {
     "src/account_data_storage.cpp",
     "src/account_dump_helper.cpp",
     "src/account_event_provider.cpp",
+    "src/account_file_operator.cpp",
     "src/account_helper_data.cpp",
     "src/account_kvstore_death_recipient_callback.cpp",
     "src/account_mgr_service.cpp",

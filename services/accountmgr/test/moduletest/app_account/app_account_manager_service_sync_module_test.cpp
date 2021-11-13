@@ -15,7 +15,6 @@
 
 #include <gtest/gtest.h>
 
-#include "account_error_no.h"
 #define private public
 #include "app_account_control_manager.h"
 #include "app_account_manager_service.h"
@@ -39,8 +38,8 @@ const std::string STRING_OWNER = "com.example.owner";
 const bool SYNC_ENABLE_TRUE = true;
 const bool SYNC_ENABLE_FALSE = false;
 
-const unsigned int SIZE_ZERO = 0;
-const unsigned int SIZE_ONE = 1;
+constexpr size_t SIZE_ZERO = 0;
+constexpr size_t SIZE_ONE = 1;
 }  // namespace
 
 class AppAccountManagerServiceSyncModuleTest : public testing::Test {

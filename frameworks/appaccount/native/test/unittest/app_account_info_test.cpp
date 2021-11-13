@@ -28,15 +28,17 @@ const std::string STRING_OWNER = "com.example.owner";
 const std::string STRING_NAME = "name";
 const std::string STRING_EXTRA_INFO = "extra_info";
 const std::string STRING_BUNDLE_NAME = "com.example.third_party";
-const bool SYNC_ENABLE = true;
 const std::string STRING_ASSOCIATED_KEY = "associated_key";
 const std::string STRING_ASSOCIATED_VALUE = "associated_value";
 const std::string STRING_ASSOCIATED_DATA = "{\"associated_key\": \"associated_value\"}";
 const std::string STRING_CREDENTIAL_TYPE = "password";
 const std::string STRING_CREDENTIAL = "1024";
 const std::string STRING_ACCOUNT_CREDENTIAL = "{\"password\": \"1024\"}";
-const unsigned int SIZE_ZERO = 0;
-const unsigned int SIZE_ONE = 1;
+
+const bool SYNC_ENABLE = true;
+
+constexpr size_t SIZE_ZERO = 0;
+constexpr size_t SIZE_ONE = 1;
 }  // namespace
 
 class AppAccountInfoTest : public testing::Test {
