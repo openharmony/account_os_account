@@ -108,6 +108,19 @@ const std::string STRING_CREDENTIAL_TYPE_OUT_OF_RANGE =
     "1234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890"
     "1234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890"
     "1234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890";
+const std::string STRING_AUTHORIZED_APP_OUT_OF_RANGE =
+    "authorized_app_out_of_range_"
+    "1234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890"
+    "1234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890"
+    "1234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890"
+    "1234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890"
+    "1234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890"
+    "1234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890"
+    "1234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890"
+    "1234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890"
+    "1234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890"
+    "1234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890"
+    "1234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890";
 const std::string STRING_CREDENTIAL = "1024";
 const std::string STRING_CREDENTIAL_OUT_OF_RANGE =
     "credential_out_of_range_"
@@ -140,7 +153,7 @@ const std::string STRING_OWNER = "com.example.owner";
 
 const bool SYNC_ENABLE_FALSE = false;
 
-const unsigned int SIZE_ZERO = 0;
+constexpr size_t SIZE_ZERO = 0;
 }  // namespace
 
 class AppAccountManagerTest : public testing::Test {
@@ -337,6 +350,19 @@ HWTEST_F(AppAccountManagerTest, AppAccountManager_EnableAppAccess_0300, Function
 }
 
 /**
+ * @tc.number: AppAccountManager_EnableAppAccess_0400
+ * @tc.name: EnableAppAccess
+ * @tc.desc: Enable app access with invalid data.
+ */
+HWTEST_F(AppAccountManagerTest, AppAccountManager_EnableAppAccess_0400, Function | MediumTest | Level1)
+{
+    ACCOUNT_LOGI("AppAccountManager_EnableAppAccess_0400");
+
+    ErrCode result = AppAccountManager::EnableAppAccess(STRING_NAME, STRING_AUTHORIZED_APP_OUT_OF_RANGE);
+    EXPECT_EQ(result, ERR_APPACCOUNT_KIT_AUTHORIZED_APP_OUT_OF_RANGE);
+}
+
+/**
  * @tc.number: AppAccountManager_DisableAppAccess_0100
  * @tc.name: DisableAppAccess
  * @tc.desc: Disable app access with invalid data.
@@ -373,6 +399,19 @@ HWTEST_F(AppAccountManagerTest, AppAccountManager_DisableAppAccess_0300, Functio
 
     ErrCode result = AppAccountManager::DisableAppAccess(STRING_NAME, STRING_EMPTY);
     EXPECT_EQ(result, ERR_APPACCOUNT_KIT_AUTHORIZED_APP_IS_EMPTY);
+}
+
+/**
+ * @tc.number: AppAccountManager_DisableAppAccess_0400
+ * @tc.name: DisableAppAccess
+ * @tc.desc: Disable app access with invalid data.
+ */
+HWTEST_F(AppAccountManagerTest, AppAccountManager_DisableAppAccess_0400, Function | MediumTest | Level1)
+{
+    ACCOUNT_LOGI("AppAccountManager_DisableAppAccess_0400");
+
+    ErrCode result = AppAccountManager::DisableAppAccess(STRING_NAME, STRING_AUTHORIZED_APP_OUT_OF_RANGE);
+    EXPECT_EQ(result, ERR_APPACCOUNT_KIT_AUTHORIZED_APP_OUT_OF_RANGE);
 }
 
 /**
@@ -753,6 +792,32 @@ HWTEST_F(AppAccountManagerTest, AppAccountManager_SetOAuthToken_0300, Function |
 
     ErrCode result = AppAccountManager::SetOAuthToken(STRING_NAME, STRING_TOKEN_OUT_OF_RANGE);
     EXPECT_EQ(result, ERR_APPACCOUNT_KIT_TOKEN_OUT_OF_RANGE);
+}
+
+/**
+ * @tc.number: AppAccountManager_ClearOAuthToken_0100
+ * @tc.name: ClearOAuthToken
+ * @tc.desc: Clear oauth token with invalid data.
+ */
+HWTEST_F(AppAccountManagerTest, AppAccountManager_ClearOAuthToken_0100, Function | MediumTest | Level1)
+{
+    ACCOUNT_LOGI("AppAccountManager_ClearOAuthToken_0100");
+
+    ErrCode result = AppAccountManager::ClearOAuthToken(STRING_EMPTY);
+    EXPECT_EQ(result, ERR_APPACCOUNT_KIT_NAME_IS_EMPTY);
+}
+
+/**
+ * @tc.number: AppAccountManager_ClearOAuthToken_0200
+ * @tc.name: ClearOAuthToken
+ * @tc.desc: Clear oauth token with invalid data.
+ */
+HWTEST_F(AppAccountManagerTest, AppAccountManager_ClearOAuthToken_0200, Function | MediumTest | Level1)
+{
+    ACCOUNT_LOGI("AppAccountManager_ClearOAuthToken_0200");
+
+    ErrCode result = AppAccountManager::ClearOAuthToken(STRING_NAME_OUT_OF_RANGE);
+    EXPECT_EQ(result, ERR_APPACCOUNT_KIT_NAME_OUT_OF_RANGE);
 }
 
 /**
