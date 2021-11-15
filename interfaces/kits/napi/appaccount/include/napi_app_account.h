@@ -40,6 +40,9 @@ private:
     static napi_value GetAccountCredential(napi_env env, napi_callback_info cbInfo);
     static napi_value GetAccountExtraInfo(napi_env env, napi_callback_info cbInfo);
     static napi_value GetAssociatedData(napi_env env, napi_callback_info cbInfo);
+    static napi_value GetOAuthToken(napi_env env, napi_callback_info cbInfo);
+    static napi_value SetOAuthToken(napi_env env, napi_callback_info cbInfo);
+    static napi_value ClearOAuthToken(napi_env env, napi_callback_info cbInfo);
     static napi_value Subscribe(napi_env env, napi_callback_info cbInfo);
     static napi_value Unsubscribe(napi_env env, napi_callback_info cbInfo);
     static napi_value JsConstructor(napi_env env, napi_callback_info cbinfo);

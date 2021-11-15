@@ -58,6 +58,7 @@ struct AppAccountAsyncContext {
     std::string value;
     std::string subscribeType;
     std::string unSubscribeType;
+    std::string token;
     bool isEnable;
     bool result;
     int errCode = 0;
@@ -129,6 +130,10 @@ napi_value GetErrorCodeValue(napi_env env, int errCode);
 void GetAppAccountInfoForResult(napi_env env, const std::vector<AppAccountInfo> &info, napi_value result);
 
 void ParseContextWithExInfo(napi_env env, napi_callback_info cbInfo, AppAccountAsyncContext *asyncContext);
+
+void ParseContextForSetExInfo(napi_env env, napi_callback_info cbInfo, AppAccountAsyncContext *asyncContext);
+
+void ParseContextForSetOAuth(napi_env env, napi_callback_info cbInfo, AppAccountAsyncContext *asyncContext);
 
 void ParseContextWithBdName(napi_env env, napi_callback_info cbInfo, AppAccountAsyncContext *asyncContext);
 
