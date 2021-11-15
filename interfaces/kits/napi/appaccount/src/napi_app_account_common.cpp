@@ -230,6 +230,52 @@ void ParseContextWithExInfo(napi_env env, napi_callback_info cbInfo, AppAccountA
     }
 }
 
+void ParseContextForSetExInfo(napi_env env, napi_callback_info cbInfo, AppAccountAsyncContext *asyncContext)
+{
+    ACCOUNT_LOGI("enter");
+    size_t argc = ARGS_SIZE_THREE;
+    napi_value argv[ARGS_SIZE_THREE] = {0};
+    napi_get_cb_info(env, cbInfo, &argc, argv, nullptr, nullptr);
+
+    for (size_t i = 0; i < argc; i++) {
+        napi_valuetype valueType = napi_undefined;
+        napi_typeof(env, argv[i], &valueType);
+        if (i == 0 && valueType == napi_string) {
+            asyncContext->name = GetNamedProperty(env, argv[i]);
+        } else if (i == 1 && valueType == napi_string) {
+            asyncContext->extraInfo = GetNamedProperty(env, argv[i]);
+        } else if (i == PARAMTWO && valueType == napi_function) {
+            napi_create_reference(env, argv[i], 1, &asyncContext->callbackRef);
+            break;
+        } else {
+            ACCOUNT_LOGE("Type matching failed");
+        }
+    }
+}
+
+void ParseContextForSetOAuth(napi_env env, napi_callback_info cbInfo, AppAccountAsyncContext *asyncContext)
+{
+    ACCOUNT_LOGI("enter");
+    size_t argc = ARGS_SIZE_THREE;
+    napi_value argv[ARGS_SIZE_THREE] = {0};
+    napi_get_cb_info(env, cbInfo, &argc, argv, nullptr, nullptr);
+
+    for (size_t i = 0; i < argc; i++) {
+        napi_valuetype valueType = napi_undefined;
+        napi_typeof(env, argv[i], &valueType);
+        if (i == 0 && valueType == napi_string) {
+            asyncContext->name = GetNamedProperty(env, argv[i]);
+        } else if (i == 1 && valueType == napi_string) {
+            asyncContext->token = GetNamedProperty(env, argv[i]);
+        } else if (i == PARAMTWO && valueType == napi_function) {
+            napi_create_reference(env, argv[i], 1, &asyncContext->callbackRef);
+            break;
+        } else {
+            ACCOUNT_LOGE("Type matching failed");
+        }
+    }
+}
+
 void ParseContextWithBdName(napi_env env, napi_callback_info cbInfo, AppAccountAsyncContext *asyncContext)
 {
     ACCOUNT_LOGI("enter");
