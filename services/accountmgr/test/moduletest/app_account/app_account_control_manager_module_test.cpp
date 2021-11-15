@@ -28,6 +28,8 @@ namespace {
 const std::string STRING_NAME = "name";
 const std::string STRING_EXTRA_INFO = "extra_info";
 const std::string STRING_OWNER = "com.example.owner";
+
+const std::int32_t ACCOUNT_MAX_SIZE = 1000;
 }  // namespace
 
 class AppAccountControlManagerModuleTest : public testing::Test {
@@ -77,18 +79,17 @@ void AppAccountControlManagerModuleTest::DeleteKvStore(void)
 }
 
 /**
- * @tc.number: AppAccountControlManager_AddAccount_0100
- * @tc.name: AddAccount
- * @tc.desc: Add an account with valid data.
+ * @tc.number: AppAccountControlManager_AccountMaxSize_0100
+ * @tc.name: AccountMaxSize
+ * @tc.desc: Check account max size with valid data.
  */
-HWTEST_F(AppAccountControlManagerModuleTest, AppAccountControlManager_AddAccount_0100, Function | MediumTest | Level1)
+HWTEST_F(
+    AppAccountControlManagerModuleTest, AppAccountControlManager_AccountMaxSize_0100, Function | MediumTest | Level1)
 {
-    ACCOUNT_LOGI("AppAccountControlManager_AddAccount_0100");
+    ACCOUNT_LOGI("AppAccountControlManager_AccountMaxSize_0100");
 
-    controlManagerPtr_ = AppAccountControlManager::GetInstance();
-    ASSERT_NE(controlManagerPtr_, nullptr);
+    auto controlManagerPtr = AppAccountControlManager::GetInstance();
+    ASSERT_NE(controlManagerPtr, nullptr);
 
-    AppAccountInfo appAccountInfo(STRING_NAME, STRING_OWNER);
-    ErrCode result = controlManagerPtr_->AddAccount(STRING_NAME, STRING_EXTRA_INFO, STRING_OWNER, appAccountInfo);
-    EXPECT_EQ(result, ERR_OK);
+    EXPECT_EQ(controlManagerPtr->ACCOUNT_MAX_SIZE, ACCOUNT_MAX_SIZE);
 }
