@@ -57,7 +57,6 @@ constexpr size_t SIZE_ZERO = 0;
 constexpr size_t SIZE_ONE = 1;
 constexpr size_t SIZE_TWO = 2;
 constexpr std::int32_t DELAY_FOR_PACKAGE_REMOVED = 3;
-constexpr std::int32_t ACCOUNT_MAX_SIZE = 32;
 }  // namespace
 
 class AppAccountManagerServiceModuleTest : public testing::Test {
@@ -183,38 +182,6 @@ HWTEST_F(AppAccountManagerServiceModuleTest, AppAccountManagerService_AddAccount
 
     result = servicePtr->DeleteAccount(STRING_NAME);
     EXPECT_EQ(result, ERR_OK);
-}
-
-/**
- * @tc.number: AppAccountManagerService_AddAccount_0500
- * @tc.name: AddAccount
- * @tc.desc: Add an app account with invalid data.
- */
-HWTEST_F(AppAccountManagerServiceModuleTest, AppAccountManagerService_AddAccount_0500, Function | MediumTest | Level1)
-{
-    ACCOUNT_LOGI("AppAccountManagerService_AddAccount_0500");
-
-    auto servicePtr = std::make_shared<AppAccountManagerService>();
-    ASSERT_NE(servicePtr, nullptr);
-
-    ErrCode result;
-    std::string name;
-    for (int index = 0; index < ACCOUNT_MAX_SIZE; index++) {
-        name = STRING_NAME + std::to_string(index);
-        ACCOUNT_LOGI("index = %{public}d, name = %{public}s", index, name.c_str());
-        result = servicePtr->AddAccount(name, STRING_EXTRA_INFO);
-        EXPECT_EQ(result, ERR_OK);
-    }
-
-    result = servicePtr->AddAccount(STRING_NAME, STRING_EXTRA_INFO);
-    EXPECT_EQ(result, ERR_APPACCOUNT_SERVICE_ACCOUNT_MAX_SIZE);
-
-    for (int index = 0; index < ACCOUNT_MAX_SIZE; index++) {
-        name = STRING_NAME + std::to_string(index);
-        ACCOUNT_LOGI("index = %{public}d, name = %{public}s", index, name.c_str());
-        result = servicePtr->DeleteAccount(name);
-        EXPECT_EQ(result, ERR_OK);
-    }
 }
 
 /**
