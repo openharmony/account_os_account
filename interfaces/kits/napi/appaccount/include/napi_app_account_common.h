@@ -167,6 +167,8 @@ napi_value ParseParametersByUnsubscribe(
 napi_value GetSubscriberByUnsubscribe(const napi_env &env, std::shared_ptr<SubscriberPtr> &subscriber,
     AsyncContextForUnsubscribe *asyncContextForOff, bool &isFind);
 
+void SubscribeExecuteCB(napi_env env, void *data);
+
 void UnsubscribeCallbackCompletedCB(napi_env env, napi_status status, void *data);
 }  // namespace AccountJsKit
 }  // namespace OHOS

@@ -17,6 +17,7 @@
 #define OS_ACCOUNT_SERVICES_ACCOUNTMGR_INCLUDE_APP_ACCOUNT_BUNDLE_MANAGER_H
 
 #include "account_error_no.h"
+#include "bundle_info.h"
 #include "singleton.h"
 
 namespace OHOS {
@@ -27,6 +28,7 @@ public:
     ~AppAccountBundleManager();
 
     ErrCode GetBundleName(std::string &bundleName);
+    ErrCode GetBundleInfo(const std::string &bundleName, AppExecFwk::BundleInfo &bundleInfo);
 };
 }  // namespace AccountSA
 }  // namespace OHOS
