@@ -67,6 +67,8 @@ ohos_unittest("app_account_bundle_manager_test") {
   ]
 
   external_deps = [
+    "aafwk_standard:base",
+    "aafwk_standard:want",
     "appexecfwk_standard:appexecfwk_base",
     "appexecfwk_standard:appexecfwk_core",
     "appexecfwk_standard:libeventhandler",
@@ -96,6 +98,8 @@ ohos_unittest("app_account_data_storage_test") {
   ]
 
   external_deps = [
+    "aafwk_standard:base",
+    "aafwk_standard:want",
     "appexecfwk_standard:appexecfwk_base",
     "appexecfwk_standard:appexecfwk_core",
     "appexecfwk_standard:libeventhandler",
@@ -193,6 +197,8 @@ ohos_unittest("app_account_subscribe_manager_test") {
   ]
 
   external_deps = [
+    "aafwk_standard:base",
+    "aafwk_standard:want",
     "appexecfwk_standard:appexecfwk_base",
     "appexecfwk_standard:appexecfwk_core",
     "appexecfwk_standard:libeventhandler",
@@ -222,6 +228,8 @@ ohos_unittest("inner_app_account_manager_test") {
   ]
 
   external_deps = [
+    "aafwk_standard:base",
+    "aafwk_standard:want",
     "appexecfwk_standard:appexecfwk_base",
     "appexecfwk_standard:appexecfwk_core",
     "appexecfwk_standard:libeventhandler",

@@ -78,7 +78,7 @@ private:
     std::string name_;
     std::string extraInfo_;
     std::set<std::string> authorizedApps_;
-    bool syncEnable_;
+    bool syncEnable_ = false;
     std::string associatedData_;
     std::string accountCredential_;
     std::string oauthToken_;

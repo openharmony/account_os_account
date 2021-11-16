@@ -42,7 +42,7 @@ static const std::int32_t UNSUBSCRIBE_MAX_PARA = 2;
 class SubscriberPtr;
 struct AsyncContextForSubscribe;
 
-static std::map<napi_value, AsyncContextForSubscribe *> subscriberInstances;
+extern std::map<AppAccountManager *, AsyncContextForSubscribe *> subscriberInstances;
 
 struct AppAccountAsyncContext {
     napi_env env;
@@ -59,8 +59,8 @@ struct AppAccountAsyncContext {
     std::string subscribeType;
     std::string unSubscribeType;
     std::string token;
-    bool isEnable;
-    bool result;
+    bool isEnable = false;
+    bool result = false;
     int errCode = 0;
 
     napi_deferred deferred;
@@ -90,6 +90,7 @@ struct AsyncContextForSubscribe {
     napi_env env;
     napi_async_work work;
     napi_ref callbackRef;
+    AppAccountManager *appAccountManager = nullptr;
     std::shared_ptr<SubscriberPtr> subscriber = nullptr;
 };
 
@@ -98,7 +99,7 @@ struct AsyncContextForUnsubscribe {
     napi_async_work work;
     napi_ref callbackRef;
     std::shared_ptr<SubscriberPtr> subscriber = nullptr;
-    napi_value thisVar;
+    AppAccountManager *appAccountManager = nullptr;
     size_t argc = 0;
 };
 
@@ -111,12 +112,10 @@ public:
 
     void SetEnv(const napi_env &env);
     void SetCallbackRef(const napi_ref &ref);
-    void SetErrorCode(const int &errorCode);
 
 private:
     napi_env env_ = nullptr;
     napi_ref ref_ = nullptr;
-    int errorCode_ = 0;
 };
 
 napi_value NapiGetNull(napi_env env);
@@ -165,8 +164,8 @@ napi_value ParseParametersBySubscribe(const napi_env &env, const napi_value (&ar
 napi_value ParseParametersByUnsubscribe(
     const napi_env &env, const size_t &argc, const napi_value (&argv)[UNSUBSCRIBE_MAX_PARA], napi_ref &callback);
 
-napi_value GetSubscriberByUnsubscribe(const napi_env &env, const napi_value &thisVar,
-    std::shared_ptr<SubscriberPtr> &subscriber, AsyncContextForUnsubscribe *asyncContextForOff, bool &isFind);
+napi_value GetSubscriberByUnsubscribe(const napi_env &env, std::shared_ptr<SubscriberPtr> &subscriber,
+    AsyncContextForUnsubscribe *asyncContextForOff, bool &isFind);
 
 void UnsubscribeCallbackCompletedCB(napi_env env, napi_status status, void *data);
 }  // namespace AccountJsKit
