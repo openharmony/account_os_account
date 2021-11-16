@@ -14,6 +14,7 @@
  */
 
 #include "account_log_wrapper.h"
+#include "bundle_info.h"
 
 #include "bundle_mgr_client.h"
 
@@ -38,6 +39,15 @@ bool BundleMgrClient::GetBundleNameForUid(const int uid, std::string &bundleName
     ACCOUNT_LOGI("uid = %{public}d", uid);
 
     bundleName = "com.example.owner";
+    ACCOUNT_LOGI("bundleName = %{public}s", bundleName.c_str());
+
+    return true;
+}
+
+bool BundleMgrClient::GetBundleInfo(const std::string &bundleName, const BundleFlag flag, BundleInfo &bundleInfo)
+{
+    ACCOUNT_LOGI("enter");
+
     ACCOUNT_LOGI("bundleName = %{public}s", bundleName.c_str());
 
     return true;

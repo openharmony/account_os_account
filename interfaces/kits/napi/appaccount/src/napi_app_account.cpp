@@ -1016,14 +1016,7 @@ napi_value NapiAppAccount::Subscribe(napi_env env, napi_callback_info cbInfo)
         napi_create_async_work(env,
             nullptr,
             resourceName,
-            [](napi_env env, void *data) {
-                ACCOUNT_LOGI("Subscribe, napi_create_async_work running.");
-                AsyncContextForSubscribe *asyncContextForOn = (AsyncContextForSubscribe *)data;
-                asyncContextForOn->subscriber->SetEnv(env);
-                asyncContextForOn->subscriber->SetCallbackRef(asyncContextForOn->callbackRef);
-                int errCode = AppAccountManager::SubscribeAppAccount(asyncContextForOn->subscriber);
-                ACCOUNT_LOGI("Subscribe errcode parameter is %{public}d", errCode);
-            },
+            SubscribeExecuteCB,
             [](napi_env env, napi_status status, void *data) {
                 ACCOUNT_LOGI("Subscribe, napi_create_async_work complete.");
                 AsyncContextForSubscribe *asyncContextForOn = (AsyncContextForSubscribe *)data;

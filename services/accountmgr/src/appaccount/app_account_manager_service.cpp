@@ -134,6 +134,13 @@ ErrCode AppAccountManagerService::EnableAppAccess(const std::string &name, const
         return result;
     }
 
+    AppExecFwk::BundleInfo bundleInfo;
+    result = bundleManagerPtr->GetBundleInfo(bundleName, bundleInfo);
+    if (result != ERR_OK) {
+        ACCOUNT_LOGE("failed to get bundle info");
+        return result;
+    }
+
     return innerManager_->EnableAppAccess(name, authorizedApp, bundleName);
 }
 
@@ -150,6 +157,13 @@ ErrCode AppAccountManagerService::DisableAppAccess(const std::string &name, cons
     ErrCode result = bundleManagerPtr->GetBundleName(bundleName);
     if (result != ERR_OK) {
         ACCOUNT_LOGE("failed to get bundle name");
+        return result;
+    }
+
+    AppExecFwk::BundleInfo bundleInfo;
+    result = bundleManagerPtr->GetBundleInfo(bundleName, bundleInfo);
+    if (result != ERR_OK) {
+        ACCOUNT_LOGE("failed to get bundle info");
         return result;
     }
 
