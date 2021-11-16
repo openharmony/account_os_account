@@ -437,11 +437,11 @@ ErrCode AppAccountControlManager::SetOAuthToken(
         return result;
     }
 
-    dataCache_.emplace(appAccountInfo.GetPrimeKey(), token);
-
     auto it = dataCache_.find(appAccountInfo.GetPrimeKey());
-    if (it != dataCache_.end()) {
-        ACCOUNT_LOGI("it->second = %{public}s", it->second.c_str());
+    if (it == dataCache_.end()) {
+        dataCache_.emplace(appAccountInfo.GetPrimeKey(), token);
+    } else {
+        dataCache_[appAccountInfo.GetPrimeKey()] = token;
     }
 
     return ERR_OK;
@@ -485,39 +485,15 @@ ErrCode AppAccountControlManager::GetAllAccounts(
         return ERR_APPACCOUNT_SERVICE_DATA_STORAGE_PTR_IS_NULLPTR;
     }
 
-    if (owner == bundleName) {
-        std::map<std::string, std::shared_ptr<IAccountInfo>> accounts;
-        ErrCode result = dataStoragePtr->LoadDataByLocalFuzzyQuery(owner, accounts);
-        if (result != ERR_OK) {
-            ACCOUNT_LOGE("failed to get accounts by owner");
-            return ERR_APPACCOUNT_SERVICE_GET_IACCOUNT_INFO_BY_OWNER;
-        }
+    std::map<std::string, std::shared_ptr<IAccountInfo>> accounts;
+    ErrCode result = dataStoragePtr->LoadDataByLocalFuzzyQuery(owner, accounts);
+    if (result != ERR_OK) {
+        ACCOUNT_LOGE("failed to get accounts by owner");
+        return ERR_APPACCOUNT_SERVICE_GET_IACCOUNT_INFO_BY_OWNER;
+    }
 
-        for (auto account : accounts) {
-            appAccounts.emplace_back(*(std::static_pointer_cast<AppAccountInfo>(account.second)));
-        }
-    } else {
-        std::vector<std::string> accessibleAccounts;
-        ErrCode result = dataStoragePtr->GetAccessibleAccountsFromDataStorage(bundleName, accessibleAccounts);
-        if (result != ERR_OK) {
-            ACCOUNT_LOGE("failed to get accessiable account from data storage");
-            return result;
-        }
-
-        AppAccountInfo appAccountInfo;
-        for (auto account : accessibleAccounts) {
-            auto position = account.find(owner);
-            ACCOUNT_LOGI("position = %{public}zu", position);
-            if (position == 0) {
-                result = dataStoragePtr->GetAccountInfoById(account, appAccountInfo);
-                if (result != ERR_OK) {
-                    ACCOUNT_LOGE("failed to get account info by id");
-                    return ERR_APPACCOUNT_SERVICE_GET_ACCOUNT_INFO_BY_ID;
-                }
-
-                appAccounts.emplace_back(appAccountInfo);
-            }
-        }
+    for (auto account : accounts) {
+        appAccounts.emplace_back(*(std::static_pointer_cast<AppAccountInfo>(account.second)));
     }
 
     return ERR_OK;

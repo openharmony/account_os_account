@@ -33,8 +33,6 @@ const std::string OAUTH_TOKEN = "oauthToken";
 
 AppAccountInfo::AppAccountInfo()
 {
-    ACCOUNT_LOGI("enter");
-
     owner_ = "";
     name_ = "";
     extraInfo_ = "";
@@ -47,8 +45,6 @@ AppAccountInfo::AppAccountInfo()
 
 AppAccountInfo::AppAccountInfo(const std::string &name, const std::string &owner)
 {
-    ACCOUNT_LOGI("enter");
-
     name_ = name;
     owner_ = owner;
 
@@ -61,9 +57,7 @@ AppAccountInfo::AppAccountInfo(const std::string &name, const std::string &owner
 }
 
 AppAccountInfo::~AppAccountInfo()
-{
-    ACCOUNT_LOGI("enter");
-}
+{}
 
 ErrCode AppAccountInfo::GetOwner(std::string &owner)
 {
@@ -389,8 +383,6 @@ Json AppAccountInfo::ToJson() const
 
 void AppAccountInfo::FromJson(const Json &jsonObject)
 {
-    ACCOUNT_LOGI("enter");
-
     const auto &jsonObjectEnd = jsonObject.end();
 
     OHOS::AccountSA::GetDataByType<std::string>(

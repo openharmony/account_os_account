@@ -42,10 +42,6 @@ template <typename T, typename dataType>
 void GetDataByType(const Json &jsonObject, const nlohmann::detail::iter_impl<const Json> &end, const std::string &key,
     dataType &data, const JsonType jsonType)
 {
-    ACCOUNT_LOGI("enter");
-
-    ACCOUNT_LOGI("key = %{public}s, jsonType = %{public}d", key.c_str(), jsonType);
-
     if (jsonObject.find(key) != end) {
         switch (jsonType) {
             case JsonType::BOOLEAN:

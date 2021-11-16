@@ -59,7 +59,7 @@ void AppAccountBundleManagerTest::TearDown(void)
  */
 HWTEST_F(AppAccountBundleManagerTest, AppAccountBundleManager_GetBundleName_0100, Function | MediumTest | Level1)
 {
-    EXPECT_NE(bundleManagerPtr_, nullptr);
+    ASSERT_NE(bundleManagerPtr_, nullptr);
 
     std::string bundleName = "";
     ErrCode result = bundleManagerPtr_->GetBundleName(bundleName);

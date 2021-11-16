@@ -35,7 +35,8 @@ const std::string STRING_CREDENTIAL_TYPE = "password";
 const std::string STRING_CREDENTIAL = "1024";
 const std::string STRING_ACCOUNT_CREDENTIAL = "{\"password\": \"1024\"}";
 
-const bool SYNC_ENABLE = true;
+const bool SYNC_ENABLE_TRUE = true;
+const bool SYNC_ENABLE_FALSE = false;
 
 constexpr size_t SIZE_ZERO = 0;
 constexpr size_t SIZE_ONE = 1;
@@ -321,14 +322,14 @@ HWTEST_F(AppAccountInfoTest, AppAccountInfo_GetSyncEnable_0100, Function | Mediu
     ACCOUNT_LOGI("AppAccountInfo_GetSyncEnable_0100");
 
     // make sync enable
-    bool syncEnable = true;
+    bool syncEnable = SYNC_ENABLE_TRUE;
 
     // make info with sync enable
     AppAccountInfo appAccountInfo;
     appAccountInfo.syncEnable_ = syncEnable;
 
     // get the sync enable
-    bool syncEnableFromInfo;
+    bool syncEnableFromInfo = SYNC_ENABLE_FALSE;
     ErrCode result = appAccountInfo.GetSyncEnable(syncEnableFromInfo);
     EXPECT_EQ(result, ERR_OK);
 
@@ -346,7 +347,7 @@ HWTEST_F(AppAccountInfoTest, AppAccountInfo_SetSyncEnable_0100, Function | Mediu
     ACCOUNT_LOGI("AppAccountInfo_SetSyncEnable_0100");
 
     // make sync enable
-    bool syncEnable = SYNC_ENABLE;
+    bool syncEnable = SYNC_ENABLE_TRUE;
 
     // make info
     AppAccountInfo appAccountInfo;
@@ -482,7 +483,7 @@ HWTEST_F(AppAccountInfoTest, AppAccountInfo_Marshalling_0100, Function | MediumT
     std::string extraInfo = STRING_EXTRA_INFO;
     std::set<std::string> authorizedApps;
     authorizedApps.emplace(STRING_OWNER);
-    bool syncEnable = SYNC_ENABLE;
+    bool syncEnable = SYNC_ENABLE_TRUE;
     std::string associatedData = STRING_ASSOCIATED_DATA;
     std::string accountCredential = STRING_ACCOUNT_CREDENTIAL;
 

@@ -15,6 +15,8 @@
 
 #include <gtest/gtest.h>
 
+#include <thread>
+
 #define private public
 #include "app_account_control_manager.h"
 #undef private
@@ -30,6 +32,7 @@ const std::string STRING_EXTRA_INFO = "extra_info";
 const std::string STRING_OWNER = "com.example.owner";
 
 const std::int32_t ACCOUNT_MAX_SIZE = 1000;
+const std::int32_t DELAY_FOR_OPERATION = 500;
 }  // namespace
 
 class AppAccountControlManagerModuleTest : public testing::Test {
@@ -92,4 +95,36 @@ HWTEST_F(
     ASSERT_NE(controlManagerPtr, nullptr);
 
     EXPECT_EQ(controlManagerPtr->ACCOUNT_MAX_SIZE, ACCOUNT_MAX_SIZE);
+}
+
+/**
+ * @tc.number: AppAccountControlManager_AccountMaxSize_0200
+ * @tc.name: AccountMaxSize
+ * @tc.desc: Check account max size with valid data.
+ */
+HWTEST_F(
+    AppAccountControlManagerModuleTest, AppAccountControlManager_AccountMaxSize_0200, Function | MediumTest | Level1)
+{
+    ACCOUNT_LOGI("AppAccountControlManager_AccountMaxSize_0200");
+
+    auto controlManagerPtr = AppAccountControlManager::GetInstance();
+    ASSERT_NE(controlManagerPtr, nullptr);
+
+    ErrCode result;
+    std::string name;
+    for (int index = 0; index < ACCOUNT_MAX_SIZE; index++) {
+        name = STRING_NAME + std::to_string(index);
+        ACCOUNT_LOGI("before AddAccount, index = %{public}d", index);
+        GTEST_LOG_(INFO) << "before AddAccount, index = " << index;
+
+        AppAccountInfo appAccountInfo(name, STRING_OWNER);
+        result = controlManagerPtr->AddAccount(name, STRING_EXTRA_INFO, STRING_OWNER, appAccountInfo);
+        ASSERT_EQ(result, ERR_OK);
+
+        std::this_thread::sleep_for(std::chrono::milliseconds(DELAY_FOR_OPERATION));
+    }
+
+    AppAccountInfo appAccountInfo(STRING_NAME, STRING_OWNER);
+    result = controlManagerPtr->AddAccount(STRING_NAME, STRING_EXTRA_INFO, STRING_OWNER, appAccountInfo);
+    EXPECT_EQ(result, ERR_APPACCOUNT_SERVICE_ACCOUNT_MAX_SIZE);
 }
