@@ -20,7 +20,6 @@
 #define private public
 #include "app_account_control_manager.h"
 #undef private
-#include "iapp_account_control.h"
 
 using namespace testing::ext;
 using namespace OHOS;

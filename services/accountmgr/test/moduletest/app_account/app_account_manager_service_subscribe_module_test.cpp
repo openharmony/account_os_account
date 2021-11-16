@@ -17,6 +17,7 @@
 
 #define private public
 #include "app_account.h"
+#include "app_account_control_manager.h"
 #undef private
 #include "app_account_manager_service.h"
 #include "app_account_subscriber.h"
@@ -34,6 +35,8 @@ const std::string STRING_BUNDLE_NAME = "com.example.third_party";
 const std::string STRING_EXTRA_INFO = "extra_info";
 std::mutex mtx;
 const time_t TIME_OUT_SECONDS_LIMIT = 5;
+
+constexpr std::int32_t UID = 10000;
 }  // namespace
 
 class AppAccountManagerServiceSubscribeModuleTest : public testing::Test {
@@ -42,6 +45,10 @@ public:
     static void TearDownTestCase(void);
     void SetUp(void) override;
     void TearDown(void) override;
+
+    void DeleteKvStore(void);
+
+    std::shared_ptr<IAppAccountControl> controlManagerPtr_;
 };
 
 void AppAccountManagerServiceSubscribeModuleTest::SetUpTestCase(void)
@@ -51,10 +58,32 @@ void AppAccountManagerServiceSubscribeModuleTest::TearDownTestCase(void)
 {}
 
 void AppAccountManagerServiceSubscribeModuleTest::SetUp(void)
-{}
+{
+    DeleteKvStore();
+}
 
 void AppAccountManagerServiceSubscribeModuleTest::TearDown(void)
-{}
+{
+    DeleteKvStore();
+}
+
+void AppAccountManagerServiceSubscribeModuleTest::DeleteKvStore(void)
+{
+    controlManagerPtr_ = AppAccountControlManager::GetInstance();
+    ASSERT_NE(controlManagerPtr_, nullptr);
+
+    auto dataStoragePtr = controlManagerPtr_->GetDataStorage(false, UID);
+    ASSERT_NE(dataStoragePtr, nullptr);
+
+    ErrCode result = dataStoragePtr->DeleteKvStore();
+    ASSERT_EQ(result, ERR_OK);
+
+    dataStoragePtr = controlManagerPtr_->GetDataStorage(true, UID);
+    ASSERT_NE(dataStoragePtr, nullptr);
+
+    result = dataStoragePtr->DeleteKvStore();
+    ASSERT_EQ(result, ERR_OK);
+}
 
 class AppAccountSubscriberTest : public AppAccountSubscriber {
 public:
@@ -245,4 +274,54 @@ HWTEST_F(AppAccountManagerServiceSubscribeModuleTest, AppAccountManagerServiceSu
     // subscribe app account
     ErrCode result = servicePtr->SubscribeAppAccount(subscribeInfo, appAccountEventListener);
     EXPECT_EQ(result, ERR_APPACCOUNT_SERVICE_SUBSCRIBE_PERMISSON_DENIED);
+}
+
+/**
+ * @tc.number: AppAccountManagerServiceSubscribe_SubscribeAppAccount_0400
+ * @tc.name: SubscribeAppAccount
+ * @tc.desc: Subscribe app accounts with invalid data.
+ */
+HWTEST_F(AppAccountManagerServiceSubscribeModuleTest, AppAccountManagerServiceSubscribe_SubscribeAppAccount_0400,
+    Function | MediumTest | Level1)
+{
+    ACCOUNT_LOGI("AppAccountManagerServiceSubscribe_SubscribeAppAccount_0400");
+
+    // add an account
+    std::string name = STRING_NAME;
+    std::string bundleName = STRING_BUNDLE_NAME;
+    AppAccountInfo appAccountInfo(name, bundleName);
+    ErrCode result = controlManagerPtr_->AddAccount(name, STRING_EXTRA_INFO, bundleName, appAccountInfo);
+    EXPECT_EQ(result, ERR_OK);
+
+    // enable app access
+    result = controlManagerPtr_->EnableAppAccess(name, STRING_OWNER, bundleName, appAccountInfo);
+    EXPECT_EQ(result, ERR_OK);
+
+    // make owners
+    std::vector<std::string> owners;
+    owners.emplace_back(bundleName);
+
+    // make subscribe info
+    AppAccountSubscribeInfo subscribeInfo(owners);
+
+    // make a subscriber
+    auto subscriberTestPtr = std::make_shared<AppAccountSubscriberTest>(subscribeInfo);
+
+    // make an event listener
+    sptr<IRemoteObject> appAccountEventListener = nullptr;
+
+    ErrCode subscribeState = DelayedSingleton<AppAccount>::GetInstance()->CreateAppAccountEventListener(
+        subscriberTestPtr, appAccountEventListener);
+    EXPECT_EQ(subscribeState, AppAccount::INITIAL_SUBSCRIPTION);
+
+    auto servicePtr = std::make_shared<AppAccountManagerService>();
+    ASSERT_NE(servicePtr, nullptr);
+
+    // subscribe app account
+    result = servicePtr->SubscribeAppAccount(subscribeInfo, appAccountEventListener);
+    EXPECT_EQ(result, ERR_OK);
+
+    // unsubscribe app account
+    result = servicePtr->UnsubscribeAppAccount(appAccountEventListener);
+    EXPECT_EQ(result, ERR_OK);
 }
