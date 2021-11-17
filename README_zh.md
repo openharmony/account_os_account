@@ -23,19 +23,38 @@
 
 ```
 /base/account/os_account
-├── common               # 公共基础模块
-│   ├── account_error    # 错误码定义
-│   ├── log              # 日志打印代码
-│   ├── perf_stat        # 性能统计
-│   └── test             # 公共模块测试代码
-├── interfaces           # 对外接口存放目录
-│   └── innerkits        # 对内部组件暴露的头文件存放目录
-├── kits                 # 系统帐号组件开发框架
-├── sa_profile           # 帐号SA配置文件定义目录
-├── services             # 系统帐号组件服务代码
-│   └── accountmgr       # 帐号管理服务目录
-└── test                 # 系统帐号组件测试代码
-    └── resource         # 系统帐号组件测试资源
+├── figures                  README图片
+├── frameworks               账号子系统kit代码
+│   ├── appaccount           应用账号kit代码
+│   │   ├── core             应用账号ipc
+│   │   └── native           应用账号内部接口
+│   ├── common               共通基础代码
+│   │   ├── account_error    错误码
+│   │   ├── database         数据库基础代码
+│   │   ├── log              打印日志代码
+│   │   ├── perf_stat        性能统计
+│   │   └── test             共通模块测试代码
+│   ├── ohosaccount          云账号kit代码
+│   │   ├── native           应用账号kit头文件的实现
+│   │   └── test             应用账号kit测试
+│   └── osaccount            本地账号kit代码
+│       ├── core             本地账号ipc
+│       └── native           本地账号内部接口
+├── interfaces               对外公开的AIP
+│   ├── innerkits            内部模块头文件
+│   │   ├── appaccount       应用账号内部头文件
+│   │   ├── ohosaccount      云账号内部头文件
+│   │   └── osaccount        本地账号内部头文件
+│   └── kits                 内部框架
+│       └── napi             系统帐号组件开发框架
+├── sa_profile               帐号SA配置文件定义目录
+├── services                 服务代码
+│   ├── accountmgr           系统帐号组件服务代码
+│   │   ├── include          系统帐号组件服务代码头文件 
+│   │   ├── src              系统帐号组件服务代码头文件的实现
+│   │   └── test             系统帐号组件服务代码测试
+└── test                     测试代码 
+    └── resource             测试资源文件
 ```
 
 ## 说明<a name="section1312121216216"></a>

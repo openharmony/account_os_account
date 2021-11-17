@@ -365,7 +365,7 @@ ErrCode AppAccountStub::ProcCheckAppAccountSyncEnable(MessageParcel &data, Messa
         return ERR_NONE;
     }
 
-    bool syncEnable;
+    bool syncEnable = false;
     ErrCode result = CheckAppAccountSyncEnable(name, syncEnable);
     if (!reply.WriteInt32(result)) {
         ACCOUNT_LOGE("failed to write reply");

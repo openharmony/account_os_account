@@ -47,6 +47,7 @@ const std::string STRING_CREDENTIAL = "1024";
 const std::string STRING_CREDENTIAL_TYPE_TWO = "token";
 const std::string STRING_CREDENTIAL_TWO = "2048";
 const std::string STRING_TOKEN = "1024";
+const std::string STRING_TOKEN_TWO = "2048";
 const std::string STRING_OWNER = "com.example.owner";
 
 const bool SYNC_ENABLE_TRUE = true;
@@ -513,7 +514,7 @@ HWTEST_F(AppAccountManagerServiceModuleTest, seAppAccountManagerService_SetAppAc
     result = servicePtr->SetAppAccountSyncEnable(STRING_NAME, SYNC_ENABLE_TRUE);
     EXPECT_EQ(result, ERR_OK);
 
-    bool syncEnable = false;
+    bool syncEnable = SYNC_ENABLE_FALSE;
     result = servicePtr->CheckAppAccountSyncEnable(STRING_NAME, syncEnable);
     EXPECT_EQ(result, ERR_OK);
     EXPECT_EQ(syncEnable, SYNC_ENABLE_TRUE);
@@ -541,7 +542,7 @@ HWTEST_F(AppAccountManagerServiceModuleTest, seAppAccountManagerService_SetAppAc
     result = servicePtr->SetAppAccountSyncEnable(STRING_NAME, SYNC_ENABLE_FALSE);
     EXPECT_EQ(result, ERR_OK);
 
-    bool syncEnable = false;
+    bool syncEnable = SYNC_ENABLE_FALSE;
     result = servicePtr->CheckAppAccountSyncEnable(STRING_NAME, syncEnable);
     EXPECT_EQ(result, ERR_OK);
     EXPECT_EQ(syncEnable, SYNC_ENABLE_FALSE);
@@ -1021,12 +1022,43 @@ HWTEST_F(
 /**
  * @tc.number: AppAccountManagerService_SetOAuthToken_0200
  * @tc.name: SetOAuthToken
- * @tc.desc: Set oauth token with invalid data.
+ * @tc.desc: Set oauth token with valid data.
  */
 HWTEST_F(
     AppAccountManagerServiceModuleTest, AppAccountManagerService_SetOAuthToken_0200, Function | MediumTest | Level1)
 {
     ACCOUNT_LOGI("AppAccountManagerService_SetOAuthToken_0200");
+
+    auto servicePtr = std::make_shared<AppAccountManagerService>();
+    ASSERT_NE(servicePtr, nullptr);
+
+    ErrCode result = servicePtr->AddAccount(STRING_NAME, STRING_EXTRA_INFO);
+    EXPECT_EQ(result, ERR_OK);
+
+    result = servicePtr->SetOAuthToken(STRING_NAME, STRING_TOKEN);
+    EXPECT_EQ(result, ERR_OK);
+
+    result = servicePtr->SetOAuthToken(STRING_NAME, STRING_TOKEN_TWO);
+    EXPECT_EQ(result, ERR_OK);
+
+    std::string token;
+    result = servicePtr->GetOAuthToken(STRING_NAME, token);
+    EXPECT_EQ(result, ERR_OK);
+    EXPECT_EQ(token, STRING_TOKEN_TWO);
+
+    result = servicePtr->DeleteAccount(STRING_NAME);
+    EXPECT_EQ(result, ERR_OK);
+}
+
+/**
+ * @tc.number: AppAccountManagerService_SetOAuthToken_0300
+ * @tc.name: SetOAuthToken
+ * @tc.desc: Set oauth token with invalid data.
+ */
+HWTEST_F(
+    AppAccountManagerServiceModuleTest, AppAccountManagerService_SetOAuthToken_0300, Function | MediumTest | Level1)
+{
+    ACCOUNT_LOGI("AppAccountManagerService_SetOAuthToken_0300");
 
     auto servicePtr = std::make_shared<AppAccountManagerService>();
     ASSERT_NE(servicePtr, nullptr);
@@ -1223,6 +1255,55 @@ HWTEST_F(
     EXPECT_EQ(owner, STRING_BUNDLE_NAME);
 
     result = controlManagerPtr_->DeleteAccount(STRING_NAME, STRING_BUNDLE_NAME, appAccountInfo);
+    EXPECT_EQ(result, ERR_OK);
+}
+
+/**
+ * @tc.number: AppAccountManagerService_GetAllAccounts_0500
+ * @tc.name: GetAllAccounts
+ * @tc.desc: Get all accounts with valid data.
+ */
+HWTEST_F(
+    AppAccountManagerServiceModuleTest, AppAccountManagerService_GetAllAccounts_0500, Function | MediumTest | Level1)
+{
+    ACCOUNT_LOGI("AppAccountManagerService_GetAllAccounts_0500");
+
+    controlManagerPtr_ = AppAccountControlManager::GetInstance();
+    ASSERT_NE(controlManagerPtr_, nullptr);
+
+    AppAccountInfo appAccountInfo(STRING_NAME, STRING_BUNDLE_NAME);
+    ErrCode result = controlManagerPtr_->AddAccount(STRING_NAME, STRING_EMPTY, STRING_BUNDLE_NAME, appAccountInfo);
+    EXPECT_EQ(result, ERR_OK);
+
+    AppAccountInfo appAccountInfoTwo(STRING_NAME_TWO, STRING_OWNER);
+    result = controlManagerPtr_->AddAccount(STRING_NAME, STRING_EMPTY, STRING_OWNER, appAccountInfoTwo);
+    EXPECT_EQ(result, ERR_OK);
+
+    result = controlManagerPtr_->EnableAppAccess(STRING_NAME, STRING_BUNDLE_NAME, STRING_OWNER, appAccountInfoTwo);
+    EXPECT_EQ(result, ERR_OK);
+
+    auto servicePtr = std::make_shared<AppAccountManagerService>();
+    ASSERT_NE(servicePtr, nullptr);
+
+    std::vector<AppAccountInfo> appAccounts;
+    result = servicePtr->GetAllAccounts(STRING_BUNDLE_NAME, appAccounts);
+    EXPECT_EQ(result, ERR_OK);
+    ASSERT_EQ(appAccounts.size(), SIZE_ONE);
+
+    std::string owner;
+    result = appAccounts.begin()->GetOwner(owner);
+    EXPECT_EQ(result, ERR_OK);
+    EXPECT_EQ(owner, STRING_BUNDLE_NAME);
+
+    std::string name;
+    result = appAccounts.begin()->GetName(name);
+    EXPECT_EQ(result, ERR_OK);
+    EXPECT_EQ(name, STRING_NAME);
+
+    result = controlManagerPtr_->DeleteAccount(STRING_NAME, STRING_BUNDLE_NAME, appAccountInfo);
+    EXPECT_EQ(result, ERR_OK);
+
+    result = controlManagerPtr_->DeleteAccount(STRING_NAME, STRING_OWNER, appAccountInfoTwo);
     EXPECT_EQ(result, ERR_OK);
 }
 

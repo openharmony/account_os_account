@@ -62,11 +62,11 @@ void AppAccountManagerServiceTest::TearDown(void)
 {}
 
 /**
- * @tc.number: AppAccount_AddAccount_001
+ * @tc.number: AppAccountManagerService_AddAccount_0100
  * @tc.name: AddAccount
  * @tc.desc: Add an app account with valid data.
  */
-HWTEST_F(AppAccountManagerServiceTest, AppAccount_AddAccount_001, Function | MediumTest | Level1)
+HWTEST_F(AppAccountManagerServiceTest, AppAccountManagerService_AddAccount_0100, Function | MediumTest | Level1)
 {
     ErrCode result = appAccountProxy_->AddAccount(STRING_NAME, STRING_EXTRA_INFO);
 
@@ -74,11 +74,11 @@ HWTEST_F(AppAccountManagerServiceTest, AppAccount_AddAccount_001, Function | Med
 }
 
 /**
- * @tc.number: AppAccount_DeleteAccount_001
+ * @tc.number: AppAccountManagerService_DeleteAccount_0100
  * @tc.name: DeleteAccount
  * @tc.desc: Delete an app account with valid data.
  */
-HWTEST_F(AppAccountManagerServiceTest, AppAccount_DeleteAccount_001, Function | MediumTest | Level1)
+HWTEST_F(AppAccountManagerServiceTest, AppAccountManagerService_DeleteAccount_0100, Function | MediumTest | Level1)
 {
     ErrCode result = appAccountProxy_->DeleteAccount(STRING_NAME);
 
@@ -86,11 +86,12 @@ HWTEST_F(AppAccountManagerServiceTest, AppAccount_DeleteAccount_001, Function | 
 }
 
 /**
- * @tc.number: AppAccount_SubscribeAppAccount_001
+ * @tc.number: AppAccountManagerService_SubscribeAppAccount_0100
  * @tc.name: SubscribeAppAccount
  * @tc.desc: Subscribe app accounts with valid data.
  */
-HWTEST_F(AppAccountManagerServiceTest, AppAccount_SubscribeAppAccount_001, Function | MediumTest | Level1)
+HWTEST_F(
+    AppAccountManagerServiceTest, AppAccountManagerService_SubscribeAppAccount_0100, Function | MediumTest | Level1)
 {
     // make owners
     std::vector<std::string> owners;
@@ -107,11 +108,12 @@ HWTEST_F(AppAccountManagerServiceTest, AppAccount_SubscribeAppAccount_001, Funct
 }
 
 /**
- * @tc.number: AppAccount_UnsubscribeAppAccount_001
+ * @tc.number: AppAccountManagerService_UnsubscribeAppAccount_0100
  * @tc.name: UnsubscribeAppAccount
  * @tc.desc: Unsubscribe app accounts with valid data.
  */
-HWTEST_F(AppAccountManagerServiceTest, AppAccount_UnsubscribeAppAccount_001, Function | MediumTest | Level1)
+HWTEST_F(
+    AppAccountManagerServiceTest, AppAccountManagerService_UnsubscribeAppAccount_0100, Function | MediumTest | Level1)
 {
     // unsubscribe app account
     ErrCode result = appAccountProxy_->UnsubscribeAppAccount(nullptr);

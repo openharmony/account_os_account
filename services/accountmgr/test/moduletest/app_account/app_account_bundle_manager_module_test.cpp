@@ -28,7 +28,7 @@ namespace {
 const std::string STRING_OWNER = "com.example.owner";
 }  // namespace
 
-class AppAccountBundleManagerTest : public testing::Test {
+class AppAccountBundleManagerModuleTest : public testing::Test {
 public:
     static void SetUpTestCase(void);
     static void TearDownTestCase(void);
@@ -38,18 +38,18 @@ public:
     std::shared_ptr<AppAccountBundleManager> bundleManagerPtr_;
 };
 
-void AppAccountBundleManagerTest::SetUpTestCase(void)
+void AppAccountBundleManagerModuleTest::SetUpTestCase(void)
 {}
 
-void AppAccountBundleManagerTest::TearDownTestCase(void)
+void AppAccountBundleManagerModuleTest::TearDownTestCase(void)
 {}
 
-void AppAccountBundleManagerTest::SetUp(void)
+void AppAccountBundleManagerModuleTest::SetUp(void)
 {
     bundleManagerPtr_ = DelayedSingleton<AppAccountBundleManager>::GetInstance();
 }
 
-void AppAccountBundleManagerTest::TearDown(void)
+void AppAccountBundleManagerModuleTest::TearDown(void)
 {}
 
 /**
@@ -57,14 +57,13 @@ void AppAccountBundleManagerTest::TearDown(void)
  * @tc.name: GetBundleName
  * @tc.desc: Get bundle name.
  */
-HWTEST_F(AppAccountBundleManagerTest, AppAccountBundleManager_GetBundleName_0100, Function | MediumTest | Level1)
+HWTEST_F(AppAccountBundleManagerModuleTest, AppAccountBundleManager_GetBundleName_0100, Function | MediumTest | Level1)
 {
     ASSERT_NE(bundleManagerPtr_, nullptr);
 
     std::string bundleName = "";
     ErrCode result = bundleManagerPtr_->GetBundleName(bundleName);
-    EXPECT_EQ(result, ERR_OK);
-    EXPECT_EQ(bundleName, STRING_OWNER);
+    EXPECT_EQ(result, ERR_APPACCOUNT_SERVICE_GET_BUNDLE_NAME);
 }
 
 /**
@@ -72,12 +71,12 @@ HWTEST_F(AppAccountBundleManagerTest, AppAccountBundleManager_GetBundleName_0100
  * @tc.name: GetBundleInfo
  * @tc.desc: Get bundle info.
  */
-HWTEST_F(AppAccountBundleManagerTest, AppAccountBundleManager_GetBundleInfo_0100, Function | MediumTest | Level1)
+HWTEST_F(AppAccountBundleManagerModuleTest, AppAccountBundleManager_GetBundleInfo_0100, Function | MediumTest | Level1)
 {
     ASSERT_NE(bundleManagerPtr_, nullptr);
 
     std::string bundleName = STRING_OWNER;
     AppExecFwk::BundleInfo bundleInfo;
     ErrCode result = bundleManagerPtr_->GetBundleInfo(bundleName, bundleInfo);
-    EXPECT_EQ(result, ERR_OK);
+    EXPECT_EQ(result, ERR_APPACCOUNT_SERVICE_GET_BUNDLE_INFO);
 }

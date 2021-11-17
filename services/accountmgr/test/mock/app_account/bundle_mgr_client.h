@@ -26,6 +26,7 @@ public:
     virtual ~BundleMgrClient();
 
     bool GetBundleNameForUid(const int uid, std::string &bundleName);
+    bool GetBundleInfo(const std::string &bundleName, const BundleFlag flag, BundleInfo &bundleInfo);
 };
 }  // namespace AppExecFwk
 }  // namespace OHOS
