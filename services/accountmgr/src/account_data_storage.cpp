@@ -97,6 +97,8 @@ OHOS::DistributedKv::Status AccountDataStorage::GetKvStore()
         ACCOUNT_LOGI("kvStorePtr_ is not nullptr");
     }
 
+    ACCOUNT_LOGI("end, status = %{public}d", status);
+
     return status;
 }
 
@@ -186,7 +188,7 @@ ErrCode AccountDataStorage::AddAccountInfo(IAccountInfo &iAccountInfo)
             return OHOS::QUERY_DISTRIBUTE_DATA_FAILED;
         }
     }
-    bool isKeyExists;
+    bool isKeyExists = false;
     IsKeyExists(iAccountInfo.GetPrimeKey(), isKeyExists);
     if (isKeyExists) {
         ACCOUNT_LOGE("the key does not exist");
@@ -229,7 +231,7 @@ ErrCode AccountDataStorage::SaveAccountInfo(IAccountInfo &iAccountInfo)
             return OHOS::QUERY_DISTRIBUTE_DATA_FAILED;
         }
     }
-    bool isKeyExists;
+    bool isKeyExists = false;
     IsKeyExists(iAccountInfo.GetPrimeKey(), isKeyExists);
     if (!isKeyExists) {
         ACCOUNT_LOGE("the key does not exist");
@@ -273,7 +275,7 @@ ErrCode AccountDataStorage::RemoveInfoByKey(const std::string &keyStr)
             return OHOS::QUERY_DISTRIBUTE_DATA_FAILED;
         }
     }
-    bool isKeyExists;
+    bool isKeyExists = false;
     IsKeyExists(keyStr, isKeyExists);
     if (!isKeyExists) {
         ACCOUNT_LOGE("the key does not exist");
@@ -329,10 +331,10 @@ ErrCode AccountDataStorage::DeleteKvStore()
             return OHOS::QUERY_DISTRIBUTE_DATA_FAILED;
         }
     }
-    OHOS::DistributedKv::Status status;  // = OHOS::DistributedKv::Status::ERROR;
+    OHOS::DistributedKv::Status status;
     {
         std::lock_guard<std::mutex> lock(kvStorePtrMutex_);
-        dataManager_.CloseKvStore(this->appId_, this->storeId_);  // std::move(kvStorePtr_));
+        dataManager_.CloseKvStore(this->appId_, this->storeId_);
         kvStorePtr_ = nullptr;
         status = dataManager_.DeleteKvStore(this->appId_, this->storeId_);
     }
@@ -457,7 +459,7 @@ ErrCode AccountDataStorage::AddConfigInfo(const std::string &keyStr, const std::
             return OHOS::QUERY_DISTRIBUTE_DATA_FAILED;
         }
     }
-    bool isKeyExists;
+    bool isKeyExists = false;
     IsKeyExists(keyStr, isKeyExists);
     if (isKeyExists) {
         ACCOUNT_LOGE("the key is not Exists");
@@ -500,7 +502,7 @@ ErrCode AccountDataStorage::SavConfigInfo(const std::string &keyStr, const std::
             return OHOS::QUERY_DISTRIBUTE_DATA_FAILED;
         }
     }
-    bool isKeyExists;
+    bool isKeyExists = false;
     IsKeyExists(keyStr, isKeyExists);
     if (!isKeyExists) {
         ACCOUNT_LOGE("the key is not Exists");

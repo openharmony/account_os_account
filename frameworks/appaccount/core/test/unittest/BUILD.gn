@@ -44,30 +44,6 @@ config("app_account_core_config_unittest") {
   ]
 }
 
-ohos_unittest("app_account_proxy_stub_test") {
-  module_out_path = module_output_path
-
-  sources = [ "app_account_proxy_stub_test.cpp" ]
-  sources += app_account_mock_sources
-
-  configs = [
-    ":app_account_core_config_mock",
-    ":app_account_core_config_unittest",
-  ]
-
-  deps = [
-    "${app_account_core_path}:app_account_core",
-    "${common_path}:libaccount_common",
-    "//third_party/googletest:gmock_main",
-    "//third_party/googletest:gtest_main",
-  ]
-
-  external_deps = [
-    "hiviewdfx_hilog_native:libhilog",
-    "ipc:ipc_core",
-  ]
-}
-
 ohos_unittest("app_account_stub_test") {
   module_out_path = module_output_path
 
@@ -120,7 +96,6 @@ group("unittest") {
   testonly = true
 
   deps = [
-    ":app_account_proxy_stub_test",
     ":app_account_stub_test",
     ":app_account_test",
   ]

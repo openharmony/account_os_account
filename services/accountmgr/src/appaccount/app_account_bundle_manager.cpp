@@ -54,5 +54,22 @@ ErrCode AppAccountBundleManager::GetBundleName(std::string &bundleName)
 
     return ERR_OK;
 }
+
+ErrCode AppAccountBundleManager::GetBundleInfo(const std::string &bundleName, AppExecFwk::BundleInfo &bundleInfo)
+{
+    ACCOUNT_LOGI("enter");
+
+    ACCOUNT_LOGI("bundleName = %{public}s", bundleName.c_str());
+
+    bool result = DelayedSingleton<BundleMgrClient>::GetInstance()->GetBundleInfo(
+        bundleName, BundleFlag::GET_BUNDLE_DEFAULT, bundleInfo);
+    ACCOUNT_LOGI("result = %{public}d", result);
+
+    if (result == false) {
+        return ERR_APPACCOUNT_SERVICE_GET_BUNDLE_INFO;
+    }
+
+    return ERR_OK;
+}
 }  // namespace AccountSA
 }  // namespace OHOS

@@ -47,6 +47,40 @@ config("app_account_service_config_unittest") {
   ]
 }
 
+ohos_moduletest("app_account_bundle_manager_module_test") {
+  module_out_path = module_output_path
+
+  sources = [ "app_account_bundle_manager_module_test.cpp" ]
+
+  configs = [
+    ":app_account_service_config_mock",
+    ":app_account_service_config_unittest",
+  ]
+
+  deps = [
+    "${app_account_innerkits_native_path}:app_account_innerkits",
+    "${app_account_services_path}:accountmgr",
+    "${common_path}:libaccount_common",
+    "//third_party/googletest:gmock_main",
+    "//third_party/googletest:gtest_main",
+  ]
+
+  external_deps = [
+    "aafwk_standard:base",
+    "aafwk_standard:want",
+    "appexecfwk_standard:appexecfwk_base",
+    "appexecfwk_standard:appexecfwk_core",
+    "appexecfwk_standard:libeventhandler",
+    "ces_standard:cesfwk_core",
+    "ces_standard:cesfwk_innerkits",
+    "distributeddatamgr:distributeddata_inner",
+    "hiviewdfx_hilog_native:libhilog",
+    "ipc:ipc_core",
+    "safwk:system_ability_fwk",
+    "samgr_standard:samgr_proxy",
+  ]
+}
+
 ohos_moduletest("app_account_control_manager_module_test") {
   module_out_path = module_output_path
 
@@ -191,50 +225,14 @@ ohos_moduletest("app_account_manager_service_sync_module_test") {
   ]
 }
 
-ohos_moduletest("inner_app_account_manager_module_test") {
-  module_out_path = module_output_path
-
-  sources = [ "inner_app_account_manager_module_test.cpp" ]
-  sources += app_account_mock_sources
-
-  configs = [
-    ":app_account_service_config_mock",
-    ":app_account_service_config_unittest",
-  ]
-
-  deps = [
-    "${app_account_innerkits_native_path}:app_account_innerkits",
-    "${app_account_services_path}:accountmgr",
-    "${common_path}:libaccount_common",
-    "${innerkits_native_path}:libaccountkits",
-    "//third_party/googletest:gmock_main",
-    "//third_party/googletest:gtest_main",
-  ]
-
-  external_deps = [
-    "aafwk_standard:base",
-    "aafwk_standard:want",
-    "appexecfwk_standard:appexecfwk_base",
-    "appexecfwk_standard:appexecfwk_core",
-    "appexecfwk_standard:libeventhandler",
-    "ces_standard:cesfwk_core",
-    "ces_standard:cesfwk_innerkits",
-    "distributeddatamgr:distributeddata_inner",
-    "hiviewdfx_hilog_native:libhilog",
-    "ipc:ipc_core",
-    "safwk:system_ability_fwk",
-    "samgr_standard:samgr_proxy",
-  ]
-}
-
 group("moduletest") {
   testonly = true
 
   deps = [
+    ":app_account_bundle_manager_module_test",
     ":app_account_control_manager_module_test",
     ":app_account_manager_service_module_test",
     ":app_account_manager_service_subscribe_module_test",
     ":app_account_manager_service_sync_module_test",
-    ":inner_app_account_manager_module_test",
   ]
 }
