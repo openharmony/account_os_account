@@ -89,7 +89,7 @@ private:
 private:
     std::map<std::string, std::string> dataCache_;
 
-    std::int32_t ACCOUNT_MAX_SIZE = 1000;
+    size_t ACCOUNT_MAX_SIZE = 1000;
 };
 }  // namespace AccountSA
 }  // namespace OHOS

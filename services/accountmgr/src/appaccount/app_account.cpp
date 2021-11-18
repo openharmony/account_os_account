@@ -488,6 +488,13 @@ ErrCode AppAccount::SubscribeAppAccount(const std::shared_ptr<AppAccountSubscrib
         return ERR_APPACCOUNT_KIT_SUBSCRIBER_HAS_NO_OWNER;
     }
 
+    for (auto owner : owners) {
+        if (owner.size() > OWNER_MAX_SIZE) {
+            ACCOUNT_LOGE("owner is out of range");
+            return ERR_APPACCOUNT_KIT_OWNER_OUT_OF_RANGE;
+        }
+    }
+
     if (GetAppAccountProxy() != ERR_OK) {
         ACCOUNT_LOGE("app account proxy is nullptr");
         return ERR_APPACCOUNT_KIT_APP_ACCOUNT_PROXY_IS_NULLPTR;
