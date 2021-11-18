@@ -37,6 +37,7 @@ config("accountmgr_config") {
     "//utils/system/safwk/native/include",
   ]
 }
+
 config("accountmgr_public_config") {
   visibility = [ ":*" ]
 
@@ -45,6 +46,7 @@ config("accountmgr_public_config") {
     "${services_path}/accountmgr/include/appaccount",
   ]
 }
+
 group("accountmgr_target") {
   deps = [
     ":accountmgr",
@@ -66,11 +68,13 @@ ohos_shared_library("accountmgr") {
     "src/account_permission_manager.cpp",
     "src/account_state_machine.cpp",
     "src/account_stub.cpp",
+    "src/appaccount/app_account.cpp",
     "src/appaccount/app_account_bundle_manager.cpp",
     "src/appaccount/app_account_common_event_oberserver.cpp",
     "src/appaccount/app_account_common_event_subscriber.cpp",
     "src/appaccount/app_account_control_manager.cpp",
     "src/appaccount/app_account_data_storage.cpp",
+    "src/appaccount/app_account_death_recipient.cpp",
     "src/appaccount/app_account_manager_service.cpp",
     "src/appaccount/app_account_subscribe_death_recipient.cpp",
     "src/appaccount/app_account_subscribe_manager.cpp",
@@ -89,8 +93,7 @@ ohos_shared_library("accountmgr") {
   public_configs = [ ":accountmgr_public_config" ]
 
   deps = [
-    "${app_account_core_path}:app_account_core",
-    "${app_account_innerkits_native_path}:app_account_innerkits",
+    "${app_account_services_path}/src/appaccount:app_account_service_core",
     "${common_path}:libaccount_common",
     "${innerkits_native_path}:libaccountkits",
     "//third_party/jsoncpp:jsoncpp",
@@ -114,5 +117,6 @@ ohos_shared_library("accountmgr") {
     "samgr_standard:samgr_proxy",
     "startup_l2:syspara",
   ]
+
   part_name = "os_account_standard"
 }

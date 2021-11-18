@@ -30,7 +30,7 @@ const std::string STRING_NAME = "name";
 const std::string STRING_EXTRA_INFO = "extra_info";
 const std::string STRING_OWNER = "com.example.owner";
 
-const std::int32_t ACCOUNT_MAX_SIZE = 1000;
+const size_t ACCOUNT_MAX_SIZE = 1000;
 const std::int32_t DELAY_FOR_OPERATION = 500;
 }  // namespace
 
@@ -111,7 +111,7 @@ HWTEST_F(
 
     ErrCode result;
     std::string name;
-    for (int index = 0; index < ACCOUNT_MAX_SIZE; index++) {
+    for (size_t index = 0; index < ACCOUNT_MAX_SIZE; index++) {
         name = STRING_NAME + std::to_string(index);
         ACCOUNT_LOGI("before AddAccount, index = %{public}d", index);
         GTEST_LOG_(INFO) << "before AddAccount, index = " << index;

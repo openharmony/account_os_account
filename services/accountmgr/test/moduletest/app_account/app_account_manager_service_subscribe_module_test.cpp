@@ -279,7 +279,7 @@ HWTEST_F(AppAccountManagerServiceSubscribeModuleTest, AppAccountManagerServiceSu
 /**
  * @tc.number: AppAccountManagerServiceSubscribe_SubscribeAppAccount_0400
  * @tc.name: SubscribeAppAccount
- * @tc.desc: Subscribe app accounts with invalid data.
+ * @tc.desc: Subscribe app accounts with valid data.
  */
 HWTEST_F(AppAccountManagerServiceSubscribeModuleTest, AppAccountManagerServiceSubscribe_SubscribeAppAccount_0400,
     Function | MediumTest | Level1)
@@ -319,6 +319,64 @@ HWTEST_F(AppAccountManagerServiceSubscribeModuleTest, AppAccountManagerServiceSu
 
     // subscribe app account
     result = servicePtr->SubscribeAppAccount(subscribeInfo, appAccountEventListener);
+    EXPECT_EQ(result, ERR_OK);
+
+    // unsubscribe app account
+    result = servicePtr->UnsubscribeAppAccount(appAccountEventListener);
+    EXPECT_EQ(result, ERR_OK);
+}
+
+/**
+ * @tc.number: AppAccountManagerServiceSubscribe_SubscribeAppAccount_0500
+ * @tc.name: SubscribeAppAccount
+ * @tc.desc: Subscribe app accounts with invalid data.
+ */
+HWTEST_F(AppAccountManagerServiceSubscribeModuleTest, AppAccountManagerServiceSubscribe_SubscribeAppAccount_0500,
+    Function | MediumTest | Level1)
+{
+    ACCOUNT_LOGI("AppAccountManagerServiceSubscribe_SubscribeAppAccount_0500");
+
+    // add an account
+    std::string name = STRING_NAME;
+    std::string bundleName = STRING_BUNDLE_NAME;
+    AppAccountInfo appAccountInfo(name, bundleName);
+    ErrCode result = controlManagerPtr_->AddAccount(name, STRING_EXTRA_INFO, bundleName, appAccountInfo);
+    EXPECT_EQ(result, ERR_OK);
+
+    // enable app access
+    result = controlManagerPtr_->EnableAppAccess(name, STRING_OWNER, bundleName, appAccountInfo);
+    EXPECT_EQ(result, ERR_OK);
+
+    // make owners
+    std::vector<std::string> owners;
+    owners.emplace_back(bundleName);
+
+    // make subscribe info
+    AppAccountSubscribeInfo subscribeInfo(owners);
+
+    // make a subscriber
+    auto subscriberTestPtr = std::make_shared<AppAccountSubscriberTest>(subscribeInfo);
+
+    // make an event listener
+    sptr<IRemoteObject> appAccountEventListener = nullptr;
+
+    ErrCode subscribeState = DelayedSingleton<AppAccount>::GetInstance()->CreateAppAccountEventListener(
+        subscriberTestPtr, appAccountEventListener);
+    EXPECT_EQ(subscribeState, AppAccount::INITIAL_SUBSCRIPTION);
+
+    auto servicePtr = std::make_shared<AppAccountManagerService>();
+    ASSERT_NE(servicePtr, nullptr);
+
+    // subscribe app account
+    result = servicePtr->SubscribeAppAccount(subscribeInfo, appAccountEventListener);
+    EXPECT_EQ(result, ERR_OK);
+
+    // disable app access
+    result = controlManagerPtr_->DisableAppAccess(name, STRING_OWNER, bundleName, appAccountInfo);
+    EXPECT_EQ(result, ERR_OK);
+
+    // set extra info
+    result = controlManagerPtr_->SetAccountExtraInfo(name, STRING_EXTRA_INFO, bundleName, appAccountInfo);
     EXPECT_EQ(result, ERR_OK);
 
     // unsubscribe app account

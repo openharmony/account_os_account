@@ -56,8 +56,6 @@ ohos_unittest("AccountDumpHelperTest") {
   ]
 
   deps = [
-    "${app_account_core_path}:app_account_core",
-    "${app_account_innerkits_native_path}:app_account_innerkits",
     "${common_path}:libaccount_common",
     "${innerkits_native_path}:libaccountkits",
     "//third_party/googletest:gmock_main",
