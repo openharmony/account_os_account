@@ -58,7 +58,6 @@ ohos_moduletest("app_account_bundle_manager_module_test") {
   ]
 
   deps = [
-    "${app_account_innerkits_native_path}:app_account_innerkits",
     "${app_account_services_path}:accountmgr",
     "${common_path}:libaccount_common",
     "//third_party/googletest:gmock_main",
@@ -93,8 +92,8 @@ ohos_moduletest("app_account_control_manager_module_test") {
   ]
 
   deps = [
-    "${app_account_innerkits_native_path}:app_account_innerkits",
     "${app_account_services_path}:accountmgr",
+    "${app_account_services_path}/src/appaccount:app_account_service_core",
     "${common_path}:libaccount_common",
     "//third_party/googletest:gmock_main",
     "//third_party/googletest:gtest_main",
@@ -128,8 +127,8 @@ ohos_moduletest("app_account_manager_service_module_test") {
   ]
 
   deps = [
-    "${app_account_innerkits_native_path}:app_account_innerkits",
     "${app_account_services_path}:accountmgr",
+    "${app_account_services_path}/src/appaccount:app_account_service_core",
     "${common_path}:libaccount_common",
     "${innerkits_native_path}:libaccountkits",
     "//third_party/googletest:gmock_main",
@@ -164,9 +163,8 @@ ohos_moduletest("app_account_manager_service_subscribe_module_test") {
   ]
 
   deps = [
-    "${app_account_core_path}:app_account_core",
-    "${app_account_innerkits_native_path}:app_account_innerkits",
     "${app_account_services_path}:accountmgr",
+    "${app_account_services_path}/src/appaccount:app_account_service_core",
     "${common_path}:libaccount_common",
     "${innerkits_native_path}:libaccountkits",
     "//third_party/googletest:gmock_main",
@@ -201,8 +199,8 @@ ohos_moduletest("app_account_manager_service_sync_module_test") {
   ]
 
   deps = [
-    "${app_account_innerkits_native_path}:app_account_innerkits",
     "${app_account_services_path}:accountmgr",
+    "${app_account_services_path}/src/appaccount:app_account_service_core",
     "${common_path}:libaccount_common",
     "${innerkits_native_path}:libaccountkits",
     "//third_party/googletest:gmock_main",

@@ -255,28 +255,6 @@ HWTEST_F(AppAccountTest, AppAccount_SubscribeAppAccount_0200, Function | MediumT
 }
 
 /**
- * @tc.number: AppAccount_SubscribeAppAccount_0300
- * @tc.name: SubscribeAppAccount
- * @tc.desc: Subscribe app accounts with invalid data.
- */
-HWTEST_F(AppAccountTest, AppAccount_SubscribeAppAccount_0300, Function | MediumTest | Level1)
-{
-    // make owners
-    std::vector<std::string> owners;
-
-    // make subcribe info
-    AppAccountSubscribeInfo subscribeInfo;
-    subscribeInfo.SetOwners(owners);
-
-    // make a subcriber
-    auto subscriberTestPtr = std::make_shared<AppAccountSubscriberTest>(subscribeInfo);
-    // subscribe app account with empty owners
-    ErrCode result = appAccount_->SubscribeAppAccount(subscriberTestPtr);
-
-    EXPECT_EQ(result, ERR_APPACCOUNT_KIT_SUBSCRIBER_HAS_NO_OWNER);
-}
-
-/**
  * @tc.number: AppAccount_GetAppAccountProxy_0100
  * @tc.name: GetAppAccountProxy
  * @tc.desc: Get app account proxy.
