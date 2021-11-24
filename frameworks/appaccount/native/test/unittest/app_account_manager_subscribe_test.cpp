@@ -68,9 +68,7 @@ public:
     }
 
     ~AppAccountSubscriberTest()
-    {
-        ACCOUNT_LOGI("enter");
-    }
+    {}
 
     virtual void OnAccountsChanged(const std::vector<AppAccountInfo> &accounts)
     {

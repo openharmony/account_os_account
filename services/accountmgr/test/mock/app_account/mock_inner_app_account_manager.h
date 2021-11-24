@@ -26,12 +26,12 @@ public:
     MockInnerAppAccountManager();
     virtual ~MockInnerAppAccountManager();
 
-    ErrCode AddAccount(const std::string &name, const std::string &extraInfo, const std::string &bundleName) override;
-    ErrCode DeleteAccount(const std::string &name, const std::string &bundleName) override;
+    ErrCode AddAccount(const std::string &name, const std::string &extraInfo, const std::string &bundleName);
+    ErrCode DeleteAccount(const std::string &name, const std::string &bundleName);
 
     ErrCode SubscribeAppAccount(const AppAccountSubscribeInfo &subscribeInfo, const sptr<IRemoteObject> &eventListener,
-        const std::string &bundleName) override;
-    ErrCode UnsubscribeAppAccount(const sptr<IRemoteObject> &eventListener) override;
+        const std::string &bundleName);
+    ErrCode UnsubscribeAppAccount(const sptr<IRemoteObject> &eventListener);
 };
 }  // namespace AccountSA
 }  // namespace OHOS

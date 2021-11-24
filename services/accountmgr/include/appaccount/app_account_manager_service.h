@@ -13,12 +13,12 @@
  * limitations under the License.
  */
 
-#ifndef OS_ACCOUNT_SERVICES_ACCOUNTMGR_INCLUDE_APP_ACCOUNT_MANAGER_SERVICE_H
-#define OS_ACCOUNT_SERVICES_ACCOUNTMGR_INCLUDE_APP_ACCOUNT_MANAGER_SERVICE_H
+#ifndef OS_ACCOUNT_SERVICES_ACCOUNTMGR_INCLUDE_APPACCOUNT_APP_ACCOUNT_MANAGER_SERVICE_H
+#define OS_ACCOUNT_SERVICES_ACCOUNTMGR_INCLUDE_APPACCOUNT_APP_ACCOUNT_MANAGER_SERVICE_H
 
 #include "app_account_common_event_oberserver.h"
 #include "app_account_stub.h"
-#include "iinner_app_account.h"
+#include "inner_app_account_manager.h"
 
 namespace OHOS {
 namespace AccountSA {
@@ -62,7 +62,7 @@ public:
     virtual ErrCode OnPackageRemoved(const CommonEventData &data);
 
 private:
-    std::shared_ptr<IInnerAppAccount> innerManager_;
+    std::shared_ptr<InnerAppAccountManager> innerManager_;
     std::shared_ptr<AppAccountCommonEventOberserver> oberserver_;
 
     DISALLOW_COPY_AND_MOVE(AppAccountManagerService);
@@ -70,4 +70,4 @@ private:
 }  // namespace AccountSA
 }  // namespace OHOS
 
-#endif  // OS_ACCOUNT_SERVICES_ACCOUNTMGR_INCLUDE_APP_ACCOUNT_MANAGER_SERVICE_H
+#endif  // OS_ACCOUNT_SERVICES_ACCOUNTMGR_INCLUDE_APPACCOUNT_APP_ACCOUNT_MANAGER_SERVICE_H

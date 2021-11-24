@@ -14,6 +14,7 @@
  */
 
 #include "account_log_wrapper.h"
+
 #include "app_account_event_stub.h"
 
 namespace OHOS {
@@ -24,9 +25,7 @@ AppAccountEventStub::AppAccountEventStub()
 }
 
 AppAccountEventStub::~AppAccountEventStub()
-{
-    ACCOUNT_LOGI("enter");
-}
+{}
 
 int AppAccountEventStub::OnRemoteRequest(
     uint32_t code, MessageParcel &data, MessageParcel &reply, MessageOption &option)

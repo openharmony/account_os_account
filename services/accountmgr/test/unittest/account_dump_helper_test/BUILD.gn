@@ -69,6 +69,7 @@ ohos_unittest("AccountDumpHelperTest") {
     "appexecfwk_standard:appexecfwk_base",
     "ces_standard:cesfwk_core",
     "ces_standard:cesfwk_innerkits",
+    "distributeddatamgr:distributeddata_inner",
     "hisysevent_native:libhisysevent",
     "hiviewdfx_hilog_native:libhilog",
     "ipc:ipc_core",

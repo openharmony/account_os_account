@@ -13,8 +13,8 @@
  * limitations under the License.
  */
 
-#ifndef OS_ACCOUNT_SERVICES_ACCOUNTMGR_INCLUDE_APP_ACCOUNT_EVENT_RECORD_H
-#define OS_ACCOUNT_SERVICES_ACCOUNTMGR_INCLUDE_APP_ACCOUNT_EVENT_RECORD_H
+#ifndef OS_ACCOUNT_SERVICES_ACCOUNTMGR_INCLUDE_APPACCOUNT_APP_ACCOUNT_EVENT_RECORD_H
+#define OS_ACCOUNT_SERVICES_ACCOUNTMGR_INCLUDE_APPACCOUNT_APP_ACCOUNT_EVENT_RECORD_H
 
 #include "app_account_info.h"
 #include "app_account_subscribe_info.h"
@@ -25,6 +25,7 @@ namespace AccountSA {
 struct AppAccountSubscribeRecord {
     std::shared_ptr<AppAccountSubscribeInfo> subscribeInfoPtr;
     sptr<IRemoteObject> eventListener;
+    std::string bundleName;
 
     AppAccountSubscribeRecord() : subscribeInfoPtr(nullptr), eventListener(nullptr)
     {}
@@ -35,7 +36,6 @@ using AppAccountSubscribeRecordPtr = std::shared_ptr<AppAccountSubscribeRecord>;
 struct AppAccountEventRecord {
     std::shared_ptr<AppAccountInfo> info;
     std::vector<AppAccountSubscribeRecordPtr> receivers;
-
     std::string bundleName;
 
     AppAccountEventRecord()
@@ -44,4 +44,4 @@ struct AppAccountEventRecord {
 }  // namespace AccountSA
 }  // namespace OHOS
 
-#endif  // OS_ACCOUNT_SERVICES_ACCOUNTMGR_INCLUDE_APP_ACCOUNT_EVENT_RECORD_H
+#endif  // OS_ACCOUNT_SERVICES_ACCOUNTMGR_INCLUDE_APPACCOUNT_APP_ACCOUNT_EVENT_RECORD_H

@@ -42,7 +42,7 @@ static const std::int32_t UNSUBSCRIBE_MAX_PARA = 2;
 class SubscriberPtr;
 struct AsyncContextForSubscribe;
 
-extern std::map<AppAccountManager *, AsyncContextForSubscribe *> subscriberInstances;
+extern std::map<AppAccountManager *, std::vector<AsyncContextForSubscribe *>> subscriberInstances;
 
 struct AppAccountAsyncContext {
     napi_env env;
@@ -98,7 +98,7 @@ struct AsyncContextForUnsubscribe {
     napi_env env;
     napi_async_work work;
     napi_ref callbackRef;
-    std::shared_ptr<SubscriberPtr> subscriber = nullptr;
+    std::vector<std::shared_ptr<SubscriberPtr>> subscribers = {nullptr};
     AppAccountManager *appAccountManager = nullptr;
     size_t argc = 0;
 };
@@ -164,10 +164,12 @@ napi_value ParseParametersBySubscribe(const napi_env &env, const napi_value (&ar
 napi_value ParseParametersByUnsubscribe(
     const napi_env &env, const size_t &argc, const napi_value (&argv)[UNSUBSCRIBE_MAX_PARA], napi_ref &callback);
 
-napi_value GetSubscriberByUnsubscribe(const napi_env &env, std::shared_ptr<SubscriberPtr> &subscriber,
+napi_value GetSubscriberByUnsubscribe(const napi_env &env, std::vector<std::shared_ptr<SubscriberPtr>> &subscriber,
     AsyncContextForUnsubscribe *asyncContextForOff, bool &isFind);
 
 void SubscribeExecuteCB(napi_env env, void *data);
+
+void UnsubscribeExecuteCB(napi_env env, void *data);
 
 void UnsubscribeCallbackCompletedCB(napi_env env, napi_status status, void *data);
 }  // namespace AccountJsKit

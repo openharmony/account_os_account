@@ -27,7 +27,7 @@ const std::string STRING_NAME_EMPTY = STRING_EMPTY;
 const std::string STRING_EXTRA_INFO_EMPTY = STRING_EMPTY;
 const std::string STRING_OWNER = "com.example.owner";
 
-constexpr std::int32_t NAME_MAX_SIZE = 1024;
+constexpr std::int32_t NAME_MAX_SIZE = 512;
 constexpr std::int32_t EXTRA_INFO_MAX_SIZE = 1024;
 }  // namespace
 

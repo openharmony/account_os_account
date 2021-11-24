@@ -13,8 +13,8 @@
  * limitations under the License.
  */
 
-#ifndef APP_ACCOUNT_FRAMEWORKS_APPACCOUNT_CORE_INCLUDE_APP_ACCOUNT_H
-#define APP_ACCOUNT_FRAMEWORKS_APPACCOUNT_CORE_INCLUDE_APP_ACCOUNT_H
+#ifndef OS_ACCOUNT_SERVICES_ACCOUNTMGR_INCLUDE_APPACCOUNT_APP_ACCOUNT_H
+#define OS_ACCOUNT_SERVICES_ACCOUNTMGR_INCLUDE_APPACCOUNT_APP_ACCOUNT_H
 
 #include <map>
 
@@ -64,49 +64,11 @@ public:
 
 private:
     ErrCode CheckParameters(const std::string &name, const std::string &extraInfo = "");
+    ErrCode CheckSpecialCharacters(const std::string &name);
+
     ErrCode GetAppAccountProxy();
     ErrCode CreateAppAccountEventListener(
         const std::shared_ptr<AppAccountSubscriber> &subscriber, sptr<IRemoteObject> &appAccountEventListener);
-
-    // trim from start (in place)
-    static inline void ltrim(std::string &s)
-    {
-        s.erase(s.begin(), std::find_if(s.begin(), s.end(), [](unsigned char ch) { return !std::isspace(ch); }));
-    }
-
-    // trim from end (in place)
-    static inline void rtrim(std::string &s)
-    {
-        s.erase(std::find_if(s.rbegin(), s.rend(), [](unsigned char ch) { return !std::isspace(ch); }).base(), s.end());
-    }
-
-    // trim from both ends (in place)
-    static inline void trim(std::string &s)
-    {
-        ltrim(s);
-        rtrim(s);
-    }
-
-    // trim from start (copying)
-    static inline std::string ltrim_copy(std::string s)
-    {
-        ltrim(s);
-        return s;
-    }
-
-    // trim from end (copying)
-    static inline std::string rtrim_copy(std::string s)
-    {
-        rtrim(s);
-        return s;
-    }
-
-    // trim from both ends (copying)
-    static inline std::string trim_copy(std::string s)
-    {
-        trim(s);
-        return s;
-    }
 
 private:
     std::mutex mutex_;
@@ -116,17 +78,18 @@ private:
     sptr<IRemoteObject::DeathRecipient> deathRecipient_;
 
     static constexpr std::int32_t SUBSCRIBER_MAX_SIZE = 200;
-    static constexpr std::int32_t NAME_MAX_SIZE = 1024;
+    static constexpr std::int32_t NAME_MAX_SIZE = 512;
     static constexpr std::int32_t EXTRA_INFO_MAX_SIZE = 1024;
-    static constexpr std::int32_t AUTHORIZED_APP_MAX_SIZE = 1024;
+    static constexpr std::int32_t AUTHORIZED_APP_MAX_SIZE = 512;
     static constexpr std::int32_t ASSOCIATED_KEY_MAX_SIZE = 1024;
     static constexpr std::int32_t ASSOCIATED_VALUE_MAX_SIZE = 1024;
     static constexpr std::int32_t CREDENTIAL_TYPE_MAX_SIZE = 1024;
     static constexpr std::int32_t CREDENTIAL_MAX_SIZE = 1024;
     static constexpr std::int32_t TOKEN_MAX_SIZE = 1024;
     static constexpr std::int32_t OWNER_MAX_SIZE = 1024;
+    static const std::string SPECIAL_CHARACTERS;
 };
 }  // namespace AccountSA
 }  // namespace OHOS
 
-#endif  // APP_ACCOUNT_FRAMEWORKS_APPACCOUNT_CORE_INCLUDE_APP_ACCOUNT_H
+#endif  // OS_ACCOUNT_SERVICES_ACCOUNTMGR_INCLUDE_APPACCOUNT_APP_ACCOUNT_H

@@ -14,9 +14,12 @@
  */
 #ifndef OS_ACCOUNT_FRAMEWORKS_COMMON_DATABASE_IACCOUNT_INFO_H
 #define OS_ACCOUNT_FRAMEWORKS_COMMON_DATABASE_IACCOUNT_INFO_H
+
 #include <string>
 #include "nlohmann/json.hpp"
+
 #include "account_log_wrapper.h"
+
 namespace OHOS {
 namespace AccountSA {
 using Json = nlohmann::json;
@@ -26,7 +29,7 @@ public:
     virtual Json ToJson() const = 0;
     virtual void FromJson(const Json &jsonObject) = 0;
     virtual std::string ToString() const = 0;
-    virtual std::string GetPrimeKey() = 0;
+    virtual std::string GetPrimeKey() const = 0;
 };
 
 enum class JsonType {
