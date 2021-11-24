@@ -39,9 +39,7 @@ AppAccountManagerService::AppAccountManagerService()
 }
 
 AppAccountManagerService::~AppAccountManagerService()
-{
-    ACCOUNT_LOGI("enter");
-}
+{}
 
 ErrCode AppAccountManagerService::AddAccount(const std::string &name, const std::string &extraInfo)
 {

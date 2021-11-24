@@ -14,6 +14,7 @@
  */
 
 #include "account_log_wrapper.h"
+
 #include "app_account_event_proxy.h"
 
 namespace OHOS {
@@ -24,9 +25,7 @@ AppAccountEventProxy::AppAccountEventProxy(const sptr<IRemoteObject> &object) : 
 }
 
 AppAccountEventProxy::~AppAccountEventProxy()
-{
-    ACCOUNT_LOGI("enter");
-}
+{}
 
 void AppAccountEventProxy::OnAccountsChanged(const std::vector<AppAccountInfo> &accounts)
 {

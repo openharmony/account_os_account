@@ -18,8 +18,8 @@
 #define private public
 #include "app_account.h"
 #include "app_account_control_manager.h"
-#undef private
 #include "app_account_manager_service.h"
+#undef private
 #include "app_account_subscriber.h"
 #include "datetime_ex.h"
 #include "singleton.h"
@@ -30,13 +30,17 @@ using namespace OHOS::AccountSA;
 
 namespace {
 const std::string STRING_NAME = "name";
+const std::string STRING_NAME_TWO = "name_two";
 const std::string STRING_OWNER = "com.example.owner";
 const std::string STRING_BUNDLE_NAME = "com.example.third_party";
+const std::string STRING_BUNDLE_NAME_TWO = "com.example.third_party_two";
 const std::string STRING_EXTRA_INFO = "extra_info";
 std::mutex mtx;
 const time_t TIME_OUT_SECONDS_LIMIT = 5;
 
 constexpr std::int32_t UID = 10000;
+constexpr std::size_t SIZE_ZERO = 0;
+constexpr std::size_t SIZE_ONE = 1;
 }  // namespace
 
 class AppAccountManagerServiceSubscribeModuleTest : public testing::Test {
@@ -48,7 +52,7 @@ public:
 
     void DeleteKvStore(void);
 
-    std::shared_ptr<IAppAccountControl> controlManagerPtr_;
+    std::shared_ptr<AppAccountControlManager> controlManagerPtr_;
 };
 
 void AppAccountManagerServiceSubscribeModuleTest::SetUpTestCase(void)
@@ -94,9 +98,7 @@ public:
     }
 
     ~AppAccountSubscriberTest()
-    {
-        ACCOUNT_LOGI("enter");
-    }
+    {}
 
     virtual void OnAccountsChanged(const std::vector<AppAccountInfo> &accounts)
     {
@@ -108,6 +110,8 @@ public:
         std::string owner;
         std::string name;
         std::string extraInfo;
+
+        ACCOUNT_LOGI("accounts.size() = %{public}zu", accounts.size());
 
         for (auto account : accounts) {
             result = account.GetOwner(owner);
@@ -121,6 +125,71 @@ public:
             result = account.GetExtraInfo(extraInfo);
             EXPECT_EQ(result, ERR_OK);
             ACCOUNT_LOGI("extraInfo = %{public}s", extraInfo.c_str());
+        }
+    }
+};
+
+class AppAccountSubscriberTestTwo : public AppAccountSubscriber {
+public:
+    explicit AppAccountSubscriberTestTwo(const AppAccountSubscribeInfo &subscribeInfo)
+        : AppAccountSubscriber(subscribeInfo)
+    {
+        ACCOUNT_LOGI("enter");
+    }
+
+    ~AppAccountSubscriberTestTwo()
+    {}
+
+    virtual void OnAccountsChanged(const std::vector<AppAccountInfo> &accounts)
+    {
+        ACCOUNT_LOGI("enter");
+
+        mtx.unlock();
+
+        ACCOUNT_LOGI("accounts.size() = %{public}zu", accounts.size());
+
+        EXPECT_EQ(accounts.size(), SIZE_ZERO);
+    }
+};
+
+class AppAccountSubscriberTestThree : public AppAccountSubscriber {
+public:
+    explicit AppAccountSubscriberTestThree(const AppAccountSubscribeInfo &subscribeInfo)
+        : AppAccountSubscriber(subscribeInfo)
+    {
+        ACCOUNT_LOGI("enter");
+    }
+
+    ~AppAccountSubscriberTestThree()
+    {}
+
+    virtual void OnAccountsChanged(const std::vector<AppAccountInfo> &accounts)
+    {
+        ACCOUNT_LOGI("enter");
+
+        mtx.unlock();
+
+        ErrCode result;
+        std::string owner;
+        std::string name;
+        std::string extraInfo;
+
+        ACCOUNT_LOGI("accounts.size() = %{public}zu", accounts.size());
+
+        EXPECT_EQ(accounts.size(), SIZE_ONE);
+
+        for (auto account : accounts) {
+            result = account.GetOwner(owner);
+            EXPECT_EQ(result, ERR_OK);
+            EXPECT_EQ(owner, STRING_BUNDLE_NAME);
+
+            result = account.GetName(name);
+            EXPECT_EQ(result, ERR_OK);
+            EXPECT_EQ(name, STRING_NAME);
+
+            result = account.GetExtraInfo(extraInfo);
+            EXPECT_EQ(result, ERR_OK);
+            EXPECT_EQ(extraInfo, STRING_EXTRA_INFO);
         }
     }
 };
@@ -187,12 +256,12 @@ HWTEST_F(AppAccountManagerServiceSubscribeModuleTest, AppAccountManagerServiceSu
         }
     }
 
+    // the subscriber should receive the event within 5 seconds
+    EXPECT_LT(seconds, TIME_OUT_SECONDS_LIMIT);
+
     // unsubscribe app account
     result = servicePtr->UnsubscribeAppAccount(appAccountEventListener);
     EXPECT_EQ(result, ERR_OK);
-
-    // the subscriber should receive the event within 5 seconds
-    EXPECT_LT(seconds, TIME_OUT_SECONDS_LIMIT);
 
     // delete account
     result = servicePtr->DeleteAccount(STRING_NAME);
@@ -336,26 +405,26 @@ HWTEST_F(AppAccountManagerServiceSubscribeModuleTest, AppAccountManagerServiceSu
 {
     ACCOUNT_LOGI("AppAccountManagerServiceSubscribe_SubscribeAppAccount_0500");
 
+    auto servicePtr = std::make_shared<AppAccountManagerService>();
+    ASSERT_NE(servicePtr, nullptr);
+
     // add an account
-    std::string name = STRING_NAME;
-    std::string bundleName = STRING_BUNDLE_NAME;
-    AppAccountInfo appAccountInfo(name, bundleName);
-    ErrCode result = controlManagerPtr_->AddAccount(name, STRING_EXTRA_INFO, bundleName, appAccountInfo);
+    ErrCode result = servicePtr->innerManager_->AddAccount(STRING_NAME, STRING_EXTRA_INFO, STRING_BUNDLE_NAME);
     EXPECT_EQ(result, ERR_OK);
 
     // enable app access
-    result = controlManagerPtr_->EnableAppAccess(name, STRING_OWNER, bundleName, appAccountInfo);
+    result = servicePtr->innerManager_->EnableAppAccess(STRING_NAME, STRING_OWNER, STRING_BUNDLE_NAME);
     EXPECT_EQ(result, ERR_OK);
 
     // make owners
     std::vector<std::string> owners;
-    owners.emplace_back(bundleName);
+    owners.emplace_back(STRING_BUNDLE_NAME);
 
     // make subscribe info
     AppAccountSubscribeInfo subscribeInfo(owners);
 
     // make a subscriber
-    auto subscriberTestPtr = std::make_shared<AppAccountSubscriberTest>(subscribeInfo);
+    auto subscriberTestPtr = std::make_shared<AppAccountSubscriberTestTwo>(subscribeInfo);
 
     // make an event listener
     sptr<IRemoteObject> appAccountEventListener = nullptr;
@@ -364,22 +433,207 @@ HWTEST_F(AppAccountManagerServiceSubscribeModuleTest, AppAccountManagerServiceSu
         subscriberTestPtr, appAccountEventListener);
     EXPECT_EQ(subscribeState, AppAccount::INITIAL_SUBSCRIPTION);
 
+    // subscribe app account
+    result = servicePtr->SubscribeAppAccount(subscribeInfo, appAccountEventListener);
+    EXPECT_EQ(result, ERR_OK);
+
+    // lock the mutex
+    mtx.lock();
+
+    // disable app access
+    result = servicePtr->innerManager_->DisableAppAccess(STRING_NAME, STRING_OWNER, STRING_BUNDLE_NAME);
+    EXPECT_EQ(result, ERR_OK);
+
+    // set extra info
+    result = servicePtr->innerManager_->SetAccountExtraInfo(STRING_NAME, STRING_EXTRA_INFO, STRING_BUNDLE_NAME);
+    EXPECT_EQ(result, ERR_OK);
+
+    // record start time
+    struct tm startTime = {0};
+    EXPECT_EQ(GetSystemCurrentTime(&startTime), true);
+
+    // record current time
+    struct tm doingTime = {0};
+
+    int64_t seconds = 0;
+    while (!mtx.try_lock()) {
+        // get current time and compare it with the start time
+        EXPECT_EQ(GetSystemCurrentTime(&doingTime), true);
+        seconds = GetSecondsBetween(startTime, doingTime);
+        if (seconds >= TIME_OUT_SECONDS_LIMIT) {
+            break;
+        }
+    }
+
+    // the subscriber should receive the event within 5 seconds
+    EXPECT_LT(seconds, TIME_OUT_SECONDS_LIMIT);
+
+    // unsubscribe app account
+    result = servicePtr->UnsubscribeAppAccount(appAccountEventListener);
+    EXPECT_EQ(result, ERR_OK);
+
+    // unlock the mutex
+    mtx.unlock();
+}
+
+/**
+ * @tc.number: AppAccountManagerServiceSubscribe_SubscribeAppAccount_0600
+ * @tc.name: SubscribeAppAccount
+ * @tc.desc: Subscribe app accounts with valid data.
+ */
+HWTEST_F(AppAccountManagerServiceSubscribeModuleTest, AppAccountManagerServiceSubscribe_SubscribeAppAccount_0600,
+    Function | MediumTest | Level1)
+{
+    ACCOUNT_LOGI("AppAccountManagerServiceSubscribe_SubscribeAppAccount_0600");
+
     auto servicePtr = std::make_shared<AppAccountManagerService>();
     ASSERT_NE(servicePtr, nullptr);
+
+    // add an account
+    ErrCode result = servicePtr->innerManager_->AddAccount(STRING_NAME, STRING_EXTRA_INFO, STRING_BUNDLE_NAME);
+    EXPECT_EQ(result, ERR_OK);
+    result = servicePtr->innerManager_->AddAccount(STRING_NAME_TWO, STRING_EXTRA_INFO, STRING_BUNDLE_NAME);
+    EXPECT_EQ(result, ERR_OK);
+
+    // enable app access
+    result = servicePtr->innerManager_->EnableAppAccess(STRING_NAME, STRING_OWNER, STRING_BUNDLE_NAME);
+    EXPECT_EQ(result, ERR_OK);
+
+    // make owners
+    std::vector<std::string> owners;
+    owners.emplace_back(STRING_BUNDLE_NAME);
+
+    // make subscribe info
+    AppAccountSubscribeInfo subscribeInfo(owners);
+
+    // make a subscriber
+    auto subscriberTestPtr = std::make_shared<AppAccountSubscriberTestTwo>(subscribeInfo);
+
+    // make an event listener
+    sptr<IRemoteObject> appAccountEventListener = nullptr;
+
+    ErrCode subscribeState = DelayedSingleton<AppAccount>::GetInstance()->CreateAppAccountEventListener(
+        subscriberTestPtr, appAccountEventListener);
+    EXPECT_EQ(subscribeState, AppAccount::INITIAL_SUBSCRIPTION);
 
     // subscribe app account
     result = servicePtr->SubscribeAppAccount(subscribeInfo, appAccountEventListener);
     EXPECT_EQ(result, ERR_OK);
 
+    // lock the mutex
+    mtx.lock();
+
     // disable app access
-    result = controlManagerPtr_->DisableAppAccess(name, STRING_OWNER, bundleName, appAccountInfo);
+    result = servicePtr->innerManager_->DisableAppAccess(STRING_NAME, STRING_OWNER, STRING_BUNDLE_NAME);
     EXPECT_EQ(result, ERR_OK);
 
     // set extra info
-    result = controlManagerPtr_->SetAccountExtraInfo(name, STRING_EXTRA_INFO, bundleName, appAccountInfo);
+    result = servicePtr->innerManager_->SetAccountExtraInfo(STRING_NAME, STRING_EXTRA_INFO, STRING_BUNDLE_NAME);
     EXPECT_EQ(result, ERR_OK);
+
+    // record start time
+    struct tm startTime = {0};
+    EXPECT_EQ(GetSystemCurrentTime(&startTime), true);
+
+    // record current time
+    struct tm doingTime = {0};
+
+    int64_t seconds = 0;
+    while (!mtx.try_lock()) {
+        // get current time and compare it with the start time
+        EXPECT_EQ(GetSystemCurrentTime(&doingTime), true);
+        seconds = GetSecondsBetween(startTime, doingTime);
+        if (seconds >= TIME_OUT_SECONDS_LIMIT) {
+            break;
+        }
+    }
+
+    // the subscriber should receive the event within 5 seconds
+    EXPECT_LT(seconds, TIME_OUT_SECONDS_LIMIT);
 
     // unsubscribe app account
     result = servicePtr->UnsubscribeAppAccount(appAccountEventListener);
     EXPECT_EQ(result, ERR_OK);
+
+    // unlock the mutex
+    mtx.unlock();
+}
+
+/**
+ * @tc.number: AppAccountManagerServiceSubscribe_SubscribeAppAccount_0700
+ * @tc.name: SubscribeAppAccount
+ * @tc.desc: Subscribe app accounts with valid data.
+ */
+HWTEST_F(AppAccountManagerServiceSubscribeModuleTest, AppAccountManagerServiceSubscribe_SubscribeAppAccount_0700,
+    Function | MediumTest | Level1)
+{
+    ACCOUNT_LOGI("AppAccountManagerServiceSubscribe_SubscribeAppAccount_0700");
+
+    auto servicePtr = std::make_shared<AppAccountManagerService>();
+    ASSERT_NE(servicePtr, nullptr);
+
+    // add an account
+    ErrCode result = servicePtr->innerManager_->AddAccount(STRING_NAME, STRING_EXTRA_INFO, STRING_BUNDLE_NAME);
+    EXPECT_EQ(result, ERR_OK);
+    result = servicePtr->innerManager_->AddAccount(STRING_NAME_TWO, STRING_EXTRA_INFO, STRING_BUNDLE_NAME);
+    EXPECT_EQ(result, ERR_OK);
+
+    // enable app access
+    result = servicePtr->innerManager_->EnableAppAccess(STRING_NAME, STRING_OWNER, STRING_BUNDLE_NAME);
+    EXPECT_EQ(result, ERR_OK);
+
+    // make owners
+    std::vector<std::string> owners;
+    owners.emplace_back(STRING_BUNDLE_NAME);
+
+    // make subscribe info
+    AppAccountSubscribeInfo subscribeInfo(owners);
+
+    // make a subscriber
+    auto subscriberTestPtr = std::make_shared<AppAccountSubscriberTestThree>(subscribeInfo);
+
+    // make an event listener
+    sptr<IRemoteObject> appAccountEventListener = nullptr;
+
+    ErrCode subscribeState = DelayedSingleton<AppAccount>::GetInstance()->CreateAppAccountEventListener(
+        subscriberTestPtr, appAccountEventListener);
+    EXPECT_EQ(subscribeState, AppAccount::INITIAL_SUBSCRIPTION);
+
+    // subscribe app account
+    result = servicePtr->SubscribeAppAccount(subscribeInfo, appAccountEventListener);
+    EXPECT_EQ(result, ERR_OK);
+
+    // lock the mutex
+    mtx.lock();
+
+    // set extra info
+    result = servicePtr->innerManager_->SetAccountExtraInfo(STRING_NAME, STRING_EXTRA_INFO, STRING_BUNDLE_NAME);
+    EXPECT_EQ(result, ERR_OK);
+
+    // record start time
+    struct tm startTime = {0};
+    EXPECT_EQ(GetSystemCurrentTime(&startTime), true);
+
+    // record current time
+    struct tm doingTime = {0};
+
+    int64_t seconds = 0;
+    while (!mtx.try_lock()) {
+        // get current time and compare it with the start time
+        EXPECT_EQ(GetSystemCurrentTime(&doingTime), true);
+        seconds = GetSecondsBetween(startTime, doingTime);
+        if (seconds >= TIME_OUT_SECONDS_LIMIT) {
+            break;
+        }
+    }
+
+    // the subscriber should receive the event within 5 seconds
+    EXPECT_LT(seconds, TIME_OUT_SECONDS_LIMIT);
+
+    // unsubscribe app account
+    result = servicePtr->UnsubscribeAppAccount(appAccountEventListener);
+    EXPECT_EQ(result, ERR_OK);
+
+    // unlock the mutex
+    mtx.unlock();
 }

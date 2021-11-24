@@ -88,7 +88,7 @@ HWTEST_F(AppAccountManagerServiceTest, AppAccountManagerService_DeleteAccount_01
 /**
  * @tc.number: AppAccountManagerService_SubscribeAppAccount_0100
  * @tc.name: SubscribeAppAccount
- * @tc.desc: Subscribe app accounts with valid data.
+ * @tc.desc: Subscribe app accounts with invalid data.
  */
 HWTEST_F(
     AppAccountManagerServiceTest, AppAccountManagerService_SubscribeAppAccount_0100, Function | MediumTest | Level1)
@@ -104,13 +104,13 @@ HWTEST_F(
     // subscribe app account
     ErrCode result = appAccountProxy_->SubscribeAppAccount(subscribeInfo, nullptr);
 
-    EXPECT_EQ(result, ERR_OK);
+    EXPECT_EQ(result, ERR_APPACCOUNT_SERVICE_EVENT_LISTENER_IS_NULLPTR);
 }
 
 /**
  * @tc.number: AppAccountManagerService_UnsubscribeAppAccount_0100
  * @tc.name: UnsubscribeAppAccount
- * @tc.desc: Unsubscribe app accounts with valid data.
+ * @tc.desc: Unsubscribe app accounts with invalid data.
  */
 HWTEST_F(
     AppAccountManagerServiceTest, AppAccountManagerService_UnsubscribeAppAccount_0100, Function | MediumTest | Level1)
@@ -118,5 +118,5 @@ HWTEST_F(
     // unsubscribe app account
     ErrCode result = appAccountProxy_->UnsubscribeAppAccount(nullptr);
 
-    EXPECT_EQ(result, ERR_OK);
+    EXPECT_EQ(result, ERR_APPACCOUNT_SERVICE_EVENT_LISTENER_IS_NULLPTR);
 }

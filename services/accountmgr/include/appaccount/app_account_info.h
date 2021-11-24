@@ -13,8 +13,8 @@
  * limitations under the License.
  */
 
-#ifndef APP_ACCOUNT_INTERFACES_INNERKITS_APPACCOUNT_NATIVE_INCLUDE_APP_ACCOUNT_INFO_H
-#define APP_ACCOUNT_INTERFACES_INNERKITS_APPACCOUNT_NATIVE_INCLUDE_APP_ACCOUNT_INFO_H
+#ifndef OS_ACCOUNT_SERVICES_ACCOUNTMGR_INCLUDE_APPACCOUNT_APP_ACCOUNT_INFO_H
+#define OS_ACCOUNT_SERVICES_ACCOUNTMGR_INCLUDE_APPACCOUNT_APP_ACCOUNT_INFO_H
 
 #include <set>
 
@@ -65,7 +65,7 @@ public:
     virtual Json ToJson() const override;
     virtual void FromJson(const Json &jsonObject) override;
     virtual std::string ToString() const override;
-    virtual std::string GetPrimeKey() override;
+    virtual std::string GetPrimeKey() const override;
 
 private:
     bool ReadFromParcel(Parcel &parcel);
@@ -86,4 +86,4 @@ private:
 }  // namespace AccountSA
 }  // namespace OHOS
 
-#endif  // APP_ACCOUNT_INTERFACES_INNERKITS_APPACCOUNT_NATIVE_INCLUDE_APP_ACCOUNT_INFO_H
+#endif  // OS_ACCOUNT_SERVICES_ACCOUNTMGR_INCLUDE_APPACCOUNT_APP_ACCOUNT_INFO_H

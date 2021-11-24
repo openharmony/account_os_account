@@ -14,6 +14,7 @@
  */
 
 #include "account_log_wrapper.h"
+
 #include "app_account_event_listener.h"
 
 namespace OHOS {
@@ -25,9 +26,7 @@ AppAccountEventListener::AppAccountEventListener(const std::shared_ptr<AppAccoun
 }
 
 AppAccountEventListener::~AppAccountEventListener()
-{
-    ACCOUNT_LOGI("enter");
-}
+{}
 
 void AppAccountEventListener::OnAccountsChanged(const std::vector<AppAccountInfo> &accounts)
 {

@@ -34,6 +34,13 @@ namespace {
 const std::string STRING_NAME = "name";
 const std::string STRING_NAME_TWO = "name_two";
 const std::string STRING_NAME_THREE = "name_three";
+const std::string STRING_NAME_MAX_SIZE =
+    "name_1234567"
+    "1234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890"
+    "1234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890"
+    "1234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890"
+    "1234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890"
+    "1234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890";
 const std::string STRING_NAME_NOT_EXISTED = "name_not_existed";
 const std::string STRING_EXTRA_INFO = "extra_info";
 const std::string STRING_BUNDLE_NAME = "com.example.third_party";
@@ -54,9 +61,9 @@ const bool SYNC_ENABLE_TRUE = true;
 const bool SYNC_ENABLE_FALSE = false;
 
 constexpr std::int32_t UID = 10000;
-constexpr size_t SIZE_ZERO = 0;
-constexpr size_t SIZE_ONE = 1;
-constexpr size_t SIZE_TWO = 2;
+constexpr std::size_t SIZE_ZERO = 0;
+constexpr std::size_t SIZE_ONE = 1;
+constexpr std::size_t SIZE_TWO = 2;
 constexpr std::int32_t DELAY_FOR_PACKAGE_REMOVED = 3;
 }  // namespace
 
@@ -137,10 +144,10 @@ HWTEST_F(AppAccountManagerServiceModuleTest, AppAccountManagerService_AddAccount
     auto servicePtr = std::make_shared<AppAccountManagerService>();
     ASSERT_NE(servicePtr, nullptr);
 
-    ErrCode result = servicePtr->AddAccount(STRING_NAME_TWO, STRING_EMPTY);
+    ErrCode result = servicePtr->AddAccount(STRING_NAME, STRING_EMPTY);
     EXPECT_EQ(result, ERR_OK);
 
-    result = servicePtr->DeleteAccount(STRING_NAME_TWO);
+    result = servicePtr->DeleteAccount(STRING_NAME);
     EXPECT_EQ(result, ERR_OK);
 }
 
@@ -156,21 +163,40 @@ HWTEST_F(AppAccountManagerServiceModuleTest, AppAccountManagerService_AddAccount
     auto servicePtr = std::make_shared<AppAccountManagerService>();
     ASSERT_NE(servicePtr, nullptr);
 
-    ErrCode result = servicePtr->AddAccount(STRING_NAME_THREE, STRING_EXTRA_INFO);
+    ErrCode result = servicePtr->AddAccount(STRING_NAME, STRING_EXTRA_INFO);
     EXPECT_EQ(result, ERR_OK);
 
-    result = servicePtr->DeleteAccount(STRING_NAME_THREE);
+    result = servicePtr->DeleteAccount(STRING_NAME);
     EXPECT_EQ(result, ERR_OK);
 }
 
 /**
  * @tc.number: AppAccountManagerService_AddAccount_0400
  * @tc.name: AddAccount
- * @tc.desc: Add an app account with invalid data.
+ * @tc.desc: Add an app account with valid data.
  */
 HWTEST_F(AppAccountManagerServiceModuleTest, AppAccountManagerService_AddAccount_0400, Function | MediumTest | Level1)
 {
     ACCOUNT_LOGI("AppAccountManagerService_AddAccount_0400");
+
+    auto servicePtr = std::make_shared<AppAccountManagerService>();
+    ASSERT_NE(servicePtr, nullptr);
+
+    ErrCode result = servicePtr->AddAccount(STRING_NAME_MAX_SIZE, STRING_EXTRA_INFO);
+    EXPECT_EQ(result, ERR_OK);
+
+    result = servicePtr->DeleteAccount(STRING_NAME_MAX_SIZE);
+    EXPECT_EQ(result, ERR_OK);
+}
+
+/**
+ * @tc.number: AppAccountManagerService_AddAccount_0500
+ * @tc.name: AddAccount
+ * @tc.desc: Add an app account with invalid data.
+ */
+HWTEST_F(AppAccountManagerServiceModuleTest, AppAccountManagerService_AddAccount_0500, Function | MediumTest | Level1)
+{
+    ACCOUNT_LOGI("AppAccountManagerService_AddAccount_0500");
 
     auto servicePtr = std::make_shared<AppAccountManagerService>();
     ASSERT_NE(servicePtr, nullptr);
@@ -188,12 +214,43 @@ HWTEST_F(AppAccountManagerServiceModuleTest, AppAccountManagerService_AddAccount
 /**
  * @tc.number: AppAccountManagerService_DeleteAccount_0100
  * @tc.name: DeleteAccount
- * @tc.desc: Delete an app account with invalid data.
+ * @tc.desc: Delete an app account with valid data.
  */
 HWTEST_F(
     AppAccountManagerServiceModuleTest, AppAccountManagerService_DeleteAccount_0100, Function | MediumTest | Level1)
 {
     ACCOUNT_LOGI("AppAccountManagerService_DeleteAccount_0100");
+
+    auto servicePtr = std::make_shared<AppAccountManagerService>();
+    ASSERT_NE(servicePtr, nullptr);
+
+    ErrCode result = servicePtr->AddAccount(STRING_NAME, STRING_EXTRA_INFO);
+    EXPECT_EQ(result, ERR_OK);
+
+    result = servicePtr->EnableAppAccess(STRING_NAME, STRING_BUNDLE_NAME);
+    EXPECT_EQ(result, ERR_OK);
+
+    result = servicePtr->DeleteAccount(STRING_NAME);
+    EXPECT_EQ(result, ERR_OK);
+
+    auto dataStoragePtr = controlManagerPtr_->GetDataStorage(false, UID);
+    ASSERT_NE(dataStoragePtr, nullptr);
+
+    std::vector<std::string> accessibleAccounts;
+    result = dataStoragePtr->GetAccessibleAccountsFromDataStorage(STRING_BUNDLE_NAME, accessibleAccounts);
+    EXPECT_EQ(result, ERR_OK);
+    EXPECT_EQ(accessibleAccounts.size(), SIZE_ZERO);
+}
+
+/**
+ * @tc.number: AppAccountManagerService_DeleteAccount_0200
+ * @tc.name: DeleteAccount
+ * @tc.desc: Delete an app account with invalid data.
+ */
+HWTEST_F(
+    AppAccountManagerServiceModuleTest, AppAccountManagerService_DeleteAccount_0200, Function | MediumTest | Level1)
+{
+    ACCOUNT_LOGI("AppAccountManagerService_DeleteAccount_0200");
 
     auto servicePtr = std::make_shared<AppAccountManagerService>();
     ASSERT_NE(servicePtr, nullptr);

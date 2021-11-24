@@ -13,69 +13,62 @@
  * limitations under the License.
  */
 
-#ifndef OS_ACCOUNT_SERVICES_ACCOUNTMGR_INCLUDE_INNER_APP_ACCOUNT_MANAGER_H
-#define OS_ACCOUNT_SERVICES_ACCOUNTMGR_INCLUDE_INNER_APP_ACCOUNT_MANAGER_H
+#ifndef OS_ACCOUNT_SERVICES_ACCOUNTMGR_INCLUDE_APPACCOUNT_INNER_APP_ACCOUNT_MANAGER_H
+#define OS_ACCOUNT_SERVICES_ACCOUNTMGR_INCLUDE_APPACCOUNT_INNER_APP_ACCOUNT_MANAGER_H
 
-#include "iapp_account_control.h"
-#include "iapp_account_subscribe.h"
-#include "iinner_app_account.h"
+#include "app_account_control_manager.h"
+#include "app_account_subscribe_manager.h"
 
 namespace OHOS {
 namespace AccountSA {
-class InnerAppAccountManager : public IInnerAppAccount {
+class InnerAppAccountManager {
 public:
     InnerAppAccountManager();
     virtual ~InnerAppAccountManager();
 
-    ErrCode AddAccount(const std::string &name, const std::string &extraInfo, const std::string &bundleName) override;
-    ErrCode DeleteAccount(const std::string &name, const std::string &bundleName) override;
+    ErrCode AddAccount(const std::string &name, const std::string &extraInfo, const std::string &bundleName);
+    ErrCode DeleteAccount(const std::string &name, const std::string &bundleName);
 
-    ErrCode GetAccountExtraInfo(
-        const std::string &name, std::string &extraInfo, const std::string &bundleName) override;
-    ErrCode SetAccountExtraInfo(
-        const std::string &name, const std::string &extraInfo, const std::string &bundleName) override;
+    ErrCode GetAccountExtraInfo(const std::string &name, std::string &extraInfo, const std::string &bundleName);
+    ErrCode SetAccountExtraInfo(const std::string &name, const std::string &extraInfo, const std::string &bundleName);
 
-    ErrCode EnableAppAccess(
-        const std::string &name, const std::string &authorizedApp, const std::string &bundleName) override;
-    ErrCode DisableAppAccess(
-        const std::string &name, const std::string &authorizedApp, const std::string &bundleName) override;
+    ErrCode EnableAppAccess(const std::string &name, const std::string &authorizedApp, const std::string &bundleName);
+    ErrCode DisableAppAccess(const std::string &name, const std::string &authorizedApp, const std::string &bundleName);
 
-    ErrCode CheckAppAccountSyncEnable(
-        const std::string &name, bool &syncEnable, const std::string &bundleName) override;
-    ErrCode SetAppAccountSyncEnable(
-        const std::string &name, const bool &syncEnable, const std::string &bundleName) override;
+    ErrCode CheckAppAccountSyncEnable(const std::string &name, bool &syncEnable, const std::string &bundleName);
+    ErrCode SetAppAccountSyncEnable(const std::string &name, const bool &syncEnable, const std::string &bundleName);
 
     ErrCode GetAssociatedData(
-        const std::string &name, const std::string &key, std::string &value, const std::string &bundleName) override;
-    ErrCode SetAssociatedData(const std::string &name, const std::string &key, const std::string &value,
-        const std::string &bundleName) override;
+        const std::string &name, const std::string &key, std::string &value, const std::string &bundleName);
+    ErrCode SetAssociatedData(
+        const std::string &name, const std::string &key, const std::string &value, const std::string &bundleName);
 
     ErrCode GetAccountCredential(const std::string &name, const std::string &credentialType, std::string &credential,
-        const std::string &bundleName) override;
+        const std::string &bundleName);
     ErrCode SetAccountCredential(const std::string &name, const std::string &credentialType,
-        const std::string &credential, const std::string &bundleName) override;
+        const std::string &credential, const std::string &bundleName);
 
-    ErrCode GetOAuthToken(const std::string &name, std::string &token, const std::string &bundleName) override;
-    ErrCode SetOAuthToken(const std::string &name, const std::string &token, const std::string &bundleName) override;
-    ErrCode ClearOAuthToken(const std::string &name, const std::string &bundleName) override;
+    ErrCode GetOAuthToken(const std::string &name, std::string &token, const std::string &bundleName);
+    ErrCode SetOAuthToken(const std::string &name, const std::string &token, const std::string &bundleName);
+    ErrCode ClearOAuthToken(const std::string &name, const std::string &bundleName);
 
     ErrCode GetAllAccounts(
-        const std::string &owner, std::vector<AppAccountInfo> &appAccounts, const std::string &bundleName) override;
-    ErrCode GetAllAccessibleAccounts(std::vector<AppAccountInfo> &appAccounts, const std::string &bundleName) override;
+        const std::string &owner, std::vector<AppAccountInfo> &appAccounts, const std::string &bundleName);
+    ErrCode GetAllAccessibleAccounts(std::vector<AppAccountInfo> &appAccounts, const std::string &bundleName);
 
     ErrCode SubscribeAppAccount(const AppAccountSubscribeInfo &subscribeInfo, const sptr<IRemoteObject> &eventListener,
-        const std::string &bundleName) override;
-    ErrCode UnsubscribeAppAccount(const sptr<IRemoteObject> &eventListener) override;
+        const std::string &bundleName);
+    ErrCode UnsubscribeAppAccount(const sptr<IRemoteObject> &eventListener);
 
-    ErrCode OnPackageRemoved(const int32_t &uid, const std::string &bundleName) override;
+    ErrCode OnPackageRemoved(const int32_t &uid, const std::string &bundleName);
 
 private:
-    std::shared_ptr<IAppAccountControl> controlManagerPtr_;
-    std::shared_ptr<IAppAccountSubscribe> subscribeManagerPtr_;
+    std::shared_ptr<AppAccountControlManager> controlManagerPtr_;
+    std::shared_ptr<AppAccountSubscribeManager> subscribeManagerPtr_;
 
     DISALLOW_COPY_AND_MOVE(InnerAppAccountManager);
 };
 }  // namespace AccountSA
 }  // namespace OHOS
 
-#endif  // OS_ACCOUNT_SERVICES_ACCOUNTMGR_INCLUDE_INNER_APP_ACCOUNT_MANAGER_H
+#endif  // OS_ACCOUNT_SERVICES_ACCOUNTMGR_INCLUDE_APPACCOUNT_INNER_APP_ACCOUNT_MANAGER_H
