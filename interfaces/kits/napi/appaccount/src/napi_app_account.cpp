@@ -1006,7 +1006,7 @@ napi_value NapiAppAccount::Subscribe(napi_env env, napi_callback_info cbInfo)
     asyncContextForOn->appAccountManager = objectInfo;
     ACCOUNT_LOGI("AppAccountManager objectInfo = %{public}p", objectInfo);
 
-    subscriberInstances[objectInfo] = asyncContextForOn;
+    subscriberInstances[objectInfo].emplace_back(asyncContextForOn);
     ACCOUNT_LOGI("subscriberInstances.size = %{public}zu", subscriberInstances.size());
 
     napi_value resourceName = nullptr;
@@ -1036,7 +1036,7 @@ napi_value NapiAppAccount::Unsubscribe(napi_env env, napi_callback_info cbInfo)
     size_t argc = UNSUBSCRIBE_MAX_PARA;
     napi_value argv[UNSUBSCRIBE_MAX_PARA] = {nullptr};
     napi_value thisVar = nullptr;
-    std::shared_ptr<SubscriberPtr> subscriber = nullptr;
+    std::vector<std::shared_ptr<SubscriberPtr>> subscribers = {nullptr};
     NAPI_CALL(env, napi_get_cb_info(env, cbInfo, &argc, argv, &thisVar, NULL));
     NAPI_ASSERT(env, argc >= 1, "Wrong number of arguments");
     ACCOUNT_LOGI("Unsubscribe thisVar = %{public}p", thisVar);
@@ -1062,27 +1062,21 @@ napi_value NapiAppAccount::Unsubscribe(napi_env env, napi_callback_info cbInfo)
     asyncContextForOff->callbackRef = callback;
     asyncContextForOff->argc = argc;
     bool isFind = false;
-    napi_value result = GetSubscriberByUnsubscribe(env, subscriber, asyncContextForOff, isFind);
+    napi_value result = GetSubscriberByUnsubscribe(env, subscribers, asyncContextForOff, isFind);
     if (!result) {
         ACCOUNT_LOGI("Unsubscribe failed. The current subscriber does not exist");
         return NapiGetNull(env);
     }
-    asyncContextForOff->subscriber = subscriber;
+    asyncContextForOff->subscribers = subscribers;
 
     napi_value resourceName = nullptr;
     NAPI_CALL(env, napi_create_string_latin1(env, "Unsubscribe", NAPI_AUTO_LENGTH, &resourceName));
 
-    // Asynchronous function call
     NAPI_CALL(env,
         napi_create_async_work(env,
             nullptr,
             resourceName,
-            [](napi_env env, void *data) {
-                ACCOUNT_LOGI("Unsubscribe napi_create_async_work start.");
-                AsyncContextForUnsubscribe *asyncContextForOff = (AsyncContextForUnsubscribe *)data;
-                int errCode = AppAccountManager::UnsubscribeAppAccount(asyncContextForOff->subscriber);
-                ACCOUNT_LOGI("Unsubscribe errcode parameter is %{public}d", errCode);
-            },
+            UnsubscribeExecuteCB,
             UnsubscribeCallbackCompletedCB,
             (void *)asyncContextForOff,
             &asyncContextForOff->work));

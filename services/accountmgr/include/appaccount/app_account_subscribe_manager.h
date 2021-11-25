@@ -13,36 +13,45 @@
  * limitations under the License.
  */
 
-#ifndef OS_ACCOUNT_SERVICES_ACCOUNTMGR_INCLUDE_APP_ACCOUNT_SUBSCRIBE_MANAGER_H
-#define OS_ACCOUNT_SERVICES_ACCOUNTMGR_INCLUDE_APP_ACCOUNT_SUBSCRIBE_MANAGER_H
+#ifndef OS_ACCOUNT_SERVICES_ACCOUNTMGR_INCLUDE_APPACCOUNT_APP_ACCOUNT_SUBSCRIBE_MANAGER_H
+#define OS_ACCOUNT_SERVICES_ACCOUNTMGR_INCLUDE_APPACCOUNT_APP_ACCOUNT_SUBSCRIBE_MANAGER_H
 
 #include <map>
 #include <set>
 
-#include "iapp_account_subscribe.h"
+#include "app_account_data_storage.h"
+#include "app_account_event_record.h"
+#include "bundle_constants.h"
+#include "event_handler.h"
 #include "singleton.h"
 
 namespace OHOS {
 namespace AccountSA {
-class AppAccountSubscribeManager : public IAppAccountSubscribe, public DelayedSingleton<AppAccountSubscribeManager> {
+class AppAccountSubscribeManager : public DelayedSingleton<AppAccountSubscribeManager> {
 public:
+    using EventHandler = OHOS::AppExecFwk::EventHandler;
+    using EventRunner = OHOS::AppExecFwk::EventRunner;
+    using Callback = OHOS::AppExecFwk::InnerEvent::Callback;
+
     AppAccountSubscribeManager();
     virtual ~AppAccountSubscribeManager();
 
     ErrCode SubscribeAppAccount(const std::shared_ptr<AppAccountSubscribeInfo> &subscribeInfoPtr,
-        const sptr<IRemoteObject> &eventListener, const std::string &bundleName) override;
-    ErrCode UnsubscribeAppAccount(const sptr<IRemoteObject> &eventListener) override;
+        const sptr<IRemoteObject> &eventListener, const std::string &bundleName);
+    ErrCode UnsubscribeAppAccount(const sptr<IRemoteObject> &eventListener);
 
-    std::vector<AppAccountSubscribeRecordPtr> GetSubscribeRecords(const std::string &owner);
+    bool PublishAccount(AppAccountInfo &appAccountInfo, const std::string &bundleName);
 
 private:
     std::shared_ptr<AppAccountDataStorage> GetDataStorage(
-        const bool &autoSync = false, const int32_t uid = AppExecFwk::Constants::INVALID_UID) override;
-    ErrCode GetStoreId(std::string &storeId, int32_t uid = AppExecFwk::Constants::INVALID_UID) override;
-    ErrCode GetEventHandler(void) override;
+        const bool &autoSync = false, const int32_t uid = AppExecFwk::Constants::INVALID_UID);
+    ErrCode GetStoreId(std::string &storeId, int32_t uid = AppExecFwk::Constants::INVALID_UID);
+    ErrCode GetEventHandler(void);
 
-    bool PublishAccount(AppAccountInfo &appAccountInfo, const std::string &bundleName) override;
-    ErrCode OnAccountsChanged(const std::shared_ptr<AppAccountEventRecord> &record) override;
+    std::vector<AppAccountSubscribeRecordPtr> GetSubscribeRecords(const std::string &owner);
+    ErrCode OnAccountsChanged(const std::shared_ptr<AppAccountEventRecord> &record);
+    ErrCode GetAccessibleAccountsBySubscribeInfo(const std::shared_ptr<AppAccountSubscribeInfo> &subscribeInfoPtr,
+        const std::string &bundleName, std::vector<AppAccountInfo> &appAccounts);
 
     ErrCode CheckAppAccess(
         const std::shared_ptr<AppAccountSubscribeInfo> &subscribeInfoPtr, const std::string &bundleName);
@@ -62,4 +71,4 @@ private:
 }  // namespace AccountSA
 }  // namespace OHOS
 
-#endif  // OS_ACCOUNT_SERVICES_ACCOUNTMGR_INCLUDE_APP_ACCOUNT_SUBSCRIBE_MANAGER_H
+#endif  // OS_ACCOUNT_SERVICES_ACCOUNTMGR_INCLUDE_APPACCOUNT_APP_ACCOUNT_SUBSCRIBE_MANAGER_H

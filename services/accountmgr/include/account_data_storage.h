@@ -12,8 +12,8 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-#ifndef OS_ACCOUNT_SERVICES_ACCOUNTMGR_ACCOUNT_DATA_STORAGE_H
-#define OS_ACCOUNT_SERVICES_ACCOUNTMGR_ACCOUNT_DATA_STORAGE_H
+#ifndef OS_ACCOUNT_SERVICES_ACCOUNTMGR_INCLUDE_ACCOUNT_DATA_STORAGE_H
+#define OS_ACCOUNT_SERVICES_ACCOUNTMGR_INCLUDE_ACCOUNT_DATA_STORAGE_H
 
 #include <string>
 #include <map>
@@ -60,4 +60,4 @@ protected:
 }  // namespace AccountSA
 }  // namespace OHOS
 
-#endif  // OS_ACCOUNT_SERVICES_ACCOUNTMGR_ACCOUNT_DATA_STORAGE_H
+#endif  // OS_ACCOUNT_SERVICES_ACCOUNTMGR_INCLUDE_ACCOUNT_DATA_STORAGE_H

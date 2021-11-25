@@ -25,6 +25,8 @@
 
 namespace OHOS {
 namespace AccountSA {
+const std::string AppAccount::SPECIAL_CHARACTERS = " ";
+
 ErrCode AppAccount::AddAccount(const std::string &name, const std::string &extraInfo)
 {
     ACCOUNT_LOGI("enter");
@@ -483,9 +485,18 @@ ErrCode AppAccount::SubscribeAppAccount(const std::shared_ptr<AppAccountSubscrib
         return ERR_APPACCOUNT_KIT_GET_OWNERS;
     }
 
+    ACCOUNT_LOGI("owners.size() = %{public}zu", owners.size());
     if (owners.size() == 0) {
-        ACCOUNT_LOGE("owners.size() = %{public}zu", owners.size());
         return ERR_APPACCOUNT_KIT_SUBSCRIBER_HAS_NO_OWNER;
+    }
+
+    // remove duplicate ones
+    std::sort(owners.begin(), owners.end());
+    owners.erase(std::unique(owners.begin(), owners.end()), owners.end());
+    ACCOUNT_LOGI("owners.size() = %{public}zu", owners.size());
+    if (subscribeInfo.SetOwners(owners) != ERR_OK) {
+        ACCOUNT_LOGE("failed to set owners");
+        return ERR_APPACCOUNT_KIT_SET_OWNERS;
     }
 
     for (auto owner : owners) {
@@ -567,19 +578,37 @@ ErrCode AppAccount::CheckParameters(const std::string &name, const std::string &
         return ERR_APPACCOUNT_KIT_NAME_IS_EMPTY;
     }
 
-    if (name.size() > trim_copy(name).size()) {
-        ACCOUNT_LOGE("name contains blank spaces");
-        return ERR_APPACCOUNT_KIT_NAME_CONTAINS_BLANK_SPACES;
-    }
-
     if (name.size() > NAME_MAX_SIZE) {
         ACCOUNT_LOGE("name is out of range");
         return ERR_APPACCOUNT_KIT_NAME_OUT_OF_RANGE;
     }
 
+    ErrCode result = CheckSpecialCharacters(name);
+    if (result != ERR_OK) {
+        ACCOUNT_LOGE("failed to check special characters");
+        return result;
+    }
+
     if (extraInfo.size() > EXTRA_INFO_MAX_SIZE) {
         ACCOUNT_LOGE("extra info is out of range");
         return ERR_APPACCOUNT_KIT_EXTRA_INFO_OUT_OF_RANGE;
+    }
+
+    return ERR_OK;
+}
+
+ErrCode AppAccount::CheckSpecialCharacters(const std::string &name)
+{
+    ACCOUNT_LOGI("enter");
+
+    ACCOUNT_LOGI("name = %{public}s", name.c_str());
+
+    for (auto specialCharacter : SPECIAL_CHARACTERS) {
+        std::size_t found = name.find(specialCharacter);
+        if (found != std::string::npos) {
+            ACCOUNT_LOGE("found a special character, specialCharacter = %{public}c", specialCharacter);
+            return ERR_APPACCOUNT_KIT_NAME_CONTAINS_SPECIAL_CHARACTERS;
+        }
     }
 
     return ERR_OK;

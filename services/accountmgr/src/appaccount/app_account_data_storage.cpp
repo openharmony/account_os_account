@@ -30,9 +30,7 @@ AppAccountDataStorage::AppAccountDataStorage(const std::string &storeId, const b
 }
 
 AppAccountDataStorage::~AppAccountDataStorage()
-{
-    ACCOUNT_LOGI("enter");
-}
+{}
 
 Json AppAccountDataStorage::GetAccessibleAccountsFromAuthorizedAccounts(const std::string &authorizedAccounts,
     const std::string &authorizedApp, std::vector<std::string> &accessibleAccounts)

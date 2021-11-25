@@ -38,8 +38,8 @@ const std::string STRING_ACCOUNT_CREDENTIAL = "{\"password\": \"1024\"}";
 const bool SYNC_ENABLE_TRUE = true;
 const bool SYNC_ENABLE_FALSE = false;
 
-constexpr size_t SIZE_ZERO = 0;
-constexpr size_t SIZE_ONE = 1;
+constexpr std::size_t SIZE_ZERO = 0;
+constexpr std::size_t SIZE_ONE = 1;
 }  // namespace
 
 class AppAccountInfoTest : public testing::Test {

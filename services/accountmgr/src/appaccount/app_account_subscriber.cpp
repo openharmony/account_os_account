@@ -15,6 +15,7 @@
 
 #include "account_error_no.h"
 #include "account_log_wrapper.h"
+
 #include "app_account_subscriber.h"
 
 namespace OHOS {
@@ -30,9 +31,7 @@ AppAccountSubscriber::AppAccountSubscriber(const AppAccountSubscribeInfo &subscr
 }
 
 AppAccountSubscriber::~AppAccountSubscriber()
-{
-    ACCOUNT_LOGI("enter");
-}
+{}
 
 ErrCode AppAccountSubscriber::GetSubscribeInfo(AppAccountSubscribeInfo &subscribeInfo) const
 {

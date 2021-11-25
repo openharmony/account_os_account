@@ -30,9 +30,7 @@ AppAccountSubscribeInfo::AppAccountSubscribeInfo(std::vector<std::string> &owner
 }
 
 AppAccountSubscribeInfo::~AppAccountSubscribeInfo()
-{
-    ACCOUNT_LOGI("enter");
-}
+{}
 
 ErrCode AppAccountSubscribeInfo::GetOwners(std::vector<std::string> &owners) const
 {
