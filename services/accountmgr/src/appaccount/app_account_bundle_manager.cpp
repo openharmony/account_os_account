@@ -31,9 +31,7 @@ AppAccountBundleManager::AppAccountBundleManager()
 }
 
 AppAccountBundleManager::~AppAccountBundleManager()
-{
-    ACCOUNT_LOGI("enter");
-}
+{}
 
 ErrCode AppAccountBundleManager::GetBundleName(std::string &bundleName)
 {

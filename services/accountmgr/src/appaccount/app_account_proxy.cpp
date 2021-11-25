@@ -15,6 +15,7 @@
 
 #include "account_error_no.h"
 #include "account_log_wrapper.h"
+
 #include "app_account_proxy.h"
 
 namespace OHOS {
@@ -25,9 +26,7 @@ AppAccountProxy::AppAccountProxy(const sptr<IRemoteObject> &object) : IRemotePro
 }
 
 AppAccountProxy::~AppAccountProxy()
-{
-    ACCOUNT_LOGI("enter");
-}
+{}
 
 ErrCode AppAccountProxy::AddAccount(const std::string &name, const std::string &extraInfo)
 {

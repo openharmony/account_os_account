@@ -35,11 +35,13 @@ const std::string STRING_BUNDLE_NAME = "com.example.third_party";
 const std::string STRING_EMPTY = "";
 const std::string STRING_OWNER = "com.example.owner";
 
+const std::string HYPHEN = "#";
+
 const bool SYNC_ENABLE_TRUE = true;
 const bool SYNC_ENABLE_FALSE = false;
 
-constexpr size_t SIZE_ZERO = 0;
-constexpr size_t SIZE_ONE = 1;
+constexpr std::size_t SIZE_ZERO = 0;
+constexpr std::size_t SIZE_ONE = 1;
 }  // namespace
 
 class AppAccountManagerServiceSyncModuleTest : public testing::Test {
@@ -558,7 +560,7 @@ HWTEST_F(AppAccountManagerServiceSyncModuleTest, AppAccountManagerServiceSync_En
         auto accountPtr = accessibleAccounts.begin();
         ASSERT_NE(accountPtr, accessibleAccounts.end());
 
-        EXPECT_EQ(*accountPtr, STRING_OWNER + "_" + STRING_NAME);
+        EXPECT_EQ(*accountPtr, STRING_OWNER + HYPHEN + STRING_NAME);
     }
     {
         auto dataStoragePtr = controlManagerPtr_->GetDataStorage(true);
@@ -577,7 +579,7 @@ HWTEST_F(AppAccountManagerServiceSyncModuleTest, AppAccountManagerServiceSync_En
         auto accountPtr = accessibleAccounts.begin();
         ASSERT_NE(accountPtr, accessibleAccounts.end());
 
-        EXPECT_EQ(*accountPtr, STRING_OWNER + "_" + STRING_NAME);
+        EXPECT_EQ(*accountPtr, STRING_OWNER + HYPHEN + STRING_NAME);
     }
 
     result = servicePtr->DeleteAccount(STRING_NAME);
@@ -626,7 +628,7 @@ HWTEST_F(AppAccountManagerServiceSyncModuleTest, AppAccountManagerServiceSync_En
         auto accountPtr = accessibleAccounts.begin();
         ASSERT_NE(accountPtr, accessibleAccounts.end());
 
-        EXPECT_EQ(*accountPtr, STRING_OWNER + "_" + STRING_NAME);
+        EXPECT_EQ(*accountPtr, STRING_OWNER + HYPHEN + STRING_NAME);
     }
     {
         auto dataStoragePtr = controlManagerPtr_->GetDataStorage(true);
@@ -645,7 +647,7 @@ HWTEST_F(AppAccountManagerServiceSyncModuleTest, AppAccountManagerServiceSync_En
         auto accountPtr = accessibleAccounts.begin();
         ASSERT_NE(accountPtr, accessibleAccounts.end());
 
-        EXPECT_EQ(*accountPtr, STRING_OWNER + "_" + STRING_NAME);
+        EXPECT_EQ(*accountPtr, STRING_OWNER + HYPHEN + STRING_NAME);
     }
 
     result = servicePtr->DeleteAccount(STRING_NAME);

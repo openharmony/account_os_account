@@ -30,9 +30,11 @@ using namespace OHOS::AccountSA;
 namespace {
 const std::string STRING_EMPTY = "";
 const std::string STRING_NAME = "name";
-const std::string STRING_EXTRA_INFO = "extra_info";
+const std::string STRING_NAME_CONTAINS_SPECIAL_CHARACTERS = " name";
+const std::string STRING_NAME_CONTAINS_SPECIAL_CHARACTERS_TWO = "n ame";
+const std::string STRING_NAME_CONTAINS_SPECIAL_CHARACTERS_THREE = "name ";
 const std::string STRING_NAME_OUT_OF_RANGE =
-    "name_out_of_range_"
+    "name_12345678"
     "1234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890"
     "1234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890"
     "1234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890"
@@ -44,6 +46,7 @@ const std::string STRING_NAME_OUT_OF_RANGE =
     "1234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890"
     "1234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890"
     "1234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890";
+const std::string STRING_EXTRA_INFO = "extra_info";
 const std::string STRING_EXTRA_INFO_OUT_OF_RANGE =
     "extra_info_out_of_range_"
     "1234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890"
@@ -129,6 +132,8 @@ public:
  */
 HWTEST_F(AppAccountTest, AppAccount_AddAccount_0100, Function | MediumTest | Level1)
 {
+    ACCOUNT_LOGI("AppAccount_AddAccount_0100");
+
     ErrCode result = appAccount_->AddAccount(STRING_NAME, STRING_EXTRA_INFO);
 
     EXPECT_EQ(result, ERR_OK);
@@ -141,6 +146,8 @@ HWTEST_F(AppAccountTest, AppAccount_AddAccount_0100, Function | MediumTest | Lev
  */
 HWTEST_F(AppAccountTest, AppAccount_AddAccount_0200, Function | MediumTest | Level1)
 {
+    ACCOUNT_LOGI("AppAccount_AddAccount_0200");
+
     ErrCode result = appAccount_->AddAccount(STRING_NAME_EMPTY, STRING_EXTRA_INFO);
 
     EXPECT_EQ(result, ERR_APPACCOUNT_KIT_NAME_IS_EMPTY);
@@ -153,6 +160,8 @@ HWTEST_F(AppAccountTest, AppAccount_AddAccount_0200, Function | MediumTest | Lev
  */
 HWTEST_F(AppAccountTest, AppAccount_AddAccount_0300, Function | MediumTest | Level1)
 {
+    ACCOUNT_LOGI("AppAccount_AddAccount_0300");
+
     ErrCode result = appAccount_->AddAccount(STRING_NAME, STRING_EXTRA_INFO_EMPTY);
 
     EXPECT_EQ(result, ERR_OK);
@@ -165,6 +174,8 @@ HWTEST_F(AppAccountTest, AppAccount_AddAccount_0300, Function | MediumTest | Lev
  */
 HWTEST_F(AppAccountTest, AppAccount_AddAccount_0400, Function | MediumTest | Level1)
 {
+    ACCOUNT_LOGI("AppAccount_AddAccount_0400");
+
     ErrCode result = appAccount_->AddAccount(STRING_NAME_OUT_OF_RANGE, STRING_EXTRA_INFO);
 
     EXPECT_EQ(result, ERR_APPACCOUNT_KIT_NAME_OUT_OF_RANGE);
@@ -177,6 +188,50 @@ HWTEST_F(AppAccountTest, AppAccount_AddAccount_0400, Function | MediumTest | Lev
  */
 HWTEST_F(AppAccountTest, AppAccount_AddAccount_0500, Function | MediumTest | Level1)
 {
+    ACCOUNT_LOGI("AppAccount_AddAccount_0500");
+
+    ErrCode result = appAccount_->AddAccount(STRING_NAME_CONTAINS_SPECIAL_CHARACTERS, STRING_EXTRA_INFO);
+
+    EXPECT_EQ(result, ERR_APPACCOUNT_KIT_NAME_CONTAINS_SPECIAL_CHARACTERS);
+}
+
+/**
+ * @tc.number: AppAccount_AddAccount_0600
+ * @tc.name: AddAccount
+ * @tc.desc: Add an app account with invalid data.
+ */
+HWTEST_F(AppAccountTest, AppAccount_AddAccount_0600, Function | MediumTest | Level1)
+{
+    ACCOUNT_LOGI("AppAccount_AddAccount_0600");
+
+    ErrCode result = appAccount_->AddAccount(STRING_NAME_CONTAINS_SPECIAL_CHARACTERS_TWO, STRING_EXTRA_INFO);
+
+    EXPECT_EQ(result, ERR_APPACCOUNT_KIT_NAME_CONTAINS_SPECIAL_CHARACTERS);
+}
+
+/**
+ * @tc.number: AppAccount_AddAccount_0700
+ * @tc.name: AddAccount
+ * @tc.desc: Add an app account with invalid data.
+ */
+HWTEST_F(AppAccountTest, AppAccount_AddAccount_0700, Function | MediumTest | Level1)
+{
+    ACCOUNT_LOGI("AppAccount_AddAccount_0700");
+
+    ErrCode result = appAccount_->AddAccount(STRING_NAME_CONTAINS_SPECIAL_CHARACTERS_THREE, STRING_EXTRA_INFO);
+
+    EXPECT_EQ(result, ERR_APPACCOUNT_KIT_NAME_CONTAINS_SPECIAL_CHARACTERS);
+}
+
+/**
+ * @tc.number: AppAccount_AddAccount_0800
+ * @tc.name: AddAccount
+ * @tc.desc: Add an app account with invalid data.
+ */
+HWTEST_F(AppAccountTest, AppAccount_AddAccount_0800, Function | MediumTest | Level1)
+{
+    ACCOUNT_LOGI("AppAccount_AddAccount_0800");
+
     ErrCode result = appAccount_->AddAccount(STRING_NAME, STRING_EXTRA_INFO_OUT_OF_RANGE);
 
     EXPECT_EQ(result, ERR_APPACCOUNT_KIT_EXTRA_INFO_OUT_OF_RANGE);
@@ -189,6 +244,8 @@ HWTEST_F(AppAccountTest, AppAccount_AddAccount_0500, Function | MediumTest | Lev
  */
 HWTEST_F(AppAccountTest, AppAccount_DeleteAccount_0100, Function | MediumTest | Level1)
 {
+    ACCOUNT_LOGI("AppAccount_DeleteAccount_0100");
+
     ErrCode result = appAccount_->DeleteAccount(STRING_NAME);
 
     EXPECT_EQ(result, ERR_OK);
@@ -201,6 +258,8 @@ HWTEST_F(AppAccountTest, AppAccount_DeleteAccount_0100, Function | MediumTest | 
  */
 HWTEST_F(AppAccountTest, AppAccount_DeleteAccount_0200, Function | MediumTest | Level1)
 {
+    ACCOUNT_LOGI("AppAccount_DeleteAccount_0200");
+
     ErrCode result = appAccount_->DeleteAccount(STRING_NAME_EMPTY);
 
     EXPECT_EQ(result, ERR_APPACCOUNT_KIT_NAME_IS_EMPTY);
@@ -213,6 +272,8 @@ HWTEST_F(AppAccountTest, AppAccount_DeleteAccount_0200, Function | MediumTest | 
  */
 HWTEST_F(AppAccountTest, AppAccount_DeleteAccount_0300, Function | MediumTest | Level1)
 {
+    ACCOUNT_LOGI("AppAccount_DeleteAccount_0300");
+
     ErrCode result = appAccount_->DeleteAccount(STRING_NAME_OUT_OF_RANGE);
 
     EXPECT_EQ(result, ERR_APPACCOUNT_KIT_NAME_OUT_OF_RANGE);
@@ -225,6 +286,8 @@ HWTEST_F(AppAccountTest, AppAccount_DeleteAccount_0300, Function | MediumTest | 
  */
 HWTEST_F(AppAccountTest, AppAccount_SubscribeAppAccount_0100, Function | MediumTest | Level1)
 {
+    ACCOUNT_LOGI("AppAccount_SubscribeAppAccount_0100");
+
     // make owners
     std::vector<std::string> owners;
     owners.emplace_back(STRING_OWNER);
@@ -244,10 +307,38 @@ HWTEST_F(AppAccountTest, AppAccount_SubscribeAppAccount_0100, Function | MediumT
 /**
  * @tc.number: AppAccount_SubscribeAppAccount_0200
  * @tc.name: SubscribeAppAccount
- * @tc.desc: Subscribe app accounts with invalid data.
+ * @tc.desc: Subscribe app accounts with valid data.
  */
 HWTEST_F(AppAccountTest, AppAccount_SubscribeAppAccount_0200, Function | MediumTest | Level1)
 {
+    ACCOUNT_LOGI("AppAccount_SubscribeAppAccount_0200");
+
+    // make owners
+    std::vector<std::string> owners;
+    owners.emplace_back(STRING_OWNER);
+    owners.emplace_back(STRING_OWNER);
+
+    // make subcribe info
+    AppAccountSubscribeInfo subscribeInfo;
+    subscribeInfo.SetOwners(owners);
+
+    // make a subcriber
+    auto subscriberTestPtr = std::make_shared<AppAccountSubscriberTest>(subscribeInfo);
+    // subscribe app account
+    ErrCode result = appAccount_->SubscribeAppAccount(subscriberTestPtr);
+
+    EXPECT_EQ(result, ERR_OK);
+}
+
+/**
+ * @tc.number: AppAccount_SubscribeAppAccount_0300
+ * @tc.name: SubscribeAppAccount
+ * @tc.desc: Subscribe app accounts with invalid data.
+ */
+HWTEST_F(AppAccountTest, AppAccount_SubscribeAppAccount_0300, Function | MediumTest | Level1)
+{
+    ACCOUNT_LOGI("AppAccount_SubscribeAppAccount_0300");
+
     // subscribe app account with nullptr
     ErrCode result = appAccount_->SubscribeAppAccount(nullptr);
 
@@ -261,6 +352,8 @@ HWTEST_F(AppAccountTest, AppAccount_SubscribeAppAccount_0200, Function | MediumT
  */
 HWTEST_F(AppAccountTest, AppAccount_GetAppAccountProxy_0100, Function | MediumTest | Level1)
 {
+    ACCOUNT_LOGI("AppAccount_GetAppAccountProxy_0100");
+
     // get app account proxy
     ErrCode result = appAccount_->GetAppAccountProxy();
 
@@ -275,6 +368,8 @@ HWTEST_F(AppAccountTest, AppAccount_GetAppAccountProxy_0100, Function | MediumTe
  */
 HWTEST_F(AppAccountTest, AppAccount_ResetAppAccountProxy_0100, Function | MediumTest | Level1)
 {
+    ACCOUNT_LOGI("AppAccount_ResetAppAccountProxy_0100");
+
     // get app account proxy
     ErrCode result = appAccount_->GetAppAccountProxy();
 
@@ -294,6 +389,8 @@ HWTEST_F(AppAccountTest, AppAccount_ResetAppAccountProxy_0100, Function | Medium
  */
 HWTEST_F(AppAccountTest, AppAccount_CreateAppAccountEventListener_0100, Function | MediumTest | Level1)
 {
+    ACCOUNT_LOGI("AppAccount_CreateAppAccountEventListener_0100");
+
     ErrCode result = -1;
 
     // make owners
@@ -330,6 +427,8 @@ HWTEST_F(AppAccountTest, AppAccount_CreateAppAccountEventListener_0100, Function
  */
 HWTEST_F(AppAccountTest, AppAccount_CreateAppAccountEventListener_0200, Function | MediumTest | Level1)
 {
+    ACCOUNT_LOGI("AppAccount_CreateAppAccountEventListener_0200");
+
     ErrCode result = -1;
 
     // make owners
@@ -345,7 +444,7 @@ HWTEST_F(AppAccountTest, AppAccount_CreateAppAccountEventListener_0200, Function
     EXPECT_EQ(appAccount_->eventListeners_.size(), SUBSCRIBER_ZERO);
 
     // make max subcribers
-    for (unsigned int counter = 1; counter <= appAccount_->SUBSCRIBER_MAX_SIZE + 1; counter += 1) {
+    for (std::int32_t counter = 1; counter <= appAccount_->SUBSCRIBER_MAX_SIZE + 1; counter += 1) {
         auto subscriberTestPtr = std::make_shared<AppAccountSubscriberTest>(subscribeInfo);
         sptr<IRemoteObject> appAccountEventListener = nullptr;
 

@@ -29,9 +29,7 @@ InnerAppAccountManager::InnerAppAccountManager()
 }
 
 InnerAppAccountManager::~InnerAppAccountManager()
-{
-    ACCOUNT_LOGI("enter");
-}
+{}
 
 ErrCode InnerAppAccountManager::AddAccount(
     const std::string &name, const std::string &extraInfo, const std::string &bundleName)
@@ -48,12 +46,6 @@ ErrCode InnerAppAccountManager::AddAccount(
 
     AppAccountInfo appAccountInfo(name, bundleName);
     ErrCode result = controlManagerPtr_->AddAccount(name, extraInfo, bundleName, appAccountInfo);
-
-    if (!subscribeManagerPtr_) {
-        ACCOUNT_LOGE("subscribeManagerPtr_ is nullptr");
-    } else if (subscribeManagerPtr_->PublishAccount(appAccountInfo, bundleName) != true) {
-        ACCOUNT_LOGI("failed to publish account");
-    }
 
     return result;
 }
@@ -207,12 +199,6 @@ ErrCode InnerAppAccountManager::SetAppAccountSyncEnable(
 
     AppAccountInfo appAccountInfo(name, bundleName);
     ErrCode result = controlManagerPtr_->SetAppAccountSyncEnable(name, syncEnable, bundleName, appAccountInfo);
-
-    if (!subscribeManagerPtr_) {
-        ACCOUNT_LOGE("subscribeManagerPtr_ is nullptr");
-    } else if (subscribeManagerPtr_->PublishAccount(appAccountInfo, bundleName) != true) {
-        ACCOUNT_LOGI("failed to publish account");
-    }
 
     return result;
 }

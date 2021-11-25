@@ -29,6 +29,8 @@ const std::string AUTHORIZED_APPS = "authorizedApps";
 const std::string ASSOCIATED_DATA = "associatedData";
 const std::string ACCOUNT_CREDENTIAL = "accountCredential";
 const std::string OAUTH_TOKEN = "oauthToken";
+
+const std::string HYPHEN = "#";
 }  // namespace
 
 AppAccountInfo::AppAccountInfo()
@@ -412,13 +414,13 @@ std::string AppAccountInfo::ToString() const
     return jsonObject.dump();
 }
 
-std::string AppAccountInfo::GetPrimeKey()
+std::string AppAccountInfo::GetPrimeKey() const
 {
     ACCOUNT_LOGI("enter");
 
     ACCOUNT_LOGI("name_ = %{public}s, owner_ = %{public}s", name_.c_str(), owner_.c_str());
 
-    const std::string id = owner_ + "_" + name_;
+    const std::string id = owner_ + HYPHEN + name_;
     ACCOUNT_LOGI("id = %{public}s", id.c_str());
 
     return id;

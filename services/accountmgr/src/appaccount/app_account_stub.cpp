@@ -15,6 +15,7 @@
 
 #include "account_error_no.h"
 #include "account_log_wrapper.h"
+
 #include "app_account_stub.h"
 
 namespace OHOS {
@@ -104,9 +105,7 @@ AppAccountStub::AppAccountStub()
 }
 
 AppAccountStub::~AppAccountStub()
-{
-    ACCOUNT_LOGI("enter");
-}
+{}
 
 int AppAccountStub::OnRemoteRequest(uint32_t code, MessageParcel &data, MessageParcel &reply, MessageOption &option)
 {

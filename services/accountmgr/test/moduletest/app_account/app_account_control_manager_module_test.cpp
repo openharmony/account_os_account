@@ -30,8 +30,8 @@ const std::string STRING_NAME = "name";
 const std::string STRING_EXTRA_INFO = "extra_info";
 const std::string STRING_OWNER = "com.example.owner";
 
-const size_t ACCOUNT_MAX_SIZE = 1000;
-const std::int32_t DELAY_FOR_OPERATION = 500;
+const std::size_t ACCOUNT_MAX_SIZE = 1000;
+const std::int32_t DELAY_FOR_OPERATION = 300;
 }  // namespace
 
 class AppAccountControlManagerModuleTest : public testing::Test {
@@ -43,7 +43,7 @@ public:
 
     void DeleteKvStore(void);
 
-    std::shared_ptr<IAppAccountControl> controlManagerPtr_;
+    std::shared_ptr<AppAccountControlManager> controlManagerPtr_;
 };
 
 void AppAccountControlManagerModuleTest::SetUpTestCase(void)
@@ -111,9 +111,9 @@ HWTEST_F(
 
     ErrCode result;
     std::string name;
-    for (size_t index = 0; index < ACCOUNT_MAX_SIZE; index++) {
+    for (std::size_t index = 0; index < ACCOUNT_MAX_SIZE; index++) {
         name = STRING_NAME + std::to_string(index);
-        ACCOUNT_LOGI("before AddAccount, index = %{public}d", index);
+        ACCOUNT_LOGI("before AddAccount, index = %{public}zu", index);
         GTEST_LOG_(INFO) << "before AddAccount, index = " << index;
 
         AppAccountInfo appAccountInfo(name, STRING_OWNER);

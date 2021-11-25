@@ -371,13 +371,13 @@ ErrCode AccountDataStorage::GetAccountInfoById(const std::string id, IAccountInf
         return status;
     });
     if (status != OHOS::DistributedKv::Status::SUCCESS) {
-        ACCOUNT_LOGE("get Value Error");
+        ACCOUNT_LOGE("get value error");
         return QUERY_DISTRIBUTE_DATA_FAILED;
     } else {
-        ACCOUNT_LOGE("get Value is: %{public}s", value.ToString().c_str());
+        ACCOUNT_LOGI("get value is: %{public}s", value.ToString().c_str());
         nlohmann::json jsonObject = nlohmann::json::parse(value.ToString(), nullptr, false);
         iAccountInfo.FromJson(jsonObject);
-        ACCOUNT_LOGE("all info is: %{public}s", iAccountInfo.ToString().c_str());
+        ACCOUNT_LOGI("all info is: %{public}s", iAccountInfo.ToString().c_str());
     }
 
     return ERR_OK;

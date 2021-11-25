@@ -13,85 +13,87 @@
  * limitations under the License.
  */
 
-#ifndef OS_ACCOUNT_SERVICES_ACCOUNTMGR_INCLUDE_APP_ACCOUNT_CONTROL_MANAGER_H
-#define OS_ACCOUNT_SERVICES_ACCOUNTMGR_INCLUDE_APP_ACCOUNT_CONTROL_MANAGER_H
+#ifndef OS_ACCOUNT_SERVICES_ACCOUNTMGR_INCLUDE_APPACCOUNT_APP_ACCOUNT_CONTROL_MANAGER_H
+#define OS_ACCOUNT_SERVICES_ACCOUNTMGR_INCLUDE_APPACCOUNT_APP_ACCOUNT_CONTROL_MANAGER_H
 
-#include "iapp_account_control.h"
+#include "app_account_data_storage.h"
+#include "bundle_constants.h"
 #include "singleton.h"
 
 namespace OHOS {
 namespace AccountSA {
-class AppAccountControlManager : public IAppAccountControl, public DelayedSingleton<AppAccountControlManager> {
+class AppAccountControlManager : public DelayedSingleton<AppAccountControlManager> {
 public:
     AppAccountControlManager();
     virtual ~AppAccountControlManager();
 
-    virtual ErrCode AddAccount(const std::string &name, const std::string &extraInfo, const std::string &bundleName,
-        AppAccountInfo &appAccountInfo) override;
-    virtual ErrCode DeleteAccount(
-        const std::string &name, const std::string &bundleName, AppAccountInfo &appAccountInfo) override;
+    ErrCode AddAccount(const std::string &name, const std::string &extraInfo, const std::string &bundleName,
+        AppAccountInfo &appAccountInfo);
+    ErrCode DeleteAccount(const std::string &name, const std::string &bundleName, AppAccountInfo &appAccountInfo);
 
-    virtual ErrCode GetAccountExtraInfo(
-        const std::string &name, std::string &extraInfo, const std::string &bundleName) override;
-    virtual ErrCode SetAccountExtraInfo(const std::string &name, const std::string &extraInfo,
-        const std::string &bundleName, AppAccountInfo &appAccountInfo) override;
+    ErrCode GetAccountExtraInfo(const std::string &name, std::string &extraInfo, const std::string &bundleName);
+    ErrCode SetAccountExtraInfo(const std::string &name, const std::string &extraInfo, const std::string &bundleName,
+        AppAccountInfo &appAccountInfo);
 
-    virtual ErrCode EnableAppAccess(const std::string &name, const std::string &authorizedApp,
-        const std::string &bundleName, AppAccountInfo &appAccountInfo) override;
-    virtual ErrCode DisableAppAccess(const std::string &name, const std::string &authorizedApp,
-        const std::string &bundleName, AppAccountInfo &appAccountInfo) override;
+    ErrCode EnableAppAccess(const std::string &name, const std::string &authorizedApp, const std::string &bundleName,
+        AppAccountInfo &appAccountInfo);
+    ErrCode DisableAppAccess(const std::string &name, const std::string &authorizedApp, const std::string &bundleName,
+        AppAccountInfo &appAccountInfo);
 
-    virtual ErrCode CheckAppAccountSyncEnable(
-        const std::string &name, bool &syncEnable, const std::string &bundleName) override;
-    virtual ErrCode SetAppAccountSyncEnable(const std::string &name, const bool &syncEnable,
-        const std::string &bundleName, AppAccountInfo &appAccountInfo) override;
+    ErrCode CheckAppAccountSyncEnable(const std::string &name, bool &syncEnable, const std::string &bundleName);
+    ErrCode SetAppAccountSyncEnable(
+        const std::string &name, const bool &syncEnable, const std::string &bundleName, AppAccountInfo &appAccountInfo);
 
-    virtual ErrCode GetAssociatedData(
-        const std::string &name, const std::string &key, std::string &value, const std::string &bundleName) override;
-    virtual ErrCode SetAssociatedData(const std::string &name, const std::string &key, const std::string &value,
-        const std::string &bundleName, AppAccountInfo &appAccountInfo) override;
+    ErrCode GetAssociatedData(
+        const std::string &name, const std::string &key, std::string &value, const std::string &bundleName);
+    ErrCode SetAssociatedData(const std::string &name, const std::string &key, const std::string &value,
+        const std::string &bundleName, AppAccountInfo &appAccountInfo);
 
-    virtual ErrCode GetAccountCredential(const std::string &name, const std::string &credentialType,
-        std::string &credential, const std::string &bundleName) override;
-    virtual ErrCode SetAccountCredential(const std::string &name, const std::string &credentialType,
-        const std::string &credential, const std::string &bundleName, AppAccountInfo &appAccountInfo) override;
+    ErrCode GetAccountCredential(const std::string &name, const std::string &credentialType, std::string &credential,
+        const std::string &bundleName);
+    ErrCode SetAccountCredential(const std::string &name, const std::string &credentialType,
+        const std::string &credential, const std::string &bundleName, AppAccountInfo &appAccountInfo);
 
-    virtual ErrCode GetOAuthToken(const std::string &name, std::string &token, const std::string &bundleName) override;
-    virtual ErrCode SetOAuthToken(
-        const std::string &name, const std::string &token, const std::string &bundleName) override;
-    virtual ErrCode ClearOAuthToken(const std::string &name, const std::string &bundleName) override;
+    ErrCode GetOAuthToken(const std::string &name, std::string &token, const std::string &bundleName);
+    ErrCode SetOAuthToken(const std::string &name, const std::string &token, const std::string &bundleName);
+    ErrCode ClearOAuthToken(const std::string &name, const std::string &bundleName);
 
-    virtual ErrCode GetAllAccounts(
-        const std::string &owner, std::vector<AppAccountInfo> &appAccounts, const std::string &bundleName) override;
-    virtual ErrCode GetAllAccessibleAccounts(
-        std::vector<AppAccountInfo> &appAccounts, const std::string &bundleName) override;
+    ErrCode GetAllAccounts(
+        const std::string &owner, std::vector<AppAccountInfo> &appAccounts, const std::string &bundleName);
+    ErrCode GetAllAccessibleAccounts(std::vector<AppAccountInfo> &appAccounts, const std::string &bundleName);
 
-    virtual ErrCode OnPackageRemoved(const int32_t &uid, const std::string &bundleName) override;
+    ErrCode OnPackageRemoved(const int32_t &uid, const std::string &bundleName);
 
 private:
-    virtual std::shared_ptr<AppAccountDataStorage> GetDataStorage(
-        const bool &autoSync = false, const int32_t uid = AppExecFwk::Constants::INVALID_UID) override;
-    virtual ErrCode GetStoreId(std::string &storeId, int32_t uid = AppExecFwk::Constants::INVALID_UID) override;
+    std::shared_ptr<AppAccountDataStorage> GetDataStorage(
+        const bool &autoSync = false, const int32_t uid = AppExecFwk::Constants::INVALID_UID);
+    ErrCode GetStoreId(std::string &storeId, int32_t uid = AppExecFwk::Constants::INVALID_UID);
 
-    virtual bool NeedSyncDataStorage(const AppAccountInfo &appAccountInfo) override;
-    virtual ErrCode GetAccountInfoFromDataStorage(AppAccountInfo &appAccountInfo) override;
-    virtual ErrCode AddAccountInfoIntoDataStorage(AppAccountInfo &appAccountInfo) override;
-    virtual ErrCode SaveAccountInfoIntoDataStorage(AppAccountInfo &appAccountInfo) override;
-    virtual ErrCode DeleteAccountInfoFromDataStorage(AppAccountInfo &appAccountInfo) override;
+    bool NeedSyncDataStorage(const AppAccountInfo &appAccountInfo);
+    ErrCode GetAccountInfoFromDataStorage(
+        AppAccountInfo &appAccountInfo, std::shared_ptr<AppAccountDataStorage> &dataStoragePtr);
+    ErrCode AddAccountInfoIntoDataStorage(
+        AppAccountInfo &appAccountInfo, const std::shared_ptr<AppAccountDataStorage> &dataStoragePtr);
+    ErrCode SaveAccountInfoIntoDataStorage(
+        AppAccountInfo &appAccountInfo, const std::shared_ptr<AppAccountDataStorage> &dataStoragePtr);
+    ErrCode DeleteAccountInfoFromDataStorage(
+        AppAccountInfo &appAccountInfo, std::shared_ptr<AppAccountDataStorage> &dataStoragePtr);
 
-    virtual ErrCode SaveAuthorizedAccount(const std::string &authorizedApp, AppAccountInfo &appAccountInfo);
-    virtual ErrCode RemoveAuthorizedAccount(const std::string &authorizedApp, AppAccountInfo &appAccountInfo);
-    virtual ErrCode SaveAuthorizedAccountIntoDataStorage(
-        const std::string &authorizedApp, AppAccountInfo &appAccountInfo, const bool &autoSync = false);
-    virtual ErrCode RemoveAuthorizedAccountFromDataStorage(
-        const std::string &authorizedApp, AppAccountInfo &appAccountInfo, const bool &autoSync = false);
+    ErrCode SaveAuthorizedAccount(const std::string &authorizedApp, AppAccountInfo &appAccountInfo,
+        const std::shared_ptr<AppAccountDataStorage> &dataStoragePtr);
+    ErrCode RemoveAuthorizedAccount(const std::string &authorizedApp, AppAccountInfo &appAccountInfo,
+        const std::shared_ptr<AppAccountDataStorage> &dataStoragePtr);
+    ErrCode SaveAuthorizedAccountIntoDataStorage(const std::string &authorizedApp, AppAccountInfo &appAccountInfo,
+        const std::shared_ptr<AppAccountDataStorage> &dataStoragePtr);
+    ErrCode RemoveAuthorizedAccountFromDataStorage(const std::string &authorizedApp, AppAccountInfo &appAccountInfo,
+        const std::shared_ptr<AppAccountDataStorage> &dataStoragePtr);
 
 private:
     std::map<std::string, std::string> dataCache_;
 
-    size_t ACCOUNT_MAX_SIZE = 1000;
+    std::size_t ACCOUNT_MAX_SIZE = 1000;
 };
 }  // namespace AccountSA
 }  // namespace OHOS
 
-#endif  // OS_ACCOUNT_SERVICES_ACCOUNTMGR_INCLUDE_APP_ACCOUNT_CONTROL_MANAGER_H
+#endif  // OS_ACCOUNT_SERVICES_ACCOUNTMGR_INCLUDE_APPACCOUNT_APP_ACCOUNT_CONTROL_MANAGER_H

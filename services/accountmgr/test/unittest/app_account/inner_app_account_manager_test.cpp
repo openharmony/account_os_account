@@ -16,9 +16,8 @@
 #include <gtest/gtest.h>
 
 #include "account_error_no.h"
-#include "iinner_app_account.h"
-#include "iapp_account_control.h"
-#include "iapp_account_subscribe.h"
+#include "app_account_control_manager.h"
+#include "app_account_subscribe_manager.h"
 #define private public
 #include "inner_app_account_manager.h"
 #undef private
@@ -45,7 +44,7 @@ public:
     void MakeMockObjects();
     void MakeEmptyMockObjects();
 
-    std::shared_ptr<IInnerAppAccount> innerManagerPtr_;
+    std::shared_ptr<InnerAppAccountManager> innerManagerPtr_;
 };
 
 void InnerAppAccountManagerTest::SetUpTestCase(void)
@@ -146,7 +145,7 @@ HWTEST_F(InnerAppAccountManagerTest, AppAccount_DeleteAccount_002, Function | Me
 /**
  * @tc.number: AppAccount_SubscribeAppAccount_001
  * @tc.name: SubscribeAppAccount
- * @tc.desc: Subscribe app accounts with valid data.
+ * @tc.desc: Subscribe app accounts with invalid data.
  */
 HWTEST_F(InnerAppAccountManagerTest, AppAccount_SubscribeAppAccount_001, Function | MediumTest | Level1)
 {
@@ -163,7 +162,7 @@ HWTEST_F(InnerAppAccountManagerTest, AppAccount_SubscribeAppAccount_001, Functio
     // subscribe app account
     ErrCode result = innerManagerPtr_->SubscribeAppAccount(subscribeInfo, nullptr, STRING_OWNER);
 
-    EXPECT_EQ(result, ERR_OK);
+    EXPECT_EQ(result, ERR_APPACCOUNT_SERVICE_EVENT_LISTENER_IS_NULLPTR);
 }
 
 /**
@@ -192,7 +191,7 @@ HWTEST_F(InnerAppAccountManagerTest, AppAccount_SubscribeAppAccount_002, Functio
 /**
  * @tc.number: AppAccount_UnsubscribeAppAccount_001
  * @tc.name: UnsubscribeAppAccount
- * @tc.desc: Unsubscribe app accounts with valid data.
+ * @tc.desc: Unsubscribe app accounts with invalid data.
  */
 HWTEST_F(InnerAppAccountManagerTest, AppAccount_UnsubscribeAppAccount_001, Function | MediumTest | Level1)
 {
@@ -201,7 +200,7 @@ HWTEST_F(InnerAppAccountManagerTest, AppAccount_UnsubscribeAppAccount_001, Funct
     // unsubscribe app account
     ErrCode result = innerManagerPtr_->UnsubscribeAppAccount(nullptr);
 
-    EXPECT_EQ(result, ERR_OK);
+    EXPECT_EQ(result, ERR_APPACCOUNT_SERVICE_EVENT_LISTENER_IS_NULLPTR);
 }
 
 /**

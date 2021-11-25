@@ -21,7 +21,7 @@ namespace OHOS {
 namespace AccountJsKit {
 using namespace OHOS::AccountSA;
 
-std::map<AppAccountManager *, AsyncContextForSubscribe *> subscriberInstances;
+std::map<AppAccountManager *, std::vector<AsyncContextForSubscribe *>> subscriberInstances;
 
 SubscriberPtr::SubscriberPtr(const AppAccountSubscribeInfo &subscribeInfo) : AppAccountSubscriber(subscribeInfo)
 {}
@@ -565,7 +565,7 @@ napi_value ParseParametersBySubscribe(const napi_env &env, const napi_value (&ar
             char str[STR_MAX_SIZE] = {0};
             NAPI_CALL(env, napi_get_value_string_utf8(env, ownerStr, str, STR_MAX_SIZE - 1, &strLen));
             ACCOUNT_LOGI("Get owners.string by subscribe str = %{public}s", str);
-            owners.push_back(str);
+            owners.emplace_back(str);
         }
     }
 
@@ -577,7 +577,7 @@ napi_value ParseParametersBySubscribe(const napi_env &env, const napi_value (&ar
     return NapiGetNull(env);
 }
 
-napi_value GetSubscriberByUnsubscribe(const napi_env &env, std::shared_ptr<SubscriberPtr> &subscriber,
+napi_value GetSubscriberByUnsubscribe(const napi_env &env, std::vector<std::shared_ptr<SubscriberPtr>> &subscribers,
     AsyncContextForUnsubscribe *asyncContextForOff, bool &isFind)
 {
     ACCOUNT_LOGI("GetSubscriberByUnsubscribe start");
@@ -585,9 +585,11 @@ napi_value GetSubscriberByUnsubscribe(const napi_env &env, std::shared_ptr<Subsc
     ACCOUNT_LOGI("subscriberInstances.size = %{public}zu", subscriberInstances.size());
 
     for (auto subscriberInstance : subscriberInstances) {
-        ACCOUNT_LOGI("Through static map to get the subscribe objectInfo = %{public}p", subscriberInstance.first);
+        ACCOUNT_LOGI("Through map to get the subscribe objectInfo = %{public}p", subscriberInstance.first);
         if (subscriberInstance.first == asyncContextForOff->appAccountManager) {
-            subscriber = subscriberInstance.second->subscriber;
+            for (auto item : subscriberInstance.second) {
+                subscribers.emplace_back(item->subscriber);
+            }
             isFind = true;
             break;
         }
@@ -637,6 +639,16 @@ void SubscribeExecuteCB(napi_env env, void *data)
     ACCOUNT_LOGI("Subscribe errcode parameter is %{public}d", errCode);
 }
 
+void UnsubscribeExecuteCB(napi_env env, void *data)
+{
+    ACCOUNT_LOGI("Unsubscribe napi_create_async_work start.");
+    AsyncContextForUnsubscribe *asyncContextForOff = (AsyncContextForUnsubscribe *)data;
+    for (auto offSubscriber : asyncContextForOff->subscribers) {
+        int errCode = AppAccountManager::UnsubscribeAppAccount(offSubscriber);
+        ACCOUNT_LOGI("Unsubscribe errcode parameter is %{public}d", errCode);
+    }
+}
+
 void UnsubscribeCallbackCompletedCB(napi_env env, napi_status status, void *data)
 {
     ACCOUNT_LOGI("Unsubscribe napi_create_async_work end.");
@@ -670,8 +682,8 @@ void UnsubscribeCallbackCompletedCB(napi_env env, napi_status status, void *data
     // earse the info from map
     auto subscribe = subscriberInstances.find(asyncContextForOff->appAccountManager);
     if (subscribe != subscriberInstances.end()) {
-        if (subscribe->second->callbackRef != nullptr) {
-            napi_delete_reference(env, subscribe->second->callbackRef);
+        for (auto offCBInfo : subscribe->second) {
+            napi_delete_reference(env, offCBInfo->callbackRef);
         }
     }
     subscriberInstances.erase(subscribe);
