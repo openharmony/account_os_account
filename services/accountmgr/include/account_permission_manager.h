@@ -26,7 +26,7 @@ public:
     AccountPermissionManager();
     ~AccountPermissionManager();
 
-    ErrCode VerifyPermission(const std::string &permissionName, const std::string &bundleName = "");
+    ErrCode VerifyPermission(const uid_t &uid, const std::string &permissionName, const std::string &bundleName);
 
     static const std::string DISTRIBUTED_DATASYNC;
     static const std::string GET_ACCOUNTS_PRIVILEGED;

@@ -36,6 +36,8 @@ using AppAccountSubscribeRecordPtr = std::shared_ptr<AppAccountSubscribeRecord>;
 struct AppAccountEventRecord {
     std::shared_ptr<AppAccountInfo> info;
     std::vector<AppAccountSubscribeRecordPtr> receivers;
+
+    uid_t uid;
     std::string bundleName;
 
     AppAccountEventRecord()

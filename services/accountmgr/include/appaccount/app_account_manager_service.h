@@ -16,6 +16,8 @@
 #ifndef OS_ACCOUNT_SERVICES_ACCOUNTMGR_INCLUDE_APPACCOUNT_APP_ACCOUNT_MANAGER_SERVICE_H
 #define OS_ACCOUNT_SERVICES_ACCOUNTMGR_INCLUDE_APPACCOUNT_APP_ACCOUNT_MANAGER_SERVICE_H
 
+#include "account_bundle_manager.h"
+#include "account_permission_manager.h"
 #include "app_account_common_event_oberserver.h"
 #include "app_account_stub.h"
 #include "inner_app_account_manager.h"
@@ -59,10 +61,12 @@ public:
         const AppAccountSubscribeInfo &subscribeInfo, const sptr<IRemoteObject> &eventListener) override;
     virtual ErrCode UnsubscribeAppAccount(const sptr<IRemoteObject> &eventListener) override;
 
-    virtual ErrCode OnPackageRemoved(const CommonEventData &data);
+    virtual ErrCode OnPackageRemoved(const uid_t &uid, const std::string &bundleName);
 
 private:
     std::shared_ptr<InnerAppAccountManager> innerManager_;
+    std::shared_ptr<AccountPermissionManager> permissionManagerPtr_;
+    std::shared_ptr<AccountBundleManager> bundleManagerPtr_;
     std::shared_ptr<AppAccountCommonEventOberserver> oberserver_;
 
     DISALLOW_COPY_AND_MOVE(AppAccountManagerService);

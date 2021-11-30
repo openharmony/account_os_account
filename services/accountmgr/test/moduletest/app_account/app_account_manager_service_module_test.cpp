@@ -44,6 +44,7 @@ const std::string STRING_NAME_MAX_SIZE =
 const std::string STRING_NAME_NOT_EXISTED = "name_not_existed";
 const std::string STRING_EXTRA_INFO = "extra_info";
 const std::string STRING_BUNDLE_NAME = "com.example.third_party";
+const std::string STRING_BUNDLE_NAME_NOT_INSTALLED = "com.example.not_installed";
 const std::string STRING_EMPTY = "";
 const std::string STRING_KEY = "key";
 const std::string STRING_KEY_TWO = "key_two";
@@ -100,13 +101,13 @@ void AppAccountManagerServiceModuleTest::DeleteKvStore(void)
     controlManagerPtr_ = AppAccountControlManager::GetInstance();
     ASSERT_NE(controlManagerPtr_, nullptr);
 
-    auto dataStoragePtr = controlManagerPtr_->GetDataStorage(false, UID);
+    auto dataStoragePtr = controlManagerPtr_->GetDataStorage(UID);
     ASSERT_NE(dataStoragePtr, nullptr);
 
     ErrCode result = dataStoragePtr->DeleteKvStore();
     ASSERT_EQ(result, ERR_OK);
 
-    dataStoragePtr = controlManagerPtr_->GetDataStorage(true, UID);
+    dataStoragePtr = controlManagerPtr_->GetDataStorage(UID, true);
     ASSERT_NE(dataStoragePtr, nullptr);
 
     result = dataStoragePtr->DeleteKvStore();
@@ -233,7 +234,7 @@ HWTEST_F(
     result = servicePtr->DeleteAccount(STRING_NAME);
     EXPECT_EQ(result, ERR_OK);
 
-    auto dataStoragePtr = controlManagerPtr_->GetDataStorage(false, UID);
+    auto dataStoragePtr = controlManagerPtr_->GetDataStorage(UID);
     ASSERT_NE(dataStoragePtr, nullptr);
 
     std::vector<std::string> accessibleAccounts;
@@ -381,8 +382,8 @@ HWTEST_F(AppAccountManagerServiceModuleTest, AppAccountManagerService_SetAccount
  * @tc.name: EnableAppAccess
  * @tc.desc: Enable app access with valid data.
  */
-HWTEST_F(
-    AppAccountManagerServiceModuleTest, seAppAccountManagerService_EnableAppAccess_0100, Function | MediumTest | Level1)
+HWTEST_F(AppAccountManagerServiceModuleTest, seAppAccountManagerService_EnableAppAccess_0100,
+    Function | MediumTest | Level1)
 {
     ACCOUNT_LOGI("seAppAccountManagerService_EnableAppAccess_0100");
 
@@ -407,8 +408,8 @@ HWTEST_F(
  * @tc.name: EnableAppAccess
  * @tc.desc: Enable app access with invalid data.
  */
-HWTEST_F(
-    AppAccountManagerServiceModuleTest, seAppAccountManagerService_EnableAppAccess_0200, Function | MediumTest | Level1)
+HWTEST_F(AppAccountManagerServiceModuleTest, seAppAccountManagerService_EnableAppAccess_0200,
+    Function | MediumTest | Level1)
 {
     ACCOUNT_LOGI("seAppAccountManagerService_EnableAppAccess_0200");
 
@@ -430,8 +431,8 @@ HWTEST_F(
  * @tc.name: EnableAppAccess
  * @tc.desc: Enable app access with valid data.
  */
-HWTEST_F(
-    AppAccountManagerServiceModuleTest, seAppAccountManagerService_EnableAppAccess_0300, Function | MediumTest | Level1)
+HWTEST_F(AppAccountManagerServiceModuleTest, seAppAccountManagerService_EnableAppAccess_0300,
+    Function | MediumTest | Level1)
 {
     ACCOUNT_LOGI("seAppAccountManagerService_EnableAppAccess_0300");
 
@@ -456,8 +457,8 @@ HWTEST_F(
  * @tc.name: EnableAppAccess
  * @tc.desc: Enable app access with invalid data.
  */
-HWTEST_F(
-    AppAccountManagerServiceModuleTest, seAppAccountManagerService_EnableAppAccess_0400, Function | MediumTest | Level1)
+HWTEST_F(AppAccountManagerServiceModuleTest, seAppAccountManagerService_EnableAppAccess_0400,
+    Function | MediumTest | Level1)
 {
     ACCOUNT_LOGI("seAppAccountManagerService_EnableAppAccess_0400");
 
@@ -630,8 +631,8 @@ HWTEST_F(AppAccountManagerServiceModuleTest, seAppAccountManagerService_SetAppAc
  * @tc.name: GetAssociatedData
  * @tc.desc: Get associated data with valid data.
  */
-HWTEST_F(
-    AppAccountManagerServiceModuleTest, AppAccountManagerService_GetAssociatedData_0100, Function | MediumTest | Level1)
+HWTEST_F(AppAccountManagerServiceModuleTest, AppAccountManagerService_GetAssociatedData_0100,
+    Function | MediumTest | Level1)
 {
     ACCOUNT_LOGI("AppAccountManagerService_GetAssociatedData_0100");
 
@@ -658,8 +659,8 @@ HWTEST_F(
  * @tc.name: GetAssociatedData
  * @tc.desc: Get associated data with invalid data.
  */
-HWTEST_F(
-    AppAccountManagerServiceModuleTest, AppAccountManagerService_GetAssociatedData_0200, Function | MediumTest | Level1)
+HWTEST_F(AppAccountManagerServiceModuleTest, AppAccountManagerService_GetAssociatedData_0200,
+    Function | MediumTest | Level1)
 {
     ACCOUNT_LOGI("AppAccountManagerService_GetAssociatedData_0200");
 
@@ -683,8 +684,8 @@ HWTEST_F(
  * @tc.name: GetAssociatedData
  * @tc.desc: Get associated data with invalid data.
  */
-HWTEST_F(
-    AppAccountManagerServiceModuleTest, AppAccountManagerService_GetAssociatedData_0300, Function | MediumTest | Level1)
+HWTEST_F(AppAccountManagerServiceModuleTest, AppAccountManagerService_GetAssociatedData_0300,
+    Function | MediumTest | Level1)
 {
     ACCOUNT_LOGI("AppAccountManagerService_GetAssociatedData_0300");
 
@@ -702,8 +703,8 @@ HWTEST_F(
  * @tc.name: GetAssociatedData
  * @tc.desc: Get associated data with valid data.
  */
-HWTEST_F(
-    AppAccountManagerServiceModuleTest, AppAccountManagerService_GetAssociatedData_0400, Function | MediumTest | Level1)
+HWTEST_F(AppAccountManagerServiceModuleTest, AppAccountManagerService_GetAssociatedData_0400,
+    Function | MediumTest | Level1)
 {
     ACCOUNT_LOGI("AppAccountManagerService_GetAssociatedData_0400");
 
@@ -737,8 +738,8 @@ HWTEST_F(
  * @tc.name: SetAssociatedData
  * @tc.desc: Set associated data with valid data.
  */
-HWTEST_F(
-    AppAccountManagerServiceModuleTest, AppAccountManagerService_SetAssociatedData_0100, Function | MediumTest | Level1)
+HWTEST_F(AppAccountManagerServiceModuleTest, AppAccountManagerService_SetAssociatedData_0100,
+    Function | MediumTest | Level1)
 {
     ACCOUNT_LOGI("AppAccountManagerService_SetAssociatedData_0100");
 
@@ -760,8 +761,8 @@ HWTEST_F(
  * @tc.name: SetAssociatedData
  * @tc.desc: Set associated data with valid data.
  */
-HWTEST_F(
-    AppAccountManagerServiceModuleTest, AppAccountManagerService_SetAssociatedData_0200, Function | MediumTest | Level1)
+HWTEST_F(AppAccountManagerServiceModuleTest, AppAccountManagerService_SetAssociatedData_0200,
+    Function | MediumTest | Level1)
 {
     ACCOUNT_LOGI("AppAccountManagerService_SetAssociatedData_0200");
 
@@ -791,8 +792,8 @@ HWTEST_F(
  * @tc.name: SetAssociatedData
  * @tc.desc: Set associated data with invalid data.
  */
-HWTEST_F(
-    AppAccountManagerServiceModuleTest, AppAccountManagerService_SetAssociatedData_0300, Function | MediumTest | Level1)
+HWTEST_F(AppAccountManagerServiceModuleTest, AppAccountManagerService_SetAssociatedData_0300,
+    Function | MediumTest | Level1)
 {
     ACCOUNT_LOGI("AppAccountManagerService_SetAssociatedData_0300");
 
@@ -1292,10 +1293,11 @@ HWTEST_F(
     ASSERT_NE(controlManagerPtr_, nullptr);
 
     AppAccountInfo appAccountInfo(STRING_NAME, STRING_BUNDLE_NAME);
-    ErrCode result = controlManagerPtr_->AddAccount(STRING_NAME, STRING_EMPTY, STRING_BUNDLE_NAME, appAccountInfo);
+    ErrCode result =
+        controlManagerPtr_->AddAccount(STRING_NAME, STRING_EMPTY, UID, STRING_BUNDLE_NAME, appAccountInfo);
     EXPECT_EQ(result, ERR_OK);
 
-    result = controlManagerPtr_->EnableAppAccess(STRING_NAME, STRING_OWNER, STRING_BUNDLE_NAME, appAccountInfo);
+    result = controlManagerPtr_->EnableAppAccess(STRING_NAME, STRING_OWNER, UID, STRING_BUNDLE_NAME, appAccountInfo);
     EXPECT_EQ(result, ERR_OK);
 
     auto servicePtr = std::make_shared<AppAccountManagerService>();
@@ -1311,7 +1313,7 @@ HWTEST_F(
     EXPECT_EQ(result, ERR_OK);
     EXPECT_EQ(owner, STRING_BUNDLE_NAME);
 
-    result = controlManagerPtr_->DeleteAccount(STRING_NAME, STRING_BUNDLE_NAME, appAccountInfo);
+    result = controlManagerPtr_->DeleteAccount(STRING_NAME, UID, STRING_BUNDLE_NAME, appAccountInfo);
     EXPECT_EQ(result, ERR_OK);
 }
 
@@ -1329,14 +1331,16 @@ HWTEST_F(
     ASSERT_NE(controlManagerPtr_, nullptr);
 
     AppAccountInfo appAccountInfo(STRING_NAME, STRING_BUNDLE_NAME);
-    ErrCode result = controlManagerPtr_->AddAccount(STRING_NAME, STRING_EMPTY, STRING_BUNDLE_NAME, appAccountInfo);
+    ErrCode result =
+        controlManagerPtr_->AddAccount(STRING_NAME, STRING_EMPTY, UID, STRING_BUNDLE_NAME, appAccountInfo);
     EXPECT_EQ(result, ERR_OK);
 
     AppAccountInfo appAccountInfoTwo(STRING_NAME_TWO, STRING_OWNER);
-    result = controlManagerPtr_->AddAccount(STRING_NAME, STRING_EMPTY, STRING_OWNER, appAccountInfoTwo);
+    result = controlManagerPtr_->AddAccount(STRING_NAME, STRING_EMPTY, UID, STRING_OWNER, appAccountInfoTwo);
     EXPECT_EQ(result, ERR_OK);
 
-    result = controlManagerPtr_->EnableAppAccess(STRING_NAME, STRING_BUNDLE_NAME, STRING_OWNER, appAccountInfoTwo);
+    result =
+        controlManagerPtr_->EnableAppAccess(STRING_NAME, STRING_BUNDLE_NAME, UID, STRING_OWNER, appAccountInfoTwo);
     EXPECT_EQ(result, ERR_OK);
 
     auto servicePtr = std::make_shared<AppAccountManagerService>();
@@ -1357,11 +1361,29 @@ HWTEST_F(
     EXPECT_EQ(result, ERR_OK);
     EXPECT_EQ(name, STRING_NAME);
 
-    result = controlManagerPtr_->DeleteAccount(STRING_NAME, STRING_BUNDLE_NAME, appAccountInfo);
+    result = controlManagerPtr_->DeleteAccount(STRING_NAME, UID, STRING_BUNDLE_NAME, appAccountInfo);
     EXPECT_EQ(result, ERR_OK);
 
-    result = controlManagerPtr_->DeleteAccount(STRING_NAME, STRING_OWNER, appAccountInfoTwo);
+    result = controlManagerPtr_->DeleteAccount(STRING_NAME, UID, STRING_OWNER, appAccountInfoTwo);
     EXPECT_EQ(result, ERR_OK);
+}
+
+/**
+ * @tc.number: AppAccountManagerService_GetAllAccounts_0600
+ * @tc.name: GetAllAccounts
+ * @tc.desc: Get all accounts with invalid data.
+ */
+HWTEST_F(
+    AppAccountManagerServiceModuleTest, AppAccountManagerService_GetAllAccounts_0600, Function | MediumTest | Level1)
+{
+    ACCOUNT_LOGI("AppAccountManagerService_GetAllAccounts_0600");
+
+    auto servicePtr = std::make_shared<AppAccountManagerService>();
+    ASSERT_NE(servicePtr, nullptr);
+
+    std::vector<AppAccountInfo> appAccounts;
+    ErrCode result = servicePtr->GetAllAccounts(STRING_BUNDLE_NAME_NOT_INSTALLED, appAccounts);
+    EXPECT_EQ(result, ERR_APPACCOUNT_SERVICE_GET_BUNDLE_INFO);
 }
 
 /**
@@ -1427,10 +1449,11 @@ HWTEST_F(AppAccountManagerServiceModuleTest, AppAccountManagerService_GetAllAcce
     ASSERT_NE(controlManagerPtr_, nullptr);
 
     AppAccountInfo appAccountInfo(STRING_NAME, STRING_BUNDLE_NAME);
-    ErrCode result = controlManagerPtr_->AddAccount(STRING_NAME, STRING_EMPTY, STRING_BUNDLE_NAME, appAccountInfo);
+    ErrCode result =
+        controlManagerPtr_->AddAccount(STRING_NAME, STRING_EMPTY, UID, STRING_BUNDLE_NAME, appAccountInfo);
     EXPECT_EQ(result, ERR_OK);
 
-    result = controlManagerPtr_->EnableAppAccess(STRING_NAME, STRING_OWNER, STRING_BUNDLE_NAME, appAccountInfo);
+    result = controlManagerPtr_->EnableAppAccess(STRING_NAME, STRING_OWNER, UID, STRING_BUNDLE_NAME, appAccountInfo);
     EXPECT_EQ(result, ERR_OK);
 
     auto servicePtr = std::make_shared<AppAccountManagerService>();
@@ -1446,7 +1469,7 @@ HWTEST_F(AppAccountManagerServiceModuleTest, AppAccountManagerService_GetAllAcce
     EXPECT_EQ(result, ERR_OK);
     EXPECT_EQ(owner, STRING_BUNDLE_NAME);
 
-    result = controlManagerPtr_->DeleteAccount(STRING_NAME, STRING_BUNDLE_NAME, appAccountInfo);
+    result = controlManagerPtr_->DeleteAccount(STRING_NAME, UID, STRING_BUNDLE_NAME, appAccountInfo);
     EXPECT_EQ(result, ERR_OK);
 }
 
@@ -1460,7 +1483,7 @@ HWTEST_F(
 {
     ACCOUNT_LOGI("AppAccountManagerService_OnPackageRemoved_0100");
 
-    auto dataStoragePtr = controlManagerPtr_->GetDataStorage(false, UID);
+    auto dataStoragePtr = controlManagerPtr_->GetDataStorage(UID);
     ASSERT_NE(dataStoragePtr, nullptr);
 
     AppAccountInfo appAccountInfo(STRING_NAME, STRING_BUNDLE_NAME);

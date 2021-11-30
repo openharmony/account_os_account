@@ -194,10 +194,12 @@ ErrCode AccountDataStorage::AddAccountInfo(IAccountInfo &iAccountInfo)
         ACCOUNT_LOGE("the key does not exist");
         return ERR_ACCOUNT_SERVICE_DATA_STORAGE_KEY_EXISTED_ERROR;
     }
-    ACCOUNT_LOGE("iAccountInfo.GetPrimeKey() is %{public}s", iAccountInfo.GetPrimeKey().c_str());
+
     OHOS::DistributedKv::Key key(iAccountInfo.GetPrimeKey());
-    ACCOUNT_LOGE("iAccountInfo.ToString() is %{public}s", iAccountInfo.ToString().c_str());
+    ACCOUNT_LOGI("iAccountInfo.GetPrimeKey() is %{public}s", iAccountInfo.GetPrimeKey().c_str());
     OHOS::DistributedKv::Value value(iAccountInfo.ToString());
+    ACCOUNT_LOGI("iAccountInfo.ToString() is %{public}s", iAccountInfo.ToString().c_str());
+
     OHOS::DistributedKv::Status status;
     {
         std::lock_guard<std::mutex> lock(kvStorePtrMutex_);
@@ -417,6 +419,8 @@ ErrCode AccountDataStorage::LoadDataByLocalFuzzyQuery(
 {
     ACCOUNT_LOGI("enter");
 
+    ACCOUNT_LOGI("subId = %{public}s", subId.c_str());
+
     {
         std::lock_guard<std::mutex> lock(kvStorePtrMutex_);
         if (!CheckKvStore()) {
@@ -424,6 +428,7 @@ ErrCode AccountDataStorage::LoadDataByLocalFuzzyQuery(
             return OHOS::QUERY_DISTRIBUTE_DATA_FAILED;
         }
     }
+
     OHOS::DistributedKv::Status status;
     std::vector<OHOS::DistributedKv::Entry> allEntries;
     TryTwice([this, &status, &allEntries, subId] {
@@ -445,6 +450,9 @@ ErrCode AccountDataStorage::LoadDataByLocalFuzzyQuery(
         SaveEntries(allEntries, infos);
         ACCOUNT_LOGE("SaveEntries end");
     }
+
+    ACCOUNT_LOGI("end, status = %{public}d, ret = %{public}d", status, ret);
+
     return ret;
 }
 
@@ -465,10 +473,12 @@ ErrCode AccountDataStorage::AddConfigInfo(const std::string &keyStr, const std::
         ACCOUNT_LOGE("the key is not Exists");
         return ERR_ACCOUNT_SERVICE_DATA_STORAGE_KEY_EXISTED_ERROR;
     }
-    ACCOUNT_LOGE("iAccountInfo.GetPrimeKey() is %{public}s", keyStr.c_str());
+
     OHOS::DistributedKv::Key key(keyStr);
-    ACCOUNT_LOGE("AddConfigInfo.ToString() is %{public}s", valueStr.c_str());
+    ACCOUNT_LOGI("keyStr = %{public}s", keyStr.c_str());
     OHOS::DistributedKv::Value value(valueStr);
+    ACCOUNT_LOGI("valueStr = %{public}s", valueStr.c_str());
+
     OHOS::DistributedKv::Status status;
     {
         std::lock_guard<std::mutex> lock(kvStorePtrMutex_);
@@ -508,10 +518,12 @@ ErrCode AccountDataStorage::SavConfigInfo(const std::string &keyStr, const std::
         ACCOUNT_LOGE("the key is not Exists");
         return ERR_ACCOUNT_SERVICE_DATA_STORAGE_KEY_NOT_EXISTS_ERROR;
     }
-    ACCOUNT_LOGE("iAccountInfo.GetPrimeKey() is %{public}s", keyStr.c_str());
+
     OHOS::DistributedKv::Key key(keyStr);
-    ACCOUNT_LOGE("SavConfigInfo.ToString() is %{public}s", valueStr.c_str());
+    ACCOUNT_LOGI("keyStr = %{public}s", keyStr.c_str());
     OHOS::DistributedKv::Value value(valueStr);
+    ACCOUNT_LOGI("valueStr = %{public}s", valueStr.c_str());
+
     OHOS::DistributedKv::Status status;
     {
         std::lock_guard<std::mutex> lock(kvStorePtrMutex_);

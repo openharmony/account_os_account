@@ -21,7 +21,6 @@
 
 #include "app_account_data_storage.h"
 #include "app_account_event_record.h"
-#include "bundle_constants.h"
 #include "event_handler.h"
 #include "singleton.h"
 
@@ -37,24 +36,23 @@ public:
     virtual ~AppAccountSubscribeManager();
 
     ErrCode SubscribeAppAccount(const std::shared_ptr<AppAccountSubscribeInfo> &subscribeInfoPtr,
-        const sptr<IRemoteObject> &eventListener, const std::string &bundleName);
+        const sptr<IRemoteObject> &eventListener, const uid_t &uid, const std::string &bundleName);
     ErrCode UnsubscribeAppAccount(const sptr<IRemoteObject> &eventListener);
 
-    bool PublishAccount(AppAccountInfo &appAccountInfo, const std::string &bundleName);
+    bool PublishAccount(AppAccountInfo &appAccountInfo, const uid_t &uid, const std::string &bundleName);
 
 private:
-    std::shared_ptr<AppAccountDataStorage> GetDataStorage(
-        const bool &autoSync = false, const int32_t uid = AppExecFwk::Constants::INVALID_UID);
-    ErrCode GetStoreId(std::string &storeId, int32_t uid = AppExecFwk::Constants::INVALID_UID);
+    std::shared_ptr<AppAccountDataStorage> GetDataStorage(const uid_t &uid, const bool &autoSync = false);
+    ErrCode GetStoreId(const uid_t &uid, std::string &storeId);
     ErrCode GetEventHandler(void);
 
     std::vector<AppAccountSubscribeRecordPtr> GetSubscribeRecords(const std::string &owner);
     ErrCode OnAccountsChanged(const std::shared_ptr<AppAccountEventRecord> &record);
     ErrCode GetAccessibleAccountsBySubscribeInfo(const std::shared_ptr<AppAccountSubscribeInfo> &subscribeInfoPtr,
-        const std::string &bundleName, std::vector<AppAccountInfo> &appAccounts);
+        const std::vector<AppAccountInfo> &accessibleAccounts, std::vector<AppAccountInfo> &appAccounts);
 
-    ErrCode CheckAppAccess(
-        const std::shared_ptr<AppAccountSubscribeInfo> &subscribeInfoPtr, const std::string &bundleName);
+    ErrCode CheckAppAccess(const std::shared_ptr<AppAccountSubscribeInfo> &subscribeInfoPtr, const uid_t &uid,
+        const std::string &bundleName);
 
     ErrCode InsertSubscribeRecord(
         const std::vector<std::string> &owners, const AppAccountSubscribeRecordPtr &subscribeRecordPtr);
