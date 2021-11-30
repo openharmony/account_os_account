@@ -17,7 +17,6 @@
 #define OS_ACCOUNT_SERVICES_ACCOUNTMGR_INCLUDE_APPACCOUNT_APP_ACCOUNT_CONTROL_MANAGER_H
 
 #include "app_account_data_storage.h"
-#include "bundle_constants.h"
 #include "singleton.h"
 
 namespace OHOS {
@@ -27,62 +26,73 @@ public:
     AppAccountControlManager();
     virtual ~AppAccountControlManager();
 
-    ErrCode AddAccount(const std::string &name, const std::string &extraInfo, const std::string &bundleName,
-        AppAccountInfo &appAccountInfo);
-    ErrCode DeleteAccount(const std::string &name, const std::string &bundleName, AppAccountInfo &appAccountInfo);
+    ErrCode AddAccount(const std::string &name, const std::string &extraInfo, const uid_t &uid,
+        const std::string &bundleName, AppAccountInfo &appAccountInfo);
+    ErrCode DeleteAccount(
+        const std::string &name, const uid_t &uid, const std::string &bundleName, AppAccountInfo &appAccountInfo);
 
-    ErrCode GetAccountExtraInfo(const std::string &name, std::string &extraInfo, const std::string &bundleName);
-    ErrCode SetAccountExtraInfo(const std::string &name, const std::string &extraInfo, const std::string &bundleName,
-        AppAccountInfo &appAccountInfo);
-
-    ErrCode EnableAppAccess(const std::string &name, const std::string &authorizedApp, const std::string &bundleName,
-        AppAccountInfo &appAccountInfo);
-    ErrCode DisableAppAccess(const std::string &name, const std::string &authorizedApp, const std::string &bundleName,
-        AppAccountInfo &appAccountInfo);
-
-    ErrCode CheckAppAccountSyncEnable(const std::string &name, bool &syncEnable, const std::string &bundleName);
-    ErrCode SetAppAccountSyncEnable(
-        const std::string &name, const bool &syncEnable, const std::string &bundleName, AppAccountInfo &appAccountInfo);
-
-    ErrCode GetAssociatedData(
-        const std::string &name, const std::string &key, std::string &value, const std::string &bundleName);
-    ErrCode SetAssociatedData(const std::string &name, const std::string &key, const std::string &value,
+    ErrCode GetAccountExtraInfo(
+        const std::string &name, std::string &extraInfo, const uid_t &uid, const std::string &bundleName);
+    ErrCode SetAccountExtraInfo(const std::string &name, const std::string &extraInfo, const uid_t &uid,
         const std::string &bundleName, AppAccountInfo &appAccountInfo);
 
-    ErrCode GetAccountCredential(const std::string &name, const std::string &credentialType, std::string &credential,
+    ErrCode EnableAppAccess(const std::string &name, const std::string &authorizedApp, const uid_t &uid,
+        const std::string &bundleName, AppAccountInfo &appAccountInfo);
+    ErrCode DisableAppAccess(const std::string &name, const std::string &authorizedApp, const uid_t &uid,
+        const std::string &bundleName, AppAccountInfo &appAccountInfo);
+
+    ErrCode CheckAppAccountSyncEnable(
+        const std::string &name, bool &syncEnable, const uid_t &uid, const std::string &bundleName);
+    ErrCode SetAppAccountSyncEnable(const std::string &name, const bool &syncEnable, const uid_t &uid,
+        const std::string &bundleName, AppAccountInfo &appAccountInfo);
+
+    ErrCode GetAssociatedData(const std::string &name, const std::string &key, std::string &value, const uid_t &uid,
         const std::string &bundleName);
+    ErrCode SetAssociatedData(const std::string &name, const std::string &key, const std::string &value,
+        const uid_t &uid, const std::string &bundleName, AppAccountInfo &appAccountInfo);
+
+    ErrCode GetAccountCredential(const std::string &name, const std::string &credentialType, std::string &credential,
+        const uid_t &uid, const std::string &bundleName);
     ErrCode SetAccountCredential(const std::string &name, const std::string &credentialType,
-        const std::string &credential, const std::string &bundleName, AppAccountInfo &appAccountInfo);
+        const std::string &credential, const uid_t &uid, const std::string &bundleName,
+        AppAccountInfo &appAccountInfo);
 
-    ErrCode GetOAuthToken(const std::string &name, std::string &token, const std::string &bundleName);
-    ErrCode SetOAuthToken(const std::string &name, const std::string &token, const std::string &bundleName);
-    ErrCode ClearOAuthToken(const std::string &name, const std::string &bundleName);
+    ErrCode GetOAuthToken(
+        const std::string &name, std::string &token, const uid_t &uid, const std::string &bundleName);
+    ErrCode SetOAuthToken(
+        const std::string &name, const std::string &token, const uid_t &uid, const std::string &bundleName);
+    ErrCode ClearOAuthToken(const std::string &name, const uid_t &uid, const std::string &bundleName);
 
-    ErrCode GetAllAccounts(
-        const std::string &owner, std::vector<AppAccountInfo> &appAccounts, const std::string &bundleName);
-    ErrCode GetAllAccessibleAccounts(std::vector<AppAccountInfo> &appAccounts, const std::string &bundleName);
+    ErrCode GetAllAccounts(const std::string &owner, std::vector<AppAccountInfo> &appAccounts, const uid_t &uid,
+        const std::string &bundleName);
+    ErrCode GetAllAccessibleAccounts(
+        std::vector<AppAccountInfo> &appAccounts, const uid_t &uid, const std::string &bundleName);
 
-    ErrCode OnPackageRemoved(const int32_t &uid, const std::string &bundleName);
+    ErrCode OnPackageRemoved(const uid_t &uid, const std::string &bundleName);
+
+    ErrCode GetAllAccountsFromDataStorage(const std::string &owner, std::vector<AppAccountInfo> &appAccounts,
+        const std::string &bundleName, const std::shared_ptr<AppAccountDataStorage> &dataStoragePtr);
+    ErrCode GetAllAccessibleAccountsFromDataStorage(std::vector<AppAccountInfo> &appAccounts,
+        const std::string &bundleName, const std::shared_ptr<AppAccountDataStorage> &dataStoragePtr);
 
 private:
-    std::shared_ptr<AppAccountDataStorage> GetDataStorage(
-        const bool &autoSync = false, const int32_t uid = AppExecFwk::Constants::INVALID_UID);
-    ErrCode GetStoreId(std::string &storeId, int32_t uid = AppExecFwk::Constants::INVALID_UID);
+    std::shared_ptr<AppAccountDataStorage> GetDataStorage(const uid_t &uid, const bool &autoSync = false);
+    ErrCode GetStoreId(const uid_t &uid, std::string &storeId);
 
     bool NeedSyncDataStorage(const AppAccountInfo &appAccountInfo);
     ErrCode GetAccountInfoFromDataStorage(
-        AppAccountInfo &appAccountInfo, std::shared_ptr<AppAccountDataStorage> &dataStoragePtr);
-    ErrCode AddAccountInfoIntoDataStorage(
-        AppAccountInfo &appAccountInfo, const std::shared_ptr<AppAccountDataStorage> &dataStoragePtr);
-    ErrCode SaveAccountInfoIntoDataStorage(
-        AppAccountInfo &appAccountInfo, const std::shared_ptr<AppAccountDataStorage> &dataStoragePtr);
+        AppAccountInfo &appAccountInfo, std::shared_ptr<AppAccountDataStorage> &dataStoragePtr, const uid_t &uid);
+    ErrCode AddAccountInfoIntoDataStorage(AppAccountInfo &appAccountInfo,
+        const std::shared_ptr<AppAccountDataStorage> &dataStoragePtr, const uid_t &uid);
+    ErrCode SaveAccountInfoIntoDataStorage(AppAccountInfo &appAccountInfo,
+        const std::shared_ptr<AppAccountDataStorage> &dataStoragePtr, const uid_t &uid);
     ErrCode DeleteAccountInfoFromDataStorage(
-        AppAccountInfo &appAccountInfo, std::shared_ptr<AppAccountDataStorage> &dataStoragePtr);
+        AppAccountInfo &appAccountInfo, std::shared_ptr<AppAccountDataStorage> &dataStoragePtr, const uid_t &uid);
 
     ErrCode SaveAuthorizedAccount(const std::string &authorizedApp, AppAccountInfo &appAccountInfo,
-        const std::shared_ptr<AppAccountDataStorage> &dataStoragePtr);
+        const std::shared_ptr<AppAccountDataStorage> &dataStoragePtr, const uid_t &uid);
     ErrCode RemoveAuthorizedAccount(const std::string &authorizedApp, AppAccountInfo &appAccountInfo,
-        const std::shared_ptr<AppAccountDataStorage> &dataStoragePtr);
+        const std::shared_ptr<AppAccountDataStorage> &dataStoragePtr, const uid_t &uid);
     ErrCode SaveAuthorizedAccountIntoDataStorage(const std::string &authorizedApp, AppAccountInfo &appAccountInfo,
         const std::shared_ptr<AppAccountDataStorage> &dataStoragePtr);
     ErrCode RemoveAuthorizedAccountFromDataStorage(const std::string &authorizedApp, AppAccountInfo &appAccountInfo,

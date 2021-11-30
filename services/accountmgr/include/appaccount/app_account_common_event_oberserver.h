@@ -23,7 +23,7 @@
 namespace OHOS {
 namespace AccountSA {
 struct CommonEventCallback {
-    std::function<void(const CommonEventData &data)> OnPackageRemoved;
+    std::function<void(const uid_t &uid, const std::string &bundleName)> OnPackageRemoved;
 };
 
 class AppAccountCommonEventOberserver {
@@ -44,7 +44,7 @@ private:
     std::shared_ptr<EventHandler> handler_;
     std::shared_ptr<AppAccountCommonEventSubscriber> subscriber_;
     CommonEventCallback callback_;
-    unsigned int counter_;
+    std::int32_t counter_;
 
     static constexpr std::int32_t DELAY_FOR_COMMON_EVENT_SERVICE = 5 * 1000;  // 5s
     static constexpr std::int32_t DELAY_FOR_TIME_INTERVAL = 1 * 1000;         // 1s

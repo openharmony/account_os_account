@@ -13,8 +13,8 @@
  * limitations under the License.
  */
 
-#ifndef OS_ACCOUNT_SERVICES_ACCOUNTMGR_INCLUDE_APPACCOUNT_APP_ACCOUNT_BUNDLE_MANAGER_H
-#define OS_ACCOUNT_SERVICES_ACCOUNTMGR_INCLUDE_APPACCOUNT_APP_ACCOUNT_BUNDLE_MANAGER_H
+#ifndef OS_ACCOUNT_SERVICES_ACCOUNTMGR_INCLUDE_ACCOUNT_BUNDLE_MANAGER_H
+#define OS_ACCOUNT_SERVICES_ACCOUNTMGR_INCLUDE_ACCOUNT_BUNDLE_MANAGER_H
 
 #include "account_error_no.h"
 #include "bundle_info.h"
@@ -22,15 +22,15 @@
 
 namespace OHOS {
 namespace AccountSA {
-class AppAccountBundleManager : public DelayedSingleton<AppAccountBundleManager> {
+class AccountBundleManager : public DelayedSingleton<AccountBundleManager> {
 public:
-    AppAccountBundleManager();
-    ~AppAccountBundleManager();
+    AccountBundleManager();
+    ~AccountBundleManager();
 
-    ErrCode GetBundleName(std::string &bundleName);
+    ErrCode GetBundleName(const uid_t &uid, std::string &bundleName);
     ErrCode GetBundleInfo(const std::string &bundleName, AppExecFwk::BundleInfo &bundleInfo);
 };
 }  // namespace AccountSA
 }  // namespace OHOS
 
-#endif  // OS_ACCOUNT_SERVICES_ACCOUNTMGR_INCLUDE_APPACCOUNT_APP_ACCOUNT_BUNDLE_MANAGER_H
+#endif  // OS_ACCOUNT_SERVICES_ACCOUNTMGR_INCLUDE_ACCOUNT_BUNDLE_MANAGER_H

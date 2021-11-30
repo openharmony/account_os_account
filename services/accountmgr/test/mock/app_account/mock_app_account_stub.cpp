@@ -122,7 +122,8 @@ ErrCode MockAppAccountStub::GetAssociatedData(const std::string &name, const std
     return ERR_OK;
 }
 
-ErrCode MockAppAccountStub::SetAssociatedData(const std::string &name, const std::string &key, const std::string &value)
+ErrCode MockAppAccountStub::SetAssociatedData(
+    const std::string &name, const std::string &key, const std::string &value)
 {
     ACCOUNT_LOGI("enter");
 

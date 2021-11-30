@@ -64,8 +64,8 @@ const std::string STRING_NAME_EMPTY = STRING_EMPTY;
 const std::string STRING_EXTRA_INFO_EMPTY = STRING_EMPTY;
 const std::string STRING_OWNER = "com.example.owner";
 
-constexpr std::int32_t SUBSCRIBER_ZERO = 0;
-constexpr std::int32_t SUBSCRIBER_ONE = 1;
+constexpr std::size_t SUBSCRIBER_ZERO = 0;
+constexpr std::size_t SUBSCRIBER_ONE = 1;
 }  // namespace
 
 class AppAccountTest : public testing::Test {
@@ -444,7 +444,7 @@ HWTEST_F(AppAccountTest, AppAccount_CreateAppAccountEventListener_0200, Function
     EXPECT_EQ(appAccount_->eventListeners_.size(), SUBSCRIBER_ZERO);
 
     // make max subcribers
-    for (std::int32_t counter = 1; counter <= appAccount_->SUBSCRIBER_MAX_SIZE + 1; counter += 1) {
+    for (std::size_t counter = 1; counter <= appAccount_->SUBSCRIBER_MAX_SIZE + 1; counter += 1) {
         auto subscriberTestPtr = std::make_shared<AppAccountSubscriberTest>(subscribeInfo);
         sptr<IRemoteObject> appAccountEventListener = nullptr;
 

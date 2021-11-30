@@ -22,7 +22,13 @@ using namespace testing::ext;
 using namespace OHOS;
 using namespace OHOS::AccountSA;
 
-class AppAccountPermissionManagerTest : public testing::Test {
+namespace {
+const std::string STRING_OWNER = "com.example.owner";
+
+constexpr std::int32_t UID = 10000;
+}  // namespace
+
+class AccountPermissionManagerTest : public testing::Test {
 public:
     static void SetUpTestCase(void);
     static void TearDownTestCase(void);
@@ -30,29 +36,28 @@ public:
     void TearDown(void) override;
 };
 
-void AppAccountPermissionManagerTest::SetUpTestCase(void)
+void AccountPermissionManagerTest::SetUpTestCase(void)
 {}
 
-void AppAccountPermissionManagerTest::TearDownTestCase(void)
+void AccountPermissionManagerTest::TearDownTestCase(void)
 {}
 
-void AppAccountPermissionManagerTest::SetUp(void)
+void AccountPermissionManagerTest::SetUp(void)
 {}
 
-void AppAccountPermissionManagerTest::TearDown(void)
+void AccountPermissionManagerTest::TearDown(void)
 {}
 
 /**
- * @tc.number: AppAccountPermissionManager_VerifyPermission_0100
+ * @tc.number: AccountPermissionManager_VerifyPermission_0100
  * @tc.name: VerifyPermission
- * @tc.desc: verify permission with valid data.
+ * @tc.desc: Verify permission with valid data.
  */
-HWTEST_F(
-    AppAccountPermissionManagerTest, AppAccountPermissionManager_VerifyPermission_0100, Function | MediumTest | Level1)
+HWTEST_F(AccountPermissionManagerTest, AccountPermissionManager_VerifyPermission_0100, Function | MediumTest | Level1)
 {
-    ACCOUNT_LOGI("AppAccountPermissionManager_VerifyPermission_0100");
+    ACCOUNT_LOGI("AccountPermissionManager_VerifyPermission_0100");
 
     auto managerPtr = DelayedSingleton<AccountPermissionManager>::GetInstance();
-    ErrCode result = managerPtr->VerifyPermission(AccountPermissionManager::DISTRIBUTED_DATASYNC);
+    ErrCode result = managerPtr->VerifyPermission(UID, AccountPermissionManager::DISTRIBUTED_DATASYNC, STRING_OWNER);
     EXPECT_EQ(result, ERR_OK);
 }
