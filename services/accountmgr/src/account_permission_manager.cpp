@@ -13,8 +13,8 @@
  * limitations under the License.
  */
 
+#include "account_bundle_manager.h"
 #include "account_log_wrapper.h"
-#include "app_account_bundle_manager.h"
 #include "ipc_skeleton.h"
 #include "ohos_account_kits.h"
 #include "permission/permission_kit.h"
@@ -38,35 +38,30 @@ AccountPermissionManager::~AccountPermissionManager()
     ACCOUNT_LOGI("enter");
 }
 
-ErrCode AccountPermissionManager::VerifyPermission(const std::string &permissionName, const std::string &bundleName)
+ErrCode AccountPermissionManager::VerifyPermission(
+    const uid_t &uid, const std::string &permissionName, const std::string &bundleName)
 {
     ACCOUNT_LOGI("enter");
 
     ACCOUNT_LOGI("permissionName = %{public}s", permissionName.c_str());
     ACCOUNT_LOGI("bundleName = %{public}s", bundleName.c_str());
 
-    std::string bundleNameToVerify;
-    if (bundleName.size() == 0) {
-        auto bundleManagerPtr = DelayedSingleton<AppAccountBundleManager>::GetInstance();
-
-        ErrCode result = bundleManagerPtr->GetBundleName(bundleNameToVerify);
-        if (result != ERR_OK) {
-            ACCOUNT_LOGE("failed to get bundle name");
-            return result;
-        }
-    } else {
-        bundleNameToVerify = bundleName;
+    if (permissionName.size() == 0) {
+        ACCOUNT_LOGE("permissionName is empty");
+        return ERR_APPACCOUNT_SERVICE_PERMISSION_NAME_IS_EMPTY;
     }
 
-    ACCOUNT_LOGI("bundleNameToVerify = %{public}s", bundleNameToVerify.c_str());
+    if (bundleName.size() == 0) {
+        ACCOUNT_LOGE("bundleName is empty");
+        return ERR_APPACCOUNT_SERVICE_BUNDLE_NAME_IS_EMPTY;
+    }
 
-    auto uid = IPCSkeleton::GetCallingUid();
-    ACCOUNT_LOGI("uid = %{public}d", uid);
+    std::int32_t uidToVerify = uid;
 
-    auto deviceAccountId = OhosAccountKits::GetInstance().GetDeviceAccountIdByUID(uid);
+    auto deviceAccountId = OhosAccountKits::GetInstance().GetDeviceAccountIdByUID(uidToVerify);
     ACCOUNT_LOGI("deviceAccountId = %{public}d", deviceAccountId);
 
-    int result = PermissionKit::VerifyPermission(bundleNameToVerify, permissionName, deviceAccountId);
+    int result = PermissionKit::VerifyPermission(bundleName, permissionName, deviceAccountId);
     ACCOUNT_LOGI("result = %{public}d", result);
 
     if (result != PermissionState::PERMISSION_GRANTED) {

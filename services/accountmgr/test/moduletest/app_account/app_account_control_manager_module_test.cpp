@@ -31,7 +31,9 @@ const std::string STRING_EXTRA_INFO = "extra_info";
 const std::string STRING_OWNER = "com.example.owner";
 
 const std::size_t ACCOUNT_MAX_SIZE = 1000;
-const std::int32_t DELAY_FOR_OPERATION = 300;
+const std::int32_t DELAY_FOR_OPERATION = 250;
+
+constexpr std::int32_t UID = 10000;
 }  // namespace
 
 class AppAccountControlManagerModuleTest : public testing::Test {
@@ -67,13 +69,13 @@ void AppAccountControlManagerModuleTest::DeleteKvStore(void)
     controlManagerPtr_ = AppAccountControlManager::GetInstance();
     ASSERT_NE(controlManagerPtr_, nullptr);
 
-    auto dataStoragePtr = controlManagerPtr_->GetDataStorage();
+    auto dataStoragePtr = controlManagerPtr_->GetDataStorage(UID);
     ASSERT_NE(dataStoragePtr, nullptr);
 
     ErrCode result = dataStoragePtr->DeleteKvStore();
     ASSERT_EQ(result, ERR_OK);
 
-    dataStoragePtr = controlManagerPtr_->GetDataStorage(true);
+    dataStoragePtr = controlManagerPtr_->GetDataStorage(UID, true);
     ASSERT_NE(dataStoragePtr, nullptr);
 
     result = dataStoragePtr->DeleteKvStore();
@@ -117,13 +119,13 @@ HWTEST_F(
         GTEST_LOG_(INFO) << "before AddAccount, index = " << index;
 
         AppAccountInfo appAccountInfo(name, STRING_OWNER);
-        result = controlManagerPtr->AddAccount(name, STRING_EXTRA_INFO, STRING_OWNER, appAccountInfo);
+        result = controlManagerPtr->AddAccount(name, STRING_EXTRA_INFO, UID, STRING_OWNER, appAccountInfo);
         ASSERT_EQ(result, ERR_OK);
 
         std::this_thread::sleep_for(std::chrono::milliseconds(DELAY_FOR_OPERATION));
     }
 
     AppAccountInfo appAccountInfo(STRING_NAME, STRING_OWNER);
-    result = controlManagerPtr->AddAccount(STRING_NAME, STRING_EXTRA_INFO, STRING_OWNER, appAccountInfo);
+    result = controlManagerPtr->AddAccount(STRING_NAME, STRING_EXTRA_INFO, UID, STRING_OWNER, appAccountInfo);
     EXPECT_EQ(result, ERR_APPACCOUNT_SERVICE_ACCOUNT_MAX_SIZE);
 }

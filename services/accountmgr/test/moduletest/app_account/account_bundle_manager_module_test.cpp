@@ -15,10 +15,8 @@
 
 #include <gtest/gtest.h>
 
+#include "account_bundle_manager.h"
 #include "account_error_no.h"
-#define private public
-#include "app_account_bundle_manager.h"
-#undef private
 
 using namespace testing::ext;
 using namespace OHOS;
@@ -26,52 +24,54 @@ using namespace OHOS::AccountSA;
 
 namespace {
 const std::string STRING_OWNER = "com.example.owner";
+
+constexpr std::int32_t UID = 10000;
 }  // namespace
 
-class AppAccountBundleManagerModuleTest : public testing::Test {
+class AccountBundleManagerModuleTest : public testing::Test {
 public:
     static void SetUpTestCase(void);
     static void TearDownTestCase(void);
     void SetUp(void) override;
     void TearDown(void) override;
 
-    std::shared_ptr<AppAccountBundleManager> bundleManagerPtr_;
+    std::shared_ptr<AccountBundleManager> bundleManagerPtr_;
 };
 
-void AppAccountBundleManagerModuleTest::SetUpTestCase(void)
+void AccountBundleManagerModuleTest::SetUpTestCase(void)
 {}
 
-void AppAccountBundleManagerModuleTest::TearDownTestCase(void)
+void AccountBundleManagerModuleTest::TearDownTestCase(void)
 {}
 
-void AppAccountBundleManagerModuleTest::SetUp(void)
+void AccountBundleManagerModuleTest::SetUp(void)
 {
-    bundleManagerPtr_ = DelayedSingleton<AppAccountBundleManager>::GetInstance();
+    bundleManagerPtr_ = DelayedSingleton<AccountBundleManager>::GetInstance();
 }
 
-void AppAccountBundleManagerModuleTest::TearDown(void)
+void AccountBundleManagerModuleTest::TearDown(void)
 {}
 
 /**
- * @tc.number: AppAccountBundleManager_GetBundleName_0100
+ * @tc.number: AccountBundleManager_GetBundleName_0100
  * @tc.name: GetBundleName
  * @tc.desc: Get bundle name.
  */
-HWTEST_F(AppAccountBundleManagerModuleTest, AppAccountBundleManager_GetBundleName_0100, Function | MediumTest | Level1)
+HWTEST_F(AccountBundleManagerModuleTest, AccountBundleManager_GetBundleName_0100, Function | MediumTest | Level1)
 {
     ASSERT_NE(bundleManagerPtr_, nullptr);
 
     std::string bundleName = "";
-    ErrCode result = bundleManagerPtr_->GetBundleName(bundleName);
+    ErrCode result = bundleManagerPtr_->GetBundleName(UID, bundleName);
     EXPECT_EQ(result, ERR_APPACCOUNT_SERVICE_GET_BUNDLE_NAME);
 }
 
 /**
- * @tc.number: AppAccountBundleManager_GetBundleInfo_0100
+ * @tc.number: AccountBundleManager_GetBundleInfo_0100
  * @tc.name: GetBundleInfo
  * @tc.desc: Get bundle info.
  */
-HWTEST_F(AppAccountBundleManagerModuleTest, AppAccountBundleManager_GetBundleInfo_0100, Function | MediumTest | Level1)
+HWTEST_F(AccountBundleManagerModuleTest, AccountBundleManager_GetBundleInfo_0100, Function | MediumTest | Level1)
 {
     ASSERT_NE(bundleManagerPtr_, nullptr);
 

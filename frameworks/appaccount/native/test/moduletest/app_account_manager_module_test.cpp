@@ -19,6 +19,7 @@
 #include "app_account_control_manager.h"
 #undef private
 #include "app_account_manager.h"
+#include "app_account_subscriber.h"
 
 using namespace testing::ext;
 using namespace OHOS;
@@ -40,8 +41,11 @@ const std::string STRING_VALUE = "value";
 const std::string STRING_CREDENTIAL_TYPE = "password";
 const std::string STRING_CREDENTIAL = "1024";
 const std::string STRING_TOKEN = "1024";
+const std::string STRING_OWNER = "com.example.owner";
 
 const bool SYNC_ENABLE_FALSE = false;
+
+constexpr std::int32_t UID = 10000;
 }  // namespace
 
 class AppAccountManagerModuleTest : public testing::Test {
@@ -77,18 +81,35 @@ void AppAccountManagerModuleTest::DeleteKvStore(void)
     controlManagerPtr_ = AppAccountControlManager::GetInstance();
     ASSERT_NE(controlManagerPtr_, nullptr);
 
-    auto dataStoragePtr = controlManagerPtr_->GetDataStorage();
+    auto dataStoragePtr = controlManagerPtr_->GetDataStorage(UID);
     ASSERT_NE(dataStoragePtr, nullptr);
 
     ErrCode result = dataStoragePtr->DeleteKvStore();
     ASSERT_EQ(result, ERR_OK);
 
-    dataStoragePtr = controlManagerPtr_->GetDataStorage(true);
+    dataStoragePtr = controlManagerPtr_->GetDataStorage(UID, true);
     ASSERT_NE(dataStoragePtr, nullptr);
 
     result = dataStoragePtr->DeleteKvStore();
     ASSERT_EQ(result, ERR_OK);
 }
+
+class AppAccountSubscriberTest : public AppAccountSubscriber {
+public:
+    explicit AppAccountSubscriberTest(const AppAccountSubscribeInfo &subscribeInfo)
+        : AppAccountSubscriber(subscribeInfo)
+    {
+        ACCOUNT_LOGI("enter");
+    }
+
+    ~AppAccountSubscriberTest()
+    {}
+
+    virtual void OnAccountsChanged(const std::vector<AppAccountInfo> &accounts)
+    {
+        ACCOUNT_LOGI("enter");
+    }
+};
 
 /**
  * @tc.number: AppAccountManager_AddAccount_0100
@@ -315,4 +336,50 @@ HWTEST_F(AppAccountManagerModuleTest, AppAccountManager_GetAllAccounts_0100, Fun
     std::vector<AppAccountInfo> appAccounts;
     ErrCode result = AppAccountManager::GetAllAccounts(STRING_NAME, appAccounts);
     EXPECT_EQ(result, ERR_APPACCOUNT_SERVICE_GET_BUNDLE_NAME);
+}
+
+/**
+ * @tc.number: AppAccountManager_SubscribeAppAccount_0100
+ * @tc.name: SubscribeAppAccount
+ * @tc.desc: Subscribe app account with valid data.
+ */
+HWTEST_F(AppAccountManagerModuleTest, AppAccountManager_SubscribeAppAccount_0100, Function | MediumTest | Level1)
+{
+    ACCOUNT_LOGI("AppAccountManager_SubscribeAppAccount_0100");
+
+    // make owners
+    std::vector<std::string> owners;
+    owners.emplace_back(STRING_OWNER);
+
+    // make subscribe info
+    AppAccountSubscribeInfo subscribeInfo(owners);
+
+    // make a subscriber
+    auto subscriberTestPtr = std::make_shared<AppAccountSubscriberTest>(subscribeInfo);
+
+    ErrCode result = AppAccountManager::SubscribeAppAccount(subscriberTestPtr);
+    EXPECT_EQ(result, ERR_APPACCOUNT_SERVICE_GET_BUNDLE_NAME);
+}
+
+/**
+ * @tc.number: AppAccountManager_UnsubscribeAppAccount_0100
+ * @tc.name: UnsubscribeAppAccount
+ * @tc.desc: Unsubscribe app account with valid data.
+ */
+HWTEST_F(AppAccountManagerModuleTest, AppAccountManager_UnsubscribeAppAccount_0100, Function | MediumTest | Level1)
+{
+    ACCOUNT_LOGI("AppAccountManager_UnsubscribeAppAccount_0100");
+
+    // make owners
+    std::vector<std::string> owners;
+    owners.emplace_back(STRING_OWNER);
+
+    // make subscribe info
+    AppAccountSubscribeInfo subscribeInfo(owners);
+
+    // make a subscriber
+    auto subscriberTestPtr = std::make_shared<AppAccountSubscriberTest>(subscribeInfo);
+
+    ErrCode result = AppAccountManager::UnsubscribeAppAccount(subscriberTestPtr);
+    EXPECT_EQ(result, ERR_APPACCOUNT_KIT_NO_SPECIFIED_SUBSCRIBER_HAS_BEEN_REGISTERED);
 }

@@ -34,12 +34,12 @@ AppAccountSubscribeManager::~AppAccountSubscribeManager()
 {}
 
 std::shared_ptr<AppAccountDataStorage> AppAccountSubscribeManager::GetDataStorage(
-    const bool &autoSync, const int32_t uid)
+    const uid_t &uid, const bool &autoSync)
 {
     ACCOUNT_LOGI("enter");
 
     std::string storeId;
-    ErrCode result = GetStoreId(storeId, uid);
+    ErrCode result = GetStoreId(uid, storeId);
     if (result != ERR_OK) {
         ACCOUNT_LOGE("failed to get store id, result = %{public}d", result);
         return nullptr;
@@ -54,16 +54,15 @@ std::shared_ptr<AppAccountDataStorage> AppAccountSubscribeManager::GetDataStorag
     return std::make_shared<AppAccountDataStorage>(storeId, autoSync);
 }
 
-ErrCode AppAccountSubscribeManager::GetStoreId(std::string &storeId, int32_t uid)
+ErrCode AppAccountSubscribeManager::GetStoreId(const uid_t &uid, std::string &storeId)
 {
     ACCOUNT_LOGI("enter");
 
-    if (uid == AppExecFwk::Constants::INVALID_UID) {
-        uid = IPCSkeleton::GetCallingUid();
-    }
     ACCOUNT_LOGI("uid = %{public}d", uid);
 
-    auto deviceAccountId = OhosAccountKits::GetInstance().GetDeviceAccountIdByUID(uid);
+    std::int32_t uidToGetDeviceAccountId = uid;
+
+    auto deviceAccountId = OhosAccountKits::GetInstance().GetDeviceAccountIdByUID(uidToGetDeviceAccountId);
     ACCOUNT_LOGI("deviceAccountId = %{public}d", deviceAccountId);
 
     storeId = std::to_string(deviceAccountId);
@@ -90,7 +89,7 @@ ErrCode AppAccountSubscribeManager::GetEventHandler(void)
 
 ErrCode AppAccountSubscribeManager::SubscribeAppAccount(
     const std::shared_ptr<AppAccountSubscribeInfo> &subscribeInfoPtr, const sptr<IRemoteObject> &eventListener,
-    const std::string &bundleName)
+    const uid_t &uid, const std::string &bundleName)
 {
     ACCOUNT_LOGI("enter");
 
@@ -115,7 +114,7 @@ ErrCode AppAccountSubscribeManager::SubscribeAppAccount(
         return ERR_APPACCOUNT_SERVICE_OWNERS_SIZE_IS_ZERO;
     }
 
-    ErrCode result = CheckAppAccess(subscribeInfoPtr, bundleName);
+    ErrCode result = CheckAppAccess(subscribeInfoPtr, uid, bundleName);
     if (result != ERR_OK) {
         ACCOUNT_LOGE("failed to check app access");
         return result;
@@ -200,7 +199,7 @@ std::vector<AppAccountSubscribeRecordPtr> AppAccountSubscribeManager::GetSubscri
 }
 
 ErrCode AppAccountSubscribeManager::CheckAppAccess(
-    const std::shared_ptr<AppAccountSubscribeInfo> &subscribeInfoPtr, const std::string &bundleName)
+    const std::shared_ptr<AppAccountSubscribeInfo> &subscribeInfoPtr, const uid_t &uid, const std::string &bundleName)
 {
     ACCOUNT_LOGI("enter");
 
@@ -216,16 +215,16 @@ ErrCode AppAccountSubscribeManager::CheckAppAccess(
         return ERR_APPACCOUNT_SERVICE_GET_OWNERS;
     }
 
+    auto dataStoragePtr = GetDataStorage(uid);
+    if (dataStoragePtr == nullptr) {
+        ACCOUNT_LOGE("dataStoragePtr is nullptr");
+        return ERR_APPACCOUNT_SERVICE_DATA_STORAGE_PTR_IS_NULLPTR;
+    }
+
     for (auto owner : owners) {
         ACCOUNT_LOGI("owner = %{public}s", owner.c_str());
         if (owner == bundleName) {
             continue;
-        }
-
-        auto dataStoragePtr = GetDataStorage();
-        if (dataStoragePtr == nullptr) {
-            ACCOUNT_LOGE("dataStoragePtr is nullptr");
-            return ERR_APPACCOUNT_SERVICE_DATA_STORAGE_PTR_IS_NULLPTR;
         }
 
         std::vector<std::string> accessibleAccounts;
@@ -271,14 +270,17 @@ ErrCode AppAccountSubscribeManager::InsertSubscribeRecord(
     std::lock_guard<std::mutex> lock(subscribeRecordMutex_);
 
     ACCOUNT_LOGI("owners.size() = %{public}zu", owners.size());
+    ACCOUNT_LOGI("subscribeRecordPtr = %{public}p", subscribeRecordPtr.get());
 
     for (auto owner : owners) {
         ACCOUNT_LOGI("owner = %{public}s", owner.c_str());
 
         auto item = ownerSubscribeRecords_.find(owner);
         if (item != ownerSubscribeRecords_.end()) {
+            ACCOUNT_LOGI("item != ownerSubscribeRecords_.end()");
             item->second.insert(subscribeRecordPtr);
         } else {
+            ACCOUNT_LOGI("item == ownerSubscribeRecords_.end()");
             std::multiset<AppAccountSubscribeRecordPtr> subscribeRecords;
             subscribeRecords.insert(subscribeRecordPtr);
             ownerSubscribeRecords_[owner] = subscribeRecords;
@@ -286,6 +288,7 @@ ErrCode AppAccountSubscribeManager::InsertSubscribeRecord(
     }
 
     subscribeRecords_.emplace_back(subscribeRecordPtr);
+    ACCOUNT_LOGI("subscribeRecords_.size() = %{public}zu", subscribeRecords_.size());
 
     return ERR_OK;
 }
@@ -328,7 +331,8 @@ ErrCode AppAccountSubscribeManager::RemoveSubscribeRecord(const sptr<IRemoteObje
     return ERR_OK;
 }
 
-bool AppAccountSubscribeManager::PublishAccount(AppAccountInfo &appAccountInfo, const std::string &bundleName)
+bool AppAccountSubscribeManager::PublishAccount(
+    AppAccountInfo &appAccountInfo, const uid_t &uid, const std::string &bundleName)
 {
     ACCOUNT_LOGI("enter");
 
@@ -341,6 +345,7 @@ bool AppAccountSubscribeManager::PublishAccount(AppAccountInfo &appAccountInfo, 
     auto eventRecordPtr = std::make_shared<AppAccountEventRecord>();
     eventRecordPtr->info = std::make_shared<AppAccountInfo>(appAccountInfo);
     eventRecordPtr->receivers = GetSubscribeRecords(bundleName);
+    eventRecordPtr->uid = uid;
     eventRecordPtr->bundleName = bundleName;
 
     if (GetEventHandler() != ERR_OK) {
@@ -357,17 +362,38 @@ ErrCode AppAccountSubscribeManager::OnAccountsChanged(const std::shared_ptr<AppA
 {
     ACCOUNT_LOGI("enter");
 
+    ACCOUNT_LOGI("record->uid = %{public}d", record->uid);
     // bundle name to publish
     ACCOUNT_LOGI("record->bundleName = %{public}s", record->bundleName.c_str());
     ACCOUNT_LOGI("record->receivers.size() = %{public}zu", record->receivers.size());
 
+    auto uid = record->uid;
+
+    auto dataStoragePtr = GetDataStorage(uid);
+    if (dataStoragePtr == nullptr) {
+        ACCOUNT_LOGE("dataStoragePtr is nullptr");
+        return ERR_APPACCOUNT_SERVICE_DATA_STORAGE_PTR_IS_NULLPTR;
+    }
+
+    auto controlManagerPtr = AppAccountControlManager::GetInstance();
+    if (controlManagerPtr == nullptr) {
+        ACCOUNT_LOGE("controlManagerPtr is nullptr");
+        return ERR_APPACCOUNT_SERVICE_CONTROL_MANAGER_PTR_IS_NULLPTR;
+    }
+
     for (auto receiver : record->receivers) {
-        // subscriber's bundle name
-        ACCOUNT_LOGI("receiver->bundleName = %{public}s", receiver->bundleName.c_str());
+        ACCOUNT_LOGI("receiver = %{public}p", receiver.get());
+
+        std::vector<AppAccountInfo> accessibleAccounts;
+        ErrCode result = controlManagerPtr->GetAllAccessibleAccountsFromDataStorage(
+            accessibleAccounts, receiver->bundleName, dataStoragePtr);
+        if (result != ERR_OK) {
+            ACCOUNT_LOGE("failed to get all accessible accounts from data storage, result = %{public}d", result);
+            return result;
+        }
 
         std::vector<AppAccountInfo> appAccounts;
-        ErrCode result =
-            GetAccessibleAccountsBySubscribeInfo(receiver->subscribeInfoPtr, receiver->bundleName, appAccounts);
+        result = GetAccessibleAccountsBySubscribeInfo(receiver->subscribeInfoPtr, accessibleAccounts, appAccounts);
         if (result != ERR_OK) {
             ACCOUNT_LOGE("failed to get accessible accounts by subscribe info");
             continue;
@@ -392,12 +418,10 @@ ErrCode AppAccountSubscribeManager::OnAccountsChanged(const std::shared_ptr<AppA
 }
 
 ErrCode AppAccountSubscribeManager::GetAccessibleAccountsBySubscribeInfo(
-    const std::shared_ptr<AppAccountSubscribeInfo> &subscribeInfoPtr, const std::string &bundleName,
-    std::vector<AppAccountInfo> &appAccounts)
+    const std::shared_ptr<AppAccountSubscribeInfo> &subscribeInfoPtr,
+    const std::vector<AppAccountInfo> &accessibleAccounts, std::vector<AppAccountInfo> &appAccounts)
 {
     ACCOUNT_LOGI("enter");
-
-    ACCOUNT_LOGI("bundleName = %{public}s", bundleName.c_str());
 
     if (subscribeInfoPtr == nullptr) {
         ACCOUNT_LOGE("subscribeInfoPtr is nullptr");
@@ -416,14 +440,6 @@ ErrCode AppAccountSubscribeManager::GetAccessibleAccountsBySubscribeInfo(
     ACCOUNT_LOGI("owners.size() = %{public}zu", owners.size());
     for (auto owner : owners) {
         ACCOUNT_LOGI("owner = %{public}s", owner.c_str());
-    }
-
-    auto controlManagerPtr = AppAccountControlManager::GetInstance();
-    std::vector<AppAccountInfo> accessibleAccounts;
-    result = controlManagerPtr->GetAllAccessibleAccounts(accessibleAccounts, bundleName);
-    if (result != ERR_OK) {
-        ACCOUNT_LOGE("failed to get all accessible accounts");
-        return result;
     }
 
     ACCOUNT_LOGI("accessibleAccounts.size() = %{public}zu", accessibleAccounts.size());

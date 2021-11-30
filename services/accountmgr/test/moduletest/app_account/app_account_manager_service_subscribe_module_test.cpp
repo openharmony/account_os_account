@@ -41,6 +41,9 @@ const time_t TIME_OUT_SECONDS_LIMIT = 5;
 constexpr std::int32_t UID = 10000;
 constexpr std::size_t SIZE_ZERO = 0;
 constexpr std::size_t SIZE_ONE = 1;
+
+std::int32_t counter = 0;
+constexpr std::int32_t COUNTER_MAX = 2;
 }  // namespace
 
 class AppAccountManagerServiceSubscribeModuleTest : public testing::Test {
@@ -76,13 +79,13 @@ void AppAccountManagerServiceSubscribeModuleTest::DeleteKvStore(void)
     controlManagerPtr_ = AppAccountControlManager::GetInstance();
     ASSERT_NE(controlManagerPtr_, nullptr);
 
-    auto dataStoragePtr = controlManagerPtr_->GetDataStorage(false, UID);
+    auto dataStoragePtr = controlManagerPtr_->GetDataStorage(UID);
     ASSERT_NE(dataStoragePtr, nullptr);
 
     ErrCode result = dataStoragePtr->DeleteKvStore();
     ASSERT_EQ(result, ERR_OK);
 
-    dataStoragePtr = controlManagerPtr_->GetDataStorage(true, UID);
+    dataStoragePtr = controlManagerPtr_->GetDataStorage(UID, true);
     ASSERT_NE(dataStoragePtr, nullptr);
 
     result = dataStoragePtr->DeleteKvStore();
@@ -182,6 +185,56 @@ public:
             result = account.GetOwner(owner);
             EXPECT_EQ(result, ERR_OK);
             EXPECT_EQ(owner, STRING_BUNDLE_NAME);
+
+            result = account.GetName(name);
+            EXPECT_EQ(result, ERR_OK);
+            EXPECT_EQ(name, STRING_NAME);
+
+            result = account.GetExtraInfo(extraInfo);
+            EXPECT_EQ(result, ERR_OK);
+            EXPECT_EQ(extraInfo, STRING_EXTRA_INFO);
+        }
+    }
+};
+
+class AppAccountSubscriberTestFour : public AppAccountSubscriber {
+public:
+    explicit AppAccountSubscriberTestFour(const AppAccountSubscribeInfo &subscribeInfo)
+        : AppAccountSubscriber(subscribeInfo)
+    {
+        ACCOUNT_LOGI("enter");
+    }
+
+    ~AppAccountSubscriberTestFour()
+    {}
+
+    virtual void OnAccountsChanged(const std::vector<AppAccountInfo> &accounts)
+    {
+        ACCOUNT_LOGI("enter");
+        GTEST_LOG_(INFO) << "AppAccountSubscriberTestFour::OnAccountsChanged()";
+
+        counter++;
+
+        ACCOUNT_LOGI("counter = %{public}d", counter);
+        GTEST_LOG_(INFO) << "counter = " << counter;
+
+        if (counter == COUNTER_MAX) {
+            mtx.unlock();
+        }
+
+        ErrCode result;
+        std::string owner;
+        std::string name;
+        std::string extraInfo;
+
+        ACCOUNT_LOGI("accounts.size() = %{public}zu", accounts.size());
+
+        EXPECT_EQ(accounts.size(), SIZE_ONE);
+
+        for (auto account : accounts) {
+            result = account.GetOwner(owner);
+            EXPECT_EQ(result, ERR_OK);
+            EXPECT_EQ(owner, STRING_OWNER);
 
             result = account.GetName(name);
             EXPECT_EQ(result, ERR_OK);
@@ -359,11 +412,11 @@ HWTEST_F(AppAccountManagerServiceSubscribeModuleTest, AppAccountManagerServiceSu
     std::string name = STRING_NAME;
     std::string bundleName = STRING_BUNDLE_NAME;
     AppAccountInfo appAccountInfo(name, bundleName);
-    ErrCode result = controlManagerPtr_->AddAccount(name, STRING_EXTRA_INFO, bundleName, appAccountInfo);
+    ErrCode result = controlManagerPtr_->AddAccount(name, STRING_EXTRA_INFO, UID, bundleName, appAccountInfo);
     EXPECT_EQ(result, ERR_OK);
 
     // enable app access
-    result = controlManagerPtr_->EnableAppAccess(name, STRING_OWNER, bundleName, appAccountInfo);
+    result = controlManagerPtr_->EnableAppAccess(name, STRING_OWNER, UID, bundleName, appAccountInfo);
     EXPECT_EQ(result, ERR_OK);
 
     // make owners
@@ -409,11 +462,11 @@ HWTEST_F(AppAccountManagerServiceSubscribeModuleTest, AppAccountManagerServiceSu
     ASSERT_NE(servicePtr, nullptr);
 
     // add an account
-    ErrCode result = servicePtr->innerManager_->AddAccount(STRING_NAME, STRING_EXTRA_INFO, STRING_BUNDLE_NAME);
+    ErrCode result = servicePtr->innerManager_->AddAccount(STRING_NAME, STRING_EXTRA_INFO, UID, STRING_BUNDLE_NAME);
     EXPECT_EQ(result, ERR_OK);
 
     // enable app access
-    result = servicePtr->innerManager_->EnableAppAccess(STRING_NAME, STRING_OWNER, STRING_BUNDLE_NAME);
+    result = servicePtr->innerManager_->EnableAppAccess(STRING_NAME, STRING_OWNER, UID, STRING_BUNDLE_NAME);
     EXPECT_EQ(result, ERR_OK);
 
     // make owners
@@ -441,11 +494,11 @@ HWTEST_F(AppAccountManagerServiceSubscribeModuleTest, AppAccountManagerServiceSu
     mtx.lock();
 
     // disable app access
-    result = servicePtr->innerManager_->DisableAppAccess(STRING_NAME, STRING_OWNER, STRING_BUNDLE_NAME);
+    result = servicePtr->innerManager_->DisableAppAccess(STRING_NAME, STRING_OWNER, UID, STRING_BUNDLE_NAME);
     EXPECT_EQ(result, ERR_OK);
 
     // set extra info
-    result = servicePtr->innerManager_->SetAccountExtraInfo(STRING_NAME, STRING_EXTRA_INFO, STRING_BUNDLE_NAME);
+    result = servicePtr->innerManager_->SetAccountExtraInfo(STRING_NAME, STRING_EXTRA_INFO, UID, STRING_BUNDLE_NAME);
     EXPECT_EQ(result, ERR_OK);
 
     // record start time
@@ -490,13 +543,13 @@ HWTEST_F(AppAccountManagerServiceSubscribeModuleTest, AppAccountManagerServiceSu
     ASSERT_NE(servicePtr, nullptr);
 
     // add an account
-    ErrCode result = servicePtr->innerManager_->AddAccount(STRING_NAME, STRING_EXTRA_INFO, STRING_BUNDLE_NAME);
+    ErrCode result = servicePtr->innerManager_->AddAccount(STRING_NAME, STRING_EXTRA_INFO, UID, STRING_BUNDLE_NAME);
     EXPECT_EQ(result, ERR_OK);
-    result = servicePtr->innerManager_->AddAccount(STRING_NAME_TWO, STRING_EXTRA_INFO, STRING_BUNDLE_NAME);
+    result = servicePtr->innerManager_->AddAccount(STRING_NAME_TWO, STRING_EXTRA_INFO, UID, STRING_BUNDLE_NAME);
     EXPECT_EQ(result, ERR_OK);
 
     // enable app access
-    result = servicePtr->innerManager_->EnableAppAccess(STRING_NAME, STRING_OWNER, STRING_BUNDLE_NAME);
+    result = servicePtr->innerManager_->EnableAppAccess(STRING_NAME, STRING_OWNER, UID, STRING_BUNDLE_NAME);
     EXPECT_EQ(result, ERR_OK);
 
     // make owners
@@ -524,11 +577,11 @@ HWTEST_F(AppAccountManagerServiceSubscribeModuleTest, AppAccountManagerServiceSu
     mtx.lock();
 
     // disable app access
-    result = servicePtr->innerManager_->DisableAppAccess(STRING_NAME, STRING_OWNER, STRING_BUNDLE_NAME);
+    result = servicePtr->innerManager_->DisableAppAccess(STRING_NAME, STRING_OWNER, UID, STRING_BUNDLE_NAME);
     EXPECT_EQ(result, ERR_OK);
 
     // set extra info
-    result = servicePtr->innerManager_->SetAccountExtraInfo(STRING_NAME, STRING_EXTRA_INFO, STRING_BUNDLE_NAME);
+    result = servicePtr->innerManager_->SetAccountExtraInfo(STRING_NAME, STRING_EXTRA_INFO, UID, STRING_BUNDLE_NAME);
     EXPECT_EQ(result, ERR_OK);
 
     // record start time
@@ -573,13 +626,13 @@ HWTEST_F(AppAccountManagerServiceSubscribeModuleTest, AppAccountManagerServiceSu
     ASSERT_NE(servicePtr, nullptr);
 
     // add an account
-    ErrCode result = servicePtr->innerManager_->AddAccount(STRING_NAME, STRING_EXTRA_INFO, STRING_BUNDLE_NAME);
+    ErrCode result = servicePtr->innerManager_->AddAccount(STRING_NAME, STRING_EXTRA_INFO, UID, STRING_BUNDLE_NAME);
     EXPECT_EQ(result, ERR_OK);
-    result = servicePtr->innerManager_->AddAccount(STRING_NAME_TWO, STRING_EXTRA_INFO, STRING_BUNDLE_NAME);
+    result = servicePtr->innerManager_->AddAccount(STRING_NAME_TWO, STRING_EXTRA_INFO, UID, STRING_BUNDLE_NAME);
     EXPECT_EQ(result, ERR_OK);
 
     // enable app access
-    result = servicePtr->innerManager_->EnableAppAccess(STRING_NAME, STRING_OWNER, STRING_BUNDLE_NAME);
+    result = servicePtr->innerManager_->EnableAppAccess(STRING_NAME, STRING_OWNER, UID, STRING_BUNDLE_NAME);
     EXPECT_EQ(result, ERR_OK);
 
     // make owners
@@ -607,7 +660,7 @@ HWTEST_F(AppAccountManagerServiceSubscribeModuleTest, AppAccountManagerServiceSu
     mtx.lock();
 
     // set extra info
-    result = servicePtr->innerManager_->SetAccountExtraInfo(STRING_NAME, STRING_EXTRA_INFO, STRING_BUNDLE_NAME);
+    result = servicePtr->innerManager_->SetAccountExtraInfo(STRING_NAME, STRING_EXTRA_INFO, UID, STRING_BUNDLE_NAME);
     EXPECT_EQ(result, ERR_OK);
 
     // record start time
@@ -632,6 +685,97 @@ HWTEST_F(AppAccountManagerServiceSubscribeModuleTest, AppAccountManagerServiceSu
 
     // unsubscribe app account
     result = servicePtr->UnsubscribeAppAccount(appAccountEventListener);
+    EXPECT_EQ(result, ERR_OK);
+
+    // unlock the mutex
+    mtx.unlock();
+}
+
+/**
+ * @tc.number: AppAccountManagerServiceSubscribe_SubscribeAppAccount_0800
+ * @tc.name: SubscribeAppAccount
+ * @tc.desc: Subscribe app accounts with valid data.
+ */
+HWTEST_F(AppAccountManagerServiceSubscribeModuleTest, AppAccountManagerServiceSubscribe_SubscribeAppAccount_0800,
+    Function | MediumTest | Level1)
+{
+    ACCOUNT_LOGI("AppAccountManagerServiceSubscribe_SubscribeAppAccount_0800");
+
+    auto servicePtr = std::make_shared<AppAccountManagerService>();
+    ASSERT_NE(servicePtr, nullptr);
+
+    // add app account
+    ErrCode result = servicePtr->AddAccount(STRING_NAME, STRING_EXTRA_INFO);
+    EXPECT_EQ(result, ERR_OK);
+
+    // make owners
+    std::vector<std::string> owners;
+    owners.emplace_back(STRING_OWNER);
+
+    // make subscribe info
+    AppAccountSubscribeInfo subscribeInfo(owners);
+
+    // make a subscriber
+    auto subscriberTestPtr = std::make_shared<AppAccountSubscriberTestFour>(subscribeInfo);
+
+    // make an event listener
+    sptr<IRemoteObject> appAccountEventListener = nullptr;
+
+    ErrCode subscribeState = DelayedSingleton<AppAccount>::GetInstance()->CreateAppAccountEventListener(
+        subscriberTestPtr, appAccountEventListener);
+    EXPECT_EQ(subscribeState, AppAccount::INITIAL_SUBSCRIPTION);
+
+    // subscribe app account
+    result = servicePtr->SubscribeAppAccount(subscribeInfo, appAccountEventListener);
+    EXPECT_EQ(result, ERR_OK);
+
+    // make a subscriber
+    auto subscriberTestPtrTwo = std::make_shared<AppAccountSubscriberTestFour>(subscribeInfo);
+
+    // make an event listener
+    sptr<IRemoteObject> appAccountEventListenerTwo = nullptr;
+
+    subscribeState = DelayedSingleton<AppAccount>::GetInstance()->CreateAppAccountEventListener(
+        subscriberTestPtrTwo, appAccountEventListenerTwo);
+    EXPECT_EQ(subscribeState, AppAccount::INITIAL_SUBSCRIPTION);
+
+    // subscribe app account
+    result = servicePtr->SubscribeAppAccount(subscribeInfo, appAccountEventListenerTwo);
+    EXPECT_EQ(result, ERR_OK);
+
+    // lock the mutex
+    mtx.lock();
+
+    // set extra info
+    result = servicePtr->SetAccountExtraInfo(STRING_NAME, STRING_EXTRA_INFO);
+    EXPECT_EQ(result, ERR_OK);
+
+    // record start time
+    struct tm startTime = {0};
+    EXPECT_EQ(GetSystemCurrentTime(&startTime), true);
+
+    // record current time
+    struct tm doingTime = {0};
+
+    int64_t seconds = 0;
+    while (!mtx.try_lock()) {
+        // get current time and compare it with the start time
+        EXPECT_EQ(GetSystemCurrentTime(&doingTime), true);
+        seconds = GetSecondsBetween(startTime, doingTime);
+        if (seconds >= TIME_OUT_SECONDS_LIMIT) {
+            break;
+        }
+    }
+
+    // the subscriber should receive the event within 5 seconds
+    EXPECT_LT(seconds, TIME_OUT_SECONDS_LIMIT);
+
+    // unsubscribe app account
+    result = servicePtr->UnsubscribeAppAccount(appAccountEventListener);
+    EXPECT_EQ(result, ERR_OK);
+
+    // unsubscribe app account
+    result = servicePtr->UnsubscribeAppAccount(appAccountEventListenerTwo);
     EXPECT_EQ(result, ERR_OK);
 
     // unlock the mutex

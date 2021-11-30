@@ -54,6 +54,7 @@ ohos_shared_library("accountmgr") {
   visibility = [ "${os_account_path}/*" ]
 
   sources = [
+    "src/account_bundle_manager.cpp",
     "src/account_data_storage.cpp",
     "src/account_dump_helper.cpp",
     "src/account_event_provider.cpp",
@@ -65,7 +66,6 @@ ohos_shared_library("accountmgr") {
     "src/account_state_machine.cpp",
     "src/account_stub.cpp",
     "src/appaccount/app_account.cpp",
-    "src/appaccount/app_account_bundle_manager.cpp",
     "src/appaccount/app_account_common_event_oberserver.cpp",
     "src/appaccount/app_account_common_event_subscriber.cpp",
     "src/appaccount/app_account_control_manager.cpp",

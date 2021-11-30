@@ -32,6 +32,8 @@ namespace {
 const std::string STRING_NAME = "name";
 const std::string STRING_EXTRA_INFO = "extra_info";
 const std::string STRING_OWNER = "com.example.owner";
+
+constexpr std::int32_t UID = 10000;
 }  // namespace
 
 class InnerAppAccountManagerTest : public testing::Test {
@@ -95,7 +97,7 @@ HWTEST_F(InnerAppAccountManagerTest, AppAccount_AddAccount_001, Function | Mediu
 {
     MakeMockObjects();
 
-    ErrCode result = innerManagerPtr_->AddAccount(STRING_NAME, STRING_EXTRA_INFO, STRING_OWNER);
+    ErrCode result = innerManagerPtr_->AddAccount(STRING_NAME, STRING_EXTRA_INFO, UID, STRING_OWNER);
 
     EXPECT_EQ(result, ERR_OK);
 }
@@ -109,7 +111,7 @@ HWTEST_F(InnerAppAccountManagerTest, AppAccount_AddAccount_002, Function | Mediu
 {
     MakeEmptyMockObjects();
 
-    ErrCode result = innerManagerPtr_->AddAccount(STRING_NAME, STRING_EXTRA_INFO, STRING_OWNER);
+    ErrCode result = innerManagerPtr_->AddAccount(STRING_NAME, STRING_EXTRA_INFO, UID, STRING_OWNER);
 
     EXPECT_EQ(result, ERR_APPACCOUNT_SERVICE_CONTROL_MANAGER_PTR_IS_NULLPTR);
 }
@@ -123,7 +125,7 @@ HWTEST_F(InnerAppAccountManagerTest, AppAccount_DeleteAccount_001, Function | Me
 {
     MakeMockObjects();
 
-    ErrCode result = innerManagerPtr_->DeleteAccount(STRING_NAME, STRING_OWNER);
+    ErrCode result = innerManagerPtr_->DeleteAccount(STRING_NAME, UID, STRING_OWNER);
 
     EXPECT_EQ(result, ERR_OK);
 }
@@ -137,7 +139,7 @@ HWTEST_F(InnerAppAccountManagerTest, AppAccount_DeleteAccount_002, Function | Me
 {
     MakeEmptyMockObjects();
 
-    ErrCode result = innerManagerPtr_->DeleteAccount(STRING_NAME, STRING_OWNER);
+    ErrCode result = innerManagerPtr_->DeleteAccount(STRING_NAME, UID, STRING_OWNER);
 
     EXPECT_EQ(result, ERR_APPACCOUNT_SERVICE_CONTROL_MANAGER_PTR_IS_NULLPTR);
 }
@@ -160,7 +162,7 @@ HWTEST_F(InnerAppAccountManagerTest, AppAccount_SubscribeAppAccount_001, Functio
     subscribeInfo.SetOwners(owners);
 
     // subscribe app account
-    ErrCode result = innerManagerPtr_->SubscribeAppAccount(subscribeInfo, nullptr, STRING_OWNER);
+    ErrCode result = innerManagerPtr_->SubscribeAppAccount(subscribeInfo, nullptr, UID, STRING_OWNER);
 
     EXPECT_EQ(result, ERR_APPACCOUNT_SERVICE_EVENT_LISTENER_IS_NULLPTR);
 }
@@ -183,7 +185,7 @@ HWTEST_F(InnerAppAccountManagerTest, AppAccount_SubscribeAppAccount_002, Functio
     subscribeInfo.SetOwners(owners);
 
     // subscribe app account
-    ErrCode result = innerManagerPtr_->SubscribeAppAccount(subscribeInfo, nullptr, STRING_OWNER);
+    ErrCode result = innerManagerPtr_->SubscribeAppAccount(subscribeInfo, nullptr, UID, STRING_OWNER);
 
     EXPECT_EQ(result, ERR_APPACCOUNT_SERVICE_SUBSCRIBE_MANAGER_PTR_IS_NULLPTR);
 }
