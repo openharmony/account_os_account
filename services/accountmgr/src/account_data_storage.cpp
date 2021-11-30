@@ -62,7 +62,6 @@ OHOS::DistributedKv::Status AccountDataStorage::GetKvStore()
 {
     ACCOUNT_LOGI("enter");
 
-    OHOS::DistributedKv::Status status;
     OHOS::DistributedKv::Options options = {.createIfMissing = true,
         .encrypt = false,
         .autoSync = autoSync_,
