@@ -81,8 +81,8 @@ public:
  * @tc.name: SubscribeAppAccount
  * @tc.desc: Subscribe app accounts with invalid data.
  */
-HWTEST_F(
-    AppAccountManagerSubscribeTest, AppAccountManagerSubscribe_SubscribeAppAccount_0100, Function | MediumTest | Level1)
+HWTEST_F(AppAccountManagerSubscribeTest, AppAccountManagerSubscribe_SubscribeAppAccount_0100,
+    Function | MediumTest | Level1)
 {
     ACCOUNT_LOGI("AppAccountManagerSubscribe_SubscribeAppAccount_0100");
 
@@ -106,8 +106,8 @@ HWTEST_F(
  * @tc.name: SubscribeAppAccount
  * @tc.desc: Subscribe app accounts with invalid data.
  */
-HWTEST_F(
-    AppAccountManagerSubscribeTest, AppAccountManagerSubscribe_SubscribeAppAccount_0200, Function | MediumTest | Level1)
+HWTEST_F(AppAccountManagerSubscribeTest, AppAccountManagerSubscribe_SubscribeAppAccount_0200,
+    Function | MediumTest | Level1)
 {
     ACCOUNT_LOGI("AppAccountManagerSubscribe_SubscribeAppAccount_0200");
 
@@ -130,8 +130,8 @@ HWTEST_F(
  * @tc.name: SubscribeAppAccount
  * @tc.desc: Subscribe app accounts with invalid data.
  */
-HWTEST_F(
-    AppAccountManagerSubscribeTest, AppAccountManagerSubscribe_SubscribeAppAccount_0300, Function | MediumTest | Level1)
+HWTEST_F(AppAccountManagerSubscribeTest, AppAccountManagerSubscribe_SubscribeAppAccount_0300,
+    Function | MediumTest | Level1)
 {
     ACCOUNT_LOGI("AppAccountManagerSubscribe_SubscribeAppAccount_0300");
 
@@ -156,8 +156,8 @@ HWTEST_F(
  * @tc.name: SubscribeAppAccount
  * @tc.desc: Subscribe app accounts with invalid data.
  */
-HWTEST_F(
-    AppAccountManagerSubscribeTest, AppAccountManagerSubscribe_SubscribeAppAccount_0400, Function | MediumTest | Level1)
+HWTEST_F(AppAccountManagerSubscribeTest, AppAccountManagerSubscribe_SubscribeAppAccount_0400,
+    Function | MediumTest | Level1)
 {
     ACCOUNT_LOGI("AppAccountManagerSubscribe_SubscribeAppAccount_0400");
 

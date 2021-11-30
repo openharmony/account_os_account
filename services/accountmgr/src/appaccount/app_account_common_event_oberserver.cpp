@@ -14,6 +14,7 @@
  */
 
 #include "account_log_wrapper.h"
+#include "bundle_constants.h"
 #include "common_event_manager.h"
 #include "common_event_support.h"
 
@@ -102,7 +103,16 @@ void AppAccountCommonEventOberserver::OnReceiveEvent(const CommonEventData &data
     std::string action = want.GetAction();
     if (action == CommonEventSupport::COMMON_EVENT_PACKAGE_REMOVED) {
         if (callback_.OnPackageRemoved != nullptr) {
-            callback_.OnPackageRemoved(data);
+            auto want = data.GetWant();
+            std::string action = want.GetAction();
+            auto element = want.GetElement();
+            std::string bundleName = element.GetBundleName();
+            auto uid = want.GetIntParam(AppExecFwk::Constants::UID, -1);
+
+            ACCOUNT_LOGI("uid = %{public}d", uid);
+            ACCOUNT_LOGI("bundleName = %{public}s", bundleName.c_str());
+
+            callback_.OnPackageRemoved(uid, bundleName);
         }
     }
 }

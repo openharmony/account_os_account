@@ -686,7 +686,9 @@ void UnsubscribeCallbackCompletedCB(napi_env env, napi_status status, void *data
             napi_delete_reference(env, offCBInfo->callbackRef);
         }
     }
-    subscriberInstances.erase(subscribe);
+    if (subscriberInstances.size() != 0) {
+        subscriberInstances.erase(subscribe);
+    }
     ACCOUNT_LOGI("Earse end subscriberInstances.size = %{public}zu", subscriberInstances.size());
 
     if (asyncContextForOff) {

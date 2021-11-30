@@ -25,7 +25,8 @@ AppAccountSubscriber::AppAccountSubscriber()
     ACCOUNT_LOGI("enter");
 }
 
-AppAccountSubscriber::AppAccountSubscriber(const AppAccountSubscribeInfo &subscribeInfo) : subscribeInfo_(subscribeInfo)
+AppAccountSubscriber::AppAccountSubscriber(const AppAccountSubscribeInfo &subscribeInfo)
+    : subscribeInfo_(subscribeInfo)
 {
     ACCOUNT_LOGI("enter");
 }

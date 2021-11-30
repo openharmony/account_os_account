@@ -20,6 +20,11 @@
 
 using namespace OHOS::AccountSA;
 
+namespace {
+const std::string STRING_BUNDLE_NAME_NOT_INSTALLED = "com.example.not_installed";
+const std::string STRING_OWNER = "com.example.owner";
+}  // namespace
+
 namespace OHOS {
 namespace AppExecFwk {
 BundleMgrClient::BundleMgrClient()
@@ -38,7 +43,7 @@ bool BundleMgrClient::GetBundleNameForUid(const int uid, std::string &bundleName
 
     ACCOUNT_LOGI("uid = %{public}d", uid);
 
-    bundleName = "com.example.owner";
+    bundleName = STRING_OWNER;
     ACCOUNT_LOGI("bundleName = %{public}s", bundleName.c_str());
 
     return true;
@@ -49,6 +54,10 @@ bool BundleMgrClient::GetBundleInfo(const std::string &bundleName, const BundleF
     ACCOUNT_LOGI("enter");
 
     ACCOUNT_LOGI("bundleName = %{public}s", bundleName.c_str());
+
+    if (bundleName == STRING_BUNDLE_NAME_NOT_INSTALLED) {
+        return false;
+    }
 
     return true;
 }

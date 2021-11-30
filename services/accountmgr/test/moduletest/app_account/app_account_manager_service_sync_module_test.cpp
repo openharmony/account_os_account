@@ -37,6 +37,8 @@ const std::string STRING_OWNER = "com.example.owner";
 
 const std::string HYPHEN = "#";
 
+constexpr std::int32_t UID = 10000;
+
 const bool SYNC_ENABLE_TRUE = true;
 const bool SYNC_ENABLE_FALSE = false;
 
@@ -77,13 +79,13 @@ void AppAccountManagerServiceSyncModuleTest::DeleteKvStore(void)
     controlManagerPtr_ = AppAccountControlManager::GetInstance();
     ASSERT_NE(controlManagerPtr_, nullptr);
 
-    auto dataStoragePtr = controlManagerPtr_->GetDataStorage();
+    auto dataStoragePtr = controlManagerPtr_->GetDataStorage(UID);
     ASSERT_NE(dataStoragePtr, nullptr);
 
     ErrCode result = dataStoragePtr->DeleteKvStore();
     ASSERT_EQ(result, ERR_OK);
 
-    dataStoragePtr = controlManagerPtr_->GetDataStorage(true);
+    dataStoragePtr = controlManagerPtr_->GetDataStorage(UID, true);
     ASSERT_NE(dataStoragePtr, nullptr);
 
     result = dataStoragePtr->DeleteKvStore();
@@ -107,7 +109,7 @@ HWTEST_F(AppAccountManagerServiceSyncModuleTest, AppAccountManagerServiceSync_Ad
     EXPECT_EQ(result, ERR_OK);
 
     {
-        auto dataStoragePtr = controlManagerPtr_->GetDataStorage();
+        auto dataStoragePtr = controlManagerPtr_->GetDataStorage(UID);
         ASSERT_NE(dataStoragePtr, nullptr);
 
         std::map<std::string, std::shared_ptr<IAccountInfo>> accounts;
@@ -129,7 +131,7 @@ HWTEST_F(AppAccountManagerServiceSyncModuleTest, AppAccountManagerServiceSync_Ad
         EXPECT_EQ(name, STRING_NAME);
     }
     {
-        auto dataStoragePtr = controlManagerPtr_->GetDataStorage(true);
+        auto dataStoragePtr = controlManagerPtr_->GetDataStorage(UID, true);
         ASSERT_NE(dataStoragePtr, nullptr);
 
         std::map<std::string, std::shared_ptr<IAccountInfo>> accounts;
@@ -164,7 +166,7 @@ HWTEST_F(AppAccountManagerServiceSyncModuleTest, AppAccountManagerServiceSync_Ad
     EXPECT_EQ(result, ERR_OK);
 
     {
-        auto dataStoragePtr = controlManagerPtr_->GetDataStorage();
+        auto dataStoragePtr = controlManagerPtr_->GetDataStorage(UID);
         ASSERT_NE(dataStoragePtr, nullptr);
 
         std::map<std::string, std::shared_ptr<IAccountInfo>> accounts;
@@ -186,7 +188,7 @@ HWTEST_F(AppAccountManagerServiceSyncModuleTest, AppAccountManagerServiceSync_Ad
         EXPECT_EQ(name, STRING_NAME);
     }
     {
-        auto dataStoragePtr = controlManagerPtr_->GetDataStorage(true);
+        auto dataStoragePtr = controlManagerPtr_->GetDataStorage(UID, true);
         ASSERT_NE(dataStoragePtr, nullptr);
 
         std::map<std::string, std::shared_ptr<IAccountInfo>> accounts;
@@ -235,7 +237,7 @@ HWTEST_F(AppAccountManagerServiceSyncModuleTest, AppAccountManagerServiceSync_De
     EXPECT_EQ(result, ERR_OK);
 
     {
-        auto dataStoragePtr = controlManagerPtr_->GetDataStorage();
+        auto dataStoragePtr = controlManagerPtr_->GetDataStorage(UID);
         ASSERT_NE(dataStoragePtr, nullptr);
 
         std::map<std::string, std::shared_ptr<IAccountInfo>> accounts;
@@ -246,7 +248,7 @@ HWTEST_F(AppAccountManagerServiceSyncModuleTest, AppAccountManagerServiceSync_De
         EXPECT_EQ(accounts.size(), SIZE_ZERO);
     }
     {
-        auto dataStoragePtr = controlManagerPtr_->GetDataStorage(true);
+        auto dataStoragePtr = controlManagerPtr_->GetDataStorage(UID, true);
         ASSERT_NE(dataStoragePtr, nullptr);
 
         std::map<std::string, std::shared_ptr<IAccountInfo>> accounts;
@@ -284,7 +286,7 @@ HWTEST_F(AppAccountManagerServiceSyncModuleTest, AppAccountManagerServiceSync_De
     EXPECT_EQ(result, ERR_OK);
 
     {
-        auto dataStoragePtr = controlManagerPtr_->GetDataStorage();
+        auto dataStoragePtr = controlManagerPtr_->GetDataStorage(UID);
         ASSERT_NE(dataStoragePtr, nullptr);
 
         std::map<std::string, std::shared_ptr<IAccountInfo>> accounts;
@@ -295,7 +297,7 @@ HWTEST_F(AppAccountManagerServiceSyncModuleTest, AppAccountManagerServiceSync_De
         EXPECT_EQ(accounts.size(), SIZE_ZERO);
     }
     {
-        auto dataStoragePtr = controlManagerPtr_->GetDataStorage(true);
+        auto dataStoragePtr = controlManagerPtr_->GetDataStorage(UID, true);
         ASSERT_NE(dataStoragePtr, nullptr);
 
         std::map<std::string, std::shared_ptr<IAccountInfo>> accounts;
@@ -329,7 +331,7 @@ HWTEST_F(AppAccountManagerServiceSyncModuleTest, AppAccountManagerServiceSync_Se
     EXPECT_EQ(result, ERR_OK);
 
     {
-        auto dataStoragePtr = controlManagerPtr_->GetDataStorage();
+        auto dataStoragePtr = controlManagerPtr_->GetDataStorage(UID);
         ASSERT_NE(dataStoragePtr, nullptr);
 
         std::map<std::string, std::shared_ptr<IAccountInfo>> accounts;
@@ -349,7 +351,7 @@ HWTEST_F(AppAccountManagerServiceSyncModuleTest, AppAccountManagerServiceSync_Se
         EXPECT_EQ(extraInfo, STRING_EXTRA_INFO);
     }
     {
-        auto dataStoragePtr = controlManagerPtr_->GetDataStorage(true);
+        auto dataStoragePtr = controlManagerPtr_->GetDataStorage(UID, true);
         ASSERT_NE(dataStoragePtr, nullptr);
 
         std::map<std::string, std::shared_ptr<IAccountInfo>> accounts;
@@ -401,7 +403,7 @@ HWTEST_F(AppAccountManagerServiceSyncModuleTest, AppAccountManagerServiceSync_Se
     EXPECT_EQ(result, ERR_OK);
 
     {
-        auto dataStoragePtr = controlManagerPtr_->GetDataStorage();
+        auto dataStoragePtr = controlManagerPtr_->GetDataStorage(UID);
         ASSERT_NE(dataStoragePtr, nullptr);
 
         std::map<std::string, std::shared_ptr<IAccountInfo>> accounts;
@@ -424,7 +426,7 @@ HWTEST_F(AppAccountManagerServiceSyncModuleTest, AppAccountManagerServiceSync_Se
         EXPECT_EQ(extraInfo, STRING_EXTRA_INFO_TWO);
     }
     {
-        auto dataStoragePtr = controlManagerPtr_->GetDataStorage(true);
+        auto dataStoragePtr = controlManagerPtr_->GetDataStorage(UID, true);
         ASSERT_NE(dataStoragePtr, nullptr);
 
         std::map<std::string, std::shared_ptr<IAccountInfo>> accounts;
@@ -479,7 +481,7 @@ HWTEST_F(AppAccountManagerServiceSyncModuleTest, AppAccountManagerServiceSync_Se
     EXPECT_EQ(result, ERR_OK);
 
     {
-        auto dataStoragePtr = controlManagerPtr_->GetDataStorage();
+        auto dataStoragePtr = controlManagerPtr_->GetDataStorage(UID);
         ASSERT_NE(dataStoragePtr, nullptr);
 
         std::map<std::string, std::shared_ptr<IAccountInfo>> accounts;
@@ -498,7 +500,7 @@ HWTEST_F(AppAccountManagerServiceSyncModuleTest, AppAccountManagerServiceSync_Se
         EXPECT_EQ(extraInfo, STRING_EXTRA_INFO_TWO);
     }
     {
-        auto dataStoragePtr = controlManagerPtr_->GetDataStorage(true);
+        auto dataStoragePtr = controlManagerPtr_->GetDataStorage(UID, true);
         ASSERT_NE(dataStoragePtr, nullptr);
 
         std::map<std::string, std::shared_ptr<IAccountInfo>> accounts;
@@ -544,7 +546,7 @@ HWTEST_F(AppAccountManagerServiceSyncModuleTest, AppAccountManagerServiceSync_En
     EXPECT_EQ(result, ERR_OK);
 
     {
-        auto dataStoragePtr = controlManagerPtr_->GetDataStorage();
+        auto dataStoragePtr = controlManagerPtr_->GetDataStorage(UID);
         ASSERT_NE(dataStoragePtr, nullptr);
 
         std::string authorizedAccounts;
@@ -563,7 +565,7 @@ HWTEST_F(AppAccountManagerServiceSyncModuleTest, AppAccountManagerServiceSync_En
         EXPECT_EQ(*accountPtr, STRING_OWNER + HYPHEN + STRING_NAME);
     }
     {
-        auto dataStoragePtr = controlManagerPtr_->GetDataStorage(true);
+        auto dataStoragePtr = controlManagerPtr_->GetDataStorage(UID, true);
         ASSERT_NE(dataStoragePtr, nullptr);
 
         std::string authorizedAccounts;
@@ -612,7 +614,7 @@ HWTEST_F(AppAccountManagerServiceSyncModuleTest, AppAccountManagerServiceSync_En
     EXPECT_EQ(result, ERR_APPACCOUNT_SERVICE_ENABLE_APP_ACCESS_ALREADY_EXISTS);
 
     {
-        auto dataStoragePtr = controlManagerPtr_->GetDataStorage();
+        auto dataStoragePtr = controlManagerPtr_->GetDataStorage(UID);
         ASSERT_NE(dataStoragePtr, nullptr);
 
         std::string authorizedAccounts;
@@ -631,7 +633,7 @@ HWTEST_F(AppAccountManagerServiceSyncModuleTest, AppAccountManagerServiceSync_En
         EXPECT_EQ(*accountPtr, STRING_OWNER + HYPHEN + STRING_NAME);
     }
     {
-        auto dataStoragePtr = controlManagerPtr_->GetDataStorage(true);
+        auto dataStoragePtr = controlManagerPtr_->GetDataStorage(UID, true);
         ASSERT_NE(dataStoragePtr, nullptr);
 
         std::string authorizedAccounts;
@@ -680,7 +682,7 @@ HWTEST_F(AppAccountManagerServiceSyncModuleTest, AppAccountManagerServiceSync_Di
     EXPECT_EQ(result, ERR_OK);
 
     {
-        auto dataStoragePtr = controlManagerPtr_->GetDataStorage();
+        auto dataStoragePtr = controlManagerPtr_->GetDataStorage(UID);
         ASSERT_NE(dataStoragePtr, nullptr);
 
         std::string authorizedAccounts;
@@ -694,7 +696,7 @@ HWTEST_F(AppAccountManagerServiceSyncModuleTest, AppAccountManagerServiceSync_Di
         EXPECT_EQ(accessibleAccounts.size(), SIZE_ZERO);
     }
     {
-        auto dataStoragePtr = controlManagerPtr_->GetDataStorage(true);
+        auto dataStoragePtr = controlManagerPtr_->GetDataStorage(UID, true);
         ASSERT_NE(dataStoragePtr, nullptr);
 
         std::string authorizedAccounts;

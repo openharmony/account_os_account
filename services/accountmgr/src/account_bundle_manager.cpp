@@ -19,28 +19,26 @@
 #include "iservice_registry.h"
 #include "system_ability_definition.h"
 
-#include "app_account_bundle_manager.h"
+#include "account_bundle_manager.h"
 
 using namespace OHOS::AppExecFwk;
 
 namespace OHOS {
 namespace AccountSA {
-AppAccountBundleManager::AppAccountBundleManager()
+AccountBundleManager::AccountBundleManager()
 {
     ACCOUNT_LOGI("enter");
 }
 
-AppAccountBundleManager::~AppAccountBundleManager()
+AccountBundleManager::~AccountBundleManager()
 {}
 
-ErrCode AppAccountBundleManager::GetBundleName(std::string &bundleName)
+ErrCode AccountBundleManager::GetBundleName(const uid_t &uid, std::string &bundleName)
 {
     ACCOUNT_LOGI("enter");
 
-    ACCOUNT_LOGI("bundleName = %{public}s", bundleName.c_str());
-
-    const auto uid = IPCSkeleton::GetCallingUid();
     ACCOUNT_LOGI("uid = %{public}d", uid);
+    ACCOUNT_LOGI("bundleName = %{public}s", bundleName.c_str());
 
     bool result = DelayedSingleton<BundleMgrClient>::GetInstance()->GetBundleNameForUid(uid, bundleName);
     ACCOUNT_LOGI("result = %{public}d", result);
@@ -53,7 +51,7 @@ ErrCode AppAccountBundleManager::GetBundleName(std::string &bundleName)
     return ERR_OK;
 }
 
-ErrCode AppAccountBundleManager::GetBundleInfo(const std::string &bundleName, AppExecFwk::BundleInfo &bundleInfo)
+ErrCode AccountBundleManager::GetBundleInfo(const std::string &bundleName, AppExecFwk::BundleInfo &bundleInfo)
 {
     ACCOUNT_LOGI("enter");
 
