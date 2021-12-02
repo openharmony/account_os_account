@@ -41,7 +41,7 @@ AccountDataStorage::~AccountDataStorage()
     ACCOUNT_LOGI("enter, this = %{private}p", this);
 
     if (kvStorePtr_ != nullptr) {
-        dataManager_.CloseKvStore(appId_, std::move(kvStorePtr_));
+        dataManager_.CloseKvStore(appId_, kvStorePtr_);
     }
 }
 
@@ -62,35 +62,12 @@ OHOS::DistributedKv::Status AccountDataStorage::GetKvStore()
 {
     ACCOUNT_LOGI("enter");
 
-    OHOS::DistributedKv::Status status;
     OHOS::DistributedKv::Options options = {.createIfMissing = true,
         .encrypt = false,
         .autoSync = autoSync_,
         .kvStoreType = OHOS::DistributedKv::KvStoreType::SINGLE_VERSION};
 
-    dataManager_.GetSingleKvStore(options,
-        appId_,
-        storeId_,
-        [this, &status](OHOS::DistributedKv::Status paramStatus,
-            std::unique_ptr<OHOS::DistributedKv::SingleKvStore>
-                singleKvStore) {
-            status = paramStatus;
-            if (status != OHOS::DistributedKv::Status::SUCCESS) {
-                ACCOUNT_LOGE("status != OHOS::DistributedKv::Status::SUCCESS");
-                return;
-            }
-            {
-                if (singleKvStore == nullptr) {
-                    ACCOUNT_LOGI("singleKvStore is nullptr");
-                } else {
-                    ACCOUNT_LOGI("singleKvStore is not nullptr");
-                }
-
-                kvStorePtr_ = std::move(singleKvStore);
-            }
-            ACCOUNT_LOGI("Get kvStore successfully");
-        });
-
+    auto status = dataManager_.GetSingleKvStore(options, appId_, storeId_, kvStorePtr_);
     if (kvStorePtr_ == nullptr) {
         ACCOUNT_LOGI("kvStorePtr_ is nullptr");
     } else {
