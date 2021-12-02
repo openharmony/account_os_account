@@ -50,7 +50,7 @@ protected:
         std::string subId, std::vector<OHOS::DistributedKv::Entry> &allEntries) const;
     OHOS::DistributedKv::Status GetKvStore();
     OHOS::DistributedKv::DistributedKvDataManager dataManager_;
-    std::unique_ptr<OHOS::DistributedKv::SingleKvStore> kvStorePtr_;
+    std::shared_ptr<OHOS::DistributedKv::SingleKvStore> kvStorePtr_;
     mutable std::mutex kvStorePtrMutex_;
     bool CheckKvStore();
     OHOS::DistributedKv::AppId appId_;
