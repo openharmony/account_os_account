@@ -20,10 +20,17 @@ ohos_prebuilt_etc("accountmgr.init") {
   part_name = "os_account_standard"
 }
 
+ohos_prebuilt_etc("osaccount_constraint") {
+  source = "osaccount_constraints.json"
+  relative_install_dir = "account"
+  part_name = "os_account_standard"
+}
+
 config("accountmgr_config") {
   include_dirs = [
     "./include",
     "./include/appaccount",
+    "./include/osaccount",
     "${common_path}/log/include",
     "${common_path}/perf_stat/include",
     "${common_path}/account_error/include",
@@ -40,6 +47,7 @@ config("accountmgr_public_config") {
   include_dirs = [
     "${services_path}/accountmgr/include",
     "${services_path}/accountmgr/include/appaccount",
+    "${services_path}/accountmgr/include/osaccount",
   ]
 }
 
@@ -47,6 +55,7 @@ group("accountmgr_target") {
   deps = [
     ":accountmgr",
     ":accountmgr.init",
+    ":osaccount_constraint",
   ]
 }
 
@@ -60,7 +69,6 @@ ohos_shared_library("accountmgr") {
     "src/account_event_provider.cpp",
     "src/account_file_operator.cpp",
     "src/account_helper_data.cpp",
-    "src/account_kvstore_death_recipient_callback.cpp",
     "src/account_mgr_service.cpp",
     "src/account_permission_manager.cpp",
     "src/account_state_machine.cpp",
@@ -77,6 +85,16 @@ ohos_shared_library("accountmgr") {
     "src/appaccount/inner_app_account_manager.cpp",
     "src/ohos_account_data_deal.cpp",
     "src/ohos_account_manager.cpp",
+    "src/osaccount/inner_os_account_manager.cpp",
+    "src/osaccount/os_account_control_database_manager.cpp",
+    "src/osaccount/os_account_control_file_manager.cpp",
+    "src/osaccount/os_account_data_storage.cpp",
+    "src/osaccount/os_account_file_operator.cpp",
+    "src/osaccount/os_account_manager_service.cpp",
+    "src/osaccount/os_account_photo_operator.cpp",
+    "src/osaccount/os_account_standard_interface.cpp",
+    "src/osaccount/os_account_subscribe_death_recipient.cpp",
+    "src/osaccount/os_account_subscribe_manager.cpp",
   ]
 
   defines = [
@@ -92,10 +110,12 @@ ohos_shared_library("accountmgr") {
     "${app_account_services_path}/src/appaccount:app_account_service_core",
     "${common_path}:libaccount_common",
     "${innerkits_native_path}:libaccountkits",
+    "${os_account_core_path}:os_account_core",
+    "${os_account_innerkits_native_path}:os_account_innerkits",
     "//third_party/jsoncpp:jsoncpp",
     "//utils/native/base:utils",
   ]
-
+  ldflags = [ "-Wl,-rpath=/system/lib/module/multimedia/" ]
   external_deps = [
     "aafwk_standard:base",
     "aafwk_standard:want",
@@ -108,6 +128,7 @@ ohos_shared_library("accountmgr") {
     "hisysevent_native:libhisysevent",
     "hiviewdfx_hilog_native:libhilog",
     "ipc:ipc_core",
+    "multimedia_image_standard:image",
     "permission_standard:libpermissionsdk_standard",
     "safwk:system_ability_fwk",
     "samgr_standard:samgr_proxy",

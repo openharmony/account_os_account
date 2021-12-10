@@ -77,16 +77,16 @@ private:
     std::map<std::shared_ptr<AppAccountSubscriber>, sptr<AppAccountEventListener>> eventListeners_;
     sptr<IRemoteObject::DeathRecipient> deathRecipient_;
 
-    static constexpr std::int32_t SUBSCRIBER_MAX_SIZE = 200;
-    static constexpr std::int32_t NAME_MAX_SIZE = 512;
-    static constexpr std::int32_t EXTRA_INFO_MAX_SIZE = 1024;
-    static constexpr std::int32_t AUTHORIZED_APP_MAX_SIZE = 512;
-    static constexpr std::int32_t ASSOCIATED_KEY_MAX_SIZE = 1024;
-    static constexpr std::int32_t ASSOCIATED_VALUE_MAX_SIZE = 1024;
-    static constexpr std::int32_t CREDENTIAL_TYPE_MAX_SIZE = 1024;
-    static constexpr std::int32_t CREDENTIAL_MAX_SIZE = 1024;
-    static constexpr std::int32_t TOKEN_MAX_SIZE = 1024;
-    static constexpr std::int32_t OWNER_MAX_SIZE = 1024;
+    static constexpr std::size_t SUBSCRIBER_MAX_SIZE = 200;
+    static constexpr std::size_t NAME_MAX_SIZE = 512;
+    static constexpr std::size_t EXTRA_INFO_MAX_SIZE = 1024;
+    static constexpr std::size_t AUTHORIZED_APP_MAX_SIZE = 512;
+    static constexpr std::size_t ASSOCIATED_KEY_MAX_SIZE = 1024;
+    static constexpr std::size_t ASSOCIATED_VALUE_MAX_SIZE = 1024;
+    static constexpr std::size_t CREDENTIAL_TYPE_MAX_SIZE = 1024;
+    static constexpr std::size_t CREDENTIAL_MAX_SIZE = 1024;
+    static constexpr std::size_t TOKEN_MAX_SIZE = 1024;
+    static constexpr std::size_t OWNER_MAX_SIZE = 1024;
     static const std::string SPECIAL_CHARACTERS;
 };
 }  // namespace AccountSA

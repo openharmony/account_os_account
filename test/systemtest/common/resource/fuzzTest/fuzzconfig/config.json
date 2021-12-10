@@ -1,0 +1,24 @@
+{
+    "flag": 10,
+    "AppAccountManager": {
+        "AddAccount": [],
+        "DeleteAccount": [],
+        "GetAccountExtraInfo": [],
+        "SetAccountExtraInfo": [],
+        "EnableAppAccess": [],
+        "DisableAppAccess": [],
+        "CheckAppAccountSyncEnable": [],
+        "SetAppAccountSyncEnable": [],
+        "GetAssociatedData": [],
+        "SetAssociatedData": [],
+        "GetAccountCredential": [],
+        "SetAccountCredential": [],
+        "GetOAuthToken": [],
+        "SetOAuthToken": [],
+        "ClearOAuthToken": [],
+        "GetAllAccounts": [],
+        "GetAllAccessibleAccounts": [],
+        "SubscribeAppAccount": [],
+        "UnsubscribeAppAccount": []
+    }
+}

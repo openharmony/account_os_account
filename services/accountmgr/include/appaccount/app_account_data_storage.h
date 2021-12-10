@@ -25,7 +25,7 @@ class AppAccountDataStorage : public AccountDataStorage {
 public:
     AppAccountDataStorage() = delete;
     explicit AppAccountDataStorage(const std::string &storeId, const bool &autoSync = false);
-    virtual ~AppAccountDataStorage();
+    virtual ~AppAccountDataStorage() = default;
 
     Json GetAccessibleAccountsFromAuthorizedAccounts(const std::string &authorizedAccounts,
         const std::string &authorizedApp, std::vector<std::string> &accessibleAccounts);

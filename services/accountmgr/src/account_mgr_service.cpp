@@ -91,6 +91,12 @@ sptr<IRemoteObject> AccountMgrService::GetAppAccountService()
 
     return appAccountManagerService_;
 }
+sptr<IRemoteObject> AccountMgrService::GetOsAccountService()
+{
+    ACCOUNT_LOGI("enter");
+
+    return osAccountManagerService_;
+}
 
 bool AccountMgrService::IsServiceStarted(void) const
 {
@@ -167,8 +173,10 @@ bool AccountMgrService::Init()
     dumpHelper_ = std::make_unique<AccountDumpHelper>(ohosAccountMgr_);
     IAccountContext::SetInstance(this);
 
-    auto appAccountManagerService = new AppAccountManagerService();
+    auto appAccountManagerService = new (std::nothrow) AppAccountManagerService();
     appAccountManagerService_ = appAccountManagerService->AsObject();
+    auto osAccountManagerService = new (std::nothrow) OsAccountManagerService();
+    osAccountManagerService_ = osAccountManagerService->AsObject();
     ACCOUNT_LOGI("init end success");
     return true;
 }

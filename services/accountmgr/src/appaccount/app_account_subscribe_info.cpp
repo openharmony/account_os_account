@@ -29,9 +29,6 @@ AppAccountSubscribeInfo::AppAccountSubscribeInfo(std::vector<std::string> &owner
     ACCOUNT_LOGI("enter");
 }
 
-AppAccountSubscribeInfo::~AppAccountSubscribeInfo()
-{}
-
 ErrCode AppAccountSubscribeInfo::GetOwners(std::vector<std::string> &owners) const
 {
     ACCOUNT_LOGI("enter");

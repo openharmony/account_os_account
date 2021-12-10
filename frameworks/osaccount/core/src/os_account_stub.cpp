@@ -1,0 +1,768 @@
+/*
+ * Copyright (c) 2021 Huawei Device Co., Ltd.
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+#include "account_log_wrapper.h"
+
+#include "os_account_stub.h"
+namespace OHOS {
+namespace AccountSA {
+const std::map<uint32_t, OsAccountStub::MessageProcFunction> OsAccountStub::messageProcMap_ = {
+    {
+        static_cast<uint32_t>(IOsAccount::Message::CREATE_OS_ACCOUNT),
+        &OsAccountStub::ProcCreateOsAccount,
+    },
+    {
+        static_cast<uint32_t>(IOsAccount::Message::REMOVE_OS_ACCOUNT),
+        &OsAccountStub::ProcRemoveOsAccount,
+    },
+    {
+        static_cast<uint32_t>(IOsAccount::Message::IS_OS_ACCOUNT_EXISTS),
+        &OsAccountStub::ProcIsOsAccountExists,
+    },
+    {
+        static_cast<uint32_t>(IOsAccount::Message::IS_OS_ACCOUNT_ACTIVED),
+        &OsAccountStub::ProcIsOsAccountActived,
+    },
+    {
+        static_cast<uint32_t>(IOsAccount::Message::IS_OS_ACCOUNT_CONSTRAINT_ENABLE),
+        &OsAccountStub::ProcIsOsAccountConstraintEnable,
+    },
+    {
+        static_cast<uint32_t>(IOsAccount::Message::IS_OS_ACCOUNT_VERIFIED),
+        &OsAccountStub::ProcIsOsAccountVerified,
+    },
+    {
+        static_cast<uint32_t>(IOsAccount::Message::GET_CREATED_OS_ACCOUNT_COUNT),
+        &OsAccountStub::ProcGetCreatedOsAccountsCount,
+    },
+    {
+        static_cast<uint32_t>(IOsAccount::Message::GET_OS_ACCOUNT_LOCAL_ID_FROM_PROCESS),
+        &OsAccountStub::ProcGetOsAccountLocalIdFromProcess,
+    },
+    {
+        static_cast<uint32_t>(IOsAccount::Message::GET_OS_ACCOUNT_LOCAL_ID_FROM_UID),
+        &OsAccountStub::ProcGetOsAccountLocalIdFromUid,
+    },
+    {
+        static_cast<uint32_t>(IOsAccount::Message::QUERY_MAX_OS_ACCOUNT_NUMBER),
+        &OsAccountStub::ProcQueryMaxOsAccountNumber,
+    },
+    {
+        static_cast<uint32_t>(IOsAccount::Message::GET_OS_ACCOUNT_ALL_CONSTRAINTS),
+        &OsAccountStub::ProcGetOsAccountAllConstraints,
+    },
+    {
+        static_cast<uint32_t>(IOsAccount::Message::QUERY_ALL_CREATED_OS_ACCOUNTS),
+        &OsAccountStub::ProcQueryAllCreatedOsAccounts,
+    },
+    {
+        static_cast<uint32_t>(IOsAccount::Message::QUERY_CURRENT_OS_ACCOUNT),
+        &OsAccountStub::ProcQueryCurrentOsAccount,
+    },
+    {
+        static_cast<uint32_t>(IOsAccount::Message::QUERY_OS_ACCOUNT_BY_ID),
+        &OsAccountStub::ProcQueryOsAccountById,
+    },
+    {
+        static_cast<uint32_t>(IOsAccount::Message::GET_OS_ACCOUNT_TYPE_FROM_PROCESS),
+        &OsAccountStub::ProcGetOsAccountTypeFromProcess,
+    },
+    {
+        static_cast<uint32_t>(IOsAccount::Message::GET_OS_ACCOUNT_PROFILE_PHOTO),
+        &OsAccountStub::ProcGetOsAccountProfilePhoto,
+    },
+    {
+        static_cast<uint32_t>(IOsAccount::Message::IS_MULTI_OS_ACCOUNT_ENABLE),
+        &OsAccountStub::ProcIsMultiOsAccountEnable,
+    },
+    {
+        static_cast<uint32_t>(IOsAccount::Message::SET_OS_ACCOUNT_NAME),
+        &OsAccountStub::ProcSetOsAccountName,
+    },
+    {
+        static_cast<uint32_t>(IOsAccount::Message::SET_OS_ACCOUNT_CONSTRAINTS),
+        &OsAccountStub::ProcSetOsAccountConstraints,
+    },
+    {
+        static_cast<uint32_t>(IOsAccount::Message::SET_OS_ACCOUNT_PROFILE_PHOTO),
+        &OsAccountStub::ProcSetOsAccountProfilePhoto,
+    },
+    {
+        static_cast<uint32_t>(IOsAccount::Message::GET_DISTRIBUTED_VIRTUAL_DEVICE_ID),
+        &OsAccountStub::ProcGetDistributedVirtualDeviceId,
+    },
+    {
+        static_cast<uint32_t>(IOsAccount::Message::ACTIVATE_OS_ACCOUNT),
+        &OsAccountStub::ProcActivateOsAccount,
+    },
+    {
+        static_cast<uint32_t>(IOsAccount::Message::START_OS_ACCOUNT),
+        &OsAccountStub::ProcStartOsAccount,
+    },
+    {
+        static_cast<uint32_t>(IOsAccount::Message::STOP_OS_ACCOUNT),
+        &OsAccountStub::ProcStopOsAccount,
+    },
+    {
+        static_cast<uint32_t>(IOsAccount::Message::SUBSCRIBE_ACCOUNT),
+        &OsAccountStub::ProcSubscribeOsAccount,
+    },
+    {
+        static_cast<uint32_t>(IOsAccount::Message::UNSUBSCRIBE_ACCOUNT),
+        &OsAccountStub::ProcUnsubscribeOsAccount,
+    },
+    {
+        static_cast<uint32_t>(IOsAccount::Message::GET_OS_ACCOUNT_LOCAL_ID_FOR_SERIAL_NUMBER),
+        &OsAccountStub::ProcGetOsAccountLocalIdForSerialNumber,
+    },
+    {
+        static_cast<uint32_t>(IOsAccount::Message::GET_SERIAL_NUMBER_FOR_OS_ACCOUNT),
+        &OsAccountStub::ProcGetSerialNumberForOsAccount,
+    },
+    {
+        static_cast<uint32_t>(IOsAccount::Message::GET_OS_ACCOUNT_SWITCH_MOD),
+        &OsAccountStub::ProcGetOsAccountSwitchMod,
+    },
+    {
+        static_cast<uint32_t>(IOsAccount::Message::IS_CURRENT_OS_ACCOUNT_VERIFIED),
+        &OsAccountStub::ProcIsCurrentOsAccountVerified,
+    },
+    {
+        static_cast<uint32_t>(IOsAccount::Message::IS_OS_ACCOUNT_COMPLETED),
+        &OsAccountStub::ProcIsOsAccountCompleted,
+    },
+    {
+        static_cast<uint32_t>(IOsAccount::Message::SET_CURRENT_OS_ACCOUNT_IS_VERIFIED),
+        &OsAccountStub::ProcSetCurrentOsAccountIsVerified,
+    },
+    {
+        static_cast<uint32_t>(IOsAccount::Message::SET_OS_ACCOUNT_IS_VERIFIED),
+        &OsAccountStub::ProcSetOsAccountIsVerified,
+    },
+};
+OsAccountStub::OsAccountStub()
+{
+    ACCOUNT_LOGI("enter");
+}
+
+OsAccountStub::~OsAccountStub()
+{
+    ACCOUNT_LOGI("enter");
+}
+
+int OsAccountStub::OnRemoteRequest(uint32_t code, MessageParcel &data, MessageParcel &reply, MessageOption &option)
+{
+    ACCOUNT_LOGI("enter");
+
+    auto messageProc = messageProcMap_.find(code);
+    if (messageProc != messageProcMap_.end()) {
+        auto messageProcFunction = messageProc->second;
+        if (messageProcFunction != nullptr) {
+            return (this->*messageProcFunction)(data, reply);
+        }
+    }
+    ACCOUNT_LOGI("end, code = %{public}u, flags = %{public}u", code, option.GetFlags());
+    return IPCObjectStub::OnRemoteRequest(code, data, reply, option);
+}
+template <typename T>
+bool OsAccountStub::WriteParcelableVector(const std::vector<T> &parcelableVector, MessageParcel &data)
+{
+    auto vectorSize = parcelableVector.size();
+    if (!data.WriteInt32(vectorSize)) {
+        ACCOUNT_LOGE("Account write ParcelableVector size failed");
+        return false;
+    }
+
+    for (auto parcelable : parcelableVector) {
+        ACCOUNT_LOGE("Account write ParcelableVector insert");
+        if (!data.WriteParcelable(&parcelable)) {
+            ACCOUNT_LOGE("Account write ParcelableVector Parcelable failed");
+            return false;
+        }
+    }
+    return true;
+}
+template <typename T>
+bool OsAccountStub::ReadParcelableVector(std::vector<T> &parcelableInfos, MessageParcel &data)
+{
+    int32_t infoSize = 0;
+    if (!data.ReadInt32(infoSize)) {
+        ACCOUNT_LOGI("read Parcelable size failed.");
+        return false;
+    }
+
+    parcelableInfos.clear();
+    for (int32_t index = 0; index < infoSize; index++) {
+        T *info = data.ReadParcelable<T>();
+        if (info == nullptr) {
+            ACCOUNT_LOGI("read Parcelable infos failed.");
+            return false;
+        }
+        parcelableInfos.emplace_back(*info);
+    }
+
+    return true;
+}
+ErrCode OsAccountStub::ProcCreateOsAccount(MessageParcel &data, MessageParcel &reply)
+{
+    std::string name = data.ReadString();
+    if (name.size() == 0) {
+        ACCOUNT_LOGE("failed to read string for name");
+        reply.WriteInt32(ERR_OSACCOUNT_KIT_READ_LOCALNAME_ERROR);
+        return ERR_NONE;
+    }
+    int type = data.ReadInt32();
+    OsAccountInfo osAccountInfo;
+    ErrCode result = CreateOsAccount(name, type, osAccountInfo);
+    if (!reply.WriteInt32(result)) {
+        ACCOUNT_LOGE("failed to write reply");
+        return IPC_STUB_WRITE_PARCEL_ERR;
+    }
+    if (!reply.WriteParcelable(&osAccountInfo)) {
+        ACCOUNT_LOGE("failed to write reply");
+        return IPC_STUB_WRITE_PARCEL_ERR;
+    }
+    return ERR_NONE;
+}
+ErrCode OsAccountStub::ProcRemoveOsAccount(MessageParcel &data, MessageParcel &reply)
+{
+    int localId = data.ReadInt32();
+    if (localId == -1) {
+        ACCOUNT_LOGE("failed to read int for osAccountType");
+        reply.WriteInt32(ERR_OSACCOUNT_KIT_READ_IN_LOCALID_ERROR);
+        return ERR_NONE;
+    }
+
+    ErrCode result = RemoveOsAccount(localId);
+    if (!reply.WriteInt32(result)) {
+        ACCOUNT_LOGE("failed to write reply");
+        return IPC_STUB_WRITE_PARCEL_ERR;
+    }
+    return ERR_NONE;
+}
+ErrCode OsAccountStub::ProcSetOsAccountName(MessageParcel &data, MessageParcel &reply)
+{
+    int localId = data.ReadInt32();
+    if (localId == -1) {
+        ACCOUNT_LOGE("failed to read int for localId");
+        reply.WriteInt32(ERR_OSACCOUNT_KIT_READ_IN_LOCALID_ERROR);
+        return ERR_NONE;
+    }
+    std::string localName = data.ReadString();
+    ErrCode result = SetOsAccountName(localId, localName);
+    if (!reply.WriteInt32(result)) {
+        ACCOUNT_LOGE("failed to write reply");
+        return IPC_STUB_WRITE_PARCEL_ERR;
+    }
+    return ERR_NONE;
+}
+ErrCode OsAccountStub::ProcSetOsAccountConstraints(MessageParcel &data, MessageParcel &reply)
+{
+    int localId = data.ReadInt32();
+    if (localId == -1) {
+        ACCOUNT_LOGE("failed to read int for localId");
+        reply.WriteInt32(ERR_OSACCOUNT_KIT_READ_IN_LOCALID_ERROR);
+        return ERR_NONE;
+    }
+    std::vector<std::string> constraints;
+    bool stringVectorReadSucess = data.ReadStringVector(&constraints);
+    if (!stringVectorReadSucess) {
+        ACCOUNT_LOGE("failed to read StringVector for constraints");
+        return ERR_OSACCOUNT_KIT_READ_STRINGVECTOR_CONSTRAINTS_ERROR;
+    }
+    bool enable = data.ReadBool();
+    ErrCode result = SetOsAccountConstraints(localId, constraints, enable);
+    if (!reply.WriteInt32(result)) {
+        ACCOUNT_LOGE("failed to write reply");
+        return IPC_STUB_WRITE_PARCEL_ERR;
+    }
+    return ERR_NONE;
+}
+ErrCode OsAccountStub::ProcSetOsAccountProfilePhoto(MessageParcel &data, MessageParcel &reply)
+{
+    int localId = data.ReadInt32();
+    if (localId == -1) {
+        ACCOUNT_LOGE("failed to read int for localId");
+        reply.WriteInt32(ERR_OSACCOUNT_KIT_READ_IN_LOCALID_ERROR);
+        return ERR_NONE;
+    }
+    std::string photo = data.ReadString();
+    ErrCode result = SetOsAccountProfilePhoto(localId, photo);
+    if (!reply.WriteInt32(result)) {
+        ACCOUNT_LOGE("failed to write reply");
+        return IPC_STUB_WRITE_PARCEL_ERR;
+    }
+    return ERR_NONE;
+}
+ErrCode OsAccountStub::ProcQueryOsAccountById(MessageParcel &data, MessageParcel &reply)
+{
+    int localId = data.ReadInt32();
+    if (localId == -1) {
+        ACCOUNT_LOGE("failed to read int for localId");
+        reply.WriteInt32(ERR_OSACCOUNT_KIT_READ_IN_LOCALID_ERROR);
+        return ERR_NONE;
+    }
+    OsAccountInfo osAccountInfo = OsAccountInfo();
+    ErrCode result = QueryOsAccountById(localId, osAccountInfo);
+    if (!reply.WriteInt32(result)) {
+        ACCOUNT_LOGE("failed to write reply");
+        return IPC_STUB_WRITE_PARCEL_ERR;
+    }
+    if (!reply.WriteParcelable(&osAccountInfo)) {
+        ACCOUNT_LOGE("failed to write reply");
+        return IPC_STUB_WRITE_PARCEL_ERR;
+    }
+    return ERR_NONE;
+}
+ErrCode OsAccountStub::ProcQueryCurrentOsAccount(MessageParcel &data, MessageParcel &reply)
+{
+    OsAccountInfo osAccountInfo = OsAccountInfo();
+    ErrCode result = QueryCurrentOsAccount(osAccountInfo);
+    if (!reply.WriteInt32(result)) {
+        ACCOUNT_LOGE("failed to write reply");
+        return IPC_STUB_WRITE_PARCEL_ERR;
+    }
+    if (!reply.WriteParcelable(&osAccountInfo)) {
+        ACCOUNT_LOGE("failed to write reply");
+        return IPC_STUB_WRITE_PARCEL_ERR;
+    }
+    return ERR_NONE;
+}
+ErrCode OsAccountStub::ProcQueryAllCreatedOsAccounts(MessageParcel &data, MessageParcel &reply)
+{
+    std::vector<OsAccountInfo> osAccountInfos;
+    osAccountInfos.clear();
+    ErrCode result = QueryAllCreatedOsAccounts(osAccountInfos);
+    if (!reply.WriteInt32(result)) {
+        ACCOUNT_LOGE("failed to write reply");
+        return IPC_STUB_WRITE_PARCEL_ERR;
+    }
+    if (!WriteParcelableVector(osAccountInfos, reply)) {
+        ACCOUNT_LOGE("QueryAllCreatedOsAccounts osAccountInfos failed stub");
+        ACCOUNT_LOGE("failed to write reply");
+        return IPC_STUB_WRITE_PARCEL_ERR;
+    }
+    return ERR_NONE;
+}
+ErrCode OsAccountStub::ProcQueryMaxOsAccountNumber(MessageParcel &data, MessageParcel &reply)
+{
+    int maxOsAccountNumber = 0;
+    ErrCode result = QueryMaxOsAccountNumber(maxOsAccountNumber);
+    if (!reply.WriteInt32(result)) {
+        ACCOUNT_LOGE("failed to write reply");
+        return IPC_STUB_WRITE_PARCEL_ERR;
+    }
+    if (!reply.WriteInt32(maxOsAccountNumber)) {
+        ACCOUNT_LOGE("failed to write reply");
+        return IPC_STUB_WRITE_PARCEL_ERR;
+    }
+    return ERR_NONE;
+}
+ErrCode OsAccountStub::ProcGetCreatedOsAccountsCount(MessageParcel &data, MessageParcel &reply)
+{
+    int osAccountsCount = 0;
+    ErrCode result = GetCreatedOsAccountsCount(osAccountsCount);
+    if (!reply.WriteInt32(result)) {
+        ACCOUNT_LOGE("failed to write reply");
+        return IPC_STUB_WRITE_PARCEL_ERR;
+    }
+    if (!reply.WriteInt32(osAccountsCount)) {
+        ACCOUNT_LOGE("failed to write reply");
+        return IPC_STUB_WRITE_PARCEL_ERR;
+    }
+    return ERR_NONE;
+}
+ErrCode OsAccountStub::ProcGetDistributedVirtualDeviceId(MessageParcel &data, MessageParcel &reply)
+{
+    std::int32_t devicesId;
+    ErrCode result = GetDistributedVirtualDeviceId(devicesId);
+    if (!reply.WriteInt32(result)) {
+        ACCOUNT_LOGE("failed to write reply");
+        return IPC_STUB_WRITE_PARCEL_ERR;
+    }
+    if (!reply.WriteInt32(devicesId)) {
+        ACCOUNT_LOGE("failed to write reply");
+        return IPC_STUB_WRITE_PARCEL_ERR;
+    }
+    return ERR_NONE;
+}
+ErrCode OsAccountStub::ProcGetOsAccountAllConstraints(MessageParcel &data, MessageParcel &reply)
+{
+    int localId = data.ReadInt32();
+    if (localId == -1) {
+        ACCOUNT_LOGE("failed to read int for localId");
+        reply.WriteInt32(ERR_OSACCOUNT_KIT_READ_IN_LOCALID_ERROR);
+        return ERR_NONE;
+    }
+    std::vector<std::string> constraints;
+    constraints.clear();
+    ErrCode result = GetOsAccountAllConstraints(localId, constraints);
+    if (!reply.WriteInt32(result)) {
+        ACCOUNT_LOGE("failed to write reply");
+        return IPC_STUB_WRITE_PARCEL_ERR;
+    }
+    if (!reply.WriteStringVector(constraints)) {
+        ACCOUNT_LOGE("failed to write reply");
+        return IPC_STUB_WRITE_PARCEL_ERR;
+    }
+    return ERR_NONE;
+}
+ErrCode OsAccountStub::ProcGetOsAccountLocalIdFromProcess(MessageParcel &data, MessageParcel &reply)
+{
+    int localId = -1;
+    ErrCode result = GetOsAccountLocalIdFromProcess(localId);
+    if (!reply.WriteInt32(result)) {
+        ACCOUNT_LOGE("failed to write reply");
+        return IPC_STUB_WRITE_PARCEL_ERR;
+    }
+    if (!reply.WriteInt32(localId)) {
+        ACCOUNT_LOGE("failed to write reply");
+        return IPC_STUB_WRITE_PARCEL_ERR;
+    }
+    return ERR_NONE;
+}
+ErrCode OsAccountStub::ProcGetOsAccountProfilePhoto(MessageParcel &data, MessageParcel &reply)
+{
+    int localId = data.ReadInt32();
+    if (localId == -1) {
+        ACCOUNT_LOGE("failed to read int for localId");
+        reply.WriteInt32(ERR_OSACCOUNT_KIT_READ_IN_LOCALID_ERROR);
+        return ERR_NONE;
+    }
+    std::string photo;
+    ErrCode result = GetOsAccountProfilePhoto(localId, photo);
+    if (!reply.WriteInt32(result)) {
+        ACCOUNT_LOGE("failed to write reply");
+        return IPC_STUB_WRITE_PARCEL_ERR;
+    }
+    if (!reply.WriteString(photo)) {
+        ACCOUNT_LOGE("failed to write reply");
+        return IPC_STUB_WRITE_PARCEL_ERR;
+    }
+    return ERR_NONE;
+}
+ErrCode OsAccountStub::ProcGetOsAccountLocalIdFromUid(MessageParcel &data, MessageParcel &reply)
+{
+    int uid = data.ReadInt32();
+    if (uid == -1) {
+        ACCOUNT_LOGE("failed to read int for uid");
+        reply.WriteInt32(ERR_OSACCOUNT_KIT_READ_IN_UID_ERROR);
+        return ERR_NONE;
+    }
+    int localId = -1;
+    ErrCode result = GetOsAccountLocalIdFromUid(uid, localId);
+    if (!reply.WriteInt32(result)) {
+        ACCOUNT_LOGE("failed to write reply");
+        return IPC_STUB_WRITE_PARCEL_ERR;
+    }
+    if (!reply.WriteInt32(localId)) {
+        ACCOUNT_LOGE("failed to write reply");
+        return IPC_STUB_WRITE_PARCEL_ERR;
+    }
+    return ERR_NONE;
+}
+ErrCode OsAccountStub::ProcGetOsAccountTypeFromProcess(MessageParcel &data, MessageParcel &reply)
+{
+    int type;
+    ErrCode result = GetOsAccountTypeFromProcess(type);
+    if (!reply.WriteInt32(result)) {
+        ACCOUNT_LOGE("failed to write reply");
+        return IPC_STUB_WRITE_PARCEL_ERR;
+    }
+    if (!reply.WriteInt32(type)) {
+        ACCOUNT_LOGE("failed to write reply");
+        return IPC_STUB_WRITE_PARCEL_ERR;
+    }
+    return ERR_NONE;
+}
+ErrCode OsAccountStub::ProcGetApplicationConstraints(MessageParcel &data, MessageParcel &reply)
+{
+    return ERR_NONE;
+}
+ErrCode OsAccountStub::ProcGetApplicationConstraintsByNumber(MessageParcel &data, MessageParcel &reply)
+{
+    return ERR_NONE;
+}
+ErrCode OsAccountStub::ProcGetOsAccountLocalIdForSerialNumber(MessageParcel &data, MessageParcel &reply)
+{
+    int64_t serialNumber = data.ReadInt64();
+    int id = 0;
+    ErrCode result = GetOsAccountLocalIdForSerialNumber(serialNumber, id);
+    if (!reply.WriteInt32(result)) {
+        ACCOUNT_LOGE("failed to write reply");
+        return IPC_STUB_WRITE_PARCEL_ERR;
+    }
+    if (!reply.WriteInt32(id)) {
+        ACCOUNT_LOGE("failed to write reply");
+        return IPC_STUB_WRITE_PARCEL_ERR;
+    }
+    return ERR_NONE;
+}
+ErrCode OsAccountStub::ProcGetSerialNumberForOsAccount(MessageParcel &data, MessageParcel &reply)
+{
+    int id = data.ReadInt32();
+    int64_t serialNumber = 0;
+    ErrCode result = GetSerialNumberForOsAccount(id, serialNumber);
+    if (!reply.WriteInt32(result)) {
+        ACCOUNT_LOGE("failed to write reply");
+        return IPC_STUB_WRITE_PARCEL_ERR;
+    }
+    if (!reply.WriteInt64(serialNumber)) {
+        ACCOUNT_LOGE("failed to write reply");
+        return IPC_STUB_WRITE_PARCEL_ERR;
+    }
+    return ERR_NONE;
+}
+ErrCode OsAccountStub::ProcIsOsAccountActived(MessageParcel &data, MessageParcel &reply)
+{
+    int localId = data.ReadInt32();
+    if (localId == -1) {
+        ACCOUNT_LOGE("failed to read int for osAccountType");
+        reply.WriteInt32(ERR_OSACCOUNT_KIT_READ_IN_LOCALID_ERROR);
+        return ERR_NONE;
+    }
+    bool isOsAccountActived = false;
+    ErrCode result = IsOsAccountActived(localId, isOsAccountActived);
+    if (!reply.WriteInt32(result)) {
+        ACCOUNT_LOGE("failed to write reply");
+        return IPC_STUB_WRITE_PARCEL_ERR;
+    }
+    if (!reply.WriteBool(isOsAccountActived)) {
+        ACCOUNT_LOGE("failed to write reply");
+        return IPC_STUB_WRITE_PARCEL_ERR;
+    }
+    return ERR_NONE;
+}
+ErrCode OsAccountStub::ProcIsOsAccountConstraintEnable(MessageParcel &data, MessageParcel &reply)
+{
+    int localId = data.ReadInt32();
+    if (localId == -1) {
+        ACCOUNT_LOGE("failed to read int for osAccountType");
+        reply.WriteInt32(ERR_OSACCOUNT_KIT_READ_IN_LOCALID_ERROR);
+        return ERR_NONE;
+    }
+    std::string constraint = data.ReadString();
+    bool isConstraintEnable = false;
+    ErrCode result = IsOsAccountConstraintEnable(localId, constraint, isConstraintEnable);
+    if (!reply.WriteInt32(result)) {
+        ACCOUNT_LOGE("failed to write reply");
+        return IPC_STUB_WRITE_PARCEL_ERR;
+    }
+    if (!reply.WriteBool(isConstraintEnable)) {
+        ACCOUNT_LOGE("failed to write reply");
+        return IPC_STUB_WRITE_PARCEL_ERR;
+    }
+    return ERR_NONE;
+}
+ErrCode OsAccountStub::ProcIsMultiOsAccountEnable(MessageParcel &data, MessageParcel &reply)
+{
+    bool isMultiOsAccountEnable = false;
+    ErrCode result = IsMultiOsAccountEnable(isMultiOsAccountEnable);
+    if (!reply.WriteInt32(result)) {
+        ACCOUNT_LOGE("failed to write reply");
+        return IPC_STUB_WRITE_PARCEL_ERR;
+    }
+    if (!reply.WriteBool(isMultiOsAccountEnable)) {
+        ACCOUNT_LOGE("failed to write reply");
+        return IPC_STUB_WRITE_PARCEL_ERR;
+    }
+    return ERR_NONE;
+}
+ErrCode OsAccountStub::ProcIsOsAccountVerified(MessageParcel &data, MessageParcel &reply)
+{
+    int localId = data.ReadInt32();
+    if (localId == -1) {
+        ACCOUNT_LOGE("failed to read int for localId");
+        reply.WriteInt32(ERR_OSACCOUNT_KIT_READ_IN_LOCALID_ERROR);
+        return ERR_NONE;
+    }
+    bool isOsAccountVerified = false;
+    ErrCode result = IsOsAccountVerified(localId, isOsAccountVerified);
+    if (!reply.WriteInt32(result)) {
+        ACCOUNT_LOGE("failed to write reply");
+        return IPC_STUB_WRITE_PARCEL_ERR;
+    }
+    if (!reply.WriteBool(isOsAccountVerified)) {
+        ACCOUNT_LOGE("failed to write reply");
+        return IPC_STUB_WRITE_PARCEL_ERR;
+    }
+    return ERR_NONE;
+}
+ErrCode OsAccountStub::ProcIsOsAccountExists(MessageParcel &data, MessageParcel &reply)
+{
+    int localId = data.ReadInt32();
+    if (localId == -1) {
+        ACCOUNT_LOGE("failed to read int for osAccountType");
+        reply.WriteInt32(ERR_OSACCOUNT_KIT_READ_IN_LOCALID_ERROR);
+        return ERR_NONE;
+    }
+    bool isOsAccountExists = false;
+    ErrCode result = IsOsAccountExists(localId, isOsAccountExists);
+    if (!reply.WriteInt32(result)) {
+        ACCOUNT_LOGE("failed to write reply");
+        return IPC_STUB_WRITE_PARCEL_ERR;
+    }
+    if (!reply.WriteBool(isOsAccountExists)) {
+        ACCOUNT_LOGE("failed to write reply");
+        return IPC_STUB_WRITE_PARCEL_ERR;
+    }
+    return ERR_NONE;
+}
+ErrCode OsAccountStub::ProcSubscribeOsAccount(MessageParcel &data, MessageParcel &reply)
+{
+    std::unique_ptr<OsAccountSubscribeInfo> subscribeInfo(data.ReadParcelable<OsAccountSubscribeInfo>());
+    if (!subscribeInfo) {
+        ACCOUNT_LOGE("failed to read parcelable for subscribeInfo");
+        return IPC_STUB_INVALID_DATA_ERR;
+    }
+
+    sptr<IRemoteObject> eventListener = data.ReadParcelable<IRemoteObject>();
+    if (eventListener == nullptr) {
+        ACCOUNT_LOGE("failed to read parcelable for eventListener");
+        return IPC_STUB_INVALID_DATA_ERR;
+    }
+
+    ErrCode result = SubscribeOsAccount(*subscribeInfo, eventListener);
+    if (!reply.WriteInt32(result)) {
+        ACCOUNT_LOGE("failed to write reply");
+        return IPC_STUB_WRITE_PARCEL_ERR;
+    }
+
+    return ERR_NONE;
+}
+ErrCode OsAccountStub::ProcUnsubscribeOsAccount(MessageParcel &data, MessageParcel &reply)
+{
+    sptr<IRemoteObject> eventListener = data.ReadParcelable<IRemoteObject>();
+    if (eventListener == nullptr) {
+        ACCOUNT_LOGE("failed to read parcelable for eventListener");
+        return IPC_STUB_INVALID_DATA_ERR;
+    }
+
+    ErrCode result = UnsubscribeOsAccount(eventListener);
+    if (!reply.WriteInt32(result)) {
+        ACCOUNT_LOGE("failed to write reply");
+        return IPC_STUB_WRITE_PARCEL_ERR;
+    }
+    return ERR_NONE;
+}
+ErrCode OsAccountStub::ProcActivateOsAccount(MessageParcel &data, MessageParcel &reply)
+{
+    int localId = data.ReadInt32();
+    if (localId == -1) {
+        ACCOUNT_LOGE("failed to read int for localId");
+        reply.WriteInt32(ERR_OSACCOUNT_KIT_READ_IN_LOCALID_ERROR);
+        return ERR_NONE;
+    }
+    ErrCode result = ActivateOsAccount(localId);
+    if (!reply.WriteInt32(result)) {
+        ACCOUNT_LOGE("failed to write reply");
+        return IPC_STUB_WRITE_PARCEL_ERR;
+    }
+    return ERR_NONE;
+}
+ErrCode OsAccountStub::ProcStartOsAccount(MessageParcel &data, MessageParcel &reply)
+{
+    int localId = data.ReadInt32();
+    if (localId == -1) {
+        ACCOUNT_LOGE("failed to read int for localId");
+        reply.WriteInt32(ERR_OSACCOUNT_KIT_READ_IN_LOCALID_ERROR);
+        return ERR_NONE;
+    }
+    ErrCode result = StartOsAccount(localId);
+    if (!reply.WriteInt32(result)) {
+        ACCOUNT_LOGE("failed to write reply");
+        return IPC_STUB_WRITE_PARCEL_ERR;
+    }
+    return ERR_NONE;
+}
+ErrCode OsAccountStub::ProcStopOsAccount(MessageParcel &data, MessageParcel &reply)
+{
+    int localId = data.ReadInt32();
+    if (localId == -1) {
+        ACCOUNT_LOGE("failed to read int for localId");
+        reply.WriteInt32(ERR_OSACCOUNT_KIT_READ_IN_LOCALID_ERROR);
+        return ERR_NONE;
+    }
+    ErrCode result = StopOsAccount(localId);
+    if (!reply.WriteInt32(result)) {
+        ACCOUNT_LOGE("failed to write reply");
+        return IPC_STUB_WRITE_PARCEL_ERR;
+    }
+    return ERR_NONE;
+}
+ErrCode OsAccountStub::ProcGetOsAccountSwitchMod(MessageParcel &data, MessageParcel &reply)
+{
+    OS_ACCOUNT_SWITCH_MOD osAccountSwitchMod = GetOsAccountSwitchMod();
+    if (!reply.WriteInt32(osAccountSwitchMod)) {
+        ACCOUNT_LOGE("failed to write reply");
+        return IPC_STUB_WRITE_PARCEL_ERR;
+    }
+    return ERR_NONE;
+}
+ErrCode OsAccountStub::ProcIsCurrentOsAccountVerified(MessageParcel &data, MessageParcel &reply)
+{
+    bool isOsAccountVerified = false;
+    ErrCode result = IsCurrentOsAccountVerified(isOsAccountVerified);
+    if (!reply.WriteInt32(result)) {
+        ACCOUNT_LOGE("failed to write reply");
+        return IPC_STUB_WRITE_PARCEL_ERR;
+    }
+    reply.WriteBool(isOsAccountVerified);
+    return ERR_NONE;
+}
+ErrCode OsAccountStub::ProcIsOsAccountCompleted(MessageParcel &data, MessageParcel &reply)
+{
+    int localId = data.ReadInt32();
+    if (localId == -1) {
+        ACCOUNT_LOGE("failed to read int for localId");
+        reply.WriteInt32(ERR_OSACCOUNT_KIT_READ_IN_LOCALID_ERROR);
+        return ERR_NONE;
+    }
+    bool isOsAccountCompleted = false;
+    ErrCode result = IsOsAccountCompleted(localId, isOsAccountCompleted);
+    if (!reply.WriteInt32(result)) {
+        ACCOUNT_LOGE("failed to write reply");
+        return IPC_STUB_WRITE_PARCEL_ERR;
+    }
+    reply.WriteBool(isOsAccountCompleted);
+    return ERR_NONE;
+}
+ErrCode OsAccountStub::ProcSetCurrentOsAccountIsVerified(MessageParcel &data, MessageParcel &reply)
+{
+    bool isOsAccountVerified = data.ReadBool();
+    ErrCode result = SetCurrentOsAccountIsVerified(isOsAccountVerified);
+    if (!reply.WriteInt32(result)) {
+        ACCOUNT_LOGE("failed to write reply");
+        return IPC_STUB_WRITE_PARCEL_ERR;
+    }
+    return ERR_NONE;
+}
+ErrCode OsAccountStub::ProcSetOsAccountIsVerified(MessageParcel &data, MessageParcel &reply)
+{
+    int localId = data.ReadInt32();
+    if (localId == -1) {
+        ACCOUNT_LOGE("failed to read int for localId");
+        reply.WriteInt32(ERR_OSACCOUNT_KIT_READ_IN_LOCALID_ERROR);
+        return ERR_NONE;
+    }
+    bool isOsAccountVerified = data.ReadBool();
+    ErrCode result = SetOsAccountIsVerified(localId, isOsAccountVerified);
+    if (!reply.WriteInt32(result)) {
+        ACCOUNT_LOGE("failed to write reply");
+        return IPC_STUB_WRITE_PARCEL_ERR;
+    }
+    return ERR_NONE;
+}
+}  // namespace AccountSA
+}  // namespace OHOS

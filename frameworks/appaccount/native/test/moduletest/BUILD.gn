@@ -62,9 +62,6 @@ ohos_moduletest("app_account_manager_module_test") {
   ]
 
   external_deps = [
-    "appexecfwk_standard:appexecfwk_base",
-    "appexecfwk_standard:appexecfwk_core",
-    "appexecfwk_standard:libeventhandler",
     "distributeddatamgr:distributeddata_inner",
     "hiviewdfx_hilog_native:libhilog",
     "ipc:ipc_core",

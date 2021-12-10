@@ -16,8 +16,8 @@
 #include <memory>
 #include <unistd.h>
 
-#include "account_kvstore_death_recipient_callback.h"
 #include "account_log_wrapper.h"
+
 #include "account_data_storage.h"
 
 namespace OHOS {
@@ -92,7 +92,8 @@ bool AccountDataStorage::CheckKvStore()
         if (status == OHOS::DistributedKv::Status::SUCCESS && kvStorePtr_ != nullptr) {
             return true;
         }
-        ACCOUNT_LOGE("AccountDataStorage CheckKvStore, Times: %{public}d", tryTimes);
+
+        ACCOUNT_LOGI("tryTimes = %{public}d", tryTimes);
         usleep(SLEEP_INTERVAL);
         tryTimes--;
     }
