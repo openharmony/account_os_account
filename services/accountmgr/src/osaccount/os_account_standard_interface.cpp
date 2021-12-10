@@ -59,7 +59,7 @@ ErrCode OsAccountStandardInterface::SendToCESAccountCreate(std::vector<OsAccount
         }
     }
     if (!flag) {
-        return ERR_OS_ACCOUNT_SERVICE_INTERFACE_TO_CES_ACCOUNT_CREATE_ERROR;
+        return ERR_OS_ACCOUNT_SERVICE_INTERFACE_TO_CE_ACCOUNT_CREATE_ERROR;
     }
     return ERR_OK;
 }
@@ -78,7 +78,7 @@ ErrCode OsAccountStandardInterface::SendToCESAccountDelete(std::vector<OsAccount
         }
     }
     if (!flag) {
-        return ERR_OS_ACCOUNT_SERVICE_INTERFACE_TO_CES_ACCOUNT_DELETE_ERROR;
+        return ERR_OS_ACCOUNT_SERVICE_INTERFACE_TO_CE_ACCOUNT_DELETE_ERROR;
     }
     return ERR_OK;
 }
@@ -97,7 +97,7 @@ ErrCode OsAccountStandardInterface::SendToCESAccountStart(std::vector<OsAccountI
         }
     }
     if (!flag) {
-        return ERR_OS_ACCOUNT_SERVICE_INTERFACE_TO_CES_ACCOUNT_START_ERROR;
+        return ERR_OS_ACCOUNT_SERVICE_INTERFACE_TO_CE_ACCOUNT_START_ERROR;
     }
     return ERR_OK;
 }
@@ -116,7 +116,7 @@ ErrCode OsAccountStandardInterface::SendToCESAccountStop(std::vector<OsAccountIn
         }
     }
     if (!flag) {
-        return ERR_OS_ACCOUNT_SERVICE_INTERFACE_TO_CES_ACCOUNT_STOP_ERROR;
+        return ERR_OS_ACCOUNT_SERVICE_INTERFACE_TO_CE_ACCOUNT_STOP_ERROR;
     }
     return ERR_OK;
 }

@@ -19,18 +19,16 @@
 #include <fstream>
 #include <string>
 #include <vector>
-
 #include "nlohmann/json.hpp"
 
 namespace OHOS {
 
-const std::string FUZZ_TEST_CONFIG_FILE_PATH{"/data/fuzztestconfig/config.json"};
-
-const std::string FUZZ_TEST_MAIN_LOOP_KEY{"flag"};
+const std::string FUZZ_TEST_CONFIG_FILE_PATH {"/data/fuzztestconfig/config.json"};
+const std::string FUZZ_TEST_MAIN_LOOP_KEY {"flag"};
 
 struct FuzzTestData {
-    int32_t mainLoopFlag{0};
-    std::vector<std::string> methodVec{};
+    int32_t mainLoopFlag {0};
+    std::vector<std::string> methodVec {};
 };
 
 class FuzzConfigParser {
@@ -62,7 +60,7 @@ public:
                         continue;
                     }
 
-                    std::string param{};
+                    std::string param {};
                     for (auto itp = itm->begin(); itp != itm->end(); ++itp) {
                         auto tp = itp.value();
                         param += tp;

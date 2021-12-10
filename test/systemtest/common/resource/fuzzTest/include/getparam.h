@@ -14,15 +14,13 @@
  */
 #ifndef GET_PARAM_H
 #define GET_PARAM_H
-#include <memory>
-#include <stdint.h>
-#include <string>
-#include <vector>
-
 #include "app_account_info.h"
+#include "app_account_manager.h"
 #include "app_account_subscribe_info.h"
 #include "app_account_subscriber.h"
-#include "app_account_manager.h"
+#include <memory>
+#include <string>
+#include <vector>
 
 namespace OHOS {
 namespace AccountSA {
@@ -68,8 +66,8 @@ std::shared_ptr<AppAccountSubscriber> GetAppAccountSubscriber();
 
 class TestAppAccountSubscriber : public AppAccountSubscriber {
 public:
-    TestAppAccountSubscriber(){};
-    ~TestAppAccountSubscriber(){};
+    TestAppAccountSubscriber() {};
+    ~TestAppAccountSubscriber() {};
     virtual void OnAccountsChanged(const std::vector<AppAccountInfo> &accounts)
     {
         printf("Fuzz Test OnAccountsChanged\n");
