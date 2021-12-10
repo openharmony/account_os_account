@@ -44,6 +44,5 @@ HWTEST_F(ActsAccountFuzzTest, ACTS_FuzzTest_0100, Function | MediumTest | Level1
     fuzzTestManager::GetInstance()->StartFuzzTest();
     std::cout << "fuzztest end" << std::endl;
 }
-
 }  // namespace AccountSA
 }  // namespace OHOS
