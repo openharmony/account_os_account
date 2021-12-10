@@ -18,7 +18,6 @@
 using namespace testing::ext;
 namespace OHOS {
 namespace AccountSA {
-
 class ActsAccountFuzzTest : public testing::Test {
 public:
     static void SetUpTestCase();

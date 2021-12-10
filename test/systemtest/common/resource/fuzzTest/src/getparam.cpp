@@ -23,9 +23,9 @@
 using namespace std;
 namespace OHOS {
 namespace AccountSA {
-#define ACCOUNT_FUZZ_BOOL 2
-#define ACCOUNT_FUZZ_CHAR_LEFT -128
-#define ACCOUNT_FUZZ_CHAR_RIGHT 127
+const int ACCOUNT_FUZZ_BOOL = 2;
+const int ACCOUNT_FUZZ_CHAR_LEFT = -128;
+const int ACCOUNT_FUZZ_CHAR_RIGHT = 127;
 
 bool GetBoolParam()
 {
@@ -419,6 +419,5 @@ std::shared_ptr<AppAccountSubscriber> GetAppAccountSubscriber()
 {
     return std::make_shared<TestAppAccountSubscriber>();
 }
-
 }  // namespace AccountSA
 }  // namespace OHOS
