@@ -12,22 +12,25 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-#include "../include/getparam.h"
-
 #include <cfloat>
 #include <chrono>
 #include <climits>
 #include <functional>
 #include <iostream>
 #include <random>
+#include "../include/getparam.h"
 
 using namespace std;
 namespace OHOS {
 namespace AccountSA {
+#define ACCOUNT_FUZZ_BOOL 2
+#define ACCOUNT_FUZZ_CHAR_LEFT -128
+#define ACCOUNT_FUZZ_CHAR_RIGHT 127
+
 bool GetBoolParam()
 {
     bool param;
-    if (GetIntParam() % 2 == 0) {
+    if (GetIntParam() % ACCOUNT_FUZZ_BOOL == 0) {
         param = true;
     } else {
         param = false;
@@ -189,7 +192,7 @@ float GetFloatParam()
 char GetCharParam()
 {
     std::random_device rd;
-    static uniform_int_distribution<> u(-128, 127);
+    static uniform_int_distribution<> u(ACCOUNT_FUZZ_CHAR_LEFT, ACCOUNT_FUZZ_CHAR_RIGHT);
     static default_random_engine e(rd());
     char param = u(e);
     return param;

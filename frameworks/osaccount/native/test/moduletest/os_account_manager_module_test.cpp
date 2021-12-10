@@ -33,7 +33,7 @@ const int INT_TEST_TYPE = 1;
 const int INT_TEST_NEGATIVE_TYPE = -21;
 const int INT_TEST_MAX_TYPE = 10000;
 
-const std::vector<std::string> CONSTANTS_VECTOR{"WIFI", "PHONE", "PHOTO"};
+const std::vector<std::string> CONSTANTS_VECTOR {"WIFI", "PHONE", "PHOTO"};
 const std::string CONSTANTS_STRING_WIFI = "WIFI";
 const std::string STRING_NAME_OUT_OF_RANGE =
     "name_out_of_range_"

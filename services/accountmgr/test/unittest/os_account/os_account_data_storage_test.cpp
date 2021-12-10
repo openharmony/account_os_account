@@ -34,7 +34,7 @@ using namespace testing::ext;
 using namespace OHOS::AccountSA;
 using namespace OHOS;
 using namespace AccountSA;
-namespace{
+namespace {
 const int INT_ID = 1;
 const std::string STRING_NAME = "asf";
 const int INT_TYPE = 12;

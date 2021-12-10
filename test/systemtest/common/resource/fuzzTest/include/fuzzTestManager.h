@@ -15,40 +15,41 @@
 #ifndef FUZZTESTMANAGER_H
 #define FUZZTESTMANAGER_H
 
+#include <map>
 #include <memory>
 #include <string>
-#include <map>
 #include <unordered_map>
-
 #include "nlohmann/json.hpp"
+
 namespace OHOS {
 namespace AccountSA {
 
 class fuzzTestManager {
 public:
-    typedef std::shared_ptr<fuzzTestManager> Ptr;
+    using Ptr = std::shared_ptr<fuzzTestManager>;
     ~fuzzTestManager()
     {}
+
     static Ptr GetInstance()
     {
         if (instance_ == nullptr) {
-            instance_ = std::shared_ptr<fuzzTestManager>(new fuzzTestManager);
+            instance_ = std::make_shared<fuzzTestManager>();
         }
         return instance_;
     }
 
     void StartFuzzTest();
+    fuzzTestManager();
 
 private:
-    void SetJsonFunction(std::string);
+    void SetJsonFunction(std::string functionName);
     void SetCycle(uint16_t cycle);
-    fuzzTestManager();
     fuzzTestManager(fuzzTestManager &) = delete;
     fuzzTestManager &operator=(const fuzzTestManager &) = delete;
     static Ptr instance_;
-    uint16_t cycle_{};
-    std::unordered_map<std::string, int> remainderMap_{};
-    std::unordered_map<std::string, std::function<void()>> callFunctionMap_{};
+    uint16_t cycle_ {};
+    std::unordered_map<std::string, int> remainderMap_ {};
+    std::unordered_map<std::string, std::function<void()>> callFunctionMap_ {};
 
     void RegisterAppAccountManager();
 };

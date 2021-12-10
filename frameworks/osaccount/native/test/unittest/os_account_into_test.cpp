@@ -66,7 +66,6 @@ const std::string STRING_JSON =
     "xFpssN5bwwXwPilDIZ0klLxSq2vWLAIWACMjBeilQNo6j9ni50R9U8U6lF400m18Q30sTMLnxC1758CxqrO8EesXXzBgiiV5SQPlCgHnNSfI5f1+"
     "av33Q5L3rdP68nb7mfWlFFFaCP//Z\",\"serialNumber\":121012012,\"type\":123}";
 }  // namespace
-
 class OsAccountInfoTest : public testing::Test {
 public:
     static void SetUpTestCase(void);
