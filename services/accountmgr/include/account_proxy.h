@@ -35,6 +35,7 @@ public:
     std::int32_t QueryDeviceAccountId(std::int32_t &accountId) override;
     std::int32_t QueryDeviceAccountIdFromUid(std::int32_t uid) override;
     sptr<IRemoteObject> GetAppAccountService() override;
+    sptr<IRemoteObject> GetOsAccountService() override;
 
 private:
     std::int32_t DeviceAccountRequest(std::uint32_t code, std::int32_t accountId);

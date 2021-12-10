@@ -24,6 +24,7 @@
 #include "account_info.h"
 #include "account_stub.h"
 #include "app_account_manager_service.h"
+#include "os_account_manager_service.h"
 #include "iaccount.h"
 #include "iremote_object.h"
 #include "ohos_account_manager.h"
@@ -48,6 +49,7 @@ public:
     std::int32_t QueryDeviceAccountId(std::int32_t &accountId) override;
     std::int32_t QueryDeviceAccountIdFromUid(std::int32_t uid) override;
     sptr<IRemoteObject> GetAppAccountService() override;
+    sptr<IRemoteObject> GetOsAccountService() override;
 
     virtual void OnStart() override;
     virtual void OnStop() override;
@@ -70,6 +72,7 @@ private:
     std::shared_ptr<OhosAccountManager> ohosAccountMgr_{};
 
     sptr<IRemoteObject> appAccountManagerService_;
+    sptr<IRemoteObject> osAccountManagerService_;
 };
 }  // namespace AccountSA
 }  // namespace OHOS

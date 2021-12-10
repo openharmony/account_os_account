@@ -24,6 +24,7 @@ config("accountmgr_stub_test_config") {
     "./include",
     "${services_path}/accountmgr/include",
     "${services_path}/accountmgr/include/appaccount",
+    "${services_path}/accountmgr/include/osaccount",
     "${common_path}/log/include",
     "${common_path}/account_error/include",
     "${common_path}/database/include",
@@ -46,8 +47,8 @@ ohos_unittest("AccountSAMgrStubTest") {
     "${services_path}/accountmgr/src/account_data_storage.cpp",
     "${services_path}/accountmgr/src/account_dump_helper.cpp",
     "${services_path}/accountmgr/src/account_event_provider.cpp",
+    "${services_path}/accountmgr/src/account_file_operator.cpp",
     "${services_path}/accountmgr/src/account_helper_data.cpp",
-    "${services_path}/accountmgr/src/account_kvstore_death_recipient_callback.cpp",
     "${services_path}/accountmgr/src/account_mgr_service.cpp",
     "${services_path}/accountmgr/src/account_permission_manager.cpp",
     "${services_path}/accountmgr/src/account_state_machine.cpp",
@@ -62,9 +63,19 @@ ohos_unittest("AccountSAMgrStubTest") {
     "${services_path}/accountmgr/src/appaccount/inner_app_account_manager.cpp",
     "${services_path}/accountmgr/src/ohos_account_data_deal.cpp",
     "${services_path}/accountmgr/src/ohos_account_manager.cpp",
+    "${services_path}/accountmgr/src/osaccount/inner_os_account_manager.cpp",
+    "${services_path}/accountmgr/src/osaccount/os_account_control_database_manager.cpp",
+    "${services_path}/accountmgr/src/osaccount/os_account_control_file_manager.cpp",
+    "${services_path}/accountmgr/src/osaccount/os_account_data_storage.cpp",
+    "${services_path}/accountmgr/src/osaccount/os_account_file_operator.cpp",
+    "${services_path}/accountmgr/src/osaccount/os_account_manager_service.cpp",
+    "${services_path}/accountmgr/src/osaccount/os_account_photo_operator.cpp",
+    "${services_path}/accountmgr/src/osaccount/os_account_standard_interface.cpp",
+    "${services_path}/accountmgr/src/osaccount/os_account_subscribe_death_recipient.cpp",
+    "${services_path}/accountmgr/src/osaccount/os_account_subscribe_manager.cpp",
     "${services_path}/accountmgr/test/mock/src/mock_account_mgr_service.cpp",
   ]
-
+  ldflags = [ "-Wl,-rpath=/system/lib/module/multimedia/" ]
   sources += [ "account_mgr_stub_test.cpp" ]
 
   configs = [
@@ -75,6 +86,8 @@ ohos_unittest("AccountSAMgrStubTest") {
   deps = [
     "${app_account_services_path}/src/appaccount:app_account_service_core",
     "${innerkits_native_path}:libaccountkits",
+    "${os_account_core_path}:os_account_core",
+    "${os_account_innerkits_native_path}:os_account_innerkits",
     "//third_party/googletest:gmock_main",
     "//third_party/googletest:gtest_main",
     "//utils/native/base:utils",
@@ -92,6 +105,7 @@ ohos_unittest("AccountSAMgrStubTest") {
     "hisysevent_native:libhisysevent",
     "hiviewdfx_hilog_native:libhilog",
     "ipc:ipc_core",
+    "multimedia_image_standard:image",
     "permission_standard:libpermissionsdk_standard",
     "safwk:system_ability_fwk",
     "samgr_standard:samgr_proxy",

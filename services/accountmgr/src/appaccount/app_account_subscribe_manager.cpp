@@ -30,9 +30,6 @@ AppAccountSubscribeManager::AppAccountSubscribeManager()
     ACCOUNT_LOGI("enter");
 }
 
-AppAccountSubscribeManager::~AppAccountSubscribeManager()
-{}
-
 std::shared_ptr<AppAccountDataStorage> AppAccountSubscribeManager::GetDataStorage(
     const uid_t &uid, const bool &autoSync)
 {

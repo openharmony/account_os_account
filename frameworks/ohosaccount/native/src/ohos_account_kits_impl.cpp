@@ -59,7 +59,7 @@ sptr<IAccount> OhosAccountKitsImpl::GetService()
     }
 
     if (deathRecipient_ == nullptr) {
-        deathRecipient_ = new DeathRecipient();
+        deathRecipient_ = new (std::nothrow) DeathRecipient();
     }
 
     if ((object->IsProxyObject()) && (!object->AddDeathRecipient(deathRecipient_))) {

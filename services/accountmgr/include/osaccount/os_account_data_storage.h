@@ -12,27 +12,20 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
-#ifndef OS_ACCOUNT_SERVICES_ACCOUNTMGR_INCLUDE_ACCOUNT_KVSTORE_DEATH_RECIPIENT_CALLBACK_H
-#define OS_ACCOUNT_SERVICES_ACCOUNTMGR_INCLUDE_ACCOUNT_KVSTORE_DEATH_RECIPIENT_CALLBACK_H
-
+#ifndef OS_ACCOUNT_SERVICES_ACCOUNTMGR_INCLUDE_OSACCOUNT_OS_ACCOUNT_DATA_STORAGE_H
+#define OS_ACCOUNT_SERVICES_ACCOUNTMGR_INCLUDE_OSACCOUNT_OS_ACCOUNT_DATA_STORAGE_H
+#include "os_account_constants.h"
+#include "os_account_info.h"
 #include "account_data_storage.h"
-#include "kvstore_death_recipient.h"
-
 namespace OHOS {
 namespace AccountSA {
-class AccountKvStoreDeathRecipientCallback : public DistributedKv::KvStoreDeathRecipient {
+class OsAccountDataStorage : public AccountDataStorage {
 public:
-    AccountKvStoreDeathRecipientCallback() = delete;
-    AccountKvStoreDeathRecipientCallback(std::shared_ptr<AccountDataStorage> accountDataStorage);
-    virtual ~AccountKvStoreDeathRecipientCallback();
-
-    virtual void OnRemoteDied() override;
-
-private:
-    std::shared_ptr<AccountDataStorage> accountDataStorage_;
+    OsAccountDataStorage(const std::string &appId, const std::string &storeId, const bool &autoSync);
+    virtual ~OsAccountDataStorage();
+    virtual void SaveEntries(std::vector<OHOS::DistributedKv::Entry> allEntries,
+        std::map<std::string, std::shared_ptr<IAccountInfo>> &infos) override;
 };
 }  // namespace AccountSA
 }  // namespace OHOS
-
-#endif  // OS_ACCOUNT_SERVICES_ACCOUNTMGR_INCLUDE_ACCOUNT_KVSTORE_DEATH_RECIPIENT_CALLBACK_H
+#endif  // OS_ACCOUNT_SERVICES_ACCOUNTMGR_INCLUDE_OSACCOUNT_OS_ACCOUNT_DATA_STORAGE_H

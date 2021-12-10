@@ -70,5 +70,11 @@ sptr<IRemoteObject> MockAccountMgrService::GetAppAccountService()
 
     return nullptr;
 }
+sptr<IRemoteObject> MockAccountMgrService::GetOsAccountService()
+{
+    ACCOUNT_LOGI("enter");
+
+    return nullptr;
+}
 }  // namespace AccountSA
 }  // namespace OHOS

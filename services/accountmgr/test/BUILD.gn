@@ -35,8 +35,10 @@ group("unittest") {
   deps = [
     "unittest/account_dump_helper_test:unittest",
     "unittest/account_event_provider_test:unittest",
+    "unittest/account_file_operator_test:unittest",
     "unittest/account_mgr_service_test:unittest",
     "unittest/account_mgr_stub_test:unittest",
     "unittest/ohos_account_data_deal_test:unittest",
+    "unittest/os_account:unittest",
   ]
 }

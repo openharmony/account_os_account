@@ -31,9 +31,6 @@ AppAccountSubscriber::AppAccountSubscriber(const AppAccountSubscribeInfo &subscr
     ACCOUNT_LOGI("enter");
 }
 
-AppAccountSubscriber::~AppAccountSubscriber()
-{}
-
 ErrCode AppAccountSubscriber::GetSubscribeInfo(AppAccountSubscribeInfo &subscribeInfo) const
 {
     ACCOUNT_LOGI("enter");

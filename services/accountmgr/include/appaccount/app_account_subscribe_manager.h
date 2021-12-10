@@ -33,7 +33,7 @@ public:
     using Callback = OHOS::AppExecFwk::InnerEvent::Callback;
 
     AppAccountSubscribeManager();
-    virtual ~AppAccountSubscribeManager();
+    virtual ~AppAccountSubscribeManager() = default;
 
     ErrCode SubscribeAppAccount(const std::shared_ptr<AppAccountSubscribeInfo> &subscribeInfoPtr,
         const sptr<IRemoteObject> &eventListener, const uid_t &uid, const std::string &bundleName);
@@ -59,7 +59,7 @@ private:
     ErrCode RemoveSubscribeRecord(const sptr<IRemoteObject> &eventListener);
 
 private:
-    std::shared_ptr<EventHandler> handler_;
+    std::shared_ptr<EventHandler> handler_ = nullptr;
     std::mutex mutex_;
     sptr<IRemoteObject::DeathRecipient> subscribeDeathRecipient_;
     std::mutex subscribeRecordMutex_;
