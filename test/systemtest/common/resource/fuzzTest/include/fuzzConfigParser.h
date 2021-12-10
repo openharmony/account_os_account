@@ -22,7 +22,6 @@
 #include "nlohmann/json.hpp"
 
 namespace OHOS {
-
 const std::string FUZZ_TEST_CONFIG_FILE_PATH {"/data/fuzztestconfig/config.json"};
 const std::string FUZZ_TEST_MAIN_LOOP_KEY {"flag"};
 
@@ -71,7 +70,6 @@ public:
         }
     }
 };
-
 }  // namespace OHOS
 
 #endif  // FUZZ_CONFIG_PARSER_H

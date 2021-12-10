@@ -15,10 +15,10 @@
 #ifndef ACCOUNT_FUZZTESTMANAGER_H
 #define ACCOUNT_FUZZTESTMANAGER_H
 
+#include <unistd.h>
 #include "app_account_manager.h"
 #include "fuzzConfigParser.h"
 #include "hilog_wrapper.h"
-#include <unistd.h>
 #include "../include/getparam.h"
 #include "../include/fuzzTestManager.h"
 

@@ -23,7 +23,6 @@
 
 namespace OHOS {
 namespace AccountSA {
-
 class fuzzTestManager {
 public:
     using Ptr = std::shared_ptr<fuzzTestManager>;

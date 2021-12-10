@@ -14,13 +14,13 @@
  */
 #ifndef GET_PARAM_H
 #define GET_PARAM_H
+#include <memory>
+#include <string>
+#include <vector>
 #include "app_account_info.h"
 #include "app_account_manager.h"
 #include "app_account_subscribe_info.h"
 #include "app_account_subscriber.h"
-#include <memory>
-#include <string>
-#include <vector>
 
 namespace OHOS {
 namespace AccountSA {
@@ -73,7 +73,6 @@ public:
         printf("Fuzz Test OnAccountsChanged\n");
     }
 };
-
 }  // namespace AccountSA
 }  // namespace OHOS
 #endif
