@@ -30,7 +30,7 @@ public:
     virtual ErrCode IsOsAccountExists(const int id, bool &isOsAccountExits) = 0;
     virtual ErrCode IsOsAccountActived(const int id, bool &isOsAccountActived) = 0;
     virtual ErrCode IsOsAccountConstraintEnable(
-        const int id, const std::string constraint, bool &isOsAccountConstraintEnable) = 0;
+        const int id, const std::string &constraint, bool &isOsAccountConstraintEnable) = 0;
     virtual ErrCode IsOsAccountVerified(const int id, bool &isOsAccountVerified) = 0;
     virtual ErrCode GetCreatedOsAccountsCount(int &createdOsAccountCount) = 0;
     virtual ErrCode QueryMaxOsAccountNumber(int &maxOsAccountNumber) = 0;

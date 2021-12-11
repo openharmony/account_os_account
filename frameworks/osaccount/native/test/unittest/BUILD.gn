@@ -35,7 +35,7 @@ config("os_account_service_config_unittest") {
 ohos_unittest("os_account_info_test") {
   module_out_path = module_output_path
 
-  sources = [ "os_account_into_test.cpp" ]
+  sources = [ "os_account_info_test.cpp" ]
 
   configs = [ ":os_account_service_config_unittest" ]
 

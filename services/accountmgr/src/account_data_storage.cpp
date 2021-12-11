@@ -169,7 +169,7 @@ ErrCode AccountDataStorage::AddAccountInfo(IAccountInfo &iAccountInfo)
     bool isKeyExists = false;
     IsKeyExists(iAccountInfo.GetPrimeKey(), isKeyExists);
     if (isKeyExists) {
-        ACCOUNT_LOGE("the key does not exist");
+        ACCOUNT_LOGE("the key already exists.");
         return ERR_ACCOUNT_SERVICE_DATA_STORAGE_KEY_EXISTED_ERROR;
     }
 

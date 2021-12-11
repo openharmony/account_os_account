@@ -93,9 +93,10 @@ void AppAccountManagerServiceSyncModuleTest::DeleteKvStore(void)
 }
 
 /**
- * @tc.number: AppAccountManagerServiceSync_AddAccount_0100
- * @tc.name: AddAccount
+ * @tc.name: AppAccountManagerServiceSync_AddAccount_0100
  * @tc.desc: Set account sync enable with valid data.
+ * @tc.type: FUNC
+ * @tc.require: SR000GGV11
  */
 HWTEST_F(AppAccountManagerServiceSyncModuleTest, AppAccountManagerServiceSync_AddAccount_0100,
     Function | MediumTest | Level1)
@@ -147,9 +148,10 @@ HWTEST_F(AppAccountManagerServiceSyncModuleTest, AppAccountManagerServiceSync_Ad
 }
 
 /**
- * @tc.number: AppAccountManagerServiceSync_AddAccount_0200
- * @tc.name: AddAccount
+ * @tc.name: AppAccountManagerServiceSync_AddAccount_0200
  * @tc.desc: Set account sync enable with valid data.
+ * @tc.type: FUNC
+ * @tc.require: SR000GGV11
  */
 HWTEST_F(AppAccountManagerServiceSyncModuleTest, AppAccountManagerServiceSync_AddAccount_0200,
     Function | MediumTest | Level1)
@@ -215,9 +217,10 @@ HWTEST_F(AppAccountManagerServiceSyncModuleTest, AppAccountManagerServiceSync_Ad
 }
 
 /**
- * @tc.number: AppAccountManagerServiceSync_DeleteAccount_0100
- * @tc.name: DeleteAccount
+ * @tc.name: AppAccountManagerServiceSync_DeleteAccount_0100
  * @tc.desc: Set account sync enable with valid data.
+ * @tc.type: FUNC
+ * @tc.require: SR000GGV11
  */
 HWTEST_F(AppAccountManagerServiceSyncModuleTest, AppAccountManagerServiceSync_DeleteAccount_0100,
     Function | MediumTest | Level1)
@@ -261,9 +264,10 @@ HWTEST_F(AppAccountManagerServiceSyncModuleTest, AppAccountManagerServiceSync_De
 }
 
 /**
- * @tc.number: AppAccountManagerServiceSync_DeleteAccount_0200
- * @tc.name: DeleteAccount
+ * @tc.name: AppAccountManagerServiceSync_DeleteAccount_0200
  * @tc.desc: Set account sync enable with valid data.
+ * @tc.type: FUNC
+ * @tc.require: SR000GGV11
  */
 HWTEST_F(AppAccountManagerServiceSyncModuleTest, AppAccountManagerServiceSync_DeleteAccount_0200,
     Function | MediumTest | Level1)
@@ -310,9 +314,10 @@ HWTEST_F(AppAccountManagerServiceSyncModuleTest, AppAccountManagerServiceSync_De
 }
 
 /**
- * @tc.number: AppAccountManagerServiceSync_SetAccountExtraInfo_0100
- * @tc.name: SetAccountExtraInfo
+ * @tc.name: AppAccountManagerServiceSync_SetAccountExtraInfo_0100
  * @tc.desc: Set account sync enable with valid data.
+ * @tc.type: FUNC
+ * @tc.require: SR000GGVFS
  */
 HWTEST_F(AppAccountManagerServiceSyncModuleTest, AppAccountManagerServiceSync_SetAccountExtraInfo_0100,
     Function | MediumTest | Level1)
@@ -376,9 +381,10 @@ HWTEST_F(AppAccountManagerServiceSyncModuleTest, AppAccountManagerServiceSync_Se
 }
 
 /**
- * @tc.number: AppAccountManagerServiceSync_SetAccountExtraInfo_0200
- * @tc.name: SetAccountExtraInfo
+ * @tc.name: AppAccountManagerServiceSync_SetAccountExtraInfo_0200
  * @tc.desc: Set account sync enable with valid data.
+ * @tc.type: FUNC
+ * @tc.require: SR000GGVFS
  */
 HWTEST_F(AppAccountManagerServiceSyncModuleTest, AppAccountManagerServiceSync_SetAccountExtraInfo_0200,
     Function | MediumTest | Level1)
@@ -451,9 +457,10 @@ HWTEST_F(AppAccountManagerServiceSyncModuleTest, AppAccountManagerServiceSync_Se
 }
 
 /**
- * @tc.number: AppAccountManagerServiceSync_SetAccountExtraInfo_0300
- * @tc.name: SetAccountExtraInfo
+ * @tc.name: AppAccountManagerServiceSync_SetAccountExtraInfo_0300
  * @tc.desc: Set account sync enable with valid data.
+ * @tc.type: FUNC
+ * @tc.require: SR000GGVFS
  */
 HWTEST_F(AppAccountManagerServiceSyncModuleTest, AppAccountManagerServiceSync_SetAccountExtraInfo_0300,
     Function | MediumTest | Level1)
@@ -524,9 +531,10 @@ HWTEST_F(AppAccountManagerServiceSyncModuleTest, AppAccountManagerServiceSync_Se
 }
 
 /**
- * @tc.number: AppAccountManagerServiceSync_EnableAppAccess_0100
- * @tc.name: EnableAppAccess
+ * @tc.name: AppAccountManagerServiceSync_EnableAppAccess_0100
  * @tc.desc: Set account sync enable with valid data.
+ * @tc.type: FUNC
+ * @tc.require: SR000GGVFS
  */
 HWTEST_F(AppAccountManagerServiceSyncModuleTest, AppAccountManagerServiceSync_EnableAppAccess_0100,
     Function | MediumTest | Level1)
@@ -589,9 +597,10 @@ HWTEST_F(AppAccountManagerServiceSyncModuleTest, AppAccountManagerServiceSync_En
 }
 
 /**
- * @tc.number: AppAccountManagerServiceSync_EnableAppAccess_0200
- * @tc.name: EnableAppAccess
+ * @tc.name: AppAccountManagerServiceSync_EnableAppAccess_0200
  * @tc.desc: Set account sync enable with valid data.
+ * @tc.type: FUNC
+ * @tc.require: SR000GGVFS
  */
 HWTEST_F(AppAccountManagerServiceSyncModuleTest, AppAccountManagerServiceSync_EnableAppAccess_0200,
     Function | MediumTest | Level1)
@@ -657,9 +666,10 @@ HWTEST_F(AppAccountManagerServiceSyncModuleTest, AppAccountManagerServiceSync_En
 }
 
 /**
- * @tc.number: AppAccountManagerServiceSync_DisableAppAccess_0100
- * @tc.name: DisableAppAccess
+ * @tc.name: AppAccountManagerServiceSync_DisableAppAccess_0100
  * @tc.desc: Set account sync enable with valid data.
+ * @tc.type: FUNC
+ * @tc.require: SR000GGVFS
  */
 HWTEST_F(AppAccountManagerServiceSyncModuleTest, AppAccountManagerServiceSync_DisableAppAccess_0100,
     Function | MediumTest | Level1)

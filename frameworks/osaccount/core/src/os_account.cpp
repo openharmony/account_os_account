@@ -78,6 +78,7 @@ ErrCode OsAccount::IsOsAccountExists(const int id, bool &isOsAccountExists)
 
     return osAccountProxy_->IsOsAccountExists(id, isOsAccountExists);
 }
+
 ErrCode OsAccount::IsOsAccountActived(const int id, bool &isOsAccountActived)
 {
     ACCOUNT_LOGI("OsAccount::IsOsAccountActived start");
@@ -89,7 +90,8 @@ ErrCode OsAccount::IsOsAccountActived(const int id, bool &isOsAccountActived)
 
     return osAccountProxy_->IsOsAccountActived(id, isOsAccountActived);
 }
-ErrCode OsAccount::IsOsAccountConstraintEnable(const int id, const std::string constraint, bool &isConstraintEnable)
+
+ErrCode OsAccount::IsOsAccountConstraintEnable(const int id, const std::string &constraint, bool &isConstraintEnable)
 {
     ACCOUNT_LOGI("OsAccount::IsOsAccountConstraintEnable start");
     ErrCode result = GetOsAccountProxy();
@@ -100,6 +102,7 @@ ErrCode OsAccount::IsOsAccountConstraintEnable(const int id, const std::string c
 
     return osAccountProxy_->IsOsAccountConstraintEnable(id, constraint, isConstraintEnable);
 }
+
 ErrCode OsAccount::IsOsAccountVerified(const int id, bool &isOsAccountVerified)
 {
     ACCOUNT_LOGI("OsAccount::IsOsAccountVerified start");
@@ -111,6 +114,7 @@ ErrCode OsAccount::IsOsAccountVerified(const int id, bool &isOsAccountVerified)
 
     return osAccountProxy_->IsOsAccountVerified(id, isOsAccountVerified);
 }
+
 ErrCode OsAccount::GetCreatedOsAccountsCount(int &osAccountsCount)
 {
     ACCOUNT_LOGI("OsAccount::GetCreatedOsAccountsCount start");
@@ -122,6 +126,7 @@ ErrCode OsAccount::GetCreatedOsAccountsCount(int &osAccountsCount)
 
     return osAccountProxy_->GetCreatedOsAccountsCount(osAccountsCount);
 }
+
 ErrCode OsAccount::GetOsAccountLocalIdFromProcess(int &id)
 {
     ACCOUNT_LOGI("OsAccount::GetOsAccountLocalIdFromProcess start");
@@ -133,6 +138,7 @@ ErrCode OsAccount::GetOsAccountLocalIdFromProcess(int &id)
 
     return osAccountProxy_->GetOsAccountLocalIdFromProcess(id);
 }
+
 ErrCode OsAccount::GetOsAccountLocalIdFromUid(const int uid, int &id)
 {
     ACCOUNT_LOGI("OsAccount::GetOsAccountLocalIdFromUid start");
@@ -144,6 +150,7 @@ ErrCode OsAccount::GetOsAccountLocalIdFromUid(const int uid, int &id)
 
     return osAccountProxy_->GetOsAccountLocalIdFromUid(uid, id);
 }
+
 ErrCode OsAccount::QueryMaxOsAccountNumber(int &maxOsAccountNumber)
 {
     ACCOUNT_LOGI("OsAccount::QueryMaxOsAccountNumber start");
@@ -155,6 +162,7 @@ ErrCode OsAccount::QueryMaxOsAccountNumber(int &maxOsAccountNumber)
 
     return osAccountProxy_->QueryMaxOsAccountNumber(maxOsAccountNumber);
 }
+
 ErrCode OsAccount::GetOsAccountAllConstraints(const int id, std::vector<std::string> &constraints)
 {
     ACCOUNT_LOGI("OsAccount::GetOsAccountAllConstraints start");
@@ -166,6 +174,7 @@ ErrCode OsAccount::GetOsAccountAllConstraints(const int id, std::vector<std::str
 
     return osAccountProxy_->GetOsAccountAllConstraints(id, constraints);
 }
+
 ErrCode OsAccount::QueryAllCreatedOsAccounts(std::vector<OsAccountInfo> &osAccountInfos)
 {
     ACCOUNT_LOGI("OsAccount::QueryAllCreatedOsAccounts start");
@@ -177,7 +186,8 @@ ErrCode OsAccount::QueryAllCreatedOsAccounts(std::vector<OsAccountInfo> &osAccou
 
     return osAccountProxy_->QueryAllCreatedOsAccounts(osAccountInfos);
 }
-ErrCode OsAccount::QueryCurrentOsAccount(OsAccountInfo &osAccountInfos)
+
+ErrCode OsAccount::QueryCurrentOsAccount(OsAccountInfo &osAccountInfo)
 {
     ACCOUNT_LOGI("OsAccount::QueryCurrentOsAccount start");
     ErrCode result = GetOsAccountProxy();
@@ -186,9 +196,10 @@ ErrCode OsAccount::QueryCurrentOsAccount(OsAccountInfo &osAccountInfos)
         return result;
     }
 
-    return osAccountProxy_->QueryCurrentOsAccount(osAccountInfos);
+    return osAccountProxy_->QueryCurrentOsAccount(osAccountInfo);
 }
-ErrCode OsAccount::QueryOsAccountById(const int id, OsAccountInfo &osAccountInfos)
+
+ErrCode OsAccount::QueryOsAccountById(const int id, OsAccountInfo &osAccountInfo)
 {
     ACCOUNT_LOGI("OsAccount::QueryOsAccountById start");
     ErrCode result = GetOsAccountProxy();
@@ -197,8 +208,9 @@ ErrCode OsAccount::QueryOsAccountById(const int id, OsAccountInfo &osAccountInfo
         return result;
     }
 
-    return osAccountProxy_->QueryOsAccountById(id, osAccountInfos);
+    return osAccountProxy_->QueryOsAccountById(id, osAccountInfo);
 }
+
 ErrCode OsAccount::GetOsAccountTypeFromProcess(int &type)
 {
     ACCOUNT_LOGI("OsAccount::GetOsAccountTypeFromProcess start");
@@ -210,6 +222,7 @@ ErrCode OsAccount::GetOsAccountTypeFromProcess(int &type)
 
     return osAccountProxy_->GetOsAccountTypeFromProcess(type);
 }
+
 ErrCode OsAccount::GetOsAccountProfilePhoto(const int id, std::string &photo)
 {
     ACCOUNT_LOGI("OsAccount::GetOsAccountProfilePhoto start");
@@ -221,6 +234,7 @@ ErrCode OsAccount::GetOsAccountProfilePhoto(const int id, std::string &photo)
 
     return osAccountProxy_->GetOsAccountProfilePhoto(id, photo);
 }
+
 ErrCode OsAccount::IsMultiOsAccountEnable(bool &isMultiOsAccountEnable)
 {
     ACCOUNT_LOGI("OsAccount::IsMultiOsAccountEnable start");
@@ -277,6 +291,7 @@ ErrCode OsAccount::SetOsAccountProfilePhoto(const int id, const std::string &pho
 
     return osAccountProxy_->SetOsAccountProfilePhoto(id, photo);
 }
+
 ErrCode OsAccount::GetDistributedVirtualDeviceId(std::int32_t &deviceId)
 {
     ACCOUNT_LOGI("OsAccount::GetDistributedVirtualDeviceId start");
@@ -288,6 +303,7 @@ ErrCode OsAccount::GetDistributedVirtualDeviceId(std::int32_t &deviceId)
 
     return osAccountProxy_->GetDistributedVirtualDeviceId(deviceId);
 }
+
 ErrCode OsAccount::ActivateOsAccount(const int id)
 {
     ACCOUNT_LOGI("OsAccount::ActivateOsAccount start");
@@ -299,6 +315,7 @@ ErrCode OsAccount::ActivateOsAccount(const int id)
 
     return osAccountProxy_->ActivateOsAccount(id);
 }
+
 ErrCode OsAccount::StartOsAccount(const int id)
 {
     ACCOUNT_LOGI("OsAccount::StartOsAccount start");
@@ -310,6 +327,7 @@ ErrCode OsAccount::StartOsAccount(const int id)
 
     return osAccountProxy_->StartOsAccount(id);
 }
+
 ErrCode OsAccount::StopOsAccount(const int id)
 {
     ACCOUNT_LOGI("OsAccount::StopOsAccount start");
@@ -320,6 +338,7 @@ ErrCode OsAccount::StopOsAccount(const int id)
     }
     return osAccountProxy_->StopOsAccount(id);
 }
+
 ErrCode OsAccount::GetOsAccountLocalIdForSerialNumber(const int64_t serialNumber, int &id)
 {
     ACCOUNT_LOGI("OsAccount::GetOsAccountLocalIdForSerialNumber start");
@@ -330,6 +349,7 @@ ErrCode OsAccount::GetOsAccountLocalIdForSerialNumber(const int64_t serialNumber
     }
     return osAccountProxy_->GetOsAccountLocalIdForSerialNumber(serialNumber, id);
 }
+
 ErrCode OsAccount::GetSerialNumberForOsAccount(const int &id, int64_t &serialNumber)
 {
     ACCOUNT_LOGI("OsAccount::GetSerialNumberForOsAccount start");
@@ -340,6 +360,7 @@ ErrCode OsAccount::GetSerialNumberForOsAccount(const int &id, int64_t &serialNum
     }
     return osAccountProxy_->GetSerialNumberForOsAccount(id, serialNumber);
 }
+
 ErrCode OsAccount::SubscribeOsAccount(const std::shared_ptr<OsAccountSubscriber> &subscriber)
 {
     ACCOUNT_LOGI("enter");
@@ -410,12 +431,14 @@ ErrCode OsAccount::UnsubscribeOsAccount(const std::shared_ptr<OsAccountSubscribe
         return ERR_OSACCOUNT_KIT_NO_SPECIFIED_SUBSCRIBER_HAS_BEEN_REGESITERED;
     }
 }
+
 OS_ACCOUNT_SWITCH_MOD OsAccount::GetOsAccountSwitchMod()
 {
     ACCOUNT_LOGI("OsAccount::GetOsAccountSwitchMod start");
     GetOsAccountProxy();
     return osAccountProxy_->GetOsAccountSwitchMod();
 }
+
 ErrCode OsAccount::ResetOsAccountProxy()
 {
     ACCOUNT_LOGI("enter");
@@ -428,6 +451,7 @@ ErrCode OsAccount::ResetOsAccountProxy()
 
     return ERR_OK;
 }
+
 ErrCode OsAccount::IsCurrentOsAccountVerified(bool &isOsAccountVerified)
 {
     ACCOUNT_LOGI("OsAccount::IsCurrentOsAccountVerified start");
@@ -438,6 +462,7 @@ ErrCode OsAccount::IsCurrentOsAccountVerified(bool &isOsAccountVerified)
     }
     return osAccountProxy_->IsCurrentOsAccountVerified(isOsAccountVerified);
 }
+
 ErrCode OsAccount::IsOsAccountCompleted(const int id, bool &isOsAccountCompleted)
 {
     ACCOUNT_LOGI("OsAccount::IsOsAccountCompleted start");
@@ -448,6 +473,7 @@ ErrCode OsAccount::IsOsAccountCompleted(const int id, bool &isOsAccountCompleted
     }
     return osAccountProxy_->IsOsAccountCompleted(id, isOsAccountCompleted);
 }
+
 ErrCode OsAccount::SetCurrentOsAccountIsVerified(const bool isOsAccountVerified)
 {
     ACCOUNT_LOGI("OsAccount::SetCurrentOsAccountIsVerified start");
@@ -458,6 +484,7 @@ ErrCode OsAccount::SetCurrentOsAccountIsVerified(const bool isOsAccountVerified)
     }
     return osAccountProxy_->SetCurrentOsAccountIsVerified(isOsAccountVerified);
 }
+
 ErrCode OsAccount::SetOsAccountIsVerified(const int id, const bool isOsAccountVerified)
 {
     ACCOUNT_LOGI("OsAccount::SetOsAccountIsVerified start");
@@ -468,6 +495,7 @@ ErrCode OsAccount::SetOsAccountIsVerified(const int id, const bool isOsAccountVe
     }
     return osAccountProxy_->SetOsAccountIsVerified(id, isOsAccountVerified);
 }
+
 ErrCode OsAccount::GetOsAccountProxy()
 {
     ACCOUNT_LOGI("enter");
@@ -519,6 +547,7 @@ ErrCode OsAccount::GetOsAccountProxy()
 
     return ERR_OK;
 }
+
 ErrCode OsAccount::CreateOsAccountEventListener(
     const std::shared_ptr<OsAccountSubscriber> &subscriber, sptr<IRemoteObject> &osAccountEventListener)
 {

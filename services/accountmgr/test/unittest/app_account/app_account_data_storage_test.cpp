@@ -63,9 +63,10 @@ void AppAccountDataStorageTest::TearDown(void)
 {}
 
 /**
- * @tc.number: AppAccountDataStorage_DeleteKvStore_0100
- * @tc.name: DeleteKvStore
+ * @tc.name: AppAccountDataStorage_DeleteKvStore_0100
  * @tc.desc: Delete a KV store.
+ * @tc.type: FUNC
+ * @tc.require: SR000GGV11
  */
 HWTEST_F(AppAccountDataStorageTest, AppAccountDataStorage_DeleteKvStore_0100, Function | MediumTest | Level1)
 {
@@ -90,9 +91,10 @@ HWTEST_F(AppAccountDataStorageTest, AppAccountDataStorage_DeleteKvStore_0100, Fu
 }
 
 /**
- * @tc.number: AppAccountDataStorage_AddAccountInfo_0100
- * @tc.name: AddAccountInfo
+ * @tc.name: AppAccountDataStorage_AddAccountInfo_0100
  * @tc.desc: Add app account info with valid data.
+ * @tc.type: FUNC
+ * @tc.require: SR000GGV11
  */
 HWTEST_F(AppAccountDataStorageTest, AppAccountDataStorage_AddAccountInfo_0100, Function | MediumTest | Level1)
 {
@@ -145,9 +147,10 @@ HWTEST_F(AppAccountDataStorageTest, AppAccountDataStorage_AddAccountInfo_0100, F
 }
 
 /**
- * @tc.number: AppAccountDataStorage_SaveAccountInfo_0100
- * @tc.name: SaveAccountInfo
+ * @tc.name: AppAccountDataStorage_SaveAccountInfo_0100
  * @tc.desc: Save app account info with valid data.
+ * @tc.type: FUNC
+ * @tc.require: SR000GGV11
  */
 HWTEST_F(AppAccountDataStorageTest, AppAccountDataStorage_SaveAccountInfo_0100, Function | MediumTest | Level1)
 {
@@ -195,9 +198,10 @@ HWTEST_F(AppAccountDataStorageTest, AppAccountDataStorage_SaveAccountInfo_0100, 
 }
 
 /**
- * @tc.number: AppAccountDataStorage_DeleteAccount_0100
- * @tc.name: DeleteAccount
+ * @tc.name: AppAccountDataStorage_DeleteAccount_0100
  * @tc.desc: Delete an app account with valid data.
+ * @tc.type: FUNC
+ * @tc.require: SR000GGV11
  */
 HWTEST_F(AppAccountDataStorageTest, AppAccountDataStorage_DeleteAccount_0100, Function | MediumTest | Level1)
 {

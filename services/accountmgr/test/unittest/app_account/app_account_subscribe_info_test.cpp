@@ -48,9 +48,10 @@ void AppAccountSubscribeInfoTest::TearDown(void)
 {}
 
 /**
- * @tc.number: AppAccountSubscribeInfo_GetOwners_0100
- * @tc.name: GetOwners
+ * @tc.name: AppAccountSubscribeInfo_GetOwners_0100
  * @tc.desc: Get owners with valid data.
+ * @tc.type: FUNC
+ * @tc.require: SR000GGVFT
  */
 HWTEST_F(AppAccountSubscribeInfoTest, AppAccountSubscribeInfo_GetOwners_0100, Function | MediumTest | Level1)
 {
@@ -73,9 +74,10 @@ HWTEST_F(AppAccountSubscribeInfoTest, AppAccountSubscribeInfo_GetOwners_0100, Fu
 }
 
 /**
- * @tc.number: AppAccountSubscribeInfo_SetOwners_0100
- * @tc.name: SetOwners
+ * @tc.name: AppAccountSubscribeInfo_SetOwners_0100
  * @tc.desc: Set owners with valid data.
+ * @tc.type: FUNC
+ * @tc.require: SR000GGVFT
  */
 HWTEST_F(AppAccountSubscribeInfoTest, AppAccountSubscribeInfo_SetOwners_0100, Function | MediumTest | Level1)
 {
@@ -97,9 +99,10 @@ HWTEST_F(AppAccountSubscribeInfoTest, AppAccountSubscribeInfo_SetOwners_0100, Fu
 }
 
 /**
- * @tc.number: AppAccountSubscribeInfo_Marshalling_0100
- * @tc.name: Marshalling
+ * @tc.name: AppAccountSubscribeInfo_Marshalling_0100
  * @tc.desc: Marshalling Unmarshalling with valid data.
+ * @tc.type: FUNC
+ * @tc.require: SR000GGVFT
  */
 HWTEST_F(AppAccountSubscribeInfoTest, AppAccountSubscribeInfo_Marshalling_0100, Function | MediumTest | Level1)
 {

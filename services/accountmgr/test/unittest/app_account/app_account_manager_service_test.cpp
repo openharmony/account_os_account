@@ -62,9 +62,10 @@ void AppAccountManagerServiceTest::TearDown(void)
 {}
 
 /**
- * @tc.number: AppAccountManagerService_AddAccount_0100
- * @tc.name: AddAccount
+ * @tc.name: AppAccountManagerService_AddAccount_0100
  * @tc.desc: Add an app account with valid data.
+ * @tc.type: FUNC
+ * @tc.require: SR000GGV11
  */
 HWTEST_F(AppAccountManagerServiceTest, AppAccountManagerService_AddAccount_0100, Function | MediumTest | Level1)
 {
@@ -74,9 +75,10 @@ HWTEST_F(AppAccountManagerServiceTest, AppAccountManagerService_AddAccount_0100,
 }
 
 /**
- * @tc.number: AppAccountManagerService_DeleteAccount_0100
- * @tc.name: DeleteAccount
+ * @tc.name: AppAccountManagerService_DeleteAccount_0100
  * @tc.desc: Delete an app account with valid data.
+ * @tc.type: FUNC
+ * @tc.require: SR000GGV11
  */
 HWTEST_F(AppAccountManagerServiceTest, AppAccountManagerService_DeleteAccount_0100, Function | MediumTest | Level1)
 {
@@ -86,9 +88,10 @@ HWTEST_F(AppAccountManagerServiceTest, AppAccountManagerService_DeleteAccount_01
 }
 
 /**
- * @tc.number: AppAccountManagerService_SubscribeAppAccount_0100
- * @tc.name: SubscribeAppAccount
+ * @tc.name: AppAccountManagerService_SubscribeAppAccount_0100
  * @tc.desc: Subscribe app accounts with invalid data.
+ * @tc.type: FUNC
+ * @tc.require: SR000GGVFT
  */
 HWTEST_F(
     AppAccountManagerServiceTest, AppAccountManagerService_SubscribeAppAccount_0100, Function | MediumTest | Level1)
@@ -108,9 +111,10 @@ HWTEST_F(
 }
 
 /**
- * @tc.number: AppAccountManagerService_UnsubscribeAppAccount_0100
- * @tc.name: UnsubscribeAppAccount
+ * @tc.name: AppAccountManagerService_UnsubscribeAppAccount_0100
  * @tc.desc: Unsubscribe app accounts with invalid data.
+ * @tc.type: FUNC
+ * @tc.require: SR000GGVFT
  */
 HWTEST_F(
     AppAccountManagerServiceTest, AppAccountManagerService_UnsubscribeAppAccount_0100, Function | MediumTest | Level1)

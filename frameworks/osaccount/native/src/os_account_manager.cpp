@@ -41,14 +41,16 @@ ErrCode OsAccountManager::IsOsAccountExists(const int id, bool &isOsAccountExist
 
     return DelayedSingleton<OsAccount>::GetInstance()->IsOsAccountExists(id, isOsAccountExists);
 }
+
 ErrCode OsAccountManager::IsOsAccountActived(const int id, bool &isOsAccountActived)
 {
     ACCOUNT_LOGI("OsAccountManager::IsOsAccountActived start");
 
     return DelayedSingleton<OsAccount>::GetInstance()->IsOsAccountActived(id, isOsAccountActived);
 }
+
 ErrCode OsAccountManager::IsOsAccountConstraintEnable(
-    const int id, const std::string constraint, bool &isConstraintEnable)
+    const int id, const std::string &constraint, bool &isConstraintEnable)
 {
     ACCOUNT_LOGI("OsAccountManager::IsOsAccountConstraintEnable start");
 
@@ -68,60 +70,70 @@ ErrCode OsAccountManager::GetCreatedOsAccountsCount(int &osAccountsCount)
 
     return DelayedSingleton<OsAccount>::GetInstance()->GetCreatedOsAccountsCount(osAccountsCount);
 }
+
 ErrCode OsAccountManager::GetOsAccountLocalIdFromProcess(int &id)
 {
     ACCOUNT_LOGI("OsAccountManager::GetOsAccountLocalIdFromProcess start");
 
     return DelayedSingleton<OsAccount>::GetInstance()->GetOsAccountLocalIdFromProcess(id);
 }
+
 ErrCode OsAccountManager::GetOsAccountLocalIdFromUid(const int uid, int &id)
 {
     ACCOUNT_LOGI("OsAccountManager::GetOsAccountLocalIdFromUid start");
 
     return DelayedSingleton<OsAccount>::GetInstance()->GetOsAccountLocalIdFromUid(uid, id);
 }
+
 ErrCode OsAccountManager::QueryMaxOsAccountNumber(int &maxOsAccountNumber)
 {
     ACCOUNT_LOGI("OsAccountManager::QueryMaxOsAccountNumber start");
 
     return DelayedSingleton<OsAccount>::GetInstance()->QueryMaxOsAccountNumber(maxOsAccountNumber);
 }
+
 ErrCode OsAccountManager::GetOsAccountAllConstraints(const int id, std::vector<std::string> &constraints)
 {
     ACCOUNT_LOGI("OsAccountManager::GetOsAccountAllConstraints start");
 
     return DelayedSingleton<OsAccount>::GetInstance()->GetOsAccountAllConstraints(id, constraints);
 }
+
 ErrCode OsAccountManager::QueryAllCreatedOsAccounts(std::vector<OsAccountInfo> &osAccountInfos)
 {
     ACCOUNT_LOGI("OsAccountManager::QueryAllCreatedOsAccounts start");
 
     return DelayedSingleton<OsAccount>::GetInstance()->QueryAllCreatedOsAccounts(osAccountInfos);
 }
-ErrCode OsAccountManager::QueryCurrentOsAccount(OsAccountInfo &osAccountInfos)
+
+ErrCode OsAccountManager::QueryCurrentOsAccount(OsAccountInfo &osAccountInfo)
 {
     ACCOUNT_LOGI("OsAccountManager::QueryCurrentOsAccount start");
 
-    return DelayedSingleton<OsAccount>::GetInstance()->QueryCurrentOsAccount(osAccountInfos);
+    return DelayedSingleton<OsAccount>::GetInstance()->QueryCurrentOsAccount(osAccountInfo);
 }
-ErrCode OsAccountManager::QueryOsAccountById(const int id, OsAccountInfo &osAccountInfos)
+
+ErrCode OsAccountManager::QueryOsAccountById(const int id, OsAccountInfo &osAccountInfo)
 {
     ACCOUNT_LOGI("OsAccountManager::QueryOsAccountById start");
 
-    return DelayedSingleton<OsAccount>::GetInstance()->QueryOsAccountById(id, osAccountInfos);
+    return DelayedSingleton<OsAccount>::GetInstance()->QueryOsAccountById(id, osAccountInfo);
 }
+
 ErrCode OsAccountManager::GetOsAccountTypeFromProcess(int &type)
 {
     ACCOUNT_LOGI("OsAccountManager::GetOsAccountTypeFromProcess start");
 
     return DelayedSingleton<OsAccount>::GetInstance()->GetOsAccountTypeFromProcess(type);
 }
+
 ErrCode OsAccountManager::GetOsAccountProfilePhoto(const int id, std::string &photo)
 {
     ACCOUNT_LOGI("OsAccountManager::GetOsAccountProfilePhoto start");
 
     return DelayedSingleton<OsAccount>::GetInstance()->GetOsAccountProfilePhoto(id, photo);
 }
+
 ErrCode OsAccountManager::IsMultiOsAccountEnable(bool &isMultiOsAccountEnable)
 {
     ACCOUNT_LOGI("OsAccountManager::IsMultiOsAccountEnable start");
@@ -150,48 +162,56 @@ ErrCode OsAccountManager::SetOsAccountProfilePhoto(const int id, const std::stri
 
     return DelayedSingleton<OsAccount>::GetInstance()->SetOsAccountProfilePhoto(id, photo);
 }
+
 ErrCode OsAccountManager::GetDistributedVirtualDeviceId(std::int32_t &deviceId)
 {
     ACCOUNT_LOGI("OsAccountManager::GetDistributedVirtualDeviceId start");
 
     return DelayedSingleton<OsAccount>::GetInstance()->GetDistributedVirtualDeviceId(deviceId);
 }
+
 ErrCode OsAccountManager::ActivateOsAccount(const int id)
 {
     ACCOUNT_LOGI("OsAccountManager::ActivateOsAccount start");
 
     return DelayedSingleton<OsAccount>::GetInstance()->ActivateOsAccount(id);
 }
+
 ErrCode OsAccountManager::StartOsAccount(const int id)
 {
     ACCOUNT_LOGI("OsAccountManager::StartOsAccount start");
 
     return DelayedSingleton<OsAccount>::GetInstance()->StartOsAccount(id);
 }
+
 ErrCode OsAccountManager::StopOsAccount(const int id)
 {
     ACCOUNT_LOGI("OsAccountManager::StopOsAccount start");
 
     return DelayedSingleton<OsAccount>::GetInstance()->StopOsAccount(id);
 }
+
 ErrCode OsAccountManager::GetOsAccountLocalIdForSerialNumber(const int64_t serialNumber, int &id)
 {
     ACCOUNT_LOGI("OsAccountManager::StartOsAccount start");
 
     return DelayedSingleton<OsAccount>::GetInstance()->GetOsAccountLocalIdForSerialNumber(serialNumber, id);
 }
+
 ErrCode OsAccountManager::GetSerialNumberForOsAccount(const int &id, int64_t &serialNumber)
 {
     ACCOUNT_LOGI("OsAccountManager::StopOsAccount start");
 
     return DelayedSingleton<OsAccount>::GetInstance()->GetSerialNumberForOsAccount(id, serialNumber);
 }
+
 ErrCode OsAccountManager::SubscribeOsAccount(const std::shared_ptr<OsAccountSubscriber> &subscriber)
 {
     ACCOUNT_LOGI("OsAccountManager::SubscribeOsAccount start");
 
     return DelayedSingleton<OsAccount>::GetInstance()->SubscribeOsAccount(subscriber);
 }
+
 ErrCode OsAccountManager::UnsubscribeOsAccount(const std::shared_ptr<OsAccountSubscriber> &subscriber)
 {
     ACCOUNT_LOGI("OsAccountManager::UnsubscribeOsAccount start");
@@ -203,21 +223,25 @@ OS_ACCOUNT_SWITCH_MOD OsAccountManager::GetOsAccountSwitchMod()
     ACCOUNT_LOGI("OsAccountManager::GetOsAccountSwitchMod start");
     return DelayedSingleton<OsAccount>::GetInstance()->GetOsAccountSwitchMod();
 }
+
 ErrCode OsAccountManager::IsCurrentOsAccountVerified(bool &isOsAccountVerified)
 {
     ACCOUNT_LOGI("OsAccountManager::IsCurrentOsAccountVerified start");
     return DelayedSingleton<OsAccount>::GetInstance()->IsCurrentOsAccountVerified(isOsAccountVerified);
 }
+
 ErrCode OsAccountManager::IsOsAccountCompleted(const int id, bool &isOsAccountCompleted)
 {
     ACCOUNT_LOGI("OsAccountManager::IsOsAccountCompleted start");
     return DelayedSingleton<OsAccount>::GetInstance()->IsOsAccountCompleted(id, isOsAccountCompleted);
 }
+
 ErrCode OsAccountManager::SetCurrentOsAccountIsVerified(const bool isOsAccountVerified)
 {
     ACCOUNT_LOGI("OsAccountManager::SetCurrentOsAccountIsVerified start");
     return DelayedSingleton<OsAccount>::GetInstance()->SetCurrentOsAccountIsVerified(isOsAccountVerified);
 }
+
 ErrCode OsAccountManager::SetOsAccountIsVerified(const int id, const bool isOsAccountVerified)
 {
     ACCOUNT_LOGI("OsAccountManager::SetOsAccountIsVerified start");
