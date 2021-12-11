@@ -24,41 +24,49 @@ ErrCode OsAccountStandardInterface::SendToAMSAccountStart(std::vector<OsAccountI
     ACCOUNT_LOGI("OsAccountStandardInterface SendToAMSAccountStart start");
     return ERR_OK;
 }
+
 ErrCode OsAccountStandardInterface::SendToAMSAccountStop(std::vector<OsAccountInfo> osAccountInfo)
 {
     ACCOUNT_LOGI("OsAccountStandardInterface SendToAMSAccountStop start");
     return ERR_OK;
 }
+
 ErrCode OsAccountStandardInterface::SendToBMSAccountCreate(std::vector<OsAccountInfo> osAccountInfo)
 {
     ACCOUNT_LOGI("OsAccountStandardInterface SendToBMSAccountCreate start");
     return ERR_OK;
 }
+
 ErrCode OsAccountStandardInterface::SendToBMSAccountDelete(std::vector<OsAccountInfo> osAccountInfo)
 {
     ACCOUNT_LOGI("OsAccountStandardInterface SendToBMSAccountDelete start");
     return ERR_OK;
 }
+
 ErrCode OsAccountStandardInterface::SendToCESAccountCreate(std::vector<OsAccountInfo> osAccountInfo)
 {
     ACCOUNT_LOGI("OsAccountStandardInterface SendToCESAccountCreate start");
     return ERR_OK;
 }
+
 ErrCode OsAccountStandardInterface::SendToCESAccountDelete(std::vector<OsAccountInfo> osAccountInfo)
 {
     ACCOUNT_LOGI("OsAccountStandardInterface SendToCESAccountDelete start");
     return ERR_OK;
 }
+
 ErrCode OsAccountStandardInterface::SendToCESAccountStart(std::vector<OsAccountInfo> osAccountInfo)
 {
     ACCOUNT_LOGI("OsAccountStandardInterface SendToCESAccountStart start");
     return ERR_OK;
 }
+
 ErrCode OsAccountStandardInterface::SendToCESAccountStop(std::vector<OsAccountInfo> osAccountInfo)
 {
     ACCOUNT_LOGI("OsAccountStandardInterface SendToCESAccountStop start");
     return ERR_OK;
 }
+
 ErrCode OsAccountStandardInterface::SetPhotoByPathAndByte(
     const std::string &path, std::string &byte, const std::string &photoType)
 {

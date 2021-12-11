@@ -49,6 +49,7 @@ void OsAccountControlFileManager::Init()
     }
     ACCOUNT_LOGE("OsAccountControlFileManager Init end");
 }
+
 ErrCode OsAccountControlFileManager::GetOsAccountList(std::vector<OsAccountInfo> &osAccountList)
 {
     ACCOUNT_LOGE("OsAccountControlFileManager GetOsAccountList  start");
@@ -79,6 +80,7 @@ ErrCode OsAccountControlFileManager::GetOsAccountList(std::vector<OsAccountInfo>
     ACCOUNT_LOGE("OsAccountControlFileManager GetOsAccountList  end");
     return ERR_OK;
 }
+
 ErrCode OsAccountControlFileManager::GetOsAccountInfoById(const int id, OsAccountInfo &osAccountInfo)
 {
     ACCOUNT_LOGE("OsAccountControlFileManager GetOsAccountInfoById start");
@@ -99,10 +101,12 @@ ErrCode OsAccountControlFileManager::GetOsAccountInfoById(const int id, OsAccoun
     ACCOUNT_LOGE("OsAccountControlFileManager GetOsAccountInfoById end");
     return ERR_OK;
 }
+
 ErrCode OsAccountControlFileManager::GetConstraintsByType(const int type, std::vector<std::string> &constratins)
 {
     return osAccountFileOperator_->GetConstraintsByType(type, constratins);
 }
+
 ErrCode OsAccountControlFileManager::InsertOsAccount(OsAccountInfo &osAccountInfo)
 {
     ACCOUNT_LOGE("OsAccountControlFileManager InsertOsAccount start");
@@ -145,6 +149,7 @@ ErrCode OsAccountControlFileManager::InsertOsAccount(OsAccountInfo &osAccountInf
     ACCOUNT_LOGE("OsAccountControlFileManager InsertOsAccount end");
     return ERR_OK;
 }
+
 ErrCode OsAccountControlFileManager::DelOsAccount(const int id)
 {
     ACCOUNT_LOGE("OsAccountControlFileManager DelOsAccount start");
@@ -177,6 +182,7 @@ ErrCode OsAccountControlFileManager::DelOsAccount(const int id)
     ACCOUNT_LOGE("OsAccountControlFileManager DelOsAccount end");
     return ERR_OK;
 }
+
 ErrCode OsAccountControlFileManager::UpdateOsAccount(OsAccountInfo &osAccountInfo)
 {
     ACCOUNT_LOGE("OsAccountControlFileManager UpdateOsAccount start");
@@ -285,6 +291,7 @@ ErrCode OsAccountControlFileManager::GetAccountList(Json &accountListJson)
     ACCOUNT_LOGE("OsAccountControlFileManager GetAccountList end");
     return ERR_OK;
 }
+
 ErrCode OsAccountControlFileManager::SaveAccountList(const Json &accountListJson)
 {
     ACCOUNT_LOGE("OsAccountControlFileManager SaveAccountList start");
@@ -297,6 +304,7 @@ ErrCode OsAccountControlFileManager::SaveAccountList(const Json &accountListJson
     ACCOUNT_LOGE("OsAccountControlFileManager SaveAccountList end");
     return ERR_OK;
 }
+
 ErrCode OsAccountControlFileManager::IsOsAccountExists(const int id, bool &isExists)
 {
     ACCOUNT_LOGE("OsAccountControlFileManager IsOsAccountExists start");
@@ -307,6 +315,7 @@ ErrCode OsAccountControlFileManager::IsOsAccountExists(const int id, bool &isExi
     ACCOUNT_LOGE("OsAccountControlFileManager IsOsAccountExists path is %{public}d", isExists);
     return ERR_OK;
 }
+
 ErrCode OsAccountControlFileManager::GetPhotoById(const int id, std::string &photo)
 {
     std::string path =
@@ -329,6 +338,7 @@ ErrCode OsAccountControlFileManager::GetPhotoById(const int id, std::string &pho
     }
     return ERR_OK;
 }
+
 ErrCode OsAccountControlFileManager::SetPhotoById(const int id, const std::string &photo)
 {
     std::string path = "";
@@ -354,6 +364,7 @@ ErrCode OsAccountControlFileManager::SetPhotoById(const int id, const std::strin
     }
     return ERR_OK;
 }
+
 ErrCode OsAccountControlFileManager::GetIsMultiOsAccountEnable(bool &isMultiOsAccountEnable)
 {
     return osAccountFileOperator_->GetIsMultiOsAccountEnable(isMultiOsAccountEnable);

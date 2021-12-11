@@ -26,7 +26,7 @@ public:
     ErrCode RemoveOsAccount(const int id);
     ErrCode IsOsAccountExists(const int id, bool &isOsAccountExists);
     ErrCode IsOsAccountActived(const int id, bool &isOsAccountActived);
-    ErrCode IsOsAccountConstraintEnable(const int id, const std::string constraint, bool &isConstraintEnable);
+    ErrCode IsOsAccountConstraintEnable(const int id, const std::string &constraint, bool &isConstraintEnable);
     ErrCode IsOsAccountVerified(const int id, bool &isOsAccountVerified);
     ErrCode GetCreatedOsAccountsCount(int &osAccountsCount);
     ErrCode GetOsAccountLocalIdFromProcess(int &id);
@@ -34,8 +34,8 @@ public:
     ErrCode QueryMaxOsAccountNumber(int &maxOsAccountNumber);
     ErrCode GetOsAccountAllConstraints(const int id, std::vector<std::string> &constraints);
     ErrCode QueryAllCreatedOsAccounts(std::vector<OsAccountInfo> &osAccountInfos);
-    ErrCode QueryCurrentOsAccount(OsAccountInfo &osAccountInfos);
-    ErrCode QueryOsAccountById(const int id, OsAccountInfo &osAccountInfos);
+    ErrCode QueryCurrentOsAccount(OsAccountInfo &osAccountInfo);
+    ErrCode QueryOsAccountById(const int id, OsAccountInfo &osAccountInfo);
     ErrCode GetOsAccountTypeFromProcess(int &type);
     ErrCode GetOsAccountProfilePhoto(const int id, std::string &photo);
     ErrCode IsMultiOsAccountEnable(bool &isMultiOsAccountEnable);

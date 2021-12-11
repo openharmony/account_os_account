@@ -35,6 +35,7 @@ void OsAccountFileOperator::Init()
         ACCOUNT_LOGE("OsAccountFileOperator Init cannot find json");
     }
 }
+
 ErrCode OsAccountFileOperator::GetConstraintsByType(const int type, std::vector<std::string> &constratins)
 {
     ACCOUNT_LOGE("OsAccountFileOperator GetConstraintsByType Start");
@@ -56,6 +57,7 @@ ErrCode OsAccountFileOperator::GetConstraintsByType(const int type, std::vector<
     ACCOUNT_LOGE("OsAccountFileOperator GetConstraintsByType End");
     return ERR_OK;
 }
+
 ErrCode OsAccountFileOperator::GetIsMultiOsAccountEnable(bool &isMultiOsAccountEnable)
 {
     OHOS::AccountSA::GetDataByType<Json>(constraintsConfig_,

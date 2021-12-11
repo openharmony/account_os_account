@@ -34,7 +34,7 @@ public:
     virtual ErrCode IsOsAccountActived(const int id, bool &isOsAccountActived) override;
 
     virtual ErrCode IsOsAccountConstraintEnable(
-        const int id, const std::string constraint, bool &isConstraintEnable) override;
+        const int id, const std::string &constraint, bool &isConstraintEnable) override;
     virtual ErrCode IsOsAccountVerified(const int id, bool &isOsAccountVerified) override;
 
     virtual ErrCode GetCreatedOsAccountsCount(int &osAccountsCount) override;
@@ -46,8 +46,8 @@ public:
     virtual ErrCode GetOsAccountAllConstraints(const int id, std::vector<std::string> &constraints) override;
     virtual ErrCode QueryAllCreatedOsAccounts(std::vector<OsAccountInfo> &osAccountInfos) override;
 
-    virtual ErrCode QueryCurrentOsAccount(OsAccountInfo &osAccountInfos) override;
-    virtual ErrCode QueryOsAccountById(const int id, OsAccountInfo &osAccountInfos) override;
+    virtual ErrCode QueryCurrentOsAccount(OsAccountInfo &osAccountInfo) override;
+    virtual ErrCode QueryOsAccountById(const int id, OsAccountInfo &osAccountInfo) override;
 
     virtual ErrCode GetOsAccountTypeFromProcess(int &type) override;
     virtual ErrCode GetOsAccountProfilePhoto(const int id, std::string &photo) override;

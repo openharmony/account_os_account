@@ -151,6 +151,7 @@ const std::map<uint32_t, OsAccountStub::MessageProcFunction> OsAccountStub::mess
         &OsAccountStub::ProcSetOsAccountIsVerified,
     },
 };
+
 OsAccountStub::OsAccountStub()
 {
     ACCOUNT_LOGI("enter");
@@ -175,6 +176,7 @@ int OsAccountStub::OnRemoteRequest(uint32_t code, MessageParcel &data, MessagePa
     ACCOUNT_LOGI("end, code = %{public}u, flags = %{public}u", code, option.GetFlags());
     return IPCObjectStub::OnRemoteRequest(code, data, reply, option);
 }
+
 template <typename T>
 bool OsAccountStub::WriteParcelableVector(const std::vector<T> &parcelableVector, MessageParcel &data)
 {
@@ -193,6 +195,7 @@ bool OsAccountStub::WriteParcelableVector(const std::vector<T> &parcelableVector
     }
     return true;
 }
+
 template <typename T>
 bool OsAccountStub::ReadParcelableVector(std::vector<T> &parcelableInfos, MessageParcel &data)
 {
@@ -214,6 +217,7 @@ bool OsAccountStub::ReadParcelableVector(std::vector<T> &parcelableInfos, Messag
 
     return true;
 }
+
 ErrCode OsAccountStub::ProcCreateOsAccount(MessageParcel &data, MessageParcel &reply)
 {
     std::string name = data.ReadString();
@@ -235,6 +239,7 @@ ErrCode OsAccountStub::ProcCreateOsAccount(MessageParcel &data, MessageParcel &r
     }
     return ERR_NONE;
 }
+
 ErrCode OsAccountStub::ProcRemoveOsAccount(MessageParcel &data, MessageParcel &reply)
 {
     int localId = data.ReadInt32();
@@ -251,6 +256,7 @@ ErrCode OsAccountStub::ProcRemoveOsAccount(MessageParcel &data, MessageParcel &r
     }
     return ERR_NONE;
 }
+
 ErrCode OsAccountStub::ProcSetOsAccountName(MessageParcel &data, MessageParcel &reply)
 {
     int localId = data.ReadInt32();
@@ -267,6 +273,7 @@ ErrCode OsAccountStub::ProcSetOsAccountName(MessageParcel &data, MessageParcel &
     }
     return ERR_NONE;
 }
+
 ErrCode OsAccountStub::ProcSetOsAccountConstraints(MessageParcel &data, MessageParcel &reply)
 {
     int localId = data.ReadInt32();
@@ -289,6 +296,7 @@ ErrCode OsAccountStub::ProcSetOsAccountConstraints(MessageParcel &data, MessageP
     }
     return ERR_NONE;
 }
+
 ErrCode OsAccountStub::ProcSetOsAccountProfilePhoto(MessageParcel &data, MessageParcel &reply)
 {
     int localId = data.ReadInt32();
@@ -305,6 +313,7 @@ ErrCode OsAccountStub::ProcSetOsAccountProfilePhoto(MessageParcel &data, Message
     }
     return ERR_NONE;
 }
+
 ErrCode OsAccountStub::ProcQueryOsAccountById(MessageParcel &data, MessageParcel &reply)
 {
     int localId = data.ReadInt32();
@@ -325,6 +334,7 @@ ErrCode OsAccountStub::ProcQueryOsAccountById(MessageParcel &data, MessageParcel
     }
     return ERR_NONE;
 }
+
 ErrCode OsAccountStub::ProcQueryCurrentOsAccount(MessageParcel &data, MessageParcel &reply)
 {
     OsAccountInfo osAccountInfo = OsAccountInfo();
@@ -339,6 +349,7 @@ ErrCode OsAccountStub::ProcQueryCurrentOsAccount(MessageParcel &data, MessagePar
     }
     return ERR_NONE;
 }
+
 ErrCode OsAccountStub::ProcQueryAllCreatedOsAccounts(MessageParcel &data, MessageParcel &reply)
 {
     std::vector<OsAccountInfo> osAccountInfos;
@@ -355,6 +366,7 @@ ErrCode OsAccountStub::ProcQueryAllCreatedOsAccounts(MessageParcel &data, Messag
     }
     return ERR_NONE;
 }
+
 ErrCode OsAccountStub::ProcQueryMaxOsAccountNumber(MessageParcel &data, MessageParcel &reply)
 {
     int maxOsAccountNumber = 0;
@@ -369,6 +381,7 @@ ErrCode OsAccountStub::ProcQueryMaxOsAccountNumber(MessageParcel &data, MessageP
     }
     return ERR_NONE;
 }
+
 ErrCode OsAccountStub::ProcGetCreatedOsAccountsCount(MessageParcel &data, MessageParcel &reply)
 {
     int osAccountsCount = 0;
@@ -383,6 +396,7 @@ ErrCode OsAccountStub::ProcGetCreatedOsAccountsCount(MessageParcel &data, Messag
     }
     return ERR_NONE;
 }
+
 ErrCode OsAccountStub::ProcGetDistributedVirtualDeviceId(MessageParcel &data, MessageParcel &reply)
 {
     std::int32_t devicesId;
@@ -397,6 +411,7 @@ ErrCode OsAccountStub::ProcGetDistributedVirtualDeviceId(MessageParcel &data, Me
     }
     return ERR_NONE;
 }
+
 ErrCode OsAccountStub::ProcGetOsAccountAllConstraints(MessageParcel &data, MessageParcel &reply)
 {
     int localId = data.ReadInt32();
@@ -418,6 +433,7 @@ ErrCode OsAccountStub::ProcGetOsAccountAllConstraints(MessageParcel &data, Messa
     }
     return ERR_NONE;
 }
+
 ErrCode OsAccountStub::ProcGetOsAccountLocalIdFromProcess(MessageParcel &data, MessageParcel &reply)
 {
     int localId = -1;
@@ -432,6 +448,7 @@ ErrCode OsAccountStub::ProcGetOsAccountLocalIdFromProcess(MessageParcel &data, M
     }
     return ERR_NONE;
 }
+
 ErrCode OsAccountStub::ProcGetOsAccountProfilePhoto(MessageParcel &data, MessageParcel &reply)
 {
     int localId = data.ReadInt32();
@@ -452,6 +469,7 @@ ErrCode OsAccountStub::ProcGetOsAccountProfilePhoto(MessageParcel &data, Message
     }
     return ERR_NONE;
 }
+
 ErrCode OsAccountStub::ProcGetOsAccountLocalIdFromUid(MessageParcel &data, MessageParcel &reply)
 {
     int uid = data.ReadInt32();
@@ -472,6 +490,7 @@ ErrCode OsAccountStub::ProcGetOsAccountLocalIdFromUid(MessageParcel &data, Messa
     }
     return ERR_NONE;
 }
+
 ErrCode OsAccountStub::ProcGetOsAccountTypeFromProcess(MessageParcel &data, MessageParcel &reply)
 {
     int type;
@@ -486,14 +505,17 @@ ErrCode OsAccountStub::ProcGetOsAccountTypeFromProcess(MessageParcel &data, Mess
     }
     return ERR_NONE;
 }
+
 ErrCode OsAccountStub::ProcGetApplicationConstraints(MessageParcel &data, MessageParcel &reply)
 {
     return ERR_NONE;
 }
+
 ErrCode OsAccountStub::ProcGetApplicationConstraintsByNumber(MessageParcel &data, MessageParcel &reply)
 {
     return ERR_NONE;
 }
+
 ErrCode OsAccountStub::ProcGetOsAccountLocalIdForSerialNumber(MessageParcel &data, MessageParcel &reply)
 {
     int64_t serialNumber = data.ReadInt64();
@@ -509,6 +531,7 @@ ErrCode OsAccountStub::ProcGetOsAccountLocalIdForSerialNumber(MessageParcel &dat
     }
     return ERR_NONE;
 }
+
 ErrCode OsAccountStub::ProcGetSerialNumberForOsAccount(MessageParcel &data, MessageParcel &reply)
 {
     int id = data.ReadInt32();
@@ -524,6 +547,7 @@ ErrCode OsAccountStub::ProcGetSerialNumberForOsAccount(MessageParcel &data, Mess
     }
     return ERR_NONE;
 }
+
 ErrCode OsAccountStub::ProcIsOsAccountActived(MessageParcel &data, MessageParcel &reply)
 {
     int localId = data.ReadInt32();
@@ -544,6 +568,7 @@ ErrCode OsAccountStub::ProcIsOsAccountActived(MessageParcel &data, MessageParcel
     }
     return ERR_NONE;
 }
+
 ErrCode OsAccountStub::ProcIsOsAccountConstraintEnable(MessageParcel &data, MessageParcel &reply)
 {
     int localId = data.ReadInt32();
@@ -565,6 +590,7 @@ ErrCode OsAccountStub::ProcIsOsAccountConstraintEnable(MessageParcel &data, Mess
     }
     return ERR_NONE;
 }
+
 ErrCode OsAccountStub::ProcIsMultiOsAccountEnable(MessageParcel &data, MessageParcel &reply)
 {
     bool isMultiOsAccountEnable = false;
@@ -579,6 +605,7 @@ ErrCode OsAccountStub::ProcIsMultiOsAccountEnable(MessageParcel &data, MessagePa
     }
     return ERR_NONE;
 }
+
 ErrCode OsAccountStub::ProcIsOsAccountVerified(MessageParcel &data, MessageParcel &reply)
 {
     int localId = data.ReadInt32();
@@ -599,6 +626,7 @@ ErrCode OsAccountStub::ProcIsOsAccountVerified(MessageParcel &data, MessageParce
     }
     return ERR_NONE;
 }
+
 ErrCode OsAccountStub::ProcIsOsAccountExists(MessageParcel &data, MessageParcel &reply)
 {
     int localId = data.ReadInt32();
@@ -619,6 +647,7 @@ ErrCode OsAccountStub::ProcIsOsAccountExists(MessageParcel &data, MessageParcel 
     }
     return ERR_NONE;
 }
+
 ErrCode OsAccountStub::ProcSubscribeOsAccount(MessageParcel &data, MessageParcel &reply)
 {
     std::unique_ptr<OsAccountSubscribeInfo> subscribeInfo(data.ReadParcelable<OsAccountSubscribeInfo>());
@@ -641,6 +670,7 @@ ErrCode OsAccountStub::ProcSubscribeOsAccount(MessageParcel &data, MessageParcel
 
     return ERR_NONE;
 }
+
 ErrCode OsAccountStub::ProcUnsubscribeOsAccount(MessageParcel &data, MessageParcel &reply)
 {
     sptr<IRemoteObject> eventListener = data.ReadParcelable<IRemoteObject>();
@@ -656,6 +686,7 @@ ErrCode OsAccountStub::ProcUnsubscribeOsAccount(MessageParcel &data, MessageParc
     }
     return ERR_NONE;
 }
+
 ErrCode OsAccountStub::ProcActivateOsAccount(MessageParcel &data, MessageParcel &reply)
 {
     int localId = data.ReadInt32();
@@ -671,6 +702,7 @@ ErrCode OsAccountStub::ProcActivateOsAccount(MessageParcel &data, MessageParcel 
     }
     return ERR_NONE;
 }
+
 ErrCode OsAccountStub::ProcStartOsAccount(MessageParcel &data, MessageParcel &reply)
 {
     int localId = data.ReadInt32();
@@ -686,6 +718,7 @@ ErrCode OsAccountStub::ProcStartOsAccount(MessageParcel &data, MessageParcel &re
     }
     return ERR_NONE;
 }
+
 ErrCode OsAccountStub::ProcStopOsAccount(MessageParcel &data, MessageParcel &reply)
 {
     int localId = data.ReadInt32();
@@ -701,6 +734,7 @@ ErrCode OsAccountStub::ProcStopOsAccount(MessageParcel &data, MessageParcel &rep
     }
     return ERR_NONE;
 }
+
 ErrCode OsAccountStub::ProcGetOsAccountSwitchMod(MessageParcel &data, MessageParcel &reply)
 {
     OS_ACCOUNT_SWITCH_MOD osAccountSwitchMod = GetOsAccountSwitchMod();
@@ -710,6 +744,7 @@ ErrCode OsAccountStub::ProcGetOsAccountSwitchMod(MessageParcel &data, MessagePar
     }
     return ERR_NONE;
 }
+
 ErrCode OsAccountStub::ProcIsCurrentOsAccountVerified(MessageParcel &data, MessageParcel &reply)
 {
     bool isOsAccountVerified = false;
@@ -721,6 +756,7 @@ ErrCode OsAccountStub::ProcIsCurrentOsAccountVerified(MessageParcel &data, Messa
     reply.WriteBool(isOsAccountVerified);
     return ERR_NONE;
 }
+
 ErrCode OsAccountStub::ProcIsOsAccountCompleted(MessageParcel &data, MessageParcel &reply)
 {
     int localId = data.ReadInt32();
@@ -738,6 +774,7 @@ ErrCode OsAccountStub::ProcIsOsAccountCompleted(MessageParcel &data, MessageParc
     reply.WriteBool(isOsAccountCompleted);
     return ERR_NONE;
 }
+
 ErrCode OsAccountStub::ProcSetCurrentOsAccountIsVerified(MessageParcel &data, MessageParcel &reply)
 {
     bool isOsAccountVerified = data.ReadBool();
@@ -748,6 +785,7 @@ ErrCode OsAccountStub::ProcSetCurrentOsAccountIsVerified(MessageParcel &data, Me
     }
     return ERR_NONE;
 }
+
 ErrCode OsAccountStub::ProcSetOsAccountIsVerified(MessageParcel &data, MessageParcel &reply)
 {
     int localId = data.ReadInt32();

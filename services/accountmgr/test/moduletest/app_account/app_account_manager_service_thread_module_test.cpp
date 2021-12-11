@@ -157,9 +157,10 @@ void AppAccountManagerServiceThreadModuleTest::SetAssociatedDataTwo(
 }
 
 /**
- * @tc.number: AppAccountManagerServiceThread_AddAccount_0100
- * @tc.name: AddAccount
+ * @tc.name: AppAccountManagerServiceThread_AddAccount_0100
  * @tc.desc: Add an account with valid data.
+ * @tc.type: FUNC
+ * @tc.require: SR000GGVFV
  */
 HWTEST_F(AppAccountManagerServiceThreadModuleTest, AppAccountManagerServiceThread_AddAccount_0100,
     Function | MediumTest | Level1)
@@ -184,9 +185,10 @@ HWTEST_F(AppAccountManagerServiceThreadModuleTest, AppAccountManagerServiceThrea
 }
 
 /**
- * @tc.number: AppAccountManagerServiceThread_DeleteAccount_0100
- * @tc.name: DeleteAccount
+ * @tc.name: AppAccountManagerServiceThread_DeleteAccount_0100
  * @tc.desc: Delete an account with valid data.
+ * @tc.type: FUNC
+ * @tc.require: SR000GGVFV
  */
 HWTEST_F(AppAccountManagerServiceThreadModuleTest, AppAccountManagerServiceThread_DeleteAccount_0100,
     Function | MediumTest | Level1)
@@ -214,9 +216,10 @@ HWTEST_F(AppAccountManagerServiceThreadModuleTest, AppAccountManagerServiceThrea
 }
 
 /**
- * @tc.number: AppAccountManagerServiceThread_SetAssociatedData_0100
- * @tc.name: SetAssociatedData
+ * @tc.name: AppAccountManagerServiceThread_SetAssociatedData_0100
  * @tc.desc: Set associated data with valid data.
+ * @tc.type: FUNC
+ * @tc.require: SR000GGVFV
  */
 HWTEST_F(AppAccountManagerServiceThreadModuleTest, AppAccountManagerServiceThread_SetAssociatedData_0100,
     Function | MediumTest | Level1)

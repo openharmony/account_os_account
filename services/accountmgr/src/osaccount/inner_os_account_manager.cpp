@@ -81,6 +81,7 @@ void IInnerOsAccountManager::CreateBaseStandardAccount()
     OHOS::AppExecFwk::InnerEvent::Callback callback = std::bind(&IInnerOsAccountManager::StartBaseAccount, this);
     handler_->PostTask(callback, DELAY_FOR_FOUNDATION_SERVICE);
 }
+
 ErrCode IInnerOsAccountManager::CreateOsAccount(
     const std::string &name, const int &type, OsAccountInfo &osAccountInfo)
 {
@@ -171,12 +172,14 @@ void IInnerOsAccountManager::Init()
     CreateBaseStandardAccount();
     ACCOUNT_LOGE("OsAccountAccountMgr CreateBaseStandardAccount ed ");
 }
+
 ErrCode IInnerOsAccountManager::IsOsAccountExists(const int id, bool &isOsAccountExits)
 {
     isOsAccountExits = false;
     osAccountControl_->IsOsAccountExists(id, isOsAccountExits);
     return ERR_OK;
 }
+
 ErrCode IInnerOsAccountManager::IsOsAccountActived(const int id, bool &isOsAccountActived)
 {
     if (std::find(activeAccountId_.begin(), activeAccountId_.end(), id) != activeAccountId_.end()) {
@@ -186,8 +189,9 @@ ErrCode IInnerOsAccountManager::IsOsAccountActived(const int id, bool &isOsAccou
     }
     return ERR_OK;
 }
+
 ErrCode IInnerOsAccountManager::IsOsAccountConstraintEnable(
-    const int id, const std::string constraint, bool &isOsAccountConstraintEnable)
+    const int id, const std::string &constraint, bool &isOsAccountConstraintEnable)
 {
     OsAccountInfo osAccountInfo;
     ErrCode errCode = osAccountControl_->GetOsAccountInfoById(id, osAccountInfo);
@@ -214,6 +218,7 @@ ErrCode IInnerOsAccountManager::IsOsAccountVerified(const int id, bool &isOsAcco
     ACCOUNT_LOGE("IInnerOsAccountManager IsOsAccountVerified isOsAccountVerified is %{public}d", isOsAccountVerified);
     return ERR_OK;
 }
+
 ErrCode IInnerOsAccountManager::GetCreatedOsAccountsCount(int &createdOsAccountCount)
 {
     ErrCode errCode = osAccountControl_->GetMaxCreatedOsAccountNum(createdOsAccountCount);
@@ -222,11 +227,13 @@ ErrCode IInnerOsAccountManager::GetCreatedOsAccountsCount(int &createdOsAccountC
     }
     return ERR_OK;
 }
+
 ErrCode IInnerOsAccountManager::QueryMaxOsAccountNumber(int &maxOsAccountNumber)
 {
     maxOsAccountNumber = Constants::MAX_USER_ID;
     return ERR_OK;
 }
+
 ErrCode IInnerOsAccountManager::GetOsAccountAllConstraints(const int id, std::vector<std::string> &constraints)
 {
     OsAccountInfo osAccountInfo;
@@ -237,6 +244,7 @@ ErrCode IInnerOsAccountManager::GetOsAccountAllConstraints(const int id, std::ve
     constraints = osAccountInfo.GetConstraints();
     return ERR_OK;
 }
+
 ErrCode IInnerOsAccountManager::QueryAllCreatedOsAccounts(std::vector<OsAccountInfo> &osAccountInfos)
 {
     ErrCode errCode = osAccountControl_->GetOsAccountList(osAccountInfos);
@@ -252,6 +260,7 @@ ErrCode IInnerOsAccountManager::QueryAllCreatedOsAccounts(std::vector<OsAccountI
     }
     return ERR_OK;
 }
+
 ErrCode IInnerOsAccountManager::QueryOsAccountById(const int id, OsAccountInfo &osAccountInfo)
 {
     ACCOUNT_LOGE("IInnerOsAccountManager QueryOsAccountById start");
@@ -275,6 +284,7 @@ ErrCode IInnerOsAccountManager::QueryOsAccountById(const int id, OsAccountInfo &
     ACCOUNT_LOGE("IInnerOsAccountManager QueryOsAccountById end");
     return ERR_OK;
 }
+
 ErrCode IInnerOsAccountManager::GetOsAccountType(const int id, int &type)
 {
     OsAccountInfo osAccountInfo;
@@ -285,6 +295,7 @@ ErrCode IInnerOsAccountManager::GetOsAccountType(const int id, int &type)
     type = osAccountInfo.GetType();
     return ERR_OK;
 }
+
 ErrCode IInnerOsAccountManager::GetOsAccountProfilePhoto(const int id, std::string &photo)
 {
     OsAccountInfo osAccountInfo;
@@ -298,6 +309,7 @@ ErrCode IInnerOsAccountManager::GetOsAccountProfilePhoto(const int id, std::stri
     }
     return ERR_OK;
 }
+
 ErrCode IInnerOsAccountManager::IsMultiOsAccountEnable(bool &isMultiOsAccountEnable)
 {
     ErrCode errCode = osAccountControl_->GetIsMultiOsAccountEnable(isMultiOsAccountEnable);
@@ -306,6 +318,7 @@ ErrCode IInnerOsAccountManager::IsMultiOsAccountEnable(bool &isMultiOsAccountEna
     }
     return ERR_OK;
 }
+
 ErrCode IInnerOsAccountManager::SetOsAccountName(const int id, const std::string &name)
 {
     OsAccountInfo osAccountInfo;
@@ -320,6 +333,7 @@ ErrCode IInnerOsAccountManager::SetOsAccountName(const int id, const std::string
     }
     return ERR_OK;
 }
+
 ErrCode IInnerOsAccountManager::SetOsAccountConstraints(
     const int id, const std::vector<std::string> &constraints, const bool enable)
 {
@@ -349,6 +363,7 @@ ErrCode IInnerOsAccountManager::SetOsAccountConstraints(
     }
     return ERR_OK;
 }
+
 ErrCode IInnerOsAccountManager::SetOsAccountProfilePhoto(const int id, const std::string &photo)
 {
     OsAccountInfo osAccountInfo;
@@ -372,11 +387,13 @@ ErrCode IInnerOsAccountManager::SetOsAccountProfilePhoto(const int id, const std
     }
     return ERR_OK;
 }
+
 ErrCode IInnerOsAccountManager::GetDistributedVirtualDeviceId(std::int32_t &deviceId, std::int32_t uid)
 {
     deviceId = OhosAccountKits::GetInstance().GetDeviceAccountIdByUID(uid);
     return ERR_OK;
 }
+
 ErrCode IInnerOsAccountManager::ActivateOsAccount(const int id)
 {
     if (std::find(activeAccountId_.begin(), activeAccountId_.end(), id) != activeAccountId_.end()) {
@@ -430,6 +447,7 @@ ErrCode IInnerOsAccountManager::ActivateOsAccount(const int id)
     ACCOUNT_LOGE("IInnerOsAccountManager ActivateOsAccount end");
     return ERR_OK;
 }
+
 ErrCode IInnerOsAccountManager::StartOsAccount(const int id)
 {
     if (std::find(activeAccountId_.begin(), activeAccountId_.end(), id) != activeAccountId_.end()) {
@@ -458,6 +476,7 @@ ErrCode IInnerOsAccountManager::StartOsAccount(const int id)
     subscribeManagerPtr_->PublicActivatedOsAccount(id);
     return ERR_OK;
 }
+
 ErrCode IInnerOsAccountManager::StopOsAccount(const int id)
 {
     ACCOUNT_LOGE("IInnerOsAccountManager StopOsAccount active ids is %{public}d", id);
@@ -503,6 +522,7 @@ ErrCode IInnerOsAccountManager::GetOsAccountLocalIdForSerialNumber(const int64_t
     }
     return ERR_OK;
 }
+
 ErrCode IInnerOsAccountManager::GetSerialNumberForOsAccount(const int &id, int64_t &serialNumber)
 {
     OsAccountInfo osAccountInfo;
@@ -513,6 +533,7 @@ ErrCode IInnerOsAccountManager::GetSerialNumberForOsAccount(const int &id, int64
     serialNumber = osAccountInfo.GetSerialNumber();
     return ERR_OK;
 }
+
 ErrCode IInnerOsAccountManager::SubscribeOsAccount(
     const OsAccountSubscribeInfo &subscribeInfo, const sptr<IRemoteObject> &eventListener)
 {
@@ -590,6 +611,7 @@ void IInnerOsAccountManager::StartBaseAccount(void)
         }
     }
 }
+
 ErrCode IInnerOsAccountManager::IsOsAccountCompleted(const int id, bool &isOsAccountCompleted)
 {
     OsAccountInfo osAccountInfo;
@@ -600,6 +622,7 @@ ErrCode IInnerOsAccountManager::IsOsAccountCompleted(const int id, bool &isOsAcc
     isOsAccountCompleted = osAccountInfo.GetIsAccountCompleted();
     return ERR_OK;
 }
+
 ErrCode IInnerOsAccountManager::SetOsAccountIsVerified(const int id, const bool isOsAccountVerified)
 {
     OsAccountInfo osAccountInfo;
@@ -614,6 +637,7 @@ ErrCode IInnerOsAccountManager::SetOsAccountIsVerified(const int id, const bool 
     }
     return ERR_OK;
 }
+
 ErrCode IInnerOsAccountManager::GetEventHandler(void)
 {
     ACCOUNT_LOGI("enter");

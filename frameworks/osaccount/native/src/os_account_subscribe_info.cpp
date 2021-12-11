@@ -51,6 +51,7 @@ ErrCode OsAccountSubscribeInfo::SetOsAccountSubscribeType(const OS_ACCOUNT_SUBSC
 
     return ERR_OK;
 }
+
 ErrCode OsAccountSubscribeInfo::GetName(std::string &name) const
 {
     ACCOUNT_LOGI("enter");

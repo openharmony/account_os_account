@@ -33,7 +33,7 @@ public:
     virtual ErrCode IsOsAccountExists(const int id, bool &isOsAccountExists) = 0;
     virtual ErrCode IsOsAccountActived(const int id, bool &isOsAccountActived) = 0;
     virtual ErrCode IsOsAccountConstraintEnable(
-        const int id, const std::string constraint, bool &isConstraintEnable) = 0;
+        const int id, const std::string &constraint, bool &isConstraintEnable) = 0;
     virtual ErrCode IsOsAccountVerified(const int id, bool &isOsAccountVerified) = 0;
     virtual ErrCode GetCreatedOsAccountsCount(int &osAccountsCount) = 0;
     virtual ErrCode GetOsAccountLocalIdFromProcess(int &id) = 0;
@@ -41,8 +41,8 @@ public:
     virtual ErrCode QueryMaxOsAccountNumber(int &maxOsAccountNumber) = 0;
     virtual ErrCode GetOsAccountAllConstraints(const int id, std::vector<std::string> &constraints) = 0;
     virtual ErrCode QueryAllCreatedOsAccounts(std::vector<OsAccountInfo> &osAccountInfos) = 0;
-    virtual ErrCode QueryCurrentOsAccount(OsAccountInfo &osAccountInfos) = 0;
-    virtual ErrCode QueryOsAccountById(const int id, OsAccountInfo &osAccountInfos) = 0;
+    virtual ErrCode QueryCurrentOsAccount(OsAccountInfo &osAccountInfo) = 0;
+    virtual ErrCode QueryOsAccountById(const int id, OsAccountInfo &osAccountInfo) = 0;
     virtual ErrCode GetOsAccountTypeFromProcess(int &type) = 0;
     virtual ErrCode GetOsAccountProfilePhoto(const int id, std::string &photo) = 0;
     virtual ErrCode IsMultiOsAccountEnable(bool &isMultiOsAccountEnable) = 0;
