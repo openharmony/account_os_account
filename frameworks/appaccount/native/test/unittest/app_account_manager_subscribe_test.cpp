@@ -77,9 +77,10 @@ public:
 };
 
 /**
- * @tc.number: AppAccountManagerSubscribe_SubscribeAppAccount_0100
- * @tc.name: SubscribeAppAccount
+ * @tc.name: AppAccountManagerSubscribe_SubscribeAppAccount_0100
  * @tc.desc: Subscribe app accounts with invalid data.
+ * @tc.type: FUNC
+ * @tc.require: SR000GGVFT
  */
 HWTEST_F(AppAccountManagerSubscribeTest, AppAccountManagerSubscribe_SubscribeAppAccount_0100,
     Function | MediumTest | Level1)
@@ -102,9 +103,10 @@ HWTEST_F(AppAccountManagerSubscribeTest, AppAccountManagerSubscribe_SubscribeApp
 }
 
 /**
- * @tc.number: AppAccountManagerSubscribe_SubscribeAppAccount_0200
- * @tc.name: SubscribeAppAccount
+ * @tc.name: AppAccountManagerSubscribe_SubscribeAppAccount_0200
  * @tc.desc: Subscribe app accounts with invalid data.
+ * @tc.type: FUNC
+ * @tc.require: SR000GGVFT
  */
 HWTEST_F(AppAccountManagerSubscribeTest, AppAccountManagerSubscribe_SubscribeAppAccount_0200,
     Function | MediumTest | Level1)
@@ -126,9 +128,10 @@ HWTEST_F(AppAccountManagerSubscribeTest, AppAccountManagerSubscribe_SubscribeApp
 }
 
 /**
- * @tc.number: AppAccountManagerSubscribe_SubscribeAppAccount_0300
- * @tc.name: SubscribeAppAccount
+ * @tc.name: AppAccountManagerSubscribe_SubscribeAppAccount_0300
  * @tc.desc: Subscribe app accounts with invalid data.
+ * @tc.type: FUNC
+ * @tc.require: SR000GGVFT
  */
 HWTEST_F(AppAccountManagerSubscribeTest, AppAccountManagerSubscribe_SubscribeAppAccount_0300,
     Function | MediumTest | Level1)
@@ -152,9 +155,10 @@ HWTEST_F(AppAccountManagerSubscribeTest, AppAccountManagerSubscribe_SubscribeApp
 }
 
 /**
- * @tc.number: AppAccountManagerSubscribe_SubscribeAppAccount_0400
- * @tc.name: SubscribeAppAccount
+ * @tc.name: AppAccountManagerSubscribe_SubscribeAppAccount_0400
  * @tc.desc: Subscribe app accounts with invalid data.
+ * @tc.type: FUNC
+ * @tc.require: SR000GGVFT
  */
 HWTEST_F(AppAccountManagerSubscribeTest, AppAccountManagerSubscribe_SubscribeAppAccount_0400,
     Function | MediumTest | Level1)

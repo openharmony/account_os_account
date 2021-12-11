@@ -41,8 +41,8 @@ private:
     void OnReceiveEvent(const CommonEventData &data);
 
 private:
-    std::shared_ptr<EventHandler> handler_;
-    std::shared_ptr<AppAccountCommonEventSubscriber> subscriber_;
+    std::shared_ptr<EventHandler> handler_ = nullptr;
+    std::shared_ptr<AppAccountCommonEventSubscriber> subscriber_ = nullptr;
     CommonEventCallback callback_;
     std::int32_t counter_;
 

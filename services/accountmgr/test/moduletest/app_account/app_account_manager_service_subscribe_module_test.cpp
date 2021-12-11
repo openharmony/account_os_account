@@ -248,9 +248,10 @@ public:
 };
 
 /**
- * @tc.number: AppAccountManagerServiceSubscribe_SubscribeAppAccount_0100
- * @tc.name: SubscribeAppAccount
+ * @tc.name: AppAccountManagerServiceSubscribe_SubscribeAppAccount_0100
  * @tc.desc: Subscribe app accounts with valid data.
+ * @tc.type: FUNC
+ * @tc.require: SR000GGVFT
  */
 HWTEST_F(AppAccountManagerServiceSubscribeModuleTest, AppAccountManagerServiceSubscribe_SubscribeAppAccount_0100,
     Function | MediumTest | Level1)
@@ -325,9 +326,10 @@ HWTEST_F(AppAccountManagerServiceSubscribeModuleTest, AppAccountManagerServiceSu
 }
 
 /**
- * @tc.number: AppAccountManagerServiceSubscribe_SubscribeAppAccount_0200
- * @tc.name: SubscribeAppAccount
+ * @tc.name: AppAccountManagerServiceSubscribe_SubscribeAppAccount_0200
  * @tc.desc: Subscribe app accounts with valid data.
+ * @tc.type: FUNC
+ * @tc.require: SR000GGVFT
  */
 HWTEST_F(AppAccountManagerServiceSubscribeModuleTest, AppAccountManagerServiceSubscribe_SubscribeAppAccount_0200,
     Function | MediumTest | Level1)
@@ -364,9 +366,10 @@ HWTEST_F(AppAccountManagerServiceSubscribeModuleTest, AppAccountManagerServiceSu
 }
 
 /**
- * @tc.number: AppAccountManagerServiceSubscribe_SubscribeAppAccount_0300
- * @tc.name: SubscribeAppAccount
+ * @tc.name: AppAccountManagerServiceSubscribe_SubscribeAppAccount_0300
  * @tc.desc: Subscribe app accounts with invalid data.
+ * @tc.type: FUNC
+ * @tc.require: SR000GGVFT
  */
 HWTEST_F(AppAccountManagerServiceSubscribeModuleTest, AppAccountManagerServiceSubscribe_SubscribeAppAccount_0300,
     Function | MediumTest | Level1)
@@ -399,9 +402,10 @@ HWTEST_F(AppAccountManagerServiceSubscribeModuleTest, AppAccountManagerServiceSu
 }
 
 /**
- * @tc.number: AppAccountManagerServiceSubscribe_SubscribeAppAccount_0400
- * @tc.name: SubscribeAppAccount
+ * @tc.name: AppAccountManagerServiceSubscribe_SubscribeAppAccount_0400
  * @tc.desc: Subscribe app accounts with valid data.
+ * @tc.type: FUNC
+ * @tc.require: SR000GGVFT
  */
 HWTEST_F(AppAccountManagerServiceSubscribeModuleTest, AppAccountManagerServiceSubscribe_SubscribeAppAccount_0400,
     Function | MediumTest | Level1)
@@ -449,9 +453,10 @@ HWTEST_F(AppAccountManagerServiceSubscribeModuleTest, AppAccountManagerServiceSu
 }
 
 /**
- * @tc.number: AppAccountManagerServiceSubscribe_SubscribeAppAccount_0500
- * @tc.name: SubscribeAppAccount
+ * @tc.name: AppAccountManagerServiceSubscribe_SubscribeAppAccount_0500
  * @tc.desc: Subscribe app accounts with invalid data.
+ * @tc.type: FUNC
+ * @tc.require: SR000GGVFT
  */
 HWTEST_F(AppAccountManagerServiceSubscribeModuleTest, AppAccountManagerServiceSubscribe_SubscribeAppAccount_0500,
     Function | MediumTest | Level1)
@@ -530,9 +535,10 @@ HWTEST_F(AppAccountManagerServiceSubscribeModuleTest, AppAccountManagerServiceSu
 }
 
 /**
- * @tc.number: AppAccountManagerServiceSubscribe_SubscribeAppAccount_0600
- * @tc.name: SubscribeAppAccount
+ * @tc.name: AppAccountManagerServiceSubscribe_SubscribeAppAccount_0600
  * @tc.desc: Subscribe app accounts with valid data.
+ * @tc.type: FUNC
+ * @tc.require: SR000GGVFT
  */
 HWTEST_F(AppAccountManagerServiceSubscribeModuleTest, AppAccountManagerServiceSubscribe_SubscribeAppAccount_0600,
     Function | MediumTest | Level1)
@@ -613,9 +619,10 @@ HWTEST_F(AppAccountManagerServiceSubscribeModuleTest, AppAccountManagerServiceSu
 }
 
 /**
- * @tc.number: AppAccountManagerServiceSubscribe_SubscribeAppAccount_0700
- * @tc.name: SubscribeAppAccount
+ * @tc.name: AppAccountManagerServiceSubscribe_SubscribeAppAccount_0700
  * @tc.desc: Subscribe app accounts with valid data.
+ * @tc.type: FUNC
+ * @tc.require: SR000GGVFT
  */
 HWTEST_F(AppAccountManagerServiceSubscribeModuleTest, AppAccountManagerServiceSubscribe_SubscribeAppAccount_0700,
     Function | MediumTest | Level1)
@@ -692,9 +699,10 @@ HWTEST_F(AppAccountManagerServiceSubscribeModuleTest, AppAccountManagerServiceSu
 }
 
 /**
- * @tc.number: AppAccountManagerServiceSubscribe_SubscribeAppAccount_0800
- * @tc.name: SubscribeAppAccount
+ * @tc.name: AppAccountManagerServiceSubscribe_SubscribeAppAccount_0800
  * @tc.desc: Subscribe app accounts with valid data.
+ * @tc.type: FUNC
+ * @tc.require: SR000GGVFT
  */
 HWTEST_F(AppAccountManagerServiceSubscribeModuleTest, AppAccountManagerServiceSubscribe_SubscribeAppAccount_0800,
     Function | MediumTest | Level1)

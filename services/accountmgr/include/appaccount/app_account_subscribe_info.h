@@ -25,7 +25,7 @@ class AppAccountSubscribeInfo : public Parcelable {
 public:
     AppAccountSubscribeInfo();
     explicit AppAccountSubscribeInfo(std::vector<std::string> &owners);
-    virtual ~AppAccountSubscribeInfo();
+    virtual ~AppAccountSubscribeInfo() = default;
 
     ErrCode GetOwners(std::vector<std::string> &owners) const;
     ErrCode SetOwners(const std::vector<std::string> &owners);

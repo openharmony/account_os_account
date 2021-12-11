@@ -165,7 +165,7 @@ std::string GetNamedProperty(napi_env env, napi_value obj)
 
 napi_value GetErrorCodeValue(napi_env env, int errCode)
 {
-    ACCOUNT_LOGI("Enter GetErrorCodeValue function.");
+    ACCOUNT_LOGI("enter");
     napi_value jsObject = nullptr;
     napi_value jsValue = nullptr;
     NAPI_CALL(env, napi_create_int32(env, errCode, &jsValue));
@@ -483,7 +483,7 @@ void ParseContextWithStrCBArray(napi_env env, napi_callback_info cbInfo, GetAcco
 
 void ProcessCallbackOrPromise(napi_env env, const AppAccountAsyncContext *asyncContext, napi_value err, napi_value data)
 {
-    ACCOUNT_LOGI("Enter ProcessCallbackOrPromise function.");
+    ACCOUNT_LOGI("enter");
     napi_value args[RESULT_COUNT] = {err, data};
     if (asyncContext->deferred) {
         ACCOUNT_LOGI("Promise");
@@ -507,7 +507,7 @@ void ProcessCallbackOrPromise(napi_env env, const AppAccountAsyncContext *asyncC
 void ProcessCallbackOrPromiseCBArray(
     napi_env env, const GetAccountsAsyncContext *asyncContext, napi_value err, napi_value data)
 {
-    ACCOUNT_LOGI("Enter ProcessCallbackOrPromiseCBArray function.");
+    ACCOUNT_LOGI("enter");
     napi_value args[RESULT_COUNT] = {err, data};
     if (asyncContext->deferred) {
         ACCOUNT_LOGI("Promise");
@@ -531,7 +531,7 @@ void ProcessCallbackOrPromiseCBArray(
 napi_value ParseParametersBySubscribe(const napi_env &env, const napi_value (&argv)[ARGS_SIZE_THREE],
     std::vector<std::string> &owners, napi_ref &callback)
 {
-    ACCOUNT_LOGI("ParseParametersBySubscribe start");
+    ACCOUNT_LOGI("enter");
 
     bool isArray = false;
     uint32_t length = 0;
@@ -543,11 +543,11 @@ napi_value ParseParametersBySubscribe(const napi_env &env, const napi_value (&ar
     if (valuetype == napi_string) {
         std::string type = GetNamedProperty(env, argv[0]);
         if (type != "change") {
-            ACCOUNT_LOGI("%{public}s, Wrong type=%{public}s", __func__, type.c_str());
+            ACCOUNT_LOGI("Wrong type=%{public}s", type.c_str());
             return nullptr;
         }
     } else {
-        ACCOUNT_LOGI("%{public}s, Wrong argument type.", __func__);
+        ACCOUNT_LOGI("Wrong argument type.");
         return nullptr;
     }
 
@@ -580,7 +580,7 @@ napi_value ParseParametersBySubscribe(const napi_env &env, const napi_value (&ar
 napi_value GetSubscriberByUnsubscribe(const napi_env &env, std::vector<std::shared_ptr<SubscriberPtr>> &subscribers,
     AsyncContextForUnsubscribe *asyncContextForOff, bool &isFind)
 {
-    ACCOUNT_LOGI("GetSubscriberByUnsubscribe start");
+    ACCOUNT_LOGI("enter");
     napi_value result;
     ACCOUNT_LOGI("subscriberInstances.size = %{public}zu", subscriberInstances.size());
 
@@ -602,7 +602,7 @@ napi_value GetSubscriberByUnsubscribe(const napi_env &env, std::vector<std::shar
 napi_value ParseParametersByUnsubscribe(
     const napi_env &env, const size_t &argc, const napi_value (&argv)[UNSUBSCRIBE_MAX_PARA], napi_ref &callback)
 {
-    ACCOUNT_LOGI("ParseParametersByUnsubscribe start");
+    ACCOUNT_LOGI("enter");
 
     napi_valuetype valuetype;
     napi_value result = nullptr;
@@ -612,11 +612,11 @@ napi_value ParseParametersByUnsubscribe(
     if (valuetype == napi_string) {
         std::string type = GetNamedProperty(env, argv[0]);
         if (type != "change") {
-            ACCOUNT_LOGI("%{public}s, Wrong type=%{public}s", __func__, type.c_str());
+            ACCOUNT_LOGI("Wrong type=%{public}s", type.c_str());
             return nullptr;
         }
     } else {
-        ACCOUNT_LOGI("%{public}s, Wrong argument type.", __func__);
+        ACCOUNT_LOGI("Wrong argument type.");
         return nullptr;
     }
 

@@ -31,7 +31,7 @@ public:
     void Stop();
 
 private:
-    std::shared_ptr<AppAccountSubscriber> appAccountSubscriber_;
+    std::shared_ptr<AppAccountSubscriber> appAccountSubscriber_ = nullptr;
 };
 }  // namespace AccountSA
 }  // namespace OHOS

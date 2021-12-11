@@ -37,6 +37,7 @@ public:
     std::pair<bool, OhosAccountInfo> QueryOhosAccountInfo(void) override;
     std::int32_t QueryDeviceAccountIdFromUid(std::int32_t uid) override;
     sptr<IRemoteObject> GetAppAccountService() override;
+    sptr<IRemoteObject> GetOsAccountService() override;
 
     bool IsServiceStarted() const override
     {

@@ -78,6 +78,7 @@ const std::map<std::uint32_t, AccountStubFunc> AccountStub::stubFuncMap_{
     std::make_pair(QUERY_DEVICE_ACCOUNT_ID, &AccountStub::CmdQueryDeviceAccountId),
     std::make_pair(QUERY_DEVICE_ACCOUNT_ID_FROM_UID, &AccountStub::CmdQueryDeviceAccountIdFromUid),
     std::make_pair(GET_APP_ACCOUNT_SERVICE, &AccountStub::CmdGetAppAccountService),
+    std::make_pair(GET_OS_ACCOUNT_SERVICE, &AccountStub::CmdGetOsAccountService),
 };
 
 std::int32_t AccountStub::CmdUpdateOhosAccountInfo(MessageParcel &data, MessageParcel &reply)
@@ -203,6 +204,18 @@ std::int32_t AccountStub::CmdGetAppAccountService(MessageParcel &data, MessagePa
     ACCOUNT_LOGI("enter");
 
     auto remoteObject = GetAppAccountService();
+    if (!reply.WriteParcelable(remoteObject)) {
+        ACCOUNT_LOGE("Write result data failed");
+        return ERR_ACCOUNT_ZIDL_WRITE_RESULT_ERROR;
+    }
+
+    return ERR_OK;
+}
+std::int32_t AccountStub::CmdGetOsAccountService(MessageParcel &data, MessageParcel &reply)
+{
+    ACCOUNT_LOGI("enter");
+
+    auto remoteObject = GetOsAccountService();
     if (!reply.WriteParcelable(remoteObject)) {
         ACCOUNT_LOGE("Write result data failed");
         return ERR_ACCOUNT_ZIDL_WRITE_RESULT_ERROR;

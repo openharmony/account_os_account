@@ -64,10 +64,10 @@ public:
     virtual ErrCode OnPackageRemoved(const uid_t &uid, const std::string &bundleName);
 
 private:
-    std::shared_ptr<InnerAppAccountManager> innerManager_;
-    std::shared_ptr<AccountPermissionManager> permissionManagerPtr_;
-    std::shared_ptr<AccountBundleManager> bundleManagerPtr_;
-    std::shared_ptr<AppAccountCommonEventOberserver> oberserver_;
+    std::shared_ptr<InnerAppAccountManager> innerManager_ = nullptr;
+    std::shared_ptr<AccountPermissionManager> permissionManagerPtr_ = nullptr;
+    std::shared_ptr<AccountBundleManager> bundleManagerPtr_ = nullptr;
+    std::shared_ptr<AppAccountCommonEventOberserver> oberserver_ = nullptr;
 
     DISALLOW_COPY_AND_MOVE(AppAccountManagerService);
 };

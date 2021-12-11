@@ -58,9 +58,6 @@ AppAccountInfo::AppAccountInfo(const std::string &name, const std::string &owner
     oauthToken_ = "";
 }
 
-AppAccountInfo::~AppAccountInfo()
-{}
-
 ErrCode AppAccountInfo::GetOwner(std::string &owner)
 {
     ACCOUNT_LOGI("enter");
@@ -355,7 +352,7 @@ AppAccountInfo *AppAccountInfo::Unmarshalling(Parcel &parcel)
 {
     ACCOUNT_LOGI("enter");
 
-    AppAccountInfo *appAccountInfo = new AppAccountInfo();
+    AppAccountInfo *appAccountInfo = new (std::nothrow) AppAccountInfo();
 
     if (appAccountInfo && !appAccountInfo->ReadFromParcel(parcel)) {
         ACCOUNT_LOGE("failed to read from pacel");

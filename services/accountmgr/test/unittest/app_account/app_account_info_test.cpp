@@ -63,9 +63,10 @@ void AppAccountInfoTest::TearDown(void)
 {}
 
 /**
- * @tc.number: AppAccountInfo_GetOwner_0100
- * @tc.name: GetOwner
+ * @tc.name: AppAccountInfo_GetOwner_0100
  * @tc.desc: Get the owner with valid data.
+ * @tc.type: FUNC
+ * @tc.require: SR000GGVFQ
  */
 HWTEST_F(AppAccountInfoTest, AppAccountInfo_GetOwner_0100, Function | MediumTest | Level1)
 {
@@ -88,9 +89,10 @@ HWTEST_F(AppAccountInfoTest, AppAccountInfo_GetOwner_0100, Function | MediumTest
 }
 
 /**
- * @tc.number: AppAccountInfo_SetOwner_0100
- * @tc.name: SetOwner
+ * @tc.name: AppAccountInfo_SetOwner_0100
  * @tc.desc: Set the owner with valid data.
+ * @tc.type: FUNC
+ * @tc.require: SR000GGVFQ
  */
 HWTEST_F(AppAccountInfoTest, AppAccountInfo_SetOwner_0100, Function | MediumTest | Level1)
 {
@@ -111,9 +113,10 @@ HWTEST_F(AppAccountInfoTest, AppAccountInfo_SetOwner_0100, Function | MediumTest
 }
 
 /**
- * @tc.number: AppAccountInfo_GetName_0100
- * @tc.name: GetName
+ * @tc.name: AppAccountInfo_GetName_0100
  * @tc.desc: Get the name with valid data.
+ * @tc.type: FUNC
+ * @tc.require: SR000GGVFQ
  */
 HWTEST_F(AppAccountInfoTest, AppAccountInfo_GetName_0100, Function | MediumTest | Level1)
 {
@@ -136,9 +139,10 @@ HWTEST_F(AppAccountInfoTest, AppAccountInfo_GetName_0100, Function | MediumTest 
 }
 
 /**
- * @tc.number: AppAccountInfo_SetName_0100
- * @tc.name: SetName
+ * @tc.name: AppAccountInfo_SetName_0100
  * @tc.desc: Set the name with valid data.
+ * @tc.type: FUNC
+ * @tc.require: SR000GGVFQ
  */
 HWTEST_F(AppAccountInfoTest, AppAccountInfo_SetName_0100, Function | MediumTest | Level1)
 {
@@ -159,9 +163,10 @@ HWTEST_F(AppAccountInfoTest, AppAccountInfo_SetName_0100, Function | MediumTest 
 }
 
 /**
- * @tc.number: AppAccountInfo_GetExtraInfo_0100
- * @tc.name: GetExtraInfo
+ * @tc.name: AppAccountInfo_GetExtraInfo_0100
  * @tc.desc: Get the extra info with valid data.
+ * @tc.type: FUNC
+ * @tc.require: SR000GGVFQ
  */
 HWTEST_F(AppAccountInfoTest, AppAccountInfo_GetExtraInfo_0100, Function | MediumTest | Level1)
 {
@@ -184,9 +189,10 @@ HWTEST_F(AppAccountInfoTest, AppAccountInfo_GetExtraInfo_0100, Function | Medium
 }
 
 /**
- * @tc.number: AppAccountInfo_SetExtraInfo_0100
- * @tc.name: SetExtraInfo
+ * @tc.name: AppAccountInfo_SetExtraInfo_0100
  * @tc.desc: Set the extra info with valid data.
+ * @tc.type: FUNC
+ * @tc.require: SR000GGVFQ
  */
 HWTEST_F(AppAccountInfoTest, AppAccountInfo_SetExtraInfo_0100, Function | MediumTest | Level1)
 {
@@ -207,9 +213,10 @@ HWTEST_F(AppAccountInfoTest, AppAccountInfo_SetExtraInfo_0100, Function | Medium
 }
 
 /**
- * @tc.number: AppAccountInfo_EnableAppAccess_0100
- * @tc.name: EnableAppAccess
+ * @tc.name: AppAccountInfo_EnableAppAccess_0100
  * @tc.desc: Enable the app access with valid data.
+ * @tc.type: FUNC
+ * @tc.require: SR000GGVFQ
  */
 HWTEST_F(AppAccountInfoTest, AppAccountInfo_EnableAppAccess_0100, Function | MediumTest | Level1)
 {
@@ -231,9 +238,10 @@ HWTEST_F(AppAccountInfoTest, AppAccountInfo_EnableAppAccess_0100, Function | Med
 }
 
 /**
- * @tc.number: AppAccountInfo_DisableAppAccess_0100
- * @tc.name: DisableAppAccess
+ * @tc.name: AppAccountInfo_DisableAppAccess_0100
  * @tc.desc: Disable the app access with valid data.
+ * @tc.type: FUNC
+ * @tc.require: SR000GGVFQ
  */
 HWTEST_F(AppAccountInfoTest, AppAccountInfo_DisableAppAccess_0100, Function | MediumTest | Level1)
 {
@@ -255,9 +263,10 @@ HWTEST_F(AppAccountInfoTest, AppAccountInfo_DisableAppAccess_0100, Function | Me
 }
 
 /**
- * @tc.number: AppAccountInfo_GetAuthorizedApps_0100
- * @tc.name: GetAuthorizedApps
+ * @tc.name: AppAccountInfo_GetAuthorizedApps_0100
  * @tc.desc: Get the authorized apps with valid data.
+ * @tc.type: FUNC
+ * @tc.require: SR000GGVFQ
  */
 HWTEST_F(AppAccountInfoTest, AppAccountInfo_GetAuthorizedApps_0100, Function | MediumTest | Level1)
 {
@@ -285,9 +294,10 @@ HWTEST_F(AppAccountInfoTest, AppAccountInfo_GetAuthorizedApps_0100, Function | M
 }
 
 /**
- * @tc.number: AppAccountInfo_SetAuthorizedApps_0100
- * @tc.name: SetAuthorizedApps
+ * @tc.name: AppAccountInfo_SetAuthorizedApps_0100
  * @tc.desc: Set the authorized apps with valid data.
+ * @tc.type: FUNC
+ * @tc.require: SR000GGVFQ
  */
 HWTEST_F(AppAccountInfoTest, AppAccountInfo_SetAuthorizedApps_0100, Function | MediumTest | Level1)
 {
@@ -313,9 +323,10 @@ HWTEST_F(AppAccountInfoTest, AppAccountInfo_SetAuthorizedApps_0100, Function | M
 }
 
 /**
- * @tc.number: AppAccountInfo_GetSyncEnable_0100
- * @tc.name: GetSyncEnable
+ * @tc.name: AppAccountInfo_GetSyncEnable_0100
  * @tc.desc: Get the sync enable with valid data.
+ * @tc.type: FUNC
+ * @tc.require: SR000GGVFQ
  */
 HWTEST_F(AppAccountInfoTest, AppAccountInfo_GetSyncEnable_0100, Function | MediumTest | Level1)
 {
@@ -338,9 +349,10 @@ HWTEST_F(AppAccountInfoTest, AppAccountInfo_GetSyncEnable_0100, Function | Mediu
 }
 
 /**
- * @tc.number: AppAccountInfo_SetSyncEnable_0100
- * @tc.name: SetSyncEnable
+ * @tc.name: AppAccountInfo_SetSyncEnable_0100
  * @tc.desc: Set the sync enable with valid data.
+ * @tc.type: FUNC
+ * @tc.require: SR000GGVFQ
  */
 HWTEST_F(AppAccountInfoTest, AppAccountInfo_SetSyncEnable_0100, Function | MediumTest | Level1)
 {
@@ -361,9 +373,10 @@ HWTEST_F(AppAccountInfoTest, AppAccountInfo_SetSyncEnable_0100, Function | Mediu
 }
 
 /**
- * @tc.number: AppAccountInfo_GetAssociatedData_0100
- * @tc.name: GetAssociatedData
+ * @tc.name: AppAccountInfo_GetAssociatedData_0100
  * @tc.desc: Get the associated data with valid data.
+ * @tc.type: FUNC
+ * @tc.require: SR000GGVFQ
  */
 HWTEST_F(AppAccountInfoTest, AppAccountInfo_GetAssociatedData_0100, Function | MediumTest | Level1)
 {
@@ -386,9 +399,10 @@ HWTEST_F(AppAccountInfoTest, AppAccountInfo_GetAssociatedData_0100, Function | M
 }
 
 /**
- * @tc.number: AppAccountInfo_SetAssociatedData_0100
- * @tc.name: SetAssociatedData
+ * @tc.name: AppAccountInfo_SetAssociatedData_0100
  * @tc.desc: Set the associated data with valid data.
+ * @tc.type: FUNC
+ * @tc.require: SR000GGVFQ
  */
 HWTEST_F(AppAccountInfoTest, AppAccountInfo_SetAssociatedData_0100, Function | MediumTest | Level1)
 {
@@ -415,9 +429,10 @@ HWTEST_F(AppAccountInfoTest, AppAccountInfo_SetAssociatedData_0100, Function | M
 }
 
 /**
- * @tc.number: AppAccountInfo_GetAccountCredential_0100
- * @tc.name: GetAccountCredential
+ * @tc.name: AppAccountInfo_GetAccountCredential_0100
  * @tc.desc: Get the account credential with valid data.
+ * @tc.type: FUNC
+ * @tc.require: SR000GGVFQ
  */
 HWTEST_F(AppAccountInfoTest, AppAccountInfo_GetAccountCredential_0100, Function | MediumTest | Level1)
 {
@@ -440,9 +455,10 @@ HWTEST_F(AppAccountInfoTest, AppAccountInfo_GetAccountCredential_0100, Function 
 }
 
 /**
- * @tc.number: AppAccountInfo_SetAccountCredential_0100
- * @tc.name: SetAccountCredential
+ * @tc.name: AppAccountInfo_SetAccountCredential_0100
  * @tc.desc: Set the account credential with valid data.
+ * @tc.type: FUNC
+ * @tc.require: SR000GGVFQ
  */
 HWTEST_F(AppAccountInfoTest, AppAccountInfo_SetAccountCredential_0100, Function | MediumTest | Level1)
 {
@@ -469,9 +485,10 @@ HWTEST_F(AppAccountInfoTest, AppAccountInfo_SetAccountCredential_0100, Function 
 }
 
 /**
- * @tc.number: AppAccountInfo_Marshalling_0100
- * @tc.name: Marshalling
+ * @tc.name: AppAccountInfo_Marshalling_0100
  * @tc.desc: Marshalling Unmarshalling with valid data.
+ * @tc.type: FUNC
+ * @tc.require: SR000GGVFQ
  */
 HWTEST_F(AppAccountInfoTest, AppAccountInfo_Marshalling_0100, Function | MediumTest | Level1)
 {

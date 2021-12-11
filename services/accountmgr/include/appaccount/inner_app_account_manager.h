@@ -73,8 +73,8 @@ public:
     ErrCode OnPackageRemoved(const uid_t &uid, const std::string &bundleName);
 
 private:
-    std::shared_ptr<AppAccountControlManager> controlManagerPtr_;
-    std::shared_ptr<AppAccountSubscribeManager> subscribeManagerPtr_;
+    std::shared_ptr<AppAccountControlManager> controlManagerPtr_ = nullptr;
+    std::shared_ptr<AppAccountSubscribeManager> subscribeManagerPtr_ = nullptr;
 
     DISALLOW_COPY_AND_MOVE(InnerAppAccountManager);
 };

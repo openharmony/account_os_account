@@ -19,7 +19,6 @@
 #include "app_account_manager.h"
 #include "napi_app_account_common.h"
 #include "account_log_wrapper.h"
-#include "napi/native_api.h"
 #include "napi/native_node_api.h"
 #include "napi_app_account.h"
 
@@ -30,7 +29,7 @@ napi_ref NapiAppAccount::constructorRef_;
 
 napi_value NapiAppAccount::Init(napi_env env, napi_value exports)
 {
-    ACCOUNT_LOGI("Enter appaccount init function.");
+    ACCOUNT_LOGI("enter");
     napi_property_descriptor descriptor[] = {
         DECLARE_NAPI_FUNCTION("createAppAccountManager", CreateAppAccountManager),
     };
@@ -76,11 +75,15 @@ napi_value NapiAppAccount::Init(napi_env env, napi_value exports)
 
 napi_value NapiAppAccount::JsConstructor(napi_env env, napi_callback_info cbinfo)
 {
-    ACCOUNT_LOGI("Enter JsConstructor function");
+    ACCOUNT_LOGI("enter");
     napi_value thisVar = nullptr;
     NAPI_CALL(env, napi_get_cb_info(env, cbinfo, nullptr, nullptr, &thisVar, nullptr));
 
     AppAccountManager *objectInfo = new (std::nothrow) AppAccountManager();
+    if (objectInfo == nullptr) {
+        ACCOUNT_LOGI("objectInfo == nullptr");
+        return NapiGetNull(env);
+    }
     napi_wrap(env, thisVar, objectInfo, [](napi_env env, void *data, void *hint) {}, nullptr, nullptr);
     ACCOUNT_LOGI("AppAccountManager objectInfo at JsConstructor = %{public}p", objectInfo);
 
@@ -89,7 +92,7 @@ napi_value NapiAppAccount::JsConstructor(napi_env env, napi_callback_info cbinfo
 
 napi_value NapiAppAccount::CreateAppAccountManager(napi_env env, napi_callback_info cbInfo)
 {
-    ACCOUNT_LOGI("Enter CreateAppAccountManager function to new js instance");
+    ACCOUNT_LOGI("enter");
     napi_value instance = nullptr;
     napi_value cons = nullptr;
     if (napi_get_reference_value(env, constructorRef_, &cons) != napi_ok) {
@@ -105,8 +108,12 @@ napi_value NapiAppAccount::CreateAppAccountManager(napi_env env, napi_callback_i
 
 napi_value NapiAppAccount::AddAccount(napi_env env, napi_callback_info cbInfo)
 {
-    ACCOUNT_LOGI("Enter N-API AddAccount function.");
-    auto *asyncContext = new AppAccountAsyncContext();
+    ACCOUNT_LOGI("enter");
+    auto *asyncContext = new (std::nothrow) AppAccountAsyncContext();
+    if (asyncContext == nullptr) {
+        ACCOUNT_LOGI("asyncContext == nullptr");
+        return NapiGetNull(env);
+    }
     asyncContext->env = env;
     asyncContext->callbackRef = nullptr;
     ParseContextWithExInfo(env, cbInfo, asyncContext);
@@ -117,47 +124,50 @@ napi_value NapiAppAccount::AddAccount(napi_env env, napi_callback_info cbInfo)
     napi_value result = nullptr;
     if (asyncContext->callbackRef == nullptr) {
         ACCOUNT_LOGI("Create promise");
-        NAPI_CALL(env, napi_create_promise(env, &asyncContext->deferred, &result));
+        napi_create_promise(env, &asyncContext->deferred, &result);
     } else {
         ACCOUNT_LOGI("Undefined the result parameter");
-        NAPI_CALL(env, napi_get_undefined(env, &result));
+        napi_get_undefined(env, &result);
     }
 
     napi_value resource = nullptr;
-    NAPI_CALL(env, napi_create_string_utf8(env, "AddAccount", NAPI_AUTO_LENGTH, &resource));
+    napi_create_string_utf8(env, "AddAccount", NAPI_AUTO_LENGTH, &resource);
 
-    NAPI_CALL(env,
-        napi_create_async_work(env,
-            nullptr,
-            resource,
-            [](napi_env env, void *data) {
-                ACCOUNT_LOGI("AddAccount, napi_create_async_work running.");
-                AppAccountAsyncContext *asyncContext = (AppAccountAsyncContext *)data;
-                asyncContext->errCode = AppAccountManager::AddAccount(asyncContext->name, asyncContext->extraInfo);
-                ACCOUNT_LOGI("Addcount errcode parameter is %{public}d", asyncContext->errCode);
-                asyncContext->status = asyncContext->errCode == 0 ? napi_ok : napi_generic_failure;
-            },
-            [](napi_env env, napi_status status, void *data) {
-                ACCOUNT_LOGI("AddAccount, napi_create_async_work complete.");
-                AppAccountAsyncContext *asyncContext = (AppAccountAsyncContext *)data;
-                napi_value addResult[RESULT_COUNT] = {0};
-                addResult[PARAM0] = GetErrorCodeValue(env, asyncContext->errCode);
-                napi_get_undefined(env, &addResult[PARAM1]);
-                ProcessCallbackOrPromise(env, asyncContext, addResult[PARAM0], addResult[PARAM1]);
-                napi_delete_async_work(env, asyncContext->work);
-                delete asyncContext;
-                asyncContext = nullptr;
-            },
-            (void *)asyncContext,
-            &asyncContext->work));
-    NAPI_CALL(env, napi_queue_async_work(env, asyncContext->work));
+    napi_create_async_work(env,
+        nullptr,
+        resource,
+        [](napi_env env, void *data) {
+            ACCOUNT_LOGI("AddAccount, napi_create_async_work running.");
+            AppAccountAsyncContext *asyncContext = (AppAccountAsyncContext *)data;
+            asyncContext->errCode = AppAccountManager::AddAccount(asyncContext->name, asyncContext->extraInfo);
+            ACCOUNT_LOGI("Addcount errcode parameter is %{public}d", asyncContext->errCode);
+            asyncContext->status = asyncContext->errCode == 0 ? napi_ok : napi_generic_failure;
+        },
+        [](napi_env env, napi_status status, void *data) {
+            ACCOUNT_LOGI("AddAccount, napi_create_async_work complete.");
+            AppAccountAsyncContext *asyncContext = (AppAccountAsyncContext *)data;
+            napi_value addResult[RESULT_COUNT] = {0};
+            addResult[PARAM0] = GetErrorCodeValue(env, asyncContext->errCode);
+            napi_get_undefined(env, &addResult[PARAM1]);
+            ProcessCallbackOrPromise(env, asyncContext, addResult[PARAM0], addResult[PARAM1]);
+            napi_delete_async_work(env, asyncContext->work);
+            delete asyncContext;
+            asyncContext = nullptr;
+        },
+        (void *)asyncContext,
+        &asyncContext->work);
+    napi_queue_async_work(env, asyncContext->work);
     return result;
 }
 
 napi_value NapiAppAccount::DeleteAccount(napi_env env, napi_callback_info cbInfo)
 {
-    ACCOUNT_LOGI("Enter N-API DeleteAccount function.");
-    auto *asyncContext = new AppAccountAsyncContext();
+    ACCOUNT_LOGI("enter");
+    auto *asyncContext = new (std::nothrow) AppAccountAsyncContext();
+    if (asyncContext == nullptr) {
+        ACCOUNT_LOGI("asyncContext == nullptr");
+        return NapiGetNull(env);
+    }
     asyncContext->env = env;
     asyncContext->callbackRef = nullptr;
     ParseContextWithTwoPara(env, cbInfo, asyncContext);
@@ -166,47 +176,50 @@ napi_value NapiAppAccount::DeleteAccount(napi_env env, napi_callback_info cbInfo
     napi_value result = nullptr;
     if (asyncContext->callbackRef == nullptr) {
         ACCOUNT_LOGI("Create promise");
-        NAPI_CALL(env, napi_create_promise(env, &asyncContext->deferred, &result));
+        napi_create_promise(env, &asyncContext->deferred, &result);
     } else {
         ACCOUNT_LOGI("Undefined the result parameter");
-        NAPI_CALL(env, napi_get_undefined(env, &result));
+        napi_get_undefined(env, &result);
     }
 
     napi_value resource = nullptr;
-    NAPI_CALL(env, napi_create_string_utf8(env, "DeleteAccount", NAPI_AUTO_LENGTH, &resource));
+    napi_create_string_utf8(env, "DeleteAccount", NAPI_AUTO_LENGTH, &resource);
 
-    NAPI_CALL(env,
-        napi_create_async_work(env,
-            nullptr,
-            resource,
-            [](napi_env env, void *data) {
-                ACCOUNT_LOGI("DeleteAccount, napi_create_async_work running.");
-                AppAccountAsyncContext *asyncContext = (AppAccountAsyncContext *)data;
-                asyncContext->errCode = AppAccountManager::DeleteAccount(asyncContext->name);
-                ACCOUNT_LOGI("Deleteaccount errcode parameter is %{public}d", asyncContext->errCode);
-                asyncContext->status = asyncContext->errCode == 0 ? napi_ok : napi_generic_failure;
-            },
-            [](napi_env env, napi_status status, void *data) {
-                ACCOUNT_LOGI("DeleteAccount, napi_create_async_work complete.");
-                AppAccountAsyncContext *asyncContext = (AppAccountAsyncContext *)data;
-                napi_value delResult[RESULT_COUNT] = {0};
-                delResult[PARAM0] = GetErrorCodeValue(env, asyncContext->errCode);
-                napi_get_undefined(env, &delResult[PARAM1]);
-                ProcessCallbackOrPromise(env, asyncContext, delResult[PARAM0], delResult[PARAM1]);
-                napi_delete_async_work(env, asyncContext->work);
-                delete asyncContext;
-                asyncContext = nullptr;
-            },
-            (void *)asyncContext,
-            &asyncContext->work));
-    NAPI_CALL(env, napi_queue_async_work(env, asyncContext->work));
+    napi_create_async_work(env,
+        nullptr,
+        resource,
+        [](napi_env env, void *data) {
+            ACCOUNT_LOGI("DeleteAccount, napi_create_async_work running.");
+            AppAccountAsyncContext *asyncContext = (AppAccountAsyncContext *)data;
+            asyncContext->errCode = AppAccountManager::DeleteAccount(asyncContext->name);
+            ACCOUNT_LOGI("Deleteaccount errcode parameter is %{public}d", asyncContext->errCode);
+            asyncContext->status = asyncContext->errCode == 0 ? napi_ok : napi_generic_failure;
+        },
+        [](napi_env env, napi_status status, void *data) {
+            ACCOUNT_LOGI("DeleteAccount, napi_create_async_work complete.");
+            AppAccountAsyncContext *asyncContext = (AppAccountAsyncContext *)data;
+            napi_value delResult[RESULT_COUNT] = {0};
+            delResult[PARAM0] = GetErrorCodeValue(env, asyncContext->errCode);
+            napi_get_undefined(env, &delResult[PARAM1]);
+            ProcessCallbackOrPromise(env, asyncContext, delResult[PARAM0], delResult[PARAM1]);
+            napi_delete_async_work(env, asyncContext->work);
+            delete asyncContext;
+            asyncContext = nullptr;
+        },
+        (void *)asyncContext,
+        &asyncContext->work);
+    napi_queue_async_work(env, asyncContext->work);
     return result;
 }
 
 napi_value NapiAppAccount::DisableAppAccess(napi_env env, napi_callback_info cbInfo)
 {
-    ACCOUNT_LOGI("Enter N-API DisableAppAccess function.");
-    auto *asyncContext = new AppAccountAsyncContext();
+    ACCOUNT_LOGI("enter");
+    auto *asyncContext = new (std::nothrow) AppAccountAsyncContext();
+    if (asyncContext == nullptr) {
+        ACCOUNT_LOGI("asyncContext == nullptr");
+        return NapiGetNull(env);
+    }
     asyncContext->env = env;
     asyncContext->callbackRef = nullptr;
     ParseContextWithBdName(env, cbInfo, asyncContext);
@@ -217,48 +230,50 @@ napi_value NapiAppAccount::DisableAppAccess(napi_env env, napi_callback_info cbI
     napi_value result = nullptr;
     if (asyncContext->callbackRef == nullptr) {
         ACCOUNT_LOGI("Create promise");
-        NAPI_CALL(env, napi_create_promise(env, &asyncContext->deferred, &result));
+        napi_create_promise(env, &asyncContext->deferred, &result);
     } else {
         ACCOUNT_LOGI("Undefined the result parameter");
-        NAPI_CALL(env, napi_get_undefined(env, &result));
+        napi_get_undefined(env, &result);
     }
 
     napi_value resource = nullptr;
-    NAPI_CALL(env, napi_create_string_utf8(env, "DisableAppAccess", NAPI_AUTO_LENGTH, &resource));
+    napi_create_string_utf8(env, "DisableAppAccess", NAPI_AUTO_LENGTH, &resource);
 
-    NAPI_CALL(env,
-        napi_create_async_work(env,
-            nullptr,
-            resource,
-            [](napi_env env, void *data) {
-                ACCOUNT_LOGI("DisableAppAccess, napi_create_async_work running.");
-                AppAccountAsyncContext *asyncContext = (AppAccountAsyncContext *)data;
-                asyncContext->errCode =
-                    AppAccountManager::DisableAppAccess(asyncContext->name, asyncContext->bundleName);
-                ACCOUNT_LOGI("DisableAppAccess errcode parameter is %{public}d", asyncContext->errCode);
-                asyncContext->status = asyncContext->errCode == 0 ? napi_ok : napi_generic_failure;
-            },
-            [](napi_env env, napi_status status, void *data) {
-                ACCOUNT_LOGI("DisableAppAccess, napi_create_async_work complete.");
-                AppAccountAsyncContext *asyncContext = (AppAccountAsyncContext *)data;
-                napi_value disResult[RESULT_COUNT] = {0};
-                disResult[PARAM0] = GetErrorCodeValue(env, asyncContext->errCode);
-                napi_get_undefined(env, &disResult[PARAM1]);
-                ProcessCallbackOrPromise(env, asyncContext, disResult[PARAM0], disResult[PARAM1]);
-                napi_delete_async_work(env, asyncContext->work);
-                delete asyncContext;
-                asyncContext = nullptr;
-            },
-            (void *)asyncContext,
-            &asyncContext->work));
-    NAPI_CALL(env, napi_queue_async_work(env, asyncContext->work));
+    napi_create_async_work(env,
+        nullptr,
+        resource,
+        [](napi_env env, void *data) {
+            ACCOUNT_LOGI("DisableAppAccess, napi_create_async_work running.");
+            AppAccountAsyncContext *asyncContext = (AppAccountAsyncContext *)data;
+            asyncContext->errCode = AppAccountManager::DisableAppAccess(asyncContext->name, asyncContext->bundleName);
+            ACCOUNT_LOGI("DisableAppAccess errcode parameter is %{public}d", asyncContext->errCode);
+            asyncContext->status = asyncContext->errCode == 0 ? napi_ok : napi_generic_failure;
+        },
+        [](napi_env env, napi_status status, void *data) {
+            ACCOUNT_LOGI("DisableAppAccess, napi_create_async_work complete.");
+            AppAccountAsyncContext *asyncContext = (AppAccountAsyncContext *)data;
+            napi_value disResult[RESULT_COUNT] = {0};
+            disResult[PARAM0] = GetErrorCodeValue(env, asyncContext->errCode);
+            napi_get_undefined(env, &disResult[PARAM1]);
+            ProcessCallbackOrPromise(env, asyncContext, disResult[PARAM0], disResult[PARAM1]);
+            napi_delete_async_work(env, asyncContext->work);
+            delete asyncContext;
+            asyncContext = nullptr;
+        },
+        (void *)asyncContext,
+        &asyncContext->work);
+    napi_queue_async_work(env, asyncContext->work);
     return result;
 }
 
 napi_value NapiAppAccount::EnableAppAccess(napi_env env, napi_callback_info cbInfo)
 {
-    ACCOUNT_LOGI("Enter N-API EnableAppAccess function.");
-    auto *asyncContext = new AppAccountAsyncContext();
+    ACCOUNT_LOGI("enter");
+    auto *asyncContext = new (std::nothrow) AppAccountAsyncContext();
+    if (asyncContext == nullptr) {
+        ACCOUNT_LOGI("asyncContext == nullptr");
+        return NapiGetNull(env);
+    }
     asyncContext->env = env;
     asyncContext->callbackRef = nullptr;
     ParseContextWithBdName(env, cbInfo, asyncContext);
@@ -269,48 +284,50 @@ napi_value NapiAppAccount::EnableAppAccess(napi_env env, napi_callback_info cbIn
     napi_value result = nullptr;
     if (asyncContext->callbackRef == nullptr) {
         ACCOUNT_LOGI("Create promise");
-        NAPI_CALL(env, napi_create_promise(env, &asyncContext->deferred, &result));
+        napi_create_promise(env, &asyncContext->deferred, &result);
     } else {
         ACCOUNT_LOGI("Undefined the result parameter");
-        NAPI_CALL(env, napi_get_undefined(env, &result));
+        napi_get_undefined(env, &result);
     }
 
     napi_value resource = nullptr;
-    NAPI_CALL(env, napi_create_string_utf8(env, "EnableAppAccess", NAPI_AUTO_LENGTH, &resource));
+    napi_create_string_utf8(env, "EnableAppAccess", NAPI_AUTO_LENGTH, &resource);
 
-    NAPI_CALL(env,
-        napi_create_async_work(env,
-            nullptr,
-            resource,
-            [](napi_env env, void *data) {
-                ACCOUNT_LOGI("EnableAppAccess, napi_create_async_work running.");
-                AppAccountAsyncContext *asyncContext = (AppAccountAsyncContext *)data;
-                asyncContext->errCode =
-                    AppAccountManager::EnableAppAccess(asyncContext->name, asyncContext->bundleName);
-                ACCOUNT_LOGI("EnableAppAccess errcode parameter is %{public}d", asyncContext->errCode);
-                asyncContext->status = asyncContext->errCode == 0 ? napi_ok : napi_generic_failure;
-            },
-            [](napi_env env, napi_status status, void *data) {
-                ACCOUNT_LOGI("EnableAppAccess, napi_create_async_work complete.");
-                AppAccountAsyncContext *asyncContext = (AppAccountAsyncContext *)data;
-                napi_value enResult[RESULT_COUNT] = {0};
-                enResult[PARAM0] = GetErrorCodeValue(env, asyncContext->errCode);
-                napi_get_undefined(env, &enResult[PARAM1]);
-                ProcessCallbackOrPromise(env, asyncContext, enResult[PARAM0], enResult[PARAM1]);
-                napi_delete_async_work(env, asyncContext->work);
-                delete asyncContext;
-                asyncContext = nullptr;
-            },
-            (void *)asyncContext,
-            &asyncContext->work));
-    NAPI_CALL(env, napi_queue_async_work(env, asyncContext->work));
+    napi_create_async_work(env,
+        nullptr,
+        resource,
+        [](napi_env env, void *data) {
+            ACCOUNT_LOGI("EnableAppAccess, napi_create_async_work running.");
+            AppAccountAsyncContext *asyncContext = (AppAccountAsyncContext *)data;
+            asyncContext->errCode = AppAccountManager::EnableAppAccess(asyncContext->name, asyncContext->bundleName);
+            ACCOUNT_LOGI("EnableAppAccess errcode parameter is %{public}d", asyncContext->errCode);
+            asyncContext->status = asyncContext->errCode == 0 ? napi_ok : napi_generic_failure;
+        },
+        [](napi_env env, napi_status status, void *data) {
+            ACCOUNT_LOGI("EnableAppAccess, napi_create_async_work complete.");
+            AppAccountAsyncContext *asyncContext = (AppAccountAsyncContext *)data;
+            napi_value enResult[RESULT_COUNT] = {0};
+            enResult[PARAM0] = GetErrorCodeValue(env, asyncContext->errCode);
+            napi_get_undefined(env, &enResult[PARAM1]);
+            ProcessCallbackOrPromise(env, asyncContext, enResult[PARAM0], enResult[PARAM1]);
+            napi_delete_async_work(env, asyncContext->work);
+            delete asyncContext;
+            asyncContext = nullptr;
+        },
+        (void *)asyncContext,
+        &asyncContext->work);
+    napi_queue_async_work(env, asyncContext->work);
     return result;
 }
 
 napi_value NapiAppAccount::CheckAppAccountSyncEnable(napi_env env, napi_callback_info cbInfo)
 {
-    ACCOUNT_LOGI("Enter N-API CheckAppAccountSyncEnable function.");
-    auto *asyncContext = new AppAccountAsyncContext();
+    ACCOUNT_LOGI("enter");
+    auto *asyncContext = new (std::nothrow) AppAccountAsyncContext();
+    if (asyncContext == nullptr) {
+        ACCOUNT_LOGI("asyncContext == nullptr");
+        return NapiGetNull(env);
+    }
     asyncContext->env = env;
     asyncContext->callbackRef = nullptr;
     ParseContextWithTwoPara(env, cbInfo, asyncContext);
@@ -319,48 +336,51 @@ napi_value NapiAppAccount::CheckAppAccountSyncEnable(napi_env env, napi_callback
     napi_value result = nullptr;
     if (asyncContext->callbackRef == nullptr) {
         ACCOUNT_LOGI("Create promise");
-        NAPI_CALL(env, napi_create_promise(env, &asyncContext->deferred, &result));
+        napi_create_promise(env, &asyncContext->deferred, &result);
     } else {
         ACCOUNT_LOGI("Undefined the result parameter");
-        NAPI_CALL(env, napi_get_undefined(env, &result));
+        napi_get_undefined(env, &result);
     }
 
     napi_value resource = nullptr;
-    NAPI_CALL(env, napi_create_string_utf8(env, "CheckAppAccountSyncEnable", NAPI_AUTO_LENGTH, &resource));
+    napi_create_string_utf8(env, "CheckAppAccountSyncEnable", NAPI_AUTO_LENGTH, &resource);
 
-    NAPI_CALL(env,
-        napi_create_async_work(env,
-            nullptr,
-            resource,
-            [](napi_env env, void *data) {
-                ACCOUNT_LOGI("CheckAppAccountSyncEnable, napi_create_async_work running.");
-                AppAccountAsyncContext *asyncContext = (AppAccountAsyncContext *)data;
-                asyncContext->errCode =
-                    AppAccountManager::CheckAppAccountSyncEnable(asyncContext->name, asyncContext->result);
-                ACCOUNT_LOGI("CheckAppAccountSyncEnable errcode parameter is %{public}d", asyncContext->errCode);
-                asyncContext->status = asyncContext->errCode == 0 ? napi_ok : napi_generic_failure;
-            },
-            [](napi_env env, napi_status status, void *data) {
-                ACCOUNT_LOGI("CheckAppAccountSyncEnable, napi_create_async_work complete.");
-                AppAccountAsyncContext *asyncContext = (AppAccountAsyncContext *)data;
-                napi_value checkResult[RESULT_COUNT] = {0};
-                checkResult[PARAM0] = GetErrorCodeValue(env, asyncContext->errCode);
-                napi_get_boolean(env, asyncContext->result, &checkResult[PARAM1]);
-                ProcessCallbackOrPromise(env, asyncContext, checkResult[PARAM0], checkResult[PARAM1]);
-                napi_delete_async_work(env, asyncContext->work);
-                delete asyncContext;
-                asyncContext = nullptr;
-            },
-            (void *)asyncContext,
-            &asyncContext->work));
-    NAPI_CALL(env, napi_queue_async_work(env, asyncContext->work));
+    napi_create_async_work(env,
+        nullptr,
+        resource,
+        [](napi_env env, void *data) {
+            ACCOUNT_LOGI("CheckAppAccountSyncEnable, napi_create_async_work running.");
+            AppAccountAsyncContext *asyncContext = (AppAccountAsyncContext *)data;
+            asyncContext->errCode =
+                AppAccountManager::CheckAppAccountSyncEnable(asyncContext->name, asyncContext->result);
+            ACCOUNT_LOGI("CheckAppAccountSyncEnable errcode parameter is %{public}d", asyncContext->errCode);
+            asyncContext->status = asyncContext->errCode == 0 ? napi_ok : napi_generic_failure;
+        },
+        [](napi_env env, napi_status status, void *data) {
+            ACCOUNT_LOGI("CheckAppAccountSyncEnable, napi_create_async_work complete.");
+            AppAccountAsyncContext *asyncContext = (AppAccountAsyncContext *)data;
+            napi_value checkResult[RESULT_COUNT] = {0};
+            checkResult[PARAM0] = GetErrorCodeValue(env, asyncContext->errCode);
+            napi_get_boolean(env, asyncContext->result, &checkResult[PARAM1]);
+            ProcessCallbackOrPromise(env, asyncContext, checkResult[PARAM0], checkResult[PARAM1]);
+            napi_delete_async_work(env, asyncContext->work);
+            delete asyncContext;
+            asyncContext = nullptr;
+        },
+        (void *)asyncContext,
+        &asyncContext->work);
+    napi_queue_async_work(env, asyncContext->work);
     return result;
 }
 
 napi_value NapiAppAccount::SetAccountCredential(napi_env env, napi_callback_info cbInfo)
 {
-    ACCOUNT_LOGI("Enter N-API SetAccountCredential function.");
-    auto *asyncContext = new AppAccountAsyncContext();
+    ACCOUNT_LOGI("enter");
+    auto *asyncContext = new (std::nothrow) AppAccountAsyncContext();
+    if (asyncContext == nullptr) {
+        ACCOUNT_LOGI("asyncContext == nullptr");
+        return NapiGetNull(env);
+    }
     asyncContext->env = env;
     asyncContext->callbackRef = nullptr;
     ParseContextToSetCredential(env, cbInfo, asyncContext);
@@ -372,48 +392,51 @@ napi_value NapiAppAccount::SetAccountCredential(napi_env env, napi_callback_info
     napi_value result = nullptr;
     if (asyncContext->callbackRef == nullptr) {
         ACCOUNT_LOGI("Create promise");
-        NAPI_CALL(env, napi_create_promise(env, &asyncContext->deferred, &result));
+        napi_create_promise(env, &asyncContext->deferred, &result);
     } else {
         ACCOUNT_LOGI("Undefined the result parameter");
-        NAPI_CALL(env, napi_get_undefined(env, &result));
+        napi_get_undefined(env, &result);
     }
 
     napi_value resource = nullptr;
-    NAPI_CALL(env, napi_create_string_utf8(env, "SetAccountCredential", NAPI_AUTO_LENGTH, &resource));
+    napi_create_string_utf8(env, "SetAccountCredential", NAPI_AUTO_LENGTH, &resource);
 
-    NAPI_CALL(env,
-        napi_create_async_work(env,
-            nullptr,
-            resource,
-            [](napi_env env, void *data) {
-                ACCOUNT_LOGI("SetAccountCredential, napi_create_async_work running.");
-                AppAccountAsyncContext *asyncContext = (AppAccountAsyncContext *)data;
-                asyncContext->errCode = AppAccountManager::SetAccountCredential(
-                    asyncContext->name, asyncContext->credentialType, asyncContext->credential);
-                ACCOUNT_LOGI("SetAccountCredential errcode parameter is %{public}d", asyncContext->errCode);
-                asyncContext->status = asyncContext->errCode == 0 ? napi_ok : napi_generic_failure;
-            },
-            [](napi_env env, napi_status status, void *data) {
-                ACCOUNT_LOGI("SetAccountCredential, napi_create_async_work complete.");
-                AppAccountAsyncContext *asyncContext = (AppAccountAsyncContext *)data;
-                napi_value setResult[RESULT_COUNT] = {0};
-                setResult[PARAM0] = GetErrorCodeValue(env, asyncContext->errCode);
-                napi_get_undefined(env, &setResult[PARAM1]);
-                ProcessCallbackOrPromise(env, asyncContext, setResult[PARAM0], setResult[PARAM1]);
-                napi_delete_async_work(env, asyncContext->work);
-                delete asyncContext;
-                asyncContext = nullptr;
-            },
-            (void *)asyncContext,
-            &asyncContext->work));
-    NAPI_CALL(env, napi_queue_async_work(env, asyncContext->work));
+    napi_create_async_work(env,
+        nullptr,
+        resource,
+        [](napi_env env, void *data) {
+            ACCOUNT_LOGI("SetAccountCredential, napi_create_async_work running.");
+            AppAccountAsyncContext *asyncContext = (AppAccountAsyncContext *)data;
+            asyncContext->errCode = AppAccountManager::SetAccountCredential(
+                asyncContext->name, asyncContext->credentialType, asyncContext->credential);
+            ACCOUNT_LOGI("SetAccountCredential errcode parameter is %{public}d", asyncContext->errCode);
+            asyncContext->status = asyncContext->errCode == 0 ? napi_ok : napi_generic_failure;
+        },
+        [](napi_env env, napi_status status, void *data) {
+            ACCOUNT_LOGI("SetAccountCredential, napi_create_async_work complete.");
+            AppAccountAsyncContext *asyncContext = (AppAccountAsyncContext *)data;
+            napi_value setResult[RESULT_COUNT] = {0};
+            setResult[PARAM0] = GetErrorCodeValue(env, asyncContext->errCode);
+            napi_get_undefined(env, &setResult[PARAM1]);
+            ProcessCallbackOrPromise(env, asyncContext, setResult[PARAM0], setResult[PARAM1]);
+            napi_delete_async_work(env, asyncContext->work);
+            delete asyncContext;
+            asyncContext = nullptr;
+        },
+        (void *)asyncContext,
+        &asyncContext->work);
+    napi_queue_async_work(env, asyncContext->work);
     return result;
 }
 
 napi_value NapiAppAccount::SetAccountExtraInfo(napi_env env, napi_callback_info cbInfo)
 {
-    ACCOUNT_LOGI("Enter N-API SetAccountExtraInfo function.");
-    auto *asyncContext = new AppAccountAsyncContext();
+    ACCOUNT_LOGI("enter");
+    auto *asyncContext = new (std::nothrow) AppAccountAsyncContext();
+    if (asyncContext == nullptr) {
+        ACCOUNT_LOGI("asyncContext == nullptr");
+        return NapiGetNull(env);
+    }
     asyncContext->env = env;
     asyncContext->callbackRef = nullptr;
     ParseContextForSetExInfo(env, cbInfo, asyncContext);
@@ -421,56 +444,53 @@ napi_value NapiAppAccount::SetAccountExtraInfo(napi_env env, napi_callback_info 
         asyncContext->name.c_str(),
         asyncContext->extraInfo.c_str());
 
-    if (asyncContext == nullptr) {
-        ACCOUNT_LOGI("The asyncContext for SetAccountExtraInfo is nullptr");
-        return NapiGetNull(env);
-    }
-
     napi_value result = nullptr;
     if (asyncContext->callbackRef == nullptr) {
         ACCOUNT_LOGI("Create promise");
-        NAPI_CALL(env, napi_create_promise(env, &asyncContext->deferred, &result));
+        napi_create_promise(env, &asyncContext->deferred, &result);
     } else {
         ACCOUNT_LOGI("Undefined the result parameter");
-        NAPI_CALL(env, napi_get_undefined(env, &result));
+        napi_get_undefined(env, &result);
     }
 
     napi_value resource = nullptr;
-    NAPI_CALL(env, napi_create_string_utf8(env, "SetAccountExtraInfo", NAPI_AUTO_LENGTH, &resource));
+    napi_create_string_utf8(env, "SetAccountExtraInfo", NAPI_AUTO_LENGTH, &resource);
 
-    NAPI_CALL(env,
-        napi_create_async_work(env,
-            nullptr,
-            resource,
-            [](napi_env env, void *data) {
-                ACCOUNT_LOGI("SetAccountExtraInfo, napi_create_async_work running.");
-                AppAccountAsyncContext *asyncContext = (AppAccountAsyncContext *)data;
-                asyncContext->errCode =
-                    AppAccountManager::SetAccountExtraInfo(asyncContext->name, asyncContext->extraInfo);
-                ACCOUNT_LOGI("SetAccountExtraInfo errcode parameter is %{public}d", asyncContext->errCode);
-                asyncContext->status = asyncContext->errCode == 0 ? napi_ok : napi_generic_failure;
-            },
-            [](napi_env env, napi_status status, void *data) {
-                ACCOUNT_LOGI("SetAccountExtraInfo, napi_create_async_work complete.");
-                AppAccountAsyncContext *asyncContext = (AppAccountAsyncContext *)data;
-                napi_value setResult[RESULT_COUNT] = {0};
-                setResult[PARAM0] = GetErrorCodeValue(env, asyncContext->errCode);
-                napi_get_undefined(env, &setResult[PARAM1]);
-                ProcessCallbackOrPromise(env, asyncContext, setResult[PARAM0], setResult[PARAM1]);
-                napi_delete_async_work(env, asyncContext->work);
-                delete asyncContext;
-                asyncContext = nullptr;
-            },
-            (void *)asyncContext,
-            &asyncContext->work));
-    NAPI_CALL(env, napi_queue_async_work(env, asyncContext->work));
+    napi_create_async_work(env,
+        nullptr,
+        resource,
+        [](napi_env env, void *data) {
+            ACCOUNT_LOGI("SetAccountExtraInfo, napi_create_async_work running.");
+            AppAccountAsyncContext *asyncContext = (AppAccountAsyncContext *)data;
+            asyncContext->errCode = AppAccountManager::SetAccountExtraInfo(asyncContext->name, asyncContext->extraInfo);
+            ACCOUNT_LOGI("SetAccountExtraInfo errcode parameter is %{public}d", asyncContext->errCode);
+            asyncContext->status = asyncContext->errCode == 0 ? napi_ok : napi_generic_failure;
+        },
+        [](napi_env env, napi_status status, void *data) {
+            ACCOUNT_LOGI("SetAccountExtraInfo, napi_create_async_work complete.");
+            AppAccountAsyncContext *asyncContext = (AppAccountAsyncContext *)data;
+            napi_value setResult[RESULT_COUNT] = {0};
+            setResult[PARAM0] = GetErrorCodeValue(env, asyncContext->errCode);
+            napi_get_undefined(env, &setResult[PARAM1]);
+            ProcessCallbackOrPromise(env, asyncContext, setResult[PARAM0], setResult[PARAM1]);
+            napi_delete_async_work(env, asyncContext->work);
+            delete asyncContext;
+            asyncContext = nullptr;
+        },
+        (void *)asyncContext,
+        &asyncContext->work);
+    napi_queue_async_work(env, asyncContext->work);
     return result;
 }
 
 napi_value NapiAppAccount::SetAppAccountSyncEnable(napi_env env, napi_callback_info cbInfo)
 {
-    ACCOUNT_LOGI("Enter N-API SetAppAccountSyncEnable function");
-    auto *asyncContext = new AppAccountAsyncContext();
+    ACCOUNT_LOGI("enter");
+    auto *asyncContext = new (std::nothrow) AppAccountAsyncContext();
+    if (asyncContext == nullptr) {
+        ACCOUNT_LOGI("asyncContext == nullptr");
+        return NapiGetNull(env);
+    }
     asyncContext->env = env;
     asyncContext->callbackRef = nullptr;
     ParseContextWithIsEnable(env, cbInfo, asyncContext);
@@ -479,48 +499,51 @@ napi_value NapiAppAccount::SetAppAccountSyncEnable(napi_env env, napi_callback_i
     napi_value result = nullptr;
     if (asyncContext->callbackRef == nullptr) {
         ACCOUNT_LOGI("Create promise");
-        NAPI_CALL(env, napi_create_promise(env, &asyncContext->deferred, &result));
+        napi_create_promise(env, &asyncContext->deferred, &result);
     } else {
         ACCOUNT_LOGI("Undefined the result parameter");
-        NAPI_CALL(env, napi_get_undefined(env, &result));
+        napi_get_undefined(env, &result);
     }
 
     napi_value resource = nullptr;
-    NAPI_CALL(env, napi_create_string_utf8(env, "SetAppAccountSyncEnable", NAPI_AUTO_LENGTH, &resource));
+    napi_create_string_utf8(env, "SetAppAccountSyncEnable", NAPI_AUTO_LENGTH, &resource);
 
-    NAPI_CALL(env,
-        napi_create_async_work(env,
-            nullptr,
-            resource,
-            [](napi_env env, void *data) {
-                ACCOUNT_LOGI("SetAppAccountSyncEnable, napi_create_async_work running.");
-                AppAccountAsyncContext *asyncContext = (AppAccountAsyncContext *)data;
-                asyncContext->errCode =
-                    AppAccountManager::SetAppAccountSyncEnable(asyncContext->name, asyncContext->isEnable);
-                ACCOUNT_LOGI("SetAppAccountSyncEnable errcode parameter is %{public}d", asyncContext->errCode);
-                asyncContext->status = asyncContext->errCode == 0 ? napi_ok : napi_generic_failure;
-            },
-            [](napi_env env, napi_status status, void *data) {
-                ACCOUNT_LOGI("SetAppAccountSyncEnable, napi_create_async_work complete.");
-                AppAccountAsyncContext *asyncContext = (AppAccountAsyncContext *)data;
-                napi_value setResult[RESULT_COUNT] = {0};
-                setResult[PARAM0] = GetErrorCodeValue(env, asyncContext->errCode);
-                napi_get_undefined(env, &setResult[PARAM1]);
-                ProcessCallbackOrPromise(env, asyncContext, setResult[PARAM0], setResult[PARAM1]);
-                napi_delete_async_work(env, asyncContext->work);
-                delete asyncContext;
-                asyncContext = nullptr;
-            },
-            (void *)asyncContext,
-            &asyncContext->work));
-    NAPI_CALL(env, napi_queue_async_work(env, asyncContext->work));
+    napi_create_async_work(env,
+        nullptr,
+        resource,
+        [](napi_env env, void *data) {
+            ACCOUNT_LOGI("SetAppAccountSyncEnable, napi_create_async_work running.");
+            AppAccountAsyncContext *asyncContext = (AppAccountAsyncContext *)data;
+            asyncContext->errCode =
+                AppAccountManager::SetAppAccountSyncEnable(asyncContext->name, asyncContext->isEnable);
+            ACCOUNT_LOGI("SetAppAccountSyncEnable errcode parameter is %{public}d", asyncContext->errCode);
+            asyncContext->status = asyncContext->errCode == 0 ? napi_ok : napi_generic_failure;
+        },
+        [](napi_env env, napi_status status, void *data) {
+            ACCOUNT_LOGI("SetAppAccountSyncEnable, napi_create_async_work complete.");
+            AppAccountAsyncContext *asyncContext = (AppAccountAsyncContext *)data;
+            napi_value setResult[RESULT_COUNT] = {0};
+            setResult[PARAM0] = GetErrorCodeValue(env, asyncContext->errCode);
+            napi_get_undefined(env, &setResult[PARAM1]);
+            ProcessCallbackOrPromise(env, asyncContext, setResult[PARAM0], setResult[PARAM1]);
+            napi_delete_async_work(env, asyncContext->work);
+            delete asyncContext;
+            asyncContext = nullptr;
+        },
+        (void *)asyncContext,
+        &asyncContext->work);
+    napi_queue_async_work(env, asyncContext->work);
     return result;
 }
 
 napi_value NapiAppAccount::SetAssociatedData(napi_env env, napi_callback_info cbInfo)
 {
-    ACCOUNT_LOGI("Enter N-API SetAssociatedData function.");
-    auto *asyncContext = new AppAccountAsyncContext();
+    ACCOUNT_LOGI("enter");
+    auto *asyncContext = new (std::nothrow) AppAccountAsyncContext();
+    if (asyncContext == nullptr) {
+        ACCOUNT_LOGI("asyncContext == nullptr");
+        return NapiGetNull(env);
+    }
     asyncContext->env = env;
     asyncContext->callbackRef = nullptr;
     ParseContextForAssociatedData(env, cbInfo, asyncContext);
@@ -529,48 +552,51 @@ napi_value NapiAppAccount::SetAssociatedData(napi_env env, napi_callback_info cb
     napi_value result = nullptr;
     if (asyncContext->callbackRef == nullptr) {
         ACCOUNT_LOGI("Create promise");
-        NAPI_CALL(env, napi_create_promise(env, &asyncContext->deferred, &result));
+        napi_create_promise(env, &asyncContext->deferred, &result);
     } else {
         ACCOUNT_LOGI("Undefined the result parameter");
-        NAPI_CALL(env, napi_get_undefined(env, &result));
+        napi_get_undefined(env, &result);
     }
 
     napi_value resource = nullptr;
-    NAPI_CALL(env, napi_create_string_utf8(env, "SetAssociatedData", NAPI_AUTO_LENGTH, &resource));
+    napi_create_string_utf8(env, "SetAssociatedData", NAPI_AUTO_LENGTH, &resource);
 
-    NAPI_CALL(env,
-        napi_create_async_work(env,
-            nullptr,
-            resource,
-            [](napi_env env, void *data) {
-                ACCOUNT_LOGI("SetAssociatedData, napi_create_async_work running.");
-                AppAccountAsyncContext *asyncContext = (AppAccountAsyncContext *)data;
-                asyncContext->errCode =
-                    AppAccountManager::SetAssociatedData(asyncContext->name, asyncContext->key, asyncContext->value);
-                ACCOUNT_LOGI("SetAssociatedData errcode parameter is %{public}d", asyncContext->errCode);
-                asyncContext->status = asyncContext->errCode == 0 ? napi_ok : napi_generic_failure;
-            },
-            [](napi_env env, napi_status status, void *data) {
-                ACCOUNT_LOGI("SetAssociatedData, napi_create_async_work complete.");
-                AppAccountAsyncContext *asyncContext = (AppAccountAsyncContext *)data;
-                napi_value setResult[RESULT_COUNT] = {0};
-                setResult[PARAM0] = GetErrorCodeValue(env, asyncContext->errCode);
-                napi_get_undefined(env, &setResult[PARAM1]);
-                ProcessCallbackOrPromise(env, asyncContext, setResult[PARAM0], setResult[PARAM1]);
-                napi_delete_async_work(env, asyncContext->work);
-                delete asyncContext;
-                asyncContext = nullptr;
-            },
-            (void *)asyncContext,
-            &asyncContext->work));
-    NAPI_CALL(env, napi_queue_async_work(env, asyncContext->work));
+    napi_create_async_work(env,
+        nullptr,
+        resource,
+        [](napi_env env, void *data) {
+            ACCOUNT_LOGI("SetAssociatedData, napi_create_async_work running.");
+            AppAccountAsyncContext *asyncContext = (AppAccountAsyncContext *)data;
+            asyncContext->errCode =
+                AppAccountManager::SetAssociatedData(asyncContext->name, asyncContext->key, asyncContext->value);
+            ACCOUNT_LOGI("SetAssociatedData errcode parameter is %{public}d", asyncContext->errCode);
+            asyncContext->status = asyncContext->errCode == 0 ? napi_ok : napi_generic_failure;
+        },
+        [](napi_env env, napi_status status, void *data) {
+            ACCOUNT_LOGI("SetAssociatedData, napi_create_async_work complete.");
+            AppAccountAsyncContext *asyncContext = (AppAccountAsyncContext *)data;
+            napi_value setResult[RESULT_COUNT] = {0};
+            setResult[PARAM0] = GetErrorCodeValue(env, asyncContext->errCode);
+            napi_get_undefined(env, &setResult[PARAM1]);
+            ProcessCallbackOrPromise(env, asyncContext, setResult[PARAM0], setResult[PARAM1]);
+            napi_delete_async_work(env, asyncContext->work);
+            delete asyncContext;
+            asyncContext = nullptr;
+        },
+        (void *)asyncContext,
+        &asyncContext->work);
+    napi_queue_async_work(env, asyncContext->work);
     return result;
 }
 
 napi_value NapiAppAccount::GetAllAccessibleAccounts(napi_env env, napi_callback_info cbInfo)
 {
-    ACCOUNT_LOGI("Enter N-API GetAllAccessibleAccounts function.");
-    auto *asyncContext = new GetAccountsAsyncContext();
+    ACCOUNT_LOGI("enter");
+    auto *asyncContext = new (std::nothrow) GetAccountsAsyncContext();
+    if (asyncContext == nullptr) {
+        ACCOUNT_LOGI("asyncContext == nullptr");
+        return NapiGetNull(env);
+    }
     asyncContext->env = env;
     asyncContext->callbackRef = nullptr;
     ParseContextCBArray(env, cbInfo, asyncContext);
@@ -578,48 +604,51 @@ napi_value NapiAppAccount::GetAllAccessibleAccounts(napi_env env, napi_callback_
     napi_value result = nullptr;
     if (asyncContext->callbackRef == nullptr) {
         ACCOUNT_LOGI("Create promise");
-        NAPI_CALL(env, napi_create_promise(env, &asyncContext->deferred, &result));
+        napi_create_promise(env, &asyncContext->deferred, &result);
     } else {
         ACCOUNT_LOGI("Undefined the result parameter");
-        NAPI_CALL(env, napi_get_undefined(env, &result));
+        napi_get_undefined(env, &result);
     }
 
     napi_value resource = nullptr;
-    NAPI_CALL(env, napi_create_string_utf8(env, "GetAllAccessibleAccounts", NAPI_AUTO_LENGTH, &resource));
+    napi_create_string_utf8(env, "GetAllAccessibleAccounts", NAPI_AUTO_LENGTH, &resource);
 
-    NAPI_CALL(env,
-        napi_create_async_work(env,
-            nullptr,
-            resource,
-            [](napi_env env, void *data) {
-                ACCOUNT_LOGI("GetAllAccessibleAccounts, napi_create_async_work running.");
-                GetAccountsAsyncContext *asyncContext = (GetAccountsAsyncContext *)data;
-                asyncContext->errCode = AppAccountManager::GetAllAccessibleAccounts(asyncContext->appAccounts);
-                ACCOUNT_LOGI("GetAllAccessibleAccounts errcode parameter is %{public}d", asyncContext->errCode);
-                asyncContext->status = asyncContext->errCode == 0 ? napi_ok : napi_generic_failure;
-            },
-            [](napi_env env, napi_status status, void *data) {
-                ACCOUNT_LOGI("GetAllAccessibleAccounts, napi_create_async_work complete.");
-                GetAccountsAsyncContext *asyncContext = (GetAccountsAsyncContext *)data;
-                napi_value getResult[RESULT_COUNT] = {0};
-                getResult[PARAM0] = GetErrorCodeValue(env, asyncContext->errCode);
-                napi_create_array(env, &getResult[PARAM1]);
-                GetAppAccountInfoForResult(env, asyncContext->appAccounts, getResult[PARAM1]);
-                ProcessCallbackOrPromiseCBArray(env, asyncContext, getResult[PARAM0], getResult[PARAM1]);
-                napi_delete_async_work(env, asyncContext->work);
-                delete asyncContext;
-                asyncContext = nullptr;
-            },
-            (void *)asyncContext,
-            &asyncContext->work));
-    NAPI_CALL(env, napi_queue_async_work(env, asyncContext->work));
+    napi_create_async_work(env,
+        nullptr,
+        resource,
+        [](napi_env env, void *data) {
+            ACCOUNT_LOGI("GetAllAccessibleAccounts, napi_create_async_work running.");
+            GetAccountsAsyncContext *asyncContext = (GetAccountsAsyncContext *)data;
+            asyncContext->errCode = AppAccountManager::GetAllAccessibleAccounts(asyncContext->appAccounts);
+            ACCOUNT_LOGI("GetAllAccessibleAccounts errcode parameter is %{public}d", asyncContext->errCode);
+            asyncContext->status = asyncContext->errCode == 0 ? napi_ok : napi_generic_failure;
+        },
+        [](napi_env env, napi_status status, void *data) {
+            ACCOUNT_LOGI("GetAllAccessibleAccounts, napi_create_async_work complete.");
+            GetAccountsAsyncContext *asyncContext = (GetAccountsAsyncContext *)data;
+            napi_value getResult[RESULT_COUNT] = {0};
+            getResult[PARAM0] = GetErrorCodeValue(env, asyncContext->errCode);
+            napi_create_array(env, &getResult[PARAM1]);
+            GetAppAccountInfoForResult(env, asyncContext->appAccounts, getResult[PARAM1]);
+            ProcessCallbackOrPromiseCBArray(env, asyncContext, getResult[PARAM0], getResult[PARAM1]);
+            napi_delete_async_work(env, asyncContext->work);
+            delete asyncContext;
+            asyncContext = nullptr;
+        },
+        (void *)asyncContext,
+        &asyncContext->work);
+    napi_queue_async_work(env, asyncContext->work);
     return result;
 }
 
 napi_value NapiAppAccount::GetAllAccounts(napi_env env, napi_callback_info cbInfo)
 {
-    ACCOUNT_LOGI("Enter N-API GetAllAccounts function.");
-    auto *asyncContext = new GetAccountsAsyncContext();
+    ACCOUNT_LOGI("enter");
+    auto *asyncContext = new (std::nothrow) GetAccountsAsyncContext();
+    if (asyncContext == nullptr) {
+        ACCOUNT_LOGI("asyncContext == nullptr");
+        return NapiGetNull(env);
+    }
     asyncContext->env = env;
     asyncContext->callbackRef = nullptr;
     ParseContextWithStrCBArray(env, cbInfo, asyncContext);
@@ -627,49 +656,51 @@ napi_value NapiAppAccount::GetAllAccounts(napi_env env, napi_callback_info cbInf
     napi_value result = nullptr;
     if (asyncContext->callbackRef == nullptr) {
         ACCOUNT_LOGI("Create promise");
-        NAPI_CALL(env, napi_create_promise(env, &asyncContext->deferred, &result));
+        napi_create_promise(env, &asyncContext->deferred, &result);
     } else {
         ACCOUNT_LOGI("Undefined the result parameter");
-        NAPI_CALL(env, napi_get_undefined(env, &result));
+        napi_get_undefined(env, &result);
     }
 
     napi_value resource = nullptr;
-    NAPI_CALL(env, napi_create_string_utf8(env, "GetAllAccounts", NAPI_AUTO_LENGTH, &resource));
+    napi_create_string_utf8(env, "GetAllAccounts", NAPI_AUTO_LENGTH, &resource);
 
-    NAPI_CALL(env,
-        napi_create_async_work(env,
-            nullptr,
-            resource,
-            [](napi_env env, void *data) {
-                ACCOUNT_LOGI("GetAllAccounts, napi_create_async_work running.");
-                GetAccountsAsyncContext *asyncContext = (GetAccountsAsyncContext *)data;
-                asyncContext->errCode =
-                    AppAccountManager::GetAllAccounts(asyncContext->owner, asyncContext->appAccounts);
-                ACCOUNT_LOGI("GetAllAccounts errcode parameter is %{public}d", asyncContext->errCode);
-                asyncContext->status = asyncContext->errCode == 0 ? napi_ok : napi_generic_failure;
-            },
-            [](napi_env env, napi_status status, void *data) {
-                ACCOUNT_LOGI("GetAllAccounts, napi_create_async_work complete.");
-                GetAccountsAsyncContext *asyncContext = (GetAccountsAsyncContext *)data;
-                napi_value getResult[RESULT_COUNT] = {0};
-                getResult[PARAM0] = GetErrorCodeValue(env, asyncContext->errCode);
-                napi_create_array(env, &getResult[PARAM1]);
-                GetAppAccountInfoForResult(env, asyncContext->appAccounts, getResult[PARAM1]);
-                ProcessCallbackOrPromiseCBArray(env, asyncContext, getResult[PARAM0], getResult[PARAM1]);
-                napi_delete_async_work(env, asyncContext->work);
-                delete asyncContext;
-                asyncContext = nullptr;
-            },
-            (void *)asyncContext,
-            &asyncContext->work));
-    NAPI_CALL(env, napi_queue_async_work(env, asyncContext->work));
+    napi_create_async_work(env,
+        nullptr,
+        resource,
+        [](napi_env env, void *data) {
+            ACCOUNT_LOGI("GetAllAccounts, napi_create_async_work running.");
+            GetAccountsAsyncContext *asyncContext = (GetAccountsAsyncContext *)data;
+            asyncContext->errCode = AppAccountManager::GetAllAccounts(asyncContext->owner, asyncContext->appAccounts);
+            ACCOUNT_LOGI("GetAllAccounts errcode parameter is %{public}d", asyncContext->errCode);
+            asyncContext->status = asyncContext->errCode == 0 ? napi_ok : napi_generic_failure;
+        },
+        [](napi_env env, napi_status status, void *data) {
+            ACCOUNT_LOGI("GetAllAccounts, napi_create_async_work complete.");
+            GetAccountsAsyncContext *asyncContext = (GetAccountsAsyncContext *)data;
+            napi_value getResult[RESULT_COUNT] = {0};
+            getResult[PARAM0] = GetErrorCodeValue(env, asyncContext->errCode);
+            napi_create_array(env, &getResult[PARAM1]);
+            GetAppAccountInfoForResult(env, asyncContext->appAccounts, getResult[PARAM1]);
+            ProcessCallbackOrPromiseCBArray(env, asyncContext, getResult[PARAM0], getResult[PARAM1]);
+            napi_delete_async_work(env, asyncContext->work);
+            delete asyncContext;
+            asyncContext = nullptr;
+        },
+        (void *)asyncContext,
+        &asyncContext->work);
+    napi_queue_async_work(env, asyncContext->work);
     return result;
 }
 
 napi_value NapiAppAccount::GetAccountCredential(napi_env env, napi_callback_info cbInfo)
 {
-    ACCOUNT_LOGI("Enter N-API GetAccountCredential function.");
-    auto *asyncContext = new AppAccountAsyncContext();
+    ACCOUNT_LOGI("enter");
+    auto *asyncContext = new (std::nothrow) AppAccountAsyncContext();
+    if (asyncContext == nullptr) {
+        ACCOUNT_LOGI("asyncContext == nullptr");
+        return NapiGetNull(env);
+    }
     asyncContext->env = env;
     asyncContext->callbackRef = nullptr;
     ParseContextWithCredentialType(env, cbInfo, asyncContext);
@@ -680,48 +711,51 @@ napi_value NapiAppAccount::GetAccountCredential(napi_env env, napi_callback_info
     napi_value result = nullptr;
     if (asyncContext->callbackRef == nullptr) {
         ACCOUNT_LOGI("Create promise");
-        NAPI_CALL(env, napi_create_promise(env, &asyncContext->deferred, &result));
+        napi_create_promise(env, &asyncContext->deferred, &result);
     } else {
         ACCOUNT_LOGI("Undefined the result parameter");
-        NAPI_CALL(env, napi_get_undefined(env, &result));
+        napi_get_undefined(env, &result);
     }
 
     napi_value resource = nullptr;
     napi_create_string_utf8(env, "GetAccountCredential", NAPI_AUTO_LENGTH, &resource);
 
-    NAPI_CALL(env,
-        napi_create_async_work(env,
-            nullptr,
-            resource,
-            [](napi_env env, void *data) {
-                ACCOUNT_LOGI("GetAccountCredential, napi_create_async_work running.");
-                AppAccountAsyncContext *asyncContext = (AppAccountAsyncContext *)data;
-                asyncContext->errCode = AppAccountManager::GetAccountCredential(
-                    asyncContext->name, asyncContext->credentialType, asyncContext->credential);
-                ACCOUNT_LOGI("GetAccountCredential errcode parameter is %{public}d", asyncContext->errCode);
-                asyncContext->status = asyncContext->errCode == 0 ? napi_ok : napi_generic_failure;
-            },
-            [](napi_env env, napi_status status, void *data) {
-                ACCOUNT_LOGI("GetAccountCredential, napi_create_async_work complete.");
-                AppAccountAsyncContext *asyncContext = (AppAccountAsyncContext *)data;
-                napi_value getResult[RESULT_COUNT] = {0};
-                getResult[PARAM0] = GetErrorCodeValue(env, asyncContext->errCode);
-                napi_create_string_utf8(env, asyncContext->credential.c_str(), NAPI_AUTO_LENGTH, &getResult[PARAM1]);
-                ProcessCallbackOrPromise(env, asyncContext, getResult[PARAM0], getResult[PARAM1]);
-                napi_delete_async_work(env, asyncContext->work);
-                delete asyncContext;
-                asyncContext = nullptr;
-            },
-            (void *)asyncContext,
-            &asyncContext->work));
-    NAPI_CALL(env, napi_queue_async_work(env, asyncContext->work));
+    napi_create_async_work(env,
+        nullptr,
+        resource,
+        [](napi_env env, void *data) {
+            ACCOUNT_LOGI("GetAccountCredential, napi_create_async_work running.");
+            AppAccountAsyncContext *asyncContext = (AppAccountAsyncContext *)data;
+            asyncContext->errCode = AppAccountManager::GetAccountCredential(
+                asyncContext->name, asyncContext->credentialType, asyncContext->credential);
+            ACCOUNT_LOGI("GetAccountCredential errcode parameter is %{public}d", asyncContext->errCode);
+            asyncContext->status = asyncContext->errCode == 0 ? napi_ok : napi_generic_failure;
+        },
+        [](napi_env env, napi_status status, void *data) {
+            ACCOUNT_LOGI("GetAccountCredential, napi_create_async_work complete.");
+            AppAccountAsyncContext *asyncContext = (AppAccountAsyncContext *)data;
+            napi_value getResult[RESULT_COUNT] = {0};
+            getResult[PARAM0] = GetErrorCodeValue(env, asyncContext->errCode);
+            napi_create_string_utf8(env, asyncContext->credential.c_str(), NAPI_AUTO_LENGTH, &getResult[PARAM1]);
+            ProcessCallbackOrPromise(env, asyncContext, getResult[PARAM0], getResult[PARAM1]);
+            napi_delete_async_work(env, asyncContext->work);
+            delete asyncContext;
+            asyncContext = nullptr;
+        },
+        (void *)asyncContext,
+        &asyncContext->work);
+    napi_queue_async_work(env, asyncContext->work);
     return result;
 }
 
 napi_value NapiAppAccount::GetAccountExtraInfo(napi_env env, napi_callback_info cbInfo)
 {
-    ACCOUNT_LOGI("Enter N-API GetAccountExtraInfo function.");
-    auto *asyncContext = new AppAccountAsyncContext();
+    ACCOUNT_LOGI("enter");
+    auto *asyncContext = new (std::nothrow) AppAccountAsyncContext();
+    if (asyncContext == nullptr) {
+        ACCOUNT_LOGI("asyncContext == nullptr");
+        return NapiGetNull(env);
+    }
     asyncContext->env = env;
     asyncContext->callbackRef = nullptr;
     ParseContextWithTwoPara(env, cbInfo, asyncContext);
@@ -730,48 +764,50 @@ napi_value NapiAppAccount::GetAccountExtraInfo(napi_env env, napi_callback_info 
     napi_value result = nullptr;
     if (asyncContext->callbackRef == nullptr) {
         ACCOUNT_LOGI("Create promise");
-        NAPI_CALL(env, napi_create_promise(env, &asyncContext->deferred, &result));
+        napi_create_promise(env, &asyncContext->deferred, &result);
     } else {
         ACCOUNT_LOGI("Undefined the result parameter");
-        NAPI_CALL(env, napi_get_undefined(env, &result));
+        napi_get_undefined(env, &result);
     }
 
     napi_value resource = nullptr;
-    NAPI_CALL(env, napi_create_string_utf8(env, "GetAccountExtraInfo", NAPI_AUTO_LENGTH, &resource));
+    napi_create_string_utf8(env, "GetAccountExtraInfo", NAPI_AUTO_LENGTH, &resource);
 
-    NAPI_CALL(env,
-        napi_create_async_work(env,
-            nullptr,
-            resource,
-            [](napi_env env, void *data) {
-                ACCOUNT_LOGI("GetAccountExtraInfo, napi_create_async_work running.");
-                AppAccountAsyncContext *asyncContext = (AppAccountAsyncContext *)data;
-                asyncContext->errCode =
-                    AppAccountManager::GetAccountExtraInfo(asyncContext->name, asyncContext->extraInfo);
-                ACCOUNT_LOGI("GetAccountExtraInfo errcode parameter is %{public}d", asyncContext->errCode);
-                asyncContext->status = asyncContext->errCode == 0 ? napi_ok : napi_generic_failure;
-            },
-            [](napi_env env, napi_status status, void *data) {
-                ACCOUNT_LOGI("GetAccountExtraInfo, napi_create_async_work complete.");
-                AppAccountAsyncContext *asyncContext = (AppAccountAsyncContext *)data;
-                napi_value getResult[RESULT_COUNT] = {0};
-                getResult[PARAM0] = GetErrorCodeValue(env, asyncContext->errCode);
-                napi_create_string_utf8(env, asyncContext->extraInfo.c_str(), NAPI_AUTO_LENGTH, &getResult[PARAM1]);
-                ProcessCallbackOrPromise(env, asyncContext, getResult[PARAM0], getResult[PARAM1]);
-                napi_delete_async_work(env, asyncContext->work);
-                delete asyncContext;
-                asyncContext = nullptr;
-            },
-            (void *)asyncContext,
-            &asyncContext->work));
-    NAPI_CALL(env, napi_queue_async_work(env, asyncContext->work));
+    napi_create_async_work(env,
+        nullptr,
+        resource,
+        [](napi_env env, void *data) {
+            ACCOUNT_LOGI("GetAccountExtraInfo, napi_create_async_work running.");
+            AppAccountAsyncContext *asyncContext = (AppAccountAsyncContext *)data;
+            asyncContext->errCode = AppAccountManager::GetAccountExtraInfo(asyncContext->name, asyncContext->extraInfo);
+            ACCOUNT_LOGI("GetAccountExtraInfo errcode parameter is %{public}d", asyncContext->errCode);
+            asyncContext->status = asyncContext->errCode == 0 ? napi_ok : napi_generic_failure;
+        },
+        [](napi_env env, napi_status status, void *data) {
+            ACCOUNT_LOGI("GetAccountExtraInfo, napi_create_async_work complete.");
+            AppAccountAsyncContext *asyncContext = (AppAccountAsyncContext *)data;
+            napi_value getResult[RESULT_COUNT] = {0};
+            getResult[PARAM0] = GetErrorCodeValue(env, asyncContext->errCode);
+            napi_create_string_utf8(env, asyncContext->extraInfo.c_str(), NAPI_AUTO_LENGTH, &getResult[PARAM1]);
+            ProcessCallbackOrPromise(env, asyncContext, getResult[PARAM0], getResult[PARAM1]);
+            napi_delete_async_work(env, asyncContext->work);
+            delete asyncContext;
+            asyncContext = nullptr;
+        },
+        (void *)asyncContext,
+        &asyncContext->work);
+    napi_queue_async_work(env, asyncContext->work);
     return result;
 }
 
 napi_value NapiAppAccount::GetAssociatedData(napi_env env, napi_callback_info cbInfo)
 {
-    ACCOUNT_LOGI("Enter N-API GetAssociatedData function.");
-    auto *asyncContext = new AppAccountAsyncContext();
+    ACCOUNT_LOGI("enter");
+    auto *asyncContext = new (std::nothrow) AppAccountAsyncContext();
+    if (asyncContext == nullptr) {
+        ACCOUNT_LOGI("asyncContext == nullptr");
+        return NapiGetNull(env);
+    }
     asyncContext->env = env;
     asyncContext->callbackRef = nullptr;
     ParseContextToGetData(env, cbInfo, asyncContext);
@@ -780,48 +816,51 @@ napi_value NapiAppAccount::GetAssociatedData(napi_env env, napi_callback_info cb
     napi_value result = nullptr;
     if (asyncContext->callbackRef == nullptr) {
         ACCOUNT_LOGI("Create promise");
-        NAPI_CALL(env, napi_create_promise(env, &asyncContext->deferred, &result));
+        napi_create_promise(env, &asyncContext->deferred, &result);
     } else {
         ACCOUNT_LOGI("Undefined the result parameter");
-        NAPI_CALL(env, napi_get_undefined(env, &result));
+        napi_get_undefined(env, &result);
     }
 
     napi_value resource = nullptr;
-    NAPI_CALL(env, napi_create_string_utf8(env, "GetAssociatedData", NAPI_AUTO_LENGTH, &resource));
+    napi_create_string_utf8(env, "GetAssociatedData", NAPI_AUTO_LENGTH, &resource);
 
-    NAPI_CALL(env,
-        napi_create_async_work(env,
-            nullptr,
-            resource,
-            [](napi_env env, void *data) {
-                ACCOUNT_LOGI("GetAssociatedData, napi_create_async_work running.");
-                AppAccountAsyncContext *asyncContext = (AppAccountAsyncContext *)data;
-                asyncContext->errCode =
-                    AppAccountManager::GetAssociatedData(asyncContext->name, asyncContext->key, asyncContext->value);
-                ACCOUNT_LOGI("GetAssociatedData errcode parameter is %{public}d", asyncContext->errCode);
-                asyncContext->status = asyncContext->errCode == 0 ? napi_ok : napi_generic_failure;
-            },
-            [](napi_env env, napi_status status, void *data) {
-                ACCOUNT_LOGI("GetAssociatedData, napi_create_async_work complete.");
-                AppAccountAsyncContext *asyncContext = (AppAccountAsyncContext *)data;
-                napi_value getResult[RESULT_COUNT] = {0};
-                getResult[PARAM0] = GetErrorCodeValue(env, asyncContext->errCode);
-                napi_create_string_utf8(env, asyncContext->value.c_str(), NAPI_AUTO_LENGTH, &getResult[PARAM1]);
-                ProcessCallbackOrPromise(env, asyncContext, getResult[PARAM0], getResult[PARAM1]);
-                napi_delete_async_work(env, asyncContext->work);
-                delete asyncContext;
-                asyncContext = nullptr;
-            },
-            (void *)asyncContext,
-            &asyncContext->work));
-    NAPI_CALL(env, napi_queue_async_work(env, asyncContext->work));
+    napi_create_async_work(env,
+        nullptr,
+        resource,
+        [](napi_env env, void *data) {
+            ACCOUNT_LOGI("GetAssociatedData, napi_create_async_work running.");
+            AppAccountAsyncContext *asyncContext = (AppAccountAsyncContext *)data;
+            asyncContext->errCode =
+                AppAccountManager::GetAssociatedData(asyncContext->name, asyncContext->key, asyncContext->value);
+            ACCOUNT_LOGI("GetAssociatedData errcode parameter is %{public}d", asyncContext->errCode);
+            asyncContext->status = asyncContext->errCode == 0 ? napi_ok : napi_generic_failure;
+        },
+        [](napi_env env, napi_status status, void *data) {
+            ACCOUNT_LOGI("GetAssociatedData, napi_create_async_work complete.");
+            AppAccountAsyncContext *asyncContext = (AppAccountAsyncContext *)data;
+            napi_value getResult[RESULT_COUNT] = {0};
+            getResult[PARAM0] = GetErrorCodeValue(env, asyncContext->errCode);
+            napi_create_string_utf8(env, asyncContext->value.c_str(), NAPI_AUTO_LENGTH, &getResult[PARAM1]);
+            ProcessCallbackOrPromise(env, asyncContext, getResult[PARAM0], getResult[PARAM1]);
+            napi_delete_async_work(env, asyncContext->work);
+            delete asyncContext;
+            asyncContext = nullptr;
+        },
+        (void *)asyncContext,
+        &asyncContext->work);
+    napi_queue_async_work(env, asyncContext->work);
     return result;
 }
 
 napi_value NapiAppAccount::GetOAuthToken(napi_env env, napi_callback_info cbInfo)
 {
-    ACCOUNT_LOGI("Enter N-API GetOAuthToken function.");
-    auto *asyncContext = new AppAccountAsyncContext();
+    ACCOUNT_LOGI("enter");
+    auto *asyncContext = new (std::nothrow) AppAccountAsyncContext();
+    if (asyncContext == nullptr) {
+        ACCOUNT_LOGI("asyncContext == nullptr");
+        return NapiGetNull(env);
+    }
     asyncContext->env = env;
     asyncContext->callbackRef = nullptr;
     ParseContextWithTwoPara(env, cbInfo, asyncContext);
@@ -830,47 +869,50 @@ napi_value NapiAppAccount::GetOAuthToken(napi_env env, napi_callback_info cbInfo
     napi_value result = nullptr;
     if (asyncContext->callbackRef == nullptr) {
         ACCOUNT_LOGI("Create promise");
-        NAPI_CALL(env, napi_create_promise(env, &asyncContext->deferred, &result));
+        napi_create_promise(env, &asyncContext->deferred, &result);
     } else {
         ACCOUNT_LOGI("Undefined the result parameter");
-        NAPI_CALL(env, napi_get_undefined(env, &result));
+        napi_get_undefined(env, &result);
     }
 
     napi_value resource = nullptr;
-    NAPI_CALL(env, napi_create_string_utf8(env, "GetOAuthToken", NAPI_AUTO_LENGTH, &resource));
+    napi_create_string_utf8(env, "GetOAuthToken", NAPI_AUTO_LENGTH, &resource);
 
-    NAPI_CALL(env,
-        napi_create_async_work(env,
-            nullptr,
-            resource,
-            [](napi_env env, void *data) {
-                ACCOUNT_LOGI("GetOAuthToken, napi_create_async_work running.");
-                AppAccountAsyncContext *asyncContext = (AppAccountAsyncContext *)data;
-                asyncContext->errCode = AppAccountManager::GetOAuthToken(asyncContext->name, asyncContext->token);
-                ACCOUNT_LOGI("GetOAuthToken errcode parameter is %{public}d", asyncContext->errCode);
-                asyncContext->status = asyncContext->errCode == 0 ? napi_ok : napi_generic_failure;
-            },
-            [](napi_env env, napi_status status, void *data) {
-                ACCOUNT_LOGI("GetOAuthToken, napi_create_async_work complete.");
-                AppAccountAsyncContext *asyncContext = (AppAccountAsyncContext *)data;
-                napi_value getResult[RESULT_COUNT] = {0};
-                getResult[PARAM0] = GetErrorCodeValue(env, asyncContext->errCode);
-                napi_create_string_utf8(env, asyncContext->token.c_str(), NAPI_AUTO_LENGTH, &getResult[PARAM1]);
-                ProcessCallbackOrPromise(env, asyncContext, getResult[PARAM0], getResult[PARAM1]);
-                napi_delete_async_work(env, asyncContext->work);
-                delete asyncContext;
-                asyncContext = nullptr;
-            },
-            (void *)asyncContext,
-            &asyncContext->work));
-    NAPI_CALL(env, napi_queue_async_work(env, asyncContext->work));
+    napi_create_async_work(env,
+        nullptr,
+        resource,
+        [](napi_env env, void *data) {
+            ACCOUNT_LOGI("GetOAuthToken, napi_create_async_work running.");
+            AppAccountAsyncContext *asyncContext = (AppAccountAsyncContext *)data;
+            asyncContext->errCode = AppAccountManager::GetOAuthToken(asyncContext->name, asyncContext->token);
+            ACCOUNT_LOGI("GetOAuthToken errcode parameter is %{public}d", asyncContext->errCode);
+            asyncContext->status = asyncContext->errCode == 0 ? napi_ok : napi_generic_failure;
+        },
+        [](napi_env env, napi_status status, void *data) {
+            ACCOUNT_LOGI("GetOAuthToken, napi_create_async_work complete.");
+            AppAccountAsyncContext *asyncContext = (AppAccountAsyncContext *)data;
+            napi_value getResult[RESULT_COUNT] = {0};
+            getResult[PARAM0] = GetErrorCodeValue(env, asyncContext->errCode);
+            napi_create_string_utf8(env, asyncContext->token.c_str(), NAPI_AUTO_LENGTH, &getResult[PARAM1]);
+            ProcessCallbackOrPromise(env, asyncContext, getResult[PARAM0], getResult[PARAM1]);
+            napi_delete_async_work(env, asyncContext->work);
+            delete asyncContext;
+            asyncContext = nullptr;
+        },
+        (void *)asyncContext,
+        &asyncContext->work);
+    napi_queue_async_work(env, asyncContext->work);
     return result;
 }
 
 napi_value NapiAppAccount::SetOAuthToken(napi_env env, napi_callback_info cbInfo)
 {
-    ACCOUNT_LOGI("Enter N-API SetOAuthToken function.");
-    auto *asyncContext = new AppAccountAsyncContext();
+    ACCOUNT_LOGI("enter");
+    auto *asyncContext = new (std::nothrow) AppAccountAsyncContext();
+    if (asyncContext == nullptr) {
+        ACCOUNT_LOGI("asyncContext == nullptr");
+        return NapiGetNull(env);
+    }
     asyncContext->env = env;
     asyncContext->callbackRef = nullptr;
     ParseContextForSetOAuth(env, cbInfo, asyncContext);
@@ -879,47 +921,50 @@ napi_value NapiAppAccount::SetOAuthToken(napi_env env, napi_callback_info cbInfo
     napi_value result = nullptr;
     if (asyncContext->callbackRef == nullptr) {
         ACCOUNT_LOGI("Create promise");
-        NAPI_CALL(env, napi_create_promise(env, &asyncContext->deferred, &result));
+        napi_create_promise(env, &asyncContext->deferred, &result);
     } else {
         ACCOUNT_LOGI("Undefined the result parameter");
-        NAPI_CALL(env, napi_get_undefined(env, &result));
+        napi_get_undefined(env, &result);
     }
 
     napi_value resource = nullptr;
-    NAPI_CALL(env, napi_create_string_utf8(env, "SetOAuthToken", NAPI_AUTO_LENGTH, &resource));
+    napi_create_string_utf8(env, "SetOAuthToken", NAPI_AUTO_LENGTH, &resource);
 
-    NAPI_CALL(env,
-        napi_create_async_work(env,
-            nullptr,
-            resource,
-            [](napi_env env, void *data) {
-                ACCOUNT_LOGI("SetOAuthToken, napi_create_async_work running.");
-                AppAccountAsyncContext *asyncContext = (AppAccountAsyncContext *)data;
-                asyncContext->errCode = AppAccountManager::SetOAuthToken(asyncContext->name, asyncContext->token);
-                ACCOUNT_LOGI("SetOAuthToken errcode parameter is %{public}d", asyncContext->errCode);
-                asyncContext->status = asyncContext->errCode == 0 ? napi_ok : napi_generic_failure;
-            },
-            [](napi_env env, napi_status status, void *data) {
-                ACCOUNT_LOGI("SetOAuthToken, napi_create_async_work complete.");
-                AppAccountAsyncContext *asyncContext = (AppAccountAsyncContext *)data;
-                napi_value setResult[RESULT_COUNT] = {0};
-                setResult[PARAM0] = GetErrorCodeValue(env, asyncContext->errCode);
-                napi_get_undefined(env, &setResult[PARAM1]);
-                ProcessCallbackOrPromise(env, asyncContext, setResult[PARAM0], setResult[PARAM1]);
-                napi_delete_async_work(env, asyncContext->work);
-                delete asyncContext;
-                asyncContext = nullptr;
-            },
-            (void *)asyncContext,
-            &asyncContext->work));
-    NAPI_CALL(env, napi_queue_async_work(env, asyncContext->work));
+    napi_create_async_work(env,
+        nullptr,
+        resource,
+        [](napi_env env, void *data) {
+            ACCOUNT_LOGI("SetOAuthToken, napi_create_async_work running.");
+            AppAccountAsyncContext *asyncContext = (AppAccountAsyncContext *)data;
+            asyncContext->errCode = AppAccountManager::SetOAuthToken(asyncContext->name, asyncContext->token);
+            ACCOUNT_LOGI("SetOAuthToken errcode parameter is %{public}d", asyncContext->errCode);
+            asyncContext->status = asyncContext->errCode == 0 ? napi_ok : napi_generic_failure;
+        },
+        [](napi_env env, napi_status status, void *data) {
+            ACCOUNT_LOGI("SetOAuthToken, napi_create_async_work complete.");
+            AppAccountAsyncContext *asyncContext = (AppAccountAsyncContext *)data;
+            napi_value setResult[RESULT_COUNT] = {0};
+            setResult[PARAM0] = GetErrorCodeValue(env, asyncContext->errCode);
+            napi_get_undefined(env, &setResult[PARAM1]);
+            ProcessCallbackOrPromise(env, asyncContext, setResult[PARAM0], setResult[PARAM1]);
+            napi_delete_async_work(env, asyncContext->work);
+            delete asyncContext;
+            asyncContext = nullptr;
+        },
+        (void *)asyncContext,
+        &asyncContext->work);
+    napi_queue_async_work(env, asyncContext->work);
     return result;
 }
 
 napi_value NapiAppAccount::ClearOAuthToken(napi_env env, napi_callback_info cbInfo)
 {
-    ACCOUNT_LOGI("Enter N-API ClearOAuthToken function.");
-    auto *asyncContext = new AppAccountAsyncContext();
+    ACCOUNT_LOGI("enter");
+    auto *asyncContext = new (std::nothrow) AppAccountAsyncContext();
+    if (asyncContext == nullptr) {
+        ACCOUNT_LOGI("asyncContext == nullptr");
+        return NapiGetNull(env);
+    }
     asyncContext->env = env;
     asyncContext->callbackRef = nullptr;
     ParseContextWithTwoPara(env, cbInfo, asyncContext);
@@ -928,40 +973,39 @@ napi_value NapiAppAccount::ClearOAuthToken(napi_env env, napi_callback_info cbIn
     napi_value result = nullptr;
     if (asyncContext->callbackRef == nullptr) {
         ACCOUNT_LOGI("Create promise");
-        NAPI_CALL(env, napi_create_promise(env, &asyncContext->deferred, &result));
+        napi_create_promise(env, &asyncContext->deferred, &result);
     } else {
         ACCOUNT_LOGI("Undefined the result parameter");
-        NAPI_CALL(env, napi_get_undefined(env, &result));
+        napi_get_undefined(env, &result);
     }
 
     napi_value resource = nullptr;
-    NAPI_CALL(env, napi_create_string_utf8(env, "ClearOAuthToken", NAPI_AUTO_LENGTH, &resource));
+    napi_create_string_utf8(env, "ClearOAuthToken", NAPI_AUTO_LENGTH, &resource);
 
-    NAPI_CALL(env,
-        napi_create_async_work(env,
-            nullptr,
-            resource,
-            [](napi_env env, void *data) {
-                ACCOUNT_LOGI("ClearOAuthToken, napi_create_async_work running.");
-                AppAccountAsyncContext *asyncContext = (AppAccountAsyncContext *)data;
-                asyncContext->errCode = AppAccountManager::ClearOAuthToken(asyncContext->name);
-                ACCOUNT_LOGI("ClearOAuthToken errcode parameter is %{public}d", asyncContext->errCode);
-                asyncContext->status = asyncContext->errCode == 0 ? napi_ok : napi_generic_failure;
-            },
-            [](napi_env env, napi_status status, void *data) {
-                ACCOUNT_LOGI("ClearOAuthToken, napi_create_async_work complete.");
-                AppAccountAsyncContext *asyncContext = (AppAccountAsyncContext *)data;
-                napi_value clResult[RESULT_COUNT] = {0};
-                clResult[PARAM0] = GetErrorCodeValue(env, asyncContext->errCode);
-                napi_get_undefined(env, &clResult[PARAM1]);
-                ProcessCallbackOrPromise(env, asyncContext, clResult[PARAM0], clResult[PARAM1]);
-                napi_delete_async_work(env, asyncContext->work);
-                delete asyncContext;
-                asyncContext = nullptr;
-            },
-            (void *)asyncContext,
-            &asyncContext->work));
-    NAPI_CALL(env, napi_queue_async_work(env, asyncContext->work));
+    napi_create_async_work(env,
+        nullptr,
+        resource,
+        [](napi_env env, void *data) {
+            ACCOUNT_LOGI("ClearOAuthToken, napi_create_async_work running.");
+            AppAccountAsyncContext *asyncContext = (AppAccountAsyncContext *)data;
+            asyncContext->errCode = AppAccountManager::ClearOAuthToken(asyncContext->name);
+            ACCOUNT_LOGI("ClearOAuthToken errcode parameter is %{public}d", asyncContext->errCode);
+            asyncContext->status = asyncContext->errCode == 0 ? napi_ok : napi_generic_failure;
+        },
+        [](napi_env env, napi_status status, void *data) {
+            ACCOUNT_LOGI("ClearOAuthToken, napi_create_async_work complete.");
+            AppAccountAsyncContext *asyncContext = (AppAccountAsyncContext *)data;
+            napi_value clResult[RESULT_COUNT] = {0};
+            clResult[PARAM0] = GetErrorCodeValue(env, asyncContext->errCode);
+            napi_get_undefined(env, &clResult[PARAM1]);
+            ProcessCallbackOrPromise(env, asyncContext, clResult[PARAM0], clResult[PARAM1]);
+            napi_delete_async_work(env, asyncContext->work);
+            delete asyncContext;
+            asyncContext = nullptr;
+        },
+        (void *)asyncContext,
+        &asyncContext->work);
+    napi_queue_async_work(env, asyncContext->work);
     return result;
 }
 
@@ -983,15 +1027,15 @@ napi_value NapiAppAccount::Subscribe(napi_env env, napi_callback_info cbInfo)
         return NapiGetNull(env);
     }
 
-    AsyncContextForSubscribe *asyncContextForOn = new (std::nothrow) AsyncContextForSubscribe {
-        .env = env,
-        .work = nullptr,
-        .callbackRef = nullptr,
-    };
+    AsyncContextForSubscribe *asyncContextForOn = new (std::nothrow) AsyncContextForSubscribe();
     if (asyncContextForOn == nullptr) {
         ACCOUNT_LOGI("asyncContextForOn is null");
         return NapiGetNull(env);
     }
+    asyncContextForOn->env = env;
+    asyncContextForOn->work = nullptr;
+    asyncContextForOn->callbackRef = nullptr;
+
     ACCOUNT_LOGI("Subscribe AsyncCallbackInfoSubscribe * asyncContextForOn = %{public}p", asyncContextForOn);
 
     // make subscribe info
@@ -1010,21 +1054,20 @@ napi_value NapiAppAccount::Subscribe(napi_env env, napi_callback_info cbInfo)
     ACCOUNT_LOGI("subscriberInstances.size = %{public}zu", subscriberInstances.size());
 
     napi_value resourceName = nullptr;
-    NAPI_CALL(env, napi_create_string_latin1(env, "Subscribe", NAPI_AUTO_LENGTH, &resourceName));
+    napi_create_string_latin1(env, "Subscribe", NAPI_AUTO_LENGTH, &resourceName);
 
-    NAPI_CALL(env,
-        napi_create_async_work(env,
-            nullptr,
-            resourceName,
-            SubscribeExecuteCB,
-            [](napi_env env, napi_status status, void *data) {
-                ACCOUNT_LOGI("Subscribe, napi_create_async_work complete.");
-                AsyncContextForSubscribe *asyncContextForOn = (AsyncContextForSubscribe *)data;
-                napi_delete_async_work(env, asyncContextForOn->work);
-            },
-            (void *)asyncContextForOn,
-            &asyncContextForOn->work));
-    NAPI_CALL(env, napi_queue_async_work(env, asyncContextForOn->work));
+    napi_create_async_work(env,
+        nullptr,
+        resourceName,
+        SubscribeExecuteCB,
+        [](napi_env env, napi_status status, void *data) {
+            ACCOUNT_LOGI("Subscribe, napi_create_async_work complete.");
+            AsyncContextForSubscribe *asyncContextForOn = (AsyncContextForSubscribe *)data;
+            napi_delete_async_work(env, asyncContextForOn->work);
+        },
+        (void *)asyncContextForOn,
+        &asyncContextForOn->work);
+    napi_queue_async_work(env, asyncContextForOn->work);
     return NapiGetNull(env);
 }
 
@@ -1043,15 +1086,15 @@ napi_value NapiAppAccount::Unsubscribe(napi_env env, napi_callback_info cbInfo)
 
     napi_ref callback = nullptr;
     ParseParametersByUnsubscribe(env, argc, argv, callback);
-    AsyncContextForUnsubscribe *asyncContextForOff = new (std::nothrow) AsyncContextForUnsubscribe {
-        .env = env,
-        .work = nullptr,
-        .callbackRef = nullptr,
-    };
+    AsyncContextForUnsubscribe *asyncContextForOff = new (std::nothrow) AsyncContextForUnsubscribe();
     if (asyncContextForOff == nullptr) {
         ACCOUNT_LOGI("asyncContextForOff is null");
         return NapiGetNull(env);
     }
+    asyncContextForOff->env = env;
+    asyncContextForOff->work = nullptr;
+    asyncContextForOff->callbackRef = nullptr;
+
     ACCOUNT_LOGI("Unsubscribe new asyncContext = %{public}p", asyncContextForOff);
 
     AppAccountManager *objectInfo = nullptr;
@@ -1070,17 +1113,16 @@ napi_value NapiAppAccount::Unsubscribe(napi_env env, napi_callback_info cbInfo)
     asyncContextForOff->subscribers = subscribers;
 
     napi_value resourceName = nullptr;
-    NAPI_CALL(env, napi_create_string_latin1(env, "Unsubscribe", NAPI_AUTO_LENGTH, &resourceName));
+    napi_create_string_latin1(env, "Unsubscribe", NAPI_AUTO_LENGTH, &resourceName);
 
-    NAPI_CALL(env,
-        napi_create_async_work(env,
-            nullptr,
-            resourceName,
-            UnsubscribeExecuteCB,
-            UnsubscribeCallbackCompletedCB,
-            (void *)asyncContextForOff,
-            &asyncContextForOff->work));
-    NAPI_CALL(env, napi_queue_async_work(env, asyncContextForOff->work));
+    napi_create_async_work(env,
+        nullptr,
+        resourceName,
+        UnsubscribeExecuteCB,
+        UnsubscribeCallbackCompletedCB,
+        (void *)asyncContextForOff,
+        &asyncContextForOff->work);
+    napi_queue_async_work(env, asyncContextForOff->work);
     return NapiGetNull(env);
 }
 }  // namespace AccountJsKit
