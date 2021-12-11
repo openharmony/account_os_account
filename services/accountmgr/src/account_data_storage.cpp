@@ -16,8 +16,8 @@
 #include <memory>
 #include <unistd.h>
 
-#include "account_kvstore_death_recipient_callback.h"
 #include "account_log_wrapper.h"
+
 #include "account_data_storage.h"
 
 namespace OHOS {
@@ -92,7 +92,8 @@ bool AccountDataStorage::CheckKvStore()
         if (status == OHOS::DistributedKv::Status::SUCCESS && kvStorePtr_ != nullptr) {
             return true;
         }
-        ACCOUNT_LOGE("AccountDataStorage CheckKvStore, Times: %{public}d", tryTimes);
+
+        ACCOUNT_LOGI("tryTimes = %{public}d", tryTimes);
         usleep(SLEEP_INTERVAL);
         tryTimes--;
     }
@@ -168,7 +169,7 @@ ErrCode AccountDataStorage::AddAccountInfo(IAccountInfo &iAccountInfo)
     bool isKeyExists = false;
     IsKeyExists(iAccountInfo.GetPrimeKey(), isKeyExists);
     if (isKeyExists) {
-        ACCOUNT_LOGE("the key does not exist");
+        ACCOUNT_LOGE("the key already exists.");
         return ERR_ACCOUNT_SERVICE_DATA_STORAGE_KEY_EXISTED_ERROR;
     }
 

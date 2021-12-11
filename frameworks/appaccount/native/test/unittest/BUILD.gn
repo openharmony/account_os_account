@@ -86,7 +86,6 @@ ohos_unittest("app_account_manager_subscribe_test") {
   ]
 
   external_deps = [
-    "appexecfwk_standard:libeventhandler",
     "hiviewdfx_hilog_native:libhilog",
     "ipc:ipc_core",
   ]

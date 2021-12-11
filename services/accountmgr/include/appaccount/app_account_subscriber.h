@@ -25,7 +25,7 @@ class AppAccountSubscriber {
 public:
     AppAccountSubscriber();
     explicit AppAccountSubscriber(const AppAccountSubscribeInfo &subscribeInfo);
-    virtual ~AppAccountSubscriber();
+    virtual ~AppAccountSubscriber() = default;
 
     virtual void OnAccountsChanged(const std::vector<AppAccountInfo> &accounts) = 0;
 

@@ -148,5 +148,24 @@ sptr<IRemoteObject> AccountProxy::GetAppAccountService()
 
     return reply.ReadParcelable<IRemoteObject>();
 }
+sptr<IRemoteObject> AccountProxy::GetOsAccountService()
+{
+    ACCOUNT_LOGI("enter");
+
+    MessageParcel data;
+    if (!data.WriteInterfaceToken(AccountProxy::GetDescriptor())) {
+        ACCOUNT_LOGE("Write descriptor failed");
+        return nullptr;
+    }
+    MessageParcel reply;
+    MessageOption option;
+    auto ret = Remote()->SendRequest(GET_OS_ACCOUNT_SERVICE, data, reply, option);
+    if (ret != ERR_NONE) {
+        ACCOUNT_LOGE("SendRequest failed %d", ret);
+        return nullptr;
+    }
+
+    return reply.ReadParcelable<IRemoteObject>();
+}
 }  // namespace AccountSA
 }  // namespace OHOS

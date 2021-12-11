@@ -24,7 +24,7 @@ namespace AccountSA {
 class AppAccountControlManager : public DelayedSingleton<AppAccountControlManager> {
 public:
     AppAccountControlManager();
-    virtual ~AppAccountControlManager();
+    virtual ~AppAccountControlManager() = default;
 
     ErrCode AddAccount(const std::string &name, const std::string &extraInfo, const uid_t &uid,
         const std::string &bundleName, AppAccountInfo &appAccountInfo);

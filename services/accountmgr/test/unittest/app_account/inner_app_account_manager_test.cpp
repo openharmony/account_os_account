@@ -89,9 +89,10 @@ void InnerAppAccountManagerTest::MakeEmptyMockObjects()
 }
 
 /**
- * @tc.number: AppAccount_AddAccount_001
- * @tc.name: AddAccount
+ * @tc.name: AppAccount_AddAccount_001
  * @tc.desc: Add an app account with valid data.
+ * @tc.type: FUNC
+ * @tc.require: SR000GGV11
  */
 HWTEST_F(InnerAppAccountManagerTest, AppAccount_AddAccount_001, Function | MediumTest | Level1)
 {
@@ -103,9 +104,10 @@ HWTEST_F(InnerAppAccountManagerTest, AppAccount_AddAccount_001, Function | Mediu
 }
 
 /**
- * @tc.number: AppAccount_AddAccount_002
- * @tc.name: AddAccount
+ * @tc.name: AppAccount_AddAccount_002
  * @tc.desc: Add an app account with empty managers.
+ * @tc.type: FUNC
+ * @tc.require: SR000GGV11
  */
 HWTEST_F(InnerAppAccountManagerTest, AppAccount_AddAccount_002, Function | MediumTest | Level1)
 {
@@ -117,9 +119,10 @@ HWTEST_F(InnerAppAccountManagerTest, AppAccount_AddAccount_002, Function | Mediu
 }
 
 /**
- * @tc.number: AppAccount_DeleteAccount_001
- * @tc.name: DeleteAccount
+ * @tc.name: AppAccount_DeleteAccount_001
  * @tc.desc: Delete an app account with valid data.
+ * @tc.type: FUNC
+ * @tc.require: SR000GGV11
  */
 HWTEST_F(InnerAppAccountManagerTest, AppAccount_DeleteAccount_001, Function | MediumTest | Level1)
 {
@@ -131,9 +134,10 @@ HWTEST_F(InnerAppAccountManagerTest, AppAccount_DeleteAccount_001, Function | Me
 }
 
 /**
- * @tc.number: AppAccount_DeleteAccount_002
- * @tc.name: DeleteAccount
+ * @tc.name: AppAccount_DeleteAccount_002
  * @tc.desc: Delete an app account with empty managers.
+ * @tc.type: FUNC
+ * @tc.require: SR000GGV11
  */
 HWTEST_F(InnerAppAccountManagerTest, AppAccount_DeleteAccount_002, Function | MediumTest | Level1)
 {
@@ -145,9 +149,10 @@ HWTEST_F(InnerAppAccountManagerTest, AppAccount_DeleteAccount_002, Function | Me
 }
 
 /**
- * @tc.number: AppAccount_SubscribeAppAccount_001
- * @tc.name: SubscribeAppAccount
+ * @tc.name: AppAccount_SubscribeAppAccount_001
  * @tc.desc: Subscribe app accounts with invalid data.
+ * @tc.type: FUNC
+ * @tc.require: SR000GGVFT
  */
 HWTEST_F(InnerAppAccountManagerTest, AppAccount_SubscribeAppAccount_001, Function | MediumTest | Level1)
 {
@@ -168,9 +173,10 @@ HWTEST_F(InnerAppAccountManagerTest, AppAccount_SubscribeAppAccount_001, Functio
 }
 
 /**
- * @tc.number: AppAccount_SubscribeAppAccount_002
- * @tc.name: SubscribeAppAccount
+ * @tc.name: AppAccount_SubscribeAppAccount_002
  * @tc.desc: Subscribe app accounts with empty managers.
+ * @tc.type: FUNC
+ * @tc.require: SR000GGVFT
  */
 HWTEST_F(InnerAppAccountManagerTest, AppAccount_SubscribeAppAccount_002, Function | MediumTest | Level1)
 {
@@ -191,9 +197,10 @@ HWTEST_F(InnerAppAccountManagerTest, AppAccount_SubscribeAppAccount_002, Functio
 }
 
 /**
- * @tc.number: AppAccount_UnsubscribeAppAccount_001
- * @tc.name: UnsubscribeAppAccount
+ * @tc.name: AppAccount_UnsubscribeAppAccount_001
  * @tc.desc: Unsubscribe app accounts with invalid data.
+ * @tc.type: FUNC
+ * @tc.require: SR000GGVFT
  */
 HWTEST_F(InnerAppAccountManagerTest, AppAccount_UnsubscribeAppAccount_001, Function | MediumTest | Level1)
 {
@@ -206,9 +213,10 @@ HWTEST_F(InnerAppAccountManagerTest, AppAccount_UnsubscribeAppAccount_001, Funct
 }
 
 /**
- * @tc.number: AppAccount_UnsubscribeAppAccount_002
- * @tc.name: UnsubscribeAppAccount
+ * @tc.name: AppAccount_UnsubscribeAppAccount_002
  * @tc.desc: Unsubscribe app accounts with empty managers.
+ * @tc.type: FUNC
+ * @tc.require: SR000GGVFT
  */
 HWTEST_F(InnerAppAccountManagerTest, AppAccount_UnsubscribeAppAccount_002, Function | MediumTest | Level1)
 {

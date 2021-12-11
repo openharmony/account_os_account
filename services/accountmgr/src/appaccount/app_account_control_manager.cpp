@@ -29,9 +29,6 @@ AppAccountControlManager::AppAccountControlManager()
     ACCOUNT_LOGI("enter");
 }
 
-AppAccountControlManager::~AppAccountControlManager()
-{}
-
 ErrCode AppAccountControlManager::AddAccount(const std::string &name, const std::string &extraInfo, const uid_t &uid,
     const std::string &bundleName, AppAccountInfo &appAccountInfo)
 {

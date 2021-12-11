@@ -27,7 +27,11 @@ namespace OHOS {
 namespace AccountSA {
 const std::string AccountPermissionManager::DISTRIBUTED_DATASYNC = "ohos.permission.DISTRIBUTED_DATASYNC";
 const std::string AccountPermissionManager::GET_ACCOUNTS_PRIVILEGED = "ohos.permission.GET_ACCOUNTS_PRIVILEGED";
-
+const std::string AccountPermissionManager::MANAGE_LOCAL_ACCOUNTS = "ohos.permission.MANAGE_LOCAL_ACCOUNTS";
+const std::string AccountPermissionManager::INTERACT_ACROSS_LOCAL_ACCOUNTS_EXTENSION =
+    "ohos.permission.INTERACT_ACROSS_LOCAL_ACCOUNTS_EXTENSION";
+const std::string AccountPermissionManager::INTERACT_ACROSS_LOCAL_ACCOUNTS =
+    "ohos.permission.INTERACT_ACROSS_LOCAL_ACCOUNTS";
 AccountPermissionManager::AccountPermissionManager()
 {
     ACCOUNT_LOGI("enter");

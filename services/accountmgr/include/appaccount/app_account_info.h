@@ -29,7 +29,7 @@ class AppAccountInfo : public IAccountInfo, public Parcelable {
 public:
     AppAccountInfo();
     explicit AppAccountInfo(const std::string &name, const std::string &owner);
-    virtual ~AppAccountInfo();
+    virtual ~AppAccountInfo() = default;
 
     ErrCode GetOwner(std::string &owner);
     ErrCode SetOwner(const std::string &owner);

@@ -26,9 +26,6 @@ AppAccountCommonEventSubscriber::AppAccountCommonEventSubscriber(
     ACCOUNT_LOGI("enter");
 }
 
-AppAccountCommonEventSubscriber::~AppAccountCommonEventSubscriber()
-{}
-
 void AppAccountCommonEventSubscriber::OnReceiveEvent(const CommonEventData &data)
 {
     ACCOUNT_LOGI("enter");

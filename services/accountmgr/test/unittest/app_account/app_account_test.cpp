@@ -126,9 +126,10 @@ public:
 };
 
 /**
- * @tc.number: AppAccount_AddAccount_0100
- * @tc.name: AddAccount
+ * @tc.name: AppAccount_AddAccount_0100
  * @tc.desc: Add an app account with valid data.
+ * @tc.type: FUNC
+ * @tc.require: SR000GGV11
  */
 HWTEST_F(AppAccountTest, AppAccount_AddAccount_0100, Function | MediumTest | Level1)
 {
@@ -140,9 +141,10 @@ HWTEST_F(AppAccountTest, AppAccount_AddAccount_0100, Function | MediumTest | Lev
 }
 
 /**
- * @tc.number: AppAccount_AddAccount_0200
- * @tc.name: AddAccount
+ * @tc.name: AppAccount_AddAccount_0200
  * @tc.desc: Add an app account with invalid data.
+ * @tc.type: FUNC
+ * @tc.require: SR000GGV11
  */
 HWTEST_F(AppAccountTest, AppAccount_AddAccount_0200, Function | MediumTest | Level1)
 {
@@ -154,9 +156,10 @@ HWTEST_F(AppAccountTest, AppAccount_AddAccount_0200, Function | MediumTest | Lev
 }
 
 /**
- * @tc.number: AppAccount_AddAccount_0300
- * @tc.name: AddAccount
+ * @tc.name: AppAccount_AddAccount_0300
  * @tc.desc: Add an app account with valid data.
+ * @tc.type: FUNC
+ * @tc.require: SR000GGV11
  */
 HWTEST_F(AppAccountTest, AppAccount_AddAccount_0300, Function | MediumTest | Level1)
 {
@@ -168,9 +171,10 @@ HWTEST_F(AppAccountTest, AppAccount_AddAccount_0300, Function | MediumTest | Lev
 }
 
 /**
- * @tc.number: AppAccount_AddAccount_0400
- * @tc.name: AddAccount
+ * @tc.name: AppAccount_AddAccount_0400
  * @tc.desc: Add an app account with invalid data.
+ * @tc.type: FUNC
+ * @tc.require: SR000GGV11
  */
 HWTEST_F(AppAccountTest, AppAccount_AddAccount_0400, Function | MediumTest | Level1)
 {
@@ -182,9 +186,10 @@ HWTEST_F(AppAccountTest, AppAccount_AddAccount_0400, Function | MediumTest | Lev
 }
 
 /**
- * @tc.number: AppAccount_AddAccount_0500
- * @tc.name: AddAccount
+ * @tc.name: AppAccount_AddAccount_0500
  * @tc.desc: Add an app account with invalid data.
+ * @tc.type: FUNC
+ * @tc.require: SR000GGV11
  */
 HWTEST_F(AppAccountTest, AppAccount_AddAccount_0500, Function | MediumTest | Level1)
 {
@@ -196,9 +201,10 @@ HWTEST_F(AppAccountTest, AppAccount_AddAccount_0500, Function | MediumTest | Lev
 }
 
 /**
- * @tc.number: AppAccount_AddAccount_0600
- * @tc.name: AddAccount
+ * @tc.name: AppAccount_AddAccount_0600
  * @tc.desc: Add an app account with invalid data.
+ * @tc.type: FUNC
+ * @tc.require: SR000GGV11
  */
 HWTEST_F(AppAccountTest, AppAccount_AddAccount_0600, Function | MediumTest | Level1)
 {
@@ -210,9 +216,10 @@ HWTEST_F(AppAccountTest, AppAccount_AddAccount_0600, Function | MediumTest | Lev
 }
 
 /**
- * @tc.number: AppAccount_AddAccount_0700
- * @tc.name: AddAccount
+ * @tc.name: AppAccount_AddAccount_0700
  * @tc.desc: Add an app account with invalid data.
+ * @tc.type: FUNC
+ * @tc.require: SR000GGV11
  */
 HWTEST_F(AppAccountTest, AppAccount_AddAccount_0700, Function | MediumTest | Level1)
 {
@@ -224,9 +231,10 @@ HWTEST_F(AppAccountTest, AppAccount_AddAccount_0700, Function | MediumTest | Lev
 }
 
 /**
- * @tc.number: AppAccount_AddAccount_0800
- * @tc.name: AddAccount
+ * @tc.name: AppAccount_AddAccount_0800
  * @tc.desc: Add an app account with invalid data.
+ * @tc.type: FUNC
+ * @tc.require: SR000GGV11
  */
 HWTEST_F(AppAccountTest, AppAccount_AddAccount_0800, Function | MediumTest | Level1)
 {
@@ -238,9 +246,10 @@ HWTEST_F(AppAccountTest, AppAccount_AddAccount_0800, Function | MediumTest | Lev
 }
 
 /**
- * @tc.number: AppAccount_DeleteAccount_0100
- * @tc.name: DeleteAccount
+ * @tc.name: AppAccount_DeleteAccount_0100
  * @tc.desc: Delete an app account with valid data.
+ * @tc.type: FUNC
+ * @tc.require: SR000GGV11
  */
 HWTEST_F(AppAccountTest, AppAccount_DeleteAccount_0100, Function | MediumTest | Level1)
 {
@@ -252,9 +261,10 @@ HWTEST_F(AppAccountTest, AppAccount_DeleteAccount_0100, Function | MediumTest | 
 }
 
 /**
- * @tc.number: AppAccount_DeleteAccount_0200
- * @tc.name: DeleteAccount
+ * @tc.name: AppAccount_DeleteAccount_0200
  * @tc.desc: Delete an app account with invalid data.
+ * @tc.type: FUNC
+ * @tc.require: SR000GGV11
  */
 HWTEST_F(AppAccountTest, AppAccount_DeleteAccount_0200, Function | MediumTest | Level1)
 {
@@ -266,9 +276,10 @@ HWTEST_F(AppAccountTest, AppAccount_DeleteAccount_0200, Function | MediumTest | 
 }
 
 /**
- * @tc.number: AppAccount_DeleteAccount_0300
- * @tc.name: DeleteAccount
+ * @tc.name: AppAccount_DeleteAccount_0300
  * @tc.desc: Delete an app account with invalid data.
+ * @tc.type: FUNC
+ * @tc.require: SR000GGV11
  */
 HWTEST_F(AppAccountTest, AppAccount_DeleteAccount_0300, Function | MediumTest | Level1)
 {
@@ -280,9 +291,10 @@ HWTEST_F(AppAccountTest, AppAccount_DeleteAccount_0300, Function | MediumTest | 
 }
 
 /**
- * @tc.number: AppAccount_SubscribeAppAccount_0100
- * @tc.name: SubscribeAppAccount
+ * @tc.name: AppAccount_SubscribeAppAccount_0100
  * @tc.desc: Subscribe app accounts with valid data.
+ * @tc.type: FUNC
+ * @tc.require: SR000GGVFT
  */
 HWTEST_F(AppAccountTest, AppAccount_SubscribeAppAccount_0100, Function | MediumTest | Level1)
 {
@@ -305,9 +317,10 @@ HWTEST_F(AppAccountTest, AppAccount_SubscribeAppAccount_0100, Function | MediumT
 }
 
 /**
- * @tc.number: AppAccount_SubscribeAppAccount_0200
- * @tc.name: SubscribeAppAccount
+ * @tc.name: AppAccount_SubscribeAppAccount_0200
  * @tc.desc: Subscribe app accounts with valid data.
+ * @tc.type: FUNC
+ * @tc.require: SR000GGVFT
  */
 HWTEST_F(AppAccountTest, AppAccount_SubscribeAppAccount_0200, Function | MediumTest | Level1)
 {
@@ -331,9 +344,10 @@ HWTEST_F(AppAccountTest, AppAccount_SubscribeAppAccount_0200, Function | MediumT
 }
 
 /**
- * @tc.number: AppAccount_SubscribeAppAccount_0300
- * @tc.name: SubscribeAppAccount
+ * @tc.name: AppAccount_SubscribeAppAccount_0300
  * @tc.desc: Subscribe app accounts with invalid data.
+ * @tc.type: FUNC
+ * @tc.require: SR000GGVFT
  */
 HWTEST_F(AppAccountTest, AppAccount_SubscribeAppAccount_0300, Function | MediumTest | Level1)
 {
@@ -346,9 +360,10 @@ HWTEST_F(AppAccountTest, AppAccount_SubscribeAppAccount_0300, Function | MediumT
 }
 
 /**
- * @tc.number: AppAccount_GetAppAccountProxy_0100
- * @tc.name: GetAppAccountProxy
+ * @tc.name: AppAccount_GetAppAccountProxy_0100
  * @tc.desc: Get app account proxy.
+ * @tc.type: FUNC
+ * @tc.require: SR000GGVFQ
  */
 HWTEST_F(AppAccountTest, AppAccount_GetAppAccountProxy_0100, Function | MediumTest | Level1)
 {
@@ -362,9 +377,10 @@ HWTEST_F(AppAccountTest, AppAccount_GetAppAccountProxy_0100, Function | MediumTe
 }
 
 /**
- * @tc.number: AppAccount_ResetAppAccountProxy_0100
- * @tc.name: ResetAppAccountProxy
+ * @tc.name: AppAccount_ResetAppAccountProxy_0100
  * @tc.desc: Reset app account proxy.
+ * @tc.type: FUNC
+ * @tc.require: SR000GGVFQ
  */
 HWTEST_F(AppAccountTest, AppAccount_ResetAppAccountProxy_0100, Function | MediumTest | Level1)
 {
@@ -383,9 +399,10 @@ HWTEST_F(AppAccountTest, AppAccount_ResetAppAccountProxy_0100, Function | Medium
 }
 
 /**
- * @tc.number: AppAccount_CreateAppAccountEventListener_0100
- * @tc.name: CreateAppAccountEventListener
+ * @tc.name: AppAccount_CreateAppAccountEventListener_0100
  * @tc.desc: create app account event listener.
+ * @tc.type: FUNC
+ * @tc.require: SR000GGVFT
  */
 HWTEST_F(AppAccountTest, AppAccount_CreateAppAccountEventListener_0100, Function | MediumTest | Level1)
 {
@@ -421,9 +438,10 @@ HWTEST_F(AppAccountTest, AppAccount_CreateAppAccountEventListener_0100, Function
 }
 
 /**
- * @tc.number: AppAccount_CreateAppAccountEventListener_0200
- * @tc.name: CreateAppAccountEventListener
+ * @tc.name: AppAccount_CreateAppAccountEventListener_0200
  * @tc.desc: create app account event listener.
+ * @tc.type: FUNC
+ * @tc.require: SR000GGVFT
  */
 HWTEST_F(AppAccountTest, AppAccount_CreateAppAccountEventListener_0200, Function | MediumTest | Level1)
 {

@@ -171,9 +171,10 @@ void AppAccountManagerTest::TearDown(void)
 {}
 
 /**
- * @tc.number: AppAccountManager_AddAccount_0100
- * @tc.name: AddAccount
+ * @tc.name: AppAccountManager_AddAccount_0100
  * @tc.desc: Add an app account with invalid data.
+ * @tc.type: FUNC
+ * @tc.require: SR000GGV11
  */
 HWTEST_F(AppAccountManagerTest, AppAccountManager_AddAccount_0100, Function | MediumTest | Level1)
 {
@@ -184,9 +185,10 @@ HWTEST_F(AppAccountManagerTest, AppAccountManager_AddAccount_0100, Function | Me
 }
 
 /**
- * @tc.number: AppAccountManager_AddAccount_0200
- * @tc.name: AddAccount
+ * @tc.name: AppAccountManager_AddAccount_0200
  * @tc.desc: Add an app account with invalid data.
+ * @tc.type: FUNC
+ * @tc.require: SR000GGV11
  */
 HWTEST_F(AppAccountManagerTest, AppAccountManager_AddAccount_0200, Function | MediumTest | Level1)
 {
@@ -197,9 +199,10 @@ HWTEST_F(AppAccountManagerTest, AppAccountManager_AddAccount_0200, Function | Me
 }
 
 /**
- * @tc.number: AppAccountManager_AddAccount_0300
- * @tc.name: AddAccount
+ * @tc.name: AppAccountManager_AddAccount_0300
  * @tc.desc: Add an app account with invalid data.
+ * @tc.type: FUNC
+ * @tc.require: SR000GGV11
  */
 HWTEST_F(AppAccountManagerTest, AppAccountManager_AddAccount_0300, Function | MediumTest | Level1)
 {
@@ -210,9 +213,10 @@ HWTEST_F(AppAccountManagerTest, AppAccountManager_AddAccount_0300, Function | Me
 }
 
 /**
- * @tc.number: AppAccountManager_DeleteAccount_0100
- * @tc.name: DeleteAccount
+ * @tc.name: AppAccountManager_DeleteAccount_0100
  * @tc.desc: Delete an app account with invalid data.
+ * @tc.type: FUNC
+ * @tc.require: SR000GGV11
  */
 HWTEST_F(AppAccountManagerTest, AppAccountManager_DeleteAccount_0100, Function | MediumTest | Level1)
 {
@@ -223,9 +227,10 @@ HWTEST_F(AppAccountManagerTest, AppAccountManager_DeleteAccount_0100, Function |
 }
 
 /**
- * @tc.number: AppAccountManager_DeleteAccount_0200
- * @tc.name: DeleteAccount
+ * @tc.name: AppAccountManager_DeleteAccount_0200
  * @tc.desc: Delete an app account with invalid data.
+ * @tc.type: FUNC
+ * @tc.require: SR000GGV11
  */
 HWTEST_F(AppAccountManagerTest, AppAccountManager_DeleteAccount_0200, Function | MediumTest | Level1)
 {
@@ -236,9 +241,10 @@ HWTEST_F(AppAccountManagerTest, AppAccountManager_DeleteAccount_0200, Function |
 }
 
 /**
- * @tc.number: AppAccountManager_GetAccountExtraInfo_0100
- * @tc.name: GetAccountExtraInfo
+ * @tc.name: AppAccountManager_GetAccountExtraInfo_0100
  * @tc.desc: Get extra info of an app account with invalid data.
+ * @tc.type: FUNC
+ * @tc.require: SR000GGVFS
  */
 HWTEST_F(AppAccountManagerTest, AppAccountManager_GetAccountExtraInfo_0100, Function | MediumTest | Level1)
 {
@@ -251,9 +257,10 @@ HWTEST_F(AppAccountManagerTest, AppAccountManager_GetAccountExtraInfo_0100, Func
 }
 
 /**
- * @tc.number: AppAccountManager_GetAccountExtraInfo_0200
- * @tc.name: GetAccountExtraInfo
+ * @tc.name: AppAccountManager_GetAccountExtraInfo_0200
  * @tc.desc: Get extra info of an app account with invalid data.
+ * @tc.type: FUNC
+ * @tc.require: SR000GGVFS
  */
 HWTEST_F(AppAccountManagerTest, AppAccountManager_GetAccountExtraInfo_0200, Function | MediumTest | Level1)
 {
@@ -266,9 +273,10 @@ HWTEST_F(AppAccountManagerTest, AppAccountManager_GetAccountExtraInfo_0200, Func
 }
 
 /**
- * @tc.number: AppAccountManager_SetAccountExtraInfo_0100
- * @tc.name: SetAccountExtraInfo
+ * @tc.name: AppAccountManager_SetAccountExtraInfo_0100
  * @tc.desc: Set extra info of an app account with invalid data.
+ * @tc.type: FUNC
+ * @tc.require: SR000GGVFS
  */
 HWTEST_F(AppAccountManagerTest, AppAccountManager_SetAccountExtraInfo_0100, Function | MediumTest | Level1)
 {
@@ -279,9 +287,10 @@ HWTEST_F(AppAccountManagerTest, AppAccountManager_SetAccountExtraInfo_0100, Func
 }
 
 /**
- * @tc.number: AppAccountManager_SetAccountExtraInfo_0200
- * @tc.name: SetAccountExtraInfo
+ * @tc.name: AppAccountManager_SetAccountExtraInfo_0200
  * @tc.desc: Set extra info of an app account with invalid data.
+ * @tc.type: FUNC
+ * @tc.require: SR000GGVFS
  */
 HWTEST_F(AppAccountManagerTest, AppAccountManager_SetAccountExtraInfo_0200, Function | MediumTest | Level1)
 {
@@ -292,9 +301,10 @@ HWTEST_F(AppAccountManagerTest, AppAccountManager_SetAccountExtraInfo_0200, Func
 }
 
 /**
- * @tc.number: AppAccountManager_SetAccountExtraInfo_0300
- * @tc.name: SetAccountExtraInfo
+ * @tc.name: AppAccountManager_SetAccountExtraInfo_0300
  * @tc.desc: Set extra info of an app account with invalid data.
+ * @tc.type: FUNC
+ * @tc.require: SR000GGVFS
  */
 HWTEST_F(AppAccountManagerTest, AppAccountManager_SetAccountExtraInfo_0300, Function | MediumTest | Level1)
 {
@@ -305,9 +315,10 @@ HWTEST_F(AppAccountManagerTest, AppAccountManager_SetAccountExtraInfo_0300, Func
 }
 
 /**
- * @tc.number: AppAccountManager_EnableAppAccess_0100
- * @tc.name: EnableAppAccess
+ * @tc.name: AppAccountManager_EnableAppAccess_0100
  * @tc.desc: Enable app access with invalid data.
+ * @tc.type: FUNC
+ * @tc.require: SR000GGVFS
  */
 HWTEST_F(AppAccountManagerTest, AppAccountManager_EnableAppAccess_0100, Function | MediumTest | Level1)
 {
@@ -318,9 +329,10 @@ HWTEST_F(AppAccountManagerTest, AppAccountManager_EnableAppAccess_0100, Function
 }
 
 /**
- * @tc.number: AppAccountManager_EnableAppAccess_0200
- * @tc.name: EnableAppAccess
+ * @tc.name: AppAccountManager_EnableAppAccess_0200
  * @tc.desc: Enable app access with invalid data.
+ * @tc.type: FUNC
+ * @tc.require: SR000GGVFS
  */
 HWTEST_F(AppAccountManagerTest, AppAccountManager_EnableAppAccess_0200, Function | MediumTest | Level1)
 {
@@ -331,9 +343,10 @@ HWTEST_F(AppAccountManagerTest, AppAccountManager_EnableAppAccess_0200, Function
 }
 
 /**
- * @tc.number: AppAccountManager_EnableAppAccess_0300
- * @tc.name: EnableAppAccess
+ * @tc.name: AppAccountManager_EnableAppAccess_0300
  * @tc.desc: Enable app access with invalid data.
+ * @tc.type: FUNC
+ * @tc.require: SR000GGVFS
  */
 HWTEST_F(AppAccountManagerTest, AppAccountManager_EnableAppAccess_0300, Function | MediumTest | Level1)
 {
@@ -344,9 +357,10 @@ HWTEST_F(AppAccountManagerTest, AppAccountManager_EnableAppAccess_0300, Function
 }
 
 /**
- * @tc.number: AppAccountManager_EnableAppAccess_0400
- * @tc.name: EnableAppAccess
+ * @tc.name: AppAccountManager_EnableAppAccess_0400
  * @tc.desc: Enable app access with invalid data.
+ * @tc.type: FUNC
+ * @tc.require: SR000GGVFS
  */
 HWTEST_F(AppAccountManagerTest, AppAccountManager_EnableAppAccess_0400, Function | MediumTest | Level1)
 {
@@ -357,9 +371,10 @@ HWTEST_F(AppAccountManagerTest, AppAccountManager_EnableAppAccess_0400, Function
 }
 
 /**
- * @tc.number: AppAccountManager_DisableAppAccess_0100
- * @tc.name: DisableAppAccess
+ * @tc.name: AppAccountManager_DisableAppAccess_0100
  * @tc.desc: Disable app access with invalid data.
+ * @tc.type: FUNC
+ * @tc.require: SR000GGVFS
  */
 HWTEST_F(AppAccountManagerTest, AppAccountManager_DisableAppAccess_0100, Function | MediumTest | Level1)
 {
@@ -370,9 +385,10 @@ HWTEST_F(AppAccountManagerTest, AppAccountManager_DisableAppAccess_0100, Functio
 }
 
 /**
- * @tc.number: AppAccountManager_DisableAppAccess_0200
- * @tc.name: DisableAppAccess
+ * @tc.name: AppAccountManager_DisableAppAccess_0200
  * @tc.desc: Disable app access with invalid data.
+ * @tc.type: FUNC
+ * @tc.require: SR000GGVFS
  */
 HWTEST_F(AppAccountManagerTest, AppAccountManager_DisableAppAccess_0200, Function | MediumTest | Level1)
 {
@@ -383,9 +399,10 @@ HWTEST_F(AppAccountManagerTest, AppAccountManager_DisableAppAccess_0200, Functio
 }
 
 /**
- * @tc.number: AppAccountManager_DisableAppAccess_0300
- * @tc.name: DisableAppAccess
+ * @tc.name: AppAccountManager_DisableAppAccess_0300
  * @tc.desc: Disable app access with invalid data.
+ * @tc.type: FUNC
+ * @tc.require: SR000GGVFS
  */
 HWTEST_F(AppAccountManagerTest, AppAccountManager_DisableAppAccess_0300, Function | MediumTest | Level1)
 {
@@ -396,9 +413,10 @@ HWTEST_F(AppAccountManagerTest, AppAccountManager_DisableAppAccess_0300, Functio
 }
 
 /**
- * @tc.number: AppAccountManager_DisableAppAccess_0400
- * @tc.name: DisableAppAccess
+ * @tc.name: AppAccountManager_DisableAppAccess_0400
  * @tc.desc: Disable app access with invalid data.
+ * @tc.type: FUNC
+ * @tc.require: SR000GGVFS
  */
 HWTEST_F(AppAccountManagerTest, AppAccountManager_DisableAppAccess_0400, Function | MediumTest | Level1)
 {
@@ -409,9 +427,10 @@ HWTEST_F(AppAccountManagerTest, AppAccountManager_DisableAppAccess_0400, Functio
 }
 
 /**
- * @tc.number: AppAccountManager_CheckAppAccountSyncEnable_0100
- * @tc.name: CheckAppAccountSyncEnable
+ * @tc.name: AppAccountManager_CheckAppAccountSyncEnable_0100
  * @tc.desc: Check account sync enable with invalid data.
+ * @tc.type: FUNC
+ * @tc.require: SR000GGVFS
  */
 HWTEST_F(AppAccountManagerTest, AppAccountManager_CheckAppAccountSyncEnable_0100, Function | MediumTest | Level1)
 {
@@ -424,9 +443,10 @@ HWTEST_F(AppAccountManagerTest, AppAccountManager_CheckAppAccountSyncEnable_0100
 }
 
 /**
- * @tc.number: AppAccountManager_CheckAppAccountSyncEnable_0200
- * @tc.name: CheckAppAccountSyncEnable
+ * @tc.name: AppAccountManager_CheckAppAccountSyncEnable_0200
  * @tc.desc: Check account sync enable with invalid data.
+ * @tc.type: FUNC
+ * @tc.require: SR000GGVFS
  */
 HWTEST_F(AppAccountManagerTest, AppAccountManager_CheckAppAccountSyncEnable_0200, Function | MediumTest | Level1)
 {
@@ -439,9 +459,10 @@ HWTEST_F(AppAccountManagerTest, AppAccountManager_CheckAppAccountSyncEnable_0200
 }
 
 /**
- * @tc.number: AppAccountManager_SetAppAccountSyncEnable_0100
- * @tc.name: SetAppAccountSyncEnable
+ * @tc.name: AppAccountManager_SetAppAccountSyncEnable_0100
  * @tc.desc: Set account sync enable with invalid data.
+ * @tc.type: FUNC
+ * @tc.require: SR000GGVFS
  */
 HWTEST_F(AppAccountManagerTest, AppAccountManager_SetAppAccountSyncEnable_0100, Function | MediumTest | Level1)
 {
@@ -452,9 +473,10 @@ HWTEST_F(AppAccountManagerTest, AppAccountManager_SetAppAccountSyncEnable_0100, 
 }
 
 /**
- * @tc.number: AppAccountManager_SetAppAccountSyncEnable_0200
- * @tc.name: SetAppAccountSyncEnable
+ * @tc.name: AppAccountManager_SetAppAccountSyncEnable_0200
  * @tc.desc: Set account sync enable with invalid data.
+ * @tc.type: FUNC
+ * @tc.require: SR000GGVFS
  */
 HWTEST_F(AppAccountManagerTest, AppAccountManager_SetAppAccountSyncEnable_0200, Function | MediumTest | Level1)
 {
@@ -465,9 +487,10 @@ HWTEST_F(AppAccountManagerTest, AppAccountManager_SetAppAccountSyncEnable_0200, 
 }
 
 /**
- * @tc.number: AppAccountManager_GetAssociatedData_0100
- * @tc.name: GetAssociatedData
+ * @tc.name: AppAccountManager_GetAssociatedData_0100
  * @tc.desc: Get associated data with invalid data.
+ * @tc.type: FUNC
+ * @tc.require: SR000GGVFS
  */
 HWTEST_F(AppAccountManagerTest, AppAccountManager_GetAssociatedData_0100, Function | MediumTest | Level1)
 {
@@ -480,9 +503,10 @@ HWTEST_F(AppAccountManagerTest, AppAccountManager_GetAssociatedData_0100, Functi
 }
 
 /**
- * @tc.number: AppAccountManager_GetAssociatedData_0200
- * @tc.name: GetAssociatedData
+ * @tc.name: AppAccountManager_GetAssociatedData_0200
  * @tc.desc: Get associated data with invalid data.
+ * @tc.type: FUNC
+ * @tc.require: SR000GGVFS
  */
 HWTEST_F(AppAccountManagerTest, AppAccountManager_GetAssociatedData_0200, Function | MediumTest | Level1)
 {
@@ -495,9 +519,10 @@ HWTEST_F(AppAccountManagerTest, AppAccountManager_GetAssociatedData_0200, Functi
 }
 
 /**
- * @tc.number: AppAccountManager_GetAssociatedData_0300
- * @tc.name: GetAssociatedData
+ * @tc.name: AppAccountManager_GetAssociatedData_0300
  * @tc.desc: Get associated data with invalid data.
+ * @tc.type: FUNC
+ * @tc.require: SR000GGVFS
  */
 HWTEST_F(AppAccountManagerTest, AppAccountManager_GetAssociatedData_0300, Function | MediumTest | Level1)
 {
@@ -510,9 +535,10 @@ HWTEST_F(AppAccountManagerTest, AppAccountManager_GetAssociatedData_0300, Functi
 }
 
 /**
- * @tc.number: AppAccountManager_GetAssociatedData_0400
- * @tc.name: GetAssociatedData
+ * @tc.name: AppAccountManager_GetAssociatedData_0400
  * @tc.desc: Get associated data with invalid data.
+ * @tc.type: FUNC
+ * @tc.require: SR000GGVFS
  */
 HWTEST_F(AppAccountManagerTest, AppAccountManager_GetAssociatedData_0400, Function | MediumTest | Level1)
 {
@@ -525,9 +551,10 @@ HWTEST_F(AppAccountManagerTest, AppAccountManager_GetAssociatedData_0400, Functi
 }
 
 /**
- * @tc.number: AppAccountManager_SetAssociatedData_0100
- * @tc.name: SetAssociatedData
+ * @tc.name: AppAccountManager_SetAssociatedData_0100
  * @tc.desc: Set associated data with invalid data.
+ * @tc.type: FUNC
+ * @tc.require: SR000GGVFS
  */
 HWTEST_F(AppAccountManagerTest, AppAccountManager_SetAssociatedData_0100, Function | MediumTest | Level1)
 {
@@ -538,9 +565,10 @@ HWTEST_F(AppAccountManagerTest, AppAccountManager_SetAssociatedData_0100, Functi
 }
 
 /**
- * @tc.number: AppAccountManager_SetAssociatedData_0200
- * @tc.name: SetAssociatedData
+ * @tc.name: AppAccountManager_SetAssociatedData_0200
  * @tc.desc: Set associated data with invalid data.
+ * @tc.type: FUNC
+ * @tc.require: SR000GGVFS
  */
 HWTEST_F(AppAccountManagerTest, AppAccountManager_SetAssociatedData_0200, Function | MediumTest | Level1)
 {
@@ -551,9 +579,10 @@ HWTEST_F(AppAccountManagerTest, AppAccountManager_SetAssociatedData_0200, Functi
 }
 
 /**
- * @tc.number: AppAccountManager_SetAssociatedData_0300
- * @tc.name: SetAssociatedData
+ * @tc.name: AppAccountManager_SetAssociatedData_0300
  * @tc.desc: Set associated data with invalid data.
+ * @tc.type: FUNC
+ * @tc.require: SR000GGVFS
  */
 HWTEST_F(AppAccountManagerTest, AppAccountManager_SetAssociatedData_0300, Function | MediumTest | Level1)
 {
@@ -564,9 +593,10 @@ HWTEST_F(AppAccountManagerTest, AppAccountManager_SetAssociatedData_0300, Functi
 }
 
 /**
- * @tc.number: AppAccountManager_SetAssociatedData_0400
- * @tc.name: SetAssociatedData
+ * @tc.name: AppAccountManager_SetAssociatedData_0400
  * @tc.desc: Set associated data with invalid data.
+ * @tc.type: FUNC
+ * @tc.require: SR000GGVFS
  */
 HWTEST_F(AppAccountManagerTest, AppAccountManager_SetAssociatedData_0400, Function | MediumTest | Level1)
 {
@@ -577,9 +607,10 @@ HWTEST_F(AppAccountManagerTest, AppAccountManager_SetAssociatedData_0400, Functi
 }
 
 /**
- * @tc.number: AppAccountManager_SetAssociatedData_0500
- * @tc.name: SetAssociatedData
+ * @tc.name: AppAccountManager_SetAssociatedData_0500
  * @tc.desc: Set associated data with invalid data.
+ * @tc.type: FUNC
+ * @tc.require: SR000GGVFS
  */
 HWTEST_F(AppAccountManagerTest, AppAccountManager_SetAssociatedData_0500, Function | MediumTest | Level1)
 {
@@ -590,9 +621,10 @@ HWTEST_F(AppAccountManagerTest, AppAccountManager_SetAssociatedData_0500, Functi
 }
 
 /**
- * @tc.number: AppAccountManager_GetAccountCredential_0100
- * @tc.name: GetAccountCredential
+ * @tc.name: AppAccountManager_GetAccountCredential_0100
  * @tc.desc: Get account credential with invalid data.
+ * @tc.type: FUNC
+ * @tc.require: SR000GGVFS
  */
 HWTEST_F(AppAccountManagerTest, AppAccountManager_GetAccountCredential_0100, Function | MediumTest | Level1)
 {
@@ -605,9 +637,10 @@ HWTEST_F(AppAccountManagerTest, AppAccountManager_GetAccountCredential_0100, Fun
 }
 
 /**
- * @tc.number: AppAccountManager_GetAccountCredential_0200
- * @tc.name: GetAccountCredential
+ * @tc.name: AppAccountManager_GetAccountCredential_0200
  * @tc.desc: Get account credential with invalid data.
+ * @tc.type: FUNC
+ * @tc.require: SR000GGVFS
  */
 HWTEST_F(AppAccountManagerTest, AppAccountManager_GetAccountCredential_0200, Function | MediumTest | Level1)
 {
@@ -621,9 +654,10 @@ HWTEST_F(AppAccountManagerTest, AppAccountManager_GetAccountCredential_0200, Fun
 }
 
 /**
- * @tc.number: AppAccountManager_GetAccountCredential_0300
- * @tc.name: GetAccountCredential
+ * @tc.name: AppAccountManager_GetAccountCredential_0300
  * @tc.desc: Get account credential with invalid data.
+ * @tc.type: FUNC
+ * @tc.require: SR000GGVFS
  */
 HWTEST_F(AppAccountManagerTest, AppAccountManager_GetAccountCredential_0300, Function | MediumTest | Level1)
 {
@@ -636,9 +670,10 @@ HWTEST_F(AppAccountManagerTest, AppAccountManager_GetAccountCredential_0300, Fun
 }
 
 /**
- * @tc.number: AppAccountManager_GetAccountCredential_0400
- * @tc.name: GetAccountCredential
+ * @tc.name: AppAccountManager_GetAccountCredential_0400
  * @tc.desc: Get account credential with invalid data.
+ * @tc.type: FUNC
+ * @tc.require: SR000GGVFS
  */
 HWTEST_F(AppAccountManagerTest, AppAccountManager_GetAccountCredential_0400, Function | MediumTest | Level1)
 {
@@ -652,9 +687,10 @@ HWTEST_F(AppAccountManagerTest, AppAccountManager_GetAccountCredential_0400, Fun
 }
 
 /**
- * @tc.number: AppAccountManager_SetAccountCredential_0100
- * @tc.name: SetAccountCredential
+ * @tc.name: AppAccountManager_SetAccountCredential_0100
  * @tc.desc: Set account credential with invalid data.
+ * @tc.type: FUNC
+ * @tc.require: SR000GGVFS
  */
 HWTEST_F(AppAccountManagerTest, AppAccountManager_SetAccountCredential_0100, Function | MediumTest | Level1)
 {
@@ -665,9 +701,10 @@ HWTEST_F(AppAccountManagerTest, AppAccountManager_SetAccountCredential_0100, Fun
 }
 
 /**
- * @tc.number: AppAccountManager_SetAccountCredential_0200
- * @tc.name: SetAccountCredential
+ * @tc.name: AppAccountManager_SetAccountCredential_0200
  * @tc.desc: Set account credential with invalid data.
+ * @tc.type: FUNC
+ * @tc.require: SR000GGVFS
  */
 HWTEST_F(AppAccountManagerTest, AppAccountManager_SetAccountCredential_0200, Function | MediumTest | Level1)
 {
@@ -679,9 +716,10 @@ HWTEST_F(AppAccountManagerTest, AppAccountManager_SetAccountCredential_0200, Fun
 }
 
 /**
- * @tc.number: AppAccountManager_SetAccountCredential_0300
- * @tc.name: SetAccountCredential
+ * @tc.name: AppAccountManager_SetAccountCredential_0300
  * @tc.desc: Set account credential with invalid data.
+ * @tc.type: FUNC
+ * @tc.require: SR000GGVFS
  */
 HWTEST_F(AppAccountManagerTest, AppAccountManager_SetAccountCredential_0300, Function | MediumTest | Level1)
 {
@@ -692,9 +730,10 @@ HWTEST_F(AppAccountManagerTest, AppAccountManager_SetAccountCredential_0300, Fun
 }
 
 /**
- * @tc.number: AppAccountManager_SetAccountCredential_0400
- * @tc.name: SetAccountCredential
+ * @tc.name: AppAccountManager_SetAccountCredential_0400
  * @tc.desc: Set account credential with invalid data.
+ * @tc.type: FUNC
+ * @tc.require: SR000GGVFS
  */
 HWTEST_F(AppAccountManagerTest, AppAccountManager_SetAccountCredential_0400, Function | MediumTest | Level1)
 {
@@ -706,9 +745,10 @@ HWTEST_F(AppAccountManagerTest, AppAccountManager_SetAccountCredential_0400, Fun
 }
 
 /**
- * @tc.number: AppAccountManager_SetAccountCredential_0500
- * @tc.name: SetAccountCredential
+ * @tc.name: AppAccountManager_SetAccountCredential_0500
  * @tc.desc: Set account credential with invalid data.
+ * @tc.type: FUNC
+ * @tc.require: SR000GGVFS
  */
 HWTEST_F(AppAccountManagerTest, AppAccountManager_SetAccountCredential_0500, Function | MediumTest | Level1)
 {
@@ -720,9 +760,10 @@ HWTEST_F(AppAccountManagerTest, AppAccountManager_SetAccountCredential_0500, Fun
 }
 
 /**
- * @tc.number: AppAccountManager_GetOAuthToken_0100
- * @tc.name: GetOAuthToken
+ * @tc.name: AppAccountManager_GetOAuthToken_0100
  * @tc.desc: Get oauth token with invalid data.
+ * @tc.type: FUNC
+ * @tc.require: SR000GGVFU
  */
 HWTEST_F(AppAccountManagerTest, AppAccountManager_GetOAuthToken_0100, Function | MediumTest | Level1)
 {
@@ -735,9 +776,10 @@ HWTEST_F(AppAccountManagerTest, AppAccountManager_GetOAuthToken_0100, Function |
 }
 
 /**
- * @tc.number: AppAccountManager_GetOAuthToken_0200
- * @tc.name: GetOAuthToken
+ * @tc.name: AppAccountManager_GetOAuthToken_0200
  * @tc.desc: Get oauth token with invalid data.
+ * @tc.type: FUNC
+ * @tc.require: SR000GGVFU
  */
 HWTEST_F(AppAccountManagerTest, AppAccountManager_GetOAuthToken_0200, Function | MediumTest | Level1)
 {
@@ -750,9 +792,10 @@ HWTEST_F(AppAccountManagerTest, AppAccountManager_GetOAuthToken_0200, Function |
 }
 
 /**
- * @tc.number: AppAccountManager_SetOAuthToken_0100
- * @tc.name: SetOAuthToken
+ * @tc.name: AppAccountManager_SetOAuthToken_0100
  * @tc.desc: Set oauth token with invalid data.
+ * @tc.type: FUNC
+ * @tc.require: SR000GGVFU
  */
 HWTEST_F(AppAccountManagerTest, AppAccountManager_SetOAuthToken_0100, Function | MediumTest | Level1)
 {
@@ -763,9 +806,10 @@ HWTEST_F(AppAccountManagerTest, AppAccountManager_SetOAuthToken_0100, Function |
 }
 
 /**
- * @tc.number: AppAccountManager_SetOAuthToken_0200
- * @tc.name: SetOAuthToken
+ * @tc.name: AppAccountManager_SetOAuthToken_0200
  * @tc.desc: Set oauth token with invalid data.
+ * @tc.type: FUNC
+ * @tc.require: SR000GGVFU
  */
 HWTEST_F(AppAccountManagerTest, AppAccountManager_SetOAuthToken_0200, Function | MediumTest | Level1)
 {
@@ -776,9 +820,10 @@ HWTEST_F(AppAccountManagerTest, AppAccountManager_SetOAuthToken_0200, Function |
 }
 
 /**
- * @tc.number: AppAccountManager_SetOAuthToken_0300
- * @tc.name: SetOAuthToken
+ * @tc.name: AppAccountManager_SetOAuthToken_0300
  * @tc.desc: Set oauth token with invalid data.
+ * @tc.type: FUNC
+ * @tc.require: SR000GGVFU
  */
 HWTEST_F(AppAccountManagerTest, AppAccountManager_SetOAuthToken_0300, Function | MediumTest | Level1)
 {
@@ -789,9 +834,10 @@ HWTEST_F(AppAccountManagerTest, AppAccountManager_SetOAuthToken_0300, Function |
 }
 
 /**
- * @tc.number: AppAccountManager_ClearOAuthToken_0100
- * @tc.name: ClearOAuthToken
+ * @tc.name: AppAccountManager_ClearOAuthToken_0100
  * @tc.desc: Clear oauth token with invalid data.
+ * @tc.type: FUNC
+ * @tc.require: SR000GGVFU
  */
 HWTEST_F(AppAccountManagerTest, AppAccountManager_ClearOAuthToken_0100, Function | MediumTest | Level1)
 {
@@ -802,9 +848,10 @@ HWTEST_F(AppAccountManagerTest, AppAccountManager_ClearOAuthToken_0100, Function
 }
 
 /**
- * @tc.number: AppAccountManager_ClearOAuthToken_0200
- * @tc.name: ClearOAuthToken
+ * @tc.name: AppAccountManager_ClearOAuthToken_0200
  * @tc.desc: Clear oauth token with invalid data.
+ * @tc.type: FUNC
+ * @tc.require: SR000GGVFU
  */
 HWTEST_F(AppAccountManagerTest, AppAccountManager_ClearOAuthToken_0200, Function | MediumTest | Level1)
 {
@@ -815,9 +862,10 @@ HWTEST_F(AppAccountManagerTest, AppAccountManager_ClearOAuthToken_0200, Function
 }
 
 /**
- * @tc.number: AppAccountManager_GetAllAccounts_0100
- * @tc.name: GetAllAccounts
+ * @tc.name: AppAccountManager_GetAllAccounts_0100
  * @tc.desc: Get all accounts with invalid data.
+ * @tc.type: FUNC
+ * @tc.require: SR000GGVFR
  */
 HWTEST_F(AppAccountManagerTest, AppAccountManager_GetAllAccounts_0100, Function | MediumTest | Level1)
 {
@@ -830,9 +878,10 @@ HWTEST_F(AppAccountManagerTest, AppAccountManager_GetAllAccounts_0100, Function 
 }
 
 /**
- * @tc.number: AppAccountManager_GetAllAccounts_0200
- * @tc.name: GetAllAccounts
+ * @tc.name: AppAccountManager_GetAllAccounts_0200
  * @tc.desc: Get all accounts with invalid data.
+ * @tc.type: FUNC
+ * @tc.require: SR000GGVFR
  */
 HWTEST_F(AppAccountManagerTest, AppAccountManager_GetAllAccounts_0200, Function | MediumTest | Level1)
 {
