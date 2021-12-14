@@ -191,18 +191,18 @@ ErrCode OsAccountManager::StopOsAccount(const int id)
     return DelayedSingleton<OsAccount>::GetInstance()->StopOsAccount(id);
 }
 
-ErrCode OsAccountManager::GetOsAccountLocalIdForSerialNumber(const int64_t serialNumber, int &id)
+ErrCode OsAccountManager::GetOsAccountLocalIdBySerialNumber(const int64_t serialNumber, int &id)
 {
     ACCOUNT_LOGI("OsAccountManager::StartOsAccount start");
 
-    return DelayedSingleton<OsAccount>::GetInstance()->GetOsAccountLocalIdForSerialNumber(serialNumber, id);
+    return DelayedSingleton<OsAccount>::GetInstance()->GetOsAccountLocalIdBySerialNumber(serialNumber, id);
 }
 
-ErrCode OsAccountManager::GetSerialNumberForOsAccount(const int &id, int64_t &serialNumber)
+ErrCode OsAccountManager::GetSerialNumberByOsAccountLocalId(const int &id, int64_t &serialNumber)
 {
     ACCOUNT_LOGI("OsAccountManager::StopOsAccount start");
 
-    return DelayedSingleton<OsAccount>::GetInstance()->GetSerialNumberForOsAccount(id, serialNumber);
+    return DelayedSingleton<OsAccount>::GetInstance()->GetSerialNumberByOsAccountLocalId(id, serialNumber);
 }
 
 ErrCode OsAccountManager::SubscribeOsAccount(const std::shared_ptr<OsAccountSubscriber> &subscriber)

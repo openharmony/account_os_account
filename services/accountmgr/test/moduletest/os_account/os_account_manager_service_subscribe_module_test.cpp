@@ -76,11 +76,11 @@ public:
     int id_;
 };
 
-
 /**
- * @tc.number: OsAccountManagerServiceSubscribeModuleTest_0001
- * @tc.name: SubscribeOsAccount
+ * @tc.name: OsAccountManagerServiceSubscribeModuleTest_0001
  * @tc.desc: Subscribe os accounts activate
+ * @tc.type: FUNC
+ * @tc.require: SR000GGVFH
  */
 HWTEST_F(OsAccountManagerServiceSubscribeModuleTest, OsAccountManagerServiceSubscribeModuleTest_0001,
     Function | MediumTest | Level1)
@@ -133,9 +133,10 @@ HWTEST_F(OsAccountManagerServiceSubscribeModuleTest, OsAccountManagerServiceSubs
 }
 
 /**
- * @tc.number: OsAccountManagerServiceSubscribeModuleTest_0002
- * @tc.name: SubscribeAppAccount
+ * @tc.name: OsAccountManagerServiceSubscribeModuleTest_0002
  * @tc.desc: Subscribe os accounts activating
+ * @tc.type: FUNC
+ * @tc.require: SR000GGVFH
  */
 HWTEST_F(OsAccountManagerServiceSubscribeModuleTest, OsAccountManagerServiceSubscribeModuleTest_0002,
     Function | MediumTest | Level1)

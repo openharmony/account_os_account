@@ -560,9 +560,9 @@ ErrCode OsAccountProxy::StopOsAccount(const int id)
     return ERR_OK;
 }
 
-ErrCode OsAccountProxy::GetOsAccountLocalIdForSerialNumber(const int64_t serialNumber, int &id)
+ErrCode OsAccountProxy::GetOsAccountLocalIdBySerialNumber(const int64_t serialNumber, int &id)
 {
-    ACCOUNT_LOGI("OsAccountProxy GetOsAccountLocalIdForSerialNumber start");
+    ACCOUNT_LOGI("OsAccountProxy GetOsAccountLocalIdBySerialNumber start");
     MessageParcel data;
     MessageParcel reply;
     if (!data.WriteInt64(serialNumber)) {
@@ -579,13 +579,13 @@ ErrCode OsAccountProxy::GetOsAccountLocalIdForSerialNumber(const int64_t serialN
         return ERR_OSACCOUNT_KIT_GET_OS_ACCOUNT_LOCAL_ID_FOR_SERIAL_NUMBER_ERROR;
     }
     id = reply.ReadInt32();
-    ACCOUNT_LOGI("OsAccountProxy GetOsAccountLocalIdForSerialNumber end");
+    ACCOUNT_LOGI("OsAccountProxy GetOsAccountLocalIdBySerialNumber end");
     return ERR_OK;
 }
 
-ErrCode OsAccountProxy::GetSerialNumberForOsAccount(const int &id, int64_t &serialNumber)
+ErrCode OsAccountProxy::GetSerialNumberByOsAccountLocalId(const int &id, int64_t &serialNumber)
 {
-    ACCOUNT_LOGI("OsAccountProxy GetSerialNumberForOsAccount start");
+    ACCOUNT_LOGI("OsAccountProxy GetSerialNumberByOsAccountLocalId start");
     MessageParcel data;
     MessageParcel reply;
     if (!data.WriteInt32(id)) {
@@ -602,7 +602,7 @@ ErrCode OsAccountProxy::GetSerialNumberForOsAccount(const int &id, int64_t &seri
         return ERR_OSACCOUNT_KIT_GET_SERIAL_NUMBER_FOR_OS_ACCOUNT__ERROR;
     }
     serialNumber = reply.ReadInt64();
-    ACCOUNT_LOGI("OsAccountProxy GetSerialNumberForOsAccount end");
+    ACCOUNT_LOGI("OsAccountProxy GetSerialNumberByOsAccountLocalId end");
     return ERR_OK;
 }
 

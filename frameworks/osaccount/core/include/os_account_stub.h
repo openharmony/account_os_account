@@ -48,8 +48,8 @@ private:
     ErrCode ProcGetOsAccountTypeFromProcess(MessageParcel &data, MessageParcel &reply);
     ErrCode ProcGetApplicationConstraints(MessageParcel &data, MessageParcel &reply);
     ErrCode ProcGetApplicationConstraintsByNumber(MessageParcel &data, MessageParcel &reply);
-    ErrCode ProcGetOsAccountLocalIdForSerialNumber(MessageParcel &data, MessageParcel &reply);
-    ErrCode ProcGetSerialNumberForOsAccount(MessageParcel &data, MessageParcel &reply);
+    ErrCode ProcGetOsAccountLocalIdBySerialNumber(MessageParcel &data, MessageParcel &reply);
+    ErrCode ProcGetSerialNumberByOsAccountLocalId(MessageParcel &data, MessageParcel &reply);
     ErrCode ProcIsOsAccountActived(MessageParcel &data, MessageParcel &reply);
     ErrCode ProcIsOsAccountConstraintEnable(MessageParcel &data, MessageParcel &reply);
     ErrCode ProcIsMultiOsAccountEnable(MessageParcel &data, MessageParcel &reply);
