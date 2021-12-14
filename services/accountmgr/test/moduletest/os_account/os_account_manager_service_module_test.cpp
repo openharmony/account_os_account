@@ -726,7 +726,8 @@ HWTEST_F(OsAccountManagerServiceModuleTest, OsAccountManagerServiceModuleTest039
 HWTEST_F(OsAccountManagerServiceModuleTest, OsAccountManagerServiceModuleTest040, Function | MediumTest | Level1)
 {
     int64_t serialNumber;
-    EXPECT_EQ(osAccountManagerService_->GetSerialNumberByOsAccountLocalId(Constants::START_USER_ID, serialNumber), ERR_OK);
+    EXPECT_EQ(
+        osAccountManagerService_->GetSerialNumberByOsAccountLocalId(Constants::START_USER_ID, serialNumber), ERR_OK);
     EXPECT_EQ(
         serialNumber, Constants::CARRY_NUM * Constants::SERIAL_NUMBER_NUM_START_FOR_ADMIN + Constants::START_USER_ID);
 }
@@ -740,7 +741,8 @@ HWTEST_F(OsAccountManagerServiceModuleTest, OsAccountManagerServiceModuleTest040
 HWTEST_F(OsAccountManagerServiceModuleTest, OsAccountManagerServiceModuleTest041, Function | MediumTest | Level1)
 {
     int64_t serialNumber;
-    EXPECT_NE(osAccountManagerService_->GetSerialNumberByOsAccountLocalId(Constants::MAX_USER_ID + 1, serialNumber), ERR_OK);
+    EXPECT_NE(
+        osAccountManagerService_->GetSerialNumberByOsAccountLocalId(Constants::MAX_USER_ID + 1, serialNumber), ERR_OK);
 }
 
 /**

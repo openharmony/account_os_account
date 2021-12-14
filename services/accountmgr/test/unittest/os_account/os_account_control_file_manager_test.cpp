@@ -307,7 +307,7 @@ HWTEST_F(OsAccountControlFileManagerTest, OsAccountControlFileManagerTest015, Te
 
 /**
  * @tc.name: OsAccountControlFileManagerTest016
- * @tc.desc: Test DelOsAccount 
+ * @tc.desc: Test DelOsAccount
  * @tc.type: FUNC
  * @tc.require: SR000GGVFN
  */
