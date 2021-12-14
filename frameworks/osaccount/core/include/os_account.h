@@ -48,8 +48,8 @@ public:
     ErrCode StopOsAccount(const int id);
     ErrCode SubscribeOsAccount(const std::shared_ptr<OsAccountSubscriber> &subscriber);
     ErrCode UnsubscribeOsAccount(const std::shared_ptr<OsAccountSubscriber> &subscriber);
-    ErrCode GetOsAccountLocalIdForSerialNumber(const int64_t serialNumber, int &id);
-    ErrCode GetSerialNumberForOsAccount(const int &id, int64_t &serialNumber);
+    ErrCode GetOsAccountLocalIdBySerialNumber(const int64_t serialNumber, int &id);
+    ErrCode GetSerialNumberByOsAccountLocalId(const int &id, int64_t &serialNumber);
     OS_ACCOUNT_SWITCH_MOD GetOsAccountSwitchMod();
     ErrCode IsCurrentOsAccountVerified(bool &isOsAccountVerified);
     ErrCode IsOsAccountCompleted(const int id, bool &isOsAccountCompleted);

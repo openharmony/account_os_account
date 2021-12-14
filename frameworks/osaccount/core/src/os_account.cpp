@@ -339,26 +339,26 @@ ErrCode OsAccount::StopOsAccount(const int id)
     return osAccountProxy_->StopOsAccount(id);
 }
 
-ErrCode OsAccount::GetOsAccountLocalIdForSerialNumber(const int64_t serialNumber, int &id)
+ErrCode OsAccount::GetOsAccountLocalIdBySerialNumber(const int64_t serialNumber, int &id)
 {
-    ACCOUNT_LOGI("OsAccount::GetOsAccountLocalIdForSerialNumber start");
+    ACCOUNT_LOGI("OsAccount::GetOsAccountLocalIdBySerialNumber start");
     ErrCode result = GetOsAccountProxy();
     if (result != ERR_OK) {
         ACCOUNT_LOGE("failed to get osAccountProxy_");
         return result;
     }
-    return osAccountProxy_->GetOsAccountLocalIdForSerialNumber(serialNumber, id);
+    return osAccountProxy_->GetOsAccountLocalIdBySerialNumber(serialNumber, id);
 }
 
-ErrCode OsAccount::GetSerialNumberForOsAccount(const int &id, int64_t &serialNumber)
+ErrCode OsAccount::GetSerialNumberByOsAccountLocalId(const int &id, int64_t &serialNumber)
 {
-    ACCOUNT_LOGI("OsAccount::GetSerialNumberForOsAccount start");
+    ACCOUNT_LOGI("OsAccount::GetSerialNumberByOsAccountLocalId start");
     ErrCode result = GetOsAccountProxy();
     if (result != ERR_OK) {
         ACCOUNT_LOGE("failed to get osAccountProxy_");
         return result;
     }
-    return osAccountProxy_->GetSerialNumberForOsAccount(id, serialNumber);
+    return osAccountProxy_->GetSerialNumberByOsAccountLocalId(id, serialNumber);
 }
 
 ErrCode OsAccount::SubscribeOsAccount(const std::shared_ptr<OsAccountSubscriber> &subscriber)

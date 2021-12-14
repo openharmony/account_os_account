@@ -53,7 +53,7 @@ void AccountFileOperatorTest::TearDown(void)
  * @tc.name: AccountFileOperatorTest001
  * @tc.desc: Test AccountFileOperator  IsExistDir
  * @tc.type: FUNC
- * @tc.require: AR000CUF55
+ * @tc.require: SR000GGVFI
  */
 HWTEST_F(AccountFileOperatorTest, AccountFileOperatorTest001, TestSize.Level0)
 {
@@ -65,7 +65,7 @@ HWTEST_F(AccountFileOperatorTest, AccountFileOperatorTest001, TestSize.Level0)
  * @tc.name: AccountFileOperatorTest002
  * @tc.desc: Test AccountFileOperator  IsExistFile
  * @tc.type: FUNC
- * @tc.require: AR000CUF55
+ * @tc.require: SR000GGVFI
  */
 HWTEST_F(AccountFileOperatorTest, AccountFileOperatorTest002, TestSize.Level0)
 {
@@ -77,18 +77,19 @@ HWTEST_F(AccountFileOperatorTest, AccountFileOperatorTest002, TestSize.Level0)
  * @tc.name: AccountFileOperatorTest003
  * @tc.desc: Test CreateDir
  * @tc.type: FUNC
- * @tc.require: AR000CUF55
+ * @tc.require: SR000GGVFI
  */
 HWTEST_F(AccountFileOperatorTest, AccountFileOperatorTest003, TestSize.Level0)
 {
     EXPECT_EQ(osAccountFileOperator_.CreateDir("/data/system/users/0"), ERR_OK);
     EXPECT_EQ(osAccountFileOperator_.CreateDir("/data/system/users/100/file/instr"), ERR_OK);
 }
+
 /**
  * @tc.name: AccountFileOperatorTest004
  * @tc.desc: Test LoadDataByLocalFuzzyQuery
  * @tc.type: FUNC
- * @tc.require: AR000CUF55
+ * @tc.require: SR000GGVFI
  */
 HWTEST_F(AccountFileOperatorTest, AccountFileOperatorTest004, TestSize.Level0)
 {
@@ -98,11 +99,12 @@ HWTEST_F(AccountFileOperatorTest, AccountFileOperatorTest004, TestSize.Level0)
     EXPECT_EQ(osAccountFileOperator_.GetFileContentByPath("/data/system/users/1/1.txt", str), ERR_OK);
     EXPECT_EQ(str, "file");
 }
+
 /**
  * @tc.name: AccountFileOperatorTest005
  * @tc.desc: Test DeleteDirOrFile
  * @tc.type: FUNC
- * @tc.require: AR000CUF55
+ * @tc.require: SR000GGVFI
  */
 HWTEST_F(AccountFileOperatorTest, AccountFileOperatorTest005, TestSize.Level0)
 {
@@ -110,11 +112,12 @@ HWTEST_F(AccountFileOperatorTest, AccountFileOperatorTest005, TestSize.Level0)
     osAccountFileOperator_.InputFileByPathAndContent("/data/system/users/2/1.txt", "file");
     EXPECT_EQ(osAccountFileOperator_.DeleteDirOrFile("/data/system/users/2"), ERR_OK);
 }
+
 /**
  * @tc.name: AccountFileOperatorTest006
  * @tc.desc: Test GetFileContentByPath
  * @tc.type: FUNC
- * @tc.require: AR000CUF55
+ * @tc.require: SR000GGVFI
  */
 HWTEST_F(AccountFileOperatorTest, AccountFileOperatorTest006, TestSize.Level0)
 {

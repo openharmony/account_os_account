@@ -39,7 +39,7 @@ const int INT_ID = 1;
 const std::string STRING_NAME = "asf";
 const int INT_TYPE = 12;
 const int64_t INT_SHERIAL = 123;
-}
+}  // namespace
 class OsAccountDataStorageTest : public testing::Test {
 public:
     static void SetUpTestCase(void);
@@ -70,12 +70,12 @@ void OsAccountDataStorageTest::TearDown(void)
 }
 
 /**
- * @tc.name: osAccountDataStorageTest001
+ * @tc.name: OsAccountDataStorageTest001
  * @tc.desc: Test OsAccountDataStorageTest init
  * @tc.type: FUNC
- * @tc.require: AR000CUF55
+ * @tc.require: SR000GGVFF
  */
-HWTEST_F(OsAccountDataStorageTest, osAccountDataStorageTest001, TestSize.Level0)
+HWTEST_F(OsAccountDataStorageTest, OsAccountDataStorageTest001, TestSize.Level0)
 {
     EXPECT_EQ(osAccountDataStorage_->CheckKvStore(), true);
 }

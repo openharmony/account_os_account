@@ -58,11 +58,12 @@ void OsAccountManagerServiceCreateOsAccountTest::SetUp(void)
 
 void OsAccountManagerServiceCreateOsAccountTest::TearDown(void)
 {}
+
 /**
  * @tc.name: OsAccountManagerServiceCreateOsAccountTest001
  * @tc.desc: Test CreateOsAccount when create max accounts.
  * @tc.type: FUNC
- * @tc.require: AR000CUF55
+ * @tc.require: SR000GGVFN
  */
 HWTEST_F(OsAccountManagerServiceCreateOsAccountTest, OsAccountManagerServiceCreateOsAccountTest001,
     Function | MediumTest | Level1)

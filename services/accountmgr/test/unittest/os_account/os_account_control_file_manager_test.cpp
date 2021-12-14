@@ -96,7 +96,7 @@ void OsAccountControlFileManagerTest::TearDown(void)
  * @tc.name: OsAccountControlFileManagerTest001
  * @tc.desc: Test GetOsAccountList
  * @tc.type: FUNC
- * @tc.require: AR000CUF55
+ * @tc.require: SR000GGVFG
  */
 HWTEST_F(OsAccountControlFileManagerTest, OsAccountControlFileManagerTest001, TestSize.Level0)
 {
@@ -108,9 +108,9 @@ HWTEST_F(OsAccountControlFileManagerTest, OsAccountControlFileManagerTest001, Te
 
 /**
  * @tc.name: OsAccountControlFileManagerTest002
- * @tc.desc: Test GetOsAccountInfoById
+ * @tc.desc: Test GetOsAccountInfoById by valid data
  * @tc.type: FUNC
- * @tc.require: AR000CUF55
+ * @tc.require: SR000GGVFG
  */
 HWTEST_F(OsAccountControlFileManagerTest, OsAccountControlFileManagerTest002, TestSize.Level0)
 {
@@ -121,9 +121,9 @@ HWTEST_F(OsAccountControlFileManagerTest, OsAccountControlFileManagerTest002, Te
 
 /**
  * @tc.name: OsAccountControlFileManagerTest003
- * @tc.desc: Test GetOsAccountInfoById
+ * @tc.desc: Test GetOsAccountInfoById by unvalid data
  * @tc.type: FUNC
- * @tc.require: AR000CUF55
+ * @tc.require: SR000GGVFN
  */
 HWTEST_F(OsAccountControlFileManagerTest, OsAccountControlFileManagerTest003, TestSize.Level0)
 {
@@ -136,7 +136,7 @@ HWTEST_F(OsAccountControlFileManagerTest, OsAccountControlFileManagerTest003, Te
  * @tc.name: OsAccountControlFileManagerTest004
  * @tc.desc: Test GetConstraintsByType
  * @tc.type: FUNC
- * @tc.require: AR000CUF55
+ * @tc.require: SR000GGVFG
  */
 HWTEST_F(OsAccountControlFileManagerTest, OsAccountControlFileManagerTest004, TestSize.Level0)
 {
@@ -148,9 +148,9 @@ HWTEST_F(OsAccountControlFileManagerTest, OsAccountControlFileManagerTest004, Te
 
 /**
  * @tc.name: OsAccountControlFileManagerTest005
- * @tc.desc: Test GetConstraintsByType
+ * @tc.desc: Test GetConstraintsByType by error type
  * @tc.type: FUNC
- * @tc.require: AR000CUF55
+ * @tc.require: SR000GGVFN
  */
 HWTEST_F(OsAccountControlFileManagerTest, OsAccountControlFileManagerTest005, TestSize.Level0)
 {
@@ -162,7 +162,7 @@ HWTEST_F(OsAccountControlFileManagerTest, OsAccountControlFileManagerTest005, Te
  * @tc.name: OsAccountControlFileManagerTest006
  * @tc.desc: Test GetSerialNumber
  * @tc.type: FUNC
- * @tc.require: AR000CUF55
+ * @tc.require: SR000GGV0U
  */
 HWTEST_F(OsAccountControlFileManagerTest, OsAccountControlFileManagerTest006, TestSize.Level0)
 {
@@ -177,7 +177,7 @@ HWTEST_F(OsAccountControlFileManagerTest, OsAccountControlFileManagerTest006, Te
  * @tc.name: OsAccountControlFileManagerTest007
  * @tc.desc: Test IsOsAccountExists
  * @tc.type: FUNC
- * @tc.require: AR000CUF55
+ * @tc.require: SR000GGVFG
  */
 HWTEST_F(OsAccountControlFileManagerTest, OsAccountControlFileManagerTest007, TestSize.Level0)
 {
@@ -190,7 +190,7 @@ HWTEST_F(OsAccountControlFileManagerTest, OsAccountControlFileManagerTest007, Te
  * @tc.name: OsAccountControlFileManagerTest008
  * @tc.desc: Test IsOsAccountExists
  * @tc.type: FUNC
- * @tc.require: AR000CUF55
+ * @tc.require: SR000GGVFN
  */
 HWTEST_F(OsAccountControlFileManagerTest, OsAccountControlFileManagerTest008, TestSize.Level0)
 {
@@ -204,7 +204,7 @@ HWTEST_F(OsAccountControlFileManagerTest, OsAccountControlFileManagerTest008, Te
  * @tc.name: OsAccountControlFileManagerTest009
  * @tc.desc: Test GetMaxCreatedOsAccountNum
  * @tc.type: FUNC
- * @tc.require: AR000CUF55
+ * @tc.require: SR000GGVFG
  */
 HWTEST_F(OsAccountControlFileManagerTest, OsAccountControlFileManagerTest009, TestSize.Level0)
 {
@@ -217,7 +217,7 @@ HWTEST_F(OsAccountControlFileManagerTest, OsAccountControlFileManagerTest009, Te
  * @tc.name: OsAccountControlFileManagerTest010
  * @tc.desc: Test GetAllowCreateId
  * @tc.type: FUNC
- * @tc.require: AR000CUF55
+ * @tc.require: SR000GGV0U
  */
 HWTEST_F(OsAccountControlFileManagerTest, OsAccountControlFileManagerTest010, TestSize.Level0)
 {
@@ -233,7 +233,7 @@ HWTEST_F(OsAccountControlFileManagerTest, OsAccountControlFileManagerTest010, Te
  * @tc.name: OsAccountControlFileManagerTest011
  * @tc.desc: Test InsertOsAccount
  * @tc.type: FUNC
- * @tc.require: AR000CUF55
+ * @tc.require: SR000GGV0U
  */
 HWTEST_F(OsAccountControlFileManagerTest, OsAccountControlFileManagerTest011, TestSize.Level0)
 {
@@ -249,9 +249,9 @@ HWTEST_F(OsAccountControlFileManagerTest, OsAccountControlFileManagerTest011, Te
 
 /**
  * @tc.name: OsAccountControlFileManagerTest012
- * @tc.desc: Test InsertOsAccount
+ * @tc.desc: Test InsertOsAccount with unvalid data
  * @tc.type: FUNC
- * @tc.require: AR000CUF55
+ * @tc.require: SR000GGVFN
  */
 HWTEST_F(OsAccountControlFileManagerTest, OsAccountControlFileManagerTest012, TestSize.Level0)
 {
@@ -263,9 +263,9 @@ HWTEST_F(OsAccountControlFileManagerTest, OsAccountControlFileManagerTest012, Te
 
 /**
  * @tc.name: OsAccountControlFileManagerTest013
- * @tc.desc: Test InsertOsAccount
+ * @tc.desc: Test InsertOsAccount with unvalid data
  * @tc.type: FUNC
- * @tc.require: AR000CUF55
+ * @tc.require: SR000GGVFN
  */
 HWTEST_F(OsAccountControlFileManagerTest, OsAccountControlFileManagerTest013, TestSize.Level0)
 {
@@ -277,9 +277,9 @@ HWTEST_F(OsAccountControlFileManagerTest, OsAccountControlFileManagerTest013, Te
 
 /**
  * @tc.name: OsAccountControlFileManagerTest014
- * @tc.desc: Test InsertOsAccount And DelOsAccount
+ * @tc.desc: Test DelOsAccount
  * @tc.type: FUNC
- * @tc.require: AR000CUF55
+ * @tc.require: SR000GGV0U
  */
 HWTEST_F(OsAccountControlFileManagerTest, OsAccountControlFileManagerTest014, TestSize.Level0)
 {
@@ -295,9 +295,9 @@ HWTEST_F(OsAccountControlFileManagerTest, OsAccountControlFileManagerTest014, Te
 
 /**
  * @tc.name: OsAccountControlFileManagerTest015
- * @tc.desc: Test DelOsAccount
+ * @tc.desc: Test DelOsAccount with unvalid data
  * @tc.type: FUNC
- * @tc.require: AR000CUF55
+ * @tc.require: SR000GGVFN
  */
 HWTEST_F(OsAccountControlFileManagerTest, OsAccountControlFileManagerTest015, TestSize.Level0)
 {
@@ -307,9 +307,9 @@ HWTEST_F(OsAccountControlFileManagerTest, OsAccountControlFileManagerTest015, Te
 
 /**
  * @tc.name: OsAccountControlFileManagerTest016
- * @tc.desc: Test DelOsAccount
+ * @tc.desc: Test DelOsAccount 
  * @tc.type: FUNC
- * @tc.require: AR000CUF55
+ * @tc.require: SR000GGVFN
  */
 HWTEST_F(OsAccountControlFileManagerTest, OsAccountControlFileManagerTest016, TestSize.Level0)
 {
@@ -321,7 +321,7 @@ HWTEST_F(OsAccountControlFileManagerTest, OsAccountControlFileManagerTest016, Te
  * @tc.name: OsAccountControlFileManagerTest017
  * @tc.desc: Test UpdateOsAccount
  * @tc.type: FUNC
- * @tc.require: AR000CUF55
+ * @tc.require: SR000GGVFI
  */
 HWTEST_F(OsAccountControlFileManagerTest, OsAccountControlFileManagerTest017, TestSize.Level0)
 {
@@ -341,7 +341,7 @@ HWTEST_F(OsAccountControlFileManagerTest, OsAccountControlFileManagerTest017, Te
  * @tc.name: OsAccountControlFileManagerTest018
  * @tc.desc: Test SetPhotoById and GetPhotoById
  * @tc.type: FUNC
- * @tc.require: AR000CUF55
+ * @tc.require: SR000GGVFI
  */
 HWTEST_F(OsAccountControlFileManagerTest, OsAccountControlFileManagerTest018, TestSize.Level0)
 {
@@ -360,7 +360,7 @@ HWTEST_F(OsAccountControlFileManagerTest, OsAccountControlFileManagerTest018, Te
  * @tc.name: OsAccountControlFileManagerTest019
  * @tc.desc: Test SetPhotoById
  * @tc.type: FUNC
- * @tc.require: AR000CUF55
+ * @tc.require: SR000GGVFI
  */
 HWTEST_F(OsAccountControlFileManagerTest, OsAccountControlFileManagerTest019, TestSize.Level0)
 {
