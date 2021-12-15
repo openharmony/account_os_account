@@ -55,7 +55,7 @@ void AccountBundleManagerModuleTest::TearDown(void)
 /**
  * @tc.name: AccountBundleManager_GetBundleName_0100
  * @tc.desc: Get bundle name.
- * @tc.type: FUNC
+ * @tc.type: FUNC
  * @tc.require: SR000GGVFR
  */
 HWTEST_F(AccountBundleManagerModuleTest, AccountBundleManager_GetBundleName_0100, Function | MediumTest | Level1)
@@ -70,7 +70,7 @@ HWTEST_F(AccountBundleManagerModuleTest, AccountBundleManager_GetBundleName_0100
 /**
  * @tc.name: AccountBundleManager_GetBundleInfo_0100
  * @tc.desc: Get bundle info.
- * @tc.type: FUNC
+ * @tc.type: FUNC
  * @tc.require: SR000GGVFR
  */
 HWTEST_F(AccountBundleManagerModuleTest, AccountBundleManager_GetBundleInfo_0100, Function | MediumTest | Level1)

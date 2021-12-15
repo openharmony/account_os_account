@@ -87,9 +87,10 @@ void OsAccountInfoTest::TearDown(void)
 {}
 
 /**
- * @tc.number: OsAccountInfo_OsAccountInfo_0100
- * @tc.name: OsAccountInfo
+ * @tc.name: OsAccountInfo_OsAccountInfo_0100
  * @tc.desc: Create a OsAccountInfo object with no parameter.
+ * @tc.type: FUNC
+ * @tc.require: SR000GGVFG
  */
 HWTEST_F(OsAccountInfoTest, OsAccountInfo_OsAccountInfo_0100, Function | MediumTest | Level1)
 {
@@ -99,9 +100,10 @@ HWTEST_F(OsAccountInfoTest, OsAccountInfo_OsAccountInfo_0100, Function | MediumT
 }
 
 /**
- * @tc.number: OsAccountInfo_OsAccountInfo_0200
- * @tc.name: OsAccountInfo
+ * @tc.name: OsAccountInfo_OsAccountInfo_0200
  * @tc.desc: Create a OsAccountInfo object with four parameters.
+ * @tc.type: FUNC
+ * @tc.require: SR000GGVFG
  */
 HWTEST_F(OsAccountInfoTest, OsAccountInfo_OsAccountInfo_0200, Function | MediumTest | Level1)
 {
@@ -112,9 +114,10 @@ HWTEST_F(OsAccountInfoTest, OsAccountInfo_OsAccountInfo_0200, Function | MediumT
 }
 
 /**
- * @tc.number: OsAccountInfo_OsAccountInfo_0300
- * @tc.name: OsAccountInfo
+ * @tc.name: OsAccountInfo_OsAccountInfo_0300
  * @tc.desc: Create a OsAccountInfo object with eleven parameters.
+ * @tc.type: FUNC
+ * @tc.require: SR000GGVFG
  */
 HWTEST_F(OsAccountInfoTest, OsAccountInfo_OsAccountInfo_0300, Function | MediumTest | Level1)
 {
@@ -133,9 +136,10 @@ HWTEST_F(OsAccountInfoTest, OsAccountInfo_OsAccountInfo_0300, Function | MediumT
 }
 
 /**
- * @tc.number: OsAccountInfo_GetId_0100
- * @tc.name: GetId
+ * @tc.name: OsAccountInfo_GetId_0100
  * @tc.desc: Get the id with valid data.
+ * @tc.type: FUNC
+ * @tc.require: SR000GGVFG
  */
 HWTEST_F(OsAccountInfoTest, OsAccountInfo_GetId_0100, Function | MediumTest | Level1)
 {
@@ -146,9 +150,10 @@ HWTEST_F(OsAccountInfoTest, OsAccountInfo_GetId_0100, Function | MediumTest | Le
 }
 
 /**
- * @tc.number: OsAccountInfo_SetId_0100
- * @tc.name: SetId
+ * @tc.name: OsAccountInfo_SetId_0100
  * @tc.desc: Set the id with valid data.
+ * @tc.type: FUNC
+ * @tc.require: SR000GGVFG
  */
 HWTEST_F(OsAccountInfoTest, OsAccountInfo_SetId_0100, Function | MediumTest | Level1)
 {
@@ -158,9 +163,10 @@ HWTEST_F(OsAccountInfoTest, OsAccountInfo_SetId_0100, Function | MediumTest | Le
 }
 
 /**
- * @tc.number: OsAccountInfo_GetName_0100
- * @tc.name: GetName
+ * @tc.name: OsAccountInfo_GetName_0100
  * @tc.desc: Get the name with valid data.
+ * @tc.type: FUNC
+ * @tc.require: SR000GGVFG
  */
 HWTEST_F(OsAccountInfoTest, OsAccountInfo_GetName_0100, Function | MediumTest | Level1)
 {
@@ -171,9 +177,10 @@ HWTEST_F(OsAccountInfoTest, OsAccountInfo_GetName_0100, Function | MediumTest | 
 }
 
 /**
- * @tc.number: OsAccountInfo_SetName_0100
- * @tc.name: SetName
+ * @tc.name: OsAccountInfo_SetName_0100
  * @tc.desc: Set the name with valid data.
+ * @tc.type: FUNC
+ * @tc.require: SR000GGVFG
  */
 HWTEST_F(OsAccountInfoTest, OsAccountInfo_SetName_0100, Function | MediumTest | Level1)
 {
@@ -183,9 +190,10 @@ HWTEST_F(OsAccountInfoTest, OsAccountInfo_SetName_0100, Function | MediumTest | 
 }
 
 /**
- * @tc.number: OsAccountInfo_GetType_0100
- * @tc.name: GetType
+ * @tc.name: OsAccountInfo_GetType_0100
  * @tc.desc: Get the type with valid data.
+ * @tc.type: FUNC
+ * @tc.require: SR000GGVFG
  */
 HWTEST_F(OsAccountInfoTest, OsAccountInfo_GetType_0100, Function | MediumTest | Level1)
 {
@@ -196,9 +204,10 @@ HWTEST_F(OsAccountInfoTest, OsAccountInfo_GetType_0100, Function | MediumTest | 
 }
 
 /**
- * @tc.number: OsAccountInfo_SetType_0100
- * @tc.name: SetType
+ * @tc.name: OsAccountInfo_SetType_0100
  * @tc.desc: Set the type with valid data.
+ * @tc.type: FUNC
+ * @tc.require: SR000GGVFG
  */
 HWTEST_F(OsAccountInfoTest, OsAccountInfo_SetType_0100, Function | MediumTest | Level1)
 {
@@ -208,9 +217,10 @@ HWTEST_F(OsAccountInfoTest, OsAccountInfo_SetType_0100, Function | MediumTest | 
 }
 
 /**
- * @tc.number: OsAccountInfo_GetConstraints_0100
- * @tc.name: GetConstraints
+ * @tc.name: OsAccountInfo_GetConstraints_0100
  * @tc.desc: Get the Constraints with valid data.
+ * @tc.type: FUNC
+ * @tc.require: SR000GGVFG
  */
 HWTEST_F(OsAccountInfoTest, OsAccountInfo_GetConstraints_0100, Function | MediumTest | Level1)
 {
@@ -221,9 +231,10 @@ HWTEST_F(OsAccountInfoTest, OsAccountInfo_GetConstraints_0100, Function | Medium
 }
 
 /**
- * @tc.number: OsAccountInfo_SetConstraints_0100
- * @tc.name: SetConstraints
+ * @tc.name: OsAccountInfo_SetConstraints_0100
  * @tc.desc: Set the Constraints with valid data.
+ * @tc.type: FUNC
+ * @tc.require: SR000GGVFG
  */
 HWTEST_F(OsAccountInfoTest, OsAccountInfo_SetConstraints_0100, Function | MediumTest | Level1)
 {
@@ -233,9 +244,10 @@ HWTEST_F(OsAccountInfoTest, OsAccountInfo_SetConstraints_0100, Function | Medium
 }
 
 /**
- * @tc.number: OsAccountInfo_GetIsAccountVerified_0100
- * @tc.name: GetIsAccountVerified
+ * @tc.name: OsAccountInfo_GetIsAccountVerified_0100
  * @tc.desc: Get the isAccountVerified with valid data.
+ * @tc.type: FUNC
+ * @tc.require: SR000GGVFG
  */
 HWTEST_F(OsAccountInfoTest, OsAccountInfo_GetIsAccountVerified_0100, Function | MediumTest | Level1)
 {
@@ -246,9 +258,10 @@ HWTEST_F(OsAccountInfoTest, OsAccountInfo_GetIsAccountVerified_0100, Function | 
 }
 
 /**
- * @tc.number: OsAccountInfo_SetIsAccountVerified_0100
- * @tc.name: SetIsAccountVerified
+ * @tc.name: OsAccountInfo_SetIsAccountVerified_0100
  * @tc.desc: Set the isAccountVerified with valid data.
+ * @tc.type: FUNC
+ * @tc.require: SR000GGVFG
  */
 HWTEST_F(OsAccountInfoTest, OsAccountInfo_SetIsAccountVerified_0100, Function | MediumTest | Level1)
 {
@@ -258,9 +271,10 @@ HWTEST_F(OsAccountInfoTest, OsAccountInfo_SetIsAccountVerified_0100, Function | 
 }
 
 /**
- * @tc.number: OsAccountInfo_GetIsAccountCompleted_0100
- * @tc.name: GetIsAccountCompleted
+ * @tc.name: OsAccountInfo_GetIsAccountCompleted_0100
  * @tc.desc: Get the isAccountCompleted with valid data.
+ * @tc.type: FUNC
+ * @tc.require: SR000GGVFG
  */
 HWTEST_F(OsAccountInfoTest, OsAccountInfo_GetIsAccountCompleted_0100, Function | MediumTest | Level1)
 {
@@ -271,9 +285,10 @@ HWTEST_F(OsAccountInfoTest, OsAccountInfo_GetIsAccountCompleted_0100, Function |
 }
 
 /**
- * @tc.number: OsAccountInfo_SetIsAccountCompleted_0100
- * @tc.name: SetIsAccountCompleted
+ * @tc.name: OsAccountInfo_SetIsAccountCompleted_0100
  * @tc.desc: Set the isAccountCompleted with valid data.
+ * @tc.type: FUNC
+ * @tc.require: SR000GGVFG
  */
 HWTEST_F(OsAccountInfoTest, OsAccountInfo_SetIsAccountCompleted_0100, Function | MediumTest | Level1)
 {
@@ -283,9 +298,10 @@ HWTEST_F(OsAccountInfoTest, OsAccountInfo_SetIsAccountCompleted_0100, Function |
 }
 
 /**
- * @tc.number: OsAccountInfo_GetIsActived_0100
- * @tc.name: GetIsActived
+ * @tc.name: OsAccountInfo_GetIsActived_0100
  * @tc.desc: Get the isActived with valid data.
+ * @tc.type: FUNC
+ * @tc.require: SR000GGVFG
  */
 HWTEST_F(OsAccountInfoTest, OsAccountInfo_GetIsActived_0100, Function | MediumTest | Level1)
 {
@@ -296,9 +312,10 @@ HWTEST_F(OsAccountInfoTest, OsAccountInfo_GetIsActived_0100, Function | MediumTe
 }
 
 /**
- * @tc.number: OsAccountInfo_SetIsActived_0100
- * @tc.name: SetIsActived
+ * @tc.name: OsAccountInfo_SetIsActived_0100
  * @tc.desc: Set the isActived with valid data.
+ * @tc.type: FUNC
+ * @tc.require: SR000GGVFG
  */
 HWTEST_F(OsAccountInfoTest, OsAccountInfo_SetIsActived_0100, Function | MediumTest | Level1)
 {
@@ -308,9 +325,10 @@ HWTEST_F(OsAccountInfoTest, OsAccountInfo_SetIsActived_0100, Function | MediumTe
 }
 
 /**
- * @tc.number: OsAccountInfo_GetPhoto_0100
- * @tc.name: GetPhoto
+ * @tc.name: OsAccountInfo_GetPhoto_0100
  * @tc.desc: Get the photo with valid data.
+ * @tc.type: FUNC
+ * @tc.require: SR000GGVFG
  */
 HWTEST_F(OsAccountInfoTest, OsAccountInfo_GetPhoto_0100, Function | MediumTest | Level1)
 {
@@ -321,9 +339,10 @@ HWTEST_F(OsAccountInfoTest, OsAccountInfo_GetPhoto_0100, Function | MediumTest |
 }
 
 /**
- * @tc.number: OsAccountInfo_SetPhoto_0100
- * @tc.name: SetPhoto
+ * @tc.name: OsAccountInfo_SetPhoto_0100
  * @tc.desc: Set the photo with valid data.
+ * @tc.type: FUNC
+ * @tc.require: SR000GGVFG
  */
 HWTEST_F(OsAccountInfoTest, OsAccountInfo_SetPhoto_0100, Function | MediumTest | Level1)
 {
@@ -333,9 +352,10 @@ HWTEST_F(OsAccountInfoTest, OsAccountInfo_SetPhoto_0100, Function | MediumTest |
 }
 
 /**
- * @tc.number: OsAccountInfo_GetCreateTime_0100
- * @tc.name: GetCreateTime
+ * @tc.name: OsAccountInfo_GetCreateTime_0100
  * @tc.desc: Get the createTime with valid data.
+ * @tc.type: FUNC
+ * @tc.require: SR000GGVFG
  */
 HWTEST_F(OsAccountInfoTest, OsAccountInfo_GetCreateTime_0100, Function | MediumTest | Level1)
 {
@@ -346,9 +366,10 @@ HWTEST_F(OsAccountInfoTest, OsAccountInfo_GetCreateTime_0100, Function | MediumT
 }
 
 /**
- * @tc.number: OsAccountInfo_SetCreateTime_0100
- * @tc.name: SetCreateTime
+ * @tc.name: OsAccountInfo_SetCreateTime_0100
  * @tc.desc: Set the createTime with valid data.
+ * @tc.type: FUNC
+ * @tc.require: SR000GGVFG
  */
 HWTEST_F(OsAccountInfoTest, OsAccountInfo_SetCreateTime_0100, Function | MediumTest | Level1)
 {
@@ -358,9 +379,10 @@ HWTEST_F(OsAccountInfoTest, OsAccountInfo_SetCreateTime_0100, Function | MediumT
 }
 
 /**
- * @tc.number: OsAccountInfo_GetLastLoggedInTime_0100
- * @tc.name: GetLastLoggedInTime
+ * @tc.name: OsAccountInfo_GetLastLoggedInTime_0100
  * @tc.desc: Get the lastLoggedInTime with valid data.
+ * @tc.type: FUNC
+ * @tc.require: SR000GGVFG
  */
 HWTEST_F(OsAccountInfoTest, OsAccountInfo_GetLastLoggedInTime_0100, Function | MediumTest | Level1)
 {
@@ -371,9 +393,10 @@ HWTEST_F(OsAccountInfoTest, OsAccountInfo_GetLastLoggedInTime_0100, Function | M
 }
 
 /**
- * @tc.number: OsAccountInfo_GetSerialNumber_0100
- * @tc.name: GetSerialNumber
+ * @tc.name: OsAccountInfo_GetSerialNumber_0100
  * @tc.desc: Get the serialNumber with valid data.
+ * @tc.type: FUNC
+ * @tc.require: SR000GGVFG
  */
 HWTEST_F(OsAccountInfoTest, OsAccountInfo_GetSerialNumber_0100, Function | MediumTest | Level1)
 {
@@ -384,9 +407,10 @@ HWTEST_F(OsAccountInfoTest, OsAccountInfo_GetSerialNumber_0100, Function | Mediu
 }
 
 /**
- * @tc.number: OsAccountInfo_SetSerialNumber_0100
- * @tc.name: SetSerialNumber
+ * @tc.name: OsAccountInfo_SetSerialNumber_0100
  * @tc.desc: Set the serialNumber with valid data.
+ * @tc.type: FUNC
+ * @tc.require: SR000GGVFG
  */
 HWTEST_F(OsAccountInfoTest, OsAccountInfo_SetSerialNumber_0100, Function | MediumTest | Level1)
 {
@@ -396,9 +420,10 @@ HWTEST_F(OsAccountInfoTest, OsAccountInfo_SetSerialNumber_0100, Function | Mediu
 }
 
 /**
- * @tc.number: OsAccountInfo_ToJson_0100
- * @tc.name: ToJson
+ * @tc.name: OsAccountInfo_ToJson_0100
  * @tc.desc: Get the Json with valid data.
+ * @tc.type: FUNC
+ * @tc.require: SR000GGVFG
  */
 HWTEST_F(OsAccountInfoTest, OsAccountInfo_ToJson_0100, Function | MediumTest | Level1)
 {
@@ -418,9 +443,10 @@ HWTEST_F(OsAccountInfoTest, OsAccountInfo_ToJson_0100, Function | MediumTest | L
 }
 
 /**
- * @tc.number: OsAccountInfo_FromJson_0100
- * @tc.name: FromJson
+ * @tc.name: OsAccountInfo_FromJson_0100
  * @tc.desc: Set a object by Json.
+ * @tc.type: FUNC
+ * @tc.require: SR000GGVFG
  */
 HWTEST_F(OsAccountInfoTest, OsAccountInfo_FromJson_0100, Function | MediumTest | Level1)
 {
@@ -431,9 +457,10 @@ HWTEST_F(OsAccountInfoTest, OsAccountInfo_FromJson_0100, Function | MediumTest |
 }
 
 /**
- * @tc.number: OsAccountInfo_ToString_0100
- * @tc.name: ToString
- * @tc.desc: Get string by ToString.
+ * @tc.name: OsAccountInfo_ToString_0100
+ * @tc.desc: ToString
+ * @tc.type: FUNC
+ * @tc.require: SR000GGVFG
  */
 HWTEST_F(OsAccountInfoTest, OsAccountInfo_ToString_0100, Function | MediumTest | Level1)
 {

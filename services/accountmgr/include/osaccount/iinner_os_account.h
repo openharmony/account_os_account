@@ -48,8 +48,8 @@ public:
     virtual ErrCode ActivateOsAccount(const int id) = 0;
     virtual ErrCode StartOsAccount(const int id) = 0;
     virtual ErrCode StopOsAccount(const int id) = 0;
-    virtual ErrCode GetOsAccountLocalIdForSerialNumber(const int64_t serialNumber, int &id) = 0;
-    virtual ErrCode GetSerialNumberForOsAccount(const int &id, int64_t &serialNumber) = 0;
+    virtual ErrCode GetOsAccountLocalIdBySerialNumber(const int64_t serialNumber, int &id) = 0;
+    virtual ErrCode GetSerialNumberByOsAccountLocalId(const int &id, int64_t &serialNumber) = 0;
     virtual ErrCode SubscribeOsAccount(
         const OsAccountSubscribeInfo &subscribeInfo, const sptr<IRemoteObject> &eventListener) = 0;
     virtual ErrCode UnsubscribeOsAccount(const sptr<IRemoteObject> &eventListener) = 0;
