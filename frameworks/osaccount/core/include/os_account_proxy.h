@@ -50,8 +50,8 @@ public:
     virtual ErrCode ActivateOsAccount(const int id) override;
     virtual ErrCode StartOsAccount(const int id) override;
     virtual ErrCode StopOsAccount(const int id) override;
-    virtual ErrCode GetOsAccountLocalIdForSerialNumber(const int64_t serialNumber, int &id) override;
-    virtual ErrCode GetSerialNumberForOsAccount(const int &id, int64_t &serialNumber) override;
+    virtual ErrCode GetOsAccountLocalIdBySerialNumber(const int64_t serialNumber, int &id) override;
+    virtual ErrCode GetSerialNumberByOsAccountLocalId(const int &id, int64_t &serialNumber) override;
     virtual ErrCode SubscribeOsAccount(
         const OsAccountSubscribeInfo &subscribeInfo, const sptr<IRemoteObject> &eventListener) override;
     virtual ErrCode UnsubscribeOsAccount(const sptr<IRemoteObject> &eventListener) override;

@@ -127,7 +127,7 @@ void OsAccountTest::TearDown(void)
  * @tc.name: OsAccountTest001
  * @tc.desc: Test CreateOsAccount string name out of range
  * @tc.type: FUNC
- * @tc.require: AR000CUF55
+ * @tc.require: SR000GGVFN
  */
 HWTEST_F(OsAccountTest, OsAccountTest001, TestSize.Level0)
 {
@@ -140,7 +140,7 @@ HWTEST_F(OsAccountTest, OsAccountTest001, TestSize.Level0)
  * @tc.name: OsAccountTest002
  * @tc.desc: Test CreateOsAccount string name is empty
  * @tc.type: FUNC
- * @tc.require: AR000CUF55
+ * @tc.require: SR000GGVFN
  */
 HWTEST_F(OsAccountTest, OsAccountTest002, TestSize.Level0)
 {
@@ -153,7 +153,7 @@ HWTEST_F(OsAccountTest, OsAccountTest002, TestSize.Level0)
  * @tc.name: OsAccountTest003
  * @tc.desc: Test RemoveOsAccount Id error
  * @tc.type: FUNC
- * @tc.require: AR000CUF55
+ * @tc.require: SR000GGVFN
  */
 HWTEST_F(OsAccountTest, OsAccountTest003, TestSize.Level0)
 {
@@ -165,7 +165,7 @@ HWTEST_F(OsAccountTest, OsAccountTest003, TestSize.Level0)
  * @tc.name: OsAccountTest004
  * @tc.desc: Test SetOsAccountName string name out of range
  * @tc.type: FUNC
- * @tc.require: AR000CUF55
+ * @tc.require: SR000GGVFN
  */
 HWTEST_F(OsAccountTest, OsAccountTest004, TestSize.Level0)
 {
@@ -177,7 +177,7 @@ HWTEST_F(OsAccountTest, OsAccountTest004, TestSize.Level0)
  * @tc.name: OsAccountTest005
  * @tc.desc: Test SetOsAccountName name is empty
  * @tc.type: FUNC
- * @tc.require: AR000CUF55
+ * @tc.require: SR000GGVFN
  */
 HWTEST_F(OsAccountTest, OsAccountTest005, TestSize.Level0)
 {
@@ -189,7 +189,7 @@ HWTEST_F(OsAccountTest, OsAccountTest005, TestSize.Level0)
  * @tc.name: OsAccountTest006
  * @tc.desc: Test SetOsAccountProfilePhoto string photo out of range
  * @tc.type: FUNC
- * @tc.require: AR000CUF55
+ * @tc.require: SR000GGVFN
  */
 HWTEST_F(OsAccountTest, OsAccountTest006, TestSize.Level0)
 {

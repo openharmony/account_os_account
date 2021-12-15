@@ -50,8 +50,8 @@ public:
     static ErrCode ActivateOsAccount(const int id);
     static ErrCode StartOsAccount(const int id);
     static ErrCode StopOsAccount(const int id);
-    static ErrCode GetOsAccountLocalIdForSerialNumber(const int64_t serialNumber, int &id);
-    static ErrCode GetSerialNumberForOsAccount(const int &id, int64_t &serialNumber);
+    static ErrCode GetOsAccountLocalIdBySerialNumber(const int64_t serialNumber, int &id);
+    static ErrCode GetSerialNumberByOsAccountLocalId(const int &id, int64_t &serialNumber);
     static ErrCode SubscribeOsAccount(const std::shared_ptr<OsAccountSubscriber> &subscriber);
     static ErrCode UnsubscribeOsAccount(const std::shared_ptr<OsAccountSubscriber> &subscriber);
     static OS_ACCOUNT_SWITCH_MOD GetOsAccountSwitchMod();

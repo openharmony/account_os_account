@@ -504,7 +504,7 @@ ErrCode IInnerOsAccountManager::StopOsAccount(const int id)
     return ERR_OK;
 }
 
-ErrCode IInnerOsAccountManager::GetOsAccountLocalIdForSerialNumber(const int64_t serialNumber, int &id)
+ErrCode IInnerOsAccountManager::GetOsAccountLocalIdBySerialNumber(const int64_t serialNumber, int &id)
 {
     std::vector<OsAccountInfo> osAccountInfos;
     id = -1;
@@ -523,7 +523,7 @@ ErrCode IInnerOsAccountManager::GetOsAccountLocalIdForSerialNumber(const int64_t
     return ERR_OK;
 }
 
-ErrCode IInnerOsAccountManager::GetSerialNumberForOsAccount(const int &id, int64_t &serialNumber)
+ErrCode IInnerOsAccountManager::GetSerialNumberByOsAccountLocalId(const int &id, int64_t &serialNumber)
 {
     OsAccountInfo osAccountInfo;
     ErrCode errCode = osAccountControl_->GetOsAccountInfoById(id, osAccountInfo);

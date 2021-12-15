@@ -124,11 +124,11 @@ const std::map<uint32_t, OsAccountStub::MessageProcFunction> OsAccountStub::mess
     },
     {
         static_cast<uint32_t>(IOsAccount::Message::GET_OS_ACCOUNT_LOCAL_ID_FOR_SERIAL_NUMBER),
-        &OsAccountStub::ProcGetOsAccountLocalIdForSerialNumber,
+        &OsAccountStub::ProcGetOsAccountLocalIdBySerialNumber,
     },
     {
         static_cast<uint32_t>(IOsAccount::Message::GET_SERIAL_NUMBER_FOR_OS_ACCOUNT),
-        &OsAccountStub::ProcGetSerialNumberForOsAccount,
+        &OsAccountStub::ProcGetSerialNumberByOsAccountLocalId,
     },
     {
         static_cast<uint32_t>(IOsAccount::Message::GET_OS_ACCOUNT_SWITCH_MOD),
@@ -516,11 +516,11 @@ ErrCode OsAccountStub::ProcGetApplicationConstraintsByNumber(MessageParcel &data
     return ERR_NONE;
 }
 
-ErrCode OsAccountStub::ProcGetOsAccountLocalIdForSerialNumber(MessageParcel &data, MessageParcel &reply)
+ErrCode OsAccountStub::ProcGetOsAccountLocalIdBySerialNumber(MessageParcel &data, MessageParcel &reply)
 {
     int64_t serialNumber = data.ReadInt64();
     int id = 0;
-    ErrCode result = GetOsAccountLocalIdForSerialNumber(serialNumber, id);
+    ErrCode result = GetOsAccountLocalIdBySerialNumber(serialNumber, id);
     if (!reply.WriteInt32(result)) {
         ACCOUNT_LOGE("failed to write reply");
         return IPC_STUB_WRITE_PARCEL_ERR;
@@ -532,11 +532,11 @@ ErrCode OsAccountStub::ProcGetOsAccountLocalIdForSerialNumber(MessageParcel &dat
     return ERR_NONE;
 }
 
-ErrCode OsAccountStub::ProcGetSerialNumberForOsAccount(MessageParcel &data, MessageParcel &reply)
+ErrCode OsAccountStub::ProcGetSerialNumberByOsAccountLocalId(MessageParcel &data, MessageParcel &reply)
 {
     int id = data.ReadInt32();
     int64_t serialNumber = 0;
-    ErrCode result = GetSerialNumberForOsAccount(id, serialNumber);
+    ErrCode result = GetSerialNumberByOsAccountLocalId(id, serialNumber);
     if (!reply.WriteInt32(result)) {
         ACCOUNT_LOGE("failed to write reply");
         return IPC_STUB_WRITE_PARCEL_ERR;

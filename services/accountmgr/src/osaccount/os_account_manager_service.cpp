@@ -517,18 +517,18 @@ ErrCode OsAccountManagerService::UnsubscribeOsAccount(const sptr<IRemoteObject> 
     return innerManager_->UnsubscribeOsAccount(eventListener);
 }
 
-ErrCode OsAccountManagerService::GetOsAccountLocalIdForSerialNumber(const int64_t serialNumber, int &id)
+ErrCode OsAccountManagerService::GetOsAccountLocalIdBySerialNumber(const int64_t serialNumber, int &id)
 {
     ACCOUNT_LOGI("enter");
 
-    return innerManager_->GetOsAccountLocalIdForSerialNumber(serialNumber, id);
+    return innerManager_->GetOsAccountLocalIdBySerialNumber(serialNumber, id);
 }
 
-ErrCode OsAccountManagerService::GetSerialNumberForOsAccount(const int &id, int64_t &serialNumber)
+ErrCode OsAccountManagerService::GetSerialNumberByOsAccountLocalId(const int &id, int64_t &serialNumber)
 {
     ACCOUNT_LOGI("enter");
 
-    return innerManager_->GetSerialNumberForOsAccount(id, serialNumber);
+    return innerManager_->GetSerialNumberByOsAccountLocalId(id, serialNumber);
 }
 OS_ACCOUNT_SWITCH_MOD OsAccountManagerService::GetOsAccountSwitchMod()
 {

@@ -51,7 +51,7 @@ void AccountPermissionManagerTest::TearDown(void)
 /**
  * @tc.name: AccountPermissionManager_VerifyPermission_0100
  * @tc.desc: Verify permission with valid data.
- * @tc.type: FUNC
+ * @tc.type: FUNC
  * @tc.require: SR000GGVFR
  */
 HWTEST_F(AccountPermissionManagerTest, AccountPermissionManager_VerifyPermission_0100, Function | MediumTest | Level1)

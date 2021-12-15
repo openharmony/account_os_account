@@ -95,7 +95,7 @@ void AppAccountManagerServiceSyncModuleTest::DeleteKvStore(void)
 /**
  * @tc.name: AppAccountManagerServiceSync_AddAccount_0100
  * @tc.desc: Set account sync enable with valid data.
- * @tc.type: FUNC
+ * @tc.type: FUNC
  * @tc.require: SR000GGV11
  */
 HWTEST_F(AppAccountManagerServiceSyncModuleTest, AppAccountManagerServiceSync_AddAccount_0100,
@@ -150,7 +150,7 @@ HWTEST_F(AppAccountManagerServiceSyncModuleTest, AppAccountManagerServiceSync_Ad
 /**
  * @tc.name: AppAccountManagerServiceSync_AddAccount_0200
  * @tc.desc: Set account sync enable with valid data.
- * @tc.type: FUNC
+ * @tc.type: FUNC
  * @tc.require: SR000GGV11
  */
 HWTEST_F(AppAccountManagerServiceSyncModuleTest, AppAccountManagerServiceSync_AddAccount_0200,
@@ -219,7 +219,7 @@ HWTEST_F(AppAccountManagerServiceSyncModuleTest, AppAccountManagerServiceSync_Ad
 /**
  * @tc.name: AppAccountManagerServiceSync_DeleteAccount_0100
  * @tc.desc: Set account sync enable with valid data.
- * @tc.type: FUNC
+ * @tc.type: FUNC
  * @tc.require: SR000GGV11
  */
 HWTEST_F(AppAccountManagerServiceSyncModuleTest, AppAccountManagerServiceSync_DeleteAccount_0100,
@@ -266,7 +266,7 @@ HWTEST_F(AppAccountManagerServiceSyncModuleTest, AppAccountManagerServiceSync_De
 /**
  * @tc.name: AppAccountManagerServiceSync_DeleteAccount_0200
  * @tc.desc: Set account sync enable with valid data.
- * @tc.type: FUNC
+ * @tc.type: FUNC
  * @tc.require: SR000GGV11
  */
 HWTEST_F(AppAccountManagerServiceSyncModuleTest, AppAccountManagerServiceSync_DeleteAccount_0200,
@@ -316,7 +316,7 @@ HWTEST_F(AppAccountManagerServiceSyncModuleTest, AppAccountManagerServiceSync_De
 /**
  * @tc.name: AppAccountManagerServiceSync_SetAccountExtraInfo_0100
  * @tc.desc: Set account sync enable with valid data.
- * @tc.type: FUNC
+ * @tc.type: FUNC
  * @tc.require: SR000GGVFS
  */
 HWTEST_F(AppAccountManagerServiceSyncModuleTest, AppAccountManagerServiceSync_SetAccountExtraInfo_0100,
@@ -383,7 +383,7 @@ HWTEST_F(AppAccountManagerServiceSyncModuleTest, AppAccountManagerServiceSync_Se
 /**
  * @tc.name: AppAccountManagerServiceSync_SetAccountExtraInfo_0200
  * @tc.desc: Set account sync enable with valid data.
- * @tc.type: FUNC
+ * @tc.type: FUNC
  * @tc.require: SR000GGVFS
  */
 HWTEST_F(AppAccountManagerServiceSyncModuleTest, AppAccountManagerServiceSync_SetAccountExtraInfo_0200,
@@ -459,7 +459,7 @@ HWTEST_F(AppAccountManagerServiceSyncModuleTest, AppAccountManagerServiceSync_Se
 /**
  * @tc.name: AppAccountManagerServiceSync_SetAccountExtraInfo_0300
  * @tc.desc: Set account sync enable with valid data.
- * @tc.type: FUNC
+ * @tc.type: FUNC
  * @tc.require: SR000GGVFS
  */
 HWTEST_F(AppAccountManagerServiceSyncModuleTest, AppAccountManagerServiceSync_SetAccountExtraInfo_0300,
@@ -533,7 +533,7 @@ HWTEST_F(AppAccountManagerServiceSyncModuleTest, AppAccountManagerServiceSync_Se
 /**
  * @tc.name: AppAccountManagerServiceSync_EnableAppAccess_0100
  * @tc.desc: Set account sync enable with valid data.
- * @tc.type: FUNC
+ * @tc.type: FUNC
  * @tc.require: SR000GGVFS
  */
 HWTEST_F(AppAccountManagerServiceSyncModuleTest, AppAccountManagerServiceSync_EnableAppAccess_0100,
@@ -599,7 +599,7 @@ HWTEST_F(AppAccountManagerServiceSyncModuleTest, AppAccountManagerServiceSync_En
 /**
  * @tc.name: AppAccountManagerServiceSync_EnableAppAccess_0200
  * @tc.desc: Set account sync enable with valid data.
- * @tc.type: FUNC
+ * @tc.type: FUNC
  * @tc.require: SR000GGVFS
  */
 HWTEST_F(AppAccountManagerServiceSyncModuleTest, AppAccountManagerServiceSync_EnableAppAccess_0200,
@@ -668,7 +668,7 @@ HWTEST_F(AppAccountManagerServiceSyncModuleTest, AppAccountManagerServiceSync_En
 /**
  * @tc.name: AppAccountManagerServiceSync_DisableAppAccess_0100
  * @tc.desc: Set account sync enable with valid data.
- * @tc.type: FUNC
+ * @tc.type: FUNC
  * @tc.require: SR000GGVFS
  */
 HWTEST_F(AppAccountManagerServiceSyncModuleTest, AppAccountManagerServiceSync_DisableAppAccess_0100,
