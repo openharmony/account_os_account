@@ -129,10 +129,10 @@ void OsAccountTest::TearDown(void)
  * @tc.type: FUNC
  * @tc.require: SR000GGVFN
  */
-HWTEST_F(OsAccountTest, OsAccountTest001, TestSize.Level0)
+HWTEST_F(OsAccountTest, OsAccountTest001, TestSize.Level1)
 {
     OsAccountInfo osAccountInfo;
-    ErrCode errCode = osAccount_->CreateOsAccount(STRING_NAME_OUT_OF_RANGE, 0, osAccountInfo);
+    ErrCode errCode = osAccount_->CreateOsAccount(STRING_NAME_OUT_OF_RANGE, OsAccountType::GUEST, osAccountInfo);
     EXPECT_EQ(errCode, ERR_OSACCOUNT_KIT_LOCAL_NAME_OUTFLOW_ERROR);
 }
 
@@ -142,10 +142,10 @@ HWTEST_F(OsAccountTest, OsAccountTest001, TestSize.Level0)
  * @tc.type: FUNC
  * @tc.require: SR000GGVFN
  */
-HWTEST_F(OsAccountTest, OsAccountTest002, TestSize.Level0)
+HWTEST_F(OsAccountTest, OsAccountTest002, TestSize.Level1)
 {
     OsAccountInfo osAccountInfo;
-    ErrCode errCode = osAccount_->CreateOsAccount(STRING_EMPTY, 0, osAccountInfo);
+    ErrCode errCode = osAccount_->CreateOsAccount(STRING_EMPTY, OsAccountType::GUEST, osAccountInfo);
     EXPECT_EQ(errCode, ERR_OSACCOUNT_KIT_LOCAL_NAME_EMPTY_ERROR);
 }
 
@@ -155,7 +155,7 @@ HWTEST_F(OsAccountTest, OsAccountTest002, TestSize.Level0)
  * @tc.type: FUNC
  * @tc.require: SR000GGVFN
  */
-HWTEST_F(OsAccountTest, OsAccountTest003, TestSize.Level0)
+HWTEST_F(OsAccountTest, OsAccountTest003, TestSize.Level1)
 {
     ErrCode errCode = osAccount_->RemoveOsAccount(0);
     EXPECT_EQ(errCode, ERR_OSACCOUNT_KIT_CANNOT_DELETE_ID_ERROR);
@@ -167,7 +167,7 @@ HWTEST_F(OsAccountTest, OsAccountTest003, TestSize.Level0)
  * @tc.type: FUNC
  * @tc.require: SR000GGVFN
  */
-HWTEST_F(OsAccountTest, OsAccountTest004, TestSize.Level0)
+HWTEST_F(OsAccountTest, OsAccountTest004, TestSize.Level1)
 {
     ErrCode errCode = osAccount_->SetOsAccountName(100, STRING_NAME_OUT_OF_RANGE);
     EXPECT_EQ(errCode, ERR_OSACCOUNT_KIT_LOCAL_NAME_OUTFLOW_ERROR);
@@ -179,7 +179,7 @@ HWTEST_F(OsAccountTest, OsAccountTest004, TestSize.Level0)
  * @tc.type: FUNC
  * @tc.require: SR000GGVFN
  */
-HWTEST_F(OsAccountTest, OsAccountTest005, TestSize.Level0)
+HWTEST_F(OsAccountTest, OsAccountTest005, TestSize.Level1)
 {
     ErrCode errCode = osAccount_->SetOsAccountName(100, STRING_EMPTY);
     EXPECT_EQ(errCode, ERR_OSACCOUNT_KIT_LOCAL_NAME_EMPTY_ERROR);
@@ -191,7 +191,7 @@ HWTEST_F(OsAccountTest, OsAccountTest005, TestSize.Level0)
  * @tc.type: FUNC
  * @tc.require: SR000GGVFN
  */
-HWTEST_F(OsAccountTest, OsAccountTest006, TestSize.Level0)
+HWTEST_F(OsAccountTest, OsAccountTest006, TestSize.Level1)
 {
     ErrCode errCode = osAccount_->SetOsAccountProfilePhoto(100, STRING_PHOTO_OUT_OF_RANGE);
     EXPECT_EQ(errCode, ERR_OSACCOUNT_KIT_PHOTO_OUTFLOW_ERROR);

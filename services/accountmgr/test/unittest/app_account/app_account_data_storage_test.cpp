@@ -68,7 +68,7 @@ void AppAccountDataStorageTest::TearDown(void)
  * @tc.type: FUNC
  * @tc.require: SR000GGV11
  */
-HWTEST_F(AppAccountDataStorageTest, AppAccountDataStorage_DeleteKvStore_0100, Function | MediumTest | Level1)
+HWTEST_F(AppAccountDataStorageTest, AppAccountDataStorage_DeleteKvStore_0100, TestSize.Level0)
 {
     ACCOUNT_LOGI("AppAccountDataStorage_DeleteKvStore_0100");
 
@@ -96,7 +96,7 @@ HWTEST_F(AppAccountDataStorageTest, AppAccountDataStorage_DeleteKvStore_0100, Fu
  * @tc.type: FUNC
  * @tc.require: SR000GGV11
  */
-HWTEST_F(AppAccountDataStorageTest, AppAccountDataStorage_AddAccountInfo_0100, Function | MediumTest | Level1)
+HWTEST_F(AppAccountDataStorageTest, AppAccountDataStorage_AddAccountInfo_0100, TestSize.Level0)
 {
     ACCOUNT_LOGI("AppAccountDataStorage_AddAccountInfo_0100");
 
@@ -152,7 +152,7 @@ HWTEST_F(AppAccountDataStorageTest, AppAccountDataStorage_AddAccountInfo_0100, F
  * @tc.type: FUNC
  * @tc.require: SR000GGV11
  */
-HWTEST_F(AppAccountDataStorageTest, AppAccountDataStorage_SaveAccountInfo_0100, Function | MediumTest | Level1)
+HWTEST_F(AppAccountDataStorageTest, AppAccountDataStorage_SaveAccountInfo_0100, TestSize.Level1)
 {
     ACCOUNT_LOGI("AppAccountDataStorage_SaveAccountInfo_0100");
 
@@ -203,7 +203,7 @@ HWTEST_F(AppAccountDataStorageTest, AppAccountDataStorage_SaveAccountInfo_0100, 
  * @tc.type: FUNC
  * @tc.require: SR000GGV11
  */
-HWTEST_F(AppAccountDataStorageTest, AppAccountDataStorage_DeleteAccount_0100, Function | MediumTest | Level1)
+HWTEST_F(AppAccountDataStorageTest, AppAccountDataStorage_DeleteAccount_0100, TestSize.Level1)
 {
     ACCOUNT_LOGI("AppAccountDataStorage_DeleteAccount_0100");
 

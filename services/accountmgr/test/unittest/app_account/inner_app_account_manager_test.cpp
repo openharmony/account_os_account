@@ -94,7 +94,7 @@ void InnerAppAccountManagerTest::MakeEmptyMockObjects()
  * @tc.type: FUNC
  * @tc.require: SR000GGV11
  */
-HWTEST_F(InnerAppAccountManagerTest, AppAccount_AddAccount_001, Function | MediumTest | Level1)
+HWTEST_F(InnerAppAccountManagerTest, AppAccount_AddAccount_001, TestSize.Level0)
 {
     MakeMockObjects();
 
@@ -109,7 +109,7 @@ HWTEST_F(InnerAppAccountManagerTest, AppAccount_AddAccount_001, Function | Mediu
  * @tc.type: FUNC
  * @tc.require: SR000GGV11
  */
-HWTEST_F(InnerAppAccountManagerTest, AppAccount_AddAccount_002, Function | MediumTest | Level1)
+HWTEST_F(InnerAppAccountManagerTest, AppAccount_AddAccount_002, TestSize.Level1)
 {
     MakeEmptyMockObjects();
 
@@ -124,7 +124,7 @@ HWTEST_F(InnerAppAccountManagerTest, AppAccount_AddAccount_002, Function | Mediu
  * @tc.type: FUNC
  * @tc.require: SR000GGV11
  */
-HWTEST_F(InnerAppAccountManagerTest, AppAccount_DeleteAccount_001, Function | MediumTest | Level1)
+HWTEST_F(InnerAppAccountManagerTest, AppAccount_DeleteAccount_001, TestSize.Level1)
 {
     MakeMockObjects();
 
@@ -139,7 +139,7 @@ HWTEST_F(InnerAppAccountManagerTest, AppAccount_DeleteAccount_001, Function | Me
  * @tc.type: FUNC
  * @tc.require: SR000GGV11
  */
-HWTEST_F(InnerAppAccountManagerTest, AppAccount_DeleteAccount_002, Function | MediumTest | Level1)
+HWTEST_F(InnerAppAccountManagerTest, AppAccount_DeleteAccount_002, TestSize.Level1)
 {
     MakeEmptyMockObjects();
 
@@ -154,7 +154,7 @@ HWTEST_F(InnerAppAccountManagerTest, AppAccount_DeleteAccount_002, Function | Me
  * @tc.type: FUNC
  * @tc.require: SR000GGVFT
  */
-HWTEST_F(InnerAppAccountManagerTest, AppAccount_SubscribeAppAccount_001, Function | MediumTest | Level1)
+HWTEST_F(InnerAppAccountManagerTest, AppAccount_SubscribeAppAccount_001, TestSize.Level1)
 {
     MakeMockObjects();
 
@@ -178,7 +178,7 @@ HWTEST_F(InnerAppAccountManagerTest, AppAccount_SubscribeAppAccount_001, Functio
  * @tc.type: FUNC
  * @tc.require: SR000GGVFT
  */
-HWTEST_F(InnerAppAccountManagerTest, AppAccount_SubscribeAppAccount_002, Function | MediumTest | Level1)
+HWTEST_F(InnerAppAccountManagerTest, AppAccount_SubscribeAppAccount_002, TestSize.Level1)
 {
     MakeEmptyMockObjects();
 
@@ -202,7 +202,7 @@ HWTEST_F(InnerAppAccountManagerTest, AppAccount_SubscribeAppAccount_002, Functio
  * @tc.type: FUNC
  * @tc.require: SR000GGVFT
  */
-HWTEST_F(InnerAppAccountManagerTest, AppAccount_UnsubscribeAppAccount_001, Function | MediumTest | Level1)
+HWTEST_F(InnerAppAccountManagerTest, AppAccount_UnsubscribeAppAccount_001, TestSize.Level1)
 {
     MakeMockObjects();
 
@@ -218,7 +218,7 @@ HWTEST_F(InnerAppAccountManagerTest, AppAccount_UnsubscribeAppAccount_001, Funct
  * @tc.type: FUNC
  * @tc.require: SR000GGVFT
  */
-HWTEST_F(InnerAppAccountManagerTest, AppAccount_UnsubscribeAppAccount_002, Function | MediumTest | Level1)
+HWTEST_F(InnerAppAccountManagerTest, AppAccount_UnsubscribeAppAccount_002, TestSize.Level1)
 {
     MakeEmptyMockObjects();
 

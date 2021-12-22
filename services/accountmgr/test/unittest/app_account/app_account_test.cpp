@@ -131,7 +131,7 @@ public:
  * @tc.type: FUNC
  * @tc.require: SR000GGV11
  */
-HWTEST_F(AppAccountTest, AppAccount_AddAccount_0100, Function | MediumTest | Level1)
+HWTEST_F(AppAccountTest, AppAccount_AddAccount_0100, TestSize.Level0)
 {
     ACCOUNT_LOGI("AppAccount_AddAccount_0100");
 
@@ -146,7 +146,7 @@ HWTEST_F(AppAccountTest, AppAccount_AddAccount_0100, Function | MediumTest | Lev
  * @tc.type: FUNC
  * @tc.require: SR000GGV11
  */
-HWTEST_F(AppAccountTest, AppAccount_AddAccount_0200, Function | MediumTest | Level1)
+HWTEST_F(AppAccountTest, AppAccount_AddAccount_0200, TestSize.Level1)
 {
     ACCOUNT_LOGI("AppAccount_AddAccount_0200");
 
@@ -161,7 +161,7 @@ HWTEST_F(AppAccountTest, AppAccount_AddAccount_0200, Function | MediumTest | Lev
  * @tc.type: FUNC
  * @tc.require: SR000GGV11
  */
-HWTEST_F(AppAccountTest, AppAccount_AddAccount_0300, Function | MediumTest | Level1)
+HWTEST_F(AppAccountTest, AppAccount_AddAccount_0300, TestSize.Level1)
 {
     ACCOUNT_LOGI("AppAccount_AddAccount_0300");
 
@@ -176,7 +176,7 @@ HWTEST_F(AppAccountTest, AppAccount_AddAccount_0300, Function | MediumTest | Lev
  * @tc.type: FUNC
  * @tc.require: SR000GGV11
  */
-HWTEST_F(AppAccountTest, AppAccount_AddAccount_0400, Function | MediumTest | Level1)
+HWTEST_F(AppAccountTest, AppAccount_AddAccount_0400, TestSize.Level1)
 {
     ACCOUNT_LOGI("AppAccount_AddAccount_0400");
 
@@ -191,7 +191,7 @@ HWTEST_F(AppAccountTest, AppAccount_AddAccount_0400, Function | MediumTest | Lev
  * @tc.type: FUNC
  * @tc.require: SR000GGV11
  */
-HWTEST_F(AppAccountTest, AppAccount_AddAccount_0500, Function | MediumTest | Level1)
+HWTEST_F(AppAccountTest, AppAccount_AddAccount_0500, TestSize.Level1)
 {
     ACCOUNT_LOGI("AppAccount_AddAccount_0500");
 
@@ -206,7 +206,7 @@ HWTEST_F(AppAccountTest, AppAccount_AddAccount_0500, Function | MediumTest | Lev
  * @tc.type: FUNC
  * @tc.require: SR000GGV11
  */
-HWTEST_F(AppAccountTest, AppAccount_AddAccount_0600, Function | MediumTest | Level1)
+HWTEST_F(AppAccountTest, AppAccount_AddAccount_0600, TestSize.Level1)
 {
     ACCOUNT_LOGI("AppAccount_AddAccount_0600");
 
@@ -221,7 +221,7 @@ HWTEST_F(AppAccountTest, AppAccount_AddAccount_0600, Function | MediumTest | Lev
  * @tc.type: FUNC
  * @tc.require: SR000GGV11
  */
-HWTEST_F(AppAccountTest, AppAccount_AddAccount_0700, Function | MediumTest | Level1)
+HWTEST_F(AppAccountTest, AppAccount_AddAccount_0700, TestSize.Level1)
 {
     ACCOUNT_LOGI("AppAccount_AddAccount_0700");
 
@@ -236,7 +236,7 @@ HWTEST_F(AppAccountTest, AppAccount_AddAccount_0700, Function | MediumTest | Lev
  * @tc.type: FUNC
  * @tc.require: SR000GGV11
  */
-HWTEST_F(AppAccountTest, AppAccount_AddAccount_0800, Function | MediumTest | Level1)
+HWTEST_F(AppAccountTest, AppAccount_AddAccount_0800, TestSize.Level1)
 {
     ACCOUNT_LOGI("AppAccount_AddAccount_0800");
 
@@ -251,7 +251,7 @@ HWTEST_F(AppAccountTest, AppAccount_AddAccount_0800, Function | MediumTest | Lev
  * @tc.type: FUNC
  * @tc.require: SR000GGV11
  */
-HWTEST_F(AppAccountTest, AppAccount_DeleteAccount_0100, Function | MediumTest | Level1)
+HWTEST_F(AppAccountTest, AppAccount_DeleteAccount_0100, TestSize.Level1)
 {
     ACCOUNT_LOGI("AppAccount_DeleteAccount_0100");
 
@@ -266,7 +266,7 @@ HWTEST_F(AppAccountTest, AppAccount_DeleteAccount_0100, Function | MediumTest | 
  * @tc.type: FUNC
  * @tc.require: SR000GGV11
  */
-HWTEST_F(AppAccountTest, AppAccount_DeleteAccount_0200, Function | MediumTest | Level1)
+HWTEST_F(AppAccountTest, AppAccount_DeleteAccount_0200, TestSize.Level1)
 {
     ACCOUNT_LOGI("AppAccount_DeleteAccount_0200");
 
@@ -281,7 +281,7 @@ HWTEST_F(AppAccountTest, AppAccount_DeleteAccount_0200, Function | MediumTest | 
  * @tc.type: FUNC
  * @tc.require: SR000GGV11
  */
-HWTEST_F(AppAccountTest, AppAccount_DeleteAccount_0300, Function | MediumTest | Level1)
+HWTEST_F(AppAccountTest, AppAccount_DeleteAccount_0300, TestSize.Level1)
 {
     ACCOUNT_LOGI("AppAccount_DeleteAccount_0300");
 
@@ -296,7 +296,7 @@ HWTEST_F(AppAccountTest, AppAccount_DeleteAccount_0300, Function | MediumTest | 
  * @tc.type: FUNC
  * @tc.require: SR000GGVFT
  */
-HWTEST_F(AppAccountTest, AppAccount_SubscribeAppAccount_0100, Function | MediumTest | Level1)
+HWTEST_F(AppAccountTest, AppAccount_SubscribeAppAccount_0100, TestSize.Level0)
 {
     ACCOUNT_LOGI("AppAccount_SubscribeAppAccount_0100");
 
@@ -322,7 +322,7 @@ HWTEST_F(AppAccountTest, AppAccount_SubscribeAppAccount_0100, Function | MediumT
  * @tc.type: FUNC
  * @tc.require: SR000GGVFT
  */
-HWTEST_F(AppAccountTest, AppAccount_SubscribeAppAccount_0200, Function | MediumTest | Level1)
+HWTEST_F(AppAccountTest, AppAccount_SubscribeAppAccount_0200, TestSize.Level1)
 {
     ACCOUNT_LOGI("AppAccount_SubscribeAppAccount_0200");
 
@@ -349,7 +349,7 @@ HWTEST_F(AppAccountTest, AppAccount_SubscribeAppAccount_0200, Function | MediumT
  * @tc.type: FUNC
  * @tc.require: SR000GGVFT
  */
-HWTEST_F(AppAccountTest, AppAccount_SubscribeAppAccount_0300, Function | MediumTest | Level1)
+HWTEST_F(AppAccountTest, AppAccount_SubscribeAppAccount_0300, TestSize.Level1)
 {
     ACCOUNT_LOGI("AppAccount_SubscribeAppAccount_0300");
 
@@ -365,7 +365,7 @@ HWTEST_F(AppAccountTest, AppAccount_SubscribeAppAccount_0300, Function | MediumT
  * @tc.type: FUNC
  * @tc.require: SR000GGVFQ
  */
-HWTEST_F(AppAccountTest, AppAccount_GetAppAccountProxy_0100, Function | MediumTest | Level1)
+HWTEST_F(AppAccountTest, AppAccount_GetAppAccountProxy_0100, TestSize.Level1)
 {
     ACCOUNT_LOGI("AppAccount_GetAppAccountProxy_0100");
 
@@ -382,7 +382,7 @@ HWTEST_F(AppAccountTest, AppAccount_GetAppAccountProxy_0100, Function | MediumTe
  * @tc.type: FUNC
  * @tc.require: SR000GGVFQ
  */
-HWTEST_F(AppAccountTest, AppAccount_ResetAppAccountProxy_0100, Function | MediumTest | Level1)
+HWTEST_F(AppAccountTest, AppAccount_ResetAppAccountProxy_0100, TestSize.Level1)
 {
     ACCOUNT_LOGI("AppAccount_ResetAppAccountProxy_0100");
 
@@ -404,7 +404,7 @@ HWTEST_F(AppAccountTest, AppAccount_ResetAppAccountProxy_0100, Function | Medium
  * @tc.type: FUNC
  * @tc.require: SR000GGVFT
  */
-HWTEST_F(AppAccountTest, AppAccount_CreateAppAccountEventListener_0100, Function | MediumTest | Level1)
+HWTEST_F(AppAccountTest, AppAccount_CreateAppAccountEventListener_0100, TestSize.Level1)
 {
     ACCOUNT_LOGI("AppAccount_CreateAppAccountEventListener_0100");
 
@@ -443,7 +443,7 @@ HWTEST_F(AppAccountTest, AppAccount_CreateAppAccountEventListener_0100, Function
  * @tc.type: FUNC
  * @tc.require: SR000GGVFT
  */
-HWTEST_F(AppAccountTest, AppAccount_CreateAppAccountEventListener_0200, Function | MediumTest | Level1)
+HWTEST_F(AppAccountTest, AppAccount_CreateAppAccountEventListener_0200, TestSize.Level1)
 {
     ACCOUNT_LOGI("AppAccount_CreateAppAccountEventListener_0200");
 

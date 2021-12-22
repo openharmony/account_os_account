@@ -32,7 +32,8 @@
         "//base/account/os_account/services/accountmgr/src/appaccount:app_account_service_core",
         "//base/account/os_account/sa_profile:account_sa_profile",
         "//base/account/os_account/interfaces/kits/napi/distributedaccount:distributedaccount",
-        "//base/account/os_account/frameworks/osaccount/native:os_account_innerkits"
+        "//base/account/os_account/frameworks/osaccount/native:os_account_innerkits",
+        "//base/account/os_account/interfaces/kits/napi/osaccount:osaccount"
       ],
       "inner_kits": [
         {

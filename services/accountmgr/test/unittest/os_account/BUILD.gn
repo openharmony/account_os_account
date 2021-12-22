@@ -41,7 +41,6 @@ ohos_unittest("OsAccountControlFileManagerTest") {
     ":os_account_control_file_manager_test_config",
     "${services_path}/accountmgr/test:accountmgr_test_config",
   ]
-  ldflags = [ "-Wl,-rpath=/system/lib/module/multimedia/" ]
   deps = [
     "${common_path}:libaccount_common",
     "${os_account_innerkits_native_path}:os_account_innerkits",
@@ -54,7 +53,6 @@ ohos_unittest("OsAccountControlFileManagerTest") {
   external_deps = [
     "distributeddatamgr:distributeddata_inner",
     "hiviewdfx_hilog_native:libhilog",
-    "multimedia_image_standard:image",
   ]
   part_name = "os_account_standard"
 }

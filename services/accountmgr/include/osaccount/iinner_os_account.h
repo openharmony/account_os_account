@@ -23,28 +23,27 @@ namespace OHOS {
 namespace AccountSA {
 class IInnerOsAccount {
 public:
-    virtual void Init() = 0;
     virtual ErrCode CreateOsAccount(
-        const std::string &name, const int &type, OsAccountInfo &osAccountInfo) = 0;
+        const std::string &name, const OsAccountType &type, OsAccountInfo &osAccountInfo) = 0;
     virtual ErrCode RemoveOsAccount(const int id) = 0;
     virtual ErrCode IsOsAccountExists(const int id, bool &isOsAccountExits) = 0;
     virtual ErrCode IsOsAccountActived(const int id, bool &isOsAccountActived) = 0;
     virtual ErrCode IsOsAccountConstraintEnable(
         const int id, const std::string &constraint, bool &isOsAccountConstraintEnable) = 0;
-    virtual ErrCode IsOsAccountVerified(const int id, bool &isOsAccountVerified) = 0;
+    virtual ErrCode IsOsAccountVerified(const int id, bool &isVerified) = 0;
     virtual ErrCode GetCreatedOsAccountsCount(int &createdOsAccountCount) = 0;
     virtual ErrCode QueryMaxOsAccountNumber(int &maxOsAccountNumber) = 0;
     virtual ErrCode GetOsAccountAllConstraints(const int id, std::vector<std::string> &constraints) = 0;
     virtual ErrCode QueryAllCreatedOsAccounts(std::vector<OsAccountInfo> &osAccountInfos) = 0;
     virtual ErrCode QueryOsAccountById(const int id, OsAccountInfo &osAccountInfo) = 0;
-    virtual ErrCode GetOsAccountType(const int id, int &type) = 0;
+    virtual ErrCode GetOsAccountType(const int id, OsAccountType &type) = 0;
     virtual ErrCode GetOsAccountProfilePhoto(const int id, std::string &photo) = 0;
     virtual ErrCode IsMultiOsAccountEnable(bool &isMultiOsAccountEnable) = 0;
     virtual ErrCode SetOsAccountName(const int id, const std::string &name) = 0;
     virtual ErrCode SetOsAccountConstraints(
         const int id, const std::vector<std::string> &constraints, const bool enable) = 0;
     virtual ErrCode SetOsAccountProfilePhoto(const int id, const std::string &photo) = 0;
-    virtual ErrCode GetDistributedVirtualDeviceId(std::int32_t &deviceId, std::int32_t uid) = 0;
+    virtual ErrCode GetDistributedVirtualDeviceId(std::string &deviceId, std::int32_t uid) = 0;
     virtual ErrCode ActivateOsAccount(const int id) = 0;
     virtual ErrCode StartOsAccount(const int id) = 0;
     virtual ErrCode StopOsAccount(const int id) = 0;
@@ -55,7 +54,11 @@ public:
     virtual ErrCode UnsubscribeOsAccount(const sptr<IRemoteObject> &eventListener) = 0;
     virtual OS_ACCOUNT_SWITCH_MOD GetOsAccountSwitchMod() = 0;
     virtual ErrCode IsOsAccountCompleted(const int id, bool &isOsAccountCompleted) = 0;
-    virtual ErrCode SetOsAccountIsVerified(const int id, const bool isOsAccountVerified) = 0;
+    virtual ErrCode SetOsAccountIsVerified(const int id, const bool isVerified) = 0;
+    virtual ErrCode IsAllowedCreateAdmin(bool &isAllowedCreateAdmin) = 0;
+
+protected:
+    virtual void Init() = 0;
 };
 }  // namespace AccountSA
 }  // namespace OHOS

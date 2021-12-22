@@ -14,10 +14,8 @@
  */
 
 #include "account_log_wrapper.h"
-#include "image_source.h"
 #include "os_account_constants.h"
 #include "os_account_standard_interface.h"
-#include "pixel_map.h"
 
 #include "os_account_control_file_manager.h"
 namespace OHOS {
@@ -44,6 +42,7 @@ void OsAccountControlFileManager::Init()
             {Constants::NOW_ALLOW_CREATE_ACCOUNT_NUM, Constants::START_USER_ID},
             {Constants::MAX_ALLOW_CREATE_ACCOUNT_NUM, Constants::MAX_USER_ID},
             {Constants::SERIAL_NUMBER_NUM, Constants::SERIAL_NUMBER_NUM_START},
+            {Constants::IS_SERIAL_NUMBER_FULL, Constants::IS_SERIAL_NUMBER_FULL_INIT_VALUE},
         };
         SaveAccountList(accountList);
     }
@@ -70,7 +69,7 @@ ErrCode OsAccountControlFileManager::GetOsAccountList(std::vector<OsAccountInfo>
             if (GetOsAccountInfoById(std::atoi(it.c_str()), osAccountInfo) == ERR_OK) {
                 if (osAccountInfo.GetPhoto() != "") {
                     std::string photo = osAccountInfo.GetPhoto();
-                    GetPhotoById(osAccountInfo.GetId(), photo);
+                    GetPhotoById(osAccountInfo.GetLocalId(), photo);
                     osAccountInfo.SetPhoto(photo);
                 }
                 osAccountList.push_back(osAccountInfo);
@@ -102,9 +101,11 @@ ErrCode OsAccountControlFileManager::GetOsAccountInfoById(const int id, OsAccoun
     return ERR_OK;
 }
 
-ErrCode OsAccountControlFileManager::GetConstraintsByType(const int type, std::vector<std::string> &constratins)
+ErrCode OsAccountControlFileManager::GetConstraintsByType(
+    const OsAccountType type, std::vector<std::string> &constratins)
 {
-    return osAccountFileOperator_->GetConstraintsByType(type, constratins);
+    int typeInit = static_cast<int>(type);
+    return osAccountFileOperator_->GetConstraintsByType(typeInit, constratins);
 }
 
 ErrCode OsAccountControlFileManager::InsertOsAccount(OsAccountInfo &osAccountInfo)
@@ -113,7 +114,7 @@ ErrCode OsAccountControlFileManager::InsertOsAccount(OsAccountInfo &osAccountInf
     std::string path = Constants::USER_INFO_BASE + Constants::PATH_SEPARATOR + osAccountInfo.GetPrimeKey() +
                        Constants::PATH_SEPARATOR + Constants::USER_INFO_FILE_NAME;
     ACCOUNT_LOGE("OsAccountControlFileManager InsertOsAccount file path is :%{public}s", path.c_str());
-    if (osAccountInfo.GetId() < Constants::ADMIN_LOCAL_ID || osAccountInfo.GetId() > Constants::MAX_USER_ID) {
+    if (osAccountInfo.GetLocalId() < Constants::ADMIN_LOCAL_ID || osAccountInfo.GetLocalId() > Constants::MAX_USER_ID) {
         return ERR_OS_ACCOUNT_SERVICE_CONTROL_ID_CANNOT_CREATE_ERROR;
     }
     if (accountFileOperator_->IsExistFile(path)) {
@@ -124,7 +125,7 @@ ErrCode OsAccountControlFileManager::InsertOsAccount(OsAccountInfo &osAccountInf
         ACCOUNT_LOGE("OsAccountControlFileManager InsertOsAccount");
         return ERR_OS_ACCOUNT_SERVICE_CONTROL_INSERT_OS_ACCOUNT_FILE_ERROR;
     }
-    if (osAccountInfo.GetId() > Constants::START_USER_ID - 1) {
+    if (osAccountInfo.GetLocalId() > Constants::START_USER_ID - 1) {
         ACCOUNT_LOGE("OsAccountControlFileManager is ordinary account");
         Json accountListJson;
         if (GetAccountList(accountListJson) != ERR_OK) {
@@ -138,7 +139,7 @@ ErrCode OsAccountControlFileManager::InsertOsAccount(OsAccountInfo &osAccountInf
         accountIdList.push_back(osAccountInfo.GetPrimeKey());
         accountListJson[Constants::ACCOUNT_LIST] = accountIdList;
         accountListJson[Constants::COUNT_ACCOUNT_NUM] = accountIdList.size();
-        int num = osAccountInfo.GetId() + 1;
+        int num = osAccountInfo.GetLocalId() + 1;
         accountListJson[Constants::NOW_ALLOW_CREATE_ACCOUNT_NUM] =
             num > Constants::MAX_USER_ID ? Constants::START_USER_ID : num;
         if (SaveAccountList(accountListJson) != ERR_OK) {
@@ -226,7 +227,35 @@ ErrCode OsAccountControlFileManager::GetSerialNumber(int64_t &serialNumber)
         serialNumber,
         OHOS::AccountSA::JsonType::NUMBER);
     if (serialNumber == Constants::CARRY_NUM) {
-        return ERR_OS_ACCOUNT_SERVICE_CONTROL_DONNOT_HAVE_ALLOW_SERIAL_ERROR;
+        accountListJson[Constants::IS_SERIAL_NUMBER_FULL] = true;
+        serialNumber = Constants::SERIAL_NUMBER_NUM_START;
+    }
+    bool isSerialNumberFull = false;
+    OHOS::AccountSA::GetDataByType<bool>(accountListJson,
+        accountListJson.end(),
+        Constants::IS_SERIAL_NUMBER_FULL,
+        isSerialNumberFull,
+        OHOS::AccountSA::JsonType::BOOLEAN);
+    if (isSerialNumberFull) {
+        std::vector<OsAccountInfo> osAccountInfos;
+        if (GetOsAccountList(osAccountInfos) != ERR_OK) {
+            return ERR_OS_ACCOUNT_SERVICE_CONTROL_GET_OS_ACCOUNT_LIST_ERROR;
+        }
+        while (serialNumber < Constants::CARRY_NUM) {
+            bool exists = false;
+            for (auto it = osAccountInfos.begin(); it != osAccountInfos.end(); it++) {
+                if (it->GetSerialNumber() ==
+                    Constants::SERIAL_NUMBER_NUM_START_FOR_ADMIN * Constants::CARRY_NUM + serialNumber) {
+                    exists = true;
+                    break;
+                }
+            }
+            if (!exists) {
+                break;
+            }
+            serialNumber++;
+            serialNumber = serialNumber == Constants::CARRY_NUM ? Constants::SERIAL_NUMBER_NUM_START : serialNumber;
+        }
     }
     accountListJson[Constants::SERIAL_NUMBER_NUM] = serialNumber + 1;
     if (SaveAccountList(accountListJson) != ERR_OK) {
@@ -368,6 +397,16 @@ ErrCode OsAccountControlFileManager::SetPhotoById(const int id, const std::strin
 ErrCode OsAccountControlFileManager::GetIsMultiOsAccountEnable(bool &isMultiOsAccountEnable)
 {
     return osAccountFileOperator_->GetIsMultiOsAccountEnable(isMultiOsAccountEnable);
+}
+ErrCode OsAccountControlFileManager::IsConstrarionsInTypeList(
+    const std::vector<std::string> &constrains, bool &isExists)
+{
+    return osAccountFileOperator_->IsConstrarionsInTypeList(constrains, isExists);
+}
+
+ErrCode OsAccountControlFileManager::IsAllowedCreateAdmin(bool &isAllowedCreateAdmin)
+{
+    return osAccountFileOperator_->IsAllowedCreateAdmin(isAllowedCreateAdmin);
 }
 }  // namespace AccountSA
 }  // namespace OHOS

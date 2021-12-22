@@ -37,7 +37,7 @@ using namespace AccountSA;
 namespace {
 const int INT_ID = 1;
 const std::string STRING_NAME = "asf";
-const int INT_TYPE = 12;
+const OsAccountType INT_TYPE = OsAccountType::ADMIN;
 const int64_t INT_SHERIAL = 123;
 }  // namespace
 class OsAccountDataStorageTest : public testing::Test {
@@ -75,7 +75,7 @@ void OsAccountDataStorageTest::TearDown(void)
  * @tc.type: FUNC
  * @tc.require: SR000GGVFF
  */
-HWTEST_F(OsAccountDataStorageTest, OsAccountDataStorageTest001, TestSize.Level0)
+HWTEST_F(OsAccountDataStorageTest, OsAccountDataStorageTest001, TestSize.Level1)
 {
     EXPECT_EQ(osAccountDataStorage_->CheckKvStore(), true);
 }

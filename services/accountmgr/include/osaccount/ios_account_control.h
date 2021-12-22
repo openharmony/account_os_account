@@ -23,7 +23,7 @@ public:
     virtual void Init() = 0;
     virtual ErrCode GetOsAccountList(std::vector<OsAccountInfo> &osAccountList) = 0;
     virtual ErrCode GetOsAccountInfoById(const int id, OsAccountInfo &osAccountInfo) = 0;
-    virtual ErrCode GetConstraintsByType(const int type, std::vector<std::string> &constratins) = 0;
+    virtual ErrCode GetConstraintsByType(const OsAccountType type, std::vector<std::string> &constratins) = 0;
     virtual ErrCode InsertOsAccount(OsAccountInfo &osAccountInfo) = 0;
     virtual ErrCode DelOsAccount(const int id) = 0;
     virtual ErrCode UpdateOsAccount(OsAccountInfo &osAccountInfo) = 0;
@@ -34,6 +34,8 @@ public:
     virtual ErrCode GetPhotoById(const int id, std::string &photo) = 0;
     virtual ErrCode SetPhotoById(const int id, const std::string &photo) = 0;
     virtual ErrCode GetIsMultiOsAccountEnable(bool &isMultiOsAccountEnable) = 0;
+    virtual ErrCode IsConstrarionsInTypeList(const std::vector<std::string> &constrains, bool &isExists) = 0;
+    virtual ErrCode IsAllowedCreateAdmin(bool &isAllowedCreateAdmin) = 0;
 };
 }  // namespace AccountSA
 }  // namespace OHOS

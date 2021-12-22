@@ -43,12 +43,12 @@ ErrCode MockAppAccountStub::AddAccount(const std::string &name, const std::strin
     }
 
     if (name.size() > NAME_MAX_SIZE) {
-        ACCOUNT_LOGE("name is out of range");
+        ACCOUNT_LOGE("name is out of range, name.size() = %{public}zu", name.size());
         return ERR_APPACCOUNT_SERVICE_NAME_OUT_OF_RANGE;
     }
 
     if (extraInfo.size() > EXTRA_INFO_MAX_SIZE) {
-        ACCOUNT_LOGE("extra info is out of range");
+        ACCOUNT_LOGE("extra info is out of range, extraInfo.size() = %{public}zu", extraInfo.size());
         return ERR_APPACCOUNT_SERVICE_EXTRA_INFO_OUT_OF_RANGE;
     }
 
@@ -66,7 +66,7 @@ ErrCode MockAppAccountStub::DeleteAccount(const std::string &name)
     }
 
     if (name.size() > NAME_MAX_SIZE) {
-        ACCOUNT_LOGE("name is out of range");
+        ACCOUNT_LOGE("name is out of range, name.size() = %{public}zu", name.size());
         return ERR_APPACCOUNT_SERVICE_NAME_OUT_OF_RANGE;
     }
 

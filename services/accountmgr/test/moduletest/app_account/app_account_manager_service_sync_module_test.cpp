@@ -98,8 +98,7 @@ void AppAccountManagerServiceSyncModuleTest::DeleteKvStore(void)
  * @tc.type: FUNC
  * @tc.require: SR000GGV11
  */
-HWTEST_F(AppAccountManagerServiceSyncModuleTest, AppAccountManagerServiceSync_AddAccount_0100,
-    Function | MediumTest | Level1)
+HWTEST_F(AppAccountManagerServiceSyncModuleTest, AppAccountManagerServiceSync_AddAccount_0100, TestSize.Level0)
 {
     ACCOUNT_LOGI("AppAccountManagerServiceSync_AddAccount_0100");
 
@@ -153,8 +152,7 @@ HWTEST_F(AppAccountManagerServiceSyncModuleTest, AppAccountManagerServiceSync_Ad
  * @tc.type: FUNC
  * @tc.require: SR000GGV11
  */
-HWTEST_F(AppAccountManagerServiceSyncModuleTest, AppAccountManagerServiceSync_AddAccount_0200,
-    Function | MediumTest | Level1)
+HWTEST_F(AppAccountManagerServiceSyncModuleTest, AppAccountManagerServiceSync_AddAccount_0200, TestSize.Level1)
 {
     ACCOUNT_LOGI("AppAccountManagerServiceSync_AddAccount_0200");
 
@@ -222,8 +220,7 @@ HWTEST_F(AppAccountManagerServiceSyncModuleTest, AppAccountManagerServiceSync_Ad
  * @tc.type: FUNC
  * @tc.require: SR000GGV11
  */
-HWTEST_F(AppAccountManagerServiceSyncModuleTest, AppAccountManagerServiceSync_DeleteAccount_0100,
-    Function | MediumTest | Level1)
+HWTEST_F(AppAccountManagerServiceSyncModuleTest, AppAccountManagerServiceSync_DeleteAccount_0100, TestSize.Level1)
 {
     ACCOUNT_LOGI("AppAccountManagerServiceSync_DeleteAccount_0100");
 
@@ -269,8 +266,7 @@ HWTEST_F(AppAccountManagerServiceSyncModuleTest, AppAccountManagerServiceSync_De
  * @tc.type: FUNC
  * @tc.require: SR000GGV11
  */
-HWTEST_F(AppAccountManagerServiceSyncModuleTest, AppAccountManagerServiceSync_DeleteAccount_0200,
-    Function | MediumTest | Level1)
+HWTEST_F(AppAccountManagerServiceSyncModuleTest, AppAccountManagerServiceSync_DeleteAccount_0200, TestSize.Level1)
 {
     ACCOUNT_LOGI("AppAccountManagerServiceSync_DeleteAccount_0200");
 
@@ -319,8 +315,8 @@ HWTEST_F(AppAccountManagerServiceSyncModuleTest, AppAccountManagerServiceSync_De
  * @tc.type: FUNC
  * @tc.require: SR000GGVFS
  */
-HWTEST_F(AppAccountManagerServiceSyncModuleTest, AppAccountManagerServiceSync_SetAccountExtraInfo_0100,
-    Function | MediumTest | Level1)
+HWTEST_F(
+    AppAccountManagerServiceSyncModuleTest, AppAccountManagerServiceSync_SetAccountExtraInfo_0100, TestSize.Level1)
 {
     ACCOUNT_LOGI("AppAccountManagerServiceSync_SetAccountExtraInfo_0100");
 
@@ -386,8 +382,8 @@ HWTEST_F(AppAccountManagerServiceSyncModuleTest, AppAccountManagerServiceSync_Se
  * @tc.type: FUNC
  * @tc.require: SR000GGVFS
  */
-HWTEST_F(AppAccountManagerServiceSyncModuleTest, AppAccountManagerServiceSync_SetAccountExtraInfo_0200,
-    Function | MediumTest | Level1)
+HWTEST_F(
+    AppAccountManagerServiceSyncModuleTest, AppAccountManagerServiceSync_SetAccountExtraInfo_0200, TestSize.Level1)
 {
     ACCOUNT_LOGI("AppAccountManagerServiceSync_SetAccountExtraInfo_0200");
 
@@ -462,8 +458,8 @@ HWTEST_F(AppAccountManagerServiceSyncModuleTest, AppAccountManagerServiceSync_Se
  * @tc.type: FUNC
  * @tc.require: SR000GGVFS
  */
-HWTEST_F(AppAccountManagerServiceSyncModuleTest, AppAccountManagerServiceSync_SetAccountExtraInfo_0300,
-    Function | MediumTest | Level1)
+HWTEST_F(
+    AppAccountManagerServiceSyncModuleTest, AppAccountManagerServiceSync_SetAccountExtraInfo_0300, TestSize.Level1)
 {
     ACCOUNT_LOGI("AppAccountManagerServiceSync_SetAccountExtraInfo_0300");
 
@@ -536,8 +532,7 @@ HWTEST_F(AppAccountManagerServiceSyncModuleTest, AppAccountManagerServiceSync_Se
  * @tc.type: FUNC
  * @tc.require: SR000GGVFS
  */
-HWTEST_F(AppAccountManagerServiceSyncModuleTest, AppAccountManagerServiceSync_EnableAppAccess_0100,
-    Function | MediumTest | Level1)
+HWTEST_F(AppAccountManagerServiceSyncModuleTest, AppAccountManagerServiceSync_EnableAppAccess_0100, TestSize.Level1)
 {
     ACCOUNT_LOGI("AppAccountManagerServiceSync_EnableAppAccess_0100");
 
@@ -602,8 +597,7 @@ HWTEST_F(AppAccountManagerServiceSyncModuleTest, AppAccountManagerServiceSync_En
  * @tc.type: FUNC
  * @tc.require: SR000GGVFS
  */
-HWTEST_F(AppAccountManagerServiceSyncModuleTest, AppAccountManagerServiceSync_EnableAppAccess_0200,
-    Function | MediumTest | Level1)
+HWTEST_F(AppAccountManagerServiceSyncModuleTest, AppAccountManagerServiceSync_EnableAppAccess_0200, TestSize.Level1)
 {
     ACCOUNT_LOGI("AppAccountManagerServiceSync_EnableAppAccess_0200");
 
@@ -671,8 +665,7 @@ HWTEST_F(AppAccountManagerServiceSyncModuleTest, AppAccountManagerServiceSync_En
  * @tc.type: FUNC
  * @tc.require: SR000GGVFS
  */
-HWTEST_F(AppAccountManagerServiceSyncModuleTest, AppAccountManagerServiceSync_DisableAppAccess_0100,
-    Function | MediumTest | Level1)
+HWTEST_F(AppAccountManagerServiceSyncModuleTest, AppAccountManagerServiceSync_DisableAppAccess_0100, TestSize.Level1)
 {
     ACCOUNT_LOGI("AppAccountManagerServiceSync_DisableAppAccess_0100");
 

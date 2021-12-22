@@ -83,7 +83,6 @@ ohos_unittest("account_mgr_test") {
     "${services_path}/accountmgr:accountmgr_config",
     "${services_path}/accountmgr/test:accountmgr_test_config",
   ]
-  ldflags = [ "-Wl,-rpath=/system/lib/module/multimedia/" ]
   deps = [
     "${app_account_services_path}/src/appaccount:app_account_service_core",
     "${innerkits_native_path}:libaccountkits",
@@ -105,7 +104,6 @@ ohos_unittest("account_mgr_test") {
     "hisysevent_native:libhisysevent",
     "hiviewdfx_hilog_native:libhilog",
     "ipc:ipc_core",
-    "multimedia_image_standard:image",
     "permission_standard:libpermissionsdk_standard",
     "safwk:system_ability_fwk",
     "samgr_standard:samgr_proxy",

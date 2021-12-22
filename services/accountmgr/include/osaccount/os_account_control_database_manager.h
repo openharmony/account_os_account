@@ -27,7 +27,7 @@ public:
     virtual void Init() override;
     virtual ErrCode GetOsAccountList(std::vector<OsAccountInfo> &osAccountList) override;
     virtual ErrCode GetOsAccountInfoById(const int id, OsAccountInfo &osAccountInfo) override;
-    virtual ErrCode GetConstraintsByType(const int type, std::vector<std::string> &constratins) override;
+    virtual ErrCode GetConstraintsByType(const OsAccountType type, std::vector<std::string> &constratins) override;
     virtual ErrCode InsertOsAccount(OsAccountInfo &osAccountInfo) override;
     virtual ErrCode DelOsAccount(const int id) override;
     virtual ErrCode UpdateOsAccount(OsAccountInfo &osAccountInfo) override;
@@ -38,6 +38,8 @@ public:
     virtual ErrCode GetPhotoById(const int id, std::string &photo) override;
     virtual ErrCode SetPhotoById(const int id, const std::string &photo) override;
     virtual ErrCode GetIsMultiOsAccountEnable(bool &isMultiOsAccountEnable) override;
+    virtual ErrCode IsConstrarionsInTypeList(const std::vector<std::string> &constrains, bool &isExists) override;
+    virtual ErrCode IsAllowedCreateAdmin(bool &isAllowedCreateAdmin) override;
 
 private:
     ErrCode GetAccountList(Json &accountListJson);

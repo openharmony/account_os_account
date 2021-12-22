@@ -70,9 +70,11 @@ ErrCode OsAccountControlDatabaseManager::GetOsAccountInfoById(const int id, OsAc
     return accountDataStorage_->GetAccountInfoById(std::to_string(id), osAccountInfo);
 }
 
-ErrCode OsAccountControlDatabaseManager::GetConstraintsByType(const int type, std::vector<std::string> &constratins)
+ErrCode OsAccountControlDatabaseManager::GetConstraintsByType(
+    const OsAccountType type, std::vector<std::string> &constratins)
 {
-    return osAccountFileOperator_->GetConstraintsByType(type, constratins);
+    int typeInit = static_cast<int>(type);
+    return osAccountFileOperator_->GetConstraintsByType(typeInit, constratins);
 }
 
 ErrCode OsAccountControlDatabaseManager::InsertOsAccount(OsAccountInfo &osAccountInfo)
@@ -83,7 +85,7 @@ ErrCode OsAccountControlDatabaseManager::InsertOsAccount(OsAccountInfo &osAccoun
         ACCOUNT_LOGE("OsAccountControlDatabaseManager insert ERR");
         return errCode;
     }
-    if (osAccountInfo.GetId() > Constants::START_USER_ID - 1) {
+    if (osAccountInfo.GetLocalId() > Constants::START_USER_ID - 1) {
         ACCOUNT_LOGE("OsAccountControlDatabaseManager is ordinary account");
         Json accountListJson;
         if (GetAccountList(accountListJson) != ERR_OK) {
@@ -99,7 +101,7 @@ ErrCode OsAccountControlDatabaseManager::InsertOsAccount(OsAccountInfo &osAccoun
         accountListJson[Constants::ACCOUNT_LIST] = accountIdList;
         accountListJson[Constants::COUNT_ACCOUNT_NUM] = accountIdList.size();
         int maxId = Constants::MAX_USER_ID + Constants::START_USER_ID;
-        int num = osAccountInfo.GetId();
+        int num = osAccountInfo.GetLocalId();
         num = num + 1;
         accountListJson[Constants::NOW_ALLOW_CREATE_ACCOUNT_NUM] = num > maxId ? Constants::START_USER_ID : num;
         if (SaveAccountList(accountListJson) != ERR_OK) {
@@ -301,6 +303,17 @@ ErrCode OsAccountControlDatabaseManager::SetPhotoById(const int id, const std::s
 ErrCode OsAccountControlDatabaseManager::GetIsMultiOsAccountEnable(bool &isMultiOsAccountEnable)
 {
     return osAccountFileOperator_->GetIsMultiOsAccountEnable(isMultiOsAccountEnable);
+}
+
+ErrCode OsAccountControlDatabaseManager::IsConstrarionsInTypeList(
+    const std::vector<std::string> &constrains, bool &isExists)
+{
+    return osAccountFileOperator_->IsConstrarionsInTypeList(constrains, isExists);
+}
+
+ErrCode OsAccountControlDatabaseManager::IsAllowedCreateAdmin(bool &isAllowedCreateAdmin)
+{
+    return osAccountFileOperator_->IsAllowedCreateAdmin(isAllowedCreateAdmin);
 }
 }  // namespace AccountSA
 }  // namespace OHOS
