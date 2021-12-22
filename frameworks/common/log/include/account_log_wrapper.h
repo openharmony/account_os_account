@@ -16,8 +16,8 @@
 #ifndef BASE_ACCOUNT_COMMON_LOG_INCLUDE_ACCOUNT_LOG_WRAPPER_H
 #define BASE_ACCOUNT_COMMON_LOG_INCLUDE_ACCOUNT_LOG_WRAPPER_H
 
-#include "hilog/log.h"
 #include <string>
+#include "hilog/log.h"
 
 namespace OHOS {
 namespace AccountSA {
@@ -65,3 +65,4 @@ private:
 } // namespace OHOS
 
 #endif // BASE_ACCOUNT_COMMON_LOG_INCLUDE_ACCOUNT_LOG_WRAPPER_H
+

@@ -14,7 +14,6 @@
  */
 
 #include "account_log_wrapper.h"
-#include <iostream>
 
 namespace OHOS {
 namespace AccountSA {
@@ -42,3 +41,4 @@ std::string AccountLogWrapper::GetBriefFileName(const std::string &file)
 }
 } // namespace AccountSA
 } // namespace OHOS
+
