@@ -24,13 +24,12 @@ namespace OHOS {
 namespace AccountSA {
 class OsAccountManager {
 public:
-    static ErrCode CreateOsAccount(
-        const std::string &name, const int &type, OsAccountInfo &osAccountInfo);
+    static ErrCode CreateOsAccount(const std::string &name, const OsAccountType &type, OsAccountInfo &osAccountInfo);
     static ErrCode RemoveOsAccount(const int id);
     static ErrCode IsOsAccountExists(const int id, bool &isOsAccountExists);
     static ErrCode IsOsAccountActived(const int id, bool &isOsAccountActived);
     static ErrCode IsOsAccountConstraintEnable(const int id, const std::string &constraint, bool &isConstraintEnable);
-    static ErrCode IsOsAccountVerified(const int id, bool &isOsAccountVerified);
+    static ErrCode IsOsAccountVerified(const int id, bool &isVerified);
     static ErrCode GetCreatedOsAccountsCount(int &osAccountsCount);
     static ErrCode GetOsAccountLocalIdFromProcess(int &id);
     static ErrCode GetOsAccountLocalIdFromUid(const int uid, int &id);
@@ -39,14 +38,14 @@ public:
     static ErrCode QueryAllCreatedOsAccounts(std::vector<OsAccountInfo> &osAccountInfos);
     static ErrCode QueryCurrentOsAccount(OsAccountInfo &osAccountInfo);
     static ErrCode QueryOsAccountById(const int id, OsAccountInfo &osAccountInfo);
-    static ErrCode GetOsAccountTypeFromProcess(int &type);
+    static ErrCode GetOsAccountTypeFromProcess(OsAccountType &type);
     static ErrCode GetOsAccountProfilePhoto(const int id, std::string &photo);
     static ErrCode IsMultiOsAccountEnable(bool &isMultiOsAccountEnable);
     static ErrCode SetOsAccountName(const int id, const std::string &localName);
     static ErrCode SetOsAccountConstraints(
         const int id, const std::vector<std::string> &constraints, const bool enable);
     static ErrCode SetOsAccountProfilePhoto(const int id, const std::string &photo);
-    static ErrCode GetDistributedVirtualDeviceId(std::int32_t &deviceId);
+    static ErrCode GetDistributedVirtualDeviceId(std::string &deviceId);;
     static ErrCode ActivateOsAccount(const int id);
     static ErrCode StartOsAccount(const int id);
     static ErrCode StopOsAccount(const int id);
@@ -55,10 +54,10 @@ public:
     static ErrCode SubscribeOsAccount(const std::shared_ptr<OsAccountSubscriber> &subscriber);
     static ErrCode UnsubscribeOsAccount(const std::shared_ptr<OsAccountSubscriber> &subscriber);
     static OS_ACCOUNT_SWITCH_MOD GetOsAccountSwitchMod();
-    static ErrCode IsCurrentOsAccountVerified(bool &isOsAccountVerified);
+    static ErrCode IsCurrentOsAccountVerified(bool &isVerified);
     static ErrCode IsOsAccountCompleted(const int id, bool &isOsAccountCompleted);
-    static ErrCode SetCurrentOsAccountIsVerified(const bool isOsAccountVerified);
-    static ErrCode SetOsAccountIsVerified(const int id, const bool isOsAccountVerified);
+    static ErrCode SetCurrentOsAccountIsVerified(const bool isVerified);
+    static ErrCode SetOsAccountIsVerified(const int id, const bool isVerified);
 };
 }  // namespace AccountSA
 }  // namespace OHOS

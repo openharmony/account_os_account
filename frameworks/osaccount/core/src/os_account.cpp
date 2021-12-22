@@ -26,7 +26,7 @@
 
 namespace OHOS {
 namespace AccountSA {
-ErrCode OsAccount::CreateOsAccount(const std::string &name, const int &type, OsAccountInfo &osAccountInfo)
+ErrCode OsAccount::CreateOsAccount(const std::string &name, const OsAccountType &type, OsAccountInfo &osAccountInfo)
 {
     ACCOUNT_LOGI("enter");
     ACCOUNT_LOGI("name.size(): %{public}zu", name.size());
@@ -36,9 +36,6 @@ ErrCode OsAccount::CreateOsAccount(const std::string &name, const int &type, OsA
     }
     if (name.size() <= 0) {
         return ERR_OSACCOUNT_KIT_LOCAL_NAME_EMPTY_ERROR;
-    }
-    if (type <= Constants::STANDARD_TYPE) {
-        return ERR_OSACCOUNT_KIT_TYPE_ERROR;
     }
     ErrCode result = GetOsAccountProxy();
     if (result != ERR_OK) {
@@ -103,7 +100,7 @@ ErrCode OsAccount::IsOsAccountConstraintEnable(const int id, const std::string &
     return osAccountProxy_->IsOsAccountConstraintEnable(id, constraint, isConstraintEnable);
 }
 
-ErrCode OsAccount::IsOsAccountVerified(const int id, bool &isOsAccountVerified)
+ErrCode OsAccount::IsOsAccountVerified(const int id, bool &isVerified)
 {
     ACCOUNT_LOGI("OsAccount::IsOsAccountVerified start");
     ErrCode result = GetOsAccountProxy();
@@ -112,7 +109,7 @@ ErrCode OsAccount::IsOsAccountVerified(const int id, bool &isOsAccountVerified)
         return result;
     }
 
-    return osAccountProxy_->IsOsAccountVerified(id, isOsAccountVerified);
+    return osAccountProxy_->IsOsAccountVerified(id, isVerified);
 }
 
 ErrCode OsAccount::GetCreatedOsAccountsCount(int &osAccountsCount)
@@ -211,7 +208,7 @@ ErrCode OsAccount::QueryOsAccountById(const int id, OsAccountInfo &osAccountInfo
     return osAccountProxy_->QueryOsAccountById(id, osAccountInfo);
 }
 
-ErrCode OsAccount::GetOsAccountTypeFromProcess(int &type)
+ErrCode OsAccount::GetOsAccountTypeFromProcess(OsAccountType &type)
 {
     ACCOUNT_LOGI("OsAccount::GetOsAccountTypeFromProcess start");
     ErrCode result = GetOsAccountProxy();
@@ -292,7 +289,7 @@ ErrCode OsAccount::SetOsAccountProfilePhoto(const int id, const std::string &pho
     return osAccountProxy_->SetOsAccountProfilePhoto(id, photo);
 }
 
-ErrCode OsAccount::GetDistributedVirtualDeviceId(std::int32_t &deviceId)
+ErrCode OsAccount::GetDistributedVirtualDeviceId(std::string &deviceId)
 {
     ACCOUNT_LOGI("OsAccount::GetDistributedVirtualDeviceId start");
     ErrCode result = GetOsAccountProxy();
@@ -452,7 +449,7 @@ ErrCode OsAccount::ResetOsAccountProxy()
     return ERR_OK;
 }
 
-ErrCode OsAccount::IsCurrentOsAccountVerified(bool &isOsAccountVerified)
+ErrCode OsAccount::IsCurrentOsAccountVerified(bool &isVerified)
 {
     ACCOUNT_LOGI("OsAccount::IsCurrentOsAccountVerified start");
     ErrCode result = GetOsAccountProxy();
@@ -460,7 +457,7 @@ ErrCode OsAccount::IsCurrentOsAccountVerified(bool &isOsAccountVerified)
         ACCOUNT_LOGE("failed to get osAccountProxy_");
         return result;
     }
-    return osAccountProxy_->IsCurrentOsAccountVerified(isOsAccountVerified);
+    return osAccountProxy_->IsCurrentOsAccountVerified(isVerified);
 }
 
 ErrCode OsAccount::IsOsAccountCompleted(const int id, bool &isOsAccountCompleted)
@@ -474,7 +471,7 @@ ErrCode OsAccount::IsOsAccountCompleted(const int id, bool &isOsAccountCompleted
     return osAccountProxy_->IsOsAccountCompleted(id, isOsAccountCompleted);
 }
 
-ErrCode OsAccount::SetCurrentOsAccountIsVerified(const bool isOsAccountVerified)
+ErrCode OsAccount::SetCurrentOsAccountIsVerified(const bool isVerified)
 {
     ACCOUNT_LOGI("OsAccount::SetCurrentOsAccountIsVerified start");
     ErrCode result = GetOsAccountProxy();
@@ -482,10 +479,10 @@ ErrCode OsAccount::SetCurrentOsAccountIsVerified(const bool isOsAccountVerified)
         ACCOUNT_LOGE("failed to get osAccountProxy_");
         return result;
     }
-    return osAccountProxy_->SetCurrentOsAccountIsVerified(isOsAccountVerified);
+    return osAccountProxy_->SetCurrentOsAccountIsVerified(isVerified);
 }
 
-ErrCode OsAccount::SetOsAccountIsVerified(const int id, const bool isOsAccountVerified)
+ErrCode OsAccount::SetOsAccountIsVerified(const int id, const bool isVerified)
 {
     ACCOUNT_LOGI("OsAccount::SetOsAccountIsVerified start");
     ErrCode result = GetOsAccountProxy();
@@ -493,7 +490,7 @@ ErrCode OsAccount::SetOsAccountIsVerified(const int id, const bool isOsAccountVe
         ACCOUNT_LOGE("failed to get osAccountProxy_");
         return result;
     }
-    return osAccountProxy_->SetOsAccountIsVerified(id, isOsAccountVerified);
+    return osAccountProxy_->SetOsAccountIsVerified(id, isVerified);
 }
 
 ErrCode OsAccount::GetOsAccountProxy()

@@ -88,8 +88,7 @@ void AppAccountControlManagerModuleTest::DeleteKvStore(void)
  * @tc.type: FUNC
  * @tc.require: SR000GGVFV
  */
-HWTEST_F(
-    AppAccountControlManagerModuleTest, AppAccountControlManager_AccountMaxSize_0100, Function | MediumTest | Level1)
+HWTEST_F(AppAccountControlManagerModuleTest, AppAccountControlManager_AccountMaxSize_0100, TestSize.Level1)
 {
     ACCOUNT_LOGI("AppAccountControlManager_AccountMaxSize_0100");
 
@@ -105,8 +104,7 @@ HWTEST_F(
  * @tc.type: FUNC
  * @tc.require: SR000GGVFV
  */
-HWTEST_F(
-    AppAccountControlManagerModuleTest, AppAccountControlManager_AccountMaxSize_0200, Function | MediumTest | Level1)
+HWTEST_F(AppAccountControlManagerModuleTest, AppAccountControlManager_AccountMaxSize_0200, TestSize.Level1)
 {
     ACCOUNT_LOGI("AppAccountControlManager_AccountMaxSize_0200");
 

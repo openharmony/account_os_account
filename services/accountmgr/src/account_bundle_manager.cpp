@@ -38,7 +38,6 @@ ErrCode AccountBundleManager::GetBundleName(const uid_t &uid, std::string &bundl
     ACCOUNT_LOGI("enter");
 
     ACCOUNT_LOGI("uid = %{public}d", uid);
-    ACCOUNT_LOGI("bundleName = %{public}s", bundleName.c_str());
 
     bool result = DelayedSingleton<BundleMgrClient>::GetInstance()->GetBundleNameForUid(uid, bundleName);
     ACCOUNT_LOGI("result = %{public}d", result);

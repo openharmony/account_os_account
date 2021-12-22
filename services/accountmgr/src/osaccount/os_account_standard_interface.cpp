@@ -16,39 +16,37 @@
 #include "account_log_wrapper.h"
 #include "common_event_manager.h"
 #include "common_event_support.h"
-#include "image_packer.h"
-#include "pixel_map.h"
 #include "want.h"
 
 #include "os_account_standard_interface.h"
 
 namespace OHOS {
 namespace AccountSA {
-ErrCode OsAccountStandardInterface::SendToAMSAccountStart(std::vector<OsAccountInfo> osAccountInfo)
+ErrCode OsAccountStandardInterface::SendToAMSAccountStart(std::vector<OsAccountInfo> &osAccountInfo)
 {
     ACCOUNT_LOGI("OsAccountStandardInterface SendToAMSAccountStart start");
     return ERR_OK;
 }
 
-ErrCode OsAccountStandardInterface::SendToAMSAccountStop(std::vector<OsAccountInfo> osAccountInfo)
+ErrCode OsAccountStandardInterface::SendToAMSAccountStop(std::vector<OsAccountInfo> &osAccountInfo)
 {
     ACCOUNT_LOGI("OsAccountStandardInterface SendToAMSAccountStop start");
     return ERR_OK;
 }
 
-ErrCode OsAccountStandardInterface::SendToBMSAccountCreate(std::vector<OsAccountInfo> osAccountInfo)
+ErrCode OsAccountStandardInterface::SendToBMSAccountCreate(std::vector<OsAccountInfo> &osAccountInfo)
 {
     ACCOUNT_LOGI("OsAccountStandardInterface SendToBMSAccountCreate start");
     return ERR_OK;
 }
 
-ErrCode OsAccountStandardInterface::SendToBMSAccountDelete(std::vector<OsAccountInfo> osAccountInfo)
+ErrCode OsAccountStandardInterface::SendToBMSAccountDelete(std::vector<OsAccountInfo> &osAccountInfo)
 {
     ACCOUNT_LOGI("OsAccountStandardInterface SendToBMSAccountDelete start");
     return ERR_OK;
 }
 
-ErrCode OsAccountStandardInterface::SendToCESAccountCreate(std::vector<OsAccountInfo> osAccountInfo)
+ErrCode OsAccountStandardInterface::SendToCESAccountCreate(std::vector<OsAccountInfo> &osAccountInfo)
 {
     ACCOUNT_LOGI("OsAccountStandardInterface SendToCESAccountCreate start");
     OHOS::AAFwk::Want want;
@@ -56,7 +54,7 @@ ErrCode OsAccountStandardInterface::SendToCESAccountCreate(std::vector<OsAccount
     bool flag = true;
     for (auto it = osAccountInfo.begin(); it != osAccountInfo.end(); ++it) {
         OHOS::EventFwk::CommonEventData data;
-        data.SetCode(it->GetId());
+        data.SetCode(it->GetLocalId());
         data.SetWant(want);
         if (!OHOS::EventFwk::CommonEventManager::PublishCommonEvent(data)) {
             flag = false;
@@ -68,7 +66,7 @@ ErrCode OsAccountStandardInterface::SendToCESAccountCreate(std::vector<OsAccount
     return ERR_OK;
 }
 
-ErrCode OsAccountStandardInterface::SendToCESAccountDelete(std::vector<OsAccountInfo> osAccountInfo)
+ErrCode OsAccountStandardInterface::SendToCESAccountDelete(std::vector<OsAccountInfo> &osAccountInfo)
 {
     ACCOUNT_LOGI("OsAccountStandardInterface SendToCESAccountDelete start");
     OHOS::AAFwk::Want want;
@@ -76,7 +74,7 @@ ErrCode OsAccountStandardInterface::SendToCESAccountDelete(std::vector<OsAccount
     bool flag = true;
     for (auto it = osAccountInfo.begin(); it != osAccountInfo.end(); ++it) {
         OHOS::EventFwk::CommonEventData data;
-        data.SetCode(it->GetId());
+        data.SetCode(it->GetLocalId());
         data.SetWant(want);
         if (!OHOS::EventFwk::CommonEventManager::PublishCommonEvent(data)) {
             flag = false;
@@ -88,49 +86,29 @@ ErrCode OsAccountStandardInterface::SendToCESAccountDelete(std::vector<OsAccount
     return ERR_OK;
 }
 
-ErrCode OsAccountStandardInterface::SendToCESAccountStart(std::vector<OsAccountInfo> osAccountInfo)
+ErrCode OsAccountStandardInterface::SendToAMSAccountSwitched(std::vector<OsAccountInfo> &osAccountInfo)
 {
-    ACCOUNT_LOGI("OsAccountStandardInterface SendToCESAccountStart start");
-    OHOS::AAFwk::Want want;
-    want.SetAction(OHOS::EventFwk::CommonEventSupport::COMMON_EVENT_USER_STARTED);
-    bool flag = true;
-    for (auto it = osAccountInfo.begin(); it != osAccountInfo.end(); ++it) {
-        OHOS::EventFwk::CommonEventData data;
-        data.SetCode(it->GetId());
-        data.SetWant(want);
-        if (!OHOS::EventFwk::CommonEventManager::PublishCommonEvent(data)) {
-            flag = false;
-        }
-    }
-    if (!flag) {
-        return ERR_OS_ACCOUNT_SERVICE_INTERFACE_TO_CE_ACCOUNT_START_ERROR;
-    }
+    ACCOUNT_LOGI("OsAccountStandardInterface SendToAMSAccountSwitched start");
     return ERR_OK;
 }
 
-ErrCode OsAccountStandardInterface::SendToCESAccountStop(std::vector<OsAccountInfo> osAccountInfo)
+ErrCode OsAccountStandardInterface::SendToCESAccountSwithced(std::vector<OsAccountInfo> &osAccountInfo)
 {
     ACCOUNT_LOGI("OsAccountStandardInterface SendToCESAccountStop start");
     OHOS::AAFwk::Want want;
-    want.SetAction(OHOS::EventFwk::CommonEventSupport::COMMON_EVENT_USER_STOPPED);
+    want.SetAction(OHOS::EventFwk::CommonEventSupport::COMMON_EVENT_USER_SWITCHED);
     bool flag = true;
     for (auto it = osAccountInfo.begin(); it != osAccountInfo.end(); ++it) {
         OHOS::EventFwk::CommonEventData data;
-        data.SetCode(it->GetId());
+        data.SetCode(it->GetLocalId());
         data.SetWant(want);
         if (!OHOS::EventFwk::CommonEventManager::PublishCommonEvent(data)) {
             flag = false;
         }
     }
     if (!flag) {
-        return ERR_OS_ACCOUNT_SERVICE_INTERFACE_TO_CE_ACCOUNT_STOP_ERROR;
+        return ERR_OS_ACCOUNT_SERVICE_INTERFACE_TO_CE_ACCOUNT_SWITCHED_ERROR;
     }
-    return ERR_OK;
-}
-
-ErrCode OsAccountStandardInterface::SetPhotoByPathAndByte(
-    const std::string &path, std::string &byte, const std::string &photoType)
-{
     return ERR_OK;
 }
 }  // namespace AccountSA

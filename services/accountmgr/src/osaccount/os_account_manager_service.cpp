@@ -25,7 +25,7 @@ namespace AccountSA {
 OsAccountManagerService::OsAccountManagerService()
 {
     ACCOUNT_LOGI("OsAccountManager OsAccountManagerService START");
-    innerManager_ = std::make_shared<IInnerOsAccountManager>();
+    innerManager_ = DelayedSingleton<IInnerOsAccountManager>::GetInstance();
     permissionManagerPtr_ = DelayedSingleton<AccountPermissionManager>::GetInstance();
     bundleManagerPtr_ = DelayedSingleton<AccountBundleManager>::GetInstance();
 }
@@ -35,7 +35,7 @@ OsAccountManagerService::~OsAccountManagerService()
 }
 
 ErrCode OsAccountManagerService::CreateOsAccount(
-    const std::string &name, const int &type, OsAccountInfo &osAccountInfo)
+    const std::string &name, const OsAccountType &type, OsAccountInfo &osAccountInfo)
 {
     ACCOUNT_LOGI("OsAccountManager CreateOsAccount START");
     bool isMultiOsAccountEnable = false;
@@ -65,7 +65,12 @@ ErrCode OsAccountManagerService::CreateOsAccount(
     if (name.size() <= 0) {
         return ERR_OS_ACCOUNT_SERVICE_MANAGER_NAME_SIZE_EMPTY_ERROR;
     }
-    if (type <= Constants::STANDARD_TYPE) {
+    bool isAllowedCreateAdmin = false;
+    ErrCode errCode = innerManager_->IsAllowedCreateAdmin(isAllowedCreateAdmin);
+    if (errCode != ERR_OK) {
+        return errCode;
+    }
+    if (!isAllowedCreateAdmin && type == OsAccountType::ADMIN) {
         return ERR_OS_ACCOUNT_SERVICE_MANAGER_CREATE_OSACCOUNT_TYPE_ERROR;
     }
     return innerManager_->CreateOsAccount(name, type, osAccountInfo);
@@ -123,6 +128,9 @@ ErrCode OsAccountManagerService::IsOsAccountActived(const int id, bool &isOsAcco
             return result;
         }
     }
+    if (id < Constants::START_USER_ID) {
+        return ERR_OS_ACCOUNT_SERVICE_MANAGER_ID_ERROR;
+    }
     return innerManager_->IsOsAccountActived(id, isOsAccountActived);
 }
 
@@ -146,10 +154,13 @@ ErrCode OsAccountManagerService::IsOsAccountConstraintEnable(
             return result;
         }
     }
+    if (id < Constants::START_USER_ID) {
+        return ERR_OS_ACCOUNT_SERVICE_MANAGER_ID_ERROR;
+    }
     return innerManager_->IsOsAccountConstraintEnable(id, constraint, isConstraintEnable);
 }
 
-ErrCode OsAccountManagerService::IsOsAccountVerified(const int id, bool &isOsAccountVerified)
+ErrCode OsAccountManagerService::IsOsAccountVerified(const int id, bool &isVerified)
 {
     auto callingUid = IPCSkeleton::GetCallingUid();
     if (callingUid >= Constants::APP_UID_START) {
@@ -170,7 +181,10 @@ ErrCode OsAccountManagerService::IsOsAccountVerified(const int id, bool &isOsAcc
             return result;
         }
     }
-    return innerManager_->IsOsAccountVerified(id, isOsAccountVerified);
+    if (id < Constants::START_USER_ID) {
+        return ERR_OS_ACCOUNT_SERVICE_MANAGER_ID_ERROR;
+    }
+    return innerManager_->IsOsAccountVerified(id, isVerified);
 }
 
 ErrCode OsAccountManagerService::GetCreatedOsAccountsCount(int &osAccountsCount)
@@ -199,12 +213,18 @@ ErrCode OsAccountManagerService::GetOsAccountLocalIdFromProcess(int &id)
 {
     const std::int32_t uid = IPCSkeleton::GetCallingUid();
     id = uid / Constants::UID_TRANSFORM_DIVISOR;
+    if (id < Constants::START_USER_ID) {
+        return ERR_OS_ACCOUNT_SERVICE_MANAGER_ID_ERROR;
+    }
     return ERR_OK;
 }
 
 ErrCode OsAccountManagerService::GetOsAccountLocalIdFromUid(const int uid, int &id)
 {
     id = uid / Constants::UID_TRANSFORM_DIVISOR;
+    if (id < Constants::START_USER_ID) {
+        return ERR_OS_ACCOUNT_SERVICE_MANAGER_ID_ERROR;
+    }
     return ERR_OK;
 }
 
@@ -231,6 +251,9 @@ ErrCode OsAccountManagerService::GetOsAccountAllConstraints(const int id, std::v
             ACCOUNT_LOGI("failed to verify permission for DISTRIBUTED_DATASYNC, result = %{public}d", result);
             return result;
         }
+    }
+    if (id < Constants::START_USER_ID) {
+        return ERR_OS_ACCOUNT_SERVICE_MANAGER_ID_ERROR;
     }
     return innerManager_->GetOsAccountAllConstraints(id, constraints);
 }
@@ -260,6 +283,9 @@ ErrCode OsAccountManagerService::QueryCurrentOsAccount(OsAccountInfo &osAccountI
         }
     }
     int id = callingUid / Constants::UID_TRANSFORM_DIVISOR;
+    if (id < Constants::START_USER_ID) {
+        return ERR_OS_ACCOUNT_SERVICE_MANAGER_ID_ERROR;
+    }
     return innerManager_->QueryOsAccountById(id, osAccountInfo);
 }
 
@@ -286,13 +312,19 @@ ErrCode OsAccountManagerService::QueryOsAccountById(const int id, OsAccountInfo 
             return result;
         }
     }
+    if (id < Constants::START_USER_ID) {
+        return ERR_OS_ACCOUNT_SERVICE_MANAGER_ID_ERROR;
+    }
     return innerManager_->QueryOsAccountById(id, osAccountInfo);
 }
 
-ErrCode OsAccountManagerService::GetOsAccountTypeFromProcess(int &type)
+ErrCode OsAccountManagerService::GetOsAccountTypeFromProcess(OsAccountType &type)
 {
     const std::int32_t uid = IPCSkeleton::GetCallingUid();
     int id = uid / Constants::UID_TRANSFORM_DIVISOR;
+    if (id < Constants::START_USER_ID) {
+        return ERR_OS_ACCOUNT_SERVICE_MANAGER_ID_ERROR;
+    }
     return innerManager_->GetOsAccountType(id, type);
 }
 
@@ -315,6 +347,9 @@ ErrCode OsAccountManagerService::GetOsAccountProfilePhoto(const int id, std::str
             return result;
         }
     }
+    if (id < Constants::START_USER_ID) {
+        return ERR_OS_ACCOUNT_SERVICE_MANAGER_ID_ERROR;
+    }
     return innerManager_->GetOsAccountProfilePhoto(id, photo);
 }
 
@@ -330,6 +365,9 @@ ErrCode OsAccountManagerService::SetOsAccountName(const int id, const std::strin
     }
     if (name.size() <= 0) {
         return ERR_OS_ACCOUNT_SERVICE_MANAGER_NAME_SIZE_EMPTY_ERROR;
+    }
+    if (id < Constants::START_USER_ID) {
+        return ERR_OS_ACCOUNT_SERVICE_MANAGER_ID_ERROR;
     }
     return innerManager_->SetOsAccountName(id, name);
 }
@@ -353,6 +391,9 @@ ErrCode OsAccountManagerService::SetOsAccountConstraints(
             ACCOUNT_LOGI("failed to verify permission for DISTRIBUTED_DATASYNC, result = %{public}d", result);
             return result;
         }
+    }
+    if (id < Constants::START_USER_ID) {
+        return ERR_OS_ACCOUNT_SERVICE_MANAGER_ID_ERROR;
     }
     return innerManager_->SetOsAccountConstraints(id, constraints, enable);
 }
@@ -379,10 +420,13 @@ ErrCode OsAccountManagerService::SetOsAccountProfilePhoto(const int id, const st
             return ERR_OS_ACCOUNT_SERVICE_MANAGER_PHOTO_SIZE_OVERFLOW_ERROR;
         }
     }
+    if (id < Constants::START_USER_ID) {
+        return ERR_OS_ACCOUNT_SERVICE_MANAGER_ID_ERROR;
+    }
     return innerManager_->SetOsAccountProfilePhoto(id, photo);
 }
 
-ErrCode OsAccountManagerService::GetDistributedVirtualDeviceId(std::int32_t &deviceId)
+ErrCode OsAccountManagerService::GetDistributedVirtualDeviceId(std::string &deviceId)
 {
     auto callingUid = IPCSkeleton::GetCallingUid();
     if (callingUid >= Constants::APP_UID_START) {
@@ -423,6 +467,9 @@ ErrCode OsAccountManagerService::ActivateOsAccount(const int id)
             return result;
         }
     }
+    if (id < Constants::START_USER_ID) {
+        return ERR_OS_ACCOUNT_SERVICE_MANAGER_ID_ERROR;
+    }
     return innerManager_->ActivateOsAccount(id);
 }
 
@@ -445,6 +492,9 @@ ErrCode OsAccountManagerService::StartOsAccount(const int id)
             return result;
         }
     }
+    if (id < Constants::START_USER_ID) {
+        return ERR_OS_ACCOUNT_SERVICE_MANAGER_ID_ERROR;
+    }
     return innerManager_->StartOsAccount(id);
 }
 
@@ -466,6 +516,9 @@ ErrCode OsAccountManagerService::StopOsAccount(const int id)
             ACCOUNT_LOGI("failed to verify permission for DISTRIBUTED_DATASYNC, result = %{public}d", result);
             return result;
         }
+    }
+    if (id < Constants::START_USER_ID) {
+        return ERR_OS_ACCOUNT_SERVICE_MANAGER_ID_ERROR;
     }
     return innerManager_->StopOsAccount(id);
 }
@@ -520,14 +573,18 @@ ErrCode OsAccountManagerService::UnsubscribeOsAccount(const sptr<IRemoteObject> 
 ErrCode OsAccountManagerService::GetOsAccountLocalIdBySerialNumber(const int64_t serialNumber, int &id)
 {
     ACCOUNT_LOGI("enter");
-
+    if (serialNumber < Constants::CARRY_NUM * Constants::SERIAL_NUMBER_NUM_START_FOR_ADMIN + Constants::START_USER_ID) {
+        return ERR_OS_ACCOUNT_SERVICE_MANAGER_ID_ERROR;
+    }
     return innerManager_->GetOsAccountLocalIdBySerialNumber(serialNumber, id);
 }
 
 ErrCode OsAccountManagerService::GetSerialNumberByOsAccountLocalId(const int &id, int64_t &serialNumber)
 {
     ACCOUNT_LOGI("enter");
-
+    if (id < Constants::START_USER_ID) {
+        return ERR_OS_ACCOUNT_SERVICE_MANAGER_ID_ERROR;
+    }
     return innerManager_->GetSerialNumberByOsAccountLocalId(id, serialNumber);
 }
 OS_ACCOUNT_SWITCH_MOD OsAccountManagerService::GetOsAccountSwitchMod()
@@ -537,7 +594,7 @@ OS_ACCOUNT_SWITCH_MOD OsAccountManagerService::GetOsAccountSwitchMod()
     return innerManager_->GetOsAccountSwitchMod();
 }
 
-ErrCode OsAccountManagerService::IsCurrentOsAccountVerified(bool &isOsAccountVerified)
+ErrCode OsAccountManagerService::IsCurrentOsAccountVerified(bool &isVerified)
 {
     auto callingUid = IPCSkeleton::GetCallingUid();
     if (callingUid >= Constants::APP_UID_START) {
@@ -559,7 +616,10 @@ ErrCode OsAccountManagerService::IsCurrentOsAccountVerified(bool &isOsAccountVer
         }
     }
     int id = callingUid / Constants::UID_TRANSFORM_DIVISOR;
-    return innerManager_->IsOsAccountVerified(id, isOsAccountVerified);
+    if (id < Constants::START_USER_ID) {
+        return ERR_OS_ACCOUNT_SERVICE_MANAGER_ID_ERROR;
+    }
+    return innerManager_->IsOsAccountVerified(id, isVerified);
 }
 
 ErrCode OsAccountManagerService::IsOsAccountCompleted(const int id, bool &isOsAccountCompleted)
@@ -583,10 +643,13 @@ ErrCode OsAccountManagerService::IsOsAccountCompleted(const int id, bool &isOsAc
             return result;
         }
     }
+    if (id < Constants::START_USER_ID) {
+        return ERR_OS_ACCOUNT_SERVICE_MANAGER_ID_ERROR;
+    }
     return innerManager_->IsOsAccountCompleted(id, isOsAccountCompleted);
 }
 
-ErrCode OsAccountManagerService::SetCurrentOsAccountIsVerified(const bool isOsAccountVerified)
+ErrCode OsAccountManagerService::SetCurrentOsAccountIsVerified(const bool isVerified)
 {
     auto callingUid = IPCSkeleton::GetCallingUid();
     if (callingUid >= Constants::APP_UID_START) {
@@ -606,10 +669,13 @@ ErrCode OsAccountManagerService::SetCurrentOsAccountIsVerified(const bool isOsAc
         }
     }
     int id = callingUid / Constants::UID_TRANSFORM_DIVISOR;
-    return innerManager_->SetOsAccountIsVerified(id, isOsAccountVerified);
+    if (id < Constants::START_USER_ID) {
+        return ERR_OS_ACCOUNT_SERVICE_MANAGER_ID_ERROR;
+    }
+    return innerManager_->SetOsAccountIsVerified(id, isVerified);
 }
 
-ErrCode OsAccountManagerService::SetOsAccountIsVerified(const int id, const bool isOsAccountVerified)
+ErrCode OsAccountManagerService::SetOsAccountIsVerified(const int id, const bool isVerified)
 {
     auto callingUid = IPCSkeleton::GetCallingUid();
     if (callingUid >= Constants::APP_UID_START) {
@@ -628,7 +694,10 @@ ErrCode OsAccountManagerService::SetOsAccountIsVerified(const int id, const bool
             return result;
         }
     }
-    return innerManager_->SetOsAccountIsVerified(id, isOsAccountVerified);
+    if (id < Constants::START_USER_ID) {
+        return ERR_OS_ACCOUNT_SERVICE_MANAGER_ID_ERROR;
+    }
+    return innerManager_->SetOsAccountIsVerified(id, isVerified);
 }
 }  // namespace AccountSA
 }  // namespace OHOS

@@ -13,63 +13,55 @@
  * limitations under the License.
  */
 #include "account_log_wrapper.h"
-#include "image_packer.h"
-#include "pixel_map.h"
 #include "os_account_standard_interface.h"
 
 namespace OHOS {
 namespace AccountSA {
-ErrCode OsAccountStandardInterface::SendToAMSAccountStart(std::vector<OsAccountInfo> osAccountInfo)
+ErrCode OsAccountStandardInterface::SendToAMSAccountStart(std::vector<OsAccountInfo> &osAccountInfo)
 {
     ACCOUNT_LOGI("OsAccountStandardInterface SendToAMSAccountStart start");
     return ERR_OK;
 }
 
-ErrCode OsAccountStandardInterface::SendToAMSAccountStop(std::vector<OsAccountInfo> osAccountInfo)
+ErrCode OsAccountStandardInterface::SendToAMSAccountStop(std::vector<OsAccountInfo> &osAccountInfo)
 {
     ACCOUNT_LOGI("OsAccountStandardInterface SendToAMSAccountStop start");
     return ERR_OK;
 }
 
-ErrCode OsAccountStandardInterface::SendToBMSAccountCreate(std::vector<OsAccountInfo> osAccountInfo)
+ErrCode OsAccountStandardInterface::SendToBMSAccountCreate(std::vector<OsAccountInfo> &osAccountInfo)
 {
     ACCOUNT_LOGI("OsAccountStandardInterface SendToBMSAccountCreate start");
     return ERR_OK;
 }
 
-ErrCode OsAccountStandardInterface::SendToBMSAccountDelete(std::vector<OsAccountInfo> osAccountInfo)
+ErrCode OsAccountStandardInterface::SendToBMSAccountDelete(std::vector<OsAccountInfo> &osAccountInfo)
 {
     ACCOUNT_LOGI("OsAccountStandardInterface SendToBMSAccountDelete start");
     return ERR_OK;
 }
 
-ErrCode OsAccountStandardInterface::SendToCESAccountCreate(std::vector<OsAccountInfo> osAccountInfo)
+ErrCode OsAccountStandardInterface::SendToCESAccountCreate(std::vector<OsAccountInfo> &osAccountInfo)
 {
     ACCOUNT_LOGI("OsAccountStandardInterface SendToCESAccountCreate start");
     return ERR_OK;
 }
 
-ErrCode OsAccountStandardInterface::SendToCESAccountDelete(std::vector<OsAccountInfo> osAccountInfo)
+ErrCode OsAccountStandardInterface::SendToCESAccountDelete(std::vector<OsAccountInfo> &osAccountInfo)
 {
     ACCOUNT_LOGI("OsAccountStandardInterface SendToCESAccountDelete start");
     return ERR_OK;
 }
 
-ErrCode OsAccountStandardInterface::SendToCESAccountStart(std::vector<OsAccountInfo> osAccountInfo)
+ErrCode OsAccountStandardInterface::SendToAMSAccountSwitched(std::vector<OsAccountInfo> &osAccountInfo)
 {
-    ACCOUNT_LOGI("OsAccountStandardInterface SendToCESAccountStart start");
+    ACCOUNT_LOGI("OsAccountStandardInterface SendToAMSAccountSwitched start");
     return ERR_OK;
 }
 
-ErrCode OsAccountStandardInterface::SendToCESAccountStop(std::vector<OsAccountInfo> osAccountInfo)
+ErrCode OsAccountStandardInterface::SendToCESAccountSwithced(std::vector<OsAccountInfo> &osAccountInfo)
 {
-    ACCOUNT_LOGI("OsAccountStandardInterface SendToCESAccountStop start");
-    return ERR_OK;
-}
-
-ErrCode OsAccountStandardInterface::SetPhotoByPathAndByte(
-    const std::string &path, std::string &byte, const std::string &photoType)
-{
+    ACCOUNT_LOGI("OsAccountStandardInterface SendToCESAccountSwithced start");
     return ERR_OK;
 }
 }  // namespace AccountSA

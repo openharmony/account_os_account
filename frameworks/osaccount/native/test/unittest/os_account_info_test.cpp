@@ -26,7 +26,7 @@ using namespace OHOS::AccountSA;
 namespace {
 const int INT_ID = 12;
 const std::string STRING_NAME = "account";
-const int INT_TYPE = 123;
+const OsAccountType INT_TYPE = OsAccountType::ADMIN;
 const int64_t STRING_SERIAL_NUMBER = 121012012;
 const std::vector<std::string> VECTOR_CONSTRAINTS {"one", "two", "three", "four", "five"};
 const bool BOOL_IS_OS_ACCOUNT_VERIFIED = true;
@@ -49,10 +49,9 @@ const std::string STRING_PHOTO =
 const int64_t INT_CREATE_TIME = 1551925510;
 const int64_t INT_LAST_LOGINGGED_IN_TIME = 1551925510;
 const std::string STRING_JSON =
-    "{\"constraints\":[\"one\",\"two\",\"three\",\"four\",\"five\"],\"createTime\":1551925510,"
-    "\"id\":12,\"isAccountCompleted\":true,\"isActived\":false,\"isOsAccountVerified\":true,\"lastLoggedInTime\":"
-    "1551925510,\"name\":\"account\",\"photo\":\"data:image/jpeg;base64,/9j/4AAQSkZJRgABAQEAYABgAAD//"
-    "gAUU29mdHdhcmU6IFNuaXBhc3Rl/"
+    "{\"constraints\":[\"one\",\"two\",\"three\",\"four\",\"five\"],\"createTime\":1551925510,\"isActived\":false,"
+    "\"isCreateCompleted\":true,\"isVerified\":true,\"lastLoginTime\":1551925510,\"localId\":12,\"localName\":"
+    "\"account\",\"photo\":\"data:image/jpeg;base64,/9j/4AAQSkZJRgABAQEAYABgAAD//gAUU29mdHdhcmU6IFNuaXBhc3Rl/"
     "9sAQwADAgIDAgIDAwMDBAMDBAUIBQUEBAUKBwcGCAwKDAwLCgsLDQ4SEA0OEQ4LCxAWEBETFBUVFQwPFxgWFBgSFBUU/"
     "9sAQwEDBAQFBAUJBQUJFA0LDRQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQU/"
     "8AAEQgAEgAOAwEiAAIRAQMRAf/EAB8AAAEFAQEBAQEBAAAAAAAAAAABAgMEBQYHCAkKC//"
@@ -64,7 +63,7 @@ const std::string STRING_JSON =
     "jp6vLz9PX29/j5+v/aAAwDAQACEQMRAD8A++fid8e7j4ZiYXHgDxBfN5jJayQ3OnBLsKQGdF+1GbYAwJJi4yN2M1seF/"
     "i+fEtnHfv4O8R6dpcoby75ltLxHcNtMeyzuJ5FYEMDuQBSpUkNgH5l+Ndx4XtPix4ik0/"
     "xFpssN5bwwXwPilDIZ0klLxSq2vWLAIWACMjBeilQNo6j9ni50R9U8U6lF400m18Q30sTMLnxC1758CxqrO8EesXXzBgiiV5SQPlCgHnNSfI5f1+"
-    "av33Q5L3rdP68nb7mfWlFFFaCP//Z\",\"serialNumber\":121012012,\"type\":123}";
+    "av33Q5L3rdP68nb7mfWlFFFaCP//Z\",\"serialNumber\":121012012,\"type\":0}";
 }  // namespace
 class OsAccountInfoTest : public testing::Test {
 public:
@@ -92,7 +91,7 @@ void OsAccountInfoTest::TearDown(void)
  * @tc.type: FUNC
  * @tc.require: SR000GGVFG
  */
-HWTEST_F(OsAccountInfoTest, OsAccountInfo_OsAccountInfo_0100, Function | MediumTest | Level1)
+HWTEST_F(OsAccountInfoTest, OsAccountInfo_OsAccountInfo_0100, TestSize.Level0)
 {
     OsAccountInfo *osAccountInfo = new (std::nothrow) OsAccountInfo();
     EXPECT_NE(osAccountInfo, nullptr);
@@ -105,7 +104,7 @@ HWTEST_F(OsAccountInfoTest, OsAccountInfo_OsAccountInfo_0100, Function | MediumT
  * @tc.type: FUNC
  * @tc.require: SR000GGVFG
  */
-HWTEST_F(OsAccountInfoTest, OsAccountInfo_OsAccountInfo_0200, Function | MediumTest | Level1)
+HWTEST_F(OsAccountInfoTest, OsAccountInfo_OsAccountInfo_0200, TestSize.Level1)
 {
     OsAccountInfo *osAccountInfo =
         new (std::nothrow) OsAccountInfo(INT_ID, STRING_NAME, INT_TYPE, STRING_SERIAL_NUMBER);
@@ -119,7 +118,7 @@ HWTEST_F(OsAccountInfoTest, OsAccountInfo_OsAccountInfo_0200, Function | MediumT
  * @tc.type: FUNC
  * @tc.require: SR000GGVFG
  */
-HWTEST_F(OsAccountInfoTest, OsAccountInfo_OsAccountInfo_0300, Function | MediumTest | Level1)
+HWTEST_F(OsAccountInfoTest, OsAccountInfo_OsAccountInfo_0300, TestSize.Level1)
 {
     OsAccountInfo *osAccountInfo = new (std::nothrow) OsAccountInfo(INT_ID,
         STRING_NAME,
@@ -141,52 +140,52 @@ HWTEST_F(OsAccountInfoTest, OsAccountInfo_OsAccountInfo_0300, Function | MediumT
  * @tc.type: FUNC
  * @tc.require: SR000GGVFG
  */
-HWTEST_F(OsAccountInfoTest, OsAccountInfo_GetId_0100, Function | MediumTest | Level1)
+HWTEST_F(OsAccountInfoTest, OsAccountInfo_GetId_0100, TestSize.Level1)
 {
     int id = INT_ID;
     OsAccountInfo osAccountInfo;
-    osAccountInfo.id_ = id;
-    EXPECT_EQ(id, osAccountInfo.GetId());
+    osAccountInfo.localId_ = id;
+    EXPECT_EQ(id, osAccountInfo.GetLocalId());
 }
 
 /**
- * @tc.name: OsAccountInfo_SetId_0100
+ * @tc.name: OsAccountInfo_SetLocalId_0100
  * @tc.desc: Set the id with valid data.
  * @tc.type: FUNC
  * @tc.require: SR000GGVFG
  */
-HWTEST_F(OsAccountInfoTest, OsAccountInfo_SetId_0100, Function | MediumTest | Level1)
+HWTEST_F(OsAccountInfoTest, OsAccountInfo_SetLocalId_0100, TestSize.Level1)
 {
     OsAccountInfo osAccountInfo;
-    osAccountInfo.SetId(INT_ID);
-    EXPECT_EQ(INT_ID, osAccountInfo.id_);
+    osAccountInfo.SetLocalId(INT_ID);
+    EXPECT_EQ(INT_ID, osAccountInfo.localId_);
 }
 
 /**
- * @tc.name: OsAccountInfo_GetName_0100
+ * @tc.name: OsAccountInfo_GetLocalName_0100
  * @tc.desc: Get the name with valid data.
  * @tc.type: FUNC
  * @tc.require: SR000GGVFG
  */
-HWTEST_F(OsAccountInfoTest, OsAccountInfo_GetName_0100, Function | MediumTest | Level1)
+HWTEST_F(OsAccountInfoTest, OsAccountInfo_GetLocalName_0100, TestSize.Level1)
 {
     std::string name = STRING_NAME;
     OsAccountInfo osAccountInfo;
-    osAccountInfo.name_ = name;
-    EXPECT_EQ(name, osAccountInfo.GetName());
+    osAccountInfo.localName_ = name;
+    EXPECT_EQ(name, osAccountInfo.GetLocalName());
 }
 
 /**
- * @tc.name: OsAccountInfo_SetName_0100
+ * @tc.name: OsAccountInfo_SetLocalName_0100
  * @tc.desc: Set the name with valid data.
  * @tc.type: FUNC
  * @tc.require: SR000GGVFG
  */
-HWTEST_F(OsAccountInfoTest, OsAccountInfo_SetName_0100, Function | MediumTest | Level1)
+HWTEST_F(OsAccountInfoTest, OsAccountInfo_SetLocalName_0100, TestSize.Level1)
 {
     OsAccountInfo osAccountInfo;
-    osAccountInfo.SetName(STRING_NAME);
-    EXPECT_EQ(STRING_NAME, osAccountInfo.name_);
+    osAccountInfo.SetLocalName(STRING_NAME);
+    EXPECT_EQ(STRING_NAME, osAccountInfo.localName_);
 }
 
 /**
@@ -195,9 +194,9 @@ HWTEST_F(OsAccountInfoTest, OsAccountInfo_SetName_0100, Function | MediumTest | 
  * @tc.type: FUNC
  * @tc.require: SR000GGVFG
  */
-HWTEST_F(OsAccountInfoTest, OsAccountInfo_GetType_0100, Function | MediumTest | Level1)
+HWTEST_F(OsAccountInfoTest, OsAccountInfo_GetType_0100, TestSize.Level1)
 {
-    int type = INT_TYPE;
+    OsAccountType type = INT_TYPE;
     OsAccountInfo osAccountInfo;
     osAccountInfo.type_ = type;
     EXPECT_EQ(type, osAccountInfo.GetType());
@@ -209,7 +208,7 @@ HWTEST_F(OsAccountInfoTest, OsAccountInfo_GetType_0100, Function | MediumTest | 
  * @tc.type: FUNC
  * @tc.require: SR000GGVFG
  */
-HWTEST_F(OsAccountInfoTest, OsAccountInfo_SetType_0100, Function | MediumTest | Level1)
+HWTEST_F(OsAccountInfoTest, OsAccountInfo_SetType_0100, TestSize.Level1)
 {
     OsAccountInfo osAccountInfo;
     osAccountInfo.SetType(INT_TYPE);
@@ -222,7 +221,7 @@ HWTEST_F(OsAccountInfoTest, OsAccountInfo_SetType_0100, Function | MediumTest | 
  * @tc.type: FUNC
  * @tc.require: SR000GGVFG
  */
-HWTEST_F(OsAccountInfoTest, OsAccountInfo_GetConstraints_0100, Function | MediumTest | Level1)
+HWTEST_F(OsAccountInfoTest, OsAccountInfo_GetConstraints_0100, TestSize.Level1)
 {
     std::vector<std::string> constraints = VECTOR_CONSTRAINTS;
     OsAccountInfo osAccountInfo;
@@ -236,7 +235,7 @@ HWTEST_F(OsAccountInfoTest, OsAccountInfo_GetConstraints_0100, Function | Medium
  * @tc.type: FUNC
  * @tc.require: SR000GGVFG
  */
-HWTEST_F(OsAccountInfoTest, OsAccountInfo_SetConstraints_0100, Function | MediumTest | Level1)
+HWTEST_F(OsAccountInfoTest, OsAccountInfo_SetConstraints_0100, TestSize.Level1)
 {
     OsAccountInfo osAccountInfo;
     osAccountInfo.SetConstraints(VECTOR_CONSTRAINTS);
@@ -244,57 +243,57 @@ HWTEST_F(OsAccountInfoTest, OsAccountInfo_SetConstraints_0100, Function | Medium
 }
 
 /**
- * @tc.name: OsAccountInfo_GetIsAccountVerified_0100
- * @tc.desc: Get the isAccountVerified with valid data.
+ * @tc.name: OsAccountInfo_GetIsVerified_0100
+ * @tc.desc: Get the isVerified with valid data.
  * @tc.type: FUNC
  * @tc.require: SR000GGVFG
  */
-HWTEST_F(OsAccountInfoTest, OsAccountInfo_GetIsAccountVerified_0100, Function | MediumTest | Level1)
+HWTEST_F(OsAccountInfoTest, OsAccountInfo_GetIsVerified_0100, TestSize.Level1)
 {
-    bool isAccountVerified = BOOL_IS_OS_ACCOUNT_VERIFIED;
+    bool isVerified = BOOL_IS_OS_ACCOUNT_VERIFIED;
     OsAccountInfo osAccountInfo;
-    osAccountInfo.isAccountVerified_ = isAccountVerified;
-    EXPECT_EQ(isAccountVerified, osAccountInfo.GetIsAccountVerified());
+    osAccountInfo.isVerified_ = isVerified;
+    EXPECT_EQ(isVerified, osAccountInfo.GetIsVerified());
 }
 
 /**
- * @tc.name: OsAccountInfo_SetIsAccountVerified_0100
- * @tc.desc: Set the isAccountVerified with valid data.
+ * @tc.name: OsAccountInfo_SetIsVerified_0100
+ * @tc.desc: Set the isVerified with valid data.
  * @tc.type: FUNC
  * @tc.require: SR000GGVFG
  */
-HWTEST_F(OsAccountInfoTest, OsAccountInfo_SetIsAccountVerified_0100, Function | MediumTest | Level1)
+HWTEST_F(OsAccountInfoTest, OsAccountInfo_SetIsVerified_0100, TestSize.Level1)
 {
     OsAccountInfo osAccountInfo;
-    osAccountInfo.SetIsAccountVerified(BOOL_IS_OS_ACCOUNT_VERIFIED);
-    EXPECT_EQ(BOOL_IS_OS_ACCOUNT_VERIFIED, osAccountInfo.isAccountVerified_);
+    osAccountInfo.SetIsVerified(BOOL_IS_OS_ACCOUNT_VERIFIED);
+    EXPECT_EQ(BOOL_IS_OS_ACCOUNT_VERIFIED, osAccountInfo.isVerified_);
 }
 
 /**
- * @tc.name: OsAccountInfo_GetIsAccountCompleted_0100
- * @tc.desc: Get the isAccountCompleted with valid data.
+ * @tc.name: OsAccountInfo_GetIsCreateCompleted_0100
+ * @tc.desc: Get the isCreateCompleted with valid data.
  * @tc.type: FUNC
  * @tc.require: SR000GGVFG
  */
-HWTEST_F(OsAccountInfoTest, OsAccountInfo_GetIsAccountCompleted_0100, Function | MediumTest | Level1)
+HWTEST_F(OsAccountInfoTest, OsAccountInfo_GetIsCreateCompleted_0100, TestSize.Level1)
 {
-    bool isAccountCompleted = BOOL_IS_OS_ACCOUNT_COMPLETED;
+    bool isCreateCompleted = BOOL_IS_OS_ACCOUNT_COMPLETED;
     OsAccountInfo osAccountInfo;
-    osAccountInfo.isAccountCompleted_ = isAccountCompleted;
-    EXPECT_EQ(isAccountCompleted, osAccountInfo.GetIsAccountCompleted());
+    osAccountInfo.isCreateCompleted_ = isCreateCompleted;
+    EXPECT_EQ(isCreateCompleted, osAccountInfo.GetIsCreateCompleted());
 }
 
 /**
- * @tc.name: OsAccountInfo_SetIsAccountCompleted_0100
- * @tc.desc: Set the isAccountCompleted with valid data.
+ * @tc.name: OsAccountInfo_SetIsCreateCompleted_0100
+ * @tc.desc: Set the isCreateCompleted with valid data.
  * @tc.type: FUNC
  * @tc.require: SR000GGVFG
  */
-HWTEST_F(OsAccountInfoTest, OsAccountInfo_SetIsAccountCompleted_0100, Function | MediumTest | Level1)
+HWTEST_F(OsAccountInfoTest, OsAccountInfo_SetIsCreateCompleted_0100, TestSize.Level1)
 {
     OsAccountInfo osAccountInfo;
-    osAccountInfo.SetIsAccountCompleted(BOOL_IS_OS_ACCOUNT_COMPLETED);
-    EXPECT_EQ(BOOL_IS_OS_ACCOUNT_COMPLETED, osAccountInfo.isAccountCompleted_);
+    osAccountInfo.SetIsCreateCompleted(BOOL_IS_OS_ACCOUNT_COMPLETED);
+    EXPECT_EQ(BOOL_IS_OS_ACCOUNT_COMPLETED, osAccountInfo.isCreateCompleted_);
 }
 
 /**
@@ -303,7 +302,7 @@ HWTEST_F(OsAccountInfoTest, OsAccountInfo_SetIsAccountCompleted_0100, Function |
  * @tc.type: FUNC
  * @tc.require: SR000GGVFG
  */
-HWTEST_F(OsAccountInfoTest, OsAccountInfo_GetIsActived_0100, Function | MediumTest | Level1)
+HWTEST_F(OsAccountInfoTest, OsAccountInfo_GetIsActived_0100, TestSize.Level1)
 {
     bool isActived = BOOL_IS_ACTIVED;
     OsAccountInfo osAccountInfo;
@@ -317,7 +316,7 @@ HWTEST_F(OsAccountInfoTest, OsAccountInfo_GetIsActived_0100, Function | MediumTe
  * @tc.type: FUNC
  * @tc.require: SR000GGVFG
  */
-HWTEST_F(OsAccountInfoTest, OsAccountInfo_SetIsActived_0100, Function | MediumTest | Level1)
+HWTEST_F(OsAccountInfoTest, OsAccountInfo_SetIsActived_0100, TestSize.Level1)
 {
     OsAccountInfo osAccountInfo;
     osAccountInfo.SetIsActived(BOOL_IS_ACTIVED);
@@ -330,7 +329,7 @@ HWTEST_F(OsAccountInfoTest, OsAccountInfo_SetIsActived_0100, Function | MediumTe
  * @tc.type: FUNC
  * @tc.require: SR000GGVFG
  */
-HWTEST_F(OsAccountInfoTest, OsAccountInfo_GetPhoto_0100, Function | MediumTest | Level1)
+HWTEST_F(OsAccountInfoTest, OsAccountInfo_GetPhoto_0100, TestSize.Level1)
 {
     std::string photo = STRING_PHOTO;
     OsAccountInfo osAccountInfo;
@@ -344,7 +343,7 @@ HWTEST_F(OsAccountInfoTest, OsAccountInfo_GetPhoto_0100, Function | MediumTest |
  * @tc.type: FUNC
  * @tc.require: SR000GGVFG
  */
-HWTEST_F(OsAccountInfoTest, OsAccountInfo_SetPhoto_0100, Function | MediumTest | Level1)
+HWTEST_F(OsAccountInfoTest, OsAccountInfo_SetPhoto_0100, TestSize.Level1)
 {
     OsAccountInfo osAccountInfo;
     osAccountInfo.SetPhoto(STRING_PHOTO);
@@ -357,7 +356,7 @@ HWTEST_F(OsAccountInfoTest, OsAccountInfo_SetPhoto_0100, Function | MediumTest |
  * @tc.type: FUNC
  * @tc.require: SR000GGVFG
  */
-HWTEST_F(OsAccountInfoTest, OsAccountInfo_GetCreateTime_0100, Function | MediumTest | Level1)
+HWTEST_F(OsAccountInfoTest, OsAccountInfo_GetCreateTime_0100, TestSize.Level1)
 {
     int64_t createTime = INT_CREATE_TIME;
     OsAccountInfo osAccountInfo;
@@ -371,7 +370,7 @@ HWTEST_F(OsAccountInfoTest, OsAccountInfo_GetCreateTime_0100, Function | MediumT
  * @tc.type: FUNC
  * @tc.require: SR000GGVFG
  */
-HWTEST_F(OsAccountInfoTest, OsAccountInfo_SetCreateTime_0100, Function | MediumTest | Level1)
+HWTEST_F(OsAccountInfoTest, OsAccountInfo_SetCreateTime_0100, TestSize.Level1)
 {
     OsAccountInfo osAccountInfo;
     osAccountInfo.SetCreateTime(INT_CREATE_TIME);
@@ -379,17 +378,17 @@ HWTEST_F(OsAccountInfoTest, OsAccountInfo_SetCreateTime_0100, Function | MediumT
 }
 
 /**
- * @tc.name: OsAccountInfo_GetLastLoggedInTime_0100
- * @tc.desc: Get the lastLoggedInTime with valid data.
+ * @tc.name: OsAccountInfo_GetLastLoginTime_0100
+ * @tc.desc: Get the lastLoginTime with valid data.
  * @tc.type: FUNC
  * @tc.require: SR000GGVFG
  */
-HWTEST_F(OsAccountInfoTest, OsAccountInfo_GetLastLoggedInTime_0100, Function | MediumTest | Level1)
+HWTEST_F(OsAccountInfoTest, OsAccountInfo_GetLastLoginTime_0100, TestSize.Level1)
 {
-    int64_t lastLoggedInTime = INT_LAST_LOGINGGED_IN_TIME;
+    int64_t lastLoginTime = INT_LAST_LOGINGGED_IN_TIME;
     OsAccountInfo osAccountInfo;
-    osAccountInfo.lastLoggedInTime_ = lastLoggedInTime;
-    EXPECT_EQ(lastLoggedInTime, osAccountInfo.GetLastLoggedInTime());
+    osAccountInfo.lastLoginTime_ = lastLoginTime;
+    EXPECT_EQ(lastLoginTime, osAccountInfo.GetLastLoginTime());
 }
 
 /**
@@ -398,7 +397,7 @@ HWTEST_F(OsAccountInfoTest, OsAccountInfo_GetLastLoggedInTime_0100, Function | M
  * @tc.type: FUNC
  * @tc.require: SR000GGVFG
  */
-HWTEST_F(OsAccountInfoTest, OsAccountInfo_GetSerialNumber_0100, Function | MediumTest | Level1)
+HWTEST_F(OsAccountInfoTest, OsAccountInfo_GetSerialNumber_0100, TestSize.Level1)
 {
     int64_t serialNumber = STRING_SERIAL_NUMBER;
     OsAccountInfo osAccountInfo;
@@ -412,7 +411,7 @@ HWTEST_F(OsAccountInfoTest, OsAccountInfo_GetSerialNumber_0100, Function | Mediu
  * @tc.type: FUNC
  * @tc.require: SR000GGVFG
  */
-HWTEST_F(OsAccountInfoTest, OsAccountInfo_SetSerialNumber_0100, Function | MediumTest | Level1)
+HWTEST_F(OsAccountInfoTest, OsAccountInfo_SetSerialNumber_0100, TestSize.Level1)
 {
     OsAccountInfo osAccountInfo;
     osAccountInfo.SetSerialNumber(STRING_SERIAL_NUMBER);
@@ -425,7 +424,7 @@ HWTEST_F(OsAccountInfoTest, OsAccountInfo_SetSerialNumber_0100, Function | Mediu
  * @tc.type: FUNC
  * @tc.require: SR000GGVFG
  */
-HWTEST_F(OsAccountInfoTest, OsAccountInfo_ToJson_0100, Function | MediumTest | Level1)
+HWTEST_F(OsAccountInfoTest, OsAccountInfo_ToJson_0100, TestSize.Level0)
 {
     OsAccountInfo osAccountInfo(INT_ID,
         STRING_NAME,
@@ -448,12 +447,12 @@ HWTEST_F(OsAccountInfoTest, OsAccountInfo_ToJson_0100, Function | MediumTest | L
  * @tc.type: FUNC
  * @tc.require: SR000GGVFG
  */
-HWTEST_F(OsAccountInfoTest, OsAccountInfo_FromJson_0100, Function | MediumTest | Level1)
+HWTEST_F(OsAccountInfoTest, OsAccountInfo_FromJson_0100, TestSize.Level1)
 {
     OsAccountInfo osAccountInfo;
 
     osAccountInfo.FromJson(Json::parse(STRING_JSON, nullptr, false));
-    EXPECT_EQ(osAccountInfo.GetId(), INT_ID);
+    EXPECT_EQ(osAccountInfo.GetLocalId(), INT_ID);
 }
 
 /**
@@ -462,7 +461,7 @@ HWTEST_F(OsAccountInfoTest, OsAccountInfo_FromJson_0100, Function | MediumTest |
  * @tc.type: FUNC
  * @tc.require: SR000GGVFG
  */
-HWTEST_F(OsAccountInfoTest, OsAccountInfo_ToString_0100, Function | MediumTest | Level1)
+HWTEST_F(OsAccountInfoTest, OsAccountInfo_ToString_0100, TestSize.Level0)
 {
     OsAccountInfo osAccountInfo(INT_ID,
         STRING_NAME,

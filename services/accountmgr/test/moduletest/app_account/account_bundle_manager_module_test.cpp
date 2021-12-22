@@ -58,7 +58,7 @@ void AccountBundleManagerModuleTest::TearDown(void)
  * @tc.type: FUNC
  * @tc.require: SR000GGVFR
  */
-HWTEST_F(AccountBundleManagerModuleTest, AccountBundleManager_GetBundleName_0100, Function | MediumTest | Level1)
+HWTEST_F(AccountBundleManagerModuleTest, AccountBundleManager_GetBundleName_0100, TestSize.Level0)
 {
     ASSERT_NE(bundleManagerPtr_, nullptr);
 
@@ -73,7 +73,7 @@ HWTEST_F(AccountBundleManagerModuleTest, AccountBundleManager_GetBundleName_0100
  * @tc.type: FUNC
  * @tc.require: SR000GGVFR
  */
-HWTEST_F(AccountBundleManagerModuleTest, AccountBundleManager_GetBundleInfo_0100, Function | MediumTest | Level1)
+HWTEST_F(AccountBundleManagerModuleTest, AccountBundleManager_GetBundleInfo_0100, TestSize.Level0)
 {
     ASSERT_NE(bundleManagerPtr_, nullptr);
 

@@ -21,15 +21,14 @@ namespace OHOS {
 namespace AccountSA {
 class OsAccountStandardInterface {
 public:
-    static ErrCode SendToAMSAccountStart(std::vector<OsAccountInfo> osAccountInfo);
-    static ErrCode SendToAMSAccountStop(std::vector<OsAccountInfo> osAccountInfo);
-    static ErrCode SendToBMSAccountCreate(std::vector<OsAccountInfo> osAccountInfo);
-    static ErrCode SendToBMSAccountDelete(std::vector<OsAccountInfo> osAccountInfo);
-    static ErrCode SendToCESAccountCreate(std::vector<OsAccountInfo> osAccountInfo);
-    static ErrCode SendToCESAccountDelete(std::vector<OsAccountInfo> osAccountInfo);
-    static ErrCode SendToCESAccountStart(std::vector<OsAccountInfo> osAccountInfo);
-    static ErrCode SendToCESAccountStop(std::vector<OsAccountInfo> osAccountInfo);
-    static ErrCode SetPhotoByPathAndByte(const std::string &path, std::string &byte, const std::string &photoType);
+    static ErrCode SendToAMSAccountStart(std::vector<OsAccountInfo> &osAccountInfo);
+    static ErrCode SendToAMSAccountStop(std::vector<OsAccountInfo> &osAccountInfo);
+    static ErrCode SendToAMSAccountSwitched(std::vector<OsAccountInfo> &osAccountInfo);
+    static ErrCode SendToBMSAccountCreate(std::vector<OsAccountInfo> &osAccountInfo);
+    static ErrCode SendToBMSAccountDelete(std::vector<OsAccountInfo> &osAccountInfo);
+    static ErrCode SendToCESAccountCreate(std::vector<OsAccountInfo> &osAccountInfo);
+    static ErrCode SendToCESAccountDelete(std::vector<OsAccountInfo> &osAccountInfo);
+    static ErrCode SendToCESAccountSwithced(std::vector<OsAccountInfo> &osAccountInfo);
 };
 }  // namespace AccountSA
 }  // namespace OHOS
