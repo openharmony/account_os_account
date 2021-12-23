@@ -68,7 +68,7 @@ void AppAccountInfoTest::TearDown(void)
  * @tc.type: FUNC
  * @tc.require: SR000GGVFQ
  */
-HWTEST_F(AppAccountInfoTest, AppAccountInfo_GetOwner_0100, Function | MediumTest | Level1)
+HWTEST_F(AppAccountInfoTest, AppAccountInfo_GetOwner_0100, TestSize.Level0)
 {
     ACCOUNT_LOGI("AppAccountInfo_GetOwner_0100");
 
@@ -94,7 +94,7 @@ HWTEST_F(AppAccountInfoTest, AppAccountInfo_GetOwner_0100, Function | MediumTest
  * @tc.type: FUNC
  * @tc.require: SR000GGVFQ
  */
-HWTEST_F(AppAccountInfoTest, AppAccountInfo_SetOwner_0100, Function | MediumTest | Level1)
+HWTEST_F(AppAccountInfoTest, AppAccountInfo_SetOwner_0100, TestSize.Level1)
 {
     ACCOUNT_LOGI("AppAccountInfo_SetOwner_0100");
 
@@ -118,7 +118,7 @@ HWTEST_F(AppAccountInfoTest, AppAccountInfo_SetOwner_0100, Function | MediumTest
  * @tc.type: FUNC
  * @tc.require: SR000GGVFQ
  */
-HWTEST_F(AppAccountInfoTest, AppAccountInfo_GetName_0100, Function | MediumTest | Level1)
+HWTEST_F(AppAccountInfoTest, AppAccountInfo_GetName_0100, TestSize.Level1)
 {
     ACCOUNT_LOGI("AppAccountInfo_GetName_0100");
 
@@ -144,7 +144,7 @@ HWTEST_F(AppAccountInfoTest, AppAccountInfo_GetName_0100, Function | MediumTest 
  * @tc.type: FUNC
  * @tc.require: SR000GGVFQ
  */
-HWTEST_F(AppAccountInfoTest, AppAccountInfo_SetName_0100, Function | MediumTest | Level1)
+HWTEST_F(AppAccountInfoTest, AppAccountInfo_SetName_0100, TestSize.Level1)
 {
     ACCOUNT_LOGI("AppAccountInfo_SetName_0100");
 
@@ -168,7 +168,7 @@ HWTEST_F(AppAccountInfoTest, AppAccountInfo_SetName_0100, Function | MediumTest 
  * @tc.type: FUNC
  * @tc.require: SR000GGVFQ
  */
-HWTEST_F(AppAccountInfoTest, AppAccountInfo_GetExtraInfo_0100, Function | MediumTest | Level1)
+HWTEST_F(AppAccountInfoTest, AppAccountInfo_GetExtraInfo_0100, TestSize.Level1)
 {
     ACCOUNT_LOGI("AppAccountInfo_GetExtraInfo_0100");
 
@@ -194,7 +194,7 @@ HWTEST_F(AppAccountInfoTest, AppAccountInfo_GetExtraInfo_0100, Function | Medium
  * @tc.type: FUNC
  * @tc.require: SR000GGVFQ
  */
-HWTEST_F(AppAccountInfoTest, AppAccountInfo_SetExtraInfo_0100, Function | MediumTest | Level1)
+HWTEST_F(AppAccountInfoTest, AppAccountInfo_SetExtraInfo_0100, TestSize.Level1)
 {
     ACCOUNT_LOGI("AppAccountInfo_SetExtraInfo_0100");
 
@@ -218,7 +218,7 @@ HWTEST_F(AppAccountInfoTest, AppAccountInfo_SetExtraInfo_0100, Function | Medium
  * @tc.type: FUNC
  * @tc.require: SR000GGVFQ
  */
-HWTEST_F(AppAccountInfoTest, AppAccountInfo_EnableAppAccess_0100, Function | MediumTest | Level1)
+HWTEST_F(AppAccountInfoTest, AppAccountInfo_EnableAppAccess_0100, TestSize.Level1)
 {
     ACCOUNT_LOGI("AppAccountInfo_EnableAppAccess_0100");
 
@@ -243,7 +243,7 @@ HWTEST_F(AppAccountInfoTest, AppAccountInfo_EnableAppAccess_0100, Function | Med
  * @tc.type: FUNC
  * @tc.require: SR000GGVFQ
  */
-HWTEST_F(AppAccountInfoTest, AppAccountInfo_DisableAppAccess_0100, Function | MediumTest | Level1)
+HWTEST_F(AppAccountInfoTest, AppAccountInfo_DisableAppAccess_0100, TestSize.Level1)
 {
     ACCOUNT_LOGI("AppAccountInfo_DisableAppAccess_0100");
 
@@ -268,7 +268,7 @@ HWTEST_F(AppAccountInfoTest, AppAccountInfo_DisableAppAccess_0100, Function | Me
  * @tc.type: FUNC
  * @tc.require: SR000GGVFQ
  */
-HWTEST_F(AppAccountInfoTest, AppAccountInfo_GetAuthorizedApps_0100, Function | MediumTest | Level1)
+HWTEST_F(AppAccountInfoTest, AppAccountInfo_GetAuthorizedApps_0100, TestSize.Level1)
 {
     ACCOUNT_LOGI("AppAccountInfo_GetAuthorizedApps_0100");
 
@@ -299,7 +299,7 @@ HWTEST_F(AppAccountInfoTest, AppAccountInfo_GetAuthorizedApps_0100, Function | M
  * @tc.type: FUNC
  * @tc.require: SR000GGVFQ
  */
-HWTEST_F(AppAccountInfoTest, AppAccountInfo_SetAuthorizedApps_0100, Function | MediumTest | Level1)
+HWTEST_F(AppAccountInfoTest, AppAccountInfo_SetAuthorizedApps_0100, TestSize.Level1)
 {
     ACCOUNT_LOGI("AppAccountInfo_SetAuthorizedApps_0100");
 
@@ -328,7 +328,7 @@ HWTEST_F(AppAccountInfoTest, AppAccountInfo_SetAuthorizedApps_0100, Function | M
  * @tc.type: FUNC
  * @tc.require: SR000GGVFQ
  */
-HWTEST_F(AppAccountInfoTest, AppAccountInfo_GetSyncEnable_0100, Function | MediumTest | Level1)
+HWTEST_F(AppAccountInfoTest, AppAccountInfo_GetSyncEnable_0100, TestSize.Level1)
 {
     ACCOUNT_LOGI("AppAccountInfo_GetSyncEnable_0100");
 
@@ -354,7 +354,7 @@ HWTEST_F(AppAccountInfoTest, AppAccountInfo_GetSyncEnable_0100, Function | Mediu
  * @tc.type: FUNC
  * @tc.require: SR000GGVFQ
  */
-HWTEST_F(AppAccountInfoTest, AppAccountInfo_SetSyncEnable_0100, Function | MediumTest | Level1)
+HWTEST_F(AppAccountInfoTest, AppAccountInfo_SetSyncEnable_0100, TestSize.Level1)
 {
     ACCOUNT_LOGI("AppAccountInfo_SetSyncEnable_0100");
 
@@ -378,7 +378,7 @@ HWTEST_F(AppAccountInfoTest, AppAccountInfo_SetSyncEnable_0100, Function | Mediu
  * @tc.type: FUNC
  * @tc.require: SR000GGVFQ
  */
-HWTEST_F(AppAccountInfoTest, AppAccountInfo_GetAssociatedData_0100, Function | MediumTest | Level1)
+HWTEST_F(AppAccountInfoTest, AppAccountInfo_GetAssociatedData_0100, TestSize.Level1)
 {
     ACCOUNT_LOGI("AppAccountInfo_GetAssociatedData_0100");
 
@@ -404,7 +404,7 @@ HWTEST_F(AppAccountInfoTest, AppAccountInfo_GetAssociatedData_0100, Function | M
  * @tc.type: FUNC
  * @tc.require: SR000GGVFQ
  */
-HWTEST_F(AppAccountInfoTest, AppAccountInfo_SetAssociatedData_0100, Function | MediumTest | Level1)
+HWTEST_F(AppAccountInfoTest, AppAccountInfo_SetAssociatedData_0100, TestSize.Level1)
 {
     ACCOUNT_LOGI("AppAccountInfo_SetAssociatedData_0100");
 
@@ -434,7 +434,7 @@ HWTEST_F(AppAccountInfoTest, AppAccountInfo_SetAssociatedData_0100, Function | M
  * @tc.type: FUNC
  * @tc.require: SR000GGVFQ
  */
-HWTEST_F(AppAccountInfoTest, AppAccountInfo_GetAccountCredential_0100, Function | MediumTest | Level1)
+HWTEST_F(AppAccountInfoTest, AppAccountInfo_GetAccountCredential_0100, TestSize.Level1)
 {
     ACCOUNT_LOGI("AppAccountInfo_GetAccountCredential_0100");
 
@@ -460,7 +460,7 @@ HWTEST_F(AppAccountInfoTest, AppAccountInfo_GetAccountCredential_0100, Function 
  * @tc.type: FUNC
  * @tc.require: SR000GGVFQ
  */
-HWTEST_F(AppAccountInfoTest, AppAccountInfo_SetAccountCredential_0100, Function | MediumTest | Level1)
+HWTEST_F(AppAccountInfoTest, AppAccountInfo_SetAccountCredential_0100, TestSize.Level1)
 {
     ACCOUNT_LOGI("AppAccountInfo_SetAccountCredential_0100");
 
@@ -490,7 +490,7 @@ HWTEST_F(AppAccountInfoTest, AppAccountInfo_SetAccountCredential_0100, Function 
  * @tc.type: FUNC
  * @tc.require: SR000GGVFQ
  */
-HWTEST_F(AppAccountInfoTest, AppAccountInfo_Marshalling_0100, Function | MediumTest | Level1)
+HWTEST_F(AppAccountInfoTest, AppAccountInfo_Marshalling_0100, TestSize.Level0)
 {
     ACCOUNT_LOGI("AppAccountInfo_Marshalling_0100");
 

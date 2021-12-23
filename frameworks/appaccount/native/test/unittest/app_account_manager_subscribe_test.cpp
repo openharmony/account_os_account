@@ -82,8 +82,7 @@ public:
  * @tc.type: FUNC
  * @tc.require: SR000GGVFT
  */
-HWTEST_F(AppAccountManagerSubscribeTest, AppAccountManagerSubscribe_SubscribeAppAccount_0100,
-    Function | MediumTest | Level1)
+HWTEST_F(AppAccountManagerSubscribeTest, AppAccountManagerSubscribe_SubscribeAppAccount_0100, TestSize.Level1)
 {
     ACCOUNT_LOGI("AppAccountManagerSubscribe_SubscribeAppAccount_0100");
 
@@ -108,8 +107,7 @@ HWTEST_F(AppAccountManagerSubscribeTest, AppAccountManagerSubscribe_SubscribeApp
  * @tc.type: FUNC
  * @tc.require: SR000GGVFT
  */
-HWTEST_F(AppAccountManagerSubscribeTest, AppAccountManagerSubscribe_SubscribeAppAccount_0200,
-    Function | MediumTest | Level1)
+HWTEST_F(AppAccountManagerSubscribeTest, AppAccountManagerSubscribe_SubscribeAppAccount_0200, TestSize.Level1)
 {
     ACCOUNT_LOGI("AppAccountManagerSubscribe_SubscribeAppAccount_0200");
 
@@ -133,8 +131,7 @@ HWTEST_F(AppAccountManagerSubscribeTest, AppAccountManagerSubscribe_SubscribeApp
  * @tc.type: FUNC
  * @tc.require: SR000GGVFT
  */
-HWTEST_F(AppAccountManagerSubscribeTest, AppAccountManagerSubscribe_SubscribeAppAccount_0300,
-    Function | MediumTest | Level1)
+HWTEST_F(AppAccountManagerSubscribeTest, AppAccountManagerSubscribe_SubscribeAppAccount_0300, TestSize.Level1)
 {
     ACCOUNT_LOGI("AppAccountManagerSubscribe_SubscribeAppAccount_0300");
 
@@ -160,8 +157,7 @@ HWTEST_F(AppAccountManagerSubscribeTest, AppAccountManagerSubscribe_SubscribeApp
  * @tc.type: FUNC
  * @tc.require: SR000GGVFT
  */
-HWTEST_F(AppAccountManagerSubscribeTest, AppAccountManagerSubscribe_SubscribeAppAccount_0400,
-    Function | MediumTest | Level1)
+HWTEST_F(AppAccountManagerSubscribeTest, AppAccountManagerSubscribe_SubscribeAppAccount_0400, TestSize.Level1)
 {
     ACCOUNT_LOGI("AppAccountManagerSubscribe_SubscribeAppAccount_0400");
 

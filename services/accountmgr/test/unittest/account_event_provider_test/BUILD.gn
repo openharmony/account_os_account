@@ -52,7 +52,6 @@ ohos_unittest("AccountEventProviderTest") {
     "//third_party/googletest:gtest_main",
     "//utils/native/base:utils",
   ]
-  ldflags = [ "-Wl,-rpath=/system/lib/module/multimedia/" ]
   external_deps = [
     "aafwk_standard:base",
     "aafwk_standard:want",
@@ -63,7 +62,6 @@ ohos_unittest("AccountEventProviderTest") {
     "hisysevent_native:libhisysevent",
     "hiviewdfx_hilog_native:libhilog",
     "ipc:ipc_core",
-    "multimedia_image_standard:image",
     "permission_standard:libpermissionsdk_standard",
     "safwk:system_ability_fwk",
     "samgr_standard:samgr_proxy",

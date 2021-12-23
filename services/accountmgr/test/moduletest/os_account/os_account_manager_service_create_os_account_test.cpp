@@ -65,13 +65,12 @@ void OsAccountManagerServiceCreateOsAccountTest::TearDown(void)
  * @tc.type: FUNC
  * @tc.require: SR000GGVFN
  */
-HWTEST_F(OsAccountManagerServiceCreateOsAccountTest, OsAccountManagerServiceCreateOsAccountTest001,
-    Function | MediumTest | Level1)
+HWTEST_F(OsAccountManagerServiceCreateOsAccountTest, OsAccountManagerServiceCreateOsAccountTest001, TestSize.Level1)
 {
     ErrCode errCode;
     for (auto i = Constants::START_USER_ID + 1; i <= Constants::MAX_USER_ID + 1; i++) {
         OsAccountInfo osAccountInfoOne;
-        errCode = osAccountManagerService_->CreateOsAccount(STRING_TEST_NAME, 1, osAccountInfoOne);
+        errCode = osAccountManagerService_->CreateOsAccount(STRING_TEST_NAME, OsAccountType::ADMIN, osAccountInfoOne);
     }
     EXPECT_NE(errCode, ERR_OK);
     for (auto i = Constants::START_USER_ID + 1; i <= Constants::MAX_USER_ID; i++) {

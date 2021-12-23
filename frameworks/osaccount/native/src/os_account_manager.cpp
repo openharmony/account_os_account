@@ -21,7 +21,8 @@
 
 namespace OHOS {
 namespace AccountSA {
-ErrCode OsAccountManager::CreateOsAccount(const std::string &name, const int &type, OsAccountInfo &osAccountInfo)
+ErrCode OsAccountManager::CreateOsAccount(
+    const std::string &name, const OsAccountType &type, OsAccountInfo &osAccountInfo)
 {
     ACCOUNT_LOGI("enter");
 
@@ -120,7 +121,7 @@ ErrCode OsAccountManager::QueryOsAccountById(const int id, OsAccountInfo &osAcco
     return DelayedSingleton<OsAccount>::GetInstance()->QueryOsAccountById(id, osAccountInfo);
 }
 
-ErrCode OsAccountManager::GetOsAccountTypeFromProcess(int &type)
+ErrCode OsAccountManager::GetOsAccountTypeFromProcess(OsAccountType &type)
 {
     ACCOUNT_LOGI("OsAccountManager::GetOsAccountTypeFromProcess start");
 
@@ -163,7 +164,7 @@ ErrCode OsAccountManager::SetOsAccountProfilePhoto(const int id, const std::stri
     return DelayedSingleton<OsAccount>::GetInstance()->SetOsAccountProfilePhoto(id, photo);
 }
 
-ErrCode OsAccountManager::GetDistributedVirtualDeviceId(std::int32_t &deviceId)
+ErrCode OsAccountManager::GetDistributedVirtualDeviceId(std::string &deviceId)
 {
     ACCOUNT_LOGI("OsAccountManager::GetDistributedVirtualDeviceId start");
 
@@ -224,10 +225,10 @@ OS_ACCOUNT_SWITCH_MOD OsAccountManager::GetOsAccountSwitchMod()
     return DelayedSingleton<OsAccount>::GetInstance()->GetOsAccountSwitchMod();
 }
 
-ErrCode OsAccountManager::IsCurrentOsAccountVerified(bool &isOsAccountVerified)
+ErrCode OsAccountManager::IsCurrentOsAccountVerified(bool &isVerified)
 {
     ACCOUNT_LOGI("OsAccountManager::IsCurrentOsAccountVerified start");
-    return DelayedSingleton<OsAccount>::GetInstance()->IsCurrentOsAccountVerified(isOsAccountVerified);
+    return DelayedSingleton<OsAccount>::GetInstance()->IsCurrentOsAccountVerified(isVerified);
 }
 
 ErrCode OsAccountManager::IsOsAccountCompleted(const int id, bool &isOsAccountCompleted)
@@ -236,16 +237,16 @@ ErrCode OsAccountManager::IsOsAccountCompleted(const int id, bool &isOsAccountCo
     return DelayedSingleton<OsAccount>::GetInstance()->IsOsAccountCompleted(id, isOsAccountCompleted);
 }
 
-ErrCode OsAccountManager::SetCurrentOsAccountIsVerified(const bool isOsAccountVerified)
+ErrCode OsAccountManager::SetCurrentOsAccountIsVerified(const bool isVerified)
 {
     ACCOUNT_LOGI("OsAccountManager::SetCurrentOsAccountIsVerified start");
-    return DelayedSingleton<OsAccount>::GetInstance()->SetCurrentOsAccountIsVerified(isOsAccountVerified);
+    return DelayedSingleton<OsAccount>::GetInstance()->SetCurrentOsAccountIsVerified(isVerified);
 }
 
-ErrCode OsAccountManager::SetOsAccountIsVerified(const int id, const bool isOsAccountVerified)
+ErrCode OsAccountManager::SetOsAccountIsVerified(const int id, const bool isVerified)
 {
     ACCOUNT_LOGI("OsAccountManager::SetOsAccountIsVerified start");
-    return DelayedSingleton<OsAccount>::GetInstance()->SetOsAccountIsVerified(id, isOsAccountVerified);
+    return DelayedSingleton<OsAccount>::GetInstance()->SetOsAccountIsVerified(id, isVerified);
 }
 }  // namespace AccountSA
 }  // namespace OHOS

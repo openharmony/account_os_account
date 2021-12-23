@@ -117,7 +117,7 @@ public:
  * @tc.type: FUNC
  * @tc.require: SR000GGV11
  */
-HWTEST_F(AppAccountManagerModuleTest, AppAccountManager_AddAccount_0100, Function | MediumTest | Level1)
+HWTEST_F(AppAccountManagerModuleTest, AppAccountManager_AddAccount_0100, TestSize.Level0)
 {
     ACCOUNT_LOGI("AppAccountManager_AddAccount_0100");
 
@@ -131,7 +131,7 @@ HWTEST_F(AppAccountManagerModuleTest, AppAccountManager_AddAccount_0100, Functio
  * @tc.type: FUNC
  * @tc.require: SR000GGV11
  */
-HWTEST_F(AppAccountManagerModuleTest, AppAccountManager_AddAccount_0200, Function | MediumTest | Level1)
+HWTEST_F(AppAccountManagerModuleTest, AppAccountManager_AddAccount_0200, TestSize.Level1)
 {
     ACCOUNT_LOGI("AppAccountManager_AddAccount_0200");
 
@@ -145,7 +145,7 @@ HWTEST_F(AppAccountManagerModuleTest, AppAccountManager_AddAccount_0200, Functio
  * @tc.type: FUNC
  * @tc.require: SR000GGV11
  */
-HWTEST_F(AppAccountManagerModuleTest, AppAccountManager_DeleteAccount_0100, Function | MediumTest | Level1)
+HWTEST_F(AppAccountManagerModuleTest, AppAccountManager_DeleteAccount_0100, TestSize.Level0)
 {
     ACCOUNT_LOGI("AppAccountManager_DeleteAccount_0100");
 
@@ -159,7 +159,7 @@ HWTEST_F(AppAccountManagerModuleTest, AppAccountManager_DeleteAccount_0100, Func
  * @tc.type: FUNC
  * @tc.require: SR000GGVFS
  */
-HWTEST_F(AppAccountManagerModuleTest, AppAccountManager_GetAccountExtraInfo_0100, Function | MediumTest | Level1)
+HWTEST_F(AppAccountManagerModuleTest, AppAccountManager_GetAccountExtraInfo_0100, TestSize.Level1)
 {
     ACCOUNT_LOGI("AppAccountManager_GetAccountExtraInfo_0100");
 
@@ -174,7 +174,7 @@ HWTEST_F(AppAccountManagerModuleTest, AppAccountManager_GetAccountExtraInfo_0100
  * @tc.type: FUNC
  * @tc.require: SR000GGVFS
  */
-HWTEST_F(AppAccountManagerModuleTest, AppAccountManager_SetAccountExtraInfo_0100, Function | MediumTest | Level1)
+HWTEST_F(AppAccountManagerModuleTest, AppAccountManager_SetAccountExtraInfo_0100, TestSize.Level1)
 {
     ACCOUNT_LOGI("AppAccountManager_SetAccountExtraInfo_0100");
 
@@ -188,7 +188,7 @@ HWTEST_F(AppAccountManagerModuleTest, AppAccountManager_SetAccountExtraInfo_0100
  * @tc.type: FUNC
  * @tc.require: SR000GGVFS
  */
-HWTEST_F(AppAccountManagerModuleTest, AppAccountManager_EnableAppAccess_0100, Function | MediumTest | Level1)
+HWTEST_F(AppAccountManagerModuleTest, AppAccountManager_EnableAppAccess_0100, TestSize.Level1)
 {
     ACCOUNT_LOGI("AppAccountManager_EnableAppAccess_0100");
 
@@ -202,7 +202,7 @@ HWTEST_F(AppAccountManagerModuleTest, AppAccountManager_EnableAppAccess_0100, Fu
  * @tc.type: FUNC
  * @tc.require: SR000GGVFS
  */
-HWTEST_F(AppAccountManagerModuleTest, AppAccountManager_DisableAppAccess_0100, Function | MediumTest | Level1)
+HWTEST_F(AppAccountManagerModuleTest, AppAccountManager_DisableAppAccess_0100, TestSize.Level1)
 {
     ACCOUNT_LOGI("AppAccountManager_DisableAppAccess_0100");
 
@@ -216,7 +216,7 @@ HWTEST_F(AppAccountManagerModuleTest, AppAccountManager_DisableAppAccess_0100, F
  * @tc.type: FUNC
  * @tc.require: SR000GGVFS
  */
-HWTEST_F(AppAccountManagerModuleTest, AppAccountManager_CheckAppAccountSyncEnable_0100, Function | MediumTest | Level1)
+HWTEST_F(AppAccountManagerModuleTest, AppAccountManager_CheckAppAccountSyncEnable_0100, TestSize.Level1)
 {
     ACCOUNT_LOGI("AppAccountManager_CheckAppAccountSyncEnable_0100");
 
@@ -231,7 +231,7 @@ HWTEST_F(AppAccountManagerModuleTest, AppAccountManager_CheckAppAccountSyncEnabl
  * @tc.type: FUNC
  * @tc.require: SR000GGVFS
  */
-HWTEST_F(AppAccountManagerModuleTest, AppAccountManager_SetAppAccountSyncEnable_0100, Function | MediumTest | Level1)
+HWTEST_F(AppAccountManagerModuleTest, AppAccountManager_SetAppAccountSyncEnable_0100, TestSize.Level1)
 {
     ACCOUNT_LOGI("AppAccountManager_SetAppAccountSyncEnable_0100");
 
@@ -245,7 +245,7 @@ HWTEST_F(AppAccountManagerModuleTest, AppAccountManager_SetAppAccountSyncEnable_
  * @tc.type: FUNC
  * @tc.require: SR000GGVFS
  */
-HWTEST_F(AppAccountManagerModuleTest, AppAccountManager_GetAssociatedData_0100, Function | MediumTest | Level1)
+HWTEST_F(AppAccountManagerModuleTest, AppAccountManager_GetAssociatedData_0100, TestSize.Level1)
 {
     ACCOUNT_LOGI("AppAccountManager_GetAssociatedData_0100");
 
@@ -260,7 +260,7 @@ HWTEST_F(AppAccountManagerModuleTest, AppAccountManager_GetAssociatedData_0100, 
  * @tc.type: FUNC
  * @tc.require: SR000GGVFS
  */
-HWTEST_F(AppAccountManagerModuleTest, AppAccountManager_SetAssociatedData_0100, Function | MediumTest | Level1)
+HWTEST_F(AppAccountManagerModuleTest, AppAccountManager_SetAssociatedData_0100, TestSize.Level1)
 {
     ACCOUNT_LOGI("AppAccountManager_SetAssociatedData_0100");
 
@@ -274,7 +274,7 @@ HWTEST_F(AppAccountManagerModuleTest, AppAccountManager_SetAssociatedData_0100, 
  * @tc.type: FUNC
  * @tc.require: SR000GGVFS
  */
-HWTEST_F(AppAccountManagerModuleTest, AppAccountManager_GetAccountCredential_0100, Function | MediumTest | Level1)
+HWTEST_F(AppAccountManagerModuleTest, AppAccountManager_GetAccountCredential_0100, TestSize.Level1)
 {
     ACCOUNT_LOGI("AppAccountManager_GetAccountCredential_0100");
 
@@ -289,7 +289,7 @@ HWTEST_F(AppAccountManagerModuleTest, AppAccountManager_GetAccountCredential_010
  * @tc.type: FUNC
  * @tc.require: SR000GGVFS
  */
-HWTEST_F(AppAccountManagerModuleTest, AppAccountManager_SetAccountCredential_0100, Function | MediumTest | Level1)
+HWTEST_F(AppAccountManagerModuleTest, AppAccountManager_SetAccountCredential_0100, TestSize.Level1)
 {
     ACCOUNT_LOGI("AppAccountManager_SetAccountCredential_0100");
 
@@ -303,7 +303,7 @@ HWTEST_F(AppAccountManagerModuleTest, AppAccountManager_SetAccountCredential_010
  * @tc.type: FUNC
  * @tc.require: SR000GGVFU
  */
-HWTEST_F(AppAccountManagerModuleTest, AppAccountManager_GetOAuthToken_0100, Function | MediumTest | Level1)
+HWTEST_F(AppAccountManagerModuleTest, AppAccountManager_GetOAuthToken_0100, TestSize.Level1)
 {
     ACCOUNT_LOGI("AppAccountManager_GetOAuthToken_0100");
 
@@ -318,7 +318,7 @@ HWTEST_F(AppAccountManagerModuleTest, AppAccountManager_GetOAuthToken_0100, Func
  * @tc.type: FUNC
  * @tc.require: SR000GGVFU
  */
-HWTEST_F(AppAccountManagerModuleTest, AppAccountManager_SetOAuthToken_0100, Function | MediumTest | Level1)
+HWTEST_F(AppAccountManagerModuleTest, AppAccountManager_SetOAuthToken_0100, TestSize.Level1)
 {
     ACCOUNT_LOGI("AppAccountManager_SetOAuthToken_0100");
 
@@ -332,7 +332,7 @@ HWTEST_F(AppAccountManagerModuleTest, AppAccountManager_SetOAuthToken_0100, Func
  * @tc.type: FUNC
  * @tc.require: SR000GGVFU
  */
-HWTEST_F(AppAccountManagerModuleTest, AppAccountManager_ClearOAuthToken_0100, Function | MediumTest | Level1)
+HWTEST_F(AppAccountManagerModuleTest, AppAccountManager_ClearOAuthToken_0100, TestSize.Level1)
 {
     ACCOUNT_LOGI("AppAccountManager_ClearOAuthToken_0100");
 
@@ -346,7 +346,7 @@ HWTEST_F(AppAccountManagerModuleTest, AppAccountManager_ClearOAuthToken_0100, Fu
  * @tc.type: FUNC
  * @tc.require: SR000GGVFR
  */
-HWTEST_F(AppAccountManagerModuleTest, AppAccountManager_GetAllAccounts_0100, Function | MediumTest | Level1)
+HWTEST_F(AppAccountManagerModuleTest, AppAccountManager_GetAllAccounts_0100, TestSize.Level1)
 {
     ACCOUNT_LOGI("AppAccountManager_GetAllAccounts_0100");
 
@@ -361,7 +361,7 @@ HWTEST_F(AppAccountManagerModuleTest, AppAccountManager_GetAllAccounts_0100, Fun
  * @tc.type: FUNC
  * @tc.require: SR000GGVFT
  */
-HWTEST_F(AppAccountManagerModuleTest, AppAccountManager_SubscribeAppAccount_0100, Function | MediumTest | Level1)
+HWTEST_F(AppAccountManagerModuleTest, AppAccountManager_SubscribeAppAccount_0100, TestSize.Level1)
 {
     ACCOUNT_LOGI("AppAccountManager_SubscribeAppAccount_0100");
 
@@ -385,7 +385,7 @@ HWTEST_F(AppAccountManagerModuleTest, AppAccountManager_SubscribeAppAccount_0100
  * @tc.type: FUNC
  * @tc.require: SR000GGVFT
  */
-HWTEST_F(AppAccountManagerModuleTest, AppAccountManager_UnsubscribeAppAccount_0100, Function | MediumTest | Level1)
+HWTEST_F(AppAccountManagerModuleTest, AppAccountManager_UnsubscribeAppAccount_0100, TestSize.Level1)
 {
     ACCOUNT_LOGI("AppAccountManager_UnsubscribeAppAccount_0100");
 

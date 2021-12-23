@@ -53,7 +53,7 @@ void AppAccountSubscribeInfoTest::TearDown(void)
  * @tc.type: FUNC
  * @tc.require: SR000GGVFT
  */
-HWTEST_F(AppAccountSubscribeInfoTest, AppAccountSubscribeInfo_GetOwners_0100, Function | MediumTest | Level1)
+HWTEST_F(AppAccountSubscribeInfoTest, AppAccountSubscribeInfo_GetOwners_0100, TestSize.Level1)
 {
     // make owners
     std::vector<std::string> owners;
@@ -79,7 +79,7 @@ HWTEST_F(AppAccountSubscribeInfoTest, AppAccountSubscribeInfo_GetOwners_0100, Fu
  * @tc.type: FUNC
  * @tc.require: SR000GGVFT
  */
-HWTEST_F(AppAccountSubscribeInfoTest, AppAccountSubscribeInfo_SetOwners_0100, Function | MediumTest | Level1)
+HWTEST_F(AppAccountSubscribeInfoTest, AppAccountSubscribeInfo_SetOwners_0100, TestSize.Level1)
 {
     // make owners
     std::vector<std::string> owners;
@@ -104,7 +104,7 @@ HWTEST_F(AppAccountSubscribeInfoTest, AppAccountSubscribeInfo_SetOwners_0100, Fu
  * @tc.type: FUNC
  * @tc.require: SR000GGVFT
  */
-HWTEST_F(AppAccountSubscribeInfoTest, AppAccountSubscribeInfo_Marshalling_0100, Function | MediumTest | Level1)
+HWTEST_F(AppAccountSubscribeInfoTest, AppAccountSubscribeInfo_Marshalling_0100, TestSize.Level0)
 {
     // make owners
     std::vector<std::string> owners;

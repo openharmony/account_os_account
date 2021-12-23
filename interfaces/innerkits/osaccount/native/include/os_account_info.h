@@ -21,35 +21,41 @@
 #include "parcel.h"
 namespace OHOS {
 namespace AccountSA {
+typedef enum {
+    ADMIN = 0,
+    NORMAL,
+    GUEST,
+} OsAccountType;
+
 class OsAccountInfo : public IAccountInfo, public Parcelable {
 public:
     OsAccountInfo();
 
-    OsAccountInfo(int id, const std::string name, int type, int64_t serialNumber);
+    OsAccountInfo(int localId, const std::string localName, OsAccountType type, int64_t serialNumber);
 
-    OsAccountInfo(int id, std::string name, int type, std::vector<std::string> constraints,
-        bool isOsAccountVerified, std::string photo, int64_t createTime, int64_t lastLoggedInTime,
-        int64_t serialNumber, bool isAccountCompleted);
+    OsAccountInfo(int localId, std::string localName, OsAccountType type, std::vector<std::string> constraints,
+        bool isVerified, std::string photo, int64_t createTime, int64_t lastLoginTime, int64_t serialNumber,
+        bool isCreateCompleted);
 
-    int GetId() const;
+    int GetLocalId() const;
 
-    void SetId(int id);
+    void SetLocalId(int localId);
 
-    std::string GetName() const;
+    std::string GetLocalName() const;
 
-    void SetName(const std::string name);
+    void SetLocalName(const std::string localName);
 
-    int GetType() const;
+    OsAccountType GetType() const;
 
-    void SetType(int type);
+    void SetType(OsAccountType type);
 
     std::vector<std::string> GetConstraints() const;
 
     void SetConstraints(const std::vector<std::string> constraints);
 
-    bool GetIsAccountVerified() const;
+    bool GetIsVerified() const;
 
-    void SetIsAccountVerified(bool isOsAccountVerified);
+    void SetIsVerified(bool isVerified);
 
     std::string GetPhoto() const;
 
@@ -59,9 +65,9 @@ public:
 
     void SetCreateTime(const int64_t createTime);
 
-    int64_t GetLastLoggedInTime() const;
+    int64_t GetLastLoginTime() const;
 
-    void SetLastLoggedInTime(const int64_t lastLoggedInTime);
+    void SetLastLoginTime(const int64_t lastLoginTime);
 
     virtual Json ToJson() const override;
 
@@ -85,22 +91,22 @@ public:
 
     void SetIsActived(const bool isActived);
 
-    bool GetIsAccountCompleted() const;
+    bool GetIsCreateCompleted() const;
 
-    void SetIsAccountCompleted(const bool isAccountCompleted);
+    void SetIsCreateCompleted(const bool isCreateCompleted);
 
 private:
-    int id_;
-    std::string name_;
-    int type_;
+    int localId_;
+    std::string localName_;
+    OsAccountType type_;
     std::vector<std::string> constraints_;
-    bool isAccountVerified_;
+    bool isVerified_;
     std::string photo_;
     int64_t createTime_;
-    int64_t lastLoggedInTime_;
+    int64_t lastLoginTime_;
     int64_t serialNumber_;
     bool isActived_;
-    bool isAccountCompleted_;
+    bool isCreateCompleted_;
 };
 typedef enum {
     HOT_SWITCH = 0,

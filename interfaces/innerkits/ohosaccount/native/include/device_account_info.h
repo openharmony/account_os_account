@@ -106,7 +106,7 @@ public:
     /**
      * Device account last logged time.
      */
-    int64_t lastLoggedInTime_;
+    int64_t lastLoginTime_;
 
     /**
      * Guest device account to be removed.
@@ -125,7 +125,7 @@ public:
         state_ = DeviceAccountState::DEVICE_ACCOUNT_STATE_INVALID;
         flags_ = 0;
         creationTime_ = 0;
-        lastLoggedInTime_ = 0;
+        lastLoginTime_ = 0;
         guestToRemoved_ = false;
     }
 
@@ -139,7 +139,7 @@ public:
         state_ = DeviceAccountState::DEVICE_ACCOUNT_STATE_INVALID;
         flags_ = 0;
         creationTime_ = 0;
-        lastLoggedInTime_ = 0;
+        lastLoginTime_ = 0;
         guestToRemoved_ = false;
     }
 
@@ -153,7 +153,7 @@ public:
         state_ = DeviceAccountState::DEVICE_ACCOUNT_STATE_INVALID;
         flags_ = 0;
         creationTime_ = 0;
-        lastLoggedInTime_ = 0;
+        lastLoginTime_ = 0;
         guestToRemoved_ = false;
     }
 

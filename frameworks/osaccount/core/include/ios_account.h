@@ -28,13 +28,13 @@ public:
     DECLARE_INTERFACE_DESCRIPTOR(u"ohos.accountfwk.IOsAccount");
 
     virtual ErrCode CreateOsAccount(
-        const std::string &name, const int &type, OsAccountInfo &osAccountInfo) = 0;
+        const std::string &name, const OsAccountType &type, OsAccountInfo &osAccountInfo) = 0;
     virtual ErrCode RemoveOsAccount(const int id) = 0;
     virtual ErrCode IsOsAccountExists(const int id, bool &isOsAccountExists) = 0;
     virtual ErrCode IsOsAccountActived(const int id, bool &isOsAccountActived) = 0;
     virtual ErrCode IsOsAccountConstraintEnable(
         const int id, const std::string &constraint, bool &isConstraintEnable) = 0;
-    virtual ErrCode IsOsAccountVerified(const int id, bool &isOsAccountVerified) = 0;
+    virtual ErrCode IsOsAccountVerified(const int id, bool &isVerified) = 0;
     virtual ErrCode GetCreatedOsAccountsCount(int &osAccountsCount) = 0;
     virtual ErrCode GetOsAccountLocalIdFromProcess(int &id) = 0;
     virtual ErrCode GetOsAccountLocalIdFromUid(const int uid, int &id) = 0;
@@ -43,14 +43,14 @@ public:
     virtual ErrCode QueryAllCreatedOsAccounts(std::vector<OsAccountInfo> &osAccountInfos) = 0;
     virtual ErrCode QueryCurrentOsAccount(OsAccountInfo &osAccountInfo) = 0;
     virtual ErrCode QueryOsAccountById(const int id, OsAccountInfo &osAccountInfo) = 0;
-    virtual ErrCode GetOsAccountTypeFromProcess(int &type) = 0;
+    virtual ErrCode GetOsAccountTypeFromProcess(OsAccountType &type) = 0;
     virtual ErrCode GetOsAccountProfilePhoto(const int id, std::string &photo) = 0;
     virtual ErrCode IsMultiOsAccountEnable(bool &isMultiOsAccountEnable) = 0;
     virtual ErrCode SetOsAccountName(const int id, const std::string &localName) = 0;
     virtual ErrCode SetOsAccountConstraints(
         const int id, const std::vector<std::string> &constraints, const bool enable) = 0;
     virtual ErrCode SetOsAccountProfilePhoto(const int id, const std::string &photo) = 0;
-    virtual ErrCode GetDistributedVirtualDeviceId(std::int32_t &deviceId) = 0;
+    virtual ErrCode GetDistributedVirtualDeviceId(std::string &deviceId) = 0;
     virtual ErrCode ActivateOsAccount(const int id) = 0;
     virtual ErrCode StartOsAccount(const int id) = 0;
     virtual ErrCode StopOsAccount(const int id) = 0;
@@ -60,10 +60,10 @@ public:
         const OsAccountSubscribeInfo &subscribeInfo, const sptr<IRemoteObject> &eventListener) = 0;
     virtual ErrCode UnsubscribeOsAccount(const sptr<IRemoteObject> &eventListener) = 0;
     virtual OS_ACCOUNT_SWITCH_MOD GetOsAccountSwitchMod() = 0;
-    virtual ErrCode IsCurrentOsAccountVerified(bool &isOsAccountVerified) = 0;
+    virtual ErrCode IsCurrentOsAccountVerified(bool &isVerified) = 0;
     virtual ErrCode IsOsAccountCompleted(const int id, bool &isOsAccountCompleted) = 0;
-    virtual ErrCode SetCurrentOsAccountIsVerified(const bool isOsAccountVerified) = 0;
-    virtual ErrCode SetOsAccountIsVerified(const int id, const bool isOsAccountVerified) = 0;
+    virtual ErrCode SetCurrentOsAccountIsVerified(const bool isVerified) = 0;
+    virtual ErrCode SetOsAccountIsVerified(const int id, const bool isVerified) = 0;
     enum class Message {
         CREATE_OS_ACCOUNT = 0,
         REMOVE_OS_ACCOUNT,

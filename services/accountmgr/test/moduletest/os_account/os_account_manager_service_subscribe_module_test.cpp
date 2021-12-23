@@ -82,8 +82,7 @@ public:
  * @tc.type: FUNC
  * @tc.require: SR000GGVFH
  */
-HWTEST_F(OsAccountManagerServiceSubscribeModuleTest, OsAccountManagerServiceSubscribeModuleTest_0001,
-    Function | MediumTest | Level1)
+HWTEST_F(OsAccountManagerServiceSubscribeModuleTest, OsAccountManagerServiceSubscribeModuleTest_0001, TestSize.Level1)
 {
     ACCOUNT_LOGI("OsAccountManagerServiceSubscribeModuleTest_0001");
     OsAccountSubscribeInfo osAccountSubscribeInfo;
@@ -97,8 +96,8 @@ HWTEST_F(OsAccountManagerServiceSubscribeModuleTest, OsAccountManagerServiceSubs
     sptr<IRemoteObject> osAccountEventListener = nullptr;
 
     OsAccountInfo osAccountInfo;
-    ErrCode result = osAccountManagerService_->CreateOsAccount("test", 1, osAccountInfo);
-    subscriberTestPtr->id_ = osAccountInfo.GetId();
+    ErrCode result = osAccountManagerService_->CreateOsAccount("test", OsAccountType::GUEST, osAccountInfo);
+    subscriberTestPtr->id_ = osAccountInfo.GetLocalId();
     ErrCode subscribeState = DelayedSingleton<OsAccount>::GetInstance()->CreateOsAccountEventListener(
         subscriberTestPtr, osAccountEventListener);
     EXPECT_EQ(subscribeState, OsAccount::INITIAL_SUBSCRIPTION);
@@ -109,7 +108,7 @@ HWTEST_F(OsAccountManagerServiceSubscribeModuleTest, OsAccountManagerServiceSubs
     // lock the mutex
     mtx.lock();
     EXPECT_EQ(result, ERR_OK);
-    result = osAccountManagerService_->StartOsAccount(osAccountInfo.GetId());
+    result = osAccountManagerService_->StartOsAccount(osAccountInfo.GetLocalId());
     EXPECT_EQ(result, ERR_OK);
     struct tm startTime = {0};
     EXPECT_EQ(GetSystemCurrentTime(&startTime), true);
@@ -125,11 +124,11 @@ HWTEST_F(OsAccountManagerServiceSubscribeModuleTest, OsAccountManagerServiceSubs
     mtx.unlock();
     result = osAccountManagerService_->UnsubscribeOsAccount(osAccountEventListener);
     EXPECT_EQ(result, ERR_OK);
-    result = osAccountManagerService_->StopOsAccount(osAccountInfo.GetId());
+    result = osAccountManagerService_->StopOsAccount(osAccountInfo.GetLocalId());
     EXPECT_EQ(result, ERR_OK);
-    osAccountManagerService_->StartOsAccount(osAccountInfo.GetId());
+    osAccountManagerService_->StartOsAccount(osAccountInfo.GetLocalId());
     // unlock the mutex
-    result = osAccountManagerService_->RemoveOsAccount(osAccountInfo.GetId());
+    result = osAccountManagerService_->RemoveOsAccount(osAccountInfo.GetLocalId());
 }
 
 /**
@@ -138,8 +137,7 @@ HWTEST_F(OsAccountManagerServiceSubscribeModuleTest, OsAccountManagerServiceSubs
  * @tc.type: FUNC
  * @tc.require: SR000GGVFH
  */
-HWTEST_F(OsAccountManagerServiceSubscribeModuleTest, OsAccountManagerServiceSubscribeModuleTest_0002,
-    Function | MediumTest | Level1)
+HWTEST_F(OsAccountManagerServiceSubscribeModuleTest, OsAccountManagerServiceSubscribeModuleTest_0002, TestSize.Level1)
 {
     ACCOUNT_LOGI("OsAccountManagerServiceSubscribeModuleTest_0002");
     OsAccountSubscribeInfo osAccountSubscribeInfo;
@@ -153,8 +151,8 @@ HWTEST_F(OsAccountManagerServiceSubscribeModuleTest, OsAccountManagerServiceSubs
     sptr<IRemoteObject> osAccountEventListener = nullptr;
 
     OsAccountInfo osAccountInfo;
-    ErrCode result = osAccountManagerService_->CreateOsAccount("test", 1, osAccountInfo);
-    subscriberTestPtr->id_ = osAccountInfo.GetId();
+    ErrCode result = osAccountManagerService_->CreateOsAccount("test", OsAccountType::GUEST, osAccountInfo);
+    subscriberTestPtr->id_ = osAccountInfo.GetLocalId();
     ErrCode subscribeState = DelayedSingleton<OsAccount>::GetInstance()->CreateOsAccountEventListener(
         subscriberTestPtr, osAccountEventListener);
     EXPECT_EQ(subscribeState, OsAccount::INITIAL_SUBSCRIPTION);
@@ -165,7 +163,7 @@ HWTEST_F(OsAccountManagerServiceSubscribeModuleTest, OsAccountManagerServiceSubs
     // lock the mutex
     mtx.lock();
     EXPECT_EQ(result, ERR_OK);
-    result = osAccountManagerService_->StartOsAccount(osAccountInfo.GetId());
+    result = osAccountManagerService_->StartOsAccount(osAccountInfo.GetLocalId());
     EXPECT_EQ(result, ERR_OK);
     struct tm startTime = {0};
     EXPECT_EQ(GetSystemCurrentTime(&startTime), true);
@@ -181,10 +179,9 @@ HWTEST_F(OsAccountManagerServiceSubscribeModuleTest, OsAccountManagerServiceSubs
     mtx.unlock();
     result = osAccountManagerService_->UnsubscribeOsAccount(osAccountEventListener);
     EXPECT_EQ(result, ERR_OK);
-    result = osAccountManagerService_->StopOsAccount(osAccountInfo.GetId());
+    result = osAccountManagerService_->StopOsAccount(osAccountInfo.GetLocalId());
     EXPECT_EQ(result, ERR_OK);
-    osAccountManagerService_->StartOsAccount(osAccountInfo.GetId());
+    osAccountManagerService_->StartOsAccount(osAccountInfo.GetLocalId());
     // unlock the mutex
-    result = osAccountManagerService_->RemoveOsAccount(osAccountInfo.GetId());
+    result = osAccountManagerService_->RemoveOsAccount(osAccountInfo.GetLocalId());
 }
-
