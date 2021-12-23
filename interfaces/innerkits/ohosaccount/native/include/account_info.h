@@ -17,7 +17,6 @@
 #define BASE_ACCOUNT_ACCOUNT_INFO_H
 
 #include <string>
-#include <ctime>
 
 namespace OHOS {
 namespace AccountSA {
@@ -122,3 +121,4 @@ public:
 } // namespace OHOS
 
 #endif // BASE_ACCOUNT_ACCOUNT_INFO_H
+
