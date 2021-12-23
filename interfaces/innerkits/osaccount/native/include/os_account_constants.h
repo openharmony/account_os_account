@@ -24,6 +24,7 @@ namespace Constants {
 const std::string PATH_SEPARATOR = "/";
 const std::string USER_INFO_BASE = "/data/system/users";
 const std::string OSACCOUNT_CONSTRAINTS_JSON_PATH = "/system/etc/account/osaccount_constraints.json";
+const std::string CONSTRAINTS_LIST_JSON_PATH = "/system/etc/account/constraints_list_collection.json";
 const std::string USER_LIST_FILE_NAME = "account_list.json";
 const std::string USER_PHOTO_FILE_PNG_NAME = "fase.png";
 const std::string USER_PHOTO_FILE_JPG_NAME = "fase.jpg";
@@ -56,6 +57,7 @@ const int MAX_USER_ID = 999;
 const int64_t SERIAL_NUMBER_NUM_START_FOR_ADMIN = 20210231;
 const int64_t SERIAL_NUMBER_NUM_START = 101;
 const int64_t CARRY_NUM = 100000000;
+const bool IS_SERIAL_NUMBER_FULL_INIT_VALUE = false;
 
 // type temeplate
 const std::string USER_CONSTRATINTS_TEMPLATE = "UserConstraintsTemplate";
@@ -66,6 +68,9 @@ const std::string NOW_ALLOW_CREATE_ACCOUNT_NUM = "NowAllowCreateAccountNum";
 const std::string MAX_ALLOW_CREATE_ACCOUNT_NUM = "MaxAllowCreateAccountNum";
 const std::string SERIAL_NUMBER_NUM = "SerialNumber";
 const std::string IS_MULTI_OS_ACCOUNT_ENABLE = "IsMultiOsAccountEnable";
+const std::string IS_SERIAL_NUMBER_FULL = "isSerialNumberFull";
+const std::string CONSTANS_LITE = "constraints";
+const std::string IS_ALLOWED_CREATE_ADMIN = "IsAllowedCreateAdmin";
 
 // start type
 const OS_ACCOUNT_SWITCH_MOD NOW_OS_ACCOUNT_SWITCH_MOD = OS_ACCOUNT_SWITCH_MOD::HOT_SWITCH;

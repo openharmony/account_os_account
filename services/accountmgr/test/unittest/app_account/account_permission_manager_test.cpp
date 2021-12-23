@@ -54,7 +54,7 @@ void AccountPermissionManagerTest::TearDown(void)
  * @tc.type: FUNC
  * @tc.require: SR000GGVFR
  */
-HWTEST_F(AccountPermissionManagerTest, AccountPermissionManager_VerifyPermission_0100, Function | MediumTest | Level1)
+HWTEST_F(AccountPermissionManagerTest, AccountPermissionManager_VerifyPermission_0100, TestSize.Level1)
 {
     ACCOUNT_LOGI("AccountPermissionManager_VerifyPermission_0100");
 

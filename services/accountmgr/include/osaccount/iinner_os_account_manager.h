@@ -19,34 +19,34 @@
 #include "ios_account_control.h"
 #include "ios_account_subscribe.h"
 #include "os_account_standard_interface.h"
+#include "singleton.h"
 namespace OHOS {
 namespace AccountSA {
-class IInnerOsAccountManager : public IInnerOsAccount {
+class IInnerOsAccountManager : public IInnerOsAccount, public DelayedSingleton<IInnerOsAccountManager> {
 public:
     IInnerOsAccountManager();
-    virtual ~IInnerOsAccountManager();
-    virtual void Init() override;
+    virtual ~IInnerOsAccountManager() = default;
     virtual ErrCode CreateOsAccount(
-        const std::string &name, const int &type, OsAccountInfo &osAccountInfo) override;
+        const std::string &name, const OsAccountType &type, OsAccountInfo &osAccountInfo) override;
     virtual ErrCode RemoveOsAccount(const int id) override;
     virtual ErrCode IsOsAccountExists(const int id, bool &isOsAccountExits) override;
     virtual ErrCode IsOsAccountActived(const int id, bool &isOsAccountActived) override;
     virtual ErrCode IsOsAccountConstraintEnable(
         const int id, const std::string &constraint, bool &isOsAccountConstraintEnable) override;
-    virtual ErrCode IsOsAccountVerified(const int id, bool &isOsAccountVerified) override;
+    virtual ErrCode IsOsAccountVerified(const int id, bool &isVerified) override;
     virtual ErrCode GetCreatedOsAccountsCount(int &createdOsAccountCount) override;
     virtual ErrCode QueryMaxOsAccountNumber(int &maxOsAccountNumber) override;
     virtual ErrCode GetOsAccountAllConstraints(const int id, std::vector<std::string> &constraints) override;
     virtual ErrCode QueryAllCreatedOsAccounts(std::vector<OsAccountInfo> &osAccountInfos) override;
     virtual ErrCode QueryOsAccountById(const int id, OsAccountInfo &osAccountInfo) override;
-    virtual ErrCode GetOsAccountType(const int id, int &type) override;
+    virtual ErrCode GetOsAccountType(const int id, OsAccountType &type) override;
     virtual ErrCode GetOsAccountProfilePhoto(const int id, std::string &photo) override;
     virtual ErrCode IsMultiOsAccountEnable(bool &isMultiOsAccountEnable) override;
     virtual ErrCode SetOsAccountName(const int id, const std::string &name) override;
     virtual ErrCode SetOsAccountConstraints(
         const int id, const std::vector<std::string> &constraints, const bool enable) override;
     virtual ErrCode SetOsAccountProfilePhoto(const int id, const std::string &photo) override;
-    virtual ErrCode GetDistributedVirtualDeviceId(std::int32_t &deviceId, std::int32_t uid) override;
+    virtual ErrCode GetDistributedVirtualDeviceId(std::string &deviceId, std::int32_t uid) override;
     virtual ErrCode ActivateOsAccount(const int id) override;
     virtual ErrCode StartOsAccount(const int id) override;
     virtual ErrCode StopOsAccount(const int id) override;
@@ -57,23 +57,29 @@ public:
     virtual ErrCode UnsubscribeOsAccount(const sptr<IRemoteObject> &eventListener) override;
     virtual OS_ACCOUNT_SWITCH_MOD GetOsAccountSwitchMod() override;
     virtual ErrCode IsOsAccountCompleted(const int id, bool &isOsAccountCompleted) override;
-    virtual ErrCode SetOsAccountIsVerified(const int id, const bool isOsAccountVerified) override;
+    virtual ErrCode SetOsAccountIsVerified(const int id, const bool isVerified) override;
+    virtual ErrCode IsAllowedCreateAdmin(bool &isAllowedCreateAdmin) override;
 
 private:
+    virtual void Init() override;
+    void StartAccount();
     void CreateBaseAdminAccount();
     void CreateBaseStandardAccount();
-    void StartBaseAccount(void);
+    void StartBaseAdminAccount(void);
+    void StartBaseStandardAccount(void);
     ErrCode GetEventHandler(void);
 
 private:
     std::shared_ptr<IOsAccountControl> osAccountControl_;
     std::vector<int> activeAccountId_;
     std::shared_ptr<IOsAccountSubscribe> subscribeManagerPtr_;
-    std::int32_t counter_;
+    std::int32_t counterForAdmin_;
+    std::int32_t counterForStandard_;
     std::shared_ptr<OHOS::AppExecFwk::EventHandler> handler_;
     static constexpr std::int32_t DELAY_FOR_FOUNDATION_SERVICE = 5 * 1000;  // 5s
     static constexpr std::int32_t DELAY_FOR_TIME_INTERVAL = 1 * 1000;       // 1s
     static constexpr std::int32_t MAX_TRY_TIMES = 10;
+    mutable std::mutex ativeMutex_;
 };
 }  // namespace AccountSA
 }  // namespace OHOS

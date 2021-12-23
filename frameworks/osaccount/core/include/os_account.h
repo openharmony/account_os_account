@@ -21,13 +21,12 @@ namespace AccountSA {
 class OsAccount {
 public:
     enum SubscribeState { ALREADY_SUBSCRIBED = 0, INITIAL_SUBSCRIPTION, SUBSCRIBE_FAILD };
-    ErrCode CreateOsAccount(
-        const std::string &name, const int &type, OsAccountInfo &osAccountInfo);
+    ErrCode CreateOsAccount(const std::string &name, const OsAccountType &type, OsAccountInfo &osAccountInfo);
     ErrCode RemoveOsAccount(const int id);
     ErrCode IsOsAccountExists(const int id, bool &isOsAccountExists);
     ErrCode IsOsAccountActived(const int id, bool &isOsAccountActived);
     ErrCode IsOsAccountConstraintEnable(const int id, const std::string &constraint, bool &isConstraintEnable);
-    ErrCode IsOsAccountVerified(const int id, bool &isOsAccountVerified);
+    ErrCode IsOsAccountVerified(const int id, bool &isVerified);
     ErrCode GetCreatedOsAccountsCount(int &osAccountsCount);
     ErrCode GetOsAccountLocalIdFromProcess(int &id);
     ErrCode GetOsAccountLocalIdFromUid(const int uid, int &id);
@@ -36,13 +35,13 @@ public:
     ErrCode QueryAllCreatedOsAccounts(std::vector<OsAccountInfo> &osAccountInfos);
     ErrCode QueryCurrentOsAccount(OsAccountInfo &osAccountInfo);
     ErrCode QueryOsAccountById(const int id, OsAccountInfo &osAccountInfo);
-    ErrCode GetOsAccountTypeFromProcess(int &type);
+    ErrCode GetOsAccountTypeFromProcess(OsAccountType &type);
     ErrCode GetOsAccountProfilePhoto(const int id, std::string &photo);
     ErrCode IsMultiOsAccountEnable(bool &isMultiOsAccountEnable);
     ErrCode SetOsAccountName(const int id, const std::string &localName);
     ErrCode SetOsAccountConstraints(const int id, const std::vector<std::string> &constraints, const bool enable);
     ErrCode SetOsAccountProfilePhoto(const int id, const std::string &photo);
-    ErrCode GetDistributedVirtualDeviceId(std::int32_t &deviceId);
+    ErrCode GetDistributedVirtualDeviceId(std::string &deviceId);;
     ErrCode ActivateOsAccount(const int id);
     ErrCode StartOsAccount(const int id);
     ErrCode StopOsAccount(const int id);
@@ -51,10 +50,10 @@ public:
     ErrCode GetOsAccountLocalIdBySerialNumber(const int64_t serialNumber, int &id);
     ErrCode GetSerialNumberByOsAccountLocalId(const int &id, int64_t &serialNumber);
     OS_ACCOUNT_SWITCH_MOD GetOsAccountSwitchMod();
-    ErrCode IsCurrentOsAccountVerified(bool &isOsAccountVerified);
+    ErrCode IsCurrentOsAccountVerified(bool &isVerified);
     ErrCode IsOsAccountCompleted(const int id, bool &isOsAccountCompleted);
-    ErrCode SetCurrentOsAccountIsVerified(const bool isOsAccountVerified);
-    ErrCode SetOsAccountIsVerified(const int id, const bool isOsAccountVerified);
+    ErrCode SetCurrentOsAccountIsVerified(const bool isVerified);
+    ErrCode SetOsAccountIsVerified(const int id, const bool isVerified);
     ErrCode ResetOsAccountProxy();
 
 private:

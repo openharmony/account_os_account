@@ -128,7 +128,7 @@ ErrCode AppAccount::EnableAppAccess(const std::string &name, const std::string &
     }
 
     if (authorizedApp.size() > AUTHORIZED_APP_MAX_SIZE) {
-        ACCOUNT_LOGE("authorizedApp is out of range");
+        ACCOUNT_LOGE("authorizedApp is out of range, authorizedApp.size() = %{public}zu", authorizedApp.size());
         return ERR_APPACCOUNT_KIT_AUTHORIZED_APP_OUT_OF_RANGE;
     }
 
@@ -160,7 +160,7 @@ ErrCode AppAccount::DisableAppAccess(const std::string &name, const std::string 
     }
 
     if (authorizedApp.size() > AUTHORIZED_APP_MAX_SIZE) {
-        ACCOUNT_LOGE("authorizedApp is out of range");
+        ACCOUNT_LOGE("authorizedApp is out of range, authorizedApp.size() = %{public}zu", authorizedApp.size());
         return ERR_APPACCOUNT_KIT_AUTHORIZED_APP_OUT_OF_RANGE;
     }
 
@@ -235,7 +235,7 @@ ErrCode AppAccount::GetAssociatedData(const std::string &name, const std::string
     }
 
     if (key.size() > ASSOCIATED_KEY_MAX_SIZE) {
-        ACCOUNT_LOGE("key is out of range");
+        ACCOUNT_LOGE("key is out of range, key.size() = %{public}zu", key.size());
         return ERR_APPACCOUNT_KIT_ASSOCIATED_KEY_OUT_OF_RANGE;
     }
 
@@ -267,12 +267,12 @@ ErrCode AppAccount::SetAssociatedData(const std::string &name, const std::string
     }
 
     if (key.size() > ASSOCIATED_KEY_MAX_SIZE) {
-        ACCOUNT_LOGE("key is out of range");
+        ACCOUNT_LOGE("key is out of range, key.size() = %{public}zu", key.size());
         return ERR_APPACCOUNT_KIT_ASSOCIATED_KEY_OUT_OF_RANGE;
     }
 
     if (value.size() > ASSOCIATED_VALUE_MAX_SIZE) {
-        ACCOUNT_LOGE("value is out of range");
+        ACCOUNT_LOGE("value is out of range, value.size() = %{public}zu", value.size());
         return ERR_APPACCOUNT_KIT_ASSOCIATED_VALUE_OUT_OF_RANGE;
     }
 
@@ -305,7 +305,7 @@ ErrCode AppAccount::GetAccountCredential(
     }
 
     if (credentialType.size() > CREDENTIAL_TYPE_MAX_SIZE) {
-        ACCOUNT_LOGE("credentialType is out of range");
+        ACCOUNT_LOGE("credentialType is out of range, credentialType.size() = %{public}zu", credentialType.size());
         return ERR_APPACCOUNT_KIT_CREDENTIAL_TYPE_OUT_OF_RANGE;
     };
 
@@ -338,12 +338,12 @@ ErrCode AppAccount::SetAccountCredential(
     }
 
     if (credentialType.size() > CREDENTIAL_TYPE_MAX_SIZE) {
-        ACCOUNT_LOGE("credentialType is out of range");
+        ACCOUNT_LOGE("credentialType is out of range, credentialType.size() = %{public}zu", credentialType.size());
         return ERR_APPACCOUNT_KIT_CREDENTIAL_TYPE_OUT_OF_RANGE;
     };
 
     if (credential.size() > CREDENTIAL_MAX_SIZE) {
-        ACCOUNT_LOGE("credential is out of range");
+        ACCOUNT_LOGE("credential is out of range, credential.size() = %{public}zu", credential.size());
         return ERR_APPACCOUNT_KIT_CREDENTIAL_OUT_OF_RANGE;
     }
 
@@ -392,7 +392,7 @@ ErrCode AppAccount::SetOAuthToken(const std::string &name, const std::string &to
     }
 
     if (token.size() > TOKEN_MAX_SIZE) {
-        ACCOUNT_LOGE("token is out of range");
+        ACCOUNT_LOGE("token is out of range, token.size() = %{public}zu", token.size());
         return ERR_APPACCOUNT_KIT_TOKEN_OUT_OF_RANGE;
     }
 
@@ -438,7 +438,7 @@ ErrCode AppAccount::GetAllAccounts(const std::string &owner, std::vector<AppAcco
     }
 
     if (owner.size() > OWNER_MAX_SIZE) {
-        ACCOUNT_LOGE("owner is out of range");
+        ACCOUNT_LOGE("owner is out of range, owner.size() = %{public}zu", owner.size());
         return ERR_APPACCOUNT_KIT_OWNER_OUT_OF_RANGE;
     }
 
@@ -501,7 +501,7 @@ ErrCode AppAccount::SubscribeAppAccount(const std::shared_ptr<AppAccountSubscrib
 
     for (auto owner : owners) {
         if (owner.size() > OWNER_MAX_SIZE) {
-            ACCOUNT_LOGE("owner is out of range");
+            ACCOUNT_LOGE("owner is out of range, owner.size() = %{public}zu", owner.size());
             return ERR_APPACCOUNT_KIT_OWNER_OUT_OF_RANGE;
         }
     }
@@ -579,7 +579,7 @@ ErrCode AppAccount::CheckParameters(const std::string &name, const std::string &
     }
 
     if (name.size() > NAME_MAX_SIZE) {
-        ACCOUNT_LOGE("name is out of range");
+        ACCOUNT_LOGE("name is out of range, name.size() = %{public}zu", name.size());
         return ERR_APPACCOUNT_KIT_NAME_OUT_OF_RANGE;
     }
 
@@ -590,7 +590,7 @@ ErrCode AppAccount::CheckParameters(const std::string &name, const std::string &
     }
 
     if (extraInfo.size() > EXTRA_INFO_MAX_SIZE) {
-        ACCOUNT_LOGE("extra info is out of range");
+        ACCOUNT_LOGE("extra info is out of range, extraInfo.size() = %{public}zu", extraInfo.size());
         return ERR_APPACCOUNT_KIT_EXTRA_INFO_OUT_OF_RANGE;
     }
 

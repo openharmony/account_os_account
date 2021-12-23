@@ -38,7 +38,6 @@ config("accountmgr_dump_test_config") {
 
 ohos_unittest("AccountDumpHelperTest") {
   module_out_path = module_output_path
-  ldflags = [ "-Wl,-rpath=/system/lib/module/multimedia/" ]
   sources = [
     "${common_path}/log/src/account_log_wrapper.cpp",
     "${common_path}/perf_stat/src/perf_stat.cpp",
@@ -75,7 +74,6 @@ ohos_unittest("AccountDumpHelperTest") {
     "hisysevent_native:libhisysevent",
     "hiviewdfx_hilog_native:libhilog",
     "ipc:ipc_core",
-    "multimedia_image_standard:image",
     "safwk:system_ability_fwk",
   ]
   part_name = "os_account_standard"

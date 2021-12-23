@@ -254,7 +254,7 @@ public:
  * @tc.require: SR000GGVFT
  */
 HWTEST_F(AppAccountManagerServiceSubscribeModuleTest, AppAccountManagerServiceSubscribe_SubscribeAppAccount_0100,
-    Function | MediumTest | Level1)
+    TestSize.Level0)
 {
     ACCOUNT_LOGI("AppAccountManagerServiceSubscribe_SubscribeAppAccount_0100");
 
@@ -332,7 +332,7 @@ HWTEST_F(AppAccountManagerServiceSubscribeModuleTest, AppAccountManagerServiceSu
  * @tc.require: SR000GGVFT
  */
 HWTEST_F(AppAccountManagerServiceSubscribeModuleTest, AppAccountManagerServiceSubscribe_SubscribeAppAccount_0200,
-    Function | MediumTest | Level1)
+    TestSize.Level1)
 {
     ACCOUNT_LOGI("AppAccountManagerServiceSubscribe_SubscribeAppAccount_0200");
 
@@ -372,7 +372,7 @@ HWTEST_F(AppAccountManagerServiceSubscribeModuleTest, AppAccountManagerServiceSu
  * @tc.require: SR000GGVFT
  */
 HWTEST_F(AppAccountManagerServiceSubscribeModuleTest, AppAccountManagerServiceSubscribe_SubscribeAppAccount_0300,
-    Function | MediumTest | Level1)
+    TestSize.Level1)
 {
     ACCOUNT_LOGI("AppAccountManagerServiceSubscribe_SubscribeAppAccount_0300");
 
@@ -408,7 +408,7 @@ HWTEST_F(AppAccountManagerServiceSubscribeModuleTest, AppAccountManagerServiceSu
  * @tc.require: SR000GGVFT
  */
 HWTEST_F(AppAccountManagerServiceSubscribeModuleTest, AppAccountManagerServiceSubscribe_SubscribeAppAccount_0400,
-    Function | MediumTest | Level1)
+    TestSize.Level1)
 {
     ACCOUNT_LOGI("AppAccountManagerServiceSubscribe_SubscribeAppAccount_0400");
 
@@ -459,7 +459,7 @@ HWTEST_F(AppAccountManagerServiceSubscribeModuleTest, AppAccountManagerServiceSu
  * @tc.require: SR000GGVFT
  */
 HWTEST_F(AppAccountManagerServiceSubscribeModuleTest, AppAccountManagerServiceSubscribe_SubscribeAppAccount_0500,
-    Function | MediumTest | Level1)
+    TestSize.Level1)
 {
     ACCOUNT_LOGI("AppAccountManagerServiceSubscribe_SubscribeAppAccount_0500");
 
@@ -541,7 +541,7 @@ HWTEST_F(AppAccountManagerServiceSubscribeModuleTest, AppAccountManagerServiceSu
  * @tc.require: SR000GGVFT
  */
 HWTEST_F(AppAccountManagerServiceSubscribeModuleTest, AppAccountManagerServiceSubscribe_SubscribeAppAccount_0600,
-    Function | MediumTest | Level1)
+    TestSize.Level1)
 {
     ACCOUNT_LOGI("AppAccountManagerServiceSubscribe_SubscribeAppAccount_0600");
 
@@ -625,7 +625,7 @@ HWTEST_F(AppAccountManagerServiceSubscribeModuleTest, AppAccountManagerServiceSu
  * @tc.require: SR000GGVFT
  */
 HWTEST_F(AppAccountManagerServiceSubscribeModuleTest, AppAccountManagerServiceSubscribe_SubscribeAppAccount_0700,
-    Function | MediumTest | Level1)
+    TestSize.Level1)
 {
     ACCOUNT_LOGI("AppAccountManagerServiceSubscribe_SubscribeAppAccount_0700");
 
@@ -705,7 +705,7 @@ HWTEST_F(AppAccountManagerServiceSubscribeModuleTest, AppAccountManagerServiceSu
  * @tc.require: SR000GGVFT
  */
 HWTEST_F(AppAccountManagerServiceSubscribeModuleTest, AppAccountManagerServiceSubscribe_SubscribeAppAccount_0800,
-    Function | MediumTest | Level1)
+    TestSize.Level1)
 {
     ACCOUNT_LOGI("AppAccountManagerServiceSubscribe_SubscribeAppAccount_0800");
 

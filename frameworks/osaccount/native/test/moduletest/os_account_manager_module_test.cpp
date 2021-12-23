@@ -29,12 +29,13 @@ namespace {
 const std::string STRING_EMPTY = "";
 const std::string STRING_NAME = "name";
 const std::string STRING_TEST_NAME = "test";
-const int INT_TEST_TYPE = 1;
-const int INT_TEST_NEGATIVE_TYPE = -21;
-const int INT_TEST_MAX_TYPE = 10000;
+const OsAccountType INT_TEST_TYPE = OsAccountType::GUEST;
+const OsAccountType INT_TEST_NEGATIVE_TYPE = OsAccountType::ADMIN;
+const OsAccountType INT_TEST_MAX_TYPE = OsAccountType::ADMIN;
 
-const std::vector<std::string> CONSTANTS_VECTOR {"WIFI", "PHONE", "PHOTO"};
-const std::string CONSTANTS_STRING_WIFI = "WIFI";
+const std::vector<std::string> CONSTANTS_VECTOR {
+    "constraint.print", "constraint.screen.timeout.set", "constraint.share.into.profile"};
+const std::string CONSTANTS_STRING_WIFI = "constraint.print";
 const std::string STRING_NAME_OUT_OF_RANGE =
     "name_out_of_range_"
     "1234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890"
@@ -158,15 +159,15 @@ void OsAccountManagerModuleTest::TearDown(void)
  * @tc.require: SR000GGV0U
  */
 
-HWTEST_F(OsAccountManagerModuleTest, OsAccountManagerModuleTest001, Function | MediumTest | Level1)
+HWTEST_F(OsAccountManagerModuleTest, OsAccountManagerModuleTest001, TestSize.Level0)
 {
     OsAccountInfo osAccountInfoOne;
     ErrCode errCode = OsAccountManager::CreateOsAccount(STRING_TEST_NAME, INT_TEST_TYPE, osAccountInfoOne);
     EXPECT_EQ(errCode, ERR_OK);
     OsAccountInfo osAccountInfoTwo;
-    osAccountControlFileManager_->GetOsAccountInfoById(osAccountInfoOne.GetId(), osAccountInfoTwo);
+    osAccountControlFileManager_->GetOsAccountInfoById(osAccountInfoOne.GetLocalId(), osAccountInfoTwo);
     EXPECT_EQ(osAccountInfoOne.ToString(), osAccountInfoTwo.ToString());
-    osAccountControlFileManager_->DelOsAccount(osAccountInfoOne.GetId());
+    osAccountControlFileManager_->DelOsAccount(osAccountInfoOne.GetLocalId());
 }
 
 /**
@@ -175,7 +176,7 @@ HWTEST_F(OsAccountManagerModuleTest, OsAccountManagerModuleTest001, Function | M
  * @tc.type: FUNC
  * @tc.require: SR000GGVFN
  */
-HWTEST_F(OsAccountManagerModuleTest, OsAccountManagerModuleTest002, Function | MediumTest | Level1)
+HWTEST_F(OsAccountManagerModuleTest, OsAccountManagerModuleTest002, TestSize.Level1)
 {
     OsAccountInfo osAccountInfoOne;
     ErrCode errCode = OsAccountManager::CreateOsAccount(STRING_NAME_OUT_OF_RANGE, INT_TEST_TYPE, osAccountInfoOne);
@@ -188,7 +189,7 @@ HWTEST_F(OsAccountManagerModuleTest, OsAccountManagerModuleTest002, Function | M
  * @tc.type: FUNC
  * @tc.require: SR000GGVFN
  */
-HWTEST_F(OsAccountManagerModuleTest, OsAccountManagerModuleTest003, Function | MediumTest | Level1)
+HWTEST_F(OsAccountManagerModuleTest, OsAccountManagerModuleTest003, TestSize.Level1)
 {
     OsAccountInfo osAccountInfoOne;
     ErrCode errCode = OsAccountManager::CreateOsAccount(STRING_EMPTY, INT_TEST_TYPE, osAccountInfoOne);
@@ -201,7 +202,7 @@ HWTEST_F(OsAccountManagerModuleTest, OsAccountManagerModuleTest003, Function | M
  * @tc.type: FUNC
  * @tc.require: SR000GGVFN
  */
-HWTEST_F(OsAccountManagerModuleTest, OsAccountManagerModuleTest004, Function | MediumTest | Level1)
+HWTEST_F(OsAccountManagerModuleTest, OsAccountManagerModuleTest004, TestSize.Level1)
 {
     OsAccountInfo osAccountInfoOne;
     ErrCode errCode = OsAccountManager::CreateOsAccount(STRING_TEST_NAME, INT_TEST_NEGATIVE_TYPE, osAccountInfoOne);
@@ -214,7 +215,7 @@ HWTEST_F(OsAccountManagerModuleTest, OsAccountManagerModuleTest004, Function | M
  * @tc.type: FUNC
  * @tc.require: SR000GGVFN
  */
-HWTEST_F(OsAccountManagerModuleTest, OsAccountManagerModuleTest005, Function | MediumTest | Level1)
+HWTEST_F(OsAccountManagerModuleTest, OsAccountManagerModuleTest005, TestSize.Level1)
 {
     OsAccountInfo osAccountInfoOne;
     ErrCode errCode = OsAccountManager::CreateOsAccount(STRING_TEST_NAME, INT_TEST_MAX_TYPE, osAccountInfoOne);
@@ -227,7 +228,7 @@ HWTEST_F(OsAccountManagerModuleTest, OsAccountManagerModuleTest005, Function | M
  * @tc.type: FUNC
  * @tc.require: SR000GGVFN
  */
-HWTEST_F(OsAccountManagerModuleTest, OsAccountManagerModuleTest006, Function | MediumTest | Level1)
+HWTEST_F(OsAccountManagerModuleTest, OsAccountManagerModuleTest006, TestSize.Level1)
 {
     std::string fileContext;
     accountFileOperator_->GetFileContentByPath(
@@ -247,11 +248,11 @@ HWTEST_F(OsAccountManagerModuleTest, OsAccountManagerModuleTest006, Function | M
  * @tc.type: FUNC
  * @tc.require: SR000GGV0U
  */
-HWTEST_F(OsAccountManagerModuleTest, OsAccountManagerModuleTest007, Function | MediumTest | Level1)
+HWTEST_F(OsAccountManagerModuleTest, OsAccountManagerModuleTest007, TestSize.Level0)
 {
     OsAccountInfo osAccountInfoOne;
     OsAccountManager::CreateOsAccount(STRING_TEST_NAME, INT_TEST_TYPE, osAccountInfoOne);
-    EXPECT_EQ(OsAccountManager::RemoveOsAccount(osAccountInfoOne.GetId()), ERR_OK);
+    EXPECT_EQ(OsAccountManager::RemoveOsAccount(osAccountInfoOne.GetLocalId()), ERR_OK);
     EXPECT_EQ(accountFileOperator_->IsExistDir(
                   Constants::USER_INFO_BASE + Constants::PATH_SEPARATOR + osAccountInfoOne.GetPrimeKey()),
         false);
@@ -263,7 +264,7 @@ HWTEST_F(OsAccountManagerModuleTest, OsAccountManagerModuleTest007, Function | M
  * @tc.type: FUNC
  * @tc.require: SR000GGV0U
  */
-HWTEST_F(OsAccountManagerModuleTest, OsAccountManagerModuleTest008, Function | MediumTest | Level1)
+HWTEST_F(OsAccountManagerModuleTest, OsAccountManagerModuleTest008, TestSize.Level1)
 {
     EXPECT_NE(OsAccountManager::RemoveOsAccount(Constants::START_USER_ID), ERR_OK);
 }
@@ -274,7 +275,7 @@ HWTEST_F(OsAccountManagerModuleTest, OsAccountManagerModuleTest008, Function | M
  * @tc.type: FUNC
  * @tc.require: SR000GGVFN
  */
-HWTEST_F(OsAccountManagerModuleTest, OsAccountManagerModuleTest009, Function | MediumTest | Level1)
+HWTEST_F(OsAccountManagerModuleTest, OsAccountManagerModuleTest009, TestSize.Level1)
 {
     EXPECT_NE(OsAccountManager::RemoveOsAccount(Constants::MAX_USER_ID + 1), ERR_OK);
 }
@@ -285,7 +286,7 @@ HWTEST_F(OsAccountManagerModuleTest, OsAccountManagerModuleTest009, Function | M
  * @tc.type: FUNC
  * @tc.require: SR000GGVFN
  */
-HWTEST_F(OsAccountManagerModuleTest, OsAccountManagerModuleTest010, Function | MediumTest | Level1)
+HWTEST_F(OsAccountManagerModuleTest, OsAccountManagerModuleTest010, TestSize.Level1)
 {
     bool isOsAccountExists = false;
     EXPECT_EQ(OsAccountManager::IsOsAccountExists(Constants::START_USER_ID, isOsAccountExists), ERR_OK);
@@ -298,7 +299,7 @@ HWTEST_F(OsAccountManagerModuleTest, OsAccountManagerModuleTest010, Function | M
  * @tc.type: FUNC
  * @tc.require: SR000GGVFN
  */
-HWTEST_F(OsAccountManagerModuleTest, OsAccountManagerModuleTest011, Function | MediumTest | Level1)
+HWTEST_F(OsAccountManagerModuleTest, OsAccountManagerModuleTest011, TestSize.Level1)
 {
     bool isOsAccountExists = true;
     EXPECT_EQ(OsAccountManager::IsOsAccountExists(Constants::MAX_USER_ID + 1, isOsAccountExists), ERR_OK);
@@ -311,7 +312,7 @@ HWTEST_F(OsAccountManagerModuleTest, OsAccountManagerModuleTest011, Function | M
  * @tc.type: FUNC
  * @tc.require: SR000GGVFG
  */
-HWTEST_F(OsAccountManagerModuleTest, OsAccountManagerModuleTest012, Function | MediumTest | Level1)
+HWTEST_F(OsAccountManagerModuleTest, OsAccountManagerModuleTest012, TestSize.Level0)
 {
     bool isOsAccountActived = false;
     EXPECT_EQ(OsAccountManager::IsOsAccountExists(Constants::ADMIN_LOCAL_ID, isOsAccountActived), ERR_OK);
@@ -324,14 +325,14 @@ HWTEST_F(OsAccountManagerModuleTest, OsAccountManagerModuleTest012, Function | M
  * @tc.type: FUNC
  * @tc.require: SR000GGVFG
  */
-HWTEST_F(OsAccountManagerModuleTest, OsAccountManagerModuleTest013, Function | MediumTest | Level1)
+HWTEST_F(OsAccountManagerModuleTest, OsAccountManagerModuleTest013, TestSize.Level1)
 {
     OsAccountInfo osAccountInfoOne;
     OsAccountManager::CreateOsAccount(STRING_TEST_NAME, INT_TEST_TYPE, osAccountInfoOne);
     bool isOsAccountActived = false;
-    EXPECT_EQ(OsAccountManager::IsOsAccountExists(osAccountInfoOne.GetId(), isOsAccountActived), ERR_OK);
+    EXPECT_EQ(OsAccountManager::IsOsAccountExists(osAccountInfoOne.GetLocalId(), isOsAccountActived), ERR_OK);
     EXPECT_EQ(isOsAccountActived, true);
-    osAccountControlFileManager_->DelOsAccount(osAccountInfoOne.GetId());
+    osAccountControlFileManager_->DelOsAccount(osAccountInfoOne.GetLocalId());
 }
 
 /**
@@ -340,19 +341,20 @@ HWTEST_F(OsAccountManagerModuleTest, OsAccountManagerModuleTest013, Function | M
  * @tc.type: FUNC
  * @tc.require: SR000GGVFM
  */
-HWTEST_F(OsAccountManagerModuleTest, OsAccountManagerModuleTest014, Function | MediumTest | Level1)
+HWTEST_F(OsAccountManagerModuleTest, OsAccountManagerModuleTest014, TestSize.Level1)
 {
     OsAccountInfo osAccountInfoOne;
     OsAccountManager::CreateOsAccount(STRING_TEST_NAME, INT_TEST_TYPE, osAccountInfoOne);
     bool enable = false;
-    EXPECT_EQ(OsAccountManager::SetOsAccountConstraints(osAccountInfoOne.GetId(), CONSTANTS_VECTOR, enable), ERR_OK);
+    EXPECT_EQ(
+        OsAccountManager::SetOsAccountConstraints(osAccountInfoOne.GetLocalId(), CONSTANTS_VECTOR, enable), ERR_OK);
     OsAccountInfo osAccountInfoTwo;
-    osAccountControlFileManager_->GetOsAccountInfoById(osAccountInfoOne.GetId(), osAccountInfoTwo);
+    osAccountControlFileManager_->GetOsAccountInfoById(osAccountInfoOne.GetLocalId(), osAccountInfoTwo);
     std::vector<std::string> contstans = osAccountInfoTwo.GetConstraints();
     for (auto it = contstans.begin(); it != contstans.end(); it++) {
         GTEST_LOG_(INFO) << *it;
     }
-    osAccountControlFileManager_->DelOsAccount(osAccountInfoOne.GetId());
+    osAccountControlFileManager_->DelOsAccount(osAccountInfoOne.GetLocalId());
 }
 
 /**
@@ -361,19 +363,20 @@ HWTEST_F(OsAccountManagerModuleTest, OsAccountManagerModuleTest014, Function | M
  * @tc.type: FUNC
  * @tc.require: SR000GGVFM
  */
-HWTEST_F(OsAccountManagerModuleTest, OsAccountManagerModuleTest015, Function | MediumTest | Level1)
+HWTEST_F(OsAccountManagerModuleTest, OsAccountManagerModuleTest015, TestSize.Level1)
 {
     OsAccountInfo osAccountInfoOne;
     OsAccountManager::CreateOsAccount(STRING_TEST_NAME, INT_TEST_TYPE, osAccountInfoOne);
     bool enable = true;
-    EXPECT_EQ(OsAccountManager::SetOsAccountConstraints(osAccountInfoOne.GetId(), CONSTANTS_VECTOR, enable), ERR_OK);
+    EXPECT_EQ(
+        OsAccountManager::SetOsAccountConstraints(osAccountInfoOne.GetLocalId(), CONSTANTS_VECTOR, enable), ERR_OK);
     OsAccountInfo osAccountInfoTwo;
-    osAccountControlFileManager_->GetOsAccountInfoById(osAccountInfoOne.GetId(), osAccountInfoTwo);
+    osAccountControlFileManager_->GetOsAccountInfoById(osAccountInfoOne.GetLocalId(), osAccountInfoTwo);
     std::vector<std::string> contstans = osAccountInfoTwo.GetConstraints();
     for (auto it = contstans.begin(); it != contstans.end(); it++) {
         GTEST_LOG_(INFO) << *it;
     }
-    osAccountControlFileManager_->DelOsAccount(osAccountInfoOne.GetId());
+    osAccountControlFileManager_->DelOsAccount(osAccountInfoOne.GetLocalId());
 }
 
 /**
@@ -382,17 +385,18 @@ HWTEST_F(OsAccountManagerModuleTest, OsAccountManagerModuleTest015, Function | M
  * @tc.type: FUNC
  * @tc.require: SR000GGVFG
  */
-HWTEST_F(OsAccountManagerModuleTest, OsAccountManagerModuleTest016, Function | MediumTest | Level1)
+HWTEST_F(OsAccountManagerModuleTest, OsAccountManagerModuleTest016, TestSize.Level1)
 {
     OsAccountInfo osAccountInfoOne;
     OsAccountManager::CreateOsAccount(STRING_TEST_NAME, INT_TEST_TYPE, osAccountInfoOne);
     bool enable = true;
-    OsAccountManager::SetOsAccountConstraints(osAccountInfoOne.GetId(), CONSTANTS_VECTOR, enable);
+    OsAccountManager::SetOsAccountConstraints(osAccountInfoOne.GetLocalId(), CONSTANTS_VECTOR, enable);
     bool isEnable = false;
-    EXPECT_EQ(OsAccountManager::IsOsAccountConstraintEnable(osAccountInfoOne.GetId(), CONSTANTS_STRING_WIFI, isEnable),
+    EXPECT_EQ(
+        OsAccountManager::IsOsAccountConstraintEnable(osAccountInfoOne.GetLocalId(), CONSTANTS_STRING_WIFI, isEnable),
         ERR_OK);
     EXPECT_EQ(isEnable, true);
-    osAccountControlFileManager_->DelOsAccount(osAccountInfoOne.GetId());
+    osAccountControlFileManager_->DelOsAccount(osAccountInfoOne.GetLocalId());
 }
 
 /**
@@ -401,15 +405,16 @@ HWTEST_F(OsAccountManagerModuleTest, OsAccountManagerModuleTest016, Function | M
  * @tc.type: FUNC
  * @tc.require: SR000GGVFN
  */
-HWTEST_F(OsAccountManagerModuleTest, OsAccountManagerModuleTest017, Function | MediumTest | Level1)
+HWTEST_F(OsAccountManagerModuleTest, OsAccountManagerModuleTest017, TestSize.Level1)
 {
     OsAccountInfo osAccountInfoOne;
     OsAccountManager::CreateOsAccount(STRING_TEST_NAME, INT_TEST_TYPE, osAccountInfoOne);
     bool isEnable = true;
-    EXPECT_EQ(OsAccountManager::IsOsAccountConstraintEnable(osAccountInfoOne.GetId(), CONSTANTS_STRING_WIFI, isEnable),
+    EXPECT_EQ(
+        OsAccountManager::IsOsAccountConstraintEnable(osAccountInfoOne.GetLocalId(), CONSTANTS_STRING_WIFI, isEnable),
         ERR_OK);
     EXPECT_EQ(isEnable, false);
-    osAccountControlFileManager_->DelOsAccount(osAccountInfoOne.GetId());
+    osAccountControlFileManager_->DelOsAccount(osAccountInfoOne.GetLocalId());
 }
 
 /**
@@ -418,7 +423,7 @@ HWTEST_F(OsAccountManagerModuleTest, OsAccountManagerModuleTest017, Function | M
  * @tc.type: FUNC
  * @tc.require: SR000GGVFG
  */
-HWTEST_F(OsAccountManagerModuleTest, OsAccountManagerModuleTest018, Function | MediumTest | Level1)
+HWTEST_F(OsAccountManagerModuleTest, OsAccountManagerModuleTest018, TestSize.Level1)
 {
     bool isMultiOsAccountEnable = false;
     EXPECT_EQ(OsAccountManager::IsMultiOsAccountEnable(isMultiOsAccountEnable), ERR_OK);
@@ -431,11 +436,11 @@ HWTEST_F(OsAccountManagerModuleTest, OsAccountManagerModuleTest018, Function | M
  * @tc.type: FUNC
  * @tc.require: SR000GGVFG
  */
-HWTEST_F(OsAccountManagerModuleTest, OsAccountManagerModuleTest019, Function | MediumTest | Level1)
+HWTEST_F(OsAccountManagerModuleTest, OsAccountManagerModuleTest019, TestSize.Level1)
 {
-    bool isOsAccountVerified = true;
-    EXPECT_EQ(OsAccountManager::IsOsAccountVerified(Constants::START_USER_ID, isOsAccountVerified), ERR_OK);
-    EXPECT_EQ(isOsAccountVerified, false);
+    bool isVerified = true;
+    EXPECT_EQ(OsAccountManager::IsOsAccountVerified(Constants::START_USER_ID, isVerified), ERR_OK);
+    EXPECT_EQ(isVerified, false);
 }
 
 /**
@@ -444,10 +449,10 @@ HWTEST_F(OsAccountManagerModuleTest, OsAccountManagerModuleTest019, Function | M
  * @tc.type: FUNC
  * @tc.require: SR000GGVFG
  */
-HWTEST_F(OsAccountManagerModuleTest, OsAccountManagerModuleTest020, Function | MediumTest | Level1)
+HWTEST_F(OsAccountManagerModuleTest, OsAccountManagerModuleTest020, TestSize.Level1)
 {
-    bool isOsAccountVerified = true;
-    EXPECT_NE(OsAccountManager::IsOsAccountVerified(Constants::MAX_USER_ID + 1, isOsAccountVerified), ERR_OK);
+    bool isVerified = true;
+    EXPECT_NE(OsAccountManager::IsOsAccountVerified(Constants::MAX_USER_ID + 1, isVerified), ERR_OK);
 }
 
 /**
@@ -456,10 +461,10 @@ HWTEST_F(OsAccountManagerModuleTest, OsAccountManagerModuleTest020, Function | M
  * @tc.type: FUNC
  * @tc.require: SR000GGVFG
  */
-HWTEST_F(OsAccountManagerModuleTest, OsAccountManagerModuleTest021, Function | MediumTest | Level1)
+HWTEST_F(OsAccountManagerModuleTest, OsAccountManagerModuleTest021, TestSize.Level1)
 {
-    bool isOsAccountVerified = true;
-    EXPECT_NE(OsAccountManager::IsOsAccountVerified(Constants::MAX_USER_ID + 1, isOsAccountVerified), ERR_OK);
+    bool isVerified = true;
+    EXPECT_NE(OsAccountManager::IsOsAccountVerified(Constants::MAX_USER_ID + 1, isVerified), ERR_OK);
 }
 
 /**
@@ -468,7 +473,7 @@ HWTEST_F(OsAccountManagerModuleTest, OsAccountManagerModuleTest021, Function | M
  * @tc.type: FUNC
  * @tc.require: SR000GGVFG
  */
-HWTEST_F(OsAccountManagerModuleTest, OsAccountManagerModuleTest022, Function | MediumTest | Level1)
+HWTEST_F(OsAccountManagerModuleTest, OsAccountManagerModuleTest022, TestSize.Level1)
 {
     int osAccountsCount = 0;
     EXPECT_EQ(OsAccountManager::GetCreatedOsAccountsCount(osAccountsCount), ERR_OK);
@@ -481,10 +486,10 @@ HWTEST_F(OsAccountManagerModuleTest, OsAccountManagerModuleTest022, Function | M
  * @tc.type: FUNC
  * @tc.require: SR000GGVFG
  */
-HWTEST_F(OsAccountManagerModuleTest, OsAccountManagerModuleTest023, Function | MediumTest | Level1)
+HWTEST_F(OsAccountManagerModuleTest, OsAccountManagerModuleTest023, TestSize.Level1)
 {
     int id = -1;
-    EXPECT_EQ(OsAccountManager::GetOsAccountLocalIdFromProcess(id), ERR_OK);
+    EXPECT_NE(OsAccountManager::GetOsAccountLocalIdFromProcess(id), ERR_OK);
 }
 
 /**
@@ -493,11 +498,11 @@ HWTEST_F(OsAccountManagerModuleTest, OsAccountManagerModuleTest023, Function | M
  * @tc.type: FUNC
  * @tc.require: SR000GGVFG
  */
-HWTEST_F(OsAccountManagerModuleTest, OsAccountManagerModuleTest024, Function | MediumTest | Level1)
+HWTEST_F(OsAccountManagerModuleTest, OsAccountManagerModuleTest024, TestSize.Level1)
 {
     int uid = 0;
     int id = -1;
-    EXPECT_EQ(OsAccountManager::GetOsAccountLocalIdFromUid(uid, id), ERR_OK);
+    EXPECT_NE(OsAccountManager::GetOsAccountLocalIdFromUid(uid, id), ERR_OK);
 }
 
 /**
@@ -506,7 +511,7 @@ HWTEST_F(OsAccountManagerModuleTest, OsAccountManagerModuleTest024, Function | M
  * @tc.type: FUNC
  * @tc.require: SR000GGVFG
  */
-HWTEST_F(OsAccountManagerModuleTest, OsAccountManagerModuleTest025, Function | MediumTest | Level1)
+HWTEST_F(OsAccountManagerModuleTest, OsAccountManagerModuleTest025, TestSize.Level1)
 {
     int maxOsAccountNumber = 0;
     EXPECT_EQ(OsAccountManager::QueryMaxOsAccountNumber(maxOsAccountNumber), ERR_OK);
@@ -518,7 +523,7 @@ HWTEST_F(OsAccountManagerModuleTest, OsAccountManagerModuleTest025, Function | M
  * @tc.type: FUNC
  * @tc.require: SR000GGVFG
  */
-HWTEST_F(OsAccountManagerModuleTest, OsAccountManagerModuleTest026, Function | MediumTest | Level1)
+HWTEST_F(OsAccountManagerModuleTest, OsAccountManagerModuleTest026, TestSize.Level1)
 {
     std::vector<std::string> constraints;
     EXPECT_EQ(OsAccountManager::GetOsAccountAllConstraints(Constants::START_USER_ID, constraints), ERR_OK);
@@ -532,7 +537,7 @@ HWTEST_F(OsAccountManagerModuleTest, OsAccountManagerModuleTest026, Function | M
  * @tc.type: FUNC
  * @tc.require: SR000GGVFG
  */
-HWTEST_F(OsAccountManagerModuleTest, OsAccountManagerModuleTest027, Function | MediumTest | Level1)
+HWTEST_F(OsAccountManagerModuleTest, OsAccountManagerModuleTest027, TestSize.Level1)
 {
     std::vector<std::string> constraints;
     EXPECT_NE(OsAccountManager::GetOsAccountAllConstraints(Constants::MAX_USER_ID + 1, constraints), ERR_OK);
@@ -544,7 +549,7 @@ HWTEST_F(OsAccountManagerModuleTest, OsAccountManagerModuleTest027, Function | M
  * @tc.type: FUNC
  * @tc.require: SR000GGVFG
  */
-HWTEST_F(OsAccountManagerModuleTest, OsAccountManagerModuleTest028, Function | MediumTest | Level1)
+HWTEST_F(OsAccountManagerModuleTest, OsAccountManagerModuleTest028, TestSize.Level1)
 {
     std::vector<OsAccountInfo> osAccountInfos;
     EXPECT_EQ(OsAccountManager::QueryAllCreatedOsAccounts(osAccountInfos), ERR_OK);
@@ -558,10 +563,10 @@ HWTEST_F(OsAccountManagerModuleTest, OsAccountManagerModuleTest028, Function | M
  * @tc.type: FUNC
  * @tc.require: SR000GGVFG
  */
-HWTEST_F(OsAccountManagerModuleTest, OsAccountManagerModuleTest029, Function | MediumTest | Level1)
+HWTEST_F(OsAccountManagerModuleTest, OsAccountManagerModuleTest029, TestSize.Level1)
 {
     OsAccountInfo osAccountInfo;
-    EXPECT_EQ(OsAccountManager::QueryCurrentOsAccount(osAccountInfo), ERR_OK);
+    EXPECT_NE(OsAccountManager::QueryCurrentOsAccount(osAccountInfo), ERR_OK);
 }
 
 /**
@@ -570,11 +575,11 @@ HWTEST_F(OsAccountManagerModuleTest, OsAccountManagerModuleTest029, Function | M
  * @tc.type: FUNC
  * @tc.require: SR000GGVFG
  */
-HWTEST_F(OsAccountManagerModuleTest, OsAccountManagerModuleTest030, Function | MediumTest | Level1)
+HWTEST_F(OsAccountManagerModuleTest, OsAccountManagerModuleTest030, TestSize.Level0)
 {
     OsAccountInfo osAccountInfo;
     EXPECT_EQ(OsAccountManager::QueryOsAccountById(Constants::START_USER_ID, osAccountInfo), ERR_OK);
-    EXPECT_EQ(Constants::START_USER_ID, osAccountInfo.GetId());
+    EXPECT_EQ(Constants::START_USER_ID, osAccountInfo.GetLocalId());
 }
 
 /**
@@ -583,7 +588,7 @@ HWTEST_F(OsAccountManagerModuleTest, OsAccountManagerModuleTest030, Function | M
  * @tc.type: FUNC
  * @tc.require: SR000GGVFG
  */
-HWTEST_F(OsAccountManagerModuleTest, OsAccountManagerModuleTest031, Function | MediumTest | Level1)
+HWTEST_F(OsAccountManagerModuleTest, OsAccountManagerModuleTest031, TestSize.Level1)
 {
     OsAccountInfo osAccountInfo;
     EXPECT_NE(OsAccountManager::QueryOsAccountById(Constants::MAX_USER_ID + 1, osAccountInfo), ERR_OK);
@@ -595,10 +600,10 @@ HWTEST_F(OsAccountManagerModuleTest, OsAccountManagerModuleTest031, Function | M
  * @tc.type: FUNC
  * @tc.require: SR000GGVFG
  */
-HWTEST_F(OsAccountManagerModuleTest, OsAccountManagerModuleTest032, Function | MediumTest | Level1)
+HWTEST_F(OsAccountManagerModuleTest, OsAccountManagerModuleTest032, TestSize.Level1)
 {
-    int type;
-    EXPECT_EQ(OsAccountManager::GetOsAccountTypeFromProcess(type), ERR_OK);
+    OsAccountType type = OsAccountType::ADMIN;
+    EXPECT_NE(OsAccountManager::GetOsAccountTypeFromProcess(type), ERR_OK);
 }
 
 /**
@@ -607,15 +612,15 @@ HWTEST_F(OsAccountManagerModuleTest, OsAccountManagerModuleTest032, Function | M
  * @tc.type: FUNC
  * @tc.require: SR000GGVFI
  */
-HWTEST_F(OsAccountManagerModuleTest, OsAccountManagerModuleTest033, Function | MediumTest | Level1)
+HWTEST_F(OsAccountManagerModuleTest, OsAccountManagerModuleTest033, TestSize.Level1)
 {
     OsAccountInfo osAccountInfoOne;
     OsAccountManager::CreateOsAccount(STRING_TEST_NAME, INT_TEST_TYPE, osAccountInfoOne);
-    EXPECT_EQ(OsAccountManager::SetOsAccountName(osAccountInfoOne.GetId(), STRING_NAME), ERR_OK);
+    EXPECT_EQ(OsAccountManager::SetOsAccountName(osAccountInfoOne.GetLocalId(), STRING_NAME), ERR_OK);
     OsAccountInfo osAccountInfoTwo;
-    OsAccountManager::QueryOsAccountById(osAccountInfoOne.GetId(), osAccountInfoTwo);
-    EXPECT_EQ(STRING_NAME, osAccountInfoTwo.GetName());
-    osAccountControlFileManager_->DelOsAccount(osAccountInfoOne.GetId());
+    OsAccountManager::QueryOsAccountById(osAccountInfoOne.GetLocalId(), osAccountInfoTwo);
+    EXPECT_EQ(STRING_NAME, osAccountInfoTwo.GetLocalName());
+    osAccountControlFileManager_->DelOsAccount(osAccountInfoOne.GetLocalId());
 }
 
 /**
@@ -624,12 +629,12 @@ HWTEST_F(OsAccountManagerModuleTest, OsAccountManagerModuleTest033, Function | M
  * @tc.type: FUNC
  * @tc.require: SR000GGVFI
  */
-HWTEST_F(OsAccountManagerModuleTest, OsAccountManagerModuleTest034, Function | MediumTest | Level1)
+HWTEST_F(OsAccountManagerModuleTest, OsAccountManagerModuleTest034, TestSize.Level1)
 {
     OsAccountInfo osAccountInfoOne;
     OsAccountManager::CreateOsAccount(STRING_TEST_NAME, INT_TEST_TYPE, osAccountInfoOne);
-    EXPECT_NE(OsAccountManager::SetOsAccountName(osAccountInfoOne.GetId(), STRING_EMPTY), ERR_OK);
-    osAccountControlFileManager_->DelOsAccount(osAccountInfoOne.GetId());
+    EXPECT_NE(OsAccountManager::SetOsAccountName(osAccountInfoOne.GetLocalId(), STRING_EMPTY), ERR_OK);
+    osAccountControlFileManager_->DelOsAccount(osAccountInfoOne.GetLocalId());
 }
 
 /**
@@ -638,12 +643,12 @@ HWTEST_F(OsAccountManagerModuleTest, OsAccountManagerModuleTest034, Function | M
  * @tc.type: FUNC
  * @tc.require: SR000GGVFI
  */
-HWTEST_F(OsAccountManagerModuleTest, OsAccountManagerModuleTest035, Function | MediumTest | Level1)
+HWTEST_F(OsAccountManagerModuleTest, OsAccountManagerModuleTest035, TestSize.Level1)
 {
     OsAccountInfo osAccountInfoOne;
     OsAccountManager::CreateOsAccount(STRING_TEST_NAME, INT_TEST_TYPE, osAccountInfoOne);
-    EXPECT_NE(OsAccountManager::SetOsAccountName(osAccountInfoOne.GetId(), STRING_NAME_OUT_OF_RANGE), ERR_OK);
-    osAccountControlFileManager_->DelOsAccount(osAccountInfoOne.GetId());
+    EXPECT_NE(OsAccountManager::SetOsAccountName(osAccountInfoOne.GetLocalId(), STRING_NAME_OUT_OF_RANGE), ERR_OK);
+    osAccountControlFileManager_->DelOsAccount(osAccountInfoOne.GetLocalId());
 }
 
 /**
@@ -652,9 +657,9 @@ HWTEST_F(OsAccountManagerModuleTest, OsAccountManagerModuleTest035, Function | M
  * @tc.type: FUNC
  * @tc.require: SR000GGVFG
  */
-HWTEST_F(OsAccountManagerModuleTest, OsAccountManagerModuleTest036, Function | MediumTest | Level1)
+HWTEST_F(OsAccountManagerModuleTest, OsAccountManagerModuleTest036, TestSize.Level1)
 {
-    std::int32_t deviceId;
+    std::string deviceId;
     EXPECT_EQ(OsAccountManager::GetDistributedVirtualDeviceId(deviceId), ERR_OK);
 }
 
@@ -664,7 +669,7 @@ HWTEST_F(OsAccountManagerModuleTest, OsAccountManagerModuleTest036, Function | M
  * @tc.type: FUNC
  * @tc.require: SR000GGVFG
  */
-HWTEST_F(OsAccountManagerModuleTest, OsAccountManagerModuleTest037, Function | MediumTest | Level1)
+HWTEST_F(OsAccountManagerModuleTest, OsAccountManagerModuleTest037, TestSize.Level1)
 {
     int id = 0;
     EXPECT_EQ(OsAccountManager::GetOsAccountLocalIdBySerialNumber(
@@ -679,7 +684,7 @@ HWTEST_F(OsAccountManagerModuleTest, OsAccountManagerModuleTest037, Function | M
  * @tc.type: FUNC
  * @tc.require: SR000GGVFG
  */
-HWTEST_F(OsAccountManagerModuleTest, OsAccountManagerModuleTest038, Function | MediumTest | Level1)
+HWTEST_F(OsAccountManagerModuleTest, OsAccountManagerModuleTest038, TestSize.Level1)
 {
     int id = 0;
     EXPECT_NE(OsAccountManager::GetOsAccountLocalIdBySerialNumber(123, id), ERR_OK);
@@ -691,7 +696,7 @@ HWTEST_F(OsAccountManagerModuleTest, OsAccountManagerModuleTest038, Function | M
  * @tc.type: FUNC
  * @tc.require: SR000GGVFG
  */
-HWTEST_F(OsAccountManagerModuleTest, OsAccountManagerModuleTest039, Function | MediumTest | Level1)
+HWTEST_F(OsAccountManagerModuleTest, OsAccountManagerModuleTest039, TestSize.Level1)
 {
     int64_t serialNumber;
     EXPECT_EQ(OsAccountManager::GetSerialNumberByOsAccountLocalId(Constants::START_USER_ID, serialNumber), ERR_OK);
@@ -705,7 +710,7 @@ HWTEST_F(OsAccountManagerModuleTest, OsAccountManagerModuleTest039, Function | M
  * @tc.type: FUNC
  * @tc.require: SR000GGVFG
  */
-HWTEST_F(OsAccountManagerModuleTest, OsAccountManagerModuleTest040, Function | MediumTest | Level1)
+HWTEST_F(OsAccountManagerModuleTest, OsAccountManagerModuleTest040, TestSize.Level1)
 {
     int64_t serialNumber;
     EXPECT_NE(OsAccountManager::GetSerialNumberByOsAccountLocalId(Constants::MAX_USER_ID + 1, serialNumber), ERR_OK);
@@ -717,12 +722,12 @@ HWTEST_F(OsAccountManagerModuleTest, OsAccountManagerModuleTest040, Function | M
  * @tc.type: FUNC
  * @tc.require: SR000GGVFI
  */
-HWTEST_F(OsAccountManagerModuleTest, OsAccountManagerModuleTest041, Function | MediumTest | Level1)
+HWTEST_F(OsAccountManagerModuleTest, OsAccountManagerModuleTest041, TestSize.Level1)
 {
     OsAccountInfo osAccountInfoOne;
     OsAccountManager::CreateOsAccount(STRING_TEST_NAME, INT_TEST_TYPE, osAccountInfoOne);
-    EXPECT_EQ(OsAccountManager::SetOsAccountProfilePhoto(osAccountInfoOne.GetId(), PHOTO_IMG), ERR_OK);
-    osAccountControlFileManager_->DelOsAccount(osAccountInfoOne.GetId());
+    EXPECT_EQ(OsAccountManager::SetOsAccountProfilePhoto(osAccountInfoOne.GetLocalId(), PHOTO_IMG), ERR_OK);
+    osAccountControlFileManager_->DelOsAccount(osAccountInfoOne.GetLocalId());
 }
 
 /**
@@ -731,12 +736,13 @@ HWTEST_F(OsAccountManagerModuleTest, OsAccountManagerModuleTest041, Function | M
  * @tc.type: FUNC
  * @tc.require: SR000GGVFI
  */
-HWTEST_F(OsAccountManagerModuleTest, OsAccountManagerModuleTest042, Function | MediumTest | Level1)
+HWTEST_F(OsAccountManagerModuleTest, OsAccountManagerModuleTest042, TestSize.Level1)
 {
     OsAccountInfo osAccountInfoOne;
     OsAccountManager::CreateOsAccount(STRING_TEST_NAME, INT_TEST_TYPE, osAccountInfoOne);
-    EXPECT_NE(OsAccountManager::SetOsAccountProfilePhoto(osAccountInfoOne.GetId(), STRING_PHOTO_OUT_OF_RANGE), ERR_OK);
-    osAccountControlFileManager_->DelOsAccount(osAccountInfoOne.GetId());
+    EXPECT_NE(
+        OsAccountManager::SetOsAccountProfilePhoto(osAccountInfoOne.GetLocalId(), STRING_PHOTO_OUT_OF_RANGE), ERR_OK);
+    osAccountControlFileManager_->DelOsAccount(osAccountInfoOne.GetLocalId());
 }
 
 /**
@@ -745,12 +751,12 @@ HWTEST_F(OsAccountManagerModuleTest, OsAccountManagerModuleTest042, Function | M
  * @tc.type: FUNC
  * @tc.require: SR000GGVFI
  */
-HWTEST_F(OsAccountManagerModuleTest, OsAccountManagerModuleTest043, Function | MediumTest | Level1)
+HWTEST_F(OsAccountManagerModuleTest, OsAccountManagerModuleTest043, TestSize.Level1)
 {
     OsAccountInfo osAccountInfoOne;
     OsAccountManager::CreateOsAccount(STRING_TEST_NAME, INT_TEST_TYPE, osAccountInfoOne);
-    EXPECT_NE(OsAccountManager::SetOsAccountProfilePhoto(osAccountInfoOne.GetId(), PHOTO_IMG_ERROR), ERR_OK);
-    osAccountControlFileManager_->DelOsAccount(osAccountInfoOne.GetId());
+    EXPECT_NE(OsAccountManager::SetOsAccountProfilePhoto(osAccountInfoOne.GetLocalId(), PHOTO_IMG_ERROR), ERR_OK);
+    osAccountControlFileManager_->DelOsAccount(osAccountInfoOne.GetLocalId());
 }
 
 /**
@@ -759,15 +765,15 @@ HWTEST_F(OsAccountManagerModuleTest, OsAccountManagerModuleTest043, Function | M
  * @tc.type: FUNC
  * @tc.require: SR000GGVFG
  */
-HWTEST_F(OsAccountManagerModuleTest, OsAccountManagerModuleTest044, Function | MediumTest | Level1)
+HWTEST_F(OsAccountManagerModuleTest, OsAccountManagerModuleTest044, TestSize.Level1)
 {
     OsAccountInfo osAccountInfoOne;
     OsAccountManager::CreateOsAccount(STRING_TEST_NAME, INT_TEST_TYPE, osAccountInfoOne);
-    OsAccountManager::SetOsAccountProfilePhoto(osAccountInfoOne.GetId(), PHOTO_IMG);
+    OsAccountManager::SetOsAccountProfilePhoto(osAccountInfoOne.GetLocalId(), PHOTO_IMG);
     std::string photo;
-    EXPECT_EQ(OsAccountManager::GetOsAccountProfilePhoto(osAccountInfoOne.GetId(), photo), ERR_OK);
+    EXPECT_EQ(OsAccountManager::GetOsAccountProfilePhoto(osAccountInfoOne.GetLocalId(), photo), ERR_OK);
     EXPECT_EQ(photo, PHOTO_IMG);
-    osAccountControlFileManager_->DelOsAccount(osAccountInfoOne.GetId());
+    osAccountControlFileManager_->DelOsAccount(osAccountInfoOne.GetLocalId());
 }
 
 /**
@@ -776,14 +782,14 @@ HWTEST_F(OsAccountManagerModuleTest, OsAccountManagerModuleTest044, Function | M
  * @tc.type: FUNC
  * @tc.require: SR000GGVFG
  */
-HWTEST_F(OsAccountManagerModuleTest, OsAccountManagerModuleTest045, Function | MediumTest | Level1)
+HWTEST_F(OsAccountManagerModuleTest, OsAccountManagerModuleTest045, TestSize.Level1)
 {
     OsAccountInfo osAccountInfoOne;
     OsAccountManager::CreateOsAccount(STRING_TEST_NAME, INT_TEST_TYPE, osAccountInfoOne);
     std::string photo;
-    EXPECT_EQ(OsAccountManager::GetOsAccountProfilePhoto(osAccountInfoOne.GetId(), photo),
+    EXPECT_EQ(OsAccountManager::GetOsAccountProfilePhoto(osAccountInfoOne.GetLocalId(), photo),
         ERR_OSACCOUNT_KIT_GET_OS_ACCOUNT_PROFILE_PHOTO_ERROR);
-    osAccountControlFileManager_->DelOsAccount(osAccountInfoOne.GetId());
+    osAccountControlFileManager_->DelOsAccount(osAccountInfoOne.GetLocalId());
 }
 
 /**
@@ -792,7 +798,7 @@ HWTEST_F(OsAccountManagerModuleTest, OsAccountManagerModuleTest045, Function | M
  * @tc.type: FUNC
  * @tc.require: SR000GGVFG
  */
-HWTEST_F(OsAccountManagerModuleTest, OsAccountManagerModuleTest046, Function | MediumTest | Level1)
+HWTEST_F(OsAccountManagerModuleTest, OsAccountManagerModuleTest046, TestSize.Level1)
 {
     std::string photo;
     EXPECT_NE(OsAccountManager::GetOsAccountProfilePhoto(Constants::MAX_USER_ID + 1, photo), ERR_OK);
@@ -804,13 +810,13 @@ HWTEST_F(OsAccountManagerModuleTest, OsAccountManagerModuleTest046, Function | M
  * @tc.type: FUNC
  * @tc.require: SR000GGVFJ
  */
-HWTEST_F(OsAccountManagerModuleTest, OsAccountManagerModuleTest047, Function | MediumTest | Level1)
+HWTEST_F(OsAccountManagerModuleTest, OsAccountManagerModuleTest047, TestSize.Level1)
 {
     OsAccountInfo osAccountInfoOne;
     OsAccountManager::CreateOsAccount(STRING_TEST_NAME, INT_TEST_TYPE, osAccountInfoOne);
-    EXPECT_EQ(OsAccountManager::StartOsAccount(osAccountInfoOne.GetId()), ERR_OK);
-    OsAccountManager::StopOsAccount(osAccountInfoOne.GetId());
-    osAccountControlFileManager_->DelOsAccount(osAccountInfoOne.GetId());
+    EXPECT_EQ(OsAccountManager::StartOsAccount(osAccountInfoOne.GetLocalId()), ERR_OK);
+    OsAccountManager::StopOsAccount(osAccountInfoOne.GetLocalId());
+    osAccountControlFileManager_->DelOsAccount(osAccountInfoOne.GetLocalId());
 }
 
 /**
@@ -819,7 +825,7 @@ HWTEST_F(OsAccountManagerModuleTest, OsAccountManagerModuleTest047, Function | M
  * @tc.type: FUNC
  * @tc.require: SR000GGVFJ
  */
-HWTEST_F(OsAccountManagerModuleTest, OsAccountManagerModuleTest048, Function | MediumTest | Level1)
+HWTEST_F(OsAccountManagerModuleTest, OsAccountManagerModuleTest048, TestSize.Level1)
 {
     EXPECT_NE(OsAccountManager::StartOsAccount(Constants::MAX_USER_ID + 1), ERR_OK);
 }
@@ -830,7 +836,7 @@ HWTEST_F(OsAccountManagerModuleTest, OsAccountManagerModuleTest048, Function | M
  * @tc.type: FUNC
  * @tc.require: SR000GGVFJ
  */
-HWTEST_F(OsAccountManagerModuleTest, OsAccountManagerModuleTest049, Function | MediumTest | Level1)
+HWTEST_F(OsAccountManagerModuleTest, OsAccountManagerModuleTest049, TestSize.Level1)
 {
     EXPECT_NE(OsAccountManager::StartOsAccount(Constants::START_USER_ID), ERR_OK);
 }
@@ -841,13 +847,13 @@ HWTEST_F(OsAccountManagerModuleTest, OsAccountManagerModuleTest049, Function | M
  * @tc.type: FUNC
  * @tc.require: SR000GGVFJ
  */
-HWTEST_F(OsAccountManagerModuleTest, OsAccountManagerModuleTest050, Function | MediumTest | Level1)
+HWTEST_F(OsAccountManagerModuleTest, OsAccountManagerModuleTest050, TestSize.Level1)
 {
     OsAccountInfo osAccountInfoOne;
     OsAccountManager::CreateOsAccount(STRING_TEST_NAME, INT_TEST_TYPE, osAccountInfoOne);
-    OsAccountManager::StartOsAccount(osAccountInfoOne.GetId());
-    EXPECT_EQ(OsAccountManager::StopOsAccount(osAccountInfoOne.GetId()), ERR_OK);
-    osAccountControlFileManager_->DelOsAccount(osAccountInfoOne.GetId());
+    OsAccountManager::StartOsAccount(osAccountInfoOne.GetLocalId());
+    EXPECT_EQ(OsAccountManager::StopOsAccount(osAccountInfoOne.GetLocalId()), ERR_OK);
+    osAccountControlFileManager_->DelOsAccount(osAccountInfoOne.GetLocalId());
 }
 
 /**
@@ -856,7 +862,7 @@ HWTEST_F(OsAccountManagerModuleTest, OsAccountManagerModuleTest050, Function | M
  * @tc.type: FUNC
  * @tc.require: SR000GGVFJ
  */
-HWTEST_F(OsAccountManagerModuleTest, OsAccountManagerModuleTest051, Function | MediumTest | Level1)
+HWTEST_F(OsAccountManagerModuleTest, OsAccountManagerModuleTest051, TestSize.Level1)
 {
     EXPECT_NE(OsAccountManager::StopOsAccount(Constants::MAX_USER_ID + 1), ERR_OK);
 }
@@ -867,11 +873,11 @@ HWTEST_F(OsAccountManagerModuleTest, OsAccountManagerModuleTest051, Function | M
  * @tc.type: FUNC
  * @tc.require: SR000GGVFJ
  */
-HWTEST_F(OsAccountManagerModuleTest, OsAccountManagerModuleTest052, Function | MediumTest | Level1)
+HWTEST_F(OsAccountManagerModuleTest, OsAccountManagerModuleTest052, TestSize.Level1)
 {
     OsAccountInfo osAccountInfoOne;
     OsAccountManager::CreateOsAccount(STRING_TEST_NAME, INT_TEST_TYPE, osAccountInfoOne);
-    EXPECT_EQ(OsAccountManager::ActivateOsAccount(osAccountInfoOne.GetId()), ERR_OK);
+    EXPECT_EQ(OsAccountManager::ActivateOsAccount(osAccountInfoOne.GetLocalId()), ERR_OK);
     OsAccountManager::ActivateOsAccount(Constants::START_USER_ID);
-    osAccountControlFileManager_->DelOsAccount(osAccountInfoOne.GetId());
+    osAccountControlFileManager_->DelOsAccount(osAccountInfoOne.GetLocalId());
 }

@@ -162,8 +162,7 @@ void AppAccountManagerServiceThreadModuleTest::SetAssociatedDataTwo(
  * @tc.type: FUNC
  * @tc.require: SR000GGVFV
  */
-HWTEST_F(AppAccountManagerServiceThreadModuleTest, AppAccountManagerServiceThread_AddAccount_0100,
-    Function | MediumTest | Level1)
+HWTEST_F(AppAccountManagerServiceThreadModuleTest, AppAccountManagerServiceThread_AddAccount_0100, TestSize.Level1)
 {
     ACCOUNT_LOGI("AppAccountManagerServiceThread_AddAccount_0100");
 
@@ -190,8 +189,7 @@ HWTEST_F(AppAccountManagerServiceThreadModuleTest, AppAccountManagerServiceThrea
  * @tc.type: FUNC
  * @tc.require: SR000GGVFV
  */
-HWTEST_F(AppAccountManagerServiceThreadModuleTest, AppAccountManagerServiceThread_DeleteAccount_0100,
-    Function | MediumTest | Level1)
+HWTEST_F(AppAccountManagerServiceThreadModuleTest, AppAccountManagerServiceThread_DeleteAccount_0100, TestSize.Level1)
 {
     ACCOUNT_LOGI("AppAccountManagerServiceThread_DeleteAccount_0100");
 
@@ -221,8 +219,8 @@ HWTEST_F(AppAccountManagerServiceThreadModuleTest, AppAccountManagerServiceThrea
  * @tc.type: FUNC
  * @tc.require: SR000GGVFV
  */
-HWTEST_F(AppAccountManagerServiceThreadModuleTest, AppAccountManagerServiceThread_SetAssociatedData_0100,
-    Function | MediumTest | Level1)
+HWTEST_F(
+    AppAccountManagerServiceThreadModuleTest, AppAccountManagerServiceThread_SetAssociatedData_0100, TestSize.Level1)
 {
     ACCOUNT_LOGI("AppAccountManagerServiceThread_SetAssociatedData_0100");
 

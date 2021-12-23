@@ -29,7 +29,7 @@ OsAccountProxy::~OsAccountProxy()
 }
 
 ErrCode OsAccountProxy::CreateOsAccount(
-    const std::string &name, const int &type, OsAccountInfo &osAccountInfo)
+    const std::string &name, const OsAccountType &type, OsAccountInfo &osAccountInfo)
 {
     ACCOUNT_LOGI("enter");
 
@@ -156,7 +156,7 @@ ErrCode OsAccountProxy::IsOsAccountConstraintEnable(
     return ERR_OK;
 }
 
-ErrCode OsAccountProxy::IsOsAccountVerified(const int id, bool &isOsAccountVerified)
+ErrCode OsAccountProxy::IsOsAccountVerified(const int id, bool &isVerified)
 {
     ACCOUNT_LOGI("OsAccountProxy IsOsAccountVerified start");
     MessageParcel data;
@@ -173,7 +173,7 @@ ErrCode OsAccountProxy::IsOsAccountVerified(const int id, bool &isOsAccountVerif
     if (result != ERR_OK) {
         return ERR_OSACCOUNT_KIT_IS_OS_ACCOUNT_VERIFIED_ERROR;
     }
-    isOsAccountVerified = reply.ReadBool();
+    isVerified = reply.ReadBool();
     ACCOUNT_LOGI("OsAccountProxy IsOsAccountVerified end");
     return ERR_OK;
 }
@@ -339,7 +339,7 @@ ErrCode OsAccountProxy::QueryOsAccountById(const int id, OsAccountInfo &osAccoun
     return ERR_OK;
 }
 
-ErrCode OsAccountProxy::GetOsAccountTypeFromProcess(int &type)
+ErrCode OsAccountProxy::GetOsAccountTypeFromProcess(OsAccountType &type)
 {
     ACCOUNT_LOGI("OsAccountProxy GetOsAccountTypeFromProcess start");
     MessageParcel data;
@@ -352,7 +352,7 @@ ErrCode OsAccountProxy::GetOsAccountTypeFromProcess(int &type)
     if (result != ERR_OK) {
         return ERR_OSACCOUNT_KIT_GET_OS_ACCOUNT_TYPE_FROM_PROCESS_ERROR;
     }
-    type = reply.ReadInt32();
+    type = static_cast<OsAccountType>(reply.ReadInt32());
     ACCOUNT_LOGI("OsAccountProxy GetOsAccountTypeFromProcess end");
     return ERR_OK;
 }
@@ -478,7 +478,7 @@ ErrCode OsAccountProxy::SetOsAccountProfilePhoto(const int id, const std::string
     return ERR_OK;
 }
 
-ErrCode OsAccountProxy::GetDistributedVirtualDeviceId(std::int32_t &deviceId)
+ErrCode OsAccountProxy::GetDistributedVirtualDeviceId(std::string &deviceId)
 {
     ACCOUNT_LOGI("OsAccountProxy GetDistributedVirtualDeviceId start");
     MessageParcel data;
@@ -492,7 +492,7 @@ ErrCode OsAccountProxy::GetDistributedVirtualDeviceId(std::int32_t &deviceId)
     if (result != ERR_OK) {
         return ERR_OSACCOUNT_KIT_GET_DISTRIBUTED_VIRTUAL_DEVICE_ID_ERROR;
     }
-    deviceId = reply.ReadInt32();
+    deviceId = reply.ReadString();
     ACCOUNT_LOGI("OsAccountProxy GetDistributedVirtualDeviceId end");
     return ERR_OK;
 }
@@ -690,7 +690,7 @@ ErrCode OsAccountProxy::SendRequest(IOsAccount::Message code, MessageParcel &dat
     return ERR_OK;
 }
 
-ErrCode OsAccountProxy::IsCurrentOsAccountVerified(bool &isOsAccountVerified)
+ErrCode OsAccountProxy::IsCurrentOsAccountVerified(bool &isVerified)
 {
     MessageParcel data;
     MessageParcel reply;
@@ -704,7 +704,7 @@ ErrCode OsAccountProxy::IsCurrentOsAccountVerified(bool &isOsAccountVerified)
     if (result != ERR_OK) {
         return ERR_OSACCOUNT_KIT_UNSUBSCRIBE_ERROR;
     }
-    isOsAccountVerified = reply.ReadBool();
+    isVerified = reply.ReadBool();
     return ERR_OK;
 }
 
@@ -729,12 +729,12 @@ ErrCode OsAccountProxy::IsOsAccountCompleted(const int id, bool &isOsAccountComp
     return ERR_OK;
 }
 
-ErrCode OsAccountProxy::SetCurrentOsAccountIsVerified(const bool isOsAccountVerified)
+ErrCode OsAccountProxy::SetCurrentOsAccountIsVerified(const bool isVerified)
 {
     MessageParcel data;
     MessageParcel reply;
-    if (!data.WriteBool(isOsAccountVerified)) {
-        ACCOUNT_LOGE("failed to write bool for isOsAccountVerified");
+    if (!data.WriteBool(isVerified)) {
+        ACCOUNT_LOGE("failed to write bool for isVerified");
         return ERR_OSACCOUNT_KIT_WRITE_BOOL_ISOSACCOUNT_VERIFIED_ERROR;
     }
     ErrCode result = SendRequest(IOsAccount::Message::SET_CURRENT_OS_ACCOUNT_IS_VERIFIED, data, reply);
@@ -749,7 +749,7 @@ ErrCode OsAccountProxy::SetCurrentOsAccountIsVerified(const bool isOsAccountVeri
     return ERR_OK;
 }
 
-ErrCode OsAccountProxy::SetOsAccountIsVerified(const int id, const bool isOsAccountVerified)
+ErrCode OsAccountProxy::SetOsAccountIsVerified(const int id, const bool isVerified)
 {
     MessageParcel data;
     MessageParcel reply;
@@ -757,8 +757,8 @@ ErrCode OsAccountProxy::SetOsAccountIsVerified(const int id, const bool isOsAcco
         ACCOUNT_LOGE("failed to write int for id");
         return ERR_OSACCOUNT_KIT_WRITE_INT_LOCALID_ERROR;
     }
-    if (!data.WriteBool(isOsAccountVerified)) {
-        ACCOUNT_LOGE("failed to write bool for isOsAccountVerified");
+    if (!data.WriteBool(isVerified)) {
+        ACCOUNT_LOGE("failed to write bool for isVerified");
         return ERR_OSACCOUNT_KIT_WRITE_BOOL_ISOSACCOUNT_VERIFIED_ERROR;
     }
 

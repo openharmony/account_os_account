@@ -58,8 +58,7 @@ void AccountPermissionManagerModuleTest::TearDown(void)
  * @tc.type: FUNC
  * @tc.require: SR000GGVFR
  */
-HWTEST_F(
-    AccountPermissionManagerModuleTest, AccountPermissionManager_VerifyPermission_0100, Function | MediumTest | Level1)
+HWTEST_F(AccountPermissionManagerModuleTest, AccountPermissionManager_VerifyPermission_0100, TestSize.Level0)
 {
     ASSERT_NE(permissionManagerPtr_, nullptr);
 

@@ -226,7 +226,7 @@ ErrCode OsAccountStub::ProcCreateOsAccount(MessageParcel &data, MessageParcel &r
         reply.WriteInt32(ERR_OSACCOUNT_KIT_READ_LOCALNAME_ERROR);
         return ERR_NONE;
     }
-    int type = data.ReadInt32();
+    OsAccountType type = static_cast<OsAccountType>(data.ReadInt32());
     OsAccountInfo osAccountInfo;
     ErrCode result = CreateOsAccount(name, type, osAccountInfo);
     if (!reply.WriteInt32(result)) {
@@ -399,13 +399,13 @@ ErrCode OsAccountStub::ProcGetCreatedOsAccountsCount(MessageParcel &data, Messag
 
 ErrCode OsAccountStub::ProcGetDistributedVirtualDeviceId(MessageParcel &data, MessageParcel &reply)
 {
-    std::int32_t devicesId;
+    std::string devicesId;
     ErrCode result = GetDistributedVirtualDeviceId(devicesId);
     if (!reply.WriteInt32(result)) {
         ACCOUNT_LOGE("failed to write reply");
         return IPC_STUB_WRITE_PARCEL_ERR;
     }
-    if (!reply.WriteInt32(devicesId)) {
+    if (!reply.WriteString(devicesId)) {
         ACCOUNT_LOGE("failed to write reply");
         return IPC_STUB_WRITE_PARCEL_ERR;
     }
@@ -421,7 +421,6 @@ ErrCode OsAccountStub::ProcGetOsAccountAllConstraints(MessageParcel &data, Messa
         return ERR_NONE;
     }
     std::vector<std::string> constraints;
-    constraints.clear();
     ErrCode result = GetOsAccountAllConstraints(localId, constraints);
     if (!reply.WriteInt32(result)) {
         ACCOUNT_LOGE("failed to write reply");
@@ -493,7 +492,7 @@ ErrCode OsAccountStub::ProcGetOsAccountLocalIdFromUid(MessageParcel &data, Messa
 
 ErrCode OsAccountStub::ProcGetOsAccountTypeFromProcess(MessageParcel &data, MessageParcel &reply)
 {
-    int type;
+    OsAccountType type = OsAccountType::ADMIN;
     ErrCode result = GetOsAccountTypeFromProcess(type);
     if (!reply.WriteInt32(result)) {
         ACCOUNT_LOGE("failed to write reply");
@@ -614,13 +613,13 @@ ErrCode OsAccountStub::ProcIsOsAccountVerified(MessageParcel &data, MessageParce
         reply.WriteInt32(ERR_OSACCOUNT_KIT_READ_IN_LOCALID_ERROR);
         return ERR_NONE;
     }
-    bool isOsAccountVerified = false;
-    ErrCode result = IsOsAccountVerified(localId, isOsAccountVerified);
+    bool isVerified = false;
+    ErrCode result = IsOsAccountVerified(localId, isVerified);
     if (!reply.WriteInt32(result)) {
         ACCOUNT_LOGE("failed to write reply");
         return IPC_STUB_WRITE_PARCEL_ERR;
     }
-    if (!reply.WriteBool(isOsAccountVerified)) {
+    if (!reply.WriteBool(isVerified)) {
         ACCOUNT_LOGE("failed to write reply");
         return IPC_STUB_WRITE_PARCEL_ERR;
     }
@@ -747,13 +746,13 @@ ErrCode OsAccountStub::ProcGetOsAccountSwitchMod(MessageParcel &data, MessagePar
 
 ErrCode OsAccountStub::ProcIsCurrentOsAccountVerified(MessageParcel &data, MessageParcel &reply)
 {
-    bool isOsAccountVerified = false;
-    ErrCode result = IsCurrentOsAccountVerified(isOsAccountVerified);
+    bool isVerified = false;
+    ErrCode result = IsCurrentOsAccountVerified(isVerified);
     if (!reply.WriteInt32(result)) {
         ACCOUNT_LOGE("failed to write reply");
         return IPC_STUB_WRITE_PARCEL_ERR;
     }
-    reply.WriteBool(isOsAccountVerified);
+    reply.WriteBool(isVerified);
     return ERR_NONE;
 }
 
@@ -777,8 +776,8 @@ ErrCode OsAccountStub::ProcIsOsAccountCompleted(MessageParcel &data, MessageParc
 
 ErrCode OsAccountStub::ProcSetCurrentOsAccountIsVerified(MessageParcel &data, MessageParcel &reply)
 {
-    bool isOsAccountVerified = data.ReadBool();
-    ErrCode result = SetCurrentOsAccountIsVerified(isOsAccountVerified);
+    bool isVerified = data.ReadBool();
+    ErrCode result = SetCurrentOsAccountIsVerified(isVerified);
     if (!reply.WriteInt32(result)) {
         ACCOUNT_LOGE("failed to write reply");
         return IPC_STUB_WRITE_PARCEL_ERR;
@@ -794,8 +793,8 @@ ErrCode OsAccountStub::ProcSetOsAccountIsVerified(MessageParcel &data, MessagePa
         reply.WriteInt32(ERR_OSACCOUNT_KIT_READ_IN_LOCALID_ERROR);
         return ERR_NONE;
     }
-    bool isOsAccountVerified = data.ReadBool();
-    ErrCode result = SetOsAccountIsVerified(localId, isOsAccountVerified);
+    bool isVerified = data.ReadBool();
+    ErrCode result = SetOsAccountIsVerified(localId, isVerified);
     if (!reply.WriteInt32(result)) {
         ACCOUNT_LOGE("failed to write reply");
         return IPC_STUB_WRITE_PARCEL_ERR;

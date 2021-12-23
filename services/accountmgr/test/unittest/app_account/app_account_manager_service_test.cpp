@@ -67,7 +67,7 @@ void AppAccountManagerServiceTest::TearDown(void)
  * @tc.type: FUNC
  * @tc.require: SR000GGV11
  */
-HWTEST_F(AppAccountManagerServiceTest, AppAccountManagerService_AddAccount_0100, Function | MediumTest | Level1)
+HWTEST_F(AppAccountManagerServiceTest, AppAccountManagerService_AddAccount_0100, TestSize.Level1)
 {
     ErrCode result = appAccountProxy_->AddAccount(STRING_NAME, STRING_EXTRA_INFO);
 
@@ -80,7 +80,7 @@ HWTEST_F(AppAccountManagerServiceTest, AppAccountManagerService_AddAccount_0100,
  * @tc.type: FUNC
  * @tc.require: SR000GGV11
  */
-HWTEST_F(AppAccountManagerServiceTest, AppAccountManagerService_DeleteAccount_0100, Function | MediumTest | Level1)
+HWTEST_F(AppAccountManagerServiceTest, AppAccountManagerService_DeleteAccount_0100, TestSize.Level1)
 {
     ErrCode result = appAccountProxy_->DeleteAccount(STRING_NAME);
 
@@ -94,7 +94,7 @@ HWTEST_F(AppAccountManagerServiceTest, AppAccountManagerService_DeleteAccount_01
  * @tc.require: SR000GGVFT
  */
 HWTEST_F(
-    AppAccountManagerServiceTest, AppAccountManagerService_SubscribeAppAccount_0100, Function | MediumTest | Level1)
+    AppAccountManagerServiceTest, AppAccountManagerService_SubscribeAppAccount_0100, TestSize.Level1)
 {
     // make owners
     std::vector<std::string> owners;
@@ -117,7 +117,7 @@ HWTEST_F(
  * @tc.require: SR000GGVFT
  */
 HWTEST_F(
-    AppAccountManagerServiceTest, AppAccountManagerService_UnsubscribeAppAccount_0100, Function | MediumTest | Level1)
+    AppAccountManagerServiceTest, AppAccountManagerService_UnsubscribeAppAccount_0100, TestSize.Level1)
 {
     // unsubscribe app account
     ErrCode result = appAccountProxy_->UnsubscribeAppAccount(nullptr);
