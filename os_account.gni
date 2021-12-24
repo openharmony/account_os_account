@@ -14,6 +14,7 @@
 os_account_path = "//base/account/os_account"
 common_path = "${os_account_path}/frameworks/common"
 services_path = "${os_account_path}/services"
+tools_path = "${os_account_path}/tools"
 innerkits_path = "${os_account_path}/interfaces/innerkits/ohosaccount/native"
 innerkits_native_path = "${os_account_path}/frameworks/ohosaccount/native"
 
@@ -31,3 +32,6 @@ os_account_innerkits_native_path =
     "${os_account_path}/frameworks/osaccount/native"
 os_account_core_path = "${os_account_path}/frameworks/osaccount/core"
 os_account_kits_path = "${os_account_path}/interfaces/kits/napi/osaccount"
+
+aafwk_path = "//foundation/aafwk/standard"
+appexecfwk_path = "//foundation/appexecfwk/standard"

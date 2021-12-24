@@ -262,7 +262,8 @@ ErrCode OsAccount::SetOsAccountName(const int id, const std::string &localName)
     return osAccountProxy_->SetOsAccountName(id, localName);
 }
 
-ErrCode OsAccount::SetOsAccountConstraints(const int id, const std::vector<std::string> &constraints, const bool enable)
+ErrCode OsAccount::SetOsAccountConstraints(
+    const int id, const std::vector<std::string> &constraints, const bool enable)
 {
     ACCOUNT_LOGI("OsAccount::SetOsAccountConstraints start");
     ErrCode result = GetOsAccountProxy();
@@ -434,6 +435,19 @@ OS_ACCOUNT_SWITCH_MOD OsAccount::GetOsAccountSwitchMod()
     ACCOUNT_LOGI("OsAccount::GetOsAccountSwitchMod start");
     GetOsAccountProxy();
     return osAccountProxy_->GetOsAccountSwitchMod();
+}
+
+ErrCode OsAccount::DumpState(const int &id, std::vector<std::string> &state)
+{
+    ACCOUNT_LOGI("enter");
+
+    ErrCode result = GetOsAccountProxy();
+    if (result != ERR_OK) {
+        ACCOUNT_LOGE("failed to get osAccountProxy_");
+        return result;
+    }
+
+    return osAccountProxy_->DumpState(id, state);
 }
 
 ErrCode OsAccount::ResetOsAccountProxy()

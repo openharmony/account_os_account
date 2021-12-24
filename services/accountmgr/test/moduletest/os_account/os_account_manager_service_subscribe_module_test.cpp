@@ -59,6 +59,7 @@ public:
     explicit OsAccountSubscriberTest(const OsAccountSubscribeInfo &subscribeInfo) : OsAccountSubscriber(subscribeInfo)
     {
         ACCOUNT_LOGI("enter");
+        id_ = 0;
     }
 
     ~OsAccountSubscriberTest()

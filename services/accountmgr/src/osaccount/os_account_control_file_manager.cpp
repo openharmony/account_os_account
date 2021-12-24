@@ -85,12 +85,10 @@ ErrCode OsAccountControlFileManager::GetOsAccountInfoById(const int id, OsAccoun
     ACCOUNT_LOGE("OsAccountControlFileManager GetOsAccountInfoById start");
     std::string path = Constants::USER_INFO_BASE + Constants::PATH_SEPARATOR + std::to_string(id) +
                        Constants::PATH_SEPARATOR + Constants::USER_INFO_FILE_NAME;
-    ACCOUNT_LOGE("OsAccountControlFileManager GetOsAccountInfoById path is %{public}s", path.c_str());
     if (!accountFileOperator_->IsExistFile(path)) {
         ACCOUNT_LOGE("OsAccountControlFileManager GetOsAccountInfoById file donnot exists err");
         return ERR_OS_ACCOUNT_SERVICE_CONTROL_SELECT_OS_ACCOUNT_ERROR;
     }
-    ACCOUNT_LOGE("OsAccountControlFileManager GetOsAccountInfoById file is exists");
     std::string accountInfoStr;
     if (accountFileOperator_->GetFileContentByPath(path, accountInfoStr) != ERR_OK) {
         ACCOUNT_LOGE("OsAccountControlFileManager GetOsAccountInfoById file cannot get info err");
@@ -113,7 +111,6 @@ ErrCode OsAccountControlFileManager::InsertOsAccount(OsAccountInfo &osAccountInf
     ACCOUNT_LOGE("OsAccountControlFileManager InsertOsAccount start");
     std::string path = Constants::USER_INFO_BASE + Constants::PATH_SEPARATOR + osAccountInfo.GetPrimeKey() +
                        Constants::PATH_SEPARATOR + Constants::USER_INFO_FILE_NAME;
-    ACCOUNT_LOGE("OsAccountControlFileManager InsertOsAccount file path is :%{public}s", path.c_str());
     if (osAccountInfo.GetLocalId() < Constants::ADMIN_LOCAL_ID || osAccountInfo.GetLocalId() > Constants::MAX_USER_ID) {
         return ERR_OS_ACCOUNT_SERVICE_CONTROL_ID_CANNOT_CREATE_ERROR;
     }
@@ -126,7 +123,6 @@ ErrCode OsAccountControlFileManager::InsertOsAccount(OsAccountInfo &osAccountInf
         return ERR_OS_ACCOUNT_SERVICE_CONTROL_INSERT_OS_ACCOUNT_FILE_ERROR;
     }
     if (osAccountInfo.GetLocalId() > Constants::START_USER_ID - 1) {
-        ACCOUNT_LOGE("OsAccountControlFileManager is ordinary account");
         Json accountListJson;
         if (GetAccountList(accountListJson) != ERR_OK) {
             ACCOUNT_LOGE("OsAccountControlFileManager get account List Err");
@@ -162,23 +158,21 @@ ErrCode OsAccountControlFileManager::DelOsAccount(const int id)
         ACCOUNT_LOGE("OsAccountControlFileManager DelOsAccount delete dir error");
         return ERR_OS_ACCOUNT_SERVICE_CONTROL_DEL_OS_ACCOUNT_INFO_ERROR;
     }
-    if (id > Constants::START_USER_ID - 1) {
-        Json accountListJson;
-        if (GetAccountList(accountListJson) != ERR_OK) {
-            ACCOUNT_LOGE("OsAccountControlFileManager DelOsAccount GetAccountList error");
-            return ERR_OS_ACCOUNT_SERVICE_CONTROL_GET_OS_ACCOUNT_LIST_ERROR;
-        }
-        std::vector<std::string> accountIdList;
-        auto jsonEnd = accountListJson.end();
-        OHOS::AccountSA::GetDataByType<std::vector<std::string>>(
-            accountListJson, jsonEnd, Constants::ACCOUNT_LIST, accountIdList, OHOS::AccountSA::JsonType::ARRAY);
-        accountIdList.erase(
-            std::remove(accountIdList.begin(), accountIdList.end(), std::to_string(id)), accountIdList.end());
-        accountListJson[Constants::ACCOUNT_LIST] = accountIdList;
-        accountListJson[Constants::COUNT_ACCOUNT_NUM] = accountIdList.size();
-        if (SaveAccountList(accountListJson) != ERR_OK) {
-            return ERR_OS_ACCOUNT_SERVICE_CONTROL_INSERT_OS_ACCOUNT_LIST_ERROR;
-        }
+    Json accountListJson;
+    if (GetAccountList(accountListJson) != ERR_OK) {
+        ACCOUNT_LOGE("OsAccountControlFileManager DelOsAccount GetAccountList error");
+        return ERR_OS_ACCOUNT_SERVICE_CONTROL_GET_OS_ACCOUNT_LIST_ERROR;
+    }
+    std::vector<std::string> accountIdList;
+    auto jsonEnd = accountListJson.end();
+    OHOS::AccountSA::GetDataByType<std::vector<std::string>>(
+        accountListJson, jsonEnd, Constants::ACCOUNT_LIST, accountIdList, OHOS::AccountSA::JsonType::ARRAY);
+    accountIdList.erase(
+        std::remove(accountIdList.begin(), accountIdList.end(), std::to_string(id)), accountIdList.end());
+    accountListJson[Constants::ACCOUNT_LIST] = accountIdList;
+    accountListJson[Constants::COUNT_ACCOUNT_NUM] = accountIdList.size();
+    if (SaveAccountList(accountListJson) != ERR_OK) {
+        return ERR_OS_ACCOUNT_SERVICE_CONTROL_INSERT_OS_ACCOUNT_LIST_ERROR;
     }
     ACCOUNT_LOGE("OsAccountControlFileManager DelOsAccount end");
     return ERR_OK;
