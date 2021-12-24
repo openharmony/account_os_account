@@ -64,6 +64,8 @@ public:
     virtual ErrCode IsOsAccountCompleted(const int id, bool &isOsAccountCompleted) = 0;
     virtual ErrCode SetCurrentOsAccountIsVerified(const bool isVerified) = 0;
     virtual ErrCode SetOsAccountIsVerified(const int id, const bool isVerified) = 0;
+    virtual ErrCode DumpState(const int &id, std::vector<std::string> &state) = 0;
+
     enum class Message {
         CREATE_OS_ACCOUNT = 0,
         REMOVE_OS_ACCOUNT,
@@ -98,6 +100,7 @@ public:
         IS_OS_ACCOUNT_COMPLETED,
         SET_CURRENT_OS_ACCOUNT_IS_VERIFIED,
         SET_OS_ACCOUNT_IS_VERIFIED,
+        DUMP_STATE,
     };
 };
 }  // namespace AccountSA

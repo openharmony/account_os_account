@@ -65,6 +65,7 @@ private:
     ErrCode ProcIsOsAccountCompleted(MessageParcel &data, MessageParcel &reply);
     ErrCode ProcSetCurrentOsAccountIsVerified(MessageParcel &data, MessageParcel &reply);
     ErrCode ProcSetOsAccountIsVerified(MessageParcel &data, MessageParcel &reply);
+    ErrCode ProcDumpState(MessageParcel &data, MessageParcel &reply);
 
 private:
     template <typename T>
