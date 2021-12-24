@@ -41,7 +41,7 @@ public:
     ErrCode SetOsAccountName(const int id, const std::string &localName);
     ErrCode SetOsAccountConstraints(const int id, const std::vector<std::string> &constraints, const bool enable);
     ErrCode SetOsAccountProfilePhoto(const int id, const std::string &photo);
-    ErrCode GetDistributedVirtualDeviceId(std::string &deviceId);;
+    ErrCode GetDistributedVirtualDeviceId(std::string &deviceId);
     ErrCode ActivateOsAccount(const int id);
     ErrCode StartOsAccount(const int id);
     ErrCode StopOsAccount(const int id);
@@ -54,6 +54,7 @@ public:
     ErrCode IsOsAccountCompleted(const int id, bool &isOsAccountCompleted);
     ErrCode SetCurrentOsAccountIsVerified(const bool isVerified);
     ErrCode SetOsAccountIsVerified(const int id, const bool isVerified);
+    ErrCode DumpState(const int &id, std::vector<std::string> &state);
     ErrCode ResetOsAccountProxy();
 
 private:

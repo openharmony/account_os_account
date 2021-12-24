@@ -22,6 +22,24 @@
 
 namespace OHOS {
 namespace AccountSA {
+namespace {
+const std::string dumpHeader =
+    "+-----------------------+-----------------------+-----------------------+-----------------------+\n"
+    "| ID                    | Name                  | Type                  | Status                |\n"
+    "+-----------------------+-----------------------+-----------------------+-----------------------+";
+const std::string dumpBottom =
+    "+-----------------------+-----------------------+-----------------------+-----------------------+";
+const std::string dumpCellDivider = "|";
+const std::string dumpTabCharacter = "\t";
+constexpr std::int32_t dumpTabCharacterWidth = 8;
+constexpr std::int32_t dumpCellWidth = 3;
+const std::map<OsAccountType, std::string> dumpTypeMap = {
+    {OsAccountType::ADMIN, "admin"},
+    {OsAccountType::NORMAL, "normal"},
+    {OsAccountType::GUEST, "guest"},
+};
+}  // namespace
+
 OsAccountManagerService::OsAccountManagerService()
 {
     ACCOUNT_LOGI("OsAccountManager OsAccountManagerService START");
@@ -573,7 +591,8 @@ ErrCode OsAccountManagerService::UnsubscribeOsAccount(const sptr<IRemoteObject> 
 ErrCode OsAccountManagerService::GetOsAccountLocalIdBySerialNumber(const int64_t serialNumber, int &id)
 {
     ACCOUNT_LOGI("enter");
-    if (serialNumber < Constants::CARRY_NUM * Constants::SERIAL_NUMBER_NUM_START_FOR_ADMIN + Constants::START_USER_ID) {
+    if (serialNumber <
+        Constants::CARRY_NUM * Constants::SERIAL_NUMBER_NUM_START_FOR_ADMIN + Constants::START_USER_ID) {
         return ERR_OS_ACCOUNT_SERVICE_MANAGER_ID_ERROR;
     }
     return innerManager_->GetOsAccountLocalIdBySerialNumber(serialNumber, id);
@@ -698,6 +717,78 @@ ErrCode OsAccountManagerService::SetOsAccountIsVerified(const int id, const bool
         return ERR_OS_ACCOUNT_SERVICE_MANAGER_ID_ERROR;
     }
     return innerManager_->SetOsAccountIsVerified(id, isVerified);
+}
+
+ErrCode OsAccountManagerService::DumpState(const int &id, std::vector<std::string> &state)
+{
+    state.clear();
+
+    ErrCode result = ERR_OK;
+    std::vector<OsAccountInfo> osAccountInfos;
+
+    if (id == -1) {
+        result = innerManager_->QueryAllCreatedOsAccounts(osAccountInfos);
+        if (result != ERR_OK) {
+            return result;
+        }
+    } else {
+        OsAccountInfo osAccountInfo;
+        result = innerManager_->QueryOsAccountById(id, osAccountInfo);
+        if (result != ERR_OK) {
+            return result;
+        }
+
+        osAccountInfos.emplace_back(osAccountInfo);
+    }
+
+    state.emplace_back(dumpHeader);
+    for (auto osAccountInfo : osAccountInfos) {
+        std::string info = "";
+
+        std::string localId = std::to_string(osAccountInfo.GetLocalId());
+        DumpStateCellContent(localId, info);
+
+        std::string localName = osAccountInfo.GetLocalName();
+        DumpStateCellContent(localName, info);
+
+        std::string type = "";
+        auto it = dumpTypeMap.find(osAccountInfo.GetType());
+        if (it != dumpTypeMap.end()) {
+            type = it->second;
+        } else {
+            type = "unknown";
+        }
+        DumpStateCellContent(type, info);
+
+        std::string status = "";
+        if (osAccountInfo.GetIsActived()) {
+            status = "active";
+        } else {
+            status = "inactive";
+        }
+        DumpStateCellContent(status, info);
+
+        info += dumpCellDivider;
+
+        state.emplace_back(info);
+    }
+
+    state.emplace_back(dumpBottom);
+
+    return ERR_OK;
+}
+
+ErrCode OsAccountManagerService::DumpStateCellContent(const std::string &content, std::string &info)
+{
+    std::string cellContent = dumpCellDivider + " " + content;
+    info += cellContent;
+
+    int counter = dumpCellWidth - floor(cellContent.size() / dumpTabCharacterWidth);
+    while (counter--) {
+        info += dumpTabCharacter;
+    }
+
+    return ERR_OK;
 }
 }  // namespace AccountSA
 }  // namespace OHOS

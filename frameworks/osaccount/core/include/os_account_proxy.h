@@ -60,6 +60,7 @@ public:
     virtual ErrCode IsOsAccountCompleted(const int id, bool &isOsAccountCompleted) override;
     virtual ErrCode SetCurrentOsAccountIsVerified(const bool isVerified) override;
     virtual ErrCode SetOsAccountIsVerified(const int id, const bool isVerified) override;
+    virtual ErrCode DumpState(const int &id, std::vector<std::string> &state) override;
 
 private:
     template <typename T>

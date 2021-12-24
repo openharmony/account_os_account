@@ -1,0 +1,199 @@
+# Copyright (c) 2021 Huawei Device Co., Ltd.
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#     http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
+import("//base/account/os_account/os_account.gni")
+import("//build/test.gni")
+
+module_output_path = "os_account_standard/tools"
+
+ohos_unittest("account_command_create_test") {
+  module_out_path = module_output_path
+
+  include_dirs = []
+
+  sources = [
+    "${aafwk_path}/tools/aa/src/shell_command.cpp",
+    "${tools_path}/acm/src/account_command.cpp",
+    "account_command_create_test.cpp",
+  ]
+
+  configs = [
+    "${aafwk_path}/tools/aa:ability_command_config",
+    "${tools_path}/acm:tools_acm_config",
+  ]
+
+  cflags = []
+  if (target_cpu == "arm") {
+    cflags += [ "-DBINDER_IPC_32BIT" ]
+  }
+
+  deps = [
+    "${common_path}:libaccount_common",
+    "${os_account_core_path}:os_account_core",
+    "//third_party/googletest:gtest_main",
+    "//utils/native/base:utils",
+  ]
+
+  external_deps = [
+    "hiviewdfx_hilog_native:libhilog",
+    "ipc:ipc_core",
+  ]
+}
+
+ohos_unittest("account_command_delete_test") {
+  module_out_path = module_output_path
+
+  include_dirs = []
+
+  sources = [
+    "${aafwk_path}/tools/aa/src/shell_command.cpp",
+    "${tools_path}/acm/src/account_command.cpp",
+    "account_command_delete_test.cpp",
+  ]
+
+  configs = [
+    "${aafwk_path}/tools/aa:ability_command_config",
+    "${tools_path}/acm:tools_acm_config",
+  ]
+
+  cflags = []
+  if (target_cpu == "arm") {
+    cflags += [ "-DBINDER_IPC_32BIT" ]
+  }
+
+  deps = [
+    "${common_path}:libaccount_common",
+    "${os_account_core_path}:os_account_core",
+    "//third_party/googletest:gtest_main",
+    "//utils/native/base:utils",
+  ]
+
+  external_deps = [
+    "hiviewdfx_hilog_native:libhilog",
+    "ipc:ipc_core",
+  ]
+}
+
+ohos_unittest("account_command_dump_test") {
+  module_out_path = module_output_path
+
+  include_dirs = []
+
+  sources = [
+    "${aafwk_path}/tools/aa/src/shell_command.cpp",
+    "${tools_path}/acm/src/account_command.cpp",
+    "account_command_dump_test.cpp",
+  ]
+
+  configs = [
+    "${aafwk_path}/tools/aa:ability_command_config",
+    "${tools_path}/acm:tools_acm_config",
+  ]
+
+  cflags = []
+  if (target_cpu == "arm") {
+    cflags += [ "-DBINDER_IPC_32BIT" ]
+  }
+
+  deps = [
+    "${common_path}:libaccount_common",
+    "${os_account_core_path}:os_account_core",
+    "//third_party/googletest:gtest_main",
+    "//utils/native/base:utils",
+  ]
+
+  external_deps = [
+    "hiviewdfx_hilog_native:libhilog",
+    "ipc:ipc_core",
+  ]
+}
+
+ohos_unittest("account_command_switch_test") {
+  module_out_path = module_output_path
+
+  include_dirs = []
+
+  sources = [
+    "${aafwk_path}/tools/aa/src/shell_command.cpp",
+    "${tools_path}/acm/src/account_command.cpp",
+    "account_command_switch_test.cpp",
+  ]
+
+  configs = [
+    "${aafwk_path}/tools/aa:ability_command_config",
+    "${tools_path}/acm:tools_acm_config",
+  ]
+
+  cflags = []
+  if (target_cpu == "arm") {
+    cflags += [ "-DBINDER_IPC_32BIT" ]
+  }
+
+  deps = [
+    "${common_path}:libaccount_common",
+    "${os_account_core_path}:os_account_core",
+    "//third_party/googletest:gtest_main",
+    "//utils/native/base:utils",
+  ]
+
+  external_deps = [
+    "hiviewdfx_hilog_native:libhilog",
+    "ipc:ipc_core",
+  ]
+}
+
+ohos_unittest("account_command_test") {
+  module_out_path = module_output_path
+
+  include_dirs = []
+
+  sources = [
+    "${aafwk_path}/tools/aa/src/shell_command.cpp",
+    "${tools_path}/acm/src/account_command.cpp",
+    "account_command_test.cpp",
+  ]
+
+  configs = [
+    "${aafwk_path}/tools/aa:ability_command_config",
+    "${tools_path}/acm:tools_acm_config",
+  ]
+
+  cflags = []
+  if (target_cpu == "arm") {
+    cflags += [ "-DBINDER_IPC_32BIT" ]
+  }
+
+  deps = [
+    "${common_path}:libaccount_common",
+    "${os_account_core_path}:os_account_core",
+    "//third_party/googletest:gtest_main",
+    "//utils/native/base:utils",
+  ]
+
+  external_deps = [
+    "hiviewdfx_hilog_native:libhilog",
+    "ipc:ipc_core",
+  ]
+}
+
+group("unittest") {
+  testonly = true
+
+  deps = [
+    ":account_command_create_test",
+    ":account_command_delete_test",
+    ":account_command_dump_test",
+    ":account_command_switch_test",
+    ":account_command_test",
+  ]
+}

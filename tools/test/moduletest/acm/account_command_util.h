@@ -13,31 +13,24 @@
  * limitations under the License.
  */
 
-#include "account_log_wrapper.h"
+#ifndef BASE_ACCOUNT_OS_ACCOUNT_TOOLS_TEST_MODULETEST_ACM_ACCOUNT_COMMAND_UTIL_H
+#define BASE_ACCOUNT_OS_ACCOUNT_TOOLS_TEST_MODULETEST_ACM_ACCOUNT_COMMAND_UTIL_H
+
+#include <iostream>
 
 namespace OHOS {
 namespace AccountSA {
-// initial static member object
-AccountLogLevel AccountLogWrapper::level_ = AccountLogLevel::INFO;
+namespace {}
 
-bool AccountLogWrapper::JudgeLevel(const AccountLogLevel& level)
-{
-    return (level >= AccountLogWrapper::GetLogLevel());
-}
+class AccountCommandUtil {
+public:
+    static void CreateOsAccount();
+    static void DeleteLastOsAccount();
+    static void DumpLastOsAccount();
+    static void SwitchToFirstOsAccount();
+    static void SwitchToLastOsAccount();
+};
+}  // namespace AccountSA
+}  // namespace OHOS
 
-std::string AccountLogWrapper::GetBriefFileName(const std::string &file)
-{
-    auto pos = file.find_last_of("/");
-    if (pos != std::string::npos) {
-        return file.substr(pos + 1);
-    }
-
-    pos = file.find_last_of("\\");
-    if (pos != std::string::npos) {
-        return file.substr(pos + 1);
-    }
-
-    return file;
-}
-} // namespace AccountSA
-} // namespace OHOS
+#endif  // BASE_ACCOUNT_OS_ACCOUNT_TOOLS_TEST_MODULETEST_ACM_ACCOUNT_COMMAND_UTIL_H
