@@ -773,6 +773,36 @@ ErrCode OsAccountProxy::SetOsAccountIsVerified(const int id, const bool isVerifi
     }
     return ERR_OK;
 }
+
+ErrCode OsAccountProxy::DumpState(const int &id, std::vector<std::string> &state)
+{
+    MessageParcel data;
+    MessageParcel reply;
+
+    if (!data.WriteInt32(id)) {
+        ACCOUNT_LOGE("failed to write int for id");
+        return ERR_OSACCOUNT_KIT_WRITE_INT_LOCALID_ERROR;
+    }
+
+    ErrCode result = SendRequest(IOsAccount::Message::DUMP_STATE, data, reply);
+    if (result != ERR_OK) {
+        return result;
+    }
+
+    result = reply.ReadInt32();
+    if (result != ERR_OK) {
+        return ERR_OSACCOUNT_KIT_DUMP_STATE_ERROR;
+    }
+
+    int32_t size = reply.ReadInt32();
+    for (int i = 0; i < size; i++) {
+        std::string info = reply.ReadString();
+        state.emplace_back(info);
+    }
+
+    return ERR_OK;
+}
+
 template <typename T>
 bool OsAccountProxy::WriteParcelableVector(const std::vector<T> &parcelableVector, MessageParcel &data)
 {

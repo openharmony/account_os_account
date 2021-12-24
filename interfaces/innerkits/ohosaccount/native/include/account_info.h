@@ -121,4 +121,3 @@ public:
 } // namespace OHOS
 
 #endif // BASE_ACCOUNT_ACCOUNT_INFO_H
-

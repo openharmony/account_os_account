@@ -150,6 +150,10 @@ const std::map<uint32_t, OsAccountStub::MessageProcFunction> OsAccountStub::mess
         static_cast<uint32_t>(IOsAccount::Message::SET_OS_ACCOUNT_IS_VERIFIED),
         &OsAccountStub::ProcSetOsAccountIsVerified,
     },
+    {
+        static_cast<uint32_t>(IOsAccount::Message::DUMP_STATE),
+        &OsAccountStub::ProcDumpState,
+    },
 };
 
 OsAccountStub::OsAccountStub()
@@ -799,6 +803,32 @@ ErrCode OsAccountStub::ProcSetOsAccountIsVerified(MessageParcel &data, MessagePa
         ACCOUNT_LOGE("failed to write reply");
         return IPC_STUB_WRITE_PARCEL_ERR;
     }
+    return ERR_NONE;
+}
+
+ErrCode OsAccountStub::ProcDumpState(MessageParcel &data, MessageParcel &reply)
+{
+    int id = data.ReadInt32();
+    std::vector<std::string> state;
+
+    ErrCode result = DumpState(id, state);
+    if (!reply.WriteInt32(result)) {
+        ACCOUNT_LOGE("failed to write reply");
+        return IPC_STUB_WRITE_PARCEL_ERR;
+    }
+
+    if (!reply.WriteInt32(state.size())) {
+        ACCOUNT_LOGE("failed to write reply");
+        return IPC_STUB_WRITE_PARCEL_ERR;
+    }
+
+    for (auto info : state) {
+        if (!reply.WriteString(info)) {
+            ACCOUNT_LOGE("failed to write reply");
+            return IPC_STUB_WRITE_PARCEL_ERR;
+        }
+    }
+
     return ERR_NONE;
 }
 }  // namespace AccountSA

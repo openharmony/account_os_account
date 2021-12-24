@@ -33,7 +33,8 @@
         "//base/account/os_account/sa_profile:account_sa_profile",
         "//base/account/os_account/interfaces/kits/napi/distributedaccount:distributedaccount",
         "//base/account/os_account/frameworks/osaccount/native:os_account_innerkits",
-        "//base/account/os_account/interfaces/kits/napi/osaccount:osaccount"
+        "//base/account/os_account/interfaces/kits/napi/osaccount:osaccount",
+        "//base/account/os_account/tools:os_account_tools"
       ],
       "inner_kits": [
         {
@@ -68,6 +69,8 @@
         "//base/account/os_account/services/accountmgr/test/moduletest/os_account:moduletest",
         "//base/account/os_account/frameworks/ohosaccount/test:moduletest",
         "//base/account/os_account/frameworks/osaccount/native/test/unittest:unittest",
+        "//base/account/os_account/tools:unittest",
+        "//base/account/os_account/tools:moduletest",
         "//base/account/os_account/test/systemtest:systemtest"
       ]
     }

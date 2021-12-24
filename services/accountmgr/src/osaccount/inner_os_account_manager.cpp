@@ -478,18 +478,15 @@ ErrCode IInnerOsAccountManager::SetOsAccountConstraints(
         return ERR_OS_ACCOUNT_SERVICE_INNER_SER_CONSTRAINTS_ERROR;
     }
     std::vector<std::string> oldconstraints = osAccountInfo.GetConstraints();
-    if (enable) {
-        for (auto it = constraints.begin(); it != constraints.end(); it++) {
+    for (auto it = constraints.begin(); it != constraints.end(); it++) {
+        if (enable) {
             if (std::find(oldconstraints.begin(), oldconstraints.end(), *it) == oldconstraints.end()) {
                 oldconstraints.push_back(*it);
             }
-        }
-    } else {
-        std::find_if(constraints.begin(), constraints.end(), [&oldconstraints](std::string constraint) {
+        } else {
             oldconstraints.erase(
-                std::remove(oldconstraints.begin(), oldconstraints.end(), constraint), oldconstraints.end());
-            return false;
-        });
+                std::remove(oldconstraints.begin(), oldconstraints.end(), *it), oldconstraints.end());
+        }
     }
     osAccountInfo.SetConstraints(oldconstraints);
     errCode = osAccountControl_->UpdateOsAccount(osAccountInfo);
