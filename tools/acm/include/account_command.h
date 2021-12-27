@@ -30,6 +30,7 @@ const std::string HELP_MSG = "usage: acm <command> [<options>]\n"
                              "  create              create a local account with options\n"
                              "  delete              delete a local account with options\n"
                              "  switch              switch to a local account with options\n"
+                             "  set                 set constraints of a local account\n"
                              "  dump                dump the info of local accounts\n";
 
 const std::string HELP_MSG_CREATE =
@@ -44,12 +45,6 @@ const std::string HELP_MSG_DELETE =
     "  -h, --help                                       list available commands\n"
     "  -i <local-account-id>                            delete a local account with an id\n";
 
-const std::string HELP_MSG_SWITCH =
-    "usage: acm switch <options>\n"
-    "options list:\n"
-    "  -h, --help                                       list available commands\n"
-    "  -i <local-account-id>                            switch a local account with an id\n";
-
 const std::string HELP_MSG_DUMP =
     "usage: acm dump <options>\n"
     "options list:\n"
@@ -57,22 +52,35 @@ const std::string HELP_MSG_DUMP =
     "  -a, --all                                        dump all local accounts\n"
     "  -i <local-account-id>                            dump a local account with an id\n";
 
+const std::string HELP_MSG_SET =
+    "usage: acm set <options>\n"
+    "options list:\n"
+    "  -h, --help                                       list available commands\n"
+    "  -i <local-account-id> -c <constraints> [-e]      set contraints for a local account\n";
+
+const std::string HELP_MSG_SWITCH =
+    "usage: acm switch <options>\n"
+    "options list:\n"
+    "  -h, --help                                       list available commands\n"
+    "  -i <local-account-id>                            switch a local account with an id\n";
+
 const std::string HELP_MSG_OPTION_REQUIRES_AN_ARGUMENT = "error: option requires an argument.";
 const std::string HELP_MSG_NO_NAME_OPTION = "error: -n <local-account-name> is expected";
 const std::string HELP_MSG_NO_TYPE_OPTION = "error: -t <type> is expected";
+const std::string HELP_MSG_NO_ID_OPTION = "error: -i <local-account-id> is expected";
+const std::string HELP_MSG_NO_CONSTRAINTS_OPTION = "error: -c <constraints> is expected";
 const std::string HELP_MSG_INVALID_TYPE_ARGUMENT = "error: invalid type argument";
 const std::string HELP_MSG_INVALID_ID_ARGUMENT = "error: invalid id argument";
 
 const std::string STRING_CREATE_OS_ACCOUNT_OK = "create the local account successfully.";
 const std::string STRING_CREATE_OS_ACCOUNT_NG = "error: failed to create the local account.";
-
 const std::string STRING_DELETE_OS_ACCOUNT_OK = "delete the local account successfully.";
 const std::string STRING_DELETE_OS_ACCOUNT_NG = "error: failed to delete the local account.";
-
+const std::string STRING_DUMP_OS_ACCOUNT_NG = "error: failed to dump state.";
+const std::string STRING_SET_OS_ACCOUNT_CONSTRAINTS_OK = "set constraints for the local account successfully.";
+const std::string STRING_SET_OS_ACCOUNT_CONSTRAINTS_NG = "error: failed to set constraints for the local account.";
 const std::string STRING_SWITCH_OS_ACCOUNT_OK = "switch the local account successfully.";
 const std::string STRING_SWITCH_OS_ACCOUNT_NG = "error: failed to switch the local account.";
-
-const std::string STRING_DUMP_OS_ACCOUNT_NG = "error: failed to dump state.";
 }  // namespace
 
 class AccountCommand : public OHOS::AAFwk::ShellCommand {
@@ -90,22 +98,28 @@ private:
     ErrCode RunAsDeleteCommand(void);
     ErrCode RunAsSwitchCommand(void);
     ErrCode RunAsDumpCommand(void);
+    ErrCode RunAsSetCommand(void);
 
-    ErrCode RunAsCreateCommandError();
+    ErrCode RunAsCreateCommandError(void);
     ErrCode RunAsCreateCommandMissingOptionArgument(void);
     ErrCode RunAsCreateCommandExistentOptionArgument(const int &option, std::string &name, OsAccountType &type);
-    ErrCode RunAsDeleteCommandError();
+    ErrCode RunAsDeleteCommandError(void);
     ErrCode RunAsDeleteCommandMissingOptionArgument(void);
     ErrCode RunAsDeleteCommandExistentOptionArgument(const int &option, int &id);
-    ErrCode RunAsSwitchCommandError();
-    ErrCode RunAsSwitchCommandMissingOptionArgument(void);
-    ErrCode RunAsSwitchCommandExistentOptionArgument(const int &option, int &id);
-    ErrCode RunAsDumpCommandError();
+    ErrCode RunAsDumpCommandError(void);
     ErrCode RunAsDumpCommandMissingOptionArgument(void);
     ErrCode RunAsDumpCommandExistentOptionArgument(const int &option, int &id);
+    ErrCode RunAsSetCommandError(void);
+    ErrCode RunAsSetCommandMissingOptionArgument(void);
+    ErrCode RunAsSetCommandExistentOptionArgument(
+        const int &option, int &id, std::vector<std::string> &constraints, bool &enable);
+    ErrCode RunAsSwitchCommandError(void);
+    ErrCode RunAsSwitchCommandMissingOptionArgument(void);
+    ErrCode RunAsSwitchCommandExistentOptionArgument(const int &option, int &id);
 
     ErrCode AnalyzeTypeArgument(OsAccountType &type);
     ErrCode AnalyzeLocalIdArgument(int &id);
+    ErrCode AnalyzeConstraintArgument(std::vector<std::string> &constraints);
 
 private:
     std::shared_ptr<OsAccount> osAccountPtr_;
