@@ -23,16 +23,7 @@
 namespace OHOS {
 namespace AccountSA {
 namespace {
-const std::string dumpHeader =
-    "+-----------------------+-----------------------+-----------------------+-----------------------+\n"
-    "| ID                    | Name                  | Type                  | Status                |\n"
-    "+-----------------------+-----------------------+-----------------------+-----------------------+";
-const std::string dumpBottom =
-    "+-----------------------+-----------------------+-----------------------+-----------------------+";
-const std::string dumpCellDivider = "|";
 const std::string dumpTabCharacter = "\t";
-constexpr std::int32_t dumpTabCharacterWidth = 8;
-constexpr std::int32_t dumpCellWidth = 3;
 const std::map<OsAccountType, std::string> dumpTypeMap = {
     {OsAccountType::ADMIN, "admin"},
     {OsAccountType::NORMAL, "normal"},
@@ -721,6 +712,8 @@ ErrCode OsAccountManagerService::SetOsAccountIsVerified(const int id, const bool
 
 ErrCode OsAccountManagerService::DumpState(const int &id, std::vector<std::string> &state)
 {
+    ACCOUNT_LOGI("enter");
+
     state.clear();
 
     ErrCode result = ERR_OK;
@@ -741,15 +734,14 @@ ErrCode OsAccountManagerService::DumpState(const int &id, std::vector<std::strin
         osAccountInfos.emplace_back(osAccountInfo);
     }
 
-    state.emplace_back(dumpHeader);
     for (auto osAccountInfo : osAccountInfos) {
         std::string info = "";
 
         std::string localId = std::to_string(osAccountInfo.GetLocalId());
-        DumpStateCellContent(localId, info);
+        state.emplace_back("ID: " + localId);
 
         std::string localName = osAccountInfo.GetLocalName();
-        DumpStateCellContent(localName, info);
+        state.emplace_back(dumpTabCharacter + "Name: " + localName);
 
         std::string type = "";
         auto it = dumpTypeMap.find(osAccountInfo.GetType());
@@ -758,7 +750,7 @@ ErrCode OsAccountManagerService::DumpState(const int &id, std::vector<std::strin
         } else {
             type = "unknown";
         }
-        DumpStateCellContent(type, info);
+        state.emplace_back(dumpTabCharacter + "Type: " + type);
 
         std::string status = "";
         if (osAccountInfo.GetIsActived()) {
@@ -766,26 +758,15 @@ ErrCode OsAccountManagerService::DumpState(const int &id, std::vector<std::strin
         } else {
             status = "inactive";
         }
-        DumpStateCellContent(status, info);
+        state.emplace_back(dumpTabCharacter + "Status: " + status);
 
-        info += dumpCellDivider;
+        state.emplace_back(dumpTabCharacter + "Constraints:");
+        auto constraints = osAccountInfo.GetConstraints();
+        for (auto constraint : constraints) {
+            state.emplace_back(dumpTabCharacter + dumpTabCharacter + constraint);
+        }
 
-        state.emplace_back(info);
-    }
-
-    state.emplace_back(dumpBottom);
-
-    return ERR_OK;
-}
-
-ErrCode OsAccountManagerService::DumpStateCellContent(const std::string &content, std::string &info)
-{
-    std::string cellContent = dumpCellDivider + " " + content;
-    info += cellContent;
-
-    int counter = dumpCellWidth - floor(cellContent.size() / dumpTabCharacterWidth);
-    while (counter--) {
-        info += dumpTabCharacter;
+        state.emplace_back("\n");
     }
 
     return ERR_OK;
