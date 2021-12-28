@@ -139,6 +139,47 @@ ohos_moduletest("account_command_dump_module_test") {
   ]
 }
 
+ohos_moduletest("account_command_set_module_test") {
+  module_out_path = module_output_path
+
+  include_dirs = [
+    "${aafwk_path}/tools/aa/include",
+    "${aafwk_path}/tools/test/systemtest/aa",
+    "${appexecfwk_path}/tools/bm/include",
+  ]
+
+  sources = [
+    "${aafwk_path}/tools/aa/src/shell_command.cpp",
+    "${aafwk_path}/tools/test/systemtest/aa/tool_system_test.cpp",
+    "${tools_path}/acm/src/account_command.cpp",
+    "account_command_set_module_test.cpp",
+    "account_command_util.cpp",
+  ]
+
+  configs = [
+    "${aafwk_path}/interfaces/innerkits/ability_manager:ability_manager_public_config",
+    "${tools_path}/acm:tools_acm_config",
+  ]
+
+  cflags = []
+  if (target_cpu == "arm") {
+    cflags += [ "-DBINDER_IPC_32BIT" ]
+  }
+
+  deps = [
+    "${common_path}:libaccount_common",
+    "${os_account_core_path}:os_account_core",
+    "${os_account_innerkits_native_path}:os_account_innerkits",
+    "//third_party/googletest:gtest_main",
+    "//utils/native/base:utils",
+  ]
+
+  external_deps = [
+    "hiviewdfx_hilog_native:libhilog",
+    "ipc:ipc_core",
+  ]
+}
+
 ohos_moduletest("account_command_switch_module_test") {
   module_out_path = module_output_path
 
@@ -187,6 +228,7 @@ group("moduletest") {
     ":account_command_create_module_test",
     ":account_command_delete_module_test",
     ":account_command_dump_module_test",
+    ":account_command_set_module_test",
     ":account_command_switch_module_test",
   ]
 }
