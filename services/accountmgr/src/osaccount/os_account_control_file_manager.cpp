@@ -33,7 +33,7 @@ void OsAccountControlFileManager::Init()
     ACCOUNT_LOGE("OsAccountControlFileManager Init start");
     osAccountFileOperator_->Init();
     if (!accountFileOperator_->IsExistFile(
-            Constants::USER_INFO_BASE + Constants::PATH_SEPARATOR + Constants::USER_LIST_FILE_NAME)) {
+        Constants::USER_INFO_BASE + Constants::PATH_SEPARATOR + Constants::USER_LIST_FILE_NAME)) {
         ACCOUNT_LOGE("OsAccountControlFileManager there is not have account list");
         std::vector<std::string> accountListt;
         Json accountList = Json {
