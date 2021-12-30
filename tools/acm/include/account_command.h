@@ -37,7 +37,8 @@ const std::string HELP_MSG_CREATE =
     "usage: acm create <options>\n"
     "options list:\n"
     "  -h, --help                                       list available commands\n"
-    "  -n <local-account-name> -t <type>                create a local account with a name and a type\n";
+    "  -n <local-account-name> -t <type>                create a local account with a name and a type\n"
+    "                                                   <type>: admin, normal, guest\n";
 
 const std::string HELP_MSG_DELETE =
     "usage: acm delete <options>\n"
