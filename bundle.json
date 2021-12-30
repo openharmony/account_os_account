@@ -1,0 +1,52 @@
+{
+    "name": "@ohos/account_os_account",
+    "version": "",
+    "description": "提供本地多用户生命周期和分布式组网账号登录状态的管理能力",
+    "homePage": "https://gitee.com/openharmony",
+    "license": "Apache 2.0",
+    "repository": "https://gitee.com/openharmony/account_os_account",
+    "domain": "os",
+    "language": "C++",
+    "publishAs": "",
+    "private": false,
+    "scripts": {},
+    "tags": [],
+    "keywords": ["account", "os_account", "distributedAccount"],
+    "envs": [],
+    "dirs": [],
+    "author": {
+        "name": "",
+        "email": "",
+        "url": ""
+    },
+    "contributors": [
+        {
+            "name": "",
+            "email": "",
+            "url": ""
+        }
+    ],
+    "segment": {},
+    "component": {
+        "name": "os_account",
+        "subsystem": "account",
+        "syscap": [
+            "SystemCapability.Account.OsAccount"
+        ],
+        "features": [],
+        "adapted_system_type": [
+            "standard"
+        ],
+        "rom": "",
+        "ram": "",
+        "deps": {
+            "components": [],
+            "third_party": []
+        },
+        "build": {
+            "sub_component": [],
+            "inner_kits": [],
+            "test": []
+        }
+    }
+}
