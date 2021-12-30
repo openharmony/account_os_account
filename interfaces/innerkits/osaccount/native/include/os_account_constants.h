@@ -31,7 +31,7 @@ const std::string USER_PHOTO_FILE_JPG_NAME = "fase.jpg";
 const std::string USER_PHOTO_BASE_JPG_HEAD = "data:image/jpeg;base64,";
 const std::string USER_PHOTO_BASE_PNG_HEAD = "data:image/png;base64,";
 const std::string USER_INFO_FILE_NAME = "account_info.json";
-constexpr std::int32_t UID_TRANSFORM_DIVISOR = 100000;
+constexpr std::int32_t UID_TRANSFORM_DIVISOR = 1000000;
 // distributed database
 const std::string APP_ID = "os_account_mgr_service";
 const std::string STORE_ID = "os_account_info";
@@ -39,6 +39,7 @@ const bool SYNC_OS_ACCOUNT_DATABSE = false;
 
 // uid judgment
 const std::int32_t APP_UID_START = 2100;
+const std::int32_t MAX_SYSTEM_UID_NUM = 2899;
 
 // subscribe
 const int SUBSCRIBER_MAX_SIZE = 100;
@@ -55,7 +56,7 @@ const int STANDARD_TYPE = 0;
 const int START_USER_ID = 100;
 const int MAX_USER_ID = 999;
 const int64_t SERIAL_NUMBER_NUM_START_FOR_ADMIN = 20210231;
-const int64_t SERIAL_NUMBER_NUM_START = 101;
+const int64_t SERIAL_NUMBER_NUM_START = 1;
 const int64_t CARRY_NUM = 100000000;
 const bool IS_SERIAL_NUMBER_FULL_INIT_VALUE = false;
 
@@ -64,7 +65,6 @@ const std::string USER_CONSTRATINTS_TEMPLATE = "UserConstraintsTemplate";
 const std::string TYPE_LIST = "TypeList";
 const std::string ACCOUNT_LIST = "AccountList";
 const std::string COUNT_ACCOUNT_NUM = "CountAccountNum";
-const std::string NOW_ALLOW_CREATE_ACCOUNT_NUM = "NowAllowCreateAccountNum";
 const std::string MAX_ALLOW_CREATE_ACCOUNT_NUM = "MaxAllowCreateAccountNum";
 const std::string SERIAL_NUMBER_NUM = "SerialNumber";
 const std::string IS_MULTI_OS_ACCOUNT_ENABLE = "IsMultiOsAccountEnable";

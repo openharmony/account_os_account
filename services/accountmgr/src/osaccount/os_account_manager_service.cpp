@@ -63,7 +63,7 @@ ErrCode OsAccountManagerService::CreateOsAccount(
 
         result = permissionManagerPtr_->VerifyPermission(
             callingUid, AccountPermissionManager::MANAGE_LOCAL_ACCOUNTS, bundleName);
-        if (result != ERR_OK) {
+        if (result != ERR_OK || !permissionManagerPtr_->IsSystemUid(callingUid)) {
             ACCOUNT_LOGI("failed to verify permission for DISTRIBUTED_DATASYNC, result = %{public}d", result);
             return result;
         }
@@ -99,7 +99,7 @@ ErrCode OsAccountManagerService::RemoveOsAccount(const int id)
 
         result = permissionManagerPtr_->VerifyPermission(
             callingUid, AccountPermissionManager::MANAGE_LOCAL_ACCOUNTS, bundleName);
-        if (result != ERR_OK) {
+        if (result != ERR_OK || !permissionManagerPtr_->IsSystemUid(callingUid)) {
             ACCOUNT_LOGI("failed to verify permission for DISTRIBUTED_DATASYNC, result = %{public}d", result);
             return result;
         }
@@ -239,6 +239,10 @@ ErrCode OsAccountManagerService::GetOsAccountLocalIdFromUid(const int uid, int &
 
 ErrCode OsAccountManagerService::QueryMaxOsAccountNumber(int &maxOsAccountNumber)
 {
+    auto callingUid = IPCSkeleton::GetCallingUid();
+    if (callingUid > Constants::MAX_SYSTEM_UID_NUM) {
+        return ERR_OS_ACCOUNT_SERVICE_MANAGER_CANNOT_HIDE_INTERFACE_ERROR;
+    }
     return innerManager_->QueryMaxOsAccountNumber(maxOsAccountNumber);
 }
 
@@ -269,6 +273,10 @@ ErrCode OsAccountManagerService::GetOsAccountAllConstraints(const int id, std::v
 
 ErrCode OsAccountManagerService::QueryAllCreatedOsAccounts(std::vector<OsAccountInfo> &osAccountInfos)
 {
+    auto callingUid = IPCSkeleton::GetCallingUid();
+    if (callingUid > Constants::MAX_SYSTEM_UID_NUM) {
+        return ERR_OS_ACCOUNT_SERVICE_MANAGER_CANNOT_HIDE_INTERFACE_ERROR;
+    }
     return innerManager_->QueryAllCreatedOsAccounts(osAccountInfos);
 }
 
@@ -314,7 +322,7 @@ ErrCode OsAccountManagerService::QueryOsAccountById(const int id, OsAccountInfo 
             callingUid, AccountPermissionManager::MANAGE_LOCAL_ACCOUNTS, bundleName);
         ErrCode errCode = permissionManagerPtr_->VerifyPermission(
             callingUid, AccountPermissionManager::INTERACT_ACROSS_LOCAL_ACCOUNTS_EXTENSION, bundleName);
-        if (result != ERR_OK && errCode != ERR_OK) {
+        if ((result != ERR_OK && errCode != ERR_OK) || permissionManagerPtr_->IsSystemUid(callingUid)) {
             ACCOUNT_LOGI("failed to verify permission for DISTRIBUTED_DATASYNC and "
                          "INTERACT_ACROSS_LOCAL_ACCOUNTS_EXTENSION, result = %{public}d",
                 result);
@@ -351,7 +359,7 @@ ErrCode OsAccountManagerService::GetOsAccountProfilePhoto(const int id, std::str
 
         result = permissionManagerPtr_->VerifyPermission(
             callingUid, AccountPermissionManager::MANAGE_LOCAL_ACCOUNTS, bundleName);
-        if (result != ERR_OK) {
+        if (result != ERR_OK || !permissionManagerPtr_->IsSystemUid(callingUid)) {
             ACCOUNT_LOGI("failed to verify permission for DISTRIBUTED_DATASYNC, result = %{public}d", result);
             return result;
         }
@@ -369,6 +377,10 @@ ErrCode OsAccountManagerService::IsMultiOsAccountEnable(bool &isMultiOsAccountEn
 
 ErrCode OsAccountManagerService::SetOsAccountName(const int id, const std::string &name)
 {
+    auto callingUid = IPCSkeleton::GetCallingUid();
+    if (callingUid > Constants::MAX_SYSTEM_UID_NUM) {
+        return ERR_OS_ACCOUNT_SERVICE_MANAGER_CANNOT_HIDE_INTERFACE_ERROR;
+    }
     if (name.size() > Constants::LOCAL_NAME_MAX_SIZE) {
         return ERR_OS_ACCOUNT_SERVICE_MANAGER_NAME_SIZE_OVERFLOW_ERROR;
     }
@@ -396,7 +408,7 @@ ErrCode OsAccountManagerService::SetOsAccountConstraints(
 
         result = permissionManagerPtr_->VerifyPermission(
             callingUid, AccountPermissionManager::MANAGE_LOCAL_ACCOUNTS, bundleName);
-        if (result != ERR_OK) {
+        if (result != ERR_OK || !permissionManagerPtr_->IsSystemUid(callingUid)) {
             ACCOUNT_LOGI("failed to verify permission for DISTRIBUTED_DATASYNC, result = %{public}d", result);
             return result;
         }
@@ -471,7 +483,7 @@ ErrCode OsAccountManagerService::ActivateOsAccount(const int id)
 
         result = permissionManagerPtr_->VerifyPermission(
             callingUid, AccountPermissionManager::INTERACT_ACROSS_LOCAL_ACCOUNTS_EXTENSION, bundleName);
-        if (result != ERR_OK) {
+        if (result != ERR_OK || !permissionManagerPtr_->IsSystemUid(callingUid)) {
             ACCOUNT_LOGI("failed to verify permission for DISTRIBUTED_DATASYNC, result = %{public}d", result);
             return result;
         }
@@ -548,7 +560,7 @@ ErrCode OsAccountManagerService::SubscribeOsAccount(
 
         result = permissionManagerPtr_->VerifyPermission(
             callingUid, AccountPermissionManager::INTERACT_ACROSS_LOCAL_ACCOUNTS_EXTENSION, bundleName);
-        if (result != ERR_OK) {
+        if (result != ERR_OK || !permissionManagerPtr_->IsSystemUid(callingUid)) {
             ACCOUNT_LOGI("failed to verify permission for DISTRIBUTED_DATASYNC, result = %{public}d", result);
             return result;
         }
@@ -571,7 +583,7 @@ ErrCode OsAccountManagerService::UnsubscribeOsAccount(const sptr<IRemoteObject> 
 
         result = permissionManagerPtr_->VerifyPermission(
             callingUid, AccountPermissionManager::INTERACT_ACROSS_LOCAL_ACCOUNTS_EXTENSION, bundleName);
-        if (result != ERR_OK) {
+        if (result != ERR_OK || !permissionManagerPtr_->IsSystemUid(callingUid)) {
             ACCOUNT_LOGI("failed to verify permission for DISTRIBUTED_DATASYNC, result = %{public}d", result);
             return result;
         }
@@ -582,11 +594,14 @@ ErrCode OsAccountManagerService::UnsubscribeOsAccount(const sptr<IRemoteObject> 
 ErrCode OsAccountManagerService::GetOsAccountLocalIdBySerialNumber(const int64_t serialNumber, int &id)
 {
     ACCOUNT_LOGI("enter");
-    if (serialNumber <
-        Constants::CARRY_NUM * Constants::SERIAL_NUMBER_NUM_START_FOR_ADMIN + Constants::START_USER_ID) {
+    ErrCode errCode = innerManager_->GetOsAccountLocalIdBySerialNumber(serialNumber, id);
+    if (errCode != ERR_OK) {
+        return errCode;
+    }
+    if (id < Constants::START_USER_ID) {
         return ERR_OS_ACCOUNT_SERVICE_MANAGER_ID_ERROR;
     }
-    return innerManager_->GetOsAccountLocalIdBySerialNumber(serialNumber, id);
+    return ERR_OK;
 }
 
 ErrCode OsAccountManagerService::GetSerialNumberByOsAccountLocalId(const int &id, int64_t &serialNumber)

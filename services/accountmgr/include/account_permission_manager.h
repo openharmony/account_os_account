@@ -26,6 +26,7 @@ public:
     AccountPermissionManager();
     ~AccountPermissionManager();
 
+    bool IsSystemUid(const uid_t &uid) const;
     ErrCode VerifyPermission(const uid_t &uid, const std::string &permissionName, const std::string &bundleName);
 
     static const std::string DISTRIBUTED_DATASYNC;
@@ -33,6 +34,10 @@ public:
     static const std::string MANAGE_LOCAL_ACCOUNTS;
     static const std::string INTERACT_ACROSS_LOCAL_ACCOUNTS_EXTENSION;
     static const std::string INTERACT_ACROSS_LOCAL_ACCOUNTS;
+
+private:
+    static constexpr uid_t MIN_SYSTEM_UID = 2100;
+    static constexpr uid_t MAX_SYSTEM_UID = 2899;
 };
 }  // namespace AccountSA
 }  // namespace OHOS

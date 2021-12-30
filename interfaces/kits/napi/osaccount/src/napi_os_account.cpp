@@ -51,7 +51,6 @@ napi_value osAccountInit(napi_env env, napi_value exports)
         DECLARE_NAPI_FUNCTION("getOsAccountTypeFromProcess", GetOsAccountTypeFromProcess),
         DECLARE_NAPI_FUNCTION("isMultiOsAccountEnable", IsMultiOsAccountEnable),
         DECLARE_NAPI_FUNCTION("isOsAccountVerified", IsOsAccountVerified),
-        DECLARE_NAPI_FUNCTION("getApplicationConstraints", GetApplicationConstraints),
         DECLARE_NAPI_FUNCTION("getOsAccountLocalIdBySerialNumber", GetOsAccountLocalIdBySerialNumber),
         DECLARE_NAPI_FUNCTION("getSerialNumberByOsAccountLocalId", GetSerialNumberByOsAccountLocalId),
         DECLARE_NAPI_FUNCTION("isTestOsAccount", IsTestOsAccount),
@@ -838,12 +837,6 @@ napi_value IsOsAccountVerified(napi_env env, napi_callback_info cbInfo)
     return result;
 }
 
-napi_value GetApplicationConstraints(napi_env env, napi_callback_info cbInfo)
-{
-    ACCOUNT_LOGI("enter");
-    return nullptr;
-}
-
 napi_value GetOsAccountLocalIdBySerialNumber(napi_env env, napi_callback_info cbInfo)
 {
     ACCOUNT_LOGI("enter");
@@ -1188,7 +1181,7 @@ void UnsubscribeCallbackCompletedCB(napi_env env, napi_status status, void *data
 
     if (unsubscribeCBInfo->argc >= ARGS_SIZE_THREE) {
         napi_value result = nullptr;
-        napi_get_null(env, &result);
+        napi_create_int32(env, 0, &result);
 
         napi_value undefined = nullptr;
         napi_get_undefined(env, &undefined);
