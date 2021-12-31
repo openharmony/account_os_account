@@ -340,8 +340,8 @@ void CBOrPromiseToRemoveOA(napi_env env, const RemoveOAAsyncContext *removeOACB,
 void ParseParaSetOAName(napi_env env, napi_callback_info cbInfo, SetOANameAsyncContext *setOANameCB)
 {
     ACCOUNT_LOGI("enter");
-    size_t argc = ARGS_SIZE_TWO;
-    napi_value argv[ARGS_SIZE_TWO] = {0};
+    size_t argc = ARGS_SIZE_THREE;
+    napi_value argv[ARGS_SIZE_THREE] = {0};
     napi_get_cb_info(env, cbInfo, &argc, argv, nullptr, nullptr);
 
     for (size_t i = 0; i < argc; i++) {
@@ -1848,6 +1848,9 @@ void ParseParaToSubscriber(const napi_env &env, const napi_value (&argv)[ARGS_SI
     napi_typeof(env, argv[1], &valuetype);
     if (valuetype == napi_string) {
         onName = GetStringProperty(env, argv[1]);
+        if (onName.size() == 0 || onName.size() > MAX_SUBSCRIBER_NAME_LEN) {
+            return;
+        }
     } else {
         ACCOUNT_LOGE("Type matching failed");
     }

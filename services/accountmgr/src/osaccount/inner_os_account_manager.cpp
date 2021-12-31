@@ -57,8 +57,8 @@ void IInnerOsAccountManager::CreateBaseStandardAccount()
     bool isExistsAccount = false;
     osAccountControl_->IsOsAccountExists(Constants::START_USER_ID, isExistsAccount);
     if (!isExistsAccount) {
-        int64_t serialNumber =
-            Constants::CARRY_NUM * Constants::SERIAL_NUMBER_NUM_START_FOR_ADMIN + Constants::START_USER_ID;
+        int64_t serialNumber = 0;
+        osAccountControl_->GetSerialNumber(serialNumber);
         OsAccountInfo osAccountInfo(
             Constants::START_USER_ID, Constants::STANDARD_LOCAL_NAME, OsAccountType::ADMIN, serialNumber);
         std::vector<std::string> constants;
