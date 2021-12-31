@@ -42,6 +42,17 @@ AccountPermissionManager::~AccountPermissionManager()
     ACCOUNT_LOGI("enter");
 }
 
+bool AccountPermissionManager::IsSystemUid(const uid_t &uid) const
+{
+    ACCOUNT_LOGI("enter");
+
+    if (uid >= MIN_SYSTEM_UID && uid <= MAX_SYSTEM_UID) {
+        return true;
+    }
+
+    return false;
+}
+
 ErrCode AccountPermissionManager::VerifyPermission(
     const uid_t &uid, const std::string &permissionName, const std::string &bundleName)
 {

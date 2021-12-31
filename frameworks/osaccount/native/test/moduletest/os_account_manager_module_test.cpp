@@ -673,7 +673,7 @@ HWTEST_F(OsAccountManagerModuleTest, OsAccountManagerModuleTest037, TestSize.Lev
 {
     int id = 0;
     EXPECT_EQ(OsAccountManager::GetOsAccountLocalIdBySerialNumber(
-                  Constants::CARRY_NUM * Constants::SERIAL_NUMBER_NUM_START_FOR_ADMIN + Constants::START_USER_ID, id),
+                  Constants::CARRY_NUM * Constants::SERIAL_NUMBER_NUM_START_FOR_ADMIN + 1, id),
         ERR_OK);
     EXPECT_EQ(id, Constants::START_USER_ID);
 }
@@ -701,7 +701,7 @@ HWTEST_F(OsAccountManagerModuleTest, OsAccountManagerModuleTest039, TestSize.Lev
     int64_t serialNumber;
     EXPECT_EQ(OsAccountManager::GetSerialNumberByOsAccountLocalId(Constants::START_USER_ID, serialNumber), ERR_OK);
     EXPECT_EQ(
-        serialNumber, Constants::CARRY_NUM * Constants::SERIAL_NUMBER_NUM_START_FOR_ADMIN + Constants::START_USER_ID);
+        serialNumber, Constants::CARRY_NUM * Constants::SERIAL_NUMBER_NUM_START_FOR_ADMIN + 1);
 }
 
 /**

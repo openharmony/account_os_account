@@ -26,6 +26,7 @@ namespace AccountJsKit {
 #define PARAM0 0
 #define PARAM1 1
 constexpr std::int32_t MAX_VALUE_LEN = 4096;
+constexpr std::int32_t MAX_SUBSCRIBER_NAME_LEN = 1024;
 constexpr const std::int32_t STR_MAX_SIZE = 256;
 constexpr int PARAMZERO = 0;
 constexpr int PARAMONE = 1;

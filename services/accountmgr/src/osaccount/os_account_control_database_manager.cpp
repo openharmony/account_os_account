@@ -39,7 +39,6 @@ void OsAccountControlDatabaseManager::Init()
         Json accountList = Json {
             {Constants::ACCOUNT_LIST, accountListt},
             {Constants::COUNT_ACCOUNT_NUM, 0},
-            {Constants::NOW_ALLOW_CREATE_ACCOUNT_NUM, Constants::START_USER_ID},
             {Constants::MAX_ALLOW_CREATE_ACCOUNT_NUM, Constants::MAX_USER_ID},
             {Constants::SERIAL_NUMBER_NUM, Constants::SERIAL_NUMBER_NUM_START},
         };
@@ -85,7 +84,7 @@ ErrCode OsAccountControlDatabaseManager::InsertOsAccount(OsAccountInfo &osAccoun
         ACCOUNT_LOGE("OsAccountControlDatabaseManager insert ERR");
         return errCode;
     }
-    if (osAccountInfo.GetLocalId() > Constants::START_USER_ID - 1) {
+    if (osAccountInfo.GetLocalId() >= Constants::START_USER_ID) {
         ACCOUNT_LOGE("OsAccountControlDatabaseManager is ordinary account");
         Json accountListJson;
         if (GetAccountList(accountListJson) != ERR_OK) {
@@ -100,10 +99,6 @@ ErrCode OsAccountControlDatabaseManager::InsertOsAccount(OsAccountInfo &osAccoun
         accountIdList.push_back(osAccountInfo.GetPrimeKey());
         accountListJson[Constants::ACCOUNT_LIST] = accountIdList;
         accountListJson[Constants::COUNT_ACCOUNT_NUM] = accountIdList.size();
-        int maxId = Constants::MAX_USER_ID + Constants::START_USER_ID;
-        int num = osAccountInfo.GetLocalId();
-        num = num + 1;
-        accountListJson[Constants::NOW_ALLOW_CREATE_ACCOUNT_NUM] = num > maxId ? Constants::START_USER_ID : num;
         if (SaveAccountList(accountListJson) != ERR_OK) {
             ACCOUNT_LOGE("OsAccountControlDatabaseManager save account List Err");
             return ERR_OS_ACCOUNT_SERVICE_CONTROL_INSERT_OS_ACCOUNT_LIST_ERROR;
@@ -203,31 +198,19 @@ ErrCode OsAccountControlDatabaseManager::GetAllowCreateId(int &id)
     auto jsonEnd = accountListJson.end();
     OHOS::AccountSA::GetDataByType<int>(
         accountListJson, jsonEnd, Constants::COUNT_ACCOUNT_NUM, countCreatedNum, OHOS::AccountSA::JsonType::NUMBER);
-    if (countCreatedNum > Constants::MAX_USER_ID) {
+    if (countCreatedNum >= Constants::MAX_USER_ID - Constants::START_USER_ID) {
         return ERR_OS_ACCOUNT_SERVICE_CONTROL_MAX_CAN_CREATE_ERROR;
     }
     std::vector<std::string> accountIdList;
     OHOS::AccountSA::GetDataByType<std::vector<std::string>>(
         accountListJson, jsonEnd, Constants::ACCOUNT_LIST, accountIdList, OHOS::AccountSA::JsonType::ARRAY);
-    OHOS::AccountSA::GetDataByType<int>(
-        accountListJson, jsonEnd, Constants::NOW_ALLOW_CREATE_ACCOUNT_NUM, id, OHOS::AccountSA::JsonType::NUMBER);
-    bool findFlag = false;
-    int maxId = Constants::START_USER_ID + Constants::MAX_USER_ID;
-    for (; id <= maxId; id++) {
-        if (accountIdList.end() == std::find(accountIdList.begin(), accountIdList.end(), std::to_string(id))) {
-            findFlag = true;
-            break;
-        }
+    id = Constants::START_USER_ID + 1;
+    while (std::find(accountIdList.begin(), accountIdList.end(), std::to_string(id)) != accountIdList.end() &&
+           id != Constants::MAX_USER_ID + 1) {
+        id++;
     }
-    if (!findFlag) {
-        for (id = Constants::START_USER_ID; id <= maxId; id++) {
-            if (accountIdList.end() == std::find(accountIdList.begin(), accountIdList.end(), std::to_string(id))) {
-                findFlag = true;
-                break;
-            }
-        }
-    }
-    if (!findFlag) {
+    if (id == Constants::MAX_USER_ID + 1) {
+        id = -1;
         return ERR_OS_ACCOUNT_SERVICE_CONTROL_SELECT_CAN_USE_ID_ERROR;
     }
     return ERR_OK;
