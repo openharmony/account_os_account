@@ -989,5 +989,19 @@ HWTEST_F(OsAccountManagerServiceModuleTest, OsAccountManagerServiceModuleTest058
     bool isVerified = true;
     EXPECT_NE(osAccountManagerService_->SetCurrentOsAccountIsVerified(isVerified), ERR_OK);
 }
+
+/**
+ * @tc.name: OsAccountManagerServiceModuleTest059
+ * @tc.desc: Test actived os account can be remove.
+ * @tc.type: FUNC
+ * @tc.require: SR000GGVFJ
+ */
+HWTEST_F(OsAccountManagerServiceModuleTest, OsAccountManagerServiceModuleTest059, TestSize.Level1)
+{
+    OsAccountInfo osAccountInfoOne;
+    osAccountManagerService_->CreateOsAccount(STRING_TEST_NAME, INT_TEST_TYPE, osAccountInfoOne);
+    osAccountManagerService_->ActivateOsAccount(osAccountInfoOne.GetLocalId());
+    EXPECT_EQ(osAccountManagerService_->RemoveOsAccount(osAccountInfoOne.GetLocalId()), ERR_OK);
+}
 }  // namespace AccountSA
 }  // namespace OHOS
