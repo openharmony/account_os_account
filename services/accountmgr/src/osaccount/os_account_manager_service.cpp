@@ -322,7 +322,7 @@ ErrCode OsAccountManagerService::QueryOsAccountById(const int id, OsAccountInfo 
             callingUid, AccountPermissionManager::MANAGE_LOCAL_ACCOUNTS, bundleName);
         ErrCode errCode = permissionManagerPtr_->VerifyPermission(
             callingUid, AccountPermissionManager::INTERACT_ACROSS_LOCAL_ACCOUNTS_EXTENSION, bundleName);
-        if ((result != ERR_OK && errCode != ERR_OK) || permissionManagerPtr_->IsSystemUid(callingUid)) {
+        if ((result != ERR_OK && errCode != ERR_OK) || !permissionManagerPtr_->IsSystemUid(callingUid)) {
             ACCOUNT_LOGI("failed to verify permission for DISTRIBUTED_DATASYNC and "
                          "INTERACT_ACROSS_LOCAL_ACCOUNTS_EXTENSION, result = %{public}d",
                 result);

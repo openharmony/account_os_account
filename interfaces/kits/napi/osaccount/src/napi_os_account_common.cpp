@@ -1912,9 +1912,9 @@ void ParseParaToUnsubscriber(const napi_env &env, const size_t &argc, const napi
 
     // argv[2]:callback
     if (argc >= ARGS_SIZE_THREE) {
-        napi_typeof(env, argv[1], &valuetype);
+        napi_typeof(env, argv[PARAMTWO], &valuetype);
         if (valuetype == napi_function) {
-            napi_create_reference(env, argv[1], 1, &callback);
+            napi_create_reference(env, argv[PARAMTWO], 1, &callback);
         } else {
             ACCOUNT_LOGE("Type matching failed");
         }

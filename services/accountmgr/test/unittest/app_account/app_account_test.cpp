@@ -16,6 +16,7 @@
 #include <gtest/gtest.h>
 
 #include "account_error_no.h"
+#include "account_log_wrapper.h"
 #define private public
 #include "app_account.h"
 #undef private

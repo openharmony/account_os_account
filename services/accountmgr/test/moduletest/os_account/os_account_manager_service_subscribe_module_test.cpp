@@ -15,6 +15,7 @@
 
 #include <gtest/gtest.h>
 
+#include "account_log_wrapper.h"
 #include "datetime_ex.h"
 #define private public
 #include "os_account.h"
