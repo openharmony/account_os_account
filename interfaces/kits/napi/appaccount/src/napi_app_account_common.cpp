@@ -14,6 +14,7 @@
  */
 
 #include <uv.h>
+#include "account_log_wrapper.h"
 #include "app_account_manager.h"
 #include "napi_app_account_common.h"
 

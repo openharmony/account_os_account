@@ -15,6 +15,7 @@
 
 #include <gtest/gtest.h>
 
+#include "account_log_wrapper.h"
 #include "app_account_manager.h"
 #include "app_account_subscriber.h"
 

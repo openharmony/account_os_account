@@ -17,6 +17,7 @@
 
 #include <thread>
 
+#include "account_log_wrapper.h"
 #define private public
 #include "app_account_control_manager.h"
 #undef private

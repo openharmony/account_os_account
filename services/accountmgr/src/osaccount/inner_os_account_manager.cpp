@@ -247,10 +247,17 @@ ErrCode IInnerOsAccountManager::CreateOsAccount(
 ErrCode IInnerOsAccountManager::RemoveOsAccount(const int id)
 {
     ACCOUNT_LOGE("IInnerOsAccountManager RemoveOsAccount delete id is %{public}d", id);
+    bool isActived = false;
     {
         std::lock_guard<std::mutex> lock(ativeMutex_);
         auto it = std::find(activeAccountId_.begin(), activeAccountId_.end(), id);
         if (it != activeAccountId_.end()) {
+            isActived = true;
+        }
+    }
+    if (isActived) {
+        ErrCode activeErrCode = ActivateOsAccount(Constants::START_USER_ID);
+        if (activeErrCode != ERR_OK) {
             return ERR_OS_ACCOUNT_SERVICE_INNER_REMOVE_ACCOUNT_ACTIVED_ERROR;
         }
     }

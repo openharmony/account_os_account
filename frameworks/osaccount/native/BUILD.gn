@@ -16,6 +16,8 @@ import("//build/ohos.gni")
 
 config("osaccountinterface_config") {
   include_dirs = [
+    "${common_path}/account_error/include",
+    "${common_path}/database/include",
     "${os_account_interfaces_native_path}/include",
     "//utils/native/base/include",
   ]
