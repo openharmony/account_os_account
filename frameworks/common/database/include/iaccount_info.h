@@ -18,7 +18,6 @@
 #include <string>
 #include "nlohmann/json.hpp"
 
-#include "account_log_wrapper.h"
 
 namespace OHOS {
 namespace AccountSA {
@@ -49,44 +48,38 @@ void GetDataByType(const Json &jsonObject, const nlohmann::detail::iter_impl<con
         switch (jsonType) {
             case JsonType::BOOLEAN:
                 if (!jsonObject.at(key).is_boolean()) {
-                    ACCOUNT_LOGE("type is error %{public}s is not boolean", key.c_str());
                     break;
                 }
                 data = jsonObject.at(key).get<T>();
                 break;
             case JsonType::NUMBER:
                 if (!jsonObject.at(key).is_number()) {
-                    ACCOUNT_LOGE("type is error %{public}s is not number", key.c_str());
                     break;
                 }
                 data = jsonObject.at(key).get<T>();
                 break;
             case JsonType::OBJECT:
                 if (!jsonObject.at(key).is_object()) {
-                    ACCOUNT_LOGE("type is error %{public}s is not object", key.c_str());
                     break;
                 }
                 data = jsonObject.at(key).get<T>();
                 break;
             case JsonType::ARRAY:
                 if (!jsonObject.at(key).is_array()) {
-                    ACCOUNT_LOGE("type is error %{public}s is not array", key.c_str());
                     break;
                 }
                 data = jsonObject.at(key).get<T>();
                 break;
             case JsonType::STRING:
                 if (!jsonObject.at(key).is_string()) {
-                    ACCOUNT_LOGE("type is error %{public}s is not string", key.c_str());
                     break;
                 }
                 data = jsonObject.at(key).get<T>();
                 break;
             case JsonType::NULLABLE:
-                ACCOUNT_LOGE("type is error %{public}s is nullable", key.c_str());
                 break;
             default:
-                ACCOUNT_LOGE("type is error %{public}s is not jsonType", key.c_str());
+                break;
         }
     }
 }
