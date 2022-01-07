@@ -45,10 +45,7 @@ void IInnerOsAccountManager::CreateBaseAdminAccount()
             std::chrono::duration_cast<std::chrono::seconds>(std::chrono::system_clock::now().time_since_epoch())
                 .count();
         osAccountInfo.SetCreateTime(time);
-        osAccountInfo.SetIsCreateCompleted(false);
-        std::vector<OsAccountInfo> osAccountInfos;
-        osAccountInfos.clear();
-        osAccountInfos.push_back(osAccountInfo);
+        osAccountInfo.SetIsCreateCompleted(true);
         osAccountControl_->InsertOsAccount(osAccountInfo);
     }
 }
@@ -90,53 +87,25 @@ void IInnerOsAccountManager::StartAccount()
 
 void IInnerOsAccountManager::StartBaseAdminAccount(void)
 {
-    std::vector<OsAccountInfo> osAccountInfos;
     OsAccountInfo osAccountInfo;
     osAccountControl_->GetOsAccountInfoById(Constants::ADMIN_LOCAL_ID, osAccountInfo);
-    if (!osAccountInfo.GetIsCreateCompleted()) {
-        osAccountInfos.push_back(osAccountInfo);
-        ErrCode errCode = OsAccountStandardInterface::SendToBMSAccountCreate(osAccountInfos);
-        if (errCode != ERR_OK) {
-            counterForAdmin_++;
-            if (counterForAdmin_ == MAX_TRY_TIMES) {
-                ACCOUNT_LOGE("failed connect BMS");
-            } else {
-                GetEventHandler();
-                OHOS::AppExecFwk::InnerEvent::Callback callback =
-                    std::bind(&IInnerOsAccountManager::StartBaseAdminAccount, this);
-                handler_->PostTask(callback, DELAY_FOR_TIME_INTERVAL);
-            }
-            return;
+    ErrCode errCode = OsAccountStandardInterface::SendToAMSAccountStart(osAccountInfo);
+    if (errCode != ERR_OK) {
+        counterForAdmin_++;
+        if (counterForAdmin_ == MAX_TRY_TIMES) {
+            ACCOUNT_LOGE("failed connect BMS");
         } else {
-            counterForAdmin_ = 0;
-            osAccountInfo.SetIsCreateCompleted(true);
-            osAccountControl_->UpdateOsAccount(osAccountInfo);
+            GetEventHandler();
+            OHOS::AppExecFwk::InnerEvent::Callback callback =
+                std::bind(&IInnerOsAccountManager::StartBaseAdminAccount, this);
+            handler_->PostTask(callback, DELAY_FOR_TIME_INTERVAL);
         }
-    }
-    osAccountControl_->GetOsAccountInfoById(Constants::ADMIN_LOCAL_ID, osAccountInfo);
-    if (osAccountInfo.GetIsCreateCompleted()) {
-        osAccountInfos.clear();
-        osAccountInfos.push_back(osAccountInfo);
-        ErrCode errCode = OsAccountStandardInterface::SendToAMSAccountStart(osAccountInfos);
-        if (errCode != ERR_OK) {
-            counterForAdmin_++;
-            if (counterForAdmin_ == MAX_TRY_TIMES) {
-                ACCOUNT_LOGE("failed connect BMS");
-            } else {
-                GetEventHandler();
-                OHOS::AppExecFwk::InnerEvent::Callback callback =
-                    std::bind(&IInnerOsAccountManager::StartBaseAdminAccount, this);
-                handler_->PostTask(callback, DELAY_FOR_TIME_INTERVAL);
-            }
-        } else {
-            {
-                std::lock_guard<std::mutex> lock(ativeMutex_);
-                activeAccountId_.push_back(Constants::ADMIN_LOCAL_ID);
-            }
-            OsAccountStandardInterface::SendToCESAccountCreate(osAccountInfos);
-            ACCOUNT_LOGE("INIT StartBaseAdminAccount activeAccountId_ size is ===============%{public}zu",
-                activeAccountId_.size());
+    } else {
+        {
+            std::lock_guard<std::mutex> lock(ativeMutex_);
+            activeAccountId_.push_back(Constants::ADMIN_LOCAL_ID);
         }
+        OsAccountStandardInterface::SendToCESAccountCreate(osAccountInfo);
     }
 }
 
@@ -147,12 +116,10 @@ void IInnerOsAccountManager::StartBaseStandardAccount(void)
     if (!isAccountExists) {
         return;
     }
-    std::vector<OsAccountInfo> osAccountInfos;
     OsAccountInfo osAccountInfo;
     osAccountControl_->GetOsAccountInfoById(Constants::START_USER_ID, osAccountInfo);
     if (!osAccountInfo.GetIsCreateCompleted()) {
-        osAccountInfos.push_back(osAccountInfo);
-        ErrCode errCode = OsAccountStandardInterface::SendToBMSAccountCreate(osAccountInfos);
+        ErrCode errCode = OsAccountStandardInterface::SendToBMSAccountCreate(osAccountInfo);
         if (errCode != ERR_OK) {
             if (++counterForStandard_ == MAX_TRY_TIMES) {
                 ACCOUNT_LOGE("failed connect BMS");
@@ -171,9 +138,7 @@ void IInnerOsAccountManager::StartBaseStandardAccount(void)
     }
     osAccountControl_->GetOsAccountInfoById(Constants::START_USER_ID, osAccountInfo);
     if (osAccountInfo.GetIsCreateCompleted()) {
-        osAccountInfos.clear();
-        osAccountInfos.push_back(osAccountInfo);
-        ErrCode errCode = OsAccountStandardInterface::SendToAMSAccountStart(osAccountInfos);
+        ErrCode errCode = OsAccountStandardInterface::SendToAMSAccountStart(osAccountInfo);
         if (errCode != ERR_OK) {
             if (++counterForStandard_ == MAX_TRY_TIMES) {
                 ACCOUNT_LOGE("failed connect BMS");
@@ -188,7 +153,7 @@ void IInnerOsAccountManager::StartBaseStandardAccount(void)
                 std::lock_guard<std::mutex> lock(ativeMutex_);
                 activeAccountId_.push_back(Constants::START_USER_ID);
             }
-            OsAccountStandardInterface::SendToCESAccountCreate(osAccountInfos);
+            OsAccountStandardInterface::SendToCESAccountCreate(osAccountInfo);
         }
     }
 }
@@ -222,9 +187,7 @@ ErrCode IInnerOsAccountManager::CreateOsAccount(
         ACCOUNT_LOGE("insert osaccountinfo err");
         return ERR_OS_ACCOUNT_SERVICE_INNER_CREATE_ACCOUNT_ERROR;
     }
-    std::vector<OsAccountInfo> osAccountInfos;
-    osAccountInfos.push_back(osAccountInfo);
-    errCode = OsAccountStandardInterface::SendToBMSAccountCreate(osAccountInfos);
+    errCode = OsAccountStandardInterface::SendToBMSAccountCreate(osAccountInfo);
     if (errCode != ERR_OK) {
         return ERR_OS_ACCOUNT_SERVICE_INNER_SEND_BM_ACCOUNT_CREATE_ERROR;
     }
@@ -233,11 +196,11 @@ ErrCode IInnerOsAccountManager::CreateOsAccount(
     if (errCode != ERR_OK) {
         return ERR_OS_ACCOUNT_SERVICE_INNER_UPDATE_ACCOUNT_ERROR;
     }
-    errCode = OsAccountStandardInterface::SendToAMSAccountStart(osAccountInfos);
+    errCode = OsAccountStandardInterface::SendToAMSAccountStart(osAccountInfo);
     if (errCode != ERR_OK) {
         return ERR_OS_ACCOUNT_SERVICE_INNER_SEND_AM_ACCOUNT_START_ERROR;
     }
-    errCode = OsAccountStandardInterface::SendToCESAccountCreate(osAccountInfos);
+    errCode = OsAccountStandardInterface::SendToCESAccountCreate(osAccountInfo);
     if (errCode != ERR_OK) {
         return ERR_OS_ACCOUNT_SERVICE_INNER_SEND_CE_ACCOUNT_CREATE_ERROR;
     }
@@ -269,17 +232,15 @@ ErrCode IInnerOsAccountManager::RemoveOsAccount(const int id)
     if (osAccountInfo.GetType() <= Constants::STANDARD_TYPE) {
         return ERR_OS_ACCOUNT_SERVICE_INNER_CANNOT_REMOVE_ADMIN_ERROR;
     }
-    std::vector<OsAccountInfo> osAccountInfos;
-    osAccountInfos.push_back(osAccountInfo);
-    errCode = OsAccountStandardInterface::SendToAMSAccountStop(osAccountInfos);
+    errCode = OsAccountStandardInterface::SendToAMSAccountStop(osAccountInfo);
     if (errCode != ERR_OK) {
         return ERR_OS_ACCOUNT_SERVICE_INNER_SEND_AM_ACCOUNT_STOP_ERROR;
     }
-    errCode = OsAccountStandardInterface::SendToBMSAccountDelete(osAccountInfos);
+    errCode = OsAccountStandardInterface::SendToBMSAccountDelete(osAccountInfo);
     if (errCode != ERR_OK) {
         return ERR_OS_ACCOUNT_SERVICE_INNER_SEND_BM_ACCOUNT_DELE_ERROR;
     }
-    errCode = OsAccountStandardInterface::SendToCESAccountDelete(osAccountInfos);
+    errCode = OsAccountStandardInterface::SendToCESAccountDelete(osAccountInfo);
     if (errCode != ERR_OK) {
         return ERR_OS_ACCOUNT_SERVICE_INNER_SEND_CE_ACCOUNT_DELE_ERROR;
     }
@@ -346,23 +307,20 @@ ErrCode IInnerOsAccountManager::IsOsAccountVerified(const int id, bool &isVerifi
 
 ErrCode IInnerOsAccountManager::GetCreatedOsAccountsCount(int &createdOsAccountCount)
 {
-    ErrCode errCode = osAccountControl_->GetMaxCreatedOsAccountNum(createdOsAccountCount);
-    if (errCode != ERR_OK) {
-        return ERR_OS_ACCOUNT_SERVICE_INNER_SELECT_OSACCOUNT_BYID_ERROR;
-    }
-    return ERR_OK;
-}
-
-ErrCode IInnerOsAccountManager::QueryMaxOsAccountNumber(int &maxOsAccountNumber)
-{
     std::vector<OsAccountInfo> osAccountInfos;
     ErrCode errCode = osAccountControl_->GetOsAccountList(osAccountInfos);
     if (errCode != ERR_OK) {
         return errCode;
     }
-    maxOsAccountNumber = 0;
-    for (auto it = osAccountInfos.begin(); it != osAccountInfos.end(); it++) {
-        maxOsAccountNumber = maxOsAccountNumber > it->GetLocalId() ? maxOsAccountNumber : it->GetLocalId();
+    createdOsAccountCount = osAccountInfos.size();
+    return ERR_OK;
+}
+
+ErrCode IInnerOsAccountManager::QueryMaxOsAccountNumber(int &maxOsAccountNumber)
+{
+    ErrCode errCode = osAccountControl_->GetMaxCreatedOsAccountNum(maxOsAccountNumber);
+    if (errCode != ERR_OK) {
+        return errCode;
     }
     return ERR_OK;
 }
@@ -491,8 +449,7 @@ ErrCode IInnerOsAccountManager::SetOsAccountConstraints(
                 oldconstraints.push_back(*it);
             }
         } else {
-            oldconstraints.erase(
-                std::remove(oldconstraints.begin(), oldconstraints.end(), *it), oldconstraints.end());
+            oldconstraints.erase(std::remove(oldconstraints.begin(), oldconstraints.end(), *it), oldconstraints.end());
         }
     }
     osAccountInfo.SetConstraints(oldconstraints);
@@ -550,34 +507,18 @@ ErrCode IInnerOsAccountManager::ActivateOsAccount(const int id)
         return ERR_OS_ACCOUNT_SERVICE_INNER_ACCOUNT_IS_UNVERIFIED_ERROR;
     }
     subscribeManagerPtr_->PublicActivatingOsAccount(id);
-    std::vector<OsAccountInfo> osAccountInfos;
-    osAccountInfos.push_back(osAccountInfo);
-    errCode = OsAccountStandardInterface::SendToAMSAccountSwitched(osAccountInfos);
+    errCode = OsAccountStandardInterface::SendToAMSAccountSwitched(osAccountInfo);
     if (errCode != ERR_OK) {
         return ERR_OS_ACCOUNT_SERVICE_INNER_SEND_AM_ACCOUNT_SWITCH_ERROR;
     }
-    errCode = OsAccountStandardInterface::SendToAMSAccountSwitched(osAccountInfos);
+    errCode = OsAccountStandardInterface::SendToCESAccountSwithced(osAccountInfo);
     if (errCode != ERR_OK) {
         return ERR_OS_ACCOUNT_SERVICE_INNER_SEND_CE_ACCOUNT_SWITCH_ERROR;
     }
-    osAccountInfos.clear();
     {
         std::lock_guard<std::mutex> lock(ativeMutex_);
-        for (auto it = activeAccountId_.begin(); it != activeAccountId_.end(); ++it) {
-            if (*it == Constants::ADMIN_LOCAL_ID) {
-                continue;
-            }
-            OsAccountInfo osAccountInfoForStop;
-            errCode = osAccountControl_->GetOsAccountInfoById(*it, osAccountInfoForStop);
-            if (errCode == ERR_OK) {
-                osAccountInfos.push_back(osAccountInfoForStop);
-            }
-        }
         activeAccountId_.clear();
         activeAccountId_.push_back(Constants::ADMIN_LOCAL_ID);
-    }
-    {
-        std::lock_guard<std::mutex> lock(ativeMutex_);
         activeAccountId_.push_back(id);
     }
     subscribeManagerPtr_->PublicActivatedOsAccount(id);
@@ -602,9 +543,7 @@ ErrCode IInnerOsAccountManager::StartOsAccount(const int id)
         return ERR_OS_ACCOUNT_SERVICE_INNER_ACCOUNT_IS_UNVERIFIED_ERROR;
     }
     subscribeManagerPtr_->PublicActivatingOsAccount(id);
-    std::vector<OsAccountInfo> osAccountInfos;
-    osAccountInfos.push_back(osAccountInfo);
-    errCode = OsAccountStandardInterface::SendToAMSAccountStart(osAccountInfos);
+    errCode = OsAccountStandardInterface::SendToAMSAccountStart(osAccountInfo);
     if (errCode != ERR_OK) {
         return ERR_OS_ACCOUNT_SERVICE_INNER_SEND_AM_ACCOUNT_START_ERROR;
     }
@@ -631,9 +570,7 @@ ErrCode IInnerOsAccountManager::StopOsAccount(const int id)
     if (errCode != ERR_OK) {
         return ERR_OS_ACCOUNT_SERVICE_INNER_SELECT_OSACCOUNT_BYID_ERROR;
     }
-    std::vector<OsAccountInfo> osAccountInfos;
-    osAccountInfos.push_back(osAccountInfo);
-    errCode = OsAccountStandardInterface::SendToAMSAccountStop(osAccountInfos);
+    errCode = OsAccountStandardInterface::SendToAMSAccountStop(osAccountInfo);
     if (errCode != ERR_OK) {
         return ERR_OS_ACCOUNT_SERVICE_INNER_SEND_AM_ACCOUNT_STOP_ERROR;
     }

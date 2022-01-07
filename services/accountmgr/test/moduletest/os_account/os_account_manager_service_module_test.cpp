@@ -37,8 +37,7 @@ const std::string STRING_EMPTY = "";
 const std::string STRING_NAME = "name";
 const std::string STRING_TEST_NAME = "test";
 const OsAccountType INT_TEST_TYPE = OsAccountType::GUEST;
-const OsAccountType INT_TEST_NEGATIVE_TYPE = OsAccountType::ADMIN;
-const OsAccountType INT_TEST_MAX_TYPE = OsAccountType::ADMIN;
+const OsAccountType INT_TEST_ADMIN_TYPE = OsAccountType::ADMIN;
 
 const std::vector<std::string> CONSTANTS_VECTOR {
     "constraint.print", "constraint.screen.timeout.set", "constraint.share.into.profile"};
@@ -222,7 +221,7 @@ HWTEST_F(OsAccountManagerServiceModuleTest, OsAccountManagerServiceModuleTest004
 
 /**
  * @tc.name: OsAccountManagerServiceModuleTest005
- * @tc.desc: Test CreateOsAccount with unvaild type.
+ * @tc.desc: Test CreateOsAccount with vaild type.
  * @tc.type: FUNC
  * @tc.require: SR000GGVFH
  */
@@ -230,21 +229,22 @@ HWTEST_F(OsAccountManagerServiceModuleTest, OsAccountManagerServiceModuleTest005
 {
     OsAccountInfo osAccountInfoOne;
     ErrCode errCode =
-        osAccountManagerService_->CreateOsAccount(STRING_TEST_NAME, INT_TEST_NEGATIVE_TYPE, osAccountInfoOne);
-    EXPECT_EQ(errCode, ERR_OS_ACCOUNT_SERVICE_MANAGER_CREATE_OSACCOUNT_TYPE_ERROR);
+        osAccountManagerService_->CreateOsAccount(STRING_TEST_NAME, INT_TEST_ADMIN_TYPE, osAccountInfoOne);
+    EXPECT_EQ(errCode, ERR_OK);
 }
 
 /**
  * @tc.name: OsAccountManagerServiceModuleTest006
- * @tc.desc: Test CreateOsAccount with unvaild type.
+ * @tc.desc: Test actived os account can be remove.
  * @tc.type: FUNC
- * @tc.require: SR000GGVFH
+ * @tc.require: SR000GGVFJ
  */
 HWTEST_F(OsAccountManagerServiceModuleTest, OsAccountManagerServiceModuleTest006, TestSize.Level1)
 {
     OsAccountInfo osAccountInfoOne;
-    ErrCode errCode = osAccountManagerService_->CreateOsAccount(STRING_TEST_NAME, INT_TEST_MAX_TYPE, osAccountInfoOne);
-    EXPECT_NE(errCode, ERR_OK);
+    osAccountManagerService_->CreateOsAccount(STRING_TEST_NAME, INT_TEST_TYPE, osAccountInfoOne);
+    osAccountManagerService_->ActivateOsAccount(osAccountInfoOne.GetLocalId());
+    EXPECT_EQ(osAccountManagerService_->RemoveOsAccount(osAccountInfoOne.GetLocalId()), ERR_OK);
 }
 
 /**
@@ -988,20 +988,6 @@ HWTEST_F(OsAccountManagerServiceModuleTest, OsAccountManagerServiceModuleTest058
 {
     bool isVerified = true;
     EXPECT_NE(osAccountManagerService_->SetCurrentOsAccountIsVerified(isVerified), ERR_OK);
-}
-
-/**
- * @tc.name: OsAccountManagerServiceModuleTest059
- * @tc.desc: Test actived os account can be remove.
- * @tc.type: FUNC
- * @tc.require: SR000GGVFJ
- */
-HWTEST_F(OsAccountManagerServiceModuleTest, OsAccountManagerServiceModuleTest059, TestSize.Level1)
-{
-    OsAccountInfo osAccountInfoOne;
-    osAccountManagerService_->CreateOsAccount(STRING_TEST_NAME, INT_TEST_TYPE, osAccountInfoOne);
-    osAccountManagerService_->ActivateOsAccount(osAccountInfoOne.GetLocalId());
-    EXPECT_EQ(osAccountManagerService_->RemoveOsAccount(osAccountInfoOne.GetLocalId()), ERR_OK);
 }
 }  // namespace AccountSA
 }  // namespace OHOS

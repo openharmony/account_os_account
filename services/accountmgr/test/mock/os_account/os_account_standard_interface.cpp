@@ -17,49 +17,49 @@
 
 namespace OHOS {
 namespace AccountSA {
-ErrCode OsAccountStandardInterface::SendToAMSAccountStart(std::vector<OsAccountInfo> &osAccountInfo)
+ErrCode OsAccountStandardInterface::SendToAMSAccountStart(OsAccountInfo &osAccountInfo)
 {
     ACCOUNT_LOGI("OsAccountStandardInterface SendToAMSAccountStart start");
     return ERR_OK;
 }
 
-ErrCode OsAccountStandardInterface::SendToAMSAccountStop(std::vector<OsAccountInfo> &osAccountInfo)
+ErrCode OsAccountStandardInterface::SendToAMSAccountStop(OsAccountInfo &osAccountInfo)
 {
     ACCOUNT_LOGI("OsAccountStandardInterface SendToAMSAccountStop start");
     return ERR_OK;
 }
 
-ErrCode OsAccountStandardInterface::SendToBMSAccountCreate(std::vector<OsAccountInfo> &osAccountInfo)
+ErrCode OsAccountStandardInterface::SendToBMSAccountCreate(OsAccountInfo &osAccountInfo)
 {
     ACCOUNT_LOGI("OsAccountStandardInterface SendToBMSAccountCreate start");
     return ERR_OK;
 }
 
-ErrCode OsAccountStandardInterface::SendToBMSAccountDelete(std::vector<OsAccountInfo> &osAccountInfo)
+ErrCode OsAccountStandardInterface::SendToBMSAccountDelete(OsAccountInfo &osAccountInfo)
 {
     ACCOUNT_LOGI("OsAccountStandardInterface SendToBMSAccountDelete start");
     return ERR_OK;
 }
 
-ErrCode OsAccountStandardInterface::SendToCESAccountCreate(std::vector<OsAccountInfo> &osAccountInfo)
+ErrCode OsAccountStandardInterface::SendToCESAccountCreate(OsAccountInfo &osAccountInfo)
 {
     ACCOUNT_LOGI("OsAccountStandardInterface SendToCESAccountCreate start");
     return ERR_OK;
 }
 
-ErrCode OsAccountStandardInterface::SendToCESAccountDelete(std::vector<OsAccountInfo> &osAccountInfo)
+ErrCode OsAccountStandardInterface::SendToCESAccountDelete(OsAccountInfo &osAccountInfo)
 {
     ACCOUNT_LOGI("OsAccountStandardInterface SendToCESAccountDelete start");
     return ERR_OK;
 }
 
-ErrCode OsAccountStandardInterface::SendToAMSAccountSwitched(std::vector<OsAccountInfo> &osAccountInfo)
+ErrCode OsAccountStandardInterface::SendToAMSAccountSwitched(OsAccountInfo &osAccountInfo)
 {
     ACCOUNT_LOGI("OsAccountStandardInterface SendToAMSAccountSwitched start");
     return ERR_OK;
 }
 
-ErrCode OsAccountStandardInterface::SendToCESAccountSwithced(std::vector<OsAccountInfo> &osAccountInfo)
+ErrCode OsAccountStandardInterface::SendToCESAccountSwithced(OsAccountInfo &osAccountInfo)
 {
     ACCOUNT_LOGI("OsAccountStandardInterface SendToCESAccountSwithced start");
     return ERR_OK;

@@ -206,7 +206,7 @@ HWTEST_F(OsAccountManagerModuleTest, OsAccountManagerModuleTest004, TestSize.Lev
 {
     OsAccountInfo osAccountInfoOne;
     ErrCode errCode = OsAccountManager::CreateOsAccount(STRING_TEST_NAME, INT_TEST_NEGATIVE_TYPE, osAccountInfoOne);
-    EXPECT_NE(errCode, ERR_OK);
+    EXPECT_EQ(errCode, ERR_OK);
 }
 
 /**
@@ -219,7 +219,7 @@ HWTEST_F(OsAccountManagerModuleTest, OsAccountManagerModuleTest005, TestSize.Lev
 {
     OsAccountInfo osAccountInfoOne;
     ErrCode errCode = OsAccountManager::CreateOsAccount(STRING_TEST_NAME, INT_TEST_MAX_TYPE, osAccountInfoOne);
-    EXPECT_NE(errCode, ERR_OK);
+    EXPECT_EQ(errCode, ERR_OK);
 }
 
 /**
@@ -700,8 +700,7 @@ HWTEST_F(OsAccountManagerModuleTest, OsAccountManagerModuleTest039, TestSize.Lev
 {
     int64_t serialNumber;
     EXPECT_EQ(OsAccountManager::GetSerialNumberByOsAccountLocalId(Constants::START_USER_ID, serialNumber), ERR_OK);
-    EXPECT_EQ(
-        serialNumber, Constants::CARRY_NUM * Constants::SERIAL_NUMBER_NUM_START_FOR_ADMIN + 1);
+    EXPECT_EQ(serialNumber, Constants::CARRY_NUM * Constants::SERIAL_NUMBER_NUM_START_FOR_ADMIN + 1);
 }
 
 /**

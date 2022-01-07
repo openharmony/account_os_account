@@ -201,6 +201,7 @@ ErrCode OsAccountControlFileManager::GetMaxCreatedOsAccountNum(int &maxCreatedOs
         Constants::MAX_ALLOW_CREATE_ACCOUNT_NUM,
         maxCreatedOsAccountNum,
         OHOS::AccountSA::JsonType::NUMBER);
+    maxCreatedOsAccountNum -= Constants::START_USER_ID;
     ACCOUNT_LOGE("OsAccountControlFileManager GetMaxCreatedOsAccountNum end");
     return ERR_OK;
 }
