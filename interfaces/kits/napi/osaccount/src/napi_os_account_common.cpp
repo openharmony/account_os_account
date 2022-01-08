@@ -1660,7 +1660,7 @@ void ParseParaSerialNumId(napi_env env, napi_callback_info cbInfo, GetSerialNumI
     for (size_t i = 0; i < argc; i++) {
         napi_valuetype valueType = napi_undefined;
         napi_typeof(env, argv[i], &valueType);
-        if (i == 0 && valueType == napi_string) {
+        if (i == 0 && valueType == napi_number) {
             serialNumId->serialNumber = GetLongIntProperty(env, argv[i]);
         } else if (valueType == napi_function) {
             napi_create_reference(env, argv[i], 1, &serialNumId->callbackRef);
@@ -1727,7 +1727,7 @@ void ParseParaGetSerialNum(napi_env env, napi_callback_info cbInfo, GetSerialNum
     for (size_t i = 0; i < argc; i++) {
         napi_valuetype valueType = napi_undefined;
         napi_typeof(env, argv[i], &valueType);
-        if (i == 0 && valueType == napi_string) {
+        if (i == 0 && valueType == napi_number) {
             getSerialNum->id = GetIntProperty(env, argv[i]);
         } else if (valueType == napi_function) {
             napi_create_reference(env, argv[i], 1, &getSerialNum->callbackRef);
