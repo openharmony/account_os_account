@@ -64,8 +64,8 @@ ErrCode OsAccountManagerService::CreateOsAccount(
         result = permissionManagerPtr_->VerifyPermission(
             callingUid, AccountPermissionManager::MANAGE_LOCAL_ACCOUNTS, bundleName);
         if (result != ERR_OK || !permissionManagerPtr_->IsSystemUid(callingUid)) {
-            ACCOUNT_LOGI("failed to verify permission for DISTRIBUTED_DATASYNC, result = %{public}d", result);
-            return result;
+            ACCOUNT_LOGI("failed to verify permission for MANAGE_LOCAL_ACCOUNTS,or not system app error");
+            return ERR_OS_ACCOUNT_SERVICE_PERMISSION_DENIED;
         }
     }
     if (name.size() > Constants::LOCAL_NAME_MAX_SIZE) {
@@ -100,8 +100,8 @@ ErrCode OsAccountManagerService::RemoveOsAccount(const int id)
         result = permissionManagerPtr_->VerifyPermission(
             callingUid, AccountPermissionManager::MANAGE_LOCAL_ACCOUNTS, bundleName);
         if (result != ERR_OK || !permissionManagerPtr_->IsSystemUid(callingUid)) {
-            ACCOUNT_LOGI("failed to verify permission for DISTRIBUTED_DATASYNC, result = %{public}d", result);
-            return result;
+            ACCOUNT_LOGI("failed to verify permission for MANAGE_LOCAL_ACCOUNTS,or not system app error");
+            return ERR_OS_ACCOUNT_SERVICE_PERMISSION_DENIED;
         }
     }
     if (id <= Constants::START_USER_ID) {
@@ -133,8 +133,8 @@ ErrCode OsAccountManagerService::IsOsAccountActived(const int id, bool &isOsAcco
         ErrCode errCode = permissionManagerPtr_->VerifyPermission(
             callingUid, AccountPermissionManager::INTERACT_ACROSS_LOCAL_ACCOUNTS, bundleName);
         if (result != ERR_OK && errCode != ERR_OK) {
-            ACCOUNT_LOGI("failed to verify permission for DISTRIBUTED_DATASYNC, result = %{public}d", result);
-            return result;
+            ACCOUNT_LOGI("failed to verify permission for MANAGE_LOCAL_ACCOUNTS or INTERACT_ACROSS_LOCAL_ACCOUNTS");
+            return ERR_OS_ACCOUNT_SERVICE_PERMISSION_DENIED;
         }
     }
     if (id < Constants::START_USER_ID) {
@@ -159,8 +159,8 @@ ErrCode OsAccountManagerService::IsOsAccountConstraintEnable(
         result = permissionManagerPtr_->VerifyPermission(
             callingUid, AccountPermissionManager::MANAGE_LOCAL_ACCOUNTS, bundleName);
         if (result != ERR_OK) {
-            ACCOUNT_LOGI("failed to verify permission for DISTRIBUTED_DATASYNC, result = %{public}d", result);
-            return result;
+            ACCOUNT_LOGI("failed to verify permission for MANAGE_LOCAL_ACCOUNTS");
+            return ERR_OS_ACCOUNT_SERVICE_PERMISSION_DENIED;
         }
     }
     if (id < Constants::START_USER_ID) {
@@ -186,8 +186,8 @@ ErrCode OsAccountManagerService::IsOsAccountVerified(const int id, bool &isVerif
         ErrCode errCode = permissionManagerPtr_->VerifyPermission(
             callingUid, AccountPermissionManager::INTERACT_ACROSS_LOCAL_ACCOUNTS, bundleName);
         if (result != ERR_OK && errCode != ERR_OK) {
-            ACCOUNT_LOGI("failed to verify permission for DISTRIBUTED_DATASYNC, result = %{public}d", result);
-            return result;
+            ACCOUNT_LOGI("failed to verify permission for INTERACT_ACROSS_LOCAL_ACCOUNTS or MANAGE_LOCAL_ACCOUNTS");
+            return ERR_OS_ACCOUNT_SERVICE_PERMISSION_DENIED;
         }
     }
     if (id < Constants::START_USER_ID) {
@@ -211,8 +211,8 @@ ErrCode OsAccountManagerService::GetCreatedOsAccountsCount(int &osAccountsCount)
         result = permissionManagerPtr_->VerifyPermission(
             callingUid, AccountPermissionManager::MANAGE_LOCAL_ACCOUNTS, bundleName);
         if (result != ERR_OK) {
-            ACCOUNT_LOGI("failed to verify permission for DISTRIBUTED_DATASYNC, result = %{public}d", result);
-            return result;
+            ACCOUNT_LOGI("failed to verify permission for MANAGE_LOCAL_ACCOUNTS");
+            return ERR_OS_ACCOUNT_SERVICE_PERMISSION_DENIED;
         }
     }
     return innerManager_->GetCreatedOsAccountsCount(osAccountsCount);
@@ -261,8 +261,8 @@ ErrCode OsAccountManagerService::GetOsAccountAllConstraints(const int id, std::v
         result = permissionManagerPtr_->VerifyPermission(
             callingUid, AccountPermissionManager::MANAGE_LOCAL_ACCOUNTS, bundleName);
         if (result != ERR_OK) {
-            ACCOUNT_LOGI("failed to verify permission for DISTRIBUTED_DATASYNC, result = %{public}d", result);
-            return result;
+            ACCOUNT_LOGI("failed to verify permission for MANAGE_LOCAL_ACCOUNTS");
+            return ERR_OS_ACCOUNT_SERVICE_PERMISSION_DENIED;
         }
     }
     if (id < Constants::START_USER_ID) {
@@ -295,8 +295,8 @@ ErrCode OsAccountManagerService::QueryCurrentOsAccount(OsAccountInfo &osAccountI
         result = permissionManagerPtr_->VerifyPermission(
             callingUid, AccountPermissionManager::MANAGE_LOCAL_ACCOUNTS, bundleName);
         if (result != ERR_OK) {
-            ACCOUNT_LOGI("failed to verify permission for DISTRIBUTED_DATASYNC, result = %{public}d", result);
-            return result;
+            ACCOUNT_LOGI("failed to verify permission for MANAGE_LOCAL_ACCOUNTS");
+            return ERR_OS_ACCOUNT_SERVICE_PERMISSION_DENIED;
         }
     }
     int id = callingUid / Constants::UID_TRANSFORM_DIVISOR;
@@ -323,10 +323,9 @@ ErrCode OsAccountManagerService::QueryOsAccountById(const int id, OsAccountInfo 
         ErrCode errCode = permissionManagerPtr_->VerifyPermission(
             callingUid, AccountPermissionManager::INTERACT_ACROSS_LOCAL_ACCOUNTS_EXTENSION, bundleName);
         if ((result != ERR_OK && errCode != ERR_OK) || !permissionManagerPtr_->IsSystemUid(callingUid)) {
-            ACCOUNT_LOGI("failed to verify permission for DISTRIBUTED_DATASYNC and "
-                         "INTERACT_ACROSS_LOCAL_ACCOUNTS_EXTENSION, result = %{public}d",
-                result);
-            return result;
+            ACCOUNT_LOGI("failed to verify permission for MANAGE_LOCAL_ACCOUNTS or "
+                         "INTERACT_ACROSS_LOCAL_ACCOUNTS_EXTENSION,or not system app error");
+            return ERR_OS_ACCOUNT_SERVICE_PERMISSION_DENIED;
         }
     }
     if (id < Constants::START_USER_ID) {
@@ -360,8 +359,8 @@ ErrCode OsAccountManagerService::GetOsAccountProfilePhoto(const int id, std::str
         result = permissionManagerPtr_->VerifyPermission(
             callingUid, AccountPermissionManager::MANAGE_LOCAL_ACCOUNTS, bundleName);
         if (result != ERR_OK || !permissionManagerPtr_->IsSystemUid(callingUid)) {
-            ACCOUNT_LOGI("failed to verify permission for DISTRIBUTED_DATASYNC, result = %{public}d", result);
-            return result;
+            ACCOUNT_LOGI("failed to verify permission for MANAGE_LOCAL_ACCOUNTS,or not system app error");
+            return ERR_OS_ACCOUNT_SERVICE_PERMISSION_DENIED;
         }
     }
     if (id < Constants::START_USER_ID) {
@@ -409,8 +408,8 @@ ErrCode OsAccountManagerService::SetOsAccountConstraints(
         result = permissionManagerPtr_->VerifyPermission(
             callingUid, AccountPermissionManager::MANAGE_LOCAL_ACCOUNTS, bundleName);
         if (result != ERR_OK || !permissionManagerPtr_->IsSystemUid(callingUid)) {
-            ACCOUNT_LOGI("failed to verify permission for DISTRIBUTED_DATASYNC, result = %{public}d", result);
-            return result;
+            ACCOUNT_LOGI("failed to verify permission for MANAGE_LOCAL_ACCOUNTS,or not system app error");
+            return ERR_OS_ACCOUNT_SERVICE_PERMISSION_DENIED;
         }
     }
     if (id < Constants::START_USER_ID) {
@@ -434,8 +433,8 @@ ErrCode OsAccountManagerService::SetOsAccountProfilePhoto(const int id, const st
         result = permissionManagerPtr_->VerifyPermission(
             callingUid, AccountPermissionManager::MANAGE_LOCAL_ACCOUNTS, bundleName);
         if (result != ERR_OK) {
-            ACCOUNT_LOGI("failed to verify permission for DISTRIBUTED_DATASYNC, result = %{public}d", result);
-            return result;
+            ACCOUNT_LOGI("failed to verify permission for MANAGE_LOCAL_ACCOUNTS");
+            return ERR_OS_ACCOUNT_SERVICE_PERMISSION_DENIED;
         }
         if (photo.size() > Constants::LOCAL_PHOTO_MAX_SIZE) {
             return ERR_OS_ACCOUNT_SERVICE_MANAGER_PHOTO_SIZE_OVERFLOW_ERROR;
@@ -462,8 +461,8 @@ ErrCode OsAccountManagerService::GetDistributedVirtualDeviceId(std::string &devi
         result = permissionManagerPtr_->VerifyPermission(
             callingUid, AccountPermissionManager::DISTRIBUTED_DATASYNC, bundleName);
         if (result != ERR_OK) {
-            ACCOUNT_LOGI("failed to verify permission for DISTRIBUTED_DATASYNC, result = %{public}d", result);
-            return result;
+            ACCOUNT_LOGI("failed to verify permission for DISTRIBUTED_DATASYNC");
+            return ERR_OS_ACCOUNT_SERVICE_PERMISSION_DENIED;
         }
     }
     return innerManager_->GetDistributedVirtualDeviceId(deviceId, callingUid);
@@ -484,8 +483,9 @@ ErrCode OsAccountManagerService::ActivateOsAccount(const int id)
         result = permissionManagerPtr_->VerifyPermission(
             callingUid, AccountPermissionManager::INTERACT_ACROSS_LOCAL_ACCOUNTS_EXTENSION, bundleName);
         if (result != ERR_OK || !permissionManagerPtr_->IsSystemUid(callingUid)) {
-            ACCOUNT_LOGI("failed to verify permission for DISTRIBUTED_DATASYNC, result = %{public}d", result);
-            return result;
+            ACCOUNT_LOGI(
+                "failed to verify permission for INTERACT_ACROSS_LOCAL_ACCOUNTS_EXTENSION,or not system app error");
+            return ERR_OS_ACCOUNT_SERVICE_PERMISSION_DENIED;
         }
     }
     if (id < Constants::START_USER_ID) {
@@ -509,8 +509,8 @@ ErrCode OsAccountManagerService::StartOsAccount(const int id)
         result = permissionManagerPtr_->VerifyPermission(
             callingUid, AccountPermissionManager::INTERACT_ACROSS_LOCAL_ACCOUNTS_EXTENSION, bundleName);
         if (result != ERR_OK) {
-            ACCOUNT_LOGI("failed to verify permission for DISTRIBUTED_DATASYNC, result = %{public}d", result);
-            return result;
+            ACCOUNT_LOGI("failed to verify permission for INTERACT_ACROSS_LOCAL_ACCOUNTS_EXTENSION");
+            return ERR_OS_ACCOUNT_SERVICE_PERMISSION_DENIED;
         }
     }
     if (id < Constants::START_USER_ID) {
@@ -534,8 +534,8 @@ ErrCode OsAccountManagerService::StopOsAccount(const int id)
         result = permissionManagerPtr_->VerifyPermission(
             callingUid, AccountPermissionManager::INTERACT_ACROSS_LOCAL_ACCOUNTS_EXTENSION, bundleName);
         if (result != ERR_OK) {
-            ACCOUNT_LOGI("failed to verify permission for DISTRIBUTED_DATASYNC, result = %{public}d", result);
-            return result;
+            ACCOUNT_LOGI("failed to verify permission for INTERACT_ACROSS_LOCAL_ACCOUNTS_EXTENSION");
+            return ERR_OS_ACCOUNT_SERVICE_PERMISSION_DENIED;
         }
     }
     if (id < Constants::START_USER_ID) {
@@ -561,8 +561,8 @@ ErrCode OsAccountManagerService::SubscribeOsAccount(
         result = permissionManagerPtr_->VerifyPermission(
             callingUid, AccountPermissionManager::INTERACT_ACROSS_LOCAL_ACCOUNTS_EXTENSION, bundleName);
         if (result != ERR_OK || !permissionManagerPtr_->IsSystemUid(callingUid)) {
-            ACCOUNT_LOGI("failed to verify permission for DISTRIBUTED_DATASYNC, result = %{public}d", result);
-            return result;
+            ACCOUNT_LOGI("failed to verify permission for INTERACT_ACROSS_LOCAL_ACCOUNTS_EXTENSION, or not system app");
+            return ERR_OS_ACCOUNT_SERVICE_PERMISSION_DENIED;
         }
     }
     return innerManager_->SubscribeOsAccount(subscribeInfo, eventListener);
@@ -584,8 +584,9 @@ ErrCode OsAccountManagerService::UnsubscribeOsAccount(const sptr<IRemoteObject> 
         result = permissionManagerPtr_->VerifyPermission(
             callingUid, AccountPermissionManager::INTERACT_ACROSS_LOCAL_ACCOUNTS_EXTENSION, bundleName);
         if (result != ERR_OK || !permissionManagerPtr_->IsSystemUid(callingUid)) {
-            ACCOUNT_LOGI("failed to verify permission for DISTRIBUTED_DATASYNC, result = %{public}d", result);
-            return result;
+            ACCOUNT_LOGI(
+                "failed to verify permission for INTERACT_ACROSS_LOCAL_ACCOUNTS_EXTENSION, or not system app ");
+            return ERR_OS_ACCOUNT_SERVICE_PERMISSION_DENIED;
         }
     }
     return innerManager_->UnsubscribeOsAccount(eventListener);
@@ -636,8 +637,8 @@ ErrCode OsAccountManagerService::IsCurrentOsAccountVerified(bool &isVerified)
         ErrCode errCode = permissionManagerPtr_->VerifyPermission(
             callingUid, AccountPermissionManager::INTERACT_ACROSS_LOCAL_ACCOUNTS, bundleName);
         if (result != ERR_OK && errCode != ERR_OK) {
-            ACCOUNT_LOGI("failed to verify permission for DISTRIBUTED_DATASYNC, result = %{public}d", result);
-            return result;
+            ACCOUNT_LOGI("failed to verify permission for INTERACT_ACROSS_LOCAL_ACCOUNTS or MANAGE_LOCAL_ACCOUNTS");
+            return ERR_OS_ACCOUNT_SERVICE_PERMISSION_DENIED;
         }
     }
     int id = callingUid / Constants::UID_TRANSFORM_DIVISOR;
@@ -664,8 +665,8 @@ ErrCode OsAccountManagerService::IsOsAccountCompleted(const int id, bool &isOsAc
         ErrCode errCode = permissionManagerPtr_->VerifyPermission(
             callingUid, AccountPermissionManager::INTERACT_ACROSS_LOCAL_ACCOUNTS, bundleName);
         if (result != ERR_OK && errCode != ERR_OK) {
-            ACCOUNT_LOGI("failed to verify permission for DISTRIBUTED_DATASYNC, result = %{public}d", result);
-            return result;
+            ACCOUNT_LOGI("failed to verify permission for INTERACT_ACROSS_LOCAL_ACCOUNTS or MANAGE_LOCAL_ACCOUNTS");
+            return ERR_OS_ACCOUNT_SERVICE_PERMISSION_DENIED;
         }
     }
     if (id < Constants::START_USER_ID) {
@@ -689,8 +690,8 @@ ErrCode OsAccountManagerService::SetCurrentOsAccountIsVerified(const bool isVeri
         result = permissionManagerPtr_->VerifyPermission(
             callingUid, AccountPermissionManager::MANAGE_LOCAL_ACCOUNTS, bundleName);
         if (result != ERR_OK) {
-            ACCOUNT_LOGI("failed to verify permission for DISTRIBUTED_DATASYNC, result = %{public}d", result);
-            return result;
+            ACCOUNT_LOGI("failed to verify permission for MANAGE_LOCAL_ACCOUNTS");
+            return ERR_OS_ACCOUNT_SERVICE_PERMISSION_DENIED;
         }
     }
     int id = callingUid / Constants::UID_TRANSFORM_DIVISOR;
@@ -715,8 +716,8 @@ ErrCode OsAccountManagerService::SetOsAccountIsVerified(const int id, const bool
         result = permissionManagerPtr_->VerifyPermission(
             callingUid, AccountPermissionManager::MANAGE_LOCAL_ACCOUNTS, bundleName);
         if (result != ERR_OK) {
-            ACCOUNT_LOGI("failed to verify permission for DISTRIBUTED_DATASYNC, result = %{public}d", result);
-            return result;
+            ACCOUNT_LOGI("failed to verify permission for MANAGE_LOCAL_ACCOUNTS");
+            return ERR_OS_ACCOUNT_SERVICE_PERMISSION_DENIED;
         }
     }
     if (id < Constants::START_USER_ID) {

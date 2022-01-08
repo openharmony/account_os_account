@@ -31,7 +31,7 @@ const std::string USER_PHOTO_FILE_JPG_NAME = "fase.jpg";
 const std::string USER_PHOTO_BASE_JPG_HEAD = "data:image/jpeg;base64,";
 const std::string USER_PHOTO_BASE_PNG_HEAD = "data:image/png;base64,";
 const std::string USER_INFO_FILE_NAME = "account_info.json";
-constexpr std::int32_t UID_TRANSFORM_DIVISOR = 1000000;
+constexpr std::int32_t UID_TRANSFORM_DIVISOR = 200000;
 // distributed database
 const std::string APP_ID = "os_account_mgr_service";
 const std::string STORE_ID = "os_account_info";
@@ -44,8 +44,8 @@ const std::int32_t MAX_SYSTEM_UID_NUM = 2899;
 // subscribe
 const int SUBSCRIBER_MAX_SIZE = 100;
 // account restrict
-const unsigned int LOCAL_NAME_MAX_SIZE = 1024 - 1;
-const unsigned int LOCAL_PHOTO_MAX_SIZE = 1024 * 4 - 1;
+const unsigned int LOCAL_NAME_MAX_SIZE = 1024;
+const unsigned int LOCAL_PHOTO_MAX_SIZE = 1024 * 4;
 
 // temporary 100
 const int ADMIN_LOCAL_ID = 0;
@@ -54,7 +54,7 @@ const std::string ADMIN_LOCAL_NAME = "admin";
 const std::string STANDARD_LOCAL_NAME = "user";
 const int STANDARD_TYPE = 0;
 const int START_USER_ID = 100;
-const int MAX_USER_ID = 999;
+const int MAX_USER_ID = 1099;
 const int64_t SERIAL_NUMBER_NUM_START_FOR_ADMIN = 20210231;
 const int64_t SERIAL_NUMBER_NUM_START = 1;
 const int64_t CARRY_NUM = 100000000;

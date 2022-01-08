@@ -57,5 +57,5 @@
         "2"
     ],
     "IsMultiOsAccountEnable": true,
-    "IsAllowedCreateAdmin": false
+    "IsAllowedCreateAdmin": true
 }

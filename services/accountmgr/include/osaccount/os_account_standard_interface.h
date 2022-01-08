@@ -21,14 +21,14 @@ namespace OHOS {
 namespace AccountSA {
 class OsAccountStandardInterface {
 public:
-    static ErrCode SendToAMSAccountStart(std::vector<OsAccountInfo> &osAccountInfo);
-    static ErrCode SendToAMSAccountStop(std::vector<OsAccountInfo> &osAccountInfo);
-    static ErrCode SendToAMSAccountSwitched(std::vector<OsAccountInfo> &osAccountInfo);
-    static ErrCode SendToBMSAccountCreate(std::vector<OsAccountInfo> &osAccountInfo);
-    static ErrCode SendToBMSAccountDelete(std::vector<OsAccountInfo> &osAccountInfo);
-    static ErrCode SendToCESAccountCreate(std::vector<OsAccountInfo> &osAccountInfo);
-    static ErrCode SendToCESAccountDelete(std::vector<OsAccountInfo> &osAccountInfo);
-    static ErrCode SendToCESAccountSwithced(std::vector<OsAccountInfo> &osAccountInfo);
+    static ErrCode SendToAMSAccountStart(OsAccountInfo &osAccountInfo);
+    static ErrCode SendToAMSAccountStop(OsAccountInfo &osAccountInfo);
+    static ErrCode SendToAMSAccountSwitched(OsAccountInfo &osAccountInfo);
+    static ErrCode SendToBMSAccountCreate(OsAccountInfo &osAccountInfo);
+    static ErrCode SendToBMSAccountDelete(OsAccountInfo &osAccountInfo);
+    static ErrCode SendToCESAccountCreate(OsAccountInfo &osAccountInfo);
+    static ErrCode SendToCESAccountDelete(OsAccountInfo &osAccountInfo);
+    static ErrCode SendToCESAccountSwithced(OsAccountInfo &osAccountInfo);
 };
 }  // namespace AccountSA
 }  // namespace OHOS
