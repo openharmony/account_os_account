@@ -17,7 +17,6 @@
 #include <unistd.h>
 
 #include "account_log_wrapper.h"
-
 #include "account_data_storage.h"
 
 namespace OHOS {

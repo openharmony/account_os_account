@@ -174,8 +174,12 @@ bool AccountMgrService::Init()
     IAccountContext::SetInstance(this);
 
     auto appAccountManagerService = new (std::nothrow) AppAccountManagerService();
-    appAccountManagerService_ = appAccountManagerService->AsObject();
     auto osAccountManagerService = new (std::nothrow) OsAccountManagerService();
+    if (appAccountManagerService == nullptr || osAccountManagerService == nullptr) {
+        ACCOUNT_LOGE("memory alloc failed!");
+        return false;
+    }
+    appAccountManagerService_ = appAccountManagerService->AsObject();
     osAccountManagerService_ = osAccountManagerService->AsObject();
     ACCOUNT_LOGI("init end success");
     return true;

@@ -41,7 +41,7 @@ void ActsAccountFuzzTest::TearDown()
 HWTEST_F(ActsAccountFuzzTest, ACTS_FuzzTest_0100, Function | MediumTest | Level1)
 {
     std::cout << "fuzztest start" << std::endl;
-    fuzzTestManager::GetInstance()->StartFuzzTest();
+    FuzzTestManager::GetInstance()->StartFuzzTest();
     std::cout << "fuzztest end" << std::endl;
 }
 }  // namespace AccountSA

@@ -29,7 +29,7 @@ public:
     virtual void OnAccountsChanged(const int &id) override;
 
 private:
-    template <typename T>
+    template<typename T>
     bool WriteParcelableVector(const std::vector<T> &parcelableVector, Parcel &data);
     ErrCode SendRequest(IOsAccountEvent::Message code, MessageParcel &data, MessageParcel &reply);
 

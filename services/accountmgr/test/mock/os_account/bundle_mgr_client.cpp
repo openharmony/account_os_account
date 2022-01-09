@@ -32,7 +32,7 @@ BundleMgrClient::~BundleMgrClient()
     ACCOUNT_LOGI("enter");
 }
 
-bool BundleMgrClient::GetBundleNameForUid(const int uid, std::string &bundleName)
+bool BundleMgrClient::GetBundleNameForUid(const int uid, std::string &bundleName) const
 {
     ACCOUNT_LOGI("enter");
 
@@ -44,7 +44,7 @@ bool BundleMgrClient::GetBundleNameForUid(const int uid, std::string &bundleName
     return true;
 }
 
-bool BundleMgrClient::GetBundleInfo(const std::string &bundleName, const BundleFlag flag, BundleInfo &bundleInfo)
+bool BundleMgrClient::GetBundleInfo(const std::string &bundleName, const BundleFlag flag, BundleInfo &bundleInfo) const
 {
     ACCOUNT_LOGI("enter");
 

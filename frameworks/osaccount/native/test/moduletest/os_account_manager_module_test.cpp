@@ -34,7 +34,10 @@ const OsAccountType INT_TEST_NEGATIVE_TYPE = OsAccountType::ADMIN;
 const OsAccountType INT_TEST_MAX_TYPE = OsAccountType::ADMIN;
 
 const std::vector<std::string> CONSTANTS_VECTOR {
-    "constraint.print", "constraint.screen.timeout.set", "constraint.share.into.profile"};
+    "constraint.print",
+    "constraint.screen.timeout.set",
+    "constraint.share.into.profile"
+};
 const std::string CONSTANTS_STRING_WIFI = "constraint.print";
 const std::string STRING_NAME_OUT_OF_RANGE =
     "name_out_of_range_"

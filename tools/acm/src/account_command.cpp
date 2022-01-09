@@ -12,12 +12,10 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
+#include "account_command.h"
 #include <getopt.h>
 #include "account_log_wrapper.h"
 #include "singleton.h"
-
-#include "account_command.h"
 
 using namespace OHOS::AAFwk;
 

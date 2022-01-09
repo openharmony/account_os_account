@@ -63,7 +63,7 @@ AppAccountSubscribeInfo *AppAccountSubscribeInfo::Unmarshalling(Parcel &parcel)
 {
     ACCOUNT_LOGI("enter");
 
-    AppAccountSubscribeInfo *subscribeInfo = new AppAccountSubscribeInfo();
+    AppAccountSubscribeInfo *subscribeInfo = new (std::nothrow) AppAccountSubscribeInfo();
 
     if (subscribeInfo && !subscribeInfo->ReadFromParcel(parcel)) {
         ACCOUNT_LOGE("failed to read from pacel");

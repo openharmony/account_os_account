@@ -651,7 +651,7 @@ ErrCode AppAccount::GetAppAccountProxy()
             return ERR_APPACCOUNT_KIT_GET_APP_ACCOUNT_PROXY;
         }
 
-        deathRecipient_ = new AppAccountDeathRecipient();
+        deathRecipient_ = new (std::nothrow) AppAccountDeathRecipient();
         if (!deathRecipient_) {
             ACCOUNT_LOGE("failed to create app account death recipient");
             return ERR_APPACCOUNT_KIT_CREATE_APP_ACCOUNT_DEATH_RECIPIENT;
@@ -686,7 +686,7 @@ ErrCode AppAccount::CreateAppAccountEventListener(
             return SUBSCRIBE_FAILD;
         }
 
-        sptr<AppAccountEventListener> listener = new AppAccountEventListener(subscriber);
+        sptr<AppAccountEventListener> listener = new (std::nothrow) AppAccountEventListener(subscriber);
         if (!listener) {
             ACCOUNT_LOGE("the app account event listener is null");
             return SUBSCRIBE_FAILD;
