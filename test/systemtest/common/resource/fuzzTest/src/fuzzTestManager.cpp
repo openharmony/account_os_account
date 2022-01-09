@@ -26,10 +26,10 @@
 #undef protected
 namespace OHOS {
 namespace AccountSA {
-std::shared_ptr<fuzzTestManager> fuzzTestManager::instance_ = nullptr;
+std::shared_ptr<FuzzTestManager> FuzzTestManager::instance_ = nullptr;
 
 // AppAccount
-void fuzzTestManager::RegisterAppAccountManager()
+void FuzzTestManager::RegisterAppAccountManager()
 {
     callFunctionMap_["AppAccountManagerAddAccount"] = []() { AppAccountManager::AddAccount(GetStringParam()); };
     callFunctionMap_["AppAccountManagerDeleteAccount"] = []() { AppAccountManager::DeleteAccount(GetStringParam()); };
@@ -93,17 +93,17 @@ void fuzzTestManager::RegisterAppAccountManager()
     };
 }
 
-fuzzTestManager::fuzzTestManager()
+FuzzTestManager::FuzzTestManager()
 {
     RegisterAppAccountManager();
 }
 
-void fuzzTestManager::SetJsonFunction(std::string functionName)
+void FuzzTestManager::SetJsonFunction(std::string functionName)
 {
     remainderMap_.emplace(functionName, cycle_);
 }
 
-void fuzzTestManager::SetCycle(uint16_t cycle)
+void FuzzTestManager::SetCycle(uint16_t cycle)
 {
     cycle_ = cycle;
     for_each(remainderMap_.begin(), remainderMap_.end(), [cycle](std::unordered_map<std::string, int>::reference temp) {
@@ -121,7 +121,7 @@ void action(int a)
     std::cout << "Interrupt signal (" << a << ") received.\n";
 }
 
-void fuzzTestManager::StartFuzzTest()
+void FuzzTestManager::StartFuzzTest()
 {
     std::cout << __func__ << std::endl;
     OHOS::FuzzConfigParser jsonParser;

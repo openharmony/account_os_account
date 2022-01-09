@@ -61,9 +61,9 @@ public:
 private:
     ErrCode SendRequest(IAppAccount::Message code, MessageParcel &data, MessageParcel &reply);
 
-    template <typename T>
+    template<typename T>
     bool WriteParcelableVector(const std::vector<T> &parcelableVector, MessageParcel &data);
-    template <typename T>
+    template<typename T>
     bool ReadParcelableVector(std::vector<T> &parcelableVector, MessageParcel &data);
 
 private:

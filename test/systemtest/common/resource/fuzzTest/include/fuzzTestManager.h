@@ -23,28 +23,28 @@
 
 namespace OHOS {
 namespace AccountSA {
-class fuzzTestManager {
+class FuzzTestManager {
 public:
-    using Ptr = std::shared_ptr<fuzzTestManager>;
-    ~fuzzTestManager()
+    using Ptr = std::shared_ptr<FuzzTestManager>;
+    ~FuzzTestManager()
     {}
 
     static Ptr GetInstance()
     {
         if (instance_ == nullptr) {
-            instance_ = std::make_shared<fuzzTestManager>();
+            instance_ = std::make_shared<FuzzTestManager>();
         }
         return instance_;
     }
 
     void StartFuzzTest();
-    fuzzTestManager();
+    FuzzTestManager();
 
 private:
     void SetJsonFunction(std::string functionName);
     void SetCycle(uint16_t cycle);
-    fuzzTestManager(fuzzTestManager &) = delete;
-    fuzzTestManager &operator=(const fuzzTestManager &) = delete;
+    FuzzTestManager(FuzzTestManager &) = delete;
+    FuzzTestManager &operator=(const FuzzTestManager &) = delete;
     static Ptr instance_;
     uint16_t cycle_ {};
     std::unordered_map<std::string, int> remainderMap_ {};

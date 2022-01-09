@@ -29,7 +29,7 @@ using namespace OHOS;
 using namespace OHOS::AccountSA;
 
 namespace {
-std::mutex mtx;
+std::mutex g_mtx;
 }  // namespace
 
 class OsAccountManagerServiceSubscribeModuleTest : public testing::Test {
@@ -57,10 +57,10 @@ void OsAccountManagerServiceSubscribeModuleTest::TearDown(void)
 
 class OsAccountSubscriberTest : public OsAccountSubscriber {
 public:
-    explicit OsAccountSubscriberTest(const OsAccountSubscribeInfo &subscribeInfo) : OsAccountSubscriber(subscribeInfo)
+    explicit OsAccountSubscriberTest(const OsAccountSubscribeInfo &subscribeInfo)
+        : OsAccountSubscriber(subscribeInfo), id_(0)
     {
         ACCOUNT_LOGI("enter");
-        id_ = 0;
     }
 
     ~OsAccountSubscriberTest()
@@ -70,7 +70,7 @@ public:
     {
         ACCOUNT_LOGI("enter");
 
-        mtx.unlock();
+        g_mtx.unlock();
         EXPECT_EQ(id, id);
         GTEST_LOG_(INFO) << id;
         GTEST_LOG_(INFO) << id_;
@@ -108,7 +108,7 @@ HWTEST_F(OsAccountManagerServiceSubscribeModuleTest, OsAccountManagerServiceSubs
     result = osAccountManagerService_->SubscribeOsAccount(osAccountSubscribeInfo, osAccountEventListener);
     EXPECT_EQ(result, ERR_OK);
     // lock the mutex
-    mtx.lock();
+    g_mtx.lock();
     EXPECT_EQ(result, ERR_OK);
     result = osAccountManagerService_->StartOsAccount(osAccountInfo.GetLocalId());
     EXPECT_EQ(result, ERR_OK);
@@ -116,14 +116,14 @@ HWTEST_F(OsAccountManagerServiceSubscribeModuleTest, OsAccountManagerServiceSubs
     EXPECT_EQ(GetSystemCurrentTime(&startTime), true);
     struct tm doingTime = {0};
     int64_t seconds = 0;
-    while (!mtx.try_lock()) {
+    while (!g_mtx.try_lock()) {
         EXPECT_EQ(GetSystemCurrentTime(&doingTime), true);
         seconds = GetSecondsBetween(startTime, doingTime);
         if (seconds >= 5) {
             break;
         }
     }
-    mtx.unlock();
+    g_mtx.unlock();
     result = osAccountManagerService_->UnsubscribeOsAccount(osAccountEventListener);
     EXPECT_EQ(result, ERR_OK);
     result = osAccountManagerService_->StopOsAccount(osAccountInfo.GetLocalId());
@@ -163,7 +163,7 @@ HWTEST_F(OsAccountManagerServiceSubscribeModuleTest, OsAccountManagerServiceSubs
     result = osAccountManagerService_->SubscribeOsAccount(osAccountSubscribeInfo, osAccountEventListener);
     EXPECT_EQ(result, ERR_OK);
     // lock the mutex
-    mtx.lock();
+    g_mtx.lock();
     EXPECT_EQ(result, ERR_OK);
     result = osAccountManagerService_->StartOsAccount(osAccountInfo.GetLocalId());
     EXPECT_EQ(result, ERR_OK);
@@ -171,14 +171,14 @@ HWTEST_F(OsAccountManagerServiceSubscribeModuleTest, OsAccountManagerServiceSubs
     EXPECT_EQ(GetSystemCurrentTime(&startTime), true);
     struct tm doingTime = {0};
     int64_t seconds = 0;
-    while (!mtx.try_lock()) {
+    while (!g_mtx.try_lock()) {
         EXPECT_EQ(GetSystemCurrentTime(&doingTime), true);
         seconds = GetSecondsBetween(startTime, doingTime);
         if (seconds >= 5) {
             break;
         }
     }
-    mtx.unlock();
+    g_mtx.unlock();
     result = osAccountManagerService_->UnsubscribeOsAccount(osAccountEventListener);
     EXPECT_EQ(result, ERR_OK);
     result = osAccountManagerService_->StopOsAccount(osAccountInfo.GetLocalId());

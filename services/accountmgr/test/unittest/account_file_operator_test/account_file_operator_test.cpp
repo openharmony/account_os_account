@@ -15,10 +15,11 @@
 
 #include <memory>
 #include <gtest/gtest.h>
+#include "account_error_no.h"
 #define private public
 #include "account_file_operator.h"
 #undef private
-#include "account_error_no.h"
+
 namespace OHOS {
 namespace AccountSA {
 using namespace testing::ext;

@@ -23,8 +23,8 @@
 namespace OHOS {
 namespace AccountSA {
 namespace {
-const std::string dumpTabCharacter = "\t";
-const std::map<OsAccountType, std::string> dumpTypeMap = {
+const std::string DUMP_TAB_CHARACTER = "\t";
+const std::map<OsAccountType, std::string> DUMP_TYPE_MAP = {
     {OsAccountType::ADMIN, "admin"},
     {OsAccountType::NORMAL, "normal"},
     {OsAccountType::GUEST, "guest"},
@@ -757,16 +757,16 @@ ErrCode OsAccountManagerService::DumpState(const int &id, std::vector<std::strin
         state.emplace_back("ID: " + localId);
 
         std::string localName = osAccountInfo.GetLocalName();
-        state.emplace_back(dumpTabCharacter + "Name: " + localName);
+        state.emplace_back(DUMP_TAB_CHARACTER + "Name: " + localName);
 
         std::string type = "";
-        auto it = dumpTypeMap.find(osAccountInfo.GetType());
-        if (it != dumpTypeMap.end()) {
+        auto it = DUMP_TYPE_MAP.find(osAccountInfo.GetType());
+        if (it != DUMP_TYPE_MAP.end()) {
             type = it->second;
         } else {
             type = "unknown";
         }
-        state.emplace_back(dumpTabCharacter + "Type: " + type);
+        state.emplace_back(DUMP_TAB_CHARACTER + "Type: " + type);
 
         std::string status = "";
         if (osAccountInfo.GetIsActived()) {
@@ -774,12 +774,12 @@ ErrCode OsAccountManagerService::DumpState(const int &id, std::vector<std::strin
         } else {
             status = "inactive";
         }
-        state.emplace_back(dumpTabCharacter + "Status: " + status);
+        state.emplace_back(DUMP_TAB_CHARACTER + "Status: " + status);
 
-        state.emplace_back(dumpTabCharacter + "Constraints:");
+        state.emplace_back(DUMP_TAB_CHARACTER + "Constraints:");
         auto constraints = osAccountInfo.GetConstraints();
         for (auto constraint : constraints) {
-            state.emplace_back(dumpTabCharacter + dumpTabCharacter + constraint);
+            state.emplace_back(DUMP_TAB_CHARACTER + DUMP_TAB_CHARACTER + constraint);
         }
 
         state.emplace_back("\n");

@@ -181,7 +181,7 @@ int OsAccountStub::OnRemoteRequest(uint32_t code, MessageParcel &data, MessagePa
     return IPCObjectStub::OnRemoteRequest(code, data, reply, option);
 }
 
-template <typename T>
+template<typename T>
 bool OsAccountStub::WriteParcelableVector(const std::vector<T> &parcelableVector, MessageParcel &data)
 {
     auto vectorSize = parcelableVector.size();
@@ -200,7 +200,7 @@ bool OsAccountStub::WriteParcelableVector(const std::vector<T> &parcelableVector
     return true;
 }
 
-template <typename T>
+template<typename T>
 bool OsAccountStub::ReadParcelableVector(std::vector<T> &parcelableInfos, MessageParcel &data)
 {
     int32_t infoSize = 0;

@@ -51,6 +51,9 @@ void AppAccountManagerServiceTest::TearDownTestCase(void)
 void AppAccountManagerServiceTest::SetUp(void)
 {
     auto servicePtr = new (std::nothrow) AppAccountManagerService();
+    if (servicePtr == nullptr) {
+        return;
+    }
     auto mockInnerManagerPtr = std::make_shared<MockInnerAppAccountManager>();
     servicePtr->innerManager_ = mockInnerManagerPtr;
 

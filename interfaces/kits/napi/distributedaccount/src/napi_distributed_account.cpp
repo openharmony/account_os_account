@@ -185,7 +185,11 @@ napi_value NapiDistributedAccount::GetDistributedAccountAbility(napi_env env, na
 napi_value NapiDistributedAccount::QueryOhosAccountInfo(napi_env env, napi_callback_info cbInfo)
 {
     ACCOUNT_LOGI("enter");
-    auto *asyncContext = new DistributedAccountAsyncContext();
+    auto *asyncContext = new (std::nothrow) DistributedAccountAsyncContext();
+    if (asyncContext == nullptr) {
+        ACCOUNT_LOGE("asyncContext is nullptr!");
+        return nullptr;
+    }
     asyncContext->env = env;
     asyncContext->callbackRef = nullptr;
     ParseAsyncContextFromArgs(env, cbInfo, asyncContext, false);
@@ -230,7 +234,11 @@ napi_value NapiDistributedAccount::QueryOhosAccountInfo(napi_env env, napi_callb
 napi_value NapiDistributedAccount::UpdateOsAccountDistributedInfo(napi_env env, napi_callback_info cbInfo)
 {
     ACCOUNT_LOGI("enter");
-    auto *asyncContext = new DistributedAccountAsyncContext();
+    auto *asyncContext = new (std::nothrow) DistributedAccountAsyncContext();
+    if (asyncContext == nullptr) {
+        ACCOUNT_LOGI("asyncContext is nullptr!");
+        return nullptr;
+    }
     asyncContext->env = env;
     asyncContext->callbackRef = nullptr;
     ParseAsyncContextFromArgs(env, cbInfo, asyncContext, true);

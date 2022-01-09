@@ -16,8 +16,8 @@
 #include <algorithm>
 #include <ctime>
 #include <gtest/gtest.h>
-#include "os_account_constants.h"
 #include "account_error_no.h"
+#include "os_account_constants.h"
 #define private public
 #include "os_account_control_file_manager.h"
 #undef private
@@ -28,7 +28,7 @@ using namespace OHOS::AccountSA;
 using namespace OHOS;
 using namespace AccountSA;
 namespace {
-const OsAccountType osAccountType = OsAccountType::ADMIN;
+const OsAccountType OS_ACCOUNT_TYPE = OsAccountType::ADMIN;
 const int INT_TEST_ERR_USER_ID = 1000000;
 const std::string STRING_TEST_USER_NAME = "testuser";
 const std::string STRING_TEST_USER_NAME_TWO = "testuser2";
@@ -165,11 +165,11 @@ HWTEST_F(OsAccountControlFileManagerTest, OsAccountControlFileManagerTest005, Te
  */
 HWTEST_F(OsAccountControlFileManagerTest, OsAccountControlFileManagerTest006, TestSize.Level1)
 {
-    int64_t serialNumber_1;
-    int64_t serialNumber_2;
-    EXPECT_EQ(osAccountControlManager_->GetSerialNumber(serialNumber_1), ERR_OK);
-    EXPECT_EQ(osAccountControlManager_->GetSerialNumber(serialNumber_2), ERR_OK);
-    EXPECT_EQ(serialNumber_1 + 1, serialNumber_2);
+    int64_t serialNumber1;
+    int64_t serialNumber2;
+    EXPECT_EQ(osAccountControlManager_->GetSerialNumber(serialNumber1), ERR_OK);
+    EXPECT_EQ(osAccountControlManager_->GetSerialNumber(serialNumber2), ERR_OK);
+    EXPECT_EQ(serialNumber1 + 1, serialNumber2);
 }
 
 /**
@@ -238,7 +238,7 @@ HWTEST_F(OsAccountControlFileManagerTest, OsAccountControlFileManagerTest011, Te
 {
     int id = 0;
     osAccountControlManager_->GetAllowCreateId(id);
-    OsAccountInfo osAccountInfo(id, STRING_TEST_USER_NAME, osAccountType, STRING_TEST_USER_SHELLNUMBER);
+    OsAccountInfo osAccountInfo(id, STRING_TEST_USER_NAME, OS_ACCOUNT_TYPE, STRING_TEST_USER_SHELLNUMBER);
     EXPECT_EQ(osAccountControlManager_->InsertOsAccount(osAccountInfo), ERR_OK);
     bool isOsAccountExists = false;
     EXPECT_EQ(osAccountControlManager_->IsOsAccountExists(id, isOsAccountExists), ERR_OK);
@@ -255,7 +255,7 @@ HWTEST_F(OsAccountControlFileManagerTest, OsAccountControlFileManagerTest011, Te
 HWTEST_F(OsAccountControlFileManagerTest, OsAccountControlFileManagerTest012, TestSize.Level1)
 {
     OsAccountInfo osAccountInfo(
-        INT_TEST_ERR_USER_ID, STRING_TEST_USER_NAME, osAccountType, STRING_TEST_USER_SHELLNUMBER);
+        INT_TEST_ERR_USER_ID, STRING_TEST_USER_NAME, OS_ACCOUNT_TYPE, STRING_TEST_USER_SHELLNUMBER);
     EXPECT_EQ(osAccountControlManager_->InsertOsAccount(osAccountInfo),
         ERR_OS_ACCOUNT_SERVICE_CONTROL_ID_CANNOT_CREATE_ERROR);
 }
@@ -269,7 +269,7 @@ HWTEST_F(OsAccountControlFileManagerTest, OsAccountControlFileManagerTest012, Te
 HWTEST_F(OsAccountControlFileManagerTest, OsAccountControlFileManagerTest013, TestSize.Level1)
 {
     OsAccountInfo osAccountInfo(
-        Constants::START_USER_ID, STRING_TEST_USER_NAME, osAccountType, STRING_TEST_USER_SHELLNUMBER);
+        Constants::START_USER_ID, STRING_TEST_USER_NAME, OS_ACCOUNT_TYPE, STRING_TEST_USER_SHELLNUMBER);
     EXPECT_EQ(osAccountControlManager_->InsertOsAccount(osAccountInfo),
         ERR_OS_ACCOUNT_SERVICE_CONTROL_INSERT_FILE_EXISTS_ERROR);
 }
@@ -284,7 +284,7 @@ HWTEST_F(OsAccountControlFileManagerTest, OsAccountControlFileManagerTest014, Te
 {
     int id = 0;
     osAccountControlManager_->GetAllowCreateId(id);
-    OsAccountInfo osAccountInfo(id, STRING_TEST_USER_NAME, osAccountType, STRING_TEST_USER_SHELLNUMBER);
+    OsAccountInfo osAccountInfo(id, STRING_TEST_USER_NAME, OS_ACCOUNT_TYPE, STRING_TEST_USER_SHELLNUMBER);
     EXPECT_EQ(osAccountControlManager_->InsertOsAccount(osAccountInfo), ERR_OK);
     OsAccountInfo osAccountInfoTwo;
     osAccountControlManager_->GetOsAccountInfoById(id, osAccountInfoTwo);
@@ -326,7 +326,7 @@ HWTEST_F(OsAccountControlFileManagerTest, OsAccountControlFileManagerTest017, Te
 {
     int id = 0;
     osAccountControlManager_->GetAllowCreateId(id);
-    OsAccountInfo osAccountInfo(id, STRING_TEST_USER_NAME, osAccountType, STRING_TEST_USER_SHELLNUMBER);
+    OsAccountInfo osAccountInfo(id, STRING_TEST_USER_NAME, OS_ACCOUNT_TYPE, STRING_TEST_USER_SHELLNUMBER);
     osAccountControlManager_->InsertOsAccount(osAccountInfo);
     osAccountInfo.SetLocalName(STRING_TEST_USER_NAME_TWO);
     EXPECT_EQ(osAccountControlManager_->UpdateOsAccount(osAccountInfo), ERR_OK);
@@ -346,7 +346,7 @@ HWTEST_F(OsAccountControlFileManagerTest, OsAccountControlFileManagerTest018, Te
 {
     int id = 0;
     osAccountControlManager_->GetAllowCreateId(id);
-    OsAccountInfo osAccountInfo(id, STRING_TEST_USER_NAME, osAccountType, STRING_TEST_USER_SHELLNUMBER);
+    OsAccountInfo osAccountInfo(id, STRING_TEST_USER_NAME, OS_ACCOUNT_TYPE, STRING_TEST_USER_SHELLNUMBER);
     osAccountControlManager_->InsertOsAccount(osAccountInfo);
     EXPECT_EQ(osAccountControlManager_->SetPhotoById(id, STRING_PHOTO), ERR_OK);
     std::string photo = Constants::USER_PHOTO_FILE_JPG_NAME;
@@ -365,7 +365,7 @@ HWTEST_F(OsAccountControlFileManagerTest, OsAccountControlFileManagerTest019, Te
 {
     int id = 0;
     osAccountControlManager_->GetAllowCreateId(id);
-    OsAccountInfo osAccountInfo(id, STRING_TEST_USER_NAME, osAccountType, STRING_TEST_USER_SHELLNUMBER);
+    OsAccountInfo osAccountInfo(id, STRING_TEST_USER_NAME, OS_ACCOUNT_TYPE, STRING_TEST_USER_SHELLNUMBER);
     osAccountControlManager_->InsertOsAccount(osAccountInfo);
     EXPECT_NE(osAccountControlManager_->SetPhotoById(id, STRING_ERR_PHOTO), ERR_OK);
     osAccountControlManager_->DelOsAccount(id);

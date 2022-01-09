@@ -379,7 +379,7 @@ private:
     napi_ref ref_ = nullptr;
 };
 
-napi_value osAccountInit(napi_env env, napi_value exports);
+napi_value OsAccountInit(napi_env env, napi_value exports);
 
 napi_value GetAccountManager(napi_env env, napi_callback_info cbInfo);
 
