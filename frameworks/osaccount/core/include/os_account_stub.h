@@ -68,9 +68,9 @@ private:
     ErrCode ProcDumpState(MessageParcel &data, MessageParcel &reply);
 
 private:
-    template <typename T>
+    template<typename T>
     bool WriteParcelableVector(const std::vector<T> &parcelableVector, MessageParcel &data);
-    template <typename T>
+    template<typename T>
     bool ReadParcelableVector(std::vector<T> &parcelableInfos, MessageParcel &data);
     static const std::map<uint32_t, MessageProcFunction> messageProcMap_;
     DISALLOW_COPY_AND_MOVE(OsAccountStub);

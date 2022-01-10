@@ -60,6 +60,10 @@ sptr<IAccount> OhosAccountKitsImpl::GetService()
 
     if (deathRecipient_ == nullptr) {
         deathRecipient_ = new (std::nothrow) DeathRecipient();
+        if (deathRecipient_ == nullptr) {
+            ACCOUNT_LOGE("deathRecipient_ is nullptr.");
+            return nullptr;
+        }
     }
 
     if ((object->IsProxyObject()) && (!object->AddDeathRecipient(deathRecipient_))) {

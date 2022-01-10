@@ -20,7 +20,7 @@ using namespace OHOS::AccountSA;
 
 namespace OHOS {
 namespace AccountJsKit {
-napi_value osAccountInit(napi_env env, napi_value exports)
+napi_value OsAccountInit(napi_env env, napi_value exports)
 {
     ACCOUNT_LOGI("enter");
     napi_property_descriptor descriptor[] = {

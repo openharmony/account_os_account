@@ -245,7 +245,7 @@ ErrCode OsAccountControlFileManager::GetSerialNumber(int64_t &serialNumber)
                 break;
             }
             serialNumber++;
-            serialNumber = serialNumber == Constants::CARRY_NUM ? Constants::SERIAL_NUMBER_NUM_START : serialNumber;
+            serialNumber = (serialNumber == Constants::CARRY_NUM) ? Constants::SERIAL_NUMBER_NUM_START : serialNumber;
         }
     }
     accountListJson[Constants::SERIAL_NUMBER_NUM] = serialNumber + 1;

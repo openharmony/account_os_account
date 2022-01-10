@@ -45,7 +45,7 @@ public:
     static ErrCode SetOsAccountConstraints(
         const int id, const std::vector<std::string> &constraints, const bool enable);
     static ErrCode SetOsAccountProfilePhoto(const int id, const std::string &photo);
-    static ErrCode GetDistributedVirtualDeviceId(std::string &deviceId);;
+    static ErrCode GetDistributedVirtualDeviceId(std::string &deviceId);
     static ErrCode ActivateOsAccount(const int id);
     static ErrCode StartOsAccount(const int id);
     static ErrCode StopOsAccount(const int id);

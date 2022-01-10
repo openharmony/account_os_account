@@ -95,7 +95,7 @@ void QueryOAByIdExecuteCB(napi_env env, void *data)
     QueryOAByIdAsyncContext *queryOAByIdCB = (QueryOAByIdAsyncContext *)data;
     queryOAByIdCB->errCode = OsAccountManager::QueryOsAccountById(queryOAByIdCB->id, queryOAByIdCB->osAccountInfos);
     ACCOUNT_LOGI("errcode is %{public}d", queryOAByIdCB->errCode);
-    queryOAByIdCB->status = queryOAByIdCB->errCode == 0 ? napi_ok : napi_generic_failure;
+    queryOAByIdCB->status = (queryOAByIdCB->errCode == 0) ? napi_ok : napi_generic_failure;
 }
 
 void QueryOAByIdCallbackCompletedCB(napi_env env, napi_status status, void *data)
@@ -298,7 +298,7 @@ void RemoveOAExecuteCB(napi_env env, void *data)
     RemoveOAAsyncContext *removeOACB = (RemoveOAAsyncContext *)data;
     removeOACB->errCode = OsAccountManager::RemoveOsAccount(removeOACB->id);
     ACCOUNT_LOGI("errcode is %{public}d", removeOACB->errCode);
-    removeOACB->status = removeOACB->errCode == 0 ? napi_ok : napi_generic_failure;
+    removeOACB->status = (removeOACB->errCode == 0) ? napi_ok : napi_generic_failure;
 }
 
 void RemoveOACallbackCompletedCB(napi_env env, napi_status status, void *data)
@@ -366,7 +366,7 @@ void SetOANameExecuteCB(napi_env env, void *data)
     SetOANameAsyncContext *setOANameCB = (SetOANameAsyncContext *)data;
     setOANameCB->errCode = OsAccountManager::SetOsAccountName(setOANameCB->id, setOANameCB->name);
     ACCOUNT_LOGI("errcode is %{public}d", setOANameCB->errCode);
-    setOANameCB->status = setOANameCB->errCode == 0 ? napi_ok : napi_generic_failure;
+    setOANameCB->status = (setOANameCB->errCode == 0) ? napi_ok : napi_generic_failure;
 }
 
 void SetOANameCallbackCompletedCB(napi_env env, napi_status status, void *data)
@@ -467,7 +467,7 @@ void SetOAConsExecuteCB(napi_env env, void *data)
     setOAConsCB->errCode =
         OsAccountManager::SetOsAccountConstraints(setOAConsCB->id, setOAConsCB->constraints, setOAConsCB->enable);
     ACCOUNT_LOGI("errcode is %{public}d", setOAConsCB->errCode);
-    setOAConsCB->status = setOAConsCB->errCode == 0 ? napi_ok : napi_generic_failure;
+    setOAConsCB->status = (setOAConsCB->errCode == 0) ? napi_ok : napi_generic_failure;
 }
 
 void SetOAConsCallbackCompletedCB(napi_env env, napi_status status, void *data)
@@ -533,7 +533,7 @@ void ActivateOAExecuteCB(napi_env env, void *data)
     ActivateOAAsyncContext *activateOACB = (ActivateOAAsyncContext *)data;
     activateOACB->errCode = OsAccountManager::ActivateOsAccount(activateOACB->id);
     ACCOUNT_LOGI("errocde is %{public}d", activateOACB->errCode);
-    activateOACB->status = activateOACB->errCode == 0 ? napi_ok : napi_generic_failure;
+    activateOACB->status = (activateOACB->errCode == 0) ? napi_ok : napi_generic_failure;
 }
 
 void ActivateOACallbackCompletedCB(napi_env env, napi_status status, void *data)
@@ -602,7 +602,7 @@ void CreateOAExecuteCB(napi_env env, void *data)
     createOACB->errCode =
         OsAccountManager::CreateOsAccount(createOACB->name, createOACB->type, createOACB->osAccountInfos);
     ACCOUNT_LOGI("errocde is %{public}d", createOACB->errCode);
-    createOACB->status = createOACB->errCode == 0 ? napi_ok : napi_generic_failure;
+    createOACB->status = (createOACB->errCode == 0) ? napi_ok : napi_generic_failure;
 }
 
 void CreateOACallbackCompletedCB(napi_env env, napi_status status, void *data)
@@ -664,7 +664,7 @@ void GetOACountExecuteCB(napi_env env, void *data)
     GetOACountAsyncContext *getOACount = (GetOACountAsyncContext *)data;
     getOACount->errCode = OsAccountManager::GetCreatedOsAccountsCount(getOACount->osAccountsCount);
     ACCOUNT_LOGI("errocde is %{public}d", getOACount->errCode);
-    getOACount->status = getOACount->errCode == 0 ? napi_ok : napi_generic_failure;
+    getOACount->status = (getOACount->errCode == 0) ? napi_ok : napi_generic_failure;
 }
 
 void GetOACountCallbackCompletedCB(napi_env env, napi_status status, void *data)
@@ -725,7 +725,7 @@ void DbDeviceIdExecuteCB(napi_env env, void *data)
     DbDeviceIdAsyncContext *dbDeviceId = (DbDeviceIdAsyncContext *)data;
     dbDeviceId->errCode = OsAccountManager::GetDistributedVirtualDeviceId(dbDeviceId->deviceId);
     ACCOUNT_LOGI("errocde is %{public}d", dbDeviceId->errCode);
-    dbDeviceId->status = dbDeviceId->errCode == 0 ? napi_ok : napi_generic_failure;
+    dbDeviceId->status = (dbDeviceId->errCode == 0) ? napi_ok : napi_generic_failure;
 }
 
 void DbDeviceIdCallbackCompletedCB(napi_env env, napi_status status, void *data)
@@ -791,7 +791,7 @@ void GetAllConsExecuteCB(napi_env env, void *data)
     GetAllConsAsyncContext *getAllConsCB = (GetAllConsAsyncContext *)data;
     getAllConsCB->errCode = OsAccountManager::GetOsAccountAllConstraints(getAllConsCB->id, getAllConsCB->constraints);
     ACCOUNT_LOGI("errocde is %{public}d", getAllConsCB->errCode);
-    getAllConsCB->status = getAllConsCB->errCode == 0 ? napi_ok : napi_generic_failure;
+    getAllConsCB->status = (getAllConsCB->errCode == 0) ? napi_ok : napi_generic_failure;
 }
 
 void GetAllConsCallbackCompletedCB(napi_env env, napi_status status, void *data)
@@ -867,7 +867,7 @@ void GetProcessIdExecuteCB(napi_env env, void *data)
     GetIdAsyncContext *getIdCB = (GetIdAsyncContext *)data;
     getIdCB->errCode = OsAccountManager::GetOsAccountLocalIdFromProcess(getIdCB->id);
     ACCOUNT_LOGI("errocde is %{public}d", getIdCB->errCode);
-    getIdCB->status = getIdCB->errCode == 0 ? napi_ok : napi_generic_failure;
+    getIdCB->status = (getIdCB->errCode == 0) ? napi_ok : napi_generic_failure;
 }
 
 void GetProcessIdCallbackCompletedCB(napi_env env, napi_status status, void *data)
@@ -928,7 +928,7 @@ void QueryCreateOAExecuteCB(napi_env env, void *data)
     QueryCreateOAAsyncContext *queryAllOA = (QueryCreateOAAsyncContext *)data;
     queryAllOA->errCode = OsAccountManager::QueryAllCreatedOsAccounts(queryAllOA->osAccountInfos);
     ACCOUNT_LOGI("errocde is %{public}d", queryAllOA->errCode);
-    queryAllOA->status = queryAllOA->errCode == 0 ? napi_ok : napi_generic_failure;
+    queryAllOA->status = (queryAllOA->errCode == 0) ? napi_ok : napi_generic_failure;
 }
 
 void QueryCreateOACallbackCompletedCB(napi_env env, napi_status status, void *data)
@@ -1010,7 +1010,7 @@ void GetOAPhoteExecuteCB(napi_env env, void *data)
     GetOAPhotoAsyncContext *getPhoto = (GetOAPhotoAsyncContext *)data;
     getPhoto->errCode = OsAccountManager::GetOsAccountProfilePhoto(getPhoto->id, getPhoto->photo);
     ACCOUNT_LOGI("errocde is %{public}d", getPhoto->errCode);
-    getPhoto->status = getPhoto->errCode == 0 ? napi_ok : napi_generic_failure;
+    getPhoto->status = (getPhoto->errCode == 0) ? napi_ok : napi_generic_failure;
 }
 
 void GetOAPhoteCallbackCompletedCB(napi_env env, napi_status status, void *data)
@@ -1071,7 +1071,7 @@ void QueryCurrentOAExecuteCB(napi_env env, void *data)
     CurrentOAAsyncContext *currentOA = (CurrentOAAsyncContext *)data;
     currentOA->errCode = OsAccountManager::QueryCurrentOsAccount(currentOA->osAccountInfos);
     ACCOUNT_LOGI("errocde is %{public}d", currentOA->errCode);
-    currentOA->status = currentOA->errCode == 0 ? napi_ok : napi_generic_failure;
+    currentOA->status = (currentOA->errCode == 0) ? napi_ok : napi_generic_failure;
 }
 
 void QueryCurrentOACallbackCompletedCB(napi_env env, napi_status status, void *data)
@@ -1138,7 +1138,7 @@ void GetIdByUidExecuteCB(napi_env env, void *data)
     GetIdByUidAsyncContext *idByUid = (GetIdByUidAsyncContext *)data;
     idByUid->errCode = OsAccountManager::GetOsAccountLocalIdFromUid(idByUid->uid, idByUid->id);
     ACCOUNT_LOGI("errocde is %{public}d", idByUid->errCode);
-    idByUid->status = idByUid->errCode == 0 ? napi_ok : napi_generic_failure;
+    idByUid->status = (idByUid->errCode == 0) ? napi_ok : napi_generic_failure;
 }
 
 void GetIdByUidCallbackCompletedCB(napi_env env, napi_status status, void *data)
@@ -1206,7 +1206,7 @@ void SetPhotoExecuteCB(napi_env env, void *data)
     SetOAPhotoAsyncContext *setPhoto = (SetOAPhotoAsyncContext *)data;
     setPhoto->errCode = OsAccountManager::SetOsAccountProfilePhoto(setPhoto->id, setPhoto->photo);
     ACCOUNT_LOGI("errocde is %{public}d", setPhoto->errCode);
-    setPhoto->status = setPhoto->errCode == 0 ? napi_ok : napi_generic_failure;
+    setPhoto->status = (setPhoto->errCode == 0) ? napi_ok : napi_generic_failure;
 }
 
 void SetPhotoCompletedCB(napi_env env, napi_status status, void *data)
@@ -1267,7 +1267,7 @@ void QueryMaxNumExecuteCB(napi_env env, void *data)
     QueryMaxNumAsyncContext *maxNum = (QueryMaxNumAsyncContext *)data;
     maxNum->errCode = OsAccountManager::QueryMaxOsAccountNumber(maxNum->maxOsAccountNumber);
     ACCOUNT_LOGI("errocde is %{public}d", maxNum->errCode);
-    maxNum->status = maxNum->errCode == 0 ? napi_ok : napi_generic_failure;
+    maxNum->status = (maxNum->errCode == 0) ? napi_ok : napi_generic_failure;
 }
 
 void QueryMaxNumCompletedCB(napi_env env, napi_status status, void *data)
@@ -1333,7 +1333,7 @@ void IsActivedExecuteCB(napi_env env, void *data)
     IsActivedAsyncContext *isActived = (IsActivedAsyncContext *)data;
     isActived->errCode = OsAccountManager::IsOsAccountActived(isActived->id, isActived->isOsAccountActived);
     ACCOUNT_LOGI("errocde is %{public}d", isActived->errCode);
-    isActived->status = isActived->errCode == 0 ? napi_ok : napi_generic_failure;
+    isActived->status = (isActived->errCode == 0) ? napi_ok : napi_generic_failure;
 }
 
 void IsActivedCompletedCB(napi_env env, napi_status status, void *data)
@@ -1402,7 +1402,7 @@ void IsEnableExecuteCB(napi_env env, void *data)
     isEnable->errCode =
         OsAccountManager::IsOsAccountConstraintEnable(isEnable->id, isEnable->constraint, isEnable->isConsEnable);
     ACCOUNT_LOGI("errocde is %{public}d", isEnable->errCode);
-    isEnable->status = isEnable->errCode == 0 ? napi_ok : napi_generic_failure;
+    isEnable->status = (isEnable->errCode == 0) ? napi_ok : napi_generic_failure;
 }
 
 void IsEnableCompletedCB(napi_env env, napi_status status, void *data)
@@ -1463,7 +1463,7 @@ void GetTypeExecuteCB(napi_env env, void *data)
     GetTypeAsyncContext *getType = (GetTypeAsyncContext *)data;
     getType->errCode = OsAccountManager::GetOsAccountTypeFromProcess(getType->type);
     ACCOUNT_LOGI("errocde is %{public}d", getType->errCode);
-    getType->status = getType->errCode == 0 ? napi_ok : napi_generic_failure;
+    getType->status = (getType->errCode == 0) ? napi_ok : napi_generic_failure;
 }
 
 void GetTypeCompletedCB(napi_env env, napi_status status, void *data)
@@ -1542,7 +1542,7 @@ void IsMultiEnExecuteCB(napi_env env, void *data)
     IsMultiEnAsyncContext *multiEn = (IsMultiEnAsyncContext *)data;
     multiEn->errCode = OsAccountManager::IsMultiOsAccountEnable(multiEn->isMultiOAEnable);
     ACCOUNT_LOGI("errocde is %{public}d", multiEn->errCode);
-    multiEn->status = multiEn->errCode == 0 ? napi_ok : napi_generic_failure;
+    multiEn->status = (multiEn->errCode == 0) ? napi_ok : napi_generic_failure;
 }
 
 void IsMultiEnCompletedCB(napi_env env, napi_status status, void *data)
@@ -1611,7 +1611,7 @@ void IsVerifiedExecuteCB(napi_env env, void *data)
     IsVerifiedAsyncContext *isVerified = (IsVerifiedAsyncContext *)data;
     isVerified->errCode = OsAccountManager::IsOsAccountVerified(isVerified->id, isVerified->isTestOA);
     ACCOUNT_LOGI("errocde is %{public}d", isVerified->errCode);
-    isVerified->status = isVerified->errCode == 0 ? napi_ok : napi_generic_failure;
+    isVerified->status = (isVerified->errCode == 0) ? napi_ok : napi_generic_failure;
 }
 
 void IsVerifiedCompletedCB(napi_env env, napi_status status, void *data)
@@ -1678,7 +1678,7 @@ void SerialNumIdExecuteCB(napi_env env, void *data)
     serialNumId->errCode =
         OsAccountManager::GetOsAccountLocalIdBySerialNumber(serialNumId->serialNumber, serialNumId->id);
     ACCOUNT_LOGI("errocde is %{public}d", serialNumId->errCode);
-    serialNumId->status = serialNumId->errCode == 0 ? napi_ok : napi_generic_failure;
+    serialNumId->status = (serialNumId->errCode == 0) ? napi_ok : napi_generic_failure;
 }
 
 void SerialNumIdCompletedCB(napi_env env, napi_status status, void *data)
@@ -1745,7 +1745,7 @@ void GetSerialNumExecuteCB(napi_env env, void *data)
     getSerialNum->errCode =
         OsAccountManager::GetSerialNumberByOsAccountLocalId(getSerialNum->id, getSerialNum->serialNum);
     ACCOUNT_LOGI("errocde is %{public}d", getSerialNum->errCode);
-    getSerialNum->status = getSerialNum->errCode == 0 ? napi_ok : napi_generic_failure;
+    getSerialNum->status = (getSerialNum->errCode == 0) ? napi_ok : napi_generic_failure;
 }
 
 void GetSerialNumCompletedCB(napi_env env, napi_status status, void *data)

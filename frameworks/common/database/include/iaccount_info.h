@@ -40,7 +40,7 @@ enum class JsonType {
     STRING,
 };
 
-template <typename T, typename dataType>
+template<typename T, typename dataType>
 void GetDataByType(const Json &jsonObject, const nlohmann::detail::iter_impl<const Json> &end, const std::string &key,
     dataType &data, const JsonType jsonType)
 {

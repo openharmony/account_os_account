@@ -571,7 +571,7 @@ ErrCode AppAccountProxy::SendRequest(IAppAccount::Message code, MessageParcel &d
     return ERR_OK;
 }
 
-template <typename T>
+template<typename T>
 bool AppAccountProxy::WriteParcelableVector(const std::vector<T> &parcelableVector, MessageParcel &data)
 {
     ACCOUNT_LOGI("enter");
@@ -591,7 +591,7 @@ bool AppAccountProxy::WriteParcelableVector(const std::vector<T> &parcelableVect
     return true;
 }
 
-template <typename T>
+template<typename T>
 bool AppAccountProxy::ReadParcelableVector(std::vector<T> &parcelableVector, MessageParcel &data)
 {
     ACCOUNT_LOGI("enter");

@@ -50,10 +50,10 @@
 ├── sa_profile               帐号SA配置文件定义目录
 ├── services                 服务代码
 │   ├── accountmgr           系统帐号组件服务代码
-│   │   ├── include          系统帐号组件服务代码头文件 
+│   │   ├── include          系统帐号组件服务代码头文件
 │   │   ├── src              系统帐号组件服务代码头文件的实现
 │   │   └── test             系统帐号组件服务代码测试
-└── test                     测试代码 
+└── test                     测试代码
     └── resource             测试资源文件
 ```
 
@@ -79,7 +79,7 @@
 <tr id="row0506185417614"><td class="cellrowborder" valign="top" width="51.53%" headers="mcps1.2.3.1.1 "><p id="p1561112131788"><a name="p1561112131788"></a><a name="p1561112131788"></a>distributedAccount</p>
 </td>
 <td class="cellrowborder" valign="top" width="48.47%" headers="mcps1.2.3.1.2 "><p id="p1954531161115"><a name="p1954531161115"></a><a name="p1954531161115"></a>提供分布式帐号模块管理方法</p>
-</td>    
+</td>
 </tr>
 </tbody>
 </table>
@@ -174,7 +174,7 @@
 <tr id="row0506185417614"><td class="cellrowborder" valign="top" width="51.53%" headers="mcps1.2.3.1.1 "><p id="p1561112131788"><a name="p1561112131788"></a><a name="p1561112131788"></a>appAccount</p>
 </td>
 <td class="cellrowborder" valign="top" width="48.47%" headers="mcps1.2.3.1.2 "><p id="p1954531161115"><a name="p1954531161115"></a><a name="p1954531161115"></a>提供应用帐号模块管理方法</p>
-</td>    
+</td>
 </tr>
 </tbody>
 </table>

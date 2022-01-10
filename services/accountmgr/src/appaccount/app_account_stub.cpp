@@ -124,7 +124,7 @@ int AppAccountStub::OnRemoteRequest(uint32_t code, MessageParcel &data, MessageP
     return IPCObjectStub::OnRemoteRequest(code, data, reply, option);
 }
 
-template <typename T>
+template<typename T>
 bool AppAccountStub::WriteParcelableVector(const std::vector<T> &parcelableVector, MessageParcel &data)
 {
     ACCOUNT_LOGI("enter");
@@ -144,7 +144,7 @@ bool AppAccountStub::WriteParcelableVector(const std::vector<T> &parcelableVecto
     return true;
 }
 
-template <typename T>
+template<typename T>
 bool AppAccountStub::ReadParcelableVector(std::vector<T> &parcelableVector, MessageParcel &data)
 {
     ACCOUNT_LOGI("enter");

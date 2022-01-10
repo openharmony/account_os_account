@@ -384,9 +384,10 @@ HWTEST_F(AppAccountManagerServiceModuleTest, AppAccountManagerService_SetAccount
 }
 
 /**
- * @tc.number: seAppAccountManagerService_EnableAppAccess_0100
- * @tc.name: EnableAppAccess
+ * @tc.name: seAppAccountManagerService_EnableAppAccess_0100
  * @tc.desc: Enable app access with valid data.
+ * @tc.type: FUNC
+ * @tc.require: AR000GH17J
  */
 HWTEST_F(AppAccountManagerServiceModuleTest, seAppAccountManagerService_EnableAppAccess_0100, TestSize.Level1)
 {
@@ -409,9 +410,10 @@ HWTEST_F(AppAccountManagerServiceModuleTest, seAppAccountManagerService_EnableAp
 }
 
 /**
- * @tc.number: seAppAccountManagerService_EnableAppAccess_0200
- * @tc.name: EnableAppAccess
+ * @tc.name: seAppAccountManagerService_EnableAppAccess_0200
  * @tc.desc: Enable app access with invalid data.
+ * @tc.type: FUNC
+ * @tc.require: AR000GH17J
  */
 HWTEST_F(AppAccountManagerServiceModuleTest, seAppAccountManagerService_EnableAppAccess_0200, TestSize.Level1)
 {
@@ -431,9 +433,10 @@ HWTEST_F(AppAccountManagerServiceModuleTest, seAppAccountManagerService_EnableAp
 }
 
 /**
- * @tc.number: seAppAccountManagerService_EnableAppAccess_0300
- * @tc.name: EnableAppAccess
+ * @tc.name: seAppAccountManagerService_EnableAppAccess_0300
  * @tc.desc: Enable app access with valid data.
+ * @tc.type: FUNC
+ * @tc.require: AR000GH17J
  */
 HWTEST_F(AppAccountManagerServiceModuleTest, seAppAccountManagerService_EnableAppAccess_0300, TestSize.Level1)
 {
@@ -456,9 +459,10 @@ HWTEST_F(AppAccountManagerServiceModuleTest, seAppAccountManagerService_EnableAp
 }
 
 /**
- * @tc.number: seAppAccountManagerService_EnableAppAccess_0400
- * @tc.name: EnableAppAccess
+ * @tc.name: seAppAccountManagerService_EnableAppAccess_0400
  * @tc.desc: Enable app access with invalid data.
+ * @tc.type: FUNC
+ * @tc.require: AR000GH17J
  */
 HWTEST_F(AppAccountManagerServiceModuleTest, seAppAccountManagerService_EnableAppAccess_0400, TestSize.Level1)
 {
@@ -472,9 +476,10 @@ HWTEST_F(AppAccountManagerServiceModuleTest, seAppAccountManagerService_EnableAp
 }
 
 /**
- * @tc.number: seAppAccountManagerService_DisableAppAccess_0100
- * @tc.name: DisableAppAccess
+ * @tc.name: seAppAccountManagerService_DisableAppAccess_0100
  * @tc.desc: Disable app access with invalid data.
+ * @tc.type: FUNC
+ * @tc.require: AR000GH17J
  */
 HWTEST_F(AppAccountManagerServiceModuleTest, seAppAccountManagerService_DisableAppAccess_0100, TestSize.Level1)
 {
@@ -494,9 +499,10 @@ HWTEST_F(AppAccountManagerServiceModuleTest, seAppAccountManagerService_DisableA
 }
 
 /**
- * @tc.number: seAppAccountManagerService_DisableAppAccess_0200
- * @tc.name: DisableAppAccess
+ * @tc.name: seAppAccountManagerService_DisableAppAccess_0200
  * @tc.desc: Disable app access with invalid data.
+ * @tc.type: FUNC
+ * @tc.require: AR000GH17J
  */
 HWTEST_F(AppAccountManagerServiceModuleTest, seAppAccountManagerService_DisableAppAccess_0200, TestSize.Level1)
 {
@@ -510,9 +516,10 @@ HWTEST_F(AppAccountManagerServiceModuleTest, seAppAccountManagerService_DisableA
 }
 
 /**
- * @tc.number: seAppAccountManagerService_CheckAppAccountSyncEnable_0100
- * @tc.name: CheckAppAccountSyncEnable
+ * @tc.name: seAppAccountManagerService_CheckAppAccountSyncEnable_0100
  * @tc.desc: Check account sync enable with valid data.
+ * @tc.type: FUNC
+ * @tc.require: AR000GH17J
  */
 HWTEST_F(
     AppAccountManagerServiceModuleTest, seAppAccountManagerService_CheckAppAccountSyncEnable_0100, TestSize.Level1)
@@ -535,9 +542,10 @@ HWTEST_F(
 }
 
 /**
- * @tc.number: seAppAccountManagerService_CheckAppAccountSyncEnable_0200
- * @tc.name: CheckAppAccountSyncEnable
+ * @tc.name: seAppAccountManagerService_CheckAppAccountSyncEnable_0200
  * @tc.desc: Check account sync enable with invalid data.
+ * @tc.type: FUNC
+ * @tc.require: AR000GH17J
  */
 HWTEST_F(
     AppAccountManagerServiceModuleTest, seAppAccountManagerService_CheckAppAccountSyncEnable_0200, TestSize.Level1)
@@ -554,9 +562,10 @@ HWTEST_F(
 }
 
 /**
- * @tc.number: seAppAccountManagerService_SetAppAccountSyncEnable_0100
- * @tc.name: SetAppAccountSyncEnable
+ * @tc.name: seAppAccountManagerService_SetAppAccountSyncEnable_0100
  * @tc.desc: Set account sync enable with valid data.
+ * @tc.type: FUNC
+ * @tc.require: AR000GH17J
  */
 HWTEST_F(AppAccountManagerServiceModuleTest, seAppAccountManagerService_SetAppAccountSyncEnable_0100, TestSize.Level1)
 {
@@ -581,9 +590,10 @@ HWTEST_F(AppAccountManagerServiceModuleTest, seAppAccountManagerService_SetAppAc
 }
 
 /**
- * @tc.number: seAppAccountManagerService_SetAppAccountSyncEnable_0200
- * @tc.name: SetAppAccountSyncEnable
+ * @tc.name: seAppAccountManagerService_SetAppAccountSyncEnable_0200
  * @tc.desc: Set account sync enable with valid data.
+ * @tc.type: FUNC
+ * @tc.require: AR000GH17J
  */
 HWTEST_F(AppAccountManagerServiceModuleTest, seAppAccountManagerService_SetAppAccountSyncEnable_0200, TestSize.Level1)
 {
@@ -608,9 +618,10 @@ HWTEST_F(AppAccountManagerServiceModuleTest, seAppAccountManagerService_SetAppAc
 }
 
 /**
- * @tc.number: seAppAccountManagerService_SetAppAccountSyncEnable_0300
- * @tc.name: SetAppAccountSyncEnable
+ * @tc.name: seAppAccountManagerService_SetAppAccountSyncEnable_0300
  * @tc.desc: Set account sync enable with invalid data.
+ * @tc.type: FUNC
+ * @tc.require: AR000GH17J
  */
 HWTEST_F(AppAccountManagerServiceModuleTest, seAppAccountManagerService_SetAppAccountSyncEnable_0300, TestSize.Level1)
 {

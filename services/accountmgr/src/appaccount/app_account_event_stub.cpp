@@ -53,7 +53,7 @@ int AppAccountEventStub::OnRemoteRequest(
     return ERR_NONE;
 }
 
-template <typename T>
+template<typename T>
 bool AppAccountEventStub::ReadParcelableVector(std::vector<T> &parcelableVector, MessageParcel &data)
 {
     ACCOUNT_LOGI("enter");
