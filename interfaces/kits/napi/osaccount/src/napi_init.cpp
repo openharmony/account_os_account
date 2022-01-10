@@ -30,7 +30,7 @@ static napi_value Init(napi_env env, napi_value exports)
     /*
      * Propertise define
      */
-    osAccountInit(env, exports);
+    OsAccountInit(env, exports);
 
     return exports;
 }

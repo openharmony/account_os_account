@@ -36,14 +36,14 @@ const std::string STRING_OWNER = "com.example.owner";
 const std::string STRING_BUNDLE_NAME = "com.example.third_party";
 const std::string STRING_BUNDLE_NAME_TWO = "com.example.third_party_two";
 const std::string STRING_EXTRA_INFO = "extra_info";
-std::mutex mtx;
+std::mutex g_mtx;
 const time_t TIME_OUT_SECONDS_LIMIT = 5;
 
 constexpr std::int32_t UID = 10000;
 constexpr std::size_t SIZE_ZERO = 0;
 constexpr std::size_t SIZE_ONE = 1;
 
-std::int32_t counter = 0;
+std::int32_t g_counter = 0;
 constexpr std::int32_t COUNTER_MAX = 2;
 }  // namespace
 
@@ -108,7 +108,7 @@ public:
     {
         ACCOUNT_LOGI("enter");
 
-        mtx.unlock();
+        g_mtx.unlock();
 
         ErrCode result;
         std::string owner;
@@ -148,7 +148,7 @@ public:
     {
         ACCOUNT_LOGI("enter");
 
-        mtx.unlock();
+        g_mtx.unlock();
 
         ACCOUNT_LOGI("accounts.size() = %{public}zu", accounts.size());
 
@@ -171,7 +171,7 @@ public:
     {
         ACCOUNT_LOGI("enter");
 
-        mtx.unlock();
+        g_mtx.unlock();
 
         ErrCode result;
         std::string owner;
@@ -214,13 +214,13 @@ public:
         ACCOUNT_LOGI("enter");
         GTEST_LOG_(INFO) << "AppAccountSubscriberTestFour::OnAccountsChanged()";
 
-        counter++;
+        g_counter++;
 
-        ACCOUNT_LOGI("counter = %{public}d", counter);
-        GTEST_LOG_(INFO) << "counter = " << counter;
+        ACCOUNT_LOGI("g_counter = %{public}d", g_counter);
+        GTEST_LOG_(INFO) << "g_counter = " << g_counter;
 
-        if (counter == COUNTER_MAX) {
-            mtx.unlock();
+        if (g_counter == COUNTER_MAX) {
+            g_mtx.unlock();
         }
 
         ErrCode result;
@@ -284,7 +284,7 @@ HWTEST_F(AppAccountManagerServiceSubscribeModuleTest, AppAccountManagerServiceSu
     EXPECT_EQ(result, ERR_OK);
 
     // lock the mutex
-    mtx.lock();
+    g_mtx.lock();
 
     // add app account
     result = servicePtr->AddAccount(STRING_NAME, STRING_EXTRA_INFO);
@@ -302,7 +302,7 @@ HWTEST_F(AppAccountManagerServiceSubscribeModuleTest, AppAccountManagerServiceSu
     struct tm doingTime = {0};
 
     int64_t seconds = 0;
-    while (!mtx.try_lock()) {
+    while (!g_mtx.try_lock()) {
         // get current time and compare it with the start time
         EXPECT_EQ(GetSystemCurrentTime(&doingTime), true);
         seconds = GetSecondsBetween(startTime, doingTime);
@@ -323,7 +323,7 @@ HWTEST_F(AppAccountManagerServiceSubscribeModuleTest, AppAccountManagerServiceSu
     EXPECT_EQ(result, ERR_OK);
 
     // unlock the mutex
-    mtx.unlock();
+    g_mtx.unlock();
 }
 
 /**
@@ -497,7 +497,7 @@ HWTEST_F(AppAccountManagerServiceSubscribeModuleTest, AppAccountManagerServiceSu
     EXPECT_EQ(result, ERR_OK);
 
     // lock the mutex
-    mtx.lock();
+    g_mtx.lock();
 
     // disable app access
     result = servicePtr->innerManager_->DisableAppAccess(STRING_NAME, STRING_OWNER, UID, STRING_BUNDLE_NAME);
@@ -515,7 +515,7 @@ HWTEST_F(AppAccountManagerServiceSubscribeModuleTest, AppAccountManagerServiceSu
     struct tm doingTime = {0};
 
     int64_t seconds = 0;
-    while (!mtx.try_lock()) {
+    while (!g_mtx.try_lock()) {
         // get current time and compare it with the start time
         EXPECT_EQ(GetSystemCurrentTime(&doingTime), true);
         seconds = GetSecondsBetween(startTime, doingTime);
@@ -532,7 +532,7 @@ HWTEST_F(AppAccountManagerServiceSubscribeModuleTest, AppAccountManagerServiceSu
     EXPECT_EQ(result, ERR_OK);
 
     // unlock the mutex
-    mtx.unlock();
+    g_mtx.unlock();
 }
 
 /**
@@ -581,7 +581,7 @@ HWTEST_F(AppAccountManagerServiceSubscribeModuleTest, AppAccountManagerServiceSu
     EXPECT_EQ(result, ERR_OK);
 
     // lock the mutex
-    mtx.lock();
+    g_mtx.lock();
 
     // disable app access
     result = servicePtr->innerManager_->DisableAppAccess(STRING_NAME, STRING_OWNER, UID, STRING_BUNDLE_NAME);
@@ -599,7 +599,7 @@ HWTEST_F(AppAccountManagerServiceSubscribeModuleTest, AppAccountManagerServiceSu
     struct tm doingTime = {0};
 
     int64_t seconds = 0;
-    while (!mtx.try_lock()) {
+    while (!g_mtx.try_lock()) {
         // get current time and compare it with the start time
         EXPECT_EQ(GetSystemCurrentTime(&doingTime), true);
         seconds = GetSecondsBetween(startTime, doingTime);
@@ -616,7 +616,7 @@ HWTEST_F(AppAccountManagerServiceSubscribeModuleTest, AppAccountManagerServiceSu
     EXPECT_EQ(result, ERR_OK);
 
     // unlock the mutex
-    mtx.unlock();
+    g_mtx.unlock();
 }
 
 /**
@@ -665,7 +665,7 @@ HWTEST_F(AppAccountManagerServiceSubscribeModuleTest, AppAccountManagerServiceSu
     EXPECT_EQ(result, ERR_OK);
 
     // lock the mutex
-    mtx.lock();
+    g_mtx.lock();
 
     // set extra info
     result = servicePtr->innerManager_->SetAccountExtraInfo(STRING_NAME, STRING_EXTRA_INFO, UID, STRING_BUNDLE_NAME);
@@ -679,7 +679,7 @@ HWTEST_F(AppAccountManagerServiceSubscribeModuleTest, AppAccountManagerServiceSu
     struct tm doingTime = {0};
 
     int64_t seconds = 0;
-    while (!mtx.try_lock()) {
+    while (!g_mtx.try_lock()) {
         // get current time and compare it with the start time
         EXPECT_EQ(GetSystemCurrentTime(&doingTime), true);
         seconds = GetSecondsBetween(startTime, doingTime);
@@ -696,7 +696,7 @@ HWTEST_F(AppAccountManagerServiceSubscribeModuleTest, AppAccountManagerServiceSu
     EXPECT_EQ(result, ERR_OK);
 
     // unlock the mutex
-    mtx.unlock();
+    g_mtx.unlock();
 }
 
 /**
@@ -753,7 +753,7 @@ HWTEST_F(AppAccountManagerServiceSubscribeModuleTest, AppAccountManagerServiceSu
     EXPECT_EQ(result, ERR_OK);
 
     // lock the mutex
-    mtx.lock();
+    g_mtx.lock();
 
     // set extra info
     result = servicePtr->SetAccountExtraInfo(STRING_NAME, STRING_EXTRA_INFO);
@@ -767,7 +767,7 @@ HWTEST_F(AppAccountManagerServiceSubscribeModuleTest, AppAccountManagerServiceSu
     struct tm doingTime = {0};
 
     int64_t seconds = 0;
-    while (!mtx.try_lock()) {
+    while (!g_mtx.try_lock()) {
         // get current time and compare it with the start time
         EXPECT_EQ(GetSystemCurrentTime(&doingTime), true);
         seconds = GetSecondsBetween(startTime, doingTime);
@@ -788,5 +788,5 @@ HWTEST_F(AppAccountManagerServiceSubscribeModuleTest, AppAccountManagerServiceSu
     EXPECT_EQ(result, ERR_OK);
 
     // unlock the mutex
-    mtx.unlock();
+    g_mtx.unlock();
 }

@@ -268,22 +268,5 @@ void OsAccountInfo::SetSerialNumber(const int64_t serialNumber)
 {
     serialNumber_ = serialNumber;
 }
-
-void to_json(Json &jsonObject, const OsAccountInfo &osAccountInfo)
-{
-    jsonObject = Json {
-        {LOCAL_ID, osAccountInfo.GetLocalId()},
-        {LOCAL_NAME, osAccountInfo.GetLocalName()},
-        {TYPE, osAccountInfo.GetType()},
-        {CONSTRAINTS, osAccountInfo.GetConstraints()},
-        {IS_OS_ACCOUNT_VERIFIED, osAccountInfo.GetIsVerified()},
-        {PHOTO, osAccountInfo.GetPhoto()},
-        {CREATE_TIME, osAccountInfo.GetCreateTime()},
-        {LAST_LOGGED_IN_TIME, osAccountInfo.GetLastLoginTime()},
-        {SERIAL_NUMBER, osAccountInfo.GetSerialNumber()},
-        {IS_ACTIVED, osAccountInfo.GetIsActived()},
-        {IS_ACCOUNT_COMPLETED, osAccountInfo.GetIsCreateCompleted()},
-    };
-}
 }  // namespace AccountSA
 }  // namespace OHOS

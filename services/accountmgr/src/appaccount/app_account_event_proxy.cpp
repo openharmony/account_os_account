@@ -64,7 +64,7 @@ ErrCode AppAccountEventProxy::SendRequest(IAppAccountEvent::Message code, Messag
     return ERR_OK;
 }
 
-template <typename T>
+template<typename T>
 bool AppAccountEventProxy::WriteParcelableVector(const std::vector<T> &parcelableVector, Parcel &data)
 {
     ACCOUNT_LOGI("enter");

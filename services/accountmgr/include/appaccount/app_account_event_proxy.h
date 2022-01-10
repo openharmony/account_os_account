@@ -31,7 +31,7 @@ public:
 private:
     ErrCode SendRequest(IAppAccountEvent::Message code, MessageParcel &data, MessageParcel &reply);
 
-    template <typename T>
+    template<typename T>
     bool WriteParcelableVector(const std::vector<T> &parcelableVector, Parcel &data);
 
 private:

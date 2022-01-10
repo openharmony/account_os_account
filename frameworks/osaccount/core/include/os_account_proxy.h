@@ -63,9 +63,9 @@ public:
     virtual ErrCode DumpState(const int &id, std::vector<std::string> &state) override;
 
 private:
-    template <typename T>
+    template<typename T>
     bool WriteParcelableVector(const std::vector<T> &parcelableVector, MessageParcel &data);
-    template <typename T>
+    template<typename T>
     bool ReadParcelableVector(std::vector<T> &parcelableInfos, MessageParcel &data);
     ErrCode SendRequest(IOsAccount::Message code, MessageParcel &data, MessageParcel &reply);
 

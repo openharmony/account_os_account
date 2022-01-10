@@ -40,7 +40,7 @@ struct AppAccountEventRecord {
     uid_t uid;
     std::string bundleName;
 
-    AppAccountEventRecord()
+    AppAccountEventRecord() : info(nullptr), uid(0)
     {}
 };
 }  // namespace AccountSA

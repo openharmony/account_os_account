@@ -14,13 +14,12 @@
  */
 
 #include <gtest/gtest.h>
-
 #include "account_error_no.h"
-#define private public
-#include "os_account_manager_service.h"
-#include "os_account_control_file_manager.h"
-#undef private
 #include "os_account_constants.h"
+#define private public
+#include "os_account_control_file_manager.h"
+#include "os_account_manager_service.h"
+#undef private
 
 namespace OHOS {
 namespace AccountSA {

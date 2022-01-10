@@ -34,9 +34,9 @@ public:
         uint32_t code, MessageParcel &data, MessageParcel &reply, MessageOption &option) override;
 
 private:
-    template <typename T>
+    template<typename T>
     bool WriteParcelableVector(const std::vector<T> &parcelableVector, MessageParcel &data);
-    template <typename T>
+    template<typename T>
     bool ReadParcelableVector(std::vector<T> &parcelableInfos, MessageParcel &data);
 
     ErrCode ProcAddAccount(MessageParcel &data, MessageParcel &reply);

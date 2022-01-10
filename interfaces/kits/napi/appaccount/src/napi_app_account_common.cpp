@@ -654,6 +654,9 @@ void UnsubscribeCallbackCompletedCB(napi_env env, napi_status status, void *data
 {
     ACCOUNT_LOGI("Unsubscribe napi_create_async_work end.");
     AsyncContextForUnsubscribe *asyncContextForOff = (AsyncContextForUnsubscribe *)data;
+    if (asyncContextForOff == nullptr) {
+        return;
+    }
 
     if (asyncContextForOff->argc >= UNSUBSCRIBE_MAX_PARA) {
         napi_value result = nullptr;
@@ -692,11 +695,8 @@ void UnsubscribeCallbackCompletedCB(napi_env env, napi_status status, void *data
     }
     ACCOUNT_LOGI("Earse end subscriberInstances.size = %{public}zu", subscriberInstances.size());
 
-    if (asyncContextForOff) {
-        ACCOUNT_LOGI("delete asyncContextForOff");
-        delete asyncContextForOff;
-        asyncContextForOff = nullptr;
-    }
+    delete asyncContextForOff;
+    asyncContextForOff = nullptr;
 }
 }  // namespace AccountJsKit
 }  // namespace OHOS

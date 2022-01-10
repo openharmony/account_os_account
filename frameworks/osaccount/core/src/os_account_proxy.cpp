@@ -803,7 +803,7 @@ ErrCode OsAccountProxy::DumpState(const int &id, std::vector<std::string> &state
     return ERR_OK;
 }
 
-template <typename T>
+template<typename T>
 bool OsAccountProxy::WriteParcelableVector(const std::vector<T> &parcelableVector, MessageParcel &data)
 {
     if (!data.WriteInt32(parcelableVector.size())) {
@@ -819,7 +819,7 @@ bool OsAccountProxy::WriteParcelableVector(const std::vector<T> &parcelableVecto
     }
     return true;
 }
-template <typename T>
+template<typename T>
 bool OsAccountProxy::ReadParcelableVector(std::vector<T> &parcelableInfos, MessageParcel &data)
 {
     int32_t infoSize = 0;

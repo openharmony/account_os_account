@@ -12,7 +12,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
+#include "os_account_standard_interface.h"
 #include "account_log_wrapper.h"
 #include "bundle_mgr_interface.h"
 #include "common_event_manager.h"
@@ -21,8 +21,6 @@
 #include "iservice_registry.h"
 #include "system_ability_definition.h"
 #include "want.h"
-
-#include "os_account_standard_interface.h"
 
 namespace OHOS {
 namespace AccountSA {
