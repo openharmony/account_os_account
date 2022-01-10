@@ -23,7 +23,8 @@ ErrCode OsAccountStandardInterface::SendToAMSAccountStart(OsAccountInfo &osAccou
     return ERR_OK;
 }
 
-ErrCode OsAccountStandardInterface::SendToAMSAccountStop(OsAccountInfo &osAccountInfo)
+ErrCode OsAccountStandardInterface::SendToAMSAccountStop(
+    OsAccountInfo &osAccountInfo, sptr<OsAccountStopUserCallback> &osAccountStopUserCallback)
 {
     ACCOUNT_LOGI("OsAccountStandardInterface SendToAMSAccountStop start");
     return ERR_OK;
@@ -50,12 +51,6 @@ ErrCode OsAccountStandardInterface::SendToCESAccountCreate(OsAccountInfo &osAcco
 ErrCode OsAccountStandardInterface::SendToCESAccountDelete(OsAccountInfo &osAccountInfo)
 {
     ACCOUNT_LOGI("OsAccountStandardInterface SendToCESAccountDelete start");
-    return ERR_OK;
-}
-
-ErrCode OsAccountStandardInterface::SendToAMSAccountSwitched(OsAccountInfo &osAccountInfo)
-{
-    ACCOUNT_LOGI("OsAccountStandardInterface SendToAMSAccountSwitched start");
     return ERR_OK;
 }
 

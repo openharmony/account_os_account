@@ -52,13 +52,14 @@ const int ADMIN_LOCAL_ID = 0;
 const int ADMIN_TYPE = -1;
 const std::string ADMIN_LOCAL_NAME = "admin";
 const std::string STANDARD_LOCAL_NAME = "user";
-const int STANDARD_TYPE = 0;
 const int START_USER_ID = 100;
 const int MAX_USER_ID = 1099;
 const int64_t SERIAL_NUMBER_NUM_START_FOR_ADMIN = 20210231;
 const int64_t SERIAL_NUMBER_NUM_START = 1;
 const int64_t CARRY_NUM = 100000000;
 const bool IS_SERIAL_NUMBER_FULL_INIT_VALUE = false;
+const int64_t TIME_WAIT_AM_TIME_OUT = 2;
+const std::int32_t WAIT_AM_TIME = 1 * 1000;
 
 // type temeplate
 const std::string USER_CONSTRATINTS_TEMPLATE = "UserConstraintsTemplate";

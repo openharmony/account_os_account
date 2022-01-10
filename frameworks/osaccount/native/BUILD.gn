@@ -15,12 +15,17 @@ import("//base/account/os_account/os_account.gni")
 import("//build/ohos.gni")
 
 config("osaccountinterface_config") {
+  visibility = [ ":*" ]
   include_dirs = [
     "${common_path}/account_error/include",
     "${common_path}/database/include",
     "${os_account_interfaces_native_path}/include",
     "//utils/native/base/include",
   ]
+  cflags = []
+  if (target_cpu == "arm") {
+    cflags += [ "-DBINDER_IPC_32BIT" ]
+  }
 }
 
 ohos_shared_library("os_account_innerkits") {
@@ -46,5 +51,6 @@ ohos_shared_library("os_account_innerkits") {
   ]
 
   external_deps = [ "hiviewdfx_hilog_native:libhilog" ]
+  subsystem_name = "account"
   part_name = "os_account_standard"
 }

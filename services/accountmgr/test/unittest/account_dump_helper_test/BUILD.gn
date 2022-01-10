@@ -65,6 +65,7 @@ ohos_unittest("AccountDumpHelperTest") {
     "//utils/native/base:utils",
   ]
   external_deps = [
+    "aafwk_standard:ability_manager",
     "aafwk_standard:base",
     "aafwk_standard:want",
     "appexecfwk_standard:appexecfwk_base",

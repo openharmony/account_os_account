@@ -860,7 +860,7 @@ HWTEST_F(OsAccountManagerServiceModuleTest, OsAccountManagerServiceModuleTest048
 HWTEST_F(OsAccountManagerServiceModuleTest, OsAccountManagerServiceModuleTest049, TestSize.Level1)
 {
     EXPECT_EQ(g_osAccountManagerService_->StartOsAccount(Constants::MAX_USER_ID + 1),
-        ERR_OS_ACCOUNT_SERVICE_INNER_SELECT_OSACCOUNT_BYID_ERROR);
+        ERR_OK);
 }
 
 /**
@@ -872,7 +872,7 @@ HWTEST_F(OsAccountManagerServiceModuleTest, OsAccountManagerServiceModuleTest049
 HWTEST_F(OsAccountManagerServiceModuleTest, OsAccountManagerServiceModuleTest050, TestSize.Level1)
 {
     EXPECT_EQ(g_osAccountManagerService_->StartOsAccount(Constants::START_USER_ID),
-        ERR_OS_ACCOUNT_SERVICE_INNER_ACCOUNT_ALREAD_ACTIVE_ERROR);
+        ERR_OK);
 }
 
 /**
@@ -899,7 +899,7 @@ HWTEST_F(OsAccountManagerServiceModuleTest, OsAccountManagerServiceModuleTest051
 HWTEST_F(OsAccountManagerServiceModuleTest, OsAccountManagerServiceModuleTest052, TestSize.Level1)
 {
     EXPECT_EQ(g_osAccountManagerService_->StopOsAccount(Constants::MAX_USER_ID + 1),
-        ERR_OS_ACCOUNT_SERVICE_INNER_ACCOUNT_STOP_ACTIVE_ERROR);
+        ERR_OK);
 }
 
 /**
