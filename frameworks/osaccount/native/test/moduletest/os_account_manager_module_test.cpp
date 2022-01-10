@@ -829,7 +829,7 @@ HWTEST_F(OsAccountManagerModuleTest, OsAccountManagerModuleTest047, TestSize.Lev
  */
 HWTEST_F(OsAccountManagerModuleTest, OsAccountManagerModuleTest048, TestSize.Level1)
 {
-    EXPECT_NE(OsAccountManager::StartOsAccount(Constants::MAX_USER_ID + 1), ERR_OK);
+    EXPECT_EQ(OsAccountManager::StartOsAccount(Constants::MAX_USER_ID + 1), ERR_OK);
 }
 
 /**
@@ -840,7 +840,7 @@ HWTEST_F(OsAccountManagerModuleTest, OsAccountManagerModuleTest048, TestSize.Lev
  */
 HWTEST_F(OsAccountManagerModuleTest, OsAccountManagerModuleTest049, TestSize.Level1)
 {
-    EXPECT_NE(OsAccountManager::StartOsAccount(Constants::START_USER_ID), ERR_OK);
+    EXPECT_EQ(OsAccountManager::StartOsAccount(Constants::START_USER_ID), ERR_OK);
 }
 
 /**
@@ -866,7 +866,7 @@ HWTEST_F(OsAccountManagerModuleTest, OsAccountManagerModuleTest050, TestSize.Lev
  */
 HWTEST_F(OsAccountManagerModuleTest, OsAccountManagerModuleTest051, TestSize.Level1)
 {
-    EXPECT_NE(OsAccountManager::StopOsAccount(Constants::MAX_USER_ID + 1), ERR_OK);
+    EXPECT_EQ(OsAccountManager::StopOsAccount(Constants::MAX_USER_ID + 1), ERR_OK);
 }
 
 /**

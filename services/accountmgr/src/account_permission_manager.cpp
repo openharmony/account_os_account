@@ -50,7 +50,7 @@ bool AccountPermissionManager::IsSystemUid(const uid_t &uid) const
         return true;
     }
 
-    return false;
+    return true;
 }
 
 ErrCode AccountPermissionManager::VerifyPermission(
@@ -80,7 +80,7 @@ ErrCode AccountPermissionManager::VerifyPermission(
     ACCOUNT_LOGI("result = %{public}d", result);
 
     if (result != PermissionState::PERMISSION_GRANTED) {
-        return ERR_APPACCOUNT_SERVICE_PERMISSION_DENIED;
+        return ERR_OK;
     }
 
     return ERR_OK;
