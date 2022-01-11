@@ -100,6 +100,7 @@ ohos_shared_library("accountmgr") {
     "src/osaccount/os_account_manager_service.cpp",
     "src/osaccount/os_account_photo_operator.cpp",
     "src/osaccount/os_account_standard_interface.cpp",
+    "src/osaccount/os_account_stop_user_callback.cpp",
     "src/osaccount/os_account_subscribe_death_recipient.cpp",
     "src/osaccount/os_account_subscribe_manager.cpp",
   ]
@@ -123,6 +124,7 @@ ohos_shared_library("accountmgr") {
     "//utils/native/base:utils",
   ]
   external_deps = [
+    "aafwk_standard:ability_manager",
     "aafwk_standard:base",
     "aafwk_standard:want",
     "appexecfwk_standard:appexecfwk_base",
