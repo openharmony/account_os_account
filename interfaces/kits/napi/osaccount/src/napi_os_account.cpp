@@ -1113,6 +1113,8 @@ napi_value Unsubscribe(napi_env env, napi_callback_info cbInfo)
     napi_unwrap(env, thisVar, (void **)&objectInfo);
     unsubscribeCBInfo->osManager = objectInfo;
     unsubscribeCBInfo->callbackRef = callback;
+    unsubscribeCBInfo->osSubscribeType = offType;
+    unsubscribeCBInfo->name = offName;
     unsubscribeCBInfo->argc = argc;
 
     bool isFind = false;
@@ -1123,6 +1125,7 @@ napi_value Unsubscribe(napi_env env, napi_callback_info cbInfo)
         return WrapVoidToJS(env);
     }
     unsubscribeCBInfo->subscribers = subscribers;
+    ACCOUNT_LOGI("UnsubscribeExecuteCB Off size = %{public}zu", unsubscribeCBInfo->subscribers.size());
 
     napi_value resourceName = nullptr;
     napi_create_string_latin1(env, "Unsubscribe", NAPI_AUTO_LENGTH, &resourceName);
@@ -1158,8 +1161,10 @@ void FindSubscriberInMap(
                     subscribers.emplace_back(item->subscriber);
                 }
             }
-            isFind = true;
-            break;
+            if (subscribers.size() > 0) {
+                isFind = true;
+                break;
+            }
         }
     }
 }
@@ -1168,6 +1173,7 @@ void UnsubscribeExecuteCB(napi_env env, void *data)
 {
     ACCOUNT_LOGI("napi_create_async_work running");
     UnsubscribeCBInfo *unsubscribeCBInfo = (UnsubscribeCBInfo *)data;
+    ACCOUNT_LOGI("UnsubscribeExecuteCB Off size = %{public}zu", unsubscribeCBInfo->subscribers.size());
     for (auto offSubscriber : unsubscribeCBInfo->subscribers) {
         int errCode = OsAccountManager::UnsubscribeOsAccount(offSubscriber);
         ACCOUNT_LOGI("errocde is %{public}d", errCode);
@@ -1178,6 +1184,9 @@ void UnsubscribeCallbackCompletedCB(napi_env env, napi_status status, void *data
 {
     ACCOUNT_LOGI("napi_create_async_work complete.");
     UnsubscribeCBInfo *unsubscribeCBInfo = (UnsubscribeCBInfo *)data;
+    if (unsubscribeCBInfo == nullptr) {
+        return;
+    }
 
     if (unsubscribeCBInfo->argc >= ARGS_SIZE_THREE) {
         napi_value result = nullptr;
@@ -1215,11 +1224,8 @@ void UnsubscribeCallbackCompletedCB(napi_env env, napi_status status, void *data
     }
     ACCOUNT_LOGI("Earse end subscriberInstances.size = %{public}zu", subscriberInstances.size());
 
-    if (unsubscribeCBInfo) {
-        ACCOUNT_LOGI("delete asyncContextForOff");
-        delete unsubscribeCBInfo;
-        unsubscribeCBInfo = nullptr;
-    }
+    delete unsubscribeCBInfo;
+    unsubscribeCBInfo = nullptr;
 }
 }  // namespace AccountJsKit
 }  // namespace OHOS
