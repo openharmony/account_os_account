@@ -65,7 +65,6 @@ private:
     void StartAccount();
     void CreateBaseAdminAccount();
     void CreateBaseStandardAccount();
-    void StartBaseAdminAccount(void);
     void StartBaseStandardAccount(void);
     ErrCode GetEventHandler(void);
 
@@ -73,7 +72,6 @@ private:
     std::shared_ptr<IOsAccountControl> osAccountControl_;
     std::vector<int> activeAccountId_;
     std::shared_ptr<IOsAccountSubscribe> subscribeManagerPtr_;
-    std::int32_t counterForAdmin_;
     std::int32_t counterForStandard_;
     std::shared_ptr<OHOS::AppExecFwk::EventHandler> handler_;
     static constexpr std::int32_t DELAY_FOR_FOUNDATION_SERVICE = 5 * 1000;  // 5s

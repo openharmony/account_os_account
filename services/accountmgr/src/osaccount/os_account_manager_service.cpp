@@ -239,10 +239,6 @@ ErrCode OsAccountManagerService::GetOsAccountLocalIdFromUid(const int uid, int &
 
 ErrCode OsAccountManagerService::QueryMaxOsAccountNumber(int &maxOsAccountNumber)
 {
-    auto callingUid = IPCSkeleton::GetCallingUid();
-    if (callingUid > Constants::MAX_SYSTEM_UID_NUM) {
-        return ERR_OS_ACCOUNT_SERVICE_MANAGER_CANNOT_HIDE_INTERFACE_ERROR;
-    }
     return innerManager_->QueryMaxOsAccountNumber(maxOsAccountNumber);
 }
 
@@ -273,10 +269,6 @@ ErrCode OsAccountManagerService::GetOsAccountAllConstraints(const int id, std::v
 
 ErrCode OsAccountManagerService::QueryAllCreatedOsAccounts(std::vector<OsAccountInfo> &osAccountInfos)
 {
-    auto callingUid = IPCSkeleton::GetCallingUid();
-    if (callingUid > Constants::MAX_SYSTEM_UID_NUM) {
-        return ERR_OS_ACCOUNT_SERVICE_MANAGER_CANNOT_HIDE_INTERFACE_ERROR;
-    }
     return innerManager_->QueryAllCreatedOsAccounts(osAccountInfos);
 }
 
@@ -376,10 +368,6 @@ ErrCode OsAccountManagerService::IsMultiOsAccountEnable(bool &isMultiOsAccountEn
 
 ErrCode OsAccountManagerService::SetOsAccountName(const int id, const std::string &name)
 {
-    auto callingUid = IPCSkeleton::GetCallingUid();
-    if (callingUid > Constants::MAX_SYSTEM_UID_NUM) {
-        return ERR_OS_ACCOUNT_SERVICE_MANAGER_CANNOT_HIDE_INTERFACE_ERROR;
-    }
     if (name.size() > Constants::LOCAL_NAME_MAX_SIZE) {
         return ERR_OS_ACCOUNT_SERVICE_MANAGER_NAME_SIZE_OVERFLOW_ERROR;
     }

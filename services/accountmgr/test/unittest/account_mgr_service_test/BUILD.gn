@@ -68,6 +68,7 @@ ohos_unittest("account_mgr_test") {
     "${services_path}/accountmgr/src/osaccount/os_account_manager_service.cpp",
     "${services_path}/accountmgr/src/osaccount/os_account_photo_operator.cpp",
     "${services_path}/accountmgr/src/osaccount/os_account_standard_interface.cpp",
+    "${services_path}/accountmgr/src/osaccount/os_account_stop_user_callback.cpp",
     "${services_path}/accountmgr/src/osaccount/os_account_subscribe_death_recipient.cpp",
     "${services_path}/accountmgr/src/osaccount/os_account_subscribe_manager.cpp",
   ]
@@ -93,6 +94,7 @@ ohos_unittest("account_mgr_test") {
   ]
 
   external_deps = [
+    "aafwk_standard:ability_manager",
     "aafwk_standard:base",
     "aafwk_standard:want",
     "appexecfwk_standard:appexecfwk_base",
