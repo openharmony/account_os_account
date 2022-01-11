@@ -14,12 +14,11 @@
  */
 #ifndef OS_ACCOUNT_SERVICES_ACCOUNTMGR_INCLUDE_OSACCOUNT_OS_ACCOUNT_STOP_USER_CALLBACK_H
 #define OS_ACCOUNT_SERVICES_ACCOUNTMGR_INCLUDE_OSACCOUNT_OS_ACCOUNT_STOP_USER_CALLBACK_H
-#include "stop_user_callback.h"
-#include "iremote_stub.h"
+#include "stop_user_callback_stub.h"
 
 namespace OHOS {
 namespace AccountSA {
-class OsAccountStopUserCallback : public IRemoteStub<OHOS::AAFwk::IStopUserCallback> {
+class OsAccountStopUserCallback : public OHOS::AAFwk::StopUserCallbackStub {
 public:
     virtual void OnStopUserDone(int userId, int errcode) override;
 
