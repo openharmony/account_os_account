@@ -23,8 +23,7 @@ ErrCode OsAccountStandardInterface::SendToAMSAccountStart(OsAccountInfo &osAccou
     return ERR_OK;
 }
 
-ErrCode OsAccountStandardInterface::SendToAMSAccountStop(
-    OsAccountInfo &osAccountInfo, sptr<OsAccountStopUserCallback> &osAccountStopUserCallback)
+ErrCode OsAccountStandardInterface::SendToAMSAccountStop(OsAccountInfo &osAccountInfo)
 {
     ACCOUNT_LOGI("OsAccountStandardInterface SendToAMSAccountStop start");
     return ERR_OK;

@@ -14,11 +14,17 @@
  */
 
 #include "os_account_standard_interface.h"
+
+#include<thread>
+
 #include "ability_manager_client.h"
 #include "account_log_wrapper.h"
 #include "bundle_mgr_interface.h"
 #include "common_event_manager.h"
 #include "common_event_support.h"
+#include "datetime_ex.h"
+#include "os_account_constants.h"
+#include "os_account_stop_user_callback.h"
 #include "if_system_ability_manager.h"
 #include "iservice_registry.h"
 #include "system_ability_helper.h"
@@ -39,14 +45,27 @@ ErrCode OsAccountStandardInterface::SendToAMSAccountStart(OsAccountInfo &osAccou
     return ERR_OK;
 }
 
-ErrCode OsAccountStandardInterface::SendToAMSAccountStop(
-    OsAccountInfo &osAccountInfo, sptr<OsAccountStopUserCallback> &osAccountStopUserCallback)
+ErrCode OsAccountStandardInterface::SendToAMSAccountStop(OsAccountInfo &osAccountInfo)
 {
     ACCOUNT_LOGI("OsAccountStandardInterface SendToAMSAccountStop stop");
+    sptr<OsAccountStopUserCallback> osAccountStopUserCallback = new OsAccountStopUserCallback();
     ErrCode code =
         AAFwk::AbilityManagerClient::GetInstance()->StopUser(osAccountInfo.GetLocalId(), osAccountStopUserCallback);
     if (code != ERR_OK) {
         ACCOUNT_LOGI("failed to AbilityManagerClient stop errcode is %{public}d", code);
+        return ERR_OS_ACCOUNT_SERVICE_INTERFACE_TO_AM_ACCOUNT_START_ERROR;
+    }
+    struct tm startTime = {0};
+    struct tm nowTime = {0};
+    OHOS::GetSystemCurrentTime(&startTime);
+    OHOS::GetSystemCurrentTime(&nowTime);
+    while (OHOS::GetSecondsBetween(startTime, nowTime) < Constants::TIME_WAIT_AM_TIME_OUT &&
+           !osAccountStopUserCallback->isCallBackOk_) {
+        std::this_thread::sleep_for(std::chrono::milliseconds(Constants::WAIT_AM_TIME));
+        OHOS::GetSystemCurrentTime(&nowTime);
+    }
+    if (!osAccountStopUserCallback->isReaturnOk_) {
+        ACCOUNT_LOGI("failed to AbilityManagerClient stop in call back");
         return ERR_OS_ACCOUNT_SERVICE_INTERFACE_TO_AM_ACCOUNT_START_ERROR;
     }
     ACCOUNT_LOGI("send AM to stop is ok");
