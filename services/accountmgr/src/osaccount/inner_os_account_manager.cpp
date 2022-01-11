@@ -12,10 +12,8 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-#include <thread>
 
 #include "account_log_wrapper.h"
-#include "datetime_ex.h"
 #include "ohos_account_kits.h"
 #include "os_account_constants.h"
 #include "os_account_control_file_manager.h"
@@ -204,16 +202,9 @@ ErrCode IInnerOsAccountManager::RemoveOsAccount(const int id)
     if (errCode != ERR_OK) {
         return ERR_OS_ACCOUNT_SERVICE_INNER_CANNOT_FIND_OSACCOUNT_ERROR;
     }
-    sptr<OsAccountStopUserCallback> osAccountStopUserCallback = (new (std::nothrow) OsAccountStopUserCallback());
-    errCode = OsAccountStandardInterface::SendToAMSAccountStop(osAccountInfo, osAccountStopUserCallback);
-    struct tm startTime = {0};
-    struct tm nowTime = {0};
-    OHOS::GetSystemCurrentTime(&startTime);
-    OHOS::GetSystemCurrentTime(&nowTime);
-    while (OHOS::GetSecondsBetween(startTime, nowTime) < Constants::TIME_WAIT_AM_TIME_OUT &&
-           !osAccountStopUserCallback->isCallBackOk_) {
-        std::this_thread::sleep_for(std::chrono::milliseconds(Constants::WAIT_AM_TIME));
-        OHOS::GetSystemCurrentTime(&nowTime);
+    errCode = OsAccountStandardInterface::SendToAMSAccountStop(osAccountInfo);
+    if (errCode != ERR_OK) {
+        return ERR_OS_ACCOUNT_SERVICE_INNER_SEND_AM_ACCOUNT_STOP_ERROR;
     }
     errCode = OsAccountStandardInterface::SendToBMSAccountDelete(osAccountInfo);
     if (errCode != ERR_OK) {

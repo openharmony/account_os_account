@@ -17,14 +17,12 @@
 #include <vector>
 #include "account_error_no.h"
 #include "os_account_info.h"
-#include "os_account_stop_user_callback.h"
 namespace OHOS {
 namespace AccountSA {
 class OsAccountStandardInterface {
 public:
     static ErrCode SendToAMSAccountStart(OsAccountInfo &osAccountInfo);
-    static ErrCode SendToAMSAccountStop(
-        OsAccountInfo &osAccountInfo, sptr<OsAccountStopUserCallback> &osAccountStopUserCallback);
+    static ErrCode SendToAMSAccountStop(OsAccountInfo &osAccountInfo);
     static ErrCode SendToBMSAccountCreate(OsAccountInfo &osAccountInfo);
     static ErrCode SendToBMSAccountDelete(OsAccountInfo &osAccountInfo);
     static ErrCode SendToCESAccountCreate(OsAccountInfo &osAccountInfo);
