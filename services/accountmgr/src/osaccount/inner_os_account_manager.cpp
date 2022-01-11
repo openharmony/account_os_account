@@ -246,6 +246,7 @@ ErrCode IInnerOsAccountManager::IsOsAccountExists(const int id, bool &isOsAccoun
 
 ErrCode IInnerOsAccountManager::IsOsAccountActived(const int id, bool &isOsAccountActived)
 {
+    OsAccountInfo osAccountInfo;
     ErrCode errCode = osAccountControl_->GetOsAccountInfoById(id, osAccountInfo);
     if (errCode != ERR_OK) {
         isOsAccountActived = false;
