@@ -246,6 +246,12 @@ ErrCode IInnerOsAccountManager::IsOsAccountExists(const int id, bool &isOsAccoun
 
 ErrCode IInnerOsAccountManager::IsOsAccountActived(const int id, bool &isOsAccountActived)
 {
+    OsAccountInfo osAccountInfo;
+    ErrCode errCode = osAccountControl_->GetOsAccountInfoById(id, osAccountInfo);
+    if (errCode != ERR_OK) {
+        isOsAccountActived = false;
+        return ERR_OS_ACCOUNT_SERVICE_INNER_SELECT_OSACCOUNT_BYID_ERROR;
+    }
     std::lock_guard<std::mutex> lock(ativeMutex_);
     if (std::find(activeAccountId_.begin(), activeAccountId_.end(), id) != activeAccountId_.end()) {
         isOsAccountActived = true;
