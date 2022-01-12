@@ -21,6 +21,8 @@ namespace OHOS {
 namespace AccountSA {
 void OsAccountStopUserCallback::OnStopUserDone(int userId, int errcode)
 {
+    ACCOUNT_LOGE("in call back account, id is %{public}d", userId);
+    ACCOUNT_LOGE("in call back account, errcode is %{public}d", errcode);
     isCallBackOk_ = true;
     if (errcode == 0) {
         isReaturnOk_ = true;
