@@ -68,7 +68,7 @@ std::string GetStringProperty(napi_env env, napi_value obj)
     return std::string(propValue);
 }
 
-void ParseParaQueryOAByIdCB(napi_env env, napi_callback_info cbInfo, QueryOAByIdAsyncContext *queryOAByIdCB)
+napi_value ParseParaQueryOAByIdCB(napi_env env, napi_callback_info cbInfo, QueryOAByIdAsyncContext *queryOAByIdCB)
 {
     ACCOUNT_LOGI("enter");
     size_t argc = ARGS_SIZE_TWO;
@@ -85,8 +85,10 @@ void ParseParaQueryOAByIdCB(napi_env env, napi_callback_info cbInfo, QueryOAById
             break;
         } else {
             ACCOUNT_LOGE("Type matching failed");
+            return nullptr;
         }
     }
+    return WrapVoidToJS(env);
 }
 
 void QueryOAByIdExecuteCB(napi_env env, void *data)
@@ -271,7 +273,7 @@ void CBOrPromiseToQueryOAById(
     }
 }
 
-void ParseParaRemoveOACB(napi_env env, napi_callback_info cbInfo, RemoveOAAsyncContext *removeOACB)
+napi_value ParseParaRemoveOACB(napi_env env, napi_callback_info cbInfo, RemoveOAAsyncContext *removeOACB)
 {
     ACCOUNT_LOGI("enter");
     size_t argc = ARGS_SIZE_TWO;
@@ -288,8 +290,10 @@ void ParseParaRemoveOACB(napi_env env, napi_callback_info cbInfo, RemoveOAAsyncC
             break;
         } else {
             ACCOUNT_LOGE("Type matching failed");
+            return nullptr;
         }
     }
+    return WrapVoidToJS(env);
 }
 
 void RemoveOAExecuteCB(napi_env env, void *data)
@@ -337,7 +341,7 @@ void CBOrPromiseToRemoveOA(napi_env env, const RemoveOAAsyncContext *removeOACB,
     }
 }
 
-void ParseParaSetOAName(napi_env env, napi_callback_info cbInfo, SetOANameAsyncContext *setOANameCB)
+napi_value ParseParaSetOAName(napi_env env, napi_callback_info cbInfo, SetOANameAsyncContext *setOANameCB)
 {
     ACCOUNT_LOGI("enter");
     size_t argc = ARGS_SIZE_THREE;
@@ -356,8 +360,10 @@ void ParseParaSetOAName(napi_env env, napi_callback_info cbInfo, SetOANameAsyncC
             break;
         } else {
             ACCOUNT_LOGE("Type matching failed");
+            return nullptr;
         }
     }
+    return WrapVoidToJS(env);
 }
 
 void SetOANameExecuteCB(napi_env env, void *data)
@@ -506,7 +512,7 @@ void CBOrPromiseToSetOACons(napi_env env, const SetOAConsAsyncContext *setOACons
     }
 }
 
-void ParseParaActiveOA(napi_env env, napi_callback_info cbInfo, ActivateOAAsyncContext *activeOACB)
+napi_value ParseParaActiveOA(napi_env env, napi_callback_info cbInfo, ActivateOAAsyncContext *activeOACB)
 {
     ACCOUNT_LOGI("enter");
     size_t argc = ARGS_SIZE_TWO;
@@ -523,8 +529,10 @@ void ParseParaActiveOA(napi_env env, napi_callback_info cbInfo, ActivateOAAsyncC
             break;
         } else {
             ACCOUNT_LOGE("Type matching failed");
+            return nullptr;
         }
     }
+    return WrapVoidToJS(env);
 }
 
 void ActivateOAExecuteCB(napi_env env, void *data)
@@ -532,7 +540,7 @@ void ActivateOAExecuteCB(napi_env env, void *data)
     ACCOUNT_LOGI("napi_create_async_work running");
     ActivateOAAsyncContext *activateOACB = (ActivateOAAsyncContext *)data;
     activateOACB->errCode = OsAccountManager::ActivateOsAccount(activateOACB->id);
-    ACCOUNT_LOGI("errocde is %{public}d", activateOACB->errCode);
+    ACCOUNT_LOGI("errcode is %{public}d", activateOACB->errCode);
     activateOACB->status = (activateOACB->errCode == 0) ? napi_ok : napi_generic_failure;
 }
 
@@ -572,7 +580,7 @@ void CBOrPromiseToActivateOA(napi_env env, const ActivateOAAsyncContext *activat
     }
 }
 
-void ParseParaCreateOA(napi_env env, napi_callback_info cbInfo, CreateOAAsyncContext *createOACB)
+napi_value ParseParaCreateOA(napi_env env, napi_callback_info cbInfo, CreateOAAsyncContext *createOACB)
 {
     ACCOUNT_LOGI("enter");
     size_t argc = ARGS_SIZE_THREE;
@@ -591,8 +599,10 @@ void ParseParaCreateOA(napi_env env, napi_callback_info cbInfo, CreateOAAsyncCon
             break;
         } else {
             ACCOUNT_LOGE("Type matching failed");
+            return nullptr;
         }
     }
+    return WrapVoidToJS(env);
 }
 
 void CreateOAExecuteCB(napi_env env, void *data)
@@ -764,7 +774,7 @@ void CBOrPromiseToDbDeviceId(napi_env env, const DbDeviceIdAsyncContext *dbDevic
     }
 }
 
-void ParseParaGetAllCons(napi_env env, napi_callback_info cbInfo, GetAllConsAsyncContext *getAllConsCB)
+napi_value ParseParaGetAllCons(napi_env env, napi_callback_info cbInfo, GetAllConsAsyncContext *getAllConsCB)
 {
     ACCOUNT_LOGI("enter");
     size_t argc = ARGS_SIZE_TWO;
@@ -781,8 +791,10 @@ void ParseParaGetAllCons(napi_env env, napi_callback_info cbInfo, GetAllConsAsyn
             break;
         } else {
             ACCOUNT_LOGE("Type matching failed");
+            return nullptr;
         }
     }
+    return WrapVoidToJS(env);
 }
 
 void GetAllConsExecuteCB(napi_env env, void *data)
@@ -906,7 +918,7 @@ void CBOrPromiseToGetProcessId(napi_env env, const GetIdAsyncContext *getIdCB, n
     }
 }
 
-void ParseParaQueryOA(napi_env env, napi_callback_info cbInfo, QueryCreateOAAsyncContext *queryAllOA)
+void ParseQueryAllCreateOA(napi_env env, napi_callback_info cbInfo, QueryCreateOAAsyncContext *queryAllOA)
 {
     ACCOUNT_LOGI("enter");
     size_t argc = ARGS_SIZE_ONE;
@@ -983,7 +995,7 @@ void CBOrPromiseToQueryOA(napi_env env, const QueryCreateOAAsyncContext *queryOA
     }
 }
 
-void ParseParaGetPhote(napi_env env, napi_callback_info cbInfo, GetOAPhotoAsyncContext *getPhoto)
+napi_value ParseParaGetPhote(napi_env env, napi_callback_info cbInfo, GetOAPhotoAsyncContext *getPhoto)
 {
     ACCOUNT_LOGI("enter");
     size_t argc = ARGS_SIZE_TWO;
@@ -1000,8 +1012,10 @@ void ParseParaGetPhote(napi_env env, napi_callback_info cbInfo, GetOAPhotoAsyncC
             break;
         } else {
             ACCOUNT_LOGE("Type matching failed");
+            return nullptr;
         }
     }
+    return WrapVoidToJS(env);
 }
 
 void GetOAPhoteExecuteCB(napi_env env, void *data)
@@ -1111,7 +1125,7 @@ void CBOrPromiseQueryCurrentOA(napi_env env, const CurrentOAAsyncContext *curren
     }
 }
 
-void ParseParaGetIdByUid(napi_env env, napi_callback_info cbInfo, GetIdByUidAsyncContext *idByUid)
+napi_value ParseParaGetIdByUid(napi_env env, napi_callback_info cbInfo, GetIdByUidAsyncContext *idByUid)
 {
     ACCOUNT_LOGI("enter");
     size_t argc = ARGS_SIZE_TWO;
@@ -1128,8 +1142,10 @@ void ParseParaGetIdByUid(napi_env env, napi_callback_info cbInfo, GetIdByUidAsyn
             break;
         } else {
             ACCOUNT_LOGE("Type matching failed");
+            return nullptr;
         }
     }
+    return WrapVoidToJS(env);
 }
 
 void GetIdByUidExecuteCB(napi_env env, void *data)
@@ -1177,7 +1193,7 @@ void CBOrPromiseGetIdByUid(napi_env env, const GetIdByUidAsyncContext *idByUid, 
     }
 }
 
-void ParseParaSetPhoto(napi_env env, napi_callback_info cbInfo, SetOAPhotoAsyncContext *setPhoto)
+napi_value ParseParaSetPhoto(napi_env env, napi_callback_info cbInfo, SetOAPhotoAsyncContext *setPhoto)
 {
     ACCOUNT_LOGI("enter");
     size_t argc = ARGS_SIZE_THREE;
@@ -1196,8 +1212,10 @@ void ParseParaSetPhoto(napi_env env, napi_callback_info cbInfo, SetOAPhotoAsyncC
             break;
         } else {
             ACCOUNT_LOGE("Type matching failed");
+            return nullptr;
         }
     }
+    return WrapVoidToJS(env);
 }
 
 void SetPhotoExecuteCB(napi_env env, void *data)
@@ -1306,7 +1324,7 @@ void CBOrPromiseMaxNum(napi_env env, const QueryMaxNumAsyncContext *maxNum, napi
     }
 }
 
-void ParseParaIsActived(napi_env env, napi_callback_info cbInfo, IsActivedAsyncContext *isActived)
+napi_value ParseParaIsActived(napi_env env, napi_callback_info cbInfo, IsActivedAsyncContext *isActived)
 {
     ACCOUNT_LOGI("enter");
     size_t argc = ARGS_SIZE_TWO;
@@ -1323,8 +1341,10 @@ void ParseParaIsActived(napi_env env, napi_callback_info cbInfo, IsActivedAsyncC
             break;
         } else {
             ACCOUNT_LOGE("Type matching failed");
+            return nullptr;
         }
     }
+    return WrapVoidToJS(env);
 }
 
 void IsActivedExecuteCB(napi_env env, void *data)
@@ -1372,7 +1392,7 @@ void CBOrPromiseIsActived(napi_env env, const IsActivedAsyncContext *isActived, 
     }
 }
 
-void ParseParaIsEnable(napi_env env, napi_callback_info cbInfo, IsConEnableAsyncContext *isEnable)
+napi_value ParseParaIsEnable(napi_env env, napi_callback_info cbInfo, IsConEnableAsyncContext *isEnable)
 {
     ACCOUNT_LOGI("enter");
     size_t argc = ARGS_SIZE_THREE;
@@ -1391,8 +1411,10 @@ void ParseParaIsEnable(napi_env env, napi_callback_info cbInfo, IsConEnableAsync
             break;
         } else {
             ACCOUNT_LOGE("Type matching failed");
+            return nullptr;
         }
     }
+    return WrapVoidToJS(env);
 }
 
 void IsEnableExecuteCB(napi_env env, void *data)
@@ -1581,7 +1603,7 @@ void CBOrPromiseIsMultiEn(napi_env env, const IsMultiEnAsyncContext *multiEn, na
     }
 }
 
-void ParseParaIsVerified(napi_env env, napi_callback_info cbInfo, IsVerifiedAsyncContext *isVerified)
+napi_value ParseParaIsVerified(napi_env env, napi_callback_info cbInfo, IsVerifiedAsyncContext *isVerified)
 {
     ACCOUNT_LOGI("enter");
     size_t argc = ARGS_SIZE_TWO;
@@ -1601,8 +1623,10 @@ void ParseParaIsVerified(napi_env env, napi_callback_info cbInfo, IsVerifiedAsyn
             break;
         } else {
             ACCOUNT_LOGE("Type matching failed");
+            return nullptr;
         }
     }
+    return WrapVoidToJS(env);
 }
 
 void IsVerifiedExecuteCB(napi_env env, void *data)
@@ -1650,7 +1674,7 @@ void CBOrPromiseIsVerified(napi_env env, const IsVerifiedAsyncContext *isVerifie
     }
 }
 
-void ParseParaSerialNumId(napi_env env, napi_callback_info cbInfo, GetSerialNumIdCBInfo *serialNumId)
+napi_value ParseParaSerialNumId(napi_env env, napi_callback_info cbInfo, GetSerialNumIdCBInfo *serialNumId)
 {
     ACCOUNT_LOGI("enter");
     size_t argc = ARGS_SIZE_TWO;
@@ -1667,8 +1691,10 @@ void ParseParaSerialNumId(napi_env env, napi_callback_info cbInfo, GetSerialNumI
             break;
         } else {
             ACCOUNT_LOGE("Type matching failed");
+            return nullptr;
         }
     }
+    return WrapVoidToJS(env);
 }
 
 void SerialNumIdExecuteCB(napi_env env, void *data)
@@ -1717,7 +1743,7 @@ void CBOrPromiseSerialNum(napi_env env, const GetSerialNumIdCBInfo *serialNumId,
     }
 }
 
-void ParseParaGetSerialNum(napi_env env, napi_callback_info cbInfo, GetSerialNumForOAInfo *getSerialNum)
+napi_value ParseParaGetSerialNum(napi_env env, napi_callback_info cbInfo, GetSerialNumForOAInfo *getSerialNum)
 {
     ACCOUNT_LOGI("enter");
     size_t argc = ARGS_SIZE_TWO;
@@ -1734,8 +1760,10 @@ void ParseParaGetSerialNum(napi_env env, napi_callback_info cbInfo, GetSerialNum
             break;
         } else {
             ACCOUNT_LOGE("Type matching failed");
+            return nullptr;
         }
     }
+    return WrapVoidToJS(env);
 }
 
 void GetSerialNumExecuteCB(napi_env env, void *data)
@@ -1823,7 +1851,7 @@ void CBOrPromiseIsTestOA(napi_env env, const IsTestOAInfo *isTest, napi_value er
     }
 }
 
-void ParseParaToSubscriber(const napi_env &env, const napi_value (&argv)[ARGS_SIZE_THREE], napi_ref &callback,
+napi_value ParseParaToSubscriber(const napi_env &env, const napi_value (&argv)[ARGS_SIZE_THREE], napi_ref &callback,
     OS_ACCOUNT_SUBSCRIBE_TYPE &onType, std::string &onName)
 {
     ACCOUNT_LOGI("enter");
@@ -1839,9 +1867,11 @@ void ParseParaToSubscriber(const napi_env &env, const napi_value (&argv)[ARGS_SI
             onType = OS_ACCOUNT_SUBSCRIBE_TYPE::ACTIVATING;
         } else {
             ACCOUNT_LOGI("Wrong type string.");
+            return nullptr;
         }
     } else {
         ACCOUNT_LOGE("Type matching failed");
+        return nullptr;
     }
 
     // argv[1] name: string
@@ -1849,10 +1879,12 @@ void ParseParaToSubscriber(const napi_env &env, const napi_value (&argv)[ARGS_SI
     if (valuetype == napi_string) {
         onName = GetStringProperty(env, argv[1]);
         if (onName.size() == 0 || onName.size() > MAX_SUBSCRIBER_NAME_LEN) {
-            return;
+            ACCOUNT_LOGI("Subscriber name invalid");
+            return nullptr;
         }
     } else {
         ACCOUNT_LOGE("Type matching failed");
+        return nullptr;
     }
 
     // argv[2] callback
@@ -1861,7 +1893,10 @@ void ParseParaToSubscriber(const napi_env &env, const napi_value (&argv)[ARGS_SI
         napi_create_reference(env, argv[PARAMTWO], 1, &callback);
     } else {
         ACCOUNT_LOGE("Type matching failed");
+        return nullptr;
     }
+
+    return WrapVoidToJS(env);
 }
 
 void SubscribeExecuteCB(napi_env env, void *data)
@@ -1881,7 +1916,7 @@ void SubscribeCompletedCB(napi_env env, napi_status status, void *data)
     napi_delete_async_work(env, subscribeCBInfo->work);
 }
 
-void ParseParaToUnsubscriber(const napi_env &env, const size_t &argc, const napi_value (&argv)[ARGS_SIZE_THREE],
+napi_value ParseParaToUnsubscriber(const napi_env &env, const size_t &argc, const napi_value (&argv)[ARGS_SIZE_THREE],
     napi_ref &callback, OS_ACCOUNT_SUBSCRIBE_TYPE &offType, std::string &offName)
 {
     ACCOUNT_LOGI("enter");
@@ -1897,17 +1932,24 @@ void ParseParaToUnsubscriber(const napi_env &env, const size_t &argc, const napi
             offType = OS_ACCOUNT_SUBSCRIBE_TYPE::ACTIVATING;
         } else {
             ACCOUNT_LOGI("Wrong type string.");
+            return nullptr;
         }
     } else {
         ACCOUNT_LOGE("Type matching failed");
+        return nullptr;
     }
 
     // argv[1] name: string
     napi_typeof(env, argv[1], &valuetype);
     if (valuetype == napi_string) {
         offName = GetStringProperty(env, argv[1]);
+        if (offName.size() == 0 || offName.size() > MAX_SUBSCRIBER_NAME_LEN) {
+            ACCOUNT_LOGI("Unsubscriber name invalid");
+            return nullptr;
+        }
     } else {
         ACCOUNT_LOGE("Type matching failed");
+        return nullptr;
     }
 
     // argv[2]:callback
@@ -1917,8 +1959,11 @@ void ParseParaToUnsubscriber(const napi_env &env, const size_t &argc, const napi
             napi_create_reference(env, argv[PARAMTWO], 1, &callback);
         } else {
             ACCOUNT_LOGE("Type matching failed");
+            return nullptr;
         }
     }
+
+    return WrapVoidToJS(env);
 }
 }  // namespace AccountJsKit
 }  // namespace OHOS

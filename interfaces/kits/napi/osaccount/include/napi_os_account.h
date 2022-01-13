@@ -39,7 +39,7 @@ struct QueryOAByIdAsyncContext {
     napi_env env;
     napi_async_work work;
 
-    int id = 0;
+    int id = -1;
     int errCode = 0;
     OsAccountInfo osAccountInfos;
 
@@ -91,7 +91,7 @@ struct ActivateOAAsyncContext {
     napi_env env;
     napi_async_work work;
 
-    int id = 0;
+    int id = -1;
     int errCode = 0;
 
     napi_deferred deferred;
@@ -241,7 +241,7 @@ struct IsActivedAsyncContext {
     napi_env env;
     napi_async_work work;
 
-    int id = 0;
+    int id = -1;
     int errCode = 0;
     bool isOsAccountActived = false;
 
@@ -447,6 +447,8 @@ void FindSubscriberInMap(
 void UnsubscribeExecuteCB(napi_env env, void *data);
 
 void UnsubscribeCallbackCompletedCB(napi_env env, napi_status status, void *data);
+
+void SetEnumProperty(napi_env env, napi_value dstObj, const int objValue, const char *propName);
 }  // namespace AccountJsKit
 }  // namespace OHOS
 #endif  // NAPI_OS_ACCOUNT_H
