@@ -137,9 +137,6 @@ ErrCode OsAccountManagerService::IsOsAccountActived(const int id, bool &isOsAcco
             return ERR_OS_ACCOUNT_SERVICE_PERMISSION_DENIED;
         }
     }
-    if (id < Constants::START_USER_ID) {
-        return ERR_OS_ACCOUNT_SERVICE_MANAGER_ID_ERROR;
-    }
     return innerManager_->IsOsAccountActived(id, isOsAccountActived);
 }
 
@@ -162,9 +159,6 @@ ErrCode OsAccountManagerService::IsOsAccountConstraintEnable(
             ACCOUNT_LOGI("failed to verify permission for MANAGE_LOCAL_ACCOUNTS");
             return ERR_OS_ACCOUNT_SERVICE_PERMISSION_DENIED;
         }
-    }
-    if (id < Constants::START_USER_ID) {
-        return ERR_OS_ACCOUNT_SERVICE_MANAGER_ID_ERROR;
     }
     return innerManager_->IsOsAccountConstraintEnable(id, constraint, isConstraintEnable);
 }
@@ -189,9 +183,6 @@ ErrCode OsAccountManagerService::IsOsAccountVerified(const int id, bool &isVerif
             ACCOUNT_LOGI("failed to verify permission for INTERACT_ACROSS_LOCAL_ACCOUNTS or MANAGE_LOCAL_ACCOUNTS");
             return ERR_OS_ACCOUNT_SERVICE_PERMISSION_DENIED;
         }
-    }
-    if (id < Constants::START_USER_ID) {
-        return ERR_OS_ACCOUNT_SERVICE_MANAGER_ID_ERROR;
     }
     return innerManager_->IsOsAccountVerified(id, isVerified);
 }
@@ -222,18 +213,12 @@ ErrCode OsAccountManagerService::GetOsAccountLocalIdFromProcess(int &id)
 {
     const std::int32_t uid = IPCSkeleton::GetCallingUid();
     id = uid / Constants::UID_TRANSFORM_DIVISOR;
-    if (id < Constants::START_USER_ID) {
-        return ERR_OS_ACCOUNT_SERVICE_MANAGER_ID_ERROR;
-    }
     return ERR_OK;
 }
 
 ErrCode OsAccountManagerService::GetOsAccountLocalIdFromUid(const int uid, int &id)
 {
     id = uid / Constants::UID_TRANSFORM_DIVISOR;
-    if (id < Constants::START_USER_ID) {
-        return ERR_OS_ACCOUNT_SERVICE_MANAGER_ID_ERROR;
-    }
     return ERR_OK;
 }
 
@@ -260,9 +245,6 @@ ErrCode OsAccountManagerService::GetOsAccountAllConstraints(const int id, std::v
             ACCOUNT_LOGI("failed to verify permission for MANAGE_LOCAL_ACCOUNTS");
             return ERR_OS_ACCOUNT_SERVICE_PERMISSION_DENIED;
         }
-    }
-    if (id < Constants::START_USER_ID) {
-        return ERR_OS_ACCOUNT_SERVICE_MANAGER_ID_ERROR;
     }
     return innerManager_->GetOsAccountAllConstraints(id, constraints);
 }
@@ -292,9 +274,6 @@ ErrCode OsAccountManagerService::QueryCurrentOsAccount(OsAccountInfo &osAccountI
         }
     }
     int id = callingUid / Constants::UID_TRANSFORM_DIVISOR;
-    if (id < Constants::START_USER_ID) {
-        return ERR_OS_ACCOUNT_SERVICE_MANAGER_ID_ERROR;
-    }
     return innerManager_->QueryOsAccountById(id, osAccountInfo);
 }
 
@@ -320,9 +299,6 @@ ErrCode OsAccountManagerService::QueryOsAccountById(const int id, OsAccountInfo 
             return ERR_OS_ACCOUNT_SERVICE_PERMISSION_DENIED;
         }
     }
-    if (id < Constants::START_USER_ID) {
-        return ERR_OS_ACCOUNT_SERVICE_MANAGER_ID_ERROR;
-    }
     return innerManager_->QueryOsAccountById(id, osAccountInfo);
 }
 
@@ -330,9 +306,6 @@ ErrCode OsAccountManagerService::GetOsAccountTypeFromProcess(OsAccountType &type
 {
     const std::int32_t uid = IPCSkeleton::GetCallingUid();
     int id = uid / Constants::UID_TRANSFORM_DIVISOR;
-    if (id < Constants::START_USER_ID) {
-        return ERR_OS_ACCOUNT_SERVICE_MANAGER_ID_ERROR;
-    }
     return innerManager_->GetOsAccountType(id, type);
 }
 
@@ -354,9 +327,6 @@ ErrCode OsAccountManagerService::GetOsAccountProfilePhoto(const int id, std::str
             ACCOUNT_LOGI("failed to verify permission for MANAGE_LOCAL_ACCOUNTS,or not system app error");
             return ERR_OS_ACCOUNT_SERVICE_PERMISSION_DENIED;
         }
-    }
-    if (id < Constants::START_USER_ID) {
-        return ERR_OS_ACCOUNT_SERVICE_MANAGER_ID_ERROR;
     }
     return innerManager_->GetOsAccountProfilePhoto(id, photo);
 }
@@ -587,18 +557,12 @@ ErrCode OsAccountManagerService::GetOsAccountLocalIdBySerialNumber(const int64_t
     if (errCode != ERR_OK) {
         return errCode;
     }
-    if (id < Constants::START_USER_ID) {
-        return ERR_OS_ACCOUNT_SERVICE_MANAGER_ID_ERROR;
-    }
     return ERR_OK;
 }
 
 ErrCode OsAccountManagerService::GetSerialNumberByOsAccountLocalId(const int &id, int64_t &serialNumber)
 {
     ACCOUNT_LOGI("enter");
-    if (id < Constants::START_USER_ID) {
-        return ERR_OS_ACCOUNT_SERVICE_MANAGER_ID_ERROR;
-    }
     return innerManager_->GetSerialNumberByOsAccountLocalId(id, serialNumber);
 }
 OS_ACCOUNT_SWITCH_MOD OsAccountManagerService::GetOsAccountSwitchMod()
@@ -630,9 +594,6 @@ ErrCode OsAccountManagerService::IsCurrentOsAccountVerified(bool &isVerified)
         }
     }
     int id = callingUid / Constants::UID_TRANSFORM_DIVISOR;
-    if (id < Constants::START_USER_ID) {
-        return ERR_OS_ACCOUNT_SERVICE_MANAGER_ID_ERROR;
-    }
     return innerManager_->IsOsAccountVerified(id, isVerified);
 }
 
@@ -656,9 +617,6 @@ ErrCode OsAccountManagerService::IsOsAccountCompleted(const int id, bool &isOsAc
             ACCOUNT_LOGI("failed to verify permission for INTERACT_ACROSS_LOCAL_ACCOUNTS or MANAGE_LOCAL_ACCOUNTS");
             return ERR_OS_ACCOUNT_SERVICE_PERMISSION_DENIED;
         }
-    }
-    if (id < Constants::START_USER_ID) {
-        return ERR_OS_ACCOUNT_SERVICE_MANAGER_ID_ERROR;
     }
     return innerManager_->IsOsAccountCompleted(id, isOsAccountCompleted);
 }

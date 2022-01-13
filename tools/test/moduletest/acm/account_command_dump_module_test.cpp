@@ -63,7 +63,7 @@ HWTEST_F(AccountCommandDumpModuleTest, Acm_Command_Dump_0100, TestSize.Level1)
     GTEST_LOG_(INFO) << "command = " << command;
 
     std::string commandResult = ToolSystemTest::ExecuteCommand(command);
-    EXPECT_EQ(commandResult, HELP_MSG_INVALID_ID_ARGUMENT + "\n");
+    EXPECT_EQ(commandResult, HELP_MSG_INVALID_ID_ARGUMENT + "\n" + HELP_MSG_DUMP);
 }
 
 /**
