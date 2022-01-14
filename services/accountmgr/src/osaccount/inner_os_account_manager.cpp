@@ -48,6 +48,10 @@ void IInnerOsAccountManager::CreateBaseAdminAccount()
         osAccountInfo.SetIsCreateCompleted(true);
         osAccountControl_->InsertOsAccount(osAccountInfo);
     }
+    {
+        std::lock_guard<std::mutex> lock(ativeMutex_);
+        activeAccountId_.push_back(Constants::ADMIN_LOCAL_ID);
+    }
 }
 void IInnerOsAccountManager::CreateBaseStandardAccount()
 {

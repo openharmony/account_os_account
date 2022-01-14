@@ -217,7 +217,7 @@ HWTEST_F(OsAccountManagerServiceModuleTest, OsAccountManagerServiceModuleTest004
 {
     bool isVerify = false;
     ErrCode errCode = g_osAccountManagerService_->IsCurrentOsAccountVerified(isVerify);
-    EXPECT_NE(errCode, ERR_OK);
+    EXPECT_EQ(errCode, ERR_OK);
 }
 
 /**
@@ -516,7 +516,7 @@ HWTEST_F(OsAccountManagerServiceModuleTest, OsAccountManagerServiceModuleTest023
 HWTEST_F(OsAccountManagerServiceModuleTest, OsAccountManagerServiceModuleTest024, TestSize.Level1)
 {
     int id = -1;
-    EXPECT_NE(g_osAccountManagerService_->GetOsAccountLocalIdFromProcess(id), ERR_OK);
+    EXPECT_EQ(g_osAccountManagerService_->GetOsAccountLocalIdFromProcess(id), ERR_OK);
 }
 
 /**
@@ -529,7 +529,7 @@ HWTEST_F(OsAccountManagerServiceModuleTest, OsAccountManagerServiceModuleTest025
 {
     int uid = 0;
     int id = -1;
-    EXPECT_NE(g_osAccountManagerService_->GetOsAccountLocalIdFromUid(uid, id), ERR_OK);
+    EXPECT_EQ(g_osAccountManagerService_->GetOsAccountLocalIdFromUid(uid, id), ERR_OK);
 }
 
 /**
@@ -594,7 +594,7 @@ HWTEST_F(OsAccountManagerServiceModuleTest, OsAccountManagerServiceModuleTest029
 HWTEST_F(OsAccountManagerServiceModuleTest, OsAccountManagerServiceModuleTest030, TestSize.Level1)
 {
     OsAccountInfo osAccountInfo;
-    EXPECT_NE(g_osAccountManagerService_->QueryCurrentOsAccount(osAccountInfo), ERR_OK);
+    EXPECT_EQ(g_osAccountManagerService_->QueryCurrentOsAccount(osAccountInfo), ERR_OK);
 }
 
 /**
@@ -632,7 +632,7 @@ HWTEST_F(OsAccountManagerServiceModuleTest, OsAccountManagerServiceModuleTest032
 HWTEST_F(OsAccountManagerServiceModuleTest, OsAccountManagerServiceModuleTest033, TestSize.Level1)
 {
     OsAccountType type;
-    EXPECT_NE(g_osAccountManagerService_->GetOsAccountTypeFromProcess(type), ERR_OK);
+    EXPECT_EQ(g_osAccountManagerService_->GetOsAccountTypeFromProcess(type), ERR_OK);
 }
 
 /**

@@ -32,6 +32,7 @@ const std::string STRING_TEST_NAME = "test";
 const OsAccountType INT_TEST_TYPE = OsAccountType::GUEST;
 const OsAccountType INT_TEST_NEGATIVE_TYPE = OsAccountType::ADMIN;
 const OsAccountType INT_TEST_MAX_TYPE = OsAccountType::ADMIN;
+const int ERROR_LOCAL_ID = -1;
 
 const std::vector<std::string> CONSTANTS_VECTOR {
     "constraint.print",
@@ -492,7 +493,7 @@ HWTEST_F(OsAccountManagerModuleTest, OsAccountManagerModuleTest022, TestSize.Lev
 HWTEST_F(OsAccountManagerModuleTest, OsAccountManagerModuleTest023, TestSize.Level1)
 {
     int id = -1;
-    EXPECT_NE(OsAccountManager::GetOsAccountLocalIdFromProcess(id), ERR_OK);
+    EXPECT_EQ(OsAccountManager::GetOsAccountLocalIdFromProcess(id), ERR_OK);
 }
 
 /**
@@ -505,7 +506,7 @@ HWTEST_F(OsAccountManagerModuleTest, OsAccountManagerModuleTest024, TestSize.Lev
 {
     int uid = 0;
     int id = -1;
-    EXPECT_NE(OsAccountManager::GetOsAccountLocalIdFromUid(uid, id), ERR_OK);
+    EXPECT_EQ(OsAccountManager::GetOsAccountLocalIdFromUid(uid, id), ERR_OK);
 }
 
 /**
@@ -569,7 +570,7 @@ HWTEST_F(OsAccountManagerModuleTest, OsAccountManagerModuleTest028, TestSize.Lev
 HWTEST_F(OsAccountManagerModuleTest, OsAccountManagerModuleTest029, TestSize.Level1)
 {
     OsAccountInfo osAccountInfo;
-    EXPECT_NE(OsAccountManager::QueryCurrentOsAccount(osAccountInfo), ERR_OK);
+    EXPECT_EQ(OsAccountManager::QueryCurrentOsAccount(osAccountInfo), ERR_OK);
 }
 
 /**
@@ -606,7 +607,7 @@ HWTEST_F(OsAccountManagerModuleTest, OsAccountManagerModuleTest031, TestSize.Lev
 HWTEST_F(OsAccountManagerModuleTest, OsAccountManagerModuleTest032, TestSize.Level1)
 {
     OsAccountType type = OsAccountType::ADMIN;
-    EXPECT_NE(OsAccountManager::GetOsAccountTypeFromProcess(type), ERR_OK);
+    EXPECT_EQ(OsAccountManager::GetOsAccountTypeFromProcess(type), ERR_OK);
 }
 
 /**
@@ -882,4 +883,16 @@ HWTEST_F(OsAccountManagerModuleTest, OsAccountManagerModuleTest052, TestSize.Lev
     EXPECT_EQ(OsAccountManager::ActivateOsAccount(osAccountInfoOne.GetLocalId()), ERR_OK);
     OsAccountManager::ActivateOsAccount(Constants::START_USER_ID);
     osAccountControlFileManager_->DelOsAccount(osAccountInfoOne.GetLocalId());
+}
+
+/**
+ * @tc.name: OsAccountManagerModuleTest053
+ * @tc.desc: Test IsOsAccountVerified with unvalid data.
+ * @tc.type: FUNC
+ * @tc.require: SR000GGVFJ
+ */
+HWTEST_F(OsAccountManagerModuleTest, OsAccountManagerModuleTest053, TestSize.Level1)
+{
+    bool isVerified = false;
+    EXPECT_NE(OsAccountManager::IsOsAccountVerified(ERROR_LOCAL_ID, isVerified), ERR_OK);
 }
