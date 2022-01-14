@@ -17,7 +17,6 @@
 #include <fstream>
 #include <iostream>
 #include <vector>
-#include <cinttypes>
 #include "account_error_no.h"
 #include "account_info.h"
 #include "account_log_wrapper.h"
@@ -84,7 +83,7 @@ ErrCode OhosAccountDataDeal::AccountInfoFromJson(AccountInfo &accountInfo)
     if (jsonData_.find(DATADEAL_JSON_KEY_BIND_TIME) != jsonObjectEnd) {
         accountInfo.bindTime_ = jsonData_.at(DATADEAL_JSON_KEY_BIND_TIME).get<std::time_t>();
     }
-    ACCOUNT_LOGI("AccountInfo, bindTime: %{public}" PRId64, accountInfo.bindTime_);
+    ACCOUNT_LOGI("AccountInfo, bindTime: %{public}ld", accountInfo.bindTime_);
 
     if (jsonData_.find(DATADEAL_JSON_KEY_STATUS) != jsonObjectEnd) {
         accountInfo.ohosAccountStatus_ = jsonData_.at(DATADEAL_JSON_KEY_STATUS).get<std::int32_t>();
