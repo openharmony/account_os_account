@@ -54,12 +54,12 @@ ohos_shared_library("appaccount") {
   relative_install_dir = "module/account"
 
   external_deps = [
-    "app_account_standard:app_account_innerkits",
     "hiviewdfx_hilog_native:libhilog",
     "ipc:ipc_core",
+    "os_account_standard:app_account_innerkits",
   ]
 
   subsystem_name = "account"
 
-  part_name = "app_account_standard"
+  part_name = "os_account_standard"
 }
