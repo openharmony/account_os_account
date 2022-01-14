@@ -48,7 +48,7 @@ napi_value GetErrorCodeValue(napi_env env, int errCode);
 
 std::string GetNamedProperty(napi_env env, napi_value obj);
 
-void ParseParaQueryOAByIdCB(napi_env env, napi_callback_info cbInfo, QueryOAByIdAsyncContext *queryOAByIdCB);
+napi_value ParseParaQueryOAByIdCB(napi_env env, napi_callback_info cbInfo, QueryOAByIdAsyncContext *queryOAByIdCB);
 
 void QueryOAByIdExecuteCB(napi_env env, void *data);
 
@@ -61,7 +61,7 @@ void MakeArrayToJs(napi_env env, const std::vector<std::string> &constraints, na
 void CBOrPromiseToQueryOAById(
     napi_env env, const QueryOAByIdAsyncContext *queryOAByIdCB, napi_value err, napi_value data);
 
-void ParseParaRemoveOACB(napi_env env, napi_callback_info cbInfo, RemoveOAAsyncContext *removeOACB);
+napi_value ParseParaRemoveOACB(napi_env env, napi_callback_info cbInfo, RemoveOAAsyncContext *removeOACB);
 
 void RemoveOAExecuteCB(napi_env env, void *data);
 
@@ -69,7 +69,7 @@ void RemoveOACallbackCompletedCB(napi_env env, napi_status status, void *data);
 
 void CBOrPromiseToRemoveOA(napi_env env, const RemoveOAAsyncContext *removeOACB, napi_value err, napi_value data);
 
-void ParseParaSetOAName(napi_env env, napi_callback_info cbInfo, SetOANameAsyncContext *setOANameCB);
+napi_value ParseParaSetOAName(napi_env env, napi_callback_info cbInfo, SetOANameAsyncContext *setOANameCB);
 
 void SetOANameExecuteCB(napi_env env, void *data);
 
@@ -85,7 +85,7 @@ void SetOAConsCallbackCompletedCB(napi_env env, napi_status status, void *data);
 
 void CBOrPromiseToSetOACons(napi_env env, const SetOAConsAsyncContext *setOAConsCB, napi_value err, napi_value data);
 
-void ParseParaActiveOA(napi_env env, napi_callback_info cbInfo, ActivateOAAsyncContext *activeOACB);
+napi_value ParseParaActiveOA(napi_env env, napi_callback_info cbInfo, ActivateOAAsyncContext *activeOACB);
 
 void ActivateOAExecuteCB(napi_env env, void *data);
 
@@ -93,7 +93,7 @@ void ActivateOACallbackCompletedCB(napi_env env, napi_status status, void *data)
 
 void CBOrPromiseToActivateOA(napi_env env, const ActivateOAAsyncContext *activateOA, napi_value err, napi_value data);
 
-void ParseParaCreateOA(napi_env env, napi_callback_info cbInfo, CreateOAAsyncContext *createOACB);
+napi_value ParseParaCreateOA(napi_env env, napi_callback_info cbInfo, CreateOAAsyncContext *createOACB);
 
 void CreateOAExecuteCB(napi_env env, void *data);
 
@@ -117,7 +117,7 @@ void DbDeviceIdCallbackCompletedCB(napi_env env, napi_status status, void *data)
 
 void CBOrPromiseToDbDeviceId(napi_env env, const DbDeviceIdAsyncContext *dbDeviceId, napi_value err, napi_value data);
 
-void ParseParaGetAllCons(napi_env env, napi_callback_info cbInfo, GetAllConsAsyncContext *getAllConsCB);
+napi_value ParseParaGetAllCons(napi_env env, napi_callback_info cbInfo, GetAllConsAsyncContext *getAllConsCB);
 
 void GetAllConsExecuteCB(napi_env env, void *data);
 
@@ -135,7 +135,7 @@ void GetProcessIdCallbackCompletedCB(napi_env env, napi_status status, void *dat
 
 void CBOrPromiseToGetProcessId(napi_env env, const GetIdAsyncContext *getIdCB, napi_value err, napi_value data);
 
-void ParseParaQueryOA(napi_env env, napi_callback_info cbInfo, QueryCreateOAAsyncContext *queryAllOA);
+void ParseQueryAllCreateOA(napi_env env, napi_callback_info cbInfo, QueryCreateOAAsyncContext *queryAllOA);
 
 void QueryCreateOAExecuteCB(napi_env env, void *data);
 
@@ -145,7 +145,7 @@ void QueryOAInfoForResult(napi_env env, const std::vector<OsAccountInfo> &info, 
 
 void CBOrPromiseToQueryOA(napi_env env, const QueryCreateOAAsyncContext *queryOA, napi_value err, napi_value data);
 
-void ParseParaGetPhote(napi_env env, napi_callback_info cbInfo, GetOAPhotoAsyncContext *getPhoto);
+napi_value ParseParaGetPhote(napi_env env, napi_callback_info cbInfo, GetOAPhotoAsyncContext *getPhoto);
 
 void GetOAPhoteExecuteCB(napi_env env, void *data);
 
@@ -161,7 +161,7 @@ void QueryCurrentOACallbackCompletedCB(napi_env env, napi_status status, void *d
 
 void CBOrPromiseQueryCurrentOA(napi_env env, const CurrentOAAsyncContext *currentOA, napi_value err, napi_value data);
 
-void ParseParaGetIdByUid(napi_env env, napi_callback_info cbInfo, GetIdByUidAsyncContext *idByUid);
+napi_value ParseParaGetIdByUid(napi_env env, napi_callback_info cbInfo, GetIdByUidAsyncContext *idByUid);
 
 void GetIdByUidExecuteCB(napi_env env, void *data);
 
@@ -169,7 +169,7 @@ void GetIdByUidCallbackCompletedCB(napi_env env, napi_status status, void *data)
 
 void CBOrPromiseGetIdByUid(napi_env env, const GetIdByUidAsyncContext *idByUid, napi_value err, napi_value data);
 
-void ParseParaSetPhoto(napi_env env, napi_callback_info cbInfo, SetOAPhotoAsyncContext *setPhoto);
+napi_value ParseParaSetPhoto(napi_env env, napi_callback_info cbInfo, SetOAPhotoAsyncContext *setPhoto);
 
 void SetPhotoExecuteCB(napi_env env, void *data);
 
@@ -185,7 +185,7 @@ void QueryMaxNumCompletedCB(napi_env env, napi_status status, void *data);
 
 void CBOrPromiseMaxNum(napi_env env, const QueryMaxNumAsyncContext *maxNum, napi_value err, napi_value data);
 
-void ParseParaIsActived(napi_env env, napi_callback_info cbInfo, IsActivedAsyncContext *isActived);
+napi_value ParseParaIsActived(napi_env env, napi_callback_info cbInfo, IsActivedAsyncContext *isActived);
 
 void IsActivedExecuteCB(napi_env env, void *data);
 
@@ -193,7 +193,7 @@ void IsActivedCompletedCB(napi_env env, napi_status status, void *data);
 
 void CBOrPromiseIsActived(napi_env env, const IsActivedAsyncContext *isActived, napi_value err, napi_value data);
 
-void ParseParaIsEnable(napi_env env, napi_callback_info cbInfo, IsConEnableAsyncContext *isEnable);
+napi_value ParseParaIsEnable(napi_env env, napi_callback_info cbInfo, IsConEnableAsyncContext *isEnable);
 
 void IsEnableExecuteCB(napi_env env, void *data);
 
@@ -217,7 +217,7 @@ void IsMultiEnCompletedCB(napi_env env, napi_status status, void *data);
 
 void CBOrPromiseIsMultiEn(napi_env env, const IsMultiEnAsyncContext *multiEn, napi_value err, napi_value data);
 
-void ParseParaIsVerified(napi_env env, napi_callback_info cbInfo, IsVerifiedAsyncContext *isVerified);
+napi_value ParseParaIsVerified(napi_env env, napi_callback_info cbInfo, IsVerifiedAsyncContext *isVerified);
 
 void IsVerifiedExecuteCB(napi_env env, void *data);
 
@@ -225,7 +225,7 @@ void IsVerifiedCompletedCB(napi_env env, napi_status status, void *data);
 
 void CBOrPromiseIsVerified(napi_env env, const IsVerifiedAsyncContext *isVerified, napi_value err, napi_value data);
 
-void ParseParaSerialNumId(napi_env env, napi_callback_info cbInfo, GetSerialNumIdCBInfo *serialNumId);
+napi_value ParseParaSerialNumId(napi_env env, napi_callback_info cbInfo, GetSerialNumIdCBInfo *serialNumId);
 
 void SerialNumIdExecuteCB(napi_env env, void *data);
 
@@ -233,7 +233,7 @@ void SerialNumIdCompletedCB(napi_env env, napi_status status, void *data);
 
 void CBOrPromiseSerialNum(napi_env env, const GetSerialNumIdCBInfo *serialNumId, napi_value err, napi_value data);
 
-void ParseParaGetSerialNum(napi_env env, napi_callback_info cbInfo, GetSerialNumForOAInfo *getSerialNum);
+napi_value ParseParaGetSerialNum(napi_env env, napi_callback_info cbInfo, GetSerialNumForOAInfo *getSerialNum);
 
 void GetSerialNumExecuteCB(napi_env env, void *data);
 
@@ -245,14 +245,14 @@ void ParseParaIsTestOA(napi_env env, napi_callback_info cbInfo, IsTestOAInfo *is
 
 void CBOrPromiseIsTestOA(napi_env env, const IsTestOAInfo *isTest, napi_value err, napi_value data);
 
-void ParseParaToSubscriber(const napi_env &env, const napi_value (&argv)[ARGS_SIZE_THREE], napi_ref &callback,
+napi_value ParseParaToSubscriber(const napi_env &env, const napi_value (&argv)[ARGS_SIZE_THREE], napi_ref &callback,
     OS_ACCOUNT_SUBSCRIBE_TYPE &onType, std::string &onName);
 
 void SubscribeExecuteCB(napi_env env, void *data);
 
 void SubscribeCompletedCB(napi_env env, napi_status status, void *data);
 
-void ParseParaToUnsubscriber(const napi_env &env, const size_t &argc, const napi_value (&argv)[ARGS_SIZE_THREE],
+napi_value ParseParaToUnsubscriber(const napi_env &env, const size_t &argc, const napi_value (&argv)[ARGS_SIZE_THREE],
     napi_ref &callback, OS_ACCOUNT_SUBSCRIBE_TYPE &offType, std::string &offName);
 }  // namespace AccountJsKit
 }  // namespace OHOS
