@@ -58,6 +58,44 @@ ErrCode OsAccountProxy::CreateOsAccount(
     return ERR_OK;
 }
 
+ErrCode OsAccountProxy::CreateOsAccountForDomain(
+    const OsAccountType &type, const DomainAccountInfo &domainInfo, OsAccountInfo &osAccountInfo)
+{
+    ACCOUNT_LOGI("enter");
+
+    MessageParcel data;
+    MessageParcel reply;
+
+    if (!data.WriteInt32(type)) {
+        ACCOUNT_LOGE("failed to write type ");
+        return ERR_OS_ACCOUNT_KIT_WRITE_OSACCOUNT_TYPE_ERROR;
+    }
+
+    if (!data.WriteString(domainInfo.domain_)) {
+        ACCOUNT_LOGE("failed to write string for domain");
+        return ERR_OS_ACCOUNT_KIT_WRITE_DOMAIN_ERROR;
+    }
+
+    if (!data.WriteString(domainInfo.accountName_)) {
+        ACCOUNT_LOGE("failed to write string for domain account name");
+        return ERR_OS_ACCOUNT_KIT_WRITE_DOMAIN_ACCOUNT_NAME_ERROR;
+    }
+
+    ErrCode result = SendRequest(IOsAccount::Message::CREATE_OS_ACCOUNT_FOR_DOMAIN, data, reply);
+    if (result != ERR_OK) {
+        ACCOUNT_LOGE("failed to send request for create os account for domain.");
+        return result;
+    }
+
+    result = reply.ReadInt32();
+    if (result != ERR_OK) {
+        ACCOUNT_LOGE("failed to read reply for create os account for domain.");
+        return result;
+    }
+    osAccountInfo = *(reply.ReadParcelable<OsAccountInfo>());
+    return ERR_OK;
+}
+
 ErrCode OsAccountProxy::RemoveOsAccount(const int id)
 {
     ACCOUNT_LOGI("enter");
@@ -233,6 +271,34 @@ ErrCode OsAccountProxy::GetOsAccountLocalIdFromUid(const int uid, int &id)
     }
     id = reply.ReadInt32();
     ACCOUNT_LOGI("OsAccountProxy GetOsAccountLocalIdFromUid end");
+    return ERR_OK;
+}
+
+ErrCode OsAccountProxy::GetOsAccountLocalIdFromDomain(const DomainAccountInfo &domainInfo, int &id)
+{
+    ACCOUNT_LOGI("OsAccountProxy GetOsAccountLocalIdFromDomain start");
+    MessageParcel data;
+    MessageParcel reply;
+    if (!data.WriteString(domainInfo.domain_)) {
+        ACCOUNT_LOGE("failed to write int for domain.");
+        return ERR_OSACCOUNT_KIT_WRITE_INT_LOCALID_ERROR;
+    }
+    if (!data.WriteString(domainInfo.accountName_)) {
+        ACCOUNT_LOGE("failed to write int for domain account name.");
+        return ERR_OSACCOUNT_KIT_WRITE_INT_LOCALID_ERROR;
+    }
+    ErrCode result = SendRequest(IOsAccount::Message::GET_OS_ACCOUNT_LOCAL_ID_FROM_DOMAIN, data, reply);
+    if (result != ERR_OK) {
+        ACCOUNT_LOGI("SendRequest err, result %{public}d.", result);
+        return ERR_OSACCOUNT_KIT_GET_OS_ACCOUNT_LOCAL_ID_FOR_DOMAIN_ERROR;
+    }
+    result = reply.ReadInt32();
+    if (result != ERR_OK) {
+        ACCOUNT_LOGI("read from reply err, result %{public}d.", result);
+        return ERR_OSACCOUNT_KIT_GET_OS_ACCOUNT_LOCAL_ID_FOR_DOMAIN_ERROR;
+    }
+    id = reply.ReadInt32();
+    ACCOUNT_LOGI("OsAccountProxy GetOsAccountLocalIdFromDomain end");
     return ERR_OK;
 }
 

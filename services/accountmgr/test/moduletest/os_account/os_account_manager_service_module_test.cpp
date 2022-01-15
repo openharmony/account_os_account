@@ -131,6 +131,18 @@ const std::string PHOTO_IMG_ERROR =
     "zchW8pKj7iFAA0R2wajl5d46idlR3+GtPV2XOvQ3bBNvyFs8U39v9PLX0Bp0CN+yY0OAEAAAAASUVORK5CYII=";
 const std::int32_t DELAY_FOR_OPERATION = 20 * 1000;
 std::shared_ptr<OsAccountManagerService> g_osAccountManagerService_;
+const std::string STRING_DOMAIN_NAME_OUT_OF_RANGE = 
+    "1234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890"
+    "123456789012345678901234567890";
+const std::string STRING_DOMAIN_ACCOUNT_NAME_OUT_OF_RANGE = 
+    "1234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890"
+    "1234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890"
+    "1234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890"
+    "1234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890"
+    "1234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890"
+    "1234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890";
+const std::string STRING_DOMAIN_VALID = "TestDomainMT";
+const std::string STRING_DOMAIN_ACCOUNT_NAME_VALID = "TestDomainAccountNameMT";
 }  // namespace
 
 class OsAccountManagerServiceModuleTest : public testing::Test {
@@ -984,6 +996,248 @@ HWTEST_F(OsAccountManagerServiceModuleTest, OsAccountManagerServiceModuleTest058
 {
     bool isVerified = true;
     EXPECT_NE(g_osAccountManagerService_->SetCurrentOsAccountIsVerified(isVerified), ERR_OK);
+}
+
+/**
+ * @tc.name: OsAccountManagerServiceModuleTest059
+ * @tc.desc: create an os account by domain, and remove it
+ * @tc.type: FUNC
+ * @tc.require: SR000GGVFL
+ */
+HWTEST_F(OsAccountManagerServiceModuleTest, OsAccountManagerServiceModuleTest059, TestSize.Level1)
+{
+    OsAccountType type = NORMAL;
+    DomainAccountInfo domainInfo(STRING_DOMAIN_VALID, STRING_DOMAIN_ACCOUNT_NAME_VALID);
+    OsAccountInfo osAccountInfo;
+    EXPECT_EQ(g_osAccountManagerService_->CreateOsAccountForDomain(type, domainInfo, osAccountInfo), ERR_OK);
+
+    bool checkValid = (osAccountInfo.GetLocalId() > Constants::START_USER_ID);
+    EXPECT_EQ(checkValid, true);
+
+    OsAccountInfo resOsAccountInfo;
+    EXPECT_EQ(osAccountControlFileManager_->GetOsAccountInfoById(osAccountInfo.GetLocalId(), resOsAccountInfo),
+        ERR_OK);
+
+    DomainAccountInfo resDomainInfo;
+    resOsAccountInfo.GetDomainInfo(resDomainInfo);
+    checkValid = (resDomainInfo.accountName_ == domainInfo.accountName_);
+    EXPECT_EQ(checkValid, true);
+    checkValid = (resDomainInfo.domain_ == domainInfo.domain_);
+    EXPECT_EQ(checkValid, true);
+
+    std::string osAccountName = domainInfo.domain_ + "/" + domainInfo.accountName_;
+    checkValid = (resOsAccountInfo.GetLocalName() == osAccountName);
+    EXPECT_EQ(checkValid, true);
+
+    EXPECT_EQ(osAccountControlFileManager_->DelOsAccount(resOsAccountInfo.GetLocalId()), ERR_OK);
+}
+
+/**
+ * @tc.name: OsAccountManagerServiceModuleTest060
+ * @tc.desc: create an os account by domain, and activate it
+ * @tc.type: FUNC
+ * @tc.require: SR000GGVFL
+ */
+HWTEST_F(OsAccountManagerServiceModuleTest, OsAccountManagerServiceModuleTest060, TestSize.Level1)
+{
+    // create
+    DomainAccountInfo domainInfo(STRING_DOMAIN_VALID, STRING_DOMAIN_ACCOUNT_NAME_VALID);
+    OsAccountType type = NORMAL;
+    OsAccountInfo osAccountInfo;
+    EXPECT_EQ(g_osAccountManagerService_->CreateOsAccountForDomain(type, domainInfo, osAccountInfo), ERR_OK);
+
+    bool checkValid = (osAccountInfo.GetLocalId() > Constants::START_USER_ID);
+    EXPECT_EQ(checkValid, true);
+
+    OsAccountInfo resOsAccountInfo;
+    EXPECT_EQ(osAccountControlFileManager_->GetOsAccountInfoById(osAccountInfo.GetLocalId(), resOsAccountInfo),
+        ERR_OK);
+
+    DomainAccountInfo resDomainInfo;
+    resOsAccountInfo.GetDomainInfo(resDomainInfo);
+    checkValid = (resDomainInfo.accountName_ == domainInfo.accountName_);
+    EXPECT_EQ(checkValid, true);
+    checkValid = (resDomainInfo.domain_ == domainInfo.domain_);
+    EXPECT_EQ(checkValid, true);
+
+    std::string osAccountName = domainInfo.domain_ + "/" + domainInfo.accountName_;
+    checkValid = (resOsAccountInfo.GetLocalName() == osAccountName);
+    EXPECT_EQ(checkValid, true);
+
+    // activate
+    EXPECT_EQ(g_osAccountManagerService_->ActivateOsAccount(osAccountInfo.GetLocalId()), ERR_OK);
+
+    // check
+    OsAccountInfo queryAccountInfo;
+    EXPECT_EQ(g_osAccountManagerService_->QueryOsAccountById(osAccountInfo.GetLocalId(), queryAccountInfo), ERR_OK);
+    EXPECT_EQ(queryAccountInfo.GetLocalId(), osAccountInfo.GetLocalId());
+    EXPECT_EQ(queryAccountInfo.GetIsActived(), true);
+    checkValid = (queryAccountInfo.GetLocalName() == osAccountName);
+    EXPECT_EQ(checkValid, true);
+
+    // remove
+    EXPECT_EQ(osAccountControlFileManager_->DelOsAccount(osAccountInfo.GetLocalId()), ERR_OK);
+}
+
+/**
+ * @tc.name: OsAccountManagerServiceModuleTest061
+ * @tc.desc: Create os account for domain use invalid data.
+ * @tc.type: FUNC
+ * @tc.require: SR000GGVFL
+ */
+HWTEST_F(OsAccountManagerServiceModuleTest, OsAccountManagerServiceModuleTest061, TestSize.Level1)
+{
+    DomainAccountInfo domainNameInvalid(STRING_DOMAIN_NAME_OUT_OF_RANGE, STRING_DOMAIN_ACCOUNT_NAME_VALID);
+    OsAccountType type = NORMAL;
+    OsAccountInfo osAccountInfo;
+    EXPECT_EQ(g_osAccountManagerService_->CreateOsAccountForDomain(type, domainNameInvalid, osAccountInfo),
+        ERR_OS_ACCOUNT_SERVICE_MANAGER_NAME_SIZE_OVERFLOW_ERROR);
+
+    DomainAccountInfo domainAccountNameInvalid(STRING_DOMAIN_VALID, STRING_DOMAIN_ACCOUNT_NAME_OUT_OF_RANGE);
+    EXPECT_EQ(g_osAccountManagerService_->CreateOsAccountForDomain(type, domainAccountNameInvalid, osAccountInfo),
+        ERR_OS_ACCOUNT_SERVICE_MANAGER_NAME_SIZE_OVERFLOW_ERROR);
+
+    DomainAccountInfo domainEmpty("", STRING_DOMAIN_ACCOUNT_NAME_VALID);
+    EXPECT_EQ(g_osAccountManagerService_->CreateOsAccountForDomain(type, domainEmpty, osAccountInfo),
+        ERR_OS_ACCOUNT_SERVICE_MANAGER_NAME_SIZE_EMPTY_ERROR);
+
+    DomainAccountInfo domainAccountEmpty(STRING_DOMAIN_VALID, "");
+    EXPECT_EQ(g_osAccountManagerService_->CreateOsAccountForDomain(type, domainAccountEmpty, osAccountInfo),
+        ERR_OS_ACCOUNT_SERVICE_MANAGER_NAME_SIZE_EMPTY_ERROR);
+}
+
+/**
+ * @tc.name: OsAccountManagerServiceModuleTest062
+ * @tc.desc: repeat create os account for domain
+ * @tc.type: FUNC
+ * @tc.require: SR000GGVFL
+ */
+HWTEST_F(OsAccountManagerServiceModuleTest, OsAccountManagerServiceModuleTest062, TestSize.Level1)
+{
+    // create
+    DomainAccountInfo domainInfo(STRING_DOMAIN_VALID, STRING_DOMAIN_ACCOUNT_NAME_VALID);
+    OsAccountType type = NORMAL;
+    OsAccountInfo osAccountInfo;
+    EXPECT_EQ(g_osAccountManagerService_->CreateOsAccountForDomain(type, domainInfo, osAccountInfo), ERR_OK);
+
+    // create again
+    EXPECT_EQ(g_osAccountManagerService_->CreateOsAccountForDomain(type, domainInfo, osAccountInfo),
+        ERR_OS_ACCOUNT_SERVICE_INNER_DOMAIN_ALREADY_BIND_ERROR);
+
+    // remove
+    EXPECT_EQ(osAccountControlFileManager_->DelOsAccount(osAccountInfo.GetLocalId()), ERR_OK);
+}
+
+/**
+ * @tc.name: OsAccountManagerServiceModuleTest063
+ * @tc.desc: repeat create os account for domain
+ * @tc.type: FUNC
+ * @tc.require: SR000GGVFL
+ */
+HWTEST_F(OsAccountManagerServiceModuleTest, OsAccountManagerServiceModuleTest063, TestSize.Level1)
+{
+    // create
+    DomainAccountInfo domainInfo(STRING_DOMAIN_VALID, STRING_DOMAIN_ACCOUNT_NAME_VALID);
+    OsAccountType type = NORMAL;
+    OsAccountInfo osAccountInfo;
+    EXPECT_EQ(g_osAccountManagerService_->CreateOsAccountForDomain(type, domainInfo, osAccountInfo), ERR_OK);
+
+    // create again
+    EXPECT_EQ(g_osAccountManagerService_->CreateOsAccountForDomain(type, domainInfo, osAccountInfo),
+        ERR_OS_ACCOUNT_SERVICE_INNER_DOMAIN_ALREADY_BIND_ERROR);
+
+    // remove
+    EXPECT_EQ(osAccountControlFileManager_->DelOsAccount(osAccountInfo.GetLocalId()), ERR_OK);
+
+    // create again
+    EXPECT_EQ(g_osAccountManagerService_->CreateOsAccountForDomain(type, domainInfo, osAccountInfo), ERR_OK);
+
+    // remove
+    EXPECT_EQ(osAccountControlFileManager_->DelOsAccount(osAccountInfo.GetLocalId()), ERR_OK);
+}
+
+/**
+ * @tc.name: OsAccountManagerServiceModuleTest064
+ * @tc.desc: query os account by domain info
+ * @tc.type: FUNC
+ * @tc.require: SR000GGVFL
+ */
+HWTEST_F(OsAccountManagerServiceModuleTest, OsAccountManagerServiceModuleTest064, TestSize.Level1)
+{
+    // create
+    DomainAccountInfo domainInfo(STRING_DOMAIN_VALID, STRING_DOMAIN_ACCOUNT_NAME_VALID);
+    OsAccountType type = NORMAL;
+    OsAccountInfo osAccountInfo;
+    EXPECT_EQ(g_osAccountManagerService_->CreateOsAccountForDomain(type, domainInfo, osAccountInfo), ERR_OK);
+
+    // get os account local id by domain
+    int resID = -1;
+    EXPECT_EQ(g_osAccountManagerService_->GetOsAccountLocalIdFromDomain(domainInfo, resID), ERR_OK);
+    EXPECT_EQ(resID, osAccountInfo.GetLocalId());
+
+    // remove
+    EXPECT_EQ(osAccountControlFileManager_->DelOsAccount(osAccountInfo.GetLocalId()), ERR_OK);
+}
+
+/**
+ * @tc.name: OsAccountManagerServiceModuleTest065
+ * @tc.desc: query os account by domain info
+ * @tc.type: FUNC
+ * @tc.require: SR000GGVFL
+ */
+HWTEST_F(OsAccountManagerServiceModuleTest, OsAccountManagerServiceModuleTest065, TestSize.Level1)
+{
+    // create
+    DomainAccountInfo domainInfo(STRING_DOMAIN_VALID, STRING_DOMAIN_ACCOUNT_NAME_VALID);
+    OsAccountType type = NORMAL;
+    OsAccountInfo osAccountInfo;
+    EXPECT_EQ(g_osAccountManagerService_->CreateOsAccountForDomain(type, domainInfo, osAccountInfo), ERR_OK);
+
+    // get os account local id by domain
+    int resID = -1;
+    EXPECT_EQ(g_osAccountManagerService_->GetOsAccountLocalIdFromDomain(domainInfo, resID), ERR_OK);
+    EXPECT_EQ(resID, osAccountInfo.GetLocalId());
+
+    // remove
+    EXPECT_EQ(osAccountControlFileManager_->DelOsAccount(osAccountInfo.GetLocalId()), ERR_OK);
+
+    // cannot query
+    EXPECT_EQ(g_osAccountManagerService_->GetOsAccountLocalIdFromDomain(domainInfo, resID),
+        ERR_OSACCOUNT_KIT_GET_OS_ACCOUNT_LOCAL_ID_FOR_DOMAIN_ERROR);
+}
+
+/**
+ * @tc.name: OsAccountManagerServiceModuleTest066
+ * @tc.desc: query os account by domain info
+ * @tc.type: FUNC
+ * @tc.require: SR000GGVFL
+ */
+HWTEST_F(OsAccountManagerServiceModuleTest, OsAccountManagerServiceModuleTest066, TestSize.Level1)
+{
+    DomainAccountInfo domainAllEmpty("", "");
+    int resID = -1;
+    EXPECT_EQ(g_osAccountManagerService_->GetOsAccountLocalIdFromDomain(domainAllEmpty, resID),
+        ERR_OS_ACCOUNT_SERVICE_INNER_DOMAIN_NAME_LEN_ERROR);
+
+    DomainAccountInfo domainNameEmpty("", STRING_DOMAIN_ACCOUNT_NAME_VALID);
+    EXPECT_EQ(g_osAccountManagerService_->GetOsAccountLocalIdFromDomain(domainNameEmpty, resID),
+        ERR_OS_ACCOUNT_SERVICE_INNER_DOMAIN_NAME_LEN_ERROR);
+
+    DomainAccountInfo domainAccountEmpty(STRING_DOMAIN_VALID, "");
+    EXPECT_EQ(g_osAccountManagerService_->GetOsAccountLocalIdFromDomain(domainAccountEmpty, resID),
+        ERR_OS_ACCOUNT_SERVICE_INNER_DOMAIN_ACCOUNT_NAME_LEN_ERROR);
+
+    DomainAccountInfo domainAllTooLong(STRING_DOMAIN_NAME_OUT_OF_RANGE, STRING_DOMAIN_ACCOUNT_NAME_OUT_OF_RANGE);
+    EXPECT_EQ(g_osAccountManagerService_->GetOsAccountLocalIdFromDomain(domainAllTooLong, resID),
+        ERR_OS_ACCOUNT_SERVICE_INNER_DOMAIN_NAME_LEN_ERROR);
+
+    DomainAccountInfo domainNameTooLong(STRING_DOMAIN_NAME_OUT_OF_RANGE, STRING_DOMAIN_ACCOUNT_NAME_VALID);
+    EXPECT_EQ(g_osAccountManagerService_->GetOsAccountLocalIdFromDomain(domainNameTooLong, resID),
+        ERR_OS_ACCOUNT_SERVICE_INNER_DOMAIN_NAME_LEN_ERROR);
+
+    DomainAccountInfo domainAccountTooLong(STRING_DOMAIN_VALID, STRING_DOMAIN_ACCOUNT_NAME_OUT_OF_RANGE);
+    EXPECT_EQ(g_osAccountManagerService_->GetOsAccountLocalIdFromDomain(domainAccountTooLong, resID),
+        ERR_OS_ACCOUNT_SERVICE_INNER_DOMAIN_ACCOUNT_NAME_LEN_ERROR);    
 }
 }  // namespace AccountSA
 }  // namespace OHOS

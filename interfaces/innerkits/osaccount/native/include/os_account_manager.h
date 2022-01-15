@@ -25,6 +25,8 @@ namespace AccountSA {
 class OsAccountManager {
 public:
     static ErrCode CreateOsAccount(const std::string &name, const OsAccountType &type, OsAccountInfo &osAccountInfo);
+    static ErrCode CreateOsAccountForDomain(
+        const OsAccountType &type, const DomainAccountInfo &domainInfo, OsAccountInfo &osAccountInfo);
     static ErrCode RemoveOsAccount(const int id);
     static ErrCode IsOsAccountExists(const int id, bool &isOsAccountExists);
     static ErrCode IsOsAccountActived(const int id, bool &isOsAccountActived);
@@ -33,6 +35,7 @@ public:
     static ErrCode GetCreatedOsAccountsCount(int &osAccountsCount);
     static ErrCode GetOsAccountLocalIdFromProcess(int &id);
     static ErrCode GetOsAccountLocalIdFromUid(const int uid, int &id);
+    static ErrCode GetOsAccountLocalIdFromDomain(const DomainAccountInfo &domainInfo, int &id);
     static ErrCode QueryMaxOsAccountNumber(int &maxOsAccountNumber);
     static ErrCode GetOsAccountAllConstraints(const int id, std::vector<std::string> &constraints);
     static ErrCode QueryAllCreatedOsAccounts(std::vector<OsAccountInfo> &osAccountInfos);

@@ -47,6 +47,10 @@ const int SUBSCRIBER_MAX_SIZE = 100;
 const unsigned int LOCAL_NAME_MAX_SIZE = 1024;
 const unsigned int LOCAL_PHOTO_MAX_SIZE = 1024 * 4;
 
+// domain info limits
+const unsigned int DOMAIN_NAME_MAX_SIZE = 128;
+const unsigned int DOMAIN_ACCOUNT_NAME_MAX_SIZE = 512;
+
 // temporary 100
 const int ADMIN_LOCAL_ID = 0;
 const int ADMIN_TYPE = -1;
