@@ -99,6 +99,18 @@ const std::string STRING_PHOTO_OUT_OF_RANGE =
     "1234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890"
     "1234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890"
     "1234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890";
+const std::string STRING_DOMAIN_NAME_OUT_OF_RANGE = 
+    "1234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890"
+    "123456789012345678901234567890";
+const std::string STRING_DOMAIN_ACCOUNT_NAME_OUT_OF_RANGE = 
+    "1234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890"
+    "1234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890"
+    "1234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890"
+    "1234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890"
+    "1234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890"
+    "1234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890";
+const std::string STRING_DOMAIN_VALID = "TestDomainUT";
+const std::string STRING_DOMAIN_ACCOUNT_NAME_VALID = "TestDomainAccountNameUT";
 }  // namespace
 class OsAccountTest : public testing::Test {
 public:
@@ -195,4 +207,62 @@ HWTEST_F(OsAccountTest, OsAccountTest006, TestSize.Level1)
 {
     ErrCode errCode = osAccount_->SetOsAccountProfilePhoto(100, STRING_PHOTO_OUT_OF_RANGE);
     EXPECT_EQ(errCode, ERR_OSACCOUNT_KIT_PHOTO_OUTFLOW_ERROR);
+}
+
+/**
+ * @tc.name: OsAccountTest007
+ * @tc.desc: Test SetDomainInfo with valid info
+ * @tc.type: FUNC
+ * @tc.require: SR000GGVFL
+ */
+HWTEST_F(OsAccountTest, OsAccountTest007, TestSize.Level1)
+{
+    DomainAccountInfo domainInfo(STRING_DOMAIN_VALID, STRING_DOMAIN_ACCOUNT_NAME_VALID);
+    bool checkValid = (domainInfo.accountName_ == STRING_DOMAIN_ACCOUNT_NAME_VALID);
+    EXPECT_EQ(checkValid, true);
+    checkValid = (domainInfo.domain_ == STRING_DOMAIN_VALID);
+    EXPECT_EQ(checkValid, true);
+
+    domainInfo.Clear();
+    checkValid = (domainInfo.accountName_ == "");
+    EXPECT_EQ(checkValid, true);
+    checkValid = (domainInfo.domain_ == "");
+    EXPECT_EQ(checkValid, true);
+}
+
+/**
+ * @tc.name: OsAccountTest008
+ * @tc.desc: Test SetDomainInfo with valid info
+ * @tc.type: FUNC
+ * @tc.require: SR000GGVFL
+ */
+HWTEST_F(OsAccountTest, OsAccountTest008, TestSize.Level1)
+{
+    OsAccountInfo osAccountInfo;
+    DomainAccountInfo domainInfo(STRING_DOMAIN_VALID, STRING_DOMAIN_ACCOUNT_NAME_VALID);
+    EXPECT_EQ(osAccountInfo.SetDomainInfo(domainInfo), true);
+
+    DomainAccountInfo getDomainInfo;
+    osAccountInfo.GetDomainInfo(getDomainInfo);
+
+    bool checkValid = (getDomainInfo.accountName_ == domainInfo.accountName_);
+    EXPECT_EQ(checkValid, true);
+    checkValid = (getDomainInfo.domain_ == domainInfo.domain_);
+    EXPECT_EQ(checkValid, true);
+}
+
+/**
+ * @tc.name: OsAccountTest009
+ * @tc.desc: Test SetDomainInfo with in valid info
+ * @tc.type: FUNC
+ * @tc.require: SR000GGVFL
+ */
+HWTEST_F(OsAccountTest, OsAccountTest009, TestSize.Level1)
+{
+    OsAccountInfo osAccountInfo;
+    DomainAccountInfo domainInfoNameInvalid(STRING_DOMAIN_NAME_OUT_OF_RANGE, STRING_DOMAIN_ACCOUNT_NAME_VALID);
+    EXPECT_EQ(osAccountInfo.SetDomainInfo(domainInfoNameInvalid), false);
+
+    DomainAccountInfo domainInfoAccountInvalid(STRING_DOMAIN_VALID, STRING_DOMAIN_ACCOUNT_NAME_OUT_OF_RANGE);
+    EXPECT_EQ(osAccountInfo.SetDomainInfo(domainInfoAccountInvalid), false);
 }

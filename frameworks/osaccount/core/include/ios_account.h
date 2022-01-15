@@ -29,6 +29,8 @@ public:
 
     virtual ErrCode CreateOsAccount(
         const std::string &name, const OsAccountType &type, OsAccountInfo &osAccountInfo) = 0;
+    virtual ErrCode CreateOsAccountForDomain(
+        const OsAccountType &type, const DomainAccountInfo &domainInfo, OsAccountInfo &osAccountInfo) = 0;
     virtual ErrCode RemoveOsAccount(const int id) = 0;
     virtual ErrCode IsOsAccountExists(const int id, bool &isOsAccountExists) = 0;
     virtual ErrCode IsOsAccountActived(const int id, bool &isOsAccountActived) = 0;
@@ -38,6 +40,7 @@ public:
     virtual ErrCode GetCreatedOsAccountsCount(int &osAccountsCount) = 0;
     virtual ErrCode GetOsAccountLocalIdFromProcess(int &id) = 0;
     virtual ErrCode GetOsAccountLocalIdFromUid(const int uid, int &id) = 0;
+    virtual ErrCode GetOsAccountLocalIdFromDomain(const DomainAccountInfo &domainInfo, int &id) = 0;
     virtual ErrCode QueryMaxOsAccountNumber(int &maxOsAccountNumber) = 0;
     virtual ErrCode GetOsAccountAllConstraints(const int id, std::vector<std::string> &constraints) = 0;
     virtual ErrCode QueryAllCreatedOsAccounts(std::vector<OsAccountInfo> &osAccountInfos) = 0;
@@ -68,6 +71,7 @@ public:
 
     enum class Message {
         CREATE_OS_ACCOUNT = 0,
+        CREATE_OS_ACCOUNT_FOR_DOMAIN,
         REMOVE_OS_ACCOUNT,
         IS_OS_ACCOUNT_EXISTS,
         IS_OS_ACCOUNT_ACTIVED,
@@ -76,6 +80,7 @@ public:
         GET_CREATED_OS_ACCOUNT_COUNT,
         GET_OS_ACCOUNT_LOCAL_ID_FROM_PROCESS,
         GET_OS_ACCOUNT_LOCAL_ID_FROM_UID,
+        GET_OS_ACCOUNT_LOCAL_ID_FROM_DOMAIN,
         QUERY_MAX_OS_ACCOUNT_NUMBER,
         GET_OS_ACCOUNT_ALL_CONSTRAINTS,
         QUERY_ALL_CREATED_OS_ACCOUNTS,

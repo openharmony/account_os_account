@@ -28,6 +28,8 @@ public:
 
     virtual ErrCode CreateOsAccount(
         const std::string &name, const OsAccountType &type, OsAccountInfo &osAccountInfo) override;
+    virtual ErrCode CreateOsAccountForDomain(
+        const OsAccountType &type, const DomainAccountInfo &domainInfo, OsAccountInfo &osAccountInfo) override;
     virtual ErrCode RemoveOsAccount(const int id) override;
 
     virtual ErrCode IsOsAccountExists(const int id, bool &isOsAccountExists) override;
@@ -41,6 +43,7 @@ public:
     virtual ErrCode GetOsAccountLocalIdFromProcess(int &id) override;
 
     virtual ErrCode GetOsAccountLocalIdFromUid(const int uid, int &id) override;
+    virtual ErrCode GetOsAccountLocalIdFromDomain(const DomainAccountInfo &domainInfo, int &id) override;
     virtual ErrCode QueryMaxOsAccountNumber(int &maxOsAccountNumber) override;
 
     virtual ErrCode GetOsAccountAllConstraints(const int id, std::vector<std::string> &constraints) override;

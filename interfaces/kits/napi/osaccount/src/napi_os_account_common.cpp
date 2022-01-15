@@ -233,6 +233,23 @@ void GetOACBInfoToJs(napi_env env, OsAccountInfo &info, napi_value objOAInfo)
         napi_get_undefined(env, &dbInfoToJs);
     }
     napi_set_named_property(env, objOAInfo, "distributedInfo", dbInfoToJs);
+
+    // domainInfo: domainInfo.DomainAccountInfo
+    dbInfoToJs = nullptr;
+    value = nullptr;
+    napi_create_object(env, &dbInfoToJs);
+
+    DomainAccountInfo domainInfo;
+    info.GetDomainInfo(domainInfo);
+
+    // domain
+    napi_create_string_utf8(env, domainInfo.domain_.c_str(), domainInfo.domain_.size(), &value);
+    napi_set_named_property(env, dbInfoToJs, "domain", value);
+
+    // domain accountName
+    napi_create_string_utf8(env, domainInfo.accountName_.c_str(), domainInfo.accountName_.size(), &value);
+    napi_set_named_property(env, dbInfoToJs, "accountName", value);
+    napi_set_named_property(env, objOAInfo, "domainInfo", dbInfoToJs);
 }
 
 void MakeArrayToJs(napi_env env, const std::vector<std::string> &constraints, napi_value jsArray)
@@ -605,6 +622,38 @@ napi_value ParseParaCreateOA(napi_env env, napi_callback_info cbInfo, CreateOAAs
     return WrapVoidToJS(env);
 }
 
+napi_value ParseParaCreateOAForDomain(napi_env env, napi_callback_info cbInfo,
+    CreateOAForDomainAsyncContext *createOAForDomainCB)
+{
+    ACCOUNT_LOGI("enter");
+    size_t argc = ARGS_SIZE_THREE;
+    napi_value argv[ARGS_SIZE_THREE] = {0};
+    napi_get_cb_info(env, cbInfo, &argc, argv, nullptr, nullptr);
+
+    for (size_t i = PARAMZERO; i < argc; i++) {
+        napi_valuetype valueType = napi_undefined;
+        napi_typeof(env, argv[i], &valueType);
+        if (i == PARAMZERO && valueType == napi_number) {
+            createOAForDomainCB->type = static_cast<OsAccountType>(GetIntProperty(env, argv[i]));
+        } else if (i == PARAMONE && valueType == napi_object) {
+            napi_value result = nullptr;
+            napi_get_named_property(env, argv[i], "domain", &result);
+            createOAForDomainCB->domainInfo.domain_ = GetStringProperty(env, result);
+
+            result = nullptr;
+            napi_get_named_property(env, argv[i], "accountName", &result);
+            createOAForDomainCB->domainInfo.accountName_ = GetStringProperty(env, result);
+        } else if (i == PARAMTWO && valueType == napi_function) {
+            napi_create_reference(env, argv[i], 1, &createOAForDomainCB->callbackRef);
+            break;
+        } else {
+            ACCOUNT_LOGE("Type matching failed");
+            return nullptr;
+        }
+    }
+    return WrapVoidToJS(env);
+}
+
 void CreateOAExecuteCB(napi_env env, void *data)
 {
     ACCOUNT_LOGI("napi_create_async_work running");
@@ -613,6 +662,16 @@ void CreateOAExecuteCB(napi_env env, void *data)
         OsAccountManager::CreateOsAccount(createOACB->name, createOACB->type, createOACB->osAccountInfos);
     ACCOUNT_LOGI("errocde is %{public}d", createOACB->errCode);
     createOACB->status = (createOACB->errCode == 0) ? napi_ok : napi_generic_failure;
+}
+
+void CreateOAForDomainExecuteCB(napi_env env, void *data)
+{
+    ACCOUNT_LOGI("napi_create_async_work running");
+    CreateOAForDomainAsyncContext *createOAForDomainCB = (CreateOAForDomainAsyncContext *)data;
+    createOAForDomainCB->errCode = OsAccountManager::CreateOsAccountForDomain(createOAForDomainCB->type,
+        createOAForDomainCB->domainInfo, createOAForDomainCB->osAccountInfos);
+    ACCOUNT_LOGI("errocde is %{public}d", createOAForDomainCB->errCode);
+    createOAForDomainCB->status = (createOAForDomainCB->errCode == 0) ? napi_ok : napi_generic_failure;
 }
 
 void CreateOACallbackCompletedCB(napi_env env, napi_status status, void *data)
@@ -627,6 +686,20 @@ void CreateOACallbackCompletedCB(napi_env env, napi_status status, void *data)
     napi_delete_async_work(env, createOACB->work);
     delete createOACB;
     createOACB = nullptr;
+}
+
+void CreateOAForDomainCallbackCompletedCB(napi_env env, napi_status status, void *data)
+{
+    ACCOUNT_LOGI("napi_create_async_work complete");
+    CreateOAForDomainAsyncContext *createOAForDomainCB = (CreateOAForDomainAsyncContext *)data;
+    napi_value createResult[RESULT_COUNT] = {0};
+    createResult[PARAM0] = GetErrorCodeValue(env, createOAForDomainCB->errCode);
+    napi_create_object(env, &createResult[PARAM1]);
+    GetOACBInfoToJs(env, createOAForDomainCB->osAccountInfos, createResult[PARAM1]);
+    CBOrPromiseToCreateOAForDomain(env, createOAForDomainCB, createResult[PARAM0], createResult[PARAM1]);
+    napi_delete_async_work(env, createOAForDomainCB->work);
+    delete createOAForDomainCB;
+    createOAForDomainCB = nullptr;
 }
 
 void CBOrPromiseToCreateOA(napi_env env, const CreateOAAsyncContext *createOACB, napi_value err, napi_value data)
@@ -648,6 +721,30 @@ void CBOrPromiseToCreateOA(napi_env env, const CreateOAAsyncContext *createOACB,
         napi_call_function(env, nullptr, callback, RESULT_COUNT, &args[0], &returnVal);
         if (createOACB->callbackRef != nullptr) {
             napi_delete_reference(env, createOACB->callbackRef);
+        }
+    }
+}
+
+void CBOrPromiseToCreateOAForDomain(napi_env env, const CreateOAForDomainAsyncContext *createOAForDomainCB,
+    napi_value err, napi_value data)
+{
+    ACCOUNT_LOGI("enter");
+    napi_value args[RESULT_COUNT] = {err, data};
+    if (createOAForDomainCB->deferred) {
+        ACCOUNT_LOGI("Promise");
+        if (createOAForDomainCB->status == napi_ok) {
+            napi_resolve_deferred(env, createOAForDomainCB->deferred, args[1]);
+        } else {
+            napi_reject_deferred(env, createOAForDomainCB->deferred, args[0]);
+        }
+    } else {
+        ACCOUNT_LOGI("Callback");
+        napi_value callback = nullptr;
+        napi_get_reference_value(env, createOAForDomainCB->callbackRef, &callback);
+        napi_value returnVal = nullptr;
+        napi_call_function(env, nullptr, callback, RESULT_COUNT, &args[0], &returnVal);
+        if (createOAForDomainCB->callbackRef != nullptr) {
+            napi_delete_reference(env, createOAForDomainCB->callbackRef);
         }
     }
 }
@@ -1148,6 +1245,35 @@ napi_value ParseParaGetIdByUid(napi_env env, napi_callback_info cbInfo, GetIdByU
     return WrapVoidToJS(env);
 }
 
+napi_value ParseParaGetIdByDomain(napi_env env, napi_callback_info cbInfo, GetIdByDomainAsyncContext *idByDomain)
+{
+    ACCOUNT_LOGI("enter");
+    size_t argc = ARGS_SIZE_TWO;
+    napi_value argv[ARGS_SIZE_TWO] = {0};
+    napi_get_cb_info(env, cbInfo, &argc, argv, nullptr, nullptr);
+
+    for (size_t i = 0; i < argc; i++) {
+        napi_valuetype valueType = napi_undefined;
+        napi_typeof(env, argv[i], &valueType);
+        if (i == PARAMZERO && valueType == napi_object) {
+            napi_value result = nullptr;
+            napi_get_named_property(env, argv[i], "domain", &result);
+            idByDomain->domainInfo.domain_ = GetStringProperty(env, result);
+
+            result = nullptr;
+            napi_get_named_property(env, argv[i], "accountName", &result);
+            idByDomain->domainInfo.accountName_ = GetStringProperty(env, result);
+        } else if (i == PARAMONE && valueType == napi_function) {
+            napi_create_reference(env, argv[i], 1, &idByDomain->callbackRef);
+            break;
+        } else {
+            ACCOUNT_LOGE("Type matching failed");
+            return nullptr;
+        }
+    }
+    return WrapVoidToJS(env);
+}
+
 void GetIdByUidExecuteCB(napi_env env, void *data)
 {
     ACCOUNT_LOGI("napi_create_async_work running");
@@ -1155,6 +1281,16 @@ void GetIdByUidExecuteCB(napi_env env, void *data)
     idByUid->errCode = OsAccountManager::GetOsAccountLocalIdFromUid(idByUid->uid, idByUid->id);
     ACCOUNT_LOGI("errocde is %{public}d", idByUid->errCode);
     idByUid->status = (idByUid->errCode == 0) ? napi_ok : napi_generic_failure;
+}
+
+void GetIdByDomainExecuteCB(napi_env env, void *data)
+{
+    ACCOUNT_LOGI("napi_create_async_work running");
+    GetIdByDomainAsyncContext *idByDomain = (GetIdByDomainAsyncContext *)data;
+    idByDomain->errCode = OsAccountManager::GetOsAccountLocalIdFromDomain(
+        idByDomain->domainInfo, idByDomain->id);
+    ACCOUNT_LOGI("errocde is %{public}d", idByDomain->errCode);
+    idByDomain->status = (idByDomain->errCode == 0) ? napi_ok : napi_generic_failure;
 }
 
 void GetIdByUidCallbackCompletedCB(napi_env env, napi_status status, void *data)
@@ -1168,6 +1304,19 @@ void GetIdByUidCallbackCompletedCB(napi_env env, napi_status status, void *data)
     napi_delete_async_work(env, idByUid->work);
     delete idByUid;
     idByUid = nullptr;
+}
+
+void GetIdByDomainCallbackCompletedCB(napi_env env, napi_status status, void *data)
+{
+    ACCOUNT_LOGI("napi_create_async_work complete");
+    GetIdByDomainAsyncContext *idByDomain = (GetIdByDomainAsyncContext *)data;
+    napi_value uidResult[RESULT_COUNT] = {0};
+    uidResult[PARAM0] = GetErrorCodeValue(env, idByDomain->errCode);
+    napi_create_int32(env, idByDomain->id, &uidResult[PARAM1]);
+    CBOrPromiseGetIdByDomain(env, idByDomain, uidResult[PARAM0], uidResult[PARAM1]);
+    napi_delete_async_work(env, idByDomain->work);
+    delete idByDomain;
+    idByDomain = nullptr;
 }
 
 void CBOrPromiseGetIdByUid(napi_env env, const GetIdByUidAsyncContext *idByUid, napi_value err, napi_value data)
@@ -1189,6 +1338,30 @@ void CBOrPromiseGetIdByUid(napi_env env, const GetIdByUidAsyncContext *idByUid, 
         napi_call_function(env, nullptr, callback, RESULT_COUNT, &args[0], &returnVal);
         if (idByUid->callbackRef != nullptr) {
             napi_delete_reference(env, idByUid->callbackRef);
+        }
+    }
+}
+
+void CBOrPromiseGetIdByDomain(napi_env env, const GetIdByDomainAsyncContext *idByDomain,
+    napi_value err, napi_value data)
+{
+    ACCOUNT_LOGI("enter");
+    napi_value args[RESULT_COUNT] = {err, data};
+    if (idByDomain->deferred) {
+        ACCOUNT_LOGI("Promise");
+        if (idByDomain->status == napi_ok) {
+            napi_resolve_deferred(env, idByDomain->deferred, args[1]);
+        } else {
+            napi_reject_deferred(env, idByDomain->deferred, args[0]);
+        }
+    } else {
+        ACCOUNT_LOGI("Callback");
+        napi_value callback = nullptr;
+        napi_get_reference_value(env, idByDomain->callbackRef, &callback);
+        napi_value returnVal = nullptr;
+        napi_call_function(env, nullptr, callback, RESULT_COUNT, &args[0], &returnVal);
+        if (idByDomain->callbackRef != nullptr) {
+            napi_delete_reference(env, idByDomain->callbackRef);
         }
     }
 }

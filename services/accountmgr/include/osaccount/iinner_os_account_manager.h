@@ -28,6 +28,8 @@ public:
     virtual ~IInnerOsAccountManager() = default;
     virtual ErrCode CreateOsAccount(
         const std::string &name, const OsAccountType &type, OsAccountInfo &osAccountInfo) override;
+    virtual ErrCode CreateOsAccountForDomain(
+        const OsAccountType &type, const DomainAccountInfo &domainInfo, OsAccountInfo &osAccountInfo) override;
     virtual ErrCode RemoveOsAccount(const int id) override;
     virtual ErrCode IsOsAccountExists(const int id, bool &isOsAccountExits) override;
     virtual ErrCode IsOsAccountActived(const int id, bool &isOsAccountActived) override;
@@ -59,6 +61,7 @@ public:
     virtual ErrCode IsOsAccountCompleted(const int id, bool &isOsAccountCompleted) override;
     virtual ErrCode SetOsAccountIsVerified(const int id, const bool isVerified) override;
     virtual ErrCode IsAllowedCreateAdmin(bool &isAllowedCreateAdmin) override;
+    virtual ErrCode GetOsAccountLocalIdFromDomain(const DomainAccountInfo &domainInfo, int &id) override;
 
 private:
     virtual void Init() override;
@@ -67,6 +70,9 @@ private:
     void CreateBaseStandardAccount();
     void StartBaseStandardAccount(void);
     ErrCode GetEventHandler(void);
+    ErrCode PrepareOsAccountInfo(const std::string &name, const OsAccountType &type,
+        const DomainAccountInfo &domainAccount, OsAccountInfo &osAccountInfo);
+    ErrCode SendMsgForAccountCreate(OsAccountInfo &osAccountInfo);
 
 private:
     std::shared_ptr<IOsAccountControl> osAccountControl_;

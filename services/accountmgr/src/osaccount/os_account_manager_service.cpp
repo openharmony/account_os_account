@@ -85,6 +85,49 @@ ErrCode OsAccountManagerService::CreateOsAccount(
     return innerManager_->CreateOsAccount(name, type, osAccountInfo);
 }
 
+ErrCode OsAccountManagerService::CreateOsAccountForDomain(
+    const OsAccountType &type, const DomainAccountInfo &domainInfo, OsAccountInfo &osAccountInfo)
+{
+    ACCOUNT_LOGI("OsAccountManager CreateOsAccountForDomain START");
+    bool isMultiOsAccountEnable = false;
+    innerManager_->IsMultiOsAccountEnable(isMultiOsAccountEnable);
+    if (!isMultiOsAccountEnable) {
+        return ERR_OS_ACCOUNT_SERVICE_MANAGER_NOT_ENABLE_MULTI_ERROR;
+    }
+    auto callingUid = IPCSkeleton::GetCallingUid();
+    if (callingUid >= Constants::APP_UID_START) {
+        std::string bundleName;
+        ErrCode result = bundleManagerPtr_->GetBundleName(callingUid, bundleName);
+        if (result != ERR_OK) {
+            ACCOUNT_LOGE("failed to get bundle name");
+            return result;
+        }
+
+        result = permissionManagerPtr_->VerifyPermission(
+            callingUid, AccountPermissionManager::MANAGE_LOCAL_ACCOUNTS, bundleName);
+        if (result != ERR_OK || !permissionManagerPtr_->IsSystemUid(callingUid)) {
+            ACCOUNT_LOGI("failed to verify permission for MANAGE_LOCAL_ACCOUNTS,or not system app error");
+            return ERR_OS_ACCOUNT_SERVICE_PERMISSION_DENIED;
+        }
+    }
+    if (domainInfo.accountName_.empty() || domainInfo.domain_.empty()) {
+        return ERR_OS_ACCOUNT_SERVICE_MANAGER_NAME_SIZE_EMPTY_ERROR;
+    }
+    if (domainInfo.accountName_.size() > Constants::DOMAIN_ACCOUNT_NAME_MAX_SIZE ||
+        domainInfo.domain_.size() > Constants::DOMAIN_NAME_MAX_SIZE) {
+        return ERR_OS_ACCOUNT_SERVICE_MANAGER_NAME_SIZE_OVERFLOW_ERROR;
+    }
+    bool isAllowedCreateAdmin = false;
+    ErrCode errCode = innerManager_->IsAllowedCreateAdmin(isAllowedCreateAdmin);
+    if (errCode != ERR_OK) {
+        return errCode;
+    }
+    if (!isAllowedCreateAdmin && type == OsAccountType::ADMIN) {
+        return ERR_OS_ACCOUNT_SERVICE_MANAGER_CREATE_OSACCOUNT_TYPE_ERROR;
+    }
+    return innerManager_->CreateOsAccountForDomain(type, domainInfo, osAccountInfo);
+}
+
 ErrCode OsAccountManagerService::RemoveOsAccount(const int id)
 {
     auto callingUid = IPCSkeleton::GetCallingUid();
@@ -220,6 +263,11 @@ ErrCode OsAccountManagerService::GetOsAccountLocalIdFromUid(const int uid, int &
 {
     id = uid / Constants::UID_TRANSFORM_DIVISOR;
     return ERR_OK;
+}
+
+ErrCode OsAccountManagerService::GetOsAccountLocalIdFromDomain(const DomainAccountInfo &domainInfo, int &id)
+{
+    return innerManager_->GetOsAccountLocalIdFromDomain(domainInfo, id);
 }
 
 ErrCode OsAccountManagerService::QueryMaxOsAccountNumber(int &maxOsAccountNumber)

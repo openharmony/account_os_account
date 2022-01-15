@@ -29,6 +29,14 @@ ErrCode OsAccountManager::CreateOsAccount(
     return DelayedSingleton<OsAccount>::GetInstance()->CreateOsAccount(name, type, osAccountInfo);
 }
 
+ErrCode OsAccountManager::CreateOsAccountForDomain(
+    const OsAccountType &type, const DomainAccountInfo &domainInfo, OsAccountInfo &osAccountInfo)
+{
+    ACCOUNT_LOGI("enter");
+    return DelayedSingleton<OsAccount>::GetInstance()->CreateOsAccountForDomain(
+        type, domainInfo, osAccountInfo);
+}
+
 ErrCode OsAccountManager::RemoveOsAccount(const int id)
 {
     ACCOUNT_LOGI("enter");
@@ -84,6 +92,12 @@ ErrCode OsAccountManager::GetOsAccountLocalIdFromUid(const int uid, int &id)
     ACCOUNT_LOGI("OsAccountManager::GetOsAccountLocalIdFromUid start");
 
     return DelayedSingleton<OsAccount>::GetInstance()->GetOsAccountLocalIdFromUid(uid, id);
+}
+
+ErrCode OsAccountManager::GetOsAccountLocalIdFromDomain(const DomainAccountInfo &domainInfo, int &id)
+{
+    ACCOUNT_LOGI("OsAccountManager::GetOsAccountLocalIdFromDomain start");
+    return DelayedSingleton<OsAccount>::GetInstance()->GetOsAccountLocalIdFromDomain(domainInfo, id);
 }
 
 ErrCode OsAccountManager::QueryMaxOsAccountNumber(int &maxOsAccountNumber)

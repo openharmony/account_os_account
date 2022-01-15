@@ -31,6 +31,7 @@ public:
 
 private:
     ErrCode ProcCreateOsAccount(MessageParcel &data, MessageParcel &reply);
+    ErrCode ProcCreateOsAccountForDomain(MessageParcel &data, MessageParcel &reply);
     ErrCode ProcRemoveOsAccount(MessageParcel &data, MessageParcel &reply);
     ErrCode ProcSetOsAccountName(MessageParcel &data, MessageParcel &reply);
     ErrCode ProcSetOsAccountConstraints(MessageParcel &data, MessageParcel &reply);
@@ -45,6 +46,7 @@ private:
     ErrCode ProcGetOsAccountLocalIdFromProcess(MessageParcel &data, MessageParcel &reply);
     ErrCode ProcGetOsAccountProfilePhoto(MessageParcel &data, MessageParcel &reply);
     ErrCode ProcGetOsAccountLocalIdFromUid(MessageParcel &data, MessageParcel &reply);
+    ErrCode ProcGetOsAccountLocalIdFromDomain(MessageParcel &data, MessageParcel &reply);
     ErrCode ProcGetOsAccountTypeFromProcess(MessageParcel &data, MessageParcel &reply);
     ErrCode ProcGetApplicationConstraints(MessageParcel &data, MessageParcel &reply);
     ErrCode ProcGetApplicationConstraintsByNumber(MessageParcel &data, MessageParcel &reply);

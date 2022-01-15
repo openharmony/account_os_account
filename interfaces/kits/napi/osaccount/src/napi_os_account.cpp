@@ -53,6 +53,7 @@ napi_value OsAccountInit(napi_env env, napi_value exports)
         DECLARE_NAPI_FUNCTION("setOsAccountConstraints", SetOsAccountConstraints),
         DECLARE_NAPI_FUNCTION("activateOsAccount", ActivateOsAccount),
         DECLARE_NAPI_FUNCTION("createOsAccount", CreateOsAccount),
+        DECLARE_NAPI_FUNCTION("createOsAccountForDomain", CreateOsAccountForDomain),
         DECLARE_NAPI_FUNCTION("getCreatedOsAccountsCount", GetCreatedOsAccountsCount),
         DECLARE_NAPI_FUNCTION("getDistributedVirtualDeviceId", GetDistributedVirtualDeviceId),
         DECLARE_NAPI_FUNCTION("getOsAccountAllConstraints", GetOsAccountAllConstraints),
@@ -61,6 +62,7 @@ napi_value OsAccountInit(napi_env env, napi_value exports)
         DECLARE_NAPI_FUNCTION("getOsAccountProfilePhoto", GetOsAccountProfilePhoto),
         DECLARE_NAPI_FUNCTION("queryCurrentOsAccount", QueryCurrentOsAccount),
         DECLARE_NAPI_FUNCTION("getOsAccountLocalIdFromUid", GetOsAccountLocalIdFromUid),
+        DECLARE_NAPI_FUNCTION("getOsAccountLocalIdFromDomain", GetOsAccountLocalIdFromDomain),
         DECLARE_NAPI_FUNCTION("setOsAccountProfilePhoto", SetOsAccountProfilePhoto),
         DECLARE_NAPI_FUNCTION("queryMaxOsAccountNumber", QueryMaxOsAccountNumber),
         DECLARE_NAPI_FUNCTION("isOsAccountActived", IsOsAccountActived),
@@ -260,7 +262,7 @@ napi_value SetOsAccountConstraints(napi_env env, napi_callback_info cbInfo)
     setOAConsCB->callbackRef = nullptr;
 
     if (ParseParaSetOAConstraints(env, cbInfo, setOAConsCB) == nullptr) {
-        ACCOUNT_LOGI("Parse set constrainrs failed");
+        ACCOUNT_LOGI("Parse set constraints failed");
         return WrapVoidToJS(env);
     }
     ACCOUNT_LOGI("Parse completed, id = %{public}d", setOAConsCB->id);
@@ -363,6 +365,45 @@ napi_value CreateOsAccount(napi_env env, napi_callback_info cbInfo)
         env, nullptr, resource, CreateOAExecuteCB, CreateOACallbackCompletedCB, (void *)createOACB, &createOACB->work);
 
     napi_queue_async_work(env, createOACB->work);
+    return result;
+}
+
+napi_value CreateOsAccountForDomain(napi_env env, napi_callback_info cbInfo)
+{
+    ACCOUNT_LOGI("enter");
+    CreateOAForDomainAsyncContext *createOAForDomainCB = new (std::nothrow) CreateOAForDomainAsyncContext();
+    if (createOAForDomainCB == nullptr) {
+        ACCOUNT_LOGI("createOAForDomainCB == nullptr");
+        return WrapVoidToJS(env);
+    }
+    createOAForDomainCB->env = env;
+    createOAForDomainCB->callbackRef = nullptr;
+
+    if (ParseParaCreateOAForDomain(env, cbInfo, createOAForDomainCB) == nullptr) {
+        ACCOUNT_LOGI("Parse create osaccount failed");
+        return WrapVoidToJS(env);
+    }
+    ACCOUNT_LOGI("Parse completed, type = %{publilc}d, domain = %{public}s, domain account name = %{public}s.",
+        createOAForDomainCB->type,
+        createOAForDomainCB->domainInfo.domain_.c_str(),
+        createOAForDomainCB->domainInfo.accountName_.c_str());
+
+    napi_value result = nullptr;
+    if (createOAForDomainCB->callbackRef == nullptr) {
+        ACCOUNT_LOGI("Create promise");
+        napi_create_promise(env, &createOAForDomainCB->deferred, &result);
+    } else {
+        ACCOUNT_LOGI("Undefined the result parameter");
+        napi_get_undefined(env, &result);
+    }
+
+    napi_value resource = nullptr;
+    napi_create_string_utf8(env, "CreateOsAccountForDomain", NAPI_AUTO_LENGTH, &resource);
+
+    napi_create_async_work(env, nullptr, resource, CreateOAForDomainExecuteCB,
+        CreateOAForDomainCallbackCompletedCB, (void *)createOAForDomainCB, &createOAForDomainCB->work);
+
+    napi_queue_async_work(env, createOAForDomainCB->work);
     return result;
 }
 
@@ -659,6 +700,41 @@ napi_value GetOsAccountLocalIdFromUid(napi_env env, napi_callback_info cbInfo)
         env, nullptr, resource, GetIdByUidExecuteCB, GetIdByUidCallbackCompletedCB, (void *)idByUid, &idByUid->work);
 
     napi_queue_async_work(env, idByUid->work);
+    return result;
+}
+
+napi_value GetOsAccountLocalIdFromDomain(napi_env env, napi_callback_info cbInfo)
+{
+    ACCOUNT_LOGI("enter");
+    GetIdByDomainAsyncContext *idByDomain = new (std::nothrow) GetIdByDomainAsyncContext();
+    if (idByDomain == nullptr) {
+        ACCOUNT_LOGI("idByDomain == nullptr");
+        return WrapVoidToJS(env);
+    }
+    idByDomain->env = env;
+    idByDomain->callbackRef = nullptr;
+
+    if (ParseParaGetIdByDomain(env, cbInfo, idByDomain) == nullptr) {
+        ACCOUNT_LOGI("Parse get osaccount local id from uid failed");
+        return WrapVoidToJS(env);
+    }
+
+    napi_value result = nullptr;
+    if (idByDomain->callbackRef == nullptr) {
+        ACCOUNT_LOGI("Create promise");
+        napi_create_promise(env, &idByDomain->deferred, &result);
+    } else {
+        ACCOUNT_LOGI("Undefined the result parameter");
+        napi_get_undefined(env, &result);
+    }
+
+    napi_value resource = nullptr;
+    napi_create_string_utf8(env, "GetOsAccountLocalIdFromDomain", NAPI_AUTO_LENGTH, &resource);
+
+    napi_create_async_work(env, nullptr, resource, GetIdByDomainExecuteCB,
+        GetIdByDomainCallbackCompletedCB, (void *)idByDomain, &idByDomain->work);
+
+    napi_queue_async_work(env, idByDomain->work);
     return result;
 }
 

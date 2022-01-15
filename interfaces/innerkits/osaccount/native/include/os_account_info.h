@@ -27,6 +27,25 @@ typedef enum {
     GUEST,
 } OsAccountType;
 
+class DomainAccountInfo {
+public:
+    DomainAccountInfo()
+        : domain_(""), accountName_("")
+    {}
+
+    DomainAccountInfo(const std::string &domain, const std::string &domainAccountName)
+        : domain_(domain), accountName_(domainAccountName)
+    {}
+
+    void Clear()
+    {
+        domain_.clear();
+        accountName_.clear();
+    }
+    std::string domain_;
+    std::string accountName_;
+};
+
 class OsAccountInfo : public IAccountInfo, public Parcelable {
 public:
     OsAccountInfo();
@@ -95,6 +114,10 @@ public:
 
     void SetIsCreateCompleted(const bool isCreateCompleted);
 
+    bool SetDomainInfo(const DomainAccountInfo &domainInfo);
+
+    void GetDomainInfo(DomainAccountInfo &domainInfo) const;
+
 private:
     int localId_;
     std::string localName_;
@@ -107,6 +130,7 @@ private:
     int64_t serialNumber_;
     bool isActived_;
     bool isCreateCompleted_;
+    DomainAccountInfo domainInfo_;
 };
 typedef enum {
     HOT_SWITCH = 0,
