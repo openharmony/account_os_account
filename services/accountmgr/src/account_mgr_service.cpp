@@ -34,7 +34,6 @@ namespace OHOS {
 namespace AccountSA {
 const std::string DEVICE_OWNER_DIR = "/data/system/users/0/";
 
-constexpr std::int32_t UID_TRANSFORM_DIVISOR = 100000;
 IAccountContext *IAccountContext::instance_ = nullptr;
 
 const bool REGISTER_RESULT =
@@ -63,7 +62,7 @@ bool AccountMgrService::UpdateOhosAccountInfo(
 
 std::pair<bool, OhosAccountInfo> AccountMgrService::QueryOhosAccountInfo(void)
 {
-    AccountInfo accountInfo = ohosAccountMgr_->GetAccountInfo();
+    AccountInfo accountInfo = ohosAccountMgr_->GetCurrentOhosAccountInfo();
     if (accountInfo.ohosAccountUid_.empty()) {
         ACCOUNT_LOGE("invalid id");
         accountInfo.clear();
@@ -76,12 +75,13 @@ std::pair<bool, OhosAccountInfo> AccountMgrService::QueryOhosAccountInfo(void)
 
 std::int32_t AccountMgrService::QueryDeviceAccountIdFromUid(std::int32_t uid)
 {
-    return uid / UID_TRANSFORM_DIVISOR;
+    return uid / Constants::UID_TRANSFORM_DIVISOR;
 }
 
 std::int32_t AccountMgrService::QueryDeviceAccountId(std::int32_t &accountId)
 {
-    accountId = DEVICE_ACCOUNT_OWNER;
+    const std::int32_t uid = IPCSkeleton::GetCallingUid();
+    accountId = uid / Constants::UID_TRANSFORM_DIVISOR;
     return ERR_OK;
 }
 
