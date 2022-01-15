@@ -34,8 +34,8 @@ const std::string USER_INFO_FILE_NAME = "account_info.json";
 constexpr std::int32_t UID_TRANSFORM_DIVISOR = 200000;
 // distributed database
 const std::string APP_ID = "os_account_mgr_service";
-const std::string STORE_ID = "os_account_info";
-const bool SYNC_OS_ACCOUNT_DATABSE = false;
+const bool SYNC_OS_ACCOUNT_DATABSE = true;
+const std::uint32_t DEVICE_UUID_LENGTH = 65;
 
 // uid judgment
 const std::int32_t APP_UID_START = 2100;
@@ -70,7 +70,7 @@ const std::string USER_CONSTRATINTS_TEMPLATE = "UserConstraintsTemplate";
 const std::string TYPE_LIST = "TypeList";
 const std::string ACCOUNT_LIST = "AccountList";
 const std::string COUNT_ACCOUNT_NUM = "CountAccountNum";
-const std::string MAX_ALLOW_CREATE_ACCOUNT_NUM = "MaxAllowCreateAccountNum";
+const std::string MAX_ALLOW_CREATE_ACCOUNT_ID = "MaxAllowCreateAccountID";
 const std::string SERIAL_NUMBER_NUM = "SerialNumber";
 const std::string IS_MULTI_OS_ACCOUNT_ENABLE = "IsMultiOsAccountEnable";
 const std::string IS_SERIAL_NUMBER_FULL = "isSerialNumberFull";

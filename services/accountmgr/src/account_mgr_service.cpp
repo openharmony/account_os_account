@@ -117,7 +117,10 @@ void AccountMgrService::OnStart()
         return;
     }
     state_ = ServiceRunningState::STATE_RUNNING;
-    ACCOUNT_LOGI("AccountMgrService::OnStart start service success.");
+
+    // create and start basic accounts
+    osAccountManagerServiceOrg_->CreateBasicAccounts();
+    ACCOUNT_LOGI("AccountMgrService::OnStart start service finished.");
 }
 
 void AccountMgrService::OnStop()
@@ -156,9 +159,7 @@ bool AccountMgrService::Init()
         }
         registerToService_ = true;
     }
-
     PerfStat::GetInstance().SetInstanceInitTime(GetTickCount());
-
     ohosAccountMgr_ = std::make_shared<OhosAccountManager>();
     ret = ohosAccountMgr_->OnInitialize();
     if (!ret) {
@@ -172,15 +173,14 @@ bool AccountMgrService::Init()
     }
     dumpHelper_ = std::make_unique<AccountDumpHelper>(ohosAccountMgr_);
     IAccountContext::SetInstance(this);
-
     auto appAccountManagerService = new (std::nothrow) AppAccountManagerService();
-    auto osAccountManagerService = new (std::nothrow) OsAccountManagerService();
-    if (appAccountManagerService == nullptr || osAccountManagerService == nullptr) {
+    osAccountManagerServiceOrg_ = new (std::nothrow) OsAccountManagerService();
+    if (appAccountManagerService == nullptr || osAccountManagerServiceOrg_ == nullptr) {
         ACCOUNT_LOGE("memory alloc failed!");
         return false;
     }
     appAccountManagerService_ = appAccountManagerService->AsObject();
-    osAccountManagerService_ = osAccountManagerService->AsObject();
+    osAccountManagerService_ = osAccountManagerServiceOrg_->AsObject();
     ACCOUNT_LOGI("init end success");
     return true;
 }

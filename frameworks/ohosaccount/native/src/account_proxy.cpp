@@ -88,7 +88,7 @@ std::pair<bool, OhosAccountInfo> AccountProxy::QueryOhosAccountInfo(void)
 
 std::int32_t AccountProxy::QueryDeviceAccountIdFromUid(std::int32_t uid)
 {
-    ACCOUNT_LOGI("QueryDeviceAccountIdFromUid enter");
+    ACCOUNT_LOGI("QueryDeviceAccountIdFromUid enter, uid = %{public}d.", uid);
     MessageParcel data;
     if (!data.WriteInterfaceToken(AccountProxy::GetDescriptor())) {
         ACCOUNT_LOGE("Write descriptor failed");

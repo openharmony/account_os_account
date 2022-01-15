@@ -131,10 +131,10 @@ const std::string PHOTO_IMG_ERROR =
     "zchW8pKj7iFAA0R2wajl5d46idlR3+GtPV2XOvQ3bBNvyFs8U39v9PLX0Bp0CN+yY0OAEAAAAASUVORK5CYII=";
 const std::int32_t DELAY_FOR_OPERATION = 20 * 1000;
 std::shared_ptr<OsAccountManagerService> g_osAccountManagerService_;
-const std::string STRING_DOMAIN_NAME_OUT_OF_RANGE = 
+const std::string STRING_DOMAIN_NAME_OUT_OF_RANGE =
     "1234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890"
     "123456789012345678901234567890";
-const std::string STRING_DOMAIN_ACCOUNT_NAME_OUT_OF_RANGE = 
+const std::string STRING_DOMAIN_ACCOUNT_NAME_OUT_OF_RANGE =
     "1234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890"
     "1234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890"
     "1234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890"
@@ -1215,29 +1215,29 @@ HWTEST_F(OsAccountManagerServiceModuleTest, OsAccountManagerServiceModuleTest065
 HWTEST_F(OsAccountManagerServiceModuleTest, OsAccountManagerServiceModuleTest066, TestSize.Level1)
 {
     DomainAccountInfo domainAllEmpty("", "");
-    int resID = -1;
-    EXPECT_EQ(g_osAccountManagerService_->GetOsAccountLocalIdFromDomain(domainAllEmpty, resID),
-        ERR_OS_ACCOUNT_SERVICE_INNER_DOMAIN_NAME_LEN_ERROR);
+    int resLocalId = -1;
+    ErrCode ret = g_osAccountManagerService_->GetOsAccountLocalIdFromDomain(domainAllEmpty, resLocalId);
+    EXPECT_EQ(ret, ERR_OS_ACCOUNT_SERVICE_INNER_DOMAIN_NAME_LEN_ERROR);
 
     DomainAccountInfo domainNameEmpty("", STRING_DOMAIN_ACCOUNT_NAME_VALID);
-    EXPECT_EQ(g_osAccountManagerService_->GetOsAccountLocalIdFromDomain(domainNameEmpty, resID),
-        ERR_OS_ACCOUNT_SERVICE_INNER_DOMAIN_NAME_LEN_ERROR);
+    ret = g_osAccountManagerService_->GetOsAccountLocalIdFromDomain(domainNameEmpty, resLocalId);
+    EXPECT_EQ(ret, ERR_OS_ACCOUNT_SERVICE_INNER_DOMAIN_NAME_LEN_ERROR);
 
     DomainAccountInfo domainAccountEmpty(STRING_DOMAIN_VALID, "");
-    EXPECT_EQ(g_osAccountManagerService_->GetOsAccountLocalIdFromDomain(domainAccountEmpty, resID),
-        ERR_OS_ACCOUNT_SERVICE_INNER_DOMAIN_ACCOUNT_NAME_LEN_ERROR);
+    ret = g_osAccountManagerService_->GetOsAccountLocalIdFromDomain(domainAccountEmpty, resLocalId);
+    EXPECT_EQ(ret, ERR_OS_ACCOUNT_SERVICE_INNER_DOMAIN_ACCOUNT_NAME_LEN_ERROR);
 
     DomainAccountInfo domainAllTooLong(STRING_DOMAIN_NAME_OUT_OF_RANGE, STRING_DOMAIN_ACCOUNT_NAME_OUT_OF_RANGE);
-    EXPECT_EQ(g_osAccountManagerService_->GetOsAccountLocalIdFromDomain(domainAllTooLong, resID),
-        ERR_OS_ACCOUNT_SERVICE_INNER_DOMAIN_NAME_LEN_ERROR);
+    ret = g_osAccountManagerService_->GetOsAccountLocalIdFromDomain(domainAllTooLong, resLocalId);
+    EXPECT_EQ(ret, ERR_OS_ACCOUNT_SERVICE_INNER_DOMAIN_NAME_LEN_ERROR);
 
     DomainAccountInfo domainNameTooLong(STRING_DOMAIN_NAME_OUT_OF_RANGE, STRING_DOMAIN_ACCOUNT_NAME_VALID);
-    EXPECT_EQ(g_osAccountManagerService_->GetOsAccountLocalIdFromDomain(domainNameTooLong, resID),
-        ERR_OS_ACCOUNT_SERVICE_INNER_DOMAIN_NAME_LEN_ERROR);
+    ret = g_osAccountManagerService_->GetOsAccountLocalIdFromDomain(domainNameTooLong, resLocalId);
+    EXPECT_EQ(ret, ERR_OS_ACCOUNT_SERVICE_INNER_DOMAIN_NAME_LEN_ERROR);
 
     DomainAccountInfo domainAccountTooLong(STRING_DOMAIN_VALID, STRING_DOMAIN_ACCOUNT_NAME_OUT_OF_RANGE);
-    EXPECT_EQ(g_osAccountManagerService_->GetOsAccountLocalIdFromDomain(domainAccountTooLong, resID),
-        ERR_OS_ACCOUNT_SERVICE_INNER_DOMAIN_ACCOUNT_NAME_LEN_ERROR);    
+    ret = g_osAccountManagerService_->GetOsAccountLocalIdFromDomain(domainAccountTooLong, resLocalId);
+    EXPECT_EQ(ret, ERR_OS_ACCOUNT_SERVICE_INNER_DOMAIN_ACCOUNT_NAME_LEN_ERROR);
 }
 }  // namespace AccountSA
 }  // namespace OHOS

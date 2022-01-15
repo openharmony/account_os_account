@@ -645,5 +645,60 @@ ErrCode OsAccount::CreateOsAccountEventListener(
 
     return INITIAL_SUBSCRIPTION;
 }
+
+ErrCode OsAccount::GetCreatedOsAccountNumFromDatabase(const std::string& storeID, int &createdOsAccountNum)
+{
+    ACCOUNT_LOGI("OsAccount::GetCreatedOsAccountNumFromDatabase start");
+    ErrCode result = GetOsAccountProxy();
+    if (result != ERR_OK) {
+        ACCOUNT_LOGE("failed to get osAccountProxy_");
+        return result;
+    }
+    return osAccountProxy_->GetCreatedOsAccountNumFromDatabase(storeID, createdOsAccountNum);
+}
+
+ErrCode OsAccount::GetSerialNumberFromDatabase(const std::string& storeID, int64_t &serialNumber)
+{
+    ACCOUNT_LOGI("OsAccount::GetSerialNumberFromDatabase start");
+    ErrCode result = GetOsAccountProxy();
+    if (result != ERR_OK) {
+        ACCOUNT_LOGE("failed to get osAccountProxy_");
+        return result;
+    }
+    return osAccountProxy_->GetSerialNumberFromDatabase(storeID, serialNumber);
+}
+
+ErrCode OsAccount::GetMaxAllowCreateIdFromDatabase(const std::string& storeID, int &id)
+{
+    ACCOUNT_LOGI("OsAccount::GetMaxAllowCreateIdFromDatabase start");
+    ErrCode result = GetOsAccountProxy();
+    if (result != ERR_OK) {
+        ACCOUNT_LOGE("failed to get osAccountProxy_");
+        return result;
+    }
+    return osAccountProxy_->GetMaxAllowCreateIdFromDatabase(storeID, id);
+}
+
+ErrCode OsAccount::GetOsAccountFromDatabase(const std::string& storeID, const int id, OsAccountInfo &osAccountInfo)
+{
+    ACCOUNT_LOGI("OsAccount::GetOsAccountFromDatabase start");
+    ErrCode result = GetOsAccountProxy();
+    if (result != ERR_OK) {
+        ACCOUNT_LOGE("failed to get osAccountProxy_");
+        return result;
+    }
+    return osAccountProxy_->GetOsAccountFromDatabase(storeID, id, osAccountInfo);
+}
+
+ErrCode OsAccount::GetOsAccountListFromDatabase(const std::string& storeID, std::vector<OsAccountInfo> &osAccountList)
+{
+    ACCOUNT_LOGI("OsAccount::GetOsAccountListFromDatabase start");
+    ErrCode result = GetOsAccountProxy();
+    if (result != ERR_OK) {
+        ACCOUNT_LOGE("failed to get osAccountProxy_");
+        return result;
+    }
+    return osAccountProxy_->GetOsAccountListFromDatabase(storeID, osAccountList);
+}
 }  // namespace AccountSA
 }  // namespace OHOS

@@ -16,11 +16,14 @@
 #include <algorithm>
 #include <ctime>
 #include <gtest/gtest.h>
+#include <iostream>
 #include "account_error_no.h"
 #include "os_account_constants.h"
 #define private public
 #include "os_account_control_file_manager.h"
 #undef private
+#include "parameter.h"
+
 namespace OHOS {
 namespace AccountSA {
 using namespace testing::ext;
@@ -74,6 +77,7 @@ public:
 
 public:
     std::shared_ptr<OsAccountControlFileManager> osAccountControlManager_;
+    std::string storeID_;
 };
 
 void OsAccountControlFileManagerTest::SetUpTestCase(void)
@@ -86,6 +90,15 @@ void OsAccountControlFileManagerTest::SetUp(void)
 {
     osAccountControlManager_ = std::make_shared<OsAccountControlFileManager>();
     osAccountControlManager_->Init();
+
+    char udid[Constants::DEVICE_UUID_LENGTH] = {0};
+    int ret = GetDevUdid(udid, Constants::DEVICE_UUID_LENGTH);
+    if (ret != 0) {
+        std::cout << "Error: GetDevUdid failed! errcode " << ret << std::endl;
+    } else {
+        storeID_ = std::string(udid);
+        std::cout << "Info : GetDevUdid succeed! storeID_ " << storeID_ << std::endl;
+    }
 }
 
 void OsAccountControlFileManagerTest::TearDown(void)
@@ -369,6 +382,111 @@ HWTEST_F(OsAccountControlFileManagerTest, OsAccountControlFileManagerTest019, Te
     osAccountControlManager_->InsertOsAccount(osAccountInfo);
     EXPECT_NE(osAccountControlManager_->SetPhotoById(id, STRING_ERR_PHOTO), ERR_OK);
     osAccountControlManager_->DelOsAccount(id);
+}
+
+/**
+ * @tc.name: OsAccountControlFileManagerTest020
+ * @tc.desc: GetCreatedOsAccountNumFromDatabase
+ * @tc.type: FUNC
+ * @tc.require: SR000GGVFK
+ */
+HWTEST_F(OsAccountControlFileManagerTest, OsAccountControlFileManagerTest020, TestSize.Level1)
+{
+    int createdOsAccountNum = -1;
+    ErrCode ret = osAccountControlManager_->GetCreatedOsAccountNumFromDatabase(storeID_, createdOsAccountNum);
+    EXPECT_EQ(ret, ERR_OK);
+    EXPECT_NE(createdOsAccountNum, 0);
+    EXPECT_NE(createdOsAccountNum, -1);
+
+    int64_t serialNumber = -1;
+    ret = osAccountControlManager_->GetSerialNumberFromDatabase(storeID_, serialNumber);
+    EXPECT_EQ(ret, ERR_OK);
+    EXPECT_NE(serialNumber, -1);
+
+    int id = -1;
+    ret = osAccountControlManager_->GetMaxAllowCreateIdFromDatabase(storeID_, id);
+    EXPECT_EQ(ret, ERR_OK);
+    EXPECT_EQ(id, Constants::MAX_USER_ID);
+
+    std::vector<OsAccountInfo> osAccountList;
+    ret = osAccountControlManager_->GetOsAccountListFromDatabase(storeID_, osAccountList);
+    EXPECT_EQ(ret, ERR_OK);
+
+    bool checkIdValid = false;
+    checkIdValid = (osAccountList.size() > 0);
+    EXPECT_EQ(checkIdValid, true);
+    for (uint32_t i = 0; i < osAccountList.size(); ++i) {
+        int curID = osAccountList[i].GetLocalId();
+        checkIdValid = (curID >= Constants::START_USER_ID);
+        EXPECT_EQ(checkIdValid, true);
+
+        OsAccountInfo curOsAccountInfo;
+        ret = osAccountControlManager_->GetOsAccountFromDatabase(storeID_, curID, curOsAccountInfo);
+        EXPECT_EQ(ret, ERR_OK);
+        EXPECT_EQ(curID, curOsAccountInfo.GetLocalId());
+    }
+}
+
+/**
+ * @tc.name: OsAccountControlFileManagerTest021
+ * @tc.desc: GetCreatedOsAccountNumFromDatabase use default parameter
+ * @tc.type: FUNC
+ * @tc.require: SR000GGVFK
+ */
+HWTEST_F(OsAccountControlFileManagerTest, OsAccountControlFileManagerTest021, TestSize.Level1)
+{
+    int createdOsAccountNum = -1;
+    ErrCode ret = osAccountControlManager_->GetCreatedOsAccountNumFromDatabase(storeID_, createdOsAccountNum);
+    EXPECT_EQ(ret, ERR_OK);
+    EXPECT_NE(createdOsAccountNum, -1);
+
+    int createdOsAccountNumByDefault = -1;
+    ret = osAccountControlManager_->GetCreatedOsAccountNumFromDatabase(std::string(""), createdOsAccountNumByDefault);
+    EXPECT_EQ(ret, ERR_OK);
+    EXPECT_EQ(createdOsAccountNum, createdOsAccountNumByDefault);
+
+    int64_t serialNumber = -1;
+    ret = osAccountControlManager_->GetSerialNumberFromDatabase(storeID_, serialNumber);
+    EXPECT_EQ(ret, ERR_OK);
+    EXPECT_NE(serialNumber, -1);
+
+    int64_t serialNumberByDefault = -1;
+    ret = osAccountControlManager_->GetSerialNumberFromDatabase(std::string(""), serialNumberByDefault);
+    EXPECT_EQ(ret, ERR_OK);
+    EXPECT_EQ(serialNumber, serialNumberByDefault);
+
+    int id = -1;
+    ret = osAccountControlManager_->GetMaxAllowCreateIdFromDatabase(storeID_, id);
+    EXPECT_EQ(ret, ERR_OK);
+    EXPECT_EQ(id, Constants::MAX_USER_ID);
+
+    int idByDefault = -1;
+    ret = osAccountControlManager_->GetMaxAllowCreateIdFromDatabase(std::string(""), idByDefault);
+    EXPECT_EQ(ret, ERR_OK);
+    EXPECT_EQ(id, idByDefault);
+
+    std::vector<OsAccountInfo> osAccountList;
+    ret = osAccountControlManager_->GetOsAccountListFromDatabase(storeID_, osAccountList);
+    EXPECT_EQ(ret, ERR_OK);
+
+    bool checkValid = osAccountList.size() > 0;
+    EXPECT_EQ(checkValid, true);
+
+    std::vector<OsAccountInfo> osAccountListByDefault;
+    ret = osAccountControlManager_->GetOsAccountListFromDatabase(std::string(""), osAccountListByDefault);
+    EXPECT_EQ(ret, ERR_OK);
+    EXPECT_EQ(osAccountListByDefault.size(), osAccountList.size());
+
+    if (osAccountListByDefault.size() == osAccountList.size()) {
+        for (size_t i = 0; i < osAccountList.size(); ++i) {
+            EXPECT_EQ(osAccountList[i].GetLocalId(), osAccountListByDefault[i].GetLocalId());
+            EXPECT_EQ(osAccountList[i].GetSerialNumber(), osAccountListByDefault[i].GetSerialNumber());
+            EXPECT_EQ(osAccountList[i].GetIsActived(), osAccountListByDefault[i].GetIsActived());
+        }
+    } else {
+        std::cout << "Error: osAccountListByDefault.size() = " << osAccountListByDefault.size() << ", "
+            << "osAccountList.size() = " << osAccountList.size() << std::endl;
+    }
 }
 }  // namespace AccountSA
 }  // namespace OHOS

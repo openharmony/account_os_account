@@ -61,6 +61,15 @@ public:
     static ErrCode IsOsAccountCompleted(const int id, bool &isOsAccountCompleted);
     static ErrCode SetCurrentOsAccountIsVerified(const bool isVerified);
     static ErrCode SetOsAccountIsVerified(const int id, const bool isVerified);
+
+    static ErrCode GetCreatedOsAccountNumFromDatabase(const std::string& storeID, int &createdOsAccountNum);
+    static ErrCode GetSerialNumberFromDatabase(const std::string& storeID, int64_t &serialNumber);
+    static ErrCode GetMaxAllowCreateIdFromDatabase(const std::string& storeID, int &id);
+    static ErrCode GetOsAccountFromDatabase(const std::string& storeID,
+                                            const int id,
+                                            OsAccountInfo &osAccountInfo);
+    static ErrCode GetOsAccountListFromDatabase(const std::string& storeID,
+                                                std::vector<OsAccountInfo> &osAccountList);
 };
 }  // namespace AccountSA
 }  // namespace OHOS

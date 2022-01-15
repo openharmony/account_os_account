@@ -60,12 +60,12 @@ std::string GetAccountEventStr(const std::map<std::string, std::string> &account
 std::string GenerateOhosUdidWithSha256(const std::string &name, const std::string &uid)
 {
     if (name.empty() || name.length() > MAX_NAME_LENGTH) {
-        ACCOUNT_LOGE("input name empty or too long, length %{public}u", name.length());
+        ACCOUNT_LOGE("input name empty or too long, length %{public}zu", name.length());
         return std::string("");
     }
 
     if (uid.empty() || uid.length() > MAX_UID_LENGTH) {
-        ACCOUNT_LOGE("input uid empty or too long, length %{public}u", uid.length());
+        ACCOUNT_LOGE("input uid empty or too long, length %{public}zu", uid.length());
         return std::string("");
     }
 

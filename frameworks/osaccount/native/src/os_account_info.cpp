@@ -12,8 +12,8 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-#include "account_log_wrapper.h"
 #include "os_account_info.h"
+#include "account_log_wrapper.h"
 #include "os_account_constants.h"
 
 namespace OHOS {
@@ -145,11 +145,11 @@ void OsAccountInfo::SetIsCreateCompleted(const bool isCreateCompleted)
 bool OsAccountInfo::SetDomainInfo(const DomainAccountInfo &domainInfo)
 {
     if (domainInfo.accountName_.size() > Constants::DOMAIN_ACCOUNT_NAME_MAX_SIZE) {
-        ACCOUNT_LOGE("domain account name too long! %{public}u.", domainInfo.accountName_.size());
+        ACCOUNT_LOGE("domain account name too long! %{public}zu.", domainInfo.accountName_.size());
         return false;
     }
     if (domainInfo.domain_.size() > Constants::DOMAIN_NAME_MAX_SIZE) {
-        ACCOUNT_LOGE("domain name too long! %{public}u.", domainInfo.domain_.size());
+        ACCOUNT_LOGE("domain name too long! %{public}zu.", domainInfo.domain_.size());
         return false;
     }
     domainInfo_.accountName_ = domainInfo.accountName_;

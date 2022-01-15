@@ -83,6 +83,17 @@ public:
     virtual ErrCode SetOsAccountIsVerified(const int id, const bool isVerified) override;
     virtual ErrCode DumpState(const int &id, std::vector<std::string> &state) override;
 
+    virtual void CreateBasicAccounts() override;
+    virtual ErrCode GetCreatedOsAccountNumFromDatabase(const std::string& storeID,
+        int &createdOsAccountNum) override;
+    virtual ErrCode GetSerialNumberFromDatabase(const std::string& storeID,
+        int64_t &serialNumber) override;
+    virtual ErrCode GetMaxAllowCreateIdFromDatabase(const std::string& storeID, int &id) override;
+    virtual ErrCode GetOsAccountFromDatabase(const std::string& storeID,
+        const int id, OsAccountInfo &osAccountInfo) override;
+    virtual ErrCode GetOsAccountListFromDatabase(const std::string& storeID,
+        std::vector<OsAccountInfo> &osAccountList) override;
+
 private:
     std::shared_ptr<IInnerOsAccount> innerManager_;
     std::shared_ptr<AccountBundleManager> bundleManagerPtr_;

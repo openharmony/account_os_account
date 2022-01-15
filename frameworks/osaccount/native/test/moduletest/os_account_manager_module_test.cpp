@@ -21,6 +21,7 @@
 #include "os_account_control_file_manager.h"
 #undef private
 #include "os_account_constants.h"
+#include "parameter.h"
 using namespace testing::ext;
 using namespace OHOS;
 using namespace OHOS::AccountSA;
@@ -126,10 +127,10 @@ const std::string PHOTO_IMG_ERROR =
     "D3I1NZvmdCXz+XOv5wJANKHOVYjRTAghxIyh0FHKb+0QQH5+kXf2zkYGAG0oFr5RfnK8DAGkwY19wliRT2L448vjv0YGQFVa8VKdDXUU+"
     "faFUxpblhxYRNRzmd6FNnS0H3/X/VH6j0IIIRxMLJ5k/j/2L/"
     "zchW8pKj7iFAA0R2wajl5d46idlR3+GtPV2XOvQ3bBNvyFs8U39v9PLX0Bp0CN+yY0OAEAAAAASUVORK5CYII=";
-const std::string STRING_DOMAIN_NAME_OUT_OF_RANGE = 
+const std::string STRING_DOMAIN_NAME_OUT_OF_RANGE =
     "1234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890"
     "123456789012345678901234567890";
-const std::string STRING_DOMAIN_ACCOUNT_NAME_OUT_OF_RANGE = 
+const std::string STRING_DOMAIN_ACCOUNT_NAME_OUT_OF_RANGE =
     "1234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890"
     "1234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890"
     "1234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890"
@@ -993,20 +994,20 @@ HWTEST_F(OsAccountManagerModuleTest, OsAccountManagerModuleTest056, TestSize.Lev
     DomainAccountInfo domainNameInvalid(STRING_DOMAIN_NAME_OUT_OF_RANGE, STRING_DOMAIN_ACCOUNT_NAME_VALID);
     OsAccountType type = NORMAL;
     OsAccountInfo osAccountInfo;
-    EXPECT_EQ(OsAccountManager::CreateOsAccountForDomain(type, domainNameInvalid, osAccountInfo),
-        ERR_OSACCOUNT_KIT_DOMAIN_NAME_LENGTH_INVALID_ERROR);
+    ErrCode ret = OsAccountManager::CreateOsAccountForDomain(type, domainNameInvalid, osAccountInfo);
+    EXPECT_EQ(ret, ERR_OSACCOUNT_KIT_DOMAIN_NAME_LENGTH_INVALID_ERROR);
 
     DomainAccountInfo domainAccountNameInvalid(STRING_DOMAIN_VALID, STRING_DOMAIN_ACCOUNT_NAME_OUT_OF_RANGE);
-    EXPECT_EQ(OsAccountManager::CreateOsAccountForDomain(type, domainAccountNameInvalid, osAccountInfo),
-        ERR_OSACCOUNT_KIT_DOMAIN_ACCOUNT_NAME_LENGTH_INVALID_ERROR);
+    ret = OsAccountManager::CreateOsAccountForDomain(type, domainAccountNameInvalid, osAccountInfo);
+    EXPECT_EQ(ret, ERR_OSACCOUNT_KIT_DOMAIN_ACCOUNT_NAME_LENGTH_INVALID_ERROR);
 
     DomainAccountInfo domainEmpty("", STRING_DOMAIN_ACCOUNT_NAME_VALID);
-    EXPECT_EQ(OsAccountManager::CreateOsAccountForDomain(type, domainEmpty, osAccountInfo),
-        ERR_OSACCOUNT_KIT_DOMAIN_NAME_LENGTH_INVALID_ERROR);
+    ret = OsAccountManager::CreateOsAccountForDomain(type, domainEmpty, osAccountInfo);
+    EXPECT_EQ(ret, ERR_OSACCOUNT_KIT_DOMAIN_NAME_LENGTH_INVALID_ERROR);
 
     DomainAccountInfo domainAccountEmpty(STRING_DOMAIN_VALID, "");
-    EXPECT_EQ(OsAccountManager::CreateOsAccountForDomain(type, domainAccountEmpty, osAccountInfo),
-        ERR_OSACCOUNT_KIT_DOMAIN_ACCOUNT_NAME_LENGTH_INVALID_ERROR);
+    ret = OsAccountManager::CreateOsAccountForDomain(type, domainAccountEmpty, osAccountInfo);
+    EXPECT_EQ(ret, ERR_OSACCOUNT_KIT_DOMAIN_ACCOUNT_NAME_LENGTH_INVALID_ERROR);
 }
 
 /**
@@ -1094,19 +1095,22 @@ HWTEST_F(OsAccountManagerModuleTest, OsAccountManagerModuleTest060, TestSize.Lev
     DomainAccountInfo domainInfo(STRING_DOMAIN_VALID, STRING_DOMAIN_ACCOUNT_NAME_VALID);
     OsAccountType type = NORMAL;
     OsAccountInfo osAccountInfo;
-    EXPECT_EQ(OsAccountManager::CreateOsAccountForDomain(type, domainInfo, osAccountInfo), ERR_OK);
+    ErrCode ret = OsAccountManager::CreateOsAccountForDomain(type, domainInfo, osAccountInfo);
+    EXPECT_EQ(ret, ERR_OK);
 
     // get os account local id by domain
     int resID = -1;
-    EXPECT_EQ(OsAccountManager::GetOsAccountLocalIdFromDomain(domainInfo, resID), ERR_OK);
+    ret = OsAccountManager::GetOsAccountLocalIdFromDomain(domainInfo, resID);
+    EXPECT_EQ(ret, ERR_OK);
     EXPECT_EQ(resID, osAccountInfo.GetLocalId());
 
     // remove
-    EXPECT_EQ(OsAccountManager::RemoveOsAccount(osAccountInfo.GetLocalId()), ERR_OK);
+    ret = OsAccountManager::RemoveOsAccount(osAccountInfo.GetLocalId());
+    EXPECT_EQ(ret, ERR_OK);
 
     // cannot query
-    EXPECT_EQ(OsAccountManager::GetOsAccountLocalIdFromDomain(domainInfo, resID),
-        ERR_OSACCOUNT_KIT_GET_OS_ACCOUNT_LOCAL_ID_FOR_DOMAIN_ERROR);
+    ret = OsAccountManager::GetOsAccountLocalIdFromDomain(domainInfo, resID);
+    EXPECT_EQ(ret, ERR_OSACCOUNT_KIT_GET_OS_ACCOUNT_LOCAL_ID_FOR_DOMAIN_ERROR);
 }
 
 /**
@@ -1119,26 +1123,354 @@ HWTEST_F(OsAccountManagerModuleTest, OsAccountManagerModuleTest061, TestSize.Lev
 {
     DomainAccountInfo domainAllEmpty("", "");
     int resID = -1;
-    EXPECT_EQ(OsAccountManager::GetOsAccountLocalIdFromDomain(domainAllEmpty, resID),
-        ERR_OSACCOUNT_KIT_DOMAIN_NAME_LENGTH_INVALID_ERROR);
+    ErrCode ret = OsAccountManager::GetOsAccountLocalIdFromDomain(domainAllEmpty, resID);
+    EXPECT_EQ(ret, ERR_OSACCOUNT_KIT_DOMAIN_NAME_LENGTH_INVALID_ERROR);
 
     DomainAccountInfo domainNameEmpty("", STRING_DOMAIN_ACCOUNT_NAME_VALID);
-    EXPECT_EQ(OsAccountManager::GetOsAccountLocalIdFromDomain(domainNameEmpty, resID),
-        ERR_OSACCOUNT_KIT_DOMAIN_NAME_LENGTH_INVALID_ERROR);
+    ret = OsAccountManager::GetOsAccountLocalIdFromDomain(domainNameEmpty, resID);
+    EXPECT_EQ(ret, ERR_OSACCOUNT_KIT_DOMAIN_NAME_LENGTH_INVALID_ERROR);
 
     DomainAccountInfo domainAccountEmpty(STRING_DOMAIN_VALID, "");
-    EXPECT_EQ(OsAccountManager::GetOsAccountLocalIdFromDomain(domainAccountEmpty, resID),
-        ERR_OSACCOUNT_KIT_DOMAIN_ACCOUNT_NAME_LENGTH_INVALID_ERROR);
+    ret = OsAccountManager::GetOsAccountLocalIdFromDomain(domainAccountEmpty, resID);
+    EXPECT_EQ(ret, ERR_OSACCOUNT_KIT_DOMAIN_ACCOUNT_NAME_LENGTH_INVALID_ERROR);
 
     DomainAccountInfo domainAllTooLong(STRING_DOMAIN_NAME_OUT_OF_RANGE, STRING_DOMAIN_ACCOUNT_NAME_OUT_OF_RANGE);
-    EXPECT_EQ(OsAccountManager::GetOsAccountLocalIdFromDomain(domainAllTooLong, resID),
-        ERR_OSACCOUNT_KIT_DOMAIN_NAME_LENGTH_INVALID_ERROR);
+    ret = OsAccountManager::GetOsAccountLocalIdFromDomain(domainAllTooLong, resID);
+    EXPECT_EQ(ret, ERR_OSACCOUNT_KIT_DOMAIN_NAME_LENGTH_INVALID_ERROR);
 
     DomainAccountInfo domainNameTooLong(STRING_DOMAIN_NAME_OUT_OF_RANGE, STRING_DOMAIN_ACCOUNT_NAME_VALID);
-    EXPECT_EQ(OsAccountManager::GetOsAccountLocalIdFromDomain(domainNameTooLong, resID),
-        ERR_OSACCOUNT_KIT_DOMAIN_NAME_LENGTH_INVALID_ERROR);
+    ret = OsAccountManager::GetOsAccountLocalIdFromDomain(domainNameTooLong, resID);
+    EXPECT_EQ(ret, ERR_OSACCOUNT_KIT_DOMAIN_NAME_LENGTH_INVALID_ERROR);
 
     DomainAccountInfo domainAccountTooLong(STRING_DOMAIN_VALID, STRING_DOMAIN_ACCOUNT_NAME_OUT_OF_RANGE);
-    EXPECT_EQ(OsAccountManager::GetOsAccountLocalIdFromDomain(domainAccountTooLong, resID),
-        ERR_OSACCOUNT_KIT_DOMAIN_ACCOUNT_NAME_LENGTH_INVALID_ERROR);    
+    ret = OsAccountManager::GetOsAccountLocalIdFromDomain(domainAccountTooLong, resID);
+    EXPECT_EQ(ret, ERR_OSACCOUNT_KIT_DOMAIN_ACCOUNT_NAME_LENGTH_INVALID_ERROR);
+}
+
+/**
+ * @tc.name: OsAccountManagerModuleTest062
+ * @tc.desc: Test get os account info from database
+ * @tc.type: FUNC
+ * @tc.require: SR000GGVFK
+ */
+HWTEST_F(OsAccountManagerModuleTest, OsAccountManagerModuleTest062, TestSize.Level1)
+{
+    char udid[Constants::DEVICE_UUID_LENGTH] = {0};
+    int ret = GetDevUdid(udid, Constants::DEVICE_UUID_LENGTH);
+    if (ret != 0) {
+        std::cout << "Error: GetDevUdid failed! error code " << ret << std::endl;
+        return;
+    }
+
+    std::string storeID = std::string(udid);
+    int createdOsAccountNum = -1;
+    ret = OsAccountManager::GetCreatedOsAccountNumFromDatabase(storeID, createdOsAccountNum);
+    EXPECT_EQ(ret, ERR_OK);
+    EXPECT_NE(createdOsAccountNum, -1);
+
+    int64_t serialNumber = -1;
+    ret = OsAccountManager::GetSerialNumberFromDatabase(storeID, serialNumber);
+    EXPECT_EQ(ret, ERR_OK);
+    EXPECT_NE(serialNumber, -1);
+
+    int id = -1;
+    ret = OsAccountManager::GetMaxAllowCreateIdFromDatabase(storeID, id);
+    EXPECT_EQ(ret, ERR_OK);
+    EXPECT_EQ(id, Constants::MAX_USER_ID);
+
+    OsAccountInfo osAccountInfo;
+    ret = OsAccountManager::GetOsAccountFromDatabase(storeID, Constants::START_USER_ID, osAccountInfo);
+    EXPECT_EQ(ret, ERR_OK);
+    EXPECT_EQ(osAccountInfo.GetLocalId(), Constants::START_USER_ID);
+
+    std::vector<OsAccountInfo> osAccountList;
+    ret = OsAccountManager::GetOsAccountListFromDatabase(storeID, osAccountList);
+    EXPECT_EQ(ret, ERR_OK);
+
+    bool checkValid = false;
+    checkValid = (osAccountList.size() > 0);
+    EXPECT_EQ(checkValid, true);
+
+    for (size_t i = 0; i < osAccountList.size(); ++i) {
+        if (osAccountList[i].GetLocalId() == Constants::START_USER_ID) {
+            checkValid = true;
+            break;
+        }
+    }
+    EXPECT_EQ(checkValid, true);
+    OsAccountManager::ActivateOsAccount(Constants::START_USER_ID);
+}
+
+/**
+ * @tc.name: OsAccountManagerModuleTest063
+ * @tc.desc: Test get os account info from database
+ * @tc.type: FUNC
+ * @tc.require: SR000GGVFK
+ */
+HWTEST_F(OsAccountManagerModuleTest, OsAccountManagerModuleTest063, TestSize.Level1)
+{
+    char udid[Constants::DEVICE_UUID_LENGTH] = {0};
+    int ret = GetDevUdid(udid, Constants::DEVICE_UUID_LENGTH);
+    if (ret != 0) {
+        std::cout << "Error: GetDevUdid failed! error code " << ret << std::endl;
+        return;
+    }
+
+    std::string storeID = std::string(udid);
+    int createdOsAccountNum = -1;
+    ret = OsAccountManager::GetCreatedOsAccountNumFromDatabase(storeID, createdOsAccountNum);
+    EXPECT_EQ(ret, ERR_OK);
+    EXPECT_NE(createdOsAccountNum, -1);
+
+    int createdOsAccountNumWithDefault = -1;
+    ret = OsAccountManager::GetCreatedOsAccountNumFromDatabase(std::string(""), createdOsAccountNumWithDefault);
+    EXPECT_EQ(ret, ERR_OK);
+    EXPECT_EQ(createdOsAccountNumWithDefault, createdOsAccountNum);
+
+    int64_t serialNumber = -1;
+    ret = OsAccountManager::GetSerialNumberFromDatabase(storeID, serialNumber);
+    EXPECT_EQ(ret, ERR_OK);
+    EXPECT_NE(serialNumber, -1);
+
+    int64_t serialNumberWithDefault = -1;
+    ret = OsAccountManager::GetSerialNumberFromDatabase(std::string(""), serialNumberWithDefault);
+    EXPECT_EQ(ret, ERR_OK);
+    EXPECT_EQ(serialNumber, serialNumberWithDefault);
+
+    int id = -1;
+    ret = OsAccountManager::GetMaxAllowCreateIdFromDatabase(storeID, id);
+    EXPECT_EQ(ret, ERR_OK);
+    EXPECT_EQ(id, Constants::MAX_USER_ID);
+
+    int idWithDefault = -1;
+    ret = OsAccountManager::GetMaxAllowCreateIdFromDatabase(std::string(""), idWithDefault);
+    EXPECT_EQ(ret, ERR_OK);
+    EXPECT_EQ(id, idWithDefault);
+
+    OsAccountInfo osAccountInfo;
+    ret = OsAccountManager::GetOsAccountFromDatabase(storeID, Constants::START_USER_ID, osAccountInfo);
+    EXPECT_EQ(ret, ERR_OK);
+
+    OsAccountInfo osAccountInfoByDefault;
+    ret = OsAccountManager::GetOsAccountFromDatabase(std::string(""), Constants::START_USER_ID, osAccountInfoByDefault);
+    EXPECT_EQ(ret, ERR_OK);
+    EXPECT_EQ(osAccountInfo.GetLocalId(), osAccountInfoByDefault.GetLocalId());
+    EXPECT_EQ(osAccountInfo.GetIsActived(), osAccountInfoByDefault.GetIsActived());
+    EXPECT_EQ(osAccountInfo.GetType(), osAccountInfoByDefault.GetType());
+
+    bool checkValid = (osAccountInfo.GetLocalName() == osAccountInfoByDefault.GetLocalName());
+    EXPECT_EQ(checkValid, true);
+
+    std::vector<OsAccountInfo> osAccountList;
+    ret = OsAccountManager::GetOsAccountListFromDatabase(storeID, osAccountList);
+    EXPECT_EQ(ret, ERR_OK);
+
+    std::vector<OsAccountInfo> osAccountListByDefault;
+    ret = OsAccountManager::GetOsAccountListFromDatabase(std::string(""), osAccountListByDefault);
+    EXPECT_EQ(ret, ERR_OK);
+
+    checkValid = (osAccountList.size() == osAccountListByDefault.size());
+    EXPECT_EQ(checkValid, true);
+    if (osAccountList.size() == osAccountListByDefault.size()) {
+        for (size_t i = 0; i < osAccountList.size(); ++i) {
+            EXPECT_EQ(osAccountList[i].GetLocalId(), osAccountListByDefault[i].GetLocalId());
+        }
+    }
+}
+
+/**
+ * @tc.name: OsAccountManagerModuleTest064
+ * @tc.desc: Test get os account info from database
+ * @tc.type: FUNC
+ * @tc.require: SR000GGVFK
+ */
+HWTEST_F(OsAccountManagerModuleTest, OsAccountManagerModuleTest064, TestSize.Level1)
+{
+    char udid[Constants::DEVICE_UUID_LENGTH] = {0};
+    int ret = GetDevUdid(udid, Constants::DEVICE_UUID_LENGTH);
+    if (ret != 0) {
+        std::cout << "Error: GetDevUdid failed! error code " << ret << std::endl;
+        return;
+    }
+
+    // get data before creating
+    std::string storeID = std::string(udid);
+    int createdOsAccountNum = -1;
+    ret = OsAccountManager::GetCreatedOsAccountNumFromDatabase(storeID, createdOsAccountNum);
+    EXPECT_EQ(ret, ERR_OK);
+    EXPECT_NE(createdOsAccountNum, -1);
+
+    int64_t serialNumber = -1;
+    ret = OsAccountManager::GetSerialNumberFromDatabase(storeID, serialNumber);
+    EXPECT_EQ(ret, ERR_OK);
+    EXPECT_NE(serialNumber, -1);
+
+    // create a new account
+    OsAccountInfo osAccountInfoOne;
+    EXPECT_EQ(OsAccountManager::CreateOsAccount(STRING_TEST_NAME, INT_TEST_TYPE, osAccountInfoOne), ERR_OK);
+
+    // get data after creating
+    int afterCreatedCount = -1;
+    ret = OsAccountManager::GetCreatedOsAccountNumFromDatabase(storeID, afterCreatedCount);
+    EXPECT_EQ(ret, ERR_OK);
+    EXPECT_EQ(afterCreatedCount, createdOsAccountNum + 1);
+
+    int64_t serialNumberAfterCreate = -1;
+    ret = OsAccountManager::GetSerialNumberFromDatabase(storeID, serialNumberAfterCreate);
+    EXPECT_EQ(ret, ERR_OK);
+    EXPECT_EQ(serialNumber + 1, serialNumberAfterCreate);
+
+    int id = -1;
+    ret = OsAccountManager::GetMaxAllowCreateIdFromDatabase(storeID, id);
+    EXPECT_EQ(ret, ERR_OK);
+    EXPECT_EQ(id, Constants::MAX_USER_ID);
+
+    // get created account info
+    OsAccountInfo osAccountInfo;
+    ret = OsAccountManager::GetOsAccountFromDatabase(storeID, osAccountInfoOne.GetLocalId(), osAccountInfo);
+    EXPECT_EQ(ret, ERR_OK);
+    EXPECT_EQ(osAccountInfo.GetLocalId(), osAccountInfoOne.GetLocalId());
+    EXPECT_EQ(osAccountInfo.GetIsActived(), false);
+    EXPECT_EQ(osAccountInfo.GetIsActived(), osAccountInfoOne.GetIsActived());
+    EXPECT_EQ(osAccountInfo.GetType(), osAccountInfoOne.GetType());
+
+    bool checkValid = (osAccountInfo.GetLocalName() == osAccountInfoOne.GetLocalName());
+    EXPECT_EQ(checkValid, true);
+
+    std::vector<OsAccountInfo> osAccountList;
+    ret = OsAccountManager::GetOsAccountListFromDatabase(storeID, osAccountList);
+    EXPECT_EQ(ret, ERR_OK);
+
+    // check new account must be in the list
+    checkValid = false;
+    for (size_t i = 0; i < osAccountList.size(); ++i) {
+        if (osAccountList[i].GetLocalId() == osAccountInfoOne.GetLocalId()) {
+            checkValid = (osAccountList[i].GetLocalName() == osAccountInfoOne.GetLocalName());
+            break;
+        }
+    }
+    EXPECT_EQ(checkValid, true);
+
+    // restore
+    OsAccountManager::ActivateOsAccount(Constants::START_USER_ID);
+    osAccountControlFileManager_->DelOsAccount(osAccountInfoOne.GetLocalId());
+}
+
+/**
+ * @tc.name: OsAccountManagerModuleTest065
+ * @tc.desc: Test get os account info from database
+ * @tc.type: FUNC
+ * @tc.require: SR000GGVFK
+ */
+HWTEST_F(OsAccountManagerModuleTest, OsAccountManagerModuleTest065, TestSize.Level1)
+{
+    char udid[Constants::DEVICE_UUID_LENGTH] = {0};
+    int ret = GetDevUdid(udid, Constants::DEVICE_UUID_LENGTH);
+    if (ret != 0) {
+        std::cout << "Error: GetDevUdid failed! error code " << ret << std::endl;
+        return;
+    }
+
+    // create a new os account
+    OsAccountInfo osAccountInfoOne;
+    EXPECT_EQ(OsAccountManager::CreateOsAccount(STRING_TEST_NAME, INT_TEST_TYPE, osAccountInfoOne), ERR_OK);
+
+    // get created account info
+    OsAccountInfo osAccountInfo;
+    ret = OsAccountManager::GetOsAccountFromDatabase(std::string(""), osAccountInfoOne.GetLocalId(), osAccountInfo);
+    EXPECT_EQ(ret, ERR_OK);
+    EXPECT_EQ(osAccountInfo.GetLocalId(), osAccountInfoOne.GetLocalId());
+    EXPECT_EQ(osAccountInfo.GetIsActived(), false);
+    EXPECT_EQ(osAccountInfo.GetIsActived(), osAccountInfoOne.GetIsActived());
+    EXPECT_EQ(osAccountInfo.GetType(), osAccountInfoOne.GetType());
+
+    // active the new os account
+    ret = OsAccountManager::ActivateOsAccount(osAccountInfoOne.GetLocalId());
+    EXPECT_EQ(ret, ERR_OK);
+
+    // get data after activating
+    OsAccountInfo osAccountInfoNow;
+    ret = OsAccountManager::GetOsAccountFromDatabase(std::string(""), osAccountInfoOne.GetLocalId(), osAccountInfoNow);
+    EXPECT_EQ(ret, ERR_OK);
+    EXPECT_EQ(osAccountInfoNow.GetLocalId(), osAccountInfoOne.GetLocalId());
+    EXPECT_EQ(osAccountInfoNow.GetIsActived(), true);
+
+    // cannot find the account in database list either
+    std::vector<OsAccountInfo> osAccountList;
+    ret = OsAccountManager::GetOsAccountListFromDatabase(std::string(""), osAccountList);
+    EXPECT_EQ(ret, ERR_OK);
+    bool findIt = false;
+    for (size_t i = 0; i < osAccountList.size(); ++i) {
+        if (osAccountInfoOne.GetLocalId() == osAccountList[i].GetLocalId()) {
+            findIt = osAccountList[i].GetIsActived();
+        }
+    }
+    EXPECT_EQ(findIt, true);
+
+    // restore
+    OsAccountManager::ActivateOsAccount(Constants::START_USER_ID);
+    osAccountControlFileManager_->DelOsAccount(osAccountInfoOne.GetLocalId());
+}
+
+/**
+ * @tc.name: OsAccountManagerModuleTest066
+ * @tc.desc: Test get os account info from database
+ * @tc.type: FUNC
+ * @tc.require: SR000GGVFK
+ */
+HWTEST_F(OsAccountManagerModuleTest, OsAccountManagerModuleTest066, TestSize.Level1)
+{
+    char udid[Constants::DEVICE_UUID_LENGTH] = {0};
+    int ret = GetDevUdid(udid, Constants::DEVICE_UUID_LENGTH);
+    if (ret != 0) {
+        std::cout << "Error: GetDevUdid failed! error code " << ret << std::endl;
+        return;
+    }
+    std::string storeID = std::string(udid);
+
+    // create a new os account
+    OsAccountInfo osAccountInfoOne;
+    EXPECT_EQ(OsAccountManager::CreateOsAccount(STRING_TEST_NAME, INT_TEST_TYPE, osAccountInfoOne), ERR_OK);
+
+    // get created account info
+    OsAccountInfo osAccountInfo;
+    ret = OsAccountManager::GetOsAccountFromDatabase(storeID, osAccountInfoOne.GetLocalId(), osAccountInfo);
+    EXPECT_EQ(ret, ERR_OK);
+    EXPECT_EQ(osAccountInfo.GetLocalId(), osAccountInfoOne.GetLocalId());
+    EXPECT_EQ(osAccountInfo.GetIsActived(), false);
+    EXPECT_EQ(osAccountInfo.GetIsActived(), osAccountInfoOne.GetIsActived());
+    EXPECT_EQ(osAccountInfo.GetType(), osAccountInfoOne.GetType());
+
+    // active the new os account
+    ret = OsAccountManager::ActivateOsAccount(osAccountInfoOne.GetLocalId());
+    EXPECT_EQ(ret, ERR_OK);
+
+    // get data after activating
+    OsAccountInfo osAccountInfoNow;
+    ret = OsAccountManager::GetOsAccountFromDatabase(storeID, osAccountInfoOne.GetLocalId(), osAccountInfoNow);
+    EXPECT_EQ(ret, ERR_OK);
+    EXPECT_EQ(osAccountInfoNow.GetLocalId(), osAccountInfoOne.GetLocalId());
+    EXPECT_EQ(osAccountInfoNow.GetIsActived(), true);
+
+    // remove the new os account
+    OsAccountManager::ActivateOsAccount(Constants::START_USER_ID);
+    ret = OsAccountManager::RemoveOsAccount(osAccountInfoOne.GetLocalId());
+    EXPECT_EQ(ret, ERR_OK);
+
+    // cannot find the account in database
+    OsAccountInfo osAccountInfoAfterRm;
+    ret = OsAccountManager::GetOsAccountFromDatabase(storeID, osAccountInfoOne.GetLocalId(), osAccountInfoAfterRm);
+    EXPECT_NE(ret, ERR_OK);
+
+    // cannot find the account in database list either
+    std::vector<OsAccountInfo> osAccountList;
+    ret = OsAccountManager::GetOsAccountListFromDatabase(storeID, osAccountList);
+    EXPECT_EQ(ret, ERR_OK);
+    bool findIt = false;
+    for (size_t i = 0; i < osAccountList.size(); ++i) {
+        if (osAccountInfoOne.GetLocalId() == osAccountList[i].GetLocalId()) {
+            findIt = true;
+        }
+    }
+    EXPECT_NE(findIt, true);
 }

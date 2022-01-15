@@ -869,6 +869,124 @@ ErrCode OsAccountProxy::DumpState(const int &id, std::vector<std::string> &state
     return ERR_OK;
 }
 
+void OsAccountProxy::CreateBasicAccounts()
+{
+    ACCOUNT_LOGI("OsAccountProxy::CreateBasicAccounts called. Do nothing.");
+}
+
+ErrCode OsAccountProxy::GetCreatedOsAccountNumFromDatabase(const std::string& storeID,
+    int &createdOsAccountNum)
+{
+    MessageParcel data;
+    MessageParcel reply;
+    if (!data.WriteString(storeID)) {
+        ACCOUNT_LOGE("failed to write string for storeID");
+        return ERR_OSACCOUNT_KIT_WRITE_STRING_STOREID_ERROR;
+    }
+    ErrCode result = SendRequest(IOsAccount::Message::GET_CREATED_OS_ACCOUNT_NUM_FROM_DATABASE, data, reply);
+    if (result != ERR_OK) {
+        return result;
+    }
+
+    result = reply.ReadInt32();
+    if (result != ERR_OK) {
+        return ERR_OSACCOUNT_KIT_GET_CREATED_OS_ACCOUNT_NUM_FROM_DATABASE_ERROR;
+    }
+    createdOsAccountNum = reply.ReadInt32();
+    return ERR_OK;
+}
+
+ErrCode OsAccountProxy::GetSerialNumberFromDatabase(const std::string& storeID, int64_t &serialNumber)
+{
+    MessageParcel data;
+    MessageParcel reply;
+    if (!data.WriteString(storeID)) {
+        ACCOUNT_LOGE("failed to write string for storeID");
+        return ERR_OSACCOUNT_KIT_WRITE_STRING_STOREID_ERROR;
+    }
+    ErrCode result = SendRequest(IOsAccount::Message::GET_SERIAL_NUM_FROM_DATABASE, data, reply);
+    if (result != ERR_OK) {
+        return result;
+    }
+
+    result = reply.ReadInt32();
+    if (result != ERR_OK) {
+        return ERR_OSACCOUNT_KIT_GET_SERIAL_NUM_FROM_DATABASE_ERROR;
+    }
+    serialNumber = reply.ReadInt64();
+    return ERR_OK;
+}
+
+ErrCode OsAccountProxy::GetMaxAllowCreateIdFromDatabase(const std::string& storeID, int &id)
+{
+    MessageParcel data;
+    MessageParcel reply;
+    if (!data.WriteString(storeID)) {
+        ACCOUNT_LOGE("failed to write string for isVerified");
+        return ERR_OSACCOUNT_KIT_WRITE_STRING_STOREID_ERROR;
+    }
+    ErrCode result = SendRequest(IOsAccount::Message::GET_MAX_ALLOW_CREATE_ID_FROM_DATABASE, data, reply);
+    if (result != ERR_OK) {
+        return result;
+    }
+
+    result = reply.ReadInt32();
+    if (result != ERR_OK) {
+        return ERR_OSACCOUNT_KIT_GET_MAX_ALLOWED_CREATE_ID_FROM_DATABASE_ERROR;
+    }
+    id = reply.ReadInt32();
+    return ERR_OK;
+}
+
+ErrCode OsAccountProxy::GetOsAccountFromDatabase(const std::string& storeID,
+    const int id, OsAccountInfo &osAccountInfo)
+{
+    MessageParcel data;
+    MessageParcel reply;
+    if (!data.WriteString(storeID)) {
+        ACCOUNT_LOGE("failed to write string for storeID");
+        return ERR_OSACCOUNT_KIT_WRITE_STRING_STOREID_ERROR;
+    }
+    if (!data.WriteInt32(id)) {
+        ACCOUNT_LOGE("failed to write int for id");
+        return ERR_OSACCOUNT_KIT_WRITE_INT_LOCALID_ERROR;
+    }
+
+    ErrCode result = SendRequest(IOsAccount::Message::GET_OS_ACCOUNT_FROM_DATABASE, data, reply);
+    if (result != ERR_OK) {
+        return result;
+    }
+
+    result = reply.ReadInt32();
+    if (result != ERR_OK) {
+        return ERR_OSACCOUNT_KIT_GET_OS_ACCOUNT_FROM_DATABASE_ERROR;
+    }
+    osAccountInfo = *(reply.ReadParcelable<OsAccountInfo>());
+    return ERR_OK;
+}
+
+ErrCode OsAccountProxy::GetOsAccountListFromDatabase(const std::string& storeID,
+    std::vector<OsAccountInfo> &osAccountList)
+{
+    MessageParcel data;
+    MessageParcel reply;
+    if (!data.WriteString(storeID)) {
+        ACCOUNT_LOGE("failed to write string for storeID");
+        return ERR_OSACCOUNT_KIT_WRITE_STRING_STOREID_ERROR;
+    }
+    ErrCode result = SendRequest(IOsAccount::Message::GET_OS_ACCOUNT_LIST_FROM_DATABASE, data, reply);
+    if (result != ERR_OK) {
+        return result;
+    }
+
+    result = reply.ReadInt32();
+    if (result != ERR_OK) {
+        return ERR_OSACCOUNT_KIT_GET_OS_ACCOUNT_LIST_FROM_DATABASE_ERROR;
+    }
+    ReadParcelableVector(osAccountList, reply);
+    return ERR_OK;
+}
+
 template<typename T>
 bool OsAccountProxy::WriteParcelableVector(const std::vector<T> &parcelableVector, MessageParcel &data)
 {
