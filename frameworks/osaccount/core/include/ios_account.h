@@ -69,6 +69,16 @@ public:
     virtual ErrCode SetOsAccountIsVerified(const int id, const bool isVerified) = 0;
     virtual ErrCode DumpState(const int &id, std::vector<std::string> &state) = 0;
 
+    virtual void CreateBasicAccounts() = 0;
+    virtual ErrCode GetCreatedOsAccountNumFromDatabase(const std::string& storeID,
+        int &createdOsAccountNum) = 0;
+    virtual ErrCode GetSerialNumberFromDatabase(const std::string& storeID, int64_t &serialNumber) = 0;
+    virtual ErrCode GetMaxAllowCreateIdFromDatabase(const std::string& storeID, int &id) = 0;
+    virtual ErrCode GetOsAccountFromDatabase(const std::string& storeID, const int id,
+        OsAccountInfo &osAccountInfo) = 0;
+    virtual ErrCode GetOsAccountListFromDatabase(const std::string& storeID,
+        std::vector<OsAccountInfo> &osAccountList) = 0;
+
     enum class Message {
         CREATE_OS_ACCOUNT = 0,
         CREATE_OS_ACCOUNT_FOR_DOMAIN,
@@ -106,6 +116,11 @@ public:
         SET_CURRENT_OS_ACCOUNT_IS_VERIFIED,
         SET_OS_ACCOUNT_IS_VERIFIED,
         DUMP_STATE,
+        GET_CREATED_OS_ACCOUNT_NUM_FROM_DATABASE,
+        GET_SERIAL_NUM_FROM_DATABASE,
+        GET_MAX_ALLOW_CREATE_ID_FROM_DATABASE,
+        GET_OS_ACCOUNT_FROM_DATABASE,
+        GET_OS_ACCOUNT_LIST_FROM_DATABASE,
     };
 };
 }  // namespace AccountSA

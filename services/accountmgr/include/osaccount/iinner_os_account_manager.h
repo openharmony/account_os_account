@@ -26,6 +26,7 @@ class IInnerOsAccountManager : public IInnerOsAccount, public DelayedSingleton<I
 public:
     IInnerOsAccountManager();
     virtual ~IInnerOsAccountManager() = default;
+    virtual void Init() override;
     virtual ErrCode CreateOsAccount(
         const std::string &name, const OsAccountType &type, OsAccountInfo &osAccountInfo) override;
     virtual ErrCode CreateOsAccountForDomain(
@@ -62,13 +63,22 @@ public:
     virtual ErrCode SetOsAccountIsVerified(const int id, const bool isVerified) override;
     virtual ErrCode IsAllowedCreateAdmin(bool &isAllowedCreateAdmin) override;
     virtual ErrCode GetOsAccountLocalIdFromDomain(const DomainAccountInfo &domainInfo, int &id) override;
+    virtual ErrCode GetCreatedOsAccountNumFromDatabase(const std::string& storeID,
+        int &createdOsAccountNum) override;
+    virtual ErrCode GetSerialNumberFromDatabase(const std::string& storeID, int64_t &serialNumber) override;
+    virtual ErrCode GetMaxAllowCreateIdFromDatabase(const std::string& storeID, int &id) override;
+    virtual ErrCode GetOsAccountFromDatabase(const std::string& storeID, const int id,
+        OsAccountInfo &osAccountInfo) override;
+    virtual ErrCode GetOsAccountListFromDatabase(const std::string& storeID,
+        std::vector<OsAccountInfo> &osAccountList) override;
 
 private:
-    virtual void Init() override;
     void StartAccount();
     void CreateBaseAdminAccount();
     void CreateBaseStandardAccount();
     void StartBaseStandardAccount(void);
+    void DeActivateOsAccount(const int id);
+    void ResetActiveStatus(void);
     ErrCode GetEventHandler(void);
     ErrCode PrepareOsAccountInfo(const std::string &name, const OsAccountType &type,
         const DomainAccountInfo &domainAccount, OsAccountInfo &osAccountInfo);

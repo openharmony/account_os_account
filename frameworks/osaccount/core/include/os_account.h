@@ -60,6 +60,14 @@ public:
     ErrCode DumpState(const int &id, std::vector<std::string> &state);
     ErrCode ResetOsAccountProxy();
 
+    ErrCode GetCreatedOsAccountNumFromDatabase(const std::string& storeID, int &createdOsAccountNum);
+    ErrCode GetSerialNumberFromDatabase(const std::string& storeID, int64_t &serialNumber);
+    ErrCode GetMaxAllowCreateIdFromDatabase(const std::string& storeID, int &id);
+    ErrCode GetOsAccountFromDatabase(const std::string& storeID, const int id,
+        OsAccountInfo &osAccountInfo);
+    ErrCode GetOsAccountListFromDatabase(const std::string& storeID,
+        std::vector<OsAccountInfo> &osAccountList);
+
 private:
     ErrCode GetOsAccountProxy();
     ErrCode CreateOsAccountEventListener(

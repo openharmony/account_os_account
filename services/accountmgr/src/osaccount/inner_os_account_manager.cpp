@@ -28,8 +28,7 @@ IInnerOsAccountManager::IInnerOsAccountManager() : subscribeManagerPtr_(OsAccoun
     activeAccountId_.clear();
     osAccountControl_ = std::make_shared<OsAccountControlFileManager>();
     osAccountControl_->Init();
-    Init();
-    ACCOUNT_LOGE("OsAccountAccountMgr Init ed");
+    ACCOUNT_LOGE("OsAccountAccountMgr Init end");
 }
 
 void IInnerOsAccountManager::CreateBaseAdminAccount()
@@ -86,6 +85,21 @@ void IInnerOsAccountManager::StartAccount()
     handler_->PostTask(callbackStartStandard, DELAY_FOR_FOUNDATION_SERVICE);
 }
 
+void IInnerOsAccountManager::ResetActiveStatus(void)
+{
+    std::vector<OsAccountInfo> osAccountInfos;
+    if (QueryAllCreatedOsAccounts(osAccountInfos) != ERR_OK) {
+        return;
+    }
+    for (size_t i = 0; i < osAccountInfos.size(); ++i) {
+        if (osAccountInfos[i].GetLocalId() == Constants::START_USER_ID) {
+            continue;
+        }
+        osAccountInfos[i].SetIsActived(false);
+        osAccountControl_->UpdateOsAccount(osAccountInfos[i]);
+    }
+}
+
 void IInnerOsAccountManager::StartBaseStandardAccount(void)
 {
     bool isAccountExists = false;
@@ -127,12 +141,15 @@ void IInnerOsAccountManager::StartBaseStandardAccount(void)
             }
         } else {
             {
+                osAccountInfo.SetIsActived(true);
+                osAccountControl_->UpdateOsAccount(osAccountInfo);
                 std::lock_guard<std::mutex> lock(ativeMutex_);
                 activeAccountId_.push_back(Constants::START_USER_ID);
             }
             OsAccountStandardInterface::SendToCESAccountCreate(osAccountInfo);
         }
     }
+    ResetActiveStatus();
 }
 
 ErrCode IInnerOsAccountManager::PrepareOsAccountInfo(const std::string &name, const OsAccountType &type,
@@ -276,6 +293,7 @@ ErrCode IInnerOsAccountManager::RemoveOsAccount(const int id)
     ACCOUNT_LOGE("IInnerOsAccountManager RemoveOsAccount end");
     return ERR_OK;
 }
+
 void IInnerOsAccountManager::Init()
 {
     CreateBaseAdminAccount();
@@ -388,13 +406,13 @@ ErrCode IInnerOsAccountManager::GetOsAccountLocalIdFromDomain(const DomainAccoun
 {
     if (domainInfo.domain_.empty() ||
         domainInfo.domain_.size() > Constants::DOMAIN_NAME_MAX_SIZE) {
-        ACCOUNT_LOGE("invalid domain name length %{public}u.", domainInfo.domain_.size());
+        ACCOUNT_LOGE("invalid domain name length %{public}zu.", domainInfo.domain_.size());
         return ERR_OS_ACCOUNT_SERVICE_INNER_DOMAIN_NAME_LEN_ERROR;
     }
 
     if (domainInfo.accountName_.empty() ||
         domainInfo.accountName_.size() > Constants::DOMAIN_ACCOUNT_NAME_MAX_SIZE) {
-        ACCOUNT_LOGE("invalid domain account name length %{public}u.", domainInfo.accountName_.size());
+        ACCOUNT_LOGE("invalid domain account name length %{public}zu.", domainInfo.accountName_.size());
         return ERR_OS_ACCOUNT_SERVICE_INNER_DOMAIN_ACCOUNT_NAME_LEN_ERROR;
     }
 
@@ -558,6 +576,23 @@ ErrCode IInnerOsAccountManager::GetDistributedVirtualDeviceId(std::string &devic
     return ERR_OK;
 }
 
+void IInnerOsAccountManager::DeActivateOsAccount(const int id)
+{
+    if (id == Constants::ADMIN_LOCAL_ID) {
+        return;
+    }
+
+    OsAccountInfo osAccountInfo;
+    ErrCode errCode = osAccountControl_->GetOsAccountInfoById(id, osAccountInfo);
+    if (errCode != ERR_OK) {
+        ACCOUNT_LOGE("DeActivateOsAccount cannot get os account %{public}d info. error %{public}d.",
+            id, errCode);
+        return;
+    }
+    osAccountInfo.SetIsActived(false);
+    (void)osAccountControl_->UpdateOsAccount(osAccountInfo);
+}
+
 ErrCode IInnerOsAccountManager::ActivateOsAccount(const int id)
 {
     {
@@ -583,8 +618,16 @@ ErrCode IInnerOsAccountManager::ActivateOsAccount(const int id)
     if (errCode != ERR_OK) {
         return ERR_OS_ACCOUNT_SERVICE_INNER_SEND_CE_ACCOUNT_SWITCH_ERROR;
     }
+
+    // update info
+    osAccountInfo.SetIsActived(true);
+    osAccountControl_->UpdateOsAccount(osAccountInfo);
+
     {
         std::lock_guard<std::mutex> lock(ativeMutex_);
+        for (size_t i = 0; i < activeAccountId_.size(); ++i) {
+            DeActivateOsAccount(activeAccountId_[i]);
+        }
         activeAccountId_.clear();
         activeAccountId_.push_back(Constants::ADMIN_LOCAL_ID);
         activeAccountId_.push_back(id);
@@ -713,6 +756,35 @@ ErrCode IInnerOsAccountManager::GetEventHandler(void)
 ErrCode IInnerOsAccountManager::IsAllowedCreateAdmin(bool &isAllowedCreateAdmin)
 {
     return osAccountControl_->IsAllowedCreateAdmin(isAllowedCreateAdmin);
+}
+
+ErrCode IInnerOsAccountManager::GetCreatedOsAccountNumFromDatabase(const std::string& storeID,
+    int &createdOsAccountNum)
+{
+    return osAccountControl_->GetCreatedOsAccountNumFromDatabase(storeID, createdOsAccountNum);
+}
+
+ErrCode IInnerOsAccountManager::GetSerialNumberFromDatabase(const std::string& storeID,
+    int64_t &serialNumber)
+{
+    return osAccountControl_->GetSerialNumberFromDatabase(storeID, serialNumber);
+}
+
+ErrCode IInnerOsAccountManager::GetMaxAllowCreateIdFromDatabase(const std::string& storeID, int &id)
+{
+    return osAccountControl_->GetMaxAllowCreateIdFromDatabase(storeID, id);
+}
+
+ErrCode IInnerOsAccountManager::GetOsAccountFromDatabase(const std::string& storeID, const int id,
+    OsAccountInfo &osAccountInfo)
+{
+    return osAccountControl_->GetOsAccountFromDatabase(storeID, id, osAccountInfo);
+}
+
+ErrCode IInnerOsAccountManager::GetOsAccountListFromDatabase(const std::string& storeID,
+    std::vector<OsAccountInfo> &osAccountList)
+{
+    return osAccountControl_->GetOsAccountListFromDatabase(storeID, osAccountList);
 }
 }  // namespace AccountSA
 }  // namespace OHOS

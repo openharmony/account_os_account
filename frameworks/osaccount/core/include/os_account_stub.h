@@ -68,6 +68,11 @@ private:
     ErrCode ProcSetCurrentOsAccountIsVerified(MessageParcel &data, MessageParcel &reply);
     ErrCode ProcSetOsAccountIsVerified(MessageParcel &data, MessageParcel &reply);
     ErrCode ProcDumpState(MessageParcel &data, MessageParcel &reply);
+    ErrCode ProcGetCreatedOsAccountNumFromDatabase(MessageParcel &data, MessageParcel &reply);
+    ErrCode ProcGetSerialNumberFromDatabase(MessageParcel &data, MessageParcel &reply);
+    ErrCode ProcGetMaxAllowCreateIdFromDatabase(MessageParcel &data, MessageParcel &reply);
+    ErrCode ProcGetOsAccountFromDatabase(MessageParcel &data, MessageParcel &reply);
+    ErrCode ProcGetOsAccountListFromDatabase(MessageParcel &data, MessageParcel &reply);
 
 private:
     template<typename T>

@@ -27,14 +27,14 @@ OsAccountDataStorage::~OsAccountDataStorage()
 OsAccountDataStorage::OsAccountDataStorage(const std::string &appId, const std::string &storeId, const bool &autoSync)
     : AccountDataStorage(appId, storeId, autoSync)
 {
-    ACCOUNT_LOGE("OsAccountDataStorage OsAccountDataStorage()");
+    ACCOUNT_LOGI("OsAccountDataStorage OsAccountDataStorage()");
 }
 
 void OsAccountDataStorage::SaveEntries(
     std::vector<OHOS::DistributedKv::Entry> allEntries, std::map<std::string, std::shared_ptr<IAccountInfo>> &infos)
 {
-    ACCOUNT_LOGE("OsAccountDataStorage SaveEntries() start");
-    ACCOUNT_LOGE("OsAccountDataStorage SaveEntries() allEntries size is ：%{public}zu", allEntries.size());
+    ACCOUNT_LOGI("OsAccountDataStorage SaveEntries() start");
+    ACCOUNT_LOGI("OsAccountDataStorage SaveEntries() allEntries size is: %{public}zu", allEntries.size());
     for (auto const &item : allEntries) {
         OsAccountInfo osAccountInfo;
         nlohmann::json jsonObject = nlohmann::json::parse(item.value.ToString(), nullptr, false);

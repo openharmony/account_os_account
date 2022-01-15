@@ -103,13 +103,13 @@ HWTEST_F(AccountMgrStubTest, AccountStubQueryDeviceAccountIdTest003, TestSize.Le
      */
     MockAccountMgrService mockSrv{};
     std::int32_t testUid = 1000000;
-    std::int32_t expectedId = 10;
+    std::int32_t expectedId = 5;
 
     MessageParcel inData;
     inData.WriteInterfaceToken(AccountStub::GetDescriptor());
     /**
      * @tc.steps: step2. write UID and send QUERY_DEVICE_ACCOUNT_ID_FROM_UID cmd
-     * @tc.expected: result is ok, and expected device account id is 10:  expectedId = testUid/100000
+     * @tc.expected: result is ok, and expected device account id is 5:  expectedId = testUid/200000
      */
     inData.WriteInt32(testUid);
     MessageParcel outData;

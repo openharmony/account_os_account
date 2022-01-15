@@ -73,6 +73,7 @@ private:
 
     sptr<IRemoteObject> appAccountManagerService_;
     sptr<IRemoteObject> osAccountManagerService_;
+    OsAccountManagerService* osAccountManagerServiceOrg_;
 };
 }  // namespace AccountSA
 }  // namespace OHOS

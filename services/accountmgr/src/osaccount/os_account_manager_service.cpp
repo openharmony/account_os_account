@@ -261,6 +261,10 @@ ErrCode OsAccountManagerService::GetOsAccountLocalIdFromProcess(int &id)
 
 ErrCode OsAccountManagerService::GetOsAccountLocalIdFromUid(const int uid, int &id)
 {
+    if (uid < 0) {
+        ACCOUNT_LOGE("GetOsAccountLocalIdFromUid: invalid uid %{public}d.", uid);
+        return ERR_OS_ACCOUNT_SERVICE_MANAGER_BAD_UID_ERR;
+    }
     id = uid / Constants::UID_TRANSFORM_DIVISOR;
     return ERR_OK;
 }
@@ -780,6 +784,110 @@ ErrCode OsAccountManagerService::DumpState(const int &id, std::vector<std::strin
     }
 
     return ERR_OK;
+}
+
+ErrCode OsAccountManagerService::GetCreatedOsAccountNumFromDatabase(const std::string& storeID,
+    int &createdOsAccountNum)
+{
+    auto callingUid = IPCSkeleton::GetCallingUid();
+    if (callingUid >= Constants::APP_UID_START) {
+        std::string bundleName;
+
+        ErrCode result = bundleManagerPtr_->GetBundleName(callingUid, bundleName);
+        if (result != ERR_OK) {
+            ACCOUNT_LOGE("failed to get bundle name");
+            return result;
+        }
+
+        result = permissionManagerPtr_->VerifyPermission(
+            callingUid, AccountPermissionManager::MANAGE_LOCAL_ACCOUNTS, bundleName);
+        if (result != ERR_OK) {
+            ACCOUNT_LOGI("failed to verify permission for MANAGE_LOCAL_ACCOUNTS");
+            return ERR_OS_ACCOUNT_SERVICE_PERMISSION_DENIED;
+        }
+    }
+    return innerManager_->GetCreatedOsAccountNumFromDatabase(storeID, createdOsAccountNum);
+}
+
+void OsAccountManagerService::CreateBasicAccounts()
+{
+    ACCOUNT_LOGE("CreateBasicAccounts enter!");
+    innerManager_->Init();
+    ACCOUNT_LOGE("CreateBasicAccounts exit!");
+}
+
+ErrCode OsAccountManagerService::GetSerialNumberFromDatabase(const std::string& storeID,
+    int64_t &serialNumber)
+{
+    return innerManager_->GetSerialNumberFromDatabase(storeID, serialNumber);
+}
+
+ErrCode OsAccountManagerService::GetMaxAllowCreateIdFromDatabase(const std::string& storeID, int &id)
+{
+    auto callingUid = IPCSkeleton::GetCallingUid();
+    if (callingUid >= Constants::APP_UID_START) {
+        std::string bundleName;
+
+        ErrCode result = bundleManagerPtr_->GetBundleName(callingUid, bundleName);
+        if (result != ERR_OK) {
+            ACCOUNT_LOGE("failed to get bundle name");
+            return result;
+        }
+
+        result = permissionManagerPtr_->VerifyPermission(
+            callingUid, AccountPermissionManager::MANAGE_LOCAL_ACCOUNTS, bundleName);
+        if (result != ERR_OK) {
+            ACCOUNT_LOGI("failed to verify permission for MANAGE_LOCAL_ACCOUNTS");
+            return ERR_OS_ACCOUNT_SERVICE_PERMISSION_DENIED;
+        }
+    }
+    return innerManager_->GetMaxAllowCreateIdFromDatabase(storeID, id);
+}
+
+ErrCode OsAccountManagerService::GetOsAccountFromDatabase(const std::string& storeID,
+    const int id, OsAccountInfo &osAccountInfo)
+{
+    auto callingUid = IPCSkeleton::GetCallingUid();
+    if (callingUid >= Constants::APP_UID_START) {
+        std::string bundleName;
+
+        ErrCode result = bundleManagerPtr_->GetBundleName(callingUid, bundleName);
+        if (result != ERR_OK) {
+            ACCOUNT_LOGE("failed to get bundle name");
+            return result;
+        }
+
+        result = permissionManagerPtr_->VerifyPermission(
+            callingUid, AccountPermissionManager::MANAGE_LOCAL_ACCOUNTS, bundleName);
+        if (result != ERR_OK) {
+            ACCOUNT_LOGI("failed to verify permission for MANAGE_LOCAL_ACCOUNTS");
+            return ERR_OS_ACCOUNT_SERVICE_PERMISSION_DENIED;
+        }
+    }
+    return innerManager_->GetOsAccountFromDatabase(storeID, id, osAccountInfo);
+}
+
+ErrCode OsAccountManagerService::GetOsAccountListFromDatabase(const std::string& storeID,
+    std::vector<OsAccountInfo> &osAccountList)
+{
+    auto callingUid = IPCSkeleton::GetCallingUid();
+    if (callingUid >= Constants::APP_UID_START) {
+        std::string bundleName;
+
+        ErrCode result = bundleManagerPtr_->GetBundleName(callingUid, bundleName);
+        if (result != ERR_OK) {
+            ACCOUNT_LOGE("failed to get bundle name");
+            return result;
+        }
+
+        result = permissionManagerPtr_->VerifyPermission(
+            callingUid, AccountPermissionManager::MANAGE_LOCAL_ACCOUNTS, bundleName);
+        if (result != ERR_OK) {
+            ACCOUNT_LOGI("failed to verify permission for MANAGE_LOCAL_ACCOUNTS");
+            return ERR_OS_ACCOUNT_SERVICE_PERMISSION_DENIED;
+        }
+    }
+    return innerManager_->GetOsAccountListFromDatabase(storeID, osAccountList);
 }
 }  // namespace AccountSA
 }  // namespace OHOS

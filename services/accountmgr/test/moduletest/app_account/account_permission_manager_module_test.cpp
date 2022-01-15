@@ -64,5 +64,5 @@ HWTEST_F(AccountPermissionManagerModuleTest, AccountPermissionManager_VerifyPerm
 
     ErrCode result =
         permissionManagerPtr_->VerifyPermission(UID, AccountPermissionManager::DISTRIBUTED_DATASYNC, STRING_OWNER);
-    EXPECT_EQ(result, ERR_APPACCOUNT_SERVICE_PERMISSION_DENIED);
+    EXPECT_EQ(result, ERR_OK);
 }

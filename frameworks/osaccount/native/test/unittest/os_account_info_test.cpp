@@ -49,7 +49,8 @@ const std::string STRING_PHOTO =
 const int64_t INT_CREATE_TIME = 1551925510;
 const int64_t INT_LAST_LOGINGGED_IN_TIME = 1551925510;
 const std::string STRING_JSON =
-    "{\"constraints\":[\"one\",\"two\",\"three\",\"four\",\"five\"],\"createTime\":1551925510,\"isActived\":false,"
+    "{\"constraints\":[\"one\",\"two\",\"three\",\"four\",\"five\"],\"createTime\":1551925510,\"domainInfo\":{"
+    "\"accountName\":\"\",\"domain\":\"\"},\"isActived\":false,"
     "\"isCreateCompleted\":true,\"isVerified\":true,\"lastLoginTime\":1551925510,\"localId\":12,\"localName\":"
     "\"account\",\"photo\":\"data:image/jpeg;base64,/9j/4AAQSkZJRgABAQEAYABgAAD//gAUU29mdHdhcmU6IFNuaXBhc3Rl/"
     "9sAQwADAgIDAgIDAwMDBAMDBAUIBQUEBAUKBwcGCAwKDAwLCgsLDQ4SEA0OEQ4LCxAWEBETFBUVFQwPFxgWFBgSFBUU/"
