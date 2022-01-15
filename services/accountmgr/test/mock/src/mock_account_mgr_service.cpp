@@ -21,7 +21,7 @@
 
 namespace OHOS {
 namespace AccountSA {
-constexpr std::int32_t UID_TRANSFORM_DIVISOR = 100000;
+constexpr std::int32_t UID_TRANSFORM_DIVISOR = 200000;
 MockAccountMgrService::MockAccountMgrService()
 {
     devAccountId_ = 0;

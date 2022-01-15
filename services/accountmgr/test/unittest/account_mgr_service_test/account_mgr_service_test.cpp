@@ -43,6 +43,12 @@ std::string g_eventLogin = OHOS_ACCOUNT_EVENT_LOGIN;
 std::string g_eventLogout = OHOS_ACCOUNT_EVENT_LOGOUT;
 std::string g_eventTokenInvalid = OHOS_ACCOUNT_EVENT_TOKEN_INVALID;
 std::string g_eventLogoff = OHOS_ACCOUNT_EVENT_LOGOFF;
+const std::string TEST_ACCOUNT_NAME = "TestAccountName";
+const std::string TEST_ACCOUNT_UID = "123456789";
+const std::string TEST_EXPECTED_UID = "5EECC2D3D61FBEE9C48657CDA07F94BBCFA55B96A4916BCE2C27C736A6FB5C0B";
+const std::string TEST_DIFF_ACCOUNT_NAME = "TestDiffAccountName";
+const std::string TEST_DIFF_ACCOUNT_UID = "9876432";
+const std::string TEST_DIFF_EXPECTED_UID = "63AB44B6C0BBA6C3F560146E2C3123F68659DDE6CDF09EF29392E6687284AB3D";
 
 sptr<IAccount> GetAccountMgr()
 {
@@ -78,7 +84,7 @@ void AccountMgrServiceTest::SetUpTestCase()
 {
     sptr<IAccount> accountMgr = GetAccountMgr();
     if (!accountMgr) {
-        std::cout << "TearDownTestCase::GetAccountMgr failed" << std::endl;
+        std::cout << "AccountMgrServiceTest::SetUpTestCase  failed" << std::endl;
         return;
     }
     g_oldInfo = accountMgr->QueryOhosAccountInfo();
@@ -96,40 +102,7 @@ void AccountMgrServiceTest::SetUpTestCase()
 
 void AccountMgrServiceTest::TearDownTestCase()
 {
-    if (g_oldInfo.first) {
-        sptr<IAccount> accountMgr = GetAccountMgr();
-        if (!accountMgr) {
-            std::cout << "TearDownTestCase::GetAccountMgr failed" << std::endl;
-            return;
-        }
-
-        auto name = g_oldInfo.second.name_;
-        auto uid = g_oldInfo.second.uid_;
-        bool ret = false;
-        switch (g_oldInfo.second.status_) {
-            case ACCOUNT_STATE_UNBOUND:
-            case ACCOUNT_STATE_LOGOFF:
-                break;
-            case ACCOUNT_STATE_LOGIN:
-                ret = accountMgr->UpdateOhosAccountInfo(name, uid, g_eventLogin);
-                if (!ret) {
-                    std::cout << "TearDownTestCase RESUME to LOGIN failed" << std::endl;
-                }
-                break;
-            case ACCOUNT_STATE_NOTLOGIN:
-                ret = accountMgr->UpdateOhosAccountInfo(name, uid, g_eventLogin);
-                if (!ret) {
-                    std::cout << "TearDownTestCase RESUME to LOGIN failed" << std::endl;
-                }
-                ret = accountMgr->UpdateOhosAccountInfo(name, uid, g_eventTokenInvalid);
-                if (!ret) {
-                    std::cout << "TearDownTestCase RESUME to NOTLOGIN failed" << std::endl;
-                }
-                break;
-            default:
-                break;
-        }
-    }
+    std::cout << "AccountMgrServiceTest::TearDownTestCase" << std::endl;
 }
 
 void AccountMgrServiceTest::SetUp() {}
@@ -137,92 +110,198 @@ void AccountMgrServiceTest::SetUp() {}
 void AccountMgrServiceTest::TearDown() {}
 
 /**
- * @tc.name: AccountMgrServiceSetOhosIdStatusLoginTest001
- * @tc.desc: Test ohos account status
+ * @tc.name: AccountMgrServiceOhosLoginTest001
+ * @tc.desc: Test ohos account login and logout
  * @tc.type: FUNC
- * @tc.require: AR000CUF5H SR000CUF5T
+ * @tc.require: SR000GGVG1
  */
-HWTEST_F(AccountMgrServiceTest, AccountMgrServiceSetOhosIdStatusLoginTest001, TestSize.Level2)
+HWTEST_F(AccountMgrServiceTest, AccountMgrServiceOhosLoginTest001, TestSize.Level2)
 {
-    /**
-     * @tc.steps: step1. get AccountMgrService Iinterface
-     * @tc.expected: step1. The current account is not set
-     */
     sptr<IAccount> accountMgr = GetAccountMgr();
     ASSERT_TRUE(accountMgr != nullptr);
 
-    std::pair<bool, OhosAccountInfo> info = accountMgr->QueryOhosAccountInfo();
-    EXPECT_EQ(true, info.first);
-    bool ret = false;
-    switch (info.second.status_) {
-        case ACCOUNT_STATE_LOGIN:
-        case ACCOUNT_STATE_NOTLOGIN:
-            ret = accountMgr->UpdateOhosAccountInfo(info.second.name_,
-                info.second.uid_, g_eventLogout);
-            EXPECT_EQ(true, ret);
-            info = accountMgr->QueryOhosAccountInfo();
-            EXPECT_EQ(true, info.first);
-            EXPECT_EQ(ACCOUNT_STATE_UNBOUND, info.second.status_);
-            break;
-        default:
-            break;
-    }
-
-    // update status with test info
-    std::string name("User001");
-    std::string uid("1001");
-    ret = accountMgr->UpdateOhosAccountInfo(name, uid, g_eventLogin);
+    // login
+    bool ret = accountMgr->UpdateOhosAccountInfo(TEST_ACCOUNT_NAME, TEST_ACCOUNT_UID, g_eventLogin);
     EXPECT_EQ(true, ret);
-    // param 1: name, param 2: UID, param 3: status
+
+    // status check
     std::pair<bool, OhosAccountInfo> testInfo = accountMgr->QueryOhosAccountInfo();
     EXPECT_EQ(true, testInfo.first);
-    EXPECT_EQ(uid, testInfo.second.uid_);
-    EXPECT_EQ(ACCOUNT_STATE_LOGIN, testInfo.second.status_);
+    ret = (testInfo.second.uid_ == TEST_EXPECTED_UID);
+    EXPECT_EQ(true, ret);
+    ret = (testInfo.second.name_ == TEST_ACCOUNT_NAME);
+    EXPECT_EQ(true, ret);
+    ret = (testInfo.second.status_ == ACCOUNT_STATE_LOGIN);
+    EXPECT_EQ(true, ret);
 
-    ret = accountMgr->UpdateOhosAccountInfo(name, uid, g_eventLogout);
+    // logout
+    ret = accountMgr->UpdateOhosAccountInfo(TEST_ACCOUNT_NAME, TEST_ACCOUNT_UID, g_eventLogout);
+    EXPECT_EQ(true, ret);
+
+    // status check
+    testInfo = accountMgr->QueryOhosAccountInfo();
+    EXPECT_EQ(true, testInfo.first);
+    ret = (testInfo.second.uid_ == DEFAULT_OHOS_ACCOUNT_UID);
+    EXPECT_EQ(true, ret);
+    ret = (testInfo.second.name_ == DEFAULT_OHOS_ACCOUNT_NAME);
+    EXPECT_EQ(true, ret);
+    ret = (testInfo.second.status_ == ACCOUNT_STATE_UNBOUND);
     EXPECT_EQ(true, ret);
 }
 
 /**
- * @tc.name: AccountMgrServiceSetOhosIdStatusLogoffTest002
- * @tc.desc: Test ohos account status
+ * @tc.name: AccountMgrServiceOhosLoginTest002
+ * @tc.desc: Test ohos account repeat login will fail
  * @tc.type: FUNC
- * @tc.require: AR000CUF64 AR000CUF5K AR000CUF5O
+ * @tc.require: SR000GGVG1
  */
-HWTEST_F(AccountMgrServiceTest, AccountMgrServiceSetOhosIdStatusLogoffTest002, TestSize.Level2)
+HWTEST_F(AccountMgrServiceTest, AccountMgrServiceOhosLoginTest002, TestSize.Level2)
 {
-    /**
-     * @tc.steps: step1. get AccountMgrService Iinterface
-     * @tc.expected: step1. The current account is not set
-     */
     sptr<IAccount> accountMgr = GetAccountMgr();
     ASSERT_TRUE(accountMgr != nullptr);
 
-    std::pair<bool, OhosAccountInfo> retInfo = accountMgr->QueryOhosAccountInfo();
-    EXPECT_EQ(true, retInfo.first);
-    std::string name(retInfo.second.name_);
-    std::string uid(retInfo.second.uid_);
-    bool ret = false;
-    switch (retInfo.second.status_) {
-        case ACCOUNT_STATE_LOGIN:
-        case ACCOUNT_STATE_NOTLOGIN:
-            ret = accountMgr->UpdateOhosAccountInfo(name, uid, g_eventLogout);
-            EXPECT_EQ(true, ret);
-            break;
-        default:
-            break;
-    }
-    // update status with test info
-    name = "User002";
-    uid = "1002";
-    // param 1: name, param 2: UID, param 3: status
-    ret = accountMgr->UpdateOhosAccountInfo(name, uid, g_eventLogin);
+    // login
+    bool ret = accountMgr->UpdateOhosAccountInfo(TEST_ACCOUNT_NAME, TEST_ACCOUNT_UID, g_eventLogin);
     EXPECT_EQ(true, ret);
 
-    ret = accountMgr->UpdateOhosAccountInfo(name, uid, g_eventLogoff);
-    EXPECT_EQ(true, ret);
-
+    // status check
     std::pair<bool, OhosAccountInfo> testInfo = accountMgr->QueryOhosAccountInfo();
     EXPECT_EQ(true, testInfo.first);
-    EXPECT_EQ(ACCOUNT_STATE_LOGOFF, testInfo.second.status_);
+    ret = (testInfo.second.uid_ == TEST_EXPECTED_UID);
+    EXPECT_EQ(true, ret);
+    ret = (testInfo.second.name_ == TEST_ACCOUNT_NAME);
+    EXPECT_EQ(true, ret);
+    ret = (testInfo.second.status_ == ACCOUNT_STATE_LOGIN);
+    EXPECT_EQ(true, ret);
+
+    // repeat login
+    ret = accountMgr->UpdateOhosAccountInfo(TEST_ACCOUNT_NAME, TEST_ACCOUNT_UID, g_eventLogin);
+    EXPECT_EQ(false, ret);
+
+    // repeat login
+    ret = accountMgr->UpdateOhosAccountInfo(TEST_DIFF_ACCOUNT_NAME, TEST_DIFF_ACCOUNT_UID, g_eventLogin);
+    EXPECT_EQ(false, ret);
+
+    // logout
+    ret = accountMgr->UpdateOhosAccountInfo(TEST_ACCOUNT_NAME, TEST_ACCOUNT_UID, g_eventLogout);
+    EXPECT_EQ(true, ret);
+
+    // status check
+    testInfo = accountMgr->QueryOhosAccountInfo();
+    EXPECT_EQ(true, testInfo.first);
+    ret = (testInfo.second.uid_ == DEFAULT_OHOS_ACCOUNT_UID);
+    EXPECT_EQ(true, ret);
+    ret = (testInfo.second.name_ == DEFAULT_OHOS_ACCOUNT_NAME);
+    EXPECT_EQ(true, ret);
+    ret = (testInfo.second.status_ == ACCOUNT_STATE_UNBOUND);
+    EXPECT_EQ(true, ret);
+}
+
+/**
+ * @tc.name: AccountMgrServiceOhosLogoffTest001
+ * @tc.desc: Test ohos account login and logoff
+ * @tc.type: FUNC
+ * @tc.require: SR000GGVG1
+ */
+HWTEST_F(AccountMgrServiceTest, AccountMgrServiceOhosLogoffTest001, TestSize.Level2)
+{
+    sptr<IAccount> accountMgr = GetAccountMgr();
+    ASSERT_TRUE(accountMgr != nullptr);
+
+    // login
+    // param 1: name, param 2: UID, param 3: status
+    bool ret = accountMgr->UpdateOhosAccountInfo(TEST_DIFF_ACCOUNT_NAME, TEST_DIFF_ACCOUNT_UID, g_eventLogin);
+    EXPECT_EQ(true, ret);
+
+    // status check
+    std::pair<bool, OhosAccountInfo> testInfo = accountMgr->QueryOhosAccountInfo();
+    EXPECT_EQ(true, testInfo.first);
+    ret = (testInfo.second.uid_ == TEST_DIFF_EXPECTED_UID);
+    EXPECT_EQ(true, ret);
+    ret = (testInfo.second.name_ == TEST_DIFF_ACCOUNT_NAME);
+    EXPECT_EQ(true, ret);
+    ret = (testInfo.second.status_ == ACCOUNT_STATE_LOGIN);
+    EXPECT_EQ(true, ret);
+
+    // logoff
+    ret = accountMgr->UpdateOhosAccountInfo(TEST_DIFF_ACCOUNT_NAME, TEST_DIFF_ACCOUNT_UID, g_eventLogoff);
+    EXPECT_EQ(true, ret);
+
+    // status check
+    testInfo = accountMgr->QueryOhosAccountInfo();
+    EXPECT_EQ(true, testInfo.first);
+    ret = (testInfo.second.uid_ == DEFAULT_OHOS_ACCOUNT_UID);
+    EXPECT_EQ(true, ret);
+    ret = (testInfo.second.name_ == DEFAULT_OHOS_ACCOUNT_NAME);
+    EXPECT_EQ(true, ret);
+    ret = (testInfo.second.status_ == ACCOUNT_STATE_LOGOFF);
+    EXPECT_EQ(true, ret);
+}
+
+/**
+ * @tc.name: AccountMgrServiceOhosTokenInvalidTest001
+ * @tc.desc: Test ohos account login and token invalid
+ * @tc.type: FUNC
+ * @tc.require: SR000GGVG1
+ */
+HWTEST_F(AccountMgrServiceTest, AccountMgrServiceOhosTokenInvalidTest001, TestSize.Level2)
+{
+    sptr<IAccount> accountMgr = GetAccountMgr();
+    ASSERT_TRUE(accountMgr != nullptr);
+
+    // login
+    bool ret = accountMgr->UpdateOhosAccountInfo(TEST_ACCOUNT_NAME, TEST_ACCOUNT_UID, g_eventLogin);
+    EXPECT_EQ(true, ret);
+
+    // status check
+    std::pair<bool, OhosAccountInfo> testInfo = accountMgr->QueryOhosAccountInfo();
+    EXPECT_EQ(true, testInfo.first);
+    ret = (testInfo.second.uid_ == TEST_EXPECTED_UID);
+    EXPECT_EQ(true, ret);
+    ret = (testInfo.second.name_ == TEST_ACCOUNT_NAME);
+    EXPECT_EQ(true, ret);
+    ret = (testInfo.second.status_ == ACCOUNT_STATE_LOGIN);
+    EXPECT_EQ(true, ret);
+
+    // token invalid
+    ret = accountMgr->UpdateOhosAccountInfo(TEST_ACCOUNT_NAME, TEST_ACCOUNT_UID, g_eventTokenInvalid);
+    EXPECT_EQ(true, ret);
+
+    // status check
+    testInfo = accountMgr->QueryOhosAccountInfo();
+    EXPECT_EQ(true, testInfo.first);
+    ret = (testInfo.second.uid_ == TEST_EXPECTED_UID);
+    EXPECT_EQ(true, ret);
+    ret = (testInfo.second.name_ == TEST_ACCOUNT_NAME);
+    EXPECT_EQ(true, ret);
+    ret = (testInfo.second.status_ == ACCOUNT_STATE_NOTLOGIN);
+    EXPECT_EQ(true, ret);
+
+    // login again after token invalid
+    ret = accountMgr->UpdateOhosAccountInfo(TEST_ACCOUNT_NAME, TEST_ACCOUNT_UID, g_eventLogin);
+    EXPECT_EQ(true, ret);
+
+    // status check
+    testInfo = accountMgr->QueryOhosAccountInfo();
+    EXPECT_EQ(true, testInfo.first);
+    ret = (testInfo.second.uid_ == TEST_EXPECTED_UID);
+    EXPECT_EQ(true, ret);
+    ret = (testInfo.second.name_ == TEST_ACCOUNT_NAME);
+    EXPECT_EQ(true, ret);
+    ret = (testInfo.second.status_ == ACCOUNT_STATE_LOGIN);
+    EXPECT_EQ(true, ret);
+
+    // logout
+    ret = accountMgr->UpdateOhosAccountInfo(TEST_ACCOUNT_NAME, TEST_ACCOUNT_UID, g_eventLogout);
+    EXPECT_EQ(true, ret);
+
+    // status check
+    testInfo = accountMgr->QueryOhosAccountInfo();
+    EXPECT_EQ(true, testInfo.first);
+    ret = (testInfo.second.uid_ == DEFAULT_OHOS_ACCOUNT_UID);
+    EXPECT_EQ(true, ret);
+    ret = (testInfo.second.name_ == DEFAULT_OHOS_ACCOUNT_NAME);
+    EXPECT_EQ(true, ret);
+    ret = (testInfo.second.status_ == ACCOUNT_STATE_UNBOUND);
+    EXPECT_EQ(true, ret);
 }

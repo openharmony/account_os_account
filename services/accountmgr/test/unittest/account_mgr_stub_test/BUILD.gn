@@ -32,6 +32,7 @@ config("accountmgr_stub_test_config") {
     "${services_path}/accountmgr/include",
     "${innerkits_path}/include",
     "//third_party/json/include",
+    "//third_party/mbedtls/include",
     "//utils/native/base/include",
     "//utils/system/safwk/native/include",
   ]
@@ -90,6 +91,7 @@ ohos_unittest("AccountSAMgrStubTest") {
     "${os_account_innerkits_native_path}:os_account_innerkits",
     "//third_party/googletest:gmock_main",
     "//third_party/googletest:gtest_main",
+    "//third_party/mbedtls:mbedtls",
     "//utils/native/base:utils",
   ]
 

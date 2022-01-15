@@ -42,6 +42,7 @@ config("accountmgr_config") {
     "${common_path}/account_error/include",
     "${innerkits_path}/include",
     "//third_party/json/include",
+    "//third_party/mbedtls/include",
     "//utils/native/base/include",
     "//utils/system/safwk/native/include",
   ]
@@ -122,6 +123,7 @@ ohos_shared_library("accountmgr") {
     "${os_account_innerkits_native_path}:os_account_innerkits",
     "//third_party/jsoncpp:jsoncpp",
     "//utils/native/base:utils",
+    "//third_party/mbedtls:mbedtls",
   ]
   external_deps = [
     "aafwk_standard:ability_manager",
