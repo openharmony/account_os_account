@@ -177,7 +177,7 @@ HWTEST_F(OsAccountTest, OsAccountTest003, TestSize.Level1)
  * @tc.name: OsAccountTest004
  * @tc.desc: Test SetOsAccountName string name out of range
  * @tc.type: FUNC
- * @tc.require: SR000GGVFN
+ * @tc.require: SR000GGVFF
  */
 HWTEST_F(OsAccountTest, OsAccountTest004, TestSize.Level1)
 {
@@ -189,7 +189,7 @@ HWTEST_F(OsAccountTest, OsAccountTest004, TestSize.Level1)
  * @tc.name: OsAccountTest005
  * @tc.desc: Test SetOsAccountName name is empty
  * @tc.type: FUNC
- * @tc.require: SR000GGVFN
+ * @tc.require: SR000GGVFF
  */
 HWTEST_F(OsAccountTest, OsAccountTest005, TestSize.Level1)
 {
