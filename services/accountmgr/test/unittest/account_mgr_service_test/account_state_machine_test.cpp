@@ -40,7 +40,7 @@ void AccountStateMachineTest::TearDown() {}
  * @tc.name: AccountStateMachineTestInitState001
  * @tc.desc: Account state machine initial state
  * @tc.type: FUNC
- * @tc.require: AR000CUF54
+ * @tc.require: SR000GGV12
  */
 HWTEST_F(AccountStateMachineTest, AccountStateMachineTestInitState001, TestSize.Level0)
 {
@@ -56,7 +56,7 @@ HWTEST_F(AccountStateMachineTest, AccountStateMachineTestInitState001, TestSize.
  * @tc.name: AccountStateMachineTestUnbound2LoginState002
  * @tc.desc: Account state machine transform unbound state to login state
  * @tc.type: FUNC
- * @tc.require: AR000CUF54
+ * @tc.require: SR000GGV12
  */
 HWTEST_F(AccountStateMachineTest, AccountStateMachineTestUnbound2LoginState002, TestSize.Level0)
 {
@@ -79,7 +79,7 @@ HWTEST_F(AccountStateMachineTest, AccountStateMachineTestUnbound2LoginState002, 
  * @tc.name: AccountStateMachineTestUnboundBindAccountFailed003
  * @tc.desc: Account state machine keep the last state
  * @tc.type: FUNC
- * @tc.require: AR000CUF54
+ * @tc.require: SR000GGV12
  */
 HWTEST_F(AccountStateMachineTest, AccountStateMachineTestUnboundBindAccountFailed003, TestSize.Level0)
 {
@@ -102,7 +102,7 @@ HWTEST_F(AccountStateMachineTest, AccountStateMachineTestUnboundBindAccountFaile
  * @tc.name: AccountStateMachineUnboundInputUntreatedEvent004
  * @tc.desc: Account state machine keep the last state
  * @tc.type: FUNC
- * @tc.require: SR000CUF50
+ * @tc.require: SR000GGV12
  */
 HWTEST_F(AccountStateMachineTest, AccountStateMachineUnboundInputUntreatedEvent004, TestSize.Level0)
 {
@@ -125,7 +125,7 @@ HWTEST_F(AccountStateMachineTest, AccountStateMachineUnboundInputUntreatedEvent0
  * @tc.name: AccountStateMachineTestLoginTokenExpired005
  * @tc.desc: Account state machine transform login state to logout state
  * @tc.type: FUNC
- * @tc.require: AR000CUF5J
+ * @tc.require: SR000GGV12
  */
 HWTEST_F(AccountStateMachineTest, AccountStateMachineTestLoginTokenExpired005, TestSize.Level0)
 {
@@ -155,7 +155,7 @@ HWTEST_F(AccountStateMachineTest, AccountStateMachineTestLoginTokenExpired005, T
  * @tc.name: AccountStateMachineTestLoginPasswordChanged006
  * @tc.desc: Account state machine transform login state to logout state
  * @tc.type: FUNC
- * @tc.require: AR000CUF5J SR000CUF60
+ * @tc.require: SR000GGV12
  */
 HWTEST_F(AccountStateMachineTest, AccountStateMachineTestLoginPasswordChanged006, TestSize.Level0)
 {
@@ -185,7 +185,7 @@ HWTEST_F(AccountStateMachineTest, AccountStateMachineTestLoginPasswordChanged006
  * @tc.name: AccountStateMachineTestManualLogout007
  * @tc.desc: Account state machine transform login state to logout state
  * @tc.type: FUNC
- * @tc.require: AR000CUF5R AR000CUF64 AR000CUF66
+ * @tc.require: SR000GGV12
  */
 HWTEST_F(AccountStateMachineTest, AccountStateMachineTestManualLogout007, TestSize.Level0)
 {
@@ -215,7 +215,7 @@ HWTEST_F(AccountStateMachineTest, AccountStateMachineTestManualLogout007, TestSi
  * @tc.name: AccountStateMachineTestLoginManualUnbound008
  * @tc.desc: Account state machine transform login state to unbound state
  * @tc.type: FUNC
- * @tc.require: AR000CUF5M SR000CUF63 AR000CUF65
+ * @tc.require: SR000GGV12
  */
 HWTEST_F(AccountStateMachineTest, AccountStateMachineTestLoginManualUnbound008, TestSize.Level0)
 {
@@ -245,7 +245,7 @@ HWTEST_F(AccountStateMachineTest, AccountStateMachineTestLoginManualUnbound008, 
  * @tc.name: AccountStateMachineTestLoginInputUntreatedEvent009
  * @tc.desc: Account state machine keep the last state
  * @tc.type: FUNC
- * @tc.require: AR000CUF5I AR000CUF66
+ * @tc.require: SR000GGV12
  */
 HWTEST_F(AccountStateMachineTest, AccountStateMachineTestLoginInputUntreatedEvent009, TestSize.Level0)
 {
@@ -275,7 +275,7 @@ HWTEST_F(AccountStateMachineTest, AccountStateMachineTestLoginInputUntreatedEven
  * @tc.name: AccountStateMachineTestLogoutAuthenticateSuccess010
  * @tc.desc: Account state machine transform logout state to login state
  * @tc.type: FUNC
- * @tc.require: AR000CUF5M AR000CUF61
+ * @tc.require: SR000GGV12
  */
 HWTEST_F(AccountStateMachineTest, AccountStateMachineTestLogoutAuthenticateSuccess010, TestSize.Level0)
 {
@@ -312,7 +312,7 @@ HWTEST_F(AccountStateMachineTest, AccountStateMachineTestLogoutAuthenticateSucce
  * @tc.name: AccountStateMachineTestLogoutAuthenticateFailed011
  * @tc.desc: Account state machine keep the last state
  * @tc.type: FUNC
- * @tc.require: AR000CUF5J AR000CUF5I
+ * @tc.require: SR000GGV12
  */
 HWTEST_F(AccountStateMachineTest, AccountStateMachineTestLogoutAuthenticateFailed011, TestSize.Level0)
 {
@@ -349,7 +349,7 @@ HWTEST_F(AccountStateMachineTest, AccountStateMachineTestLogoutAuthenticateFaile
  * @tc.name: AccountStateMachineTestLogoutInputUntreatedEvent012
  * @tc.desc: Account state machine keep the last state
  * @tc.type: FUNC
- * @tc.require: AR000CUF5M AR000CUF5I
+ * @tc.require: SR000GGV12
  */
 HWTEST_F(AccountStateMachineTest, AccountStateMachineTestLogoutInputUntreatedEvent012, TestSize.Level0)
 {
@@ -393,7 +393,7 @@ HWTEST_F(AccountStateMachineTest, AccountStateMachineTestLogoutInputUntreatedEve
  * @tc.name: AccountStateMachineTestLogoutManualUnbound013
  * @tc.desc: Account state machine transform logout state to unbound state
  * @tc.type: FUNC
- * @tc.require: AR000CUF5M
+ * @tc.require: SR000GGV12
  */
 HWTEST_F(AccountStateMachineTest, AccountStateMachineTestLogoutManualUnbound013, TestSize.Level0)
 {
@@ -430,7 +430,7 @@ HWTEST_F(AccountStateMachineTest, AccountStateMachineTestLogoutManualUnbound013,
  * @tc.name: AccountStateMachineTestLoginManualLogoff014
  * @tc.desc: Account state machine transform login state to logoff state
  * @tc.type: FUNC
- * @tc.require: AR000CUF5M AR000CUF5O
+ * @tc.require: SR000GGV12
  */
 HWTEST_F(AccountStateMachineTest, AccountStateMachineTestLoginManualLogoff014, TestSize.Level0)
 {
@@ -460,7 +460,7 @@ HWTEST_F(AccountStateMachineTest, AccountStateMachineTestLoginManualLogoff014, T
  * @tc.name: AccountStateMachineTestLogoutManualLogoff015
  * @tc.desc: Account state machine transform logout state to logoff state
  * @tc.type: FUNC
- * @tc.require: AR000CUF5M AR000CUF5O
+ * @tc.require: SR000GGV12
  */
 HWTEST_F(AccountStateMachineTest, AccountStateMachineTestLogoutManualLogoff015, TestSize.Level0)
 {
@@ -497,7 +497,7 @@ HWTEST_F(AccountStateMachineTest, AccountStateMachineTestLogoutManualLogoff015, 
  * @tc.name: AccountStateMachineTestLogoutBindSuccess016
  * @tc.desc: Account state machine transform logout state to login state
  * @tc.type: FUNC
- * @tc.require: AR000CUF5M AR000CUF62
+ * @tc.require: SR000GGV12
  */
 HWTEST_F(AccountStateMachineTest, AccountStateMachineTestLogoutBindSuccess016, TestSize.Level0)
 {
@@ -534,7 +534,7 @@ HWTEST_F(AccountStateMachineTest, AccountStateMachineTestLogoutBindSuccess016, T
  * @tc.name: AccountStateMachineTestLogoffBindSuccess017
  * @tc.desc: Account state machine transform logoff state to login state
  * @tc.type: FUNC
- * @tc.require: AR000CUF5M AR000CUF5P
+ * @tc.require: SR000GGV12
  */
 HWTEST_F(AccountStateMachineTest, AccountStateMachineTestLogoffBindSuccess017, TestSize.Level0)
 {
@@ -571,7 +571,7 @@ HWTEST_F(AccountStateMachineTest, AccountStateMachineTestLogoffBindSuccess017, T
  * @tc.name: AccountStateMachineTestLogoffInputUntreatedEvent018
  * @tc.desc: Account state machine keep the last state
  * @tc.type: FUNC
- * @tc.require: AR000CUF5M AR000CUF5I
+ * @tc.require: SR000GGV12
  */
 HWTEST_F(AccountStateMachineTest, AccountStateMachineTestLogoffInputUntreatedEvent018, TestSize.Level0)
 {
