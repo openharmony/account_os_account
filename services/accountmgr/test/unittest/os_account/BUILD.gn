@@ -53,6 +53,7 @@ ohos_unittest("OsAccountControlFileManagerTest") {
   external_deps = [
     "distributeddatamgr:distributeddata_inner",
     "hiviewdfx_hilog_native:libhilog",
+    "startup_l2:syspara",
   ]
   part_name = "os_account_standard"
 }

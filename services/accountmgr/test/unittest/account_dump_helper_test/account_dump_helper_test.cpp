@@ -42,6 +42,9 @@ public:
 AccountDumpHelperTest::AccountDumpHelperTest()
 {
     ohosAccount_ = std::make_shared<OhosAccountManager>();
+    if (!ohosAccount_->OnInitialize()) {
+        std::cout << "AccountDumpHelperTest, error! ohos account manager init failed!" << std::endl;
+    }
 }
 
 void AccountDumpHelperTest::SetUpTestCase() {}

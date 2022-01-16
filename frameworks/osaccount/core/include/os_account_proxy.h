@@ -25,6 +25,8 @@ public:
 
     virtual ErrCode CreateOsAccount(
         const std::string &name, const OsAccountType &type, OsAccountInfo &osAccountInfo) override;
+    virtual ErrCode CreateOsAccountForDomain(
+        const OsAccountType &type, const DomainAccountInfo &domainInfo, OsAccountInfo &osAccountInfo) override;
     virtual ErrCode RemoveOsAccount(const int id) override;
     virtual ErrCode IsOsAccountExists(const int id, bool &isOsAccountExists) override;
     virtual ErrCode IsOsAccountActived(const int id, bool &isOsAccountActived) override;
@@ -34,6 +36,7 @@ public:
     virtual ErrCode GetCreatedOsAccountsCount(int &osAccountsCount) override;
     virtual ErrCode GetOsAccountLocalIdFromProcess(int &id) override;
     virtual ErrCode GetOsAccountLocalIdFromUid(const int uid, int &id) override;
+    virtual ErrCode GetOsAccountLocalIdFromDomain(const DomainAccountInfo &domainInfo, int &id) override;
     virtual ErrCode QueryMaxOsAccountNumber(int &maxOsAccountNumber) override;
     virtual ErrCode GetOsAccountAllConstraints(const int id, std::vector<std::string> &constraints) override;
     virtual ErrCode QueryAllCreatedOsAccounts(std::vector<OsAccountInfo> &osAccountInfos) override;
@@ -61,6 +64,16 @@ public:
     virtual ErrCode SetCurrentOsAccountIsVerified(const bool isVerified) override;
     virtual ErrCode SetOsAccountIsVerified(const int id, const bool isVerified) override;
     virtual ErrCode DumpState(const int &id, std::vector<std::string> &state) override;
+
+    virtual void CreateBasicAccounts() override;
+    virtual ErrCode GetCreatedOsAccountNumFromDatabase(const std::string& storeID,
+        int &createdOsAccountNum) override;
+    virtual ErrCode GetSerialNumberFromDatabase(const std::string& storeID, int64_t &serialNumber) override;
+    virtual ErrCode GetMaxAllowCreateIdFromDatabase(const std::string& storeID, int &id) override;
+    virtual ErrCode GetOsAccountFromDatabase(const std::string& storeID, const int id,
+        OsAccountInfo &osAccountInfo) override;
+    virtual ErrCode GetOsAccountListFromDatabase(const std::string& storeID,
+        std::vector<OsAccountInfo> &osAccountList) override;
 
 private:
     template<typename T>

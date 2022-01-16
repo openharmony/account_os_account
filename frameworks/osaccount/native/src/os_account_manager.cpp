@@ -29,6 +29,14 @@ ErrCode OsAccountManager::CreateOsAccount(
     return DelayedSingleton<OsAccount>::GetInstance()->CreateOsAccount(name, type, osAccountInfo);
 }
 
+ErrCode OsAccountManager::CreateOsAccountForDomain(
+    const OsAccountType &type, const DomainAccountInfo &domainInfo, OsAccountInfo &osAccountInfo)
+{
+    ACCOUNT_LOGI("enter");
+    return DelayedSingleton<OsAccount>::GetInstance()->CreateOsAccountForDomain(
+        type, domainInfo, osAccountInfo);
+}
+
 ErrCode OsAccountManager::RemoveOsAccount(const int id)
 {
     ACCOUNT_LOGI("enter");
@@ -84,6 +92,12 @@ ErrCode OsAccountManager::GetOsAccountLocalIdFromUid(const int uid, int &id)
     ACCOUNT_LOGI("OsAccountManager::GetOsAccountLocalIdFromUid start");
 
     return DelayedSingleton<OsAccount>::GetInstance()->GetOsAccountLocalIdFromUid(uid, id);
+}
+
+ErrCode OsAccountManager::GetOsAccountLocalIdFromDomain(const DomainAccountInfo &domainInfo, int &id)
+{
+    ACCOUNT_LOGI("OsAccountManager::GetOsAccountLocalIdFromDomain start");
+    return DelayedSingleton<OsAccount>::GetInstance()->GetOsAccountLocalIdFromDomain(domainInfo, id);
 }
 
 ErrCode OsAccountManager::QueryMaxOsAccountNumber(int &maxOsAccountNumber)
@@ -247,6 +261,40 @@ ErrCode OsAccountManager::SetOsAccountIsVerified(const int id, const bool isVeri
 {
     ACCOUNT_LOGI("OsAccountManager::SetOsAccountIsVerified start");
     return DelayedSingleton<OsAccount>::GetInstance()->SetOsAccountIsVerified(id, isVerified);
+}
+
+ErrCode OsAccountManager::GetCreatedOsAccountNumFromDatabase(const std::string& storeID, int &createdOsAccountNum)
+{
+    ACCOUNT_LOGI("OsAccountManager::GetCreatedOsAccountNumFromDatabase start");
+    return DelayedSingleton<OsAccount>::GetInstance()->GetCreatedOsAccountNumFromDatabase(
+        storeID, createdOsAccountNum);
+}
+
+ErrCode OsAccountManager::GetSerialNumberFromDatabase(const std::string& storeID, int64_t &serialNumber)
+{
+    ACCOUNT_LOGI("OsAccountManager::GetSerialNumberFromDatabase start");
+    return DelayedSingleton<OsAccount>::GetInstance()->GetSerialNumberFromDatabase(storeID, serialNumber);
+}
+
+ErrCode OsAccountManager::GetMaxAllowCreateIdFromDatabase(const std::string& storeID, int &id)
+{
+    ACCOUNT_LOGI("OsAccountManager::GetMaxAllowCreateIdFromDatabase start");
+    return DelayedSingleton<OsAccount>::GetInstance()->GetMaxAllowCreateIdFromDatabase(storeID, id);
+}
+
+ErrCode OsAccountManager::GetOsAccountFromDatabase(const std::string& storeID,
+                                                   const int id,
+                                                   OsAccountInfo &osAccountInfo)
+{
+    ACCOUNT_LOGI("OsAccountManager::GetOsAccountFromDatabase start");
+    return DelayedSingleton<OsAccount>::GetInstance()->GetOsAccountFromDatabase(storeID, id, osAccountInfo);
+}
+
+ErrCode OsAccountManager::GetOsAccountListFromDatabase(const std::string& storeID,
+                                                       std::vector<OsAccountInfo> &osAccountList)
+{
+    ACCOUNT_LOGI("OsAccountManager::GetOsAccountListFromDatabase start");
+    return DelayedSingleton<OsAccount>::GetInstance()->GetOsAccountListFromDatabase(storeID, osAccountList);
 }
 }  // namespace AccountSA
 }  // namespace OHOS

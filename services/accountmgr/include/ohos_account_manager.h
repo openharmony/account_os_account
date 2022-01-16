@@ -16,17 +16,17 @@
 #ifndef ACCOUNT_OHOSACCOUNTMANAGER_H
 #define ACCOUNT_OHOSACCOUNTMANAGER_H
 
-#include <string>
 #include <map>
 #include <mutex>
-#include "account_state_machine.h"
+#include <string>
 #include "account_info.h"
+#include "account_state_machine.h"
 #include "ohos_account_data_deal.h"
 
 namespace OHOS {
 namespace AccountSA {
 const std::string ACCOUNT_CFG_DIR_ROOT_PATH = "/data/system/users/";
-const std::string ACCOUNT_CFG_FILE_NAME = "/account.json";
+
 class OhosAccountManager;
 using OhosAccountEventFunc = bool (OhosAccountManager::*)(const std::string &name, const std::string &uid,
     const std::string &eventStr);
@@ -40,14 +40,14 @@ public:
      *
      * @return current account information.
      */
-    AccountInfo GetAccountInfo();
+    AccountInfo GetCurrentOhosAccountInfo();
 
     /**
      * Get current account state.
      *
      * @return current account state id.
      */
-    int GetAccountState() const;
+    int GetCurrentOhosAccountState();
 
     /**
      * Init ohos account manager.
@@ -58,10 +58,11 @@ public:
     /**
      * Process an account event.
      *
+     * @param curOhosAccount current ohos account info
      * @param eventStr ohos account state change event
      * @return true if the processing was completed, otherwise false
      */
-    bool HandleEvent(const std::string &eventStr);
+    bool HandleEvent(AccountInfo &curOhosAccount, const std::string &eventStr);
 
     /**
      * login ohos (for distributed network) account.
@@ -124,19 +125,9 @@ public:
 
 private:
     /**
-     * Get Current user Id.
-     */
-    std::int32_t GetUserId();
-
-    /**
      * Account state machine.
      */
     std::unique_ptr<AccountStateMachine> accountState_{};
-
-    /**
-     * Current account.
-     */
-    AccountInfo currentAccount_;
 
     /**
      * Deal with file storage.
@@ -161,21 +152,37 @@ private:
     /**
      * Records dfx event of ohos account status
      */
-    void ReportPublishFailureEvent(std::int32_t errCode, std::int32_t oldStatus);
+    void ReportPublishFailureEvent(std::int32_t errCode, std::int32_t oldStatus, const AccountInfo &account);
 
     /**
      * Config current account config.
      *
-     * @param account account information.
+     * @param ohosAccountInfo target ohos account information.
      * @return true if success.
      */
-    bool SetAccount(AccountInfo &account);
+    bool SaveOhosAccountInfo(AccountInfo &ohosAccountInfo) const;
 
     /**
      * Clear current account config.
+     * @param curOhosAccountInfo current ohos account info.
      * @param clrStatus account status.
      */
-    bool ClearAccount(std::int32_t clrStatus = ACCOUNT_STATE_UNBOUND);
+    bool ClearOhosAccount(AccountInfo &curOhosAccountInfo, std::int32_t clrStatus = ACCOUNT_STATE_UNBOUND) const;
+
+    /**
+     * Check whether the ohos account can be bound to the current user or not
+     * @return true if can.
+     */
+    bool CheckOhosAccountCanBind(const std::string &newOhosUid) const;
+
+    /**
+     * Get current ohos account info and check whether input information match or not
+     * @return true if matches.
+     */
+    bool GetCurOhosAccountAndCheckMatch(AccountInfo &curOhosAccountInfo,
+                                        const std::string &inputName,
+                                        const std::string &inputUid,
+                                        const std::int32_t callingUserId) const;
 
     /**
      * event function map

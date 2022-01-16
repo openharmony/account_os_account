@@ -25,6 +25,8 @@ namespace AccountSA {
 class OsAccountManager {
 public:
     static ErrCode CreateOsAccount(const std::string &name, const OsAccountType &type, OsAccountInfo &osAccountInfo);
+    static ErrCode CreateOsAccountForDomain(
+        const OsAccountType &type, const DomainAccountInfo &domainInfo, OsAccountInfo &osAccountInfo);
     static ErrCode RemoveOsAccount(const int id);
     static ErrCode IsOsAccountExists(const int id, bool &isOsAccountExists);
     static ErrCode IsOsAccountActived(const int id, bool &isOsAccountActived);
@@ -33,6 +35,7 @@ public:
     static ErrCode GetCreatedOsAccountsCount(int &osAccountsCount);
     static ErrCode GetOsAccountLocalIdFromProcess(int &id);
     static ErrCode GetOsAccountLocalIdFromUid(const int uid, int &id);
+    static ErrCode GetOsAccountLocalIdFromDomain(const DomainAccountInfo &domainInfo, int &id);
     static ErrCode QueryMaxOsAccountNumber(int &maxOsAccountNumber);
     static ErrCode GetOsAccountAllConstraints(const int id, std::vector<std::string> &constraints);
     static ErrCode QueryAllCreatedOsAccounts(std::vector<OsAccountInfo> &osAccountInfos);
@@ -58,6 +61,15 @@ public:
     static ErrCode IsOsAccountCompleted(const int id, bool &isOsAccountCompleted);
     static ErrCode SetCurrentOsAccountIsVerified(const bool isVerified);
     static ErrCode SetOsAccountIsVerified(const int id, const bool isVerified);
+
+    static ErrCode GetCreatedOsAccountNumFromDatabase(const std::string& storeID, int &createdOsAccountNum);
+    static ErrCode GetSerialNumberFromDatabase(const std::string& storeID, int64_t &serialNumber);
+    static ErrCode GetMaxAllowCreateIdFromDatabase(const std::string& storeID, int &id);
+    static ErrCode GetOsAccountFromDatabase(const std::string& storeID,
+                                            const int id,
+                                            OsAccountInfo &osAccountInfo);
+    static ErrCode GetOsAccountListFromDatabase(const std::string& storeID,
+                                                std::vector<OsAccountInfo> &osAccountList);
 };
 }  // namespace AccountSA
 }  // namespace OHOS

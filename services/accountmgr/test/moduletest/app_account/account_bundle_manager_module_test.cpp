@@ -25,7 +25,7 @@ using namespace OHOS::AccountSA;
 namespace {
 const std::string STRING_OWNER = "com.example.owner";
 
-constexpr std::int32_t UID = 10000;
+constexpr std::int32_t UID = -1;
 }  // namespace
 
 class AccountBundleManagerModuleTest : public testing::Test {

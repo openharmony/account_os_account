@@ -12,8 +12,9 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-#include "account_log_wrapper.h"
 #include "os_account_info.h"
+#include "account_log_wrapper.h"
+#include "os_account_constants.h"
 
 namespace OHOS {
 namespace AccountSA {
@@ -29,6 +30,9 @@ const std::string LAST_LOGGED_IN_TIME = "lastLoginTime";
 const std::string SERIAL_NUMBER = "serialNumber";
 const std::string IS_ACTIVED = "isActived";
 const std::string IS_ACCOUNT_COMPLETED = "isCreateCompleted";
+const std::string DOMAIN_INFO = "domainInfo";
+const std::string DOMAIN_NAME = "domain";
+const std::string DOMAIN_ACCOUNT_NAME = "accountName";
 }  // namespace
 
 OsAccountInfo::OsAccountInfo()
@@ -44,6 +48,7 @@ OsAccountInfo::OsAccountInfo()
     serialNumber_ = 0;
     isActived_ = false;
     isCreateCompleted_ = false;
+    domainInfo_.Clear();
 }
 
 OsAccountInfo::OsAccountInfo(int localId, const std::string localName, OsAccountType type, int64_t serialNumber)
@@ -56,6 +61,7 @@ OsAccountInfo::OsAccountInfo(int localId, const std::string localName, OsAccount
     lastLoginTime_ = 0;
     isActived_ = false;
     isCreateCompleted_ = false;
+    domainInfo_.Clear();
 }
 
 OsAccountInfo::OsAccountInfo(int localId, std::string localName, OsAccountType type,
@@ -73,6 +79,7 @@ OsAccountInfo::OsAccountInfo(int localId, std::string localName, OsAccountType t
       isCreateCompleted_(isCreateCompleted)
 {
     isActived_ = false;
+    domainInfo_.Clear();
 }
 
 int OsAccountInfo::GetLocalId() const
@@ -135,6 +142,27 @@ void OsAccountInfo::SetIsCreateCompleted(const bool isCreateCompleted)
     isCreateCompleted_ = isCreateCompleted;
 }
 
+bool OsAccountInfo::SetDomainInfo(const DomainAccountInfo &domainInfo)
+{
+    if (domainInfo.accountName_.size() > Constants::DOMAIN_ACCOUNT_NAME_MAX_SIZE) {
+        ACCOUNT_LOGE("domain account name too long! %{public}zu.", domainInfo.accountName_.size());
+        return false;
+    }
+    if (domainInfo.domain_.size() > Constants::DOMAIN_NAME_MAX_SIZE) {
+        ACCOUNT_LOGE("domain name too long! %{public}zu.", domainInfo.domain_.size());
+        return false;
+    }
+    domainInfo_.accountName_ = domainInfo.accountName_;
+    domainInfo_.domain_ = domainInfo.domain_;
+    return true;
+}
+
+void OsAccountInfo::GetDomainInfo(DomainAccountInfo &domainInfo) const
+{
+    domainInfo.accountName_ = domainInfo_.accountName_;
+    domainInfo.domain_ = domainInfo_.domain_;
+}
+
 bool OsAccountInfo::GetIsActived() const
 {
     return isActived_;
@@ -189,6 +217,11 @@ Json OsAccountInfo::ToJson() const
         {SERIAL_NUMBER, serialNumber_},
         {IS_ACTIVED, isActived_},
         {IS_ACCOUNT_COMPLETED, isCreateCompleted_},
+        {DOMAIN_INFO, {
+            {DOMAIN_NAME, domainInfo_.domain_},
+            {DOMAIN_ACCOUNT_NAME, domainInfo_.accountName_},
+        },
+        }
     };
     return jsonObject;
 }
@@ -231,6 +264,14 @@ void OsAccountInfo::FromJson(const Json &jsonObject)
         jsonObject, jsonObjectEnd, IS_ACTIVED, isActived_, OHOS::AccountSA::JsonType::BOOLEAN);
     OHOS::AccountSA::GetDataByType<bool>(
         jsonObject, jsonObjectEnd, IS_ACCOUNT_COMPLETED, isCreateCompleted_, OHOS::AccountSA::JsonType::BOOLEAN);
+
+    Json typeJson;
+    OHOS::AccountSA::GetDataByType<Json>(
+        jsonObject, jsonObjectEnd, DOMAIN_INFO, typeJson, OHOS::AccountSA::JsonType::OBJECT);
+    OHOS::AccountSA::GetDataByType<std::string>(
+        typeJson, typeJson.end(), DOMAIN_NAME, domainInfo_.domain_, OHOS::AccountSA::JsonType::STRING);
+    OHOS::AccountSA::GetDataByType<std::string>(
+        typeJson, typeJson.end(), DOMAIN_ACCOUNT_NAME, domainInfo_.accountName_, OHOS::AccountSA::JsonType::STRING);
 }
 
 bool OsAccountInfo::Marshalling(Parcel &parcel) const

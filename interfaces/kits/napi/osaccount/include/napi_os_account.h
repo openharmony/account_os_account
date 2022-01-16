@@ -113,6 +113,20 @@ struct CreateOAAsyncContext {
     napi_status status;
 };
 
+struct CreateOAForDomainAsyncContext {
+    napi_env env;
+    napi_async_work work;
+
+    OsAccountType type;
+    int errCode = 0;
+    DomainAccountInfo domainInfo;
+    OsAccountInfo osAccountInfos;
+
+    napi_deferred deferred;
+    napi_ref callbackRef;
+    napi_status status;
+};
+
 struct GetOACountAsyncContext {
     napi_env env;
     napi_async_work work;
@@ -205,6 +219,19 @@ struct GetIdByUidAsyncContext {
 
     int id = 0;
     int uid = 0;
+    int errCode = 0;
+
+    napi_deferred deferred;
+    napi_ref callbackRef;
+    napi_status status;
+};
+
+struct GetIdByDomainAsyncContext {
+    napi_env env;
+    napi_async_work work;
+
+    int id = 0;
+    DomainAccountInfo domainInfo;
     int errCode = 0;
 
     napi_deferred deferred;
@@ -397,6 +424,8 @@ napi_value ActivateOsAccount(napi_env env, napi_callback_info cbInfo);
 
 napi_value CreateOsAccount(napi_env env, napi_callback_info cbInfo);
 
+napi_value CreateOsAccountForDomain(napi_env env, napi_callback_info cbInfo);
+
 napi_value GetCreatedOsAccountsCount(napi_env env, napi_callback_info cbInfo);
 
 napi_value GetDistributedVirtualDeviceId(napi_env env, napi_callback_info cbInfo);
@@ -412,6 +441,8 @@ napi_value GetOsAccountProfilePhoto(napi_env env, napi_callback_info cbInfo);
 napi_value QueryCurrentOsAccount(napi_env env, napi_callback_info cbInfo);
 
 napi_value GetOsAccountLocalIdFromUid(napi_env env, napi_callback_info cbInfo);
+
+napi_value GetOsAccountLocalIdFromDomain(napi_env env, napi_callback_info cbInfo);
 
 napi_value SetOsAccountProfilePhoto(napi_env env, napi_callback_info cbInfo);
 

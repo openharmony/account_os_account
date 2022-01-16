@@ -25,21 +25,31 @@
 
 namespace OHOS {
 namespace AccountSA {
-OhosAccountDataDeal::OhosAccountDataDeal(const std::string &configFile) : configFile_(configFile)
+namespace {
+const std::string ACCOUNT_CFG_FILE_NAME = "/account.json";
+const std::string DATADEAL_JSON_KEY_ACCOUNT_NAME = "account_name";
+const std::string DATADEAL_JSON_KEY_OPENID = "open_id";
+const std::string DATADEAL_JSON_KEY_USERID = "user_id";
+const std::string DATADEAL_JSON_KEY_BIND_TIME = "bind_time";
+const std::string DATADEAL_JSON_KEY_STATUS = "bind_status";
+} // namespace
+
+OhosAccountDataDeal::OhosAccountDataDeal(const std::string &configFileDir) : configFileDir_(configFileDir)
 {
     initOk_ = false;
 }
 
-ErrCode OhosAccountDataDeal::Init()
+ErrCode OhosAccountDataDeal::Init(std::int32_t userId)
 {
-    if (!FileExists(configFile_)) {
-        ACCOUNT_LOGI("file %{public}s not exist, create!", configFile_.c_str());
-        BuildJsonFileFromScratch();
+    std::string configFile = configFileDir_ + std::to_string(userId) + ACCOUNT_CFG_FILE_NAME;
+    if (!FileExists(configFile)) {
+        ACCOUNT_LOGI("file %{public}s not exist, create!", configFile.c_str());
+        BuildJsonFileFromScratch(userId);
     }
 
-    std::ifstream fin(configFile_);
+    std::ifstream fin(configFile);
     if (!fin) {
-        ACCOUNT_LOGE("Failed to open file %{public}s", configFile_.c_str());
+        ACCOUNT_LOGE("Failed to open config file %{public}s", configFile.c_str());
         return ERR_ACCOUNT_DATADEAL_INPUT_FILE_ERROR;
     }
 
@@ -48,51 +58,70 @@ ErrCode OhosAccountDataDeal::Init()
     if (!jsonData.is_structured()) {
         ACCOUNT_LOGE("Invalid json file, remove");
         fin.close();
-        if (RemoveFile(configFile_)) {
+        if (RemoveFile(configFile)) {
             ACCOUNT_LOGE("Remove invalid json file failed");
         }
         return ERR_ACCOUNT_DATADEAL_JSON_FILE_CORRUPTION;
     }
 
-    // jsonData_ keeps well-structured json key-values
-    jsonData_ = jsonData;
     initOk_ = true;
     fin.close();
     return ERR_OK;
 }
 
-ErrCode OhosAccountDataDeal::AccountInfoFromJson(AccountInfo &accountInfo)
+ErrCode OhosAccountDataDeal::AccountInfoFromJson(AccountInfo &accountInfo, const std::int32_t userId) const
 {
     if (!initOk_) {
         return ERR_ACCOUNT_DATADEAL_NOT_READY;
     }
 
-    const auto &jsonObjectEnd = jsonData_.end();
-    if (jsonData_.find(DATADEAL_JSON_KEY_ACCOUNT_NAME) != jsonObjectEnd) {
-        accountInfo.ohosAccountName_ = jsonData_.at(DATADEAL_JSON_KEY_ACCOUNT_NAME).get<std::string>();
+    std::string configFile = configFileDir_ + std::to_string(userId) + ACCOUNT_CFG_FILE_NAME;
+    if (!FileExists(configFile)) {
+        ACCOUNT_LOGI("file %{public}s not exist, create!", configFile.c_str());
+        BuildJsonFileFromScratch(userId); // create default config file for first login
     }
 
-    if (jsonData_.find(DATADEAL_JSON_KEY_OPENID) != jsonObjectEnd) {
-        accountInfo.ohosAccountUid_ = jsonData_.at(DATADEAL_JSON_KEY_OPENID).get<std::string>();
+    std::ifstream fin(configFile);
+    if (!fin) {
+        ACCOUNT_LOGE("Failed to open config file %{public}s", configFile.c_str());
+        return ERR_ACCOUNT_DATADEAL_INPUT_FILE_ERROR;
     }
 
-    if (jsonData_.find(DATADEAL_JSON_KEY_UID) != jsonObjectEnd) {
-        accountInfo.userId_ = jsonData_.at(DATADEAL_JSON_KEY_UID).get<std::int32_t>();
+    // NOT-allow exceptions when parse json file
+    nlohmann::json jsonData = json::parse(fin, nullptr, false);
+    if (!jsonData.is_structured()) {
+        ACCOUNT_LOGE("Invalid json file,  %{public}s, remove", configFile.c_str());
+        fin.close();
+        return ERR_ACCOUNT_DATADEAL_JSON_FILE_CORRUPTION;
     }
 
-    if (jsonData_.find(DATADEAL_JSON_KEY_BIND_TIME) != jsonObjectEnd) {
-        accountInfo.bindTime_ = jsonData_.at(DATADEAL_JSON_KEY_BIND_TIME).get<std::time_t>();
+    const auto &jsonObjectEnd = jsonData.end();
+    if (jsonData.find(DATADEAL_JSON_KEY_ACCOUNT_NAME) != jsonObjectEnd) {
+        accountInfo.ohosAccountName_ = jsonData.at(DATADEAL_JSON_KEY_ACCOUNT_NAME).get<std::string>();
     }
 
-    if (jsonData_.find(DATADEAL_JSON_KEY_STATUS) != jsonObjectEnd) {
-        accountInfo.ohosAccountStatus_ = jsonData_.at(DATADEAL_JSON_KEY_STATUS).get<std::int32_t>();
+    if (jsonData.find(DATADEAL_JSON_KEY_OPENID) != jsonObjectEnd) {
+        accountInfo.ohosAccountUid_ = jsonData.at(DATADEAL_JSON_KEY_OPENID).get<std::string>();
     }
-    ACCOUNT_LOGI("AccountInfo, ohos account status: %{public}d", accountInfo.ohosAccountStatus_);
 
+    if (jsonData.find(DATADEAL_JSON_KEY_USERID) != jsonObjectEnd) {
+        accountInfo.userId_ = jsonData.at(DATADEAL_JSON_KEY_USERID).get<std::int32_t>();
+    }
+
+    if (jsonData.find(DATADEAL_JSON_KEY_BIND_TIME) != jsonObjectEnd) {
+        accountInfo.bindTime_ = jsonData.at(DATADEAL_JSON_KEY_BIND_TIME).get<std::time_t>();
+    }
+
+    if (jsonData.find(DATADEAL_JSON_KEY_STATUS) != jsonObjectEnd) {
+        accountInfo.ohosAccountStatus_ = jsonData.at(DATADEAL_JSON_KEY_STATUS).get<std::int32_t>();
+    }
+
+    ACCOUNT_LOGI("AccountInfo, ohos account %{public}s status: %{public}d",
+        accountInfo.ohosAccountName_.c_str(), accountInfo.ohosAccountStatus_);
     return ERR_OK;
 }
 
-ErrCode OhosAccountDataDeal::AccountInfoToJson(AccountInfo &accountInfo)
+ErrCode OhosAccountDataDeal::AccountInfoToJson(const AccountInfo &accountInfo) const
 {
     if (!initOk_) {
         ACCOUNT_LOGE("Not init ok");
@@ -103,40 +132,34 @@ ErrCode OhosAccountDataDeal::AccountInfoToJson(AccountInfo &accountInfo)
     return ERR_OK;
 }
 
-void OhosAccountDataDeal::CreateDefaultAccountInfo(AccountInfo &accountInfo)
+void OhosAccountDataDeal::SaveAccountInfo(const AccountInfo &accountInfo) const
 {
-    accountInfo.userId_ = 0;
+    nlohmann::json jsonData = json {
+        {DATADEAL_JSON_KEY_BIND_TIME, accountInfo.bindTime_},
+        {DATADEAL_JSON_KEY_USERID, accountInfo.userId_},
+        {DATADEAL_JSON_KEY_OPENID, accountInfo.ohosAccountUid_},
+        {DATADEAL_JSON_KEY_ACCOUNT_NAME, accountInfo.ohosAccountName_},
+        {DATADEAL_JSON_KEY_STATUS, accountInfo.ohosAccountStatus_}
+    };
+    std::string configFile = configFileDir_ + std::to_string(accountInfo.userId_) + ACCOUNT_CFG_FILE_NAME;
+    std::ofstream out(configFile);
+    if (!out) {
+        ACCOUNT_LOGE("Failed to open file %{public}s", configFile.c_str());
+        return;
+    }
+    out << jsonData;
+    out.close();
+}
+
+void OhosAccountDataDeal::BuildJsonFileFromScratch(std::int32_t userId) const
+{
+    AccountInfo accountInfo;
+    accountInfo.userId_ = userId;
     accountInfo.bindTime_ = 0;
     accountInfo.ohosAccountUid_ = DEFAULT_OHOS_ACCOUNT_UID;
     accountInfo.ohosAccountName_ = DEFAULT_OHOS_ACCOUNT_NAME;
     accountInfo.ohosAccountStatus_ = ACCOUNT_STATE_UNBOUND;
     accountInfo.digest_ = "";
-}
-
-void OhosAccountDataDeal::SaveAccountInfo(AccountInfo &accountInfo)
-{
-    jsonData_[DATADEAL_JSON_KEY_BIND_TIME] = accountInfo.bindTime_;
-    jsonData_[DATADEAL_JSON_KEY_UID] = accountInfo.userId_;
-    jsonData_[DATADEAL_JSON_KEY_OPENID] = accountInfo.ohosAccountUid_;
-    jsonData_[DATADEAL_JSON_KEY_ACCOUNT_NAME] = accountInfo.ohosAccountName_;
-    jsonData_[DATADEAL_JSON_KEY_STATUS] = accountInfo.ohosAccountStatus_;
-
-    /* update config file */
-    std::ofstream out(configFile_);
-    if (!out) {
-        ACCOUNT_LOGE("Failed to open file %{public}s", configFile_.c_str());
-        return;
-    }
-    out << jsonData_;
-    out.close();
-}
-
-void OhosAccountDataDeal::BuildJsonFileFromScratch()
-{
-    AccountInfo accountInfo;
-
-    CreateDefaultAccountInfo(accountInfo);
-
     SaveAccountInfo(accountInfo);
 }
 } // namespace AccountSA

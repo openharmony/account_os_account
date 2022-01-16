@@ -22,6 +22,8 @@ class OsAccount {
 public:
     enum SubscribeState { ALREADY_SUBSCRIBED = 0, INITIAL_SUBSCRIPTION, SUBSCRIBE_FAILD };
     ErrCode CreateOsAccount(const std::string &name, const OsAccountType &type, OsAccountInfo &osAccountInfo);
+    ErrCode CreateOsAccountForDomain(
+        const OsAccountType &type, const DomainAccountInfo &domainInfo, OsAccountInfo &osAccountInfo);
     ErrCode RemoveOsAccount(const int id);
     ErrCode IsOsAccountExists(const int id, bool &isOsAccountExists);
     ErrCode IsOsAccountActived(const int id, bool &isOsAccountActived);
@@ -30,6 +32,7 @@ public:
     ErrCode GetCreatedOsAccountsCount(int &osAccountsCount);
     ErrCode GetOsAccountLocalIdFromProcess(int &id);
     ErrCode GetOsAccountLocalIdFromUid(const int uid, int &id);
+    ErrCode GetOsAccountLocalIdFromDomain(const DomainAccountInfo &domainInfo, int &id);
     ErrCode QueryMaxOsAccountNumber(int &maxOsAccountNumber);
     ErrCode GetOsAccountAllConstraints(const int id, std::vector<std::string> &constraints);
     ErrCode QueryAllCreatedOsAccounts(std::vector<OsAccountInfo> &osAccountInfos);
@@ -56,6 +59,14 @@ public:
     ErrCode SetOsAccountIsVerified(const int id, const bool isVerified);
     ErrCode DumpState(const int &id, std::vector<std::string> &state);
     ErrCode ResetOsAccountProxy();
+
+    ErrCode GetCreatedOsAccountNumFromDatabase(const std::string& storeID, int &createdOsAccountNum);
+    ErrCode GetSerialNumberFromDatabase(const std::string& storeID, int64_t &serialNumber);
+    ErrCode GetMaxAllowCreateIdFromDatabase(const std::string& storeID, int &id);
+    ErrCode GetOsAccountFromDatabase(const std::string& storeID, const int id,
+        OsAccountInfo &osAccountInfo);
+    ErrCode GetOsAccountListFromDatabase(const std::string& storeID,
+        std::vector<OsAccountInfo> &osAccountList);
 
 private:
     ErrCode GetOsAccountProxy();

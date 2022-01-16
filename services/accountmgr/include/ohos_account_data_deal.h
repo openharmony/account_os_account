@@ -18,34 +18,26 @@
 
 #include <string>
 #include <nlohmann/json.hpp>
-#include "account_info.h"
 #include "account_error_no.h"
+#include "account_info.h"
 
 namespace OHOS {
 namespace AccountSA {
 using json = nlohmann::json;
 
-const std::string DATADEAL_JSON_KEY_ACCOUNT_NAME = "account_name";
-const std::string DATADEAL_JSON_KEY_OPENID = "openId";
-const std::string DATADEAL_JSON_KEY_UID = "uid";
-const std::string DATADEAL_JSON_KEY_BIND_TIME = "bind_time";
-const std::string DATADEAL_JSON_KEY_STATUS = "bind_status";
-
 class OhosAccountDataDeal {
 public:
-    explicit OhosAccountDataDeal(const std::string &configFile);
-    ErrCode Init();
-    ErrCode AccountInfoFromJson(AccountInfo &accountInfo);
-    ErrCode AccountInfoToJson(AccountInfo &accountInfo);
+    explicit OhosAccountDataDeal(const std::string &configFileDir);
+    ErrCode Init(std::int32_t userId);
+    ErrCode AccountInfoFromJson(AccountInfo &accountInfo, const std::int32_t userId) const;
+    ErrCode AccountInfoToJson(const AccountInfo &accountInfo) const;
     ~OhosAccountDataDeal() {};
 
 private:
-    json jsonData_;
     bool initOk_;
-    std::string configFile_;
-    void BuildJsonFileFromScratch();
-    void CreateDefaultAccountInfo(AccountInfo &accountInfo);
-    void SaveAccountInfo(AccountInfo &accountInfo);
+    std::string configFileDir_;
+    void BuildJsonFileFromScratch(std::int32_t userId) const;
+    void SaveAccountInfo(const AccountInfo &accountInfo) const;
 };
 }
 }

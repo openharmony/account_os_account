@@ -27,6 +27,7 @@ config("accountmgr_service_test_config") {
     "${common_path}/database/include",
     "${innerkits_path}/include",
     "//third_party/json/include",
+    "//third_party/mbedtls/include",
     "//utils/native/base/include",
     "//utils/native/base/include",
     "//utils/system/safwk/native/include",
@@ -61,9 +62,9 @@ ohos_unittest("account_mgr_test") {
     "${services_path}/accountmgr/src/ohos_account_data_deal.cpp",
     "${services_path}/accountmgr/src/ohos_account_manager.cpp",
     "${services_path}/accountmgr/src/osaccount/inner_os_account_manager.cpp",
-    "${services_path}/accountmgr/src/osaccount/os_account_control_database_manager.cpp",
     "${services_path}/accountmgr/src/osaccount/os_account_control_file_manager.cpp",
     "${services_path}/accountmgr/src/osaccount/os_account_data_storage.cpp",
+    "${services_path}/accountmgr/src/osaccount/os_account_database_operator.cpp",
     "${services_path}/accountmgr/src/osaccount/os_account_file_operator.cpp",
     "${services_path}/accountmgr/src/osaccount/os_account_manager_service.cpp",
     "${services_path}/accountmgr/src/osaccount/os_account_photo_operator.cpp",
@@ -90,6 +91,7 @@ ohos_unittest("account_mgr_test") {
     "${os_account_core_path}:os_account_core",
     "${os_account_innerkits_native_path}:os_account_innerkits",
     "//third_party/googletest:gtest_main",
+    "//third_party/mbedtls:mbedtls",
     "//utils/native/base:utils",
   ]
 

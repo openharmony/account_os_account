@@ -58,6 +58,44 @@ ErrCode OsAccountProxy::CreateOsAccount(
     return ERR_OK;
 }
 
+ErrCode OsAccountProxy::CreateOsAccountForDomain(
+    const OsAccountType &type, const DomainAccountInfo &domainInfo, OsAccountInfo &osAccountInfo)
+{
+    ACCOUNT_LOGI("enter");
+
+    MessageParcel data;
+    MessageParcel reply;
+
+    if (!data.WriteInt32(type)) {
+        ACCOUNT_LOGE("failed to write type ");
+        return ERR_OS_ACCOUNT_KIT_WRITE_OSACCOUNT_TYPE_ERROR;
+    }
+
+    if (!data.WriteString(domainInfo.domain_)) {
+        ACCOUNT_LOGE("failed to write string for domain");
+        return ERR_OS_ACCOUNT_KIT_WRITE_DOMAIN_ERROR;
+    }
+
+    if (!data.WriteString(domainInfo.accountName_)) {
+        ACCOUNT_LOGE("failed to write string for domain account name");
+        return ERR_OS_ACCOUNT_KIT_WRITE_DOMAIN_ACCOUNT_NAME_ERROR;
+    }
+
+    ErrCode result = SendRequest(IOsAccount::Message::CREATE_OS_ACCOUNT_FOR_DOMAIN, data, reply);
+    if (result != ERR_OK) {
+        ACCOUNT_LOGE("failed to send request for create os account for domain.");
+        return result;
+    }
+
+    result = reply.ReadInt32();
+    if (result != ERR_OK) {
+        ACCOUNT_LOGE("failed to read reply for create os account for domain.");
+        return result;
+    }
+    osAccountInfo = *(reply.ReadParcelable<OsAccountInfo>());
+    return ERR_OK;
+}
+
 ErrCode OsAccountProxy::RemoveOsAccount(const int id)
 {
     ACCOUNT_LOGI("enter");
@@ -233,6 +271,34 @@ ErrCode OsAccountProxy::GetOsAccountLocalIdFromUid(const int uid, int &id)
     }
     id = reply.ReadInt32();
     ACCOUNT_LOGI("OsAccountProxy GetOsAccountLocalIdFromUid end");
+    return ERR_OK;
+}
+
+ErrCode OsAccountProxy::GetOsAccountLocalIdFromDomain(const DomainAccountInfo &domainInfo, int &id)
+{
+    ACCOUNT_LOGI("OsAccountProxy GetOsAccountLocalIdFromDomain start");
+    MessageParcel data;
+    MessageParcel reply;
+    if (!data.WriteString(domainInfo.domain_)) {
+        ACCOUNT_LOGE("failed to write int for domain.");
+        return ERR_OSACCOUNT_KIT_WRITE_INT_LOCALID_ERROR;
+    }
+    if (!data.WriteString(domainInfo.accountName_)) {
+        ACCOUNT_LOGE("failed to write int for domain account name.");
+        return ERR_OSACCOUNT_KIT_WRITE_INT_LOCALID_ERROR;
+    }
+    ErrCode result = SendRequest(IOsAccount::Message::GET_OS_ACCOUNT_LOCAL_ID_FROM_DOMAIN, data, reply);
+    if (result != ERR_OK) {
+        ACCOUNT_LOGI("SendRequest err, result %{public}d.", result);
+        return ERR_OSACCOUNT_KIT_GET_OS_ACCOUNT_LOCAL_ID_FOR_DOMAIN_ERROR;
+    }
+    result = reply.ReadInt32();
+    if (result != ERR_OK) {
+        ACCOUNT_LOGI("read from reply err, result %{public}d.", result);
+        return ERR_OSACCOUNT_KIT_GET_OS_ACCOUNT_LOCAL_ID_FOR_DOMAIN_ERROR;
+    }
+    id = reply.ReadInt32();
+    ACCOUNT_LOGI("OsAccountProxy GetOsAccountLocalIdFromDomain end");
     return ERR_OK;
 }
 
@@ -800,6 +866,124 @@ ErrCode OsAccountProxy::DumpState(const int &id, std::vector<std::string> &state
         state.emplace_back(info);
     }
 
+    return ERR_OK;
+}
+
+void OsAccountProxy::CreateBasicAccounts()
+{
+    ACCOUNT_LOGI("OsAccountProxy::CreateBasicAccounts called. Do nothing.");
+}
+
+ErrCode OsAccountProxy::GetCreatedOsAccountNumFromDatabase(const std::string& storeID,
+    int &createdOsAccountNum)
+{
+    MessageParcel data;
+    MessageParcel reply;
+    if (!data.WriteString(storeID)) {
+        ACCOUNT_LOGE("failed to write string for storeID");
+        return ERR_OSACCOUNT_KIT_WRITE_STRING_STOREID_ERROR;
+    }
+    ErrCode result = SendRequest(IOsAccount::Message::GET_CREATED_OS_ACCOUNT_NUM_FROM_DATABASE, data, reply);
+    if (result != ERR_OK) {
+        return result;
+    }
+
+    result = reply.ReadInt32();
+    if (result != ERR_OK) {
+        return ERR_OSACCOUNT_KIT_GET_CREATED_OS_ACCOUNT_NUM_FROM_DATABASE_ERROR;
+    }
+    createdOsAccountNum = reply.ReadInt32();
+    return ERR_OK;
+}
+
+ErrCode OsAccountProxy::GetSerialNumberFromDatabase(const std::string& storeID, int64_t &serialNumber)
+{
+    MessageParcel data;
+    MessageParcel reply;
+    if (!data.WriteString(storeID)) {
+        ACCOUNT_LOGE("failed to write string for storeID");
+        return ERR_OSACCOUNT_KIT_WRITE_STRING_STOREID_ERROR;
+    }
+    ErrCode result = SendRequest(IOsAccount::Message::GET_SERIAL_NUM_FROM_DATABASE, data, reply);
+    if (result != ERR_OK) {
+        return result;
+    }
+
+    result = reply.ReadInt32();
+    if (result != ERR_OK) {
+        return ERR_OSACCOUNT_KIT_GET_SERIAL_NUM_FROM_DATABASE_ERROR;
+    }
+    serialNumber = reply.ReadInt64();
+    return ERR_OK;
+}
+
+ErrCode OsAccountProxy::GetMaxAllowCreateIdFromDatabase(const std::string& storeID, int &id)
+{
+    MessageParcel data;
+    MessageParcel reply;
+    if (!data.WriteString(storeID)) {
+        ACCOUNT_LOGE("failed to write string for isVerified");
+        return ERR_OSACCOUNT_KIT_WRITE_STRING_STOREID_ERROR;
+    }
+    ErrCode result = SendRequest(IOsAccount::Message::GET_MAX_ALLOW_CREATE_ID_FROM_DATABASE, data, reply);
+    if (result != ERR_OK) {
+        return result;
+    }
+
+    result = reply.ReadInt32();
+    if (result != ERR_OK) {
+        return ERR_OSACCOUNT_KIT_GET_MAX_ALLOWED_CREATE_ID_FROM_DATABASE_ERROR;
+    }
+    id = reply.ReadInt32();
+    return ERR_OK;
+}
+
+ErrCode OsAccountProxy::GetOsAccountFromDatabase(const std::string& storeID,
+    const int id, OsAccountInfo &osAccountInfo)
+{
+    MessageParcel data;
+    MessageParcel reply;
+    if (!data.WriteString(storeID)) {
+        ACCOUNT_LOGE("failed to write string for storeID");
+        return ERR_OSACCOUNT_KIT_WRITE_STRING_STOREID_ERROR;
+    }
+    if (!data.WriteInt32(id)) {
+        ACCOUNT_LOGE("failed to write int for id");
+        return ERR_OSACCOUNT_KIT_WRITE_INT_LOCALID_ERROR;
+    }
+
+    ErrCode result = SendRequest(IOsAccount::Message::GET_OS_ACCOUNT_FROM_DATABASE, data, reply);
+    if (result != ERR_OK) {
+        return result;
+    }
+
+    result = reply.ReadInt32();
+    if (result != ERR_OK) {
+        return ERR_OSACCOUNT_KIT_GET_OS_ACCOUNT_FROM_DATABASE_ERROR;
+    }
+    osAccountInfo = *(reply.ReadParcelable<OsAccountInfo>());
+    return ERR_OK;
+}
+
+ErrCode OsAccountProxy::GetOsAccountListFromDatabase(const std::string& storeID,
+    std::vector<OsAccountInfo> &osAccountList)
+{
+    MessageParcel data;
+    MessageParcel reply;
+    if (!data.WriteString(storeID)) {
+        ACCOUNT_LOGE("failed to write string for storeID");
+        return ERR_OSACCOUNT_KIT_WRITE_STRING_STOREID_ERROR;
+    }
+    ErrCode result = SendRequest(IOsAccount::Message::GET_OS_ACCOUNT_LIST_FROM_DATABASE, data, reply);
+    if (result != ERR_OK) {
+        return result;
+    }
+
+    result = reply.ReadInt32();
+    if (result != ERR_OK) {
+        return ERR_OSACCOUNT_KIT_GET_OS_ACCOUNT_LIST_FROM_DATABASE_ERROR;
+    }
+    ReadParcelableVector(osAccountList, reply);
     return ERR_OK;
 }
 

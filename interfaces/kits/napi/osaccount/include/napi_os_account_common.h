@@ -95,11 +95,21 @@ void CBOrPromiseToActivateOA(napi_env env, const ActivateOAAsyncContext *activat
 
 napi_value ParseParaCreateOA(napi_env env, napi_callback_info cbInfo, CreateOAAsyncContext *createOACB);
 
+napi_value ParseParaCreateOAForDomain(napi_env env, napi_callback_info cbInfo,
+    CreateOAForDomainAsyncContext *createOAForDomainCB);
+
 void CreateOAExecuteCB(napi_env env, void *data);
+
+void CreateOAForDomainExecuteCB(napi_env env, void *data);
 
 void CreateOACallbackCompletedCB(napi_env env, napi_status status, void *data);
 
+void CreateOAForDomainCallbackCompletedCB(napi_env env, napi_status status, void *data);
+
 void CBOrPromiseToCreateOA(napi_env env, const CreateOAAsyncContext *createOACB, napi_value err, napi_value data);
+
+void CBOrPromiseToCreateOAForDomain(napi_env env, const CreateOAForDomainAsyncContext *createOACB,
+    napi_value err, napi_value data);
 
 void ParseParaGetOACount(napi_env env, napi_callback_info cbInfo, GetOACountAsyncContext *getOACount);
 
@@ -163,11 +173,20 @@ void CBOrPromiseQueryCurrentOA(napi_env env, const CurrentOAAsyncContext *curren
 
 napi_value ParseParaGetIdByUid(napi_env env, napi_callback_info cbInfo, GetIdByUidAsyncContext *idByUid);
 
+napi_value ParseParaGetIdByDomain(napi_env env, napi_callback_info cbInfo, GetIdByDomainAsyncContext *idByDomain);
+
 void GetIdByUidExecuteCB(napi_env env, void *data);
+
+void GetIdByDomainExecuteCB(napi_env env, void *data);
 
 void GetIdByUidCallbackCompletedCB(napi_env env, napi_status status, void *data);
 
+void GetIdByDomainCallbackCompletedCB(napi_env env, napi_status status, void *data);
+
 void CBOrPromiseGetIdByUid(napi_env env, const GetIdByUidAsyncContext *idByUid, napi_value err, napi_value data);
+
+void CBOrPromiseGetIdByDomain(napi_env env, const GetIdByDomainAsyncContext *idByDomain,
+    napi_value err, napi_value data);
 
 napi_value ParseParaSetPhoto(napi_env env, napi_callback_info cbInfo, SetOAPhotoAsyncContext *setPhoto);
 

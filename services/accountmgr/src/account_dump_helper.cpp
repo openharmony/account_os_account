@@ -96,7 +96,7 @@ void AccountDumpHelper::ShowAccountInfo(std::string& result) const
         return;
     }
 
-    AccountInfo accountInfo = lockPtr->GetAccountInfo();
+    AccountInfo accountInfo = lockPtr->GetCurrentOhosAccountInfo();
     result.append("Ohos account name: ");
     result.append(accountInfo.ohosAccountName_.c_str());
     result.append(",    Ohos account uid: ");
@@ -140,7 +140,8 @@ bool AccountDumpHelper::SimulateInputEvent(const std::string& eventStr, std::str
         return false;
     }
 
-    bool retRes = lockPtr->HandleEvent(eventStr);
+    AccountInfo accountInfo = lockPtr->GetCurrentOhosAccountInfo();
+    bool retRes = lockPtr->HandleEvent(accountInfo, eventStr);
     if (retRes) {
         result.append("process event success");
     } else {

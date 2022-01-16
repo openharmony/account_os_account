@@ -23,6 +23,10 @@ const std::map<uint32_t, OsAccountStub::MessageProcFunction> OsAccountStub::mess
         &OsAccountStub::ProcCreateOsAccount,
     },
     {
+        static_cast<uint32_t>(IOsAccount::Message::CREATE_OS_ACCOUNT_FOR_DOMAIN),
+        &OsAccountStub::ProcCreateOsAccountForDomain,
+    },
+    {
         static_cast<uint32_t>(IOsAccount::Message::REMOVE_OS_ACCOUNT),
         &OsAccountStub::ProcRemoveOsAccount,
     },
@@ -53,6 +57,10 @@ const std::map<uint32_t, OsAccountStub::MessageProcFunction> OsAccountStub::mess
     {
         static_cast<uint32_t>(IOsAccount::Message::GET_OS_ACCOUNT_LOCAL_ID_FROM_UID),
         &OsAccountStub::ProcGetOsAccountLocalIdFromUid,
+    },
+    {
+        static_cast<uint32_t>(IOsAccount::Message::GET_OS_ACCOUNT_LOCAL_ID_FROM_DOMAIN),
+        &OsAccountStub::ProcGetOsAccountLocalIdFromDomain,
     },
     {
         static_cast<uint32_t>(IOsAccount::Message::QUERY_MAX_OS_ACCOUNT_NUMBER),
@@ -154,6 +162,26 @@ const std::map<uint32_t, OsAccountStub::MessageProcFunction> OsAccountStub::mess
         static_cast<uint32_t>(IOsAccount::Message::DUMP_STATE),
         &OsAccountStub::ProcDumpState,
     },
+    {
+        static_cast<uint32_t>(IOsAccount::Message::GET_CREATED_OS_ACCOUNT_NUM_FROM_DATABASE),
+        &OsAccountStub::ProcGetCreatedOsAccountNumFromDatabase,
+    },
+    {
+        static_cast<uint32_t>(IOsAccount::Message::GET_SERIAL_NUM_FROM_DATABASE),
+        &OsAccountStub::ProcGetSerialNumberFromDatabase,
+    },
+    {
+        static_cast<uint32_t>(IOsAccount::Message::GET_MAX_ALLOW_CREATE_ID_FROM_DATABASE),
+        &OsAccountStub::ProcGetMaxAllowCreateIdFromDatabase,
+    },
+    {
+        static_cast<uint32_t>(IOsAccount::Message::GET_OS_ACCOUNT_FROM_DATABASE),
+        &OsAccountStub::ProcGetOsAccountFromDatabase,
+    },
+    {
+        static_cast<uint32_t>(IOsAccount::Message::GET_OS_ACCOUNT_LIST_FROM_DATABASE),
+        &OsAccountStub::ProcGetOsAccountListFromDatabase,
+    },
 };
 
 OsAccountStub::OsAccountStub()
@@ -233,6 +261,38 @@ ErrCode OsAccountStub::ProcCreateOsAccount(MessageParcel &data, MessageParcel &r
     OsAccountType type = static_cast<OsAccountType>(data.ReadInt32());
     OsAccountInfo osAccountInfo;
     ErrCode result = CreateOsAccount(name, type, osAccountInfo);
+    if (!reply.WriteInt32(result)) {
+        ACCOUNT_LOGE("failed to write reply");
+        return IPC_STUB_WRITE_PARCEL_ERR;
+    }
+    if (!reply.WriteParcelable(&osAccountInfo)) {
+        ACCOUNT_LOGE("failed to write reply");
+        return IPC_STUB_WRITE_PARCEL_ERR;
+    }
+    return ERR_NONE;
+}
+
+ErrCode OsAccountStub::ProcCreateOsAccountForDomain(MessageParcel &data, MessageParcel &reply)
+{
+    OsAccountType type = static_cast<OsAccountType>(data.ReadInt32());
+    std::string domain = data.ReadString();
+    std::string domainAccountName = data.ReadString();
+
+    if (domain.empty() || domain.size() > Constants::DOMAIN_NAME_MAX_SIZE) {
+        ACCOUNT_LOGE("read invalid domain length %{public}zu.", domain.size());
+        reply.WriteInt32(ERR_OSACCOUNT_KIT_DOMAIN_NAME_LENGTH_INVALID_ERROR);
+        return ERR_NONE;
+    }
+
+    if (domainAccountName.empty() || domainAccountName.size() > Constants::DOMAIN_ACCOUNT_NAME_MAX_SIZE) {
+        ACCOUNT_LOGE("read invalid domain account name length %{public}zu.", domainAccountName.size());
+        reply.WriteInt32(ERR_OSACCOUNT_KIT_DOMAIN_ACCOUNT_NAME_LENGTH_INVALID_ERROR);
+        return ERR_NONE;
+    }
+
+    OsAccountInfo osAccountInfo;
+    DomainAccountInfo domainInfo(domain, domainAccountName);
+    ErrCode result = CreateOsAccountForDomain(type, domainInfo, osAccountInfo);
     if (!reply.WriteInt32(result)) {
         ACCOUNT_LOGE("failed to write reply");
         return IPC_STUB_WRITE_PARCEL_ERR;
@@ -483,6 +543,36 @@ ErrCode OsAccountStub::ProcGetOsAccountLocalIdFromUid(MessageParcel &data, Messa
     }
     int localId = -1;
     ErrCode result = GetOsAccountLocalIdFromUid(uid, localId);
+    if (!reply.WriteInt32(result)) {
+        ACCOUNT_LOGE("failed to write reply");
+        return IPC_STUB_WRITE_PARCEL_ERR;
+    }
+    if (!reply.WriteInt32(localId)) {
+        ACCOUNT_LOGE("failed to write reply");
+        return IPC_STUB_WRITE_PARCEL_ERR;
+    }
+    return ERR_NONE;
+}
+
+ErrCode OsAccountStub::ProcGetOsAccountLocalIdFromDomain(MessageParcel &data, MessageParcel &reply)
+{
+    std::string domain = data.ReadString();
+    std::string domainAccountName = data.ReadString();
+    if (domain.empty() || domain.size() > Constants::DOMAIN_NAME_MAX_SIZE) {
+        ACCOUNT_LOGE("failed to read string for domain name. length %{public}zu.", domain.size());
+        reply.WriteInt32(ERR_OSACCOUNT_KIT_DOMAIN_NAME_LENGTH_INVALID_ERROR);
+        return ERR_NONE;
+    }
+
+    if (domainAccountName.empty() || domainAccountName.size() > Constants::DOMAIN_ACCOUNT_NAME_MAX_SIZE) {
+        ACCOUNT_LOGE("failed to read string for domainAccountName. length %{public}zu.", domainAccountName.size());
+        reply.WriteInt32(ERR_OSACCOUNT_KIT_DOMAIN_ACCOUNT_NAME_LENGTH_INVALID_ERROR);
+        return ERR_NONE;
+    }
+
+    int localId = -1;
+    DomainAccountInfo domainInfo(domain, domainAccountName);
+    ErrCode result = GetOsAccountLocalIdFromDomain(domainInfo, localId);
     if (!reply.WriteInt32(result)) {
         ACCOUNT_LOGE("failed to write reply");
         return IPC_STUB_WRITE_PARCEL_ERR;
@@ -829,6 +919,88 @@ ErrCode OsAccountStub::ProcDumpState(MessageParcel &data, MessageParcel &reply)
         }
     }
 
+    return ERR_NONE;
+}
+
+ErrCode OsAccountStub::ProcGetCreatedOsAccountNumFromDatabase(MessageParcel &data, MessageParcel &reply)
+{
+    std::string storeID = data.ReadString();
+    int createdOsAccountNum = -1;
+    ErrCode result = GetCreatedOsAccountNumFromDatabase(storeID, createdOsAccountNum);
+    if (!reply.WriteInt32(result)) {
+        ACCOUNT_LOGE("failed to write reply");
+        return IPC_STUB_WRITE_PARCEL_ERR;
+    }
+    if (!reply.WriteInt32(createdOsAccountNum)) {
+        ACCOUNT_LOGE("failed to write reply");
+        return IPC_STUB_WRITE_PARCEL_ERR;
+    }
+    return ERR_NONE;
+}
+
+ErrCode OsAccountStub::ProcGetSerialNumberFromDatabase(MessageParcel &data, MessageParcel &reply)
+{
+    std::string storeID = data.ReadString();
+    int64_t serialNumber = -1;
+    ErrCode result = GetSerialNumberFromDatabase(storeID, serialNumber);
+    if (!reply.WriteInt32(result)) {
+        ACCOUNT_LOGE("failed to write reply");
+        return IPC_STUB_WRITE_PARCEL_ERR;
+    }
+    if (!reply.WriteInt64(serialNumber)) {
+        ACCOUNT_LOGE("failed to write reply");
+        return IPC_STUB_WRITE_PARCEL_ERR;
+    }
+    return ERR_NONE;
+}
+
+ErrCode OsAccountStub::ProcGetMaxAllowCreateIdFromDatabase(MessageParcel &data, MessageParcel &reply)
+{
+    std::string storeID = data.ReadString();
+    int id = -1;
+    ErrCode result = GetMaxAllowCreateIdFromDatabase(storeID, id);
+    if (!reply.WriteInt32(result)) {
+        ACCOUNT_LOGE("failed to write reply");
+        return IPC_STUB_WRITE_PARCEL_ERR;
+    }
+    if (!reply.WriteInt32(id)) {
+        ACCOUNT_LOGE("failed to write reply");
+        return IPC_STUB_WRITE_PARCEL_ERR;
+    }
+    return ERR_NONE;
+}
+
+ErrCode OsAccountStub::ProcGetOsAccountFromDatabase(MessageParcel &data, MessageParcel &reply)
+{
+    std::string storeID = data.ReadString();
+    int id = data.ReadInt32();
+    OsAccountInfo osAccountInfo;
+    ErrCode result = GetOsAccountFromDatabase(storeID, id, osAccountInfo);
+    if (!reply.WriteInt32(result)) {
+        ACCOUNT_LOGE("failed to write reply");
+        return IPC_STUB_WRITE_PARCEL_ERR;
+    }
+    if (!reply.WriteParcelable(&osAccountInfo)) {
+        ACCOUNT_LOGE("failed to write reply");
+        return IPC_STUB_WRITE_PARCEL_ERR;
+    }
+    return ERR_NONE;
+}
+
+ErrCode OsAccountStub::ProcGetOsAccountListFromDatabase(MessageParcel &data, MessageParcel &reply)
+{
+    std::string storeID = data.ReadString();
+    std::vector<OsAccountInfo> osAccountList;
+    ErrCode result = GetOsAccountListFromDatabase(storeID, osAccountList);
+    if (!reply.WriteInt32(result)) {
+        ACCOUNT_LOGE("failed to write reply");
+        return IPC_STUB_WRITE_PARCEL_ERR;
+    }
+    if (!WriteParcelableVector(osAccountList, reply)) {
+        ACCOUNT_LOGE("ProcGetOsAccountListFromDatabase osAccountInfos failed stub");
+        ACCOUNT_LOGE("failed to write reply");
+        return IPC_STUB_WRITE_PARCEL_ERR;
+    }
     return ERR_NONE;
 }
 }  // namespace AccountSA
