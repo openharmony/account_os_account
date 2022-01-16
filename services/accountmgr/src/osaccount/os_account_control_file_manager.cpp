@@ -23,6 +23,7 @@ namespace AccountSA {
 OsAccountControlFileManager::OsAccountControlFileManager()
 {
     accountFileOperator_ = std::make_shared<AccountFileOperator>();
+    osAccountDataBaseOperator_ = std::make_shared<OsAccountDatabaseOperator>();
     osAccountFileOperator_ = std::make_shared<OsAccountFileOperator>();
     osAccountPhotoOperator_ = std::make_shared<OsAccountPhotoOperator>();
 }
@@ -30,7 +31,8 @@ OsAccountControlFileManager::~OsAccountControlFileManager()
 {}
 void OsAccountControlFileManager::Init()
 {
-    ACCOUNT_LOGE("OsAccountControlFileManager Init start");
+    ACCOUNT_LOGI("OsAccountControlFileManager Init start");
+    osAccountDataBaseOperator_->Init();
     osAccountFileOperator_->Init();
     if (!accountFileOperator_->IsExistFile(
         Constants::USER_INFO_BASE + Constants::PATH_SEPARATOR + Constants::USER_LIST_FILE_NAME)) {
@@ -39,18 +41,18 @@ void OsAccountControlFileManager::Init()
         Json accountList = Json {
             {Constants::ACCOUNT_LIST, accountListt},
             {Constants::COUNT_ACCOUNT_NUM, 0},
-            {Constants::MAX_ALLOW_CREATE_ACCOUNT_NUM, Constants::MAX_USER_ID},
+            {Constants::MAX_ALLOW_CREATE_ACCOUNT_ID, Constants::MAX_USER_ID},
             {Constants::SERIAL_NUMBER_NUM, Constants::SERIAL_NUMBER_NUM_START},
             {Constants::IS_SERIAL_NUMBER_FULL, Constants::IS_SERIAL_NUMBER_FULL_INIT_VALUE},
         };
-        SaveAccountList(accountList);
+        SaveAccountListToFile(accountList);
     }
-    ACCOUNT_LOGE("OsAccountControlFileManager Init end");
+    ACCOUNT_LOGI("OsAccountControlFileManager Init end");
 }
 
 ErrCode OsAccountControlFileManager::GetOsAccountList(std::vector<OsAccountInfo> &osAccountList)
 {
-    ACCOUNT_LOGE("OsAccountControlFileManager GetOsAccountList  start");
+    ACCOUNT_LOGI("OsAccountControlFileManager GetOsAccountList  start");
     osAccountList.clear();
     Json accountListJson;
     if (GetAccountList(accountListJson) != ERR_OK) {
@@ -75,13 +77,13 @@ ErrCode OsAccountControlFileManager::GetOsAccountList(std::vector<OsAccountInfo>
             }
         }
     }
-    ACCOUNT_LOGE("OsAccountControlFileManager GetOsAccountList  end");
+    ACCOUNT_LOGI("OsAccountControlFileManager GetOsAccountList  end");
     return ERR_OK;
 }
 
 ErrCode OsAccountControlFileManager::GetOsAccountInfoById(const int id, OsAccountInfo &osAccountInfo)
 {
-    ACCOUNT_LOGE("OsAccountControlFileManager GetOsAccountInfoById start");
+    ACCOUNT_LOGI("OsAccountControlFileManager GetOsAccountInfoById start");
     std::string path = Constants::USER_INFO_BASE + Constants::PATH_SEPARATOR + std::to_string(id) +
                        Constants::PATH_SEPARATOR + Constants::USER_INFO_FILE_NAME;
     if (!accountFileOperator_->IsExistFile(path)) {
@@ -94,7 +96,7 @@ ErrCode OsAccountControlFileManager::GetOsAccountInfoById(const int id, OsAccoun
         return ERR_OS_ACCOUNT_SERVICE_CONTROL_SELECT_OS_ACCOUNT_ERROR;
     }
     osAccountInfo.FromJson(Json::parse(accountInfoStr, nullptr, false));
-    ACCOUNT_LOGE("OsAccountControlFileManager GetOsAccountInfoById end");
+    ACCOUNT_LOGI("OsAccountControlFileManager GetOsAccountInfoById end");
     return ERR_OK;
 }
 
@@ -107,7 +109,7 @@ ErrCode OsAccountControlFileManager::GetConstraintsByType(
 
 ErrCode OsAccountControlFileManager::InsertOsAccount(OsAccountInfo &osAccountInfo)
 {
-    ACCOUNT_LOGE("OsAccountControlFileManager InsertOsAccount start");
+    ACCOUNT_LOGI("OsAccountControlFileManager InsertOsAccount start");
     std::string path = Constants::USER_INFO_BASE + Constants::PATH_SEPARATOR + osAccountInfo.GetPrimeKey() +
                        Constants::PATH_SEPARATOR + Constants::USER_INFO_FILE_NAME;
     if (osAccountInfo.GetLocalId() < Constants::ADMIN_LOCAL_ID || osAccountInfo.GetLocalId() > Constants::MAX_USER_ID) {
@@ -121,7 +123,12 @@ ErrCode OsAccountControlFileManager::InsertOsAccount(OsAccountInfo &osAccountInf
         ACCOUNT_LOGE("OsAccountControlFileManager InsertOsAccount");
         return ERR_OS_ACCOUNT_SERVICE_CONTROL_INSERT_OS_ACCOUNT_FILE_ERROR;
     }
+
+    // update user id list
     if (osAccountInfo.GetLocalId() >= Constants::START_USER_ID) {
+        // save new account info into database
+        osAccountDataBaseOperator_->InsertOsAccountToDataBase(osAccountInfo);
+
         Json accountListJson;
         if (GetAccountList(accountListJson) != ERR_OK) {
             ACCOUNT_LOGE("OsAccountControlFileManager get account List Err");
@@ -134,18 +141,18 @@ ErrCode OsAccountControlFileManager::InsertOsAccount(OsAccountInfo &osAccountInf
         accountIdList.push_back(osAccountInfo.GetPrimeKey());
         accountListJson[Constants::ACCOUNT_LIST] = accountIdList;
         accountListJson[Constants::COUNT_ACCOUNT_NUM] = accountIdList.size();
-        if (SaveAccountList(accountListJson) != ERR_OK) {
+        if (SaveAccountListToFileAndDataBase(accountListJson) != ERR_OK) {
             ACCOUNT_LOGE("OsAccountControlFileManager save account List Err");
             return ERR_OS_ACCOUNT_SERVICE_CONTROL_INSERT_OS_ACCOUNT_LIST_ERROR;
         }
     }
-    ACCOUNT_LOGE("OsAccountControlFileManager InsertOsAccount end");
+    ACCOUNT_LOGI("OsAccountControlFileManager InsertOsAccount end");
     return ERR_OK;
 }
 
 ErrCode OsAccountControlFileManager::DelOsAccount(const int id)
 {
-    ACCOUNT_LOGE("OsAccountControlFileManager DelOsAccount start");
+    ACCOUNT_LOGI("OsAccountControlFileManager DelOsAccount start");
     if (id <= Constants::START_USER_ID) {
         return ERR_OS_ACCOUNT_SERVICE_CONTROL_CANNOT_DELETE_ID_ERROR;
     }
@@ -154,6 +161,11 @@ ErrCode OsAccountControlFileManager::DelOsAccount(const int id)
         ACCOUNT_LOGE("OsAccountControlFileManager DelOsAccount delete dir error");
         return ERR_OS_ACCOUNT_SERVICE_CONTROL_DEL_OS_ACCOUNT_INFO_ERROR;
     }
+
+    // delete account info from database
+    osAccountDataBaseOperator_->DelOsAccountInDatabase(id);
+
+    // update user id list
     Json accountListJson;
     if (GetAccountList(accountListJson) != ERR_OK) {
         ACCOUNT_LOGE("OsAccountControlFileManager DelOsAccount GetAccountList error");
@@ -167,16 +179,16 @@ ErrCode OsAccountControlFileManager::DelOsAccount(const int id)
         std::remove(accountIdList.begin(), accountIdList.end(), std::to_string(id)), accountIdList.end());
     accountListJson[Constants::ACCOUNT_LIST] = accountIdList;
     accountListJson[Constants::COUNT_ACCOUNT_NUM] = accountIdList.size();
-    if (SaveAccountList(accountListJson) != ERR_OK) {
+    if (SaveAccountListToFileAndDataBase(accountListJson) != ERR_OK) {
         return ERR_OS_ACCOUNT_SERVICE_CONTROL_INSERT_OS_ACCOUNT_LIST_ERROR;
     }
-    ACCOUNT_LOGE("OsAccountControlFileManager DelOsAccount end");
+    ACCOUNT_LOGI("OsAccountControlFileManager DelOsAccount end");
     return ERR_OK;
 }
 
 ErrCode OsAccountControlFileManager::UpdateOsAccount(OsAccountInfo &osAccountInfo)
 {
-    ACCOUNT_LOGE("OsAccountControlFileManager UpdateOsAccount start");
+    ACCOUNT_LOGI("OsAccountControlFileManager UpdateOsAccount start");
     std::string path = Constants::USER_INFO_BASE + Constants::PATH_SEPARATOR + osAccountInfo.GetPrimeKey() +
                        Constants::PATH_SEPARATOR + Constants::USER_INFO_FILE_NAME;
     if (!accountFileOperator_->IsExistFile(path)) {
@@ -185,24 +197,30 @@ ErrCode OsAccountControlFileManager::UpdateOsAccount(OsAccountInfo &osAccountInf
     if (accountFileOperator_->InputFileByPathAndContent(path, osAccountInfo.ToString()) != ERR_OK) {
         return ERR_OS_ACCOUNT_SERVICE_CONTROL_UPDATE_FILE_ERROR;
     }
-    ACCOUNT_LOGE("OsAccountControlFileManager UpdateOsAccount end");
+
+    // update in database
+    if (osAccountInfo.GetLocalId() >= Constants::START_USER_ID) {
+        osAccountDataBaseOperator_->UpdateOsAccountInDatabase(osAccountInfo);
+    }
+
+    ACCOUNT_LOGI("OsAccountControlFileManager UpdateOsAccount end");
     return ERR_OK;
 }
 
 ErrCode OsAccountControlFileManager::GetMaxCreatedOsAccountNum(int &maxCreatedOsAccountNum)
 {
-    ACCOUNT_LOGE("OsAccountControlFileManager GetMaxCreatedOsAccountNum start");
+    ACCOUNT_LOGI("OsAccountControlFileManager GetMaxCreatedOsAccountNum start");
     Json accountListJson;
     if (GetAccountList(accountListJson) != ERR_OK) {
         return ERR_OS_ACCOUNT_SERVICE_CONTROL_GET_OS_ACCOUNT_LIST_ERROR;
     }
     OHOS::AccountSA::GetDataByType<int>(accountListJson,
         accountListJson.end(),
-        Constants::MAX_ALLOW_CREATE_ACCOUNT_NUM,
+        Constants::MAX_ALLOW_CREATE_ACCOUNT_ID,
         maxCreatedOsAccountNum,
         OHOS::AccountSA::JsonType::NUMBER);
     maxCreatedOsAccountNum -= Constants::START_USER_ID;
-    ACCOUNT_LOGE("OsAccountControlFileManager GetMaxCreatedOsAccountNum end");
+    ACCOUNT_LOGI("OsAccountControlFileManager GetMaxCreatedOsAccountNum end");
     return ERR_OK;
 }
 
@@ -249,7 +267,7 @@ ErrCode OsAccountControlFileManager::GetSerialNumber(int64_t &serialNumber)
         }
     }
     accountListJson[Constants::SERIAL_NUMBER_NUM] = serialNumber + 1;
-    if (SaveAccountList(accountListJson) != ERR_OK) {
+    if (SaveAccountListToFileAndDataBase(accountListJson) != ERR_OK) {
         return ERR_OS_ACCOUNT_SERVICE_CONTROL_INSERT_OS_ACCOUNT_LIST_ERROR;
     }
     serialNumber = serialNumber + Constants::SERIAL_NUMBER_NUM_START_FOR_ADMIN * Constants::CARRY_NUM;
@@ -286,7 +304,7 @@ ErrCode OsAccountControlFileManager::GetAllowCreateId(int &id)
 
 ErrCode OsAccountControlFileManager::GetAccountList(Json &accountListJson)
 {
-    ACCOUNT_LOGE("OsAccountControlFileManager GetAccountList start");
+    ACCOUNT_LOGI("OsAccountControlFileManager GetAccountList start");
     accountListJson.clear();
     std::string accountList;
     ErrCode errCode = accountFileOperator_->GetFileContentByPath(
@@ -296,31 +314,37 @@ ErrCode OsAccountControlFileManager::GetAccountList(Json &accountListJson)
         return ERR_OS_ACCOUNT_SERVICE_CONTROL_GET_ACCOUNT_LIST_ERROR;
     }
     accountListJson = Json::parse(accountList, nullptr, false);
-    ACCOUNT_LOGE("OsAccountControlFileManager GetAccountList end");
+    ACCOUNT_LOGI("OsAccountControlFileManager GetAccountList end");
     return ERR_OK;
 }
 
-ErrCode OsAccountControlFileManager::SaveAccountList(const Json &accountListJson)
+ErrCode OsAccountControlFileManager::SaveAccountListToFile(const Json &accountListJson)
 {
-    ACCOUNT_LOGE("OsAccountControlFileManager SaveAccountList start");
+    ACCOUNT_LOGI("OsAccountControlFileManager SaveAccountListToFile start");
     std::string accountListPath =
         Constants::USER_INFO_BASE + Constants::PATH_SEPARATOR + Constants::USER_LIST_FILE_NAME;
     if (accountFileOperator_->InputFileByPathAndContent(accountListPath, accountListJson.dump()) != ERR_OK) {
-        ACCOUNT_LOGE("OsAccountControlFileManager SaveAccountList cannot save file content");
+        ACCOUNT_LOGE("OsAccountControlFileManager SaveAccountListToFile cannot save file content");
         return ERR_OS_ACCOUNT_SERVICE_CONTROL_SET_ACCOUNT_LIST_ERROR;
     }
-    ACCOUNT_LOGE("OsAccountControlFileManager SaveAccountList end");
+    ACCOUNT_LOGI("OsAccountControlFileManager SaveAccountListToFile end");
     return ERR_OK;
+}
+
+ErrCode OsAccountControlFileManager::SaveAccountListToFileAndDataBase(const Json &accountListJson)
+{
+    osAccountDataBaseOperator_->UpdateOsAccountIDListInDatabase(accountListJson);
+    return SaveAccountListToFile(accountListJson);
 }
 
 ErrCode OsAccountControlFileManager::IsOsAccountExists(const int id, bool &isExists)
 {
-    ACCOUNT_LOGE("OsAccountControlFileManager IsOsAccountExists start");
+    ACCOUNT_LOGI("OsAccountControlFileManager IsOsAccountExists start");
     std::string path = Constants::USER_INFO_BASE + Constants::PATH_SEPARATOR + std::to_string(id) +
                        Constants::PATH_SEPARATOR + Constants::USER_INFO_FILE_NAME;
-    ACCOUNT_LOGE("OsAccountControlFileManager IsOsAccountExists path is %{public}s", path.c_str());
+    ACCOUNT_LOGI("OsAccountControlFileManager IsOsAccountExists path is %{public}s", path.c_str());
     isExists = accountFileOperator_->IsExistFile(path);
-    ACCOUNT_LOGE("OsAccountControlFileManager IsOsAccountExists path is %{public}d", isExists);
+    ACCOUNT_LOGI("OsAccountControlFileManager IsOsAccountExists path is %{public}d", isExists);
     return ERR_OK;
 }
 
@@ -386,6 +410,36 @@ ErrCode OsAccountControlFileManager::IsConstrarionsInTypeList(
 ErrCode OsAccountControlFileManager::IsAllowedCreateAdmin(bool &isAllowedCreateAdmin)
 {
     return osAccountFileOperator_->IsAllowedCreateAdmin(isAllowedCreateAdmin);
+}
+
+ErrCode OsAccountControlFileManager::GetCreatedOsAccountNumFromDatabase(const std::string& storeID,
+    int &createdOsAccountNum)
+{
+    return osAccountDataBaseOperator_->GetCreatedOsAccountNumFromDatabase(storeID, createdOsAccountNum);
+}
+
+ErrCode OsAccountControlFileManager::GetSerialNumberFromDatabase(const std::string& storeID,
+    int64_t &serialNumber)
+{
+    return osAccountDataBaseOperator_->GetSerialNumberFromDatabase(storeID, serialNumber);
+}
+
+ErrCode OsAccountControlFileManager::GetMaxAllowCreateIdFromDatabase(const std::string& storeID,
+    int &id)
+{
+    return osAccountDataBaseOperator_->GetMaxAllowCreateIdFromDatabase(storeID, id);
+}
+
+ErrCode OsAccountControlFileManager::GetOsAccountFromDatabase(const std::string& storeID,
+    const int id, OsAccountInfo &osAccountInfo)
+{
+    return osAccountDataBaseOperator_->GetOsAccountFromDatabase(storeID, id, osAccountInfo);
+}
+
+ErrCode OsAccountControlFileManager::GetOsAccountListFromDatabase(const std::string& storeID,
+    std::vector<OsAccountInfo> &osAccountList)
+{
+    return osAccountDataBaseOperator_->GetOsAccountListFromDatabase(storeID, osAccountList);
 }
 }  // namespace AccountSA
 }  // namespace OHOS

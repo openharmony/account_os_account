@@ -34,7 +34,7 @@ ErrCode OsAccount::CreateOsAccount(const std::string &name, const OsAccountType 
     if (name.size() > Constants::LOCAL_NAME_MAX_SIZE) {
         return ERR_OSACCOUNT_KIT_LOCAL_NAME_OUTFLOW_ERROR;
     }
-    if (name.size() <= 0) {
+    if (name.empty()) {
         return ERR_OSACCOUNT_KIT_LOCAL_NAME_EMPTY_ERROR;
     }
     ErrCode result = GetOsAccountProxy();
@@ -44,6 +44,33 @@ ErrCode OsAccount::CreateOsAccount(const std::string &name, const OsAccountType 
     }
 
     return osAccountProxy_->CreateOsAccount(name, type, osAccountInfo);
+}
+
+ErrCode OsAccount::CreateOsAccountForDomain(
+    const OsAccountType &type, const DomainAccountInfo &domainInfo, OsAccountInfo &osAccountInfo)
+{
+    ACCOUNT_LOGI("enter");
+    ACCOUNT_LOGI("domain.size(): %{public}zu", domainInfo.domain_.size());
+    ACCOUNT_LOGI("domainAccountName.size(): %{public}zu", domainInfo.accountName_.size());
+    ACCOUNT_LOGI("DOMAIN_NAME_MAX_SIZE: %{public}d", Constants::DOMAIN_NAME_MAX_SIZE);
+    ACCOUNT_LOGI("DOMAIN_ACCOUNT_NAME_MAX_SIZE: %{public}d", Constants::DOMAIN_ACCOUNT_NAME_MAX_SIZE);
+    if (domainInfo.domain_.empty() ||
+        domainInfo.domain_.size() > Constants::DOMAIN_NAME_MAX_SIZE) {
+        return ERR_OSACCOUNT_KIT_DOMAIN_NAME_LENGTH_INVALID_ERROR;
+    }
+
+    if (domainInfo.accountName_.empty() ||
+        domainInfo.accountName_.size() > Constants::DOMAIN_ACCOUNT_NAME_MAX_SIZE) {
+        return ERR_OSACCOUNT_KIT_DOMAIN_ACCOUNT_NAME_LENGTH_INVALID_ERROR;
+    }
+
+    ErrCode result = GetOsAccountProxy();
+    if (result != ERR_OK) {
+        ACCOUNT_LOGE("failed to get osAccountProxy_");
+        return result;
+    }
+
+    return osAccountProxy_->CreateOsAccountForDomain(type, domainInfo, osAccountInfo);
 }
 
 ErrCode OsAccount::RemoveOsAccount(const int id)
@@ -146,6 +173,31 @@ ErrCode OsAccount::GetOsAccountLocalIdFromUid(const int uid, int &id)
     }
 
     return osAccountProxy_->GetOsAccountLocalIdFromUid(uid, id);
+}
+
+ErrCode OsAccount::GetOsAccountLocalIdFromDomain(const DomainAccountInfo &domainInfo, int &id)
+{
+    ACCOUNT_LOGI("OsAccount::GetOsAccountLocalIdFromDomain start");
+
+    if (domainInfo.domain_.empty() ||
+        domainInfo.domain_.size() > Constants::DOMAIN_NAME_MAX_SIZE) {
+        ACCOUNT_LOGE("invalid domain name length %{public}zu.", domainInfo.domain_.size());
+        return ERR_OSACCOUNT_KIT_DOMAIN_NAME_LENGTH_INVALID_ERROR;
+    }
+
+    if (domainInfo.accountName_.empty() ||
+        domainInfo.accountName_.size() > Constants::DOMAIN_ACCOUNT_NAME_MAX_SIZE) {
+        ACCOUNT_LOGE("invalid domain account name length %{public}zu.", domainInfo.accountName_.size());
+        return ERR_OSACCOUNT_KIT_DOMAIN_ACCOUNT_NAME_LENGTH_INVALID_ERROR;
+    }
+
+    ErrCode result = GetOsAccountProxy();
+    if (result != ERR_OK) {
+        ACCOUNT_LOGE("failed to get osAccountProxy_");
+        return result;
+    }
+
+    return osAccountProxy_->GetOsAccountLocalIdFromDomain(domainInfo, id);
 }
 
 ErrCode OsAccount::QueryMaxOsAccountNumber(int &maxOsAccountNumber)
@@ -592,6 +644,61 @@ ErrCode OsAccount::CreateOsAccountEventListener(
     }
 
     return INITIAL_SUBSCRIPTION;
+}
+
+ErrCode OsAccount::GetCreatedOsAccountNumFromDatabase(const std::string& storeID, int &createdOsAccountNum)
+{
+    ACCOUNT_LOGI("OsAccount::GetCreatedOsAccountNumFromDatabase start");
+    ErrCode result = GetOsAccountProxy();
+    if (result != ERR_OK) {
+        ACCOUNT_LOGE("failed to get osAccountProxy_");
+        return result;
+    }
+    return osAccountProxy_->GetCreatedOsAccountNumFromDatabase(storeID, createdOsAccountNum);
+}
+
+ErrCode OsAccount::GetSerialNumberFromDatabase(const std::string& storeID, int64_t &serialNumber)
+{
+    ACCOUNT_LOGI("OsAccount::GetSerialNumberFromDatabase start");
+    ErrCode result = GetOsAccountProxy();
+    if (result != ERR_OK) {
+        ACCOUNT_LOGE("failed to get osAccountProxy_");
+        return result;
+    }
+    return osAccountProxy_->GetSerialNumberFromDatabase(storeID, serialNumber);
+}
+
+ErrCode OsAccount::GetMaxAllowCreateIdFromDatabase(const std::string& storeID, int &id)
+{
+    ACCOUNT_LOGI("OsAccount::GetMaxAllowCreateIdFromDatabase start");
+    ErrCode result = GetOsAccountProxy();
+    if (result != ERR_OK) {
+        ACCOUNT_LOGE("failed to get osAccountProxy_");
+        return result;
+    }
+    return osAccountProxy_->GetMaxAllowCreateIdFromDatabase(storeID, id);
+}
+
+ErrCode OsAccount::GetOsAccountFromDatabase(const std::string& storeID, const int id, OsAccountInfo &osAccountInfo)
+{
+    ACCOUNT_LOGI("OsAccount::GetOsAccountFromDatabase start");
+    ErrCode result = GetOsAccountProxy();
+    if (result != ERR_OK) {
+        ACCOUNT_LOGE("failed to get osAccountProxy_");
+        return result;
+    }
+    return osAccountProxy_->GetOsAccountFromDatabase(storeID, id, osAccountInfo);
+}
+
+ErrCode OsAccount::GetOsAccountListFromDatabase(const std::string& storeID, std::vector<OsAccountInfo> &osAccountList)
+{
+    ACCOUNT_LOGI("OsAccount::GetOsAccountListFromDatabase start");
+    ErrCode result = GetOsAccountProxy();
+    if (result != ERR_OK) {
+        ACCOUNT_LOGE("failed to get osAccountProxy_");
+        return result;
+    }
+    return osAccountProxy_->GetOsAccountListFromDatabase(storeID, osAccountList);
 }
 }  // namespace AccountSA
 }  // namespace OHOS

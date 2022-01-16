@@ -42,6 +42,7 @@ config("accountmgr_config") {
     "${common_path}/account_error/include",
     "${innerkits_path}/include",
     "//third_party/json/include",
+    "//third_party/mbedtls/include",
     "//utils/native/base/include",
     "//utils/system/safwk/native/include",
   ]
@@ -93,9 +94,9 @@ ohos_shared_library("accountmgr") {
     "src/ohos_account_data_deal.cpp",
     "src/ohos_account_manager.cpp",
     "src/osaccount/inner_os_account_manager.cpp",
-    "src/osaccount/os_account_control_database_manager.cpp",
     "src/osaccount/os_account_control_file_manager.cpp",
     "src/osaccount/os_account_data_storage.cpp",
+    "src/osaccount/os_account_database_operator.cpp",
     "src/osaccount/os_account_file_operator.cpp",
     "src/osaccount/os_account_manager_service.cpp",
     "src/osaccount/os_account_photo_operator.cpp",
@@ -121,6 +122,7 @@ ohos_shared_library("accountmgr") {
     "${os_account_core_path}:os_account_core",
     "${os_account_innerkits_native_path}:os_account_innerkits",
     "//third_party/jsoncpp:jsoncpp",
+    "//third_party/mbedtls:mbedtls",
     "//utils/native/base:utils",
   ]
   external_deps = [

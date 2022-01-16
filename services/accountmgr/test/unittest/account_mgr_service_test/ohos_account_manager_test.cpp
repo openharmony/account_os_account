@@ -83,15 +83,15 @@ HWTEST_F(OhosAccountManagerTest, OhosAccountManagerTestTokenInvalid004, TestSize
     * @tc.expected: step2. process result is true AND state changes
     */
     ret = accountManager.HandleOhosAccountTokenInvalidEvent(name, invalidUid, g_eventTokenInvalid);
-    EXPECT_EQ(true, ret);
-    EXPECT_EQ(ACCOUNT_STATE_NOTLOGIN, accountManager.GetAccountState());
+    EXPECT_EQ(false, ret);
+    EXPECT_EQ(ACCOUNT_STATE_LOGIN, accountManager.GetCurrentOhosAccountState());
     /**
     * @tc.steps: step3. trigger token_invalid event with the same uid
     * @tc.expected: step3. process result is true AND state changes
     */
     ret = accountManager.HandleOhosAccountTokenInvalidEvent(name, uid, g_eventTokenInvalid);
     EXPECT_EQ(true, ret);
-    EXPECT_EQ(ACCOUNT_STATE_NOTLOGIN, accountManager.GetAccountState());
+    EXPECT_EQ(ACCOUNT_STATE_NOTLOGIN, accountManager.GetCurrentOhosAccountState());
     /**
     * @tc.steps: step4. logout the account
     * @tc.expected: step4. The current account logout

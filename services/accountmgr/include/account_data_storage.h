@@ -56,6 +56,9 @@ protected:
     OHOS::DistributedKv::AppId appId_;
     OHOS::DistributedKv::StoreId storeId_;
     bool autoSync_;
+
+private:
+    ErrCode PutValueToKvStore(const std::string &keyStr, const std::string &valueStr);
 };
 }  // namespace AccountSA
 }  // namespace OHOS

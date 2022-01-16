@@ -39,7 +39,6 @@ const std::string PERMISSION_MANAGE_USERS = "ohos.permission.MANAGE_LOCAL_ACCOUN
 const std::string PERMISSION_INTERACT_ACROSS_USERS = "ohos.permission.INTERACT_ACROSS_LOCAL_ACCOUNTS";
 const std::string PERMISSION_INTERACT_ACROSS_USERS_FULL = "ohos.permission.INTERACT_ACROSS_LOCAL_ACCOUNTS_EXTENSION";
 const std::string PERMISSION_DISTRIBUTED_DATASYNC = "ohos.permission.DISTRIBUTED_DATASYNC";
-const std::string DEFAULT_ACCOUNT_NAME = "no_name";
 constexpr std::int32_t SYSTEM_UID = 1000;
 constexpr std::int32_t ROOT_UID = 0;
 
@@ -89,15 +88,14 @@ std::int32_t AccountStub::CmdUpdateOhosAccountInfo(MessageParcel &data, MessageP
     }
 
     // ignore the real account name
-    Str16ToStr8(data.ReadString16());
-    const std::string accountName = DEFAULT_ACCOUNT_NAME;
+    const std::string accountName = Str16ToStr8(data.ReadString16());
     const std::string uid = Str16ToStr8(data.ReadString16());
     if (uid.empty()) {
         ACCOUNT_LOGE("invalid user id");
         return ERR_ACCOUNT_ZIDL_ACCOUNT_STUB_ERROR;
     }
     const std::string eventStr = Str16ToStr8(data.ReadString16());
-    ACCOUNT_LOGI("CmdUpdateOhosAccountInfo eventStr: %s", eventStr.c_str());
+    ACCOUNT_LOGI("CmdUpdateOhosAccountInfo eventStr: %{public}s", eventStr.c_str());
 
     std::int32_t ret = ERR_OK;
     bool result = UpdateOhosAccountInfo(accountName, uid, eventStr);
@@ -171,7 +169,7 @@ std::int32_t AccountStub::CmdQueryDeviceAccountId(MessageParcel &data, MessagePa
     std::int32_t id;
     auto ret = QueryDeviceAccountId(id);
     if (ret != ERR_OK) {
-        ACCOUNT_LOGE("QueryDevice AccountId failed: %d", ret);
+        ACCOUNT_LOGE("QueryDevice AccountId failed: %{public}d", ret);
         return ret;
     }
 
@@ -187,7 +185,7 @@ std::int32_t AccountStub::CmdQueryDeviceAccountIdFromUid(MessageParcel &data, Me
     std::int32_t uid = data.ReadInt32();
     auto ret = QueryDeviceAccountIdFromUid(uid);
     if (ret < 0) {
-        ACCOUNT_LOGE("QueryDevice accountid from uid failed: %d", ret);
+        ACCOUNT_LOGE("QueryDevice accountid from uid %{public}d failed: %{public}d", uid, ret);
         return ret;
     }
 

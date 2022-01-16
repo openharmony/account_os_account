@@ -36,6 +36,16 @@ public:
     virtual ErrCode GetIsMultiOsAccountEnable(bool &isMultiOsAccountEnable) = 0;
     virtual ErrCode IsConstrarionsInTypeList(const std::vector<std::string> &constrains, bool &isExists) = 0;
     virtual ErrCode IsAllowedCreateAdmin(bool &isAllowedCreateAdmin) = 0;
+
+    virtual ErrCode GetCreatedOsAccountNumFromDatabase(const std::string& storeID,
+        int &createdOsAccountNum) = 0;
+    virtual ErrCode GetSerialNumberFromDatabase(const std::string& storeID,
+        int64_t &serialNumber) = 0;
+    virtual ErrCode GetMaxAllowCreateIdFromDatabase(const std::string& storeID, int &id) = 0;
+    virtual ErrCode GetOsAccountFromDatabase(const std::string& storeID,
+        const int id, OsAccountInfo &osAccountInfo) = 0;
+    virtual ErrCode GetOsAccountListFromDatabase(const std::string& storeID,
+        std::vector<OsAccountInfo> &osAccountList) = 0;
 };
 }  // namespace AccountSA
 }  // namespace OHOS
