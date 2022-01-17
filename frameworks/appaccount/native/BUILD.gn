@@ -61,5 +61,5 @@ ohos_shared_library("app_account_innerkits") {
   ]
 
   subsystem_name = "account"
-  part_name = "app_account_standard"
+  part_name = "os_account_standard"
 }
