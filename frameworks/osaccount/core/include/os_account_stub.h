@@ -41,7 +41,6 @@ private:
     ErrCode ProcQueryAllCreatedOsAccounts(MessageParcel &data, MessageParcel &reply);
     ErrCode ProcQueryMaxOsAccountNumber(MessageParcel &data, MessageParcel &reply);
     ErrCode ProcGetCreatedOsAccountsCount(MessageParcel &data, MessageParcel &reply);
-    ErrCode ProcGetDistributedVirtualDeviceId(MessageParcel &data, MessageParcel &reply);
     ErrCode ProcGetOsAccountAllConstraints(MessageParcel &data, MessageParcel &reply);
     ErrCode ProcGetOsAccountLocalIdFromProcess(MessageParcel &data, MessageParcel &reply);
     ErrCode ProcGetOsAccountProfilePhoto(MessageParcel &data, MessageParcel &reply);

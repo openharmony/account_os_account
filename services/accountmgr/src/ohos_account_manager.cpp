@@ -159,6 +159,7 @@ AccountInfo OhosAccountManager::GetCurrentOhosAccountInfo()
     std::int32_t callingUserId = GetCallingUserID();
     if (dataDealer_->AccountInfoFromJson(currOhosAccountInfo, callingUserId) != ERR_OK) {
         ACCOUNT_LOGE("get current ohos account info failed, callingUserId %{public}d.", callingUserId);
+        currOhosAccountInfo.clear();
     }
     return currOhosAccountInfo;
 }
