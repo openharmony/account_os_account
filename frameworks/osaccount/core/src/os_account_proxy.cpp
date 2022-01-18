@@ -544,25 +544,6 @@ ErrCode OsAccountProxy::SetOsAccountProfilePhoto(const int id, const std::string
     return ERR_OK;
 }
 
-ErrCode OsAccountProxy::GetDistributedVirtualDeviceId(std::string &deviceId)
-{
-    ACCOUNT_LOGI("OsAccountProxy GetDistributedVirtualDeviceId start");
-    MessageParcel data;
-    MessageParcel reply;
-    ErrCode result = SendRequest(IOsAccount::Message::GET_DISTRIBUTED_VIRTUAL_DEVICE_ID, data, reply);
-    if (result != ERR_OK) {
-        ACCOUNT_LOGI("OsAccountProxy GetDistributedVirtualDeviceId err");
-        return ERR_OSACCOUNT_KIT_GET_DISTRIBUTED_VIRTUAL_DEVICE_ID_ERROR;
-    }
-    result = reply.ReadInt32();
-    if (result != ERR_OK) {
-        return ERR_OSACCOUNT_KIT_GET_DISTRIBUTED_VIRTUAL_DEVICE_ID_ERROR;
-    }
-    deviceId = reply.ReadString();
-    ACCOUNT_LOGI("OsAccountProxy GetDistributedVirtualDeviceId end");
-    return ERR_OK;
-}
-
 ErrCode OsAccountProxy::ActivateOsAccount(const int id)
 {
     ACCOUNT_LOGI("OsAccountProxy ActivateOsAccount start");
