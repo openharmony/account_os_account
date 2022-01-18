@@ -613,12 +613,12 @@ ErrCode IInnerOsAccountManager::ActivateOsAccount(const int id)
     subscribeManagerPtr_->PublicActivatingOsAccount(id);
     errCode = OsAccountStandardInterface::SendToAMSAccountStart(osAccountInfo);
     if (errCode != ERR_OK) {
-        ACCOUNT_LOGE("account %{public}d call ams active failed", id);
+        ACCOUNT_LOGE("account %{public}d call am active failed", id);
         return ERR_OS_ACCOUNT_SERVICE_INNER_SEND_AM_ACCOUNT_SWITCH_ERROR;
     }
     errCode = OsAccountStandardInterface::SendToCESAccountSwithced(osAccountInfo);
     if (errCode != ERR_OK) {
-        ACCOUNT_LOGE("account %{public}d call ces active failed", id);
+        ACCOUNT_LOGE("account %{public}d call ce active failed", id);
         return ERR_OS_ACCOUNT_SERVICE_INNER_SEND_CE_ACCOUNT_SWITCH_ERROR;
     }
 
