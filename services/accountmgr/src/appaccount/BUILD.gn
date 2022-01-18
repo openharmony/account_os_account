@@ -60,7 +60,6 @@ ohos_shared_library("app_account_service_core") {
 
   deps = [
     "${common_path}:libaccount_common",
-    "//third_party/jsoncpp:jsoncpp",
     "//utils/native/base:utils",
   ]
 
