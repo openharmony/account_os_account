@@ -107,10 +107,6 @@ const std::map<uint32_t, OsAccountStub::MessageProcFunction> OsAccountStub::mess
         &OsAccountStub::ProcSetOsAccountProfilePhoto,
     },
     {
-        static_cast<uint32_t>(IOsAccount::Message::GET_DISTRIBUTED_VIRTUAL_DEVICE_ID),
-        &OsAccountStub::ProcGetDistributedVirtualDeviceId,
-    },
-    {
         static_cast<uint32_t>(IOsAccount::Message::ACTIVATE_OS_ACCOUNT),
         &OsAccountStub::ProcActivateOsAccount,
     },
@@ -455,21 +451,6 @@ ErrCode OsAccountStub::ProcGetCreatedOsAccountsCount(MessageParcel &data, Messag
         return IPC_STUB_WRITE_PARCEL_ERR;
     }
     if (!reply.WriteInt32(osAccountsCount)) {
-        ACCOUNT_LOGE("failed to write reply");
-        return IPC_STUB_WRITE_PARCEL_ERR;
-    }
-    return ERR_NONE;
-}
-
-ErrCode OsAccountStub::ProcGetDistributedVirtualDeviceId(MessageParcel &data, MessageParcel &reply)
-{
-    std::string devicesId;
-    ErrCode result = GetDistributedVirtualDeviceId(devicesId);
-    if (!reply.WriteInt32(result)) {
-        ACCOUNT_LOGE("failed to write reply");
-        return IPC_STUB_WRITE_PARCEL_ERR;
-    }
-    if (!reply.WriteString(devicesId)) {
         ACCOUNT_LOGE("failed to write reply");
         return IPC_STUB_WRITE_PARCEL_ERR;
     }

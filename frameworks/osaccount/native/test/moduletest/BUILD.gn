@@ -19,7 +19,7 @@ module_output_path = "os_account_standard/frameworks"
 config("os_account_frameworks_config_unittest") {
   visibility = [ ":*" ]
 
-  include_dirs = []
+  include_dirs = [ "${innerkits_path}/include" ]
 
   cflags = []
   if (target_cpu == "arm") {
@@ -35,7 +35,10 @@ config("os_account_frameworks_config_unittest") {
 ohos_moduletest("os_account_frameworks_module_test") {
   module_out_path = module_output_path
 
-  sources = [ "os_account_manager_module_test.cpp" ]
+  sources = [
+    "${innerkits_native_path}/src/account_proxy.cpp",
+    "os_account_manager_module_test.cpp",
+  ]
   configs = [ ":os_account_frameworks_config_unittest" ]
 
   deps = [

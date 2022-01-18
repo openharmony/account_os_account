@@ -694,18 +694,6 @@ HWTEST_F(OsAccountManagerServiceModuleTest, OsAccountManagerServiceModuleTest036
 }
 
 /**
- * @tc.name: OsAccountManagerServiceModuleTest037
- * @tc.desc: Test GetDistributedVirtualDeviceId.
- * @tc.type: FUNC
- * @tc.require: SR000GGVFG
- */
-HWTEST_F(OsAccountManagerServiceModuleTest, OsAccountManagerServiceModuleTest037, TestSize.Level1)
-{
-    std::string deviceId;
-    EXPECT_EQ(g_osAccountManagerService_->GetDistributedVirtualDeviceId(deviceId), ERR_OK);
-}
-
-/**
  * @tc.name: OsAccountManagerServiceModuleTest038
  * @tc.desc: Test GetOsAccountLocalIdBySerialNumber with valid data.
  * @tc.type: FUNC

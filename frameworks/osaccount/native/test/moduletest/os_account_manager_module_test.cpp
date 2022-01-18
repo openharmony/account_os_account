@@ -14,7 +14,10 @@
  */
 
 #include <gtest/gtest.h>
-
+#include "account_info.h"
+#include "account_proxy.h"
+#include "if_system_ability_manager.h"
+#include "iservice_registry.h"
 #include "os_account_manager.h"
 #define private public
 #include "account_file_operator.h"
@@ -22,6 +25,8 @@
 #undef private
 #include "os_account_constants.h"
 #include "parameter.h"
+#include "system_ability.h"
+#include "system_ability_definition.h"
 using namespace testing::ext;
 using namespace OHOS;
 using namespace OHOS::AccountSA;
@@ -139,6 +144,9 @@ const std::string STRING_DOMAIN_ACCOUNT_NAME_OUT_OF_RANGE =
     "1234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890";
 const std::string STRING_DOMAIN_VALID = "TestDomainMT";
 const std::string STRING_DOMAIN_ACCOUNT_NAME_VALID = "TestDomainAccountNameMT";
+const std::string TEST_ACCOUNT_NAME = "TestAccountNameOS";
+const std::string TEST_ACCOUNT_UID = "123456789os";
+const std::string TEST_EXPECTED_UID = "DC227A5106403E85993398FD1DCF8AC32E7A8091B220DC3FD96EE1EEEECD75EA";
 }  // namespace
 
 class OsAccountManagerModuleTest : public testing::Test {
@@ -676,8 +684,38 @@ HWTEST_F(OsAccountManagerModuleTest, OsAccountManagerModuleTest035, TestSize.Lev
  */
 HWTEST_F(OsAccountManagerModuleTest, OsAccountManagerModuleTest036, TestSize.Level1)
 {
+    // before ohos account login
     std::string deviceId;
-    EXPECT_EQ(OsAccountManager::GetDistributedVirtualDeviceId(deviceId), ERR_OK);
+    ErrCode ret = OsAccountManager::GetDistributedVirtualDeviceId(deviceId);
+    EXPECT_EQ(ret, ERR_OK);
+
+    bool checkValid = (deviceId == "");
+    EXPECT_EQ(checkValid, true);
+
+    // ohos account login
+    sptr<ISystemAbilityManager> systemMgr = SystemAbilityManagerClient::GetInstance().GetSystemAbilityManager();
+    ASSERT_NE(systemMgr, nullptr);
+    sptr<IRemoteObject> accountObj = systemMgr->GetSystemAbility(SUBSYS_ACCOUNT_SYS_ABILITY_ID_BEGIN);
+    ASSERT_NE(accountObj, nullptr);
+    sptr<IAccount> ohosMgr = iface_cast<AccountProxy>(accountObj);
+    checkValid = ohosMgr->UpdateOhosAccountInfo(TEST_ACCOUNT_NAME, TEST_ACCOUNT_UID, OHOS_ACCOUNT_EVENT_LOGIN);
+    EXPECT_EQ(checkValid, true);
+
+    // after ohos account login
+    ret = OsAccountManager::GetDistributedVirtualDeviceId(deviceId);
+    EXPECT_EQ(ret, ERR_OK);
+    checkValid = (deviceId == TEST_EXPECTED_UID);
+    EXPECT_EQ(checkValid, true);
+
+    // ohos account logout
+    checkValid = ohosMgr->UpdateOhosAccountInfo(TEST_ACCOUNT_NAME, TEST_ACCOUNT_UID, OHOS_ACCOUNT_EVENT_LOGOUT);
+    EXPECT_EQ(checkValid, true);
+
+    // after ohos account logout
+    ret = OsAccountManager::GetDistributedVirtualDeviceId(deviceId);
+    EXPECT_EQ(ret, ERR_OK);
+    checkValid = (deviceId == "");
+    EXPECT_EQ(checkValid, true);
 }
 
 /**
