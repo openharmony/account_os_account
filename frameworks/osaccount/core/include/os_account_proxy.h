@@ -49,7 +49,6 @@ public:
     virtual ErrCode SetOsAccountConstraints(
         const int id, const std::vector<std::string> &constraints, const bool enable) override;
     virtual ErrCode SetOsAccountProfilePhoto(const int id, const std::string &photo) override;
-    virtual ErrCode GetDistributedVirtualDeviceId(std::string &deviceId) override;
     virtual ErrCode ActivateOsAccount(const int id) override;
     virtual ErrCode StartOsAccount(const int id) override;
     virtual ErrCode StopOsAccount(const int id) override;

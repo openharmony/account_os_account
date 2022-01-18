@@ -12,14 +12,13 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
+#include "iinner_os_account_manager.h"
 #include "account_log_wrapper.h"
 #include "ohos_account_kits.h"
 #include "os_account_constants.h"
 #include "os_account_control_file_manager.h"
 #include "os_account_subscribe_manager.h"
 
-#include "iinner_os_account_manager.h"
 namespace OHOS {
 namespace AccountSA {
 IInnerOsAccountManager::IInnerOsAccountManager() : subscribeManagerPtr_(OsAccountSubscribeManager::GetInstance())
@@ -567,12 +566,6 @@ ErrCode IInnerOsAccountManager::SetOsAccountProfilePhoto(const int id, const std
     if (errCode != ERR_OK) {
         return ERR_OS_ACCOUNT_SERVICE_INNER_UPDATE_ACCOUNT_ERROR;
     }
-    return ERR_OK;
-}
-
-ErrCode IInnerOsAccountManager::GetDistributedVirtualDeviceId(std::string &deviceId, std::int32_t uid)
-{
-    deviceId = std::to_string(OhosAccountKits::GetInstance().GetDeviceAccountIdByUID(uid));
     return ERR_OK;
 }
 

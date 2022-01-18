@@ -72,6 +72,7 @@ ErrCode OhosAccountDataDeal::Init(std::int32_t userId)
 ErrCode OhosAccountDataDeal::AccountInfoFromJson(AccountInfo &accountInfo, const std::int32_t userId) const
 {
     if (!initOk_) {
+        ACCOUNT_LOGE("not init yet!");
         return ERR_ACCOUNT_DATADEAL_NOT_READY;
     }
 

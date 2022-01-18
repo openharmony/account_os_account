@@ -63,10 +63,6 @@ bool AccountMgrService::UpdateOhosAccountInfo(
 std::pair<bool, OhosAccountInfo> AccountMgrService::QueryOhosAccountInfo(void)
 {
     AccountInfo accountInfo = ohosAccountMgr_->GetCurrentOhosAccountInfo();
-    if (accountInfo.ohosAccountUid_.empty()) {
-        ACCOUNT_LOGE("invalid id");
-        accountInfo.clear();
-    }
     std::string name = accountInfo.ohosAccountName_;
     std::string id = accountInfo.ohosAccountUid_;
     std::int32_t status = accountInfo.ohosAccountStatus_;

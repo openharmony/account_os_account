@@ -46,7 +46,6 @@ public:
     virtual ErrCode SetOsAccountConstraints(
         const int id, const std::vector<std::string> &constraints, const bool enable) = 0;
     virtual ErrCode SetOsAccountProfilePhoto(const int id, const std::string &photo) = 0;
-    virtual ErrCode GetDistributedVirtualDeviceId(std::string &deviceId, std::int32_t uid) = 0;
     virtual ErrCode ActivateOsAccount(const int id) = 0;
     virtual ErrCode StartOsAccount(const int id) = 0;
     virtual ErrCode StopOsAccount(const int id) = 0;

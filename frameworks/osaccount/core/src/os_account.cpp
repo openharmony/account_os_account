@@ -12,17 +12,16 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
+#include "os_account.h"
 #include "account_error_no.h"
 #include "account_log_wrapper.h"
 #include "account_proxy.h"
 #include "iaccount.h"
 #include "iservice_registry.h"
+#include "ohos_account_kits.h"
 #include "os_account_constants.h"
 #include "os_account_death_recipient.h"
 #include "system_ability_definition.h"
-
-#include "os_account.h"
 
 namespace OHOS {
 namespace AccountSA {
@@ -344,14 +343,17 @@ ErrCode OsAccount::SetOsAccountProfilePhoto(const int id, const std::string &pho
 
 ErrCode OsAccount::GetDistributedVirtualDeviceId(std::string &deviceId)
 {
-    ACCOUNT_LOGI("OsAccount::GetDistributedVirtualDeviceId start");
-    ErrCode result = GetOsAccountProxy();
-    if (result != ERR_OK) {
-        ACCOUNT_LOGE("failed to get osAccountProxy_");
-        return result;
+    deviceId = "";
+    std::pair<bool, OhosAccountInfo> res = OhosAccountKits::GetInstance().QueryOhosAccountInfo();
+    if (res.first) {
+        if (res.second.uid_ != DEFAULT_OHOS_ACCOUNT_UID) {
+            deviceId = res.second.uid_;
+        }
+        ACCOUNT_LOGI("QueryOhosAccountInfo succeed!");
+        return ERR_OK;
     }
-
-    return osAccountProxy_->GetDistributedVirtualDeviceId(deviceId);
+    ACCOUNT_LOGE("QueryOhosAccountInfo failed!");
+    return ERR_OSACCOUNT_KIT_GET_DISTRIBUTED_VIRTUAL_DEVICE_ID_ERROR;
 }
 
 ErrCode OsAccount::ActivateOsAccount(const int id)

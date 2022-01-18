@@ -456,28 +456,6 @@ ErrCode OsAccountManagerService::SetOsAccountProfilePhoto(const int id, const st
     return innerManager_->SetOsAccountProfilePhoto(id, photo);
 }
 
-ErrCode OsAccountManagerService::GetDistributedVirtualDeviceId(std::string &deviceId)
-{
-    auto callingUid = IPCSkeleton::GetCallingUid();
-    if (callingUid >= Constants::APP_UID_START) {
-        std::string bundleName;
-
-        ErrCode result = bundleManagerPtr_->GetBundleName(callingUid, bundleName);
-        if (result != ERR_OK) {
-            ACCOUNT_LOGE("failed to get bundle name");
-            return result;
-        }
-
-        result = permissionManagerPtr_->VerifyPermission(
-            callingUid, AccountPermissionManager::DISTRIBUTED_DATASYNC, bundleName);
-        if (result != ERR_OK) {
-            ACCOUNT_LOGI("failed to verify permission for DISTRIBUTED_DATASYNC");
-            return ERR_OS_ACCOUNT_SERVICE_PERMISSION_DENIED;
-        }
-    }
-    return innerManager_->GetDistributedVirtualDeviceId(deviceId, callingUid);
-}
-
 ErrCode OsAccountManagerService::ActivateOsAccount(const int id)
 {
     auto callingUid = IPCSkeleton::GetCallingUid();
