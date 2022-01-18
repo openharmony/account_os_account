@@ -439,6 +439,7 @@ napi_value ParseParaSetOAConstraints(napi_env env, napi_callback_info cbInfo, Se
     napi_valuetype valueType = napi_undefined;
     napi_value argv[ARGS_SIZE_FOUR] = {0};
     NAPI_CALL(env, napi_get_cb_info(env, cbInfo, &argc, argv, nullptr, nullptr));
+    ACCOUNT_LOGI("argc = [%{public}zu]", argc);
 
     // argv[0] : localId
     NAPI_CALL(env, napi_typeof(env, argv[0], &valueType));
@@ -476,9 +477,11 @@ napi_value ParseParaSetOAConstraints(napi_env env, napi_callback_info cbInfo, Se
     }
 
     // argv[3] : callback
-    NAPI_CALL(env, napi_typeof(env, argv[PARAMTHREE], &valueType));
-    NAPI_ASSERT(env, valueType == napi_function, "Wrong argument type. Function expected.");
-    NAPI_CALL(env, napi_create_reference(env, argv[PARAMTHREE], 1, &setOAConsCB->callbackRef));
+    if (argc >= ARGS_SIZE_FOUR) {
+        NAPI_CALL(env, napi_typeof(env, argv[PARAMTHREE], &valueType));
+        NAPI_ASSERT(env, valueType == napi_function, "Wrong argument type. Function expected.");
+        NAPI_CALL(env, napi_create_reference(env, argv[PARAMTHREE], 1, &setOAConsCB->callbackRef));
+    }
 
     return WrapVoidToJS(env);
 }
