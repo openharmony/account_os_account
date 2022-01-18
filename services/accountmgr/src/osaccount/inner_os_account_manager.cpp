@@ -141,6 +141,9 @@ void IInnerOsAccountManager::StartBaseStandardAccount(void)
         } else {
             {
                 osAccountInfo.SetIsActived(true);
+                int64_t time = std::chrono::duration_cast<std::chrono::seconds>(
+                    std::chrono::system_clock::now().time_since_epoch()).count();
+                osAccountInfo.SetLastLoginTime(time);
                 osAccountControl_->UpdateOsAccount(osAccountInfo);
                 std::lock_guard<std::mutex> lock(ativeMutex_);
                 activeAccountId_.push_back(Constants::START_USER_ID);
@@ -200,10 +203,6 @@ ErrCode IInnerOsAccountManager::SendMsgForAccountCreate(OsAccountInfo &osAccount
         return ERR_OS_ACCOUNT_SERVICE_INNER_UPDATE_ACCOUNT_ERROR;
     }
 
-    errCode = OsAccountStandardInterface::SendToAMSAccountStart(osAccountInfo);
-    if (errCode != ERR_OK) {
-        return ERR_OS_ACCOUNT_SERVICE_INNER_SEND_AM_ACCOUNT_START_ERROR;
-    }
     errCode = OsAccountStandardInterface::SendToCESAccountCreate(osAccountInfo);
     if (errCode != ERR_OK) {
         return ERR_OS_ACCOUNT_SERVICE_INNER_SEND_CE_ACCOUNT_CREATE_ERROR;
@@ -259,10 +258,12 @@ ErrCode IInnerOsAccountManager::RemoveOsAccount(const int id)
         std::lock_guard<std::mutex> lock(ativeMutex_);
         auto it = std::find(activeAccountId_.begin(), activeAccountId_.end(), id);
         if (it != activeAccountId_.end()) {
+            ACCOUNT_LOGE("RemoveOsAccount find active id in list.");
             isActived = true;
         }
     }
     if (isActived) {
+        ACCOUNT_LOGE("RemoveOsAccount start to stop active account %{public}d.", id);
         ErrCode activeErrCode = ActivateOsAccount(Constants::START_USER_ID);
         if (activeErrCode != ERR_OK) {
             return ERR_OS_ACCOUNT_SERVICE_INNER_REMOVE_ACCOUNT_ACTIVED_ERROR;
@@ -483,9 +484,6 @@ ErrCode IInnerOsAccountManager::GetOsAccountProfilePhoto(const int id, std::stri
         return ERR_OS_ACCOUNT_SERVICE_INNER_SELECT_OSACCOUNT_BYID_ERROR;
     }
     photo = osAccountInfo.GetPhoto();
-    if (photo == "") {
-        return ERR_OS_ACCOUNT_SERVICE_INNER_DONNOT_HAVE_PHOTO_ERROR;
-    }
     return ERR_OK;
 }
 
@@ -591,30 +589,42 @@ ErrCode IInnerOsAccountManager::ActivateOsAccount(const int id)
     {
         std::lock_guard<std::mutex> lock(ativeMutex_);
         if (std::find(activeAccountId_.begin(), activeAccountId_.end(), id) != activeAccountId_.end()) {
+            ACCOUNT_LOGE("account is %{public}d already active", id);
             return ERR_OS_ACCOUNT_SERVICE_INNER_ACCOUNT_ALREAD_ACTIVE_ERROR;
         }
     }
     OsAccountInfo osAccountInfo;
     ErrCode errCode = osAccountControl_->GetOsAccountInfoById(id, osAccountInfo);
     if (errCode != ERR_OK) {
+        ACCOUNT_LOGE("cannot find os account info by id:%{public}d", id);
         return ERR_OS_ACCOUNT_SERVICE_INNER_SELECT_OSACCOUNT_BYID_ERROR;
     }
     if (!osAccountInfo.GetIsCreateCompleted()) {
+        ACCOUNT_LOGE("account %{public}d is not Completed", id);
         return ERR_OS_ACCOUNT_SERVICE_INNER_ACCOUNT_IS_UNVERIFIED_ERROR;
     }
     subscribeManagerPtr_->PublicActivatingOsAccount(id);
     errCode = OsAccountStandardInterface::SendToAMSAccountStart(osAccountInfo);
     if (errCode != ERR_OK) {
+        ACCOUNT_LOGE("account %{public}d call am active failed", id);
         return ERR_OS_ACCOUNT_SERVICE_INNER_SEND_AM_ACCOUNT_SWITCH_ERROR;
     }
     errCode = OsAccountStandardInterface::SendToCESAccountSwithced(osAccountInfo);
     if (errCode != ERR_OK) {
+        ACCOUNT_LOGE("account %{public}d call ce active failed", id);
         return ERR_OS_ACCOUNT_SERVICE_INNER_SEND_CE_ACCOUNT_SWITCH_ERROR;
     }
 
     // update info
     osAccountInfo.SetIsActived(true);
-    osAccountControl_->UpdateOsAccount(osAccountInfo);
+    int64_t time =
+        std::chrono::duration_cast<std::chrono::seconds>(std::chrono::system_clock::now().time_since_epoch()).count();
+    osAccountInfo.SetLastLoginTime(time);
+    errCode = osAccountControl_->UpdateOsAccount(osAccountInfo);
+    if (errCode != ERR_OK) {
+        ACCOUNT_LOGE("update %{public}d account info failed", id);
+        return ERR_OS_ACCOUNT_SERVICE_INNER_UPDATE_ACCOUNT_ERROR;
+    }
 
     {
         std::lock_guard<std::mutex> lock(ativeMutex_);
@@ -642,6 +652,11 @@ ErrCode IInnerOsAccountManager::StopOsAccount(const int id)
 
 ErrCode IInnerOsAccountManager::GetOsAccountLocalIdBySerialNumber(const int64_t serialNumber, int &id)
 {
+    if (serialNumber ==
+        Constants::CARRY_NUM * Constants::SERIAL_NUMBER_NUM_START_FOR_ADMIN + Constants::ADMIN_LOCAL_ID) {
+        id = Constants::ADMIN_LOCAL_ID;
+        return ERR_OK;
+    }
     std::vector<OsAccountInfo> osAccountInfos;
     id = -1;
     ErrCode errCode = osAccountControl_->GetOsAccountList(osAccountInfos);

@@ -45,8 +45,6 @@ ohos_shared_library("libaccount_common") {
     "//utils/native/base:utils_config",
   ]
 
-  deps = [ "//third_party/jsoncpp:jsoncpp" ]
-
   public_deps = [ "//utils/native/base:utils" ]
 
   external_deps = [ "hiviewdfx_hilog_native:libhilog" ]
