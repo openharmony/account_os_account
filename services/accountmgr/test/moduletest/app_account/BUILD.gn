@@ -60,7 +60,8 @@ ohos_moduletest("account_bundle_manager_module_test") {
   ]
 
   external_deps = [
-    "aafwk_standard:base",
+    "ability_runtime:app_manager",
+    "ability_runtime:base",
     "appexecfwk_standard:appexecfwk_base",
     "appexecfwk_standard:appexecfwk_core",
     "appexecfwk_standard:libeventhandler",
@@ -87,7 +88,8 @@ ohos_moduletest("account_permission_manager_module_test") {
   ]
 
   external_deps = [
-    "aafwk_standard:base",
+    "ability_runtime:app_manager",
+    "ability_runtime:base",
     "appexecfwk_standard:appexecfwk_base",
     "appexecfwk_standard:appexecfwk_core",
     "appexecfwk_standard:libeventhandler",
@@ -121,8 +123,9 @@ ohos_moduletest("app_account_control_manager_module_test") {
   ]
 
   external_deps = [
-    "aafwk_standard:base",
-    "aafwk_standard:want",
+    "ability_runtime:app_manager",
+    "ability_runtime:base",
+    "ability_runtime:want",
     "appexecfwk_standard:appexecfwk_base",
     "appexecfwk_standard:appexecfwk_core",
     "appexecfwk_standard:libeventhandler",
@@ -157,8 +160,9 @@ ohos_moduletest("app_account_manager_service_module_test") {
   ]
 
   external_deps = [
-    "aafwk_standard:base",
-    "aafwk_standard:want",
+    "ability_runtime:app_manager",
+    "ability_runtime:base",
+    "ability_runtime:want",
     "appexecfwk_standard:appexecfwk_base",
     "appexecfwk_standard:appexecfwk_core",
     "appexecfwk_standard:libeventhandler",
@@ -193,8 +197,9 @@ ohos_moduletest("app_account_manager_service_subscribe_module_test") {
   ]
 
   external_deps = [
-    "aafwk_standard:base",
-    "aafwk_standard:want",
+    "ability_runtime:app_manager",
+    "ability_runtime:base",
+    "ability_runtime:want",
     "appexecfwk_standard:appexecfwk_base",
     "appexecfwk_standard:appexecfwk_core",
     "appexecfwk_standard:libeventhandler",
@@ -229,8 +234,9 @@ ohos_moduletest("app_account_manager_service_sync_module_test") {
   ]
 
   external_deps = [
-    "aafwk_standard:base",
-    "aafwk_standard:want",
+    "ability_runtime:app_manager",
+    "ability_runtime:base",
+    "ability_runtime:want",
     "appexecfwk_standard:appexecfwk_base",
     "appexecfwk_standard:appexecfwk_core",
     "appexecfwk_standard:libeventhandler",
@@ -265,8 +271,9 @@ ohos_moduletest("app_account_manager_service_thread_module_test") {
   ]
 
   external_deps = [
-    "aafwk_standard:base",
-    "aafwk_standard:want",
+    "ability_runtime:app_manager",
+    "ability_runtime:base",
+    "ability_runtime:want",
     "appexecfwk_standard:appexecfwk_base",
     "appexecfwk_standard:appexecfwk_core",
     "appexecfwk_standard:libeventhandler",
