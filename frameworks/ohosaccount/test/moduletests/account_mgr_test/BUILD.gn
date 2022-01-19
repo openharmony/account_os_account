@@ -57,7 +57,7 @@ ohos_moduletest("AccountInnerSdkModuleTest") {
   ]
 
   external_deps = [
-    "aafwk_standard:base",
+    "ability_runtime:base",
     "appexecfwk_standard:appexecfwk_base",
     "appexecfwk_standard:libeventhandler",
     "hiviewdfx_hilog_native:libhilog",
