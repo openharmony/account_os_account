@@ -23,8 +23,6 @@ namespace OHOS {
 namespace AccountSA {
 void OsAccountDeathRecipient::OnRemoteDied(const wptr<IRemoteObject> &remote)
 {
-    ACCOUNT_LOGI("enter");
-
     DelayedSingleton<OsAccount>::GetInstance()->ResetOsAccountProxy();
 }
 }  // namespace AccountSA

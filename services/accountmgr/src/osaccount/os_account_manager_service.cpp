@@ -33,15 +33,12 @@ const std::map<OsAccountType, std::string> DUMP_TYPE_MAP = {
 
 OsAccountManagerService::OsAccountManagerService()
 {
-    ACCOUNT_LOGI("OsAccountManager OsAccountManagerService START");
     innerManager_ = DelayedSingleton<IInnerOsAccountManager>::GetInstance();
     permissionManagerPtr_ = DelayedSingleton<AccountPermissionManager>::GetInstance();
     bundleManagerPtr_ = DelayedSingleton<AccountBundleManager>::GetInstance();
 }
 OsAccountManagerService::~OsAccountManagerService()
-{
-    ACCOUNT_LOGI("OsAccountManager ~OsAccountManagerService START");
-}
+{}
 
 ErrCode OsAccountManagerService::CreateOsAccount(
     const std::string &name, const OsAccountType &type, OsAccountInfo &osAccountInfo)
@@ -64,7 +61,7 @@ ErrCode OsAccountManagerService::CreateOsAccount(
         result = permissionManagerPtr_->VerifyPermission(
             callingUid, AccountPermissionManager::MANAGE_LOCAL_ACCOUNTS, bundleName);
         if (result != ERR_OK || !permissionManagerPtr_->IsSystemUid(callingUid)) {
-            ACCOUNT_LOGI("failed to verify permission for MANAGE_LOCAL_ACCOUNTS,or not system app error");
+            ACCOUNT_LOGE("failed to verify permission for MANAGE_LOCAL_ACCOUNTS,or not system app error");
             return ERR_OS_ACCOUNT_SERVICE_PERMISSION_DENIED;
         }
     }

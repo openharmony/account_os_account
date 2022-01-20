@@ -21,24 +21,16 @@
 namespace OHOS {
 namespace AccountSA {
 OsAccountSubscriber::OsAccountSubscriber()
-{
-    ACCOUNT_LOGI("enter");
-}
+{}
 
 OsAccountSubscriber::OsAccountSubscriber(const OsAccountSubscribeInfo &subscribeInfo) : subscribeInfo_(subscribeInfo)
-{
-    ACCOUNT_LOGI("enter");
-}
+{}
 
 OsAccountSubscriber::~OsAccountSubscriber()
-{
-    ACCOUNT_LOGI("enter");
-}
+{}
 
 ErrCode OsAccountSubscriber::GetSubscribeInfo(OsAccountSubscribeInfo &subscribeInfo) const
 {
-    ACCOUNT_LOGI("enter");
-
     subscribeInfo = subscribeInfo_;
 
     return ERR_OK;

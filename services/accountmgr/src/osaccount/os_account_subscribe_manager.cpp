@@ -23,20 +23,14 @@ namespace OHOS {
 namespace AccountSA {
 OsAccountSubscribeManager::OsAccountSubscribeManager()
     : subscribeDeathRecipient_(sptr<IRemoteObject::DeathRecipient>(new OsAccountSubscribeDeathRecipient()))
-{
-    ACCOUNT_LOGI("enter");
-}
+{}
 
 OsAccountSubscribeManager::~OsAccountSubscribeManager()
-{
-    ACCOUNT_LOGI("enter");
-}
+{}
 
 ErrCode OsAccountSubscribeManager::SubscribeOsAccount(
     const std::shared_ptr<OsAccountSubscribeInfo> &subscribeInfoPtr, const sptr<IRemoteObject> &eventListener)
 {
-    ACCOUNT_LOGE("OsAccountSubscribeManager SubscribeOsAccount start");
-
     if (subscribeInfoPtr == nullptr) {
         ACCOUNT_LOGE("subscribeInfoPtr is nullptr");
         return ERR_APPACCOUNT_SERVICE_SUBSCRIBE_INFO_PTR_IS_NULLPTR;
@@ -56,14 +50,11 @@ ErrCode OsAccountSubscribeManager::SubscribeOsAccount(
     }
     subscribeRecordPtr->subscribeInfoPtr_ = subscribeInfoPtr;
     subscribeRecordPtr->eventListener_ = eventListener;
-    ACCOUNT_LOGE("OsAccountSubscribeManager SubscribeOsAccount end");
     return InsertSubscribeRecord(subscribeRecordPtr);
 }
 
 ErrCode OsAccountSubscribeManager::UnsubscribeOsAccount(const sptr<IRemoteObject> &eventListener)
 {
-    ACCOUNT_LOGI("enter");
-
     if (eventListener == nullptr) {
         ACCOUNT_LOGE("eventListener is nullptr");
         return ERR_APPACCOUNT_SERVICE_EVENT_LISTENER_IS_NULLPTR;
@@ -78,7 +69,6 @@ ErrCode OsAccountSubscribeManager::UnsubscribeOsAccount(const sptr<IRemoteObject
 
 ErrCode OsAccountSubscribeManager::InsertSubscribeRecord(const OsSubscribeRecordPtr &subscribeRecordPtr)
 {
-    ACCOUNT_LOGI("enter");
     if (subscribeRecordPtr == nullptr) {
         ACCOUNT_LOGE("subscribeRecordPtr is nullptr");
         return ERR_APPACCOUNT_SERVICE_SUBSCRIBE_RECORD_PTR_IS_NULLPTR;
@@ -93,8 +83,6 @@ ErrCode OsAccountSubscribeManager::InsertSubscribeRecord(const OsSubscribeRecord
 
 ErrCode OsAccountSubscribeManager::RemoveSubscribeRecord(const sptr<IRemoteObject> &eventListener)
 {
-    ACCOUNT_LOGI("enter");
-
     if (eventListener == nullptr) {
         ACCOUNT_LOGE("eventListener is nullptr");
         return ERR_APPACCOUNT_SERVICE_EVENT_LISTENER_IS_NULLPTR;
@@ -115,8 +103,6 @@ ErrCode OsAccountSubscribeManager::RemoveSubscribeRecord(const sptr<IRemoteObjec
 
 ErrCode OsAccountSubscribeManager::GetEventHandler(void)
 {
-    ACCOUNT_LOGI("enter");
-
     if (!handler_) {
         handler_ = std::make_shared<OHOS::AppExecFwk::EventHandler>(OHOS::AppExecFwk::EventRunner::Create());
         if (handler_ == nullptr) {
@@ -130,7 +116,6 @@ ErrCode OsAccountSubscribeManager::GetEventHandler(void)
 
 ErrCode OsAccountSubscribeManager::PublicActivatedOsAccount(const int id)
 {
-    ACCOUNT_LOGI("enter");
     if (GetEventHandler() != ERR_OK) {
         ACCOUNT_LOGE("failed to get event handler");
         return ERR_OS_ACCOUNT_SERVICE_SUBSCRIBE_GET_EVENT_HANDLE_ERROR;
@@ -170,7 +155,6 @@ bool OsAccountSubscribeManager::OnAccountsChanged(const OsSubscribeRecordPtr &os
 
 ErrCode OsAccountSubscribeManager::PublicActivatingOsAccount(const int id)
 {
-    ACCOUNT_LOGI("enter");
     if (GetEventHandler() != ERR_OK) {
         ACCOUNT_LOGE("failed to get event handler");
         return ERR_OS_ACCOUNT_SERVICE_SUBSCRIBE_GET_EVENT_HANDLE_ERROR;

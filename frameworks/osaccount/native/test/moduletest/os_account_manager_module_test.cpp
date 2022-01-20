@@ -841,8 +841,7 @@ HWTEST_F(OsAccountManagerModuleTest, OsAccountManagerModuleTest045, TestSize.Lev
     OsAccountInfo osAccountInfoOne;
     OsAccountManager::CreateOsAccount(STRING_TEST_NAME, INT_TEST_TYPE, osAccountInfoOne);
     std::string photo;
-    EXPECT_EQ(OsAccountManager::GetOsAccountProfilePhoto(osAccountInfoOne.GetLocalId(), photo),
-        ERR_OSACCOUNT_KIT_GET_OS_ACCOUNT_PROFILE_PHOTO_ERROR);
+    EXPECT_EQ(OsAccountManager::GetOsAccountProfilePhoto(osAccountInfoOne.GetLocalId(), photo), ERR_OK);
     osAccountControlFileManager_->DelOsAccount(osAccountInfoOne.GetLocalId());
 }
 

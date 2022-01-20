@@ -22,8 +22,6 @@ namespace OHOS {
 namespace AccountSA {
 void OsAccountSubscribeDeathRecipient::OnRemoteDied(const wptr<IRemoteObject> &remote)
 {
-    ACCOUNT_LOGI("enter");
-
     if (remote == nullptr) {
         ACCOUNT_LOGE("remote object is nullptr");
         return;
