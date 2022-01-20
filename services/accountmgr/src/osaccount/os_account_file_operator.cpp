@@ -51,7 +51,7 @@ void OsAccountFileOperator::Init()
 
 ErrCode OsAccountFileOperator::GetConstraintsByType(const int type, std::vector<std::string> &constratins)
 {
-    ACCOUNT_LOGE("OsAccountFileOperator GetConstraintsByType Start");
+    ACCOUNT_LOGI("OsAccountFileOperator GetConstraintsByType Start");
     if (!isAlreadyInit_) {
         return ERR_OS_ACCOUNT_SERVICE_OS_FILE_GET_CONFIG_ERROR;
     }
@@ -70,7 +70,7 @@ ErrCode OsAccountFileOperator::GetConstraintsByType(const int type, std::vector<
     constratins.clear();
     OHOS::AccountSA::GetDataByType<std::vector<std::string>>(
         typeJson, typeJson.end(), std::to_string(type), constratins, OHOS::AccountSA::JsonType::ARRAY);
-    ACCOUNT_LOGE("OsAccountFileOperator GetConstraintsByType End");
+    ACCOUNT_LOGI("OsAccountFileOperator GetConstraintsByType End");
     return ERR_OK;
 }
 

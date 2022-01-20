@@ -35,6 +35,10 @@ config("accountmgr_stub_test_config") {
     "//third_party/mbedtls/include",
     "//utils/native/base/include",
     "//utils/system/safwk/native/include",
+    "//foundation/filemanagement/storage_service/interfaces/innerkits/storage_manager/native",
+    "//foundation/storage/storage_manager/interfaces/innerkits/storage_manager/native",
+    "//foundation/filemanagement/storage_service/services/storage_manager/include/ipc",
+    "//foundation/storage/storage_manager/services/storage_manager/include/ipc",
   ]
 }
 
@@ -113,6 +117,7 @@ ohos_unittest("AccountSAMgrStubTest") {
     "safwk:system_ability_fwk",
     "samgr_standard:samgr_proxy",
     "startup_l2:syspara",
+    "storage_standard:storage_manager_sa_proxy",
   ]
   part_name = "os_account_standard"
 }

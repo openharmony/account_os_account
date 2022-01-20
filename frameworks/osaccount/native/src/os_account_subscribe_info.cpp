@@ -19,25 +19,17 @@
 namespace OHOS {
 namespace AccountSA {
 OsAccountSubscribeInfo::OsAccountSubscribeInfo()
-{
-    ACCOUNT_LOGI("enter");
-}
+{}
 
 OsAccountSubscribeInfo::OsAccountSubscribeInfo(OS_ACCOUNT_SUBSCRIBE_TYPE &osAccountSubscribeType, std::string &name)
     : osAccountSubscribeType_(osAccountSubscribeType), name_(name)
-{
-    ACCOUNT_LOGI("enter");
-}
+{}
 
 OsAccountSubscribeInfo::~OsAccountSubscribeInfo()
-{
-    ACCOUNT_LOGI("enter");
-}
+{}
 
 ErrCode OsAccountSubscribeInfo::GetOsAccountSubscribeType(OS_ACCOUNT_SUBSCRIBE_TYPE &osAccountSubscribeType) const
 {
-    ACCOUNT_LOGI("enter");
-
     osAccountSubscribeType = osAccountSubscribeType_;
 
     return ERR_OK;
@@ -45,8 +37,6 @@ ErrCode OsAccountSubscribeInfo::GetOsAccountSubscribeType(OS_ACCOUNT_SUBSCRIBE_T
 
 ErrCode OsAccountSubscribeInfo::SetOsAccountSubscribeType(const OS_ACCOUNT_SUBSCRIBE_TYPE &osAccountSubscribeType)
 {
-    ACCOUNT_LOGI("enter");
-
     osAccountSubscribeType_ = osAccountSubscribeType;
 
     return ERR_OK;
@@ -54,8 +44,6 @@ ErrCode OsAccountSubscribeInfo::SetOsAccountSubscribeType(const OS_ACCOUNT_SUBSC
 
 ErrCode OsAccountSubscribeInfo::GetName(std::string &name) const
 {
-    ACCOUNT_LOGI("enter");
-
     name = name_;
 
     return ERR_OK;
@@ -63,8 +51,6 @@ ErrCode OsAccountSubscribeInfo::GetName(std::string &name) const
 
 ErrCode OsAccountSubscribeInfo::SetName(const std::string &name)
 {
-    ACCOUNT_LOGI("enter");
-
     name_ = name;
 
     return ERR_OK;
@@ -72,8 +58,6 @@ ErrCode OsAccountSubscribeInfo::SetName(const std::string &name)
 
 bool OsAccountSubscribeInfo::Marshalling(Parcel &parcel) const
 {
-    ACCOUNT_LOGI("enter");
-
     if (!parcel.WriteInt32(osAccountSubscribeType_)) {
         ACCOUNT_LOGE("failed to write osAccountSubscribeType_");
         return false;
@@ -88,8 +72,6 @@ bool OsAccountSubscribeInfo::Marshalling(Parcel &parcel) const
 
 OsAccountSubscribeInfo *OsAccountSubscribeInfo::Unmarshalling(Parcel &parcel)
 {
-    ACCOUNT_LOGI("enter");
-
     OsAccountSubscribeInfo *subscribeInfo = new (std::nothrow) OsAccountSubscribeInfo();
 
     if (subscribeInfo && !subscribeInfo->ReadFromParcel(parcel)) {
@@ -103,7 +85,6 @@ OsAccountSubscribeInfo *OsAccountSubscribeInfo::Unmarshalling(Parcel &parcel)
 
 bool OsAccountSubscribeInfo::ReadFromParcel(Parcel &parcel)
 {
-    ACCOUNT_LOGI("enter");
     int type = -1;
     if (!parcel.ReadInt32(type)) {
         ACCOUNT_LOGE("failed to read OS_ACCOUNT_SUBSCRIBE_TYPE osAccountSubscribeType_");

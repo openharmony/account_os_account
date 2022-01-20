@@ -27,7 +27,6 @@ namespace OHOS {
 namespace AccountSA {
 ErrCode OsAccount::CreateOsAccount(const std::string &name, const OsAccountType &type, OsAccountInfo &osAccountInfo)
 {
-    ACCOUNT_LOGI("enter");
     ACCOUNT_LOGI("name.size(): %{public}zu", name.size());
     ACCOUNT_LOGI("NAME_MAX_SIZE: %{public}d", Constants::LOCAL_NAME_MAX_SIZE);
     if (name.size() > Constants::LOCAL_NAME_MAX_SIZE) {
@@ -48,7 +47,6 @@ ErrCode OsAccount::CreateOsAccount(const std::string &name, const OsAccountType 
 ErrCode OsAccount::CreateOsAccountForDomain(
     const OsAccountType &type, const DomainAccountInfo &domainInfo, OsAccountInfo &osAccountInfo)
 {
-    ACCOUNT_LOGI("enter");
     ACCOUNT_LOGI("domain.size(): %{public}zu", domainInfo.domain_.size());
     ACCOUNT_LOGI("domainAccountName.size(): %{public}zu", domainInfo.accountName_.size());
     ACCOUNT_LOGI("DOMAIN_NAME_MAX_SIZE: %{public}d", Constants::DOMAIN_NAME_MAX_SIZE);
@@ -74,7 +72,6 @@ ErrCode OsAccount::CreateOsAccountForDomain(
 
 ErrCode OsAccount::RemoveOsAccount(const int id)
 {
-    ACCOUNT_LOGI("enter");
     ACCOUNT_LOGI("id: %{public}d", id);
     if (id <= Constants::START_USER_ID) {
         return ERR_OSACCOUNT_KIT_CANNOT_DELETE_ID_ERROR;
@@ -415,8 +412,6 @@ ErrCode OsAccount::GetSerialNumberByOsAccountLocalId(const int &id, int64_t &ser
 
 ErrCode OsAccount::SubscribeOsAccount(const std::shared_ptr<OsAccountSubscriber> &subscriber)
 {
-    ACCOUNT_LOGI("enter");
-
     if (subscriber == nullptr) {
         ACCOUNT_LOGE("subscriber is nullptr");
         return ERR_OSACCOUNT_KIT_SUBSCRIBER_IS_NULLPTR;
@@ -455,8 +450,6 @@ ErrCode OsAccount::SubscribeOsAccount(const std::shared_ptr<OsAccountSubscriber>
 
 ErrCode OsAccount::UnsubscribeOsAccount(const std::shared_ptr<OsAccountSubscriber> &subscriber)
 {
-    ACCOUNT_LOGI("enter");
-
     if (subscriber == nullptr) {
         ACCOUNT_LOGE("subscriber is nullptr");
         return ERR_APPACCOUNT_KIT_SUBSCRIBER_IS_NULLPTR;
@@ -479,7 +472,7 @@ ErrCode OsAccount::UnsubscribeOsAccount(const std::shared_ptr<OsAccountSubscribe
 
         return result;
     } else {
-        ACCOUNT_LOGI("no specified subscriber has been registered");
+        ACCOUNT_LOGE("no specified subscriber has been registered");
         return ERR_OSACCOUNT_KIT_NO_SPECIFIED_SUBSCRIBER_HAS_BEEN_REGESITERED;
     }
 }
@@ -493,8 +486,6 @@ OS_ACCOUNT_SWITCH_MOD OsAccount::GetOsAccountSwitchMod()
 
 ErrCode OsAccount::DumpState(const int &id, std::vector<std::string> &state)
 {
-    ACCOUNT_LOGI("enter");
-
     ErrCode result = GetOsAccountProxy();
     if (result != ERR_OK) {
         ACCOUNT_LOGE("failed to get osAccountProxy_");
@@ -506,8 +497,6 @@ ErrCode OsAccount::DumpState(const int &id, std::vector<std::string> &state)
 
 ErrCode OsAccount::ResetOsAccountProxy()
 {
-    ACCOUNT_LOGI("enter");
-
     std::lock_guard<std::mutex> lock(mutex_);
     if ((osAccountProxy_ != nullptr) && (osAccountProxy_->AsObject() != nullptr)) {
         osAccountProxy_->AsObject()->RemoveDeathRecipient(deathRecipient_);
@@ -563,8 +552,6 @@ ErrCode OsAccount::SetOsAccountIsVerified(const int id, const bool isVerified)
 
 ErrCode OsAccount::GetOsAccountProxy()
 {
-    ACCOUNT_LOGI("enter");
-
     if (!osAccountProxy_) {
         std::lock_guard<std::mutex> lock(mutex_);
         if (!osAccountProxy_) {
@@ -616,8 +603,6 @@ ErrCode OsAccount::GetOsAccountProxy()
 ErrCode OsAccount::CreateOsAccountEventListener(
     const std::shared_ptr<OsAccountSubscriber> &subscriber, sptr<IRemoteObject> &osAccountEventListener)
 {
-    ACCOUNT_LOGI("enter");
-
     if (subscriber == nullptr) {
         ACCOUNT_LOGE("subscriber is nullptr");
         return SUBSCRIBE_FAILD;
@@ -628,7 +613,7 @@ ErrCode OsAccount::CreateOsAccountEventListener(
     auto eventListener = eventListeners_.find(subscriber);
     if (eventListener != eventListeners_.end()) {
         osAccountEventListener = eventListener->second->AsObject();
-        ACCOUNT_LOGI("subscriber already has app account event listener");
+        ACCOUNT_LOGE("subscriber already has app account event listener");
         return ALREADY_SUBSCRIBED;
     } else {
         if (eventListeners_.size() == Constants::SUBSCRIBER_MAX_SIZE) {

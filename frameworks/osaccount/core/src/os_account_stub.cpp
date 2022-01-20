@@ -181,19 +181,13 @@ const std::map<uint32_t, OsAccountStub::MessageProcFunction> OsAccountStub::mess
 };
 
 OsAccountStub::OsAccountStub()
-{
-    ACCOUNT_LOGI("enter");
-}
+{}
 
 OsAccountStub::~OsAccountStub()
-{
-    ACCOUNT_LOGI("enter");
-}
+{}
 
 int OsAccountStub::OnRemoteRequest(uint32_t code, MessageParcel &data, MessageParcel &reply, MessageOption &option)
 {
-    ACCOUNT_LOGI("enter");
-
     auto messageProc = messageProcMap_.find(code);
     if (messageProc != messageProcMap_.end()) {
         auto messageProcFunction = messageProc->second;
@@ -215,7 +209,7 @@ bool OsAccountStub::WriteParcelableVector(const std::vector<T> &parcelableVector
     }
 
     for (auto parcelable : parcelableVector) {
-        ACCOUNT_LOGE("Account write ParcelableVector insert");
+        ACCOUNT_LOGI("Account write ParcelableVector insert");
         if (!data.WriteParcelable(&parcelable)) {
             ACCOUNT_LOGE("Account write ParcelableVector Parcelable failed");
             return false;
@@ -229,7 +223,7 @@ bool OsAccountStub::ReadParcelableVector(std::vector<T> &parcelableInfos, Messag
 {
     int32_t infoSize = 0;
     if (!data.ReadInt32(infoSize)) {
-        ACCOUNT_LOGI("read Parcelable size failed.");
+        ACCOUNT_LOGE("read Parcelable size failed.");
         return false;
     }
 
@@ -237,7 +231,7 @@ bool OsAccountStub::ReadParcelableVector(std::vector<T> &parcelableInfos, Messag
     for (int32_t index = 0; index < infoSize; index++) {
         T *info = data.ReadParcelable<T>();
         if (info == nullptr) {
-            ACCOUNT_LOGI("read Parcelable infos failed.");
+            ACCOUNT_LOGE("read Parcelable infos failed.");
             return false;
         }
         parcelableInfos.emplace_back(*info);

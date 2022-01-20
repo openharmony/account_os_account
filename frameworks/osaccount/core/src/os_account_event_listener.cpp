@@ -20,19 +20,13 @@ namespace OHOS {
 namespace AccountSA {
 OsAccountEventListener::OsAccountEventListener(const std::shared_ptr<OsAccountSubscriber> &subscriber)
     : osAccountSubscriber_(subscriber)
-{
-    ACCOUNT_LOGI("enter");
-}
+{}
 
 OsAccountEventListener::~OsAccountEventListener()
-{
-    ACCOUNT_LOGI("enter");
-}
+{}
 
 void OsAccountEventListener::OnAccountsChanged(const int &id)
 {
-    ACCOUNT_LOGI("enter");
-
     if (osAccountSubscriber_ == nullptr) {
         ACCOUNT_LOGI("osAccountSubscriber_ is nullptr");
         return;
@@ -42,8 +36,6 @@ void OsAccountEventListener::OnAccountsChanged(const int &id)
 }
 
 void OsAccountEventListener::Stop()
-{
-    ACCOUNT_LOGI("enter");
-}
+{}
 }  // namespace AccountSA
 }  // namespace OHOS
