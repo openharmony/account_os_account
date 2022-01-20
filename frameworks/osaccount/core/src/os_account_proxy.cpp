@@ -19,20 +19,14 @@
 namespace OHOS {
 namespace AccountSA {
 OsAccountProxy::OsAccountProxy(const sptr<IRemoteObject> &object) : IRemoteProxy<IOsAccount>(object)
-{
-    ACCOUNT_LOGI("enter");
-}
+{}
 
 OsAccountProxy::~OsAccountProxy()
-{
-    ACCOUNT_LOGI("enter");
-}
+{}
 
 ErrCode OsAccountProxy::CreateOsAccount(
     const std::string &name, const OsAccountType &type, OsAccountInfo &osAccountInfo)
 {
-    ACCOUNT_LOGI("enter");
-
     MessageParcel data;
     MessageParcel reply;
 
@@ -61,8 +55,6 @@ ErrCode OsAccountProxy::CreateOsAccount(
 ErrCode OsAccountProxy::CreateOsAccountForDomain(
     const OsAccountType &type, const DomainAccountInfo &domainInfo, OsAccountInfo &osAccountInfo)
 {
-    ACCOUNT_LOGI("enter");
-
     MessageParcel data;
     MessageParcel reply;
 
@@ -98,8 +90,6 @@ ErrCode OsAccountProxy::CreateOsAccountForDomain(
 
 ErrCode OsAccountProxy::RemoveOsAccount(const int id)
 {
-    ACCOUNT_LOGI("enter");
-
     MessageParcel data;
     MessageParcel reply;
 
@@ -289,12 +279,12 @@ ErrCode OsAccountProxy::GetOsAccountLocalIdFromDomain(const DomainAccountInfo &d
     }
     ErrCode result = SendRequest(IOsAccount::Message::GET_OS_ACCOUNT_LOCAL_ID_FROM_DOMAIN, data, reply);
     if (result != ERR_OK) {
-        ACCOUNT_LOGI("SendRequest err, result %{public}d.", result);
+        ACCOUNT_LOGE("SendRequest err, result %{public}d.", result);
         return ERR_OSACCOUNT_KIT_GET_OS_ACCOUNT_LOCAL_ID_FOR_DOMAIN_ERROR;
     }
     result = reply.ReadInt32();
     if (result != ERR_OK) {
-        ACCOUNT_LOGI("read from reply err, result %{public}d.", result);
+        ACCOUNT_LOGE("read from reply err, result %{public}d.", result);
         return ERR_OSACCOUNT_KIT_GET_OS_ACCOUNT_LOCAL_ID_FOR_DOMAIN_ERROR;
     }
     id = reply.ReadInt32();
@@ -479,7 +469,7 @@ ErrCode OsAccountProxy::SetOsAccountName(const int id, const std::string &name)
     }
     ErrCode result = SendRequest(IOsAccount::Message::SET_OS_ACCOUNT_NAME, data, reply);
     if (result != ERR_OK) {
-        ACCOUNT_LOGI("OsAccountProxy SetOsAccountName err");
+        ACCOUNT_LOGE("OsAccountProxy SetOsAccountName err");
         return ERR_OSACCOUNT_KIT_SET_OS_ACCOUNT_NAME_ERROR;
     }
     result = reply.ReadInt32();
@@ -509,7 +499,7 @@ ErrCode OsAccountProxy::SetOsAccountConstraints(
     }
     ErrCode result = SendRequest(IOsAccount::Message::SET_OS_ACCOUNT_CONSTRAINTS, data, reply);
     if (result != ERR_OK) {
-        ACCOUNT_LOGI("OsAccountProxy SetOsAccountConstraints err");
+        ACCOUNT_LOGE("OsAccountProxy SetOsAccountConstraints err");
         return ERR_OSACCOUNT_KIT_SET_OS_ACCOUNT_CONSTRAINTS_ERROR;
     }
     result = reply.ReadInt32();
@@ -534,7 +524,7 @@ ErrCode OsAccountProxy::SetOsAccountProfilePhoto(const int id, const std::string
     }
     ErrCode result = SendRequest(IOsAccount::Message::SET_OS_ACCOUNT_PROFILE_PHOTO, data, reply);
     if (result != ERR_OK) {
-        ACCOUNT_LOGI("OsAccountProxy SetOsAccountProfilePhoto err");
+        ACCOUNT_LOGE("OsAccountProxy SetOsAccountProfilePhoto err");
         return ERR_OSACCOUNT_KIT_SET_OS_ACCOUNT_PROFILE_PHOTO_ERROR;
     }
     result = reply.ReadInt32();
@@ -555,7 +545,7 @@ ErrCode OsAccountProxy::ActivateOsAccount(const int id)
     }
     ErrCode result = SendRequest(IOsAccount::Message::ACTIVATE_OS_ACCOUNT, data, reply);
     if (result != ERR_OK) {
-        ACCOUNT_LOGI("OsAccountProxy ActivateOsAccount err");
+        ACCOUNT_LOGE("OsAccountProxy ActivateOsAccount err");
         return ERR_OSACCOUNT_KIT_ACTIVATE_OS_ACCOUNT_ERROR;
     }
     result = reply.ReadInt32();
@@ -576,7 +566,7 @@ ErrCode OsAccountProxy::StartOsAccount(const int id)
     }
     ErrCode result = SendRequest(IOsAccount::Message::START_OS_ACCOUNT, data, reply);
     if (result != ERR_OK) {
-        ACCOUNT_LOGI("OsAccountProxy StartOsAccount err");
+        ACCOUNT_LOGE("OsAccountProxy StartOsAccount err");
         return ERR_OSACCOUNT_KIT_START_OS_ACCOUNT_ERROR;
     }
     result = reply.ReadInt32();
@@ -597,7 +587,7 @@ ErrCode OsAccountProxy::StopOsAccount(const int id)
     }
     ErrCode result = SendRequest(IOsAccount::Message::STOP_OS_ACCOUNT, data, reply);
     if (result != ERR_OK) {
-        ACCOUNT_LOGI("OsAccountProxy StopOsAccount err");
+        ACCOUNT_LOGE("OsAccountProxy StopOsAccount err");
         return ERR_OSACCOUNT_KIT_STOP_OS_ACCOUNT_ERROR;
     }
     result = reply.ReadInt32();
@@ -618,7 +608,7 @@ ErrCode OsAccountProxy::GetOsAccountLocalIdBySerialNumber(const int64_t serialNu
     }
     ErrCode result = SendRequest(IOsAccount::Message::GET_OS_ACCOUNT_LOCAL_ID_FOR_SERIAL_NUMBER, data, reply);
     if (result != ERR_OK) {
-        ACCOUNT_LOGI("OsAccountProxy StopOsAccount err");
+        ACCOUNT_LOGE("OsAccountProxy StopOsAccount err");
         return ERR_OSACCOUNT_KIT_GET_OS_ACCOUNT_LOCAL_ID_FOR_SERIAL_NUMBER_ERROR;
     }
     result = reply.ReadInt32();
@@ -641,7 +631,7 @@ ErrCode OsAccountProxy::GetSerialNumberByOsAccountLocalId(const int &id, int64_t
     }
     ErrCode result = SendRequest(IOsAccount::Message::GET_SERIAL_NUMBER_FOR_OS_ACCOUNT, data, reply);
     if (result != ERR_OK) {
-        ACCOUNT_LOGI("OsAccountProxy StopOsAccount err");
+        ACCOUNT_LOGE("OsAccountProxy StopOsAccount err");
         return ERR_OSACCOUNT_KIT_GET_SERIAL_NUMBER_FOR_OS_ACCOUNT__ERROR;
     }
     result = reply.ReadInt32();
@@ -686,8 +676,6 @@ ErrCode OsAccountProxy::SubscribeOsAccount(
 
 ErrCode OsAccountProxy::UnsubscribeOsAccount(const sptr<IRemoteObject> &eventListener)
 {
-    ACCOUNT_LOGI("enter");
-
     MessageParcel data;
     MessageParcel reply;
 
@@ -719,8 +707,6 @@ OS_ACCOUNT_SWITCH_MOD OsAccountProxy::GetOsAccountSwitchMod()
 
 ErrCode OsAccountProxy::SendRequest(IOsAccount::Message code, MessageParcel &data, MessageParcel &reply)
 {
-    ACCOUNT_LOGI("enter");
-
     sptr<IRemoteObject> remote = Remote();
     if (remote == nullptr) {
         ACCOUNT_LOGE("remote is nullptr, code = %{public}d", code);
@@ -972,13 +958,13 @@ template<typename T>
 bool OsAccountProxy::WriteParcelableVector(const std::vector<T> &parcelableVector, MessageParcel &data)
 {
     if (!data.WriteInt32(parcelableVector.size())) {
-        ACCOUNT_LOGI("Account write ParcelableVector failed");
+        ACCOUNT_LOGE("Account write ParcelableVector failed");
         return false;
     }
 
     for (auto &parcelable : parcelableVector) {
         if (!data.WriteParcelable(&parcelable)) {
-            ACCOUNT_LOGI("Account write ParcelableVector failed");
+            ACCOUNT_LOGE("Account write ParcelableVector failed");
             return false;
         }
     }
@@ -989,15 +975,15 @@ bool OsAccountProxy::ReadParcelableVector(std::vector<T> &parcelableInfos, Messa
 {
     int32_t infoSize = 0;
     if (!data.ReadInt32(infoSize)) {
-        ACCOUNT_LOGI("Account read Parcelable size failed.");
+        ACCOUNT_LOGE("Account read Parcelable size failed.");
         return false;
     }
-    ACCOUNT_LOGE("Account read Parcelable size is %{public}d", infoSize);
+    ACCOUNT_LOGI("Account read Parcelable size is %{public}d", infoSize);
     parcelableInfos.clear();
     for (int32_t index = 0; index < infoSize; index++) {
         T *info = data.ReadParcelable<T>();
         if (info == nullptr) {
-            ACCOUNT_LOGI("Account read Parcelable infos failed.");
+            ACCOUNT_LOGE("Account read Parcelable infos failed.");
             return false;
         }
         parcelableInfos.emplace_back(*info);

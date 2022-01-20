@@ -58,5 +58,29 @@ ErrCode OsAccountStandardInterface::SendToCESAccountSwithced(OsAccountInfo &osAc
     ACCOUNT_LOGI("OsAccountStandardInterface SendToCESAccountSwithced start");
     return ERR_OK;
 }
+
+ErrCode OsAccountStandardInterface::SendToStorageAccountCreate(OsAccountInfo &osAccountInfo)
+{
+    ACCOUNT_LOGI("OsAccountStandardInterface SendToStorageAccountCreate start");
+    return ERR_OK;
+}
+
+ErrCode OsAccountStandardInterface::SendToStorageAccountRemove(OsAccountInfo &osAccountInfo)
+{
+    ACCOUNT_LOGI("OsAccountStandardInterface SendToStorageAccountRemove start");
+    return ERR_OK;
+}
+
+ErrCode OsAccountStandardInterface::SendToStorageAccountStart(OsAccountInfo &osAccountInfo)
+{
+    ACCOUNT_LOGI("OsAccountStandardInterface SendToStorageAccountStart start");
+    return ERR_OK;
+}
+
+ErrCode OsAccountStandardInterface::SendToStorageAccountStop(OsAccountInfo &osAccountInfo)
+{
+    ACCOUNT_LOGI("OsAccountStandardInterface SendToStorageAccountStop start");
+    return ERR_OK;
+}
 }  // namespace AccountSA
 }  // namespace OHOS

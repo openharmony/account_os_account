@@ -24,23 +24,18 @@ namespace AccountSA {
 ErrCode OsAccountManager::CreateOsAccount(
     const std::string &name, const OsAccountType &type, OsAccountInfo &osAccountInfo)
 {
-    ACCOUNT_LOGI("enter");
-
     return DelayedSingleton<OsAccount>::GetInstance()->CreateOsAccount(name, type, osAccountInfo);
 }
 
 ErrCode OsAccountManager::CreateOsAccountForDomain(
     const OsAccountType &type, const DomainAccountInfo &domainInfo, OsAccountInfo &osAccountInfo)
 {
-    ACCOUNT_LOGI("enter");
     return DelayedSingleton<OsAccount>::GetInstance()->CreateOsAccountForDomain(
         type, domainInfo, osAccountInfo);
 }
 
 ErrCode OsAccountManager::RemoveOsAccount(const int id)
 {
-    ACCOUNT_LOGI("enter");
-
     return DelayedSingleton<OsAccount>::GetInstance()->RemoveOsAccount(id);
 }
 

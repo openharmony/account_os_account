@@ -36,7 +36,7 @@ void OsAccountControlFileManager::Init()
     osAccountFileOperator_->Init();
     if (!accountFileOperator_->IsExistFile(
         Constants::USER_INFO_BASE + Constants::PATH_SEPARATOR + Constants::USER_LIST_FILE_NAME)) {
-        ACCOUNT_LOGE("OsAccountControlFileManager there is not have account list");
+        ACCOUNT_LOGI("OsAccountControlFileManager there is not have account list");
         std::vector<std::string> accountListt;
         Json accountList = Json {
             {Constants::ACCOUNT_LIST, accountListt},
@@ -57,7 +57,7 @@ ErrCode OsAccountControlFileManager::GetOsAccountList(std::vector<OsAccountInfo>
     Json accountListJson;
     if (GetAccountList(accountListJson) != ERR_OK) {
         ACCOUNT_LOGE(
-            "OsAccountControlFileManager GetOsAccountList  ERR_OS_ACCOUNT_SERVICE_CONTROL_GET_OS_ACCOUNT_LIST_ERROR");
+            "OsAccountControlFileManager GetOsAccountList ERR_OS_ACCOUNT_SERVICE_CONTROL_GET_OS_ACCOUNT_LIST_ERROR");
         return ERR_OS_ACCOUNT_SERVICE_CONTROL_GET_OS_ACCOUNT_LIST_ERROR;
     }
     const auto &jsonObjectEnd = accountListJson.end();
@@ -113,6 +113,7 @@ ErrCode OsAccountControlFileManager::InsertOsAccount(OsAccountInfo &osAccountInf
     std::string path = Constants::USER_INFO_BASE + Constants::PATH_SEPARATOR + osAccountInfo.GetPrimeKey() +
                        Constants::PATH_SEPARATOR + Constants::USER_INFO_FILE_NAME;
     if (osAccountInfo.GetLocalId() < Constants::ADMIN_LOCAL_ID || osAccountInfo.GetLocalId() > Constants::MAX_USER_ID) {
+        ACCOUNT_LOGE("error id cannot insert");
         return ERR_OS_ACCOUNT_SERVICE_CONTROL_ID_CANNOT_CREATE_ERROR;
     }
     if (accountFileOperator_->IsExistFile(path)) {

@@ -29,6 +29,10 @@ public:
     static ErrCode SendToCESAccountCreate(OsAccountInfo &osAccountInfo);
     static ErrCode SendToCESAccountDelete(OsAccountInfo &osAccountInfo);
     static ErrCode SendToCESAccountSwithced(OsAccountInfo &osAccountInfo);
+    static ErrCode SendToStorageAccountCreate(OsAccountInfo &osAccountInfo);
+    static ErrCode SendToStorageAccountRemove(OsAccountInfo &osAccountInfo);
+    static ErrCode SendToStorageAccountStart(OsAccountInfo &osAccountInfo);
+    static ErrCode SendToStorageAccountStop(OsAccountInfo &osAccountInfo);
 };
 }  // namespace AccountSA
 }  // namespace OHOS

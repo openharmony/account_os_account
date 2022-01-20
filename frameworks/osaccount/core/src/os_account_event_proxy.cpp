@@ -20,19 +20,13 @@
 namespace OHOS {
 namespace AccountSA {
 OsAccountEventProxy::OsAccountEventProxy(const sptr<IRemoteObject> &object) : IRemoteProxy<IOsAccountEvent>(object)
-{
-    ACCOUNT_LOGI("enter");
-}
+{}
 
 OsAccountEventProxy::~OsAccountEventProxy()
-{
-    ACCOUNT_LOGI("enter");
-}
+{}
 
 void OsAccountEventProxy::OnAccountsChanged(const int &localId)
 {
-    ACCOUNT_LOGI("enter");
-
     MessageParcel data;
     MessageParcel reply;
 
@@ -48,8 +42,6 @@ void OsAccountEventProxy::OnAccountsChanged(const int &localId)
 
 ErrCode OsAccountEventProxy::SendRequest(IOsAccountEvent::Message code, MessageParcel &data, MessageParcel &reply)
 {
-    ACCOUNT_LOGI("enter");
-
     sptr<IRemoteObject> remote = Remote();
     if (remote == nullptr) {
         ACCOUNT_LOGE("remote is nullptr, code = %{public}d", code);
