@@ -75,6 +75,7 @@ private:
     void StartAccount();
     void CreateBaseAdminAccount();
     void CreateBaseStandardAccount();
+    void CreateBaseStandardAccountSendToOther();
     void StartBaseStandardAccount(void);
     void DeActivateOsAccount(const int id);
     void ResetActiveStatus(void);
@@ -82,12 +83,17 @@ private:
     ErrCode PrepareOsAccountInfo(const std::string &name, const OsAccountType &type,
         const DomainAccountInfo &domainAccount, OsAccountInfo &osAccountInfo);
     ErrCode SendMsgForAccountCreate(OsAccountInfo &osAccountInfo);
+    ErrCode SendMsgForAccountActivate(OsAccountInfo &osAccountInfo);
+    ErrCode SendMsgForAccountRemove(OsAccountInfo &osAccountInfo);
 
 private:
     std::shared_ptr<IOsAccountControl> osAccountControl_;
     std::vector<int> activeAccountId_;
     std::shared_ptr<IOsAccountSubscribe> subscribeManagerPtr_;
     std::int32_t counterForStandard_;
+    std::int32_t counterForStandardCreate_;
+    bool isSendToStorageCreate_;
+    bool isSendToStorageStart_;
     std::shared_ptr<OHOS::AppExecFwk::EventHandler> handler_;
     static constexpr std::int32_t DELAY_FOR_FOUNDATION_SERVICE = 5 * 1000;  // 5s
     static constexpr std::int32_t DELAY_FOR_TIME_INTERVAL = 1 * 1000;       // 1s

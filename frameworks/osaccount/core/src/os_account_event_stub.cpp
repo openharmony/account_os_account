@@ -20,19 +20,13 @@
 namespace OHOS {
 namespace AccountSA {
 OsAccountEventStub::OsAccountEventStub()
-{
-    ACCOUNT_LOGI("enter");
-}
+{}
 
 OsAccountEventStub::~OsAccountEventStub()
-{
-    ACCOUNT_LOGI("enter");
-}
+{}
 
 int OsAccountEventStub::OnRemoteRequest(uint32_t code, MessageParcel &data, MessageParcel &reply, MessageOption &option)
 {
-    ACCOUNT_LOGI("enter");
-
     switch (code) {
         case static_cast<uint32_t>(IOsAccountEvent::Message::ACCOUNT_CHANGED): {
             int id;
