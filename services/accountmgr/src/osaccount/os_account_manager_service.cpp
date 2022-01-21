@@ -227,7 +227,7 @@ ErrCode OsAccountManagerService::IsOsAccountVerified(const int id, bool &isVerif
     return innerManager_->IsOsAccountVerified(id, isVerified);
 }
 
-ErrCode OsAccountManagerService::GetCreatedOsAccountsCount(int &osAccountsCount)
+ErrCode OsAccountManagerService::GetCreatedOsAccountsCount(unsigned int &osAccountsCount)
 {
     auto callingUid = IPCSkeleton::GetCallingUid();
     if (callingUid >= Constants::APP_UID_START) {

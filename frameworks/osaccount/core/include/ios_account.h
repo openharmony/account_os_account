@@ -37,7 +37,7 @@ public:
     virtual ErrCode IsOsAccountConstraintEnable(
         const int id, const std::string &constraint, bool &isConstraintEnable) = 0;
     virtual ErrCode IsOsAccountVerified(const int id, bool &isVerified) = 0;
-    virtual ErrCode GetCreatedOsAccountsCount(int &osAccountsCount) = 0;
+    virtual ErrCode GetCreatedOsAccountsCount(unsigned int &osAccountsCount) = 0;
     virtual ErrCode GetOsAccountLocalIdFromProcess(int &id) = 0;
     virtual ErrCode GetOsAccountLocalIdFromUid(const int uid, int &id) = 0;
     virtual ErrCode GetOsAccountLocalIdFromDomain(const DomainAccountInfo &domainInfo, int &id) = 0;

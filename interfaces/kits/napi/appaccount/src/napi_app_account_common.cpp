@@ -12,11 +12,10 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
+#include "napi_app_account_common.h"
 #include <uv.h>
 #include "account_log_wrapper.h"
 #include "app_account_manager.h"
-#include "napi_app_account_common.h"
 
 namespace OHOS {
 namespace AccountJsKit {
@@ -42,7 +41,7 @@ void UvQueueWorkOnAccountsChanged(uv_work_t *work, int status)
         return;
     }
 
-    int32_t index = 0;
+    uint32_t index = 0;
     napi_value results[ARGS_SIZE_ONE] = {nullptr};
     napi_create_array(subscriberAccountsWorkerData->env, &results[0]);
 
@@ -179,7 +178,7 @@ void GetAppAccountInfoForResult(napi_env env, const std::vector<AppAccountInfo> 
 {
     ACCOUNT_LOGI("enter");
 
-    int32_t index = 0;
+    uint32_t index = 0;
 
     for (auto item : info) {
         napi_value objAppAccountInfo = nullptr;

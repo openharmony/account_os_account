@@ -15,6 +15,7 @@
 #ifndef FUZZTESTMANAGER_H
 #define FUZZTESTMANAGER_H
 
+#include <functional>
 #include <map>
 #include <memory>
 #include <string>

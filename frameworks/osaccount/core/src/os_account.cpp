@@ -135,7 +135,7 @@ ErrCode OsAccount::IsOsAccountVerified(const int id, bool &isVerified)
     return osAccountProxy_->IsOsAccountVerified(id, isVerified);
 }
 
-ErrCode OsAccount::GetCreatedOsAccountsCount(int &osAccountsCount)
+ErrCode OsAccount::GetCreatedOsAccountsCount(unsigned int &osAccountsCount)
 {
     ACCOUNT_LOGI("OsAccount::GetCreatedOsAccountsCount start");
     ErrCode result = GetOsAccountProxy();
