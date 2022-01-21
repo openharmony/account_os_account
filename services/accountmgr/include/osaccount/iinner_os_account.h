@@ -34,7 +34,7 @@ public:
     virtual ErrCode IsOsAccountConstraintEnable(
         const int id, const std::string &constraint, bool &isOsAccountConstraintEnable) = 0;
     virtual ErrCode IsOsAccountVerified(const int id, bool &isVerified) = 0;
-    virtual ErrCode GetCreatedOsAccountsCount(int &createdOsAccountCount) = 0;
+    virtual ErrCode GetCreatedOsAccountsCount(unsigned int &createdOsAccountCount) = 0;
     virtual ErrCode QueryMaxOsAccountNumber(int &maxOsAccountNumber) = 0;
     virtual ErrCode GetOsAccountAllConstraints(const int id, std::vector<std::string> &constraints) = 0;
     virtual ErrCode QueryAllCreatedOsAccounts(std::vector<OsAccountInfo> &osAccountInfos) = 0;

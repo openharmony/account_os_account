@@ -202,8 +202,7 @@ int OsAccountStub::OnRemoteRequest(uint32_t code, MessageParcel &data, MessagePa
 template<typename T>
 bool OsAccountStub::WriteParcelableVector(const std::vector<T> &parcelableVector, MessageParcel &data)
 {
-    auto vectorSize = parcelableVector.size();
-    if (!data.WriteInt32(vectorSize)) {
+    if (!data.WriteUint32(parcelableVector.size())) {
         ACCOUNT_LOGE("Account write ParcelableVector size failed");
         return false;
     }
@@ -221,14 +220,14 @@ bool OsAccountStub::WriteParcelableVector(const std::vector<T> &parcelableVector
 template<typename T>
 bool OsAccountStub::ReadParcelableVector(std::vector<T> &parcelableInfos, MessageParcel &data)
 {
-    int32_t infoSize = 0;
-    if (!data.ReadInt32(infoSize)) {
+    uint32_t infoSize = 0;
+    if (!data.ReadUint32(infoSize)) {
         ACCOUNT_LOGE("read Parcelable size failed.");
         return false;
     }
 
     parcelableInfos.clear();
-    for (int32_t index = 0; index < infoSize; index++) {
+    for (uint32_t index = 0; index < infoSize; index++) {
         T *info = data.ReadParcelable<T>();
         if (info == nullptr) {
             ACCOUNT_LOGE("read Parcelable infos failed.");
@@ -438,13 +437,13 @@ ErrCode OsAccountStub::ProcQueryMaxOsAccountNumber(MessageParcel &data, MessageP
 
 ErrCode OsAccountStub::ProcGetCreatedOsAccountsCount(MessageParcel &data, MessageParcel &reply)
 {
-    int osAccountsCount = 0;
+    unsigned int osAccountsCount = 0;
     ErrCode result = GetCreatedOsAccountsCount(osAccountsCount);
     if (!reply.WriteInt32(result)) {
         ACCOUNT_LOGE("failed to write reply");
         return IPC_STUB_WRITE_PARCEL_ERR;
     }
-    if (!reply.WriteInt32(osAccountsCount)) {
+    if (!reply.WriteUint32(osAccountsCount)) {
         ACCOUNT_LOGE("failed to write reply");
         return IPC_STUB_WRITE_PARCEL_ERR;
     }
@@ -882,7 +881,7 @@ ErrCode OsAccountStub::ProcDumpState(MessageParcel &data, MessageParcel &reply)
         return IPC_STUB_WRITE_PARCEL_ERR;
     }
 
-    if (!reply.WriteInt32(state.size())) {
+    if (!reply.WriteUint32(state.size())) {
         ACCOUNT_LOGE("failed to write reply");
         return IPC_STUB_WRITE_PARCEL_ERR;
     }

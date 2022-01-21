@@ -469,7 +469,7 @@ bool AppAccountInfo::WriteStringSet(const std::set<std::string> &stringSet, Parc
 {
     ACCOUNT_LOGI("enter");
 
-    if (!data.WriteInt32(stringSet.size())) {
+    if (!data.WriteUint32(stringSet.size())) {
         ACCOUNT_LOGE("failed to WriteInt32 for stringSet.size()");
         return false;
     }
@@ -488,14 +488,14 @@ bool AppAccountInfo::ReadStringSet(std::set<std::string> &stringSet, Parcel &dat
 {
     ACCOUNT_LOGI("enter");
 
-    int32_t size = 0;
-    if (!data.ReadInt32(size)) {
+    uint32_t size = 0;
+    if (!data.ReadUint32(size)) {
         ACCOUNT_LOGE("failed to ReadInt32 for size");
         return false;
     }
 
     stringSet.clear();
-    for (int32_t index = 0; index < size; index += 1) {
+    for (uint32_t index = 0; index < size; index += 1) {
         std::string it = data.ReadString();
         if (it.size() == 0) {
             ACCOUNT_LOGE("failed to ReadString for it");

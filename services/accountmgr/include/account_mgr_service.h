@@ -71,9 +71,9 @@ private:
     std::unique_ptr<AccountDumpHelper> dumpHelper_{};
     std::shared_ptr<OhosAccountManager> ohosAccountMgr_{};
 
-    sptr<IRemoteObject> appAccountManagerService_;
-    sptr<IRemoteObject> osAccountManagerService_;
-    OsAccountManagerService* osAccountManagerServiceOrg_;
+    sptr<IRemoteObject> appAccountManagerService_ = nullptr;
+    sptr<IRemoteObject> osAccountManagerService_ = nullptr;
+    OsAccountManagerService* osAccountManagerServiceOrg_ = nullptr;
 };
 }  // namespace AccountSA
 }  // namespace OHOS

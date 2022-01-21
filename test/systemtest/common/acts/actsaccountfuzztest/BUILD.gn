@@ -21,9 +21,9 @@ ohos_systemtest("ActsAccountFuzzTest") {
   resource_config_file = "${os_account_path}/test/systemtest/common/resource/fuzzTest/ohos_test.xml"
 
   sources = [
-    "${os_account_path}//test/systemtest/common/resource/fuzzTest/src/fuzzTestManager.cpp",
+    "${os_account_path}//test/systemtest/common/resource/fuzzTest/src/fuzz_test_manager.cpp",
     "${os_account_path}//test/systemtest/common/resource/fuzzTest/src/getparam.cpp",
-    "actsAccountFuzzTest.cpp",
+    "acts_account_fuzz_test.cpp",
   ]
 
   configs = [

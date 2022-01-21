@@ -127,9 +127,7 @@ int AppAccountStub::OnRemoteRequest(uint32_t code, MessageParcel &data, MessageP
 template<typename T>
 bool AppAccountStub::WriteParcelableVector(const std::vector<T> &parcelableVector, MessageParcel &data)
 {
-    ACCOUNT_LOGI("enter");
-
-    if (!data.WriteInt32(parcelableVector.size())) {
+    if (!data.WriteUint32(parcelableVector.size())) {
         ACCOUNT_LOGE("failed to WriteInt32 for parcelableVector.size()");
         return false;
     }
@@ -149,14 +147,14 @@ bool AppAccountStub::ReadParcelableVector(std::vector<T> &parcelableVector, Mess
 {
     ACCOUNT_LOGI("enter");
 
-    int32_t size = 0;
-    if (!data.ReadInt32(size)) {
+    uint32_t size = 0;
+    if (!data.ReadUint32(size)) {
         ACCOUNT_LOGI("read Parcelable size failed.");
         return false;
     }
 
     parcelableVector.clear();
-    for (int32_t index = 0; index < size; index++) {
+    for (uint32_t index = 0; index < size; index++) {
         T *info = data.ReadParcelable<T>();
         if (info == nullptr) {
             ACCOUNT_LOGI("read Parcelable infos failed.");
