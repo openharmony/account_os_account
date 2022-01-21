@@ -41,6 +41,12 @@ ErrCode OsAccountStandardInterface::SendToBMSAccountDelete(OsAccountInfo &osAcco
     return ERR_OK;
 }
 
+ErrCode OsAccountStandardInterface::SendToIAMAccountDelete(OsAccountInfo &osAccountInfo)
+{
+    ACCOUNT_LOGI("OsAccountStandardInterface SendToIAMAccountDelete start");
+    return ERR_OK;
+}
+
 ErrCode OsAccountStandardInterface::SendToCESAccountCreate(OsAccountInfo &osAccountInfo)
 {
     ACCOUNT_LOGI("OsAccountStandardInterface SendToCESAccountCreate start");

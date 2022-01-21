@@ -26,6 +26,7 @@ public:
     static ErrCode SendToAMSAccountStop(OsAccountInfo &osAccountInfo);
     static ErrCode SendToBMSAccountCreate(OsAccountInfo &osAccountInfo);
     static ErrCode SendToBMSAccountDelete(OsAccountInfo &osAccountInfo);
+    static ErrCode SendToIAMAccountDelete(OsAccountInfo &osAccountInfo);
     static ErrCode SendToCESAccountCreate(OsAccountInfo &osAccountInfo);
     static ErrCode SendToCESAccountDelete(OsAccountInfo &osAccountInfo);
     static ErrCode SendToCESAccountSwithced(OsAccountInfo &osAccountInfo);

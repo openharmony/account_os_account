@@ -384,6 +384,10 @@ ErrCode IInnerOsAccountManager::SendMsgForAccountRemove(OsAccountInfo &osAccount
         ACCOUNT_LOGE("remove osaccount info failed,id: %{public}d", osAccountInfo.GetLocalId());
         return ERR_OS_ACCOUNT_SERVICE_INNER_CANNOT_DELE_OSACCOUNT_ERROR;
     }
+    errCode = OsAccountStandardInterface::SendToIAMAccountDelete(osAccountInfo);
+    if (errCode != ERR_OK) {
+        return ERR_OS_ACCOUNT_SERVICE_INNER_SEND_IAM_ACCOUNT_DELE_ERROR;
+    }
     errCode = OsAccountStandardInterface::SendToCESAccountDelete(osAccountInfo);
     if (errCode != ERR_OK) {
         ACCOUNT_LOGE("SendMsgForAccountRemove send ce remove failed,id: %{public}d", osAccountInfo.GetLocalId());
