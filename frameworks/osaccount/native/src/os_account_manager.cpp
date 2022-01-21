@@ -68,7 +68,7 @@ ErrCode OsAccountManager::IsOsAccountVerified(const int id, bool &isTestOsAccoun
     return DelayedSingleton<OsAccount>::GetInstance()->IsOsAccountVerified(id, isTestOsAccount);
 }
 
-ErrCode OsAccountManager::GetCreatedOsAccountsCount(int &osAccountsCount)
+ErrCode OsAccountManager::GetCreatedOsAccountsCount(unsigned int &osAccountsCount)
 {
     ACCOUNT_LOGI("OsAccountManager::GetCreatedOsAccountsCount start");
 

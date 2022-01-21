@@ -58,14 +58,14 @@ bool AppAccountEventStub::ReadParcelableVector(std::vector<T> &parcelableVector,
 {
     ACCOUNT_LOGI("enter");
 
-    int32_t size = 0;
-    if (!data.ReadInt32(size)) {
+    uint32_t size = 0;
+    if (!data.ReadUint32(size)) {
         ACCOUNT_LOGE("failed to ReadInt32 for size");
         return false;
     }
 
     parcelableVector.clear();
-    for (int32_t index = 0; index < size; index += 1) {
+    for (uint32_t index = 0; index < size; index += 1) {
         T *parcelable = data.ReadParcelable<T>();
         if (parcelable == nullptr) {
             ACCOUNT_LOGE("failed to ReadParcelable for T");

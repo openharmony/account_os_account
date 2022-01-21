@@ -131,7 +131,7 @@ struct GetOACountAsyncContext {
     napi_env env;
     napi_async_work work;
 
-    int osAccountsCount = 0;
+    unsigned int osAccountsCount = 0;
     int errCode = 0;
 
     napi_deferred deferred;

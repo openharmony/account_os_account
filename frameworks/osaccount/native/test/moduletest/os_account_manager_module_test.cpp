@@ -500,7 +500,7 @@ HWTEST_F(OsAccountManagerModuleTest, OsAccountManagerModuleTest021, TestSize.Lev
  */
 HWTEST_F(OsAccountManagerModuleTest, OsAccountManagerModuleTest022, TestSize.Level1)
 {
-    int osAccountsCount = 0;
+    unsigned int osAccountsCount = 0;
     EXPECT_EQ(OsAccountManager::GetCreatedOsAccountsCount(osAccountsCount), ERR_OK);
     EXPECT_NE(osAccountsCount, 0);
 }

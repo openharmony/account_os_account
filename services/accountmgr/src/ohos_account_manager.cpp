@@ -14,8 +14,8 @@
  */
 
 #include "ohos_account_manager.h"
-#include <dirent.h>
 #include <cerrno>
+#include <dirent.h>
 #include <iomanip>
 #include <sstream>
 #include <sys/types.h>
@@ -525,7 +525,7 @@ bool OhosAccountManager::GetCurOhosAccountAndCheckMatch(AccountInfo &curOhosAcco
                                                         const std::string &inputUid,
                                                         const std::int32_t callingUserId) const
 {
-    if (dataDealer_->AccountInfoFromJson(curOhosAccountInfo, callingUserId)!= ERR_OK) {
+    if (dataDealer_->AccountInfoFromJson(curOhosAccountInfo, callingUserId) != ERR_OK) {
         ACCOUNT_LOGE("cannot read from config, inputName %{public}s.", inputName.c_str());
         return false;
     }

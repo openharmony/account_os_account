@@ -256,7 +256,7 @@ void MakeArrayToJs(napi_env env, const std::vector<std::string> &constraints, na
 {
     ACCOUNT_LOGI("enter");
 
-    int32_t index = 0;
+    uint32_t index = 0;
 
     for (auto item : constraints) {
         napi_value constraint = nullptr;
@@ -924,7 +924,7 @@ void GetAllAccountCons(napi_env env, const std::vector<std::string> &info, napi_
 {
     ACCOUNT_LOGI("enter");
 
-    int32_t index = 0;
+    uint32_t index = 0;
 
     for (auto item : info) {
         napi_value consStr = nullptr;
@@ -1061,7 +1061,7 @@ void QueryOAInfoForResult(napi_env env, const std::vector<OsAccountInfo> &info, 
 {
     ACCOUNT_LOGI("enter");
 
-    int32_t index = 0;
+    uint32_t index = 0;
 
     for (auto item : info) {
         napi_value objOAInfo = nullptr;

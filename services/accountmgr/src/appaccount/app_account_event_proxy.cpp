@@ -67,9 +67,7 @@ ErrCode AppAccountEventProxy::SendRequest(IAppAccountEvent::Message code, Messag
 template<typename T>
 bool AppAccountEventProxy::WriteParcelableVector(const std::vector<T> &parcelableVector, Parcel &data)
 {
-    ACCOUNT_LOGI("enter");
-
-    if (!data.WriteInt32(parcelableVector.size())) {
+    if (!data.WriteUint32(parcelableVector.size())) {
         ACCOUNT_LOGE("failed to WriteInt32 for parcelableVector.size()");
         return false;
     }

@@ -14,13 +14,12 @@
  */
 #ifndef ACCOUNT_FUZZTESTMANAGER_H
 #define ACCOUNT_FUZZTESTMANAGER_H
-
+#include "fuzz_test_manager.h"
 #include <unistd.h>
 #include "app_account_manager.h"
-#include "fuzzConfigParser.h"
+#include "fuzz_config_parser.h"
+#include "getparam.h"
 #include "hilog_wrapper.h"
-#include "../include/getparam.h"
-#include "../include/fuzzTestManager.h"
 
 #undef private
 #undef protected
@@ -147,7 +146,7 @@ void FuzzTestManager::StartFuzzTest()
     }
 
     std::cout << remainderMap_.size() << "--------fuzz test start--------" << callFunctionMap_.size() << std::endl;
-    for (; remainderMap_.size() > 0;) {
+    while (remainderMap_.size() > 0) {
         std::string functionName;
         int offset = GetRandomInt(0, index.size() - 1);
         functionName = index[offset];

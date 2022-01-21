@@ -13,7 +13,7 @@
  * limitations under the License.
  */
 #include <gtest/gtest.h>
-#include "../../resource/fuzzTest/include/fuzzTestManager.h"
+#include "../../resource/fuzzTest/include/fuzz_test_manager.h"
 
 using namespace testing::ext;
 namespace OHOS {
