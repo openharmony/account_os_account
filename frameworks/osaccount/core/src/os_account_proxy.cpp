@@ -206,21 +206,23 @@ ErrCode OsAccountProxy::IsOsAccountVerified(const int id, bool &isVerified)
     return ERR_OK;
 }
 
-ErrCode OsAccountProxy::GetCreatedOsAccountsCount(int &osAccountsCount)
+ErrCode OsAccountProxy::GetCreatedOsAccountsCount(unsigned int &osAccountsCount)
 {
-    ACCOUNT_LOGI("OsAccountProxy GetCreatedOsAccountsCount start");
+    osAccountsCount = 0;
     MessageParcel data;
     MessageParcel reply;
     ErrCode result = SendRequest(IOsAccount::Message::GET_CREATED_OS_ACCOUNT_COUNT, data, reply);
     if (result != ERR_OK) {
+        ACCOUNT_LOGI("SendRequest failed! error code result %{public}d.", result);
         return ERR_OSACCOUNT_KIT_GET_CREATED_OS_ACCOUNT_COUNT_ERROR;
     }
     result = reply.ReadInt32();
     if (result != ERR_OK) {
+        ACCOUNT_LOGI("ReadInt32 for result failed!");
         return ERR_OSACCOUNT_KIT_GET_CREATED_OS_ACCOUNT_COUNT_ERROR;
     }
-    osAccountsCount = reply.ReadInt32();
-    ACCOUNT_LOGI("OsAccountProxy GetCreatedOsAccountsCount end");
+    osAccountsCount = reply.ReadUint32();
+    ACCOUNT_LOGI("succeed! osAccountsCount %{public}u.", osAccountsCount);
     return ERR_OK;
 }
 
@@ -827,8 +829,8 @@ ErrCode OsAccountProxy::DumpState(const int &id, std::vector<std::string> &state
         return ERR_OSACCOUNT_KIT_DUMP_STATE_ERROR;
     }
 
-    int32_t size = reply.ReadInt32();
-    for (int i = 0; i < size; i++) {
+    uint32_t size = reply.ReadUint32();
+    for (uint32_t i = 0; i < size; i++) {
         std::string info = reply.ReadString();
         state.emplace_back(info);
     }
@@ -957,7 +959,7 @@ ErrCode OsAccountProxy::GetOsAccountListFromDatabase(const std::string& storeID,
 template<typename T>
 bool OsAccountProxy::WriteParcelableVector(const std::vector<T> &parcelableVector, MessageParcel &data)
 {
-    if (!data.WriteInt32(parcelableVector.size())) {
+    if (!data.WriteUint32(parcelableVector.size())) {
         ACCOUNT_LOGE("Account write ParcelableVector failed");
         return false;
     }
@@ -973,14 +975,14 @@ bool OsAccountProxy::WriteParcelableVector(const std::vector<T> &parcelableVecto
 template<typename T>
 bool OsAccountProxy::ReadParcelableVector(std::vector<T> &parcelableInfos, MessageParcel &data)
 {
-    int32_t infoSize = 0;
-    if (!data.ReadInt32(infoSize)) {
+    uint32_t infoSize = 0;
+    if (!data.ReadUint32(infoSize)) {
         ACCOUNT_LOGE("Account read Parcelable size failed.");
         return false;
     }
     ACCOUNT_LOGI("Account read Parcelable size is %{public}d", infoSize);
     parcelableInfos.clear();
-    for (int32_t index = 0; index < infoSize; index++) {
+    for (uint32_t index = 0; index < infoSize; index++) {
         T *info = data.ReadParcelable<T>();
         if (info == nullptr) {
             ACCOUNT_LOGE("Account read Parcelable infos failed.");

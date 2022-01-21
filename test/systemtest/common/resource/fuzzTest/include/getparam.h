@@ -53,7 +53,7 @@ std::vector<double> GetDoubleVectorParam();
 std::vector<char> GetCharVectorParam();
 std::vector<char32_t> GetChar32VectorParam();
 std::vector<std::string> GetStringVectorParam();
-template <class T>
+template<class T>
 std::vector<T> GetUnsignVectorParam();
 std::vector<int8_t> GetS8VectorParam();
 std::vector<int16_t> GetS16VectorParam();

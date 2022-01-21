@@ -32,7 +32,7 @@ public:
     static ErrCode IsOsAccountActived(const int id, bool &isOsAccountActived);
     static ErrCode IsOsAccountConstraintEnable(const int id, const std::string &constraint, bool &isConstraintEnable);
     static ErrCode IsOsAccountVerified(const int id, bool &isVerified);
-    static ErrCode GetCreatedOsAccountsCount(int &osAccountsCount);
+    static ErrCode GetCreatedOsAccountsCount(unsigned int &osAccountsCount);
     static ErrCode GetOsAccountLocalIdFromProcess(int &id);
     static ErrCode GetOsAccountLocalIdFromUid(const int uid, int &id);
     static ErrCode GetOsAccountLocalIdFromDomain(const DomainAccountInfo &domainInfo, int &id);

@@ -23,7 +23,7 @@ class OsAccountPhotoOperator {
 public:
     OsAccountPhotoOperator();
     ~OsAccountPhotoOperator();
-    std::string EnCode(const char *data, int dataByte);
+    std::string EnCode(const char *data, size_t dataByte);
     std::string DeCode(std::string const &baseStr);
 
 private:

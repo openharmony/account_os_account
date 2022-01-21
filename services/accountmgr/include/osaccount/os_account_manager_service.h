@@ -39,7 +39,7 @@ public:
         const int id, const std::string &constraint, bool &isConstraintEnable) override;
     virtual ErrCode IsOsAccountVerified(const int id, bool &isVerified) override;
 
-    virtual ErrCode GetCreatedOsAccountsCount(int &osAccountsCount) override;
+    virtual ErrCode GetCreatedOsAccountsCount(unsigned int &osAccountsCount) override;
     virtual ErrCode GetOsAccountLocalIdFromProcess(int &id) override;
 
     virtual ErrCode GetOsAccountLocalIdFromUid(const int uid, int &id) override;
