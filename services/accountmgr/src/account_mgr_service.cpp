@@ -145,8 +145,8 @@ bool AccountMgrService::Init()
     if (!registerToService_) {
         ret = Publish(&DelayedRefSingleton<AccountMgrService>::GetInstance());
         if (!ret) {
-            HiviewDFX::HiSysEvent::Write(HiviewDFX::HiSysEvent::Domain::ACCOUNT,
-                "AccountServiceStartFailed",
+            HiviewDFX::HiSysEvent::Write("OS_ACCOUNT",
+                "SERVICE_START_FAILED",
                 HiviewDFX::HiSysEvent::EventType::FAULT,
                 "ERROR_TYPE",
                 ERR_ACCOUNT_MGR_ADD_TO_SA_ERROR);
@@ -160,8 +160,8 @@ bool AccountMgrService::Init()
     ret = ohosAccountMgr_->OnInitialize();
     if (!ret) {
         ACCOUNT_LOGE("Ohos account manager initialize failed");
-        HiviewDFX::HiSysEvent::Write(HiviewDFX::HiSysEvent::Domain::ACCOUNT,
-            "AccountServiceStartFailed",
+        HiviewDFX::HiSysEvent::Write("OS_ACCOUNT",
+            "SERVICE_START_FAILED",
             HiviewDFX::HiSysEvent::EventType::FAULT,
             "ERROR_TYPE",
             ret);

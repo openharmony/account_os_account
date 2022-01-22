@@ -198,8 +198,8 @@ bool OhosAccountManager::HandleEvent(AccountInfo &curOhosAccount, const std::str
     }
     std::int32_t newState = accountState_->GetAccountState();
     if (newState != curOhosAccount.ohosAccountStatus_) {
-        HiviewDFX::HiSysEvent::Write(HiviewDFX::HiSysEvent::Domain::ACCOUNT, "AccountServiceStateMachineEvent",
-            HiviewDFX::HiSysEvent::EventType::FAULT, "DEVICE_MODE", curOhosAccount.userId_,
+        HiviewDFX::HiSysEvent::Write("OS_ACCOUNT", "OHOS_ACCOUNT_STATE_MACHINE_EVENT",
+            HiviewDFX::HiSysEvent::EventType::FAULT, "USER_ID", curOhosAccount.userId_,
             "OPERATION_TYPE", event, "OLD_STATE", curOhosAccount.ohosAccountStatus_, "NEW_STATE", newState);
         curOhosAccount.ohosAccountStatus_ = newState;
     }
@@ -470,9 +470,9 @@ void OhosAccountManager::ReportPublishFailureEvent(std::int32_t errCode,
                                                    std::int32_t oldStatus,
                                                    const AccountInfo &account)
 {
-    HiviewDFX::HiSysEvent::Write(HiviewDFX::HiSysEvent::Domain::ACCOUNT, "AccountServicePublishEventFailed",
+    HiviewDFX::HiSysEvent::Write("OS_ACCOUNT", "PUBLISH_COMMON_EVENT_FAILED",
         HiviewDFX::HiSysEvent::EventType::FAULT, "ERROR_TYPE", errCode, "OLD_STATE", oldStatus,
-        "NEW_STATE", account.ohosAccountStatus_, "DEVICE_MODE", account.userId_);
+        "NEW_STATE", account.ohosAccountStatus_, "USER_ID", account.userId_);
 }
 
 bool OhosAccountManager::CheckOhosAccountCanBind(const std::string &newOhosUid) const

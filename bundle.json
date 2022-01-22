@@ -20,6 +20,9 @@
       "os_account_standard_enable_app_account = true",
       "os_account_standard_enable_os_account = true"
     ],
+    "hisysevent_config": [
+      "//base/account/os_account/hisysevent.yaml"
+    ],
     "adapted_system_type": [
       "standard"
     ],
