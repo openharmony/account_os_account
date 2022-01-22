@@ -783,7 +783,7 @@ void GetOACountCallbackCompletedCB(napi_env env, napi_status status, void *data)
     GetOACountAsyncContext *getOACount = (GetOACountAsyncContext *)data;
     napi_value getResult[RESULT_COUNT] = {0};
     getResult[PARAM0] = GetErrorCodeValue(env, getOACount->errCode);
-    napi_create_int32(env, getOACount->osAccountsCount, &getResult[PARAM1]);
+    napi_create_uint32(env, getOACount->osAccountsCount, &getResult[PARAM1]);
     CBOrPromiseToGetOACount(env, getOACount, getResult[PARAM0], getResult[PARAM1]);
     napi_delete_async_work(env, getOACount->work);
     delete getOACount;

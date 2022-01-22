@@ -53,7 +53,7 @@ std::string OsAccountPhotoOperator::EnCode(const char *data, size_t dataByte)
             LineLength = 0;
         }
     }
-    int mod = dataByte % SIZET_THREE;
+    size_t mod = dataByte % SIZET_THREE;
     if (mod == 1) {
         tmpArray[SIZET_ONE] = *data++;
         strEncode += baseChars_[(tmpArray[SIZET_ONE] & 0xFC) >> SIZET_TWO];
