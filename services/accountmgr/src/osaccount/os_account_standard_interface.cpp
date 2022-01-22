@@ -26,10 +26,12 @@
 #include "iservice_registry.h"
 #include "istorage_manager.h"
 #include "os_account_constants.h"
+#include "os_account_delete_user_iam_callback.h"
 #include "os_account_stop_user_callback.h"
 #include "storage_manager.h"
 #include "storage_manager_proxy.h"
 #include "system_ability_definition.h"
+#include "useridm_client.h"
 #include "want.h"
 
 namespace OHOS {
@@ -49,7 +51,12 @@ ErrCode OsAccountStandardInterface::SendToAMSAccountStart(OsAccountInfo &osAccou
 ErrCode OsAccountStandardInterface::SendToAMSAccountStop(OsAccountInfo &osAccountInfo)
 {
     ACCOUNT_LOGI("OsAccountStandardInterface SendToAMSAccountStop stop");
-    sptr<OsAccountStopUserCallback> osAccountStopUserCallback = new OsAccountStopUserCallback();
+    sptr<OsAccountStopUserCallback> osAccountStopUserCallback = new (std::nothrow) OsAccountStopUserCallback();
+    if (osAccountStopUserCallback == nullptr) {
+        ACCOUNT_LOGE("alloc memory for stop user callback failed!");
+        return ERR_ACCOUNT_COMMON_INSUFFICIENT_MEMORY_ERROR;
+    }
+
     ErrCode code =
         AAFwk::AbilityManagerClient::GetInstance()->StopUser(osAccountInfo.GetLocalId(), osAccountStopUserCallback);
     if (code != ERR_OK) {
@@ -60,9 +67,9 @@ ErrCode OsAccountStandardInterface::SendToAMSAccountStop(OsAccountInfo &osAccoun
     struct tm nowTime = {0};
     OHOS::GetSystemCurrentTime(&startTime);
     OHOS::GetSystemCurrentTime(&nowTime);
-    while (OHOS::GetSecondsBetween(startTime, nowTime) < Constants::TIME_WAIT_AM_TIME_OUT &&
+    while (OHOS::GetSecondsBetween(startTime, nowTime) < Constants::TIME_WAIT_TIME_OUT &&
            !osAccountStopUserCallback->isCallBackOk_) {
-        std::this_thread::sleep_for(std::chrono::milliseconds(Constants::WAIT_AM_TIME));
+        std::this_thread::sleep_for(std::chrono::milliseconds(Constants::WAIT_ONE_TIME));
         OHOS::GetSystemCurrentTime(&nowTime);
     }
     if (!osAccountStopUserCallback->isReaturnOk_) {
@@ -132,6 +139,39 @@ ErrCode OsAccountStandardInterface::SendToBMSAccountDelete(OsAccountInfo &osAcco
     }
     bunduleUserMgrProxy->RemoveUser(osAccountInfo.GetLocalId());
     ACCOUNT_LOGI("call bm to remove user ok");
+    return ERR_OK;
+}
+
+ErrCode OsAccountStandardInterface::SendToIAMAccountDelete(OsAccountInfo &osAccountInfo)
+{
+    std::shared_ptr<OsAccountDeleteUserIamCallback> callback = std::make_shared<OsAccountDeleteUserIamCallback>();
+    if (callback == nullptr) {
+        ACCOUNT_LOGE("get iam callback ptr failed! insufficient memory!");
+        return ERR_ACCOUNT_COMMON_INSUFFICIENT_MEMORY_ERROR;
+    }
+
+    int32_t ret = UserIAM::UserIDM::UserIDMClient::GetInstance().EnforceDelUser(osAccountInfo.GetLocalId(), callback);
+    if (ret != 0) {
+        ACCOUNT_LOGE("iam enforce delete user failed! error %{public}d", ret);
+        return ERR_OK;    // do not return fail
+    }
+
+    // wait callback
+    struct tm startTime = {0};
+    struct tm nowTime = {0};
+    OHOS::GetSystemCurrentTime(&startTime);
+    OHOS::GetSystemCurrentTime(&nowTime);
+    while (OHOS::GetSecondsBetween(startTime, nowTime) < Constants::TIME_WAIT_TIME_OUT &&
+        !callback->isIamOnResultCallBack_) {
+        std::this_thread::sleep_for(std::chrono::milliseconds(Constants::WAIT_ONE_TIME));
+        OHOS::GetSystemCurrentTime(&nowTime);
+    }
+
+    if (!callback->isIamOnResultCallBack_) {
+        ACCOUNT_LOGE("iam did not call back! timeout!");
+        return ERR_OK;    // do not return fail
+    }
+    ACCOUNT_LOGI("send to iam account delete and get callback succeed!");
     return ERR_OK;
 }
 
