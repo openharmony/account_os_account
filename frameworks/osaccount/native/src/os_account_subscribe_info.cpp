@@ -19,6 +19,7 @@
 namespace OHOS {
 namespace AccountSA {
 OsAccountSubscribeInfo::OsAccountSubscribeInfo()
+    : osAccountSubscribeType_(ACTIVATING), name_("")
 {}
 
 OsAccountSubscribeInfo::OsAccountSubscribeInfo(OS_ACCOUNT_SUBSCRIBE_TYPE &osAccountSubscribeType, std::string &name)
