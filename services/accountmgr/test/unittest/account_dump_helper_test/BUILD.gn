@@ -70,7 +70,7 @@ ohos_unittest("AccountDumpHelperTest") {
     "ability_runtime:ability_manager",
     "ability_runtime:base",
     "ability_runtime:want",
-    "appexecfwk_standard:appexecfwk_base",
+    "bundle_framework:appexecfwk_base",
     "ces_standard:cesfwk_core",
     "ces_standard:cesfwk_innerkits",
     "distributeddatamgr:distributeddata_inner",

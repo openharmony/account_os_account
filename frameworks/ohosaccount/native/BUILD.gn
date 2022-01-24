@@ -50,7 +50,7 @@ ohos_shared_library("libaccountkits") {
 
   external_deps = [
     "ability_runtime:base",
-    "appexecfwk_standard:appexecfwk_base",
+    "bundle_framework:appexecfwk_base",
     "hiviewdfx_hilog_native:libhilog",
     "ipc:ipc_core",
     "safwk:system_ability_fwk",
