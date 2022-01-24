@@ -38,6 +38,7 @@
         "hiviewdfx_hilog_native",
         "ipc",
         "permission_standard",
+        "resmgr_standard",
         "safwk",
         "samgr_standard",
         "startup_l2"
