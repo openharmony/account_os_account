@@ -32,6 +32,7 @@
         "ability_manager",
         "aafwk_standard",
         "appexecfwk_standard",
+        "bundle_framework",
         "ces_standard",
         "distributeddatamgr",
         "hisysevent_native",
