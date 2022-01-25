@@ -409,62 +409,171 @@ ErrCode AppAccountControlManager::SetAccountCredential(const std::string &name, 
     return ERR_OK;
 }
 
-ErrCode AppAccountControlManager::GetOAuthToken(
-    const std::string &name, std::string &token, const uid_t &uid, const std::string &bundleName)
+ErrCode AppAccountControlManager::GetOAuthToken(const OAuthRequest &request, std::string &token)
 {
     ACCOUNT_LOGI("enter");
-
-    ACCOUNT_LOGI("name = %{public}s", name.c_str());
-    ACCOUNT_LOGI("token = %{public}s", token.c_str());
-    ACCOUNT_LOGI("bundleName = %{public}s", bundleName.c_str());
-
-    AppAccountInfo appAccountInfo(name, bundleName);
+    ACCOUNT_LOGI("name = %{public}s, owner= %{public}s, authType = %{public}s",
+        request.name.c_str(), request.owner.c_str(), request.authType.c_str());
+    AppAccountInfo appAccountInfo(request.name, request.owner);
     std::shared_ptr<AppAccountDataStorage> dataStoragePtr;
-    ErrCode result = GetAccountInfoFromDataStorage(appAccountInfo, dataStoragePtr, uid);
+    ErrCode result = GetAccountInfoFromDataStorage(appAccountInfo, dataStoragePtr, request.callerUid);
     if (result != ERR_OK) {
         ACCOUNT_LOGE("failed to get account info from data storage");
+        return ERR_APPACCOUNT_SERVICE_ACCOUNT_NOT_EXIST;
+    }
+    bool isVisible = false;
+    result = appAccountInfo.CheckOAuthTokenVisibility(request.authType, request.callerBundleName, isVisible);
+    if ((result != ERR_OK) || (!isVisible)) {
+        ACCOUNT_LOGE("failed to get oauth token for permission denied");
+        return ERR_APPACCOUNT_SERVICE_PERMISSION_DENIED;
+    }
+    return appAccountInfo.GetOAuthToken(request.authType, token);
+}
+
+ErrCode AppAccountControlManager::SetOAuthToken(const OAuthRequest &request)
+{
+    ACCOUNT_LOGI("enter");
+    ACCOUNT_LOGI("name = %{public}s, authType = %{public}s", request.name.c_str(), request.authType.c_str());
+    AppAccountInfo appAccountInfo(request.name, request.callerBundleName);
+    std::shared_ptr<AppAccountDataStorage> dataStoragePtr;
+    ErrCode result = GetAccountInfoFromDataStorage(appAccountInfo, dataStoragePtr, request.callerUid);
+    if (result != ERR_OK) {
+        ACCOUNT_LOGE("failed to get account info from data storage");
+        return ERR_APPACCOUNT_SERVICE_ACCOUNT_NOT_EXIST;
+    }
+    result = appAccountInfo.SetOAuthToken(request.authType, request.token);
+    if (result != ERR_OK) {
+        ACCOUNT_LOGE("failed to set oauth token");
         return result;
     }
-
-    auto it = dataCache_.find(appAccountInfo.GetPrimeKey());
-    if (it == dataCache_.end()) {
-        ACCOUNT_LOGE("failed to get account info from data cache");
-        dataCache_.emplace(appAccountInfo.GetPrimeKey(), "");
-        it = dataCache_.find(appAccountInfo.GetPrimeKey());
+    result = SaveAccountInfoIntoDataStorage(appAccountInfo, dataStoragePtr, request.callerUid);
+    if (result != ERR_OK) {
+        ACCOUNT_LOGE("failed to save account info into data storage");
+        return ERR_APPACCOUNT_SERVICE_SAVE_ACCOUNT_INFO;
     }
-
-    token = it->second;
-
-    ACCOUNT_LOGI("end, token = %{public}s", token.c_str());
-
     return ERR_OK;
 }
 
-ErrCode AppAccountControlManager::SetOAuthToken(
-    const std::string &name, const std::string &token, const uid_t &uid, const std::string &bundleName)
+ErrCode AppAccountControlManager::DeleteOAuthToken(const OAuthRequest &request)
 {
     ACCOUNT_LOGI("enter");
-
-    ACCOUNT_LOGI("name = %{public}s", name.c_str());
-    ACCOUNT_LOGI("token = %{public}s", token.c_str());
-    ACCOUNT_LOGI("bundleName = %{public}s", bundleName.c_str());
-
-    AppAccountInfo appAccountInfo(name, bundleName);
+    ACCOUNT_LOGI("name = %{public}s, owner = %{public}s", request.name.c_str(), request.owner.c_str());
+    AppAccountInfo appAccountInfo(request.name, request.owner);
     std::shared_ptr<AppAccountDataStorage> dataStoragePtr;
-    ErrCode result = GetAccountInfoFromDataStorage(appAccountInfo, dataStoragePtr, uid);
+    ErrCode result = GetAccountInfoFromDataStorage(appAccountInfo, dataStoragePtr, request.callerUid);
     if (result != ERR_OK) {
         ACCOUNT_LOGE("failed to get account info from data storage");
+        return ERR_APPACCOUNT_SERVICE_ACCOUNT_NOT_EXIST;
+    }
+    bool isVisible = false;
+    result = appAccountInfo.CheckOAuthTokenVisibility(request.authType, request.callerBundleName, isVisible);
+    if ((!isVisible) || (result != ERR_OK)) {
+        ACCOUNT_LOGI("failed to delete oauth token for permission denied");
+        return ERR_APPACCOUNT_SERVICE_PERMISSION_DENIED;
+    }
+    result = appAccountInfo.DeleteOAuthToken(request.authType, request.token);
+    if (result != ERR_OK) {
+        ACCOUNT_LOGI("failed to delete oauth token");
+        return ERR_OK;
+    }
+    result = SaveAccountInfoIntoDataStorage(appAccountInfo, dataStoragePtr, request.callerUid);
+    if (result != ERR_OK) {
+        ACCOUNT_LOGE("failed to save account info into data storage");
+        return ERR_APPACCOUNT_SERVICE_SAVE_ACCOUNT_INFO;
+    }
+    return ERR_OK;
+}
+
+ErrCode AppAccountControlManager::SetOAuthTokenVisibility(const OAuthRequest &request)
+{
+    ACCOUNT_LOGI("enter");
+    ACCOUNT_LOGI("name = %{public}s, authType = %{public}s, bundleName = %{public}s, isTokenVisible = %{public}d",
+        request.name.c_str(), request.authType.c_str(), request.bundleName.c_str(), request.isTokenVisible);
+    AppAccountInfo appAccountInfo(request.name, request.callerBundleName);
+    std::shared_ptr<AppAccountDataStorage> dataStoragePtr;
+    ErrCode result = GetAccountInfoFromDataStorage(appAccountInfo, dataStoragePtr, request.callerUid);
+    if (result != ERR_OK) {
+        ACCOUNT_LOGE("failed to get account info from data storage");
+        return ERR_APPACCOUNT_SERVICE_ACCOUNT_NOT_EXIST;
+    }
+    result = appAccountInfo.SetOAuthTokenVisibility(request.authType, request.bundleName, request.isTokenVisible);
+    if (result != ERR_OK) {
+        ACCOUNT_LOGE("failed to set oauth token visibility");
         return result;
     }
-
-    auto it = dataCache_.find(appAccountInfo.GetPrimeKey());
-    if (it == dataCache_.end()) {
-        dataCache_.emplace(appAccountInfo.GetPrimeKey(), token);
-    } else {
-        dataCache_[appAccountInfo.GetPrimeKey()] = token;
+    result = SaveAccountInfoIntoDataStorage(appAccountInfo, dataStoragePtr, request.callerUid);
+    if (result != ERR_OK) {
+        ACCOUNT_LOGE("failed to save account info into data storage");
+        return ERR_APPACCOUNT_SERVICE_SAVE_ACCOUNT_INFO;
     }
-
     return ERR_OK;
+}
+
+ErrCode AppAccountControlManager::CheckOAuthTokenVisibility(const OAuthRequest &request, bool &isVisible)
+{
+    ACCOUNT_LOGI("enter");
+    ACCOUNT_LOGI("name = %{public}s, owner = %{public}s, authType = %{public}s, bundleName = %{public}s",
+        request.name.c_str(), request.owner.c_str(), request.authType.c_str(), request.bundleName.c_str());
+    isVisible = false;
+    AppAccountInfo appAccountInfo(request.name, request.owner);
+    std::shared_ptr<AppAccountDataStorage> dataStoragePtr;
+    ErrCode result = GetAccountInfoFromDataStorage(appAccountInfo, dataStoragePtr, request.callerUid);
+    if (result != ERR_OK) {
+        ACCOUNT_LOGI("failed to get account info from data storage");
+        return ERR_APPACCOUNT_SERVICE_ACCOUNT_NOT_EXIST;
+    }
+    return appAccountInfo.CheckOAuthTokenVisibility(request.authType, request.bundleName, isVisible);
+}
+
+ErrCode AppAccountControlManager::GetAllOAuthTokens(
+    const OAuthRequest &request, std::vector<OAuthTokenInfo> &tokenInfos)
+{
+    ACCOUNT_LOGI("enter");
+    ACCOUNT_LOGI("name = %{public}s, owner = %{public}s", request.name.c_str(), request.owner.c_str());
+    tokenInfos.clear();
+    AppAccountInfo appAccountInfo(request.name, request.owner);
+    std::shared_ptr<AppAccountDataStorage> dataStoragePtr;
+    ErrCode result = GetAccountInfoFromDataStorage(appAccountInfo, dataStoragePtr, request.callerUid);
+    if (result != ERR_OK) {
+        ACCOUNT_LOGE("failed to get account info from data storage");
+        return ERR_APPACCOUNT_SERVICE_ACCOUNT_NOT_EXIST;
+    }
+    std::vector<OAuthTokenInfo> allTokenInfos;
+    result = appAccountInfo.GetAllOAuthTokens(allTokenInfos);
+    if (result != ERR_OK) {
+        ACCOUNT_LOGE("failed to get all oauth token from data storage");
+        return result;
+    }
+    if (request.callerBundleName == request.owner) {
+        tokenInfos = allTokenInfos;
+        return ERR_OK;
+    }
+    for (auto tokenInfo : allTokenInfos) {
+        if (tokenInfo.token.empty()) {
+            continue;
+        }
+        auto it = tokenInfo.authList.find(request.callerBundleName);
+        if (it != tokenInfo.authList.end()) {
+            tokenInfo.authList.clear();
+            tokenInfos.push_back(tokenInfo);
+        }
+    }
+    return ERR_OK;
+}
+
+ErrCode AppAccountControlManager::GetOAuthList(
+    const OAuthRequest &request, std::set<std::string> &oauthList)
+{
+    ACCOUNT_LOGI("enter");
+    ACCOUNT_LOGI("name = %{public}s, authType = %{public}s", request.name.c_str(), request.authType.c_str());
+    AppAccountInfo appAccountInfo(request.name, request.callerBundleName);
+    std::shared_ptr<AppAccountDataStorage> dataStoragePtr;
+    ErrCode result = GetAccountInfoFromDataStorage(appAccountInfo, dataStoragePtr, request.callerUid);
+    if (result != ERR_OK) {
+        ACCOUNT_LOGE("failed to get account info from data storage");
+        return ERR_APPACCOUNT_SERVICE_ACCOUNT_NOT_EXIST;
+    }
+    return appAccountInfo.GetOAuthList(request.authType, oauthList);
 }
 
 ErrCode AppAccountControlManager::ClearOAuthToken(

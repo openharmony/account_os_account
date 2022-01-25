@@ -16,10 +16,14 @@
 #ifndef NAPI_APP_ACCOUNT_COMMON
 #define NAPI_APP_ACCOUNT_COMMON
 
+#include <thread>
+#include "app_account_authenticator_callback_stub.h"
+#include "app_account_common.h"
 #include "app_account_manager.h"
 #include "app_account_subscriber.h"
 #include "napi/native_api.h"
 #include "napi/native_node_api.h"
+#include "want.h"
 
 namespace OHOS {
 namespace AccountJsKit {
@@ -32,22 +36,33 @@ constexpr std::int32_t ARGS_SIZE_ONE = 1;
 constexpr std::int32_t ARGS_SIZE_TWO = 2;
 constexpr std::int32_t ARGS_SIZE_THREE = 3;
 constexpr std::int32_t ARGS_SIZE_FOUR = 4;
+constexpr std::int32_t ARGS_SIZE_FIVE = 5;
+constexpr std::int32_t ARGS_SIZE_SIX = 6;
 constexpr int RESULT_COUNT = 2;
 constexpr int PARAMTWO = 2;
+constexpr int PARAMTHREE = 3;
+constexpr int PARAMFOUR = 4;
+constexpr int PARAMFIVE = 5;
 const std::string APP_ACCOUNT_CLASS_NAME = "AppAccountManager";
 
 static const std::int32_t SUBSCRIBE_MAX_PARA = 3;
 static const std::int32_t UNSUBSCRIBE_MAX_PARA = 2;
 
 class SubscriberPtr;
+class AppAccountManagerCallback;
 struct AsyncContextForSubscribe;
 
 extern std::map<AppAccountManager *, std::vector<AsyncContextForSubscribe *>> subscriberInstances;
 
-struct AppAccountAsyncContext {
+struct CommonAsyncContext {
     napi_env env;
     napi_async_work work;
+    napi_deferred deferred;
+    napi_ref callbackRef;
+    napi_status status;
+};
 
+struct AppAccountAsyncContext : public CommonAsyncContext {
     std::string name;
     std::string owner;
     std::string extraInfo;
@@ -58,14 +73,25 @@ struct AppAccountAsyncContext {
     std::string value;
     std::string subscribeType;
     std::string unSubscribeType;
-    std::string token;
     bool isEnable = false;
     bool result = false;
     int errCode = 0;
+};
 
-    napi_deferred deferred;
-    napi_ref callbackRef;
-    napi_status status;
+struct OAuthAsyncContext : public CommonAsyncContext {
+    std::string name;
+    std::string owner;
+    std::string sessionId;
+    std::string bundleName;
+    std::string abilityName;
+    OAuthTokenInfo tokenInfo;
+    bool isVisible = false;
+    int32_t errCode = 0;
+    AAFwk::WantParams options;
+    AuthenticatorInfo authenticatorInfo;
+    std::vector<OAuthTokenInfo> oauthTokenInfos;
+    AppAccountManagerCallback *appAccountMgrCb = nullptr;
+    sptr<IRemoteObject> authenticatorCb = nullptr;
 };
 
 struct GetAccountsAsyncContext {
@@ -103,6 +129,21 @@ struct AsyncContextForUnsubscribe {
     size_t argc = 0;
 };
 
+struct ThreadLockInfo {
+    std::mutex mutex;
+    std::condition_variable condition;
+    bool ready = false;
+};
+
+struct AuthenticatorCallbackParam {
+    napi_env env = nullptr;
+    int32_t resultCode;
+    AAFwk::WantParams result;
+    AAFwk::Want request;
+    napi_ref funcRef;
+    ThreadLockInfo *lockInfo;
+};
+
 class SubscriberPtr : public AppAccountSubscriber {
 public:
     SubscriberPtr(const AppAccountSubscribeInfo &subscribeInfo);
@@ -118,21 +159,70 @@ private:
     napi_ref ref_ = nullptr;
 };
 
+class AppAccountManagerCallback : public AppAccountAuthenticatorCallbackStub {
+public:
+    AppAccountManagerCallback();
+    ~AppAccountManagerCallback();
+
+    virtual ErrCode OnResult(int32_t resultCode, const AAFwk::Want &result) override;
+    virtual ErrCode OnRequestRedirected(AAFwk::Want &request) override;
+
+    void SetEnv(const napi_env &env);
+    void SetResultRef(const napi_ref &ref);
+    void SetRequestRedirectedRef(const napi_ref &ref);
+private:
+    napi_env env_ = nullptr;
+    napi_ref resultRef_ = nullptr;
+    napi_ref requestRedirectedRef_ = nullptr;
+};
+
 napi_value NapiGetNull(napi_env env);
 
 std::string GetNamedProperty(napi_env env, napi_value obj);
 
-napi_value GetErrorCodeValue(napi_env env, int errCode);
+void SetNamedProperty(napi_env env, napi_value dstObj, const char *objName, const char *propName);
+
+void SetNamedProperty(napi_env env, napi_value dstObj, const int32_t objValue, const char *propName);
+
+int32_t ConvertToJSErrCode(int32_t errCode);
 
 napi_value GetErrorCodeValue(napi_env env, int errCode);
 
 void GetAppAccountInfoForResult(napi_env env, const std::vector<AppAccountInfo> &info, napi_value result);
 
+void GetAuthenticatorInfoForResult(napi_env env, const AuthenticatorInfo &info, napi_value &result);
+
+void GetOAuthTokenInfoForResult(napi_env env, const std::vector<OAuthTokenInfo> &info, napi_value result);
+
+void GetOAuthListForResult(napi_env env, const std::set<std::string> &info, napi_value result);
+
+void GetAuthenticatorCallbackForResult(napi_env env, sptr<IRemoteObject> callback, napi_value *result);
+
 void ParseContextWithExInfo(napi_env env, napi_callback_info cbInfo, AppAccountAsyncContext *asyncContext);
 
 void ParseContextForSetExInfo(napi_env env, napi_callback_info cbInfo, AppAccountAsyncContext *asyncContext);
 
-void ParseContextForSetOAuth(napi_env env, napi_callback_info cbInfo, AppAccountAsyncContext *asyncContext);
+void ParseContextForAuthenticate(napi_env env, napi_callback_info cbInfo, OAuthAsyncContext *asyncContext, size_t argc);
+
+void ParseContextForDeleteOAuthToken(napi_env env, napi_callback_info cbInfo, OAuthAsyncContext *asyncContext);
+
+void ParseContextForGetOAuthToken(napi_env env, napi_callback_info cbInfo, OAuthAsyncContext *asyncContext);
+
+void ParseContextForSetOAuthTokenVisibility(napi_env env, napi_callback_info cbInfo, OAuthAsyncContext *asyncContext);
+
+void ParseContextForCheckOAuthTokenVisibility(napi_env env, napi_callback_info cbInfo, OAuthAsyncContext *asyncContext);
+
+void ParseContextForGetAuthenticatorInfo(napi_env env, napi_callback_info cbInfo, OAuthAsyncContext *asyncContext);
+
+void ParseContextForGetAllOAuthTokens(napi_env env, napi_callback_info cbInfo, OAuthAsyncContext *asyncContext);
+
+void ParseContextForGetOAuthList(napi_env env, napi_callback_info cbInfo, OAuthAsyncContext *asyncContext);
+
+void ParseContextForGetAuthenticatorCallback(napi_env env, napi_callback_info cbInfo, OAuthAsyncContext *asyncContext);
+
+void ParseContextForSetOAuthToken(napi_env env, napi_callback_info cbInfo, OAuthAsyncContext *asyncContext);
+
+void ParseContextForClearOAuth(napi_env env, napi_callback_info cbInfo, AppAccountAsyncContext *asyncContext);
 
 void ParseContextWithBdName(napi_env env, napi_callback_info cbInfo, AppAccountAsyncContext *asyncContext);
 
@@ -153,7 +243,7 @@ void ParseContextWithCredentialType(napi_env env, napi_callback_info cbInfo, App
 void ParseContextWithStrCBArray(napi_env env, napi_callback_info cbInfo, GetAccountsAsyncContext *asyncContext);
 
 void ProcessCallbackOrPromise(
-    napi_env env, const AppAccountAsyncContext *asyncContext, napi_value err, napi_value data);
+    napi_env env, const CommonAsyncContext *asyncContext, napi_value err, napi_value data);
 
 void ProcessCallbackOrPromiseCBArray(
     napi_env env, const GetAccountsAsyncContext *asyncContext, napi_value err, napi_value data);

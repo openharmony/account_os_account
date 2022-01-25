@@ -27,6 +27,7 @@ public:
 private:
     static napi_value CreateAppAccountManager(napi_env env, napi_callback_info cbInfo);
     static napi_value AddAccount(napi_env env, napi_callback_info cbInfo);
+    static napi_value AddAccountImplicitly(napi_env env, napi_callback_info cbInfo);
     static napi_value DeleteAccount(napi_env env, napi_callback_info cbInfo);
     static napi_value DisableAppAccess(napi_env env, napi_callback_info cbInfo);
     static napi_value EnableAppAccess(napi_env env, napi_callback_info cbInfo);
@@ -40,8 +41,16 @@ private:
     static napi_value GetAccountCredential(napi_env env, napi_callback_info cbInfo);
     static napi_value GetAccountExtraInfo(napi_env env, napi_callback_info cbInfo);
     static napi_value GetAssociatedData(napi_env env, napi_callback_info cbInfo);
+    static napi_value Authenticate(napi_env env, napi_callback_info cbInfo);
     static napi_value GetOAuthToken(napi_env env, napi_callback_info cbInfo);
     static napi_value SetOAuthToken(napi_env env, napi_callback_info cbInfo);
+    static napi_value DeleteOAuthToken(napi_env env, napi_callback_info cbInfo);
+    static napi_value SetOAuthTokenVisibility(napi_env env, napi_callback_info cbInfo);
+    static napi_value CheckOAuthTokenVisibility(napi_env env, napi_callback_info cbInfo);
+    static napi_value GetAuthenticatorInfo(napi_env env, napi_callback_info cbinfo);
+    static napi_value GetAllOAuthTokens(napi_env env, napi_callback_info cbInfo);
+    static napi_value GetOAuthList(napi_env env, napi_callback_info cbInfo);
+    static napi_value GetAuthenticatorCallback(napi_env env, napi_callback_info cbInfo);
     static napi_value ClearOAuthToken(napi_env env, napi_callback_info cbInfo);
     static napi_value Subscribe(napi_env env, napi_callback_info cbInfo);
     static napi_value Unsubscribe(napi_env env, napi_callback_info cbInfo);

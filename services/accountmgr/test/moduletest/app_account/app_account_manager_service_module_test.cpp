@@ -18,12 +18,14 @@
 #include <thread>
 #include "account_log_wrapper.h"
 #define private public
+#include "app_account_common.h"
 #include "app_account_control_manager.h"
 #include "app_account_manager_service.h"
 #undef private
 #include "bundle_constants.h"
 #include "common_event_manager.h"
 #include "common_event_support.h"
+#include "iremote_object.h"
 
 using namespace testing::ext;
 using namespace OHOS;
@@ -58,6 +60,10 @@ const std::string STRING_CREDENTIAL_TWO = "2048";
 const std::string STRING_TOKEN = "1024";
 const std::string STRING_TOKEN_TWO = "2048";
 const std::string STRING_OWNER = "com.example.owner";
+const std::string STRING_AUTH_TYPE = "read";
+const std::string STRING_AUTH_TYPE_TWO = "write";
+const std::string STRING_SESSION_ID = "100";
+const std::string STRING_ABILITY_NAME = "com.example.owner.MainAbility";
 
 const bool SYNC_ENABLE_TRUE = true;
 const bool SYNC_ENABLE_FALSE = false;
@@ -1003,16 +1009,10 @@ HWTEST_F(AppAccountManagerServiceModuleTest, AppAccountManagerService_GetOAuthTo
     auto servicePtr = std::make_shared<AppAccountManagerService>();
     ASSERT_NE(servicePtr, nullptr);
 
-    ErrCode result = servicePtr->AddAccount(STRING_NAME, STRING_EXTRA_INFO);
-    EXPECT_EQ(result, ERR_OK);
-
     std::string token;
-    result = servicePtr->GetOAuthToken(STRING_NAME, token);
-    EXPECT_EQ(result, ERR_OK);
+    ErrCode result = servicePtr->GetOAuthToken(STRING_NAME, STRING_OWNER, STRING_AUTH_TYPE, token);
+    EXPECT_EQ(result, ERR_APPACCOUNT_SERVICE_ACCOUNT_NOT_EXIST);
     EXPECT_EQ(token, STRING_EMPTY);
-
-    result = servicePtr->DeleteAccount(STRING_NAME);
-    EXPECT_EQ(result, ERR_OK);
 }
 
 /**
@@ -1021,9 +1021,9 @@ HWTEST_F(AppAccountManagerServiceModuleTest, AppAccountManagerService_GetOAuthTo
  * @tc.type: FUNC
  * @tc.require: SR000GGVFU
  */
-HWTEST_F(AppAccountManagerServiceModuleTest, AppAccountManagerService_GetOAuthToken_0200, TestSize.Level1)
+HWTEST_F(AppAccountManagerServiceModuleTest, AppAccountManagerService_GetOAuthToken_0200, TestSize.Level0)
 {
-    ACCOUNT_LOGI("AppAccountManagerService_GetOAuthToken_0200");
+    ACCOUNT_LOGI("AppAccountManagerService_GetOAuthToken_0100");
 
     auto servicePtr = std::make_shared<AppAccountManagerService>();
     ASSERT_NE(servicePtr, nullptr);
@@ -1031,13 +1031,17 @@ HWTEST_F(AppAccountManagerServiceModuleTest, AppAccountManagerService_GetOAuthTo
     ErrCode result = servicePtr->AddAccount(STRING_NAME, STRING_EXTRA_INFO);
     EXPECT_EQ(result, ERR_OK);
 
-    result = servicePtr->SetOAuthToken(STRING_NAME, STRING_TOKEN);
+    std::vector<AppAccountInfo> appAccounts;
+    result = servicePtr->GetAllAccessibleAccounts(appAccounts);
+    EXPECT_EQ(appAccounts.size(), SIZE_ONE);
+    std::string owner;
+    result = appAccounts[0].GetOwner(owner);
     EXPECT_EQ(result, ERR_OK);
 
     std::string token;
-    result = servicePtr->GetOAuthToken(STRING_NAME, token);
-    EXPECT_EQ(result, ERR_OK);
-    EXPECT_EQ(token, STRING_TOKEN);
+    result = servicePtr->GetOAuthToken(STRING_NAME, owner, STRING_AUTH_TYPE, token);
+    EXPECT_EQ(result, ERR_APPACCOUNT_SERVICE_OAUTH_TOKEN_NOT_EXIST);
+    EXPECT_EQ(token, STRING_EMPTY);
 
     result = servicePtr->DeleteAccount(STRING_NAME);
     EXPECT_EQ(result, ERR_OK);
@@ -1051,20 +1055,36 @@ HWTEST_F(AppAccountManagerServiceModuleTest, AppAccountManagerService_GetOAuthTo
  */
 HWTEST_F(AppAccountManagerServiceModuleTest, AppAccountManagerService_GetOAuthToken_0300, TestSize.Level1)
 {
-    ACCOUNT_LOGI("AppAccountManagerService_GetOAuthToken_0300");
+    ACCOUNT_LOGI("AppAccountManagerService_GetOAuthToken_0200");
 
     auto servicePtr = std::make_shared<AppAccountManagerService>();
     ASSERT_NE(servicePtr, nullptr);
 
+    ErrCode result = servicePtr->AddAccount(STRING_NAME, STRING_EXTRA_INFO);
+    EXPECT_EQ(result, ERR_OK);
+
+    std::vector<AppAccountInfo> appAccounts;
+    result = servicePtr->GetAllAccessibleAccounts(appAccounts);
+    EXPECT_EQ(appAccounts.size(), SIZE_ONE);
+    std::string owner;
+    result = appAccounts[0].GetOwner(owner);
+    EXPECT_EQ(result, ERR_OK);
+
+    result = servicePtr->SetOAuthToken(STRING_NAME, STRING_AUTH_TYPE, STRING_TOKEN);
+    EXPECT_EQ(result, ERR_OK);
+
     std::string token;
-    ErrCode result = servicePtr->GetOAuthToken(STRING_NAME, token);
-    EXPECT_EQ(result, ERR_APPACCOUNT_SERVICE_GET_ACCOUNT_INFO_BY_ID);
-    EXPECT_EQ(token, STRING_EMPTY);
+    result = servicePtr->GetOAuthToken(STRING_NAME, owner, STRING_AUTH_TYPE, token);
+    EXPECT_EQ(result, ERR_OK);
+    EXPECT_EQ(token, STRING_TOKEN);
+
+    result = servicePtr->DeleteAccount(STRING_NAME);
+    EXPECT_EQ(result, ERR_OK);
 }
 
 /**
  * @tc.name: AppAccountManagerService_SetOAuthToken_0100
- * @tc.desc: Set oauth token with valid data.
+ * @tc.desc: Set oauth token failed with non-exist account.
  * @tc.type: FUNC
  * @tc.require: SR000GGVFU
  */
@@ -1075,19 +1095,13 @@ HWTEST_F(AppAccountManagerServiceModuleTest, AppAccountManagerService_SetOAuthTo
     auto servicePtr = std::make_shared<AppAccountManagerService>();
     ASSERT_NE(servicePtr, nullptr);
 
-    ErrCode result = servicePtr->AddAccount(STRING_NAME, STRING_EXTRA_INFO);
-    EXPECT_EQ(result, ERR_OK);
-
-    result = servicePtr->SetOAuthToken(STRING_NAME, STRING_TOKEN);
-    EXPECT_EQ(result, ERR_OK);
-
-    result = servicePtr->DeleteAccount(STRING_NAME);
-    EXPECT_EQ(result, ERR_OK);
+    ErrCode result = servicePtr->SetOAuthToken(STRING_NAME, STRING_AUTH_TYPE, STRING_TOKEN);
+    EXPECT_EQ(result, ERR_APPACCOUNT_SERVICE_ACCOUNT_NOT_EXIST);
 }
 
 /**
  * @tc.name: AppAccountManagerService_SetOAuthToken_0200
- * @tc.desc: Set oauth token with valid data.
+ * @tc.desc: Set oauth token successfully.
  * @tc.type: FUNC
  * @tc.require: SR000GGVFU
  */
@@ -1101,14 +1115,21 @@ HWTEST_F(AppAccountManagerServiceModuleTest, AppAccountManagerService_SetOAuthTo
     ErrCode result = servicePtr->AddAccount(STRING_NAME, STRING_EXTRA_INFO);
     EXPECT_EQ(result, ERR_OK);
 
-    result = servicePtr->SetOAuthToken(STRING_NAME, STRING_TOKEN);
+    result = servicePtr->SetOAuthToken(STRING_NAME, STRING_AUTH_TYPE, STRING_TOKEN);
     EXPECT_EQ(result, ERR_OK);
 
-    result = servicePtr->SetOAuthToken(STRING_NAME, STRING_TOKEN_TWO);
+    result = servicePtr->SetOAuthToken(STRING_NAME, STRING_AUTH_TYPE_TWO, STRING_TOKEN_TWO);
+    EXPECT_EQ(result, ERR_OK);
+
+    std::vector<AppAccountInfo> appAccounts;
+    result = servicePtr->GetAllAccessibleAccounts(appAccounts);
+    EXPECT_EQ(appAccounts.size(), SIZE_ONE);
+    std::string owner;
+    result = appAccounts[0].GetOwner(owner);
     EXPECT_EQ(result, ERR_OK);
 
     std::string token;
-    result = servicePtr->GetOAuthToken(STRING_NAME, token);
+    result = servicePtr->GetOAuthToken(STRING_NAME, owner, STRING_AUTH_TYPE_TWO, token);
     EXPECT_EQ(result, ERR_OK);
     EXPECT_EQ(token, STRING_TOKEN_TWO);
 
@@ -1117,47 +1138,34 @@ HWTEST_F(AppAccountManagerServiceModuleTest, AppAccountManagerService_SetOAuthTo
 }
 
 /**
- * @tc.name: AppAccountManagerService_SetOAuthToken_0300
- * @tc.desc: Set oauth token with invalid data.
+ * @tc.name: AppAccountManagerService_DeleteOAuthToken_0100
+ * @tc.desc: Delete oauth token successfully with non-existent token.
  * @tc.type: FUNC
  * @tc.require: SR000GGVFU
  */
-HWTEST_F(AppAccountManagerServiceModuleTest, AppAccountManagerService_SetOAuthToken_0300, TestSize.Level1)
+HWTEST_F(AppAccountManagerServiceModuleTest, AppAccountManagerService_DeleteOAuthToken_0100, TestSize.Level1)
 {
-    ACCOUNT_LOGI("AppAccountManagerService_SetOAuthToken_0300");
-
-    auto servicePtr = std::make_shared<AppAccountManagerService>();
-    ASSERT_NE(servicePtr, nullptr);
-
-    ErrCode result = servicePtr->SetOAuthToken(STRING_NAME, STRING_TOKEN);
-    EXPECT_EQ(result, ERR_APPACCOUNT_SERVICE_GET_ACCOUNT_INFO_BY_ID);
-}
-
-/**
- * @tc.name: AppAccountManagerService_ClearOAuthToken_0100
- * @tc.desc: Clear oauth token with valid data.
- * @tc.type: FUNC
- * @tc.require: SR000GGVFU
- */
-HWTEST_F(AppAccountManagerServiceModuleTest, AppAccountManagerService_ClearOAuthToken_0100, TestSize.Level1)
-{
-    ACCOUNT_LOGI("AppAccountManagerService_ClearOAuthToken_0100");
+    ACCOUNT_LOGI("AppAccountManagerService_DeleteOAuthToken_0100");
 
     auto servicePtr = std::make_shared<AppAccountManagerService>();
     ASSERT_NE(servicePtr, nullptr);
 
     ErrCode result = servicePtr->AddAccount(STRING_NAME, STRING_EXTRA_INFO);
     EXPECT_EQ(result, ERR_OK);
-
-    result = servicePtr->SetOAuthToken(STRING_NAME, STRING_TOKEN);
+    
+    std::vector<AppAccountInfo> appAccounts;
+    result = servicePtr->GetAllAccessibleAccounts(appAccounts);
+    EXPECT_EQ(appAccounts.size(), SIZE_ONE);
+    std::string owner;
+    result = appAccounts[0].GetOwner(owner);
     EXPECT_EQ(result, ERR_OK);
 
-    result = servicePtr->ClearOAuthToken(STRING_NAME);
+    result = servicePtr->DeleteOAuthToken(STRING_NAME, owner, STRING_AUTH_TYPE, STRING_TOKEN);
     EXPECT_EQ(result, ERR_OK);
 
     std::string token;
-    result = servicePtr->GetOAuthToken(STRING_NAME, token);
-    EXPECT_EQ(result, ERR_OK);
+    result = servicePtr->GetOAuthToken(STRING_NAME, owner, STRING_AUTH_TYPE, token);
+    EXPECT_EQ(result, ERR_APPACCOUNT_SERVICE_OAUTH_TOKEN_NOT_EXIST);
     EXPECT_EQ(token, STRING_EMPTY);
 
     result = servicePtr->DeleteAccount(STRING_NAME);
@@ -1165,27 +1173,37 @@ HWTEST_F(AppAccountManagerServiceModuleTest, AppAccountManagerService_ClearOAuth
 }
 
 /**
- * @tc.name: AppAccountManagerService_ClearOAuthToken_0200
- * @tc.desc: Clear oauth token with valid data.
+ * @tc.name: AppAccountManagerService_DeleteOAuthToken_0200
+ * @tc.desc: Delete oauth token successfully with existent token.
  * @tc.type: FUNC
  * @tc.require: SR000GGVFU
  */
-HWTEST_F(AppAccountManagerServiceModuleTest, AppAccountManagerService_ClearOAuthToken_0200, TestSize.Level1)
+HWTEST_F(AppAccountManagerServiceModuleTest, AppAccountManagerService_DeleteOAuthToken_0200, TestSize.Level1)
 {
-    ACCOUNT_LOGI("AppAccountManagerService_ClearOAuthToken_0200");
+    ACCOUNT_LOGI("AppAccountManagerService_DeleteOAuthToken_0200");
 
     auto servicePtr = std::make_shared<AppAccountManagerService>();
     ASSERT_NE(servicePtr, nullptr);
 
     ErrCode result = servicePtr->AddAccount(STRING_NAME, STRING_EXTRA_INFO);
     EXPECT_EQ(result, ERR_OK);
+    
+    std::vector<AppAccountInfo> appAccounts;
+    result = servicePtr->GetAllAccessibleAccounts(appAccounts);
+    EXPECT_EQ(appAccounts.size(), SIZE_ONE);
+    std::string owner;
+    result = appAccounts[0].GetOwner(owner);
+    EXPECT_EQ(result, ERR_OK);
 
-    result = servicePtr->ClearOAuthToken(STRING_NAME);
+    result = servicePtr->SetOAuthToken(STRING_NAME, STRING_AUTH_TYPE, STRING_TOKEN);
+    EXPECT_EQ(result, ERR_OK);
+
+    result = servicePtr->DeleteOAuthToken(STRING_NAME, owner, STRING_AUTH_TYPE, STRING_TOKEN);
     EXPECT_EQ(result, ERR_OK);
 
     std::string token;
-    result = servicePtr->GetOAuthToken(STRING_NAME, token);
-    EXPECT_EQ(result, ERR_OK);
+    result = servicePtr->GetOAuthToken(STRING_NAME, owner, STRING_AUTH_TYPE, token);
+    EXPECT_EQ(result, ERR_APPACCOUNT_SERVICE_OAUTH_TOKEN_NOT_EXIST);
     EXPECT_EQ(token, STRING_EMPTY);
 
     result = servicePtr->DeleteAccount(STRING_NAME);
@@ -1193,20 +1211,359 @@ HWTEST_F(AppAccountManagerServiceModuleTest, AppAccountManagerService_ClearOAuth
 }
 
 /**
- * @tc.name: AppAccountManagerService_ClearOAuthToken_0300
- * @tc.desc: Clear oauth token with invalid data.
+ * @tc.name: AppAccountManagerService_GetAllOAuthTokens_0100
+ * @tc.desc: Get all oauth token failed for non-existent account.
  * @tc.type: FUNC
  * @tc.require: SR000GGVFU
  */
-HWTEST_F(AppAccountManagerServiceModuleTest, AppAccountManagerService_ClearOAuthToken_0300, TestSize.Level1)
+HWTEST_F(AppAccountManagerServiceModuleTest, AppAccountManagerService_GetAllOAuthTokens_0100, TestSize.Level1)
 {
-    ACCOUNT_LOGI("AppAccountManagerService_ClearOAuthToken_0300");
+    ACCOUNT_LOGI("AppAccountManagerService_GetAllOAuthTokens_0100");
 
     auto servicePtr = std::make_shared<AppAccountManagerService>();
     ASSERT_NE(servicePtr, nullptr);
 
-    ErrCode result = servicePtr->ClearOAuthToken(STRING_NAME);
-    EXPECT_EQ(result, ERR_APPACCOUNT_SERVICE_GET_ACCOUNT_INFO_BY_ID);
+    std::vector<OAuthTokenInfo> tokenInfos;
+    ErrCode result = servicePtr->GetAllOAuthTokens(STRING_NAME, STRING_OWNER, tokenInfos);
+    EXPECT_EQ(result, ERR_APPACCOUNT_SERVICE_ACCOUNT_NOT_EXIST);
+}
+
+/**
+ * @tc.name: AppAccountManagerService_GetAllOAuthTokens_0200
+ * @tc.desc: Get all oauth token successfully.
+ * @tc.type: FUNC
+ * @tc.require: SR000GGVFU
+ */
+HWTEST_F(AppAccountManagerServiceModuleTest, AppAccountManagerService_GetAllOAuthTokens_0200, TestSize.Level1)
+{
+    ACCOUNT_LOGI("AppAccountManagerService_GetAllOAuthTokens_0200");
+
+    auto servicePtr = std::make_shared<AppAccountManagerService>();
+    ASSERT_NE(servicePtr, nullptr);
+
+    ErrCode result = servicePtr->AddAccount(STRING_NAME, STRING_EXTRA_INFO);
+    EXPECT_EQ(result, ERR_OK);
+
+    std::vector<AppAccountInfo> appAccounts;
+    result = servicePtr->GetAllAccessibleAccounts(appAccounts);
+    EXPECT_EQ(appAccounts.size(), SIZE_ONE);
+    std::string owner;
+    result = appAccounts[0].GetOwner(owner);
+    EXPECT_EQ(result, ERR_OK);
+
+    std::vector<OAuthTokenInfo> tokenInfos;
+    result = servicePtr->GetAllOAuthTokens(STRING_NAME, owner, tokenInfos);
+    EXPECT_EQ(result, ERR_OK);
+    EXPECT_EQ(tokenInfos.size(), 0);
+
+    result = servicePtr->SetOAuthToken(STRING_NAME, STRING_AUTH_TYPE, STRING_TOKEN);
+    EXPECT_EQ(result, ERR_OK);
+    
+    result = servicePtr->SetOAuthToken(STRING_NAME, STRING_AUTH_TYPE_TWO, STRING_TOKEN_TWO);
+    EXPECT_EQ(result, ERR_OK);
+
+    tokenInfos.clear();
+    result = servicePtr->GetAllOAuthTokens(STRING_NAME, owner, tokenInfos);
+    EXPECT_EQ(result, ERR_OK);
+    EXPECT_EQ(tokenInfos.size(), SIZE_TWO);
+    EXPECT_EQ(tokenInfos[0].token, STRING_TOKEN);
+    EXPECT_EQ(tokenInfos[1].token, STRING_TOKEN_TWO);
+
+    result = servicePtr->DeleteAccount(STRING_NAME);
+    EXPECT_EQ(result, ERR_OK);
+}
+
+/**
+ * @tc.name: AppAccountManagerService_SetOAuthTokenVisibility_0100
+ * @tc.desc: set oauth token failed with non-existent account.
+ * @tc.type: FUNC
+ * @tc.require: SR000GGVFU
+ */
+HWTEST_F(AppAccountManagerServiceModuleTest, AppAccountManagerService_SetOAuthTokenVisibility_0100, TestSize.Level1)
+{
+    ACCOUNT_LOGI("AppAccountManagerService_SetOAuthTokenVisibility_0100");
+
+    auto servicePtr = std::make_shared<AppAccountManagerService>();
+    ASSERT_NE(servicePtr, nullptr);
+
+    ErrCode result = servicePtr->SetOAuthTokenVisibility(STRING_NAME, STRING_AUTH_TYPE, STRING_BUNDLE_NAME, true);
+    EXPECT_EQ(result, ERR_APPACCOUNT_SERVICE_ACCOUNT_NOT_EXIST);
+}
+
+/**
+ * @tc.name: AppAccountManagerService_SetOAuthTokenVisibility_0100
+ * @tc.desc: set oauth token successfully with non-existent authType.
+ * @tc.type: FUNC
+ * @tc.require: SR000GGVFU
+ */
+HWTEST_F(AppAccountManagerServiceModuleTest, AppAccountManagerService_SetOAuthTokenVisibility_0200, TestSize.Level1)
+{
+    ACCOUNT_LOGI("AppAccountManagerService_SetOAuthTokenVisibility_0100");
+
+    auto servicePtr = std::make_shared<AppAccountManagerService>();
+    ASSERT_NE(servicePtr, nullptr);
+
+    ErrCode result = servicePtr->AddAccount(STRING_NAME, STRING_EXTRA_INFO);
+    EXPECT_EQ(result, ERR_OK);
+
+    result = servicePtr->SetOAuthTokenVisibility(STRING_NAME, STRING_AUTH_TYPE, STRING_BUNDLE_NAME, true);
+    EXPECT_EQ(result, ERR_OK);
+    
+    result = servicePtr->DeleteAccount(STRING_NAME);
+    EXPECT_EQ(result, ERR_OK);
+}
+
+/**
+ * @tc.name: AppAccountManagerService_SetOAuthTokenVisibility_0100
+ * @tc.desc: set oauth token successfully.
+ * @tc.type: FUNC
+ * @tc.require: SR000GGVFU
+ */
+HWTEST_F(AppAccountManagerServiceModuleTest, AppAccountManagerService_SetOAuthTokenVisibility_0300, TestSize.Level1)
+{
+    ACCOUNT_LOGI("AppAccountManagerService_SetOAuthTokenVisibility_0100");
+
+    auto servicePtr = std::make_shared<AppAccountManagerService>();
+    ASSERT_NE(servicePtr, nullptr);
+
+    ErrCode result = servicePtr->AddAccount(STRING_NAME, STRING_EXTRA_INFO);
+    EXPECT_EQ(result, ERR_OK);
+    
+    std::vector<AppAccountInfo> appAccounts;
+    result = servicePtr->GetAllAccessibleAccounts(appAccounts);
+    EXPECT_EQ(appAccounts.size(), 1);
+    std::string owner;
+    result = appAccounts[0].GetOwner(owner);
+    EXPECT_EQ(result, ERR_OK);
+
+    result = servicePtr->SetOAuthToken(STRING_NAME, STRING_AUTH_TYPE, STRING_TOKEN);
+    EXPECT_EQ(result, ERR_OK);
+
+    result = servicePtr->SetOAuthTokenVisibility(STRING_NAME, STRING_AUTH_TYPE, STRING_BUNDLE_NAME, true);
+    EXPECT_EQ(result, ERR_OK);
+    
+    bool isVisible = false;
+    result = servicePtr->CheckOAuthTokenVisibility(STRING_NAME, STRING_AUTH_TYPE, STRING_BUNDLE_NAME, isVisible);
+    EXPECT_EQ(result, ERR_OK);
+    EXPECT_EQ(isVisible, true);
+
+    result = servicePtr->DeleteAccount(STRING_NAME);
+    EXPECT_EQ(result, ERR_OK);
+}
+
+/**
+ * @tc.name: AppAccountManagerService_CheckOAuthTokenVisibility_0100
+ * @tc.desc: check oauth token successfully.
+ * @tc.type: FUNC
+ * @tc.require: SR000GGVFU
+ */
+HWTEST_F(AppAccountManagerServiceModuleTest, AppAccountManagerService_CheckOAuthTokenVisibility_0100, TestSize.Level1)
+{
+    ACCOUNT_LOGI("AppAccountManagerService_CheckOAuthTokenVisibility_0100");
+
+    auto servicePtr = std::make_shared<AppAccountManagerService>();
+    ASSERT_NE(servicePtr, nullptr);
+
+    bool isVisible = true;
+    ErrCode result = servicePtr->CheckOAuthTokenVisibility(
+        STRING_NAME, STRING_AUTH_TYPE, STRING_BUNDLE_NAME, isVisible);
+    EXPECT_EQ(result, ERR_APPACCOUNT_SERVICE_ACCOUNT_NOT_EXIST);
+    EXPECT_EQ(isVisible, false);
+
+    result = servicePtr->AddAccount(STRING_NAME, STRING_EXTRA_INFO);
+    EXPECT_EQ(result, ERR_OK);
+    std::vector<AppAccountInfo> appAccounts;
+    result = servicePtr->GetAllAccessibleAccounts(appAccounts);
+    EXPECT_EQ(appAccounts.size(), SIZE_ONE);
+    std::string owner;
+    result = appAccounts[0].GetOwner(owner);
+    EXPECT_EQ(result, ERR_OK);
+
+    isVisible = true;
+    result = servicePtr->CheckOAuthTokenVisibility(STRING_NAME, STRING_AUTH_TYPE, STRING_BUNDLE_NAME, isVisible);
+    EXPECT_EQ(result, ERR_OK);
+    EXPECT_EQ(isVisible, false);
+
+    result = servicePtr->SetOAuthToken(STRING_NAME, STRING_AUTH_TYPE, STRING_TOKEN);
+    EXPECT_EQ(result, ERR_OK);
+
+    result = servicePtr->SetOAuthTokenVisibility(STRING_NAME, STRING_AUTH_TYPE, STRING_BUNDLE_NAME, true);
+    EXPECT_EQ(result, ERR_OK);
+    
+    isVisible = false;
+    result = servicePtr->CheckOAuthTokenVisibility(STRING_NAME, STRING_AUTH_TYPE, STRING_BUNDLE_NAME, isVisible);
+    EXPECT_EQ(result, ERR_OK);
+    EXPECT_EQ(isVisible, true);
+
+    isVisible = true;
+    result = servicePtr->CheckOAuthTokenVisibility(
+        STRING_NAME, STRING_AUTH_TYPE, STRING_BUNDLE_NAME_NOT_INSTALLED, isVisible);
+    EXPECT_EQ(result, ERR_OK);
+    EXPECT_EQ(isVisible, false);
+
+    result = servicePtr->DeleteAccount(STRING_NAME);
+    EXPECT_EQ(result, ERR_OK);
+}
+
+/**
+ * @tc.name: AppAccountManagerService_GetOAuthList_0100
+ * @tc.desc: get oauth list failed with non-existent account.
+ * @tc.type: FUNC
+ * @tc.require: SR000GGVFU
+ */
+HWTEST_F(AppAccountManagerServiceModuleTest, AppAccountManagerService_GetOAuthList_0100, TestSize.Level1)
+{
+    ACCOUNT_LOGI("AppAccountManagerService_GetOAuthList_0100");
+
+    auto servicePtr = std::make_shared<AppAccountManagerService>();
+    ASSERT_NE(servicePtr, nullptr);
+
+    std::set<std::string> authList;
+    ErrCode result = servicePtr->GetOAuthList(STRING_NAME, STRING_AUTH_TYPE, authList);
+    EXPECT_EQ(result, ERR_APPACCOUNT_SERVICE_ACCOUNT_NOT_EXIST);
+}
+
+/**
+ * @tc.name: AppAccountManagerService_GetOAuthList_0200
+ * @tc.desc: get oauth list successfully with non-existent authType.
+ * @tc.type: FUNC
+ * @tc.require: SR000GGVFU
+ */
+HWTEST_F(AppAccountManagerServiceModuleTest, AppAccountManagerService_GetOAuthList_0200, TestSize.Level1)
+{
+    ACCOUNT_LOGI("AppAccountManagerService_GetOAuthList_0200");
+
+    auto servicePtr = std::make_shared<AppAccountManagerService>();
+    ASSERT_NE(servicePtr, nullptr);
+
+    ErrCode result = servicePtr->AddAccount(STRING_NAME, STRING_EXTRA_INFO);
+    EXPECT_EQ(result, ERR_OK);
+
+    std::set<std::string> authList;
+    result = servicePtr->GetOAuthList(STRING_NAME, STRING_AUTH_TYPE, authList);
+    EXPECT_EQ(result, ERR_OK);
+    EXPECT_EQ(authList.size(), SIZE_ZERO);
+    
+    result = servicePtr->DeleteAccount(STRING_NAME);
+    EXPECT_EQ(result, ERR_OK);
+}
+
+/**
+ * @tc.name: AppAccountManagerService_GetOAuthList_0300
+ * @tc.desc: get oauth list successfully.
+ * @tc.type: FUNC
+ * @tc.require: SR000GGVFU
+ */
+HWTEST_F(AppAccountManagerServiceModuleTest, AppAccountManagerService_GetOAuthList_0300, TestSize.Level1)
+{
+    ACCOUNT_LOGI("AppAccountManagerService_GetOAuthList_0300");
+
+    auto servicePtr = std::make_shared<AppAccountManagerService>();
+    ASSERT_NE(servicePtr, nullptr);
+
+    ErrCode result = servicePtr->AddAccount(STRING_NAME, STRING_EXTRA_INFO);
+    EXPECT_EQ(result, ERR_OK);
+
+    result = servicePtr->SetOAuthTokenVisibility(STRING_NAME, STRING_AUTH_TYPE, STRING_BUNDLE_NAME, true);
+    EXPECT_EQ(result, ERR_OK);
+    
+    result = servicePtr->SetOAuthTokenVisibility(STRING_NAME, STRING_AUTH_TYPE, STRING_BUNDLE_NAME_NOT_INSTALLED, true);
+    EXPECT_EQ(result, ERR_OK);
+
+    std::set<std::string> authList;
+    result = servicePtr->GetOAuthList(STRING_NAME, STRING_AUTH_TYPE, authList);
+    EXPECT_EQ(result, ERR_OK);
+    EXPECT_EQ(authList.size(), SIZE_TWO);
+
+    auto it = authList.find(STRING_BUNDLE_NAME);
+    EXPECT_NE(it, authList.end());
+    it = authList.find(STRING_BUNDLE_NAME_NOT_INSTALLED);
+    EXPECT_NE(it, authList.end());
+
+    result = servicePtr->DeleteAccount(STRING_NAME);
+    EXPECT_EQ(result, ERR_OK);
+}
+
+/**
+ * @tc.name: AppAccountManagerService_GetAuthenticatorInfo_0100
+ * @tc.desc: get authenticator info  successfully.
+ * @tc.type: FUNC
+ * @tc.require: SR000GGVFU
+ */
+HWTEST_F(AppAccountManagerServiceModuleTest, AppAccountManagerService_GetAuthenticatorInfo_0100, TestSize.Level1)
+{
+    ACCOUNT_LOGI("AppAccountManagerService_GetAuthenticatorInfo_0100");
+
+    auto servicePtr = std::make_shared<AppAccountManagerService>();
+    ASSERT_NE(servicePtr, nullptr);
+
+    AuthenticatorInfo info;
+    ErrCode result = servicePtr->GetAuthenticatorInfo(STRING_OWNER, info);
+    EXPECT_EQ(result, ERR_APPACCOUNT_SERVICE_OAUTH_AUTHENTICATOR_NOT_EXIST);
+}
+
+/**
+ * @tc.name: AppAccountManagerService_GetAuthenticatorCallback_0100
+ * @tc.desc: get authenticator callback failed with non-existent sessionId.
+ * @tc.type: FUNC
+ * @tc.require: SR000GGVFU
+ */
+HWTEST_F(AppAccountManagerServiceModuleTest, AppAccountManagerService_GetAuthenticatorCallback_0100, TestSize.Level1)
+{
+    ACCOUNT_LOGI("AppAccountManagerService_GetAuthenticatorInfo_0100");
+
+    auto servicePtr = std::make_shared<AppAccountManagerService>();
+    ASSERT_NE(servicePtr, nullptr);
+
+    sptr<IRemoteObject> callback;
+    ErrCode result = servicePtr->GetAuthenticatorCallback(STRING_SESSION_ID, callback);
+    EXPECT_EQ(result, ERR_APPACCOUNT_SERVICE_OAUTH_SESSION_NOT_EXIST);
+}
+
+/**
+ * @tc.name: AppAccountManagerService_AddAccountImplicitly_0100
+ * @tc.desc: AddAccountImplicitly failed for with non-existent oauth service.
+ * @tc.type: FUNC
+ * @tc.require: SR000GGVFU
+ */
+HWTEST_F(AppAccountManagerServiceModuleTest, AppAccountManagerService_AddAccountImplicitly_0100, TestSize.Level1)
+{
+    ACCOUNT_LOGI("AppAccountManagerService_AddAccountImplicitly_0100");
+
+    auto servicePtr = std::make_shared<AppAccountManagerService>();
+    ASSERT_NE(servicePtr, nullptr);
+
+    sptr<IRemoteObject> callback = nullptr;
+    const AAFwk::WantParams options;
+    ErrCode result = servicePtr->AddAccountImplicitly(
+        STRING_OWNER, STRING_AUTH_TYPE, options, callback, STRING_ABILITY_NAME);
+    EXPECT_EQ(result, ERR_APPACCOUNT_SERVICE_OAUTH_AUTHENTICATOR_NOT_EXIST);
+}
+
+/**
+ * @tc.name: AppAccountManagerService_Authenticate_0100
+ * @tc.desc: Authenticate failed for with non-existent oauth service.
+ * @tc.type: FUNC
+ * @tc.require: SR000GGVFU
+ */
+HWTEST_F(AppAccountManagerServiceModuleTest, AppAccountManagerService_Authenticate_0100, TestSize.Level1)
+{
+    ACCOUNT_LOGI("AppAccountManagerService_Authenticate_0100");
+
+    auto servicePtr = std::make_shared<AppAccountManagerService>();
+    ASSERT_NE(servicePtr, nullptr);
+
+    sptr<IAppAccountAuthenticatorCallback> callback = nullptr;
+    const AAFwk::WantParams options;
+    OAuthRequest request;
+    request.name = STRING_NAME;
+    request.owner = STRING_OWNER;
+    request.authType = STRING_AUTH_TYPE;
+    request.options = options;
+    request.callback = callback;
+    request.callerAbilityName = STRING_ABILITY_NAME;
+    ErrCode result = servicePtr->Authenticate(request);
+    EXPECT_EQ(result, ERR_APPACCOUNT_SERVICE_OAUTH_AUTHENTICATOR_NOT_EXIST);
 }
 
 /**

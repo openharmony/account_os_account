@@ -58,6 +58,7 @@ ohos_systemtest("ActsAccountFuzzTest") {
     "LOG_DOMAIN = 0xD001B00",
   ]
   external_deps = [
+    "ability_runtime:want",
     "hiviewdfx_hilog_native:libhilog",
     "ipc:ipc_core",
   ]

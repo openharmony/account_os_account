@@ -26,6 +26,10 @@ const std::map<uint32_t, AppAccountStub::MessageProcFunction> AppAccountStub::me
         &AppAccountStub::ProcAddAccount,
     },
     {
+        static_cast<uint32_t>(IAppAccount::Message::ADD_ACCOUNT_IMPLICITLY),
+        &AppAccountStub::ProcAddAccountImplicitly,
+    },
+    {
         static_cast<uint32_t>(IAppAccount::Message::DELETE_ACCOUNT),
         &AppAccountStub::ProcDeleteAccount,
     },
@@ -70,12 +74,44 @@ const std::map<uint32_t, AppAccountStub::MessageProcFunction> AppAccountStub::me
         &AppAccountStub::ProcSetAccountCredential,
     },
     {
+        static_cast<uint32_t>(IAppAccount::Message::AUTHENTICATE),
+        &AppAccountStub::ProcAuthenticate,
+    },
+    {
         static_cast<uint32_t>(IAppAccount::Message::GET_OAUTH_TOKEN),
         &AppAccountStub::ProcGetOAuthToken,
     },
     {
         static_cast<uint32_t>(IAppAccount::Message::SET_OAUTH_TOKEN),
         &AppAccountStub::ProcSetOAuthToken,
+    },
+    {
+        static_cast<uint32_t>(IAppAccount::Message::DELETE_OAUTH_TOKEN),
+        &AppAccountStub::ProcDeleteOAuthToken,
+    },
+    {
+        static_cast<uint32_t>(IAppAccount::Message::SET_OAUTH_TOKEN_VISIBILITY),
+        &AppAccountStub::ProcSetOAuthTokenVisibility,
+    },
+    {
+        static_cast<uint32_t>(IAppAccount::Message::CHECK_OAUTH_TOKEN_VISIBILITY),
+        &AppAccountStub::ProcCheckOAuthTokenVisibility,
+    },
+    {
+        static_cast<uint32_t>(IAppAccount::Message::GET_AUTHENTICATOR_CALLBACK),
+        &AppAccountStub::ProcGetAuthenticatorCallback,
+    },
+    {
+        static_cast<uint32_t>(IAppAccount::Message::GET_AUTHENTICATOR_INFO),
+        &AppAccountStub::ProcGetAuthenticatorInfo,
+    },
+    {
+        static_cast<uint32_t>(IAppAccount::Message::GET_ALL_OAUTH_TOKENS),
+        &AppAccountStub::ProcGetAllOAuthTokens,
+    },
+    {
+        static_cast<uint32_t>(IAppAccount::Message::GET_OAUTH_LIST),
+        &AppAccountStub::ProcGetOAuthList,
     },
     {
         static_cast<uint32_t>(IAppAccount::Message::CLEAR_OAUTH_TOKEN),
@@ -191,6 +227,47 @@ ErrCode AppAccountStub::ProcAddAccount(MessageParcel &data, MessageParcel &reply
         return IPC_STUB_WRITE_PARCEL_ERR;
     }
 
+    return ERR_NONE;
+}
+
+ErrCode AppAccountStub::ProcAddAccountImplicitly(MessageParcel &data, MessageParcel &reply)
+{
+    ACCOUNT_LOGI("enter");
+
+    std::string owner = data.ReadString();
+    if (owner.size() == 0) {
+        ACCOUNT_LOGE("failed to read string for owner");
+        if (!reply.WriteInt32(ERR_APPACCOUNT_KIT_READ_STRING_OWNER)) {
+            ACCOUNT_LOGE("failed to write reply");
+            return IPC_STUB_WRITE_PARCEL_ERR;
+        }
+        return ERR_NONE;
+    }
+    std::string authType = data.ReadString();
+    AAFwk::WantParams *options = data.ReadParcelable<AAFwk::WantParams>();
+    if (options == nullptr) {
+        ACCOUNT_LOGE("failed to read string for options");
+        if (!reply.WriteInt32(ERR_APPACCOUNT_KIT_READ_PARCELABLE_OPTIONS)) {
+            ACCOUNT_LOGE("failed to write reply");
+            return IPC_STUB_WRITE_PARCEL_ERR;
+        }
+        return ERR_NONE;
+    }
+    sptr<IRemoteObject> callback = data.ReadParcelable<IRemoteObject>();
+    std::string abilityName = data.ReadString();
+    if (abilityName.size() == 0) {
+        ACCOUNT_LOGE("failed to read string for abilityName");
+        if (!reply.WriteInt32(ERR_APPACCOUNT_KIT_READ_STRING_ABILITY_NAME)) {
+            ACCOUNT_LOGE("failed to write reply");
+            return IPC_STUB_WRITE_PARCEL_ERR;
+        }
+        return ERR_NONE;
+    }
+    ErrCode result = AddAccountImplicitly(owner, authType, *options, callback, abilityName);
+    if (!reply.WriteInt32(result)) {
+        ACCOUNT_LOGE("failed to write reply");
+        return IPC_STUB_WRITE_PARCEL_ERR;
+    }
     return ERR_NONE;
 }
 
@@ -565,10 +642,64 @@ ErrCode AppAccountStub::ProcSetAccountCredential(MessageParcel &data, MessagePar
     return ERR_NONE;
 }
 
+ErrCode AppAccountStub::ProcAuthenticate(MessageParcel &data, MessageParcel &reply)
+{
+    ACCOUNT_LOGI("enter");
+    OAuthRequest request;
+    request.name = data.ReadString();
+    if (request.name.size() == 0) {
+        ACCOUNT_LOGE("failed to read string for name");
+        if (!reply.WriteInt32(ERR_APPACCOUNT_KIT_READ_STRING_NAME)) {
+            ACCOUNT_LOGE("failed to write reply");
+            return IPC_STUB_WRITE_PARCEL_ERR;
+        }
+        return ERR_NONE;
+    }
+    request.owner = data.ReadString();
+    if (request.owner.size() == 0) {
+        ACCOUNT_LOGE("failed to read string for owner");
+        if (!reply.WriteInt32(ERR_APPACCOUNT_KIT_READ_STRING_OWNER)) {
+            ACCOUNT_LOGE("failed to write reply");
+            return IPC_STUB_WRITE_PARCEL_ERR;
+        }
+        return ERR_NONE;
+    }
+    request.authType = data.ReadString();
+    AAFwk::WantParams *options = data.ReadParcelable<AAFwk::WantParams>();
+    if (options == nullptr) {
+        ACCOUNT_LOGE("failed to read string for options");
+        if (!reply.WriteInt32(ERR_APPACCOUNT_KIT_READ_PARCELABLE_OPTIONS)) {
+            ACCOUNT_LOGE("failed to write reply");
+            return IPC_STUB_WRITE_PARCEL_ERR;
+        }
+        return ERR_NONE;
+    }
+    request.options = *options;
+    request.callback = iface_cast<IAppAccountAuthenticatorCallback>(data.ReadParcelable<IRemoteObject>());
+    if (request.callback == nullptr) {
+        ACCOUNT_LOGE("failed to read parcelable for callback");
+        return IPC_STUB_INVALID_DATA_ERR;
+    }
+    request.callerAbilityName = data.ReadString();
+    if (request.callerAbilityName.size() == 0) {
+        ACCOUNT_LOGE("failed to read string for callerAbilityName");
+        if (!reply.WriteInt32(ERR_APPACCOUNT_KIT_READ_STRING_ABILITY_NAME)) {
+            ACCOUNT_LOGE("failed to write reply");
+            return IPC_STUB_WRITE_PARCEL_ERR;
+        }
+        return ERR_NONE;
+    }
+    ErrCode result = Authenticate(request);
+    if (!reply.WriteInt32(result)) {
+        ACCOUNT_LOGE("failed to write reply");
+        return IPC_STUB_WRITE_PARCEL_ERR;
+    }
+    return ERR_NONE;
+}
+
 ErrCode AppAccountStub::ProcGetOAuthToken(MessageParcel &data, MessageParcel &reply)
 {
     ACCOUNT_LOGI("enter");
-
     std::string name = data.ReadString();
     if (name.size() == 0) {
         ACCOUNT_LOGE("failed to read string for name");
@@ -576,29 +707,34 @@ ErrCode AppAccountStub::ProcGetOAuthToken(MessageParcel &data, MessageParcel &re
             ACCOUNT_LOGE("failed to write reply");
             return IPC_STUB_WRITE_PARCEL_ERR;
         }
-
         return ERR_NONE;
     }
-
+    std::string owner = data.ReadString();
+    if (owner.size() == 0) {
+        ACCOUNT_LOGE("failed to read string for owner");
+        if (!reply.WriteInt32(ERR_APPACCOUNT_KIT_READ_STRING_NAME)) {
+            ACCOUNT_LOGE("failed to write reply");
+            return IPC_STUB_WRITE_PARCEL_ERR;
+        }
+        return ERR_NONE;
+    }
+    std::string authType = data.ReadString();
     std::string token;
-    ErrCode result = GetOAuthToken(name, token);
+    ErrCode result = GetOAuthToken(name, owner, authType, token);
     if (!reply.WriteInt32(result)) {
         ACCOUNT_LOGE("failed to write reply");
         return IPC_STUB_WRITE_PARCEL_ERR;
     }
-
     if (!reply.WriteString(token)) {
         ACCOUNT_LOGE("failed to write string for token");
         return IPC_STUB_WRITE_PARCEL_ERR;
     }
-
     return ERR_NONE;
 }
 
 ErrCode AppAccountStub::ProcSetOAuthToken(MessageParcel &data, MessageParcel &reply)
 {
     ACCOUNT_LOGI("enter");
-
     std::string name = data.ReadString();
     if (name.size() == 0) {
         ACCOUNT_LOGE("failed to read string for name");
@@ -606,22 +742,250 @@ ErrCode AppAccountStub::ProcSetOAuthToken(MessageParcel &data, MessageParcel &re
             ACCOUNT_LOGE("failed to write reply");
             return IPC_STUB_WRITE_PARCEL_ERR;
         }
-
         return ERR_NONE;
     }
-
+    std::string authType = data.ReadString();
     std::string token = data.ReadString();
-    if (token.size() == 0) {
-        ACCOUNT_LOGI("token.size() = 0");
-    }
-
-    ErrCode result = SetOAuthToken(name, token);
+    ErrCode result = SetOAuthToken(name, authType, token);
     if (!reply.WriteInt32(result)) {
         ACCOUNT_LOGE("failed to write reply");
         return IPC_STUB_WRITE_PARCEL_ERR;
     }
-
     return ERR_NONE;
+}
+
+ErrCode AppAccountStub::ProcDeleteOAuthToken(MessageParcel &data, MessageParcel &reply)
+{
+    ACCOUNT_LOGI("enter");
+    std::string name = data.ReadString();
+    if (name.size() == 0) {
+        ACCOUNT_LOGE("failed to read string for name");
+        if (!reply.WriteInt32(ERR_APPACCOUNT_KIT_READ_STRING_NAME)) {
+            ACCOUNT_LOGE("failed to write reply");
+            return IPC_STUB_WRITE_PARCEL_ERR;
+        }
+        return ERR_NONE;
+    }
+    std::string owner = data.ReadString();
+    if (owner.size() == 0) {
+        ACCOUNT_LOGE("failed to read string for owner");
+        if (!reply.WriteInt32(ERR_APPACCOUNT_KIT_READ_STRING_NAME)) {
+            ACCOUNT_LOGE("failed to write reply");
+            return IPC_STUB_WRITE_PARCEL_ERR;
+        }
+    }
+    std::string authType = data.ReadString();
+    std::string token = data.ReadString();
+    ErrCode result = DeleteOAuthToken(name, owner, authType, token);
+    if (!reply.WriteInt32(result)) {
+        ACCOUNT_LOGE("failed to write reply");
+        return IPC_STUB_WRITE_PARCEL_ERR;
+    }
+    return ERR_NONE;
+}
+
+ErrCode AppAccountStub::ProcSetOAuthTokenVisibility(MessageParcel &data, MessageParcel &reply)
+{
+    ACCOUNT_LOGI("enter");
+    std::string name = data.ReadString();
+    if (name.size() == 0) {
+        ACCOUNT_LOGE("failed to read string for name");
+        if (!reply.WriteInt32(ERR_APPACCOUNT_KIT_READ_STRING_NAME)) {
+            ACCOUNT_LOGE("failed to write reply");
+            return IPC_STUB_WRITE_PARCEL_ERR;
+        }
+        return ERR_NONE;
+    }
+    std::string authType = data.ReadString();
+    std::string bundleName = data.ReadString();
+    if (bundleName.size() == 0) {
+        ACCOUNT_LOGE("failed to read string for bundleName");
+        if (!reply.WriteInt32(ERR_APPACCOUNT_KIT_READ_STRING_BUNDLE_NAME)) {
+            ACCOUNT_LOGE("failed to write reply");
+            return IPC_STUB_WRITE_PARCEL_ERR;
+        }
+    }
+    bool isVisible = data.ReadBool();
+    ErrCode result = SetOAuthTokenVisibility(name, authType, bundleName, isVisible);
+    if (!reply.WriteInt32(result)) {
+        ACCOUNT_LOGE("failed to write reply");
+        return IPC_STUB_WRITE_PARCEL_ERR;
+    }
+    return ERR_NONE;
+}
+ 
+ErrCode AppAccountStub::ProcCheckOAuthTokenVisibility(MessageParcel &data, MessageParcel &reply)
+{
+    ACCOUNT_LOGI("enter");
+    std::string name = data.ReadString();
+    if (name.size() == 0) {
+        ACCOUNT_LOGE("failed to read string for name");
+        if (!reply.WriteInt32(ERR_APPACCOUNT_KIT_READ_STRING_NAME)) {
+            ACCOUNT_LOGE("failed to write reply");
+            return IPC_STUB_WRITE_PARCEL_ERR;
+        }
+        return ERR_NONE;
+    }
+    std::string authType = data.ReadString();
+    std::string bundleName = data.ReadString();
+    if (bundleName.size() == 0) {
+        ACCOUNT_LOGE("failed to read string for bundleName");
+        if (!reply.WriteInt32(ERR_APPACCOUNT_KIT_READ_STRING_BUNDLE_NAME)) {
+            ACCOUNT_LOGE("failed to write reply");
+            return IPC_STUB_WRITE_PARCEL_ERR;
+        }
+    }
+    bool isVisible = false;
+    ErrCode result = CheckOAuthTokenVisibility(name, authType, bundleName, isVisible);
+    if (!reply.WriteInt32(result)) {
+        ACCOUNT_LOGE("failed to write reply");
+        return IPC_STUB_WRITE_PARCEL_ERR;
+    }
+    if (!reply.WriteBool(isVisible)) {
+        ACCOUNT_LOGE("failed to write reply");
+        return IPC_STUB_WRITE_PARCEL_ERR;
+    }
+    return ERR_NONE;
+}
+ 
+ErrCode AppAccountStub::ProcGetAuthenticatorInfo(MessageParcel &data, MessageParcel &reply)
+{
+    ACCOUNT_LOGI("enter");
+    std::string owner = data.ReadString();
+    if (owner.size() == 0) {
+        ACCOUNT_LOGE("failed to read string for owner");
+        if (!reply.WriteInt32(ERR_APPACCOUNT_KIT_READ_STRING_OWNER)) {
+            ACCOUNT_LOGE("failed to write reply");
+            return IPC_STUB_WRITE_PARCEL_ERR;
+        }
+        return ERR_NONE;
+    }
+    AuthenticatorInfo info;
+    ErrCode result = GetAuthenticatorInfo(owner, info);
+    if (!reply.WriteInt32(result)) {
+        ACCOUNT_LOGE("failed to write reply");
+        return IPC_STUB_WRITE_PARCEL_ERR;
+    }
+    if (!reply.WriteString(info.owner)) {
+        ACCOUNT_LOGE("failed to write reply");
+        return IPC_STUB_WRITE_PARCEL_ERR;
+    }
+    if (!reply.WriteInt32(info.iconId)) {
+        ACCOUNT_LOGE("failed to write reply");
+        return IPC_STUB_WRITE_PARCEL_ERR;
+    }
+    if (!reply.WriteInt32(info.labelId)) {
+        ACCOUNT_LOGE("failed to write reply");
+        return IPC_STUB_WRITE_PARCEL_ERR;
+    }
+    return ERR_NONE;
+}
+
+ErrCode AppAccountStub::ProcGetAllOAuthTokens(MessageParcel &data, MessageParcel &reply)
+{
+    ACCOUNT_LOGI("enter");
+    std::vector<OAuthTokenInfo> tokenInfos;
+    std::string name = data.ReadString();
+    if (name.size() == 0) {
+        ACCOUNT_LOGE("failed to read string for name");
+        if (!reply.WriteInt32(ERR_APPACCOUNT_KIT_READ_STRING_NAME)) {
+            ACCOUNT_LOGE("failed to write reply");
+            return IPC_STUB_WRITE_PARCEL_ERR;
+        }
+        return ERR_NONE;
+    }
+    std::string owner = data.ReadString();
+    if (owner.size() == 0) {
+        ACCOUNT_LOGE("failed to read string for owner");
+        if (!reply.WriteInt32(ERR_APPACCOUNT_KIT_READ_STRING_OWNER)) {
+            ACCOUNT_LOGE("failed to write reply");
+            return IPC_STUB_WRITE_PARCEL_ERR;
+        }
+        return ERR_NONE;
+    }
+    ErrCode result = GetAllOAuthTokens(name, owner, tokenInfos);
+    if (!reply.WriteInt32(result)) {
+        ACCOUNT_LOGE("failed to write reply");
+        return IPC_STUB_WRITE_PARCEL_ERR;
+    }
+    if (!reply.WriteUint32(tokenInfos.size())) {
+        ACCOUNT_LOGE("failed to write reply");
+        return IPC_STUB_WRITE_PARCEL_ERR;
+    }
+    for (auto tokenInfo : tokenInfos) {
+        ACCOUNT_LOGI("token: %{public}s, authType: %{public}s", tokenInfo.token.c_str(), tokenInfo.authType.c_str());
+        if (!reply.WriteString(tokenInfo.token)) {
+            ACCOUNT_LOGE("failed to write reply");
+            return IPC_STUB_WRITE_PARCEL_ERR;
+        }
+        if (!reply.WriteString(tokenInfo.authType)) {
+            ACCOUNT_LOGE("failed to write reply");
+            return IPC_STUB_WRITE_PARCEL_ERR;
+        }
+    }
+    return ERR_NONE;
+}
+
+ErrCode AppAccountStub::ProcGetOAuthList(MessageParcel &data, MessageParcel &reply)
+{
+    ACCOUNT_LOGI("enter");
+    std::set<std::string> oauthList;
+    std::string name = data.ReadString();
+    if (name.size() == 0) {
+        ACCOUNT_LOGE("failed to read string for name");
+        if (!reply.WriteInt32(ERR_APPACCOUNT_KIT_READ_STRING_NAME)) {
+            ACCOUNT_LOGE("failed to write reply");
+            return IPC_STUB_WRITE_PARCEL_ERR;
+        }
+        return ERR_NONE;
+    }
+    std::string authType = data.ReadString();
+    ErrCode result = GetOAuthList(name, authType, oauthList);
+    if (!reply.WriteInt32(result)) {
+        ACCOUNT_LOGE("failed to write reply");
+        return IPC_STUB_WRITE_PARCEL_ERR;
+    }
+    uint32_t size = oauthList.size();
+    if (!reply.WriteUint32(size)) {
+        ACCOUNT_LOGE("failed to WriteUint32 for oauthList size");
+        return IPC_STUB_WRITE_PARCEL_ERR;
+    }
+    for (auto bundleName : oauthList) {
+        if (!reply.WriteString(bundleName)) {
+            ACCOUNT_LOGE("failed to WriteString for bundleName");
+            return IPC_STUB_WRITE_PARCEL_ERR;
+        }
+    }
+    return ERR_NONE;
+}
+
+ErrCode AppAccountStub::ProcGetAuthenticatorCallback(MessageParcel &data, MessageParcel &reply)
+{
+    ACCOUNT_LOGI("enter");
+    std::string sessionId = data.ReadString();
+    if (sessionId.size() == 0) {
+        ACCOUNT_LOGE("failed to read string for sessionId");
+        if (!reply.WriteInt32(ERR_APPACCOUNT_KIT_READ_STRING_NAME)) {
+            ACCOUNT_LOGE("failed to write reply");
+            return IPC_STUB_WRITE_PARCEL_ERR;
+        }
+        return ERR_NONE;
+    }
+    sptr<IRemoteObject> callback;
+    ErrCode result = GetAuthenticatorCallback(sessionId, callback);
+    if (result != ERR_OK) {
+        return result;
+    }
+    if (!reply.WriteInt32(result)) {
+        ACCOUNT_LOGE("failed to write reply");
+        return IPC_STUB_WRITE_PARCEL_ERR;
+    }
+    if (!reply.WriteRemoteObject(callback)) {
+        ACCOUNT_LOGE("failed to write reply");
+        return IPC_STUB_WRITE_PARCEL_ERR;
+    }
+    ACCOUNT_LOGI("end");
+    return ERR_OK;
 }
 
 ErrCode AppAccountStub::ProcClearOAuthToken(MessageParcel &data, MessageParcel &reply)
