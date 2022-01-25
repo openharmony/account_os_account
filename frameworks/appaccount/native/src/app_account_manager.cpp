@@ -13,11 +13,11 @@
  * limitations under the License.
  */
 
+#include "app_account_manager.h"
+
 #include "account_log_wrapper.h"
 #include "app_account.h"
 #include "singleton.h"
-
-#include "app_account_manager.h"
 
 namespace OHOS {
 namespace AccountSA {
@@ -26,6 +26,16 @@ ErrCode AppAccountManager::AddAccount(const std::string &name, const std::string
     ACCOUNT_LOGI("enter");
 
     return DelayedSingleton<AppAccount>::GetInstance()->AddAccount(name, extraInfo);
+}
+ 
+ErrCode AppAccountManager::AddAccountImplicitly(
+    const std::string &owner, const std::string &authType, const AAFwk::WantParams &options,
+    IAppAccountAuthenticatorCallback *callback, const std::string &abilityName)
+{
+    ACCOUNT_LOGI("enter");
+
+    return DelayedSingleton<AppAccount>::GetInstance()->AddAccountImplicitly(
+        owner, authType, options, callback, abilityName);
 }
 
 ErrCode AppAccountManager::DeleteAccount(const std::string &name)
@@ -107,18 +117,83 @@ ErrCode AppAccountManager::SetAccountCredential(
     return DelayedSingleton<AppAccount>::GetInstance()->SetAccountCredential(name, credentialType, credential);
 }
 
-ErrCode AppAccountManager::GetOAuthToken(const std::string &name, std::string &token)
+ErrCode AppAccountManager::Authenticate(OAuthRequest &request)
 {
     ACCOUNT_LOGI("enter");
 
-    return DelayedSingleton<AppAccount>::GetInstance()->GetOAuthToken(name, token);
+    return DelayedSingleton<AppAccount>::GetInstance()->Authenticate(request);
 }
 
-ErrCode AppAccountManager::SetOAuthToken(const std::string &name, const std::string &token)
+ErrCode AppAccountManager::GetOAuthToken(const std::string &name,  const std::string &owner,
+    const std::string &authType, std::string &token)
 {
     ACCOUNT_LOGI("enter");
 
-    return DelayedSingleton<AppAccount>::GetInstance()->SetOAuthToken(name, token);
+    return DelayedSingleton<AppAccount>::GetInstance()->GetOAuthToken(name, owner, authType, token);
+}
+
+ErrCode AppAccountManager::SetOAuthToken(
+    const std::string &name, const std::string &authType, const std::string &token)
+{
+    ACCOUNT_LOGI("enter");
+
+    return DelayedSingleton<AppAccount>::GetInstance()->SetOAuthToken(name, authType, token);
+}
+
+ErrCode AppAccountManager::DeleteOAuthToken(
+    const std::string &name, const std::string &owner, const std::string &authType, const std::string &token)
+{
+    ACCOUNT_LOGI("enter");
+
+    return DelayedSingleton<AppAccount>::GetInstance()->DeleteOAuthToken(name, owner, authType, token);
+}
+
+ErrCode AppAccountManager::SetOAuthTokenVisibility(const std::string &name, const std::string &authType,
+    const std::string &bundleName, bool isVisible)
+{
+    ACCOUNT_LOGI("enter");
+
+    return DelayedSingleton<AppAccount>::GetInstance()->SetOAuthTokenVisibility(
+        name, authType, bundleName, isVisible);
+}
+
+ErrCode AppAccountManager::CheckOAuthTokenVisibility(const std::string &name, const std::string &authType,
+    const std::string &bundleName, bool &isVisible)
+{
+    ACCOUNT_LOGI("enter");
+
+    return DelayedSingleton<AppAccount>::GetInstance()->CheckOAuthTokenVisibility(
+        name, authType, bundleName, isVisible);
+}
+
+ErrCode AppAccountManager::GetAuthenticatorInfo(const std::string &owner, AuthenticatorInfo &info)
+{
+    ACCOUNT_LOGI("enter");
+
+    return DelayedSingleton<AppAccount>::GetInstance()->GetAuthenticatorInfo(owner, info);
+}
+
+ErrCode AppAccountManager::GetAllOAuthTokens(const std::string &name, const std::string &owner,
+    std::vector<OAuthTokenInfo> &tokenInfos)
+{
+    ACCOUNT_LOGI("enter");
+
+    return DelayedSingleton<AppAccount>::GetInstance()->GetAllOAuthTokens(name, owner, tokenInfos);
+}
+
+ErrCode AppAccountManager::GetOAuthList(const std::string &name, const std::string &authType,
+    std::set<std::string> &oauthList)
+{
+    ACCOUNT_LOGI("enter");
+
+    return DelayedSingleton<AppAccount>::GetInstance()->GetOAuthList(name, authType, oauthList);
+}
+
+ErrCode AppAccountManager::GetAuthenticatorCallback(const std::string &sessionId, sptr<IRemoteObject> &callback)
+{
+    ACCOUNT_LOGI("enter");
+
+    return DelayedSingleton<AppAccount>::GetInstance()->GetAuthenticatorCallback(sessionId, callback);
 }
 
 ErrCode AppAccountManager::ClearOAuthToken(const std::string &name)

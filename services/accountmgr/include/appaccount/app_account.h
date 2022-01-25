@@ -20,9 +20,14 @@
 
 #include "app_account_event_listener.h"
 #include "iapp_account.h"
+#include "iapp_account_authenticator_callback.h"
 
 namespace OHOS {
 namespace AccountSA {
+namespace {
+    const std::string NAME_ANONYMOUS = "anonymous";
+    const std::string OWNER_SELF = "self";
+}
 class AppAccount {
 public:
     enum SubscribeState {
@@ -32,6 +37,9 @@ public:
     };
 
     ErrCode AddAccount(const std::string &name, const std::string &extraInfo);
+    ErrCode AddAccountImplicitly(
+        const std::string &owner, const std::string &authType, const AAFwk::WantParams &options,
+        IAppAccountAuthenticatorCallback *callback, const std::string &abilityName);
     ErrCode DeleteAccount(const std::string &name);
 
     ErrCode GetAccountExtraInfo(const std::string &name, std::string &extraInfo);
@@ -50,8 +58,22 @@ public:
     ErrCode SetAccountCredential(
         const std::string &name, const std::string &credentialType, const std::string &credential);
 
-    ErrCode GetOAuthToken(const std::string &name, std::string &token);
-    ErrCode SetOAuthToken(const std::string &name, const std::string &token);
+    ErrCode Authenticate(OAuthRequest &request);
+    ErrCode GetOAuthToken(
+        const std::string &name, const std::string &owner, const std::string &authType, std::string &token);
+    ErrCode SetOAuthToken(const std::string &name, const std::string &authType, const std::string &token);
+    ErrCode DeleteOAuthToken(
+        const std::string &name, const std::string &owner, const std::string &authType, const std::string &token);
+    ErrCode SetOAuthTokenVisibility(
+        const std::string &name, const std::string &authType, const std::string &bundleName, bool isVisible);
+    ErrCode CheckOAuthTokenVisibility(
+        const std::string &name, const std::string &authType, const std::string &bundleName, bool &isVisible);
+    ErrCode GetAuthenticatorInfo(const std::string &owner, AuthenticatorInfo &authenticator);
+    ErrCode GetAllOAuthTokens(
+        const std::string &name, const std::string &owner, std::vector<OAuthTokenInfo> &tokenInfos);
+    ErrCode GetOAuthList(
+        const std::string &name, const std::string &authType, std::set<std::string> &oauthList);
+    ErrCode GetAuthenticatorCallback(const std::string &sessionId, sptr<IRemoteObject> &callback);
     ErrCode ClearOAuthToken(const std::string &name);
 
     ErrCode GetAllAccounts(const std::string &owner, std::vector<AppAccountInfo> &appAccounts);
@@ -63,7 +85,8 @@ public:
     ErrCode ResetAppAccountProxy();
 
 private:
-    ErrCode CheckParameters(const std::string &name, const std::string &extraInfo = "");
+    ErrCode CheckParameters(const std::string &name, const std::string &extraInfo = "",
+        const std::string &owner = OWNER_SELF, const std::string &authType = "", const std::string &token = "");
     ErrCode CheckSpecialCharacters(const std::string &name);
 
     ErrCode GetAppAccountProxy();
@@ -87,6 +110,7 @@ private:
     static constexpr std::size_t CREDENTIAL_MAX_SIZE = 1024;
     static constexpr std::size_t TOKEN_MAX_SIZE = 1024;
     static constexpr std::size_t OWNER_MAX_SIZE = 1024;
+    static constexpr std::size_t AUTH_TYPE_MAX_SIZE = 1024;
     static const std::string SPECIAL_CHARACTERS;
 };
 }  // namespace AccountSA

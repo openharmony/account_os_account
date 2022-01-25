@@ -16,10 +16,12 @@
 #ifndef OS_ACCOUNT_SERVICES_ACCOUNTMGR_INCLUDE_APPACCOUNT_IAPP_ACCOUNT_H
 #define OS_ACCOUNT_SERVICES_ACCOUNTMGR_INCLUDE_APPACCOUNT_IAPP_ACCOUNT_H
 
-#include "app_account_subscribe_info.h"
+#include "app_account_common.h"
 #include "app_account_info.h"
+#include "app_account_subscribe_info.h"
 #include "iremote_broker.h"
 #include "iremote_object.h"
+#include "want_params.h"
 
 namespace OHOS {
 namespace AccountSA {
@@ -28,6 +30,8 @@ public:
     DECLARE_INTERFACE_DESCRIPTOR(u"ohos.accountfwk.IAppAccount");
 
     virtual ErrCode AddAccount(const std::string &name, const std::string &extraInfo) = 0;
+    virtual ErrCode AddAccountImplicitly(const std::string &owner, const std::string &authType,
+        const AAFwk::WantParams &options, const sptr<IRemoteObject> &callback, const std::string &abilityName) = 0;
     virtual ErrCode DeleteAccount(const std::string &name) = 0;
 
     virtual ErrCode GetAccountExtraInfo(const std::string &name, std::string &extraInfo) = 0;
@@ -47,8 +51,23 @@ public:
     virtual ErrCode SetAccountCredential(
         const std::string &name, const std::string &credentialType, const std::string &credential) = 0;
 
-    virtual ErrCode GetOAuthToken(const std::string &name, std::string &token) = 0;
-    virtual ErrCode SetOAuthToken(const std::string &name, const std::string &token) = 0;
+    virtual ErrCode Authenticate(OAuthRequest &request) = 0;
+    virtual ErrCode GetOAuthToken(
+        const std::string &name, const std::string &owner, const std::string &authType, std::string &token) = 0;
+    virtual ErrCode SetOAuthToken(
+        const std::string &name, const std::string &authType, const std::string &token) = 0;
+    virtual ErrCode DeleteOAuthToken(
+        const std::string &name, const std::string &owner, const std::string &authType, const std::string &token) = 0;
+    virtual ErrCode SetOAuthTokenVisibility(const std::string &name, const std::string &authType,
+        const std::string &bundleName, bool isVisible) = 0;
+    virtual ErrCode CheckOAuthTokenVisibility(const std::string &name, const std::string &authType,
+        const std::string &bundleName, bool &isVisible) = 0;
+    virtual ErrCode GetAuthenticatorInfo(const std::string &owner, AuthenticatorInfo &info) = 0;
+    virtual ErrCode GetAllOAuthTokens(const std::string &name, const std::string &owner,
+        std::vector<OAuthTokenInfo> &tokenInfos) = 0;
+    virtual ErrCode GetOAuthList(const std::string &name, const std::string &authType,
+        std::set<std::string> &oauthList) = 0;
+    virtual ErrCode GetAuthenticatorCallback(const std::string &sessionId, sptr<IRemoteObject> &callback) = 0;
     virtual ErrCode ClearOAuthToken(const std::string &name) = 0;
 
     virtual ErrCode GetAllAccounts(const std::string &owner, std::vector<AppAccountInfo> &appAccounts) = 0;
@@ -60,6 +79,7 @@ public:
 
     enum class Message {
         ADD_ACCOUNT = 0,
+        ADD_ACCOUNT_IMPLICITLY,
         DELETE_ACCOUNT,
         GET_ACCOUNT_EXTRA_INFO,
         SET_ACCOUNT_EXTRA_INFO,
@@ -71,8 +91,16 @@ public:
         SET_ASSOCIATED_DATA,
         GET_ACCOUNT_CREDENTIAL,
         SET_ACCOUNT_CREDENTIAL,
+        AUTHENTICATE,
         GET_OAUTH_TOKEN,
         SET_OAUTH_TOKEN,
+        DELETE_OAUTH_TOKEN,
+        SET_OAUTH_TOKEN_VISIBILITY,
+        CHECK_OAUTH_TOKEN_VISIBILITY,
+        GET_AUTHENTICATOR_INFO,
+        GET_ALL_OAUTH_TOKENS,
+        GET_OAUTH_LIST,
+        GET_AUTHENTICATOR_CALLBACK,
         CLEAR_OAUTH_TOKEN,
         GET_ALL_ACCOUNTS,
         GET_ALL_ACCESSIBLE_ACCOUNTS,
