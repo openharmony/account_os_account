@@ -69,10 +69,10 @@ ohos_unittest("account_bundle_manager_test") {
   external_deps = [
     "ability_runtime:app_manager",
     "ability_runtime:base",
-    "appexecfwk_standard:libeventhandler",
     "bundle_framework:appexecfwk_base",
     "bundle_framework:appexecfwk_core",
     "distributeddatamgr:distributeddata_inner",
+    "eventhandler:libeventhandler",
     "hiviewdfx_hilog_native:libhilog",
     "ipc:ipc_core",
   ]
@@ -101,12 +101,12 @@ ohos_unittest("account_permission_manager_test") {
     "ability_runtime:app_manager",
     "ability_runtime:base",
     "ability_runtime:want",
-    "appexecfwk_standard:libeventhandler",
     "bundle_framework:appexecfwk_base",
     "bundle_framework:appexecfwk_core",
     "ces_standard:cesfwk_core",
     "ces_standard:cesfwk_innerkits",
     "distributeddatamgr:distributeddata_inner",
+    "eventhandler:libeventhandler",
     "hiviewdfx_hilog_native:libhilog",
     "ipc:ipc_core",
   ]
@@ -135,10 +135,10 @@ ohos_unittest("app_account_data_storage_test") {
     "ability_runtime:app_manager",
     "ability_runtime:base",
     "ability_runtime:want",
-    "appexecfwk_standard:libeventhandler",
     "bundle_framework:appexecfwk_base",
     "bundle_framework:appexecfwk_core",
     "distributeddatamgr:distributeddata_inner",
+    "eventhandler:libeventhandler",
     "hiviewdfx_hilog_native:libhilog",
     "ipc:ipc_core",
   ]
@@ -167,10 +167,10 @@ ohos_unittest("app_account_info_test") {
     "ability_runtime:app_manager",
     "ability_runtime:base",
     "ability_runtime:want",
-    "appexecfwk_standard:libeventhandler",
     "bundle_framework:appexecfwk_base",
     "bundle_framework:appexecfwk_core",
     "distributeddatamgr:distributeddata_inner",
+    "eventhandler:libeventhandler",
     "hiviewdfx_hilog_native:libhilog",
     "ipc:ipc_core",
   ]
@@ -200,12 +200,12 @@ ohos_unittest("app_account_manager_service_test") {
     "ability_runtime:app_manager",
     "ability_runtime:base",
     "ability_runtime:want",
-    "appexecfwk_standard:libeventhandler",
     "bundle_framework:appexecfwk_base",
     "bundle_framework:appexecfwk_core",
     "ces_standard:cesfwk_core",
     "ces_standard:cesfwk_innerkits",
     "distributeddatamgr:distributeddata_inner",
+    "eventhandler:libeventhandler",
     "hiviewdfx_hilog_native:libhilog",
     "ipc:ipc_core",
   ]
@@ -233,10 +233,10 @@ ohos_unittest("app_account_subscribe_info_test") {
   external_deps = [
     "ability_runtime:app_manager",
     "ability_runtime:base",
-    "appexecfwk_standard:libeventhandler",
     "bundle_framework:appexecfwk_base",
     "bundle_framework:appexecfwk_core",
     "distributeddatamgr:distributeddata_inner",
+    "eventhandler:libeventhandler",
     "hiviewdfx_hilog_native:libhilog",
     "ipc:ipc_core",
   ]
@@ -264,10 +264,10 @@ ohos_unittest("app_account_test") {
   external_deps = [
     "ability_runtime:app_manager",
     "ability_runtime:base",
-    "appexecfwk_standard:libeventhandler",
     "bundle_framework:appexecfwk_base",
     "bundle_framework:appexecfwk_core",
     "distributeddatamgr:distributeddata_inner",
+    "eventhandler:libeventhandler",
     "hiviewdfx_hilog_native:libhilog",
     "ipc:ipc_core",
   ]
@@ -295,10 +295,10 @@ ohos_unittest("inner_app_account_manager_test") {
   external_deps = [
     "ability_runtime:app_manager",
     "ability_runtime:base",
-    "appexecfwk_standard:libeventhandler",
     "bundle_framework:appexecfwk_base",
     "bundle_framework:appexecfwk_core",
     "distributeddatamgr:distributeddata_inner",
+    "eventhandler:libeventhandler",
     "hiviewdfx_hilog_native:libhilog",
     "ipc:ipc_core",
   ]
