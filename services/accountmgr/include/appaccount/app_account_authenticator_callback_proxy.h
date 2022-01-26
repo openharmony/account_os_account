@@ -26,8 +26,8 @@ public:
     explicit AppAccountAuthenticatorCallbackProxy(const sptr<IRemoteObject> &object);
     virtual ~AppAccountAuthenticatorCallbackProxy() override;
 
-    virtual ErrCode OnResult(int32_t resultCode, const AAFwk::Want &result) override;
-    virtual ErrCode OnRequestRedirected(AAFwk::Want &request) override;
+    virtual int32_t OnResult(int32_t resultCode, const AAFwk::Want &result) override;
+    virtual int32_t OnRequestRedirected(AAFwk::Want &request) override;
 
 private:
     ErrCode SendRequest(IAppAccountAuthenticatorCallback::Message code, MessageParcel &data, MessageParcel &reply);
