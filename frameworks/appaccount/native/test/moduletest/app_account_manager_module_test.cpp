@@ -43,6 +43,7 @@ const std::string STRING_CREDENTIAL_TYPE = "password";
 const std::string STRING_CREDENTIAL = "1024";
 const std::string STRING_TOKEN = "1024";
 const std::string STRING_OWNER = "com.example.owner";
+const std::string STRING_AUTH_TYPE = "all";
 
 const bool SYNC_ENABLE_FALSE = false;
 
@@ -309,7 +310,7 @@ HWTEST_F(AppAccountManagerModuleTest, AppAccountManager_GetOAuthToken_0100, Test
     ACCOUNT_LOGI("AppAccountManager_GetOAuthToken_0100");
 
     std::string token;
-    ErrCode result = AppAccountManager::GetOAuthToken(STRING_NAME, token);
+    ErrCode result = AppAccountManager::GetOAuthToken(STRING_NAME, STRING_OWNER, STRING_AUTH_TYPE, token);
     EXPECT_EQ(result, ERR_APPACCOUNT_SERVICE_GET_BUNDLE_NAME);
 }
 
@@ -323,7 +324,7 @@ HWTEST_F(AppAccountManagerModuleTest, AppAccountManager_SetOAuthToken_0100, Test
 {
     ACCOUNT_LOGI("AppAccountManager_SetOAuthToken_0100");
 
-    ErrCode result = AppAccountManager::SetOAuthToken(STRING_NAME, STRING_TOKEN);
+    ErrCode result = AppAccountManager::SetOAuthToken(STRING_NAME, STRING_AUTH_TYPE, STRING_TOKEN);
     EXPECT_EQ(result, ERR_APPACCOUNT_SERVICE_GET_BUNDLE_NAME);
 }
 

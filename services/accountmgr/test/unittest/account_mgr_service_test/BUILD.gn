@@ -95,6 +95,7 @@ ohos_unittest("account_mgr_test") {
     "${innerkits_native_path}:libaccountkits",
     "${os_account_core_path}:os_account_core",
     "${os_account_innerkits_native_path}:os_account_innerkits",
+    "${services_path}/accountmgr:accountmgr",
     "//base/user_iam/user_idm/interfaces/innerkits:useridm_framework",
     "//third_party/googletest:gtest_main",
     "//third_party/mbedtls:mbedtls",

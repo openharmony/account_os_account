@@ -145,6 +145,7 @@ const std::string STRING_TOKEN_OUT_OF_RANGE =
     "1234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890"
     "1234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890";
 const std::string STRING_OWNER = "com.example.owner";
+const std::string STRING_AUTH_TYPE = "all";
 
 const bool SYNC_ENABLE_FALSE = false;
 
@@ -771,8 +772,12 @@ HWTEST_F(AppAccountManagerTest, AppAccountManager_GetOAuthToken_0100, TestSize.L
     ACCOUNT_LOGI("AppAccountManager_GetOAuthToken_0100");
 
     std::string token;
-    ErrCode result = AppAccountManager::GetOAuthToken(STRING_EMPTY, token);
-    EXPECT_EQ(result, ERR_APPACCOUNT_KIT_NAME_IS_EMPTY);
+    ErrCode result = AppAccountManager::GetOAuthToken(STRING_EMPTY, STRING_OWNER, STRING_AUTH_TYPE, token);
+    EXPECT_EQ(result, ERR_APPACCOUNT_KIT_INVALID_REQUEST);
+    EXPECT_EQ(token, STRING_EMPTY);
+
+    result = AppAccountManager::GetOAuthToken(STRING_NAME, STRING_EMPTY, STRING_AUTH_TYPE, token);
+    EXPECT_EQ(result, ERR_APPACCOUNT_KIT_INVALID_REQUEST);
     EXPECT_EQ(token, STRING_EMPTY);
 }
 
@@ -787,8 +792,12 @@ HWTEST_F(AppAccountManagerTest, AppAccountManager_GetOAuthToken_0200, TestSize.L
     ACCOUNT_LOGI("AppAccountManager_GetOAuthToken_0200");
 
     std::string token;
-    ErrCode result = AppAccountManager::GetOAuthToken(STRING_NAME_OUT_OF_RANGE, token);
-    EXPECT_EQ(result, ERR_APPACCOUNT_KIT_NAME_OUT_OF_RANGE);
+    ErrCode result = AppAccountManager::GetOAuthToken(STRING_NAME_OUT_OF_RANGE, STRING_OWNER, STRING_AUTH_TYPE, token);
+    EXPECT_EQ(result, ERR_APPACCOUNT_KIT_INVALID_REQUEST);
+    EXPECT_EQ(token, STRING_EMPTY);
+
+    result = AppAccountManager::GetOAuthToken(STRING_NAME, STRING_OWNER_OUT_OF_RANGE, STRING_AUTH_TYPE, token);
+    EXPECT_EQ(result, ERR_APPACCOUNT_KIT_INVALID_REQUEST);
     EXPECT_EQ(token, STRING_EMPTY);
 }
 
@@ -802,8 +811,8 @@ HWTEST_F(AppAccountManagerTest, AppAccountManager_SetOAuthToken_0100, TestSize.L
 {
     ACCOUNT_LOGI("AppAccountManager_SetOAuthToken_0100");
 
-    ErrCode result = AppAccountManager::SetOAuthToken(STRING_EMPTY, STRING_TOKEN);
-    EXPECT_EQ(result, ERR_APPACCOUNT_KIT_NAME_IS_EMPTY);
+    ErrCode result = AppAccountManager::SetOAuthToken(STRING_EMPTY, STRING_AUTH_TYPE, STRING_TOKEN);
+    EXPECT_EQ(result, ERR_APPACCOUNT_KIT_INVALID_REQUEST);
 }
 
 /**
@@ -816,22 +825,11 @@ HWTEST_F(AppAccountManagerTest, AppAccountManager_SetOAuthToken_0200, TestSize.L
 {
     ACCOUNT_LOGI("AppAccountManager_SetOAuthToken_0200");
 
-    ErrCode result = AppAccountManager::SetOAuthToken(STRING_NAME_OUT_OF_RANGE, STRING_TOKEN);
-    EXPECT_EQ(result, ERR_APPACCOUNT_KIT_NAME_OUT_OF_RANGE);
-}
+    ErrCode result = AppAccountManager::SetOAuthToken(STRING_NAME_OUT_OF_RANGE, STRING_AUTH_TYPE, STRING_TOKEN);
+    EXPECT_EQ(result, ERR_APPACCOUNT_KIT_INVALID_REQUEST);
 
-/**
- * @tc.name: AppAccountManager_SetOAuthToken_0300
- * @tc.desc: Set oauth token with invalid data.
- * @tc.type: FUNC
- * @tc.require: SR000GGVFU
- */
-HWTEST_F(AppAccountManagerTest, AppAccountManager_SetOAuthToken_0300, TestSize.Level1)
-{
-    ACCOUNT_LOGI("AppAccountManager_SetOAuthToken_0300");
-
-    ErrCode result = AppAccountManager::SetOAuthToken(STRING_NAME, STRING_TOKEN_OUT_OF_RANGE);
-    EXPECT_EQ(result, ERR_APPACCOUNT_KIT_TOKEN_OUT_OF_RANGE);
+    result = AppAccountManager::SetOAuthToken(STRING_NAME, STRING_AUTH_TYPE, STRING_TOKEN_OUT_OF_RANGE);
+    EXPECT_EQ(result, ERR_APPACCOUNT_KIT_INVALID_REQUEST);
 }
 
 /**

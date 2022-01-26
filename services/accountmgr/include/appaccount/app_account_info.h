@@ -25,6 +25,17 @@
 
 namespace OHOS {
 namespace AccountSA {
+namespace {
+constexpr int32_t MAX_TOKEN_SIZE = 64;
+constexpr int32_t MAX_OAUTH_LIST_SIZE = 256;
+}
+
+struct OAuthTokenInfo {
+    std::string authType;
+    std::string token;
+    std::set<std::string> authList;
+};
+
 class AppAccountInfo : public IAccountInfo, public Parcelable {
 public:
     AppAccountInfo();
@@ -55,8 +66,14 @@ public:
     ErrCode GetAccountCredential(const std::string &credentialType, std::string &credential) const;
     ErrCode SetAccountCredential(const std::string &credentialType, const std::string &credential);
 
-    ErrCode GetOAuthToken(std::string &token) const;
-    ErrCode SetOAuthToken(const std::string &token);
+    ErrCode GetOAuthToken(const std::string &authType, std::string &token) const;
+    ErrCode SetOAuthToken(const std::string &authType, const std::string &token);
+    ErrCode DeleteOAuthToken(const std::string &authType, const std::string &token);
+    ErrCode SetOAuthTokenVisibility(const std::string &authType, const std::string &bundleName, bool isVisible);
+    ErrCode CheckOAuthTokenVisibility(
+        const std::string &authType, const std::string &bundleName, bool &isVisible) const;
+    ErrCode GetAllOAuthTokens(std::vector<OAuthTokenInfo> &tokenInfos) const;
+    ErrCode GetOAuthList(const std::string &authType, std::set<std::string> &oauthList) const;
     ErrCode ClearOAuthToken(void);
 
     virtual bool Marshalling(Parcel &parcel) const override;
@@ -68,10 +85,15 @@ public:
     virtual std::string GetPrimeKey() const override;
 
 private:
+    void ParseTokenInfosFromJson(const Json &jsonObject);
     bool ReadFromParcel(Parcel &parcel);
 
     bool WriteStringSet(const std::set<std::string> &stringSet, Parcel &data) const;
     bool ReadStringSet(std::set<std::string> &stringSet, Parcel &data);
+    bool WriteStringMap(const std::map<std::string, std::string> &stringSet, Parcel &data) const;
+    bool ReadStringMap(std::map<std::string, std::string> &stringMap, Parcel &data);
+    bool WriteTokenInfos(const std::map<std::string, OAuthTokenInfo> &tokenInfos, Parcel &data) const;
+    bool ReadTokenInfos(std::map<std::string, OAuthTokenInfo> &tokenInfos, Parcel &data);
 
 private:
     std::string owner_;
@@ -81,7 +103,7 @@ private:
     bool syncEnable_ = false;
     std::string associatedData_;
     std::string accountCredential_;
-    std::string oauthToken_;
+    std::map<std::string, OAuthTokenInfo> oauthTokens_;
 };
 }  // namespace AccountSA
 }  // namespace OHOS

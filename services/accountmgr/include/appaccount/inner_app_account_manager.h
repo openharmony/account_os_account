@@ -16,6 +16,8 @@
 #ifndef OS_ACCOUNT_SERVICES_ACCOUNTMGR_INCLUDE_APPACCOUNT_INNER_APP_ACCOUNT_MANAGER_H
 #define OS_ACCOUNT_SERVICES_ACCOUNTMGR_INCLUDE_APPACCOUNT_INNER_APP_ACCOUNT_MANAGER_H
 
+#include "app_account_authenticator_manager.h"
+#include "app_account_authenticator_session_manager.h"
 #include "app_account_control_manager.h"
 #include "app_account_subscribe_manager.h"
 
@@ -28,6 +30,7 @@ public:
 
     ErrCode AddAccount(
         const std::string &name, const std::string &extraInfo, const uid_t &uid, const std::string &bundleName);
+    ErrCode AddAccountImplicitly(const OAuthRequest &request);
     ErrCode DeleteAccount(const std::string &name, const uid_t &uid, const std::string &bundleName);
 
     ErrCode GetAccountExtraInfo(
@@ -55,10 +58,16 @@ public:
     ErrCode SetAccountCredential(const std::string &name, const std::string &credentialType,
         const std::string &credential, const uid_t &uid, const std::string &bundleName);
 
-    ErrCode GetOAuthToken(
-        const std::string &name, std::string &token, const uid_t &uid, const std::string &bundleName);
-    ErrCode SetOAuthToken(
-        const std::string &name, const std::string &token, const uid_t &uid, const std::string &bundleName);
+    ErrCode Authenticate(const OAuthRequest &request);
+    ErrCode GetOAuthToken(const OAuthRequest &request, std::string &token);
+    ErrCode SetOAuthToken(const OAuthRequest &request);
+    ErrCode DeleteOAuthToken(const OAuthRequest &request);
+    ErrCode SetOAuthTokenVisibility(const OAuthRequest &request);
+    ErrCode CheckOAuthTokenVisibility(const OAuthRequest &request, bool &isVisible);
+    ErrCode GetAllOAuthTokens(const OAuthRequest &request, std::vector<OAuthTokenInfo> &tokenInfos);
+    ErrCode GetOAuthList(const OAuthRequest &request, std::set<std::string> &oauthList);
+    ErrCode GetAuthenticatorCallback(const OAuthRequest &request, sptr<IRemoteObject> &callback);
+    ErrCode GetAuthenticatorInfo(const OAuthRequest &request, AuthenticatorInfo &authenticator);
     ErrCode ClearOAuthToken(const std::string &name, const uid_t &uid, const std::string &bundleName);
 
     ErrCode GetAllAccounts(const std::string &owner, std::vector<AppAccountInfo> &appAccounts, const uid_t &uid,
@@ -75,6 +84,8 @@ public:
 private:
     std::shared_ptr<AppAccountControlManager> controlManagerPtr_ = nullptr;
     std::shared_ptr<AppAccountSubscribeManager> subscribeManagerPtr_ = nullptr;
+    std::shared_ptr<AppAccountAuthenticatorSessionManager> sessionManagerPtr_;
+    std::shared_ptr<AppAccountAuthenticatorManager> authenticatorManagerPtr_;
 
     DISALLOW_COPY_AND_MOVE(InnerAppAccountManager);
 };

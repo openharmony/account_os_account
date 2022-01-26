@@ -12,6 +12,7 @@
 # limitations under the License.
 
 os_account_path = "//base/account/os_account"
+aafwk_path = "//foundation/aafwk/standard"
 common_path = "${os_account_path}/frameworks/common"
 services_path = "${os_account_path}/services"
 tools_path = "${os_account_path}/tools"
