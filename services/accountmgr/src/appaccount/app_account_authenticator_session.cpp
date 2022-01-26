@@ -132,7 +132,6 @@ ErrCode AppAccountAuthenticatorSession::Open()
     }
     if (!isInitialized_) {
         ACCOUNT_LOGE("session has not been initialized");
-        OnResult(ERR_JS_OAUTH_SERVICE_EXCEPTION, defaultResult_);
         return ERR_APPACCOUNT_SERVICE_OAUTH_SERVICE_EXCEPTION;
     }
     AuthenticatorInfo info;
@@ -140,17 +139,14 @@ ErrCode AppAccountAuthenticatorSession::Open()
     if (errCode != ERR_OK) {
         ACCOUNT_LOGI("authenticator not exist, owner: %{public}s, ownerUid: %{public}d",
             request_.owner.c_str(), ownerUid_);
-        OnResult(ERR_JS_OAUTH_AUTHENTICATOR_NOT_EXIST, defaultResult_);
         return errCode;
     }
     AAFwk::Want want;
     want.SetElementName(request_.owner, info.abilityName);
     errCode = AAFwk::AbilityManagerClient::GetInstance()->ConnectAbility(want, conn_, nullptr);
-    if (errCode != ERR_OK) {
-        ACCOUNT_LOGI("failed to connect ability");
-        OnResult(ERR_JS_OAUTH_SERVICE_EXCEPTION, defaultResult_);
+    if (errCode == ERR_OK) {
+        isOpened_ = true;
     }
-    isOpened_ = true;
     return errCode;
 }
 
@@ -215,46 +211,42 @@ void AppAccountAuthenticatorSession::OnAbilityDisconnectDone(const AppExecFwk::E
     sessionManager_->CloseSession(sessionId_);
 }
 
-ErrCode AppAccountAuthenticatorSession::OnResult(int32_t resultCode, const AAFwk::Want &result)
+int32_t AppAccountAuthenticatorSession::OnResult(int32_t resultCode, const AAFwk::Want &result)
 {
     ACCOUNT_LOGI("enter");
-    ErrCode errCode = ERR_OK;
-    if (resultCode == ERR_OK) {
+    if (resultCode == ERR_JS_SUCCESS) {
         if (action_ == Constants::OAUTH_ACTION_AUTHENTICATE) {
-            errCode = OnAuthenticateDone(result);
+            resultCode = OnAuthenticateDone(result);
         } else if (action_ == Constants::OAUTH_ACTION_ADD_ACCOUNT_IMPLICITLY) {
-            errCode = OnAddAccountImplicitlyDone(result);
+            resultCode = OnAddAccountImplicitlyDone(result);
         } else {
             resultCode = ERR_JS_OAUTH_UNSUPPORT_ACTION;
         }
-    }
-    if (errCode != ERR_OK) {
-        resultCode = ERR_JS_OAUTH_SERVICE_EXCEPTION;
     }
     if ((request_.callback != nullptr) && (request_.callback->AsObject() != nullptr)) {
         request_.callback->OnResult(resultCode, result);
     }
     if (isConnected_) {
-        errCode = AAFwk::AbilityManagerClient::GetInstance()->DisconnectAbility(conn_);
+        AAFwk::AbilityManagerClient::GetInstance()->DisconnectAbility(conn_);
     }
-    return errCode;
+    return resultCode;
 }
 
-ErrCode AppAccountAuthenticatorSession::OnRequestRedirected(AAFwk::Want &newRequest)
+int32_t AppAccountAuthenticatorSession::OnRequestRedirected(AAFwk::Want &newRequest)
 {
     ACCOUNT_LOGI("enter");
     AppExecFwk::ElementName element = newRequest.GetElement();
     if (element.GetBundleName() != request_.owner) {
         ACCOUNT_LOGE("invalid response");
         OnResult(ERR_JS_INVALID_RESPONSE, defaultResult_);
-        return ERR_OK;
+        return ERR_JS_SUCCESS;
     }
     if ((!request_.callback) || (!request_.callback->AsObject())) {
         ACCOUNT_LOGI("app account callback is nullptr");
         if (isConnected_) {
             AAFwk::AbilityManagerClient::GetInstance()->DisconnectAbility(conn_);
         }
-        return ERR_OK;
+        return ERR_JS_SUCCESS;
     }
     if (action_ == Constants::OAUTH_ACTION_AUTHENTICATE) {
         newRequest.SetParam(Constants::KEY_NAME, request_.name);
@@ -264,7 +256,7 @@ ErrCode AppAccountAuthenticatorSession::OnRequestRedirected(AAFwk::Want &newRequ
     newRequest.SetParam(Constants::KEY_AUTH_TYPE, request_.authType);
     newRequest.SetParam(Constants::KEY_CALLER_BUNDLE_NAME, request_.callerBundleName);
     request_.callback->OnRequestRedirected(newRequest);
-    return ERR_OK;
+    return ERR_JS_SUCCESS;
 }
 
 int32_t AppAccountAuthenticatorSession::UpdateAuthInfo(const AAFwk::Want &result)
@@ -297,10 +289,7 @@ int32_t AppAccountAuthenticatorSession::UpdateAuthInfo(const AAFwk::Want &result
         };
         errCode = controlManager_->SetOAuthTokenVisibility(request);
     }
-    if (errCode != ERR_OK) {
-        return ERR_JS_OAUTH_SERVICE_EXCEPTION;
-    }
-    return ERR_JS_SUCCESS;
+    return ConvertToJSErrCode(errCode);
 }
 
 int32_t AppAccountAuthenticatorSession::OnAuthenticateDone(const AAFwk::Want &result)

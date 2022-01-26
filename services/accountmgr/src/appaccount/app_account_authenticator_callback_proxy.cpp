@@ -31,7 +31,7 @@ AppAccountAuthenticatorCallbackProxy::~AppAccountAuthenticatorCallbackProxy()
     ACCOUNT_LOGI("enter");
 }
 
-ErrCode AppAccountAuthenticatorCallbackProxy::OnResult(int32_t resultCode, const AAFwk::Want &result)
+int32_t AppAccountAuthenticatorCallbackProxy::OnResult(int32_t resultCode, const AAFwk::Want &result)
 {
     ACCOUNT_LOGI("enter");
     MessageParcel data;
@@ -51,7 +51,7 @@ ErrCode AppAccountAuthenticatorCallbackProxy::OnResult(int32_t resultCode, const
     return reply.ReadInt32();
 }
 
-ErrCode AppAccountAuthenticatorCallbackProxy::OnRequestRedirected(AAFwk::Want &request)
+int32_t AppAccountAuthenticatorCallbackProxy::OnRequestRedirected(AAFwk::Want &request)
 {
     ACCOUNT_LOGI("enter");
     MessageParcel data;
