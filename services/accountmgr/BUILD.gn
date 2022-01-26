@@ -157,7 +157,7 @@ ohos_shared_library("accountmgr") {
     "safwk:system_ability_fwk",
     "samgr_standard:samgr_proxy",
     "startup_l2:syspara",
-    "storage_standard:storage_manager_sa_proxy",
+    "storage_service:storage_manager_sa_proxy",
   ]
 
   part_name = "os_account_standard"
