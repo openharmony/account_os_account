@@ -18,6 +18,7 @@
 
 #include "app_account_info.h"
 #include "iremote_broker.h"
+#include "want.h"
 
 namespace OHOS {
 namespace AccountSA {

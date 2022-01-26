@@ -16,8 +16,12 @@
 #ifndef OS_ACCOUNT_SERVICES_ACCOUNTMGR_INCLUDE_APPACCOUNT_APP_ACCOUNT_CONTROL_MANAGER_H
 #define OS_ACCOUNT_SERVICES_ACCOUNTMGR_INCLUDE_APPACCOUNT_APP_ACCOUNT_CONTROL_MANAGER_H
 
+#include "app_account_authenticator_manager.h"
 #include "app_account_data_storage.h"
+#include "iapp_account_authenticator_callback.h"
+#include "iremote_object.h"
 #include "singleton.h"
+#include "want_params.h"
 
 namespace OHOS {
 namespace AccountSA {
@@ -57,10 +61,13 @@ public:
         const std::string &credential, const uid_t &uid, const std::string &bundleName,
         AppAccountInfo &appAccountInfo);
 
-    ErrCode GetOAuthToken(
-        const std::string &name, std::string &token, const uid_t &uid, const std::string &bundleName);
-    ErrCode SetOAuthToken(
-        const std::string &name, const std::string &token, const uid_t &uid, const std::string &bundleName);
+    ErrCode GetOAuthToken(const OAuthRequest &request, std::string &token);
+    ErrCode SetOAuthToken(const OAuthRequest &request);
+    ErrCode DeleteOAuthToken(const OAuthRequest &request);
+    ErrCode SetOAuthTokenVisibility(const OAuthRequest &request);
+    ErrCode CheckOAuthTokenVisibility(const OAuthRequest &request, bool &isVisible);
+    ErrCode GetAllOAuthTokens(const OAuthRequest &request, std::vector<OAuthTokenInfo> &tokenInfos);
+    ErrCode GetOAuthList(const OAuthRequest &request, std::set<std::string> &oauthList);
     ErrCode ClearOAuthToken(const std::string &name, const uid_t &uid, const std::string &bundleName);
 
     ErrCode GetAllAccounts(const std::string &owner, std::vector<AppAccountInfo> &appAccounts, const uid_t &uid,

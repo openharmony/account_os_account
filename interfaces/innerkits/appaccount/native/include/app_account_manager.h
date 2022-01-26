@@ -17,13 +17,19 @@
 #define APP_ACCOUNT_INTERFACES_INNERKITS_APPACCOUNT_NATIVE_INCLUDE_APP_ACCOUNT_MANAGER_H
 
 #include "app_account_subscriber.h"
+#include "app_account_common.h"
 #include "app_account_info.h"
+#include "iapp_account_authenticator_callback.h"
+#include "iremote_object.h"
 
 namespace OHOS {
 namespace AccountSA {
 class AppAccountManager {
 public:
     static ErrCode AddAccount(const std::string &name, const std::string &extraInfo = "");
+    static ErrCode AddAccountImplicitly(
+        const std::string &owner, const std::string &authType, const AAFwk::WantParams &options,
+        IAppAccountAuthenticatorCallback *callback, const std::string &abilityName);
     static ErrCode DeleteAccount(const std::string &name);
 
     static ErrCode GetAccountExtraInfo(const std::string &name, std::string &extraInfo);
@@ -43,8 +49,23 @@ public:
     static ErrCode SetAccountCredential(
         const std::string &name, const std::string &credentialType, const std::string &credential);
 
-    static ErrCode GetOAuthToken(const std::string &name, std::string &token);
-    static ErrCode SetOAuthToken(const std::string &name, const std::string &token);
+    static ErrCode Authenticate(OAuthRequest &request);
+    static ErrCode GetOAuthToken(const std::string &name, const std::string &owner, const std::string &authType,
+        std::string &token);
+    static ErrCode SetOAuthToken(
+        const std::string &name, const std::string &authType, const std::string &token);
+    static ErrCode DeleteOAuthToken(
+        const std::string &name, const std::string &owner, const std::string &authType, const std::string &token);
+    static ErrCode SetOAuthTokenVisibility(const std::string &name, const std::string &authType,
+        const std::string &bundleName, bool isVisible);
+    static ErrCode CheckOAuthTokenVisibility(const std::string &name, const std::string &authType,
+        const std::string &bundleName, bool &isVisible);
+    static ErrCode GetAuthenticatorInfo(const std::string &owner, AuthenticatorInfo &info);
+    static ErrCode GetAllOAuthTokens(const std::string &name, const std::string &owner,
+        std::vector<OAuthTokenInfo> &tokenInfos);
+    static ErrCode GetOAuthList(const std::string &name, const std::string &authType,
+        std::set<std::string> &oauthList);
+    static ErrCode GetAuthenticatorCallback(const std::string &sessionId, sptr<IRemoteObject> &callback);
     static ErrCode ClearOAuthToken(const std::string &name);
 
     static ErrCode GetAllAccounts(const std::string &owner, std::vector<AppAccountInfo> &appAccounts);

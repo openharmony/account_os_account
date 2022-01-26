@@ -40,6 +40,7 @@ private:
     bool ReadParcelableVector(std::vector<T> &parcelableInfos, MessageParcel &data);
 
     ErrCode ProcAddAccount(MessageParcel &data, MessageParcel &reply);
+    ErrCode ProcAddAccountImplicitly(MessageParcel &data, MessageParcel &reply);
     ErrCode ProcDeleteAccount(MessageParcel &data, MessageParcel &reply);
     ErrCode ProcGetAccountExtraInfo(MessageParcel &data, MessageParcel &reply);
     ErrCode ProcSetAccountExtraInfo(MessageParcel &data, MessageParcel &reply);
@@ -51,8 +52,16 @@ private:
     ErrCode ProcSetAssociatedData(MessageParcel &data, MessageParcel &reply);
     ErrCode ProcGetAccountCredential(MessageParcel &data, MessageParcel &reply);
     ErrCode ProcSetAccountCredential(MessageParcel &data, MessageParcel &reply);
+    ErrCode ProcAuthenticate(MessageParcel &data, MessageParcel &reply);
     ErrCode ProcGetOAuthToken(MessageParcel &data, MessageParcel &reply);
     ErrCode ProcSetOAuthToken(MessageParcel &data, MessageParcel &reply);
+    ErrCode ProcDeleteOAuthToken(MessageParcel &data, MessageParcel &reply);
+    ErrCode ProcSetOAuthTokenVisibility(MessageParcel &data, MessageParcel &reply);
+    ErrCode ProcCheckOAuthTokenVisibility(MessageParcel &data, MessageParcel &reply);
+    ErrCode ProcGetAuthenticatorInfo(MessageParcel &data, MessageParcel &reply);
+    ErrCode ProcGetAllOAuthTokens(MessageParcel &data, MessageParcel &reply);
+    ErrCode ProcGetOAuthList(MessageParcel &data, MessageParcel &reply);
+    ErrCode ProcGetAuthenticatorCallback(MessageParcel &data, MessageParcel &reply);
     ErrCode ProcClearOAuthToken(MessageParcel &data, MessageParcel &reply);
     ErrCode ProcGetAllAccounts(MessageParcel &data, MessageParcel &reply);
     ErrCode ProcGetAllAccessibleAccounts(MessageParcel &data, MessageParcel &reply);

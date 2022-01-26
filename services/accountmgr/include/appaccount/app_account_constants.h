@@ -23,7 +23,19 @@
 namespace OHOS {
 namespace AccountSA {
 namespace Constants {
+const std::string SYSTEM_ACTION_APP_ACCOUNT_OAUTH = "ohos.account.appAccount.action.oauth";
+const std::string OAUTH_ACTION_ADD_ACCOUNT_IMPLICITLY = "addAccountImplicitly";
+const std::string OAUTH_ACTION_AUTHENTICATE = "authenticate";
 const std::string APP_ACCOUNT_APP_ID = "app_account_manager_service";
+const std::string KEY_NAME = "name";
+const std::string KEY_OWNER = "owner";
+const std::string KEY_TOKEN = "token";
+const std::string KEY_ACTION = "action";
+const std::string KEY_AUTH_TYPE = "authType";
+const std::string KEY_SESSION_ID = "sessionId";
+const std::string KEY_CALLER_BUNDLE_NAME = "callerBundleName";
+const std::string KEY_CALLER_PID = "callerPid";
+const std::string KEY_CALLER_UID = "callerUid";
 };  // namespace Constants
 }  // namespace AccountSA
 }  // namespace OHOS

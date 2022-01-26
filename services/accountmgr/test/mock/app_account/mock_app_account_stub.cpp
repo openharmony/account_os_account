@@ -55,6 +55,14 @@ ErrCode MockAppAccountStub::AddAccount(const std::string &name, const std::strin
     return ERR_OK;
 }
 
+ErrCode MockAppAccountStub::AddAccountImplicitly(
+    const std::string &owner, const std::string &authType, const AAFwk::WantParams &options,
+    const sptr<IRemoteObject> &callback, const std::string &abilityName)
+{
+    ACCOUNT_LOGI("enter");
+    return ERR_OK;
+}
+
 ErrCode MockAppAccountStub::DeleteAccount(const std::string &name)
 {
     ACCOUNT_LOGI("enter");
@@ -146,14 +154,77 @@ ErrCode MockAppAccountStub::SetAccountCredential(
     return ERR_OK;
 }
 
-ErrCode MockAppAccountStub::GetOAuthToken(const std::string &name, std::string &token)
+ErrCode MockAppAccountStub::Authenticate(OAuthRequest &request)
 {
     ACCOUNT_LOGI("enter");
 
     return ERR_OK;
 }
 
-ErrCode MockAppAccountStub::SetOAuthToken(const std::string &name, const std::string &token)
+ErrCode MockAppAccountStub::GetOAuthToken(
+    const std::string &name, const std::string &owner, const std::string &authType, std::string &token)
+{
+    ACCOUNT_LOGI("enter");
+
+    return ERR_OK;
+}
+
+ErrCode MockAppAccountStub::SetOAuthToken(
+    const std::string &name, const std::string &authType, const std::string &token)
+{
+    ACCOUNT_LOGI("enter");
+
+    return ERR_OK;
+}
+
+ErrCode MockAppAccountStub::DeleteOAuthToken(const std::string &name, const std::string &owner,
+    const std::string &authType, const std::string &token)
+{
+    ACCOUNT_LOGI("enter");
+
+    return ERR_OK;
+}
+
+ErrCode MockAppAccountStub::SetOAuthTokenVisibility(const std::string &name, const std::string &authType,
+    const std::string &bundleName, bool isVisible)
+{
+    ACCOUNT_LOGI("enter");
+
+    return ERR_OK;
+}
+
+ErrCode MockAppAccountStub::CheckOAuthTokenVisibility(const std::string &name, const std::string &authType,
+    const std::string &bundleName, bool &isVisible)
+{
+    ACCOUNT_LOGI("enter");
+
+    return ERR_OK;
+}
+
+ErrCode MockAppAccountStub::GetAuthenticatorInfo(const std::string &owner, AuthenticatorInfo &authenticator)
+{
+    ACCOUNT_LOGI("enter");
+
+    return ERR_OK;
+}
+
+ErrCode MockAppAccountStub::GetAllOAuthTokens(const std::string &name, const std::string &owner,
+    std::vector<OAuthTokenInfo> &tokenInfos)
+{
+    ACCOUNT_LOGI("enter");
+
+    return ERR_OK;
+}
+
+ErrCode MockAppAccountStub::GetOAuthList(const std::string &name, const std::string &authType,
+    std::set<std::string> &oauthList)
+{
+    ACCOUNT_LOGI("enter");
+
+    return ERR_OK;
+}
+
+ErrCode MockAppAccountStub::GetAuthenticatorCallback(const std::string &sessionId, sptr<IRemoteObject> &callback)
 {
     ACCOUNT_LOGI("enter");
 

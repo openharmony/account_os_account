@@ -18,6 +18,7 @@
 
 #include "app_account_info.h"
 #include "app_account_subscribe_info.h"
+#include "want.h"
 
 namespace OHOS {
 namespace AccountSA {
