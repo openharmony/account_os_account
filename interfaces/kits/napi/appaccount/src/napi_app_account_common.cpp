@@ -314,34 +314,6 @@ void SetNamedProperty(napi_env env, napi_value dstObj, const int32_t objValue, c
     napi_set_named_property(env, dstObj, propName, prop);
 }
 
-int32_t ConvertToJSErrCode(int32_t errCode)
-{
-    switch (errCode) {
-        case ERR_OK:
-            return ERR_JS_SUCCESS;
-        case ERR_APPACCOUNT_SERVICE_ACCOUNT_NOT_EXIST:
-            return ERR_JS_ACCOUNT_NOT_EXIST;
-        case ERR_APPACCOUNT_KIT_INVALID_REQUEST:
-            return ERR_JS_INVALID_REQUEST;
-        case ERR_APPACCOUNT_SERVICE_OAUTH_AUTHENTICATOR_NOT_EXIST:
-            return ERR_JS_OAUTH_AUTHENTICATOR_NOT_EXIST;
-        case ERR_APPACCOUNT_SERVICE_OAUTH_BUSY:
-            return ERR_JS_OAUTH_SERVICE_BUSY;
-        case ERR_APPACCOUNT_SERVICE_OAUTH_LIST_MAX_SIZE:
-            return ERR_JS_OAUTH_LIST_TOO_LARGE;
-        case ERR_APPACCOUNT_SERVICE_OAUTH_SESSION_NOT_EXIST:
-            return ERR_JS_OAUTH_SESSION_NOT_EXIST;
-        case ERR_APPACCOUNT_SERVICE_OAUTH_TOKEN_NOT_EXIST:
-            return ERR_JS_OAUTH_TOKEN_NOT_EXIST;
-        case ERR_APPACCOUNT_SERVICE_OAUTH_TOKEN_MAX_SIZE:
-            return ERR_JS_OAUTH_TOKEN_TOO_MANY;
-        case ERR_APPACCOUNT_SERVICE_PERMISSION_DENIED:
-            return ERR_JS_PERMISSION_DENIED;
-        default:
-            return ERR_JS_APP_ACCOUNT_SERVICE_EXCEPTION;
-    }
-}
-
 napi_value GetErrorCodeValue(napi_env env, int errCode)
 {
     ACCOUNT_LOGI("enter");

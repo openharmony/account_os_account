@@ -18,8 +18,9 @@
 #include <string>
 #include <cstring>
 #include <vector>
-#include "app_account_manager.h"
 #include "account_log_wrapper.h"
+#include "app_account_common.h"
+#include "app_account_manager.h"
 #include "napi_app_account_common.h"
 #include "napi/native_api.h"
 #include "napi/native_node_api.h"
@@ -198,11 +199,16 @@ napi_value NapiAppAccount::AddAccountImplicitly(napi_env env, napi_callback_info
                 ErrCode errCode = AppAccountManager::AddAccountImplicitly(asyncContext->owner,
                     asyncContext->tokenInfo.authType, asyncContext->options, asyncContext->appAccountMgrCb,
                     asyncContext->abilityName);
-                ACCOUNT_LOGI("AddAccountImplicitly errcode parameter is %{public}d", errCode);
+                asyncContext->errCode = ConvertToJSErrCode(errCode);
+                ACCOUNT_LOGI("AddAccountImplicitly errcode parameter is %{public}d", asyncContext->errCode);
             },
             [](napi_env env, napi_status status, void *data) {
                 ACCOUNT_LOGI("AddAccountImplicitly, napi_create_async_work complete.");
                 OAuthAsyncContext *asyncContext = (OAuthAsyncContext *)data;
+                AAFwk::Want errResult;
+                if ((asyncContext->errCode != 0) && (asyncContext->appAccountMgrCb != nullptr)) {
+                    asyncContext->appAccountMgrCb->OnResult(ERR_JS_APP_ACCOUNT_SERVICE_EXCEPTION, errResult);
+                }
                 napi_delete_async_work(env, asyncContext->work);
                 delete asyncContext;
                 asyncContext = nullptr;
@@ -938,11 +944,16 @@ napi_value NapiAppAccount::Authenticate(napi_env env, napi_callback_info cbInfo)
                 request.callback = asyncContext->appAccountMgrCb;
                 request.callerAbilityName = asyncContext->abilityName;
                 ErrCode errCode = AppAccountManager::Authenticate(request);
-                ACCOUNT_LOGI("AddAccountImplicitly errcode parameter is %{public}d", errCode);
+                asyncContext->errCode = ConvertToJSErrCode(errCode);
+                ACCOUNT_LOGI("Authenticate errcode parameter is %{public}d", asyncContext->errCode);
             },
             [](napi_env env, napi_status status, void *data) {
                 ACCOUNT_LOGI("Authenticate, napi_create_async_work complete.");
                 OAuthAsyncContext *asyncContext = (OAuthAsyncContext *)data;
+                AAFwk::Want errResult;
+                if ((asyncContext->errCode != 0) && (asyncContext->appAccountMgrCb != nullptr)) {
+                    asyncContext->appAccountMgrCb->OnResult(ERR_JS_APP_ACCOUNT_SERVICE_EXCEPTION, errResult);
+                }
                 napi_delete_async_work(env, asyncContext->work);
             },
             (void *)asyncContext,

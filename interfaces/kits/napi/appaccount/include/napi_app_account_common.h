@@ -184,8 +184,6 @@ void SetNamedProperty(napi_env env, napi_value dstObj, const char *objName, cons
 
 void SetNamedProperty(napi_env env, napi_value dstObj, const int32_t objValue, const char *propName);
 
-int32_t ConvertToJSErrCode(int32_t errCode);
-
 napi_value GetErrorCodeValue(napi_env env, int errCode);
 
 void GetAppAccountInfoForResult(napi_env env, const std::vector<AppAccountInfo> &info, napi_value result);
