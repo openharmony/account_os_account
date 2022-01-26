@@ -92,22 +92,13 @@ ErrCode AppAccountAuthenticatorSessionManager::OpenSession(const std::string &ac
     if (!isInitialized_) {
         Init();
     }
-    AAFwk::Want errResult;
-    errResult.SetParam(Constants::KEY_NAME, request.name);
-    errResult.SetParam(Constants::KEY_AUTH_TYPE, request.authType);
     std::lock_guard<std::mutex> lock(mutex_);
     if (sessionMap_.size() == SESSION_MAX_NUM) {
         ACCOUNT_LOGE("app account mgr service is busy");
-        if ((request.callback != nullptr) && (request.callback->AsObject() != nullptr)) {
-            request.callback->OnResult(ERR_JS_OAUTH_SERVICE_BUSY, errResult);
-        }
         return ERR_APPACCOUNT_SERVICE_OAUTH_BUSY;
     }
     auto session = std::make_shared<AppAccountAuthenticatorSession>(action, request);
     if (session == nullptr) {
-        if ((request.callback != nullptr) && (request.callback->AsObject() != nullptr)) {
-            request.callback->OnResult(ERR_JS_APP_ACCOUNT_SERVICE_EXCEPTION, errResult);
-        }
         return ERR_APPACCOUNT_SERVICE_OAUTH_SERVICE_EXCEPTION;
     }
     std::string sessionId = session->GetSessionId();

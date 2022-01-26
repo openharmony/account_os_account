@@ -67,6 +67,8 @@ enum JSResultCode {
     ERR_JS_OAUTH_UNSUPPORT_AUTH_TYPE = 10017,
     ERR_JS_PERMISSION_DENIED = 10018,
 };
+
+int32_t ConvertToJSErrCode(int32_t errCode);
 }  // namespace AccountSA
 }  // namespace OHOS
 
