@@ -150,21 +150,6 @@ ErrCode AppAccountAuthenticatorSession::Open()
     return errCode;
 }
 
-ErrCode AppAccountAuthenticatorSession::Close()
-{
-    ACCOUNT_LOGI("enter");
-    if (isConnected_) {
-        ErrCode result = AAFwk::AbilityManagerClient::GetInstance()->DisconnectAbility(conn_);
-        if (result == ERR_OK) {
-            ACCOUNT_LOGI("DisconnectAbility success");
-            return ERR_ACCOUNT_MGR_CONNECT_SA_ERROR;
-        }
-        isConnected_ = false;
-        ACCOUNT_LOGI("DisconnectAbility failed");
-    }
-    return ERR_OK;
-}
-
 sptr<AppExecFwk::IBundleMgr> AppAccountAuthenticatorSession::GetBundleMgrProxy()
 {
     sptr<ISystemAbilityManager> samgrClient = SystemAbilityManagerClient::GetInstance().GetSystemAbilityManager();
@@ -208,7 +193,6 @@ void AppAccountAuthenticatorSession::OnAbilityDisconnectDone(const AppExecFwk::E
 {
     ACCOUNT_LOGI("enter");
     isConnected_ = false;
-    sessionManager_->CloseSession(sessionId_);
 }
 
 int32_t AppAccountAuthenticatorSession::OnResult(int32_t resultCode, const AAFwk::Want &result)
@@ -228,6 +212,7 @@ int32_t AppAccountAuthenticatorSession::OnResult(int32_t resultCode, const AAFwk
     }
     if (isConnected_) {
         AAFwk::AbilityManagerClient::GetInstance()->DisconnectAbility(conn_);
+        sessionManager_->CloseSession(sessionId_);
     }
     return resultCode;
 }
@@ -245,6 +230,7 @@ int32_t AppAccountAuthenticatorSession::OnRequestRedirected(AAFwk::Want &newRequ
         ACCOUNT_LOGI("app account callback is nullptr");
         if (isConnected_) {
             AAFwk::AbilityManagerClient::GetInstance()->DisconnectAbility(conn_);
+            sessionManager_->CloseSession(sessionId_);
         }
         return ERR_JS_SUCCESS;
     }
