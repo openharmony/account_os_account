@@ -85,17 +85,21 @@ private:
     ErrCode SendMsgForAccountCreate(OsAccountInfo &osAccountInfo);
     ErrCode SendMsgForAccountActivate(OsAccountInfo &osAccountInfo);
     ErrCode SendMsgForAccountRemove(OsAccountInfo &osAccountInfo);
+    void AddLocalIdToOperating(int localId);
+    void RemoveLocalIdToOperating(int localId);
+    bool IsLocalIdInOperating(int localId);
 
 private:
     std::shared_ptr<IOsAccountControl> osAccountControl_;
     std::vector<int> activeAccountId_;
+    std::vector<int> operatingId_;
     std::shared_ptr<IOsAccountSubscribe> subscribeManagerPtr_;
     std::int32_t counterForStandard_;
     std::int32_t counterForStandardCreate_;
     bool isSendToStorageCreate_;
     bool isSendToStorageStart_;
     std::shared_ptr<OHOS::AppExecFwk::EventHandler> handler_;
-    static constexpr std::int32_t DELAY_FOR_FOUNDATION_SERVICE = 5 * 1000;  // 5s
+    static constexpr std::int32_t DELAY_FOR_FOUNDATION_SERVICE = 10 * 1000;  // 10s
     static constexpr std::int32_t DELAY_FOR_TIME_INTERVAL = 1 * 1000;       // 1s
     static constexpr std::int32_t MAX_TRY_TIMES = 10;
     mutable std::mutex ativeMutex_;

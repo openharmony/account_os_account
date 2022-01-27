@@ -723,42 +723,7 @@ ErrCode OsAccountManagerService::DumpState(const int &id, std::vector<std::strin
         osAccountInfos.emplace_back(osAccountInfo);
     }
 
-    for (auto osAccountInfo : osAccountInfos) {
-        std::string info = "";
-
-        std::string localId = std::to_string(osAccountInfo.GetLocalId());
-        state.emplace_back("ID: " + localId);
-
-        std::string localName = osAccountInfo.GetLocalName();
-        state.emplace_back(DUMP_TAB_CHARACTER + "Name: " + localName);
-
-        std::string type = "";
-        auto it = DUMP_TYPE_MAP.find(osAccountInfo.GetType());
-        if (it != DUMP_TYPE_MAP.end()) {
-            type = it->second;
-        } else {
-            type = "unknown";
-        }
-        state.emplace_back(DUMP_TAB_CHARACTER + "Type: " + type);
-
-        std::string status = "";
-        if (osAccountInfo.GetIsActived()) {
-            status = "active";
-        } else {
-            status = "inactive";
-        }
-        state.emplace_back(DUMP_TAB_CHARACTER + "Status: " + status);
-
-        state.emplace_back(DUMP_TAB_CHARACTER + "Constraints:");
-        auto constraints = osAccountInfo.GetConstraints();
-        for (auto constraint : constraints) {
-            state.emplace_back(DUMP_TAB_CHARACTER + DUMP_TAB_CHARACTER + constraint);
-        }
-
-        state.emplace_back("\n");
-    }
-
-    return ERR_OK;
+    return DumpStateByAccounts(osAccountInfos, state);
 }
 
 ErrCode OsAccountManagerService::GetCreatedOsAccountNumFromDatabase(const std::string& storeID,
@@ -863,6 +828,68 @@ ErrCode OsAccountManagerService::GetOsAccountListFromDatabase(const std::string&
         }
     }
     return innerManager_->GetOsAccountListFromDatabase(storeID, osAccountList);
+}
+
+ErrCode OsAccountManagerService::DumpStateByAccounts(
+    const std::vector<OsAccountInfo> &osAccountInfos, std::vector<std::string> &state)
+{
+    ACCOUNT_LOGI("enter");
+
+    for (auto osAccountInfo : osAccountInfos) {
+        std::string info = "";
+
+        std::string localId = std::to_string(osAccountInfo.GetLocalId());
+        state.emplace_back("ID: " + localId);
+
+        std::string localName = osAccountInfo.GetLocalName();
+        state.emplace_back(DUMP_TAB_CHARACTER + "Name: " + localName);
+
+        std::string type = "";
+        auto it = DUMP_TYPE_MAP.find(osAccountInfo.GetType());
+        if (it != DUMP_TYPE_MAP.end()) {
+            type = it->second;
+        } else {
+            type = "unknown";
+        }
+        state.emplace_back(DUMP_TAB_CHARACTER + "Type: " + type);
+
+        std::string status = "";
+        if (osAccountInfo.GetIsActived()) {
+            status = "active";
+        } else {
+            status = "inactive";
+        }
+        state.emplace_back(DUMP_TAB_CHARACTER + "Status: " + status);
+
+        state.emplace_back(DUMP_TAB_CHARACTER + "Constraints:");
+        auto constraints = osAccountInfo.GetConstraints();
+        for (auto constraint : constraints) {
+            state.emplace_back(DUMP_TAB_CHARACTER + DUMP_TAB_CHARACTER + constraint);
+        }
+
+        std::string verifiedStatus = "";
+        if (osAccountInfo.GetIsVerified()) {
+            verifiedStatus = "true";
+        } else {
+            verifiedStatus = "false";
+        }
+        state.emplace_back(DUMP_TAB_CHARACTER + "Verified: " + verifiedStatus);
+
+        int64_t serialNumber = osAccountInfo.GetSerialNumber();
+        state.emplace_back(DUMP_TAB_CHARACTER + "Serial Number: " + std::to_string(serialNumber));
+
+        std::string createCompletedStatus = "";
+        if (osAccountInfo.GetIsCreateCompleted()) {
+            createCompletedStatus = "true";
+        } else {
+            createCompletedStatus = "false";
+        }
+        state.emplace_back(DUMP_TAB_CHARACTER + "Create Completed: " + createCompletedStatus);
+
+        state.emplace_back("\n");
+    }
+
+    return ERR_OK;
 }
 }  // namespace AccountSA
 }  // namespace OHOS
