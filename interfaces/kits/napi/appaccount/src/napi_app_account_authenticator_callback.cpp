@@ -125,9 +125,11 @@ napi_value NapiAppAccountAuthenticatorCallback::JsOnResult(napi_env env, napi_ca
                 ACCOUNT_LOGI("JsOnResult, napi_create_async_work running.");
                 CallbackParam *param = (CallbackParam *)data;
                 auto callbackProxy = iface_cast<IAppAccountAuthenticatorCallback>(param->callback->GetRemoteObject());
-                AAFwk::Want result;
-                result.SetParams(param->result);
-                callbackProxy->OnResult(param->resultCode, result);
+                if ((callbackProxy != nullptr) && (callbackProxy->AsObject() != nullptr)) {
+                    AAFwk::Want result;
+                    result.SetParams(param->result);
+                    callbackProxy->OnResult(param->resultCode, result);
+                }
             },
             [](napi_env env, napi_status status, void *data) {
                 ACCOUNT_LOGI("JsOnResult, napi_create_async_work complete.");
@@ -160,7 +162,9 @@ napi_value NapiAppAccountAuthenticatorCallback::JsOnRequestRedirected(napi_env e
                 ACCOUNT_LOGI("JsOnRequestRedirected, napi_create_async_work running.");
                 CallbackParam *param = (CallbackParam *)data;
                 auto callbackProxy = iface_cast<IAppAccountAuthenticatorCallback>(param->callback->GetRemoteObject());
-                callbackProxy->OnRequestRedirected(param->request);
+                if ((callbackProxy != nullptr) && (callbackProxy->AsObject() != nullptr)) {
+                    callbackProxy->OnRequestRedirected(param->request);
+                }
             },
             [](napi_env env, napi_status status, void *data) {
                 ACCOUNT_LOGI("JsOnRequestRedirected, napi_create_async_work complete.");
