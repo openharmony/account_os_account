@@ -231,6 +231,7 @@ HWTEST_F(OsAccountManagerModuleTest, OsAccountManagerModuleTest004, TestSize.Lev
 {
     OsAccountInfo osAccountInfoOne;
     ErrCode errCode = OsAccountManager::CreateOsAccount(STRING_TEST_NAME, INT_TEST_NEGATIVE_TYPE, osAccountInfoOne);
+    osAccountControlFileManager_->DelOsAccount(osAccountInfoOne.GetLocalId());
     EXPECT_EQ(errCode, ERR_OK);
 }
 
@@ -244,6 +245,7 @@ HWTEST_F(OsAccountManagerModuleTest, OsAccountManagerModuleTest005, TestSize.Lev
 {
     OsAccountInfo osAccountInfoOne;
     ErrCode errCode = OsAccountManager::CreateOsAccount(STRING_TEST_NAME, INT_TEST_MAX_TYPE, osAccountInfoOne);
+    osAccountControlFileManager_->DelOsAccount(osAccountInfoOne.GetLocalId());
     EXPECT_EQ(errCode, ERR_OK);
 }
 

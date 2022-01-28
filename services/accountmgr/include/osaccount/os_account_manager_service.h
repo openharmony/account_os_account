@@ -94,6 +94,10 @@ public:
         std::vector<OsAccountInfo> &osAccountList) override;
 
 private:
+    virtual ErrCode DumpStateByAccounts(
+        const std::vector<OsAccountInfo> &osAccountInfos, std::vector<std::string> &state);
+
+private:
     std::shared_ptr<IInnerOsAccount> innerManager_;
     std::shared_ptr<AccountBundleManager> bundleManagerPtr_;
     std::shared_ptr<AccountPermissionManager> permissionManagerPtr_;
