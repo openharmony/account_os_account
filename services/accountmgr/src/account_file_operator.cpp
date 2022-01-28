@@ -81,7 +81,7 @@ ErrCode AccountFileOperator::InputFileByPathAndContent(const std::string &path, 
         return ERR_OS_ACCOUNT_SERVICE_FILE_CREATE_FILE_FAILED_ERROR;
     }
     o << content;
-
+    o.close();
     ACCOUNT_LOGI("end");
 
     return ERR_OK;
@@ -99,7 +99,7 @@ ErrCode AccountFileOperator::GetFileContentByPath(const std::string &path, std::
     }
     buffer << i.rdbuf();
     content = buffer.str();
-
+    i.close();
     return ERR_OK;
 }
 

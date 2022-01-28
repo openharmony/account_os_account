@@ -370,6 +370,8 @@ struct SubscribeCBInfo {
     napi_env env;
     napi_async_work work;
     napi_ref callbackRef;
+    OS_ACCOUNT_SUBSCRIBE_TYPE osSubscribeType;
+    std::string name;
     OsAccountManager *osManager = nullptr;
     std::shared_ptr<SubscriberPtr> subscriber = nullptr;
 };

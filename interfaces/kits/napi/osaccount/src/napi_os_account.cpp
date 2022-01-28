@@ -1125,6 +1125,8 @@ napi_value Subscribe(napi_env env, napi_callback_info cbInfo)
     subscribeCBInfo->env = env;
     subscribeCBInfo->work = nullptr;
     subscribeCBInfo->callbackRef = callback;
+    subscribeCBInfo->name = onName;
+    subscribeCBInfo->osSubscribeType = onType;
     ACCOUNT_LOGI("callbackRef = %{public}p", subscribeCBInfo->callbackRef);
 
     // make osaccount subscribe info
@@ -1361,17 +1363,27 @@ void UnsubscribeCallbackCompletedCB(napi_env env, napi_status status, void *data
 
     napi_delete_async_work(env, unsubscribeCBInfo->work);
 
-    // earse the info from map
+    // erase the info from map
     auto subscribe = subscriberInstances.find(unsubscribeCBInfo->osManager);
     if (subscribe != subscriberInstances.end()) {
-        for (auto onCBInfo : subscribe->second) {
-            napi_delete_reference(env, onCBInfo->callbackRef);
+        auto it = subscribe->second.begin();
+        while (it != subscribe->second.end()) {
+            if ((*it)->name == unsubscribeCBInfo->name &&
+                (*it)->osSubscribeType == unsubscribeCBInfo->osSubscribeType) {
+                napi_delete_reference(env, (*it)->callbackRef);
+                it = subscribe->second.erase(it);
+                ACCOUNT_LOGI("Erace vector, vector.size = %{public}zu", subscribe->second.size());
+            } else {
+                ++it;
+            }
         }
+
+        if (subscriberInstances.size() != 0 && subscribe->second.size() == 0) {
+            ACCOUNT_LOGI("No subscriberInfo in the vector, erase the map");
+            subscriberInstances.erase(subscribe);
+        }
+        ACCOUNT_LOGI("Earse end subscriberInstances.size = %{public}zu", subscriberInstances.size());
     }
-    if (subscriberInstances.size() != 0) {
-        subscriberInstances.erase(subscribe);
-    }
-    ACCOUNT_LOGI("Earse end subscriberInstances.size = %{public}zu", subscriberInstances.size());
 
     delete unsubscribeCBInfo;
     unsubscribeCBInfo = nullptr;

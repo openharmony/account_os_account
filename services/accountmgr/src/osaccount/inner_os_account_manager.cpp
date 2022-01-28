@@ -28,6 +28,7 @@ IInnerOsAccountManager::IInnerOsAccountManager() : subscribeManagerPtr_(OsAccoun
     isSendToStorageCreate_ = false;
     isSendToStorageStart_ = false;
     activeAccountId_.clear();
+    operatingId_.clear();
     osAccountControl_ = std::make_shared<OsAccountControlFileManager>();
     osAccountControl_->Init();
     ACCOUNT_LOGI("OsAccountAccountMgr Init end");
@@ -90,6 +91,7 @@ void IInnerOsAccountManager::StartAccount()
         ACCOUNT_LOGE("OsAccountAccountMgr init start base account failed. cannot find account");
         return;
     }
+    ResetActiveStatus();
     GetEventHandler();
     if (!osAccountInfo.GetIsCreateCompleted()) {
         ACCOUNT_LOGI("OsAccountAccountMgr send to storage and bm for start");
@@ -210,7 +212,6 @@ void IInnerOsAccountManager::StartBaseStandardAccount(void)
         activeAccountId_.push_back(Constants::START_USER_ID);
         ACCOUNT_LOGI("connect AM to start account ok");
     }
-    ResetActiveStatus();
 }
 
 ErrCode IInnerOsAccountManager::PrepareOsAccountInfo(const std::string &name, const OsAccountType &type,
@@ -325,6 +326,11 @@ ErrCode IInnerOsAccountManager::CreateOsAccountForDomain(
 ErrCode IInnerOsAccountManager::RemoveOsAccount(const int id)
 {
     ACCOUNT_LOGI("RemoveOsAccount delete id is %{public}d", id);
+    if (IsLocalIdInOperating(id)) {
+        ACCOUNT_LOGE("the %{public}d already in operating", id);
+        return ERR_OS_ACCOUNT_SERVICE_INNER_ACCOUNT_OPERATING_ERROR;
+    }
+    AddLocalIdToOperating(id);
     bool isActived = false;
     {
         std::lock_guard<std::mutex> lock(ativeMutex_);
@@ -338,6 +344,7 @@ ErrCode IInnerOsAccountManager::RemoveOsAccount(const int id)
         ACCOUNT_LOGI("RemoveOsAccount started account to inactive, account id : %{public}d.", id);
         ErrCode activeErrCode = ActivateOsAccount(Constants::START_USER_ID);
         if (activeErrCode != ERR_OK) {
+            RemoveLocalIdToOperating(id);
             ACCOUNT_LOGE("RemoveOsAccount active base account failed");
             return ERR_OS_ACCOUNT_SERVICE_INNER_REMOVE_ACCOUNT_ACTIVED_ERROR;
         }
@@ -345,13 +352,16 @@ ErrCode IInnerOsAccountManager::RemoveOsAccount(const int id)
     OsAccountInfo osAccountInfo;
     ErrCode errCode = osAccountControl_->GetOsAccountInfoById(id, osAccountInfo);
     if (errCode != ERR_OK) {
+        RemoveLocalIdToOperating(id);
         ACCOUNT_LOGE("RemoveOsAccount cannot find os account info");
         return ERR_OS_ACCOUNT_SERVICE_INNER_CANNOT_FIND_OSACCOUNT_ERROR;
     }
     errCode = SendMsgForAccountRemove(osAccountInfo);
     if (errCode != ERR_OK) {
+        RemoveLocalIdToOperating(id);
         return errCode;
     }
+    RemoveLocalIdToOperating(id);
     ACCOUNT_LOGI("IInnerOsAccountManager RemoveOsAccount end");
     return ERR_OK;
 }
@@ -705,9 +715,15 @@ void IInnerOsAccountManager::DeActivateOsAccount(const int id)
 
 ErrCode IInnerOsAccountManager::ActivateOsAccount(const int id)
 {
+    if (IsLocalIdInOperating(id)) {
+        ACCOUNT_LOGE("the %{public}d already in operating", id);
+        return ERR_OS_ACCOUNT_SERVICE_INNER_ACCOUNT_OPERATING_ERROR;
+    }
+    AddLocalIdToOperating(id);
     {
         std::lock_guard<std::mutex> lock(ativeMutex_);
         if (std::find(activeAccountId_.begin(), activeAccountId_.end(), id) != activeAccountId_.end()) {
+            RemoveLocalIdToOperating(id);
             ACCOUNT_LOGE("account is %{public}d already active", id);
             return ERR_OS_ACCOUNT_SERVICE_INNER_ACCOUNT_ALREAD_ACTIVE_ERROR;
         }
@@ -715,38 +731,23 @@ ErrCode IInnerOsAccountManager::ActivateOsAccount(const int id)
     OsAccountInfo osAccountInfo;
     ErrCode errCode = osAccountControl_->GetOsAccountInfoById(id, osAccountInfo);
     if (errCode != ERR_OK) {
+        RemoveLocalIdToOperating(id);
         ACCOUNT_LOGE("cannot find os account info by id:%{public}d", id);
         return ERR_OS_ACCOUNT_SERVICE_INNER_SELECT_OSACCOUNT_BYID_ERROR;
     }
     if (!osAccountInfo.GetIsCreateCompleted()) {
+        RemoveLocalIdToOperating(id);
         ACCOUNT_LOGE("account %{public}d is not Completed", id);
         return ERR_OS_ACCOUNT_SERVICE_INNER_ACCOUNT_IS_UNVERIFIED_ERROR;
     }
     subscribeManagerPtr_->PublicActivatingOsAccount(id);
     errCode = SendMsgForAccountActivate(osAccountInfo);
     if (errCode != ERR_OK) {
+        RemoveLocalIdToOperating(id);
+        ACCOUNT_LOGE("update %{public}d account info failed", id);
         return errCode;
     }
-    // update info
-    osAccountInfo.SetIsActived(true);
-    int64_t time =
-        std::chrono::duration_cast<std::chrono::seconds>(std::chrono::system_clock::now().time_since_epoch()).count();
-    osAccountInfo.SetLastLoginTime(time);
-    errCode = osAccountControl_->UpdateOsAccount(osAccountInfo);
-    if (errCode != ERR_OK) {
-        ACCOUNT_LOGE("update %{public}d account info failed", id);
-        return ERR_OS_ACCOUNT_SERVICE_INNER_UPDATE_ACCOUNT_ERROR;
-    }
-    {
-        std::lock_guard<std::mutex> lock(ativeMutex_);
-        for (size_t i = 0; i < activeAccountId_.size(); ++i) {
-            DeActivateOsAccount(activeAccountId_[i]);
-        }
-        activeAccountId_.clear();
-        activeAccountId_.push_back(Constants::ADMIN_LOCAL_ID);
-        activeAccountId_.push_back(id);
-    }
-    subscribeManagerPtr_->PublicActivatedOsAccount(id);
+    RemoveLocalIdToOperating(id);
     ACCOUNT_LOGI("IInnerOsAccountManager ActivateOsAccount end");
     return ERR_OK;
 }
@@ -764,6 +765,26 @@ ErrCode IInnerOsAccountManager::SendMsgForAccountActivate(OsAccountInfo &osAccou
         ACCOUNT_LOGE("account %{public}d call am active failed", osAccountInfo.GetLocalId());
         return ERR_OS_ACCOUNT_SERVICE_INNER_SEND_AM_ACCOUNT_SWITCH_ERROR;
     }
+    // update info
+    osAccountInfo.SetIsActived(true);
+    int64_t time =
+        std::chrono::duration_cast<std::chrono::seconds>(std::chrono::system_clock::now().time_since_epoch()).count();
+    osAccountInfo.SetLastLoginTime(time);
+    errCode = osAccountControl_->UpdateOsAccount(osAccountInfo);
+    if (errCode != ERR_OK) {
+        ACCOUNT_LOGE("update %{public}d account info failed", osAccountInfo.GetLocalId());
+        return ERR_OS_ACCOUNT_SERVICE_INNER_UPDATE_ACCOUNT_ERROR;
+    }
+    {
+        std::lock_guard<std::mutex> lock(ativeMutex_);
+        for (size_t i = 0; i < activeAccountId_.size(); ++i) {
+            DeActivateOsAccount(activeAccountId_[i]);
+        }
+        activeAccountId_.clear();
+        activeAccountId_.push_back(Constants::ADMIN_LOCAL_ID);
+        activeAccountId_.push_back(osAccountInfo.GetLocalId());
+    }
+    subscribeManagerPtr_->PublicActivatedOsAccount(osAccountInfo.GetLocalId());
     errCode = OsAccountStandardInterface::SendToCESAccountSwithced(osAccountInfo);
     if (errCode != ERR_OK) {
         ACCOUNT_LOGE("account %{public}d call ce active failed", osAccountInfo.GetLocalId());
@@ -929,6 +950,24 @@ ErrCode IInnerOsAccountManager::GetOsAccountListFromDatabase(const std::string& 
     std::vector<OsAccountInfo> &osAccountList)
 {
     return osAccountControl_->GetOsAccountListFromDatabase(storeID, osAccountList);
+}
+
+void IInnerOsAccountManager::AddLocalIdToOperating(int localId)
+{
+    operatingId_.push_back(localId);
+}
+
+void IInnerOsAccountManager::RemoveLocalIdToOperating(int localId)
+{
+    auto it = std::find(operatingId_.begin(), operatingId_.end(), localId);
+    if (it != operatingId_.end()) {
+        operatingId_.erase(it);
+    }
+}
+
+bool IInnerOsAccountManager::IsLocalIdInOperating(int localId)
+{
+   return std::find(operatingId_.begin(), operatingId_.end(), localId) != operatingId_.end();
 }
 }  // namespace AccountSA
 }  // namespace OHOS
