@@ -119,7 +119,7 @@ bool AccountFileOperator::IsExistFile(const std::string &path)
 
 bool AccountFileOperator::IsExistDir(const std::string &path)
 {
-    if (path.empty()) { 
+    if (path.empty()) {
         return false;
     }
 
