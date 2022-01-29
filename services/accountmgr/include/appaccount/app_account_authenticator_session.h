@@ -30,13 +30,25 @@
 namespace OHOS {
 namespace AccountSA {
 class AppAccountAuthenticatorSession;
-
-class SessionDeathRecipient : public IRemoteObject::DeathRecipient {
+namespace {
+class ClientDeathRecipient : public IRemoteObject::DeathRecipient {
 public:
-    SessionDeathRecipient(AppAccountAuthenticatorSession *session);
-    virtual ~SessionDeathRecipient() = default;
+    ClientDeathRecipient(AppAccountAuthenticatorSession *session);
+    virtual ~ClientDeathRecipient() = default;
 
     virtual void OnRemoteDied(const wptr<IRemoteObject> &remote);
+    void SetSession(AppAccountAuthenticatorSession *session);
+private:
+    AppAccountAuthenticatorSession *session_;
+};
+
+class ServerDeathRecipient : public IRemoteObject::DeathRecipient {
+public:
+    ServerDeathRecipient(AppAccountAuthenticatorSession *session);
+    virtual ~ServerDeathRecipient() = default;
+
+    virtual void OnRemoteDied(const wptr<IRemoteObject> &remote);
+    void SetSession(AppAccountAuthenticatorSession *session);
 private:
     AppAccountAuthenticatorSession *session_;
 };
@@ -44,48 +56,52 @@ private:
 class SessionConnection : public AAFwk::AbilityConnectionStub {
 public:
     SessionConnection(AppAccountAuthenticatorSession *session);
-    ~SessionConnection();
+    virtual ~SessionConnection();
+
     void OnAbilityConnectDone(
         const AppExecFwk::ElementName &element, const sptr<IRemoteObject> &remoteObject, int32_t resultCode) override;
     void OnAbilityDisconnectDone(const AppExecFwk::ElementName &element, int resultCode) override;
+    void SetSession(AppAccountAuthenticatorSession *session);
 private:
     AppAccountAuthenticatorSession *session_;
 };
+}
 
 class AppAccountAuthenticatorSession {
 public:
     AppAccountAuthenticatorSession(const std::string &action, const OAuthRequest &request);
     ~AppAccountAuthenticatorSession();
-    void OnAbilityConnectDone(
-        const AppExecFwk::ElementName &element, const sptr<IRemoteObject> &remoteObject, int32_t resultCode);
-    void OnAbilityDisconnectDone(const AppExecFwk::ElementName &element, int resultCode);
-    void GetRequest(OAuthRequest &request) const;
     void Init();
     ErrCode Open();
     ErrCode Close();
-    ErrCode OnResult(int32_t resultCode, const AAFwk::Want &result);
-    ErrCode OnRequestRedirected(AAFwk::Want &request);
-    ErrCode GetAuthenticatorCallback(const OAuthRequest &request, sptr<IRemoteObject> &callback);
-    std::string GetSessionId();
+    void OnAbilityConnectDone(
+        const AppExecFwk::ElementName &element, const sptr<IRemoteObject> &remoteObject, int32_t resultCode);
+    void OnAbilityDisconnectDone(const AppExecFwk::ElementName &element, int resultCode);
+    void OnClientDied();
+    void OnServerDied();
+    int32_t OnResult(int32_t resultCode, const AAFwk::Want &result) const;
+    int32_t OnRequestRedirected(AAFwk::Want &request) const;
+    std::string GetSessionId() const;
+    void GetRequest(OAuthRequest &request) const;
+    ErrCode GetAuthenticatorCallback(const OAuthRequest &request, sptr<IRemoteObject> &callback) const;
 private:
-    void GenerateSessionWithSha256();
     sptr<AppExecFwk::IBundleMgr> GetBundleMgrProxy();
-    ErrCode UpdateAuthInfo(const AAFwk::Want &result);
-    ErrCode OnAuthenticateDone(const AAFwk::Want &result);
-    ErrCode OnAddAccountImplicitlyDone(const AAFwk::Want &result);
+    int32_t UpdateAuthInfo(const AAFwk::Want &result) const;
+    int32_t OnAuthenticateDone(const AAFwk::Want &result) const;
+    int32_t OnAddAccountImplicitlyDone(const AAFwk::Want &result) const;
 private:
-    std::string sessionId_;
     std::string action_;
+    std::string sessionId_;
     OAuthRequest request_;
-    AAFwk::Want defaultResult_;
-    uid_t ownerUid_;
-    sptr<SessionConnection> conn_;
-    sptr<SessionDeathRecipient> deathRecipient_;
+    sptr<SessionConnection> conn_ = nullptr;
+    sptr<ClientDeathRecipient> clientDeathRecipient_ = nullptr;
+    sptr<ServerDeathRecipient> serverDeathRecipient_ = nullptr;
     sptr<IAppAccountAuthenticatorCallback> authenticatorCb_ = nullptr;
     sptr<IAppAccountAuthenticator> authenticatorProxy_ = nullptr;
     std::shared_ptr<AppAccountAuthenticatorSessionManager> sessionManager_ = nullptr;
     std::shared_ptr<AppAccountControlManager> controlManager_ = nullptr;
     std::shared_ptr<AppAccountAuthenticatorManager> authenticatorMgr_ = nullptr;
+    uid_t ownerUid_;
     bool isInitialized_ = false;
     bool isOpened_ = false;
     bool isConnected_ = false;
