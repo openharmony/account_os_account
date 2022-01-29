@@ -17,12 +17,7 @@
 
 #include "account_log_wrapper.h"
 #include "app_account_authenticator_session.h"
-#include "app_account_data_storage.h"
-#include "app_account_info.h"
-#include "iapp_account_event.h"
-#include "ipc_skeleton.h"
 #include "iservice_registry.h"
-#include "ohos_account_kits.h"
 #include "singleton.h"
 #include "system_ability_definition.h"
 
@@ -89,27 +84,35 @@ ErrCode AppAccountAuthenticatorSessionManager::OpenSession(const std::string &ac
     if (!isInitialized_) {
         Init();
     }
-    std::lock_guard<std::mutex> lock(mutex_);
-    if (sessionMap_.size() == SESSION_MAX_NUM) {
-        ACCOUNT_LOGE("app account mgr service is busy");
-        return ERR_APPACCOUNT_SERVICE_OAUTH_BUSY;
-    }
     auto session = std::make_shared<AppAccountAuthenticatorSession>(action, request);
     if (session == nullptr) {
+        ACCOUNT_LOGE("failed to create AppAccountAuthenticatorSession");
         return ERR_APPACCOUNT_SERVICE_OAUTH_SERVICE_EXCEPTION;
     }
     std::string sessionId = session->GetSessionId();
-    sessionMap_.emplace(sessionId, session);
-    std::string key = request.callerAbilityName + std::to_string(request.callerUid);
-    auto it = abilitySessions_.find(key);
-    if (it != abilitySessions_.end()) {
-        it->second.emplace(sessionId);
-    } else {
-        std::set<std::string> sessionSet;
-        sessionSet.emplace(sessionId);
-        abilitySessions_.emplace(key, sessionSet);
+    {
+        std::lock_guard<std::mutex> lock(mutex_);
+        if (sessionMap_.size() == SESSION_MAX_NUM) {
+            ACCOUNT_LOGE("app account mgr service is busy");
+            return ERR_APPACCOUNT_SERVICE_OAUTH_BUSY;
+        }
+        ErrCode result = session->Open();
+        if (result != ERR_OK) {
+            ACCOUNT_LOGI("failed to open session");
+            return result;
+        }
+        sessionMap_.emplace(sessionId, session);
+        std::string key = request.callerAbilityName + std::to_string(request.callerUid);
+        auto it = abilitySessions_.find(key);
+        if (it != abilitySessions_.end()) {
+            it->second.emplace(sessionId);
+        } else {
+            std::set<std::string> sessionSet;
+            sessionSet.emplace(sessionId);
+            abilitySessions_.emplace(key, sessionSet);
+        }
     }
-    return session->Open();
+    return ERR_OK;
 }
 
 ErrCode AppAccountAuthenticatorSessionManager::GetAuthenticatorCallback(
@@ -135,8 +138,6 @@ void AppAccountAuthenticatorSessionManager::OnAbilityStateChanged(const AppExecF
     if (abilityStateData.abilityState != ABILITY_STATE_TERMINATED) {
         return;
     }
-    ACCOUNT_LOGI("ability terminated: %{public}s, pid: %{public}d, uid: %{public}d",
-        abilityStateData.abilityName.c_str(), abilityStateData.pid, abilityStateData.uid);
     std::string key = abilityStateData.abilityName + std::to_string(abilityStateData.uid);
     std::lock_guard<std::mutex> lock(mutex_);
     auto it = abilitySessions_.find(key);
@@ -144,9 +145,9 @@ void AppAccountAuthenticatorSessionManager::OnAbilityStateChanged(const AppExecF
         return;
     }
     for (auto sessionId : it->second) {
-        ACCOUNT_LOGI("session{id=%{public}s} will be cleared", sessionId.c_str());
         auto sessionIt = sessionMap_.find(sessionId);
         if (sessionIt != sessionMap_.end()) {
+            ACCOUNT_LOGI("session{id=%{public}s} will be cleared", sessionId.c_str());
             sessionMap_.erase(sessionIt);
         }
     }
