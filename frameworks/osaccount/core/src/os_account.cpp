@@ -159,18 +159,6 @@ ErrCode OsAccount::GetOsAccountLocalIdFromProcess(int &id)
     return osAccountProxy_->GetOsAccountLocalIdFromProcess(id);
 }
 
-ErrCode OsAccount::GetOsAccountLocalIdFromUid(const int uid, int &id)
-{
-    ACCOUNT_LOGI("OsAccount::GetOsAccountLocalIdFromUid start");
-    ErrCode result = GetOsAccountProxy();
-    if (result != ERR_OK) {
-        ACCOUNT_LOGE("failed to get osAccountProxy_");
-        return result;
-    }
-
-    return osAccountProxy_->GetOsAccountLocalIdFromUid(uid, id);
-}
-
 ErrCode OsAccount::GetOsAccountLocalIdFromDomain(const DomainAccountInfo &domainInfo, int &id)
 {
     ACCOUNT_LOGI("OsAccount::GetOsAccountLocalIdFromDomain start");

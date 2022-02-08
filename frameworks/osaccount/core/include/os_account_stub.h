@@ -44,7 +44,6 @@ private:
     ErrCode ProcGetOsAccountAllConstraints(MessageParcel &data, MessageParcel &reply);
     ErrCode ProcGetOsAccountLocalIdFromProcess(MessageParcel &data, MessageParcel &reply);
     ErrCode ProcGetOsAccountProfilePhoto(MessageParcel &data, MessageParcel &reply);
-    ErrCode ProcGetOsAccountLocalIdFromUid(MessageParcel &data, MessageParcel &reply);
     ErrCode ProcGetOsAccountLocalIdFromDomain(MessageParcel &data, MessageParcel &reply);
     ErrCode ProcGetOsAccountTypeFromProcess(MessageParcel &data, MessageParcel &reply);
     ErrCode ProcGetApplicationConstraints(MessageParcel &data, MessageParcel &reply);

@@ -527,9 +527,11 @@ HWTEST_F(OsAccountManagerModuleTest, OsAccountManagerModuleTest023, TestSize.Lev
  */
 HWTEST_F(OsAccountManagerModuleTest, OsAccountManagerModuleTest024, TestSize.Level1)
 {
-    int uid = 0;
     int id = -1;
-    EXPECT_EQ(OsAccountManager::GetOsAccountLocalIdFromUid(uid, id), ERR_OK);
+    int testUid = 1000000;   // uid for test
+    int expectedUserID = 5;  // the expected result user ID
+    EXPECT_EQ(OsAccountManager::GetOsAccountLocalIdFromUid(testUid, id), ERR_OK);
+    EXPECT_EQ(expectedUserID, id);
 }
 
 /**

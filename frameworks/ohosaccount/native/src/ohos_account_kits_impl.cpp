@@ -140,13 +140,9 @@ ErrCode OhosAccountKitsImpl::QueryDeviceAccountId(std::int32_t& accountId)
 
 std::int32_t OhosAccountKitsImpl::GetDeviceAccountIdByUID(std::int32_t& uid)
 {
-    auto accountProxy = GetService();
-    if (accountProxy == nullptr) {
-        ACCOUNT_LOGE("Get proxy failed");
-        return ERR_DEAD_OBJECT;
-    }
-
-    return accountProxy->QueryDeviceAccountIdFromUid(uid);
+    std::int32_t accountID = uid / UID_TRANSFORM_DIVISOR;
+    ACCOUNT_LOGI("uid %{public}d, accountID %{public}d.", uid, accountID);
+    return accountID;
 }
 } // namespace AccountSA
 } // namespace OHOS

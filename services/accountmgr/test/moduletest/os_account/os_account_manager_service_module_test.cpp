@@ -533,36 +533,23 @@ HWTEST_F(OsAccountManagerServiceModuleTest, OsAccountManagerServiceModuleTest024
 
 /**
  * @tc.name: OsAccountManagerServiceModuleTest025
- * @tc.desc: Test GetOsAccountLocalIdFromUid.
- * @tc.type: FUNC
- * @tc.require: SR000GGVFF
- */
-HWTEST_F(OsAccountManagerServiceModuleTest, OsAccountManagerServiceModuleTest025, TestSize.Level1)
-{
-    int uid = 0;
-    int id = -1;
-    EXPECT_EQ(g_osAccountManagerService->GetOsAccountLocalIdFromUid(uid, id), ERR_OK);
-}
-
-/**
- * @tc.name: OsAccountManagerServiceModuleTest026
  * @tc.desc: Test QueryMaxOsAccountNumber.
  * @tc.type: FUNC
  * @tc.require: SR000GGVFG
  */
-HWTEST_F(OsAccountManagerServiceModuleTest, OsAccountManagerServiceModuleTest026, TestSize.Level1)
+HWTEST_F(OsAccountManagerServiceModuleTest, OsAccountManagerServiceModuleTest025, TestSize.Level1)
 {
     int maxOsAccountNumber = 0;
     EXPECT_EQ(g_osAccountManagerService->QueryMaxOsAccountNumber(maxOsAccountNumber), ERR_OK);
 }
 
 /**
- * @tc.name: OsAccountManagerServiceModuleTest027
+ * @tc.name: OsAccountManagerServiceModuleTest026
  * @tc.desc: Test GetOsAccountAllConstraints with exisit os account id.
  * @tc.type: FUNC
  * @tc.require: SR000GGVFE SR000GH18T
  */
-HWTEST_F(OsAccountManagerServiceModuleTest, OsAccountManagerServiceModuleTest027, TestSize.Level1)
+HWTEST_F(OsAccountManagerServiceModuleTest, OsAccountManagerServiceModuleTest026, TestSize.Level1)
 {
     std::vector<std::string> constraints;
     EXPECT_EQ(g_osAccountManagerService->GetOsAccountAllConstraints(Constants::START_USER_ID, constraints), ERR_OK);
@@ -571,12 +558,12 @@ HWTEST_F(OsAccountManagerServiceModuleTest, OsAccountManagerServiceModuleTest027
 }
 
 /**
- * @tc.name: OsAccountManagerServiceModuleTest028
+ * @tc.name: OsAccountManagerServiceModuleTest027
  * @tc.desc: Test GetOsAccountAllConstraints with does not exisit os account id.
  * @tc.type: FUNC
  * @tc.require: SR000GGVFE SR000GH18T
  */
-HWTEST_F(OsAccountManagerServiceModuleTest, OsAccountManagerServiceModuleTest028, TestSize.Level1)
+HWTEST_F(OsAccountManagerServiceModuleTest, OsAccountManagerServiceModuleTest027, TestSize.Level1)
 {
     std::vector<std::string> constraints;
     EXPECT_EQ(g_osAccountManagerService->GetOsAccountAllConstraints(Constants::MAX_USER_ID + 1, constraints),
@@ -584,12 +571,12 @@ HWTEST_F(OsAccountManagerServiceModuleTest, OsAccountManagerServiceModuleTest028
 }
 
 /**
- * @tc.name: OsAccountManagerServiceModuleTest029
+ * @tc.name: OsAccountManagerServiceModuleTest028
  * @tc.desc: Test QueryAllCreatedOsAccounts.
  * @tc.type: FUNC
  * @tc.require: SR000GH18T
  */
-HWTEST_F(OsAccountManagerServiceModuleTest, OsAccountManagerServiceModuleTest029, TestSize.Level1)
+HWTEST_F(OsAccountManagerServiceModuleTest, OsAccountManagerServiceModuleTest028, TestSize.Level1)
 {
     std::vector<OsAccountInfo> osAccountInfos;
     EXPECT_EQ(g_osAccountManagerService->QueryAllCreatedOsAccounts(osAccountInfos), ERR_OK);
@@ -598,24 +585,24 @@ HWTEST_F(OsAccountManagerServiceModuleTest, OsAccountManagerServiceModuleTest029
 }
 
 /**
- * @tc.name: OsAccountManagerServiceModuleTest030
+ * @tc.name: OsAccountManagerServiceModuleTest029
  * @tc.desc: Test QueryCurrentOsAccount.
  * @tc.type: FUNC
  * @tc.require: SR000GGVFG
  */
-HWTEST_F(OsAccountManagerServiceModuleTest, OsAccountManagerServiceModuleTest030, TestSize.Level1)
+HWTEST_F(OsAccountManagerServiceModuleTest, OsAccountManagerServiceModuleTest029, TestSize.Level1)
 {
     OsAccountInfo osAccountInfo;
     EXPECT_EQ(g_osAccountManagerService->QueryCurrentOsAccount(osAccountInfo), ERR_OK);
 }
 
 /**
- * @tc.name: OsAccountManagerServiceModuleTest031
+ * @tc.name: OsAccountManagerServiceModuleTest030
  * @tc.desc: Test QueryOsAccountById with valid data.
  * @tc.type: FUNC
  * @tc.require: SR000GGVFF
  */
-HWTEST_F(OsAccountManagerServiceModuleTest, OsAccountManagerServiceModuleTest031, TestSize.Level0)
+HWTEST_F(OsAccountManagerServiceModuleTest, OsAccountManagerServiceModuleTest030, TestSize.Level0)
 {
     OsAccountInfo osAccountInfo;
     EXPECT_EQ(g_osAccountManagerService->QueryOsAccountById(Constants::START_USER_ID, osAccountInfo), ERR_OK);
@@ -623,12 +610,12 @@ HWTEST_F(OsAccountManagerServiceModuleTest, OsAccountManagerServiceModuleTest031
 }
 
 /**
- * @tc.name: OsAccountManagerServiceModuleTest032
+ * @tc.name: OsAccountManagerServiceModuleTest031
  * @tc.desc: Test QueryOsAccountById with unvalid data.
  * @tc.type: FUNC
  * @tc.require: SR000GGVFF
  */
-HWTEST_F(OsAccountManagerServiceModuleTest, OsAccountManagerServiceModuleTest032, TestSize.Level1)
+HWTEST_F(OsAccountManagerServiceModuleTest, OsAccountManagerServiceModuleTest031, TestSize.Level1)
 {
     OsAccountInfo osAccountInfo;
     EXPECT_EQ(g_osAccountManagerService->QueryOsAccountById(Constants::MAX_USER_ID + 1, osAccountInfo),
@@ -636,24 +623,24 @@ HWTEST_F(OsAccountManagerServiceModuleTest, OsAccountManagerServiceModuleTest032
 }
 
 /**
- * @tc.name: OsAccountManagerServiceModuleTest033
+ * @tc.name: OsAccountManagerServiceModuleTest032
  * @tc.desc: Test GetOsAccountTypeFromProcess.
  * @tc.type: FUNC
  * @tc.require: SR000GGVFG
  */
-HWTEST_F(OsAccountManagerServiceModuleTest, OsAccountManagerServiceModuleTest033, TestSize.Level1)
+HWTEST_F(OsAccountManagerServiceModuleTest, OsAccountManagerServiceModuleTest032, TestSize.Level1)
 {
     OsAccountType type;
     EXPECT_EQ(g_osAccountManagerService->GetOsAccountTypeFromProcess(type), ERR_OK);
 }
 
 /**
- * @tc.name: OsAccountManagerServiceModuleTest034
+ * @tc.name: OsAccountManagerServiceModuleTest033
  * @tc.desc: Test SetOsAccountName with valid data.
  * @tc.type: FUNC
  * @tc.require: SR000GGVFF
  */
-HWTEST_F(OsAccountManagerServiceModuleTest, OsAccountManagerServiceModuleTest034, TestSize.Level1)
+HWTEST_F(OsAccountManagerServiceModuleTest, OsAccountManagerServiceModuleTest033, TestSize.Level1)
 {
     OsAccountInfo osAccountInfoOne;
     g_osAccountManagerService->CreateOsAccount(STRING_TEST_NAME, INT_TEST_TYPE, osAccountInfoOne);
@@ -661,6 +648,20 @@ HWTEST_F(OsAccountManagerServiceModuleTest, OsAccountManagerServiceModuleTest034
     OsAccountInfo osAccountInfoTwo;
     g_osAccountManagerService->QueryOsAccountById(osAccountInfoOne.GetLocalId(), osAccountInfoTwo);
     EXPECT_EQ(STRING_NAME, osAccountInfoTwo.GetLocalName());
+    osAccountControlFileManager_->DelOsAccount(osAccountInfoOne.GetLocalId());
+}
+
+/**
+ * @tc.name: OsAccountManagerServiceModuleTest034
+ * @tc.desc: Test SetOsAccountName with unvalid data.
+ * @tc.type: FUNC
+ * @tc.require: SR000GGVFF
+ */
+HWTEST_F(OsAccountManagerServiceModuleTest, OsAccountManagerServiceModuleTest034, TestSize.Level1)
+{
+    OsAccountInfo osAccountInfoOne;
+    g_osAccountManagerService->CreateOsAccount(STRING_TEST_NAME, INT_TEST_TYPE, osAccountInfoOne);
+    EXPECT_NE(g_osAccountManagerService->SetOsAccountName(osAccountInfoOne.GetLocalId(), STRING_EMPTY), ERR_OK);
     osAccountControlFileManager_->DelOsAccount(osAccountInfoOne.GetLocalId());
 }
 
@@ -674,32 +675,18 @@ HWTEST_F(OsAccountManagerServiceModuleTest, OsAccountManagerServiceModuleTest035
 {
     OsAccountInfo osAccountInfoOne;
     g_osAccountManagerService->CreateOsAccount(STRING_TEST_NAME, INT_TEST_TYPE, osAccountInfoOne);
-    EXPECT_NE(g_osAccountManagerService->SetOsAccountName(osAccountInfoOne.GetLocalId(), STRING_EMPTY), ERR_OK);
-    osAccountControlFileManager_->DelOsAccount(osAccountInfoOne.GetLocalId());
-}
-
-/**
- * @tc.name: OsAccountManagerServiceModuleTest036
- * @tc.desc: Test SetOsAccountName with unvalid data.
- * @tc.type: FUNC
- * @tc.require: SR000GGVFF
- */
-HWTEST_F(OsAccountManagerServiceModuleTest, OsAccountManagerServiceModuleTest036, TestSize.Level1)
-{
-    OsAccountInfo osAccountInfoOne;
-    g_osAccountManagerService->CreateOsAccount(STRING_TEST_NAME, INT_TEST_TYPE, osAccountInfoOne);
     EXPECT_NE(g_osAccountManagerService->SetOsAccountName(
         osAccountInfoOne.GetLocalId(), STRING_NAME_OUT_OF_RANGE), ERR_OK);
     osAccountControlFileManager_->DelOsAccount(osAccountInfoOne.GetLocalId());
 }
 
 /**
- * @tc.name: OsAccountManagerServiceModuleTest038
+ * @tc.name: OsAccountManagerServiceModuleTest036
  * @tc.desc: Test GetOsAccountLocalIdBySerialNumber with valid data.
  * @tc.type: FUNC
  * @tc.require: SR000GGVFF
  */
-HWTEST_F(OsAccountManagerServiceModuleTest, OsAccountManagerServiceModuleTest038, TestSize.Level1)
+HWTEST_F(OsAccountManagerServiceModuleTest, OsAccountManagerServiceModuleTest036, TestSize.Level1)
 {
     int id = 0;
     EXPECT_EQ(g_osAccountManagerService->GetOsAccountLocalIdBySerialNumber(
@@ -708,24 +695,24 @@ HWTEST_F(OsAccountManagerServiceModuleTest, OsAccountManagerServiceModuleTest038
 }
 
 /**
- * @tc.name: OsAccountManagerServiceModuleTest039
+ * @tc.name: OsAccountManagerServiceModuleTest037
  * @tc.desc: Test GetOsAccountLocalIdBySerialNumber with unvalid data.
  * @tc.type: FUNC
  * @tc.require: SR000GGVFF
  */
-HWTEST_F(OsAccountManagerServiceModuleTest, OsAccountManagerServiceModuleTest039, TestSize.Level1)
+HWTEST_F(OsAccountManagerServiceModuleTest, OsAccountManagerServiceModuleTest037, TestSize.Level1)
 {
     int id = 0;
     EXPECT_NE(g_osAccountManagerService->GetOsAccountLocalIdBySerialNumber(123, id), ERR_OK);
 }
 
 /**
- * @tc.name: OsAccountManagerServiceModuleTest040
+ * @tc.name: OsAccountManagerServiceModuleTest038
  * @tc.desc: Test GetSerialNumberByOsAccountLocalId with valid data.
  * @tc.type: FUNC
  * @tc.require: SR000GGVFF
  */
-HWTEST_F(OsAccountManagerServiceModuleTest, OsAccountManagerServiceModuleTest040, TestSize.Level1)
+HWTEST_F(OsAccountManagerServiceModuleTest, OsAccountManagerServiceModuleTest038, TestSize.Level1)
 {
     int64_t serialNumber;
     EXPECT_EQ(g_osAccountManagerService->GetSerialNumberByOsAccountLocalId(
@@ -734,12 +721,12 @@ HWTEST_F(OsAccountManagerServiceModuleTest, OsAccountManagerServiceModuleTest040
 }
 
 /**
- * @tc.name: OsAccountManagerServiceModuleTest041
+ * @tc.name: OsAccountManagerServiceModuleTest039
  * @tc.desc: Test GetSerialNumberByOsAccountLocalId with unvalid data.
  * @tc.type: FUNC
  * @tc.require: SR000GGVFF
  */
-HWTEST_F(OsAccountManagerServiceModuleTest, OsAccountManagerServiceModuleTest041, TestSize.Level1)
+HWTEST_F(OsAccountManagerServiceModuleTest, OsAccountManagerServiceModuleTest039, TestSize.Level1)
 {
     int64_t serialNumber;
     EXPECT_NE(g_osAccountManagerService->GetSerialNumberByOsAccountLocalId(
@@ -747,12 +734,12 @@ HWTEST_F(OsAccountManagerServiceModuleTest, OsAccountManagerServiceModuleTest041
 }
 
 /**
- * @tc.name: OsAccountManagerServiceModuleTest042
+ * @tc.name: OsAccountManagerServiceModuleTest040
  * @tc.desc: Test SetOsAccountProfilePhoto with valid data.
  * @tc.type: FUNC
  * @tc.require: SR000GGVFI
  */
-HWTEST_F(OsAccountManagerServiceModuleTest, OsAccountManagerServiceModuleTest042, TestSize.Level1)
+HWTEST_F(OsAccountManagerServiceModuleTest, OsAccountManagerServiceModuleTest040, TestSize.Level1)
 {
     OsAccountInfo osAccountInfoOne;
     g_osAccountManagerService->CreateOsAccount(STRING_TEST_NAME, INT_TEST_TYPE, osAccountInfoOne);
@@ -761,12 +748,12 @@ HWTEST_F(OsAccountManagerServiceModuleTest, OsAccountManagerServiceModuleTest042
 }
 
 /**
- * @tc.name: OsAccountManagerServiceModuleTest043
+ * @tc.name: OsAccountManagerServiceModuleTest041
  * @tc.desc: Test SetOsAccountProfilePhoto with unvalid data.
  * @tc.type: FUNC
  * @tc.require: SR000GGVFN
  */
-HWTEST_F(OsAccountManagerServiceModuleTest, OsAccountManagerServiceModuleTest043, TestSize.Level1)
+HWTEST_F(OsAccountManagerServiceModuleTest, OsAccountManagerServiceModuleTest041, TestSize.Level1)
 {
     OsAccountInfo osAccountInfoOne;
     g_osAccountManagerService->CreateOsAccount(STRING_TEST_NAME, INT_TEST_TYPE, osAccountInfoOne);
@@ -776,12 +763,12 @@ HWTEST_F(OsAccountManagerServiceModuleTest, OsAccountManagerServiceModuleTest043
 }
 
 /**
- * @tc.name: OsAccountManagerServiceModuleTest044
+ * @tc.name: OsAccountManagerServiceModuleTest042
  * @tc.desc: Test SetOsAccountProfilePhoto with unvalid data.
  * @tc.type: FUNC
  * @tc.require: SR000GGVFN
  */
-HWTEST_F(OsAccountManagerServiceModuleTest, OsAccountManagerServiceModuleTest044, TestSize.Level1)
+HWTEST_F(OsAccountManagerServiceModuleTest, OsAccountManagerServiceModuleTest042, TestSize.Level1)
 {
     OsAccountInfo osAccountInfoOne;
     g_osAccountManagerService->CreateOsAccount(STRING_TEST_NAME, INT_TEST_TYPE, osAccountInfoOne);
@@ -791,12 +778,12 @@ HWTEST_F(OsAccountManagerServiceModuleTest, OsAccountManagerServiceModuleTest044
 }
 
 /**
- * @tc.name: OsAccountManagerServiceModuleTest045
+ * @tc.name: OsAccountManagerServiceModuleTest043
  * @tc.desc: Test GetOsAccountProfilePhoto with valid data.
  * @tc.type: FUNC
  * @tc.require: SR000GGVFF
  */
-HWTEST_F(OsAccountManagerServiceModuleTest, OsAccountManagerServiceModuleTest045, TestSize.Level1)
+HWTEST_F(OsAccountManagerServiceModuleTest, OsAccountManagerServiceModuleTest043, TestSize.Level1)
 {
     OsAccountInfo osAccountInfoOne;
     g_osAccountManagerService->CreateOsAccount(STRING_TEST_NAME, INT_TEST_TYPE, osAccountInfoOne);
@@ -808,12 +795,12 @@ HWTEST_F(OsAccountManagerServiceModuleTest, OsAccountManagerServiceModuleTest045
 }
 
 /**
- * @tc.name: OsAccountManagerServiceModuleTest046
+ * @tc.name: OsAccountManagerServiceModuleTest044
  * @tc.desc: Test GetOsAccountProfilePhoto with unvalid data.
  * @tc.type: FUNC
  * @tc.require: SR000GGVFF
  */
-HWTEST_F(OsAccountManagerServiceModuleTest, OsAccountManagerServiceModuleTest046, TestSize.Level1)
+HWTEST_F(OsAccountManagerServiceModuleTest, OsAccountManagerServiceModuleTest044, TestSize.Level1)
 {
     OsAccountInfo osAccountInfoOne;
     g_osAccountManagerService->CreateOsAccount(STRING_TEST_NAME, INT_TEST_TYPE, osAccountInfoOne);
@@ -823,12 +810,12 @@ HWTEST_F(OsAccountManagerServiceModuleTest, OsAccountManagerServiceModuleTest046
 }
 
 /**
- * @tc.name: OsAccountManagerServiceModuleTest047
+ * @tc.name: OsAccountManagerServiceModuleTest045
  * @tc.desc: Test GetOsAccountProfilePhoto with unvalid id.
  * @tc.type: FUNC
  * @tc.require: SR000GGVFF
  */
-HWTEST_F(OsAccountManagerServiceModuleTest, OsAccountManagerServiceModuleTest047, TestSize.Level1)
+HWTEST_F(OsAccountManagerServiceModuleTest, OsAccountManagerServiceModuleTest045, TestSize.Level1)
 {
     std::string photo;
     EXPECT_EQ(g_osAccountManagerService->GetOsAccountProfilePhoto(Constants::MAX_USER_ID + 1, photo),
@@ -836,12 +823,12 @@ HWTEST_F(OsAccountManagerServiceModuleTest, OsAccountManagerServiceModuleTest047
 }
 
 /**
- * @tc.name: OsAccountManagerServiceModuleTest048
+ * @tc.name: OsAccountManagerServiceModuleTest046
  * @tc.desc: Test StartOsAccount with valid id.
  * @tc.type: FUNC
  * @tc.require: SR000GGVFJ
  */
-HWTEST_F(OsAccountManagerServiceModuleTest, OsAccountManagerServiceModuleTest048, TestSize.Level1)
+HWTEST_F(OsAccountManagerServiceModuleTest, OsAccountManagerServiceModuleTest046, TestSize.Level1)
 {
     OsAccountInfo osAccountInfoOne;
     g_osAccountManagerService->CreateOsAccount(STRING_TEST_NAME, INT_TEST_TYPE, osAccountInfoOne);
@@ -851,36 +838,36 @@ HWTEST_F(OsAccountManagerServiceModuleTest, OsAccountManagerServiceModuleTest048
 }
 
 /**
- * @tc.name: OsAccountManagerServiceModuleTest049
+ * @tc.name: OsAccountManagerServiceModuleTest047
  * @tc.desc: Test StartOsAccount with unvalid id.
  * @tc.type: FUNC
  * @tc.require: SR000GGVFJ
  */
-HWTEST_F(OsAccountManagerServiceModuleTest, OsAccountManagerServiceModuleTest049, TestSize.Level1)
+HWTEST_F(OsAccountManagerServiceModuleTest, OsAccountManagerServiceModuleTest047, TestSize.Level1)
 {
     EXPECT_EQ(g_osAccountManagerService->StartOsAccount(Constants::MAX_USER_ID + 1),
         ERR_OK);
 }
 
 /**
- * @tc.name: OsAccountManagerServiceModuleTest050
+ * @tc.name: OsAccountManagerServiceModuleTest048
  * @tc.desc: Test StartOsAccount with started id.
  * @tc.type: FUNC
  * @tc.require: SR000GGVFJ
  */
-HWTEST_F(OsAccountManagerServiceModuleTest, OsAccountManagerServiceModuleTest050, TestSize.Level1)
+HWTEST_F(OsAccountManagerServiceModuleTest, OsAccountManagerServiceModuleTest048, TestSize.Level1)
 {
     EXPECT_EQ(g_osAccountManagerService->StartOsAccount(Constants::START_USER_ID),
         ERR_OK);
 }
 
 /**
- * @tc.name: OsAccountManagerServiceModuleTest051
+ * @tc.name: OsAccountManagerServiceModuleTest049
  * @tc.desc: Test StopOsAccount with valid data.
  * @tc.type: FUNC
  * @tc.require: SR000GGVFJ
  */
-HWTEST_F(OsAccountManagerServiceModuleTest, OsAccountManagerServiceModuleTest051, TestSize.Level1)
+HWTEST_F(OsAccountManagerServiceModuleTest, OsAccountManagerServiceModuleTest049, TestSize.Level1)
 {
     OsAccountInfo osAccountInfoOne;
     g_osAccountManagerService->CreateOsAccount(STRING_TEST_NAME, INT_TEST_TYPE, osAccountInfoOne);
@@ -890,24 +877,24 @@ HWTEST_F(OsAccountManagerServiceModuleTest, OsAccountManagerServiceModuleTest051
 }
 
 /**
- * @tc.name: OsAccountManagerServiceModuleTest052
+ * @tc.name: OsAccountManagerServiceModuleTest050
  * @tc.desc: Test StopOsAccount with unvalid data.
  * @tc.type: FUNC
  * @tc.require: SR000GGVFJ
  */
-HWTEST_F(OsAccountManagerServiceModuleTest, OsAccountManagerServiceModuleTest052, TestSize.Level1)
+HWTEST_F(OsAccountManagerServiceModuleTest, OsAccountManagerServiceModuleTest050, TestSize.Level1)
 {
     EXPECT_EQ(g_osAccountManagerService->StopOsAccount(Constants::MAX_USER_ID + 1),
         ERR_OK);
 }
 
 /**
- * @tc.name: OsAccountManagerServiceModuleTest053
+ * @tc.name: OsAccountManagerServiceModuleTest051
  * @tc.desc: Test ActivateOsAccount with valid data.
  * @tc.type: FUNC
  * @tc.require: SR000GGVFJ
  */
-HWTEST_F(OsAccountManagerServiceModuleTest, OsAccountManagerServiceModuleTest053, TestSize.Level1)
+HWTEST_F(OsAccountManagerServiceModuleTest, OsAccountManagerServiceModuleTest051, TestSize.Level1)
 {
     OsAccountInfo osAccountInfoOne;
     g_osAccountManagerService->CreateOsAccount(STRING_TEST_NAME, INT_TEST_TYPE, osAccountInfoOne);
@@ -917,12 +904,12 @@ HWTEST_F(OsAccountManagerServiceModuleTest, OsAccountManagerServiceModuleTest053
 }
 
 /**
- * @tc.name: OsAccountManagerServiceModuleTest054
+ * @tc.name: OsAccountManagerServiceModuleTest052
  * @tc.desc: Test IsOsAccountCompleted with valid data.
  * @tc.type: FUNC
  * @tc.require: SR000GGVFJ
  */
-HWTEST_F(OsAccountManagerServiceModuleTest, OsAccountManagerServiceModuleTest054, TestSize.Level1)
+HWTEST_F(OsAccountManagerServiceModuleTest, OsAccountManagerServiceModuleTest052, TestSize.Level1)
 {
     bool isOsAccountCompleted = false;
     EXPECT_EQ(g_osAccountManagerService->IsOsAccountCompleted(
@@ -931,12 +918,12 @@ HWTEST_F(OsAccountManagerServiceModuleTest, OsAccountManagerServiceModuleTest054
 }
 
 /**
- * @tc.name: OsAccountManagerServiceModuleTest055
+ * @tc.name: OsAccountManagerServiceModuleTest053
  * @tc.desc: Test IsOsAccountCompleted with unvalid data.
  * @tc.type: FUNC
  * @tc.require: SR000GGVFG
  */
-HWTEST_F(OsAccountManagerServiceModuleTest, OsAccountManagerServiceModuleTest055, TestSize.Level1)
+HWTEST_F(OsAccountManagerServiceModuleTest, OsAccountManagerServiceModuleTest053, TestSize.Level1)
 {
     bool isOsAccountCompleted = false;
     EXPECT_NE(g_osAccountManagerService->IsOsAccountCompleted(
@@ -944,12 +931,12 @@ HWTEST_F(OsAccountManagerServiceModuleTest, OsAccountManagerServiceModuleTest055
 }
 
 /**
- * @tc.name: OsAccountManagerServiceModuleTest056
+ * @tc.name: OsAccountManagerServiceModuleTest054
  * @tc.desc: Test SetOsAccountIsVerified with valid data.
  * @tc.type: FUNC
  * @tc.require: SR000GGVFF
  */
-HWTEST_F(OsAccountManagerServiceModuleTest, OsAccountManagerServiceModuleTest056, TestSize.Level1)
+HWTEST_F(OsAccountManagerServiceModuleTest, OsAccountManagerServiceModuleTest054, TestSize.Level1)
 {
     bool isVerified = true;
     OsAccountInfo osAccountInfoOne;
@@ -962,36 +949,36 @@ HWTEST_F(OsAccountManagerServiceModuleTest, OsAccountManagerServiceModuleTest056
 }
 
 /**
- * @tc.name: OsAccountManagerServiceModuleTest057
+ * @tc.name: OsAccountManagerServiceModuleTest055
  * @tc.desc: Test SetOsAccountIsVerified with unvalid data.
  * @tc.type: FUNC
  * @tc.require: SR000GGVFG
  */
-HWTEST_F(OsAccountManagerServiceModuleTest, OsAccountManagerServiceModuleTest057, TestSize.Level1)
+HWTEST_F(OsAccountManagerServiceModuleTest, OsAccountManagerServiceModuleTest055, TestSize.Level1)
 {
     bool isVerified = true;
     EXPECT_NE(g_osAccountManagerService->SetOsAccountIsVerified(Constants::MAX_USER_ID + 1, isVerified), ERR_OK);
 }
 
 /**
- * @tc.name: OsAccountManagerServiceModuleTest058
+ * @tc.name: OsAccountManagerServiceModuleTest056
  * @tc.desc: Test SetCurrentOsAccountIsVerified with valid data.
  * @tc.type: FUNC
  * @tc.require: SR000GGVFI
  */
-HWTEST_F(OsAccountManagerServiceModuleTest, OsAccountManagerServiceModuleTest058, TestSize.Level1)
+HWTEST_F(OsAccountManagerServiceModuleTest, OsAccountManagerServiceModuleTest056, TestSize.Level1)
 {
     bool isVerified = true;
     EXPECT_NE(g_osAccountManagerService->SetCurrentOsAccountIsVerified(isVerified), ERR_OK);
 }
 
 /**
- * @tc.name: OsAccountManagerServiceModuleTest059
+ * @tc.name: OsAccountManagerServiceModuleTest057
  * @tc.desc: create an os account by domain, and remove it
  * @tc.type: FUNC
  * @tc.require: SR000GGVFL
  */
-HWTEST_F(OsAccountManagerServiceModuleTest, OsAccountManagerServiceModuleTest059, TestSize.Level1)
+HWTEST_F(OsAccountManagerServiceModuleTest, OsAccountManagerServiceModuleTest057, TestSize.Level1)
 {
     OsAccountType type = NORMAL;
     DomainAccountInfo domainInfo(STRING_DOMAIN_VALID, STRING_DOMAIN_ACCOUNT_NAME_VALID);
@@ -1020,12 +1007,12 @@ HWTEST_F(OsAccountManagerServiceModuleTest, OsAccountManagerServiceModuleTest059
 }
 
 /**
- * @tc.name: OsAccountManagerServiceModuleTest060
+ * @tc.name: OsAccountManagerServiceModuleTest058
  * @tc.desc: create an os account by domain, and activate it
  * @tc.type: FUNC
  * @tc.require: SR000GGVFL
  */
-HWTEST_F(OsAccountManagerServiceModuleTest, OsAccountManagerServiceModuleTest060, TestSize.Level1)
+HWTEST_F(OsAccountManagerServiceModuleTest, OsAccountManagerServiceModuleTest058, TestSize.Level1)
 {
     // create
     DomainAccountInfo domainInfo(STRING_DOMAIN_VALID, STRING_DOMAIN_ACCOUNT_NAME_VALID);
@@ -1067,12 +1054,12 @@ HWTEST_F(OsAccountManagerServiceModuleTest, OsAccountManagerServiceModuleTest060
 }
 
 /**
- * @tc.name: OsAccountManagerServiceModuleTest061
+ * @tc.name: OsAccountManagerServiceModuleTest059
  * @tc.desc: Create os account for domain use invalid data.
  * @tc.type: FUNC
  * @tc.require: SR000GGVFL
  */
-HWTEST_F(OsAccountManagerServiceModuleTest, OsAccountManagerServiceModuleTest061, TestSize.Level1)
+HWTEST_F(OsAccountManagerServiceModuleTest, OsAccountManagerServiceModuleTest059, TestSize.Level1)
 {
     DomainAccountInfo domainNameInvalid(STRING_DOMAIN_NAME_OUT_OF_RANGE, STRING_DOMAIN_ACCOUNT_NAME_VALID);
     OsAccountType type = NORMAL;
@@ -1094,62 +1081,62 @@ HWTEST_F(OsAccountManagerServiceModuleTest, OsAccountManagerServiceModuleTest061
 }
 
 /**
+ * @tc.name: OsAccountManagerServiceModuleTest060
+ * @tc.desc: repeat create os account for domain
+ * @tc.type: FUNC
+ * @tc.require: SR000GGVFL
+ */
+HWTEST_F(OsAccountManagerServiceModuleTest, OsAccountManagerServiceModuleTest060, TestSize.Level1)
+{
+    // create
+    DomainAccountInfo domainInfo(STRING_DOMAIN_VALID, STRING_DOMAIN_ACCOUNT_NAME_VALID);
+    OsAccountType type = NORMAL;
+    OsAccountInfo osAccountInfo;
+    EXPECT_EQ(g_osAccountManagerService->CreateOsAccountForDomain(type, domainInfo, osAccountInfo), ERR_OK);
+
+    // create again
+    EXPECT_EQ(g_osAccountManagerService->CreateOsAccountForDomain(type, domainInfo, osAccountInfo),
+        ERR_OS_ACCOUNT_SERVICE_INNER_DOMAIN_ALREADY_BIND_ERROR);
+
+    // remove
+    EXPECT_EQ(osAccountControlFileManager_->DelOsAccount(osAccountInfo.GetLocalId()), ERR_OK);
+}
+
+/**
+ * @tc.name: OsAccountManagerServiceModuleTest061
+ * @tc.desc: repeat create os account for domain
+ * @tc.type: FUNC
+ * @tc.require: SR000GGVFL
+ */
+HWTEST_F(OsAccountManagerServiceModuleTest, OsAccountManagerServiceModuleTest061, TestSize.Level1)
+{
+    // create
+    DomainAccountInfo domainInfo(STRING_DOMAIN_VALID, STRING_DOMAIN_ACCOUNT_NAME_VALID);
+    OsAccountType type = NORMAL;
+    OsAccountInfo osAccountInfo;
+    EXPECT_EQ(g_osAccountManagerService->CreateOsAccountForDomain(type, domainInfo, osAccountInfo), ERR_OK);
+
+    // create again
+    EXPECT_EQ(g_osAccountManagerService->CreateOsAccountForDomain(type, domainInfo, osAccountInfo),
+        ERR_OS_ACCOUNT_SERVICE_INNER_DOMAIN_ALREADY_BIND_ERROR);
+
+    // remove
+    EXPECT_EQ(osAccountControlFileManager_->DelOsAccount(osAccountInfo.GetLocalId()), ERR_OK);
+
+    // create again
+    EXPECT_EQ(g_osAccountManagerService->CreateOsAccountForDomain(type, domainInfo, osAccountInfo), ERR_OK);
+
+    // remove
+    EXPECT_EQ(osAccountControlFileManager_->DelOsAccount(osAccountInfo.GetLocalId()), ERR_OK);
+}
+
+/**
  * @tc.name: OsAccountManagerServiceModuleTest062
- * @tc.desc: repeat create os account for domain
- * @tc.type: FUNC
- * @tc.require: SR000GGVFL
- */
-HWTEST_F(OsAccountManagerServiceModuleTest, OsAccountManagerServiceModuleTest062, TestSize.Level1)
-{
-    // create
-    DomainAccountInfo domainInfo(STRING_DOMAIN_VALID, STRING_DOMAIN_ACCOUNT_NAME_VALID);
-    OsAccountType type = NORMAL;
-    OsAccountInfo osAccountInfo;
-    EXPECT_EQ(g_osAccountManagerService->CreateOsAccountForDomain(type, domainInfo, osAccountInfo), ERR_OK);
-
-    // create again
-    EXPECT_EQ(g_osAccountManagerService->CreateOsAccountForDomain(type, domainInfo, osAccountInfo),
-        ERR_OS_ACCOUNT_SERVICE_INNER_DOMAIN_ALREADY_BIND_ERROR);
-
-    // remove
-    EXPECT_EQ(osAccountControlFileManager_->DelOsAccount(osAccountInfo.GetLocalId()), ERR_OK);
-}
-
-/**
- * @tc.name: OsAccountManagerServiceModuleTest063
- * @tc.desc: repeat create os account for domain
- * @tc.type: FUNC
- * @tc.require: SR000GGVFL
- */
-HWTEST_F(OsAccountManagerServiceModuleTest, OsAccountManagerServiceModuleTest063, TestSize.Level1)
-{
-    // create
-    DomainAccountInfo domainInfo(STRING_DOMAIN_VALID, STRING_DOMAIN_ACCOUNT_NAME_VALID);
-    OsAccountType type = NORMAL;
-    OsAccountInfo osAccountInfo;
-    EXPECT_EQ(g_osAccountManagerService->CreateOsAccountForDomain(type, domainInfo, osAccountInfo), ERR_OK);
-
-    // create again
-    EXPECT_EQ(g_osAccountManagerService->CreateOsAccountForDomain(type, domainInfo, osAccountInfo),
-        ERR_OS_ACCOUNT_SERVICE_INNER_DOMAIN_ALREADY_BIND_ERROR);
-
-    // remove
-    EXPECT_EQ(osAccountControlFileManager_->DelOsAccount(osAccountInfo.GetLocalId()), ERR_OK);
-
-    // create again
-    EXPECT_EQ(g_osAccountManagerService->CreateOsAccountForDomain(type, domainInfo, osAccountInfo), ERR_OK);
-
-    // remove
-    EXPECT_EQ(osAccountControlFileManager_->DelOsAccount(osAccountInfo.GetLocalId()), ERR_OK);
-}
-
-/**
- * @tc.name: OsAccountManagerServiceModuleTest064
  * @tc.desc: query os account by domain info
  * @tc.type: FUNC
  * @tc.require: SR000GGVFL
  */
-HWTEST_F(OsAccountManagerServiceModuleTest, OsAccountManagerServiceModuleTest064, TestSize.Level1)
+HWTEST_F(OsAccountManagerServiceModuleTest, OsAccountManagerServiceModuleTest062, TestSize.Level1)
 {
     // create
     DomainAccountInfo domainInfo(STRING_DOMAIN_VALID, STRING_DOMAIN_ACCOUNT_NAME_VALID);
@@ -1167,12 +1154,12 @@ HWTEST_F(OsAccountManagerServiceModuleTest, OsAccountManagerServiceModuleTest064
 }
 
 /**
- * @tc.name: OsAccountManagerServiceModuleTest065
+ * @tc.name: OsAccountManagerServiceModuleTest063
  * @tc.desc: query os account by domain info
  * @tc.type: FUNC
  * @tc.require: SR000GGVFL
  */
-HWTEST_F(OsAccountManagerServiceModuleTest, OsAccountManagerServiceModuleTest065, TestSize.Level1)
+HWTEST_F(OsAccountManagerServiceModuleTest, OsAccountManagerServiceModuleTest063, TestSize.Level1)
 {
     // create
     DomainAccountInfo domainInfo(STRING_DOMAIN_VALID, STRING_DOMAIN_ACCOUNT_NAME_VALID);
@@ -1194,12 +1181,12 @@ HWTEST_F(OsAccountManagerServiceModuleTest, OsAccountManagerServiceModuleTest065
 }
 
 /**
- * @tc.name: OsAccountManagerServiceModuleTest066
+ * @tc.name: OsAccountManagerServiceModuleTest064
  * @tc.desc: query os account by domain info
  * @tc.type: FUNC
  * @tc.require: SR000GGVFL
  */
-HWTEST_F(OsAccountManagerServiceModuleTest, OsAccountManagerServiceModuleTest066, TestSize.Level1)
+HWTEST_F(OsAccountManagerServiceModuleTest, OsAccountManagerServiceModuleTest064, TestSize.Level1)
 {
     DomainAccountInfo domainAllEmpty("", "");
     int resLocalId = -1;
