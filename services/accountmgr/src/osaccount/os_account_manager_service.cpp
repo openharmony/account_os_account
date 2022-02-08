@@ -46,7 +46,7 @@ ErrCode OsAccountManagerService::CreateOsAccount(
     bool isMultiOsAccountEnable = false;
     innerManager_->IsMultiOsAccountEnable(isMultiOsAccountEnable);
     if (!isMultiOsAccountEnable) {
-        return ERR_OS_ACCOUNT_SERVICE_MANAGER_NOT_ENABLE_MULTI_ERROR;
+        return ERR_OSACCOUNT_SERVICE_MANAGER_NOT_ENABLE_MULTI_ERROR;
     }
     auto callingUid = IPCSkeleton::GetCallingUid();
     if (callingUid >= Constants::APP_UID_START) {
@@ -61,14 +61,14 @@ ErrCode OsAccountManagerService::CreateOsAccount(
             callingUid, AccountPermissionManager::MANAGE_LOCAL_ACCOUNTS, bundleName);
         if (result != ERR_OK || !permissionManagerPtr_->IsSystemUid(callingUid)) {
             ACCOUNT_LOGE("failed to verify permission for MANAGE_LOCAL_ACCOUNTS,or not system app error");
-            return ERR_OS_ACCOUNT_SERVICE_PERMISSION_DENIED;
+            return ERR_OSACCOUNT_SERVICE_PERMISSION_DENIED;
         }
     }
     if (name.size() > Constants::LOCAL_NAME_MAX_SIZE) {
-        return ERR_OS_ACCOUNT_SERVICE_MANAGER_NAME_SIZE_OVERFLOW_ERROR;
+        return ERR_OSACCOUNT_SERVICE_MANAGER_NAME_SIZE_OVERFLOW_ERROR;
     }
     if (name.size() <= 0) {
-        return ERR_OS_ACCOUNT_SERVICE_MANAGER_NAME_SIZE_EMPTY_ERROR;
+        return ERR_OSACCOUNT_SERVICE_MANAGER_NAME_SIZE_EMPTY_ERROR;
     }
     bool isAllowedCreateAdmin = false;
     ErrCode errCode = innerManager_->IsAllowedCreateAdmin(isAllowedCreateAdmin);
@@ -76,7 +76,7 @@ ErrCode OsAccountManagerService::CreateOsAccount(
         return errCode;
     }
     if (!isAllowedCreateAdmin && type == OsAccountType::ADMIN) {
-        return ERR_OS_ACCOUNT_SERVICE_MANAGER_CREATE_OSACCOUNT_TYPE_ERROR;
+        return ERR_OSACCOUNT_SERVICE_MANAGER_CREATE_OSACCOUNT_TYPE_ERROR;
     }
     return innerManager_->CreateOsAccount(name, type, osAccountInfo);
 }
@@ -88,7 +88,7 @@ ErrCode OsAccountManagerService::CreateOsAccountForDomain(
     bool isMultiOsAccountEnable = false;
     innerManager_->IsMultiOsAccountEnable(isMultiOsAccountEnable);
     if (!isMultiOsAccountEnable) {
-        return ERR_OS_ACCOUNT_SERVICE_MANAGER_NOT_ENABLE_MULTI_ERROR;
+        return ERR_OSACCOUNT_SERVICE_MANAGER_NOT_ENABLE_MULTI_ERROR;
     }
     auto callingUid = IPCSkeleton::GetCallingUid();
     if (callingUid >= Constants::APP_UID_START) {
@@ -103,15 +103,15 @@ ErrCode OsAccountManagerService::CreateOsAccountForDomain(
             callingUid, AccountPermissionManager::MANAGE_LOCAL_ACCOUNTS, bundleName);
         if (result != ERR_OK || !permissionManagerPtr_->IsSystemUid(callingUid)) {
             ACCOUNT_LOGI("failed to verify permission for MANAGE_LOCAL_ACCOUNTS,or not system app error");
-            return ERR_OS_ACCOUNT_SERVICE_PERMISSION_DENIED;
+            return ERR_OSACCOUNT_SERVICE_PERMISSION_DENIED;
         }
     }
     if (domainInfo.accountName_.empty() || domainInfo.domain_.empty()) {
-        return ERR_OS_ACCOUNT_SERVICE_MANAGER_NAME_SIZE_EMPTY_ERROR;
+        return ERR_OSACCOUNT_SERVICE_MANAGER_NAME_SIZE_EMPTY_ERROR;
     }
     if (domainInfo.accountName_.size() > Constants::DOMAIN_ACCOUNT_NAME_MAX_SIZE ||
         domainInfo.domain_.size() > Constants::DOMAIN_NAME_MAX_SIZE) {
-        return ERR_OS_ACCOUNT_SERVICE_MANAGER_NAME_SIZE_OVERFLOW_ERROR;
+        return ERR_OSACCOUNT_SERVICE_MANAGER_NAME_SIZE_OVERFLOW_ERROR;
     }
     bool isAllowedCreateAdmin = false;
     ErrCode errCode = innerManager_->IsAllowedCreateAdmin(isAllowedCreateAdmin);
@@ -119,7 +119,7 @@ ErrCode OsAccountManagerService::CreateOsAccountForDomain(
         return errCode;
     }
     if (!isAllowedCreateAdmin && type == OsAccountType::ADMIN) {
-        return ERR_OS_ACCOUNT_SERVICE_MANAGER_CREATE_OSACCOUNT_TYPE_ERROR;
+        return ERR_OSACCOUNT_SERVICE_MANAGER_CREATE_OSACCOUNT_TYPE_ERROR;
     }
     return innerManager_->CreateOsAccountForDomain(type, domainInfo, osAccountInfo);
 }
@@ -140,11 +140,11 @@ ErrCode OsAccountManagerService::RemoveOsAccount(const int id)
             callingUid, AccountPermissionManager::MANAGE_LOCAL_ACCOUNTS, bundleName);
         if (result != ERR_OK || !permissionManagerPtr_->IsSystemUid(callingUid)) {
             ACCOUNT_LOGI("failed to verify permission for MANAGE_LOCAL_ACCOUNTS,or not system app error");
-            return ERR_OS_ACCOUNT_SERVICE_PERMISSION_DENIED;
+            return ERR_OSACCOUNT_SERVICE_PERMISSION_DENIED;
         }
     }
     if (id <= Constants::START_USER_ID) {
-        return ERR_OS_ACCOUNT_SERVICE_MANAGER_ID_ERROR;
+        return ERR_OSACCOUNT_SERVICE_MANAGER_ID_ERROR;
     }
     return innerManager_->RemoveOsAccount(id);
 }
@@ -173,7 +173,7 @@ ErrCode OsAccountManagerService::IsOsAccountActived(const int id, bool &isOsAcco
             callingUid, AccountPermissionManager::INTERACT_ACROSS_LOCAL_ACCOUNTS, bundleName);
         if (result != ERR_OK && errCode != ERR_OK) {
             ACCOUNT_LOGI("failed to verify permission for MANAGE_LOCAL_ACCOUNTS or INTERACT_ACROSS_LOCAL_ACCOUNTS");
-            return ERR_OS_ACCOUNT_SERVICE_PERMISSION_DENIED;
+            return ERR_OSACCOUNT_SERVICE_PERMISSION_DENIED;
         }
     }
     return innerManager_->IsOsAccountActived(id, isOsAccountActived);
@@ -196,7 +196,7 @@ ErrCode OsAccountManagerService::IsOsAccountConstraintEnable(
             callingUid, AccountPermissionManager::MANAGE_LOCAL_ACCOUNTS, bundleName);
         if (result != ERR_OK) {
             ACCOUNT_LOGI("failed to verify permission for MANAGE_LOCAL_ACCOUNTS");
-            return ERR_OS_ACCOUNT_SERVICE_PERMISSION_DENIED;
+            return ERR_OSACCOUNT_SERVICE_PERMISSION_DENIED;
         }
     }
     return innerManager_->IsOsAccountConstraintEnable(id, constraint, isConstraintEnable);
@@ -220,7 +220,7 @@ ErrCode OsAccountManagerService::IsOsAccountVerified(const int id, bool &isVerif
             callingUid, AccountPermissionManager::INTERACT_ACROSS_LOCAL_ACCOUNTS, bundleName);
         if (result != ERR_OK && errCode != ERR_OK) {
             ACCOUNT_LOGI("failed to verify permission for INTERACT_ACROSS_LOCAL_ACCOUNTS or MANAGE_LOCAL_ACCOUNTS");
-            return ERR_OS_ACCOUNT_SERVICE_PERMISSION_DENIED;
+            return ERR_OSACCOUNT_SERVICE_PERMISSION_DENIED;
         }
     }
     return innerManager_->IsOsAccountVerified(id, isVerified);
@@ -242,7 +242,7 @@ ErrCode OsAccountManagerService::GetCreatedOsAccountsCount(unsigned int &osAccou
             callingUid, AccountPermissionManager::MANAGE_LOCAL_ACCOUNTS, bundleName);
         if (result != ERR_OK) {
             ACCOUNT_LOGI("failed to verify permission for MANAGE_LOCAL_ACCOUNTS");
-            return ERR_OS_ACCOUNT_SERVICE_PERMISSION_DENIED;
+            return ERR_OSACCOUNT_SERVICE_PERMISSION_DENIED;
         }
     }
     return innerManager_->GetCreatedOsAccountsCount(osAccountsCount);
@@ -281,7 +281,7 @@ ErrCode OsAccountManagerService::GetOsAccountAllConstraints(const int id, std::v
             callingUid, AccountPermissionManager::MANAGE_LOCAL_ACCOUNTS, bundleName);
         if (result != ERR_OK) {
             ACCOUNT_LOGI("failed to verify permission for MANAGE_LOCAL_ACCOUNTS");
-            return ERR_OS_ACCOUNT_SERVICE_PERMISSION_DENIED;
+            return ERR_OSACCOUNT_SERVICE_PERMISSION_DENIED;
         }
     }
     return innerManager_->GetOsAccountAllConstraints(id, constraints);
@@ -308,7 +308,7 @@ ErrCode OsAccountManagerService::QueryCurrentOsAccount(OsAccountInfo &osAccountI
             callingUid, AccountPermissionManager::MANAGE_LOCAL_ACCOUNTS, bundleName);
         if (result != ERR_OK) {
             ACCOUNT_LOGI("failed to verify permission for MANAGE_LOCAL_ACCOUNTS");
-            return ERR_OS_ACCOUNT_SERVICE_PERMISSION_DENIED;
+            return ERR_OSACCOUNT_SERVICE_PERMISSION_DENIED;
         }
     }
     int id = callingUid / UID_TRANSFORM_DIVISOR;
@@ -334,7 +334,7 @@ ErrCode OsAccountManagerService::QueryOsAccountById(const int id, OsAccountInfo 
         if ((result != ERR_OK && errCode != ERR_OK) || !permissionManagerPtr_->IsSystemUid(callingUid)) {
             ACCOUNT_LOGI("failed to verify permission for MANAGE_LOCAL_ACCOUNTS or "
                          "INTERACT_ACROSS_LOCAL_ACCOUNTS_EXTENSION,or not system app error");
-            return ERR_OS_ACCOUNT_SERVICE_PERMISSION_DENIED;
+            return ERR_OSACCOUNT_SERVICE_PERMISSION_DENIED;
         }
     }
     return innerManager_->QueryOsAccountById(id, osAccountInfo);
@@ -363,7 +363,7 @@ ErrCode OsAccountManagerService::GetOsAccountProfilePhoto(const int id, std::str
             callingUid, AccountPermissionManager::MANAGE_LOCAL_ACCOUNTS, bundleName);
         if (result != ERR_OK || !permissionManagerPtr_->IsSystemUid(callingUid)) {
             ACCOUNT_LOGI("failed to verify permission for MANAGE_LOCAL_ACCOUNTS,or not system app error");
-            return ERR_OS_ACCOUNT_SERVICE_PERMISSION_DENIED;
+            return ERR_OSACCOUNT_SERVICE_PERMISSION_DENIED;
         }
     }
     return innerManager_->GetOsAccountProfilePhoto(id, photo);
@@ -377,13 +377,13 @@ ErrCode OsAccountManagerService::IsMultiOsAccountEnable(bool &isMultiOsAccountEn
 ErrCode OsAccountManagerService::SetOsAccountName(const int id, const std::string &name)
 {
     if (name.size() > Constants::LOCAL_NAME_MAX_SIZE) {
-        return ERR_OS_ACCOUNT_SERVICE_MANAGER_NAME_SIZE_OVERFLOW_ERROR;
+        return ERR_OSACCOUNT_SERVICE_MANAGER_NAME_SIZE_OVERFLOW_ERROR;
     }
     if (name.size() <= 0) {
-        return ERR_OS_ACCOUNT_SERVICE_MANAGER_NAME_SIZE_EMPTY_ERROR;
+        return ERR_OSACCOUNT_SERVICE_MANAGER_NAME_SIZE_EMPTY_ERROR;
     }
     if (id < Constants::START_USER_ID) {
-        return ERR_OS_ACCOUNT_SERVICE_MANAGER_ID_ERROR;
+        return ERR_OSACCOUNT_SERVICE_MANAGER_ID_ERROR;
     }
     return innerManager_->SetOsAccountName(id, name);
 }
@@ -405,11 +405,11 @@ ErrCode OsAccountManagerService::SetOsAccountConstraints(
             callingUid, AccountPermissionManager::MANAGE_LOCAL_ACCOUNTS, bundleName);
         if (result != ERR_OK || !permissionManagerPtr_->IsSystemUid(callingUid)) {
             ACCOUNT_LOGI("failed to verify permission for MANAGE_LOCAL_ACCOUNTS,or not system app error");
-            return ERR_OS_ACCOUNT_SERVICE_PERMISSION_DENIED;
+            return ERR_OSACCOUNT_SERVICE_PERMISSION_DENIED;
         }
     }
     if (id < Constants::START_USER_ID) {
-        return ERR_OS_ACCOUNT_SERVICE_MANAGER_ID_ERROR;
+        return ERR_OSACCOUNT_SERVICE_MANAGER_ID_ERROR;
     }
     return innerManager_->SetOsAccountConstraints(id, constraints, enable);
 }
@@ -430,14 +430,14 @@ ErrCode OsAccountManagerService::SetOsAccountProfilePhoto(const int id, const st
             callingUid, AccountPermissionManager::MANAGE_LOCAL_ACCOUNTS, bundleName);
         if (result != ERR_OK) {
             ACCOUNT_LOGI("failed to verify permission for MANAGE_LOCAL_ACCOUNTS");
-            return ERR_OS_ACCOUNT_SERVICE_PERMISSION_DENIED;
+            return ERR_OSACCOUNT_SERVICE_PERMISSION_DENIED;
         }
         if (photo.size() > Constants::LOCAL_PHOTO_MAX_SIZE) {
-            return ERR_OS_ACCOUNT_SERVICE_MANAGER_PHOTO_SIZE_OVERFLOW_ERROR;
+            return ERR_OSACCOUNT_SERVICE_MANAGER_PHOTO_SIZE_OVERFLOW_ERROR;
         }
     }
     if (id < Constants::START_USER_ID) {
-        return ERR_OS_ACCOUNT_SERVICE_MANAGER_ID_ERROR;
+        return ERR_OSACCOUNT_SERVICE_MANAGER_ID_ERROR;
     }
     return innerManager_->SetOsAccountProfilePhoto(id, photo);
 }
@@ -459,11 +459,11 @@ ErrCode OsAccountManagerService::ActivateOsAccount(const int id)
         if (result != ERR_OK || !permissionManagerPtr_->IsSystemUid(callingUid)) {
             ACCOUNT_LOGI(
                 "failed to verify permission for INTERACT_ACROSS_LOCAL_ACCOUNTS_EXTENSION,or not system app error");
-            return ERR_OS_ACCOUNT_SERVICE_PERMISSION_DENIED;
+            return ERR_OSACCOUNT_SERVICE_PERMISSION_DENIED;
         }
     }
     if (id < Constants::START_USER_ID) {
-        return ERR_OS_ACCOUNT_SERVICE_MANAGER_ID_ERROR;
+        return ERR_OSACCOUNT_SERVICE_MANAGER_ID_ERROR;
     }
     return innerManager_->ActivateOsAccount(id);
 }
@@ -484,11 +484,11 @@ ErrCode OsAccountManagerService::StartOsAccount(const int id)
             callingUid, AccountPermissionManager::INTERACT_ACROSS_LOCAL_ACCOUNTS_EXTENSION, bundleName);
         if (result != ERR_OK) {
             ACCOUNT_LOGI("failed to verify permission for INTERACT_ACROSS_LOCAL_ACCOUNTS_EXTENSION");
-            return ERR_OS_ACCOUNT_SERVICE_PERMISSION_DENIED;
+            return ERR_OSACCOUNT_SERVICE_PERMISSION_DENIED;
         }
     }
     if (id < Constants::START_USER_ID) {
-        return ERR_OS_ACCOUNT_SERVICE_MANAGER_ID_ERROR;
+        return ERR_OSACCOUNT_SERVICE_MANAGER_ID_ERROR;
     }
     return innerManager_->StartOsAccount(id);
 }
@@ -509,11 +509,11 @@ ErrCode OsAccountManagerService::StopOsAccount(const int id)
             callingUid, AccountPermissionManager::INTERACT_ACROSS_LOCAL_ACCOUNTS_EXTENSION, bundleName);
         if (result != ERR_OK) {
             ACCOUNT_LOGI("failed to verify permission for INTERACT_ACROSS_LOCAL_ACCOUNTS_EXTENSION");
-            return ERR_OS_ACCOUNT_SERVICE_PERMISSION_DENIED;
+            return ERR_OSACCOUNT_SERVICE_PERMISSION_DENIED;
         }
     }
     if (id < Constants::START_USER_ID) {
-        return ERR_OS_ACCOUNT_SERVICE_MANAGER_ID_ERROR;
+        return ERR_OSACCOUNT_SERVICE_MANAGER_ID_ERROR;
     }
     return innerManager_->StopOsAccount(id);
 }
@@ -536,7 +536,7 @@ ErrCode OsAccountManagerService::SubscribeOsAccount(
             callingUid, AccountPermissionManager::INTERACT_ACROSS_LOCAL_ACCOUNTS_EXTENSION, bundleName);
         if (result != ERR_OK || !permissionManagerPtr_->IsSystemUid(callingUid)) {
             ACCOUNT_LOGI("failed to verify permission for INTERACT_ACROSS_LOCAL_ACCOUNTS_EXTENSION, or not system app");
-            return ERR_OS_ACCOUNT_SERVICE_PERMISSION_DENIED;
+            return ERR_OSACCOUNT_SERVICE_PERMISSION_DENIED;
         }
     }
     return innerManager_->SubscribeOsAccount(subscribeInfo, eventListener);
@@ -560,7 +560,7 @@ ErrCode OsAccountManagerService::UnsubscribeOsAccount(const sptr<IRemoteObject> 
         if (result != ERR_OK || !permissionManagerPtr_->IsSystemUid(callingUid)) {
             ACCOUNT_LOGI(
                 "failed to verify permission for INTERACT_ACROSS_LOCAL_ACCOUNTS_EXTENSION, or not system app ");
-            return ERR_OS_ACCOUNT_SERVICE_PERMISSION_DENIED;
+            return ERR_OSACCOUNT_SERVICE_PERMISSION_DENIED;
         }
     }
     return innerManager_->UnsubscribeOsAccount(eventListener);
@@ -606,7 +606,7 @@ ErrCode OsAccountManagerService::IsCurrentOsAccountVerified(bool &isVerified)
             callingUid, AccountPermissionManager::INTERACT_ACROSS_LOCAL_ACCOUNTS, bundleName);
         if (result != ERR_OK && errCode != ERR_OK) {
             ACCOUNT_LOGI("failed to verify permission for INTERACT_ACROSS_LOCAL_ACCOUNTS or MANAGE_LOCAL_ACCOUNTS");
-            return ERR_OS_ACCOUNT_SERVICE_PERMISSION_DENIED;
+            return ERR_OSACCOUNT_SERVICE_PERMISSION_DENIED;
         }
     }
     int id = callingUid / UID_TRANSFORM_DIVISOR;
@@ -631,7 +631,7 @@ ErrCode OsAccountManagerService::IsOsAccountCompleted(const int id, bool &isOsAc
             callingUid, AccountPermissionManager::INTERACT_ACROSS_LOCAL_ACCOUNTS, bundleName);
         if (result != ERR_OK && errCode != ERR_OK) {
             ACCOUNT_LOGI("failed to verify permission for INTERACT_ACROSS_LOCAL_ACCOUNTS or MANAGE_LOCAL_ACCOUNTS");
-            return ERR_OS_ACCOUNT_SERVICE_PERMISSION_DENIED;
+            return ERR_OSACCOUNT_SERVICE_PERMISSION_DENIED;
         }
     }
     return innerManager_->IsOsAccountCompleted(id, isOsAccountCompleted);
@@ -653,12 +653,12 @@ ErrCode OsAccountManagerService::SetCurrentOsAccountIsVerified(const bool isVeri
             callingUid, AccountPermissionManager::MANAGE_LOCAL_ACCOUNTS, bundleName);
         if (result != ERR_OK) {
             ACCOUNT_LOGI("failed to verify permission for MANAGE_LOCAL_ACCOUNTS");
-            return ERR_OS_ACCOUNT_SERVICE_PERMISSION_DENIED;
+            return ERR_OSACCOUNT_SERVICE_PERMISSION_DENIED;
         }
     }
     int id = callingUid / UID_TRANSFORM_DIVISOR;
     if (id < Constants::START_USER_ID) {
-        return ERR_OS_ACCOUNT_SERVICE_MANAGER_ID_ERROR;
+        return ERR_OSACCOUNT_SERVICE_MANAGER_ID_ERROR;
     }
     return innerManager_->SetOsAccountIsVerified(id, isVerified);
 }
@@ -679,11 +679,11 @@ ErrCode OsAccountManagerService::SetOsAccountIsVerified(const int id, const bool
             callingUid, AccountPermissionManager::MANAGE_LOCAL_ACCOUNTS, bundleName);
         if (result != ERR_OK) {
             ACCOUNT_LOGI("failed to verify permission for MANAGE_LOCAL_ACCOUNTS");
-            return ERR_OS_ACCOUNT_SERVICE_PERMISSION_DENIED;
+            return ERR_OSACCOUNT_SERVICE_PERMISSION_DENIED;
         }
     }
     if (id < Constants::START_USER_ID) {
-        return ERR_OS_ACCOUNT_SERVICE_MANAGER_ID_ERROR;
+        return ERR_OSACCOUNT_SERVICE_MANAGER_ID_ERROR;
     }
     return innerManager_->SetOsAccountIsVerified(id, isVerified);
 }
@@ -732,7 +732,7 @@ ErrCode OsAccountManagerService::GetCreatedOsAccountNumFromDatabase(const std::s
             callingUid, AccountPermissionManager::MANAGE_LOCAL_ACCOUNTS, bundleName);
         if (result != ERR_OK) {
             ACCOUNT_LOGI("failed to verify permission for MANAGE_LOCAL_ACCOUNTS");
-            return ERR_OS_ACCOUNT_SERVICE_PERMISSION_DENIED;
+            return ERR_OSACCOUNT_SERVICE_PERMISSION_DENIED;
         }
     }
     return innerManager_->GetCreatedOsAccountNumFromDatabase(storeID, createdOsAccountNum);
@@ -767,7 +767,7 @@ ErrCode OsAccountManagerService::GetMaxAllowCreateIdFromDatabase(const std::stri
             callingUid, AccountPermissionManager::MANAGE_LOCAL_ACCOUNTS, bundleName);
         if (result != ERR_OK) {
             ACCOUNT_LOGI("failed to verify permission for MANAGE_LOCAL_ACCOUNTS");
-            return ERR_OS_ACCOUNT_SERVICE_PERMISSION_DENIED;
+            return ERR_OSACCOUNT_SERVICE_PERMISSION_DENIED;
         }
     }
     return innerManager_->GetMaxAllowCreateIdFromDatabase(storeID, id);
@@ -790,7 +790,7 @@ ErrCode OsAccountManagerService::GetOsAccountFromDatabase(const std::string& sto
             callingUid, AccountPermissionManager::MANAGE_LOCAL_ACCOUNTS, bundleName);
         if (result != ERR_OK) {
             ACCOUNT_LOGI("failed to verify permission for MANAGE_LOCAL_ACCOUNTS");
-            return ERR_OS_ACCOUNT_SERVICE_PERMISSION_DENIED;
+            return ERR_OSACCOUNT_SERVICE_PERMISSION_DENIED;
         }
     }
     return innerManager_->GetOsAccountFromDatabase(storeID, id, osAccountInfo);
@@ -813,7 +813,7 @@ ErrCode OsAccountManagerService::GetOsAccountListFromDatabase(const std::string&
             callingUid, AccountPermissionManager::MANAGE_LOCAL_ACCOUNTS, bundleName);
         if (result != ERR_OK) {
             ACCOUNT_LOGI("failed to verify permission for MANAGE_LOCAL_ACCOUNTS");
-            return ERR_OS_ACCOUNT_SERVICE_PERMISSION_DENIED;
+            return ERR_OSACCOUNT_SERVICE_PERMISSION_DENIED;
         }
     }
     return innerManager_->GetOsAccountListFromDatabase(storeID, osAccountList);

@@ -270,7 +270,7 @@ HWTEST_F(OsAccountControlFileManagerTest, OsAccountControlFileManagerTest012, Te
     OsAccountInfo osAccountInfo(
         INT_TEST_ERR_USER_ID, STRING_TEST_USER_NAME, OS_ACCOUNT_TYPE, STRING_TEST_USER_SHELLNUMBER);
     EXPECT_EQ(osAccountControlManager_->InsertOsAccount(osAccountInfo),
-        ERR_OS_ACCOUNT_SERVICE_CONTROL_ID_CANNOT_CREATE_ERROR);
+        ERR_OSACCOUNT_SERVICE_CONTROL_ID_CANNOT_CREATE_ERROR);
 }
 
 /**
@@ -284,7 +284,7 @@ HWTEST_F(OsAccountControlFileManagerTest, OsAccountControlFileManagerTest013, Te
     OsAccountInfo osAccountInfo(
         Constants::START_USER_ID, STRING_TEST_USER_NAME, OS_ACCOUNT_TYPE, STRING_TEST_USER_SHELLNUMBER);
     EXPECT_EQ(osAccountControlManager_->InsertOsAccount(osAccountInfo),
-        ERR_OS_ACCOUNT_SERVICE_CONTROL_INSERT_FILE_EXISTS_ERROR);
+        ERR_OSACCOUNT_SERVICE_CONTROL_INSERT_FILE_EXISTS_ERROR);
 }
 
 /**

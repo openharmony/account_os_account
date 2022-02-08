@@ -28,7 +28,7 @@ public:
     static ErrCode SendToIAMAccountDelete(OsAccountInfo &osAccountInfo);
     static ErrCode SendToCESAccountCreate(OsAccountInfo &osAccountInfo);
     static ErrCode SendToCESAccountDelete(OsAccountInfo &osAccountInfo);
-    static ErrCode SendToCESAccountSwithced(OsAccountInfo &osAccountInfo);
+    static ErrCode SendToCESAccountSwitched(OsAccountInfo &osAccountInfo);
     static ErrCode SendToStorageAccountCreate(OsAccountInfo &osAccountInfo);
     static ErrCode SendToStorageAccountRemove(OsAccountInfo &osAccountInfo);
     static ErrCode SendToStorageAccountStart(OsAccountInfo &osAccountInfo);
