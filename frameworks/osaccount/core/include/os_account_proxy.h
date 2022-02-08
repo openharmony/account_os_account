@@ -35,7 +35,6 @@ public:
     virtual ErrCode IsOsAccountVerified(const int id, bool &isVerified) override;
     virtual ErrCode GetCreatedOsAccountsCount(unsigned int &osAccountsCount) override;
     virtual ErrCode GetOsAccountLocalIdFromProcess(int &id) override;
-    virtual ErrCode GetOsAccountLocalIdFromUid(const int uid, int &id) override;
     virtual ErrCode GetOsAccountLocalIdFromDomain(const DomainAccountInfo &domainInfo, int &id) override;
     virtual ErrCode QueryMaxOsAccountNumber(int &maxOsAccountNumber) override;
     virtual ErrCode GetOsAccountAllConstraints(const int id, std::vector<std::string> &constraints) override;
