@@ -14,12 +14,12 @@
  */
 
 #include "account_log_wrapper.h"
+#include "napi/native_api.h"
+#include "napi/native_node_api.h"
 #include "napi_app_account_authenticator.h"
 #include "napi_app_account_authenticator_callback.h"
 #include "napi_app_account_constant.h"
 #include "napi_app_account.h"
-#include "napi/native_api.h"
-#include "napi/native_node_api.h"
 
 EXTERN_C_START
 /*
@@ -38,13 +38,15 @@ EXTERN_C_END
 /*
  * module define
  */
-static napi_module _module = {.nm_version = 1,
+static napi_module _module = {
+    .nm_version = 1,
     .nm_flags = 0,
     .nm_filename = nullptr,
     .nm_register_func = Init,
     .nm_modname = "account.appAccount",
     .nm_priv = ((void *)0),
-    .reserved = {0}};
+    .reserved = {0}
+};
 /*
  * module register
  */
