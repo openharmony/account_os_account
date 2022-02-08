@@ -75,7 +75,6 @@ const std::map<std::uint32_t, AccountStubFunc> AccountStub::stubFuncMap_{
     std::make_pair(QUERY_OHOS_ACCOUNT_INFO, &AccountStub::CmdQueryOhosAccountInfo),
     std::make_pair(QUERY_OHOS_ACCOUNT_QUIT_TIPS, &AccountStub::CmdQueryOhosQuitTips),
     std::make_pair(QUERY_DEVICE_ACCOUNT_ID, &AccountStub::CmdQueryDeviceAccountId),
-    std::make_pair(QUERY_DEVICE_ACCOUNT_ID_FROM_UID, &AccountStub::CmdQueryDeviceAccountIdFromUid),
     std::make_pair(GET_APP_ACCOUNT_SERVICE, &AccountStub::CmdGetAppAccountService),
     std::make_pair(GET_OS_ACCOUNT_SERVICE, &AccountStub::CmdGetOsAccountService),
 };
@@ -180,23 +179,6 @@ std::int32_t AccountStub::CmdQueryDeviceAccountId(MessageParcel &data, MessagePa
     return ERR_OK;
 }
 
-std::int32_t AccountStub::CmdQueryDeviceAccountIdFromUid(MessageParcel &data, MessageParcel &reply)
-{
-    std::int32_t uid = data.ReadInt32();
-    auto ret = QueryDeviceAccountIdFromUid(uid);
-    if (ret < 0) {
-        ACCOUNT_LOGE("QueryDevice accountid from uid %{public}d failed: %{public}d", uid, ret);
-        return ret;
-    }
-
-    if (!reply.WriteInt32(ret)) {
-        ACCOUNT_LOGE("Write result data failed");
-        return ERR_ACCOUNT_ZIDL_WRITE_RESULT_ERROR;
-    }
-
-    return ERR_OK;
-}
-
 std::int32_t AccountStub::CmdGetAppAccountService(MessageParcel &data, MessageParcel &reply)
 {
     ACCOUNT_LOGI("enter");
@@ -271,7 +253,7 @@ bool AccountStub::HasAccountRequestPermission(const std::string &permissionName)
     }
 
     ACCOUNT_LOGI("Check permission: %{public}s", permissionName.c_str());
-    const std::int32_t userId = QueryDeviceAccountIdFromUid(uid);
+    const std::int32_t userId = uid / UID_TRANSFORM_DIVISOR;
     return (Security::Permission::PermissionKit::VerifyPermission(bundleName, permissionName, userId) ==
             Security::Permission::PermissionState::PERMISSION_GRANTED);
 }

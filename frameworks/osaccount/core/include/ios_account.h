@@ -39,7 +39,6 @@ public:
     virtual ErrCode IsOsAccountVerified(const int id, bool &isVerified) = 0;
     virtual ErrCode GetCreatedOsAccountsCount(unsigned int &osAccountsCount) = 0;
     virtual ErrCode GetOsAccountLocalIdFromProcess(int &id) = 0;
-    virtual ErrCode GetOsAccountLocalIdFromUid(const int uid, int &id) = 0;
     virtual ErrCode GetOsAccountLocalIdFromDomain(const DomainAccountInfo &domainInfo, int &id) = 0;
     virtual ErrCode QueryMaxOsAccountNumber(int &maxOsAccountNumber) = 0;
     virtual ErrCode GetOsAccountAllConstraints(const int id, std::vector<std::string> &constraints) = 0;
@@ -88,7 +87,6 @@ public:
         IS_OS_ACCOUNT_VERIFIED,
         GET_CREATED_OS_ACCOUNT_COUNT,
         GET_OS_ACCOUNT_LOCAL_ID_FROM_PROCESS,
-        GET_OS_ACCOUNT_LOCAL_ID_FROM_UID,
         GET_OS_ACCOUNT_LOCAL_ID_FROM_DOMAIN,
         QUERY_MAX_OS_ACCOUNT_NUMBER,
         GET_OS_ACCOUNT_ALL_CONSTRAINTS,

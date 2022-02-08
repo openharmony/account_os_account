@@ -90,43 +90,12 @@ HWTEST_F(AccountMgrStubTest, AccountStubQueryOhosInfoTest002, TestSize.Level0)
 }
 
 /**
- * @tc.name: AccountStubQueryDeviceAccountIdTest003
- * @tc.desc: test QUERY_DEVICE_ACCOUNT_ID_FROM_UID cmd process.
- * @tc.type: FUNC
- * @tc.require: AR000CVBCE SR000CVBCD
- */
-HWTEST_F(AccountMgrStubTest, AccountStubQueryDeviceAccountIdTest003, TestSize.Level0)
-{
-    /**
-     * @tc.steps: step1. Init, create mock instance
-     * @tc.expected: None
-     */
-    MockAccountMgrService mockSrv{};
-    std::int32_t testUid = 1000000;
-    std::int32_t expectedId = 5;
-
-    MessageParcel inData;
-    inData.WriteInterfaceToken(AccountStub::GetDescriptor());
-    /**
-     * @tc.steps: step2. write UID and send QUERY_DEVICE_ACCOUNT_ID_FROM_UID cmd
-     * @tc.expected: result is ok, and expected device account id is 5:  expectedId = testUid/200000
-     */
-    inData.WriteInt32(testUid);
-    MessageParcel outData;
-    MessageOption option;
-    auto ret = mockSrv.OnRemoteRequest(AccountStub::QUERY_DEVICE_ACCOUNT_ID_FROM_UID, inData, outData, option);
-    EXPECT_EQ(ret, ERR_OK);
-    auto result = outData.ReadInt32();
-    EXPECT_EQ(result, expectedId);
-}
-
-/**
- * @tc.name: AccountStubInvalidCmdTest004
+ * @tc.name: AccountStubInvalidCmdTest003
  * @tc.desc: test INVALID cmd process.
  * @tc.type: FUNC
  * @tc.require: AR000CUF5N SR000CUF5L
  */
-HWTEST_F(AccountMgrStubTest, AccountStubInvalidCmdTest004, TestSize.Level0)
+HWTEST_F(AccountMgrStubTest, AccountStubInvalidCmdTest003, TestSize.Level0)
 {
     /**
      * @tc.steps: step1. Init, create mock instance and send an invalid cmd

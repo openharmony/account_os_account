@@ -12,9 +12,8 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-#include "account_log_wrapper.h"
-
 #include "os_account_proxy.h"
+#include "account_log_wrapper.h"
 
 namespace OHOS {
 namespace AccountSA {
@@ -244,28 +243,6 @@ ErrCode OsAccountProxy::GetOsAccountLocalIdFromProcess(int &id)
     return ERR_OK;
 }
 
-ErrCode OsAccountProxy::GetOsAccountLocalIdFromUid(const int uid, int &id)
-{
-    ACCOUNT_LOGI("OsAccountProxy GetOsAccountLocalIdFromUid start");
-    MessageParcel data;
-    MessageParcel reply;
-    if (!data.WriteInt32(uid)) {
-        ACCOUNT_LOGE("failed to write int for uid");
-        return ERR_OSACCOUNT_KIT_WRITE_INT_UID_ERROR;
-    }
-    ErrCode result = SendRequest(IOsAccount::Message::GET_OS_ACCOUNT_LOCAL_ID_FROM_UID, data, reply);
-    if (result != ERR_OK) {
-        return ERR_OSACCOUNT_KIT_GET_OS_ACCOUNT_LOCAL_ID_FROM_UID_ERROR;
-    }
-    result = reply.ReadInt32();
-    if (result != ERR_OK) {
-        return ERR_OSACCOUNT_KIT_GET_OS_ACCOUNT_LOCAL_ID_FROM_UID_ERROR;
-    }
-    id = reply.ReadInt32();
-    ACCOUNT_LOGI("OsAccountProxy GetOsAccountLocalIdFromUid end");
-    return ERR_OK;
-}
-
 ErrCode OsAccountProxy::GetOsAccountLocalIdFromDomain(const DomainAccountInfo &domainInfo, int &id)
 {
     ACCOUNT_LOGI("OsAccountProxy GetOsAccountLocalIdFromDomain start");
@@ -273,11 +250,11 @@ ErrCode OsAccountProxy::GetOsAccountLocalIdFromDomain(const DomainAccountInfo &d
     MessageParcel reply;
     if (!data.WriteString(domainInfo.domain_)) {
         ACCOUNT_LOGE("failed to write int for domain.");
-        return ERR_OSACCOUNT_KIT_WRITE_INT_LOCALID_ERROR;
+        return ERR_OS_ACCOUNT_KIT_WRITE_DOMAIN_ERROR;
     }
     if (!data.WriteString(domainInfo.accountName_)) {
         ACCOUNT_LOGE("failed to write int for domain account name.");
-        return ERR_OSACCOUNT_KIT_WRITE_INT_LOCALID_ERROR;
+        return ERR_OS_ACCOUNT_KIT_WRITE_DOMAIN_ACCOUNT_NAME_ERROR;
     }
     ErrCode result = SendRequest(IOsAccount::Message::GET_OS_ACCOUNT_LOCAL_ID_FROM_DOMAIN, data, reply);
     if (result != ERR_OK) {
