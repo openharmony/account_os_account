@@ -891,5 +891,10 @@ ErrCode OsAccountManagerService::DumpStateByAccounts(
 
     return ERR_OK;
 }
+
+ErrCode OsAccountManagerService::QueryActiveOsAccountIds(std::vector<int>& ids)
+{
+    return innerManager_->QueryActiveOsAccountIds(ids);
+}
 }  // namespace AccountSA
 }  // namespace OHOS

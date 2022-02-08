@@ -59,6 +59,7 @@ ErrCode OsAccountFileOperator::GetConstraintsByType(const int type, std::vector<
     OHOS::AccountSA::GetDataByType<std::vector<std::string>>(
         constraintsConfig_, constraintsConfig_.end(), Constants::TYPE_LIST, typeList, OHOS::AccountSA::JsonType::ARRAY);
     if (std::find(typeList.begin(), typeList.end(), std::to_string(type)) == typeList.end()) {
+        ACCOUNT_LOGE("GetConstraintsByType get type error");
         return ERR_OS_ACCOUNT_SERVICE_CONTROL_GET_TYPE_ERROR;
     }
     Json typeJson;
@@ -77,6 +78,7 @@ ErrCode OsAccountFileOperator::GetConstraintsByType(const int type, std::vector<
 ErrCode OsAccountFileOperator::GetIsMultiOsAccountEnable(bool &isMultiOsAccountEnable)
 {
     if (!isAlreadyInit_) {
+        ACCOUNT_LOGE("GetIsMultiOsAccountEnable not init error");
         return ERR_OS_ACCOUNT_SERVICE_OS_FILE_GET_CONFIG_ERROR;
     }
     OHOS::AccountSA::GetDataByType<Json>(constraintsConfig_,
@@ -90,6 +92,7 @@ ErrCode OsAccountFileOperator::GetIsMultiOsAccountEnable(bool &isMultiOsAccountE
 ErrCode OsAccountFileOperator::IsAllowedCreateAdmin(bool &isAllowedCreateAdmin)
 {
     if (!isAlreadyInit_) {
+        ACCOUNT_LOGE("IsAllowedCreateAdmin not init error");
         return ERR_OS_ACCOUNT_SERVICE_OS_FILE_GET_CONFIG_ERROR;
     }
     OHOS::AccountSA::GetDataByType<Json>(constraintsConfig_,
@@ -103,6 +106,7 @@ ErrCode OsAccountFileOperator::IsAllowedCreateAdmin(bool &isAllowedCreateAdmin)
 ErrCode OsAccountFileOperator::IsConstrarionsInTypeList(const std::vector<std::string> &constrains, bool &isExists)
 {
     if (constratinsList_.size() == 0) {
+        ACCOUNT_LOGE("IsConstrarionsInTypeList constratinsList_ zero error");
         return ERR_OS_ACCOUNT_SERVICE_OS_FILE_GET_CONSTRATIONS_LITS_ERROR;
     }
     isExists = true;

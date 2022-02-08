@@ -72,6 +72,7 @@ private:
     ErrCode ProcGetMaxAllowCreateIdFromDatabase(MessageParcel &data, MessageParcel &reply);
     ErrCode ProcGetOsAccountFromDatabase(MessageParcel &data, MessageParcel &reply);
     ErrCode ProcGetOsAccountListFromDatabase(MessageParcel &data, MessageParcel &reply);
+    ErrCode ProcQueryActiveOsAccountIds(MessageParcel &data, MessageParcel &reply);
 
 private:
     template<typename T>

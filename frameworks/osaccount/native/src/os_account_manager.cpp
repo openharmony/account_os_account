@@ -291,5 +291,11 @@ ErrCode OsAccountManager::GetOsAccountListFromDatabase(const std::string& storeI
     ACCOUNT_LOGI("OsAccountManager::GetOsAccountListFromDatabase start");
     return DelayedSingleton<OsAccount>::GetInstance()->GetOsAccountListFromDatabase(storeID, osAccountList);
 }
+
+ErrCode OsAccountManager::QueryActiveOsAccountIds(std::vector<int>& ids)
+{
+    ACCOUNT_LOGI("OsAccountManager::QueryActiveOsAccountIds start");
+    return DelayedSingleton<OsAccount>::GetInstance()->QueryActiveOsAccountIds(ids);
+}
 }  // namespace AccountSA
 }  // namespace OHOS
