@@ -101,7 +101,7 @@ private:
     std::shared_ptr<AppAccountAuthenticatorSessionManager> sessionManager_ = nullptr;
     std::shared_ptr<AppAccountControlManager> controlManager_ = nullptr;
     std::shared_ptr<AppAccountAuthenticatorManager> authenticatorMgr_ = nullptr;
-    uid_t ownerUid_;
+    pid_t ownerUid_;
     bool isInitialized_ = false;
     bool isOpened_ = false;
     bool isConnected_ = false;

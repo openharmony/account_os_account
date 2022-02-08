@@ -16,8 +16,6 @@
 #ifndef OS_ACCOUNT_SERVICES_ACCOUNTMGR_INCLUDE_APPACCOUNT_APP_ACCOUNT_AUTHENTICATOR_MANAGER_H
 #define OS_ACCOUNT_SERVICES_ACCOUNTMGR_INCLUDE_APPACCOUNT_APP_ACCOUNT_AUTHENTICATOR_MANAGER_H
 
-#include <map>
-#include <string>
 #include "app_account_common.h"
 #include "account_error_no.h"
 #include "bundle_mgr_interface.h"

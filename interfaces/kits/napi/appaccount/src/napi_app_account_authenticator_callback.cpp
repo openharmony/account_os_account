@@ -19,10 +19,10 @@
 #include "account_error_no.h"
 #include "account_log_wrapper.h"
 #include "iapp_account_authenticator_callback.h"
-#include "napi_app_account_common.h"
-#include "napi_common.h"
 #include "napi/native_api.h"
 #include "napi/native_node_api.h"
+#include "napi_app_account_common.h"
+#include "napi_common.h"
 
 namespace OHOS {
 namespace AccountJsKit {

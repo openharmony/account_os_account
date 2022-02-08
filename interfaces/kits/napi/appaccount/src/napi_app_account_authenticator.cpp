@@ -21,12 +21,12 @@
 #include "app_account_constants.h"
 #include "iapp_account_authenticator_callback.h"
 #include "ipc_object_stub.h"
+#include "napi/native_api.h"
+#include "napi/native_node_api.h"
 #include "napi_app_account_authenticator_callback.h"
 #include "napi_app_account_common.h"
 #include "napi_common.h"
 #include "napi_remote_object.h"
-#include "napi/native_api.h"
-#include "napi/native_node_api.h"
 
 using namespace OHOS::AccountSA;
 namespace OHOS {
@@ -171,15 +171,15 @@ void UvQueueWorkCallJsFunction(uv_work_t *work, int status)
     napi_value argv2[] = { jsName, jsAuthType, jsCallerBundleName, jsOptions, jsAuthCallback};
     napi_value undefined = nullptr;
     napi_get_undefined(param->env, &undefined);
-    napi_value return_val;
+    napi_value returnVal;
     napi_status ret = napi_ok;
     napi_value jsFunction = nullptr;
     if (param->funcName == Constants::OAUTH_ACTION_ADD_ACCOUNT_IMPLICITLY) {
         napi_get_reference_value(param->env, param->addAccountImplicitlyRef, &jsFunction);
-        ret = napi_call_function(param->env, undefined, jsFunction, ARGS_SIZE_FOUR, &argv2[1], &return_val);
+        ret = napi_call_function(param->env, undefined, jsFunction, ARGS_SIZE_FOUR, &argv2[1], &returnVal);
     } else if (param->funcName == Constants::OAUTH_ACTION_AUTHENTICATE) {
         napi_get_reference_value(param->env, param->authenticateRef, &jsFunction);
-        ret = napi_call_function(param->env, undefined, jsFunction, ARGS_SIZE_FIVE, argv2, &return_val);
+        ret = napi_call_function(param->env, undefined, jsFunction, ARGS_SIZE_FIVE, argv2, &returnVal);
     }
     if (ret != napi_ok) {
         ACCOUNT_LOGE("failed to call js function");
