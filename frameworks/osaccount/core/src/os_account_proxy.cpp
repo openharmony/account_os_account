@@ -1025,7 +1025,6 @@ ErrCode OsAccountProxy::QueryActiveOsAccountIds(std::vector<int>& ids)
         return ERR_OSACCOUNT_KIT_QUERY_ACTIVE_OS_ACCOUNT_IDS_ERROR;
     }
     return ERR_OK;
-
 }
 
 template<typename T>
