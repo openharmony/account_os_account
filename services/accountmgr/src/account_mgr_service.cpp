@@ -69,15 +69,10 @@ std::pair<bool, OhosAccountInfo> AccountMgrService::QueryOhosAccountInfo(void)
     return std::make_pair(true, OhosAccountInfo(name, id, status));
 }
 
-std::int32_t AccountMgrService::QueryDeviceAccountIdFromUid(std::int32_t uid)
-{
-    return uid / Constants::UID_TRANSFORM_DIVISOR;
-}
-
 std::int32_t AccountMgrService::QueryDeviceAccountId(std::int32_t &accountId)
 {
     const std::int32_t uid = IPCSkeleton::GetCallingUid();
-    accountId = uid / Constants::UID_TRANSFORM_DIVISOR;
+    accountId = uid / UID_TRANSFORM_DIVISOR;
     return ERR_OK;
 }
 

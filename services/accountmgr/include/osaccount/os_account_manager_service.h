@@ -42,7 +42,6 @@ public:
     virtual ErrCode GetCreatedOsAccountsCount(unsigned int &osAccountsCount) override;
     virtual ErrCode GetOsAccountLocalIdFromProcess(int &id) override;
 
-    virtual ErrCode GetOsAccountLocalIdFromUid(const int uid, int &id) override;
     virtual ErrCode GetOsAccountLocalIdFromDomain(const DomainAccountInfo &domainInfo, int &id) override;
     virtual ErrCode QueryMaxOsAccountNumber(int &maxOsAccountNumber) override;
 

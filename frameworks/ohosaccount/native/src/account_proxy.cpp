@@ -86,29 +86,6 @@ std::pair<bool, OhosAccountInfo> AccountProxy::QueryOhosAccountInfo(void)
     return std::make_pair(true, OhosAccountInfo(Str16ToStr8(name), Str16ToStr8(uid), status));
 }
 
-std::int32_t AccountProxy::QueryDeviceAccountIdFromUid(std::int32_t uid)
-{
-    ACCOUNT_LOGI("QueryDeviceAccountIdFromUid enter, uid = %{public}d.", uid);
-    MessageParcel data;
-    if (!data.WriteInterfaceToken(AccountProxy::GetDescriptor())) {
-        ACCOUNT_LOGE("Write descriptor failed");
-        return ERR_ACCOUNT_ZIDL_WRITE_DESCRIPTOR_ERROR;
-    }
-    if (!data.WriteInt32(uid)) {
-        return ERR_ACCOUNT_ZIDL_WRITE_PARCEL_DATA_ERROR;
-    }
-
-    MessageParcel reply;
-    MessageOption option;
-    auto ret = Remote()->SendRequest(QUERY_DEVICE_ACCOUNT_ID_FROM_UID, data, reply, option);
-    if (ret != ERR_NONE) {
-        ACCOUNT_LOGE("SendRequest failed %d", ret);
-        return ERR_ACCOUNT_ZIDL_ACCOUNT_SEND_REQUEST_ERROR;
-    }
-
-    return reply.ReadInt32();
-}
-
 std::int32_t AccountProxy::QueryDeviceAccountId(std::int32_t &accountId)
 {
     ACCOUNT_LOGI("QueryDeviceAccountId enter");

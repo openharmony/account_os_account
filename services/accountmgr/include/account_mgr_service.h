@@ -47,7 +47,6 @@ public:
         const std::string &accountName, const std::string &uid, const std::string &eventStr) override;
     std::pair<bool, OhosAccountInfo> QueryOhosAccountInfo(void) override;
     std::int32_t QueryDeviceAccountId(std::int32_t &accountId) override;
-    std::int32_t QueryDeviceAccountIdFromUid(std::int32_t uid) override;
     sptr<IRemoteObject> GetAppAccountService() override;
     sptr<IRemoteObject> GetOsAccountService() override;
 

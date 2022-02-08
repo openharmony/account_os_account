@@ -12,12 +12,11 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
+#include "os_account_manager.h"
+#include "account_info.h"
 #include "account_log_wrapper.h"
 #include "os_account.h"
 #include "singleton.h"
-
-#include "os_account_manager.h"
 
 namespace OHOS {
 namespace AccountSA {
@@ -84,9 +83,13 @@ ErrCode OsAccountManager::GetOsAccountLocalIdFromProcess(int &id)
 
 ErrCode OsAccountManager::GetOsAccountLocalIdFromUid(const int uid, int &id)
 {
-    ACCOUNT_LOGI("OsAccountManager::GetOsAccountLocalIdFromUid start");
-
-    return DelayedSingleton<OsAccount>::GetInstance()->GetOsAccountLocalIdFromUid(uid, id);
+    if (uid < 0) {
+        ACCOUNT_LOGE("invalid uid %{public}d.", uid);
+        return ERR_OS_ACCOUNT_SERVICE_MANAGER_BAD_UID_ERR;
+    }
+    id = uid / UID_TRANSFORM_DIVISOR;
+    ACCOUNT_LOGI("uid %{public}d, os account id %{public}d.", uid, id);
+    return ERR_OK;
 }
 
 ErrCode OsAccountManager::GetOsAccountLocalIdFromDomain(const DomainAccountInfo &domainInfo, int &id)

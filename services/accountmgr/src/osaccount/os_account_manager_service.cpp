@@ -12,13 +12,12 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
+#include "os_account_manager_service.h"
+#include "account_info.h"
 #include "account_log_wrapper.h"
 #include "iinner_os_account_manager.h"
 #include "ipc_skeleton.h"
 #include "os_account_constants.h"
-
-#include "os_account_manager_service.h"
 
 namespace OHOS {
 namespace AccountSA {
@@ -252,17 +251,7 @@ ErrCode OsAccountManagerService::GetCreatedOsAccountsCount(unsigned int &osAccou
 ErrCode OsAccountManagerService::GetOsAccountLocalIdFromProcess(int &id)
 {
     const std::int32_t uid = IPCSkeleton::GetCallingUid();
-    id = uid / Constants::UID_TRANSFORM_DIVISOR;
-    return ERR_OK;
-}
-
-ErrCode OsAccountManagerService::GetOsAccountLocalIdFromUid(const int uid, int &id)
-{
-    if (uid < 0) {
-        ACCOUNT_LOGE("GetOsAccountLocalIdFromUid: invalid uid %{public}d.", uid);
-        return ERR_OS_ACCOUNT_SERVICE_MANAGER_BAD_UID_ERR;
-    }
-    id = uid / Constants::UID_TRANSFORM_DIVISOR;
+    id = uid / UID_TRANSFORM_DIVISOR;
     return ERR_OK;
 }
 
@@ -322,7 +311,7 @@ ErrCode OsAccountManagerService::QueryCurrentOsAccount(OsAccountInfo &osAccountI
             return ERR_OS_ACCOUNT_SERVICE_PERMISSION_DENIED;
         }
     }
-    int id = callingUid / Constants::UID_TRANSFORM_DIVISOR;
+    int id = callingUid / UID_TRANSFORM_DIVISOR;
     return innerManager_->QueryOsAccountById(id, osAccountInfo);
 }
 
@@ -354,7 +343,7 @@ ErrCode OsAccountManagerService::QueryOsAccountById(const int id, OsAccountInfo 
 ErrCode OsAccountManagerService::GetOsAccountTypeFromProcess(OsAccountType &type)
 {
     const std::int32_t uid = IPCSkeleton::GetCallingUid();
-    int id = uid / Constants::UID_TRANSFORM_DIVISOR;
+    int id = uid / UID_TRANSFORM_DIVISOR;
     return innerManager_->GetOsAccountType(id, type);
 }
 
@@ -620,7 +609,7 @@ ErrCode OsAccountManagerService::IsCurrentOsAccountVerified(bool &isVerified)
             return ERR_OS_ACCOUNT_SERVICE_PERMISSION_DENIED;
         }
     }
-    int id = callingUid / Constants::UID_TRANSFORM_DIVISOR;
+    int id = callingUid / UID_TRANSFORM_DIVISOR;
     return innerManager_->IsOsAccountVerified(id, isVerified);
 }
 
@@ -667,7 +656,7 @@ ErrCode OsAccountManagerService::SetCurrentOsAccountIsVerified(const bool isVeri
             return ERR_OS_ACCOUNT_SERVICE_PERMISSION_DENIED;
         }
     }
-    int id = callingUid / Constants::UID_TRANSFORM_DIVISOR;
+    int id = callingUid / UID_TRANSFORM_DIVISOR;
     if (id < Constants::START_USER_ID) {
         return ERR_OS_ACCOUNT_SERVICE_MANAGER_ID_ERROR;
     }

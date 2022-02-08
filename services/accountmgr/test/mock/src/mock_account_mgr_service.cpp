@@ -21,7 +21,6 @@
 
 namespace OHOS {
 namespace AccountSA {
-constexpr std::int32_t UID_TRANSFORM_DIVISOR = 200000;
 MockAccountMgrService::MockAccountMgrService()
 {
     devAccountId_ = 0;
@@ -57,11 +56,6 @@ std::pair<bool, OhosAccountInfo> MockAccountMgrService::QueryOhosAccountInfo(voi
     std::string id = DEFAULT_OHOS_ACCOUNT_UID;
     std::int32_t status = ACCOUNT_STATE_UNBOUND;
     return std::make_pair(true, OhosAccountInfo(name, id, status));
-}
-
-std::int32_t MockAccountMgrService::QueryDeviceAccountIdFromUid(std::int32_t uid)
-{
-    return (uid / UID_TRANSFORM_DIVISOR);
 }
 
 sptr<IRemoteObject> MockAccountMgrService::GetAppAccountService()

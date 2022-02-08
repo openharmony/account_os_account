@@ -31,7 +31,7 @@ const std::string USER_PHOTO_FILE_JPG_NAME = "fase.jpg";
 const std::string USER_PHOTO_BASE_JPG_HEAD = "data:image/jpeg;base64,";
 const std::string USER_PHOTO_BASE_PNG_HEAD = "data:image/png;base64,";
 const std::string USER_INFO_FILE_NAME = "account_info.json";
-constexpr std::int32_t UID_TRANSFORM_DIVISOR = 200000;
+
 // distributed database
 const std::string APP_ID = "os_account_mgr_service";
 const bool SYNC_OS_ACCOUNT_DATABSE = true;
