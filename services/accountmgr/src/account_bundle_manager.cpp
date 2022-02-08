@@ -50,7 +50,7 @@ ErrCode AccountBundleManager::GetBundleName(const uid_t &uid, std::string &bundl
     return ERR_OK;
 }
 
-ErrCode AccountBundleManager::GetBundleInfo(const std::string &bundleName, AppExecFwk::BundleInfo &bundleInfo)
+ErrCode AccountBundleManager::GetBundleInfo(const std::string &bundleName, BundleInfo &bundleInfo)
 {
     ACCOUNT_LOGI("enter");
 

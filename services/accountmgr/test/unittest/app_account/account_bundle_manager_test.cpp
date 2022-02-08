@@ -19,6 +19,7 @@
 #include "account_bundle_manager.h"
 #undef private
 #include "account_error_no.h"
+#include "account_log_wrapper.h"
 
 using namespace testing::ext;
 using namespace OHOS;
@@ -62,6 +63,8 @@ void AccountBundleManagerTest::TearDown(void)
  */
 HWTEST_F(AccountBundleManagerTest, AccountBundleManager_GetBundleName_0100, TestSize.Level1)
 {
+    ACCOUNT_LOGI("AccountBundleManager_GetBundleName_0100");
+
     ASSERT_NE(bundleManagerPtr_, nullptr);
 
     std::string bundleName = "";
@@ -78,6 +81,8 @@ HWTEST_F(AccountBundleManagerTest, AccountBundleManager_GetBundleName_0100, Test
  */
 HWTEST_F(AccountBundleManagerTest, AccountBundleManager_GetBundleInfo_0100, TestSize.Level1)
 {
+    ACCOUNT_LOGI("AccountBundleManager_GetBundleInfo_0100");
+
     ASSERT_NE(bundleManagerPtr_, nullptr);
 
     std::string bundleName = STRING_OWNER;

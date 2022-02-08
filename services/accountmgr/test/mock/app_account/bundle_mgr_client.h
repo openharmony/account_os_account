@@ -16,6 +16,7 @@
 #ifndef OS_ACCOUNT_SERVICES_ACCOUNTMGR_TEST_MOCK_APP_ACCOUNT_BUNDLE_MGR_CLIENT_H
 #define OS_ACCOUNT_SERVICES_ACCOUNTMGR_TEST_MOCK_APP_ACCOUNT_BUNDLE_MGR_CLIENT_H
 
+#include "bundle_constants.h"
 #include "singleton.h"
 
 namespace OHOS {
@@ -26,7 +27,8 @@ public:
     virtual ~BundleMgrClient();
 
     bool GetBundleNameForUid(const int uid, std::string &bundleName);
-    bool GetBundleInfo(const std::string &bundleName, const BundleFlag flag, BundleInfo &bundleInfo);
+    bool GetBundleInfo(const std::string &bundleName, const BundleFlag flag, BundleInfo &bundleInfo,
+        int32_t userId = Constants::UNSPECIFIED_USERID);
 };
 }  // namespace AppExecFwk
 }  // namespace OHOS
