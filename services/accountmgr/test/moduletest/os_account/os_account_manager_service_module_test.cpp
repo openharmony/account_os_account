@@ -1213,5 +1213,20 @@ HWTEST_F(OsAccountManagerServiceModuleTest, OsAccountManagerServiceModuleTest064
     ret = g_osAccountManagerService->GetOsAccountLocalIdFromDomain(domainAccountTooLong, resLocalId);
     EXPECT_EQ(ret, ERR_OS_ACCOUNT_SERVICE_INNER_DOMAIN_ACCOUNT_NAME_LEN_ERROR);
 }
+
+/**
+ * @tc.name: OsAccountManagerServiceModuleTest067
+ * @tc.desc: Test query active os account ids.
+ * @tc.type: FUNC
+ * @tc.require: SR000GGVFQ
+ */
+HWTEST_F(OsAccountManagerServiceModuleTest, OsAccountManagerServiceModuleTest067, TestSize.Level1)
+{
+    std::vector<int> ids;
+    EXPECT_EQ(g_osAccountManagerService->QueryActiveOsAccountIds(ids), ERR_OK);
+    for (auto it = ids.begin(); it != ids.end(); it++) {
+        GTEST_LOG_(INFO) << *it;
+    }
+}
 }  // namespace AccountSA
 }  // namespace OHOS

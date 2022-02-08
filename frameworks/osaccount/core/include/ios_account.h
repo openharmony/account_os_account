@@ -76,6 +76,7 @@ public:
         OsAccountInfo &osAccountInfo) = 0;
     virtual ErrCode GetOsAccountListFromDatabase(const std::string& storeID,
         std::vector<OsAccountInfo> &osAccountList) = 0;
+    virtual ErrCode QueryActiveOsAccountIds(std::vector<int>& ids) = 0;
 
     enum class Message {
         CREATE_OS_ACCOUNT = 0,
@@ -117,6 +118,7 @@ public:
         GET_MAX_ALLOW_CREATE_ID_FROM_DATABASE,
         GET_OS_ACCOUNT_FROM_DATABASE,
         GET_OS_ACCOUNT_LIST_FROM_DATABASE,
+        QUERY_ACTIVE_OS_ACCOUNT_IDS,
     };
 };
 }  // namespace AccountSA

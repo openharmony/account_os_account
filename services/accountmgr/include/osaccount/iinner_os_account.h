@@ -67,6 +67,7 @@ public:
         OsAccountInfo &osAccountInfo) = 0;
     virtual ErrCode GetOsAccountListFromDatabase(const std::string& storeID,
         std::vector<OsAccountInfo> &osAccountList) = 0;
+    virtual ErrCode QueryActiveOsAccountIds(std::vector<int>& ids) = 0;
 };
 }  // namespace AccountSA
 }  // namespace OHOS

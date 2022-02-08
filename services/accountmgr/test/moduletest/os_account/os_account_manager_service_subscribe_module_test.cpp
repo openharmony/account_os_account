@@ -110,7 +110,7 @@ HWTEST_F(OsAccountManagerServiceSubscribeModuleTest, OsAccountManagerServiceSubs
     // lock the mutex
     g_mtx.lock();
     EXPECT_EQ(result, ERR_OK);
-    result = osAccountManagerService_->StartOsAccount(osAccountInfo.GetLocalId());
+    result = osAccountManagerService_->ActivateOsAccount(osAccountInfo.GetLocalId());
     EXPECT_EQ(result, ERR_OK);
     struct tm startTime = {0};
     EXPECT_EQ(GetSystemCurrentTime(&startTime), true);
@@ -126,9 +126,7 @@ HWTEST_F(OsAccountManagerServiceSubscribeModuleTest, OsAccountManagerServiceSubs
     g_mtx.unlock();
     result = osAccountManagerService_->UnsubscribeOsAccount(osAccountEventListener);
     EXPECT_EQ(result, ERR_OK);
-    result = osAccountManagerService_->StopOsAccount(osAccountInfo.GetLocalId());
-    EXPECT_EQ(result, ERR_OK);
-    osAccountManagerService_->StartOsAccount(osAccountInfo.GetLocalId());
+    osAccountManagerService_->ActivateOsAccount(Constants::START_USER_ID);
     // unlock the mutex
     result = osAccountManagerService_->RemoveOsAccount(osAccountInfo.GetLocalId());
 }
@@ -165,7 +163,7 @@ HWTEST_F(OsAccountManagerServiceSubscribeModuleTest, OsAccountManagerServiceSubs
     // lock the mutex
     g_mtx.lock();
     EXPECT_EQ(result, ERR_OK);
-    result = osAccountManagerService_->StartOsAccount(osAccountInfo.GetLocalId());
+    result = osAccountManagerService_->ActivateOsAccount(osAccountInfo.GetLocalId());
     EXPECT_EQ(result, ERR_OK);
     struct tm startTime = {0};
     EXPECT_EQ(GetSystemCurrentTime(&startTime), true);
@@ -181,9 +179,7 @@ HWTEST_F(OsAccountManagerServiceSubscribeModuleTest, OsAccountManagerServiceSubs
     g_mtx.unlock();
     result = osAccountManagerService_->UnsubscribeOsAccount(osAccountEventListener);
     EXPECT_EQ(result, ERR_OK);
-    result = osAccountManagerService_->StopOsAccount(osAccountInfo.GetLocalId());
-    EXPECT_EQ(result, ERR_OK);
-    osAccountManagerService_->StartOsAccount(osAccountInfo.GetLocalId());
+    osAccountManagerService_->ActivateOsAccount(Constants::START_USER_ID);
     // unlock the mutex
     result = osAccountManagerService_->RemoveOsAccount(osAccountInfo.GetLocalId());
 }

@@ -1515,3 +1515,18 @@ HWTEST_F(OsAccountManagerModuleTest, OsAccountManagerModuleTest066, TestSize.Lev
     }
     EXPECT_NE(findIt, true);
 }
+
+/**
+ * @tc.name: OsAccountManagerModuleTest067
+ * @tc.desc: Test query active os account ids.
+ * @tc.type: FUNC
+ * @tc.require: SR000GGVFQ
+ */
+HWTEST_F(OsAccountManagerModuleTest, OsAccountManagerModuleTest067, TestSize.Level1)
+{
+    std::vector<int> ids;
+    EXPECT_EQ(OsAccountManager::QueryActiveOsAccountIds(ids), ERR_OK);
+    for (auto it = ids.begin(); it != ids.end(); it++) {
+        GTEST_LOG_(INFO) << *it;
+    }
+}
