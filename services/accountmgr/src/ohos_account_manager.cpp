@@ -41,7 +41,6 @@ constexpr std::uint32_t MAX_UID_LENGTH = 512;
 constexpr std::uint32_t HASH_LENGTH = 32;
 constexpr std::uint32_t OHOS_ACCOUNT_UDID_LENGTH = HASH_LENGTH * 2;
 constexpr std::uint32_t WIDTH_FOR_HEX = 2;
-constexpr std::int32_t UID_TRANSFORM_DIVISOR = 200000;
 const std::string KEY_ACCOUNT_EVENT_LOGIN = "LOGIN";
 const std::string KEY_ACCOUNT_EVENT_LOGOUT = "LOGOUT";
 const std::string KEY_ACCOUNT_EVENT_TOKEN_INVALID = "TOKEN_INVALID";
