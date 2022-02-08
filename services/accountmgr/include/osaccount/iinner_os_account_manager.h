@@ -70,6 +70,7 @@ public:
         OsAccountInfo &osAccountInfo) override;
     virtual ErrCode GetOsAccountListFromDatabase(const std::string& storeID,
         std::vector<OsAccountInfo> &osAccountList) override;
+    virtual ErrCode QueryActiveOsAccountIds(std::vector<int>& ids) override;
 
 private:
     void StartAccount();
@@ -99,10 +100,11 @@ private:
     bool isSendToStorageCreate_;
     bool isSendToStorageStart_;
     std::shared_ptr<OHOS::AppExecFwk::EventHandler> handler_;
-    static constexpr std::int32_t DELAY_FOR_FOUNDATION_SERVICE = 10 * 1000;  // 10s
+    static constexpr std::int32_t DELAY_FOR_FOUNDATION_SERVICE = 2 * 1000;  // 2s
     static constexpr std::int32_t DELAY_FOR_TIME_INTERVAL = 1 * 1000;       // 1s
-    static constexpr std::int32_t MAX_TRY_TIMES = 10;
+    static constexpr std::int32_t MAX_TRY_TIMES = 20;
     mutable std::mutex ativeMutex_;
+    mutable std::mutex operatingMutex_;
 };
 }  // namespace AccountSA
 }  // namespace OHOS

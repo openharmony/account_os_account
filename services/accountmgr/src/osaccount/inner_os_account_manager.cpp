@@ -844,7 +844,7 @@ ErrCode IInnerOsAccountManager::GetSerialNumberByOsAccountLocalId(const int &id,
 ErrCode IInnerOsAccountManager::SubscribeOsAccount(
     const OsAccountSubscribeInfo &subscribeInfo, const sptr<IRemoteObject> &eventListener)
 {
-    ACCOUNT_LOGE("IInnerOsAccountManager SubscribeOsAccount start");
+    ACCOUNT_LOGI("IInnerOsAccountManager SubscribeOsAccount start");
 
     if (!subscribeManagerPtr_) {
         ACCOUNT_LOGE("IInnerOsAccountManager SubscribeOsAccount subscribeManagerPtr_ is nullptr");
@@ -855,19 +855,19 @@ ErrCode IInnerOsAccountManager::SubscribeOsAccount(
     if (subscribeInfoPtr == nullptr) {
         ACCOUNT_LOGE("IInnerOsAccountManager SubscribeOsAccount subscribeInfoPtr is nullptr");
     }
-    ACCOUNT_LOGE("IInnerOsAccountManager SubscribeOsAccount end");
+    ACCOUNT_LOGI("IInnerOsAccountManager SubscribeOsAccount end");
     return subscribeManagerPtr_->SubscribeOsAccount(subscribeInfoPtr, eventListener);
 }
 
 ErrCode IInnerOsAccountManager::UnsubscribeOsAccount(const sptr<IRemoteObject> &eventListener)
 {
-    ACCOUNT_LOGE("IInnerOsAccountManager UnsubscribeOsAccount start");
+    ACCOUNT_LOGI("IInnerOsAccountManager UnsubscribeOsAccount start");
 
     if (!subscribeManagerPtr_) {
         ACCOUNT_LOGE("controlManagerPtr_ is nullptr");
         return ERR_APPACCOUNT_SERVICE_SUBSCRIBE_MANAGER_PTR_IS_NULLPTR;
     }
-    ACCOUNT_LOGE("IInnerOsAccountManager UnsubscribeOsAccount end");
+    ACCOUNT_LOGI("IInnerOsAccountManager UnsubscribeOsAccount end");
     return subscribeManagerPtr_->UnsubscribeOsAccount(eventListener);
 }
 
@@ -954,11 +954,13 @@ ErrCode IInnerOsAccountManager::GetOsAccountListFromDatabase(const std::string& 
 
 void IInnerOsAccountManager::AddLocalIdToOperating(int localId)
 {
+    std::lock_guard<std::mutex> lock(operatingMutex_);
     operatingId_.push_back(localId);
 }
 
 void IInnerOsAccountManager::RemoveLocalIdToOperating(int localId)
 {
+    std::lock_guard<std::mutex> lock(operatingMutex_);
     auto it = std::find(operatingId_.begin(), operatingId_.end(), localId);
     if (it != operatingId_.end()) {
         operatingId_.erase(it);
@@ -967,7 +969,20 @@ void IInnerOsAccountManager::RemoveLocalIdToOperating(int localId)
 
 bool IInnerOsAccountManager::IsLocalIdInOperating(int localId)
 {
-   return std::find(operatingId_.begin(), operatingId_.end(), localId) != operatingId_.end();
+    std::lock_guard<std::mutex> lock(operatingMutex_);
+    return std::find(operatingId_.begin(), operatingId_.end(), localId) != operatingId_.end();
+}
+
+ErrCode IInnerOsAccountManager::QueryActiveOsAccountIds(std::vector<int>& ids)
+{
+    ids.clear();
+    std::lock_guard<std::mutex> lock(ativeMutex_);
+    for (auto it = activeAccountId_.begin(); it != activeAccountId_.end(); it++) {
+        if (*it != Constants::ADMIN_LOCAL_ID) {
+            ids.push_back(*it);
+        }
+    }
+    return ERR_OK;
 }
 }  // namespace AccountSA
 }  // namespace OHOS

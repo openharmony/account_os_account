@@ -178,6 +178,10 @@ const std::map<uint32_t, OsAccountStub::MessageProcFunction> OsAccountStub::mess
         static_cast<uint32_t>(IOsAccount::Message::GET_OS_ACCOUNT_LIST_FROM_DATABASE),
         &OsAccountStub::ProcGetOsAccountListFromDatabase,
     },
+    {
+        static_cast<uint32_t>(IOsAccount::Message::QUERY_ACTIVE_OS_ACCOUNT_IDS),
+        &OsAccountStub::ProcQueryActiveOsAccountIds,
+    },
 };
 
 OsAccountStub::OsAccountStub()
@@ -413,7 +417,6 @@ ErrCode OsAccountStub::ProcQueryAllCreatedOsAccounts(MessageParcel &data, Messag
         return IPC_STUB_WRITE_PARCEL_ERR;
     }
     if (!WriteParcelableVector(osAccountInfos, reply)) {
-        ACCOUNT_LOGE("QueryAllCreatedOsAccounts osAccountInfos failed stub");
         ACCOUNT_LOGE("failed to write reply");
         return IPC_STUB_WRITE_PARCEL_ERR;
     }
@@ -973,6 +976,21 @@ ErrCode OsAccountStub::ProcGetOsAccountListFromDatabase(MessageParcel &data, Mes
     if (!WriteParcelableVector(osAccountList, reply)) {
         ACCOUNT_LOGE("ProcGetOsAccountListFromDatabase osAccountInfos failed stub");
         ACCOUNT_LOGE("failed to write reply");
+        return IPC_STUB_WRITE_PARCEL_ERR;
+    }
+    return ERR_NONE;
+}
+
+ErrCode OsAccountStub::ProcQueryActiveOsAccountIds(MessageParcel &data, MessageParcel &reply)
+{
+    std::vector<int> ids;
+    ErrCode result = QueryActiveOsAccountIds(ids);
+    if (!reply.WriteInt32(result)) {
+        ACCOUNT_LOGE("failed to write reply");
+        return IPC_STUB_WRITE_PARCEL_ERR;
+    }
+    if (!reply.WriteInt32Vector(ids)) {
+        ACCOUNT_LOGE("failed to write active list");
         return IPC_STUB_WRITE_PARCEL_ERR;
     }
     return ERR_NONE;
