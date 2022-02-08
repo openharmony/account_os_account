@@ -17,6 +17,14 @@
 #define OS_ACCOUNT_SERVICES_ACCOUNTMGR_TEST_MOCK_APP_ACCOUNT_MOCK_APP_ACCOUNT_AUTHENTICATOR_SESSION_MANAGER_H
 
 #include "app_account_authenticator_session_manager.h"
+#include "app_account_common.h"
+#include "application_state_observer_stub.h"
+#include "app_mgr_interface.h"
+#include "app_mgr_proxy.h"
+#include "iapp_account_authenticator_callback.h"
+#include "iremote_object.h"
+#include "singleton.h"
+#include "want_params.h"
 
 namespace OHOS {
 namespace AccountSA {

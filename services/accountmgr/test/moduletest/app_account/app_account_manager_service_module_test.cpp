@@ -998,7 +998,7 @@ HWTEST_F(AppAccountManagerServiceModuleTest, AppAccountManagerService_SetAccount
 
 /**
  * @tc.name: AppAccountManagerService_GetOAuthToken_0100
- * @tc.desc: Get oauth token with valid data.
+ * @tc.desc: Get oauth token failed with non-existent account.
  * @tc.type: FUNC
  * @tc.require: SR000GGVFU
  */
@@ -1017,13 +1017,13 @@ HWTEST_F(AppAccountManagerServiceModuleTest, AppAccountManagerService_GetOAuthTo
 
 /**
  * @tc.name: AppAccountManagerService_GetOAuthToken_0200
- * @tc.desc: Get oauth token with valid data.
+ * @tc.desc: Get oauth token failed for non-existent oauth token.
  * @tc.type: FUNC
  * @tc.require: SR000GGVFU
  */
 HWTEST_F(AppAccountManagerServiceModuleTest, AppAccountManagerService_GetOAuthToken_0200, TestSize.Level0)
 {
-    ACCOUNT_LOGI("AppAccountManagerService_GetOAuthToken_0100");
+    ACCOUNT_LOGI("AppAccountManagerService_GetOAuthToken_0200");
 
     auto servicePtr = std::make_shared<AppAccountManagerService>();
     ASSERT_NE(servicePtr, nullptr);
@@ -1049,13 +1049,13 @@ HWTEST_F(AppAccountManagerServiceModuleTest, AppAccountManagerService_GetOAuthTo
 
 /**
  * @tc.name: AppAccountManagerService_GetOAuthToken_0300
- * @tc.desc: Get oauth token with valid data.
+ * @tc.desc: Get oauth token successfully.
  * @tc.type: FUNC
  * @tc.require: SR000GGVFU
  */
 HWTEST_F(AppAccountManagerServiceModuleTest, AppAccountManagerService_GetOAuthToken_0300, TestSize.Level1)
 {
-    ACCOUNT_LOGI("AppAccountManagerService_GetOAuthToken_0200");
+    ACCOUNT_LOGI("AppAccountManagerService_GetOAuthToken_0300");
 
     auto servicePtr = std::make_shared<AppAccountManagerService>();
     ASSERT_NE(servicePtr, nullptr);
@@ -1139,13 +1139,30 @@ HWTEST_F(AppAccountManagerServiceModuleTest, AppAccountManagerService_SetOAuthTo
 
 /**
  * @tc.name: AppAccountManagerService_DeleteOAuthToken_0100
- * @tc.desc: Delete oauth token successfully with non-existent token.
+ * @tc.desc: Delete oauth token failed with non-exist account.
  * @tc.type: FUNC
  * @tc.require: SR000GGVFU
  */
 HWTEST_F(AppAccountManagerServiceModuleTest, AppAccountManagerService_DeleteOAuthToken_0100, TestSize.Level1)
 {
     ACCOUNT_LOGI("AppAccountManagerService_DeleteOAuthToken_0100");
+
+    auto servicePtr = std::make_shared<AppAccountManagerService>();
+    ASSERT_NE(servicePtr, nullptr);
+
+    ErrCode result = servicePtr->DeleteOAuthToken(STRING_NAME, STRING_OWNER, STRING_AUTH_TYPE, STRING_TOKEN);
+    EXPECT_EQ(result, ERR_APPACCOUNT_SERVICE_ACCOUNT_NOT_EXIST);
+}
+
+/**
+ * @tc.name: AppAccountManagerService_DeleteOAuthToken_0200
+ * @tc.desc: Delete oauth token successfully with non-existent token.
+ * @tc.type: FUNC
+ * @tc.require: SR000GGVFU
+ */
+HWTEST_F(AppAccountManagerServiceModuleTest, AppAccountManagerService_DeleteOAuthToken_0200, TestSize.Level1)
+{
+    ACCOUNT_LOGI("AppAccountManagerService_DeleteOAuthToken_0200");
 
     auto servicePtr = std::make_shared<AppAccountManagerService>();
     ASSERT_NE(servicePtr, nullptr);
@@ -1173,14 +1190,14 @@ HWTEST_F(AppAccountManagerServiceModuleTest, AppAccountManagerService_DeleteOAut
 }
 
 /**
- * @tc.name: AppAccountManagerService_DeleteOAuthToken_0200
+ * @tc.name: AppAccountManagerService_DeleteOAuthToken_0300
  * @tc.desc: Delete oauth token successfully with existent token.
  * @tc.type: FUNC
  * @tc.require: SR000GGVFU
  */
-HWTEST_F(AppAccountManagerServiceModuleTest, AppAccountManagerService_DeleteOAuthToken_0200, TestSize.Level1)
+HWTEST_F(AppAccountManagerServiceModuleTest, AppAccountManagerService_DeleteOAuthToken_0300, TestSize.Level1)
 {
-    ACCOUNT_LOGI("AppAccountManagerService_DeleteOAuthToken_0200");
+    ACCOUNT_LOGI("AppAccountManagerService_DeleteOAuthToken_0300");
 
     auto servicePtr = std::make_shared<AppAccountManagerService>();
     ASSERT_NE(servicePtr, nullptr);
@@ -1275,7 +1292,7 @@ HWTEST_F(AppAccountManagerServiceModuleTest, AppAccountManagerService_GetAllOAut
 
 /**
  * @tc.name: AppAccountManagerService_SetOAuthTokenVisibility_0100
- * @tc.desc: set oauth token failed with non-existent account.
+ * @tc.desc: Set oauth token failed with non-existent account.
  * @tc.type: FUNC
  * @tc.require: SR000GGVFU
  */
@@ -1291,14 +1308,14 @@ HWTEST_F(AppAccountManagerServiceModuleTest, AppAccountManagerService_SetOAuthTo
 }
 
 /**
- * @tc.name: AppAccountManagerService_SetOAuthTokenVisibility_0100
- * @tc.desc: set oauth token successfully with non-existent authType.
+ * @tc.name: AppAccountManagerService_SetOAuthTokenVisibility_0200
+ * @tc.desc: Set oauth token visibility with non-existent authType successfully.
  * @tc.type: FUNC
  * @tc.require: SR000GGVFU
  */
 HWTEST_F(AppAccountManagerServiceModuleTest, AppAccountManagerService_SetOAuthTokenVisibility_0200, TestSize.Level1)
 {
-    ACCOUNT_LOGI("AppAccountManagerService_SetOAuthTokenVisibility_0100");
+    ACCOUNT_LOGI("AppAccountManagerService_SetOAuthTokenVisibility_0200");
 
     auto servicePtr = std::make_shared<AppAccountManagerService>();
     ASSERT_NE(servicePtr, nullptr);
@@ -1306,29 +1323,39 @@ HWTEST_F(AppAccountManagerServiceModuleTest, AppAccountManagerService_SetOAuthTo
     ErrCode result = servicePtr->AddAccount(STRING_NAME, STRING_EXTRA_INFO);
     EXPECT_EQ(result, ERR_OK);
 
+    bool isVisible = true;
+    result = servicePtr->CheckOAuthTokenVisibility(STRING_NAME, STRING_AUTH_TYPE, STRING_BUNDLE_NAME, isVisible);
+    EXPECT_EQ(result, ERR_OK);
+    EXPECT_EQ(isVisible, false);
+
     result = servicePtr->SetOAuthTokenVisibility(STRING_NAME, STRING_AUTH_TYPE, STRING_BUNDLE_NAME, true);
     EXPECT_EQ(result, ERR_OK);
-    
+
+    isVisible = false;
+    result = servicePtr->CheckOAuthTokenVisibility(STRING_NAME, STRING_AUTH_TYPE, STRING_BUNDLE_NAME, isVisible);
+    EXPECT_EQ(result, ERR_OK);
+    EXPECT_EQ(isVisible, true);
+
     result = servicePtr->DeleteAccount(STRING_NAME);
     EXPECT_EQ(result, ERR_OK);
 }
 
 /**
- * @tc.name: AppAccountManagerService_SetOAuthTokenVisibility_0100
- * @tc.desc: set oauth token successfully.
+ * @tc.name: AppAccountManagerService_SetOAuthTokenVisibility_0300
+ * @tc.desc: Set oauth token visibility with existent authType successfully.
  * @tc.type: FUNC
  * @tc.require: SR000GGVFU
  */
 HWTEST_F(AppAccountManagerServiceModuleTest, AppAccountManagerService_SetOAuthTokenVisibility_0300, TestSize.Level1)
 {
-    ACCOUNT_LOGI("AppAccountManagerService_SetOAuthTokenVisibility_0100");
+    ACCOUNT_LOGI("AppAccountManagerService_SetOAuthTokenVisibility_0300");
 
     auto servicePtr = std::make_shared<AppAccountManagerService>();
     ASSERT_NE(servicePtr, nullptr);
 
     ErrCode result = servicePtr->AddAccount(STRING_NAME, STRING_EXTRA_INFO);
     EXPECT_EQ(result, ERR_OK);
-    
+
     std::vector<AppAccountInfo> appAccounts;
     result = servicePtr->GetAllAccessibleAccounts(appAccounts);
     EXPECT_EQ(appAccounts.size(), 1);
@@ -1341,7 +1368,7 @@ HWTEST_F(AppAccountManagerServiceModuleTest, AppAccountManagerService_SetOAuthTo
 
     result = servicePtr->SetOAuthTokenVisibility(STRING_NAME, STRING_AUTH_TYPE, STRING_BUNDLE_NAME, true);
     EXPECT_EQ(result, ERR_OK);
-    
+
     bool isVisible = false;
     result = servicePtr->CheckOAuthTokenVisibility(STRING_NAME, STRING_AUTH_TYPE, STRING_BUNDLE_NAME, isVisible);
     EXPECT_EQ(result, ERR_OK);
@@ -1353,7 +1380,7 @@ HWTEST_F(AppAccountManagerServiceModuleTest, AppAccountManagerService_SetOAuthTo
 
 /**
  * @tc.name: AppAccountManagerService_CheckOAuthTokenVisibility_0100
- * @tc.desc: check oauth token successfully.
+ * @tc.desc: Check oauth token visibility successfully.
  * @tc.type: FUNC
  * @tc.require: SR000GGVFU
  */
@@ -1389,15 +1416,17 @@ HWTEST_F(AppAccountManagerServiceModuleTest, AppAccountManagerService_CheckOAuth
 
     result = servicePtr->SetOAuthTokenVisibility(STRING_NAME, STRING_AUTH_TYPE, STRING_BUNDLE_NAME, true);
     EXPECT_EQ(result, ERR_OK);
-    
+
     isVisible = false;
     result = servicePtr->CheckOAuthTokenVisibility(STRING_NAME, STRING_AUTH_TYPE, STRING_BUNDLE_NAME, isVisible);
     EXPECT_EQ(result, ERR_OK);
     EXPECT_EQ(isVisible, true);
 
+    result = servicePtr->SetOAuthTokenVisibility(STRING_NAME, STRING_AUTH_TYPE, STRING_BUNDLE_NAME, false);
+    EXPECT_EQ(result, ERR_OK);
+
     isVisible = true;
-    result = servicePtr->CheckOAuthTokenVisibility(
-        STRING_NAME, STRING_AUTH_TYPE, STRING_BUNDLE_NAME_NOT_INSTALLED, isVisible);
+    result = servicePtr->CheckOAuthTokenVisibility(STRING_NAME, STRING_AUTH_TYPE, STRING_BUNDLE_NAME, isVisible);
     EXPECT_EQ(result, ERR_OK);
     EXPECT_EQ(isVisible, false);
 
@@ -1407,7 +1436,7 @@ HWTEST_F(AppAccountManagerServiceModuleTest, AppAccountManagerService_CheckOAuth
 
 /**
  * @tc.name: AppAccountManagerService_GetOAuthList_0100
- * @tc.desc: get oauth list failed with non-existent account.
+ * @tc.desc: Get oauth list failed with non-existent account.
  * @tc.type: FUNC
  * @tc.require: SR000GGVFU
  */
@@ -1425,7 +1454,7 @@ HWTEST_F(AppAccountManagerServiceModuleTest, AppAccountManagerService_GetOAuthLi
 
 /**
  * @tc.name: AppAccountManagerService_GetOAuthList_0200
- * @tc.desc: get oauth list successfully with non-existent authType.
+ * @tc.desc: Get oauth list with non-existent authType successfully.
  * @tc.type: FUNC
  * @tc.require: SR000GGVFU
  */
@@ -1443,14 +1472,14 @@ HWTEST_F(AppAccountManagerServiceModuleTest, AppAccountManagerService_GetOAuthLi
     result = servicePtr->GetOAuthList(STRING_NAME, STRING_AUTH_TYPE, authList);
     EXPECT_EQ(result, ERR_OK);
     EXPECT_EQ(authList.size(), SIZE_ZERO);
-    
+
     result = servicePtr->DeleteAccount(STRING_NAME);
     EXPECT_EQ(result, ERR_OK);
 }
 
 /**
  * @tc.name: AppAccountManagerService_GetOAuthList_0300
- * @tc.desc: get oauth list successfully.
+ * @tc.desc: Get oauth list with existent authType successfully.
  * @tc.type: FUNC
  * @tc.require: SR000GGVFU
  */
@@ -1466,8 +1495,9 @@ HWTEST_F(AppAccountManagerServiceModuleTest, AppAccountManagerService_GetOAuthLi
 
     result = servicePtr->SetOAuthTokenVisibility(STRING_NAME, STRING_AUTH_TYPE, STRING_BUNDLE_NAME, true);
     EXPECT_EQ(result, ERR_OK);
-    
-    result = servicePtr->SetOAuthTokenVisibility(STRING_NAME, STRING_AUTH_TYPE, STRING_BUNDLE_NAME_NOT_INSTALLED, true);
+
+    result = servicePtr->SetOAuthTokenVisibility(
+        STRING_NAME, STRING_AUTH_TYPE, STRING_BUNDLE_NAME_NOT_INSTALLED, true);
     EXPECT_EQ(result, ERR_OK);
 
     std::set<std::string> authList;
@@ -1486,7 +1516,7 @@ HWTEST_F(AppAccountManagerServiceModuleTest, AppAccountManagerService_GetOAuthLi
 
 /**
  * @tc.name: AppAccountManagerService_GetAuthenticatorInfo_0100
- * @tc.desc: get authenticator info  successfully.
+ * @tc.desc: Get authenticator info failed for non-existent oauth service.
  * @tc.type: FUNC
  * @tc.require: SR000GGVFU
  */
@@ -1504,7 +1534,7 @@ HWTEST_F(AppAccountManagerServiceModuleTest, AppAccountManagerService_GetAuthent
 
 /**
  * @tc.name: AppAccountManagerService_GetAuthenticatorCallback_0100
- * @tc.desc: get authenticator callback failed with non-existent sessionId.
+ * @tc.desc: Get authenticator callback failed with non-existent sessionId.
  * @tc.type: FUNC
  * @tc.require: SR000GGVFU
  */
@@ -1522,7 +1552,7 @@ HWTEST_F(AppAccountManagerServiceModuleTest, AppAccountManagerService_GetAuthent
 
 /**
  * @tc.name: AppAccountManagerService_AddAccountImplicitly_0100
- * @tc.desc: AddAccountImplicitly failed for with non-existent oauth service.
+ * @tc.desc: Add account implicitly failed for non-existent oauth service.
  * @tc.type: FUNC
  * @tc.require: SR000GGVFU
  */
@@ -1542,7 +1572,7 @@ HWTEST_F(AppAccountManagerServiceModuleTest, AppAccountManagerService_AddAccount
 
 /**
  * @tc.name: AppAccountManagerService_Authenticate_0100
- * @tc.desc: Authenticate failed for with non-existent oauth service.
+ * @tc.desc: authenticate failed for non-existent oauth service.
  * @tc.type: FUNC
  * @tc.require: SR000GGVFU
  */

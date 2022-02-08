@@ -17,6 +17,11 @@
 #define OS_ACCOUNT_SERVICES_ACCOUNTMGR_TEST_MOCK_APP_ACCOUNT_MOCK_APP_ACCOUNT_AUTHENTICATOR_MANAGER_H
 
 #include "app_account_authenticator_manager.h"
+#include "app_account_common.h"
+#include "account_error_no.h"
+#include "bundle_mgr_interface.h"
+#include "bundle_mgr_proxy.h"
+#include "singleton.h"
 
 namespace OHOS {
 namespace AccountSA {

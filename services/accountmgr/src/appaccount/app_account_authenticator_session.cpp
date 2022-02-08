@@ -17,8 +17,8 @@
 
 #include "ability_manager_client.h"
 #include "account_log_wrapper.h"
-#include "app_account_authenticator_manager.h"
 #include "app_account_authenticator_callback.h"
+#include "app_account_authenticator_manager.h"
 #include "app_account_common.h"
 #include "bundle_constants.h"
 #include "iservice_registry.h"

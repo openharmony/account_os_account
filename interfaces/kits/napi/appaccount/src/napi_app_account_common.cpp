@@ -473,12 +473,10 @@ void ParseContextForSetExInfo(napi_env env, napi_callback_info cbInfo, AppAccoun
     }
 }
 
-void ParseArguments(napi_env env, napi_callback_info cbInfo, napi_value *thisVar,
-    napi_value *argv, const napi_valuetype *valueTypes, size_t &argc)
+void ParseArguments(napi_env env, napi_value *argv, const napi_valuetype *valueTypes, size_t &argc)
 {
     ACCOUNT_LOGI("enter");
     napi_valuetype valuetype = napi_undefined;
-    napi_get_cb_info(env, cbInfo, &argc, argv, thisVar, nullptr);
     for (size_t i = 0; i < argc; ++i) {
         napi_typeof(env, argv[i], &valuetype);
         if (valuetype != valueTypes[i]) {
@@ -495,15 +493,15 @@ void ParseContextForAuthenticate(napi_env env, napi_callback_info cbInfo, OAuthA
     napi_valuetype valuetype = napi_undefined;
     napi_value argv[ARGS_SIZE_FIVE] = {0};
     napi_valuetype valueTypes[ARGS_SIZE_FIVE] = {napi_string, napi_string, napi_string, napi_object, napi_object};
-
     napi_value thisVar;
+    napi_get_cb_info(env, cbInfo, &argc, argv, &thisVar, nullptr);
     size_t index = 0;
     if (argc == ARGS_SIZE_FIVE) {
-        ParseArguments(env, cbInfo, &thisVar, argv, valueTypes, argc);
+        ParseArguments(env, argv, valueTypes, argc);
         asyncContext->name = GetNamedProperty(env, argv[index++]);
     } else {
         argc = ARGS_SIZE_FOUR;
-        ParseArguments(env, cbInfo, &thisVar, argv, &valueTypes[1], argc);
+        ParseArguments(env, argv, &valueTypes[1], argc);
     }
     asyncContext->owner = GetNamedProperty(env, argv[index++]);
     asyncContext->tokenInfo.authType = GetNamedProperty(env, argv[index++]);
@@ -547,7 +545,8 @@ void ParseContextForGetOAuthToken(napi_env env, napi_callback_info cbInfo, OAuth
     size_t argc = ARGS_SIZE_FOUR;
     napi_value argv[ARGS_SIZE_FOUR] = {0};
     napi_valuetype valueTypes[] = {napi_string, napi_string, napi_string, napi_function};
-    ParseArguments(env, cbInfo, nullptr, argv, valueTypes, argc);
+    napi_get_cb_info(env, cbInfo, &argc, argv, nullptr, nullptr);
+    ParseArguments(env, argv, valueTypes, argc);
     asyncContext->name = GetNamedProperty(env, argv[0]);
     asyncContext->owner = GetNamedProperty(env, argv[1]);
     asyncContext->tokenInfo.authType = GetNamedProperty(env, argv[PARAMTWO]);
@@ -560,7 +559,8 @@ void ParseContextForSetOAuthToken(napi_env env, napi_callback_info cbInfo, OAuth
     size_t argc = ARGS_SIZE_FOUR;
     napi_value argv[ARGS_SIZE_FOUR] = {0};
     napi_valuetype valueTypes[] = {napi_string, napi_string, napi_string, napi_function};
-    ParseArguments(env, cbInfo, nullptr, argv, valueTypes, argc);
+    napi_get_cb_info(env, cbInfo, &argc, argv, nullptr, nullptr);
+    ParseArguments(env, argv, valueTypes, argc);
     asyncContext->name = GetNamedProperty(env, argv[0]);
     asyncContext->tokenInfo.authType = GetNamedProperty(env, argv[1]);
     asyncContext->tokenInfo.token = GetNamedProperty(env, argv[PARAMTWO]);
@@ -573,7 +573,8 @@ void ParseContextForDeleteOAuthToken(napi_env env, napi_callback_info cbInfo, OA
     size_t argc = ARGS_SIZE_FIVE;
     napi_value argv[ARGS_SIZE_FIVE] = {0};
     napi_valuetype valueTypes[] = {napi_string, napi_string, napi_string, napi_string, napi_function};
-    ParseArguments(env, cbInfo, nullptr, argv, valueTypes, argc);
+    napi_get_cb_info(env, cbInfo, &argc, argv, nullptr, nullptr);
+    ParseArguments(env, argv, valueTypes, argc);
     asyncContext->name = GetNamedProperty(env, argv[0]);
     asyncContext->owner = GetNamedProperty(env, argv[1]);
     asyncContext->tokenInfo.authType = GetNamedProperty(env, argv[PARAMTWO]);
@@ -587,7 +588,8 @@ void ParseContextForSetOAuthTokenVisibility(napi_env env, napi_callback_info cbI
     size_t argc = ARGS_SIZE_FIVE;
     napi_value argv[ARGS_SIZE_FIVE] = {0};
     napi_valuetype valueTypes[] = {napi_string, napi_string, napi_string, napi_boolean, napi_function};
-    ParseArguments(env, cbInfo, nullptr, argv, valueTypes, argc);
+    napi_get_cb_info(env, cbInfo, &argc, argv, nullptr, nullptr);
+    ParseArguments(env, argv, valueTypes, argc);
     asyncContext->name = GetNamedProperty(env, argv[0]);
     asyncContext->tokenInfo.authType = GetNamedProperty(env, argv[1]);
     asyncContext->bundleName = GetNamedProperty(env, argv[PARAMTWO]);
@@ -601,7 +603,8 @@ void ParseContextForCheckOAuthTokenVisibility(napi_env env, napi_callback_info c
     size_t argc = ARGS_SIZE_FOUR;
     napi_value argv[ARGS_SIZE_FOUR] = {0};
     napi_valuetype valueTypes[] = {napi_string, napi_string, napi_string, napi_function};
-    ParseArguments(env, cbInfo, nullptr, argv, valueTypes, argc);
+    napi_get_cb_info(env, cbInfo, &argc, argv, nullptr, nullptr);
+    ParseArguments(env, argv, valueTypes, argc);
     asyncContext->name = GetNamedProperty(env, argv[0]);
     asyncContext->tokenInfo.authType = GetNamedProperty(env, argv[1]);
     asyncContext->bundleName = GetNamedProperty(env, argv[PARAMTWO]);
@@ -614,7 +617,8 @@ void ParseContextForGetAuthenticatorInfo(napi_env env, napi_callback_info cbInfo
     size_t argc = ARGS_SIZE_TWO;
     napi_value argv[ARGS_SIZE_TWO] = {0};
     napi_valuetype valueTypes[] = {napi_string, napi_function};
-    ParseArguments(env, cbInfo, nullptr, argv, valueTypes, argc);
+    napi_get_cb_info(env, cbInfo, &argc, argv, nullptr, nullptr);
+    ParseArguments(env, argv, valueTypes, argc);
     asyncContext->owner = GetNamedProperty(env, argv[0]);
     napi_create_reference(env, argv[1], 1, &asyncContext->callbackRef);
 }
@@ -625,7 +629,8 @@ void ParseContextForGetAllOAuthTokens(napi_env env, napi_callback_info cbInfo, O
     size_t argc = ARGS_SIZE_THREE;
     napi_value argv[ARGS_SIZE_THREE] = {0};
     napi_valuetype valueTypes[] = {napi_string, napi_string, napi_function};
-    ParseArguments(env, cbInfo, nullptr, argv, valueTypes, argc);
+    napi_get_cb_info(env, cbInfo, &argc, argv, nullptr, nullptr);
+    ParseArguments(env, argv, valueTypes, argc);
     asyncContext->name = GetNamedProperty(env, argv[0]);
     asyncContext->owner = GetNamedProperty(env, argv[1]);
     napi_create_reference(env, argv[PARAMTWO], 1, &asyncContext->callbackRef);
@@ -637,7 +642,8 @@ void ParseContextForGetOAuthList(napi_env env, napi_callback_info cbInfo, OAuthA
     size_t argc = ARGS_SIZE_THREE;
     napi_value argv[ARGS_SIZE_THREE] = {0};
     napi_valuetype valueTypes[] = {napi_string, napi_string, napi_function};
-    ParseArguments(env, cbInfo, nullptr, argv, valueTypes, argc);
+    napi_get_cb_info(env, cbInfo, &argc, argv, nullptr, nullptr);
+    ParseArguments(env, argv, valueTypes, argc);
     asyncContext->name = GetNamedProperty(env, argv[0]);
     asyncContext->tokenInfo.authType = GetNamedProperty(env, argv[1]);
     napi_create_reference(env, argv[PARAMTWO], 1, &asyncContext->callbackRef);
@@ -649,7 +655,8 @@ void ParseContextForGetAuthenticatorCallback(napi_env env, napi_callback_info cb
     size_t argc = ARGS_SIZE_TWO;
     napi_value argv[ARGS_SIZE_TWO] = {0};
     napi_valuetype valueTypes[] = {napi_string, napi_function};
-    ParseArguments(env, cbInfo, nullptr, argv, valueTypes, argc);
+    napi_get_cb_info(env, cbInfo, &argc, argv, nullptr, nullptr);
+    ParseArguments(env, argv, valueTypes, argc);
     asyncContext->sessionId = GetNamedProperty(env, argv[0]);
     napi_create_reference(env, argv[1], 1, &asyncContext->callbackRef);
 }

@@ -15,8 +15,8 @@
 
 #include "app_account_authenticator_callback.h"
 
-#include "app_account_authenticator_session.h"
 #include "account_log_wrapper.h"
+#include "app_account_authenticator_session.h"
 
 namespace OHOS {
 namespace AccountSA {
