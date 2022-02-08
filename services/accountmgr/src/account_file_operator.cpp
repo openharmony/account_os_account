@@ -43,6 +43,7 @@ ErrCode AccountFileOperator::CreateDir(const std::string &path)
     mode |= (false ? S_IROTH : 0);
     bool createFlag = OHOS::ChangeModeDirectory(path, mode);
     if (!createFlag) {
+        ACCOUNT_LOGE("failed to create dir, path = %{public}s", path.c_str());
         return ERR_OS_ACCOUNT_SERVICE_FILE_CHANGE_DIR_MODE_ERROR;
     }
 
@@ -78,6 +79,7 @@ ErrCode AccountFileOperator::InputFileByPathAndContent(const std::string &path, 
     }
     std::ofstream o(path);
     if (!o.is_open()) {
+        ACCOUNT_LOGE("failed to open file, path = %{public}s", path.c_str());
         return ERR_OS_ACCOUNT_SERVICE_FILE_CREATE_FILE_FAILED_ERROR;
     }
     o << content;
@@ -90,11 +92,13 @@ ErrCode AccountFileOperator::InputFileByPathAndContent(const std::string &path, 
 ErrCode AccountFileOperator::GetFileContentByPath(const std::string &path, std::string &content)
 {
     if (!IsExistFile(path)) {
+        ACCOUNT_LOGE("cannot find file, path = %{public}s", path.c_str());
         return ERR_OS_ACCOUNT_SERVICE_FILE_FIND_FILE_ERROR;
     }
     std::stringstream buffer;
     std::ifstream i(path);
     if (!i.is_open()) {
+        ACCOUNT_LOGE("cannot open file, path = %{public}s", path.c_str());
         return ERR_OS_ACCOUNT_SERVICE_FILE_CREATE_FILE_FAILED_ERROR;
     }
     buffer << i.rdbuf();

@@ -675,5 +675,16 @@ ErrCode OsAccount::GetOsAccountListFromDatabase(const std::string& storeID, std:
     }
     return osAccountProxy_->GetOsAccountListFromDatabase(storeID, osAccountList);
 }
+
+ErrCode OsAccount::QueryActiveOsAccountIds(std::vector<int>& ids)
+{
+    ACCOUNT_LOGI("OsAccount::QueryActiveOsAccountIds start");
+    ErrCode result = GetOsAccountProxy();
+    if (result != ERR_OK) {
+        ACCOUNT_LOGE("failed to get osAccountProxy_");
+        return result;
+    }
+    return osAccountProxy_->QueryActiveOsAccountIds(ids);
+}
 }  // namespace AccountSA
 }  // namespace OHOS

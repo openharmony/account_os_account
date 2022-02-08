@@ -229,6 +229,7 @@ ErrCode OsAccountControlFileManager::GetSerialNumber(int64_t &serialNumber)
 {
     Json accountListJson;
     if (GetAccountList(accountListJson) != ERR_OK) {
+        ACCOUNT_LOGE("GetSerialNumber get accountList error");
         return ERR_OS_ACCOUNT_SERVICE_CONTROL_GET_OS_ACCOUNT_LIST_ERROR;
     }
     OHOS::AccountSA::GetDataByType<int64_t>(accountListJson,
@@ -249,6 +250,7 @@ ErrCode OsAccountControlFileManager::GetSerialNumber(int64_t &serialNumber)
     if (isSerialNumberFull) {
         std::vector<OsAccountInfo> osAccountInfos;
         if (GetOsAccountList(osAccountInfos) != ERR_OK) {
+            ACCOUNT_LOGE("GetSerialNumber get accountList error");
             return ERR_OS_ACCOUNT_SERVICE_CONTROL_GET_OS_ACCOUNT_LIST_ERROR;
         }
         while (serialNumber < Constants::CARRY_NUM) {
@@ -279,6 +281,7 @@ ErrCode OsAccountControlFileManager::GetAllowCreateId(int &id)
 {
     Json accountListJson;
     if (GetAccountList(accountListJson) != ERR_OK) {
+        ACCOUNT_LOGE("GetAllowCreateId get accountList error");
         return ERR_OS_ACCOUNT_SERVICE_CONTROL_GET_OS_ACCOUNT_LIST_ERROR;
     }
     int countCreatedNum = 0;
@@ -286,6 +289,7 @@ ErrCode OsAccountControlFileManager::GetAllowCreateId(int &id)
     OHOS::AccountSA::GetDataByType<int>(
         accountListJson, jsonEnd, Constants::COUNT_ACCOUNT_NUM, countCreatedNum, OHOS::AccountSA::JsonType::NUMBER);
     if (countCreatedNum >= Constants::MAX_USER_ID - Constants::START_USER_ID) {
+        ACCOUNT_LOGE("GetAllowCreateId cannot create more account error");
         return ERR_OS_ACCOUNT_SERVICE_CONTROL_MAX_CAN_CREATE_ERROR;
     }
     std::vector<std::string> accountIdList;
@@ -356,6 +360,7 @@ ErrCode OsAccountControlFileManager::GetPhotoById(const int id, std::string &pho
     std::string byteStr = "";
     ErrCode errCode = accountFileOperator_->GetFileContentByPath(path, byteStr);
     if (errCode != ERR_OK) {
+        ACCOUNT_LOGE("GetPhotoById cannot find photo file error");
         return errCode;
     }
     if (photo == Constants::USER_PHOTO_FILE_JPG_NAME) {
@@ -388,6 +393,7 @@ ErrCode OsAccountControlFileManager::SetPhotoById(const int id, const std::strin
                Constants::USER_PHOTO_FILE_PNG_NAME;
         subPhoto = photo.substr(Constants::USER_PHOTO_BASE_PNG_HEAD.size());
     } else {
+        ACCOUNT_LOGE("SetPhotoById photo str error");
         return ERR_OS_ACCOUNT_SERVICE_CONTROL_PHOTO_STR_ERROR;
     }
     std::string bytePhoto = osAccountPhotoOperator_->DeCode(subPhoto);

@@ -72,6 +72,7 @@ public:
         OsAccountInfo &osAccountInfo) override;
     virtual ErrCode GetOsAccountListFromDatabase(const std::string& storeID,
         std::vector<OsAccountInfo> &osAccountList) override;
+    virtual ErrCode QueryActiveOsAccountIds(std::vector<int>& ids) override;
 
 private:
     template<typename T>

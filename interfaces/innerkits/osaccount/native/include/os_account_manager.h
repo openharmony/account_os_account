@@ -70,6 +70,7 @@ public:
                                             OsAccountInfo &osAccountInfo);
     static ErrCode GetOsAccountListFromDatabase(const std::string& storeID,
                                                 std::vector<OsAccountInfo> &osAccountList);
+    static ErrCode QueryActiveOsAccountIds(std::vector<int>& ids);
 };
 }  // namespace AccountSA
 }  // namespace OHOS
