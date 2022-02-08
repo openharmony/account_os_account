@@ -352,9 +352,10 @@ ErrCode InnerAppAccountManager::SetOAuthToken(const OAuthRequest &request)
     }
     AppAccountInfo appAccountInfo(request.name, request.callerBundleName);
     if (!subscribeManagerPtr_) {
-        ACCOUNT_LOGE("subscribeManagerPtr_ is nullptr");
-    } else if (subscribeManagerPtr_->PublishAccount(
-        appAccountInfo, request.callerUid, request.callerBundleName)!= true) {
+        ACCOUNT_LOGI("subscribeManagerPtr_ is nullptr");
+        return ERR_OK;
+    }
+    if (!subscribeManagerPtr_->PublishAccount(appAccountInfo, request.callerUid, request.callerBundleName)) {
         ACCOUNT_LOGI("failed to publish account");
     }
     return ERR_OK;

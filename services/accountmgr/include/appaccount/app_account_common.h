@@ -41,7 +41,7 @@ struct OAuthRequest {
     std::string callerAbilityName;
     bool isTokenVisible;
     pid_t callerPid;
-    uid_t callerUid;
+    pid_t callerUid;
     AAFwk::WantParams options;
     sptr<IAppAccountAuthenticatorCallback> callback;
 };
