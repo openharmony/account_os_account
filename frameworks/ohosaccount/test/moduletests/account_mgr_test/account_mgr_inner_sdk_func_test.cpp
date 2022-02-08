@@ -91,7 +91,8 @@ HWTEST_F(AccountMgrInnerSdkFuncTest, GetDefaultOhosAccountInfoTest, TestSize.Lev
  */
 HWTEST_F(AccountMgrInnerSdkFuncTest, UidTranslateTest, TestSize.Level0)
 {
-    std::int32_t uid = 1000000;
-    auto ret = OhosAccountKits::GetInstance().GetDeviceAccountIdByUID(uid);
-    EXPECT_EQ(5, ret);
+    std::int32_t testUid = 1000000;   // uid for test
+    std::int32_t expectedUserID = 5;  // the expected result user ID
+    auto ret = OhosAccountKits::GetInstance().GetDeviceAccountIdByUID(testUid);
+    EXPECT_EQ(expectedUserID, ret);
 }

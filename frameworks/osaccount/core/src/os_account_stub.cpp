@@ -12,9 +12,9 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+#include "os_account_stub.h"
 #include "account_log_wrapper.h"
 
-#include "os_account_stub.h"
 namespace OHOS {
 namespace AccountSA {
 const std::map<uint32_t, OsAccountStub::MessageProcFunction> OsAccountStub::messageProcMap_ = {
@@ -53,10 +53,6 @@ const std::map<uint32_t, OsAccountStub::MessageProcFunction> OsAccountStub::mess
     {
         static_cast<uint32_t>(IOsAccount::Message::GET_OS_ACCOUNT_LOCAL_ID_FROM_PROCESS),
         &OsAccountStub::ProcGetOsAccountLocalIdFromProcess,
-    },
-    {
-        static_cast<uint32_t>(IOsAccount::Message::GET_OS_ACCOUNT_LOCAL_ID_FROM_UID),
-        &OsAccountStub::ProcGetOsAccountLocalIdFromUid,
     },
     {
         static_cast<uint32_t>(IOsAccount::Message::GET_OS_ACCOUNT_LOCAL_ID_FROM_DOMAIN),
@@ -504,27 +500,6 @@ ErrCode OsAccountStub::ProcGetOsAccountProfilePhoto(MessageParcel &data, Message
         return IPC_STUB_WRITE_PARCEL_ERR;
     }
     if (!reply.WriteString(photo)) {
-        ACCOUNT_LOGE("failed to write reply");
-        return IPC_STUB_WRITE_PARCEL_ERR;
-    }
-    return ERR_NONE;
-}
-
-ErrCode OsAccountStub::ProcGetOsAccountLocalIdFromUid(MessageParcel &data, MessageParcel &reply)
-{
-    int uid = data.ReadInt32();
-    if (uid == -1) {
-        ACCOUNT_LOGE("failed to read int for uid");
-        reply.WriteInt32(ERR_OSACCOUNT_KIT_READ_IN_UID_ERROR);
-        return ERR_NONE;
-    }
-    int localId = -1;
-    ErrCode result = GetOsAccountLocalIdFromUid(uid, localId);
-    if (!reply.WriteInt32(result)) {
-        ACCOUNT_LOGE("failed to write reply");
-        return IPC_STUB_WRITE_PARCEL_ERR;
-    }
-    if (!reply.WriteInt32(localId)) {
         ACCOUNT_LOGE("failed to write reply");
         return IPC_STUB_WRITE_PARCEL_ERR;
     }
