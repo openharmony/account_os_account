@@ -59,9 +59,9 @@ ErrCode OsAccountStandardInterface::SendToCESAccountDelete(OsAccountInfo &osAcco
     return ERR_OK;
 }
 
-ErrCode OsAccountStandardInterface::SendToCESAccountSwithced(OsAccountInfo &osAccountInfo)
+ErrCode OsAccountStandardInterface::SendToCESAccountSwitched(OsAccountInfo &osAccountInfo)
 {
-    ACCOUNT_LOGI("OsAccountStandardInterface SendToCESAccountSwithced start");
+    ACCOUNT_LOGI("OsAccountStandardInterface SendToCESAccountSwitched start");
     return ERR_OK;
 }
 
