@@ -68,7 +68,6 @@ public:
     ErrCode CheckOAuthTokenVisibility(const OAuthRequest &request, bool &isVisible);
     ErrCode GetAllOAuthTokens(const OAuthRequest &request, std::vector<OAuthTokenInfo> &tokenInfos);
     ErrCode GetOAuthList(const OAuthRequest &request, std::set<std::string> &oauthList);
-    ErrCode ClearOAuthToken(const std::string &name, const uid_t &uid, const std::string &bundleName);
 
     ErrCode GetAllAccounts(const std::string &owner, std::vector<AppAccountInfo> &appAccounts, const uid_t &uid,
         const std::string &bundleName);

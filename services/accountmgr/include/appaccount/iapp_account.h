@@ -68,7 +68,6 @@ public:
     virtual ErrCode GetOAuthList(const std::string &name, const std::string &authType,
         std::set<std::string> &oauthList) = 0;
     virtual ErrCode GetAuthenticatorCallback(const std::string &sessionId, sptr<IRemoteObject> &callback) = 0;
-    virtual ErrCode ClearOAuthToken(const std::string &name) = 0;
 
     virtual ErrCode GetAllAccounts(const std::string &owner, std::vector<AppAccountInfo> &appAccounts) = 0;
     virtual ErrCode GetAllAccessibleAccounts(std::vector<AppAccountInfo> &appAccounts) = 0;

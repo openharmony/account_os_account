@@ -68,7 +68,6 @@ public:
     ErrCode GetOAuthList(const OAuthRequest &request, std::set<std::string> &oauthList);
     ErrCode GetAuthenticatorCallback(const OAuthRequest &request, sptr<IRemoteObject> &callback);
     ErrCode GetAuthenticatorInfo(const OAuthRequest &request, AuthenticatorInfo &authenticator);
-    ErrCode ClearOAuthToken(const std::string &name, const uid_t &uid, const std::string &bundleName);
 
     ErrCode GetAllAccounts(const std::string &owner, std::vector<AppAccountInfo> &appAccounts, const uid_t &uid,
         const std::string &bundleName);

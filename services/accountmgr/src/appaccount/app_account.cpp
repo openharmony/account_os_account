@@ -554,24 +554,6 @@ ErrCode AppAccount::GetAuthenticatorCallback(const std::string &sessionId, sptr<
     return appAccountProxy_->GetAuthenticatorCallback(sessionId, callback);
 }
 
-ErrCode AppAccount::ClearOAuthToken(const std::string &name)
-{
-    ACCOUNT_LOGI("enter");
-    ACCOUNT_LOGI("name = %{public}s", name.c_str());
-    ErrCode result = CheckParameters(name);
-    if (result != ERR_OK) {
-        ACCOUNT_LOGE("failed to check parameters");
-        return result;
-    }
-    result = GetAppAccountProxy();
-    if (result != ERR_OK) {
-        ACCOUNT_LOGE("failed to get appAccountProxy_");
-        return result;
-    }
-
-    return appAccountProxy_->ClearOAuthToken(name);
-}
-
 ErrCode AppAccount::GetAllAccounts(const std::string &owner, std::vector<AppAccountInfo> &appAccounts)
 {
     ACCOUNT_LOGI("enter");

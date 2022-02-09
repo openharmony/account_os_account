@@ -833,34 +833,6 @@ HWTEST_F(AppAccountManagerTest, AppAccountManager_SetOAuthToken_0200, TestSize.L
 }
 
 /**
- * @tc.name: AppAccountManager_ClearOAuthToken_0100
- * @tc.desc: Clear oauth token with invalid data.
- * @tc.type: FUNC
- * @tc.require: SR000GGVFU
- */
-HWTEST_F(AppAccountManagerTest, AppAccountManager_ClearOAuthToken_0100, TestSize.Level1)
-{
-    ACCOUNT_LOGI("AppAccountManager_ClearOAuthToken_0100");
-
-    ErrCode result = AppAccountManager::ClearOAuthToken(STRING_EMPTY);
-    EXPECT_EQ(result, ERR_APPACCOUNT_KIT_NAME_IS_EMPTY);
-}
-
-/**
- * @tc.name: AppAccountManager_ClearOAuthToken_0200
- * @tc.desc: Clear oauth token with invalid data.
- * @tc.type: FUNC
- * @tc.require: SR000GGVFU
- */
-HWTEST_F(AppAccountManagerTest, AppAccountManager_ClearOAuthToken_0200, TestSize.Level1)
-{
-    ACCOUNT_LOGI("AppAccountManager_ClearOAuthToken_0200");
-
-    ErrCode result = AppAccountManager::ClearOAuthToken(STRING_NAME_OUT_OF_RANGE);
-    EXPECT_EQ(result, ERR_APPACCOUNT_KIT_NAME_OUT_OF_RANGE);
-}
-
-/**
  * @tc.name: AppAccountManager_GetAllAccounts_0100
  * @tc.desc: Get all accounts with invalid data.
  * @tc.type: FUNC
