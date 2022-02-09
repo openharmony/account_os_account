@@ -49,7 +49,8 @@ bool BundleMgrClient::GetBundleNameForUid(const int uid, std::string &bundleName
     return true;
 }
 
-bool BundleMgrClient::GetBundleInfo(const std::string &bundleName, const BundleFlag flag, BundleInfo &bundleInfo)
+bool BundleMgrClient::GetBundleInfo(
+    const std::string &bundleName, const BundleFlag flag, BundleInfo &bundleInfo, int32_t userId)
 {
     ACCOUNT_LOGI("enter");
 
