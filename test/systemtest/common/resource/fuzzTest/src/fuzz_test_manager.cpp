@@ -73,9 +73,6 @@ void FuzzTestManager::RegisterAppAccountManager()
     callFunctionMap_["AppAccountManagerSetOAuthToken"] = []() {
         AppAccountManager::SetOAuthToken(GetStringParam(), GetStringParam(), GetStringParam());
     };
-    callFunctionMap_["AppAccountManagerClearOAuthToken"] = []() {
-        AppAccountManager::ClearOAuthToken(GetStringParam());
-    };
     callFunctionMap_["AppAccountManagerGetAllAccounts"] = []() {
         std::vector<AppAccountInfo> param = GetVectorParamAppAccountInfo();
         AppAccountManager::GetAllAccounts(GetStringParam(), param);

@@ -26,8 +26,8 @@
 namespace OHOS {
 namespace AccountSA {
 namespace {
-constexpr int32_t MAX_TOKEN_SIZE = 64;
-constexpr int32_t MAX_OAUTH_LIST_SIZE = 256;
+constexpr uint32_t MAX_TOKEN_SIZE = 128;
+constexpr uint32_t MAX_OAUTH_LIST_SIZE = 512;
 }
 
 struct OAuthTokenInfo {
@@ -74,7 +74,6 @@ public:
         const std::string &authType, const std::string &bundleName, bool &isVisible) const;
     ErrCode GetAllOAuthTokens(std::vector<OAuthTokenInfo> &tokenInfos) const;
     ErrCode GetOAuthList(const std::string &authType, std::set<std::string> &oauthList) const;
-    ErrCode ClearOAuthToken(void);
 
     virtual bool Marshalling(Parcel &parcel) const override;
     static AppAccountInfo *Unmarshalling(Parcel &parcel);

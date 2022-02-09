@@ -196,13 +196,6 @@ ErrCode AppAccountManager::GetAuthenticatorCallback(const std::string &sessionId
     return DelayedSingleton<AppAccount>::GetInstance()->GetAuthenticatorCallback(sessionId, callback);
 }
 
-ErrCode AppAccountManager::ClearOAuthToken(const std::string &name)
-{
-    ACCOUNT_LOGI("enter");
-
-    return DelayedSingleton<AppAccount>::GetInstance()->ClearOAuthToken(name);
-}
-
 ErrCode AppAccountManager::GetAllAccounts(const std::string &owner, std::vector<AppAccountInfo> &appAccounts)
 {
     ACCOUNT_LOGI("enter");
