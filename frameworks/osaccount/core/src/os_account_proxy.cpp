@@ -31,23 +31,23 @@ ErrCode OsAccountProxy::CreateOsAccount(
 
     if (!data.WriteString(name)) {
         ACCOUNT_LOGE("failed to write string for name");
-        return ERR_OS_ACCOUNT_KIT_WRITE_LOCALNAME_ERROR;
+        return ERR_OSACCOUNT_KIT_WRITE_LOCALNAME_ERROR;
     }
 
     if (!data.WriteInt32(type)) {
         ACCOUNT_LOGE("failed to write type ");
-        return ERR_OS_ACCOUNT_KIT_WRITE_OSACCOUNT_TYPE_ERROR;
+        return ERR_OSACCOUNT_KIT_WRITE_OSACCOUNT_TYPE_ERROR;
     }
     ErrCode result = SendRequest(IOsAccount::Message::CREATE_OS_ACCOUNT, data, reply);
     if (result != ERR_OK) {
         ACCOUNT_LOGE("SendRequest err, result %{public}d.", result);
-        return ERR_OS_ACCOUNT_KIT_CREATE_OS_ACCOUNT_ERROR;
+        return ERR_OSACCOUNT_KIT_CREATE_OS_ACCOUNT_ERROR;
     }
 
     result = reply.ReadInt32();
     if (result != ERR_OK) {
         ACCOUNT_LOGE("failed to read reply for create os account.");
-        return ERR_OS_ACCOUNT_KIT_CREATE_OS_ACCOUNT_ERROR;
+        return ERR_OSACCOUNT_KIT_CREATE_OS_ACCOUNT_ERROR;
     }
     osAccountInfo = *(reply.ReadParcelable<OsAccountInfo>());
     return ERR_OK;
@@ -61,17 +61,17 @@ ErrCode OsAccountProxy::CreateOsAccountForDomain(
 
     if (!data.WriteInt32(type)) {
         ACCOUNT_LOGE("failed to write type ");
-        return ERR_OS_ACCOUNT_KIT_WRITE_OSACCOUNT_TYPE_ERROR;
+        return ERR_OSACCOUNT_KIT_WRITE_OSACCOUNT_TYPE_ERROR;
     }
 
     if (!data.WriteString(domainInfo.domain_)) {
         ACCOUNT_LOGE("failed to write string for domain");
-        return ERR_OS_ACCOUNT_KIT_WRITE_DOMAIN_ERROR;
+        return ERR_OSACCOUNT_KIT_WRITE_DOMAIN_ERROR;
     }
 
     if (!data.WriteString(domainInfo.accountName_)) {
         ACCOUNT_LOGE("failed to write string for domain account name");
-        return ERR_OS_ACCOUNT_KIT_WRITE_DOMAIN_ACCOUNT_NAME_ERROR;
+        return ERR_OSACCOUNT_KIT_WRITE_DOMAIN_ACCOUNT_NAME_ERROR;
     }
 
     ErrCode result = SendRequest(IOsAccount::Message::CREATE_OS_ACCOUNT_FOR_DOMAIN, data, reply);
@@ -264,11 +264,11 @@ ErrCode OsAccountProxy::GetOsAccountLocalIdFromDomain(const DomainAccountInfo &d
     MessageParcel reply;
     if (!data.WriteString(domainInfo.domain_)) {
         ACCOUNT_LOGE("failed to write int for domain.");
-        return ERR_OS_ACCOUNT_KIT_WRITE_DOMAIN_ERROR;
+        return ERR_OSACCOUNT_KIT_WRITE_DOMAIN_ERROR;
     }
     if (!data.WriteString(domainInfo.accountName_)) {
         ACCOUNT_LOGE("failed to write int for domain account name.");
-        return ERR_OS_ACCOUNT_KIT_WRITE_DOMAIN_ACCOUNT_NAME_ERROR;
+        return ERR_OSACCOUNT_KIT_WRITE_DOMAIN_ACCOUNT_NAME_ERROR;
     }
     ErrCode result = SendRequest(IOsAccount::Message::GET_OS_ACCOUNT_LOCAL_ID_FROM_DOMAIN, data, reply);
     if (result != ERR_OK) {

@@ -203,7 +203,7 @@ HWTEST_F(OsAccountManagerServiceModuleTest, OsAccountManagerServiceModuleTest002
     OsAccountInfo osAccountInfoOne;
     ErrCode errCode =
         g_osAccountManagerService->CreateOsAccount(STRING_NAME_OUT_OF_RANGE, INT_TEST_TYPE, osAccountInfoOne);
-    EXPECT_EQ(errCode, ERR_OS_ACCOUNT_SERVICE_MANAGER_NAME_SIZE_OVERFLOW_ERROR);
+    EXPECT_EQ(errCode, ERR_OSACCOUNT_SERVICE_MANAGER_NAME_SIZE_OVERFLOW_ERROR);
 }
 
 /**
@@ -216,7 +216,7 @@ HWTEST_F(OsAccountManagerServiceModuleTest, OsAccountManagerServiceModuleTest003
 {
     OsAccountInfo osAccountInfoOne;
     ErrCode errCode = g_osAccountManagerService->CreateOsAccount(STRING_EMPTY, INT_TEST_TYPE, osAccountInfoOne);
-    EXPECT_EQ(errCode, ERR_OS_ACCOUNT_SERVICE_MANAGER_NAME_SIZE_EMPTY_ERROR);
+    EXPECT_EQ(errCode, ERR_OSACCOUNT_SERVICE_MANAGER_NAME_SIZE_EMPTY_ERROR);
 }
 
 /**
@@ -275,7 +275,7 @@ HWTEST_F(OsAccountManagerServiceModuleTest, OsAccountManagerServiceModuleTest007
         Constants::USER_INFO_BASE + Constants::PATH_SEPARATOR + Constants::USER_LIST_FILE_NAME);
     OsAccountInfo osAccountInfoOne;
     ErrCode errCode = g_osAccountManagerService->CreateOsAccount(STRING_TEST_NAME, INT_TEST_TYPE, osAccountInfoOne);
-    EXPECT_EQ(errCode, ERR_OS_ACCOUNT_SERVICE_INNER_GET_SERIAL_NUMBER_ERROR);
+    EXPECT_EQ(errCode, ERR_OSACCOUNT_SERVICE_INNER_GET_SERIAL_NUMBER_ERROR);
     accountFileOperator_->InputFileByPathAndContent(
         Constants::USER_INFO_BASE + Constants::PATH_SEPARATOR + Constants::USER_LIST_FILE_NAME, fileContext);
 }
@@ -304,7 +304,7 @@ HWTEST_F(OsAccountManagerServiceModuleTest, OsAccountManagerServiceModuleTest008
 HWTEST_F(OsAccountManagerServiceModuleTest, OsAccountManagerServiceModuleTest009, TestSize.Level1)
 {
     EXPECT_EQ(g_osAccountManagerService->RemoveOsAccount(Constants::START_USER_ID),
-        ERR_OS_ACCOUNT_SERVICE_MANAGER_ID_ERROR);
+        ERR_OSACCOUNT_SERVICE_MANAGER_ID_ERROR);
 }
 
 /**
@@ -316,7 +316,7 @@ HWTEST_F(OsAccountManagerServiceModuleTest, OsAccountManagerServiceModuleTest009
 HWTEST_F(OsAccountManagerServiceModuleTest, OsAccountManagerServiceModuleTest010, TestSize.Level1)
 {
     EXPECT_EQ(g_osAccountManagerService->RemoveOsAccount(Constants::MAX_USER_ID + 1),
-        ERR_OS_ACCOUNT_SERVICE_INNER_CANNOT_FIND_OSACCOUNT_ERROR);
+        ERR_OSACCOUNT_SERVICE_INNER_CANNOT_FIND_OSACCOUNT_ERROR);
 }
 
 /**
@@ -490,7 +490,7 @@ HWTEST_F(OsAccountManagerServiceModuleTest, OsAccountManagerServiceModuleTest021
 {
     bool isVerified = true;
     EXPECT_EQ(g_osAccountManagerService->IsOsAccountVerified(Constants::MAX_USER_ID + 1, isVerified),
-        ERR_OS_ACCOUNT_SERVICE_INNER_SELECT_OSACCOUNT_BYID_ERROR);
+        ERR_OSACCOUNT_SERVICE_INNER_SELECT_OSACCOUNT_BYID_ERROR);
 }
 
 /**
@@ -503,7 +503,7 @@ HWTEST_F(OsAccountManagerServiceModuleTest, OsAccountManagerServiceModuleTest022
 {
     bool isVerified = true;
     EXPECT_EQ(g_osAccountManagerService->IsOsAccountVerified(Constants::MAX_USER_ID + 1, isVerified),
-        ERR_OS_ACCOUNT_SERVICE_INNER_SELECT_OSACCOUNT_BYID_ERROR);
+        ERR_OSACCOUNT_SERVICE_INNER_SELECT_OSACCOUNT_BYID_ERROR);
 }
 
 /**
@@ -567,7 +567,7 @@ HWTEST_F(OsAccountManagerServiceModuleTest, OsAccountManagerServiceModuleTest027
 {
     std::vector<std::string> constraints;
     EXPECT_EQ(g_osAccountManagerService->GetOsAccountAllConstraints(Constants::MAX_USER_ID + 1, constraints),
-        ERR_OS_ACCOUNT_SERVICE_INNER_SELECT_OSACCOUNT_BYID_ERROR);
+        ERR_OSACCOUNT_SERVICE_INNER_SELECT_OSACCOUNT_BYID_ERROR);
 }
 
 /**
@@ -619,7 +619,7 @@ HWTEST_F(OsAccountManagerServiceModuleTest, OsAccountManagerServiceModuleTest031
 {
     OsAccountInfo osAccountInfo;
     EXPECT_EQ(g_osAccountManagerService->QueryOsAccountById(Constants::MAX_USER_ID + 1, osAccountInfo),
-        ERR_OS_ACCOUNT_SERVICE_INNER_SELECT_OSACCOUNT_BYID_ERROR);
+        ERR_OSACCOUNT_SERVICE_INNER_SELECT_OSACCOUNT_BYID_ERROR);
 }
 
 /**
@@ -819,7 +819,7 @@ HWTEST_F(OsAccountManagerServiceModuleTest, OsAccountManagerServiceModuleTest045
 {
     std::string photo;
     EXPECT_EQ(g_osAccountManagerService->GetOsAccountProfilePhoto(Constants::MAX_USER_ID + 1, photo),
-        ERR_OS_ACCOUNT_SERVICE_INNER_SELECT_OSACCOUNT_BYID_ERROR);
+        ERR_OSACCOUNT_SERVICE_INNER_SELECT_OSACCOUNT_BYID_ERROR);
 }
 
 /**
@@ -1065,24 +1065,24 @@ HWTEST_F(OsAccountManagerServiceModuleTest, OsAccountManagerServiceModuleTest059
     OsAccountType type = NORMAL;
     OsAccountInfo osAccountInfo;
     EXPECT_EQ(g_osAccountManagerService->CreateOsAccountForDomain(type, domainNameInvalid, osAccountInfo),
-        ERR_OS_ACCOUNT_SERVICE_MANAGER_NAME_SIZE_OVERFLOW_ERROR);
+        ERR_OSACCOUNT_SERVICE_MANAGER_NAME_SIZE_OVERFLOW_ERROR);
 
     DomainAccountInfo domainAccountNameInvalid(STRING_DOMAIN_VALID, STRING_DOMAIN_ACCOUNT_NAME_OUT_OF_RANGE);
     EXPECT_EQ(g_osAccountManagerService->CreateOsAccountForDomain(type, domainAccountNameInvalid, osAccountInfo),
-        ERR_OS_ACCOUNT_SERVICE_MANAGER_NAME_SIZE_OVERFLOW_ERROR);
+        ERR_OSACCOUNT_SERVICE_MANAGER_NAME_SIZE_OVERFLOW_ERROR);
 
     DomainAccountInfo domainEmpty("", STRING_DOMAIN_ACCOUNT_NAME_VALID);
     EXPECT_EQ(g_osAccountManagerService->CreateOsAccountForDomain(type, domainEmpty, osAccountInfo),
-        ERR_OS_ACCOUNT_SERVICE_MANAGER_NAME_SIZE_EMPTY_ERROR);
+        ERR_OSACCOUNT_SERVICE_MANAGER_NAME_SIZE_EMPTY_ERROR);
 
     DomainAccountInfo domainAccountEmpty(STRING_DOMAIN_VALID, "");
     EXPECT_EQ(g_osAccountManagerService->CreateOsAccountForDomain(type, domainAccountEmpty, osAccountInfo),
-        ERR_OS_ACCOUNT_SERVICE_MANAGER_NAME_SIZE_EMPTY_ERROR);
+        ERR_OSACCOUNT_SERVICE_MANAGER_NAME_SIZE_EMPTY_ERROR);
 }
 
 /**
  * @tc.name: OsAccountManagerServiceModuleTest060
- * @tc.desc: repeat create os account for domain
+ * @tc.desc: repeat create os account for domain by service
  * @tc.type: FUNC
  * @tc.require: SR000GGVFL
  */
@@ -1096,7 +1096,7 @@ HWTEST_F(OsAccountManagerServiceModuleTest, OsAccountManagerServiceModuleTest060
 
     // create again
     EXPECT_EQ(g_osAccountManagerService->CreateOsAccountForDomain(type, domainInfo, osAccountInfo),
-        ERR_OS_ACCOUNT_SERVICE_INNER_DOMAIN_ALREADY_BIND_ERROR);
+        ERR_OSACCOUNT_SERVICE_INNER_DOMAIN_ALREADY_BIND_ERROR);
 
     // remove
     EXPECT_EQ(osAccountControlFileManager_->DelOsAccount(osAccountInfo.GetLocalId()), ERR_OK);
@@ -1104,7 +1104,7 @@ HWTEST_F(OsAccountManagerServiceModuleTest, OsAccountManagerServiceModuleTest060
 
 /**
  * @tc.name: OsAccountManagerServiceModuleTest061
- * @tc.desc: repeat create os account for domain
+ * @tc.desc: repeat create os account for domain after remove by service
  * @tc.type: FUNC
  * @tc.require: SR000GGVFL
  */
@@ -1118,7 +1118,7 @@ HWTEST_F(OsAccountManagerServiceModuleTest, OsAccountManagerServiceModuleTest061
 
     // create again
     EXPECT_EQ(g_osAccountManagerService->CreateOsAccountForDomain(type, domainInfo, osAccountInfo),
-        ERR_OS_ACCOUNT_SERVICE_INNER_DOMAIN_ALREADY_BIND_ERROR);
+        ERR_OSACCOUNT_SERVICE_INNER_DOMAIN_ALREADY_BIND_ERROR);
 
     // remove
     EXPECT_EQ(osAccountControlFileManager_->DelOsAccount(osAccountInfo.GetLocalId()), ERR_OK);
@@ -1191,27 +1191,27 @@ HWTEST_F(OsAccountManagerServiceModuleTest, OsAccountManagerServiceModuleTest064
     DomainAccountInfo domainAllEmpty("", "");
     int resLocalId = -1;
     ErrCode ret = g_osAccountManagerService->GetOsAccountLocalIdFromDomain(domainAllEmpty, resLocalId);
-    EXPECT_EQ(ret, ERR_OS_ACCOUNT_SERVICE_INNER_DOMAIN_NAME_LEN_ERROR);
+    EXPECT_EQ(ret, ERR_OSACCOUNT_SERVICE_INNER_DOMAIN_NAME_LEN_ERROR);
 
     DomainAccountInfo domainNameEmpty("", STRING_DOMAIN_ACCOUNT_NAME_VALID);
     ret = g_osAccountManagerService->GetOsAccountLocalIdFromDomain(domainNameEmpty, resLocalId);
-    EXPECT_EQ(ret, ERR_OS_ACCOUNT_SERVICE_INNER_DOMAIN_NAME_LEN_ERROR);
+    EXPECT_EQ(ret, ERR_OSACCOUNT_SERVICE_INNER_DOMAIN_NAME_LEN_ERROR);
 
     DomainAccountInfo domainAccountEmpty(STRING_DOMAIN_VALID, "");
     ret = g_osAccountManagerService->GetOsAccountLocalIdFromDomain(domainAccountEmpty, resLocalId);
-    EXPECT_EQ(ret, ERR_OS_ACCOUNT_SERVICE_INNER_DOMAIN_ACCOUNT_NAME_LEN_ERROR);
+    EXPECT_EQ(ret, ERR_OSACCOUNT_SERVICE_INNER_DOMAIN_ACCOUNT_NAME_LEN_ERROR);
 
     DomainAccountInfo domainAllTooLong(STRING_DOMAIN_NAME_OUT_OF_RANGE, STRING_DOMAIN_ACCOUNT_NAME_OUT_OF_RANGE);
     ret = g_osAccountManagerService->GetOsAccountLocalIdFromDomain(domainAllTooLong, resLocalId);
-    EXPECT_EQ(ret, ERR_OS_ACCOUNT_SERVICE_INNER_DOMAIN_NAME_LEN_ERROR);
+    EXPECT_EQ(ret, ERR_OSACCOUNT_SERVICE_INNER_DOMAIN_NAME_LEN_ERROR);
 
     DomainAccountInfo domainNameTooLong(STRING_DOMAIN_NAME_OUT_OF_RANGE, STRING_DOMAIN_ACCOUNT_NAME_VALID);
     ret = g_osAccountManagerService->GetOsAccountLocalIdFromDomain(domainNameTooLong, resLocalId);
-    EXPECT_EQ(ret, ERR_OS_ACCOUNT_SERVICE_INNER_DOMAIN_NAME_LEN_ERROR);
+    EXPECT_EQ(ret, ERR_OSACCOUNT_SERVICE_INNER_DOMAIN_NAME_LEN_ERROR);
 
     DomainAccountInfo domainAccountTooLong(STRING_DOMAIN_VALID, STRING_DOMAIN_ACCOUNT_NAME_OUT_OF_RANGE);
     ret = g_osAccountManagerService->GetOsAccountLocalIdFromDomain(domainAccountTooLong, resLocalId);
-    EXPECT_EQ(ret, ERR_OS_ACCOUNT_SERVICE_INNER_DOMAIN_ACCOUNT_NAME_LEN_ERROR);
+    EXPECT_EQ(ret, ERR_OSACCOUNT_SERVICE_INNER_DOMAIN_ACCOUNT_NAME_LEN_ERROR);
 }
 
 /**

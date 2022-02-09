@@ -383,10 +383,6 @@ napi_value CreateOsAccountForDomain(napi_env env, napi_callback_info cbInfo)
         ACCOUNT_LOGI("Parse create osaccount failed");
         return WrapVoidToJS(env);
     }
-    ACCOUNT_LOGI("Parse completed, type = %{publilc}d, domain = %{public}s, domain account name = %{public}s.",
-        createOAForDomainCB->type,
-        createOAForDomainCB->domainInfo.domain_.c_str(),
-        createOAForDomainCB->domainInfo.accountName_.c_str());
 
     napi_value result = nullptr;
     if (createOAForDomainCB->callbackRef == nullptr) {

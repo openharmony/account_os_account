@@ -37,14 +37,14 @@ ErrCode AccountFileOperator::CreateDir(const std::string &path)
     ACCOUNT_LOGI("enter");
 
     if (!OHOS::ForceCreateDirectory(path)) {
-        return ERR_OS_ACCOUNT_SERVICE_FILE_CREATE_DIR_ERROR;
+        return ERR_OSACCOUNT_SERVICE_FILE_CREATE_DIR_ERROR;
     }
     mode_t mode = S_IRWXU | S_IRGRP | S_IXGRP | S_IXOTH;
     mode |= (false ? S_IROTH : 0);
     bool createFlag = OHOS::ChangeModeDirectory(path, mode);
     if (!createFlag) {
         ACCOUNT_LOGE("failed to create dir, path = %{public}s", path.c_str());
-        return ERR_OS_ACCOUNT_SERVICE_FILE_CHANGE_DIR_MODE_ERROR;
+        return ERR_OSACCOUNT_SERVICE_FILE_CHANGE_DIR_MODE_ERROR;
     }
 
     return ERR_OK;
@@ -60,7 +60,7 @@ ErrCode AccountFileOperator::DeleteDirOrFile(const std::string &path)
         delFlag = OHOS::ForceRemoveDirectory(path);
     }
     if (!delFlag) {
-        return ERR_OS_ACCOUNT_SERVICE_FILE_DELE_ERROR;
+        return ERR_OSACCOUNT_SERVICE_FILE_DELE_ERROR;
     }
 
     return ERR_OK;
@@ -74,13 +74,13 @@ ErrCode AccountFileOperator::InputFileByPathAndContent(const std::string &path, 
         ErrCode errCode = CreateDir(str);
         if (errCode != ERR_OK) {
             ACCOUNT_LOGE("failed to create dir, str = %{public}s", str.c_str());
-            return ERR_OS_ACCOUNT_SERVICE_FILE_FIND_DIR_ERROR;
+            return ERR_OSACCOUNT_SERVICE_FILE_FIND_DIR_ERROR;
         }
     }
     std::ofstream o(path);
     if (!o.is_open()) {
         ACCOUNT_LOGE("failed to open file, path = %{public}s", path.c_str());
-        return ERR_OS_ACCOUNT_SERVICE_FILE_CREATE_FILE_FAILED_ERROR;
+        return ERR_OSACCOUNT_SERVICE_FILE_CREATE_FILE_FAILED_ERROR;
     }
     o << content;
     o.close();
@@ -93,13 +93,13 @@ ErrCode AccountFileOperator::GetFileContentByPath(const std::string &path, std::
 {
     if (!IsExistFile(path)) {
         ACCOUNT_LOGE("cannot find file, path = %{public}s", path.c_str());
-        return ERR_OS_ACCOUNT_SERVICE_FILE_FIND_FILE_ERROR;
+        return ERR_OSACCOUNT_SERVICE_FILE_FIND_FILE_ERROR;
     }
     std::stringstream buffer;
     std::ifstream i(path);
     if (!i.is_open()) {
         ACCOUNT_LOGE("cannot open file, path = %{public}s", path.c_str());
-        return ERR_OS_ACCOUNT_SERVICE_FILE_CREATE_FILE_FAILED_ERROR;
+        return ERR_OSACCOUNT_SERVICE_FILE_CREATE_FILE_FAILED_ERROR;
     }
     buffer << i.rdbuf();
     content = buffer.str();

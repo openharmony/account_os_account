@@ -118,7 +118,7 @@ ErrCode OsAccountSubscribeManager::PublicActivatedOsAccount(const int id)
 {
     if (GetEventHandler() != ERR_OK) {
         ACCOUNT_LOGE("failed to get event handler");
-        return ERR_OS_ACCOUNT_SERVICE_SUBSCRIBE_GET_EVENT_HANDLE_ERROR;
+        return ERR_OSACCOUNT_SERVICE_SUBSCRIBE_GET_EVENT_HANDLE_ERROR;
     }
     for (auto it = subscribeRecords_.begin(); it != subscribeRecords_.end(); ++it) {
         OS_ACCOUNT_SUBSCRIBE_TYPE osAccountSubscribeType;
@@ -157,7 +157,7 @@ ErrCode OsAccountSubscribeManager::PublicActivatingOsAccount(const int id)
 {
     if (GetEventHandler() != ERR_OK) {
         ACCOUNT_LOGE("failed to get event handler");
-        return ERR_OS_ACCOUNT_SERVICE_SUBSCRIBE_GET_EVENT_HANDLE_ERROR;
+        return ERR_OSACCOUNT_SERVICE_SUBSCRIBE_GET_EVENT_HANDLE_ERROR;
     }
     for (auto it = subscribeRecords_.begin(); it != subscribeRecords_.end(); ++it) {
         OS_ACCOUNT_SUBSCRIBE_TYPE osAccountSubscribeType;
