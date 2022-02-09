@@ -1053,7 +1053,7 @@ HWTEST_F(OsAccountManagerModuleTest, OsAccountManagerModuleTest056, TestSize.Lev
 
 /**
  * @tc.name: OsAccountManagerModuleTest057
- * @tc.desc: repeat create os account for domain
+ * @tc.desc: repeat create os account for domain by module
  * @tc.type: FUNC
  * @tc.require: SR000GGVFL
  */
@@ -1067,7 +1067,7 @@ HWTEST_F(OsAccountManagerModuleTest, OsAccountManagerModuleTest057, TestSize.Lev
 
     // create again
     EXPECT_EQ(OsAccountManager::CreateOsAccountForDomain(type, domainInfo, osAccountInfo),
-        ERR_OS_ACCOUNT_SERVICE_INNER_DOMAIN_ALREADY_BIND_ERROR);
+        ERR_OSACCOUNT_SERVICE_INNER_DOMAIN_ALREADY_BIND_ERROR);
 
     // remove
     EXPECT_EQ(OsAccountManager::RemoveOsAccount(osAccountInfo.GetLocalId()), ERR_OK);
@@ -1075,7 +1075,7 @@ HWTEST_F(OsAccountManagerModuleTest, OsAccountManagerModuleTest057, TestSize.Lev
 
 /**
  * @tc.name: OsAccountManagerModuleTest058
- * @tc.desc: repeat create os account for domain
+ * @tc.desc: repeat create os account for domain after remove by module
  * @tc.type: FUNC
  * @tc.require: SR000GGVFL
  */
@@ -1089,7 +1089,7 @@ HWTEST_F(OsAccountManagerModuleTest, OsAccountManagerModuleTest058, TestSize.Lev
 
     // create again
     EXPECT_EQ(OsAccountManager::CreateOsAccountForDomain(type, domainInfo, osAccountInfo),
-        ERR_OS_ACCOUNT_SERVICE_INNER_DOMAIN_ALREADY_BIND_ERROR);
+        ERR_OSACCOUNT_SERVICE_INNER_DOMAIN_ALREADY_BIND_ERROR);
 
     // remove
     EXPECT_EQ(OsAccountManager::RemoveOsAccount(osAccountInfo.GetLocalId()), ERR_OK);

@@ -253,7 +253,7 @@ ErrCode OsAccountDatabaseOperator::GetAccountListFromStoreID(
 
     if (errCode != ERR_OK) {
         ACCOUNT_LOGE("Get account list info from database failed! storeID %{public}s.", storeID.c_str());
-        return ERR_OS_ACCOUNT_SERVICE_CONTROL_GET_ACCOUNT_LIST_ERROR;
+        return ERR_OSACCOUNT_SERVICE_CONTROL_GET_ACCOUNT_LIST_ERROR;
     }
     accountListJson = Json::parse(accountList, nullptr, false);
     return ERR_OK;
@@ -275,7 +275,7 @@ ErrCode OsAccountDatabaseOperator::SaveAccountListToDatabase(const Json &account
     }
     if (errCode != ERR_OK) {
         ACCOUNT_LOGE("Save or Add config info to database failed! errCode %{public}d.", errCode);
-        return ERR_OS_ACCOUNT_SERVICE_CONTROL_SET_ACCOUNT_LIST_ERROR;
+        return ERR_OSACCOUNT_SERVICE_CONTROL_SET_ACCOUNT_LIST_ERROR;
     }
     ACCOUNT_LOGI("save or add account list info to database succeed!");
     return ERR_OK;
