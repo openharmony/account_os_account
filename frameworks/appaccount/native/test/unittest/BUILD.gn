@@ -61,7 +61,7 @@ ohos_unittest("app_account_manager_test") {
   ]
 
   external_deps = [
-    "ability_runtime:want",
+    "ability_base:want",
     "hiviewdfx_hilog_native:libhilog",
     "ipc:ipc_core",
   ]
@@ -87,7 +87,7 @@ ohos_unittest("app_account_manager_subscribe_test") {
   ]
 
   external_deps = [
-    "ability_runtime:want",
+    "ability_base:want",
     "bundle_framework:appexecfwk_base",
     "bundle_framework:appexecfwk_core",
     "hiviewdfx_hilog_native:libhilog",
