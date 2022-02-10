@@ -12,9 +12,8 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
-#include "account_log_wrapper.h"
 #include "os_account_subscribe_info.h"
+#include "account_log_wrapper.h"
 
 namespace OHOS {
 namespace AccountSA {
