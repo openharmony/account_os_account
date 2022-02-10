@@ -140,10 +140,10 @@ ohos_shared_library("accountmgr") {
     "//utils/native/base:utils",
   ]
   external_deps = [
+    "ability_base:base",
+    "ability_base:want",
     "ability_runtime:ability_manager",
     "ability_runtime:app_manager",
-    "ability_runtime:base",
-    "ability_runtime:want",
     "bundle_framework:appexecfwk_base",
     "bundle_framework:appexecfwk_core",
     "ces_standard:cesfwk_core",

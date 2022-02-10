@@ -75,8 +75,7 @@ ohos_shared_library("os_account_core") {
   ]
 
   external_deps = [
-    "ability_runtime:app_manager",
-    "ability_runtime:want",
+    "ability_base:want",
     "bundle_framework:appexecfwk_base",
     "bundle_framework:appexecfwk_core",
     "hiviewdfx_hilog_native:libhilog",
