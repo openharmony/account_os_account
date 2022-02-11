@@ -56,7 +56,7 @@ ohos_shared_library("app_account_innerkits") {
   ]
 
   external_deps = [
-    "ability_runtime:want",
+    "ability_base:want",
     "hiviewdfx_hilog_native:libhilog",
     "ipc:ipc_core",
   ]

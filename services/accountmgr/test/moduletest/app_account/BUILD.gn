@@ -62,8 +62,8 @@ ohos_moduletest("account_bundle_manager_module_test") {
   ]
 
   external_deps = [
+    "ability_base:base",
     "ability_runtime:app_manager",
-    "ability_runtime:base",
     "bundle_framework:appexecfwk_base",
     "bundle_framework:appexecfwk_core",
     "ces_standard:cesfwk_core",
@@ -90,8 +90,8 @@ ohos_moduletest("account_permission_manager_module_test") {
   ]
 
   external_deps = [
+    "ability_base:base",
     "ability_runtime:app_manager",
-    "ability_runtime:base",
     "bundle_framework:appexecfwk_base",
     "bundle_framework:appexecfwk_core",
     "ces_standard:cesfwk_core",
@@ -125,9 +125,9 @@ ohos_moduletest("app_account_control_manager_module_test") {
   ]
 
   external_deps = [
+    "ability_base:base",
+    "ability_base:want",
     "ability_runtime:app_manager",
-    "ability_runtime:base",
-    "ability_runtime:want",
     "bundle_framework:appexecfwk_base",
     "bundle_framework:appexecfwk_core",
     "ces_standard:cesfwk_core",
@@ -162,9 +162,9 @@ ohos_moduletest("app_account_manager_service_module_test") {
   ]
 
   external_deps = [
+    "ability_base:base",
+    "ability_base:want",
     "ability_runtime:app_manager",
-    "ability_runtime:base",
-    "ability_runtime:want",
     "bundle_framework:appexecfwk_base",
     "bundle_framework:appexecfwk_core",
     "ces_standard:cesfwk_core",
@@ -199,9 +199,9 @@ ohos_moduletest("app_account_manager_service_subscribe_module_test") {
   ]
 
   external_deps = [
+    "ability_base:base",
+    "ability_base:want",
     "ability_runtime:app_manager",
-    "ability_runtime:base",
-    "ability_runtime:want",
     "bundle_framework:appexecfwk_base",
     "bundle_framework:appexecfwk_core",
     "ces_standard:cesfwk_core",
@@ -236,9 +236,9 @@ ohos_moduletest("app_account_manager_service_sync_module_test") {
   ]
 
   external_deps = [
+    "ability_base:base",
+    "ability_base:want",
     "ability_runtime:app_manager",
-    "ability_runtime:base",
-    "ability_runtime:want",
     "bundle_framework:appexecfwk_base",
     "bundle_framework:appexecfwk_core",
     "ces_standard:cesfwk_core",
@@ -273,9 +273,9 @@ ohos_moduletest("app_account_manager_service_thread_module_test") {
   ]
 
   external_deps = [
+    "ability_base:base",
+    "ability_base:want",
     "ability_runtime:app_manager",
-    "ability_runtime:base",
-    "ability_runtime:want",
     "bundle_framework:appexecfwk_base",
     "bundle_framework:appexecfwk_core",
     "ces_standard:cesfwk_core",
