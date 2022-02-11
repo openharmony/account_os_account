@@ -37,10 +37,7 @@ InnerAppAccountManager::~InnerAppAccountManager()
 ErrCode InnerAppAccountManager::AddAccount(
     const std::string &name, const std::string &extraInfo, const uid_t &uid, const std::string &bundleName)
 {
-    ACCOUNT_LOGI("enter");
-
-    ACCOUNT_LOGI("name = %{public}s", name.c_str());
-    ACCOUNT_LOGI("extraInfo = %{public}s", extraInfo.c_str());
+    ACCOUNT_LOGI("enter, name = %{public}s, extraInfo = %{public}s.", name.c_str(), extraInfo.c_str());
 
     if (!controlManagerPtr_) {
         ACCOUNT_LOGE("controlManagerPtr_ is nullptr");
@@ -65,9 +62,7 @@ ErrCode InnerAppAccountManager::AddAccountImplicitly(const OAuthRequest &request
 
 ErrCode InnerAppAccountManager::DeleteAccount(const std::string &name, const uid_t &uid, const std::string &bundleName)
 {
-    ACCOUNT_LOGI("enter");
-
-    ACCOUNT_LOGI("name = %{public}s", name.c_str());
+    ACCOUNT_LOGI("enter, name = %{public}s", name.c_str());
 
     if (!controlManagerPtr_) {
         ACCOUNT_LOGE("controlManagerPtr_ is nullptr");
@@ -89,10 +84,7 @@ ErrCode InnerAppAccountManager::DeleteAccount(const std::string &name, const uid
 ErrCode InnerAppAccountManager::GetAccountExtraInfo(
     const std::string &name, std::string &extraInfo, const uid_t &uid, const std::string &bundleName)
 {
-    ACCOUNT_LOGI("enter");
-
-    ACCOUNT_LOGI("name = %{public}s", name.c_str());
-    ACCOUNT_LOGI("extraInfo = %{public}s", extraInfo.c_str());
+    ACCOUNT_LOGI("enter, name = %{public}s.", name.c_str());
 
     if (!controlManagerPtr_) {
         ACCOUNT_LOGE("controlManagerPtr_ is nullptr");
@@ -107,10 +99,7 @@ ErrCode InnerAppAccountManager::GetAccountExtraInfo(
 ErrCode InnerAppAccountManager::SetAccountExtraInfo(
     const std::string &name, const std::string &extraInfo, const uid_t &uid, const std::string &bundleName)
 {
-    ACCOUNT_LOGI("enter");
-
-    ACCOUNT_LOGI("name = %{public}s", name.c_str());
-    ACCOUNT_LOGI("extraInfo = %{public}s", extraInfo.c_str());
+    ACCOUNT_LOGI("enter, name = %{public}s, extraInfo = %{public}s.", name.c_str(), extraInfo.c_str());
 
     if (!controlManagerPtr_) {
         ACCOUNT_LOGE("controlManagerPtr_ is nullptr");
@@ -132,10 +121,7 @@ ErrCode InnerAppAccountManager::SetAccountExtraInfo(
 ErrCode InnerAppAccountManager::EnableAppAccess(
     const std::string &name, const std::string &authorizedApp, const uid_t &uid, const std::string &bundleName)
 {
-    ACCOUNT_LOGI("enter");
-
-    ACCOUNT_LOGI("name = %{public}s", name.c_str());
-    ACCOUNT_LOGI("authorizedApp = %{public}s", authorizedApp.c_str());
+    ACCOUNT_LOGI("enter, name = %{public}s, authorizedApp = %{public}s.", name.c_str(), authorizedApp.c_str());
 
     if (!controlManagerPtr_) {
         ACCOUNT_LOGE("controlManagerPtr_ is nullptr");
@@ -157,10 +143,7 @@ ErrCode InnerAppAccountManager::EnableAppAccess(
 ErrCode InnerAppAccountManager::DisableAppAccess(
     const std::string &name, const std::string &authorizedApp, const uid_t &uid, const std::string &bundleName)
 {
-    ACCOUNT_LOGI("enter");
-
-    ACCOUNT_LOGI("name = %{public}s", name.c_str());
-    ACCOUNT_LOGI("authorizedApp = %{public}s", authorizedApp.c_str());
+    ACCOUNT_LOGI("enter, name = %{public}s, authorizedApp = %{public}s.", name.c_str(), authorizedApp.c_str());
 
     if (!controlManagerPtr_) {
         ACCOUNT_LOGE("controlManagerPtr_ is nullptr");
@@ -182,10 +165,7 @@ ErrCode InnerAppAccountManager::DisableAppAccess(
 ErrCode InnerAppAccountManager::CheckAppAccountSyncEnable(
     const std::string &name, bool &syncEnable, const uid_t &uid, const std::string &bundleName)
 {
-    ACCOUNT_LOGI("enter");
-
-    ACCOUNT_LOGI("name = %{public}s", name.c_str());
-    ACCOUNT_LOGI("syncEnable = %{public}d", syncEnable);
+    ACCOUNT_LOGI("enter, name = %{public}s.", name.c_str());
 
     if (!controlManagerPtr_) {
         ACCOUNT_LOGE("controlManagerPtr_ is nullptr");
@@ -200,10 +180,7 @@ ErrCode InnerAppAccountManager::CheckAppAccountSyncEnable(
 ErrCode InnerAppAccountManager::SetAppAccountSyncEnable(
     const std::string &name, const bool &syncEnable, const uid_t &uid, const std::string &bundleName)
 {
-    ACCOUNT_LOGI("enter");
-
-    ACCOUNT_LOGI("name = %{public}s", name.c_str());
-    ACCOUNT_LOGI("syncEnable = %{public}d", syncEnable);
+    ACCOUNT_LOGI("enter, name = %{public}s, syncEnable = %{public}d.", name.c_str(), syncEnable);
 
     if (!controlManagerPtr_) {
         ACCOUNT_LOGE("controlManagerPtr_ is nullptr");
@@ -219,10 +196,7 @@ ErrCode InnerAppAccountManager::SetAppAccountSyncEnable(
 ErrCode InnerAppAccountManager::GetAssociatedData(const std::string &name, const std::string &key, std::string &value,
     const uid_t &uid, const std::string &bundleName)
 {
-    ACCOUNT_LOGI("enter");
-
-    ACCOUNT_LOGI("name = %{public}s", name.c_str());
-    ACCOUNT_LOGI("key = %{public}s", key.c_str());
+    ACCOUNT_LOGI("enter, name = %{public}s, key = %{public}s.", name.c_str(), key.c_str());
 
     if (!controlManagerPtr_) {
         ACCOUNT_LOGE("controlManagerPtr_ is nullptr");
@@ -237,10 +211,8 @@ ErrCode InnerAppAccountManager::GetAssociatedData(const std::string &name, const
 ErrCode InnerAppAccountManager::SetAssociatedData(const std::string &name, const std::string &key,
     const std::string &value, const uid_t &uid, const std::string &bundleName)
 {
-    ACCOUNT_LOGI("enter");
-
-    ACCOUNT_LOGI("name = %{public}s", name.c_str());
-    ACCOUNT_LOGI("key = %{public}s, value = %{public}s", key.c_str(), value.c_str());
+    ACCOUNT_LOGI("enter, name = %{public}s, key = %{public}s, value = %{public}s.",
+        name.c_str(), key.c_str(), value.c_str());
 
     if (!controlManagerPtr_) {
         ACCOUNT_LOGE("controlManagerPtr_ is nullptr");
@@ -262,10 +234,7 @@ ErrCode InnerAppAccountManager::SetAssociatedData(const std::string &name, const
 ErrCode InnerAppAccountManager::GetAccountCredential(const std::string &name, const std::string &credentialType,
     std::string &credential, const uid_t &uid, const std::string &bundleName)
 {
-    ACCOUNT_LOGI("enter");
-
-    ACCOUNT_LOGI("name = %{public}s", name.c_str());
-    ACCOUNT_LOGI("credentialType = %{public}s", credentialType.c_str());
+    ACCOUNT_LOGI("enter, name = %{public}s, credentialType = %{public}s.", name.c_str(), credentialType.c_str());
 
     if (!controlManagerPtr_) {
         ACCOUNT_LOGE("controlManagerPtr_ is nullptr");
@@ -280,10 +249,7 @@ ErrCode InnerAppAccountManager::GetAccountCredential(const std::string &name, co
 ErrCode InnerAppAccountManager::SetAccountCredential(const std::string &name, const std::string &credentialType,
     const std::string &credential, const uid_t &uid, const std::string &bundleName)
 {
-    ACCOUNT_LOGI("enter");
-
-    ACCOUNT_LOGI("name = %{public}s", name.c_str());
-    ACCOUNT_LOGI("credentialType = %{public}s, credential = %{public}s", credentialType.c_str(), credential.c_str());
+    ACCOUNT_LOGI("enter, name = %{public}s, credentialType = %{public}s.", name.c_str(), credentialType.c_str());
 
     if (!controlManagerPtr_) {
         ACCOUNT_LOGE("controlManagerPtr_ is nullptr");
@@ -438,10 +404,7 @@ ErrCode InnerAppAccountManager::GetAuthenticatorCallback(const OAuthRequest &req
 ErrCode InnerAppAccountManager::ClearOAuthToken(
     const std::string &name, const uid_t &uid, const std::string &bundleName)
 {
-    ACCOUNT_LOGI("enter");
-
-    ACCOUNT_LOGI("name = %{public}s", name.c_str());
-    ACCOUNT_LOGI("bundleName = %{public}s", bundleName.c_str());
+    ACCOUNT_LOGI("enter, name = %{public}s, bundleName = %{public}s.", name.c_str(), bundleName.c_str());
 
     if (!controlManagerPtr_) {
         ACCOUNT_LOGE("controlManagerPtr_ is nullptr");
@@ -456,9 +419,7 @@ ErrCode InnerAppAccountManager::ClearOAuthToken(
 ErrCode InnerAppAccountManager::GetAllAccounts(const std::string &owner, std::vector<AppAccountInfo> &appAccounts,
     const uid_t &uid, const std::string &bundleName)
 {
-    ACCOUNT_LOGI("enter");
-
-    ACCOUNT_LOGI("owner = %{public}s", owner.c_str());
+    ACCOUNT_LOGI("enter, owner = %{public}s", owner.c_str());
 
     if (!controlManagerPtr_) {
         ACCOUNT_LOGE("controlManagerPtr_ is nullptr");
