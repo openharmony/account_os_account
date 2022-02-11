@@ -363,7 +363,7 @@ ErrCode AppAccountProxy::GetAccountCredential(
 
     result = reply.ReadInt32();
     credential = reply.ReadString();
-    ACCOUNT_LOGI("result = %{public}d, credential = %{public}s", result, credential.c_str());
+    ACCOUNT_LOGI("result = %{public}d", result);
 
     return result;
 }
@@ -467,7 +467,7 @@ ErrCode AppAccountProxy::GetOAuthToken(
     }
     result = reply.ReadInt32();
     token = reply.ReadString();
-    ACCOUNT_LOGI("result = %{public}d, token = %{private}s", result, token.c_str());
+    ACCOUNT_LOGI("result = %{public}d.", result);
     return result;
 }
 
@@ -640,15 +640,13 @@ ErrCode AppAccountProxy::GetAllOAuthTokens(const std::string &name, const std::s
     }
     result = reply.ReadInt32();
     uint32_t size = reply.ReadUint32();
-    ACCOUNT_LOGI("tokenInfo size: %{public}d", size);
     for (uint32_t i = 0; i < size; ++i) {
         OAuthTokenInfo tokenInfo;
         tokenInfo.token = reply.ReadString();
         tokenInfo.authType = reply.ReadString();
-        ACCOUNT_LOGI("token: %{public}s, authType: %{public}s", tokenInfo.token.c_str(), tokenInfo.authType.c_str());
         tokenInfos.push_back(tokenInfo);
     }
-    ACCOUNT_LOGI("result = %{public}d", result);
+    ACCOUNT_LOGI("tokenInfo size: %{public}u, result = %{public}d", size, result);
     return result;
 }
 
