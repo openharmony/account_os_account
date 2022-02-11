@@ -66,8 +66,8 @@ ohos_shared_library("appaccount") {
   relative_install_dir = "module/account"
 
   external_deps = [
+    "ability_base:want",
     "ability_runtime:ability_manager",
-    "ability_runtime:want",
     "hiviewdfx_hilog_native:libhilog",
     "ipc:ipc_core",
     "ipc_js:rpc",
