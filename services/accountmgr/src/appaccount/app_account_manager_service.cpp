@@ -42,10 +42,7 @@ AppAccountManagerService::~AppAccountManagerService()
 
 ErrCode AppAccountManagerService::AddAccount(const std::string &name, const std::string &extraInfo)
 {
-    ACCOUNT_LOGI("enter");
-
-    ACCOUNT_LOGI("name = %{public}s", name.c_str());
-    ACCOUNT_LOGI("extraInfo = %{public}s", extraInfo.c_str());
+    ACCOUNT_LOGI("enter, name = %{public}s, extraInfo = %{public}s.", name.c_str(), extraInfo.c_str());
 
     auto callingUid = IPCSkeleton::GetCallingUid();
     std::string bundleName;
@@ -85,9 +82,7 @@ ErrCode AppAccountManagerService::AddAccountImplicitly(
 
 ErrCode AppAccountManagerService::DeleteAccount(const std::string &name)
 {
-    ACCOUNT_LOGI("enter");
-
-    ACCOUNT_LOGI("name = %{public}s", name.c_str());
+    ACCOUNT_LOGI("enter, name = %{public}s", name.c_str());
 
     auto callingUid = IPCSkeleton::GetCallingUid();
     std::string bundleName;
@@ -103,10 +98,7 @@ ErrCode AppAccountManagerService::DeleteAccount(const std::string &name)
 
 ErrCode AppAccountManagerService::GetAccountExtraInfo(const std::string &name, std::string &extraInfo)
 {
-    ACCOUNT_LOGI("enter");
-
-    ACCOUNT_LOGI("name = %{public}s", name.c_str());
-    ACCOUNT_LOGI("extraInfo = %{public}s", extraInfo.c_str());
+    ACCOUNT_LOGI("enter, name = %{public}s", name.c_str());
 
     auto callingUid = IPCSkeleton::GetCallingUid();
     std::string bundleName;
@@ -122,10 +114,7 @@ ErrCode AppAccountManagerService::GetAccountExtraInfo(const std::string &name, s
 
 ErrCode AppAccountManagerService::SetAccountExtraInfo(const std::string &name, const std::string &extraInfo)
 {
-    ACCOUNT_LOGI("enter");
-
-    ACCOUNT_LOGI("name = %{public}s", name.c_str());
-    ACCOUNT_LOGI("extraInfo = %{public}s", extraInfo.c_str());
+    ACCOUNT_LOGI("enter, name = %{public}s, extraInfo = %{public}s.", name.c_str(), extraInfo.c_str());
 
     auto callingUid = IPCSkeleton::GetCallingUid();
     std::string bundleName;
@@ -141,10 +130,7 @@ ErrCode AppAccountManagerService::SetAccountExtraInfo(const std::string &name, c
 
 ErrCode AppAccountManagerService::EnableAppAccess(const std::string &name, const std::string &authorizedApp)
 {
-    ACCOUNT_LOGI("enter");
-
-    ACCOUNT_LOGI("name = %{public}s", name.c_str());
-    ACCOUNT_LOGI("authorizedApp = %{public}s", authorizedApp.c_str());
+    ACCOUNT_LOGI("enter, name = %{public}s, authorizedApp = %{public}s", name.c_str(), authorizedApp.c_str());
 
     auto callingUid = IPCSkeleton::GetCallingUid();
     std::string bundleName;
@@ -167,10 +153,7 @@ ErrCode AppAccountManagerService::EnableAppAccess(const std::string &name, const
 
 ErrCode AppAccountManagerService::DisableAppAccess(const std::string &name, const std::string &authorizedApp)
 {
-    ACCOUNT_LOGI("enter");
-
-    ACCOUNT_LOGI("name = %{public}s", name.c_str());
-    ACCOUNT_LOGI("authorizedApp = %{public}s", authorizedApp.c_str());
+    ACCOUNT_LOGI("enter, name = %{public}s, authorizedApp = %{public}s.", name.c_str(), authorizedApp.c_str());
 
     auto callingUid = IPCSkeleton::GetCallingUid();
     std::string bundleName;
@@ -193,10 +176,7 @@ ErrCode AppAccountManagerService::DisableAppAccess(const std::string &name, cons
 
 ErrCode AppAccountManagerService::CheckAppAccountSyncEnable(const std::string &name, bool &syncEnable)
 {
-    ACCOUNT_LOGI("enter");
-
-    ACCOUNT_LOGI("name = %{public}s", name.c_str());
-    ACCOUNT_LOGI("syncEnable = %{public}d", syncEnable);
+    ACCOUNT_LOGI("enter, name = %{public}s, syncEnable = %{public}d", name.c_str(), syncEnable);
 
     auto callingUid = IPCSkeleton::GetCallingUid();
     std::string bundleName;
@@ -219,10 +199,7 @@ ErrCode AppAccountManagerService::CheckAppAccountSyncEnable(const std::string &n
 
 ErrCode AppAccountManagerService::SetAppAccountSyncEnable(const std::string &name, const bool &syncEnable)
 {
-    ACCOUNT_LOGI("enter");
-
-    ACCOUNT_LOGI("name = %{public}s", name.c_str());
-    ACCOUNT_LOGI("syncEnable = %{public}d", syncEnable);
+    ACCOUNT_LOGI("enter, name = %{public}s, syncEnable = %{public}d", name.c_str(), syncEnable);
 
     auto callingUid = IPCSkeleton::GetCallingUid();
     std::string bundleName;
@@ -246,10 +223,7 @@ ErrCode AppAccountManagerService::SetAppAccountSyncEnable(const std::string &nam
 ErrCode AppAccountManagerService::GetAssociatedData(
     const std::string &name, const std::string &key, std::string &value)
 {
-    ACCOUNT_LOGI("enter");
-
-    ACCOUNT_LOGI("name = %{public}s", name.c_str());
-    ACCOUNT_LOGI("key = %{public}s", key.c_str());
+    ACCOUNT_LOGI("enter, name = %{public}s, key = %{public}s", name.c_str(), key.c_str());
 
     auto callingUid = IPCSkeleton::GetCallingUid();
     std::string bundleName;
@@ -266,10 +240,8 @@ ErrCode AppAccountManagerService::GetAssociatedData(
 ErrCode AppAccountManagerService::SetAssociatedData(
     const std::string &name, const std::string &key, const std::string &value)
 {
-    ACCOUNT_LOGI("enter");
-
-    ACCOUNT_LOGI("name = %{public}s", name.c_str());
-    ACCOUNT_LOGI("key = %{public}s, value = %{public}s", key.c_str(), value.c_str());
+    ACCOUNT_LOGI("enter, name = %{public}s, key = %{public}s, value = %{public}s",
+        name.c_str(), key.c_str(), value.c_str());
 
     auto callingUid = IPCSkeleton::GetCallingUid();
     std::string bundleName;
@@ -286,10 +258,7 @@ ErrCode AppAccountManagerService::SetAssociatedData(
 ErrCode AppAccountManagerService::GetAccountCredential(
     const std::string &name, const std::string &credentialType, std::string &credential)
 {
-    ACCOUNT_LOGI("enter");
-
-    ACCOUNT_LOGI("name = %{public}s", name.c_str());
-    ACCOUNT_LOGI("credentialType = %{public}s", credentialType.c_str());
+    ACCOUNT_LOGI("enter, name = %{public}s, credentialType = %{public}s.", name.c_str(), credentialType.c_str());
 
     auto callingUid = IPCSkeleton::GetCallingUid();
     std::string bundleName;
@@ -306,10 +275,7 @@ ErrCode AppAccountManagerService::GetAccountCredential(
 ErrCode AppAccountManagerService::SetAccountCredential(
     const std::string &name, const std::string &credentialType, const std::string &credential)
 {
-    ACCOUNT_LOGI("enter");
-
-    ACCOUNT_LOGI("name = %{public}s", name.c_str());
-    ACCOUNT_LOGI("credentialType = %{public}s, credential = %{public}s", credentialType.c_str(), credential.c_str());
+    ACCOUNT_LOGI("enter, name = %{public}s, credentialType = %{public}s.", name.c_str(), credentialType.c_str());
 
     auto callingUid = IPCSkeleton::GetCallingUid();
     std::string bundleName;
@@ -325,8 +291,7 @@ ErrCode AppAccountManagerService::SetAccountCredential(
 
 ErrCode AppAccountManagerService::Authenticate(OAuthRequest &request)
 {
-    ACCOUNT_LOGI("enter");
-    ACCOUNT_LOGI("name=%{public}s, owner=%{public}s, authType=%{public}s",
+    ACCOUNT_LOGI("enter, name=%{public}s, owner=%{public}s, authType=%{public}s",
         request.name.c_str(), request.owner.c_str(), request.authType.c_str());
     auto callingUid = IPCSkeleton::GetCallingUid();
     std::string callerBundleName;
@@ -343,8 +308,7 @@ ErrCode AppAccountManagerService::Authenticate(OAuthRequest &request)
 ErrCode AppAccountManagerService::GetOAuthToken(const std::string &name, const std::string &owner,
     const std::string &authType, std::string &token)
 {
-    ACCOUNT_LOGI("enter");
-    ACCOUNT_LOGI("name = %{public}s, owner=%{public}s", name.c_str(), owner.c_str());
+    ACCOUNT_LOGI("enter, name = %{public}s, owner=%{public}s", name.c_str(), owner.c_str());
     auto callingUid = IPCSkeleton::GetCallingUid();
     std::string callerBundleName;
     ErrCode result = bundleManagerPtr_->GetBundleName(callingUid, callerBundleName);
@@ -365,8 +329,7 @@ ErrCode AppAccountManagerService::GetOAuthToken(const std::string &name, const s
 ErrCode AppAccountManagerService::SetOAuthToken(
     const std::string &name, const std::string &authType, const std::string &token)
 {
-    ACCOUNT_LOGI("enter");
-    ACCOUNT_LOGI("name=%{public}s, authType=%{public}s", name.c_str(), authType.c_str());
+    ACCOUNT_LOGI("enter, name=%{public}s, authType=%{public}s", name.c_str(), authType.c_str());
     auto callingUid = IPCSkeleton::GetCallingUid();
     std::string callerBundleName;
     ErrCode result = bundleManagerPtr_->GetBundleName(callingUid, callerBundleName);
@@ -388,8 +351,7 @@ ErrCode AppAccountManagerService::SetOAuthToken(
 ErrCode AppAccountManagerService::DeleteOAuthToken(const std::string &name, const std::string &owner,
     const std::string &authType, const std::string &token)
 {
-    ACCOUNT_LOGI("enter");
-    ACCOUNT_LOGI("name=%{public}s, owner=%{public}s, authType=%{public}s",
+    ACCOUNT_LOGI("enter, name=%{public}s, owner=%{public}s, authType=%{public}s",
         name.c_str(), owner.c_str(), authType.c_str());
     auto callingUid = IPCSkeleton::GetCallingUid();
     std::string callerBundleName;
@@ -412,8 +374,7 @@ ErrCode AppAccountManagerService::DeleteOAuthToken(const std::string &name, cons
 ErrCode AppAccountManagerService::SetOAuthTokenVisibility(const std::string &name, const std::string &authType,
     const std::string &bundleName, bool isVisible)
 {
-    ACCOUNT_LOGI("enter");
-    ACCOUNT_LOGI("name=%{public}s, authType=%{public}s, bundleName=%{public}s, isVisible=%{public}d",
+    ACCOUNT_LOGI("enter, name=%{public}s, authType=%{public}s, bundleName=%{public}s, isVisible=%{public}d",
         name.c_str(), authType.c_str(), bundleName.c_str(), isVisible);
     auto callingUid = IPCSkeleton::GetCallingUid();
     std::string callerBundleName;
@@ -437,8 +398,7 @@ ErrCode AppAccountManagerService::SetOAuthTokenVisibility(const std::string &nam
 ErrCode AppAccountManagerService::CheckOAuthTokenVisibility(const std::string &name, const std::string &authType,
     const std::string &bundleName, bool &isVisible)
 {
-    ACCOUNT_LOGI("enter");
-    ACCOUNT_LOGI("name=%{public}s, authType=%{public}s, bundleName=%{public}s",
+    ACCOUNT_LOGI("enter, name=%{public}s, authType=%{public}s, bundleName=%{public}s",
         name.c_str(), authType.c_str(), bundleName.c_str());
     auto callingUid = IPCSkeleton::GetCallingUid();
     std::string callerBundleName;
@@ -460,8 +420,7 @@ ErrCode AppAccountManagerService::CheckOAuthTokenVisibility(const std::string &n
 
 ErrCode AppAccountManagerService::GetAuthenticatorInfo(const std::string &owner, AuthenticatorInfo &info)
 {
-    ACCOUNT_LOGI("enter");
-    ACCOUNT_LOGI("owner=%{public}s", owner.c_str());
+    ACCOUNT_LOGI("enter, owner=%{public}s", owner.c_str());
     auto callingUid = IPCSkeleton::GetCallingUid();
     OAuthRequest request = {
         .owner = owner,
@@ -473,8 +432,7 @@ ErrCode AppAccountManagerService::GetAuthenticatorInfo(const std::string &owner,
 ErrCode AppAccountManagerService::GetAllOAuthTokens(
     const std::string &name, const std::string &owner, std::vector<OAuthTokenInfo> &tokenInfos)
 {
-    ACCOUNT_LOGI("enter");
-    ACCOUNT_LOGI("name=%{public}s, owner=%{public}s", name.c_str(), owner.c_str());
+    ACCOUNT_LOGI("enter, name=%{public}s, owner=%{public}s", name.c_str(), owner.c_str());
     auto callingUid = IPCSkeleton::GetCallingUid();
     std::string callerBundleName;
     ErrCode result = bundleManagerPtr_->GetBundleName(callingUid, callerBundleName);
@@ -494,8 +452,7 @@ ErrCode AppAccountManagerService::GetAllOAuthTokens(
 ErrCode AppAccountManagerService::GetOAuthList(
     const std::string &name, const std::string &authType, std::set<std::string> &oauthList)
 {
-    ACCOUNT_LOGI("enter");
-    ACCOUNT_LOGI("name=%{public}s, authType=%{public}s", name.c_str(), authType.c_str());
+    ACCOUNT_LOGI("enter, name=%{public}s, authType=%{public}s", name.c_str(), authType.c_str());
     auto callingUid = IPCSkeleton::GetCallingUid();
     std::string callerBundleName;
     ErrCode result = bundleManagerPtr_->GetBundleName(callingUid, callerBundleName);
@@ -535,9 +492,7 @@ ErrCode AppAccountManagerService::GetAuthenticatorCallback(
 
 ErrCode AppAccountManagerService::GetAllAccounts(const std::string &owner, std::vector<AppAccountInfo> &appAccounts)
 {
-    ACCOUNT_LOGI("enter");
-
-    ACCOUNT_LOGI("owner = %{public}s", owner.c_str());
+    ACCOUNT_LOGI("enter, owner = %{public}s", owner.c_str());
 
     auto callingUid = IPCSkeleton::GetCallingUid();
     std::string bundleName;
@@ -634,10 +589,7 @@ ErrCode AppAccountManagerService::UnsubscribeAppAccount(const sptr<IRemoteObject
 
 ErrCode AppAccountManagerService::OnPackageRemoved(const uid_t &uid, const std::string &bundleName)
 {
-    ACCOUNT_LOGI("enter");
-
-    ACCOUNT_LOGI("uid = %{public}d", uid);
-    ACCOUNT_LOGI("bundleName = %{public}s", bundleName.c_str());
+    ACCOUNT_LOGI("enter, uid = %{public}d, bundleName = %{public}s.", uid, bundleName.c_str());
 
     return innerManager_->OnPackageRemoved(uid, bundleName);
 }

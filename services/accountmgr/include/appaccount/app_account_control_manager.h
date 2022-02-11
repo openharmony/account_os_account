@@ -105,8 +105,7 @@ private:
         const std::shared_ptr<AppAccountDataStorage> &dataStoragePtr);
 
 private:
-    std::map<std::string, std::string> dataCache_;
-
+    std::mutex mutex_;
     std::size_t ACCOUNT_MAX_SIZE = 1000;
 };
 }  // namespace AccountSA

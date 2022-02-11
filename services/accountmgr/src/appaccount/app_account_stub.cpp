@@ -909,7 +909,6 @@ ErrCode AppAccountStub::ProcGetAllOAuthTokens(MessageParcel &data, MessageParcel
         return IPC_STUB_WRITE_PARCEL_ERR;
     }
     for (auto tokenInfo : tokenInfos) {
-        ACCOUNT_LOGI("token: %{public}s, authType: %{public}s", tokenInfo.token.c_str(), tokenInfo.authType.c_str());
         if (!reply.WriteString(tokenInfo.token)) {
             ACCOUNT_LOGE("failed to write reply");
             return IPC_STUB_WRITE_PARCEL_ERR;

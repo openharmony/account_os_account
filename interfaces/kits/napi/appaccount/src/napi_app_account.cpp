@@ -442,10 +442,9 @@ napi_value NapiAppAccount::SetAccountCredential(napi_env env, napi_callback_info
     asyncContext->env = env;
     asyncContext->callbackRef = nullptr;
     ParseContextToSetCredential(env, cbInfo, asyncContext);
-    ACCOUNT_LOGI("Parsing completed, name = %{public}s, credentialType = %{public}s, credential = %{public}s",
+    ACCOUNT_LOGI("Parsing completed, name = %{public}s, credentialType = %{public}s.",
         asyncContext->name.c_str(),
-        asyncContext->credentialType.c_str(),
-        asyncContext->credential.c_str());
+        asyncContext->credentialType.c_str());
 
     napi_value result = nullptr;
     if (asyncContext->callbackRef == nullptr) {
