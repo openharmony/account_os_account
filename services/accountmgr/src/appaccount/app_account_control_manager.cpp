@@ -32,10 +32,7 @@ AppAccountControlManager::AppAccountControlManager()
 ErrCode AppAccountControlManager::AddAccount(const std::string &name, const std::string &extraInfo, const uid_t &uid,
     const std::string &bundleName, AppAccountInfo &appAccountInfo)
 {
-    ACCOUNT_LOGI("enter");
-
-    ACCOUNT_LOGI("name = %{public}s", name.c_str());
-    ACCOUNT_LOGI("extraInfo = %{public}s", extraInfo.c_str());
+    ACCOUNT_LOGI("enter, name = %{public}s, extraInfo = %{public}s.", name.c_str(), extraInfo.c_str());
 
     std::shared_ptr<AppAccountDataStorage> dataStoragePtr;
     ErrCode result = GetAccountInfoFromDataStorage(appAccountInfo, dataStoragePtr, uid);
@@ -64,9 +61,7 @@ ErrCode AppAccountControlManager::AddAccount(const std::string &name, const std:
 ErrCode AppAccountControlManager::DeleteAccount(
     const std::string &name, const uid_t &uid, const std::string &bundleName, AppAccountInfo &appAccountInfo)
 {
-    ACCOUNT_LOGI("enter");
-
-    ACCOUNT_LOGI("name = %{public}s", name.c_str());
+    ACCOUNT_LOGI("enter, name = %{public}s", name.c_str());
 
     std::shared_ptr<AppAccountDataStorage> dataStoragePtr;
     ErrCode result = DeleteAccountInfoFromDataStorage(appAccountInfo, dataStoragePtr, uid);
@@ -99,10 +94,7 @@ ErrCode AppAccountControlManager::DeleteAccount(
 ErrCode AppAccountControlManager::GetAccountExtraInfo(
     const std::string &name, std::string &extraInfo, const uid_t &uid, const std::string &bundleName)
 {
-    ACCOUNT_LOGI("enter");
-
-    ACCOUNT_LOGI("name = %{public}s", name.c_str());
-    ACCOUNT_LOGI("extraInfo = %{public}s", extraInfo.c_str());
+    ACCOUNT_LOGI("enter, name = %{public}s", name.c_str());
 
     AppAccountInfo appAccountInfo(name, bundleName);
     std::shared_ptr<AppAccountDataStorage> dataStoragePtr;
@@ -124,10 +116,7 @@ ErrCode AppAccountControlManager::GetAccountExtraInfo(
 ErrCode AppAccountControlManager::SetAccountExtraInfo(const std::string &name, const std::string &extraInfo,
     const uid_t &uid, const std::string &bundleName, AppAccountInfo &appAccountInfo)
 {
-    ACCOUNT_LOGI("enter");
-
-    ACCOUNT_LOGI("name = %{public}s", name.c_str());
-    ACCOUNT_LOGI("extraInfo = %{public}s", extraInfo.c_str());
+    ACCOUNT_LOGI("enter, name = %{public}s, extraInfo = %{public}s.", name.c_str(), extraInfo.c_str());
 
     std::shared_ptr<AppAccountDataStorage> dataStoragePtr;
     ErrCode result = GetAccountInfoFromDataStorage(appAccountInfo, dataStoragePtr, uid);
@@ -156,11 +145,8 @@ ErrCode AppAccountControlManager::SetAccountExtraInfo(const std::string &name, c
 ErrCode AppAccountControlManager::EnableAppAccess(const std::string &name, const std::string &authorizedApp,
     const uid_t &uid, const std::string &bundleName, AppAccountInfo &appAccountInfo)
 {
-    ACCOUNT_LOGI("enter");
-
-    ACCOUNT_LOGI("name = %{public}s", name.c_str());
-    ACCOUNT_LOGI("authorizedApp = %{public}s", authorizedApp.c_str());
-    ACCOUNT_LOGI("bundleName = %{public}s", bundleName.c_str());
+    ACCOUNT_LOGI("enter, name = %{public}s, authorizedApp = %{public}s, bundleName = %{public}s",
+        name.c_str(), authorizedApp.c_str(), bundleName.c_str());
 
     if (authorizedApp == bundleName) {
         ACCOUNT_LOGE("authorizedApp is the same to owner");
@@ -201,10 +187,8 @@ ErrCode AppAccountControlManager::EnableAppAccess(const std::string &name, const
 ErrCode AppAccountControlManager::DisableAppAccess(const std::string &name, const std::string &authorizedApp,
     const uid_t &uid, const std::string &bundleName, AppAccountInfo &appAccountInfo)
 {
-    ACCOUNT_LOGI("enter");
-
-    ACCOUNT_LOGI("name = %{public}s", name.c_str());
-    ACCOUNT_LOGI("authorizedApp = %{public}s", authorizedApp.c_str());
+    ACCOUNT_LOGI("enter, name = %{public}s, authorizedApp = %{public}s.",
+        name.c_str(), authorizedApp.c_str());
 
     std::shared_ptr<AppAccountDataStorage> dataStoragePtr;
     ErrCode result = GetAccountInfoFromDataStorage(appAccountInfo, dataStoragePtr, uid);
@@ -240,9 +224,7 @@ ErrCode AppAccountControlManager::DisableAppAccess(const std::string &name, cons
 ErrCode AppAccountControlManager::CheckAppAccountSyncEnable(
     const std::string &name, bool &syncEnable, const uid_t &uid, const std::string &bundleName)
 {
-    ACCOUNT_LOGI("enter");
-
-    ACCOUNT_LOGI("name = %{public}s", name.c_str());
+    ACCOUNT_LOGI("enter, name = %{public}s", name.c_str());
 
     AppAccountInfo appAccountInfo(name, bundleName);
     std::shared_ptr<AppAccountDataStorage> dataStoragePtr;
@@ -264,10 +246,7 @@ ErrCode AppAccountControlManager::CheckAppAccountSyncEnable(
 ErrCode AppAccountControlManager::SetAppAccountSyncEnable(const std::string &name, const bool &syncEnable,
     const uid_t &uid, const std::string &bundleName, AppAccountInfo &appAccountInfo)
 {
-    ACCOUNT_LOGI("enter");
-
-    ACCOUNT_LOGI("name = %{public}s", name.c_str());
-    ACCOUNT_LOGI("syncEnable = %{public}d", syncEnable);
+    ACCOUNT_LOGI("enter, name = %{public}s, syncEnable = %{public}d.", name.c_str(), syncEnable);
 
     std::shared_ptr<AppAccountDataStorage> dataStoragePtr;
     ErrCode result = GetAccountInfoFromDataStorage(appAccountInfo, dataStoragePtr, uid);
@@ -296,10 +275,8 @@ ErrCode AppAccountControlManager::SetAppAccountSyncEnable(const std::string &nam
 ErrCode AppAccountControlManager::GetAssociatedData(const std::string &name, const std::string &key,
     std::string &value, const uid_t &uid, const std::string &bundleName)
 {
-    ACCOUNT_LOGI("enter");
-
-    ACCOUNT_LOGI("name = %{public}s", name.c_str());
-    ACCOUNT_LOGI("key = %{public}s, value = %{public}s", key.c_str(), value.c_str());
+    ACCOUNT_LOGI("enter, name = %{public}s, key = %{public}s, value = %{public}s.",
+        name.c_str(), key.c_str(), value.c_str());
 
     AppAccountInfo appAccountInfo(name, bundleName);
     std::shared_ptr<AppAccountDataStorage> dataStoragePtr;
@@ -322,10 +299,8 @@ ErrCode AppAccountControlManager::GetAssociatedData(const std::string &name, con
 ErrCode AppAccountControlManager::SetAssociatedData(const std::string &name, const std::string &key,
     const std::string &value, const uid_t &uid, const std::string &bundleName, AppAccountInfo &appAccountInfo)
 {
-    ACCOUNT_LOGI("enter");
-
-    ACCOUNT_LOGI("name = %{public}s", name.c_str());
-    ACCOUNT_LOGI("key = %{public}s, value = %{public}s", key.c_str(), value.c_str());
+    ACCOUNT_LOGI("enter, name = %{public}s, key = %{public}s, value = %{public}s.",
+        name.c_str(), key.c_str(), value.c_str());
 
     std::shared_ptr<AppAccountDataStorage> dataStoragePtr;
     ErrCode result = GetAccountInfoFromDataStorage(appAccountInfo, dataStoragePtr, uid);
@@ -354,10 +329,7 @@ ErrCode AppAccountControlManager::SetAssociatedData(const std::string &name, con
 ErrCode AppAccountControlManager::GetAccountCredential(const std::string &name, const std::string &credentialType,
     std::string &credential, const uid_t &uid, const std::string &bundleName)
 {
-    ACCOUNT_LOGI("enter");
-
-    ACCOUNT_LOGI("name = %{public}s", name.c_str());
-    ACCOUNT_LOGI("credentialType = %{public}s", credentialType.c_str());
+    ACCOUNT_LOGI("enter, name = %{public}s, credentialType = %{public}s.", name.c_str(), credentialType.c_str());
 
     AppAccountInfo appAccountInfo(name, bundleName);
     std::shared_ptr<AppAccountDataStorage> dataStoragePtr;
@@ -380,10 +352,7 @@ ErrCode AppAccountControlManager::GetAccountCredential(const std::string &name, 
 ErrCode AppAccountControlManager::SetAccountCredential(const std::string &name, const std::string &credentialType,
     const std::string &credential, const uid_t &uid, const std::string &bundleName, AppAccountInfo &appAccountInfo)
 {
-    ACCOUNT_LOGI("enter");
-
-    ACCOUNT_LOGI("name = %{public}s", name.c_str());
-    ACCOUNT_LOGI("credentialType = %{public}s, credential = %{public}s", credentialType.c_str(), credential.c_str());
+    ACCOUNT_LOGI("enter, name = %{public}s, credentialType = %{public}s.", name.c_str(), credentialType.c_str());
 
     std::shared_ptr<AppAccountDataStorage> dataStoragePtr;
     ErrCode result = GetAccountInfoFromDataStorage(appAccountInfo, dataStoragePtr, uid);
@@ -411,8 +380,7 @@ ErrCode AppAccountControlManager::SetAccountCredential(const std::string &name, 
 
 ErrCode AppAccountControlManager::GetOAuthToken(const OAuthRequest &request, std::string &token)
 {
-    ACCOUNT_LOGI("enter");
-    ACCOUNT_LOGI("name = %{public}s, owner= %{public}s, authType = %{public}s",
+    ACCOUNT_LOGI("enter, name = %{public}s, owner= %{public}s, authType = %{public}s",
         request.name.c_str(), request.owner.c_str(), request.authType.c_str());
     AppAccountInfo appAccountInfo(request.name, request.owner);
     std::shared_ptr<AppAccountDataStorage> dataStoragePtr;
@@ -432,8 +400,8 @@ ErrCode AppAccountControlManager::GetOAuthToken(const OAuthRequest &request, std
 
 ErrCode AppAccountControlManager::SetOAuthToken(const OAuthRequest &request)
 {
-    ACCOUNT_LOGI("enter");
-    ACCOUNT_LOGI("name = %{public}s, authType = %{public}s", request.name.c_str(), request.authType.c_str());
+    ACCOUNT_LOGI("enter, name = %{public}s, authType = %{public}s",
+        request.name.c_str(), request.authType.c_str());
     AppAccountInfo appAccountInfo(request.name, request.callerBundleName);
     std::shared_ptr<AppAccountDataStorage> dataStoragePtr;
     ErrCode result = GetAccountInfoFromDataStorage(appAccountInfo, dataStoragePtr, request.callerUid);
@@ -456,8 +424,7 @@ ErrCode AppAccountControlManager::SetOAuthToken(const OAuthRequest &request)
 
 ErrCode AppAccountControlManager::DeleteOAuthToken(const OAuthRequest &request)
 {
-    ACCOUNT_LOGI("enter");
-    ACCOUNT_LOGI("name = %{public}s, owner = %{public}s", request.name.c_str(), request.owner.c_str());
+    ACCOUNT_LOGI("enter, name = %{public}s, owner = %{public}s", request.name.c_str(), request.owner.c_str());
     AppAccountInfo appAccountInfo(request.name, request.owner);
     std::shared_ptr<AppAccountDataStorage> dataStoragePtr;
     ErrCode result = GetAccountInfoFromDataStorage(appAccountInfo, dataStoragePtr, request.callerUid);
@@ -486,9 +453,8 @@ ErrCode AppAccountControlManager::DeleteOAuthToken(const OAuthRequest &request)
 
 ErrCode AppAccountControlManager::SetOAuthTokenVisibility(const OAuthRequest &request)
 {
-    ACCOUNT_LOGI("enter");
-    ACCOUNT_LOGI("name = %{public}s, authType = %{public}s, bundleName = %{public}s, isTokenVisible = %{public}d",
-        request.name.c_str(), request.authType.c_str(), request.bundleName.c_str(), request.isTokenVisible);
+    ACCOUNT_LOGI("enter, name = %{public}s, authType = %{public}s, isTokenVisible = %{public}d",
+        request.name.c_str(), request.authType.c_str(), request.isTokenVisible);
     AppAccountInfo appAccountInfo(request.name, request.callerBundleName);
     std::shared_ptr<AppAccountDataStorage> dataStoragePtr;
     ErrCode result = GetAccountInfoFromDataStorage(appAccountInfo, dataStoragePtr, request.callerUid);
@@ -511,8 +477,7 @@ ErrCode AppAccountControlManager::SetOAuthTokenVisibility(const OAuthRequest &re
 
 ErrCode AppAccountControlManager::CheckOAuthTokenVisibility(const OAuthRequest &request, bool &isVisible)
 {
-    ACCOUNT_LOGI("enter");
-    ACCOUNT_LOGI("name = %{public}s, owner = %{public}s, authType = %{public}s, bundleName = %{public}s",
+    ACCOUNT_LOGI("enter, name = %{public}s, owner = %{public}s, authType = %{public}s, bundleName = %{public}s",
         request.name.c_str(), request.owner.c_str(), request.authType.c_str(), request.bundleName.c_str());
     isVisible = false;
     AppAccountInfo appAccountInfo(request.name, request.owner);
@@ -528,8 +493,7 @@ ErrCode AppAccountControlManager::CheckOAuthTokenVisibility(const OAuthRequest &
 ErrCode AppAccountControlManager::GetAllOAuthTokens(
     const OAuthRequest &request, std::vector<OAuthTokenInfo> &tokenInfos)
 {
-    ACCOUNT_LOGI("enter");
-    ACCOUNT_LOGI("name = %{public}s, owner = %{public}s", request.name.c_str(), request.owner.c_str());
+    ACCOUNT_LOGI("enter, name = %{public}s, owner = %{public}s", request.name.c_str(), request.owner.c_str());
     tokenInfos.clear();
     AppAccountInfo appAccountInfo(request.name, request.owner);
     std::shared_ptr<AppAccountDataStorage> dataStoragePtr;
@@ -564,8 +528,8 @@ ErrCode AppAccountControlManager::GetAllOAuthTokens(
 ErrCode AppAccountControlManager::GetOAuthList(
     const OAuthRequest &request, std::set<std::string> &oauthList)
 {
-    ACCOUNT_LOGI("enter");
-    ACCOUNT_LOGI("name = %{public}s, authType = %{public}s", request.name.c_str(), request.authType.c_str());
+    ACCOUNT_LOGI("enter, name = %{public}s, authType = %{public}s",
+        request.name.c_str(), request.authType.c_str());
     AppAccountInfo appAccountInfo(request.name, request.callerBundleName);
     std::shared_ptr<AppAccountDataStorage> dataStoragePtr;
     ErrCode result = GetAccountInfoFromDataStorage(appAccountInfo, dataStoragePtr, request.callerUid);
@@ -579,10 +543,7 @@ ErrCode AppAccountControlManager::GetOAuthList(
 ErrCode AppAccountControlManager::ClearOAuthToken(
     const std::string &name, const uid_t &uid, const std::string &bundleName)
 {
-    ACCOUNT_LOGI("enter");
-
-    ACCOUNT_LOGI("name = %{public}s", name.c_str());
-    ACCOUNT_LOGI("bundleName = %{public}s", bundleName.c_str());
+    ACCOUNT_LOGI("enter, name = %{public}s, bundleName = %{public}s.", name.c_str(), bundleName.c_str());
 
     AppAccountInfo appAccountInfo(name, bundleName);
     std::shared_ptr<AppAccountDataStorage> dataStoragePtr;
@@ -604,9 +565,7 @@ ErrCode AppAccountControlManager::ClearOAuthToken(
 ErrCode AppAccountControlManager::GetAllAccounts(const std::string &owner, std::vector<AppAccountInfo> &appAccounts,
     const uid_t &uid, const std::string &bundleName)
 {
-    ACCOUNT_LOGI("enter");
-
-    ACCOUNT_LOGI("owner = %{public}s", owner.c_str());
+    ACCOUNT_LOGI("enter, owner = %{public}s", owner.c_str());
 
     appAccounts.clear();
 
@@ -674,8 +633,7 @@ ErrCode AppAccountControlManager::GetAllAccessibleAccounts(
 
 ErrCode AppAccountControlManager::OnPackageRemoved(const uid_t &uid, const std::string &bundleName)
 {
-    ACCOUNT_LOGI("enter");
-    ACCOUNT_LOGI("uid = %{public}d, bundleName = %{public}s", uid, bundleName.c_str());
+    ACCOUNT_LOGI("enter, uid = %{public}d, bundleName = %{public}s", uid, bundleName.c_str());
 
     auto dataStoragePtr = GetDataStorage(uid);
     if (dataStoragePtr == nullptr) {
@@ -730,9 +688,7 @@ ErrCode AppAccountControlManager::GetAllAccountsFromDataStorage(const std::strin
     std::vector<AppAccountInfo> &appAccounts, const std::string &bundleName,
     const std::shared_ptr<AppAccountDataStorage> &dataStoragePtr)
 {
-    ACCOUNT_LOGI("enter");
-
-    ACCOUNT_LOGI("owner = %{public}s", owner.c_str());
+    ACCOUNT_LOGI("enter, owner = %{public}s", owner.c_str());
 
     appAccounts.clear();
 
@@ -823,9 +779,7 @@ std::shared_ptr<AppAccountDataStorage> AppAccountControlManager::GetDataStorage(
 
 ErrCode AppAccountControlManager::GetStoreId(const uid_t &uid, std::string &storeId)
 {
-    ACCOUNT_LOGI("enter");
-
-    ACCOUNT_LOGI("uid = %{public}d", uid);
+    ACCOUNT_LOGI("enter, uid = %{public}d", uid);
 
     std::int32_t uidToGetDeviceAccountId = uid;
 
@@ -1088,9 +1042,7 @@ ErrCode AppAccountControlManager::RemoveAuthorizedAccount(const std::string &bun
 ErrCode AppAccountControlManager::SaveAuthorizedAccountIntoDataStorage(const std::string &authorizedApp,
     AppAccountInfo &appAccountInfo, const std::shared_ptr<AppAccountDataStorage> &dataStoragePtr)
 {
-    ACCOUNT_LOGI("enter");
-
-    ACCOUNT_LOGI("authorizedApp = %{public}s", authorizedApp.c_str());
+    ACCOUNT_LOGI("enter, authorizedApp = %{public}s", authorizedApp.c_str());
 
     if (dataStoragePtr == nullptr) {
         ACCOUNT_LOGE("dataStoragePtr is nullptr");
@@ -1151,9 +1103,7 @@ ErrCode AppAccountControlManager::SaveAuthorizedAccountIntoDataStorage(const std
 ErrCode AppAccountControlManager::RemoveAuthorizedAccountFromDataStorage(const std::string &authorizedApp,
     AppAccountInfo &appAccountInfo, const std::shared_ptr<AppAccountDataStorage> &dataStoragePtr)
 {
-    ACCOUNT_LOGI("enter");
-
-    ACCOUNT_LOGI("authorizedApp = %{public}s", authorizedApp.c_str());
+    ACCOUNT_LOGI("enter, authorizedApp = %{public}s", authorizedApp.c_str());
 
     if (dataStoragePtr == nullptr) {
         ACCOUNT_LOGE("dataStoragePtr is nullptr");
