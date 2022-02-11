@@ -64,126 +64,84 @@ AppAccountInfo::AppAccountInfo(const std::string &name, const std::string &owner
 
 ErrCode AppAccountInfo::GetOwner(std::string &owner)
 {
-    ACCOUNT_LOGI("enter");
-
     owner = owner_;
-
     return ERR_OK;
 }
 
 ErrCode AppAccountInfo::SetOwner(const std::string &owner)
 {
-    ACCOUNT_LOGI("enter");
-
     owner_ = owner;
-
     return ERR_OK;
 }
 
 ErrCode AppAccountInfo::GetName(std::string &name) const
 {
-    ACCOUNT_LOGI("enter");
-
     name = name_;
-
     return ERR_OK;
 }
 
 ErrCode AppAccountInfo::SetName(const std::string &name)
 {
-    ACCOUNT_LOGI("enter");
-
     name_ = name;
-
     return ERR_OK;
 }
 
 ErrCode AppAccountInfo::GetExtraInfo(std::string &extraInfo) const
 {
-    ACCOUNT_LOGI("enter");
-
     extraInfo = extraInfo_;
-
     return ERR_OK;
 }
 
 ErrCode AppAccountInfo::SetExtraInfo(const std::string &extraInfo)
 {
-    ACCOUNT_LOGI("enter");
-
     extraInfo_ = extraInfo;
-
     return ERR_OK;
 }
 
 ErrCode AppAccountInfo::EnableAppAccess(const std::string &authorizedApp)
 {
-    ACCOUNT_LOGI("enter");
-
     auto it = authorizedApps_.emplace(authorizedApp);
     if (!it.second) {
         return ERR_APPACCOUNT_SERVICE_ENABLE_APP_ACCESS_ALREADY_EXISTS;
     }
-
     return ERR_OK;
 }
 
 ErrCode AppAccountInfo::DisableAppAccess(const std::string &authorizedApp)
 {
-    ACCOUNT_LOGI("enter");
-
     auto result = authorizedApps_.erase(authorizedApp);
-    ACCOUNT_LOGI("result = %{public}zu", result);
     if (result == 0) {
         return ERR_APPACCOUNT_SERVICE_DISABLE_APP_ACCESS_NOT_EXISTED;
     }
-
     return ERR_OK;
 }
 
 ErrCode AppAccountInfo::GetAuthorizedApps(std::set<std::string> &apps) const
 {
-    ACCOUNT_LOGI("enter");
-
     apps = authorizedApps_;
-
     return ERR_OK;
 }
 
 ErrCode AppAccountInfo::SetAuthorizedApps(const std::set<std::string> &apps)
 {
-    ACCOUNT_LOGI("enter");
-
     authorizedApps_ = apps;
-
     return ERR_OK;
 }
 
 ErrCode AppAccountInfo::GetSyncEnable(bool &syncEnable) const
 {
-    ACCOUNT_LOGI("enter");
-
     syncEnable = syncEnable_;
-
     return ERR_OK;
 }
 
 ErrCode AppAccountInfo::SetSyncEnable(const bool &syncEnable)
 {
-    ACCOUNT_LOGI("enter");
-
     syncEnable_ = syncEnable;
-
     return ERR_OK;
 }
 
 ErrCode AppAccountInfo::GetAssociatedData(const std::string &key, std::string &value) const
 {
-    ACCOUNT_LOGI("enter");
-
-    ACCOUNT_LOGI("key = %{public}s, value = %{public}s", key.c_str(), value.c_str());
-    ACCOUNT_LOGI("associatedData_ = %{public}s", associatedData_.c_str());
-
     auto jsonObject = Json::parse(associatedData_, nullptr, false);
     if (jsonObject.is_discarded()) {
         jsonObject = Json::object();
@@ -195,19 +153,11 @@ ErrCode AppAccountInfo::GetAssociatedData(const std::string &key, std::string &v
     }
 
     value = jsonObject.at(key);
-
-    ACCOUNT_LOGI("associatedData_ = %{public}s", associatedData_.c_str());
-
     return ERR_OK;
 }
 
 ErrCode AppAccountInfo::SetAssociatedData(const std::string &key, const std::string &value)
 {
-    ACCOUNT_LOGI("enter");
-
-    ACCOUNT_LOGI("key = %{public}s, value = %{public}s", key.c_str(), value.c_str());
-    ACCOUNT_LOGI("associatedData_ = %{public}s", associatedData_.c_str());
-
     auto jsonObject = Json::parse(associatedData_, nullptr, false);
     if (jsonObject.is_discarded()) {
         jsonObject = Json::object();
@@ -221,20 +171,11 @@ ErrCode AppAccountInfo::SetAssociatedData(const std::string &key, const std::str
     }
 
     associatedData_ = jsonObject.dump();
-
-    ACCOUNT_LOGI("associatedData_ = %{public}s", associatedData_.c_str());
-
     return ERR_OK;
 }
 
 ErrCode AppAccountInfo::GetAccountCredential(const std::string &credentialType, std::string &credential) const
 {
-    ACCOUNT_LOGI("enter");
-
-    ACCOUNT_LOGI("credentialType = %{public}s", credentialType.c_str());
-    ACCOUNT_LOGI("credential = %{public}s", credential.c_str());
-    ACCOUNT_LOGI("accountCredential_ = %{public}s", accountCredential_.c_str());
-
     auto jsonObject = Json::parse(accountCredential_, nullptr, false);
     if (jsonObject.is_discarded()) {
         jsonObject = Json::object();
@@ -246,20 +187,11 @@ ErrCode AppAccountInfo::GetAccountCredential(const std::string &credentialType, 
     }
 
     credential = jsonObject.at(credentialType);
-
-    ACCOUNT_LOGI("accountCredential_ = %{public}s", accountCredential_.c_str());
-
     return ERR_OK;
 }
 
 ErrCode AppAccountInfo::SetAccountCredential(const std::string &credentialType, const std::string &credential)
 {
-    ACCOUNT_LOGI("enter");
-
-    ACCOUNT_LOGI("credentialType = %{public}s", credentialType.c_str());
-    ACCOUNT_LOGI("credential = %{public}s", credential.c_str());
-    ACCOUNT_LOGI("accountCredential_ = %{public}s", accountCredential_.c_str());
-
     auto jsonObject = Json::parse(accountCredential_, nullptr, false);
     if (jsonObject.is_discarded()) {
         jsonObject = Json::object();
@@ -273,15 +205,11 @@ ErrCode AppAccountInfo::SetAccountCredential(const std::string &credentialType, 
     }
 
     accountCredential_ = jsonObject.dump();
-
-    ACCOUNT_LOGI("accountCredential_ = %{public}s", accountCredential_.c_str());
-
     return ERR_OK;
 }
 
 ErrCode AppAccountInfo::GetOAuthToken(const std::string &authType, std::string &token) const
 {
-    ACCOUNT_LOGI("enter");
     token = "";
     auto it = oauthTokens_.find(authType);
     if ((it == oauthTokens_.end()) || (it->second.token.empty())) {
@@ -294,7 +222,6 @@ ErrCode AppAccountInfo::GetOAuthToken(const std::string &authType, std::string &
 
 ErrCode AppAccountInfo::SetOAuthToken(const std::string &authType, const std::string &token)
 {
-    ACCOUNT_LOGI("enter");
     auto it = oauthTokens_.find(authType);
     if (it != oauthTokens_.end()) {
         it->second.token = token;
@@ -312,7 +239,6 @@ ErrCode AppAccountInfo::SetOAuthToken(const std::string &authType, const std::st
 
 ErrCode AppAccountInfo::DeleteOAuthToken(const std::string &authType, const std::string &token)
 {
-    ACCOUNT_LOGI("enter");
     auto it = oauthTokens_.find(authType);
     if ((it != oauthTokens_.end()) && (it->second.token == token)) {
         it->second.token = "";
@@ -324,7 +250,6 @@ ErrCode AppAccountInfo::DeleteOAuthToken(const std::string &authType, const std:
 ErrCode AppAccountInfo::SetOAuthTokenVisibility(
     const std::string &authType, const std::string &bundleName, bool isVisible)
 {
-    ACCOUNT_LOGI("enter");
     if (bundleName == owner_) {
         return ERR_OK;
     }
@@ -359,7 +284,6 @@ ErrCode AppAccountInfo::SetOAuthTokenVisibility(
 ErrCode AppAccountInfo::CheckOAuthTokenVisibility(
     const std::string &authType, const std::string &bundleName, bool &isVisible) const
 {
-    ACCOUNT_LOGI("enter");
     isVisible = false;
     if (bundleName == owner_) {
         isVisible = true;
@@ -379,7 +303,6 @@ ErrCode AppAccountInfo::CheckOAuthTokenVisibility(
 
 ErrCode AppAccountInfo::GetAllOAuthTokens(std::vector<OAuthTokenInfo> &tokenInfos) const
 {
-    ACCOUNT_LOGI("enter");
     tokenInfos.clear();
     for (auto it = oauthTokens_.begin(); it != oauthTokens_.end(); ++it) {
         tokenInfos.push_back(it->second);
@@ -389,7 +312,6 @@ ErrCode AppAccountInfo::GetAllOAuthTokens(std::vector<OAuthTokenInfo> &tokenInfo
 
 ErrCode AppAccountInfo::GetOAuthList(const std::string &authType, std::set<std::string> &oauthList) const
 {
-    ACCOUNT_LOGI("enter");
     oauthList.clear();
     auto it = oauthTokens_.find(authType);
     if (it == oauthTokens_.end()) {
@@ -401,8 +323,6 @@ ErrCode AppAccountInfo::GetOAuthList(const std::string &authType, std::set<std::
 
 bool AppAccountInfo::Marshalling(Parcel &parcel) const
 {
-    ACCOUNT_LOGI("enter");
-
     if (!parcel.WriteString(owner_)) {
         ACCOUNT_LOGE("failed to write string for owner_");
         return false;
@@ -447,8 +367,6 @@ bool AppAccountInfo::Marshalling(Parcel &parcel) const
 
 AppAccountInfo *AppAccountInfo::Unmarshalling(Parcel &parcel)
 {
-    ACCOUNT_LOGI("enter");
-
     AppAccountInfo *appAccountInfo = new (std::nothrow) AppAccountInfo();
 
     if (appAccountInfo && !appAccountInfo->ReadFromParcel(parcel)) {
@@ -462,8 +380,6 @@ AppAccountInfo *AppAccountInfo::Unmarshalling(Parcel &parcel)
 
 Json AppAccountInfo::ToJson() const
 {
-    ACCOUNT_LOGI("enter");
-
     auto tokenArray = Json::array();
     for (auto it = oauthTokens_.begin(); it != oauthTokens_.end(); ++it) {
         if ((it->second.token.empty()) && (it->second.authList.size() == 0)) {
@@ -492,7 +408,6 @@ Json AppAccountInfo::ToJson() const
 
 void AppAccountInfo::ParseTokenInfosFromJson(const Json &jsonObject)
 {
-    ACCOUNT_LOGI("enter");
     oauthTokens_.clear();
     for (auto it = jsonObject.begin(); it != jsonObject.end(); ++it) {
         OAuthTokenInfo tokenInfo;
@@ -511,7 +426,6 @@ void AppAccountInfo::ParseTokenInfosFromJson(const Json &jsonObject)
 
 void AppAccountInfo::FromJson(const Json &jsonObject)
 {
-    ACCOUNT_LOGI("enter");
     const auto &jsonObjectEnd = jsonObject.end();
 
     OHOS::AccountSA::GetDataByType<std::string>(
@@ -535,29 +449,17 @@ void AppAccountInfo::FromJson(const Json &jsonObject)
 
 std::string AppAccountInfo::ToString() const
 {
-    ACCOUNT_LOGI("enter");
-
     auto jsonObject = ToJson();
-
     return jsonObject.dump();
 }
 
 std::string AppAccountInfo::GetPrimeKey() const
 {
-    ACCOUNT_LOGI("enter");
-
-    ACCOUNT_LOGI("name_ = %{public}s, owner_ = %{public}s", name_.c_str(), owner_.c_str());
-
-    const std::string id = owner_ + HYPHEN + name_;
-    ACCOUNT_LOGI("id = %{public}s", id.c_str());
-
-    return id;
+    return (owner_ + HYPHEN + name_);
 }
 
 bool AppAccountInfo::ReadFromParcel(Parcel &parcel)
 {
-    ACCOUNT_LOGI("enter");
-
     if (!parcel.ReadString(owner_)) {
         ACCOUNT_LOGE("failed to read string for owner_");
         return false;
@@ -602,8 +504,6 @@ bool AppAccountInfo::ReadFromParcel(Parcel &parcel)
 
 bool AppAccountInfo::WriteStringSet(const std::set<std::string> &stringSet, Parcel &data) const
 {
-    ACCOUNT_LOGI("enter");
-
     if (!data.WriteUint32(stringSet.size())) {
         ACCOUNT_LOGE("failed to WriteInt32 for stringSet.size()");
         return false;
@@ -621,8 +521,6 @@ bool AppAccountInfo::WriteStringSet(const std::set<std::string> &stringSet, Parc
 
 bool AppAccountInfo::ReadStringSet(std::set<std::string> &stringSet, Parcel &data)
 {
-    ACCOUNT_LOGI("enter");
-
     uint32_t size = 0;
     if (!data.ReadUint32(size)) {
         ACCOUNT_LOGE("failed to ReadInt32 for size");
@@ -644,8 +542,6 @@ bool AppAccountInfo::ReadStringSet(std::set<std::string> &stringSet, Parcel &dat
 
 bool AppAccountInfo::WriteStringMap(const std::map<std::string, std::string> &stringMap, Parcel &data) const
 {
-    ACCOUNT_LOGI("enter");
-
     if (!data.WriteInt32(stringMap.size())) {
         ACCOUNT_LOGE("failed to WriteInt32 for stringSet.size()");
         return false;
@@ -667,7 +563,6 @@ bool AppAccountInfo::WriteStringMap(const std::map<std::string, std::string> &st
 
 bool AppAccountInfo::WriteTokenInfos(const std::map<std::string, OAuthTokenInfo> &tokenInfos, Parcel &data) const
 {
-    ACCOUNT_LOGI("enter");
     if (!data.WriteInt32(tokenInfos.size())) {
         ACCOUNT_LOGE("failed to WriteInt32 for stringSet.size()");
         return false;
@@ -691,8 +586,6 @@ bool AppAccountInfo::WriteTokenInfos(const std::map<std::string, OAuthTokenInfo>
 
 bool AppAccountInfo::ReadStringMap(std::map<std::string, std::string> &stringMap, Parcel &data)
 {
-    ACCOUNT_LOGI("enter");
-
     int32_t size = 0;
     if (!data.ReadInt32(size)) {
         ACCOUNT_LOGE("failed to ReadInt32 for size");
@@ -719,7 +612,6 @@ bool AppAccountInfo::ReadStringMap(std::map<std::string, std::string> &stringMap
 
 bool AppAccountInfo::ReadTokenInfos(std::map<std::string, OAuthTokenInfo> &tokenInfos, Parcel &data)
 {
-    ACCOUNT_LOGI("enter");
     int32_t size = 0;
     if (!data.ReadInt32(size)) {
         ACCOUNT_LOGE("failed to ReadInt32 for size");

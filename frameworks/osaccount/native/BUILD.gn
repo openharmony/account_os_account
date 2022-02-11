@@ -20,6 +20,7 @@ config("osaccountinterface_config") {
     "${common_path}/account_error/include",
     "${common_path}/database/include",
     "${os_account_interfaces_native_path}/include",
+    "//third_party/json/include",
     "//utils/native/base/include",
   ]
   cflags = []

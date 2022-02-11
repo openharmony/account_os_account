@@ -138,7 +138,7 @@ void FuzzTestManager::StartFuzzTest()
             it = remainderMap_.erase(it);
         } else {
             index.push_back(it->first);
-            it++;
+            ++it;
         }
     }
 

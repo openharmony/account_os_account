@@ -86,11 +86,7 @@ ErrCode AppAccount::DeleteAccount(const std::string &name)
 
 ErrCode AppAccount::GetAccountExtraInfo(const std::string &name, std::string &extraInfo)
 {
-    ACCOUNT_LOGI("enter");
-
-    ACCOUNT_LOGI("name = %{public}s", name.c_str());
-    ACCOUNT_LOGI("extraInfo = %{public}s", extraInfo.c_str());
-
+    ACCOUNT_LOGI("enter, name = %{public}s.", name.c_str());
     ErrCode result = CheckParameters(name, extraInfo);
     if (result != ERR_OK) {
         ACCOUNT_LOGE("failed to check parameters");
@@ -108,11 +104,7 @@ ErrCode AppAccount::GetAccountExtraInfo(const std::string &name, std::string &ex
 
 ErrCode AppAccount::SetAccountExtraInfo(const std::string &name, const std::string &extraInfo)
 {
-    ACCOUNT_LOGI("enter");
-
-    ACCOUNT_LOGI("name = %{public}s", name.c_str());
-    ACCOUNT_LOGI("extraInfo = %{public}s", extraInfo.c_str());
-
+    ACCOUNT_LOGI("enter, name = %{public}s, extraInfo = %{public}s", name.c_str(), extraInfo.c_str());
     ErrCode result = CheckParameters(name, extraInfo);
     if (result != ERR_OK) {
         ACCOUNT_LOGE("failed to check parameters");
@@ -130,11 +122,7 @@ ErrCode AppAccount::SetAccountExtraInfo(const std::string &name, const std::stri
 
 ErrCode AppAccount::EnableAppAccess(const std::string &name, const std::string &authorizedApp)
 {
-    ACCOUNT_LOGI("enter");
-
-    ACCOUNT_LOGI("name = %{public}s", name.c_str());
-    ACCOUNT_LOGI("authorizedApp = %{public}s", authorizedApp.c_str());
-
+    ACCOUNT_LOGI("enter, name = %{public}s, authorizedApp = %{public}s", name.c_str(), authorizedApp.c_str());
     ErrCode result = CheckParameters(name);
     if (result != ERR_OK) {
         ACCOUNT_LOGE("failed to check parameters");
@@ -162,11 +150,7 @@ ErrCode AppAccount::EnableAppAccess(const std::string &name, const std::string &
 
 ErrCode AppAccount::DisableAppAccess(const std::string &name, const std::string &authorizedApp)
 {
-    ACCOUNT_LOGI("enter");
-
-    ACCOUNT_LOGI("name = %{public}s", name.c_str());
-    ACCOUNT_LOGI("authorizedApp = %{public}s", authorizedApp.c_str());
-
+    ACCOUNT_LOGI("enter, name = %{public}s, authorizedApp = %{public}s", name.c_str(), authorizedApp.c_str());
     ErrCode result = CheckParameters(name);
     if (result != ERR_OK) {
         ACCOUNT_LOGE("failed to check parameters");
@@ -194,10 +178,7 @@ ErrCode AppAccount::DisableAppAccess(const std::string &name, const std::string 
 
 ErrCode AppAccount::CheckAppAccountSyncEnable(const std::string &name, bool &syncEnable)
 {
-    ACCOUNT_LOGI("enter");
-
-    ACCOUNT_LOGI("name = %{public}s", name.c_str());
-
+    ACCOUNT_LOGI("enter, name = %{public}s", name.c_str());
     ErrCode result = CheckParameters(name);
     if (result != ERR_OK) {
         ACCOUNT_LOGE("failed to check parameters");
@@ -215,11 +196,7 @@ ErrCode AppAccount::CheckAppAccountSyncEnable(const std::string &name, bool &syn
 
 ErrCode AppAccount::SetAppAccountSyncEnable(const std::string &name, const bool &syncEnable)
 {
-    ACCOUNT_LOGI("enter");
-
-    ACCOUNT_LOGI("name = %{public}s", name.c_str());
-    ACCOUNT_LOGI("syncEnable = %{public}d", syncEnable);
-
+    ACCOUNT_LOGI("enter, name = %{public}s, syncEnable = %{public}d", name.c_str(), syncEnable);
     ErrCode result = CheckParameters(name);
     if (result != ERR_OK) {
         ACCOUNT_LOGE("failed to check parameters");
@@ -237,11 +214,7 @@ ErrCode AppAccount::SetAppAccountSyncEnable(const std::string &name, const bool 
 
 ErrCode AppAccount::GetAssociatedData(const std::string &name, const std::string &key, std::string &value)
 {
-    ACCOUNT_LOGI("enter");
-
-    ACCOUNT_LOGI("name = %{public}s", name.c_str());
-    ACCOUNT_LOGI("key = %{public}s", key.c_str());
-
+    ACCOUNT_LOGI("enter, name = %{public}s, key = %{public}s", name.c_str(), key.c_str());
     ErrCode result = CheckParameters(name);
     if (result != ERR_OK) {
         ACCOUNT_LOGE("failed to check parameters");
@@ -269,11 +242,8 @@ ErrCode AppAccount::GetAssociatedData(const std::string &name, const std::string
 
 ErrCode AppAccount::SetAssociatedData(const std::string &name, const std::string &key, const std::string &value)
 {
-    ACCOUNT_LOGI("enter");
-
-    ACCOUNT_LOGI("name = %{public}s", name.c_str());
+    ACCOUNT_LOGI("enter, name = %{public}s", name.c_str());
     ACCOUNT_LOGI("key = %{public}s, value = %{public}s", key.c_str(), value.c_str());
-
     ErrCode result = CheckParameters(name);
     if (result != ERR_OK) {
         ACCOUNT_LOGE("failed to check parameters");
@@ -307,11 +277,7 @@ ErrCode AppAccount::SetAssociatedData(const std::string &name, const std::string
 ErrCode AppAccount::GetAccountCredential(
     const std::string &name, const std::string &credentialType, std::string &credential)
 {
-    ACCOUNT_LOGI("enter");
-
-    ACCOUNT_LOGI("name = %{public}s", name.c_str());
-    ACCOUNT_LOGI("credentialType = %{public}s", credentialType.c_str());
-
+    ACCOUNT_LOGI("enter, name = %{public}s, credentialType = %{public}s", name.c_str(), credentialType.c_str());
     ErrCode result = CheckParameters(name);
     if (result != ERR_OK) {
         ACCOUNT_LOGE("failed to check parameters");
@@ -340,11 +306,7 @@ ErrCode AppAccount::GetAccountCredential(
 ErrCode AppAccount::SetAccountCredential(
     const std::string &name, const std::string &credentialType, const std::string &credential)
 {
-    ACCOUNT_LOGI("enter");
-
-    ACCOUNT_LOGI("name = %{public}s", name.c_str());
-    ACCOUNT_LOGI("credentialType = %{public}s, credential = %{public}s", credentialType.c_str(), credential.c_str());
-
+    ACCOUNT_LOGI("enter, name = %{public}s, credentialType = %{public}s", name.c_str(), credentialType.c_str());
     ErrCode result = CheckParameters(name);
     if (result != ERR_OK) {
         ACCOUNT_LOGE("failed to check parameters");
@@ -362,7 +324,7 @@ ErrCode AppAccount::SetAccountCredential(
     };
 
     if (credential.size() > CREDENTIAL_MAX_SIZE) {
-        ACCOUNT_LOGE("credential is out of range, credential.size() = %{public}zu", credential.size());
+        ACCOUNT_LOGE("credential is out of range.");
         return ERR_APPACCOUNT_KIT_CREDENTIAL_OUT_OF_RANGE;
     }
 
@@ -377,8 +339,7 @@ ErrCode AppAccount::SetAccountCredential(
 
 ErrCode AppAccount::Authenticate(OAuthRequest &request)
 {
-    ACCOUNT_LOGI("enter");
-    ACCOUNT_LOGI("name = %{public}s, owner = %{public}s, authType = %{public}s",
+    ACCOUNT_LOGI("enter, name = %{public}s, owner = %{public}s, authType = %{public}s",
         request.name.c_str(), request.owner.c_str(), request.authType.c_str());
     ErrCode result = CheckParameters(request.name, "", request.owner, request.authType);
     if (result != ERR_OK) {
@@ -396,8 +357,7 @@ ErrCode AppAccount::Authenticate(OAuthRequest &request)
 ErrCode AppAccount::GetOAuthToken(const std::string &name, const std::string &owner, const std::string &authType,
     std::string &token)
 {
-    ACCOUNT_LOGI("enter");
-    ACCOUNT_LOGI("name = %{public}s, owner = %{public}s, authType = %{public}s",
+    ACCOUNT_LOGI("enter, name = %{public}s, owner = %{public}s, authType = %{public}s",
         name.c_str(), owner.c_str(), authType.c_str());
     ErrCode result = CheckParameters(name, "", owner, authType);
     if (result != ERR_OK) {
@@ -414,8 +374,7 @@ ErrCode AppAccount::GetOAuthToken(const std::string &name, const std::string &ow
 
 ErrCode AppAccount::SetOAuthToken(const std::string &name, const std::string &authType, const std::string &token)
 {
-    ACCOUNT_LOGI("enter");
-    ACCOUNT_LOGI("name = %{public}s, authType = %{public}s", name.c_str(), authType.c_str());
+    ACCOUNT_LOGI("enter, name = %{public}s, authType = %{public}s", name.c_str(), authType.c_str());
     ErrCode result = CheckParameters(name, "", OWNER_SELF, authType, token);
     if (result != ERR_OK) {
         ACCOUNT_LOGE("failed to check parameters");
@@ -436,8 +395,7 @@ ErrCode AppAccount::SetOAuthToken(const std::string &name, const std::string &au
 ErrCode AppAccount::DeleteOAuthToken(
     const std::string &name, const std::string &owner, const std::string &authType, const std::string &token)
 {
-    ACCOUNT_LOGI("enter");
-    ACCOUNT_LOGI("name = %{public}s, owner = %{public}s, authType= %{public}s",
+    ACCOUNT_LOGI("enter, name = %{public}s, owner = %{public}s, authType= %{public}s",
         name.c_str(), owner.c_str(), authType.c_str());
     ErrCode result = CheckParameters(name, "", owner, authType, token);
     if (result != ERR_OK) {
@@ -455,8 +413,7 @@ ErrCode AppAccount::DeleteOAuthToken(
 ErrCode AppAccount::SetOAuthTokenVisibility(const std::string &name, const std::string &authType,
     const std::string &bundleName, bool isVisible)
 {
-    ACCOUNT_LOGI("enter");
-    ACCOUNT_LOGI("name = %{public}s, authType = %{public}s, bundleName = %{public}s, isVisible = %{public}d",
+    ACCOUNT_LOGI("enter, name = %{public}s, authType = %{public}s, bundleName = %{public}s, isVisible = %{public}d",
         name.c_str(), authType.c_str(), bundleName.c_str(), isVisible);
     ErrCode result = CheckParameters(name, "", bundleName, authType);
     if ((result != ERR_OK) || (bundleName.size() == 0) || (bundleName.size() > AUTHORIZED_APP_MAX_SIZE)) {
@@ -474,8 +431,7 @@ ErrCode AppAccount::SetOAuthTokenVisibility(const std::string &name, const std::
 ErrCode AppAccount::CheckOAuthTokenVisibility(const std::string &name, const std::string &authType,
     const std::string &bundleName, bool &isVisible)
 {
-    ACCOUNT_LOGI("enter");
-    ACCOUNT_LOGI("name = %{public}s, authType = %{public}s, bundleName = %{public}s, isVisible = %{public}d",
+    ACCOUNT_LOGI("enter, name = %{public}s, authType = %{public}s, bundleName = %{public}s, isVisible = %{public}d",
         name.c_str(), authType.c_str(), bundleName.c_str(), isVisible);
     ErrCode result = CheckParameters(name, "", bundleName, authType);
     if ((result != ERR_OK) || (bundleName.size() == 0) || (bundleName.size() > AUTHORIZED_APP_MAX_SIZE)) {
@@ -492,8 +448,7 @@ ErrCode AppAccount::CheckOAuthTokenVisibility(const std::string &name, const std
 
 ErrCode AppAccount::GetAuthenticatorInfo(const std::string &owner, AuthenticatorInfo &info)
 {
-    ACCOUNT_LOGI("enter");
-    ACCOUNT_LOGI("owner = %{public}s", owner.c_str());
+    ACCOUNT_LOGI("enter, owner = %{public}s", owner.c_str());
     ErrCode result = CheckParameters(NAME_ANONYMOUS, "", owner);
     if (result != ERR_OK) {
         ACCOUNT_LOGE("failed to check parameters");
@@ -510,8 +465,7 @@ ErrCode AppAccount::GetAuthenticatorInfo(const std::string &owner, Authenticator
 ErrCode AppAccount::GetAllOAuthTokens(
     const std::string &name, const std::string &owner, std::vector<OAuthTokenInfo> &tokenInfos)
 {
-    ACCOUNT_LOGI("enter");
-    ACCOUNT_LOGI("name = %{public}s, owner = %{public}s", name.c_str(), owner.c_str());
+    ACCOUNT_LOGI("enter, name = %{public}s, owner = %{public}s", name.c_str(), owner.c_str());
     ErrCode result = CheckParameters(name, "", owner);
     if (result != ERR_OK) {
         ACCOUNT_LOGE("failed to check parameters");
@@ -527,8 +481,7 @@ ErrCode AppAccount::GetAllOAuthTokens(
 
 ErrCode AppAccount::GetOAuthList(const std::string &name, const std::string &authType, std::set<std::string> &oauthList)
 {
-    ACCOUNT_LOGI("enter");
-    ACCOUNT_LOGI("name = %{public}s, authType = %{public}s", name.c_str(), authType.c_str());
+    ACCOUNT_LOGI("enter, name = %{public}s, authType = %{public}s", name.c_str(), authType.c_str());
     ErrCode result = CheckParameters(name, "", OWNER_SELF, authType);
     if (result != ERR_OK) {
         ACCOUNT_LOGE("failed to check parameters");
@@ -545,7 +498,6 @@ ErrCode AppAccount::GetOAuthList(const std::string &name, const std::string &aut
 ErrCode AppAccount::GetAuthenticatorCallback(const std::string &sessionId, sptr<IRemoteObject> &callback)
 {
     ACCOUNT_LOGI("enter");
-    ACCOUNT_LOGI("sessionId = %{public}s", sessionId.c_str());
     ErrCode result = GetAppAccountProxy();
     if (result != ERR_OK) {
         ACCOUNT_LOGE("failed to get appAccountProxy_");
@@ -556,9 +508,7 @@ ErrCode AppAccount::GetAuthenticatorCallback(const std::string &sessionId, sptr<
 
 ErrCode AppAccount::GetAllAccounts(const std::string &owner, std::vector<AppAccountInfo> &appAccounts)
 {
-    ACCOUNT_LOGI("enter");
-
-    ACCOUNT_LOGI("owner = %{public}s", owner.c_str());
+    ACCOUNT_LOGI("enter, owner = %{public}s", owner.c_str());
 
     if (owner.size() == 0) {
         ACCOUNT_LOGE("owner is empty");
@@ -750,9 +700,7 @@ ErrCode AppAccount::CheckParameters(const std::string &name, const std::string &
 
 ErrCode AppAccount::CheckSpecialCharacters(const std::string &name)
 {
-    ACCOUNT_LOGI("enter");
-
-    ACCOUNT_LOGI("name = %{public}s", name.c_str());
+    ACCOUNT_LOGI("enter, name = %{public}s", name.c_str());
 
     for (auto specialCharacter : SPECIAL_CHARACTERS) {
         std::size_t found = name.find(specialCharacter);
