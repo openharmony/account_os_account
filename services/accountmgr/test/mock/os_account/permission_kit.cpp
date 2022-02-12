@@ -22,13 +22,9 @@ using namespace OHOS::AccountSA;
 namespace OHOS {
 namespace Security {
 namespace Permission {
-int PermissionKit::VerifyPermission(const std::string &bundleName, const std::string &permissionName, int userId)
+int PermissionKit::VerifyPermission(const std::string &permissionName)
 {
-    ACCOUNT_LOGI("enter");
-
-    ACCOUNT_LOGI("bundleName = %{public}s", bundleName.c_str());
     ACCOUNT_LOGI("permissionName = %{public}s", permissionName.c_str());
-    ACCOUNT_LOGI("userId = %{public}d", userId);
 
     return PermissionState::PERMISSION_GRANTED;
 }

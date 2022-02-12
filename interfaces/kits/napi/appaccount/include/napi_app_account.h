@@ -20,6 +20,7 @@
 
 namespace OHOS {
 namespace AccountJsKit {
+static thread_local napi_ref constructorRef_ = nullptr;
 class NapiAppAccount {
 public:
     static napi_value Init(napi_env env, napi_value exports);
@@ -55,8 +56,6 @@ private:
     static napi_value Subscribe(napi_env env, napi_callback_info cbInfo);
     static napi_value Unsubscribe(napi_env env, napi_callback_info cbInfo);
     static napi_value JsConstructor(napi_env env, napi_callback_info cbinfo);
-
-    static napi_ref constructorRef_;
 };
 }  // namespace AccountJsKit
 }  // namespace OHOS

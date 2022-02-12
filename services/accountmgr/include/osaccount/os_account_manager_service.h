@@ -96,6 +96,7 @@ public:
 private:
     virtual ErrCode DumpStateByAccounts(
         const std::vector<OsAccountInfo> &osAccountInfos, std::vector<std::string> &state);
+    virtual bool IsRootProcess();
 
 private:
     std::shared_ptr<IInnerOsAccount> innerManager_;

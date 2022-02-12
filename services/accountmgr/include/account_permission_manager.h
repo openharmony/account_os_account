@@ -27,7 +27,7 @@ public:
     ~AccountPermissionManager();
 
     bool IsSystemUid(const uid_t &uid) const;
-    ErrCode VerifyPermission(const uid_t &uid, const std::string &permissionName, const std::string &bundleName);
+    ErrCode VerifyPermission(const std::string &permissionName);
 
     static const std::string DISTRIBUTED_DATASYNC;
     static const std::string GET_ACCOUNTS_PRIVILEGED;

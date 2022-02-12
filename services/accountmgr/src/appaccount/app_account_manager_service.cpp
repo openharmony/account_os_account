@@ -187,8 +187,7 @@ ErrCode AppAccountManagerService::CheckAppAccountSyncEnable(const std::string &n
         return result;
     }
 
-    result = permissionManagerPtr_->VerifyPermission(
-        callingUid, AccountPermissionManager::DISTRIBUTED_DATASYNC, bundleName);
+    result = permissionManagerPtr_->VerifyPermission(AccountPermissionManager::DISTRIBUTED_DATASYNC);
     if (result != ERR_OK) {
         ACCOUNT_LOGE("failed to verify permission for DISTRIBUTED_DATASYNC, result = %{public}d", result);
         return result;
@@ -210,8 +209,7 @@ ErrCode AppAccountManagerService::SetAppAccountSyncEnable(const std::string &nam
         return result;
     }
 
-    result = permissionManagerPtr_->VerifyPermission(
-        callingUid, AccountPermissionManager::DISTRIBUTED_DATASYNC, bundleName);
+    result = permissionManagerPtr_->VerifyPermission(AccountPermissionManager::DISTRIBUTED_DATASYNC);
     if (result != ERR_OK) {
         ACCOUNT_LOGE("failed to verify permission for DISTRIBUTED_DATASYNC, result = %{public}d", result);
         return result;
@@ -519,8 +517,7 @@ ErrCode AppAccountManagerService::GetAllAccounts(const std::string &owner, std::
         return result;
     }
 
-    result = permissionManagerPtr_->VerifyPermission(
-        callingUid, AccountPermissionManager::GET_ACCOUNTS_PRIVILEGED, bundleName);
+    result = permissionManagerPtr_->VerifyPermission(AccountPermissionManager::GET_ACCOUNTS_PRIVILEGED);
     if (result != ERR_OK) {
         ACCOUNT_LOGE("failed to verify permission for GET_ACCOUNTS_PRIVILEGED, result = %{public}d", result);
         return result;
@@ -549,8 +546,7 @@ ErrCode AppAccountManagerService::GetAllAccessibleAccounts(std::vector<AppAccoun
         return result;
     }
 
-    result = permissionManagerPtr_->VerifyPermission(
-        callingUid, AccountPermissionManager::GET_ACCOUNTS_PRIVILEGED, bundleName);
+    result = permissionManagerPtr_->VerifyPermission(AccountPermissionManager::GET_ACCOUNTS_PRIVILEGED);
     if (result != ERR_OK) {
         ACCOUNT_LOGE("failed to verify permission for GET_ACCOUNTS_PRIVILEGED, result = %{public}d", result);
         return result;
