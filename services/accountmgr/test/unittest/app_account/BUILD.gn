@@ -99,9 +99,9 @@ ohos_unittest("account_permission_manager_test") {
   ]
 
   external_deps = [
+    "ability_base:base",
+    "ability_base:want",
     "ability_runtime:app_manager",
-    "ability_runtime:base",
-    "ability_runtime:want",
     "bundle_framework:appexecfwk_base",
     "bundle_framework:appexecfwk_core",
     "ces_standard:cesfwk_core",
@@ -133,9 +133,9 @@ ohos_unittest("app_account_data_storage_test") {
   ]
 
   external_deps = [
+    "ability_base:base",
+    "ability_base:want",
     "ability_runtime:app_manager",
-    "ability_runtime:base",
-    "ability_runtime:want",
     "bundle_framework:appexecfwk_base",
     "bundle_framework:appexecfwk_core",
     "distributeddatamgr:distributeddata_inner",
@@ -165,9 +165,9 @@ ohos_unittest("app_account_info_test") {
   ]
 
   external_deps = [
+    "ability_base:base",
+    "ability_base:want",
     "ability_runtime:app_manager",
-    "ability_runtime:base",
-    "ability_runtime:want",
     "bundle_framework:appexecfwk_base",
     "bundle_framework:appexecfwk_core",
     "distributeddatamgr:distributeddata_inner",
@@ -198,9 +198,9 @@ ohos_unittest("app_account_manager_service_test") {
   ]
 
   external_deps = [
+    "ability_base:base",
+    "ability_base:want",
     "ability_runtime:app_manager",
-    "ability_runtime:base",
-    "ability_runtime:want",
     "bundle_framework:appexecfwk_base",
     "bundle_framework:appexecfwk_core",
     "ces_standard:cesfwk_core",
@@ -232,9 +232,9 @@ ohos_unittest("app_account_subscribe_info_test") {
   ]
 
   external_deps = [
+    "ability_base:base",
+    "ability_base:want",
     "ability_runtime:app_manager",
-    "ability_runtime:base",
-    "ability_runtime:want",
     "bundle_framework:appexecfwk_base",
     "bundle_framework:appexecfwk_core",
     "distributeddatamgr:distributeddata_inner",
@@ -264,9 +264,9 @@ ohos_unittest("app_account_test") {
   ]
 
   external_deps = [
+    "ability_base:base",
+    "ability_base:want",
     "ability_runtime:app_manager",
-    "ability_runtime:base",
-    "ability_runtime:want",
     "bundle_framework:appexecfwk_base",
     "bundle_framework:appexecfwk_core",
     "distributeddatamgr:distributeddata_inner",
@@ -296,9 +296,9 @@ ohos_unittest("inner_app_account_manager_test") {
   ]
 
   external_deps = [
+    "ability_base:base",
+    "ability_base:want",
     "ability_runtime:app_manager",
-    "ability_runtime:base",
-    "ability_runtime:want",
     "bundle_framework:appexecfwk_base",
     "bundle_framework:appexecfwk_core",
     "distributeddatamgr:distributeddata_inner",
