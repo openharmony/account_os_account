@@ -22,12 +22,6 @@ using namespace testing::ext;
 using namespace OHOS;
 using namespace OHOS::AccountSA;
 
-namespace {
-const std::string STRING_OWNER = "com.example.owner";
-
-constexpr std::int32_t UID = 10000;
-}  // namespace
-
 class AccountPermissionManagerTest : public testing::Test {
 public:
     static void SetUpTestCase(void);
@@ -59,6 +53,6 @@ HWTEST_F(AccountPermissionManagerTest, AccountPermissionManager_VerifyPermission
     ACCOUNT_LOGI("AccountPermissionManager_VerifyPermission_0100");
 
     auto managerPtr = DelayedSingleton<AccountPermissionManager>::GetInstance();
-    ErrCode result = managerPtr->VerifyPermission(UID, AccountPermissionManager::DISTRIBUTED_DATASYNC, STRING_OWNER);
+    ErrCode result = managerPtr->VerifyPermission(AccountPermissionManager::DISTRIBUTED_DATASYNC);
     EXPECT_EQ(result, ERR_OK);
 }

@@ -20,7 +20,6 @@
             "constraint.bluetooth.share",
             "constraint.usb.file.transfer",
             "constraint.credentials.set",
-            "constraint.os.account.remove",
             "constraint.managed.profile.remove",
             "constraint.debug.features.use",
             "constraint.vpn.set",
@@ -28,7 +27,6 @@
             "constraint.tethering.config",
             "constraint.network.reset",
             "constraint.factory.reset",
-            "constraint.os.account.create",
             "constraint.add.managed.profile",
             "constraint.apps.verify.disable",
             "constraint.cell.broadcasts.set"
@@ -37,7 +35,6 @@
             "constraint.tethering.config",
             "constraint.network.reset",
             "constraint.factory.reset",
-            "constraint.os.account.create",
             "constraint.add.managed.profile",
             "constraint.apps.verify.disable",
             "constraint.cell.broadcasts.set",
