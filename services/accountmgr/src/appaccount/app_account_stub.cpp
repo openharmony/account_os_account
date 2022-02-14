@@ -114,10 +114,6 @@ const std::map<uint32_t, AppAccountStub::MessageProcFunction> AppAccountStub::me
         &AppAccountStub::ProcGetOAuthList,
     },
     {
-        static_cast<uint32_t>(IAppAccount::Message::CLEAR_OAUTH_TOKEN),
-        &AppAccountStub::ProcClearOAuthToken,
-    },
-    {
         static_cast<uint32_t>(IAppAccount::Message::GET_ALL_ACCOUNTS),
         &AppAccountStub::ProcGetAllAccounts,
     },
@@ -985,30 +981,6 @@ ErrCode AppAccountStub::ProcGetAuthenticatorCallback(MessageParcel &data, Messag
     }
     ACCOUNT_LOGI("end");
     return ERR_OK;
-}
-
-ErrCode AppAccountStub::ProcClearOAuthToken(MessageParcel &data, MessageParcel &reply)
-{
-    ACCOUNT_LOGI("enter");
-
-    std::string name = data.ReadString();
-    if (name.size() == 0) {
-        ACCOUNT_LOGE("failed to read string for name");
-        if (!reply.WriteInt32(ERR_APPACCOUNT_KIT_READ_STRING_NAME)) {
-            ACCOUNT_LOGE("failed to write reply");
-            return IPC_STUB_WRITE_PARCEL_ERR;
-        }
-
-        return ERR_NONE;
-    }
-
-    ErrCode result = ClearOAuthToken(name);
-    if (!reply.WriteInt32(result)) {
-        ACCOUNT_LOGE("failed to write reply");
-        return IPC_STUB_WRITE_PARCEL_ERR;
-    }
-
-    return ERR_NONE;
 }
 
 ErrCode AppAccountStub::ProcGetAllAccounts(MessageParcel &data, MessageParcel &reply)

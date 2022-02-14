@@ -68,7 +68,6 @@ public:
     ErrCode CheckOAuthTokenVisibility(const OAuthRequest &request, bool &isVisible);
     ErrCode GetAllOAuthTokens(const OAuthRequest &request, std::vector<OAuthTokenInfo> &tokenInfos);
     ErrCode GetOAuthList(const OAuthRequest &request, std::set<std::string> &oauthList);
-    ErrCode ClearOAuthToken(const std::string &name, const uid_t &uid, const std::string &bundleName);
 
     ErrCode GetAllAccounts(const std::string &owner, std::vector<AppAccountInfo> &appAccounts, const uid_t &uid,
         const std::string &bundleName);
@@ -106,8 +105,7 @@ private:
         const std::shared_ptr<AppAccountDataStorage> &dataStoragePtr);
 
 private:
-    std::map<std::string, std::string> dataCache_;
-
+    std::mutex mutex_;
     std::size_t ACCOUNT_MAX_SIZE = 1000;
 };
 }  // namespace AccountSA

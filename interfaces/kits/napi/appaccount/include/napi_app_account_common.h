@@ -220,8 +220,6 @@ void ParseContextForGetAuthenticatorCallback(napi_env env, napi_callback_info cb
 
 void ParseContextForSetOAuthToken(napi_env env, napi_callback_info cbInfo, OAuthAsyncContext *asyncContext);
 
-void ParseContextForClearOAuth(napi_env env, napi_callback_info cbInfo, AppAccountAsyncContext *asyncContext);
-
 void ParseContextWithBdName(napi_env env, napi_callback_info cbInfo, AppAccountAsyncContext *asyncContext);
 
 void ParseContextWithIsEnable(napi_env env, napi_callback_info cbInfo, AppAccountAsyncContext *asyncContext);

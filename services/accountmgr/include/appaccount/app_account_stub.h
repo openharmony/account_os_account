@@ -62,7 +62,6 @@ private:
     ErrCode ProcGetAllOAuthTokens(MessageParcel &data, MessageParcel &reply);
     ErrCode ProcGetOAuthList(MessageParcel &data, MessageParcel &reply);
     ErrCode ProcGetAuthenticatorCallback(MessageParcel &data, MessageParcel &reply);
-    ErrCode ProcClearOAuthToken(MessageParcel &data, MessageParcel &reply);
     ErrCode ProcGetAllAccounts(MessageParcel &data, MessageParcel &reply);
     ErrCode ProcGetAllAccessibleAccounts(MessageParcel &data, MessageParcel &reply);
     ErrCode ProcSubscribeAccount(MessageParcel &data, MessageParcel &reply);

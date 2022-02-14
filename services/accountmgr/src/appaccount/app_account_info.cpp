@@ -222,18 +222,18 @@ ErrCode AppAccountInfo::GetOAuthToken(const std::string &authType, std::string &
 
 ErrCode AppAccountInfo::SetOAuthToken(const std::string &authType, const std::string &token)
 {
+    auto it = oauthTokens_.find(authType);
+    if (it != oauthTokens_.end()) {
+        it->second.token = token;
+        return ERR_OK;
+    }
     if (oauthTokens_.size() >= MAX_TOKEN_SIZE) {
         ACCOUNT_LOGE("too many types of oauth token, capacity for each account is %{public}d", MAX_TOKEN_SIZE);
         return ERR_APPACCOUNT_SERVICE_OAUTH_TOKEN_MAX_SIZE;
     }
-    auto it = oauthTokens_.find(authType);
-    if (it == oauthTokens_.end()) {
-        OAuthTokenInfo tokenInfo;
-        tokenInfo.token = token;
-        oauthTokens_.emplace(authType, tokenInfo);
-    } else {
-        it->second.token = token;
-    }
+    OAuthTokenInfo tokenInfo;
+    tokenInfo.token = token;
+    oauthTokens_.emplace(authType, tokenInfo);
     return ERR_OK;
 }
 
@@ -255,22 +255,28 @@ ErrCode AppAccountInfo::SetOAuthTokenVisibility(
     }
     auto it = oauthTokens_.find(authType);
     if (it == oauthTokens_.end()) {
-        if (isVisible) {
-            OAuthTokenInfo tokenInfo;
-            tokenInfo.authList.emplace(bundleName);
-            oauthTokens_.emplace(authType, tokenInfo);
+        if (!isVisible) {
+            return ERR_OK;
         }
+        if (oauthTokens_.size() >= MAX_TOKEN_SIZE) {
+            ACCOUNT_LOGE("too many types of oauth token, capacity for each account is %{public}d", MAX_TOKEN_SIZE);
+            return ERR_APPACCOUNT_SERVICE_OAUTH_TOKEN_MAX_SIZE;
+        }
+        OAuthTokenInfo tokenInfo;
+        tokenInfo.authList.emplace(bundleName);
+        oauthTokens_.emplace(authType, tokenInfo);
         return ERR_OK;
     }
-    if (it->second.authList.size() >= MAX_OAUTH_LIST_SIZE) {
+    if (!isVisible) {
+        it->second.authList.erase(bundleName);
+        return ERR_OK;
+    }
+    it->second.authList.emplace(bundleName);
+    if (it->second.authList.size() > MAX_OAUTH_LIST_SIZE) {
         ACCOUNT_LOGE("the authorization list is too large, whose capacity for each authType is %{public}d",
             MAX_OAUTH_LIST_SIZE);
-        return ERR_APPACCOUNT_SERVICE_OAUTH_LIST_MAX_SIZE;
-    }
-    if (isVisible) {
-        it->second.authList.emplace(bundleName);
-    } else {
         it->second.authList.erase(bundleName);
+        return ERR_APPACCOUNT_SERVICE_OAUTH_LIST_MAX_SIZE;
     }
     return ERR_OK;
 }
@@ -312,12 +318,6 @@ ErrCode AppAccountInfo::GetOAuthList(const std::string &authType, std::set<std::
         return ERR_OK;
     }
     oauthList = it->second.authList;
-    return ERR_OK;
-}
-
-ErrCode AppAccountInfo::ClearOAuthToken(void)
-{
-    oauthTokens_.clear();
     return ERR_OK;
 }
 
@@ -409,11 +409,17 @@ Json AppAccountInfo::ToJson() const
 void AppAccountInfo::ParseTokenInfosFromJson(const Json &jsonObject)
 {
     oauthTokens_.clear();
-    OAuthTokenInfo tokenInfo;
     for (auto it = jsonObject.begin(); it != jsonObject.end(); ++it) {
-        it->at(OAUTH_TOKEN).get_to(tokenInfo.token);
-        it->at(OAUTH_TYPE).get_to(tokenInfo.authType);
-        it->at(OAUTH_AUTH_LIST).get_to(tokenInfo.authList);
+        OAuthTokenInfo tokenInfo;
+        if (it->find(OAUTH_TOKEN) != it->end()) {
+            it->at(OAUTH_TOKEN).get_to(tokenInfo.token);
+        }
+        if (it->find(OAUTH_TYPE) != it->end()) {
+            it->at(OAUTH_TYPE).get_to(tokenInfo.authType);
+        }
+        if (it->find(OAUTH_AUTH_LIST) != it->end()) {
+            it->at(OAUTH_AUTH_LIST).get_to(tokenInfo.authList);
+        }
         oauthTokens_.emplace(tokenInfo.authType, tokenInfo);
     }
 }
@@ -436,7 +442,9 @@ void AppAccountInfo::FromJson(const Json &jsonObject)
         jsonObject, jsonObjectEnd, ASSOCIATED_DATA, associatedData_, OHOS::AccountSA::JsonType::STRING);
     OHOS::AccountSA::GetDataByType<std::string>(
         jsonObject, jsonObjectEnd, ACCOUNT_CREDENTIAL, accountCredential_, OHOS::AccountSA::JsonType::STRING);
-    ParseTokenInfosFromJson(jsonObject.at(OAUTH_TOKEN_INFOS));
+    if (jsonObject.find(OAUTH_TOKEN_INFOS) != jsonObjectEnd) {
+        ParseTokenInfosFromJson(jsonObject.at(OAUTH_TOKEN_INFOS));
+    }
 }
 
 std::string AppAccountInfo::ToString() const
