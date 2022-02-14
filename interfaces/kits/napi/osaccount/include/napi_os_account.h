@@ -33,7 +33,7 @@ struct SubscribeCBInfo;
 static std::map<OsAccountManager *, std::vector<SubscribeCBInfo *>> subscriberInstances;
 
 const std::string OS_ACCOUNT_CLASS_NAME = "AccountManager";
-static napi_ref constructorRef_ = nullptr;
+static thread_local napi_ref constructorRef_ = nullptr;
 
 struct QueryOAByIdAsyncContext {
     napi_env env;

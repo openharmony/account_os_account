@@ -22,12 +22,6 @@ using namespace testing::ext;
 using namespace OHOS;
 using namespace OHOS::AccountSA;
 
-namespace {
-const std::string STRING_OWNER = "com.example.owner";
-
-constexpr std::int32_t UID = 10000;
-}  // namespace
-
 class AccountPermissionManagerModuleTest : public testing::Test {
 public:
     static void SetUpTestCase(void);
@@ -62,7 +56,6 @@ HWTEST_F(AccountPermissionManagerModuleTest, AccountPermissionManager_VerifyPerm
 {
     ASSERT_NE(permissionManagerPtr_, nullptr);
 
-    ErrCode result =
-        permissionManagerPtr_->VerifyPermission(UID, AccountPermissionManager::DISTRIBUTED_DATASYNC, STRING_OWNER);
-    EXPECT_EQ(result, ERR_OK);
+    ErrCode result = permissionManagerPtr_->VerifyPermission(AccountPermissionManager::DISTRIBUTED_DATASYNC);
+    EXPECT_EQ(result, ERR_APPACCOUNT_SERVICE_PERMISSION_DENIED);
 }

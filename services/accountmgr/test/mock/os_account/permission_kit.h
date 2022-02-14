@@ -28,7 +28,7 @@ typedef enum TypePermissionState {
 
 class PermissionKit {
 public:
-    static int VerifyPermission(const std::string &bundleName, const std::string &permissionName, int userId);
+    static int VerifyPermission(const std::string &permissionName);
 };
 }  // namespace Permission
 }  // namespace Security

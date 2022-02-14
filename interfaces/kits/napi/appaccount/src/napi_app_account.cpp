@@ -28,8 +28,6 @@
 using namespace OHOS::AccountSA;
 namespace OHOS {
 namespace AccountJsKit {
-napi_ref NapiAppAccount::constructorRef_;
-
 napi_value NapiAppAccount::Init(napi_env env, napi_value exports)
 {
     ACCOUNT_LOGI("enter");

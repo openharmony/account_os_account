@@ -13,25 +13,18 @@
  * limitations under the License.
  */
 
-#ifndef OS_ACCOUNT_SERVICES_ACCOUNTMGR_TEST_MOCK_APP_ACCOUNT_PERMISSION_KIT_H
-#define OS_ACCOUNT_SERVICES_ACCOUNTMGR_TEST_MOCK_APP_ACCOUNT_PERMISSION_KIT_H
-
-#include <string>
+#ifndef OS_ACCOUNT_SERVICES_ACCOUNTMGR_TEST_MOCK_APP_ACCOUNT_ACCESSTOKEN_KIT_H
+#define OS_ACCOUNT_SERVICES_ACCOUNTMGR_TEST_MOCK_APP_ACCOUNT_ACCESSTOKEN_KIT_H
 
 namespace OHOS {
 namespace Security {
-namespace Permission {
-typedef enum TypePermissionState {
-    PERMISSION_NOT_GRANTED = -1,
-    PERMISSION_GRANTED = 0,
-} PermissionState;
-
-class PermissionKit {
+namespace AccessToken {
+class AccessTokenKit {
 public:
-    static int VerifyPermission(const std::string &bundleName, const std::string &permissionName, int userId);
+    static int VerifyAccessToken(unsigned int tokenID, const std::string &permissionName);
 };
-}  // namespace Permission
+}  // namespace AccessToken
 }  // namespace Security
 }  // namespace OHOS
 
-#endif  // OS_ACCOUNT_SERVICES_ACCOUNTMGR_TEST_MOCK_APP_ACCOUNT_PERMISSION_KIT_H
+#endif  // OS_ACCOUNT_SERVICES_ACCOUNTMGR_TEST_MOCK_APP_ACCOUNT_ACCESSTOKEN_KIT_H
