@@ -16,6 +16,7 @@
 #include "account_stub.h"
 #include <dlfcn.h>
 #include <ipc_types.h>
+#include "accesstoken_kit.h"
 #include "account_error_no.h"
 #include "account_helper_data.h"
 #include "account_info.h"
@@ -36,10 +37,6 @@ namespace {
 const std::string OHOS_ACCOUNT_QUIT_TIPS_TITLE = "";
 const std::string OHOS_ACCOUNT_QUIT_TIPS_CONTENT = "";
 const std::string PERMISSION_MANAGE_USERS = "ohos.permission.MANAGE_LOCAL_ACCOUNTS";
-const std::string PERMISSION_INTERACT_ACROSS_USERS = "ohos.permission.INTERACT_ACROSS_LOCAL_ACCOUNTS";
-const std::string PERMISSION_INTERACT_ACROSS_USERS_FULL = "ohos.permission.INTERACT_ACROSS_LOCAL_ACCOUNTS_EXTENSION";
-const std::string PERMISSION_DISTRIBUTED_DATASYNC = "ohos.permission.DISTRIBUTED_DATASYNC";
-constexpr std::int32_t SYSTEM_UID = 1000;
 constexpr std::int32_t ROOT_UID = 0;
 
 std::int32_t GetBundleNamesForUid(std::int32_t uid, std::string &bundleName)
@@ -81,7 +78,7 @@ const std::map<std::uint32_t, AccountStubFunc> AccountStub::stubFuncMap_{
 
 std::int32_t AccountStub::CmdUpdateOhosAccountInfo(MessageParcel &data, MessageParcel &reply)
 {
-    if (!IsRootOrSystemAccount() && !HasAccountRequestPermission(PERMISSION_MANAGE_USERS)) {
+    if (!HasAccountRequestPermission(PERMISSION_MANAGE_USERS)) {
         ACCOUNT_LOGE("Check permission failed");
         return ERR_ACCOUNT_ZIDL_CHECK_PERMISSION_ERROR;
     }
@@ -111,7 +108,7 @@ std::int32_t AccountStub::CmdUpdateOhosAccountInfo(MessageParcel &data, MessageP
 
 std::int32_t AccountStub::CmdQueryOhosAccountInfo(MessageParcel &data, MessageParcel &reply)
 {
-    if (!IsRootOrSystemAccount() && !HasAccountRequestPermission(PERMISSION_MANAGE_USERS)) {
+    if (!HasAccountRequestPermission(PERMISSION_MANAGE_USERS)) {
         ACCOUNT_LOGE("Check permission failed");
         return ERR_ACCOUNT_ZIDL_CHECK_PERMISSION_ERROR;
     }
@@ -141,7 +138,7 @@ std::int32_t AccountStub::CmdQueryOhosAccountInfo(MessageParcel &data, MessagePa
 
 std::int32_t AccountStub::CmdQueryOhosQuitTips(MessageParcel &data, MessageParcel &reply)
 {
-    if (!IsRootOrSystemAccount() && !HasAccountRequestPermission(PERMISSION_MANAGE_USERS)) {
+    if (!HasAccountRequestPermission(PERMISSION_MANAGE_USERS)) {
         ACCOUNT_LOGE("Check permission failed");
         return ERR_ACCOUNT_ZIDL_CHECK_PERMISSION_ERROR;
     }
@@ -160,11 +157,6 @@ std::int32_t AccountStub::CmdQueryOhosQuitTips(MessageParcel &data, MessageParce
 
 std::int32_t AccountStub::CmdQueryDeviceAccountId(MessageParcel &data, MessageParcel &reply)
 {
-    if (!IsRootOrSystemAccount()) {
-        ACCOUNT_LOGE("Check permission failed");
-        return ERR_ACCOUNT_ZIDL_CHECK_PERMISSION_ERROR;
-    }
-
     std::int32_t id;
     auto ret = QueryDeviceAccountId(id);
     if (ret != ERR_OK) {
@@ -233,46 +225,27 @@ std::int32_t AccountStub::OnRemoteRequest(
 
 bool AccountStub::HasAccountRequestPermission(const std::string &permissionName)
 {
-    if (permissionName.empty()) {
-        return false;
-    }
-
-    if (!IsServiceStarted()) {
-        ACCOUNT_LOGE("account mgr not ready");
-        return false;
-    }
-
+    // check root
     const std::int32_t uid = IPCSkeleton::GetCallingUid();
-    if (uid == ROOT_UID || uid == SYSTEM_UID) {
+    if (uid == ROOT_UID) {
         return true;
     }
 
-    std::string bundleName;
-    if (GetBundleNamesForUid(uid, bundleName) != ERR_OK) {
-        return false;
+    // check permission
+    Security::AccessToken::AccessTokenID callingTokenID = IPCSkeleton::GetCallingTokenID();
+    if (Security::AccessToken::AccessTokenKit::VerifyAccessToken(callingTokenID, permissionName) ==
+        Security::AccessToken::TypePermissionState::PERMISSION_GRANTED) {
+        return true;
     }
 
-    ACCOUNT_LOGI("Check permission: %{public}s", permissionName.c_str());
-    const std::int32_t userId = uid / UID_TRANSFORM_DIVISOR;
-    return (Security::Permission::PermissionKit::VerifyPermission(bundleName, permissionName, userId) ==
-            Security::Permission::PermissionState::PERMISSION_GRANTED);
-}
-
-bool AccountStub::IsRootOrSystemAccount()
-{
-    const auto id = IPCSkeleton::GetCallingUid();
-    return (id == ROOT_UID || id == SYSTEM_UID);
+    ACCOUNT_LOGE("permission %{public}s denied!", permissionName.c_str());
+    return false;
 }
 
 bool AccountStub::CheckCallerForTrustList()
 {
-    if (!IsServiceStarted()) {
-        ACCOUNT_LOGE("account mgr not ready");
-        return false;
-    }
-
     const std::int32_t uid = IPCSkeleton::GetCallingUid();
-    if (uid == ROOT_UID || uid == SYSTEM_UID) {
+    if (uid == ROOT_UID) {
         return false;
     }
 
