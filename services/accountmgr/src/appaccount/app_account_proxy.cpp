@@ -699,29 +699,6 @@ ErrCode AppAccountProxy::GetAuthenticatorCallback(const std::string &sessionId, 
     return result;
 }
 
-ErrCode AppAccountProxy::ClearOAuthToken(const std::string &name)
-{
-    ACCOUNT_LOGI("enter");
-
-    MessageParcel data;
-    MessageParcel reply;
-
-    if (!data.WriteString(name)) {
-        ACCOUNT_LOGE("failed to write string for name");
-        return ERR_APPACCOUNT_KIT_WRITE_STRING_NAME;
-    }
-
-    ErrCode result = SendRequest(IAppAccount::Message::CLEAR_OAUTH_TOKEN, data, reply);
-    if (result != ERR_OK) {
-        return result;
-    }
-
-    result = reply.ReadInt32();
-    ACCOUNT_LOGI("result = %{public}d", result);
-
-    return result;
-}
-
 ErrCode AppAccountProxy::GetAllAccounts(const std::string &owner, std::vector<AppAccountInfo> &appAccounts)
 {
     ACCOUNT_LOGI("enter");

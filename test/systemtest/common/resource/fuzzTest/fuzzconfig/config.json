@@ -15,7 +15,6 @@
         "SetAccountCredential": [],
         "GetOAuthToken": [],
         "SetOAuthToken": [],
-        "ClearOAuthToken": [],
         "GetAllAccounts": [],
         "GetAllAccessibleAccounts": [],
         "SubscribeAppAccount": [],

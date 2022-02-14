@@ -488,22 +488,6 @@ ErrCode AppAccountManagerService::GetAuthenticatorCallback(
     return result;
 }
 
-ErrCode AppAccountManagerService::ClearOAuthToken(const std::string &name)
-{
-    ACCOUNT_LOGI("enter, name = %{public}s", name.c_str());
-
-    auto callingUid = IPCSkeleton::GetCallingUid();
-    std::string bundleName;
-
-    ErrCode result = bundleManagerPtr_->GetBundleName(callingUid, bundleName);
-    if (result != ERR_OK) {
-        ACCOUNT_LOGE("failed to get bundle name");
-        return result;
-    }
-
-    return innerManager_->ClearOAuthToken(name, callingUid, bundleName);
-}
-
 ErrCode AppAccountManagerService::GetAllAccounts(const std::string &owner, std::vector<AppAccountInfo> &appAccounts)
 {
     ACCOUNT_LOGI("enter, owner = %{public}s", owner.c_str());

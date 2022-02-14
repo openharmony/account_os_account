@@ -329,20 +329,6 @@ HWTEST_F(AppAccountManagerModuleTest, AppAccountManager_SetOAuthToken_0100, Test
 }
 
 /**
- * @tc.name: AppAccountManager_ClearOAuthToken_0100
- * @tc.desc: Clear oauth token with valid data.
- * @tc.type: FUNC
- * @tc.require: SR000GGVFU
- */
-HWTEST_F(AppAccountManagerModuleTest, AppAccountManager_ClearOAuthToken_0100, TestSize.Level1)
-{
-    ACCOUNT_LOGI("AppAccountManager_ClearOAuthToken_0100");
-
-    ErrCode result = AppAccountManager::ClearOAuthToken(STRING_NAME);
-    EXPECT_EQ(result, ERR_APPACCOUNT_SERVICE_GET_BUNDLE_NAME);
-}
-
-/**
  * @tc.name: AppAccountManager_GetAllAccounts_0100
  * @tc.desc: Get all accounts with valid data.
  * @tc.type: FUNC

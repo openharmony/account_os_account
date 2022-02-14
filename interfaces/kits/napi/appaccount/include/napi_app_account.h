@@ -52,7 +52,6 @@ private:
     static napi_value GetAllOAuthTokens(napi_env env, napi_callback_info cbInfo);
     static napi_value GetOAuthList(napi_env env, napi_callback_info cbInfo);
     static napi_value GetAuthenticatorCallback(napi_env env, napi_callback_info cbInfo);
-    static napi_value ClearOAuthToken(napi_env env, napi_callback_info cbInfo);
     static napi_value Subscribe(napi_env env, napi_callback_info cbInfo);
     static napi_value Unsubscribe(napi_env env, napi_callback_info cbInfo);
     static napi_value JsConstructor(napi_env env, napi_callback_info cbinfo);

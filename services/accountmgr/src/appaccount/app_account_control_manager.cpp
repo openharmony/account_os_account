@@ -81,13 +81,6 @@ ErrCode AppAccountControlManager::DeleteAccount(
         }
     }
 
-    auto it = dataCache_.find(appAccountInfo.GetPrimeKey());
-    if (it == dataCache_.end()) {
-        ACCOUNT_LOGE("failed to get account info from data cache");
-    } else {
-        dataCache_.erase(it);
-    }
-
     return ERR_OK;
 }
 
@@ -402,6 +395,7 @@ ErrCode AppAccountControlManager::SetOAuthToken(const OAuthRequest &request)
 {
     ACCOUNT_LOGI("enter, name = %{public}s, authType = %{public}s",
         request.name.c_str(), request.authType.c_str());
+    std::lock_guard<std::mutex> lock(mutex_);
     AppAccountInfo appAccountInfo(request.name, request.callerBundleName);
     std::shared_ptr<AppAccountDataStorage> dataStoragePtr;
     ErrCode result = GetAccountInfoFromDataStorage(appAccountInfo, dataStoragePtr, request.callerUid);
@@ -455,6 +449,7 @@ ErrCode AppAccountControlManager::SetOAuthTokenVisibility(const OAuthRequest &re
 {
     ACCOUNT_LOGI("enter, name = %{public}s, authType = %{public}s, isTokenVisible = %{public}d",
         request.name.c_str(), request.authType.c_str(), request.isTokenVisible);
+    std::lock_guard<std::mutex> lock(mutex_);
     AppAccountInfo appAccountInfo(request.name, request.callerBundleName);
     std::shared_ptr<AppAccountDataStorage> dataStoragePtr;
     ErrCode result = GetAccountInfoFromDataStorage(appAccountInfo, dataStoragePtr, request.callerUid);
@@ -538,28 +533,6 @@ ErrCode AppAccountControlManager::GetOAuthList(
         return ERR_APPACCOUNT_SERVICE_ACCOUNT_NOT_EXIST;
     }
     return appAccountInfo.GetOAuthList(request.authType, oauthList);
-}
-
-ErrCode AppAccountControlManager::ClearOAuthToken(
-    const std::string &name, const uid_t &uid, const std::string &bundleName)
-{
-    ACCOUNT_LOGI("enter, name = %{public}s, bundleName = %{public}s.", name.c_str(), bundleName.c_str());
-
-    AppAccountInfo appAccountInfo(name, bundleName);
-    std::shared_ptr<AppAccountDataStorage> dataStoragePtr;
-    ErrCode result = GetAccountInfoFromDataStorage(appAccountInfo, dataStoragePtr, uid);
-    if (result != ERR_OK) {
-        ACCOUNT_LOGE("failed to get account info from data storage");
-        return result;
-    }
-
-    auto it = dataCache_.find(appAccountInfo.GetPrimeKey());
-    if (it != dataCache_.end()) {
-        ACCOUNT_LOGI("it->second = %{public}s", it->second.c_str());
-        dataCache_.erase(it);
-    }
-
-    return ERR_OK;
 }
 
 ErrCode AppAccountControlManager::GetAllAccounts(const std::string &owner, std::vector<AppAccountInfo> &appAccounts,

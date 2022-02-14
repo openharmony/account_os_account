@@ -231,13 +231,6 @@ ErrCode MockAppAccountStub::GetAuthenticatorCallback(const std::string &sessionI
     return ERR_OK;
 }
 
-ErrCode MockAppAccountStub::ClearOAuthToken(const std::string &name)
-{
-    ACCOUNT_LOGI("enter");
-
-    return ERR_OK;
-}
-
 ErrCode MockAppAccountStub::GetAllAccounts(const std::string &owner, std::vector<AppAccountInfo> &appAccounts)
 {
     ACCOUNT_LOGI("enter");

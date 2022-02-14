@@ -66,7 +66,6 @@ public:
     static ErrCode GetOAuthList(const std::string &name, const std::string &authType,
         std::set<std::string> &oauthList);
     static ErrCode GetAuthenticatorCallback(const std::string &sessionId, sptr<IRemoteObject> &callback);
-    static ErrCode ClearOAuthToken(const std::string &name);
 
     static ErrCode GetAllAccounts(const std::string &owner, std::vector<AppAccountInfo> &appAccounts);
     static ErrCode GetAllAccessibleAccounts(std::vector<AppAccountInfo> &appAccounts);
