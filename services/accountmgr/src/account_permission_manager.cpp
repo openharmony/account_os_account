@@ -13,15 +13,14 @@
  * limitations under the License.
  */
 
+#include "accesstoken_kit.h"
 #include "account_bundle_manager.h"
 #include "account_log_wrapper.h"
 #include "ipc_skeleton.h"
-#include "ohos_account_kits.h"
-#include "permission/permission_kit.h"
 
 #include "account_permission_manager.h"
 
-using namespace OHOS::Security::Permission;
+using namespace OHOS::Security::AccessToken;
 
 namespace OHOS {
 namespace AccountSA {
@@ -53,36 +52,13 @@ bool AccountPermissionManager::IsSystemUid(const uid_t &uid) const
     return true;
 }
 
-ErrCode AccountPermissionManager::VerifyPermission(
-    const uid_t &uid, const std::string &permissionName, const std::string &bundleName)
+ErrCode AccountPermissionManager::VerifyPermission(const std::string &permissionName)
 {
-    ACCOUNT_LOGI("enter");
-
-    ACCOUNT_LOGI("permissionName = %{public}s", permissionName.c_str());
-    ACCOUNT_LOGI("bundleName = %{public}s", bundleName.c_str());
-
-    if (permissionName.size() == 0) {
-        ACCOUNT_LOGE("permissionName is empty");
-        return ERR_APPACCOUNT_SERVICE_PERMISSION_NAME_IS_EMPTY;
+    AccessTokenID callingToken = IPCSkeleton::GetCallingTokenID();
+    ErrCode result = AccessTokenKit::VerifyAccessToken(callingToken, permissionName);
+    if (result == TypePermissionState::PERMISSION_DENIED) {
+        return ERR_APPACCOUNT_SERVICE_PERMISSION_DENIED;
     }
-
-    if (bundleName.size() == 0) {
-        ACCOUNT_LOGE("bundleName is empty");
-        return ERR_APPACCOUNT_SERVICE_BUNDLE_NAME_IS_EMPTY;
-    }
-
-    std::int32_t uidToVerify = uid;
-
-    auto deviceAccountId = OhosAccountKits::GetInstance().GetDeviceAccountIdByUID(uidToVerify);
-    ACCOUNT_LOGI("deviceAccountId = %{public}d", deviceAccountId);
-
-    int result = PermissionKit::VerifyPermission(bundleName, permissionName, deviceAccountId);
-    ACCOUNT_LOGI("result = %{public}d", result);
-
-    if (result != PermissionState::PERMISSION_GRANTED) {
-        return ERR_OK;
-    }
-
     return ERR_OK;
 }
 }  // namespace AccountSA

@@ -15,23 +15,22 @@
 
 #include "account_log_wrapper.h"
 
-#include "permission_kit.h"
+#include "accesstoken_kit.h"
 
 using namespace OHOS::AccountSA;
 
 namespace OHOS {
 namespace Security {
-namespace Permission {
-int PermissionKit::VerifyPermission(const std::string &bundleName, const std::string &permissionName, int userId)
-{
-    ACCOUNT_LOGI("enter");
-
-    ACCOUNT_LOGI("bundleName = %{public}s", bundleName.c_str());
-    ACCOUNT_LOGI("permissionName = %{public}s", permissionName.c_str());
-    ACCOUNT_LOGI("userId = %{public}d", userId);
-
-    return PermissionState::PERMISSION_GRANTED;
+namespace AccessToken {
+namespace {
+const int PERMISSION_GRANTED = 0;
 }
-}  // namespace Permission
+int AccessTokenKit::VerifyAccessToken(unsigned int tokenID, const std::string &permissionName)
+{
+    ACCOUNT_LOGI("permissionName = %{public}s", permissionName.c_str());
+
+    return PERMISSION_GRANTED;
+}
+}  // namespace AccessToken
 }  // namespace Security
 }  // namespace OHOS
