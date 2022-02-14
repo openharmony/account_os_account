@@ -359,7 +359,7 @@ ErrCode OsAccountManagerService::SetOsAccountProfilePhoto(const int id, const st
 {
     int callerUserId = IPCSkeleton::GetCallingUid() / UID_TRANSFORM_DIVISOR;
     bool isEnable = true;
-    innerManager_->IsOsAccountConstraintEnable(callerUserId, CONSTANT_CREATE, isEnable);
+    innerManager_->IsOsAccountConstraintEnable(callerUserId, CONSTANT_SET_ICON, isEnable);
     if (isEnable) {
         ACCOUNT_LOGE("caller user cannot set os account photo error.");
         return ERR_OSACCOUNT_SERVICE_PERMISSION_DENIED;

@@ -743,6 +743,7 @@ ErrCode IInnerOsAccountManager::ActivateOsAccount(const int id)
         return errCode;
     }
     RemoveLocalIdToOperating(id);
+    subscribeManagerPtr_->PublicActivatedOsAccount(id);
     ACCOUNT_LOGI("IInnerOsAccountManager ActivateOsAccount end");
     return ERR_OK;
 }
@@ -778,7 +779,6 @@ ErrCode IInnerOsAccountManager::SendMsgForAccountActivate(OsAccountInfo &osAccou
         activeAccountId_.push_back(Constants::ADMIN_LOCAL_ID);
         activeAccountId_.push_back(osAccountInfo.GetLocalId());
     }
-    subscribeManagerPtr_->PublicActivatedOsAccount(osAccountInfo.GetLocalId());
     errCode = OsAccountStandardInterface::SendToCESAccountSwitched(osAccountInfo);
     if (errCode != ERR_OK) {
         ACCOUNT_LOGE("account %{public}d call ce active failed", osAccountInfo.GetLocalId());
