@@ -26,9 +26,9 @@ public:
     static ErrCode SendToBMSAccountCreate(OsAccountInfo &osAccountInfo);
     static ErrCode SendToBMSAccountDelete(OsAccountInfo &osAccountInfo);
     static ErrCode SendToIAMAccountDelete(OsAccountInfo &osAccountInfo);
-    static ErrCode SendToCESAccountCreate(OsAccountInfo &osAccountInfo);
-    static ErrCode SendToCESAccountDelete(OsAccountInfo &osAccountInfo);
-    static ErrCode SendToCESAccountSwitched(OsAccountInfo &osAccountInfo);
+    static void SendToCESAccountCreate(OsAccountInfo &osAccountInfo);
+    static void SendToCESAccountDelete(OsAccountInfo &osAccountInfo);
+    static void SendToCESAccountSwitched(OsAccountInfo &osAccountInfo);
     static ErrCode SendToStorageAccountCreate(OsAccountInfo &osAccountInfo);
     static ErrCode SendToStorageAccountRemove(OsAccountInfo &osAccountInfo);
     static ErrCode SendToStorageAccountStart(OsAccountInfo &osAccountInfo);

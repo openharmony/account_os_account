@@ -175,49 +175,49 @@ ErrCode OsAccountStandardInterface::SendToIAMAccountDelete(OsAccountInfo &osAcco
     return ERR_OK;
 }
 
-ErrCode OsAccountStandardInterface::SendToCESAccountCreate(OsAccountInfo &osAccountInfo)
+void OsAccountStandardInterface::SendToCESAccountCreate(OsAccountInfo &osAccountInfo)
 {
+    int osAccountID = osAccountInfo.GetLocalId();
     OHOS::AAFwk::Want want;
     want.SetAction(OHOS::EventFwk::CommonEventSupport::COMMON_EVENT_USER_ADDED);
     OHOS::EventFwk::CommonEventData data;
-    data.SetCode(osAccountInfo.GetLocalId());
+    data.SetCode(osAccountID);
     data.SetWant(want);
     if (!OHOS::EventFwk::CommonEventManager::PublishCommonEvent(data)) {
-        ACCOUNT_LOGE("SendToCESAccountCreate PublishCommonEvent failed!");
-        return ERR_OSACCOUNT_SERVICE_INTERFACE_TO_CE_ACCOUNT_CREATE_ERROR;
+        ACCOUNT_LOGE("PublishCommonEvent for create account %{public}d failed!", osAccountID);
+    } else {
+        ACCOUNT_LOGI("PublishCommonEvent for create account %{public}d succeed!", osAccountID);
     }
-    ACCOUNT_LOGI("SendToCESAccountCreate PublishCommonEvent succeed!");
-    return ERR_OK;
 }
 
-ErrCode OsAccountStandardInterface::SendToCESAccountDelete(OsAccountInfo &osAccountInfo)
+void OsAccountStandardInterface::SendToCESAccountDelete(OsAccountInfo &osAccountInfo)
 {
+    int osAccountID = osAccountInfo.GetLocalId();
     OHOS::AAFwk::Want want;
     want.SetAction(OHOS::EventFwk::CommonEventSupport::COMMON_EVENT_USER_REMOVED);
     OHOS::EventFwk::CommonEventData data;
-    data.SetCode(osAccountInfo.GetLocalId());
+    data.SetCode(osAccountID);
     data.SetWant(want);
     if (!OHOS::EventFwk::CommonEventManager::PublishCommonEvent(data)) {
-        ACCOUNT_LOGE("SendToCESAccountDelete PublishCommonEvent failed!");
-        return ERR_OSACCOUNT_SERVICE_INTERFACE_TO_CE_ACCOUNT_DELETE_ERROR;
+        ACCOUNT_LOGE("PublishCommonEvent for delete account %{public}d failed!", osAccountID);
+    } else {
+        ACCOUNT_LOGI("PublishCommonEvent for delete account %{public}d succeed!", osAccountID);
     }
-    ACCOUNT_LOGI("SendToCESAccountDelete PublishCommonEvent succeed!");
-    return ERR_OK;
 }
 
-ErrCode OsAccountStandardInterface::SendToCESAccountSwitched(OsAccountInfo &osAccountInfo)
+void OsAccountStandardInterface::SendToCESAccountSwitched(OsAccountInfo &osAccountInfo)
 {
+    int osAccountID = osAccountInfo.GetLocalId();
     OHOS::AAFwk::Want want;
     want.SetAction(OHOS::EventFwk::CommonEventSupport::COMMON_EVENT_USER_SWITCHED);
     OHOS::EventFwk::CommonEventData data;
-    data.SetCode(osAccountInfo.GetLocalId());
+    data.SetCode(osAccountID);
     data.SetWant(want);
     if (!OHOS::EventFwk::CommonEventManager::PublishCommonEvent(data)) {
-        ACCOUNT_LOGE("SendToCESAccountSwitched PublishCommonEvent failed!");
-        return ERR_OSACCOUNT_SERVICE_INTERFACE_TO_CE_ACCOUNT_SWITCHED_ERROR;
+        ACCOUNT_LOGE("PublishCommonEvent for switched to account %{public}d failed!", osAccountID);
+    } else {
+        ACCOUNT_LOGI("PublishCommonEvent for switched to account %{public}d succeed!", osAccountID);
     }
-    ACCOUNT_LOGI("SendToCESAccountSwitched PublishCommonEvent succeed!");
-    return ERR_OK;
 }
 
 ErrCode OsAccountStandardInterface::SendToStorageAccountCreate(OsAccountInfo &osAccountInfo)
