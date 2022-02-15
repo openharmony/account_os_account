@@ -28,10 +28,9 @@
     ],
     "deps": {
       "components": [
+        "ability_base",
         "utils_base",
-        "ability_manager",
-        "aafwk_standard",
-        "appexecfwk_standard",
+        "ability_runtime",
         "bundle_framework",
         "ces_standard",
         "distributeddatamgr",
