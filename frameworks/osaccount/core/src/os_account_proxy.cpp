@@ -979,7 +979,7 @@ ErrCode OsAccountProxy::GetOsAccountListFromDatabase(const std::string& storeID,
     return ERR_OK;
 }
 
-ErrCode OsAccountProxy::QueryActiveOsAccountIds(std::vector<int>& ids)
+ErrCode OsAccountProxy::QueryActiveOsAccountIds(std::vector<int32_t>& ids)
 {
     MessageParcel data;
     MessageParcel reply;

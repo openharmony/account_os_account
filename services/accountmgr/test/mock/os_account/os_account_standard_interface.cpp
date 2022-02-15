@@ -47,22 +47,19 @@ ErrCode OsAccountStandardInterface::SendToIAMAccountDelete(OsAccountInfo &osAcco
     return ERR_OK;
 }
 
-ErrCode OsAccountStandardInterface::SendToCESAccountCreate(OsAccountInfo &osAccountInfo)
+void OsAccountStandardInterface::SendToCESAccountCreate(OsAccountInfo &osAccountInfo)
 {
     ACCOUNT_LOGI("OsAccountStandardInterface SendToCESAccountCreate start");
-    return ERR_OK;
 }
 
-ErrCode OsAccountStandardInterface::SendToCESAccountDelete(OsAccountInfo &osAccountInfo)
+void OsAccountStandardInterface::SendToCESAccountDelete(OsAccountInfo &osAccountInfo)
 {
     ACCOUNT_LOGI("OsAccountStandardInterface SendToCESAccountDelete start");
-    return ERR_OK;
 }
 
-ErrCode OsAccountStandardInterface::SendToCESAccountSwitched(OsAccountInfo &osAccountInfo)
+void OsAccountStandardInterface::SendToCESAccountSwitched(OsAccountInfo &osAccountInfo)
 {
     ACCOUNT_LOGI("OsAccountStandardInterface SendToCESAccountSwitched start");
-    return ERR_OK;
 }
 
 ErrCode OsAccountStandardInterface::SendToStorageAccountCreate(OsAccountInfo &osAccountInfo)

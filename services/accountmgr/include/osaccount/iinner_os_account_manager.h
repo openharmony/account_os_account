@@ -70,7 +70,7 @@ public:
         OsAccountInfo &osAccountInfo) override;
     virtual ErrCode GetOsAccountListFromDatabase(const std::string& storeID,
         std::vector<OsAccountInfo> &osAccountList) override;
-    virtual ErrCode QueryActiveOsAccountIds(std::vector<int>& ids) override;
+    virtual ErrCode QueryActiveOsAccountIds(std::vector<int32_t>& ids) override;
 
 private:
     void StartAccount();
@@ -86,14 +86,20 @@ private:
     ErrCode SendMsgForAccountCreate(OsAccountInfo &osAccountInfo);
     ErrCode SendMsgForAccountActivate(OsAccountInfo &osAccountInfo);
     ErrCode SendMsgForAccountRemove(OsAccountInfo &osAccountInfo);
-    void AddLocalIdToOperating(int localId);
-    void RemoveLocalIdToOperating(int localId);
-    bool IsLocalIdInOperating(int localId);
+    void AddLocalIdToOperating(int32_t localId);
+    void RemoveLocalIdToOperating(int32_t localId);
+    bool IsLocalIdInOperating(int32_t localId);
+
+    // operations for active list
+    void PushIDIntoActiveList(int32_t id);
+    bool IsOsAccountIDInActiveList(int32_t id);
+    void CopyFromActiveList(std::vector<int32_t>& idList);
+    void RefreshActiveList(int32_t newId);
 
 private:
     std::shared_ptr<IOsAccountControl> osAccountControl_;
-    std::vector<int> activeAccountId_;
-    std::vector<int> operatingId_;
+    std::vector<int32_t> activeAccountId_;
+    std::vector<int32_t> operatingId_;
     std::shared_ptr<IOsAccountSubscribe> subscribeManagerPtr_;
     std::int32_t counterForStandard_;
     std::int32_t counterForStandardCreate_;

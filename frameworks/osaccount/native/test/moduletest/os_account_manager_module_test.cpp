@@ -1524,7 +1524,7 @@ HWTEST_F(OsAccountManagerModuleTest, OsAccountManagerModuleTest066, TestSize.Lev
  */
 HWTEST_F(OsAccountManagerModuleTest, OsAccountManagerModuleTest067, TestSize.Level1)
 {
-    std::vector<int> ids;
+    std::vector<int32_t> ids;
     EXPECT_EQ(OsAccountManager::QueryActiveOsAccountIds(ids), ERR_OK);
     for (auto it = ids.begin(); it != ids.end(); it++) {
         GTEST_LOG_(INFO) << *it;

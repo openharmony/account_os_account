@@ -66,7 +66,7 @@ public:
         OsAccountInfo &osAccountInfo);
     ErrCode GetOsAccountListFromDatabase(const std::string& storeID,
         std::vector<OsAccountInfo> &osAccountList);
-    ErrCode QueryActiveOsAccountIds(std::vector<int>& ids);
+    ErrCode QueryActiveOsAccountIds(std::vector<int32_t>& ids);
 
 private:
     ErrCode GetOsAccountProxy();
