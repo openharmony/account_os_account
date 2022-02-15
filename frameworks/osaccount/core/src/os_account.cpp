@@ -676,7 +676,7 @@ ErrCode OsAccount::GetOsAccountListFromDatabase(const std::string& storeID, std:
     return osAccountProxy_->GetOsAccountListFromDatabase(storeID, osAccountList);
 }
 
-ErrCode OsAccount::QueryActiveOsAccountIds(std::vector<int>& ids)
+ErrCode OsAccount::QueryActiveOsAccountIds(std::vector<int32_t>& ids)
 {
     ACCOUNT_LOGI("OsAccount::QueryActiveOsAccountIds start");
     ErrCode result = GetOsAccountProxy();

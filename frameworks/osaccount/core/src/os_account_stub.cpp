@@ -958,7 +958,7 @@ ErrCode OsAccountStub::ProcGetOsAccountListFromDatabase(MessageParcel &data, Mes
 
 ErrCode OsAccountStub::ProcQueryActiveOsAccountIds(MessageParcel &data, MessageParcel &reply)
 {
-    std::vector<int> ids;
+    std::vector<int32_t> ids;
     ErrCode result = QueryActiveOsAccountIds(ids);
     if (!reply.WriteInt32(result)) {
         ACCOUNT_LOGE("failed to write reply");

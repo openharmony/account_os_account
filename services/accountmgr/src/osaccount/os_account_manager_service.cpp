@@ -687,7 +687,7 @@ ErrCode OsAccountManagerService::DumpStateByAccounts(
     return ERR_OK;
 }
 
-ErrCode OsAccountManagerService::QueryActiveOsAccountIds(std::vector<int>& ids)
+ErrCode OsAccountManagerService::QueryActiveOsAccountIds(std::vector<int32_t>& ids)
 {
     return innerManager_->QueryActiveOsAccountIds(ids);
 }
