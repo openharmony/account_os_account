@@ -91,7 +91,7 @@ public:
         const int id, OsAccountInfo &osAccountInfo) override;
     virtual ErrCode GetOsAccountListFromDatabase(const std::string& storeID,
         std::vector<OsAccountInfo> &osAccountList) override;
-    virtual ErrCode QueryActiveOsAccountIds(std::vector<int>& ids) override;
+    virtual ErrCode QueryActiveOsAccountIds(std::vector<int32_t>& ids) override;
 
 private:
     virtual ErrCode DumpStateByAccounts(

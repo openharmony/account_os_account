@@ -76,7 +76,7 @@ public:
         OsAccountInfo &osAccountInfo) = 0;
     virtual ErrCode GetOsAccountListFromDatabase(const std::string& storeID,
         std::vector<OsAccountInfo> &osAccountList) = 0;
-    virtual ErrCode QueryActiveOsAccountIds(std::vector<int>& ids) = 0;
+    virtual ErrCode QueryActiveOsAccountIds(std::vector<int32_t>& ids) = 0;
 
     enum class Message {
         CREATE_OS_ACCOUNT = 0,
