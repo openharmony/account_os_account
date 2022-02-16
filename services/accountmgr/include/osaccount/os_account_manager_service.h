@@ -96,7 +96,7 @@ public:
 private:
     virtual ErrCode DumpStateByAccounts(
         const std::vector<OsAccountInfo> &osAccountInfos, std::vector<std::string> &state);
-    virtual bool IsRootProcess();
+    bool PermissionCheck(const std::string& permissionName, const std::string& constriantName);
 
 private:
     std::shared_ptr<IInnerOsAccount> innerManager_;
