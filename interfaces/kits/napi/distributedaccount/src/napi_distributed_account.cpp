@@ -136,8 +136,6 @@ void ProcessSetNamedProperty(napi_env env, const DistributedAccountAsyncContext 
 }
 }
 
-napi_ref NapiDistributedAccount::constructorRef_;
-
 napi_value NapiDistributedAccount::Init(napi_env env, napi_value exports)
 {
     ACCOUNT_LOGI("enter");
@@ -153,7 +151,7 @@ napi_value NapiDistributedAccount::Init(napi_env env, napi_value exports)
     napi_value cons = nullptr;
     napi_define_class(env, DISTRIBUTED_ACCOUNT_CLASS_NAME.c_str(), DISTRIBUTED_ACCOUNT_CLASS_NAME.size(),
         JsConstructor, nullptr, sizeof(properties) / sizeof(napi_property_descriptor), properties, &cons);
-    napi_create_reference(env, cons, 1, &constructorRef_);
+    napi_create_reference(env, cons, 1, &distributedAccountRef_);
     napi_set_named_property(env, exports, DISTRIBUTED_ACCOUNT_CLASS_NAME.c_str(), cons);
 
     return exports;
@@ -171,10 +169,10 @@ napi_value NapiDistributedAccount::GetDistributedAccountAbility(napi_env env, na
     ACCOUNT_LOGI("enter");
     napi_value instance = nullptr;
     napi_value cons = nullptr;
-    if (napi_get_reference_value(env, constructorRef_, &cons) != napi_ok) {
+    if (napi_get_reference_value(env, distributedAccountRef_, &cons) != napi_ok) {
         return nullptr;
     }
-
+    ACCOUNT_LOGI("Get a reference to the global variable distributedAccountRef_ complete");
     if (napi_new_instance(env, cons, 0, nullptr, &instance) != napi_ok) {
         return nullptr;
     }
