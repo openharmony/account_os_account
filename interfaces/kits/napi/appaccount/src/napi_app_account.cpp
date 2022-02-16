@@ -76,7 +76,7 @@ napi_value NapiAppAccount::Init(napi_env env, napi_value exports)
             sizeof(properties) / sizeof(napi_property_descriptor),
             properties,
             &cons));
-    NAPI_CALL(env, napi_create_reference(env, cons, 1, &constructorRef_));
+    NAPI_CALL(env, napi_create_reference(env, cons, 1, &appAccountRef_));
     NAPI_CALL(env, napi_set_named_property(env, exports, APP_ACCOUNT_CLASS_NAME.c_str(), cons));
 
     return exports;
@@ -104,10 +104,10 @@ napi_value NapiAppAccount::CreateAppAccountManager(napi_env env, napi_callback_i
     ACCOUNT_LOGI("enter");
     napi_value instance = nullptr;
     napi_value cons = nullptr;
-    if (napi_get_reference_value(env, constructorRef_, &cons) != napi_ok) {
+    if (napi_get_reference_value(env, appAccountRef_, &cons) != napi_ok) {
         return nullptr;
     }
-    ACCOUNT_LOGI("Get a reference to the global variable constructorRef_ complete");
+    ACCOUNT_LOGI("Get a reference to the global variable appAccountRef_ complete");
     if (napi_new_instance(env, cons, 0, nullptr, &instance) != napi_ok) {
         return nullptr;
     }
