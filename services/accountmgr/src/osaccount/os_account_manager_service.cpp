@@ -32,6 +32,7 @@ const std::string CONSTANT_CREATE = "constraint.os.account.create";
 const std::string CONSTANT_REMOVE = "constraint.os.account.remove";
 const std::string CONSTANT_START = "constraint.os.account.start";
 const std::string CONSTANT_SET_ICON = "constraint.os.account.set.icon";
+const std::int32_t ROOT_UID = 0;
 }  // namespace
 
 OsAccountManagerService::OsAccountManagerService()
@@ -52,20 +53,14 @@ ErrCode OsAccountManagerService::CreateOsAccount(
         ACCOUNT_LOGE("system is not multi os account enable error");
         return ERR_OSACCOUNT_SERVICE_MANAGER_NOT_ENABLE_MULTI_ERROR;
     }
-    int callerUserId = IPCSkeleton::GetCallingUid() / UID_TRANSFORM_DIVISOR;
-    bool isEnable = true;
-    innerManager_->IsOsAccountConstraintEnable(callerUserId, CONSTANT_CREATE, isEnable);
-    if (isEnable) {
-        ACCOUNT_LOGE("caller user cannot create os account error.");
+
+    // permission check
+    if (!PermissionCheck(AccountPermissionManager::MANAGE_LOCAL_ACCOUNTS, CONSTANT_CREATE)) {
+        ACCOUNT_LOGE("account manager service, permission denied!");
         return ERR_OSACCOUNT_SERVICE_PERMISSION_DENIED;
     }
-    if (!IsRootProcess()) {
-        ErrCode result = permissionManagerPtr_->VerifyPermission(AccountPermissionManager::MANAGE_LOCAL_ACCOUNTS);
-        if (result != ERR_OK) {
-            ACCOUNT_LOGE("failed to verify permission for MANAGE_LOCAL_ACCOUNTS");
-            return ERR_OSACCOUNT_SERVICE_PERMISSION_DENIED;
-        }
-    }
+
+    // parameters check
     if (name.size() > Constants::LOCAL_NAME_MAX_SIZE) {
         ACCOUNT_LOGE("os account name out of max allowed size");
         return ERR_OSACCOUNT_SERVICE_MANAGER_NAME_SIZE_OVERFLOW_ERROR;
@@ -74,6 +69,7 @@ ErrCode OsAccountManagerService::CreateOsAccount(
         ACCOUNT_LOGE("os account name is empty");
         return ERR_OSACCOUNT_SERVICE_MANAGER_NAME_SIZE_EMPTY_ERROR;
     }
+
     bool isAllowedCreateAdmin = false;
     ErrCode errCode = innerManager_->IsAllowedCreateAdmin(isAllowedCreateAdmin);
     if (errCode != ERR_OK) {
@@ -96,21 +92,14 @@ ErrCode OsAccountManagerService::CreateOsAccountForDomain(
     if (!isMultiOsAccountEnable) {
         return ERR_OSACCOUNT_SERVICE_MANAGER_NOT_ENABLE_MULTI_ERROR;
     }
-    auto callingUid = IPCSkeleton::GetCallingUid();
-    if (callingUid >= Constants::APP_UID_START) {
-        std::string bundleName;
-        ErrCode result = bundleManagerPtr_->GetBundleName(callingUid, bundleName);
-        if (result != ERR_OK) {
-            ACCOUNT_LOGE("failed to get bundle name");
-            return result;
-        }
 
-        result = permissionManagerPtr_->VerifyPermission(AccountPermissionManager::MANAGE_LOCAL_ACCOUNTS);
-        if (result != ERR_OK || !permissionManagerPtr_->IsSystemUid(callingUid)) {
-            ACCOUNT_LOGI("failed to verify permission for MANAGE_LOCAL_ACCOUNTS,or not system app error");
-            return ERR_OSACCOUNT_SERVICE_PERMISSION_DENIED;
-        }
+    // permission check
+    if (!PermissionCheck(AccountPermissionManager::MANAGE_LOCAL_ACCOUNTS, CONSTANT_CREATE)) {
+        ACCOUNT_LOGE("account manager service, permission denied!");
+        return ERR_OSACCOUNT_SERVICE_PERMISSION_DENIED;
     }
+
+    // parameters check
     if (domainInfo.accountName_.empty() || domainInfo.domain_.empty()) {
         return ERR_OSACCOUNT_SERVICE_MANAGER_NAME_SIZE_EMPTY_ERROR;
     }
@@ -118,6 +107,7 @@ ErrCode OsAccountManagerService::CreateOsAccountForDomain(
         domainInfo.domain_.size() > Constants::DOMAIN_NAME_MAX_SIZE) {
         return ERR_OSACCOUNT_SERVICE_MANAGER_NAME_SIZE_OVERFLOW_ERROR;
     }
+
     bool isAllowedCreateAdmin = false;
     ErrCode errCode = innerManager_->IsAllowedCreateAdmin(isAllowedCreateAdmin);
     if (errCode != ERR_OK) {
@@ -131,24 +121,18 @@ ErrCode OsAccountManagerService::CreateOsAccountForDomain(
 
 ErrCode OsAccountManagerService::RemoveOsAccount(const int id)
 {
-    int callerUserId = IPCSkeleton::GetCallingUid() / UID_TRANSFORM_DIVISOR;
-    bool isEnable = true;
-    innerManager_->IsOsAccountConstraintEnable(callerUserId, CONSTANT_REMOVE, isEnable);
-    if (isEnable) {
-        ACCOUNT_LOGE("caller user cannot remove os account error.");
+    // permission check
+    if (!PermissionCheck(AccountPermissionManager::MANAGE_LOCAL_ACCOUNTS, CONSTANT_REMOVE)) {
+        ACCOUNT_LOGE("account manager service, permission denied!");
         return ERR_OSACCOUNT_SERVICE_PERMISSION_DENIED;
     }
-    if (!IsRootProcess()) {
-        ErrCode result = permissionManagerPtr_->VerifyPermission(AccountPermissionManager::MANAGE_LOCAL_ACCOUNTS);
-        if (result != ERR_OK) {
-            ACCOUNT_LOGE("failed to verify permission for MANAGE_LOCAL_ACCOUNTS.");
-            return ERR_OSACCOUNT_SERVICE_PERMISSION_DENIED;
-        }
-    }
+
+    // parameters check
     if (id <= Constants::START_USER_ID) {
-        ACCOUNT_LOGE("cannot remove system preinstalled user");
+        ACCOUNT_LOGE("cannot remove system preinstalled user!");
         return ERR_OSACCOUNT_SERVICE_MANAGER_ID_ERROR;
     }
+
     return innerManager_->RemoveOsAccount(id);
 }
 
@@ -159,62 +143,60 @@ ErrCode OsAccountManagerService::IsOsAccountExists(const int id, bool &isOsAccou
 
 ErrCode OsAccountManagerService::IsOsAccountActived(const int id, bool &isOsAccountActived)
 {
+    // check current account state
     int callerUserId = IPCSkeleton::GetCallingUid() / UID_TRANSFORM_DIVISOR;
     if (callerUserId == id) {
         return innerManager_->IsOsAccountActived(id, isOsAccountActived);
     }
-    if (!IsRootProcess()) {
-        ErrCode result = permissionManagerPtr_->VerifyPermission(AccountPermissionManager::MANAGE_LOCAL_ACCOUNTS);
-        ErrCode errCode =
-            permissionManagerPtr_->VerifyPermission(AccountPermissionManager::INTERACT_ACROSS_LOCAL_ACCOUNTS);
-        if (result != ERR_OK && errCode != ERR_OK) {
-            ACCOUNT_LOGE("failed to verify permission for MANAGE_LOCAL_ACCOUNTS or INTERACT_ACROSS_LOCAL_ACCOUNTS");
-            return ERR_OSACCOUNT_SERVICE_PERMISSION_DENIED;
-        }
+
+    // check other account state, check permission first
+    if (!PermissionCheck(AccountPermissionManager::MANAGE_LOCAL_ACCOUNTS, "") &&
+        !PermissionCheck(AccountPermissionManager::INTERACT_ACROSS_LOCAL_ACCOUNTS, "")) {
+        ACCOUNT_LOGE("account manager service, permission denied!");
+        return ERR_OSACCOUNT_SERVICE_PERMISSION_DENIED;
     }
+
     return innerManager_->IsOsAccountActived(id, isOsAccountActived);
 }
 
 ErrCode OsAccountManagerService::IsOsAccountConstraintEnable(
     const int id, const std::string &constraint, bool &isConstraintEnable)
 {
-    if (!IsRootProcess()) {
-        ErrCode result = permissionManagerPtr_->VerifyPermission(AccountPermissionManager::MANAGE_LOCAL_ACCOUNTS);
-        if (result != ERR_OK) {
-            ACCOUNT_LOGE("failed to verify permission for MANAGE_LOCAL_ACCOUNTS");
-            return ERR_OSACCOUNT_SERVICE_PERMISSION_DENIED;
-        }
+    // permission check
+    if (!PermissionCheck(AccountPermissionManager::MANAGE_LOCAL_ACCOUNTS, "")) {
+        ACCOUNT_LOGE("account manager service, permission denied!");
+        return ERR_OSACCOUNT_SERVICE_PERMISSION_DENIED;
     }
+
     return innerManager_->IsOsAccountConstraintEnable(id, constraint, isConstraintEnable);
 }
 
 ErrCode OsAccountManagerService::IsOsAccountVerified(const int id, bool &isVerified)
 {
+    // check current account state
     int callerUserId = IPCSkeleton::GetCallingUid() / UID_TRANSFORM_DIVISOR;
     if (callerUserId == id) {
         return innerManager_->IsOsAccountVerified(id, isVerified);
     }
-    if (!IsRootProcess()) {
-        ErrCode result = permissionManagerPtr_->VerifyPermission(AccountPermissionManager::MANAGE_LOCAL_ACCOUNTS);
-        ErrCode errCode =
-            permissionManagerPtr_->VerifyPermission(AccountPermissionManager::INTERACT_ACROSS_LOCAL_ACCOUNTS);
-        if (result != ERR_OK && errCode != ERR_OK) {
-            ACCOUNT_LOGE("failed to verify permission for INTERACT_ACROSS_LOCAL_ACCOUNTS or MANAGE_LOCAL_ACCOUNTS");
-            return ERR_OSACCOUNT_SERVICE_PERMISSION_DENIED;
-        }
+
+    // check other account state, check permission first
+    if (!PermissionCheck(AccountPermissionManager::MANAGE_LOCAL_ACCOUNTS, "") &&
+        !PermissionCheck(AccountPermissionManager::INTERACT_ACROSS_LOCAL_ACCOUNTS, "")) {
+        ACCOUNT_LOGE("account manager service, permission denied!");
+        return ERR_OSACCOUNT_SERVICE_PERMISSION_DENIED;
     }
+
     return innerManager_->IsOsAccountVerified(id, isVerified);
 }
 
 ErrCode OsAccountManagerService::GetCreatedOsAccountsCount(unsigned int &osAccountsCount)
 {
-    if (!IsRootProcess()) {
-        ErrCode result = permissionManagerPtr_->VerifyPermission(AccountPermissionManager::MANAGE_LOCAL_ACCOUNTS);
-        if (result != ERR_OK) {
-            ACCOUNT_LOGE("failed to verify permission for MANAGE_LOCAL_ACCOUNTS");
-            return ERR_OSACCOUNT_SERVICE_PERMISSION_DENIED;
-        }
+    // permission check
+    if (!PermissionCheck(AccountPermissionManager::MANAGE_LOCAL_ACCOUNTS, "")) {
+        ACCOUNT_LOGE("account manager service, permission denied!");
+        return ERR_OSACCOUNT_SERVICE_PERMISSION_DENIED;
     }
+
     return innerManager_->GetCreatedOsAccountsCount(osAccountsCount);
 }
 
@@ -227,6 +209,12 @@ ErrCode OsAccountManagerService::GetOsAccountLocalIdFromProcess(int &id)
 
 ErrCode OsAccountManagerService::GetOsAccountLocalIdFromDomain(const DomainAccountInfo &domainInfo, int &id)
 {
+    // permission check
+    if (!PermissionCheck(AccountPermissionManager::MANAGE_LOCAL_ACCOUNTS, "")) {
+        ACCOUNT_LOGE("account manager service, permission denied!");
+        return ERR_OSACCOUNT_SERVICE_PERMISSION_DENIED;
+    }
+
     return innerManager_->GetOsAccountLocalIdFromDomain(domainInfo, id);
 }
 
@@ -237,53 +225,47 @@ ErrCode OsAccountManagerService::QueryMaxOsAccountNumber(int &maxOsAccountNumber
 
 ErrCode OsAccountManagerService::GetOsAccountAllConstraints(const int id, std::vector<std::string> &constraints)
 {
-    if (!IsRootProcess()) {
-        ErrCode result = permissionManagerPtr_->VerifyPermission(AccountPermissionManager::MANAGE_LOCAL_ACCOUNTS);
-        if (result != ERR_OK) {
-            ACCOUNT_LOGE("failed to verify permission for MANAGE_LOCAL_ACCOUNTS");
-            return ERR_OSACCOUNT_SERVICE_PERMISSION_DENIED;
-        }
+    // permission check
+    if (!PermissionCheck(AccountPermissionManager::MANAGE_LOCAL_ACCOUNTS, "")) {
+        ACCOUNT_LOGE("account manager service, permission denied!");
+        return ERR_OSACCOUNT_SERVICE_PERMISSION_DENIED;
     }
+
     return innerManager_->GetOsAccountAllConstraints(id, constraints);
 }
 
 ErrCode OsAccountManagerService::QueryAllCreatedOsAccounts(std::vector<OsAccountInfo> &osAccountInfos)
 {
-    if (!IsRootProcess()) {
-        ErrCode result = permissionManagerPtr_->VerifyPermission(AccountPermissionManager::MANAGE_LOCAL_ACCOUNTS);
-        if (result != ERR_OK) {
-            ACCOUNT_LOGE("failed to verify permission for MANAGE_LOCAL_ACCOUNTS");
-            return ERR_OSACCOUNT_SERVICE_PERMISSION_DENIED;
-        }
+    // permission check
+    if (!PermissionCheck(AccountPermissionManager::MANAGE_LOCAL_ACCOUNTS, "")) {
+        ACCOUNT_LOGE("account manager service, permission denied!");
+        return ERR_OSACCOUNT_SERVICE_PERMISSION_DENIED;
     }
+
     return innerManager_->QueryAllCreatedOsAccounts(osAccountInfos);
 }
 
 ErrCode OsAccountManagerService::QueryCurrentOsAccount(OsAccountInfo &osAccountInfo)
 {
-    if (!IsRootProcess()) {
-        ErrCode result = permissionManagerPtr_->VerifyPermission(AccountPermissionManager::MANAGE_LOCAL_ACCOUNTS);
-        if (result != ERR_OK) {
-            ACCOUNT_LOGE("failed to verify permission for MANAGE_LOCAL_ACCOUNTS");
-            return ERR_OSACCOUNT_SERVICE_PERMISSION_DENIED;
-        }
+    // permission check
+    if (!PermissionCheck(AccountPermissionManager::MANAGE_LOCAL_ACCOUNTS, "")) {
+        ACCOUNT_LOGE("account manager service, permission denied!");
+        return ERR_OSACCOUNT_SERVICE_PERMISSION_DENIED;
     }
+
     int id = IPCSkeleton::GetCallingUid() / UID_TRANSFORM_DIVISOR;
     return innerManager_->QueryOsAccountById(id, osAccountInfo);
 }
 
 ErrCode OsAccountManagerService::QueryOsAccountById(const int id, OsAccountInfo &osAccountInfo)
 {
-    if (!IsRootProcess()) {
-        ErrCode result = permissionManagerPtr_->VerifyPermission(AccountPermissionManager::MANAGE_LOCAL_ACCOUNTS);
-        ErrCode errCode =
-            permissionManagerPtr_->VerifyPermission(AccountPermissionManager::INTERACT_ACROSS_LOCAL_ACCOUNTS_EXTENSION);
-        if (result != ERR_OK && errCode != ERR_OK) {
-            ACCOUNT_LOGE("failed to verify permission for MANAGE_LOCAL_ACCOUNTS or "
-                         "INTERACT_ACROSS_LOCAL_ACCOUNTS_EXTENSION");
-            return ERR_OSACCOUNT_SERVICE_PERMISSION_DENIED;
-        }
+    // permission check
+    if (!PermissionCheck(AccountPermissionManager::MANAGE_LOCAL_ACCOUNTS, "") &&
+        !PermissionCheck(AccountPermissionManager::INTERACT_ACROSS_LOCAL_ACCOUNTS_EXTENSION, "")) {
+        ACCOUNT_LOGE("account manager service, permission denied!");
+        return ERR_OSACCOUNT_SERVICE_PERMISSION_DENIED;
     }
+
     return innerManager_->QueryOsAccountById(id, osAccountInfo);
 }
 
@@ -295,17 +277,18 @@ ErrCode OsAccountManagerService::GetOsAccountTypeFromProcess(OsAccountType &type
 
 ErrCode OsAccountManagerService::GetOsAccountProfilePhoto(const int id, std::string &photo)
 {
+    // get current account photo
     int callerUserId = IPCSkeleton::GetCallingUid() / UID_TRANSFORM_DIVISOR;
     if (callerUserId == id) {
         return innerManager_->GetOsAccountProfilePhoto(id, photo);
     }
-    if (!IsRootProcess()) {
-        ErrCode result = permissionManagerPtr_->VerifyPermission(AccountPermissionManager::MANAGE_LOCAL_ACCOUNTS);
-        if (result != ERR_OK) {
-            ACCOUNT_LOGE("failed to verify permission for MANAGE_LOCAL_ACCOUNTS");
-            return ERR_OSACCOUNT_SERVICE_PERMISSION_DENIED;
-        }
+
+    // get other account photo, check permission first
+    if (!PermissionCheck(AccountPermissionManager::MANAGE_LOCAL_ACCOUNTS, "")) {
+        ACCOUNT_LOGE("account manager service, permission denied!");
+        return ERR_OSACCOUNT_SERVICE_PERMISSION_DENIED;
     }
+
     return innerManager_->GetOsAccountProfilePhoto(id, photo);
 }
 
@@ -316,13 +299,13 @@ ErrCode OsAccountManagerService::IsMultiOsAccountEnable(bool &isMultiOsAccountEn
 
 ErrCode OsAccountManagerService::SetOsAccountName(const int id, const std::string &name)
 {
-    if (!IsRootProcess()) {
-        ErrCode result = permissionManagerPtr_->VerifyPermission(AccountPermissionManager::MANAGE_LOCAL_ACCOUNTS);
-        if (result != ERR_OK) {
-            ACCOUNT_LOGE("failed to verify permission for MANAGE_LOCAL_ACCOUNTS");
-            return ERR_OSACCOUNT_SERVICE_PERMISSION_DENIED;
-        }
+    // permission check
+    if (!PermissionCheck(AccountPermissionManager::MANAGE_LOCAL_ACCOUNTS, "")) {
+        ACCOUNT_LOGE("account manager service, permission denied!");
+        return ERR_OSACCOUNT_SERVICE_PERMISSION_DENIED;
     }
+
+    // parameters check
     if (name.size() > Constants::LOCAL_NAME_MAX_SIZE) {
         ACCOUNT_LOGE("set os account name is out of allowed szie");
         return ERR_OSACCOUNT_SERVICE_MANAGER_NAME_SIZE_OVERFLOW_ERROR;
@@ -332,7 +315,7 @@ ErrCode OsAccountManagerService::SetOsAccountName(const int id, const std::strin
         return ERR_OSACCOUNT_SERVICE_MANAGER_NAME_SIZE_EMPTY_ERROR;
     }
     if (id < Constants::START_USER_ID) {
-        ACCOUNT_LOGE("cannot remove system preinstalled user");
+        ACCOUNT_LOGE("invalid input id %{public}d.", id);
         return ERR_OSACCOUNT_SERVICE_MANAGER_ID_ERROR;
     }
     return innerManager_->SetOsAccountName(id, name);
@@ -341,68 +324,56 @@ ErrCode OsAccountManagerService::SetOsAccountName(const int id, const std::strin
 ErrCode OsAccountManagerService::SetOsAccountConstraints(
     const int id, const std::vector<std::string> &constraints, const bool enable)
 {
-    if (!IsRootProcess()) {
-        ErrCode result = permissionManagerPtr_->VerifyPermission(AccountPermissionManager::MANAGE_LOCAL_ACCOUNTS);
-        if (result != ERR_OK) {
-            ACCOUNT_LOGE("failed to verify permission for MANAGE_LOCAL_ACCOUNTS");
-            return ERR_OSACCOUNT_SERVICE_PERMISSION_DENIED;
-        }
+    // permission check
+    if (!PermissionCheck(AccountPermissionManager::MANAGE_LOCAL_ACCOUNTS, "")) {
+        ACCOUNT_LOGE("account manager service, permission denied!");
+        return ERR_OSACCOUNT_SERVICE_PERMISSION_DENIED;
     }
+
+    // parameters check
     if (id < Constants::START_USER_ID) {
-        ACCOUNT_LOGE("cannot remove system preinstalled user");
+        ACCOUNT_LOGE("invalid input account id %{public}d.", id);
         return ERR_OSACCOUNT_SERVICE_MANAGER_ID_ERROR;
     }
+
     return innerManager_->SetOsAccountConstraints(id, constraints, enable);
 }
 
 ErrCode OsAccountManagerService::SetOsAccountProfilePhoto(const int id, const std::string &photo)
 {
-    int callerUserId = IPCSkeleton::GetCallingUid() / UID_TRANSFORM_DIVISOR;
-    bool isEnable = true;
-    innerManager_->IsOsAccountConstraintEnable(callerUserId, CONSTANT_SET_ICON, isEnable);
-    if (isEnable) {
-        ACCOUNT_LOGE("caller user cannot set os account photo error.");
+    // permission check
+    if (!PermissionCheck(AccountPermissionManager::MANAGE_LOCAL_ACCOUNTS, CONSTANT_SET_ICON)) {
+        ACCOUNT_LOGE("account manager service, permission denied!");
         return ERR_OSACCOUNT_SERVICE_PERMISSION_DENIED;
     }
-    if (!IsRootProcess()) {
-        ErrCode result = permissionManagerPtr_->VerifyPermission(AccountPermissionManager::MANAGE_LOCAL_ACCOUNTS);
-        if (result != ERR_OK) {
-            ACCOUNT_LOGE("failed to verify permission for MANAGE_LOCAL_ACCOUNTS");
-            return ERR_OSACCOUNT_SERVICE_PERMISSION_DENIED;
-        }
-    }
+
+    // parameters check
     if (id < Constants::START_USER_ID) {
-        ACCOUNT_LOGE("cannot remove system preinstalled user");
+        ACCOUNT_LOGE("invalid input id %{public}d.", id);
         return ERR_OSACCOUNT_SERVICE_MANAGER_ID_ERROR;
     }
     if (photo.size() > Constants::LOCAL_PHOTO_MAX_SIZE) {
         ACCOUNT_LOGE("photo out of allowed size");
         return ERR_OSACCOUNT_SERVICE_MANAGER_PHOTO_SIZE_OVERFLOW_ERROR;
     }
+
     return innerManager_->SetOsAccountProfilePhoto(id, photo);
 }
 
 ErrCode OsAccountManagerService::ActivateOsAccount(const int id)
 {
-    int callerUserId = IPCSkeleton::GetCallingUid() / UID_TRANSFORM_DIVISOR;
-    bool isEnable = true;
-    innerManager_->IsOsAccountConstraintEnable(callerUserId, CONSTANT_START, isEnable);
-    if (isEnable) {
-        ACCOUNT_LOGE("caller user cannot active os account error.");
+    // permission check
+    if (!PermissionCheck(AccountPermissionManager::INTERACT_ACROSS_LOCAL_ACCOUNTS_EXTENSION, CONSTANT_START)) {
+        ACCOUNT_LOGE("account manager service, permission denied!");
         return ERR_OSACCOUNT_SERVICE_PERMISSION_DENIED;
     }
-    if (!IsRootProcess()) {
-        ErrCode result =
-            permissionManagerPtr_->VerifyPermission(AccountPermissionManager::INTERACT_ACROSS_LOCAL_ACCOUNTS_EXTENSION);
-        if (result != ERR_OK) {
-            ACCOUNT_LOGE("failed to verify permission for INTERACT_ACROSS_LOCAL_ACCOUNTS_EXTENSION");
-            return ERR_OSACCOUNT_SERVICE_PERMISSION_DENIED;
-        }
-    }
+
+    // parameters check
     if (id < Constants::START_USER_ID) {
-        ACCOUNT_LOGE("cannot remove system preinstalled user");
+        ACCOUNT_LOGE("invalid input id %{public}d.", id);
         return ERR_OSACCOUNT_SERVICE_MANAGER_ID_ERROR;
     }
+
     return innerManager_->ActivateOsAccount(id);
 }
 
@@ -415,30 +386,27 @@ ErrCode OsAccountManagerService::StopOsAccount(const int id)
 {
     return innerManager_->StopOsAccount(id);
 }
+
 ErrCode OsAccountManagerService::SubscribeOsAccount(
     const OsAccountSubscribeInfo &subscribeInfo, const sptr<IRemoteObject> &eventListener)
 {
-    if (!IsRootProcess()) {
-        ErrCode result =
-            permissionManagerPtr_->VerifyPermission(AccountPermissionManager::INTERACT_ACROSS_LOCAL_ACCOUNTS_EXTENSION);
-        if (result != ERR_OK) {
-            ACCOUNT_LOGE("failed to verify permission for INTERACT_ACROSS_LOCAL_ACCOUNTS_EXTENSION");
-            return ERR_OSACCOUNT_SERVICE_PERMISSION_DENIED;
-        }
+    // permission check
+    if (!PermissionCheck(AccountPermissionManager::INTERACT_ACROSS_LOCAL_ACCOUNTS_EXTENSION, "")) {
+        ACCOUNT_LOGE("account manager service, permission denied!");
+        return ERR_OSACCOUNT_SERVICE_PERMISSION_DENIED;
     }
+
     return innerManager_->SubscribeOsAccount(subscribeInfo, eventListener);
 }
 
 ErrCode OsAccountManagerService::UnsubscribeOsAccount(const sptr<IRemoteObject> &eventListener)
 {
-    if (!IsRootProcess()) {
-        ErrCode result =
-            permissionManagerPtr_->VerifyPermission(AccountPermissionManager::INTERACT_ACROSS_LOCAL_ACCOUNTS_EXTENSION);
-        if (result != ERR_OK) {
-            ACCOUNT_LOGE("failed to verify permission for INTERACT_ACROSS_LOCAL_ACCOUNTS_EXTENSION");
-            return ERR_OSACCOUNT_SERVICE_PERMISSION_DENIED;
-        }
+    // permission check
+    if (!PermissionCheck(AccountPermissionManager::INTERACT_ACROSS_LOCAL_ACCOUNTS_EXTENSION, "")) {
+        ACCOUNT_LOGE("account manager service, permission denied!");
+        return ERR_OSACCOUNT_SERVICE_PERMISSION_DENIED;
     }
+
     return innerManager_->UnsubscribeOsAccount(eventListener);
 }
 
@@ -451,6 +419,7 @@ ErrCode OsAccountManagerService::GetSerialNumberByOsAccountLocalId(const int &id
 {
     return innerManager_->GetSerialNumberByOsAccountLocalId(id, serialNumber);
 }
+
 OS_ACCOUNT_SWITCH_MOD OsAccountManagerService::GetOsAccountSwitchMod()
 {
     return innerManager_->GetOsAccountSwitchMod();
@@ -469,32 +438,33 @@ ErrCode OsAccountManagerService::IsOsAccountCompleted(const int id, bool &isOsAc
 
 ErrCode OsAccountManagerService::SetCurrentOsAccountIsVerified(const bool isVerified)
 {
-    if (!IsRootProcess()) {
-        ErrCode result = permissionManagerPtr_->VerifyPermission(AccountPermissionManager::MANAGE_LOCAL_ACCOUNTS);
-        if (result != ERR_OK) {
-            ACCOUNT_LOGI("failed to verify permission for MANAGE_LOCAL_ACCOUNTS");
-            return ERR_OSACCOUNT_SERVICE_PERMISSION_DENIED;
-        }
+    // permission check
+    if (!PermissionCheck(AccountPermissionManager::MANAGE_LOCAL_ACCOUNTS, "")) {
+        ACCOUNT_LOGE("account manager service, permission denied!");
+        return ERR_OSACCOUNT_SERVICE_PERMISSION_DENIED;
     }
+
+    // parameters check
     int id = IPCSkeleton::GetCallingUid() / UID_TRANSFORM_DIVISOR;
     if (id < Constants::START_USER_ID) {
-        ACCOUNT_LOGE("cannot remove system preinstalled user");
+        ACCOUNT_LOGE("invalid input id %{public}d.", id);
         return ERR_OSACCOUNT_SERVICE_MANAGER_ID_ERROR;
     }
+
     return innerManager_->SetOsAccountIsVerified(id, isVerified);
 }
 
 ErrCode OsAccountManagerService::SetOsAccountIsVerified(const int id, const bool isVerified)
 {
-    if (!IsRootProcess()) {
-        ErrCode result = permissionManagerPtr_->VerifyPermission(AccountPermissionManager::MANAGE_LOCAL_ACCOUNTS);
-        if (result != ERR_OK) {
-            ACCOUNT_LOGE("failed to verify permission for MANAGE_LOCAL_ACCOUNTS");
-            return ERR_OSACCOUNT_SERVICE_PERMISSION_DENIED;
-        }
+    // permission check
+    if (!PermissionCheck(AccountPermissionManager::MANAGE_LOCAL_ACCOUNTS, "")) {
+        ACCOUNT_LOGE("account manager service, permission denied!");
+        return ERR_OSACCOUNT_SERVICE_PERMISSION_DENIED;
     }
+
+    // parameters check
     if (id < Constants::START_USER_ID) {
-        ACCOUNT_LOGE("cannot remove system preinstalled user");
+        ACCOUNT_LOGE("invalid input id %{public}d.", id);
         return ERR_OSACCOUNT_SERVICE_MANAGER_ID_ERROR;
     }
     return innerManager_->SetOsAccountIsVerified(id, isVerified);
@@ -503,6 +473,12 @@ ErrCode OsAccountManagerService::SetOsAccountIsVerified(const int id, const bool
 ErrCode OsAccountManagerService::DumpState(const int &id, std::vector<std::string> &state)
 {
     state.clear();
+
+    // permission check
+    if (!PermissionCheck(AccountPermissionManager::MANAGE_LOCAL_ACCOUNTS, "")) {
+        ACCOUNT_LOGE("account manager service, permission denied!");
+        return ERR_OSACCOUNT_SERVICE_PERMISSION_DENIED;
+    }
 
     ErrCode result = ERR_OK;
     std::vector<OsAccountInfo> osAccountInfos;
@@ -528,22 +504,12 @@ ErrCode OsAccountManagerService::DumpState(const int &id, std::vector<std::strin
 ErrCode OsAccountManagerService::GetCreatedOsAccountNumFromDatabase(const std::string& storeID,
     int &createdOsAccountNum)
 {
-    auto callingUid = IPCSkeleton::GetCallingUid();
-    if (callingUid >= Constants::APP_UID_START) {
-        std::string bundleName;
-
-        ErrCode result = bundleManagerPtr_->GetBundleName(callingUid, bundleName);
-        if (result != ERR_OK) {
-            ACCOUNT_LOGE("failed to get bundle name");
-            return result;
-        }
-
-        result = permissionManagerPtr_->VerifyPermission(AccountPermissionManager::MANAGE_LOCAL_ACCOUNTS);
-        if (result != ERR_OK) {
-            ACCOUNT_LOGI("failed to verify permission for MANAGE_LOCAL_ACCOUNTS");
-            return ERR_OSACCOUNT_SERVICE_PERMISSION_DENIED;
-        }
+    // permission check
+    if (!PermissionCheck(AccountPermissionManager::MANAGE_LOCAL_ACCOUNTS, "")) {
+        ACCOUNT_LOGE("account manager service, permission denied!");
+        return ERR_OSACCOUNT_SERVICE_PERMISSION_DENIED;
     }
+
     return innerManager_->GetCreatedOsAccountNumFromDatabase(storeID, createdOsAccountNum);
 }
 
@@ -562,66 +528,30 @@ ErrCode OsAccountManagerService::GetSerialNumberFromDatabase(const std::string& 
 
 ErrCode OsAccountManagerService::GetMaxAllowCreateIdFromDatabase(const std::string& storeID, int &id)
 {
-    auto callingUid = IPCSkeleton::GetCallingUid();
-    if (callingUid >= Constants::APP_UID_START) {
-        std::string bundleName;
-
-        ErrCode result = bundleManagerPtr_->GetBundleName(callingUid, bundleName);
-        if (result != ERR_OK) {
-            ACCOUNT_LOGE("failed to get bundle name");
-            return result;
-        }
-
-        result = permissionManagerPtr_->VerifyPermission(AccountPermissionManager::MANAGE_LOCAL_ACCOUNTS);
-        if (result != ERR_OK) {
-            ACCOUNT_LOGI("failed to verify permission for MANAGE_LOCAL_ACCOUNTS");
-            return ERR_OSACCOUNT_SERVICE_PERMISSION_DENIED;
-        }
-    }
     return innerManager_->GetMaxAllowCreateIdFromDatabase(storeID, id);
 }
 
 ErrCode OsAccountManagerService::GetOsAccountFromDatabase(const std::string& storeID,
     const int id, OsAccountInfo &osAccountInfo)
 {
-    auto callingUid = IPCSkeleton::GetCallingUid();
-    if (callingUid >= Constants::APP_UID_START) {
-        std::string bundleName;
-
-        ErrCode result = bundleManagerPtr_->GetBundleName(callingUid, bundleName);
-        if (result != ERR_OK) {
-            ACCOUNT_LOGE("failed to get bundle name");
-            return result;
-        }
-
-        result = permissionManagerPtr_->VerifyPermission(AccountPermissionManager::MANAGE_LOCAL_ACCOUNTS);
-        if (result != ERR_OK) {
-            ACCOUNT_LOGI("failed to verify permission for MANAGE_LOCAL_ACCOUNTS");
-            return ERR_OSACCOUNT_SERVICE_PERMISSION_DENIED;
-        }
+    // permission check
+    if (!PermissionCheck(AccountPermissionManager::MANAGE_LOCAL_ACCOUNTS, "")) {
+        ACCOUNT_LOGE("account manager service, permission denied!");
+        return ERR_OSACCOUNT_SERVICE_PERMISSION_DENIED;
     }
+
     return innerManager_->GetOsAccountFromDatabase(storeID, id, osAccountInfo);
 }
 
 ErrCode OsAccountManagerService::GetOsAccountListFromDatabase(const std::string& storeID,
     std::vector<OsAccountInfo> &osAccountList)
 {
-    auto callingUid = IPCSkeleton::GetCallingUid();
-    if (callingUid >= Constants::APP_UID_START) {
-        std::string bundleName;
-
-        ErrCode result = bundleManagerPtr_->GetBundleName(callingUid, bundleName);
-        if (result != ERR_OK) {
-            ACCOUNT_LOGE("failed to get bundle name");
-            return result;
-        }
-
-        result = permissionManagerPtr_->VerifyPermission(AccountPermissionManager::MANAGE_LOCAL_ACCOUNTS);
-        if (result != ERR_OK) {
-            ACCOUNT_LOGI("failed to verify permission for MANAGE_LOCAL_ACCOUNTS");
-            return ERR_OSACCOUNT_SERVICE_PERMISSION_DENIED;
-        }
+    // permission check
+    if (!PermissionCheck(AccountPermissionManager::MANAGE_LOCAL_ACCOUNTS, "")) {
+        ACCOUNT_LOGE("account manager service, permission denied!");
+        return ERR_OSACCOUNT_SERVICE_PERMISSION_DENIED;
     }
+
     return innerManager_->GetOsAccountListFromDatabase(storeID, osAccountList);
 }
 
@@ -692,10 +622,32 @@ ErrCode OsAccountManagerService::QueryActiveOsAccountIds(std::vector<int32_t>& i
     return innerManager_->QueryActiveOsAccountIds(ids);
 }
 
-bool OsAccountManagerService::IsRootProcess()
+bool OsAccountManagerService::PermissionCheck(const std::string& permissionName, const std::string& constriantName)
 {
-    auto callingUid = IPCSkeleton::GetCallingUid();
-    return callingUid == 0;
+    // constriants check
+    int callerUid = IPCSkeleton::GetCallingUid();
+    if (!constriantName.empty()) {
+        int callerUserId = callerUid / UID_TRANSFORM_DIVISOR;
+        bool isEnable = true;
+        innerManager_->IsOsAccountConstraintEnable(callerUserId, constriantName, isEnable);
+        if (isEnable) {
+            ACCOUNT_LOGE("constriant check %{public}s failed.", constriantName.c_str());
+            return false;
+        }
+    }
+
+    // root check
+    if (callerUid == ROOT_UID) {
+        return true;
+    }
+
+    // permission check
+    if (permissionManagerPtr_->VerifyPermission(permissionName) == ERR_OK) {
+        return true;
+    }
+
+    ACCOUNT_LOGE("failed to verify permission for %{public}s.", permissionName.c_str());
+    return false;
 }
 }  // namespace AccountSA
 }  // namespace OHOS
