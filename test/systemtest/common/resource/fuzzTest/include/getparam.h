@@ -21,6 +21,7 @@
 #include "app_account_manager.h"
 #include "app_account_subscribe_info.h"
 #include "app_account_subscriber.h"
+#include "os_account_manager.h"
 
 namespace OHOS {
 namespace AccountSA {
@@ -59,6 +60,9 @@ std::vector<int8_t> GetS8VectorParam();
 std::vector<int16_t> GetS16VectorParam();
 std::vector<int32_t> GetS32VectorParam();
 std::vector<int64_t> GetS64VectorParam();
+OsAccountType GetParamOsAccountType();
+OsAccountInfo GetParamOsAccountInfo();
+DomainAccountInfo GetParamDomainAccountInfo();
 
 AppAccountInfo GetParamAppAccountInfo();
 std::vector<AppAccountInfo> GetVectorParamAppAccountInfo();
@@ -69,6 +73,16 @@ public:
     TestAppAccountSubscriber() {};
     ~TestAppAccountSubscriber() {};
     virtual void OnAccountsChanged(const std::vector<AppAccountInfo> &accounts)
+    {
+        printf("Fuzz Test OnAccountsChanged\n");
+    }
+};
+
+class TestOsAccountSubscriber : public OsAccountSubscriber {
+public:
+    TestOsAccountSubscriber() {};
+    ~TestOsAccountSubscriber() {};
+    virtual void OnAccountsChanged(const int &id)
     {
         printf("Fuzz Test OnAccountsChanged\n");
     }

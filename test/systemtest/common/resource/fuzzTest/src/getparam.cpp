@@ -26,6 +26,10 @@ namespace AccountSA {
 const int ACCOUNT_FUZZ_BOOL = 2;
 const int ACCOUNT_FUZZ_CHAR_LEFT = -128;
 const int ACCOUNT_FUZZ_CHAR_RIGHT = 127;
+const int INDEX_ZERO = 0;
+const int INDEX_ONE = 1;
+const int INDEX_TWO = 2;
+const int INDEX_THREE = 3;
 const size_t RANDOM_MIN = 0;
 const size_t RANDOM_MAX = 255;
 
@@ -420,6 +424,46 @@ std::vector<AppAccountInfo> GetVectorParamAppAccountInfo()
 std::shared_ptr<AppAccountSubscriber> GetAppAccountSubscriber()
 {
     return std::make_shared<TestAppAccountSubscriber>();
+}
+
+OHOS::AccountSA::OsAccountType GetParamOsAccountType()
+{
+    switch (GetIntParam() % INDEX_THREE) {
+        case INDEX_ZERO:
+            return OHOS::AccountSA::OsAccountType::ADMIN;
+            break;
+        case INDEX_ONE:
+            return OHOS::AccountSA::OsAccountType::NORMAL;
+            break;
+        case INDEX_TWO:
+            return OHOS::AccountSA::OsAccountType::GUEST;
+            break;
+        default:
+            return OHOS::AccountSA::OsAccountType::NORMAL;
+            break;
+    }
+}
+
+OsAccountInfo GetParamOsAccountInfo()
+{
+    if (GetBoolParam()) {
+        OsAccountInfo osAccountInfo;
+        return osAccountInfo;
+    } else {
+        OsAccountInfo osAccountInfo(GetIntParam(), GetStringParam(), GetParamOsAccountType(), GetS64Param());
+        return osAccountInfo;
+    }
+}
+
+DomainAccountInfo GetParamDomainAccountInfo()
+{
+    if (GetBoolParam()) {
+        DomainAccountInfo domainAccountInfo;
+        return domainAccountInfo;
+    } else {
+        DomainAccountInfo domainAccountInfo(GetStringParam(), GetStringParam());
+        return domainAccountInfo;
+    }
 }
 }  // namespace AccountSA
 }  // namespace OHOS
