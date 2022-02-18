@@ -421,7 +421,7 @@ ErrCode OsAccount::SubscribeOsAccount(const std::shared_ptr<OsAccountSubscriber>
         return ERR_OSACCOUNT_KIT_GET_NAME_ERROR;
     }
     if (GetOsAccountProxy() != ERR_OK) {
-        ACCOUNT_LOGE("app account proxy is nullptr");
+        ACCOUNT_LOGE("os account proxy is nullptr");
         return ERR_APPACCOUNT_KIT_APP_ACCOUNT_PROXY_IS_NULLPTR;
     }
 
@@ -444,7 +444,7 @@ ErrCode OsAccount::UnsubscribeOsAccount(const std::shared_ptr<OsAccountSubscribe
     }
 
     if (GetOsAccountProxy() != ERR_OK) {
-        ACCOUNT_LOGE("app account proxy is nullptr");
+        ACCOUNT_LOGE("os account proxy is nullptr");
         return ERR_APPACCOUNT_KIT_APP_ACCOUNT_PROXY_IS_NULLPTR;
     }
 
@@ -468,7 +468,10 @@ ErrCode OsAccount::UnsubscribeOsAccount(const std::shared_ptr<OsAccountSubscribe
 OS_ACCOUNT_SWITCH_MOD OsAccount::GetOsAccountSwitchMod()
 {
     ACCOUNT_LOGI("OsAccount::GetOsAccountSwitchMod start");
-    GetOsAccountProxy();
+    if (GetOsAccountProxy() != ERR_OK) {
+        ACCOUNT_LOGE("os account proxy is nullptr");
+        return OS_ACCOUNT_SWITCH_MOD::ERROR_MOD;
+    }
     return osAccountProxy_->GetOsAccountSwitchMod();
 }
 
@@ -565,19 +568,19 @@ ErrCode OsAccount::GetOsAccountProxy()
 
             auto osAccountRemoteObject = accountProxy->GetOsAccountService();
             if (!osAccountRemoteObject) {
-                ACCOUNT_LOGE("failed to get app account service");
+                ACCOUNT_LOGE("failed to get os account service");
                 return ERR_OSACCOUNT_KIT_GET_APP_ACCOUNT_SERVICE_ERROR;
             }
 
             osAccountProxy_ = iface_cast<IOsAccount>(osAccountRemoteObject);
             if ((!osAccountProxy_) || (!osAccountProxy_->AsObject())) {
-                ACCOUNT_LOGE("failed to cast app account proxy");
+                ACCOUNT_LOGE("failed to cast os account proxy");
                 return ERR_OSACCOUNT_KIT_GET_APP_ACCOUNT_PROXY_ERROR;
             }
 
             deathRecipient_ = new (std::nothrow) OsAccountDeathRecipient();
             if (!deathRecipient_) {
-                ACCOUNT_LOGE("failed to create app account death recipient");
+                ACCOUNT_LOGE("failed to create os account death recipient");
                 return ERR_OSACCOUNT_KIT_CREATE_APP_ACCOUNT_DEATH_RECIPIENT_ERROR;
             }
 
@@ -601,7 +604,7 @@ ErrCode OsAccount::CreateOsAccountEventListener(
     auto eventListener = eventListeners_.find(subscriber);
     if (eventListener != eventListeners_.end()) {
         osAccountEventListener = eventListener->second->AsObject();
-        ACCOUNT_LOGE("subscriber already has app account event listener");
+        ACCOUNT_LOGE("subscriber already has os account event listener");
         return ALREADY_SUBSCRIBED;
     } else {
         if (eventListeners_.size() == Constants::SUBSCRIBER_MAX_SIZE) {
