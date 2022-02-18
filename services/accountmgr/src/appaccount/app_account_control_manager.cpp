@@ -373,8 +373,6 @@ ErrCode AppAccountControlManager::SetAccountCredential(const std::string &name, 
 
 ErrCode AppAccountControlManager::GetOAuthToken(const OAuthRequest &request, std::string &token)
 {
-    ACCOUNT_LOGI("enter, name = %{public}s, owner= %{public}s, authType = %{public}s",
-        request.name.c_str(), request.owner.c_str(), request.authType.c_str());
     AppAccountInfo appAccountInfo(request.name, request.owner);
     std::shared_ptr<AppAccountDataStorage> dataStoragePtr;
     ErrCode result = GetAccountInfoFromDataStorage(appAccountInfo, dataStoragePtr, request.callerUid);
@@ -393,8 +391,6 @@ ErrCode AppAccountControlManager::GetOAuthToken(const OAuthRequest &request, std
 
 ErrCode AppAccountControlManager::SetOAuthToken(const OAuthRequest &request)
 {
-    ACCOUNT_LOGI("enter, name = %{public}s, authType = %{public}s",
-        request.name.c_str(), request.authType.c_str());
     std::lock_guard<std::mutex> lock(mutex_);
     AppAccountInfo appAccountInfo(request.name, request.callerBundleName);
     std::shared_ptr<AppAccountDataStorage> dataStoragePtr;
@@ -418,7 +414,7 @@ ErrCode AppAccountControlManager::SetOAuthToken(const OAuthRequest &request)
 
 ErrCode AppAccountControlManager::DeleteOAuthToken(const OAuthRequest &request)
 {
-    ACCOUNT_LOGI("enter, name = %{public}s, owner = %{public}s", request.name.c_str(), request.owner.c_str());
+    std::lock_guard<std::mutex> lock(mutex_);
     AppAccountInfo appAccountInfo(request.name, request.owner);
     std::shared_ptr<AppAccountDataStorage> dataStoragePtr;
     ErrCode result = GetAccountInfoFromDataStorage(appAccountInfo, dataStoragePtr, request.callerUid);
@@ -447,8 +443,6 @@ ErrCode AppAccountControlManager::DeleteOAuthToken(const OAuthRequest &request)
 
 ErrCode AppAccountControlManager::SetOAuthTokenVisibility(const OAuthRequest &request)
 {
-    ACCOUNT_LOGI("enter, name = %{public}s, authType = %{public}s, isTokenVisible = %{public}d",
-        request.name.c_str(), request.authType.c_str(), request.isTokenVisible);
     std::lock_guard<std::mutex> lock(mutex_);
     AppAccountInfo appAccountInfo(request.name, request.callerBundleName);
     std::shared_ptr<AppAccountDataStorage> dataStoragePtr;
@@ -488,7 +482,6 @@ ErrCode AppAccountControlManager::CheckOAuthTokenVisibility(const OAuthRequest &
 ErrCode AppAccountControlManager::GetAllOAuthTokens(
     const OAuthRequest &request, std::vector<OAuthTokenInfo> &tokenInfos)
 {
-    ACCOUNT_LOGI("enter, name = %{public}s, owner = %{public}s", request.name.c_str(), request.owner.c_str());
     tokenInfos.clear();
     AppAccountInfo appAccountInfo(request.name, request.owner);
     std::shared_ptr<AppAccountDataStorage> dataStoragePtr;
@@ -523,8 +516,6 @@ ErrCode AppAccountControlManager::GetAllOAuthTokens(
 ErrCode AppAccountControlManager::GetOAuthList(
     const OAuthRequest &request, std::set<std::string> &oauthList)
 {
-    ACCOUNT_LOGI("enter, name = %{public}s, authType = %{public}s",
-        request.name.c_str(), request.authType.c_str());
     AppAccountInfo appAccountInfo(request.name, request.callerBundleName);
     std::shared_ptr<AppAccountDataStorage> dataStoragePtr;
     ErrCode result = GetAccountInfoFromDataStorage(appAccountInfo, dataStoragePtr, request.callerUid);
@@ -1049,10 +1040,14 @@ ErrCode AppAccountControlManager::SaveAuthorizedAccountIntoDataStorage(const std
         ACCOUNT_LOGI("account = %{public}s", account.c_str());
         accessibleAccountArray.emplace_back(account);
     }
-    ACCOUNT_LOGI("accessibleAccountArray.dump() = %{public}s", accessibleAccountArray.dump().c_str());
 
     jsonObject[authorizedApp] = accessibleAccountArray;
-    authorizedAccounts = jsonObject.dump();
+    try {
+        authorizedAccounts = jsonObject.dump();
+    } catch (Json::type_error& err) {
+        ACCOUNT_LOGE("failed to dump json object, reason: %{public}s", err.what());
+        return ERR_APPACCOUNT_SERVICE_DUMP_JSON;
+    }
 
     ACCOUNT_LOGI("authorizedAccounts = %{public}s", authorizedAccounts.c_str());
 
@@ -1108,10 +1103,14 @@ ErrCode AppAccountControlManager::RemoveAuthorizedAccountFromDataStorage(const s
         ACCOUNT_LOGI("account = %{public}s", account.c_str());
         accessibleAccountArray.emplace_back(account);
     }
-    ACCOUNT_LOGI("accessibleAccountArray.dump() = %{public}s", accessibleAccountArray.dump().c_str());
 
     jsonObject[authorizedApp] = accessibleAccountArray;
-    authorizedAccounts = jsonObject.dump();
+    try {
+        authorizedAccounts = jsonObject.dump();
+    } catch (Json::type_error& err) {
+        ACCOUNT_LOGE("failed to dump json object, reason: %{public}s", err.what());
+        return ERR_APPACCOUNT_SERVICE_DUMP_JSON;
+    }
 
     ACCOUNT_LOGI("authorizedAccounts = %{public}s", authorizedAccounts.c_str());
 

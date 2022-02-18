@@ -56,27 +56,26 @@ ErrCode AppAccountManagerService::AddAccount(const std::string &name, const std:
     return innerManager_->AddAccount(name, extraInfo, callingUid, bundleName);
 }
 
-ErrCode AppAccountManagerService::AddAccountImplicitly(
-    const std::string &owner, const std::string &authType, const AAFwk::WantParams &options,
-    const sptr<IRemoteObject> &callback, const std::string &abilityName)
+ErrCode AppAccountManagerService::AddAccountImplicitly(const std::string &owner, const std::string &authType,
+    const AAFwk::Want &options, const sptr<IRemoteObject> &callback)
 {
-    ACCOUNT_LOGI("enter");
-    auto callingUid = IPCSkeleton::GetCallingUid();
-    std::string callerBundleName;
-    ErrCode result = bundleManagerPtr_->GetBundleName(callingUid, callerBundleName);
+    ACCOUNT_LOGI("enter, owner=%{public}s, authType=%{public}s", owner.c_str(), authType.c_str());
+    OAuthRequest request;
+    request.callerPid = IPCSkeleton::GetCallingPid();
+    request.callerUid = IPCSkeleton::GetCallingUid();
+    ErrCode result = bundleManagerPtr_->GetBundleName(request.callerUid, request.callerBundleName);
     if (result != ERR_OK) {
         ACCOUNT_LOGE("failed to get bundle name");
         return result;
     }
-    OAuthRequest request = {
-        .owner = owner,
-        .authType = authType,
-        .callerBundleName = callerBundleName,
-        .callerAbilityName = abilityName,
-        .callerUid = callingUid,
-        .options = options,
-        .callback = iface_cast<IAppAccountAuthenticatorCallback>(callback)
-    };
+    request.owner = owner;
+    request.authType = authType;
+    request.options = options;
+    request.callerAbilityName = options.GetStringParam(Constants::KEY_CALLER_ABILITY_NAME);
+    request.callback = iface_cast<IAppAccountAuthenticatorCallback>(callback);
+    request.options.RemoveParam(Constants::KEY_CALLER_ABILITY_NAME);
+    request.options.SetParam(Constants::KEY_CALLER_PID, request.callerPid);
+    request.options.SetParam(Constants::KEY_CALLER_UID, request.callerUid);
     return innerManager_->AddAccountImplicitly(request);
 }
 
@@ -287,40 +286,45 @@ ErrCode AppAccountManagerService::SetAccountCredential(
     return innerManager_->SetAccountCredential(name, credentialType, credential, callingUid, bundleName);
 }
 
-ErrCode AppAccountManagerService::Authenticate(OAuthRequest &request)
+ErrCode AppAccountManagerService::Authenticate(const std::string &name, const std::string &owner,
+    const std::string &authType, const AAFwk::Want &options, const sptr<IRemoteObject> &callback)
 {
     ACCOUNT_LOGI("enter, name=%{public}s, owner=%{public}s, authType=%{public}s",
-        request.name.c_str(), request.owner.c_str(), request.authType.c_str());
-    auto callingUid = IPCSkeleton::GetCallingUid();
-    std::string callerBundleName;
-    ErrCode result = bundleManagerPtr_->GetBundleName(callingUid, callerBundleName);
+        name.c_str(), owner.c_str(), authType.c_str());
+    OAuthRequest request;
+    request.callerPid = IPCSkeleton::GetCallingPid();
+    request.callerUid = IPCSkeleton::GetCallingUid();
+    ErrCode result = bundleManagerPtr_->GetBundleName(request.callerUid, request.callerBundleName);
     if (result != ERR_OK) {
         ACCOUNT_LOGE("failed to get bundle name");
         return result;
     }
-    request.callerBundleName = callerBundleName;
-    request.callerUid = callingUid;
+    request.name = name;
+    request.owner = owner;
+    request.authType = authType;
+    request.options = options;
+    request.callerAbilityName = options.GetStringParam(Constants::KEY_CALLER_ABILITY_NAME);
+    request.callback = iface_cast<IAppAccountAuthenticatorCallback>(callback);
+    request.options.RemoveParam(Constants::KEY_CALLER_ABILITY_NAME);
+    request.options.SetParam(Constants::KEY_CALLER_PID, request.callerPid);
+    request.options.SetParam(Constants::KEY_CALLER_UID, request.callerUid);
     return innerManager_->Authenticate(request);
 }
 
-ErrCode AppAccountManagerService::GetOAuthToken(const std::string &name, const std::string &owner,
-    const std::string &authType, std::string &token)
+ErrCode AppAccountManagerService::GetOAuthToken(
+    const std::string &name, const std::string &owner, const std::string &authType, std::string &token)
 {
     ACCOUNT_LOGI("enter, name = %{public}s, owner=%{public}s", name.c_str(), owner.c_str());
-    auto callingUid = IPCSkeleton::GetCallingUid();
-    std::string callerBundleName;
-    ErrCode result = bundleManagerPtr_->GetBundleName(callingUid, callerBundleName);
+    OAuthRequest request;
+    request.callerUid = IPCSkeleton::GetCallingUid();
+    ErrCode result = bundleManagerPtr_->GetBundleName(request.callerUid, request.callerBundleName);
     if (result != ERR_OK) {
         ACCOUNT_LOGE("failed to get bundle name");
         return result;
     }
-    OAuthRequest request = {
-        .name = name,
-        .owner = owner,
-        .authType = authType,
-        .callerBundleName = callerBundleName,
-        .callerUid = callingUid
-    };
+    request.name = name;
+    request.owner = owner;
+    request.authType = authType;
     return innerManager_->GetOAuthToken(request, token);
 }
 
@@ -328,102 +332,84 @@ ErrCode AppAccountManagerService::SetOAuthToken(
     const std::string &name, const std::string &authType, const std::string &token)
 {
     ACCOUNT_LOGI("enter, name=%{public}s, authType=%{public}s", name.c_str(), authType.c_str());
-    auto callingUid = IPCSkeleton::GetCallingUid();
-    std::string callerBundleName;
-    ErrCode result = bundleManagerPtr_->GetBundleName(callingUid, callerBundleName);
+    OAuthRequest request;
+    request.callerUid = IPCSkeleton::GetCallingUid();
+    ErrCode result = bundleManagerPtr_->GetBundleName(request.callerUid, request.callerBundleName);
     if (result != ERR_OK) {
         ACCOUNT_LOGE("failed to get bundle name");
         return result;
     }
-    OAuthRequest request = {
-        .name = name,
-        .owner = callerBundleName,
-        .authType = authType,
-        .token = token,
-        .callerBundleName = callerBundleName,
-        .callerUid = callingUid
-    };
+    request.name = name;
+    request.owner = request.callerBundleName;
+    request.authType = authType;
+    request.token = token;
     return innerManager_->SetOAuthToken(request);
 }
 
-ErrCode AppAccountManagerService::DeleteOAuthToken(const std::string &name, const std::string &owner,
-    const std::string &authType, const std::string &token)
+ErrCode AppAccountManagerService::DeleteOAuthToken(
+    const std::string &name, const std::string &owner, const std::string &authType, const std::string &token)
 {
     ACCOUNT_LOGI("enter, name=%{public}s, owner=%{public}s, authType=%{public}s",
         name.c_str(), owner.c_str(), authType.c_str());
-    auto callingUid = IPCSkeleton::GetCallingUid();
-    std::string callerBundleName;
-    ErrCode result = bundleManagerPtr_->GetBundleName(callingUid, callerBundleName);
+    OAuthRequest request;
+    request.callerUid = IPCSkeleton::GetCallingUid();
+    ErrCode result = bundleManagerPtr_->GetBundleName(request.callerUid, request.callerBundleName);
     if (result != ERR_OK) {
         ACCOUNT_LOGE("failed to get bundle name");
         return result;
     }
-    OAuthRequest request = {
-        .name = name,
-        .owner = owner,
-        .authType = authType,
-        .token = token,
-        .callerBundleName = callerBundleName,
-        .callerUid = callingUid
-    };
+    request.name = name;
+    request.owner = owner;
+    request.authType = authType;
+    request.token = token;
     return innerManager_->DeleteOAuthToken(request);
 }
 
-ErrCode AppAccountManagerService::SetOAuthTokenVisibility(const std::string &name, const std::string &authType,
-    const std::string &bundleName, bool isVisible)
+ErrCode AppAccountManagerService::SetOAuthTokenVisibility(
+    const std::string &name, const std::string &authType, const std::string &bundleName, bool isVisible)
 {
     ACCOUNT_LOGI("enter, name=%{public}s, authType=%{public}s, bundleName=%{public}s, isVisible=%{public}d",
         name.c_str(), authType.c_str(), bundleName.c_str(), isVisible);
-    auto callingUid = IPCSkeleton::GetCallingUid();
-    std::string callerBundleName;
-    ErrCode result = bundleManagerPtr_->GetBundleName(callingUid, callerBundleName);
+    OAuthRequest request;
+    request.callerUid = IPCSkeleton::GetCallingUid();
+    ErrCode result = bundleManagerPtr_->GetBundleName(request.callerUid, request.callerBundleName);
     if (result != ERR_OK) {
         ACCOUNT_LOGE("failed to get bundle name");
         return result;
     }
-    OAuthRequest request = {
-        .name = name,
-        .owner = callerBundleName,
-        .authType = authType,
-        .bundleName = bundleName,
-        .callerBundleName = callerBundleName,
-        .isTokenVisible = isVisible,
-        .callerUid = callingUid
-    };
+    request.name = name;
+    request.owner = request.callerBundleName;
+    request.authType = authType;
+    request.bundleName = bundleName;
+    request.isTokenVisible = isVisible;
     return innerManager_->SetOAuthTokenVisibility(request);
 }
 
-ErrCode AppAccountManagerService::CheckOAuthTokenVisibility(const std::string &name, const std::string &authType,
-    const std::string &bundleName, bool &isVisible)
+ErrCode AppAccountManagerService::CheckOAuthTokenVisibility(
+    const std::string &name, const std::string &authType, const std::string &bundleName, bool &isVisible)
 {
     ACCOUNT_LOGI("enter, name=%{public}s, authType=%{public}s, bundleName=%{public}s",
         name.c_str(), authType.c_str(), bundleName.c_str());
-    auto callingUid = IPCSkeleton::GetCallingUid();
-    std::string callerBundleName;
-    ErrCode result = bundleManagerPtr_->GetBundleName(callingUid, callerBundleName);
+    OAuthRequest request;
+    request.callerUid = IPCSkeleton::GetCallingUid();
+    ErrCode result = bundleManagerPtr_->GetBundleName(request.callerUid, request.callerBundleName);
     if (result != ERR_OK) {
         ACCOUNT_LOGE("failed to get bundle name");
         return result;
     }
-    OAuthRequest request = {
-        .name = name,
-        .owner = callerBundleName,
-        .authType = authType,
-        .bundleName = bundleName,
-        .callerBundleName = callerBundleName,
-        .callerUid = callingUid
-    };
+    request.name = name;
+    request.owner = request.callerBundleName;
+    request.authType = authType;
+    request.bundleName = bundleName;
     return innerManager_->CheckOAuthTokenVisibility(request, isVisible);
 }
 
 ErrCode AppAccountManagerService::GetAuthenticatorInfo(const std::string &owner, AuthenticatorInfo &info)
 {
     ACCOUNT_LOGI("enter, owner=%{public}s", owner.c_str());
-    auto callingUid = IPCSkeleton::GetCallingUid();
-    OAuthRequest request = {
-        .owner = owner,
-        .callerUid = callingUid
-    };
+    OAuthRequest request;
+    request.callerUid = IPCSkeleton::GetCallingUid();
+    request.owner = owner;
     return innerManager_->GetAuthenticatorInfo(request, info);
 }
 
@@ -431,19 +417,15 @@ ErrCode AppAccountManagerService::GetAllOAuthTokens(
     const std::string &name, const std::string &owner, std::vector<OAuthTokenInfo> &tokenInfos)
 {
     ACCOUNT_LOGI("enter, name=%{public}s, owner=%{public}s", name.c_str(), owner.c_str());
-    auto callingUid = IPCSkeleton::GetCallingUid();
-    std::string callerBundleName;
-    ErrCode result = bundleManagerPtr_->GetBundleName(callingUid, callerBundleName);
+    OAuthRequest request;
+    request.callerUid = IPCSkeleton::GetCallingUid();
+    ErrCode result = bundleManagerPtr_->GetBundleName(request.callerUid, request.callerBundleName);
     if (result != ERR_OK) {
         ACCOUNT_LOGE("failed to get bundle name");
         return result;
     }
-    OAuthRequest request = {
-        .name = name,
-        .owner = owner,
-        .callerBundleName = callerBundleName,
-        .callerUid = callingUid
-    };
+    request.name = name;
+    request.owner = owner;
     return innerManager_->GetAllOAuthTokens(request, tokenInfos);
 }
 
@@ -451,40 +433,30 @@ ErrCode AppAccountManagerService::GetOAuthList(
     const std::string &name, const std::string &authType, std::set<std::string> &oauthList)
 {
     ACCOUNT_LOGI("enter, name=%{public}s, authType=%{public}s", name.c_str(), authType.c_str());
-    auto callingUid = IPCSkeleton::GetCallingUid();
-    std::string callerBundleName;
-    ErrCode result = bundleManagerPtr_->GetBundleName(callingUid, callerBundleName);
+    OAuthRequest request;
+    request.callerUid = IPCSkeleton::GetCallingUid();
+    ErrCode result = bundleManagerPtr_->GetBundleName(request.callerUid, request.callerBundleName);
     if (result != ERR_OK) {
         ACCOUNT_LOGE("failed to get bundle name");
         return result;
     }
-    OAuthRequest request = {
-        .name = name,
-        .authType = authType,
-        .callerBundleName = callerBundleName,
-        .callerUid = callingUid
-    };
+    request.name = name;
+    request.authType = authType;
     return innerManager_->GetOAuthList(request, oauthList);
 }
 
 ErrCode AppAccountManagerService::GetAuthenticatorCallback(
     const std::string &sessionId, sptr<IRemoteObject> &callback)
 {
-    ACCOUNT_LOGI("enter");
-    auto callingUid = IPCSkeleton::GetCallingUid();
-    std::string callerBundleName;
-    ErrCode result = bundleManagerPtr_->GetBundleName(callingUid, callerBundleName);
+    OAuthRequest request;
+    request.callerUid = IPCSkeleton::GetCallingUid();
+    ErrCode result = bundleManagerPtr_->GetBundleName(request.callerUid, request.callerBundleName);
     if (result != ERR_OK) {
         ACCOUNT_LOGE("failed to get bundle name");
         return result;
     }
-    OAuthRequest request = {
-        .sessionId = sessionId,
-        .callerBundleName = callerBundleName,
-        .callerUid = callingUid
-    };
+    request.sessionId = sessionId;
     result = innerManager_->GetAuthenticatorCallback(request, callback);
-    ACCOUNT_LOGI("end");
     return result;
 }
 

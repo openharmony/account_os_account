@@ -144,6 +144,7 @@ ErrCode AppAccountInfo::GetAssociatedData(const std::string &key, std::string &v
 {
     auto jsonObject = Json::parse(associatedData_, nullptr, false);
     if (jsonObject.is_discarded()) {
+        ACCOUNT_LOGI("jsonObject is_discarded");
         jsonObject = Json::object();
     }
 
@@ -159,7 +160,8 @@ ErrCode AppAccountInfo::GetAssociatedData(const std::string &key, std::string &v
 ErrCode AppAccountInfo::SetAssociatedData(const std::string &key, const std::string &value)
 {
     auto jsonObject = Json::parse(associatedData_, nullptr, false);
-    if (jsonObject.is_discarded()) {
+    if (jsonObject.is_discarded() || (!jsonObject.is_object())) {
+        ACCOUNT_LOGI("jsonObject is discarded");
         jsonObject = Json::object();
     }
 
@@ -170,7 +172,12 @@ ErrCode AppAccountInfo::SetAssociatedData(const std::string &key, const std::str
         jsonObject[key] = value;
     }
 
-    associatedData_ = jsonObject.dump();
+    try {
+        associatedData_ = jsonObject.dump();
+    } catch (Json::type_error& err) {
+        ACCOUNT_LOGE("failed to dump json object, reason: %{public}s", err.what());
+        return ERR_APPACCOUNT_SERVICE_DUMP_JSON;
+    }
     return ERR_OK;
 }
 
@@ -193,7 +200,8 @@ ErrCode AppAccountInfo::GetAccountCredential(const std::string &credentialType, 
 ErrCode AppAccountInfo::SetAccountCredential(const std::string &credentialType, const std::string &credential)
 {
     auto jsonObject = Json::parse(accountCredential_, nullptr, false);
-    if (jsonObject.is_discarded()) {
+    if (jsonObject.is_discarded() || (!jsonObject.is_object())) {
+        ACCOUNT_LOGI("jsonObject is discarded");
         jsonObject = Json::object();
     }
 
@@ -204,7 +212,12 @@ ErrCode AppAccountInfo::SetAccountCredential(const std::string &credentialType, 
         jsonObject[credentialType] = credential;
     }
 
-    accountCredential_ = jsonObject.dump();
+    try {
+        accountCredential_ = jsonObject.dump();
+    } catch (Json::type_error& err) {
+        ACCOUNT_LOGE("failed to dump json object, reason: %{public}s", err.what());
+        return ERR_APPACCOUNT_SERVICE_DUMP_JSON;
+    }
     return ERR_OK;
 }
 
@@ -227,8 +240,8 @@ ErrCode AppAccountInfo::SetOAuthToken(const std::string &authType, const std::st
         it->second.token = token;
         return ERR_OK;
     }
-    if (oauthTokens_.size() >= MAX_TOKEN_SIZE) {
-        ACCOUNT_LOGE("too many types of oauth token, capacity for each account is %{public}d", MAX_TOKEN_SIZE);
+    if (oauthTokens_.size() >= MAX_TOKEN_NUMBER) {
+        ACCOUNT_LOGE("too many types of oauth token, capacity for each account is %{public}d", MAX_TOKEN_NUMBER);
         return ERR_APPACCOUNT_SERVICE_OAUTH_TOKEN_MAX_SIZE;
     }
     OAuthTokenInfo tokenInfo;
@@ -258,8 +271,8 @@ ErrCode AppAccountInfo::SetOAuthTokenVisibility(
         if (!isVisible) {
             return ERR_OK;
         }
-        if (oauthTokens_.size() >= MAX_TOKEN_SIZE) {
-            ACCOUNT_LOGE("too many types of oauth token, capacity for each account is %{public}d", MAX_TOKEN_SIZE);
+        if (oauthTokens_.size() >= MAX_TOKEN_NUMBER) {
+            ACCOUNT_LOGE("too many types of oauth token, capacity for each account is %{public}d", MAX_TOKEN_NUMBER);
             return ERR_APPACCOUNT_SERVICE_OAUTH_TOKEN_MAX_SIZE;
         }
         OAuthTokenInfo tokenInfo;
@@ -450,7 +463,12 @@ void AppAccountInfo::FromJson(const Json &jsonObject)
 std::string AppAccountInfo::ToString() const
 {
     auto jsonObject = ToJson();
-    return jsonObject.dump();
+    try {
+        return jsonObject.dump();
+    } catch (Json::type_error& err) {
+        ACCOUNT_LOGE("failed to dump json object, reason: %{public}s", err.what());
+        return "";
+    }
 }
 
 std::string AppAccountInfo::GetPrimeKey() const

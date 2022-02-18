@@ -34,8 +34,23 @@ const std::string KEY_ACTION = "action";
 const std::string KEY_AUTH_TYPE = "authType";
 const std::string KEY_SESSION_ID = "sessionId";
 const std::string KEY_CALLER_BUNDLE_NAME = "callerBundleName";
+const std::string KEY_CALLER_ABILITY_NAME = "callerAbilityName";
 const std::string KEY_CALLER_PID = "callerPid";
 const std::string KEY_CALLER_UID = "callerUid";
+const std::string SPECIAL_CHARACTERS = " ";
+constexpr std::size_t APP_ACCOUNT_SUBSCRIBER_MAX_SIZE = 200;
+constexpr std::size_t NAME_MAX_SIZE = 512;
+constexpr std::size_t EXTRA_INFO_MAX_SIZE = 1024;
+constexpr std::size_t BUNDLE_NAME_MAX_SIZE = 512;
+constexpr std::size_t ASSOCIATED_KEY_MAX_SIZE = 1024;
+constexpr std::size_t ASSOCIATED_VALUE_MAX_SIZE = 1024;
+constexpr std::size_t CREDENTIAL_TYPE_MAX_SIZE = 1024;
+constexpr std::size_t CREDENTIAL_MAX_SIZE = 1024;
+constexpr std::size_t TOKEN_MAX_SIZE = 1024;
+constexpr std::size_t OWNER_MAX_SIZE = 1024;
+constexpr std::size_t AUTH_TYPE_MAX_SIZE = 1024;
+constexpr std::size_t ABILITY_NAME_MAX_SIZE = 512;
+constexpr std::size_t SESSION_ID_MAX_SIZE = 1024;
 };  // namespace Constants
 }  // namespace AccountSA
 }  // namespace OHOS

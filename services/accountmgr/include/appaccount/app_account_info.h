@@ -26,7 +26,7 @@
 namespace OHOS {
 namespace AccountSA {
 namespace {
-constexpr uint32_t MAX_TOKEN_SIZE = 128;
+constexpr uint32_t MAX_TOKEN_NUMBER = 128;
 constexpr uint32_t MAX_OAUTH_LIST_SIZE = 512;
 }
 

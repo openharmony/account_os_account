@@ -194,8 +194,7 @@ napi_value NapiAppAccount::AddAccountImplicitly(napi_env env, napi_callback_info
                 ACCOUNT_LOGI("AddAccountImplicitly, napi_create_async_work running.");
                 OAuthAsyncContext *asyncContext = (OAuthAsyncContext *)data;
                 ErrCode errCode = AppAccountManager::AddAccountImplicitly(asyncContext->owner,
-                    asyncContext->tokenInfo.authType, asyncContext->options, asyncContext->appAccountMgrCb,
-                    asyncContext->abilityName);
+                    asyncContext->authType, asyncContext->options, asyncContext->appAccountMgrCb);
                 asyncContext->errCode = ConvertToJSErrCode(errCode);
                 ACCOUNT_LOGI("AddAccountImplicitly errcode parameter is %{public}d", asyncContext->errCode);
             },
@@ -204,7 +203,7 @@ napi_value NapiAppAccount::AddAccountImplicitly(napi_env env, napi_callback_info
                 OAuthAsyncContext *asyncContext = (OAuthAsyncContext *)data;
                 AAFwk::Want errResult;
                 if ((asyncContext->errCode != 0) && (asyncContext->appAccountMgrCb != nullptr)) {
-                    asyncContext->appAccountMgrCb->OnResult(ERR_JS_APP_ACCOUNT_SERVICE_EXCEPTION, errResult);
+                    asyncContext->appAccountMgrCb->OnResult(asyncContext->errCode, errResult);
                 }
                 napi_delete_async_work(env, asyncContext->work);
                 delete asyncContext;
@@ -932,14 +931,8 @@ napi_value NapiAppAccount::Authenticate(napi_env env, napi_callback_info cbInfo)
             [](napi_env env, void *data) {
                 ACCOUNT_LOGI("Authenticate, napi_create_async_work running.");
                 OAuthAsyncContext *asyncContext = (OAuthAsyncContext *)data;
-                OAuthRequest request;
-                request.name = asyncContext->name;
-                request.owner = asyncContext->owner;
-                request.authType = asyncContext->tokenInfo.authType;
-                request.options = asyncContext->options;
-                request.callback = asyncContext->appAccountMgrCb;
-                request.callerAbilityName = asyncContext->abilityName;
-                ErrCode errCode = AppAccountManager::Authenticate(request);
+                ErrCode errCode = AppAccountManager::Authenticate(asyncContext->name, asyncContext->owner,
+                    asyncContext->authType, asyncContext->options, asyncContext->appAccountMgrCb);
                 asyncContext->errCode = ConvertToJSErrCode(errCode);
                 ACCOUNT_LOGI("Authenticate errcode parameter is %{public}d", asyncContext->errCode);
             },
@@ -948,9 +941,11 @@ napi_value NapiAppAccount::Authenticate(napi_env env, napi_callback_info cbInfo)
                 OAuthAsyncContext *asyncContext = (OAuthAsyncContext *)data;
                 AAFwk::Want errResult;
                 if ((asyncContext->errCode != 0) && (asyncContext->appAccountMgrCb != nullptr)) {
-                    asyncContext->appAccountMgrCb->OnResult(ERR_JS_APP_ACCOUNT_SERVICE_EXCEPTION, errResult);
+                    asyncContext->appAccountMgrCb->OnResult(asyncContext->errCode, errResult);
                 }
                 napi_delete_async_work(env, asyncContext->work);
+                delete asyncContext;
+                asyncContext = nullptr;
             },
             (void *)asyncContext,
             &asyncContext->work));
@@ -986,8 +981,8 @@ napi_value NapiAppAccount::GetOAuthToken(napi_env env, napi_callback_info cbInfo
         [](napi_env env, void *data) {
             ACCOUNT_LOGI("GetOAuthToken, napi_create_async_work running.");
             OAuthAsyncContext *asyncContext = (OAuthAsyncContext *)data;
-            ErrCode errCode = AppAccountManager::GetOAuthToken(asyncContext->name, asyncContext->owner,
-                asyncContext->tokenInfo.authType, asyncContext->tokenInfo.token);
+            ErrCode errCode = AppAccountManager::GetOAuthToken(
+                asyncContext->name, asyncContext->owner, asyncContext->authType, asyncContext->token);
             asyncContext->errCode = ConvertToJSErrCode(errCode);
             ACCOUNT_LOGI("GetOAuthToken errcode parameter is %{public}d", asyncContext->errCode);
             asyncContext->status = asyncContext->errCode == 0 ? napi_ok : napi_generic_failure;
@@ -997,7 +992,7 @@ napi_value NapiAppAccount::GetOAuthToken(napi_env env, napi_callback_info cbInfo
             OAuthAsyncContext *asyncContext = (OAuthAsyncContext *)data;
             napi_value getResult[RESULT_COUNT] = {0};
             getResult[PARAM0] = GetErrorCodeValue(env, asyncContext->errCode);
-            napi_create_string_utf8(env, asyncContext->tokenInfo.token.c_str(), NAPI_AUTO_LENGTH, &getResult[PARAM1]);
+            napi_create_string_utf8(env, asyncContext->token.c_str(), NAPI_AUTO_LENGTH, &getResult[PARAM1]);
             ProcessCallbackOrPromise(env, asyncContext, getResult[PARAM0], getResult[PARAM1]);
             napi_delete_async_work(env, asyncContext->work);
             delete asyncContext;
@@ -1036,8 +1031,8 @@ napi_value NapiAppAccount::SetOAuthToken(napi_env env, napi_callback_info cbInfo
         [](napi_env env, void *data) {
             ACCOUNT_LOGI("SetOAuthToken, napi_create_async_work running.");
             OAuthAsyncContext *asyncContext = (OAuthAsyncContext *)data;
-            ErrCode errCode = AppAccountManager::SetOAuthToken(asyncContext->name,
-                asyncContext->tokenInfo.authType, asyncContext->tokenInfo.token);
+            ErrCode errCode = AppAccountManager::SetOAuthToken(
+                asyncContext->name, asyncContext->authType, asyncContext->token);
             asyncContext->errCode = ConvertToJSErrCode(errCode);
             ACCOUNT_LOGI("SetOAuthToken errcode parameter is %{public}d", asyncContext->errCode);
             asyncContext->status = asyncContext->errCode == 0 ? napi_ok : napi_generic_failure;
@@ -1083,8 +1078,8 @@ napi_value NapiAppAccount::DeleteOAuthToken(napi_env env, napi_callback_info cbI
             [](napi_env env, void *data) {
                 ACCOUNT_LOGI("DeleteOAuthToken, napi_create_async_work running.");
                 OAuthAsyncContext *asyncContext = (OAuthAsyncContext *)data;
-                ErrCode errCode = AppAccountManager::DeleteOAuthToken(asyncContext->name, asyncContext->owner,
-                    asyncContext->tokenInfo.authType, asyncContext->tokenInfo.token);
+                ErrCode errCode = AppAccountManager::DeleteOAuthToken(
+                    asyncContext->name, asyncContext->owner, asyncContext->authType, asyncContext->token);
                 asyncContext->errCode = ConvertToJSErrCode(errCode);
                 ACCOUNT_LOGI("DeleteOAuthToken errcode parameter is %{public}d", asyncContext->errCode);
                 asyncContext->status = asyncContext->errCode == 0 ? napi_ok : napi_generic_failure;
@@ -1131,8 +1126,7 @@ napi_value NapiAppAccount::SetOAuthTokenVisibility(napi_env env, napi_callback_i
                 ACCOUNT_LOGI("DisableOAuthTokenAccess, napi_create_async_work running.");
                 OAuthAsyncContext *asyncContext = (OAuthAsyncContext *)data;
                 ErrCode errCode = AppAccountManager::SetOAuthTokenVisibility(
-                    asyncContext->name, asyncContext->tokenInfo.authType, asyncContext->bundleName,
-                    asyncContext->isVisible);
+                    asyncContext->name, asyncContext->authType, asyncContext->bundleName, asyncContext->isVisible);
                 asyncContext->errCode = ConvertToJSErrCode(errCode);
                 ACCOUNT_LOGI("DisableOAuthTokenAccess errcode parameter is %{public}d", asyncContext->errCode);
                 asyncContext->status = asyncContext->errCode == 0 ? napi_ok : napi_generic_failure;
@@ -1179,8 +1173,7 @@ napi_value NapiAppAccount::CheckOAuthTokenVisibility(napi_env env, napi_callback
                 ACCOUNT_LOGI("CheckOAuthTokenVisibility, napi_create_async_work running.");
                 OAuthAsyncContext *asyncContext = (OAuthAsyncContext *)data;
                 ErrCode errCode = AppAccountManager::CheckOAuthTokenVisibility(
-                    asyncContext->name, asyncContext->tokenInfo.authType, asyncContext->bundleName,
-                    asyncContext->isVisible);
+                    asyncContext->name, asyncContext->authType, asyncContext->bundleName, asyncContext->isVisible);
                 asyncContext->errCode = ConvertToJSErrCode(errCode);
                 ACCOUNT_LOGI("CheckOAuthTokenVisibility errcode parameter is %{public}d", asyncContext->errCode);
                 asyncContext->status = asyncContext->errCode == 0 ? napi_ok : napi_generic_failure;
@@ -1274,8 +1267,8 @@ napi_value NapiAppAccount::GetAllOAuthTokens(napi_env env, napi_callback_info cb
             [](napi_env env, void *data) {
                 ACCOUNT_LOGI("GetAllOAuthTokens, napi_create_async_work running.");
                 OAuthAsyncContext *asyncContext = (OAuthAsyncContext *)data;
-                ErrCode errCode = AppAccountManager::GetAllOAuthTokens(asyncContext->name, asyncContext->owner,
-                    asyncContext->oauthTokenInfos);
+                ErrCode errCode = AppAccountManager::GetAllOAuthTokens(
+                    asyncContext->name, asyncContext->owner, asyncContext->oauthTokenInfos);
                 asyncContext->errCode = ConvertToJSErrCode(errCode);
                 ACCOUNT_LOGI("GetAllOAuthTokens errcode parameter is %{public}d", asyncContext->errCode);
                 asyncContext->status = asyncContext->errCode == 0 ? napi_ok : napi_generic_failure;
@@ -1322,8 +1315,8 @@ napi_value NapiAppAccount::GetOAuthList(napi_env env, napi_callback_info cbInfo)
             [](napi_env env, void *data) {
                 ACCOUNT_LOGI("GetOAuthList, napi_create_async_work running.");
                 OAuthAsyncContext *asyncContext = (OAuthAsyncContext *)data;
-                ErrCode errCode = AppAccountManager::GetOAuthList(asyncContext->name,
-                    asyncContext->tokenInfo.authType, asyncContext->tokenInfo.authList);
+                ErrCode errCode = AppAccountManager::GetOAuthList(
+                    asyncContext->name, asyncContext->authType, asyncContext->authList);
                 asyncContext->errCode = ConvertToJSErrCode(errCode);
                 ACCOUNT_LOGI("GetOAuthList errcode parameter is %{public}d", asyncContext->errCode);
                 asyncContext->status = asyncContext->errCode == 0 ? napi_ok : napi_generic_failure;
@@ -1334,7 +1327,7 @@ napi_value NapiAppAccount::GetOAuthList(napi_env env, napi_callback_info cbInfo)
                 napi_value getResult[RESULT_COUNT] = {0};
                 getResult[PARAM0] = GetErrorCodeValue(env, asyncContext->errCode);
                 napi_create_array(env, &getResult[PARAM1]);
-                GetOAuthListForResult(env, asyncContext->tokenInfo.authList, getResult[PARAM1]);
+                GetOAuthListForResult(env, asyncContext->authList, getResult[PARAM1]);
                 ProcessCallbackOrPromise(env, asyncContext, getResult[PARAM0], getResult[PARAM1]);
                 napi_delete_async_work(env, asyncContext->work);
                 delete asyncContext;
@@ -1369,8 +1362,8 @@ napi_value NapiAppAccount::GetAuthenticatorCallback(napi_env env, napi_callback_
             resource,
             [](napi_env env, void *data) {
                 OAuthAsyncContext *asyncContext = (OAuthAsyncContext *)data;
-                ErrCode errCode = AppAccountManager::GetAuthenticatorCallback(asyncContext->sessionId,
-                    asyncContext->authenticatorCb);
+                ErrCode errCode = AppAccountManager::GetAuthenticatorCallback(
+                    asyncContext->sessionId, asyncContext->authenticatorCb);
                 asyncContext->errCode = ConvertToJSErrCode(errCode);
                 ACCOUNT_LOGI("GetOAuthList errcode parameter is %{public}d", asyncContext->errCode);
                 ACCOUNT_LOGI("New the js instance complete");

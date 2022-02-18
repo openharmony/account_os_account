@@ -316,7 +316,7 @@ HWTEST_F(AppAccountManagerModuleTest, AppAccountManager_GetOAuthToken_0100, Test
 
 /**
  * @tc.name: AppAccountManager_SetOAuthToken_0100
- * @tc.desc: Set oauth token with invalid data.
+ * @tc.desc: Set oauth token with valid data.
  * @tc.type: FUNC
  * @tc.require: SR000GGVFU
  */

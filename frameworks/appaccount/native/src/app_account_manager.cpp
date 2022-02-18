@@ -27,15 +27,14 @@ ErrCode AppAccountManager::AddAccount(const std::string &name, const std::string
 
     return DelayedSingleton<AppAccount>::GetInstance()->AddAccount(name, extraInfo);
 }
- 
-ErrCode AppAccountManager::AddAccountImplicitly(
-    const std::string &owner, const std::string &authType, const AAFwk::WantParams &options,
-    IAppAccountAuthenticatorCallback *callback, const std::string &abilityName)
+
+ErrCode AppAccountManager::AddAccountImplicitly(const std::string &owner, const std::string &authType,
+    const AAFwk::Want &options, const sptr<IAppAccountAuthenticatorCallback> &callback)
 {
     ACCOUNT_LOGI("enter");
 
     return DelayedSingleton<AppAccount>::GetInstance()->AddAccountImplicitly(
-        owner, authType, options, callback, abilityName);
+        owner, authType, options, callback);
 }
 
 ErrCode AppAccountManager::DeleteAccount(const std::string &name)
@@ -117,15 +116,16 @@ ErrCode AppAccountManager::SetAccountCredential(
     return DelayedSingleton<AppAccount>::GetInstance()->SetAccountCredential(name, credentialType, credential);
 }
 
-ErrCode AppAccountManager::Authenticate(OAuthRequest &request)
+ErrCode AppAccountManager::Authenticate(const std::string &name, const std::string &owner,
+    const std::string &authType, const AAFwk::Want &options, const sptr<IAppAccountAuthenticatorCallback> &callback)
 {
     ACCOUNT_LOGI("enter");
 
-    return DelayedSingleton<AppAccount>::GetInstance()->Authenticate(request);
+    return DelayedSingleton<AppAccount>::GetInstance()->Authenticate(name, owner, authType, options, callback);
 }
 
-ErrCode AppAccountManager::GetOAuthToken(const std::string &name,  const std::string &owner,
-    const std::string &authType, std::string &token)
+ErrCode AppAccountManager::GetOAuthToken(
+    const std::string &name, const std::string &owner, const std::string &authType, std::string &token)
 {
     ACCOUNT_LOGI("enter");
 
@@ -148,8 +148,8 @@ ErrCode AppAccountManager::DeleteOAuthToken(
     return DelayedSingleton<AppAccount>::GetInstance()->DeleteOAuthToken(name, owner, authType, token);
 }
 
-ErrCode AppAccountManager::SetOAuthTokenVisibility(const std::string &name, const std::string &authType,
-    const std::string &bundleName, bool isVisible)
+ErrCode AppAccountManager::SetOAuthTokenVisibility(
+    const std::string &name, const std::string &authType, const std::string &bundleName, bool isVisible)
 {
     ACCOUNT_LOGI("enter");
 
@@ -157,8 +157,8 @@ ErrCode AppAccountManager::SetOAuthTokenVisibility(const std::string &name, cons
         name, authType, bundleName, isVisible);
 }
 
-ErrCode AppAccountManager::CheckOAuthTokenVisibility(const std::string &name, const std::string &authType,
-    const std::string &bundleName, bool &isVisible)
+ErrCode AppAccountManager::CheckOAuthTokenVisibility(
+    const std::string &name, const std::string &authType, const std::string &bundleName, bool &isVisible)
 {
     ACCOUNT_LOGI("enter");
 
@@ -173,16 +173,16 @@ ErrCode AppAccountManager::GetAuthenticatorInfo(const std::string &owner, Authen
     return DelayedSingleton<AppAccount>::GetInstance()->GetAuthenticatorInfo(owner, info);
 }
 
-ErrCode AppAccountManager::GetAllOAuthTokens(const std::string &name, const std::string &owner,
-    std::vector<OAuthTokenInfo> &tokenInfos)
+ErrCode AppAccountManager::GetAllOAuthTokens(
+    const std::string &name, const std::string &owner, std::vector<OAuthTokenInfo> &tokenInfos)
 {
     ACCOUNT_LOGI("enter");
 
     return DelayedSingleton<AppAccount>::GetInstance()->GetAllOAuthTokens(name, owner, tokenInfos);
 }
 
-ErrCode AppAccountManager::GetOAuthList(const std::string &name, const std::string &authType,
-    std::set<std::string> &oauthList)
+ErrCode AppAccountManager::GetOAuthList(
+    const std::string &name, const std::string &authType, std::set<std::string> &oauthList)
 {
     ACCOUNT_LOGI("enter");
 

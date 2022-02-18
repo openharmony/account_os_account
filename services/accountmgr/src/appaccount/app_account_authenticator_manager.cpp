@@ -17,6 +17,7 @@
 
 #include "ability_info.h"
 #include "account_error_no.h"
+#include "account_info.h"
 #include "account_log_wrapper.h"
 #include "app_account_constants.h"
 #include "bundle_info.h"
@@ -69,7 +70,9 @@ ErrCode AppAccountAuthenticatorManager::GetAuthenticatorInfo(const OAuthRequest 
     want.SetBundle(request.owner);
     want.SetAction(Constants::SYSTEM_ACTION_APP_ACCOUNT_OAUTH);
     std::vector<AppExecFwk::AbilityInfo> abilityInfos;
-    bool result = bundleMgr_->QueryAbilityInfos(want, abilityInfos);
+    int32_t userId = request.callerUid / UID_TRANSFORM_DIVISOR;
+    bool result = bundleMgr_->QueryAbilityInfos(
+        want, AppExecFwk::BundleFlag::GET_BUNDLE_WITH_ABILITIES, userId, abilityInfos);
     if (!result) {
         ACCOUNT_LOGE("failed to query ability info");
         return ERR_APPACCOUNT_SERVICE_OAUTH_AUTHENTICATOR_NOT_EXIST;

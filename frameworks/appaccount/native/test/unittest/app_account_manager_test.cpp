@@ -146,6 +146,19 @@ const std::string STRING_TOKEN_OUT_OF_RANGE =
     "1234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890";
 const std::string STRING_OWNER = "com.example.owner";
 const std::string STRING_AUTH_TYPE = "all";
+const std::string STRING_AUTH_TYPE_OUT_OF_RANGE =
+    "auth_type_out_of_range_"
+    "1234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890"
+    "1234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890"
+    "1234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890"
+    "1234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890"
+    "1234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890"
+    "1234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890"
+    "1234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890"
+    "1234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890"
+    "1234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890"
+    "1234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890"
+    "1234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890";
 
 const bool SYNC_ENABLE_FALSE = false;
 
@@ -183,7 +196,7 @@ HWTEST_F(AppAccountManagerTest, AppAccountManager_AddAccount_0100, TestSize.Leve
     ACCOUNT_LOGI("AppAccountManager_AddAccount_0100");
 
     ErrCode result = AppAccountManager::AddAccount(STRING_EMPTY);
-    EXPECT_EQ(result, ERR_APPACCOUNT_KIT_NAME_IS_EMPTY);
+    EXPECT_EQ(result, ERR_APPACCOUNT_KIT_INVALID_PARAMETER);
 }
 
 /**
@@ -197,7 +210,7 @@ HWTEST_F(AppAccountManagerTest, AppAccountManager_AddAccount_0200, TestSize.Leve
     ACCOUNT_LOGI("AppAccountManager_AddAccount_0200");
 
     ErrCode result = AppAccountManager::AddAccount(STRING_NAME_OUT_OF_RANGE);
-    EXPECT_EQ(result, ERR_APPACCOUNT_KIT_NAME_OUT_OF_RANGE);
+    EXPECT_EQ(result, ERR_APPACCOUNT_KIT_INVALID_PARAMETER);
 }
 
 /**
@@ -211,7 +224,7 @@ HWTEST_F(AppAccountManagerTest, AppAccountManager_AddAccount_0300, TestSize.Leve
     ACCOUNT_LOGI("AppAccountManager_AddAccount_0300");
 
     ErrCode result = AppAccountManager::AddAccount(STRING_NAME, STRING_EXTRA_INFO_OUT_OF_RANGE);
-    EXPECT_EQ(result, ERR_APPACCOUNT_KIT_EXTRA_INFO_OUT_OF_RANGE);
+    EXPECT_EQ(result, ERR_APPACCOUNT_KIT_INVALID_PARAMETER);
 }
 
 /**
@@ -225,7 +238,7 @@ HWTEST_F(AppAccountManagerTest, AppAccountManager_DeleteAccount_0100, TestSize.L
     ACCOUNT_LOGI("AppAccountManager_DeleteAccount_0100");
 
     ErrCode result = AppAccountManager::DeleteAccount(STRING_EMPTY);
-    EXPECT_EQ(result, ERR_APPACCOUNT_KIT_NAME_IS_EMPTY);
+    EXPECT_EQ(result, ERR_APPACCOUNT_KIT_INVALID_PARAMETER);
 }
 
 /**
@@ -239,7 +252,7 @@ HWTEST_F(AppAccountManagerTest, AppAccountManager_DeleteAccount_0200, TestSize.L
     ACCOUNT_LOGI("AppAccountManager_DeleteAccount_0200");
 
     ErrCode result = AppAccountManager::DeleteAccount(STRING_NAME_OUT_OF_RANGE);
-    EXPECT_EQ(result, ERR_APPACCOUNT_KIT_NAME_OUT_OF_RANGE);
+    EXPECT_EQ(result, ERR_APPACCOUNT_KIT_INVALID_PARAMETER);
 }
 
 /**
@@ -254,7 +267,7 @@ HWTEST_F(AppAccountManagerTest, AppAccountManager_GetAccountExtraInfo_0100, Test
 
     std::string extraInfo;
     ErrCode result = AppAccountManager::GetAccountExtraInfo(STRING_EMPTY, extraInfo);
-    EXPECT_EQ(result, ERR_APPACCOUNT_KIT_NAME_IS_EMPTY);
+    EXPECT_EQ(result, ERR_APPACCOUNT_KIT_INVALID_PARAMETER);
     EXPECT_EQ(extraInfo, STRING_EMPTY);
 }
 
@@ -270,7 +283,7 @@ HWTEST_F(AppAccountManagerTest, AppAccountManager_GetAccountExtraInfo_0200, Test
 
     std::string extraInfo;
     ErrCode result = AppAccountManager::GetAccountExtraInfo(STRING_NAME_OUT_OF_RANGE, extraInfo);
-    EXPECT_EQ(result, ERR_APPACCOUNT_KIT_NAME_OUT_OF_RANGE);
+    EXPECT_EQ(result, ERR_APPACCOUNT_KIT_INVALID_PARAMETER);
     EXPECT_EQ(extraInfo, STRING_EMPTY);
 }
 
@@ -285,7 +298,7 @@ HWTEST_F(AppAccountManagerTest, AppAccountManager_SetAccountExtraInfo_0100, Test
     ACCOUNT_LOGI("AppAccountManager_SetAccountExtraInfo_0100");
 
     ErrCode result = AppAccountManager::SetAccountExtraInfo(STRING_EMPTY, STRING_EXTRA_INFO);
-    EXPECT_EQ(result, ERR_APPACCOUNT_KIT_NAME_IS_EMPTY);
+    EXPECT_EQ(result, ERR_APPACCOUNT_KIT_INVALID_PARAMETER);
 }
 
 /**
@@ -299,7 +312,7 @@ HWTEST_F(AppAccountManagerTest, AppAccountManager_SetAccountExtraInfo_0200, Test
     ACCOUNT_LOGI("AppAccountManager_SetAccountExtraInfo_0200");
 
     ErrCode result = AppAccountManager::SetAccountExtraInfo(STRING_NAME_OUT_OF_RANGE, STRING_EXTRA_INFO);
-    EXPECT_EQ(result, ERR_APPACCOUNT_KIT_NAME_OUT_OF_RANGE);
+    EXPECT_EQ(result, ERR_APPACCOUNT_KIT_INVALID_PARAMETER);
 }
 
 /**
@@ -313,7 +326,7 @@ HWTEST_F(AppAccountManagerTest, AppAccountManager_SetAccountExtraInfo_0300, Test
     ACCOUNT_LOGI("AppAccountManager_SetAccountExtraInfo_0300");
 
     ErrCode result = AppAccountManager::SetAccountExtraInfo(STRING_NAME, STRING_EXTRA_INFO_OUT_OF_RANGE);
-    EXPECT_EQ(result, ERR_APPACCOUNT_KIT_EXTRA_INFO_OUT_OF_RANGE);
+    EXPECT_EQ(result, ERR_APPACCOUNT_KIT_INVALID_PARAMETER);
 }
 
 /**
@@ -327,7 +340,7 @@ HWTEST_F(AppAccountManagerTest, AppAccountManager_EnableAppAccess_0100, TestSize
     ACCOUNT_LOGI("AppAccountManager_EnableAppAccess_0100");
 
     ErrCode result = AppAccountManager::EnableAppAccess(STRING_EMPTY, STRING_BUNDLE_NAME);
-    EXPECT_EQ(result, ERR_APPACCOUNT_KIT_NAME_IS_EMPTY);
+    EXPECT_EQ(result, ERR_APPACCOUNT_KIT_INVALID_PARAMETER);
 }
 
 /**
@@ -341,7 +354,7 @@ HWTEST_F(AppAccountManagerTest, AppAccountManager_EnableAppAccess_0200, TestSize
     ACCOUNT_LOGI("AppAccountManager_EnableAppAccess_0200");
 
     ErrCode result = AppAccountManager::EnableAppAccess(STRING_NAME_OUT_OF_RANGE, STRING_BUNDLE_NAME);
-    EXPECT_EQ(result, ERR_APPACCOUNT_KIT_NAME_OUT_OF_RANGE);
+    EXPECT_EQ(result, ERR_APPACCOUNT_KIT_INVALID_PARAMETER);
 }
 
 /**
@@ -355,7 +368,7 @@ HWTEST_F(AppAccountManagerTest, AppAccountManager_EnableAppAccess_0300, TestSize
     ACCOUNT_LOGI("AppAccountManager_EnableAppAccess_0300");
 
     ErrCode result = AppAccountManager::EnableAppAccess(STRING_NAME, STRING_EMPTY);
-    EXPECT_EQ(result, ERR_APPACCOUNT_KIT_AUTHORIZED_APP_IS_EMPTY);
+    EXPECT_EQ(result, ERR_APPACCOUNT_KIT_INVALID_PARAMETER);
 }
 
 /**
@@ -369,7 +382,7 @@ HWTEST_F(AppAccountManagerTest, AppAccountManager_EnableAppAccess_0400, TestSize
     ACCOUNT_LOGI("AppAccountManager_EnableAppAccess_0400");
 
     ErrCode result = AppAccountManager::EnableAppAccess(STRING_NAME, STRING_AUTHORIZED_APP_OUT_OF_RANGE);
-    EXPECT_EQ(result, ERR_APPACCOUNT_KIT_AUTHORIZED_APP_OUT_OF_RANGE);
+    EXPECT_EQ(result, ERR_APPACCOUNT_KIT_INVALID_PARAMETER);
 }
 
 /**
@@ -383,7 +396,7 @@ HWTEST_F(AppAccountManagerTest, AppAccountManager_DisableAppAccess_0100, TestSiz
     ACCOUNT_LOGI("AppAccountManager_DisableAppAccess_0100");
 
     ErrCode result = AppAccountManager::DisableAppAccess(STRING_EMPTY, STRING_BUNDLE_NAME);
-    EXPECT_EQ(result, ERR_APPACCOUNT_KIT_NAME_IS_EMPTY);
+    EXPECT_EQ(result, ERR_APPACCOUNT_KIT_INVALID_PARAMETER);
 }
 
 /**
@@ -397,7 +410,7 @@ HWTEST_F(AppAccountManagerTest, AppAccountManager_DisableAppAccess_0200, TestSiz
     ACCOUNT_LOGI("AppAccountManager_DisableAppAccess_0200");
 
     ErrCode result = AppAccountManager::DisableAppAccess(STRING_NAME_OUT_OF_RANGE, STRING_BUNDLE_NAME);
-    EXPECT_EQ(result, ERR_APPACCOUNT_KIT_NAME_OUT_OF_RANGE);
+    EXPECT_EQ(result, ERR_APPACCOUNT_KIT_INVALID_PARAMETER);
 }
 
 /**
@@ -411,7 +424,7 @@ HWTEST_F(AppAccountManagerTest, AppAccountManager_DisableAppAccess_0300, TestSiz
     ACCOUNT_LOGI("AppAccountManager_DisableAppAccess_0300");
 
     ErrCode result = AppAccountManager::DisableAppAccess(STRING_NAME, STRING_EMPTY);
-    EXPECT_EQ(result, ERR_APPACCOUNT_KIT_AUTHORIZED_APP_IS_EMPTY);
+    EXPECT_EQ(result, ERR_APPACCOUNT_KIT_INVALID_PARAMETER);
 }
 
 /**
@@ -425,7 +438,7 @@ HWTEST_F(AppAccountManagerTest, AppAccountManager_DisableAppAccess_0400, TestSiz
     ACCOUNT_LOGI("AppAccountManager_DisableAppAccess_0400");
 
     ErrCode result = AppAccountManager::DisableAppAccess(STRING_NAME, STRING_AUTHORIZED_APP_OUT_OF_RANGE);
-    EXPECT_EQ(result, ERR_APPACCOUNT_KIT_AUTHORIZED_APP_OUT_OF_RANGE);
+    EXPECT_EQ(result, ERR_APPACCOUNT_KIT_INVALID_PARAMETER);
 }
 
 /**
@@ -440,7 +453,7 @@ HWTEST_F(AppAccountManagerTest, AppAccountManager_CheckAppAccountSyncEnable_0100
 
     bool syncEnable = SYNC_ENABLE_FALSE;
     ErrCode result = AppAccountManager::CheckAppAccountSyncEnable(STRING_EMPTY, syncEnable);
-    EXPECT_EQ(result, ERR_APPACCOUNT_KIT_NAME_IS_EMPTY);
+    EXPECT_EQ(result, ERR_APPACCOUNT_KIT_INVALID_PARAMETER);
     EXPECT_EQ(syncEnable, SYNC_ENABLE_FALSE);
 }
 
@@ -456,7 +469,7 @@ HWTEST_F(AppAccountManagerTest, AppAccountManager_CheckAppAccountSyncEnable_0200
 
     bool syncEnable = SYNC_ENABLE_FALSE;
     ErrCode result = AppAccountManager::CheckAppAccountSyncEnable(STRING_NAME_OUT_OF_RANGE, syncEnable);
-    EXPECT_EQ(result, ERR_APPACCOUNT_KIT_NAME_OUT_OF_RANGE);
+    EXPECT_EQ(result, ERR_APPACCOUNT_KIT_INVALID_PARAMETER);
     EXPECT_EQ(syncEnable, SYNC_ENABLE_FALSE);
 }
 
@@ -471,7 +484,7 @@ HWTEST_F(AppAccountManagerTest, AppAccountManager_SetAppAccountSyncEnable_0100, 
     ACCOUNT_LOGI("AppAccountManager_SetAppAccountSyncEnable_0100");
 
     ErrCode result = AppAccountManager::SetAppAccountSyncEnable(STRING_EMPTY, SYNC_ENABLE_FALSE);
-    EXPECT_EQ(result, ERR_APPACCOUNT_KIT_NAME_IS_EMPTY);
+    EXPECT_EQ(result, ERR_APPACCOUNT_KIT_INVALID_PARAMETER);
 }
 
 /**
@@ -485,7 +498,7 @@ HWTEST_F(AppAccountManagerTest, AppAccountManager_SetAppAccountSyncEnable_0200, 
     ACCOUNT_LOGI("AppAccountManager_SetAppAccountSyncEnable_0200");
 
     ErrCode result = AppAccountManager::SetAppAccountSyncEnable(STRING_NAME_OUT_OF_RANGE, SYNC_ENABLE_FALSE);
-    EXPECT_EQ(result, ERR_APPACCOUNT_KIT_NAME_OUT_OF_RANGE);
+    EXPECT_EQ(result, ERR_APPACCOUNT_KIT_INVALID_PARAMETER);
 }
 
 /**
@@ -500,7 +513,7 @@ HWTEST_F(AppAccountManagerTest, AppAccountManager_GetAssociatedData_0100, TestSi
 
     std::string value;
     ErrCode result = AppAccountManager::GetAssociatedData(STRING_EMPTY, STRING_KEY, value);
-    EXPECT_EQ(result, ERR_APPACCOUNT_KIT_NAME_IS_EMPTY);
+    EXPECT_EQ(result, ERR_APPACCOUNT_KIT_INVALID_PARAMETER);
     EXPECT_EQ(value, STRING_EMPTY);
 }
 
@@ -516,7 +529,7 @@ HWTEST_F(AppAccountManagerTest, AppAccountManager_GetAssociatedData_0200, TestSi
 
     std::string value;
     ErrCode result = AppAccountManager::GetAssociatedData(STRING_NAME_OUT_OF_RANGE, STRING_KEY, value);
-    EXPECT_EQ(result, ERR_APPACCOUNT_KIT_NAME_OUT_OF_RANGE);
+    EXPECT_EQ(result, ERR_APPACCOUNT_KIT_INVALID_PARAMETER);
     EXPECT_EQ(value, STRING_EMPTY);
 }
 
@@ -532,7 +545,7 @@ HWTEST_F(AppAccountManagerTest, AppAccountManager_GetAssociatedData_0300, TestSi
 
     std::string value;
     ErrCode result = AppAccountManager::GetAssociatedData(STRING_NAME, STRING_EMPTY, value);
-    EXPECT_EQ(result, ERR_APPACCOUNT_KIT_ASSOCIATED_KEY_IS_EMPTY);
+    EXPECT_EQ(result, ERR_APPACCOUNT_KIT_INVALID_PARAMETER);
     EXPECT_EQ(value, STRING_EMPTY);
 }
 
@@ -548,7 +561,7 @@ HWTEST_F(AppAccountManagerTest, AppAccountManager_GetAssociatedData_0400, TestSi
 
     std::string value;
     ErrCode result = AppAccountManager::GetAssociatedData(STRING_NAME, STRING_KEY_OUT_OF_RANGE, value);
-    EXPECT_EQ(result, ERR_APPACCOUNT_KIT_ASSOCIATED_KEY_OUT_OF_RANGE);
+    EXPECT_EQ(result, ERR_APPACCOUNT_KIT_INVALID_PARAMETER);
     EXPECT_EQ(value, STRING_EMPTY);
 }
 
@@ -563,7 +576,7 @@ HWTEST_F(AppAccountManagerTest, AppAccountManager_SetAssociatedData_0100, TestSi
     ACCOUNT_LOGI("AppAccountManager_SetAssociatedData_0100");
 
     ErrCode result = AppAccountManager::SetAssociatedData(STRING_EMPTY, STRING_KEY, STRING_VALUE);
-    EXPECT_EQ(result, ERR_APPACCOUNT_KIT_NAME_IS_EMPTY);
+    EXPECT_EQ(result, ERR_APPACCOUNT_KIT_INVALID_PARAMETER);
 }
 
 /**
@@ -577,7 +590,7 @@ HWTEST_F(AppAccountManagerTest, AppAccountManager_SetAssociatedData_0200, TestSi
     ACCOUNT_LOGI("AppAccountManager_SetAssociatedData_0200");
 
     ErrCode result = AppAccountManager::SetAssociatedData(STRING_NAME_OUT_OF_RANGE, STRING_KEY, STRING_VALUE);
-    EXPECT_EQ(result, ERR_APPACCOUNT_KIT_NAME_OUT_OF_RANGE);
+    EXPECT_EQ(result, ERR_APPACCOUNT_KIT_INVALID_PARAMETER);
 }
 
 /**
@@ -591,7 +604,7 @@ HWTEST_F(AppAccountManagerTest, AppAccountManager_SetAssociatedData_0300, TestSi
     ACCOUNT_LOGI("AppAccountManager_SetAssociatedData_0300");
 
     ErrCode result = AppAccountManager::SetAssociatedData(STRING_NAME, STRING_EMPTY, STRING_VALUE);
-    EXPECT_EQ(result, ERR_APPACCOUNT_KIT_ASSOCIATED_KEY_IS_EMPTY);
+    EXPECT_EQ(result, ERR_APPACCOUNT_KIT_INVALID_PARAMETER);
 }
 
 /**
@@ -605,7 +618,7 @@ HWTEST_F(AppAccountManagerTest, AppAccountManager_SetAssociatedData_0400, TestSi
     ACCOUNT_LOGI("AppAccountManager_SetAssociatedData_0400");
 
     ErrCode result = AppAccountManager::SetAssociatedData(STRING_NAME, STRING_KEY_OUT_OF_RANGE, STRING_VALUE);
-    EXPECT_EQ(result, ERR_APPACCOUNT_KIT_ASSOCIATED_KEY_OUT_OF_RANGE);
+    EXPECT_EQ(result, ERR_APPACCOUNT_KIT_INVALID_PARAMETER);
 }
 
 /**
@@ -619,7 +632,7 @@ HWTEST_F(AppAccountManagerTest, AppAccountManager_SetAssociatedData_0500, TestSi
     ACCOUNT_LOGI("AppAccountManager_SetAssociatedData_0500");
 
     ErrCode result = AppAccountManager::SetAssociatedData(STRING_NAME, STRING_KEY, STRING_VALUE_OUT_OF_RANGE);
-    EXPECT_EQ(result, ERR_APPACCOUNT_KIT_ASSOCIATED_VALUE_OUT_OF_RANGE);
+    EXPECT_EQ(result, ERR_APPACCOUNT_KIT_INVALID_PARAMETER);
 }
 
 /**
@@ -634,7 +647,7 @@ HWTEST_F(AppAccountManagerTest, AppAccountManager_GetAccountCredential_0100, Tes
 
     std::string credential;
     ErrCode result = AppAccountManager::GetAccountCredential(STRING_EMPTY, STRING_CREDENTIAL_TYPE, credential);
-    EXPECT_EQ(result, ERR_APPACCOUNT_KIT_NAME_IS_EMPTY);
+    EXPECT_EQ(result, ERR_APPACCOUNT_KIT_INVALID_PARAMETER);
     EXPECT_EQ(credential, STRING_EMPTY);
 }
 
@@ -651,7 +664,7 @@ HWTEST_F(AppAccountManagerTest, AppAccountManager_GetAccountCredential_0200, Tes
     std::string credential;
     ErrCode result =
         AppAccountManager::GetAccountCredential(STRING_NAME_OUT_OF_RANGE, STRING_CREDENTIAL_TYPE, credential);
-    EXPECT_EQ(result, ERR_APPACCOUNT_KIT_NAME_OUT_OF_RANGE);
+    EXPECT_EQ(result, ERR_APPACCOUNT_KIT_INVALID_PARAMETER);
     EXPECT_EQ(credential, STRING_EMPTY);
 }
 
@@ -667,7 +680,7 @@ HWTEST_F(AppAccountManagerTest, AppAccountManager_GetAccountCredential_0300, Tes
 
     std::string credential;
     ErrCode result = AppAccountManager::GetAccountCredential(STRING_NAME, STRING_EMPTY, credential);
-    EXPECT_EQ(result, ERR_APPACCOUNT_KIT_CREDENTIAL_TYPE_IS_EMPTY);
+    EXPECT_EQ(result, ERR_APPACCOUNT_KIT_INVALID_PARAMETER);
     EXPECT_EQ(credential, STRING_EMPTY);
 }
 
@@ -684,7 +697,7 @@ HWTEST_F(AppAccountManagerTest, AppAccountManager_GetAccountCredential_0400, Tes
     std::string credential;
     ErrCode result =
         AppAccountManager::GetAccountCredential(STRING_NAME, STRING_CREDENTIAL_TYPE_OUT_OF_RANGE, credential);
-    EXPECT_EQ(result, ERR_APPACCOUNT_KIT_CREDENTIAL_TYPE_OUT_OF_RANGE);
+    EXPECT_EQ(result, ERR_APPACCOUNT_KIT_INVALID_PARAMETER);
     EXPECT_EQ(credential, STRING_EMPTY);
 }
 
@@ -699,7 +712,7 @@ HWTEST_F(AppAccountManagerTest, AppAccountManager_SetAccountCredential_0100, Tes
     ACCOUNT_LOGI("AppAccountManager_SetAccountCredential_0100");
 
     ErrCode result = AppAccountManager::SetAccountCredential(STRING_EMPTY, STRING_CREDENTIAL_TYPE, STRING_CREDENTIAL);
-    EXPECT_EQ(result, ERR_APPACCOUNT_KIT_NAME_IS_EMPTY);
+    EXPECT_EQ(result, ERR_APPACCOUNT_KIT_INVALID_PARAMETER);
 }
 
 /**
@@ -714,7 +727,7 @@ HWTEST_F(AppAccountManagerTest, AppAccountManager_SetAccountCredential_0200, Tes
 
     ErrCode result =
         AppAccountManager::SetAccountCredential(STRING_NAME_OUT_OF_RANGE, STRING_CREDENTIAL_TYPE, STRING_CREDENTIAL);
-    EXPECT_EQ(result, ERR_APPACCOUNT_KIT_NAME_OUT_OF_RANGE);
+    EXPECT_EQ(result, ERR_APPACCOUNT_KIT_INVALID_PARAMETER);
 }
 
 /**
@@ -728,7 +741,7 @@ HWTEST_F(AppAccountManagerTest, AppAccountManager_SetAccountCredential_0300, Tes
     ACCOUNT_LOGI("AppAccountManager_SetAccountCredential_0300");
 
     ErrCode result = AppAccountManager::SetAccountCredential(STRING_NAME, STRING_EMPTY, STRING_CREDENTIAL);
-    EXPECT_EQ(result, ERR_APPACCOUNT_KIT_CREDENTIAL_TYPE_IS_EMPTY);
+    EXPECT_EQ(result, ERR_APPACCOUNT_KIT_INVALID_PARAMETER);
 }
 
 /**
@@ -743,7 +756,7 @@ HWTEST_F(AppAccountManagerTest, AppAccountManager_SetAccountCredential_0400, Tes
 
     ErrCode result =
         AppAccountManager::SetAccountCredential(STRING_NAME, STRING_CREDENTIAL_TYPE_OUT_OF_RANGE, STRING_CREDENTIAL);
-    EXPECT_EQ(result, ERR_APPACCOUNT_KIT_CREDENTIAL_TYPE_OUT_OF_RANGE);
+    EXPECT_EQ(result, ERR_APPACCOUNT_KIT_INVALID_PARAMETER);
 }
 
 /**
@@ -758,7 +771,7 @@ HWTEST_F(AppAccountManagerTest, AppAccountManager_SetAccountCredential_0500, Tes
 
     ErrCode result =
         AppAccountManager::SetAccountCredential(STRING_NAME, STRING_CREDENTIAL_TYPE, STRING_CREDENTIAL_OUT_OF_RANGE);
-    EXPECT_EQ(result, ERR_APPACCOUNT_KIT_CREDENTIAL_OUT_OF_RANGE);
+    EXPECT_EQ(result, ERR_APPACCOUNT_KIT_INVALID_PARAMETER);
 }
 
 /**
@@ -770,14 +783,13 @@ HWTEST_F(AppAccountManagerTest, AppAccountManager_SetAccountCredential_0500, Tes
 HWTEST_F(AppAccountManagerTest, AppAccountManager_GetOAuthToken_0100, TestSize.Level1)
 {
     ACCOUNT_LOGI("AppAccountManager_GetOAuthToken_0100");
-
     std::string token;
     ErrCode result = AppAccountManager::GetOAuthToken(STRING_EMPTY, STRING_OWNER, STRING_AUTH_TYPE, token);
-    EXPECT_EQ(result, ERR_APPACCOUNT_KIT_INVALID_REQUEST);
+    EXPECT_EQ(result, ERR_APPACCOUNT_KIT_INVALID_PARAMETER);
     EXPECT_EQ(token, STRING_EMPTY);
 
     result = AppAccountManager::GetOAuthToken(STRING_NAME, STRING_EMPTY, STRING_AUTH_TYPE, token);
-    EXPECT_EQ(result, ERR_APPACCOUNT_KIT_INVALID_REQUEST);
+    EXPECT_EQ(result, ERR_APPACCOUNT_KIT_INVALID_PARAMETER);
     EXPECT_EQ(token, STRING_EMPTY);
 }
 
@@ -790,14 +802,17 @@ HWTEST_F(AppAccountManagerTest, AppAccountManager_GetOAuthToken_0100, TestSize.L
 HWTEST_F(AppAccountManagerTest, AppAccountManager_GetOAuthToken_0200, TestSize.Level1)
 {
     ACCOUNT_LOGI("AppAccountManager_GetOAuthToken_0200");
-
     std::string token;
     ErrCode result = AppAccountManager::GetOAuthToken(STRING_NAME_OUT_OF_RANGE, STRING_OWNER, STRING_AUTH_TYPE, token);
-    EXPECT_EQ(result, ERR_APPACCOUNT_KIT_INVALID_REQUEST);
+    EXPECT_EQ(result, ERR_APPACCOUNT_KIT_INVALID_PARAMETER);
     EXPECT_EQ(token, STRING_EMPTY);
 
     result = AppAccountManager::GetOAuthToken(STRING_NAME, STRING_OWNER_OUT_OF_RANGE, STRING_AUTH_TYPE, token);
-    EXPECT_EQ(result, ERR_APPACCOUNT_KIT_INVALID_REQUEST);
+    EXPECT_EQ(result, ERR_APPACCOUNT_KIT_INVALID_PARAMETER);
+    EXPECT_EQ(token, STRING_EMPTY);
+
+    result = AppAccountManager::GetOAuthToken(STRING_NAME, STRING_OWNER, STRING_AUTH_TYPE_OUT_OF_RANGE, token);
+    EXPECT_EQ(result, ERR_APPACCOUNT_KIT_INVALID_PARAMETER);
     EXPECT_EQ(token, STRING_EMPTY);
 }
 
@@ -810,9 +825,8 @@ HWTEST_F(AppAccountManagerTest, AppAccountManager_GetOAuthToken_0200, TestSize.L
 HWTEST_F(AppAccountManagerTest, AppAccountManager_SetOAuthToken_0100, TestSize.Level1)
 {
     ACCOUNT_LOGI("AppAccountManager_SetOAuthToken_0100");
-
     ErrCode result = AppAccountManager::SetOAuthToken(STRING_EMPTY, STRING_AUTH_TYPE, STRING_TOKEN);
-    EXPECT_EQ(result, ERR_APPACCOUNT_KIT_INVALID_REQUEST);
+    EXPECT_EQ(result, ERR_APPACCOUNT_KIT_INVALID_PARAMETER);
 }
 
 /**
@@ -824,12 +838,95 @@ HWTEST_F(AppAccountManagerTest, AppAccountManager_SetOAuthToken_0100, TestSize.L
 HWTEST_F(AppAccountManagerTest, AppAccountManager_SetOAuthToken_0200, TestSize.Level1)
 {
     ACCOUNT_LOGI("AppAccountManager_SetOAuthToken_0200");
-
     ErrCode result = AppAccountManager::SetOAuthToken(STRING_NAME_OUT_OF_RANGE, STRING_AUTH_TYPE, STRING_TOKEN);
-    EXPECT_EQ(result, ERR_APPACCOUNT_KIT_INVALID_REQUEST);
+    EXPECT_EQ(result, ERR_APPACCOUNT_KIT_INVALID_PARAMETER);
+
+    result = AppAccountManager::SetOAuthToken(STRING_NAME, STRING_AUTH_TYPE_OUT_OF_RANGE, STRING_TOKEN);
+    EXPECT_EQ(result, ERR_APPACCOUNT_KIT_INVALID_PARAMETER);
 
     result = AppAccountManager::SetOAuthToken(STRING_NAME, STRING_AUTH_TYPE, STRING_TOKEN_OUT_OF_RANGE);
-    EXPECT_EQ(result, ERR_APPACCOUNT_KIT_INVALID_REQUEST);
+    EXPECT_EQ(result, ERR_APPACCOUNT_KIT_INVALID_PARAMETER);
+}
+
+/**
+ * @tc.name: AppAccountManager_DeleteOAuthToken_0100
+ * @tc.desc: Delete oauth token with invalid data.
+ * @tc.type: FUNC
+ * @tc.require: SR000GGVFU
+ */
+HWTEST_F(AppAccountManagerTest, AppAccountManager_DeleteOAuthToken_0100, TestSize.Level1)
+{
+    ACCOUNT_LOGI("AppAccountManager_DeleteOAuthToken_0100");
+    std::string token;
+    ErrCode result = AppAccountManager::DeleteOAuthToken(STRING_EMPTY, STRING_OWNER, STRING_AUTH_TYPE, STRING_TOKEN);
+    EXPECT_EQ(result, ERR_APPACCOUNT_KIT_INVALID_PARAMETER);
+
+    result = AppAccountManager::DeleteOAuthToken(STRING_NAME, STRING_EMPTY, STRING_AUTH_TYPE, STRING_TOKEN);
+    EXPECT_EQ(result, ERR_APPACCOUNT_KIT_INVALID_PARAMETER);
+}
+
+/**
+ * @tc.name: AppAccountManager_DeleteOAuthToken_0200
+ * @tc.desc: Delete oauth token with invalid data.
+ * @tc.type: FUNC
+ * @tc.require: SR000GGVFU
+ */
+HWTEST_F(AppAccountManagerTest, AppAccountManager_DeleteOAuthToken_0200, TestSize.Level1)
+{
+    ACCOUNT_LOGI("AppAccountManager_DeleteOAuthToken_0200");
+    ErrCode result = AppAccountManager::DeleteOAuthToken(
+            STRING_NAME_OUT_OF_RANGE, STRING_OWNER, STRING_AUTH_TYPE, STRING_TOKEN);
+    EXPECT_EQ(result, ERR_APPACCOUNT_KIT_INVALID_PARAMETER);
+
+    result = AppAccountManager::DeleteOAuthToken(
+        STRING_NAME, STRING_OWNER_OUT_OF_RANGE, STRING_AUTH_TYPE, STRING_TOKEN);
+    EXPECT_EQ(result, ERR_APPACCOUNT_KIT_INVALID_PARAMETER);
+
+    result = AppAccountManager::DeleteOAuthToken(
+        STRING_NAME, STRING_OWNER, STRING_AUTH_TYPE_OUT_OF_RANGE, STRING_TOKEN);
+    EXPECT_EQ(result, ERR_APPACCOUNT_KIT_INVALID_PARAMETER);
+
+    result = AppAccountManager::DeleteOAuthToken(
+        STRING_NAME, STRING_OWNER, STRING_AUTH_TYPE, STRING_TOKEN_OUT_OF_RANGE);
+    EXPECT_EQ(result, ERR_APPACCOUNT_KIT_INVALID_PARAMETER);
+}
+
+/**
+ * @tc.name: AppAccountManager_GetAllOAuthTokens_0100
+ * @tc.desc: Get all oauth tokens with invalid data.
+ * @tc.type: FUNC
+ * @tc.require: SR000GGVFU
+ */
+HWTEST_F(AppAccountManagerTest, AppAccountManager_GetAllOAuthTokens_0100, TestSize.Level1)
+{
+    ACCOUNT_LOGI("AppAccountManager_GetAllOAuthTokens_0100");
+    std::vector<OAuthTokenInfo> tokenInfos;
+    ErrCode result = AppAccountManager::GetAllOAuthTokens(STRING_EMPTY, STRING_OWNER, tokenInfos);
+    EXPECT_EQ(result, ERR_APPACCOUNT_KIT_INVALID_PARAMETER);
+    EXPECT_EQ(tokenInfos.size(), 0);
+
+    result = AppAccountManager::GetAllOAuthTokens(STRING_NAME, STRING_EMPTY, tokenInfos);
+    EXPECT_EQ(result, ERR_APPACCOUNT_KIT_INVALID_PARAMETER);
+    EXPECT_EQ(tokenInfos.size(), 0);
+}
+
+/**
+ * @tc.name: AppAccountManager_GetAllOAuthTokens_0200
+ * @tc.desc: Get all oauth tokens with invalid data.
+ * @tc.type: FUNC
+ * @tc.require: SR000GGVFU
+ */
+HWTEST_F(AppAccountManagerTest, AppAccountManager_GetAllOAuthTokens_0200, TestSize.Level1)
+{
+    ACCOUNT_LOGI("AppAccountManager_GetAllOAuthTokens_0200");
+    std::vector<OAuthTokenInfo> tokenInfos;
+    ErrCode result = AppAccountManager::GetAllOAuthTokens(STRING_NAME_OUT_OF_RANGE, STRING_OWNER, tokenInfos);
+    EXPECT_EQ(result, ERR_APPACCOUNT_KIT_INVALID_PARAMETER);
+    EXPECT_EQ(tokenInfos.size(), 0);
+
+    result = AppAccountManager::GetAllOAuthTokens(STRING_NAME, STRING_OWNER_OUT_OF_RANGE, tokenInfos);
+    EXPECT_EQ(result, ERR_APPACCOUNT_KIT_INVALID_PARAMETER);
+    EXPECT_EQ(tokenInfos.size(), 0);
 }
 
 /**
@@ -844,7 +941,7 @@ HWTEST_F(AppAccountManagerTest, AppAccountManager_GetAllAccounts_0100, TestSize.
 
     std::vector<AppAccountInfo> appAccounts;
     ErrCode result = AppAccountManager::GetAllAccounts(STRING_EMPTY, appAccounts);
-    EXPECT_EQ(result, ERR_APPACCOUNT_KIT_OWNER_IS_EMPTY);
+    EXPECT_EQ(result, ERR_APPACCOUNT_KIT_INVALID_PARAMETER);
     EXPECT_EQ(appAccounts.size(), SIZE_ZERO);
 }
 
@@ -860,6 +957,6 @@ HWTEST_F(AppAccountManagerTest, AppAccountManager_GetAllAccounts_0200, TestSize.
 
     std::vector<AppAccountInfo> appAccounts;
     ErrCode result = AppAccountManager::GetAllAccounts(STRING_OWNER_OUT_OF_RANGE, appAccounts);
-    EXPECT_EQ(result, ERR_APPACCOUNT_KIT_OWNER_OUT_OF_RANGE);
+    EXPECT_EQ(result, ERR_APPACCOUNT_KIT_INVALID_PARAMETER);
     EXPECT_EQ(appAccounts.size(), SIZE_ZERO);
 }

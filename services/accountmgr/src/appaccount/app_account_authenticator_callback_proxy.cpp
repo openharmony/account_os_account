@@ -31,40 +31,32 @@ AppAccountAuthenticatorCallbackProxy::~AppAccountAuthenticatorCallbackProxy()
     ACCOUNT_LOGI("enter");
 }
 
-int32_t AppAccountAuthenticatorCallbackProxy::OnResult(int32_t resultCode, const AAFwk::Want &result)
+void AppAccountAuthenticatorCallbackProxy::OnResult(int32_t resultCode, const AAFwk::Want &result)
 {
     ACCOUNT_LOGI("enter");
     MessageParcel data;
     MessageParcel reply;
     if (!data.WriteInt32(resultCode)) {
         ACCOUNT_LOGE("failed to write resultCode");
-        return ERR_APPACCOUNT_KIT_WRITE_STRING_AUTH_TYPE;
+        return;
     }
     if (!data.WriteParcelable(&result)) {
         ACCOUNT_LOGE("failed to write result");
-        return ERR_APPACCOUNT_KIT_WRITE_PARCELABLE_RESULT;
+        return;
     }
-    ErrCode errCode = SendRequest(IAppAccountAuthenticatorCallback::Message::ACCOUNT_RESULT, data, reply);
-    if (errCode != ERR_OK) {
-        return errCode;
-    }
-    return reply.ReadInt32();
+    SendRequest(IAppAccountAuthenticatorCallback::Message::ACCOUNT_RESULT, data, reply);
 }
 
-int32_t AppAccountAuthenticatorCallbackProxy::OnRequestRedirected(AAFwk::Want &request)
+void AppAccountAuthenticatorCallbackProxy::OnRequestRedirected(AAFwk::Want &request)
 {
     ACCOUNT_LOGI("enter");
     MessageParcel data;
     MessageParcel reply;
     if (!data.WriteParcelable(&request)) {
         ACCOUNT_LOGE("failed to write request");
-        return ERR_APPACCOUNT_KIT_WRITE_PARCELABLE_EVENT_LISTENER;
+        return;
     }
-    ErrCode errCode = SendRequest(IAppAccountAuthenticatorCallback::Message::ACCOUNT_REQUEST_REDIRECTED, data, reply);
-    if (errCode != ERR_OK) {
-        return errCode;
-    }
-    return reply.ReadInt32();
+    SendRequest(IAppAccountAuthenticatorCallback::Message::ACCOUNT_REQUEST_REDIRECTED, data, reply);
 }
 
 ErrCode AppAccountAuthenticatorCallbackProxy::SendRequest(

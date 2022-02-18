@@ -82,8 +82,9 @@ ErrCode NapiAppAccountAuthenticator::AddAccountImplicitly(
         .remote = remoteObject,
         .lockInfo = lockInfo.get(),
     };
-    CallJsFunction(authParam);
-    return ERR_OK;
+    ErrCode result = CallJsFunction(authParam);
+    delete authParam;
+    return result;
 }
 
 ErrCode NapiAppAccountAuthenticator::Authenticate(const std::string &name, const std::string &authType,
@@ -103,8 +104,9 @@ ErrCode NapiAppAccountAuthenticator::Authenticate(const std::string &name, const
         .remote = remoteObject,
         .lockInfo = lockInfo.get(),
     };
-    CallJsFunction(authParam);
-    return ERR_OK;
+    ErrCode result = CallJsFunction(authParam);
+    delete authParam;
+    return result;
 }
 
 napi_value NapiAppAccountAuthenticator::Init(napi_env env, napi_value exports)
@@ -140,15 +142,15 @@ void UvQueueWorkCallJsFunction(uv_work_t *work, int status)
     napi_get_global(param->env, &global);
     if (global == nullptr) {
         ACCOUNT_LOGE("failed to get napi global");
-        NotifyWorkDone(param);
-        return;
+        param->errCode = ERR_APPACCOUNT_SERVICE_OAUTH_SERVICE_EXCEPTION;
+        return NotifyWorkDone(param);
     }
     napi_value jsAuthCallbackConstructor = nullptr;
     napi_get_named_property(param->env, global, "AuthCallbackConstructor_", &jsAuthCallbackConstructor);
     if (jsAuthCallbackConstructor == nullptr) {
         ACCOUNT_LOGE("jsAuthCallbackConstructor is null");
-        NotifyWorkDone(param);
-        return;
+        param->errCode = ERR_APPACCOUNT_SERVICE_OAUTH_SERVICE_EXCEPTION;
+        return NotifyWorkDone(param);
     }
     napi_value remote;
     napi_create_int64(param->env, reinterpret_cast<int64_t>((IRemoteObject *)param->remote), &remote);
@@ -157,8 +159,8 @@ void UvQueueWorkCallJsFunction(uv_work_t *work, int status)
     napi_new_instance(param->env, jsAuthCallbackConstructor, ARGS_SIZE_ONE, argv1, &jsAuthCallback);
     if (jsAuthCallback == nullptr) {
         ACCOUNT_LOGE("failed to create js AuthenticatorCallback");
-        NotifyWorkDone(param);
-        return;
+        param->errCode = ERR_APPACCOUNT_SERVICE_OAUTH_SERVICE_EXCEPTION;
+        return NotifyWorkDone(param);
     }
     napi_value jsName;
     napi_create_string_utf8(param->env, param->name.c_str(), NAPI_AUTO_LENGTH, &jsName);
@@ -166,8 +168,7 @@ void UvQueueWorkCallJsFunction(uv_work_t *work, int status)
     napi_create_string_utf8(param->env, param->authType.c_str(), NAPI_AUTO_LENGTH, &jsAuthType);
     napi_value jsCallerBundleName;
     napi_create_string_utf8(param->env, param->callerBundleName.c_str(), NAPI_AUTO_LENGTH, &jsCallerBundleName);
-    napi_value jsOptions;
-    jsOptions = AppExecFwk::WrapWantParams(param->env, param->options);
+    napi_value jsOptions = AppExecFwk::WrapWantParams(param->env, param->options);
     napi_value argv2[] = { jsName, jsAuthType, jsCallerBundleName, jsOptions, jsAuthCallback};
     napi_value undefined = nullptr;
     napi_get_undefined(param->env, &undefined);
@@ -183,11 +184,12 @@ void UvQueueWorkCallJsFunction(uv_work_t *work, int status)
     }
     if (ret != napi_ok) {
         ACCOUNT_LOGE("failed to call js function");
+        param->errCode = ERR_APPACCOUNT_SERVICE_OAUTH_SERVICE_EXCEPTION;
     }
     NotifyWorkDone(param);
 }
 
-void NapiAppAccountAuthenticator::CallJsFunction(AuthParam *param)
+ErrCode NapiAppAccountAuthenticator::CallJsFunction(AuthParam *param)
 {
     ACCOUNT_LOGI("Enter");
     uv_loop_s *loop = nullptr;
@@ -195,17 +197,15 @@ void NapiAppAccountAuthenticator::CallJsFunction(AuthParam *param)
     uv_work_t *work = new(std::nothrow) uv_work_t;
     if (work == nullptr) {
         ACCOUNT_LOGE("failed to new uv_work_t");
-        delete param;
-        return;
+        return ERR_ACCOUNT_COMMON_INSUFFICIENT_MEMORY_ERROR;
     }
     work->data = reinterpret_cast<void *>(param);
     ACCOUNT_LOGI("start nv queue work loop");
     uv_queue_work(loop, work, [](uv_work_t *work) {}, UvQueueWorkCallJsFunction);
     std::unique_lock<std::mutex> lock(param->lockInfo->mutex);
     param->lockInfo->condition.wait(lock, [&param] { return param->lockInfo->ready; });
-    delete param;
     delete work;
-    ACCOUNT_LOGI("end");
+    return param->errCode;
 }
 
 napi_value NapiAppAccountAuthenticator::JsConstructor(napi_env env, napi_callback_info info)
@@ -220,17 +220,13 @@ napi_value NapiAppAccountAuthenticator::JsConstructor(napi_env env, napi_callbac
     napi_create_reference(env, jsFunc, 1, &addAccountImplicitlyRef);
     napi_get_named_property(env, thisVar, "authenticate", &jsFunc);
     napi_create_reference(env, jsFunc, 1, &authenticateRef);
-    auto authenticator = new NapiAppAccountAuthenticator(env, addAccountImplicitlyRef, authenticateRef);
-    napi_value jsRemoteObj = NAPI_ohos_rpc_CreateJsRemoteObject(env, authenticator->AsObject());
-    napi_status status = napi_add_finalizer(
-        env, jsRemoteObj, authenticator,
-        [](napi_env env, void *data, void *hint) {
-            ACCOUNT_LOGI("NapiAppAccountAuthenticator destructed by js callback");
-            delete (reinterpret_cast<NapiAppAccountAuthenticator *>(data));
-        },
-        nullptr, nullptr);
-    NAPI_ASSERT(env, status == napi_ok, "add finalizer to js RemoteObject and native authenticator failed");
-    return jsRemoteObj;
+    sptr<NapiAppAccountAuthenticator> authenticator =
+        new (std::nothrow) NapiAppAccountAuthenticator(env, addAccountImplicitlyRef, authenticateRef);
+    if (authenticator == nullptr) {
+        ACCOUNT_LOGE("failed to construct NapiAppAccountAuthenticator");
+        return nullptr;
+    }
+    return NAPI_ohos_rpc_CreateJsRemoteObject(env, authenticator->AsObject());
 }
 }  // namespace AccountJsKit
 }  // namespace OHOS
