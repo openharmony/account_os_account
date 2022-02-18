@@ -17,6 +17,8 @@
 #define NAPI_APP_ACCOUNT_ACCOUNT_AUTHENTICATOR_STUB_H
 
 #include <mutex>
+
+#include "account_error_no.h"
 #include "app_account_authenticator_stub.h"
 #include "iapp_account_authenticator_callback.h"
 #include "iremote_object.h"
@@ -38,6 +40,7 @@ struct AuthParam {
     sptr<IRemoteObject> remote;
     ThreadLockInfo *lockInfo;
     IAppAccountAuthenticator *authenticatorPtr;
+    ErrCode errCode = ERR_OK;
 };
 
 class NapiAppAccountAuthenticator : public AccountSA::AppAccountAuthenticatorStub {
@@ -55,7 +58,7 @@ public:
         const AAFwk::WantParams &options, const sptr<IRemoteObject> &callback) override;
 
 private:
-    void CallJsFunction(AuthParam *param);
+    ErrCode CallJsFunction(AuthParam *param);
     static napi_value JsConstructor(napi_env env, napi_callback_info cbinfo);
 private:
     napi_env env_ = nullptr;

@@ -45,7 +45,6 @@ AppAccountAuthenticatorSessionManager::~AppAccountAuthenticatorSessionManager()
 
 void AppAccountAuthenticatorSessionManager::Init()
 {
-    ACCOUNT_LOGI("enter");
     if (isInitialized_) {
         ACCOUNT_LOGI("app account session manager has been initialized");
         return;
@@ -68,13 +67,11 @@ void AppAccountAuthenticatorSessionManager::Init()
 
 ErrCode AppAccountAuthenticatorSessionManager::AddAccountImplicitly(const OAuthRequest &request)
 {
-    ACCOUNT_LOGI("enter");
     return OpenSession(Constants::OAUTH_ACTION_ADD_ACCOUNT_IMPLICITLY, request);
 }
 
 ErrCode AppAccountAuthenticatorSessionManager::Authenticate(const OAuthRequest &request)
 {
-    ACCOUNT_LOGI("enter");
     return OpenSession(Constants::OAUTH_ACTION_AUTHENTICATE, request);
 }
 
@@ -118,7 +115,6 @@ ErrCode AppAccountAuthenticatorSessionManager::OpenSession(const std::string &ac
 ErrCode AppAccountAuthenticatorSessionManager::GetAuthenticatorCallback(
     const OAuthRequest &request, sptr<IRemoteObject> &callback)
 {
-    ACCOUNT_LOGI("enter");
     if (!isInitialized_) {
         Init();
     }
@@ -134,7 +130,6 @@ ErrCode AppAccountAuthenticatorSessionManager::GetAuthenticatorCallback(
 
 void AppAccountAuthenticatorSessionManager::OnAbilityStateChanged(const AppExecFwk::AbilityStateData &abilityStateData)
 {
-    ACCOUNT_LOGI("enter");
     if (abilityStateData.abilityState != ABILITY_STATE_TERMINATED) {
         return;
     }

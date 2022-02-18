@@ -55,9 +55,8 @@ ErrCode MockAppAccountStub::AddAccount(const std::string &name, const std::strin
     return ERR_OK;
 }
 
-ErrCode MockAppAccountStub::AddAccountImplicitly(
-    const std::string &owner, const std::string &authType, const AAFwk::WantParams &options,
-    const sptr<IRemoteObject> &callback, const std::string &abilityName)
+ErrCode MockAppAccountStub::AddAccountImplicitly(const std::string &owner, const std::string &authType,
+    const AAFwk::Want &options, const sptr<IRemoteObject> &callback)
 {
     ACCOUNT_LOGI("enter");
     return ERR_OK;
@@ -154,7 +153,8 @@ ErrCode MockAppAccountStub::SetAccountCredential(
     return ERR_OK;
 }
 
-ErrCode MockAppAccountStub::Authenticate(OAuthRequest &request)
+ErrCode MockAppAccountStub::Authenticate(const std::string &name, const std::string &owner,
+    const std::string &authType, const AAFwk::Want &options, const sptr<IRemoteObject> &callback)
 {
     ACCOUNT_LOGI("enter");
 

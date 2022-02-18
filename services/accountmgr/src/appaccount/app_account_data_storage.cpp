@@ -84,8 +84,6 @@ ErrCode AppAccountDataStorage::GetAccountInfoFromDataStorage(AppAccountInfo &app
     }
 
     ACCOUNT_LOGI("appAccountInfo.GetPrimeKey() = %{public}s", appAccountInfo.GetPrimeKey().c_str());
-    ACCOUNT_LOGI("appAccountInfo.ToString() = %{public}s", appAccountInfo.ToString().c_str());
-
     ACCOUNT_LOGI("end, result = %{public}d", result);
 
     return ERR_OK;

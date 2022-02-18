@@ -24,10 +24,6 @@
 
 namespace OHOS {
 namespace AccountSA {
-namespace {
-    const std::string NAME_ANONYMOUS = "anonymous";
-    const std::string OWNER_SELF = "self";
-}
 class AppAccount {
 public:
     enum SubscribeState {
@@ -37,16 +33,15 @@ public:
     };
 
     ErrCode AddAccount(const std::string &name, const std::string &extraInfo);
-    ErrCode AddAccountImplicitly(
-        const std::string &owner, const std::string &authType, const AAFwk::WantParams &options,
-        IAppAccountAuthenticatorCallback *callback, const std::string &abilityName);
+    ErrCode AddAccountImplicitly(const std::string &owner, const std::string &authType,
+        const AAFwk::Want &options, const sptr<IAppAccountAuthenticatorCallback> &callback);
     ErrCode DeleteAccount(const std::string &name);
 
     ErrCode GetAccountExtraInfo(const std::string &name, std::string &extraInfo);
     ErrCode SetAccountExtraInfo(const std::string &name, const std::string &extraInfo);
 
-    ErrCode EnableAppAccess(const std::string &name, const std::string &authorizedApp);
-    ErrCode DisableAppAccess(const std::string &name, const std::string &authorizedApp);
+    ErrCode EnableAppAccess(const std::string &name, const std::string &bundleName);
+    ErrCode DisableAppAccess(const std::string &name, const std::string &bundleName);
 
     ErrCode CheckAppAccountSyncEnable(const std::string &name, bool &syncEnable);
     ErrCode SetAppAccountSyncEnable(const std::string &name, const bool &syncEnable);
@@ -58,7 +53,8 @@ public:
     ErrCode SetAccountCredential(
         const std::string &name, const std::string &credentialType, const std::string &credential);
 
-    ErrCode Authenticate(OAuthRequest &request);
+    ErrCode Authenticate(const std::string &name, const std::string &owner, const std::string &authType,
+        const AAFwk::Want &options, const sptr<IAppAccountAuthenticatorCallback> &callback);
     ErrCode GetOAuthToken(
         const std::string &name, const std::string &owner, const std::string &authType, std::string &token);
     ErrCode SetOAuthToken(const std::string &name, const std::string &authType, const std::string &token);
@@ -68,7 +64,7 @@ public:
         const std::string &name, const std::string &authType, const std::string &bundleName, bool isVisible);
     ErrCode CheckOAuthTokenVisibility(
         const std::string &name, const std::string &authType, const std::string &bundleName, bool &isVisible);
-    ErrCode GetAuthenticatorInfo(const std::string &owner, AuthenticatorInfo &authenticator);
+    ErrCode GetAuthenticatorInfo(const std::string &owner, AuthenticatorInfo &info);
     ErrCode GetAllOAuthTokens(
         const std::string &name, const std::string &owner, std::vector<OAuthTokenInfo> &tokenInfos);
     ErrCode GetOAuthList(
@@ -84,8 +80,7 @@ public:
     ErrCode ResetAppAccountProxy();
 
 private:
-    ErrCode CheckParameters(const std::string &name, const std::string &extraInfo = "",
-        const std::string &owner = OWNER_SELF, const std::string &authType = "", const std::string &token = "");
+    ErrCode CheckParameters(const std::string &name, const std::string &extraInfo = "");
     ErrCode CheckSpecialCharacters(const std::string &name);
 
     ErrCode GetAppAccountProxy();
@@ -98,19 +93,6 @@ private:
     sptr<IAppAccount> appAccountProxy_;
     std::map<std::shared_ptr<AppAccountSubscriber>, sptr<AppAccountEventListener>> eventListeners_;
     sptr<IRemoteObject::DeathRecipient> deathRecipient_;
-
-    static constexpr std::size_t SUBSCRIBER_MAX_SIZE = 200;
-    static constexpr std::size_t NAME_MAX_SIZE = 512;
-    static constexpr std::size_t EXTRA_INFO_MAX_SIZE = 1024;
-    static constexpr std::size_t AUTHORIZED_APP_MAX_SIZE = 512;
-    static constexpr std::size_t ASSOCIATED_KEY_MAX_SIZE = 1024;
-    static constexpr std::size_t ASSOCIATED_VALUE_MAX_SIZE = 1024;
-    static constexpr std::size_t CREDENTIAL_TYPE_MAX_SIZE = 1024;
-    static constexpr std::size_t CREDENTIAL_MAX_SIZE = 1024;
-    static constexpr std::size_t TOKEN_MAX_SIZE = 1024;
-    static constexpr std::size_t OWNER_MAX_SIZE = 1024;
-    static constexpr std::size_t AUTH_TYPE_MAX_SIZE = 1024;
-    static const std::string SPECIAL_CHARACTERS;
 };
 }  // namespace AccountSA
 }  // namespace OHOS

@@ -31,7 +31,7 @@ public:
 
     virtual ErrCode AddAccount(const std::string &name, const std::string &extraInfo) = 0;
     virtual ErrCode AddAccountImplicitly(const std::string &owner, const std::string &authType,
-        const AAFwk::WantParams &options, const sptr<IRemoteObject> &callback, const std::string &abilityName) = 0;
+        const AAFwk::Want &options, const sptr<IRemoteObject> &callback) = 0;
     virtual ErrCode DeleteAccount(const std::string &name) = 0;
 
     virtual ErrCode GetAccountExtraInfo(const std::string &name, std::string &extraInfo) = 0;
@@ -51,7 +51,8 @@ public:
     virtual ErrCode SetAccountCredential(
         const std::string &name, const std::string &credentialType, const std::string &credential) = 0;
 
-    virtual ErrCode Authenticate(OAuthRequest &request) = 0;
+    virtual ErrCode Authenticate(const std::string &name, const std::string &owner, const std::string &authType,
+        const AAFwk::Want &options, const sptr<IRemoteObject> &callback) = 0;
     virtual ErrCode GetOAuthToken(
         const std::string &name, const std::string &owner, const std::string &authType, std::string &token) = 0;
     virtual ErrCode SetOAuthToken(

@@ -27,6 +27,8 @@ config("app_account_service_core_config") {
     "//utils/native/base/include",
     "//utils/system/safwk/native/include",
   ]
+
+  cflags_cc = [ "-fexceptions" ]
 }
 
 config("app_account_service_core_public_config") {
@@ -40,6 +42,7 @@ config("app_account_service_core_public_config") {
 
 ohos_shared_library("app_account_service_core") {
   sources = [
+    "app_account_common.cpp",
     "app_account_event_listener.cpp",
     "app_account_event_proxy.cpp",
     "app_account_event_stub.cpp",

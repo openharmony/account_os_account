@@ -16,6 +16,8 @@
 #include "app_account_common.h"
 
 #include "account_error_no.h"
+#include "account_log_wrapper.h"
+#include "app_account_constants.h"
 
 namespace OHOS {
 namespace AccountSA {
@@ -26,8 +28,11 @@ int32_t ConvertToJSErrCode(int32_t errCode)
             return ERR_JS_SUCCESS;
         case ERR_APPACCOUNT_SERVICE_ACCOUNT_NOT_EXIST:
             return ERR_JS_ACCOUNT_NOT_EXIST;
-        case ERR_APPACCOUNT_KIT_INVALID_REQUEST:
+        case ERR_APPACCOUNT_KIT_INVALID_PARAMETER:
+        case ERR_APPACCOUNT_SERVICE_INVALID_PARAMETER:
             return ERR_JS_INVALID_REQUEST;
+        case ERR_APPACCOUNT_SERVICE_OAUTH_INVALID_RESPONSE:
+            return ERR_JS_INVALID_RESPONSE;
         case ERR_APPACCOUNT_SERVICE_OAUTH_AUTHENTICATOR_NOT_EXIST:
             return ERR_JS_OAUTH_AUTHENTICATOR_NOT_EXIST;
         case ERR_APPACCOUNT_SERVICE_OAUTH_BUSY:

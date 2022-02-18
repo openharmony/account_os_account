@@ -164,7 +164,6 @@ ErrCode AccountDataStorage::AddAccountInfo(IAccountInfo &iAccountInfo)
     OHOS::DistributedKv::Key key(iAccountInfo.GetPrimeKey());
     ACCOUNT_LOGI("iAccountInfo.GetPrimeKey() is %{public}s", iAccountInfo.GetPrimeKey().c_str());
     OHOS::DistributedKv::Value value(iAccountInfo.ToString());
-    ACCOUNT_LOGI("iAccountInfo.ToString() is %{public}s", iAccountInfo.ToString().c_str());
 
     OHOS::DistributedKv::Status status;
     {
@@ -205,7 +204,6 @@ ErrCode AccountDataStorage::SaveAccountInfo(IAccountInfo &iAccountInfo)
     }
     ACCOUNT_LOGI("iAccountInfo.GetPrimeKey() = %{public}s", iAccountInfo.GetPrimeKey().c_str());
     OHOS::DistributedKv::Key key(iAccountInfo.GetPrimeKey());
-    ACCOUNT_LOGE("iAccountInfo.ToString() is %{public}s", iAccountInfo.ToString().c_str());
     OHOS::DistributedKv::Value value(iAccountInfo.ToString());
     OHOS::DistributedKv::Status status;
     {
@@ -316,7 +314,6 @@ ErrCode AccountDataStorage::GetAccountInfoById(const std::string id, IAccountInf
 
     ACCOUNT_LOGI("id = %{public}s", id.c_str());
     ACCOUNT_LOGI("iAccountInfo.GetPrimeKey() = %{public}s", iAccountInfo.GetPrimeKey().c_str());
-    ACCOUNT_LOGI("iAccountInfo.ToString() = %{public}s", iAccountInfo.ToString().c_str());
 
     if (!CheckKvStore()) {
         ACCOUNT_LOGE("kvStore is nullptr");
@@ -334,10 +331,8 @@ ErrCode AccountDataStorage::GetAccountInfoById(const std::string id, IAccountInf
         ACCOUNT_LOGE("get value error");
         return OHOS::ERR_OSACCOUNT_SERVICE_MANAGER_QUERY_DISTRIBUTE_DATA_ERROR;
     } else {
-        ACCOUNT_LOGI("get value is: %{public}s", value.ToString().c_str());
         nlohmann::json jsonObject = nlohmann::json::parse(value.ToString(), nullptr, false);
         iAccountInfo.FromJson(jsonObject);
-        ACCOUNT_LOGI("all info is: %{public}s", iAccountInfo.ToString().c_str());
     }
 
     return ERR_OK;
@@ -363,7 +358,6 @@ ErrCode AccountDataStorage::GetConfigById(const std::string keyStr, std::string 
         ACCOUNT_LOGE("get Value Error");
         return OHOS::ERR_OSACCOUNT_SERVICE_MANAGER_QUERY_DISTRIBUTE_DATA_ERROR;
     } else {
-        ACCOUNT_LOGE("get Value is: %{public}s", value.ToString().c_str());
         valueStr = value.ToString();
     }
 
@@ -486,7 +480,6 @@ ErrCode AccountDataStorage::IsKeyExists(const std::string keyStr, bool &isKeyExi
         isKeyExists = false;
         return OHOS::ERR_OSACCOUNT_SERVICE_MANAGER_QUERY_DISTRIBUTE_DATA_ERROR;
     } else {
-        ACCOUNT_LOGI("get Value is: %{public}s", value.ToString().c_str());
         isKeyExists = true;
     }
 

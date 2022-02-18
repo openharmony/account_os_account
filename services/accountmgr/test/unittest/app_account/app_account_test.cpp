@@ -19,6 +19,7 @@
 #include "account_log_wrapper.h"
 #define private public
 #include "app_account.h"
+#include "app_account_constants.h"
 #undef private
 #include "mock_app_account_stub.h"
 #include "iremote_object.h"
@@ -153,7 +154,7 @@ HWTEST_F(AppAccountTest, AppAccount_AddAccount_0200, TestSize.Level1)
 
     ErrCode result = appAccount_->AddAccount(STRING_NAME_EMPTY, STRING_EXTRA_INFO);
 
-    EXPECT_EQ(result, ERR_APPACCOUNT_KIT_NAME_IS_EMPTY);
+    EXPECT_EQ(result, ERR_APPACCOUNT_KIT_INVALID_PARAMETER);
 }
 
 /**
@@ -183,7 +184,7 @@ HWTEST_F(AppAccountTest, AppAccount_AddAccount_0400, TestSize.Level1)
 
     ErrCode result = appAccount_->AddAccount(STRING_NAME_OUT_OF_RANGE, STRING_EXTRA_INFO);
 
-    EXPECT_EQ(result, ERR_APPACCOUNT_KIT_NAME_OUT_OF_RANGE);
+    EXPECT_EQ(result, ERR_APPACCOUNT_KIT_INVALID_PARAMETER);
 }
 
 /**
@@ -198,7 +199,7 @@ HWTEST_F(AppAccountTest, AppAccount_AddAccount_0500, TestSize.Level1)
 
     ErrCode result = appAccount_->AddAccount(STRING_NAME_CONTAINS_SPECIAL_CHARACTERS, STRING_EXTRA_INFO);
 
-    EXPECT_EQ(result, ERR_APPACCOUNT_KIT_NAME_CONTAINS_SPECIAL_CHARACTERS);
+    EXPECT_EQ(result, ERR_APPACCOUNT_KIT_INVALID_PARAMETER);
 }
 
 /**
@@ -213,7 +214,7 @@ HWTEST_F(AppAccountTest, AppAccount_AddAccount_0600, TestSize.Level1)
 
     ErrCode result = appAccount_->AddAccount(STRING_NAME_CONTAINS_SPECIAL_CHARACTERS_TWO, STRING_EXTRA_INFO);
 
-    EXPECT_EQ(result, ERR_APPACCOUNT_KIT_NAME_CONTAINS_SPECIAL_CHARACTERS);
+    EXPECT_EQ(result, ERR_APPACCOUNT_KIT_INVALID_PARAMETER);
 }
 
 /**
@@ -228,7 +229,7 @@ HWTEST_F(AppAccountTest, AppAccount_AddAccount_0700, TestSize.Level1)
 
     ErrCode result = appAccount_->AddAccount(STRING_NAME_CONTAINS_SPECIAL_CHARACTERS_THREE, STRING_EXTRA_INFO);
 
-    EXPECT_EQ(result, ERR_APPACCOUNT_KIT_NAME_CONTAINS_SPECIAL_CHARACTERS);
+    EXPECT_EQ(result, ERR_APPACCOUNT_KIT_INVALID_PARAMETER);
 }
 
 /**
@@ -243,7 +244,7 @@ HWTEST_F(AppAccountTest, AppAccount_AddAccount_0800, TestSize.Level1)
 
     ErrCode result = appAccount_->AddAccount(STRING_NAME, STRING_EXTRA_INFO_OUT_OF_RANGE);
 
-    EXPECT_EQ(result, ERR_APPACCOUNT_KIT_EXTRA_INFO_OUT_OF_RANGE);
+    EXPECT_EQ(result, ERR_APPACCOUNT_KIT_INVALID_PARAMETER);
 }
 
 /**
@@ -273,7 +274,7 @@ HWTEST_F(AppAccountTest, AppAccount_DeleteAccount_0200, TestSize.Level1)
 
     ErrCode result = appAccount_->DeleteAccount(STRING_NAME_EMPTY);
 
-    EXPECT_EQ(result, ERR_APPACCOUNT_KIT_NAME_IS_EMPTY);
+    EXPECT_EQ(result, ERR_APPACCOUNT_KIT_INVALID_PARAMETER);
 }
 
 /**
@@ -288,7 +289,7 @@ HWTEST_F(AppAccountTest, AppAccount_DeleteAccount_0300, TestSize.Level1)
 
     ErrCode result = appAccount_->DeleteAccount(STRING_NAME_OUT_OF_RANGE);
 
-    EXPECT_EQ(result, ERR_APPACCOUNT_KIT_NAME_OUT_OF_RANGE);
+    EXPECT_EQ(result, ERR_APPACCOUNT_KIT_INVALID_PARAMETER);
 }
 
 /**
@@ -463,12 +464,12 @@ HWTEST_F(AppAccountTest, AppAccount_CreateAppAccountEventListener_0200, TestSize
     EXPECT_EQ(appAccount_->eventListeners_.size(), SUBSCRIBER_ZERO);
 
     // make max subcribers
-    for (std::size_t counter = 1; counter <= appAccount_->SUBSCRIBER_MAX_SIZE + 1; counter += 1) {
+    for (std::size_t counter = 1; counter <= Constants::APP_ACCOUNT_SUBSCRIBER_MAX_SIZE + 1; counter += 1) {
         auto subscriberTestPtr = std::make_shared<AppAccountSubscriberTest>(subscribeInfo);
         sptr<IRemoteObject> appAccountEventListener = nullptr;
 
         result = appAccount_->CreateAppAccountEventListener(subscriberTestPtr, appAccountEventListener);
-        if (counter <= appAccount_->SUBSCRIBER_MAX_SIZE) {
+        if (counter <= Constants::APP_ACCOUNT_SUBSCRIBER_MAX_SIZE) {
             EXPECT_EQ(result, AppAccount::SubscribeState::INITIAL_SUBSCRIPTION);
             EXPECT_EQ(appAccount_->eventListeners_.size(), counter);
         } else {

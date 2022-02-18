@@ -18,10 +18,14 @@
 
 #include <string>
 #include "iapp_account_authenticator_callback.h"
-#include "want_params.h"
+#include "want.h"
 
 namespace OHOS {
 namespace AccountSA {
+namespace {
+const std::string UNKONW_STRING_VALUE = "unknown";
+}
+
 struct AuthenticatorInfo {
     std::string owner;
     std::string abilityName;
@@ -32,18 +36,18 @@ struct AuthenticatorInfo {
 struct OAuthRequest {
     std::string action;
     std::string sessionId;
-    std::string name;
-    std::string owner;
+    std::string name = UNKONW_STRING_VALUE;
+    std::string owner = UNKONW_STRING_VALUE;
     std::string authType;
     std::string token;
-    std::string bundleName;
+    std::string bundleName = UNKONW_STRING_VALUE;
     std::string callerBundleName;
-    std::string callerAbilityName;
-    bool isTokenVisible;
+    std::string callerAbilityName = UNKONW_STRING_VALUE;
+    bool isTokenVisible = false;
     pid_t callerPid;
     pid_t callerUid;
-    AAFwk::WantParams options;
-    sptr<IAppAccountAuthenticatorCallback> callback;
+    AAFwk::Want options;
+    sptr<IAppAccountAuthenticatorCallback> callback = nullptr;
 };
 
 enum JSResultCode {

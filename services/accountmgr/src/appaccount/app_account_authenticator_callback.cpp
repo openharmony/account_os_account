@@ -28,27 +28,27 @@ AppAccountAuthenticatorCallback::AppAccountAuthenticatorCallback(AppAccountAuthe
 
 AppAccountAuthenticatorCallback::~AppAccountAuthenticatorCallback()
 {
-    ACCOUNT_LOGI("deconstructor enter");
+    ACCOUNT_LOGI("enter");
 }
 
-ErrCode AppAccountAuthenticatorCallback::OnResult(int32_t resultCode, const AAFwk::Want &result)
+void AppAccountAuthenticatorCallback::OnResult(int32_t resultCode, const AAFwk::Want &result)
 {
     ACCOUNT_LOGI("enter");
     if (!session_) {
         ACCOUNT_LOGE("session is nullptr");
-        return ERR_APPACCOUNT_SERVICE_DATA_STORAGE_PTR_IS_NULLPTR;
+        return;
     }
-    return session_->OnResult(resultCode, result);
+    session_->OnResult(resultCode, result);
 }
 
-ErrCode AppAccountAuthenticatorCallback::OnRequestRedirected(AAFwk::Want &request)
+void AppAccountAuthenticatorCallback::OnRequestRedirected(AAFwk::Want &request)
 {
     ACCOUNT_LOGI("enter");
     if (!session_) {
         ACCOUNT_LOGE("session is nullptr");
-        return ERR_APPACCOUNT_SERVICE_DATA_STORAGE_PTR_IS_NULLPTR;
+        return;
     }
-    return session_->OnRequestRedirected(request);
+    session_->OnRequestRedirected(request);
 }
 }  // namespace AccountSA
 }  // namespace OHOS
