@@ -52,6 +52,7 @@ private:
     std::unordered_map<std::string, std::function<void()>> callFunctionMap_ {};
 
     void RegisterAppAccountManager();
+    void RegisterOsAccountManager();
 };
 }  // namespace AccountSA
 }  // namespace OHOS

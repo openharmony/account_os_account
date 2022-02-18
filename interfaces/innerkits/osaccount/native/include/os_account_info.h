@@ -133,7 +133,8 @@ private:
     DomainAccountInfo domainInfo_;
 };
 typedef enum {
-    HOT_SWITCH = 0,
+    ERROR_MOD = 0,
+    HOT_SWITCH,
     COLD_SWITCH,
 } OS_ACCOUNT_SWITCH_MOD;
 }  // namespace AccountSA

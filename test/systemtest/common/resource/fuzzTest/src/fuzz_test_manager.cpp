@@ -89,9 +89,218 @@ void FuzzTestManager::RegisterAppAccountManager()
     };
 }
 
+// OsAccount
+void FuzzTestManager::RegisterOsAccountManager()
+{
+    callFunctionMap_["OsAccountManagerCreateOsAccount"] = []() {
+        OsAccountInfo osAccountInfo = GetParamOsAccountInfo();
+        OsAccountManager::CreateOsAccount(GetStringParam(), GetParamOsAccountType(), osAccountInfo);
+    };
+
+    callFunctionMap_["OsAccountManagerCreateOsAccountForDomain"] = []() {
+        OsAccountInfo osAccountInfo = GetParamOsAccountInfo();
+        DomainAccountInfo domainAccountInfo = GetParamDomainAccountInfo();
+        OsAccountManager::CreateOsAccountForDomain(GetParamOsAccountType(), domainAccountInfo, osAccountInfo);
+    };
+
+    callFunctionMap_["OsAccountManagerRemoveOsAccount"] = []() { OsAccountManager::RemoveOsAccount(GetIntParam()); };
+
+    callFunctionMap_["OsAccountManagerIsOsAccountExists"] = []() {
+        bool isOsAccountExists = GetBoolParam();
+        OsAccountManager::IsOsAccountExists(GetIntParam(), isOsAccountExists);
+    };
+
+    callFunctionMap_["OsAccountManagerIsOsAccountActived"] = []() {
+        bool isOsAccountActived = GetBoolParam();
+        OsAccountManager::IsOsAccountActived(GetIntParam(), isOsAccountActived);
+    };
+
+    callFunctionMap_["OsAccountManagerIsOsAccountConstraintEnable"] = []() {
+        bool isConstraintEnable = GetBoolParam();
+        std::string constraint = GetStringParam();
+        OsAccountManager::IsOsAccountConstraintEnable(GetIntParam(), constraint, isConstraintEnable);
+    };
+
+    callFunctionMap_["OsAccountManagerIsOsAccountVerified"] = []() {
+        bool isVerified = GetBoolParam();
+        OsAccountManager::IsOsAccountVerified(GetIntParam(), isVerified);
+    };
+
+    callFunctionMap_["OsAccountManagerGetCreatedOsAccountsCount"] = []() {
+        unsigned int osAccountsCount = GetUIntParam();
+        OsAccountManager::GetCreatedOsAccountsCount(osAccountsCount);
+    };
+
+    callFunctionMap_["OsAccountManagerGetOsAccountLocalIdFromProcess"] = []() {
+        int id = GetIntParam();
+        OsAccountManager::GetOsAccountLocalIdFromProcess(id);
+    };
+
+    callFunctionMap_["OsAccountManagerGetOsAccountLocalIdFromUid"] = []() {
+        int id = GetIntParam();
+        OsAccountManager::GetOsAccountLocalIdFromUid(GetIntParam(), id);
+    };
+
+    callFunctionMap_["OsAccountManagerGetOsAccountLocalIdFromDomain"] = []() {
+        int id = GetIntParam();
+        DomainAccountInfo domainAccountInfo = GetParamDomainAccountInfo();
+        OsAccountManager::GetOsAccountLocalIdFromDomain(domainAccountInfo, id);
+    };
+
+    callFunctionMap_["OsAccountManagerQueryMaxOsAccountNumber"] = []() {
+        int maxOsAccountNumber = GetIntParam();
+        OsAccountManager::QueryMaxOsAccountNumber(maxOsAccountNumber);
+    };
+
+    callFunctionMap_["OsAccountManagerGetOsAccountAllConstraints"] = []() {
+        std::vector<std::string> constraints = GetStringVectorParam();
+        OsAccountManager::GetOsAccountAllConstraints(GetIntParam(), constraints);
+    };
+
+    callFunctionMap_["OsAccountManagerQueryAllCreatedOsAccounts"] = []() {
+        std::vector<OsAccountInfo> osAccountInfos;
+        OsAccountManager::QueryAllCreatedOsAccounts(osAccountInfos);
+    };
+
+    callFunctionMap_["OsAccountManagerQueryCurrentOsAccount"] = []() {
+        OsAccountInfo osAccountInfo = GetParamOsAccountInfo();
+        OsAccountManager::QueryCurrentOsAccount(osAccountInfo);
+    };
+
+    callFunctionMap_["OsAccountManagerQueryOsAccountById"] = []() {
+        OsAccountInfo osAccountInfo = GetParamOsAccountInfo();
+        OsAccountManager::QueryOsAccountById(GetIntParam(), osAccountInfo);
+    };
+
+    callFunctionMap_["OsAccountManagerGetOsAccountTypeFromProcess"] = []() {
+        OsAccountType type = GetParamOsAccountType();
+        OsAccountManager::GetOsAccountTypeFromProcess(type);
+    };
+
+    callFunctionMap_["OsAccountManagerGetOsAccountProfilePhoto"] = []() {
+        std::string photo = GetStringParam();
+        OsAccountManager::GetOsAccountProfilePhoto(GetIntParam(), photo);
+    };
+
+    callFunctionMap_["OsAccountManagerIsMultiOsAccountEnable"] = []() {
+        bool isMultiOsAccountEnable = GetBoolParam();
+        OsAccountManager::IsMultiOsAccountEnable(isMultiOsAccountEnable);
+    };
+
+    callFunctionMap_["OsAccountManagerSetOsAccountName"] = []() {
+        std::string localName = GetStringParam();
+        OsAccountManager::SetOsAccountName(GetIntParam(), localName);
+    };
+
+    callFunctionMap_["OsAccountManagerSetOsAccountConstraints"] = []() {
+        std::vector<std::string> constraints = GetStringVectorParam();
+        OsAccountManager::SetOsAccountConstraints(GetIntParam(), constraints, GetBoolParam());
+    };
+
+    callFunctionMap_["OsAccountManagerSetOsAccountProfilePhoto"] = []() {
+        std::string photo = GetStringParam();
+        OsAccountManager::SetOsAccountProfilePhoto(GetIntParam(), photo);
+    };
+
+    callFunctionMap_["OsAccountManagerGetDistributedVirtualDeviceId"] = []() {
+        std::string deviceId = GetStringParam();
+        OsAccountManager::GetDistributedVirtualDeviceId(deviceId);
+    };
+
+    callFunctionMap_["OsAccountManagerActivateOsAccount"] = []() {
+        int id = GetIntParam();
+        OsAccountManager::ActivateOsAccount(id);
+    };
+
+    callFunctionMap_["OsAccountManagerStartOsAccount"] = []() {
+        int id = GetIntParam();
+        OsAccountManager::StartOsAccount(id);
+    };
+
+    callFunctionMap_["OsAccountManagerStopOsAccount"] = []() {
+        int id = GetIntParam();
+        OsAccountManager::StopOsAccount(id);
+    };
+
+    callFunctionMap_["OsAccountManagerGetOsAccountLocalIdBySerialNumber"] = []() {
+        int id = GetIntParam();
+        int64_t serialNumber = GetS64Param();
+        OsAccountManager::GetOsAccountLocalIdBySerialNumber(serialNumber, id);
+    };
+
+    callFunctionMap_["OsAccountManagerGetSerialNumberByOsAccountLocalId"] = []() {
+        int id = GetIntParam();
+        int64_t serialNumber = GetS64Param();
+        OsAccountManager::GetSerialNumberByOsAccountLocalId(id, serialNumber);
+    };
+
+    callFunctionMap_["OsAccountManagerSubscribeOsAccount"] = []() {
+        std::shared_ptr<TestOsAccountSubscriber> subscriber;
+        OsAccountManager::SubscribeOsAccount(subscriber);
+    };
+
+    callFunctionMap_["OsAccountManagerUnsubscribeOsAccount"] = []() {
+        std::shared_ptr<TestOsAccountSubscriber> subscriber;
+        OsAccountManager::UnsubscribeOsAccount(subscriber);
+    };
+
+    callFunctionMap_["OsAccountManagerGetOsAccountSwitchMod"] = []() { OsAccountManager::GetOsAccountSwitchMod(); };
+
+    callFunctionMap_["OsAccountManagerIsCurrentOsAccountVerified"] = []() {
+        bool isVerified = GetBoolParam();
+        OsAccountManager::IsCurrentOsAccountVerified(isVerified);
+    };
+
+    callFunctionMap_["OsAccountManagerIsOsAccountCompleted"] = []() {
+        bool isOsAccountCompleted = GetBoolParam();
+        OsAccountManager::IsOsAccountCompleted(GetIntParam(), isOsAccountCompleted);
+    };
+
+    callFunctionMap_["OsAccountManagerSetCurrentOsAccountIsVerified"] = []() {
+        bool isVerified = GetBoolParam();
+        OsAccountManager::SetCurrentOsAccountIsVerified(isVerified);
+    };
+
+    callFunctionMap_["OsAccountManagerSetOsAccountIsVerified"] = []() {
+        OsAccountManager::SetOsAccountIsVerified(GetIntParam(), GetBoolParam());
+    };
+
+    callFunctionMap_["OsAccountManagerGetCreatedOsAccountNumFromDatabase"] = []() {
+        std::string storeID = GetStringParam();
+        int createdOsAccountNum = GetIntParam();
+        OsAccountManager::GetCreatedOsAccountNumFromDatabase(storeID, createdOsAccountNum);
+    };
+
+    callFunctionMap_["OsAccountManagerGetSerialNumberFromDatabase"] = []() {
+        std::string storeID = GetStringParam();
+        int64_t serialNumber = GetS64Param();
+        OsAccountManager::GetSerialNumberFromDatabase(storeID, serialNumber);
+    };
+
+    callFunctionMap_["OsAccountManagerGetMaxAllowCreateIdFromDatabase"] = []() {
+        std::string storeID = GetStringParam();
+        int id = GetIntParam();
+        OsAccountManager::GetMaxAllowCreateIdFromDatabase(storeID, id);
+    };
+
+    callFunctionMap_["OsAccountManagerGetOsAccountFromDatabase"] = []() {
+        std::string storeID = GetStringParam();
+        int id = GetIntParam();
+        OsAccountInfo osAccountInfo = GetParamOsAccountInfo();
+        OsAccountManager::GetOsAccountFromDatabase(storeID, id, osAccountInfo);
+    };
+
+    callFunctionMap_["OsAccountManagerGetOsAccountListFromDatabase"] = []() {
+        std::string storeID = GetStringParam();
+        std::vector<OsAccountInfo> osAccountList;
+        OsAccountManager::GetOsAccountListFromDatabase(storeID, osAccountList);
+    };
+}
+
 FuzzTestManager::FuzzTestManager()
 {
     RegisterAppAccountManager();
+    RegisterOsAccountManager();
 }
 
 void FuzzTestManager::SetJsonFunction(std::string functionName)
