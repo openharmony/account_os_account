@@ -38,6 +38,7 @@ const std::string OHOS_ACCOUNT_QUIT_TIPS_TITLE = "";
 const std::string OHOS_ACCOUNT_QUIT_TIPS_CONTENT = "";
 const std::string PERMISSION_MANAGE_USERS = "ohos.permission.MANAGE_LOCAL_ACCOUNTS";
 constexpr std::int32_t ROOT_UID = 0;
+constexpr std::int32_t SYSTEM_UID = 1000;
 
 std::int32_t GetBundleNamesForUid(std::int32_t uid, std::string &bundleName)
 {
@@ -78,7 +79,7 @@ const std::map<std::uint32_t, AccountStubFunc> AccountStub::stubFuncMap_{
 
 std::int32_t AccountStub::CmdUpdateOhosAccountInfo(MessageParcel &data, MessageParcel &reply)
 {
-    if (!HasAccountRequestPermission(PERMISSION_MANAGE_USERS)) {
+    if (!HasAccountRequestPermission(PERMISSION_MANAGE_USERS, false)) {
         ACCOUNT_LOGE("Check permission failed");
         return ERR_ACCOUNT_ZIDL_CHECK_PERMISSION_ERROR;
     }
@@ -108,7 +109,7 @@ std::int32_t AccountStub::CmdUpdateOhosAccountInfo(MessageParcel &data, MessageP
 
 std::int32_t AccountStub::CmdQueryOhosAccountInfo(MessageParcel &data, MessageParcel &reply)
 {
-    if (!HasAccountRequestPermission(PERMISSION_MANAGE_USERS)) {
+    if (!HasAccountRequestPermission(PERMISSION_MANAGE_USERS, true)) {
         ACCOUNT_LOGE("Check permission failed");
         return ERR_ACCOUNT_ZIDL_CHECK_PERMISSION_ERROR;
     }
@@ -138,7 +139,7 @@ std::int32_t AccountStub::CmdQueryOhosAccountInfo(MessageParcel &data, MessagePa
 
 std::int32_t AccountStub::CmdQueryOhosQuitTips(MessageParcel &data, MessageParcel &reply)
 {
-    if (!HasAccountRequestPermission(PERMISSION_MANAGE_USERS)) {
+    if (!HasAccountRequestPermission(PERMISSION_MANAGE_USERS, true)) {
         ACCOUNT_LOGE("Check permission failed");
         return ERR_ACCOUNT_ZIDL_CHECK_PERMISSION_ERROR;
     }
@@ -223,11 +224,16 @@ std::int32_t AccountStub::OnRemoteRequest(
     return IPCObjectStub::OnRemoteRequest(code, data, reply, option);
 }
 
-bool AccountStub::HasAccountRequestPermission(const std::string &permissionName)
+bool AccountStub::HasAccountRequestPermission(const std::string &permissionName, bool isSystemPermit)
 {
     // check root
     const std::int32_t uid = IPCSkeleton::GetCallingUid();
     if (uid == ROOT_UID) {
+        return true;
+    }
+
+    // check system
+    if (isSystemPermit && (uid == SYSTEM_UID)) {
         return true;
     }
 
