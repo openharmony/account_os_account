@@ -485,6 +485,8 @@ ErrCode IInnerOsAccountManager::QueryAllCreatedOsAccounts(std::vector<OsAccountI
          ++osAccountInfosPtr) {
         if (IsOsAccountIDInActiveList(osAccountInfosPtr->GetLocalId())) {
             osAccountInfosPtr->SetIsActived(true);
+        } else {
+            osAccountInfosPtr->SetIsActived(false);
         }
     }
     return ERR_OK;
@@ -531,9 +533,13 @@ ErrCode IInnerOsAccountManager::QueryOsAccountById(const int id, OsAccountInfo &
         ACCOUNT_LOGE("get osaccount info error");
         return ERR_OSACCOUNT_SERVICE_INNER_SELECT_OSACCOUNT_BYID_ERROR;
     }
+
     if (IsOsAccountIDInActiveList(id)) {
         osAccountInfo.SetIsActived(true);
+    } else {
+        osAccountInfo.SetIsActived(false);
     }
+
     if (osAccountInfo.GetPhoto() != "") {
         std::string photo = osAccountInfo.GetPhoto();
         errCode = osAccountControl_->GetPhotoById(osAccountInfo.GetLocalId(), photo);
