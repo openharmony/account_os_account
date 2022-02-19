@@ -1,13 +1,5 @@
 # OS Account<a name="EN-US_TOPIC_0000001123681215"></a>
 
--   [Introduction](#section11660541593)
--   [Architecture](#section1412183212132)
--   [Directory Structure](#section161941989596)
--   [Usage](#section1312121216216)
-    -   [Available APIs](#section1551164914237)
-
--   [Repositories Involved](#section1371113476307)
-
 ## Introduction<a name="section11660541593"></a>
 
 In the standard system, the account subsystem implements lifecycle management of OS accounts, manages the distributed account login status, and adds or deletes app accounts.
