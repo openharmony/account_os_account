@@ -17,6 +17,7 @@
 
 #include "account_bundle_manager.h"
 #include "account_error_no.h"
+#include "ipc_skeleton.h"
 
 using namespace testing::ext;
 using namespace OHOS;
@@ -77,8 +78,9 @@ HWTEST_F(AccountBundleManagerModuleTest, AccountBundleManager_GetBundleInfo_0100
 {
     ASSERT_NE(bundleManagerPtr_, nullptr);
 
+    auto callingUid = IPCSkeleton::GetCallingUid();
     std::string bundleName = STRING_OWNER;
     AppExecFwk::BundleInfo bundleInfo;
-    ErrCode result = bundleManagerPtr_->GetBundleInfo(bundleName, bundleInfo);
+    ErrCode result = bundleManagerPtr_->GetBundleInfo(callingUid, bundleName, bundleInfo);
     EXPECT_EQ(result, ERR_APPACCOUNT_SERVICE_GET_BUNDLE_INFO);
 }
