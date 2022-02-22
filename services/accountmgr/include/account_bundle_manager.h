@@ -28,7 +28,7 @@ public:
     ~AccountBundleManager();
 
     ErrCode GetBundleName(const uid_t &uid, std::string &bundleName);
-    ErrCode GetBundleInfo(const std::string &bundleName, AppExecFwk::BundleInfo &bundleInfo);
+    ErrCode GetBundleInfo(const uid_t &uid, const std::string &bundleName, AppExecFwk::BundleInfo &bundleInfo);
 };
 }  // namespace AccountSA
 }  // namespace OHOS

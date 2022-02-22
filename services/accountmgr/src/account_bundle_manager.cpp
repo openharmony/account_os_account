@@ -13,6 +13,7 @@
  * limitations under the License.
  */
 
+#include "account_info.h"
 #include "account_log_wrapper.h"
 #include "bundle_mgr_client.h"
 #include "ipc_skeleton.h"
@@ -50,14 +51,17 @@ ErrCode AccountBundleManager::GetBundleName(const uid_t &uid, std::string &bundl
     return ERR_OK;
 }
 
-ErrCode AccountBundleManager::GetBundleInfo(const std::string &bundleName, BundleInfo &bundleInfo)
+ErrCode AccountBundleManager::GetBundleInfo(const uid_t &uid, const std::string &bundleName, BundleInfo &bundleInfo)
 {
     ACCOUNT_LOGI("enter");
 
-    ACCOUNT_LOGI("bundleName = %{public}s", bundleName.c_str());
+    ACCOUNT_LOGI("uid = %{public}d, bundleName = %{public}s", uid, bundleName.c_str());
+
+    int32_t userId = uid / UID_TRANSFORM_DIVISOR;
+    ACCOUNT_LOGI("userId = %{public}d", userId);
 
     bool result = DelayedSingleton<BundleMgrClient>::GetInstance()->GetBundleInfo(
-        bundleName, BundleFlag::GET_BUNDLE_DEFAULT, bundleInfo);
+        bundleName, BundleFlag::GET_BUNDLE_DEFAULT, bundleInfo, userId);
     ACCOUNT_LOGI("result = %{public}d", result);
 
     if (result == false) {
