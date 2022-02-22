@@ -188,6 +188,18 @@ struct QueryCreateOAAsyncContext {
     napi_status status;
 };
 
+struct QueryActiveIdsAsyncContext {
+    napi_env env;
+    napi_async_work work;
+
+    int errCode = 0;
+    std::vector<int> osAccountIds;
+
+    napi_deferred deferred;
+    napi_ref callbackRef;
+    napi_status status;
+};
+
 struct GetOAPhotoAsyncContext {
     napi_env env;
     napi_async_work work;
@@ -437,6 +449,8 @@ napi_value GetOsAccountAllConstraints(napi_env env, napi_callback_info cbInfo);
 napi_value GetOsAccountLocalIdFromProcess(napi_env env, napi_callback_info cbInfo);
 
 napi_value QueryAllCreatedOsAccounts(napi_env env, napi_callback_info cbInfo);
+
+napi_value QueryActivatedOsAccountIds(napi_env env, napi_callback_info cbInfo);
 
 napi_value GetOsAccountProfilePhoto(napi_env env, napi_callback_info cbInfo);
 

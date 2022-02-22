@@ -934,6 +934,20 @@ void GetAllAccountCons(napi_env env, const std::vector<std::string> &info, napi_
     }
 }
 
+void GetActiveIds(napi_env env, const std::vector<int> &ids, napi_value result)
+{
+    ACCOUNT_LOGI("enter");
+
+    uint32_t index = 0;
+
+    for (auto id : ids) {
+        napi_value tempID = nullptr;
+        napi_create_int32(env, id, &tempID);
+        napi_set_element(env, result, index, tempID);
+        index++;
+    }
+}
+
 void CBOrPromiseToGetAllCons(napi_env env, const GetAllConsAsyncContext *getAllCons, napi_value err, napi_value data)
 {
     ACCOUNT_LOGI("enter");
@@ -1034,6 +1048,20 @@ void ParseQueryAllCreateOA(napi_env env, napi_callback_info cbInfo, QueryCreateO
     }
 }
 
+void ParseQueryActiveIds(napi_env env, napi_callback_info cbInfo, QueryActiveIdsAsyncContext *queryActiveIds)
+{
+    ACCOUNT_LOGI("enter");
+    size_t argc = ARGS_SIZE_ONE;
+    napi_value argv[ARGS_SIZE_ONE] = {0};
+    napi_get_cb_info(env, cbInfo, &argc, argv, nullptr, nullptr);
+
+    napi_valuetype valueType = napi_undefined;
+    napi_typeof(env, argv[0], &valueType);
+    if (valueType == napi_function) {
+        napi_create_reference(env, argv[0], 1, &queryActiveIds->callbackRef);
+    }
+}
+
 void QueryCreateOAExecuteCB(napi_env env, void *data)
 {
     ACCOUNT_LOGI("napi_create_async_work running");
@@ -1041,6 +1069,15 @@ void QueryCreateOAExecuteCB(napi_env env, void *data)
     queryAllOA->errCode = OsAccountManager::QueryAllCreatedOsAccounts(queryAllOA->osAccountInfos);
     ACCOUNT_LOGI("errocde is %{public}d", queryAllOA->errCode);
     queryAllOA->status = (queryAllOA->errCode == 0) ? napi_ok : napi_generic_failure;
+}
+
+void QueryActiveIdsExecuteCB(napi_env env, void *data)
+{
+    ACCOUNT_LOGI("napi_create_async_work running");
+    QueryActiveIdsAsyncContext *queryActiveIds = (QueryActiveIdsAsyncContext *)data;
+    queryActiveIds->errCode = OsAccountManager::QueryActiveOsAccountIds(queryActiveIds->osAccountIds);
+    ACCOUNT_LOGI("errocde is %{public}d", queryActiveIds->errCode);
+    queryActiveIds->status = (queryActiveIds->errCode == 0) ? napi_ok : napi_generic_failure;
 }
 
 void QueryCreateOACallbackCompletedCB(napi_env env, napi_status status, void *data)
@@ -1055,6 +1092,20 @@ void QueryCreateOACallbackCompletedCB(napi_env env, napi_status status, void *da
     napi_delete_async_work(env, queryAllOA->work);
     delete queryAllOA;
     queryAllOA = nullptr;
+}
+
+void QueryActiveIdsCallbackCompletedCB(napi_env env, napi_status status, void *data)
+{
+    ACCOUNT_LOGI("napi_create_async_work complete");
+    QueryActiveIdsAsyncContext *queryActiveIds = (QueryActiveIdsAsyncContext *)data;
+    napi_value queryResult[RESULT_COUNT] = {0};
+    queryResult[PARAM0] = GetErrorCodeValue(env, queryActiveIds->errCode);
+    napi_create_array(env, &queryResult[PARAM1]);
+    GetActiveIds(env, queryActiveIds->osAccountIds, queryResult[PARAM1]);
+    CBOrPromiseToQueryActiveIds(env, queryActiveIds, queryResult[PARAM0], queryResult[PARAM1]);
+    napi_delete_async_work(env, queryActiveIds->work);
+    delete queryActiveIds;
+    queryActiveIds = nullptr;
 }
 
 void QueryOAInfoForResult(napi_env env, const std::vector<OsAccountInfo> &info, napi_value result)
@@ -1091,6 +1142,30 @@ void CBOrPromiseToQueryOA(napi_env env, const QueryCreateOAAsyncContext *queryOA
         napi_call_function(env, nullptr, callback, RESULT_COUNT, &args[0], &returnVal);
         if (queryOA->callbackRef != nullptr) {
             napi_delete_reference(env, queryOA->callbackRef);
+        }
+    }
+}
+
+void CBOrPromiseToQueryActiveIds(napi_env env, const QueryActiveIdsAsyncContext *queryActiveIds,
+    napi_value err, napi_value data)
+{
+    ACCOUNT_LOGI("enter");
+    napi_value args[RESULT_COUNT] = {err, data};
+    if (queryActiveIds->deferred) {
+        ACCOUNT_LOGI("Promise");
+        if (queryActiveIds->status == napi_ok) {
+            napi_resolve_deferred(env, queryActiveIds->deferred, args[1]);
+        } else {
+            napi_reject_deferred(env, queryActiveIds->deferred, args[0]);
+        }
+    } else {
+        ACCOUNT_LOGI("Callback");
+        napi_value callback = nullptr;
+        napi_get_reference_value(env, queryActiveIds->callbackRef, &callback);
+        napi_value returnVal = nullptr;
+        napi_call_function(env, nullptr, callback, RESULT_COUNT, &args[0], &returnVal);
+        if (queryActiveIds->callbackRef != nullptr) {
+            napi_delete_reference(env, queryActiveIds->callbackRef);
         }
     }
 }

@@ -162,6 +162,11 @@ void FuzzTestManager::RegisterOsAccountManager()
         OsAccountManager::QueryAllCreatedOsAccounts(osAccountInfos);
     };
 
+    callFunctionMap_["OsAccountManagerQueryActiveOsAccountIds"] = []() {
+        std::vector<int> osAccountIds;
+        OsAccountManager::QueryActiveOsAccountIds(osAccountIds);
+    };
+
     callFunctionMap_["OsAccountManagerQueryCurrentOsAccount"] = []() {
         OsAccountInfo osAccountInfo = GetParamOsAccountInfo();
         OsAccountManager::QueryCurrentOsAccount(osAccountInfo);
