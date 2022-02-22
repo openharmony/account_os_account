@@ -147,13 +147,22 @@ void CBOrPromiseToGetProcessId(napi_env env, const GetIdAsyncContext *getIdCB, n
 
 void ParseQueryAllCreateOA(napi_env env, napi_callback_info cbInfo, QueryCreateOAAsyncContext *queryAllOA);
 
+void ParseQueryActiveIds(napi_env env, napi_callback_info cbInfo, QueryActiveIdsAsyncContext *queryActiveIds);
+
 void QueryCreateOAExecuteCB(napi_env env, void *data);
 
+void QueryActiveIdsExecuteCB(napi_env env, void *data);
+
 void QueryCreateOACallbackCompletedCB(napi_env env, napi_status status, void *data);
+
+void QueryActiveIdsCallbackCompletedCB(napi_env env, napi_status status, void *data);
 
 void QueryOAInfoForResult(napi_env env, const std::vector<OsAccountInfo> &info, napi_value result);
 
 void CBOrPromiseToQueryOA(napi_env env, const QueryCreateOAAsyncContext *queryOA, napi_value err, napi_value data);
+
+void CBOrPromiseToQueryActiveIds(napi_env env, const QueryActiveIdsAsyncContext *queryActiveIds,
+    napi_value err, napi_value data);
 
 napi_value ParseParaGetPhote(napi_env env, napi_callback_info cbInfo, GetOAPhotoAsyncContext *getPhoto);
 

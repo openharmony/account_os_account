@@ -59,6 +59,7 @@ napi_value OsAccountInit(napi_env env, napi_value exports)
         DECLARE_NAPI_FUNCTION("getOsAccountAllConstraints", GetOsAccountAllConstraints),
         DECLARE_NAPI_FUNCTION("getOsAccountLocalIdFromProcess", GetOsAccountLocalIdFromProcess),
         DECLARE_NAPI_FUNCTION("queryAllCreatedOsAccounts", QueryAllCreatedOsAccounts),
+        DECLARE_NAPI_FUNCTION("queryActivatedOsAccountIds", QueryActivatedOsAccountIds),
         DECLARE_NAPI_FUNCTION("getOsAccountProfilePhoto", GetOsAccountProfilePhoto),
         DECLARE_NAPI_FUNCTION("queryCurrentOsAccount", QueryCurrentOsAccount),
         DECLARE_NAPI_FUNCTION("getOsAccountLocalIdFromUid", GetOsAccountLocalIdFromUid),
@@ -588,6 +589,43 @@ napi_value QueryAllCreatedOsAccounts(napi_env env, napi_callback_info cbInfo)
         &queryAllOA->work);
 
     napi_queue_async_work(env, queryAllOA->work);
+    return result;
+}
+
+napi_value QueryActivatedOsAccountIds(napi_env env, napi_callback_info cbInfo)
+{
+    ACCOUNT_LOGI("enter");
+    QueryActiveIdsAsyncContext *queryActiveIds = new (std::nothrow) QueryActiveIdsAsyncContext();
+    if (queryActiveIds == nullptr) {
+        ACCOUNT_LOGI("queryActiveIds == nullptr");
+        return WrapVoidToJS(env);
+    }
+    queryActiveIds->env = env;
+    queryActiveIds->callbackRef = nullptr;
+
+    ParseQueryActiveIds(env, cbInfo, queryActiveIds);
+
+    napi_value result = nullptr;
+    if (queryActiveIds->callbackRef == nullptr) {
+        ACCOUNT_LOGI("Create promise");
+        napi_create_promise(env, &queryActiveIds->deferred, &result);
+    } else {
+        ACCOUNT_LOGI("Undefined the result parameter");
+        napi_get_undefined(env, &result);
+    }
+
+    napi_value resource = nullptr;
+    napi_create_string_utf8(env, "QueryActivatedOsAccountIds", NAPI_AUTO_LENGTH, &resource);
+
+    napi_create_async_work(env,
+        nullptr,
+        resource,
+        QueryActiveIdsExecuteCB,
+        QueryActiveIdsCallbackCompletedCB,
+        (void *)queryActiveIds,
+        &queryActiveIds->work);
+
+    napi_queue_async_work(env, queryActiveIds->work);
     return result;
 }
 
