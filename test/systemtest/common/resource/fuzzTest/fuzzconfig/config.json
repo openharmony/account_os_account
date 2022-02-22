@@ -35,6 +35,7 @@
         "QueryMaxOsAccountNumber": [],
         "GetOsAccountAllConstraints": [],
         "QueryAllCreatedOsAccounts": [],
+        "QueryActiveOsAccountIds": [],
         "QueryCurrentOsAccount": [],
         "QueryOsAccountById": [],
         "GetOsAccountTypeFromProcess": [],

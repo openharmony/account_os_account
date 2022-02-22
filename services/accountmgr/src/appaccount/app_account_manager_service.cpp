@@ -142,7 +142,7 @@ ErrCode AppAccountManagerService::EnableAppAccess(const std::string &name, const
     }
 
     AppExecFwk::BundleInfo bundleInfo;
-    result = bundleManagerPtr_->GetBundleInfo(authorizedApp, bundleInfo);
+    result = bundleManagerPtr_->GetBundleInfo(callingUid, authorizedApp, bundleInfo);
     if (result != ERR_OK) {
         ACCOUNT_LOGE("failed to get bundle info");
         return result;
@@ -165,7 +165,7 @@ ErrCode AppAccountManagerService::DisableAppAccess(const std::string &name, cons
     }
 
     AppExecFwk::BundleInfo bundleInfo;
-    result = bundleManagerPtr_->GetBundleInfo(authorizedApp, bundleInfo);
+    result = bundleManagerPtr_->GetBundleInfo(callingUid, authorizedApp, bundleInfo);
     if (result != ERR_OK) {
         ACCOUNT_LOGE("failed to get bundle info");
         return result;
@@ -508,7 +508,7 @@ ErrCode AppAccountManagerService::GetAllAccounts(const std::string &owner, std::
     }
 
     AppExecFwk::BundleInfo bundleInfo;
-    result = bundleManagerPtr_->GetBundleInfo(owner, bundleInfo);
+    result = bundleManagerPtr_->GetBundleInfo(callingUid, owner, bundleInfo);
     if (result != ERR_OK) {
         ACCOUNT_LOGE("failed to get bundle info");
         return result;
@@ -566,7 +566,7 @@ ErrCode AppAccountManagerService::SubscribeAppAccount(
 
     for (auto owner : owners) {
         AppExecFwk::BundleInfo bundleInfo;
-        result = bundleManagerPtr_->GetBundleInfo(owner, bundleInfo);
+        result = bundleManagerPtr_->GetBundleInfo(callingUid, owner, bundleInfo);
         if (result != ERR_OK) {
             ACCOUNT_LOGE("failed to get bundle info");
             return result;

@@ -1,4 +1,4 @@
-# 系统帐号组件<a name="ZH-CN_TOPIC_0000001123681215"></a>
+# 帐号子系统<a name="ZH-CN_TOPIC_0000001123681215"></a>
 
 -   [简介](#section11660541593)
 -   [组件架构图](#section1412183212132)
@@ -10,11 +10,11 @@
 
 ## 简介<a name="section11660541593"></a>
 
-在标准系统上，系统帐号组件主要提供分布式帐号登录状态管理能力，及应用帐号添加删除等基础管理能力。
+在标准系统上，帐号子系统主要提供系统帐号生命周期管理，分布式帐号登录状态管理和应用帐号添加删除等基础管理能力。
 
-## 组件架构图<a name="section1412183212132"></a>
+## 架构图<a name="section1412183212132"></a>
 
-**图 1**  系统帐号组件架构图<a name="fig4460722185514"></a>
+**图 1**  帐号子系统架构图<a name="fig4460722185514"></a>
 
 
 ![](figures/zh-cn_image_account_struct.png)
@@ -569,13 +569,13 @@
 </tr>
 <tr id="row10382181218477"><td class="cellrowborder" valign="top" width="64.72%" headers="mcps1.2.3.1.1 "><p id="p686934433810"><a name="p686934433810"></a><a name="p686934433810"></a>setOsAccountConstraints(localId: number, constraints: Array&lt;string&gt;, enable: boolean, callback: AsyncCallback&lt;void&gt;): void;</p>
 </td>
-<td class="cellrowborder" valign="top" width="35.28%" headers="mcps1.2.3.1.2 "><p id="p0342193384611"><a name="p0342193384611"></a><a name="p0342193384611"></a>为指定系统帐号设置约束</p>
+<td class="cellrowborder" valign="top" width="35.28%" headers="mcps1.2.3.1.2 "><p id="p0342193384611"><a name="p0342193384611"></a><a name="p0342193384611"></a>为指定系统帐号设置/删除约束</p>
 </td>
 </tr>
 </tr>
 <tr id="row10382181218477"><td class="cellrowborder" valign="top" width="64.72%" headers="mcps1.2.3.1.1 "><p id="p686934433810"><a name="p686934433810"></a><a name="p686934433810"></a>setOsAccountConstraints(localId: number, constraints: Array&lt;string&gt;, enable: boolean): Promise&lt;void&gt;;</p>
 </td>
-<td class="cellrowborder" valign="top" width="35.28%" headers="mcps1.2.3.1.2 "><p id="p0342193384611"><a name="p0342193384611"></a><a name="p0342193384611"></a>为指定系统帐号设置约束</p>
+<td class="cellrowborder" valign="top" width="35.28%" headers="mcps1.2.3.1.2 "><p id="p0342193384611"><a name="p0342193384611"></a><a name="p0342193384611"></a>为指定系统帐号设置/删除约束</p>
 </td>
 </tr>
 <tr id="row10382181218477"><td class="cellrowborder" valign="top" width="64.72%" headers="mcps1.2.3.1.1 "><p id="p686934433810"><a name="p686934433810"></a><a name="p686934433810"></a>setOsAccountName(localId: number, localName: string, callback: AsyncCallback&lt;void&gt;): void;</p>
@@ -656,6 +656,16 @@
 <tr id="row10382181218477"><td class="cellrowborder" valign="top" width="64.72%" headers="mcps1.2.3.1.1 "><p id="p686934433810"><a name="p686934433810"></a><a name="p686934433810"></a>queryAllCreatedOsAccounts(): Promise&lt;Array&lt;OsAccountInfo&gt;&gt;;</p>
 </td>
 <td class="cellrowborder" valign="top" width="35.28%" headers="mcps1.2.3.1.2 "><p id="p0342193384611"><a name="p0342193384611"></a><a name="p0342193384611"></a>查询已创建的所有系统帐号的信息列表</p>
+</td>
+</tr>
+<tr id="row10382181218477"><td class="cellrowborder" valign="top" width="64.72%" headers="mcps1.2.3.1.1 "><p id="p686934433810"><a name="p686934433810"></a><a name="p686934433810"></a>queryActivatedOsAccountIds(callback: AsyncCallback&lt;Array&lt;number&gt;&gt;): void;</p>
+</td>
+<td class="cellrowborder" valign="top" width="35.28%" headers="mcps1.2.3.1.2 "><p id="p0342193384611"><a name="p0342193384611"></a><a name="p0342193384611"></a>查询当前处于激活状态的系统帐号的ID列表</p>
+</td>
+</tr>
+<tr id="row10382181218477"><td class="cellrowborder" valign="top" width="64.72%" headers="mcps1.2.3.1.1 "><p id="p686934433810"><a name="p686934433810"></a><a name="p686934433810"></a>queryActivatedOsAccountIds(): Promise&lt;Array&lt;number&gt;&gt;;</p>
+</td>
+<td class="cellrowborder" valign="top" width="35.28%" headers="mcps1.2.3.1.2 "><p id="p0342193384611"><a name="p0342193384611"></a><a name="p0342193384611"></a>查询当前处于激活状态的系统帐号的ID列表</p>
 </td>
 </tr>
 <tr id="row10382181218477"><td class="cellrowborder" valign="top" width="64.72%" headers="mcps1.2.3.1.1 "><p id="p686934433810"><a name="p686934433810"></a><a name="p686934433810"></a>createOsAccount(localName: string, type: OsAccountType, callback: AsyncCallback&lt;OsAccountInfo&gt;): void;</p>
