@@ -20,6 +20,7 @@
 #undef private
 #include "account_error_no.h"
 #include "account_log_wrapper.h"
+#include "ipc_skeleton.h"
 
 using namespace testing::ext;
 using namespace OHOS;
@@ -85,8 +86,9 @@ HWTEST_F(AccountBundleManagerTest, AccountBundleManager_GetBundleInfo_0100, Test
 
     ASSERT_NE(bundleManagerPtr_, nullptr);
 
+    auto callingUid = IPCSkeleton::GetCallingUid();
     std::string bundleName = STRING_OWNER;
     AppExecFwk::BundleInfo bundleInfo;
-    ErrCode result = bundleManagerPtr_->GetBundleInfo(bundleName, bundleInfo);
+    ErrCode result = bundleManagerPtr_->GetBundleInfo(callingUid, bundleName, bundleInfo);
     EXPECT_EQ(result, ERR_OK);
 }

@@ -16,6 +16,7 @@
 #ifndef BASE_ACCOUNT_ACCOUNT_INFO_H
 #define BASE_ACCOUNT_ACCOUNT_INFO_H
 
+#include <ctime>
 #include <string>
 
 namespace OHOS {
