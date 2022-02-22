@@ -9,7 +9,7 @@ In the standard system, the account subsystem implements lifecycle management of
 **Figure 1** Architecture of the OS account module<a name="fig4460722185514"></a>
 
 
-![](figures/en-us_image_account_struct.png)
+![](figures/en-us_image_account_struct)
 
 ## Directory Structure<a name="section161941989596"></a>
 
