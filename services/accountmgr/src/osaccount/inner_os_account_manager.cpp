@@ -406,6 +406,10 @@ ErrCode IInnerOsAccountManager::IsOsAccountActived(const int id, bool &isOsAccou
         ACCOUNT_LOGE("get osaccount info error");
         return ERR_OSACCOUNT_SERVICE_INNER_SELECT_OSACCOUNT_BYID_ERROR;
     }
+    if (id == Constants::ADMIN_LOCAL_ID) {
+        isOsAccountActived = true;
+        return ERR_OK;
+    }
     isOsAccountActived = IsOsAccountIDInActiveList(id);
     return ERR_OK;
 }

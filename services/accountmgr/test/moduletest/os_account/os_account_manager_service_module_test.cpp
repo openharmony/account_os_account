@@ -354,7 +354,7 @@ HWTEST_F(OsAccountManagerServiceModuleTest, OsAccountManagerServiceModuleTest012
 HWTEST_F(OsAccountManagerServiceModuleTest, OsAccountManagerServiceModuleTest013, TestSize.Level1)
 {
     bool isOsAccountActived = false;
-    EXPECT_EQ(g_osAccountManagerService->IsOsAccountExists(Constants::START_USER_ID, isOsAccountActived), ERR_OK);
+    EXPECT_EQ(g_osAccountManagerService->IsOsAccountActived(Constants::START_USER_ID, isOsAccountActived), ERR_OK);
     EXPECT_EQ(isOsAccountActived, true);
 }
 
@@ -369,7 +369,7 @@ HWTEST_F(OsAccountManagerServiceModuleTest, OsAccountManagerServiceModuleTest014
     OsAccountInfo osAccountInfoOne;
     g_osAccountManagerService->CreateOsAccount(STRING_TEST_NAME, INT_TEST_TYPE, osAccountInfoOne);
     bool isOsAccountActived = false;
-    EXPECT_EQ(g_osAccountManagerService->IsOsAccountExists(osAccountInfoOne.GetLocalId(), isOsAccountActived), ERR_OK);
+    EXPECT_EQ(g_osAccountManagerService->IsOsAccountActived(osAccountInfoOne.GetLocalId(), isOsAccountActived), ERR_OK);
     EXPECT_EQ(isOsAccountActived, true);
     osAccountControlFileManager_->DelOsAccount(osAccountInfoOne.GetLocalId());
 }
