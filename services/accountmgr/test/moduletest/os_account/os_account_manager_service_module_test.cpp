@@ -370,7 +370,7 @@ HWTEST_F(OsAccountManagerServiceModuleTest, OsAccountManagerServiceModuleTest014
     g_osAccountManagerService->CreateOsAccount(STRING_TEST_NAME, INT_TEST_TYPE, osAccountInfoOne);
     bool isOsAccountActived = false;
     EXPECT_EQ(g_osAccountManagerService->IsOsAccountActived(osAccountInfoOne.GetLocalId(), isOsAccountActived), ERR_OK);
-    EXPECT_EQ(isOsAccountActived, true);
+    EXPECT_EQ(isOsAccountActived, false);
     osAccountControlFileManager_->DelOsAccount(osAccountInfoOne.GetLocalId());
 }
 
