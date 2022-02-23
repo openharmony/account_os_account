@@ -42,8 +42,8 @@ public:
         const std::shared_ptr<OsAccountSubscribeInfo> &subscribeInfoPtr, const sptr<IRemoteObject> &eventListener) = 0;
     virtual ErrCode UnsubscribeOsAccount(const sptr<IRemoteObject> &eventListener) = 0;
     virtual ErrCode GetEventHandler(void) = 0;
-    virtual ErrCode PublicActivatedOsAccount(const int id) = 0;
-    virtual ErrCode PublicActivatingOsAccount(const int id) = 0;
+    virtual ErrCode PublishActivatedOsAccount(const int id) = 0;
+    virtual ErrCode PublishActivatingOsAccount(const int id) = 0;
 };
 }  // namespace AccountSA
 }  // namespace OHOS

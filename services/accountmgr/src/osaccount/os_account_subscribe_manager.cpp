@@ -114,27 +114,16 @@ ErrCode OsAccountSubscribeManager::GetEventHandler(void)
     return ERR_OK;
 }
 
-ErrCode OsAccountSubscribeManager::PublicActivatedOsAccount(const int id)
+ErrCode OsAccountSubscribeManager::PublishActivatedOsAccount(const int id)
 {
-    if (GetEventHandler() != ERR_OK) {
-        ACCOUNT_LOGE("failed to get event handler");
-        return ERR_OSACCOUNT_SERVICE_SUBSCRIBE_GET_EVENT_HANDLE_ERROR;
+    uint32_t sendCnt = 0;
+    ErrCode ret = Publish(id, OS_ACCOUNT_SUBSCRIBE_TYPE::ACTIVED, sendCnt);
+    if (ret != ERR_OK) {
+        ACCOUNT_LOGE("PublishActivatedOsAccount failed! id %{public}d, ret %{public}d.", id, ret);
+        return ret;
     }
-    for (auto it = subscribeRecords_.begin(); it != subscribeRecords_.end(); ++it) {
-        OS_ACCOUNT_SUBSCRIBE_TYPE osAccountSubscribeType;
-        if ((*it)->subscribeInfoPtr_ == nullptr) {
-            ACCOUNT_LOGI("OsAccountSubscribeManager PublicActivatedOsAccount subscribeInfoPtr_ is null");
-        }
-        (*it)->subscribeInfoPtr_->GetOsAccountSubscribeType(osAccountSubscribeType);
-        if (osAccountSubscribeType == OS_ACCOUNT_SUBSCRIBE_TYPE::ACTIVED) {
-            OHOS::AppExecFwk::InnerEvent::Callback callback =
-                std::bind(&OsAccountSubscribeManager::OnAccountsChanged, this, (*it), id);
-            if (handler_ == nullptr) {
-                ACCOUNT_LOGI("OsAccountSubscribeManager PublicActivatedOsAccount handler_ is null");
-            }
-            handler_->PostTask(callback);
-        }
-    }
+
+    ACCOUNT_LOGI("PublishActivatedOsAccount succeed! id %{public}d, sendCnt %{public}u.", id, sendCnt);
     return ERR_OK;
 }
 
@@ -153,20 +142,43 @@ bool OsAccountSubscribeManager::OnAccountsChanged(const OsSubscribeRecordPtr &os
     return true;
 }
 
-ErrCode OsAccountSubscribeManager::PublicActivatingOsAccount(const int id)
+ErrCode OsAccountSubscribeManager::PublishActivatingOsAccount(const int id)
+{
+    uint32_t sendCnt = 0;
+    ErrCode ret = Publish(id, OS_ACCOUNT_SUBSCRIBE_TYPE::ACTIVATING, sendCnt);
+    if (ret != ERR_OK) {
+        ACCOUNT_LOGE("PublishActivatingOsAccount failed! id %{public}d, ret %{public}d.", id, ret);
+        return ret;
+    }
+
+    ACCOUNT_LOGI("PublishActivatingOsAccount succeed! id %{public}d, sendCnt %{public}u.", id, sendCnt);
+    return ERR_OK;
+}
+
+ErrCode OsAccountSubscribeManager::Publish(const int id, OS_ACCOUNT_SUBSCRIBE_TYPE subscribeType, uint32_t& sendCnt)
 {
     if (GetEventHandler() != ERR_OK) {
-        ACCOUNT_LOGE("failed to get event handler");
+        ACCOUNT_LOGE("failed to get event handler, id %{public}d, subscribeType %{public}d.", id, subscribeType);
         return ERR_OSACCOUNT_SERVICE_SUBSCRIBE_GET_EVENT_HANDLE_ERROR;
     }
+
+    std::lock_guard<std::mutex> lock(subscribeRecordMutex_);
     for (auto it = subscribeRecords_.begin(); it != subscribeRecords_.end(); ++it) {
+        if ((*it)->subscribeInfoPtr_ == nullptr) {
+            ACCOUNT_LOGE("subscribeInfoPtr_ is null, id %{public}d.", id);
+            continue;
+        }
         OS_ACCOUNT_SUBSCRIBE_TYPE osAccountSubscribeType;
         (*it)->subscribeInfoPtr_->GetOsAccountSubscribeType(osAccountSubscribeType);
-        if (osAccountSubscribeType == OS_ACCOUNT_SUBSCRIBE_TYPE::ACTIVATING) {
+        if (osAccountSubscribeType == subscribeType) {
             OHOS::AppExecFwk::InnerEvent::Callback callback =
                 std::bind(&OsAccountSubscribeManager::OnAccountsChanged, this, (*it), id);
-
+            if (handler_ == nullptr) {
+                ACCOUNT_LOGE("handler_ is null!");
+                continue;
+            }
             handler_->PostTask(callback);
+            ++sendCnt;
         }
     }
     return ERR_OK;
