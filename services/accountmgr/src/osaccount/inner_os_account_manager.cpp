@@ -205,6 +205,7 @@ void IInnerOsAccountManager::StartBaseStandardAccount(void)
     osAccountInfo.SetLastLoginTime(time);
     osAccountControl_->UpdateOsAccount(osAccountInfo);
     PushIDIntoActiveList(Constants::START_USER_ID);
+    subscribeManagerPtr_->PublishActivatedOsAccount(Constants::START_USER_ID);
     OsAccountStandardInterface::SendToCESAccountSwitched(osAccountInfo);
     ACCOUNT_LOGI("connect AM to start account ok");
 }
@@ -711,7 +712,7 @@ ErrCode IInnerOsAccountManager::ActivateOsAccount(const int id)
         ACCOUNT_LOGE("account %{public}d is not Completed", id);
         return ERR_OSACCOUNT_SERVICE_INNER_ACCOUNT_IS_UNVERIFIED_ERROR;
     }
-    subscribeManagerPtr_->PublicActivatingOsAccount(id);
+    subscribeManagerPtr_->PublishActivatingOsAccount(id);
     errCode = SendMsgForAccountActivate(osAccountInfo);
     if (errCode != ERR_OK) {
         RemoveLocalIdToOperating(id);
@@ -719,7 +720,7 @@ ErrCode IInnerOsAccountManager::ActivateOsAccount(const int id)
         return errCode;
     }
     RemoveLocalIdToOperating(id);
-    subscribeManagerPtr_->PublicActivatedOsAccount(id);
+    subscribeManagerPtr_->PublishActivatedOsAccount(id);
     ACCOUNT_LOGI("IInnerOsAccountManager ActivateOsAccount end");
     return ERR_OK;
 }

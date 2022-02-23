@@ -32,14 +32,15 @@ public:
     virtual ErrCode SubscribeOsAccount(const std::shared_ptr<OsAccountSubscribeInfo> &subscribeInfoPtr,
         const sptr<IRemoteObject> &eventListener) override;
     virtual ErrCode UnsubscribeOsAccount(const sptr<IRemoteObject> &eventListener) override;
-    virtual ErrCode PublicActivatedOsAccount(const int id) override;
-    virtual ErrCode PublicActivatingOsAccount(const int id) override;
+    virtual ErrCode PublishActivatedOsAccount(const int id) override;
+    virtual ErrCode PublishActivatingOsAccount(const int id) override;
     virtual ErrCode GetEventHandler(void) override;
     bool OnAccountsChanged(const OsSubscribeRecordPtr &osSubscribeRecordPtr, const int id);
 
 private:
     ErrCode InsertSubscribeRecord(const OsSubscribeRecordPtr &subscribeRecordPtr);
     ErrCode RemoveSubscribeRecord(const sptr<IRemoteObject> &eventListener);
+    ErrCode Publish(const int id, OS_ACCOUNT_SUBSCRIBE_TYPE subscribeType, uint32_t& sendCnt);
 
 private:
     std::mutex mutex_;
