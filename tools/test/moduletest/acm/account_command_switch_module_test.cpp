@@ -14,7 +14,7 @@
  */
 
 #include <gtest/gtest.h>
-
+#include <thread>
 #include "account_command.h"
 #include "account_command_util.h"
 #include "tool_system_test.h"
@@ -89,11 +89,9 @@ HWTEST_F(AccountCommandSwitchModuleTest, Acm_Command_Switch_0200, TestSize.Level
  */
 HWTEST_F(AccountCommandSwitchModuleTest, Acm_Command_Switch_0300, TestSize.Level1)
 {
+    GTEST_LOG_(INFO) << "before CreateOsAccount";
     AccountCommandUtil::CreateOsAccount();
 
-    AccountCommandUtil::SwitchToLastOsAccount();
-
-    AccountCommandUtil::SwitchToFirstOsAccount();
-
+    GTEST_LOG_(INFO) << "before DeleteLastOsAccount";
     AccountCommandUtil::DeleteLastOsAccount();
 }
