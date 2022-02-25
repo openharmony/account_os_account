@@ -276,8 +276,7 @@ void OsAccountInfo::FromJson(const Json &jsonObject)
 
 bool OsAccountInfo::Marshalling(Parcel &parcel) const
 {
-    auto jsonObject = ToJson();
-    parcel.WriteString(jsonObject.dump());
+    parcel.WriteString(ToString());
     return true;
 }
 
@@ -292,7 +291,13 @@ bool OsAccountInfo::ReadFromParcel(Parcel &parcel)
 std::string OsAccountInfo::ToString() const
 {
     auto jsonObject = ToJson();
-    return jsonObject.dump();
+    std::string jsonString;
+    try {
+        jsonString = jsonObject.dump();
+    } catch (Json::type_error& err) {
+        ACCOUNT_LOGE("failed to dump json object, reason: %{public}s", err.what());
+    }
+    return jsonString;
 }
 
 std::string OsAccountInfo::GetPrimeKey() const

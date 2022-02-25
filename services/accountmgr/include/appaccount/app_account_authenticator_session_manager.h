@@ -16,8 +16,8 @@
 #ifndef OS_ACCOUNT_SERVICES_ACCOUNTMGR_INCLUDE_APPACCOUNT_APP_ACCOUNT_AUTHENTICATOR_SESSION_MANAGER_H
 #define OS_ACCOUNT_SERVICES_ACCOUNTMGR_INCLUDE_APPACCOUNT_APP_ACCOUNT_AUTHENTICATOR_SESSION_MANAGER_H
 
-#include "app_account_common.h"
 #include "application_state_observer_stub.h"
+#include "app_account_common.h"
 #include "app_mgr_interface.h"
 #include "app_mgr_proxy.h"
 #include "iapp_account_authenticator_callback.h"

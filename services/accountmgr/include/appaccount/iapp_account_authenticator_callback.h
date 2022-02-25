@@ -25,8 +25,8 @@ class IAppAccountAuthenticatorCallback : public IRemoteBroker {
 public:
     DECLARE_INTERFACE_DESCRIPTOR(u"ohos.accountfwk.IAppAccountAuthenticatorCallback");
 
-    virtual int32_t OnResult(int32_t resultCode, const AAFwk::Want &result) = 0;
-    virtual int32_t OnRequestRedirected(AAFwk::Want &request) = 0;
+    virtual void OnResult(int32_t resultCode, const AAFwk::Want &result) = 0;
+    virtual void OnRequestRedirected(AAFwk::Want &request) = 0;
 
     enum class Message {
         ACCOUNT_RESULT = 0,

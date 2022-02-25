@@ -194,7 +194,11 @@ napi_value NapiAppAccountAuthenticatorCallback::JsConstructor(napi_env env, napi
         remote = reinterpret_cast<IRemoteObject *>(tmp);
         NAPI_ASSERT(env, remote != nullptr, "remote is null");
     }
-    auto callback = new NapiAppAccountAuthenticatorCallback(remote);
+    auto callback = new (std::nothrow) NapiAppAccountAuthenticatorCallback(remote);
+    if (callback == nullptr) {
+        ACCOUNT_LOGE("failed to create NapiAppAccountAuthenticatorCallback");
+        return nullptr;
+    }
     status = napi_wrap(
         env, thisVar, callback,
         [](napi_env env, void *data, void *hint) {

@@ -19,6 +19,7 @@
 #include "account_log_wrapper.h"
 #define private public
 #include "app_account_common.h"
+#include "app_account_constants.h"
 #include "app_account_control_manager.h"
 #include "app_account_manager_service.h"
 #undef private
@@ -1005,7 +1006,6 @@ HWTEST_F(AppAccountManagerServiceModuleTest, AppAccountManagerService_SetAccount
 HWTEST_F(AppAccountManagerServiceModuleTest, AppAccountManagerService_GetOAuthToken_0100, TestSize.Level0)
 {
     ACCOUNT_LOGI("AppAccountManagerService_GetOAuthToken_0100");
-
     auto servicePtr = std::make_shared<AppAccountManagerService>();
     ASSERT_NE(servicePtr, nullptr);
 
@@ -1024,7 +1024,6 @@ HWTEST_F(AppAccountManagerServiceModuleTest, AppAccountManagerService_GetOAuthTo
 HWTEST_F(AppAccountManagerServiceModuleTest, AppAccountManagerService_GetOAuthToken_0200, TestSize.Level0)
 {
     ACCOUNT_LOGI("AppAccountManagerService_GetOAuthToken_0200");
-
     auto servicePtr = std::make_shared<AppAccountManagerService>();
     ASSERT_NE(servicePtr, nullptr);
 
@@ -1091,10 +1090,8 @@ HWTEST_F(AppAccountManagerServiceModuleTest, AppAccountManagerService_GetOAuthTo
 HWTEST_F(AppAccountManagerServiceModuleTest, AppAccountManagerService_SetOAuthToken_0100, TestSize.Level1)
 {
     ACCOUNT_LOGI("AppAccountManagerService_SetOAuthToken_0100");
-
     auto servicePtr = std::make_shared<AppAccountManagerService>();
     ASSERT_NE(servicePtr, nullptr);
-
     ErrCode result = servicePtr->SetOAuthToken(STRING_NAME, STRING_AUTH_TYPE, STRING_TOKEN);
     EXPECT_EQ(result, ERR_APPACCOUNT_SERVICE_ACCOUNT_NOT_EXIST);
 }
@@ -1275,7 +1272,7 @@ HWTEST_F(AppAccountManagerServiceModuleTest, AppAccountManagerService_GetAllOAut
 
     result = servicePtr->SetOAuthToken(STRING_NAME, STRING_AUTH_TYPE, STRING_TOKEN);
     EXPECT_EQ(result, ERR_OK);
-    
+
     result = servicePtr->SetOAuthToken(STRING_NAME, STRING_AUTH_TYPE_TWO, STRING_TOKEN_TWO);
     EXPECT_EQ(result, ERR_OK);
 
@@ -1387,7 +1384,6 @@ HWTEST_F(AppAccountManagerServiceModuleTest, AppAccountManagerService_SetOAuthTo
 HWTEST_F(AppAccountManagerServiceModuleTest, AppAccountManagerService_CheckOAuthTokenVisibility_0100, TestSize.Level1)
 {
     ACCOUNT_LOGI("AppAccountManagerService_CheckOAuthTokenVisibility_0100");
-
     auto servicePtr = std::make_shared<AppAccountManagerService>();
     ASSERT_NE(servicePtr, nullptr);
 
@@ -1496,8 +1492,7 @@ HWTEST_F(AppAccountManagerServiceModuleTest, AppAccountManagerService_GetOAuthLi
     result = servicePtr->SetOAuthTokenVisibility(STRING_NAME, STRING_AUTH_TYPE, STRING_BUNDLE_NAME, true);
     EXPECT_EQ(result, ERR_OK);
 
-    result = servicePtr->SetOAuthTokenVisibility(
-        STRING_NAME, STRING_AUTH_TYPE, STRING_BUNDLE_NAME_NOT_INSTALLED, true);
+    result = servicePtr->SetOAuthTokenVisibility(STRING_NAME, STRING_AUTH_TYPE, STRING_BUNDLE_NAME_NOT_INSTALLED, true);
     EXPECT_EQ(result, ERR_OK);
 
     std::set<std::string> authList;
@@ -1563,10 +1558,11 @@ HWTEST_F(AppAccountManagerServiceModuleTest, AppAccountManagerService_AddAccount
     auto servicePtr = std::make_shared<AppAccountManagerService>();
     ASSERT_NE(servicePtr, nullptr);
 
+    AAFwk::Want options;
+    options.SetParam(AccountSA::Constants::KEY_CALLER_ABILITY_NAME, STRING_ABILITY_NAME);
     sptr<IRemoteObject> callback = nullptr;
-    const AAFwk::WantParams options;
     ErrCode result = servicePtr->AddAccountImplicitly(
-        STRING_OWNER, STRING_AUTH_TYPE, options, callback, STRING_ABILITY_NAME);
+        STRING_OWNER, STRING_AUTH_TYPE, options, callback);
     EXPECT_EQ(result, ERR_APPACCOUNT_SERVICE_OAUTH_AUTHENTICATOR_NOT_EXIST);
 }
 
@@ -1583,16 +1579,10 @@ HWTEST_F(AppAccountManagerServiceModuleTest, AppAccountManagerService_Authentica
     auto servicePtr = std::make_shared<AppAccountManagerService>();
     ASSERT_NE(servicePtr, nullptr);
 
-    sptr<IAppAccountAuthenticatorCallback> callback = nullptr;
-    const AAFwk::WantParams options;
-    OAuthRequest request;
-    request.name = STRING_NAME;
-    request.owner = STRING_OWNER;
-    request.authType = STRING_AUTH_TYPE;
-    request.options = options;
-    request.callback = callback;
-    request.callerAbilityName = STRING_ABILITY_NAME;
-    ErrCode result = servicePtr->Authenticate(request);
+    AAFwk::Want options;
+    options.SetParam(AccountSA::Constants::KEY_CALLER_ABILITY_NAME, STRING_ABILITY_NAME);
+    sptr<IRemoteObject> callback = nullptr;
+    ErrCode result = servicePtr->Authenticate(STRING_NAME, STRING_OWNER, STRING_AUTH_TYPE, options, callback);
     EXPECT_EQ(result, ERR_APPACCOUNT_SERVICE_OAUTH_AUTHENTICATOR_NOT_EXIST);
 }
 

@@ -83,8 +83,8 @@ public:
 private:
     std::shared_ptr<AppAccountControlManager> controlManagerPtr_ = nullptr;
     std::shared_ptr<AppAccountSubscribeManager> subscribeManagerPtr_ = nullptr;
-    std::shared_ptr<AppAccountAuthenticatorSessionManager> sessionManagerPtr_;
-    std::shared_ptr<AppAccountAuthenticatorManager> authenticatorManagerPtr_;
+    std::shared_ptr<AppAccountAuthenticatorSessionManager> sessionManagerPtr_ = nullptr;
+    std::shared_ptr<AppAccountAuthenticatorManager> authenticatorManagerPtr_ = nullptr;
 
     DISALLOW_COPY_AND_MOVE(InnerAppAccountManager);
 };

@@ -16,11 +16,11 @@
 #include "app_account_authenticator_session.h"
 
 #include "ability_manager_client.h"
+#include "account_info.h"
 #include "account_log_wrapper.h"
 #include "app_account_authenticator_callback.h"
 #include "app_account_authenticator_manager.h"
 #include "app_account_common.h"
-#include "bundle_constants.h"
 #include "iservice_registry.h"
 #include "system_ability_definition.h"
 #include "want.h"
@@ -163,8 +163,7 @@ void AppAccountAuthenticatorSession::Init()
     if ((request_.callback != nullptr) && (request_.callback->AsObject() != nullptr)) {
         request_.callback->AsObject()->AddDeathRecipient(clientDeathRecipient_);
     }
-    ownerUid_ = bundleMgrProxy->GetUidByBundleName(request_.owner,
-        request_.callerUid / AppExecFwk::Constants::BASE_USER_RANGE);
+    ownerUid_ = bundleMgrProxy->GetUidByBundleName(request_.owner, request_.callerUid / UID_TRANSFORM_DIVISOR);
     isInitialized_ = true;
 }
 
@@ -223,10 +222,10 @@ void AppAccountAuthenticatorSession::OnAbilityConnectDone(
     authenticatorProxy_->AsObject()->AddDeathRecipient(serverDeathRecipient_);
     if (action_ == Constants::OAUTH_ACTION_AUTHENTICATE) {
         resultCode = authenticatorProxy_->Authenticate(request_.name, request_.authType, request_.callerBundleName,
-            request_.options, authenticatorCb_->AsObject());
+            request_.options.GetParams(), authenticatorCb_->AsObject());
     } else if (action_ == Constants::OAUTH_ACTION_ADD_ACCOUNT_IMPLICITLY) {
         resultCode = authenticatorProxy_->AddAccountImplicitly(
-            request_.authType, request_.callerBundleName, request_.options, authenticatorCb_->AsObject());
+            request_.authType, request_.callerBundleName, request_.options.GetParams(), authenticatorCb_->AsObject());
     } else {
         ACCOUNT_LOGE("unsupport action: %{public}s", action_.c_str());
         OnResult(ERR_JS_OAUTH_UNSUPPORT_ACTION, errResult_);
@@ -305,6 +304,8 @@ int32_t AppAccountAuthenticatorSession::OnRequestRedirected(AAFwk::Want &newRequ
     newRequest.SetParam(Constants::KEY_SESSION_ID, sessionId_);
     newRequest.SetParam(Constants::KEY_AUTH_TYPE, request_.authType);
     newRequest.SetParam(Constants::KEY_CALLER_BUNDLE_NAME, request_.callerBundleName);
+    newRequest.SetParam(Constants::KEY_CALLER_PID, request_.callerPid);
+    newRequest.SetParam(Constants::KEY_CALLER_UID, request_.callerUid);
     request_.callback->OnRequestRedirected(newRequest);
     return ERR_JS_SUCCESS;
 }

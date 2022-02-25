@@ -27,9 +27,8 @@ namespace AccountSA {
 class AppAccountManager {
 public:
     static ErrCode AddAccount(const std::string &name, const std::string &extraInfo = "");
-    static ErrCode AddAccountImplicitly(
-        const std::string &owner, const std::string &authType, const AAFwk::WantParams &options,
-        IAppAccountAuthenticatorCallback *callback, const std::string &abilityName);
+    static ErrCode AddAccountImplicitly(const std::string &owner, const std::string &authType,
+        const AAFwk::Want &options, const sptr<IAppAccountAuthenticatorCallback> &callback);
     static ErrCode DeleteAccount(const std::string &name);
 
     static ErrCode GetAccountExtraInfo(const std::string &name, std::string &extraInfo);
@@ -49,7 +48,8 @@ public:
     static ErrCode SetAccountCredential(
         const std::string &name, const std::string &credentialType, const std::string &credential);
 
-    static ErrCode Authenticate(OAuthRequest &request);
+    static ErrCode Authenticate(const std::string &name, const std::string &owner, const std::string &authType,
+        const AAFwk::Want &options, const sptr<IAppAccountAuthenticatorCallback> &callback);
     static ErrCode GetOAuthToken(const std::string &name, const std::string &owner, const std::string &authType,
         std::string &token);
     static ErrCode SetOAuthToken(
