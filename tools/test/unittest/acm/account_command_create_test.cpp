@@ -14,8 +14,8 @@
  */
 
 #include <gtest/gtest.h>
-
 #include "account_command.h"
+#include "account_log_wrapper.h"
 
 using namespace testing::ext;
 using namespace OHOS;
@@ -63,6 +63,7 @@ void AccountCommandCreateTest::TearDown()
  */
 HWTEST_F(AccountCommandCreateTest, Acm_Command_Create_0100, TestSize.Level1)
 {
+    ACCOUNT_LOGI("Acm_Command_Create_0100");
     char *argv[] = {
         (char *)TOOL_NAME.c_str(),
         (char *)cmd_.c_str(),
@@ -82,6 +83,7 @@ HWTEST_F(AccountCommandCreateTest, Acm_Command_Create_0100, TestSize.Level1)
  */
 HWTEST_F(AccountCommandCreateTest, Acm_Command_Create_0200, TestSize.Level1)
 {
+    ACCOUNT_LOGI("Acm_Command_Create_0200");
     char *argv[] = {
         (char *)TOOL_NAME.c_str(),
         (char *)cmd_.c_str(),
@@ -102,6 +104,7 @@ HWTEST_F(AccountCommandCreateTest, Acm_Command_Create_0200, TestSize.Level1)
  */
 HWTEST_F(AccountCommandCreateTest, Acm_Command_Create_0300, TestSize.Level1)
 {
+    ACCOUNT_LOGI("Acm_Command_Create_0300");
     char *argv[] = {
         (char *)TOOL_NAME.c_str(),
         (char *)cmd_.c_str(),
@@ -122,6 +125,7 @@ HWTEST_F(AccountCommandCreateTest, Acm_Command_Create_0300, TestSize.Level1)
  */
 HWTEST_F(AccountCommandCreateTest, Acm_Command_Create_0400, TestSize.Level1)
 {
+    ACCOUNT_LOGI("Acm_Command_Create_0400");
     char *argv[] = {
         (char *)TOOL_NAME.c_str(),
         (char *)cmd_.c_str(),
@@ -142,6 +146,7 @@ HWTEST_F(AccountCommandCreateTest, Acm_Command_Create_0400, TestSize.Level1)
  */
 HWTEST_F(AccountCommandCreateTest, Acm_Command_Create_0500, TestSize.Level1)
 {
+    ACCOUNT_LOGI("Acm_Command_Create_0500");
     char *argv[] = {
         (char *)TOOL_NAME.c_str(),
         (char *)cmd_.c_str(),
@@ -162,6 +167,7 @@ HWTEST_F(AccountCommandCreateTest, Acm_Command_Create_0500, TestSize.Level1)
  */
 HWTEST_F(AccountCommandCreateTest, Acm_Command_Create_0600, TestSize.Level1)
 {
+    ACCOUNT_LOGI("Acm_Command_Create_0600");
     char *argv[] = {
         (char *)TOOL_NAME.c_str(),
         (char *)cmd_.c_str(),
@@ -182,6 +188,7 @@ HWTEST_F(AccountCommandCreateTest, Acm_Command_Create_0600, TestSize.Level1)
  */
 HWTEST_F(AccountCommandCreateTest, Acm_Command_Create_0700, TestSize.Level1)
 {
+    ACCOUNT_LOGI("Acm_Command_Create_0700");
     char *argv[] = {
         (char *)TOOL_NAME.c_str(),
         (char *)cmd_.c_str(),
@@ -202,6 +209,7 @@ HWTEST_F(AccountCommandCreateTest, Acm_Command_Create_0700, TestSize.Level1)
  */
 HWTEST_F(AccountCommandCreateTest, Acm_Command_Create_0800, TestSize.Level1)
 {
+    ACCOUNT_LOGI("Acm_Command_Create_0800");
     char *argv[] = {
         (char *)TOOL_NAME.c_str(),
         (char *)cmd_.c_str(),
@@ -222,6 +230,7 @@ HWTEST_F(AccountCommandCreateTest, Acm_Command_Create_0800, TestSize.Level1)
  */
 HWTEST_F(AccountCommandCreateTest, Acm_Command_Create_0900, TestSize.Level1)
 {
+    ACCOUNT_LOGI("Acm_Command_Create_0900");
     char *argv[] = {
         (char *)TOOL_NAME.c_str(),
         (char *)cmd_.c_str(),
@@ -242,6 +251,7 @@ HWTEST_F(AccountCommandCreateTest, Acm_Command_Create_0900, TestSize.Level1)
  */
 HWTEST_F(AccountCommandCreateTest, Acm_Command_Create_1000, TestSize.Level1)
 {
+    ACCOUNT_LOGI("Acm_Command_Create_1000");
     char *argv[] = {
         (char *)TOOL_NAME.c_str(),
         (char *)cmd_.c_str(),
@@ -263,6 +273,7 @@ HWTEST_F(AccountCommandCreateTest, Acm_Command_Create_1000, TestSize.Level1)
  */
 HWTEST_F(AccountCommandCreateTest, Acm_Command_Create_1100, TestSize.Level1)
 {
+    ACCOUNT_LOGI("Acm_Command_Create_1100");
     char *argv[] = {
         (char *)TOOL_NAME.c_str(),
         (char *)cmd_.c_str(),
@@ -283,6 +294,7 @@ HWTEST_F(AccountCommandCreateTest, Acm_Command_Create_1100, TestSize.Level1)
  */
 HWTEST_F(AccountCommandCreateTest, Acm_Command_Create_1200, TestSize.Level1)
 {
+    ACCOUNT_LOGI("Acm_Command_Create_1200");
     char *argv[] = {
         (char *)TOOL_NAME.c_str(),
         (char *)cmd_.c_str(),
@@ -304,6 +316,7 @@ HWTEST_F(AccountCommandCreateTest, Acm_Command_Create_1200, TestSize.Level1)
  */
 HWTEST_F(AccountCommandCreateTest, Acm_Command_Create_1300, TestSize.Level1)
 {
+    ACCOUNT_LOGI("Acm_Command_Create_1300");
     char *argv[] = {
         (char *)TOOL_NAME.c_str(),
         (char *)cmd_.c_str(),
@@ -325,6 +338,7 @@ HWTEST_F(AccountCommandCreateTest, Acm_Command_Create_1300, TestSize.Level1)
  */
 HWTEST_F(AccountCommandCreateTest, Acm_Command_Create_1400, TestSize.Level1)
 {
+    ACCOUNT_LOGI("Acm_Command_Create_1400");
     char *argv[] = {
         (char *)TOOL_NAME.c_str(),
         (char *)cmd_.c_str(),
@@ -347,6 +361,7 @@ HWTEST_F(AccountCommandCreateTest, Acm_Command_Create_1400, TestSize.Level1)
  */
 HWTEST_F(AccountCommandCreateTest, Acm_Command_Create_1500, TestSize.Level1)
 {
+    ACCOUNT_LOGI("Acm_Command_Create_1500");
     char *argv[] = {
         (char *)TOOL_NAME.c_str(),
         (char *)cmd_.c_str(),

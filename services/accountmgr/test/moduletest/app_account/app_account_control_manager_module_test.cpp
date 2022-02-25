@@ -43,9 +43,6 @@ public:
     static void TearDownTestCase(void);
     void SetUp(void) override;
     void TearDown(void) override;
-
-    void DeleteKvStore(void);
-
     std::shared_ptr<AppAccountControlManager> controlManagerPtr_;
 };
 
@@ -56,32 +53,10 @@ void AppAccountControlManagerModuleTest::TearDownTestCase(void)
 {}
 
 void AppAccountControlManagerModuleTest::SetUp(void)
-{
-    DeleteKvStore();
-}
+{}
 
 void AppAccountControlManagerModuleTest::TearDown(void)
-{
-    DeleteKvStore();
-}
-
-void AppAccountControlManagerModuleTest::DeleteKvStore(void)
-{
-    controlManagerPtr_ = AppAccountControlManager::GetInstance();
-    ASSERT_NE(controlManagerPtr_, nullptr);
-
-    auto dataStoragePtr = controlManagerPtr_->GetDataStorage(UID);
-    ASSERT_NE(dataStoragePtr, nullptr);
-
-    ErrCode result = dataStoragePtr->DeleteKvStore();
-    ASSERT_EQ(result, ERR_OK);
-
-    dataStoragePtr = controlManagerPtr_->GetDataStorage(UID, true);
-    ASSERT_NE(dataStoragePtr, nullptr);
-
-    result = dataStoragePtr->DeleteKvStore();
-    ASSERT_EQ(result, ERR_OK);
-}
+{}
 
 /**
  * @tc.name: AppAccountControlManager_AccountMaxSize_0100
@@ -129,4 +104,16 @@ HWTEST_F(AppAccountControlManagerModuleTest, AppAccountControlManager_AccountMax
     AppAccountInfo appAccountInfo(STRING_NAME, STRING_OWNER);
     result = controlManagerPtr->AddAccount(STRING_NAME, STRING_EXTRA_INFO, UID, STRING_OWNER, appAccountInfo);
     EXPECT_EQ(result, ERR_APPACCOUNT_SERVICE_ACCOUNT_MAX_SIZE);
+
+    for (std::size_t index = 0; index < ACCOUNT_MAX_SIZE; index++) {
+        name = STRING_NAME + std::to_string(index);
+        ACCOUNT_LOGI("before DeleteAccount, index = %{public}zu", index);
+        GTEST_LOG_(INFO) << "before DeleteAccount, index = " << index;
+
+        AppAccountInfo appAccountInfo(name, STRING_OWNER);
+        result = controlManagerPtr->DeleteAccount(name, UID, STRING_OWNER, appAccountInfo);
+        ASSERT_EQ(result, ERR_OK);
+
+        std::this_thread::sleep_for(std::chrono::milliseconds(DELAY_FOR_OPERATION));
+    }
 }

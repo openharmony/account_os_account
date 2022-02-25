@@ -15,12 +15,16 @@
 
 #include <gtest/gtest.h>
 #include <ipc_types.h>
-
+#include <thread>
 #include "mock_account_mgr_service.h"
 
 using namespace testing::ext;
 using namespace OHOS;
 using namespace OHOS::AccountSA;
+namespace {
+    constexpr std::int32_t WAIT_FOR_EXIT = 3000;
+    std::shared_ptr<MockAccountMgrService> g_mockSrv = std::make_shared<MockAccountMgrService>();
+}
 class AccountMgrStubTest : public testing::Test {
 public:
     static void SetUpTestCase();
@@ -29,9 +33,17 @@ public:
     void TearDown();
 };
 
-void AccountMgrStubTest::SetUpTestCase() {}
+void AccountMgrStubTest::SetUpTestCase()
+{
+    GTEST_LOG_(INFO) << "SetUpTestCase";
+}
 
-void AccountMgrStubTest::TearDownTestCase() {}
+void AccountMgrStubTest::TearDownTestCase()
+{
+    GTEST_LOG_(INFO) << "TearDownTestCase enter!";
+    std::this_thread::sleep_for(std::chrono::milliseconds(WAIT_FOR_EXIT));
+    GTEST_LOG_(INFO) << "TearDownTestCase exit!";
+}
 
 void AccountMgrStubTest::SetUp() {}
 
@@ -52,9 +64,8 @@ HWTEST_F(AccountMgrStubTest, AccountStubQuitTipsTest001, TestSize.Level0)
     MessageParcel inData;
     MessageParcel reply;
     MessageOption msgOption;
-    MockAccountMgrService mockSrv{};
     inData.WriteInterfaceToken(AccountStub::GetDescriptor());
-    auto ret = mockSrv.OnRemoteRequest(AccountStub::QUERY_OHOS_ACCOUNT_QUIT_TIPS, inData, reply, msgOption);
+    auto ret = g_mockSrv->OnRemoteRequest(AccountStub::QUERY_OHOS_ACCOUNT_QUIT_TIPS, inData, reply, msgOption);
     EXPECT_EQ(ret, ERR_OK);
     std::u16string title = reply.ReadString16();
     std::u16string content = reply.ReadString16();
@@ -77,9 +88,8 @@ HWTEST_F(AccountMgrStubTest, AccountStubQueryOhosInfoTest002, TestSize.Level0)
     MessageParcel data;
     MessageParcel reply;
     MessageOption msgOption;
-    MockAccountMgrService mockSrv{};
     data.WriteInterfaceToken(AccountStub::GetDescriptor());
-    auto ret = mockSrv.OnRemoteRequest(AccountStub::QUERY_OHOS_ACCOUNT_INFO, data, reply, msgOption);
+    auto ret = g_mockSrv->OnRemoteRequest(AccountStub::QUERY_OHOS_ACCOUNT_INFO, data, reply, msgOption);
     EXPECT_EQ(ret, ERR_OK);
     std::u16string name = reply.ReadString16();
     std::u16string uid = reply.ReadString16();
@@ -104,8 +114,7 @@ HWTEST_F(AccountMgrStubTest, AccountStubInvalidCmdTest003, TestSize.Level0)
     MessageParcel inData;
     MessageParcel outData;
     MessageOption msgOption;
-    MockAccountMgrService mockSrv{};
     inData.WriteInterfaceToken(AccountStub::GetDescriptor());
-    auto ret = mockSrv.OnRemoteRequest(0, inData, outData, msgOption);
+    auto ret = g_mockSrv->OnRemoteRequest(0, inData, outData, msgOption);
     EXPECT_NE(ret, ERR_OK);
 }
