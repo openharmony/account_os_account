@@ -60,6 +60,7 @@ struct CommonAsyncContext {
     napi_deferred deferred;
     napi_ref callbackRef;
     napi_status status;
+    int errCode = 0;
 };
 
 struct AppAccountAsyncContext : public CommonAsyncContext {
@@ -75,7 +76,6 @@ struct AppAccountAsyncContext : public CommonAsyncContext {
     std::string unSubscribeType;
     bool isEnable = false;
     bool result = false;
-    int errCode = 0;
 };
 
 struct OAuthAsyncContext : public CommonAsyncContext {
@@ -83,14 +83,14 @@ struct OAuthAsyncContext : public CommonAsyncContext {
     std::string owner;
     std::string sessionId;
     std::string bundleName;
-    std::string abilityName;
-    OAuthTokenInfo tokenInfo;
+    std::string authType;
+    std::string token;
+    std::set<std::string> authList;
     bool isVisible = false;
-    int32_t errCode = 0;
-    AAFwk::WantParams options;
+    AAFwk::Want options;
     AuthenticatorInfo authenticatorInfo;
     std::vector<OAuthTokenInfo> oauthTokenInfos;
-    AppAccountManagerCallback *appAccountMgrCb = nullptr;
+    sptr<AppAccountManagerCallback> appAccountMgrCb = nullptr;
     sptr<IRemoteObject> authenticatorCb = nullptr;
 };
 
@@ -140,7 +140,8 @@ struct AuthenticatorCallbackParam {
     int32_t resultCode;
     AAFwk::WantParams result;
     AAFwk::Want request;
-    napi_ref funcRef;
+    napi_ref resultRef;
+    napi_ref requestRedirectedRef;
     ThreadLockInfo *lockInfo;
 };
 
@@ -164,8 +165,8 @@ public:
     AppAccountManagerCallback();
     ~AppAccountManagerCallback();
 
-    virtual ErrCode OnResult(int32_t resultCode, const AAFwk::Want &result) override;
-    virtual ErrCode OnRequestRedirected(AAFwk::Want &request) override;
+    virtual void OnResult(int32_t resultCode, const AAFwk::Want &result) override;
+    virtual void OnRequestRedirected(AAFwk::Want &request) override;
 
     void SetEnv(const napi_env &env);
     void SetResultRef(const napi_ref &ref);

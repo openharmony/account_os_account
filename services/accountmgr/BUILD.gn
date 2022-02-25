@@ -50,6 +50,8 @@ config("accountmgr_config") {
     "//foundation/filemanagement/storage_service/services/storage_manager/include/ipc",
     "//foundation/storage/storage_manager/services/storage_manager/include/ipc",
   ]
+
+  cflags_cc = [ "-fexceptions" ]
 }
 
 config("accountmgr_public_config") {
@@ -94,7 +96,6 @@ ohos_shared_library("accountmgr") {
     "src/appaccount/app_account_authenticator_session.cpp",
     "src/appaccount/app_account_authenticator_session_manager.cpp",
     "src/appaccount/app_account_authenticator_stub.cpp",
-    "src/appaccount/app_account_common.cpp",
     "src/appaccount/app_account_common_event_oberserver.cpp",
     "src/appaccount/app_account_common_event_subscriber.cpp",
     "src/appaccount/app_account_control_manager.cpp",

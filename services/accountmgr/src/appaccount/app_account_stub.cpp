@@ -13,13 +13,44 @@
  * limitations under the License.
  */
 
+#include "app_account_stub.h"
+
 #include "account_error_no.h"
 #include "account_log_wrapper.h"
-
-#include "app_account_stub.h"
+#include "app_account_constants.h"
 
 namespace OHOS {
 namespace AccountSA {
+#define RETURN_IF_STRING_CONTAINS_SPECIAL_CHAR(str)                        \
+    if (CheckSpecialCharacters(str) != ERR_OK) {                           \
+        ACCOUNT_LOGE("fail to check special characters");                  \
+        if (!reply.WriteInt32(ERR_APPACCOUNT_SERVICE_INVALID_PARAMETER)) { \
+            ACCOUNT_LOGE("failed to write reply");                         \
+            return IPC_STUB_WRITE_PARCEL_ERR;                              \
+        }                                                                  \
+        return ERR_NONE;                                                   \
+    }                                                                      \
+
+#define RETURN_IF_STRING_IS_OVERSIZE(str, maxSize, msg)                                                         \
+    if ((str).size() > (maxSize)) {                                                                             \
+        ACCOUNT_LOGE("%{public}s, input size: %{public}zu, max size: %{public}zu", msg, (str).size(), maxSize); \
+        if (!reply.WriteInt32(ERR_APPACCOUNT_SERVICE_INVALID_PARAMETER)) {                                      \
+            ACCOUNT_LOGE("failed to write reply");                                                              \
+            return IPC_STUB_WRITE_PARCEL_ERR;                                                                   \
+        }                                                                                                       \
+        return ERR_NONE;                                                                                        \
+    }                                                                                                           \
+
+#define RETURN_IF_STRING_IS_EMPTY_OR_OVERSIZE(str, maxSize, msg)                                                \
+    if ((str).empty() || ((str).size() > (maxSize))) {                                                          \
+        ACCOUNT_LOGE("%{public}s, input size: %{public}zu, max size: %{public}zu", msg, (str).size(), maxSize); \
+        if (!reply.WriteInt32(ERR_APPACCOUNT_SERVICE_INVALID_PARAMETER)) {                                      \
+            ACCOUNT_LOGE("failed to write reply");                                                              \
+            return IPC_STUB_WRITE_PARCEL_ERR;                                                                   \
+        }                                                                                                       \
+        return ERR_NONE;                                                                                        \
+    }                                                                                                           \
+
 const std::map<uint32_t, AppAccountStub::MessageProcFunction> AppAccountStub::messageProcMap_ = {
     {
         static_cast<uint32_t>(IAppAccount::Message::ADD_ACCOUNT),
@@ -198,68 +229,52 @@ bool AppAccountStub::ReadParcelableVector(std::vector<T> &parcelableVector, Mess
     return true;
 }
 
+static ErrCode CheckSpecialCharacters(const std::string &str)
+{
+    for (auto specialCharacter : Constants::SPECIAL_CHARACTERS) {
+        std::size_t found = str.find(specialCharacter);
+        if (found != std::string::npos) {
+            ACCOUNT_LOGE("found a special character, specialCharacter = %{public}c", specialCharacter);
+            return ERR_APPACCOUNT_SERVICE_INVALID_PARAMETER;
+        }
+    }
+    return ERR_OK;
+}
+
 ErrCode AppAccountStub::ProcAddAccount(MessageParcel &data, MessageParcel &reply)
 {
     ACCOUNT_LOGI("enter");
-
     std::string name = data.ReadString();
-    if (name.size() == 0) {
-        ACCOUNT_LOGE("failed to read string for name");
-        if (!reply.WriteInt32(ERR_APPACCOUNT_KIT_READ_STRING_NAME)) {
-            ACCOUNT_LOGE("failed to write reply");
-            return IPC_STUB_WRITE_PARCEL_ERR;
-        }
-        return ERR_NONE;
-    }
-
+    RETURN_IF_STRING_IS_EMPTY_OR_OVERSIZE(name, Constants::NAME_MAX_SIZE, "name is empty or oversize");
+    RETURN_IF_STRING_CONTAINS_SPECIAL_CHAR(name);
     std::string extraInfo = data.ReadString();
-    if (extraInfo.size() == 0) {
-        ACCOUNT_LOGI("extraInfo.size() = 0");
-    }
-
+    RETURN_IF_STRING_IS_OVERSIZE(extraInfo, Constants::EXTRA_INFO_MAX_SIZE, "extraInfo is oversize");
     ErrCode result = AddAccount(name, extraInfo);
     if (!reply.WriteInt32(result)) {
         ACCOUNT_LOGE("failed to write reply");
         return IPC_STUB_WRITE_PARCEL_ERR;
     }
-
     return ERR_NONE;
 }
 
 ErrCode AppAccountStub::ProcAddAccountImplicitly(MessageParcel &data, MessageParcel &reply)
 {
-    ACCOUNT_LOGI("enter");
-
     std::string owner = data.ReadString();
-    if (owner.size() == 0) {
-        ACCOUNT_LOGE("failed to read string for owner");
-        if (!reply.WriteInt32(ERR_APPACCOUNT_KIT_READ_STRING_OWNER)) {
-            ACCOUNT_LOGE("failed to write reply");
-            return IPC_STUB_WRITE_PARCEL_ERR;
-        }
-        return ERR_NONE;
-    }
+    RETURN_IF_STRING_IS_EMPTY_OR_OVERSIZE(owner, Constants::OWNER_MAX_SIZE, "owner is empty or oversize");
     std::string authType = data.ReadString();
-    AAFwk::WantParams *options = data.ReadParcelable<AAFwk::WantParams>();
+    RETURN_IF_STRING_IS_OVERSIZE(authType, Constants::AUTH_TYPE_MAX_SIZE, "authType is oversize");
+    AAFwk::Want *options = data.ReadParcelable<AAFwk::Want>();
+    ErrCode result = ERR_OK;
     if (options == nullptr) {
-        ACCOUNT_LOGE("failed to read string for options");
-        if (!reply.WriteInt32(ERR_APPACCOUNT_KIT_READ_PARCELABLE_OPTIONS)) {
-            ACCOUNT_LOGE("failed to write reply");
-            return IPC_STUB_WRITE_PARCEL_ERR;
-        }
-        return ERR_NONE;
+        ACCOUNT_LOGE("option is invalid");
+        result = ERR_APPACCOUNT_SERVICE_INVALID_PARAMETER;
     }
+    RETURN_IF_STRING_IS_EMPTY_OR_OVERSIZE(options->GetStringParam(Constants::KEY_CALLER_ABILITY_NAME),
+        Constants::ABILITY_NAME_MAX_SIZE, "abilityName is empty or oversize");
     sptr<IRemoteObject> callback = data.ReadParcelable<IRemoteObject>();
-    std::string abilityName = data.ReadString();
-    if (abilityName.size() == 0) {
-        ACCOUNT_LOGE("failed to read string for abilityName");
-        if (!reply.WriteInt32(ERR_APPACCOUNT_KIT_READ_STRING_ABILITY_NAME)) {
-            ACCOUNT_LOGE("failed to write reply");
-            return IPC_STUB_WRITE_PARCEL_ERR;
-        }
-        return ERR_NONE;
+    if (result == ERR_OK) {
+        result = AddAccountImplicitly(owner, authType, *options, callback);
     }
-    ErrCode result = AddAccountImplicitly(owner, authType, *options, callback, abilityName);
     if (!reply.WriteInt32(result)) {
         ACCOUNT_LOGE("failed to write reply");
         return IPC_STUB_WRITE_PARCEL_ERR;
@@ -272,16 +287,8 @@ ErrCode AppAccountStub::ProcDeleteAccount(MessageParcel &data, MessageParcel &re
     ACCOUNT_LOGI("enter");
 
     std::string name = data.ReadString();
-    if (name.size() == 0) {
-        ACCOUNT_LOGE("failed to read string for name");
-        if (!reply.WriteInt32(ERR_APPACCOUNT_KIT_READ_STRING_NAME)) {
-            ACCOUNT_LOGE("failed to write reply");
-            return IPC_STUB_WRITE_PARCEL_ERR;
-        }
-
-        return ERR_NONE;
-    }
-
+    RETURN_IF_STRING_IS_EMPTY_OR_OVERSIZE(name, Constants::NAME_MAX_SIZE, "name is empty or oversize");
+    RETURN_IF_STRING_CONTAINS_SPECIAL_CHAR(name);
     ErrCode result = DeleteAccount(name);
     if (!reply.WriteInt32(result)) {
         ACCOUNT_LOGE("failed to write reply");
@@ -294,398 +301,207 @@ ErrCode AppAccountStub::ProcDeleteAccount(MessageParcel &data, MessageParcel &re
 ErrCode AppAccountStub::ProcGetAccountExtraInfo(MessageParcel &data, MessageParcel &reply)
 {
     ACCOUNT_LOGI("enter");
-
     std::string name = data.ReadString();
-    if (name.size() == 0) {
-        ACCOUNT_LOGE("failed to read string for name");
-        if (!reply.WriteInt32(ERR_APPACCOUNT_KIT_READ_STRING_NAME)) {
-            ACCOUNT_LOGE("failed to write reply");
-            return IPC_STUB_WRITE_PARCEL_ERR;
-        }
-
-        return ERR_NONE;
-    }
-
+    RETURN_IF_STRING_IS_EMPTY_OR_OVERSIZE(name, Constants::NAME_MAX_SIZE, "name is empty or oversize");
+    RETURN_IF_STRING_CONTAINS_SPECIAL_CHAR(name);
     std::string extraInfo;
     ErrCode result = GetAccountExtraInfo(name, extraInfo);
     if (!reply.WriteInt32(result)) {
         ACCOUNT_LOGE("failed to write reply");
         return IPC_STUB_WRITE_PARCEL_ERR;
     }
-
     if (!reply.WriteString(extraInfo)) {
         ACCOUNT_LOGE("failed to write string for extra info");
         return IPC_STUB_WRITE_PARCEL_ERR;
     }
-
     return ERR_NONE;
 }
 
 ErrCode AppAccountStub::ProcSetAccountExtraInfo(MessageParcel &data, MessageParcel &reply)
 {
     ACCOUNT_LOGI("enter");
-
     std::string name = data.ReadString();
-    if (name.size() == 0) {
-        ACCOUNT_LOGE("failed to read string for name");
-        if (!reply.WriteInt32(ERR_APPACCOUNT_KIT_READ_STRING_NAME)) {
-            ACCOUNT_LOGE("failed to write reply");
-            return IPC_STUB_WRITE_PARCEL_ERR;
-        }
-
-        return ERR_NONE;
-    }
-
+    RETURN_IF_STRING_IS_EMPTY_OR_OVERSIZE(name, Constants::NAME_MAX_SIZE, "name is empty or oversize");
+    RETURN_IF_STRING_CONTAINS_SPECIAL_CHAR(name);
     std::string extraInfo = data.ReadString();
-    if (extraInfo.size() == 0) {
-        ACCOUNT_LOGI("extraInfo.size() = 0");
-    }
-
+    RETURN_IF_STRING_IS_OVERSIZE(extraInfo, Constants::EXTRA_INFO_MAX_SIZE, "extraInfo is oversize");
     ErrCode result = SetAccountExtraInfo(name, extraInfo);
     if (!reply.WriteInt32(result)) {
         ACCOUNT_LOGE("failed to write reply");
         return IPC_STUB_WRITE_PARCEL_ERR;
     }
-
     return ERR_NONE;
 }
 
 ErrCode AppAccountStub::ProcEnableAppAccess(MessageParcel &data, MessageParcel &reply)
 {
     ACCOUNT_LOGI("enter");
-
     std::string name = data.ReadString();
-    if (name.size() == 0) {
-        ACCOUNT_LOGE("failed to read string for name");
-        if (!reply.WriteInt32(ERR_APPACCOUNT_KIT_READ_STRING_NAME)) {
-            ACCOUNT_LOGE("failed to write reply");
-            return IPC_STUB_WRITE_PARCEL_ERR;
-        }
-
-        return ERR_NONE;
-    }
-
-    std::string authorizedApp = data.ReadString();
-    if (authorizedApp.size() == 0) {
-        ACCOUNT_LOGE("failed to read string for authorizedApp");
-        if (!reply.WriteInt32(ERR_APPACCOUNT_KIT_READ_STRING_AUTHORIZED_APP)) {
-            ACCOUNT_LOGE("failed to write reply");
-            return IPC_STUB_WRITE_PARCEL_ERR;
-        }
-
-        return ERR_NONE;
-    }
-
-    ErrCode result = EnableAppAccess(name, authorizedApp);
+    RETURN_IF_STRING_IS_EMPTY_OR_OVERSIZE(name, Constants::NAME_MAX_SIZE, "name is empty or oversize");
+    RETURN_IF_STRING_CONTAINS_SPECIAL_CHAR(name);
+    std::string bundleName = data.ReadString();
+    RETURN_IF_STRING_IS_EMPTY_OR_OVERSIZE(bundleName, Constants::BUNDLE_NAME_MAX_SIZE,
+        "bundleName is empty or oversize");
+    ErrCode result = EnableAppAccess(name, bundleName);
     if (!reply.WriteInt32(result)) {
         ACCOUNT_LOGE("failed to write reply");
         return IPC_STUB_WRITE_PARCEL_ERR;
     }
-
     return ERR_NONE;
 }
 
 ErrCode AppAccountStub::ProcDisableAppAccess(MessageParcel &data, MessageParcel &reply)
 {
     ACCOUNT_LOGI("enter");
-
     std::string name = data.ReadString();
-    if (name.size() == 0) {
-        ACCOUNT_LOGE("failed to read string for name");
-        if (!reply.WriteInt32(ERR_APPACCOUNT_KIT_READ_STRING_NAME)) {
-            ACCOUNT_LOGE("failed to write reply");
-            return IPC_STUB_WRITE_PARCEL_ERR;
-        }
-
-        return ERR_NONE;
-    }
-
-    std::string authorizedApp = data.ReadString();
-    if (authorizedApp.size() == 0) {
-        ACCOUNT_LOGE("failed to read string for authorizedApp");
-        if (!reply.WriteInt32(ERR_APPACCOUNT_KIT_READ_STRING_AUTHORIZED_APP)) {
-            ACCOUNT_LOGE("failed to write reply");
-            return IPC_STUB_WRITE_PARCEL_ERR;
-        }
-
-        return ERR_NONE;
-    }
-
-    ErrCode result = DisableAppAccess(name, authorizedApp);
+    RETURN_IF_STRING_IS_EMPTY_OR_OVERSIZE(name, Constants::NAME_MAX_SIZE, "name is empty or oversize");
+    RETURN_IF_STRING_CONTAINS_SPECIAL_CHAR(name);
+    std::string bundleName = data.ReadString();
+    RETURN_IF_STRING_IS_EMPTY_OR_OVERSIZE(bundleName, Constants::BUNDLE_NAME_MAX_SIZE,
+        "bundleName is empty or oversize");
+    ErrCode result = DisableAppAccess(name, bundleName);
     if (!reply.WriteInt32(result)) {
         ACCOUNT_LOGE("failed to write reply");
         return IPC_STUB_WRITE_PARCEL_ERR;
     }
-
     return ERR_NONE;
 }
 
 ErrCode AppAccountStub::ProcCheckAppAccountSyncEnable(MessageParcel &data, MessageParcel &reply)
 {
     ACCOUNT_LOGI("enter");
-
     std::string name = data.ReadString();
-    if (name.size() == 0) {
-        ACCOUNT_LOGE("failed to read string for name");
-        if (!reply.WriteInt32(ERR_APPACCOUNT_KIT_READ_STRING_NAME)) {
-            ACCOUNT_LOGE("failed to write reply");
-            return IPC_STUB_WRITE_PARCEL_ERR;
-        }
-
-        return ERR_NONE;
-    }
-
+    RETURN_IF_STRING_IS_EMPTY_OR_OVERSIZE(name, Constants::NAME_MAX_SIZE, "name is empty or oversize");
+    RETURN_IF_STRING_CONTAINS_SPECIAL_CHAR(name);
     bool syncEnable = false;
     ErrCode result = CheckAppAccountSyncEnable(name, syncEnable);
     if (!reply.WriteInt32(result)) {
         ACCOUNT_LOGE("failed to write reply");
         return IPC_STUB_WRITE_PARCEL_ERR;
     }
-
     if (!reply.WriteBool(syncEnable)) {
         ACCOUNT_LOGE("failed to write bool for syncEnable");
         return IPC_STUB_WRITE_PARCEL_ERR;
     }
-
     return ERR_NONE;
 }
 
 ErrCode AppAccountStub::ProcSetAppAccountSyncEnable(MessageParcel &data, MessageParcel &reply)
 {
     ACCOUNT_LOGI("enter");
-
     std::string name = data.ReadString();
-    if (name.size() == 0) {
-        ACCOUNT_LOGE("failed to read string for name");
-        if (!reply.WriteInt32(ERR_APPACCOUNT_KIT_READ_STRING_NAME)) {
-            ACCOUNT_LOGE("failed to write reply");
-            return IPC_STUB_WRITE_PARCEL_ERR;
-        }
-
-        return ERR_NONE;
-    }
-
+    RETURN_IF_STRING_IS_EMPTY_OR_OVERSIZE(name, Constants::NAME_MAX_SIZE, "name is empty or oversize");
+    RETURN_IF_STRING_CONTAINS_SPECIAL_CHAR(name);
     bool syncEnable = data.ReadBool();
-
     ErrCode result = SetAppAccountSyncEnable(name, syncEnable);
     if (!reply.WriteInt32(result)) {
         ACCOUNT_LOGE("failed to write reply");
         return IPC_STUB_WRITE_PARCEL_ERR;
     }
-
     return ERR_NONE;
 }
 
 ErrCode AppAccountStub::ProcGetAssociatedData(MessageParcel &data, MessageParcel &reply)
 {
     ACCOUNT_LOGI("enter");
-
     std::string name = data.ReadString();
-    if (name.size() == 0) {
-        ACCOUNT_LOGE("failed to read string for name");
-        if (!reply.WriteInt32(ERR_APPACCOUNT_KIT_READ_STRING_NAME)) {
-            ACCOUNT_LOGE("failed to write reply");
-            return IPC_STUB_WRITE_PARCEL_ERR;
-        }
-
-        return ERR_NONE;
-    }
-
+    RETURN_IF_STRING_IS_EMPTY_OR_OVERSIZE(name, Constants::NAME_MAX_SIZE, "name is empty or oversize");
+    RETURN_IF_STRING_CONTAINS_SPECIAL_CHAR(name);
     std::string key = data.ReadString();
-    if (key.size() == 0) {
-        ACCOUNT_LOGE("failed to read string for key");
-        if (!reply.WriteInt32(ERR_APPACCOUNT_KIT_READ_STRING_ASSOCIATED_DATA)) {
-            ACCOUNT_LOGE("failed to write reply");
-            return IPC_STUB_WRITE_PARCEL_ERR;
-        }
-
-        return ERR_NONE;
-    }
-
+    RETURN_IF_STRING_IS_EMPTY_OR_OVERSIZE(key, Constants::ASSOCIATED_KEY_MAX_SIZE, "key is empty or oversize");
     std::string value;
     ErrCode result = GetAssociatedData(name, key, value);
     if (!reply.WriteInt32(result)) {
         ACCOUNT_LOGE("failed to write reply");
         return IPC_STUB_WRITE_PARCEL_ERR;
     }
-
     if (!reply.WriteString(value)) {
         ACCOUNT_LOGE("failed to write string for value");
         return IPC_STUB_WRITE_PARCEL_ERR;
     }
-
     return ERR_NONE;
 }
 
 ErrCode AppAccountStub::ProcSetAssociatedData(MessageParcel &data, MessageParcel &reply)
 {
     ACCOUNT_LOGI("enter");
-
     std::string name = data.ReadString();
-    if (name.size() == 0) {
-        ACCOUNT_LOGE("failed to read string for name");
-        if (!reply.WriteInt32(ERR_APPACCOUNT_KIT_READ_STRING_NAME)) {
-            ACCOUNT_LOGE("failed to write reply");
-            return IPC_STUB_WRITE_PARCEL_ERR;
-        }
-
-        return ERR_NONE;
-    }
-
+    RETURN_IF_STRING_IS_EMPTY_OR_OVERSIZE(name, Constants::NAME_MAX_SIZE, "name is empty or oversize");
+    RETURN_IF_STRING_CONTAINS_SPECIAL_CHAR(name);
     std::string key = data.ReadString();
-    if (key.size() == 0) {
-        ACCOUNT_LOGE("failed to read string for key");
-        if (!reply.WriteInt32(ERR_APPACCOUNT_KIT_READ_STRING_ASSOCIATED_DATA)) {
-            ACCOUNT_LOGE("failed to write reply");
-            return IPC_STUB_WRITE_PARCEL_ERR;
-        }
-
-        return ERR_NONE;
-    }
-
+    RETURN_IF_STRING_IS_EMPTY_OR_OVERSIZE(key, Constants::ASSOCIATED_KEY_MAX_SIZE, "key is empty or oversize");
     std::string value = data.ReadString();
-    if (value.size() == 0) {
-        ACCOUNT_LOGI("value.size() = 0");
-    }
-
+    RETURN_IF_STRING_IS_OVERSIZE(value, Constants::ASSOCIATED_VALUE_MAX_SIZE, "value is oversize");
     ErrCode result = SetAssociatedData(name, key, value);
     if (!reply.WriteInt32(result)) {
         ACCOUNT_LOGE("failed to write reply");
         return IPC_STUB_WRITE_PARCEL_ERR;
     }
-
     return ERR_NONE;
 }
 
 ErrCode AppAccountStub::ProcGetAccountCredential(MessageParcel &data, MessageParcel &reply)
 {
     ACCOUNT_LOGI("enter");
-
     std::string name = data.ReadString();
-    if (name.size() == 0) {
-        ACCOUNT_LOGE("failed to read string for name");
-        if (!reply.WriteInt32(ERR_APPACCOUNT_KIT_READ_STRING_NAME)) {
-            ACCOUNT_LOGE("failed to write reply");
-            return IPC_STUB_WRITE_PARCEL_ERR;
-        }
-
-        return ERR_NONE;
-    }
-
+    RETURN_IF_STRING_IS_EMPTY_OR_OVERSIZE(name, Constants::NAME_MAX_SIZE, "name is empty or oversize");
+    RETURN_IF_STRING_CONTAINS_SPECIAL_CHAR(name);
     std::string credentialType = data.ReadString();
-    if (credentialType.size() == 0) {
-        ACCOUNT_LOGE("failed to read string for credentialType");
-        if (!reply.WriteInt32(ERR_APPACCOUNT_KIT_READ_STRING_CREDENTIAL_TYPE)) {
-            ACCOUNT_LOGE("failed to write reply");
-            return IPC_STUB_WRITE_PARCEL_ERR;
-        }
-
-        return ERR_NONE;
-    }
-
+    RETURN_IF_STRING_IS_EMPTY_OR_OVERSIZE(credentialType, Constants::CREDENTIAL_TYPE_MAX_SIZE,
+        "credentialType is empty or oversize");
     std::string credential;
     ErrCode result = GetAccountCredential(name, credentialType, credential);
     if (!reply.WriteInt32(result)) {
         ACCOUNT_LOGE("failed to write reply");
         return IPC_STUB_WRITE_PARCEL_ERR;
     }
-
     if (!reply.WriteString(credential)) {
         ACCOUNT_LOGE("failed to write string for credential");
         return IPC_STUB_WRITE_PARCEL_ERR;
     }
-
     return ERR_NONE;
 }
 
 ErrCode AppAccountStub::ProcSetAccountCredential(MessageParcel &data, MessageParcel &reply)
 {
     ACCOUNT_LOGI("enter");
-
     std::string name = data.ReadString();
-    if (name.size() == 0) {
-        ACCOUNT_LOGE("failed to read string for name");
-        if (!reply.WriteInt32(ERR_APPACCOUNT_KIT_READ_STRING_NAME)) {
-            ACCOUNT_LOGE("failed to write reply");
-            return IPC_STUB_WRITE_PARCEL_ERR;
-        }
-
-        return ERR_NONE;
-    }
-
+    RETURN_IF_STRING_IS_EMPTY_OR_OVERSIZE(name, Constants::NAME_MAX_SIZE, "name is empty or oversize");
+    RETURN_IF_STRING_CONTAINS_SPECIAL_CHAR(name);
     std::string credentialType = data.ReadString();
-    if (credentialType.size() == 0) {
-        ACCOUNT_LOGE("failed to read string for credentialType");
-        if (!reply.WriteInt32(ERR_APPACCOUNT_KIT_READ_STRING_CREDENTIAL_TYPE)) {
-            ACCOUNT_LOGE("failed to write reply");
-            return IPC_STUB_WRITE_PARCEL_ERR;
-        }
-
-        return ERR_NONE;
-    }
-
+    RETURN_IF_STRING_IS_EMPTY_OR_OVERSIZE(credentialType, Constants::CREDENTIAL_TYPE_MAX_SIZE,
+        "credentialType is empty or oversize");
     std::string credential = data.ReadString();
-    if (credential.size() == 0) {
-        ACCOUNT_LOGI("credential.size() = 0");
-    }
-
+    RETURN_IF_STRING_IS_OVERSIZE(credential, Constants::CREDENTIAL_MAX_SIZE, "credential is oversize");
     ErrCode result = SetAccountCredential(name, credentialType, credential);
     if (!reply.WriteInt32(result)) {
         ACCOUNT_LOGE("failed to write reply");
         return IPC_STUB_WRITE_PARCEL_ERR;
     }
-
     return ERR_NONE;
 }
 
 ErrCode AppAccountStub::ProcAuthenticate(MessageParcel &data, MessageParcel &reply)
 {
-    ACCOUNT_LOGI("enter");
-    OAuthRequest request;
-    request.name = data.ReadString();
-    if (request.name.size() == 0) {
-        ACCOUNT_LOGE("failed to read string for name");
-        if (!reply.WriteInt32(ERR_APPACCOUNT_KIT_READ_STRING_NAME)) {
-            ACCOUNT_LOGE("failed to write reply");
-            return IPC_STUB_WRITE_PARCEL_ERR;
-        }
-        return ERR_NONE;
-    }
-    request.owner = data.ReadString();
-    if (request.owner.size() == 0) {
-        ACCOUNT_LOGE("failed to read string for owner");
-        if (!reply.WriteInt32(ERR_APPACCOUNT_KIT_READ_STRING_OWNER)) {
-            ACCOUNT_LOGE("failed to write reply");
-            return IPC_STUB_WRITE_PARCEL_ERR;
-        }
-        return ERR_NONE;
-    }
-    request.authType = data.ReadString();
-    AAFwk::WantParams *options = data.ReadParcelable<AAFwk::WantParams>();
+    std::string name = data.ReadString();
+    RETURN_IF_STRING_IS_EMPTY_OR_OVERSIZE(name, Constants::NAME_MAX_SIZE, "name is empty or oversize");
+    RETURN_IF_STRING_CONTAINS_SPECIAL_CHAR(name);
+    std::string owner = data.ReadString();
+    RETURN_IF_STRING_IS_EMPTY_OR_OVERSIZE(owner, Constants::OWNER_MAX_SIZE, "owner is empty or oversize");
+    std::string authType = data.ReadString();
+    RETURN_IF_STRING_IS_OVERSIZE(authType, Constants::AUTH_TYPE_MAX_SIZE, "authType is oversize");
+    AAFwk::Want *options = data.ReadParcelable<AAFwk::Want>();
+    ErrCode result = ERR_OK;
     if (options == nullptr) {
-        ACCOUNT_LOGE("failed to read string for options");
-        if (!reply.WriteInt32(ERR_APPACCOUNT_KIT_READ_PARCELABLE_OPTIONS)) {
-            ACCOUNT_LOGE("failed to write reply");
-            return IPC_STUB_WRITE_PARCEL_ERR;
-        }
-        return ERR_NONE;
+        ACCOUNT_LOGE("option is invalid");
+        result = ERR_APPACCOUNT_SERVICE_INVALID_PARAMETER;
     }
-    request.options = *options;
-    request.callback = iface_cast<IAppAccountAuthenticatorCallback>(data.ReadParcelable<IRemoteObject>());
-    if (request.callback == nullptr) {
-        ACCOUNT_LOGE("failed to read parcelable for callback");
-        return IPC_STUB_INVALID_DATA_ERR;
+    RETURN_IF_STRING_IS_EMPTY_OR_OVERSIZE(options->GetStringParam(Constants::KEY_CALLER_ABILITY_NAME),
+        Constants::ABILITY_NAME_MAX_SIZE, "abilityName is empty or oversize");
+    sptr<IRemoteObject> callback = data.ReadParcelable<IRemoteObject>();
+    if (result == ERR_OK) {
+        result = Authenticate(name, owner, authType, *options, callback);
     }
-    request.callerAbilityName = data.ReadString();
-    if (request.callerAbilityName.size() == 0) {
-        ACCOUNT_LOGE("failed to read string for callerAbilityName");
-        if (!reply.WriteInt32(ERR_APPACCOUNT_KIT_READ_STRING_ABILITY_NAME)) {
-            ACCOUNT_LOGE("failed to write reply");
-            return IPC_STUB_WRITE_PARCEL_ERR;
-        }
-        return ERR_NONE;
-    }
-    ErrCode result = Authenticate(request);
     if (!reply.WriteInt32(result)) {
         ACCOUNT_LOGE("failed to write reply");
         return IPC_STUB_WRITE_PARCEL_ERR;
@@ -695,34 +511,17 @@ ErrCode AppAccountStub::ProcAuthenticate(MessageParcel &data, MessageParcel &rep
 
 ErrCode AppAccountStub::ProcGetOAuthToken(MessageParcel &data, MessageParcel &reply)
 {
-    ACCOUNT_LOGI("enter");
     std::string name = data.ReadString();
-    if (name.size() == 0) {
-        ACCOUNT_LOGE("failed to read string for name");
-        if (!reply.WriteInt32(ERR_APPACCOUNT_KIT_READ_STRING_NAME)) {
-            ACCOUNT_LOGE("failed to write reply");
-            return IPC_STUB_WRITE_PARCEL_ERR;
-        }
-        return ERR_NONE;
-    }
+    RETURN_IF_STRING_IS_EMPTY_OR_OVERSIZE(name, Constants::NAME_MAX_SIZE, "name is empty or oversize");
+    RETURN_IF_STRING_CONTAINS_SPECIAL_CHAR(name);
     std::string owner = data.ReadString();
-    if (owner.size() == 0) {
-        ACCOUNT_LOGE("failed to read string for owner");
-        if (!reply.WriteInt32(ERR_APPACCOUNT_KIT_READ_STRING_NAME)) {
-            ACCOUNT_LOGE("failed to write reply");
-            return IPC_STUB_WRITE_PARCEL_ERR;
-        }
-        return ERR_NONE;
-    }
+    RETURN_IF_STRING_IS_EMPTY_OR_OVERSIZE(owner, Constants::OWNER_MAX_SIZE, "owner is empty or oversize");
     std::string authType = data.ReadString();
+    RETURN_IF_STRING_IS_OVERSIZE(authType, Constants::AUTH_TYPE_MAX_SIZE, "authType is oversize");
     std::string token;
     ErrCode result = GetOAuthToken(name, owner, authType, token);
-    if (!reply.WriteInt32(result)) {
+    if ((!reply.WriteInt32(result)) || (!reply.WriteString(token))) {
         ACCOUNT_LOGE("failed to write reply");
-        return IPC_STUB_WRITE_PARCEL_ERR;
-    }
-    if (!reply.WriteString(token)) {
-        ACCOUNT_LOGE("failed to write string for token");
         return IPC_STUB_WRITE_PARCEL_ERR;
     }
     return ERR_NONE;
@@ -730,18 +529,13 @@ ErrCode AppAccountStub::ProcGetOAuthToken(MessageParcel &data, MessageParcel &re
 
 ErrCode AppAccountStub::ProcSetOAuthToken(MessageParcel &data, MessageParcel &reply)
 {
-    ACCOUNT_LOGI("enter");
     std::string name = data.ReadString();
-    if (name.size() == 0) {
-        ACCOUNT_LOGE("failed to read string for name");
-        if (!reply.WriteInt32(ERR_APPACCOUNT_KIT_READ_STRING_NAME)) {
-            ACCOUNT_LOGE("failed to write reply");
-            return IPC_STUB_WRITE_PARCEL_ERR;
-        }
-        return ERR_NONE;
-    }
+    RETURN_IF_STRING_IS_EMPTY_OR_OVERSIZE(name, Constants::NAME_MAX_SIZE, "name is empty or oversize");
+    RETURN_IF_STRING_CONTAINS_SPECIAL_CHAR(name);
     std::string authType = data.ReadString();
+    RETURN_IF_STRING_IS_OVERSIZE(authType, Constants::AUTH_TYPE_MAX_SIZE, "authType is oversize");
     std::string token = data.ReadString();
+    RETURN_IF_STRING_IS_OVERSIZE(token, Constants::TOKEN_MAX_SIZE, "token is oversize");
     ErrCode result = SetOAuthToken(name, authType, token);
     if (!reply.WriteInt32(result)) {
         ACCOUNT_LOGE("failed to write reply");
@@ -752,26 +546,15 @@ ErrCode AppAccountStub::ProcSetOAuthToken(MessageParcel &data, MessageParcel &re
 
 ErrCode AppAccountStub::ProcDeleteOAuthToken(MessageParcel &data, MessageParcel &reply)
 {
-    ACCOUNT_LOGI("enter");
     std::string name = data.ReadString();
-    if (name.size() == 0) {
-        ACCOUNT_LOGE("failed to read string for name");
-        if (!reply.WriteInt32(ERR_APPACCOUNT_KIT_READ_STRING_NAME)) {
-            ACCOUNT_LOGE("failed to write reply");
-            return IPC_STUB_WRITE_PARCEL_ERR;
-        }
-        return ERR_NONE;
-    }
+    RETURN_IF_STRING_IS_EMPTY_OR_OVERSIZE(name, Constants::NAME_MAX_SIZE, "name is empty or oversize");
+    RETURN_IF_STRING_CONTAINS_SPECIAL_CHAR(name);
     std::string owner = data.ReadString();
-    if (owner.size() == 0) {
-        ACCOUNT_LOGE("failed to read string for owner");
-        if (!reply.WriteInt32(ERR_APPACCOUNT_KIT_READ_STRING_NAME)) {
-            ACCOUNT_LOGE("failed to write reply");
-            return IPC_STUB_WRITE_PARCEL_ERR;
-        }
-    }
+    RETURN_IF_STRING_IS_EMPTY_OR_OVERSIZE(owner, Constants::OWNER_MAX_SIZE, "owner is empty or oversize");
     std::string authType = data.ReadString();
+    RETURN_IF_STRING_IS_OVERSIZE(authType, Constants::AUTH_TYPE_MAX_SIZE, "authType is oversize");
     std::string token = data.ReadString();
+    RETURN_IF_STRING_IS_OVERSIZE(token, Constants::TOKEN_MAX_SIZE, "token is oversize");
     ErrCode result = DeleteOAuthToken(name, owner, authType, token);
     if (!reply.WriteInt32(result)) {
         ACCOUNT_LOGE("failed to write reply");
@@ -782,25 +565,14 @@ ErrCode AppAccountStub::ProcDeleteOAuthToken(MessageParcel &data, MessageParcel 
 
 ErrCode AppAccountStub::ProcSetOAuthTokenVisibility(MessageParcel &data, MessageParcel &reply)
 {
-    ACCOUNT_LOGI("enter");
     std::string name = data.ReadString();
-    if (name.size() == 0) {
-        ACCOUNT_LOGE("failed to read string for name");
-        if (!reply.WriteInt32(ERR_APPACCOUNT_KIT_READ_STRING_NAME)) {
-            ACCOUNT_LOGE("failed to write reply");
-            return IPC_STUB_WRITE_PARCEL_ERR;
-        }
-        return ERR_NONE;
-    }
+    RETURN_IF_STRING_IS_EMPTY_OR_OVERSIZE(name, Constants::NAME_MAX_SIZE, "name is empty or oversize");
+    RETURN_IF_STRING_CONTAINS_SPECIAL_CHAR(name);
     std::string authType = data.ReadString();
+    RETURN_IF_STRING_IS_OVERSIZE(authType, Constants::AUTH_TYPE_MAX_SIZE, "authType is oversize");
     std::string bundleName = data.ReadString();
-    if (bundleName.size() == 0) {
-        ACCOUNT_LOGE("failed to read string for bundleName");
-        if (!reply.WriteInt32(ERR_APPACCOUNT_KIT_READ_STRING_BUNDLE_NAME)) {
-            ACCOUNT_LOGE("failed to write reply");
-            return IPC_STUB_WRITE_PARCEL_ERR;
-        }
-    }
+    RETURN_IF_STRING_IS_EMPTY_OR_OVERSIZE(bundleName, Constants::BUNDLE_NAME_MAX_SIZE,
+        "bundleName is empty or oversize");
     bool isVisible = data.ReadBool();
     ErrCode result = SetOAuthTokenVisibility(name, authType, bundleName, isVisible);
     if (!reply.WriteInt32(result)) {
@@ -812,65 +584,31 @@ ErrCode AppAccountStub::ProcSetOAuthTokenVisibility(MessageParcel &data, Message
  
 ErrCode AppAccountStub::ProcCheckOAuthTokenVisibility(MessageParcel &data, MessageParcel &reply)
 {
-    ACCOUNT_LOGI("enter");
     std::string name = data.ReadString();
-    if (name.size() == 0) {
-        ACCOUNT_LOGE("failed to read string for name");
-        if (!reply.WriteInt32(ERR_APPACCOUNT_KIT_READ_STRING_NAME)) {
-            ACCOUNT_LOGE("failed to write reply");
-            return IPC_STUB_WRITE_PARCEL_ERR;
-        }
-        return ERR_NONE;
-    }
+    RETURN_IF_STRING_IS_EMPTY_OR_OVERSIZE(name, Constants::NAME_MAX_SIZE, "name is empty or oversize");
+    RETURN_IF_STRING_CONTAINS_SPECIAL_CHAR(name);
     std::string authType = data.ReadString();
+    RETURN_IF_STRING_IS_OVERSIZE(authType, Constants::AUTH_TYPE_MAX_SIZE, "authType is oversize");
     std::string bundleName = data.ReadString();
-    if (bundleName.size() == 0) {
-        ACCOUNT_LOGE("failed to read string for bundleName");
-        if (!reply.WriteInt32(ERR_APPACCOUNT_KIT_READ_STRING_BUNDLE_NAME)) {
-            ACCOUNT_LOGE("failed to write reply");
-            return IPC_STUB_WRITE_PARCEL_ERR;
-        }
-    }
+    RETURN_IF_STRING_IS_EMPTY_OR_OVERSIZE(bundleName, Constants::BUNDLE_NAME_MAX_SIZE,
+        "bundleName is empty or oversize");
     bool isVisible = false;
     ErrCode result = CheckOAuthTokenVisibility(name, authType, bundleName, isVisible);
-    if (!reply.WriteInt32(result)) {
-        ACCOUNT_LOGE("failed to write reply");
-        return IPC_STUB_WRITE_PARCEL_ERR;
-    }
-    if (!reply.WriteBool(isVisible)) {
+    if ((!reply.WriteInt32(result)) || (!reply.WriteBool(isVisible))) {
         ACCOUNT_LOGE("failed to write reply");
         return IPC_STUB_WRITE_PARCEL_ERR;
     }
     return ERR_NONE;
 }
- 
+
 ErrCode AppAccountStub::ProcGetAuthenticatorInfo(MessageParcel &data, MessageParcel &reply)
 {
-    ACCOUNT_LOGI("enter");
     std::string owner = data.ReadString();
-    if (owner.size() == 0) {
-        ACCOUNT_LOGE("failed to read string for owner");
-        if (!reply.WriteInt32(ERR_APPACCOUNT_KIT_READ_STRING_OWNER)) {
-            ACCOUNT_LOGE("failed to write reply");
-            return IPC_STUB_WRITE_PARCEL_ERR;
-        }
-        return ERR_NONE;
-    }
+    RETURN_IF_STRING_IS_EMPTY_OR_OVERSIZE(owner, Constants::OWNER_MAX_SIZE, "owner is empty or oversize");
     AuthenticatorInfo info;
     ErrCode result = GetAuthenticatorInfo(owner, info);
-    if (!reply.WriteInt32(result)) {
-        ACCOUNT_LOGE("failed to write reply");
-        return IPC_STUB_WRITE_PARCEL_ERR;
-    }
-    if (!reply.WriteString(info.owner)) {
-        ACCOUNT_LOGE("failed to write reply");
-        return IPC_STUB_WRITE_PARCEL_ERR;
-    }
-    if (!reply.WriteInt32(info.iconId)) {
-        ACCOUNT_LOGE("failed to write reply");
-        return IPC_STUB_WRITE_PARCEL_ERR;
-    }
-    if (!reply.WriteInt32(info.labelId)) {
+    if ((!reply.WriteInt32(result)) || (!reply.WriteString(info.owner)) ||
+        (!reply.WriteInt32(info.iconId)) || (!reply.WriteInt32(info.labelId))) {
         ACCOUNT_LOGE("failed to write reply");
         return IPC_STUB_WRITE_PARCEL_ERR;
     }
@@ -879,41 +617,19 @@ ErrCode AppAccountStub::ProcGetAuthenticatorInfo(MessageParcel &data, MessagePar
 
 ErrCode AppAccountStub::ProcGetAllOAuthTokens(MessageParcel &data, MessageParcel &reply)
 {
-    ACCOUNT_LOGI("enter");
-    std::vector<OAuthTokenInfo> tokenInfos;
     std::string name = data.ReadString();
-    if (name.size() == 0) {
-        ACCOUNT_LOGE("failed to read string for name");
-        if (!reply.WriteInt32(ERR_APPACCOUNT_KIT_READ_STRING_NAME)) {
-            ACCOUNT_LOGE("failed to write reply");
-            return IPC_STUB_WRITE_PARCEL_ERR;
-        }
-        return ERR_NONE;
-    }
+    RETURN_IF_STRING_IS_EMPTY_OR_OVERSIZE(name, Constants::NAME_MAX_SIZE, "name is empty or oversize");
+    RETURN_IF_STRING_CONTAINS_SPECIAL_CHAR(name);
     std::string owner = data.ReadString();
-    if (owner.size() == 0) {
-        ACCOUNT_LOGE("failed to read string for owner");
-        if (!reply.WriteInt32(ERR_APPACCOUNT_KIT_READ_STRING_OWNER)) {
-            ACCOUNT_LOGE("failed to write reply");
-            return IPC_STUB_WRITE_PARCEL_ERR;
-        }
-        return ERR_NONE;
-    }
+    RETURN_IF_STRING_IS_EMPTY_OR_OVERSIZE(owner, Constants::OWNER_MAX_SIZE, "owner is empty or oversize");
+    std::vector<OAuthTokenInfo> tokenInfos;
     ErrCode result = GetAllOAuthTokens(name, owner, tokenInfos);
-    if (!reply.WriteInt32(result)) {
-        ACCOUNT_LOGE("failed to write reply");
-        return IPC_STUB_WRITE_PARCEL_ERR;
-    }
-    if (!reply.WriteUint32(tokenInfos.size())) {
+    if ((!reply.WriteInt32(result)) || (!reply.WriteUint32(tokenInfos.size()))) {
         ACCOUNT_LOGE("failed to write reply");
         return IPC_STUB_WRITE_PARCEL_ERR;
     }
     for (auto tokenInfo : tokenInfos) {
-        if (!reply.WriteString(tokenInfo.token)) {
-            ACCOUNT_LOGE("failed to write reply");
-            return IPC_STUB_WRITE_PARCEL_ERR;
-        }
-        if (!reply.WriteString(tokenInfo.authType)) {
+        if ((!reply.WriteString(tokenInfo.token)) || (!reply.WriteString(tokenInfo.authType))) {
             ACCOUNT_LOGE("failed to write reply");
             return IPC_STUB_WRITE_PARCEL_ERR;
         }
@@ -923,26 +639,15 @@ ErrCode AppAccountStub::ProcGetAllOAuthTokens(MessageParcel &data, MessageParcel
 
 ErrCode AppAccountStub::ProcGetOAuthList(MessageParcel &data, MessageParcel &reply)
 {
-    ACCOUNT_LOGI("enter");
-    std::set<std::string> oauthList;
     std::string name = data.ReadString();
-    if (name.size() == 0) {
-        ACCOUNT_LOGE("failed to read string for name");
-        if (!reply.WriteInt32(ERR_APPACCOUNT_KIT_READ_STRING_NAME)) {
-            ACCOUNT_LOGE("failed to write reply");
-            return IPC_STUB_WRITE_PARCEL_ERR;
-        }
-        return ERR_NONE;
-    }
+    RETURN_IF_STRING_IS_EMPTY_OR_OVERSIZE(name, Constants::NAME_MAX_SIZE, "name is empty or oversize");
+    RETURN_IF_STRING_CONTAINS_SPECIAL_CHAR(name);
     std::string authType = data.ReadString();
+    RETURN_IF_STRING_IS_OVERSIZE(authType, Constants::OWNER_MAX_SIZE, "authType is oversize");
+    std::set<std::string> oauthList;
     ErrCode result = GetOAuthList(name, authType, oauthList);
-    if (!reply.WriteInt32(result)) {
+    if ((!reply.WriteInt32(result)) || (!reply.WriteUint32(oauthList.size()))) {
         ACCOUNT_LOGE("failed to write reply");
-        return IPC_STUB_WRITE_PARCEL_ERR;
-    }
-    uint32_t size = oauthList.size();
-    if (!reply.WriteUint32(size)) {
-        ACCOUNT_LOGE("failed to WriteUint32 for oauthList size");
         return IPC_STUB_WRITE_PARCEL_ERR;
     }
     for (auto bundleName : oauthList) {
@@ -956,123 +661,86 @@ ErrCode AppAccountStub::ProcGetOAuthList(MessageParcel &data, MessageParcel &rep
 
 ErrCode AppAccountStub::ProcGetAuthenticatorCallback(MessageParcel &data, MessageParcel &reply)
 {
-    ACCOUNT_LOGI("enter");
     std::string sessionId = data.ReadString();
-    if (sessionId.size() == 0) {
-        ACCOUNT_LOGE("failed to read string for sessionId");
-        if (!reply.WriteInt32(ERR_APPACCOUNT_KIT_READ_STRING_NAME)) {
-            ACCOUNT_LOGE("failed to write reply");
-            return IPC_STUB_WRITE_PARCEL_ERR;
-        }
-        return ERR_NONE;
-    }
+    RETURN_IF_STRING_IS_EMPTY_OR_OVERSIZE(sessionId, Constants::SESSION_ID_MAX_SIZE,
+        "sessionId is empty or oversize");
     sptr<IRemoteObject> callback;
     ErrCode result = GetAuthenticatorCallback(sessionId, callback);
-    if (result != ERR_OK) {
-        return result;
-    }
-    if (!reply.WriteInt32(result)) {
+    if ((!reply.WriteInt32(result)) || (!reply.WriteRemoteObject(callback))) {
         ACCOUNT_LOGE("failed to write reply");
         return IPC_STUB_WRITE_PARCEL_ERR;
     }
-    if (!reply.WriteRemoteObject(callback)) {
-        ACCOUNT_LOGE("failed to write reply");
-        return IPC_STUB_WRITE_PARCEL_ERR;
-    }
-    ACCOUNT_LOGI("end");
-    return ERR_OK;
+    return ERR_NONE;
 }
 
 ErrCode AppAccountStub::ProcGetAllAccounts(MessageParcel &data, MessageParcel &reply)
 {
     ACCOUNT_LOGI("enter");
-
     std::string owner = data.ReadString();
-    if (owner.size() == 0) {
-        ACCOUNT_LOGE("failed to read string for owner");
-        if (!reply.WriteInt32(ERR_APPACCOUNT_KIT_READ_STRING_OWNER)) {
-            ACCOUNT_LOGE("failed to write reply");
-            return IPC_STUB_WRITE_PARCEL_ERR;
-        }
-
-        return ERR_NONE;
-    }
-
+    RETURN_IF_STRING_IS_EMPTY_OR_OVERSIZE(owner, Constants::OWNER_MAX_SIZE, "owner is empty or oversize");
     std::vector<AppAccountInfo> appAccounts;
     ErrCode result = GetAllAccounts(owner, appAccounts);
     if (!reply.WriteInt32(result)) {
         ACCOUNT_LOGE("failed to write reply");
         return IPC_STUB_WRITE_PARCEL_ERR;
     }
-
     if (!WriteParcelableVector(appAccounts, reply)) {
         ACCOUNT_LOGE("failed to write vector<AppAccount> for appAccounts");
         return IPC_STUB_WRITE_PARCEL_ERR;
     }
-
     return ERR_NONE;
 }
 
 ErrCode AppAccountStub::ProcGetAllAccessibleAccounts(MessageParcel &data, MessageParcel &reply)
 {
     ACCOUNT_LOGI("enter");
-
     std::vector<AppAccountInfo> appAccounts;
     ErrCode result = GetAllAccessibleAccounts(appAccounts);
     if (!reply.WriteInt32(result)) {
         ACCOUNT_LOGE("failed to write reply");
         return IPC_STUB_WRITE_PARCEL_ERR;
     }
-
     if (!WriteParcelableVector(appAccounts, reply)) {
         ACCOUNT_LOGE("failed to write vector<AppAccount> for appAccounts");
         return IPC_STUB_WRITE_PARCEL_ERR;
     }
-
     return ERR_NONE;
 }
 
 ErrCode AppAccountStub::ProcSubscribeAccount(MessageParcel &data, MessageParcel &reply)
 {
     ACCOUNT_LOGI("enter");
-
     std::unique_ptr<AppAccountSubscribeInfo> subscribeInfo(data.ReadParcelable<AppAccountSubscribeInfo>());
     if (!subscribeInfo) {
         ACCOUNT_LOGE("failed to read parcelable for subscribeInfo");
         return IPC_STUB_INVALID_DATA_ERR;
     }
-
     sptr<IRemoteObject> eventListener = data.ReadParcelable<IRemoteObject>();
     if (eventListener == nullptr) {
         ACCOUNT_LOGE("failed to read parcelable for eventListener");
         return IPC_STUB_INVALID_DATA_ERR;
     }
-
     ErrCode result = SubscribeAppAccount(*subscribeInfo, eventListener);
     if (!reply.WriteInt32(result)) {
         ACCOUNT_LOGE("failed to write reply");
         return IPC_STUB_WRITE_PARCEL_ERR;
     }
-
     return ERR_NONE;
 }
 
 ErrCode AppAccountStub::ProcUnsubscribeAccount(MessageParcel &data, MessageParcel &reply)
 {
     ACCOUNT_LOGI("enter");
-
     sptr<IRemoteObject> eventListener = data.ReadParcelable<IRemoteObject>();
     if (eventListener == nullptr) {
         ACCOUNT_LOGE("failed to read parcelable for eventListener");
         return IPC_STUB_INVALID_DATA_ERR;
     }
-
     ErrCode result = UnsubscribeAppAccount(eventListener);
     if (!reply.WriteInt32(result)) {
         ACCOUNT_LOGE("failed to write reply");
         return IPC_STUB_WRITE_PARCEL_ERR;
     }
-
     return ERR_NONE;
 }
 }  // namespace AccountSA

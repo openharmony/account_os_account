@@ -29,8 +29,8 @@ public:
     explicit AppAccountAuthenticatorCallback(AppAccountAuthenticatorSession *session);
     virtual ~AppAccountAuthenticatorCallback() override;
 
-    virtual ErrCode OnResult(int32_t resultCode, const AAFwk::Want &result) override;
-    virtual ErrCode OnRequestRedirected(AAFwk::Want &request) override;
+    virtual void OnResult(int32_t resultCode, const AAFwk::Want &result) override;
+    virtual void OnRequestRedirected(AAFwk::Want &request) override;
 private:
     AppAccountAuthenticatorSession *session_;
 };

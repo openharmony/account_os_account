@@ -57,9 +57,8 @@ ErrCode AppAccountProxy::AddAccount(const std::string &name, const std::string &
 }
 
 ErrCode AppAccountProxy::AddAccountImplicitly(const std::string &owner, const std::string &authType,
-    const AAFwk::WantParams &options, const sptr<IRemoteObject> &callback, const std::string &abilityName)
+    const AAFwk::Want &options, const sptr<IRemoteObject> &callback)
 {
-    ACCOUNT_LOGI("enter");
     MessageParcel data;
     MessageParcel reply;
     if (!data.WriteString(owner)) {
@@ -78,17 +77,12 @@ ErrCode AppAccountProxy::AddAccountImplicitly(const std::string &owner, const st
         ACCOUNT_LOGE("failed to write string for callback");
         return ERR_APPACCOUNT_KIT_WRITE_PARCELABLE_CALLBACK;
     }
-    if (!data.WriteString(abilityName)) {
-        ACCOUNT_LOGE("failed to write string for abilityName");
-        return ERR_APPACCOUNT_KIT_WRITE_STRING_ABILITY_NAME;
-    }
     ErrCode result = SendRequest(IAppAccount::Message::ADD_ACCOUNT_IMPLICITLY, data, reply);
     if (result != ERR_OK) {
         ACCOUNT_LOGE("failed to send request, errCode: %{public}d", result);
         return result;
     }
     result = reply.ReadInt32();
-    ACCOUNT_LOGI("result = %{public}d", result);
     return result;
 }
 
@@ -402,34 +396,30 @@ ErrCode AppAccountProxy::SetAccountCredential(
     return result;
 }
 
-ErrCode AppAccountProxy::Authenticate(OAuthRequest &request)
+ErrCode AppAccountProxy::Authenticate(const std::string &name, const std::string &owner, const std::string &authType,
+    const AAFwk::Want &options, const sptr<IRemoteObject> &callback)
 {
-    ACCOUNT_LOGI("enter");
     MessageParcel data;
     MessageParcel reply;
-    if (!data.WriteString(request.name)) {
+    if (!data.WriteString(name)) {
         ACCOUNT_LOGE("failed to write string for name");
         return ERR_APPACCOUNT_KIT_WRITE_STRING_NAME;
     }
-    if (!data.WriteString(request.owner)) {
+    if (!data.WriteString(owner)) {
         ACCOUNT_LOGE("failed to write string for owner");
         return ERR_APPACCOUNT_KIT_WRITE_STRING_OWNER;
     }
-    if (!data.WriteString(request.authType)) {
+    if (!data.WriteString(authType)) {
         ACCOUNT_LOGE("failed to write string for authType");
         return ERR_APPACCOUNT_KIT_WRITE_STRING_AUTH_TYPE;
     }
-    if (!data.WriteParcelable(&request.options)) {
+    if (!data.WriteParcelable(&options)) {
         ACCOUNT_LOGE("failed to write string for options");
         return ERR_APPACCOUNT_KIT_WRITE_PARCELABLE_OPTIONS;
     }
-    if (!data.WriteParcelable(request.callback->AsObject())) {
+    if (!data.WriteParcelable(callback)) {
         ACCOUNT_LOGE("failed to write parcelable for callback");
         return ERR_APPACCOUNT_KIT_WRITE_PARCELABLE_CALLBACK;
-    }
-    if (!data.WriteString(request.callerAbilityName)) {
-        ACCOUNT_LOGE("failed to write string for abilityName");
-        return ERR_APPACCOUNT_KIT_WRITE_STRING_ABILITY_NAME;
     }
     ErrCode result = SendRequest(IAppAccount::Message::AUTHENTICATE, data, reply);
     if (result != ERR_OK) {
@@ -437,15 +427,12 @@ ErrCode AppAccountProxy::Authenticate(OAuthRequest &request)
         return result;
     }
     result = reply.ReadInt32();
-    ACCOUNT_LOGI("result = %{public}d", result);
     return result;
 }
 
 ErrCode AppAccountProxy::GetOAuthToken(
     const std::string &name, const std::string &owner, const std::string &authType, std::string &token)
 {
-    ACCOUNT_LOGI("enter");
-
     MessageParcel data;
     MessageParcel reply;
     if (!data.WriteString(name)) {
@@ -467,13 +454,12 @@ ErrCode AppAccountProxy::GetOAuthToken(
     }
     result = reply.ReadInt32();
     token = reply.ReadString();
-    ACCOUNT_LOGI("result = %{public}d.", result);
     return result;
 }
 
-ErrCode AppAccountProxy::SetOAuthToken(const std::string &name, const std::string &authType, const std::string &token)
+ErrCode AppAccountProxy::SetOAuthToken(
+    const std::string &name, const std::string &authType, const std::string &token)
 {
-    ACCOUNT_LOGI("enter");
     MessageParcel data;
     MessageParcel reply;
     if (!data.WriteString(name)) {
@@ -494,14 +480,12 @@ ErrCode AppAccountProxy::SetOAuthToken(const std::string &name, const std::strin
         return result;
     }
     result = reply.ReadInt32();
-    ACCOUNT_LOGI("result = %{public}d", result);
     return result;
 }
 
 ErrCode AppAccountProxy::DeleteOAuthToken(
     const std::string &name, const std::string &owner, const std::string &authType, const std::string &token)
 {
-    ACCOUNT_LOGI("enter");
     MessageParcel data;
     MessageParcel reply;
     if (!data.WriteString(name)) {
@@ -526,15 +510,12 @@ ErrCode AppAccountProxy::DeleteOAuthToken(
         return result;
     }
     result = reply.ReadInt32();
-    ACCOUNT_LOGI("result = %{public}d", result);
     return result;
 }
 
-
-ErrCode AppAccountProxy::SetOAuthTokenVisibility(const std::string &name, const std::string &authType,
-    const std::string &bundleName, bool isVisible)
+ErrCode AppAccountProxy::SetOAuthTokenVisibility(
+    const std::string &name, const std::string &authType, const std::string &bundleName, bool isVisible)
 {
-    ACCOUNT_LOGI("enter");
     MessageParcel data;
     MessageParcel reply;
     if (!data.WriteString(name)) {
@@ -559,14 +540,12 @@ ErrCode AppAccountProxy::SetOAuthTokenVisibility(const std::string &name, const 
         return result;
     }
     result = reply.ReadInt32();
-    ACCOUNT_LOGI("result = %{public}d", result);
     return result;
 }
 
-ErrCode AppAccountProxy::CheckOAuthTokenVisibility(const std::string &name, const std::string &authType,
-    const std::string &bundleName, bool &isVisible)
+ErrCode AppAccountProxy::CheckOAuthTokenVisibility(
+    const std::string &name, const std::string &authType, const std::string &bundleName, bool &isVisible)
 {
-    ACCOUNT_LOGI("enter");
     MessageParcel data;
     MessageParcel reply;
     if (!data.WriteString(name)) {
@@ -581,10 +560,6 @@ ErrCode AppAccountProxy::CheckOAuthTokenVisibility(const std::string &name, cons
         ACCOUNT_LOGE("failed to write string for bundleName");
         return ERR_APPACCOUNT_KIT_WRITE_STRING_BUNDLE_NAME;
     }
-    if (!data.WriteBool(isVisible)) {
-        ACCOUNT_LOGE("failed to write string for isVisible");
-        return ERR_APPACCOUNT_KIT_WRITE_BOOL_VISIBILITY;
-    }
     ErrCode result = SendRequest(IAppAccount::Message::CHECK_OAUTH_TOKEN_VISIBILITY, data, reply);
     if (result != ERR_OK) {
         ACCOUNT_LOGE("failed to send request, errCode: %{public}d", result);
@@ -592,13 +567,11 @@ ErrCode AppAccountProxy::CheckOAuthTokenVisibility(const std::string &name, cons
     }
     result = reply.ReadInt32();
     isVisible = reply.ReadBool();
-    ACCOUNT_LOGI("result = %{public}d", result);
     return result;
 }
 
 ErrCode AppAccountProxy::GetAuthenticatorInfo(const std::string &owner, AuthenticatorInfo &info)
 {
-    ACCOUNT_LOGI("enter");
     MessageParcel data;
     MessageParcel reply;
     if (!data.WriteString(owner)) {
@@ -611,17 +584,15 @@ ErrCode AppAccountProxy::GetAuthenticatorInfo(const std::string &owner, Authenti
         return result;
     }
     result = reply.ReadInt32();
-    ACCOUNT_LOGI("result = %{public}d", result);
     info.owner = reply.ReadString();
     info.iconId = reply.ReadInt32();
     info.labelId = reply.ReadInt32();
     return result;
 }
 
-ErrCode AppAccountProxy::GetAllOAuthTokens(const std::string &name, const std::string &owner,
-    std::vector<OAuthTokenInfo> &tokenInfos)
+ErrCode AppAccountProxy::GetAllOAuthTokens(
+    const std::string &name, const std::string &owner, std::vector<OAuthTokenInfo> &tokenInfos)
 {
-    ACCOUNT_LOGI("enter");
     tokenInfos.clear();
     MessageParcel data;
     MessageParcel reply;
@@ -646,14 +617,12 @@ ErrCode AppAccountProxy::GetAllOAuthTokens(const std::string &name, const std::s
         tokenInfo.authType = reply.ReadString();
         tokenInfos.push_back(tokenInfo);
     }
-    ACCOUNT_LOGI("tokenInfo size: %{public}u, result = %{public}d", size, result);
     return result;
 }
 
-ErrCode AppAccountProxy::GetOAuthList(const std::string &name, const std::string &authType,
-    std::set<std::string> &oauthList)
+ErrCode AppAccountProxy::GetOAuthList(
+    const std::string &name, const std::string &authType, std::set<std::string> &oauthList)
 {
-    ACCOUNT_LOGI("enter");
     MessageParcel data;
     MessageParcel reply;
     if (!data.WriteString(name)) {
@@ -671,17 +640,14 @@ ErrCode AppAccountProxy::GetOAuthList(const std::string &name, const std::string
     }
     result = reply.ReadInt32();
     uint32_t size = reply.ReadUint32();
-    ACCOUNT_LOGI("oauthList size: %{public}d", size);
     for (uint32_t i = 0; i < size; ++i) {
         oauthList.emplace(reply.ReadString());
     }
-    ACCOUNT_LOGI("result = %{public}d", result);
     return result;
 }
 
 ErrCode AppAccountProxy::GetAuthenticatorCallback(const std::string &sessionId, sptr<IRemoteObject> &callback)
 {
-    ACCOUNT_LOGI("enter");
     MessageParcel data;
     MessageParcel reply;
     if (!data.WriteString(sessionId)) {
@@ -695,7 +661,6 @@ ErrCode AppAccountProxy::GetAuthenticatorCallback(const std::string &sessionId, 
     }
     result = reply.ReadInt32();
     callback = reply.ReadRemoteObject();
-    ACCOUNT_LOGI("end");
     return result;
 }
 

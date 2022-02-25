@@ -16,10 +16,10 @@
 #include "account_log_wrapper.h"
 #include "napi/native_api.h"
 #include "napi/native_node_api.h"
+#include "napi_app_account.h"
 #include "napi_app_account_authenticator.h"
 #include "napi_app_account_authenticator_callback.h"
 #include "napi_app_account_constant.h"
-#include "napi_app_account.h"
 
 EXTERN_C_START
 /*

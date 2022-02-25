@@ -25,6 +25,8 @@ config("os_account_core_config") {
     cflags += [ "-DBINDER_IPC_32BIT" ]
   }
 
+  cflags_cc = [ "-fexceptions" ]
+
   defines = [
     "ACCOUNT_LOG_TAG = \"AppAccountFwk\"",
     "LOG_DOMAIN = 0xD001B00",

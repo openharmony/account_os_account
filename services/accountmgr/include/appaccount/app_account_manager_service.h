@@ -31,8 +31,8 @@ public:
 
     virtual ErrCode AddAccount(const std::string &name, const std::string &extraInfo) override;
     virtual ErrCode AddAccountImplicitly(
-        const std::string &owner, const std::string &authType, const AAFwk::WantParams &options,
-        const sptr<IRemoteObject> &callback, const std::string &abilityName) override;
+        const std::string &owner, const std::string &authType, const AAFwk::Want &options,
+        const sptr<IRemoteObject> &callback) override;
     virtual ErrCode DeleteAccount(const std::string &name) override;
 
     virtual ErrCode GetAccountExtraInfo(const std::string &name, std::string &extraInfo) override;
@@ -53,7 +53,8 @@ public:
     virtual ErrCode SetAccountCredential(
         const std::string &name, const std::string &credentialType, const std::string &credential) override;
 
-    virtual ErrCode Authenticate(OAuthRequest &request) override;
+    virtual ErrCode Authenticate(const std::string &name, const std::string &owner, const std::string &authType,
+        const AAFwk::Want &options, const sptr<IRemoteObject> &callback) override;
     virtual ErrCode GetOAuthToken(
         const std::string &name, const std::string &owner, const std::string &authType, std::string &token) override;
     virtual ErrCode SetOAuthToken(
@@ -64,7 +65,7 @@ public:
         const std::string &bundleName, bool isVisible) override;
     virtual ErrCode CheckOAuthTokenVisibility(const std::string &name, const std::string &authType,
         const std::string &bundleName, bool &isVisible) override;
-    virtual ErrCode GetAuthenticatorInfo(const std::string &owner, AuthenticatorInfo &authenticator) override;
+    virtual ErrCode GetAuthenticatorInfo(const std::string &owner, AuthenticatorInfo &info) override;
     virtual ErrCode GetAllOAuthTokens(const std::string &name, const std::string &owner,
         std::vector<OAuthTokenInfo> &tokenInfos) override;
     virtual ErrCode GetOAuthList(const std::string &name, const std::string &authType,

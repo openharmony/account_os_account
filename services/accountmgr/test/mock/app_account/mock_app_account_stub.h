@@ -25,9 +25,8 @@ namespace AccountSA {
 class MockAppAccountStub : public AppAccountStub {
 public:
     virtual ErrCode AddAccount(const std::string &name, const std::string &extraInfo) override;
-    virtual ErrCode AddAccountImplicitly(
-        const std::string &owner, const std::string &authType, const AAFwk::WantParams &options,
-        const sptr<IRemoteObject> &callback, const std::string &abilityName) override;
+    virtual ErrCode AddAccountImplicitly(const std::string &owner, const std::string &authType,
+        const AAFwk::Want &options, const sptr<IRemoteObject> &callback) override;
     virtual ErrCode DeleteAccount(const std::string &name) override;
 
     virtual ErrCode GetAccountExtraInfo(const std::string &name, std::string &extraInfo) override;
@@ -48,7 +47,8 @@ public:
     virtual ErrCode SetAccountCredential(
         const std::string &name, const std::string &credentialType, const std::string &credential) override;
 
-    virtual ErrCode Authenticate(OAuthRequest &request) override;
+    virtual ErrCode Authenticate(const std::string &name, const std::string &owner, const std::string &authType,
+        const AAFwk::Want &options, const sptr<IRemoteObject> &callback) override;
     virtual ErrCode GetOAuthToken(
         const std::string &name, const std::string &owner, const std::string &authType, std::string &token) override;
     virtual ErrCode SetOAuthToken(
