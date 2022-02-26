@@ -65,9 +65,7 @@ void OsAccountDataStorageTest::SetUp(void)
 }
 
 void OsAccountDataStorageTest::TearDown(void)
-{
-    osAccountDataStorage_->DeleteKvStore();
-}
+{}
 
 /**
  * @tc.name: OsAccountDataStorageTest001

@@ -52,44 +52,10 @@ void AppAccountDataStorageTest::TearDownTestCase(void)
 {}
 
 void AppAccountDataStorageTest::SetUp(void)
-{
-    auto dataStoragePtr = std::make_shared<AppAccountDataStorage>(STRING_STORE_ID);
-    EXPECT_NE(dataStoragePtr, nullptr);
-
-    int result = dataStoragePtr->DeleteKvStore();
-    EXPECT_EQ(result, ERR_OK);
-}
+{}
 
 void AppAccountDataStorageTest::TearDown(void)
 {}
-
-/**
- * @tc.name: AppAccountDataStorage_DeleteKvStore_0100
- * @tc.desc: Delete a KV store.
- * @tc.type: FUNC
- * @tc.require: SR000GGV11
- */
-HWTEST_F(AppAccountDataStorageTest, AppAccountDataStorage_DeleteKvStore_0100, TestSize.Level0)
-{
-    ACCOUNT_LOGI("AppAccountDataStorage_DeleteKvStore_0100");
-
-    auto dataStoragePtr = std::make_shared<AppAccountDataStorage>(STRING_STORE_ID);
-    EXPECT_NE(dataStoragePtr, nullptr);
-
-    std::map<std::string, std::shared_ptr<IAccountInfo>> accounts;
-    EXPECT_EQ(accounts.size(), SIZE_ZERO);
-
-    ErrCode result = dataStoragePtr->LoadAllData(accounts);
-    EXPECT_EQ(result, ERR_OK);
-    EXPECT_EQ(accounts.size(), SIZE_ZERO);
-
-    result = dataStoragePtr->DeleteKvStore();
-    EXPECT_EQ(result, ERR_OK);
-
-    result = dataStoragePtr->LoadAllData(accounts);
-    EXPECT_EQ(result, ERR_OK);
-    EXPECT_EQ(accounts.size(), SIZE_ZERO);
-}
 
 /**
  * @tc.name: AppAccountDataStorage_AddAccountInfo_0100
@@ -145,6 +111,11 @@ HWTEST_F(AppAccountDataStorageTest, AppAccountDataStorage_AddAccountInfo_0100, T
     EXPECT_EQ(result, ERR_OK);
     EXPECT_EQ(apps.size(), SIZE_ONE);
     EXPECT_EQ(*(apps.begin()), STRING_BUNDLE_NAME);
+
+    // delete account
+    const std::string id = appAccountInfo.GetPrimeKey();
+    result = dataStoragePtr->RemoveInfoByKey(id);
+    EXPECT_EQ(result, ERR_OK);
 }
 
 /**
@@ -196,6 +167,11 @@ HWTEST_F(AppAccountDataStorageTest, AppAccountDataStorage_SaveAccountInfo_0100, 
     result = appAccountInfoPtr->GetExtraInfo(extraInfo);
     EXPECT_EQ(result, ERR_OK);
     EXPECT_EQ(extraInfo, STRING_EXTRA_INFO_TWO);
+
+    // delete account
+    const std::string id = appAccountInfo.GetPrimeKey();
+    result = dataStoragePtr->RemoveInfoByKey(id);
+    EXPECT_EQ(result, ERR_OK);
 }
 
 /**

@@ -40,9 +40,19 @@ public:
             return;
         }
 
-        nlohmann::json jsonObj;
-        std::ifstream(path) >> jsonObj;
-        std::cout << path;
+        std::ifstream fin(path);
+        if (!fin) {
+            std::cout << __FUNCTION__ << " failed to open path " << path << std::endl;
+            return;
+        }
+
+        nlohmann::json jsonObj = nlohmann::json::parse(fin, nullptr, false);
+        fin.close();
+        if (!jsonObj.is_structured()) {
+            std::cout << __FUNCTION__ << " failed to parse " << path << std::endl;
+            return;
+        }
+        std::cout << __FUNCTION__ << " succeed to parse " << path << std::endl;
         for (auto it = jsonObj.begin(); it != jsonObj.end(); ++it) {
             if (!it.key().compare(FUZZ_TEST_MAIN_LOOP_KEY)) {
                 ftd.mainLoopFlag = it.value();

@@ -37,7 +37,7 @@ ohos_systemtest("ActsAccountFuzzTest") {
     "${os_account_path}//test/systemtest/common/resource/fuzzTest/include",
     "//base/account/os_account/services/accountmgr/include/appaccount",
     "//base/global/resmgr_lite/frameworks/resmgr_lite/include",
-    "//third_party/json/single_include",
+    "//third_party/json/include",
   ]
 
   cflags = []

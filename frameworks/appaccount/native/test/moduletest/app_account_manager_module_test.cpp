@@ -46,8 +46,6 @@ const std::string STRING_OWNER = "com.example.owner";
 const std::string STRING_AUTH_TYPE = "all";
 
 const bool SYNC_ENABLE_FALSE = false;
-
-constexpr std::int32_t UID = 10000;
 }  // namespace
 
 class AppAccountManagerModuleTest : public testing::Test {
@@ -56,9 +54,6 @@ public:
     static void TearDownTestCase(void);
     void SetUp(void) override;
     void TearDown(void) override;
-
-    void DeleteKvStore(void);
-
     std::shared_ptr<AppAccountControlManager> controlManagerPtr_;
 };
 
@@ -69,32 +64,10 @@ void AppAccountManagerModuleTest::TearDownTestCase(void)
 {}
 
 void AppAccountManagerModuleTest::SetUp(void)
-{
-    DeleteKvStore();
-}
+{}
 
 void AppAccountManagerModuleTest::TearDown(void)
-{
-    DeleteKvStore();
-}
-
-void AppAccountManagerModuleTest::DeleteKvStore(void)
-{
-    controlManagerPtr_ = AppAccountControlManager::GetInstance();
-    ASSERT_NE(controlManagerPtr_, nullptr);
-
-    auto dataStoragePtr = controlManagerPtr_->GetDataStorage(UID);
-    ASSERT_NE(dataStoragePtr, nullptr);
-
-    ErrCode result = dataStoragePtr->DeleteKvStore();
-    ASSERT_EQ(result, ERR_OK);
-
-    dataStoragePtr = controlManagerPtr_->GetDataStorage(UID, true);
-    ASSERT_NE(dataStoragePtr, nullptr);
-
-    result = dataStoragePtr->DeleteKvStore();
-    ASSERT_EQ(result, ERR_OK);
-}
+{}
 
 class AppAccountSubscriberTest : public AppAccountSubscriber {
 public:
@@ -316,7 +289,7 @@ HWTEST_F(AppAccountManagerModuleTest, AppAccountManager_GetOAuthToken_0100, Test
 
 /**
  * @tc.name: AppAccountManager_SetOAuthToken_0100
- * @tc.desc: Set oauth token with valid data.
+ * @tc.desc: Set oauth token with invalid data.
  * @tc.type: FUNC
  * @tc.require: SR000GGVFU
  */
