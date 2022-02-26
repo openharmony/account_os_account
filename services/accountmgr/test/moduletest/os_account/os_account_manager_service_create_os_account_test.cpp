@@ -14,7 +14,9 @@
  */
 
 #include <gtest/gtest.h>
+#include <thread>
 #include "account_error_no.h"
+#include "account_log_wrapper.h"
 #include "os_account_constants.h"
 #define private public
 #include "os_account_control_file_manager.h"
@@ -30,6 +32,7 @@ using namespace AccountSA;
 
 namespace {
 const std::string STRING_TEST_NAME = "name";
+const std::int32_t DELAY_FOR_OPERATION = 250;
 }  // namespace
 class OsAccountManagerServiceCreateOsAccountTest : public testing::Test {
 public:
@@ -40,7 +43,6 @@ public:
 
 public:
     std::shared_ptr<OsAccountManagerService> osAccountManagerService_;
-    std::shared_ptr<OsAccountControlFileManager> osAccountControlFileManager_;
 };
 void OsAccountManagerServiceCreateOsAccountTest::SetUpTestCase(void)
 {}
@@ -51,8 +53,6 @@ void OsAccountManagerServiceCreateOsAccountTest::TearDownTestCase(void)
 void OsAccountManagerServiceCreateOsAccountTest::SetUp(void)
 {
     osAccountManagerService_ = std::make_shared<OsAccountManagerService>();
-    osAccountControlFileManager_ = std::make_shared<OsAccountControlFileManager>();
-    osAccountControlFileManager_->Init();
 }
 
 void OsAccountManagerServiceCreateOsAccountTest::TearDown(void)
@@ -67,13 +67,24 @@ void OsAccountManagerServiceCreateOsAccountTest::TearDown(void)
 HWTEST_F(OsAccountManagerServiceCreateOsAccountTest, OsAccountManagerServiceCreateOsAccountTest001, TestSize.Level1)
 {
     ErrCode errCode;
-    for (auto i = Constants::START_USER_ID + 1; i <= Constants::MAX_USER_ID + 1; i++) {
+    for (auto i = Constants::START_USER_ID + 1; i < Constants::MAX_USER_ID; i++) {
         OsAccountInfo osAccountInfoOne;
+        ACCOUNT_LOGI("before CreateOsAccount, i = %{public}d.", i);
+        GTEST_LOG_(INFO) << "before CreateOsAccount, i = " << i;
         errCode = osAccountManagerService_->CreateOsAccount(STRING_TEST_NAME, OsAccountType::ADMIN, osAccountInfoOne);
+        EXPECT_EQ(errCode, ERR_OK);
+        std::this_thread::sleep_for(std::chrono::milliseconds(DELAY_FOR_OPERATION));
     }
+
+    OsAccountInfo osAccountInfoOne;
+    errCode = osAccountManagerService_->CreateOsAccount(STRING_TEST_NAME, OsAccountType::ADMIN, osAccountInfoOne);
     EXPECT_NE(errCode, ERR_OK);
-    for (auto i = Constants::START_USER_ID + 1; i <= Constants::MAX_USER_ID; i++) {
-        osAccountControlFileManager_->DelOsAccount(i);
+
+    for (auto i = Constants::START_USER_ID + 1; i < Constants::MAX_USER_ID; i++) {
+        ACCOUNT_LOGI("before DelOsAccount, i = %{public}d.", i);
+        GTEST_LOG_(INFO) << "before DelOsAccount, i = " << i;
+        osAccountManagerService_->RemoveOsAccount(i);
+        std::this_thread::sleep_for(std::chrono::milliseconds(DELAY_FOR_OPERATION));
     }
 }
 }  // namespace AccountSA

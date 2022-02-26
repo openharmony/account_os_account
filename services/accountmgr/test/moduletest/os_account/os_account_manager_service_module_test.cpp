@@ -16,6 +16,7 @@
 #include <gtest/gtest.h>
 #include <thread>
 #include "account_error_no.h"
+#include "account_log_wrapper.h"
 #include "os_account_constants.h"
 #define private public
 #include "account_file_operator.h"
@@ -35,7 +36,6 @@ const std::string STRING_EMPTY = "";
 const std::string STRING_NAME = "name";
 const std::string STRING_TEST_NAME = "test";
 const OsAccountType INT_TEST_TYPE = OsAccountType::GUEST;
-const OsAccountType INT_TEST_ADMIN_TYPE = OsAccountType::ADMIN;
 
 const std::vector<std::string> CONSTANTS_VECTOR {
     "constraint.print",
@@ -129,7 +129,7 @@ const std::string PHOTO_IMG_ERROR =
     "D3I1NZvmdCXz+XOv5wJANKHOVYjRTAghxIyh0FHKb+0QQH5+kXf2zkYGAG0oFr5RfnK8DAGkwY19wliRT2L448vjv0YGQFVa8VKdDXUU+"
     "faFUxpblhxYRNRzmd6FNnS0H3/X/VH6j0IIIRxMLJ5k/j/2L/"
     "zchW8pKj7iFAA0R2wajl5d46idlR3+GtPV2XOvQ3bBNvyFs8U39v9PLX0Bp0CN+yY0OAEAAAAASUVORK5CYII=";
-const std::int32_t DELAY_FOR_OPERATION = 20 * 1000;
+const std::int32_t DELAY_FOR_OPERATION = 2000;
 std::shared_ptr<OsAccountManagerService> g_osAccountManagerService;
 const std::string STRING_DOMAIN_NAME_OUT_OF_RANGE =
     "1234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890"
@@ -143,6 +143,9 @@ const std::string STRING_DOMAIN_ACCOUNT_NAME_OUT_OF_RANGE =
     "1234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890";
 const std::string STRING_DOMAIN_VALID = "TestDomainMT";
 const std::string STRING_DOMAIN_ACCOUNT_NAME_VALID = "TestDomainAccountNameMT";
+std::shared_ptr<OsAccountControlFileManager> g_osAccountControlFileManager =
+    std::make_shared<OsAccountControlFileManager>();
+std::shared_ptr<AccountFileOperator> g_accountFileOperator = std::make_shared<AccountFileOperator>();
 }  // namespace
 
 class OsAccountManagerServiceModuleTest : public testing::Test {
@@ -151,26 +154,25 @@ public:
     static void TearDownTestCase(void);
     void SetUp();
     void TearDown();
-
-public:
-    std::shared_ptr<OsAccountControlFileManager> osAccountControlFileManager_;
-    std::shared_ptr<AccountFileOperator> accountFileOperator_;
 };
 
 void OsAccountManagerServiceModuleTest::SetUpTestCase(void)
 {
+    GTEST_LOG_(INFO) << "SetUpTestCase enter!";
+    g_osAccountControlFileManager->Init();
     g_osAccountManagerService = std::make_shared<OsAccountManagerService>();
     std::this_thread::sleep_for(std::chrono::milliseconds(DELAY_FOR_OPERATION));
+    GTEST_LOG_(INFO) << "SetUpTestCase exit!";
 }
 void OsAccountManagerServiceModuleTest::TearDownTestCase(void)
-{}
+{
+    GTEST_LOG_(INFO) << "TearDownTestCase enter!";
+    std::this_thread::sleep_for(std::chrono::milliseconds(DELAY_FOR_OPERATION));
+    GTEST_LOG_(INFO) << "TearDownTestCase exit!";
+}
 
 void OsAccountManagerServiceModuleTest::SetUp(void)
-{
-    osAccountControlFileManager_ = std::make_shared<OsAccountControlFileManager>();
-    accountFileOperator_ = std::make_shared<AccountFileOperator>();
-    osAccountControlFileManager_->Init();
-}
+{}
 
 void OsAccountManagerServiceModuleTest::TearDown(void)
 {}
@@ -183,23 +185,27 @@ void OsAccountManagerServiceModuleTest::TearDown(void)
  */
 HWTEST_F(OsAccountManagerServiceModuleTest, OsAccountManagerServiceModuleTest001, TestSize.Level0)
 {
+    ACCOUNT_LOGI("OsAccountManagerServiceModuleTest001");
     OsAccountInfo osAccountInfoOne;
     ErrCode errCode = g_osAccountManagerService->CreateOsAccount(STRING_TEST_NAME, INT_TEST_TYPE, osAccountInfoOne);
     EXPECT_EQ(errCode, ERR_OK);
     OsAccountInfo osAccountInfoTwo;
-    osAccountControlFileManager_->GetOsAccountInfoById(osAccountInfoOne.GetLocalId(), osAccountInfoTwo);
+    errCode = g_osAccountManagerService->QueryOsAccountById(osAccountInfoOne.GetLocalId(), osAccountInfoTwo);
+    EXPECT_EQ(errCode, ERR_OK);
     EXPECT_EQ(osAccountInfoOne.ToString(), osAccountInfoTwo.ToString());
-    osAccountControlFileManager_->DelOsAccount(osAccountInfoOne.GetLocalId());
+    errCode = g_osAccountManagerService->RemoveOsAccount(osAccountInfoOne.GetLocalId());
+    EXPECT_EQ(errCode, ERR_OK);
 }
 
 /**
  * @tc.name: OsAccountManagerServiceModuleTest002
- * @tc.desc: Test CreateOsAccount with unvaild name.
+ * @tc.desc: Test CreateOsAccount with invalid name.
  * @tc.type: FUNC
  * @tc.require: SR000GGVFN
  */
 HWTEST_F(OsAccountManagerServiceModuleTest, OsAccountManagerServiceModuleTest002, TestSize.Level1)
 {
+    ACCOUNT_LOGI("OsAccountManagerServiceModuleTest002");
     OsAccountInfo osAccountInfoOne;
     ErrCode errCode =
         g_osAccountManagerService->CreateOsAccount(STRING_NAME_OUT_OF_RANGE, INT_TEST_TYPE, osAccountInfoOne);
@@ -208,12 +214,13 @@ HWTEST_F(OsAccountManagerServiceModuleTest, OsAccountManagerServiceModuleTest002
 
 /**
  * @tc.name: OsAccountManagerServiceModuleTest003
- * @tc.desc: Test CreateOsAccount with unvaild name.
+ * @tc.desc: Test CreateOsAccount with invalid name.
  * @tc.type: FUNC
  * @tc.require: SR000GGVFN
  */
 HWTEST_F(OsAccountManagerServiceModuleTest, OsAccountManagerServiceModuleTest003, TestSize.Level1)
 {
+    ACCOUNT_LOGI("OsAccountManagerServiceModuleTest003");
     OsAccountInfo osAccountInfoOne;
     ErrCode errCode = g_osAccountManagerService->CreateOsAccount(STRING_EMPTY, INT_TEST_TYPE, osAccountInfoOne);
     EXPECT_EQ(errCode, ERR_OSACCOUNT_SERVICE_MANAGER_NAME_SIZE_EMPTY_ERROR);
@@ -221,12 +228,13 @@ HWTEST_F(OsAccountManagerServiceModuleTest, OsAccountManagerServiceModuleTest003
 
 /**
  * @tc.name: OsAccountManagerServiceModuleTest004
- * @tc.desc: Test IsCurrentOsAccountVerified with unvaild data.
+ * @tc.desc: Test IsCurrentOsAccountVerified with invalid data.
  * @tc.type: FUNC
  * @tc.require: SR000GGVFG
  */
 HWTEST_F(OsAccountManagerServiceModuleTest, OsAccountManagerServiceModuleTest004, TestSize.Level1)
 {
+    ACCOUNT_LOGI("OsAccountManagerServiceModuleTest004");
     bool isVerify = false;
     ErrCode errCode = g_osAccountManagerService->IsCurrentOsAccountVerified(isVerify);
     EXPECT_EQ(errCode, ERR_OK);
@@ -240,9 +248,12 @@ HWTEST_F(OsAccountManagerServiceModuleTest, OsAccountManagerServiceModuleTest004
  */
 HWTEST_F(OsAccountManagerServiceModuleTest, OsAccountManagerServiceModuleTest005, TestSize.Level1)
 {
+    ACCOUNT_LOGI("OsAccountManagerServiceModuleTest005");
     OsAccountInfo osAccountInfoOne;
-    ErrCode errCode =
-        g_osAccountManagerService->CreateOsAccount(STRING_TEST_NAME, INT_TEST_ADMIN_TYPE, osAccountInfoOne);
+    ErrCode errCode = g_osAccountManagerService->CreateOsAccount(STRING_TEST_NAME, OsAccountType::ADMIN,
+        osAccountInfoOne);
+    EXPECT_EQ(errCode, ERR_OK);
+    errCode = g_osAccountManagerService->RemoveOsAccount(osAccountInfoOne.GetLocalId());
     EXPECT_EQ(errCode, ERR_OK);
 }
 
@@ -254,9 +265,10 @@ HWTEST_F(OsAccountManagerServiceModuleTest, OsAccountManagerServiceModuleTest005
  */
 HWTEST_F(OsAccountManagerServiceModuleTest, OsAccountManagerServiceModuleTest006, TestSize.Level1)
 {
+    ACCOUNT_LOGI("OsAccountManagerServiceModuleTest006");
     OsAccountInfo osAccountInfoOne;
-    g_osAccountManagerService->CreateOsAccount(STRING_TEST_NAME, INT_TEST_TYPE, osAccountInfoOne);
-    g_osAccountManagerService->ActivateOsAccount(osAccountInfoOne.GetLocalId());
+    ASSERT_EQ(g_osAccountManagerService->CreateOsAccount(STRING_TEST_NAME, INT_TEST_TYPE, osAccountInfoOne), ERR_OK);
+    EXPECT_EQ(g_osAccountManagerService->ActivateOsAccount(osAccountInfoOne.GetLocalId()), ERR_OK);
     EXPECT_EQ(g_osAccountManagerService->RemoveOsAccount(osAccountInfoOne.GetLocalId()), ERR_OK);
 }
 
@@ -268,15 +280,21 @@ HWTEST_F(OsAccountManagerServiceModuleTest, OsAccountManagerServiceModuleTest006
  */
 HWTEST_F(OsAccountManagerServiceModuleTest, OsAccountManagerServiceModuleTest007, TestSize.Level1)
 {
+    ACCOUNT_LOGI("OsAccountManagerServiceModuleTest007");
+    // save file content to fileContext first
     std::string fileContext;
-    accountFileOperator_->GetFileContentByPath(
+    g_accountFileOperator->GetFileContentByPath(
         Constants::USER_INFO_BASE + Constants::PATH_SEPARATOR + Constants::USER_LIST_FILE_NAME, fileContext);
-    accountFileOperator_->DeleteDirOrFile(
+
+    // remove file
+    g_accountFileOperator->DeleteDirOrFile(
         Constants::USER_INFO_BASE + Constants::PATH_SEPARATOR + Constants::USER_LIST_FILE_NAME);
     OsAccountInfo osAccountInfoOne;
     ErrCode errCode = g_osAccountManagerService->CreateOsAccount(STRING_TEST_NAME, INT_TEST_TYPE, osAccountInfoOne);
     EXPECT_EQ(errCode, ERR_OSACCOUNT_SERVICE_INNER_GET_SERIAL_NUMBER_ERROR);
-    accountFileOperator_->InputFileByPathAndContent(
+
+    // restore file content
+    g_accountFileOperator->InputFileByPathAndContent(
         Constants::USER_INFO_BASE + Constants::PATH_SEPARATOR + Constants::USER_LIST_FILE_NAME, fileContext);
 }
 
@@ -288,10 +306,11 @@ HWTEST_F(OsAccountManagerServiceModuleTest, OsAccountManagerServiceModuleTest007
  */
 HWTEST_F(OsAccountManagerServiceModuleTest, OsAccountManagerServiceModuleTest008, TestSize.Level1)
 {
+    ACCOUNT_LOGI("OsAccountManagerServiceModuleTest008");
     OsAccountInfo osAccountInfoOne;
-    g_osAccountManagerService->CreateOsAccount(STRING_TEST_NAME, INT_TEST_TYPE, osAccountInfoOne);
+    ASSERT_EQ(g_osAccountManagerService->CreateOsAccount(STRING_TEST_NAME, INT_TEST_TYPE, osAccountInfoOne), ERR_OK);
     EXPECT_EQ(g_osAccountManagerService->RemoveOsAccount(osAccountInfoOne.GetLocalId()), ERR_OK);
-    EXPECT_EQ(accountFileOperator_->IsExistDir(
+    EXPECT_EQ(g_accountFileOperator->IsExistDir(
         Constants::USER_INFO_BASE + Constants::PATH_SEPARATOR + osAccountInfoOne.GetPrimeKey()), false);
 }
 
@@ -303,6 +322,7 @@ HWTEST_F(OsAccountManagerServiceModuleTest, OsAccountManagerServiceModuleTest008
  */
 HWTEST_F(OsAccountManagerServiceModuleTest, OsAccountManagerServiceModuleTest009, TestSize.Level1)
 {
+    ACCOUNT_LOGI("OsAccountManagerServiceModuleTest009");
     EXPECT_EQ(g_osAccountManagerService->RemoveOsAccount(Constants::START_USER_ID),
         ERR_OSACCOUNT_SERVICE_MANAGER_ID_ERROR);
 }
@@ -315,6 +335,7 @@ HWTEST_F(OsAccountManagerServiceModuleTest, OsAccountManagerServiceModuleTest009
  */
 HWTEST_F(OsAccountManagerServiceModuleTest, OsAccountManagerServiceModuleTest010, TestSize.Level1)
 {
+    ACCOUNT_LOGI("OsAccountManagerServiceModuleTest010");
     EXPECT_EQ(g_osAccountManagerService->RemoveOsAccount(Constants::MAX_USER_ID + 1),
         ERR_OSACCOUNT_SERVICE_INNER_CANNOT_FIND_OSACCOUNT_ERROR);
 }
@@ -327,6 +348,7 @@ HWTEST_F(OsAccountManagerServiceModuleTest, OsAccountManagerServiceModuleTest010
  */
 HWTEST_F(OsAccountManagerServiceModuleTest, OsAccountManagerServiceModuleTest011, TestSize.Level1)
 {
+    ACCOUNT_LOGI("OsAccountManagerServiceModuleTest011");
     bool isOsAccountExists = false;
     EXPECT_EQ(g_osAccountManagerService->IsOsAccountExists(Constants::START_USER_ID, isOsAccountExists), ERR_OK);
     EXPECT_EQ(isOsAccountExists, true);
@@ -340,6 +362,7 @@ HWTEST_F(OsAccountManagerServiceModuleTest, OsAccountManagerServiceModuleTest011
  */
 HWTEST_F(OsAccountManagerServiceModuleTest, OsAccountManagerServiceModuleTest012, TestSize.Level1)
 {
+    ACCOUNT_LOGI("OsAccountManagerServiceModuleTest012");
     bool isOsAccountExists = true;
     EXPECT_EQ(g_osAccountManagerService->IsOsAccountExists(Constants::MAX_USER_ID + 1, isOsAccountExists), ERR_OK);
     EXPECT_EQ(isOsAccountExists, false);
@@ -353,6 +376,7 @@ HWTEST_F(OsAccountManagerServiceModuleTest, OsAccountManagerServiceModuleTest012
  */
 HWTEST_F(OsAccountManagerServiceModuleTest, OsAccountManagerServiceModuleTest013, TestSize.Level1)
 {
+    ACCOUNT_LOGI("OsAccountManagerServiceModuleTest013");
     bool isOsAccountActived = false;
     EXPECT_EQ(g_osAccountManagerService->IsOsAccountActived(Constants::START_USER_ID, isOsAccountActived), ERR_OK);
     EXPECT_EQ(isOsAccountActived, true);
@@ -366,12 +390,15 @@ HWTEST_F(OsAccountManagerServiceModuleTest, OsAccountManagerServiceModuleTest013
  */
 HWTEST_F(OsAccountManagerServiceModuleTest, OsAccountManagerServiceModuleTest014, TestSize.Level1)
 {
+    ACCOUNT_LOGI("OsAccountManagerServiceModuleTest014");
     OsAccountInfo osAccountInfoOne;
-    g_osAccountManagerService->CreateOsAccount(STRING_TEST_NAME, INT_TEST_TYPE, osAccountInfoOne);
+    ASSERT_EQ(g_osAccountManagerService->CreateOsAccount(STRING_TEST_NAME, INT_TEST_TYPE, osAccountInfoOne),
+        ERR_OK);
     bool isOsAccountActived = false;
-    EXPECT_EQ(g_osAccountManagerService->IsOsAccountActived(osAccountInfoOne.GetLocalId(), isOsAccountActived), ERR_OK);
+    EXPECT_EQ(g_osAccountManagerService->IsOsAccountActived(osAccountInfoOne.GetLocalId(), isOsAccountActived),
+        ERR_OK);
     EXPECT_EQ(isOsAccountActived, false);
-    osAccountControlFileManager_->DelOsAccount(osAccountInfoOne.GetLocalId());
+    EXPECT_EQ(g_osAccountManagerService->RemoveOsAccount(osAccountInfoOne.GetLocalId()), ERR_OK);
 }
 
 /**
@@ -382,18 +409,22 @@ HWTEST_F(OsAccountManagerServiceModuleTest, OsAccountManagerServiceModuleTest014
  */
 HWTEST_F(OsAccountManagerServiceModuleTest, OsAccountManagerServiceModuleTest015, TestSize.Level1)
 {
+    ACCOUNT_LOGI("OsAccountManagerServiceModuleTest015");
     OsAccountInfo osAccountInfoOne;
-    g_osAccountManagerService->CreateOsAccount(STRING_TEST_NAME, INT_TEST_TYPE, osAccountInfoOne);
+    ASSERT_EQ(g_osAccountManagerService->CreateOsAccount(STRING_TEST_NAME, INT_TEST_TYPE, osAccountInfoOne),
+        ERR_OK);
     bool enable = false;
     EXPECT_EQ(g_osAccountManagerService->SetOsAccountConstraints(
         osAccountInfoOne.GetLocalId(), CONSTANTS_VECTOR, enable), ERR_OK);
     OsAccountInfo osAccountInfoTwo;
-    osAccountControlFileManager_->GetOsAccountInfoById(osAccountInfoOne.GetLocalId(), osAccountInfoTwo);
+    EXPECT_EQ(g_osAccountManagerService->QueryOsAccountById(osAccountInfoOne.GetLocalId(), osAccountInfoTwo),
+        ERR_OK);
+
     std::vector<std::string> contstans = osAccountInfoTwo.GetConstraints();
     for (auto it = contstans.begin(); it != contstans.end(); it++) {
         GTEST_LOG_(INFO) << *it;
     }
-    osAccountControlFileManager_->DelOsAccount(osAccountInfoOne.GetLocalId());
+    EXPECT_EQ(g_osAccountManagerService->RemoveOsAccount(osAccountInfoOne.GetLocalId()), ERR_OK);
 }
 
 /**
@@ -404,18 +435,20 @@ HWTEST_F(OsAccountManagerServiceModuleTest, OsAccountManagerServiceModuleTest015
  */
 HWTEST_F(OsAccountManagerServiceModuleTest, OsAccountManagerServiceModuleTest016, TestSize.Level1)
 {
+    ACCOUNT_LOGI("OsAccountManagerServiceModuleTest016");
     OsAccountInfo osAccountInfoOne;
-    g_osAccountManagerService->CreateOsAccount(STRING_TEST_NAME, INT_TEST_TYPE, osAccountInfoOne);
+    ASSERT_EQ(g_osAccountManagerService->CreateOsAccount(STRING_TEST_NAME, INT_TEST_TYPE, osAccountInfoOne), ERR_OK);
     bool enable = true;
     EXPECT_EQ(g_osAccountManagerService->SetOsAccountConstraints(
         osAccountInfoOne.GetLocalId(), CONSTANTS_VECTOR, enable), ERR_OK);
     OsAccountInfo osAccountInfoTwo;
-    osAccountControlFileManager_->GetOsAccountInfoById(osAccountInfoOne.GetLocalId(), osAccountInfoTwo);
+    EXPECT_EQ(g_osAccountManagerService->QueryOsAccountById(osAccountInfoOne.GetLocalId(), osAccountInfoTwo),
+        ERR_OK);
     std::vector<std::string> contstans = osAccountInfoTwo.GetConstraints();
     for (auto it = contstans.begin(); it != contstans.end(); it++) {
         GTEST_LOG_(INFO) << *it;
     }
-    osAccountControlFileManager_->DelOsAccount(osAccountInfoOne.GetLocalId());
+    EXPECT_EQ(g_osAccountManagerService->RemoveOsAccount(osAccountInfoOne.GetLocalId()), ERR_OK);
 }
 
 /**
@@ -426,15 +459,16 @@ HWTEST_F(OsAccountManagerServiceModuleTest, OsAccountManagerServiceModuleTest016
  */
 HWTEST_F(OsAccountManagerServiceModuleTest, OsAccountManagerServiceModuleTest017, TestSize.Level1)
 {
+    ACCOUNT_LOGI("OsAccountManagerServiceModuleTest017");
     OsAccountInfo osAccountInfoOne;
-    g_osAccountManagerService->CreateOsAccount(STRING_TEST_NAME, INT_TEST_TYPE, osAccountInfoOne);
+    ASSERT_EQ(g_osAccountManagerService->CreateOsAccount(STRING_TEST_NAME, INT_TEST_TYPE, osAccountInfoOne), ERR_OK);
     bool enable = true;
     g_osAccountManagerService->SetOsAccountConstraints(osAccountInfoOne.GetLocalId(), CONSTANTS_VECTOR, enable);
     bool isEnable = false;
     EXPECT_EQ(g_osAccountManagerService->IsOsAccountConstraintEnable(
         osAccountInfoOne.GetLocalId(), CONSTANTS_STRING_WIFI, isEnable), ERR_OK);
     EXPECT_EQ(isEnable, true);
-    osAccountControlFileManager_->DelOsAccount(osAccountInfoOne.GetLocalId());
+    EXPECT_EQ(g_osAccountManagerService->RemoveOsAccount(osAccountInfoOne.GetLocalId()), ERR_OK);
 }
 
 /**
@@ -445,13 +479,14 @@ HWTEST_F(OsAccountManagerServiceModuleTest, OsAccountManagerServiceModuleTest017
  */
 HWTEST_F(OsAccountManagerServiceModuleTest, OsAccountManagerServiceModuleTest018, TestSize.Level1)
 {
+    ACCOUNT_LOGI("OsAccountManagerServiceModuleTest018");
     OsAccountInfo osAccountInfoOne;
-    g_osAccountManagerService->CreateOsAccount(STRING_TEST_NAME, INT_TEST_TYPE, osAccountInfoOne);
+    ASSERT_EQ(g_osAccountManagerService->CreateOsAccount(STRING_TEST_NAME, INT_TEST_TYPE, osAccountInfoOne), ERR_OK);
     bool isEnable = true;
     EXPECT_EQ(g_osAccountManagerService->IsOsAccountConstraintEnable(
         osAccountInfoOne.GetLocalId(), CONSTANTS_STRING_WIFI, isEnable), ERR_OK);
     EXPECT_EQ(isEnable, false);
-    osAccountControlFileManager_->DelOsAccount(osAccountInfoOne.GetLocalId());
+    EXPECT_EQ(g_osAccountManagerService->RemoveOsAccount(osAccountInfoOne.GetLocalId()), ERR_OK);
 }
 
 /**
@@ -462,6 +497,7 @@ HWTEST_F(OsAccountManagerServiceModuleTest, OsAccountManagerServiceModuleTest018
  */
 HWTEST_F(OsAccountManagerServiceModuleTest, OsAccountManagerServiceModuleTest019, TestSize.Level0)
 {
+    ACCOUNT_LOGI("OsAccountManagerServiceModuleTest019");
     bool isMultiOsAccountEnable = false;
     EXPECT_EQ(g_osAccountManagerService->IsMultiOsAccountEnable(isMultiOsAccountEnable), ERR_OK);
     EXPECT_EQ(isMultiOsAccountEnable, true);
@@ -475,6 +511,7 @@ HWTEST_F(OsAccountManagerServiceModuleTest, OsAccountManagerServiceModuleTest019
  */
 HWTEST_F(OsAccountManagerServiceModuleTest, OsAccountManagerServiceModuleTest020, TestSize.Level1)
 {
+    ACCOUNT_LOGI("OsAccountManagerServiceModuleTest020");
     bool isVerified = true;
     EXPECT_EQ(g_osAccountManagerService->IsOsAccountVerified(Constants::START_USER_ID, isVerified), ERR_OK);
     EXPECT_EQ(isVerified, false);
@@ -488,6 +525,7 @@ HWTEST_F(OsAccountManagerServiceModuleTest, OsAccountManagerServiceModuleTest020
  */
 HWTEST_F(OsAccountManagerServiceModuleTest, OsAccountManagerServiceModuleTest021, TestSize.Level1)
 {
+    ACCOUNT_LOGI("OsAccountManagerServiceModuleTest021");
     bool isVerified = true;
     EXPECT_EQ(g_osAccountManagerService->IsOsAccountVerified(Constants::MAX_USER_ID + 1, isVerified),
         ERR_OSACCOUNT_SERVICE_INNER_SELECT_OSACCOUNT_BYID_ERROR);
@@ -501,6 +539,7 @@ HWTEST_F(OsAccountManagerServiceModuleTest, OsAccountManagerServiceModuleTest021
  */
 HWTEST_F(OsAccountManagerServiceModuleTest, OsAccountManagerServiceModuleTest022, TestSize.Level1)
 {
+    ACCOUNT_LOGI("OsAccountManagerServiceModuleTest022");
     bool isVerified = true;
     EXPECT_EQ(g_osAccountManagerService->IsOsAccountVerified(Constants::MAX_USER_ID + 1, isVerified),
         ERR_OSACCOUNT_SERVICE_INNER_SELECT_OSACCOUNT_BYID_ERROR);
@@ -514,9 +553,11 @@ HWTEST_F(OsAccountManagerServiceModuleTest, OsAccountManagerServiceModuleTest022
  */
 HWTEST_F(OsAccountManagerServiceModuleTest, OsAccountManagerServiceModuleTest023, TestSize.Level1)
 {
+    ACCOUNT_LOGI("OsAccountManagerServiceModuleTest023");
     unsigned int osAccountsCount = 0;
     EXPECT_EQ(g_osAccountManagerService->GetCreatedOsAccountsCount(osAccountsCount), ERR_OK);
-    EXPECT_NE(osAccountsCount, 0);
+    bool checkExpected = (osAccountsCount > 0);
+    EXPECT_EQ(checkExpected, true);
 }
 
 /**
@@ -527,6 +568,7 @@ HWTEST_F(OsAccountManagerServiceModuleTest, OsAccountManagerServiceModuleTest023
  */
 HWTEST_F(OsAccountManagerServiceModuleTest, OsAccountManagerServiceModuleTest024, TestSize.Level1)
 {
+    ACCOUNT_LOGI("OsAccountManagerServiceModuleTest024");
     int id = -1;
     EXPECT_EQ(g_osAccountManagerService->GetOsAccountLocalIdFromProcess(id), ERR_OK);
 }
@@ -539,6 +581,7 @@ HWTEST_F(OsAccountManagerServiceModuleTest, OsAccountManagerServiceModuleTest024
  */
 HWTEST_F(OsAccountManagerServiceModuleTest, OsAccountManagerServiceModuleTest025, TestSize.Level1)
 {
+    ACCOUNT_LOGI("OsAccountManagerServiceModuleTest025");
     int maxOsAccountNumber = 0;
     EXPECT_EQ(g_osAccountManagerService->QueryMaxOsAccountNumber(maxOsAccountNumber), ERR_OK);
 }
@@ -551,6 +594,7 @@ HWTEST_F(OsAccountManagerServiceModuleTest, OsAccountManagerServiceModuleTest025
  */
 HWTEST_F(OsAccountManagerServiceModuleTest, OsAccountManagerServiceModuleTest026, TestSize.Level1)
 {
+    ACCOUNT_LOGI("OsAccountManagerServiceModuleTest026");
     std::vector<std::string> constraints;
     EXPECT_EQ(g_osAccountManagerService->GetOsAccountAllConstraints(Constants::START_USER_ID, constraints), ERR_OK);
     const unsigned int size = 0;
@@ -565,6 +609,7 @@ HWTEST_F(OsAccountManagerServiceModuleTest, OsAccountManagerServiceModuleTest026
  */
 HWTEST_F(OsAccountManagerServiceModuleTest, OsAccountManagerServiceModuleTest027, TestSize.Level1)
 {
+    ACCOUNT_LOGI("OsAccountManagerServiceModuleTest027");
     std::vector<std::string> constraints;
     EXPECT_EQ(g_osAccountManagerService->GetOsAccountAllConstraints(Constants::MAX_USER_ID + 1, constraints),
         ERR_OSACCOUNT_SERVICE_INNER_SELECT_OSACCOUNT_BYID_ERROR);
@@ -578,6 +623,7 @@ HWTEST_F(OsAccountManagerServiceModuleTest, OsAccountManagerServiceModuleTest027
  */
 HWTEST_F(OsAccountManagerServiceModuleTest, OsAccountManagerServiceModuleTest028, TestSize.Level1)
 {
+    ACCOUNT_LOGI("OsAccountManagerServiceModuleTest028");
     std::vector<OsAccountInfo> osAccountInfos;
     EXPECT_EQ(g_osAccountManagerService->QueryAllCreatedOsAccounts(osAccountInfos), ERR_OK);
     const unsigned int size = 0;
@@ -592,6 +638,7 @@ HWTEST_F(OsAccountManagerServiceModuleTest, OsAccountManagerServiceModuleTest028
  */
 HWTEST_F(OsAccountManagerServiceModuleTest, OsAccountManagerServiceModuleTest029, TestSize.Level1)
 {
+    ACCOUNT_LOGI("OsAccountManagerServiceModuleTest029");
     OsAccountInfo osAccountInfo;
     EXPECT_EQ(g_osAccountManagerService->QueryCurrentOsAccount(osAccountInfo), ERR_OK);
 }
@@ -604,6 +651,7 @@ HWTEST_F(OsAccountManagerServiceModuleTest, OsAccountManagerServiceModuleTest029
  */
 HWTEST_F(OsAccountManagerServiceModuleTest, OsAccountManagerServiceModuleTest030, TestSize.Level0)
 {
+    ACCOUNT_LOGI("OsAccountManagerServiceModuleTest030");
     OsAccountInfo osAccountInfo;
     EXPECT_EQ(g_osAccountManagerService->QueryOsAccountById(Constants::START_USER_ID, osAccountInfo), ERR_OK);
     EXPECT_EQ(Constants::START_USER_ID, osAccountInfo.GetLocalId());
@@ -617,6 +665,7 @@ HWTEST_F(OsAccountManagerServiceModuleTest, OsAccountManagerServiceModuleTest030
  */
 HWTEST_F(OsAccountManagerServiceModuleTest, OsAccountManagerServiceModuleTest031, TestSize.Level1)
 {
+    ACCOUNT_LOGI("OsAccountManagerServiceModuleTest031");
     OsAccountInfo osAccountInfo;
     EXPECT_EQ(g_osAccountManagerService->QueryOsAccountById(Constants::MAX_USER_ID + 1, osAccountInfo),
         ERR_OSACCOUNT_SERVICE_INNER_SELECT_OSACCOUNT_BYID_ERROR);
@@ -630,6 +679,7 @@ HWTEST_F(OsAccountManagerServiceModuleTest, OsAccountManagerServiceModuleTest031
  */
 HWTEST_F(OsAccountManagerServiceModuleTest, OsAccountManagerServiceModuleTest032, TestSize.Level1)
 {
+    ACCOUNT_LOGI("OsAccountManagerServiceModuleTest032");
     OsAccountType type;
     EXPECT_EQ(g_osAccountManagerService->GetOsAccountTypeFromProcess(type), ERR_OK);
 }
@@ -642,13 +692,16 @@ HWTEST_F(OsAccountManagerServiceModuleTest, OsAccountManagerServiceModuleTest032
  */
 HWTEST_F(OsAccountManagerServiceModuleTest, OsAccountManagerServiceModuleTest033, TestSize.Level1)
 {
+    ACCOUNT_LOGI("OsAccountManagerServiceModuleTest033");
     OsAccountInfo osAccountInfoOne;
-    g_osAccountManagerService->CreateOsAccount(STRING_TEST_NAME, INT_TEST_TYPE, osAccountInfoOne);
+    ASSERT_EQ(g_osAccountManagerService->CreateOsAccount(STRING_TEST_NAME, INT_TEST_TYPE, osAccountInfoOne),
+        ERR_OK);
     EXPECT_EQ(g_osAccountManagerService->SetOsAccountName(osAccountInfoOne.GetLocalId(), STRING_NAME), ERR_OK);
     OsAccountInfo osAccountInfoTwo;
-    g_osAccountManagerService->QueryOsAccountById(osAccountInfoOne.GetLocalId(), osAccountInfoTwo);
+    EXPECT_EQ(g_osAccountManagerService->QueryOsAccountById(osAccountInfoOne.GetLocalId(), osAccountInfoTwo),
+        ERR_OK);
     EXPECT_EQ(STRING_NAME, osAccountInfoTwo.GetLocalName());
-    osAccountControlFileManager_->DelOsAccount(osAccountInfoOne.GetLocalId());
+    EXPECT_EQ(g_osAccountManagerService->RemoveOsAccount(osAccountInfoOne.GetLocalId()), ERR_OK);
 }
 
 /**
@@ -659,10 +712,12 @@ HWTEST_F(OsAccountManagerServiceModuleTest, OsAccountManagerServiceModuleTest033
  */
 HWTEST_F(OsAccountManagerServiceModuleTest, OsAccountManagerServiceModuleTest034, TestSize.Level1)
 {
+    ACCOUNT_LOGI("OsAccountManagerServiceModuleTest034");
     OsAccountInfo osAccountInfoOne;
-    g_osAccountManagerService->CreateOsAccount(STRING_TEST_NAME, INT_TEST_TYPE, osAccountInfoOne);
+    ASSERT_EQ(g_osAccountManagerService->CreateOsAccount(STRING_TEST_NAME, INT_TEST_TYPE, osAccountInfoOne),
+        ERR_OK);
     EXPECT_NE(g_osAccountManagerService->SetOsAccountName(osAccountInfoOne.GetLocalId(), STRING_EMPTY), ERR_OK);
-    osAccountControlFileManager_->DelOsAccount(osAccountInfoOne.GetLocalId());
+    EXPECT_EQ(g_osAccountManagerService->RemoveOsAccount(osAccountInfoOne.GetLocalId()), ERR_OK);
 }
 
 /**
@@ -673,11 +728,13 @@ HWTEST_F(OsAccountManagerServiceModuleTest, OsAccountManagerServiceModuleTest034
  */
 HWTEST_F(OsAccountManagerServiceModuleTest, OsAccountManagerServiceModuleTest035, TestSize.Level1)
 {
+    ACCOUNT_LOGI("OsAccountManagerServiceModuleTest035");
     OsAccountInfo osAccountInfoOne;
-    g_osAccountManagerService->CreateOsAccount(STRING_TEST_NAME, INT_TEST_TYPE, osAccountInfoOne);
+    ASSERT_EQ(g_osAccountManagerService->CreateOsAccount(STRING_TEST_NAME, INT_TEST_TYPE, osAccountInfoOne),
+        ERR_OK);
     EXPECT_NE(g_osAccountManagerService->SetOsAccountName(
         osAccountInfoOne.GetLocalId(), STRING_NAME_OUT_OF_RANGE), ERR_OK);
-    osAccountControlFileManager_->DelOsAccount(osAccountInfoOne.GetLocalId());
+    EXPECT_EQ(g_osAccountManagerService->RemoveOsAccount(osAccountInfoOne.GetLocalId()), ERR_OK);
 }
 
 /**
@@ -688,6 +745,7 @@ HWTEST_F(OsAccountManagerServiceModuleTest, OsAccountManagerServiceModuleTest035
  */
 HWTEST_F(OsAccountManagerServiceModuleTest, OsAccountManagerServiceModuleTest036, TestSize.Level1)
 {
+    ACCOUNT_LOGI("OsAccountManagerServiceModuleTest036");
     int id = 0;
     EXPECT_EQ(g_osAccountManagerService->GetOsAccountLocalIdBySerialNumber(
         Constants::CARRY_NUM * Constants::SERIAL_NUMBER_NUM_START_FOR_ADMIN + 1, id), ERR_OK);
@@ -702,6 +760,7 @@ HWTEST_F(OsAccountManagerServiceModuleTest, OsAccountManagerServiceModuleTest036
  */
 HWTEST_F(OsAccountManagerServiceModuleTest, OsAccountManagerServiceModuleTest037, TestSize.Level1)
 {
+    ACCOUNT_LOGI("OsAccountManagerServiceModuleTest037");
     int id = 0;
     EXPECT_NE(g_osAccountManagerService->GetOsAccountLocalIdBySerialNumber(123, id), ERR_OK);
 }
@@ -714,6 +773,7 @@ HWTEST_F(OsAccountManagerServiceModuleTest, OsAccountManagerServiceModuleTest037
  */
 HWTEST_F(OsAccountManagerServiceModuleTest, OsAccountManagerServiceModuleTest038, TestSize.Level1)
 {
+    ACCOUNT_LOGI("OsAccountManagerServiceModuleTest038");
     int64_t serialNumber;
     EXPECT_EQ(g_osAccountManagerService->GetSerialNumberByOsAccountLocalId(
         Constants::START_USER_ID, serialNumber), ERR_OK);
@@ -728,6 +788,7 @@ HWTEST_F(OsAccountManagerServiceModuleTest, OsAccountManagerServiceModuleTest038
  */
 HWTEST_F(OsAccountManagerServiceModuleTest, OsAccountManagerServiceModuleTest039, TestSize.Level1)
 {
+    ACCOUNT_LOGI("OsAccountManagerServiceModuleTest039");
     int64_t serialNumber;
     EXPECT_NE(g_osAccountManagerService->GetSerialNumberByOsAccountLocalId(
         Constants::MAX_USER_ID + 1, serialNumber), ERR_OK);
@@ -741,10 +802,11 @@ HWTEST_F(OsAccountManagerServiceModuleTest, OsAccountManagerServiceModuleTest039
  */
 HWTEST_F(OsAccountManagerServiceModuleTest, OsAccountManagerServiceModuleTest040, TestSize.Level1)
 {
+    ACCOUNT_LOGI("OsAccountManagerServiceModuleTest040");
     OsAccountInfo osAccountInfoOne;
-    g_osAccountManagerService->CreateOsAccount(STRING_TEST_NAME, INT_TEST_TYPE, osAccountInfoOne);
+    ASSERT_EQ(g_osAccountManagerService->CreateOsAccount(STRING_TEST_NAME, INT_TEST_TYPE, osAccountInfoOne), ERR_OK);
     EXPECT_EQ(g_osAccountManagerService->SetOsAccountProfilePhoto(osAccountInfoOne.GetLocalId(), PHOTO_IMG), ERR_OK);
-    osAccountControlFileManager_->DelOsAccount(osAccountInfoOne.GetLocalId());
+    EXPECT_EQ(g_osAccountManagerService->RemoveOsAccount(osAccountInfoOne.GetLocalId()), ERR_OK);
 }
 
 /**
@@ -755,11 +817,12 @@ HWTEST_F(OsAccountManagerServiceModuleTest, OsAccountManagerServiceModuleTest040
  */
 HWTEST_F(OsAccountManagerServiceModuleTest, OsAccountManagerServiceModuleTest041, TestSize.Level1)
 {
+    ACCOUNT_LOGI("OsAccountManagerServiceModuleTest041");
     OsAccountInfo osAccountInfoOne;
-    g_osAccountManagerService->CreateOsAccount(STRING_TEST_NAME, INT_TEST_TYPE, osAccountInfoOne);
+    ASSERT_EQ(g_osAccountManagerService->CreateOsAccount(STRING_TEST_NAME, INT_TEST_TYPE, osAccountInfoOne), ERR_OK);
     EXPECT_NE(g_osAccountManagerService->SetOsAccountProfilePhoto(
         osAccountInfoOne.GetLocalId(), STRING_PHOTO_OUT_OF_RANGE), ERR_OK);
-    osAccountControlFileManager_->DelOsAccount(osAccountInfoOne.GetLocalId());
+    EXPECT_EQ(g_osAccountManagerService->RemoveOsAccount(osAccountInfoOne.GetLocalId()), ERR_OK);
 }
 
 /**
@@ -770,11 +833,12 @@ HWTEST_F(OsAccountManagerServiceModuleTest, OsAccountManagerServiceModuleTest041
  */
 HWTEST_F(OsAccountManagerServiceModuleTest, OsAccountManagerServiceModuleTest042, TestSize.Level1)
 {
+    ACCOUNT_LOGI("OsAccountManagerServiceModuleTest042");
     OsAccountInfo osAccountInfoOne;
-    g_osAccountManagerService->CreateOsAccount(STRING_TEST_NAME, INT_TEST_TYPE, osAccountInfoOne);
+    ASSERT_EQ(g_osAccountManagerService->CreateOsAccount(STRING_TEST_NAME, INT_TEST_TYPE, osAccountInfoOne), ERR_OK);
     EXPECT_NE(g_osAccountManagerService->SetOsAccountProfilePhoto(
         osAccountInfoOne.GetLocalId(), PHOTO_IMG_ERROR), ERR_OK);
-    osAccountControlFileManager_->DelOsAccount(osAccountInfoOne.GetLocalId());
+    EXPECT_EQ(g_osAccountManagerService->RemoveOsAccount(osAccountInfoOne.GetLocalId()), ERR_OK);
 }
 
 /**
@@ -785,13 +849,14 @@ HWTEST_F(OsAccountManagerServiceModuleTest, OsAccountManagerServiceModuleTest042
  */
 HWTEST_F(OsAccountManagerServiceModuleTest, OsAccountManagerServiceModuleTest043, TestSize.Level1)
 {
+    ACCOUNT_LOGI("OsAccountManagerServiceModuleTest043");
     OsAccountInfo osAccountInfoOne;
-    g_osAccountManagerService->CreateOsAccount(STRING_TEST_NAME, INT_TEST_TYPE, osAccountInfoOne);
-    g_osAccountManagerService->SetOsAccountProfilePhoto(osAccountInfoOne.GetLocalId(), PHOTO_IMG);
+    ASSERT_EQ(g_osAccountManagerService->CreateOsAccount(STRING_TEST_NAME, INT_TEST_TYPE, osAccountInfoOne), ERR_OK);
+    ASSERT_EQ(g_osAccountManagerService->SetOsAccountProfilePhoto(osAccountInfoOne.GetLocalId(), PHOTO_IMG), ERR_OK);
     std::string photo;
     EXPECT_EQ(g_osAccountManagerService->GetOsAccountProfilePhoto(osAccountInfoOne.GetLocalId(), photo), ERR_OK);
     EXPECT_EQ(photo, PHOTO_IMG);
-    osAccountControlFileManager_->DelOsAccount(osAccountInfoOne.GetLocalId());
+    EXPECT_EQ(g_osAccountManagerService->RemoveOsAccount(osAccountInfoOne.GetLocalId()), ERR_OK);
 }
 
 /**
@@ -802,11 +867,12 @@ HWTEST_F(OsAccountManagerServiceModuleTest, OsAccountManagerServiceModuleTest043
  */
 HWTEST_F(OsAccountManagerServiceModuleTest, OsAccountManagerServiceModuleTest044, TestSize.Level1)
 {
+    ACCOUNT_LOGI("OsAccountManagerServiceModuleTest044");
     OsAccountInfo osAccountInfoOne;
-    g_osAccountManagerService->CreateOsAccount(STRING_TEST_NAME, INT_TEST_TYPE, osAccountInfoOne);
+    ASSERT_EQ(g_osAccountManagerService->CreateOsAccount(STRING_TEST_NAME, INT_TEST_TYPE, osAccountInfoOne), ERR_OK);
     std::string photo;
     EXPECT_EQ(g_osAccountManagerService->GetOsAccountProfilePhoto(osAccountInfoOne.GetLocalId(), photo), ERR_OK);
-    osAccountControlFileManager_->DelOsAccount(osAccountInfoOne.GetLocalId());
+    EXPECT_EQ(g_osAccountManagerService->RemoveOsAccount(osAccountInfoOne.GetLocalId()), ERR_OK);
 }
 
 /**
@@ -817,6 +883,7 @@ HWTEST_F(OsAccountManagerServiceModuleTest, OsAccountManagerServiceModuleTest044
  */
 HWTEST_F(OsAccountManagerServiceModuleTest, OsAccountManagerServiceModuleTest045, TestSize.Level1)
 {
+    ACCOUNT_LOGI("OsAccountManagerServiceModuleTest045");
     std::string photo;
     EXPECT_EQ(g_osAccountManagerService->GetOsAccountProfilePhoto(Constants::MAX_USER_ID + 1, photo),
         ERR_OSACCOUNT_SERVICE_INNER_SELECT_OSACCOUNT_BYID_ERROR);
@@ -830,11 +897,12 @@ HWTEST_F(OsAccountManagerServiceModuleTest, OsAccountManagerServiceModuleTest045
  */
 HWTEST_F(OsAccountManagerServiceModuleTest, OsAccountManagerServiceModuleTest046, TestSize.Level1)
 {
+    ACCOUNT_LOGI("OsAccountManagerServiceModuleTest046");
     OsAccountInfo osAccountInfoOne;
-    g_osAccountManagerService->CreateOsAccount(STRING_TEST_NAME, INT_TEST_TYPE, osAccountInfoOne);
+    ASSERT_EQ(g_osAccountManagerService->CreateOsAccount(STRING_TEST_NAME, INT_TEST_TYPE, osAccountInfoOne), ERR_OK);
     EXPECT_EQ(g_osAccountManagerService->StartOsAccount(osAccountInfoOne.GetLocalId()), ERR_OK);
-    g_osAccountManagerService->StopOsAccount(osAccountInfoOne.GetLocalId());
-    osAccountControlFileManager_->DelOsAccount(osAccountInfoOne.GetLocalId());
+    EXPECT_EQ(g_osAccountManagerService->StopOsAccount(osAccountInfoOne.GetLocalId()), ERR_OK);
+    EXPECT_EQ(g_osAccountManagerService->RemoveOsAccount(osAccountInfoOne.GetLocalId()), ERR_OK);
 }
 
 /**
@@ -845,6 +913,7 @@ HWTEST_F(OsAccountManagerServiceModuleTest, OsAccountManagerServiceModuleTest046
  */
 HWTEST_F(OsAccountManagerServiceModuleTest, OsAccountManagerServiceModuleTest047, TestSize.Level1)
 {
+    ACCOUNT_LOGI("OsAccountManagerServiceModuleTest047");
     EXPECT_EQ(g_osAccountManagerService->StartOsAccount(Constants::MAX_USER_ID + 1),
         ERR_OK);
 }
@@ -857,6 +926,7 @@ HWTEST_F(OsAccountManagerServiceModuleTest, OsAccountManagerServiceModuleTest047
  */
 HWTEST_F(OsAccountManagerServiceModuleTest, OsAccountManagerServiceModuleTest048, TestSize.Level1)
 {
+    ACCOUNT_LOGI("OsAccountManagerServiceModuleTest048");
     EXPECT_EQ(g_osAccountManagerService->StartOsAccount(Constants::START_USER_ID),
         ERR_OK);
 }
@@ -869,11 +939,12 @@ HWTEST_F(OsAccountManagerServiceModuleTest, OsAccountManagerServiceModuleTest048
  */
 HWTEST_F(OsAccountManagerServiceModuleTest, OsAccountManagerServiceModuleTest049, TestSize.Level1)
 {
+    ACCOUNT_LOGI("OsAccountManagerServiceModuleTest049");
     OsAccountInfo osAccountInfoOne;
-    g_osAccountManagerService->CreateOsAccount(STRING_TEST_NAME, INT_TEST_TYPE, osAccountInfoOne);
-    g_osAccountManagerService->StartOsAccount(osAccountInfoOne.GetLocalId());
+    ASSERT_EQ(g_osAccountManagerService->CreateOsAccount(STRING_TEST_NAME, INT_TEST_TYPE, osAccountInfoOne), ERR_OK);
+    EXPECT_EQ(g_osAccountManagerService->StartOsAccount(osAccountInfoOne.GetLocalId()), ERR_OK);
     EXPECT_EQ(g_osAccountManagerService->StopOsAccount(osAccountInfoOne.GetLocalId()), ERR_OK);
-    osAccountControlFileManager_->DelOsAccount(osAccountInfoOne.GetLocalId());
+    EXPECT_EQ(g_osAccountManagerService->RemoveOsAccount(osAccountInfoOne.GetLocalId()), ERR_OK);
 }
 
 /**
@@ -884,6 +955,7 @@ HWTEST_F(OsAccountManagerServiceModuleTest, OsAccountManagerServiceModuleTest049
  */
 HWTEST_F(OsAccountManagerServiceModuleTest, OsAccountManagerServiceModuleTest050, TestSize.Level1)
 {
+    ACCOUNT_LOGI("OsAccountManagerServiceModuleTest050");
     EXPECT_EQ(g_osAccountManagerService->StopOsAccount(Constants::MAX_USER_ID + 1),
         ERR_OK);
 }
@@ -896,11 +968,14 @@ HWTEST_F(OsAccountManagerServiceModuleTest, OsAccountManagerServiceModuleTest050
  */
 HWTEST_F(OsAccountManagerServiceModuleTest, OsAccountManagerServiceModuleTest051, TestSize.Level1)
 {
+    ACCOUNT_LOGI("OsAccountManagerServiceModuleTest051");
     OsAccountInfo osAccountInfoOne;
-    g_osAccountManagerService->CreateOsAccount(STRING_TEST_NAME, INT_TEST_TYPE, osAccountInfoOne);
+    ASSERT_EQ(g_osAccountManagerService->CreateOsAccount(STRING_TEST_NAME, INT_TEST_TYPE, osAccountInfoOne), ERR_OK);
     EXPECT_EQ(g_osAccountManagerService->ActivateOsAccount(osAccountInfoOne.GetLocalId()), ERR_OK);
-    g_osAccountManagerService->ActivateOsAccount(Constants::START_USER_ID);
-    osAccountControlFileManager_->DelOsAccount(osAccountInfoOne.GetLocalId());
+    std::this_thread::sleep_for(std::chrono::milliseconds(DELAY_FOR_OPERATION));
+    std::this_thread::sleep_for(std::chrono::milliseconds(DELAY_FOR_OPERATION));
+    EXPECT_EQ(g_osAccountManagerService->ActivateOsAccount(Constants::START_USER_ID), ERR_OK);
+    EXPECT_EQ(g_osAccountManagerService->RemoveOsAccount(osAccountInfoOne.GetLocalId()), ERR_OK);
 }
 
 /**
@@ -911,6 +986,7 @@ HWTEST_F(OsAccountManagerServiceModuleTest, OsAccountManagerServiceModuleTest051
  */
 HWTEST_F(OsAccountManagerServiceModuleTest, OsAccountManagerServiceModuleTest052, TestSize.Level1)
 {
+    ACCOUNT_LOGI("OsAccountManagerServiceModuleTest052");
     bool isOsAccountCompleted = false;
     EXPECT_EQ(g_osAccountManagerService->IsOsAccountCompleted(
         Constants::START_USER_ID, isOsAccountCompleted), ERR_OK);
@@ -925,6 +1001,7 @@ HWTEST_F(OsAccountManagerServiceModuleTest, OsAccountManagerServiceModuleTest052
  */
 HWTEST_F(OsAccountManagerServiceModuleTest, OsAccountManagerServiceModuleTest053, TestSize.Level1)
 {
+    ACCOUNT_LOGI("OsAccountManagerServiceModuleTest053");
     bool isOsAccountCompleted = false;
     EXPECT_NE(g_osAccountManagerService->IsOsAccountCompleted(
         Constants::MAX_USER_ID + 1, isOsAccountCompleted), ERR_OK);
@@ -938,14 +1015,15 @@ HWTEST_F(OsAccountManagerServiceModuleTest, OsAccountManagerServiceModuleTest053
  */
 HWTEST_F(OsAccountManagerServiceModuleTest, OsAccountManagerServiceModuleTest054, TestSize.Level1)
 {
+    ACCOUNT_LOGI("OsAccountManagerServiceModuleTest054");
     bool isVerified = true;
     OsAccountInfo osAccountInfoOne;
-    g_osAccountManagerService->CreateOsAccount(STRING_TEST_NAME, INT_TEST_TYPE, osAccountInfoOne);
+    ASSERT_EQ(g_osAccountManagerService->CreateOsAccount(STRING_TEST_NAME, INT_TEST_TYPE, osAccountInfoOne), ERR_OK);
     EXPECT_EQ(g_osAccountManagerService->SetOsAccountIsVerified(osAccountInfoOne.GetLocalId(), isVerified), ERR_OK);
     OsAccountInfo osAccountInfoTwo;
-    g_osAccountManagerService->QueryOsAccountById(osAccountInfoOne.GetLocalId(), osAccountInfoTwo);
+    EXPECT_EQ(g_osAccountManagerService->QueryOsAccountById(osAccountInfoOne.GetLocalId(), osAccountInfoTwo), ERR_OK);
     EXPECT_EQ(isVerified, osAccountInfoTwo.GetIsVerified());
-    osAccountControlFileManager_->DelOsAccount(osAccountInfoOne.GetLocalId());
+    EXPECT_EQ(g_osAccountManagerService->RemoveOsAccount(osAccountInfoOne.GetLocalId()), ERR_OK);
 }
 
 /**
@@ -956,6 +1034,7 @@ HWTEST_F(OsAccountManagerServiceModuleTest, OsAccountManagerServiceModuleTest054
  */
 HWTEST_F(OsAccountManagerServiceModuleTest, OsAccountManagerServiceModuleTest055, TestSize.Level1)
 {
+    ACCOUNT_LOGI("OsAccountManagerServiceModuleTest055");
     bool isVerified = true;
     EXPECT_NE(g_osAccountManagerService->SetOsAccountIsVerified(Constants::MAX_USER_ID + 1, isVerified), ERR_OK);
 }
@@ -968,6 +1047,7 @@ HWTEST_F(OsAccountManagerServiceModuleTest, OsAccountManagerServiceModuleTest055
  */
 HWTEST_F(OsAccountManagerServiceModuleTest, OsAccountManagerServiceModuleTest056, TestSize.Level1)
 {
+    ACCOUNT_LOGI("OsAccountManagerServiceModuleTest056");
     bool isVerified = true;
     EXPECT_NE(g_osAccountManagerService->SetCurrentOsAccountIsVerified(isVerified), ERR_OK);
 }
@@ -980,16 +1060,17 @@ HWTEST_F(OsAccountManagerServiceModuleTest, OsAccountManagerServiceModuleTest056
  */
 HWTEST_F(OsAccountManagerServiceModuleTest, OsAccountManagerServiceModuleTest057, TestSize.Level1)
 {
+    ACCOUNT_LOGI("OsAccountManagerServiceModuleTest057");
     OsAccountType type = NORMAL;
     DomainAccountInfo domainInfo(STRING_DOMAIN_VALID, STRING_DOMAIN_ACCOUNT_NAME_VALID);
     OsAccountInfo osAccountInfo;
-    EXPECT_EQ(g_osAccountManagerService->CreateOsAccountForDomain(type, domainInfo, osAccountInfo), ERR_OK);
+    ASSERT_EQ(g_osAccountManagerService->CreateOsAccountForDomain(type, domainInfo, osAccountInfo), ERR_OK);
 
     bool checkValid = (osAccountInfo.GetLocalId() > Constants::START_USER_ID);
     EXPECT_EQ(checkValid, true);
 
     OsAccountInfo resOsAccountInfo;
-    EXPECT_EQ(osAccountControlFileManager_->GetOsAccountInfoById(osAccountInfo.GetLocalId(), resOsAccountInfo),
+    EXPECT_EQ(g_osAccountControlFileManager->GetOsAccountInfoById(osAccountInfo.GetLocalId(), resOsAccountInfo),
         ERR_OK);
 
     DomainAccountInfo resDomainInfo;
@@ -1003,7 +1084,7 @@ HWTEST_F(OsAccountManagerServiceModuleTest, OsAccountManagerServiceModuleTest057
     checkValid = (resOsAccountInfo.GetLocalName() == osAccountName);
     EXPECT_EQ(checkValid, true);
 
-    EXPECT_EQ(osAccountControlFileManager_->DelOsAccount(resOsAccountInfo.GetLocalId()), ERR_OK);
+    EXPECT_EQ(g_osAccountManagerService->RemoveOsAccount(resOsAccountInfo.GetLocalId()), ERR_OK);
 }
 
 /**
@@ -1014,17 +1095,18 @@ HWTEST_F(OsAccountManagerServiceModuleTest, OsAccountManagerServiceModuleTest057
  */
 HWTEST_F(OsAccountManagerServiceModuleTest, OsAccountManagerServiceModuleTest058, TestSize.Level1)
 {
+    ACCOUNT_LOGI("OsAccountManagerServiceModuleTest058");
     // create
     DomainAccountInfo domainInfo(STRING_DOMAIN_VALID, STRING_DOMAIN_ACCOUNT_NAME_VALID);
     OsAccountType type = NORMAL;
     OsAccountInfo osAccountInfo;
-    EXPECT_EQ(g_osAccountManagerService->CreateOsAccountForDomain(type, domainInfo, osAccountInfo), ERR_OK);
+    ASSERT_EQ(g_osAccountManagerService->CreateOsAccountForDomain(type, domainInfo, osAccountInfo), ERR_OK);
 
     bool checkValid = (osAccountInfo.GetLocalId() > Constants::START_USER_ID);
     EXPECT_EQ(checkValid, true);
 
     OsAccountInfo resOsAccountInfo;
-    EXPECT_EQ(osAccountControlFileManager_->GetOsAccountInfoById(osAccountInfo.GetLocalId(), resOsAccountInfo),
+    EXPECT_EQ(g_osAccountControlFileManager->GetOsAccountInfoById(osAccountInfo.GetLocalId(), resOsAccountInfo),
         ERR_OK);
 
     DomainAccountInfo resDomainInfo;
@@ -1040,6 +1122,7 @@ HWTEST_F(OsAccountManagerServiceModuleTest, OsAccountManagerServiceModuleTest058
 
     // activate
     EXPECT_EQ(g_osAccountManagerService->ActivateOsAccount(osAccountInfo.GetLocalId()), ERR_OK);
+    std::this_thread::sleep_for(std::chrono::milliseconds(DELAY_FOR_OPERATION));
 
     // check
     OsAccountInfo queryAccountInfo;
@@ -1050,7 +1133,7 @@ HWTEST_F(OsAccountManagerServiceModuleTest, OsAccountManagerServiceModuleTest058
     EXPECT_EQ(checkValid, true);
 
     // remove
-    EXPECT_EQ(osAccountControlFileManager_->DelOsAccount(osAccountInfo.GetLocalId()), ERR_OK);
+    EXPECT_EQ(g_osAccountManagerService->RemoveOsAccount(osAccountInfo.GetLocalId()), ERR_OK);
 }
 
 /**
@@ -1061,10 +1144,11 @@ HWTEST_F(OsAccountManagerServiceModuleTest, OsAccountManagerServiceModuleTest058
  */
 HWTEST_F(OsAccountManagerServiceModuleTest, OsAccountManagerServiceModuleTest059, TestSize.Level1)
 {
+    ACCOUNT_LOGI("OsAccountManagerServiceModuleTest059");
     DomainAccountInfo domainNameInvalid(STRING_DOMAIN_NAME_OUT_OF_RANGE, STRING_DOMAIN_ACCOUNT_NAME_VALID);
     OsAccountType type = NORMAL;
     OsAccountInfo osAccountInfo;
-    EXPECT_EQ(g_osAccountManagerService->CreateOsAccountForDomain(type, domainNameInvalid, osAccountInfo),
+    ASSERT_EQ(g_osAccountManagerService->CreateOsAccountForDomain(type, domainNameInvalid, osAccountInfo),
         ERR_OSACCOUNT_SERVICE_MANAGER_NAME_SIZE_OVERFLOW_ERROR);
 
     DomainAccountInfo domainAccountNameInvalid(STRING_DOMAIN_VALID, STRING_DOMAIN_ACCOUNT_NAME_OUT_OF_RANGE);
@@ -1088,18 +1172,19 @@ HWTEST_F(OsAccountManagerServiceModuleTest, OsAccountManagerServiceModuleTest059
  */
 HWTEST_F(OsAccountManagerServiceModuleTest, OsAccountManagerServiceModuleTest060, TestSize.Level1)
 {
+    ACCOUNT_LOGI("OsAccountManagerServiceModuleTest060");
     // create
     DomainAccountInfo domainInfo(STRING_DOMAIN_VALID, STRING_DOMAIN_ACCOUNT_NAME_VALID);
     OsAccountType type = NORMAL;
     OsAccountInfo osAccountInfo;
-    EXPECT_EQ(g_osAccountManagerService->CreateOsAccountForDomain(type, domainInfo, osAccountInfo), ERR_OK);
+    ASSERT_EQ(g_osAccountManagerService->CreateOsAccountForDomain(type, domainInfo, osAccountInfo), ERR_OK);
 
     // create again
     EXPECT_EQ(g_osAccountManagerService->CreateOsAccountForDomain(type, domainInfo, osAccountInfo),
         ERR_OSACCOUNT_SERVICE_INNER_DOMAIN_ALREADY_BIND_ERROR);
 
     // remove
-    EXPECT_EQ(osAccountControlFileManager_->DelOsAccount(osAccountInfo.GetLocalId()), ERR_OK);
+    EXPECT_EQ(g_osAccountManagerService->RemoveOsAccount(osAccountInfo.GetLocalId()), ERR_OK);
 }
 
 /**
@@ -1110,24 +1195,25 @@ HWTEST_F(OsAccountManagerServiceModuleTest, OsAccountManagerServiceModuleTest060
  */
 HWTEST_F(OsAccountManagerServiceModuleTest, OsAccountManagerServiceModuleTest061, TestSize.Level1)
 {
+    ACCOUNT_LOGI("OsAccountManagerServiceModuleTest061");
     // create
     DomainAccountInfo domainInfo(STRING_DOMAIN_VALID, STRING_DOMAIN_ACCOUNT_NAME_VALID);
     OsAccountType type = NORMAL;
     OsAccountInfo osAccountInfo;
-    EXPECT_EQ(g_osAccountManagerService->CreateOsAccountForDomain(type, domainInfo, osAccountInfo), ERR_OK);
+    ASSERT_EQ(g_osAccountManagerService->CreateOsAccountForDomain(type, domainInfo, osAccountInfo), ERR_OK);
 
     // create again
     EXPECT_EQ(g_osAccountManagerService->CreateOsAccountForDomain(type, domainInfo, osAccountInfo),
         ERR_OSACCOUNT_SERVICE_INNER_DOMAIN_ALREADY_BIND_ERROR);
 
     // remove
-    EXPECT_EQ(osAccountControlFileManager_->DelOsAccount(osAccountInfo.GetLocalId()), ERR_OK);
+    EXPECT_EQ(g_osAccountManagerService->RemoveOsAccount(osAccountInfo.GetLocalId()), ERR_OK);
 
     // create again
-    EXPECT_EQ(g_osAccountManagerService->CreateOsAccountForDomain(type, domainInfo, osAccountInfo), ERR_OK);
+    ASSERT_EQ(g_osAccountManagerService->CreateOsAccountForDomain(type, domainInfo, osAccountInfo), ERR_OK);
 
     // remove
-    EXPECT_EQ(osAccountControlFileManager_->DelOsAccount(osAccountInfo.GetLocalId()), ERR_OK);
+    EXPECT_EQ(g_osAccountManagerService->RemoveOsAccount(osAccountInfo.GetLocalId()), ERR_OK);
 }
 
 /**
@@ -1138,11 +1224,12 @@ HWTEST_F(OsAccountManagerServiceModuleTest, OsAccountManagerServiceModuleTest061
  */
 HWTEST_F(OsAccountManagerServiceModuleTest, OsAccountManagerServiceModuleTest062, TestSize.Level1)
 {
+    ACCOUNT_LOGI("OsAccountManagerServiceModuleTest062");
     // create
     DomainAccountInfo domainInfo(STRING_DOMAIN_VALID, STRING_DOMAIN_ACCOUNT_NAME_VALID);
     OsAccountType type = NORMAL;
     OsAccountInfo osAccountInfo;
-    EXPECT_EQ(g_osAccountManagerService->CreateOsAccountForDomain(type, domainInfo, osAccountInfo), ERR_OK);
+    ASSERT_EQ(g_osAccountManagerService->CreateOsAccountForDomain(type, domainInfo, osAccountInfo), ERR_OK);
 
     // get os account local id by domain
     int resID = -1;
@@ -1150,7 +1237,7 @@ HWTEST_F(OsAccountManagerServiceModuleTest, OsAccountManagerServiceModuleTest062
     EXPECT_EQ(resID, osAccountInfo.GetLocalId());
 
     // remove
-    EXPECT_EQ(osAccountControlFileManager_->DelOsAccount(osAccountInfo.GetLocalId()), ERR_OK);
+    EXPECT_EQ(g_osAccountManagerService->RemoveOsAccount(osAccountInfo.GetLocalId()), ERR_OK);
 }
 
 /**
@@ -1161,11 +1248,12 @@ HWTEST_F(OsAccountManagerServiceModuleTest, OsAccountManagerServiceModuleTest062
  */
 HWTEST_F(OsAccountManagerServiceModuleTest, OsAccountManagerServiceModuleTest063, TestSize.Level1)
 {
+    ACCOUNT_LOGI("OsAccountManagerServiceModuleTest063");
     // create
     DomainAccountInfo domainInfo(STRING_DOMAIN_VALID, STRING_DOMAIN_ACCOUNT_NAME_VALID);
     OsAccountType type = NORMAL;
     OsAccountInfo osAccountInfo;
-    EXPECT_EQ(g_osAccountManagerService->CreateOsAccountForDomain(type, domainInfo, osAccountInfo), ERR_OK);
+    ASSERT_EQ(g_osAccountManagerService->CreateOsAccountForDomain(type, domainInfo, osAccountInfo), ERR_OK);
 
     // get os account local id by domain
     int resID = -1;
@@ -1173,7 +1261,7 @@ HWTEST_F(OsAccountManagerServiceModuleTest, OsAccountManagerServiceModuleTest063
     EXPECT_EQ(resID, osAccountInfo.GetLocalId());
 
     // remove
-    EXPECT_EQ(osAccountControlFileManager_->DelOsAccount(osAccountInfo.GetLocalId()), ERR_OK);
+    EXPECT_EQ(g_osAccountManagerService->RemoveOsAccount(osAccountInfo.GetLocalId()), ERR_OK);
 
     // cannot query
     EXPECT_EQ(g_osAccountManagerService->GetOsAccountLocalIdFromDomain(domainInfo, resID),
@@ -1188,6 +1276,7 @@ HWTEST_F(OsAccountManagerServiceModuleTest, OsAccountManagerServiceModuleTest063
  */
 HWTEST_F(OsAccountManagerServiceModuleTest, OsAccountManagerServiceModuleTest064, TestSize.Level1)
 {
+    ACCOUNT_LOGI("OsAccountManagerServiceModuleTest064");
     DomainAccountInfo domainAllEmpty("", "");
     int resLocalId = -1;
     ErrCode ret = g_osAccountManagerService->GetOsAccountLocalIdFromDomain(domainAllEmpty, resLocalId);
@@ -1222,6 +1311,7 @@ HWTEST_F(OsAccountManagerServiceModuleTest, OsAccountManagerServiceModuleTest064
  */
 HWTEST_F(OsAccountManagerServiceModuleTest, OsAccountManagerServiceModuleTest067, TestSize.Level1)
 {
+    ACCOUNT_LOGI("OsAccountManagerServiceModuleTest067");
     std::vector<int32_t> ids;
     EXPECT_EQ(g_osAccountManagerService->QueryActiveOsAccountIds(ids), ERR_OK);
     for (auto it = ids.begin(); it != ids.end(); it++) {

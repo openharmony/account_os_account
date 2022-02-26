@@ -14,7 +14,7 @@
  */
 
 #include <gtest/gtest.h>
-
+#include <thread>
 #include "account_log_wrapper.h"
 #define private public
 #include "app_account.h"
@@ -30,8 +30,8 @@ using namespace OHOS;
 using namespace OHOS::AccountSA;
 
 namespace {
-const std::string STRING_NAME = "name";
-const std::string STRING_NAME_TWO = "name_two";
+const std::string STRING_NAME = "app_account_subsrcibe_mt_name";
+const std::string STRING_NAME_TWO = "app_account_subsrcibe_mt_name_two";
 const std::string STRING_OWNER = "com.example.owner";
 const std::string STRING_BUNDLE_NAME = "com.example.third_party";
 const std::string STRING_BUNDLE_NAME_TWO = "com.example.third_party_two";
@@ -42,9 +42,12 @@ const time_t TIME_OUT_SECONDS_LIMIT = 5;
 constexpr std::int32_t UID = 10000;
 constexpr std::size_t SIZE_ZERO = 0;
 constexpr std::size_t SIZE_ONE = 1;
-
+constexpr std::int32_t WAIT_FOR_EXIT = 1000;
 std::int32_t g_counter = 0;
 constexpr std::int32_t COUNTER_MAX = 2;
+std::shared_ptr<AppAccountControlManager> g_controlManagerPtr = std::make_shared<AppAccountControlManager>();
+std::shared_ptr<AppAccountManagerService> g_appAccountManagerServicePtr =
+    std::make_shared<AppAccountManagerService>();
 }  // namespace
 
 class AppAccountManagerServiceSubscribeModuleTest : public testing::Test {
@@ -53,45 +56,24 @@ public:
     static void TearDownTestCase(void);
     void SetUp(void) override;
     void TearDown(void) override;
-
-    void DeleteKvStore(void);
-
-    std::shared_ptr<AppAccountControlManager> controlManagerPtr_;
 };
 
 void AppAccountManagerServiceSubscribeModuleTest::SetUpTestCase(void)
-{}
+{
+    GTEST_LOG_(INFO) << "SetUpTestCase";
+}
 
 void AppAccountManagerServiceSubscribeModuleTest::TearDownTestCase(void)
-{}
+{
+    std::this_thread::sleep_for(std::chrono::milliseconds(WAIT_FOR_EXIT));
+    GTEST_LOG_(INFO) << "TearDownTestCase";
+}
 
 void AppAccountManagerServiceSubscribeModuleTest::SetUp(void)
-{
-    DeleteKvStore();
-}
+{}
 
 void AppAccountManagerServiceSubscribeModuleTest::TearDown(void)
-{
-    DeleteKvStore();
-}
-
-void AppAccountManagerServiceSubscribeModuleTest::DeleteKvStore(void)
-{
-    controlManagerPtr_ = AppAccountControlManager::GetInstance();
-    ASSERT_NE(controlManagerPtr_, nullptr);
-
-    auto dataStoragePtr = controlManagerPtr_->GetDataStorage(UID);
-    ASSERT_NE(dataStoragePtr, nullptr);
-
-    ErrCode result = dataStoragePtr->DeleteKvStore();
-    ASSERT_EQ(result, ERR_OK);
-
-    dataStoragePtr = controlManagerPtr_->GetDataStorage(UID, true);
-    ASSERT_NE(dataStoragePtr, nullptr);
-
-    result = dataStoragePtr->DeleteKvStore();
-    ASSERT_EQ(result, ERR_OK);
-}
+{}
 
 class AppAccountSubscriberTest : public AppAccountSubscriber {
 public:
@@ -276,22 +258,19 @@ HWTEST_F(AppAccountManagerServiceSubscribeModuleTest, AppAccountManagerServiceSu
         subscriberTestPtr, appAccountEventListener);
     EXPECT_EQ(subscribeState, AppAccount::INITIAL_SUBSCRIPTION);
 
-    auto servicePtr = std::make_shared<AppAccountManagerService>();
-    ASSERT_NE(servicePtr, nullptr);
-
     // subscribe app account
-    ErrCode result = servicePtr->SubscribeAppAccount(subscribeInfo, appAccountEventListener);
+    ErrCode result = g_appAccountManagerServicePtr->SubscribeAppAccount(subscribeInfo, appAccountEventListener);
     EXPECT_EQ(result, ERR_OK);
 
     // lock the mutex
     g_mtx.lock();
 
     // add app account
-    result = servicePtr->AddAccount(STRING_NAME, STRING_EXTRA_INFO);
+    result = g_appAccountManagerServicePtr->AddAccount(STRING_NAME, STRING_EXTRA_INFO);
     EXPECT_EQ(result, ERR_OK);
 
     // set app account extra info
-    result = servicePtr->SetAccountExtraInfo(STRING_NAME, STRING_EXTRA_INFO);
+    result = g_appAccountManagerServicePtr->SetAccountExtraInfo(STRING_NAME, STRING_EXTRA_INFO);
     EXPECT_EQ(result, ERR_OK);
 
     // record start time
@@ -315,11 +294,11 @@ HWTEST_F(AppAccountManagerServiceSubscribeModuleTest, AppAccountManagerServiceSu
     EXPECT_LT(seconds, TIME_OUT_SECONDS_LIMIT);
 
     // unsubscribe app account
-    result = servicePtr->UnsubscribeAppAccount(appAccountEventListener);
+    result = g_appAccountManagerServicePtr->UnsubscribeAppAccount(appAccountEventListener);
     EXPECT_EQ(result, ERR_OK);
 
     // delete account
-    result = servicePtr->DeleteAccount(STRING_NAME);
+    result = g_appAccountManagerServicePtr->DeleteAccount(STRING_NAME);
     EXPECT_EQ(result, ERR_OK);
 
     // unlock the mutex
@@ -354,15 +333,12 @@ HWTEST_F(AppAccountManagerServiceSubscribeModuleTest, AppAccountManagerServiceSu
         subscriberTestPtr, appAccountEventListener);
     EXPECT_EQ(subscribeState, AppAccount::INITIAL_SUBSCRIPTION);
 
-    auto servicePtr = std::make_shared<AppAccountManagerService>();
-    ASSERT_NE(servicePtr, nullptr);
-
     // subscribe app account
-    ErrCode result = servicePtr->SubscribeAppAccount(subscribeInfo, appAccountEventListener);
+    ErrCode result = g_appAccountManagerServicePtr->SubscribeAppAccount(subscribeInfo, appAccountEventListener);
     EXPECT_EQ(result, ERR_OK);
 
     // unsubscribe app account
-    result = servicePtr->UnsubscribeAppAccount(appAccountEventListener);
+    result = g_appAccountManagerServicePtr->UnsubscribeAppAccount(appAccountEventListener);
     EXPECT_EQ(result, ERR_OK);
 }
 
@@ -394,11 +370,8 @@ HWTEST_F(AppAccountManagerServiceSubscribeModuleTest, AppAccountManagerServiceSu
         subscriberTestPtr, appAccountEventListener);
     EXPECT_EQ(subscribeState, AppAccount::INITIAL_SUBSCRIPTION);
 
-    auto servicePtr = std::make_shared<AppAccountManagerService>();
-    ASSERT_NE(servicePtr, nullptr);
-
     // subscribe app account
-    ErrCode result = servicePtr->SubscribeAppAccount(subscribeInfo, appAccountEventListener);
+    ErrCode result = g_appAccountManagerServicePtr->SubscribeAppAccount(subscribeInfo, appAccountEventListener);
     EXPECT_EQ(result, ERR_APPACCOUNT_SERVICE_SUBSCRIBE_PERMISSON_DENIED);
 }
 
@@ -417,11 +390,11 @@ HWTEST_F(AppAccountManagerServiceSubscribeModuleTest, AppAccountManagerServiceSu
     std::string name = STRING_NAME;
     std::string bundleName = STRING_BUNDLE_NAME;
     AppAccountInfo appAccountInfo(name, bundleName);
-    ErrCode result = controlManagerPtr_->AddAccount(name, STRING_EXTRA_INFO, UID, bundleName, appAccountInfo);
+    ErrCode result = g_controlManagerPtr->AddAccount(name, STRING_EXTRA_INFO, UID, bundleName, appAccountInfo);
     EXPECT_EQ(result, ERR_OK);
 
     // enable app access
-    result = controlManagerPtr_->EnableAppAccess(name, STRING_OWNER, UID, bundleName, appAccountInfo);
+    result = g_controlManagerPtr->EnableAppAccess(name, STRING_OWNER, UID, bundleName, appAccountInfo);
     EXPECT_EQ(result, ERR_OK);
 
     // make owners
@@ -441,15 +414,16 @@ HWTEST_F(AppAccountManagerServiceSubscribeModuleTest, AppAccountManagerServiceSu
         subscriberTestPtr, appAccountEventListener);
     EXPECT_EQ(subscribeState, AppAccount::INITIAL_SUBSCRIPTION);
 
-    auto servicePtr = std::make_shared<AppAccountManagerService>();
-    ASSERT_NE(servicePtr, nullptr);
-
     // subscribe app account
-    result = servicePtr->SubscribeAppAccount(subscribeInfo, appAccountEventListener);
+    result = g_appAccountManagerServicePtr->SubscribeAppAccount(subscribeInfo, appAccountEventListener);
     EXPECT_EQ(result, ERR_OK);
 
     // unsubscribe app account
-    result = servicePtr->UnsubscribeAppAccount(appAccountEventListener);
+    result = g_appAccountManagerServicePtr->UnsubscribeAppAccount(appAccountEventListener);
+    EXPECT_EQ(result, ERR_OK);
+
+    // delete account
+    result = g_controlManagerPtr->DeleteAccount(name, UID, bundleName, appAccountInfo);
     EXPECT_EQ(result, ERR_OK);
 }
 
@@ -464,15 +438,14 @@ HWTEST_F(AppAccountManagerServiceSubscribeModuleTest, AppAccountManagerServiceSu
 {
     ACCOUNT_LOGI("AppAccountManagerServiceSubscribe_SubscribeAppAccount_0500");
 
-    auto servicePtr = std::make_shared<AppAccountManagerService>();
-    ASSERT_NE(servicePtr, nullptr);
-
     // add an account
-    ErrCode result = servicePtr->innerManager_->AddAccount(STRING_NAME, STRING_EXTRA_INFO, UID, STRING_BUNDLE_NAME);
+    ErrCode result = g_appAccountManagerServicePtr->innerManager_->AddAccount(STRING_NAME,
+        STRING_EXTRA_INFO, UID, STRING_BUNDLE_NAME);
     EXPECT_EQ(result, ERR_OK);
 
     // enable app access
-    result = servicePtr->innerManager_->EnableAppAccess(STRING_NAME, STRING_OWNER, UID, STRING_BUNDLE_NAME);
+    result = g_appAccountManagerServicePtr->innerManager_->EnableAppAccess(STRING_NAME,
+        STRING_OWNER, UID, STRING_BUNDLE_NAME);
     EXPECT_EQ(result, ERR_OK);
 
     // make owners
@@ -493,18 +466,20 @@ HWTEST_F(AppAccountManagerServiceSubscribeModuleTest, AppAccountManagerServiceSu
     EXPECT_EQ(subscribeState, AppAccount::INITIAL_SUBSCRIPTION);
 
     // subscribe app account
-    result = servicePtr->SubscribeAppAccount(subscribeInfo, appAccountEventListener);
+    result = g_appAccountManagerServicePtr->SubscribeAppAccount(subscribeInfo, appAccountEventListener);
     EXPECT_EQ(result, ERR_OK);
 
     // lock the mutex
     g_mtx.lock();
 
     // disable app access
-    result = servicePtr->innerManager_->DisableAppAccess(STRING_NAME, STRING_OWNER, UID, STRING_BUNDLE_NAME);
+    result = g_appAccountManagerServicePtr->innerManager_->DisableAppAccess(STRING_NAME,
+        STRING_OWNER, UID, STRING_BUNDLE_NAME);
     EXPECT_EQ(result, ERR_OK);
 
     // set extra info
-    result = servicePtr->innerManager_->SetAccountExtraInfo(STRING_NAME, STRING_EXTRA_INFO, UID, STRING_BUNDLE_NAME);
+    result = g_appAccountManagerServicePtr->innerManager_->SetAccountExtraInfo(STRING_NAME,
+        STRING_EXTRA_INFO, UID, STRING_BUNDLE_NAME);
     EXPECT_EQ(result, ERR_OK);
 
     // record start time
@@ -528,7 +503,11 @@ HWTEST_F(AppAccountManagerServiceSubscribeModuleTest, AppAccountManagerServiceSu
     EXPECT_LT(seconds, TIME_OUT_SECONDS_LIMIT);
 
     // unsubscribe app account
-    result = servicePtr->UnsubscribeAppAccount(appAccountEventListener);
+    result = g_appAccountManagerServicePtr->UnsubscribeAppAccount(appAccountEventListener);
+    EXPECT_EQ(result, ERR_OK);
+
+    // delete account
+    result = g_appAccountManagerServicePtr->innerManager_->DeleteAccount(STRING_NAME, UID, STRING_BUNDLE_NAME);
     EXPECT_EQ(result, ERR_OK);
 
     // unlock the mutex
@@ -546,17 +525,17 @@ HWTEST_F(AppAccountManagerServiceSubscribeModuleTest, AppAccountManagerServiceSu
 {
     ACCOUNT_LOGI("AppAccountManagerServiceSubscribe_SubscribeAppAccount_0600");
 
-    auto servicePtr = std::make_shared<AppAccountManagerService>();
-    ASSERT_NE(servicePtr, nullptr);
-
     // add an account
-    ErrCode result = servicePtr->innerManager_->AddAccount(STRING_NAME, STRING_EXTRA_INFO, UID, STRING_BUNDLE_NAME);
+    ErrCode result = g_appAccountManagerServicePtr->innerManager_->AddAccount(STRING_NAME,
+        STRING_EXTRA_INFO, UID, STRING_BUNDLE_NAME);
     EXPECT_EQ(result, ERR_OK);
-    result = servicePtr->innerManager_->AddAccount(STRING_NAME_TWO, STRING_EXTRA_INFO, UID, STRING_BUNDLE_NAME);
+    result = g_appAccountManagerServicePtr->innerManager_->AddAccount(STRING_NAME_TWO,
+        STRING_EXTRA_INFO, UID, STRING_BUNDLE_NAME);
     EXPECT_EQ(result, ERR_OK);
 
     // enable app access
-    result = servicePtr->innerManager_->EnableAppAccess(STRING_NAME, STRING_OWNER, UID, STRING_BUNDLE_NAME);
+    result = g_appAccountManagerServicePtr->innerManager_->EnableAppAccess(STRING_NAME,
+        STRING_OWNER, UID, STRING_BUNDLE_NAME);
     EXPECT_EQ(result, ERR_OK);
 
     // make owners
@@ -577,18 +556,20 @@ HWTEST_F(AppAccountManagerServiceSubscribeModuleTest, AppAccountManagerServiceSu
     EXPECT_EQ(subscribeState, AppAccount::INITIAL_SUBSCRIPTION);
 
     // subscribe app account
-    result = servicePtr->SubscribeAppAccount(subscribeInfo, appAccountEventListener);
+    result = g_appAccountManagerServicePtr->SubscribeAppAccount(subscribeInfo, appAccountEventListener);
     EXPECT_EQ(result, ERR_OK);
 
     // lock the mutex
     g_mtx.lock();
 
     // disable app access
-    result = servicePtr->innerManager_->DisableAppAccess(STRING_NAME, STRING_OWNER, UID, STRING_BUNDLE_NAME);
+    result = g_appAccountManagerServicePtr->innerManager_->DisableAppAccess(STRING_NAME,
+        STRING_OWNER, UID, STRING_BUNDLE_NAME);
     EXPECT_EQ(result, ERR_OK);
 
     // set extra info
-    result = servicePtr->innerManager_->SetAccountExtraInfo(STRING_NAME, STRING_EXTRA_INFO, UID, STRING_BUNDLE_NAME);
+    result = g_appAccountManagerServicePtr->innerManager_->SetAccountExtraInfo(STRING_NAME,
+        STRING_EXTRA_INFO, UID, STRING_BUNDLE_NAME);
     EXPECT_EQ(result, ERR_OK);
 
     // record start time
@@ -612,7 +593,13 @@ HWTEST_F(AppAccountManagerServiceSubscribeModuleTest, AppAccountManagerServiceSu
     EXPECT_LT(seconds, TIME_OUT_SECONDS_LIMIT);
 
     // unsubscribe app account
-    result = servicePtr->UnsubscribeAppAccount(appAccountEventListener);
+    result = g_appAccountManagerServicePtr->UnsubscribeAppAccount(appAccountEventListener);
+    EXPECT_EQ(result, ERR_OK);
+
+    // delete account
+    result = g_appAccountManagerServicePtr->innerManager_->DeleteAccount(STRING_NAME, UID, STRING_BUNDLE_NAME);
+    EXPECT_EQ(result, ERR_OK);
+    result = g_appAccountManagerServicePtr->innerManager_->DeleteAccount(STRING_NAME_TWO, UID, STRING_BUNDLE_NAME);
     EXPECT_EQ(result, ERR_OK);
 
     // unlock the mutex
@@ -630,17 +617,17 @@ HWTEST_F(AppAccountManagerServiceSubscribeModuleTest, AppAccountManagerServiceSu
 {
     ACCOUNT_LOGI("AppAccountManagerServiceSubscribe_SubscribeAppAccount_0700");
 
-    auto servicePtr = std::make_shared<AppAccountManagerService>();
-    ASSERT_NE(servicePtr, nullptr);
-
     // add an account
-    ErrCode result = servicePtr->innerManager_->AddAccount(STRING_NAME, STRING_EXTRA_INFO, UID, STRING_BUNDLE_NAME);
+    ErrCode result = g_appAccountManagerServicePtr->innerManager_->AddAccount(STRING_NAME,
+        STRING_EXTRA_INFO, UID, STRING_BUNDLE_NAME);
     EXPECT_EQ(result, ERR_OK);
-    result = servicePtr->innerManager_->AddAccount(STRING_NAME_TWO, STRING_EXTRA_INFO, UID, STRING_BUNDLE_NAME);
+    result = g_appAccountManagerServicePtr->innerManager_->AddAccount(STRING_NAME_TWO,
+        STRING_EXTRA_INFO, UID, STRING_BUNDLE_NAME);
     EXPECT_EQ(result, ERR_OK);
 
     // enable app access
-    result = servicePtr->innerManager_->EnableAppAccess(STRING_NAME, STRING_OWNER, UID, STRING_BUNDLE_NAME);
+    result = g_appAccountManagerServicePtr->innerManager_->EnableAppAccess(STRING_NAME,
+        STRING_OWNER, UID, STRING_BUNDLE_NAME);
     EXPECT_EQ(result, ERR_OK);
 
     // make owners
@@ -661,14 +648,15 @@ HWTEST_F(AppAccountManagerServiceSubscribeModuleTest, AppAccountManagerServiceSu
     EXPECT_EQ(subscribeState, AppAccount::INITIAL_SUBSCRIPTION);
 
     // subscribe app account
-    result = servicePtr->SubscribeAppAccount(subscribeInfo, appAccountEventListener);
+    result = g_appAccountManagerServicePtr->SubscribeAppAccount(subscribeInfo, appAccountEventListener);
     EXPECT_EQ(result, ERR_OK);
 
     // lock the mutex
     g_mtx.lock();
 
     // set extra info
-    result = servicePtr->innerManager_->SetAccountExtraInfo(STRING_NAME, STRING_EXTRA_INFO, UID, STRING_BUNDLE_NAME);
+    result = g_appAccountManagerServicePtr->innerManager_->SetAccountExtraInfo(STRING_NAME,
+        STRING_EXTRA_INFO, UID, STRING_BUNDLE_NAME);
     EXPECT_EQ(result, ERR_OK);
 
     // record start time
@@ -692,7 +680,13 @@ HWTEST_F(AppAccountManagerServiceSubscribeModuleTest, AppAccountManagerServiceSu
     EXPECT_LT(seconds, TIME_OUT_SECONDS_LIMIT);
 
     // unsubscribe app account
-    result = servicePtr->UnsubscribeAppAccount(appAccountEventListener);
+    result = g_appAccountManagerServicePtr->UnsubscribeAppAccount(appAccountEventListener);
+    EXPECT_EQ(result, ERR_OK);
+
+    // delete account
+    result = g_appAccountManagerServicePtr->innerManager_->DeleteAccount(STRING_NAME, UID, STRING_BUNDLE_NAME);
+    EXPECT_EQ(result, ERR_OK);
+    result = g_appAccountManagerServicePtr->innerManager_->DeleteAccount(STRING_NAME_TWO, UID, STRING_BUNDLE_NAME);
     EXPECT_EQ(result, ERR_OK);
 
     // unlock the mutex
@@ -710,11 +704,8 @@ HWTEST_F(AppAccountManagerServiceSubscribeModuleTest, AppAccountManagerServiceSu
 {
     ACCOUNT_LOGI("AppAccountManagerServiceSubscribe_SubscribeAppAccount_0800");
 
-    auto servicePtr = std::make_shared<AppAccountManagerService>();
-    ASSERT_NE(servicePtr, nullptr);
-
     // add app account
-    ErrCode result = servicePtr->AddAccount(STRING_NAME, STRING_EXTRA_INFO);
+    ErrCode result = g_appAccountManagerServicePtr->AddAccount(STRING_NAME, STRING_EXTRA_INFO);
     EXPECT_EQ(result, ERR_OK);
 
     // make owners
@@ -735,7 +726,7 @@ HWTEST_F(AppAccountManagerServiceSubscribeModuleTest, AppAccountManagerServiceSu
     EXPECT_EQ(subscribeState, AppAccount::INITIAL_SUBSCRIPTION);
 
     // subscribe app account
-    result = servicePtr->SubscribeAppAccount(subscribeInfo, appAccountEventListener);
+    result = g_appAccountManagerServicePtr->SubscribeAppAccount(subscribeInfo, appAccountEventListener);
     EXPECT_EQ(result, ERR_OK);
 
     // make a subscriber
@@ -749,14 +740,14 @@ HWTEST_F(AppAccountManagerServiceSubscribeModuleTest, AppAccountManagerServiceSu
     EXPECT_EQ(subscribeState, AppAccount::INITIAL_SUBSCRIPTION);
 
     // subscribe app account
-    result = servicePtr->SubscribeAppAccount(subscribeInfo, appAccountEventListenerTwo);
+    result = g_appAccountManagerServicePtr->SubscribeAppAccount(subscribeInfo, appAccountEventListenerTwo);
     EXPECT_EQ(result, ERR_OK);
 
     // lock the mutex
     g_mtx.lock();
 
     // set extra info
-    result = servicePtr->SetAccountExtraInfo(STRING_NAME, STRING_EXTRA_INFO);
+    result = g_appAccountManagerServicePtr->SetAccountExtraInfo(STRING_NAME, STRING_EXTRA_INFO);
     EXPECT_EQ(result, ERR_OK);
 
     // record start time
@@ -780,11 +771,15 @@ HWTEST_F(AppAccountManagerServiceSubscribeModuleTest, AppAccountManagerServiceSu
     EXPECT_LT(seconds, TIME_OUT_SECONDS_LIMIT);
 
     // unsubscribe app account
-    result = servicePtr->UnsubscribeAppAccount(appAccountEventListener);
+    result = g_appAccountManagerServicePtr->UnsubscribeAppAccount(appAccountEventListener);
     EXPECT_EQ(result, ERR_OK);
 
     // unsubscribe app account
-    result = servicePtr->UnsubscribeAppAccount(appAccountEventListenerTwo);
+    result = g_appAccountManagerServicePtr->UnsubscribeAppAccount(appAccountEventListenerTwo);
+    EXPECT_EQ(result, ERR_OK);
+
+    // delete app account
+    result = g_appAccountManagerServicePtr->DeleteAccount(STRING_NAME);
     EXPECT_EQ(result, ERR_OK);
 
     // unlock the mutex

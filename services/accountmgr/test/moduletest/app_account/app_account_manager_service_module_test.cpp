@@ -74,6 +74,11 @@ constexpr std::size_t SIZE_ZERO = 0;
 constexpr std::size_t SIZE_ONE = 1;
 constexpr std::size_t SIZE_TWO = 2;
 constexpr std::int32_t DELAY_FOR_PACKAGE_REMOVED = 3;
+constexpr std::int32_t DELAY_FOR_MESSAGE = 1000;
+constexpr std::int32_t WAIT_FOR_ONE_CASE = 1000;
+std::shared_ptr<AppAccountControlManager> g_controlManagerPtr = AppAccountControlManager::GetInstance();
+std::shared_ptr<AppAccountManagerService> g_accountManagerService =
+    std::make_shared<AppAccountManagerService>();
 }  // namespace
 
 class AppAccountManagerServiceModuleTest : public testing::Test {
@@ -82,40 +87,38 @@ public:
     static void TearDownTestCase(void);
     void SetUp(void) override;
     void TearDown(void) override;
-
     void DeleteKvStore(void);
-
-    std::shared_ptr<AppAccountControlManager> controlManagerPtr_;
 };
 
 void AppAccountManagerServiceModuleTest::SetUpTestCase(void)
-{}
+{
+    GTEST_LOG_(INFO) << "SetUpTestCase";
+}
 
 void AppAccountManagerServiceModuleTest::TearDownTestCase(void)
-{}
+{
+    GTEST_LOG_(INFO) << "TearDownTestCase enter";
+    std::this_thread::sleep_for(std::chrono::milliseconds(DELAY_FOR_MESSAGE));
+    GTEST_LOG_(INFO) << "TearDownTestCase exit";
+}
 
 void AppAccountManagerServiceModuleTest::SetUp(void)
 {
-    DeleteKvStore();
+    std::this_thread::sleep_for(std::chrono::milliseconds(WAIT_FOR_ONE_CASE));
 }
 
 void AppAccountManagerServiceModuleTest::TearDown(void)
-{
-    DeleteKvStore();
-}
+{}
 
 void AppAccountManagerServiceModuleTest::DeleteKvStore(void)
 {
-    controlManagerPtr_ = AppAccountControlManager::GetInstance();
-    ASSERT_NE(controlManagerPtr_, nullptr);
-
-    auto dataStoragePtr = controlManagerPtr_->GetDataStorage(UID);
+    auto dataStoragePtr = g_controlManagerPtr->GetDataStorage(UID);
     ASSERT_NE(dataStoragePtr, nullptr);
 
     ErrCode result = dataStoragePtr->DeleteKvStore();
     ASSERT_EQ(result, ERR_OK);
 
-    dataStoragePtr = controlManagerPtr_->GetDataStorage(UID, true);
+    dataStoragePtr = g_controlManagerPtr->GetDataStorage(UID, true);
     ASSERT_NE(dataStoragePtr, nullptr);
 
     result = dataStoragePtr->DeleteKvStore();
@@ -132,14 +135,12 @@ HWTEST_F(AppAccountManagerServiceModuleTest, AppAccountManagerService_AddAccount
 {
     ACCOUNT_LOGI("AppAccountManagerService_AddAccount_0100");
 
-    auto servicePtr = std::make_shared<AppAccountManagerService>();
-    ASSERT_NE(servicePtr, nullptr);
-
-    ErrCode result = servicePtr->AddAccount(STRING_NAME, STRING_EXTRA_INFO);
+    ErrCode result = g_accountManagerService->AddAccount(STRING_NAME, STRING_EXTRA_INFO);
     EXPECT_EQ(result, ERR_OK);
 
-    result = servicePtr->DeleteAccount(STRING_NAME);
+    result = g_accountManagerService->DeleteAccount(STRING_NAME);
     EXPECT_EQ(result, ERR_OK);
+    std::this_thread::sleep_for(std::chrono::milliseconds(DELAY_FOR_MESSAGE));
 }
 
 /**
@@ -152,13 +153,10 @@ HWTEST_F(AppAccountManagerServiceModuleTest, AppAccountManagerService_AddAccount
 {
     ACCOUNT_LOGI("AppAccountManagerService_AddAccount_0200");
 
-    auto servicePtr = std::make_shared<AppAccountManagerService>();
-    ASSERT_NE(servicePtr, nullptr);
-
-    ErrCode result = servicePtr->AddAccount(STRING_NAME, STRING_EMPTY);
+    ErrCode result = g_accountManagerService->AddAccount(STRING_NAME, STRING_EMPTY);
     EXPECT_EQ(result, ERR_OK);
 
-    result = servicePtr->DeleteAccount(STRING_NAME);
+    result = g_accountManagerService->DeleteAccount(STRING_NAME);
     EXPECT_EQ(result, ERR_OK);
 }
 
@@ -172,13 +170,10 @@ HWTEST_F(AppAccountManagerServiceModuleTest, AppAccountManagerService_AddAccount
 {
     ACCOUNT_LOGI("AppAccountManagerService_AddAccount_0300");
 
-    auto servicePtr = std::make_shared<AppAccountManagerService>();
-    ASSERT_NE(servicePtr, nullptr);
-
-    ErrCode result = servicePtr->AddAccount(STRING_NAME, STRING_EXTRA_INFO);
+    ErrCode result = g_accountManagerService->AddAccount(STRING_NAME, STRING_EXTRA_INFO);
     EXPECT_EQ(result, ERR_OK);
 
-    result = servicePtr->DeleteAccount(STRING_NAME);
+    result = g_accountManagerService->DeleteAccount(STRING_NAME);
     EXPECT_EQ(result, ERR_OK);
 }
 
@@ -192,13 +187,10 @@ HWTEST_F(AppAccountManagerServiceModuleTest, AppAccountManagerService_AddAccount
 {
     ACCOUNT_LOGI("AppAccountManagerService_AddAccount_0400");
 
-    auto servicePtr = std::make_shared<AppAccountManagerService>();
-    ASSERT_NE(servicePtr, nullptr);
-
-    ErrCode result = servicePtr->AddAccount(STRING_NAME_MAX_SIZE, STRING_EXTRA_INFO);
+    ErrCode result = g_accountManagerService->AddAccount(STRING_NAME_MAX_SIZE, STRING_EXTRA_INFO);
     EXPECT_EQ(result, ERR_OK);
 
-    result = servicePtr->DeleteAccount(STRING_NAME_MAX_SIZE);
+    result = g_accountManagerService->DeleteAccount(STRING_NAME_MAX_SIZE);
     EXPECT_EQ(result, ERR_OK);
 }
 
@@ -212,16 +204,13 @@ HWTEST_F(AppAccountManagerServiceModuleTest, AppAccountManagerService_AddAccount
 {
     ACCOUNT_LOGI("AppAccountManagerService_AddAccount_0500");
 
-    auto servicePtr = std::make_shared<AppAccountManagerService>();
-    ASSERT_NE(servicePtr, nullptr);
-
-    ErrCode result = servicePtr->AddAccount(STRING_NAME, STRING_EXTRA_INFO);
+    ErrCode result = g_accountManagerService->AddAccount(STRING_NAME, STRING_EXTRA_INFO);
     EXPECT_EQ(result, ERR_OK);
 
-    result = servicePtr->AddAccount(STRING_NAME, STRING_EXTRA_INFO);
+    result = g_accountManagerService->AddAccount(STRING_NAME, STRING_EXTRA_INFO);
     EXPECT_EQ(result, ERR_APPACCOUNT_SERVICE_ADD_EXISTING_ACCOUNT);
 
-    result = servicePtr->DeleteAccount(STRING_NAME);
+    result = g_accountManagerService->DeleteAccount(STRING_NAME);
     EXPECT_EQ(result, ERR_OK);
 }
 
@@ -235,19 +224,16 @@ HWTEST_F(AppAccountManagerServiceModuleTest, AppAccountManagerService_DeleteAcco
 {
     ACCOUNT_LOGI("AppAccountManagerService_DeleteAccount_0100");
 
-    auto servicePtr = std::make_shared<AppAccountManagerService>();
-    ASSERT_NE(servicePtr, nullptr);
-
-    ErrCode result = servicePtr->AddAccount(STRING_NAME, STRING_EXTRA_INFO);
+    ErrCode result = g_accountManagerService->AddAccount(STRING_NAME, STRING_EXTRA_INFO);
     EXPECT_EQ(result, ERR_OK);
 
-    result = servicePtr->EnableAppAccess(STRING_NAME, STRING_BUNDLE_NAME);
+    result = g_accountManagerService->EnableAppAccess(STRING_NAME, STRING_BUNDLE_NAME);
     EXPECT_EQ(result, ERR_OK);
 
-    result = servicePtr->DeleteAccount(STRING_NAME);
+    result = g_accountManagerService->DeleteAccount(STRING_NAME);
     EXPECT_EQ(result, ERR_OK);
 
-    auto dataStoragePtr = controlManagerPtr_->GetDataStorage(UID);
+    auto dataStoragePtr = g_controlManagerPtr->GetDataStorage(UID);
     ASSERT_NE(dataStoragePtr, nullptr);
 
     std::vector<std::string> accessibleAccounts;
@@ -266,10 +252,7 @@ HWTEST_F(AppAccountManagerServiceModuleTest, AppAccountManagerService_DeleteAcco
 {
     ACCOUNT_LOGI("AppAccountManagerService_DeleteAccount_0200");
 
-    auto servicePtr = std::make_shared<AppAccountManagerService>();
-    ASSERT_NE(servicePtr, nullptr);
-
-    ErrCode result = servicePtr->DeleteAccount(STRING_NAME_NOT_EXISTED);
+    ErrCode result = g_accountManagerService->DeleteAccount(STRING_NAME_NOT_EXISTED);
     EXPECT_EQ(result, ERR_APPACCOUNT_SERVICE_GET_ACCOUNT_INFO_BY_ID);
 }
 
@@ -283,18 +266,15 @@ HWTEST_F(AppAccountManagerServiceModuleTest, AppAccountManagerService_GetAccount
 {
     ACCOUNT_LOGI("AppAccountManagerService_GetAccountExtraInfo_0100");
 
-    auto servicePtr = std::make_shared<AppAccountManagerService>();
-    ASSERT_NE(servicePtr, nullptr);
-
-    ErrCode result = servicePtr->AddAccount(STRING_NAME, STRING_EXTRA_INFO);
+    ErrCode result = g_accountManagerService->AddAccount(STRING_NAME, STRING_EXTRA_INFO);
     EXPECT_EQ(result, ERR_OK);
 
     std::string extraInfo;
-    result = servicePtr->GetAccountExtraInfo(STRING_NAME, extraInfo);
+    result = g_accountManagerService->GetAccountExtraInfo(STRING_NAME, extraInfo);
     EXPECT_EQ(result, ERR_OK);
     EXPECT_EQ(extraInfo, STRING_EXTRA_INFO);
 
-    result = servicePtr->DeleteAccount(STRING_NAME);
+    result = g_accountManagerService->DeleteAccount(STRING_NAME);
     EXPECT_EQ(result, ERR_OK);
 }
 
@@ -308,11 +288,8 @@ HWTEST_F(AppAccountManagerServiceModuleTest, AppAccountManagerService_GetAccount
 {
     ACCOUNT_LOGI("AppAccountManagerService_GetAccountExtraInfo_0200");
 
-    auto servicePtr = std::make_shared<AppAccountManagerService>();
-    ASSERT_NE(servicePtr, nullptr);
-
     std::string extraInfo;
-    ErrCode result = servicePtr->GetAccountExtraInfo(STRING_NAME, extraInfo);
+    ErrCode result = g_accountManagerService->GetAccountExtraInfo(STRING_NAME, extraInfo);
     EXPECT_EQ(result, ERR_APPACCOUNT_SERVICE_GET_ACCOUNT_INFO_BY_ID);
     EXPECT_EQ(extraInfo, STRING_EMPTY);
 }
@@ -327,21 +304,18 @@ HWTEST_F(AppAccountManagerServiceModuleTest, AppAccountManagerService_SetAccount
 {
     ACCOUNT_LOGI("AppAccountManagerService_SetAccountExtraInfo_0100");
 
-    auto servicePtr = std::make_shared<AppAccountManagerService>();
-    ASSERT_NE(servicePtr, nullptr);
-
-    ErrCode result = servicePtr->AddAccount(STRING_NAME, STRING_EXTRA_INFO);
+    ErrCode result = g_accountManagerService->AddAccount(STRING_NAME, STRING_EXTRA_INFO);
     EXPECT_EQ(result, ERR_OK);
 
-    result = servicePtr->SetAccountExtraInfo(STRING_NAME, STRING_EXTRA_INFO);
+    result = g_accountManagerService->SetAccountExtraInfo(STRING_NAME, STRING_EXTRA_INFO);
     EXPECT_EQ(result, ERR_OK);
 
     std::string extraInfo;
-    result = servicePtr->GetAccountExtraInfo(STRING_NAME, extraInfo);
+    result = g_accountManagerService->GetAccountExtraInfo(STRING_NAME, extraInfo);
     EXPECT_EQ(result, ERR_OK);
     EXPECT_EQ(extraInfo, STRING_EXTRA_INFO);
 
-    result = servicePtr->DeleteAccount(STRING_NAME);
+    result = g_accountManagerService->DeleteAccount(STRING_NAME);
     EXPECT_EQ(result, ERR_OK);
 }
 
@@ -355,21 +329,18 @@ HWTEST_F(AppAccountManagerServiceModuleTest, AppAccountManagerService_SetAccount
 {
     ACCOUNT_LOGI("AppAccountManagerService_SetAccountExtraInfo_0200");
 
-    auto servicePtr = std::make_shared<AppAccountManagerService>();
-    ASSERT_NE(servicePtr, nullptr);
-
-    ErrCode result = servicePtr->AddAccount(STRING_NAME, STRING_EXTRA_INFO);
+    ErrCode result = g_accountManagerService->AddAccount(STRING_NAME, STRING_EXTRA_INFO);
     EXPECT_EQ(result, ERR_OK);
 
-    result = servicePtr->SetAccountExtraInfo(STRING_NAME, STRING_EMPTY);
+    result = g_accountManagerService->SetAccountExtraInfo(STRING_NAME, STRING_EMPTY);
     EXPECT_EQ(result, ERR_OK);
 
     std::string extraInfo;
-    result = servicePtr->GetAccountExtraInfo(STRING_NAME, extraInfo);
+    result = g_accountManagerService->GetAccountExtraInfo(STRING_NAME, extraInfo);
     EXPECT_EQ(result, ERR_OK);
     EXPECT_EQ(extraInfo, STRING_EMPTY);
 
-    result = servicePtr->DeleteAccount(STRING_NAME);
+    result = g_accountManagerService->DeleteAccount(STRING_NAME);
     EXPECT_EQ(result, ERR_OK);
 }
 
@@ -383,10 +354,7 @@ HWTEST_F(AppAccountManagerServiceModuleTest, AppAccountManagerService_SetAccount
 {
     ACCOUNT_LOGI("AppAccountManagerService_SetAccountExtraInfo_0300");
 
-    auto servicePtr = std::make_shared<AppAccountManagerService>();
-    ASSERT_NE(servicePtr, nullptr);
-
-    ErrCode result = servicePtr->SetAccountExtraInfo(STRING_NAME, STRING_EXTRA_INFO);
+    ErrCode result = g_accountManagerService->SetAccountExtraInfo(STRING_NAME, STRING_EXTRA_INFO);
     EXPECT_EQ(result, ERR_APPACCOUNT_SERVICE_GET_ACCOUNT_INFO_BY_ID);
 }
 
@@ -400,19 +368,16 @@ HWTEST_F(AppAccountManagerServiceModuleTest, seAppAccountManagerService_EnableAp
 {
     ACCOUNT_LOGI("seAppAccountManagerService_EnableAppAccess_0100");
 
-    auto servicePtr = std::make_shared<AppAccountManagerService>();
-    ASSERT_NE(servicePtr, nullptr);
-
-    ErrCode result = servicePtr->AddAccount(STRING_NAME, STRING_EXTRA_INFO);
+    ErrCode result = g_accountManagerService->AddAccount(STRING_NAME, STRING_EXTRA_INFO);
     EXPECT_EQ(result, ERR_OK);
 
-    result = servicePtr->EnableAppAccess(STRING_NAME, STRING_BUNDLE_NAME);
+    result = g_accountManagerService->EnableAppAccess(STRING_NAME, STRING_BUNDLE_NAME);
     EXPECT_EQ(result, ERR_OK);
 
-    result = servicePtr->DisableAppAccess(STRING_NAME, STRING_BUNDLE_NAME);
+    result = g_accountManagerService->DisableAppAccess(STRING_NAME, STRING_BUNDLE_NAME);
     EXPECT_EQ(result, ERR_OK);
 
-    result = servicePtr->DeleteAccount(STRING_NAME);
+    result = g_accountManagerService->DeleteAccount(STRING_NAME);
     EXPECT_EQ(result, ERR_OK);
 }
 
@@ -426,16 +391,13 @@ HWTEST_F(AppAccountManagerServiceModuleTest, seAppAccountManagerService_EnableAp
 {
     ACCOUNT_LOGI("seAppAccountManagerService_EnableAppAccess_0200");
 
-    auto servicePtr = std::make_shared<AppAccountManagerService>();
-    ASSERT_NE(servicePtr, nullptr);
-
-    ErrCode result = servicePtr->AddAccount(STRING_NAME, STRING_EXTRA_INFO);
+    ErrCode result = g_accountManagerService->AddAccount(STRING_NAME, STRING_EXTRA_INFO);
     EXPECT_EQ(result, ERR_OK);
 
-    result = servicePtr->EnableAppAccess(STRING_NAME, STRING_OWNER);
+    result = g_accountManagerService->EnableAppAccess(STRING_NAME, STRING_OWNER);
     EXPECT_EQ(result, ERR_APPACCOUNT_SERVICE_BUNDLE_NAME_IS_THE_SAME);
 
-    result = servicePtr->DeleteAccount(STRING_NAME);
+    result = g_accountManagerService->DeleteAccount(STRING_NAME);
     EXPECT_EQ(result, ERR_OK);
 }
 
@@ -449,19 +411,16 @@ HWTEST_F(AppAccountManagerServiceModuleTest, seAppAccountManagerService_EnableAp
 {
     ACCOUNT_LOGI("seAppAccountManagerService_EnableAppAccess_0300");
 
-    auto servicePtr = std::make_shared<AppAccountManagerService>();
-    ASSERT_NE(servicePtr, nullptr);
-
-    ErrCode result = servicePtr->AddAccount(STRING_NAME, STRING_EXTRA_INFO);
+    ErrCode result = g_accountManagerService->AddAccount(STRING_NAME, STRING_EXTRA_INFO);
     EXPECT_EQ(result, ERR_OK);
 
-    result = servicePtr->EnableAppAccess(STRING_NAME, STRING_BUNDLE_NAME);
+    result = g_accountManagerService->EnableAppAccess(STRING_NAME, STRING_BUNDLE_NAME);
     EXPECT_EQ(result, ERR_OK);
 
-    result = servicePtr->EnableAppAccess(STRING_NAME, STRING_BUNDLE_NAME);
+    result = g_accountManagerService->EnableAppAccess(STRING_NAME, STRING_BUNDLE_NAME);
     EXPECT_EQ(result, ERR_APPACCOUNT_SERVICE_ENABLE_APP_ACCESS_ALREADY_EXISTS);
 
-    result = servicePtr->DeleteAccount(STRING_NAME);
+    result = g_accountManagerService->DeleteAccount(STRING_NAME);
     EXPECT_EQ(result, ERR_OK);
 }
 
@@ -475,10 +434,7 @@ HWTEST_F(AppAccountManagerServiceModuleTest, seAppAccountManagerService_EnableAp
 {
     ACCOUNT_LOGI("seAppAccountManagerService_EnableAppAccess_0400");
 
-    auto servicePtr = std::make_shared<AppAccountManagerService>();
-    ASSERT_NE(servicePtr, nullptr);
-
-    ErrCode result = servicePtr->EnableAppAccess(STRING_NAME, STRING_BUNDLE_NAME);
+    ErrCode result = g_accountManagerService->EnableAppAccess(STRING_NAME, STRING_BUNDLE_NAME);
     EXPECT_EQ(result, ERR_APPACCOUNT_SERVICE_GET_ACCOUNT_INFO_BY_ID);
 }
 
@@ -492,16 +448,13 @@ HWTEST_F(AppAccountManagerServiceModuleTest, seAppAccountManagerService_DisableA
 {
     ACCOUNT_LOGI("seAppAccountManagerService_DisableAppAccess_0100");
 
-    auto servicePtr = std::make_shared<AppAccountManagerService>();
-    ASSERT_NE(servicePtr, nullptr);
-
-    ErrCode result = servicePtr->AddAccount(STRING_NAME, STRING_EXTRA_INFO);
+    ErrCode result = g_accountManagerService->AddAccount(STRING_NAME, STRING_EXTRA_INFO);
     EXPECT_EQ(result, ERR_OK);
 
-    result = servicePtr->DisableAppAccess(STRING_NAME, STRING_BUNDLE_NAME);
+    result = g_accountManagerService->DisableAppAccess(STRING_NAME, STRING_BUNDLE_NAME);
     EXPECT_EQ(result, ERR_APPACCOUNT_SERVICE_DISABLE_APP_ACCESS_NOT_EXISTED);
 
-    result = servicePtr->DeleteAccount(STRING_NAME);
+    result = g_accountManagerService->DeleteAccount(STRING_NAME);
     EXPECT_EQ(result, ERR_OK);
 }
 
@@ -515,10 +468,7 @@ HWTEST_F(AppAccountManagerServiceModuleTest, seAppAccountManagerService_DisableA
 {
     ACCOUNT_LOGI("seAppAccountManagerService_DisableAppAccess_0200");
 
-    auto servicePtr = std::make_shared<AppAccountManagerService>();
-    ASSERT_NE(servicePtr, nullptr);
-
-    ErrCode result = servicePtr->DisableAppAccess(STRING_NAME, STRING_BUNDLE_NAME);
+    ErrCode result = g_accountManagerService->DisableAppAccess(STRING_NAME, STRING_BUNDLE_NAME);
     EXPECT_EQ(result, ERR_APPACCOUNT_SERVICE_GET_ACCOUNT_INFO_BY_ID);
 }
 
@@ -533,18 +483,15 @@ HWTEST_F(
 {
     ACCOUNT_LOGI("seAppAccountManagerService_CheckAppAccountSyncEnable_0100");
 
-    auto servicePtr = std::make_shared<AppAccountManagerService>();
-    ASSERT_NE(servicePtr, nullptr);
-
-    ErrCode result = servicePtr->AddAccount(STRING_NAME, STRING_EXTRA_INFO);
+    ErrCode result = g_accountManagerService->AddAccount(STRING_NAME, STRING_EXTRA_INFO);
     EXPECT_EQ(result, ERR_OK);
 
     bool syncEnable = SYNC_ENABLE_FALSE;
-    result = servicePtr->CheckAppAccountSyncEnable(STRING_NAME, syncEnable);
+    result = g_accountManagerService->CheckAppAccountSyncEnable(STRING_NAME, syncEnable);
     EXPECT_EQ(result, ERR_OK);
     EXPECT_EQ(syncEnable, SYNC_ENABLE_FALSE);
 
-    result = servicePtr->DeleteAccount(STRING_NAME);
+    result = g_accountManagerService->DeleteAccount(STRING_NAME);
     EXPECT_EQ(result, ERR_OK);
 }
 
@@ -559,11 +506,8 @@ HWTEST_F(
 {
     ACCOUNT_LOGI("seAppAccountManagerService_CheckAppAccountSyncEnable_0200");
 
-    auto servicePtr = std::make_shared<AppAccountManagerService>();
-    ASSERT_NE(servicePtr, nullptr);
-
     bool syncEnable = SYNC_ENABLE_FALSE;
-    ErrCode result = servicePtr->CheckAppAccountSyncEnable(STRING_NAME, syncEnable);
+    ErrCode result = g_accountManagerService->CheckAppAccountSyncEnable(STRING_NAME, syncEnable);
     EXPECT_EQ(result, ERR_APPACCOUNT_SERVICE_GET_ACCOUNT_INFO_BY_ID);
     EXPECT_EQ(syncEnable, SYNC_ENABLE_FALSE);
 }
@@ -578,21 +522,18 @@ HWTEST_F(AppAccountManagerServiceModuleTest, seAppAccountManagerService_SetAppAc
 {
     ACCOUNT_LOGI("seAppAccountManagerService_SetAppAccountSyncEnable_0100");
 
-    auto servicePtr = std::make_shared<AppAccountManagerService>();
-    ASSERT_NE(servicePtr, nullptr);
-
-    ErrCode result = servicePtr->AddAccount(STRING_NAME, STRING_EXTRA_INFO);
+    ErrCode result = g_accountManagerService->AddAccount(STRING_NAME, STRING_EXTRA_INFO);
     EXPECT_EQ(result, ERR_OK);
 
-    result = servicePtr->SetAppAccountSyncEnable(STRING_NAME, SYNC_ENABLE_TRUE);
+    result = g_accountManagerService->SetAppAccountSyncEnable(STRING_NAME, SYNC_ENABLE_TRUE);
     EXPECT_EQ(result, ERR_OK);
 
     bool syncEnable = SYNC_ENABLE_FALSE;
-    result = servicePtr->CheckAppAccountSyncEnable(STRING_NAME, syncEnable);
+    result = g_accountManagerService->CheckAppAccountSyncEnable(STRING_NAME, syncEnable);
     EXPECT_EQ(result, ERR_OK);
     EXPECT_EQ(syncEnable, SYNC_ENABLE_TRUE);
 
-    result = servicePtr->DeleteAccount(STRING_NAME);
+    result = g_accountManagerService->DeleteAccount(STRING_NAME);
     EXPECT_EQ(result, ERR_OK);
 }
 
@@ -606,21 +547,18 @@ HWTEST_F(AppAccountManagerServiceModuleTest, seAppAccountManagerService_SetAppAc
 {
     ACCOUNT_LOGI("seAppAccountManagerService_SetAppAccountSyncEnable_0200");
 
-    auto servicePtr = std::make_shared<AppAccountManagerService>();
-    ASSERT_NE(servicePtr, nullptr);
-
-    ErrCode result = servicePtr->AddAccount(STRING_NAME, STRING_EXTRA_INFO);
+    ErrCode result = g_accountManagerService->AddAccount(STRING_NAME, STRING_EXTRA_INFO);
     EXPECT_EQ(result, ERR_OK);
 
-    result = servicePtr->SetAppAccountSyncEnable(STRING_NAME, SYNC_ENABLE_FALSE);
+    result = g_accountManagerService->SetAppAccountSyncEnable(STRING_NAME, SYNC_ENABLE_FALSE);
     EXPECT_EQ(result, ERR_OK);
 
     bool syncEnable = SYNC_ENABLE_FALSE;
-    result = servicePtr->CheckAppAccountSyncEnable(STRING_NAME, syncEnable);
+    result = g_accountManagerService->CheckAppAccountSyncEnable(STRING_NAME, syncEnable);
     EXPECT_EQ(result, ERR_OK);
     EXPECT_EQ(syncEnable, SYNC_ENABLE_FALSE);
 
-    result = servicePtr->DeleteAccount(STRING_NAME);
+    result = g_accountManagerService->DeleteAccount(STRING_NAME);
     EXPECT_EQ(result, ERR_OK);
 }
 
@@ -634,10 +572,7 @@ HWTEST_F(AppAccountManagerServiceModuleTest, seAppAccountManagerService_SetAppAc
 {
     ACCOUNT_LOGI("seAppAccountManagerService_SetAppAccountSyncEnable_0300");
 
-    auto servicePtr = std::make_shared<AppAccountManagerService>();
-    ASSERT_NE(servicePtr, nullptr);
-
-    ErrCode result = servicePtr->SetAppAccountSyncEnable(STRING_NAME, SYNC_ENABLE_TRUE);
+    ErrCode result = g_accountManagerService->SetAppAccountSyncEnable(STRING_NAME, SYNC_ENABLE_TRUE);
     EXPECT_EQ(result, ERR_APPACCOUNT_SERVICE_GET_ACCOUNT_INFO_BY_ID);
 }
 
@@ -651,21 +586,18 @@ HWTEST_F(AppAccountManagerServiceModuleTest, AppAccountManagerService_GetAssocia
 {
     ACCOUNT_LOGI("AppAccountManagerService_GetAssociatedData_0100");
 
-    auto servicePtr = std::make_shared<AppAccountManagerService>();
-    ASSERT_NE(servicePtr, nullptr);
-
-    ErrCode result = servicePtr->AddAccount(STRING_NAME, STRING_EXTRA_INFO);
+    ErrCode result = g_accountManagerService->AddAccount(STRING_NAME, STRING_EXTRA_INFO);
     EXPECT_EQ(result, ERR_OK);
 
-    result = servicePtr->SetAssociatedData(STRING_NAME, STRING_KEY, STRING_VALUE);
+    result = g_accountManagerService->SetAssociatedData(STRING_NAME, STRING_KEY, STRING_VALUE);
     EXPECT_EQ(result, ERR_OK);
 
     std::string value;
-    result = servicePtr->GetAssociatedData(STRING_NAME, STRING_KEY, value);
+    result = g_accountManagerService->GetAssociatedData(STRING_NAME, STRING_KEY, value);
     EXPECT_EQ(result, ERR_OK);
     EXPECT_EQ(value, STRING_VALUE);
 
-    result = servicePtr->DeleteAccount(STRING_NAME);
+    result = g_accountManagerService->DeleteAccount(STRING_NAME);
     EXPECT_EQ(result, ERR_OK);
 }
 
@@ -679,18 +611,15 @@ HWTEST_F(AppAccountManagerServiceModuleTest, AppAccountManagerService_GetAssocia
 {
     ACCOUNT_LOGI("AppAccountManagerService_GetAssociatedData_0200");
 
-    auto servicePtr = std::make_shared<AppAccountManagerService>();
-    ASSERT_NE(servicePtr, nullptr);
-
-    ErrCode result = servicePtr->AddAccount(STRING_NAME, STRING_EXTRA_INFO);
+    ErrCode result = g_accountManagerService->AddAccount(STRING_NAME, STRING_EXTRA_INFO);
     EXPECT_EQ(result, ERR_OK);
 
     std::string value;
-    result = servicePtr->GetAssociatedData(STRING_NAME, STRING_KEY, value);
+    result = g_accountManagerService->GetAssociatedData(STRING_NAME, STRING_KEY, value);
     EXPECT_EQ(result, ERR_APPACCOUNT_SERVICE_GET_ASSOCIATED_DATA);
     EXPECT_EQ(value, STRING_EMPTY);
 
-    result = servicePtr->DeleteAccount(STRING_NAME);
+    result = g_accountManagerService->DeleteAccount(STRING_NAME);
     EXPECT_EQ(result, ERR_OK);
 }
 
@@ -704,11 +633,8 @@ HWTEST_F(AppAccountManagerServiceModuleTest, AppAccountManagerService_GetAssocia
 {
     ACCOUNT_LOGI("AppAccountManagerService_GetAssociatedData_0300");
 
-    auto servicePtr = std::make_shared<AppAccountManagerService>();
-    ASSERT_NE(servicePtr, nullptr);
-
     std::string value;
-    ErrCode result = servicePtr->GetAssociatedData(STRING_NAME, STRING_KEY, value);
+    ErrCode result = g_accountManagerService->GetAssociatedData(STRING_NAME, STRING_KEY, value);
     EXPECT_EQ(result, ERR_APPACCOUNT_SERVICE_GET_ACCOUNT_INFO_BY_ID);
     EXPECT_EQ(value, STRING_EMPTY);
 }
@@ -723,28 +649,25 @@ HWTEST_F(AppAccountManagerServiceModuleTest, AppAccountManagerService_GetAssocia
 {
     ACCOUNT_LOGI("AppAccountManagerService_GetAssociatedData_0400");
 
-    auto servicePtr = std::make_shared<AppAccountManagerService>();
-    ASSERT_NE(servicePtr, nullptr);
-
-    ErrCode result = servicePtr->AddAccount(STRING_NAME, STRING_EXTRA_INFO);
+    ErrCode result = g_accountManagerService->AddAccount(STRING_NAME, STRING_EXTRA_INFO);
     EXPECT_EQ(result, ERR_OK);
 
-    result = servicePtr->SetAssociatedData(STRING_NAME, STRING_KEY, STRING_VALUE);
+    result = g_accountManagerService->SetAssociatedData(STRING_NAME, STRING_KEY, STRING_VALUE);
     EXPECT_EQ(result, ERR_OK);
 
-    result = servicePtr->SetAssociatedData(STRING_NAME, STRING_KEY_TWO, STRING_VALUE_TWO);
+    result = g_accountManagerService->SetAssociatedData(STRING_NAME, STRING_KEY_TWO, STRING_VALUE_TWO);
     EXPECT_EQ(result, ERR_OK);
 
     std::string value;
-    result = servicePtr->GetAssociatedData(STRING_NAME, STRING_KEY, value);
+    result = g_accountManagerService->GetAssociatedData(STRING_NAME, STRING_KEY, value);
     EXPECT_EQ(result, ERR_OK);
     EXPECT_EQ(value, STRING_VALUE);
 
-    result = servicePtr->GetAssociatedData(STRING_NAME, STRING_KEY_TWO, value);
+    result = g_accountManagerService->GetAssociatedData(STRING_NAME, STRING_KEY_TWO, value);
     EXPECT_EQ(result, ERR_OK);
     EXPECT_EQ(value, STRING_VALUE_TWO);
 
-    result = servicePtr->DeleteAccount(STRING_NAME);
+    result = g_accountManagerService->DeleteAccount(STRING_NAME);
     EXPECT_EQ(result, ERR_OK);
 }
 
@@ -758,16 +681,13 @@ HWTEST_F(AppAccountManagerServiceModuleTest, AppAccountManagerService_SetAssocia
 {
     ACCOUNT_LOGI("AppAccountManagerService_SetAssociatedData_0100");
 
-    auto servicePtr = std::make_shared<AppAccountManagerService>();
-    ASSERT_NE(servicePtr, nullptr);
-
-    ErrCode result = servicePtr->AddAccount(STRING_NAME, STRING_EXTRA_INFO);
+    ErrCode result = g_accountManagerService->AddAccount(STRING_NAME, STRING_EXTRA_INFO);
     EXPECT_EQ(result, ERR_OK);
 
-    result = servicePtr->SetAssociatedData(STRING_NAME, STRING_KEY, STRING_VALUE);
+    result = g_accountManagerService->SetAssociatedData(STRING_NAME, STRING_KEY, STRING_VALUE);
     EXPECT_EQ(result, ERR_OK);
 
-    result = servicePtr->DeleteAccount(STRING_NAME);
+    result = g_accountManagerService->DeleteAccount(STRING_NAME);
     EXPECT_EQ(result, ERR_OK);
 }
 
@@ -781,24 +701,21 @@ HWTEST_F(AppAccountManagerServiceModuleTest, AppAccountManagerService_SetAssocia
 {
     ACCOUNT_LOGI("AppAccountManagerService_SetAssociatedData_0200");
 
-    auto servicePtr = std::make_shared<AppAccountManagerService>();
-    ASSERT_NE(servicePtr, nullptr);
-
-    ErrCode result = servicePtr->AddAccount(STRING_NAME, STRING_EXTRA_INFO);
+    ErrCode result = g_accountManagerService->AddAccount(STRING_NAME, STRING_EXTRA_INFO);
     EXPECT_EQ(result, ERR_OK);
 
-    result = servicePtr->SetAssociatedData(STRING_NAME, STRING_KEY, STRING_VALUE);
+    result = g_accountManagerService->SetAssociatedData(STRING_NAME, STRING_KEY, STRING_VALUE);
     EXPECT_EQ(result, ERR_OK);
 
-    result = servicePtr->SetAssociatedData(STRING_NAME, STRING_KEY, STRING_VALUE_TWO);
+    result = g_accountManagerService->SetAssociatedData(STRING_NAME, STRING_KEY, STRING_VALUE_TWO);
     EXPECT_EQ(result, ERR_OK);
 
     std::string value;
-    result = servicePtr->GetAssociatedData(STRING_NAME, STRING_KEY, value);
+    result = g_accountManagerService->GetAssociatedData(STRING_NAME, STRING_KEY, value);
     EXPECT_EQ(result, ERR_OK);
     EXPECT_EQ(value, STRING_VALUE_TWO);
 
-    result = servicePtr->DeleteAccount(STRING_NAME);
+    result = g_accountManagerService->DeleteAccount(STRING_NAME);
     EXPECT_EQ(result, ERR_OK);
 }
 
@@ -812,10 +729,7 @@ HWTEST_F(AppAccountManagerServiceModuleTest, AppAccountManagerService_SetAssocia
 {
     ACCOUNT_LOGI("AppAccountManagerService_SetAssociatedData_0300");
 
-    auto servicePtr = std::make_shared<AppAccountManagerService>();
-    ASSERT_NE(servicePtr, nullptr);
-
-    ErrCode result = servicePtr->SetAssociatedData(STRING_NAME, STRING_KEY, STRING_VALUE);
+    ErrCode result = g_accountManagerService->SetAssociatedData(STRING_NAME, STRING_KEY, STRING_VALUE);
     EXPECT_EQ(result, ERR_APPACCOUNT_SERVICE_GET_ACCOUNT_INFO_BY_ID);
 }
 
@@ -829,21 +743,18 @@ HWTEST_F(AppAccountManagerServiceModuleTest, AppAccountManagerService_GetAccount
 {
     ACCOUNT_LOGI("AppAccountManagerService_GetAccountCredential_0100");
 
-    auto servicePtr = std::make_shared<AppAccountManagerService>();
-    ASSERT_NE(servicePtr, nullptr);
-
-    ErrCode result = servicePtr->AddAccount(STRING_NAME, STRING_EXTRA_INFO);
+    ErrCode result = g_accountManagerService->AddAccount(STRING_NAME, STRING_EXTRA_INFO);
     EXPECT_EQ(result, ERR_OK);
 
-    result = servicePtr->SetAccountCredential(STRING_NAME, STRING_CREDENTIAL_TYPE, STRING_CREDENTIAL);
+    result = g_accountManagerService->SetAccountCredential(STRING_NAME, STRING_CREDENTIAL_TYPE, STRING_CREDENTIAL);
     EXPECT_EQ(result, ERR_OK);
 
     std::string credential;
-    result = servicePtr->GetAccountCredential(STRING_NAME, STRING_CREDENTIAL_TYPE, credential);
+    result = g_accountManagerService->GetAccountCredential(STRING_NAME, STRING_CREDENTIAL_TYPE, credential);
     EXPECT_EQ(result, ERR_OK);
     EXPECT_EQ(credential, STRING_CREDENTIAL);
 
-    result = servicePtr->DeleteAccount(STRING_NAME);
+    result = g_accountManagerService->DeleteAccount(STRING_NAME);
     EXPECT_EQ(result, ERR_OK);
 }
 
@@ -857,18 +768,15 @@ HWTEST_F(AppAccountManagerServiceModuleTest, AppAccountManagerService_GetAccount
 {
     ACCOUNT_LOGI("AppAccountManagerService_GetAccountCredential_0200");
 
-    auto servicePtr = std::make_shared<AppAccountManagerService>();
-    ASSERT_NE(servicePtr, nullptr);
-
-    ErrCode result = servicePtr->AddAccount(STRING_NAME, STRING_EXTRA_INFO);
+    ErrCode result = g_accountManagerService->AddAccount(STRING_NAME, STRING_EXTRA_INFO);
     EXPECT_EQ(result, ERR_OK);
 
     std::string credential;
-    result = servicePtr->GetAccountCredential(STRING_NAME, STRING_CREDENTIAL_TYPE, credential);
+    result = g_accountManagerService->GetAccountCredential(STRING_NAME, STRING_CREDENTIAL_TYPE, credential);
     EXPECT_EQ(result, ERR_APPACCOUNT_SERVICE_GET_ACCOUNT_CREDENTIAL);
     EXPECT_EQ(credential, STRING_EMPTY);
 
-    result = servicePtr->DeleteAccount(STRING_NAME);
+    result = g_accountManagerService->DeleteAccount(STRING_NAME);
     EXPECT_EQ(result, ERR_OK);
 }
 
@@ -882,11 +790,8 @@ HWTEST_F(AppAccountManagerServiceModuleTest, AppAccountManagerService_GetAccount
 {
     ACCOUNT_LOGI("AppAccountManagerService_GetAccountCredential_0300");
 
-    auto servicePtr = std::make_shared<AppAccountManagerService>();
-    ASSERT_NE(servicePtr, nullptr);
-
     std::string credential;
-    ErrCode result = servicePtr->GetAccountCredential(STRING_NAME, STRING_CREDENTIAL_TYPE, credential);
+    ErrCode result = g_accountManagerService->GetAccountCredential(STRING_NAME, STRING_CREDENTIAL_TYPE, credential);
     EXPECT_EQ(result, ERR_APPACCOUNT_SERVICE_GET_ACCOUNT_INFO_BY_ID);
     EXPECT_EQ(credential, STRING_EMPTY);
 }
@@ -901,28 +806,26 @@ HWTEST_F(AppAccountManagerServiceModuleTest, AppAccountManagerService_GetAccount
 {
     ACCOUNT_LOGI("AppAccountManagerService_GetAccountCredential_0400");
 
-    auto servicePtr = std::make_shared<AppAccountManagerService>();
-    ASSERT_NE(servicePtr, nullptr);
-
-    ErrCode result = servicePtr->AddAccount(STRING_NAME, STRING_EXTRA_INFO);
+    ErrCode result = g_accountManagerService->AddAccount(STRING_NAME, STRING_EXTRA_INFO);
     EXPECT_EQ(result, ERR_OK);
 
-    result = servicePtr->SetAccountCredential(STRING_NAME, STRING_CREDENTIAL_TYPE, STRING_CREDENTIAL);
+    result = g_accountManagerService->SetAccountCredential(STRING_NAME, STRING_CREDENTIAL_TYPE, STRING_CREDENTIAL);
     EXPECT_EQ(result, ERR_OK);
 
-    result = servicePtr->SetAccountCredential(STRING_NAME, STRING_CREDENTIAL_TYPE_TWO, STRING_CREDENTIAL_TWO);
+    result = g_accountManagerService->SetAccountCredential(STRING_NAME,
+        STRING_CREDENTIAL_TYPE_TWO, STRING_CREDENTIAL_TWO);
     EXPECT_EQ(result, ERR_OK);
 
     std::string credential;
-    result = servicePtr->GetAccountCredential(STRING_NAME, STRING_CREDENTIAL_TYPE, credential);
+    result = g_accountManagerService->GetAccountCredential(STRING_NAME, STRING_CREDENTIAL_TYPE, credential);
     EXPECT_EQ(result, ERR_OK);
     EXPECT_EQ(credential, STRING_CREDENTIAL);
 
-    result = servicePtr->GetAccountCredential(STRING_NAME, STRING_CREDENTIAL_TYPE_TWO, credential);
+    result = g_accountManagerService->GetAccountCredential(STRING_NAME, STRING_CREDENTIAL_TYPE_TWO, credential);
     EXPECT_EQ(result, ERR_OK);
     EXPECT_EQ(credential, STRING_CREDENTIAL_TWO);
 
-    result = servicePtr->DeleteAccount(STRING_NAME);
+    result = g_accountManagerService->DeleteAccount(STRING_NAME);
     EXPECT_EQ(result, ERR_OK);
 }
 
@@ -936,16 +839,13 @@ HWTEST_F(AppAccountManagerServiceModuleTest, AppAccountManagerService_SetAccount
 {
     ACCOUNT_LOGI("AppAccountManagerService_SetAccountCredential_0100");
 
-    auto servicePtr = std::make_shared<AppAccountManagerService>();
-    ASSERT_NE(servicePtr, nullptr);
-
-    ErrCode result = servicePtr->AddAccount(STRING_NAME, STRING_EXTRA_INFO);
+    ErrCode result = g_accountManagerService->AddAccount(STRING_NAME, STRING_EXTRA_INFO);
     EXPECT_EQ(result, ERR_OK);
 
-    result = servicePtr->SetAccountCredential(STRING_NAME, STRING_CREDENTIAL_TYPE, STRING_CREDENTIAL);
+    result = g_accountManagerService->SetAccountCredential(STRING_NAME, STRING_CREDENTIAL_TYPE, STRING_CREDENTIAL);
     EXPECT_EQ(result, ERR_OK);
 
-    result = servicePtr->DeleteAccount(STRING_NAME);
+    result = g_accountManagerService->DeleteAccount(STRING_NAME);
     EXPECT_EQ(result, ERR_OK);
 }
 
@@ -959,24 +859,22 @@ HWTEST_F(AppAccountManagerServiceModuleTest, AppAccountManagerService_SetAccount
 {
     ACCOUNT_LOGI("AppAccountManagerService_SetAccountCredential_0200");
 
-    auto servicePtr = std::make_shared<AppAccountManagerService>();
-    ASSERT_NE(servicePtr, nullptr);
-
-    ErrCode result = servicePtr->AddAccount(STRING_NAME, STRING_EXTRA_INFO);
+    ErrCode result = g_accountManagerService->AddAccount(STRING_NAME, STRING_EXTRA_INFO);
     EXPECT_EQ(result, ERR_OK);
 
-    result = servicePtr->SetAccountCredential(STRING_NAME, STRING_CREDENTIAL_TYPE, STRING_CREDENTIAL);
+    result = g_accountManagerService->SetAccountCredential(STRING_NAME, STRING_CREDENTIAL_TYPE, STRING_CREDENTIAL);
     EXPECT_EQ(result, ERR_OK);
 
-    result = servicePtr->SetAccountCredential(STRING_NAME, STRING_CREDENTIAL_TYPE, STRING_CREDENTIAL_TWO);
+    result = g_accountManagerService->SetAccountCredential(STRING_NAME,
+        STRING_CREDENTIAL_TYPE, STRING_CREDENTIAL_TWO);
     EXPECT_EQ(result, ERR_OK);
 
     std::string credential;
-    result = servicePtr->GetAccountCredential(STRING_NAME, STRING_CREDENTIAL_TYPE, credential);
+    result = g_accountManagerService->GetAccountCredential(STRING_NAME, STRING_CREDENTIAL_TYPE, credential);
     EXPECT_EQ(result, ERR_OK);
     EXPECT_EQ(credential, STRING_CREDENTIAL_TWO);
 
-    result = servicePtr->DeleteAccount(STRING_NAME);
+    result = g_accountManagerService->DeleteAccount(STRING_NAME);
     EXPECT_EQ(result, ERR_OK);
 }
 
@@ -990,10 +888,8 @@ HWTEST_F(AppAccountManagerServiceModuleTest, AppAccountManagerService_SetAccount
 {
     ACCOUNT_LOGI("AppAccountManagerService_SetAccountCredential_0300");
 
-    auto servicePtr = std::make_shared<AppAccountManagerService>();
-    ASSERT_NE(servicePtr, nullptr);
-
-    ErrCode result = servicePtr->SetAccountCredential(STRING_NAME, STRING_CREDENTIAL_TYPE, STRING_CREDENTIAL);
+    ErrCode result = g_accountManagerService->SetAccountCredential(STRING_NAME,
+        STRING_CREDENTIAL_TYPE, STRING_CREDENTIAL);
     EXPECT_EQ(result, ERR_APPACCOUNT_SERVICE_GET_ACCOUNT_INFO_BY_ID);
 }
 
@@ -1006,11 +902,9 @@ HWTEST_F(AppAccountManagerServiceModuleTest, AppAccountManagerService_SetAccount
 HWTEST_F(AppAccountManagerServiceModuleTest, AppAccountManagerService_GetOAuthToken_0100, TestSize.Level0)
 {
     ACCOUNT_LOGI("AppAccountManagerService_GetOAuthToken_0100");
-    auto servicePtr = std::make_shared<AppAccountManagerService>();
-    ASSERT_NE(servicePtr, nullptr);
 
     std::string token;
-    ErrCode result = servicePtr->GetOAuthToken(STRING_NAME, STRING_OWNER, STRING_AUTH_TYPE, token);
+    ErrCode result = g_accountManagerService->GetOAuthToken(STRING_NAME, STRING_OWNER, STRING_AUTH_TYPE, token);
     EXPECT_EQ(result, ERR_APPACCOUNT_SERVICE_ACCOUNT_NOT_EXIST);
     EXPECT_EQ(token, STRING_EMPTY);
 }
@@ -1024,25 +918,23 @@ HWTEST_F(AppAccountManagerServiceModuleTest, AppAccountManagerService_GetOAuthTo
 HWTEST_F(AppAccountManagerServiceModuleTest, AppAccountManagerService_GetOAuthToken_0200, TestSize.Level0)
 {
     ACCOUNT_LOGI("AppAccountManagerService_GetOAuthToken_0200");
-    auto servicePtr = std::make_shared<AppAccountManagerService>();
-    ASSERT_NE(servicePtr, nullptr);
 
-    ErrCode result = servicePtr->AddAccount(STRING_NAME, STRING_EXTRA_INFO);
+    ErrCode result = g_accountManagerService->AddAccount(STRING_NAME, STRING_EXTRA_INFO);
     EXPECT_EQ(result, ERR_OK);
 
     std::vector<AppAccountInfo> appAccounts;
-    result = servicePtr->GetAllAccessibleAccounts(appAccounts);
-    EXPECT_EQ(appAccounts.size(), SIZE_ONE);
+    result = g_accountManagerService->GetAllAccessibleAccounts(appAccounts);
+    ASSERT_EQ(appAccounts.size(), SIZE_ONE);
     std::string owner;
     result = appAccounts[0].GetOwner(owner);
     EXPECT_EQ(result, ERR_OK);
 
     std::string token;
-    result = servicePtr->GetOAuthToken(STRING_NAME, owner, STRING_AUTH_TYPE, token);
+    result = g_accountManagerService->GetOAuthToken(STRING_NAME, owner, STRING_AUTH_TYPE, token);
     EXPECT_EQ(result, ERR_APPACCOUNT_SERVICE_OAUTH_TOKEN_NOT_EXIST);
     EXPECT_EQ(token, STRING_EMPTY);
 
-    result = servicePtr->DeleteAccount(STRING_NAME);
+    result = g_accountManagerService->DeleteAccount(STRING_NAME);
     EXPECT_EQ(result, ERR_OK);
 }
 
@@ -1056,28 +948,25 @@ HWTEST_F(AppAccountManagerServiceModuleTest, AppAccountManagerService_GetOAuthTo
 {
     ACCOUNT_LOGI("AppAccountManagerService_GetOAuthToken_0300");
 
-    auto servicePtr = std::make_shared<AppAccountManagerService>();
-    ASSERT_NE(servicePtr, nullptr);
-
-    ErrCode result = servicePtr->AddAccount(STRING_NAME, STRING_EXTRA_INFO);
+    ErrCode result = g_accountManagerService->AddAccount(STRING_NAME, STRING_EXTRA_INFO);
     EXPECT_EQ(result, ERR_OK);
 
     std::vector<AppAccountInfo> appAccounts;
-    result = servicePtr->GetAllAccessibleAccounts(appAccounts);
-    EXPECT_EQ(appAccounts.size(), SIZE_ONE);
+    result = g_accountManagerService->GetAllAccessibleAccounts(appAccounts);
+    ASSERT_EQ(appAccounts.size(), SIZE_ONE);
     std::string owner;
     result = appAccounts[0].GetOwner(owner);
     EXPECT_EQ(result, ERR_OK);
 
-    result = servicePtr->SetOAuthToken(STRING_NAME, STRING_AUTH_TYPE, STRING_TOKEN);
+    result = g_accountManagerService->SetOAuthToken(STRING_NAME, STRING_AUTH_TYPE, STRING_TOKEN);
     EXPECT_EQ(result, ERR_OK);
 
     std::string token;
-    result = servicePtr->GetOAuthToken(STRING_NAME, owner, STRING_AUTH_TYPE, token);
+    result = g_accountManagerService->GetOAuthToken(STRING_NAME, owner, STRING_AUTH_TYPE, token);
     EXPECT_EQ(result, ERR_OK);
     EXPECT_EQ(token, STRING_TOKEN);
 
-    result = servicePtr->DeleteAccount(STRING_NAME);
+    result = g_accountManagerService->DeleteAccount(STRING_NAME);
     EXPECT_EQ(result, ERR_OK);
 }
 
@@ -1090,9 +979,8 @@ HWTEST_F(AppAccountManagerServiceModuleTest, AppAccountManagerService_GetOAuthTo
 HWTEST_F(AppAccountManagerServiceModuleTest, AppAccountManagerService_SetOAuthToken_0100, TestSize.Level1)
 {
     ACCOUNT_LOGI("AppAccountManagerService_SetOAuthToken_0100");
-    auto servicePtr = std::make_shared<AppAccountManagerService>();
-    ASSERT_NE(servicePtr, nullptr);
-    ErrCode result = servicePtr->SetOAuthToken(STRING_NAME, STRING_AUTH_TYPE, STRING_TOKEN);
+
+    ErrCode result = g_accountManagerService->SetOAuthToken(STRING_NAME, STRING_AUTH_TYPE, STRING_TOKEN);
     EXPECT_EQ(result, ERR_APPACCOUNT_SERVICE_ACCOUNT_NOT_EXIST);
 }
 
@@ -1106,31 +994,28 @@ HWTEST_F(AppAccountManagerServiceModuleTest, AppAccountManagerService_SetOAuthTo
 {
     ACCOUNT_LOGI("AppAccountManagerService_SetOAuthToken_0200");
 
-    auto servicePtr = std::make_shared<AppAccountManagerService>();
-    ASSERT_NE(servicePtr, nullptr);
-
-    ErrCode result = servicePtr->AddAccount(STRING_NAME, STRING_EXTRA_INFO);
+    ErrCode result = g_accountManagerService->AddAccount(STRING_NAME, STRING_EXTRA_INFO);
     EXPECT_EQ(result, ERR_OK);
 
-    result = servicePtr->SetOAuthToken(STRING_NAME, STRING_AUTH_TYPE, STRING_TOKEN);
+    result = g_accountManagerService->SetOAuthToken(STRING_NAME, STRING_AUTH_TYPE, STRING_TOKEN);
     EXPECT_EQ(result, ERR_OK);
 
-    result = servicePtr->SetOAuthToken(STRING_NAME, STRING_AUTH_TYPE_TWO, STRING_TOKEN_TWO);
+    result = g_accountManagerService->SetOAuthToken(STRING_NAME, STRING_AUTH_TYPE_TWO, STRING_TOKEN_TWO);
     EXPECT_EQ(result, ERR_OK);
 
     std::vector<AppAccountInfo> appAccounts;
-    result = servicePtr->GetAllAccessibleAccounts(appAccounts);
-    EXPECT_EQ(appAccounts.size(), SIZE_ONE);
+    result = g_accountManagerService->GetAllAccessibleAccounts(appAccounts);
+    ASSERT_EQ(appAccounts.size(), SIZE_ONE);
     std::string owner;
     result = appAccounts[0].GetOwner(owner);
     EXPECT_EQ(result, ERR_OK);
 
     std::string token;
-    result = servicePtr->GetOAuthToken(STRING_NAME, owner, STRING_AUTH_TYPE_TWO, token);
+    result = g_accountManagerService->GetOAuthToken(STRING_NAME, owner, STRING_AUTH_TYPE_TWO, token);
     EXPECT_EQ(result, ERR_OK);
     EXPECT_EQ(token, STRING_TOKEN_TWO);
 
-    result = servicePtr->DeleteAccount(STRING_NAME);
+    result = g_accountManagerService->DeleteAccount(STRING_NAME);
     EXPECT_EQ(result, ERR_OK);
 }
 
@@ -1144,10 +1029,8 @@ HWTEST_F(AppAccountManagerServiceModuleTest, AppAccountManagerService_DeleteOAut
 {
     ACCOUNT_LOGI("AppAccountManagerService_DeleteOAuthToken_0100");
 
-    auto servicePtr = std::make_shared<AppAccountManagerService>();
-    ASSERT_NE(servicePtr, nullptr);
-
-    ErrCode result = servicePtr->DeleteOAuthToken(STRING_NAME, STRING_OWNER, STRING_AUTH_TYPE, STRING_TOKEN);
+    ErrCode result = g_accountManagerService->DeleteOAuthToken(STRING_NAME,
+        STRING_OWNER, STRING_AUTH_TYPE, STRING_TOKEN);
     EXPECT_EQ(result, ERR_APPACCOUNT_SERVICE_ACCOUNT_NOT_EXIST);
 }
 
@@ -1161,28 +1044,25 @@ HWTEST_F(AppAccountManagerServiceModuleTest, AppAccountManagerService_DeleteOAut
 {
     ACCOUNT_LOGI("AppAccountManagerService_DeleteOAuthToken_0200");
 
-    auto servicePtr = std::make_shared<AppAccountManagerService>();
-    ASSERT_NE(servicePtr, nullptr);
-
-    ErrCode result = servicePtr->AddAccount(STRING_NAME, STRING_EXTRA_INFO);
+    ErrCode result = g_accountManagerService->AddAccount(STRING_NAME, STRING_EXTRA_INFO);
     EXPECT_EQ(result, ERR_OK);
     
     std::vector<AppAccountInfo> appAccounts;
-    result = servicePtr->GetAllAccessibleAccounts(appAccounts);
-    EXPECT_EQ(appAccounts.size(), SIZE_ONE);
+    result = g_accountManagerService->GetAllAccessibleAccounts(appAccounts);
+    ASSERT_EQ(appAccounts.size(), SIZE_ONE);
     std::string owner;
     result = appAccounts[0].GetOwner(owner);
     EXPECT_EQ(result, ERR_OK);
 
-    result = servicePtr->DeleteOAuthToken(STRING_NAME, owner, STRING_AUTH_TYPE, STRING_TOKEN);
+    result = g_accountManagerService->DeleteOAuthToken(STRING_NAME, owner, STRING_AUTH_TYPE, STRING_TOKEN);
     EXPECT_EQ(result, ERR_OK);
 
     std::string token;
-    result = servicePtr->GetOAuthToken(STRING_NAME, owner, STRING_AUTH_TYPE, token);
+    result = g_accountManagerService->GetOAuthToken(STRING_NAME, owner, STRING_AUTH_TYPE, token);
     EXPECT_EQ(result, ERR_APPACCOUNT_SERVICE_OAUTH_TOKEN_NOT_EXIST);
     EXPECT_EQ(token, STRING_EMPTY);
 
-    result = servicePtr->DeleteAccount(STRING_NAME);
+    result = g_accountManagerService->DeleteAccount(STRING_NAME);
     EXPECT_EQ(result, ERR_OK);
 }
 
@@ -1196,31 +1076,28 @@ HWTEST_F(AppAccountManagerServiceModuleTest, AppAccountManagerService_DeleteOAut
 {
     ACCOUNT_LOGI("AppAccountManagerService_DeleteOAuthToken_0300");
 
-    auto servicePtr = std::make_shared<AppAccountManagerService>();
-    ASSERT_NE(servicePtr, nullptr);
-
-    ErrCode result = servicePtr->AddAccount(STRING_NAME, STRING_EXTRA_INFO);
+    ErrCode result = g_accountManagerService->AddAccount(STRING_NAME, STRING_EXTRA_INFO);
     EXPECT_EQ(result, ERR_OK);
     
     std::vector<AppAccountInfo> appAccounts;
-    result = servicePtr->GetAllAccessibleAccounts(appAccounts);
-    EXPECT_EQ(appAccounts.size(), SIZE_ONE);
+    result = g_accountManagerService->GetAllAccessibleAccounts(appAccounts);
+    ASSERT_EQ(appAccounts.size(), SIZE_ONE);
     std::string owner;
     result = appAccounts[0].GetOwner(owner);
     EXPECT_EQ(result, ERR_OK);
 
-    result = servicePtr->SetOAuthToken(STRING_NAME, STRING_AUTH_TYPE, STRING_TOKEN);
+    result = g_accountManagerService->SetOAuthToken(STRING_NAME, STRING_AUTH_TYPE, STRING_TOKEN);
     EXPECT_EQ(result, ERR_OK);
 
-    result = servicePtr->DeleteOAuthToken(STRING_NAME, owner, STRING_AUTH_TYPE, STRING_TOKEN);
+    result = g_accountManagerService->DeleteOAuthToken(STRING_NAME, owner, STRING_AUTH_TYPE, STRING_TOKEN);
     EXPECT_EQ(result, ERR_OK);
 
     std::string token;
-    result = servicePtr->GetOAuthToken(STRING_NAME, owner, STRING_AUTH_TYPE, token);
+    result = g_accountManagerService->GetOAuthToken(STRING_NAME, owner, STRING_AUTH_TYPE, token);
     EXPECT_EQ(result, ERR_APPACCOUNT_SERVICE_OAUTH_TOKEN_NOT_EXIST);
     EXPECT_EQ(token, STRING_EMPTY);
 
-    result = servicePtr->DeleteAccount(STRING_NAME);
+    result = g_accountManagerService->DeleteAccount(STRING_NAME);
     EXPECT_EQ(result, ERR_OK);
 }
 
@@ -1234,11 +1111,8 @@ HWTEST_F(AppAccountManagerServiceModuleTest, AppAccountManagerService_GetAllOAut
 {
     ACCOUNT_LOGI("AppAccountManagerService_GetAllOAuthTokens_0100");
 
-    auto servicePtr = std::make_shared<AppAccountManagerService>();
-    ASSERT_NE(servicePtr, nullptr);
-
     std::vector<OAuthTokenInfo> tokenInfos;
-    ErrCode result = servicePtr->GetAllOAuthTokens(STRING_NAME, STRING_OWNER, tokenInfos);
+    ErrCode result = g_accountManagerService->GetAllOAuthTokens(STRING_NAME, STRING_OWNER, tokenInfos);
     EXPECT_EQ(result, ERR_APPACCOUNT_SERVICE_ACCOUNT_NOT_EXIST);
 }
 
@@ -1252,38 +1126,35 @@ HWTEST_F(AppAccountManagerServiceModuleTest, AppAccountManagerService_GetAllOAut
 {
     ACCOUNT_LOGI("AppAccountManagerService_GetAllOAuthTokens_0200");
 
-    auto servicePtr = std::make_shared<AppAccountManagerService>();
-    ASSERT_NE(servicePtr, nullptr);
-
-    ErrCode result = servicePtr->AddAccount(STRING_NAME, STRING_EXTRA_INFO);
+    ErrCode result = g_accountManagerService->AddAccount(STRING_NAME, STRING_EXTRA_INFO);
     EXPECT_EQ(result, ERR_OK);
 
     std::vector<AppAccountInfo> appAccounts;
-    result = servicePtr->GetAllAccessibleAccounts(appAccounts);
-    EXPECT_EQ(appAccounts.size(), SIZE_ONE);
+    result = g_accountManagerService->GetAllAccessibleAccounts(appAccounts);
+    ASSERT_EQ(appAccounts.size(), SIZE_ONE);
     std::string owner;
     result = appAccounts[0].GetOwner(owner);
     EXPECT_EQ(result, ERR_OK);
 
     std::vector<OAuthTokenInfo> tokenInfos;
-    result = servicePtr->GetAllOAuthTokens(STRING_NAME, owner, tokenInfos);
+    result = g_accountManagerService->GetAllOAuthTokens(STRING_NAME, owner, tokenInfos);
     EXPECT_EQ(result, ERR_OK);
-    EXPECT_EQ(tokenInfos.size(), 0);
+    ASSERT_EQ(tokenInfos.size(), 0);
 
-    result = servicePtr->SetOAuthToken(STRING_NAME, STRING_AUTH_TYPE, STRING_TOKEN);
+    result = g_accountManagerService->SetOAuthToken(STRING_NAME, STRING_AUTH_TYPE, STRING_TOKEN);
     EXPECT_EQ(result, ERR_OK);
-
-    result = servicePtr->SetOAuthToken(STRING_NAME, STRING_AUTH_TYPE_TWO, STRING_TOKEN_TWO);
+    
+    result = g_accountManagerService->SetOAuthToken(STRING_NAME, STRING_AUTH_TYPE_TWO, STRING_TOKEN_TWO);
     EXPECT_EQ(result, ERR_OK);
 
     tokenInfos.clear();
-    result = servicePtr->GetAllOAuthTokens(STRING_NAME, owner, tokenInfos);
+    result = g_accountManagerService->GetAllOAuthTokens(STRING_NAME, owner, tokenInfos);
     EXPECT_EQ(result, ERR_OK);
-    EXPECT_EQ(tokenInfos.size(), SIZE_TWO);
+    ASSERT_EQ(tokenInfos.size(), SIZE_TWO);
     EXPECT_EQ(tokenInfos[0].token, STRING_TOKEN);
     EXPECT_EQ(tokenInfos[1].token, STRING_TOKEN_TWO);
 
-    result = servicePtr->DeleteAccount(STRING_NAME);
+    result = g_accountManagerService->DeleteAccount(STRING_NAME);
     EXPECT_EQ(result, ERR_OK);
 }
 
@@ -1297,10 +1168,8 @@ HWTEST_F(AppAccountManagerServiceModuleTest, AppAccountManagerService_SetOAuthTo
 {
     ACCOUNT_LOGI("AppAccountManagerService_SetOAuthTokenVisibility_0100");
 
-    auto servicePtr = std::make_shared<AppAccountManagerService>();
-    ASSERT_NE(servicePtr, nullptr);
-
-    ErrCode result = servicePtr->SetOAuthTokenVisibility(STRING_NAME, STRING_AUTH_TYPE, STRING_BUNDLE_NAME, true);
+    ErrCode result = g_accountManagerService->SetOAuthTokenVisibility(STRING_NAME,
+        STRING_AUTH_TYPE, STRING_BUNDLE_NAME, true);
     EXPECT_EQ(result, ERR_APPACCOUNT_SERVICE_ACCOUNT_NOT_EXIST);
 }
 
@@ -1314,26 +1183,26 @@ HWTEST_F(AppAccountManagerServiceModuleTest, AppAccountManagerService_SetOAuthTo
 {
     ACCOUNT_LOGI("AppAccountManagerService_SetOAuthTokenVisibility_0200");
 
-    auto servicePtr = std::make_shared<AppAccountManagerService>();
-    ASSERT_NE(servicePtr, nullptr);
-
-    ErrCode result = servicePtr->AddAccount(STRING_NAME, STRING_EXTRA_INFO);
+    ErrCode result = g_accountManagerService->AddAccount(STRING_NAME, STRING_EXTRA_INFO);
     EXPECT_EQ(result, ERR_OK);
 
     bool isVisible = true;
-    result = servicePtr->CheckOAuthTokenVisibility(STRING_NAME, STRING_AUTH_TYPE, STRING_BUNDLE_NAME, isVisible);
+    result = g_accountManagerService->CheckOAuthTokenVisibility(STRING_NAME,
+        STRING_AUTH_TYPE, STRING_BUNDLE_NAME, isVisible);
     EXPECT_EQ(result, ERR_OK);
     EXPECT_EQ(isVisible, false);
 
-    result = servicePtr->SetOAuthTokenVisibility(STRING_NAME, STRING_AUTH_TYPE, STRING_BUNDLE_NAME, true);
+    result = g_accountManagerService->SetOAuthTokenVisibility(STRING_NAME,
+        STRING_AUTH_TYPE, STRING_BUNDLE_NAME, true);
     EXPECT_EQ(result, ERR_OK);
 
     isVisible = false;
-    result = servicePtr->CheckOAuthTokenVisibility(STRING_NAME, STRING_AUTH_TYPE, STRING_BUNDLE_NAME, isVisible);
+    result = g_accountManagerService->CheckOAuthTokenVisibility(STRING_NAME,
+        STRING_AUTH_TYPE, STRING_BUNDLE_NAME, isVisible);
     EXPECT_EQ(result, ERR_OK);
     EXPECT_EQ(isVisible, true);
 
-    result = servicePtr->DeleteAccount(STRING_NAME);
+    result = g_accountManagerService->DeleteAccount(STRING_NAME);
     EXPECT_EQ(result, ERR_OK);
 }
 
@@ -1347,31 +1216,30 @@ HWTEST_F(AppAccountManagerServiceModuleTest, AppAccountManagerService_SetOAuthTo
 {
     ACCOUNT_LOGI("AppAccountManagerService_SetOAuthTokenVisibility_0300");
 
-    auto servicePtr = std::make_shared<AppAccountManagerService>();
-    ASSERT_NE(servicePtr, nullptr);
-
-    ErrCode result = servicePtr->AddAccount(STRING_NAME, STRING_EXTRA_INFO);
+    ErrCode result = g_accountManagerService->AddAccount(STRING_NAME, STRING_EXTRA_INFO);
     EXPECT_EQ(result, ERR_OK);
 
     std::vector<AppAccountInfo> appAccounts;
-    result = servicePtr->GetAllAccessibleAccounts(appAccounts);
-    EXPECT_EQ(appAccounts.size(), 1);
+    result = g_accountManagerService->GetAllAccessibleAccounts(appAccounts);
+    ASSERT_EQ(appAccounts.size(), 1);
     std::string owner;
     result = appAccounts[0].GetOwner(owner);
     EXPECT_EQ(result, ERR_OK);
 
-    result = servicePtr->SetOAuthToken(STRING_NAME, STRING_AUTH_TYPE, STRING_TOKEN);
+    result = g_accountManagerService->SetOAuthToken(STRING_NAME, STRING_AUTH_TYPE, STRING_TOKEN);
     EXPECT_EQ(result, ERR_OK);
 
-    result = servicePtr->SetOAuthTokenVisibility(STRING_NAME, STRING_AUTH_TYPE, STRING_BUNDLE_NAME, true);
+    result = g_accountManagerService->SetOAuthTokenVisibility(STRING_NAME,
+        STRING_AUTH_TYPE, STRING_BUNDLE_NAME, true);
     EXPECT_EQ(result, ERR_OK);
 
     bool isVisible = false;
-    result = servicePtr->CheckOAuthTokenVisibility(STRING_NAME, STRING_AUTH_TYPE, STRING_BUNDLE_NAME, isVisible);
+    result = g_accountManagerService->CheckOAuthTokenVisibility(STRING_NAME,
+        STRING_AUTH_TYPE, STRING_BUNDLE_NAME, isVisible);
     EXPECT_EQ(result, ERR_OK);
     EXPECT_EQ(isVisible, true);
 
-    result = servicePtr->DeleteAccount(STRING_NAME);
+    result = g_accountManagerService->DeleteAccount(STRING_NAME);
     EXPECT_EQ(result, ERR_OK);
 }
 
@@ -1384,49 +1252,52 @@ HWTEST_F(AppAccountManagerServiceModuleTest, AppAccountManagerService_SetOAuthTo
 HWTEST_F(AppAccountManagerServiceModuleTest, AppAccountManagerService_CheckOAuthTokenVisibility_0100, TestSize.Level1)
 {
     ACCOUNT_LOGI("AppAccountManagerService_CheckOAuthTokenVisibility_0100");
-    auto servicePtr = std::make_shared<AppAccountManagerService>();
-    ASSERT_NE(servicePtr, nullptr);
 
     bool isVisible = true;
-    ErrCode result = servicePtr->CheckOAuthTokenVisibility(
+    ErrCode result = g_accountManagerService->CheckOAuthTokenVisibility(
         STRING_NAME, STRING_AUTH_TYPE, STRING_BUNDLE_NAME, isVisible);
     EXPECT_EQ(result, ERR_APPACCOUNT_SERVICE_ACCOUNT_NOT_EXIST);
     EXPECT_EQ(isVisible, false);
 
-    result = servicePtr->AddAccount(STRING_NAME, STRING_EXTRA_INFO);
+    result = g_accountManagerService->AddAccount(STRING_NAME, STRING_EXTRA_INFO);
     EXPECT_EQ(result, ERR_OK);
     std::vector<AppAccountInfo> appAccounts;
-    result = servicePtr->GetAllAccessibleAccounts(appAccounts);
-    EXPECT_EQ(appAccounts.size(), SIZE_ONE);
+    result = g_accountManagerService->GetAllAccessibleAccounts(appAccounts);
+    ASSERT_EQ(appAccounts.size(), SIZE_ONE);
     std::string owner;
     result = appAccounts[0].GetOwner(owner);
     EXPECT_EQ(result, ERR_OK);
 
     isVisible = true;
-    result = servicePtr->CheckOAuthTokenVisibility(STRING_NAME, STRING_AUTH_TYPE, STRING_BUNDLE_NAME, isVisible);
+    result = g_accountManagerService->CheckOAuthTokenVisibility(STRING_NAME,
+        STRING_AUTH_TYPE, STRING_BUNDLE_NAME, isVisible);
     EXPECT_EQ(result, ERR_OK);
     EXPECT_EQ(isVisible, false);
 
-    result = servicePtr->SetOAuthToken(STRING_NAME, STRING_AUTH_TYPE, STRING_TOKEN);
+    result = g_accountManagerService->SetOAuthToken(STRING_NAME, STRING_AUTH_TYPE, STRING_TOKEN);
     EXPECT_EQ(result, ERR_OK);
 
-    result = servicePtr->SetOAuthTokenVisibility(STRING_NAME, STRING_AUTH_TYPE, STRING_BUNDLE_NAME, true);
+    result = g_accountManagerService->SetOAuthTokenVisibility(STRING_NAME,
+        STRING_AUTH_TYPE, STRING_BUNDLE_NAME, true);
     EXPECT_EQ(result, ERR_OK);
 
     isVisible = false;
-    result = servicePtr->CheckOAuthTokenVisibility(STRING_NAME, STRING_AUTH_TYPE, STRING_BUNDLE_NAME, isVisible);
+    result = g_accountManagerService->CheckOAuthTokenVisibility(STRING_NAME,
+        STRING_AUTH_TYPE, STRING_BUNDLE_NAME, isVisible);
     EXPECT_EQ(result, ERR_OK);
     EXPECT_EQ(isVisible, true);
 
-    result = servicePtr->SetOAuthTokenVisibility(STRING_NAME, STRING_AUTH_TYPE, STRING_BUNDLE_NAME, false);
+    result = g_accountManagerService->SetOAuthTokenVisibility(STRING_NAME,
+        STRING_AUTH_TYPE, STRING_BUNDLE_NAME, false);
     EXPECT_EQ(result, ERR_OK);
 
     isVisible = true;
-    result = servicePtr->CheckOAuthTokenVisibility(STRING_NAME, STRING_AUTH_TYPE, STRING_BUNDLE_NAME, isVisible);
+    result = g_accountManagerService->CheckOAuthTokenVisibility(STRING_NAME,
+        STRING_AUTH_TYPE, STRING_BUNDLE_NAME, isVisible);
     EXPECT_EQ(result, ERR_OK);
     EXPECT_EQ(isVisible, false);
 
-    result = servicePtr->DeleteAccount(STRING_NAME);
+    result = g_accountManagerService->DeleteAccount(STRING_NAME);
     EXPECT_EQ(result, ERR_OK);
 }
 
@@ -1440,11 +1311,8 @@ HWTEST_F(AppAccountManagerServiceModuleTest, AppAccountManagerService_GetOAuthLi
 {
     ACCOUNT_LOGI("AppAccountManagerService_GetOAuthList_0100");
 
-    auto servicePtr = std::make_shared<AppAccountManagerService>();
-    ASSERT_NE(servicePtr, nullptr);
-
     std::set<std::string> authList;
-    ErrCode result = servicePtr->GetOAuthList(STRING_NAME, STRING_AUTH_TYPE, authList);
+    ErrCode result = g_accountManagerService->GetOAuthList(STRING_NAME, STRING_AUTH_TYPE, authList);
     EXPECT_EQ(result, ERR_APPACCOUNT_SERVICE_ACCOUNT_NOT_EXIST);
 }
 
@@ -1458,18 +1326,15 @@ HWTEST_F(AppAccountManagerServiceModuleTest, AppAccountManagerService_GetOAuthLi
 {
     ACCOUNT_LOGI("AppAccountManagerService_GetOAuthList_0200");
 
-    auto servicePtr = std::make_shared<AppAccountManagerService>();
-    ASSERT_NE(servicePtr, nullptr);
-
-    ErrCode result = servicePtr->AddAccount(STRING_NAME, STRING_EXTRA_INFO);
+    ErrCode result = g_accountManagerService->AddAccount(STRING_NAME, STRING_EXTRA_INFO);
     EXPECT_EQ(result, ERR_OK);
 
     std::set<std::string> authList;
-    result = servicePtr->GetOAuthList(STRING_NAME, STRING_AUTH_TYPE, authList);
+    result = g_accountManagerService->GetOAuthList(STRING_NAME, STRING_AUTH_TYPE, authList);
     EXPECT_EQ(result, ERR_OK);
-    EXPECT_EQ(authList.size(), SIZE_ZERO);
+    ASSERT_EQ(authList.size(), SIZE_ZERO);
 
-    result = servicePtr->DeleteAccount(STRING_NAME);
+    result = g_accountManagerService->DeleteAccount(STRING_NAME);
     EXPECT_EQ(result, ERR_OK);
 }
 
@@ -1483,29 +1348,28 @@ HWTEST_F(AppAccountManagerServiceModuleTest, AppAccountManagerService_GetOAuthLi
 {
     ACCOUNT_LOGI("AppAccountManagerService_GetOAuthList_0300");
 
-    auto servicePtr = std::make_shared<AppAccountManagerService>();
-    ASSERT_NE(servicePtr, nullptr);
-
-    ErrCode result = servicePtr->AddAccount(STRING_NAME, STRING_EXTRA_INFO);
+    ErrCode result = g_accountManagerService->AddAccount(STRING_NAME, STRING_EXTRA_INFO);
     EXPECT_EQ(result, ERR_OK);
 
-    result = servicePtr->SetOAuthTokenVisibility(STRING_NAME, STRING_AUTH_TYPE, STRING_BUNDLE_NAME, true);
+    result = g_accountManagerService->SetOAuthTokenVisibility(STRING_NAME,
+        STRING_AUTH_TYPE, STRING_BUNDLE_NAME, true);
     EXPECT_EQ(result, ERR_OK);
 
-    result = servicePtr->SetOAuthTokenVisibility(STRING_NAME, STRING_AUTH_TYPE, STRING_BUNDLE_NAME_NOT_INSTALLED, true);
+    result = g_accountManagerService->SetOAuthTokenVisibility(
+        STRING_NAME, STRING_AUTH_TYPE, STRING_BUNDLE_NAME_NOT_INSTALLED, true);
     EXPECT_EQ(result, ERR_OK);
 
     std::set<std::string> authList;
-    result = servicePtr->GetOAuthList(STRING_NAME, STRING_AUTH_TYPE, authList);
+    result = g_accountManagerService->GetOAuthList(STRING_NAME, STRING_AUTH_TYPE, authList);
     EXPECT_EQ(result, ERR_OK);
-    EXPECT_EQ(authList.size(), SIZE_TWO);
+    ASSERT_EQ(authList.size(), SIZE_TWO);
 
     auto it = authList.find(STRING_BUNDLE_NAME);
     EXPECT_NE(it, authList.end());
     it = authList.find(STRING_BUNDLE_NAME_NOT_INSTALLED);
     EXPECT_NE(it, authList.end());
 
-    result = servicePtr->DeleteAccount(STRING_NAME);
+    result = g_accountManagerService->DeleteAccount(STRING_NAME);
     EXPECT_EQ(result, ERR_OK);
 }
 
@@ -1519,11 +1383,8 @@ HWTEST_F(AppAccountManagerServiceModuleTest, AppAccountManagerService_GetAuthent
 {
     ACCOUNT_LOGI("AppAccountManagerService_GetAuthenticatorInfo_0100");
 
-    auto servicePtr = std::make_shared<AppAccountManagerService>();
-    ASSERT_NE(servicePtr, nullptr);
-
     AuthenticatorInfo info;
-    ErrCode result = servicePtr->GetAuthenticatorInfo(STRING_OWNER, info);
+    ErrCode result = g_accountManagerService->GetAuthenticatorInfo(STRING_OWNER, info);
     EXPECT_EQ(result, ERR_APPACCOUNT_SERVICE_OAUTH_AUTHENTICATOR_NOT_EXIST);
 }
 
@@ -1537,11 +1398,8 @@ HWTEST_F(AppAccountManagerServiceModuleTest, AppAccountManagerService_GetAuthent
 {
     ACCOUNT_LOGI("AppAccountManagerService_GetAuthenticatorInfo_0100");
 
-    auto servicePtr = std::make_shared<AppAccountManagerService>();
-    ASSERT_NE(servicePtr, nullptr);
-
     sptr<IRemoteObject> callback;
-    ErrCode result = servicePtr->GetAuthenticatorCallback(STRING_SESSION_ID, callback);
+    ErrCode result = g_accountManagerService->GetAuthenticatorCallback(STRING_SESSION_ID, callback);
     EXPECT_EQ(result, ERR_APPACCOUNT_SERVICE_OAUTH_SESSION_NOT_EXIST);
 }
 
@@ -1555,13 +1413,10 @@ HWTEST_F(AppAccountManagerServiceModuleTest, AppAccountManagerService_AddAccount
 {
     ACCOUNT_LOGI("AppAccountManagerService_AddAccountImplicitly_0100");
 
-    auto servicePtr = std::make_shared<AppAccountManagerService>();
-    ASSERT_NE(servicePtr, nullptr);
-
     AAFwk::Want options;
     options.SetParam(AccountSA::Constants::KEY_CALLER_ABILITY_NAME, STRING_ABILITY_NAME);
     sptr<IRemoteObject> callback = nullptr;
-    ErrCode result = servicePtr->AddAccountImplicitly(
+    ErrCode result = g_accountManagerService->AddAccountImplicitly(
         STRING_OWNER, STRING_AUTH_TYPE, options, callback);
     EXPECT_EQ(result, ERR_APPACCOUNT_SERVICE_OAUTH_AUTHENTICATOR_NOT_EXIST);
 }
@@ -1576,13 +1431,11 @@ HWTEST_F(AppAccountManagerServiceModuleTest, AppAccountManagerService_Authentica
 {
     ACCOUNT_LOGI("AppAccountManagerService_Authenticate_0100");
 
-    auto servicePtr = std::make_shared<AppAccountManagerService>();
-    ASSERT_NE(servicePtr, nullptr);
-
     AAFwk::Want options;
     options.SetParam(AccountSA::Constants::KEY_CALLER_ABILITY_NAME, STRING_ABILITY_NAME);
     sptr<IRemoteObject> callback = nullptr;
-    ErrCode result = servicePtr->Authenticate(STRING_NAME, STRING_OWNER, STRING_AUTH_TYPE, options, callback);
+    ErrCode result = g_accountManagerService->Authenticate(STRING_NAME,
+        STRING_OWNER, STRING_AUTH_TYPE, options, callback);
     EXPECT_EQ(result, ERR_APPACCOUNT_SERVICE_OAUTH_AUTHENTICATOR_NOT_EXIST);
 }
 
@@ -1596,13 +1449,10 @@ HWTEST_F(AppAccountManagerServiceModuleTest, AppAccountManagerService_GetAllAcco
 {
     ACCOUNT_LOGI("AppAccountManagerService_GetAllAccounts_0100");
 
-    auto servicePtr = std::make_shared<AppAccountManagerService>();
-    ASSERT_NE(servicePtr, nullptr);
-
     std::vector<AppAccountInfo> appAccounts;
-    ErrCode result = servicePtr->GetAllAccounts(STRING_OWNER, appAccounts);
+    ErrCode result = g_accountManagerService->GetAllAccounts(STRING_OWNER, appAccounts);
     EXPECT_EQ(result, ERR_OK);
-    EXPECT_EQ(appAccounts.size(), SIZE_ZERO);
+    ASSERT_EQ(appAccounts.size(), SIZE_ZERO);
 }
 
 /**
@@ -1615,17 +1465,14 @@ HWTEST_F(AppAccountManagerServiceModuleTest, AppAccountManagerService_GetAllAcco
 {
     ACCOUNT_LOGI("AppAccountManagerService_GetAllAccounts_0200");
 
-    auto servicePtr = std::make_shared<AppAccountManagerService>();
-    ASSERT_NE(servicePtr, nullptr);
-
-    ErrCode result = servicePtr->AddAccount(STRING_NAME, STRING_EXTRA_INFO);
+    ErrCode result = g_accountManagerService->AddAccount(STRING_NAME, STRING_EXTRA_INFO);
     EXPECT_EQ(result, ERR_OK);
 
-    result = servicePtr->AddAccount(STRING_NAME_TWO, STRING_EXTRA_INFO);
+    result = g_accountManagerService->AddAccount(STRING_NAME_TWO, STRING_EXTRA_INFO);
     EXPECT_EQ(result, ERR_OK);
 
     std::vector<AppAccountInfo> appAccounts;
-    result = servicePtr->GetAllAccounts(STRING_OWNER, appAccounts);
+    result = g_accountManagerService->GetAllAccounts(STRING_OWNER, appAccounts);
     EXPECT_EQ(result, ERR_OK);
     ASSERT_EQ(appAccounts.size(), SIZE_TWO);
 
@@ -1638,10 +1485,10 @@ HWTEST_F(AppAccountManagerServiceModuleTest, AppAccountManagerService_GetAllAcco
     EXPECT_EQ(result, ERR_OK);
     EXPECT_EQ(name, STRING_NAME_TWO);
 
-    result = servicePtr->DeleteAccount(STRING_NAME);
+    result = g_accountManagerService->DeleteAccount(STRING_NAME);
     EXPECT_EQ(result, ERR_OK);
 
-    result = servicePtr->DeleteAccount(STRING_NAME_TWO);
+    result = g_accountManagerService->DeleteAccount(STRING_NAME_TWO);
     EXPECT_EQ(result, ERR_OK);
 }
 
@@ -1655,11 +1502,8 @@ HWTEST_F(AppAccountManagerServiceModuleTest, AppAccountManagerService_GetAllAcco
 {
     ACCOUNT_LOGI("AppAccountManagerService_GetAllAccounts_0300");
 
-    auto servicePtr = std::make_shared<AppAccountManagerService>();
-    ASSERT_NE(servicePtr, nullptr);
-
     std::vector<AppAccountInfo> appAccounts;
-    ErrCode result = servicePtr->GetAllAccounts(STRING_BUNDLE_NAME, appAccounts);
+    ErrCode result = g_accountManagerService->GetAllAccounts(STRING_BUNDLE_NAME, appAccounts);
     EXPECT_EQ(result, ERR_OK);
     EXPECT_EQ(appAccounts.size(), SIZE_ZERO);
 }
@@ -1674,22 +1518,17 @@ HWTEST_F(AppAccountManagerServiceModuleTest, AppAccountManagerService_GetAllAcco
 {
     ACCOUNT_LOGI("AppAccountManagerService_GetAllAccounts_0400");
 
-    controlManagerPtr_ = AppAccountControlManager::GetInstance();
-    ASSERT_NE(controlManagerPtr_, nullptr);
-
     AppAccountInfo appAccountInfo(STRING_NAME, STRING_BUNDLE_NAME);
     ErrCode result =
-        controlManagerPtr_->AddAccount(STRING_NAME, STRING_EMPTY, UID, STRING_BUNDLE_NAME, appAccountInfo);
+        g_controlManagerPtr->AddAccount(STRING_NAME, STRING_EMPTY, UID, STRING_BUNDLE_NAME, appAccountInfo);
     EXPECT_EQ(result, ERR_OK);
 
-    result = controlManagerPtr_->EnableAppAccess(STRING_NAME, STRING_OWNER, UID, STRING_BUNDLE_NAME, appAccountInfo);
+    result = g_controlManagerPtr->EnableAppAccess(STRING_NAME,
+        STRING_OWNER, UID, STRING_BUNDLE_NAME, appAccountInfo);
     EXPECT_EQ(result, ERR_OK);
-
-    auto servicePtr = std::make_shared<AppAccountManagerService>();
-    ASSERT_NE(servicePtr, nullptr);
 
     std::vector<AppAccountInfo> appAccounts;
-    result = servicePtr->GetAllAccounts(STRING_BUNDLE_NAME, appAccounts);
+    result = g_accountManagerService->GetAllAccounts(STRING_BUNDLE_NAME, appAccounts);
     EXPECT_EQ(result, ERR_OK);
     ASSERT_EQ(appAccounts.size(), SIZE_ONE);
 
@@ -1698,7 +1537,7 @@ HWTEST_F(AppAccountManagerServiceModuleTest, AppAccountManagerService_GetAllAcco
     EXPECT_EQ(result, ERR_OK);
     EXPECT_EQ(owner, STRING_BUNDLE_NAME);
 
-    result = controlManagerPtr_->DeleteAccount(STRING_NAME, UID, STRING_BUNDLE_NAME, appAccountInfo);
+    result = g_controlManagerPtr->DeleteAccount(STRING_NAME, UID, STRING_BUNDLE_NAME, appAccountInfo);
     EXPECT_EQ(result, ERR_OK);
 }
 
@@ -1712,27 +1551,21 @@ HWTEST_F(AppAccountManagerServiceModuleTest, AppAccountManagerService_GetAllAcco
 {
     ACCOUNT_LOGI("AppAccountManagerService_GetAllAccounts_0500");
 
-    controlManagerPtr_ = AppAccountControlManager::GetInstance();
-    ASSERT_NE(controlManagerPtr_, nullptr);
-
     AppAccountInfo appAccountInfo(STRING_NAME, STRING_BUNDLE_NAME);
     ErrCode result =
-        controlManagerPtr_->AddAccount(STRING_NAME, STRING_EMPTY, UID, STRING_BUNDLE_NAME, appAccountInfo);
+        g_controlManagerPtr->AddAccount(STRING_NAME, STRING_EMPTY, UID, STRING_BUNDLE_NAME, appAccountInfo);
     EXPECT_EQ(result, ERR_OK);
 
     AppAccountInfo appAccountInfoTwo(STRING_NAME_TWO, STRING_OWNER);
-    result = controlManagerPtr_->AddAccount(STRING_NAME, STRING_EMPTY, UID, STRING_OWNER, appAccountInfoTwo);
+    result = g_controlManagerPtr->AddAccount(STRING_NAME, STRING_EMPTY, UID, STRING_OWNER, appAccountInfoTwo);
     EXPECT_EQ(result, ERR_OK);
 
     result =
-        controlManagerPtr_->EnableAppAccess(STRING_NAME, STRING_BUNDLE_NAME, UID, STRING_OWNER, appAccountInfoTwo);
+        g_controlManagerPtr->EnableAppAccess(STRING_NAME, STRING_BUNDLE_NAME, UID, STRING_OWNER, appAccountInfoTwo);
     EXPECT_EQ(result, ERR_OK);
 
-    auto servicePtr = std::make_shared<AppAccountManagerService>();
-    ASSERT_NE(servicePtr, nullptr);
-
     std::vector<AppAccountInfo> appAccounts;
-    result = servicePtr->GetAllAccounts(STRING_BUNDLE_NAME, appAccounts);
+    result = g_accountManagerService->GetAllAccounts(STRING_BUNDLE_NAME, appAccounts);
     EXPECT_EQ(result, ERR_OK);
     ASSERT_EQ(appAccounts.size(), SIZE_ONE);
 
@@ -1746,10 +1579,10 @@ HWTEST_F(AppAccountManagerServiceModuleTest, AppAccountManagerService_GetAllAcco
     EXPECT_EQ(result, ERR_OK);
     EXPECT_EQ(name, STRING_NAME);
 
-    result = controlManagerPtr_->DeleteAccount(STRING_NAME, UID, STRING_BUNDLE_NAME, appAccountInfo);
+    result = g_controlManagerPtr->DeleteAccount(STRING_NAME, UID, STRING_BUNDLE_NAME, appAccountInfo);
     EXPECT_EQ(result, ERR_OK);
 
-    result = controlManagerPtr_->DeleteAccount(STRING_NAME, UID, STRING_OWNER, appAccountInfoTwo);
+    result = g_controlManagerPtr->DeleteAccount(STRING_NAME, UID, STRING_OWNER, appAccountInfoTwo);
     EXPECT_EQ(result, ERR_OK);
 }
 
@@ -1763,11 +1596,8 @@ HWTEST_F(AppAccountManagerServiceModuleTest, AppAccountManagerService_GetAllAcco
 {
     ACCOUNT_LOGI("AppAccountManagerService_GetAllAccounts_0600");
 
-    auto servicePtr = std::make_shared<AppAccountManagerService>();
-    ASSERT_NE(servicePtr, nullptr);
-
     std::vector<AppAccountInfo> appAccounts;
-    ErrCode result = servicePtr->GetAllAccounts(STRING_BUNDLE_NAME_NOT_INSTALLED, appAccounts);
+    ErrCode result = g_accountManagerService->GetAllAccounts(STRING_BUNDLE_NAME_NOT_INSTALLED, appAccounts);
     EXPECT_EQ(result, ERR_APPACCOUNT_SERVICE_GET_BUNDLE_INFO);
 }
 
@@ -1781,11 +1611,8 @@ HWTEST_F(AppAccountManagerServiceModuleTest, AppAccountManagerService_GetAllAcce
 {
     ACCOUNT_LOGI("AppAccountManagerService_GetAllAccessibleAccounts_0100");
 
-    auto servicePtr = std::make_shared<AppAccountManagerService>();
-    ASSERT_NE(servicePtr, nullptr);
-
     std::vector<AppAccountInfo> appAccounts;
-    ErrCode result = servicePtr->GetAllAccessibleAccounts(appAccounts);
+    ErrCode result = g_accountManagerService->GetAllAccessibleAccounts(appAccounts);
     EXPECT_EQ(result, ERR_OK);
     EXPECT_EQ(appAccounts.size(), SIZE_ZERO);
 }
@@ -1800,14 +1627,11 @@ HWTEST_F(AppAccountManagerServiceModuleTest, AppAccountManagerService_GetAllAcce
 {
     ACCOUNT_LOGI("AppAccountManagerService_GetAllAccessibleAccounts_0200");
 
-    auto servicePtr = std::make_shared<AppAccountManagerService>();
-    ASSERT_NE(servicePtr, nullptr);
-
-    ErrCode result = servicePtr->AddAccount(STRING_NAME, STRING_EXTRA_INFO);
+    ErrCode result = g_accountManagerService->AddAccount(STRING_NAME, STRING_EXTRA_INFO);
     EXPECT_EQ(result, ERR_OK);
 
     std::vector<AppAccountInfo> appAccounts;
-    result = servicePtr->GetAllAccessibleAccounts(appAccounts);
+    result = g_accountManagerService->GetAllAccessibleAccounts(appAccounts);
     EXPECT_EQ(result, ERR_OK);
     ASSERT_EQ(appAccounts.size(), SIZE_ONE);
 
@@ -1816,7 +1640,7 @@ HWTEST_F(AppAccountManagerServiceModuleTest, AppAccountManagerService_GetAllAcce
     EXPECT_EQ(result, ERR_OK);
     EXPECT_EQ(name, STRING_NAME);
 
-    result = servicePtr->DeleteAccount(STRING_NAME);
+    result = g_accountManagerService->DeleteAccount(STRING_NAME);
     EXPECT_EQ(result, ERR_OK);
 }
 
@@ -1830,22 +1654,16 @@ HWTEST_F(AppAccountManagerServiceModuleTest, AppAccountManagerService_GetAllAcce
 {
     ACCOUNT_LOGI("AppAccountManagerService_GetAllAccessibleAccounts_0300");
 
-    controlManagerPtr_ = AppAccountControlManager::GetInstance();
-    ASSERT_NE(controlManagerPtr_, nullptr);
-
     AppAccountInfo appAccountInfo(STRING_NAME, STRING_BUNDLE_NAME);
     ErrCode result =
-        controlManagerPtr_->AddAccount(STRING_NAME, STRING_EMPTY, UID, STRING_BUNDLE_NAME, appAccountInfo);
+        g_controlManagerPtr->AddAccount(STRING_NAME, STRING_EMPTY, UID, STRING_BUNDLE_NAME, appAccountInfo);
     EXPECT_EQ(result, ERR_OK);
 
-    result = controlManagerPtr_->EnableAppAccess(STRING_NAME, STRING_OWNER, UID, STRING_BUNDLE_NAME, appAccountInfo);
+    result = g_controlManagerPtr->EnableAppAccess(STRING_NAME, STRING_OWNER, UID, STRING_BUNDLE_NAME, appAccountInfo);
     EXPECT_EQ(result, ERR_OK);
-
-    auto servicePtr = std::make_shared<AppAccountManagerService>();
-    ASSERT_NE(servicePtr, nullptr);
 
     std::vector<AppAccountInfo> appAccounts;
-    result = servicePtr->GetAllAccessibleAccounts(appAccounts);
+    result = g_accountManagerService->GetAllAccessibleAccounts(appAccounts);
     EXPECT_EQ(result, ERR_OK);
     ASSERT_EQ(appAccounts.size(), SIZE_ONE);
 
@@ -1854,7 +1672,7 @@ HWTEST_F(AppAccountManagerServiceModuleTest, AppAccountManagerService_GetAllAcce
     EXPECT_EQ(result, ERR_OK);
     EXPECT_EQ(owner, STRING_BUNDLE_NAME);
 
-    result = controlManagerPtr_->DeleteAccount(STRING_NAME, UID, STRING_BUNDLE_NAME, appAccountInfo);
+    result = g_controlManagerPtr->DeleteAccount(STRING_NAME, UID, STRING_BUNDLE_NAME, appAccountInfo);
     EXPECT_EQ(result, ERR_OK);
 }
 
@@ -1867,8 +1685,8 @@ HWTEST_F(AppAccountManagerServiceModuleTest, AppAccountManagerService_GetAllAcce
 HWTEST_F(AppAccountManagerServiceModuleTest, AppAccountManagerService_OnPackageRemoved_0100, TestSize.Level1)
 {
     ACCOUNT_LOGI("AppAccountManagerService_OnPackageRemoved_0100");
-
-    auto dataStoragePtr = controlManagerPtr_->GetDataStorage(UID);
+    DeleteKvStore();
+    auto dataStoragePtr = g_controlManagerPtr->GetDataStorage(UID);
     ASSERT_NE(dataStoragePtr, nullptr);
 
     AppAccountInfo appAccountInfo(STRING_NAME, STRING_BUNDLE_NAME);
@@ -1876,9 +1694,6 @@ HWTEST_F(AppAccountManagerServiceModuleTest, AppAccountManagerService_OnPackageR
     EXPECT_EQ(result, ERR_OK);
 
     std::map<std::string, std::shared_ptr<IAccountInfo>> accounts;
-    accounts.clear();
-    EXPECT_EQ(accounts.size(), SIZE_ZERO);
-
     result = dataStoragePtr->LoadAllData(accounts);
     EXPECT_EQ(result, ERR_OK);
     EXPECT_EQ(accounts.size(), SIZE_ONE);
@@ -1900,8 +1715,6 @@ HWTEST_F(AppAccountManagerServiceModuleTest, AppAccountManagerService_OnPackageR
     std::this_thread::sleep_for(std::chrono::seconds(DELAY_FOR_PACKAGE_REMOVED));
 
     accounts.clear();
-    EXPECT_EQ(accounts.size(), SIZE_ZERO);
-
     result = dataStoragePtr->LoadAllData(accounts);
     EXPECT_EQ(result, ERR_OK);
     EXPECT_EQ(accounts.size(), SIZE_ZERO);
