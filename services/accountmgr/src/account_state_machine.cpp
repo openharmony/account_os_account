@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021 Huawei Device Co., Ltd.
+ * Copyright (c) 2021-2022 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -30,11 +30,11 @@ void AccountStateMachine::OnInitialize()
         // ACCOUNT_STATE_UNBOUND state
         std::make_pair(ACCOUNT_STATE_UNBOUND, std::map<int, AccountStateAction *> {
             // normal event, transform to login state
-            std::make_pair(ACCOUNT_BIND_SUCCESS_EVT, new LoginAction(ACCOUNT_STATE_LOGIN)),
+            std::make_pair(ACCOUNT_BIND_SUCCESS_EVT, new (std::nothrow) LoginAction(ACCOUNT_STATE_LOGIN)),
             // normal event, keep in unbound state
-            std::make_pair(ACCOUNT_BIND_FAILED_EVT, new ExceptionAction(ACCOUNT_STATE_UNBOUND)),
+            std::make_pair(ACCOUNT_BIND_FAILED_EVT, new (std::nothrow) ExceptionAction(ACCOUNT_STATE_UNBOUND)),
             // unexpected event, re-initial state machine, check the state from account server
-            std::make_pair(ACCOUNT_AUTHENTICATE_SUCCESS_EVT, new LoginAction(ACCOUNT_STATE_LOGIN)),
+            std::make_pair(ACCOUNT_AUTHENTICATE_SUCCESS_EVT, new (std::nothrow) LoginAction(ACCOUNT_STATE_LOGIN)),
             // unexpected event, re-initial state machine, check the state from account server
             std::make_pair(ACCOUNT_AUTHENTICATE_FAILED_EVT, nullptr),
             // unexpected event, re-initial state machine, check the state from account server
@@ -53,30 +53,30 @@ void AccountStateMachine::OnInitialize()
             // expected event, keep in login state
             std::make_pair(ACCOUNT_BIND_SUCCESS_EVT, nullptr),
             // unexpected event, re-initial state machine, check the state from account server
-            std::make_pair(ACCOUNT_BIND_FAILED_EVT, new ExceptionAction(ACCOUNT_STATE_LOGIN)),
+            std::make_pair(ACCOUNT_BIND_FAILED_EVT, new (std::nothrow) ExceptionAction(ACCOUNT_STATE_LOGIN)),
             // normal event, keep in login state
             std::make_pair(ACCOUNT_AUTHENTICATE_SUCCESS_EVT, nullptr),
             // normal event, transform to logout state
             std::make_pair(ACCOUNT_AUTHENTICATE_FAILED_EVT, nullptr),
             // expected event, transform to logout state
-            std::make_pair(ACCOUNT_TOKEN_EXPIRED_EVT, new LogoutAction(ACCOUNT_STATE_NOTLOGIN)),
+            std::make_pair(ACCOUNT_TOKEN_EXPIRED_EVT, new (std::nothrow) LogoutAction(ACCOUNT_STATE_NOTLOGIN)),
             // expected event, transform to logout state
-            std::make_pair(ACCOUNT_PASSWORD_CHANGED_EVT, new LogoutAction(ACCOUNT_STATE_NOTLOGIN)),
+            std::make_pair(ACCOUNT_PASSWORD_CHANGED_EVT, new (std::nothrow) LogoutAction(ACCOUNT_STATE_NOTLOGIN)),
             // expected event, transform to logout state
-            std::make_pair(ACCOUNT_MANUAL_LOGOUT_EVT, new LogoutAction(ACCOUNT_STATE_NOTLOGIN)),
+            std::make_pair(ACCOUNT_MANUAL_LOGOUT_EVT, new (std::nothrow) LogoutAction(ACCOUNT_STATE_NOTLOGIN)),
             // expected event, transform to unbound state
-            std::make_pair(ACCOUNT_MANUAL_UNBOUND_EVT, new UnboundAction(ACCOUNT_STATE_UNBOUND)),
+            std::make_pair(ACCOUNT_MANUAL_UNBOUND_EVT, new (std::nothrow) UnboundAction(ACCOUNT_STATE_UNBOUND)),
             // expected event, transform to logoff state
-            std::make_pair(ACCOUNT_MANUAL_LOGOFF_EVT, new LogoffAction(ACCOUNT_STATE_LOGOFF))}
+            std::make_pair(ACCOUNT_MANUAL_LOGOFF_EVT, new (std::nothrow) LogoffAction(ACCOUNT_STATE_LOGOFF))}
         ),
         // ACCOUNT_STATE_NOTLOGIN state
         std::make_pair(ACCOUNT_STATE_NOTLOGIN, std::map<int, AccountStateAction *> {
             // normal event, transform to login state
-            std::make_pair(ACCOUNT_BIND_SUCCESS_EVT, new LoginAction(ACCOUNT_STATE_LOGIN)),
+            std::make_pair(ACCOUNT_BIND_SUCCESS_EVT, new (std::nothrow) LoginAction(ACCOUNT_STATE_LOGIN)),
             // unexpected event, re-initial state machine, check the state from account server
-            std::make_pair(ACCOUNT_BIND_FAILED_EVT, new ExceptionAction(ACCOUNT_STATE_NOTLOGIN)),
+            std::make_pair(ACCOUNT_BIND_FAILED_EVT, new (std::nothrow) ExceptionAction(ACCOUNT_STATE_NOTLOGIN)),
             // expected event, transform to login state
-            std::make_pair(ACCOUNT_AUTHENTICATE_SUCCESS_EVT, new LoginAction(ACCOUNT_STATE_LOGIN)),
+            std::make_pair(ACCOUNT_AUTHENTICATE_SUCCESS_EVT, new (std::nothrow) LoginAction(ACCOUNT_STATE_LOGIN)),
             // expected event, keep in logout state
             std::make_pair(ACCOUNT_AUTHENTICATE_FAILED_EVT, nullptr),
             // unexpected event, re-initial state machine, check the state from account server
@@ -86,16 +86,16 @@ void AccountStateMachine::OnInitialize()
             // unexpected event, re-initial state machine, check the state from account server
             std::make_pair(ACCOUNT_MANUAL_LOGOUT_EVT, nullptr),
             // expected event, transform to unbound state
-            std::make_pair(ACCOUNT_MANUAL_UNBOUND_EVT, new UnboundAction(ACCOUNT_STATE_UNBOUND)),
+            std::make_pair(ACCOUNT_MANUAL_UNBOUND_EVT, new (std::nothrow) UnboundAction(ACCOUNT_STATE_UNBOUND)),
             // expected event, transform to logoff state
-            std::make_pair(ACCOUNT_MANUAL_LOGOFF_EVT, new LogoffAction(ACCOUNT_STATE_LOGOFF))}
+            std::make_pair(ACCOUNT_MANUAL_LOGOFF_EVT, new (std::nothrow) LogoffAction(ACCOUNT_STATE_LOGOFF))}
         ),
         // ACCOUNT_STATE_LOGOFF state
         std::make_pair(ACCOUNT_STATE_LOGOFF, std::map<int, AccountStateAction *> {
             // normal event, transform to login state
-            std::make_pair(ACCOUNT_BIND_SUCCESS_EVT, new LoginAction(ACCOUNT_STATE_LOGIN)),
+            std::make_pair(ACCOUNT_BIND_SUCCESS_EVT, new (std::nothrow) LoginAction(ACCOUNT_STATE_LOGIN)),
             // unexpected event, re-initial state machine, check the state from account server
-            std::make_pair(ACCOUNT_BIND_FAILED_EVT, new ExceptionAction(ACCOUNT_STATE_LOGOFF)),
+            std::make_pair(ACCOUNT_BIND_FAILED_EVT, new (std::nothrow) ExceptionAction(ACCOUNT_STATE_LOGOFF)),
             // expected event, transform to login state
             std::make_pair(ACCOUNT_AUTHENTICATE_SUCCESS_EVT, nullptr),
             // expected event, keep in logoff state

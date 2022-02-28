@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021 Huawei Device Co., Ltd.
+ * Copyright (c) 2021-2022 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -110,7 +110,11 @@ static void ParseContextForRequestRedirected(napi_env env, napi_callback_info cb
 napi_value NapiAppAccountAuthenticatorCallback::JsOnResult(napi_env env, napi_callback_info cbInfo)
 {
     ACCOUNT_LOGI("JsOnResult start");
-    auto *param = new CallbackParam();
+    auto *param = new (std::nothrow) CallbackParam();
+    if (param == nullptr) {
+        ACCOUNT_LOGE("insufficient memory for param!");
+        return NapiGetNull(env);
+    }
     param->env = env;
     ParseContextForOnResult(env, cbInfo, param);
 
@@ -147,7 +151,11 @@ napi_value NapiAppAccountAuthenticatorCallback::JsOnResult(napi_env env, napi_ca
 napi_value NapiAppAccountAuthenticatorCallback::JsOnRequestRedirected(napi_env env, napi_callback_info cbInfo)
 {
     ACCOUNT_LOGI("JsOnRequestRedirected start");
-    auto *param = new CallbackParam();
+    auto *param = new (std::nothrow) CallbackParam();
+    if (param == nullptr) {
+        ACCOUNT_LOGE("insufficient memory for param!");
+        return NapiGetNull(env);
+    }
     param->env = env;
     ParseContextForRequestRedirected(env, cbInfo, param);
 
