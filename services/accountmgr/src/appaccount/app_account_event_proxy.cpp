@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021 Huawei Device Co., Ltd.
+ * Copyright (c) 2021-2022 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -35,12 +35,19 @@ void AppAccountEventProxy::OnAccountsChanged(const std::vector<AppAccountInfo> &
     MessageParcel data;
     MessageParcel reply;
 
+    if (!data.WriteInterfaceToken(GetDescriptor())) {
+        ACCOUNT_LOGE("failed to write descriptor!");
+        return;
+    }
+
     if (!WriteParcelableVector(accounts, data)) {
         ACCOUNT_LOGE("failed to write WriteVector accounts");
+        return;
     }
 
     ErrCode result = SendRequest(IAppAccountEvent::Message::ACCOUNT_CHANGED, data, reply);
     if (result != ERR_OK) {
+        ACCOUNT_LOGE("SendRequest failed! error code %{public}d.", result);
         return;
     }
 }

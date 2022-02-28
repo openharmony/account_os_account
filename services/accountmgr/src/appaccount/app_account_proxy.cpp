@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021 Huawei Device Co., Ltd.
+ * Copyright (c) 2021-2022 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -35,6 +35,11 @@ ErrCode AppAccountProxy::AddAccount(const std::string &name, const std::string &
     MessageParcel data;
     MessageParcel reply;
 
+    if (!data.WriteInterfaceToken(GetDescriptor())) {
+        ACCOUNT_LOGE("failed to write descriptor!");
+        return ERR_ACCOUNT_COMMON_WRITE_DESCRIPTOR_ERROR;
+    }
+
     if (!data.WriteString(name)) {
         ACCOUNT_LOGE("failed to write string for name");
         return ERR_APPACCOUNT_KIT_WRITE_STRING_NAME;
@@ -61,6 +66,12 @@ ErrCode AppAccountProxy::AddAccountImplicitly(const std::string &owner, const st
 {
     MessageParcel data;
     MessageParcel reply;
+
+    if (!data.WriteInterfaceToken(GetDescriptor())) {
+        ACCOUNT_LOGE("failed to write descriptor!");
+        return ERR_ACCOUNT_COMMON_WRITE_DESCRIPTOR_ERROR;
+    }
+
     if (!data.WriteString(owner)) {
         ACCOUNT_LOGE("failed to write string for name");
         return ERR_APPACCOUNT_KIT_WRITE_STRING_NAME;
@@ -93,6 +104,11 @@ ErrCode AppAccountProxy::DeleteAccount(const std::string &name)
     MessageParcel data;
     MessageParcel reply;
 
+    if (!data.WriteInterfaceToken(GetDescriptor())) {
+        ACCOUNT_LOGE("failed to write descriptor!");
+        return ERR_ACCOUNT_COMMON_WRITE_DESCRIPTOR_ERROR;
+    }
+
     if (!data.WriteString(name)) {
         ACCOUNT_LOGE("failed to write string for name");
         return ERR_APPACCOUNT_KIT_WRITE_STRING_NAME;
@@ -117,6 +133,11 @@ ErrCode AppAccountProxy::GetAccountExtraInfo(const std::string &name, std::strin
     MessageParcel data;
     MessageParcel reply;
 
+    if (!data.WriteInterfaceToken(GetDescriptor())) {
+        ACCOUNT_LOGE("failed to write descriptor!");
+        return ERR_ACCOUNT_COMMON_WRITE_DESCRIPTOR_ERROR;
+    }
+
     if (!data.WriteString(name)) {
         ACCOUNT_LOGE("failed to write string for name");
         return ERR_APPACCOUNT_KIT_WRITE_STRING_NAME;
@@ -140,6 +161,11 @@ ErrCode AppAccountProxy::SetAccountExtraInfo(const std::string &name, const std:
 
     MessageParcel data;
     MessageParcel reply;
+
+    if (!data.WriteInterfaceToken(GetDescriptor())) {
+        ACCOUNT_LOGE("failed to write descriptor!");
+        return ERR_ACCOUNT_COMMON_WRITE_DESCRIPTOR_ERROR;
+    }
 
     if (!data.WriteString(name)) {
         ACCOUNT_LOGE("failed to write string for name");
@@ -169,6 +195,11 @@ ErrCode AppAccountProxy::EnableAppAccess(const std::string &name, const std::str
     MessageParcel data;
     MessageParcel reply;
 
+    if (!data.WriteInterfaceToken(GetDescriptor())) {
+        ACCOUNT_LOGE("failed to write descriptor!");
+        return ERR_ACCOUNT_COMMON_WRITE_DESCRIPTOR_ERROR;
+    }
+
     if (!data.WriteString(name)) {
         ACCOUNT_LOGE("failed to write string for name");
         return ERR_APPACCOUNT_KIT_WRITE_STRING_NAME;
@@ -196,6 +227,11 @@ ErrCode AppAccountProxy::DisableAppAccess(const std::string &name, const std::st
 
     MessageParcel data;
     MessageParcel reply;
+
+    if (!data.WriteInterfaceToken(GetDescriptor())) {
+        ACCOUNT_LOGE("failed to write descriptor!");
+        return ERR_ACCOUNT_COMMON_WRITE_DESCRIPTOR_ERROR;
+    }
 
     if (!data.WriteString(name)) {
         ACCOUNT_LOGE("failed to write string for name");
@@ -225,6 +261,11 @@ ErrCode AppAccountProxy::CheckAppAccountSyncEnable(const std::string &name, bool
     MessageParcel data;
     MessageParcel reply;
 
+    if (!data.WriteInterfaceToken(GetDescriptor())) {
+        ACCOUNT_LOGE("failed to write descriptor!");
+        return ERR_ACCOUNT_COMMON_WRITE_DESCRIPTOR_ERROR;
+    }
+
     if (!data.WriteString(name)) {
         ACCOUNT_LOGE("failed to write string for name");
         return ERR_APPACCOUNT_KIT_WRITE_STRING_NAME;
@@ -248,6 +289,11 @@ ErrCode AppAccountProxy::SetAppAccountSyncEnable(const std::string &name, const 
 
     MessageParcel data;
     MessageParcel reply;
+
+    if (!data.WriteInterfaceToken(GetDescriptor())) {
+        ACCOUNT_LOGE("failed to write descriptor!");
+        return ERR_ACCOUNT_COMMON_WRITE_DESCRIPTOR_ERROR;
+    }
 
     if (!data.WriteString(name)) {
         ACCOUNT_LOGE("failed to write string for name");
@@ -277,6 +323,11 @@ ErrCode AppAccountProxy::GetAssociatedData(const std::string &name, const std::s
     MessageParcel data;
     MessageParcel reply;
 
+    if (!data.WriteInterfaceToken(GetDescriptor())) {
+        ACCOUNT_LOGE("failed to write descriptor!");
+        return ERR_ACCOUNT_COMMON_WRITE_DESCRIPTOR_ERROR;
+    }
+
     if (!data.WriteString(name)) {
         ACCOUNT_LOGE("failed to write string for name");
         return ERR_APPACCOUNT_KIT_WRITE_STRING_NAME;
@@ -305,6 +356,11 @@ ErrCode AppAccountProxy::SetAssociatedData(const std::string &name, const std::s
 
     MessageParcel data;
     MessageParcel reply;
+
+    if (!data.WriteInterfaceToken(GetDescriptor())) {
+        ACCOUNT_LOGE("failed to write descriptor!");
+        return ERR_ACCOUNT_COMMON_WRITE_DESCRIPTOR_ERROR;
+    }
 
     if (!data.WriteString(name)) {
         ACCOUNT_LOGE("failed to write string for name");
@@ -340,6 +396,11 @@ ErrCode AppAccountProxy::GetAccountCredential(
     MessageParcel data;
     MessageParcel reply;
 
+    if (!data.WriteInterfaceToken(GetDescriptor())) {
+        ACCOUNT_LOGE("failed to write descriptor!");
+        return ERR_ACCOUNT_COMMON_WRITE_DESCRIPTOR_ERROR;
+    }
+
     if (!data.WriteString(name)) {
         ACCOUNT_LOGE("failed to write string for name");
         return ERR_APPACCOUNT_KIT_WRITE_STRING_NAME;
@@ -369,6 +430,11 @@ ErrCode AppAccountProxy::SetAccountCredential(
 
     MessageParcel data;
     MessageParcel reply;
+
+    if (!data.WriteInterfaceToken(GetDescriptor())) {
+        ACCOUNT_LOGE("failed to write descriptor!");
+        return ERR_ACCOUNT_COMMON_WRITE_DESCRIPTOR_ERROR;
+    }
 
     if (!data.WriteString(name)) {
         ACCOUNT_LOGE("failed to write string for name");
@@ -401,6 +467,12 @@ ErrCode AppAccountProxy::Authenticate(const std::string &name, const std::string
 {
     MessageParcel data;
     MessageParcel reply;
+
+    if (!data.WriteInterfaceToken(GetDescriptor())) {
+        ACCOUNT_LOGE("failed to write descriptor!");
+        return ERR_ACCOUNT_COMMON_WRITE_DESCRIPTOR_ERROR;
+    }
+
     if (!data.WriteString(name)) {
         ACCOUNT_LOGE("failed to write string for name");
         return ERR_APPACCOUNT_KIT_WRITE_STRING_NAME;
@@ -435,6 +507,12 @@ ErrCode AppAccountProxy::GetOAuthToken(
 {
     MessageParcel data;
     MessageParcel reply;
+
+    if (!data.WriteInterfaceToken(GetDescriptor())) {
+        ACCOUNT_LOGE("failed to write descriptor!");
+        return ERR_ACCOUNT_COMMON_WRITE_DESCRIPTOR_ERROR;
+    }
+
     if (!data.WriteString(name)) {
         ACCOUNT_LOGE("failed to write string for name");
         return ERR_APPACCOUNT_KIT_WRITE_STRING_NAME;
@@ -462,6 +540,12 @@ ErrCode AppAccountProxy::SetOAuthToken(
 {
     MessageParcel data;
     MessageParcel reply;
+
+    if (!data.WriteInterfaceToken(GetDescriptor())) {
+        ACCOUNT_LOGE("failed to write descriptor!");
+        return ERR_ACCOUNT_COMMON_WRITE_DESCRIPTOR_ERROR;
+    }
+
     if (!data.WriteString(name)) {
         ACCOUNT_LOGE("failed to write string for name");
         return ERR_APPACCOUNT_KIT_WRITE_STRING_NAME;
@@ -488,6 +572,12 @@ ErrCode AppAccountProxy::DeleteOAuthToken(
 {
     MessageParcel data;
     MessageParcel reply;
+
+    if (!data.WriteInterfaceToken(GetDescriptor())) {
+        ACCOUNT_LOGE("failed to write descriptor!");
+        return ERR_ACCOUNT_COMMON_WRITE_DESCRIPTOR_ERROR;
+    }
+
     if (!data.WriteString(name)) {
         ACCOUNT_LOGE("failed to write string for token");
         return ERR_APPACCOUNT_KIT_WRITE_STRING_NAME;
@@ -518,6 +608,12 @@ ErrCode AppAccountProxy::SetOAuthTokenVisibility(
 {
     MessageParcel data;
     MessageParcel reply;
+
+    if (!data.WriteInterfaceToken(GetDescriptor())) {
+        ACCOUNT_LOGE("failed to write descriptor!");
+        return ERR_ACCOUNT_COMMON_WRITE_DESCRIPTOR_ERROR;
+    }
+
     if (!data.WriteString(name)) {
         ACCOUNT_LOGE("failed to write string for name");
         return ERR_APPACCOUNT_KIT_WRITE_STRING_NAME;
@@ -548,6 +644,12 @@ ErrCode AppAccountProxy::CheckOAuthTokenVisibility(
 {
     MessageParcel data;
     MessageParcel reply;
+
+    if (!data.WriteInterfaceToken(GetDescriptor())) {
+        ACCOUNT_LOGE("failed to write descriptor!");
+        return ERR_ACCOUNT_COMMON_WRITE_DESCRIPTOR_ERROR;
+    }
+
     if (!data.WriteString(name)) {
         ACCOUNT_LOGE("failed to write string for token");
         return ERR_APPACCOUNT_KIT_WRITE_STRING_NAME;
@@ -574,6 +676,12 @@ ErrCode AppAccountProxy::GetAuthenticatorInfo(const std::string &owner, Authenti
 {
     MessageParcel data;
     MessageParcel reply;
+
+    if (!data.WriteInterfaceToken(GetDescriptor())) {
+        ACCOUNT_LOGE("failed to write descriptor!");
+        return ERR_ACCOUNT_COMMON_WRITE_DESCRIPTOR_ERROR;
+    }
+
     if (!data.WriteString(owner)) {
         ACCOUNT_LOGE("failed to write string for owner");
         return ERR_APPACCOUNT_KIT_WRITE_STRING_OWNER;
@@ -596,6 +704,12 @@ ErrCode AppAccountProxy::GetAllOAuthTokens(
     tokenInfos.clear();
     MessageParcel data;
     MessageParcel reply;
+
+    if (!data.WriteInterfaceToken(GetDescriptor())) {
+        ACCOUNT_LOGE("failed to write descriptor!");
+        return ERR_ACCOUNT_COMMON_WRITE_DESCRIPTOR_ERROR;
+    }
+
     if (!data.WriteString(name)) {
         ACCOUNT_LOGE("failed to write string for name");
         return ERR_APPACCOUNT_KIT_WRITE_STRING_NAME;
@@ -625,6 +739,12 @@ ErrCode AppAccountProxy::GetOAuthList(
 {
     MessageParcel data;
     MessageParcel reply;
+
+    if (!data.WriteInterfaceToken(GetDescriptor())) {
+        ACCOUNT_LOGE("failed to write descriptor!");
+        return ERR_ACCOUNT_COMMON_WRITE_DESCRIPTOR_ERROR;
+    }
+
     if (!data.WriteString(name)) {
         ACCOUNT_LOGE("failed to write string for token");
         return ERR_APPACCOUNT_KIT_WRITE_STRING_NAME;
@@ -650,6 +770,12 @@ ErrCode AppAccountProxy::GetAuthenticatorCallback(const std::string &sessionId, 
 {
     MessageParcel data;
     MessageParcel reply;
+
+    if (!data.WriteInterfaceToken(GetDescriptor())) {
+        ACCOUNT_LOGE("failed to write descriptor!");
+        return ERR_ACCOUNT_COMMON_WRITE_DESCRIPTOR_ERROR;
+    }
+
     if (!data.WriteString(sessionId)) {
         ACCOUNT_LOGE("failed to write string for sessionId");
         return ERR_APPACCOUNT_KIT_WRITE_STRING_SESSION_ID;
@@ -670,6 +796,11 @@ ErrCode AppAccountProxy::GetAllAccounts(const std::string &owner, std::vector<Ap
 
     MessageParcel data;
     MessageParcel reply;
+
+    if (!data.WriteInterfaceToken(GetDescriptor())) {
+        ACCOUNT_LOGE("failed to write descriptor!");
+        return ERR_ACCOUNT_COMMON_WRITE_DESCRIPTOR_ERROR;
+    }
 
     if (!data.WriteString(owner)) {
         ACCOUNT_LOGE("failed to write string for owner");
@@ -700,6 +831,11 @@ ErrCode AppAccountProxy::GetAllAccessibleAccounts(std::vector<AppAccountInfo> &a
     MessageParcel data;
     MessageParcel reply;
 
+    if (!data.WriteInterfaceToken(GetDescriptor())) {
+        ACCOUNT_LOGE("failed to write descriptor!");
+        return ERR_ACCOUNT_COMMON_WRITE_DESCRIPTOR_ERROR;
+    }
+
     ErrCode result = SendRequest(IAppAccount::Message::GET_ALL_ACCESSIBLE_ACCOUNTS, data, reply);
     if (result != ERR_OK) {
         return result;
@@ -724,6 +860,11 @@ ErrCode AppAccountProxy::SubscribeAppAccount(
 
     MessageParcel data;
     MessageParcel reply;
+
+    if (!data.WriteInterfaceToken(GetDescriptor())) {
+        ACCOUNT_LOGE("failed to write descriptor!");
+        return ERR_ACCOUNT_COMMON_WRITE_DESCRIPTOR_ERROR;
+    }
 
     if (!data.WriteParcelable(&subscribeInfo)) {
         ACCOUNT_LOGE("failed to write parcelable for subscribeInfo");
@@ -752,6 +893,11 @@ ErrCode AppAccountProxy::UnsubscribeAppAccount(const sptr<IRemoteObject> &eventL
 
     MessageParcel data;
     MessageParcel reply;
+
+    if (!data.WriteInterfaceToken(GetDescriptor())) {
+        ACCOUNT_LOGE("failed to write descriptor!");
+        return ERR_ACCOUNT_COMMON_WRITE_DESCRIPTOR_ERROR;
+    }
 
     if (!data.WriteParcelable(eventListener)) {
         ACCOUNT_LOGE("failed to write parcelable for eventListener");
