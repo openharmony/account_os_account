@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021 Huawei Device Co., Ltd.
+ * Copyright (c) 2021-2022 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -24,24 +24,28 @@ namespace AccountSA {
 bool AccountProxy::UpdateOhosAccountInfo(
     const std::string &accountName, const std::string &uid, const std::string &eventStr)
 {
-    ACCOUNT_LOGI("UpdateOhosAccountInfo enter");
+    ACCOUNT_LOGI("enter");
     MessageParcel data;
-    if (!data.WriteInterfaceToken(AccountProxy::GetDescriptor())) {
-        ACCOUNT_LOGE("Write descriptor failed");
+    MessageParcel reply;
+    MessageOption option;
+
+    if (!data.WriteInterfaceToken(GetDescriptor())) {
+        ACCOUNT_LOGE("Write descriptor failed!");
         return false;
     }
     if (!data.WriteString16(Str8ToStr16(accountName))) {
+        ACCOUNT_LOGE("Write accountName failed!");
         return false;
     }
     if (!data.WriteString16(Str8ToStr16(uid))) {
+        ACCOUNT_LOGE("Write uid failed!");
         return false;
     }
     if (!data.WriteString16(Str8ToStr16(eventStr))) {
+        ACCOUNT_LOGE("Write eventStr failed!");
         return false;
     }
 
-    MessageParcel reply;
-    MessageOption option;
     auto ret = Remote()->SendRequest(UPDATE_OHOS_ACCOUNT_INFO, data, reply, option);
     if (ret != ERR_NONE) {
         ACCOUNT_LOGE("SendRequest failed %d", ret);
@@ -65,14 +69,16 @@ bool AccountProxy::UpdateOhosAccountInfo(
 
 std::pair<bool, OhosAccountInfo> AccountProxy::QueryOhosAccountInfo(void)
 {
-    ACCOUNT_LOGI("QueryOhosAccountInfo enter");
+    ACCOUNT_LOGI("enter");
     MessageParcel data;
-    if (!data.WriteInterfaceToken(AccountProxy::GetDescriptor())) {
+    MessageParcel reply;
+    MessageOption option;
+
+    if (!data.WriteInterfaceToken(GetDescriptor())) {
         ACCOUNT_LOGE("Write descriptor failed");
         return std::make_pair(false, OhosAccountInfo());
     }
-    MessageParcel reply;
-    MessageOption option;
+
     auto ret = Remote()->SendRequest(QUERY_OHOS_ACCOUNT_INFO, data, reply, option);
     if (ret != ERR_NONE) {
         ACCOUNT_LOGE("SendRequest failed %d", ret);
@@ -88,14 +94,16 @@ std::pair<bool, OhosAccountInfo> AccountProxy::QueryOhosAccountInfo(void)
 
 std::int32_t AccountProxy::QueryDeviceAccountId(std::int32_t &accountId)
 {
-    ACCOUNT_LOGI("QueryDeviceAccountId enter");
+    ACCOUNT_LOGI("enter");
     MessageParcel data;
-    if (!data.WriteInterfaceToken(AccountProxy::GetDescriptor())) {
+    MessageParcel reply;
+    MessageOption option;
+
+    if (!data.WriteInterfaceToken(GetDescriptor())) {
         ACCOUNT_LOGE("Write descriptor failed");
         return ERR_ACCOUNT_ZIDL_WRITE_DESCRIPTOR_ERROR;
     }
-    MessageParcel reply;
-    MessageOption option;
+
     auto ret = Remote()->SendRequest(QUERY_DEVICE_ACCOUNT_ID, data, reply, option);
     if (ret != ERR_NONE) {
         ACCOUNT_LOGE("SendRequest failed %d", ret);
@@ -109,14 +117,15 @@ std::int32_t AccountProxy::QueryDeviceAccountId(std::int32_t &accountId)
 sptr<IRemoteObject> AccountProxy::GetAppAccountService()
 {
     ACCOUNT_LOGI("enter");
-
     MessageParcel data;
-    if (!data.WriteInterfaceToken(AccountProxy::GetDescriptor())) {
+    MessageParcel reply;
+    MessageOption option;
+
+    if (!data.WriteInterfaceToken(GetDescriptor())) {
         ACCOUNT_LOGE("Write descriptor failed");
         return nullptr;
     }
-    MessageParcel reply;
-    MessageOption option;
+
     auto ret = Remote()->SendRequest(GET_APP_ACCOUNT_SERVICE, data, reply, option);
     if (ret != ERR_NONE) {
         ACCOUNT_LOGE("SendRequest failed %d", ret);
@@ -128,14 +137,15 @@ sptr<IRemoteObject> AccountProxy::GetAppAccountService()
 sptr<IRemoteObject> AccountProxy::GetOsAccountService()
 {
     ACCOUNT_LOGI("enter");
-
     MessageParcel data;
-    if (!data.WriteInterfaceToken(AccountProxy::GetDescriptor())) {
+    MessageParcel reply;
+    MessageOption option;
+
+    if (!data.WriteInterfaceToken(GetDescriptor())) {
         ACCOUNT_LOGE("Write descriptor failed");
         return nullptr;
     }
-    MessageParcel reply;
-    MessageOption option;
+
     auto ret = Remote()->SendRequest(GET_OS_ACCOUNT_SERVICE, data, reply, option);
     if (ret != ERR_NONE) {
         ACCOUNT_LOGE("SendRequest failed %d", ret);

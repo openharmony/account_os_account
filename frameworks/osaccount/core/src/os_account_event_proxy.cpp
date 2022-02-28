@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021 Huawei Device Co., Ltd.
+ * Copyright (c) 2021-2022 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -30,8 +30,14 @@ void OsAccountEventProxy::OnAccountsChanged(const int &localId)
     MessageParcel data;
     MessageParcel reply;
 
+    if (!data.WriteInterfaceToken(GetDescriptor())) {
+        ACCOUNT_LOGE("failed to write descriptor!");
+        return;
+    }
+
     if (!data.WriteInt32(localId)) {
         ACCOUNT_LOGE("failed to write WriteInt32 localId");
+        return;
     }
 
     ErrCode result = SendRequest(IOsAccountEvent::Message::ACCOUNT_CHANGED, data, reply);

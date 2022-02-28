@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021 Huawei Device Co., Ltd.
+ * Copyright (c) 2021-2022 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -28,6 +28,7 @@ const std::string ACCOUNT_SERVICE_NAME = "AccountService";
 
 class IAccount : public IRemoteBroker {
 public:
+    DECLARE_INTERFACE_DESCRIPTOR(u"ohos.accountfwk.IAccount");
     enum {
         UPDATE_OHOS_ACCOUNT_INFO = 1,
         QUERY_OHOS_ACCOUNT_INFO = 2,
@@ -43,8 +44,6 @@ public:
     virtual std::int32_t QueryDeviceAccountId(std::int32_t &accountId) = 0;
     virtual sptr<IRemoteObject> GetAppAccountService() = 0;
     virtual sptr<IRemoteObject> GetOsAccountService() = 0;
-public:
-    DECLARE_INTERFACE_DESCRIPTOR(u"OHOS.AccountSA.IAccount");
 };
 }  // namespace AccountSA
 }  // namespace OHOS
