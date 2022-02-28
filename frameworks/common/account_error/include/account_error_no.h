@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021 Huawei Device Co., Ltd.
+ * Copyright (c) 2021-2022 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -35,7 +35,9 @@ constexpr ErrCode ACCOUNT_COMMON_ERR_OFFSET = ErrCodeOffset(SUBSYS_ACCOUNT, ACCO
 enum {
     ERR_ACCOUNT_COMMON_NOT_INIT_ERROR = ACCOUNT_COMMON_ERR_OFFSET + 0x0001,
     ERR_ACCOUNT_COMMON_INSUFFICIENT_MEMORY_ERROR,
-    ERR_ACCOUNT_COMMON_NULL_PTR_ERROR
+    ERR_ACCOUNT_COMMON_NULL_PTR_ERROR,
+    ERR_ACCOUNT_COMMON_WRITE_DESCRIPTOR_ERROR,
+    ERR_ACCOUNT_COMMON_CHECK_DESCRIPTOR_ERROR
 };
 
 // Error code for AccountMgr
