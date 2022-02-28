@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021 Huawei Device Co., Ltd.
+ * Copyright (c) 2021-2022 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -172,7 +172,11 @@ napi_value NapiAppAccount::AddAccount(napi_env env, napi_callback_info cbInfo)
 napi_value NapiAppAccount::AddAccountImplicitly(napi_env env, napi_callback_info cbInfo)
 {
     ACCOUNT_LOGI("AddAccountImplicitly start");
-    auto *asyncContext = new OAuthAsyncContext();
+    auto *asyncContext = new (std::nothrow) OAuthAsyncContext();
+    if (asyncContext == nullptr) {
+        ACCOUNT_LOGE("insufficient memory for asyncContext!");
+        return NapiGetNull(env);
+    }
     asyncContext->env = env;
     ParseContextForAuthenticate(env, cbInfo, asyncContext, ARGS_SIZE_FOUR);
     napi_value result = nullptr;
@@ -220,7 +224,7 @@ napi_value NapiAppAccount::DeleteAccount(napi_env env, napi_callback_info cbInfo
     ACCOUNT_LOGI("enter");
     auto *asyncContext = new (std::nothrow) AppAccountAsyncContext();
     if (asyncContext == nullptr) {
-        ACCOUNT_LOGI("asyncContext == nullptr");
+        ACCOUNT_LOGE("insufficient memory for asyncContext!");
         return NapiGetNull(env);
     }
     asyncContext->env = env;
@@ -911,7 +915,11 @@ napi_value NapiAppAccount::GetAssociatedData(napi_env env, napi_callback_info cb
 napi_value NapiAppAccount::Authenticate(napi_env env, napi_callback_info cbInfo)
 {
     ACCOUNT_LOGI("Authenticate start");
-    auto *asyncContext = new OAuthAsyncContext();
+    auto *asyncContext = new (std::nothrow) OAuthAsyncContext();
+    if (asyncContext == nullptr) {
+        ACCOUNT_LOGE("insufficient memory for asyncContext!");
+        return NapiGetNull(env);
+    }
     asyncContext->env = env;
     ParseContextForAuthenticate(env, cbInfo, asyncContext, ARGS_SIZE_FIVE);
     napi_value result = nullptr;
@@ -1057,7 +1065,11 @@ napi_value NapiAppAccount::SetOAuthToken(napi_env env, napi_callback_info cbInfo
 napi_value NapiAppAccount::DeleteOAuthToken(napi_env env, napi_callback_info cbInfo)
 {
     ACCOUNT_LOGI("Enter N-API DeleteOAuthToken function.");
-    auto *asyncContext = new OAuthAsyncContext();
+    auto *asyncContext = new (std::nothrow) OAuthAsyncContext();
+    if (asyncContext == nullptr) {
+        ACCOUNT_LOGE("insufficient memory for asyncContext!");
+        return NapiGetNull(env);
+    }
     asyncContext->env = env;
     asyncContext->callbackRef = nullptr;
     ParseContextForDeleteOAuthToken(env, cbInfo, asyncContext);
@@ -1104,7 +1116,11 @@ napi_value NapiAppAccount::DeleteOAuthToken(napi_env env, napi_callback_info cbI
 napi_value NapiAppAccount::SetOAuthTokenVisibility(napi_env env, napi_callback_info cbInfo)
 {
     ACCOUNT_LOGI("Enter N-API DisableOAuthTokenAccess function.");
-    auto *asyncContext = new OAuthAsyncContext();
+    auto *asyncContext = new (std::nothrow) OAuthAsyncContext();
+    if (asyncContext == nullptr) {
+        ACCOUNT_LOGI("insufficient memory for asyncContext!");
+        return NapiGetNull(env);
+    }
     asyncContext->env = env;
     asyncContext->callbackRef = nullptr;
     ParseContextForSetOAuthTokenVisibility(env, cbInfo, asyncContext);
@@ -1151,7 +1167,11 @@ napi_value NapiAppAccount::SetOAuthTokenVisibility(napi_env env, napi_callback_i
 napi_value NapiAppAccount::CheckOAuthTokenVisibility(napi_env env, napi_callback_info cbInfo)
 {
     ACCOUNT_LOGI("Enter N-API CheckOAuthTokenVisibility function.");
-    auto *asyncContext = new OAuthAsyncContext();
+    auto *asyncContext = new (std::nothrow) OAuthAsyncContext();
+    if (asyncContext == nullptr) {
+        ACCOUNT_LOGE("insufficient memory for asyncContext!");
+        return NapiGetNull(env);
+    }
     asyncContext->env = env;
     asyncContext->callbackRef = nullptr;
     ParseContextForCheckOAuthTokenVisibility(env, cbInfo, asyncContext);
@@ -1198,7 +1218,11 @@ napi_value NapiAppAccount::CheckOAuthTokenVisibility(napi_env env, napi_callback
 napi_value NapiAppAccount::GetAuthenticatorInfo(napi_env env, napi_callback_info cbInfo)
 {
     ACCOUNT_LOGI("Enter N-API GetAuthenticatorInfo function.");
-    auto *asyncContext = new OAuthAsyncContext();
+    auto *asyncContext = new (std::nothrow) OAuthAsyncContext();
+    if (asyncContext == nullptr) {
+        ACCOUNT_LOGE("insufficient memory for asyncContext!");
+        return NapiGetNull(env);
+    }
     asyncContext->env = env;
     asyncContext->callbackRef = nullptr;
     ParseContextForGetAuthenticatorInfo(env, cbInfo, asyncContext);
@@ -1246,7 +1270,11 @@ napi_value NapiAppAccount::GetAuthenticatorInfo(napi_env env, napi_callback_info
 napi_value NapiAppAccount::GetAllOAuthTokens(napi_env env, napi_callback_info cbInfo)
 {
     ACCOUNT_LOGI("Enter N-API GetAllOAuthTokens function.");
-    auto *asyncContext = new OAuthAsyncContext();
+    auto *asyncContext = new (std::nothrow) OAuthAsyncContext();
+    if (asyncContext == nullptr) {
+        ACCOUNT_LOGE("insufficient memory for asyncContext!");
+        return NapiGetNull(env);
+    }
     asyncContext->env = env;
     asyncContext->callbackRef = nullptr;
     ParseContextForGetAllOAuthTokens(env, cbInfo, asyncContext);
@@ -1294,7 +1322,11 @@ napi_value NapiAppAccount::GetAllOAuthTokens(napi_env env, napi_callback_info cb
 napi_value NapiAppAccount::GetOAuthList(napi_env env, napi_callback_info cbInfo)
 {
     ACCOUNT_LOGI("Enter N-API GetOAuthList function.");
-    auto *asyncContext = new OAuthAsyncContext();
+    auto *asyncContext = new (std::nothrow) OAuthAsyncContext();
+    if (asyncContext == nullptr) {
+        ACCOUNT_LOGE("insufficient memory for asyncContext!");
+        return NapiGetNull(env);
+    }
     asyncContext->env = env;
     asyncContext->callbackRef = nullptr;
     ParseContextForGetOAuthList(env, cbInfo, asyncContext);
@@ -1342,7 +1374,11 @@ napi_value NapiAppAccount::GetOAuthList(napi_env env, napi_callback_info cbInfo)
 napi_value NapiAppAccount::GetAuthenticatorCallback(napi_env env, napi_callback_info cbInfo)
 {
     ACCOUNT_LOGI("Enter GetAuthenticatorCallback function to new js instance");
-    auto *asyncContext = new OAuthAsyncContext();
+    auto *asyncContext = new (std::nothrow) OAuthAsyncContext();
+    if (asyncContext == nullptr) {
+        ACCOUNT_LOGE("insufficient memory for asyncContext!");
+        return NapiGetNull(env);
+    }
     asyncContext->env = env;
     asyncContext->callbackRef = nullptr;
     ParseContextForGetAuthenticatorCallback(env, cbInfo, asyncContext);

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021 Huawei Device Co., Ltd.
+ * Copyright (c) 2021-2022 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -54,10 +54,12 @@ OHOS::DistributedKv::Status AccountDataStorage::GetKvStore()
 {
     ACCOUNT_LOGI("enter");
 
-    OHOS::DistributedKv::Options options = {.createIfMissing = true,
+    OHOS::DistributedKv::Options options = {
+        .createIfMissing = true,
         .encrypt = false,
         .autoSync = autoSync_,
-        .kvStoreType = OHOS::DistributedKv::KvStoreType::SINGLE_VERSION};
+        .kvStoreType = OHOS::DistributedKv::KvStoreType::SINGLE_VERSION
+    };
 
     auto status = dataManager_.GetSingleKvStore(options, appId_, storeId_, kvStorePtr_);
     if (kvStorePtr_ == nullptr) {
@@ -268,17 +270,10 @@ OHOS::DistributedKv::Status AccountDataStorage::GetEntries(
 {
     ACCOUNT_LOGI("enter");
 
-    OHOS::DistributedKv::Status status = OHOS::DistributedKv::Status::ERROR;
-    OHOS::DistributedKv::Key token;
-    // if prefix is empty, get all entries.
     OHOS::DistributedKv::Key allEntryKeyPrefix(subId);
-    if (kvStorePtr_) {
-        // sync call GetEntries, the callback will be trigger at once
-    }
-    status = kvStorePtr_->GetEntries(allEntryKeyPrefix, allEntries);
+    OHOS::DistributedKv::Status status = kvStorePtr_->GetEntries(allEntryKeyPrefix, allEntries);
 
     ACCOUNT_LOGE("end, status = %{public}d, allEntries.size() = %{public}zu", status, allEntries.size());
-
     return status;
 }
 
@@ -330,11 +325,10 @@ ErrCode AccountDataStorage::GetAccountInfoById(const std::string id, IAccountInf
     if (status != OHOS::DistributedKv::Status::SUCCESS) {
         ACCOUNT_LOGE("get value error");
         return OHOS::ERR_OSACCOUNT_SERVICE_MANAGER_QUERY_DISTRIBUTE_DATA_ERROR;
-    } else {
-        nlohmann::json jsonObject = nlohmann::json::parse(value.ToString(), nullptr, false);
-        iAccountInfo.FromJson(jsonObject);
     }
 
+    nlohmann::json jsonObject = nlohmann::json::parse(value.ToString(), nullptr, false);
+    iAccountInfo.FromJson(jsonObject);
     return ERR_OK;
 }
 
@@ -357,10 +351,9 @@ ErrCode AccountDataStorage::GetConfigById(const std::string keyStr, std::string 
     if (status != OHOS::DistributedKv::Status::SUCCESS) {
         ACCOUNT_LOGE("get Value Error");
         return OHOS::ERR_OSACCOUNT_SERVICE_MANAGER_QUERY_DISTRIBUTE_DATA_ERROR;
-    } else {
-        valueStr = value.ToString();
     }
 
+    valueStr = value.ToString();
     return ERR_OK;
 }
 
@@ -479,10 +472,8 @@ ErrCode AccountDataStorage::IsKeyExists(const std::string keyStr, bool &isKeyExi
         ACCOUNT_LOGW("get Value Error, target key does not exist.");
         isKeyExists = false;
         return OHOS::ERR_OSACCOUNT_SERVICE_MANAGER_QUERY_DISTRIBUTE_DATA_ERROR;
-    } else {
-        isKeyExists = true;
     }
-
+    isKeyExists = true;
     return ERR_OK;
 }
 }  // namespace AccountSA
