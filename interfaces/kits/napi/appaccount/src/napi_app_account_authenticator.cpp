@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021 Huawei Device Co., Ltd.
+ * Copyright (c) 2021-2022 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -71,7 +71,7 @@ ErrCode NapiAppAccountAuthenticator::AddAccountImplicitly(
 {
     ACCOUNT_LOGI("Enter");
     std::shared_ptr<struct ThreadLockInfo> lockInfo = std::make_shared<struct ThreadLockInfo>();
-    AuthParam *authParam = new AuthParam {
+    AuthParam *authParam = new (std::nothrow) AuthParam {
         .env = env_,
         .addAccountImplicitlyRef = addAccountImplicitlyRef_,
         .authenticateRef = nullptr,
@@ -192,9 +192,13 @@ void UvQueueWorkCallJsFunction(uv_work_t *work, int status)
 ErrCode NapiAppAccountAuthenticator::CallJsFunction(AuthParam *param)
 {
     ACCOUNT_LOGI("Enter");
+    if (param == nullptr) {
+        ACCOUNT_LOGE("param is nullptr!");
+        return ERR_ACCOUNT_COMMON_INSUFFICIENT_MEMORY_ERROR;
+    }
     uv_loop_s *loop = nullptr;
     napi_get_uv_event_loop(env_, &loop);
-    uv_work_t *work = new(std::nothrow) uv_work_t;
+    uv_work_t *work = new (std::nothrow) uv_work_t;
     if (work == nullptr) {
         ACCOUNT_LOGE("failed to new uv_work_t");
         return ERR_ACCOUNT_COMMON_INSUFFICIENT_MEMORY_ERROR;
