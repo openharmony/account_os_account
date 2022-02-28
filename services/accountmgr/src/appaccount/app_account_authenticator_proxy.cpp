@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021 Huawei Device Co., Ltd.
+ * Copyright (c) 2021-2022 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -37,6 +37,12 @@ ErrCode AppAccountAuthenticatorProxy::AddAccountImplicitly(const std::string &au
     ACCOUNT_LOGI("enter");
     MessageParcel data;
     MessageParcel reply;
+
+    if (!data.WriteInterfaceToken(GetDescriptor())) {
+        ACCOUNT_LOGE("failed to write descriptor!");
+        return ERR_ACCOUNT_COMMON_WRITE_DESCRIPTOR_ERROR;
+    }
+
     if (!data.WriteString(authType)) {
         ACCOUNT_LOGE("failed to write WriteString authType");
         return ERR_APPACCOUNT_KIT_WRITE_STRING_AUTH_TYPE;
@@ -66,6 +72,12 @@ ErrCode AppAccountAuthenticatorProxy::Authenticate(const std::string &name, cons
     ACCOUNT_LOGI("enter");
     MessageParcel data;
     MessageParcel reply;
+
+    if (!data.WriteInterfaceToken(GetDescriptor())) {
+        ACCOUNT_LOGE("failed to write descriptor!");
+        return ERR_ACCOUNT_COMMON_WRITE_DESCRIPTOR_ERROR;
+    }
+
     if (!data.WriteString(name)) {
         ACCOUNT_LOGE("failed to write WriteString name");
         return ERR_APPACCOUNT_KIT_WRITE_STRING_NAME;

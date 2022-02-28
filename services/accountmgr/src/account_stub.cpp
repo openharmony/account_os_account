@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021 Huawei Device Co., Ltd.
+ * Copyright (c) 2021-2022 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -206,13 +206,9 @@ std::int32_t AccountStub::OnRemoteRequest(
         return ERR_ACCOUNT_ZIDL_MGR_NOT_READY_ERROR;
     }
 
-    if (!CheckCallerForTrustList()) {
-        const std::u16string descriptor = AccountStub::GetDescriptor();
-        const std::u16string remoteDescriptor = data.ReadInterfaceToken();
-        if (descriptor != remoteDescriptor) {
-            ACCOUNT_LOGE("Check remote descriptor failed");
-            return ERR_ACCOUNT_ZIDL_ACCOUNT_STUB_ERROR;
-        }
+    if (data.ReadInterfaceToken() != GetDescriptor()) {
+        ACCOUNT_LOGE("check descriptor failed! code %{public}u.", code);
+        return ERR_ACCOUNT_COMMON_CHECK_DESCRIPTOR_ERROR;
     }
 
     const auto &itFunc = stubFuncMap_.find(code);
@@ -227,7 +223,7 @@ std::int32_t AccountStub::OnRemoteRequest(
 bool AccountStub::HasAccountRequestPermission(const std::string &permissionName, bool isSystemPermit)
 {
     // check root
-    const std::int32_t uid = IPCSkeleton::GetCallingUid();
+    std::int32_t uid = IPCSkeleton::GetCallingUid();
     if (uid == ROOT_UID) {
         return true;
     }
@@ -244,18 +240,19 @@ bool AccountStub::HasAccountRequestPermission(const std::string &permissionName,
         return true;
     }
 
+    // check trust list
+    if (CheckCallerForTrustList()) {
+        return true;
+    }
+
     ACCOUNT_LOGE("permission %{public}s denied!", permissionName.c_str());
     return false;
 }
 
 bool AccountStub::CheckCallerForTrustList()
 {
-    const std::int32_t uid = IPCSkeleton::GetCallingUid();
-    if (uid == ROOT_UID) {
-        return false;
-    }
-
     std::string bundleName;
+    std::int32_t uid = IPCSkeleton::GetCallingUid();
     if (GetBundleNamesForUid(uid, bundleName) != ERR_OK) {
         return false;
     }

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021 Huawei Device Co., Ltd.
+ * Copyright (c) 2021-2022 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -36,6 +36,12 @@ void AppAccountAuthenticatorCallbackProxy::OnResult(int32_t resultCode, const AA
     ACCOUNT_LOGI("enter");
     MessageParcel data;
     MessageParcel reply;
+
+    if (!data.WriteInterfaceToken(GetDescriptor())) {
+        ACCOUNT_LOGE("failed to write descriptor!");
+        return;
+    }
+
     if (!data.WriteInt32(resultCode)) {
         ACCOUNT_LOGE("failed to write resultCode");
         return;
@@ -52,6 +58,12 @@ void AppAccountAuthenticatorCallbackProxy::OnRequestRedirected(AAFwk::Want &requ
     ACCOUNT_LOGI("enter");
     MessageParcel data;
     MessageParcel reply;
+
+    if (!data.WriteInterfaceToken(GetDescriptor())) {
+        ACCOUNT_LOGE("failed to write descriptor!");
+        return;
+    }
+
     if (!data.WriteParcelable(&request)) {
         ACCOUNT_LOGE("failed to write request");
         return;
