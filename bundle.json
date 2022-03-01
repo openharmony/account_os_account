@@ -26,6 +26,8 @@
     "adapted_system_type": [
       "standard"
     ],
+    "rom": "4096KB",
+    "ram": "82000KB",
     "deps": {
       "components": [
         "ability_base",
