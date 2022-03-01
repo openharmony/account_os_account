@@ -52,6 +52,7 @@ ohos_source_set("tools_acm_source_set") {
     "hiviewdfx_hilog_native:libhilog",
     "ipc:ipc_core",
   ]
+  part_name = "os_account_standard"
 }
 
 ohos_executable("acm") {
