@@ -57,7 +57,7 @@ const std::string HELP_MSG_SET =
     "usage: acm set <options>\n"
     "options list:\n"
     "  -h, --help                                       list available commands\n"
-    "  -i <local-account-id> -c <constraints> [-e]      set contraints for a local account\n";
+    "  -i <local-account-id> -c <constraints> [-e]      set constraints for a local account\n";
 
 const std::string HELP_MSG_SWITCH =
     "usage: acm switch <options>\n"
