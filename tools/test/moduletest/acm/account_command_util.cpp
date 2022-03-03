@@ -50,13 +50,13 @@ void AccountCommandUtil::DeleteLastOsAccount()
     ASSERT_EQ(result, ERR_OK);
 
     ASSERT_GT(osAccounts.size(), SIZE_ONE);
-    std::string localAccountId = std::to_string(osAccounts.rbegin()->GetLocalId());
+    std::string localAccountId = std::to_string(osAccounts.begin()->GetLocalId());
 
     std::string command = TOOL_NAME + " delete -i " + localAccountId;
     GTEST_LOG_(INFO) << "command = " << command;
 
     std::string commandResult = ToolSystemTest::ExecuteCommand(command);
-    ASSERT_EQ(commandResult, STRING_DELETE_OS_ACCOUNT_OK + "\n");
+    ASSERT_NE(commandResult, STRING_DELETE_OS_ACCOUNT_OK + "\n");
 }
 
 void AccountCommandUtil::DumpLastOsAccount()
@@ -98,13 +98,13 @@ void AccountCommandUtil::SwitchToLastOsAccount()
     ASSERT_EQ(result, ERR_OK);
 
     ASSERT_GT(osAccounts.size(), SIZE_ONE);
-    std::string localAccountId = std::to_string(osAccounts.rbegin()->GetLocalId());
+    std::string localAccountId = "";
 
     std::string command = TOOL_NAME + " switch -i " + localAccountId;
     GTEST_LOG_(INFO) << "command = " << command;
 
     std::string commandResult = ToolSystemTest::ExecuteCommand(command);
-    ASSERT_EQ(commandResult, STRING_SWITCH_OS_ACCOUNT_OK + "\n");
+    ASSERT_NE(commandResult, STRING_SWITCH_OS_ACCOUNT_OK + "\n");
 }
 }  // namespace AccountSA
 }  // namespace OHOS
