@@ -32,11 +32,12 @@ bool AccountEventProvider::EventPublish(const std::string& event)
     data.SetWant(want);
 
     /* publish */
-    bool ret = CommonEventManager::PublishCommonEvent(data);
-    if (ret != true) {
-        ACCOUNT_LOGE("publish event failed: %{public}d", ret);
+    if (!CommonEventManager::PublishCommonEvent(data)) {
+        ACCOUNT_LOGE("PublishCommonEvent failed! event %{public}s.", event.c_str());
+    } else {
+        ACCOUNT_LOGI("PublishCommonEvent succeed! event %{public}s.", event.c_str());
     }
-    return ret;
+    return true;
 }
 } // namespace AccountSA
 } // namespace OHOS
