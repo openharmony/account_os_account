@@ -287,12 +287,10 @@ HWTEST_F(OsAccountManagerModuleTest, OsAccountManagerModuleTest006, TestSize.Lev
     ACCOUNT_LOGI("OsAccountManagerModuleTest006");
     // save file content to ram
     std::string fileContext;
-    g_accountFileOperator->GetFileContentByPath(
-        Constants::USER_INFO_BASE + Constants::PATH_SEPARATOR + Constants::USER_LIST_FILE_NAME, fileContext);
+    g_accountFileOperator->GetFileContentByPath(Constants::ACCOUNT_LIST_FILE_JSON_PATH, fileContext);
 
     // remove file
-    g_accountFileOperator->DeleteDirOrFile(
-        Constants::USER_INFO_BASE + Constants::PATH_SEPARATOR + Constants::USER_LIST_FILE_NAME);
+    g_accountFileOperator->DeleteDirOrFile(Constants::ACCOUNT_LIST_FILE_JSON_PATH);
 
     // create account
     OsAccountInfo osAccountInfoOne;
@@ -300,8 +298,7 @@ HWTEST_F(OsAccountManagerModuleTest, OsAccountManagerModuleTest006, TestSize.Lev
     EXPECT_NE(errCode, ERR_OK);
 
     // rewrite file content
-    g_accountFileOperator->InputFileByPathAndContent(
-        Constants::USER_INFO_BASE + Constants::PATH_SEPARATOR + Constants::USER_LIST_FILE_NAME, fileContext);
+    g_accountFileOperator->InputFileByPathAndContent(Constants::ACCOUNT_LIST_FILE_JSON_PATH, fileContext);
 }
 
 /**

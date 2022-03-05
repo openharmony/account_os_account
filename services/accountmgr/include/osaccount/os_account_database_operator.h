@@ -28,9 +28,9 @@ public:
 
     // update infos to database
     void UpdateOsAccountIDListInDatabase(const Json &accountListJson);
-    void UpdateOsAccountInDatabase(OsAccountInfo &osAccountInfo);
-    void InsertOsAccountToDataBase(OsAccountInfo &osAccountInfo);
-    void DelOsAccountInDatabase(const int id);
+    void UpdateOsAccountInDatabase(const OsAccountInfo &osAccountInfo);
+    void InsertOsAccountIntoDataBase(const OsAccountInfo &osAccountInfo);
+    void DelOsAccountFromDatabase(const int id);
 
     ErrCode GetCreatedOsAccountNumFromDatabase(const std::string& storeID, int &createdOsAccountNum);
     ErrCode GetSerialNumberFromDatabase(const std::string& storeID, int64_t &serialNumber);
