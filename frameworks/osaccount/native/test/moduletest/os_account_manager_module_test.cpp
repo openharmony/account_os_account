@@ -41,6 +41,8 @@ const std::int32_t ERROR_LOCAL_ID = -1;
 const std::int32_t WAIT_FOR_EXIT = 1000;
 const std::int64_t INVALID_SERIAL_NUM = 123;
 const std::int32_t WAIT_A_MOMENT = 3000;
+const std::int32_t MAIN_ACCOUNT_ID = 100;
+const std::uint32_t MAX_WAIT_FOR_READY_CNT = 100;
 
 const std::vector<std::string> CONSTANTS_VECTOR {
     "constraint.print",
@@ -162,7 +164,22 @@ public:
 
 void OsAccountManagerModuleTest::SetUpTestCase(void)
 {
-    GTEST_LOG_(INFO) << "SetUpTestCase";
+    GTEST_LOG_(INFO) << "SetUpTestCase enter";
+    bool isOsAccountActived = false;
+    ErrCode ret = OsAccountManager::IsOsAccountActived(MAIN_ACCOUNT_ID, isOsAccountActived);
+    std::uint32_t waitCnt = 0;
+    while (ret != ERR_OK || !isOsAccountActived) {
+        std::this_thread::sleep_for(std::chrono::milliseconds(WAIT_A_MOMENT));
+        waitCnt++;
+        GTEST_LOG_(INFO) << "SetUpTestCase waitCnt " << waitCnt << " ret = " << ret;
+        ret = OsAccountManager::IsOsAccountActived(MAIN_ACCOUNT_ID, isOsAccountActived);
+        if (waitCnt >= MAX_WAIT_FOR_READY_CNT) {
+            GTEST_LOG_(INFO) << "SetUpTestCase waitCnt " << waitCnt;
+            GTEST_LOG_(INFO) << "SetUpTestCase wait for ready failed!";
+            break;
+        }
+    }
+    GTEST_LOG_(INFO) << "SetUpTestCase finished, waitCnt " << waitCnt;
 }
 
 void OsAccountManagerModuleTest::TearDownTestCase(void)
