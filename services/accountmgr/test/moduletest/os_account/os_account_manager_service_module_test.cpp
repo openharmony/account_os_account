@@ -301,19 +301,16 @@ HWTEST_F(OsAccountManagerServiceModuleTest, OsAccountManagerServiceModuleTest007
     ACCOUNT_LOGI("OsAccountManagerServiceModuleTest007");
     // save file content to fileContext first
     std::string fileContext;
-    g_accountFileOperator->GetFileContentByPath(
-        Constants::USER_INFO_BASE + Constants::PATH_SEPARATOR + Constants::USER_LIST_FILE_NAME, fileContext);
+    g_accountFileOperator->GetFileContentByPath(Constants::ACCOUNT_LIST_FILE_JSON_PATH, fileContext);
 
     // remove file
-    g_accountFileOperator->DeleteDirOrFile(
-        Constants::USER_INFO_BASE + Constants::PATH_SEPARATOR + Constants::USER_LIST_FILE_NAME);
+    g_accountFileOperator->DeleteDirOrFile(Constants::ACCOUNT_LIST_FILE_JSON_PATH);
     OsAccountInfo osAccountInfoOne;
     ErrCode errCode = g_osAccountManagerService->CreateOsAccount(STRING_TEST_NAME, INT_TEST_TYPE, osAccountInfoOne);
     EXPECT_EQ(errCode, ERR_OSACCOUNT_SERVICE_INNER_GET_SERIAL_NUMBER_ERROR);
 
     // restore file content
-    g_accountFileOperator->InputFileByPathAndContent(
-        Constants::USER_INFO_BASE + Constants::PATH_SEPARATOR + Constants::USER_LIST_FILE_NAME, fileContext);
+    g_accountFileOperator->InputFileByPathAndContent(Constants::ACCOUNT_LIST_FILE_JSON_PATH, fileContext);
 }
 
 /**
