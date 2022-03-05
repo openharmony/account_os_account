@@ -15,6 +15,7 @@
 
 #include <gtest/gtest.h>
 #include <memory>
+#include <thread>
 #include "account_error_no.h"
 #include "iremote_object.h"
 #define private public
@@ -29,6 +30,8 @@ using namespace OHOS::AccountSA;
 namespace {
 const std::string STRING_EMPTY = "";
 const std::string STRING_NAME = "name";
+const std::int32_t MAIN_ACCOUNT_ID = 100;
+const std::int32_t WAIT_A_MOMENT = 3000;
 const std::string STRING_NAME_OUT_OF_RANGE =
     "name_out_of_range_"
     "1234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890"
@@ -111,6 +114,8 @@ const std::string STRING_DOMAIN_ACCOUNT_NAME_OUT_OF_RANGE =
     "1234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890";
 const std::string STRING_DOMAIN_VALID = "TestDomainUT";
 const std::string STRING_DOMAIN_ACCOUNT_NAME_VALID = "TestDomainAccountNameUT";
+std::shared_ptr<OsAccount> g_osAccount = nullptr;
+const std::uint32_t MAX_WAIT_FOR_READY_CNT = 100;
 }  // namespace
 class OsAccountTest : public testing::Test {
 public:
@@ -118,19 +123,34 @@ public:
     static void TearDownTestCase(void);
     void SetUp(void) override;
     void TearDown(void) override;
-    std::shared_ptr<OsAccount> osAccount_;
 };
 
 void OsAccountTest::SetUpTestCase(void)
-{}
+{
+    g_osAccount = std::make_shared<OsAccount>();
+    GTEST_LOG_(INFO) << "SetUpTestCase enter";
+    bool isOsAccountActived = false;
+    ErrCode ret = g_osAccount->IsOsAccountActived(MAIN_ACCOUNT_ID, isOsAccountActived);
+    std::uint32_t waitCnt = 0;
+    while (ret != ERR_OK || !isOsAccountActived) {
+        std::this_thread::sleep_for(std::chrono::milliseconds(WAIT_A_MOMENT));
+        waitCnt++;
+        GTEST_LOG_(INFO) << "SetUpTestCase waitCnt " << waitCnt << " ret = " << ret;
+        ret = g_osAccount->IsOsAccountActived(MAIN_ACCOUNT_ID, isOsAccountActived);
+        if (waitCnt >= MAX_WAIT_FOR_READY_CNT) {
+            GTEST_LOG_(INFO) << "SetUpTestCase waitCnt " << waitCnt;
+            GTEST_LOG_(INFO) << "SetUpTestCase wait for ready failed!";
+            break;
+        }
+    }
+    GTEST_LOG_(INFO) << "SetUpTestCase finished, waitCnt " << waitCnt;
+}
 
 void OsAccountTest::TearDownTestCase(void)
 {}
 
 void OsAccountTest::SetUp(void)
-{
-    osAccount_ = std::make_shared<OsAccount>();
-}
+{}
 
 void OsAccountTest::TearDown(void)
 {}
@@ -144,7 +164,7 @@ void OsAccountTest::TearDown(void)
 HWTEST_F(OsAccountTest, OsAccountTest001, TestSize.Level1)
 {
     OsAccountInfo osAccountInfo;
-    ErrCode errCode = osAccount_->CreateOsAccount(STRING_NAME_OUT_OF_RANGE, OsAccountType::GUEST, osAccountInfo);
+    ErrCode errCode = g_osAccount->CreateOsAccount(STRING_NAME_OUT_OF_RANGE, OsAccountType::GUEST, osAccountInfo);
     EXPECT_EQ(errCode, ERR_OSACCOUNT_KIT_LOCAL_NAME_OUTFLOW_ERROR);
 }
 
@@ -157,7 +177,7 @@ HWTEST_F(OsAccountTest, OsAccountTest001, TestSize.Level1)
 HWTEST_F(OsAccountTest, OsAccountTest002, TestSize.Level1)
 {
     OsAccountInfo osAccountInfo;
-    ErrCode errCode = osAccount_->CreateOsAccount(STRING_EMPTY, OsAccountType::GUEST, osAccountInfo);
+    ErrCode errCode = g_osAccount->CreateOsAccount(STRING_EMPTY, OsAccountType::GUEST, osAccountInfo);
     EXPECT_EQ(errCode, ERR_OSACCOUNT_KIT_LOCAL_NAME_EMPTY_ERROR);
 }
 
@@ -169,7 +189,7 @@ HWTEST_F(OsAccountTest, OsAccountTest002, TestSize.Level1)
  */
 HWTEST_F(OsAccountTest, OsAccountTest003, TestSize.Level1)
 {
-    ErrCode errCode = osAccount_->RemoveOsAccount(0);
+    ErrCode errCode = g_osAccount->RemoveOsAccount(0);
     EXPECT_EQ(errCode, ERR_OSACCOUNT_KIT_CANNOT_DELETE_ID_ERROR);
 }
 
@@ -181,7 +201,7 @@ HWTEST_F(OsAccountTest, OsAccountTest003, TestSize.Level1)
  */
 HWTEST_F(OsAccountTest, OsAccountTest004, TestSize.Level1)
 {
-    ErrCode errCode = osAccount_->SetOsAccountName(100, STRING_NAME_OUT_OF_RANGE);
+    ErrCode errCode = g_osAccount->SetOsAccountName(100, STRING_NAME_OUT_OF_RANGE);
     EXPECT_EQ(errCode, ERR_OSACCOUNT_KIT_LOCAL_NAME_OUTFLOW_ERROR);
 }
 
@@ -193,7 +213,7 @@ HWTEST_F(OsAccountTest, OsAccountTest004, TestSize.Level1)
  */
 HWTEST_F(OsAccountTest, OsAccountTest005, TestSize.Level1)
 {
-    ErrCode errCode = osAccount_->SetOsAccountName(100, STRING_EMPTY);
+    ErrCode errCode = g_osAccount->SetOsAccountName(100, STRING_EMPTY);
     EXPECT_EQ(errCode, ERR_OSACCOUNT_KIT_LOCAL_NAME_EMPTY_ERROR);
 }
 
@@ -205,7 +225,7 @@ HWTEST_F(OsAccountTest, OsAccountTest005, TestSize.Level1)
  */
 HWTEST_F(OsAccountTest, OsAccountTest006, TestSize.Level1)
 {
-    ErrCode errCode = osAccount_->SetOsAccountProfilePhoto(100, STRING_PHOTO_OUT_OF_RANGE);
+    ErrCode errCode = g_osAccount->SetOsAccountProfilePhoto(100, STRING_PHOTO_OUT_OF_RANGE);
     EXPECT_EQ(errCode, ERR_OSACCOUNT_KIT_PHOTO_OUTFLOW_ERROR);
 }
 

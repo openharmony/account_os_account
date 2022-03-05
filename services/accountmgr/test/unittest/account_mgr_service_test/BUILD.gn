@@ -82,7 +82,6 @@ ohos_unittest("account_mgr_test") {
   sources += [
     "account_mgr_service_test.cpp",
     "account_state_machine_test.cpp",
-    "ohos_account_manager_test.cpp",
   ]
 
   configs = [
