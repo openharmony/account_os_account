@@ -146,6 +146,9 @@ const std::string STRING_DOMAIN_ACCOUNT_NAME_VALID = "TestDomainAccountNameMT";
 std::shared_ptr<OsAccountControlFileManager> g_osAccountControlFileManager =
     std::make_shared<OsAccountControlFileManager>();
 std::shared_ptr<AccountFileOperator> g_accountFileOperator = std::make_shared<AccountFileOperator>();
+const std::int32_t MAIN_ACCOUNT_ID = 100;
+const std::int32_t WAIT_A_MOMENT = 3000;
+const std::uint32_t MAX_WAIT_FOR_READY_CNT = 100;
 }  // namespace
 
 class OsAccountManagerServiceModuleTest : public testing::Test {
@@ -162,7 +165,22 @@ void OsAccountManagerServiceModuleTest::SetUpTestCase(void)
     g_osAccountControlFileManager->Init();
     g_osAccountManagerService = std::make_shared<OsAccountManagerService>();
     std::this_thread::sleep_for(std::chrono::milliseconds(DELAY_FOR_OPERATION));
-    GTEST_LOG_(INFO) << "SetUpTestCase exit!";
+
+    bool isOsAccountActived = false;
+    ErrCode ret = g_osAccountManagerService->IsOsAccountActived(MAIN_ACCOUNT_ID, isOsAccountActived);
+    std::uint32_t waitCnt = 0;
+    while (ret != ERR_OK || !isOsAccountActived) {
+        std::this_thread::sleep_for(std::chrono::milliseconds(WAIT_A_MOMENT));
+        waitCnt++;
+        GTEST_LOG_(INFO) << "SetUpTestCase waitCnt " << waitCnt << " ret = " << ret;
+        ret = g_osAccountManagerService->IsOsAccountActived(MAIN_ACCOUNT_ID, isOsAccountActived);
+        if (waitCnt >= MAX_WAIT_FOR_READY_CNT) {
+            GTEST_LOG_(INFO) << "SetUpTestCase waitCnt " << waitCnt;
+            GTEST_LOG_(INFO) << "SetUpTestCase wait for ready failed!";
+            break;
+        }
+    }
+    GTEST_LOG_(INFO) << "SetUpTestCase finished, waitCnt " << waitCnt;
 }
 void OsAccountManagerServiceModuleTest::TearDownTestCase(void)
 {
