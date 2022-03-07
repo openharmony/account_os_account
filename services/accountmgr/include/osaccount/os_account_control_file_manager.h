@@ -15,6 +15,7 @@
 #ifndef OS_ACCOUNT_SERVICES_ACCOUNTMGR_INCLUDE_OSACCOUNT_OS_ACCOUNT_CONTROL_FILE_MANAGER_H
 #define OS_ACCOUNT_SERVICES_ACCOUNTMGR_INCLUDE_OSACCOUNT_OS_ACCOUNT_CONTROL_FILE_MANAGER_H
 #include <memory>
+#include <mutex>
 #include "ios_account_control.h"
 #include "os_account_database_operator.h"
 #include "os_account_file_operator.h"
@@ -48,20 +49,24 @@ public:
         int64_t &serialNumber) override;
     virtual ErrCode GetMaxAllowCreateIdFromDatabase(const std::string& storeID, int &id) override;
     virtual ErrCode GetOsAccountFromDatabase(const std::string& storeID,
-        const int id, OsAccountInfo &osAccountInfo) override;
+        const int id, OsAccountInfo& osAccountInfo) override;
     virtual ErrCode GetOsAccountListFromDatabase(const std::string& storeID,
-        std::vector<OsAccountInfo> &osAccountList) override;
+        std::vector<OsAccountInfo>& osAccountList) override;
 
 private:
-    ErrCode GetAccountList(Json &accountListJson);
-    ErrCode SaveAccountListToFile(const Json &accountListJson);
-    ErrCode SaveAccountListToFileAndDataBase(const Json &accountListJson);
+    ErrCode UpdateAccountList(const std::string& idStr, bool isAdd);
+    ErrCode GetAccountListFromFile(Json& accountListJson);
+    ErrCode SaveAccountListToFile(const Json& accountListJson);
+    ErrCode SaveAccountListToFileAndDataBase(const Json& accountListJson);
+    void BuildAndSaveAccountListJsonFile(const std::vector<std::string>& accounts);
+    void RecoverAccountListJsonFile();
 
 private:
     std::shared_ptr<AccountFileOperator> accountFileOperator_;
     std::shared_ptr<OsAccountDatabaseOperator> osAccountDataBaseOperator_;
     std::shared_ptr<OsAccountFileOperator> osAccountFileOperator_;
     std::shared_ptr<OsAccountPhotoOperator> osAccountPhotoOperator_;
+    std::mutex accountListFileLock_;
 };
 }  // namespace AccountSA
 }  // namespace OHOS

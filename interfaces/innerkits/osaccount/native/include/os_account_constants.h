@@ -23,9 +23,10 @@ namespace AccountSA {
 namespace Constants {
 const std::string PATH_SEPARATOR = "/";
 const std::string USER_INFO_BASE = "/data/system/users";
-const std::string OSACCOUNT_CONSTRAINTS_JSON_PATH = "/system/etc/account/osaccount_constraints.json";
-const std::string CONSTRAINTS_LIST_JSON_PATH = "/system/etc/account/constraints_list_collection.json";
-const std::string USER_LIST_FILE_NAME = "account_list.json";
+const std::string SYSTEM_ETC_BASE = "/system/etc/account";
+const std::string OSACCOUNT_CONSTRAINTS_JSON_PATH = SYSTEM_ETC_BASE + PATH_SEPARATOR + "osaccount_constraints.json";
+const std::string CONSTRAINTS_LIST_JSON_PATH = SYSTEM_ETC_BASE + PATH_SEPARATOR + "constraints_list_collection.json";
+const std::string ACCOUNT_LIST_FILE_JSON_PATH = USER_INFO_BASE + PATH_SEPARATOR + "account_list.json";
 const std::string USER_PHOTO_FILE_PNG_NAME = "fase.png";
 const std::string USER_PHOTO_FILE_JPG_NAME = "fase.jpg";
 const std::string USER_PHOTO_BASE_JPG_HEAD = "data:image/jpeg;base64,";
@@ -51,13 +52,14 @@ const unsigned int LOCAL_PHOTO_MAX_SIZE = 1024 * 4;
 const unsigned int DOMAIN_NAME_MAX_SIZE = 128;
 const unsigned int DOMAIN_ACCOUNT_NAME_MAX_SIZE = 512;
 
-// temporary 100
 const int ADMIN_LOCAL_ID = 0;
 const int ADMIN_TYPE = -1;
 const std::string ADMIN_LOCAL_NAME = "admin";
 const std::string STANDARD_LOCAL_NAME = "user";
-const int START_USER_ID = 100;
-const int MAX_USER_ID = 1099;
+const std::int32_t START_USER_ID = 100;
+const std::int32_t MAX_USER_ID = 1099;
+const std::int32_t INVALID_OS_ACCOUNT_ID = -1;
+const size_t MAX_USER_ID_LENGTH = 4;
 const int64_t SERIAL_NUMBER_NUM_START_FOR_ADMIN = 20210231;
 const int64_t SERIAL_NUMBER_NUM_START = 1;
 const int64_t CARRY_NUM = 100000000;
