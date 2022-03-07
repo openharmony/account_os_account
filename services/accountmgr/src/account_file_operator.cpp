@@ -12,17 +12,15 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
+#include "account_file_operator.h"
 #include <fstream>
+#include <nlohmann/json.hpp>
 #include <sstream>
 #include <string>
 #include <sys/stat.h>
 #include <sys/types.h>
-
 #include "account_log_wrapper.h"
 #include "directory_ex.h"
-
-#include "account_file_operator.h"
 
 namespace OHOS {
 namespace AccountSA {
@@ -119,6 +117,21 @@ bool AccountFileOperator::IsExistFile(const std::string &path)
     }
 
     return S_ISREG(buf.st_mode);
+}
+
+bool AccountFileOperator::IsJsonFormat(const std::string &path)
+{
+    std::ifstream fin(path);
+    if (!fin) {
+        return false;
+    }
+
+    nlohmann::json jsonData = nlohmann::json::parse(fin, nullptr, false);
+    fin.close();
+    if (!jsonData.is_structured()) {
+        return false;
+    }
+    return true;
 }
 
 bool AccountFileOperator::IsExistDir(const std::string &path)
