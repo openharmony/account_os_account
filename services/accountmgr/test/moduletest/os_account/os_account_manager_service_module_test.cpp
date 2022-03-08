@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021 Huawei Device Co., Ltd.
+ * Copyright (c) 2021-2022 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -260,7 +260,7 @@ HWTEST_F(OsAccountManagerServiceModuleTest, OsAccountManagerServiceModuleTest004
 
 /**
  * @tc.name: OsAccountManagerServiceModuleTest005
- * @tc.desc: Test CreateOsAccount with vaild type.
+ * @tc.desc: Test CreateOsAccount with valid type.
  * @tc.type: FUNC
  * @tc.require: SR000GGVFH
  */
@@ -674,7 +674,7 @@ HWTEST_F(OsAccountManagerServiceModuleTest, OsAccountManagerServiceModuleTest030
 
 /**
  * @tc.name: OsAccountManagerServiceModuleTest031
- * @tc.desc: Test QueryOsAccountById with unvalid data.
+ * @tc.desc: Test QueryOsAccountById with invalid data.
  * @tc.type: FUNC
  * @tc.require: SR000GGVFF
  */
@@ -721,7 +721,7 @@ HWTEST_F(OsAccountManagerServiceModuleTest, OsAccountManagerServiceModuleTest033
 
 /**
  * @tc.name: OsAccountManagerServiceModuleTest034
- * @tc.desc: Test SetOsAccountName with unvalid data.
+ * @tc.desc: Test SetOsAccountName with invalid data.
  * @tc.type: FUNC
  * @tc.require: SR000GGVFF
  */
@@ -737,7 +737,7 @@ HWTEST_F(OsAccountManagerServiceModuleTest, OsAccountManagerServiceModuleTest034
 
 /**
  * @tc.name: OsAccountManagerServiceModuleTest035
- * @tc.desc: Test SetOsAccountName with unvalid data.
+ * @tc.desc: Test SetOsAccountName with invalid data.
  * @tc.type: FUNC
  * @tc.require: SR000GGVFF
  */
@@ -769,7 +769,7 @@ HWTEST_F(OsAccountManagerServiceModuleTest, OsAccountManagerServiceModuleTest036
 
 /**
  * @tc.name: OsAccountManagerServiceModuleTest037
- * @tc.desc: Test GetOsAccountLocalIdBySerialNumber with unvalid data.
+ * @tc.desc: Test GetOsAccountLocalIdBySerialNumber with invalid data.
  * @tc.type: FUNC
  * @tc.require: SR000GGVFF
  */
@@ -797,7 +797,7 @@ HWTEST_F(OsAccountManagerServiceModuleTest, OsAccountManagerServiceModuleTest038
 
 /**
  * @tc.name: OsAccountManagerServiceModuleTest039
- * @tc.desc: Test GetSerialNumberByOsAccountLocalId with unvalid data.
+ * @tc.desc: Test GetSerialNumberByOsAccountLocalId with invalid data.
  * @tc.type: FUNC
  * @tc.require: SR000GGVFF
  */
@@ -826,7 +826,7 @@ HWTEST_F(OsAccountManagerServiceModuleTest, OsAccountManagerServiceModuleTest040
 
 /**
  * @tc.name: OsAccountManagerServiceModuleTest041
- * @tc.desc: Test SetOsAccountProfilePhoto with unvalid data.
+ * @tc.desc: Test SetOsAccountProfilePhoto with invalid data.
  * @tc.type: FUNC
  * @tc.require: SR000GGVFN
  */
@@ -842,7 +842,7 @@ HWTEST_F(OsAccountManagerServiceModuleTest, OsAccountManagerServiceModuleTest041
 
 /**
  * @tc.name: OsAccountManagerServiceModuleTest042
- * @tc.desc: Test SetOsAccountProfilePhoto with unvalid data.
+ * @tc.desc: Test SetOsAccountProfilePhoto with invalid data.
  * @tc.type: FUNC
  * @tc.require: SR000GGVFN
  */
@@ -876,7 +876,7 @@ HWTEST_F(OsAccountManagerServiceModuleTest, OsAccountManagerServiceModuleTest043
 
 /**
  * @tc.name: OsAccountManagerServiceModuleTest044
- * @tc.desc: Test GetOsAccountProfilePhoto with unvalid data.
+ * @tc.desc: Test GetOsAccountProfilePhoto with invalid data.
  * @tc.type: FUNC
  * @tc.require: SR000GGVFF
  */
@@ -892,7 +892,7 @@ HWTEST_F(OsAccountManagerServiceModuleTest, OsAccountManagerServiceModuleTest044
 
 /**
  * @tc.name: OsAccountManagerServiceModuleTest045
- * @tc.desc: Test GetOsAccountProfilePhoto with unvalid id.
+ * @tc.desc: Test GetOsAccountProfilePhoto with invalid id.
  * @tc.type: FUNC
  * @tc.require: SR000GGVFF
  */
@@ -922,7 +922,7 @@ HWTEST_F(OsAccountManagerServiceModuleTest, OsAccountManagerServiceModuleTest046
 
 /**
  * @tc.name: OsAccountManagerServiceModuleTest047
- * @tc.desc: Test StartOsAccount with unvalid id.
+ * @tc.desc: Test StartOsAccount with invalid id.
  * @tc.type: FUNC
  * @tc.require: SR000GGVFJ
  */
@@ -964,7 +964,7 @@ HWTEST_F(OsAccountManagerServiceModuleTest, OsAccountManagerServiceModuleTest049
 
 /**
  * @tc.name: OsAccountManagerServiceModuleTest050
- * @tc.desc: Test StopOsAccount with unvalid data.
+ * @tc.desc: Test StopOsAccount with invalid data.
  * @tc.type: FUNC
  * @tc.require: SR000GGVFJ
  */
@@ -1010,7 +1010,7 @@ HWTEST_F(OsAccountManagerServiceModuleTest, OsAccountManagerServiceModuleTest052
 
 /**
  * @tc.name: OsAccountManagerServiceModuleTest053
- * @tc.desc: Test IsOsAccountCompleted with unvalid data.
+ * @tc.desc: Test IsOsAccountCompleted with invalid data.
  * @tc.type: FUNC
  * @tc.require: SR000GGVFG
  */
@@ -1043,7 +1043,7 @@ HWTEST_F(OsAccountManagerServiceModuleTest, OsAccountManagerServiceModuleTest054
 
 /**
  * @tc.name: OsAccountManagerServiceModuleTest055
- * @tc.desc: Test SetOsAccountIsVerified with unvalid data.
+ * @tc.desc: Test SetOsAccountIsVerified with invalid data.
  * @tc.type: FUNC
  * @tc.require: SR000GGVFG
  */
