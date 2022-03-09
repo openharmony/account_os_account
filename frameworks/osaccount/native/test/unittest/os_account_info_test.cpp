@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021 Huawei Device Co., Ltd.
+ * Copyright (c) 2021-2022 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -444,7 +444,7 @@ HWTEST_F(OsAccountInfoTest, OsAccountInfo_ToJson_0100, TestSize.Level0)
 
 /**
  * @tc.name: OsAccountInfo_FromJson_0100
- * @tc.desc: Set a object by Json.
+ * @tc.desc: Set an object by Json.
  * @tc.type: FUNC
  * @tc.require: SR000GGVFG
  */
