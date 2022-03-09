@@ -25,7 +25,7 @@ using namespace OHOS::Security::AccessToken;
 namespace OHOS {
 namespace AccountSA {
 const std::string AccountPermissionManager::DISTRIBUTED_DATASYNC = "ohos.permission.DISTRIBUTED_DATASYNC";
-const std::string AccountPermissionManager::GET_ACCOUNTS_PRIVILEGED = "ohos.permission.GET_ACCOUNTS_PRIVILEGED";
+const std::string AccountPermissionManager::GET_ALL_APP_ACCOUNTS = "ohos.permission.GET_ALL_APP_ACCOUNTS";
 const std::string AccountPermissionManager::MANAGE_LOCAL_ACCOUNTS = "ohos.permission.MANAGE_LOCAL_ACCOUNTS";
 const std::string AccountPermissionManager::INTERACT_ACROSS_LOCAL_ACCOUNTS_EXTENSION =
     "ohos.permission.INTERACT_ACROSS_LOCAL_ACCOUNTS_EXTENSION";
