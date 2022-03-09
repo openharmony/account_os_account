@@ -30,7 +30,7 @@ public:
     ErrCode VerifyPermission(const std::string &permissionName);
 
     static const std::string DISTRIBUTED_DATASYNC;
-    static const std::string GET_ACCOUNTS_PRIVILEGED;
+    static const std::string GET_ALL_APP_ACCOUNTS;
     static const std::string MANAGE_LOCAL_ACCOUNTS;
     static const std::string INTERACT_ACROSS_LOCAL_ACCOUNTS_EXTENSION;
     static const std::string INTERACT_ACROSS_LOCAL_ACCOUNTS;
