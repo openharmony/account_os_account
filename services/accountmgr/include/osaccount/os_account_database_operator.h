@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021 Huawei Device Co., Ltd.
+ * Copyright (c) 2021-2022 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -28,9 +28,9 @@ public:
 
     // update infos to database
     void UpdateOsAccountIDListInDatabase(const Json &accountListJson);
-    void UpdateOsAccountInDatabase(OsAccountInfo &osAccountInfo);
-    void InsertOsAccountToDataBase(OsAccountInfo &osAccountInfo);
-    void DelOsAccountInDatabase(const int id);
+    void UpdateOsAccountInDatabase(const OsAccountInfo &osAccountInfo);
+    void InsertOsAccountIntoDataBase(const OsAccountInfo &osAccountInfo);
+    void DelOsAccountFromDatabase(const int id);
 
     ErrCode GetCreatedOsAccountNumFromDatabase(const std::string& storeID, int &createdOsAccountNum);
     ErrCode GetSerialNumberFromDatabase(const std::string& storeID, int64_t &serialNumber);

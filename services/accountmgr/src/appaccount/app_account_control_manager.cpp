@@ -573,7 +573,7 @@ ErrCode AppAccountControlManager::GetAllAccessibleAccounts(
 
         result = dataStoragePtr->GetAccountInfoById(account, appAccountInfo);
         if (result != ERR_OK) {
-            ACCOUNT_LOGE("failed to get account info by id");
+            ACCOUNT_LOGE("failed to get account info by id, result %{public}d.", result);
             return ERR_APPACCOUNT_SERVICE_GET_ACCOUNT_INFO_BY_ID;
         }
 
@@ -699,7 +699,7 @@ ErrCode AppAccountControlManager::GetAllAccessibleAccountsFromDataStorage(std::v
 
         result = dataStoragePtr->GetAccountInfoById(account, appAccountInfo);
         if (result != ERR_OK) {
-            ACCOUNT_LOGE("failed to get account info by id");
+            ACCOUNT_LOGE("failed to get account info by id. result %{public}d.", result);
             return ERR_APPACCOUNT_SERVICE_GET_ACCOUNT_INFO_BY_ID;
         }
 
@@ -874,7 +874,7 @@ ErrCode AppAccountControlManager::SaveAccountInfoIntoDataStorage(
         }
 
         std::string appAccountInfoFromDataStorage;
-        result = dataStorageSyncPtr->GetConfigById(appAccountInfo.GetPrimeKey(), appAccountInfoFromDataStorage);
+        result = dataStorageSyncPtr->GetValueFromKvStore(appAccountInfo.GetPrimeKey(), appAccountInfoFromDataStorage);
         if (result != ERR_OK) {
             ACCOUNT_LOGI("failed to get config by id from data storage");
 
@@ -1013,12 +1013,11 @@ ErrCode AppAccountControlManager::SaveAuthorizedAccountIntoDataStorage(const std
         return ERR_APPACCOUNT_SERVICE_DATA_STORAGE_PTR_IS_NULLPTR;
     }
 
-    bool hasAuthorizedAccounts = true;
     std::string authorizedAccounts;
-    ErrCode result = dataStoragePtr->GetConfigById(AppAccountDataStorage::AUTHORIZED_ACCOUNTS, authorizedAccounts);
+    ErrCode result = dataStoragePtr->GetValueFromKvStore(AppAccountDataStorage::AUTHORIZED_ACCOUNTS,
+        authorizedAccounts);
     if (result != ERR_OK) {
         ACCOUNT_LOGE("failed to get config by id from data storage");
-        hasAuthorizedAccounts = false;
     }
 
     std::vector<std::string> accessibleAccounts;
@@ -1051,21 +1050,11 @@ ErrCode AppAccountControlManager::SaveAuthorizedAccountIntoDataStorage(const std
 
     ACCOUNT_LOGI("authorizedAccounts = %{public}s", authorizedAccounts.c_str());
 
-    if (hasAuthorizedAccounts == false) {
-        result = dataStoragePtr->AddConfigInfo(AppAccountDataStorage::AUTHORIZED_ACCOUNTS, authorizedAccounts);
-        if (result != ERR_OK) {
-            ACCOUNT_LOGE("failed to add config info");
-            return result;
-        }
-    } else {
-        result = dataStoragePtr->SavConfigInfo(AppAccountDataStorage::AUTHORIZED_ACCOUNTS, authorizedAccounts);
-        if (result != ERR_OK) {
-            ACCOUNT_LOGE("failed to save config info");
-            return result;
-        }
+    result = dataStoragePtr->PutValueToKvStore(AppAccountDataStorage::AUTHORIZED_ACCOUNTS, authorizedAccounts);
+    if (result != ERR_OK) {
+        ACCOUNT_LOGE("PutValueToKvStore failed! result %{public}d.", result);
     }
-
-    return ERR_OK;
+    return result;
 }
 
 ErrCode AppAccountControlManager::RemoveAuthorizedAccountFromDataStorage(const std::string &authorizedApp,
@@ -1079,7 +1068,8 @@ ErrCode AppAccountControlManager::RemoveAuthorizedAccountFromDataStorage(const s
     }
 
     std::string authorizedAccounts;
-    ErrCode result = dataStoragePtr->GetConfigById(AppAccountDataStorage::AUTHORIZED_ACCOUNTS, authorizedAccounts);
+    ErrCode result = dataStoragePtr->GetValueFromKvStore(AppAccountDataStorage::AUTHORIZED_ACCOUNTS,
+        authorizedAccounts);
     ACCOUNT_LOGI("authorizedAccounts = %{public}s", authorizedAccounts.c_str());
     if (result != ERR_OK) {
         ACCOUNT_LOGE("failed to get config by id from data storage");
@@ -1114,7 +1104,7 @@ ErrCode AppAccountControlManager::RemoveAuthorizedAccountFromDataStorage(const s
 
     ACCOUNT_LOGI("authorizedAccounts = %{public}s", authorizedAccounts.c_str());
 
-    result = dataStoragePtr->SavConfigInfo(AppAccountDataStorage::AUTHORIZED_ACCOUNTS, authorizedAccounts);
+    result = dataStoragePtr->PutValueToKvStore(AppAccountDataStorage::AUTHORIZED_ACCOUNTS, authorizedAccounts);
     if (result != ERR_OK) {
         ACCOUNT_LOGE("failed to save config info");
         return result;

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021 Huawei Device Co., Ltd.
+ * Copyright (c) 2021-2022 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -30,7 +30,7 @@ public:
     ErrCode VerifyPermission(const std::string &permissionName);
 
     static const std::string DISTRIBUTED_DATASYNC;
-    static const std::string GET_ACCOUNTS_PRIVILEGED;
+    static const std::string GET_ALL_APP_ACCOUNTS;
     static const std::string MANAGE_LOCAL_ACCOUNTS;
     static const std::string INTERACT_ACROSS_LOCAL_ACCOUNTS_EXTENSION;
     static const std::string INTERACT_ACROSS_LOCAL_ACCOUNTS;

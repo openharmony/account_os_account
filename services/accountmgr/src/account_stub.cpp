@@ -37,6 +37,7 @@ namespace {
 const std::string OHOS_ACCOUNT_QUIT_TIPS_TITLE = "";
 const std::string OHOS_ACCOUNT_QUIT_TIPS_CONTENT = "";
 const std::string PERMISSION_MANAGE_USERS = "ohos.permission.MANAGE_LOCAL_ACCOUNTS";
+const std::string PERMISSION_DISTRIBUTED_DATASYNC = "ohos.permission.DISTRIBUTED_DATASYNC";
 constexpr std::int32_t ROOT_UID = 0;
 constexpr std::int32_t SYSTEM_UID = 1000;
 
@@ -139,7 +140,8 @@ std::int32_t AccountStub::CmdQueryOhosAccountInfo(MessageParcel &data, MessagePa
 
 std::int32_t AccountStub::CmdQueryOhosQuitTips(MessageParcel &data, MessageParcel &reply)
 {
-    if (!HasAccountRequestPermission(PERMISSION_MANAGE_USERS, true)) {
+    if (!HasAccountRequestPermission(PERMISSION_MANAGE_USERS, true) &&
+        !HasAccountRequestPermission(PERMISSION_DISTRIBUTED_DATASYNC, true)) {
         ACCOUNT_LOGE("Check permission failed");
         return ERR_ACCOUNT_ZIDL_CHECK_PERMISSION_ERROR;
     }

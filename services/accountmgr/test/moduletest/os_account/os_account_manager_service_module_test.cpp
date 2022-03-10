@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021 Huawei Device Co., Ltd.
+ * Copyright (c) 2021-2022 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -146,6 +146,9 @@ const std::string STRING_DOMAIN_ACCOUNT_NAME_VALID = "TestDomainAccountNameMT";
 std::shared_ptr<OsAccountControlFileManager> g_osAccountControlFileManager =
     std::make_shared<OsAccountControlFileManager>();
 std::shared_ptr<AccountFileOperator> g_accountFileOperator = std::make_shared<AccountFileOperator>();
+const std::int32_t MAIN_ACCOUNT_ID = 100;
+const std::int32_t WAIT_A_MOMENT = 3000;
+const std::uint32_t MAX_WAIT_FOR_READY_CNT = 100;
 }  // namespace
 
 class OsAccountManagerServiceModuleTest : public testing::Test {
@@ -162,7 +165,22 @@ void OsAccountManagerServiceModuleTest::SetUpTestCase(void)
     g_osAccountControlFileManager->Init();
     g_osAccountManagerService = std::make_shared<OsAccountManagerService>();
     std::this_thread::sleep_for(std::chrono::milliseconds(DELAY_FOR_OPERATION));
-    GTEST_LOG_(INFO) << "SetUpTestCase exit!";
+
+    bool isOsAccountActived = false;
+    ErrCode ret = g_osAccountManagerService->IsOsAccountActived(MAIN_ACCOUNT_ID, isOsAccountActived);
+    std::uint32_t waitCnt = 0;
+    while (ret != ERR_OK || !isOsAccountActived) {
+        std::this_thread::sleep_for(std::chrono::milliseconds(WAIT_A_MOMENT));
+        waitCnt++;
+        GTEST_LOG_(INFO) << "SetUpTestCase waitCnt " << waitCnt << " ret = " << ret;
+        ret = g_osAccountManagerService->IsOsAccountActived(MAIN_ACCOUNT_ID, isOsAccountActived);
+        if (waitCnt >= MAX_WAIT_FOR_READY_CNT) {
+            GTEST_LOG_(INFO) << "SetUpTestCase waitCnt " << waitCnt;
+            GTEST_LOG_(INFO) << "SetUpTestCase wait for ready failed!";
+            break;
+        }
+    }
+    GTEST_LOG_(INFO) << "SetUpTestCase finished, waitCnt " << waitCnt;
 }
 void OsAccountManagerServiceModuleTest::TearDownTestCase(void)
 {
@@ -242,7 +260,7 @@ HWTEST_F(OsAccountManagerServiceModuleTest, OsAccountManagerServiceModuleTest004
 
 /**
  * @tc.name: OsAccountManagerServiceModuleTest005
- * @tc.desc: Test CreateOsAccount with vaild type.
+ * @tc.desc: Test CreateOsAccount with valid type.
  * @tc.type: FUNC
  * @tc.require: SR000GGVFH
  */
@@ -283,19 +301,16 @@ HWTEST_F(OsAccountManagerServiceModuleTest, OsAccountManagerServiceModuleTest007
     ACCOUNT_LOGI("OsAccountManagerServiceModuleTest007");
     // save file content to fileContext first
     std::string fileContext;
-    g_accountFileOperator->GetFileContentByPath(
-        Constants::USER_INFO_BASE + Constants::PATH_SEPARATOR + Constants::USER_LIST_FILE_NAME, fileContext);
+    g_accountFileOperator->GetFileContentByPath(Constants::ACCOUNT_LIST_FILE_JSON_PATH, fileContext);
 
     // remove file
-    g_accountFileOperator->DeleteDirOrFile(
-        Constants::USER_INFO_BASE + Constants::PATH_SEPARATOR + Constants::USER_LIST_FILE_NAME);
+    g_accountFileOperator->DeleteDirOrFile(Constants::ACCOUNT_LIST_FILE_JSON_PATH);
     OsAccountInfo osAccountInfoOne;
     ErrCode errCode = g_osAccountManagerService->CreateOsAccount(STRING_TEST_NAME, INT_TEST_TYPE, osAccountInfoOne);
     EXPECT_EQ(errCode, ERR_OSACCOUNT_SERVICE_INNER_GET_SERIAL_NUMBER_ERROR);
 
     // restore file content
-    g_accountFileOperator->InputFileByPathAndContent(
-        Constants::USER_INFO_BASE + Constants::PATH_SEPARATOR + Constants::USER_LIST_FILE_NAME, fileContext);
+    g_accountFileOperator->InputFileByPathAndContent(Constants::ACCOUNT_LIST_FILE_JSON_PATH, fileContext);
 }
 
 /**
@@ -659,7 +674,7 @@ HWTEST_F(OsAccountManagerServiceModuleTest, OsAccountManagerServiceModuleTest030
 
 /**
  * @tc.name: OsAccountManagerServiceModuleTest031
- * @tc.desc: Test QueryOsAccountById with unvalid data.
+ * @tc.desc: Test QueryOsAccountById with invalid data.
  * @tc.type: FUNC
  * @tc.require: SR000GGVFF
  */
@@ -706,7 +721,7 @@ HWTEST_F(OsAccountManagerServiceModuleTest, OsAccountManagerServiceModuleTest033
 
 /**
  * @tc.name: OsAccountManagerServiceModuleTest034
- * @tc.desc: Test SetOsAccountName with unvalid data.
+ * @tc.desc: Test SetOsAccountName with invalid data.
  * @tc.type: FUNC
  * @tc.require: SR000GGVFF
  */
@@ -722,7 +737,7 @@ HWTEST_F(OsAccountManagerServiceModuleTest, OsAccountManagerServiceModuleTest034
 
 /**
  * @tc.name: OsAccountManagerServiceModuleTest035
- * @tc.desc: Test SetOsAccountName with unvalid data.
+ * @tc.desc: Test SetOsAccountName with invalid data.
  * @tc.type: FUNC
  * @tc.require: SR000GGVFF
  */
@@ -754,7 +769,7 @@ HWTEST_F(OsAccountManagerServiceModuleTest, OsAccountManagerServiceModuleTest036
 
 /**
  * @tc.name: OsAccountManagerServiceModuleTest037
- * @tc.desc: Test GetOsAccountLocalIdBySerialNumber with unvalid data.
+ * @tc.desc: Test GetOsAccountLocalIdBySerialNumber with invalid data.
  * @tc.type: FUNC
  * @tc.require: SR000GGVFF
  */
@@ -782,7 +797,7 @@ HWTEST_F(OsAccountManagerServiceModuleTest, OsAccountManagerServiceModuleTest038
 
 /**
  * @tc.name: OsAccountManagerServiceModuleTest039
- * @tc.desc: Test GetSerialNumberByOsAccountLocalId with unvalid data.
+ * @tc.desc: Test GetSerialNumberByOsAccountLocalId with invalid data.
  * @tc.type: FUNC
  * @tc.require: SR000GGVFF
  */
@@ -811,7 +826,7 @@ HWTEST_F(OsAccountManagerServiceModuleTest, OsAccountManagerServiceModuleTest040
 
 /**
  * @tc.name: OsAccountManagerServiceModuleTest041
- * @tc.desc: Test SetOsAccountProfilePhoto with unvalid data.
+ * @tc.desc: Test SetOsAccountProfilePhoto with invalid data.
  * @tc.type: FUNC
  * @tc.require: SR000GGVFN
  */
@@ -827,7 +842,7 @@ HWTEST_F(OsAccountManagerServiceModuleTest, OsAccountManagerServiceModuleTest041
 
 /**
  * @tc.name: OsAccountManagerServiceModuleTest042
- * @tc.desc: Test SetOsAccountProfilePhoto with unvalid data.
+ * @tc.desc: Test SetOsAccountProfilePhoto with invalid data.
  * @tc.type: FUNC
  * @tc.require: SR000GGVFN
  */
@@ -861,7 +876,7 @@ HWTEST_F(OsAccountManagerServiceModuleTest, OsAccountManagerServiceModuleTest043
 
 /**
  * @tc.name: OsAccountManagerServiceModuleTest044
- * @tc.desc: Test GetOsAccountProfilePhoto with unvalid data.
+ * @tc.desc: Test GetOsAccountProfilePhoto with invalid data.
  * @tc.type: FUNC
  * @tc.require: SR000GGVFF
  */
@@ -877,7 +892,7 @@ HWTEST_F(OsAccountManagerServiceModuleTest, OsAccountManagerServiceModuleTest044
 
 /**
  * @tc.name: OsAccountManagerServiceModuleTest045
- * @tc.desc: Test GetOsAccountProfilePhoto with unvalid id.
+ * @tc.desc: Test GetOsAccountProfilePhoto with invalid id.
  * @tc.type: FUNC
  * @tc.require: SR000GGVFF
  */
@@ -907,7 +922,7 @@ HWTEST_F(OsAccountManagerServiceModuleTest, OsAccountManagerServiceModuleTest046
 
 /**
  * @tc.name: OsAccountManagerServiceModuleTest047
- * @tc.desc: Test StartOsAccount with unvalid id.
+ * @tc.desc: Test StartOsAccount with invalid id.
  * @tc.type: FUNC
  * @tc.require: SR000GGVFJ
  */
@@ -949,7 +964,7 @@ HWTEST_F(OsAccountManagerServiceModuleTest, OsAccountManagerServiceModuleTest049
 
 /**
  * @tc.name: OsAccountManagerServiceModuleTest050
- * @tc.desc: Test StopOsAccount with unvalid data.
+ * @tc.desc: Test StopOsAccount with invalid data.
  * @tc.type: FUNC
  * @tc.require: SR000GGVFJ
  */
@@ -995,7 +1010,7 @@ HWTEST_F(OsAccountManagerServiceModuleTest, OsAccountManagerServiceModuleTest052
 
 /**
  * @tc.name: OsAccountManagerServiceModuleTest053
- * @tc.desc: Test IsOsAccountCompleted with unvalid data.
+ * @tc.desc: Test IsOsAccountCompleted with invalid data.
  * @tc.type: FUNC
  * @tc.require: SR000GGVFG
  */
@@ -1028,7 +1043,7 @@ HWTEST_F(OsAccountManagerServiceModuleTest, OsAccountManagerServiceModuleTest054
 
 /**
  * @tc.name: OsAccountManagerServiceModuleTest055
- * @tc.desc: Test SetOsAccountIsVerified with unvalid data.
+ * @tc.desc: Test SetOsAccountIsVerified with invalid data.
  * @tc.type: FUNC
  * @tc.require: SR000GGVFG
  */

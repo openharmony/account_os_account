@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021 Huawei Device Co., Ltd.
+ * Copyright (c) 2021-2022 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -851,7 +851,7 @@ napi_value IsOsAccountActived(napi_env env, napi_callback_info cbInfo)
     isActived->callbackRef = nullptr;
 
     if (ParseParaIsActived(env, cbInfo, isActived) == nullptr) {
-        ACCOUNT_LOGI("Parse is osaccount actived failed");
+        ACCOUNT_LOGI("Parse is osaccount activated failed");
         return WrapVoidToJS(env);
     }
 
@@ -1254,7 +1254,6 @@ void UvQueueWorkOnAccountsChanged(uv_work_t *work, int status)
     delete subscriberOAWorkerData;
     subscriberOAWorkerData = nullptr;
     delete work;
-    work = nullptr;
 
     ACCOUNT_LOGI("end");
 }

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021 Huawei Device Co., Ltd.
+ * Copyright (c) 2021-2022 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -105,9 +105,7 @@ ErrCode OhosAccountDataDeal::AccountInfoFromJson(AccountInfo &accountInfo, const
         accountInfo.ohosAccountUid_ = jsonData.at(DATADEAL_JSON_KEY_OPENID).get<std::string>();
     }
 
-    if (jsonData.find(DATADEAL_JSON_KEY_USERID) != jsonObjectEnd) {
-        accountInfo.userId_ = jsonData.at(DATADEAL_JSON_KEY_USERID).get<std::int32_t>();
-    }
+    accountInfo.userId_ = userId;
 
     if (jsonData.find(DATADEAL_JSON_KEY_BIND_TIME) != jsonObjectEnd) {
         accountInfo.bindTime_ = jsonData.at(DATADEAL_JSON_KEY_BIND_TIME).get<std::time_t>();
@@ -116,6 +114,7 @@ ErrCode OhosAccountDataDeal::AccountInfoFromJson(AccountInfo &accountInfo, const
     if (jsonData.find(DATADEAL_JSON_KEY_STATUS) != jsonObjectEnd) {
         accountInfo.ohosAccountStatus_ = jsonData.at(DATADEAL_JSON_KEY_STATUS).get<std::int32_t>();
     }
+    fin.close();
 
     ACCOUNT_LOGI("AccountInfo, ohos account %{public}s status: %{public}d",
         accountInfo.ohosAccountName_.c_str(), accountInfo.ohosAccountStatus_);

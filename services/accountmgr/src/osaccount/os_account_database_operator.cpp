@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021 Huawei Device Co., Ltd.
+ * Copyright (c) 2021-2022 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -46,9 +46,8 @@ bool OsAccountDatabaseOperator::InnerInit()
             ACCOUNT_LOGE("accountDataStorage_ is still nullptr.");
             return false;
         }
-        bool isKeyExist = false;
-        accountDataStorage_->IsKeyExists(Constants::ACCOUNT_LIST, isKeyExist);
-        if (!isKeyExist) {
+
+        if (!accountDataStorage_->IsKeyExists(Constants::ACCOUNT_LIST)) {
             ACCOUNT_LOGI("database operator innerinit, create account list.");
             std::vector<std::string> accountListt;
             Json accountList = Json {
@@ -102,7 +101,7 @@ ErrCode OsAccountDatabaseOperator::GetOsAccountListFromDatabase(const std::strin
     return ERR_OK;
 }
 
-void OsAccountDatabaseOperator::InsertOsAccountToDataBase(OsAccountInfo &osAccountInfo)
+void OsAccountDatabaseOperator::InsertOsAccountIntoDataBase(const OsAccountInfo &osAccountInfo)
 {
     if (!InnerInit()) {
         ACCOUNT_LOGE("InnerInit failed! target localID %{public}d!", osAccountInfo.GetLocalId());
@@ -123,14 +122,14 @@ void OsAccountDatabaseOperator::InsertOsAccountToDataBase(OsAccountInfo &osAccou
     ACCOUNT_LOGI("insert account %{public}d to database succeed.", osAccountInfo.GetLocalId());
 }
 
-void OsAccountDatabaseOperator::DelOsAccountInDatabase(const int id)
+void OsAccountDatabaseOperator::DelOsAccountFromDatabase(const int id)
 {
     if (!InnerInit()) {
         ACCOUNT_LOGE("InnerInit failed! id %{public}d!", id);
         return;
     }
 
-    ErrCode errCode = accountDataStorage_->RemoveInfoByKey(std::to_string(id));
+    ErrCode errCode = accountDataStorage_->RemoveValueFromKvStore(std::to_string(id));
     if (errCode != ERR_OK) {
         ACCOUNT_LOGE("delete os account %{public}d from database failed! error code %{public}d.", id, errCode);
     } else {
@@ -138,7 +137,7 @@ void OsAccountDatabaseOperator::DelOsAccountInDatabase(const int id)
     }
 }
 
-void OsAccountDatabaseOperator::UpdateOsAccountInDatabase(OsAccountInfo &osAccountInfo)
+void OsAccountDatabaseOperator::UpdateOsAccountInDatabase(const OsAccountInfo &osAccountInfo)
 {
     if (!InnerInit()) {
         ACCOUNT_LOGE("InnerInit failed! localid %{public}d!", osAccountInfo.GetLocalId());
@@ -165,15 +164,15 @@ ErrCode OsAccountDatabaseOperator::GetOsAccountFromDatabase(const std::string& s
 
     if (storeID.empty()) {
         return accountDataStorage_->GetAccountInfoById(std::to_string(id), osAccountInfo);
-    } else {
-        std::shared_ptr<AccountDataStorage> storagePtr = std::make_shared<OsAccountDataStorage>(
-            Constants::APP_ID, storeID, Constants::SYNC_OS_ACCOUNT_DATABSE);
-        if (storagePtr == nullptr) {
-            ACCOUNT_LOGE("storagePtr is nullptr, for other storeID %{public}s, id %{public}d.", storeID.c_str(), id);
-            return ERR_ACCOUNT_COMMON_INSUFFICIENT_MEMORY_ERROR;
-        }
-        return storagePtr->GetAccountInfoById(std::to_string(id), osAccountInfo);
     }
+
+    std::shared_ptr<AccountDataStorage> storagePtr = std::make_shared<OsAccountDataStorage>(
+        Constants::APP_ID, storeID, Constants::SYNC_OS_ACCOUNT_DATABSE);
+    if (storagePtr == nullptr) {
+        ACCOUNT_LOGE("storagePtr is nullptr, for other storeID %{public}s, id %{public}d.", storeID.c_str(), id);
+        return ERR_ACCOUNT_COMMON_INSUFFICIENT_MEMORY_ERROR;
+    }
+    return storagePtr->GetAccountInfoById(std::to_string(id), osAccountInfo);
 }
 
 ErrCode OsAccountDatabaseOperator::GetCreatedOsAccountNumFromDatabase(
@@ -240,7 +239,7 @@ ErrCode OsAccountDatabaseOperator::GetAccountListFromStoreID(
     std::string accountList;
     ErrCode errCode = ERR_OK;
     if (storeID.empty()) {
-        errCode = accountDataStorage_->GetConfigById(Constants::ACCOUNT_LIST, accountList);
+        errCode = accountDataStorage_->GetValueFromKvStore(Constants::ACCOUNT_LIST, accountList);
     } else {
         std::shared_ptr<AccountDataStorage> storagePtr = std::make_shared<OsAccountDataStorage>(
             Constants::APP_ID, storeID, Constants::SYNC_OS_ACCOUNT_DATABSE);
@@ -248,7 +247,7 @@ ErrCode OsAccountDatabaseOperator::GetAccountListFromStoreID(
             ACCOUNT_LOGE("storagePtr is nullptr, for other storeID %{public}s.", storeID.c_str());
             return ERR_ACCOUNT_COMMON_INSUFFICIENT_MEMORY_ERROR;
         }
-        errCode = storagePtr->GetConfigById(Constants::ACCOUNT_LIST, accountList);
+        errCode = storagePtr->GetValueFromKvStore(Constants::ACCOUNT_LIST, accountList);
     }
 
     if (errCode != ERR_OK) {
@@ -265,14 +264,7 @@ ErrCode OsAccountDatabaseOperator::SaveAccountListToDatabase(const Json &account
         ACCOUNT_LOGE("InnerInit failed!");
         return ERR_ACCOUNT_COMMON_NOT_INIT_ERROR;
     }
-    ErrCode errCode;
-    bool isKeyExist = false;
-    accountDataStorage_->IsKeyExists(Constants::ACCOUNT_LIST, isKeyExist);
-    if (isKeyExist) {
-        errCode = accountDataStorage_->SavConfigInfo(Constants::ACCOUNT_LIST, accountListJson.dump());
-    } else {
-        errCode = accountDataStorage_->AddConfigInfo(Constants::ACCOUNT_LIST, accountListJson.dump());
-    }
+    ErrCode errCode = accountDataStorage_->PutValueToKvStore(Constants::ACCOUNT_LIST, accountListJson.dump());
     if (errCode != ERR_OK) {
         ACCOUNT_LOGE("Save or Add config info to database failed! errCode %{public}d.", errCode);
         return ERR_OSACCOUNT_SERVICE_CONTROL_SET_ACCOUNT_LIST_ERROR;

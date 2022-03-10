@@ -514,7 +514,8 @@ HWTEST_F(AppAccountManagerServiceSyncModuleTest, AppAccountManagerServiceSync_En
         ASSERT_NE(dataStoragePtr, nullptr);
 
         std::string authorizedAccounts;
-        ErrCode result = dataStoragePtr->GetConfigById(AppAccountDataStorage::AUTHORIZED_ACCOUNTS, authorizedAccounts);
+        ErrCode result = dataStoragePtr->GetValueFromKvStore(AppAccountDataStorage::AUTHORIZED_ACCOUNTS,
+            authorizedAccounts);
         ASSERT_EQ(result, ERR_OK);
 
         auto jsonObject = Json::parse(authorizedAccounts, nullptr, false);
@@ -533,7 +534,8 @@ HWTEST_F(AppAccountManagerServiceSyncModuleTest, AppAccountManagerServiceSync_En
         ASSERT_NE(dataStoragePtr, nullptr);
 
         std::string authorizedAccounts;
-        ErrCode result = dataStoragePtr->GetConfigById(AppAccountDataStorage::AUTHORIZED_ACCOUNTS, authorizedAccounts);
+        ErrCode result = dataStoragePtr->GetValueFromKvStore(AppAccountDataStorage::AUTHORIZED_ACCOUNTS,
+            authorizedAccounts);
         ASSERT_EQ(result, ERR_OK);
 
         auto jsonObject = Json::parse(authorizedAccounts, nullptr, false);
@@ -581,7 +583,8 @@ HWTEST_F(AppAccountManagerServiceSyncModuleTest, AppAccountManagerServiceSync_En
         ASSERT_NE(dataStoragePtr, nullptr);
 
         std::string authorizedAccounts;
-        ErrCode result = dataStoragePtr->GetConfigById(AppAccountDataStorage::AUTHORIZED_ACCOUNTS, authorizedAccounts);
+        ErrCode result = dataStoragePtr->GetValueFromKvStore(AppAccountDataStorage::AUTHORIZED_ACCOUNTS,
+            authorizedAccounts);
         ASSERT_EQ(result, ERR_OK);
 
         auto jsonObject = Json::parse(authorizedAccounts, nullptr, false);
@@ -600,7 +603,8 @@ HWTEST_F(AppAccountManagerServiceSyncModuleTest, AppAccountManagerServiceSync_En
         ASSERT_NE(dataStoragePtr, nullptr);
 
         std::string authorizedAccounts;
-        ErrCode result = dataStoragePtr->GetConfigById(AppAccountDataStorage::AUTHORIZED_ACCOUNTS, authorizedAccounts);
+        ErrCode result = dataStoragePtr->GetValueFromKvStore(AppAccountDataStorage::AUTHORIZED_ACCOUNTS,
+            authorizedAccounts);
         ASSERT_EQ(result, ERR_OK);
 
         auto jsonObject = Json::parse(authorizedAccounts, nullptr, false);
@@ -648,7 +652,8 @@ HWTEST_F(AppAccountManagerServiceSyncModuleTest, AppAccountManagerServiceSync_Di
         ASSERT_NE(dataStoragePtr, nullptr);
 
         std::string authorizedAccounts;
-        ErrCode result = dataStoragePtr->GetConfigById(AppAccountDataStorage::AUTHORIZED_ACCOUNTS, authorizedAccounts);
+        ErrCode result = dataStoragePtr->GetValueFromKvStore(AppAccountDataStorage::AUTHORIZED_ACCOUNTS,
+            authorizedAccounts);
         ASSERT_EQ(result, ERR_OK);
 
         auto jsonObject = Json::parse(authorizedAccounts, nullptr, false);
@@ -662,7 +667,8 @@ HWTEST_F(AppAccountManagerServiceSyncModuleTest, AppAccountManagerServiceSync_Di
         ASSERT_NE(dataStoragePtr, nullptr);
 
         std::string authorizedAccounts;
-        ErrCode result = dataStoragePtr->GetConfigById(AppAccountDataStorage::AUTHORIZED_ACCOUNTS, authorizedAccounts);
+        ErrCode result = dataStoragePtr->GetValueFromKvStore(AppAccountDataStorage::AUTHORIZED_ACCOUNTS,
+            authorizedAccounts);
         ASSERT_EQ(result, ERR_OK);
 
         auto jsonObject = Json::parse(authorizedAccounts, nullptr, false);
