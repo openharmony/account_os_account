@@ -27,7 +27,6 @@
 #include "ipc_skeleton.h"
 #include "iservice_registry.h"
 #include "ohos_account_kits.h"
-#include "permission/permission_kit.h"
 #include "string_ex.h"
 #include "system_ability_definition.h"
 
