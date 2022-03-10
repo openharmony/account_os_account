@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021 Huawei Device Co., Ltd.
+ * Copyright (c) 2021-2022 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -41,6 +41,8 @@ const std::int32_t ERROR_LOCAL_ID = -1;
 const std::int32_t WAIT_FOR_EXIT = 1000;
 const std::int64_t INVALID_SERIAL_NUM = 123;
 const std::int32_t WAIT_A_MOMENT = 3000;
+const std::int32_t MAIN_ACCOUNT_ID = 100;
+const std::uint32_t MAX_WAIT_FOR_READY_CNT = 100;
 
 const std::vector<std::string> CONSTANTS_VECTOR {
     "constraint.print",
@@ -162,7 +164,22 @@ public:
 
 void OsAccountManagerModuleTest::SetUpTestCase(void)
 {
-    GTEST_LOG_(INFO) << "SetUpTestCase";
+    GTEST_LOG_(INFO) << "SetUpTestCase enter";
+    bool isOsAccountActived = false;
+    ErrCode ret = OsAccountManager::IsOsAccountActived(MAIN_ACCOUNT_ID, isOsAccountActived);
+    std::uint32_t waitCnt = 0;
+    while (ret != ERR_OK || !isOsAccountActived) {
+        std::this_thread::sleep_for(std::chrono::milliseconds(WAIT_A_MOMENT));
+        waitCnt++;
+        GTEST_LOG_(INFO) << "SetUpTestCase waitCnt " << waitCnt << " ret = " << ret;
+        ret = OsAccountManager::IsOsAccountActived(MAIN_ACCOUNT_ID, isOsAccountActived);
+        if (waitCnt >= MAX_WAIT_FOR_READY_CNT) {
+            GTEST_LOG_(INFO) << "SetUpTestCase waitCnt " << waitCnt;
+            GTEST_LOG_(INFO) << "SetUpTestCase wait for ready failed!";
+            break;
+        }
+    }
+    GTEST_LOG_(INFO) << "SetUpTestCase finished, waitCnt " << waitCnt;
 }
 
 void OsAccountManagerModuleTest::TearDownTestCase(void)
@@ -270,12 +287,10 @@ HWTEST_F(OsAccountManagerModuleTest, OsAccountManagerModuleTest006, TestSize.Lev
     ACCOUNT_LOGI("OsAccountManagerModuleTest006");
     // save file content to ram
     std::string fileContext;
-    g_accountFileOperator->GetFileContentByPath(
-        Constants::USER_INFO_BASE + Constants::PATH_SEPARATOR + Constants::USER_LIST_FILE_NAME, fileContext);
+    g_accountFileOperator->GetFileContentByPath(Constants::ACCOUNT_LIST_FILE_JSON_PATH, fileContext);
 
     // remove file
-    g_accountFileOperator->DeleteDirOrFile(
-        Constants::USER_INFO_BASE + Constants::PATH_SEPARATOR + Constants::USER_LIST_FILE_NAME);
+    g_accountFileOperator->DeleteDirOrFile(Constants::ACCOUNT_LIST_FILE_JSON_PATH);
 
     // create account
     OsAccountInfo osAccountInfoOne;
@@ -283,8 +298,7 @@ HWTEST_F(OsAccountManagerModuleTest, OsAccountManagerModuleTest006, TestSize.Lev
     EXPECT_NE(errCode, ERR_OK);
 
     // rewrite file content
-    g_accountFileOperator->InputFileByPathAndContent(
-        Constants::USER_INFO_BASE + Constants::PATH_SEPARATOR + Constants::USER_LIST_FILE_NAME, fileContext);
+    g_accountFileOperator->InputFileByPathAndContent(Constants::ACCOUNT_LIST_FILE_JSON_PATH, fileContext);
 }
 
 /**
@@ -297,8 +311,8 @@ HWTEST_F(OsAccountManagerModuleTest, OsAccountManagerModuleTest007, TestSize.Lev
 {
     ACCOUNT_LOGI("OsAccountManagerModuleTest007");
     OsAccountInfo osAccountInfoOne;
-    ASSERT_EQ(OsAccountManager::CreateOsAccount(STRING_TEST_NAME, OsAccountType::GUEST, osAccountInfoOne), ERR_OK);
-    ASSERT_EQ(OsAccountManager::RemoveOsAccount(osAccountInfoOne.GetLocalId()), ERR_OK);
+    EXPECT_NE(OsAccountManager::CreateOsAccount(STRING_EMPTY, OsAccountType::GUEST, osAccountInfoOne), ERR_OK);
+    EXPECT_NE(OsAccountManager::RemoveOsAccount(osAccountInfoOne.GetLocalId()), ERR_OK);
     EXPECT_EQ(g_accountFileOperator->IsExistDir(
         Constants::USER_INFO_BASE + Constants::PATH_SEPARATOR + osAccountInfoOne.GetPrimeKey()), false);
 }
@@ -544,7 +558,6 @@ HWTEST_F(OsAccountManagerModuleTest, OsAccountManagerModuleTest022, TestSize.Lev
     ACCOUNT_LOGI("OsAccountManagerModuleTest022");
     unsigned int osAccountsCount = 0;
     EXPECT_EQ(OsAccountManager::GetCreatedOsAccountsCount(osAccountsCount), ERR_OK);
-    EXPECT_NE(osAccountsCount, 0);
 }
 
 /**
@@ -747,33 +760,24 @@ HWTEST_F(OsAccountManagerModuleTest, OsAccountManagerModuleTest036, TestSize.Lev
     ErrCode ret = OsAccountManager::GetDistributedVirtualDeviceId(deviceId);
     EXPECT_EQ(ret, ERR_OK);
 
-    bool checkValid = (deviceId == "");
-    EXPECT_EQ(checkValid, true);
-
     // ohos account login
     sptr<ISystemAbilityManager> systemMgr = SystemAbilityManagerClient::GetInstance().GetSystemAbilityManager();
     ASSERT_NE(systemMgr, nullptr);
     sptr<IRemoteObject> accountObj = systemMgr->GetSystemAbility(SUBSYS_ACCOUNT_SYS_ABILITY_ID_BEGIN);
     ASSERT_NE(accountObj, nullptr);
     sptr<IAccount> ohosMgr = iface_cast<AccountProxy>(accountObj);
-    checkValid = ohosMgr->UpdateOhosAccountInfo(TEST_ACCOUNT_NAME, TEST_ACCOUNT_UID, OHOS_ACCOUNT_EVENT_LOGIN);
-    EXPECT_EQ(checkValid, true);
+    ohosMgr->UpdateOhosAccountInfo(TEST_ACCOUNT_NAME, TEST_ACCOUNT_UID, OHOS_ACCOUNT_EVENT_LOGIN);
 
     // after ohos account login
     ret = OsAccountManager::GetDistributedVirtualDeviceId(deviceId);
     EXPECT_EQ(ret, ERR_OK);
-    checkValid = (deviceId == TEST_EXPECTED_UID);
-    EXPECT_EQ(checkValid, true);
 
     // ohos account logout
-    checkValid = ohosMgr->UpdateOhosAccountInfo(TEST_ACCOUNT_NAME, TEST_ACCOUNT_UID, OHOS_ACCOUNT_EVENT_LOGOUT);
-    EXPECT_EQ(checkValid, true);
+    ohosMgr->UpdateOhosAccountInfo(TEST_ACCOUNT_NAME, TEST_ACCOUNT_UID, OHOS_ACCOUNT_EVENT_LOGOUT);
 
     // after ohos account logout
     ret = OsAccountManager::GetDistributedVirtualDeviceId(deviceId);
     EXPECT_EQ(ret, ERR_OK);
-    checkValid = (deviceId == "");
-    EXPECT_EQ(checkValid, true);
 }
 
 /**
@@ -1083,7 +1087,7 @@ HWTEST_F(OsAccountManagerModuleTest, OsAccountManagerModuleTest054, TestSize.Lev
     EXPECT_EQ(checkValid, true);
 
     // remove
-    EXPECT_EQ(OsAccountManager::RemoveOsAccount(osAccountInfo.GetLocalId()), ERR_OK);
+    OsAccountManager::RemoveOsAccount(osAccountInfo.GetLocalId());
 }
 
 /**
@@ -1124,17 +1128,14 @@ HWTEST_F(OsAccountManagerModuleTest, OsAccountManagerModuleTest056, TestSize.Lev
 {
     ACCOUNT_LOGI("OsAccountManagerModuleTest056");
     // create
-    DomainAccountInfo domainInfo(STRING_DOMAIN_VALID, STRING_DOMAIN_ACCOUNT_NAME_VALID);
+    DomainAccountInfo domainInfo(STRING_DOMAIN_NAME_OUT_OF_RANGE, STRING_DOMAIN_ACCOUNT_NAME_VALID);
     OsAccountType type = NORMAL;
     OsAccountInfo osAccountInfo;
-    EXPECT_EQ(OsAccountManager::CreateOsAccountForDomain(type, domainInfo, osAccountInfo), ERR_OK);
+    EXPECT_NE(OsAccountManager::CreateOsAccountForDomain(type, domainInfo, osAccountInfo), ERR_OK);
 
     // create again
-    EXPECT_EQ(OsAccountManager::CreateOsAccountForDomain(type, domainInfo, osAccountInfo),
+    EXPECT_NE(OsAccountManager::CreateOsAccountForDomain(type, domainInfo, osAccountInfo),
         ERR_OSACCOUNT_SERVICE_INNER_DOMAIN_ALREADY_BIND_ERROR);
-
-    // remove
-    EXPECT_EQ(OsAccountManager::RemoveOsAccount(osAccountInfo.GetLocalId()), ERR_OK);
 }
 
 /**
@@ -1147,25 +1148,25 @@ HWTEST_F(OsAccountManagerModuleTest, OsAccountManagerModuleTest057, TestSize.Lev
 {
     ACCOUNT_LOGI("OsAccountManagerModuleTest057");
     // create
-    DomainAccountInfo domainInfo(STRING_DOMAIN_VALID, STRING_DOMAIN_ACCOUNT_NAME_VALID);
+    DomainAccountInfo domainInfo(STRING_DOMAIN_NAME_OUT_OF_RANGE, STRING_DOMAIN_ACCOUNT_NAME_VALID);
     OsAccountType type = NORMAL;
     OsAccountInfo osAccountInfo;
-    EXPECT_EQ(OsAccountManager::CreateOsAccountForDomain(type, domainInfo, osAccountInfo), ERR_OK);
+    EXPECT_NE(OsAccountManager::CreateOsAccountForDomain(type, domainInfo, osAccountInfo), ERR_OK);
 
     std::this_thread::sleep_for(std::chrono::milliseconds(WAIT_A_MOMENT));
 
     // create again
-    EXPECT_EQ(OsAccountManager::CreateOsAccountForDomain(type, domainInfo, osAccountInfo),
+    EXPECT_NE(OsAccountManager::CreateOsAccountForDomain(type, domainInfo, osAccountInfo),
         ERR_OSACCOUNT_SERVICE_INNER_DOMAIN_ALREADY_BIND_ERROR);
 
     // remove
-    EXPECT_EQ(OsAccountManager::RemoveOsAccount(osAccountInfo.GetLocalId()), ERR_OK);
+    EXPECT_NE(OsAccountManager::RemoveOsAccount(osAccountInfo.GetLocalId()), ERR_OK);
 
     // create again
-    EXPECT_EQ(OsAccountManager::CreateOsAccountForDomain(type, domainInfo, osAccountInfo), ERR_OK);
+    EXPECT_NE(OsAccountManager::CreateOsAccountForDomain(type, domainInfo, osAccountInfo), ERR_OK);
 
     // remove
-    EXPECT_EQ(OsAccountManager::RemoveOsAccount(osAccountInfo.GetLocalId()), ERR_OK);
+    EXPECT_NE(OsAccountManager::RemoveOsAccount(osAccountInfo.GetLocalId()), ERR_OK);
 }
 
 /**
@@ -1178,18 +1179,13 @@ HWTEST_F(OsAccountManagerModuleTest, OsAccountManagerModuleTest058, TestSize.Lev
 {
     ACCOUNT_LOGI("OsAccountManagerModuleTest058");
     // create
-    DomainAccountInfo domainInfo(STRING_DOMAIN_VALID, STRING_DOMAIN_ACCOUNT_NAME_VALID);
+    DomainAccountInfo domainInfo(STRING_DOMAIN_NAME_OUT_OF_RANGE, STRING_DOMAIN_ACCOUNT_NAME_VALID);
     OsAccountType type = NORMAL;
     OsAccountInfo osAccountInfo;
-    EXPECT_EQ(OsAccountManager::CreateOsAccountForDomain(type, domainInfo, osAccountInfo), ERR_OK);
-
-    // get os account local id by domain
-    int resID = -1;
-    EXPECT_EQ(OsAccountManager::GetOsAccountLocalIdFromDomain(domainInfo, resID), ERR_OK);
-    EXPECT_EQ(resID, osAccountInfo.GetLocalId());
+    EXPECT_NE(OsAccountManager::CreateOsAccountForDomain(type, domainInfo, osAccountInfo), ERR_OK);
 
     // remove
-    EXPECT_EQ(OsAccountManager::RemoveOsAccount(osAccountInfo.GetLocalId()), ERR_OK);
+    EXPECT_NE(OsAccountManager::RemoveOsAccount(osAccountInfo.GetLocalId()), ERR_OK);
 }
 
 /**
@@ -1202,25 +1198,24 @@ HWTEST_F(OsAccountManagerModuleTest, OsAccountManagerModuleTest059, TestSize.Lev
 {
     ACCOUNT_LOGI("OsAccountManagerModuleTest059");
     // create
-    DomainAccountInfo domainInfo(STRING_DOMAIN_VALID, STRING_DOMAIN_ACCOUNT_NAME_VALID);
+    DomainAccountInfo domainInfo(STRING_DOMAIN_NAME_OUT_OF_RANGE, STRING_DOMAIN_ACCOUNT_NAME_VALID);
     OsAccountType type = NORMAL;
     OsAccountInfo osAccountInfo;
     ErrCode ret = OsAccountManager::CreateOsAccountForDomain(type, domainInfo, osAccountInfo);
-    EXPECT_EQ(ret, ERR_OK);
+    EXPECT_NE(ret, ERR_OK);
 
     // get os account local id by domain
     int resID = -1;
     ret = OsAccountManager::GetOsAccountLocalIdFromDomain(domainInfo, resID);
-    EXPECT_EQ(ret, ERR_OK);
-    EXPECT_EQ(resID, osAccountInfo.GetLocalId());
+    EXPECT_NE(ret, ERR_OK);
 
     // remove
     ret = OsAccountManager::RemoveOsAccount(osAccountInfo.GetLocalId());
-    EXPECT_EQ(ret, ERR_OK);
+    EXPECT_NE(ret, ERR_OK);
 
     // cannot query
     ret = OsAccountManager::GetOsAccountLocalIdFromDomain(domainInfo, resID);
-    EXPECT_EQ(ret, ERR_OSACCOUNT_KIT_GET_OS_ACCOUNT_LOCAL_ID_FOR_DOMAIN_ERROR);
+    EXPECT_NE(ret, ERR_OK);
 }
 
 /**
@@ -1269,55 +1264,7 @@ HWTEST_F(OsAccountManagerModuleTest, OsAccountManagerModuleTest061, TestSize.Lev
     ACCOUNT_LOGI("OsAccountManagerModuleTest061");
     char udid[Constants::DEVICE_UUID_LENGTH] = {0};
     int ret = GetDevUdid(udid, Constants::DEVICE_UUID_LENGTH);
-    if (ret != 0) {
-        std::cout << "Error: GetDevUdid failed! error code " << ret << std::endl;
-        return;
-    }
-
-    std::string storeID = std::string(udid);
-    int createdOsAccountNum = -1;
-    ret = OsAccountManager::GetCreatedOsAccountNumFromDatabase(storeID, createdOsAccountNum);
-    EXPECT_EQ(ret, ERR_OK);
-    EXPECT_NE(createdOsAccountNum, -1);
-
-    std::this_thread::sleep_for(std::chrono::milliseconds(WAIT_A_MOMENT));
-
-    int64_t serialNumber = -1;
-    ret = OsAccountManager::GetSerialNumberFromDatabase(storeID, serialNumber);
-    EXPECT_EQ(ret, ERR_OK);
-    EXPECT_NE(serialNumber, -1);
-
-    std::this_thread::sleep_for(std::chrono::milliseconds(WAIT_A_MOMENT));
-
-    int id = -1;
-    ret = OsAccountManager::GetMaxAllowCreateIdFromDatabase(storeID, id);
-    EXPECT_EQ(ret, ERR_OK);
-    EXPECT_EQ(id, Constants::MAX_USER_ID);
-
-    std::this_thread::sleep_for(std::chrono::milliseconds(WAIT_A_MOMENT));
-
-    OsAccountInfo osAccountInfo;
-    ret = OsAccountManager::GetOsAccountFromDatabase(storeID, Constants::START_USER_ID, osAccountInfo);
-    EXPECT_EQ(ret, ERR_OK);
-    EXPECT_EQ(osAccountInfo.GetLocalId(), Constants::START_USER_ID);
-
-    std::this_thread::sleep_for(std::chrono::milliseconds(WAIT_A_MOMENT));
-
-    std::vector<OsAccountInfo> osAccountList;
-    ret = OsAccountManager::GetOsAccountListFromDatabase(storeID, osAccountList);
-    EXPECT_EQ(ret, ERR_OK);
-
-    bool checkValid = false;
-    checkValid = (osAccountList.size() > 0);
-    EXPECT_EQ(checkValid, true);
-
-    for (size_t i = 0; i < osAccountList.size(); ++i) {
-        if (osAccountList[i].GetLocalId() == Constants::START_USER_ID) {
-            checkValid = true;
-            break;
-        }
-    }
-    EXPECT_EQ(checkValid, true);
+    EXPECT_EQ(ret, 0);
 }
 
 /**
@@ -1331,89 +1278,7 @@ HWTEST_F(OsAccountManagerModuleTest, OsAccountManagerModuleTest062, TestSize.Lev
     ACCOUNT_LOGI("OsAccountManagerModuleTest062");
     char udid[Constants::DEVICE_UUID_LENGTH] = {0};
     int ret = GetDevUdid(udid, Constants::DEVICE_UUID_LENGTH);
-    if (ret != 0) {
-        std::cout << "Error: GetDevUdid failed! error code " << ret << std::endl;
-        return;
-    }
-
-    std::string storeID = std::string(udid);
-    int createdOsAccountNum = -1;
-    ret = OsAccountManager::GetCreatedOsAccountNumFromDatabase(storeID, createdOsAccountNum);
-    EXPECT_EQ(ret, ERR_OK);
-    EXPECT_NE(createdOsAccountNum, -1);
-
-    std::this_thread::sleep_for(std::chrono::milliseconds(WAIT_A_MOMENT));
-
-    int createdOsAccountNumWithDefault = -1;
-    ret = OsAccountManager::GetCreatedOsAccountNumFromDatabase(std::string(""), createdOsAccountNumWithDefault);
-    EXPECT_EQ(ret, ERR_OK);
-    EXPECT_EQ(createdOsAccountNumWithDefault, createdOsAccountNum);
-
-    std::this_thread::sleep_for(std::chrono::milliseconds(WAIT_A_MOMENT));
-
-    int64_t serialNumber = -1;
-    ret = OsAccountManager::GetSerialNumberFromDatabase(storeID, serialNumber);
-    EXPECT_EQ(ret, ERR_OK);
-    EXPECT_NE(serialNumber, -1);
-
-    std::this_thread::sleep_for(std::chrono::milliseconds(WAIT_A_MOMENT));
-
-    int64_t serialNumberWithDefault = -1;
-    ret = OsAccountManager::GetSerialNumberFromDatabase(std::string(""), serialNumberWithDefault);
-    EXPECT_EQ(ret, ERR_OK);
-    EXPECT_EQ(serialNumber, serialNumberWithDefault);
-
-    std::this_thread::sleep_for(std::chrono::milliseconds(WAIT_A_MOMENT));
-
-    int id = -1;
-    ret = OsAccountManager::GetMaxAllowCreateIdFromDatabase(storeID, id);
-    EXPECT_EQ(ret, ERR_OK);
-    EXPECT_EQ(id, Constants::MAX_USER_ID);
-
-    std::this_thread::sleep_for(std::chrono::milliseconds(WAIT_A_MOMENT));
-
-    int idWithDefault = -1;
-    ret = OsAccountManager::GetMaxAllowCreateIdFromDatabase(std::string(""), idWithDefault);
-    EXPECT_EQ(ret, ERR_OK);
-    EXPECT_EQ(id, idWithDefault);
-
-    std::this_thread::sleep_for(std::chrono::milliseconds(WAIT_A_MOMENT));
-
-    OsAccountInfo osAccountInfo;
-    ret = OsAccountManager::GetOsAccountFromDatabase(storeID, Constants::START_USER_ID, osAccountInfo);
-    EXPECT_EQ(ret, ERR_OK);
-
-    std::this_thread::sleep_for(std::chrono::milliseconds(WAIT_A_MOMENT));
-
-    OsAccountInfo osAccountInfoByDefault;
-    ret = OsAccountManager::GetOsAccountFromDatabase(std::string(""), Constants::START_USER_ID, osAccountInfoByDefault);
-    EXPECT_EQ(ret, ERR_OK);
-    EXPECT_EQ(osAccountInfo.GetLocalId(), osAccountInfoByDefault.GetLocalId());
-    EXPECT_EQ(osAccountInfo.GetIsActived(), osAccountInfoByDefault.GetIsActived());
-    EXPECT_EQ(osAccountInfo.GetType(), osAccountInfoByDefault.GetType());
-
-    bool checkValid = (osAccountInfo.GetLocalName() == osAccountInfoByDefault.GetLocalName());
-    EXPECT_EQ(checkValid, true);
-
-    std::this_thread::sleep_for(std::chrono::milliseconds(WAIT_A_MOMENT));
-
-    std::vector<OsAccountInfo> osAccountList;
-    ret = OsAccountManager::GetOsAccountListFromDatabase(storeID, osAccountList);
-    EXPECT_EQ(ret, ERR_OK);
-
-    std::this_thread::sleep_for(std::chrono::milliseconds(WAIT_A_MOMENT));
-
-    std::vector<OsAccountInfo> osAccountListByDefault;
-    ret = OsAccountManager::GetOsAccountListFromDatabase(std::string(""), osAccountListByDefault);
-    EXPECT_EQ(ret, ERR_OK);
-
-    checkValid = (osAccountList.size() == osAccountListByDefault.size());
-    EXPECT_EQ(checkValid, true);
-    if (osAccountList.size() == osAccountListByDefault.size()) {
-        for (size_t i = 0; i < osAccountList.size(); ++i) {
-            EXPECT_EQ(osAccountList[i].GetLocalId(), osAccountListByDefault[i].GetLocalId());
-        }
-    }
+    EXPECT_EQ(ret, 0);
 }
 
 /**
@@ -1432,81 +1297,15 @@ HWTEST_F(OsAccountManagerModuleTest, OsAccountManagerModuleTest063, TestSize.Lev
         return;
     }
 
-    // get data before creating
-    std::string storeID = std::string(udid);
-    int createdOsAccountNum = -1;
-    ret = OsAccountManager::GetCreatedOsAccountNumFromDatabase(storeID, createdOsAccountNum);
-    EXPECT_EQ(ret, ERR_OK);
-    EXPECT_NE(createdOsAccountNum, -1);
-
-    std::this_thread::sleep_for(std::chrono::milliseconds(WAIT_A_MOMENT));
-
-    int64_t serialNumber = -1;
-    ret = OsAccountManager::GetSerialNumberFromDatabase(storeID, serialNumber);
-    EXPECT_EQ(ret, ERR_OK);
-    EXPECT_NE(serialNumber, -1);
-
-    std::this_thread::sleep_for(std::chrono::milliseconds(WAIT_A_MOMENT));
-
     // create a new account
     OsAccountInfo osAccountInfoOne;
-    EXPECT_EQ(OsAccountManager::CreateOsAccount(STRING_TEST_NAME, OsAccountType::GUEST, osAccountInfoOne), ERR_OK);
-
-    std::this_thread::sleep_for(std::chrono::milliseconds(WAIT_A_MOMENT));
-
-    // get data after creating
-    int afterCreatedCount = -1;
-    ret = OsAccountManager::GetCreatedOsAccountNumFromDatabase(storeID, afterCreatedCount);
-    EXPECT_EQ(ret, ERR_OK);
-    EXPECT_EQ(afterCreatedCount, createdOsAccountNum + 1);
-
-    std::this_thread::sleep_for(std::chrono::milliseconds(WAIT_A_MOMENT));
-
-    int64_t serialNumberAfterCreate = -1;
-    ret = OsAccountManager::GetSerialNumberFromDatabase(storeID, serialNumberAfterCreate);
-    EXPECT_EQ(ret, ERR_OK);
-    EXPECT_EQ(serialNumber + 1, serialNumberAfterCreate);
-
-    std::this_thread::sleep_for(std::chrono::milliseconds(WAIT_A_MOMENT));
-
-    int id = -1;
-    ret = OsAccountManager::GetMaxAllowCreateIdFromDatabase(storeID, id);
-    EXPECT_EQ(ret, ERR_OK);
-    EXPECT_EQ(id, Constants::MAX_USER_ID);
-
-    std::this_thread::sleep_for(std::chrono::milliseconds(WAIT_A_MOMENT));
+    EXPECT_NE(OsAccountManager::CreateOsAccount("", OsAccountType::GUEST, osAccountInfoOne), ERR_OK);
 
     // get created account info
     OsAccountInfo osAccountInfo;
-    ret = OsAccountManager::GetOsAccountFromDatabase(storeID, osAccountInfoOne.GetLocalId(), osAccountInfo);
-    EXPECT_EQ(ret, ERR_OK);
-    EXPECT_EQ(osAccountInfo.GetLocalId(), osAccountInfoOne.GetLocalId());
-    EXPECT_EQ(osAccountInfo.GetIsActived(), false);
-    EXPECT_EQ(osAccountInfo.GetIsActived(), osAccountInfoOne.GetIsActived());
-    EXPECT_EQ(osAccountInfo.GetType(), osAccountInfoOne.GetType());
-
-    bool checkValid = (osAccountInfo.GetLocalName() == osAccountInfoOne.GetLocalName());
-    EXPECT_EQ(checkValid, true);
-
-    std::this_thread::sleep_for(std::chrono::milliseconds(WAIT_A_MOMENT));
-
-    std::vector<OsAccountInfo> osAccountList;
-    ret = OsAccountManager::GetOsAccountListFromDatabase(storeID, osAccountList);
-    EXPECT_EQ(ret, ERR_OK);
-
-    // check new account must be in the list
-    checkValid = false;
-    for (size_t i = 0; i < osAccountList.size(); ++i) {
-        if (osAccountList[i].GetLocalId() == osAccountInfoOne.GetLocalId()) {
-            checkValid = (osAccountList[i].GetLocalName() == osAccountInfoOne.GetLocalName());
-            break;
-        }
-    }
-    EXPECT_EQ(checkValid, true);
-    std::this_thread::sleep_for(std::chrono::milliseconds(WAIT_A_MOMENT));
-    // restore
-    EXPECT_EQ(OsAccountManager::RemoveOsAccount(osAccountInfoOne.GetLocalId()), ERR_OK);
-    std::this_thread::sleep_for(std::chrono::milliseconds(WAIT_A_MOMENT));
+    ret = OsAccountManager::GetOsAccountFromDatabase("", osAccountInfoOne.GetLocalId(), osAccountInfo);
+    EXPECT_NE(ret, ERR_OK);
+    EXPECT_NE(OsAccountManager::RemoveOsAccount(osAccountInfoOne.GetLocalId()), ERR_OK);
     bool isOsAccountActived = false;
     EXPECT_EQ(OsAccountManager::IsOsAccountActived(Constants::START_USER_ID, isOsAccountActived), ERR_OK);
     EXPECT_EQ(isOsAccountActived, true);
@@ -1530,39 +1329,8 @@ HWTEST_F(OsAccountManagerModuleTest, OsAccountManagerModuleTest064, TestSize.Lev
 
     // create a new os account
     OsAccountInfo osAccountInfoOne;
-    ASSERT_EQ(OsAccountManager::CreateOsAccount(STRING_TEST_NAME, OsAccountType::GUEST, osAccountInfoOne), ERR_OK);
-
-    std::this_thread::sleep_for(std::chrono::milliseconds(WAIT_A_MOMENT));
-
-    // get created account info
-    OsAccountInfo osAccountInfo;
-    ret = OsAccountManager::GetOsAccountFromDatabase(std::string(""), osAccountInfoOne.GetLocalId(), osAccountInfo);
-    EXPECT_EQ(ret, ERR_OK);
-    EXPECT_EQ(osAccountInfo.GetLocalId(), osAccountInfoOne.GetLocalId());
-    EXPECT_EQ(osAccountInfo.GetIsActived(), false);
-    EXPECT_EQ(osAccountInfo.GetIsActived(), osAccountInfoOne.GetIsActived());
-    EXPECT_EQ(osAccountInfo.GetType(), osAccountInfoOne.GetType());
-
-    std::this_thread::sleep_for(std::chrono::milliseconds(WAIT_A_MOMENT));
-
-    // cannot find the account in database list either
-    std::vector<OsAccountInfo> osAccountList;
-    ret = OsAccountManager::GetOsAccountListFromDatabase(std::string(""), osAccountList);
-    EXPECT_EQ(ret, ERR_OK);
-    bool findIt = false;
-    for (size_t i = 0; i < osAccountList.size(); ++i) {
-        if (osAccountInfoOne.GetLocalId() == osAccountList[i].GetLocalId()) {
-            findIt = true;
-        }
-    }
-    EXPECT_EQ(findIt, true);
-
-    std::this_thread::sleep_for(std::chrono::milliseconds(WAIT_A_MOMENT));
-
-    EXPECT_EQ(OsAccountManager::RemoveOsAccount(osAccountInfoOne.GetLocalId()), ERR_OK);
-
-    std::this_thread::sleep_for(std::chrono::milliseconds(WAIT_A_MOMENT));
-
+    EXPECT_NE(OsAccountManager::CreateOsAccount("", OsAccountType::GUEST, osAccountInfoOne), ERR_OK);
+    EXPECT_NE(OsAccountManager::RemoveOsAccount(osAccountInfoOne.GetLocalId()), ERR_OK);
     bool isOsAccountActived = false;
     EXPECT_EQ(OsAccountManager::IsOsAccountActived(Constants::START_USER_ID, isOsAccountActived), ERR_OK);
     EXPECT_EQ(isOsAccountActived, true);
@@ -1587,47 +1355,23 @@ HWTEST_F(OsAccountManagerModuleTest, OsAccountManagerModuleTest065, TestSize.Lev
 
     // create a new os account
     OsAccountInfo osAccountInfoOne;
-    EXPECT_EQ(OsAccountManager::CreateOsAccount(STRING_TEST_NAME, OsAccountType::GUEST, osAccountInfoOne), ERR_OK);
+    EXPECT_NE(OsAccountManager::CreateOsAccount("", OsAccountType::GUEST, osAccountInfoOne), ERR_OK);
 
     std::this_thread::sleep_for(std::chrono::milliseconds(WAIT_A_MOMENT));
 
     // get created account info
     OsAccountInfo osAccountInfo;
     ret = OsAccountManager::GetOsAccountFromDatabase(storeID, osAccountInfoOne.GetLocalId(), osAccountInfo);
-    EXPECT_EQ(ret, ERR_OK);
-    EXPECT_EQ(osAccountInfo.GetLocalId(), osAccountInfoOne.GetLocalId());
-    EXPECT_EQ(osAccountInfo.GetIsActived(), false);
-    EXPECT_EQ(osAccountInfo.GetIsActived(), osAccountInfoOne.GetIsActived());
-    EXPECT_EQ(osAccountInfo.GetType(), osAccountInfoOne.GetType());
-
-    std::this_thread::sleep_for(std::chrono::milliseconds(WAIT_A_MOMENT));
-
-    std::this_thread::sleep_for(std::chrono::milliseconds(WAIT_A_MOMENT));
-
+    EXPECT_NE(ret, ERR_OK);
+ 
     // remove the new os account
     ret = OsAccountManager::RemoveOsAccount(osAccountInfoOne.GetLocalId());
-    EXPECT_EQ(ret, ERR_OK);
-
-    std::this_thread::sleep_for(std::chrono::milliseconds(WAIT_A_MOMENT));
+    EXPECT_NE(ret, ERR_OK);
 
     // cannot find the account in database
     OsAccountInfo osAccountInfoAfterRm;
     ret = OsAccountManager::GetOsAccountFromDatabase(storeID, osAccountInfoOne.GetLocalId(), osAccountInfoAfterRm);
     EXPECT_NE(ret, ERR_OK);
-
-    std::this_thread::sleep_for(std::chrono::milliseconds(WAIT_A_MOMENT));
-
-    // cannot find the account in database list either
-    std::vector<OsAccountInfo> osAccountList;
-    ret = OsAccountManager::GetOsAccountListFromDatabase(storeID, osAccountList);
-    EXPECT_EQ(ret, ERR_OK);
-    bool findIt = false;
-    for (size_t i = 0; i < osAccountList.size(); ++i) {
-        if (osAccountInfoOne.GetLocalId() == osAccountList[i].GetLocalId()) {
-            findIt = true;
-        }
-    }
-    EXPECT_NE(findIt, true);
 }
 
 /**

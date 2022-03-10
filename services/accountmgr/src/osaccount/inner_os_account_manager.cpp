@@ -780,6 +780,7 @@ ErrCode IInnerOsAccountManager::GetOsAccountLocalIdBySerialNumber(const int64_t 
     for (auto it = osAccountInfos.begin(); it != osAccountInfos.end(); it++) {
         if (serialNumber == it->GetSerialNumber()) {
             id = it->GetLocalId();
+            break;
         }
     }
     if (id == -1) {

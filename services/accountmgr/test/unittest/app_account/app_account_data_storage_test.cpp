@@ -114,7 +114,7 @@ HWTEST_F(AppAccountDataStorageTest, AppAccountDataStorage_AddAccountInfo_0100, T
 
     // delete account
     const std::string id = appAccountInfo.GetPrimeKey();
-    result = dataStoragePtr->RemoveInfoByKey(id);
+    result = dataStoragePtr->RemoveValueFromKvStore(id);
     EXPECT_EQ(result, ERR_OK);
 }
 
@@ -170,7 +170,7 @@ HWTEST_F(AppAccountDataStorageTest, AppAccountDataStorage_SaveAccountInfo_0100, 
 
     // delete account
     const std::string id = appAccountInfo.GetPrimeKey();
-    result = dataStoragePtr->RemoveInfoByKey(id);
+    result = dataStoragePtr->RemoveValueFromKvStore(id);
     EXPECT_EQ(result, ERR_OK);
 }
 
@@ -214,7 +214,7 @@ HWTEST_F(AppAccountDataStorageTest, AppAccountDataStorage_DeleteAccount_0100, Te
     EXPECT_EQ(name, STRING_NAME);
 
     const std::string id = appAccountInfo.GetPrimeKey();
-    result = dataStoragePtr->RemoveInfoByKey(id);
+    result = dataStoragePtr->RemoveValueFromKvStore(id);
     EXPECT_EQ(result, ERR_OK);
 
     result = dataStoragePtr->LoadAllData(accounts);

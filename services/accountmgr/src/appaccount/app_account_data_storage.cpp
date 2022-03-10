@@ -62,7 +62,7 @@ ErrCode AppAccountDataStorage::GetAccessibleAccountsFromDataStorage(
     ACCOUNT_LOGI("enter");
 
     std::string authorizedAccounts;
-    ErrCode result = GetConfigById(AUTHORIZED_ACCOUNTS, authorizedAccounts);
+    ErrCode result = GetValueFromKvStore(AUTHORIZED_ACCOUNTS, authorizedAccounts);
     ACCOUNT_LOGI("authorizedAccounts = %{public}s", authorizedAccounts.c_str());
     if (result != ERR_OK) {
         ACCOUNT_LOGE("failed to get config by id from data storage");
@@ -79,7 +79,7 @@ ErrCode AppAccountDataStorage::GetAccountInfoFromDataStorage(AppAccountInfo &app
 
     ErrCode result = GetAccountInfoById(appAccountInfo.GetPrimeKey(), appAccountInfo);
     if (result != ERR_OK) {
-        ACCOUNT_LOGE("failed to get account info by id");
+        ACCOUNT_LOGE("failed to get account info by id, result %{public}d.", result);
         return ERR_APPACCOUNT_SERVICE_GET_ACCOUNT_INFO_BY_ID;
     }
 
@@ -121,18 +121,14 @@ ErrCode AppAccountDataStorage::SaveAccountInfoIntoDataStorage(AppAccountInfo &ap
 
 ErrCode AppAccountDataStorage::DeleteAccountInfoFromDataStorage(AppAccountInfo &appAccountInfo)
 {
-    ACCOUNT_LOGI("enter");
-
-    const std::string id = appAccountInfo.GetPrimeKey();
-    ErrCode result = RemoveInfoByKey(id);
-    if (result != ERR_OK) {
-        ACCOUNT_LOGI("failed to remove info by key, result = %{public}d", result);
-        return ERR_APPACCOUNT_SERVICE_REMOVE_INFO_BY_KEY;
+    ACCOUNT_LOGI("enter.");
+    ErrCode ret = RemoveValueFromKvStore(appAccountInfo.GetPrimeKey());
+    if (ret != ERR_OK) {
+        ACCOUNT_LOGE("RemoveValueFromKvStore failed! ret = %{public}d.", ret);
+    } else {
+        ACCOUNT_LOGI("RemoveValueFromKvStore succeed.");
     }
-
-    ACCOUNT_LOGI("end, result = %{public}d", result);
-
-    return ERR_OK;
+    return ret;
 }
 
 void AppAccountDataStorage::SaveEntries(

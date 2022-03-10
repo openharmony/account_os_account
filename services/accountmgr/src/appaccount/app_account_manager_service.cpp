@@ -473,9 +473,9 @@ ErrCode AppAccountManagerService::GetAllAccounts(const std::string &owner, std::
         return result;
     }
 
-    result = permissionManagerPtr_->VerifyPermission(AccountPermissionManager::GET_ACCOUNTS_PRIVILEGED);
+    result = permissionManagerPtr_->VerifyPermission(AccountPermissionManager::GET_ALL_APP_ACCOUNTS);
     if (result != ERR_OK) {
-        ACCOUNT_LOGE("failed to verify permission for GET_ACCOUNTS_PRIVILEGED, result = %{public}d", result);
+        ACCOUNT_LOGE("failed to verify permission for GET_ALL_APP_ACCOUNTS, result = %{public}d", result);
         return result;
     }
 
@@ -502,9 +502,9 @@ ErrCode AppAccountManagerService::GetAllAccessibleAccounts(std::vector<AppAccoun
         return result;
     }
 
-    result = permissionManagerPtr_->VerifyPermission(AccountPermissionManager::GET_ACCOUNTS_PRIVILEGED);
+    result = permissionManagerPtr_->VerifyPermission(AccountPermissionManager::GET_ALL_APP_ACCOUNTS);
     if (result != ERR_OK) {
-        ACCOUNT_LOGE("failed to verify permission for GET_ACCOUNTS_PRIVILEGED, result = %{public}d", result);
+        ACCOUNT_LOGE("failed to verify permission for GET_ALL_APP_ACCOUNTS, result = %{public}d", result);
         return result;
     }
 

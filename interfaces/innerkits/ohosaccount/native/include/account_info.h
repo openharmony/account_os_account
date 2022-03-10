@@ -103,7 +103,7 @@ public:
 
     bool operator==(const AccountInfo &info)
     {
-        return ohosAccountUid_ == info.ohosAccountUid_;
+        return (ohosAccountUid_ == info.ohosAccountUid_);
     }
 
     void clear(std::int32_t clrStatus = ACCOUNT_STATE_UNBOUND)
@@ -113,7 +113,6 @@ public:
         digest_.clear();
         ohosAccountStatus_ = clrStatus;
         bindTime_ = 0;
-        userId_ = 0;
     }
 
     ~AccountInfo() {};
