@@ -12,21 +12,19 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
-#include "account_log_wrapper.h"
-
 #include "permission_kit.h"
+#include "account_log_wrapper.h"
 
 using namespace OHOS::AccountSA;
 
 namespace OHOS {
 namespace Security {
 namespace Permission {
-int PermissionKit::VerifyPermission(const std::string &permissionName)
+ErrCode PermissionKit::VerifyPermission(const std::string &permissionName)
 {
     ACCOUNT_LOGI("permissionName = %{public}s", permissionName.c_str());
 
-    return PermissionState::PERMISSION_GRANTED;
+    return ERR_OK;
 }
 }  // namespace Permission
 }  // namespace Security
