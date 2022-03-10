@@ -45,7 +45,6 @@ config("os_account_core_public_config") {
     "//foundation/aafwk/standard/interfaces/innerkits/want/include",
     "//foundation/appexecfwk/standard/interfaces/innerkits/appexecfwk_base/include",
     "//foundation/appexecfwk/standard/interfaces/innerkits/appexecfwk_core/include/bundlemgr",
-    "//foundation/distributedschedule/dmsfwk/services/dtbschedmgr/include",
     "//utils/native/base/include",
     "//utils/system/safwk/native/include",
     "//foundation/communication/ipc/interfaces/innerkits/ipc_core/include",
