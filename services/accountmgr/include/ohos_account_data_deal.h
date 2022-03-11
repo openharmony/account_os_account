@@ -17,6 +17,7 @@
 #define BASE_ACCOUNT_INCLUDE_OHOS_ACCOUNT_DATA_DEAL_H
 
 #include <string>
+#include <mutex>
 #include <nlohmann/json.hpp>
 #include "account_error_no.h"
 #include "account_info.h"
@@ -29,13 +30,15 @@ class OhosAccountDataDeal {
 public:
     explicit OhosAccountDataDeal(const std::string &configFileDir);
     ErrCode Init(std::int32_t userId);
-    ErrCode AccountInfoFromJson(AccountInfo &accountInfo, const std::int32_t userId) const;
+    ErrCode AccountInfoFromJson(AccountInfo &accountInfo, const std::int32_t userId);
     ErrCode AccountInfoToJson(const AccountInfo &accountInfo) const;
     ~OhosAccountDataDeal() {};
 
 private:
     bool initOk_;
     std::string configFileDir_;
+    std::mutex mutex_;
+    nlohmann::json jsonData_;
     void BuildJsonFileFromScratch(std::int32_t userId) const;
     void SaveAccountInfo(const AccountInfo &accountInfo) const;
 };
