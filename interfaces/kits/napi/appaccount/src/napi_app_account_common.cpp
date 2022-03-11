@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021 Huawei Device Co., Ltd.
+ * Copyright (c) 2021-2022 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -1038,7 +1038,7 @@ void UnsubscribeCallbackCompletedCB(napi_env env, napi_status status, void *data
         napi_get_reference_value(env, asyncContextForOff->callbackRef, &callback);
 
         napi_value results[ARGS_SIZE_TWO] = {nullptr};
-        results[PARAM0] = result;
+        results[PARAMZERO] = result;
 
         NAPI_CALL_RETURN_VOID(
             env, napi_call_function(env, undefined, callback, ARGS_SIZE_ONE, &results[0], &resultout));
