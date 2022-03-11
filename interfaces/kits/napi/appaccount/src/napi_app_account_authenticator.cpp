@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021-2022 Huawei Device Co., Ltd.
+ * Copyright (c) 2022 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -71,6 +71,10 @@ ErrCode NapiAppAccountAuthenticator::AddAccountImplicitly(
 {
     ACCOUNT_LOGI("Enter");
     std::shared_ptr<struct ThreadLockInfo> lockInfo = std::make_shared<struct ThreadLockInfo>();
+    if (lockInfo == nullptr) {
+        ACCOUNT_LOGI("fail to create ThreadLockInfo");
+        return ERR_APPACCOUNT_SERVICE_OAUTH_SERVICE_EXCEPTION;
+    }
     AuthParam *authParam = new (std::nothrow) AuthParam {
         .env = env_,
         .addAccountImplicitlyRef = addAccountImplicitlyRef_,
@@ -92,7 +96,11 @@ ErrCode NapiAppAccountAuthenticator::Authenticate(const std::string &name, const
 {
     ACCOUNT_LOGI("Enter");
     std::shared_ptr<struct ThreadLockInfo> lockInfo = std::make_shared<struct ThreadLockInfo>();
-    AuthParam *authParam = new AuthParam {
+    if (lockInfo == nullptr) {
+        ACCOUNT_LOGI("fail to create ThreadLockInfo");
+        return ERR_APPACCOUNT_SERVICE_OAUTH_SERVICE_EXCEPTION;
+    }
+    AuthParam *authParam = new (std::nothrow) AuthParam {
         .env = env_,
         .addAccountImplicitlyRef = nullptr,
         .authenticateRef = authenticateRef_,

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021 Huawei Device Co., Ltd.
+ * Copyright (c) 2022 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -24,8 +24,26 @@
 namespace OHOS {
 namespace AccountSA {
 namespace {
-    constexpr int32_t ABILITY_STATE_TERMINATED = 4;
+constexpr size_t SESSION_MAX_NUM = 256;
+constexpr int32_t ABILITY_STATE_TERMINATED = 4;
+
+AppStateObserver::AppStateObserver(AppAccountAuthenticatorSessionManager *sessionManager)
+    : sessionManager_(sessionManager)
+{}
+
+void AppStateObserver::OnAbilityStateChanged(const AppExecFwk::AbilityStateData &abilityStateData)
+{
+    if (sessionManager_ != nullptr) {
+        sessionManager_->OnAbilityStateChanged(abilityStateData);
+    }
 }
+
+void AppStateObserver::SetSessionManager(AppAccountAuthenticatorSessionManager *sessionManager)
+{
+    sessionManager_ = sessionManager;
+}
+}
+
 AppAccountAuthenticatorSessionManager::AppAccountAuthenticatorSessionManager()
 {
     ACCOUNT_LOGI("enter");
@@ -39,8 +57,11 @@ AppAccountAuthenticatorSessionManager::~AppAccountAuthenticatorSessionManager()
         return;
     }
     sessionMap_.clear();
-    iAppMgr_->UnregisterApplicationStateObserver(this);
+    abilitySessions_.clear();
+    appStateObserver_->SetSessionManager(nullptr);
+    iAppMgr_->UnregisterApplicationStateObserver(appStateObserver_);
     iAppMgr_ = nullptr;
+    appStateObserver_ = nullptr;
 }
 
 void AppAccountAuthenticatorSessionManager::Init()
@@ -49,19 +70,23 @@ void AppAccountAuthenticatorSessionManager::Init()
         ACCOUNT_LOGI("app account session manager has been initialized");
         return;
     }
-    sessionMap_.clear();
+    appStateObserver_ = new (std::nothrow) AppStateObserver(this);
+    if (appStateObserver_ == nullptr) {
+        ACCOUNT_LOGE("failed to create AppStateObserver instance");
+        return;
+    }
     sptr<ISystemAbilityManager> samgrClient = SystemAbilityManagerClient::GetInstance().GetSystemAbilityManager();
     if (samgrClient == nullptr) {
         ACCOUNT_LOGE("failed to system ability manager");
         return;
     }
-    iAppMgr_ = iface_cast<AppExecFwk::IAppMgr>(
-        samgrClient->GetSystemAbility(APP_MGR_SERVICE_ID));
+    iAppMgr_ = iface_cast<AppExecFwk::IAppMgr>(samgrClient->GetSystemAbility(APP_MGR_SERVICE_ID));
     if (iAppMgr_ == nullptr) {
+        appStateObserver_ = nullptr;
         ACCOUNT_LOGE("failed to get ability manager service");
         return;
     }
-    iAppMgr_->RegisterApplicationStateObserver(this);
+    iAppMgr_->RegisterApplicationStateObserver(appStateObserver_);
     isInitialized_ = true;
 }
 
