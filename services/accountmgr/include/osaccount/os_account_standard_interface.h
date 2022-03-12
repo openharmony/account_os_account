@@ -22,6 +22,11 @@ namespace OHOS {
 namespace AccountSA {
 class OsAccountStandardInterface {
 public:
+    enum {
+        CRYPTO_FLAG_EL1 = 1,
+        CRYPTO_FLAG_EL2,
+    };
+
     static ErrCode SendToAMSAccountStart(OsAccountInfo &osAccountInfo);
     static ErrCode SendToAMSAccountStop(OsAccountInfo &osAccountInfo);
     static ErrCode SendToBMSAccountCreate(OsAccountInfo &osAccountInfo);
