@@ -43,6 +43,13 @@ ohos_shared_library("libaccountkits") {
   ]
 
   configs = [ ":accountkits_config" ]
+  cflags = [ "-pipe" ]
+  cflags_cc = [
+    "-Wdate-time",
+    "-Wformat=2",
+    "-Wfloat-equal",
+    "-Wshadow",
+  ]
 
   public_configs = [ ":public_account_config" ]
 

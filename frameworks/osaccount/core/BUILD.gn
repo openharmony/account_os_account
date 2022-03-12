@@ -25,7 +25,14 @@ config("os_account_core_config") {
     cflags += [ "-DBINDER_IPC_32BIT" ]
   }
 
-  cflags_cc = [ "-fexceptions" ]
+  cflags += [ "-pipe" ]
+  cflags_cc = [
+    "-fexceptions",
+    "-Wdate-time",
+    "-Wformat=2",
+    "-Wfloat-equal",
+    "-Wshadow",
+  ]
 
   defines = [
     "ACCOUNT_LOG_TAG = \"AppAccountFwk\"",
