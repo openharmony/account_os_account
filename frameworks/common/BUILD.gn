@@ -35,6 +35,14 @@ ohos_shared_library("libaccount_common") {
     "perf_stat/src/perf_stat.cpp",
   ]
 
+  cflags = [ "-pipe" ]
+  cflags_cc = [
+    "-Wdate-time",
+    "-Wformat=2",
+    "-Wfloat-equal",
+    "-Wshadow",
+  ]
+
   defines = [
     "ACCOUNT_LOG_TAG = \"ACCOUNT_COMMON\"",
     "LOG_DOMAIN = 0xD001B00",

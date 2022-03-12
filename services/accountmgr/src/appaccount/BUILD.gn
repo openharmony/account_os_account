@@ -28,7 +28,14 @@ config("app_account_service_core_config") {
     "//utils/system/safwk/native/include",
   ]
 
-  cflags_cc = [ "-fexceptions" ]
+  cflags = [ "-pipe" ]
+  cflags_cc = [
+    "-fexceptions",
+    "-Wdate-time",
+    "-Wformat=2",
+    "-Wfloat-equal",
+    "-Wshadow",
+  ]
 }
 
 config("app_account_service_core_public_config") {
