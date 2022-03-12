@@ -31,7 +31,6 @@
     "deps": {
       "components": [
         "ability_base",
-        "utils_base",
         "ability_runtime",
         "bundle_framework",
         "ces_standard",
