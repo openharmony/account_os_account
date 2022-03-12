@@ -238,7 +238,7 @@ ErrCode OsAccountStandardInterface::SendToStorageAccountCreate(OsAccountInfo &os
         ACCOUNT_LOGE("failed to get STORAGE_MANAGER_MANAGER_ID proxy.");
         return ERR_OSACCOUNT_SERVICE_INTERFACE_TO_STORAGE_ACCOUNT_CREATE_ERROR;
     }
-    int err = proxy->PrepareAddUser(osAccountInfo.GetLocalId());
+    int err = proxy->PrepareAddUser(osAccountInfo.GetLocalId(), CRYPTO_FLAG_EL1 | CRYPTO_FLAG_EL2);
     ACCOUNT_LOGI("PrepareAddUser code is %{public}d", err);
     ACCOUNT_LOGI("OsAccountStandardInterface PrepareAddUser succeed");
     return ERR_OK;
@@ -262,7 +262,7 @@ ErrCode OsAccountStandardInterface::SendToStorageAccountRemove(OsAccountInfo &os
         ACCOUNT_LOGE("failed to get STORAGE_MANAGER_MANAGER_ID proxy.");
         return ERR_OSACCOUNT_SERVICE_INTERFACE_TO_STORAGE_ACCOUNT_REMOVE_ERROR;
     }
-    int err = proxy->RemoveUser(osAccountInfo.GetLocalId());
+    int err = proxy->RemoveUser(osAccountInfo.GetLocalId(), CRYPTO_FLAG_EL1 | CRYPTO_FLAG_EL2);
     ACCOUNT_LOGI("RemoveUser code is %{public}d", err);
     ACCOUNT_LOGI("OsAccountStandardInterface RemoveUser succeed");
     return ERR_OK;
