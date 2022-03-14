@@ -85,10 +85,12 @@ private:
         const DomainAccountInfo &domainAccount, OsAccountInfo &osAccountInfo);
     ErrCode SendMsgForAccountCreate(OsAccountInfo &osAccountInfo);
     ErrCode SendMsgForAccountActivate(OsAccountInfo &osAccountInfo);
+    ErrCode SendMsgForAccountStop(OsAccountInfo &osAccountInfo);
     ErrCode SendMsgForAccountRemove(OsAccountInfo &osAccountInfo);
     void AddLocalIdToOperating(int32_t localId);
     void RemoveLocalIdToOperating(int32_t localId);
     bool IsLocalIdInOperating(int32_t localId);
+    void CleanGarbageAccounts();
 
     // operations for active list
     void PushIDIntoActiveList(int32_t id);

@@ -52,7 +52,7 @@ const unsigned int LOCAL_PHOTO_MAX_SIZE = 1024 * 4;
 const unsigned int DOMAIN_NAME_MAX_SIZE = 128;
 const unsigned int DOMAIN_ACCOUNT_NAME_MAX_SIZE = 512;
 
-const int ADMIN_LOCAL_ID = 0;
+const std::int32_t ADMIN_LOCAL_ID = 0;
 const int ADMIN_TYPE = -1;
 const std::string ADMIN_LOCAL_NAME = "admin";
 const std::string STANDARD_LOCAL_NAME = "user";
