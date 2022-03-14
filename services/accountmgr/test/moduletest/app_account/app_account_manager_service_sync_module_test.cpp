@@ -35,7 +35,7 @@ const std::string STRING_EXTRA_INFO_TWO = "extra_info_two";
 const std::string STRING_BUNDLE_NAME = "com.example.third_party";
 const std::string STRING_EMPTY = "";
 const std::string STRING_OWNER = "com.example.owner";
-
+const std::string APP_INDEX = "0";
 const std::string HYPHEN = "#";
 
 constexpr std::int32_t UID = 10000;
@@ -527,7 +527,7 @@ HWTEST_F(AppAccountManagerServiceSyncModuleTest, AppAccountManagerServiceSync_En
         auto accountPtr = accessibleAccounts.begin();
         ASSERT_NE(accountPtr, accessibleAccounts.end());
 
-        EXPECT_EQ(*accountPtr, STRING_OWNER + HYPHEN + STRING_NAME);
+        EXPECT_EQ(*accountPtr, STRING_OWNER + HYPHEN + STRING_NAME + HYPHEN + APP_INDEX);
     }
     {
         auto dataStoragePtr = g_controlManagerPtr->GetDataStorage(UID, true);
@@ -547,7 +547,7 @@ HWTEST_F(AppAccountManagerServiceSyncModuleTest, AppAccountManagerServiceSync_En
         auto accountPtr = accessibleAccounts.begin();
         ASSERT_NE(accountPtr, accessibleAccounts.end());
 
-        EXPECT_EQ(*accountPtr, STRING_OWNER + HYPHEN + STRING_NAME);
+        EXPECT_EQ(*accountPtr, STRING_OWNER + HYPHEN + STRING_NAME + HYPHEN + APP_INDEX);
     }
 
     result = g_appAccountManagerServicePtr->DeleteAccount(STRING_NAME);
@@ -596,7 +596,7 @@ HWTEST_F(AppAccountManagerServiceSyncModuleTest, AppAccountManagerServiceSync_En
         auto accountPtr = accessibleAccounts.begin();
         ASSERT_NE(accountPtr, accessibleAccounts.end());
 
-        EXPECT_EQ(*accountPtr, STRING_OWNER + HYPHEN + STRING_NAME);
+        EXPECT_EQ(*accountPtr, STRING_OWNER + HYPHEN + STRING_NAME + HYPHEN + APP_INDEX);
     }
     {
         auto dataStoragePtr = g_controlManagerPtr->GetDataStorage(UID, true);
@@ -616,7 +616,7 @@ HWTEST_F(AppAccountManagerServiceSyncModuleTest, AppAccountManagerServiceSync_En
         auto accountPtr = accessibleAccounts.begin();
         ASSERT_NE(accountPtr, accessibleAccounts.end());
 
-        EXPECT_EQ(*accountPtr, STRING_OWNER + HYPHEN + STRING_NAME);
+        EXPECT_EQ(*accountPtr, STRING_OWNER + HYPHEN + STRING_NAME + HYPHEN + APP_INDEX);
     }
 
     result = g_appAccountManagerServicePtr->DeleteAccount(STRING_NAME);
