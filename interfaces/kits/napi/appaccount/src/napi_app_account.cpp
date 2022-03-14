@@ -1457,7 +1457,11 @@ napi_value NapiAppAccount::Subscribe(napi_env env, napi_callback_info cbInfo)
     AppAccountManager *objectInfo = nullptr;
     napi_unwrap(env, thisVar, (void **)&objectInfo);
     asyncContextForOn->appAccountManager = objectInfo;
-    subscriberInstances[objectInfo].emplace_back(asyncContextForOn);
+
+    {
+        std::lock_guard<std::mutex> lock(g_lockForAppAccountSubscribers);
+        g_AppAccountSubscribers[objectInfo].emplace_back(asyncContextForOn);
+    }
 
     napi_value resourceName = nullptr;
     napi_create_string_latin1(env, "Subscribe", NAPI_AUTO_LENGTH, &resourceName);

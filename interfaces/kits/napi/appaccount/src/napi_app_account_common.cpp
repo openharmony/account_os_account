@@ -23,8 +23,6 @@ namespace OHOS {
 namespace AccountJsKit {
 using namespace OHOS::AccountSA;
 
-std::map<AppAccountManager *, std::vector<AsyncContextForSubscribe *>> subscriberInstances;
-
 SubscriberPtr::SubscriberPtr(const AppAccountSubscribeInfo &subscribeInfo) : AppAccountSubscriber(subscribeInfo)
 {}
 
@@ -951,16 +949,20 @@ napi_value GetSubscriberByUnsubscribe(const napi_env &env, std::vector<std::shar
 {
     ACCOUNT_LOGI("enter");
     napi_value result;
-    ACCOUNT_LOGI("subscriberInstances.size = %{public}zu", subscriberInstances.size());
 
-    for (auto subscriberInstance : subscriberInstances) {
-        ACCOUNT_LOGI("Through map to get the subscribe objectInfo = %{public}p", subscriberInstance.first);
-        if (subscriberInstance.first == asyncContextForOff->appAccountManager) {
-            for (auto item : subscriberInstance.second) {
-                subscribers.emplace_back(item->subscriber);
+    {
+        std::lock_guard<std::mutex> lock(g_lockForAppAccountSubscribers);
+        ACCOUNT_LOGI("g_AppAccountSubscribers.size = %{public}zu", g_AppAccountSubscribers.size());
+
+        for (auto subscriberInstance : g_AppAccountSubscribers) {
+            ACCOUNT_LOGI("Through map to get the subscribe objectInfo = %{public}p", subscriberInstance.first);
+            if (subscriberInstance.first == asyncContextForOff->appAccountManager) {
+                for (auto item : subscriberInstance.second) {
+                    subscribers.emplace_back(item->subscriber);
+                }
+                isFind = true;
+                break;
             }
-            isFind = true;
-            break;
         }
     }
 
@@ -1050,19 +1052,19 @@ void UnsubscribeCallbackCompletedCB(napi_env env, napi_status status, void *data
 
     napi_delete_async_work(env, asyncContextForOff->work);
 
-    ACCOUNT_LOGI("Earse before subscriberInstances.size = %{public}zu", subscriberInstances.size());
-    // earse the info from map
-    auto subscribe = subscriberInstances.find(asyncContextForOff->appAccountManager);
-    if (subscribe != subscriberInstances.end()) {
-        for (auto offCBInfo : subscribe->second) {
-            napi_delete_reference(env, offCBInfo->callbackRef);
+    {
+        static std::mutex g_lockForAppAccountSubscribers;
+        ACCOUNT_LOGI("Earse before g_AppAccountSubscribers.size = %{public}zu", g_AppAccountSubscribers.size());
+        // earse the info from map
+        auto subscribe = g_AppAccountSubscribers.find(asyncContextForOff->appAccountManager);
+        if (subscribe != g_AppAccountSubscribers.end()) {
+            for (auto offCBInfo : subscribe->second) {
+                napi_delete_reference(env, offCBInfo->callbackRef);
+            }
+            g_AppAccountSubscribers.erase(subscribe);
         }
+        ACCOUNT_LOGI("Earse end g_AppAccountSubscribers.size = %{public}zu", g_AppAccountSubscribers.size());
     }
-    if (subscriberInstances.size() != 0) {
-        subscriberInstances.erase(subscribe);
-    }
-    ACCOUNT_LOGI("Earse end subscriberInstances.size = %{public}zu", subscriberInstances.size());
-
     delete asyncContextForOff;
     asyncContextForOff = nullptr;
 }
