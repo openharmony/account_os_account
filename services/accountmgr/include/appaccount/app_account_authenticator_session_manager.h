@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021 Huawei Device Co., Ltd.
+ * Copyright (c) 2022 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -27,15 +27,21 @@
 
 namespace OHOS {
 namespace AccountSA {
+class AppAccountAuthenticatorSession;
+class AppAccountAuthenticatorSessionManager;
 namespace {
-    constexpr std::size_t SESSION_MAX_NUM = 256;
+class AppStateObserver : public AppExecFwk::ApplicationStateObserverStub {
+public:
+    AppStateObserver(AppAccountAuthenticatorSessionManager *sessionManager);
+    virtual ~AppStateObserver() = default;
+    virtual void OnAbilityStateChanged(const AppExecFwk::AbilityStateData &abilityStateData) override;
+    void SetSessionManager(AppAccountAuthenticatorSessionManager *sessionManager);
+private:
+    AppAccountAuthenticatorSessionManager *sessionManager_;
+};
 }
 
-class AppAccountAuthenticatorSession;
-
-class AppAccountAuthenticatorSessionManager :
-    public AppExecFwk::ApplicationStateObserverStub,
-    public DelayedSingleton<AppAccountAuthenticatorSessionManager> {
+class AppAccountAuthenticatorSessionManager : public DelayedSingleton<AppAccountAuthenticatorSessionManager> {
 public:
     AppAccountAuthenticatorSessionManager();
     virtual ~AppAccountAuthenticatorSessionManager();
@@ -43,13 +49,14 @@ public:
     ErrCode AddAccountImplicitly(const OAuthRequest &request);
     ErrCode Authenticate(const OAuthRequest &request);
     ErrCode GetAuthenticatorCallback(const OAuthRequest &request, sptr<IRemoteObject> &callback);
-    virtual void OnAbilityStateChanged(const AppExecFwk::AbilityStateData &abilityStateData) override;
+    void OnAbilityStateChanged(const AppExecFwk::AbilityStateData &abilityStateData);
     void Init();
     void CloseSession(const std::string &sessionId);
     ErrCode OpenSession(const std::string &action, const OAuthRequest &request);
 private:
     std::mutex mutex_;
     sptr<AppExecFwk::IAppMgr> iAppMgr_;
+    sptr<AppStateObserver> appStateObserver_;
     std::map<std::string, std::shared_ptr<AppAccountAuthenticatorSession>> sessionMap_;
     std::map<std::string, std::set<std::string>> abilitySessions_;
     bool isInitialized_ = false;
