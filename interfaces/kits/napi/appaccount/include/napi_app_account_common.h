@@ -15,7 +15,7 @@
 
 #ifndef NAPI_APP_ACCOUNT_COMMON
 #define NAPI_APP_ACCOUNT_COMMON
-
+#include <mutex>
 #include <thread>
 #include "app_account_authenticator_callback_stub.h"
 #include "app_account_common.h"
@@ -51,8 +51,8 @@ static const std::int32_t UNSUBSCRIBE_MAX_PARA = 2;
 class SubscriberPtr;
 class AppAccountManagerCallback;
 struct AsyncContextForSubscribe;
-
-extern std::map<AppAccountManager *, std::vector<AsyncContextForSubscribe *>> subscriberInstances;
+static std::mutex g_lockForAppAccountSubscribers;
+static std::map<AppAccountManager *, std::vector<AsyncContextForSubscribe *>> g_AppAccountSubscribers;
 
 struct CommonAsyncContext {
     napi_env env;
