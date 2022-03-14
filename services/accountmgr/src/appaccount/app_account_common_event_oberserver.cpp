@@ -41,8 +41,8 @@ AppAccountCommonEventOberserver::AppAccountCommonEventOberserver(const CommonEve
     if (GetEventHandler() != ERR_OK) {
         ACCOUNT_LOGE("failed to get event handler");
     } else {
-        Callback callback = std::bind(&AppAccountCommonEventOberserver::SubscribeCommonEvent, this);
-        handler_->PostTask(callback, DELAY_FOR_COMMON_EVENT_SERVICE);
+        Callback callbackTemp = std::bind(&AppAccountCommonEventOberserver::SubscribeCommonEvent, this);
+        handler_->PostTask(callbackTemp, DELAY_FOR_COMMON_EVENT_SERVICE);
     }
 
     ACCOUNT_LOGI("end");
@@ -103,11 +103,11 @@ void AppAccountCommonEventOberserver::OnReceiveEvent(const CommonEventData &data
     std::string action = want.GetAction();
     if (action == CommonEventSupport::COMMON_EVENT_PACKAGE_REMOVED) {
         if (callback_.OnPackageRemoved != nullptr) {
-            auto want = data.GetWant();
-            std::string action = want.GetAction();
-            auto element = want.GetElement();
+            auto wantTemp = data.GetWant();
+            std::string actionTemp = wantTemp.GetAction();
+            auto element = wantTemp.GetElement();
             std::string bundleName = element.GetBundleName();
-            auto uid = want.GetIntParam(AppExecFwk::Constants::UID, -1);
+            auto uid = wantTemp.GetIntParam(AppExecFwk::Constants::UID, -1);
 
             ACCOUNT_LOGI("uid = %{public}d", uid);
             ACCOUNT_LOGI("bundleName = %{public}s", bundleName.c_str());

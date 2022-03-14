@@ -180,8 +180,8 @@ std::vector<AppAccountSubscribeRecordPtr> AppAccountSubscribeManager::GetSubscri
         }
 
         ACCOUNT_LOGI("owners.size() = %{public}zu", owners.size());
-        for (auto owner : owners) {
-            ACCOUNT_LOGI("owner = %{public}s", owner.c_str());
+        for (auto ownerTemp : owners) {
+            ACCOUNT_LOGI("owner = %{public}s", ownerTemp.c_str());
         }
 
         if (std::find(owners.begin(), owners.end(), owner) == owners.end()) {
@@ -225,10 +225,10 @@ ErrCode AppAccountSubscribeManager::CheckAppAccess(
         }
 
         std::vector<std::string> accessibleAccounts;
-        ErrCode result = dataStoragePtr->GetAccessibleAccountsFromDataStorage(bundleName, accessibleAccounts);
-        if (result != ERR_OK) {
+        ErrCode ret = dataStoragePtr->GetAccessibleAccountsFromDataStorage(bundleName, accessibleAccounts);
+        if (ret != ERR_OK) {
             ACCOUNT_LOGE("failed to get accessiable account from data storage");
-            return result;
+            return ret;
         }
 
         auto it = std::find_if(accessibleAccounts.begin(), accessibleAccounts.end(), [owner](std::string account) {
