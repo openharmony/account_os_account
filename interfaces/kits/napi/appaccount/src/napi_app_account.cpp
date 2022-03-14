@@ -94,7 +94,6 @@ napi_value NapiAppAccount::JsConstructor(napi_env env, napi_callback_info cbinfo
         return NapiGetNull(env);
     }
     napi_wrap(env, thisVar, objectInfo, [](napi_env env, void *data, void *hint) {}, nullptr, nullptr);
-    ACCOUNT_LOGI("AppAccountManager objectInfo at JsConstructor = %{public}p", objectInfo);
 
     return thisVar;
 }
@@ -156,9 +155,9 @@ napi_value NapiAppAccount::AddAccount(napi_env env, napi_callback_info cbInfo)
             ACCOUNT_LOGI("AddAccount, napi_create_async_work complete.");
             AppAccountAsyncContext *asyncContext = (AppAccountAsyncContext *)data;
             napi_value addResult[RESULT_COUNT] = {0};
-            addResult[PARAM0] = GetErrorCodeValue(env, asyncContext->errCode);
-            napi_get_undefined(env, &addResult[PARAM1]);
-            ProcessCallbackOrPromise(env, asyncContext, addResult[PARAM0], addResult[PARAM1]);
+            addResult[PARAMZERO] = GetErrorCodeValue(env, asyncContext->errCode);
+            napi_get_undefined(env, &addResult[PARAMONE]);
+            ProcessCallbackOrPromise(env, asyncContext, addResult[PARAMZERO], addResult[PARAMONE]);
             napi_delete_async_work(env, asyncContext->work);
             delete asyncContext;
             asyncContext = nullptr;
@@ -258,9 +257,9 @@ napi_value NapiAppAccount::DeleteAccount(napi_env env, napi_callback_info cbInfo
             ACCOUNT_LOGI("DeleteAccount, napi_create_async_work complete.");
             AppAccountAsyncContext *asyncContext = (AppAccountAsyncContext *)data;
             napi_value delResult[RESULT_COUNT] = {0};
-            delResult[PARAM0] = GetErrorCodeValue(env, asyncContext->errCode);
-            napi_get_undefined(env, &delResult[PARAM1]);
-            ProcessCallbackOrPromise(env, asyncContext, delResult[PARAM0], delResult[PARAM1]);
+            delResult[PARAMZERO] = GetErrorCodeValue(env, asyncContext->errCode);
+            napi_get_undefined(env, &delResult[PARAMONE]);
+            ProcessCallbackOrPromise(env, asyncContext, delResult[PARAMZERO], delResult[PARAMONE]);
             napi_delete_async_work(env, asyncContext->work);
             delete asyncContext;
             asyncContext = nullptr;
@@ -312,9 +311,9 @@ napi_value NapiAppAccount::DisableAppAccess(napi_env env, napi_callback_info cbI
             ACCOUNT_LOGI("DisableAppAccess, napi_create_async_work complete.");
             AppAccountAsyncContext *asyncContext = (AppAccountAsyncContext *)data;
             napi_value disResult[RESULT_COUNT] = {0};
-            disResult[PARAM0] = GetErrorCodeValue(env, asyncContext->errCode);
-            napi_get_undefined(env, &disResult[PARAM1]);
-            ProcessCallbackOrPromise(env, asyncContext, disResult[PARAM0], disResult[PARAM1]);
+            disResult[PARAMZERO] = GetErrorCodeValue(env, asyncContext->errCode);
+            napi_get_undefined(env, &disResult[PARAMONE]);
+            ProcessCallbackOrPromise(env, asyncContext, disResult[PARAMZERO], disResult[PARAMONE]);
             napi_delete_async_work(env, asyncContext->work);
             delete asyncContext;
             asyncContext = nullptr;
@@ -366,9 +365,9 @@ napi_value NapiAppAccount::EnableAppAccess(napi_env env, napi_callback_info cbIn
             ACCOUNT_LOGI("EnableAppAccess, napi_create_async_work complete.");
             AppAccountAsyncContext *asyncContext = (AppAccountAsyncContext *)data;
             napi_value enResult[RESULT_COUNT] = {0};
-            enResult[PARAM0] = GetErrorCodeValue(env, asyncContext->errCode);
-            napi_get_undefined(env, &enResult[PARAM1]);
-            ProcessCallbackOrPromise(env, asyncContext, enResult[PARAM0], enResult[PARAM1]);
+            enResult[PARAMZERO] = GetErrorCodeValue(env, asyncContext->errCode);
+            napi_get_undefined(env, &enResult[PARAMONE]);
+            ProcessCallbackOrPromise(env, asyncContext, enResult[PARAMZERO], enResult[PARAMONE]);
             napi_delete_async_work(env, asyncContext->work);
             delete asyncContext;
             asyncContext = nullptr;
@@ -419,9 +418,9 @@ napi_value NapiAppAccount::CheckAppAccountSyncEnable(napi_env env, napi_callback
             ACCOUNT_LOGI("CheckAppAccountSyncEnable, napi_create_async_work complete.");
             AppAccountAsyncContext *asyncContext = (AppAccountAsyncContext *)data;
             napi_value checkResult[RESULT_COUNT] = {0};
-            checkResult[PARAM0] = GetErrorCodeValue(env, asyncContext->errCode);
-            napi_get_boolean(env, asyncContext->result, &checkResult[PARAM1]);
-            ProcessCallbackOrPromise(env, asyncContext, checkResult[PARAM0], checkResult[PARAM1]);
+            checkResult[PARAMZERO] = GetErrorCodeValue(env, asyncContext->errCode);
+            napi_get_boolean(env, asyncContext->result, &checkResult[PARAMONE]);
+            ProcessCallbackOrPromise(env, asyncContext, checkResult[PARAMZERO], checkResult[PARAMONE]);
             napi_delete_async_work(env, asyncContext->work);
             delete asyncContext;
             asyncContext = nullptr;
@@ -474,9 +473,9 @@ napi_value NapiAppAccount::SetAccountCredential(napi_env env, napi_callback_info
             ACCOUNT_LOGI("SetAccountCredential, napi_create_async_work complete.");
             AppAccountAsyncContext *asyncContext = (AppAccountAsyncContext *)data;
             napi_value setResult[RESULT_COUNT] = {0};
-            setResult[PARAM0] = GetErrorCodeValue(env, asyncContext->errCode);
-            napi_get_undefined(env, &setResult[PARAM1]);
-            ProcessCallbackOrPromise(env, asyncContext, setResult[PARAM0], setResult[PARAM1]);
+            setResult[PARAMZERO] = GetErrorCodeValue(env, asyncContext->errCode);
+            napi_get_undefined(env, &setResult[PARAMONE]);
+            ProcessCallbackOrPromise(env, asyncContext, setResult[PARAMZERO], setResult[PARAMONE]);
             napi_delete_async_work(env, asyncContext->work);
             delete asyncContext;
             asyncContext = nullptr;
@@ -529,9 +528,9 @@ napi_value NapiAppAccount::SetAccountExtraInfo(napi_env env, napi_callback_info 
             ACCOUNT_LOGI("SetAccountExtraInfo, napi_create_async_work complete.");
             AppAccountAsyncContext *asyncContext = (AppAccountAsyncContext *)data;
             napi_value setResult[RESULT_COUNT] = {0};
-            setResult[PARAM0] = GetErrorCodeValue(env, asyncContext->errCode);
-            napi_get_undefined(env, &setResult[PARAM1]);
-            ProcessCallbackOrPromise(env, asyncContext, setResult[PARAM0], setResult[PARAM1]);
+            setResult[PARAMZERO] = GetErrorCodeValue(env, asyncContext->errCode);
+            napi_get_undefined(env, &setResult[PARAMONE]);
+            ProcessCallbackOrPromise(env, asyncContext, setResult[PARAMZERO], setResult[PARAMONE]);
             napi_delete_async_work(env, asyncContext->work);
             delete asyncContext;
             asyncContext = nullptr;
@@ -582,9 +581,9 @@ napi_value NapiAppAccount::SetAppAccountSyncEnable(napi_env env, napi_callback_i
             ACCOUNT_LOGI("SetAppAccountSyncEnable, napi_create_async_work complete.");
             AppAccountAsyncContext *asyncContext = (AppAccountAsyncContext *)data;
             napi_value setResult[RESULT_COUNT] = {0};
-            setResult[PARAM0] = GetErrorCodeValue(env, asyncContext->errCode);
-            napi_get_undefined(env, &setResult[PARAM1]);
-            ProcessCallbackOrPromise(env, asyncContext, setResult[PARAM0], setResult[PARAM1]);
+            setResult[PARAMZERO] = GetErrorCodeValue(env, asyncContext->errCode);
+            napi_get_undefined(env, &setResult[PARAMONE]);
+            ProcessCallbackOrPromise(env, asyncContext, setResult[PARAMZERO], setResult[PARAMONE]);
             napi_delete_async_work(env, asyncContext->work);
             delete asyncContext;
             asyncContext = nullptr;
@@ -635,9 +634,9 @@ napi_value NapiAppAccount::SetAssociatedData(napi_env env, napi_callback_info cb
             ACCOUNT_LOGI("SetAssociatedData, napi_create_async_work complete.");
             AppAccountAsyncContext *asyncContext = (AppAccountAsyncContext *)data;
             napi_value setResult[RESULT_COUNT] = {0};
-            setResult[PARAM0] = GetErrorCodeValue(env, asyncContext->errCode);
-            napi_get_undefined(env, &setResult[PARAM1]);
-            ProcessCallbackOrPromise(env, asyncContext, setResult[PARAM0], setResult[PARAM1]);
+            setResult[PARAMZERO] = GetErrorCodeValue(env, asyncContext->errCode);
+            napi_get_undefined(env, &setResult[PARAMONE]);
+            ProcessCallbackOrPromise(env, asyncContext, setResult[PARAMZERO], setResult[PARAMONE]);
             napi_delete_async_work(env, asyncContext->work);
             delete asyncContext;
             asyncContext = nullptr;
@@ -686,10 +685,10 @@ napi_value NapiAppAccount::GetAllAccessibleAccounts(napi_env env, napi_callback_
             ACCOUNT_LOGI("GetAllAccessibleAccounts, napi_create_async_work complete.");
             GetAccountsAsyncContext *asyncContext = (GetAccountsAsyncContext *)data;
             napi_value getResult[RESULT_COUNT] = {0};
-            getResult[PARAM0] = GetErrorCodeValue(env, asyncContext->errCode);
-            napi_create_array(env, &getResult[PARAM1]);
-            GetAppAccountInfoForResult(env, asyncContext->appAccounts, getResult[PARAM1]);
-            ProcessCallbackOrPromiseCBArray(env, asyncContext, getResult[PARAM0], getResult[PARAM1]);
+            getResult[PARAMZERO] = GetErrorCodeValue(env, asyncContext->errCode);
+            napi_create_array(env, &getResult[PARAMONE]);
+            GetAppAccountInfoForResult(env, asyncContext->appAccounts, getResult[PARAMONE]);
+            ProcessCallbackOrPromiseCBArray(env, asyncContext, getResult[PARAMZERO], getResult[PARAMONE]);
             napi_delete_async_work(env, asyncContext->work);
             delete asyncContext;
             asyncContext = nullptr;
@@ -738,10 +737,10 @@ napi_value NapiAppAccount::GetAllAccounts(napi_env env, napi_callback_info cbInf
             ACCOUNT_LOGI("GetAllAccounts, napi_create_async_work complete.");
             GetAccountsAsyncContext *asyncContext = (GetAccountsAsyncContext *)data;
             napi_value getResult[RESULT_COUNT] = {0};
-            getResult[PARAM0] = GetErrorCodeValue(env, asyncContext->errCode);
-            napi_create_array(env, &getResult[PARAM1]);
-            GetAppAccountInfoForResult(env, asyncContext->appAccounts, getResult[PARAM1]);
-            ProcessCallbackOrPromiseCBArray(env, asyncContext, getResult[PARAM0], getResult[PARAM1]);
+            getResult[PARAMZERO] = GetErrorCodeValue(env, asyncContext->errCode);
+            napi_create_array(env, &getResult[PARAMONE]);
+            GetAppAccountInfoForResult(env, asyncContext->appAccounts, getResult[PARAMONE]);
+            ProcessCallbackOrPromiseCBArray(env, asyncContext, getResult[PARAMZERO], getResult[PARAMONE]);
             napi_delete_async_work(env, asyncContext->work);
             delete asyncContext;
             asyncContext = nullptr;
@@ -794,9 +793,9 @@ napi_value NapiAppAccount::GetAccountCredential(napi_env env, napi_callback_info
             ACCOUNT_LOGI("GetAccountCredential, napi_create_async_work complete.");
             AppAccountAsyncContext *asyncContext = (AppAccountAsyncContext *)data;
             napi_value getResult[RESULT_COUNT] = {0};
-            getResult[PARAM0] = GetErrorCodeValue(env, asyncContext->errCode);
-            napi_create_string_utf8(env, asyncContext->credential.c_str(), NAPI_AUTO_LENGTH, &getResult[PARAM1]);
-            ProcessCallbackOrPromise(env, asyncContext, getResult[PARAM0], getResult[PARAM1]);
+            getResult[PARAMZERO] = GetErrorCodeValue(env, asyncContext->errCode);
+            napi_create_string_utf8(env, asyncContext->credential.c_str(), NAPI_AUTO_LENGTH, &getResult[PARAMONE]);
+            ProcessCallbackOrPromise(env, asyncContext, getResult[PARAMZERO], getResult[PARAMONE]);
             napi_delete_async_work(env, asyncContext->work);
             delete asyncContext;
             asyncContext = nullptr;
@@ -846,9 +845,9 @@ napi_value NapiAppAccount::GetAccountExtraInfo(napi_env env, napi_callback_info 
             ACCOUNT_LOGI("GetAccountExtraInfo, napi_create_async_work complete.");
             AppAccountAsyncContext *asyncContext = (AppAccountAsyncContext *)data;
             napi_value getResult[RESULT_COUNT] = {0};
-            getResult[PARAM0] = GetErrorCodeValue(env, asyncContext->errCode);
-            napi_create_string_utf8(env, asyncContext->extraInfo.c_str(), NAPI_AUTO_LENGTH, &getResult[PARAM1]);
-            ProcessCallbackOrPromise(env, asyncContext, getResult[PARAM0], getResult[PARAM1]);
+            getResult[PARAMZERO] = GetErrorCodeValue(env, asyncContext->errCode);
+            napi_create_string_utf8(env, asyncContext->extraInfo.c_str(), NAPI_AUTO_LENGTH, &getResult[PARAMONE]);
+            ProcessCallbackOrPromise(env, asyncContext, getResult[PARAMZERO], getResult[PARAMONE]);
             napi_delete_async_work(env, asyncContext->work);
             delete asyncContext;
             asyncContext = nullptr;
@@ -899,9 +898,9 @@ napi_value NapiAppAccount::GetAssociatedData(napi_env env, napi_callback_info cb
             ACCOUNT_LOGI("GetAssociatedData, napi_create_async_work complete.");
             AppAccountAsyncContext *asyncContext = (AppAccountAsyncContext *)data;
             napi_value getResult[RESULT_COUNT] = {0};
-            getResult[PARAM0] = GetErrorCodeValue(env, asyncContext->errCode);
-            napi_create_string_utf8(env, asyncContext->value.c_str(), NAPI_AUTO_LENGTH, &getResult[PARAM1]);
-            ProcessCallbackOrPromise(env, asyncContext, getResult[PARAM0], getResult[PARAM1]);
+            getResult[PARAMZERO] = GetErrorCodeValue(env, asyncContext->errCode);
+            napi_create_string_utf8(env, asyncContext->value.c_str(), NAPI_AUTO_LENGTH, &getResult[PARAMONE]);
+            ProcessCallbackOrPromise(env, asyncContext, getResult[PARAMZERO], getResult[PARAMONE]);
             napi_delete_async_work(env, asyncContext->work);
             delete asyncContext;
             asyncContext = nullptr;
@@ -999,9 +998,9 @@ napi_value NapiAppAccount::GetOAuthToken(napi_env env, napi_callback_info cbInfo
             ACCOUNT_LOGI("GetOAuthToken, napi_create_async_work complete.");
             OAuthAsyncContext *asyncContext = (OAuthAsyncContext *)data;
             napi_value getResult[RESULT_COUNT] = {0};
-            getResult[PARAM0] = GetErrorCodeValue(env, asyncContext->errCode);
-            napi_create_string_utf8(env, asyncContext->token.c_str(), NAPI_AUTO_LENGTH, &getResult[PARAM1]);
-            ProcessCallbackOrPromise(env, asyncContext, getResult[PARAM0], getResult[PARAM1]);
+            getResult[PARAMZERO] = GetErrorCodeValue(env, asyncContext->errCode);
+            napi_create_string_utf8(env, asyncContext->token.c_str(), NAPI_AUTO_LENGTH, &getResult[PARAMONE]);
+            ProcessCallbackOrPromise(env, asyncContext, getResult[PARAMZERO], getResult[PARAMONE]);
             napi_delete_async_work(env, asyncContext->work);
             delete asyncContext;
             asyncContext = nullptr;
@@ -1049,9 +1048,9 @@ napi_value NapiAppAccount::SetOAuthToken(napi_env env, napi_callback_info cbInfo
             ACCOUNT_LOGI("SetOAuthToken, napi_create_async_work complete.");
             OAuthAsyncContext *asyncContext = (OAuthAsyncContext *)data;
             napi_value setResult[RESULT_COUNT] = {0};
-            setResult[PARAM0] = GetErrorCodeValue(env, asyncContext->errCode);
-            napi_get_undefined(env, &setResult[PARAM1]);
-            ProcessCallbackOrPromise(env, asyncContext, setResult[PARAM0], setResult[PARAM1]);
+            setResult[PARAMZERO] = GetErrorCodeValue(env, asyncContext->errCode);
+            napi_get_undefined(env, &setResult[PARAMONE]);
+            ProcessCallbackOrPromise(env, asyncContext, setResult[PARAMZERO], setResult[PARAMONE]);
             napi_delete_async_work(env, asyncContext->work);
             delete asyncContext;
             asyncContext = nullptr;
@@ -1100,9 +1099,9 @@ napi_value NapiAppAccount::DeleteOAuthToken(napi_env env, napi_callback_info cbI
                 ACCOUNT_LOGI("DeleteOAuthToken, napi_create_async_work complete.");
                 OAuthAsyncContext *asyncContext = (OAuthAsyncContext *)data;
                 napi_value delResult[RESULT_COUNT] = {0};
-                delResult[PARAM0] = GetErrorCodeValue(env, asyncContext->errCode);
-                napi_get_undefined(env, &delResult[PARAM1]);
-                ProcessCallbackOrPromise(env, asyncContext, delResult[PARAM0], delResult[PARAM1]);
+                delResult[PARAMZERO] = GetErrorCodeValue(env, asyncContext->errCode);
+                napi_get_undefined(env, &delResult[PARAMONE]);
+                ProcessCallbackOrPromise(env, asyncContext, delResult[PARAMZERO], delResult[PARAMONE]);
                 napi_delete_async_work(env, asyncContext->work);
                 delete asyncContext;
                 asyncContext = nullptr;
@@ -1151,9 +1150,9 @@ napi_value NapiAppAccount::SetOAuthTokenVisibility(napi_env env, napi_callback_i
                 ACCOUNT_LOGI("DisableOAuthTokenAccess, napi_create_async_work complete.");
                 OAuthAsyncContext *asyncContext = (OAuthAsyncContext *)data;
                 napi_value setResult[RESULT_COUNT] = {0};
-                setResult[PARAM0] = GetErrorCodeValue(env, asyncContext->errCode);
-                napi_get_boolean(env, asyncContext->isVisible, &setResult[PARAM1]);
-                ProcessCallbackOrPromise(env, asyncContext, setResult[PARAM0], setResult[PARAM1]);
+                setResult[PARAMZERO] = GetErrorCodeValue(env, asyncContext->errCode);
+                napi_get_boolean(env, asyncContext->isVisible, &setResult[PARAMONE]);
+                ProcessCallbackOrPromise(env, asyncContext, setResult[PARAMZERO], setResult[PARAMONE]);
                 napi_delete_async_work(env, asyncContext->work);
                 delete asyncContext;
                 asyncContext = nullptr;
@@ -1202,9 +1201,9 @@ napi_value NapiAppAccount::CheckOAuthTokenVisibility(napi_env env, napi_callback
                 ACCOUNT_LOGI("CheckOAuthTokenVisibility, napi_create_async_work complete.");
                 OAuthAsyncContext *asyncContext = (OAuthAsyncContext *)data;
                 napi_value checkResult[RESULT_COUNT] = {0};
-                checkResult[PARAM0] = GetErrorCodeValue(env, asyncContext->errCode);
-                napi_get_boolean(env, asyncContext->isVisible, &checkResult[PARAM1]);
-                ProcessCallbackOrPromise(env, asyncContext, checkResult[PARAM0], checkResult[PARAM1]);
+                checkResult[PARAMZERO] = GetErrorCodeValue(env, asyncContext->errCode);
+                napi_get_boolean(env, asyncContext->isVisible, &checkResult[PARAMONE]);
+                ProcessCallbackOrPromise(env, asyncContext, checkResult[PARAMZERO], checkResult[PARAMONE]);
                 napi_delete_async_work(env, asyncContext->work);
                 delete asyncContext;
                 asyncContext = nullptr;
@@ -1253,10 +1252,10 @@ napi_value NapiAppAccount::GetAuthenticatorInfo(napi_env env, napi_callback_info
                 ACCOUNT_LOGI("GetAuthenticatorInfo, napi_create_async_work complete.");
                 OAuthAsyncContext *asyncContext = (OAuthAsyncContext *)data;
                 napi_value getResult[RESULT_COUNT] = {0};
-                getResult[PARAM0] = GetErrorCodeValue(env, asyncContext->errCode);
-                napi_create_object(env, &getResult[PARAM1]);
-                GetAuthenticatorInfoForResult(env, asyncContext->authenticatorInfo, getResult[PARAM1]);
-                ProcessCallbackOrPromise(env, asyncContext, getResult[PARAM0], getResult[PARAM1]);
+                getResult[PARAMZERO] = GetErrorCodeValue(env, asyncContext->errCode);
+                napi_create_object(env, &getResult[PARAMONE]);
+                GetAuthenticatorInfoForResult(env, asyncContext->authenticatorInfo, getResult[PARAMONE]);
+                ProcessCallbackOrPromise(env, asyncContext, getResult[PARAMZERO], getResult[PARAMONE]);
                 napi_delete_async_work(env, asyncContext->work);
                 delete asyncContext;
                 asyncContext = nullptr;
@@ -1305,10 +1304,10 @@ napi_value NapiAppAccount::GetAllOAuthTokens(napi_env env, napi_callback_info cb
                 ACCOUNT_LOGI("GetAllOAuthTokens, napi_create_async_work complete.");
                 OAuthAsyncContext *asyncContext = (OAuthAsyncContext *)data;
                 napi_value getResult[RESULT_COUNT] = {0};
-                getResult[PARAM0] = GetErrorCodeValue(env, asyncContext->errCode);
-                napi_create_array(env, &getResult[PARAM1]);
-                GetOAuthTokenInfoForResult(env, asyncContext->oauthTokenInfos, getResult[PARAM1]);
-                ProcessCallbackOrPromise(env, asyncContext, getResult[PARAM0], getResult[PARAM1]);
+                getResult[PARAMZERO] = GetErrorCodeValue(env, asyncContext->errCode);
+                napi_create_array(env, &getResult[PARAMONE]);
+                GetOAuthTokenInfoForResult(env, asyncContext->oauthTokenInfos, getResult[PARAMONE]);
+                ProcessCallbackOrPromise(env, asyncContext, getResult[PARAMZERO], getResult[PARAMONE]);
                 napi_delete_async_work(env, asyncContext->work);
                 delete asyncContext;
                 asyncContext = nullptr;
@@ -1357,10 +1356,10 @@ napi_value NapiAppAccount::GetOAuthList(napi_env env, napi_callback_info cbInfo)
                 ACCOUNT_LOGI("GetOAuthList, napi_create_async_work complete.");
                 OAuthAsyncContext *asyncContext = (OAuthAsyncContext *)data;
                 napi_value getResult[RESULT_COUNT] = {0};
-                getResult[PARAM0] = GetErrorCodeValue(env, asyncContext->errCode);
-                napi_create_array(env, &getResult[PARAM1]);
-                GetOAuthListForResult(env, asyncContext->authList, getResult[PARAM1]);
-                ProcessCallbackOrPromise(env, asyncContext, getResult[PARAM0], getResult[PARAM1]);
+                getResult[PARAMZERO] = GetErrorCodeValue(env, asyncContext->errCode);
+                napi_create_array(env, &getResult[PARAMONE]);
+                GetOAuthListForResult(env, asyncContext->authList, getResult[PARAMONE]);
+                ProcessCallbackOrPromise(env, asyncContext, getResult[PARAMZERO], getResult[PARAMONE]);
                 napi_delete_async_work(env, asyncContext->work);
                 delete asyncContext;
                 asyncContext = nullptr;
@@ -1408,9 +1407,9 @@ napi_value NapiAppAccount::GetAuthenticatorCallback(napi_env env, napi_callback_
                 ACCOUNT_LOGI("GetAuthenticatorCallback, napi_create_async_work complete.");
                 OAuthAsyncContext *asyncContext = (OAuthAsyncContext *)data;
                 napi_value getResult[RESULT_COUNT] = {0};
-                getResult[PARAM0] = GetErrorCodeValue(env, asyncContext->errCode);
-                GetAuthenticatorCallbackForResult(env, asyncContext->authenticatorCb, &getResult[PARAM1]);
-                ProcessCallbackOrPromise(env, asyncContext, getResult[PARAM0], getResult[PARAM1]);
+                getResult[PARAMZERO] = GetErrorCodeValue(env, asyncContext->errCode);
+                GetAuthenticatorCallbackForResult(env, asyncContext->authenticatorCb, &getResult[PARAMONE]);
+                ProcessCallbackOrPromise(env, asyncContext, getResult[PARAMZERO], getResult[PARAMONE]);
                 napi_delete_async_work(env, asyncContext->work);
                 delete asyncContext;
                 asyncContext = nullptr;
@@ -1448,22 +1447,17 @@ napi_value NapiAppAccount::Subscribe(napi_env env, napi_callback_info cbInfo)
     asyncContextForOn->work = nullptr;
     asyncContextForOn->callbackRef = nullptr;
 
-    ACCOUNT_LOGI("Subscribe AsyncCallbackInfoSubscribe * asyncContextForOn = %{public}p", asyncContextForOn);
-
-    // make subscribe info
     AppAccountSubscribeInfo subscribeInfo(owners);
-    // make a subscriber
     asyncContextForOn->subscriber = std::make_shared<SubscriberPtr>(subscribeInfo);
+    if (asyncContextForOn->subscriber == nullptr) {
+        ACCOUNT_LOGI("fail to create subscriber");
+        return NapiGetNull(env);
+    }
     asyncContextForOn->callbackRef = callback;
-    ACCOUNT_LOGI("callbackRef = %{public}p, thisVar = %{public}p", asyncContextForOn->callbackRef, thisVar);
-
     AppAccountManager *objectInfo = nullptr;
     napi_unwrap(env, thisVar, (void **)&objectInfo);
     asyncContextForOn->appAccountManager = objectInfo;
-    ACCOUNT_LOGI("AppAccountManager objectInfo = %{public}p", objectInfo);
-
     subscriberInstances[objectInfo].emplace_back(asyncContextForOn);
-    ACCOUNT_LOGI("subscriberInstances.size = %{public}zu", subscriberInstances.size());
 
     napi_value resourceName = nullptr;
     napi_create_string_latin1(env, "Subscribe", NAPI_AUTO_LENGTH, &resourceName);
@@ -1494,7 +1488,6 @@ napi_value NapiAppAccount::Unsubscribe(napi_env env, napi_callback_info cbInfo)
     std::vector<std::shared_ptr<SubscriberPtr>> subscribers = {nullptr};
     NAPI_CALL(env, napi_get_cb_info(env, cbInfo, &argc, argv, &thisVar, NULL));
     NAPI_ASSERT(env, argc >= 1, "Wrong number of arguments");
-    ACCOUNT_LOGI("Unsubscribe thisVar = %{public}p", thisVar);
 
     napi_ref callback = nullptr;
     ParseParametersByUnsubscribe(env, argc, argv, callback);
@@ -1507,11 +1500,8 @@ napi_value NapiAppAccount::Unsubscribe(napi_env env, napi_callback_info cbInfo)
     asyncContextForOff->work = nullptr;
     asyncContextForOff->callbackRef = nullptr;
 
-    ACCOUNT_LOGI("Unsubscribe new asyncContext = %{public}p", asyncContextForOff);
-
     AppAccountManager *objectInfo = nullptr;
     napi_unwrap(env, thisVar, (void **)&objectInfo);
-    ACCOUNT_LOGI("AppAccountManager objectInfo = %{public}p", objectInfo);
 
     asyncContextForOff->appAccountManager = objectInfo;
     asyncContextForOff->callbackRef = callback;
