@@ -24,6 +24,14 @@ config("app_account_innnerkits_config") {
     cflags += [ "-DBINDER_IPC_32BIT" ]
   }
 
+  cflags += [ "-pipe" ]
+  cflags_cc = [
+    "-Wdate-time",
+    "-Wformat=2",
+    "-Wfloat-equal",
+    "-Wshadow",
+  ]
+
   defines = [
     "ACCOUNT_LOG_TAG = \"AppAccountFwk\"",
     "LOG_DOMAIN = 0xD001B00",

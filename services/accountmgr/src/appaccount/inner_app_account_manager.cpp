@@ -277,8 +277,8 @@ ErrCode InnerAppAccountManager::Authenticate(const OAuthRequest &request)
         return ERR_APPACCOUNT_SERVICE_CONTROL_MANAGER_PTR_IS_NULLPTR;
     }
     std::string token;
-    ErrCode result = controlManagerPtr_->GetOAuthToken(request, token);
-    if (result == ERR_OK) {
+    ErrCode ret = controlManagerPtr_->GetOAuthToken(request, token);
+    if (ret == ERR_OK) {
         if ((request.callback != nullptr) && (request.callback->AsObject() != nullptr)) {
             AAFwk::Want result;
             result.SetParam(Constants::KEY_NAME, request.name);
