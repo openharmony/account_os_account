@@ -76,6 +76,14 @@ group("accountmgr_target") {
 ohos_shared_library("accountmgr") {
   visibility = [ "${os_account_path}/*" ]
 
+  cflags = [ "-pipe" ]
+  cflags_cc = [
+    "-Wdate-time",
+    "-Wformat=2",
+    "-Wfloat-equal",
+    "-Wshadow",
+  ]
+
   sources = [
     "src/account_bundle_manager.cpp",
     "src/account_data_storage.cpp",
