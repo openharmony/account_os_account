@@ -33,6 +33,7 @@ const std::string IS_ACCOUNT_COMPLETED = "isCreateCompleted";
 const std::string DOMAIN_INFO = "domainInfo";
 const std::string DOMAIN_NAME = "domain";
 const std::string DOMAIN_ACCOUNT_NAME = "accountName";
+const std::string TO_BE_REMOVED = "toBeRemoved";
 }  // namespace
 
 OsAccountInfo::OsAccountInfo()
@@ -49,6 +50,7 @@ OsAccountInfo::OsAccountInfo()
     isActived_ = false;
     isCreateCompleted_ = false;
     domainInfo_.Clear();
+    toBeRemoved_ = false;
 }
 
 OsAccountInfo::OsAccountInfo(int localId, const std::string localName, OsAccountType type, int64_t serialNumber)
@@ -62,6 +64,7 @@ OsAccountInfo::OsAccountInfo(int localId, const std::string localName, OsAccount
     isActived_ = false;
     isCreateCompleted_ = false;
     domainInfo_.Clear();
+    toBeRemoved_ = false;
 }
 
 OsAccountInfo::OsAccountInfo(int localId, std::string localName, OsAccountType type,
@@ -80,6 +83,7 @@ OsAccountInfo::OsAccountInfo(int localId, std::string localName, OsAccountType t
 {
     isActived_ = false;
     domainInfo_.Clear();
+    toBeRemoved_ = false;
 }
 
 int OsAccountInfo::GetLocalId() const
@@ -217,6 +221,7 @@ Json OsAccountInfo::ToJson() const
         {SERIAL_NUMBER, serialNumber_},
         {IS_ACTIVED, isActived_},
         {IS_ACCOUNT_COMPLETED, isCreateCompleted_},
+        {TO_BE_REMOVED, toBeRemoved_},
         {DOMAIN_INFO, {
             {DOMAIN_NAME, domainInfo_.domain_},
             {DOMAIN_ACCOUNT_NAME, domainInfo_.accountName_},
@@ -264,6 +269,8 @@ void OsAccountInfo::FromJson(const Json &jsonObject)
         jsonObject, jsonObjectEnd, IS_ACTIVED, isActived_, OHOS::AccountSA::JsonType::BOOLEAN);
     OHOS::AccountSA::GetDataByType<bool>(
         jsonObject, jsonObjectEnd, IS_ACCOUNT_COMPLETED, isCreateCompleted_, OHOS::AccountSA::JsonType::BOOLEAN);
+    OHOS::AccountSA::GetDataByType<bool>(
+        jsonObject, jsonObjectEnd, TO_BE_REMOVED, toBeRemoved_, OHOS::AccountSA::JsonType::BOOLEAN);
 
     Json typeJson;
     OHOS::AccountSA::GetDataByType<Json>(
@@ -313,6 +320,16 @@ int64_t OsAccountInfo::GetSerialNumber() const
 void OsAccountInfo::SetSerialNumber(const int64_t serialNumber)
 {
     serialNumber_ = serialNumber;
+}
+
+bool OsAccountInfo::GetToBeRemoved() const
+{
+    return toBeRemoved_;
+}
+
+void OsAccountInfo::SetToBeRemoved(bool toBeRemoved)
+{
+    toBeRemoved_ = toBeRemoved;
 }
 }  // namespace AccountSA
 }  // namespace OHOS
