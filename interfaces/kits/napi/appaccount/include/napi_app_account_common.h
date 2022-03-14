@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021 Huawei Device Co., Ltd.
+ * Copyright (c) 2021-2022 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -28,8 +28,6 @@
 namespace OHOS {
 namespace AccountJsKit {
 using namespace OHOS::AccountSA;
-#define PARAM0 0
-#define PARAM1 1
 constexpr std::int32_t MAX_VALUE_LEN = 4096;
 constexpr const std::int32_t STR_MAX_SIZE = 256;
 constexpr std::int32_t ARGS_SIZE_ONE = 1;
@@ -39,6 +37,8 @@ constexpr std::int32_t ARGS_SIZE_FOUR = 4;
 constexpr std::int32_t ARGS_SIZE_FIVE = 5;
 constexpr std::int32_t ARGS_SIZE_SIX = 6;
 constexpr int RESULT_COUNT = 2;
+constexpr int PARAMZERO = 0;
+constexpr int PARAMONE = 1;
 constexpr int PARAMTWO = 2;
 constexpr int PARAMTHREE = 3;
 constexpr int PARAMFOUR = 4;

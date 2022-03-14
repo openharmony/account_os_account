@@ -340,6 +340,10 @@ bool AppAccountSubscribeManager::PublishAccount(
     ACCOUNT_LOGI("bundleName = %{public}s", bundleName.c_str());
 
     auto eventRecordPtr = std::make_shared<AppAccountEventRecord>();
+    if (eventRecordPtr == nullptr) {
+        ACCOUNT_LOGE("failed to create AppAccountEventRecord");
+        return false;
+    }
     eventRecordPtr->info = std::make_shared<AppAccountInfo>(appAccountInfo);
     eventRecordPtr->receivers = GetSubscribeRecords(bundleName);
     eventRecordPtr->uid = uid;
