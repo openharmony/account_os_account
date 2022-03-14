@@ -118,6 +118,10 @@ public:
 
     void GetDomainInfo(DomainAccountInfo &domainInfo) const;
 
+    bool GetToBeRemoved() const;
+
+    void SetToBeRemoved(bool toBeRemoved);
+
 private:
     int localId_;
     std::string localName_;
@@ -131,6 +135,7 @@ private:
     bool isActived_;
     bool isCreateCompleted_;
     DomainAccountInfo domainInfo_;
+    bool toBeRemoved_;
 };
 typedef enum {
     ERROR_MOD = 0,

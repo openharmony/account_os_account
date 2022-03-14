@@ -1389,3 +1389,4 @@ HWTEST_F(OsAccountManagerModuleTest, OsAccountManagerModuleTest066, TestSize.Lev
         GTEST_LOG_(INFO) << *it;
     }
 }
+
