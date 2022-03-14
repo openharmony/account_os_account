@@ -25,6 +25,13 @@ ohos_shared_library("distributedaccount") {
   cflags = [
     "-fPIC",
     "-g3",
+    "-pipe",
+  ]
+  cflags_cc = [
+    "-Wdate-time",
+    "-Wformat=2",
+    "-Wfloat-equal",
+    "-Wshadow",
   ]
 
   sources = [ "src/napi_distributed_account.cpp" ]
