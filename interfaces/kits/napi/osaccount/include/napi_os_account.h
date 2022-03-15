@@ -29,13 +29,27 @@
 namespace OHOS {
 namespace AccountJsKit {
 using namespace OHOS::AccountSA;
-class SubscriberPtr;
 struct SubscribeCBInfo;
 static std::mutex g_lockForOsAccountSubscribers;
 static std::map<OsAccountManager *, std::vector<SubscribeCBInfo *>> g_osAccountSubscribers;
 
 const std::string OS_ACCOUNT_CLASS_NAME = "AccountManager";
 static thread_local napi_ref osAccountRef_ = nullptr;
+
+class SubscriberPtr : public OsAccountSubscriber {
+public:
+    SubscriberPtr(const OsAccountSubscribeInfo &subscribeInfo);
+    ~SubscriberPtr();
+
+    virtual void OnAccountsChanged(const int &id) override;
+
+    void SetEnv(const napi_env &env);
+    void SetCallbackRef(const napi_ref &ref);
+
+private:
+    napi_env env_ = nullptr;
+    napi_ref ref_ = nullptr;
+};
 
 struct QueryOAByIdAsyncContext {
     napi_env env;
@@ -394,6 +408,7 @@ struct SubscriberOAWorker {
     int id = 0;
     napi_env env = nullptr;
     napi_ref ref = nullptr;
+    SubscriberPtr *subscriber = nullptr;
 };
 
 struct UnsubscribeCBInfo {
@@ -405,21 +420,6 @@ struct UnsubscribeCBInfo {
     std::string name;
     OsAccountManager *osManager = nullptr;
     std::vector<std::shared_ptr<SubscriberPtr>> subscribers;
-};
-
-class SubscriberPtr : public OsAccountSubscriber {
-public:
-    SubscriberPtr(const OsAccountSubscribeInfo &subscribeInfo);
-    ~SubscriberPtr();
-
-    virtual void OnAccountsChanged(const int &id) override;
-
-    void SetEnv(const napi_env &env);
-    void SetCallbackRef(const napi_ref &ref);
-
-private:
-    napi_env env_ = nullptr;
-    napi_ref ref_ = nullptr;
 };
 
 napi_value OsAccountInit(napi_env env, napi_value exports);

@@ -1225,6 +1225,7 @@ void SubscriberPtr::OnAccountsChanged(const int &id_)
     subscriberOAWorker->id = id_;
     subscriberOAWorker->env = env_;
     subscriberOAWorker->ref = ref_;
+    subscriberOAWorker->subscriber = this;
     work->data = (void *)subscriberOAWorker;
     uv_queue_work(loop, work, [](uv_work_t *work) {}, UvQueueWorkOnAccountsChanged);
 
@@ -1234,13 +1235,11 @@ void SubscriberPtr::OnAccountsChanged(const int &id_)
 void UvQueueWorkOnAccountsChanged(uv_work_t *work, int status)
 {
     ACCOUNT_LOGI("enter");
-    if (work == nullptr) {
+    if (work == nullptr || work->data == nullptr) {
         return;
     }
     SubscriberOAWorker *subscriberOAWorkerData = (SubscriberOAWorker *)work->data;
-    if (subscriberOAWorkerData == nullptr) {
-        return;
-    }
+
     napi_value result[ARGS_SIZE_ONE] = {nullptr};
     napi_create_int32(subscriberOAWorkerData->env, subscriberOAWorkerData->id, &result[PARAM0]);
 
@@ -1249,11 +1248,32 @@ void UvQueueWorkOnAccountsChanged(uv_work_t *work, int status)
 
     napi_value callback = nullptr;
     napi_value resultout = nullptr;
-    napi_get_reference_value(subscriberOAWorkerData->env, subscriberOAWorkerData->ref, &callback);
-
-    NAPI_CALL_RETURN_VOID(subscriberOAWorkerData->env,
-        napi_call_function(subscriberOAWorkerData->env, undefined, callback, ARGS_SIZE_ONE, &result[0], &resultout));
-
+    bool isFound = false;
+    {
+        std::lock_guard<std::mutex> lock(g_lockForOsAccountSubscribers);
+        for (auto subscriberInstance : g_osAccountSubscribers) {
+            for (auto item : subscriberInstance.second) {
+                if (item->subscriber.get() == subscriberOAWorkerData->subscriber) {
+                    isFound = true;
+                    break;
+                }
+            }
+            if (isFound) {
+                break;
+            }
+        }
+        if (!isFound) {
+            ACCOUNT_LOGI("subscriber has already been deleted, ignore callback.");
+        } else {
+            ACCOUNT_LOGI("subscriber has been found.");
+            napi_get_reference_value(subscriberOAWorkerData->env, subscriberOAWorkerData->ref, &callback);
+        }
+    }
+    if (isFound) {
+        NAPI_CALL_RETURN_VOID(subscriberOAWorkerData->env,
+            napi_call_function(subscriberOAWorkerData->env, undefined, callback, ARGS_SIZE_ONE, &result[0],
+                &resultout));
+    }
     delete subscriberOAWorkerData;
     subscriberOAWorkerData = nullptr;
     delete work;
