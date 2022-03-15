@@ -15,8 +15,11 @@
 
 #include "napi_os_account.h"
 
+#include "authface_userIDM_helper.h"
 #include "napi/native_api.h"
 #include "napi/native_node_api.h"
+#include "pin_auth_helper.h"
+#include "user_auth_helper.h"
 
 namespace OHOS {
 namespace AccountJsKit {
@@ -31,7 +34,12 @@ static napi_value Init(napi_env env, napi_value exports)
      * Propertise define
      */
     OsAccountInit(env, exports);
-
+    PinAuth::Init(env, exports);
+    PinAuth::EnumExport(env, exports);
+    UserIAM::UserAuth::UserAuthInit(env, exports);
+    UserIAM::UserAuth::EnumExport(env, exports);
+    UserIAM::UserIDM::AuthFaceInit(env, exports);
+    UserIAM::UserIDM::EnumExport(env, exports);
     return exports;
 }
 EXTERN_C_END
