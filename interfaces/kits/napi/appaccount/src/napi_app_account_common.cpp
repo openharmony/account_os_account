@@ -29,22 +29,29 @@ SubscriberPtr::SubscriberPtr(const AppAccountSubscribeInfo &subscribeInfo) : App
 SubscriberPtr::~SubscriberPtr()
 {}
 
-void UvQueueWorkOnAccountsChanged(uv_work_t *work, int status)
+static bool CheckExist(const SubscriberAccountsWorker *subscriberAccountsWorkerData)
+{
+    for (auto subscriberInstance : g_AppAccountSubscribers) {
+        for (auto item : subscriberInstance.second) {
+            if (item->subscriber.get() == subscriberAccountsWorkerData->subscriber) {
+                return true;
+            }
+        }
+    }
+    return false;
+}
+
+void UvQueueWorkOnAppAccountsChanged(uv_work_t *work, int status)
 {
     ACCOUNT_LOGI("enter");
 
-    if (work == nullptr) {
+    if (work == nullptr || work->data == nullptr) {
         return;
     }
     SubscriberAccountsWorker *subscriberAccountsWorkerData = (SubscriberAccountsWorker *)work->data;
-    if (subscriberAccountsWorkerData == nullptr) {
-        return;
-    }
-
     uint32_t index = 0;
     napi_value results[ARGS_SIZE_ONE] = {nullptr};
     napi_create_array(subscriberAccountsWorkerData->env, &results[0]);
-
     for (auto item : subscriberAccountsWorkerData->accounts) {
         napi_value objAppAccountInfo = nullptr;
         napi_create_object(subscriberAccountsWorkerData->env, &objAppAccountInfo);
@@ -69,15 +76,25 @@ void UvQueueWorkOnAccountsChanged(uv_work_t *work, int status)
 
     napi_value undefined = nullptr;
     napi_get_undefined(subscriberAccountsWorkerData->env, &undefined);
-
     napi_value callback = nullptr;
     napi_value resultout = nullptr;
-    napi_get_reference_value(subscriberAccountsWorkerData->env, subscriberAccountsWorkerData->ref, &callback);
+    bool isFound = false;
+    {
+        std::lock_guard<std::mutex> lock(g_lockForAppAccountSubscribers);
+        isFound = CheckExist(subscriberAccountsWorkerData);
+        if (!isFound) {
+            ACCOUNT_LOGI("appaccount subscriber has already been deleted, ignore callback.");
+        } else {
+            ACCOUNT_LOGI("appaccount subscriber has been found.");
+            napi_get_reference_value(subscriberAccountsWorkerData->env, subscriberAccountsWorkerData->ref, &callback);
+        }
+    }
 
-    NAPI_CALL_RETURN_VOID(subscriberAccountsWorkerData->env,
-        napi_call_function(
-            subscriberAccountsWorkerData->env, undefined, callback, ARGS_SIZE_ONE, &results[0], &resultout));
-
+    if (isFound) {
+        NAPI_CALL_RETURN_VOID(subscriberAccountsWorkerData->env,
+            napi_call_function(subscriberAccountsWorkerData->env, undefined, callback, ARGS_SIZE_ONE,
+                &results[0], &resultout));
+    }
     delete subscriberAccountsWorkerData;
     subscriberAccountsWorkerData = nullptr;
     delete work;
@@ -120,12 +137,13 @@ void SubscriberPtr::OnAccountsChanged(const std::vector<AppAccountInfo> &account
     subscriberAccountsWorker->accounts = accounts_;
     subscriberAccountsWorker->env = env_;
     subscriberAccountsWorker->ref = ref_;
+    subscriberAccountsWorker->subscriber = this;
 
     ACCOUNT_LOGI("subscriberAccountsWorker->ref == %{public}p", subscriberAccountsWorker->ref);
 
     work->data = (void *)subscriberAccountsWorker;
 
-    uv_queue_work(loop, work, [](uv_work_t *work) {}, UvQueueWorkOnAccountsChanged);
+    uv_queue_work(loop, work, [](uv_work_t *work) {}, UvQueueWorkOnAppAccountsChanged);
 
     ACCOUNT_LOGI("end");
 }
