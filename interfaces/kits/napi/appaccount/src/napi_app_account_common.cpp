@@ -29,18 +29,6 @@ SubscriberPtr::SubscriberPtr(const AppAccountSubscribeInfo &subscribeInfo) : App
 SubscriberPtr::~SubscriberPtr()
 {}
 
-static bool CheckExist(const SubscriberAccountsWorker *subscriberAccountsWorkerData)
-{
-    for (auto subscriberInstance : g_AppAccountSubscribers) {
-        for (auto item : subscriberInstance.second) {
-            if (item->subscriber.get() == subscriberAccountsWorkerData->subscriber) {
-                return true;
-            }
-        }
-    }
-    return false;
-}
-
 void UvQueueWorkOnAppAccountsChanged(uv_work_t *work, int status)
 {
     ACCOUNT_LOGI("enter");
@@ -78,23 +66,12 @@ void UvQueueWorkOnAppAccountsChanged(uv_work_t *work, int status)
     napi_get_undefined(subscriberAccountsWorkerData->env, &undefined);
     napi_value callback = nullptr;
     napi_value resultout = nullptr;
-    bool isFound = false;
-    {
-        std::lock_guard<std::mutex> lock(g_lockForAppAccountSubscribers);
-        isFound = CheckExist(subscriberAccountsWorkerData);
-        if (!isFound) {
-            ACCOUNT_LOGI("appaccount subscriber has already been deleted, ignore callback.");
-        } else {
-            ACCOUNT_LOGI("appaccount subscriber has been found.");
-            napi_get_reference_value(subscriberAccountsWorkerData->env, subscriberAccountsWorkerData->ref, &callback);
-        }
-    }
+    napi_get_reference_value(subscriberAccountsWorkerData->env, subscriberAccountsWorkerData->ref, &callback);
 
-    if (isFound) {
-        NAPI_CALL_RETURN_VOID(subscriberAccountsWorkerData->env,
-            napi_call_function(subscriberAccountsWorkerData->env, undefined, callback, ARGS_SIZE_ONE,
-                &results[0], &resultout));
-    }
+    NAPI_CALL_RETURN_VOID(subscriberAccountsWorkerData->env,
+        napi_call_function(subscriberAccountsWorkerData->env, undefined, callback, ARGS_SIZE_ONE,
+        &results[0], &resultout));
+
     delete subscriberAccountsWorkerData;
     subscriberAccountsWorkerData = nullptr;
     delete work;
@@ -137,7 +114,6 @@ void SubscriberPtr::OnAccountsChanged(const std::vector<AppAccountInfo> &account
     subscriberAccountsWorker->accounts = accounts_;
     subscriberAccountsWorker->env = env_;
     subscriberAccountsWorker->ref = ref_;
-    subscriberAccountsWorker->subscriber = this;
 
     ACCOUNT_LOGI("subscriberAccountsWorker->ref == %{public}p", subscriberAccountsWorker->ref);
 
@@ -1071,7 +1047,7 @@ void UnsubscribeCallbackCompletedCB(napi_env env, napi_status status, void *data
     napi_delete_async_work(env, asyncContextForOff->work);
 
     {
-        static std::mutex g_lockForAppAccountSubscribers;
+        std::lock_guard<std::mutex> lock(g_lockForAppAccountSubscribers);
         ACCOUNT_LOGI("Earse before g_AppAccountSubscribers.size = %{public}zu", g_AppAccountSubscribers.size());
         // earse the info from map
         auto subscribe = g_AppAccountSubscribers.find(asyncContextForOff->appAccountManager);
