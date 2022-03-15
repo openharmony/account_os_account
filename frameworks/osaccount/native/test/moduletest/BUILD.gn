@@ -54,7 +54,6 @@ ohos_moduletest("os_account_frameworks_module_test") {
     "ability_base:want",
     "bundle_framework:appexecfwk_base",
     "bundle_framework:appexecfwk_core",
-    "ces_standard:cesfwk_core",
     "ces_standard:cesfwk_innerkits",
     "distributeddatamgr:distributeddata_inner",
     "eventhandler:libeventhandler",

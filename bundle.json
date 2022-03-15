@@ -31,7 +31,6 @@
     "deps": {
       "components": [
         "ability_base",
-        "utils_base",
         "ability_runtime",
         "bundle_framework",
         "ces_standard",
@@ -39,8 +38,6 @@
         "hisysevent_native",
         "hiviewdfx_hilog_native",
         "ipc",
-        "permission_standard",
-        "resmgr_standard",
         "safwk",
         "samgr_standard",
         "startup_l2"

@@ -1173,8 +1173,11 @@ napi_value Subscribe(napi_env env, napi_callback_info cbInfo)
     subscribeCBInfo->osManager = objectInfo;
     ACCOUNT_LOGI("OsAccountManager objectInfo = %{public}p", objectInfo);
 
-    subscriberInstances[objectInfo].emplace_back(subscribeCBInfo);
-    ACCOUNT_LOGI("subscriberInstances.size = %{public}zu", subscriberInstances.size());
+    {
+        std::lock_guard<std::mutex> lock(g_lockForOsAccountSubscribers);
+        g_osAccountSubscribers[objectInfo].emplace_back(subscribeCBInfo);
+        ACCOUNT_LOGI("g_osAccountSubscribers.size = %{public}zu", g_osAccountSubscribers.size());
+    }
 
     napi_value resourceName = nullptr;
     napi_create_string_latin1(env, "Subscribe", NAPI_AUTO_LENGTH, &resourceName);
@@ -1222,6 +1225,7 @@ void SubscriberPtr::OnAccountsChanged(const int &id_)
     subscriberOAWorker->id = id_;
     subscriberOAWorker->env = env_;
     subscriberOAWorker->ref = ref_;
+    subscriberOAWorker->subscriber = this;
     work->data = (void *)subscriberOAWorker;
     uv_queue_work(loop, work, [](uv_work_t *work) {}, UvQueueWorkOnAccountsChanged);
 
@@ -1231,13 +1235,11 @@ void SubscriberPtr::OnAccountsChanged(const int &id_)
 void UvQueueWorkOnAccountsChanged(uv_work_t *work, int status)
 {
     ACCOUNT_LOGI("enter");
-    if (work == nullptr) {
+    if (work == nullptr || work->data == nullptr) {
         return;
     }
     SubscriberOAWorker *subscriberOAWorkerData = (SubscriberOAWorker *)work->data;
-    if (subscriberOAWorkerData == nullptr) {
-        return;
-    }
+
     napi_value result[ARGS_SIZE_ONE] = {nullptr};
     napi_create_int32(subscriberOAWorkerData->env, subscriberOAWorkerData->id, &result[PARAM0]);
 
@@ -1246,11 +1248,32 @@ void UvQueueWorkOnAccountsChanged(uv_work_t *work, int status)
 
     napi_value callback = nullptr;
     napi_value resultout = nullptr;
-    napi_get_reference_value(subscriberOAWorkerData->env, subscriberOAWorkerData->ref, &callback);
-
-    NAPI_CALL_RETURN_VOID(subscriberOAWorkerData->env,
-        napi_call_function(subscriberOAWorkerData->env, undefined, callback, ARGS_SIZE_ONE, &result[0], &resultout));
-
+    bool isFound = false;
+    {
+        std::lock_guard<std::mutex> lock(g_lockForOsAccountSubscribers);
+        for (auto subscriberInstance : g_osAccountSubscribers) {
+            for (auto item : subscriberInstance.second) {
+                if (item->subscriber.get() == subscriberOAWorkerData->subscriber) {
+                    isFound = true;
+                    break;
+                }
+            }
+            if (isFound) {
+                break;
+            }
+        }
+        if (!isFound) {
+            ACCOUNT_LOGI("subscriber has already been deleted, ignore callback.");
+        } else {
+            ACCOUNT_LOGI("subscriber has been found.");
+            napi_get_reference_value(subscriberOAWorkerData->env, subscriberOAWorkerData->ref, &callback);
+        }
+    }
+    if (isFound) {
+        NAPI_CALL_RETURN_VOID(subscriberOAWorkerData->env,
+            napi_call_function(subscriberOAWorkerData->env, undefined, callback, ARGS_SIZE_ONE, &result[0],
+                &resultout));
+    }
     delete subscriberOAWorkerData;
     subscriberOAWorkerData = nullptr;
     delete work;
@@ -1329,9 +1352,11 @@ void FindSubscriberInMap(
     std::vector<std::shared_ptr<SubscriberPtr>> &subscribers, UnsubscribeCBInfo *unsubscribeCBInfo, bool &isFind)
 {
     ACCOUNT_LOGI("enter");
-    ACCOUNT_LOGI("subscriberInstances.size = %{public}zu", subscriberInstances.size());
 
-    for (auto subscriberInstance : subscriberInstances) {
+    std::lock_guard<std::mutex> lock(g_lockForOsAccountSubscribers);
+
+    ACCOUNT_LOGI("g_osAccountSubscribers.size = %{public}zu", g_osAccountSubscribers.size());
+    for (auto subscriberInstance : g_osAccountSubscribers) {
         ACCOUNT_LOGI("Through map to get the subscribe objectInfo = %{public}p", subscriberInstance.first);
         if (subscriberInstance.first == unsubscribeCBInfo->osManager) {
             for (auto item : subscriberInstance.second) {
@@ -1397,25 +1422,28 @@ void UnsubscribeCallbackCompletedCB(napi_env env, napi_status status, void *data
     napi_delete_async_work(env, unsubscribeCBInfo->work);
 
     // erase the info from map
-    auto subscribe = subscriberInstances.find(unsubscribeCBInfo->osManager);
-    if (subscribe != subscriberInstances.end()) {
-        auto it = subscribe->second.begin();
-        while (it != subscribe->second.end()) {
-            if ((*it)->name == unsubscribeCBInfo->name &&
-                (*it)->osSubscribeType == unsubscribeCBInfo->osSubscribeType) {
-                napi_delete_reference(env, (*it)->callbackRef);
-                it = subscribe->second.erase(it);
-                ACCOUNT_LOGI("Erace vector, vector.size = %{public}zu", subscribe->second.size());
-            } else {
-                ++it;
+    {
+        std::lock_guard<std::mutex> lock(g_lockForOsAccountSubscribers);
+        auto subscribe = g_osAccountSubscribers.find(unsubscribeCBInfo->osManager);
+        if (subscribe != g_osAccountSubscribers.end()) {
+            auto it = subscribe->second.begin();
+            while (it != subscribe->second.end()) {
+                if ((*it)->name == unsubscribeCBInfo->name &&
+                    (*it)->osSubscribeType == unsubscribeCBInfo->osSubscribeType) {
+                    napi_delete_reference(env, (*it)->callbackRef);
+                    it = subscribe->second.erase(it);
+                    ACCOUNT_LOGI("Erace vector, vector.size = %{public}zu", subscribe->second.size());
+                } else {
+                    ++it;
+                }
             }
-        }
 
-        if (subscriberInstances.size() != 0 && subscribe->second.size() == 0) {
-            ACCOUNT_LOGI("No subscriberInfo in the vector, erase the map");
-            subscriberInstances.erase(subscribe);
+            if (subscribe->second.size() == 0) {
+                ACCOUNT_LOGI("No subscriberInfo in the vector, erase the map");
+                g_osAccountSubscribers.erase(subscribe);
+            }
+            ACCOUNT_LOGI("Earse end g_osAccountSubscribers.size = %{public}zu", g_osAccountSubscribers.size());
         }
-        ACCOUNT_LOGI("Earse end subscriberInstances.size = %{public}zu", subscriberInstances.size());
     }
 
     delete unsubscribeCBInfo;
