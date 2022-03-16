@@ -33,6 +33,7 @@ const std::string OAUTH_TOKEN_INFOS = "tokenInfos";
 const std::string OAUTH_TYPE = "authType";
 const std::string OAUTH_AUTH_LIST = "authList";
 const std::string OAUTH_TOKEN_TO_TYPE = "tokenToType";
+const uint32_t APP_INDEX = 0;
 
 const std::string HYPHEN = "#";
 }  // namespace
@@ -473,7 +474,7 @@ std::string AppAccountInfo::ToString() const
 
 std::string AppAccountInfo::GetPrimeKey() const
 {
-    return (owner_ + HYPHEN + name_);
+    return (owner_ + HYPHEN + name_ + HYPHEN + std::to_string(APP_INDEX));
 }
 
 bool AppAccountInfo::ReadFromParcel(Parcel &parcel)
