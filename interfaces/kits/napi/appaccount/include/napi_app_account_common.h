@@ -124,7 +124,6 @@ struct SubscriberAccountsWorker {
     napi_ref ref = nullptr;
     std::vector<AppAccountInfo> accounts;
     int code = 0;
-    SubscriberPtr* subscriber;
 };
 
 struct AsyncContextForSubscribe {
