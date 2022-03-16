@@ -17,6 +17,7 @@
 #define OS_ACCOUNT_SERVICES_ACCOUNTMGR_TEST_MOCK_OS_ACCOUNT_PERMISSION_KIT_H
 
 #include <string>
+#include "account_error_no.h"
 
 namespace OHOS {
 namespace Security {
@@ -28,7 +29,7 @@ typedef enum TypePermissionState {
 
 class PermissionKit {
 public:
-    static int VerifyPermission(const std::string &permissionName);
+    static ErrCode VerifyPermission(const std::string &permissionName);
 };
 }  // namespace Permission
 }  // namespace Security

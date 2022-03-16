@@ -15,7 +15,7 @@
 
 #ifndef NAPI_APP_ACCOUNT_COMMON
 #define NAPI_APP_ACCOUNT_COMMON
-
+#include <mutex>
 #include <thread>
 #include "app_account_authenticator_callback_stub.h"
 #include "app_account_common.h"
@@ -48,11 +48,25 @@ const std::string APP_ACCOUNT_CLASS_NAME = "AppAccountManager";
 static const std::int32_t SUBSCRIBE_MAX_PARA = 3;
 static const std::int32_t UNSUBSCRIBE_MAX_PARA = 2;
 
-class SubscriberPtr;
 class AppAccountManagerCallback;
 struct AsyncContextForSubscribe;
+static std::mutex g_lockForAppAccountSubscribers;
+static std::map<AppAccountManager *, std::vector<AsyncContextForSubscribe *>> g_AppAccountSubscribers;
 
-extern std::map<AppAccountManager *, std::vector<AsyncContextForSubscribe *>> subscriberInstances;
+class SubscriberPtr : public AppAccountSubscriber {
+public:
+    SubscriberPtr(const AppAccountSubscribeInfo &subscribeInfo);
+    ~SubscriberPtr();
+
+    virtual void OnAccountsChanged(const std::vector<AppAccountInfo> &accounts) override;
+
+    void SetEnv(const napi_env &env);
+    void SetCallbackRef(const napi_ref &ref);
+
+private:
+    napi_env env_ = nullptr;
+    napi_ref ref_ = nullptr;
+};
 
 struct CommonAsyncContext {
     napi_env env;
@@ -143,21 +157,6 @@ struct AuthenticatorCallbackParam {
     napi_ref resultRef;
     napi_ref requestRedirectedRef;
     ThreadLockInfo *lockInfo;
-};
-
-class SubscriberPtr : public AppAccountSubscriber {
-public:
-    SubscriberPtr(const AppAccountSubscribeInfo &subscribeInfo);
-    ~SubscriberPtr();
-
-    virtual void OnAccountsChanged(const std::vector<AppAccountInfo> &accounts) override;
-
-    void SetEnv(const napi_env &env);
-    void SetCallbackRef(const napi_ref &ref);
-
-private:
-    napi_env env_ = nullptr;
-    napi_ref ref_ = nullptr;
 };
 
 class AppAccountManagerCallback : public AppAccountAuthenticatorCallbackStub {
