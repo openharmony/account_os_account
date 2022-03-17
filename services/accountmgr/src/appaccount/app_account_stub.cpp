@@ -276,7 +276,7 @@ ErrCode AppAccountStub::ProcAddAccountImplicitly(MessageParcel &data, MessagePar
     }
     RETURN_IF_STRING_IS_EMPTY_OR_OVERSIZE(options->GetStringParam(Constants::KEY_CALLER_ABILITY_NAME),
         Constants::ABILITY_NAME_MAX_SIZE, "abilityName is empty or oversize");
-    sptr<IRemoteObject> callback = data.ReadParcelable<IRemoteObject>();
+    sptr<IRemoteObject> callback = data.ReadRemoteObject();
     if (result == ERR_OK) {
         result = AddAccountImplicitly(owner, authType, *options, callback);
     }
@@ -503,7 +503,7 @@ ErrCode AppAccountStub::ProcAuthenticate(MessageParcel &data, MessageParcel &rep
     }
     RETURN_IF_STRING_IS_EMPTY_OR_OVERSIZE(options->GetStringParam(Constants::KEY_CALLER_ABILITY_NAME),
         Constants::ABILITY_NAME_MAX_SIZE, "abilityName is empty or oversize");
-    sptr<IRemoteObject> callback = data.ReadParcelable<IRemoteObject>();
+    sptr<IRemoteObject> callback = data.ReadRemoteObject();
     if (result == ERR_OK) {
         result = Authenticate(name, owner, authType, *options, callback);
     }
@@ -720,9 +720,9 @@ ErrCode AppAccountStub::ProcSubscribeAccount(MessageParcel &data, MessageParcel 
         ACCOUNT_LOGE("failed to read parcelable for subscribeInfo");
         return IPC_STUB_INVALID_DATA_ERR;
     }
-    sptr<IRemoteObject> eventListener = data.ReadParcelable<IRemoteObject>();
+    sptr<IRemoteObject> eventListener = data.ReadRemoteObject();
     if (eventListener == nullptr) {
-        ACCOUNT_LOGE("failed to read parcelable for eventListener");
+        ACCOUNT_LOGE("failed to read remote object for eventListener");
         return IPC_STUB_INVALID_DATA_ERR;
     }
     ErrCode result = SubscribeAppAccount(*subscribeInfo, eventListener);
@@ -736,9 +736,9 @@ ErrCode AppAccountStub::ProcSubscribeAccount(MessageParcel &data, MessageParcel 
 ErrCode AppAccountStub::ProcUnsubscribeAccount(MessageParcel &data, MessageParcel &reply)
 {
     ACCOUNT_LOGI("enter");
-    sptr<IRemoteObject> eventListener = data.ReadParcelable<IRemoteObject>();
+    sptr<IRemoteObject> eventListener = data.ReadRemoteObject();
     if (eventListener == nullptr) {
-        ACCOUNT_LOGE("failed to read parcelable for eventListener");
+        ACCOUNT_LOGE("failed to read remote object for eventListener");
         return IPC_STUB_INVALID_DATA_ERR;
     }
     ErrCode result = UnsubscribeAppAccount(eventListener);
