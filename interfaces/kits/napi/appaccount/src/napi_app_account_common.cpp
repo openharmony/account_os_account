@@ -23,6 +23,9 @@ namespace OHOS {
 namespace AccountJsKit {
 using namespace OHOS::AccountSA;
 
+std::mutex g_lockForAppAccountSubscribers;
+std::map<AppAccountManager *, std::vector<AsyncContextForSubscribe *>> g_AppAccountSubscribers;
+
 SubscriberPtr::SubscriberPtr(const AppAccountSubscribeInfo &subscribeInfo) : AppAccountSubscriber(subscribeInfo)
 {}
 
