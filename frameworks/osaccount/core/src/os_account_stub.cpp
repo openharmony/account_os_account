@@ -706,9 +706,9 @@ ErrCode OsAccountStub::ProcSubscribeOsAccount(MessageParcel &data, MessageParcel
         return IPC_STUB_INVALID_DATA_ERR;
     }
 
-    sptr<IRemoteObject> eventListener = data.ReadParcelable<IRemoteObject>();
+    sptr<IRemoteObject> eventListener = data.ReadRemoteObject();
     if (eventListener == nullptr) {
-        ACCOUNT_LOGE("failed to read parcelable for eventListener");
+        ACCOUNT_LOGE("failed to read remote object for eventListener");
         return IPC_STUB_INVALID_DATA_ERR;
     }
 
@@ -723,9 +723,9 @@ ErrCode OsAccountStub::ProcSubscribeOsAccount(MessageParcel &data, MessageParcel
 
 ErrCode OsAccountStub::ProcUnsubscribeOsAccount(MessageParcel &data, MessageParcel &reply)
 {
-    sptr<IRemoteObject> eventListener = data.ReadParcelable<IRemoteObject>();
+    sptr<IRemoteObject> eventListener = data.ReadRemoteObject();
     if (eventListener == nullptr) {
-        ACCOUNT_LOGE("failed to read parcelable for eventListener");
+        ACCOUNT_LOGE("failed to read remote object for eventListener");
         return IPC_STUB_INVALID_DATA_ERR;
     }
 

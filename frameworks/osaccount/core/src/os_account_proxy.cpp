@@ -826,8 +826,8 @@ ErrCode OsAccountProxy::SubscribeOsAccount(
         return ERR_OSACCOUNT_KIT_WRITE_PARCELABLE_SUBSCRIBE_INFO_ERROR;
     }
 
-    if (!data.WriteParcelable(eventListener)) {
-        ACCOUNT_LOGE("failed to write parcelable for eventListener");
+    if (!data.WriteRemoteObject(eventListener)) {
+        ACCOUNT_LOGE("failed to write remote object for eventListener");
         return ERR_OSACCOUNT_KIT_WRITE_PARCELABLE_EVENT_LISTENER_ERROR;
     }
 
@@ -856,8 +856,8 @@ ErrCode OsAccountProxy::UnsubscribeOsAccount(const sptr<IRemoteObject> &eventLis
         return ERR_ACCOUNT_COMMON_WRITE_DESCRIPTOR_ERROR;
     }
 
-    if (!data.WriteParcelable(eventListener)) {
-        ACCOUNT_LOGE("failed to write parcelable for eventListener");
+    if (!data.WriteRemoteObject(eventListener)) {
+        ACCOUNT_LOGE("failed to write remote object for eventListener");
         return ERR_OSACCOUNT_KIT_WRITE_PARCELABLE_EVENT_LISTENER_ERROR;
     }
 
