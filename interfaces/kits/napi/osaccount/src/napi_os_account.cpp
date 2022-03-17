@@ -24,6 +24,8 @@ namespace {
 const int OS_ACCOUNT_TYPE_ADMIN = 0;
 const int OS_ACCOUNT_TYPE_NORMAL = 1;
 const int OS_ACCOUNT_TYPE_GUEST = 2;
+std::mutex g_lockForOsAccountSubscribers;
+std::map<OsAccountManager *, std::vector<SubscribeCBInfo *>> g_osAccountSubscribers;
 }  // namespace
 napi_value OsAccountInit(napi_env env, napi_value exports)
 {
