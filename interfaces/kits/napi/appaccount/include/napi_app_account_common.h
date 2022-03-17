@@ -50,8 +50,8 @@ static const std::int32_t UNSUBSCRIBE_MAX_PARA = 2;
 
 class AppAccountManagerCallback;
 struct AsyncContextForSubscribe;
-static std::mutex g_lockForAppAccountSubscribers;
-static std::map<AppAccountManager *, std::vector<AsyncContextForSubscribe *>> g_AppAccountSubscribers;
+extern std::mutex g_lockForAppAccountSubscribers;
+extern std::map<AppAccountManager *, std::vector<AsyncContextForSubscribe *>> g_AppAccountSubscribers;
 
 class SubscriberPtr : public AppAccountSubscriber {
 public:
