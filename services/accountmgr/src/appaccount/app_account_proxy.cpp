@@ -81,11 +81,11 @@ ErrCode AppAccountProxy::AddAccountImplicitly(const std::string &owner, const st
         return ERR_APPACCOUNT_KIT_WRITE_STRING_AUTH_TYPE;
     }
     if (!data.WriteParcelable(&options)) {
-        ACCOUNT_LOGE("failed to write string for options");
+        ACCOUNT_LOGE("failed to write parcelable for options");
         return ERR_APPACCOUNT_KIT_WRITE_PARCELABLE_OPTIONS;
     }
-    if (!data.WriteParcelable(callback)) {
-        ACCOUNT_LOGE("failed to write string for callback");
+    if (!data.WriteRemoteObject(callback)) {
+        ACCOUNT_LOGE("failed to write remote object for callback");
         return ERR_APPACCOUNT_KIT_WRITE_PARCELABLE_CALLBACK;
     }
     ErrCode result = SendRequest(IAppAccount::Message::ADD_ACCOUNT_IMPLICITLY, data, reply);
@@ -486,11 +486,11 @@ ErrCode AppAccountProxy::Authenticate(const std::string &name, const std::string
         return ERR_APPACCOUNT_KIT_WRITE_STRING_AUTH_TYPE;
     }
     if (!data.WriteParcelable(&options)) {
-        ACCOUNT_LOGE("failed to write string for options");
+        ACCOUNT_LOGE("failed to write parcelable for options");
         return ERR_APPACCOUNT_KIT_WRITE_PARCELABLE_OPTIONS;
     }
-    if (!data.WriteParcelable(callback)) {
-        ACCOUNT_LOGE("failed to write parcelable for callback");
+    if (!data.WriteRemoteObject(callback)) {
+        ACCOUNT_LOGE("failed to write remote object for callback");
         return ERR_APPACCOUNT_KIT_WRITE_PARCELABLE_CALLBACK;
     }
     ErrCode result = SendRequest(IAppAccount::Message::AUTHENTICATE, data, reply);
@@ -871,8 +871,8 @@ ErrCode AppAccountProxy::SubscribeAppAccount(
         return ERR_APPACCOUNT_KIT_WRITE_PARCELABLE_SUBSCRIBE_INFO;
     }
 
-    if (!data.WriteParcelable(eventListener)) {
-        ACCOUNT_LOGE("failed to write parcelable for eventListener");
+    if (!data.WriteRemoteObject(eventListener)) {
+        ACCOUNT_LOGE("failed to write remote object for eventListener");
         return ERR_APPACCOUNT_KIT_WRITE_PARCELABLE_EVENT_LISTENER;
     }
 
@@ -899,8 +899,8 @@ ErrCode AppAccountProxy::UnsubscribeAppAccount(const sptr<IRemoteObject> &eventL
         return ERR_ACCOUNT_COMMON_WRITE_DESCRIPTOR_ERROR;
     }
 
-    if (!data.WriteParcelable(eventListener)) {
-        ACCOUNT_LOGE("failed to write parcelable for eventListener");
+    if (!data.WriteRemoteObject(eventListener)) {
+        ACCOUNT_LOGE("failed to write remote object for eventListener");
         return ERR_APPACCOUNT_KIT_WRITE_PARCELABLE_EVENT_LISTENER;
     }
 
