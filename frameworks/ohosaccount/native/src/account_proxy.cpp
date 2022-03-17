@@ -132,7 +132,7 @@ sptr<IRemoteObject> AccountProxy::GetAppAccountService()
         return nullptr;
     }
 
-    return reply.ReadParcelable<IRemoteObject>();
+    return reply.ReadRemoteObject();
 }
 sptr<IRemoteObject> AccountProxy::GetOsAccountService()
 {
@@ -152,7 +152,7 @@ sptr<IRemoteObject> AccountProxy::GetOsAccountService()
         return nullptr;
     }
 
-    return reply.ReadParcelable<IRemoteObject>();
+    return reply.ReadRemoteObject();
 }
 }  // namespace AccountSA
 }  // namespace OHOS
