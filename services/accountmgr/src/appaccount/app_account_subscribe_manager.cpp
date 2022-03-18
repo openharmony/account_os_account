@@ -400,12 +400,6 @@ ErrCode AppAccountSubscribeManager::OnAccountsChanged(const std::shared_ptr<AppA
             continue;
         }
 
-        ACCOUNT_LOGI("appAccounts.size() = %{public}zu", appAccounts.size());
-        for (auto appAccount : appAccounts) {
-            ACCOUNT_LOGI("appAccount.GetId() = %{public}s", appAccount.GetPrimeKey().c_str());
-            ACCOUNT_LOGI("appAccount.ToString() = %{public}s", appAccount.ToString().c_str());
-        }
-
         auto appAccountEventProxy = iface_cast<IAppAccountEvent>(receiver->eventListener);
         if (appAccountEventProxy == nullptr) {
             ACCOUNT_LOGE("failed to get app account event proxy");
