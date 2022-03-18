@@ -48,7 +48,6 @@ void OsAccountDataStorage::SaveEntries(
             continue;
         }
         osAccountInfo.FromJson(jsonObject);
-        ACCOUNT_LOGE("OsAccountDataStorage SaveEntries() json %{public}s", osAccountInfo.ToString().c_str());
         infos.emplace(item.key.ToString(), std::make_shared<OsAccountInfo>(osAccountInfo));
     }
     ACCOUNT_LOGE("OsAccountDataStorage SaveEntries() end");
