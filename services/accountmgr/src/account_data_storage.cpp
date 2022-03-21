@@ -63,9 +63,7 @@ OHOS::DistributedKv::Status AccountDataStorage::GetKvStore()
 
     auto status = dataManager_.GetSingleKvStore(options, appId_, storeId_, kvStorePtr_);
     if (kvStorePtr_ == nullptr) {
-        ACCOUNT_LOGI("kvStorePtr_ is nullptr");
-    } else {
-        ACCOUNT_LOGI("kvStorePtr_ is not nullptr");
+        ACCOUNT_LOGE("kvStorePtr_ is nullptr");
     }
 
     ACCOUNT_LOGI("end, status = %{public}d", status);
@@ -113,22 +111,17 @@ ErrCode AccountDataStorage::LoadAllData(std::map<std::string, std::shared_ptr<IA
         return status;
     });
 
-    int ret = 0;
     if (status != OHOS::DistributedKv::Status::SUCCESS) {
         ACCOUNT_LOGE("get entries error: %{public}d", status);
         // KEY_NOT_FOUND means no data in database, no need to report.
         if (status != OHOS::DistributedKv::Status::KEY_NOT_FOUND) {
             ACCOUNT_LOGE("status != OHOS::DistributedKv::Status::KEY_NOT_FOUND");
         }
-        ret = OHOS::ERR_OSACCOUNT_SERVICE_MANAGER_QUERY_DISTRIBUTE_DATA_ERROR;
-    } else {
-        ACCOUNT_LOGE("SaveEntries start");
-        infos.clear();
-        SaveEntries(allEntries, infos);
-        ACCOUNT_LOGE("SaveEntries end");
+        return OHOS::ERR_OSACCOUNT_SERVICE_MANAGER_QUERY_DISTRIBUTE_DATA_ERROR;
     }
-
-    return ret;
+    infos.clear();
+    SaveEntries(allEntries, infos);
+    return ERR_OK;
 }
 
 ErrCode AccountDataStorage::AddAccountInfo(const IAccountInfo &iAccountInfo)
@@ -268,24 +261,17 @@ ErrCode AccountDataStorage::LoadDataByLocalFuzzyQuery(
         return status;
     });
 
-    int ret = 0;
     if (status != OHOS::DistributedKv::Status::SUCCESS) {
         ACCOUNT_LOGE("get entries error: %{public}d", status);
         // KEY_NOT_FOUND means no data in database, no need to report.
         if (status != OHOS::DistributedKv::Status::KEY_NOT_FOUND) {
             ACCOUNT_LOGE("status != OHOS::DistributedKv::Status::KEY_NOT_FOUND");
         }
-        ret = OHOS::ERR_OSACCOUNT_SERVICE_MANAGER_QUERY_DISTRIBUTE_DATA_ERROR;
-    } else {
-        ACCOUNT_LOGE("SaveEntries start");
-        infos.clear();
-        SaveEntries(allEntries, infos);
-        ACCOUNT_LOGE("SaveEntries end");
+        return OHOS::ERR_OSACCOUNT_SERVICE_MANAGER_QUERY_DISTRIBUTE_DATA_ERROR;
     }
-
-    ACCOUNT_LOGI("end, status = %{public}d, ret = %{public}d", status, ret);
-
-    return ret;
+    infos.clear();
+    SaveEntries(allEntries, infos);
+    return ERR_OK;
 }
 
 ErrCode AccountDataStorage::PutValueToKvStore(const std::string &keyStr, const std::string &valueStr)

@@ -13,10 +13,10 @@
  * limitations under the License.
  */
 
+#include "bundle_mgr_client.h"
+
 #include "account_log_wrapper.h"
 #include "bundle_info.h"
-
-#include "bundle_mgr_client.h"
 
 using namespace OHOS::AccountSA;
 

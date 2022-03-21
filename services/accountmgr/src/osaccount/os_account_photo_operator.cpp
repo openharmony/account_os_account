@@ -13,9 +13,10 @@
  * limitations under the License.
  */
 
+#include "os_account_photo_operator.h"
+
 #include "account_log_wrapper.h"
 
-#include "os_account_photo_operator.h"
 namespace OHOS {
 namespace AccountSA {
 namespace {
@@ -82,7 +83,6 @@ std::string OsAccountPhotoOperator::DeCode(std::string const &baseStr)
     }
 
     size_t i = 0;
-    size_t j = 0;
     size_t in_ = 0;
     unsigned char char_array_4[SIZET_FOUR], char_array_3[SIZET_THREE];
 
@@ -105,6 +105,7 @@ std::string OsAccountPhotoOperator::DeCode(std::string const &baseStr)
         }
     }
 
+    size_t j = 0;
     if (i) {
         for (j = i; j < SIZET_FOUR; j++)
             char_array_4[j] = 0;

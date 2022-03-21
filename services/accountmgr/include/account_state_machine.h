@@ -13,8 +13,8 @@
  * limitations under the License.
  */
 
-#ifndef BASE_ACCOUNT_INCLUDE_ACCOUNT_STATE_MACHINE_H
-#define BASE_ACCOUNT_INCLUDE_ACCOUNT_STATE_MACHINE_H
+#ifndef OS_ACCOUNT_SERVICES_ACCOUNTMGR_INCLUDE_ACCOUNT_STATE_MACHINE_H
+#define OS_ACCOUNT_SERVICES_ACCOUNTMGR_INCLUDE_ACCOUNT_STATE_MACHINE_H
 
 #include <iostream>
 #include <map>
@@ -170,6 +170,7 @@ private:
     int currentState_;
     std::map<int, std::map<int, AccountStateAction *>> stateMachineMap_;
 };
-} // namespace AccountSA
-} // namespace OHOS
-#endif // BASE_ACCOUNT_INCLUDE_ACCOUNT_STATE_MACHINE_H
+}  // namespace AccountSA
+}  // namespace OHOS
+
+#endif  // OS_ACCOUNT_SERVICES_ACCOUNTMGR_INCLUDE_ACCOUNT_STATE_MACHINE_H

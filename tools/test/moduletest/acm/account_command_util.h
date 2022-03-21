@@ -13,15 +13,11 @@
  * limitations under the License.
  */
 
-#ifndef BASE_ACCOUNT_OS_ACCOUNT_TOOLS_TEST_MODULETEST_ACM_ACCOUNT_COMMAND_UTIL_H
-#define BASE_ACCOUNT_OS_ACCOUNT_TOOLS_TEST_MODULETEST_ACM_ACCOUNT_COMMAND_UTIL_H
-
-#include <iostream>
+#ifndef OS_ACCOUNT_TOOLS_TEST_MODULETEST_ACM_ACCOUNT_COMMAND_UTIL_H
+#define OS_ACCOUNT_TOOLS_TEST_MODULETEST_ACM_ACCOUNT_COMMAND_UTIL_H
 
 namespace OHOS {
 namespace AccountSA {
-namespace {}
-
 class AccountCommandUtil {
 public:
     static void CreateOsAccount();
@@ -33,4 +29,4 @@ public:
 }  // namespace AccountSA
 }  // namespace OHOS
 
-#endif  // BASE_ACCOUNT_OS_ACCOUNT_TOOLS_TEST_MODULETEST_ACM_ACCOUNT_COMMAND_UTIL_H
+#endif  // OS_ACCOUNT_TOOLS_TEST_MODULETEST_ACM_ACCOUNT_COMMAND_UTIL_H

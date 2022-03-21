@@ -857,7 +857,6 @@ HWTEST_F(AppAccountManagerTest, AppAccountManager_SetOAuthToken_0200, TestSize.L
 HWTEST_F(AppAccountManagerTest, AppAccountManager_DeleteOAuthToken_0100, TestSize.Level1)
 {
     ACCOUNT_LOGI("AppAccountManager_DeleteOAuthToken_0100");
-    std::string token;
     ErrCode result = AppAccountManager::DeleteOAuthToken(STRING_EMPTY, STRING_OWNER, STRING_AUTH_TYPE, STRING_TOKEN);
     EXPECT_EQ(result, ERR_APPACCOUNT_KIT_INVALID_PARAMETER);
 

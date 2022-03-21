@@ -12,8 +12,10 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 #ifndef OS_ACCOUNT_SERVICES_ACCOUNTMGR_INCLUDE_OSACCOUNT_OS_ACCOUNT_STANDARD_INTERFACE_H
 #define OS_ACCOUNT_SERVICES_ACCOUNTMGR_INCLUDE_OSACCOUNT_OS_ACCOUNT_STANDARD_INTERFACE_H
+
 #include <vector>
 #include "account_error_no.h"
 #include "os_account_info.h"
@@ -37,4 +39,5 @@ public:
 };
 }  // namespace AccountSA
 }  // namespace OHOS
-#endif /* OS_ACCOUNT_SERVICES_ACCOUNTMGR_INCLUDE_OSACCOUNT_OS_ACCOUNT_STANDARD_INTERFACE_H */
+
+#endif  // OS_ACCOUNT_SERVICES_ACCOUNTMGR_INCLUDE_OSACCOUNT_OS_ACCOUNT_STANDARD_INTERFACE_H

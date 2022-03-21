@@ -13,13 +13,13 @@
  * limitations under the License.
  */
 
+#include "account_command_util.h"
+
 #include <gtest/gtest.h>
 
 #include "account_command.h"
 #include "os_account_manager.h"
 #include "tool_system_test.h"
-
-#include "account_command_util.h"
 
 using namespace testing::ext;
 using namespace OHOS;

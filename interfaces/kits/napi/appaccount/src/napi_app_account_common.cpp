@@ -39,7 +39,7 @@ void UvQueueWorkOnAppAccountsChanged(uv_work_t *work, int status)
     if (work == nullptr || work->data == nullptr) {
         return;
     }
-    SubscriberAccountsWorker *subscriberAccountsWorkerData = (SubscriberAccountsWorker *)work->data;
+    SubscriberAccountsWorker *subscriberAccountsWorkerData = reinterpret_cast<SubscriberAccountsWorker *>(work->data);
     uint32_t index = 0;
     napi_value results[ARGS_SIZE_ONE] = {nullptr};
     napi_create_array(subscriberAccountsWorkerData->env, &results[0]);
@@ -84,9 +84,6 @@ void SubscriberPtr::OnAccountsChanged(const std::vector<AppAccountInfo> &account
 {
     ACCOUNT_LOGI("enter");
 
-    ErrCode result;
-    std::string owner;
-    std::string name;
     uv_loop_s *loop = nullptr;
     napi_get_uv_event_loop(env_, &loop);
     if (loop == nullptr) {
@@ -106,21 +103,13 @@ void SubscriberPtr::OnAccountsChanged(const std::vector<AppAccountInfo> &account
         return;
     }
 
-    for (auto account : accounts_) {
-        result = account.GetOwner(owner);
-        ACCOUNT_LOGI("owner = %{public}s", owner.c_str());
-
-        result = account.GetName(name);
-        ACCOUNT_LOGI("name = %{public}s", name.c_str());
-    }
-
     subscriberAccountsWorker->accounts = accounts_;
     subscriberAccountsWorker->env = env_;
     subscriberAccountsWorker->ref = ref_;
 
     ACCOUNT_LOGI("subscriberAccountsWorker->ref == %{public}p", subscriberAccountsWorker->ref);
 
-    work->data = (void *)subscriberAccountsWorker;
+    work->data = reinterpret_cast<void *>(subscriberAccountsWorker);
 
     uv_queue_work(loop, work, [](uv_work_t *work) {}, UvQueueWorkOnAppAccountsChanged);
 
@@ -153,7 +142,7 @@ void UvQueueWorkOnResult(uv_work_t *work, int status)
         ACCOUNT_LOGE("work or data is nullptr");
         return;
     }
-    AuthenticatorCallbackParam *data = (AuthenticatorCallbackParam *)work->data;
+    AuthenticatorCallbackParam *data = reinterpret_cast<AuthenticatorCallbackParam *>(work->data);
     napi_value results[ARGS_SIZE_TWO] = {nullptr};
     results[0] = GetErrorCodeValue(data->env, data->resultCode);
     results[ARGS_SIZE_ONE] = AppExecFwk::WrapWantParams(data->env, data->result);
@@ -180,7 +169,7 @@ void UvQueueWorkOnRequestRedirected(uv_work_t *work, int status)
         ACCOUNT_LOGE("work or data is nullptr");
         return;
     }
-    AuthenticatorCallbackParam *data = (AuthenticatorCallbackParam *)work->data;
+    AuthenticatorCallbackParam *data = reinterpret_cast<AuthenticatorCallbackParam *>(work->data);
     napi_value results[ARGS_SIZE_ONE] = {nullptr};
     results[0] = AppExecFwk::WrapWant(data->env, data->request);
     napi_value undefined = nullptr;
@@ -215,7 +204,7 @@ void AppAccountManagerCallback::OnResult(int32_t resultCode, const AAFwk::Want &
         .resultRef = resultRef_,
         .requestRedirectedRef = requestRedirectedRef_,
     };
-    work->data = (void *)param;
+    work->data = reinterpret_cast<void *>(param);
     uv_queue_work(loop, work, [](uv_work_t *work) {}, UvQueueWorkOnResult);
 }
 
@@ -239,7 +228,7 @@ void AppAccountManagerCallback::OnRequestRedirected(AAFwk::Want &request)
         .resultRef = resultRef_,
         .requestRedirectedRef = requestRedirectedRef_,
     };
-    work->data = (void *)param;
+    work->data = reinterpret_cast<void *>(param);
     uv_queue_work(loop, work, [](uv_work_t *work) {}, UvQueueWorkOnRequestRedirected);
 }
 
@@ -383,7 +372,7 @@ void GetAuthenticatorCallbackForResult(napi_env env, sptr<IRemoteObject> callbac
         return;
     }
     napi_value remote;
-    napi_create_int64(env, reinterpret_cast<int64_t>((IRemoteObject *) callback), &remote);
+    napi_create_int64(env, reinterpret_cast<int64_t>((IRemoteObject *)callback), &remote);
     napi_value global = nullptr;
     napi_get_global(env, &global);
     if (global == nullptr) {
@@ -450,7 +439,7 @@ void ParseContextForSetExInfo(napi_env env, napi_callback_info cbInfo, AppAccoun
     }
 }
 
-void ParseArguments(napi_env env, napi_value *argv, const napi_valuetype *valueTypes, size_t &argc)
+void ParseArguments(napi_env env, napi_value *argv, const napi_valuetype *valueTypes, size_t argc)
 {
     napi_valuetype valuetype = napi_undefined;
     for (size_t i = 0; i < argc; ++i) {
@@ -489,7 +478,7 @@ void ParseContextForAuthenticate(napi_env env, napi_callback_info cbInfo, OAuthA
     napi_get_named_property(env, global, "ability", &abilityObj);
     if (abilityObj != nullptr) {
         AppExecFwk::Ability *ability = nullptr;
-        napi_get_value_external(env, abilityObj, (void **)&ability);
+        napi_get_value_external(env, abilityObj, reinterpret_cast<void **>(&ability));
         auto abilityInfo = ability->GetAbilityInfo();
         asyncContext->options.SetParam(Constants::KEY_CALLER_ABILITY_NAME, abilityInfo->name);
     }
@@ -1000,7 +989,7 @@ napi_value ParseParametersByUnsubscribe(
 void SubscribeExecuteCB(napi_env env, void *data)
 {
     ACCOUNT_LOGI("Subscribe, napi_create_async_work running.");
-    AsyncContextForSubscribe *asyncContextForOn = (AsyncContextForSubscribe *)data;
+    AsyncContextForSubscribe *asyncContextForOn = reinterpret_cast<AsyncContextForSubscribe *>(data);
     asyncContextForOn->subscriber->SetEnv(env);
     asyncContextForOn->subscriber->SetCallbackRef(asyncContextForOn->callbackRef);
     int errCode = AppAccountManager::SubscribeAppAccount(asyncContextForOn->subscriber);
@@ -1010,7 +999,7 @@ void SubscribeExecuteCB(napi_env env, void *data)
 void UnsubscribeExecuteCB(napi_env env, void *data)
 {
     ACCOUNT_LOGI("Unsubscribe napi_create_async_work start.");
-    AsyncContextForUnsubscribe *asyncContextForOff = (AsyncContextForUnsubscribe *)data;
+    AsyncContextForUnsubscribe *asyncContextForOff = reinterpret_cast<AsyncContextForUnsubscribe *>(data);
     for (auto offSubscriber : asyncContextForOff->subscribers) {
         int errCode = AppAccountManager::UnsubscribeAppAccount(offSubscriber);
         ACCOUNT_LOGI("Unsubscribe errcode parameter is %{public}d", errCode);
@@ -1020,7 +1009,7 @@ void UnsubscribeExecuteCB(napi_env env, void *data)
 void UnsubscribeCallbackCompletedCB(napi_env env, napi_status status, void *data)
 {
     ACCOUNT_LOGI("Unsubscribe napi_create_async_work end.");
-    AsyncContextForUnsubscribe *asyncContextForOff = (AsyncContextForUnsubscribe *)data;
+    AsyncContextForUnsubscribe *asyncContextForOff = reinterpret_cast<AsyncContextForUnsubscribe *>(data);
     if (asyncContextForOff == nullptr) {
         return;
     }

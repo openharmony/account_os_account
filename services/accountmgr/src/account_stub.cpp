@@ -86,6 +86,10 @@ std::int32_t AccountStub::CmdUpdateOhosAccountInfo(MessageParcel &data, MessageP
 
     // ignore the real account name
     const std::string accountName = Str16ToStr8(data.ReadString16());
+    if (accountName.empty()) {
+        ACCOUNT_LOGE("invalid account name");
+        return ERR_ACCOUNT_ZIDL_ACCOUNT_STUB_ERROR;
+    }
     const std::string uid = Str16ToStr8(data.ReadString16());
     if (uid.empty()) {
         ACCOUNT_LOGE("invalid user id");

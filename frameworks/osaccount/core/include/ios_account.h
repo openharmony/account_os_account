@@ -12,8 +12,10 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-#ifndef OS_ACCOUNT_FRAMEWORK_OSACCOUNT_CORE_INCLUDE_IOS_ACCOUNT_H
-#define OS_ACCOUNT_FRAMEWORK_OSACCOUNT_CORE_INCLUDE_IOS_ACCOUNT_H
+
+#ifndef OS_ACCOUNT_FRAMEWORKS_OSACCOUNT_CORE_INCLUDE_IOS_ACCOUNT_H
+#define OS_ACCOUNT_FRAMEWORKS_OSACCOUNT_CORE_INCLUDE_IOS_ACCOUNT_H
+
 #include <string>
 #include "iremote_broker.h"
 #include "iremote_object.h"
@@ -21,6 +23,7 @@
 #include "account_error_no.h"
 #include "os_account_constants.h"
 #include "os_account_event_listener.h"
+
 namespace OHOS {
 namespace AccountSA {
 class IOsAccount : public IRemoteBroker {
@@ -123,4 +126,5 @@ public:
 };
 }  // namespace AccountSA
 }  // namespace OHOS
+
 #endif  // OS_ACCOUNT_FRAMEWORK_OSACCOUNT_CORE_INCLUDE_IOS_ACCOUNT_H

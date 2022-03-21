@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021 Huawei Device Co., Ltd.
+ * Copyright (c) 2021-2022 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -30,7 +30,7 @@ public:
     ErrCode GetOwners(std::vector<std::string> &owners) const;
     ErrCode SetOwners(const std::vector<std::string> &owners);
 
-    virtual bool Marshalling(Parcel &parcel) const override;
+    bool Marshalling(Parcel &parcel) const override;
     static AppAccountSubscribeInfo *Unmarshalling(Parcel &parcel);
 
 private:

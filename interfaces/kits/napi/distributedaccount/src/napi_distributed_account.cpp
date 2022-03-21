@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021 Huawei Device Co., Ltd.
+ * Copyright (c) 2021-2022 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -120,9 +120,9 @@ void ProcessSetNamedProperty(napi_env env, const DistributedAccountAsyncContext 
         napi_set_named_property(env, result[1], PROPERTY_KEY_EVENT.c_str(), value);
         napi_value scalable = nullptr;
         napi_create_object(env, &scalable);
-        for (const auto &[key, value]:asyncContext->scalableData) {
+        for (const auto &[key, val]:asyncContext->scalableData) {
             napi_value jsValue = nullptr;
-            napi_create_string_utf8(env, value.c_str(), value.size(), &jsValue);
+            napi_create_string_utf8(env, val.c_str(), val.size(), &jsValue);
             napi_set_named_property(env, scalable, key.c_str(), jsValue);
         }
         napi_set_named_property(env, result[1], PROPERTY_KEY_SCALABLE.c_str(), scalable);
@@ -205,7 +205,7 @@ napi_value NapiDistributedAccount::QueryOhosAccountInfo(napi_env env, napi_callb
     napi_create_async_work(
         env, nullptr, resource,
         [](napi_env env, void *data) {
-            DistributedAccountAsyncContext *asyncContext = (DistributedAccountAsyncContext*)data;
+            DistributedAccountAsyncContext *asyncContext = reinterpret_cast<DistributedAccountAsyncContext *>(data);
             std::pair<bool, OhosAccountInfo> accountInfo = OhosAccountKits::GetInstance().QueryOhosAccountInfo();
             if (accountInfo.first) {
                 asyncContext->name = accountInfo.second.name_;
@@ -218,12 +218,12 @@ napi_value NapiDistributedAccount::QueryOhosAccountInfo(napi_env env, napi_callb
             }
         },
         [](napi_env env, napi_status status, void *data) {
-            DistributedAccountAsyncContext *asyncContext = (DistributedAccountAsyncContext*)data;
+            DistributedAccountAsyncContext *asyncContext = reinterpret_cast<DistributedAccountAsyncContext *>(data);
             ProcessSetNamedProperty(env, asyncContext);
             napi_delete_async_work(env, asyncContext->work);
             delete asyncContext;
         },
-        (void*)asyncContext, &asyncContext->work);
+        reinterpret_cast<void *>(asyncContext), &asyncContext->work);
     napi_queue_async_work(env, asyncContext->work);
 
     return result;
@@ -254,12 +254,12 @@ napi_value NapiDistributedAccount::UpdateOsAccountDistributedInfo(napi_env env, 
     napi_create_async_work(
         env, nullptr, resource,
         [](napi_env env, void *data) {
-            DistributedAccountAsyncContext *asyncContext = (DistributedAccountAsyncContext*)data;
+            DistributedAccountAsyncContext *asyncContext = reinterpret_cast<DistributedAccountAsyncContext *>(data);
             asyncContext->status = OhosAccountKits::GetInstance().UpdateOhosAccountInfo(asyncContext->name,
                 asyncContext->id, asyncContext->event) ? napi_ok : napi_generic_failure;
         },
         [](napi_env env, napi_status status, void *data) {
-            DistributedAccountAsyncContext *asyncContext = (DistributedAccountAsyncContext*)data;
+            DistributedAccountAsyncContext *asyncContext = reinterpret_cast<DistributedAccountAsyncContext *>(data);
             napi_value result[RESULT_COUNT] = {0};
             if (asyncContext->status == napi_ok) {
                 napi_get_undefined(env, &result[0]);
@@ -274,7 +274,7 @@ napi_value NapiDistributedAccount::UpdateOsAccountDistributedInfo(napi_env env, 
             napi_delete_async_work(env, asyncContext->work);
             delete asyncContext;
         },
-        (void*)asyncContext, &asyncContext->work);
+        reinterpret_cast<void *>(asyncContext), &asyncContext->work);
     napi_queue_async_work(env, asyncContext->work);
 
     return result;

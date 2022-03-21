@@ -13,8 +13,9 @@
  * limitations under the License.
  */
 
-#include "account_log_wrapper.h"
 #include "mock_inner_app_account_manager.h"
+
+#include "account_log_wrapper.h"
 
 namespace {
 const std::string STRING_NAME = "name";

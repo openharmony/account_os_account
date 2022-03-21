@@ -13,8 +13,8 @@
  * limitations under the License.
  */
 
-#ifndef ACCOUNT_OHOSACCOUNTMANAGER_H
-#define ACCOUNT_OHOSACCOUNTMANAGER_H
+#ifndef OS_ACCOUNT_SERVICES_ACCOUNTMGR_INCLUDE_OHOS_ACCOUNT_MANAGER_H
+#define OS_ACCOUNT_SERVICES_ACCOUNTMGR_INCLUDE_OHOS_ACCOUNT_MANAGER_H
 
 #include <map>
 #include <mutex>
@@ -189,6 +189,7 @@ private:
      */
     std::map<std::string, OhosAccountEventFunc> eventFuncMap_;
 };
-} // namespace AccountSA
-} // namespace OHOS
-#endif // ACCOUNT_OHOSACCOUNTMANAGER_H
+}  // namespace AccountSA
+}  // namespace OHOS
+
+#endif  // OS_ACCOUNT_SERVICES_ACCOUNTMGR_INCLUDE_OHOS_ACCOUNT_MANAGER_H

@@ -12,18 +12,21 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-#ifndef OS_ACCOUNT_FRAMEWORK_OSACCOUNT_CORE_INCLUDE_OS_ACCOUNT_STUB_H
-#define OS_ACCOUNT_FRAMEWORK_OSACCOUNT_CORE_INCLUDE_OS_ACCOUNT_STUB_H
+
+#ifndef OS_ACCOUNT_FRAMEWORKS_OSACCOUNT_CORE_INCLUDE_OS_ACCOUNT_STUB_H
+#define OS_ACCOUNT_FRAMEWORKS_OSACCOUNT_CORE_INCLUDE_OS_ACCOUNT_STUB_H
+
 #include "ios_account.h"
 #include "iremote_stub.h"
+
 namespace OHOS {
 namespace AccountSA {
 class OsAccountStub : public IRemoteStub<IOsAccount> {
 public:
     using MessageProcFunction = ErrCode (OsAccountStub::*)(MessageParcel &data, MessageParcel &reply);
     OsAccountStub();
-    virtual ~OsAccountStub() override;
-    virtual int OnRemoteRequest(
+    ~OsAccountStub() override;
+    int OnRemoteRequest(
         uint32_t code, MessageParcel &data, MessageParcel &reply, MessageOption &option) override;
 
 private:
@@ -80,4 +83,5 @@ private:
 };
 }  // namespace AccountSA
 }  // namespace OHOS
-#endif /* OS_ACCOUNT_FRAMEWORK_OSACCOUNT_CORE_INCLUDE_OS_ACCOUNT_STUB_H */
+
+#endif  // OS_ACCOUNT_FRAMEWORKS_OSACCOUNT_CORE_INCLUDE_OS_ACCOUNT_STUB_H

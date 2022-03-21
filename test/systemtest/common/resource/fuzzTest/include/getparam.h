@@ -12,8 +12,10 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-#ifndef GET_PARAM_H
-#define GET_PARAM_H
+
+#ifndef OS_ACCOUNT_TEST_SYSTEMTEST_COMMON_RESOURCE_FUZZTEST_INCLUDE_GET_PARAM_H
+#define OS_ACCOUNT_TEST_SYSTEMTEST_COMMON_RESOURCE_FUZZTEST_INCLUDE_GET_PARAM_H
+
 #include <memory>
 #include <string>
 #include <vector>
@@ -70,8 +72,8 @@ std::shared_ptr<AppAccountSubscriber> GetAppAccountSubscriber();
 
 class TestAppAccountSubscriber : public AppAccountSubscriber {
 public:
-    TestAppAccountSubscriber() {};
-    ~TestAppAccountSubscriber() {};
+    TestAppAccountSubscriber() {}
+    ~TestAppAccountSubscriber() {}
     virtual void OnAccountsChanged(const std::vector<AppAccountInfo> &accounts)
     {
         printf("Fuzz Test OnAccountsChanged\n");
@@ -89,4 +91,4 @@ public:
 };
 }  // namespace AccountSA
 }  // namespace OHOS
-#endif
+#endif  // OS_ACCOUNT_TEST_SYSTEMTEST_COMMON_RESOURCE_FUZZTEST_INCLUDE_GET_PARAM_H

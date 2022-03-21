@@ -13,14 +13,14 @@
  * limitations under the License.
  */
 
+#include "app_account_control_manager.h"
+
 #include "account_log_wrapper.h"
 #include "app_account_data_storage.h"
 #include "app_account_info.h"
 #include "ipc_skeleton.h"
 #include "ohos_account_kits.h"
 #include "singleton.h"
-
-#include "app_account_control_manager.h"
 
 namespace OHOS {
 namespace AccountSA {
@@ -279,7 +279,6 @@ ErrCode AppAccountControlManager::GetAssociatedData(const std::string &name, con
         return result;
     }
 
-    std::string associatedData;
     result = appAccountInfo.GetAssociatedData(key, value);
     if (result != ERR_OK) {
         ACCOUNT_LOGE("failed to get associated data");
@@ -332,7 +331,6 @@ ErrCode AppAccountControlManager::GetAccountCredential(const std::string &name, 
         return result;
     }
 
-    std::string accountCredential;
     result = appAccountInfo.GetAccountCredential(credentialType, credential);
     if (result != ERR_OK) {
         ACCOUNT_LOGE("failed to get account credential");

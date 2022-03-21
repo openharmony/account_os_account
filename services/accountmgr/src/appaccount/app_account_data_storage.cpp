@@ -13,10 +13,10 @@
  * limitations under the License.
  */
 
+#include "app_account_data_storage.h"
+
 #include "app_account_constants.h"
 #include "account_log_wrapper.h"
-
-#include "app_account_data_storage.h"
 
 namespace OHOS {
 namespace AccountSA {

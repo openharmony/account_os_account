@@ -13,8 +13,8 @@
  * limitations under the License.
  */
 
-#ifndef ACCOUNT_ACCOUNT_EVENT_PROVIDER_H
-#define ACCOUNT_ACCOUNT_EVENT_PROVIDER_H
+#ifndef OS_ACCOUNT_SERVICES_ACCOUNTMGR_INCLUDE_ACCOUNT_EVENT_PROVIDER_H
+#define OS_ACCOUNT_SERVICES_ACCOUNTMGR_INCLUDE_ACCOUNT_EVENT_PROVIDER_H
 
 #include <string>
 #include "account_error_no.h"
@@ -26,7 +26,7 @@ class AccountEventProvider {
 public:
     static bool EventPublish(const std::string& event);
 };
-} // namespace AccountSA
-} // namespace OHOS
+}  // namespace AccountSA
+}  // namespace OHOS
 
-#endif // ACCOUNT_ACCOUNT_EVENT_PROVIDER_H
+#endif  // OS_ACCOUNT_SERVICES_ACCOUNTMGR_INCLUDE_ACCOUNT_EVENT_PROVIDER_H

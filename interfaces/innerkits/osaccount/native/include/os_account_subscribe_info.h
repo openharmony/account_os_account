@@ -36,7 +36,7 @@ public:
     ErrCode GetName(std::string &name) const;
     ErrCode SetName(const std::string &name);
 
-    virtual bool Marshalling(Parcel &parcel) const override;
+    bool Marshalling(Parcel &parcel) const override;
     static OsAccountSubscribeInfo *Unmarshalling(Parcel &parcel);
 
 private:

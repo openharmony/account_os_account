@@ -13,8 +13,9 @@
  * limitations under the License.
  */
 
-#include "account_log_wrapper.h"
 #include "mock_app_account_subscribe_manager.h"
+
+#include "account_log_wrapper.h"
 
 namespace {
 const std::string STRING_OWNER = "com.example.owner";

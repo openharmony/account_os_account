@@ -13,6 +13,8 @@
  * limitations under the License.
  */
 
+#include "app_account.h"
+
 #include "account_error_no.h"
 #include "account_log_wrapper.h"
 #include "account_proxy.h"
@@ -22,8 +24,6 @@
 #include "iaccount.h"
 #include "iservice_registry.h"
 #include "system_ability_definition.h"
-
-#include "app_account.h"
 
 namespace OHOS {
 namespace AccountSA {
