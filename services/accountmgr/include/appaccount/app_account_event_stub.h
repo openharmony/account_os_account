@@ -24,8 +24,8 @@ namespace AccountSA {
 class AppAccountEventStub : public IRemoteStub<IAppAccountEvent> {
 public:
     AppAccountEventStub();
-    virtual ~AppAccountEventStub() override;
-    virtual int OnRemoteRequest(
+    ~AppAccountEventStub() override;
+    int OnRemoteRequest(
         uint32_t code, MessageParcel &data, MessageParcel &reply, MessageOption &option) override;
 
 private:

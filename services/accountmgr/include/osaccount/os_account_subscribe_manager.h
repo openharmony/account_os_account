@@ -29,12 +29,12 @@ public:
     OsAccountSubscribeManager();
     virtual ~OsAccountSubscribeManager();
 
-    virtual ErrCode SubscribeOsAccount(const std::shared_ptr<OsAccountSubscribeInfo> &subscribeInfoPtr,
+    ErrCode SubscribeOsAccount(const std::shared_ptr<OsAccountSubscribeInfo> &subscribeInfoPtr,
         const sptr<IRemoteObject> &eventListener) override;
-    virtual ErrCode UnsubscribeOsAccount(const sptr<IRemoteObject> &eventListener) override;
-    virtual ErrCode PublishActivatedOsAccount(const int id) override;
-    virtual ErrCode PublishActivatingOsAccount(const int id) override;
-    virtual ErrCode GetEventHandler(void) override;
+    ErrCode UnsubscribeOsAccount(const sptr<IRemoteObject> &eventListener) override;
+    ErrCode PublishActivatedOsAccount(const int id) override;
+    ErrCode PublishActivatingOsAccount(const int id) override;
+    ErrCode GetEventHandler(void) override;
     bool OnAccountsChanged(const OsSubscribeRecordPtr &osSubscribeRecordPtr, const int id);
 
 private:

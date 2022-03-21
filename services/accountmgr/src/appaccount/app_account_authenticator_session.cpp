@@ -27,12 +27,12 @@
 
 namespace OHOS {
 namespace AccountSA {
-ClientDeathRecipient::ClientDeathRecipient(AppAccountAuthenticatorSession *session) : session_(session)
+SessionClientDeathRecipient::SessionClientDeathRecipient(AppAccountAuthenticatorSession *session) : session_(session)
 {
     ACCOUNT_LOGI("enter");
 }
 
-void ClientDeathRecipient::OnRemoteDied(const wptr<IRemoteObject> &remote)
+void SessionClientDeathRecipient::OnRemoteDied(const wptr<IRemoteObject> &remote)
 {
     ACCOUNT_LOGI("enter");
     if (session_ != nullptr) {
@@ -40,18 +40,18 @@ void ClientDeathRecipient::OnRemoteDied(const wptr<IRemoteObject> &remote)
     }
 }
 
-void ClientDeathRecipient::SetSession(AppAccountAuthenticatorSession *session)
+void SessionClientDeathRecipient::SetSession(AppAccountAuthenticatorSession *session)
 {
     ACCOUNT_LOGI("enter");
     session_ = session;
 }
 
-ServerDeathRecipient::ServerDeathRecipient(AppAccountAuthenticatorSession *session) : session_(session)
+SessionServerDeathRecipient::SessionServerDeathRecipient(AppAccountAuthenticatorSession *session) : session_(session)
 {
     ACCOUNT_LOGI("enter");
 }
 
-void ServerDeathRecipient::OnRemoteDied(const wptr<IRemoteObject> &remote)
+void SessionServerDeathRecipient::OnRemoteDied(const wptr<IRemoteObject> &remote)
 {
     ACCOUNT_LOGI("enter");
     if (session_ != nullptr) {
@@ -59,7 +59,7 @@ void ServerDeathRecipient::OnRemoteDied(const wptr<IRemoteObject> &remote)
     }
 }
 
-void ServerDeathRecipient::SetSession(AppAccountAuthenticatorSession *session)
+void SessionServerDeathRecipient::SetSession(AppAccountAuthenticatorSession *session)
 {
     ACCOUNT_LOGI("enter");
     session_ = session;
@@ -139,8 +139,8 @@ void AppAccountAuthenticatorSession::Init()
     }
     sptr<AppExecFwk::IBundleMgr> bundleMgrProxy = GetBundleMgrProxy();
     conn_ = new (std::nothrow) SessionConnection(this);
-    clientDeathRecipient_ = new (std::nothrow) ClientDeathRecipient(this);
-    serverDeathRecipient_ = new (std::nothrow) ServerDeathRecipient(this);
+    clientDeathRecipient_ = new (std::nothrow) SessionClientDeathRecipient(this);
+    serverDeathRecipient_ = new (std::nothrow) SessionServerDeathRecipient(this);
     authenticatorCb_ = new (std::nothrow) AppAccountAuthenticatorCallback(this);
     sessionManager_ = AppAccountAuthenticatorSessionManager::GetInstance();
     controlManager_ = AppAccountControlManager::GetInstance();
@@ -162,7 +162,8 @@ void AppAccountAuthenticatorSession::Init()
     if ((request_.callback != nullptr) && (request_.callback->AsObject() != nullptr)) {
         request_.callback->AsObject()->AddDeathRecipient(clientDeathRecipient_);
     }
-    ownerUid_ = bundleMgrProxy->GetUidByBundleName(request_.owner, request_.callerUid / UID_TRANSFORM_DIVISOR);
+    userId_ = request_.callerUid / UID_TRANSFORM_DIVISOR;
+    ownerUid_ = bundleMgrProxy->GetUidByBundleName(request_.owner, userId_);
     isInitialized_ = true;
 }
 
@@ -186,7 +187,7 @@ ErrCode AppAccountAuthenticatorSession::Open()
     }
     AAFwk::Want want;
     want.SetElementName(request_.owner, info.abilityName);
-    errCode = AAFwk::AbilityManagerClient::GetInstance()->ConnectAbility(want, conn_, nullptr);
+    errCode = AAFwk::AbilityManagerClient::GetInstance()->ConnectAbility(want, conn_, nullptr, userId_);
     if (errCode == ERR_OK) {
         isOpened_ = true;
     }

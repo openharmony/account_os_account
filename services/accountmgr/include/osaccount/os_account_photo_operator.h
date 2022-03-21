@@ -12,8 +12,10 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 #ifndef OS_ACCOUNT_SERVICES_ACCOUNTMGR_INCLUDE_OSACCOUNT_IINNER_OS_ACCOUNT_PHOTO_OPERATOR_H
 #define OS_ACCOUNT_SERVICES_ACCOUNTMGR_INCLUDE_OSACCOUNT_IINNER_OS_ACCOUNT_PHOTO_OPERATOR_H
+
 #include <string>
 #include <iostream>
 
@@ -32,4 +34,5 @@ private:
 };
 }  // namespace AccountSA
 }  // namespace OHOS
-#endif /* OS_ACCOUNT_SERVICES_ACCOUNTMGR_INCLUDE_OSACCOUNT_IINNER_OS_ACCOUNT_PHOTO_OPERATOR_H */
+
+#endif  // OS_ACCOUNT_SERVICES_ACCOUNTMGR_INCLUDE_OSACCOUNT_IINNER_OS_ACCOUNT_PHOTO_OPERATOR_H

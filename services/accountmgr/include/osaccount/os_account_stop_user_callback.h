@@ -12,15 +12,17 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 #ifndef OS_ACCOUNT_SERVICES_ACCOUNTMGR_INCLUDE_OSACCOUNT_OS_ACCOUNT_STOP_USER_CALLBACK_H
 #define OS_ACCOUNT_SERVICES_ACCOUNTMGR_INCLUDE_OSACCOUNT_OS_ACCOUNT_STOP_USER_CALLBACK_H
+
 #include "stop_user_callback_stub.h"
 
 namespace OHOS {
 namespace AccountSA {
 class OsAccountStopUserCallback : public OHOS::AAFwk::StopUserCallbackStub {
 public:
-    virtual void OnStopUserDone(int userId, int errcode) override;
+    void OnStopUserDone(int userId, int errcode) override;
 
 public:
     bool isCallBackOk_ = false;
@@ -28,4 +30,5 @@ public:
 };
 }  // namespace AccountSA
 }  // namespace OHOS
-#endif /* OS_ACCOUNT_SERVICES_ACCOUNTMGR_INCLUDE_OSACCOUNT_OS_ACCOUNT_STOP_USER_CALLBACK_H */
+
+#endif  // OS_ACCOUNT_SERVICES_ACCOUNTMGR_INCLUDE_OSACCOUNT_OS_ACCOUNT_STOP_USER_CALLBACK_H

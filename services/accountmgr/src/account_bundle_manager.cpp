@@ -13,14 +13,14 @@
  * limitations under the License.
  */
 
+#include "account_bundle_manager.h"
+
 #include "account_info.h"
 #include "account_log_wrapper.h"
 #include "bundle_mgr_client.h"
 #include "ipc_skeleton.h"
 #include "iservice_registry.h"
 #include "system_ability_definition.h"
-
-#include "account_bundle_manager.h"
 
 using namespace OHOS::AppExecFwk;
 

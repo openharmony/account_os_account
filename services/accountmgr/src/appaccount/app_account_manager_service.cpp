@@ -13,11 +13,11 @@
  * limitations under the License.
  */
 
+#include "app_account_manager_service.h"
+
 #include "account_log_wrapper.h"
 #include "inner_app_account_manager.h"
 #include "ipc_skeleton.h"
-
-#include "app_account_manager_service.h"
 
 namespace OHOS {
 namespace AccountSA {

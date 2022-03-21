@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021 Huawei Device Co., Ltd.
+ * Copyright (c) 2021-2022 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -13,8 +13,8 @@
  * limitations under the License.
  */
 
-#ifndef NAPI_DISTRIBUTED_ACCOUNT_H
-#define NAPI_DISTRIBUTED_ACCOUNT_H
+#ifndef OS_ACCOUNT_INTERFACES_KITS_NAPI_DISTRIBUTEDACCOUNT_INCLUDE_NAPI_DISTRIBUTED_ACCOUNT_H
+#define OS_ACCOUNT_INTERFACES_KITS_NAPI_DISTRIBUTEDACCOUNT_INCLUDE_NAPI_DISTRIBUTED_ACCOUNT_H
 
 #include "napi/native_api.h"
 
@@ -34,4 +34,4 @@ private:
 } // namespace AccountJsKit
 } // namespace OHOS
 
-#endif // NAPI_DISTRIBUTED_ACCOUNT_H
+#endif // OS_ACCOUNT_INTERFACES_KITS_NAPI_DISTRIBUTEDACCOUNT_INCLUDE_NAPI_DISTRIBUTED_ACCOUNT_H

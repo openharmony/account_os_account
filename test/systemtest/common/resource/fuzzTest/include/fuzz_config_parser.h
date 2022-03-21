@@ -12,8 +12,8 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-#ifndef FUZZ_CONFIG_PARSER_H
-#define FUZZ_CONFIG_PARSER_H
+#ifndef OS_ACCOUNT_TEST_SYSTEMTEST_COMMON_RESOURCE_FUZZTEST_INCLUDE_FUZZ_CONFIG_PARSER_H
+#define OS_ACCOUNT_TEST_SYSTEMTEST_COMMON_RESOURCE_FUZZTEST_INCLUDE_FUZZ_CONFIG_PARSER_H
 
 #include <iostream>
 #include <fstream>
@@ -83,4 +83,4 @@ public:
 };
 }  // namespace OHOS
 
-#endif  // FUZZ_CONFIG_PARSER_H
+#endif  // OS_ACCOUNT_TEST_SYSTEMTEST_COMMON_RESOURCE_FUZZTEST_INCLUDE_FUZZ_CONFIG_PARSER_H

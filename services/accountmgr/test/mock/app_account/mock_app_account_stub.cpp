@@ -13,9 +13,10 @@
  * limitations under the License.
  */
 
+#include "mock_app_account_stub.h"
+
 #include "account_error_no.h"
 #include "account_log_wrapper.h"
-#include "mock_app_account_stub.h"
 
 namespace OHOS {
 namespace AccountSA {

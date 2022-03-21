@@ -294,6 +294,7 @@ HWTEST_F(
         std::map<std::string, std::shared_ptr<IAccountInfo>> accounts;
 
         result = dataStoragePtr->LoadAllData(accounts);
+        EXPECT_EQ(result, ERR_OK);
         ASSERT_EQ(accounts.size(), SIZE_ONE);
 
         auto accountPtr = accounts.begin();
@@ -314,6 +315,7 @@ HWTEST_F(
         std::map<std::string, std::shared_ptr<IAccountInfo>> accounts;
 
         result = dataStoragePtr->LoadAllData(accounts);
+        EXPECT_EQ(result, ERR_OK);
         ASSERT_EQ(accounts.size(), SIZE_ONE);
 
         auto accountPtr = accounts.begin();
@@ -369,6 +371,7 @@ HWTEST_F(
         std::map<std::string, std::shared_ptr<IAccountInfo>> accounts;
 
         result = dataStoragePtr->LoadAllData(accounts);
+        EXPECT_EQ(result, ERR_OK);
         ASSERT_EQ(accounts.size(), SIZE_ONE);
 
         auto accountPtr = accounts.begin();
@@ -392,6 +395,7 @@ HWTEST_F(
         std::map<std::string, std::shared_ptr<IAccountInfo>> accounts;
 
         result = dataStoragePtr->LoadAllData(accounts);
+        EXPECT_EQ(result, ERR_OK);
         ASSERT_EQ(accounts.size(), SIZE_ONE);
 
         auto accountPtr = accounts.begin();
@@ -451,6 +455,7 @@ HWTEST_F(
 
         std::map<std::string, std::shared_ptr<IAccountInfo>> accounts;
         result = dataStoragePtr->LoadAllData(accounts);
+        EXPECT_EQ(result, ERR_OK);
         ASSERT_EQ(accounts.size(), SIZE_ONE);
 
         auto accountPtr = accounts.begin();
@@ -470,6 +475,7 @@ HWTEST_F(
 
         std::map<std::string, std::shared_ptr<IAccountInfo>> accounts;
         result = dataStoragePtr->LoadAllData(accounts);
+        EXPECT_EQ(result, ERR_OK);
         ASSERT_EQ(accounts.size(), SIZE_ONE);
 
         auto accountPtr = accounts.begin();
@@ -514,8 +520,7 @@ HWTEST_F(AppAccountManagerServiceSyncModuleTest, AppAccountManagerServiceSync_En
         ASSERT_NE(dataStoragePtr, nullptr);
 
         std::string authorizedAccounts;
-        ErrCode result = dataStoragePtr->GetValueFromKvStore(AppAccountDataStorage::AUTHORIZED_ACCOUNTS,
-            authorizedAccounts);
+        result = dataStoragePtr->GetValueFromKvStore(AppAccountDataStorage::AUTHORIZED_ACCOUNTS, authorizedAccounts);
         ASSERT_EQ(result, ERR_OK);
 
         auto jsonObject = Json::parse(authorizedAccounts, nullptr, false);
@@ -534,8 +539,7 @@ HWTEST_F(AppAccountManagerServiceSyncModuleTest, AppAccountManagerServiceSync_En
         ASSERT_NE(dataStoragePtr, nullptr);
 
         std::string authorizedAccounts;
-        ErrCode result = dataStoragePtr->GetValueFromKvStore(AppAccountDataStorage::AUTHORIZED_ACCOUNTS,
-            authorizedAccounts);
+        result = dataStoragePtr->GetValueFromKvStore(AppAccountDataStorage::AUTHORIZED_ACCOUNTS, authorizedAccounts);
         ASSERT_EQ(result, ERR_OK);
 
         auto jsonObject = Json::parse(authorizedAccounts, nullptr, false);
@@ -583,7 +587,7 @@ HWTEST_F(AppAccountManagerServiceSyncModuleTest, AppAccountManagerServiceSync_En
         ASSERT_NE(dataStoragePtr, nullptr);
 
         std::string authorizedAccounts;
-        ErrCode result = dataStoragePtr->GetValueFromKvStore(AppAccountDataStorage::AUTHORIZED_ACCOUNTS,
+        result = dataStoragePtr->GetValueFromKvStore(AppAccountDataStorage::AUTHORIZED_ACCOUNTS,
             authorizedAccounts);
         ASSERT_EQ(result, ERR_OK);
 
@@ -603,7 +607,7 @@ HWTEST_F(AppAccountManagerServiceSyncModuleTest, AppAccountManagerServiceSync_En
         ASSERT_NE(dataStoragePtr, nullptr);
 
         std::string authorizedAccounts;
-        ErrCode result = dataStoragePtr->GetValueFromKvStore(AppAccountDataStorage::AUTHORIZED_ACCOUNTS,
+        result = dataStoragePtr->GetValueFromKvStore(AppAccountDataStorage::AUTHORIZED_ACCOUNTS,
             authorizedAccounts);
         ASSERT_EQ(result, ERR_OK);
 
@@ -652,7 +656,7 @@ HWTEST_F(AppAccountManagerServiceSyncModuleTest, AppAccountManagerServiceSync_Di
         ASSERT_NE(dataStoragePtr, nullptr);
 
         std::string authorizedAccounts;
-        ErrCode result = dataStoragePtr->GetValueFromKvStore(AppAccountDataStorage::AUTHORIZED_ACCOUNTS,
+        result = dataStoragePtr->GetValueFromKvStore(AppAccountDataStorage::AUTHORIZED_ACCOUNTS,
             authorizedAccounts);
         ASSERT_EQ(result, ERR_OK);
 
@@ -667,7 +671,7 @@ HWTEST_F(AppAccountManagerServiceSyncModuleTest, AppAccountManagerServiceSync_Di
         ASSERT_NE(dataStoragePtr, nullptr);
 
         std::string authorizedAccounts;
-        ErrCode result = dataStoragePtr->GetValueFromKvStore(AppAccountDataStorage::AUTHORIZED_ACCOUNTS,
+        result = dataStoragePtr->GetValueFromKvStore(AppAccountDataStorage::AUTHORIZED_ACCOUNTS,
             authorizedAccounts);
         ASSERT_EQ(result, ERR_OK);
 

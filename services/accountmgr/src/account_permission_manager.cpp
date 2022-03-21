@@ -13,12 +13,12 @@
  * limitations under the License.
  */
 
+#include "account_permission_manager.h"
+
 #include "accesstoken_kit.h"
 #include "account_bundle_manager.h"
 #include "account_log_wrapper.h"
 #include "ipc_skeleton.h"
-
-#include "account_permission_manager.h"
 
 using namespace OHOS::Security::AccessToken;
 
@@ -39,17 +39,6 @@ AccountPermissionManager::AccountPermissionManager()
 AccountPermissionManager::~AccountPermissionManager()
 {
     ACCOUNT_LOGI("enter");
-}
-
-bool AccountPermissionManager::IsSystemUid(const uid_t &uid) const
-{
-    ACCOUNT_LOGI("enter");
-
-    if (uid >= MIN_SYSTEM_UID && uid <= MAX_SYSTEM_UID) {
-        return true;
-    }
-
-    return true;
 }
 
 ErrCode AccountPermissionManager::VerifyPermission(const std::string &permissionName)

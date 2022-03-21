@@ -13,8 +13,8 @@
  * limitations under the License.
  */
 
-#ifndef ACCOUNT_STUB_H
-#define ACCOUNT_STUB_H
+#ifndef OS_ACCOUNT_SERVICES_ACCOUNTMGR_INCLUDE_ACCOUNT_STUB_H
+#define OS_ACCOUNT_SERVICES_ACCOUNTMGR_INCLUDE_ACCOUNT_STUB_H
 
 #include "iaccount.h"
 #include "iaccount_context.h"
@@ -48,4 +48,4 @@ private:
 }  // namespace AccountSA
 }  // namespace OHOS
 
-#endif  // ACCOUNT_STUB_H
+#endif  // OS_ACCOUNT_SERVICES_ACCOUNTMGR_INCLUDE_ACCOUNT_STUB_H

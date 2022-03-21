@@ -29,17 +29,18 @@ namespace OHOS {
 namespace AccountSA {
 class AppAccountAuthenticatorSession;
 class AppAccountAuthenticatorSessionManager;
-namespace {
-class AppStateObserver : public AppExecFwk::ApplicationStateObserverStub {
+
+class SessionAppStateObserver : public AppExecFwk::ApplicationStateObserverStub {
 public:
-    AppStateObserver(AppAccountAuthenticatorSessionManager *sessionManager);
-    virtual ~AppStateObserver() = default;
-    virtual void OnAbilityStateChanged(const AppExecFwk::AbilityStateData &abilityStateData) override;
+    explicit SessionAppStateObserver(AppAccountAuthenticatorSessionManager *sessionManager);
+    virtual ~SessionAppStateObserver() = default;
+    
+    void OnAbilityStateChanged(const AppExecFwk::AbilityStateData &abilityStateData) override;
     void SetSessionManager(AppAccountAuthenticatorSessionManager *sessionManager);
+
 private:
     AppAccountAuthenticatorSessionManager *sessionManager_;
 };
-}
 
 class AppAccountAuthenticatorSessionManager : public DelayedSingleton<AppAccountAuthenticatorSessionManager> {
 public:
@@ -53,10 +54,11 @@ public:
     void Init();
     void CloseSession(const std::string &sessionId);
     ErrCode OpenSession(const std::string &action, const OAuthRequest &request);
+
 private:
     std::mutex mutex_;
     sptr<AppExecFwk::IAppMgr> iAppMgr_;
-    sptr<AppStateObserver> appStateObserver_;
+    sptr<SessionAppStateObserver> appStateObserver_;
     std::map<std::string, std::shared_ptr<AppAccountAuthenticatorSession>> sessionMap_;
     std::map<std::string, std::set<std::string>> abilitySessions_;
     bool isInitialized_ = false;

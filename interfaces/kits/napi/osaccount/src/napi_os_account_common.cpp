@@ -13,8 +13,9 @@
  * limitations under the License.
  */
 
-#include "napi_os_account.h"
 #include "napi_os_account_common.h"
+
+#include "napi_os_account.h"
 
 namespace OHOS {
 namespace AccountJsKit {
@@ -94,7 +95,7 @@ napi_value ParseParaQueryOAByIdCB(napi_env env, napi_callback_info cbInfo, Query
 void QueryOAByIdExecuteCB(napi_env env, void *data)
 {
     ACCOUNT_LOGI("napi_create_async_work running");
-    QueryOAByIdAsyncContext *queryOAByIdCB = (QueryOAByIdAsyncContext *)data;
+    QueryOAByIdAsyncContext *queryOAByIdCB = reinterpret_cast<QueryOAByIdAsyncContext *>(data);
     queryOAByIdCB->errCode = OsAccountManager::QueryOsAccountById(queryOAByIdCB->id, queryOAByIdCB->osAccountInfos);
     ACCOUNT_LOGI("errcode is %{public}d", queryOAByIdCB->errCode);
     queryOAByIdCB->status = (queryOAByIdCB->errCode == 0) ? napi_ok : napi_generic_failure;
@@ -103,12 +104,12 @@ void QueryOAByIdExecuteCB(napi_env env, void *data)
 void QueryOAByIdCallbackCompletedCB(napi_env env, napi_status status, void *data)
 {
     ACCOUNT_LOGI("napi_create_async_work complete");
-    QueryOAByIdAsyncContext *queryOAByIdCB = (QueryOAByIdAsyncContext *)data;
+    QueryOAByIdAsyncContext *queryOAByIdCB = reinterpret_cast<QueryOAByIdAsyncContext *>(data);
     napi_value queryResult[RESULT_COUNT] = {0};
-    queryResult[PARAM0] = GetErrorCodeValue(env, queryOAByIdCB->errCode);
-    napi_create_object(env, &queryResult[PARAM1]);
-    GetOACBInfoToJs(env, queryOAByIdCB->osAccountInfos, queryResult[PARAM1]);
-    CBOrPromiseToQueryOAById(env, queryOAByIdCB, queryResult[PARAM0], queryResult[PARAM1]);
+    queryResult[PARAMZERO] = GetErrorCodeValue(env, queryOAByIdCB->errCode);
+    napi_create_object(env, &queryResult[PARAMONE]);
+    GetOACBInfoToJs(env, queryOAByIdCB->osAccountInfos, queryResult[PARAMONE]);
+    CBOrPromiseToQueryOAById(env, queryOAByIdCB, queryResult[PARAMZERO], queryResult[PARAMONE]);
     napi_delete_async_work(env, queryOAByIdCB->work);
     delete queryOAByIdCB;
     queryOAByIdCB = nullptr;
@@ -220,14 +221,8 @@ void GetOACBInfoToJs(napi_env env, OsAccountInfo &info, napi_value objOAInfo)
         napi_set_named_property(env, dbInfoToJs, "event", value);
 
         // scalableData
-        std::map<std::string, std::string> scalableData = {};
         napi_value scalable = nullptr;
         napi_create_object(env, &scalable);
-        for (const auto &[key, item] : scalableData) {
-            napi_value jsValue = nullptr;
-            napi_create_string_utf8(env, item.c_str(), item.size(), &jsValue);
-            napi_set_named_property(env, scalable, key.c_str(), jsValue);
-        }
         napi_set_named_property(env, dbInfoToJs, "scalableData", scalable);
     } else {
         napi_get_undefined(env, &dbInfoToJs);
@@ -316,7 +311,7 @@ napi_value ParseParaRemoveOACB(napi_env env, napi_callback_info cbInfo, RemoveOA
 void RemoveOAExecuteCB(napi_env env, void *data)
 {
     ACCOUNT_LOGI("napi_create_async_work running");
-    RemoveOAAsyncContext *removeOACB = (RemoveOAAsyncContext *)data;
+    RemoveOAAsyncContext *removeOACB = reinterpret_cast<RemoveOAAsyncContext *>(data);
     removeOACB->errCode = OsAccountManager::RemoveOsAccount(removeOACB->id);
     ACCOUNT_LOGI("errcode is %{public}d", removeOACB->errCode);
     removeOACB->status = (removeOACB->errCode == 0) ? napi_ok : napi_generic_failure;
@@ -325,11 +320,11 @@ void RemoveOAExecuteCB(napi_env env, void *data)
 void RemoveOACallbackCompletedCB(napi_env env, napi_status status, void *data)
 {
     ACCOUNT_LOGI("napi_create_async_work complete");
-    RemoveOAAsyncContext *removeOACB = (RemoveOAAsyncContext *)data;
+    RemoveOAAsyncContext *removeOACB = reinterpret_cast<RemoveOAAsyncContext *>(data);
     napi_value rmResult[RESULT_COUNT] = {0};
-    rmResult[PARAM0] = GetErrorCodeValue(env, removeOACB->errCode);
-    napi_get_undefined(env, &rmResult[PARAM1]);
-    CBOrPromiseToRemoveOA(env, removeOACB, rmResult[PARAM0], rmResult[PARAM1]);
+    rmResult[PARAMZERO] = GetErrorCodeValue(env, removeOACB->errCode);
+    napi_get_undefined(env, &rmResult[PARAMONE]);
+    CBOrPromiseToRemoveOA(env, removeOACB, rmResult[PARAMZERO], rmResult[PARAMONE]);
     napi_delete_async_work(env, removeOACB->work);
     delete removeOACB;
     removeOACB = nullptr;
@@ -386,7 +381,7 @@ napi_value ParseParaSetOAName(napi_env env, napi_callback_info cbInfo, SetOAName
 void SetOANameExecuteCB(napi_env env, void *data)
 {
     ACCOUNT_LOGI("napi_create_async_work running");
-    SetOANameAsyncContext *setOANameCB = (SetOANameAsyncContext *)data;
+    SetOANameAsyncContext *setOANameCB = reinterpret_cast<SetOANameAsyncContext *>(data);
     setOANameCB->errCode = OsAccountManager::SetOsAccountName(setOANameCB->id, setOANameCB->name);
     ACCOUNT_LOGI("errcode is %{public}d", setOANameCB->errCode);
     setOANameCB->status = (setOANameCB->errCode == 0) ? napi_ok : napi_generic_failure;
@@ -395,11 +390,11 @@ void SetOANameExecuteCB(napi_env env, void *data)
 void SetOANameCallbackCompletedCB(napi_env env, napi_status status, void *data)
 {
     ACCOUNT_LOGI("napi_create_async_work complete");
-    SetOANameAsyncContext *setOANameCB = (SetOANameAsyncContext *)data;
+    SetOANameAsyncContext *setOANameCB = reinterpret_cast<SetOANameAsyncContext *>(data);
     napi_value setNameResult[RESULT_COUNT] = {0};
-    setNameResult[PARAM0] = GetErrorCodeValue(env, setOANameCB->errCode);
-    napi_get_undefined(env, &setNameResult[PARAM1]);
-    CBOrPromiseToSetOAName(env, setOANameCB, setNameResult[PARAM0], setNameResult[PARAM1]);
+    setNameResult[PARAMZERO] = GetErrorCodeValue(env, setOANameCB->errCode);
+    napi_get_undefined(env, &setNameResult[PARAMONE]);
+    CBOrPromiseToSetOAName(env, setOANameCB, setNameResult[PARAMZERO], setNameResult[PARAMONE]);
     napi_delete_async_work(env, setOANameCB->work);
     delete setOANameCB;
     setOANameCB = nullptr;
@@ -489,7 +484,7 @@ napi_value ParseParaSetOAConstraints(napi_env env, napi_callback_info cbInfo, Se
 void SetOAConsExecuteCB(napi_env env, void *data)
 {
     ACCOUNT_LOGI("napi_create_async_work running");
-    SetOAConsAsyncContext *setOAConsCB = (SetOAConsAsyncContext *)data;
+    SetOAConsAsyncContext *setOAConsCB = reinterpret_cast<SetOAConsAsyncContext *>(data);
     setOAConsCB->errCode =
         OsAccountManager::SetOsAccountConstraints(setOAConsCB->id, setOAConsCB->constraints, setOAConsCB->enable);
     ACCOUNT_LOGI("errcode is %{public}d", setOAConsCB->errCode);
@@ -499,11 +494,11 @@ void SetOAConsExecuteCB(napi_env env, void *data)
 void SetOAConsCallbackCompletedCB(napi_env env, napi_status status, void *data)
 {
     ACCOUNT_LOGI("napi_create_async_work complete");
-    SetOAConsAsyncContext *setOAConsCB = (SetOAConsAsyncContext *)data;
+    SetOAConsAsyncContext *setOAConsCB = reinterpret_cast<SetOAConsAsyncContext *>(data);
     napi_value setConsResult[RESULT_COUNT] = {0};
-    setConsResult[PARAM0] = GetErrorCodeValue(env, setOAConsCB->errCode);
-    napi_get_undefined(env, &setConsResult[PARAM1]);
-    CBOrPromiseToSetOACons(env, setOAConsCB, setConsResult[PARAM0], setConsResult[PARAM1]);
+    setConsResult[PARAMZERO] = GetErrorCodeValue(env, setOAConsCB->errCode);
+    napi_get_undefined(env, &setConsResult[PARAMONE]);
+    CBOrPromiseToSetOACons(env, setOAConsCB, setConsResult[PARAMZERO], setConsResult[PARAMONE]);
     napi_delete_async_work(env, setOAConsCB->work);
     delete setOAConsCB;
     setOAConsCB = nullptr;
@@ -558,7 +553,7 @@ napi_value ParseParaActiveOA(napi_env env, napi_callback_info cbInfo, ActivateOA
 void ActivateOAExecuteCB(napi_env env, void *data)
 {
     ACCOUNT_LOGI("napi_create_async_work running");
-    ActivateOAAsyncContext *activateOACB = (ActivateOAAsyncContext *)data;
+    ActivateOAAsyncContext *activateOACB = reinterpret_cast<ActivateOAAsyncContext *>(data);
     activateOACB->errCode = OsAccountManager::ActivateOsAccount(activateOACB->id);
     ACCOUNT_LOGI("errcode is %{public}d", activateOACB->errCode);
     activateOACB->status = (activateOACB->errCode == 0) ? napi_ok : napi_generic_failure;
@@ -567,11 +562,11 @@ void ActivateOAExecuteCB(napi_env env, void *data)
 void ActivateOACallbackCompletedCB(napi_env env, napi_status status, void *data)
 {
     ACCOUNT_LOGI("napi_create_async_work complete");
-    ActivateOAAsyncContext *activateOA = (ActivateOAAsyncContext *)data;
+    ActivateOAAsyncContext *activateOA = reinterpret_cast<ActivateOAAsyncContext *>(data);
     napi_value activateResult[RESULT_COUNT] = {0};
-    activateResult[PARAM0] = GetErrorCodeValue(env, activateOA->errCode);
-    napi_get_undefined(env, &activateResult[PARAM1]);
-    CBOrPromiseToActivateOA(env, activateOA, activateResult[PARAM0], activateResult[PARAM1]);
+    activateResult[PARAMZERO] = GetErrorCodeValue(env, activateOA->errCode);
+    napi_get_undefined(env, &activateResult[PARAMONE]);
+    CBOrPromiseToActivateOA(env, activateOA, activateResult[PARAMZERO], activateResult[PARAMONE]);
     napi_delete_async_work(env, activateOA->work);
     delete activateOA;
     activateOA = nullptr;
@@ -660,7 +655,7 @@ napi_value ParseParaCreateOAForDomain(napi_env env, napi_callback_info cbInfo,
 void CreateOAExecuteCB(napi_env env, void *data)
 {
     ACCOUNT_LOGI("napi_create_async_work running");
-    CreateOAAsyncContext *createOACB = (CreateOAAsyncContext *)data;
+    CreateOAAsyncContext *createOACB = reinterpret_cast<CreateOAAsyncContext *>(data);
     createOACB->errCode =
         OsAccountManager::CreateOsAccount(createOACB->name, createOACB->type, createOACB->osAccountInfos);
     ACCOUNT_LOGI("errocde is %{public}d", createOACB->errCode);
@@ -670,7 +665,7 @@ void CreateOAExecuteCB(napi_env env, void *data)
 void CreateOAForDomainExecuteCB(napi_env env, void *data)
 {
     ACCOUNT_LOGI("napi_create_async_work running");
-    CreateOAForDomainAsyncContext *createOAForDomainCB = (CreateOAForDomainAsyncContext *)data;
+    CreateOAForDomainAsyncContext *createOAForDomainCB = reinterpret_cast<CreateOAForDomainAsyncContext *>(data);
     createOAForDomainCB->errCode = OsAccountManager::CreateOsAccountForDomain(createOAForDomainCB->type,
         createOAForDomainCB->domainInfo, createOAForDomainCB->osAccountInfos);
     ACCOUNT_LOGI("errocde is %{public}d", createOAForDomainCB->errCode);
@@ -680,12 +675,12 @@ void CreateOAForDomainExecuteCB(napi_env env, void *data)
 void CreateOACallbackCompletedCB(napi_env env, napi_status status, void *data)
 {
     ACCOUNT_LOGI("napi_create_async_work complete");
-    CreateOAAsyncContext *createOACB = (CreateOAAsyncContext *)data;
+    CreateOAAsyncContext *createOACB = reinterpret_cast<CreateOAAsyncContext *>(data);
     napi_value createResult[RESULT_COUNT] = {0};
-    createResult[PARAM0] = GetErrorCodeValue(env, createOACB->errCode);
-    napi_create_object(env, &createResult[PARAM1]);
-    GetOACBInfoToJs(env, createOACB->osAccountInfos, createResult[PARAM1]);
-    CBOrPromiseToCreateOA(env, createOACB, createResult[PARAM0], createResult[PARAM1]);
+    createResult[PARAMZERO] = GetErrorCodeValue(env, createOACB->errCode);
+    napi_create_object(env, &createResult[PARAMONE]);
+    GetOACBInfoToJs(env, createOACB->osAccountInfos, createResult[PARAMONE]);
+    CBOrPromiseToCreateOA(env, createOACB, createResult[PARAMZERO], createResult[PARAMONE]);
     napi_delete_async_work(env, createOACB->work);
     delete createOACB;
     createOACB = nullptr;
@@ -694,12 +689,12 @@ void CreateOACallbackCompletedCB(napi_env env, napi_status status, void *data)
 void CreateOAForDomainCallbackCompletedCB(napi_env env, napi_status status, void *data)
 {
     ACCOUNT_LOGI("napi_create_async_work complete");
-    CreateOAForDomainAsyncContext *createOAForDomainCB = (CreateOAForDomainAsyncContext *)data;
+    CreateOAForDomainAsyncContext *createOAForDomainCB = reinterpret_cast<CreateOAForDomainAsyncContext *>(data);
     napi_value createResult[RESULT_COUNT] = {0};
-    createResult[PARAM0] = GetErrorCodeValue(env, createOAForDomainCB->errCode);
-    napi_create_object(env, &createResult[PARAM1]);
-    GetOACBInfoToJs(env, createOAForDomainCB->osAccountInfos, createResult[PARAM1]);
-    CBOrPromiseToCreateOAForDomain(env, createOAForDomainCB, createResult[PARAM0], createResult[PARAM1]);
+    createResult[PARAMZERO] = GetErrorCodeValue(env, createOAForDomainCB->errCode);
+    napi_create_object(env, &createResult[PARAMONE]);
+    GetOACBInfoToJs(env, createOAForDomainCB->osAccountInfos, createResult[PARAMONE]);
+    CBOrPromiseToCreateOAForDomain(env, createOAForDomainCB, createResult[PARAMZERO], createResult[PARAMONE]);
     napi_delete_async_work(env, createOAForDomainCB->work);
     delete createOAForDomainCB;
     createOAForDomainCB = nullptr;
@@ -771,7 +766,7 @@ void ParseParaGetOACount(napi_env env, napi_callback_info cbInfo, GetOACountAsyn
 void GetOACountExecuteCB(napi_env env, void *data)
 {
     ACCOUNT_LOGI("napi_create_async_work running");
-    GetOACountAsyncContext *getOACount = (GetOACountAsyncContext *)data;
+    GetOACountAsyncContext *getOACount = reinterpret_cast<GetOACountAsyncContext *>(data);
     getOACount->errCode = OsAccountManager::GetCreatedOsAccountsCount(getOACount->osAccountsCount);
     ACCOUNT_LOGI("errocde is %{public}d", getOACount->errCode);
     getOACount->status = (getOACount->errCode == 0) ? napi_ok : napi_generic_failure;
@@ -780,11 +775,11 @@ void GetOACountExecuteCB(napi_env env, void *data)
 void GetOACountCallbackCompletedCB(napi_env env, napi_status status, void *data)
 {
     ACCOUNT_LOGI("napi_create_async_work complete");
-    GetOACountAsyncContext *getOACount = (GetOACountAsyncContext *)data;
+    GetOACountAsyncContext *getOACount = reinterpret_cast<GetOACountAsyncContext *>(data);
     napi_value getResult[RESULT_COUNT] = {0};
-    getResult[PARAM0] = GetErrorCodeValue(env, getOACount->errCode);
-    napi_create_uint32(env, getOACount->osAccountsCount, &getResult[PARAM1]);
-    CBOrPromiseToGetOACount(env, getOACount, getResult[PARAM0], getResult[PARAM1]);
+    getResult[PARAMZERO] = GetErrorCodeValue(env, getOACount->errCode);
+    napi_create_uint32(env, getOACount->osAccountsCount, &getResult[PARAMONE]);
+    CBOrPromiseToGetOACount(env, getOACount, getResult[PARAMZERO], getResult[PARAMONE]);
     napi_delete_async_work(env, getOACount->work);
     delete getOACount;
     getOACount = nullptr;
@@ -832,7 +827,7 @@ void ParseParaDbDeviceId(napi_env env, napi_callback_info cbInfo, DbDeviceIdAsyn
 void DbDeviceIdExecuteCB(napi_env env, void *data)
 {
     ACCOUNT_LOGI("napi_create_async_work running");
-    DbDeviceIdAsyncContext *dbDeviceId = (DbDeviceIdAsyncContext *)data;
+    DbDeviceIdAsyncContext *dbDeviceId = reinterpret_cast<DbDeviceIdAsyncContext *>(data);
     dbDeviceId->errCode = OsAccountManager::GetDistributedVirtualDeviceId(dbDeviceId->deviceId);
     ACCOUNT_LOGI("errocde is %{public}d", dbDeviceId->errCode);
     dbDeviceId->status = (dbDeviceId->errCode == 0) ? napi_ok : napi_generic_failure;
@@ -841,11 +836,11 @@ void DbDeviceIdExecuteCB(napi_env env, void *data)
 void DbDeviceIdCallbackCompletedCB(napi_env env, napi_status status, void *data)
 {
     ACCOUNT_LOGI("napi_create_async_work complete");
-    DbDeviceIdAsyncContext *dbDeviceId = (DbDeviceIdAsyncContext *)data;
+    DbDeviceIdAsyncContext *dbDeviceId = reinterpret_cast<DbDeviceIdAsyncContext *>(data);
     napi_value dbIdResult[RESULT_COUNT] = {0};
-    dbIdResult[PARAM0] = GetErrorCodeValue(env, dbDeviceId->errCode);
-    napi_create_string_utf8(env, dbDeviceId->deviceId.c_str(), NAPI_AUTO_LENGTH, &dbIdResult[PARAM1]);
-    CBOrPromiseToDbDeviceId(env, dbDeviceId, dbIdResult[PARAM0], dbIdResult[PARAM1]);
+    dbIdResult[PARAMZERO] = GetErrorCodeValue(env, dbDeviceId->errCode);
+    napi_create_string_utf8(env, dbDeviceId->deviceId.c_str(), NAPI_AUTO_LENGTH, &dbIdResult[PARAMONE]);
+    CBOrPromiseToDbDeviceId(env, dbDeviceId, dbIdResult[PARAMZERO], dbIdResult[PARAMONE]);
     napi_delete_async_work(env, dbDeviceId->work);
     delete dbDeviceId;
     dbDeviceId = nullptr;
@@ -900,7 +895,7 @@ napi_value ParseParaGetAllCons(napi_env env, napi_callback_info cbInfo, GetAllCo
 void GetAllConsExecuteCB(napi_env env, void *data)
 {
     ACCOUNT_LOGI("napi_create_async_work running");
-    GetAllConsAsyncContext *getAllConsCB = (GetAllConsAsyncContext *)data;
+    GetAllConsAsyncContext *getAllConsCB = reinterpret_cast<GetAllConsAsyncContext *>(data);
     getAllConsCB->errCode = OsAccountManager::GetOsAccountAllConstraints(getAllConsCB->id, getAllConsCB->constraints);
     ACCOUNT_LOGI("errocde is %{public}d", getAllConsCB->errCode);
     getAllConsCB->status = (getAllConsCB->errCode == 0) ? napi_ok : napi_generic_failure;
@@ -909,12 +904,12 @@ void GetAllConsExecuteCB(napi_env env, void *data)
 void GetAllConsCallbackCompletedCB(napi_env env, napi_status status, void *data)
 {
     ACCOUNT_LOGI("napi_create_async_work complete");
-    GetAllConsAsyncContext *getAllConsCB = (GetAllConsAsyncContext *)data;
+    GetAllConsAsyncContext *getAllConsCB = reinterpret_cast<GetAllConsAsyncContext *>(data);
     napi_value getResult[RESULT_COUNT] = {0};
-    getResult[PARAM0] = GetErrorCodeValue(env, getAllConsCB->errCode);
-    napi_create_array(env, &getResult[PARAM1]);
-    GetAllAccountCons(env, getAllConsCB->constraints, getResult[PARAM1]);
-    CBOrPromiseToGetAllCons(env, getAllConsCB, getResult[PARAM0], getResult[PARAM1]);
+    getResult[PARAMZERO] = GetErrorCodeValue(env, getAllConsCB->errCode);
+    napi_create_array(env, &getResult[PARAMONE]);
+    GetAllAccountCons(env, getAllConsCB->constraints, getResult[PARAMONE]);
+    CBOrPromiseToGetAllCons(env, getAllConsCB, getResult[PARAMZERO], getResult[PARAMONE]);
     napi_delete_async_work(env, getAllConsCB->work);
     delete getAllConsCB;
     getAllConsCB = nullptr;
@@ -990,7 +985,7 @@ void ParseParaProcessId(napi_env env, napi_callback_info cbInfo, GetIdAsyncConte
 void GetProcessIdExecuteCB(napi_env env, void *data)
 {
     ACCOUNT_LOGI("napi_create_async_work running");
-    GetIdAsyncContext *getIdCB = (GetIdAsyncContext *)data;
+    GetIdAsyncContext *getIdCB = reinterpret_cast<GetIdAsyncContext *>(data);
     getIdCB->errCode = OsAccountManager::GetOsAccountLocalIdFromProcess(getIdCB->id);
     ACCOUNT_LOGI("errocde is %{public}d", getIdCB->errCode);
     getIdCB->status = (getIdCB->errCode == 0) ? napi_ok : napi_generic_failure;
@@ -999,11 +994,11 @@ void GetProcessIdExecuteCB(napi_env env, void *data)
 void GetProcessIdCallbackCompletedCB(napi_env env, napi_status status, void *data)
 {
     ACCOUNT_LOGI("napi_create_async_work complete");
-    GetIdAsyncContext *getIdCB = (GetIdAsyncContext *)data;
+    GetIdAsyncContext *getIdCB = reinterpret_cast<GetIdAsyncContext *>(data);
     napi_value getResult[RESULT_COUNT] = {0};
-    getResult[PARAM0] = GetErrorCodeValue(env, getIdCB->errCode);
-    napi_create_int32(env, getIdCB->id, &getResult[PARAM1]);
-    CBOrPromiseToGetProcessId(env, getIdCB, getResult[PARAM0], getResult[PARAM1]);
+    getResult[PARAMZERO] = GetErrorCodeValue(env, getIdCB->errCode);
+    napi_create_int32(env, getIdCB->id, &getResult[PARAMONE]);
+    CBOrPromiseToGetProcessId(env, getIdCB, getResult[PARAMZERO], getResult[PARAMONE]);
     napi_delete_async_work(env, getIdCB->work);
     delete getIdCB;
     getIdCB = nullptr;
@@ -1065,7 +1060,7 @@ void ParseQueryActiveIds(napi_env env, napi_callback_info cbInfo, QueryActiveIds
 void QueryCreateOAExecuteCB(napi_env env, void *data)
 {
     ACCOUNT_LOGI("napi_create_async_work running");
-    QueryCreateOAAsyncContext *queryAllOA = (QueryCreateOAAsyncContext *)data;
+    QueryCreateOAAsyncContext *queryAllOA = reinterpret_cast<QueryCreateOAAsyncContext *>(data);
     queryAllOA->errCode = OsAccountManager::QueryAllCreatedOsAccounts(queryAllOA->osAccountInfos);
     ACCOUNT_LOGI("errocde is %{public}d", queryAllOA->errCode);
     queryAllOA->status = (queryAllOA->errCode == 0) ? napi_ok : napi_generic_failure;
@@ -1074,7 +1069,7 @@ void QueryCreateOAExecuteCB(napi_env env, void *data)
 void QueryActiveIdsExecuteCB(napi_env env, void *data)
 {
     ACCOUNT_LOGI("napi_create_async_work running");
-    QueryActiveIdsAsyncContext *queryActiveIds = (QueryActiveIdsAsyncContext *)data;
+    QueryActiveIdsAsyncContext *queryActiveIds = reinterpret_cast<QueryActiveIdsAsyncContext *>(data);
     queryActiveIds->errCode = OsAccountManager::QueryActiveOsAccountIds(queryActiveIds->osAccountIds);
     ACCOUNT_LOGI("errocde is %{public}d", queryActiveIds->errCode);
     queryActiveIds->status = (queryActiveIds->errCode == 0) ? napi_ok : napi_generic_failure;
@@ -1083,12 +1078,12 @@ void QueryActiveIdsExecuteCB(napi_env env, void *data)
 void QueryCreateOACallbackCompletedCB(napi_env env, napi_status status, void *data)
 {
     ACCOUNT_LOGI("napi_create_async_work complete");
-    QueryCreateOAAsyncContext *queryAllOA = (QueryCreateOAAsyncContext *)data;
+    QueryCreateOAAsyncContext *queryAllOA = reinterpret_cast<QueryCreateOAAsyncContext *>(data);
     napi_value queryResult[RESULT_COUNT] = {0};
-    queryResult[PARAM0] = GetErrorCodeValue(env, queryAllOA->errCode);
-    napi_create_array(env, &queryResult[PARAM1]);
-    QueryOAInfoForResult(env, queryAllOA->osAccountInfos, queryResult[PARAM1]);
-    CBOrPromiseToQueryOA(env, queryAllOA, queryResult[PARAM0], queryResult[PARAM1]);
+    queryResult[PARAMZERO] = GetErrorCodeValue(env, queryAllOA->errCode);
+    napi_create_array(env, &queryResult[PARAMONE]);
+    QueryOAInfoForResult(env, queryAllOA->osAccountInfos, queryResult[PARAMONE]);
+    CBOrPromiseToQueryOA(env, queryAllOA, queryResult[PARAMZERO], queryResult[PARAMONE]);
     napi_delete_async_work(env, queryAllOA->work);
     delete queryAllOA;
     queryAllOA = nullptr;
@@ -1097,12 +1092,12 @@ void QueryCreateOACallbackCompletedCB(napi_env env, napi_status status, void *da
 void QueryActiveIdsCallbackCompletedCB(napi_env env, napi_status status, void *data)
 {
     ACCOUNT_LOGI("napi_create_async_work complete");
-    QueryActiveIdsAsyncContext *queryActiveIds = (QueryActiveIdsAsyncContext *)data;
+    QueryActiveIdsAsyncContext *queryActiveIds = reinterpret_cast<QueryActiveIdsAsyncContext *>(data);
     napi_value queryResult[RESULT_COUNT] = {0};
-    queryResult[PARAM0] = GetErrorCodeValue(env, queryActiveIds->errCode);
-    napi_create_array(env, &queryResult[PARAM1]);
-    GetActiveIds(env, queryActiveIds->osAccountIds, queryResult[PARAM1]);
-    CBOrPromiseToQueryActiveIds(env, queryActiveIds, queryResult[PARAM0], queryResult[PARAM1]);
+    queryResult[PARAMZERO] = GetErrorCodeValue(env, queryActiveIds->errCode);
+    napi_create_array(env, &queryResult[PARAMONE]);
+    GetActiveIds(env, queryActiveIds->osAccountIds, queryResult[PARAMONE]);
+    CBOrPromiseToQueryActiveIds(env, queryActiveIds, queryResult[PARAMZERO], queryResult[PARAMONE]);
     napi_delete_async_work(env, queryActiveIds->work);
     delete queryActiveIds;
     queryActiveIds = nullptr;
@@ -1196,7 +1191,7 @@ napi_value ParseParaGetPhote(napi_env env, napi_callback_info cbInfo, GetOAPhoto
 void GetOAPhoteExecuteCB(napi_env env, void *data)
 {
     ACCOUNT_LOGI("napi_create_async_work running");
-    GetOAPhotoAsyncContext *getPhoto = (GetOAPhotoAsyncContext *)data;
+    GetOAPhotoAsyncContext *getPhoto = reinterpret_cast<GetOAPhotoAsyncContext *>(data);
     getPhoto->errCode = OsAccountManager::GetOsAccountProfilePhoto(getPhoto->id, getPhoto->photo);
     ACCOUNT_LOGI("errocde is %{public}d", getPhoto->errCode);
     getPhoto->status = (getPhoto->errCode == 0) ? napi_ok : napi_generic_failure;
@@ -1205,11 +1200,11 @@ void GetOAPhoteExecuteCB(napi_env env, void *data)
 void GetOAPhoteCallbackCompletedCB(napi_env env, napi_status status, void *data)
 {
     ACCOUNT_LOGI("napi_create_async_work complete");
-    GetOAPhotoAsyncContext *getPhoto = (GetOAPhotoAsyncContext *)data;
+    GetOAPhotoAsyncContext *getPhoto = reinterpret_cast<GetOAPhotoAsyncContext *>(data);
     napi_value getResult[RESULT_COUNT] = {0};
-    getResult[PARAM0] = GetErrorCodeValue(env, getPhoto->errCode);
-    napi_create_string_utf8(env, getPhoto->photo.c_str(), NAPI_AUTO_LENGTH, &getResult[PARAM1]);
-    CBOrPromiseToGetPhoto(env, getPhoto, getResult[PARAM0], getResult[PARAM1]);
+    getResult[PARAMZERO] = GetErrorCodeValue(env, getPhoto->errCode);
+    napi_create_string_utf8(env, getPhoto->photo.c_str(), NAPI_AUTO_LENGTH, &getResult[PARAMONE]);
+    CBOrPromiseToGetPhoto(env, getPhoto, getResult[PARAMZERO], getResult[PARAMONE]);
     napi_delete_async_work(env, getPhoto->work);
     delete getPhoto;
     getPhoto = nullptr;
@@ -1257,7 +1252,7 @@ void ParseParaCurrentOA(napi_env env, napi_callback_info cbInfo, CurrentOAAsyncC
 void QueryCurrentOAExecuteCB(napi_env env, void *data)
 {
     ACCOUNT_LOGI("napi_create_async_work running");
-    CurrentOAAsyncContext *currentOA = (CurrentOAAsyncContext *)data;
+    CurrentOAAsyncContext *currentOA = reinterpret_cast<CurrentOAAsyncContext *>(data);
     currentOA->errCode = OsAccountManager::QueryCurrentOsAccount(currentOA->osAccountInfos);
     ACCOUNT_LOGI("errocde is %{public}d", currentOA->errCode);
     currentOA->status = (currentOA->errCode == 0) ? napi_ok : napi_generic_failure;
@@ -1266,12 +1261,12 @@ void QueryCurrentOAExecuteCB(napi_env env, void *data)
 void QueryCurrentOACallbackCompletedCB(napi_env env, napi_status status, void *data)
 {
     ACCOUNT_LOGI("napi_create_async_work complete");
-    CurrentOAAsyncContext *currentOA = (CurrentOAAsyncContext *)data;
+    CurrentOAAsyncContext *currentOA = reinterpret_cast<CurrentOAAsyncContext *>(data);
     napi_value queryResult[RESULT_COUNT] = {0};
-    queryResult[PARAM0] = GetErrorCodeValue(env, currentOA->errCode);
-    napi_create_object(env, &queryResult[PARAM1]);
-    GetOACBInfoToJs(env, currentOA->osAccountInfos, queryResult[PARAM1]);
-    CBOrPromiseQueryCurrentOA(env, currentOA, queryResult[PARAM0], queryResult[PARAM1]);
+    queryResult[PARAMZERO] = GetErrorCodeValue(env, currentOA->errCode);
+    napi_create_object(env, &queryResult[PARAMONE]);
+    GetOACBInfoToJs(env, currentOA->osAccountInfos, queryResult[PARAMONE]);
+    CBOrPromiseQueryCurrentOA(env, currentOA, queryResult[PARAMZERO], queryResult[PARAMONE]);
     napi_delete_async_work(env, currentOA->work);
     delete currentOA;
     currentOA = nullptr;
@@ -1355,7 +1350,7 @@ napi_value ParseParaGetIdByDomain(napi_env env, napi_callback_info cbInfo, GetId
 void GetIdByUidExecuteCB(napi_env env, void *data)
 {
     ACCOUNT_LOGI("napi_create_async_work running");
-    GetIdByUidAsyncContext *idByUid = (GetIdByUidAsyncContext *)data;
+    GetIdByUidAsyncContext *idByUid = reinterpret_cast<GetIdByUidAsyncContext *>(data);
     idByUid->errCode = OsAccountManager::GetOsAccountLocalIdFromUid(idByUid->uid, idByUid->id);
     ACCOUNT_LOGI("errocde is %{public}d", idByUid->errCode);
     idByUid->status = (idByUid->errCode == 0) ? napi_ok : napi_generic_failure;
@@ -1364,7 +1359,7 @@ void GetIdByUidExecuteCB(napi_env env, void *data)
 void GetIdByDomainExecuteCB(napi_env env, void *data)
 {
     ACCOUNT_LOGI("napi_create_async_work running");
-    GetIdByDomainAsyncContext *idByDomain = (GetIdByDomainAsyncContext *)data;
+    GetIdByDomainAsyncContext *idByDomain = reinterpret_cast<GetIdByDomainAsyncContext *>(data);
     idByDomain->errCode = OsAccountManager::GetOsAccountLocalIdFromDomain(
         idByDomain->domainInfo, idByDomain->id);
     ACCOUNT_LOGI("errocde is %{public}d", idByDomain->errCode);
@@ -1374,11 +1369,11 @@ void GetIdByDomainExecuteCB(napi_env env, void *data)
 void GetIdByUidCallbackCompletedCB(napi_env env, napi_status status, void *data)
 {
     ACCOUNT_LOGI("napi_create_async_work complete");
-    GetIdByUidAsyncContext *idByUid = (GetIdByUidAsyncContext *)data;
+    GetIdByUidAsyncContext *idByUid = reinterpret_cast<GetIdByUidAsyncContext *>(data);
     napi_value uidResult[RESULT_COUNT] = {0};
-    uidResult[PARAM0] = GetErrorCodeValue(env, idByUid->errCode);
-    napi_create_int32(env, idByUid->id, &uidResult[PARAM1]);
-    CBOrPromiseGetIdByUid(env, idByUid, uidResult[PARAM0], uidResult[PARAM1]);
+    uidResult[PARAMZERO] = GetErrorCodeValue(env, idByUid->errCode);
+    napi_create_int32(env, idByUid->id, &uidResult[PARAMONE]);
+    CBOrPromiseGetIdByUid(env, idByUid, uidResult[PARAMZERO], uidResult[PARAMONE]);
     napi_delete_async_work(env, idByUid->work);
     delete idByUid;
     idByUid = nullptr;
@@ -1387,11 +1382,11 @@ void GetIdByUidCallbackCompletedCB(napi_env env, napi_status status, void *data)
 void GetIdByDomainCallbackCompletedCB(napi_env env, napi_status status, void *data)
 {
     ACCOUNT_LOGI("napi_create_async_work complete");
-    GetIdByDomainAsyncContext *idByDomain = (GetIdByDomainAsyncContext *)data;
+    GetIdByDomainAsyncContext *idByDomain = reinterpret_cast<GetIdByDomainAsyncContext *>(data);
     napi_value uidResult[RESULT_COUNT] = {0};
-    uidResult[PARAM0] = GetErrorCodeValue(env, idByDomain->errCode);
-    napi_create_int32(env, idByDomain->id, &uidResult[PARAM1]);
-    CBOrPromiseGetIdByDomain(env, idByDomain, uidResult[PARAM0], uidResult[PARAM1]);
+    uidResult[PARAMZERO] = GetErrorCodeValue(env, idByDomain->errCode);
+    napi_create_int32(env, idByDomain->id, &uidResult[PARAMONE]);
+    CBOrPromiseGetIdByDomain(env, idByDomain, uidResult[PARAMZERO], uidResult[PARAMONE]);
     napi_delete_async_work(env, idByDomain->work);
     delete idByDomain;
     idByDomain = nullptr;
@@ -1472,7 +1467,7 @@ napi_value ParseParaSetPhoto(napi_env env, napi_callback_info cbInfo, SetOAPhoto
 void SetPhotoExecuteCB(napi_env env, void *data)
 {
     ACCOUNT_LOGI("napi_create_async_work running");
-    SetOAPhotoAsyncContext *setPhoto = (SetOAPhotoAsyncContext *)data;
+    SetOAPhotoAsyncContext *setPhoto = reinterpret_cast<SetOAPhotoAsyncContext *>(data);
     setPhoto->errCode = OsAccountManager::SetOsAccountProfilePhoto(setPhoto->id, setPhoto->photo);
     ACCOUNT_LOGI("errocde is %{public}d", setPhoto->errCode);
     setPhoto->status = (setPhoto->errCode == 0) ? napi_ok : napi_generic_failure;
@@ -1481,11 +1476,11 @@ void SetPhotoExecuteCB(napi_env env, void *data)
 void SetPhotoCompletedCB(napi_env env, napi_status status, void *data)
 {
     ACCOUNT_LOGI("napi_create_async_work complete");
-    SetOAPhotoAsyncContext *setPhoto = (SetOAPhotoAsyncContext *)data;
+    SetOAPhotoAsyncContext *setPhoto = reinterpret_cast<SetOAPhotoAsyncContext *>(data);
     napi_value setResult[RESULT_COUNT] = {0};
-    setResult[PARAM0] = GetErrorCodeValue(env, setPhoto->errCode);
-    napi_get_undefined(env, &setResult[PARAM1]);
-    CBOrPromiseSetPhoto(env, setPhoto, setResult[PARAM0], setResult[PARAM1]);
+    setResult[PARAMZERO] = GetErrorCodeValue(env, setPhoto->errCode);
+    napi_get_undefined(env, &setResult[PARAMONE]);
+    CBOrPromiseSetPhoto(env, setPhoto, setResult[PARAMZERO], setResult[PARAMONE]);
     napi_delete_async_work(env, setPhoto->work);
     delete setPhoto;
     setPhoto = nullptr;
@@ -1533,7 +1528,7 @@ void ParseParaQueryMaxNum(napi_env env, napi_callback_info cbInfo, QueryMaxNumAs
 void QueryMaxNumExecuteCB(napi_env env, void *data)
 {
     ACCOUNT_LOGI("napi_create_async_work running");
-    QueryMaxNumAsyncContext *maxNum = (QueryMaxNumAsyncContext *)data;
+    QueryMaxNumAsyncContext *maxNum = reinterpret_cast<QueryMaxNumAsyncContext *>(data);
     maxNum->errCode = OsAccountManager::QueryMaxOsAccountNumber(maxNum->maxOsAccountNumber);
     ACCOUNT_LOGI("errocde is %{public}d", maxNum->errCode);
     maxNum->status = (maxNum->errCode == 0) ? napi_ok : napi_generic_failure;
@@ -1542,11 +1537,11 @@ void QueryMaxNumExecuteCB(napi_env env, void *data)
 void QueryMaxNumCompletedCB(napi_env env, napi_status status, void *data)
 {
     ACCOUNT_LOGI("napi_create_async_work complete");
-    QueryMaxNumAsyncContext *maxNum = (QueryMaxNumAsyncContext *)data;
+    QueryMaxNumAsyncContext *maxNum = reinterpret_cast<QueryMaxNumAsyncContext *>(data);
     napi_value queryResult[RESULT_COUNT] = {0};
-    queryResult[PARAM0] = GetErrorCodeValue(env, maxNum->errCode);
-    napi_create_int32(env, maxNum->maxOsAccountNumber, &queryResult[PARAM1]);
-    CBOrPromiseMaxNum(env, maxNum, queryResult[PARAM0], queryResult[PARAM1]);
+    queryResult[PARAMZERO] = GetErrorCodeValue(env, maxNum->errCode);
+    napi_create_int32(env, maxNum->maxOsAccountNumber, &queryResult[PARAMONE]);
+    CBOrPromiseMaxNum(env, maxNum, queryResult[PARAMZERO], queryResult[PARAMONE]);
     napi_delete_async_work(env, maxNum->work);
     delete maxNum;
     maxNum = nullptr;
@@ -1601,7 +1596,7 @@ napi_value ParseParaIsActived(napi_env env, napi_callback_info cbInfo, IsActived
 void IsActivedExecuteCB(napi_env env, void *data)
 {
     ACCOUNT_LOGI("napi_create_async_work running");
-    IsActivedAsyncContext *isActived = (IsActivedAsyncContext *)data;
+    IsActivedAsyncContext *isActived = reinterpret_cast<IsActivedAsyncContext *>(data);
     isActived->errCode = OsAccountManager::IsOsAccountActived(isActived->id, isActived->isOsAccountActived);
     ACCOUNT_LOGI("errocde is %{public}d", isActived->errCode);
     isActived->status = (isActived->errCode == 0) ? napi_ok : napi_generic_failure;
@@ -1610,11 +1605,11 @@ void IsActivedExecuteCB(napi_env env, void *data)
 void IsActivedCompletedCB(napi_env env, napi_status status, void *data)
 {
     ACCOUNT_LOGI("napi_create_async_work complete");
-    IsActivedAsyncContext *isActived = (IsActivedAsyncContext *)data;
+    IsActivedAsyncContext *isActived = reinterpret_cast<IsActivedAsyncContext *>(data);
     napi_value result[RESULT_COUNT] = {0};
-    result[PARAM0] = GetErrorCodeValue(env, isActived->errCode);
-    napi_get_boolean(env, isActived->isOsAccountActived, &result[PARAM1]);
-    CBOrPromiseIsActived(env, isActived, result[PARAM0], result[PARAM1]);
+    result[PARAMZERO] = GetErrorCodeValue(env, isActived->errCode);
+    napi_get_boolean(env, isActived->isOsAccountActived, &result[PARAMONE]);
+    CBOrPromiseIsActived(env, isActived, result[PARAMZERO], result[PARAMONE]);
     napi_delete_async_work(env, isActived->work);
     delete isActived;
     isActived = nullptr;
@@ -1671,7 +1666,7 @@ napi_value ParseParaIsEnable(napi_env env, napi_callback_info cbInfo, IsConEnabl
 void IsEnableExecuteCB(napi_env env, void *data)
 {
     ACCOUNT_LOGI("napi_create_async_work running");
-    IsConEnableAsyncContext *isEnable = (IsConEnableAsyncContext *)data;
+    IsConEnableAsyncContext *isEnable = reinterpret_cast<IsConEnableAsyncContext *>(data);
     isEnable->errCode =
         OsAccountManager::IsOsAccountConstraintEnable(isEnable->id, isEnable->constraint, isEnable->isConsEnable);
     ACCOUNT_LOGI("errocde is %{public}d", isEnable->errCode);
@@ -1681,11 +1676,11 @@ void IsEnableExecuteCB(napi_env env, void *data)
 void IsEnableCompletedCB(napi_env env, napi_status status, void *data)
 {
     ACCOUNT_LOGI("napi_create_async_work complete");
-    IsConEnableAsyncContext *isEnable = (IsConEnableAsyncContext *)data;
+    IsConEnableAsyncContext *isEnable = reinterpret_cast<IsConEnableAsyncContext *>(data);
     napi_value result[RESULT_COUNT] = {0};
-    result[PARAM0] = GetErrorCodeValue(env, isEnable->errCode);
-    napi_get_boolean(env, isEnable->isConsEnable, &result[PARAM1]);
-    CBOrPromiseIsEnable(env, isEnable, result[PARAM0], result[PARAM1]);
+    result[PARAMZERO] = GetErrorCodeValue(env, isEnable->errCode);
+    napi_get_boolean(env, isEnable->isConsEnable, &result[PARAMONE]);
+    CBOrPromiseIsEnable(env, isEnable, result[PARAMZERO], result[PARAMONE]);
     napi_delete_async_work(env, isEnable->work);
     delete isEnable;
     isEnable = nullptr;
@@ -1733,7 +1728,7 @@ void ParseParaGetType(napi_env env, napi_callback_info cbInfo, GetTypeAsyncConte
 void GetTypeExecuteCB(napi_env env, void *data)
 {
     ACCOUNT_LOGI("napi_create_async_work running");
-    GetTypeAsyncContext *getType = (GetTypeAsyncContext *)data;
+    GetTypeAsyncContext *getType = reinterpret_cast<GetTypeAsyncContext *>(data);
     getType->errCode = OsAccountManager::GetOsAccountTypeFromProcess(getType->type);
     ACCOUNT_LOGI("errocde is %{public}d", getType->errCode);
     getType->status = (getType->errCode == 0) ? napi_ok : napi_generic_failure;
@@ -1742,29 +1737,29 @@ void GetTypeExecuteCB(napi_env env, void *data)
 void GetTypeCompletedCB(napi_env env, napi_status status, void *data)
 {
     ACCOUNT_LOGI("napi_create_async_work complete");
-    GetTypeAsyncContext *getType = (GetTypeAsyncContext *)data;
+    GetTypeAsyncContext *getType = reinterpret_cast<GetTypeAsyncContext *>(data);
     napi_value result[RESULT_COUNT] = {0};
     napi_value jsType = nullptr;
     int cType = static_cast<int>(getType->type);
-    result[PARAM0] = GetErrorCodeValue(env, getType->errCode);
-    napi_create_object(env, &result[PARAM1]);
+    result[PARAMZERO] = GetErrorCodeValue(env, getType->errCode);
+    napi_create_object(env, &result[PARAMONE]);
     napi_create_int32(env, cType, &jsType);
 
     switch (cType) {
         case PARAMZERO:
-            napi_set_named_property(env, result[PARAM1], "ADMIN", jsType);
+            napi_set_named_property(env, result[PARAMONE], "ADMIN", jsType);
             break;
         case PARAMONE:
-            napi_set_named_property(env, result[PARAM1], "NORMAL", jsType);
+            napi_set_named_property(env, result[PARAMONE], "NORMAL", jsType);
             break;
         case PARAMTWO:
-            napi_set_named_property(env, result[PARAM1], "GUEST", jsType);
+            napi_set_named_property(env, result[PARAMONE], "GUEST", jsType);
             break;
         default:
             ACCOUNT_LOGI("cType %{public}d is an invalid value", cType);
             break;
     }
-    CBOrPromiseGetType(env, getType, result[PARAM0], result[PARAM1]);
+    CBOrPromiseGetType(env, getType, result[PARAMZERO], result[PARAMONE]);
     napi_delete_async_work(env, getType->work);
     delete getType;
     getType = nullptr;
@@ -1812,7 +1807,7 @@ void ParseParaIsMultiEn(napi_env env, napi_callback_info cbInfo, IsMultiEnAsyncC
 void IsMultiEnExecuteCB(napi_env env, void *data)
 {
     ACCOUNT_LOGI("napi_create_async_work running");
-    IsMultiEnAsyncContext *multiEn = (IsMultiEnAsyncContext *)data;
+    IsMultiEnAsyncContext *multiEn = reinterpret_cast<IsMultiEnAsyncContext *>(data);
     multiEn->errCode = OsAccountManager::IsMultiOsAccountEnable(multiEn->isMultiOAEnable);
     ACCOUNT_LOGI("errocde is %{public}d", multiEn->errCode);
     multiEn->status = (multiEn->errCode == 0) ? napi_ok : napi_generic_failure;
@@ -1821,11 +1816,11 @@ void IsMultiEnExecuteCB(napi_env env, void *data)
 void IsMultiEnCompletedCB(napi_env env, napi_status status, void *data)
 {
     ACCOUNT_LOGI("napi_create_async_work complete");
-    IsMultiEnAsyncContext *multiEn = (IsMultiEnAsyncContext *)data;
+    IsMultiEnAsyncContext *multiEn = reinterpret_cast<IsMultiEnAsyncContext *>(data);
     napi_value result[RESULT_COUNT] = {0};
-    result[PARAM0] = GetErrorCodeValue(env, multiEn->errCode);
-    napi_get_boolean(env, multiEn->isMultiOAEnable, &result[PARAM1]);
-    CBOrPromiseIsMultiEn(env, multiEn, result[PARAM0], result[PARAM1]);
+    result[PARAMZERO] = GetErrorCodeValue(env, multiEn->errCode);
+    napi_get_boolean(env, multiEn->isMultiOAEnable, &result[PARAMONE]);
+    CBOrPromiseIsMultiEn(env, multiEn, result[PARAMZERO], result[PARAMONE]);
     napi_delete_async_work(env, multiEn->work);
     delete multiEn;
     multiEn = nullptr;
@@ -1883,7 +1878,7 @@ napi_value ParseParaIsVerified(napi_env env, napi_callback_info cbInfo, IsVerifi
 void IsVerifiedExecuteCB(napi_env env, void *data)
 {
     ACCOUNT_LOGI("napi_create_async_work running");
-    IsVerifiedAsyncContext *isVerified = (IsVerifiedAsyncContext *)data;
+    IsVerifiedAsyncContext *isVerified = reinterpret_cast<IsVerifiedAsyncContext *>(data);
     isVerified->errCode = OsAccountManager::IsOsAccountVerified(isVerified->id, isVerified->isTestOA);
     ACCOUNT_LOGI("errocde is %{public}d", isVerified->errCode);
     isVerified->status = (isVerified->errCode == 0) ? napi_ok : napi_generic_failure;
@@ -1892,11 +1887,11 @@ void IsVerifiedExecuteCB(napi_env env, void *data)
 void IsVerifiedCompletedCB(napi_env env, napi_status status, void *data)
 {
     ACCOUNT_LOGI("napi_create_async_work complete");
-    IsVerifiedAsyncContext *isVerified = (IsVerifiedAsyncContext *)data;
+    IsVerifiedAsyncContext *isVerified = reinterpret_cast<IsVerifiedAsyncContext *>(data);
     napi_value result[RESULT_COUNT] = {0};
-    result[PARAM0] = GetErrorCodeValue(env, isVerified->errCode);
-    napi_get_boolean(env, isVerified->isTestOA, &result[PARAM1]);
-    CBOrPromiseIsVerified(env, isVerified, result[PARAM0], result[PARAM1]);
+    result[PARAMZERO] = GetErrorCodeValue(env, isVerified->errCode);
+    napi_get_boolean(env, isVerified->isTestOA, &result[PARAMONE]);
+    CBOrPromiseIsVerified(env, isVerified, result[PARAMZERO], result[PARAMONE]);
     napi_delete_async_work(env, isVerified->work);
     delete isVerified;
     isVerified = nullptr;
@@ -1951,7 +1946,7 @@ napi_value ParseParaSerialNumId(napi_env env, napi_callback_info cbInfo, GetSeri
 void SerialNumIdExecuteCB(napi_env env, void *data)
 {
     ACCOUNT_LOGI("napi_create_async_work running");
-    GetSerialNumIdCBInfo *serialNumId = (GetSerialNumIdCBInfo *)data;
+    GetSerialNumIdCBInfo *serialNumId = reinterpret_cast<GetSerialNumIdCBInfo *>(data);
     serialNumId->errCode =
         OsAccountManager::GetOsAccountLocalIdBySerialNumber(serialNumId->serialNumber, serialNumId->id);
     ACCOUNT_LOGI("errocde is %{public}d", serialNumId->errCode);
@@ -1961,11 +1956,11 @@ void SerialNumIdExecuteCB(napi_env env, void *data)
 void SerialNumIdCompletedCB(napi_env env, napi_status status, void *data)
 {
     ACCOUNT_LOGI("napi_create_async_work complete");
-    GetSerialNumIdCBInfo *serialNumId = (GetSerialNumIdCBInfo *)data;
+    GetSerialNumIdCBInfo *serialNumId = reinterpret_cast<GetSerialNumIdCBInfo *>(data);
     napi_value result[RESULT_COUNT] = {0};
-    result[PARAM0] = GetErrorCodeValue(env, serialNumId->errCode);
-    napi_create_int32(env, serialNumId->id, &result[PARAM1]);
-    CBOrPromiseSerialNum(env, serialNumId, result[PARAM0], result[PARAM1]);
+    result[PARAMZERO] = GetErrorCodeValue(env, serialNumId->errCode);
+    napi_create_int32(env, serialNumId->id, &result[PARAMONE]);
+    CBOrPromiseSerialNum(env, serialNumId, result[PARAMZERO], result[PARAMONE]);
     napi_delete_async_work(env, serialNumId->work);
     delete serialNumId;
     serialNumId = nullptr;
@@ -2020,7 +2015,7 @@ napi_value ParseParaGetSerialNum(napi_env env, napi_callback_info cbInfo, GetSer
 void GetSerialNumExecuteCB(napi_env env, void *data)
 {
     ACCOUNT_LOGI("napi_create_async_work running");
-    GetSerialNumForOAInfo *getSerialNum = (GetSerialNumForOAInfo *)data;
+    GetSerialNumForOAInfo *getSerialNum = reinterpret_cast<GetSerialNumForOAInfo *>(data);
     getSerialNum->errCode =
         OsAccountManager::GetSerialNumberByOsAccountLocalId(getSerialNum->id, getSerialNum->serialNum);
     ACCOUNT_LOGI("errocde is %{public}d", getSerialNum->errCode);
@@ -2030,11 +2025,11 @@ void GetSerialNumExecuteCB(napi_env env, void *data)
 void GetSerialNumCompletedCB(napi_env env, napi_status status, void *data)
 {
     ACCOUNT_LOGI("napi_create_async_work complete");
-    GetSerialNumForOAInfo *getSerialNum = (GetSerialNumForOAInfo *)data;
+    GetSerialNumForOAInfo *getSerialNum = reinterpret_cast<GetSerialNumForOAInfo *>(data);
     napi_value result[RESULT_COUNT] = {0};
-    result[PARAM0] = GetErrorCodeValue(env, getSerialNum->errCode);
-    napi_create_int64(env, getSerialNum->serialNum, &result[PARAM1]);
-    CBOrPromiseGetSerialNum(env, getSerialNum, result[PARAM0], result[PARAM1]);
+    result[PARAMZERO] = GetErrorCodeValue(env, getSerialNum->errCode);
+    napi_create_int64(env, getSerialNum->serialNum, &result[PARAMONE]);
+    CBOrPromiseGetSerialNum(env, getSerialNum, result[PARAMZERO], result[PARAMONE]);
     napi_delete_async_work(env, getSerialNum->work);
     delete getSerialNum;
     getSerialNum = nullptr;
@@ -2153,7 +2148,7 @@ napi_value ParseParaToSubscriber(const napi_env &env, const napi_value (&argv)[A
 void SubscribeExecuteCB(napi_env env, void *data)
 {
     ACCOUNT_LOGI("napi_create_async_work running");
-    SubscribeCBInfo *subscribeCBInfo = (SubscribeCBInfo *)data;
+    SubscribeCBInfo *subscribeCBInfo = reinterpret_cast<SubscribeCBInfo *>(data);
     subscribeCBInfo->subscriber->SetEnv(env);
     subscribeCBInfo->subscriber->SetCallbackRef(subscribeCBInfo->callbackRef);
     int errCode = OsAccountManager::SubscribeOsAccount(subscribeCBInfo->subscriber);
@@ -2163,7 +2158,7 @@ void SubscribeExecuteCB(napi_env env, void *data)
 void SubscribeCompletedCB(napi_env env, napi_status status, void *data)
 {
     ACCOUNT_LOGI("napi_create_async_work complete.");
-    SubscribeCBInfo *subscribeCBInfo = (SubscribeCBInfo *)data;
+    SubscribeCBInfo *subscribeCBInfo = reinterpret_cast<SubscribeCBInfo *>(data);
     napi_delete_async_work(env, subscribeCBInfo->work);
 }
 

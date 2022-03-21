@@ -12,12 +12,12 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-#ifndef OS_ACCOUNT_FRAMEWORKS_COMMON_DATABASE_IACCOUNT_INFO_H
-#define OS_ACCOUNT_FRAMEWORKS_COMMON_DATABASE_IACCOUNT_INFO_H
+
+#ifndef OS_ACCOUNT_FRAMEWORKS_COMMON_DATABASE_INCLUDE_IACCOUNT_INFO_H
+#define OS_ACCOUNT_FRAMEWORKS_COMMON_DATABASE_INCLUDE_IACCOUNT_INFO_H
 
 #include <string>
 #include "nlohmann/json.hpp"
-
 
 namespace OHOS {
 namespace AccountSA {
@@ -86,4 +86,4 @@ void GetDataByType(const Json &jsonObject, const nlohmann::detail::iter_impl<con
 }  // namespace AccountSA
 }  // namespace OHOS
 
-#endif  // OS_ACCOUNT_FRAMEWORKS_COMMON_DATABASE_IACCOUNT_INFO_H
+#endif  // OS_ACCOUNT_FRAMEWORKS_COMMON_DATABASE_INCLUDE_IACCOUNT_INFO_H

@@ -13,12 +13,12 @@
  * limitations under the License.
  */
 
+#include "app_account_common_event_oberserver.h"
+
 #include "account_log_wrapper.h"
 #include "bundle_constants.h"
 #include "common_event_manager.h"
 #include "common_event_support.h"
-
-#include "app_account_common_event_oberserver.h"
 
 using namespace OHOS::EventFwk;
 
@@ -104,7 +104,6 @@ void AppAccountCommonEventOberserver::OnReceiveEvent(const CommonEventData &data
     if (action == CommonEventSupport::COMMON_EVENT_PACKAGE_REMOVED) {
         if (callback_.OnPackageRemoved != nullptr) {
             auto wantTemp = data.GetWant();
-            std::string actionTemp = wantTemp.GetAction();
             auto element = wantTemp.GetElement();
             std::string bundleName = element.GetBundleName();
             auto uid = wantTemp.GetIntParam(AppExecFwk::Constants::UID, -1);

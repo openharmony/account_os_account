@@ -26,8 +26,8 @@ public:
     using MessageProcFunction = ErrCode (AppAccountStub::*)(MessageParcel &data, MessageParcel &reply);
 
     AppAccountStub();
-    virtual ~AppAccountStub() override;
-    virtual int OnRemoteRequest(
+    ~AppAccountStub() override;
+    int OnRemoteRequest(
         uint32_t code, MessageParcel &data, MessageParcel &reply, MessageOption &option) override;
 
 private:

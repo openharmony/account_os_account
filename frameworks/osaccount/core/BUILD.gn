@@ -41,8 +41,6 @@ config("os_account_core_config") {
 }
 
 config("os_account_core_public_config") {
-  #   visibility = [ ":*" ]
-
   include_dirs = [
     "${os_account_core_path}/include",
     "${os_account_interfaces_native_path}/include",
