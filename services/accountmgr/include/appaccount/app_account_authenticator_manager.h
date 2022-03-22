@@ -29,8 +29,10 @@ public:
     AppAccountAuthenticatorManager();
     virtual ~AppAccountAuthenticatorManager();
     ErrCode GetAuthenticatorInfo(const OAuthRequest &request, AuthenticatorInfo &info);
+
 private:
     void Init();
+
 private:
     bool isInitialized_ = false;
     sptr<AppExecFwk::IBundleMgr> bundleMgr_ = nullptr;

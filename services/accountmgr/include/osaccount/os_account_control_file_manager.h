@@ -26,31 +26,31 @@ class OsAccountControlFileManager : public IOsAccountControl {
 public:
     OsAccountControlFileManager();
     virtual ~OsAccountControlFileManager();
-    virtual void Init() override;
-    virtual ErrCode GetOsAccountList(std::vector<OsAccountInfo> &osAccountList) override;
-    virtual ErrCode GetOsAccountInfoById(const int id, OsAccountInfo &osAccountInfo) override;
-    virtual ErrCode GetConstraintsByType(const OsAccountType type, std::vector<std::string> &constratins) override;
-    virtual ErrCode InsertOsAccount(OsAccountInfo &osAccountInfo) override;
-    virtual ErrCode DelOsAccount(const int id) override;
-    virtual ErrCode UpdateOsAccount(OsAccountInfo &osAccountInfo) override;
-    virtual ErrCode GetMaxCreatedOsAccountNum(int &maxCreatedOsAccountNum) override;
-    virtual ErrCode GetSerialNumber(int64_t &serialNumber) override;
-    virtual ErrCode GetAllowCreateId(int &id) override;
-    virtual ErrCode IsOsAccountExists(const int id, bool &isExists) override;
-    virtual ErrCode GetPhotoById(const int id, std::string &photo) override;
-    virtual ErrCode SetPhotoById(const int id, const std::string &photo) override;
-    virtual ErrCode GetIsMultiOsAccountEnable(bool &isMultiOsAccountEnable) override;
-    virtual ErrCode IsConstrarionsInTypeList(const std::vector<std::string> &constrains, bool &isExists) override;
-    virtual ErrCode IsAllowedCreateAdmin(bool &isAllowedCreateAdmin) override;
+    void Init() override;
+    ErrCode GetOsAccountList(std::vector<OsAccountInfo> &osAccountList) override;
+    ErrCode GetOsAccountInfoById(const int id, OsAccountInfo &osAccountInfo) override;
+    ErrCode GetConstraintsByType(const OsAccountType type, std::vector<std::string> &constratins) override;
+    ErrCode InsertOsAccount(OsAccountInfo &osAccountInfo) override;
+    ErrCode DelOsAccount(const int id) override;
+    ErrCode UpdateOsAccount(OsAccountInfo &osAccountInfo) override;
+    ErrCode GetMaxCreatedOsAccountNum(int &maxCreatedOsAccountNum) override;
+    ErrCode GetSerialNumber(int64_t &serialNumber) override;
+    ErrCode GetAllowCreateId(int &id) override;
+    ErrCode IsOsAccountExists(const int id, bool &isExists) override;
+    ErrCode GetPhotoById(const int id, std::string &photo) override;
+    ErrCode SetPhotoById(const int id, const std::string &photo) override;
+    ErrCode GetIsMultiOsAccountEnable(bool &isMultiOsAccountEnable) override;
+    ErrCode IsConstrarionsInTypeList(const std::vector<std::string> &constrains, bool &isExists) override;
+    ErrCode IsAllowedCreateAdmin(bool &isAllowedCreateAdmin) override;
 
-    virtual ErrCode GetCreatedOsAccountNumFromDatabase(const std::string& storeID,
+    ErrCode GetCreatedOsAccountNumFromDatabase(const std::string& storeID,
         int &createdOsAccountNum) override;
-    virtual ErrCode GetSerialNumberFromDatabase(const std::string& storeID,
+    ErrCode GetSerialNumberFromDatabase(const std::string& storeID,
         int64_t &serialNumber) override;
-    virtual ErrCode GetMaxAllowCreateIdFromDatabase(const std::string& storeID, int &id) override;
-    virtual ErrCode GetOsAccountFromDatabase(const std::string& storeID,
+    ErrCode GetMaxAllowCreateIdFromDatabase(const std::string& storeID, int &id) override;
+    ErrCode GetOsAccountFromDatabase(const std::string& storeID,
         const int id, OsAccountInfo& osAccountInfo) override;
-    virtual ErrCode GetOsAccountListFromDatabase(const std::string& storeID,
+    ErrCode GetOsAccountListFromDatabase(const std::string& storeID,
         std::vector<OsAccountInfo>& osAccountList) override;
 
 private:

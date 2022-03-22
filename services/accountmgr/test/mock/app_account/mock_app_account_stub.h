@@ -24,54 +24,54 @@ namespace OHOS {
 namespace AccountSA {
 class MockAppAccountStub : public AppAccountStub {
 public:
-    virtual ErrCode AddAccount(const std::string &name, const std::string &extraInfo) override;
-    virtual ErrCode AddAccountImplicitly(const std::string &owner, const std::string &authType,
+    ErrCode AddAccount(const std::string &name, const std::string &extraInfo) override;
+    ErrCode AddAccountImplicitly(const std::string &owner, const std::string &authType,
         const AAFwk::Want &options, const sptr<IRemoteObject> &callback) override;
-    virtual ErrCode DeleteAccount(const std::string &name) override;
+    ErrCode DeleteAccount(const std::string &name) override;
 
-    virtual ErrCode GetAccountExtraInfo(const std::string &name, std::string &extraInfo) override;
-    virtual ErrCode SetAccountExtraInfo(const std::string &name, const std::string &extraInfo) override;
+    ErrCode GetAccountExtraInfo(const std::string &name, std::string &extraInfo) override;
+    ErrCode SetAccountExtraInfo(const std::string &name, const std::string &extraInfo) override;
 
-    virtual ErrCode EnableAppAccess(const std::string &name, const std::string &authorizedApp) override;
-    virtual ErrCode DisableAppAccess(const std::string &name, const std::string &authorizedApp) override;
+    ErrCode EnableAppAccess(const std::string &name, const std::string &authorizedApp) override;
+    ErrCode DisableAppAccess(const std::string &name, const std::string &authorizedApp) override;
 
-    virtual ErrCode CheckAppAccountSyncEnable(const std::string &name, bool &syncEnable) override;
-    virtual ErrCode SetAppAccountSyncEnable(const std::string &name, const bool &syncEnable) override;
+    ErrCode CheckAppAccountSyncEnable(const std::string &name, bool &syncEnable) override;
+    ErrCode SetAppAccountSyncEnable(const std::string &name, const bool &syncEnable) override;
 
-    virtual ErrCode GetAssociatedData(const std::string &name, const std::string &key, std::string &value) override;
-    virtual ErrCode SetAssociatedData(
+    ErrCode GetAssociatedData(const std::string &name, const std::string &key, std::string &value) override;
+    ErrCode SetAssociatedData(
         const std::string &name, const std::string &key, const std::string &value) override;
 
-    virtual ErrCode GetAccountCredential(
+    ErrCode GetAccountCredential(
         const std::string &name, const std::string &credentialType, std::string &credential) override;
-    virtual ErrCode SetAccountCredential(
+    ErrCode SetAccountCredential(
         const std::string &name, const std::string &credentialType, const std::string &credential) override;
 
-    virtual ErrCode Authenticate(const std::string &name, const std::string &owner, const std::string &authType,
+    ErrCode Authenticate(const std::string &name, const std::string &owner, const std::string &authType,
         const AAFwk::Want &options, const sptr<IRemoteObject> &callback) override;
-    virtual ErrCode GetOAuthToken(
+    ErrCode GetOAuthToken(
         const std::string &name, const std::string &owner, const std::string &authType, std::string &token) override;
-    virtual ErrCode SetOAuthToken(
+    ErrCode SetOAuthToken(
         const std::string &name, const std::string &authType, const std::string &token) override;
-    virtual ErrCode DeleteOAuthToken(const std::string &name, const std::string &owner,
+    ErrCode DeleteOAuthToken(const std::string &name, const std::string &owner,
         const std::string &authType, const std::string &token) override;
-    virtual ErrCode SetOAuthTokenVisibility(const std::string &name, const std::string &authType,
+    ErrCode SetOAuthTokenVisibility(const std::string &name, const std::string &authType,
         const std::string &bundleName, bool isVisible) override;
-    virtual ErrCode CheckOAuthTokenVisibility(const std::string &name, const std::string &authType,
+    ErrCode CheckOAuthTokenVisibility(const std::string &name, const std::string &authType,
         const std::string &bundleName, bool &isVisible) override;
-    virtual ErrCode GetAuthenticatorInfo(const std::string &owner, AuthenticatorInfo &authenticator) override;
-    virtual ErrCode GetAllOAuthTokens(const std::string &name, const std::string &owner,
+    ErrCode GetAuthenticatorInfo(const std::string &owner, AuthenticatorInfo &authenticator) override;
+    ErrCode GetAllOAuthTokens(const std::string &name, const std::string &owner,
         std::vector<OAuthTokenInfo> &tokenInfos) override;
-    virtual ErrCode GetOAuthList(const std::string &name, const std::string &authType,
+    ErrCode GetOAuthList(const std::string &name, const std::string &authType,
         std::set<std::string> &oauthList) override;
-    virtual ErrCode GetAuthenticatorCallback(const std::string &sessionId, sptr<IRemoteObject> &callback) override;
+    ErrCode GetAuthenticatorCallback(const std::string &sessionId, sptr<IRemoteObject> &callback) override;
 
-    virtual ErrCode GetAllAccounts(const std::string &owner, std::vector<AppAccountInfo> &appAccounts) override;
-    virtual ErrCode GetAllAccessibleAccounts(std::vector<AppAccountInfo> &appAccounts) override;
+    ErrCode GetAllAccounts(const std::string &owner, std::vector<AppAccountInfo> &appAccounts) override;
+    ErrCode GetAllAccessibleAccounts(std::vector<AppAccountInfo> &appAccounts) override;
 
-    virtual ErrCode SubscribeAppAccount(
+    ErrCode SubscribeAppAccount(
         const AppAccountSubscribeInfo &subscribeInfo, const sptr<IRemoteObject> &eventListener) override;
-    virtual ErrCode UnsubscribeAppAccount(const sptr<IRemoteObject> &eventListener) override;
+    ErrCode UnsubscribeAppAccount(const sptr<IRemoteObject> &eventListener) override;
 };
 }  // namespace AccountSA
 }  // namespace OHOS

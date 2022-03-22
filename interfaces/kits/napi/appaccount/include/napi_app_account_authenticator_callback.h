@@ -13,8 +13,8 @@
  * limitations under the License.
  */
 
-#ifndef NAPI_APP_ACCOUNT_AUTHENTICATOR_CALLBACK_PROXY_H
-#define NAPI_APP_ACCOUNT_AUTHENTICATOR_CALLBACK_PROXY_H
+#ifndef NAPI_APP_ACCOUNT_AUTHENTICATOR_CALLBACK_H
+#define NAPI_APP_ACCOUNT_AUTHENTICATOR_CALLBACK_H
 
 #include "iapp_account_authenticator_callback.h"
 #include "iremote_proxy.h"
@@ -47,6 +47,6 @@ struct CallbackParam {
     napi_ref callbackRef;
     NapiAppAccountAuthenticatorCallback *callback;
 };
-}  // namespace AccountSA
+}  // namespace AccountJsKit
 }  // namespace OHOS
-#endif  // NAPI_APP_ACCOUNT_AUTHENTICATOR_CALLBACK_PROXY_H
+#endif  // NAPI_APP_ACCOUNT_AUTHENTICATOR_CALLBACK_H

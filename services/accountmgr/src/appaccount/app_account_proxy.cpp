@@ -966,7 +966,7 @@ bool AppAccountProxy::ReadParcelableVector(std::vector<T> &parcelableVector, Mes
 
     parcelableVector.clear();
     for (uint32_t index = 0; index < size; index += 1) {
-        T *parcelable = data.ReadParcelable<T>();
+        std::shared_ptr<T> parcelable(data.ReadParcelable<T>());
         if (parcelable == nullptr) {
             ACCOUNT_LOGE("failed to ReadParcelable for T");
             return false;

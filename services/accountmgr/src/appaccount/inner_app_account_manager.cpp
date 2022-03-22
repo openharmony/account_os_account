@@ -336,7 +336,7 @@ ErrCode InnerAppAccountManager::DeleteOAuthToken(const OAuthRequest &request)
     }
     return controlManagerPtr_->DeleteOAuthToken(request);
 }
- 
+
 ErrCode InnerAppAccountManager::SetOAuthTokenVisibility(const OAuthRequest &request)
 {
     ACCOUNT_LOGI("enter");
