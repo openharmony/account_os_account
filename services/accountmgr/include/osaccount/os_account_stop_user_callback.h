@@ -20,7 +20,7 @@ namespace OHOS {
 namespace AccountSA {
 class OsAccountStopUserCallback : public OHOS::AAFwk::StopUserCallbackStub {
 public:
-    virtual void OnStopUserDone(int userId, int errcode) override;
+    void OnStopUserDone(int userId, int errcode) override;
 
 public:
     bool isCallBackOk_ = false;

@@ -36,10 +36,10 @@ static thread_local napi_ref osAccountRef_ = nullptr;
 
 class SubscriberPtr : public OsAccountSubscriber {
 public:
-    SubscriberPtr(const OsAccountSubscribeInfo &subscribeInfo);
+    explicit SubscriberPtr(const OsAccountSubscribeInfo &subscribeInfo);
     ~SubscriberPtr();
 
-    virtual void OnAccountsChanged(const int &id) override;
+    void OnAccountsChanged(const int &id) override;
 
     void SetEnv(const napi_env &env);
     void SetCallbackRef(const napi_ref &ref);

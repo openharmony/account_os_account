@@ -84,9 +84,6 @@ void SubscriberPtr::OnAccountsChanged(const std::vector<AppAccountInfo> &account
 {
     ACCOUNT_LOGI("enter");
 
-    ErrCode result;
-    std::string owner;
-    std::string name;
     uv_loop_s *loop = nullptr;
     napi_get_uv_event_loop(env_, &loop);
     if (loop == nullptr) {
@@ -104,14 +101,6 @@ void SubscriberPtr::OnAccountsChanged(const std::vector<AppAccountInfo> &account
     if (subscriberAccountsWorker == nullptr) {
         ACCOUNT_LOGI("SubscriberAccountsWorker is null");
         return;
-    }
-
-    for (auto account : accounts_) {
-        result = account.GetOwner(owner);
-        ACCOUNT_LOGI("owner = %{public}s", owner.c_str());
-
-        result = account.GetName(name);
-        ACCOUNT_LOGI("name = %{public}s", name.c_str());
     }
 
     subscriberAccountsWorker->accounts = accounts_;
@@ -1057,6 +1046,7 @@ void UnsubscribeCallbackCompletedCB(napi_env env, napi_status status, void *data
         if (subscribe != g_AppAccountSubscribers.end()) {
             for (auto offCBInfo : subscribe->second) {
                 napi_delete_reference(env, offCBInfo->callbackRef);
+                delete offCBInfo;
             }
             g_AppAccountSubscribers.erase(subscribe);
         }

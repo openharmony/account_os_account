@@ -28,7 +28,7 @@ public:
      * @param strcut reqRet .
      * @return void.
      */
-    virtual void OnResult(int32_t result, UserIAM::UserIDM::RequestResult reqRet) override;
+    void OnResult(int32_t result, UserIAM::UserIDM::RequestResult reqRet) override;
 
     /**
      * @brief
@@ -37,7 +37,7 @@ public:
      * @param reqRet .
      * @return void.
      */
-    virtual void OnAcquireInfo(int32_t module, int32_t acquire, UserIAM::UserIDM::RequestResult reqRet) override;
+    void OnAcquireInfo(int32_t module, int32_t acquire, UserIAM::UserIDM::RequestResult reqRet) override;
 
 public:
     bool isIamOnResultCallBack_ = false;

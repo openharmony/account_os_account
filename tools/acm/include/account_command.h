@@ -90,9 +90,9 @@ public:
     ~AccountCommand() = default;
 
 private:
-    virtual ErrCode CreateCommandMap() override;
-    virtual ErrCode CreateMessageMap() override;
-    virtual ErrCode init() override;
+    ErrCode CreateCommandMap() override;
+    ErrCode CreateMessageMap() override;
+    ErrCode init() override;
 
     ErrCode RunAsHelpCommand(void);
     ErrCode RunAsCreateCommand(void);

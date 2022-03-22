@@ -22,8 +22,8 @@ class OsAccountStub : public IRemoteStub<IOsAccount> {
 public:
     using MessageProcFunction = ErrCode (OsAccountStub::*)(MessageParcel &data, MessageParcel &reply);
     OsAccountStub();
-    virtual ~OsAccountStub() override;
-    virtual int OnRemoteRequest(
+    ~OsAccountStub() override;
+    int OnRemoteRequest(
         uint32_t code, MessageParcel &data, MessageParcel &reply, MessageOption &option) override;
 
 private:

@@ -233,7 +233,7 @@ bool OsAccountStub::ReadParcelableVector(std::vector<T> &parcelableInfos, Messag
 
     parcelableInfos.clear();
     for (uint32_t index = 0; index < infoSize; index++) {
-        T *info = data.ReadParcelable<T>();
+        std::shared_ptr<T> info(data.ReadParcelable<T>());
         if (info == nullptr) {
             ACCOUNT_LOGE("read Parcelable infos failed.");
             return false;

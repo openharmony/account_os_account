@@ -27,10 +27,11 @@ class AppAccountAuthenticatorSession;
 class AppAccountAuthenticatorCallback : public AppAccountAuthenticatorCallbackStub {
 public:
     explicit AppAccountAuthenticatorCallback(AppAccountAuthenticatorSession *session);
-    virtual ~AppAccountAuthenticatorCallback() override;
+    ~AppAccountAuthenticatorCallback() override;
 
-    virtual void OnResult(int32_t resultCode, const AAFwk::Want &result) override;
-    virtual void OnRequestRedirected(AAFwk::Want &request) override;
+    void OnResult(int32_t resultCode, const AAFwk::Want &result) override;
+    void OnRequestRedirected(AAFwk::Want &request) override;
+
 private:
     AppAccountAuthenticatorSession *session_;
 };
