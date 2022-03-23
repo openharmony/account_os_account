@@ -32,7 +32,7 @@ public:
     ErrCode Init(std::int32_t userId);
     ErrCode AccountInfoFromJson(AccountInfo &accountInfo, const std::int32_t userId);
     ErrCode AccountInfoToJson(const AccountInfo &accountInfo) const;
-    ~OhosAccountDataDeal() {};
+    ~OhosAccountDataDeal() {}
 
 private:
     bool initOk_;
@@ -42,6 +42,6 @@ private:
     void BuildJsonFileFromScratch(std::int32_t userId) const;
     void SaveAccountInfo(const AccountInfo &accountInfo) const;
 };
-}
-}
-#endif // BASE_ACCOUNT_INCLUDE_OHOS_ACCOUNT_DATA_DEAL_H
+}  // namespace AccountSA
+}  // namespace OHOS
+#endif  // BASE_ACCOUNT_INCLUDE_OHOS_ACCOUNT_DATA_DEAL_H

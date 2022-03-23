@@ -24,9 +24,9 @@ namespace AccountSA {
 class OsAccountEventProxy : public IRemoteProxy<IOsAccountEvent> {
 public:
     explicit OsAccountEventProxy(const sptr<IRemoteObject> &object);
-    virtual ~OsAccountEventProxy() override;
+    ~OsAccountEventProxy() override;
 
-    virtual void OnAccountsChanged(const int &id) override;
+    void OnAccountsChanged(const int &id) override;
 
 private:
     template<typename T>

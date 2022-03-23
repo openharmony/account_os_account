@@ -24,9 +24,9 @@ namespace AccountSA {
 class OsAccountEventStub : public IRemoteStub<IOsAccountEvent> {
 public:
     OsAccountEventStub();
-    virtual ~OsAccountEventStub() override;
+    ~OsAccountEventStub() override;
 
-    virtual int OnRemoteRequest(
+    int OnRemoteRequest(
         uint32_t code, MessageParcel &data, MessageParcel &reply, MessageOption &option) override;
 
 private:

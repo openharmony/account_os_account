@@ -33,10 +33,10 @@ class AppAccountAuthenticatorSession;
 namespace {
 class ClientDeathRecipient : public IRemoteObject::DeathRecipient {
 public:
-    ClientDeathRecipient(AppAccountAuthenticatorSession *session);
+    explicit ClientDeathRecipient(AppAccountAuthenticatorSession *session);
     virtual ~ClientDeathRecipient() = default;
 
-    virtual void OnRemoteDied(const wptr<IRemoteObject> &remote);
+    void OnRemoteDied(const wptr<IRemoteObject> &remote) override;
     void SetSession(AppAccountAuthenticatorSession *session);
 private:
     AppAccountAuthenticatorSession *session_;
@@ -44,10 +44,10 @@ private:
 
 class ServerDeathRecipient : public IRemoteObject::DeathRecipient {
 public:
-    ServerDeathRecipient(AppAccountAuthenticatorSession *session);
+    explicit ServerDeathRecipient(AppAccountAuthenticatorSession *session);
     virtual ~ServerDeathRecipient() = default;
 
-    virtual void OnRemoteDied(const wptr<IRemoteObject> &remote);
+    void OnRemoteDied(const wptr<IRemoteObject> &remote) override;
     void SetSession(AppAccountAuthenticatorSession *session);
 private:
     AppAccountAuthenticatorSession *session_;
@@ -55,7 +55,7 @@ private:
 
 class SessionConnection : public AAFwk::AbilityConnectionStub {
 public:
-    SessionConnection(AppAccountAuthenticatorSession *session);
+    explicit SessionConnection(AppAccountAuthenticatorSession *session);
     virtual ~SessionConnection();
 
     void OnAbilityConnectDone(

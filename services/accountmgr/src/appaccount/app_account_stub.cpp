@@ -223,7 +223,7 @@ bool AppAccountStub::ReadParcelableVector(std::vector<T> &parcelableVector, Mess
 
     parcelableVector.clear();
     for (uint32_t index = 0; index < size; index++) {
-        T *info = data.ReadParcelable<T>();
+        std::shared_ptr<T> info(data.ReadParcelable<T>());
         if (info == nullptr) {
             ACCOUNT_LOGI("read Parcelable infos failed.");
             return false;
@@ -268,16 +268,17 @@ ErrCode AppAccountStub::ProcAddAccountImplicitly(MessageParcel &data, MessagePar
     RETURN_IF_STRING_IS_EMPTY_OR_OVERSIZE(owner, Constants::OWNER_MAX_SIZE, "owner is empty or oversize");
     std::string authType = data.ReadString();
     RETURN_IF_STRING_IS_OVERSIZE(authType, Constants::AUTH_TYPE_MAX_SIZE, "authType is oversize");
-    AAFwk::Want *options = data.ReadParcelable<AAFwk::Want>();
+    std::shared_ptr<AAFwk::Want> options(data.ReadParcelable<AAFwk::Want>());
     ErrCode result = ERR_OK;
     if (options == nullptr) {
-        ACCOUNT_LOGE("option is invalid");
+        ACCOUNT_LOGE("invalid options");
         result = ERR_APPACCOUNT_SERVICE_INVALID_PARAMETER;
+    } else {
+        RETURN_IF_STRING_IS_EMPTY_OR_OVERSIZE(options->GetStringParam(Constants::KEY_CALLER_ABILITY_NAME),
+            Constants::ABILITY_NAME_MAX_SIZE, "abilityName is empty or oversize");
     }
-    RETURN_IF_STRING_IS_EMPTY_OR_OVERSIZE(options->GetStringParam(Constants::KEY_CALLER_ABILITY_NAME),
-        Constants::ABILITY_NAME_MAX_SIZE, "abilityName is empty or oversize");
-    sptr<IRemoteObject> callback = data.ReadRemoteObject();
     if (result == ERR_OK) {
+        sptr<IRemoteObject> callback = data.ReadRemoteObject();
         result = AddAccountImplicitly(owner, authType, *options, callback);
     }
     if (!reply.WriteInt32(result)) {
@@ -495,16 +496,17 @@ ErrCode AppAccountStub::ProcAuthenticate(MessageParcel &data, MessageParcel &rep
     RETURN_IF_STRING_IS_EMPTY_OR_OVERSIZE(owner, Constants::OWNER_MAX_SIZE, "owner is empty or oversize");
     std::string authType = data.ReadString();
     RETURN_IF_STRING_IS_OVERSIZE(authType, Constants::AUTH_TYPE_MAX_SIZE, "authType is oversize");
-    AAFwk::Want *options = data.ReadParcelable<AAFwk::Want>();
+    std::shared_ptr<AAFwk::Want> options(data.ReadParcelable<AAFwk::Want>());
     ErrCode result = ERR_OK;
     if (options == nullptr) {
-        ACCOUNT_LOGE("option is invalid");
+        ACCOUNT_LOGE("invalid options");
         result = ERR_APPACCOUNT_SERVICE_INVALID_PARAMETER;
+    } else {
+        RETURN_IF_STRING_IS_EMPTY_OR_OVERSIZE(options->GetStringParam(Constants::KEY_CALLER_ABILITY_NAME),
+            Constants::ABILITY_NAME_MAX_SIZE, "abilityName is empty or oversize");
     }
-    RETURN_IF_STRING_IS_EMPTY_OR_OVERSIZE(options->GetStringParam(Constants::KEY_CALLER_ABILITY_NAME),
-        Constants::ABILITY_NAME_MAX_SIZE, "abilityName is empty or oversize");
-    sptr<IRemoteObject> callback = data.ReadRemoteObject();
     if (result == ERR_OK) {
+        sptr<IRemoteObject> callback = data.ReadRemoteObject();
         result = Authenticate(name, owner, authType, *options, callback);
     }
     if (!reply.WriteInt32(result)) {
@@ -586,7 +588,7 @@ ErrCode AppAccountStub::ProcSetOAuthTokenVisibility(MessageParcel &data, Message
     }
     return ERR_NONE;
 }
- 
+
 ErrCode AppAccountStub::ProcCheckOAuthTokenVisibility(MessageParcel &data, MessageParcel &reply)
 {
     std::string name = data.ReadString();

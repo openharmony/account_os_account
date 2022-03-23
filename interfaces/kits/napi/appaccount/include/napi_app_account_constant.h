@@ -13,8 +13,8 @@
  * limitations under the License.
  */
 
-#ifndef NAPI_APP_ACCOUNT_CONSTANTS
-#define NAPI_APP_ACCOUNT_CONSTANTS
+#ifndef NAPI_APP_ACCOUNT_CONSTANTS_H
+#define NAPI_APP_ACCOUNT_CONSTANTS_H
 
 #include "napi/native_api.h"
 
@@ -26,4 +26,4 @@ public:
 };
 }  // namespace AccountJsKit
 }  // namespace OHOS
-#endif  // NAPI_APP_ACCOUNT_CONSTANTS
+#endif  // NAPI_APP_ACCOUNT_CONSTANTS_H

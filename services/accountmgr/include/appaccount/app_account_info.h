@@ -75,13 +75,13 @@ public:
     ErrCode GetAllOAuthTokens(std::vector<OAuthTokenInfo> &tokenInfos) const;
     ErrCode GetOAuthList(const std::string &authType, std::set<std::string> &oauthList) const;
 
-    virtual bool Marshalling(Parcel &parcel) const override;
+    bool Marshalling(Parcel &parcel) const override;
     static AppAccountInfo *Unmarshalling(Parcel &parcel);
 
-    virtual Json ToJson() const override;
-    virtual void FromJson(const Json &jsonObject) override;
-    virtual std::string ToString() const override;
-    virtual std::string GetPrimeKey() const override;
+    Json ToJson() const override;
+    void FromJson(const Json &jsonObject) override;
+    std::string ToString() const override;
+    std::string GetPrimeKey() const override;
 
 private:
     void ParseTokenInfosFromJson(const Json &jsonObject);

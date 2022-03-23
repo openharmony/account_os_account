@@ -32,9 +32,9 @@ class AppAccountAuthenticatorSessionManager;
 namespace {
 class AppStateObserver : public AppExecFwk::ApplicationStateObserverStub {
 public:
-    AppStateObserver(AppAccountAuthenticatorSessionManager *sessionManager);
+    explicit AppStateObserver(AppAccountAuthenticatorSessionManager *sessionManager);
     virtual ~AppStateObserver() = default;
-    virtual void OnAbilityStateChanged(const AppExecFwk::AbilityStateData &abilityStateData) override;
+    void OnAbilityStateChanged(const AppExecFwk::AbilityStateData &abilityStateData) override;
     void SetSessionManager(AppAccountAuthenticatorSessionManager *sessionManager);
 private:
     AppAccountAuthenticatorSessionManager *sessionManager_;

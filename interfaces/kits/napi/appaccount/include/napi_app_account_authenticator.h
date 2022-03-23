@@ -13,8 +13,8 @@
  * limitations under the License.
  */
 
-#ifndef NAPI_APP_ACCOUNT_ACCOUNT_AUTHENTICATOR_STUB_H
-#define NAPI_APP_ACCOUNT_ACCOUNT_AUTHENTICATOR_STUB_H
+#ifndef NAPI_APP_ACCOUNT_ACCOUNT_AUTHENTICATOR_H
+#define NAPI_APP_ACCOUNT_ACCOUNT_AUTHENTICATOR_H
 
 #include <mutex>
 
@@ -47,13 +47,13 @@ class NapiAppAccountAuthenticator : public AccountSA::AppAccountAuthenticatorStu
 public:
     NapiAppAccountAuthenticator(const napi_env &env,
         const napi_ref &addAccountImplicitlyRef, const napi_ref &authenticateRef);
-    virtual ~NapiAppAccountAuthenticator() override;
+    ~NapiAppAccountAuthenticator() override;
     bool CheckObjectLegality() const override;
     int GetObjectType() const override;
     static napi_value Init(napi_env env, napi_value exports);
-    virtual ErrCode AddAccountImplicitly(const std::string &authType, const std::string &callerBundleName,
+    ErrCode AddAccountImplicitly(const std::string &authType, const std::string &callerBundleName,
         const AAFwk::WantParams &options, const sptr<IRemoteObject> &callback) override;
-    virtual ErrCode Authenticate(
+    ErrCode Authenticate(
         const std::string &name, const std::string &authType, const std::string &callerBundleName,
         const AAFwk::WantParams &options, const sptr<IRemoteObject> &callback) override;
 
