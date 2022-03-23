@@ -279,7 +279,6 @@ ErrCode AppAccountControlManager::GetAssociatedData(const std::string &name, con
         return result;
     }
 
-    std::string associatedData;
     result = appAccountInfo.GetAssociatedData(key, value);
     if (result != ERR_OK) {
         ACCOUNT_LOGE("failed to get associated data");
@@ -332,7 +331,6 @@ ErrCode AppAccountControlManager::GetAccountCredential(const std::string &name, 
         return result;
     }
 
-    std::string accountCredential;
     result = appAccountInfo.GetAccountCredential(credentialType, credential);
     if (result != ERR_OK) {
         ACCOUNT_LOGE("failed to get account credential");

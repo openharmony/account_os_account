@@ -13,8 +13,8 @@
  * limitations under the License.
  */
 
-#ifndef NAPI_APP_ACCOUNT_COMMON
-#define NAPI_APP_ACCOUNT_COMMON
+#ifndef NAPI_APP_ACCOUNT_COMMON_H
+#define NAPI_APP_ACCOUNT_COMMON_H
 #include <mutex>
 #include <thread>
 #include "app_account_authenticator_callback_stub.h"
@@ -55,10 +55,10 @@ extern std::map<AppAccountManager *, std::vector<AsyncContextForSubscribe *>> g_
 
 class SubscriberPtr : public AppAccountSubscriber {
 public:
-    SubscriberPtr(const AppAccountSubscribeInfo &subscribeInfo);
+    explicit SubscriberPtr(const AppAccountSubscribeInfo &subscribeInfo);
     ~SubscriberPtr();
 
-    virtual void OnAccountsChanged(const std::vector<AppAccountInfo> &accounts) override;
+    void OnAccountsChanged(const std::vector<AppAccountInfo> &accounts) override;
 
     void SetEnv(const napi_env &env);
     void SetCallbackRef(const napi_ref &ref);
@@ -164,8 +164,8 @@ public:
     AppAccountManagerCallback();
     ~AppAccountManagerCallback();
 
-    virtual void OnResult(int32_t resultCode, const AAFwk::Want &result) override;
-    virtual void OnRequestRedirected(AAFwk::Want &request) override;
+    void OnResult(int32_t resultCode, const AAFwk::Want &result) override;
+    void OnRequestRedirected(AAFwk::Want &request) override;
 
     void SetEnv(const napi_env &env);
     void SetResultRef(const napi_ref &ref);
@@ -261,4 +261,4 @@ void UnsubscribeCallbackCompletedCB(napi_env env, napi_status status, void *data
 }  // namespace AccountJsKit
 }  // namespace OHOS
 
-#endif /* NAPI_APP_ACCOUNT_COMMON */
+#endif  // NAPI_APP_ACCOUNT_COMMON_H

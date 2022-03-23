@@ -50,8 +50,8 @@ public:
     sptr<IRemoteObject> GetAppAccountService() override;
     sptr<IRemoteObject> GetOsAccountService() override;
 
-    virtual void OnStart() override;
-    virtual void OnStop() override;
+    void OnStart() override;
+    void OnStop() override;
     bool IsServiceStarted(void) const override;
     static AccountMgrService &GetInstance()
     {

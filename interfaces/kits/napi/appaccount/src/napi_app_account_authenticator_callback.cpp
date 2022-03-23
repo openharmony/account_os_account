@@ -217,5 +217,5 @@ napi_value NapiAppAccountAuthenticatorCallback::JsConstructor(napi_env env, napi
     NAPI_ASSERT(env, status == napi_ok, "wrap js AuthenticatorStub and native callback failed");
     return thisVar;
 }
-}  // namespace AccountSA
+}  // namespace AccountJsKit
 }  // namespace OHOS

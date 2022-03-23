@@ -88,17 +88,17 @@ public:
 
     void SetLastLoginTime(const int64_t lastLoginTime);
 
-    virtual Json ToJson() const override;
+    Json ToJson() const override;
 
-    virtual void FromJson(const Json &jsonObject) override;
+    void FromJson(const Json &jsonObject) override;
 
-    virtual bool Marshalling(Parcel &parcel) const override;
+    bool Marshalling(Parcel &parcel) const override;
 
     bool ReadFromParcel(Parcel &parcel);
 
-    virtual std::string ToString() const override;
+    std::string ToString() const override;
 
-    virtual std::string GetPrimeKey() const override;
+    std::string GetPrimeKey() const override;
 
     static OsAccountInfo *Unmarshalling(Parcel &parcel);
 
