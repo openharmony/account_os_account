@@ -109,7 +109,8 @@ std::int32_t AccountStub::CmdUpdateOhosAccountInfo(MessageParcel &data, MessageP
 
 std::int32_t AccountStub::CmdQueryOhosAccountInfo(MessageParcel &data, MessageParcel &reply)
 {
-    if (!HasAccountRequestPermission(PERMISSION_MANAGE_USERS, true)) {
+    if (!HasAccountRequestPermission(PERMISSION_MANAGE_USERS, true) &&
+        !HasAccountRequestPermission(PERMISSION_DISTRIBUTED_DATASYNC, true)) {
         ACCOUNT_LOGE("Check permission failed");
         return ERR_ACCOUNT_ZIDL_CHECK_PERMISSION_ERROR;
     }
