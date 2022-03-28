@@ -15,7 +15,12 @@ import("//base/account/os_account/os_account.gni")
 import("//build/ohos.gni")
 
 ohos_prebuilt_etc("accountmgr.init") {
-  source = "accountmgr.cfg"
+  if (use_musl) {
+    source = "accountmgr.cfg"
+  } else {
+    source = "accountmgr_sys.cfg"
+  }
+  
   relative_install_dir = "init"
   part_name = "os_account_standard"
 }
