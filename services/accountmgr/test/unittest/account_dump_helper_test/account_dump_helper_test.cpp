@@ -30,7 +30,7 @@ using namespace OHOS::AccountSA;
 class AccountDumpHelperTest : public testing::Test {
 public:
     AccountDumpHelperTest();
-    ~AccountDumpHelperTest() {};
+    ~AccountDumpHelperTest() {}
 
     static void SetUpTestCase();
     static void TearDownTestCase();
@@ -39,19 +39,19 @@ public:
     std::shared_ptr<OhosAccountManager> ohosAccount_{};
 };
 
-AccountDumpHelperTest::AccountDumpHelperTest()
+AccountDumpHelperTest::AccountDumpHelperTest() {}
+
+void AccountDumpHelperTest::SetUpTestCase() {}
+
+void AccountDumpHelperTest::TearDownTestCase() {}
+
+void AccountDumpHelperTest::SetUp()
 {
     ohosAccount_ = std::make_shared<OhosAccountManager>();
     if (!ohosAccount_->OnInitialize()) {
         std::cout << "AccountDumpHelperTest, error! ohos account manager init failed!" << std::endl;
     }
 }
-
-void AccountDumpHelperTest::SetUpTestCase() {}
-
-void AccountDumpHelperTest::TearDownTestCase() {}
-
-void AccountDumpHelperTest::SetUp(){}
 
 void AccountDumpHelperTest::TearDown() {}
 
@@ -73,15 +73,15 @@ HWTEST_F(AccountDumpHelperTest, AccountDumpParameterTest001, TestSize.Level0)
     bool ret = accountDumpHelper.Dump(cmd, out);
     EXPECT_EQ(true, ret);
     auto pos = out.find("Ohos account name: ", 0);
-    EXPECT_NE(std::string::npos, ret);
+    EXPECT_NE(std::string::npos, pos);
     pos = out.find("Ohos account openId: ", 0);
-    EXPECT_NE(std::string::npos, ret);
+    EXPECT_NE(std::string::npos, pos);
     pos = out.find("Local user Id: ", 0);
-    EXPECT_NE(std::string::npos, ret);
+    EXPECT_NE(std::string::npos, pos);
     pos = out.find("Ohos account status: ", 0);
-    EXPECT_NE(std::string::npos, ret);
+    EXPECT_NE(std::string::npos, pos);
     pos = out.find("Ohos account bind time:  ", 0);
-    EXPECT_NE(std::string::npos, ret);
+    EXPECT_NE(std::string::npos, pos);
 }
 
 /**

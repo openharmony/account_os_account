@@ -133,10 +133,9 @@ HWTEST_F(OsAccountManagerServiceSubscribeModuleTest, OsAccountManagerServiceSubs
     struct tm startTime = {0};
     EXPECT_EQ(GetSystemCurrentTime(&startTime), true);
     struct tm doingTime = {0};
-    int64_t seconds = 0;
     while (!g_mtx.try_lock()) {
         EXPECT_EQ(GetSystemCurrentTime(&doingTime), true);
-        seconds = GetSecondsBetween(startTime, doingTime);
+        int64_t seconds = GetSecondsBetween(startTime, doingTime);
         if (seconds >= 5) {
             break;
         }
@@ -186,10 +185,9 @@ HWTEST_F(OsAccountManagerServiceSubscribeModuleTest, OsAccountManagerServiceSubs
     struct tm startTime = {0};
     EXPECT_EQ(GetSystemCurrentTime(&startTime), true);
     struct tm doingTime = {0};
-    int64_t seconds = 0;
     while (!g_mtx.try_lock()) {
         EXPECT_EQ(GetSystemCurrentTime(&doingTime), true);
-        seconds = GetSecondsBetween(startTime, doingTime);
+        int64_t seconds = GetSecondsBetween(startTime, doingTime);
         if (seconds >= 5) {
             break;
         }

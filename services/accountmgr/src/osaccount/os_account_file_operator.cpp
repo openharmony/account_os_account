@@ -13,10 +13,11 @@
  * limitations under the License.
  */
 
+#include "os_account_file_operator.h"
+
 #include "account_log_wrapper.h"
 #include "os_account_constants.h"
 
-#include "os_account_file_operator.h"
 namespace OHOS {
 namespace AccountSA {
 OsAccountFileOperator::OsAccountFileOperator()

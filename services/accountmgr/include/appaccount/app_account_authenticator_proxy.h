@@ -24,11 +24,11 @@ namespace AccountSA {
 class AppAccountAuthenticatorProxy : public IRemoteProxy<IAppAccountAuthenticator> {
 public:
     explicit AppAccountAuthenticatorProxy(const sptr<IRemoteObject> &object);
-    virtual ~AppAccountAuthenticatorProxy() override;
+    ~AppAccountAuthenticatorProxy() override;
 
-    virtual ErrCode AddAccountImplicitly(const std::string &authType, const std::string &callerBundleName,
+    ErrCode AddAccountImplicitly(const std::string &authType, const std::string &callerBundleName,
         const AAFwk::WantParams &options, const sptr<IRemoteObject> &callback) override;
-    virtual ErrCode Authenticate(
+    ErrCode Authenticate(
         const std::string &name, const std::string &authType, const std::string &callerBundleName,
         const AAFwk::WantParams &options, const sptr<IRemoteObject> &callback) override;
 

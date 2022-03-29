@@ -13,8 +13,8 @@
  * limitations under the License.
  */
 
-#ifndef BASE_ACCOUNT_SERVICES_COMMON_INCLUDE_PERF_STAT_H
-#define BASE_ACCOUNT_SERVICES_COMMON_INCLUDE_PERF_STAT_H
+#ifndef OS_ACCOUNT_FRAMEWORKS_COMMON_PERF_STAT_INCLUDE_PERF_STAT_H
+#define OS_ACCOUNT_FRAMEWORKS_COMMON_PERF_STAT_INCLUDE_PERF_STAT_H
 
 #include <cstdint>
 #include <map>
@@ -84,7 +84,7 @@ private:
 
     bool enableStat_ = true;
 };
-} // namespace AccountSA
-} // namespace OHOS
+}  // namespace AccountSA
+}  // namespace OHOS
 
-#endif // BASE_ACCOUNT_SERVICES_COMMON_INCLUDE_PERF_STAT_H
+#endif  // OS_ACCOUNT_FRAMEWORKS_COMMON_PERF_STAT_INCLUDE_PERF_STAT_H

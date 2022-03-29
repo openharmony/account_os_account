@@ -24,10 +24,10 @@ namespace AccountSA {
 class AppAccountAuthenticatorCallbackProxy : public IRemoteProxy<IAppAccountAuthenticatorCallback> {
 public:
     explicit AppAccountAuthenticatorCallbackProxy(const sptr<IRemoteObject> &object);
-    virtual ~AppAccountAuthenticatorCallbackProxy() override;
+    ~AppAccountAuthenticatorCallbackProxy() override;
 
-    virtual void OnResult(int32_t resultCode, const AAFwk::Want &result) override;
-    virtual void OnRequestRedirected(AAFwk::Want &request) override;
+    void OnResult(int32_t resultCode, const AAFwk::Want &result) override;
+    void OnRequestRedirected(AAFwk::Want &request) override;
 
 private:
     ErrCode SendRequest(IAppAccountAuthenticatorCallback::Message code, MessageParcel &data, MessageParcel &reply);

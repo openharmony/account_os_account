@@ -35,11 +35,9 @@ const size_t RANDOM_MAX = 255;
 
 bool GetBoolParam()
 {
-    bool param;
+    bool param = false;
     if (GetIntParam() % ACCOUNT_FUZZ_BOOL == 0) {
         param = true;
-    } else {
-        param = false;
     }
     cout << "Bool param is: " << param << endl;
     return param;
@@ -63,6 +61,7 @@ int8_t GetS8Param()
     cout << "Int8_t param is: " << param << endl;
     return param;
 }
+
 int16_t GetS16Param()
 {
     std::random_device rd;
@@ -72,6 +71,7 @@ int16_t GetS16Param()
     cout << "Int16_t param is: " << param << endl;
     return param;
 }
+
 int32_t GetS32Param()
 {
     std::random_device rd;
@@ -206,22 +206,18 @@ char GetCharParam()
 
 char32_t GetChar32Param()
 {
-    char32_t param = ' ';
     std::random_device rd;
     static uniform_int_distribution<char32_t> u;
     static default_random_engine e(rd());
-    param = u(e);
-    return param;
+    return u(e);
 }
 
 string GetStringParam()
 {
     string param = "";
-    char ch = GetCharParam();
     size_t len = GenRandom(RANDOM_MIN, RANDOM_MAX);
     while (len--) {
-        ch = GetCharParam();
-        param += ch;
+        param += GetCharParam();
     }
     cout << "String param length is: " << param.length() << endl;
     return param;

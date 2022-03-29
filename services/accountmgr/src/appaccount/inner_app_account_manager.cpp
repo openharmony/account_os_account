@@ -13,12 +13,12 @@
  * limitations under the License.
  */
 
+#include "inner_app_account_manager.h"
+
 #include "account_log_wrapper.h"
 #include "app_account_authenticator_session.h"
 #include "app_account_control_manager.h"
 #include "app_account_subscribe_manager.h"
-
-#include "inner_app_account_manager.h"
 
 namespace OHOS {
 namespace AccountSA {
@@ -336,7 +336,7 @@ ErrCode InnerAppAccountManager::DeleteOAuthToken(const OAuthRequest &request)
     }
     return controlManagerPtr_->DeleteOAuthToken(request);
 }
- 
+
 ErrCode InnerAppAccountManager::SetOAuthTokenVisibility(const OAuthRequest &request)
 {
     ACCOUNT_LOGI("enter");

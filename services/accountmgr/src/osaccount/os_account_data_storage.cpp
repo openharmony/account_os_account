@@ -13,10 +13,11 @@
  * limitations under the License.
  */
 
+#include "os_account_data_storage.h"
+
 #include "account_error_no.h"
 #include "account_log_wrapper.h"
 
-#include "os_account_data_storage.h"
 namespace OHOS {
 namespace AccountSA {
 OsAccountDataStorage::~OsAccountDataStorage()

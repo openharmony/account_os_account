@@ -13,9 +13,9 @@
  * limitations under the License.
  */
 
-#include "account_log_wrapper.h"
-
 #include "accesstoken_kit.h"
+
+#include "account_log_wrapper.h"
 
 using namespace OHOS::AccountSA;
 

@@ -13,9 +13,9 @@
  * limitations under the License.
  */
 
-#include "account_log_wrapper.h"
-
 #include "app_account_event_stub.h"
+
+#include "account_log_wrapper.h"
 
 namespace OHOS {
 namespace AccountSA {
@@ -71,7 +71,7 @@ bool AppAccountEventStub::ReadParcelableVector(std::vector<T> &parcelableVector,
 
     parcelableVector.clear();
     for (uint32_t index = 0; index < size; index += 1) {
-        T *parcelable = data.ReadParcelable<T>();
+        std::shared_ptr<T> parcelable(data.ReadParcelable<T>());
         if (parcelable == nullptr) {
             ACCOUNT_LOGE("failed to ReadParcelable for T");
             return false;

@@ -13,8 +13,8 @@
  * limitations under the License.
  */
 
-#ifndef NAPI_OS_ACCOUNT_H
-#define NAPI_OS_ACCOUNT_H
+#ifndef OS_ACCOUNT_INTERFACES_KITS_NAPI_OSACCOUNT_INCLUDE_NAPI_OS_ACCOUNT_H
+#define OS_ACCOUNT_INTERFACES_KITS_NAPI_OSACCOUNT_INCLUDE_NAPI_OS_ACCOUNT_H
 
 #include <uv.h>
 #include <map>
@@ -36,10 +36,10 @@ static thread_local napi_ref osAccountRef_ = nullptr;
 
 class SubscriberPtr : public OsAccountSubscriber {
 public:
-    SubscriberPtr(const OsAccountSubscribeInfo &subscribeInfo);
+    explicit SubscriberPtr(const OsAccountSubscribeInfo &subscribeInfo);
     ~SubscriberPtr();
 
-    virtual void OnAccountsChanged(const int &id) override;
+    void OnAccountsChanged(const int &id) override;
 
     void SetEnv(const napi_env &env);
     void SetCallbackRef(const napi_ref &ref);
@@ -498,4 +498,5 @@ void UnsubscribeCallbackCompletedCB(napi_env env, napi_status status, void *data
 void SetEnumProperty(napi_env env, napi_value dstObj, const int objValue, const char *propName);
 }  // namespace AccountJsKit
 }  // namespace OHOS
-#endif  // NAPI_OS_ACCOUNT_H
+
+#endif  // OS_ACCOUNT_INTERFACES_KITS_NAPI_OSACCOUNT_INCLUDE_NAPI_OS_ACCOUNT_H

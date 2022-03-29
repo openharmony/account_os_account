@@ -13,8 +13,8 @@
  * limitations under the License.
  */
 
-#ifndef BASE_ACCOUNT_OS_ACCOUNT_TOOLS_ACM_INCLUDE_ACCOUNT_COMMAND_H
-#define BASE_ACCOUNT_OS_ACCOUNT_TOOLS_ACM_INCLUDE_ACCOUNT_COMMAND_H
+#ifndef OS_ACCOUNT_TOOLS_ACM_INCLUDE_ACCOUNT_COMMAND_H
+#define OS_ACCOUNT_TOOLS_ACM_INCLUDE_ACCOUNT_COMMAND_H
 
 #include "os_account.h"
 #include "shell_command.h"
@@ -90,9 +90,9 @@ public:
     ~AccountCommand() = default;
 
 private:
-    virtual ErrCode CreateCommandMap() override;
-    virtual ErrCode CreateMessageMap() override;
-    virtual ErrCode init() override;
+    ErrCode CreateCommandMap() override;
+    ErrCode CreateMessageMap() override;
+    ErrCode init() override;
 
     ErrCode RunAsHelpCommand(void);
     ErrCode RunAsCreateCommand(void);
@@ -128,4 +128,4 @@ private:
 }  // namespace AccountSA
 }  // namespace OHOS
 
-#endif  // BASE_ACCOUNT_OS_ACCOUNT_TOOLS_ACM_INCLUDE_ACCOUNT_COMMAND_H
+#endif  // OS_ACCOUNT_TOOLS_ACM_INCLUDE_ACCOUNT_COMMAND_H

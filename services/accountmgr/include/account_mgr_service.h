@@ -13,8 +13,8 @@
  * limitations under the License.
  */
 
-#ifndef BASE_ACCOUNT_INCLUDE_ACCOUNT_SERVICE_H
-#define BASE_ACCOUNT_INCLUDE_ACCOUNT_SERVICE_H
+#ifndef OS_ACCOUNT_SERVICES_ACCOUNTMGR_INCLUDE_ACCOUNT_MGR_SERVICE_H
+#define OS_ACCOUNT_SERVICES_ACCOUNTMGR_INCLUDE_ACCOUNT_MGR_SERVICE_H
 
 #include <memory>
 #include <mutex>
@@ -50,8 +50,8 @@ public:
     sptr<IRemoteObject> GetAppAccountService() override;
     sptr<IRemoteObject> GetOsAccountService() override;
 
-    virtual void OnStart() override;
-    virtual void OnStop() override;
+    void OnStart() override;
+    void OnStop() override;
     bool IsServiceStarted(void) const override;
     static AccountMgrService &GetInstance()
     {
@@ -76,4 +76,5 @@ private:
 };
 }  // namespace AccountSA
 }  // namespace OHOS
-#endif  // BASE_ACCOUNT_INCLUDE_ACCOUNT_SERVICE_H
+
+#endif  // OS_ACCOUNT_SERVICES_ACCOUNTMGR_INCLUDE_ACCOUNT_MGR_SERVICE_H

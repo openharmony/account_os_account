@@ -12,10 +12,13 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-#ifndef OS_ACCOUNT_FRAMEWORK_OSACCOUNT_CORE_INCLUDE_OS_ACCOUNT_H
-#define OS_ACCOUNT_FRAMEWORK_OSACCOUNT_CORE_INCLUDE_OS_ACCOUNT_H
+
+#ifndef OS_ACCOUNT_FRAMEWORKS_OSACCOUNT_CORE_INCLUDE_OS_ACCOUNT_H
+#define OS_ACCOUNT_FRAMEWORKS_OSACCOUNT_CORE_INCLUDE_OS_ACCOUNT_H
+
 #include "ios_account.h"
 #include "os_account_event_listener.h"
+
 namespace OHOS {
 namespace AccountSA {
 class OsAccount {
@@ -82,4 +85,5 @@ private:
 };
 }  // namespace AccountSA
 }  // namespace OHOS
-#endif /* OS_ACCOUNT_FRAMEWORK_OSACCOUNT_CORE_INCLUDE_OS_ACCOUNT_H */
+
+#endif  // OS_ACCOUNT_FRAMEWORKS_OSACCOUNT_CORE_INCLUDE_OS_ACCOUNT_H

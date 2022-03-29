@@ -13,8 +13,8 @@
  * limitations under the License.
  */
 
-#ifndef ACCOUNT_HELPER_DATA_H
-#define ACCOUNT_HELPER_DATA_H
+#ifndef OS_ACCOUNT_SERVICES_ACCOUNTMGR_INCLUDE_ACCOUNT_HELPER_DATA_H
+#define OS_ACCOUNT_SERVICES_ACCOUNTMGR_INCLUDE_ACCOUNT_HELPER_DATA_H
 
 #include <map>
 #include <string>
@@ -27,6 +27,7 @@ public:
     static std::vector<std::string> GetBundleNameTrustList();
     static std::map<std::string, std::string> GetAccountEventMap();
 };
-} // namespace AccountSA
-} // namespace OHOS
-#endif // ACCOUNT_HELPER_DATA_H
+}  // namespace AccountSA
+}  // namespace OHOS
+
+#endif  // OS_ACCOUNT_SERVICES_ACCOUNTMGR_INCLUDE_ACCOUNT_HELPER_DATA_H

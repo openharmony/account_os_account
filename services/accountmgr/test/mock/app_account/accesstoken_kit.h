@@ -16,6 +16,8 @@
 #ifndef OS_ACCOUNT_SERVICES_ACCOUNTMGR_TEST_MOCK_APP_ACCOUNT_ACCESSTOKEN_KIT_H
 #define OS_ACCOUNT_SERVICES_ACCOUNTMGR_TEST_MOCK_APP_ACCOUNT_ACCESSTOKEN_KIT_H
 
+#include <string>
+
 namespace OHOS {
 namespace Security {
 namespace AccessToken {

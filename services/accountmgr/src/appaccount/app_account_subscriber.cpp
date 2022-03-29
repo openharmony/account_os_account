@@ -13,10 +13,10 @@
  * limitations under the License.
  */
 
+#include "app_account_subscriber.h"
+
 #include "account_error_no.h"
 #include "account_log_wrapper.h"
-
-#include "app_account_subscriber.h"
 
 namespace OHOS {
 namespace AccountSA {

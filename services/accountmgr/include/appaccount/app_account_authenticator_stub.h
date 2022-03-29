@@ -24,8 +24,8 @@ namespace AccountSA {
 class AppAccountAuthenticatorStub : public IRemoteStub<IAppAccountAuthenticator> {
 public:
     AppAccountAuthenticatorStub();
-    virtual ~AppAccountAuthenticatorStub() override;
-    virtual int OnRemoteRequest(
+    ~AppAccountAuthenticatorStub() override;
+    int OnRemoteRequest(
         uint32_t code, MessageParcel &data, MessageParcel &reply, MessageOption &option) override;
 
 private:
