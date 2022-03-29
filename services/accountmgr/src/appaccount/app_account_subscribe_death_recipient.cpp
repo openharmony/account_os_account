@@ -13,10 +13,10 @@
  * limitations under the License.
  */
 
+#include "app_account_subscribe_death_recipient.h"
+
 #include "account_log_wrapper.h"
 #include "app_account_subscribe_manager.h"
-
-#include "app_account_subscribe_death_recipient.h"
 
 namespace OHOS {
 namespace AccountSA {

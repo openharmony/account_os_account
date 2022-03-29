@@ -13,14 +13,14 @@
  * limitations under the License.
  */
 
+#include "app_account_subscribe_manager.h"
+
 #include "account_log_wrapper.h"
 #include "app_account_control_manager.h"
 #include "app_account_subscribe_death_recipient.h"
 #include "iapp_account_event.h"
 #include "ipc_skeleton.h"
 #include "ohos_account_kits.h"
-
-#include "app_account_subscribe_manager.h"
 
 namespace OHOS {
 namespace AccountSA {
@@ -231,15 +231,18 @@ ErrCode AppAccountSubscribeManager::CheckAppAccess(
             return ret;
         }
 
-        auto it = std::find_if(accessibleAccounts.begin(), accessibleAccounts.end(), [owner](std::string account) {
-            auto position = account.find(owner);
-            ACCOUNT_LOGI("account = %{public}s, position = %{public}zu", account.c_str(), position);
-            if (position != 0) {
-                return false;
-            }
+        auto it = std::find_if(
+            accessibleAccounts.begin(),
+            accessibleAccounts.end(),
+            [owner](const std::string &account) {
+                auto position = account.find(owner);
+                ACCOUNT_LOGI("account = %{public}s, position = %{public}zu", account.c_str(), position);
+                if (position != 0) {
+                    return false;
+                }
 
-            return true;
-        });
+                return true;
+            });
         if (it == accessibleAccounts.end()) {
             ACCOUNT_LOGE("failed to find accessiable account");
             return ERR_APPACCOUNT_SERVICE_SUBSCRIBE_PERMISSON_DENIED;

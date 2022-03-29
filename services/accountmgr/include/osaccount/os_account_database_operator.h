@@ -12,8 +12,10 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 #ifndef OS_ACCOUNT_SERVICES_ACCOUNTMGR_INCLUDE_OSACCOUNT_OS_ACCOUNT_DATABSE_OPERATOR_H
 #define OS_ACCOUNT_SERVICES_ACCOUNTMGR_INCLUDE_OSACCOUNT_OS_ACCOUNT_DATABSE_OPERATOR_H
+
 #include <memory>
 #include "account_data_storage.h"
 #include "ios_account_control.h"
@@ -49,4 +51,5 @@ private:
 };
 }  // namespace AccountSA
 }  // namespace OHOS
-#endif /* OS_ACCOUNT_SERVICES_ACCOUNTMGR_INCLUDE_OSACCOUNT_OS_ACCOUNT_CONTROL_DATABSE_MANAGER_H */
+
+#endif  // OS_ACCOUNT_SERVICES_ACCOUNTMGR_INCLUDE_OSACCOUNT_OS_ACCOUNT_CONTROL_DATABSE_MANAGER_H

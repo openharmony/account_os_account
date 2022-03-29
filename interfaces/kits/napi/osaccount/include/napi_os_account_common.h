@@ -13,8 +13,8 @@
  * limitations under the License.
  */
 
-#ifndef NAPI_OS_ACCOUNT_COMMON_H
-#define NAPI_OS_ACCOUNT_COMMON_H
+#ifndef OS_ACCOUNT_INTERFACES_KITS_NAPI_OSACCOUNT_INCLUDE_NAPI_OS_ACCOUNT_COMMON_H
+#define OS_ACCOUNT_INTERFACES_KITS_NAPI_OSACCOUNT_INCLUDE_NAPI_OS_ACCOUNT_COMMON_H
 
 #include "account_info.h"
 #include "napi_os_account.h"
@@ -23,8 +23,6 @@
 
 namespace OHOS {
 namespace AccountJsKit {
-#define PARAM0 0
-#define PARAM1 1
 constexpr std::int32_t MAX_VALUE_LEN = 4096;
 constexpr std::int32_t MAX_SUBSCRIBER_NAME_LEN = 1024;
 constexpr const std::int32_t STR_MAX_SIZE = 256;
@@ -284,4 +282,5 @@ napi_value ParseParaToUnsubscriber(const napi_env &env, const size_t &argc, cons
     napi_ref &callback, OS_ACCOUNT_SUBSCRIBE_TYPE &offType, std::string &offName);
 }  // namespace AccountJsKit
 }  // namespace OHOS
-#endif  // NAPI_OS_ACCOUNT_COMMON_H
+
+#endif  // OS_ACCOUNT_INTERFACES_KITS_NAPI_OSACCOUNT_INCLUDE_NAPI_OS_ACCOUNT_COMMON_H

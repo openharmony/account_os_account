@@ -13,8 +13,8 @@
  * limitations under the License.
  */
 
-#ifndef BASE_ACCOUNT_SERVICES_INCLUDE_DUMP_HELPER_H
-#define BASE_ACCOUNT_SERVICES_INCLUDE_DUMP_HELPER_H
+#ifndef OS_ACCOUNT_SERVICES_ACCOUNTMGR_INCLUDE_ACCOUNT_DUMP_HELPER_H
+#define OS_ACCOUNT_SERVICES_ACCOUNTMGR_INCLUDE_ACCOUNT_DUMP_HELPER_H
 
 #include <string>
 #include <vector>
@@ -40,6 +40,7 @@ private:
     bool SimulateInputEvent(const std::string &eventStr, std::string &result) const;
     bool SetLogLevel(const std::string& levelStr, std::string& result) const;
 };
-} // namespace AccountSA
-} // namespace OHOS
-#endif // BASE_ACCOUNT_SERVICES_INCLUDE_DUMP_HELPER_H
+}  // namespace AccountSA
+}  // namespace OHOS
+
+#endif  // OS_ACCOUNT_SERVICES_ACCOUNTMGR_INCLUDE_ACCOUNT_DUMP_HELPER_H

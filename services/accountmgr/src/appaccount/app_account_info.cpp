@@ -13,10 +13,10 @@
  * limitations under the License.
  */
 
+#include "app_account_info.h"
+
 #include "account_log_wrapper.h"
 #include "nlohmann/json.hpp"
-
-#include "app_account_info.h"
 
 namespace OHOS {
 namespace AccountSA {
@@ -33,9 +33,10 @@ const std::string OAUTH_TOKEN_INFOS = "tokenInfos";
 const std::string OAUTH_TYPE = "authType";
 const std::string OAUTH_AUTH_LIST = "authList";
 const std::string OAUTH_TOKEN_TO_TYPE = "tokenToType";
-const uint32_t APP_INDEX = 0;
-
 const std::string HYPHEN = "#";
+constexpr uint32_t APP_INDEX = 0;
+constexpr uint32_t MAX_TOKEN_NUMBER = 128;
+constexpr uint32_t MAX_OAUTH_LIST_SIZE = 512;
 }  // namespace
 
 AppAccountInfo::AppAccountInfo()
@@ -294,7 +295,7 @@ ErrCode AppAccountInfo::SetOAuthTokenVisibility(
     }
     return ERR_OK;
 }
- 
+
 ErrCode AppAccountInfo::CheckOAuthTokenVisibility(
     const std::string &authType, const std::string &bundleName, bool &isVisible) const
 {

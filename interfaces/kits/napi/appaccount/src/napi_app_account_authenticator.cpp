@@ -186,7 +186,7 @@ void UvQueueWorkCallJsFunction(uv_work_t *work, int status)
     if (param->funcName == Constants::OAUTH_ACTION_ADD_ACCOUNT_IMPLICITLY) {
         napi_get_reference_value(param->env, param->addAccountImplicitlyRef, &jsFunction);
         ret = napi_call_function(param->env, undefined, jsFunction, ARGS_SIZE_FOUR, &argv2[1], &returnVal);
-    } else if (param->funcName == Constants::OAUTH_ACTION_AUTHENTICATE) {
+    } else {
         napi_get_reference_value(param->env, param->authenticateRef, &jsFunction);
         ret = napi_call_function(param->env, undefined, jsFunction, ARGS_SIZE_FIVE, argv2, &returnVal);
     }
@@ -200,8 +200,8 @@ void UvQueueWorkCallJsFunction(uv_work_t *work, int status)
 ErrCode NapiAppAccountAuthenticator::CallJsFunction(AuthParam *param)
 {
     ACCOUNT_LOGI("Enter");
-    if (param == nullptr) {
-        ACCOUNT_LOGE("param is nullptr!");
+    if ((param == nullptr) || (param->lockInfo == nullptr)) {
+        ACCOUNT_LOGE("param or lockInfo is nullptr!");
         return ERR_ACCOUNT_COMMON_INSUFFICIENT_MEMORY_ERROR;
     }
     uv_loop_s *loop = nullptr;

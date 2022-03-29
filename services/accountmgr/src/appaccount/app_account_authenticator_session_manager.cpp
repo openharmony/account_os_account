@@ -26,22 +26,22 @@ namespace AccountSA {
 namespace {
 constexpr size_t SESSION_MAX_NUM = 256;
 constexpr int32_t ABILITY_STATE_TERMINATED = 4;
+}
 
-AppStateObserver::AppStateObserver(AppAccountAuthenticatorSessionManager *sessionManager)
+SessionAppStateObserver::SessionAppStateObserver(AppAccountAuthenticatorSessionManager *sessionManager)
     : sessionManager_(sessionManager)
 {}
 
-void AppStateObserver::OnAbilityStateChanged(const AppExecFwk::AbilityStateData &abilityStateData)
+void SessionAppStateObserver::OnAbilityStateChanged(const AppExecFwk::AbilityStateData &abilityStateData)
 {
     if (sessionManager_ != nullptr) {
         sessionManager_->OnAbilityStateChanged(abilityStateData);
     }
 }
 
-void AppStateObserver::SetSessionManager(AppAccountAuthenticatorSessionManager *sessionManager)
+void SessionAppStateObserver::SetSessionManager(AppAccountAuthenticatorSessionManager *sessionManager)
 {
     sessionManager_ = sessionManager;
-}
 }
 
 AppAccountAuthenticatorSessionManager::AppAccountAuthenticatorSessionManager()
@@ -70,9 +70,9 @@ void AppAccountAuthenticatorSessionManager::Init()
         ACCOUNT_LOGI("app account session manager has been initialized");
         return;
     }
-    appStateObserver_ = new (std::nothrow) AppStateObserver(this);
+    appStateObserver_ = new (std::nothrow) SessionAppStateObserver(this);
     if (appStateObserver_ == nullptr) {
-        ACCOUNT_LOGE("failed to create AppStateObserver instance");
+        ACCOUNT_LOGE("failed to create SessionAppStateObserver instance");
         return;
     }
     sptr<ISystemAbilityManager> samgrClient = SystemAbilityManagerClient::GetInstance().GetSystemAbilityManager();

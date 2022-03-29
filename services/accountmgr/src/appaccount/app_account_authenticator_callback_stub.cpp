@@ -17,6 +17,7 @@
 
 #include "account_error_no.h"
 #include "account_log_wrapper.h"
+#include "app_account_common.h"
 
 namespace OHOS {
 namespace AccountSA {
@@ -40,21 +41,34 @@ int AppAccountAuthenticatorCallbackStub::OnRemoteRequest(
         return ERR_ACCOUNT_COMMON_CHECK_DESCRIPTOR_ERROR;
     }
 
+    ErrCode errCode = ERR_OK;
     switch (code) {
         case static_cast<uint32_t>(IAppAccountAuthenticatorCallback::Message::ACCOUNT_RESULT): {
             int32_t resultCode = data.ReadInt32();
-            AAFwk::Want *result = data.ReadParcelable<AAFwk::Want>();
-            OnResult(resultCode, *result);
-            if (!reply.WriteInt32(resultCode)) {
+            std::shared_ptr<AAFwk::Want> resultPtr(data.ReadParcelable<AAFwk::Want>());
+            if (resultPtr == nullptr) {
+                AAFwk::Want result;
+                OnResult(ERR_JS_INVALID_RESPONSE, result);
+                errCode = ERR_APPACCOUNT_SERVICE_OAUTH_INVALID_RESPONSE;
+            } else {
+                OnResult(resultCode, *resultPtr);
+            }
+            if (!reply.WriteInt32(errCode)) {
                 ACCOUNT_LOGE("failed to write reply");
                 return IPC_STUB_WRITE_PARCEL_ERR;
             }
             break;
         }
         case static_cast<uint32_t>(IAppAccountAuthenticatorCallback::Message::ACCOUNT_REQUEST_REDIRECTED): {
-            AAFwk::Want *request = data.ReadParcelable<AAFwk::Want>();
-            OnRequestRedirected(*request);
-            if (!reply.WriteInt32(ERR_OK)) {
+            std::shared_ptr<AAFwk::Want> requestPtr(data.ReadParcelable<AAFwk::Want>());
+            if (requestPtr == nullptr) {
+                AAFwk::Want request;
+                OnRequestRedirected(request);
+                errCode = ERR_APPACCOUNT_SERVICE_OAUTH_INVALID_RESPONSE;
+            } else {
+                OnRequestRedirected(*requestPtr);
+            }
+            if (!reply.WriteInt32(errCode)) {
                 ACCOUNT_LOGE("failed to write reply");
                 return IPC_STUB_WRITE_PARCEL_ERR;
             }
@@ -68,4 +82,3 @@ int AppAccountAuthenticatorCallbackStub::OnRemoteRequest(
 }
 }  // namespace AccountSA
 }  // namespace OHOS
-

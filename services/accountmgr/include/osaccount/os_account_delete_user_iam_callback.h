@@ -12,8 +12,10 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 #ifndef OS_ACCOUNT_SERVICES_ACCOUNTMGR_INCLUDE_OSACCOUNT_OS_ACCOUNT_DELETE_USER_IAM_CALLBACK_H
 #define OS_ACCOUNT_SERVICES_ACCOUNTMGR_INCLUDE_OSACCOUNT_OS_ACCOUNT_DELETE_USER_IAM_CALLBACK_H
+
 #include "useridm_callback.h"
 
 namespace OHOS {
@@ -28,7 +30,7 @@ public:
      * @param strcut reqRet .
      * @return void.
      */
-    virtual void OnResult(int32_t result, UserIAM::UserIDM::RequestResult reqRet) override;
+    void OnResult(int32_t result, UserIAM::UserIDM::RequestResult reqRet) override;
 
     /**
      * @brief
@@ -37,11 +39,12 @@ public:
      * @param reqRet .
      * @return void.
      */
-    virtual void OnAcquireInfo(int32_t module, int32_t acquire, UserIAM::UserIDM::RequestResult reqRet) override;
+    void OnAcquireInfo(int32_t module, int32_t acquire, UserIAM::UserIDM::RequestResult reqRet) override;
 
 public:
     bool isIamOnResultCallBack_ = false;
 };
 }  // namespace AccountSA
 }  // namespace OHOS
-#endif /* OS_ACCOUNT_SERVICES_ACCOUNTMGR_INCLUDE_OSACCOUNT_OS_ACCOUNT_STOP_USER_CALLBACK_H */
+
+#endif  // OS_ACCOUNT_SERVICES_ACCOUNTMGR_INCLUDE_OSACCOUNT_OS_ACCOUNT_STOP_USER_CALLBACK_H

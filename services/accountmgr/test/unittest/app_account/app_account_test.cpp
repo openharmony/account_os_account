@@ -390,7 +390,7 @@ HWTEST_F(AppAccountTest, AppAccount_ResetAppAccountProxy_0100, TestSize.Level1)
 
     // get app account proxy
     ErrCode result = appAccount_->GetAppAccountProxy();
-
+    EXPECT_EQ(result, ERR_OK);
     EXPECT_NE(appAccount_->appAccountProxy_, nullptr);
 
     // reset app account proxy

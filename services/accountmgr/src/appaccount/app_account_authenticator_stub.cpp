@@ -40,17 +40,21 @@ int AppAccountAuthenticatorStub::OnRemoteRequest(
         return ERR_ACCOUNT_COMMON_CHECK_DESCRIPTOR_ERROR;
     }
 
+    ErrCode result = ERR_OK;
     switch (code) {
         case static_cast<uint32_t>(IAppAccountAuthenticator::Message::AUTHENTICATE): {
             std::string name = data.ReadString();
             std::string authType = data.ReadString();
             std::string callerBundleName = data.ReadString();
-            AAFwk::WantParams *options = data.ReadParcelable<AAFwk::WantParams>();
+            std::shared_ptr<AAFwk::WantParams> options(data.ReadParcelable<AAFwk::WantParams>());
             sptr<IRemoteObject> callback = data.ReadRemoteObject();
-            if (callback == nullptr) {
-                ACCOUNT_LOGI("callback is nullptr");
+            if ((options == nullptr) || (callback == nullptr)) {
+                ACCOUNT_LOGE("invalid request parameters");
+                result = ERR_APPACCOUNT_SERVICE_INVALID_PARAMETER;
             }
-            ErrCode result = Authenticate(name, authType, callerBundleName, *options, callback);
+            if (result == ERR_OK) {
+                result = Authenticate(name, authType, callerBundleName, *options, callback);
+            }
             if (!reply.WriteInt32(result)) {
                 ACCOUNT_LOGE("failed to write reply");
                 return IPC_STUB_WRITE_PARCEL_ERR;
@@ -60,12 +64,15 @@ int AppAccountAuthenticatorStub::OnRemoteRequest(
         case static_cast<uint32_t>(IAppAccountAuthenticator::Message::ADD_ACCOUNT_IMPLICITLY): {
             std::string authType = data.ReadString();
             std::string callerBundleName = data.ReadString();
-            AAFwk::WantParams *options = data.ReadParcelable<AAFwk::WantParams>();
+            std::shared_ptr<AAFwk::WantParams> options(data.ReadParcelable<AAFwk::WantParams>());
             sptr<IRemoteObject> callback = data.ReadRemoteObject();
-            if (callback == nullptr) {
-                ACCOUNT_LOGI("callback is nullptr");
+            if ((options == nullptr) || (callback == nullptr)) {
+                ACCOUNT_LOGE("invalid request parameters");
+                result = ERR_APPACCOUNT_SERVICE_INVALID_PARAMETER;
             }
-            ErrCode result = AddAccountImplicitly(authType, callerBundleName, *options, callback);
+            if (result == ERR_OK) {
+                result = AddAccountImplicitly(authType, callerBundleName, *options, callback);
+            }
             if (!reply.WriteInt32(result)) {
                 ACCOUNT_LOGE("failed to write reply");
                 return IPC_STUB_WRITE_PARCEL_ERR;

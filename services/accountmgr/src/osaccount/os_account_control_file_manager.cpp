@@ -466,15 +466,12 @@ ErrCode OsAccountControlFileManager::GetPhotoById(const int id, std::string &pho
 ErrCode OsAccountControlFileManager::SetPhotoById(const int id, const std::string &photo)
 {
     std::string path = "";
-    std::string type = "";
     std::string subPhoto = "";
     if (photo.find(Constants::USER_PHOTO_BASE_JPG_HEAD) != std::string::npos) {
-        type = "image/jpeg";
         path = Constants::USER_INFO_BASE + Constants::PATH_SEPARATOR + std::to_string(id) + Constants::PATH_SEPARATOR +
                Constants::USER_PHOTO_FILE_JPG_NAME;
         subPhoto = photo.substr(Constants::USER_PHOTO_BASE_JPG_HEAD.size());
     } else if (photo.find(Constants::USER_PHOTO_BASE_PNG_HEAD) != std::string::npos) {
-        type = "image/png";
         path = Constants::USER_INFO_BASE + Constants::PATH_SEPARATOR + std::to_string(id) + Constants::PATH_SEPARATOR +
                Constants::USER_PHOTO_FILE_PNG_NAME;
         subPhoto = photo.substr(Constants::USER_PHOTO_BASE_PNG_HEAD.size());

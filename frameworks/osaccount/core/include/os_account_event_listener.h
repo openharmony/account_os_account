@@ -24,9 +24,9 @@ namespace AccountSA {
 class OsAccountEventListener : public OsAccountEventStub {
 public:
     explicit OsAccountEventListener(const std::shared_ptr<OsAccountSubscriber> &subscriber);
-    virtual ~OsAccountEventListener() override;
+    ~OsAccountEventListener() override;
 
-    virtual void OnAccountsChanged(const int &id) override;
+    void OnAccountsChanged(const int &id) override;
 
     void Stop();
 

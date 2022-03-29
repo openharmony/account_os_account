@@ -13,8 +13,8 @@
  * limitations under the License.
  */
 
-#ifndef ACCOUNT_PROXY_H
-#define ACCOUNT_PROXY_H
+#ifndef OS_ACCOUNT_SERVICES_ACCOUNTMGR_INCLUDE_ACCOUNT_PROXY_H
+#define OS_ACCOUNT_SERVICES_ACCOUNTMGR_INCLUDE_ACCOUNT_PROXY_H
 
 #include "iaccount.h"
 #include "account_info.h"
@@ -43,4 +43,4 @@ private:
 }  // namespace AccountSA
 }  // namespace OHOS
 
-#endif  // ACCOUNT_PROXY_H
+#endif  // OS_ACCOUNT_SERVICES_ACCOUNTMGR_INCLUDE_ACCOUNT_PROXY_H

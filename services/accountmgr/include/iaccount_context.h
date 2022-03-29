@@ -13,8 +13,8 @@
  * limitations under the License.
  */
 
-#ifndef BASE_ACCOUNT_CONTEXT_H
-#define BASE_ACCOUNT_CONTEXT_H
+#ifndef OS_ACCOUNT_SERVICES_ACCOUNTMGR_INCLUDE_IACCOUNT_CONTEXT_H
+#define OS_ACCOUNT_SERVICES_ACCOUNTMGR_INCLUDE_IACCOUNT_CONTEXT_H
 
 #include "message_parcel.h"
 
@@ -40,6 +40,7 @@ protected:
 private:
     static IAccountContext *instance_;
 };
-} // namespace AccountSA
-} // namespace OHOS
-#endif // BASE_ACCOUNT_CONTEXT_H
+}  // namespace AccountSA
+}  // namespace OHOS
+
+#endif  // OS_ACCOUNT_SERVICES_ACCOUNTMGR_INCLUDE_IACCOUNT_CONTEXT_H

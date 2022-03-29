@@ -12,8 +12,8 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-#ifndef FUZZTESTMANAGER_H
-#define FUZZTESTMANAGER_H
+#ifndef OS_ACCOUNT_TEST_SYSTEMTEST_COMMON_RESOURCE_FUZZTEST_INCLUDE_FUZZ_TEST_MANAGER_H
+#define OS_ACCOUNT_TEST_SYSTEMTEST_COMMON_RESOURCE_FUZZTEST_INCLUDE_FUZZ_TEST_MANAGER_H
 
 #include <functional>
 #include <map>
@@ -57,4 +57,4 @@ private:
 }  // namespace AccountSA
 }  // namespace OHOS
 
-#endif
+#endif  // OS_ACCOUNT_TEST_SYSTEMTEST_COMMON_RESOURCE_FUZZTEST_INCLUDE_FUZZ_TEST_MANAGER_H

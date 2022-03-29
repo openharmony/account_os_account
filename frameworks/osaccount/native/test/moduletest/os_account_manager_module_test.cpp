@@ -1037,7 +1037,7 @@ HWTEST_F(OsAccountManagerModuleTest, OsAccountManagerModuleTest053, TestSize.Lev
     std::string osAccountName = domainInfo.domain_ + "/" + domainInfo.accountName_;
     checkValid = (osAccountInfo.GetLocalName() == osAccountName);
     EXPECT_EQ(checkValid, true);
-    
+
     EXPECT_EQ(OsAccountManager::RemoveOsAccount(osAccountInfo.GetLocalId()), ERR_OK);
 }
 
@@ -1363,7 +1363,7 @@ HWTEST_F(OsAccountManagerModuleTest, OsAccountManagerModuleTest065, TestSize.Lev
     OsAccountInfo osAccountInfo;
     ret = OsAccountManager::GetOsAccountFromDatabase(storeID, osAccountInfoOne.GetLocalId(), osAccountInfo);
     EXPECT_NE(ret, ERR_OK);
- 
+
     // remove the new os account
     ret = OsAccountManager::RemoveOsAccount(osAccountInfoOne.GetLocalId());
     EXPECT_NE(ret, ERR_OK);

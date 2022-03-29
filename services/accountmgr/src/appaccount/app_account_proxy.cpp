@@ -13,10 +13,10 @@
  * limitations under the License.
  */
 
+#include "app_account_proxy.h"
+
 #include "account_error_no.h"
 #include "account_log_wrapper.h"
-
-#include "app_account_proxy.h"
 
 namespace OHOS {
 namespace AccountSA {
@@ -966,7 +966,7 @@ bool AppAccountProxy::ReadParcelableVector(std::vector<T> &parcelableVector, Mes
 
     parcelableVector.clear();
     for (uint32_t index = 0; index < size; index += 1) {
-        T *parcelable = data.ReadParcelable<T>();
+        std::shared_ptr<T> parcelable(data.ReadParcelable<T>());
         if (parcelable == nullptr) {
             ACCOUNT_LOGE("failed to ReadParcelable for T");
             return false;

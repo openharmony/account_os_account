@@ -17,6 +17,7 @@
 #define OS_ACCOUNT_SERVICES_ACCOUNTMGR_TEST_MOCK_APP_ACCOUNT_BUNDLE_MGR_CLIENT_H
 
 #include "bundle_constants.h"
+#include "bundle_info.h"
 #include "singleton.h"
 
 namespace OHOS {

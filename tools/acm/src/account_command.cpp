@@ -97,7 +97,6 @@ ErrCode AccountCommand::RunAsCreateCommand(void)
 
     ErrCode result = ERR_OK;
 
-    int option = -1;
     int counter = 0;
 
     std::string name = "";
@@ -106,7 +105,7 @@ ErrCode AccountCommand::RunAsCreateCommand(void)
     while (true) {
         counter++;
 
-        option = getopt_long(argc_, argv_, SHORT_OPTIONS.c_str(), LONG_OPTIONS, nullptr);
+        int option = getopt_long(argc_, argv_, SHORT_OPTIONS.c_str(), LONG_OPTIONS, nullptr);
         ACCOUNT_LOGI("option: %{public}d, optopt: %{public}d, optind: %{public}d", option, optopt, optind);
 
         if (option == -1) {
@@ -168,7 +167,6 @@ ErrCode AccountCommand::RunAsDeleteCommand(void)
 
     ErrCode result = ERR_OK;
 
-    int option = -1;
     int counter = 0;
 
     int id = -1;
@@ -176,7 +174,7 @@ ErrCode AccountCommand::RunAsDeleteCommand(void)
     while (true) {
         counter++;
 
-        option = getopt_long(argc_, argv_, SHORT_OPTIONS.c_str(), LONG_OPTIONS, nullptr);
+        int option = getopt_long(argc_, argv_, SHORT_OPTIONS.c_str(), LONG_OPTIONS, nullptr);
         ACCOUNT_LOGI("option: %{public}d, optopt: %{public}d, optind: %{public}d", option, optopt, optind);
 
         if (option == -1) {
@@ -219,7 +217,6 @@ ErrCode AccountCommand::RunAsDumpCommand(void)
 
     ErrCode result = ERR_OK;
 
-    int option = -1;
     int counter = 0;
 
     int id = -1;
@@ -227,7 +224,7 @@ ErrCode AccountCommand::RunAsDumpCommand(void)
     while (true) {
         counter++;
 
-        option = getopt_long(argc_, argv_, SHORT_OPTIONS.c_str(), LONG_OPTIONS, nullptr);
+        int option = getopt_long(argc_, argv_, SHORT_OPTIONS.c_str(), LONG_OPTIONS, nullptr);
         ACCOUNT_LOGI("option: %{public}d, optopt: %{public}d, optind: %{public}d", option, optopt, optind);
 
         if (option == -1) {
@@ -273,7 +270,6 @@ ErrCode AccountCommand::RunAsSetCommand(void)
 
     ErrCode result = ERR_OK;
 
-    int option = -1;
     int counter = 0;
 
     int id = -1;
@@ -283,7 +279,7 @@ ErrCode AccountCommand::RunAsSetCommand(void)
     while (true) {
         counter++;
 
-        option = getopt_long(argc_, argv_, SHORT_OPTIONS.c_str(), LONG_OPTIONS, nullptr);
+        int option = getopt_long(argc_, argv_, SHORT_OPTIONS.c_str(), LONG_OPTIONS, nullptr);
         ACCOUNT_LOGI("option: %{public}d, optopt: %{public}d, optind: %{public}d", option, optopt, optind);
 
         if (option == -1) {
@@ -345,7 +341,6 @@ ErrCode AccountCommand::RunAsSwitchCommand(void)
 
     ErrCode result = ERR_OK;
 
-    int option = -1;
     int counter = 0;
 
     int id = -1;
@@ -353,7 +348,7 @@ ErrCode AccountCommand::RunAsSwitchCommand(void)
     while (true) {
         counter++;
 
-        option = getopt_long(argc_, argv_, SHORT_OPTIONS.c_str(), LONG_OPTIONS, nullptr);
+        int option = getopt_long(argc_, argv_, SHORT_OPTIONS.c_str(), LONG_OPTIONS, nullptr);
         ACCOUNT_LOGI("option: %{public}d, optopt: %{public}d, optind: %{public}d", option, optopt, optind);
 
         if (option == -1) {
