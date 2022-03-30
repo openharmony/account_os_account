@@ -391,12 +391,14 @@ ErrCode IInnerOsAccountManager::SendMsgForAccountRemove(OsAccountInfo &osAccount
             osAccountInfo.GetLocalId(), errCode);
         return ERR_OSACCOUNT_SERVICE_INTERFACE_TO_STORAGE_ACCOUNT_REMOVE_ERROR;
     }
-    errCode = OsAccountStandardInterface::SendToIAMAccountDelete(osAccountInfo);
+#ifdef HAS_USER_IDM_PART
+    errCode = OsAccountStandardInterface::SendToIDMAccountDelete(osAccountInfo);
     if (errCode != ERR_OK) {
-        ACCOUNT_LOGE("SendToIAMAccountDelete failed, id %{public}d, errCode %{public}d",
+        ACCOUNT_LOGE("SendToIDMAccountDelete failed, id %{public}d, errCode %{public}d",
             osAccountInfo.GetLocalId(), errCode);
         return ERR_OSACCOUNT_SERVICE_INNER_SEND_IAM_ACCOUNT_DELE_ERROR;
     }
+#endif // HAS_USER_IDM_PART
     errCode = osAccountControl_->DelOsAccount(osAccountInfo.GetLocalId());
     if (errCode != ERR_OK) {
         ACCOUNT_LOGE("remove osaccount info failed, id: %{public}d, errCode %{public}d",
