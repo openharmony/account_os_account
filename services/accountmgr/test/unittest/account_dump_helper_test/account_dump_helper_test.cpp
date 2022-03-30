@@ -74,7 +74,7 @@ HWTEST_F(AccountDumpHelperTest, AccountDumpParameterTest001, TestSize.Level0)
     EXPECT_EQ(true, ret);
     auto pos = out.find("Ohos account name: ", 0);
     EXPECT_NE(std::string::npos, pos);
-    pos = out.find("Ohos account openId: ", 0);
+    pos = out.find("Ohos account uid: ", 0);
     EXPECT_NE(std::string::npos, pos);
     pos = out.find("Local user Id: ", 0);
     EXPECT_NE(std::string::npos, pos);
