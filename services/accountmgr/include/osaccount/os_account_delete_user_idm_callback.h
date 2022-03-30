@@ -12,18 +12,19 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
 #ifndef OS_ACCOUNT_SERVICES_ACCOUNTMGR_INCLUDE_OSACCOUNT_OS_ACCOUNT_DELETE_USER_IAM_CALLBACK_H
 #define OS_ACCOUNT_SERVICES_ACCOUNTMGR_INCLUDE_OSACCOUNT_OS_ACCOUNT_DELETE_USER_IAM_CALLBACK_H
-
+#ifdef HAS_USER_IDM_PART
 #include "useridm_callback.h"
+#endif // HAS_USER_IDM_PART
 
 namespace OHOS {
 namespace AccountSA {
-class OsAccountDeleteUserIamCallback : public OHOS::UserIAM::UserIDM::IDMCallback {
+#ifdef HAS_USER_IDM_PART
+class OsAccountDeleteUserIdmCallback : public OHOS::UserIAM::UserIDM::IDMCallback {
 public:
-    OsAccountDeleteUserIamCallback() {}
-    virtual ~OsAccountDeleteUserIamCallback() {}
+    OsAccountDeleteUserIdmCallback() {}
+    virtual ~OsAccountDeleteUserIdmCallback() {}
     /**
      * @brief
      * @param result .
@@ -42,8 +43,9 @@ public:
     void OnAcquireInfo(int32_t module, int32_t acquire, UserIAM::UserIDM::RequestResult reqRet) override;
 
 public:
-    bool isIamOnResultCallBack_ = false;
+    bool isIdmOnResultCallBack_ = false;
 };
+#endif // HAS_USER_IDM_PART
 }  // namespace AccountSA
 }  // namespace OHOS
 

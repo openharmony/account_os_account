@@ -41,11 +41,13 @@ ErrCode OsAccountStandardInterface::SendToBMSAccountDelete(OsAccountInfo &osAcco
     return ERR_OK;
 }
 
-ErrCode OsAccountStandardInterface::SendToIAMAccountDelete(OsAccountInfo &osAccountInfo)
+#ifdef HAS_USER_IDM_PART
+ErrCode OsAccountStandardInterface::SendToIDMAccountDelete(OsAccountInfo &osAccountInfo)
 {
-    ACCOUNT_LOGI("OsAccountStandardInterface SendToIAMAccountDelete start");
+    ACCOUNT_LOGI("OsAccountStandardInterface SendToIDMAccountDelete start");
     return ERR_OK;
 }
+#endif // HAS_USER_IDM_PART
 
 void OsAccountStandardInterface::SendToCESAccountCreate(OsAccountInfo &osAccountInfo)
 {

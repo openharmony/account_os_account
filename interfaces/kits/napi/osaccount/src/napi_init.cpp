@@ -14,8 +14,9 @@
  */
 
 #include "napi_os_account.h"
-
+#ifdef HAS_USER_IDM_PART
 #include "authface_userIDM_helper.h"
+#endif // HAS_USER_IDM_PART
 #include "napi/native_api.h"
 #include "napi/native_node_api.h"
 #include "pin_auth_helper.h"
@@ -38,8 +39,10 @@ static napi_value Init(napi_env env, napi_value exports)
     PinAuth::EnumExport(env, exports);
     UserIAM::UserAuth::UserAuthInit(env, exports);
     UserIAM::UserAuth::EnumExport(env, exports);
+#ifdef HAS_USER_IDM_PART
     UserIAM::UserIDM::AuthFaceInit(env, exports);
     UserIAM::UserIDM::EnumExport(env, exports);
+#endif // HAS_USER_IDM_PART
     return exports;
 }
 EXTERN_C_END
