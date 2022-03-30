@@ -25,7 +25,9 @@ public:
     static ErrCode SendToAMSAccountStop(OsAccountInfo &osAccountInfo);
     static ErrCode SendToBMSAccountCreate(OsAccountInfo &osAccountInfo);
     static ErrCode SendToBMSAccountDelete(OsAccountInfo &osAccountInfo);
-    static ErrCode SendToIAMAccountDelete(OsAccountInfo &osAccountInfo);
+#ifdef HAS_USER_IDM_PART
+    static ErrCode SendToIDMAccountDelete(OsAccountInfo &osAccountInfo);
+#endif // HAS_USER_IDM_PART
     static void SendToCESAccountCreate(OsAccountInfo &osAccountInfo);
     static void SendToCESAccountDelete(OsAccountInfo &osAccountInfo);
     static void SendToCESAccountSwitched(OsAccountInfo &osAccountInfo);

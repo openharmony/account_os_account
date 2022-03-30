@@ -12,23 +12,25 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-#include "os_account_delete_user_iam_callback.h"
+#include "os_account_delete_user_idm_callback.h"
 #include "account_error_no.h"
 #include "account_log_wrapper.h"
 #include "os_account_manager.h"
 
 namespace OHOS {
 namespace AccountSA {
-void OsAccountDeleteUserIamCallback::OnResult(int32_t result, UserIAM::UserIDM::RequestResult reqRet)
+#ifdef HAS_USER_IDM_PART
+void OsAccountDeleteUserIdmCallback::OnResult(int32_t result, UserIAM::UserIDM::RequestResult reqRet)
 {
     ACCOUNT_LOGI("IAM OnResult callback! result %{public}d", result);
-    isIamOnResultCallBack_ = true;
+    isIdmOnResultCallBack_ = true;
 }
 
-void OsAccountDeleteUserIamCallback::OnAcquireInfo(int32_t module, int32_t acquire,
+void OsAccountDeleteUserIdmCallback::OnAcquireInfo(int32_t module, int32_t acquire,
     UserIAM::UserIDM::RequestResult reqRet)
 {
     ACCOUNT_LOGI("IAM OnAcquireInfo callback! module %{public}d, acquire %{public}d.", module, acquire);
 }
+#endif // HAS_USER_IDM_PART
 }  // namespace AccountSA
 }  // namespace OHOS
