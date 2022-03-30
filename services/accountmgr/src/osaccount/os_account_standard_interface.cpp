@@ -26,12 +26,14 @@
 #include "iservice_registry.h"
 #include "istorage_manager.h"
 #include "os_account_constants.h"
-#include "os_account_delete_user_iam_callback.h"
+#include "os_account_delete_user_idm_callback.h"
 #include "os_account_stop_user_callback.h"
 #include "storage_manager.h"
 #include "storage_manager_proxy.h"
 #include "system_ability_definition.h"
+#ifdef HAS_USER_IDM_PART
 #include "useridm_client.h"
+#endif // HAS_USER_IDM_PART
 #include "want.h"
 
 namespace OHOS {
@@ -142,17 +144,18 @@ ErrCode OsAccountStandardInterface::SendToBMSAccountDelete(OsAccountInfo &osAcco
     return ERR_OK;
 }
 
-ErrCode OsAccountStandardInterface::SendToIAMAccountDelete(OsAccountInfo &osAccountInfo)
+#ifdef HAS_USER_IDM_PART
+ErrCode OsAccountStandardInterface::SendToIDMAccountDelete(OsAccountInfo &osAccountInfo)
 {
-    std::shared_ptr<OsAccountDeleteUserIamCallback> callback = std::make_shared<OsAccountDeleteUserIamCallback>();
+    std::shared_ptr<OsAccountDeleteUserIdmCallback> callback = std::make_shared<OsAccountDeleteUserIdmCallback>();
     if (callback == nullptr) {
-        ACCOUNT_LOGE("get iam callback ptr failed! insufficient memory!");
+        ACCOUNT_LOGE("get idm callback ptr failed! insufficient memory!");
         return ERR_ACCOUNT_COMMON_INSUFFICIENT_MEMORY_ERROR;
     }
 
     int32_t ret = UserIAM::UserIDM::UserIDMClient::GetInstance().EnforceDelUser(osAccountInfo.GetLocalId(), callback);
     if (ret != 0) {
-        ACCOUNT_LOGE("iam enforce delete user failed! error %{public}d", ret);
+        ACCOUNT_LOGE("idm enforce delete user failed! error %{public}d", ret);
         return ERR_OK;    // do not return fail
     }
 
@@ -162,18 +165,19 @@ ErrCode OsAccountStandardInterface::SendToIAMAccountDelete(OsAccountInfo &osAcco
     OHOS::GetSystemCurrentTime(&startTime);
     OHOS::GetSystemCurrentTime(&nowTime);
     while (OHOS::GetSecondsBetween(startTime, nowTime) < Constants::TIME_WAIT_TIME_OUT &&
-        !callback->isIamOnResultCallBack_) {
+        !callback->isIdmOnResultCallBack_) {
         std::this_thread::sleep_for(std::chrono::milliseconds(Constants::WAIT_ONE_TIME));
         OHOS::GetSystemCurrentTime(&nowTime);
     }
 
-    if (!callback->isIamOnResultCallBack_) {
-        ACCOUNT_LOGE("iam did not call back! timeout!");
+    if (!callback->isIdmOnResultCallBack_) {
+        ACCOUNT_LOGE("idm did not call back! timeout!");
         return ERR_OK;    // do not return fail
     }
-    ACCOUNT_LOGI("send to iam account delete and get callback succeed!");
+    ACCOUNT_LOGI("send to idm account delete and get callback succeed!");
     return ERR_OK;
 }
+#endif // HAS_USER_IDM_PART
 
 void OsAccountStandardInterface::SendToCESAccountCreate(OsAccountInfo &osAccountInfo)
 {

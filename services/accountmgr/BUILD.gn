@@ -119,7 +119,7 @@ ohos_shared_library("accountmgr") {
     "src/osaccount/os_account_control_file_manager.cpp",
     "src/osaccount/os_account_data_storage.cpp",
     "src/osaccount/os_account_database_operator.cpp",
-    "src/osaccount/os_account_delete_user_iam_callback.cpp",
+    "src/osaccount/os_account_delete_user_idm_callback.cpp",
     "src/osaccount/os_account_file_operator.cpp",
     "src/osaccount/os_account_manager_service.cpp",
     "src/osaccount/os_account_photo_operator.cpp",
@@ -144,10 +144,16 @@ ohos_shared_library("accountmgr") {
     "${innerkits_native_path}:libaccountkits",
     "${os_account_core_path}:os_account_core",
     "${os_account_innerkits_native_path}:os_account_innerkits",
-    "//base/user_iam/user_idm/interfaces/innerkits:useridm_framework",
     "//third_party/mbedtls:mbedtls",
     "//utils/native/base:utils",
   ]
+
+  if (has_user_idm_part) {
+    cflags_cc += [ "-DHAS_USER_IDM_PART" ]
+    deps +=
+        [ "//base/user_iam/user_idm/interfaces/innerkits:useridm_framework" ]
+  }
+
   external_deps = [
     "ability_base:base",
     "ability_base:want",

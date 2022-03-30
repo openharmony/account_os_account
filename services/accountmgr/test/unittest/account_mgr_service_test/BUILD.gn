@@ -40,7 +40,7 @@ config("accountmgr_service_test_config") {
 
 ohos_unittest("account_mgr_test") {
   module_out_path = module_output_path
-
+  cflags_cc = []
   sources = [
     "${common_path}/log/src/account_log_wrapper.cpp",
     "${common_path}/perf_stat/src/perf_stat.cpp",
@@ -69,7 +69,7 @@ ohos_unittest("account_mgr_test") {
     "${services_path}/accountmgr/src/osaccount/os_account_control_file_manager.cpp",
     "${services_path}/accountmgr/src/osaccount/os_account_data_storage.cpp",
     "${services_path}/accountmgr/src/osaccount/os_account_database_operator.cpp",
-    "${services_path}/accountmgr/src/osaccount/os_account_delete_user_iam_callback.cpp",
+    "${services_path}/accountmgr/src/osaccount/os_account_delete_user_idm_callback.cpp",
     "${services_path}/accountmgr/src/osaccount/os_account_file_operator.cpp",
     "${services_path}/accountmgr/src/osaccount/os_account_manager_service.cpp",
     "${services_path}/accountmgr/src/osaccount/os_account_photo_operator.cpp",
@@ -95,11 +95,16 @@ ohos_unittest("account_mgr_test") {
     "${os_account_core_path}:os_account_core",
     "${os_account_innerkits_native_path}:os_account_innerkits",
     "${services_path}/accountmgr:accountmgr",
-    "//base/user_iam/user_idm/interfaces/innerkits:useridm_framework",
     "//third_party/googletest:gtest_main",
     "//third_party/mbedtls:mbedtls",
     "//utils/native/base:utils",
   ]
+
+  if (has_user_idm_part) {
+    cflags_cc += [ "-DHAS_USER_IDM_PART" ]
+    deps +=
+        [ "//base/user_iam/user_idm/interfaces/innerkits:useridm_framework" ]
+  }
 
   external_deps = [
     "ability_base:base",

@@ -26,6 +26,10 @@ config("accountmgr_test_config") {
     "LOG_DOMAIN = 0xD001B00",
   ]
 
+  if (has_user_idm_part) {
+    cflags_cc = [ "-DHAS_USER_IDM_PART" ]
+  }
+
   configs = []
 }
 
