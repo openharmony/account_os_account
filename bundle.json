@@ -102,6 +102,7 @@
        "//base/account/os_account/frameworks/ohosaccount/test:moduletest",
        "//base/account/os_account/frameworks/osaccount/core/test:unittest",
        "//base/account/os_account/frameworks/osaccount/native/test/moduletest:moduletest",
+       "//base/account/os_account/frameworks/osaccount/native/test/benchmarktest:benchmarktest",
        "//base/account/os_account/services/accountmgr/test/moduletest/os_account:moduletest",
        "//base/account/os_account/frameworks/ohosaccount/test:moduletest",
        "//base/account/os_account/frameworks/osaccount/native/test/unittest:unittest",
