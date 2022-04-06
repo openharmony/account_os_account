@@ -40,6 +40,14 @@ config("osaccount_kit_config") {
     cflags_cc += [ "-DHAS_USER_IDM_PART" ]
   }
 
+  if (has_user_auth_part) {
+    cflags_cc += [ "-DHAS_USER_AUTH_PART" ]
+  }
+
+  if (has_pin_auth_part) {
+    cflags_cc += [ "-DHAS_PIN_AUTH_PART" ]
+  }
+
   defines = [
     "ACCOUNT_LOG_TAG = \"AccountJsKit\"",
     "LOG_DOMAIN = 0xD001B00",
@@ -62,11 +70,17 @@ ohos_shared_library("osaccount") {
   deps = [
     "${common_path}:libaccount_common",
     "${innerkits_native_path}:libaccountkits",
-    "//base/user_iam/pin_auth/interfaces/kits/napi:pinauth",
-    "//base/user_iam/user_auth/interfaces/innerkits/napi:userauth",
     "//foundation/ace/napi/:ace_napi",
     "//utils/native/base:utils",
   ]
+
+  if (has_user_auth_part) {
+    deps += [ "//base/user_iam/user_auth/interfaces/innerkits/napi:userauth" ]
+  }
+
+  if (has_pin_auth_part) {
+    deps += [ "//base/user_iam/pin_auth/interfaces/kits/napi:pinauth" ]
+  }
 
   if (has_user_idm_part) {
     deps += [ "//base/user_iam/user_idm/interfaces/kits/napi:useridm" ]

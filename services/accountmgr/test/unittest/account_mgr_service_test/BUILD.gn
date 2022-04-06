@@ -114,7 +114,6 @@ ohos_unittest("account_mgr_test") {
     "access_token:libaccesstoken_sdk",
     "bundle_framework:appexecfwk_base",
     "bundle_framework:appexecfwk_core",
-    "ces_standard:cesfwk_innerkits",
     "distributeddatamgr:distributeddata_inner",
     "eventhandler:libeventhandler",
     "hisysevent_native:libhisysevent",
@@ -125,6 +124,12 @@ ohos_unittest("account_mgr_test") {
     "startup_l2:syspara",
     "storage_service:storage_manager_sa_proxy",
   ]
+
+  if (has_ces_part) {
+    cflags_cc += [ "-DHAS_CES_PART" ]
+    external_deps += [ "ces_standard:cesfwk_innerkits" ]
+  }
+
   part_name = "os_account_standard"
 }
 

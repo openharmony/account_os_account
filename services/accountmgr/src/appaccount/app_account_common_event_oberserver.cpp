@@ -17,20 +17,24 @@
 
 #include "account_log_wrapper.h"
 #include "bundle_constants.h"
+#ifdef HAS_CES_PART
 #include "common_event_manager.h"
 #include "common_event_support.h"
+#endif // HAS_CES_PART
 
+#ifdef HAS_CES_PART
 using namespace OHOS::EventFwk;
+#endif // HAS_CES_PART
 
 namespace OHOS {
 namespace AccountSA {
+#ifdef HAS_CES_PART
 AppAccountCommonEventOberserver::AppAccountCommonEventOberserver(const CommonEventCallback &callback)
     : callback_(callback)
 {
     ACCOUNT_LOGI("enter");
 
     counter_ = 0;
-
     MatchingSkills matchingSkills;
     matchingSkills.AddEvent(CommonEventSupport::COMMON_EVENT_PACKAGE_REMOVED);
 
@@ -115,5 +119,6 @@ void AppAccountCommonEventOberserver::OnReceiveEvent(const CommonEventData &data
         }
     }
 }
+#endif // HAS_CES_PART
 }  // namespace AccountSA
 }  // namespace OHOS

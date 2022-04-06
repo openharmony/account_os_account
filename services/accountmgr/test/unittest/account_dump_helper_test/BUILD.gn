@@ -39,6 +39,7 @@ config("accountmgr_dump_test_config") {
 
 ohos_unittest("AccountDumpHelperTest") {
   module_out_path = module_output_path
+  cflags_cc = []
   sources = [
     "${common_path}/log/src/account_log_wrapper.cpp",
     "${common_path}/perf_stat/src/perf_stat.cpp",
@@ -73,7 +74,6 @@ ohos_unittest("AccountDumpHelperTest") {
     "ability_runtime:app_manager",
     "bundle_framework:appexecfwk_base",
     "bundle_framework:appexecfwk_core",
-    "ces_standard:cesfwk_innerkits",
     "distributeddatamgr:distributeddata_inner",
     "hisysevent_native:libhisysevent",
     "hiviewdfx_hilog_native:libhilog",
@@ -81,6 +81,12 @@ ohos_unittest("AccountDumpHelperTest") {
     "safwk:system_ability_fwk",
     "samgr_standard:samgr_proxy",
   ]
+
+  if (has_ces_part) {
+    cflags_cc += [ "-DHAS_CES_PART" ]
+    external_deps += [ "ces_standard:cesfwk_innerkits" ]
+  }
+
   part_name = "os_account_standard"
 }
 

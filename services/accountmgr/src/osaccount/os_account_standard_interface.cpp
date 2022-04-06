@@ -19,8 +19,10 @@
 #include "ability_manager_client.h"
 #include "account_log_wrapper.h"
 #include "bundle_mgr_interface.h"
+#ifdef HAS_CES_PART
 #include "common_event_manager.h"
 #include "common_event_support.h"
+#endif // HAS_CES_PART
 #include "datetime_ex.h"
 #include "if_system_ability_manager.h"
 #include "iservice_registry.h"
@@ -34,7 +36,9 @@
 #ifdef HAS_USER_IDM_PART
 #include "useridm_client.h"
 #endif // HAS_USER_IDM_PART
+#ifdef HAS_CES_PART
 #include "want.h"
+#endif // HAS_CES_PART
 
 namespace OHOS {
 namespace AccountSA {
@@ -182,6 +186,7 @@ ErrCode OsAccountStandardInterface::SendToIDMAccountDelete(OsAccountInfo &osAcco
 void OsAccountStandardInterface::SendToCESAccountCreate(OsAccountInfo &osAccountInfo)
 {
     int osAccountID = osAccountInfo.GetLocalId();
+#ifdef HAS_CES_PART
     OHOS::AAFwk::Want want;
     want.SetAction(OHOS::EventFwk::CommonEventSupport::COMMON_EVENT_USER_ADDED);
     OHOS::EventFwk::CommonEventData data;
@@ -192,11 +197,15 @@ void OsAccountStandardInterface::SendToCESAccountCreate(OsAccountInfo &osAccount
     } else {
         ACCOUNT_LOGI("PublishCommonEvent for create account %{public}d succeed!", osAccountID);
     }
+#else // HAS_CES_PART
+    ACCOUNT_LOGI("No common event part, do not publish for account %{public}d create!", osAccountID);
+#endif // HAS_CES_PART
 }
 
 void OsAccountStandardInterface::SendToCESAccountDelete(OsAccountInfo &osAccountInfo)
 {
     int osAccountID = osAccountInfo.GetLocalId();
+#ifdef HAS_CES_PART
     OHOS::AAFwk::Want want;
     want.SetAction(OHOS::EventFwk::CommonEventSupport::COMMON_EVENT_USER_REMOVED);
     OHOS::EventFwk::CommonEventData data;
@@ -207,11 +216,15 @@ void OsAccountStandardInterface::SendToCESAccountDelete(OsAccountInfo &osAccount
     } else {
         ACCOUNT_LOGI("PublishCommonEvent for delete account %{public}d succeed!", osAccountID);
     }
+#else // HAS_CES_PART
+    ACCOUNT_LOGI("No common event part, do not publish for account %{public}d delete!", osAccountID);
+#endif // HAS_CES_PART
 }
 
 void OsAccountStandardInterface::SendToCESAccountSwitched(OsAccountInfo &osAccountInfo)
 {
     int osAccountID = osAccountInfo.GetLocalId();
+#ifdef HAS_CES_PART
     OHOS::AAFwk::Want want;
     want.SetAction(OHOS::EventFwk::CommonEventSupport::COMMON_EVENT_USER_SWITCHED);
     OHOS::EventFwk::CommonEventData data;
@@ -222,6 +235,9 @@ void OsAccountStandardInterface::SendToCESAccountSwitched(OsAccountInfo &osAccou
     } else {
         ACCOUNT_LOGI("PublishCommonEvent for switched to account %{public}d succeed!", osAccountID);
     }
+#else // HAS_CES_PART
+    ACCOUNT_LOGI("No common event part, do not publish for account %{public}d switched!", osAccountID);
+#endif // HAS_CES_PART
 }
 
 ErrCode OsAccountStandardInterface::SendToStorageAccountCreate(OsAccountInfo &osAccountInfo)
