@@ -22,6 +22,7 @@
 
 namespace OHOS {
 namespace AccountSA {
+#ifdef HAS_CES_PART
 struct CommonEventCallback {
     std::function<void(const uid_t &uid, const std::string &bundleName)> OnPackageRemoved;
 };
@@ -50,6 +51,7 @@ private:
     static constexpr std::int32_t DELAY_FOR_TIME_INTERVAL = 1 * 1000;         // 1s
     static constexpr std::int32_t MAX_TRY_TIMES = 10;
 };
+#endif // HAS_CES_PART
 }  // namespace AccountSA
 }  // namespace OHOS
 

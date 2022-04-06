@@ -28,12 +28,12 @@ AppAccountManagerService::AppAccountManagerService()
     innerManager_ = std::make_shared<InnerAppAccountManager>();
     permissionManagerPtr_ = DelayedSingleton<AccountPermissionManager>::GetInstance();
     bundleManagerPtr_ = DelayedSingleton<AccountBundleManager>::GetInstance();
-
+#ifdef HAS_CES_PART
     CommonEventCallback callback = {
         std::bind(&AppAccountManagerService::OnPackageRemoved, this, std::placeholders::_1, std::placeholders::_2),
     };
     oberserver_ = std::make_shared<AppAccountCommonEventOberserver>(callback);
-
+#endif // HAS_CES_PART
     ACCOUNT_LOGI("end");
 }
 

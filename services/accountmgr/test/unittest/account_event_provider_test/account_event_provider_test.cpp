@@ -19,13 +19,17 @@
 #include "account_event_provider.h"
 #include "account_error_no.h"
 #include "account_log_wrapper.h"
+#ifdef HAS_CES_PART
 #include "common_event_manager.h"
-#include <common_event_support.h>
+#include "common_event_support.h"
+#endif
 
 using namespace testing::ext;
 using namespace OHOS;
 using namespace OHOS::AccountSA;
+#ifdef HAS_CES_PART
 using namespace OHOS::EventFwk;
+#endif
 
 class AccountEventProviderTest : public testing::Test {
 public:
@@ -52,6 +56,8 @@ void AccountEventProviderTest::TearDown() {}
  */
 HWTEST_F(AccountEventProviderTest, AccountEventProviderTest001, TestSize.Level0)
 {
+#ifdef HAS_CES_PART
     bool ret = AccountEventProvider::EventPublish(EventFwk::CommonEventSupport::COMMON_EVENT_HWID_LOGOFF);
     EXPECT_EQ(true, ret);
+#endif // HAS_CES_PART
 }
