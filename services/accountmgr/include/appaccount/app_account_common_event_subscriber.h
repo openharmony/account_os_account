@@ -16,10 +16,13 @@
 #ifndef OS_ACCOUNT_SERVICES_ACCOUNTMGR_INCLUDE_APPACCOUNT_APP_ACCOUNT_COMMON_EVENT_SUBSCRIBER_H
 #define OS_ACCOUNT_SERVICES_ACCOUNTMGR_INCLUDE_APPACCOUNT_APP_ACCOUNT_COMMON_EVENT_SUBSCRIBER_H
 
+#ifdef HAS_CES_PART
 #include "common_event_subscriber.h"
+#endif // HAS_CES_PART
 
 namespace OHOS {
 namespace AccountSA {
+#ifdef HAS_CES_PART
 using CommonEventSubscriber = OHOS::EventFwk::CommonEventSubscriber;
 using CommonEventData = OHOS::EventFwk::CommonEventData;
 using CommonEventSubscribeInfo = OHOS::EventFwk::CommonEventSubscribeInfo;
@@ -35,6 +38,7 @@ public:
 private:
     std::function<void(const EventFwk::CommonEventData &)> callback_;
 };
+#endif // HAS_CES_PART
 }  // namespace AccountSA
 }  // namespace OHOS
 

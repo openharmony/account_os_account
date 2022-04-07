@@ -24,16 +24,19 @@
 #include "app_account_manager_service.h"
 #undef private
 #include "bundle_constants.h"
+#ifdef HAS_CES_PART
 #include "common_event_manager.h"
 #include "common_event_support.h"
+#endif // HAS_CES_PART
 #include "iremote_object.h"
 
 using namespace testing::ext;
 using namespace OHOS;
 using namespace OHOS::AccountSA;
 using namespace OHOS::AppExecFwk;
+#ifdef HAS_CES_PART
 using namespace OHOS::EventFwk;
-
+#endif // HAS_CES_PART
 namespace {
 const std::string STRING_NAME = "name";
 const std::string STRING_NAME_TWO = "name_two";
@@ -1706,6 +1709,7 @@ HWTEST_F(AppAccountManagerServiceModuleTest, AppAccountManagerService_OnPackageR
     EXPECT_EQ(result, ERR_OK);
     EXPECT_EQ(accounts.size(), SIZE_ONE);
 
+#ifdef HAS_CES_PART
     Want want;
     want.SetAction(CommonEventSupport::COMMON_EVENT_PACKAGE_REMOVED);
 
@@ -1719,6 +1723,7 @@ HWTEST_F(AppAccountManagerServiceModuleTest, AppAccountManagerService_OnPackageR
     commonEventData.SetWant(want);
 
     CommonEventManager::PublishCommonEvent(commonEventData);
+#endif // HAS_CES_PART
 
     std::this_thread::sleep_for(std::chrono::seconds(DELAY_FOR_PACKAGE_REMOVED));
 
