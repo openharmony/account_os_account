@@ -43,3 +43,24 @@ if (!defined(global_parts_info) ||
 } else {
   has_user_idm_part = false
 }
+
+if (!defined(global_parts_info) ||
+    defined(global_parts_info.useriam_user_auth)) {
+  has_user_auth_part = true
+} else {
+  has_user_auth_part = false
+}
+
+if (!defined(global_parts_info) ||
+    defined(global_parts_info.useriam_pin_auth)) {
+  has_pin_auth_part = true
+} else {
+  has_pin_auth_part = false
+}
+
+if (!defined(global_parts_info) ||
+    defined(global_parts_info.notification_ces_standard)) {
+  has_ces_part = true
+} else {
+  has_ces_part = false
+}

@@ -19,6 +19,7 @@
 
 namespace OHOS {
 namespace AccountSA {
+#ifdef HAS_CES_PART
 AppAccountCommonEventSubscriber::AppAccountCommonEventSubscriber(
     const CommonEventSubscribeInfo &subscribeInfo, const std::function<void(const CommonEventData &)> &callback)
     : CommonEventSubscriber(subscribeInfo), callback_(callback)
@@ -34,5 +35,6 @@ void AppAccountCommonEventSubscriber::OnReceiveEvent(const CommonEventData &data
         callback_(data);
     }
 }
+#endif // HAS_CES_PART
 }  // namespace AccountSA
 }  // namespace OHOS

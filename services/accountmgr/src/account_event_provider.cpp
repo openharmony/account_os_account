@@ -14,19 +14,25 @@
  */
 
 #include "account_event_provider.h"
-
+#ifdef HAS_CES_PART
 #include <common_event_data.h>
 #include <common_event_support.h>
+#endif // HAS_CES_PART
 #include "account_log_wrapper.h"
+#ifdef HAS_CES_PART
 #include "common_event_manager.h"
 #include "ohos/aafwk/content/want.h"
+#endif // HAS_CES_PART
 
+#ifdef HAS_CES_PART
 using namespace OHOS::EventFwk;
+#endif // HAS_CES_PART
 
 namespace OHOS {
 namespace AccountSA {
 bool AccountEventProvider::EventPublish(const std::string& event)
 {
+#ifdef HAS_CES_PART
     Want want;
     want.SetAction(event);
     CommonEventData data;
@@ -38,6 +44,9 @@ bool AccountEventProvider::EventPublish(const std::string& event)
     } else {
         ACCOUNT_LOGI("PublishCommonEvent succeed! event %{public}s.", event.c_str());
     }
+#else // HAS_CES_PART
+    ACCOUNT_LOGI("No common event part, do not publish anything! event %{public}s.", event.c_str());
+#endif // HAS_CES_PART
     return true;
 }
 } // namespace AccountSA

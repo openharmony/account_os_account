@@ -24,13 +24,17 @@
 #include "account_info.h"
 #include "account_log_wrapper.h"
 #include "account_mgr_service.h"
+#ifdef HAS_CES_PART
 #include "common_event_support.h"
+#endif // HAS_CES_PART
 #include "hisysevent.h"
 #include "ipc_skeleton.h"
 #include "mbedtls/sha256.h"
 #include "system_ability_definition.h"
 
+#ifdef HAS_CES_PART
 using namespace OHOS::EventFwk;
+#endif // HAS_CES_PART
 
 namespace OHOS {
 namespace AccountSA {
@@ -260,7 +264,12 @@ bool OhosAccountManager::LoginOhosAccount(const std::string &name, const std::st
     }
 
     // publish event
+#ifdef HAS_CES_PART
     bool errCode = AccountEventProvider::EventPublish(EventFwk::CommonEventSupport::COMMON_EVENT_HWID_LOGIN);
+#else // HAS_CES_PART
+    ACCOUNT_LOGI("No common event part, publish nothing!");
+    bool errCode = true;
+#endif // HAS_CES_PART
     if (!errCode) {
         ACCOUNT_LOGE("publish ohos account login event failed! callingUserId %{public}d, ohosAccountUid %{public}s.",
             callingUserId, ohosAccountUid.c_str());
@@ -307,13 +316,18 @@ bool OhosAccountManager::LogoutOhosAccount(const std::string &name, const std::s
         return false;
     }
 
+#ifdef HAS_CES_PART
     ret = AccountEventProvider::EventPublish(EventFwk::CommonEventSupport::COMMON_EVENT_HWID_LOGOUT);
+#else // HAS_CES_PART
+    ACCOUNT_LOGI("No commom event part! Publish nothing!");
+#endif // HAS_CES_PART
     if (!ret) {
         ACCOUNT_LOGE("publish account logout event failed, callingUserId %{public}d, ohosAccountUid %{public}s.",
             callingUserId, uid.c_str());
         ReportPublishFailureEvent(ret, oldStatus, currentAccount);
         return false;
     }
+
     ACCOUNT_LOGI("LogoutOhosAccount success, callingUserId %{public}d, ohosAccountUid %{public}s.",
         callingUserId, uid.c_str());
     return true;
@@ -353,7 +367,12 @@ bool OhosAccountManager::LogoffOhosAccount(const std::string &name, const std::s
             callingUserId, uid.c_str());
         return false;
     }
+#ifdef HAS_CES_PART
     bool errCode = AccountEventProvider::EventPublish(EventFwk::CommonEventSupport::COMMON_EVENT_HWID_LOGOFF);
+#else // HAS_CES_PART
+    ACCOUNT_LOGI("No common event part, publish nothing for logoff!");
+    bool errCode = true;
+#endif // HAS_CES_PART
     if (errCode != true) {
         ACCOUNT_LOGE("publish account logoff event failed, callingUserId %{public}d, ohosAccountUid %{public}s.",
             callingUserId, uid.c_str());
@@ -400,7 +419,12 @@ bool OhosAccountManager::HandleOhosAccountTokenInvalidEvent(const std::string &n
         ACCOUNT_LOGW("SaveOhosAccountInfo failed, callingUserId %{public}d, ohosAccountUid %{public}s.",
             callingUserId, uid.c_str());
     }
+#ifdef HAS_CES_PART
     bool errCode = AccountEventProvider::EventPublish(EventFwk::CommonEventSupport::COMMON_EVENT_HWID_TOKEN_INVALID);
+#else // HAS_CES_PART
+    ACCOUNT_LOGI("No common event part, publish nothing for token invalid event.");
+    bool errCode = true;
+#endif // HAS_CES_PART
     if (errCode != true) {
         ACCOUNT_LOGE("publish token invalid event failed, callingUserId %{public}d, ohosAccountUid %{public}s.",
             callingUserId, uid.c_str());
