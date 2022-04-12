@@ -122,6 +122,8 @@ void OsAccountControlFileManager::RecoverAccountListJsonFile()
             accounts.push_back(curAccountIDStr);
         }
     }
+    
+    (void)closedir(rootDir);
     BuildAndSaveAccountListJsonFile(accounts);
 }
 
