@@ -19,13 +19,13 @@ group("fuzztest") {
 
   deps += [
     # deps file
-    "create_os_account_for_domain_fuzzer:test_osAccount_CreateOsAccountForDomainFuzzTest",
-    "create_os_account_fuzzer:test_osAccount_CreateOsAccountFuzzTest",
-    "get_os_account_local_id_by_serial_number_fuzzer:test_osAccount_GetOsAccountLocalIdBySerialNumberFuzzTest",
-    "get_os_account_local_id_from_domain_fuzzer:test_osAccount_GetOsAccountLocalIdFromDomainFuzzTest",
-    "is_os_account_constraint_enable_fuzzer:test_osAccount_IsOsAccountConstraintEnableFuzzTest",
-    "set_os_account_constraints_fuzzer:test_osAccount_SetOsAccountConstraintsFuzzTest",
-    "set_os_account_name_fuzzer:test_osAccount_SetOsAccountNameFuzzTest",
-    "set_os_account_profile_photo_fuzzer:test_osAccount_SetOsAccountProfilePhotoFuzzTest",
+    "createosaccount_fuzzer:CreateOsAccountFuzzTest",
+    "createosaccountfordomain_fuzzer:CreateOsAccountForDomainFuzzTest",
+    "getosaccountlocalidbyserialnumber_fuzzer:GetOsAccountLocalIdBySerialNumberFuzzTest",
+    "getosaccountlocalidfromdomain_fuzzer:GetOsAccountLocalIdFromDomainFuzzTest",
+    "isosaccountconstraintenable_fuzzer:IsOsAccountConstraintEnableFuzzTest",
+    "setosaccountconstraints_fuzzer:SetOsAccountConstraintsFuzzTest",
+    "setosaccountname_fuzzer:SetOsAccountNameFuzzTest",
+    "setosaccountprofilephoto_fuzzer:SetOsAccountProfilePhotoFuzzTest",
   ]
 }
