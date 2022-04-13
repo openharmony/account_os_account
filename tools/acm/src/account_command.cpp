@@ -391,6 +391,10 @@ ErrCode AccountCommand::RunAsCreateCommandError(void)
 
     ErrCode result = ERR_OK;
 
+    if (optind < 0 || optind >= argc_) {
+        return ERR_INVALID_VALUE;
+    }
+
     // When scanning the first argument
     if (strcmp(argv_[optind], cmd_.c_str()) == 0) {
         // 'acm create' with no option: acm create
@@ -508,6 +512,10 @@ ErrCode AccountCommand::RunAsDeleteCommandError(void)
 
     ErrCode result = ERR_OK;
 
+    if (optind < 0 || optind >= argc_) {
+        return ERR_INVALID_VALUE;
+    }
+
     // When scanning the first argument
     if (strcmp(argv_[optind], cmd_.c_str()) == 0) {
         // 'acm delete' with no option: acm delete
@@ -603,6 +611,10 @@ ErrCode AccountCommand::RunAsDumpCommandError(void)
     ACCOUNT_LOGI("enter");
 
     ErrCode result = ERR_OK;
+
+    if (optind < 0 || optind >= argc_) {
+        return ERR_INVALID_VALUE;
+    }
 
     // When scanning the first argument
     if (strcmp(argv_[optind], cmd_.c_str()) == 0) {
@@ -706,6 +718,10 @@ ErrCode AccountCommand::RunAsSetCommandError(void)
     ACCOUNT_LOGI("enter");
 
     ErrCode result = ERR_OK;
+
+    if (optind < 0 || optind >= argc_) {
+        return ERR_INVALID_VALUE;
+    }
 
     // When scanning the first argument
     if (strcmp(argv_[optind], cmd_.c_str()) == 0) {
@@ -826,6 +842,10 @@ ErrCode AccountCommand::RunAsSwitchCommandError(void)
     ACCOUNT_LOGI("enter");
 
     ErrCode result = ERR_OK;
+
+    if (optind < 0 || optind >= argc_) {
+        return ERR_INVALID_VALUE;
+    }
 
     // When scanning the first argument
     if (strcmp(argv_[optind], cmd_.c_str()) == 0) {
