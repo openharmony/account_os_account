@@ -131,7 +131,13 @@ ErrCode AccountDataStorage::AddAccountInfo(const IAccountInfo &iAccountInfo)
         ACCOUNT_LOGE("the key already exists.");
         return ERR_OSACCOUNT_SERVICE_DATA_STORAGE_KEY_EXISTED_ERROR;
     }
-    return PutValueToKvStore(iAccountInfo.GetPrimeKey(), iAccountInfo.ToString());
+
+    std::string accountInfoStr = iAccountInfo.ToString();
+    if (accountInfoStr.empty()) {
+        ACCOUNT_LOGE("account info str is empty!");
+        return ERR_OSACCOUNT_SERVICE_ACCOUNT_INFO_EMPTY_ERROR;
+    }
+    return PutValueToKvStore(iAccountInfo.GetPrimeKey(), accountInfoStr);
 }
 
 ErrCode AccountDataStorage::SaveAccountInfo(const IAccountInfo &iAccountInfo)
@@ -141,7 +147,13 @@ ErrCode AccountDataStorage::SaveAccountInfo(const IAccountInfo &iAccountInfo)
         ACCOUNT_LOGE("the key does not exist");
         return ERR_OSACCOUNT_SERVICE_DATA_STORAGE_KEY_NOT_EXISTS_ERROR;
     }
-    return PutValueToKvStore(iAccountInfo.GetPrimeKey(), iAccountInfo.ToString());
+
+    std::string accountInfoStr = iAccountInfo.ToString();
+    if (accountInfoStr.empty()) {
+        ACCOUNT_LOGE("account info str is empty!");
+        return ERR_OSACCOUNT_SERVICE_ACCOUNT_INFO_EMPTY_ERROR;
+    }
+    return PutValueToKvStore(iAccountInfo.GetPrimeKey(), accountInfoStr);
 }
 
 ErrCode AccountDataStorage::RemoveValueFromKvStore(const std::string &keyStr)
