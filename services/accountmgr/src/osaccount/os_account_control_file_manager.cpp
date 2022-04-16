@@ -232,7 +232,13 @@ ErrCode OsAccountControlFileManager::InsertOsAccount(OsAccountInfo &osAccountInf
         return ERR_OSACCOUNT_SERVICE_CONTROL_INSERT_FILE_EXISTS_ERROR;
     }
 
-    if (accountFileOperator_->InputFileByPathAndContent(path, osAccountInfo.ToString()) != ERR_OK) {
+    std::string accountInfoStr = osAccountInfo.ToString();
+    if (accountInfoStr.empty()) {
+        ACCOUNT_LOGE("os account info is empty! maybe some illegal characters caused exception!");
+        return ERR_OSACCOUNT_SERVICE_ACCOUNT_INFO_EMPTY_ERROR;
+    }
+
+    if (accountFileOperator_->InputFileByPathAndContent(path, accountInfoStr) != ERR_OK) {
         ACCOUNT_LOGE("OsAccountControlFileManager InsertOsAccount");
         return ERR_OSACCOUNT_SERVICE_CONTROL_INSERT_OS_ACCOUNT_FILE_ERROR;
     }
@@ -270,7 +276,14 @@ ErrCode OsAccountControlFileManager::UpdateOsAccount(OsAccountInfo &osAccountInf
         ACCOUNT_LOGE("path %{public}s does not exist!", path.c_str());
         return ERR_OSACCOUNT_SERVICE_CONTROL_UPDATE_FILE_NOT_EXISTS_ERROR;
     }
-    if (accountFileOperator_->InputFileByPathAndContent(path, osAccountInfo.ToString()) != ERR_OK) {
+
+    std::string accountInfoStr = osAccountInfo.ToString();
+    if (accountInfoStr.empty()) {
+        ACCOUNT_LOGE("account info str is empty!");
+        return ERR_OSACCOUNT_SERVICE_ACCOUNT_INFO_EMPTY_ERROR;
+    }
+
+    if (accountFileOperator_->InputFileByPathAndContent(path, accountInfoStr) != ERR_OK) {
         return ERR_OSACCOUNT_SERVICE_CONTROL_UPDATE_FILE_ERROR;
     }
 
