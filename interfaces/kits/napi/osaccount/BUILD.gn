@@ -19,7 +19,7 @@ config("osaccount_kit_config") {
     "${os_account_interfaces_native_path}/include",
     "//third_party/libuv/include",
     "//third_party/node/src",
-    "//foundation/ace/napi/interfaces/kits",
+    "//foundation/arkui/napi/interfaces/kits",
     "${os_account_kits_path}/include",
   ]
 
@@ -70,7 +70,7 @@ ohos_shared_library("osaccount") {
   deps = [
     "${common_path}:libaccount_common",
     "${innerkits_native_path}:libaccountkits",
-    "//foundation/ace/napi/:ace_napi",
+    "//foundation/arkui/napi/:ace_napi",
     "//utils/native/base:utils",
   ]
 
