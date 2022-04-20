@@ -43,6 +43,7 @@ private:
     ErrCode ProcGetCreatedOsAccountsCount(MessageParcel &data, MessageParcel &reply);
     ErrCode ProcGetOsAccountAllConstraints(MessageParcel &data, MessageParcel &reply);
     ErrCode ProcGetOsAccountLocalIdFromProcess(MessageParcel &data, MessageParcel &reply);
+    ErrCode ProcIsMainOsAccount(MessageParcel &data, MessageParcel &reply);
     ErrCode ProcGetOsAccountProfilePhoto(MessageParcel &data, MessageParcel &reply);
     ErrCode ProcGetOsAccountLocalIdFromDomain(MessageParcel &data, MessageParcel &reply);
     ErrCode ProcGetOsAccountTypeFromProcess(MessageParcel &data, MessageParcel &reply);

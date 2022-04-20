@@ -65,6 +65,7 @@ napi_value OsAccountInit(napi_env env, napi_value exports)
         DECLARE_NAPI_FUNCTION("getOsAccountProfilePhoto", GetOsAccountProfilePhoto),
         DECLARE_NAPI_FUNCTION("queryCurrentOsAccount", QueryCurrentOsAccount),
         DECLARE_NAPI_FUNCTION("getOsAccountLocalIdFromUid", GetOsAccountLocalIdFromUid),
+        DECLARE_NAPI_FUNCTION("getBundleIdFromUid", GetBundleIdFromUid),
         DECLARE_NAPI_FUNCTION("getOsAccountLocalIdFromDomain", GetOsAccountLocalIdFromDomain),
         DECLARE_NAPI_FUNCTION("setOsAccountProfilePhoto", SetOsAccountProfilePhoto),
         DECLARE_NAPI_FUNCTION("queryMaxOsAccountNumber", QueryMaxOsAccountNumber),
@@ -76,6 +77,7 @@ napi_value OsAccountInit(napi_env env, napi_value exports)
         DECLARE_NAPI_FUNCTION("getOsAccountLocalIdBySerialNumber", GetOsAccountLocalIdBySerialNumber),
         DECLARE_NAPI_FUNCTION("getSerialNumberByOsAccountLocalId", GetSerialNumberByOsAccountLocalId),
         DECLARE_NAPI_FUNCTION("isTestOsAccount", IsTestOsAccount),
+        DECLARE_NAPI_FUNCTION("isMainOsAccount", IsMainOsAccount),
         DECLARE_NAPI_FUNCTION("on", Subscribe),
         DECLARE_NAPI_FUNCTION("off", Unsubscribe),
     };
@@ -739,6 +741,45 @@ napi_value GetOsAccountLocalIdFromUid(napi_env env, napi_callback_info cbInfo)
     return result;
 }
 
+napi_value GetBundleIdFromUid(napi_env env, napi_callback_info cbInfo)
+{
+    ACCOUNT_LOGI("enter");
+    GetIdByUidAsyncContext *bundleIdByUid = new (std::nothrow) GetIdByUidAsyncContext();
+    if (bundleIdByUid == nullptr) {
+        ACCOUNT_LOGI("bundleIdByUid == nullptr");
+        return WrapVoidToJS(env);
+    }
+    bundleIdByUid->env = env;
+    bundleIdByUid->callbackRef = nullptr;
+
+    if (ParseParaGetIdByUid(env, cbInfo, bundleIdByUid) == nullptr) {
+        ACCOUNT_LOGI("Parse get bundle id from uid failed");
+        delete bundleIdByUid;
+        return WrapVoidToJS(env);
+    }
+
+    napi_value result = nullptr;
+    if (bundleIdByUid->callbackRef == nullptr) {
+        ACCOUNT_LOGI("Create promise");
+        napi_create_promise(env, &bundleIdByUid->deferred, &result);
+    } else {
+        ACCOUNT_LOGI("Undefined the result parameter");
+        napi_get_undefined(env, &result);
+    }
+
+    napi_value resource = nullptr;
+    napi_create_string_utf8(env, "GetBundleIdFromUid", NAPI_AUTO_LENGTH, &resource);
+
+    napi_create_async_work(env, nullptr, resource,
+        GetBundleIdByUidExecuteCB,
+        GetBundleIdByUidCallbackCompletedCB,
+        reinterpret_cast<void *>(bundleIdByUid),
+        &bundleIdByUid->work);
+
+    napi_queue_async_work(env, bundleIdByUid->work);
+    return result;
+}
+
 napi_value GetOsAccountLocalIdFromDomain(napi_env env, napi_callback_info cbInfo)
 {
     ACCOUNT_LOGI("enter");
@@ -1131,6 +1172,59 @@ napi_value IsTestOsAccount(napi_env env, napi_callback_info cbInfo)
         &isTest->work);
 
     napi_queue_async_work(env, isTest->work);
+    return result;
+}
+
+napi_value IsMainOsAccount(napi_env env, napi_callback_info cbInfo)
+{
+    ACCOUNT_LOGI("enter");
+    IsMainOAInfo *isMain = new (std::nothrow) IsMainOAInfo();
+    if (isMain == nullptr) {
+        ACCOUNT_LOGI("isMain == nullptr");
+        return WrapVoidToJS(env);
+    }
+    isMain->env = env;
+    isMain->callbackRef = nullptr;
+
+    ParseParaIsMainOA(env, cbInfo, isMain);
+
+    napi_value result = nullptr;
+    if (isMain->callbackRef == nullptr) {
+        ACCOUNT_LOGI("Create promise");
+        napi_create_promise(env, &isMain->deferred, &result);
+    } else {
+        ACCOUNT_LOGI("Undefined the result parameter");
+        napi_get_undefined(env, &result);
+    }
+
+    napi_value resource = nullptr;
+    napi_create_string_utf8(env, "IsMainOsAccount", NAPI_AUTO_LENGTH, &resource);
+
+    napi_create_async_work(env,
+        nullptr,
+        resource,
+        [](napi_env env, void *data) {
+            ACCOUNT_LOGI("napi_create_async_work running");
+            IsMainOAInfo *isMain = reinterpret_cast<IsMainOAInfo *>(data);
+            isMain->errCode = OsAccountManager::IsMainOsAccount(isMain->isMainOsAccount);
+            ACCOUNT_LOGI("errocde is %{public}d", isMain->errCode);
+            isMain->status = (isMain->errCode == 0) ? napi_ok : napi_generic_failure;
+        },
+        [](napi_env env, napi_status status, void *data) {
+            ACCOUNT_LOGI("napi_create_async_work complete");
+            IsMainOAInfo *isMain = reinterpret_cast<IsMainOAInfo *>(data);
+            napi_value result[RESULT_COUNT] = {0};
+            result[PARAMZERO] = GetErrorCodeValue(env, isMain->errCode);
+            napi_get_boolean(env, isMain->isMainOsAccount, &result[PARAMONE]);
+            CBOrPromiseIsMainOA(env, isMain, result[PARAMZERO], result[PARAMONE]);
+            napi_delete_async_work(env, isMain->work);
+            delete isMain;
+            isMain = nullptr;
+        },
+        reinterpret_cast<void *>(isMain),
+        &isMain->work);
+
+    napi_queue_async_work(env, isMain->work);
     return result;
 }
 

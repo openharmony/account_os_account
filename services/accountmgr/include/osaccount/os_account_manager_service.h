@@ -44,6 +44,7 @@ public:
 
     ErrCode GetCreatedOsAccountsCount(unsigned int &osAccountsCount) override;
     ErrCode GetOsAccountLocalIdFromProcess(int &id) override;
+    ErrCode IsMainOsAccount(bool &isMainOsAccount) override;
 
     ErrCode GetOsAccountLocalIdFromDomain(const DomainAccountInfo &domainInfo, int &id) override;
     ErrCode QueryMaxOsAccountNumber(int &maxOsAccountNumber) override;

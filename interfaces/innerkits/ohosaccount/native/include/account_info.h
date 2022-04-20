@@ -61,6 +61,7 @@ typedef enum : std::int32_t {
 const std::string DEFAULT_OHOS_ACCOUNT_NAME = "anonymous"; // default name
 const std::string DEFAULT_OHOS_ACCOUNT_UID = "ohosAnonymousUid"; // default UID
 constexpr std::int32_t UID_TRANSFORM_DIVISOR = 200000; // local account id = uid / UID_TRANSFORM_DIVISOR
+constexpr std::int32_t MAIN_OS_ACCOUNT_LOCAL_ID = 100; // main os account local id = 100
 class OhosAccountInfo {
 public:
     std::string name_;
