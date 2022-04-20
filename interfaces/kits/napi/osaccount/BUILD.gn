@@ -75,7 +75,8 @@ ohos_shared_library("osaccount") {
   ]
 
   if (has_user_auth_part) {
-    deps += [ "//base/user_iam/user_auth/interfaces/innerkits/napi:userauth" ]
+    deps +=
+        [ "//base/user_iam/user_auth/frameworks/js/napi/user_auth:userauth" ]
   }
 
   if (has_pin_auth_part) {
