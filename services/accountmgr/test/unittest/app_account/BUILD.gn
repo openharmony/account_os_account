@@ -209,7 +209,7 @@ ohos_unittest("app_account_manager_service_test") {
 
   if (has_ces_part) {
     cflags_cc += [ "-DHAS_CES_PART" ]
-    external_deps += [ "ces_standard:cesfwk_innerkits" ]
+    external_deps += [ "common_event_service:cesfwk_innerkits" ]
   }
 }
 
