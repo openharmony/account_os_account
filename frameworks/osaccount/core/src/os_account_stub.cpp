@@ -55,6 +55,10 @@ const std::map<uint32_t, OsAccountStub::MessageProcFunction> OsAccountStub::mess
         &OsAccountStub::ProcGetOsAccountLocalIdFromProcess,
     },
     {
+        static_cast<uint32_t>(IOsAccount::Message::IS_MAIN_OS_ACCOUNT),
+        &OsAccountStub::ProcIsMainOsAccount,
+    },
+    {
         static_cast<uint32_t>(IOsAccount::Message::GET_OS_ACCOUNT_LOCAL_ID_FROM_DOMAIN),
         &OsAccountStub::ProcGetOsAccountLocalIdFromDomain,
     },
@@ -484,6 +488,22 @@ ErrCode OsAccountStub::ProcGetOsAccountLocalIdFromProcess(MessageParcel &data, M
         return IPC_STUB_WRITE_PARCEL_ERR;
     }
     if (!reply.WriteInt32(localId)) {
+        ACCOUNT_LOGE("failed to write reply");
+        return IPC_STUB_WRITE_PARCEL_ERR;
+    }
+    return ERR_NONE;
+}
+
+ErrCode OsAccountStub::ProcIsMainOsAccount(MessageParcel &data, MessageParcel &reply)
+{
+    bool isMainOsAccount = false;
+    ErrCode result = IsMainOsAccount(isMainOsAccount);
+    ACCOUNT_LOGE("OsAccountStub IsMainOsAccount value %{public}d.", isMainOsAccount);
+    if (!reply.WriteInt32(result)) {
+        ACCOUNT_LOGE("failed to write reply");
+        return IPC_STUB_WRITE_PARCEL_ERR;
+    }
+    if (!reply.WriteBool(isMainOsAccount)) {
         ACCOUNT_LOGE("failed to write reply");
         return IPC_STUB_WRITE_PARCEL_ERR;
     }

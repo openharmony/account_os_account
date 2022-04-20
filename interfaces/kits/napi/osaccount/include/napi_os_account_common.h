@@ -184,13 +184,19 @@ napi_value ParseParaGetIdByDomain(napi_env env, napi_callback_info cbInfo, GetId
 
 void GetIdByUidExecuteCB(napi_env env, void *data);
 
+void GetBundleIdByUidExecuteCB(napi_env env, void *data);
+
 void GetIdByDomainExecuteCB(napi_env env, void *data);
 
 void GetIdByUidCallbackCompletedCB(napi_env env, napi_status status, void *data);
 
+void GetBundleIdByUidCallbackCompletedCB(napi_env env, napi_status status, void *data);
+
 void GetIdByDomainCallbackCompletedCB(napi_env env, napi_status status, void *data);
 
 void CBOrPromiseGetIdByUid(napi_env env, const GetIdByUidAsyncContext *idByUid, napi_value err, napi_value data);
+
+void CBOrPromiseGetBundleIdByUid(napi_env env, const GetIdByUidAsyncContext *idByUid, napi_value err, napi_value data);
 
 void CBOrPromiseGetIdByDomain(napi_env env, const GetIdByDomainAsyncContext *idByDomain,
     napi_value err, napi_value data);
@@ -269,7 +275,11 @@ void CBOrPromiseGetSerialNum(napi_env env, const GetSerialNumForOAInfo *getSeria
 
 void ParseParaIsTestOA(napi_env env, napi_callback_info cbInfo, IsTestOAInfo *isTest);
 
+void ParseParaIsMainOA(napi_env env, napi_callback_info cbInfo, IsMainOAInfo *isMain);
+
 void CBOrPromiseIsTestOA(napi_env env, const IsTestOAInfo *isTest, napi_value err, napi_value data);
+
+void CBOrPromiseIsMainOA(napi_env env, const IsMainOAInfo *isMain, napi_value err, napi_value data);
 
 napi_value ParseParaToSubscriber(const napi_env &env, const napi_value (&argv)[ARGS_SIZE_THREE], napi_ref &callback,
     OS_ACCOUNT_SUBSCRIBE_TYPE &onType, std::string &onName);

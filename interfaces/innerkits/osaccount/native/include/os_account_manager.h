@@ -34,7 +34,9 @@ public:
     static ErrCode IsOsAccountVerified(const int id, bool &isVerified);
     static ErrCode GetCreatedOsAccountsCount(unsigned int &osAccountsCount);
     static ErrCode GetOsAccountLocalIdFromProcess(int &id);
+    static ErrCode IsMainOsAccount(bool &isMainOsAccount);
     static ErrCode GetOsAccountLocalIdFromUid(const int uid, int &id);
+    static ErrCode GetBundleIdFromUid(const int uid, int &bundleId);
     static ErrCode GetOsAccountLocalIdFromDomain(const DomainAccountInfo &domainInfo, int &id);
     static ErrCode QueryMaxOsAccountNumber(int &maxOsAccountNumber);
     static ErrCode GetOsAccountAllConstraints(const int id, std::vector<std::string> &constraints);
