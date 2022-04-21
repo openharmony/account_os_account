@@ -29,7 +29,6 @@ const int LOCAL_ID = 100;
 namespace OHOS {
     bool SetOsAccountProfilePhotoFuzzTest(const uint8_t* data, size_t size)
     {
-        ACCOUNT_LOGI("SetOsAccountProfilePhotoFuzzTest Enter");
         bool result = false;
         if (size > 0) {
             result = OsAccountManager::SetOsAccountProfilePhoto(LOCAL_ID, reinterpret_cast<const char*>(data));

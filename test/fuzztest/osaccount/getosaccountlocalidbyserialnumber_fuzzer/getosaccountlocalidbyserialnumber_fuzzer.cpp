@@ -28,7 +28,6 @@ using namespace OHOS::AccountSA;
 namespace OHOS {
     bool GetOsAccountLocalIdBySerialNumberFuzzTest(const uint8_t* data, size_t size)
     {
-        ACCOUNT_LOGI("GetOsAccountLocalIdBySerialNumberFuzzTest Enter");
         bool result = false;
         if (size > 0) {
             int id = -1;

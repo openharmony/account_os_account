@@ -28,7 +28,6 @@ const int LOCAL_ID = 100;
 namespace OHOS {
     bool IsOsAccountConstraintEnableFuzzTest(const uint8_t* data, size_t size)
     {
-        ACCOUNT_LOGI("IsOsAccountConstraintEnableFuzzTest Enter");
         bool result = false;
         if (size > 0) {
             bool isEnable = false;

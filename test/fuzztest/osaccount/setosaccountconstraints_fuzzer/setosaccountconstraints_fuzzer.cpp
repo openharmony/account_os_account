@@ -31,7 +31,6 @@ const int CONSTANTS_NUMBER_THREE = 3;
 namespace OHOS {
     bool SetOsAccountConstraintsFuzzTest(const uint8_t* data, size_t size)
     {
-        ACCOUNT_LOGI("SetOsAccountConstraintsFuzzTest Enter");
         bool result = false;
         if (size > 0) {
             std::vector<std::string> CONSTANTS_VECTOR {

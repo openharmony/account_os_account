@@ -29,7 +29,6 @@ const int CONSTANTS_NUMBER_FIVE = 5;
 namespace OHOS {
     bool CreateOsAccountForDomainFuzzTest(const uint8_t* data, size_t size)
     {
-        ACCOUNT_LOGI("CreateOsAccountForDomainFuzzTest Enter");
         bool result = false;
         if (size > 0) {
             DomainAccountInfo domainInfo(reinterpret_cast<const char*>(data), reinterpret_cast<const char*>(data));
