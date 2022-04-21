@@ -27,7 +27,6 @@ using namespace OHOS::AccountSA;
 namespace OHOS {
     bool GetOsAccountLocalIdFromDomainFuzzTest(const uint8_t* data, size_t size)
     {
-        ACCOUNT_LOGI("GetOsAccountLocalIdFromDomainFuzzTest Enter");
         bool result = false;
         if (size > 0) {
             DomainAccountInfo domainInfo(reinterpret_cast<const char*>(data), reinterpret_cast<const char*>(data));

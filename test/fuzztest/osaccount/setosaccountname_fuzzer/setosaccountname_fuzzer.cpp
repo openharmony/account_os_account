@@ -29,7 +29,6 @@ const int LOCAL_ID = 100;
 namespace OHOS {
     bool SetOsAccountNameFuzzTest(const uint8_t* data, size_t size)
     {
-        ACCOUNT_LOGI("SetOsAccountNameFuzzTest Enter");
         bool result = false;
         if (size > 0) {
             result = OsAccountManager::SetOsAccountName(LOCAL_ID, reinterpret_cast<const char*>(data));
