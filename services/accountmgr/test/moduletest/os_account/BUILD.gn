@@ -159,7 +159,6 @@ group("moduletest") {
   testonly = true
 
   deps = [
-    ":os_account_manager_service_create_os_account_test",
     ":os_account_manager_service_module_test",
     ":os_account_manager_service_subscribe_module_test",
   ]
