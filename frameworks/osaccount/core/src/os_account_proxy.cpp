@@ -307,6 +307,32 @@ ErrCode OsAccountProxy::GetOsAccountLocalIdFromProcess(int &id)
     return ERR_OK;
 }
 
+ErrCode OsAccountProxy::IsMainOsAccount(bool &isMainOsAccount)
+{
+    ACCOUNT_LOGI("OsAccountProxy IsMainOsAccount start");
+    MessageParcel data;
+    MessageParcel reply;
+
+    if (!data.WriteInterfaceToken(GetDescriptor())) {
+        ACCOUNT_LOGE("failed to write descriptor!");
+        return ERR_ACCOUNT_COMMON_WRITE_DESCRIPTOR_ERROR;
+    }
+
+    ErrCode result = SendRequest(IOsAccount::Message::IS_MAIN_OS_ACCOUNT, data, reply);
+    if (result != ERR_OK) {
+        ACCOUNT_LOGE("SendRequest err, result %{public}d.", result);
+        return result;
+    }
+    result = reply.ReadInt32();
+    if (result != ERR_OK) {
+        ACCOUNT_LOGE("failed to read reply for is main os account.");
+        return result;
+    }
+    isMainOsAccount = reply.ReadBool();
+    ACCOUNT_LOGI("OsAccountProxy IsMainOsAccount end");
+    return ERR_OK;
+}
+
 ErrCode OsAccountProxy::GetOsAccountLocalIdFromDomain(const DomainAccountInfo &domainInfo, int &id)
 {
     ACCOUNT_LOGI("OsAccountProxy GetOsAccountLocalIdFromDomain start");

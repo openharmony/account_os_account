@@ -207,6 +207,13 @@ ErrCode OsAccountManagerService::GetOsAccountLocalIdFromProcess(int &id)
     return ERR_OK;
 }
 
+ErrCode OsAccountManagerService::IsMainOsAccount(bool &isMainOsAccount)
+{
+    const std::int32_t uid = IPCSkeleton::GetCallingUid();
+    isMainOsAccount = ((uid / UID_TRANSFORM_DIVISOR) == MAIN_OS_ACCOUNT_LOCAL_ID);
+    return ERR_OK;
+}
+
 ErrCode OsAccountManagerService::GetOsAccountLocalIdFromDomain(const DomainAccountInfo &domainInfo, int &id)
 {
     // permission check

@@ -81,6 +81,13 @@ ErrCode OsAccountManager::GetOsAccountLocalIdFromProcess(int &id)
     return DelayedSingleton<OsAccount>::GetInstance()->GetOsAccountLocalIdFromProcess(id);
 }
 
+ErrCode OsAccountManager::IsMainOsAccount(bool &isMainOsAccount)
+{
+    ACCOUNT_LOGI("OsAccountManager::IsMainOsAccount start");
+
+    return DelayedSingleton<OsAccount>::GetInstance()->IsMainOsAccount(isMainOsAccount);
+}
+
 ErrCode OsAccountManager::GetOsAccountLocalIdFromUid(const int uid, int &id)
 {
     if (uid < 0) {
@@ -89,6 +96,17 @@ ErrCode OsAccountManager::GetOsAccountLocalIdFromUid(const int uid, int &id)
     }
     id = uid / UID_TRANSFORM_DIVISOR;
     ACCOUNT_LOGI("uid %{public}d, os account id %{public}d.", uid, id);
+    return ERR_OK;
+}
+
+ErrCode OsAccountManager::GetBundleIdFromUid(const int uid, int &bundleId)
+{
+    if (uid < 0) {
+        ACCOUNT_LOGE("invalid uid %{public}d.", uid);
+        return ERR_OSACCOUNT_SERVICE_MANAGER_BAD_UID_ERROR;
+    }
+    bundleId = uid % UID_TRANSFORM_DIVISOR;
+    ACCOUNT_LOGI("uid %{public}d, get bundle id %{public}d.", uid, bundleId);
     return ERR_OK;
 }
 

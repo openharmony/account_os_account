@@ -392,6 +392,18 @@ struct IsTestOAInfo {
     napi_status status;
 };
 
+struct IsMainOAInfo {
+    napi_env env;
+    napi_async_work work;
+
+    int errCode = 0;
+    bool isMainOsAccount = false;
+
+    napi_deferred deferred;
+    napi_ref callbackRef;
+    napi_status status;
+};
+
 struct SubscribeCBInfo {
     napi_env env;
     napi_async_work work;
@@ -458,6 +470,8 @@ napi_value QueryCurrentOsAccount(napi_env env, napi_callback_info cbInfo);
 
 napi_value GetOsAccountLocalIdFromUid(napi_env env, napi_callback_info cbInfo);
 
+napi_value GetBundleIdFromUid(napi_env env, napi_callback_info cbInfo);
+
 napi_value GetOsAccountLocalIdFromDomain(napi_env env, napi_callback_info cbInfo);
 
 napi_value SetOsAccountProfilePhoto(napi_env env, napi_callback_info cbInfo);
@@ -481,6 +495,8 @@ napi_value GetOsAccountLocalIdBySerialNumber(napi_env env, napi_callback_info cb
 napi_value GetSerialNumberByOsAccountLocalId(napi_env env, napi_callback_info cbInfo);
 
 napi_value IsTestOsAccount(napi_env env, napi_callback_info cbInfo);
+
+napi_value IsMainOsAccount(napi_env env, napi_callback_info cbInfo);
 
 napi_value Subscribe(napi_env env, napi_callback_info cbInfo);
 
