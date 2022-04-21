@@ -1356,6 +1356,15 @@ void GetIdByUidExecuteCB(napi_env env, void *data)
     idByUid->status = (idByUid->errCode == 0) ? napi_ok : napi_generic_failure;
 }
 
+void GetBundleIdByUidExecuteCB(napi_env env, void *data)
+{
+    ACCOUNT_LOGI("napi_create_async_work running");
+    GetIdByUidAsyncContext *bundleIdByUid = reinterpret_cast<GetIdByUidAsyncContext *>(data);
+    bundleIdByUid->errCode = OsAccountManager::GetBundleIdFromUid(bundleIdByUid->uid, bundleIdByUid->id);
+    ACCOUNT_LOGI("errocde is %{public}d", bundleIdByUid->errCode);
+    bundleIdByUid->status = (bundleIdByUid->errCode == 0) ? napi_ok : napi_generic_failure;
+}
+
 void GetIdByDomainExecuteCB(napi_env env, void *data)
 {
     ACCOUNT_LOGI("napi_create_async_work running");
@@ -1377,6 +1386,19 @@ void GetIdByUidCallbackCompletedCB(napi_env env, napi_status status, void *data)
     napi_delete_async_work(env, idByUid->work);
     delete idByUid;
     idByUid = nullptr;
+}
+
+void GetBundleIdByUidCallbackCompletedCB(napi_env env, napi_status status, void *data)
+{
+    ACCOUNT_LOGI("napi_create_async_work complete");
+    GetIdByUidAsyncContext *bundleIdByUid = reinterpret_cast<GetIdByUidAsyncContext *>(data);
+    napi_value bundleIdResult[RESULT_COUNT] = {0};
+    bundleIdResult[PARAMZERO] = GetErrorCodeValue(env, bundleIdByUid->errCode);
+    napi_create_int32(env, bundleIdByUid->id, &bundleIdResult[PARAMONE]);
+    CBOrPromiseGetBundleIdByUid(env, bundleIdByUid, bundleIdResult[PARAMZERO], bundleIdResult[PARAMONE]);
+    napi_delete_async_work(env, bundleIdByUid->work);
+    delete bundleIdByUid;
+    bundleIdByUid = nullptr;
 }
 
 void GetIdByDomainCallbackCompletedCB(napi_env env, napi_status status, void *data)
@@ -1411,6 +1433,30 @@ void CBOrPromiseGetIdByUid(napi_env env, const GetIdByUidAsyncContext *idByUid, 
         napi_call_function(env, nullptr, callback, RESULT_COUNT, &args[0], &returnVal);
         if (idByUid->callbackRef != nullptr) {
             napi_delete_reference(env, idByUid->callbackRef);
+        }
+    }
+}
+
+void CBOrPromiseGetBundleIdByUid(napi_env env, const GetIdByUidAsyncContext *bundleIdByUid,
+    napi_value err, napi_value data)
+{
+    ACCOUNT_LOGI("enter");
+    napi_value args[RESULT_COUNT] = {err, data};
+    if (bundleIdByUid->deferred) {
+        ACCOUNT_LOGI("Promise");
+        if (bundleIdByUid->status == napi_ok) {
+            napi_resolve_deferred(env, bundleIdByUid->deferred, args[1]);
+        } else {
+            napi_reject_deferred(env, bundleIdByUid->deferred, args[0]);
+        }
+    } else {
+        ACCOUNT_LOGI("Callback");
+        napi_value callback = nullptr;
+        napi_get_reference_value(env, bundleIdByUid->callbackRef, &callback);
+        napi_value returnVal = nullptr;
+        napi_call_function(env, nullptr, callback, RESULT_COUNT, &args[0], &returnVal);
+        if (bundleIdByUid->callbackRef != nullptr) {
+            napi_delete_reference(env, bundleIdByUid->callbackRef);
         }
     }
 }
@@ -2074,6 +2120,22 @@ void ParseParaIsTestOA(napi_env env, napi_callback_info cbInfo, IsTestOAInfo *is
     }
 }
 
+void ParseParaIsMainOA(napi_env env, napi_callback_info cbInfo, IsMainOAInfo *isMain)
+{
+    ACCOUNT_LOGI("enter");
+    size_t argc = ARGS_SIZE_ONE;
+    napi_value argv[ARGS_SIZE_ONE] = {0};
+    napi_get_cb_info(env, cbInfo, &argc, argv, nullptr, nullptr);
+
+    napi_valuetype valueType = napi_undefined;
+    napi_typeof(env, argv[0], &valueType);
+    if (valueType == napi_function) {
+        napi_create_reference(env, argv[0], 1, &isMain->callbackRef);
+    } else {
+        ACCOUNT_LOGE("Type matching failed");
+    }
+}
+
 void CBOrPromiseIsTestOA(napi_env env, const IsTestOAInfo *isTest, napi_value err, napi_value data)
 {
     ACCOUNT_LOGI("enter");
@@ -2093,6 +2155,29 @@ void CBOrPromiseIsTestOA(napi_env env, const IsTestOAInfo *isTest, napi_value er
         napi_call_function(env, nullptr, callback, RESULT_COUNT, &args[0], &returnVal);
         if (isTest->callbackRef != nullptr) {
             napi_delete_reference(env, isTest->callbackRef);
+        }
+    }
+}
+
+void CBOrPromiseIsMainOA(napi_env env, const IsMainOAInfo *isMain, napi_value err, napi_value data)
+{
+    ACCOUNT_LOGI("enter");
+    napi_value args[RESULT_COUNT] = {err, data};
+    if (isMain->deferred) {
+        ACCOUNT_LOGI("Promise");
+        if (isMain->status == napi_ok) {
+            napi_resolve_deferred(env, isMain->deferred, args[1]);
+        } else {
+            napi_reject_deferred(env, isMain->deferred, args[0]);
+        }
+    } else {
+        ACCOUNT_LOGI("Callback");
+        napi_value callback = nullptr;
+        napi_get_reference_value(env, isMain->callbackRef, &callback);
+        napi_value returnVal = nullptr;
+        napi_call_function(env, nullptr, callback, RESULT_COUNT, &args[0], &returnVal);
+        if (isMain->callbackRef != nullptr) {
+            napi_delete_reference(env, isMain->callbackRef);
         }
     }
 }
