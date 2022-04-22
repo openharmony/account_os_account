@@ -36,7 +36,7 @@ config("app_account_native_config_unittest") {
   }
 
   defines = [
-    "ACCOUNT_LOG_TAG = \"AppAccountTest\"",
+    "ACCOUNT_LOG_TAG = \"AppAccountUTestFwk\"",
     "LOG_DOMAIN = 0xD001B00",
   ]
 }

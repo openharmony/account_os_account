@@ -35,7 +35,7 @@ config("os_account_core_config") {
   ]
 
   defines = [
-    "ACCOUNT_LOG_TAG = \"AppAccountFwk\"",
+    "ACCOUNT_LOG_TAG = \"OsAccountCoreFwk\"",
     "LOG_DOMAIN = 0xD001B00",
   ]
 }

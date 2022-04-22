@@ -26,7 +26,7 @@ config("os_account_core_config_unittest") {
   }
 
   defines = [
-    "ACCOUNT_LOG_TAG = \"AppAccountTest\"",
+    "ACCOUNT_LOG_TAG = \"OsAccountUTestFwk\"",
     "LOG_DOMAIN = 0xD001B00",
   ]
 }
