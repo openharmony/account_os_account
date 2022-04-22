@@ -1333,5 +1333,25 @@ HWTEST_F(OsAccountManagerServiceModuleTest, OsAccountManagerServiceModuleTest067
         GTEST_LOG_(INFO) << *it;
     }
 }
+
+/**
+ * @tc.name: OsAccountManagerServiceModuleTest068
+ * @tc.desc: Test IsMainOsAccount.
+ * @tc.type: FUNC
+ * @tc.require: SR000GGVFF
+ */
+HWTEST_F(OsAccountManagerServiceModuleTest, OsAccountManagerServiceModuleTest068, TestSize.Level1)
+{
+    ACCOUNT_LOGI("OsAccountManagerServiceModuleTest068");
+    bool isMainOsAccount = false;
+    EXPECT_EQ(g_osAccountManagerService->IsMainOsAccount(isMainOsAccount), ERR_OK);
+    int id = -1;
+    EXPECT_EQ(g_osAccountManagerService->GetOsAccountLocalIdFromProcess(id), ERR_OK);
+    if (id == MAIN_ACCOUNT_ID) {
+        EXPECT_EQ(isMainOsAccount, true);
+    } else {
+        EXPECT_EQ(isMainOsAccount, false);
+    }
+}
 }  // namespace AccountSA
 }  // namespace OHOS
