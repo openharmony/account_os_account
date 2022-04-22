@@ -16,7 +16,7 @@ import("//build/ohos.gni")
 
 config("common_test_config") {
   defines = [
-    "ACCOUNT_LOG_TAG = \"ACCOUNT_TEST\"",
+    "ACCOUNT_LOG_TAG = \"AccountCommonTestFwk\"",
     "LOG_DOMAIN = 0xD001B00",
   ]
 }

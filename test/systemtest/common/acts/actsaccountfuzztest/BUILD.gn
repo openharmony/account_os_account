@@ -56,7 +56,7 @@ ohos_systemtest("ActsAccountFuzzTest") {
   ]
 
   defines = [
-    "ACCOUNT_LOG_TAG = \"AppAccountFwk\"",
+    "ACCOUNT_LOG_TAG = \"AccountFuzzTest\"",
     "LOG_DOMAIN = 0xD001B00",
   ]
   external_deps = [

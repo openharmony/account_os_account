@@ -20,7 +20,7 @@ config("public_account_config") {
 
 config("accountkits_config") {
   defines = [
-    "ACCOUNT_LOG_TAG = \"ACCOUNT_INNER_KITS\"",
+    "ACCOUNT_LOG_TAG = \"DistributedAccountFwk\"",
     "LOG_DOMAIN = 0xD001B00",
   ]
   include_dirs = [
