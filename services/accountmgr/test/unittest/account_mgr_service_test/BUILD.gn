@@ -103,7 +103,7 @@ ohos_unittest("account_mgr_test") {
   if (has_user_idm_part) {
     cflags_cc += [ "-DHAS_USER_IDM_PART" ]
     deps +=
-        [ "//base/user_iam/user_idm/interfaces/innerkits:useridm_framework" ]
+        [ "//base/user_iam/user_auth/frameworks/user_idm:useridm_framework" ]
   }
 
   external_deps = [
