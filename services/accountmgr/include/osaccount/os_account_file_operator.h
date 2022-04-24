@@ -29,7 +29,8 @@ public:
     void Init();
     ErrCode GetConstraintsByType(const int type, std::vector<std::string> &constratins);
     ErrCode GetIsMultiOsAccountEnable(bool &isMultiOsAccountEnable);
-    ErrCode IsConstrarionsInTypeList(const std::vector<std::string> &constrains, bool &isExists);
+    ErrCode CheckConstraintsList(const std::vector<std::string> &constraints,
+        bool &isExists, bool &isOverSize);
     ErrCode IsAllowedCreateAdmin(bool &isAllowedCreateAdmin);
 private:
     std::shared_ptr<AccountFileOperator> accountFileOperator_;

@@ -76,7 +76,7 @@ const std::string MAX_ALLOW_CREATE_ACCOUNT_ID = "MaxAllowCreateAccountID";
 const std::string SERIAL_NUMBER_NUM = "SerialNumber";
 const std::string IS_MULTI_OS_ACCOUNT_ENABLE = "IsMultiOsAccountEnable";
 const std::string IS_SERIAL_NUMBER_FULL = "isSerialNumberFull";
-const std::string CONSTANS_LITE = "constraints";
+const std::string CONSTANS_LIST = "constraints";
 const std::string IS_ALLOWED_CREATE_ADMIN = "IsAllowedCreateAdmin";
 
 // start type
