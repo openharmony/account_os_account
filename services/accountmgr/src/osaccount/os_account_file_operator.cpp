@@ -44,7 +44,7 @@ void OsAccountFileOperator::Init()
         Json constratinsListCollocting = Json::parse(constratinsListColloctingStr, nullptr, false);
         OHOS::AccountSA::GetDataByType<std::vector<std::string>>(constratinsListCollocting,
             constratinsListCollocting.end(),
-            Constants::CONSTANS_LITE,
+            Constants::CONSTANS_LIST,
             constratinsList_,
             OHOS::AccountSA::JsonType::ARRAY);
     }
@@ -104,16 +104,27 @@ ErrCode OsAccountFileOperator::IsAllowedCreateAdmin(bool &isAllowedCreateAdmin)
     return ERR_OK;
 }
 
-ErrCode OsAccountFileOperator::IsConstrarionsInTypeList(const std::vector<std::string> &constrains, bool &isExists)
+ErrCode OsAccountFileOperator::CheckConstraintsList(const std::vector<std::string> &constraints,
+    bool &isExists, bool &isOverSize)
 {
+    isOverSize = false;
+    isExists = true;
     if (constratinsList_.size() == 0) {
-        ACCOUNT_LOGE("IsConstrarionsInTypeList constratinsList_ zero error");
+        ACCOUNT_LOGE("constratinsList_ zero error!");
         return ERR_OSACCOUNT_SERVICE_OS_FILE_GET_CONSTRATIONS_LITS_ERROR;
     }
-    isExists = true;
-    for (auto it = constrains.begin(); it != constrains.end(); it++) {
+
+    if (constraints.size() > constratinsList_.size()) {
+        ACCOUNT_LOGE("input constraints list size %{public}zu is larger than %{public}zu.",
+            constraints.size(), constratinsList_.size());
+        isOverSize = true;
+        return ERR_OK;
+    }
+
+    for (auto it = constraints.begin(); it != constraints.end(); it++) {
         if (std::find(constratinsList_.begin(), constratinsList_.end(), *it) == constratinsList_.end()) {
             isExists = false;
+            return ERR_OK;
         }
     }
     return ERR_OK;
