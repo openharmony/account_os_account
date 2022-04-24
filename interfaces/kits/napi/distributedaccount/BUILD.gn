@@ -37,7 +37,7 @@ ohos_shared_library("distributedaccount") {
   sources = [ "src/napi_distributed_account.cpp" ]
 
   defines = [
-    "ACCOUNT_LOG_TAG = \"AccountJsKit\"",
+    "ACCOUNT_LOG_TAG = \"DistributedAccountJsKit\"",
     "LOG_DOMAIN = 0xD001B00",
   ]
 
