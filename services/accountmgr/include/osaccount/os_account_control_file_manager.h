@@ -42,7 +42,8 @@ public:
     ErrCode GetPhotoById(const int id, std::string &photo) override;
     ErrCode SetPhotoById(const int id, const std::string &photo) override;
     ErrCode GetIsMultiOsAccountEnable(bool &isMultiOsAccountEnable) override;
-    ErrCode IsConstrarionsInTypeList(const std::vector<std::string> &constrains, bool &isExists) override;
+    ErrCode CheckConstraintsList(const std::vector<std::string> &constraints,
+        bool &isExists, bool &isOverSize) override;
     ErrCode IsAllowedCreateAdmin(bool &isAllowedCreateAdmin) override;
 
     ErrCode GetCreatedOsAccountNumFromDatabase(const std::string& storeID,

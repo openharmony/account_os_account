@@ -506,10 +506,10 @@ ErrCode OsAccountControlFileManager::GetIsMultiOsAccountEnable(bool &isMultiOsAc
 {
     return osAccountFileOperator_->GetIsMultiOsAccountEnable(isMultiOsAccountEnable);
 }
-ErrCode OsAccountControlFileManager::IsConstrarionsInTypeList(
-    const std::vector<std::string> &constrains, bool &isExists)
+ErrCode OsAccountControlFileManager::CheckConstraintsList(
+    const std::vector<std::string> &constraints, bool &isExists, bool &isOverSize)
 {
-    return osAccountFileOperator_->IsConstrarionsInTypeList(constrains, isExists);
+    return osAccountFileOperator_->CheckConstraintsList(constraints, isExists, isOverSize);
 }
 
 ErrCode OsAccountControlFileManager::IsAllowedCreateAdmin(bool &isAllowedCreateAdmin)

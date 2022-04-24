@@ -691,9 +691,10 @@ ErrCode IInnerOsAccountManager::SetOsAccountConstraints(
     }
 
     bool isExists = false;
-    errCode = osAccountControl_->IsConstrarionsInTypeList(constraints, isExists);
-    if (errCode != ERR_OK || !isExists) {
-        ACCOUNT_LOGE("input constraints not in constraints list");
+    bool isOverSize = false;
+    errCode = osAccountControl_->CheckConstraintsList(constraints, isExists, isOverSize);
+    if (errCode != ERR_OK || !isExists || isOverSize) {
+        ACCOUNT_LOGE("input constraints not in constraints list or is oversize!");
         return ERR_OSACCOUNT_SERVICE_INNER_SER_CONSTRAINTS_ERROR;
     }
     std::vector<std::string> oldconstraints = osAccountInfo.GetConstraints();
