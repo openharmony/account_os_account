@@ -34,7 +34,7 @@ config("appaccount_kit_config") {
   cflags += [ "-pipe" ]
 
   defines = [
-    "ACCOUNT_LOG_TAG = \"AccountJsKit\"",
+    "ACCOUNT_LOG_TAG = \"AppAccountJsKit\"",
     "LOG_DOMAIN = 0xD001B00",
   ]
 }

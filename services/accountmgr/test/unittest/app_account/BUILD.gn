@@ -43,7 +43,7 @@ config("app_account_service_config_unittest") {
   }
 
   defines = [
-    "ACCOUNT_LOG_TAG = \"AppAccountTest\"",
+    "ACCOUNT_LOG_TAG = \"AppAccountUTest\"",
     "LOG_DOMAIN = 0xD001B00",
   ]
 }

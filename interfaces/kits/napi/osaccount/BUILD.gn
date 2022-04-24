@@ -49,7 +49,7 @@ config("osaccount_kit_config") {
   }
 
   defines = [
-    "ACCOUNT_LOG_TAG = \"AccountJsKit\"",
+    "ACCOUNT_LOG_TAG = \"OsAccountJsKit\"",
     "LOG_DOMAIN = 0xD001B00",
   ]
 }

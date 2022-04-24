@@ -40,7 +40,7 @@ ohos_shared_library("os_account_innerkits") {
   ]
 
   defines = [
-    "ACCOUNT_LOG_TAG = \"AccountMgrService\"",
+    "ACCOUNT_LOG_TAG = \"OsAccountNativeFwk\"",
     "LOG_DOMAIN = 0xD001B00",
   ]
 
