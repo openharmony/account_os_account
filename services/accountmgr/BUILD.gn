@@ -175,7 +175,7 @@ ohos_shared_library("accountmgr") {
 
   if (has_ces_part) {
     cflags_cc += [ "-DHAS_CES_PART" ]
-    external_deps += [ "ces_standard:cesfwk_innerkits" ]
+    external_deps += [ "common_event_service:cesfwk_innerkits" ]
   }
 
   part_name = "os_account_standard"
