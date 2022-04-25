@@ -443,6 +443,50 @@ BENCHMARK_F(OsAccountManagerBenchmarkTest, OsAccountManagerTestCase0019)(
 
 BENCHMARK_REGISTER_F(OsAccountManagerBenchmarkTest, OsAccountManagerTestCase0019)->Iterations(100)->
     Repetitions(3)->ReportAggregatesOnly();
+
+/**
+* @tc.name: OsAccountManagerTestCase0020
+* @tc.desc: GetBundleIdFromUid
+* @tc.type: FUNC
+* @tc.require:
+*/
+
+BENCHMARK_F(OsAccountManagerBenchmarkTest, OsAccountManagerTestCase0020)(
+    benchmark::State &st)
+{
+    int expectedBundleID = 5;  // the expected result user ID
+    int testUid = 1000000 + expectedBundleID;   // uid for test
+
+    GTEST_LOG_(INFO) << "OsAccountManagerBenchmarkTest OsAccountManagerTestCase0020 start!";
+    for (auto _ : st) {
+        int id = -1;
+        EXPECT_EQ(OsAccountManager::GetBundleIdFromUid(testUid, id), ERR_OK);
+        EXPECT_EQ(expectedBundleID, id);
+    }
+}
+
+BENCHMARK_REGISTER_F(OsAccountManagerBenchmarkTest, OsAccountManagerTestCase0020)->Iterations(100)->
+    Repetitions(3)->ReportAggregatesOnly();
+
+/**
+* @tc.name: OsAccountManagerTestCase0021
+* @tc.desc: IsMainOsAccount
+* @tc.type: FUNC
+* @tc.require:
+*/
+
+BENCHMARK_F(OsAccountManagerBenchmarkTest, OsAccountManagerTestCase0021)(
+    benchmark::State &st)
+{
+    GTEST_LOG_(INFO) << "OsAccountManagerBenchmarkTest OsAccountManagerTestCase0021 start!";
+    for (auto _ : st) {
+        bool isMainOsAccount = false;
+        EXPECT_EQ(OsAccountManager::IsMainOsAccount(isMainOsAccount), ERR_OK);
+    }
+}
+
+BENCHMARK_REGISTER_F(OsAccountManagerBenchmarkTest, OsAccountManagerTestCase0021)->Iterations(100)->
+    Repetitions(3)->ReportAggregatesOnly();
 }  // namespace
 
 BENCHMARK_MAIN();

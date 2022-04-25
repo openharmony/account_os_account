@@ -1390,3 +1390,38 @@ HWTEST_F(OsAccountManagerModuleTest, OsAccountManagerModuleTest066, TestSize.Lev
     }
 }
 
+/**
+ * @tc.name: OsAccountManagerModuleTest067
+ * @tc.desc: Test GetBundleIdFromUid.
+ * @tc.type: FUNC
+ * @tc.require: SR000GGVFF
+ */
+HWTEST_F(OsAccountManagerModuleTest, OsAccountManagerModuleTest067, TestSize.Level1)
+{
+    ACCOUNT_LOGI("OsAccountManagerModuleTest067");
+    int id = -1;
+    int expectedBundleID = 5;  // the expected result user ID
+    int testUid = 1000000 + expectedBundleID;   // uid for test
+    EXPECT_EQ(OsAccountManager::GetBundleIdFromUid(testUid, id), ERR_OK);
+    EXPECT_EQ(expectedBundleID, id);
+}
+
+/**
+ * @tc.name: OsAccountManagerModuleTest068
+ * @tc.desc: Test IsMainOsAccount.
+ * @tc.type: FUNC
+ * @tc.require: SR000GGVFF
+ */
+HWTEST_F(OsAccountManagerModuleTest, OsAccountManagerModuleTest068, TestSize.Level1)
+{
+    ACCOUNT_LOGI("OsAccountManagerModuleTest068");
+    bool isMainOsAccount = false;
+    EXPECT_EQ(OsAccountManager::IsMainOsAccount(isMainOsAccount), ERR_OK);
+    int id = -1;
+    EXPECT_EQ(OsAccountManager::GetOsAccountLocalIdFromProcess(id), ERR_OK);
+    if (id == MAIN_ACCOUNT_ID) {
+        EXPECT_EQ(isMainOsAccount, true);
+    } else {
+        EXPECT_EQ(isMainOsAccount, false);
+    }
+}
