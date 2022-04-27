@@ -35,7 +35,6 @@ os_account_core_path = "${os_account_path}/frameworks/osaccount/core"
 os_account_kits_path = "${os_account_path}/interfaces/kits/napi/osaccount"
 
 aafwk_path = "//foundation/aafwk/standard"
-appexecfwk_path = "//foundation/appexecfwk/standard"
 
 if (!defined(global_parts_info) ||
     defined(global_parts_info.useriam_user_idm)) {

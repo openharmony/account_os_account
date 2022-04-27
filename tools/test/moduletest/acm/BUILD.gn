@@ -22,7 +22,6 @@ ohos_moduletest("account_command_create_module_test") {
   include_dirs = [
     "${aafwk_path}/tools/aa/include",
     "${aafwk_path}/tools/test/systemtest/aa",
-    "${appexecfwk_path}/tools/bm/include",
   ]
 
   sources = [
@@ -63,7 +62,6 @@ ohos_moduletest("account_command_delete_module_test") {
   include_dirs = [
     "${aafwk_path}/tools/aa/include",
     "${aafwk_path}/tools/test/systemtest/aa",
-    "${appexecfwk_path}/tools/bm/include",
   ]
 
   sources = [
@@ -104,7 +102,6 @@ ohos_moduletest("account_command_dump_module_test") {
   include_dirs = [
     "${aafwk_path}/tools/aa/include",
     "${aafwk_path}/tools/test/systemtest/aa",
-    "${appexecfwk_path}/tools/bm/include",
   ]
 
   sources = [
@@ -145,7 +142,6 @@ ohos_moduletest("account_command_set_module_test") {
   include_dirs = [
     "${aafwk_path}/tools/aa/include",
     "${aafwk_path}/tools/test/systemtest/aa",
-    "${appexecfwk_path}/tools/bm/include",
   ]
 
   sources = [
@@ -186,7 +182,6 @@ ohos_moduletest("account_command_switch_module_test") {
   include_dirs = [
     "${aafwk_path}/tools/aa/include",
     "${aafwk_path}/tools/test/systemtest/aa",
-    "${appexecfwk_path}/tools/bm/include",
   ]
 
   sources = [
