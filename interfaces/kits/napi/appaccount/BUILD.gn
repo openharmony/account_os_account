@@ -19,7 +19,7 @@ config("appaccount_kit_config") {
     "${app_account_interfaces_native_path}/include",
     "//third_party/libuv/include",
     "//third_party/node/src",
-    "//foundation/ace/napi/interfaces/kits",
+    "//foundation/arkui/napi/interfaces/kits",
     "${app_account_kits_path}/include",
     "//foundation/aafwk/standard/interfaces/kits/napi/aafwk/inner/napi_common",
     "//foundation/aafwk/standard/frameworks/kits/ability/native/include",
@@ -59,7 +59,7 @@ ohos_shared_library("appaccount") {
     "${common_path}:libaccount_common",
     "//foundation/aafwk/standard/frameworks/kits/ability/native:abilitykit_native",
     "//foundation/aafwk/standard/interfaces/kits/napi/aafwk/inner/napi_common:napi_common",
-    "//foundation/ace/napi/:ace_napi",
+    "//foundation/arkui/napi/:ace_napi",
     "//foundation/distributedschedule/samgr/interfaces/innerkits/samgr_proxy:samgr_proxy",
     "//utils/native/base:utils",
   ]

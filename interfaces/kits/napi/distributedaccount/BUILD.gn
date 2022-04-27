@@ -19,7 +19,7 @@ ohos_shared_library("distributedaccount") {
     "include",
     "//third_party/libuv/include",
     "//third_party/node/src",
-    "//foundation/ace/napi/interfaces/kits",
+    "//foundation/arkui/napi/interfaces/kits",
   ]
 
   cflags = [
@@ -43,7 +43,7 @@ ohos_shared_library("distributedaccount") {
 
   deps = [
     "${common_path}:libaccount_common",
-    "//foundation/ace/napi/:ace_napi",
+    "//foundation/arkui/napi/:ace_napi",
     "//utils/native/base:utils",
   ]
 
