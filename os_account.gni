@@ -38,17 +38,12 @@ aafwk_path = "//foundation/aafwk/standard"
 appexecfwk_path = "//foundation/appexecfwk/standard"
 
 if (!defined(global_parts_info) ||
-    defined(global_parts_info.useriam_user_idm)) {
-  has_user_idm_part = true
-} else {
-  has_user_idm_part = false
-}
-
-if (!defined(global_parts_info) ||
     defined(global_parts_info.useriam_user_auth)) {
   has_user_auth_part = true
+  has_user_idm_part = true
 } else {
   has_user_auth_part = false
+  has_user_idm_part = false
 }
 
 if (!defined(global_parts_info) ||
