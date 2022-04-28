@@ -45,6 +45,14 @@ public:
     virtual std::pair<bool, OhosAccountInfo> QueryOhosAccountInfo() = 0;
 
     /**
+     * Query OHOS Account Info By user ID.
+     *
+     * @param userId. target local user id
+     * @return Return a pair of operation result and ohos account info.
+     */
+    virtual std::pair<bool, OhosAccountInfo> QueryOhosAccountInfoByUserId(std::int32_t userId) = 0;
+
+    /**
      * Update OHOS Account Info.
      *
      * @param accountName Indicates the name of the OS account used for a distributed system.
