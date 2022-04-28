@@ -58,6 +58,14 @@ std::pair<bool, OhosAccountInfo> MockAccountMgrService::QueryOhosAccountInfo(voi
     return std::make_pair(true, OhosAccountInfo(name, id, status));
 }
 
+std::pair<bool, OhosAccountInfo> MockAccountMgrService::QueryOhosAccountInfoByUserId(std::int32_t userId)
+{
+    std::string name = DEFAULT_OHOS_ACCOUNT_NAME;
+    std::string id = DEFAULT_OHOS_ACCOUNT_UID;
+    std::int32_t status = ACCOUNT_STATE_UNBOUND;
+    return std::make_pair(true, OhosAccountInfo(name, id, status));
+}
+
 sptr<IRemoteObject> MockAccountMgrService::GetAppAccountService()
 {
     ACCOUNT_LOGI("enter");

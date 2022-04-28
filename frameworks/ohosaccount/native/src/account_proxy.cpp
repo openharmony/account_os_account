@@ -81,7 +81,7 @@ std::pair<bool, OhosAccountInfo> AccountProxy::QueryOhosAccountInfo(void)
 
     auto ret = Remote()->SendRequest(QUERY_OHOS_ACCOUNT_INFO, data, reply, option);
     if (ret != ERR_NONE) {
-        ACCOUNT_LOGE("SendRequest failed %d", ret);
+        ACCOUNT_LOGE("SendRequest failed %{public}d", ret);
         return std::make_pair(false, OhosAccountInfo());
     }
 
@@ -89,6 +89,36 @@ std::pair<bool, OhosAccountInfo> AccountProxy::QueryOhosAccountInfo(void)
     std::u16string uid = reply.ReadString16();
     std::int32_t status = reply.ReadInt32();
     ACCOUNT_LOGI("QueryOhosAccountInfo exit");
+    return std::make_pair(true, OhosAccountInfo(Str16ToStr8(name), Str16ToStr8(uid), status));
+}
+
+std::pair<bool, OhosAccountInfo> AccountProxy::QueryOhosAccountInfoByUserId(std::int32_t userId)
+{
+    ACCOUNT_LOGI("enter");
+    MessageParcel data;
+    MessageParcel reply;
+    MessageOption option;
+
+    if (!data.WriteInterfaceToken(GetDescriptor())) {
+        ACCOUNT_LOGE("Write descriptor failed");
+        return std::make_pair(false, OhosAccountInfo());
+    }
+
+    if (!data.WriteInt32(userId)) {
+        ACCOUNT_LOGE("failed to write int for userId %{public}d.", userId);
+        return std::make_pair(false, OhosAccountInfo());
+    }
+
+    auto ret = Remote()->SendRequest(QUERY_OHOS_ACCOUNT_INFO_BY_USER_ID, data, reply, option);
+    if (ret != ERR_NONE) {
+        ACCOUNT_LOGE("SendRequest failed %{public}d", ret);
+        return std::make_pair(false, OhosAccountInfo());
+    }
+
+    std::u16string name = reply.ReadString16();
+    std::u16string uid = reply.ReadString16();
+    std::int32_t status = reply.ReadInt32();
+    ACCOUNT_LOGI("exit");
     return std::make_pair(true, OhosAccountInfo(Str16ToStr8(name), Str16ToStr8(uid), status));
 }
 

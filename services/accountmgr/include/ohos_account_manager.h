@@ -36,11 +36,19 @@ using OhosAccountEventFunc = bool (OhosAccountManager::*)(const std::string &nam
 class OhosAccountManager {
 public:
     /**
-     * Get current account information.
+     * Get current ohos account information.
      *
      * @return current account information.
      */
     AccountInfo GetCurrentOhosAccountInfo();
+
+    /**
+     * Get ohos account information by local userId.
+     *
+     * @param userId target local account id
+     * @return ohos account info which is bound to the local userId.
+     */
+    AccountInfo GetOhosAccountInfoByUserId(std::int32_t userId);
 
     /**
      * Get current account state.

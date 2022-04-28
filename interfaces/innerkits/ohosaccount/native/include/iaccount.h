@@ -33,6 +33,7 @@ public:
         UPDATE_OHOS_ACCOUNT_INFO = 1,
         QUERY_OHOS_ACCOUNT_INFO = 2,
         QUERY_OHOS_ACCOUNT_QUIT_TIPS = 3,
+        QUERY_OHOS_ACCOUNT_INFO_BY_USER_ID = 4,
         QUERY_DEVICE_ACCOUNT_ID = 104,
         GET_APP_ACCOUNT_SERVICE = 105,
         GET_OS_ACCOUNT_SERVICE = 106,
@@ -41,6 +42,7 @@ public:
     virtual bool UpdateOhosAccountInfo(
         const std::string &accountName, const std::string &uid, const std::string &eventStr) = 0;
     virtual std::pair<bool, OhosAccountInfo> QueryOhosAccountInfo(void) = 0;
+    virtual std::pair<bool, OhosAccountInfo> QueryOhosAccountInfoByUserId(std::int32_t userId) = 0;
     virtual std::int32_t QueryDeviceAccountId(std::int32_t &accountId) = 0;
     virtual sptr<IRemoteObject> GetAppAccountService() = 0;
     virtual sptr<IRemoteObject> GetOsAccountService() = 0;
