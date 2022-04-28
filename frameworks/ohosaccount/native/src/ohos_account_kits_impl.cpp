@@ -129,6 +129,17 @@ std::pair<bool, OhosAccountInfo> OhosAccountKitsImpl::QueryOhosAccountInfo()
     return accountProxy->QueryOhosAccountInfo();
 }
 
+std::pair<bool, OhosAccountInfo> OhosAccountKitsImpl::QueryOhosAccountInfoByUserId(std::int32_t userId)
+{
+    auto accountProxy = GetService();
+    if (accountProxy == nullptr) {
+        ACCOUNT_LOGE("Get proxy failed");
+        return std::make_pair(false, OhosAccountInfo());
+    }
+
+    return accountProxy->QueryOhosAccountInfoByUserId(userId);
+}
+
 ErrCode OhosAccountKitsImpl::QueryDeviceAccountId(std::int32_t& accountId)
 {
     auto ret = CallService(&IAccount::QueryDeviceAccountId, accountId);

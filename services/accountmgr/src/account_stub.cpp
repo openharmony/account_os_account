@@ -72,6 +72,7 @@ const std::map<std::uint32_t, AccountStubFunc> AccountStub::stubFuncMap_{
     std::make_pair(UPDATE_OHOS_ACCOUNT_INFO, &AccountStub::CmdUpdateOhosAccountInfo),
     std::make_pair(QUERY_OHOS_ACCOUNT_INFO, &AccountStub::CmdQueryOhosAccountInfo),
     std::make_pair(QUERY_OHOS_ACCOUNT_QUIT_TIPS, &AccountStub::CmdQueryOhosQuitTips),
+    std::make_pair(QUERY_OHOS_ACCOUNT_INFO_BY_USER_ID, &AccountStub::CmdQueryOhosAccountInfoByUserId),
     std::make_pair(QUERY_DEVICE_ACCOUNT_ID, &AccountStub::CmdQueryDeviceAccountId),
     std::make_pair(GET_APP_ACCOUNT_SERVICE, &AccountStub::CmdGetAppAccountService),
     std::make_pair(GET_OS_ACCOUNT_SERVICE, &AccountStub::CmdGetOsAccountService),
@@ -137,6 +138,37 @@ std::int32_t AccountStub::CmdQueryOhosAccountInfo(MessageParcel &data, MessagePa
     }
     if (!reply.WriteInt32(info.second.status_)) {
         ACCOUNT_LOGE("Write status data failed");
+        return ERR_ACCOUNT_ZIDL_WRITE_ACCOUNT_STATUS_ERROR;
+    }
+    return ERR_OK;
+}
+
+std::int32_t AccountStub::CmdQueryOhosAccountInfoByUserId(MessageParcel &data, MessageParcel &reply)
+{
+    std::int32_t userId = data.ReadInt32();
+    if (userId < 0) {
+        ACCOUNT_LOGE("negative userID %{public}d detected!", userId);
+        return ERR_ACCOUNT_ZIDL_ACCOUNT_STUB_USERID_ERROR;
+    }
+
+    std::pair<bool, OhosAccountInfo> info = QueryOhosAccountInfoByUserId(userId);
+    if (!info.first) {
+        ACCOUNT_LOGE("Query ohos account info failed! userId %{public}d.", userId);
+        return ERR_ACCOUNT_ZIDL_ACCOUNT_STUB_ERROR;
+    }
+
+    std::string name = info.second.name_;
+    std::string id = info.second.uid_;
+    if (!reply.WriteString16(Str8ToStr16(name))) {
+        ACCOUNT_LOGE("Write name data failed! userId %{public}d.", userId);
+        return ERR_ACCOUNT_ZIDL_WRITE_NAME_ERROR;
+    }
+    if (!reply.WriteString16(Str8ToStr16(id))) {
+        ACCOUNT_LOGE("Write id data failed! userId %{public}d.", userId);
+        return ERR_ACCOUNT_ZIDL_WRITE_UID_ERROR;
+    }
+    if (!reply.WriteInt32(info.second.status_)) {
+        ACCOUNT_LOGE("Write status data failed! userId %{public}d.", userId);
         return ERR_ACCOUNT_ZIDL_WRITE_ACCOUNT_STATUS_ERROR;
     }
     return ERR_OK;

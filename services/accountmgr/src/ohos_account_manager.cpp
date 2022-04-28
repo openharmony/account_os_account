@@ -77,7 +77,7 @@ std::string GenerateOhosUdidWithSha256(const std::string &name, const std::strin
     mbedtls_sha256_init(&context);
     mbedtls_sha256_starts_ret(&context, 0);
 
-    std::string plainStr = name + uid;
+    std::string plainStr = uid;
     mbedtls_sha256_update_ret(&context, (const unsigned char*)plainStr.c_str(), plainStr.length());
     mbedtls_sha256_finish_ret(&context, hash);
     mbedtls_sha256_free(&context);
@@ -165,6 +165,18 @@ AccountInfo OhosAccountManager::GetCurrentOhosAccountInfo()
         currOhosAccountInfo.clear();
     }
     return currOhosAccountInfo;
+}
+
+AccountInfo OhosAccountManager::GetOhosAccountInfoByUserId(std::int32_t userId)
+{
+    std::lock_guard<std::mutex> mutexLock(mgrMutex_);
+
+    AccountInfo ohosAccountInfo;
+    if (dataDealer_->AccountInfoFromJson(ohosAccountInfo, userId) != ERR_OK) {
+        ACCOUNT_LOGE("get ohos account info failed, userId %{public}d.", userId);
+        ohosAccountInfo.clear();
+    }
+    return ohosAccountInfo;
 }
 
 /**

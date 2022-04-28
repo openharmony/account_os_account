@@ -36,6 +36,7 @@ private:
     std::int32_t CmdUpdateOhosAccountInfo(MessageParcel &data, MessageParcel &reply);
     std::int32_t CmdQueryOhosAccountInfo(MessageParcel &data, MessageParcel &reply);
     std::int32_t CmdQueryOhosQuitTips(MessageParcel &data, MessageParcel &reply);
+    std::int32_t CmdQueryOhosAccountInfoByUserId(MessageParcel &data, MessageParcel &reply);
     std::int32_t CmdQueryDeviceAccountId(MessageParcel &data, MessageParcel &reply);
     std::int32_t CmdGetAppAccountService(MessageParcel &data, MessageParcel &reply);
     std::int32_t CmdGetOsAccountService(MessageParcel &data, MessageParcel &reply);
