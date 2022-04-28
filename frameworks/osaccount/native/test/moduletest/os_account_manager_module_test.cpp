@@ -150,7 +150,7 @@ const std::string STRING_DOMAIN_VALID = "TestDomainMT";
 const std::string STRING_DOMAIN_ACCOUNT_NAME_VALID = "TestDomainAccountNameMT";
 const std::string TEST_ACCOUNT_NAME = "TestAccountNameOS";
 const std::string TEST_ACCOUNT_UID = "123456789os";
-const std::string TEST_EXPECTED_UID = "DC227A5106403E85993398FD1DCF8AC32E7A8091B220DC3FD96EE1EEEECD75EA";
+const std::string TEST_EXPECTED_UID = "4E7FA9CA2E8760692F2ADBA7AE59B37E02E650670E5FA5F3D01232DCD52D3893";
 std::shared_ptr<AccountFileOperator> g_accountFileOperator = std::make_shared<AccountFileOperator>();
 }  // namespace
 

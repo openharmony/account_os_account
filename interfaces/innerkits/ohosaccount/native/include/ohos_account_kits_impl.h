@@ -31,6 +31,7 @@ public:
     bool UpdateOhosAccountInfo(const std::string& accountName, const std::string& uid,
         const std::string& eventStr) final;
     std::pair<bool, OhosAccountInfo> QueryOhosAccountInfo() final;
+    std::pair<bool, OhosAccountInfo> QueryOhosAccountInfoByUserId(std::int32_t userId) final;
     ErrCode QueryDeviceAccountId(std::int32_t& accountId) final;
     std::int32_t GetDeviceAccountIdByUID(std::int32_t& uid) final;
 private:
