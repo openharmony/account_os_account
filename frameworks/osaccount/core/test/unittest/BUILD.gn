@@ -14,7 +14,7 @@
 import("//base/account/os_account/os_account.gni")
 import("//build/test.gni")
 
-module_output_path = "os_account_standard/frameworks"
+module_output_path = "os_account/frameworks"
 config("os_account_core_config_unittest") {
   visibility = [ ":*" ]
 

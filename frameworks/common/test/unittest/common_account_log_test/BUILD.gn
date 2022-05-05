@@ -15,7 +15,7 @@ import("//base/account/os_account/os_account.gni")
 import("//build/ohos.gni")
 import("//build/test.gni")
 
-module_output_path = "os_account_standard/accountdfx"
+module_output_path = "os_account/accountdfx"
 
 ohos_unittest("AccountSALogTest") {
   module_out_path = module_output_path
@@ -32,7 +32,7 @@ ohos_unittest("AccountSALogTest") {
   deps = [ "//third_party/googletest:gtest_main" ]
 
   external_deps = [ "hiviewdfx_hilog_native:libhilog" ]
-  part_name = "os_account_standard"
+  part_name = "os_account"
 }
 
 group("unittest") {

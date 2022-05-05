@@ -17,7 +17,7 @@ import("//base/account/os_account/os_account.gni")
 import("//build/ohos.gni")
 import("//build/test.gni")
 
-module_output_path = "os_account_standard/mstaccountmgr"
+module_output_path = "os_account/mstaccountmgr"
 
 # mst test common config defines here
 config("accountmgr_mst_test_config") {
@@ -62,11 +62,11 @@ ohos_moduletest("AccountInnerSdkModuleTest") {
     "eventhandler:libeventhandler",
     "hiviewdfx_hilog_native:libhilog",
     "ipc:ipc_core",
-    "os_account_standard:libaccountkits",
+    "os_account:libaccountkits",
     "safwk:system_ability_fwk",
     "samgr_standard:samgr_proxy",
   ]
-  part_name = "os_account_standard"
+  part_name = "os_account"
 }
 
 group("moduletest") {

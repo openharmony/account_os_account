@@ -14,7 +14,7 @@
 #####################hydra-fuzz###################
 import("//build/config/features.gni")
 import("//build/test.gni")
-module_output_path = "os_account_standard/osaccount"
+module_output_path = "os_account/osaccount"
 
 ##############################fuzztest##########################################
 ohos_fuzztest("GetOsAccountLocalIdBySerialNumberFuzzTest") {

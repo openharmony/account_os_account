@@ -55,5 +55,5 @@ ohos_shared_library("os_account_innerkits") {
 
   external_deps = [ "hiviewdfx_hilog_native:libhilog" ]
   subsystem_name = "account"
-  part_name = "os_account_standard"
+  part_name = "os_account"
 }
