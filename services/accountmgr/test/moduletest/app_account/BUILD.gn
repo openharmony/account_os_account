@@ -14,7 +14,7 @@
 import("//base/account/os_account/os_account.gni")
 import("//build/test.gni")
 
-module_output_path = "app_account_standard/services"
+module_output_path = "app_account/services"
 
 config("app_account_service_config_mock") {
   include_dirs = [

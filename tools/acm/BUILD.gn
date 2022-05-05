@@ -59,7 +59,7 @@ ohos_source_set("tools_acm_source_set") {
     "hiviewdfx_hilog_native:libhilog",
     "ipc:ipc_core",
   ]
-  part_name = "os_account_standard"
+  part_name = "os_account"
 }
 
 ohos_executable("acm") {
@@ -68,7 +68,7 @@ ohos_executable("acm") {
   install_enable = true
 
   subsystem_name = "account"
-  part_name = "os_account_standard"
+  part_name = "os_account"
 }
 
 group("tools_acm") {

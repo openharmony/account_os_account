@@ -15,7 +15,7 @@ import("//base/account/os_account/os_account.gni")
 import("//build/ohos.gni")
 import("//build/test.gni")
 
-module_output_path = "os_account_standard/accountmgrservice"
+module_output_path = "os_account/accountmgrservice"
 
 config("os_account_manager_service_test_config") {
   include_dirs = [
@@ -38,7 +38,7 @@ ohos_moduletest("os_account_manager_service_module_test") {
   sources = [ "os_account_manager_service_module_test.cpp" ]
   sources += [
     "${services_path}/accountmgr/test/mock/os_account/bundle_mgr_client.cpp",
-    "${services_path}/accountmgr/test/mock/os_account/os_account_standard_interface.cpp",
+    "${services_path}/accountmgr/test/mock/os_account/os_account_interface.cpp",
     "${services_path}/accountmgr/test/mock/os_account/permission_kit.cpp",
   ]
   configs = [
@@ -60,7 +60,7 @@ ohos_moduletest("os_account_manager_service_module_test") {
     "distributeddatamgr:distributeddata_inner",
     "hiviewdfx_hilog_native:libhilog",
   ]
-  part_name = "os_account_standard"
+  part_name = "os_account"
 }
 
 config("os_account_manager_service_create_os_account_test_config") {
@@ -84,7 +84,7 @@ ohos_moduletest("os_account_manager_service_create_os_account_test") {
   sources = [ "os_account_manager_service_create_os_account_test.cpp" ]
   sources += [
     "${services_path}/accountmgr/test/mock/os_account/bundle_mgr_client.cpp",
-    "${services_path}/accountmgr/test/mock/os_account/os_account_standard_interface.cpp",
+    "${services_path}/accountmgr/test/mock/os_account/os_account_interface.cpp",
     "${services_path}/accountmgr/test/mock/os_account/permission_kit.cpp",
   ]
   configs = [
@@ -106,7 +106,7 @@ ohos_moduletest("os_account_manager_service_create_os_account_test") {
     "distributeddatamgr:distributeddata_inner",
     "hiviewdfx_hilog_native:libhilog",
   ]
-  part_name = "os_account_standard"
+  part_name = "os_account"
 }
 
 config("os_account_manager_service_subscribe_test_config") {
@@ -130,7 +130,7 @@ ohos_moduletest("os_account_manager_service_subscribe_module_test") {
   sources = [ "os_account_manager_service_subscribe_module_test.cpp" ]
   sources += [
     "${services_path}/accountmgr/test/mock/os_account/bundle_mgr_client.cpp",
-    "${services_path}/accountmgr/test/mock/os_account/os_account_standard_interface.cpp",
+    "${services_path}/accountmgr/test/mock/os_account/os_account_interface.cpp",
     "${services_path}/accountmgr/test/mock/os_account/permission_kit.cpp",
   ]
   configs = [
@@ -152,7 +152,7 @@ ohos_moduletest("os_account_manager_service_subscribe_module_test") {
     "distributeddatamgr:distributeddata_inner",
     "hiviewdfx_hilog_native:libhilog",
   ]
-  part_name = "os_account_standard"
+  part_name = "os_account"
 }
 
 group("moduletest") {

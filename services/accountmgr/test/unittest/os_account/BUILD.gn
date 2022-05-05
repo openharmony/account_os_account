@@ -15,7 +15,7 @@ import("//base/account/os_account/os_account.gni")
 import("//build/ohos.gni")
 import("//build/test.gni")
 
-module_output_path = "os_account_standard/accountmgrservice"
+module_output_path = "os_account/accountmgrservice"
 
 config("os_account_control_file_manager_test_config") {
   include_dirs = [
@@ -55,7 +55,7 @@ ohos_unittest("OsAccountControlFileManagerTest") {
     "hiviewdfx_hilog_native:libhilog",
     "startup_l2:syspara",
   ]
-  part_name = "os_account_standard"
+  part_name = "os_account"
 }
 
 config("os_account_data_storage_test_config") {
@@ -98,7 +98,7 @@ ohos_unittest("OsAccountDataStorageTest") {
     "distributeddatamgr:distributeddata_inner",
     "hiviewdfx_hilog_native:libhilog",
   ]
-  part_name = "os_account_standard"
+  part_name = "os_account"
 }
 
 group("unittest") {

@@ -12,17 +12,14 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
-#ifndef OS_ACCOUNT_SERVICES_ACCOUNTMGR_INCLUDE_OSACCOUNT_OS_ACCOUNT_STANDARD_INTERFACE_H
-#define OS_ACCOUNT_SERVICES_ACCOUNTMGR_INCLUDE_OSACCOUNT_OS_ACCOUNT_STANDARD_INTERFACE_H
-
+#ifndef OS_ACCOUNT_SERVICES_ACCOUNTMGR_TEST_MOCK_OS_ACCOUNT_OS_ACCOUNT_INTERFACE_H
+#define OS_ACCOUNT_SERVICES_ACCOUNTMGR_TEST_MOCK_OS_ACCOUNT_OS_ACCOUNT_INTERFACE_H
 #include <vector>
 #include "account_error_no.h"
 #include "os_account_info.h"
-
 namespace OHOS {
 namespace AccountSA {
-class OsAccountStandardInterface {
+class OsAccountInterface {
 public:
     static ErrCode SendToAMSAccountStart(OsAccountInfo &osAccountInfo);
     static ErrCode SendToAMSAccountStop(OsAccountInfo &osAccountInfo);
@@ -41,5 +38,4 @@ public:
 };
 }  // namespace AccountSA
 }  // namespace OHOS
-
-#endif  // OS_ACCOUNT_SERVICES_ACCOUNTMGR_INCLUDE_OSACCOUNT_OS_ACCOUNT_STANDARD_INTERFACE_H
+#endif /* OS_ACCOUNT_SERVICES_ACCOUNTMGR_TEST_MOCK_OS_ACCOUNT_OS_ACCOUNT_INTERFACE_H */

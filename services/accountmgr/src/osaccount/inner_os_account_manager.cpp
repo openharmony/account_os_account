@@ -107,7 +107,7 @@ void IInnerOsAccountManager::CreateBaseStandardAccountSendToOther(void)
     OsAccountInfo osAccountInfo;
     if (!isSendToStorageCreate_) {
         osAccountControl_->GetOsAccountInfoById(Constants::START_USER_ID, osAccountInfo);
-        ErrCode errCode = OsAccountStandardInterface::SendToStorageAccountCreate(osAccountInfo);
+        ErrCode errCode = OsAccountInterface::SendToStorageAccountCreate(osAccountInfo);
         if (errCode != ERR_OK) {
             if (++counterForStandardCreate_ == MAX_TRY_TIMES) {
                 ACCOUNT_LOGE("failed connect storage to create account");
@@ -125,7 +125,7 @@ void IInnerOsAccountManager::CreateBaseStandardAccountSendToOther(void)
         }
     }
     osAccountControl_->GetOsAccountInfoById(Constants::START_USER_ID, osAccountInfo);
-    ErrCode errCodeForBM = OsAccountStandardInterface::SendToBMSAccountCreate(osAccountInfo);
+    ErrCode errCodeForBM = OsAccountInterface::SendToBMSAccountCreate(osAccountInfo);
     if (errCodeForBM != ERR_OK) {
         if (++counterForStandardCreate_ == MAX_TRY_TIMES) {
             ACCOUNT_LOGE("failed connect BM to create account");
@@ -171,7 +171,7 @@ void IInnerOsAccountManager::StartBaseStandardAccount(void)
         return;
     }
     if (!isSendToStorageStart_) {
-        ErrCode errCode = OsAccountStandardInterface::SendToStorageAccountStart(osAccountInfo);
+        ErrCode errCode = OsAccountInterface::SendToStorageAccountStart(osAccountInfo);
         if (errCode != ERR_OK) {
             if (++counterForStandard_ == MAX_TRY_TIMES) {
                 ACCOUNT_LOGE("failed connect storage to start account");
@@ -187,7 +187,7 @@ void IInnerOsAccountManager::StartBaseStandardAccount(void)
         counterForStandard_ = 0;
         isSendToStorageStart_ = true;
     }
-    ErrCode errCodeForAM = OsAccountStandardInterface::SendToAMSAccountStart(osAccountInfo);
+    ErrCode errCodeForAM = OsAccountInterface::SendToAMSAccountStart(osAccountInfo);
     if (errCodeForAM != ERR_OK) {
         if (++counterForStandard_ == MAX_TRY_TIMES) {
             ACCOUNT_LOGE("failed connect AM to start account");
@@ -206,7 +206,7 @@ void IInnerOsAccountManager::StartBaseStandardAccount(void)
     osAccountControl_->UpdateOsAccount(osAccountInfo);
     PushIDIntoActiveList(Constants::START_USER_ID);
     subscribeManagerPtr_->PublishActivatedOsAccount(Constants::START_USER_ID);
-    OsAccountStandardInterface::SendToCESAccountSwitched(osAccountInfo);
+    OsAccountInterface::SendToCESAccountSwitched(osAccountInfo);
     ACCOUNT_LOGI("connect AM to start account ok");
 }
 
@@ -252,12 +252,12 @@ ErrCode IInnerOsAccountManager::PrepareOsAccountInfo(const std::string &name, co
 
 ErrCode IInnerOsAccountManager::SendMsgForAccountCreate(OsAccountInfo &osAccountInfo)
 {
-    ErrCode errCode = OsAccountStandardInterface::SendToStorageAccountCreate(osAccountInfo);
+    ErrCode errCode = OsAccountInterface::SendToStorageAccountCreate(osAccountInfo);
     if (errCode != ERR_OK) {
         ACCOUNT_LOGE("create os account SendToStorageAccountCreate failed");
         return ERR_OSACCOUNT_SERVICE_INTERFACE_TO_STORAGE_ACCOUNT_CREATE_ERROR;
     }
-    errCode = OsAccountStandardInterface::SendToBMSAccountCreate(osAccountInfo);
+    errCode = OsAccountInterface::SendToBMSAccountCreate(osAccountInfo);
     if (errCode != ERR_OK) {
         ACCOUNT_LOGE("create os account SendToBMSAccountCreate failed");
         return ERR_OSACCOUNT_SERVICE_INNER_SEND_BM_ACCOUNT_CREATE_ERROR;
@@ -270,7 +270,7 @@ ErrCode IInnerOsAccountManager::SendMsgForAccountCreate(OsAccountInfo &osAccount
         return ERR_OSACCOUNT_SERVICE_INNER_UPDATE_ACCOUNT_ERROR;
     }
 
-    OsAccountStandardInterface::SendToCESAccountCreate(osAccountInfo);
+    OsAccountInterface::SendToCESAccountCreate(osAccountInfo);
     ACCOUNT_LOGI("send other subsystem to create os account ok");
     return ERR_OK;
 }
@@ -362,13 +362,13 @@ ErrCode IInnerOsAccountManager::RemoveOsAccount(const int id)
 
 ErrCode IInnerOsAccountManager::SendMsgForAccountStop(OsAccountInfo &osAccountInfo)
 {
-    ErrCode errCode = OsAccountStandardInterface::SendToAMSAccountStop(osAccountInfo);
+    ErrCode errCode = OsAccountInterface::SendToAMSAccountStop(osAccountInfo);
     if (errCode != ERR_OK) {
         ACCOUNT_LOGE("SendToAMSAccountStop failed, id %{public}d, errCode %{public}d",
             osAccountInfo.GetLocalId(), errCode);
         return ERR_OSACCOUNT_SERVICE_INNER_SEND_AM_ACCOUNT_STOP_ERROR;
     }
-    errCode = OsAccountStandardInterface::SendToStorageAccountStop(osAccountInfo);
+    errCode = OsAccountInterface::SendToStorageAccountStop(osAccountInfo);
     if (errCode != ERR_OK) {
         ACCOUNT_LOGE("SendToStorageAccountStop failed, id %{public}d, errCode %{public}d",
             osAccountInfo.GetLocalId(), errCode);
@@ -379,20 +379,20 @@ ErrCode IInnerOsAccountManager::SendMsgForAccountStop(OsAccountInfo &osAccountIn
 
 ErrCode IInnerOsAccountManager::SendMsgForAccountRemove(OsAccountInfo &osAccountInfo)
 {
-    ErrCode errCode = OsAccountStandardInterface::SendToBMSAccountDelete(osAccountInfo);
+    ErrCode errCode = OsAccountInterface::SendToBMSAccountDelete(osAccountInfo);
     if (errCode != ERR_OK) {
         ACCOUNT_LOGE("SendToBMSAccountDelete failed, id %{public}d, errCode %{public}d",
             osAccountInfo.GetLocalId(), errCode);
         return ERR_OSACCOUNT_SERVICE_INNER_SEND_BM_ACCOUNT_DELE_ERROR;
     }
-    errCode = OsAccountStandardInterface::SendToStorageAccountRemove(osAccountInfo);
+    errCode = OsAccountInterface::SendToStorageAccountRemove(osAccountInfo);
     if (errCode != ERR_OK) {
         ACCOUNT_LOGE("SendToStorageAccountRemove failed, id %{public}d, errCode %{public}d",
             osAccountInfo.GetLocalId(), errCode);
         return ERR_OSACCOUNT_SERVICE_INTERFACE_TO_STORAGE_ACCOUNT_REMOVE_ERROR;
     }
 #ifdef HAS_USER_IDM_PART
-    errCode = OsAccountStandardInterface::SendToIDMAccountDelete(osAccountInfo);
+    errCode = OsAccountInterface::SendToIDMAccountDelete(osAccountInfo);
     if (errCode != ERR_OK) {
         ACCOUNT_LOGE("SendToIDMAccountDelete failed, id %{public}d, errCode %{public}d",
             osAccountInfo.GetLocalId(), errCode);
@@ -405,7 +405,7 @@ ErrCode IInnerOsAccountManager::SendMsgForAccountRemove(OsAccountInfo &osAccount
             osAccountInfo.GetLocalId(), errCode);
         return ERR_OSACCOUNT_SERVICE_INNER_CANNOT_DELE_OSACCOUNT_ERROR;
     }
-    OsAccountStandardInterface::SendToCESAccountDelete(osAccountInfo);
+    OsAccountInterface::SendToCESAccountDelete(osAccountInfo);
     return errCode;
 }
 
@@ -820,12 +820,12 @@ ErrCode IInnerOsAccountManager::ActivateOsAccount(const int id)
 
 ErrCode IInnerOsAccountManager::SendMsgForAccountActivate(OsAccountInfo &osAccountInfo)
 {
-    ErrCode errCode = OsAccountStandardInterface::SendToStorageAccountStart(osAccountInfo);
+    ErrCode errCode = OsAccountInterface::SendToStorageAccountStart(osAccountInfo);
     if (errCode != ERR_OK) {
         ACCOUNT_LOGE("account %{public}d call storage active failed", osAccountInfo.GetLocalId());
         return ERR_OSACCOUNT_SERVICE_INTERFACE_TO_STORAGE_ACCOUNT_START_ERROR;
     }
-    errCode = OsAccountStandardInterface::SendToAMSAccountStart(osAccountInfo);
+    errCode = OsAccountInterface::SendToAMSAccountStart(osAccountInfo);
     if (errCode != ERR_OK) {
         ACCOUNT_LOGE("account %{public}d call am active failed", osAccountInfo.GetLocalId());
         return ERR_OSACCOUNT_SERVICE_INNER_SEND_AM_ACCOUNT_SWITCH_ERROR;
@@ -841,7 +841,7 @@ ErrCode IInnerOsAccountManager::SendMsgForAccountActivate(OsAccountInfo &osAccou
         return ERR_OSACCOUNT_SERVICE_INNER_UPDATE_ACCOUNT_ERROR;
     }
     RefreshActiveList(osAccountInfo.GetLocalId());
-    OsAccountStandardInterface::SendToCESAccountSwitched(osAccountInfo);
+    OsAccountInterface::SendToCESAccountSwitched(osAccountInfo);
     ACCOUNT_LOGI("SendMsgForAccountActivate ok");
     return errCode;
 }

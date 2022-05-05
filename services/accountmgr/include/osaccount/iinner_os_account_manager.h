@@ -20,7 +20,7 @@
 #include "iinner_os_account.h"
 #include "ios_account_control.h"
 #include "ios_account_subscribe.h"
-#include "os_account_standard_interface.h"
+#include "os_account_interface.h"
 #include "singleton.h"
 
 namespace OHOS {

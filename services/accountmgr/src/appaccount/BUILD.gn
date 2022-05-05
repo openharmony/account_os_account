@@ -82,5 +82,5 @@ ohos_shared_library("app_account_service_core") {
     "ipc:ipc_core",
   ]
 
-  part_name = "os_account_standard"
+  part_name = "os_account"
 }
