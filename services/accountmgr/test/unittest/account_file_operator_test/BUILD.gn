@@ -15,7 +15,7 @@ import("//base/account/os_account/os_account.gni")
 import("//build/ohos.gni")
 import("//build/test.gni")
 
-module_output_path = "os_account_standard/accountmgrservice"
+module_output_path = "os_account/accountmgrservice"
 
 config("account_file_operator_test_config") {
   include_dirs = [
@@ -56,7 +56,7 @@ ohos_unittest("AccountFileOperatorTest") {
     "distributeddatamgr:distributeddata_inner",
     "hiviewdfx_hilog_native:libhilog",
   ]
-  part_name = "os_account_standard"
+  part_name = "os_account"
 }
 
 group("unittest") {

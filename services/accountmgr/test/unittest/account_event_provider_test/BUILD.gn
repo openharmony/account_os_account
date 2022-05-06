@@ -15,7 +15,7 @@ import("//base/account/os_account/os_account.gni")
 import("//build/ohos.gni")
 import("//build/test.gni")
 
-module_output_path = "os_account_standard/accountmgrservice"
+module_output_path = "os_account/accountmgrservice"
 
 config("accountmgr_event_provider_test_config") {
   include_dirs = [
@@ -71,7 +71,7 @@ ohos_unittest("AccountEventProviderTest") {
     external_deps += [ "common_event_service:cesfwk_innerkits" ]
   }
 
-  part_name = "os_account_standard"
+  part_name = "os_account"
 }
 
 group("unittest") {

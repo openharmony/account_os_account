@@ -57,5 +57,5 @@ ohos_shared_library("libaccount_common") {
 
   external_deps = [ "hiviewdfx_hilog_native:libhilog" ]
 
-  part_name = "os_account_standard"
+  part_name = "os_account"
 }
