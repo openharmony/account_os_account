@@ -15,7 +15,7 @@ import("//base/account/os_account/os_account.gni")
 import("//build/ohos.gni")
 import("//build/test.gni")
 
-module_output_path = "os_account_standard/accountmgrservice"
+module_output_path = "os_account/accountmgrservice"
 
 config("accountmgr_service_test_config") {
   include_dirs = [
@@ -71,9 +71,9 @@ ohos_unittest("account_mgr_test") {
     "${services_path}/accountmgr/src/osaccount/os_account_database_operator.cpp",
     "${services_path}/accountmgr/src/osaccount/os_account_delete_user_idm_callback.cpp",
     "${services_path}/accountmgr/src/osaccount/os_account_file_operator.cpp",
+    "${services_path}/accountmgr/src/osaccount/os_account_interface.cpp",
     "${services_path}/accountmgr/src/osaccount/os_account_manager_service.cpp",
     "${services_path}/accountmgr/src/osaccount/os_account_photo_operator.cpp",
-    "${services_path}/accountmgr/src/osaccount/os_account_standard_interface.cpp",
     "${services_path}/accountmgr/src/osaccount/os_account_stop_user_callback.cpp",
     "${services_path}/accountmgr/src/osaccount/os_account_subscribe_death_recipient.cpp",
     "${services_path}/accountmgr/src/osaccount/os_account_subscribe_manager.cpp",
@@ -130,7 +130,7 @@ ohos_unittest("account_mgr_test") {
     external_deps += [ "common_event_service:cesfwk_innerkits" ]
   }
 
-  part_name = "os_account_standard"
+  part_name = "os_account"
 }
 
 group("unittest") {

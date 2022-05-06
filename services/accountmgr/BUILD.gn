@@ -17,19 +17,19 @@ import("//build/ohos.gni")
 ohos_prebuilt_etc("accountmgr.init") {
   source = "accountmgr.cfg"
   relative_install_dir = "init"
-  part_name = "os_account_standard"
+  part_name = "os_account"
 }
 
 ohos_prebuilt_etc("osaccount_constraint") {
   source = "osaccount_constraints.json"
   relative_install_dir = "account"
-  part_name = "os_account_standard"
+  part_name = "os_account"
 }
 
 ohos_prebuilt_etc("constraints_list_collection") {
   source = "constraints_list_collection.json"
   relative_install_dir = "account"
-  part_name = "os_account_standard"
+  part_name = "os_account"
 }
 
 config("accountmgr_config") {
@@ -121,9 +121,9 @@ ohos_shared_library("accountmgr") {
     "src/osaccount/os_account_database_operator.cpp",
     "src/osaccount/os_account_delete_user_idm_callback.cpp",
     "src/osaccount/os_account_file_operator.cpp",
+    "src/osaccount/os_account_interface.cpp",
     "src/osaccount/os_account_manager_service.cpp",
     "src/osaccount/os_account_photo_operator.cpp",
-    "src/osaccount/os_account_standard_interface.cpp",
     "src/osaccount/os_account_stop_user_callback.cpp",
     "src/osaccount/os_account_subscribe_death_recipient.cpp",
     "src/osaccount/os_account_subscribe_manager.cpp",
@@ -178,5 +178,5 @@ ohos_shared_library("accountmgr") {
     external_deps += [ "common_event_service:cesfwk_innerkits" ]
   }
 
-  part_name = "os_account_standard"
+  part_name = "os_account"
 }

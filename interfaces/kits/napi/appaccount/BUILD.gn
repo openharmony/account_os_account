@@ -72,10 +72,10 @@ ohos_shared_library("appaccount") {
     "hiviewdfx_hilog_native:libhilog",
     "ipc:ipc_core",
     "ipc_js:rpc",
-    "os_account_standard:app_account_innerkits",
+    "os_account:app_account_innerkits",
   ]
 
   subsystem_name = "account"
 
-  part_name = "os_account_standard"
+  part_name = "os_account"
 }

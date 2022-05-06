@@ -12,7 +12,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-#include "os_account_standard_interface.h"
+#include "os_account_interface.h"
 
 #include<thread>
 
@@ -42,9 +42,9 @@
 
 namespace OHOS {
 namespace AccountSA {
-ErrCode OsAccountStandardInterface::SendToAMSAccountStart(OsAccountInfo &osAccountInfo)
+ErrCode OsAccountInterface::SendToAMSAccountStart(OsAccountInfo &osAccountInfo)
 {
-    ACCOUNT_LOGI("OsAccountStandardInterface SendToAMSAccountStart start");
+    ACCOUNT_LOGI("OsAccountInterface SendToAMSAccountStart start");
     ErrCode code = AAFwk::AbilityManagerClient::GetInstance()->StartUser(osAccountInfo.GetLocalId());
     if (code != ERR_OK) {
         ACCOUNT_LOGE("failed to AbilityManagerClient start errcode is %{public}d", code);
@@ -54,9 +54,9 @@ ErrCode OsAccountStandardInterface::SendToAMSAccountStart(OsAccountInfo &osAccou
     return ERR_OK;
 }
 
-ErrCode OsAccountStandardInterface::SendToAMSAccountStop(OsAccountInfo &osAccountInfo)
+ErrCode OsAccountInterface::SendToAMSAccountStop(OsAccountInfo &osAccountInfo)
 {
-    ACCOUNT_LOGI("OsAccountStandardInterface SendToAMSAccountStop stop");
+    ACCOUNT_LOGI("OsAccountInterface SendToAMSAccountStop stop");
     sptr<OsAccountStopUserCallback> osAccountStopUserCallback = new (std::nothrow) OsAccountStopUserCallback();
     if (osAccountStopUserCallback == nullptr) {
         ACCOUNT_LOGE("alloc memory for stop user callback failed!");
@@ -86,9 +86,9 @@ ErrCode OsAccountStandardInterface::SendToAMSAccountStop(OsAccountInfo &osAccoun
     return ERR_OK;
 }
 
-ErrCode OsAccountStandardInterface::SendToBMSAccountCreate(OsAccountInfo &osAccountInfo)
+ErrCode OsAccountInterface::SendToBMSAccountCreate(OsAccountInfo &osAccountInfo)
 {
-    ACCOUNT_LOGI("OsAccountStandardInterface SendToBMSAccountCreate start");
+    ACCOUNT_LOGI("OsAccountInterface SendToBMSAccountCreate start");
     sptr<ISystemAbilityManager> systemAbilityManager =
         SystemAbilityManagerClient::GetInstance().GetSystemAbilityManager();
     if (!systemAbilityManager) {
@@ -117,9 +117,9 @@ ErrCode OsAccountStandardInterface::SendToBMSAccountCreate(OsAccountInfo &osAcco
     return ERR_OK;
 }
 
-ErrCode OsAccountStandardInterface::SendToBMSAccountDelete(OsAccountInfo &osAccountInfo)
+ErrCode OsAccountInterface::SendToBMSAccountDelete(OsAccountInfo &osAccountInfo)
 {
-    ACCOUNT_LOGI("OsAccountStandardInterface SendToBMSAccountDelete start");
+    ACCOUNT_LOGI("OsAccountInterface SendToBMSAccountDelete start");
     sptr<ISystemAbilityManager> systemAbilityManager =
         SystemAbilityManagerClient::GetInstance().GetSystemAbilityManager();
     if (!systemAbilityManager) {
@@ -149,7 +149,7 @@ ErrCode OsAccountStandardInterface::SendToBMSAccountDelete(OsAccountInfo &osAcco
 }
 
 #ifdef HAS_USER_IDM_PART
-ErrCode OsAccountStandardInterface::SendToIDMAccountDelete(OsAccountInfo &osAccountInfo)
+ErrCode OsAccountInterface::SendToIDMAccountDelete(OsAccountInfo &osAccountInfo)
 {
     std::shared_ptr<OsAccountDeleteUserIdmCallback> callback = std::make_shared<OsAccountDeleteUserIdmCallback>();
     if (callback == nullptr) {
@@ -183,7 +183,7 @@ ErrCode OsAccountStandardInterface::SendToIDMAccountDelete(OsAccountInfo &osAcco
 }
 #endif // HAS_USER_IDM_PART
 
-void OsAccountStandardInterface::SendToCESAccountCreate(OsAccountInfo &osAccountInfo)
+void OsAccountInterface::SendToCESAccountCreate(OsAccountInfo &osAccountInfo)
 {
     int osAccountID = osAccountInfo.GetLocalId();
 #ifdef HAS_CES_PART
@@ -202,7 +202,7 @@ void OsAccountStandardInterface::SendToCESAccountCreate(OsAccountInfo &osAccount
 #endif // HAS_CES_PART
 }
 
-void OsAccountStandardInterface::SendToCESAccountDelete(OsAccountInfo &osAccountInfo)
+void OsAccountInterface::SendToCESAccountDelete(OsAccountInfo &osAccountInfo)
 {
     int osAccountID = osAccountInfo.GetLocalId();
 #ifdef HAS_CES_PART
@@ -221,7 +221,7 @@ void OsAccountStandardInterface::SendToCESAccountDelete(OsAccountInfo &osAccount
 #endif // HAS_CES_PART
 }
 
-void OsAccountStandardInterface::SendToCESAccountSwitched(OsAccountInfo &osAccountInfo)
+void OsAccountInterface::SendToCESAccountSwitched(OsAccountInfo &osAccountInfo)
 {
     int osAccountID = osAccountInfo.GetLocalId();
 #ifdef HAS_CES_PART
@@ -240,9 +240,9 @@ void OsAccountStandardInterface::SendToCESAccountSwitched(OsAccountInfo &osAccou
 #endif // HAS_CES_PART
 }
 
-ErrCode OsAccountStandardInterface::SendToStorageAccountCreate(OsAccountInfo &osAccountInfo)
+ErrCode OsAccountInterface::SendToStorageAccountCreate(OsAccountInfo &osAccountInfo)
 {
-    ACCOUNT_LOGI("OsAccountStandardInterface SendToStorageAccountCreate start");
+    ACCOUNT_LOGI("OsAccountInterface SendToStorageAccountCreate start");
     auto systemAbilityManager = SystemAbilityManagerClient::GetInstance().GetSystemAbilityManager();
     if (!systemAbilityManager) {
         ACCOUNT_LOGE("failed to get system ability mgr.");
@@ -261,13 +261,13 @@ ErrCode OsAccountStandardInterface::SendToStorageAccountCreate(OsAccountInfo &os
     int err = proxy->PrepareAddUser(osAccountInfo.GetLocalId(),
         StorageManager::CRYPTO_FLAG_EL1 | StorageManager::CRYPTO_FLAG_EL2);
     ACCOUNT_LOGI("PrepareAddUser code is %{public}d", err);
-    ACCOUNT_LOGI("OsAccountStandardInterface PrepareAddUser succeed");
+    ACCOUNT_LOGI("OsAccountInterface PrepareAddUser succeed");
     return ERR_OK;
 }
 
-ErrCode OsAccountStandardInterface::SendToStorageAccountRemove(OsAccountInfo &osAccountInfo)
+ErrCode OsAccountInterface::SendToStorageAccountRemove(OsAccountInfo &osAccountInfo)
 {
-    ACCOUNT_LOGI("OsAccountStandardInterface SendToStorageAccountRemove start");
+    ACCOUNT_LOGI("OsAccountInterface SendToStorageAccountRemove start");
     auto systemAbilityManager = SystemAbilityManagerClient::GetInstance().GetSystemAbilityManager();
     if (!systemAbilityManager) {
         ACCOUNT_LOGE("failed to get system ability mgr.");
@@ -286,13 +286,13 @@ ErrCode OsAccountStandardInterface::SendToStorageAccountRemove(OsAccountInfo &os
     int err = proxy->RemoveUser(osAccountInfo.GetLocalId(),
         StorageManager::CRYPTO_FLAG_EL1 | StorageManager::CRYPTO_FLAG_EL2);
     ACCOUNT_LOGI("RemoveUser code is %{public}d", err);
-    ACCOUNT_LOGI("OsAccountStandardInterface RemoveUser succeed");
+    ACCOUNT_LOGI("OsAccountInterface RemoveUser succeed");
     return ERR_OK;
 }
 
-ErrCode OsAccountStandardInterface::SendToStorageAccountStart(OsAccountInfo &osAccountInfo)
+ErrCode OsAccountInterface::SendToStorageAccountStart(OsAccountInfo &osAccountInfo)
 {
-    ACCOUNT_LOGI("OsAccountStandardInterface SendToStorageAccountStart start");
+    ACCOUNT_LOGI("OsAccountInterface SendToStorageAccountStart start");
     auto systemAbilityManager = SystemAbilityManagerClient::GetInstance().GetSystemAbilityManager();
     if (!systemAbilityManager) {
         ACCOUNT_LOGE("failed to get system ability mgr.");
@@ -310,13 +310,13 @@ ErrCode OsAccountStandardInterface::SendToStorageAccountStart(OsAccountInfo &osA
     }
     int err = proxy->PrepareStartUser(osAccountInfo.GetLocalId());
     ACCOUNT_LOGI("PrepareStartUser code is %{public}d", err);
-    ACCOUNT_LOGI("OsAccountStandardInterface PrepareStartUser succeed");
+    ACCOUNT_LOGI("OsAccountInterface PrepareStartUser succeed");
     return ERR_OK;
 }
 
-ErrCode OsAccountStandardInterface::SendToStorageAccountStop(OsAccountInfo &osAccountInfo)
+ErrCode OsAccountInterface::SendToStorageAccountStop(OsAccountInfo &osAccountInfo)
 {
-    ACCOUNT_LOGI("OsAccountStandardInterface SendToStorageAccountStop start");
+    ACCOUNT_LOGI("OsAccountInterface SendToStorageAccountStop start");
     auto systemAbilityManager = SystemAbilityManagerClient::GetInstance().GetSystemAbilityManager();
     if (!systemAbilityManager) {
         ACCOUNT_LOGE("failed to get system ability mgr.");
@@ -334,7 +334,7 @@ ErrCode OsAccountStandardInterface::SendToStorageAccountStop(OsAccountInfo &osAc
     }
     int err = proxy->StopUser(osAccountInfo.GetLocalId());
     ACCOUNT_LOGI("StopUser code is %{public}d", err);
-    ACCOUNT_LOGI("OsAccountStandardInterface StopUser succeed");
+    ACCOUNT_LOGI("OsAccountInterface StopUser succeed");
     return ERR_OK;
 }
 }  // namespace AccountSA

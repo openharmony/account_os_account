@@ -63,5 +63,5 @@ ohos_shared_library("libaccountkits") {
     "safwk:system_ability_fwk",
     "samgr_standard:samgr_proxy",
   ]
-  part_name = "os_account_standard"
+  part_name = "os_account"
 }

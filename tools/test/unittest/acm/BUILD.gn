@@ -14,7 +14,7 @@
 import("//base/account/os_account/os_account.gni")
 import("//build/test.gni")
 
-module_output_path = "os_account_standard/tools"
+module_output_path = "os_account/tools"
 
 ohos_unittest("account_command_create_test") {
   module_out_path = module_output_path

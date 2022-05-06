@@ -10,15 +10,15 @@
   "dirs": {},
   "scripts": {},
   "component": {
-    "name": "os_account_standard",
+    "name": "os_account",
     "subsystem": "account",
     "syscap": [
       "SystemCapability.Account.AppAccount",
       "SystemCapability.Account.OsAccount"
     ],
     "features": [
-      "os_account_standard_enable_app_account = true",
-      "os_account_standard_enable_os_account = true"
+      "os_account_enable_app_account = true",
+      "os_account_enable_os_account = true"
     ],
     "hisysevent_config": [
       "//base/account/os_account/hisysevent.yaml"

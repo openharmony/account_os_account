@@ -92,10 +92,10 @@ ohos_shared_library("osaccount") {
   external_deps = [
     "hiviewdfx_hilog_native:libhilog",
     "ipc:ipc_core",
-    "os_account_standard:os_account_innerkits",
+    "os_account:os_account_innerkits",
   ]
 
   subsystem_name = "account"
 
-  part_name = "os_account_standard"
+  part_name = "os_account"
 }

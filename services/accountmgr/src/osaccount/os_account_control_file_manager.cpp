@@ -18,7 +18,7 @@
 #include <sys/types.h>
 #include "account_log_wrapper.h"
 #include "os_account_constants.h"
-#include "os_account_standard_interface.h"
+#include "os_account_interface.h"
 
 namespace OHOS {
 namespace AccountSA {
