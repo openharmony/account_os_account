@@ -93,7 +93,10 @@ napi_value NapiAppAccount::JsConstructor(napi_env env, napi_callback_info cbinfo
         ACCOUNT_LOGI("objectInfo == nullptr");
         return NapiGetNull(env);
     }
-    napi_wrap(env, thisVar, objectInfo, [](napi_env env, void *data, void *hint) {}, nullptr, nullptr);
+    napi_wrap(env, thisVar, objectInfo, [](napi_env env, void *data, void *hint) {
+        AppAccountManager *objInfo = (AppAccountManager *)data;
+        delete objInfo;
+    }, nullptr, nullptr);
 
     return thisVar;
 }

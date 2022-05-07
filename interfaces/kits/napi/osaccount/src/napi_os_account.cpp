@@ -124,7 +124,10 @@ napi_value OsAccountJsConstructor(napi_env env, napi_callback_info cbinfo)
         ACCOUNT_LOGI("objectInfo == nullptr");
         return WrapVoidToJS(env);
     }
-    napi_wrap(env, thisVar, objectInfo, [](napi_env env, void *data, void *hint) {}, nullptr, nullptr);
+    napi_wrap(env, thisVar, objectInfo, [](napi_env env, void *data, void *hint) {
+        OsAccountManager *objInfo = (OsAccountManager *)data;
+        delete objInfo;
+    }, nullptr, nullptr);
     ACCOUNT_LOGI("OsAccountManager objectInfo at JsConstructor = %{public}p", objectInfo);
 
     return thisVar;
@@ -150,6 +153,7 @@ napi_value QueryOsAccountById(napi_env env, napi_callback_info cbInfo)
 
     if (ParseParaQueryOAByIdCB(env, cbInfo, queryOAByIdCB) == nullptr) {
         ACCOUNT_LOGI("Parse query by id failed");
+        delete queryOAByIdCB;
         return WrapVoidToJS(env);
     }
     ACCOUNT_LOGI("Parse completed, id = %{public}d", queryOAByIdCB->id);
@@ -191,6 +195,7 @@ napi_value RemoveOsAccount(napi_env env, napi_callback_info cbInfo)
 
     if (ParseParaRemoveOACB(env, cbInfo, removeOACB) == nullptr) {
         ACCOUNT_LOGI("Parse remove osaccount failed");
+        delete removeOACB;
         return WrapVoidToJS(env);
     }
     ACCOUNT_LOGI("Parse completed, id = %{public}d", removeOACB->id);
@@ -227,6 +232,7 @@ napi_value SetOsAccountName(napi_env env, napi_callback_info cbInfo)
 
     if (ParseParaSetOAName(env, cbInfo, setOANameCB) == nullptr) {
         ACCOUNT_LOGI("Parse set osaccount name failed");
+        delete setOANameCB;
         return WrapVoidToJS(env);
     }
     ACCOUNT_LOGI("Parse completed, id = %{public}d, name = %{public}s", setOANameCB->id, setOANameCB->name.c_str());
@@ -268,6 +274,7 @@ napi_value SetOsAccountConstraints(napi_env env, napi_callback_info cbInfo)
 
     if (ParseParaSetOAConstraints(env, cbInfo, setOAConsCB) == nullptr) {
         ACCOUNT_LOGI("Parse set constraints failed");
+        delete setOAConsCB;
         return WrapVoidToJS(env);
     }
     ACCOUNT_LOGI("Parse completed, id = %{public}d", setOAConsCB->id);
@@ -309,6 +316,7 @@ napi_value ActivateOsAccount(napi_env env, napi_callback_info cbInfo)
 
     if (ParseParaActiveOA(env, cbInfo, activeOACB) == nullptr) {
         ACCOUNT_LOGI("Parse activite faile");
+        delete activeOACB;
         return WrapVoidToJS(env);
     }
     ACCOUNT_LOGI("Parse completed, id = %{public}d", activeOACB->id);
@@ -350,6 +358,7 @@ napi_value CreateOsAccount(napi_env env, napi_callback_info cbInfo)
 
     if (ParseParaCreateOA(env, cbInfo, createOACB) == nullptr) {
         ACCOUNT_LOGI("Parse create osaccount failed");
+        delete createOACB;
         return WrapVoidToJS(env);
     }
     ACCOUNT_LOGI("Parse completed, type = %{publilc}d, name = %{public}s", createOACB->type, createOACB->name.c_str());
@@ -386,6 +395,7 @@ napi_value CreateOsAccountForDomain(napi_env env, napi_callback_info cbInfo)
 
     if (ParseParaCreateOAForDomain(env, cbInfo, createOAForDomainCB) == nullptr) {
         ACCOUNT_LOGI("Parse create osaccount failed");
+        delete createOAForDomainCB;
         return WrapVoidToJS(env);
     }
 
@@ -495,6 +505,7 @@ napi_value GetOsAccountAllConstraints(napi_env env, napi_callback_info cbInfo)
 
     if (ParseParaGetAllCons(env, cbInfo, getAllConsCB) == nullptr) {
         ACCOUNT_LOGI("Parse get all constraints failed");
+        delete getAllConsCB;
         return WrapVoidToJS(env);
     }
 
@@ -646,6 +657,7 @@ napi_value GetOsAccountProfilePhoto(napi_env env, napi_callback_info cbInfo)
 
     if (ParseParaGetPhote(env, cbInfo, getPhoto) == nullptr) {
         ACCOUNT_LOGI("Parse get osaccount profile photo failed");
+        delete getPhoto;
         return WrapVoidToJS(env);
     }
     ACCOUNT_LOGI("Parse completed, id = %{public}d", getPhoto->id);
@@ -719,6 +731,7 @@ napi_value GetOsAccountLocalIdFromUid(napi_env env, napi_callback_info cbInfo)
 
     if (ParseParaGetIdByUid(env, cbInfo, idByUid) == nullptr) {
         ACCOUNT_LOGI("Parse get osaccount local id from uid failed");
+        delete idByUid;
         return WrapVoidToJS(env);
     }
 
@@ -793,6 +806,7 @@ napi_value GetOsAccountLocalIdFromDomain(napi_env env, napi_callback_info cbInfo
 
     if (ParseParaGetIdByDomain(env, cbInfo, idByDomain) == nullptr) {
         ACCOUNT_LOGI("Parse get osaccount local id from uid failed");
+        delete idByDomain;
         return WrapVoidToJS(env);
     }
 
@@ -828,6 +842,7 @@ napi_value SetOsAccountProfilePhoto(napi_env env, napi_callback_info cbInfo)
 
     if (ParseParaSetPhoto(env, cbInfo, setPhoto) == nullptr) {
         ACCOUNT_LOGI("Parse set profile photo failed");
+        delete setPhoto;
         return WrapVoidToJS(env);
     }
 
@@ -895,6 +910,7 @@ napi_value IsOsAccountActived(napi_env env, napi_callback_info cbInfo)
 
     if (ParseParaIsActived(env, cbInfo, isActived) == nullptr) {
         ACCOUNT_LOGI("Parse is osaccount activated failed");
+        delete isActived;
         return WrapVoidToJS(env);
     }
 
@@ -930,6 +946,7 @@ napi_value IsOsAccountConstraintEnable(napi_env env, napi_callback_info cbInfo)
 
     if (ParseParaIsEnable(env, cbInfo, isEnable) == nullptr) {
         ACCOUNT_LOGI("Parse is osaccount constraint enable failed");
+        delete isEnable;
         return WrapVoidToJS(env);
     }
 
@@ -1029,6 +1046,7 @@ napi_value IsOsAccountVerified(napi_env env, napi_callback_info cbInfo)
 
     if (ParseParaIsVerified(env, cbInfo, isVerified) == nullptr) {
         ACCOUNT_LOGI("Parse is verfied failed");
+        delete isVerified;
         return WrapVoidToJS(env);
     }
 
@@ -1064,6 +1082,7 @@ napi_value GetOsAccountLocalIdBySerialNumber(napi_env env, napi_callback_info cb
 
     if (ParseParaSerialNumId(env, cbInfo, serialNumId) == nullptr) {
         ACCOUNT_LOGI("Parse get local id by serial number failed");
+        delete serialNumId;
         return WrapVoidToJS(env);
     }
 
@@ -1099,6 +1118,7 @@ napi_value GetSerialNumberByOsAccountLocalId(napi_env env, napi_callback_info cb
 
     if (ParseParaGetSerialNum(env, cbInfo, getSerialNum) == nullptr) {
         ACCOUNT_LOGI("Parse get serial number failed");
+        delete getSerialNum;
         return WrapVoidToJS(env);
     }
 
