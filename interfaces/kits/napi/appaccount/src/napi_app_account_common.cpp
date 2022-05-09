@@ -69,11 +69,32 @@ void UvQueueWorkOnAppAccountsChanged(uv_work_t *work, int status)
     napi_get_undefined(subscriberAccountsWorkerData->env, &undefined);
     napi_value callback = nullptr;
     napi_value resultout = nullptr;
-    napi_get_reference_value(subscriberAccountsWorkerData->env, subscriberAccountsWorkerData->ref, &callback);
-
-    NAPI_CALL_RETURN_VOID(subscriberAccountsWorkerData->env,
-        napi_call_function(subscriberAccountsWorkerData->env, undefined, callback, ARGS_SIZE_ONE,
-        &results[0], &resultout));
+    bool isFound = false;
+    {
+        std::lock_guard<std::mutex> lock(g_lockForAppAccountSubscribers);
+        for (auto objectInfoTmp : g_AppAccountSubscribers) {
+            for (auto item : objectInfoTmp.second) {
+                if (item->subscriber.get() == subscriberAccountsWorkerData->subscriber) {
+                    isFound = true;
+                    break;
+                }
+            }
+            if (isFound) {
+                break;
+            }
+        }
+        if (isFound) {
+            ACCOUNT_LOGI("app account subscriber has been found.");
+            napi_get_reference_value(subscriberAccountsWorkerData->env, subscriberAccountsWorkerData->ref, &callback);
+        } else {
+            ACCOUNT_LOGI("app account subscriber has already been deleted, ignore callback.");
+        }
+    }
+    if (isFound) {
+        NAPI_CALL_RETURN_VOID(subscriberAccountsWorkerData->env,
+            napi_call_function(subscriberAccountsWorkerData->env, undefined, callback, ARGS_SIZE_ONE,
+            &results[0], &resultout));
+    }
 
     delete subscriberAccountsWorkerData;
     subscriberAccountsWorkerData = nullptr;
@@ -106,6 +127,7 @@ void SubscriberPtr::OnAccountsChanged(const std::vector<AppAccountInfo> &account
     subscriberAccountsWorker->accounts = accounts_;
     subscriberAccountsWorker->env = env_;
     subscriberAccountsWorker->ref = ref_;
+    subscriberAccountsWorker->subscriber = this;
 
     ACCOUNT_LOGI("subscriberAccountsWorker->ref == %{public}p", subscriberAccountsWorker->ref);
 
