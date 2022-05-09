@@ -69,6 +69,7 @@ ohos_shared_library("appaccount") {
   external_deps = [
     "ability_base:want",
     "ability_runtime:ability_manager",
+    "form_runtime:fmskit_native",
     "hiviewdfx_hilog_native:libhilog",
     "ipc:ipc_core",
     "ipc_js:rpc",
