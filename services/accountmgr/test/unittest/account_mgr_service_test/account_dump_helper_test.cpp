@@ -13,7 +13,6 @@
  * limitations under the License.
  */
 
-#include <gmock/gmock.h>
 #include <gtest/gtest.h>
 
 #include "account_dump_helper.h"
@@ -22,6 +21,7 @@
 #include "account_log_wrapper.h"
 #include "account_event_provider.h"
 #include "ohos_account_manager.h"
+#include "os_account_manager_service.h"
 
 using namespace testing::ext;
 using namespace OHOS;
@@ -36,7 +36,9 @@ public:
     static void TearDownTestCase();
     void SetUp();
     void TearDown();
-    std::shared_ptr<OhosAccountManager> ohosAccount_{};
+    std::shared_ptr<OhosAccountManager> ohosAccount_ {};
+    OsAccountManagerService* osAccount_ {};
+    std::unique_ptr<AccountDumpHelper> accountDumpHelper_ {};
 };
 
 AccountDumpHelperTest::AccountDumpHelperTest() {}
@@ -48,12 +50,26 @@ void AccountDumpHelperTest::TearDownTestCase() {}
 void AccountDumpHelperTest::SetUp()
 {
     ohosAccount_ = std::make_shared<OhosAccountManager>();
-    if (!ohosAccount_->OnInitialize()) {
+    osAccount_ = new (std::nothrow) OsAccountManagerService();
+    if (ohosAccount_ == nullptr || !ohosAccount_->OnInitialize()) {
         std::cout << "AccountDumpHelperTest, error! ohos account manager init failed!" << std::endl;
+    }
+    if (osAccount_ == nullptr) {
+        std::cout << "AccountDumpHelperTest, error! osAccount_ is nullptr!" << std::endl;
+    }
+    accountDumpHelper_ = std::make_unique<AccountDumpHelper>(ohosAccount_, osAccount_);
+    if (accountDumpHelper_ == nullptr) {
+        std::cout << "AccountDumpHelperTest, error! accountDumpHelper_ is nullptr!" << std::endl;
     }
 }
 
-void AccountDumpHelperTest::TearDown() {}
+void AccountDumpHelperTest::TearDown()
+{
+    if (osAccount_ != nullptr) {
+        delete osAccount_;
+        osAccount_ = nullptr;
+    }
+}
 
 /**
  * @tc.name: AccountDumpParameterTest001
@@ -67,20 +83,22 @@ HWTEST_F(AccountDumpHelperTest, AccountDumpParameterTest001, TestSize.Level0)
      * @tc.steps: step1. Input one parameter
      */
     std::string out;
-    vector<std::string> cmd = {"-account_info"};
-    AccountDumpHelper accountDumpHelper(ohosAccount_);
+    vector<std::string> cmd = {"-ohos_account_infos"};
+    if (accountDumpHelper_ == nullptr) {
+        std::cout << "AccountDumpParameterTest001, accountDumpHelper_ is nullptr!" << std::endl;
+        return;
+    }
 
-    bool ret = accountDumpHelper.Dump(cmd, out);
-    EXPECT_EQ(true, ret);
-    auto pos = out.find("Ohos account name: ", 0);
+    accountDumpHelper_->Dump(cmd, out);
+    auto pos = out.find("OhosAccount name", 0);
     EXPECT_NE(std::string::npos, pos);
-    pos = out.find("Ohos account uid: ", 0);
+    pos = out.find("OhosAccount uid", 0);
     EXPECT_NE(std::string::npos, pos);
-    pos = out.find("Local user Id: ", 0);
+    pos = out.find("OhosAccount status", 0);
     EXPECT_NE(std::string::npos, pos);
-    pos = out.find("Ohos account status: ", 0);
+    pos = out.find("OhosAccount bind time", 0);
     EXPECT_NE(std::string::npos, pos);
-    pos = out.find("Ohos account bind time:  ", 0);
+    pos = out.find("Bind local user id", 0);
     EXPECT_NE(std::string::npos, pos);
 }
 
@@ -100,14 +118,17 @@ HWTEST_F(AccountDumpHelperTest, AccountDumpTwoParameterTest002, TestSize.Level0)
     std::string prompt = "Current Log Level: ";
     vector<std::string> setCmd = {"-set_log_level", "1"};
     vector<std::string> getCmd = {"-show_log_level"};
-    AccountDumpHelper accountDumpHelper(ohosAccount_);
+    if (accountDumpHelper_ == nullptr) {
+        std::cout << "AccountDumpParameterTest001, accountDumpHelper_ is nullptr!" << std::endl;
+        return;
+    }
 
-    bool ret = accountDumpHelper.Dump(setCmd, out);
-    EXPECT_EQ(true, ret);
-    ret = accountDumpHelper.Dump(getCmd, out);
-    EXPECT_EQ(true, ret);
-    auto pos = out.find(prompt, 0);
-    EXPECT_NE(std::string::npos, ret);
+    accountDumpHelper_->Dump(setCmd, out);
+    auto pos = out.find("Set logLevel success", 0);
+    EXPECT_NE(std::string::npos, pos);
+    accountDumpHelper_->Dump(getCmd, out);
+    pos = out.find(prompt, 0);
+    EXPECT_NE(std::string::npos, pos);
     logLevel = out.substr(pos + prompt.length());
     EXPECT_EQ("1", logLevel.substr(0, 1));
 }
@@ -125,6 +146,11 @@ HWTEST_F(AccountDumpHelperTest, AccountDumpInvalidParameterTest003, TestSize.Lev
      */
     std::string out;
     vector<std::string> cmd = {"This_is_invalid_cmd"};
-    AccountDumpHelper accountDumpHelper(ohosAccount_);
-    EXPECT_EQ(false, accountDumpHelper.Dump(cmd, out));
+    if (accountDumpHelper_ == nullptr) {
+        std::cout << "AccountDumpParameterTest001, accountDumpHelper_ is nullptr!" << std::endl;
+        return;
+    }
+    accountDumpHelper_->Dump(cmd, out);
+    auto pos = out.find("Usage:dump", 0);
+    EXPECT_NE(std::string::npos, pos);
 }
