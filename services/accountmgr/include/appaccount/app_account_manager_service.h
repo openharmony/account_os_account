@@ -82,6 +82,10 @@ public:
     virtual ErrCode OnPackageRemoved(const uid_t &uid, const std::string &bundleName);
 
 private:
+    ErrCode GetBundleNameAndCheckPerm(int32_t &callingUid, std::string &bundleName, const std::string &permName);
+    ErrCode GetBundleNameAndCallingUid(int32_t &callingUid, std::string &bundleName);
+
+private:
     std::shared_ptr<InnerAppAccountManager> innerManager_ = nullptr;
     std::shared_ptr<AccountPermissionManager> permissionManagerPtr_ = nullptr;
     std::shared_ptr<AccountBundleManager> bundleManagerPtr_ = nullptr;

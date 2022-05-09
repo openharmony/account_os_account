@@ -15,6 +15,7 @@
 #include "os_account_manager_service.h"
 #include "account_info.h"
 #include "account_log_wrapper.h"
+#include "hisysevent_adapter.h"
 #include "iinner_os_account_manager.h"
 #include "ipc_skeleton.h"
 #include "os_account_constants.h"
@@ -584,14 +585,8 @@ ErrCode OsAccountManagerService::DumpStateByAccounts(
             type = "unknown";
         }
         state.emplace_back(DUMP_TAB_CHARACTER + "Type: " + type);
-
-        std::string status = "";
-        if (osAccountInfo.GetIsActived()) {
-            status = "active";
-        } else {
-            status = "inactive";
-        }
-        state.emplace_back(DUMP_TAB_CHARACTER + "Status: " + status);
+        state.emplace_back(DUMP_TAB_CHARACTER + "Status: " +
+            (osAccountInfo.GetIsActived() ? "active" : "inactive"));
 
         state.emplace_back(DUMP_TAB_CHARACTER + "Constraints:");
         auto constraints = osAccountInfo.GetConstraints();
@@ -599,25 +594,15 @@ ErrCode OsAccountManagerService::DumpStateByAccounts(
             state.emplace_back(DUMP_TAB_CHARACTER + DUMP_TAB_CHARACTER + constraint);
         }
 
-        std::string verifiedStatus = "";
-        if (osAccountInfo.GetIsVerified()) {
-            verifiedStatus = "true";
-        } else {
-            verifiedStatus = "false";
-        }
-        state.emplace_back(DUMP_TAB_CHARACTER + "Verified: " + verifiedStatus);
+        state.emplace_back(DUMP_TAB_CHARACTER + "Verified: " +
+            (osAccountInfo.GetIsVerified() ? "true" : "false"));
 
         int64_t serialNumber = osAccountInfo.GetSerialNumber();
         state.emplace_back(DUMP_TAB_CHARACTER + "Serial Number: " + std::to_string(serialNumber));
-
-        std::string createCompletedStatus = "";
-        if (osAccountInfo.GetIsCreateCompleted()) {
-            createCompletedStatus = "true";
-        } else {
-            createCompletedStatus = "false";
-        }
-        state.emplace_back(DUMP_TAB_CHARACTER + "Create Completed: " + createCompletedStatus);
-
+        state.emplace_back(DUMP_TAB_CHARACTER + "Create Completed: " +
+            (osAccountInfo.GetIsCreateCompleted() ? "true" : "false"));
+        state.emplace_back(DUMP_TAB_CHARACTER + "To Be Removed: " +
+            (osAccountInfo.GetToBeRemoved() ? "true" : "false"));
         state.emplace_back("\n");
     }
 
@@ -639,6 +624,7 @@ bool OsAccountManagerService::PermissionCheck(const std::string& permissionName,
         innerManager_->IsOsAccountConstraintEnable(callerUserId, constriantName, isEnable);
         if (isEnable) {
             ACCOUNT_LOGE("constriant check %{public}s failed.", constriantName.c_str());
+            ReportPermissionFail(callerUid, IPCSkeleton::GetCallingPid(), constriantName);
             return false;
         }
     }
@@ -654,6 +640,7 @@ bool OsAccountManagerService::PermissionCheck(const std::string& permissionName,
     }
 
     ACCOUNT_LOGE("failed to verify permission for %{public}s.", permissionName.c_str());
+    ReportPermissionFail(callerUid, IPCSkeleton::GetCallingPid(), permissionName);
     return false;
 }
 }  // namespace AccountSA

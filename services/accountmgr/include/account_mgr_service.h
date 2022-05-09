@@ -58,7 +58,7 @@ public:
     {
         return DelayedRefSingleton<AccountMgrService>::GetInstance();
     }
-    int Dump(std::int32_t fd, const std::vector<std::u16string> &args) override;
+    std::int32_t Dump(std::int32_t fd, const std::vector<std::u16string> &args) override;
     void HandleNotificationEvents(const std::string &eventStr) override;
 
 private:

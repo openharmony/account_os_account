@@ -21,6 +21,7 @@
 #include <sys/types.h>
 #include "account_log_wrapper.h"
 #include "directory_ex.h"
+#include "hisysevent_adapter.h"
 
 namespace OHOS {
 namespace AccountSA {
@@ -35,6 +36,7 @@ ErrCode AccountFileOperator::CreateDir(const std::string &path)
     ACCOUNT_LOGI("enter");
 
     if (!OHOS::ForceCreateDirectory(path)) {
+        ReportFileOperationFail(-1, "ForceCreateDirectory", path);
         return ERR_OSACCOUNT_SERVICE_FILE_CREATE_DIR_ERROR;
     }
     mode_t mode = S_IRWXU | S_IRGRP | S_IXGRP | S_IXOTH;
@@ -42,6 +44,7 @@ ErrCode AccountFileOperator::CreateDir(const std::string &path)
     bool createFlag = OHOS::ChangeModeDirectory(path, mode);
     if (!createFlag) {
         ACCOUNT_LOGE("failed to create dir, path = %{public}s", path.c_str());
+        ReportFileOperationFail(-1, "ChangeModeDirectory", path);
         return ERR_OSACCOUNT_SERVICE_FILE_CHANGE_DIR_MODE_ERROR;
     }
 
@@ -58,6 +61,7 @@ ErrCode AccountFileOperator::DeleteDirOrFile(const std::string &path)
         delFlag = OHOS::ForceRemoveDirectory(path);
     }
     if (!delFlag) {
+        ReportFileOperationFail(-1, "DeleteDirOrFile", path);
         return ERR_OSACCOUNT_SERVICE_FILE_DELE_ERROR;
     }
 
@@ -71,13 +75,15 @@ ErrCode AccountFileOperator::InputFileByPathAndContent(const std::string &path, 
     if (!IsExistDir(str)) {
         ErrCode errCode = CreateDir(str);
         if (errCode != ERR_OK) {
-            ACCOUNT_LOGE("failed to create dir, str = %{public}s", str.c_str());
+            ACCOUNT_LOGE("failed to create dir, str = %{public}s errCode %{public}d.", str.c_str(), errCode);
+            ReportFileOperationFail(errCode, "CreateDir", str);
             return ERR_OSACCOUNT_SERVICE_FILE_FIND_DIR_ERROR;
         }
     }
     std::ofstream o(path);
     if (!o.is_open()) {
         ACCOUNT_LOGE("failed to open file, path = %{public}s", path.c_str());
+        ReportFileOperationFail(-1, "OpenFileToWrite", path);
         return ERR_OSACCOUNT_SERVICE_FILE_CREATE_FILE_FAILED_ERROR;
     }
     o << content;
@@ -97,6 +103,7 @@ ErrCode AccountFileOperator::GetFileContentByPath(const std::string &path, std::
     std::ifstream i(path);
     if (!i.is_open()) {
         ACCOUNT_LOGE("cannot open file, path = %{public}s", path.c_str());
+        ReportFileOperationFail(-1, "OpenFileToRead", path);
         return ERR_OSACCOUNT_SERVICE_FILE_CREATE_FILE_FAILED_ERROR;
     }
     buffer << i.rdbuf();

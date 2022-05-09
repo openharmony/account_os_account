@@ -185,7 +185,7 @@ void PerfStat::Dump(std::string& result) const
     }
 
     if (instanceCreate_ > 0) {
-        result.append("InstanceCreateTick: ").append(std::to_string(instanceCreate_)).append("\n");
+        result.append("ServiceInstanceCreateTime: ").append(std::to_string(instanceCreate_)).append("\n");
     }
 
     if (serviceInit_ > 0) {
