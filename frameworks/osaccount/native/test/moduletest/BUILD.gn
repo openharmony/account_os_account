@@ -60,7 +60,7 @@ ohos_moduletest("os_account_frameworks_module_test") {
     "ipc:ipc_core",
     "safwk:system_ability_fwk",
     "samgr_standard:samgr_proxy",
-    "startup_l2:syspara",
+    "init:libbegetutil",
   ]
 }
 

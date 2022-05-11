@@ -169,7 +169,7 @@ ohos_shared_library("accountmgr") {
     "ipc:ipc_core",
     "safwk:system_ability_fwk",
     "samgr_standard:samgr_proxy",
-    "startup_l2:syspara",
+    "init:libbegetutil",
     "storage_service:storage_manager_sa_proxy",
   ]
 
