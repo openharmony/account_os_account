@@ -26,6 +26,9 @@ config("accountmgr_service_test_config") {
     "${common_path}/account_error/include",
     "${common_path}/database/include",
     "${innerkits_path}/include",
+    "${os_account_dfx_path}/hidumper_adapter",
+    "${os_account_dfx_path}/hisysevent_adapter",
+    "${os_account_dfx_path}/hitrace_adapter",
     "//third_party/json/include",
     "//third_party/mbedtls/include",
     "//utils/native/base/include",
@@ -45,9 +48,11 @@ ohos_unittest("account_mgr_test") {
     "${common_path}/log/src/account_log_wrapper.cpp",
     "${common_path}/perf_stat/src/perf_stat.cpp",
     "${innerkits_native_path}/src/account_proxy.cpp",
+    "${os_account_dfx_path}/hidumper_adapter/account_dump_helper.cpp",
+    "${os_account_dfx_path}/hisysevent_adapter/hisysevent_adapter.cpp",
+    "${os_account_dfx_path}/hitrace_adapter/hitrace_adapter.cpp",
     "${services_path}/accountmgr/src/account_bundle_manager.cpp",
     "${services_path}/accountmgr/src/account_data_storage.cpp",
-    "${services_path}/accountmgr/src/account_dump_helper.cpp",
     "${services_path}/accountmgr/src/account_event_provider.cpp",
     "${services_path}/accountmgr/src/account_file_operator.cpp",
     "${services_path}/accountmgr/src/account_helper_data.cpp",
@@ -80,6 +85,7 @@ ohos_unittest("account_mgr_test") {
   ]
 
   sources += [
+    "account_dump_helper_test.cpp",
     "account_mgr_service_test.cpp",
     "account_state_machine_test.cpp",
   ]
@@ -116,7 +122,6 @@ ohos_unittest("account_mgr_test") {
     "bundle_framework:appexecfwk_core",
     "distributeddatamgr:distributeddata_inner",
     "eventhandler:libeventhandler",
-    "hisysevent_native:libhisysevent",
     "hiviewdfx_hilog_native:libhilog",
     "ipc:ipc_core",
     "safwk:system_ability_fwk",
@@ -128,6 +133,16 @@ ohos_unittest("account_mgr_test") {
   if (has_ces_part) {
     cflags_cc += [ "-DHAS_CES_PART" ]
     external_deps += [ "common_event_service:cesfwk_innerkits" ]
+  }
+
+  if (has_hiviewdfx_hisysevent_part) {
+    cflags_cc += [ "-DHAS_HISYSEVENT_PART" ]
+    external_deps += [ "hisysevent_native:libhisysevent" ]
+  }
+
+  if (has_hiviewdfx_hitrace_part) {
+    cflags_cc += [ "-DHAS_HITRACE_PART" ]
+    external_deps += [ "hitrace_native:hitrace_meter" ]
   }
 
   part_name = "os_account"

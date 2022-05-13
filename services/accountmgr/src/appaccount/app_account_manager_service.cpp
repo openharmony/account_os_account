@@ -14,8 +14,8 @@
  */
 
 #include "app_account_manager_service.h"
-
 #include "account_log_wrapper.h"
+#include "hisysevent_adapter.h"
 #include "inner_app_account_manager.h"
 #include "ipc_skeleton.h"
 
@@ -44,10 +44,9 @@ ErrCode AppAccountManagerService::AddAccount(const std::string &name, const std:
 {
     ACCOUNT_LOGI("enter, name = %{public}s, extraInfo = %{public}s.", name.c_str(), extraInfo.c_str());
 
-    auto callingUid = IPCSkeleton::GetCallingUid();
+    int32_t callingUid = -1;
     std::string bundleName;
-
-    ErrCode result = bundleManagerPtr_->GetBundleName(callingUid, bundleName);
+    ErrCode result = GetBundleNameAndCallingUid(callingUid, bundleName);
     if (result != ERR_OK) {
         ACCOUNT_LOGE("failed to get bundle name");
         return result;
@@ -62,8 +61,7 @@ ErrCode AppAccountManagerService::AddAccountImplicitly(const std::string &owner,
     ACCOUNT_LOGI("enter, owner=%{public}s, authType=%{public}s", owner.c_str(), authType.c_str());
     OAuthRequest request;
     request.callerPid = IPCSkeleton::GetCallingPid();
-    request.callerUid = IPCSkeleton::GetCallingUid();
-    ErrCode result = bundleManagerPtr_->GetBundleName(request.callerUid, request.callerBundleName);
+    ErrCode result = GetBundleNameAndCallingUid(request.callerUid, request.callerBundleName);
     if (result != ERR_OK) {
         ACCOUNT_LOGE("failed to get bundle name");
         return result;
@@ -83,10 +81,9 @@ ErrCode AppAccountManagerService::DeleteAccount(const std::string &name)
 {
     ACCOUNT_LOGI("enter, name = %{public}s", name.c_str());
 
-    auto callingUid = IPCSkeleton::GetCallingUid();
+    int32_t callingUid = -1;
     std::string bundleName;
-
-    ErrCode result = bundleManagerPtr_->GetBundleName(callingUid, bundleName);
+    ErrCode result = GetBundleNameAndCallingUid(callingUid, bundleName);
     if (result != ERR_OK) {
         ACCOUNT_LOGE("failed to get bundle name");
         return result;
@@ -99,10 +96,9 @@ ErrCode AppAccountManagerService::GetAccountExtraInfo(const std::string &name, s
 {
     ACCOUNT_LOGI("enter, name = %{public}s", name.c_str());
 
-    auto callingUid = IPCSkeleton::GetCallingUid();
+    int32_t callingUid = -1;
     std::string bundleName;
-
-    ErrCode result = bundleManagerPtr_->GetBundleName(callingUid, bundleName);
+    ErrCode result = GetBundleNameAndCallingUid(callingUid, bundleName);
     if (result != ERR_OK) {
         ACCOUNT_LOGE("failed to get bundle name");
         return result;
@@ -115,10 +111,9 @@ ErrCode AppAccountManagerService::SetAccountExtraInfo(const std::string &name, c
 {
     ACCOUNT_LOGI("enter, name = %{public}s, extraInfo = %{public}s.", name.c_str(), extraInfo.c_str());
 
-    auto callingUid = IPCSkeleton::GetCallingUid();
+    int32_t callingUid = -1;
     std::string bundleName;
-
-    ErrCode result = bundleManagerPtr_->GetBundleName(callingUid, bundleName);
+    ErrCode result = GetBundleNameAndCallingUid(callingUid, bundleName);
     if (result != ERR_OK) {
         ACCOUNT_LOGE("failed to get bundle name");
         return result;
@@ -131,10 +126,9 @@ ErrCode AppAccountManagerService::EnableAppAccess(const std::string &name, const
 {
     ACCOUNT_LOGI("enter, name = %{public}s, authorizedApp = %{public}s", name.c_str(), authorizedApp.c_str());
 
-    auto callingUid = IPCSkeleton::GetCallingUid();
+    int32_t callingUid = -1;
     std::string bundleName;
-
-    ErrCode result = bundleManagerPtr_->GetBundleName(callingUid, bundleName);
+    ErrCode result = GetBundleNameAndCallingUid(callingUid, bundleName);
     if (result != ERR_OK) {
         ACCOUNT_LOGE("failed to get bundle name");
         return result;
@@ -154,10 +148,9 @@ ErrCode AppAccountManagerService::DisableAppAccess(const std::string &name, cons
 {
     ACCOUNT_LOGI("enter, name = %{public}s, authorizedApp = %{public}s.", name.c_str(), authorizedApp.c_str());
 
-    auto callingUid = IPCSkeleton::GetCallingUid();
+    int32_t callingUid = -1;
     std::string bundleName;
-
-    ErrCode result = bundleManagerPtr_->GetBundleName(callingUid, bundleName);
+    ErrCode result = GetBundleNameAndCallingUid(callingUid, bundleName);
     if (result != ERR_OK) {
         ACCOUNT_LOGE("failed to get bundle name");
         return result;
@@ -176,20 +169,11 @@ ErrCode AppAccountManagerService::DisableAppAccess(const std::string &name, cons
 ErrCode AppAccountManagerService::CheckAppAccountSyncEnable(const std::string &name, bool &syncEnable)
 {
     ACCOUNT_LOGI("enter, name = %{public}s, syncEnable = %{public}d", name.c_str(), syncEnable);
-
-    auto callingUid = IPCSkeleton::GetCallingUid();
+    int32_t callingUid = -1;
     std::string bundleName;
-
-    ErrCode result = bundleManagerPtr_->GetBundleName(callingUid, bundleName);
-    if (result != ERR_OK) {
-        ACCOUNT_LOGE("failed to get bundle name");
-        return result;
-    }
-
-    result = permissionManagerPtr_->VerifyPermission(AccountPermissionManager::DISTRIBUTED_DATASYNC);
-    if (result != ERR_OK) {
-        ACCOUNT_LOGE("failed to verify permission for DISTRIBUTED_DATASYNC, result = %{public}d", result);
-        return result;
+    ErrCode ret = GetBundleNameAndCheckPerm(callingUid, bundleName, AccountPermissionManager::DISTRIBUTED_DATASYNC);
+    if (ret != ERR_OK) {
+        return ret;
     }
 
     return innerManager_->CheckAppAccountSyncEnable(name, syncEnable, callingUid, bundleName);
@@ -199,19 +183,11 @@ ErrCode AppAccountManagerService::SetAppAccountSyncEnable(const std::string &nam
 {
     ACCOUNT_LOGI("enter, name = %{public}s, syncEnable = %{public}d", name.c_str(), syncEnable);
 
-    auto callingUid = IPCSkeleton::GetCallingUid();
+    int32_t callingUid = -1;
     std::string bundleName;
-
-    ErrCode result = bundleManagerPtr_->GetBundleName(callingUid, bundleName);
-    if (result != ERR_OK) {
-        ACCOUNT_LOGE("failed to get bundle name");
-        return result;
-    }
-
-    result = permissionManagerPtr_->VerifyPermission(AccountPermissionManager::DISTRIBUTED_DATASYNC);
-    if (result != ERR_OK) {
-        ACCOUNT_LOGE("failed to verify permission for DISTRIBUTED_DATASYNC, result = %{public}d", result);
-        return result;
+    ErrCode ret = GetBundleNameAndCheckPerm(callingUid, bundleName, AccountPermissionManager::DISTRIBUTED_DATASYNC);
+    if (ret != ERR_OK) {
+        return ret;
     }
 
     return innerManager_->SetAppAccountSyncEnable(name, syncEnable, callingUid, bundleName);
@@ -222,10 +198,9 @@ ErrCode AppAccountManagerService::GetAssociatedData(
 {
     ACCOUNT_LOGI("enter, name = %{public}s, key = %{public}s", name.c_str(), key.c_str());
 
-    auto callingUid = IPCSkeleton::GetCallingUid();
+    int32_t callingUid = -1;
     std::string bundleName;
-
-    ErrCode result = bundleManagerPtr_->GetBundleName(callingUid, bundleName);
+    ErrCode result = GetBundleNameAndCallingUid(callingUid, bundleName);
     if (result != ERR_OK) {
         ACCOUNT_LOGE("failed to get bundle name");
         return result;
@@ -240,10 +215,9 @@ ErrCode AppAccountManagerService::SetAssociatedData(
     ACCOUNT_LOGI("enter, name = %{public}s, key = %{public}s, value = %{public}s",
         name.c_str(), key.c_str(), value.c_str());
 
-    auto callingUid = IPCSkeleton::GetCallingUid();
+    int32_t callingUid = -1;
     std::string bundleName;
-
-    ErrCode result = bundleManagerPtr_->GetBundleName(callingUid, bundleName);
+    ErrCode result = GetBundleNameAndCallingUid(callingUid, bundleName);
     if (result != ERR_OK) {
         ACCOUNT_LOGE("failed to get bundle name");
         return result;
@@ -257,10 +231,9 @@ ErrCode AppAccountManagerService::GetAccountCredential(
 {
     ACCOUNT_LOGI("enter, name = %{public}s, credentialType = %{public}s.", name.c_str(), credentialType.c_str());
 
-    auto callingUid = IPCSkeleton::GetCallingUid();
+    int32_t callingUid = -1;
     std::string bundleName;
-
-    ErrCode result = bundleManagerPtr_->GetBundleName(callingUid, bundleName);
+    ErrCode result = GetBundleNameAndCallingUid(callingUid, bundleName);
     if (result != ERR_OK) {
         ACCOUNT_LOGE("failed to get bundle name");
         return result;
@@ -274,10 +247,9 @@ ErrCode AppAccountManagerService::SetAccountCredential(
 {
     ACCOUNT_LOGI("enter, name = %{public}s, credentialType = %{public}s.", name.c_str(), credentialType.c_str());
 
-    auto callingUid = IPCSkeleton::GetCallingUid();
+    int32_t callingUid = -1;
     std::string bundleName;
-
-    ErrCode result = bundleManagerPtr_->GetBundleName(callingUid, bundleName);
+    ErrCode result = GetBundleNameAndCallingUid(callingUid, bundleName);
     if (result != ERR_OK) {
         ACCOUNT_LOGE("failed to get bundle name");
         return result;
@@ -293,8 +265,7 @@ ErrCode AppAccountManagerService::Authenticate(const std::string &name, const st
         name.c_str(), owner.c_str(), authType.c_str());
     OAuthRequest request;
     request.callerPid = IPCSkeleton::GetCallingPid();
-    request.callerUid = IPCSkeleton::GetCallingUid();
-    ErrCode result = bundleManagerPtr_->GetBundleName(request.callerUid, request.callerBundleName);
+    ErrCode result = GetBundleNameAndCallingUid(request.callerUid, request.callerBundleName);
     if (result != ERR_OK) {
         ACCOUNT_LOGE("failed to get bundle name");
         return result;
@@ -316,8 +287,7 @@ ErrCode AppAccountManagerService::GetOAuthToken(
 {
     ACCOUNT_LOGI("enter, name = %{public}s, owner=%{public}s", name.c_str(), owner.c_str());
     OAuthRequest request;
-    request.callerUid = IPCSkeleton::GetCallingUid();
-    ErrCode result = bundleManagerPtr_->GetBundleName(request.callerUid, request.callerBundleName);
+    ErrCode result = GetBundleNameAndCallingUid(request.callerUid, request.callerBundleName);
     if (result != ERR_OK) {
         ACCOUNT_LOGE("failed to get bundle name");
         return result;
@@ -333,8 +303,7 @@ ErrCode AppAccountManagerService::SetOAuthToken(
 {
     ACCOUNT_LOGI("enter, name=%{public}s, authType=%{public}s", name.c_str(), authType.c_str());
     OAuthRequest request;
-    request.callerUid = IPCSkeleton::GetCallingUid();
-    ErrCode result = bundleManagerPtr_->GetBundleName(request.callerUid, request.callerBundleName);
+    ErrCode result = GetBundleNameAndCallingUid(request.callerUid, request.callerBundleName);
     if (result != ERR_OK) {
         ACCOUNT_LOGE("failed to get bundle name");
         return result;
@@ -352,8 +321,7 @@ ErrCode AppAccountManagerService::DeleteOAuthToken(
     ACCOUNT_LOGI("enter, name=%{public}s, owner=%{public}s, authType=%{public}s",
         name.c_str(), owner.c_str(), authType.c_str());
     OAuthRequest request;
-    request.callerUid = IPCSkeleton::GetCallingUid();
-    ErrCode result = bundleManagerPtr_->GetBundleName(request.callerUid, request.callerBundleName);
+    ErrCode result = GetBundleNameAndCallingUid(request.callerUid, request.callerBundleName);
     if (result != ERR_OK) {
         ACCOUNT_LOGE("failed to get bundle name");
         return result;
@@ -371,8 +339,7 @@ ErrCode AppAccountManagerService::SetOAuthTokenVisibility(
     ACCOUNT_LOGI("enter, name=%{public}s, authType=%{public}s, bundleName=%{public}s, isVisible=%{public}d",
         name.c_str(), authType.c_str(), bundleName.c_str(), isVisible);
     OAuthRequest request;
-    request.callerUid = IPCSkeleton::GetCallingUid();
-    ErrCode result = bundleManagerPtr_->GetBundleName(request.callerUid, request.callerBundleName);
+    ErrCode result = GetBundleNameAndCallingUid(request.callerUid, request.callerBundleName);
     if (result != ERR_OK) {
         ACCOUNT_LOGE("failed to get bundle name");
         return result;
@@ -391,8 +358,7 @@ ErrCode AppAccountManagerService::CheckOAuthTokenVisibility(
     ACCOUNT_LOGI("enter, name=%{public}s, authType=%{public}s, bundleName=%{public}s",
         name.c_str(), authType.c_str(), bundleName.c_str());
     OAuthRequest request;
-    request.callerUid = IPCSkeleton::GetCallingUid();
-    ErrCode result = bundleManagerPtr_->GetBundleName(request.callerUid, request.callerBundleName);
+    ErrCode result = GetBundleNameAndCallingUid(request.callerUid, request.callerBundleName);
     if (result != ERR_OK) {
         ACCOUNT_LOGE("failed to get bundle name");
         return result;
@@ -418,8 +384,7 @@ ErrCode AppAccountManagerService::GetAllOAuthTokens(
 {
     ACCOUNT_LOGI("enter, name=%{public}s, owner=%{public}s", name.c_str(), owner.c_str());
     OAuthRequest request;
-    request.callerUid = IPCSkeleton::GetCallingUid();
-    ErrCode result = bundleManagerPtr_->GetBundleName(request.callerUid, request.callerBundleName);
+    ErrCode result = GetBundleNameAndCallingUid(request.callerUid, request.callerBundleName);
     if (result != ERR_OK) {
         ACCOUNT_LOGE("failed to get bundle name");
         return result;
@@ -434,8 +399,7 @@ ErrCode AppAccountManagerService::GetOAuthList(
 {
     ACCOUNT_LOGI("enter, name=%{public}s, authType=%{public}s", name.c_str(), authType.c_str());
     OAuthRequest request;
-    request.callerUid = IPCSkeleton::GetCallingUid();
-    ErrCode result = bundleManagerPtr_->GetBundleName(request.callerUid, request.callerBundleName);
+    ErrCode result = GetBundleNameAndCallingUid(request.callerUid, request.callerBundleName);
     if (result != ERR_OK) {
         ACCOUNT_LOGE("failed to get bundle name");
         return result;
@@ -449,8 +413,7 @@ ErrCode AppAccountManagerService::GetAuthenticatorCallback(
     const std::string &sessionId, sptr<IRemoteObject> &callback)
 {
     OAuthRequest request;
-    request.callerUid = IPCSkeleton::GetCallingUid();
-    ErrCode result = bundleManagerPtr_->GetBundleName(request.callerUid, request.callerBundleName);
+    ErrCode result = GetBundleNameAndCallingUid(request.callerUid, request.callerBundleName);
     if (result != ERR_OK) {
         ACCOUNT_LOGE("failed to get bundle name");
         return result;
@@ -464,26 +427,18 @@ ErrCode AppAccountManagerService::GetAllAccounts(const std::string &owner, std::
 {
     ACCOUNT_LOGI("enter, owner = %{public}s", owner.c_str());
 
-    auto callingUid = IPCSkeleton::GetCallingUid();
+    int32_t callingUid = -1;
     std::string bundleName;
-
-    ErrCode result = bundleManagerPtr_->GetBundleName(callingUid, bundleName);
-    if (result != ERR_OK) {
-        ACCOUNT_LOGE("failed to get bundle name");
-        return result;
-    }
-
-    result = permissionManagerPtr_->VerifyPermission(AccountPermissionManager::GET_ALL_APP_ACCOUNTS);
-    if (result != ERR_OK) {
-        ACCOUNT_LOGE("failed to verify permission for GET_ALL_APP_ACCOUNTS, result = %{public}d", result);
-        return result;
+    ErrCode ret = GetBundleNameAndCheckPerm(callingUid, bundleName, AccountPermissionManager::GET_ALL_APP_ACCOUNTS);
+    if (ret != ERR_OK) {
+        return ret;
     }
 
     AppExecFwk::BundleInfo bundleInfo;
-    result = bundleManagerPtr_->GetBundleInfo(callingUid, owner, bundleInfo);
-    if (result != ERR_OK) {
+    ret = bundleManagerPtr_->GetBundleInfo(callingUid, owner, bundleInfo);
+    if (ret != ERR_OK) {
         ACCOUNT_LOGE("failed to get bundle info");
-        return result;
+        return ret;
     }
 
     return innerManager_->GetAllAccounts(owner, appAccounts, callingUid, bundleName);
@@ -492,20 +447,11 @@ ErrCode AppAccountManagerService::GetAllAccounts(const std::string &owner, std::
 ErrCode AppAccountManagerService::GetAllAccessibleAccounts(std::vector<AppAccountInfo> &appAccounts)
 {
     ACCOUNT_LOGI("enter");
-
-    auto callingUid = IPCSkeleton::GetCallingUid();
+    int32_t callingUid = -1;
     std::string bundleName;
-
-    ErrCode result = bundleManagerPtr_->GetBundleName(callingUid, bundleName);
-    if (result != ERR_OK) {
-        ACCOUNT_LOGE("failed to get bundle name");
-        return result;
-    }
-
-    result = permissionManagerPtr_->VerifyPermission(AccountPermissionManager::GET_ALL_APP_ACCOUNTS);
-    if (result != ERR_OK) {
-        ACCOUNT_LOGE("failed to verify permission for GET_ALL_APP_ACCOUNTS, result = %{public}d", result);
-        return result;
+    ErrCode ret = GetBundleNameAndCheckPerm(callingUid, bundleName, AccountPermissionManager::GET_ALL_APP_ACCOUNTS);
+    if (ret != ERR_OK) {
+        return ret;
     }
 
     return innerManager_->GetAllAccessibleAccounts(appAccounts, callingUid, bundleName);
@@ -516,10 +462,9 @@ ErrCode AppAccountManagerService::SubscribeAppAccount(
 {
     ACCOUNT_LOGI("enter");
 
-    auto callingUid = IPCSkeleton::GetCallingUid();
+    int32_t callingUid = -1;
     std::string bundleName;
-
-    ErrCode result = bundleManagerPtr_->GetBundleName(callingUid, bundleName);
+    ErrCode result = GetBundleNameAndCallingUid(callingUid, bundleName);
     if (result != ERR_OK) {
         ACCOUNT_LOGE("failed to get bundle name");
         return result;
@@ -560,6 +505,35 @@ ErrCode AppAccountManagerService::OnPackageRemoved(const uid_t &uid, const std::
     ACCOUNT_LOGI("enter, uid = %{public}d, bundleName = %{public}s.", uid, bundleName.c_str());
 
     return innerManager_->OnPackageRemoved(uid, bundleName);
+}
+
+ErrCode AppAccountManagerService::GetBundleNameAndCheckPerm(int32_t &callingUid,
+    std::string &bundleName, const std::string &permName)
+{
+    ErrCode result = GetBundleNameAndCallingUid(callingUid, bundleName);
+    if (result != ERR_OK) {
+        return result;
+    }
+
+    result = permissionManagerPtr_->VerifyPermission(permName);
+    if (result != ERR_OK) {
+        ACCOUNT_LOGE("failed to verify permission for %{public}s, result = %{public}d",
+            permName.c_str(), result);
+        ReportPermissionFail(callingUid, IPCSkeleton::GetCallingPid(), permName);
+        return result;
+    }
+    return ERR_OK;
+}
+
+ErrCode AppAccountManagerService::GetBundleNameAndCallingUid(int32_t &callingUid, std::string &bundleName)
+{
+    callingUid = IPCSkeleton::GetCallingUid();
+    ErrCode result = bundleManagerPtr_->GetBundleName(callingUid, bundleName);
+    if (result != ERR_OK) {
+        ACCOUNT_LOGE("failed to get bundle name");
+        return result;
+    }
+    return ERR_OK;
 }
 }  // namespace AccountSA
 }  // namespace OHOS

@@ -33,6 +33,7 @@ os_account_innerkits_native_path =
     "${os_account_path}/frameworks/osaccount/native"
 os_account_core_path = "${os_account_path}/frameworks/osaccount/core"
 os_account_kits_path = "${os_account_path}/interfaces/kits/napi/osaccount"
+os_account_dfx_path = "${os_account_path}/dfx"
 
 aafwk_path = "//foundation/aafwk/standard"
 
@@ -57,4 +58,18 @@ if (!defined(global_parts_info) ||
   has_ces_part = true
 } else {
   has_ces_part = false
+}
+
+if (!defined(global_parts_info) ||
+    defined(global_parts_info.hiviewdfx_hisysevent_native)) {
+  has_hiviewdfx_hisysevent_part = true
+} else {
+  has_hiviewdfx_hisysevent_part = false
+}
+
+if (!defined(global_parts_info) ||
+    defined(global_parts_info.hiviewdfx_hitrace_native)) {
+  has_hiviewdfx_hitrace_part = true
+} else {
+  has_hiviewdfx_hitrace_part = false
 }
