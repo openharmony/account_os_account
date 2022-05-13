@@ -21,7 +21,8 @@
 #include "device_account_info.h"
 #include "directory_ex.h"
 #include "file_ex.h"
-#include "hisysevent.h"
+#include "hisysevent_adapter.h"
+#include "hitrace_adapter.h"
 #include "if_system_ability_manager.h"
 #include "ipc_skeleton.h"
 #include "iservice_registry.h"
@@ -109,6 +110,10 @@ void AccountMgrService::OnStart()
         return;
     }
 
+    InitHiTrace();
+    StartSyncTrace("accountmgr service onstart");
+    ValueTrace("activeid", -1);
+
     PerfStat::GetInstance().SetInstanceStartTime(GetTickCount());
     ACCOUNT_LOGI("start is triggered");
     if (!Init()) {
@@ -116,6 +121,7 @@ void AccountMgrService::OnStart()
         return;
     }
     state_ = ServiceRunningState::STATE_RUNNING;
+    EndSyncTrace();
 
     // create and start basic accounts
     osAccountManagerServiceOrg_->CreateBasicAccounts();
@@ -148,11 +154,7 @@ bool AccountMgrService::Init()
     if (!registerToService_) {
         ret = Publish(&DelayedRefSingleton<AccountMgrService>::GetInstance());
         if (!ret) {
-            HiviewDFX::HiSysEvent::Write("OS_ACCOUNT",
-                "SERVICE_START_FAILED",
-                HiviewDFX::HiSysEvent::EventType::FAULT,
-                "ERROR_TYPE",
-                ERR_ACCOUNT_MGR_ADD_TO_SA_ERROR);
+            ReportServiceStartFail(ERR_ACCOUNT_MGR_ADD_TO_SA_ERROR);
             ACCOUNT_LOGE("AccountMgrService::Init Publish failed!");
             return false;
         }
@@ -163,14 +165,10 @@ bool AccountMgrService::Init()
     ret = ohosAccountMgr_->OnInitialize();
     if (!ret) {
         ACCOUNT_LOGE("Ohos account manager initialize failed");
-        HiviewDFX::HiSysEvent::Write("OS_ACCOUNT",
-            "SERVICE_START_FAILED",
-            HiviewDFX::HiSysEvent::EventType::FAULT,
-            "ERROR_TYPE",
-            ret);
+        ReportServiceStartFail(ERR_ACCOUNT_MGR_OHOS_MGR_INIT_ERROR);
         return ret;
     }
-    dumpHelper_ = std::make_unique<AccountDumpHelper>(ohosAccountMgr_);
+
     IAccountContext::SetInstance(this);
     auto appAccountManagerService = new (std::nothrow) AppAccountManagerService();
     osAccountManagerServiceOrg_ = new (std::nothrow) OsAccountManagerService();
@@ -178,16 +176,22 @@ bool AccountMgrService::Init()
         ACCOUNT_LOGE("memory alloc failed!");
         return false;
     }
+    dumpHelper_ = std::make_unique<AccountDumpHelper>(ohosAccountMgr_, osAccountManagerServiceOrg_);
     appAccountManagerService_ = appAccountManagerService->AsObject();
     osAccountManagerService_ = osAccountManagerServiceOrg_->AsObject();
     ACCOUNT_LOGI("init end success");
     return true;
 }
 
-int AccountMgrService::Dump(std::int32_t fd, const std::vector<std::u16string> &args)
+std::int32_t AccountMgrService::Dump(std::int32_t fd, const std::vector<std::u16string> &args)
 {
     if (fd < 0) {
         ACCOUNT_LOGE("dump fd invalid");
+        return ERR_ACCOUNT_MGR_DUMP_ERROR;
+    }
+
+    if (dumpHelper_ == nullptr) {
+        ACCOUNT_LOGE("dumpHelper_ is nullptr!");
         return ERR_ACCOUNT_MGR_DUMP_ERROR;
     }
 
@@ -198,18 +202,13 @@ int AccountMgrService::Dump(std::int32_t fd, const std::vector<std::u16string> &
     }
 
     std::string result;
-    if (dumpHelper_ && dumpHelper_->Dump(argsInStr, result)) {
-        ACCOUNT_LOGI("%s", result.c_str());
-        std::int32_t ret = dprintf(fd, "%s", result.c_str());
-        if (ret < 0) {
-            ACCOUNT_LOGE("dprintf to dump fd failed");
-            return ERR_ACCOUNT_MGR_DUMP_ERROR;
-        }
-        return ERR_OK;
+    dumpHelper_->Dump(argsInStr, result);
+    std::int32_t ret = dprintf(fd, "%s", result.c_str());
+    if (ret < 0) {
+        ACCOUNT_LOGE("dprintf to dump fd failed");
+        return ERR_ACCOUNT_MGR_DUMP_ERROR;
     }
-
-    ACCOUNT_LOGW("dumpHelper failed");
-    return ERR_ACCOUNT_MGR_DUMP_ERROR;
+    return ERR_OK;
 }
 
 void AccountMgrService::SelfClean()

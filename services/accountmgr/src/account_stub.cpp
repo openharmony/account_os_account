@@ -23,6 +23,7 @@
 #include "account_log_wrapper.h"
 #include "account_mgr_service.h"
 #include "bundlemgr/bundle_mgr_interface.h"
+#include "hisysevent_adapter.h"
 #include "if_system_ability_manager.h"
 #include "ipc_skeleton.h"
 #include "iservice_registry.h"
@@ -282,7 +283,7 @@ bool AccountStub::HasAccountRequestPermission(const std::string &permissionName,
     if (CheckCallerForTrustList()) {
         return true;
     }
-
+    ReportPermissionFail(uid, IPCSkeleton::GetCallingPid(), permissionName);
     ACCOUNT_LOGE("permission %{public}s denied!", permissionName.c_str());
     return false;
 }
