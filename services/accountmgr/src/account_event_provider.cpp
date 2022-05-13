@@ -23,6 +23,7 @@
 #include "common_event_manager.h"
 #include "ohos/aafwk/content/want.h"
 #endif // HAS_CES_PART
+#include "hitrace_adapter.h"
 
 #ifdef HAS_CES_PART
 using namespace OHOS::EventFwk;
@@ -37,13 +38,14 @@ bool AccountEventProvider::EventPublish(const std::string& event)
     want.SetAction(event);
     CommonEventData data;
     data.SetWant(want);
-
+    StartSyncTrace("Ohos account event publish.");
     /* publish */
     if (!CommonEventManager::PublishCommonEvent(data)) {
         ACCOUNT_LOGE("PublishCommonEvent failed! event %{public}s.", event.c_str());
     } else {
         ACCOUNT_LOGI("PublishCommonEvent succeed! event %{public}s.", event.c_str());
     }
+    EndSyncTrace();
 #else // HAS_CES_PART
     ACCOUNT_LOGI("No common event part, do not publish anything! event %{public}s.", event.c_str());
 #endif // HAS_CES_PART
