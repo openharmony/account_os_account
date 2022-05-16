@@ -46,8 +46,6 @@ config("os_account_core_public_config") {
     "${os_account_interfaces_native_path}/include",
     "${innerkits_path}/include",
     "${services_path}/accountmgr/include",
-    "//foundation/aafwk/standard/interfaces/innerkits/base/include/",
-    "//foundation/aafwk/standard/interfaces/innerkits/want/include",
     "//utils/native/base/include",
     "//utils/system/safwk/native/include",
     "//foundation/communication/ipc/interfaces/innerkits/ipc_core/include",
