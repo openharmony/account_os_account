@@ -21,7 +21,7 @@
 #include "account_log_wrapper.h"
 #ifdef HAS_CES_PART
 #include "common_event_manager.h"
-#include "ohos/aafwk/content/want.h"
+#include "want.h"
 #endif // HAS_CES_PART
 #include "hitrace_adapter.h"
 
