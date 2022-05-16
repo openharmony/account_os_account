@@ -60,10 +60,10 @@ ohos_unittest("AccountEventProviderTest") {
     "bundle_framework:appexecfwk_core",
     "hisysevent_native:libhisysevent",
     "hiviewdfx_hilog_native:libhilog",
+    "init:libbegetutil",
     "ipc:ipc_core",
     "safwk:system_ability_fwk",
     "samgr_standard:samgr_proxy",
-    "init:libbegetutil",
   ]
 
   if (has_ces_part) {
