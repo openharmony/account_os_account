@@ -166,10 +166,10 @@ ohos_shared_library("accountmgr") {
     "eventhandler:libeventhandler",
     "hisysevent_native:libhisysevent",
     "hiviewdfx_hilog_native:libhilog",
+    "init:libbegetutil",
     "ipc:ipc_core",
     "safwk:system_ability_fwk",
     "samgr_standard:samgr_proxy",
-    "init:libbegetutil",
     "storage_service:storage_manager_sa_proxy",
   ]
 
