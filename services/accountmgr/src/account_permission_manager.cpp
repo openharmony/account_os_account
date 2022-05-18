@@ -16,7 +16,6 @@
 #include "account_permission_manager.h"
 
 #include "accesstoken_kit.h"
-#include "account_bundle_manager.h"
 #include "account_log_wrapper.h"
 #include "ipc_skeleton.h"
 
