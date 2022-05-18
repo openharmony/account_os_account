@@ -111,7 +111,7 @@ void AccountMgrService::OnStart()
     }
 
     InitHiTrace();
-    StartSyncTrace("accountmgr service onstart");
+    HiTraceAdapterSyncTrace tracer("accountmgr service onstart");
     ValueTrace("activeid", -1);
 
     PerfStat::GetInstance().SetInstanceStartTime(GetTickCount());
@@ -121,7 +121,6 @@ void AccountMgrService::OnStart()
         return;
     }
     state_ = ServiceRunningState::STATE_RUNNING;
-    EndSyncTrace();
 
     // create and start basic accounts
     osAccountManagerServiceOrg_->CreateBasicAccounts();

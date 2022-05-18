@@ -20,16 +20,17 @@ config("app_account_service_config_mock") {
   include_dirs = [
     "//third_party/googletest/googlemock/include",
     "${app_account_services_path}/test/mock/app_account",
+    "${app_account_services_path}/test/mock/common",
   ]
 }
 
 app_account_mock_sources = [
   "${app_account_services_path}/test/mock/app_account/accesstoken_kit.cpp",
-  "${app_account_services_path}/test/mock/app_account/bundle_mgr_client.cpp",
   "${app_account_services_path}/test/mock/app_account/mock_app_account_control_manager.cpp",
   "${app_account_services_path}/test/mock/app_account/mock_app_account_stub.cpp",
   "${app_account_services_path}/test/mock/app_account/mock_app_account_subscribe_manager.cpp",
   "${app_account_services_path}/test/mock/app_account/mock_inner_app_account_manager.cpp",
+  "${app_account_services_path}/test/mock/common/bundle_manager_adapter.cpp",
 ]
 
 config("app_account_service_config_unittest") {
@@ -45,37 +46,6 @@ config("app_account_service_config_unittest") {
   defines = [
     "ACCOUNT_LOG_TAG = \"AppAccountUTest\"",
     "LOG_DOMAIN = 0xD001B00",
-  ]
-}
-
-ohos_unittest("account_bundle_manager_test") {
-  module_out_path = module_output_path
-
-  sources = [ "account_bundle_manager_test.cpp" ]
-  sources += app_account_mock_sources
-
-  configs = [
-    ":app_account_service_config_mock",
-    ":app_account_service_config_unittest",
-  ]
-
-  deps = [
-    "${app_account_services_path}:accountmgr",
-    "${common_path}:libaccount_common",
-    "//third_party/googletest:gmock_main",
-    "//third_party/googletest:gtest_main",
-  ]
-
-  external_deps = [
-    "ability_base:base",
-    "ability_base:want",
-    "ability_runtime:app_manager",
-    "bundle_framework:appexecfwk_base",
-    "bundle_framework:appexecfwk_core",
-    "distributeddatamgr:distributeddata_inner",
-    "eventhandler:libeventhandler",
-    "hiviewdfx_hilog_native:libhilog",
-    "ipc:ipc_core",
   ]
 }
 
@@ -313,7 +283,6 @@ group("unittest") {
   testonly = true
 
   deps = [
-    ":account_bundle_manager_test",
     ":account_permission_manager_test",
     ":app_account_data_storage_test",
     ":app_account_info_test",

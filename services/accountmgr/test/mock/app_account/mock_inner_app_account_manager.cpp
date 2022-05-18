@@ -27,21 +27,21 @@ namespace OHOS {
 namespace AccountSA {
 MockInnerAppAccountManager::MockInnerAppAccountManager()
 {
-    ACCOUNT_LOGI("enter");
+    ACCOUNT_LOGI("mock enter");
 }
 
 MockInnerAppAccountManager::~MockInnerAppAccountManager()
 {
-    ACCOUNT_LOGI("enter");
+    ACCOUNT_LOGI("mock enter");
 }
 
 ErrCode MockInnerAppAccountManager::AddAccount(
     const std::string &name, const std::string &extraInfo, const std::string &bundleName)
 {
-    ACCOUNT_LOGI("enter");
+    ACCOUNT_LOGI("mock enter");
 
-    ACCOUNT_LOGI("name = %{public}s", name.c_str());
-    ACCOUNT_LOGI("extraInfo = %{public}s", extraInfo.c_str());
+    ACCOUNT_LOGI("mock name = %{public}s", name.c_str());
+    ACCOUNT_LOGI("mock extraInfo = %{public}s", extraInfo.c_str());
 
     if (name != STRING_NAME) {
         return ERR_APPACCOUNT_SERVICE_OTHER;
@@ -56,9 +56,9 @@ ErrCode MockInnerAppAccountManager::AddAccount(
 
 ErrCode MockInnerAppAccountManager::DeleteAccount(const std::string &name, const std::string &bundleName)
 {
-    ACCOUNT_LOGI("enter");
+    ACCOUNT_LOGI("mock enter");
 
-    ACCOUNT_LOGI("name = %{public}s", name.c_str());
+    ACCOUNT_LOGI("mock name = %{public}s", name.c_str());
 
     if (name != STRING_NAME) {
         return ERR_APPACCOUNT_SERVICE_OTHER;
@@ -70,16 +70,16 @@ ErrCode MockInnerAppAccountManager::DeleteAccount(const std::string &name, const
 ErrCode MockInnerAppAccountManager::SubscribeAppAccount(const AppAccountSubscribeInfo &subscribeInfo,
     const sptr<IRemoteObject> &eventListener, const std::string &bundleName)
 {
-    ACCOUNT_LOGI("enter");
+    ACCOUNT_LOGI("mock enter");
 
     std::vector<std::string> owners;
     if (subscribeInfo.GetOwners(owners) != ERR_OK) {
-        ACCOUNT_LOGE("failed to get owners");
+        ACCOUNT_LOGE("mock failed to get owners");
         return ERR_APPACCOUNT_SERVICE_OTHER;
     }
 
     if (owners.size() == 0) {
-        ACCOUNT_LOGE("owners.size() = %{public}zu", owners.size());
+        ACCOUNT_LOGE("mock owners.size() = %{public}zu", owners.size());
         return ERR_APPACCOUNT_SERVICE_OTHER;
     }
 
@@ -93,7 +93,7 @@ ErrCode MockInnerAppAccountManager::SubscribeAppAccount(const AppAccountSubscrib
 
 ErrCode MockInnerAppAccountManager::UnsubscribeAppAccount(const sptr<IRemoteObject> &eventListener)
 {
-    ACCOUNT_LOGI("enter");
+    ACCOUNT_LOGI("mock enter");
 
     return ERR_OK;
 }
