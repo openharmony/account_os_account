@@ -177,6 +177,11 @@ ohos_shared_library("accountmgr") {
     "storage_service:storage_manager_sa_proxy",
   ]
 
+  if (build_selinux) {
+    external_deps += [ "selinux:librestorecon" ]
+    cflags += [ "-DWITH_SELINUX" ]
+  }
+
   if (has_ces_part) {
     cflags_cc += [ "-DHAS_CES_PART" ]
     external_deps += [ "common_event_service:cesfwk_innerkits" ]
