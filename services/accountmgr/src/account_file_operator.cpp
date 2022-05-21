@@ -19,10 +19,12 @@
 #include <string>
 #include <sys/stat.h>
 #include <sys/types.h>
+#ifdef WITH_SELINUX
+#include <policycoreutils.h>
+#endif // WITH_SELINUX
 #include "account_log_wrapper.h"
 #include "directory_ex.h"
 #include "hisysevent_adapter.h"
-
 namespace OHOS {
 namespace AccountSA {
 AccountFileOperator::AccountFileOperator()
@@ -88,6 +90,9 @@ ErrCode AccountFileOperator::InputFileByPathAndContent(const std::string &path, 
     }
     o << content;
     o.close();
+#ifdef WITH_SELINUX
+    Restorecon(path.c_str());
+#endif // WITH_SELINUX
     ACCOUNT_LOGI("end");
 
     return ERR_OK;
