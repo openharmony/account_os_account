@@ -13,6 +13,7 @@
 
 os_account_path = "//base/account/os_account"
 aafwk_path = "//foundation/aafwk/standard"
+bundle_framework_path = "//foundation/bundlemanager/bundle_framework"
 common_path = "${os_account_path}/frameworks/common"
 services_path = "${os_account_path}/services"
 tools_path = "${os_account_path}/tools"
@@ -34,8 +35,6 @@ os_account_innerkits_native_path =
 os_account_core_path = "${os_account_path}/frameworks/osaccount/core"
 os_account_kits_path = "${os_account_path}/interfaces/kits/napi/osaccount"
 os_account_dfx_path = "${os_account_path}/dfx"
-
-aafwk_path = "//foundation/aafwk/standard"
 
 if (!defined(global_parts_info) ||
     defined(global_parts_info.useriam_user_auth)) {
