@@ -23,7 +23,6 @@ config("appaccount_kit_config") {
     "${app_account_kits_path}/include",
     "//foundation/aafwk/standard/interfaces/kits/napi/aafwk/inner/napi_common",
     "//foundation/aafwk/standard/frameworks/kits/ability/native/include",
-    "//foundation/aafwk/standard/interfaces/innerkits/ability_manager/include",
     "//foundation/aafwk/standard/services/abilitymgr/include",
   ]
 
@@ -68,7 +67,6 @@ ohos_shared_library("appaccount") {
 
   external_deps = [
     "ability_base:want",
-    "ability_runtime:ability_manager",
     "hiviewdfx_hilog_native:libhilog",
     "ipc:ipc_core",
     "ipc_js:rpc",
