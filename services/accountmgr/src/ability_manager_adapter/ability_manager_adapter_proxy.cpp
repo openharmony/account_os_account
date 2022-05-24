@@ -549,13 +549,13 @@ int AbilityManagerProxy::StopUser(int userId, const sptr<IStopUserCallback> &cal
     return reply.ReadInt32();
 }
 
+#ifdef SUPPORT_GRAPHICS
 int AbilityManagerProxy::SetMissionLabel(const sptr<IRemoteObject> &token, const std::string &label)
 {
     ACCOUNT_LOGE("interface not support!");
     return ERR_ACCOUNT_COMMON_INTERFACE_NOT_SUPPORT_ERROR;
 }
 
-#ifdef SUPPORT_GRAPHICS
 int AbilityManagerProxy::SetMissionIcon(const sptr<IRemoteObject> &token,
     const std::shared_ptr<OHOS::Media::PixelMap> &icon)
 {
