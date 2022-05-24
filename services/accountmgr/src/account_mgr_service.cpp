@@ -146,6 +146,11 @@ bool AccountMgrService::Init()
         ACCOUNT_LOGI("Device owner dir not exist, create!");
         if (!OHOS::ForceCreateDirectory(DEVICE_OWNER_DIR)) {
             ACCOUNT_LOGW("Create device owner dir failure!");
+        } else {
+            if (!OHOS::ChangeModeDirectory(DEVICE_OWNER_DIR, S_IRWXU)) {
+                ReportFileOperationFail(-1, "ChangeModeDirectory", DEVICE_OWNER_DIR);
+                ACCOUNT_LOGW("failed to create dir, path = %{public}s", DEVICE_OWNER_DIR.c_str());
+            }
         }
     }
 
