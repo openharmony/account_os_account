@@ -15,14 +15,14 @@
 
 #include "app_account_authenticator_session.h"
 
-#include "ability_manager_client.h"
+#include "ability_manager_adapter.h"
 #include "account_info.h"
 #include "account_log_wrapper.h"
 #include "app_account_authenticator_callback.h"
 #include "app_account_authenticator_manager.h"
 #include "app_account_common.h"
+#include "bundle_manager_adapter.h"
 #include "iservice_registry.h"
-#include "system_ability_definition.h"
 #include "want.h"
 
 namespace OHOS {
@@ -120,7 +120,7 @@ AppAccountAuthenticatorSession::~AppAccountAuthenticatorSession()
     }
     request_.callback = nullptr;
     if (isConnected_) {
-        AAFwk::AbilityManagerClient::GetInstance()->DisconnectAbility(conn_);
+        AAFwk::AbilityManagerAdapter::GetInstance()->DisconnectAbility(conn_);
     }
     authenticatorCb_ = nullptr;
     clientDeathRecipient_ = nullptr;
@@ -137,7 +137,7 @@ void AppAccountAuthenticatorSession::Init()
         ACCOUNT_LOGE("session has been initialized");
         return;
     }
-    sptr<AppExecFwk::IBundleMgr> bundleMgrProxy = GetBundleMgrProxy();
+
     conn_ = new (std::nothrow) SessionConnection(this);
     clientDeathRecipient_ = new (std::nothrow) SessionClientDeathRecipient(this);
     serverDeathRecipient_ = new (std::nothrow) SessionServerDeathRecipient(this);
@@ -145,10 +145,9 @@ void AppAccountAuthenticatorSession::Init()
     sessionManager_ = AppAccountAuthenticatorSessionManager::GetInstance();
     controlManager_ = AppAccountControlManager::GetInstance();
     authenticatorMgr_ = AppAccountAuthenticatorManager::GetInstance();
-    if ((bundleMgrProxy == nullptr) || (conn_ == nullptr) || (clientDeathRecipient_ == nullptr)
+    if ((conn_ == nullptr) || (clientDeathRecipient_ == nullptr)
         || (serverDeathRecipient_ == nullptr) || (authenticatorCb_ == nullptr) || (sessionManager_ == nullptr)
         || (controlManager_ == nullptr) || (authenticatorMgr_ == nullptr)) {
-        bundleMgrProxy = nullptr;
         conn_ = nullptr;
         clientDeathRecipient_ = nullptr;
         serverDeathRecipient_ = nullptr;
@@ -163,7 +162,7 @@ void AppAccountAuthenticatorSession::Init()
         request_.callback->AsObject()->AddDeathRecipient(clientDeathRecipient_);
     }
     userId_ = request_.callerUid / UID_TRANSFORM_DIVISOR;
-    ownerUid_ = bundleMgrProxy->GetUidByBundleName(request_.owner, userId_);
+    ownerUid_ = BundleManagerAdapter::GetInstance()->GetUidByBundleName(request_.owner, userId_);
     isInitialized_ = true;
 }
 
@@ -187,24 +186,12 @@ ErrCode AppAccountAuthenticatorSession::Open()
     }
     AAFwk::Want want;
     want.SetElementName(request_.owner, info.abilityName);
-    errCode = AAFwk::AbilityManagerClient::GetInstance()->ConnectAbility(want, conn_, nullptr, userId_);
+    errCode = AAFwk::AbilityManagerAdapter::GetInstance()->ConnectAbility(want, conn_, nullptr, userId_);
     if (errCode == ERR_OK) {
         isOpened_ = true;
     }
     ACCOUNT_LOGI("end");
     return errCode;
-}
-
-sptr<AppExecFwk::IBundleMgr> AppAccountAuthenticatorSession::GetBundleMgrProxy()
-{
-    ACCOUNT_LOGI("enter");
-    sptr<ISystemAbilityManager> samgrClient = SystemAbilityManagerClient::GetInstance().GetSystemAbilityManager();
-    if (samgrClient == nullptr) {
-        ACCOUNT_LOGE("failed to system ability manager");
-        return nullptr;
-    }
-    return iface_cast<AppExecFwk::IBundleMgr>(
-        samgrClient->GetSystemAbility(BUNDLE_MGR_SERVICE_SYS_ABILITY_ID));
 }
 
 void AppAccountAuthenticatorSession::OnAbilityConnectDone(
@@ -246,7 +233,7 @@ void AppAccountAuthenticatorSession::OnClientDied()
 {
     request_.callback = nullptr;
     if (isConnected_) {
-        AAFwk::AbilityManagerClient::GetInstance()->DisconnectAbility(conn_);
+        AAFwk::AbilityManagerAdapter::GetInstance()->DisconnectAbility(conn_);
     }
     sessionManager_->CloseSession(sessionId_);
 }
@@ -273,7 +260,7 @@ int32_t AppAccountAuthenticatorSession::OnResult(int32_t resultCode, const AAFwk
         request_.callback->OnResult(resultCode, result);
     }
     if (isConnected_) {
-        AAFwk::AbilityManagerClient::GetInstance()->DisconnectAbility(conn_);
+        AAFwk::AbilityManagerAdapter::GetInstance()->DisconnectAbility(conn_);
     }
     sessionManager_->CloseSession(sessionId_);
     return resultCode;
@@ -292,7 +279,7 @@ int32_t AppAccountAuthenticatorSession::OnRequestRedirected(AAFwk::Want &newRequ
     if ((!request_.callback) || (!request_.callback->AsObject())) {
         ACCOUNT_LOGI("app account callback is nullptr");
         if (isConnected_) {
-            AAFwk::AbilityManagerClient::GetInstance()->DisconnectAbility(conn_);
+            AAFwk::AbilityManagerAdapter::GetInstance()->DisconnectAbility(conn_);
         }
         sessionManager_->CloseSession(sessionId_);
         return ERR_JS_SUCCESS;

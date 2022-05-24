@@ -15,14 +15,11 @@
 
 #include "app_account_authenticator_manager.h"
 
-#include "ability_info.h"
 #include "account_error_no.h"
 #include "account_info.h"
 #include "account_log_wrapper.h"
 #include "app_account_constants.h"
-#include "bundle_info.h"
-#include "iservice_registry.h"
-#include "system_ability_definition.h"
+#include "bundle_manager_adapter.h"
 
 namespace OHOS {
 namespace AccountSA {
@@ -44,17 +41,6 @@ void AppAccountAuthenticatorManager::Init()
         ACCOUNT_LOGI("app account authenticator manager has been initialized");
         return;
     }
-    sptr<ISystemAbilityManager> samgrClient = SystemAbilityManagerClient::GetInstance().GetSystemAbilityManager();
-    if (samgrClient == nullptr) {
-        ACCOUNT_LOGE("failed to system ability manager");
-        return;
-    }
-    bundleMgr_ = iface_cast<AppExecFwk::IBundleMgr>(
-        samgrClient->GetSystemAbility(BUNDLE_MGR_SERVICE_SYS_ABILITY_ID));
-    if (bundleMgr_ == nullptr) {
-        ACCOUNT_LOGE("failed to get bms");
-        return;
-    }
     isInitialized_ = true;
 }
 
@@ -63,15 +49,13 @@ ErrCode AppAccountAuthenticatorManager::GetAuthenticatorInfo(const OAuthRequest 
     if (!isInitialized_) {
         Init();
     }
-    if (bundleMgr_ == nullptr) {
-        return ERR_APPACCOUNT_SERVICE_OAUTH_AUTHENTICATOR_NOT_EXIST;
-    }
+
     AAFwk::Want want;
     want.SetBundle(request.owner);
     want.SetAction(Constants::SYSTEM_ACTION_APP_ACCOUNT_OAUTH);
     std::vector<AppExecFwk::AbilityInfo> abilityInfos;
     int32_t userId = request.callerUid / UID_TRANSFORM_DIVISOR;
-    bool result = bundleMgr_->QueryAbilityInfos(
+    bool result = BundleManagerAdapter::GetInstance()->QueryAbilityInfos(
         want, AppExecFwk::BundleFlag::GET_BUNDLE_WITH_ABILITIES, userId, abilityInfos);
     if (!result) {
         ACCOUNT_LOGE("failed to query ability info");
