@@ -27,7 +27,7 @@ const int PERMISSION_GRANTED = 0;
 }
 int AccessTokenKit::VerifyAccessToken(unsigned int tokenID, const std::string &permissionName)
 {
-    ACCOUNT_LOGI("permissionName = %{public}s", permissionName.c_str());
+    ACCOUNT_LOGI("mock permissionName = %{public}s", permissionName.c_str());
 
     return PERMISSION_GRANTED;
 }
