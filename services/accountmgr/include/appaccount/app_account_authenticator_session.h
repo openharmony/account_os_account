@@ -20,8 +20,6 @@
 #include "ability_connect_callback_stub.h"
 #include "app_account_authenticator_session_manager.h"
 #include "app_account_control_manager.h"
-#include "bundle_mgr_interface.h"
-#include "bundle_mgr_proxy.h"
 #include "iremote_proxy.h"
 #include "iapp_account_authenticator.h"
 #include "iapp_account_authenticator_callback.h"
@@ -88,7 +86,6 @@ public:
     ErrCode GetAuthenticatorCallback(const OAuthRequest &request, sptr<IRemoteObject> &callback) const;
 
 private:
-    sptr<AppExecFwk::IBundleMgr> GetBundleMgrProxy();
     int32_t UpdateAuthInfo(const AAFwk::Want &result) const;
     int32_t OnAuthenticateDone(const AAFwk::Want &result) const;
     int32_t OnAddAccountImplicitlyDone(const AAFwk::Want &result) const;
