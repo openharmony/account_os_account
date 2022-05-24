@@ -81,6 +81,12 @@ public:
     virtual ErrCode GetOsAccountListFromDatabase(const std::string& storeID,
         std::vector<OsAccountInfo> &osAccountList) = 0;
     virtual ErrCode QueryActiveOsAccountIds(std::vector<int32_t>& ids) = 0;
+    virtual ErrCode QueryOsAccountConstraintSourceTypes(const int32_t id,
+        const std::string &constraint, std::vector<ConstraintSourceTypeInfo> &constraintSourceTypeInfos) = 0;
+    virtual ErrCode SetGlobalOsAccountConstraints(const std::vector<std::string> &constraints,
+        const bool enable, const int32_t enforcerId, const bool isDeviceOwner) = 0;
+    virtual ErrCode SetSpecificOsAccountConstraints(const std::vector<std::string> &constraints,
+        const bool enable, const int32_t targetId, const int32_t enforcerId, const bool isDeviceOwner) = 0;
 
     enum class Message {
         CREATE_OS_ACCOUNT = 0,
@@ -124,6 +130,9 @@ public:
         GET_OS_ACCOUNT_FROM_DATABASE,
         GET_OS_ACCOUNT_LIST_FROM_DATABASE,
         QUERY_ACTIVE_OS_ACCOUNT_IDS,
+        QUERY_OS_ACCOUNT_CONSTRAINT_SOURCE_TYPES,
+        SET_GLOBAL_OS_ACCOUNT_CONSTRAINTS,
+        SET_SPECIFIC_OS_ACCOUNT_CONSTRAINTS,
     };
 };
 }  // namespace AccountSA

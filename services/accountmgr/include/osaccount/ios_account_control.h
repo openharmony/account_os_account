@@ -47,6 +47,23 @@ public:
         const int id, OsAccountInfo &osAccountInfo) = 0;
     virtual ErrCode GetOsAccountListFromDatabase(const std::string& storeID,
         std::vector<OsAccountInfo> &osAccountList) = 0;
+
+    virtual ErrCode RemoveOAConstraintsInfo(const int32_t id) = 0;
+    virtual ErrCode IsFromBaseOAConstraintsList(const int32_t id, const std::string constraint, bool &isExits) = 0;
+    virtual ErrCode IsFromGlobalOAConstraintsList(const int32_t id, const int32_t deviceOwnerId,
+        const std::string constraint, std::vector<ConstraintSourceTypeInfo> &globalSourceList) = 0;
+    virtual ErrCode IsFromSpecificOAConstraintsList(const int32_t id, const int32_t deviceOwnerId,
+        const std::string constraint, std::vector<ConstraintSourceTypeInfo> &specificSourceList) = 0;
+    virtual ErrCode GetGlobalOAConstraintsList(std::vector<std::string> &constraintsList) = 0;
+    virtual ErrCode GetSpecificOAConstraintsList(const int32_t id, std::vector<std::string> &constraintsList) = 0;
+    virtual ErrCode UpdateBaseOAConstraints(const std::string& idStr,
+        const std::vector<std::string>& ConstraintStr, bool isAdd) = 0;
+    virtual ErrCode UpdateGlobalOAConstraints(const std::string& idStr,
+        const std::vector<std::string>& ConstraintStr, bool isAdd) = 0;
+    virtual ErrCode UpdateSpecificOAConstraints(const std::string& idStr,
+        const std::string& targetIdStr, const std::vector<std::string>& ConstraintStr, bool isAdd) = 0;
+    virtual ErrCode GetDeviceOwnerId(int32_t &deviceOwnerId) = 0;
+    virtual ErrCode UpdateDeviceOwnerId(const int32_t deviceOwnerId) = 0;
 };
 }  // namespace AccountSA
 }  // namespace OHOS

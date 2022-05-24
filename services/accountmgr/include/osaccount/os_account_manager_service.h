@@ -97,6 +97,13 @@ public:
         std::vector<OsAccountInfo> &osAccountList) override;
     ErrCode QueryActiveOsAccountIds(std::vector<int32_t>& ids) override;
 
+    ErrCode QueryOsAccountConstraintSourceTypes(const int32_t id,
+        const std::string &constraint, std::vector<ConstraintSourceTypeInfo> &constraintSourceTypeInfos) override;
+    ErrCode SetGlobalOsAccountConstraints(const std::vector<std::string> &constraints,
+        const bool enable, const int32_t enforcerId, const bool isDeviceOwner) override;
+    ErrCode SetSpecificOsAccountConstraints(const std::vector<std::string> &constraints,
+        const bool enable, const int32_t targetId, const int32_t enforcerId, const bool isDeviceOwner) override;
+
 private:
     virtual ErrCode DumpStateByAccounts(
         const std::vector<OsAccountInfo> &osAccountInfos, std::vector<std::string> &state);

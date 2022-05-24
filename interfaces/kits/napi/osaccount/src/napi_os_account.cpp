@@ -43,8 +43,16 @@ napi_value OsAccountInit(napi_env env, napi_value exports)
     SetEnumProperty(env, osAccountType, OS_ACCOUNT_TYPE_NORMAL, "NORMAL");
     SetEnumProperty(env, osAccountType, OS_ACCOUNT_TYPE_GUEST, "GUEST");
 
+    napi_value constraintSourceType = nullptr;
+    napi_create_object(env, &constraintSourceType);
+    SetEnumProperty(env, constraintSourceType, CONSTRAINT_NOT_EXIST, "CONSTRAINT_NOT_EXIST");
+    SetEnumProperty(env, constraintSourceType, CONSTRAINT_TYPE_BASE, "CONSTRAINT_TYPE_BASE");
+    SetEnumProperty(env, constraintSourceType, CONSTRAINT_TYPE_DEVICE_OWNER, "CONSTRAINT_TYPE_DEVICE_OWNER");
+    SetEnumProperty(env, constraintSourceType, CONSTRAINT_TYPE_PROFILE_OWNER, "CONSTRAINT_TYPE_PROFILE_OWNER");
+
     napi_property_descriptor exportEnum[] = {
         DECLARE_NAPI_PROPERTY("OsAccountType", osAccountType),
+        DECLARE_NAPI_PROPERTY("ConstraintSourceType", constraintSourceType),
     };
     NAPI_CALL(env, napi_define_properties(env, exports, sizeof(exportEnum) / sizeof(*exportEnum), exportEnum));
 
@@ -61,6 +69,7 @@ napi_value OsAccountInit(napi_env env, napi_value exports)
         DECLARE_NAPI_FUNCTION("getOsAccountAllConstraints", GetOsAccountAllConstraints),
         DECLARE_NAPI_FUNCTION("getOsAccountLocalIdFromProcess", GetOsAccountLocalIdFromProcess),
         DECLARE_NAPI_FUNCTION("queryAllCreatedOsAccounts", QueryAllCreatedOsAccounts),
+        DECLARE_NAPI_FUNCTION("queryOsAccountConstraintSourceTypes", QueryOsAccountConstraintSourceTypes),
         DECLARE_NAPI_FUNCTION("queryActivatedOsAccountIds", QueryActivatedOsAccountIds),
         DECLARE_NAPI_FUNCTION("getOsAccountProfilePhoto", GetOsAccountProfilePhoto),
         DECLARE_NAPI_FUNCTION("queryCurrentOsAccount", QueryCurrentOsAccount),
@@ -604,6 +613,47 @@ napi_value QueryAllCreatedOsAccounts(napi_env env, napi_callback_info cbInfo)
         &queryAllOA->work);
 
     napi_queue_async_work(env, queryAllOA->work);
+    return result;
+}
+
+napi_value QueryOsAccountConstraintSourceTypes(napi_env env, napi_callback_info cbInfo)
+{
+    ACCOUNT_LOGI("enter");
+    QueryOAConstraintSrcTypeContext *queryConstraintSource = new (std::nothrow) QueryOAConstraintSrcTypeContext();
+    if (queryConstraintSource == nullptr) {
+        ACCOUNT_LOGI("queryConstraintSource == nullptr");
+        return WrapVoidToJS(env);
+    }
+    queryConstraintSource->env = env;
+    queryConstraintSource->callbackRef = nullptr;
+
+    if (ParseQueryOAConstraintSrcTypes(env, cbInfo, queryConstraintSource) == nullptr) {
+        ACCOUNT_LOGI("Parse query constraints source type failed");
+        delete queryConstraintSource;
+        return WrapVoidToJS(env);
+    }
+
+    napi_value result = nullptr;
+    if (queryConstraintSource->callbackRef == nullptr) {
+        ACCOUNT_LOGI("Create promise");
+        napi_create_promise(env, &queryConstraintSource->deferred, &result);
+    } else {
+        ACCOUNT_LOGI("Undefined the result parameter");
+        napi_get_undefined(env, &result);
+    }
+
+    napi_value resource = nullptr;
+    napi_create_string_utf8(env, "QueryOsAccountConstraintSourceTypes", NAPI_AUTO_LENGTH, &resource);
+
+    napi_create_async_work(env,
+        nullptr,
+        resource,
+        QueryOAContSrcTypeExecuteCB,
+        QueryOAContSrcTypeCallbackCompletedCB,
+        reinterpret_cast<void *>(queryConstraintSource),
+        &queryConstraintSource->work);
+
+    napi_queue_async_work(env, queryConstraintSource->work);
     return result;
 }
 

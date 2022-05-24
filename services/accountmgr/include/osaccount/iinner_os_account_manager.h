@@ -74,6 +74,14 @@ public:
     ErrCode GetOsAccountListFromDatabase(const std::string& storeID,
         std::vector<OsAccountInfo> &osAccountList) override;
     ErrCode QueryActiveOsAccountIds(std::vector<int32_t>& ids) override;
+    ErrCode QueryOsAccountConstraintSourceTypes(const int32_t id,
+        const std::string &constraint, std::vector<ConstraintSourceTypeInfo> &constraintSourceTypeInfos) override;
+    ErrCode SetBaseOsAccountConstraints(const int32_t id,
+        const std::vector<std::string> &constraints, const bool enable) override;
+    ErrCode SetGlobalOsAccountConstraints(const std::vector<std::string> &constraints,
+        const bool enable, const int32_t enforcerId, const bool isDeviceOwner) override;
+    ErrCode SetSpecificOsAccountConstraints(const std::vector<std::string> &constraints,
+        const bool enable, const int32_t targetId, const int32_t enforcerId, const bool isDeviceOwner) override;
 
 private:
     void StartAccount();
@@ -94,6 +102,7 @@ private:
     void RemoveLocalIdToOperating(int32_t localId);
     bool IsLocalIdInOperating(int32_t localId);
     void CleanGarbageAccounts();
+    ErrCode DealWithDeviceOwnerId(const bool isDeviceOwner, const int32_t localId);
 
     // operations for active list
     void PushIDIntoActiveList(int32_t id);
@@ -108,6 +117,7 @@ private:
     std::shared_ptr<IOsAccountSubscribe> subscribeManagerPtr_;
     std::int32_t counterForStandard_;
     std::int32_t counterForStandardCreate_;
+    std::int32_t deviceOwnerId_;
     bool isSendToStorageCreate_;
     bool isSendToStorageStart_;
     std::shared_ptr<OHOS::AppExecFwk::EventHandler> handler_;
