@@ -32,9 +32,16 @@ public:
     ErrCode CheckConstraintsList(const std::vector<std::string> &constraints,
         bool &isExists, bool &isOverSize);
     ErrCode IsAllowedCreateAdmin(bool &isAllowedCreateAdmin);
+    ErrCode GetBaseOAConstraintsList(const int32_t id, std::vector<std::string> &constratins);
+    ErrCode GetGlobalOAConstraintsList(std::vector<std::string> &constratins);
+    ErrCode GetSpecificOAConstraintsList(const int32_t id, std::vector<std::string> &constratins);
+
 private:
     std::shared_ptr<AccountFileOperator> accountFileOperator_;
     Json constraintsConfig_;
+    Json baseOsAccountConstraintsConfig_;
+    Json globalOsAccountConstraintsConfig_;
+    Json specificOsAccountConstraintsConfig_;
     std::vector<std::string> constratinsList_;
     bool isAlreadyInit_;
 };

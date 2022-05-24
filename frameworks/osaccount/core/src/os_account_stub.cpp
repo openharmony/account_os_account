@@ -182,6 +182,18 @@ const std::map<uint32_t, OsAccountStub::MessageProcFunction> OsAccountStub::mess
         static_cast<uint32_t>(IOsAccount::Message::QUERY_ACTIVE_OS_ACCOUNT_IDS),
         &OsAccountStub::ProcQueryActiveOsAccountIds,
     },
+    {
+        static_cast<uint32_t>(IOsAccount::Message::QUERY_OS_ACCOUNT_CONSTRAINT_SOURCE_TYPES),
+        &OsAccountStub::ProcQueryOsAccountConstraintSourceTypes,
+    },
+    {
+        static_cast<uint32_t>(IOsAccount::Message::SET_GLOBAL_OS_ACCOUNT_CONSTRAINTS),
+        &OsAccountStub::ProcSetGlobalOsAccountConstraints,
+    },
+    {
+        static_cast<uint32_t>(IOsAccount::Message::SET_SPECIFIC_OS_ACCOUNT_CONSTRAINTS),
+        &OsAccountStub::ProcSetSpecificOsAccountConstraints,
+    },
 };
 
 OsAccountStub::OsAccountStub()
@@ -648,6 +660,12 @@ ErrCode OsAccountStub::ProcIsOsAccountConstraintEnable(MessageParcel &data, Mess
         return ERR_NONE;
     }
     std::string constraint = data.ReadString();
+    if (constraint.empty() || constraint.size() > Constants::CONSTRAINT_MAX_SIZE) {
+        ACCOUNT_LOGE("failed to read string for constraint. length %{public}zu.", constraint.size());
+        reply.WriteInt32(ERR_OSACCOUNT_KIT_READ_CONSTRAINTS_ERROR);
+        return ERR_NONE;
+    }
+    
     bool isConstraintEnable = false;
     ErrCode result = IsOsAccountConstraintEnable(localId, constraint, isConstraintEnable);
     if (!reply.WriteInt32(result)) {
@@ -991,6 +1009,91 @@ ErrCode OsAccountStub::ProcQueryActiveOsAccountIds(MessageParcel &data, MessageP
     }
     if (!reply.WriteInt32Vector(ids)) {
         ACCOUNT_LOGE("failed to write active list");
+        return IPC_STUB_WRITE_PARCEL_ERR;
+    }
+    return ERR_NONE;
+}
+
+ErrCode OsAccountStub::ProcQueryOsAccountConstraintSourceTypes(MessageParcel &data, MessageParcel &reply)
+{
+    int localId = data.ReadInt32();
+    if (localId < 0) {
+        ACCOUNT_LOGE("failed to read int for localId");
+        reply.WriteInt32(ERR_OSACCOUNT_KIT_READ_IN_LOCAL_ID_ERROR);
+        return ERR_NONE;
+    }
+    std::string constraint = data.ReadString();
+    if (constraint.empty() || constraint.size() > Constants::CONSTRAINT_MAX_SIZE) {
+        ACCOUNT_LOGE("failed to read string for constraint. length %{public}zu.", constraint.size());
+        reply.WriteInt32(ERR_OSACCOUNT_KIT_DOMAIN_NAME_LENGTH_INVALID_ERROR);
+        return ERR_NONE;
+    }
+
+    std::vector<ConstraintSourceTypeInfo> constraintSourceTypeInfos;
+    ErrCode result = QueryOsAccountConstraintSourceTypes(localId, constraint, constraintSourceTypeInfos);
+    if (!reply.WriteInt32(result)|| (!reply.WriteUint32(constraintSourceTypeInfos.size()))) {
+        ACCOUNT_LOGE("QueryOsAccountConstraintSourceTypes failed to write reply");
+        return IPC_STUB_WRITE_PARCEL_ERR;
+    }
+    for (auto constraintInfo : constraintSourceTypeInfos) {
+        if ((!reply.WriteInt32(constraintInfo.localId)) || (!reply.WriteInt32(constraintInfo.typeInfo))) {
+            ACCOUNT_LOGE("failed to write reply");
+            return IPC_STUB_WRITE_PARCEL_ERR;
+        }
+    }
+
+    return ERR_NONE;
+}
+
+ErrCode OsAccountStub::ProcSetGlobalOsAccountConstraints(MessageParcel &data, MessageParcel &reply)
+{
+    std::vector<std::string> constraints;
+    bool stringVectorReadSucess = data.ReadStringVector(&constraints);
+    if (!stringVectorReadSucess) {
+        ACCOUNT_LOGE("failed to read StringVector for constraints");
+        return ERR_OSACCOUNT_KIT_READ_STRING_VECTOR_CONSTRAINTS_ERROR;
+    }
+    bool enable = data.ReadBool();
+    int enforcerId = data.ReadInt32();
+    if (enforcerId < 0) {
+        ACCOUNT_LOGE("failed to read int for localId");
+        reply.WriteInt32(ERR_OSACCOUNT_KIT_READ_IN_LOCAL_ID_ERROR);
+        return ERR_NONE;
+    }
+    bool isDeviceOwner = data.ReadBool();
+    ErrCode result = SetGlobalOsAccountConstraints(constraints, enable, enforcerId, isDeviceOwner);
+    if (!reply.WriteInt32(result)) {
+        ACCOUNT_LOGE("failed to write reply");
+        return IPC_STUB_WRITE_PARCEL_ERR;
+    }
+    return ERR_NONE;
+}
+
+ErrCode OsAccountStub::ProcSetSpecificOsAccountConstraints(MessageParcel &data, MessageParcel &reply)
+{
+    std::vector<std::string> constraints;
+    bool stringVectorReadSucess = data.ReadStringVector(&constraints);
+    if (!stringVectorReadSucess) {
+        ACCOUNT_LOGE("failed to read StringVector for constraints");
+        return ERR_OSACCOUNT_KIT_READ_STRING_VECTOR_CONSTRAINTS_ERROR;
+    }
+    bool enable = data.ReadBool();
+    int targetId = data.ReadInt32();
+    if (targetId < 0) {
+        ACCOUNT_LOGE("failed to read int for targetId");
+        reply.WriteInt32(ERR_OSACCOUNT_KIT_READ_IN_LOCAL_ID_ERROR);
+        return ERR_NONE;
+    }
+    int enforcerId = data.ReadInt32();
+    if (enforcerId < 0) {
+        ACCOUNT_LOGE("failed to read int for enforcerId");
+        reply.WriteInt32(ERR_OSACCOUNT_KIT_READ_IN_LOCAL_ID_ERROR);
+        return ERR_NONE;
+    }
+    bool isDeviceOwner = data.ReadBool();
+    ErrCode result = SetSpecificOsAccountConstraints(constraints, enable, targetId, enforcerId, isDeviceOwner);
+    if (!reply.WriteInt32(result)) {
+        ACCOUNT_LOGE("failed to write reply");
         return IPC_STUB_WRITE_PARCEL_ERR;
     }
     return ERR_NONE;

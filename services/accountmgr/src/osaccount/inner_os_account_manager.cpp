@@ -33,6 +33,7 @@ IInnerOsAccountManager::IInnerOsAccountManager() : subscribeManagerPtr_(OsAccoun
     operatingId_.clear();
     osAccountControl_ = std::make_shared<OsAccountControlFileManager>();
     osAccountControl_->Init();
+    osAccountControl_->GetDeviceOwnerId(deviceOwnerId_);
     ACCOUNT_LOGI("OsAccountAccountMgr Init end");
 }
 
@@ -232,7 +233,7 @@ ErrCode IInnerOsAccountManager::PrepareOsAccountInfo(const std::string &name, co
     errCode = osAccountControl_->GetConstraintsByType(type, constraints);
     if (errCode != ERR_OK) {
         ACCOUNT_LOGE("failed to GetConstraintsByType");
-        return ERR_OSACCOUNT_SERVICE_INNER_GET_TTPE_CONSTRAINTS_ERROR;
+        return ERR_OSACCOUNT_SERVICE_INNER_GET_TYPE_CONSTRAINTS_ERROR;
     }
     osAccountInfo = OsAccountInfo(id, name, type, serialNumber);
     osAccountInfo.SetConstraints(constraints);
@@ -247,6 +248,11 @@ ErrCode IInnerOsAccountManager::PrepareOsAccountInfo(const std::string &name, co
     errCode = osAccountControl_->InsertOsAccount(osAccountInfo);
     if (errCode != ERR_OK) {
         ACCOUNT_LOGE("insert osaccountinfo err");
+        return ERR_OSACCOUNT_SERVICE_INNER_CREATE_ACCOUNT_ERROR;
+    }
+    errCode = osAccountControl_->UpdateBaseOAConstraints(std::to_string(id), constraints, true);
+    if (errCode != ERR_OK) {
+        ACCOUNT_LOGE("UpdateBaseOAConstraints err");
         return ERR_OSACCOUNT_SERVICE_INNER_CREATE_ACCOUNT_ERROR;
     }
     return ERR_OK;
@@ -359,6 +365,12 @@ ErrCode IInnerOsAccountManager::RemoveOsAccount(const int id)
         return errCode;
     }
     RemoveLocalIdToOperating(id);
+
+    errCode = osAccountControl_->RemoveOAConstraintsInfo(id);
+    if (errCode != ERR_OK) {
+        ACCOUNT_LOGE("RemoveOsAccount failed to remove os account constraints info");
+        return errCode;
+    }
     ACCOUNT_LOGI("IInnerOsAccountManager RemoveOsAccount end");
     return ERR_OK;
 }
@@ -454,14 +466,29 @@ ErrCode IInnerOsAccountManager::IsOsAccountConstraintEnable(
     ErrCode errCode = osAccountControl_->GetOsAccountInfoById(id, osAccountInfo);
     if (errCode != ERR_OK) {
         ACCOUNT_LOGE("get osaccount info error");
-        return ERR_OSACCOUNT_SERVICE_INNER_SELECT_OSACCOUNT_BYID_ERROR;
+        return errCode;
     }
-    std::vector<std::string> constraints = osAccountInfo.GetConstraints();
+    std::vector<std::string> constraints;
+    constraints = osAccountInfo.GetConstraints();
     if (std::find(constraints.begin(), constraints.end(), constraint) != constraints.end()) {
         isOsAccountConstraintEnable = true;
-    } else {
-        isOsAccountConstraintEnable = false;
+        return ERR_OK;
     }
+    constraints.clear();
+    if (osAccountControl_->GetGlobalOAConstraintsList(constraints) == ERR_OK) {
+        if (std::find(constraints.begin(), constraints.end(), constraint) != constraints.end()) {
+            isOsAccountConstraintEnable = true;
+            return ERR_OK;
+        }
+    }
+    constraints.clear();
+    if (osAccountControl_->GetSpecificOAConstraintsList(id, constraints) == ERR_OK) {
+        if (std::find(constraints.begin(), constraints.end(), constraint) != constraints.end()) {
+            isOsAccountConstraintEnable = true;
+            return ERR_OK;
+        }
+    }
+    isOsAccountConstraintEnable = false;
     return ERR_OK;
 }
 
@@ -508,6 +535,164 @@ ErrCode IInnerOsAccountManager::GetOsAccountAllConstraints(const int id, std::ve
         return ERR_OSACCOUNT_SERVICE_INNER_SELECT_OSACCOUNT_BYID_ERROR;
     }
     constraints = osAccountInfo.GetConstraints();
+    std::vector<std::string> globalConstraints;
+    errCode = osAccountControl_->GetGlobalOAConstraintsList(globalConstraints);
+    if (errCode != ERR_OK) {
+        ACCOUNT_LOGE("get globalConstraints info error");
+        return errCode;
+    }
+    for (auto it = globalConstraints.begin(); it != globalConstraints.end(); it++) {
+        if (std::find(constraints.begin(), constraints.end(), *it) == constraints.end()) {
+            constraints.push_back(*it);
+        }
+    }
+    std::vector<std::string> specificConstraints;
+    errCode = osAccountControl_->GetSpecificOAConstraintsList(id, specificConstraints);
+    if (errCode != ERR_OK) {
+        ACCOUNT_LOGE("get specificConstraints info error");
+        return errCode;
+    }
+    for (auto it = specificConstraints.begin(); it != specificConstraints.end(); it++) {
+        if (std::find(constraints.begin(), constraints.end(), *it) == constraints.end()) {
+            constraints.push_back(*it);
+        }
+    }
+    return ERR_OK;
+}
+
+ErrCode IInnerOsAccountManager::QueryOsAccountConstraintSourceTypes(const int32_t id,
+    const std::string &constraint, std::vector<ConstraintSourceTypeInfo> &constraintSourceTypeInfos)
+{
+    ACCOUNT_LOGD("enter.");
+    bool isOsAccountConstraintEnable = false;
+    ErrCode errCode = IsOsAccountConstraintEnable(id, constraint, isOsAccountConstraintEnable);
+    if (errCode != ERR_OK) {
+        ACCOUNT_LOGE("get os account constraint enable info error");
+        return errCode;
+    }
+    if (!isOsAccountConstraintEnable) {
+        ACCOUNT_LOGI("constraint not exist");
+        ConstraintSourceTypeInfo constraintSourceTypeInfo;
+        constraintSourceTypeInfo.localId = -1;
+        constraintSourceTypeInfo.typeInfo = ConstraintSourceType::CONSTRAINT_NOT_EXIST;
+        constraintSourceTypeInfos.push_back(constraintSourceTypeInfo);
+        return ERR_OK;
+    }
+
+    bool isExits;
+    if (osAccountControl_->IsFromBaseOAConstraintsList(id, constraint, isExits) == ERR_OK) {
+        if (isExits) {
+            ACCOUNT_LOGI("constraint is exist in base os account constraints list");
+            ConstraintSourceTypeInfo constraintSourceTypeInfo;
+            constraintSourceTypeInfo.localId = -1;
+            constraintSourceTypeInfo.typeInfo = ConstraintSourceType::CONSTRAINT_TYPE_BASE;
+            constraintSourceTypeInfos.push_back(constraintSourceTypeInfo);
+        }
+    }
+    std::vector<ConstraintSourceTypeInfo> globalSourceList;
+    errCode = osAccountControl_->IsFromGlobalOAConstraintsList(id, deviceOwnerId_, constraint, globalSourceList);
+    if (errCode == ERR_OK && globalSourceList.size() != 0) {
+        ACCOUNT_LOGI("constraint is exist in global os account constraints list");
+        constraintSourceTypeInfos.insert(
+            constraintSourceTypeInfos.end(), globalSourceList.begin(), globalSourceList.end());
+    }
+    std::vector<ConstraintSourceTypeInfo> specificSourceList;
+    errCode = osAccountControl_->IsFromSpecificOAConstraintsList(id, deviceOwnerId_, constraint, specificSourceList);
+    if (errCode == ERR_OK && specificSourceList.size() != 0) {
+        ACCOUNT_LOGI("constraint is exist in specific os account constraints list");
+        constraintSourceTypeInfos.insert(
+            constraintSourceTypeInfos.end(), specificSourceList.begin(), specificSourceList.end());
+    }
+    return ERR_OK;
+}
+
+ErrCode IInnerOsAccountManager::SetBaseOsAccountConstraints(const int32_t id,
+    const std::vector<std::string> &constraints, const bool enable)
+{
+    ErrCode errCode = SetOsAccountConstraints(id, constraints, enable);
+    if (errCode != ERR_OK) {
+        ACCOUNT_LOGE("set os account %{public}d constraints failed! errCode %{public}d.", id, errCode);
+        return errCode;
+    }
+
+    errCode = osAccountControl_->UpdateBaseOAConstraints(std::to_string(id), constraints, enable);
+    if (errCode != ERR_OK) {
+        ACCOUNT_LOGE("update base os account %{public}d constraints failed! errCode %{public}d.", id, errCode);
+        return errCode;
+    }
+    return ERR_OK;
+}
+
+ErrCode IInnerOsAccountManager::SetGlobalOsAccountConstraints(const std::vector<std::string> &constraints,
+    const bool enable, const int32_t enforcerId, const bool isDeviceOwner)
+{
+    OsAccountInfo osAccountInfo;
+    ErrCode errCode = osAccountControl_->GetOsAccountInfoById(enforcerId, osAccountInfo);
+    if (errCode != ERR_OK) {
+        ACCOUNT_LOGE("get osaccount info error %{public}d", enforcerId);
+        return ERR_OSACCOUNT_SERVICE_INNER_SELECT_OSACCOUNT_BYID_ERROR;
+    }
+    if (osAccountInfo.GetToBeRemoved()) {
+        ACCOUNT_LOGE("account %{public}d will be removed, cannot change constraints!", enforcerId);
+        return ERR_OSACCOUNT_SERVICE_INNER_ACCOUNT_TO_BE_REMOVED_ERROR;
+    }
+
+    bool isExists = false;
+    bool isOverSize = false;
+    errCode = osAccountControl_->CheckConstraintsList(constraints, isExists, isOverSize);
+    if (errCode != ERR_OK || !isExists || isOverSize) {
+        ACCOUNT_LOGE("input constraints not in constraints list or is oversize!");
+        return ERR_OSACCOUNT_SERVICE_INNER_SER_CONSTRAINTS_ERROR;
+    }
+
+    osAccountControl_->UpdateGlobalOAConstraints(std::to_string(enforcerId), constraints, enable);
+
+    errCode = DealWithDeviceOwnerId(isDeviceOwner, enforcerId);
+    if (errCode != ERR_OK) {
+        ACCOUNT_LOGE("deal with device owner id error");
+        return errCode;
+    }
+    return ERR_OK;
+}
+
+ErrCode IInnerOsAccountManager::SetSpecificOsAccountConstraints(const std::vector<std::string> &constraints,
+    const bool enable, const int32_t targetId, const int32_t enforcerId, const bool isDeviceOwner)
+{
+    OsAccountInfo enforcerOsAccountInfo;
+    ErrCode errCode = osAccountControl_->GetOsAccountInfoById(enforcerId, enforcerOsAccountInfo);
+    if (errCode != ERR_OK) {
+        ACCOUNT_LOGE("get osaccount info error");
+        return ERR_OSACCOUNT_SERVICE_INNER_SELECT_OSACCOUNT_BYID_ERROR;
+    }
+
+    OsAccountInfo targetOsAccountInfo;
+    errCode = osAccountControl_->GetOsAccountInfoById(targetId, targetOsAccountInfo);
+    if (errCode != ERR_OK) {
+        ACCOUNT_LOGE("get osaccount info error");
+        return ERR_OSACCOUNT_SERVICE_INNER_SELECT_OSACCOUNT_BYID_ERROR;
+    }
+    if (targetOsAccountInfo.GetToBeRemoved() || enforcerOsAccountInfo.GetToBeRemoved()) {
+        ACCOUNT_LOGE("account %{public}d or %{public}d will be removed, cannot change constraints!",
+            enforcerId, targetId);
+        return ERR_OSACCOUNT_SERVICE_INNER_ACCOUNT_TO_BE_REMOVED_ERROR;
+    }
+
+    bool isExists = false;
+    bool isOverSize = false;
+    errCode = osAccountControl_->CheckConstraintsList(constraints, isExists, isOverSize);
+    if (errCode != ERR_OK || !isExists || isOverSize) {
+        ACCOUNT_LOGE("input constraints not in constraints list or is oversize!");
+        return ERR_OSACCOUNT_SERVICE_INNER_SER_CONSTRAINTS_ERROR;
+    }
+
+    osAccountControl_->UpdateSpecificOAConstraints(
+        std::to_string(enforcerId), std::to_string(targetId), constraints, enable);
+
+    errCode = DealWithDeviceOwnerId(isDeviceOwner, enforcerId);
+    if (errCode != ERR_OK) {
+        ACCOUNT_LOGE("deal with device owner id error");
+        return errCode;
+    }
     return ERR_OK;
 }
 
@@ -516,7 +701,7 @@ ErrCode IInnerOsAccountManager::QueryAllCreatedOsAccounts(std::vector<OsAccountI
     ErrCode errCode = osAccountControl_->GetOsAccountList(osAccountInfos);
     if (errCode != ERR_OK) {
         ACCOUNT_LOGE("get osaccount info list error");
-        return ERR_OSACCOUNT_SERVICE_INNER_GET_ALL_OSACCOUNTINFO_ERROR;
+        return ERR_OSACCOUNT_SERVICE_INNER_GET_ACCOUNT_LIST_ERROR;
     }
     for (auto osAccountInfosPtr = osAccountInfos.begin(); osAccountInfosPtr != osAccountInfos.end();
          ++osAccountInfosPtr) {
@@ -525,6 +710,21 @@ ErrCode IInnerOsAccountManager::QueryAllCreatedOsAccounts(std::vector<OsAccountI
         } else {
             osAccountInfosPtr->SetIsActived(false);
         }
+    }
+    return ERR_OK;
+}
+
+ErrCode IInnerOsAccountManager::DealWithDeviceOwnerId(const bool isDeviceOwner, const int32_t localId)
+{
+    ACCOUNT_LOGD("enter.");
+    if (isDeviceOwner && localId != deviceOwnerId_) {
+        ACCOUNT_LOGI("this device owner os account id is changed!");
+        deviceOwnerId_ = localId;
+        return osAccountControl_->UpdateDeviceOwnerId(localId);
+    }
+    if (isDeviceOwner == false && localId == deviceOwnerId_) {
+        deviceOwnerId_ = -1;
+        return osAccountControl_->UpdateDeviceOwnerId(-1);
     }
     return ERR_OK;
 }
@@ -578,7 +778,7 @@ ErrCode IInnerOsAccountManager::GetOsAccountLocalIdFromDomain(const DomainAccoun
     std::vector<OsAccountInfo> osAccountInfos;
     ErrCode errCode = osAccountControl_->GetOsAccountList(osAccountInfos);
     if (errCode != ERR_OK) {
-        return ERR_OSACCOUNT_SERVICE_INNER_GET_ALL_OSACCOUNTINFO_ERROR;
+        return ERR_OSACCOUNT_SERVICE_INNER_GET_ACCOUNT_LIST_ERROR;
     }
 
     DomainAccountInfo curDomainInfo;
@@ -782,7 +982,7 @@ ErrCode IInnerOsAccountManager::ActivateOsAccount(const int id)
     if (IsOsAccountIDInActiveList(id)) {
         RemoveLocalIdToOperating(id);
         ACCOUNT_LOGE("account is %{public}d already active", id);
-        return ERR_OSACCOUNT_SERVICE_INNER_ACCOUNT_ALREAD_ACTIVE_ERROR;
+        return ERR_OSACCOUNT_SERVICE_INNER_ACCOUNT_ALREADY_ACTIVE_ERROR;
     }
 
     // get information
@@ -872,7 +1072,7 @@ ErrCode IInnerOsAccountManager::GetOsAccountLocalIdBySerialNumber(const int64_t 
     ErrCode errCode = osAccountControl_->GetOsAccountList(osAccountInfos);
     if (errCode != ERR_OK) {
         ACCOUNT_LOGE("get osaccount info list error");
-        return ERR_OSACCOUNT_SERVICE_INNER_GET_ALL_OSACCOUNTINFO_ERROR;
+        return ERR_OSACCOUNT_SERVICE_INNER_GET_ACCOUNT_LIST_ERROR;
     }
     for (auto it = osAccountInfos.begin(); it != osAccountInfos.end(); it++) {
         if (serialNumber == it->GetSerialNumber()) {

@@ -701,5 +701,44 @@ ErrCode OsAccount::QueryActiveOsAccountIds(std::vector<int32_t>& ids)
     }
     return osAccountProxy_->QueryActiveOsAccountIds(ids);
 }
+
+ErrCode OsAccount::QueryOsAccountConstraintSourceTypes(const int32_t id, const std::string &constraint,
+    std::vector<ConstraintSourceTypeInfo> &constraintSourceTypeInfos)
+{
+    ACCOUNT_LOGD ("OsAccount::QueryOsAccountConstraintSourceTypes start");
+    ErrCode result = GetOsAccountProxy();
+    if (result != ERR_OK) {
+        ACCOUNT_LOGE("failed to get osAccountProxy_");
+        return result;
+    }
+
+    return osAccountProxy_->QueryOsAccountConstraintSourceTypes(id, constraint, constraintSourceTypeInfos);
+}
+
+ErrCode OsAccount::SetGlobalOsAccountConstraints(const std::vector<std::string> &constraints,
+    const bool enable, const int32_t enforcerId, const bool isDeviceOwner)
+{
+    ACCOUNT_LOGD ("OsAccount::SetGlobalOsAccountConstraints start");
+    ErrCode result = GetOsAccountProxy();
+    if (result != ERR_OK) {
+        ACCOUNT_LOGE("failed to get osAccountProxy_");
+        return result;
+    }
+
+    return osAccountProxy_->SetGlobalOsAccountConstraints(constraints, enable, enforcerId, isDeviceOwner);
+}
+
+ErrCode OsAccount::SetSpecificOsAccountConstraints(const std::vector<std::string> &constraints,
+    const bool enable, const int32_t targetId, const int32_t enforcerId, const bool isDeviceOwner)
+{
+    ACCOUNT_LOGD ("OsAccount::SetSpecificOsAccountConstraints start");
+    ErrCode result = GetOsAccountProxy();
+    if (result != ERR_OK) {
+        ACCOUNT_LOGE("failed to get osAccountProxy_");
+        return result;
+    }
+
+    return osAccountProxy_->SetSpecificOsAccountConstraints(constraints, enable, targetId, enforcerId, isDeviceOwner);
+}
 }  // namespace AccountSA
 }  // namespace OHOS
