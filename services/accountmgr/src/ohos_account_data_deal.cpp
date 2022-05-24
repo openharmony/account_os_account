@@ -153,6 +153,12 @@ void OhosAccountDataDeal::SaveAccountInfo(const AccountInfo &accountInfo) const
     }
     out << jsonData;
     out.close();
+
+    // change mode
+    if (!ChangeModeFile(configFile, S_IRUSR | S_IWUSR)) {
+        ACCOUNT_LOGW("failed to change mode for file %{public}s", configFile.c_str());
+        ReportFileOperationFail(-1, "ChangeModeFile", configFile);
+    }
 }
 
 void OhosAccountDataDeal::BuildJsonFileFromScratch(std::int32_t userId) const
