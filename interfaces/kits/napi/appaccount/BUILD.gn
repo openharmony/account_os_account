@@ -13,7 +13,6 @@
 
 import("//base/account/os_account/os_account.gni")
 import("//build/ohos.gni")
-import("//foundation/aafwk/standard/aafwk.gni")
 
 config("appaccount_kit_config") {
   include_dirs = [

@@ -20,7 +20,6 @@ module_output_path = "os_account/accountmgrservice"
 config("accountmgr_service_test_config") {
   include_dirs = [
     "./include",
-    "${services_path}/accountmgr/include",
     "${common_path}/log/include",
     "${common_path}/perf_stat/include",
     "${common_path}/account_error/include",
@@ -29,6 +28,8 @@ config("accountmgr_service_test_config") {
     "${os_account_dfx_path}/hidumper_adapter",
     "${os_account_dfx_path}/hisysevent_adapter",
     "${os_account_dfx_path}/hitrace_adapter",
+    "${services_path}/accountmgr/include",
+    "${services_path}/accountmgr/include/ability_manager_adapter",
     "//third_party/json/include",
     "//third_party/mbedtls/include",
     "//utils/native/base/include",
@@ -41,6 +42,36 @@ config("accountmgr_service_test_config") {
   ]
 }
 
+config("ability_manager_config") {
+  include_dirs = [
+    "${aafwk_path}/interfaces/innerkits/ability_manager/include",
+    "${aafwk_path}/ability_base/interfaces/inner_api/want/include",
+    "${aafwk_path}/services/abilitymgr/include",
+    "${aafwk_path}/services/common/include",
+  ]
+}
+
+ability_manager_sources = [
+  "${aafwk_path}/services/abilitymgr/src/stop_user_callback_stub.cpp",
+  "${services_path}/accountmgr/src/ability_manager_adapter/ability_manager_adapter.cpp",
+  "${services_path}/accountmgr/src/ability_manager_adapter/ability_manager_adapter_proxy.cpp",
+]
+
+config("bundle_manager_config") {
+  include_dirs = [
+    "${services_path}/accountmgr/include/bundle_manager_adapter",
+    "${bundle_framework_path}/common/log/include",
+    "${bundle_framework_path}/interfaces/inner_api/appexecfwk_core/include/bundlemgr",
+  ]
+}
+
+bundle_manager_sources = [
+  "${bundle_framework_path}/common/log/src/app_log_wrapper.cpp",
+  "${services_path}/accountmgr/src/bundle_manager_adapter/bundle_manager_adapter.cpp",
+  "${services_path}/accountmgr/src/bundle_manager_adapter/bundle_manager_adapter_proxy.cpp",
+  "${services_path}/accountmgr/src/bundle_manager_adapter/bundle_user_manager_adapter_proxy.cpp",
+]
+
 ohos_unittest("account_mgr_test") {
   module_out_path = module_output_path
   cflags_cc = []
@@ -51,7 +82,6 @@ ohos_unittest("account_mgr_test") {
     "${os_account_dfx_path}/hidumper_adapter/account_dump_helper.cpp",
     "${os_account_dfx_path}/hisysevent_adapter/hisysevent_adapter.cpp",
     "${os_account_dfx_path}/hitrace_adapter/hitrace_adapter.cpp",
-    "${services_path}/accountmgr/src/account_bundle_manager.cpp",
     "${services_path}/accountmgr/src/account_data_storage.cpp",
     "${services_path}/accountmgr/src/account_event_provider.cpp",
     "${services_path}/accountmgr/src/account_file_operator.cpp",
@@ -90,8 +120,13 @@ ohos_unittest("account_mgr_test") {
     "account_state_machine_test.cpp",
   ]
 
+  sources += ability_manager_sources
+  sources += bundle_manager_sources
+
   configs = [
     ":accountmgr_service_test_config",
+    ":ability_manager_config",
+    ":bundle_manager_config",
     "${services_path}/accountmgr:accountmgr_config",
     "${services_path}/accountmgr/test:accountmgr_test_config",
   ]
@@ -115,11 +150,9 @@ ohos_unittest("account_mgr_test") {
   external_deps = [
     "ability_base:base",
     "ability_base:want",
-    "ability_runtime:ability_manager",
     "ability_runtime:app_manager",
     "access_token:libaccesstoken_sdk",
     "bundle_framework:appexecfwk_base",
-    "bundle_framework:appexecfwk_core",
     "distributeddatamgr:distributeddata_inner",
     "eventhandler:libeventhandler",
     "hiviewdfx_hilog_native:libhilog",

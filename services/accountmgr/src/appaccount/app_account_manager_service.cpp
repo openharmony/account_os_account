@@ -14,7 +14,9 @@
  */
 
 #include "app_account_manager_service.h"
+#include "account_info.h"
 #include "account_log_wrapper.h"
+#include "bundle_manager_adapter.h"
 #include "hisysevent_adapter.h"
 #include "inner_app_account_manager.h"
 #include "ipc_skeleton.h"
@@ -27,7 +29,6 @@ AppAccountManagerService::AppAccountManagerService()
 
     innerManager_ = std::make_shared<InnerAppAccountManager>();
     permissionManagerPtr_ = DelayedSingleton<AccountPermissionManager>::GetInstance();
-    bundleManagerPtr_ = DelayedSingleton<AccountBundleManager>::GetInstance();
 #ifdef HAS_CES_PART
     CommonEventCallback callback = {
         std::bind(&AppAccountManagerService::OnPackageRemoved, this, std::placeholders::_1, std::placeholders::_2),
@@ -135,10 +136,12 @@ ErrCode AppAccountManagerService::EnableAppAccess(const std::string &name, const
     }
 
     AppExecFwk::BundleInfo bundleInfo;
-    result = bundleManagerPtr_->GetBundleInfo(callingUid, authorizedApp, bundleInfo);
-    if (result != ERR_OK) {
+    int32_t userId = callingUid / UID_TRANSFORM_DIVISOR;
+    bool bundleRet = BundleManagerAdapter::GetInstance()->GetBundleInfo(
+        authorizedApp, AppExecFwk::BundleFlag::GET_BUNDLE_DEFAULT, bundleInfo, userId);
+    if (!bundleRet) {
         ACCOUNT_LOGE("failed to get bundle info");
-        return result;
+        return ERR_APPACCOUNT_SERVICE_GET_BUNDLE_INFO;
     }
 
     return innerManager_->EnableAppAccess(name, authorizedApp, callingUid, bundleName);
@@ -157,10 +160,12 @@ ErrCode AppAccountManagerService::DisableAppAccess(const std::string &name, cons
     }
 
     AppExecFwk::BundleInfo bundleInfo;
-    result = bundleManagerPtr_->GetBundleInfo(callingUid, authorizedApp, bundleInfo);
-    if (result != ERR_OK) {
+    int32_t userId = callingUid / UID_TRANSFORM_DIVISOR;
+    bool bundleRet = BundleManagerAdapter::GetInstance()->GetBundleInfo(
+        authorizedApp, AppExecFwk::BundleFlag::GET_BUNDLE_DEFAULT, bundleInfo, userId);
+    if (!bundleRet) {
         ACCOUNT_LOGE("failed to get bundle info");
-        return result;
+        return ERR_APPACCOUNT_SERVICE_GET_BUNDLE_INFO;
     }
 
     return innerManager_->DisableAppAccess(name, authorizedApp, callingUid, bundleName);
@@ -435,10 +440,12 @@ ErrCode AppAccountManagerService::GetAllAccounts(const std::string &owner, std::
     }
 
     AppExecFwk::BundleInfo bundleInfo;
-    ret = bundleManagerPtr_->GetBundleInfo(callingUid, owner, bundleInfo);
-    if (ret != ERR_OK) {
+    int32_t userId = callingUid / UID_TRANSFORM_DIVISOR;
+    bool result = BundleManagerAdapter::GetInstance()->GetBundleInfo(
+        owner, AppExecFwk::BundleFlag::GET_BUNDLE_DEFAULT, bundleInfo, userId);
+    if (!result) {
         ACCOUNT_LOGE("failed to get bundle info");
-        return ret;
+        return ERR_APPACCOUNT_SERVICE_GET_BUNDLE_INFO;
     }
 
     return innerManager_->GetAllAccounts(owner, appAccounts, callingUid, bundleName);
@@ -481,12 +488,14 @@ ErrCode AppAccountManagerService::SubscribeAppAccount(
         return ERR_APPACCOUNT_SERVICE_OWNERS_SIZE_IS_ZERO;
     }
 
+    int32_t userId = callingUid / UID_TRANSFORM_DIVISOR;
     for (auto owner : owners) {
         AppExecFwk::BundleInfo bundleInfo;
-        result = bundleManagerPtr_->GetBundleInfo(callingUid, owner, bundleInfo);
-        if (result != ERR_OK) {
+        bool bundleRet = BundleManagerAdapter::GetInstance()->GetBundleInfo(owner,
+            AppExecFwk::BundleFlag::GET_BUNDLE_DEFAULT, bundleInfo, userId);
+        if (!bundleRet) {
             ACCOUNT_LOGE("failed to get bundle info");
-            return result;
+            return ERR_APPACCOUNT_SERVICE_GET_BUNDLE_INFO;
         }
     }
 
@@ -528,10 +537,10 @@ ErrCode AppAccountManagerService::GetBundleNameAndCheckPerm(int32_t &callingUid,
 ErrCode AppAccountManagerService::GetBundleNameAndCallingUid(int32_t &callingUid, std::string &bundleName)
 {
     callingUid = IPCSkeleton::GetCallingUid();
-    ErrCode result = bundleManagerPtr_->GetBundleName(callingUid, bundleName);
-    if (result != ERR_OK) {
+    bool bundleRet = BundleManagerAdapter::GetInstance()->GetBundleNameForUid(callingUid, bundleName);
+    if (!bundleRet) {
         ACCOUNT_LOGE("failed to get bundle name");
-        return result;
+        return ERR_APPACCOUNT_SERVICE_GET_BUNDLE_NAME;
     }
     return ERR_OK;
 }

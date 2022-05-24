@@ -26,21 +26,21 @@ namespace OHOS {
 namespace AccountSA {
 MockAppAccountControlManager::MockAppAccountControlManager()
 {
-    ACCOUNT_LOGI("enter");
+    ACCOUNT_LOGI("mock enter");
 }
 
 MockAppAccountControlManager::~MockAppAccountControlManager()
 {
-    ACCOUNT_LOGI("enter");
+    ACCOUNT_LOGI("mock enter");
 }
 
 ErrCode MockAppAccountControlManager::AddAccount(const std::string &name, const std::string &extraInfo,
     const std::string &bundleName, AppAccountInfo &appAccountInfo)
 {
-    ACCOUNT_LOGI("enter");
+    ACCOUNT_LOGI("mock enter");
 
-    ACCOUNT_LOGI("name = %{public}s", name.c_str());
-    ACCOUNT_LOGI("extraInfo = %{public}s", extraInfo.c_str());
+    ACCOUNT_LOGI("mock name = %{public}s", name.c_str());
+    ACCOUNT_LOGI("mock extraInfo = %{public}s", extraInfo.c_str());
 
     if (name != STRING_NAME) {
         return ERR_APPACCOUNT_SERVICE_OTHER;
@@ -56,9 +56,9 @@ ErrCode MockAppAccountControlManager::AddAccount(const std::string &name, const 
 ErrCode MockAppAccountControlManager::DeleteAccount(
     const std::string &name, const std::string &bundleName, AppAccountInfo &appAccountInfo)
 {
-    ACCOUNT_LOGI("enter");
+    ACCOUNT_LOGI("mock enter");
 
-    ACCOUNT_LOGI("name = %{public}s", name.c_str());
+    ACCOUNT_LOGI("mock name = %{public}s", name.c_str());
 
     if (name != STRING_NAME) {
         return ERR_APPACCOUNT_SERVICE_OTHER;

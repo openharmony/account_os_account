@@ -39,8 +39,7 @@ ErrCode AccountFileOperator::CreateDir(const std::string &path)
         ReportFileOperationFail(-1, "ForceCreateDirectory", path);
         return ERR_OSACCOUNT_SERVICE_FILE_CREATE_DIR_ERROR;
     }
-    mode_t mode = S_IRWXU | S_IRGRP | S_IXGRP | S_IXOTH;
-    mode |= (false ? S_IROTH : 0);
+    mode_t mode = S_IRWXU;
     bool createFlag = OHOS::ChangeModeDirectory(path, mode);
     if (!createFlag) {
         ACCOUNT_LOGE("failed to create dir, path = %{public}s", path.c_str());
@@ -88,8 +87,14 @@ ErrCode AccountFileOperator::InputFileByPathAndContent(const std::string &path, 
     }
     o << content;
     o.close();
-    ACCOUNT_LOGI("end");
 
+    // change mode
+    if (!ChangeModeFile(path, S_IRUSR | S_IWUSR)) {
+        ACCOUNT_LOGW("failed to change mode for file %{public}s", path.c_str());
+        ReportFileOperationFail(-1, "ChangeModeFile", path);
+    }
+
+    ACCOUNT_LOGI("end");
     return ERR_OK;
 }
 
