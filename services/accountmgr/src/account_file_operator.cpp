@@ -19,10 +19,12 @@
 #include <string>
 #include <sys/stat.h>
 #include <sys/types.h>
+#ifdef WITH_SELINUX
+#include <policycoreutils.h>
+#endif // WITH_SELINUX
 #include "account_log_wrapper.h"
 #include "directory_ex.h"
 #include "hisysevent_adapter.h"
-
 namespace OHOS {
 namespace AccountSA {
 AccountFileOperator::AccountFileOperator()
@@ -87,7 +89,9 @@ ErrCode AccountFileOperator::InputFileByPathAndContent(const std::string &path, 
     }
     o << content;
     o.close();
-
+#ifdef WITH_SELINUX
+    Restorecon(path.c_str());
+#endif // WITH_SELINUX
     // change mode
     if (!ChangeModeFile(path, S_IRUSR | S_IWUSR)) {
         ACCOUNT_LOGW("failed to change mode for file %{public}s", path.c_str());

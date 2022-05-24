@@ -16,6 +16,9 @@
 #include <dirent.h>
 #include <sstream>
 #include <sys/types.h>
+#ifdef WITH_SELINUX
+#include <policycoreutils.h>
+#endif // WITH_SELINUX
 #include "account_log_wrapper.h"
 #include "os_account_constants.h"
 #include "os_account_interface.h"
@@ -62,6 +65,9 @@ void OsAccountControlFileManager::Init()
         !accountFileOperator_->IsJsonFormat(Constants::ACCOUNT_LIST_FILE_JSON_PATH)) {
         ACCOUNT_LOGI("OsAccountControlFileManager there is not have valid account list, create!");
         RecoverAccountListJsonFile();
+#ifdef WITH_SELINUX
+        Restorecon(Constants::ACCOUNT_LIST_FILE_JSON_PATH.c_str());
+#endif // WITH_SELINUX
     }
     ACCOUNT_LOGI("OsAccountControlFileManager Init end");
 }
