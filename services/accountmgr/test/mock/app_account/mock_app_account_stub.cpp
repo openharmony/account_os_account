@@ -34,22 +34,22 @@ constexpr std::int32_t EXTRA_INFO_MAX_SIZE = 1024;
 
 ErrCode MockAppAccountStub::AddAccount(const std::string &name, const std::string &extraInfo)
 {
-    ACCOUNT_LOGI("enter");
-    ACCOUNT_LOGI("name.size() = %{public}zu", name.size());
-    ACCOUNT_LOGI("extraInfo.size() = %{public}zu", extraInfo.size());
+    ACCOUNT_LOGI("mock enter");
+    ACCOUNT_LOGI("mock name.size() = %{public}zu", name.size());
+    ACCOUNT_LOGI("mock extraInfo.size() = %{public}zu", extraInfo.size());
 
     if (name.size() == 0) {
-        ACCOUNT_LOGE("name is empty");
+        ACCOUNT_LOGE("mock name is empty");
         return ERR_APPACCOUNT_SERVICE_NAME_IS_EMPTY;
     }
 
     if (name.size() > NAME_MAX_SIZE) {
-        ACCOUNT_LOGE("name is out of range, name.size() = %{public}zu", name.size());
+        ACCOUNT_LOGE("mock name is out of range, name.size() = %{public}zu", name.size());
         return ERR_APPACCOUNT_SERVICE_NAME_OUT_OF_RANGE;
     }
 
     if (extraInfo.size() > EXTRA_INFO_MAX_SIZE) {
-        ACCOUNT_LOGE("extra info is out of range, extraInfo.size() = %{public}zu", extraInfo.size());
+        ACCOUNT_LOGE("mock extra info is out of range, extraInfo.size() = %{public}zu", extraInfo.size());
         return ERR_APPACCOUNT_SERVICE_EXTRA_INFO_OUT_OF_RANGE;
     }
 
@@ -59,22 +59,22 @@ ErrCode MockAppAccountStub::AddAccount(const std::string &name, const std::strin
 ErrCode MockAppAccountStub::AddAccountImplicitly(const std::string &owner, const std::string &authType,
     const AAFwk::Want &options, const sptr<IRemoteObject> &callback)
 {
-    ACCOUNT_LOGI("enter");
+    ACCOUNT_LOGI("mock enter");
     return ERR_OK;
 }
 
 ErrCode MockAppAccountStub::DeleteAccount(const std::string &name)
 {
-    ACCOUNT_LOGI("enter");
-    ACCOUNT_LOGI("name.size() = %{public}zu", name.size());
+    ACCOUNT_LOGI("mock enter");
+    ACCOUNT_LOGI("mock name.size() = %{public}zu", name.size());
 
     if (name.size() == 0) {
-        ACCOUNT_LOGE("name is empty");
+        ACCOUNT_LOGE("mock name is empty");
         return ERR_APPACCOUNT_SERVICE_NAME_IS_EMPTY;
     }
 
     if (name.size() > NAME_MAX_SIZE) {
-        ACCOUNT_LOGE("name is out of range, name.size() = %{public}zu", name.size());
+        ACCOUNT_LOGE("mock name is out of range, name.size() = %{public}zu", name.size());
         return ERR_APPACCOUNT_SERVICE_NAME_OUT_OF_RANGE;
     }
 
@@ -83,49 +83,49 @@ ErrCode MockAppAccountStub::DeleteAccount(const std::string &name)
 
 ErrCode MockAppAccountStub::GetAccountExtraInfo(const std::string &name, std::string &extraInfo)
 {
-    ACCOUNT_LOGI("enter");
+    ACCOUNT_LOGI("mock enter");
 
     return ERR_OK;
 }
 
 ErrCode MockAppAccountStub::SetAccountExtraInfo(const std::string &name, const std::string &extraInfo)
 {
-    ACCOUNT_LOGI("enter");
+    ACCOUNT_LOGI("mock enter");
 
     return ERR_OK;
 }
 
 ErrCode MockAppAccountStub::EnableAppAccess(const std::string &name, const std::string &authorizedApp)
 {
-    ACCOUNT_LOGI("enter");
+    ACCOUNT_LOGI("mock enter");
 
     return ERR_OK;
 }
 
 ErrCode MockAppAccountStub::DisableAppAccess(const std::string &name, const std::string &authorizedApp)
 {
-    ACCOUNT_LOGI("enter");
+    ACCOUNT_LOGI("mock enter");
 
     return ERR_OK;
 }
 
 ErrCode MockAppAccountStub::CheckAppAccountSyncEnable(const std::string &name, bool &syncEnable)
 {
-    ACCOUNT_LOGI("enter");
+    ACCOUNT_LOGI("mock enter");
 
     return ERR_OK;
 }
 
 ErrCode MockAppAccountStub::SetAppAccountSyncEnable(const std::string &name, const bool &syncEnable)
 {
-    ACCOUNT_LOGI("enter");
+    ACCOUNT_LOGI("mock enter");
 
     return ERR_OK;
 }
 
 ErrCode MockAppAccountStub::GetAssociatedData(const std::string &name, const std::string &key, std::string &value)
 {
-    ACCOUNT_LOGI("enter");
+    ACCOUNT_LOGI("mock enter");
 
     return ERR_OK;
 }
@@ -133,7 +133,7 @@ ErrCode MockAppAccountStub::GetAssociatedData(const std::string &name, const std
 ErrCode MockAppAccountStub::SetAssociatedData(
     const std::string &name, const std::string &key, const std::string &value)
 {
-    ACCOUNT_LOGI("enter");
+    ACCOUNT_LOGI("mock enter");
 
     return ERR_OK;
 }
@@ -141,7 +141,7 @@ ErrCode MockAppAccountStub::SetAssociatedData(
 ErrCode MockAppAccountStub::GetAccountCredential(
     const std::string &name, const std::string &credentialType, std::string &credential)
 {
-    ACCOUNT_LOGI("enter");
+    ACCOUNT_LOGI("mock enter");
 
     return ERR_OK;
 }
@@ -149,7 +149,7 @@ ErrCode MockAppAccountStub::GetAccountCredential(
 ErrCode MockAppAccountStub::SetAccountCredential(
     const std::string &name, const std::string &credentialType, const std::string &credential)
 {
-    ACCOUNT_LOGI("enter");
+    ACCOUNT_LOGI("mock enter");
 
     return ERR_OK;
 }
@@ -157,7 +157,7 @@ ErrCode MockAppAccountStub::SetAccountCredential(
 ErrCode MockAppAccountStub::Authenticate(const std::string &name, const std::string &owner,
     const std::string &authType, const AAFwk::Want &options, const sptr<IRemoteObject> &callback)
 {
-    ACCOUNT_LOGI("enter");
+    ACCOUNT_LOGI("mock enter");
 
     return ERR_OK;
 }
@@ -165,7 +165,7 @@ ErrCode MockAppAccountStub::Authenticate(const std::string &name, const std::str
 ErrCode MockAppAccountStub::GetOAuthToken(
     const std::string &name, const std::string &owner, const std::string &authType, std::string &token)
 {
-    ACCOUNT_LOGI("enter");
+    ACCOUNT_LOGI("mock enter");
 
     return ERR_OK;
 }
@@ -173,7 +173,7 @@ ErrCode MockAppAccountStub::GetOAuthToken(
 ErrCode MockAppAccountStub::SetOAuthToken(
     const std::string &name, const std::string &authType, const std::string &token)
 {
-    ACCOUNT_LOGI("enter");
+    ACCOUNT_LOGI("mock enter");
 
     return ERR_OK;
 }
@@ -181,7 +181,7 @@ ErrCode MockAppAccountStub::SetOAuthToken(
 ErrCode MockAppAccountStub::DeleteOAuthToken(const std::string &name, const std::string &owner,
     const std::string &authType, const std::string &token)
 {
-    ACCOUNT_LOGI("enter");
+    ACCOUNT_LOGI("mock enter");
 
     return ERR_OK;
 }
@@ -189,7 +189,7 @@ ErrCode MockAppAccountStub::DeleteOAuthToken(const std::string &name, const std:
 ErrCode MockAppAccountStub::SetOAuthTokenVisibility(const std::string &name, const std::string &authType,
     const std::string &bundleName, bool isVisible)
 {
-    ACCOUNT_LOGI("enter");
+    ACCOUNT_LOGI("mock enter");
 
     return ERR_OK;
 }
@@ -197,14 +197,14 @@ ErrCode MockAppAccountStub::SetOAuthTokenVisibility(const std::string &name, con
 ErrCode MockAppAccountStub::CheckOAuthTokenVisibility(const std::string &name, const std::string &authType,
     const std::string &bundleName, bool &isVisible)
 {
-    ACCOUNT_LOGI("enter");
+    ACCOUNT_LOGI("mock enter");
 
     return ERR_OK;
 }
 
 ErrCode MockAppAccountStub::GetAuthenticatorInfo(const std::string &owner, AuthenticatorInfo &authenticator)
 {
-    ACCOUNT_LOGI("enter");
+    ACCOUNT_LOGI("mock enter");
 
     return ERR_OK;
 }
@@ -212,7 +212,7 @@ ErrCode MockAppAccountStub::GetAuthenticatorInfo(const std::string &owner, Authe
 ErrCode MockAppAccountStub::GetAllOAuthTokens(const std::string &name, const std::string &owner,
     std::vector<OAuthTokenInfo> &tokenInfos)
 {
-    ACCOUNT_LOGI("enter");
+    ACCOUNT_LOGI("mock enter");
 
     return ERR_OK;
 }
@@ -220,28 +220,28 @@ ErrCode MockAppAccountStub::GetAllOAuthTokens(const std::string &name, const std
 ErrCode MockAppAccountStub::GetOAuthList(const std::string &name, const std::string &authType,
     std::set<std::string> &oauthList)
 {
-    ACCOUNT_LOGI("enter");
+    ACCOUNT_LOGI("mock enter");
 
     return ERR_OK;
 }
 
 ErrCode MockAppAccountStub::GetAuthenticatorCallback(const std::string &sessionId, sptr<IRemoteObject> &callback)
 {
-    ACCOUNT_LOGI("enter");
+    ACCOUNT_LOGI("mock enter");
 
     return ERR_OK;
 }
 
 ErrCode MockAppAccountStub::GetAllAccounts(const std::string &owner, std::vector<AppAccountInfo> &appAccounts)
 {
-    ACCOUNT_LOGI("enter");
+    ACCOUNT_LOGI("mock enter");
 
     return ERR_OK;
 }
 
 ErrCode MockAppAccountStub::GetAllAccessibleAccounts(std::vector<AppAccountInfo> &appAccounts)
 {
-    ACCOUNT_LOGI("enter");
+    ACCOUNT_LOGI("mock enter");
 
     return ERR_OK;
 }
@@ -249,20 +249,20 @@ ErrCode MockAppAccountStub::GetAllAccessibleAccounts(std::vector<AppAccountInfo>
 ErrCode MockAppAccountStub::SubscribeAppAccount(
     const AppAccountSubscribeInfo &subscribeInfo, const sptr<IRemoteObject> &eventListener)
 {
-    ACCOUNT_LOGI("enter");
+    ACCOUNT_LOGI("mock enter");
 
     std::vector<std::string> owners;
     ErrCode result = subscribeInfo.GetOwners(owners);
 
-    ACCOUNT_LOGI("result = %{public}d", result);
+    ACCOUNT_LOGI("mock result = %{public}d", result);
     if (result != ERR_OK) {
-        ACCOUNT_LOGE("failed to get owners");
+        ACCOUNT_LOGE("mock failed to get owners");
         return ERR_APPACCOUNT_SERVICE_GET_OWNERS;
     }
 
-    ACCOUNT_LOGI("owners.size() = %{public}zu", owners.size());
+    ACCOUNT_LOGI("mock owners.size() = %{public}zu", owners.size());
     if (owners.size() == 0) {
-        ACCOUNT_LOGE("owners are empty");
+        ACCOUNT_LOGE("mock owners are empty");
         return ERR_APPACCOUNT_SERVICE_OWNERS_ARE_EMPTY;
     }
 
@@ -271,7 +271,7 @@ ErrCode MockAppAccountStub::SubscribeAppAccount(
 
 ErrCode MockAppAccountStub::UnsubscribeAppAccount(const sptr<IRemoteObject> &eventListener)
 {
-    ACCOUNT_LOGI("enter");
+    ACCOUNT_LOGI("mock enter");
 
     return ERR_OK;
 }

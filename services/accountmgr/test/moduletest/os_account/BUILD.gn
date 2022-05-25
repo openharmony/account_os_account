@@ -19,6 +19,7 @@ module_output_path = "os_account/accountmgrservice"
 
 config("os_account_manager_service_test_config") {
   include_dirs = [
+    "${services_path}/accountmgr/test/mock/common",
     "${services_path}/accountmgr/test/mock/os_account",
     "${services_path}/accountmgr/include",
     "${services_path}/accountmgr/include/osaccount",
@@ -37,7 +38,7 @@ ohos_moduletest("os_account_manager_service_module_test") {
 
   sources = [ "os_account_manager_service_module_test.cpp" ]
   sources += [
-    "${services_path}/accountmgr/test/mock/os_account/bundle_mgr_client.cpp",
+    "${services_path}/accountmgr/test/mock/common/bundle_manager_adapter.cpp",
     "${services_path}/accountmgr/test/mock/os_account/os_account_interface.cpp",
     "${services_path}/accountmgr/test/mock/os_account/permission_kit.cpp",
   ]
@@ -83,7 +84,7 @@ ohos_moduletest("os_account_manager_service_create_os_account_test") {
 
   sources = [ "os_account_manager_service_create_os_account_test.cpp" ]
   sources += [
-    "${services_path}/accountmgr/test/mock/os_account/bundle_mgr_client.cpp",
+    "${services_path}/accountmgr/test/mock/common/bundle_manager_adapter.cpp",
     "${services_path}/accountmgr/test/mock/os_account/os_account_interface.cpp",
     "${services_path}/accountmgr/test/mock/os_account/permission_kit.cpp",
   ]
@@ -129,7 +130,7 @@ ohos_moduletest("os_account_manager_service_subscribe_module_test") {
 
   sources = [ "os_account_manager_service_subscribe_module_test.cpp" ]
   sources += [
-    "${services_path}/accountmgr/test/mock/os_account/bundle_mgr_client.cpp",
+    "${services_path}/accountmgr/test/mock/common/bundle_manager_adapter.cpp",
     "${services_path}/accountmgr/test/mock/os_account/os_account_interface.cpp",
     "${services_path}/accountmgr/test/mock/os_account/permission_kit.cpp",
   ]

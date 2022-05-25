@@ -40,7 +40,6 @@ OsAccountManagerService::OsAccountManagerService()
 {
     innerManager_ = DelayedSingleton<IInnerOsAccountManager>::GetInstance();
     permissionManagerPtr_ = DelayedSingleton<AccountPermissionManager>::GetInstance();
-    bundleManagerPtr_ = DelayedSingleton<AccountBundleManager>::GetInstance();
 }
 OsAccountManagerService::~OsAccountManagerService()
 {}

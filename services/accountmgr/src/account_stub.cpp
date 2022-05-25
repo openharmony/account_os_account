@@ -22,14 +22,13 @@
 #include "account_info.h"
 #include "account_log_wrapper.h"
 #include "account_mgr_service.h"
-#include "bundlemgr/bundle_mgr_interface.h"
+#include "bundle_manager_adapter.h"
 #include "hisysevent_adapter.h"
 #include "if_system_ability_manager.h"
 #include "ipc_skeleton.h"
 #include "iservice_registry.h"
 #include "ohos_account_kits.h"
 #include "string_ex.h"
-#include "system_ability_definition.h"
 
 namespace OHOS {
 namespace AccountSA {
@@ -40,34 +39,6 @@ const std::string PERMISSION_MANAGE_USERS = "ohos.permission.MANAGE_LOCAL_ACCOUN
 const std::string PERMISSION_DISTRIBUTED_DATASYNC = "ohos.permission.DISTRIBUTED_DATASYNC";
 constexpr std::int32_t ROOT_UID = 0;
 constexpr std::int32_t SYSTEM_UID = 1000;
-
-std::int32_t GetBundleNamesForUid(std::int32_t uid, std::string &bundleName)
-{
-    sptr<ISystemAbilityManager> systemMgr = SystemAbilityManagerClient::GetInstance().GetSystemAbilityManager();
-    if (systemMgr == nullptr) {
-        ACCOUNT_LOGE("Fail to get system ability mgr");
-        return ERR_ACCOUNT_ZIDL_ACCOUNT_STUB_ERROR;
-    }
-
-    sptr<IRemoteObject> remoteObject = systemMgr->GetSystemAbility(BUNDLE_MGR_SERVICE_SYS_ABILITY_ID);
-    if (remoteObject == nullptr) {
-        ACCOUNT_LOGE("Fail to get bundle manager proxy");
-        return ERR_ACCOUNT_ZIDL_ACCOUNT_STUB_ERROR;
-    }
-
-    sptr<OHOS::AppExecFwk::IBundleMgr> bundleMgrProxy = iface_cast<OHOS::AppExecFwk::IBundleMgr>(remoteObject);
-    if (bundleMgrProxy == nullptr) {
-        ACCOUNT_LOGE("Bundle mgr proxy is nullptr");
-        return ERR_ACCOUNT_ZIDL_ACCOUNT_STUB_ERROR;
-    }
-
-    if (!bundleMgrProxy->GetBundleNameForUid(uid, bundleName)) {
-        ACCOUNT_LOGE("Get bundle name failed");
-        return ERR_ACCOUNT_ZIDL_ACCOUNT_STUB_ERROR;
-    }
-
-    return ERR_OK;
-}
 }  // namespace
 const std::map<std::uint32_t, AccountStubFunc> AccountStub::stubFuncMap_{
     std::make_pair(UPDATE_OHOS_ACCOUNT_INFO, &AccountStub::CmdUpdateOhosAccountInfo),
@@ -292,7 +263,7 @@ bool AccountStub::CheckCallerForTrustList()
 {
     std::string bundleName;
     std::int32_t uid = IPCSkeleton::GetCallingUid();
-    if (GetBundleNamesForUid(uid, bundleName) != ERR_OK) {
+    if (!BundleManagerAdapter::GetInstance()->GetBundleNameForUid(uid, bundleName)) {
         return false;
     }
 
