@@ -121,6 +121,7 @@ void SubscriberPtr::OnAccountsChanged(const std::vector<AppAccountInfo> &account
 
     if (subscriberAccountsWorker == nullptr) {
         ACCOUNT_LOGI("SubscriberAccountsWorker is null");
+        delete work;
         return;
     }
 
@@ -219,7 +220,7 @@ void AppAccountManagerCallback::OnResult(int32_t resultCode, const AAFwk::Want &
         ACCOUNT_LOGE("work is null");
         return;
     }
-    AuthenticatorCallbackParam *param = new AuthenticatorCallbackParam {
+    AuthenticatorCallbackParam *param = new (std::nothrow) AuthenticatorCallbackParam {
         .env = env_,
         .resultCode = resultCode,
         .result = result.GetParams(),
@@ -244,7 +245,7 @@ void AppAccountManagerCallback::OnRequestRedirected(AAFwk::Want &request)
         ACCOUNT_LOGI("work is null");
         return;
     }
-    AuthenticatorCallbackParam *param = new AuthenticatorCallbackParam {
+    AuthenticatorCallbackParam *param = new (std::nothrow) AuthenticatorCallbackParam {
         .env = env_,
         .request = request,
         .resultRef = resultRef_,
@@ -504,7 +505,7 @@ void ParseContextForAuthenticate(napi_env env, napi_callback_info cbInfo, OAuthA
         auto abilityInfo = ability->GetAbilityInfo();
         asyncContext->options.SetParam(Constants::KEY_CALLER_ABILITY_NAME, abilityInfo->name);
     }
-    asyncContext->appAccountMgrCb = new AppAccountManagerCallback();
+    asyncContext->appAccountMgrCb = new (std::nothrow) AppAccountManagerCallback();
     if (asyncContext->appAccountMgrCb == nullptr) {
         ACCOUNT_LOGI("appAccountMgrCb is nullptr");
         return;
