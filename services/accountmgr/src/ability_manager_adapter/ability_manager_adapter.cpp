@@ -82,7 +82,7 @@ void AbilityManagerAdapter::Connect()
         return;
     }
 
-    deathRecipient_ = sptr<IRemoteObject::DeathRecipient>(new AbilityMgrDeathRecipient());
+    deathRecipient_ = sptr<IRemoteObject::DeathRecipient>(new (std::nothrow) AbilityMgrDeathRecipient());
     if (deathRecipient_ == nullptr) {
         ACCOUNT_LOGE("Failed to create AbilityMgrDeathRecipient!");
         return;

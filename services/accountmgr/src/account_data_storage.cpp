@@ -111,7 +111,7 @@ ErrCode AccountDataStorage::LoadAllData(std::map<std::string, std::shared_ptr<IA
         return OHOS::ERR_OSACCOUNT_SERVICE_MANAGER_QUERY_DISTRIBUTE_DATA_ERROR;
     }
 
-    OHOS::DistributedKv::Status status;
+    OHOS::DistributedKv::Status status = OHOS::DistributedKv::Status::SUCCESS;
     std::vector<OHOS::DistributedKv::Entry> allEntries;
     TryTwice([this, &status, &allEntries] {
         status = GetEntries("", allEntries);
@@ -279,7 +279,7 @@ ErrCode AccountDataStorage::LoadDataByLocalFuzzyQuery(
         return OHOS::ERR_OSACCOUNT_SERVICE_MANAGER_QUERY_DISTRIBUTE_DATA_ERROR;
     }
 
-    OHOS::DistributedKv::Status status;
+    OHOS::DistributedKv::Status status = OHOS::DistributedKv::Status::SUCCESS;
     std::vector<OHOS::DistributedKv::Entry> allEntries;
     TryTwice([this, &status, &allEntries, subId] {
         status = GetEntries(subId, allEntries);
