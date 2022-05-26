@@ -1335,6 +1335,7 @@ void SubscriberPtr::OnAccountsChanged(const int &id_)
 
     if (subscriberOAWorker == nullptr) {
         ACCOUNT_LOGI("SubscriberAccountsWorker is null");
+        delete work;
         return;
     }
 
