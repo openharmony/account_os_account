@@ -32,12 +32,26 @@
 
 namespace OHOS {
 namespace AccountSA {
-const std::string DEVICE_OWNER_DIR = "/data/system/users/0/";
-
-IAccountContext *IAccountContext::instance_ = nullptr;
-
+namespace {
 const bool REGISTER_RESULT =
     SystemAbility::MakeAndRegisterAbility(&DelayedRefSingleton<AccountMgrService>::GetInstance());
+const std::string DEVICE_OWNER_DIR = "/data/system/users/0/";
+void CreateDeviceDir()
+{
+    if (!OHOS::FileExists(DEVICE_OWNER_DIR)) {
+        ACCOUNT_LOGI("Device owner dir not exist, create!");
+        if (!OHOS::ForceCreateDirectory(DEVICE_OWNER_DIR)) {
+            ACCOUNT_LOGW("Create device owner dir failure!");
+        } else {
+            if (!OHOS::ChangeModeDirectory(DEVICE_OWNER_DIR, S_IRWXU)) {
+                ReportFileOperationFail(-1, "ChangeModeDirectory", DEVICE_OWNER_DIR);
+                ACCOUNT_LOGW("failed to create dir, path = %{public}s", DEVICE_OWNER_DIR.c_str());
+            }
+        }
+    }
+}
+}
+IAccountContext *IAccountContext::instance_ = nullptr;
 
 AccountMgrService::AccountMgrService() : SystemAbility(SUBSYS_ACCOUNT_SYS_ABILITY_ID_BEGIN, true)
 {
@@ -142,17 +156,7 @@ bool AccountMgrService::Init()
         return false;
     }
 
-    if (!OHOS::FileExists(DEVICE_OWNER_DIR)) {
-        ACCOUNT_LOGI("Device owner dir not exist, create!");
-        if (!OHOS::ForceCreateDirectory(DEVICE_OWNER_DIR)) {
-            ACCOUNT_LOGW("Create device owner dir failure!");
-        } else {
-            if (!OHOS::ChangeModeDirectory(DEVICE_OWNER_DIR, S_IRWXU)) {
-                ReportFileOperationFail(-1, "ChangeModeDirectory", DEVICE_OWNER_DIR);
-                ACCOUNT_LOGW("failed to create dir, path = %{public}s", DEVICE_OWNER_DIR.c_str());
-            }
-        }
-    }
+    CreateDeviceDir();
 
     bool ret = false;
     if (!registerToService_) {
@@ -175,9 +179,14 @@ bool AccountMgrService::Init()
 
     IAccountContext::SetInstance(this);
     auto appAccountManagerService = new (std::nothrow) AppAccountManagerService();
+    if (appAccountManagerService == nullptr) {
+        ACCOUNT_LOGE("memory alloc failed for appAccountManagerService!");
+        return false;
+    }
     osAccountManagerServiceOrg_ = new (std::nothrow) OsAccountManagerService();
-    if (appAccountManagerService == nullptr || osAccountManagerServiceOrg_ == nullptr) {
-        ACCOUNT_LOGE("memory alloc failed!");
+    if (osAccountManagerServiceOrg_ == nullptr) {
+        ACCOUNT_LOGE("memory alloc failed for osAccountManagerServiceOrg_!");
+        delete appAccountManagerService;
         return false;
     }
     dumpHelper_ = std::make_unique<AccountDumpHelper>(ohosAccountMgr_, osAccountManagerServiceOrg_);
