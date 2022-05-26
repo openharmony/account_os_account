@@ -25,7 +25,8 @@
 namespace OHOS {
 namespace AccountSA {
 AppAccountSubscribeManager::AppAccountSubscribeManager()
-    : subscribeDeathRecipient_(sptr<IRemoteObject::DeathRecipient>(new AppAccountSubscribeDeathRecipient()))
+    : subscribeDeathRecipient_(sptr<IRemoteObject::DeathRecipient>(
+        new (std::nothrow) AppAccountSubscribeDeathRecipient()))
 {
     ACCOUNT_LOGI("enter");
 }
