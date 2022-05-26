@@ -1454,6 +1454,7 @@ napi_value NapiAppAccount::Subscribe(napi_env env, napi_callback_info cbInfo)
     asyncContextForOn->subscriber = std::make_shared<SubscriberPtr>(subscribeInfo);
     if (asyncContextForOn->subscriber == nullptr) {
         ACCOUNT_LOGI("fail to create subscriber");
+        delete asyncContextForOn;
         return NapiGetNull(env);
     }
     asyncContextForOn->callbackRef = callback;

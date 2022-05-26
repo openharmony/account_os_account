@@ -175,7 +175,7 @@ ErrCode BundleManagerAdapter::Connect()
             return ERR_ACCOUNT_COMMON_CONNECT_BUNDLE_MANAGER_SERVICE_ERROR;
         }
 
-        deathRecipient_ = sptr<IRemoteObject::DeathRecipient>(new BundleMgrDeathRecipient());
+        deathRecipient_ = sptr<IRemoteObject::DeathRecipient>(new (std::nothrow) BundleMgrDeathRecipient());
         if (deathRecipient_ == nullptr) {
             ACCOUNT_LOGE("Failed to create BundleMgrDeathRecipient!");
             return ERR_ACCOUNT_COMMON_CONNECT_BUNDLE_MANAGER_SERVICE_ERROR;
