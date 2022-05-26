@@ -85,7 +85,7 @@ public:
 sptr<IRemoteObject> AppAccountTest::MakeMockObjects(void) const
 {
     // mock a stub
-    auto mockStub = sptr<IRemoteObject>(new MockAppAccountStub());
+    auto mockStub = sptr<IRemoteObject>(new (std::nothrow) MockAppAccountStub());
 
     return mockStub;
 }
