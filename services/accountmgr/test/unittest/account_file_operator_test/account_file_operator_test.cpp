@@ -22,6 +22,11 @@
 
 namespace OHOS {
 namespace AccountSA {
+namespace {
+const std::string TEST_DIR_1 = "/data/system/users/1";
+const std::string TEST_FILE_1 = "1.txt";
+const std::string TEST_DIR_2 = "/data/system/users/2";
+}
 using namespace testing::ext;
 using namespace OHOS::AccountSA;
 using namespace OHOS;
@@ -82,8 +87,8 @@ HWTEST_F(AccountFileOperatorTest, AccountFileOperatorTest002, TestSize.Level0)
  */
 HWTEST_F(AccountFileOperatorTest, AccountFileOperatorTest003, TestSize.Level0)
 {
-    EXPECT_EQ(osAccountFileOperator_.CreateDir("/data/system/users/0"), ERR_OK);
-    EXPECT_EQ(osAccountFileOperator_.CreateDir("/data/system/users/100/file/instr"), ERR_OK);
+    EXPECT_EQ(osAccountFileOperator_.CreateDir(TEST_DIR_1), ERR_OK);
+    EXPECT_EQ(osAccountFileOperator_.DeleteDirOrFile(TEST_DIR_1), ERR_OK);
 }
 
 /**
@@ -94,11 +99,12 @@ HWTEST_F(AccountFileOperatorTest, AccountFileOperatorTest003, TestSize.Level0)
  */
 HWTEST_F(AccountFileOperatorTest, AccountFileOperatorTest004, TestSize.Level0)
 {
-    osAccountFileOperator_.CreateDir("/data/system/users/1");
-    EXPECT_EQ(osAccountFileOperator_.InputFileByPathAndContent("/data/system/users/1/1.txt", "file"), ERR_OK);
+    EXPECT_EQ(osAccountFileOperator_.CreateDir(TEST_DIR_1), ERR_OK);
+    EXPECT_EQ(osAccountFileOperator_.InputFileByPathAndContent(TEST_DIR_1 + "/" + TEST_FILE_1, "file"), ERR_OK);
     std::string str;
-    EXPECT_EQ(osAccountFileOperator_.GetFileContentByPath("/data/system/users/1/1.txt", str), ERR_OK);
+    EXPECT_EQ(osAccountFileOperator_.GetFileContentByPath(TEST_DIR_1 + "/" + TEST_FILE_1, str), ERR_OK);
     EXPECT_EQ(str, "file");
+    EXPECT_EQ(osAccountFileOperator_.DeleteDirOrFile(TEST_DIR_1), ERR_OK);
 }
 
 /**
@@ -109,9 +115,9 @@ HWTEST_F(AccountFileOperatorTest, AccountFileOperatorTest004, TestSize.Level0)
  */
 HWTEST_F(AccountFileOperatorTest, AccountFileOperatorTest005, TestSize.Level0)
 {
-    osAccountFileOperator_.CreateDir("/data/system/users/2");
-    osAccountFileOperator_.InputFileByPathAndContent("/data/system/users/2/1.txt", "file");
-    EXPECT_EQ(osAccountFileOperator_.DeleteDirOrFile("/data/system/users/2"), ERR_OK);
+    EXPECT_EQ(osAccountFileOperator_.CreateDir(TEST_DIR_2), ERR_OK);
+    EXPECT_EQ(osAccountFileOperator_.InputFileByPathAndContent(TEST_DIR_2 + "/" + TEST_FILE_1, "file"), ERR_OK);
+    EXPECT_EQ(osAccountFileOperator_.DeleteDirOrFile(TEST_DIR_2), ERR_OK);
 }
 
 /**
