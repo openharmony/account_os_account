@@ -12,9 +12,10 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
+#include <cerrno>
 #include <gtest/gtest.h>
 #include <thread>
+#include <unistd.h>
 #include "account_error_no.h"
 #include "account_log_wrapper.h"
 #include "os_account_constants.h"
@@ -36,6 +37,8 @@ const std::string STRING_EMPTY = "";
 const std::string STRING_NAME = "name";
 const std::string STRING_TEST_NAME = "test";
 const OsAccountType INT_TEST_TYPE = OsAccountType::GUEST;
+const uid_t ACCOUNT_UID = 3058;
+const gid_t ACCOUNT_GID = 3058;
 
 const std::vector<std::string> CONSTANTS_VECTOR {
     "constraint.print",
@@ -311,6 +314,14 @@ HWTEST_F(OsAccountManagerServiceModuleTest, OsAccountManagerServiceModuleTest007
 
     // restore file content
     g_accountFileOperator->InputFileByPathAndContent(Constants::ACCOUNT_LIST_FILE_JSON_PATH, fileContext);
+
+    // recover permission
+    if (chmod(Constants::ACCOUNT_LIST_FILE_JSON_PATH.c_str(), S_IRUSR | S_IWUSR) != 0) {
+        ACCOUNT_LOGE("OsAccountManagerModuleTest006, chmod failed! errno %{public}d.", errno);
+    }
+    if (chown(Constants::ACCOUNT_LIST_FILE_JSON_PATH.c_str(), ACCOUNT_UID, ACCOUNT_GID) != 0) {
+        ACCOUNT_LOGE("OsAccountManagerModuleTest006, chown failed! errno %{public}d.", errno);
+    }
 }
 
 /**
