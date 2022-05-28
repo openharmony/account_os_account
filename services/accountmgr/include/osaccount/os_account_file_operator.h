@@ -13,8 +13,8 @@
  * limitations under the License.
  */
 
-#ifndef OS_ACCOUNT_SERVICES_ACCOUNTMGR_INCLUDE_OSACCOUNT_IINNER_OS_ACCOUNT_FILE_OPERATOR_H
-#define OS_ACCOUNT_SERVICES_ACCOUNTMGR_INCLUDE_OSACCOUNT_IINNER_OS_ACCOUNT_FILE_OPERATOR_H
+#ifndef OS_ACCOUNT_SERVICES_ACCOUNTMGR_INCLUDE_OSACCOUNT_INNER_OS_ACCOUNT_FILE_OPERATOR_H
+#define OS_ACCOUNT_SERVICES_ACCOUNTMGR_INCLUDE_OSACCOUNT_INNER_OS_ACCOUNT_FILE_OPERATOR_H
 
 #include <memory>
 #include "account_file_operator.h"
@@ -27,7 +27,7 @@ public:
     OsAccountFileOperator();
     ~OsAccountFileOperator();
     void Init();
-    ErrCode GetConstraintsByType(const int type, std::vector<std::string> &constratins);
+    ErrCode GetConstraintsByType(const int type, std::vector<std::string> &constraints);
     ErrCode GetIsMultiOsAccountEnable(bool &isMultiOsAccountEnable);
     ErrCode CheckConstraintsList(const std::vector<std::string> &constraints,
         bool &isExists, bool &isOverSize);
@@ -35,10 +35,10 @@ public:
 private:
     std::shared_ptr<AccountFileOperator> accountFileOperator_;
     Json constraintsConfig_;
-    std::vector<std::string> constratinsList_;
+    std::vector<std::string> constraintList_;
     bool isAlreadyInit_;
 };
 }  // namespace AccountSA
 }  // namespace OHOS
 
-#endif  // OS_ACCOUNT_SERVICES_ACCOUNTMGR_INCLUDE_OSACCOUNT_IINNER_OS_ACCOUNT_FILE_OPERATOR_H
+#endif  // OS_ACCOUNT_SERVICES_ACCOUNTMGR_INCLUDE_OSACCOUNT_INNER_OS_ACCOUNT_FILE_OPERATOR_H

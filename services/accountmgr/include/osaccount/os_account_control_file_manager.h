@@ -31,7 +31,7 @@ public:
     void Init() override;
     ErrCode GetOsAccountList(std::vector<OsAccountInfo> &osAccountList) override;
     ErrCode GetOsAccountInfoById(const int id, OsAccountInfo &osAccountInfo) override;
-    ErrCode GetConstraintsByType(const OsAccountType type, std::vector<std::string> &constratins) override;
+    ErrCode GetConstraintsByType(const OsAccountType type, std::vector<std::string> &constraints) override;
     ErrCode InsertOsAccount(OsAccountInfo &osAccountInfo) override;
     ErrCode DelOsAccount(const int id) override;
     ErrCode UpdateOsAccount(OsAccountInfo &osAccountInfo) override;
