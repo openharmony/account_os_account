@@ -429,8 +429,8 @@ HWTEST_F(OsAccountManagerModuleTest, OsAccountManagerModuleTest014, TestSize.Lev
         ERR_OK);
     OsAccountInfo osAccountInfoTwo;
     EXPECT_EQ(OsAccountManager::QueryOsAccountById(osAccountInfoOne.GetLocalId(), osAccountInfoTwo), ERR_OK);
-    std::vector<std::string> contstans = osAccountInfoTwo.GetConstraints();
-    for (auto it = contstans.begin(); it != contstans.end(); it++) {
+    std::vector<std::string> constraints = osAccountInfoTwo.GetConstraints();
+    for (auto it = constraints.begin(); it != constraints.end(); it++) {
         GTEST_LOG_(INFO) << *it;
     }
     EXPECT_EQ(OsAccountManager::RemoveOsAccount(osAccountInfoOne.GetLocalId()), ERR_OK);
@@ -452,8 +452,8 @@ HWTEST_F(OsAccountManagerModuleTest, OsAccountManagerModuleTest015, TestSize.Lev
         ERR_OK);
     OsAccountInfo osAccountInfoTwo;
     EXPECT_EQ(OsAccountManager::QueryOsAccountById(osAccountInfoOne.GetLocalId(), osAccountInfoTwo), ERR_OK);
-    std::vector<std::string> contstans = osAccountInfoTwo.GetConstraints();
-    for (auto it = contstans.begin(); it != contstans.end(); it++) {
+    std::vector<std::string> constraints = osAccountInfoTwo.GetConstraints();
+    for (auto it = constraints.begin(); it != constraints.end(); it++) {
         GTEST_LOG_(INFO) << *it;
     }
     EXPECT_EQ(OsAccountManager::RemoveOsAccount(osAccountInfoOne.GetLocalId()), ERR_OK);

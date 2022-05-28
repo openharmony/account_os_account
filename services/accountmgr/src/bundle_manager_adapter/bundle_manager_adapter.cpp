@@ -171,7 +171,7 @@ ErrCode BundleManagerAdapter::Connect()
 
         sptr<IRemoteObject> remoteObj = systemAbilityManager->GetSystemAbility(BUNDLE_MGR_SERVICE_SYS_ABILITY_ID);
         if (remoteObj == nullptr) {
-            ACCOUNT_LOGE("Fail to connect ability manager service.");
+            ACCOUNT_LOGE("Fail to connect bundle manager service.");
             return ERR_ACCOUNT_COMMON_CONNECT_BUNDLE_MANAGER_SERVICE_ERROR;
         }
 

@@ -13,7 +13,7 @@
  * limitations under the License.
  */
 
-#include "app_account_common_event_oberserver.h"
+#include "app_account_common_event_observer.h"
 
 #include "account_log_wrapper.h"
 #include "bundle_constants.h"
@@ -29,7 +29,7 @@ using namespace OHOS::EventFwk;
 namespace OHOS {
 namespace AccountSA {
 #ifdef HAS_CES_PART
-AppAccountCommonEventOberserver::AppAccountCommonEventOberserver(const CommonEventCallback &callback)
+AppAccountCommonEventObserver::AppAccountCommonEventObserver(const CommonEventCallback &callback)
     : callback_(callback)
 {
     ACCOUNT_LOGI("enter");
@@ -40,19 +40,19 @@ AppAccountCommonEventOberserver::AppAccountCommonEventOberserver(const CommonEve
 
     CommonEventSubscribeInfo subscribeInfo(matchingSkills);
     subscriber_ = std::make_shared<AppAccountCommonEventSubscriber>(
-        subscribeInfo, std::bind(&AppAccountCommonEventOberserver::OnReceiveEvent, this, std::placeholders::_1));
+        subscribeInfo, std::bind(&AppAccountCommonEventObserver::OnReceiveEvent, this, std::placeholders::_1));
 
     if (GetEventHandler() != ERR_OK) {
         ACCOUNT_LOGE("failed to get event handler");
     } else {
-        Callback callbackTemp = std::bind(&AppAccountCommonEventOberserver::SubscribeCommonEvent, this);
+        Callback callbackTemp = std::bind(&AppAccountCommonEventObserver::SubscribeCommonEvent, this);
         handler_->PostTask(callbackTemp, DELAY_FOR_COMMON_EVENT_SERVICE);
     }
 
     ACCOUNT_LOGI("end");
 }
 
-AppAccountCommonEventOberserver::~AppAccountCommonEventOberserver()
+AppAccountCommonEventObserver::~AppAccountCommonEventObserver()
 {
     ACCOUNT_LOGI("enter");
 
@@ -63,7 +63,7 @@ AppAccountCommonEventOberserver::~AppAccountCommonEventOberserver()
     CommonEventManager::UnSubscribeCommonEvent(subscriber_);
 }
 
-ErrCode AppAccountCommonEventOberserver::GetEventHandler(void)
+ErrCode AppAccountCommonEventObserver::GetEventHandler(void)
 {
     ACCOUNT_LOGI("enter");
 
@@ -78,7 +78,7 @@ ErrCode AppAccountCommonEventOberserver::GetEventHandler(void)
     return ERR_OK;
 }
 
-void AppAccountCommonEventOberserver::SubscribeCommonEvent(void)
+void AppAccountCommonEventObserver::SubscribeCommonEvent(void)
 {
     ACCOUNT_LOGI("enter");
 
@@ -91,7 +91,7 @@ void AppAccountCommonEventOberserver::SubscribeCommonEvent(void)
         if (counter_ == MAX_TRY_TIMES) {
             ACCOUNT_LOGE("failed to subscribe common event and tried %{public}d times", counter_);
         } else {
-            Callback callback = std::bind(&AppAccountCommonEventOberserver::SubscribeCommonEvent, this);
+            Callback callback = std::bind(&AppAccountCommonEventObserver::SubscribeCommonEvent, this);
             handler_->PostTask(callback, DELAY_FOR_TIME_INTERVAL);
         }
     }
@@ -99,7 +99,7 @@ void AppAccountCommonEventOberserver::SubscribeCommonEvent(void)
     ACCOUNT_LOGI("end, counter_ = %{public}d", counter_);
 }
 
-void AppAccountCommonEventOberserver::OnReceiveEvent(const CommonEventData &data)
+void AppAccountCommonEventObserver::OnReceiveEvent(const CommonEventData &data)
 {
     ACCOUNT_LOGI("enter");
 

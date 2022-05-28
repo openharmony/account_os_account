@@ -35,7 +35,7 @@ const std::string USER_INFO_FILE_NAME = "account_info.json";
 
 // distributed database
 const std::string APP_ID = "os_account_mgr_service";
-const bool SYNC_OS_ACCOUNT_DATABSE = true;
+const bool SYNC_OS_ACCOUNT_DATABASE = true;
 const std::uint32_t DEVICE_UUID_LENGTH = 65;
 
 // uid judgment
@@ -67,8 +67,8 @@ const bool IS_SERIAL_NUMBER_FULL_INIT_VALUE = false;
 const int64_t TIME_WAIT_TIME_OUT = 5;
 const std::int32_t WAIT_ONE_TIME = 1000;
 
-// type temeplate
-const std::string USER_CONSTRATINTS_TEMPLATE = "UserConstraintsTemplate";
+// type template
+const std::string USER_CONSTRAINTS_TEMPLATE = "UserConstraintsTemplate";
 const std::string TYPE_LIST = "TypeList";
 const std::string ACCOUNT_LIST = "AccountList";
 const std::string COUNT_ACCOUNT_NUM = "CountAccountNum";
@@ -76,7 +76,7 @@ const std::string MAX_ALLOW_CREATE_ACCOUNT_ID = "MaxAllowCreateAccountID";
 const std::string SERIAL_NUMBER_NUM = "SerialNumber";
 const std::string IS_MULTI_OS_ACCOUNT_ENABLE = "IsMultiOsAccountEnable";
 const std::string IS_SERIAL_NUMBER_FULL = "isSerialNumberFull";
-const std::string CONSTANS_LIST = "constraints";
+const std::string CONSTRAINTS_LIST = "constraints";
 const std::string IS_ALLOWED_CREATE_ADMIN = "IsAllowedCreateAdmin";
 
 // start type

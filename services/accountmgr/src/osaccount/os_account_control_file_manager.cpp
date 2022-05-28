@@ -117,7 +117,7 @@ void OsAccountControlFileManager::RecoverAccountListJsonFile()
         std::string curAccountIDStr = std::to_string(accountID);
         for (size_t i = 0; i < accounts.size(); ++i) {
             if (accounts[i] == curAccountIDStr) {
-                ACCOUNT_LOGE("repeate account id %{public}s detected in %{public}s.", curAccountIDStr.c_str(),
+                ACCOUNT_LOGE("repeated account id %{public}s detected in %{public}s.", curAccountIDStr.c_str(),
                     Constants::USER_INFO_BASE.c_str());
                 sameAccountID = true;
                 break;
@@ -170,7 +170,7 @@ ErrCode OsAccountControlFileManager::GetOsAccountInfoById(const int id, OsAccoun
     std::string path = Constants::USER_INFO_BASE + Constants::PATH_SEPARATOR + std::to_string(id) +
                        Constants::PATH_SEPARATOR + Constants::USER_INFO_FILE_NAME;
     if (!accountFileOperator_->IsExistFile(path)) {
-        ACCOUNT_LOGE("OsAccountControlFileManager GetOsAccountInfoById file donnot exists err");
+        ACCOUNT_LOGE("OsAccountControlFileManager GetOsAccountInfoById file does not exist err");
         return ERR_OSACCOUNT_SERVICE_CONTROL_SELECT_OS_ACCOUNT_ERROR;
     }
     std::string accountInfoStr;
@@ -184,10 +184,10 @@ ErrCode OsAccountControlFileManager::GetOsAccountInfoById(const int id, OsAccoun
 }
 
 ErrCode OsAccountControlFileManager::GetConstraintsByType(
-    const OsAccountType type, std::vector<std::string> &constratins)
+    const OsAccountType type, std::vector<std::string> &constraints)
 {
     int typeInit = static_cast<int>(type);
-    return osAccountFileOperator_->GetConstraintsByType(typeInit, constratins);
+    return osAccountFileOperator_->GetConstraintsByType(typeInit, constraints);
 }
 
 ErrCode OsAccountControlFileManager::UpdateAccountList(const std::string& idStr, bool isAdd)

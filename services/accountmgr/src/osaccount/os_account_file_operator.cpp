@@ -24,7 +24,7 @@ OsAccountFileOperator::OsAccountFileOperator()
 {
     accountFileOperator_ = std::make_shared<AccountFileOperator>();
     isAlreadyInit_ = false;
-    constratinsList_.clear();
+    constraintList_.clear();
 }
 OsAccountFileOperator::~OsAccountFileOperator()
 {}
@@ -38,19 +38,19 @@ void OsAccountFileOperator::Init()
     } else {
         isAlreadyInit_ = false;
     }
-    std::string constratinsListColloctingStr;
+    std::string constraintListCollectingStr;
     if (accountFileOperator_->IsExistFile(Constants::CONSTRAINTS_LIST_JSON_PATH)) {
-        accountFileOperator_->GetFileContentByPath(Constants::CONSTRAINTS_LIST_JSON_PATH, constratinsListColloctingStr);
-        Json constratinsListCollocting = Json::parse(constratinsListColloctingStr, nullptr, false);
-        OHOS::AccountSA::GetDataByType<std::vector<std::string>>(constratinsListCollocting,
-            constratinsListCollocting.end(),
-            Constants::CONSTANS_LIST,
-            constratinsList_,
+        accountFileOperator_->GetFileContentByPath(Constants::CONSTRAINTS_LIST_JSON_PATH, constraintListCollectingStr);
+        Json constraintListCollecting = Json::parse(constraintListCollectingStr, nullptr, false);
+        OHOS::AccountSA::GetDataByType<std::vector<std::string>>(constraintListCollecting,
+            constraintListCollecting.end(),
+            Constants::CONSTRAINTS_LIST,
+            constraintList_,
             OHOS::AccountSA::JsonType::ARRAY);
     }
 }
 
-ErrCode OsAccountFileOperator::GetConstraintsByType(const int type, std::vector<std::string> &constratins)
+ErrCode OsAccountFileOperator::GetConstraintsByType(const int type, std::vector<std::string> &constraints)
 {
     ACCOUNT_LOGI("OsAccountFileOperator GetConstraintsByType Start");
     if (!isAlreadyInit_) {
@@ -66,12 +66,12 @@ ErrCode OsAccountFileOperator::GetConstraintsByType(const int type, std::vector<
     Json typeJson;
     OHOS::AccountSA::GetDataByType<Json>(constraintsConfig_,
         constraintsConfig_.end(),
-        Constants::USER_CONSTRATINTS_TEMPLATE,
+        Constants::USER_CONSTRAINTS_TEMPLATE,
         typeJson,
         OHOS::AccountSA::JsonType::OBJECT);
-    constratins.clear();
+    constraints.clear();
     OHOS::AccountSA::GetDataByType<std::vector<std::string>>(
-        typeJson, typeJson.end(), std::to_string(type), constratins, OHOS::AccountSA::JsonType::ARRAY);
+        typeJson, typeJson.end(), std::to_string(type), constraints, OHOS::AccountSA::JsonType::ARRAY);
     ACCOUNT_LOGI("OsAccountFileOperator GetConstraintsByType End");
     return ERR_OK;
 }
@@ -109,20 +109,20 @@ ErrCode OsAccountFileOperator::CheckConstraintsList(const std::vector<std::strin
 {
     isOverSize = false;
     isExists = true;
-    if (constratinsList_.size() == 0) {
-        ACCOUNT_LOGE("constratinsList_ zero error!");
-        return ERR_OSACCOUNT_SERVICE_OS_FILE_GET_CONSTRATIONS_LITS_ERROR;
+    if (constraintList_.size() == 0) {
+        ACCOUNT_LOGE("constraintList_ zero error!");
+        return ERR_OSACCOUNT_SERVICE_OS_FILE_GET_CONSTRAINTS_LITS_ERROR;
     }
 
-    if (constraints.size() > constratinsList_.size()) {
+    if (constraints.size() > constraintList_.size()) {
         ACCOUNT_LOGE("input constraints list size %{public}zu is larger than %{public}zu.",
-            constraints.size(), constratinsList_.size());
+            constraints.size(), constraintList_.size());
         isOverSize = true;
         return ERR_OK;
     }
 
     for (auto it = constraints.begin(); it != constraints.end(); it++) {
-        if (std::find(constratinsList_.begin(), constratinsList_.end(), *it) == constratinsList_.end()) {
+        if (std::find(constraintList_.begin(), constraintList_.end(), *it) == constraintList_.end()) {
             isExists = false;
             return ERR_OK;
         }

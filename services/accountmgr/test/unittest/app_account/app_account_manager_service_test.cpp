@@ -103,7 +103,7 @@ HWTEST_F(
     std::vector<std::string> owners;
     owners.emplace_back(STRING_OWNER);
 
-    // make subcribe info
+    // make subscribe info
     AppAccountSubscribeInfo subscribeInfo;
     subscribeInfo.SetOwners(owners);
 
