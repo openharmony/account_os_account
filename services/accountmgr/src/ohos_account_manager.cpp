@@ -329,7 +329,7 @@ bool OhosAccountManager::LogoutOhosAccount(const std::string &name, const std::s
 #ifdef HAS_CES_PART
     ret = AccountEventProvider::EventPublish(EventFwk::CommonEventSupport::COMMON_EVENT_HWID_LOGOUT);
 #else // HAS_CES_PART
-    ACCOUNT_LOGI("No commom event part! Publish nothing!");
+    ACCOUNT_LOGI("No common event part! Publish nothing!");
 #endif // HAS_CES_PART
     if (!ret) {
         ACCOUNT_LOGE("publish account logout event failed, callingUserId %{public}d, ohosAccountUid %{public}s.",

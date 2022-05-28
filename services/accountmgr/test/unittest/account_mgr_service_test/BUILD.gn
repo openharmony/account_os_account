@@ -90,7 +90,7 @@ ohos_unittest("account_mgr_test") {
     "${services_path}/accountmgr/src/account_permission_manager.cpp",
     "${services_path}/accountmgr/src/account_state_machine.cpp",
     "${services_path}/accountmgr/src/account_stub.cpp",
-    "${services_path}/accountmgr/src/appaccount/app_account_common_event_oberserver.cpp",
+    "${services_path}/accountmgr/src/appaccount/app_account_common_event_observer.cpp",
     "${services_path}/accountmgr/src/appaccount/app_account_common_event_subscriber.cpp",
     "${services_path}/accountmgr/src/appaccount/app_account_control_manager.cpp",
     "${services_path}/accountmgr/src/appaccount/app_account_data_storage.cpp",

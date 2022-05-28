@@ -324,7 +324,7 @@ ErrCode OsAccountManagerService::SetOsAccountName(const int id, const std::strin
 
     // parameters check
     if (name.size() > Constants::LOCAL_NAME_MAX_SIZE) {
-        ACCOUNT_LOGE("set os account name is out of allowed szie");
+        ACCOUNT_LOGE("set os account name is out of allowed size");
         return ERR_OSACCOUNT_SERVICE_MANAGER_NAME_SIZE_OVERFLOW_ERROR;
     }
     if (name.size() <= 0) {
@@ -623,17 +623,17 @@ ErrCode OsAccountManagerService::QueryActiveOsAccountIds(std::vector<int32_t>& i
     return innerManager_->QueryActiveOsAccountIds(ids);
 }
 
-bool OsAccountManagerService::PermissionCheck(const std::string& permissionName, const std::string& constriantName)
+bool OsAccountManagerService::PermissionCheck(const std::string& permissionName, const std::string& constraintName)
 {
-    // constriants check
+    // constraints check
     int callerUid = IPCSkeleton::GetCallingUid();
-    if (!constriantName.empty()) {
+    if (!constraintName.empty()) {
         int callerUserId = callerUid / UID_TRANSFORM_DIVISOR;
         bool isEnable = true;
-        innerManager_->IsOsAccountConstraintEnable(callerUserId, constriantName, isEnable);
+        innerManager_->IsOsAccountConstraintEnable(callerUserId, constraintName, isEnable);
         if (isEnable) {
-            ACCOUNT_LOGE("constriant check %{public}s failed.", constriantName.c_str());
-            ReportPermissionFail(callerUid, IPCSkeleton::GetCallingPid(), constriantName);
+            ACCOUNT_LOGE("constraint check %{public}s failed.", constraintName.c_str());
+            ReportPermissionFail(callerUid, IPCSkeleton::GetCallingPid(), constraintName);
             return false;
         }
     }

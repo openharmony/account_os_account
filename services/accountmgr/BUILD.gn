@@ -140,7 +140,7 @@ ohos_shared_library("accountmgr") {
     "src/appaccount/app_account_authenticator_session.cpp",
     "src/appaccount/app_account_authenticator_session_manager.cpp",
     "src/appaccount/app_account_authenticator_stub.cpp",
-    "src/appaccount/app_account_common_event_oberserver.cpp",
+    "src/appaccount/app_account_common_event_observer.cpp",
     "src/appaccount/app_account_common_event_subscriber.cpp",
     "src/appaccount/app_account_control_manager.cpp",
     "src/appaccount/app_account_data_storage.cpp",

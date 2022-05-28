@@ -562,7 +562,7 @@ ErrCode AppAccountControlManager::GetAllAccessibleAccounts(
     std::vector<std::string> accessibleAccounts;
     ErrCode result = dataStoragePtr->GetAccessibleAccountsFromDataStorage(bundleName, accessibleAccounts);
     if (result != ERR_OK) {
-        ACCOUNT_LOGE("failed to get accessiable account from data storage");
+        ACCOUNT_LOGE("failed to get accessible account from data storage");
         return result;
     }
 
@@ -613,7 +613,7 @@ ErrCode AppAccountControlManager::OnPackageRemoved(const uid_t &uid, const std::
     ErrCode result = dataStoragePtr->LoadDataByLocalFuzzyQuery(bundleName, accounts);
     if (result != ERR_OK) {
         ACCOUNT_LOGE("failed to get accounts by owner, bundleName = %{public}s", bundleName.c_str());
-        return ERR_APPACCOUNT_SERVICE_GET_IACCOUNT_INFO_BY_OWNER;
+        return ERR_APPACCOUNT_SERVICE_GET_ACCOUNT_INFO_BY_OWNER;
     }
 
     AppAccountInfo appAccountInfo;
@@ -663,7 +663,7 @@ ErrCode AppAccountControlManager::GetAllAccountsFromDataStorage(const std::strin
     ErrCode result = dataStoragePtr->LoadDataByLocalFuzzyQuery(owner, accounts);
     if (result != ERR_OK) {
         ACCOUNT_LOGE("failed to get accounts by owner, owner = %{public}s", owner.c_str());
-        return ERR_APPACCOUNT_SERVICE_GET_IACCOUNT_INFO_BY_OWNER;
+        return ERR_APPACCOUNT_SERVICE_GET_ACCOUNT_INFO_BY_OWNER;
     }
 
     for (auto account : accounts) {
@@ -688,7 +688,7 @@ ErrCode AppAccountControlManager::GetAllAccessibleAccountsFromDataStorage(std::v
     std::vector<std::string> accessibleAccounts;
     ErrCode result = dataStoragePtr->GetAccessibleAccountsFromDataStorage(bundleName, accessibleAccounts);
     if (result != ERR_OK) {
-        ACCOUNT_LOGE("failed to get accessiable account from data storage");
+        ACCOUNT_LOGE("failed to get accessible account from data storage");
         return result;
     }
 
@@ -815,7 +815,7 @@ ErrCode AppAccountControlManager::AddAccountInfoIntoDataStorage(
     result = dataStoragePtr->LoadDataByLocalFuzzyQuery(owner, accounts);
     if (result != ERR_OK) {
         ACCOUNT_LOGE("failed to get accounts by owner, owner = %{public}s", owner.c_str());
-        return ERR_APPACCOUNT_SERVICE_GET_IACCOUNT_INFO_BY_OWNER;
+        return ERR_APPACCOUNT_SERVICE_GET_ACCOUNT_INFO_BY_OWNER;
     }
 
     if (accounts.size() == ACCOUNT_MAX_SIZE) {

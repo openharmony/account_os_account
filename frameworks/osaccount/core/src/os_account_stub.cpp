@@ -307,7 +307,7 @@ ErrCode OsAccountStub::ProcRemoveOsAccount(MessageParcel &data, MessageParcel &r
     int localId = data.ReadInt32();
     if (localId == -1) {
         ACCOUNT_LOGE("failed to read int for osAccountType");
-        reply.WriteInt32(ERR_OSACCOUNT_KIT_READ_IN_LOCALID_ERROR);
+        reply.WriteInt32(ERR_OSACCOUNT_KIT_READ_IN_LOCAL_ID_ERROR);
         return ERR_NONE;
     }
 
@@ -324,7 +324,7 @@ ErrCode OsAccountStub::ProcSetOsAccountName(MessageParcel &data, MessageParcel &
     int localId = data.ReadInt32();
     if (localId == -1) {
         ACCOUNT_LOGE("failed to read int for localId");
-        reply.WriteInt32(ERR_OSACCOUNT_KIT_READ_IN_LOCALID_ERROR);
+        reply.WriteInt32(ERR_OSACCOUNT_KIT_READ_IN_LOCAL_ID_ERROR);
         return ERR_NONE;
     }
     std::string localName = data.ReadString();
@@ -341,14 +341,14 @@ ErrCode OsAccountStub::ProcSetOsAccountConstraints(MessageParcel &data, MessageP
     int localId = data.ReadInt32();
     if (localId == -1) {
         ACCOUNT_LOGE("failed to read int for localId");
-        reply.WriteInt32(ERR_OSACCOUNT_KIT_READ_IN_LOCALID_ERROR);
+        reply.WriteInt32(ERR_OSACCOUNT_KIT_READ_IN_LOCAL_ID_ERROR);
         return ERR_NONE;
     }
     std::vector<std::string> constraints;
-    bool stringVectorReadSucess = data.ReadStringVector(&constraints);
-    if (!stringVectorReadSucess) {
+    bool stringVectorReadSuccess = data.ReadStringVector(&constraints);
+    if (!stringVectorReadSuccess) {
         ACCOUNT_LOGE("failed to read StringVector for constraints");
-        return ERR_OSACCOUNT_KIT_READ_STRINGVECTOR_CONSTRAINTS_ERROR;
+        return ERR_OSACCOUNT_KIT_READ_STRING_VECTOR_CONSTRAINTS_ERROR;
     }
     bool enable = data.ReadBool();
     ErrCode result = SetOsAccountConstraints(localId, constraints, enable);
@@ -364,7 +364,7 @@ ErrCode OsAccountStub::ProcSetOsAccountProfilePhoto(MessageParcel &data, Message
     int localId = data.ReadInt32();
     if (localId == -1) {
         ACCOUNT_LOGE("failed to read int for localId");
-        reply.WriteInt32(ERR_OSACCOUNT_KIT_READ_IN_LOCALID_ERROR);
+        reply.WriteInt32(ERR_OSACCOUNT_KIT_READ_IN_LOCAL_ID_ERROR);
         return ERR_NONE;
     }
     std::string photo = data.ReadString();
@@ -381,7 +381,7 @@ ErrCode OsAccountStub::ProcQueryOsAccountById(MessageParcel &data, MessageParcel
     int localId = data.ReadInt32();
     if (localId == -1) {
         ACCOUNT_LOGE("failed to read int for localId");
-        reply.WriteInt32(ERR_OSACCOUNT_KIT_READ_IN_LOCALID_ERROR);
+        reply.WriteInt32(ERR_OSACCOUNT_KIT_READ_IN_LOCAL_ID_ERROR);
         return ERR_NONE;
     }
     OsAccountInfo osAccountInfo = OsAccountInfo();
@@ -463,7 +463,7 @@ ErrCode OsAccountStub::ProcGetOsAccountAllConstraints(MessageParcel &data, Messa
     int localId = data.ReadInt32();
     if (localId == -1) {
         ACCOUNT_LOGE("failed to read int for localId");
-        reply.WriteInt32(ERR_OSACCOUNT_KIT_READ_IN_LOCALID_ERROR);
+        reply.WriteInt32(ERR_OSACCOUNT_KIT_READ_IN_LOCAL_ID_ERROR);
         return ERR_NONE;
     }
     std::vector<std::string> constraints;
@@ -515,7 +515,7 @@ ErrCode OsAccountStub::ProcGetOsAccountProfilePhoto(MessageParcel &data, Message
     int localId = data.ReadInt32();
     if (localId == -1) {
         ACCOUNT_LOGE("failed to read int for localId");
-        reply.WriteInt32(ERR_OSACCOUNT_KIT_READ_IN_LOCALID_ERROR);
+        reply.WriteInt32(ERR_OSACCOUNT_KIT_READ_IN_LOCAL_ID_ERROR);
         return ERR_NONE;
     }
     std::string photo;
@@ -623,7 +623,7 @@ ErrCode OsAccountStub::ProcIsOsAccountActived(MessageParcel &data, MessageParcel
     int localId = data.ReadInt32();
     if (localId == -1) {
         ACCOUNT_LOGE("failed to read int for osAccountType");
-        reply.WriteInt32(ERR_OSACCOUNT_KIT_READ_IN_LOCALID_ERROR);
+        reply.WriteInt32(ERR_OSACCOUNT_KIT_READ_IN_LOCAL_ID_ERROR);
         return ERR_NONE;
     }
     bool isOsAccountActived = false;
@@ -644,7 +644,7 @@ ErrCode OsAccountStub::ProcIsOsAccountConstraintEnable(MessageParcel &data, Mess
     int localId = data.ReadInt32();
     if (localId == -1) {
         ACCOUNT_LOGE("failed to read int for osAccountType");
-        reply.WriteInt32(ERR_OSACCOUNT_KIT_READ_IN_LOCALID_ERROR);
+        reply.WriteInt32(ERR_OSACCOUNT_KIT_READ_IN_LOCAL_ID_ERROR);
         return ERR_NONE;
     }
     std::string constraint = data.ReadString();
@@ -681,7 +681,7 @@ ErrCode OsAccountStub::ProcIsOsAccountVerified(MessageParcel &data, MessageParce
     int localId = data.ReadInt32();
     if (localId == -1) {
         ACCOUNT_LOGE("failed to read int for localId");
-        reply.WriteInt32(ERR_OSACCOUNT_KIT_READ_IN_LOCALID_ERROR);
+        reply.WriteInt32(ERR_OSACCOUNT_KIT_READ_IN_LOCAL_ID_ERROR);
         return ERR_NONE;
     }
     bool isVerified = false;
@@ -702,7 +702,7 @@ ErrCode OsAccountStub::ProcIsOsAccountExists(MessageParcel &data, MessageParcel 
     int localId = data.ReadInt32();
     if (localId == -1) {
         ACCOUNT_LOGE("failed to read int for osAccountType");
-        reply.WriteInt32(ERR_OSACCOUNT_KIT_READ_IN_LOCALID_ERROR);
+        reply.WriteInt32(ERR_OSACCOUNT_KIT_READ_IN_LOCAL_ID_ERROR);
         return ERR_NONE;
     }
     bool isOsAccountExists = false;
@@ -762,7 +762,7 @@ ErrCode OsAccountStub::ProcActivateOsAccount(MessageParcel &data, MessageParcel 
     int localId = data.ReadInt32();
     if (localId == -1) {
         ACCOUNT_LOGE("failed to read int for localId");
-        reply.WriteInt32(ERR_OSACCOUNT_KIT_READ_IN_LOCALID_ERROR);
+        reply.WriteInt32(ERR_OSACCOUNT_KIT_READ_IN_LOCAL_ID_ERROR);
         return ERR_NONE;
     }
     ErrCode result = ActivateOsAccount(localId);
@@ -778,7 +778,7 @@ ErrCode OsAccountStub::ProcStartOsAccount(MessageParcel &data, MessageParcel &re
     int localId = data.ReadInt32();
     if (localId == -1) {
         ACCOUNT_LOGE("failed to read int for localId");
-        reply.WriteInt32(ERR_OSACCOUNT_KIT_READ_IN_LOCALID_ERROR);
+        reply.WriteInt32(ERR_OSACCOUNT_KIT_READ_IN_LOCAL_ID_ERROR);
         return ERR_NONE;
     }
     ErrCode result = StartOsAccount(localId);
@@ -794,7 +794,7 @@ ErrCode OsAccountStub::ProcStopOsAccount(MessageParcel &data, MessageParcel &rep
     int localId = data.ReadInt32();
     if (localId == -1) {
         ACCOUNT_LOGE("failed to read int for localId");
-        reply.WriteInt32(ERR_OSACCOUNT_KIT_READ_IN_LOCALID_ERROR);
+        reply.WriteInt32(ERR_OSACCOUNT_KIT_READ_IN_LOCAL_ID_ERROR);
         return ERR_NONE;
     }
     ErrCode result = StopOsAccount(localId);
@@ -832,7 +832,7 @@ ErrCode OsAccountStub::ProcIsOsAccountCompleted(MessageParcel &data, MessageParc
     int localId = data.ReadInt32();
     if (localId == -1) {
         ACCOUNT_LOGE("failed to read int for localId");
-        reply.WriteInt32(ERR_OSACCOUNT_KIT_READ_IN_LOCALID_ERROR);
+        reply.WriteInt32(ERR_OSACCOUNT_KIT_READ_IN_LOCAL_ID_ERROR);
         return ERR_NONE;
     }
     bool isOsAccountCompleted = false;
@@ -861,7 +861,7 @@ ErrCode OsAccountStub::ProcSetOsAccountIsVerified(MessageParcel &data, MessagePa
     int localId = data.ReadInt32();
     if (localId == -1) {
         ACCOUNT_LOGE("failed to read int for localId");
-        reply.WriteInt32(ERR_OSACCOUNT_KIT_READ_IN_LOCALID_ERROR);
+        reply.WriteInt32(ERR_OSACCOUNT_KIT_READ_IN_LOCAL_ID_ERROR);
         return ERR_NONE;
     }
     bool isVerified = data.ReadBool();

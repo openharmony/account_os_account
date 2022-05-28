@@ -23,7 +23,7 @@ public:
     virtual void Init() = 0;
     virtual ErrCode GetOsAccountList(std::vector<OsAccountInfo> &osAccountList) = 0;
     virtual ErrCode GetOsAccountInfoById(const int id, OsAccountInfo &osAccountInfo) = 0;
-    virtual ErrCode GetConstraintsByType(const OsAccountType type, std::vector<std::string> &constratins) = 0;
+    virtual ErrCode GetConstraintsByType(const OsAccountType type, std::vector<std::string> &constraints) = 0;
     virtual ErrCode InsertOsAccount(OsAccountInfo &osAccountInfo) = 0;
     virtual ErrCode DelOsAccount(const int id) = 0;
     virtual ErrCode UpdateOsAccount(OsAccountInfo &osAccountInfo) = 0;

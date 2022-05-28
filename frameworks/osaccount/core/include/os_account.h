@@ -23,7 +23,7 @@ namespace OHOS {
 namespace AccountSA {
 class OsAccount {
 public:
-    enum SubscribeState { ALREADY_SUBSCRIBED = 0, INITIAL_SUBSCRIPTION, SUBSCRIBE_FAILD };
+    enum SubscribeState { ALREADY_SUBSCRIBED = 0, INITIAL_SUBSCRIPTION, SUBSCRIBE_FAILED };
     ErrCode CreateOsAccount(const std::string &name, const OsAccountType &type, OsAccountInfo &osAccountInfo);
     ErrCode CreateOsAccountForDomain(
         const OsAccountType &type, const DomainAccountInfo &domainInfo, OsAccountInfo &osAccountInfo);

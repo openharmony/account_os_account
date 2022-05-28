@@ -228,7 +228,7 @@ void AccountMgrService::SelfClean()
 {
     state_ = ServiceRunningState::STATE_NOT_START;
     registerToService_ = false;
-    ACCOUNT_LOGI("selfclean finished");
+    ACCOUNT_LOGI("self-clean finished");
 }
 
 void AccountMgrService::HandleNotificationEvents(const std::string &eventStr)

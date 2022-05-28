@@ -335,7 +335,7 @@ ErrCode AppAccountProxy::GetAssociatedData(const std::string &name, const std::s
 
     if (!data.WriteString(key)) {
         ACCOUNT_LOGE("failed to write string for key");
-        return ERR_APPACCOUNT_KIT_WRITE_STRING_ASSOCIATEKEY;
+        return ERR_APPACCOUNT_KIT_WRITE_STRING_ASSOCIATED_KEY;
     }
 
     ErrCode result = SendRequest(IAppAccount::Message::GET_ASSOCIATED_DATA, data, reply);

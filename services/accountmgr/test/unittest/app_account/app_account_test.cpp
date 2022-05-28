@@ -306,11 +306,11 @@ HWTEST_F(AppAccountTest, AppAccount_SubscribeAppAccount_0100, TestSize.Level0)
     std::vector<std::string> owners;
     owners.emplace_back(STRING_OWNER);
 
-    // make subcribe info
+    // make subscribe info
     AppAccountSubscribeInfo subscribeInfo;
     subscribeInfo.SetOwners(owners);
 
-    // make a subcriber
+    // make a subscriber
     auto subscriberTestPtr = std::make_shared<AppAccountSubscriberTest>(subscribeInfo);
     // subscribe app account
     ErrCode result = appAccount_->SubscribeAppAccount(subscriberTestPtr);
@@ -333,11 +333,11 @@ HWTEST_F(AppAccountTest, AppAccount_SubscribeAppAccount_0200, TestSize.Level1)
     owners.emplace_back(STRING_OWNER);
     owners.emplace_back(STRING_OWNER);
 
-    // make subcribe info
+    // make subscribe info
     AppAccountSubscribeInfo subscribeInfo;
     subscribeInfo.SetOwners(owners);
 
-    // make a subcriber
+    // make a subscriber
     auto subscriberTestPtr = std::make_shared<AppAccountSubscriberTest>(subscribeInfo);
     // subscribe app account
     ErrCode result = appAccount_->SubscribeAppAccount(subscriberTestPtr);
@@ -416,13 +416,13 @@ HWTEST_F(AppAccountTest, AppAccount_CreateAppAccountEventListener_0100, TestSize
     std::vector<std::string> owners;
     owners.emplace_back(STRING_OWNER);
 
-    // make subcribe info
+    // make subscribe info
     AppAccountSubscribeInfo subscribeInfo;
     result = subscribeInfo.SetOwners(owners);
 
     EXPECT_EQ(result, ERR_OK);
 
-    // make a subcriber
+    // make a subscriber
     auto subscriberTestPtr = std::make_shared<AppAccountSubscriberTest>(subscribeInfo);
     sptr<IRemoteObject> appAccountEventListener = nullptr;
 
@@ -455,7 +455,7 @@ HWTEST_F(AppAccountTest, AppAccount_CreateAppAccountEventListener_0200, TestSize
     std::vector<std::string> owners;
     owners.emplace_back(STRING_OWNER);
 
-    // make subcribe info
+    // make subscribe info
     AppAccountSubscribeInfo subscribeInfo;
     result = subscribeInfo.SetOwners(owners);
 
@@ -463,7 +463,7 @@ HWTEST_F(AppAccountTest, AppAccount_CreateAppAccountEventListener_0200, TestSize
 
     EXPECT_EQ(appAccount_->eventListeners_.size(), SUBSCRIBER_ZERO);
 
-    // make max subcribers
+    // make max subscribers
     for (std::size_t counter = 1; counter <= Constants::APP_ACCOUNT_SUBSCRIBER_MAX_SIZE + 1; counter += 1) {
         auto subscriberTestPtr = std::make_shared<AppAccountSubscriberTest>(subscribeInfo);
         sptr<IRemoteObject> appAccountEventListener = nullptr;
@@ -473,7 +473,7 @@ HWTEST_F(AppAccountTest, AppAccount_CreateAppAccountEventListener_0200, TestSize
             EXPECT_EQ(result, AppAccount::SubscribeState::INITIAL_SUBSCRIPTION);
             EXPECT_EQ(appAccount_->eventListeners_.size(), counter);
         } else {
-            EXPECT_EQ(result, AppAccount::SubscribeState::SUBSCRIBE_FAILD);
+            EXPECT_EQ(result, AppAccount::SubscribeState::SUBSCRIBE_FAILED);
             EXPECT_EQ(appAccount_->eventListeners_.size(), counter - 1);
         }
     }

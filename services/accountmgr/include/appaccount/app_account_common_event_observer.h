@@ -27,14 +27,14 @@ struct CommonEventCallback {
     std::function<void(const uid_t &uid, const std::string &bundleName)> OnPackageRemoved;
 };
 
-class AppAccountCommonEventOberserver {
+class AppAccountCommonEventObserver {
 public:
     using EventHandler = OHOS::AppExecFwk::EventHandler;
     using EventRunner = OHOS::AppExecFwk::EventRunner;
     using Callback = OHOS::AppExecFwk::InnerEvent::Callback;
 
-    explicit AppAccountCommonEventOberserver(const CommonEventCallback &callback);
-    ~AppAccountCommonEventOberserver();
+    explicit AppAccountCommonEventObserver(const CommonEventCallback &callback);
+    ~AppAccountCommonEventObserver();
 
 private:
     ErrCode GetEventHandler(void);
