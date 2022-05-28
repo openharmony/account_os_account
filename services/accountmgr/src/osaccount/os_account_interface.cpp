@@ -89,7 +89,7 @@ ErrCode OsAccountInterface::SendToAMSAccountStop(OsAccountInfo &osAccountInfo)
         std::this_thread::sleep_for(std::chrono::milliseconds(Constants::WAIT_ONE_TIME));
         OHOS::GetSystemCurrentTime(&nowTime);
     }
-    if (!osAccountStopUserCallback->isReaturnOk_) {
+    if (!osAccountStopUserCallback->isReturnOk_) {
         ACCOUNT_LOGE("failed to AbilityManagerAdapter stop in call back");
         ReportTimeoutFail("AbilityManagerService StopUser timeout!");
         return ERR_OSACCOUNT_SERVICE_INTERFACE_TO_AM_ACCOUNT_START_ERROR;

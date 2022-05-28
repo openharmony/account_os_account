@@ -228,7 +228,7 @@ ErrCode AppAccountSubscribeManager::CheckAppAccess(
         std::vector<std::string> accessibleAccounts;
         ErrCode ret = dataStoragePtr->GetAccessibleAccountsFromDataStorage(bundleName, accessibleAccounts);
         if (ret != ERR_OK) {
-            ACCOUNT_LOGE("failed to get accessiable account from data storage");
+            ACCOUNT_LOGE("failed to get accessible account from data storage");
             return ret;
         }
 
@@ -245,8 +245,8 @@ ErrCode AppAccountSubscribeManager::CheckAppAccess(
                 return true;
             });
         if (it == accessibleAccounts.end()) {
-            ACCOUNT_LOGE("failed to find accessiable account");
-            return ERR_APPACCOUNT_SERVICE_SUBSCRIBE_PERMISSON_DENIED;
+            ACCOUNT_LOGE("failed to find accessible account");
+            return ERR_APPACCOUNT_SERVICE_SUBSCRIBE_PERMISSION_DENIED;
         }
     }
 

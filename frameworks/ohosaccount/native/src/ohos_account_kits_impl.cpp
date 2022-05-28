@@ -102,7 +102,7 @@ ErrCode OhosAccountKitsImpl::CallService(F func, Args&&... args)
         ResetService(service);
     }
 
-    ACCOUNT_LOGE("Callservice failed with: %{public}d", result);
+    ACCOUNT_LOGE("Call service failed with: %{public}d", result);
     return result;
 }
 

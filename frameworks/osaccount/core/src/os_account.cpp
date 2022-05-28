@@ -473,7 +473,7 @@ ErrCode OsAccount::UnsubscribeOsAccount(const std::shared_ptr<OsAccountSubscribe
         return result;
     } else {
         ACCOUNT_LOGE("no specified subscriber has been registered");
-        return ERR_OSACCOUNT_KIT_NO_SPECIFIED_SUBSCRIBER_HAS_BEEN_REGESITERED;
+        return ERR_OSACCOUNT_KIT_NO_SPECIFIED_SUBSCRIBER_HAS_BEEN_REGISTERED;
     }
 }
 
@@ -608,7 +608,7 @@ ErrCode OsAccount::CreateOsAccountEventListener(
 {
     if (subscriber == nullptr) {
         ACCOUNT_LOGE("subscriber is nullptr");
-        return SUBSCRIBE_FAILD;
+        return SUBSCRIBE_FAILED;
     }
 
     std::lock_guard<std::mutex> lock(eventListenersMutex_);
@@ -621,13 +621,13 @@ ErrCode OsAccount::CreateOsAccountEventListener(
     } else {
         if (eventListeners_.size() == Constants::SUBSCRIBER_MAX_SIZE) {
             ACCOUNT_LOGE("the maximum number of subscribers has been reached");
-            return SUBSCRIBE_FAILD;
+            return SUBSCRIBE_FAILED;
         }
 
         sptr<OsAccountEventListener> listener = new (std::nothrow) OsAccountEventListener(subscriber);
         if (!listener) {
             ACCOUNT_LOGE("the os account event listener is null");
-            return SUBSCRIBE_FAILD;
+            return SUBSCRIBE_FAILED;
         }
         osAccountEventListener = listener->AsObject();
         eventListeners_[subscriber] = listener;

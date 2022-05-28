@@ -99,7 +99,7 @@ public:
 private:
     virtual ErrCode DumpStateByAccounts(
         const std::vector<OsAccountInfo> &osAccountInfos, std::vector<std::string> &state);
-    bool PermissionCheck(const std::string& permissionName, const std::string& constriantName);
+    bool PermissionCheck(const std::string& permissionName, const std::string& constraintName);
 
 private:
     std::shared_ptr<IInnerOsAccount> innerManager_;

@@ -491,7 +491,7 @@ ErrCode AppAccount::CreateAppAccountEventListener(
 
     if (subscriber == nullptr) {
         ACCOUNT_LOGE("subscriber is nullptr");
-        return SUBSCRIBE_FAILD;
+        return SUBSCRIBE_FAILED;
     }
 
     std::lock_guard<std::mutex> lock(eventListenersMutex_);
@@ -504,13 +504,13 @@ ErrCode AppAccount::CreateAppAccountEventListener(
     } else {
         if (eventListeners_.size() == Constants::APP_ACCOUNT_SUBSCRIBER_MAX_SIZE) {
             ACCOUNT_LOGE("the maximum number of subscribers has been reached");
-            return SUBSCRIBE_FAILD;
+            return SUBSCRIBE_FAILED;
         }
 
         sptr<AppAccountEventListener> listener = new (std::nothrow) AppAccountEventListener(subscriber);
         if (!listener) {
             ACCOUNT_LOGE("the app account event listener is null");
-            return SUBSCRIBE_FAILD;
+            return SUBSCRIBE_FAILED;
         }
         appAccountEventListener = listener->AsObject();
         eventListeners_[subscriber] = listener;

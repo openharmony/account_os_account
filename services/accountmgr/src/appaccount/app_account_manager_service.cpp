@@ -33,7 +33,7 @@ AppAccountManagerService::AppAccountManagerService()
     CommonEventCallback callback = {
         std::bind(&AppAccountManagerService::OnPackageRemoved, this, std::placeholders::_1, std::placeholders::_2),
     };
-    oberserver_ = std::make_shared<AppAccountCommonEventOberserver>(callback);
+    observer_ = std::make_shared<AppAccountCommonEventObserver>(callback);
 #endif // HAS_CES_PART
     ACCOUNT_LOGI("end");
 }

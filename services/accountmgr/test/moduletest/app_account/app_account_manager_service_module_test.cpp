@@ -1614,7 +1614,7 @@ HWTEST_F(AppAccountManagerServiceModuleTest, AppAccountManagerService_GetAllAcco
 
 /**
  * @tc.name: AppAccountManagerService_GetAllAccessibleAccounts_0100
- * @tc.desc: Get all accessiable accounts with valid data.
+ * @tc.desc: Get all accessible accounts with valid data.
  * @tc.type: FUNC
  * @tc.require: SR000GGVFR
  */
@@ -1630,7 +1630,7 @@ HWTEST_F(AppAccountManagerServiceModuleTest, AppAccountManagerService_GetAllAcce
 
 /**
  * @tc.name: AppAccountManagerService_GetAllAccessibleAccounts_0200
- * @tc.desc: Get all accessiable accounts with valid data.
+ * @tc.desc: Get all accessible accounts with valid data.
  * @tc.type: FUNC
  * @tc.require: SR000GGVFR
  */
@@ -1657,7 +1657,7 @@ HWTEST_F(AppAccountManagerServiceModuleTest, AppAccountManagerService_GetAllAcce
 
 /**
  * @tc.name: AppAccountManagerService_GetAllAccessibleAccounts_0300
- * @tc.desc: Get all accessiable accounts with valid data.
+ * @tc.desc: Get all accessible accounts with valid data.
  * @tc.type: FUNC
  * @tc.require: SR000GGVFR
  */
