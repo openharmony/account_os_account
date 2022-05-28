@@ -91,6 +91,12 @@ int AbilityManagerProxy::TerminateAbility(const sptr<IRemoteObject> &token,
     return ERR_ACCOUNT_COMMON_INTERFACE_NOT_SUPPORT_ERROR;
 }
 
+int AbilityManagerProxy::SendResultToAbility(int32_t requestCode, int32_t resultCode, Want& resultWant)
+{
+    ACCOUNT_LOGE("interface not support!");
+    return ERR_ACCOUNT_COMMON_INTERFACE_NOT_SUPPORT_ERROR;
+}
+
 int AbilityManagerProxy::TerminateAbilityByCaller(const sptr<IRemoteObject> &callerToken, int requestCode)
 {
     ACCOUNT_LOGE("interface not support!");
