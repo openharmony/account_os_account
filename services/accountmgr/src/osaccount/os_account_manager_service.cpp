@@ -34,6 +34,16 @@ const std::string CONSTANT_REMOVE = "constraint.os.account.remove";
 const std::string CONSTANT_START = "constraint.os.account.start";
 const std::string CONSTANT_SET_ICON = "constraint.os.account.set.icon";
 const std::int32_t ROOT_UID = 0;
+const std::string DEFAULT_ANON_STR = "**********";
+const size_t INTERCEPT_HEAD_PART_LEN_FOR_NAME = 1;
+std::string AnonymizeNameStr(const std::string& nameStr)
+{
+    if (nameStr.empty()) {
+        return nameStr;
+    }
+    std::string retStr = nameStr.substr(0, INTERCEPT_HEAD_PART_LEN_FOR_NAME) + DEFAULT_ANON_STR;
+    return retStr;
+}
 }  // namespace
 
 OsAccountManagerService::OsAccountManagerService()
@@ -574,7 +584,7 @@ ErrCode OsAccountManagerService::DumpStateByAccounts(
         state.emplace_back("ID: " + localId);
 
         std::string localName = osAccountInfo.GetLocalName();
-        state.emplace_back(DUMP_TAB_CHARACTER + "Name: " + localName);
+        state.emplace_back(DUMP_TAB_CHARACTER + "Name: " + AnonymizeNameStr(localName));
 
         std::string type = "";
         auto it = DUMP_TYPE_MAP.find(osAccountInfo.GetType());

@@ -36,6 +36,38 @@ const std::string ARGS_SET_LOG_LEVEL = "-set_log_level";
 const std::string ARGS_DUMP_TIME_INFO = "-time_info_dump";
 const std::string ILLEGAL_INFORMATION = "Account Manager service, enter '-h' for usage.\n";
 const std::string SYSTEM_ERROR = "System error: ";
+const double ANONYMIZE_RATIO = 0.8;
+const size_t MIN_ANONYMIZE_PART_LEN = 10;
+const size_t MAX_INTERCEPT_PART_LEN = 4;
+const size_t INTERCEPT_HEAD_PART_LEN_FOR_NAME = 1;
+const std::string DEFAULT_ANON_STR = "**********";
+std::string AnonymizeNameStr(const std::string& nameStr)
+{
+    if (nameStr == DEFAULT_OHOS_ACCOUNT_NAME || nameStr.empty()) {
+        return nameStr;
+    }
+    std::string retStr = nameStr.substr(0, INTERCEPT_HEAD_PART_LEN_FOR_NAME) + DEFAULT_ANON_STR;
+    return retStr;
+}
+
+std::string AnonymizeUidStr(const std::string& uidStr)
+{
+    if (uidStr == DEFAULT_OHOS_ACCOUNT_UID || uidStr.empty()) {
+        return uidStr;
+    }
+
+    size_t anonymizeLen = (size_t)(((double)uidStr.length()) * ANONYMIZE_RATIO);
+    size_t interceptLen = (uidStr.length() - anonymizeLen) / 2;  // Half head and half tail
+    if (anonymizeLen < MIN_ANONYMIZE_PART_LEN || interceptLen == 0) {
+        return DEFAULT_ANON_STR;
+    }
+    interceptLen = (interceptLen > MAX_INTERCEPT_PART_LEN ? MAX_INTERCEPT_PART_LEN : interceptLen);
+
+    std::string retStr = uidStr.substr(0, interceptLen);
+    retStr += DEFAULT_ANON_STR;
+    retStr += uidStr.substr(uidStr.length() - interceptLen);
+    return retStr;
+}
 } // namespace
 
 AccountDumpHelper::AccountDumpHelper(const std::shared_ptr<OhosAccountManager>& ohosAccountMgr,
@@ -108,9 +140,9 @@ void AccountDumpHelper::ShowOhosAccountInfo(std::string& result) const
         result.append("     Bind local user id: ");
         result.append(std::to_string(accountInfo.userId_) + "\n");
         result.append("          OhosAccount name     : ");
-        result.append(accountInfo.ohosAccountName_ + "\n");
+        result.append(AnonymizeNameStr(accountInfo.ohosAccountName_) + "\n");
         result.append("          OhosAccount uid      : ");
-        result.append(accountInfo.ohosAccountUid_ + "\n");
+        result.append(AnonymizeUidStr(accountInfo.ohosAccountUid_) + "\n");
         result.append("          OhosAccount status   : ");
         result.append(std::to_string(accountInfo.ohosAccountStatus_) + "\n");
         result.append("          OhosAccount bind time: ");
