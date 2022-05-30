@@ -14,6 +14,7 @@
  */
 
 #include "account_mgr_service.h"
+#include <cerrno>
 #include "account_dump_helper.h"
 #include "account_log_wrapper.h"
 #include "app_account_manager_service.h"
@@ -41,11 +42,13 @@ void CreateDeviceDir()
     if (!OHOS::FileExists(DEVICE_OWNER_DIR)) {
         ACCOUNT_LOGI("Device owner dir not exist, create!");
         if (!OHOS::ForceCreateDirectory(DEVICE_OWNER_DIR)) {
-            ACCOUNT_LOGW("Create device owner dir failure!");
+            ACCOUNT_LOGW("Create device owner dir failure! errno %{public}d.", errno);
+            ReportFileOperationFail(errno, "ForceCreateDirectory", DEVICE_OWNER_DIR);
         } else {
             if (!OHOS::ChangeModeDirectory(DEVICE_OWNER_DIR, S_IRWXU)) {
-                ReportFileOperationFail(-1, "ChangeModeDirectory", DEVICE_OWNER_DIR);
-                ACCOUNT_LOGW("failed to create dir, path = %{public}s", DEVICE_OWNER_DIR.c_str());
+                ReportFileOperationFail(errno, "ChangeModeDirectory", DEVICE_OWNER_DIR);
+                ACCOUNT_LOGW("failed to create dir, path = %{public}s errno %{public}d.",
+                    DEVICE_OWNER_DIR.c_str(), errno);
             }
         }
     }
@@ -162,7 +165,7 @@ bool AccountMgrService::Init()
     if (!registerToService_) {
         ret = Publish(&DelayedRefSingleton<AccountMgrService>::GetInstance());
         if (!ret) {
-            ReportServiceStartFail(ERR_ACCOUNT_MGR_ADD_TO_SA_ERROR);
+            ReportServiceStartFail(ERR_ACCOUNT_MGR_ADD_TO_SA_ERROR, "Publish service failed!");
             ACCOUNT_LOGE("AccountMgrService::Init Publish failed!");
             return false;
         }
@@ -173,13 +176,15 @@ bool AccountMgrService::Init()
     ret = ohosAccountMgr_->OnInitialize();
     if (!ret) {
         ACCOUNT_LOGE("Ohos account manager initialize failed");
-        ReportServiceStartFail(ERR_ACCOUNT_MGR_OHOS_MGR_INIT_ERROR);
+        ReportServiceStartFail(ERR_ACCOUNT_MGR_OHOS_MGR_INIT_ERROR, "OnInitialize failed!");
         return ret;
     }
 
     IAccountContext::SetInstance(this);
     auto appAccountManagerService = new (std::nothrow) AppAccountManagerService();
     if (appAccountManagerService == nullptr) {
+        ReportServiceStartFail(ERR_ACCOUNT_COMMON_INSUFFICIENT_MEMORY_ERROR,
+            "Insufficient memory to create app account manager service");
         ACCOUNT_LOGE("memory alloc failed for appAccountManagerService!");
         return false;
     }
@@ -187,6 +192,8 @@ bool AccountMgrService::Init()
     if (osAccountManagerServiceOrg_ == nullptr) {
         ACCOUNT_LOGE("memory alloc failed for osAccountManagerServiceOrg_!");
         delete appAccountManagerService;
+        ReportServiceStartFail(ERR_ACCOUNT_COMMON_INSUFFICIENT_MEMORY_ERROR,
+            "Insufficient memory to create os account manager service");
         return false;
     }
     dumpHelper_ = std::make_unique<AccountDumpHelper>(ohosAccountMgr_, osAccountManagerServiceOrg_);
