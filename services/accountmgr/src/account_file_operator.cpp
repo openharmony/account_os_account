@@ -13,6 +13,7 @@
  * limitations under the License.
  */
 #include "account_file_operator.h"
+#include <cerrno>
 #include <fstream>
 #include <nlohmann/json.hpp>
 #include <sstream>
@@ -38,14 +39,15 @@ ErrCode AccountFileOperator::CreateDir(const std::string &path)
     ACCOUNT_LOGI("enter");
 
     if (!OHOS::ForceCreateDirectory(path)) {
-        ReportFileOperationFail(-1, "ForceCreateDirectory", path);
+        ReportFileOperationFail(errno, "ForceCreateDirectory", path);
+        ACCOUNT_LOGE("failed to create %{public}s, errno %{public}d.", path.c_str(), errno);
         return ERR_OSACCOUNT_SERVICE_FILE_CREATE_DIR_ERROR;
     }
     mode_t mode = S_IRWXU;
     bool createFlag = OHOS::ChangeModeDirectory(path, mode);
     if (!createFlag) {
-        ACCOUNT_LOGE("failed to create dir, path = %{public}s", path.c_str());
-        ReportFileOperationFail(-1, "ChangeModeDirectory", path);
+        ACCOUNT_LOGE("failed to change mode for %{public}s, errno %{public}d.", path.c_str(), errno);
+        ReportFileOperationFail(errno, "ChangeModeDirectory", path);
         return ERR_OSACCOUNT_SERVICE_FILE_CHANGE_DIR_MODE_ERROR;
     }
 
@@ -62,7 +64,8 @@ ErrCode AccountFileOperator::DeleteDirOrFile(const std::string &path)
         delFlag = OHOS::ForceRemoveDirectory(path);
     }
     if (!delFlag) {
-        ReportFileOperationFail(-1, "DeleteDirOrFile", path);
+        ReportFileOperationFail(errno, "DeleteDirOrFile", path);
+        ACCOUNT_LOGE("DeleteDirOrFile failed, path %{public}s errno %{public}d.", path.c_str(), errno);
         return ERR_OSACCOUNT_SERVICE_FILE_DELE_ERROR;
     }
 
@@ -77,14 +80,13 @@ ErrCode AccountFileOperator::InputFileByPathAndContent(const std::string &path, 
         ErrCode errCode = CreateDir(str);
         if (errCode != ERR_OK) {
             ACCOUNT_LOGE("failed to create dir, str = %{public}s errCode %{public}d.", str.c_str(), errCode);
-            ReportFileOperationFail(errCode, "CreateDir", str);
             return ERR_OSACCOUNT_SERVICE_FILE_FIND_DIR_ERROR;
         }
     }
     std::ofstream o(path);
     if (!o.is_open()) {
-        ACCOUNT_LOGE("failed to open file, path = %{public}s", path.c_str());
-        ReportFileOperationFail(-1, "OpenFileToWrite", path);
+        ACCOUNT_LOGE("failed to open %{public}s, errno %{public}d.", path.c_str(), errno);
+        ReportFileOperationFail(errno, "OpenFileToWrite", path);
         return ERR_OSACCOUNT_SERVICE_FILE_CREATE_FILE_FAILED_ERROR;
     }
     o << content;
@@ -94,8 +96,8 @@ ErrCode AccountFileOperator::InputFileByPathAndContent(const std::string &path, 
 #endif // WITH_SELINUX
     // change mode
     if (!ChangeModeFile(path, S_IRUSR | S_IWUSR)) {
-        ACCOUNT_LOGW("failed to change mode for file %{public}s", path.c_str());
-        ReportFileOperationFail(-1, "ChangeModeFile", path);
+        ACCOUNT_LOGW("failed to change mode for file %{public}s, errno %{public}d.", path.c_str(), errno);
+        ReportFileOperationFail(errno, "ChangeModeFile", path);
     }
 
     ACCOUNT_LOGI("end");
@@ -111,8 +113,8 @@ ErrCode AccountFileOperator::GetFileContentByPath(const std::string &path, std::
     std::stringstream buffer;
     std::ifstream i(path);
     if (!i.is_open()) {
-        ACCOUNT_LOGE("cannot open file, path = %{public}s", path.c_str());
-        ReportFileOperationFail(-1, "OpenFileToRead", path);
+        ACCOUNT_LOGE("cannot open file %{public}s, errno %{public}d.", path.c_str(), errno);
+        ReportFileOperationFail(errno, "OpenFileToRead", path);
         return ERR_OSACCOUNT_SERVICE_FILE_CREATE_FILE_FAILED_ERROR;
     }
     buffer << i.rdbuf();

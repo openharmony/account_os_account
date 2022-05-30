@@ -77,7 +77,7 @@ ErrCode OsAccountInterface::SendToAMSAccountStop(OsAccountInfo &osAccountInfo)
         osAccountStopUserCallback);
     if (code != ERR_OK) {
         ACCOUNT_LOGE("failed to AbilityManagerAdapter stop errcode is %{public}d", code);
-        ReportAccountOperationFail(osAccountInfo.GetLocalId(), code, "stop", "AbilityManagerAdapter StopUser failed!");
+        ReportAccountOperationFail(osAccountInfo.GetLocalId(), code, "stop", "AbilityManagerService StopUser failed!");
         return ERR_OSACCOUNT_SERVICE_INTERFACE_TO_AM_ACCOUNT_START_ERROR;
     }
     struct tm startTime = {0};
@@ -90,8 +90,9 @@ ErrCode OsAccountInterface::SendToAMSAccountStop(OsAccountInfo &osAccountInfo)
         OHOS::GetSystemCurrentTime(&nowTime);
     }
     if (!osAccountStopUserCallback->isReturnOk_) {
-        ACCOUNT_LOGE("failed to AbilityManagerAdapter stop in call back");
-        ReportTimeoutFail("AbilityManagerService StopUser timeout!");
+        ACCOUNT_LOGE("failed to AbilityManagerService stop in call back");
+        ReportAccountOperationFail(osAccountInfo.GetLocalId(), -1, "stop",
+            "AbilityManagerService StopUser timeout!");
         return ERR_OSACCOUNT_SERVICE_INTERFACE_TO_AM_ACCOUNT_START_ERROR;
     }
     ACCOUNT_LOGI("send AM to stop is ok");
@@ -141,7 +142,8 @@ ErrCode OsAccountInterface::SendToIDMAccountDelete(OsAccountInfo &osAccountInfo)
     }
     if (!callback->isIdmOnResultCallBack_) {
         ACCOUNT_LOGE("idm did not call back! timeout!");
-        ReportTimeoutFail("UserIDMClient EnforceDelUser timeout!");
+        ReportAccountOperationFail(osAccountInfo.GetLocalId(), -1, "delete",
+            "UserIDMClient EnforceDelUser timeout!");
         return ERR_OK;    // do not return fail
     }
     ACCOUNT_LOGI("send to idm account delete and get callback succeed!");
@@ -161,7 +163,7 @@ void OsAccountInterface::SendToCESAccountCreate(OsAccountInfo &osAccountInfo)
     data.SetWant(want);
     if (!OHOS::EventFwk::CommonEventManager::PublishCommonEvent(data)) {
         ACCOUNT_LOGE("PublishCommonEvent for create account %{public}d failed!", osAccountID);
-        ReportOsAccountCESFail(osAccountID, "send common event for account create fail");
+        ReportAccountOperationFail(osAccountID, -1, "create", "PublishCommonEvent failed!");
     } else {
         ACCOUNT_LOGI("PublishCommonEvent for create account %{public}d succeed!", osAccountID);
     }
@@ -182,7 +184,7 @@ void OsAccountInterface::SendToCESAccountDelete(OsAccountInfo &osAccountInfo)
     data.SetWant(want);
     if (!OHOS::EventFwk::CommonEventManager::PublishCommonEvent(data)) {
         ACCOUNT_LOGE("PublishCommonEvent for delete account %{public}d failed!", osAccountID);
-        ReportOsAccountCESFail(osAccountID, "send common event for account delete fail");
+        ReportAccountOperationFail(osAccountID, -1, "delete", "PublishCommonEvent failed!");
     } else {
         ACCOUNT_LOGI("PublishCommonEvent for delete account %{public}d succeed!", osAccountID);
     }
@@ -203,7 +205,7 @@ void OsAccountInterface::SendToCESAccountSwitched(OsAccountInfo &osAccountInfo)
     data.SetWant(want);
     if (!OHOS::EventFwk::CommonEventManager::PublishCommonEvent(data)) {
         ACCOUNT_LOGE("PublishCommonEvent for switched to account %{public}d failed!", osAccountID);
-        ReportOsAccountCESFail(osAccountID, "send common event for account switch fail");
+        ReportAccountOperationFail(osAccountID, -1, "switch", "PublishCommonEvent failed!");
     } else {
         ACCOUNT_LOGI("PublishCommonEvent for switched to account %{public}d succeed!", osAccountID);
     }
