@@ -74,7 +74,7 @@ std::string OsAccountPhotoOperator::EnCode(const char *data, size_t dataByte)
 }
 std::string OsAccountPhotoOperator::DeCode(std::string const &baseStr)
 {
-    ACCOUNT_LOGI("OsAccountPhotoOperator DeCode Start");
+    ACCOUNT_LOGD("OsAccountPhotoOperator DeCode Start");
     std::string byteStr;
     size_t in_len = baseStr.size();
     if (in_len == 0) {

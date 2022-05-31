@@ -23,12 +23,12 @@ namespace OHOS {
 namespace AccountSA {
 AppAccountAuthenticatorCallbackStub::AppAccountAuthenticatorCallbackStub()
 {
-    ACCOUNT_LOGI("enter");
+    ACCOUNT_LOGD("enter");
 }
 
 AppAccountAuthenticatorCallbackStub::~AppAccountAuthenticatorCallbackStub()
 {
-    ACCOUNT_LOGI("enter");
+    ACCOUNT_LOGD("enter");
 }
 
 int AppAccountAuthenticatorCallbackStub::OnRemoteRequest(

@@ -25,20 +25,20 @@ namespace OHOS {
 namespace AccountSA {
 AppAccountAuthenticatorManager::AppAccountAuthenticatorManager()
 {
-    ACCOUNT_LOGI("enter");
+    ACCOUNT_LOGD("enter");
     Init();
 }
 
 AppAccountAuthenticatorManager::~AppAccountAuthenticatorManager()
 {
-    ACCOUNT_LOGI("enter");
+    ACCOUNT_LOGD("enter");
 }
 
 void AppAccountAuthenticatorManager::Init()
 {
-    ACCOUNT_LOGI("enter");
+    ACCOUNT_LOGD("enter");
     if (isInitialized_) {
-        ACCOUNT_LOGI("app account authenticator manager has been initialized");
+        ACCOUNT_LOGD("app account authenticator manager has been initialized");
         return;
     }
     isInitialized_ = true;

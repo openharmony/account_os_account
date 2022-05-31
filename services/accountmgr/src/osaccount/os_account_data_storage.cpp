@@ -22,20 +22,19 @@ namespace OHOS {
 namespace AccountSA {
 OsAccountDataStorage::~OsAccountDataStorage()
 {
-    ACCOUNT_LOGE("OsAccountDataStorage ~OsAccountDataStorage()");
+    ACCOUNT_LOGD("enter");
 }
 
 OsAccountDataStorage::OsAccountDataStorage(const std::string &appId, const std::string &storeId, const bool &autoSync)
     : AccountDataStorage(appId, storeId, autoSync)
 {
-    ACCOUNT_LOGI("OsAccountDataStorage OsAccountDataStorage()");
+    ACCOUNT_LOGD("enter");
 }
 
 void OsAccountDataStorage::SaveEntries(
     std::vector<OHOS::DistributedKv::Entry> allEntries, std::map<std::string, std::shared_ptr<IAccountInfo>> &infos)
 {
-    ACCOUNT_LOGI("OsAccountDataStorage SaveEntries() start");
-    ACCOUNT_LOGI("OsAccountDataStorage SaveEntries() allEntries size is: %{public}zu", allEntries.size());
+    ACCOUNT_LOGD("start, allEntries size is: %{public}zu", allEntries.size());
     for (auto const &item : allEntries) {
         OsAccountInfo osAccountInfo;
         nlohmann::json jsonObject = nlohmann::json::parse(item.value.ToString(), nullptr, false);
@@ -51,7 +50,7 @@ void OsAccountDataStorage::SaveEntries(
         osAccountInfo.FromJson(jsonObject);
         infos.emplace(item.key.ToString(), std::make_shared<OsAccountInfo>(osAccountInfo));
     }
-    ACCOUNT_LOGE("OsAccountDataStorage SaveEntries() end");
+    ACCOUNT_LOGD("end");
 }
 }  // namespace AccountSA
 }  // namespace OHOS

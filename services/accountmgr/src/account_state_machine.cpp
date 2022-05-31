@@ -145,26 +145,26 @@ bool AccountStateMachine::StateChangeProcess(int evt)
     // get all the current state event action
     auto stateIter = stateMachineMap_.find(currentState_);
     if (stateIter == stateMachineMap_.end()) {
-        ACCOUNT_LOGE("current state %d is not in state machine map.", currentState_);
+        ACCOUNT_LOGE("current state %{public}d is not in state machine map.", currentState_);
         return false;
     }
 
     // get the current event action
     auto eventIter = stateIter->second.find(evt);
     if (eventIter == stateIter->second.end()) {
-        ACCOUNT_LOGE("event %d is not in state machine map.", evt);
+        ACCOUNT_LOGE("event %{public}d is not in state machine map.", evt);
         return false;
     }
 
     // maybe action is null
     if (eventIter->second == nullptr) {
-        ACCOUNT_LOGI("event %d has no action.", evt);
+        ACCOUNT_LOGI("event %{public}d has no action.", evt);
         return true;
     }
 
     int nextState = eventIter->second->GetNextState();
     if (currentState_ != nextState) {
-        ACCOUNT_LOGI("account state change, (oldstate, newstate) = (%d, %d)", currentState_, nextState);
+        ACCOUNT_LOGI("account state change, (oldstate, newstate) = (%{public}d, %{public}d)", currentState_, nextState);
         currentState_ = nextState;
     }
 

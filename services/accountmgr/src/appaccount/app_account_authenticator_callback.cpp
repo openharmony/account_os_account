@@ -23,12 +23,12 @@ namespace AccountSA {
 AppAccountAuthenticatorCallback::AppAccountAuthenticatorCallback(AppAccountAuthenticatorSession *session)
     : session_(session)
 {
-    ACCOUNT_LOGI("enter");
+    ACCOUNT_LOGD("enter");
 }
 
 AppAccountAuthenticatorCallback::~AppAccountAuthenticatorCallback()
 {
-    ACCOUNT_LOGI("enter");
+    ACCOUNT_LOGD("enter");
 }
 
 void AppAccountAuthenticatorCallback::OnResult(int32_t resultCode, const AAFwk::Want &result)

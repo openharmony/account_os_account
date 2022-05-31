@@ -162,11 +162,11 @@ void CBOrPromiseToQueryOA(napi_env env, const QueryCreateOAAsyncContext *queryOA
 void CBOrPromiseToQueryActiveIds(napi_env env, const QueryActiveIdsAsyncContext *queryActiveIds,
     napi_value err, napi_value data);
 
-napi_value ParseParaGetPhote(napi_env env, napi_callback_info cbInfo, GetOAPhotoAsyncContext *getPhoto);
+napi_value ParseParaGetPhoto(napi_env env, napi_callback_info cbInfo, GetOAPhotoAsyncContext *getPhoto);
 
-void GetOAPhoteExecuteCB(napi_env env, void *data);
+void GetOAPhotoExecuteCB(napi_env env, void *data);
 
-void GetOAPhoteCallbackCompletedCB(napi_env env, napi_status status, void *data);
+void GetOAPhotoCallbackCompletedCB(napi_env env, napi_status status, void *data);
 
 void CBOrPromiseToGetPhoto(napi_env env, const GetOAPhotoAsyncContext *getPhoto, napi_value err, napi_value data);
 

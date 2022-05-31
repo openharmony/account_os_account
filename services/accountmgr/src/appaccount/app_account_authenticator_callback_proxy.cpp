@@ -23,12 +23,12 @@ namespace AccountSA {
 AppAccountAuthenticatorCallbackProxy::AppAccountAuthenticatorCallbackProxy(const sptr<IRemoteObject> &object)
     : IRemoteProxy<IAppAccountAuthenticatorCallback>(object)
 {
-    ACCOUNT_LOGI("enter");
+    ACCOUNT_LOGD("enter");
 }
 
 AppAccountAuthenticatorCallbackProxy::~AppAccountAuthenticatorCallbackProxy()
 {
-    ACCOUNT_LOGI("enter");
+    ACCOUNT_LOGD("enter");
 }
 
 void AppAccountAuthenticatorCallbackProxy::OnResult(int32_t resultCode, const AAFwk::Want &result)
@@ -43,7 +43,7 @@ void AppAccountAuthenticatorCallbackProxy::OnResult(int32_t resultCode, const AA
     }
 
     if (!data.WriteInt32(resultCode)) {
-        ACCOUNT_LOGE("failed to write resultCode");
+        ACCOUNT_LOGE("failed to write resultCode %{public}d.", resultCode);
         return;
     }
     if (!data.WriteParcelable(&result)) {
@@ -55,7 +55,7 @@ void AppAccountAuthenticatorCallbackProxy::OnResult(int32_t resultCode, const AA
 
 void AppAccountAuthenticatorCallbackProxy::OnRequestRedirected(AAFwk::Want &request)
 {
-    ACCOUNT_LOGI("enter");
+    ACCOUNT_LOGD("enter");
     MessageParcel data;
     MessageParcel reply;
 
@@ -74,7 +74,7 @@ void AppAccountAuthenticatorCallbackProxy::OnRequestRedirected(AAFwk::Want &requ
 ErrCode AppAccountAuthenticatorCallbackProxy::SendRequest(
     IAppAccountAuthenticatorCallback::Message code, MessageParcel &data, MessageParcel &reply)
 {
-    ACCOUNT_LOGI("enter");
+    ACCOUNT_LOGD("enter");
     sptr<IRemoteObject> remote = Remote();
     if (remote == nullptr) {
         ACCOUNT_LOGE("remote is nullptr, code = %{public}d", code);
