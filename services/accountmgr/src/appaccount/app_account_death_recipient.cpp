@@ -23,7 +23,7 @@ namespace OHOS {
 namespace AccountSA {
 void AppAccountDeathRecipient::OnRemoteDied(const wptr<IRemoteObject> &remote)
 {
-    ACCOUNT_LOGI("enter");
+    ACCOUNT_LOGD("enter");
 
     DelayedSingleton<AppAccount>::GetInstance()->ResetAppAccountProxy();
 }

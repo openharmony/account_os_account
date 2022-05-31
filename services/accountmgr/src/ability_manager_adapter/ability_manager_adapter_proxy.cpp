@@ -517,7 +517,7 @@ int AbilityManagerProxy::StartUser(int userId)
     }
     error = Remote()->SendRequest(IAbilityManager::START_USER, data, reply, option);
     if (error != NO_ERROR) {
-        ACCOUNT_LOGE("StartUser:SendRequest error: %d", error);
+        ACCOUNT_LOGE("StartUser:SendRequest error: %{public}d", error);
         return error;
     }
     return reply.ReadInt32();
@@ -549,7 +549,7 @@ int AbilityManagerProxy::StopUser(int userId, const sptr<IStopUserCallback> &cal
     }
     error = Remote()->SendRequest(IAbilityManager::STOP_USER, data, reply, option);
     if (error != NO_ERROR) {
-        ACCOUNT_LOGE("StopUser:SendRequest error: %d", error);
+        ACCOUNT_LOGE("StopUser:SendRequest error: %{public}d", error);
         return error;
     }
     return reply.ReadInt32();

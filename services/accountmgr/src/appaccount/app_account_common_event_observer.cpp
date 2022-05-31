@@ -32,7 +32,7 @@ namespace AccountSA {
 AppAccountCommonEventObserver::AppAccountCommonEventObserver(const CommonEventCallback &callback)
     : callback_(callback)
 {
-    ACCOUNT_LOGI("enter");
+    ACCOUNT_LOGD("enter");
 
     counter_ = 0;
     MatchingSkills matchingSkills;
@@ -49,12 +49,12 @@ AppAccountCommonEventObserver::AppAccountCommonEventObserver(const CommonEventCa
         handler_->PostTask(callbackTemp, DELAY_FOR_COMMON_EVENT_SERVICE);
     }
 
-    ACCOUNT_LOGI("end");
+    ACCOUNT_LOGD("end");
 }
 
 AppAccountCommonEventObserver::~AppAccountCommonEventObserver()
 {
-    ACCOUNT_LOGI("enter");
+    ACCOUNT_LOGD("enter");
 
     if (handler_) {
         handler_.reset();
@@ -65,7 +65,7 @@ AppAccountCommonEventObserver::~AppAccountCommonEventObserver()
 
 ErrCode AppAccountCommonEventObserver::GetEventHandler(void)
 {
-    ACCOUNT_LOGI("enter");
+    ACCOUNT_LOGD("enter");
 
     if (!handler_) {
         handler_ = std::make_shared<EventHandler>(EventRunner::Create());
@@ -80,7 +80,7 @@ ErrCode AppAccountCommonEventObserver::GetEventHandler(void)
 
 void AppAccountCommonEventObserver::SubscribeCommonEvent(void)
 {
-    ACCOUNT_LOGI("enter");
+    ACCOUNT_LOGD("enter");
 
     bool result = CommonEventManager::SubscribeCommonEvent(subscriber_);
     ACCOUNT_LOGI("result = %{public}d", result);
@@ -112,9 +112,7 @@ void AppAccountCommonEventObserver::OnReceiveEvent(const CommonEventData &data)
             std::string bundleName = element.GetBundleName();
             auto uid = wantTemp.GetIntParam(AppExecFwk::Constants::UID, -1);
 
-            ACCOUNT_LOGI("uid = %{public}d", uid);
-            ACCOUNT_LOGI("bundleName = %{public}s", bundleName.c_str());
-
+            ACCOUNT_LOGI("uid = %{public}d, bundleName = %{public}s.", uid, bundleName.c_str());
             callback_.OnPackageRemoved(uid, bundleName);
         }
     }

@@ -64,7 +64,7 @@ std::string GetNamedProperty(napi_env env, napi_value obj, const std::string &ke
 void ParseAsyncContextFromArgs(napi_env env, napi_callback_info cbInfo, DistributedAccountAsyncContext *asyncContext,
     bool isUpdate)
 {
-    ACCOUNT_LOGI("enter");
+    ACCOUNT_LOGD("enter");
     size_t argc = isUpdate ? UPDATE_ARGC : QUERY_ARGC;
     napi_value argv[UPDATE_ARGC] = {0};
     napi_get_cb_info(env, cbInfo, &argc, argv, nullptr, nullptr);
@@ -89,14 +89,14 @@ void ProcessCallbackOrPromise(napi_env env, const DistributedAccountAsyncContext
 {
     napi_value args[RESULT_COUNT] = { err, data };
     if (asyncContext->deferred) {
-        ACCOUNT_LOGI("Promise");
+        ACCOUNT_LOGD("Promise");
         if (asyncContext->status == napi_ok) {
             napi_resolve_deferred(env, asyncContext->deferred, args[1]);
         } else {
             napi_reject_deferred(env, asyncContext->deferred, args[0]);
         }
     } else {
-        ACCOUNT_LOGI("Callback");
+        ACCOUNT_LOGD("Callback");
         napi_value callback = nullptr;
         napi_get_reference_value(env, asyncContext->callbackRef, &callback);
         napi_value returnVal = nullptr;
@@ -138,7 +138,7 @@ void ProcessSetNamedProperty(napi_env env, const DistributedAccountAsyncContext 
 
 napi_value NapiDistributedAccount::Init(napi_env env, napi_value exports)
 {
-    ACCOUNT_LOGI("enter");
+    ACCOUNT_LOGD("enter");
     napi_property_descriptor descriptor[] = {
         DECLARE_NAPI_FUNCTION("getDistributedAccountAbility", GetDistributedAccountAbility),
     };
@@ -166,7 +166,7 @@ napi_value NapiDistributedAccount::JsConstructor(napi_env env, napi_callback_inf
 
 napi_value NapiDistributedAccount::GetDistributedAccountAbility(napi_env env, napi_callback_info cbInfo)
 {
-    ACCOUNT_LOGI("enter");
+    ACCOUNT_LOGD("enter");
     napi_value instance = nullptr;
     napi_value cons = nullptr;
     if (napi_get_reference_value(env, distributedAccountRef_, &cons) != napi_ok) {
@@ -176,16 +176,16 @@ napi_value NapiDistributedAccount::GetDistributedAccountAbility(napi_env env, na
     if (napi_new_instance(env, cons, 0, nullptr, &instance) != napi_ok) {
         return nullptr;
     }
-
+    ACCOUNT_LOGI("napi_new_instance complete.");
     return instance;
 }
 
 napi_value NapiDistributedAccount::QueryOhosAccountInfo(napi_env env, napi_callback_info cbInfo)
 {
-    ACCOUNT_LOGI("enter");
+    ACCOUNT_LOGD("enter");
     auto *asyncContext = new (std::nothrow) DistributedAccountAsyncContext();
     if (asyncContext == nullptr) {
-        ACCOUNT_LOGE("asyncContext is nullptr!");
+        ACCOUNT_LOGE("insufficient memory for asyncContext!");
         return nullptr;
     }
     asyncContext->env = env;
@@ -231,10 +231,10 @@ napi_value NapiDistributedAccount::QueryOhosAccountInfo(napi_env env, napi_callb
 
 napi_value NapiDistributedAccount::UpdateOsAccountDistributedInfo(napi_env env, napi_callback_info cbInfo)
 {
-    ACCOUNT_LOGI("enter");
+    ACCOUNT_LOGD("enter");
     auto *asyncContext = new (std::nothrow) DistributedAccountAsyncContext();
     if (asyncContext == nullptr) {
-        ACCOUNT_LOGI("asyncContext is nullptr!");
+        ACCOUNT_LOGE("insufficient memory for asyncContext!");
         return nullptr;
     }
     asyncContext->env = env;

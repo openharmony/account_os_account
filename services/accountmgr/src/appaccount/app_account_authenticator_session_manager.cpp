@@ -46,13 +46,13 @@ void SessionAppStateObserver::SetSessionManager(AppAccountAuthenticatorSessionMa
 
 AppAccountAuthenticatorSessionManager::AppAccountAuthenticatorSessionManager()
 {
-    ACCOUNT_LOGI("enter");
+    ACCOUNT_LOGD("enter");
     Init();
 }
 
 AppAccountAuthenticatorSessionManager::~AppAccountAuthenticatorSessionManager()
 {
-    ACCOUNT_LOGI("enter");
+    ACCOUNT_LOGD("enter");
     if (!isInitialized_) {
         return;
     }
@@ -67,7 +67,7 @@ AppAccountAuthenticatorSessionManager::~AppAccountAuthenticatorSessionManager()
 void AppAccountAuthenticatorSessionManager::Init()
 {
     if (isInitialized_) {
-        ACCOUNT_LOGI("app account session manager has been initialized");
+        ACCOUNT_LOGD("app account session manager has been initialized");
         return;
     }
     appStateObserver_ = new (std::nothrow) SessionAppStateObserver(this);
@@ -120,7 +120,7 @@ ErrCode AppAccountAuthenticatorSessionManager::OpenSession(const std::string &ac
         }
         ErrCode result = session->Open();
         if (result != ERR_OK) {
-            ACCOUNT_LOGI("failed to open session");
+            ACCOUNT_LOGE("failed to open session, result %{public}d.", result);
             return result;
         }
         sessionMap_.emplace(sessionId, session);
@@ -176,7 +176,7 @@ void AppAccountAuthenticatorSessionManager::OnAbilityStateChanged(const AppExecF
 
 void AppAccountAuthenticatorSessionManager::CloseSession(const std::string &sessionId)
 {
-    ACCOUNT_LOGI("enter");
+    ACCOUNT_LOGD("enter");
     std::lock_guard<std::mutex> lock(mutex_);
     auto it = sessionMap_.find(sessionId);
     if (it == sessionMap_.end()) {

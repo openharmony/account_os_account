@@ -29,12 +29,12 @@ namespace OHOS {
 namespace AccountSA {
 SessionClientDeathRecipient::SessionClientDeathRecipient(AppAccountAuthenticatorSession *session) : session_(session)
 {
-    ACCOUNT_LOGI("enter");
+    ACCOUNT_LOGD("enter");
 }
 
 void SessionClientDeathRecipient::OnRemoteDied(const wptr<IRemoteObject> &remote)
 {
-    ACCOUNT_LOGI("enter");
+    ACCOUNT_LOGD("enter");
     if (session_ != nullptr) {
         session_->OnClientDied();
     }
@@ -42,18 +42,18 @@ void SessionClientDeathRecipient::OnRemoteDied(const wptr<IRemoteObject> &remote
 
 void SessionClientDeathRecipient::SetSession(AppAccountAuthenticatorSession *session)
 {
-    ACCOUNT_LOGI("enter");
+    ACCOUNT_LOGD("enter");
     session_ = session;
 }
 
 SessionServerDeathRecipient::SessionServerDeathRecipient(AppAccountAuthenticatorSession *session) : session_(session)
 {
-    ACCOUNT_LOGI("enter");
+    ACCOUNT_LOGD("enter");
 }
 
 void SessionServerDeathRecipient::OnRemoteDied(const wptr<IRemoteObject> &remote)
 {
-    ACCOUNT_LOGI("enter");
+    ACCOUNT_LOGD("enter");
     if (session_ != nullptr) {
         session_->OnServerDied();
     }
@@ -61,24 +61,24 @@ void SessionServerDeathRecipient::OnRemoteDied(const wptr<IRemoteObject> &remote
 
 void SessionServerDeathRecipient::SetSession(AppAccountAuthenticatorSession *session)
 {
-    ACCOUNT_LOGI("enter");
+    ACCOUNT_LOGD("enter");
     session_ = session;
 }
 
 SessionConnection::SessionConnection(AppAccountAuthenticatorSession *session) : session_(session)
 {
-    ACCOUNT_LOGI("enter");
+    ACCOUNT_LOGD("enter");
 }
 
 SessionConnection::~SessionConnection()
 {
-    ACCOUNT_LOGI("enter");
+    ACCOUNT_LOGD("enter");
 }
 
 void SessionConnection::OnAbilityConnectDone(
     const AppExecFwk::ElementName &element, const sptr<IRemoteObject> &remoteObject, int resultCode)
 {
-    ACCOUNT_LOGI("enter");
+    ACCOUNT_LOGD("enter");
     if (session_ != nullptr) {
         session_->OnAbilityConnectDone(element, remoteObject, resultCode);
     }
@@ -86,7 +86,7 @@ void SessionConnection::OnAbilityConnectDone(
 
 void SessionConnection::OnAbilityDisconnectDone(const AppExecFwk::ElementName &element, int resultCode)
 {
-    ACCOUNT_LOGI("enter");
+    ACCOUNT_LOGD("enter");
     if (session_ != nullptr) {
         session_->OnAbilityDisconnectDone(element, resultCode);
     }
@@ -94,20 +94,20 @@ void SessionConnection::OnAbilityDisconnectDone(const AppExecFwk::ElementName &e
 
 void SessionConnection::SetSession(AppAccountAuthenticatorSession *session)
 {
-    ACCOUNT_LOGI("enter");
+    ACCOUNT_LOGD("enter");
     session_ = session;
 }
 
 AppAccountAuthenticatorSession::AppAccountAuthenticatorSession(const std::string &action, const OAuthRequest &request)
     : action_(action), request_(request)
 {
-    ACCOUNT_LOGI("enter");
+    ACCOUNT_LOGD("enter");
     Init();
 }
 
 AppAccountAuthenticatorSession::~AppAccountAuthenticatorSession()
 {
-    ACCOUNT_LOGI("enter");
+    ACCOUNT_LOGD("enter");
     clientDeathRecipient_->SetSession(nullptr);
     serverDeathRecipient_->SetSession(nullptr);
     conn_->SetSession(nullptr);
@@ -132,7 +132,7 @@ AppAccountAuthenticatorSession::~AppAccountAuthenticatorSession()
 
 void AppAccountAuthenticatorSession::Init()
 {
-    ACCOUNT_LOGI("enter");
+    ACCOUNT_LOGD("enter");
     if (isInitialized_) {
         ACCOUNT_LOGE("session has been initialized");
         return;
@@ -168,7 +168,7 @@ void AppAccountAuthenticatorSession::Init()
 
 ErrCode AppAccountAuthenticatorSession::Open()
 {
-    ACCOUNT_LOGI("enter");
+    ACCOUNT_LOGD("enter");
     if (isOpened_) {
         ACCOUNT_LOGE("session has been opened");
         return ERR_APPACCOUNT_SERVICE_OAUTH_SERVICE_EXCEPTION;
@@ -180,8 +180,8 @@ ErrCode AppAccountAuthenticatorSession::Open()
     AuthenticatorInfo info;
     ErrCode errCode = authenticatorMgr_->GetAuthenticatorInfo(request_, info);
     if (errCode != ERR_OK) {
-        ACCOUNT_LOGI("authenticator not exist, owner: %{public}s, ownerUid: %{public}d",
-            request_.owner.c_str(), ownerUid_);
+        ACCOUNT_LOGI("authenticator not exist, owner: %{public}s, ownerUid: %{public}d, errCode: %{public}d.",
+            request_.owner.c_str(), ownerUid_, errCode);
         return errCode;
     }
     AAFwk::Want want;
@@ -190,14 +190,14 @@ ErrCode AppAccountAuthenticatorSession::Open()
     if (errCode == ERR_OK) {
         isOpened_ = true;
     }
-    ACCOUNT_LOGI("end");
+    ACCOUNT_LOGD("end");
     return errCode;
 }
 
 void AppAccountAuthenticatorSession::OnAbilityConnectDone(
     const AppExecFwk::ElementName &element, const sptr<IRemoteObject> &remoteObject, int resultCode)
 {
-    ACCOUNT_LOGI("enter");
+    ACCOUNT_LOGD("enter");
     isConnected_ = true;
     AAFwk::Want errResult_;
     authenticatorProxy_ = iface_cast<IAppAccountAuthenticator>(remoteObject);
@@ -214,7 +214,7 @@ void AppAccountAuthenticatorSession::OnAbilityConnectDone(
         resultCode = authenticatorProxy_->AddAccountImplicitly(
             request_.authType, request_.callerBundleName, request_.options.GetParams(), authenticatorCb_->AsObject());
     } else {
-        ACCOUNT_LOGE("unsupport action: %{public}s", action_.c_str());
+        ACCOUNT_LOGE("unsupported action: %{public}s", action_.c_str());
         OnResult(ERR_JS_OAUTH_UNSUPPORT_ACTION, errResult_);
         return;
     }
@@ -225,7 +225,7 @@ void AppAccountAuthenticatorSession::OnAbilityConnectDone(
 
 void AppAccountAuthenticatorSession::OnAbilityDisconnectDone(const AppExecFwk::ElementName &element, int resultCode)
 {
-    ACCOUNT_LOGI("enter");
+    ACCOUNT_LOGD("enter");
     isConnected_ = false;
 }
 
@@ -246,7 +246,7 @@ void AppAccountAuthenticatorSession::OnServerDied()
 
 int32_t AppAccountAuthenticatorSession::OnResult(int32_t resultCode, const AAFwk::Want &result) const
 {
-    ACCOUNT_LOGI("enter");
+    ACCOUNT_LOGD("enter");
     if (resultCode == ERR_JS_SUCCESS) {
         if (action_ == Constants::OAUTH_ACTION_AUTHENTICATE) {
             resultCode = OnAuthenticateDone(result);
@@ -268,7 +268,7 @@ int32_t AppAccountAuthenticatorSession::OnResult(int32_t resultCode, const AAFwk
 
 int32_t AppAccountAuthenticatorSession::OnRequestRedirected(AAFwk::Want &newRequest) const
 {
-    ACCOUNT_LOGI("enter");
+    ACCOUNT_LOGD("enter");
     AAFwk::Want errResult_;
     AppExecFwk::ElementName element = newRequest.GetElement();
     if (element.GetBundleName() != request_.owner) {
@@ -356,7 +356,7 @@ void AppAccountAuthenticatorSession::GetRequest(OAuthRequest &request) const
 ErrCode AppAccountAuthenticatorSession::GetAuthenticatorCallback(
     const OAuthRequest &request, sptr<IRemoteObject> &callback) const
 {
-    ACCOUNT_LOGI("enter");
+    ACCOUNT_LOGD("enter");
     callback = nullptr;
     if ((request.callerUid != ownerUid_) || (request.callerBundleName != request_.owner)) {
         ACCOUNT_LOGE("fail to get authenticator callback for permission denied");

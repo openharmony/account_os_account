@@ -23,18 +23,18 @@ namespace AccountSA {
 AppAccountAuthenticatorProxy::AppAccountAuthenticatorProxy(const sptr<IRemoteObject> &object)
     : IRemoteProxy<IAppAccountAuthenticator>(object)
 {
-    ACCOUNT_LOGI("enter");
+    ACCOUNT_LOGD("enter");
 }
 
 AppAccountAuthenticatorProxy::~AppAccountAuthenticatorProxy()
 {
-    ACCOUNT_LOGI("enter");
+    ACCOUNT_LOGD("enter");
 }
 
 ErrCode AppAccountAuthenticatorProxy::AddAccountImplicitly(const std::string &authType,
     const std::string &callerBundleName, const AAFwk::WantParams &options, const sptr<IRemoteObject> &callback)
 {
-    ACCOUNT_LOGI("enter");
+    ACCOUNT_LOGD("enter");
     MessageParcel data;
     MessageParcel reply;
 
@@ -69,7 +69,7 @@ ErrCode AppAccountAuthenticatorProxy::AddAccountImplicitly(const std::string &au
 ErrCode AppAccountAuthenticatorProxy::Authenticate(const std::string &name, const std::string &authType,
     const std::string &callerBundleName, const AAFwk::WantParams &options, const sptr<IRemoteObject> &callback)
 {
-    ACCOUNT_LOGI("enter");
+    ACCOUNT_LOGD("enter");
     MessageParcel data;
     MessageParcel reply;
 
@@ -108,7 +108,7 @@ ErrCode AppAccountAuthenticatorProxy::Authenticate(const std::string &name, cons
 ErrCode AppAccountAuthenticatorProxy::SendRequest(
     IAppAccountAuthenticator::Message code, MessageParcel &data, MessageParcel &reply)
 {
-    ACCOUNT_LOGI("enter");
+    ACCOUNT_LOGD("enter");
     sptr<IRemoteObject> remote = Remote();
     if (remote == nullptr) {
         ACCOUNT_LOGE("remote is nullptr, code = %{public}d", code);

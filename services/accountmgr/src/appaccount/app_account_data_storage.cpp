@@ -26,13 +26,13 @@ const std::string AppAccountDataStorage::AUTHORIZED_ACCOUNTS = "authorizedAccoun
 AppAccountDataStorage::AppAccountDataStorage(const std::string &storeId, const bool &autoSync)
     : AccountDataStorage(Constants::APP_ACCOUNT_APP_ID, storeId, autoSync)
 {
-    ACCOUNT_LOGI("enter");
+    ACCOUNT_LOGD("enter");
 }
 
 Json AppAccountDataStorage::GetAccessibleAccountsFromAuthorizedAccounts(const std::string &authorizedAccounts,
     const std::string &authorizedApp, std::vector<std::string> &accessibleAccounts)
 {
-    ACCOUNT_LOGI("enter");
+    ACCOUNT_LOGD("enter");
 
     accessibleAccounts.clear();
 
@@ -48,9 +48,9 @@ Json AppAccountDataStorage::GetAccessibleAccountsFromAuthorizedAccounts(const st
         }
     }
 
-    ACCOUNT_LOGI("accessibleAccounts.size() = %{public}zu", accessibleAccounts.size());
+    ACCOUNT_LOGD("accessibleAccounts.size() = %{public}zu", accessibleAccounts.size());
     for (auto account : accessibleAccounts) {
-        ACCOUNT_LOGI("account = %{public}s", account.c_str());
+        ACCOUNT_LOGD("account = %{public}s", account.c_str());
     }
 
     return jsonObject;
@@ -59,11 +59,11 @@ Json AppAccountDataStorage::GetAccessibleAccountsFromAuthorizedAccounts(const st
 ErrCode AppAccountDataStorage::GetAccessibleAccountsFromDataStorage(
     const std::string &authorizedApp, std::vector<std::string> &accessibleAccounts)
 {
-    ACCOUNT_LOGI("enter");
+    ACCOUNT_LOGD("enter");
 
     std::string authorizedAccounts;
     ErrCode result = GetValueFromKvStore(AUTHORIZED_ACCOUNTS, authorizedAccounts);
-    ACCOUNT_LOGI("authorizedAccounts = %{public}s", authorizedAccounts.c_str());
+    ACCOUNT_LOGD("authorizedAccounts = %{public}s", authorizedAccounts.c_str());
     if (result != ERR_OK) {
         ACCOUNT_LOGE("failed to get config by id from data storage");
     }
@@ -75,7 +75,7 @@ ErrCode AppAccountDataStorage::GetAccessibleAccountsFromDataStorage(
 
 ErrCode AppAccountDataStorage::GetAccountInfoFromDataStorage(AppAccountInfo &appAccountInfo)
 {
-    ACCOUNT_LOGI("enter");
+    ACCOUNT_LOGD("enter");
 
     ErrCode result = GetAccountInfoById(appAccountInfo.GetPrimeKey(), appAccountInfo);
     if (result != ERR_OK) {
@@ -83,50 +83,49 @@ ErrCode AppAccountDataStorage::GetAccountInfoFromDataStorage(AppAccountInfo &app
         return ERR_APPACCOUNT_SERVICE_GET_ACCOUNT_INFO_BY_ID;
     }
 
-    ACCOUNT_LOGI("appAccountInfo.GetPrimeKey() = %{public}s", appAccountInfo.GetPrimeKey().c_str());
-    ACCOUNT_LOGI("end, result = %{public}d", result);
-
+    ACCOUNT_LOGI("end, appAccountInfo.GetPrimeKey() = %{public}s, result = %{public}d.",
+        appAccountInfo.GetPrimeKey().c_str(), result);
     return ERR_OK;
 }
 
 ErrCode AppAccountDataStorage::AddAccountInfoIntoDataStorage(AppAccountInfo &appAccountInfo)
 {
-    ACCOUNT_LOGI("enter");
+    ACCOUNT_LOGD("enter");
 
     ErrCode result = AddAccountInfo(appAccountInfo);
     if (result != ERR_OK) {
-        ACCOUNT_LOGI("failed to add account info, result = %{public}d", result);
+        ACCOUNT_LOGE("failed to add account info, result = %{public}d", result);
         return ERR_APPACCOUNT_SERVICE_ADD_ACCOUNT_INFO;
     }
 
-    ACCOUNT_LOGI("end, result = %{public}d", result);
+    ACCOUNT_LOGD("end, result = %{public}d", result);
 
     return ERR_OK;
 }
 
 ErrCode AppAccountDataStorage::SaveAccountInfoIntoDataStorage(AppAccountInfo &appAccountInfo)
 {
-    ACCOUNT_LOGI("enter");
+    ACCOUNT_LOGD("enter");
 
     ErrCode result = SaveAccountInfo(appAccountInfo);
     if (result != ERR_OK) {
-        ACCOUNT_LOGI("failed to save account info, result = %{public}d", result);
+        ACCOUNT_LOGE("failed to save account info, result = %{public}d", result);
         return ERR_APPACCOUNT_SERVICE_SAVE_ACCOUNT_INFO;
     }
 
-    ACCOUNT_LOGI("end, result = %{public}d", result);
+    ACCOUNT_LOGD("end, result = %{public}d", result);
 
     return ERR_OK;
 }
 
 ErrCode AppAccountDataStorage::DeleteAccountInfoFromDataStorage(AppAccountInfo &appAccountInfo)
 {
-    ACCOUNT_LOGI("enter.");
+    ACCOUNT_LOGD("enter.");
     ErrCode ret = RemoveValueFromKvStore(appAccountInfo.GetPrimeKey());
     if (ret != ERR_OK) {
         ACCOUNT_LOGE("RemoveValueFromKvStore failed! ret = %{public}d.", ret);
     } else {
-        ACCOUNT_LOGI("RemoveValueFromKvStore succeed.");
+        ACCOUNT_LOGD("RemoveValueFromKvStore succeed.");
     }
     return ret;
 }
@@ -134,7 +133,7 @@ ErrCode AppAccountDataStorage::DeleteAccountInfoFromDataStorage(AppAccountInfo &
 void AppAccountDataStorage::SaveEntries(
     std::vector<OHOS::DistributedKv::Entry> allEntries, std::map<std::string, std::shared_ptr<IAccountInfo>> &infos)
 {
-    ACCOUNT_LOGI("enter");
+    ACCOUNT_LOGD("enter");
 
     for (auto const &item : allEntries) {
         Json jsonObject = Json::parse(item.value.ToString(), nullptr, false);
