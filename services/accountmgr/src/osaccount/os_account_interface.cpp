@@ -55,13 +55,13 @@ ErrCode OsAccountInterface::SendToAMSAccountStart(OsAccountInfo &osAccountInfo)
             "AbilityManagerAdapter StartUser failed!");
         return ERR_OSACCOUNT_SERVICE_INTERFACE_TO_AM_ACCOUNT_START_ERROR;
     }
-    ACCOUNT_LOGI("AbilityManagerAdapter StartUser succeed!");
+    ACCOUNT_LOGI("end, succeed!");
     return ERR_OK;
 }
 
 ErrCode OsAccountInterface::SendToAMSAccountStop(OsAccountInfo &osAccountInfo)
 {
-    ACCOUNT_LOGI("OsAccountInterface SendToAMSAccountStop stop");
+    ACCOUNT_LOGI("start");
     sptr<OsAccountStopUserCallback> osAccountStopUserCallback = new (std::nothrow) OsAccountStopUserCallback();
     if (osAccountStopUserCallback == nullptr) {
         ACCOUNT_LOGE("alloc memory for stop user callback failed!");
@@ -95,7 +95,7 @@ ErrCode OsAccountInterface::SendToAMSAccountStop(OsAccountInfo &osAccountInfo)
             "AbilityManagerService StopUser timeout!");
         return ERR_OSACCOUNT_SERVICE_INTERFACE_TO_AM_ACCOUNT_START_ERROR;
     }
-    ACCOUNT_LOGI("send AM to stop is ok");
+    ACCOUNT_LOGI("end, succeed!");
     return ERR_OK;
 }
 

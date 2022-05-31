@@ -32,12 +32,12 @@ const std::string AccountPermissionManager::INTERACT_ACROSS_LOCAL_ACCOUNTS =
     "ohos.permission.INTERACT_ACROSS_LOCAL_ACCOUNTS";
 AccountPermissionManager::AccountPermissionManager()
 {
-    ACCOUNT_LOGI("enter");
+    ACCOUNT_LOGD("enter");
 }
 
 AccountPermissionManager::~AccountPermissionManager()
 {
-    ACCOUNT_LOGI("enter");
+    ACCOUNT_LOGD("enter");
 }
 
 ErrCode AccountPermissionManager::VerifyPermission(const std::string &permissionName)

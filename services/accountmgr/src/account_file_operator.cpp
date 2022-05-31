@@ -36,7 +36,7 @@ AccountFileOperator::~AccountFileOperator()
 
 ErrCode AccountFileOperator::CreateDir(const std::string &path)
 {
-    ACCOUNT_LOGI("enter");
+    ACCOUNT_LOGD("enter");
 
     if (!OHOS::ForceCreateDirectory(path)) {
         ReportFileOperationFail(errno, "ForceCreateDirectory", path);

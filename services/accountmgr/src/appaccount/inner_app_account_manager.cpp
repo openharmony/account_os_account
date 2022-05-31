@@ -28,7 +28,7 @@ InnerAppAccountManager::InnerAppAccountManager()
       sessionManagerPtr_(AppAccountAuthenticatorSessionManager::GetInstance()),
       authenticatorManagerPtr_(AppAccountAuthenticatorManager::GetInstance())
 {
-    ACCOUNT_LOGI("enter");
+    ACCOUNT_LOGD("enter");
 }
 
 InnerAppAccountManager::~InnerAppAccountManager()
@@ -37,7 +37,7 @@ InnerAppAccountManager::~InnerAppAccountManager()
 ErrCode InnerAppAccountManager::AddAccount(
     const std::string &name, const std::string &extraInfo, const uid_t &uid, const std::string &bundleName)
 {
-    ACCOUNT_LOGI("enter, name = %{public}s, extraInfo = %{public}s.", name.c_str(), extraInfo.c_str());
+    ACCOUNT_LOGD("enter, name = %{public}s, extraInfo = %{public}s.", name.c_str(), extraInfo.c_str());
 
     if (!controlManagerPtr_) {
         ACCOUNT_LOGE("controlManagerPtr_ is nullptr");
@@ -52,7 +52,7 @@ ErrCode InnerAppAccountManager::AddAccount(
 
 ErrCode InnerAppAccountManager::AddAccountImplicitly(const OAuthRequest &request)
 {
-    ACCOUNT_LOGI("enter");
+    ACCOUNT_LOGD("enter");
     if (!sessionManagerPtr_) {
         ACCOUNT_LOGE("sessionManagerPtr_ is nullptr");
         return ERR_APPACCOUNT_SERVICE_SESSION_MANAGER_PTR_IS_NULLPTR;
@@ -62,7 +62,7 @@ ErrCode InnerAppAccountManager::AddAccountImplicitly(const OAuthRequest &request
 
 ErrCode InnerAppAccountManager::DeleteAccount(const std::string &name, const uid_t &uid, const std::string &bundleName)
 {
-    ACCOUNT_LOGI("enter, name = %{public}s", name.c_str());
+    ACCOUNT_LOGD("enter, name = %{public}s", name.c_str());
 
     if (!controlManagerPtr_) {
         ACCOUNT_LOGE("controlManagerPtr_ is nullptr");
@@ -75,7 +75,7 @@ ErrCode InnerAppAccountManager::DeleteAccount(const std::string &name, const uid
     if (!subscribeManagerPtr_) {
         ACCOUNT_LOGE("subscribeManagerPtr_ is nullptr");
     } else if (subscribeManagerPtr_->PublishAccount(appAccountInfo, uid, bundleName) != true) {
-        ACCOUNT_LOGI("failed to publish account");
+        ACCOUNT_LOGE("failed to publish account");
     }
 
     return result;
@@ -84,7 +84,7 @@ ErrCode InnerAppAccountManager::DeleteAccount(const std::string &name, const uid
 ErrCode InnerAppAccountManager::GetAccountExtraInfo(
     const std::string &name, std::string &extraInfo, const uid_t &uid, const std::string &bundleName)
 {
-    ACCOUNT_LOGI("enter, name = %{public}s.", name.c_str());
+    ACCOUNT_LOGD("enter, name = %{public}s.", name.c_str());
 
     if (!controlManagerPtr_) {
         ACCOUNT_LOGE("controlManagerPtr_ is nullptr");
@@ -99,7 +99,7 @@ ErrCode InnerAppAccountManager::GetAccountExtraInfo(
 ErrCode InnerAppAccountManager::SetAccountExtraInfo(
     const std::string &name, const std::string &extraInfo, const uid_t &uid, const std::string &bundleName)
 {
-    ACCOUNT_LOGI("enter, name = %{public}s, extraInfo = %{public}s.", name.c_str(), extraInfo.c_str());
+    ACCOUNT_LOGD("enter, name = %{public}s, extraInfo = %{public}s.", name.c_str(), extraInfo.c_str());
 
     if (!controlManagerPtr_) {
         ACCOUNT_LOGE("controlManagerPtr_ is nullptr");
@@ -112,7 +112,7 @@ ErrCode InnerAppAccountManager::SetAccountExtraInfo(
     if (!subscribeManagerPtr_) {
         ACCOUNT_LOGE("subscribeManagerPtr_ is nullptr");
     } else if (subscribeManagerPtr_->PublishAccount(appAccountInfo, uid, bundleName) != true) {
-        ACCOUNT_LOGI("failed to publish account");
+        ACCOUNT_LOGE("failed to publish account");
     }
 
     return result;
@@ -121,7 +121,7 @@ ErrCode InnerAppAccountManager::SetAccountExtraInfo(
 ErrCode InnerAppAccountManager::EnableAppAccess(
     const std::string &name, const std::string &authorizedApp, const uid_t &uid, const std::string &bundleName)
 {
-    ACCOUNT_LOGI("enter, name = %{public}s, authorizedApp = %{public}s.", name.c_str(), authorizedApp.c_str());
+    ACCOUNT_LOGD("enter, name = %{public}s, authorizedApp = %{public}s.", name.c_str(), authorizedApp.c_str());
 
     if (!controlManagerPtr_) {
         ACCOUNT_LOGE("controlManagerPtr_ is nullptr");
@@ -134,7 +134,7 @@ ErrCode InnerAppAccountManager::EnableAppAccess(
     if (!subscribeManagerPtr_) {
         ACCOUNT_LOGE("subscribeManagerPtr_ is nullptr");
     } else if (subscribeManagerPtr_->PublishAccount(appAccountInfo, uid, bundleName) != true) {
-        ACCOUNT_LOGI("failed to publish account");
+        ACCOUNT_LOGE("failed to publish account");
     }
 
     return result;
@@ -143,7 +143,7 @@ ErrCode InnerAppAccountManager::EnableAppAccess(
 ErrCode InnerAppAccountManager::DisableAppAccess(
     const std::string &name, const std::string &authorizedApp, const uid_t &uid, const std::string &bundleName)
 {
-    ACCOUNT_LOGI("enter, name = %{public}s, authorizedApp = %{public}s.", name.c_str(), authorizedApp.c_str());
+    ACCOUNT_LOGD("enter, name = %{public}s, authorizedApp = %{public}s.", name.c_str(), authorizedApp.c_str());
 
     if (!controlManagerPtr_) {
         ACCOUNT_LOGE("controlManagerPtr_ is nullptr");
@@ -156,7 +156,7 @@ ErrCode InnerAppAccountManager::DisableAppAccess(
     if (!subscribeManagerPtr_) {
         ACCOUNT_LOGE("subscribeManagerPtr_ is nullptr");
     } else if (subscribeManagerPtr_->PublishAccount(appAccountInfo, uid, bundleName) != true) {
-        ACCOUNT_LOGI("failed to publish account");
+        ACCOUNT_LOGE("failed to publish account");
     }
 
     return result;
@@ -165,7 +165,7 @@ ErrCode InnerAppAccountManager::DisableAppAccess(
 ErrCode InnerAppAccountManager::CheckAppAccountSyncEnable(
     const std::string &name, bool &syncEnable, const uid_t &uid, const std::string &bundleName)
 {
-    ACCOUNT_LOGI("enter, name = %{public}s.", name.c_str());
+    ACCOUNT_LOGD("enter, name = %{public}s.", name.c_str());
 
     if (!controlManagerPtr_) {
         ACCOUNT_LOGE("controlManagerPtr_ is nullptr");
@@ -180,7 +180,7 @@ ErrCode InnerAppAccountManager::CheckAppAccountSyncEnable(
 ErrCode InnerAppAccountManager::SetAppAccountSyncEnable(
     const std::string &name, const bool &syncEnable, const uid_t &uid, const std::string &bundleName)
 {
-    ACCOUNT_LOGI("enter, name = %{public}s, syncEnable = %{public}d.", name.c_str(), syncEnable);
+    ACCOUNT_LOGD("enter, name = %{public}s, syncEnable = %{public}d.", name.c_str(), syncEnable);
 
     if (!controlManagerPtr_) {
         ACCOUNT_LOGE("controlManagerPtr_ is nullptr");
@@ -196,7 +196,7 @@ ErrCode InnerAppAccountManager::SetAppAccountSyncEnable(
 ErrCode InnerAppAccountManager::GetAssociatedData(const std::string &name, const std::string &key, std::string &value,
     const uid_t &uid, const std::string &bundleName)
 {
-    ACCOUNT_LOGI("enter, name = %{public}s, key = %{public}s.", name.c_str(), key.c_str());
+    ACCOUNT_LOGD("enter, name = %{public}s, key = %{public}s.", name.c_str(), key.c_str());
 
     if (!controlManagerPtr_) {
         ACCOUNT_LOGE("controlManagerPtr_ is nullptr");
@@ -211,7 +211,7 @@ ErrCode InnerAppAccountManager::GetAssociatedData(const std::string &name, const
 ErrCode InnerAppAccountManager::SetAssociatedData(const std::string &name, const std::string &key,
     const std::string &value, const uid_t &uid, const std::string &bundleName)
 {
-    ACCOUNT_LOGI("enter, name = %{public}s, key = %{public}s, value = %{public}s.",
+    ACCOUNT_LOGD("enter, name = %{public}s, key = %{public}s, value = %{public}s.",
         name.c_str(), key.c_str(), value.c_str());
 
     if (!controlManagerPtr_) {
@@ -225,7 +225,7 @@ ErrCode InnerAppAccountManager::SetAssociatedData(const std::string &name, const
     if (!subscribeManagerPtr_) {
         ACCOUNT_LOGE("subscribeManagerPtr_ is nullptr");
     } else if (subscribeManagerPtr_->PublishAccount(appAccountInfo, uid, bundleName) != true) {
-        ACCOUNT_LOGI("failed to publish account");
+        ACCOUNT_LOGE("failed to publish account");
     }
 
     return result;
@@ -234,7 +234,7 @@ ErrCode InnerAppAccountManager::SetAssociatedData(const std::string &name, const
 ErrCode InnerAppAccountManager::GetAccountCredential(const std::string &name, const std::string &credentialType,
     std::string &credential, const uid_t &uid, const std::string &bundleName)
 {
-    ACCOUNT_LOGI("enter, name = %{public}s, credentialType = %{public}s.", name.c_str(), credentialType.c_str());
+    ACCOUNT_LOGD("enter, name = %{public}s, credentialType = %{public}s.", name.c_str(), credentialType.c_str());
 
     if (!controlManagerPtr_) {
         ACCOUNT_LOGE("controlManagerPtr_ is nullptr");
@@ -249,7 +249,7 @@ ErrCode InnerAppAccountManager::GetAccountCredential(const std::string &name, co
 ErrCode InnerAppAccountManager::SetAccountCredential(const std::string &name, const std::string &credentialType,
     const std::string &credential, const uid_t &uid, const std::string &bundleName)
 {
-    ACCOUNT_LOGI("enter, name = %{public}s, credentialType = %{public}s.", name.c_str(), credentialType.c_str());
+    ACCOUNT_LOGD("enter, name = %{public}s, credentialType = %{public}s.", name.c_str(), credentialType.c_str());
 
     if (!controlManagerPtr_) {
         ACCOUNT_LOGE("controlManagerPtr_ is nullptr");
@@ -263,7 +263,7 @@ ErrCode InnerAppAccountManager::SetAccountCredential(const std::string &name, co
     if (!subscribeManagerPtr_) {
         ACCOUNT_LOGE("subscribeManagerPtr_ is nullptr");
     } else if (subscribeManagerPtr_->PublishAccount(appAccountInfo, uid, bundleName) != true) {
-        ACCOUNT_LOGI("failed to publish account");
+        ACCOUNT_LOGE("failed to publish account");
     }
 
     return result;
@@ -271,7 +271,7 @@ ErrCode InnerAppAccountManager::SetAccountCredential(const std::string &name, co
 
 ErrCode InnerAppAccountManager::Authenticate(const OAuthRequest &request)
 {
-    ACCOUNT_LOGI("enter");
+    ACCOUNT_LOGD("enter");
     if (!controlManagerPtr_) {
         ACCOUNT_LOGE("controlManagerPtr_ is nullptr");
         return ERR_APPACCOUNT_SERVICE_CONTROL_MANAGER_PTR_IS_NULLPTR;
@@ -297,7 +297,7 @@ ErrCode InnerAppAccountManager::Authenticate(const OAuthRequest &request)
 
 ErrCode InnerAppAccountManager::GetOAuthToken(const OAuthRequest &request, std::string &token)
 {
-    ACCOUNT_LOGI("enter");
+    ACCOUNT_LOGD("enter");
     if (!controlManagerPtr_) {
         ACCOUNT_LOGE("controlManagerPtr_ is nullptr");
         return ERR_APPACCOUNT_SERVICE_CONTROL_MANAGER_PTR_IS_NULLPTR;
@@ -307,7 +307,7 @@ ErrCode InnerAppAccountManager::GetOAuthToken(const OAuthRequest &request, std::
 
 ErrCode InnerAppAccountManager::SetOAuthToken(const OAuthRequest &request)
 {
-    ACCOUNT_LOGI("enter");
+    ACCOUNT_LOGD("enter");
     if (!controlManagerPtr_) {
         ACCOUNT_LOGE("controlManagerPtr_ is nullptr");
         return ERR_APPACCOUNT_SERVICE_CONTROL_MANAGER_PTR_IS_NULLPTR;
@@ -322,14 +322,14 @@ ErrCode InnerAppAccountManager::SetOAuthToken(const OAuthRequest &request)
         return ERR_OK;
     }
     if (!subscribeManagerPtr_->PublishAccount(appAccountInfo, request.callerUid, request.callerBundleName)) {
-        ACCOUNT_LOGI("failed to publish account");
+        ACCOUNT_LOGE("failed to publish account");
     }
     return ERR_OK;
 }
 
 ErrCode InnerAppAccountManager::DeleteOAuthToken(const OAuthRequest &request)
 {
-    ACCOUNT_LOGI("enter");
+    ACCOUNT_LOGD("enter");
     if (!controlManagerPtr_) {
         ACCOUNT_LOGE("controlManagerPtr_ is nullptr");
         return ERR_APPACCOUNT_SERVICE_CONTROL_MANAGER_PTR_IS_NULLPTR;
@@ -339,7 +339,7 @@ ErrCode InnerAppAccountManager::DeleteOAuthToken(const OAuthRequest &request)
 
 ErrCode InnerAppAccountManager::SetOAuthTokenVisibility(const OAuthRequest &request)
 {
-    ACCOUNT_LOGI("enter");
+    ACCOUNT_LOGD("enter");
     if (!controlManagerPtr_) {
         ACCOUNT_LOGE("controlManagerPtr_ is nullptr");
         return ERR_APPACCOUNT_SERVICE_CONTROL_MANAGER_PTR_IS_NULLPTR;
@@ -349,7 +349,7 @@ ErrCode InnerAppAccountManager::SetOAuthTokenVisibility(const OAuthRequest &requ
 
 ErrCode InnerAppAccountManager::CheckOAuthTokenVisibility(const OAuthRequest &request, bool &isVisible)
 {
-    ACCOUNT_LOGI("enter");
+    ACCOUNT_LOGD("enter");
     if (!controlManagerPtr_) {
         ACCOUNT_LOGE("controlManagerPtr_ is nullptr");
         return ERR_APPACCOUNT_SERVICE_CONTROL_MANAGER_PTR_IS_NULLPTR;
@@ -359,7 +359,7 @@ ErrCode InnerAppAccountManager::CheckOAuthTokenVisibility(const OAuthRequest &re
 
 ErrCode InnerAppAccountManager::GetAuthenticatorInfo(const OAuthRequest &request, AuthenticatorInfo &info)
 {
-    ACCOUNT_LOGI("enter");
+    ACCOUNT_LOGD("enter");
     if (!authenticatorManagerPtr_) {
         ACCOUNT_LOGE("authenticatorManagerPtr_ is nullptr");
         return ERR_APPACCOUNT_SERVICE_AUTHENTICATOR_MANAGER_PTR_IS_NULLPTR;
@@ -370,7 +370,7 @@ ErrCode InnerAppAccountManager::GetAuthenticatorInfo(const OAuthRequest &request
 ErrCode InnerAppAccountManager::GetAllOAuthTokens(
     const OAuthRequest &request, std::vector<OAuthTokenInfo> &tokenInfos)
 {
-    ACCOUNT_LOGI("enter");
+    ACCOUNT_LOGD("enter");
     if (!controlManagerPtr_) {
         ACCOUNT_LOGE("controlManagerPtr_ is nullptr");
         return ERR_APPACCOUNT_SERVICE_CONTROL_MANAGER_PTR_IS_NULLPTR;
@@ -380,7 +380,7 @@ ErrCode InnerAppAccountManager::GetAllOAuthTokens(
 
 ErrCode InnerAppAccountManager::GetOAuthList(const OAuthRequest &request, std::set<std::string> &oauthList)
 {
-    ACCOUNT_LOGI("enter");
+    ACCOUNT_LOGD("enter");
     if (!controlManagerPtr_) {
         ACCOUNT_LOGE("controlManagerPtr_ is nullptr");
         return ERR_APPACCOUNT_SERVICE_CONTROL_MANAGER_PTR_IS_NULLPTR;
@@ -390,21 +390,21 @@ ErrCode InnerAppAccountManager::GetOAuthList(const OAuthRequest &request, std::s
 
 ErrCode InnerAppAccountManager::GetAuthenticatorCallback(const OAuthRequest &request, sptr<IRemoteObject> &callback)
 {
-    ACCOUNT_LOGI("enter");
+    ACCOUNT_LOGD("enter");
     callback = nullptr;
     if (!sessionManagerPtr_) {
         ACCOUNT_LOGE("controlManagerPtr_ is nullptr");
         return ERR_APPACCOUNT_SERVICE_CONTROL_MANAGER_PTR_IS_NULLPTR;
     }
     ErrCode result = sessionManagerPtr_->GetAuthenticatorCallback(request, callback);
-    ACCOUNT_LOGI("end");
+    ACCOUNT_LOGD("end");
     return result;
 }
 
 ErrCode InnerAppAccountManager::GetAllAccounts(const std::string &owner, std::vector<AppAccountInfo> &appAccounts,
     const uid_t &uid, const std::string &bundleName)
 {
-    ACCOUNT_LOGI("enter, owner = %{public}s", owner.c_str());
+    ACCOUNT_LOGD("enter, owner = %{public}s", owner.c_str());
 
     if (!controlManagerPtr_) {
         ACCOUNT_LOGE("controlManagerPtr_ is nullptr");
@@ -419,7 +419,7 @@ ErrCode InnerAppAccountManager::GetAllAccounts(const std::string &owner, std::ve
 ErrCode InnerAppAccountManager::GetAllAccessibleAccounts(
     std::vector<AppAccountInfo> &appAccounts, const uid_t &uid, const std::string &bundleName)
 {
-    ACCOUNT_LOGI("enter");
+    ACCOUNT_LOGD("enter");
 
     if (!controlManagerPtr_) {
         ACCOUNT_LOGE("controlManagerPtr_ is nullptr");
@@ -434,7 +434,7 @@ ErrCode InnerAppAccountManager::GetAllAccessibleAccounts(
 ErrCode InnerAppAccountManager::SubscribeAppAccount(const AppAccountSubscribeInfo &subscribeInfo,
     const sptr<IRemoteObject> &eventListener, const uid_t &uid, const std::string &bundleName)
 {
-    ACCOUNT_LOGI("enter");
+    ACCOUNT_LOGD("enter");
 
     if (!subscribeManagerPtr_) {
         ACCOUNT_LOGE("subscribeManagerPtr_ is nullptr");
@@ -449,7 +449,7 @@ ErrCode InnerAppAccountManager::SubscribeAppAccount(const AppAccountSubscribeInf
 
 ErrCode InnerAppAccountManager::UnsubscribeAppAccount(const sptr<IRemoteObject> &eventListener)
 {
-    ACCOUNT_LOGI("enter");
+    ACCOUNT_LOGD("enter");
 
     if (!subscribeManagerPtr_) {
         ACCOUNT_LOGE("subscribeManagerPtr_ is nullptr");
@@ -463,7 +463,7 @@ ErrCode InnerAppAccountManager::UnsubscribeAppAccount(const sptr<IRemoteObject> 
 
 ErrCode InnerAppAccountManager::OnPackageRemoved(const uid_t &uid, const std::string &bundleName)
 {
-    ACCOUNT_LOGI("enter");
+    ACCOUNT_LOGD("enter");
 
     if (!controlManagerPtr_) {
         ACCOUNT_LOGE("controlManagerPtr_ is nullptr");

@@ -22,7 +22,7 @@ namespace OHOS {
 namespace AccountSA {
 AppAccountEventProxy::AppAccountEventProxy(const sptr<IRemoteObject> &object) : IRemoteProxy<IAppAccountEvent>(object)
 {
-    ACCOUNT_LOGI("enter");
+    ACCOUNT_LOGD("enter");
 }
 
 AppAccountEventProxy::~AppAccountEventProxy()
@@ -54,7 +54,7 @@ void AppAccountEventProxy::OnAccountsChanged(const std::vector<AppAccountInfo> &
 
 ErrCode AppAccountEventProxy::SendRequest(IAppAccountEvent::Message code, MessageParcel &data, MessageParcel &reply)
 {
-    ACCOUNT_LOGI("enter");
+    ACCOUNT_LOGD("enter");
 
     sptr<IRemoteObject> remote = Remote();
     if (remote == nullptr) {

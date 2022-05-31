@@ -96,7 +96,7 @@ ErrCode OsAccountManagerService::CreateOsAccount(
 ErrCode OsAccountManagerService::CreateOsAccountForDomain(
     const OsAccountType &type, const DomainAccountInfo &domainInfo, OsAccountInfo &osAccountInfo)
 {
-    ACCOUNT_LOGI("OsAccountManager CreateOsAccountForDomain START");
+    ACCOUNT_LOGI("start");
     bool isMultiOsAccountEnable = false;
     innerManager_->IsMultiOsAccountEnable(isMultiOsAccountEnable);
     if (!isMultiOsAccountEnable) {
@@ -532,9 +532,9 @@ ErrCode OsAccountManagerService::GetCreatedOsAccountNumFromDatabase(const std::s
 
 void OsAccountManagerService::CreateBasicAccounts()
 {
-    ACCOUNT_LOGE("CreateBasicAccounts enter!");
+    ACCOUNT_LOGI("enter!");
     innerManager_->Init();
-    ACCOUNT_LOGE("CreateBasicAccounts exit!");
+    ACCOUNT_LOGI("exit!");
 }
 
 ErrCode OsAccountManagerService::GetSerialNumberFromDatabase(const std::string& storeID,
@@ -575,7 +575,7 @@ ErrCode OsAccountManagerService::GetOsAccountListFromDatabase(const std::string&
 ErrCode OsAccountManagerService::DumpStateByAccounts(
     const std::vector<OsAccountInfo> &osAccountInfos, std::vector<std::string> &state)
 {
-    ACCOUNT_LOGI("enter");
+    ACCOUNT_LOGD("enter");
 
     for (auto osAccountInfo : osAccountInfos) {
         std::string info = "";

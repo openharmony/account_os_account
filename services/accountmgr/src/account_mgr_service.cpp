@@ -67,13 +67,13 @@ AccountMgrService::~AccountMgrService()
 bool AccountMgrService::UpdateOhosAccountInfo(
     const std::string &accountName, const std::string &uid, const std::string &eventStr)
 {
-    ACCOUNT_LOGI("Account event %s", eventStr.c_str());
+    ACCOUNT_LOGD("Account event %s", eventStr.c_str());
     if (!ohosAccountMgr_->OhosAccountStateChange(accountName, uid, eventStr)) {
         ACCOUNT_LOGE("Ohos account state change failed");
         return false;
     }
 
-    ACCOUNT_LOGI("Successful");
+    ACCOUNT_LOGD("Successful");
     return true;
 }
 
@@ -104,13 +104,13 @@ std::int32_t AccountMgrService::QueryDeviceAccountId(std::int32_t &accountId)
 
 sptr<IRemoteObject> AccountMgrService::GetAppAccountService()
 {
-    ACCOUNT_LOGI("enter");
+    ACCOUNT_LOGD("enter");
 
     return appAccountManagerService_;
 }
 sptr<IRemoteObject> AccountMgrService::GetOsAccountService()
 {
-    ACCOUNT_LOGI("enter");
+    ACCOUNT_LOGD("enter");
 
     return osAccountManagerService_;
 }
@@ -217,7 +217,7 @@ std::int32_t AccountMgrService::Dump(std::int32_t fd, const std::vector<std::u16
 
     std::vector<std::string> argsInStr;
     for (const auto &arg : args) {
-        ACCOUNT_LOGI("Dump args: %s", Str16ToStr8(arg).c_str());
+        ACCOUNT_LOGD("Dump args: %s", Str16ToStr8(arg).c_str());
         argsInStr.emplace_back(Str16ToStr8(arg));
     }
 
@@ -245,7 +245,7 @@ void AccountMgrService::HandleNotificationEvents(const std::string &eventStr)
         return;
     }
 
-    ACCOUNT_LOGI("Unhandled event: %{public}s", eventStr.c_str());
+    ACCOUNT_LOGD("Unhandled event: %{public}s", eventStr.c_str());
 }
 }  // namespace AccountSA
 }  // namespace OHOS

@@ -21,12 +21,12 @@ namespace AccountSA {
 BundleUserManagerAdapterProxy::BundleUserManagerAdapterProxy(const sptr<IRemoteObject> &object)
     : IRemoteProxy<AppExecFwk::IBundleUserMgr>(object)
 {
-    ACCOUNT_LOGI("create BundleUserManagerAdapterProxy instance");
+    ACCOUNT_LOGD("create BundleUserManagerAdapterProxy instance");
 }
 
 BundleUserManagerAdapterProxy::~BundleUserManagerAdapterProxy()
 {
-    ACCOUNT_LOGI("destroy BundleUserManagerAdapterProxy instance");
+    ACCOUNT_LOGD("destroy BundleUserManagerAdapterProxy instance");
 }
 
 void BundleUserManagerAdapterProxy::CreateNewUser(int32_t userId)
