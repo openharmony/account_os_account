@@ -37,12 +37,12 @@ std::shared_ptr<BundleManagerAdapter> BundleManagerAdapter::GetInstance()
 
 BundleManagerAdapter::BundleManagerAdapter()
 {
-    ACCOUNT_LOGI("create BundleManagerAdapter");
+    ACCOUNT_LOGD("create BundleManagerAdapter");
 }
 
 BundleManagerAdapter::~BundleManagerAdapter()
 {
-    ACCOUNT_LOGI("destroy BundleManagerAdapter");
+    ACCOUNT_LOGD("destroy BundleManagerAdapter");
 }
 
 bool BundleManagerAdapter::GetBundleNameForUid(const int uid, std::string &bundleName)

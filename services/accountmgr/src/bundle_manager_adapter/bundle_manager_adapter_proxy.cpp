@@ -21,12 +21,12 @@ namespace OHOS {
 namespace AccountSA {
 BundleManagerAdapterProxy::BundleManagerAdapterProxy(const sptr<IRemoteObject> &impl) : IRemoteProxy<IBundleMgr>(impl)
 {
-    ACCOUNT_LOGI("create BundleManagerAdapterProxy instance");
+    ACCOUNT_LOGD("create BundleManagerAdapterProxy instance");
 }
 
 BundleManagerAdapterProxy::~BundleManagerAdapterProxy()
 {
-    ACCOUNT_LOGI("destroy BundleManagerAdapterProxy instance");
+    ACCOUNT_LOGD("destroy BundleManagerAdapterProxy instance");
 }
 
 bool BundleManagerAdapterProxy::GetApplicationInfo(
@@ -132,7 +132,7 @@ int BundleManagerAdapterProxy::GetUidByBundleName(const std::string &bundleName,
         ACCOUNT_LOGE("failed to GetUidByBundleName due to bundleName empty");
         return AppExecFwk::Constants::INVALID_UID;
     }
-    ACCOUNT_LOGI("begin to get uid of %{public}s, userId : %{public}d", bundleName.c_str(), userId);
+    ACCOUNT_LOGD("begin to get uid of %{public}s, userId : %{public}d", bundleName.c_str(), userId);
 
     MessageParcel data;
     if (!data.WriteInterfaceToken(GetDescriptor())) {
@@ -154,7 +154,7 @@ int BundleManagerAdapterProxy::GetUidByBundleName(const std::string &bundleName,
         return AppExecFwk::Constants::INVALID_UID;
     }
     int32_t uid = reply.ReadInt32();
-    ACCOUNT_LOGI("uid is %{public}d", uid);
+    ACCOUNT_LOGD("uid is %{public}d", uid);
     return uid;
 }
 
@@ -166,7 +166,7 @@ std::string BundleManagerAdapterProxy::GetAppIdByBundleName(const std::string &b
 
 bool BundleManagerAdapterProxy::GetBundleNameForUid(const int uid, std::string &bundleName)
 {
-    ACCOUNT_LOGI("begin to GetBundleNameForUid of %{public}d", uid);
+    ACCOUNT_LOGD("begin to GetBundleNameForUid of %{public}d", uid);
     MessageParcel data;
     if (!data.WriteInterfaceToken(GetDescriptor())) {
         ACCOUNT_LOGE("fail to GetBundleNameForUid due to write InterfaceToken fail");
@@ -266,7 +266,7 @@ bool BundleManagerAdapterProxy::QueryAbilityInfos(const Want &want, std::vector<
 bool BundleManagerAdapterProxy::QueryAbilityInfos(
     const Want &want, int32_t flags, int32_t userId, std::vector<AbilityInfo> &abilityInfos)
 {
-    ACCOUNT_LOGE("enter.");
+    ACCOUNT_LOGD("enter.");
     MessageParcel data;
     if (!data.WriteInterfaceToken(GetDescriptor())) {
         ACCOUNT_LOGE("fail to QueryAbilityInfos due to write MessageParcel fail");

@@ -125,7 +125,7 @@ ErrCode OhosAccountDataDeal::AccountInfoFromJson(AccountInfo &accountInfo, const
         accountInfo.ohosAccountStatus_ = jsonData_.at(DATADEAL_JSON_KEY_STATUS).get<std::int32_t>();
     }
 
-    ACCOUNT_LOGI("AccountInfo, ohos account %{public}s status: %{public}d",
+    ACCOUNT_LOGD("AccountInfo, ohos account %{public}s status: %{public}d",
         accountInfo.ohosAccountName_.c_str(), accountInfo.ohosAccountStatus_);
     return ERR_OK;
 }

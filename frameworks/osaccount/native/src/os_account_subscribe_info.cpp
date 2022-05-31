@@ -75,7 +75,7 @@ OsAccountSubscribeInfo *OsAccountSubscribeInfo::Unmarshalling(Parcel &parcel)
     OsAccountSubscribeInfo *subscribeInfo = new (std::nothrow) OsAccountSubscribeInfo();
 
     if (subscribeInfo && !subscribeInfo->ReadFromParcel(parcel)) {
-        ACCOUNT_LOGE("failed to read from pacel");
+        ACCOUNT_LOGE("failed to read from parcel");
         delete subscribeInfo;
         subscribeInfo = nullptr;
     }

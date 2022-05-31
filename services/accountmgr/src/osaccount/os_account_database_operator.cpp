@@ -96,7 +96,7 @@ ErrCode OsAccountDatabaseOperator::GetOsAccountListFromDatabase(const std::strin
             osAccountList.push_back(curOsInfo);
         }
     }
-    ACCOUNT_LOGI("Totally get %{public}zu os accounts from database. storeID %{public}s.",
+    ACCOUNT_LOGD("Totally get %{public}zu os accounts from database. storeID %{public}s.",
         osAccountList.size(), storeID.c_str());
     return ERR_OK;
 }
@@ -195,7 +195,7 @@ void OsAccountDatabaseOperator::UpdateOsAccountIDListInDatabase(const Json &acco
         ACCOUNT_LOGE("update os account id list to database failed.");
         return;
     }
-    ACCOUNT_LOGI("update os account id list to database succeed.");
+    ACCOUNT_LOGD("update os account id list to database succeed.");
 }
 
 ErrCode OsAccountDatabaseOperator::GetSerialNumberFromDatabase(
@@ -269,7 +269,7 @@ ErrCode OsAccountDatabaseOperator::SaveAccountListToDatabase(const Json &account
         ACCOUNT_LOGE("Save or Add config info to database failed! errCode %{public}d.", errCode);
         return ERR_OSACCOUNT_SERVICE_CONTROL_SET_ACCOUNT_LIST_ERROR;
     }
-    ACCOUNT_LOGI("save or add account list info to database succeed!");
+    ACCOUNT_LOGD("save or add account list info to database succeed!");
     return ERR_OK;
 }
 }  // namespace AccountSA
