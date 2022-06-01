@@ -16,9 +16,9 @@
 
 #include<thread>
 
-#include "ability_manager_client.h"
+#include "ability_manager_adapter.h"
 #include "account_log_wrapper.h"
-#include "bundle_mgr_interface.h"
+#include "bundle_manager_adapter.h"
 #ifdef HAS_CES_PART
 #include "common_event_manager.h"
 #include "common_event_support.h"
@@ -47,23 +47,21 @@ namespace AccountSA {
 ErrCode OsAccountInterface::SendToAMSAccountStart(OsAccountInfo &osAccountInfo)
 {
     ACCOUNT_LOGI("start");
-
-    StartSyncTrace("AbilityManagerClient StartUser");
-    ErrCode code = AAFwk::AbilityManagerClient::GetInstance()->StartUser(osAccountInfo.GetLocalId());
-    EndSyncTrace();
+    HiTraceAdapterSyncTrace tracer("AbilityManagerAdapter StartUser");
+    ErrCode code = AAFwk::AbilityManagerAdapter::GetInstance()->StartUser(osAccountInfo.GetLocalId());
     if (code != ERR_OK) {
-        ACCOUNT_LOGE("AbilityManagerClient StartUser failed! errcode is %{public}d", code);
+        ACCOUNT_LOGE("AbilityManagerAdapter StartUser failed! errcode is %{public}d", code);
         ReportAccountOperationFail(osAccountInfo.GetLocalId(), code, "activate",
-            "AbilityManagerClient StartUser failed!");
+            "AbilityManagerAdapter StartUser failed!");
         return ERR_OSACCOUNT_SERVICE_INTERFACE_TO_AM_ACCOUNT_START_ERROR;
     }
-    ACCOUNT_LOGI("AbilityManagerClient StartUser succeed!");
+    ACCOUNT_LOGI("end, succeed!");
     return ERR_OK;
 }
 
 ErrCode OsAccountInterface::SendToAMSAccountStop(OsAccountInfo &osAccountInfo)
 {
-    ACCOUNT_LOGI("OsAccountInterface SendToAMSAccountStop stop");
+    ACCOUNT_LOGI("start");
     sptr<OsAccountStopUserCallback> osAccountStopUserCallback = new (std::nothrow) OsAccountStopUserCallback();
     if (osAccountStopUserCallback == nullptr) {
         ACCOUNT_LOGE("alloc memory for stop user callback failed!");
@@ -74,13 +72,12 @@ ErrCode OsAccountInterface::SendToAMSAccountStop(OsAccountInfo &osAccountInfo)
         return ERR_ACCOUNT_COMMON_INSUFFICIENT_MEMORY_ERROR;
     }
 
-    StartSyncTrace("AbilityManagerClient StopUser");
-    ErrCode code = AAFwk::AbilityManagerClient::GetInstance()->StopUser(osAccountInfo.GetLocalId(),
+    HiTraceAdapterSyncTrace tracer("AbilityManagerAdapter StopUser");
+    ErrCode code = AAFwk::AbilityManagerAdapter::GetInstance()->StopUser(osAccountInfo.GetLocalId(),
         osAccountStopUserCallback);
     if (code != ERR_OK) {
-        EndSyncTrace();
-        ACCOUNT_LOGE("failed to AbilityManagerClient stop errcode is %{public}d", code);
-        ReportAccountOperationFail(osAccountInfo.GetLocalId(), code, "stop", "AbilityManagerClient StopUser failed!");
+        ACCOUNT_LOGE("failed to AbilityManagerAdapter stop errcode is %{public}d", code);
+        ReportAccountOperationFail(osAccountInfo.GetLocalId(), code, "stop", "AbilityManagerService StopUser failed!");
         return ERR_OSACCOUNT_SERVICE_INTERFACE_TO_AM_ACCOUNT_START_ERROR;
     }
     struct tm startTime = {0};
@@ -92,106 +89,24 @@ ErrCode OsAccountInterface::SendToAMSAccountStop(OsAccountInfo &osAccountInfo)
         std::this_thread::sleep_for(std::chrono::milliseconds(Constants::WAIT_ONE_TIME));
         OHOS::GetSystemCurrentTime(&nowTime);
     }
-    EndSyncTrace();
-    if (!osAccountStopUserCallback->isReaturnOk_) {
-        ACCOUNT_LOGE("failed to AbilityManagerClient stop in call back");
-        ReportTimeoutFail("AbilityManagerService StopUser timeout!");
+    if (!osAccountStopUserCallback->isReturnOk_) {
+        ACCOUNT_LOGE("failed to AbilityManagerService stop in call back");
+        ReportAccountOperationFail(osAccountInfo.GetLocalId(), -1, "stop",
+            "AbilityManagerService StopUser timeout!");
         return ERR_OSACCOUNT_SERVICE_INTERFACE_TO_AM_ACCOUNT_START_ERROR;
     }
-    ACCOUNT_LOGI("send AM to stop is ok");
+    ACCOUNT_LOGI("end, succeed!");
     return ERR_OK;
 }
 
 ErrCode OsAccountInterface::SendToBMSAccountCreate(OsAccountInfo &osAccountInfo)
 {
-    ACCOUNT_LOGI("OsAccountInterface SendToBMSAccountCreate start");
-    sptr<ISystemAbilityManager> systemAbilityManager =
-        SystemAbilityManagerClient::GetInstance().GetSystemAbilityManager();
-    if (!systemAbilityManager) {
-        ACCOUNT_LOGE("failed to get system ability mgr.");
-        ReportAccountOperationFail(osAccountInfo.GetLocalId(),
-            ERR_OSACCOUNT_SERVICE_INTERFACE_TO_BM_ACCOUNT_CREATE_ERROR,
-            "create",
-            "GetSystemAbilityManager for BundleManager failed!");
-        return ERR_OSACCOUNT_SERVICE_INTERFACE_TO_BM_ACCOUNT_CREATE_ERROR;
-    }
-
-    sptr<IRemoteObject> remoteObject = systemAbilityManager->GetSystemAbility(BUNDLE_MGR_SERVICE_SYS_ABILITY_ID);
-    if (!remoteObject) {
-        ACCOUNT_LOGE("failed to get bundle manager service.");
-        ReportAccountOperationFail(osAccountInfo.GetLocalId(),
-            ERR_OSACCOUNT_SERVICE_INTERFACE_TO_BM_ACCOUNT_CREATE_ERROR,
-            "create",
-            "GetSystemAbility for BundleManager failed!");
-        return ERR_OSACCOUNT_SERVICE_INTERFACE_TO_BM_ACCOUNT_CREATE_ERROR;
-    }
-
-    auto bunduleMgrProxy = iface_cast<OHOS::AppExecFwk::IBundleMgr>(remoteObject);
-    if (!bunduleMgrProxy) {
-        ACCOUNT_LOGE("failed to get bunduleMgrProxy");
-        return ERR_OSACCOUNT_SERVICE_INTERFACE_TO_BM_ACCOUNT_CREATE_ERROR;
-    }
-    auto bunduleUserMgrProxy = bunduleMgrProxy->GetBundleUserMgr();
-    if (!bunduleUserMgrProxy) {
-        ACCOUNT_LOGE("failed to get bunduleUserMgrProxy");
-        ReportAccountOperationFail(osAccountInfo.GetLocalId(),
-            ERR_OSACCOUNT_SERVICE_INTERFACE_TO_BM_ACCOUNT_CREATE_ERROR,
-            "create",
-            "GetBundleUserMgr from BundleManager proxy failed!");
-        return ERR_OSACCOUNT_SERVICE_INTERFACE_TO_BM_ACCOUNT_CREATE_ERROR;
-    }
-
-    StartSyncTrace("BundleManagService CreateNewUser");
-    bunduleUserMgrProxy->CreateNewUser(osAccountInfo.GetLocalId());
-    EndSyncTrace();
-    ACCOUNT_LOGI("call bm to create user ok");
-    return ERR_OK;
+    return BundleManagerAdapter::GetInstance()->CreateNewUser(osAccountInfo.GetLocalId());
 }
 
 ErrCode OsAccountInterface::SendToBMSAccountDelete(OsAccountInfo &osAccountInfo)
 {
-    ACCOUNT_LOGI("OsAccountInterface SendToBMSAccountDelete start");
-    sptr<ISystemAbilityManager> systemAbilityManager =
-        SystemAbilityManagerClient::GetInstance().GetSystemAbilityManager();
-    if (!systemAbilityManager) {
-        ACCOUNT_LOGE("failed to get system ability mgr.");
-        ReportAccountOperationFail(osAccountInfo.GetLocalId(),
-            ERR_OSACCOUNT_SERVICE_INTERFACE_TO_BM_ACCOUNT_DELETE_ERROR,
-            "delete",
-            "GetSystemAbilityManager for BundleManager failed!");
-        return ERR_OSACCOUNT_SERVICE_INTERFACE_TO_BM_ACCOUNT_DELETE_ERROR;
-    }
-
-    sptr<IRemoteObject> remoteObject = systemAbilityManager->GetSystemAbility(BUNDLE_MGR_SERVICE_SYS_ABILITY_ID);
-    if (!remoteObject) {
-        ACCOUNT_LOGE("failed to get bundle manager service.");
-        ReportAccountOperationFail(osAccountInfo.GetLocalId(),
-            ERR_OSACCOUNT_SERVICE_INTERFACE_TO_BM_ACCOUNT_DELETE_ERROR,
-            "delete",
-            "GetSystemAbility for BundleManager failed!");
-        return ERR_OSACCOUNT_SERVICE_INTERFACE_TO_BM_ACCOUNT_DELETE_ERROR;
-    }
-
-    auto bunduleMgrProxy = iface_cast<OHOS::AppExecFwk::IBundleMgr>(remoteObject);
-    if (!bunduleMgrProxy) {
-        ACCOUNT_LOGE("failed to get bunduleMgrProxy");
-        return ERR_OSACCOUNT_SERVICE_INTERFACE_TO_BM_ACCOUNT_DELETE_ERROR;
-    }
-    auto bunduleUserMgrProxy = bunduleMgrProxy->GetBundleUserMgr();
-    if (!bunduleUserMgrProxy) {
-        ACCOUNT_LOGE("failed to get bunduleUserMgrProxy");
-        ReportAccountOperationFail(osAccountInfo.GetLocalId(),
-            ERR_OSACCOUNT_SERVICE_INTERFACE_TO_BM_ACCOUNT_DELETE_ERROR,
-            "delete",
-            "GetBundleUserMgr from BundleManager proxy failed!");
-        return ERR_OSACCOUNT_SERVICE_INTERFACE_TO_BM_ACCOUNT_DELETE_ERROR;
-    }
-
-    StartSyncTrace("BundleManagService RemoveUser");
-    bunduleUserMgrProxy->RemoveUser(osAccountInfo.GetLocalId());
-    EndSyncTrace();
-    ACCOUNT_LOGI("call bm to remove user ok");
-    return ERR_OK;
+    return BundleManagerAdapter::GetInstance()->RemoveUser(osAccountInfo.GetLocalId());
 }
 
 #ifdef HAS_USER_IDM_PART
@@ -207,10 +122,9 @@ ErrCode OsAccountInterface::SendToIDMAccountDelete(OsAccountInfo &osAccountInfo)
         return ERR_ACCOUNT_COMMON_INSUFFICIENT_MEMORY_ERROR;
     }
 
-    StartSyncTrace("UserIDMClient EnforceDelUser");
+    HiTraceAdapterSyncTrace tracer("UserIDMClient EnforceDelUser");
     int32_t ret = UserIAM::UserIDM::UserIDMClient::GetInstance().EnforceDelUser(osAccountInfo.GetLocalId(), callback);
     if (ret != 0) {
-        EndSyncTrace();
         ACCOUNT_LOGE("idm enforce delete user failed! error %{public}d", ret);
         ReportAccountOperationFail(osAccountInfo.GetLocalId(), ret, "delete", "UserIDMClient EnforceDelUser failed!");
         return ERR_OK;    // do not return fail
@@ -226,10 +140,10 @@ ErrCode OsAccountInterface::SendToIDMAccountDelete(OsAccountInfo &osAccountInfo)
         std::this_thread::sleep_for(std::chrono::milliseconds(Constants::WAIT_ONE_TIME));
         OHOS::GetSystemCurrentTime(&nowTime);
     }
-    EndSyncTrace();
     if (!callback->isIdmOnResultCallBack_) {
         ACCOUNT_LOGE("idm did not call back! timeout!");
-        ReportTimeoutFail("UserIDMClient EnforceDelUser timeout!");
+        ReportAccountOperationFail(osAccountInfo.GetLocalId(), -1, "delete",
+            "UserIDMClient EnforceDelUser timeout!");
         return ERR_OK;    // do not return fail
     }
     ACCOUNT_LOGI("send to idm account delete and get callback succeed!");
@@ -241,19 +155,18 @@ void OsAccountInterface::SendToCESAccountCreate(OsAccountInfo &osAccountInfo)
 {
     int osAccountID = osAccountInfo.GetLocalId();
 #ifdef HAS_CES_PART
+    HiTraceAdapterSyncTrace tracer("PublishCommonEvent account create");
     OHOS::AAFwk::Want want;
     want.SetAction(OHOS::EventFwk::CommonEventSupport::COMMON_EVENT_USER_ADDED);
     OHOS::EventFwk::CommonEventData data;
     data.SetCode(osAccountID);
     data.SetWant(want);
-    StartSyncTrace("PublishCommonEvent account create");
     if (!OHOS::EventFwk::CommonEventManager::PublishCommonEvent(data)) {
         ACCOUNT_LOGE("PublishCommonEvent for create account %{public}d failed!", osAccountID);
-        ReportOsAccountCESFail(osAccountID, "send common event for account create fail");
+        ReportAccountOperationFail(osAccountID, -1, "create", "PublishCommonEvent failed!");
     } else {
         ACCOUNT_LOGI("PublishCommonEvent for create account %{public}d succeed!", osAccountID);
     }
-    EndSyncTrace();
 #else // HAS_CES_PART
     ACCOUNT_LOGI("No common event part, do not publish for account %{public}d create!", osAccountID);
 #endif // HAS_CES_PART
@@ -263,19 +176,18 @@ void OsAccountInterface::SendToCESAccountDelete(OsAccountInfo &osAccountInfo)
 {
     int osAccountID = osAccountInfo.GetLocalId();
 #ifdef HAS_CES_PART
+    HiTraceAdapterSyncTrace tracer("PublishCommonEvent account delete");
     OHOS::AAFwk::Want want;
     want.SetAction(OHOS::EventFwk::CommonEventSupport::COMMON_EVENT_USER_REMOVED);
     OHOS::EventFwk::CommonEventData data;
     data.SetCode(osAccountID);
     data.SetWant(want);
-    StartSyncTrace("PublishCommonEvent account delete");
     if (!OHOS::EventFwk::CommonEventManager::PublishCommonEvent(data)) {
         ACCOUNT_LOGE("PublishCommonEvent for delete account %{public}d failed!", osAccountID);
-        ReportOsAccountCESFail(osAccountID, "send common event for account delete fail");
+        ReportAccountOperationFail(osAccountID, -1, "delete", "PublishCommonEvent failed!");
     } else {
         ACCOUNT_LOGI("PublishCommonEvent for delete account %{public}d succeed!", osAccountID);
     }
-    EndSyncTrace();
 #else // HAS_CES_PART
     ACCOUNT_LOGI("No common event part, do not publish for account %{public}d delete!", osAccountID);
 #endif // HAS_CES_PART
@@ -285,19 +197,18 @@ void OsAccountInterface::SendToCESAccountSwitched(OsAccountInfo &osAccountInfo)
 {
     int osAccountID = osAccountInfo.GetLocalId();
 #ifdef HAS_CES_PART
+    HiTraceAdapterSyncTrace tracer("PublishCommonEvent account switch");
     OHOS::AAFwk::Want want;
     want.SetAction(OHOS::EventFwk::CommonEventSupport::COMMON_EVENT_USER_SWITCHED);
     OHOS::EventFwk::CommonEventData data;
     data.SetCode(osAccountID);
     data.SetWant(want);
-    StartSyncTrace("PublishCommonEvent account switch");
     if (!OHOS::EventFwk::CommonEventManager::PublishCommonEvent(data)) {
         ACCOUNT_LOGE("PublishCommonEvent for switched to account %{public}d failed!", osAccountID);
-        ReportOsAccountCESFail(osAccountID, "send common event for account switch fail");
+        ReportAccountOperationFail(osAccountID, -1, "switch", "PublishCommonEvent failed!");
     } else {
         ACCOUNT_LOGI("PublishCommonEvent for switched to account %{public}d succeed!", osAccountID);
     }
-    EndSyncTrace();
 #else // HAS_CES_PART
     ACCOUNT_LOGI("No common event part, do not publish for account %{public}d switched!", osAccountID);
 #endif // HAS_CES_PART
@@ -329,12 +240,9 @@ ErrCode OsAccountInterface::SendToStorageAccountCreate(OsAccountInfo &osAccountI
         ACCOUNT_LOGE("failed to get STORAGE_MANAGER_MANAGER_ID proxy.");
         return ERR_OSACCOUNT_SERVICE_INTERFACE_TO_STORAGE_ACCOUNT_CREATE_ERROR;
     }
-
-    StartSyncTrace("StorageManager PrepareAddUser");
+    HiTraceAdapterSyncTrace tracer("StorageManager PrepareAddUser");
     int err = proxy->PrepareAddUser(osAccountInfo.GetLocalId(),
         StorageManager::CRYPTO_FLAG_EL1 | StorageManager::CRYPTO_FLAG_EL2);
-    EndSyncTrace();
-
     if (err != 0) {
         ReportAccountOperationFail(osAccountInfo.GetLocalId(), err, "create", "Storage PrepareAddUser failed!");
     }
@@ -370,11 +278,9 @@ ErrCode OsAccountInterface::SendToStorageAccountRemove(OsAccountInfo &osAccountI
         return ERR_OSACCOUNT_SERVICE_INTERFACE_TO_STORAGE_ACCOUNT_REMOVE_ERROR;
     }
 
-    StartSyncTrace("StorageManager RemoveUser");
+    HiTraceAdapterSyncTrace tracer("StorageManager RemoveUser");
     int err = proxy->RemoveUser(osAccountInfo.GetLocalId(),
         StorageManager::CRYPTO_FLAG_EL1 | StorageManager::CRYPTO_FLAG_EL2);
-    EndSyncTrace();
-
     if (err != 0) {
         ReportAccountOperationFail(osAccountInfo.GetLocalId(), err, "delete", "Storage RemoveUser failed!");
     }
@@ -409,10 +315,8 @@ ErrCode OsAccountInterface::SendToStorageAccountStart(OsAccountInfo &osAccountIn
         ACCOUNT_LOGE("failed to get STORAGE_MANAGER_MANAGER_ID proxy.");
         return ERR_OSACCOUNT_SERVICE_INTERFACE_TO_STORAGE_ACCOUNT_START_ERROR;
     }
-    StartSyncTrace("StorageManager PrepareStartUser");
+    HiTraceAdapterSyncTrace tracer("StorageManager PrepareStartUser");
     int err = proxy->PrepareStartUser(osAccountInfo.GetLocalId());
-    EndSyncTrace();
-
     if (err != 0) {
         ReportAccountOperationFail(osAccountInfo.GetLocalId(), err, "activate", "Storage PrepareStartUser failed!");
     }
@@ -448,14 +352,11 @@ ErrCode OsAccountInterface::SendToStorageAccountStop(OsAccountInfo &osAccountInf
         return ERR_OSACCOUNT_SERVICE_INTERFACE_TO_STORAGE_ACCOUNT_STOP_ERROR;
     }
 
-    StartSyncTrace("StorageManager StopUser");
+    HiTraceAdapterSyncTrace tracer("StorageManager StopUser");
     int err = proxy->StopUser(osAccountInfo.GetLocalId());
-    EndSyncTrace();
-
     if (err != 0) {
         ReportAccountOperationFail(osAccountInfo.GetLocalId(), err, "stop", "Storage StopUser failed!");
     }
-
     ACCOUNT_LOGI("end, Storage StopUser ret %{public}d", err);
     return ERR_OK;
 }

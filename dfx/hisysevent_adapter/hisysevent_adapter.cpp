@@ -27,12 +27,13 @@ const std::string DOMAIN_STR = std::string(HiSysEventNameSpace::Domain::ACCOUNT)
 #endif // HAS_HISYSEVENT_PART
 }
 
-void ReportServiceStartFail(int32_t errCode)
+void ReportServiceStartFail(int32_t errCode, const std::string& errMsg)
 {
 #ifdef HAS_HISYSEVENT_PART
     int ret = HiSysEventNameSpace::Write(DOMAIN_STR, "SERVICE_START_FAILED",
         HiSysEventNameSpace::EventType::FAULT,
-        "ERROR_TYPE", errCode);
+        "ERROR_TYPE", errCode,
+        "ERROR_MSG", errMsg);
     if (ret != 0) {
         ACCOUNT_LOGE("hisysevent write failed! ret %{public}d. errCode %{public}d", ret, errCode);
     }
@@ -57,38 +58,6 @@ void ReportPermissionFail(int32_t callerUid, int32_t callerPid, const std::strin
     (void)callerUid;
     (void)callerPid;
     (void)permName;
-#endif // HAS_HISYSEVENT_PART
-}
-
-void ReportTimeoutFail(const std::string& errMsg)
-{
-#ifdef HAS_HISYSEVENT_PART
-    int ret = HiSysEventNameSpace::Write(DOMAIN_STR, "TIMEOUT_EXCEPTION",
-        HiSysEventNameSpace::EventType::FAULT,
-        "ERROR_MSG", errMsg);
-    if (ret != 0) {
-        ACCOUNT_LOGE("hisysevent write failed! ret %{public}d. errMsg %{public}s.",
-            ret, errMsg.c_str());
-    }
-#else // HAS_HISYSEVENT_PART
-    (void)errMsg;
-#endif // HAS_HISYSEVENT_PART
-}
-
-void ReportOsAccountCESFail(int32_t id, const std::string& errMsg)
-{
-#ifdef HAS_HISYSEVENT_PART
-    int ret = HiSysEventNameSpace::Write(DOMAIN_STR, "OS_ACCOUNT_COMMON_EVENT_FAILED",
-        HiSysEventNameSpace::EventType::FAULT,
-        "OSACCOUNT_ID", id,
-        "ERROR_MSG", errMsg);
-    if (ret != 0) {
-        ACCOUNT_LOGE("hisysevent write failed! ret %{public}d. id %{public}d, errMsg %{public}s.",
-            ret, id, errMsg.c_str());
-    }
-#else // HAS_HISYSEVENT_PART
-    (void)id;
-    (void)errMsg;
 #endif // HAS_HISYSEVENT_PART
 }
 

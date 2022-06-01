@@ -34,8 +34,7 @@ SubscriberPtr::~SubscriberPtr()
 
 void UvQueueWorkOnAppAccountsChanged(uv_work_t *work, int status)
 {
-    ACCOUNT_LOGI("enter");
-
+    ACCOUNT_LOGD("enter");
     if (work == nullptr || work->data == nullptr) {
         return;
     }
@@ -49,14 +48,12 @@ void UvQueueWorkOnAppAccountsChanged(uv_work_t *work, int status)
 
         std::string name;
         item.GetName(name);
-        ACCOUNT_LOGI("The name %{public}s transfer to a js value.", name.c_str());
         napi_value nName;
         napi_create_string_utf8(subscriberAccountsWorkerData->env, name.c_str(), NAPI_AUTO_LENGTH, &nName);
         napi_set_named_property(subscriberAccountsWorkerData->env, objAppAccountInfo, "name", nName);
 
         std::string owner;
         item.GetOwner(owner);
-        ACCOUNT_LOGI("The owner %{public}s transfer to a js value.", owner.c_str());
         napi_value nOwner = nullptr;
         napi_create_string_utf8(subscriberAccountsWorkerData->env, owner.c_str(), NAPI_AUTO_LENGTH, &nOwner);
         napi_set_named_property(subscriberAccountsWorkerData->env, objAppAccountInfo, "owner", nOwner);
@@ -103,7 +100,7 @@ void UvQueueWorkOnAppAccountsChanged(uv_work_t *work, int status)
 
 void SubscriberPtr::OnAccountsChanged(const std::vector<AppAccountInfo> &accounts_)
 {
-    ACCOUNT_LOGI("enter");
+    ACCOUNT_LOGD("enter");
 
     uv_loop_s *loop = nullptr;
     napi_get_uv_event_loop(env_, &loop);
@@ -121,6 +118,7 @@ void SubscriberPtr::OnAccountsChanged(const std::vector<AppAccountInfo> &account
 
     if (subscriberAccountsWorker == nullptr) {
         ACCOUNT_LOGI("SubscriberAccountsWorker is null");
+        delete work;
         return;
     }
 
@@ -129,13 +127,11 @@ void SubscriberPtr::OnAccountsChanged(const std::vector<AppAccountInfo> &account
     subscriberAccountsWorker->ref = ref_;
     subscriberAccountsWorker->subscriber = this;
 
-    ACCOUNT_LOGI("subscriberAccountsWorker->ref == %{public}p", subscriberAccountsWorker->ref);
-
     work->data = reinterpret_cast<void *>(subscriberAccountsWorker);
 
     uv_queue_work(loop, work, [](uv_work_t *work) {}, UvQueueWorkOnAppAccountsChanged);
 
-    ACCOUNT_LOGI("end");
+    ACCOUNT_LOGD("end");
 }
 
 void SubscriberPtr::SetEnv(const napi_env &env)
@@ -150,12 +146,12 @@ void SubscriberPtr::SetCallbackRef(const napi_ref &ref)
 
 AppAccountManagerCallback::AppAccountManagerCallback()
 {
-    ACCOUNT_LOGI("enter");
+    ACCOUNT_LOGD("enter");
 }
 
 AppAccountManagerCallback::~AppAccountManagerCallback()
 {
-    ACCOUNT_LOGI("enter");
+    ACCOUNT_LOGD("enter");
 }
 
 void UvQueueWorkOnResult(uv_work_t *work, int status)
@@ -207,7 +203,7 @@ void UvQueueWorkOnRequestRedirected(uv_work_t *work, int status)
 
 void AppAccountManagerCallback::OnResult(int32_t resultCode, const AAFwk::Want &result)
 {
-    ACCOUNT_LOGI("enter");
+    ACCOUNT_LOGD("enter");
     uv_loop_s *loop = nullptr;
     napi_get_uv_event_loop(env_, &loop);
     if (loop == nullptr) {
@@ -219,7 +215,7 @@ void AppAccountManagerCallback::OnResult(int32_t resultCode, const AAFwk::Want &
         ACCOUNT_LOGE("work is null");
         return;
     }
-    AuthenticatorCallbackParam *param = new AuthenticatorCallbackParam {
+    AuthenticatorCallbackParam *param = new (std::nothrow) AuthenticatorCallbackParam {
         .env = env_,
         .resultCode = resultCode,
         .result = result.GetParams(),
@@ -232,7 +228,7 @@ void AppAccountManagerCallback::OnResult(int32_t resultCode, const AAFwk::Want &
 
 void AppAccountManagerCallback::OnRequestRedirected(AAFwk::Want &request)
 {
-    ACCOUNT_LOGI("enter");
+    ACCOUNT_LOGD("enter");
     uv_loop_s *loop = nullptr;
     napi_get_uv_event_loop(env_, &loop);
     if (loop == nullptr) {
@@ -244,7 +240,7 @@ void AppAccountManagerCallback::OnRequestRedirected(AAFwk::Want &request)
         ACCOUNT_LOGI("work is null");
         return;
     }
-    AuthenticatorCallbackParam *param = new AuthenticatorCallbackParam {
+    AuthenticatorCallbackParam *param = new (std::nothrow) AuthenticatorCallbackParam {
         .env = env_,
         .request = request,
         .resultRef = resultRef_,
@@ -279,11 +275,11 @@ napi_value NapiGetNull(napi_env env)
 
 std::string GetNamedProperty(napi_env env, napi_value obj)
 {
-    ACCOUNT_LOGI("enter");
+    ACCOUNT_LOGD("enter");
     char propValue[MAX_VALUE_LEN] = {0};
     size_t propLen;
     if (napi_get_value_string_utf8(env, obj, propValue, MAX_VALUE_LEN, &propLen) != napi_ok) {
-        ACCOUNT_LOGI("Can not get string param from argv");
+        ACCOUNT_LOGE("Can not get string param from argv");
     }
 
     return std::string(propValue);
@@ -305,7 +301,7 @@ void SetNamedProperty(napi_env env, napi_value dstObj, const int32_t objValue, c
 
 napi_value GetErrorCodeValue(napi_env env, int errCode)
 {
-    ACCOUNT_LOGI("enter");
+    ACCOUNT_LOGD("enter");
     napi_value jsObject = nullptr;
     napi_value jsValue = nullptr;
     NAPI_CALL(env, napi_create_int32(env, errCode, &jsValue));
@@ -316,7 +312,7 @@ napi_value GetErrorCodeValue(napi_env env, int errCode)
 
 void GetAppAccountInfoForResult(napi_env env, const std::vector<AppAccountInfo> &info, napi_value result)
 {
-    ACCOUNT_LOGI("enter");
+    ACCOUNT_LOGD("enter");
 
     uint32_t index = 0;
 
@@ -414,7 +410,7 @@ void GetAuthenticatorCallbackForResult(napi_env env, sptr<IRemoteObject> callbac
 
 void ParseContextWithExInfo(napi_env env, napi_callback_info cbInfo, AppAccountAsyncContext *asyncContext)
 {
-    ACCOUNT_LOGI("enter");
+    ACCOUNT_LOGD("enter");
     size_t argc = ARGS_SIZE_THREE;
     napi_value argv[ARGS_SIZE_THREE] = {0};
     napi_get_cb_info(env, cbInfo, &argc, argv, nullptr, nullptr);
@@ -440,7 +436,7 @@ void ParseContextWithExInfo(napi_env env, napi_callback_info cbInfo, AppAccountA
 
 void ParseContextForSetExInfo(napi_env env, napi_callback_info cbInfo, AppAccountAsyncContext *asyncContext)
 {
-    ACCOUNT_LOGI("enter");
+    ACCOUNT_LOGD("enter");
     size_t argc = ARGS_SIZE_THREE;
     napi_value argv[ARGS_SIZE_THREE] = {0};
     napi_get_cb_info(env, cbInfo, &argc, argv, nullptr, nullptr);
@@ -504,7 +500,7 @@ void ParseContextForAuthenticate(napi_env env, napi_callback_info cbInfo, OAuthA
         auto abilityInfo = ability->GetAbilityInfo();
         asyncContext->options.SetParam(Constants::KEY_CALLER_ABILITY_NAME, abilityInfo->name);
     }
-    asyncContext->appAccountMgrCb = new AppAccountManagerCallback();
+    asyncContext->appAccountMgrCb = new (std::nothrow) AppAccountManagerCallback();
     if (asyncContext->appAccountMgrCb == nullptr) {
         ACCOUNT_LOGI("appAccountMgrCb is nullptr");
         return;
@@ -528,7 +524,7 @@ void ParseContextForAuthenticate(napi_env env, napi_callback_info cbInfo, OAuthA
 
 void ParseContextForGetOAuthToken(napi_env env, napi_callback_info cbInfo, OAuthAsyncContext *asyncContext)
 {
-    ACCOUNT_LOGI("enter");
+    ACCOUNT_LOGD("enter");
     size_t argc = ARGS_SIZE_FOUR;
     napi_value argv[ARGS_SIZE_FOUR] = {0};
     napi_valuetype valueTypes[] = {napi_string, napi_string, napi_string, napi_function};
@@ -542,7 +538,7 @@ void ParseContextForGetOAuthToken(napi_env env, napi_callback_info cbInfo, OAuth
 
 void ParseContextForSetOAuthToken(napi_env env, napi_callback_info cbInfo, OAuthAsyncContext *asyncContext)
 {
-    ACCOUNT_LOGI("enter");
+    ACCOUNT_LOGD("enter");
     size_t argc = ARGS_SIZE_FOUR;
     napi_value argv[ARGS_SIZE_FOUR] = {0};
     napi_valuetype valueTypes[] = {napi_string, napi_string, napi_string, napi_function};
@@ -556,7 +552,7 @@ void ParseContextForSetOAuthToken(napi_env env, napi_callback_info cbInfo, OAuth
 
 void ParseContextForDeleteOAuthToken(napi_env env, napi_callback_info cbInfo, OAuthAsyncContext *asyncContext)
 {
-    ACCOUNT_LOGI("enter");
+    ACCOUNT_LOGD("enter");
     size_t argc = ARGS_SIZE_FIVE;
     napi_value argv[ARGS_SIZE_FIVE] = {0};
     napi_valuetype valueTypes[] = {napi_string, napi_string, napi_string, napi_string, napi_function};
@@ -571,7 +567,7 @@ void ParseContextForDeleteOAuthToken(napi_env env, napi_callback_info cbInfo, OA
 
 void ParseContextForSetOAuthTokenVisibility(napi_env env, napi_callback_info cbInfo, OAuthAsyncContext *asyncContext)
 {
-    ACCOUNT_LOGI("enter");
+    ACCOUNT_LOGD("enter");
     size_t argc = ARGS_SIZE_FIVE;
     napi_value argv[ARGS_SIZE_FIVE] = {0};
     napi_valuetype valueTypes[] = {napi_string, napi_string, napi_string, napi_boolean, napi_function};
@@ -586,7 +582,7 @@ void ParseContextForSetOAuthTokenVisibility(napi_env env, napi_callback_info cbI
 
 void ParseContextForCheckOAuthTokenVisibility(napi_env env, napi_callback_info cbInfo, OAuthAsyncContext *asyncContext)
 {
-    ACCOUNT_LOGI("enter");
+    ACCOUNT_LOGD("enter");
     size_t argc = ARGS_SIZE_FOUR;
     napi_value argv[ARGS_SIZE_FOUR] = {0};
     napi_valuetype valueTypes[] = {napi_string, napi_string, napi_string, napi_function};
@@ -600,7 +596,7 @@ void ParseContextForCheckOAuthTokenVisibility(napi_env env, napi_callback_info c
 
 void ParseContextForGetAuthenticatorInfo(napi_env env, napi_callback_info cbInfo, OAuthAsyncContext *asyncContext)
 {
-    ACCOUNT_LOGI("enter");
+    ACCOUNT_LOGD("enter");
     size_t argc = ARGS_SIZE_TWO;
     napi_value argv[ARGS_SIZE_TWO] = {0};
     napi_valuetype valueTypes[] = {napi_string, napi_function};
@@ -612,7 +608,7 @@ void ParseContextForGetAuthenticatorInfo(napi_env env, napi_callback_info cbInfo
 
 void ParseContextForGetAllOAuthTokens(napi_env env, napi_callback_info cbInfo, OAuthAsyncContext *asyncContext)
 {
-    ACCOUNT_LOGI("enter");
+    ACCOUNT_LOGD("enter");
     size_t argc = ARGS_SIZE_THREE;
     napi_value argv[ARGS_SIZE_THREE] = {0};
     napi_valuetype valueTypes[] = {napi_string, napi_string, napi_function};
@@ -625,7 +621,7 @@ void ParseContextForGetAllOAuthTokens(napi_env env, napi_callback_info cbInfo, O
 
 void ParseContextForGetOAuthList(napi_env env, napi_callback_info cbInfo, OAuthAsyncContext *asyncContext)
 {
-    ACCOUNT_LOGI("enter");
+    ACCOUNT_LOGD("enter");
     size_t argc = ARGS_SIZE_THREE;
     napi_value argv[ARGS_SIZE_THREE] = {0};
     napi_valuetype valueTypes[] = {napi_string, napi_string, napi_function};
@@ -638,7 +634,7 @@ void ParseContextForGetOAuthList(napi_env env, napi_callback_info cbInfo, OAuthA
 
 void ParseContextForGetAuthenticatorCallback(napi_env env, napi_callback_info cbInfo, OAuthAsyncContext *asyncContext)
 {
-    ACCOUNT_LOGI("enter");
+    ACCOUNT_LOGD("enter");
     size_t argc = ARGS_SIZE_TWO;
     napi_value argv[ARGS_SIZE_TWO] = {0};
     napi_valuetype valueTypes[] = {napi_string, napi_function};
@@ -650,7 +646,7 @@ void ParseContextForGetAuthenticatorCallback(napi_env env, napi_callback_info cb
 
 void ParseContextWithBdName(napi_env env, napi_callback_info cbInfo, AppAccountAsyncContext *asyncContext)
 {
-    ACCOUNT_LOGI("enter");
+    ACCOUNT_LOGD("enter");
     size_t argc = ARGS_SIZE_THREE;
     napi_value argv[ARGS_SIZE_THREE] = {0};
     napi_get_cb_info(env, cbInfo, &argc, argv, nullptr, nullptr);
@@ -673,7 +669,7 @@ void ParseContextWithBdName(napi_env env, napi_callback_info cbInfo, AppAccountA
 
 void ParseContextWithIsEnable(napi_env env, napi_callback_info cbInfo, AppAccountAsyncContext *asyncContext)
 {
-    ACCOUNT_LOGI("enter");
+    ACCOUNT_LOGD("enter");
     size_t argc = ARGS_SIZE_THREE;
     napi_value argv[ARGS_SIZE_THREE] = {0};
     napi_get_cb_info(env, cbInfo, &argc, argv, nullptr, nullptr);
@@ -686,9 +682,9 @@ void ParseContextWithIsEnable(napi_env env, napi_callback_info cbInfo, AppAccoun
         } else if (i == 1 && valueType == napi_boolean) {
             napi_get_value_bool(env, argv[i], &asyncContext->isEnable);
             if (asyncContext->isEnable) {
-                ACCOUNT_LOGE("isEnable para is true");
+                ACCOUNT_LOGI("isEnable para is true");
             } else {
-                ACCOUNT_LOGE("isEnable para is false");
+                ACCOUNT_LOGI("isEnable para is false");
             }
         } else if (valueType == napi_function) {
             napi_create_reference(env, argv[i], 1, &asyncContext->callbackRef);
@@ -701,7 +697,7 @@ void ParseContextWithIsEnable(napi_env env, napi_callback_info cbInfo, AppAccoun
 
 void ParseContextWithTwoPara(napi_env env, napi_callback_info cbInfo, AppAccountAsyncContext *asyncContext)
 {
-    ACCOUNT_LOGI("enter");
+    ACCOUNT_LOGD("enter");
     size_t argc = ARGS_SIZE_TWO;
     napi_value argv[ARGS_SIZE_TWO] = {0};
     napi_get_cb_info(env, cbInfo, &argc, argv, nullptr, nullptr);
@@ -722,7 +718,7 @@ void ParseContextWithTwoPara(napi_env env, napi_callback_info cbInfo, AppAccount
 
 void ParseContextToSetCredential(napi_env env, napi_callback_info cbInfo, AppAccountAsyncContext *asyncContext)
 {
-    ACCOUNT_LOGI("enter");
+    ACCOUNT_LOGD("enter");
     size_t argc = ARGS_SIZE_FOUR;
     napi_value argv[ARGS_SIZE_FOUR] = {0};
     napi_get_cb_info(env, cbInfo, &argc, argv, nullptr, nullptr);
@@ -747,7 +743,7 @@ void ParseContextToSetCredential(napi_env env, napi_callback_info cbInfo, AppAcc
 
 void ParseContextForAssociatedData(napi_env env, napi_callback_info cbInfo, AppAccountAsyncContext *asyncContext)
 {
-    ACCOUNT_LOGI("enter");
+    ACCOUNT_LOGD("enter");
     size_t argc = ARGS_SIZE_FOUR;
     napi_value argv[ARGS_SIZE_FOUR] = {0};
     napi_get_cb_info(env, cbInfo, &argc, argv, nullptr, nullptr);
@@ -772,7 +768,7 @@ void ParseContextForAssociatedData(napi_env env, napi_callback_info cbInfo, AppA
 
 void ParseContextToGetData(napi_env env, napi_callback_info cbInfo, AppAccountAsyncContext *asyncContext)
 {
-    ACCOUNT_LOGI("enter");
+    ACCOUNT_LOGD("enter");
     size_t argc = ARGS_SIZE_THREE;
     napi_value argv[ARGS_SIZE_THREE] = {0};
     napi_get_cb_info(env, cbInfo, &argc, argv, nullptr, nullptr);
@@ -795,7 +791,7 @@ void ParseContextToGetData(napi_env env, napi_callback_info cbInfo, AppAccountAs
 
 void ParseContextCBArray(napi_env env, napi_callback_info cbInfo, GetAccountsAsyncContext *asyncContext)
 {
-    ACCOUNT_LOGI("enter");
+    ACCOUNT_LOGD("enter");
     size_t argc = ARGS_SIZE_ONE;
     napi_value argv[ARGS_SIZE_ONE] = {0};
     napi_get_cb_info(env, cbInfo, &argc, argv, nullptr, nullptr);
@@ -814,7 +810,7 @@ void ParseContextCBArray(napi_env env, napi_callback_info cbInfo, GetAccountsAsy
 
 void ParseContextWithCredentialType(napi_env env, napi_callback_info cbInfo, AppAccountAsyncContext *asyncContext)
 {
-    ACCOUNT_LOGI("enter");
+    ACCOUNT_LOGD("enter");
     size_t argc = ARGS_SIZE_THREE;
     napi_value argv[ARGS_SIZE_THREE] = {0};
     napi_get_cb_info(env, cbInfo, &argc, argv, nullptr, nullptr);
@@ -837,7 +833,7 @@ void ParseContextWithCredentialType(napi_env env, napi_callback_info cbInfo, App
 
 void ParseContextWithStrCBArray(napi_env env, napi_callback_info cbInfo, GetAccountsAsyncContext *asyncContext)
 {
-    ACCOUNT_LOGI("enter");
+    ACCOUNT_LOGD("enter");
     size_t argc = ARGS_SIZE_TWO;
     napi_value argv[ARGS_SIZE_TWO] = {0};
     napi_get_cb_info(env, cbInfo, &argc, argv, nullptr, nullptr);
@@ -858,7 +854,7 @@ void ParseContextWithStrCBArray(napi_env env, napi_callback_info cbInfo, GetAcco
 
 void ProcessCallbackOrPromise(napi_env env, const CommonAsyncContext *asyncContext, napi_value err, napi_value data)
 {
-    ACCOUNT_LOGI("enter");
+    ACCOUNT_LOGD("enter");
     napi_value args[RESULT_COUNT] = {err, data};
     if (asyncContext->deferred) {
         ACCOUNT_LOGI("Promise");
@@ -882,17 +878,17 @@ void ProcessCallbackOrPromise(napi_env env, const CommonAsyncContext *asyncConte
 void ProcessCallbackOrPromiseCBArray(
     napi_env env, const GetAccountsAsyncContext *asyncContext, napi_value err, napi_value data)
 {
-    ACCOUNT_LOGI("enter");
+    ACCOUNT_LOGD("enter");
     napi_value args[RESULT_COUNT] = {err, data};
     if (asyncContext->deferred) {
-        ACCOUNT_LOGI("Promise");
+        ACCOUNT_LOGD("Promise");
         if (asyncContext->status == napi_ok) {
             napi_resolve_deferred(env, asyncContext->deferred, args[1]);
         } else {
             napi_reject_deferred(env, asyncContext->deferred, args[0]);
         }
     } else {
-        ACCOUNT_LOGI("Callback");
+        ACCOUNT_LOGD("Callback");
         napi_value callback = nullptr;
         napi_get_reference_value(env, asyncContext->callbackRef, &callback);
         napi_value returnVal = nullptr;
@@ -906,7 +902,7 @@ void ProcessCallbackOrPromiseCBArray(
 napi_value ParseParametersBySubscribe(const napi_env &env, const napi_value (&argv)[ARGS_SIZE_THREE],
     std::vector<std::string> &owners, napi_ref &callback)
 {
-    ACCOUNT_LOGI("enter");
+    ACCOUNT_LOGD("enter");
 
     bool isArray = false;
     uint32_t length = 0;
@@ -918,11 +914,11 @@ napi_value ParseParametersBySubscribe(const napi_env &env, const napi_value (&ar
     if (valuetype == napi_string) {
         std::string type = GetNamedProperty(env, argv[0]);
         if (type != "change") {
-            ACCOUNT_LOGI("Wrong type=%{public}s", type.c_str());
+            ACCOUNT_LOGE("Wrong type=%{public}s", type.c_str());
             return nullptr;
         }
     } else {
-        ACCOUNT_LOGI("Wrong argument type.");
+        ACCOUNT_LOGE("Wrong argument type.");
         return nullptr;
     }
 
@@ -955,15 +951,15 @@ napi_value ParseParametersBySubscribe(const napi_env &env, const napi_value (&ar
 napi_value GetSubscriberByUnsubscribe(const napi_env &env, std::vector<std::shared_ptr<SubscriberPtr>> &subscribers,
     AsyncContextForUnsubscribe *asyncContextForOff, bool &isFind)
 {
-    ACCOUNT_LOGI("enter");
+    ACCOUNT_LOGD("enter");
     napi_value result;
 
     {
         std::lock_guard<std::mutex> lock(g_lockForAppAccountSubscribers);
-        ACCOUNT_LOGI("g_AppAccountSubscribers.size = %{public}zu", g_AppAccountSubscribers.size());
+        ACCOUNT_LOGD("g_AppAccountSubscribers.size = %{public}zu", g_AppAccountSubscribers.size());
 
         for (auto subscriberInstance : g_AppAccountSubscribers) {
-            ACCOUNT_LOGI("Through map to get the subscribe objectInfo = %{public}p", subscriberInstance.first);
+            ACCOUNT_LOGD("Through map to get the subscribe objectInfo = %{public}p", subscriberInstance.first);
             if (subscriberInstance.first == asyncContextForOff->appAccountManager) {
                 for (auto item : subscriberInstance.second) {
                     subscribers.emplace_back(item->subscriber);
@@ -981,7 +977,7 @@ napi_value GetSubscriberByUnsubscribe(const napi_env &env, std::vector<std::shar
 napi_value ParseParametersByUnsubscribe(
     const napi_env &env, const size_t &argc, const napi_value (&argv)[UNSUBSCRIBE_MAX_PARA], napi_ref &callback)
 {
-    ACCOUNT_LOGI("enter");
+    ACCOUNT_LOGD("enter");
 
     napi_valuetype valuetype;
     napi_value result = nullptr;
@@ -991,11 +987,11 @@ napi_value ParseParametersByUnsubscribe(
     if (valuetype == napi_string) {
         std::string type = GetNamedProperty(env, argv[0]);
         if (type != "change") {
-            ACCOUNT_LOGI("Wrong type=%{public}s", type.c_str());
+            ACCOUNT_LOGE("Wrong type=%{public}s", type.c_str());
             return nullptr;
         }
     } else {
-        ACCOUNT_LOGI("Wrong argument type.");
+        ACCOUNT_LOGE("Wrong argument type.");
         return nullptr;
     }
 
@@ -1010,27 +1006,27 @@ napi_value ParseParametersByUnsubscribe(
 
 void SubscribeExecuteCB(napi_env env, void *data)
 {
-    ACCOUNT_LOGI("Subscribe, napi_create_async_work running.");
+    ACCOUNT_LOGD("Subscribe, napi_create_async_work running.");
     AsyncContextForSubscribe *asyncContextForOn = reinterpret_cast<AsyncContextForSubscribe *>(data);
     asyncContextForOn->subscriber->SetEnv(env);
     asyncContextForOn->subscriber->SetCallbackRef(asyncContextForOn->callbackRef);
     int errCode = AppAccountManager::SubscribeAppAccount(asyncContextForOn->subscriber);
-    ACCOUNT_LOGI("Subscribe errcode parameter is %{public}d", errCode);
+    ACCOUNT_LOGD("Subscribe errcode parameter is %{public}d", errCode);
 }
 
 void UnsubscribeExecuteCB(napi_env env, void *data)
 {
-    ACCOUNT_LOGI("Unsubscribe napi_create_async_work start.");
+    ACCOUNT_LOGD("Unsubscribe napi_create_async_work start.");
     AsyncContextForUnsubscribe *asyncContextForOff = reinterpret_cast<AsyncContextForUnsubscribe *>(data);
     for (auto offSubscriber : asyncContextForOff->subscribers) {
         int errCode = AppAccountManager::UnsubscribeAppAccount(offSubscriber);
-        ACCOUNT_LOGI("Unsubscribe errcode parameter is %{public}d", errCode);
+        ACCOUNT_LOGD("Unsubscribe errcode parameter is %{public}d", errCode);
     }
 }
 
 void UnsubscribeCallbackCompletedCB(napi_env env, napi_status status, void *data)
 {
-    ACCOUNT_LOGI("Unsubscribe napi_create_async_work end.");
+    ACCOUNT_LOGD("Unsubscribe napi_create_async_work end.");
     AsyncContextForUnsubscribe *asyncContextForOff = reinterpret_cast<AsyncContextForUnsubscribe *>(data);
     if (asyncContextForOff == nullptr) {
         return;
@@ -1062,8 +1058,8 @@ void UnsubscribeCallbackCompletedCB(napi_env env, napi_status status, void *data
 
     {
         std::lock_guard<std::mutex> lock(g_lockForAppAccountSubscribers);
-        ACCOUNT_LOGI("Earse before g_AppAccountSubscribers.size = %{public}zu", g_AppAccountSubscribers.size());
-        // earse the info from map
+        ACCOUNT_LOGD("Erase before g_AppAccountSubscribers.size = %{public}zu", g_AppAccountSubscribers.size());
+        // erase the info from map
         auto subscribe = g_AppAccountSubscribers.find(asyncContextForOff->appAccountManager);
         if (subscribe != g_AppAccountSubscribers.end()) {
             for (auto offCBInfo : subscribe->second) {
@@ -1071,7 +1067,7 @@ void UnsubscribeCallbackCompletedCB(napi_env env, napi_status status, void *data
             }
             g_AppAccountSubscribers.erase(subscribe);
         }
-        ACCOUNT_LOGI("Earse end g_AppAccountSubscribers.size = %{public}zu", g_AppAccountSubscribers.size());
+        ACCOUNT_LOGD("Erase end g_AppAccountSubscribers.size = %{public}zu", g_AppAccountSubscribers.size());
     }
     delete asyncContextForOff;
     asyncContextForOff = nullptr;

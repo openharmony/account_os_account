@@ -20,12 +20,12 @@ namespace OHOS {
 namespace AccountSA {
 MockAppAccountAuthenticatorManager::MockAppAccountAuthenticatorManager()
 {
-    ACCOUNT_LOGI("enter");
+    ACCOUNT_LOGI("mock enter");
 }
 
 MockAppAccountAuthenticatorManager::~MockAppAccountAuthenticatorManager()
 {
-    ACCOUNT_LOGI("enter");
+    ACCOUNT_LOGI("mock enter");
 }
 }  // namespace AccountSA
 }  // namespace OHOS

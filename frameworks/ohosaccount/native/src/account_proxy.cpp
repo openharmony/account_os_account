@@ -24,7 +24,7 @@ namespace AccountSA {
 bool AccountProxy::UpdateOhosAccountInfo(
     const std::string &accountName, const std::string &uid, const std::string &eventStr)
 {
-    ACCOUNT_LOGI("enter");
+    ACCOUNT_LOGD("enter");
     MessageParcel data;
     MessageParcel reply;
     MessageOption option;
@@ -48,7 +48,7 @@ bool AccountProxy::UpdateOhosAccountInfo(
 
     auto ret = Remote()->SendRequest(UPDATE_OHOS_ACCOUNT_INFO, data, reply, option);
     if (ret != ERR_NONE) {
-        ACCOUNT_LOGE("SendRequest failed %d", ret);
+        ACCOUNT_LOGE("SendRequest failed %{public}d", ret);
         return false;
     }
 
@@ -63,13 +63,13 @@ bool AccountProxy::UpdateOhosAccountInfo(
         return false;
     }
 
-    ACCOUNT_LOGI("UpdateOhosAccountInfo exit");
+    ACCOUNT_LOGD("UpdateOhosAccountInfo exit");
     return true;
 }
 
 std::pair<bool, OhosAccountInfo> AccountProxy::QueryOhosAccountInfo(void)
 {
-    ACCOUNT_LOGI("enter");
+    ACCOUNT_LOGD("enter");
     MessageParcel data;
     MessageParcel reply;
     MessageOption option;
@@ -88,13 +88,13 @@ std::pair<bool, OhosAccountInfo> AccountProxy::QueryOhosAccountInfo(void)
     std::u16string name = reply.ReadString16();
     std::u16string uid = reply.ReadString16();
     std::int32_t status = reply.ReadInt32();
-    ACCOUNT_LOGI("QueryOhosAccountInfo exit");
+    ACCOUNT_LOGD("QueryOhosAccountInfo exit");
     return std::make_pair(true, OhosAccountInfo(Str16ToStr8(name), Str16ToStr8(uid), status));
 }
 
 std::pair<bool, OhosAccountInfo> AccountProxy::QueryOhosAccountInfoByUserId(std::int32_t userId)
 {
-    ACCOUNT_LOGI("enter");
+    ACCOUNT_LOGD("enter");
     MessageParcel data;
     MessageParcel reply;
     MessageOption option;
@@ -118,13 +118,13 @@ std::pair<bool, OhosAccountInfo> AccountProxy::QueryOhosAccountInfoByUserId(std:
     std::u16string name = reply.ReadString16();
     std::u16string uid = reply.ReadString16();
     std::int32_t status = reply.ReadInt32();
-    ACCOUNT_LOGI("exit");
+    ACCOUNT_LOGD("exit");
     return std::make_pair(true, OhosAccountInfo(Str16ToStr8(name), Str16ToStr8(uid), status));
 }
 
 std::int32_t AccountProxy::QueryDeviceAccountId(std::int32_t &accountId)
 {
-    ACCOUNT_LOGI("enter");
+    ACCOUNT_LOGD("enter");
     MessageParcel data;
     MessageParcel reply;
     MessageOption option;
@@ -136,17 +136,18 @@ std::int32_t AccountProxy::QueryDeviceAccountId(std::int32_t &accountId)
 
     auto ret = Remote()->SendRequest(QUERY_DEVICE_ACCOUNT_ID, data, reply, option);
     if (ret != ERR_NONE) {
-        ACCOUNT_LOGE("SendRequest failed %d", ret);
+        ACCOUNT_LOGE("SendRequest failed %{public}d", ret);
         return ERR_ACCOUNT_ZIDL_ACCOUNT_SEND_REQUEST_ERROR;
     }
 
     accountId = reply.ReadInt32();
+    ACCOUNT_LOGD("exit");
     return ERR_OK;
 }
 
 sptr<IRemoteObject> AccountProxy::GetAppAccountService()
 {
-    ACCOUNT_LOGI("enter");
+    ACCOUNT_LOGD("enter");
     MessageParcel data;
     MessageParcel reply;
     MessageOption option;
@@ -158,15 +159,15 @@ sptr<IRemoteObject> AccountProxy::GetAppAccountService()
 
     auto ret = Remote()->SendRequest(GET_APP_ACCOUNT_SERVICE, data, reply, option);
     if (ret != ERR_NONE) {
-        ACCOUNT_LOGE("SendRequest failed %d", ret);
+        ACCOUNT_LOGE("SendRequest failed %{public}d", ret);
         return nullptr;
     }
-
+    ACCOUNT_LOGD("exit");
     return reply.ReadRemoteObject();
 }
 sptr<IRemoteObject> AccountProxy::GetOsAccountService()
 {
-    ACCOUNT_LOGI("enter");
+    ACCOUNT_LOGD("enter");
     MessageParcel data;
     MessageParcel reply;
     MessageOption option;
@@ -178,10 +179,10 @@ sptr<IRemoteObject> AccountProxy::GetOsAccountService()
 
     auto ret = Remote()->SendRequest(GET_OS_ACCOUNT_SERVICE, data, reply, option);
     if (ret != ERR_NONE) {
-        ACCOUNT_LOGE("SendRequest failed %d", ret);
+        ACCOUNT_LOGE("SendRequest failed %{public}d", ret);
         return nullptr;
     }
-
+    ACCOUNT_LOGD("exit");
     return reply.ReadRemoteObject();
 }
 }  // namespace AccountSA

@@ -16,9 +16,8 @@
 #ifndef OS_ACCOUNT_SERVICES_ACCOUNTMGR_INCLUDE_APPACCOUNT_APP_ACCOUNT_MANAGER_SERVICE_H
 #define OS_ACCOUNT_SERVICES_ACCOUNTMGR_INCLUDE_APPACCOUNT_APP_ACCOUNT_MANAGER_SERVICE_H
 
-#include "account_bundle_manager.h"
 #include "account_permission_manager.h"
-#include "app_account_common_event_oberserver.h"
+#include "app_account_common_event_observer.h"
 #include "app_account_stub.h"
 #include "inner_app_account_manager.h"
 
@@ -88,9 +87,8 @@ private:
 private:
     std::shared_ptr<InnerAppAccountManager> innerManager_ = nullptr;
     std::shared_ptr<AccountPermissionManager> permissionManagerPtr_ = nullptr;
-    std::shared_ptr<AccountBundleManager> bundleManagerPtr_ = nullptr;
 #ifdef HAS_CES_PART
-    std::shared_ptr<AppAccountCommonEventOberserver> oberserver_ = nullptr;
+    std::shared_ptr<AppAccountCommonEventObserver> observer_ = nullptr;
 #endif // HAS_CES_PART
     DISALLOW_COPY_AND_MOVE(AppAccountManagerService);
 };

@@ -34,13 +34,22 @@ const std::string CONSTANT_REMOVE = "constraint.os.account.remove";
 const std::string CONSTANT_START = "constraint.os.account.start";
 const std::string CONSTANT_SET_ICON = "constraint.os.account.set.icon";
 const std::int32_t ROOT_UID = 0;
+const std::string DEFAULT_ANON_STR = "**********";
+const size_t INTERCEPT_HEAD_PART_LEN_FOR_NAME = 1;
+std::string AnonymizeNameStr(const std::string& nameStr)
+{
+    if (nameStr.empty()) {
+        return nameStr;
+    }
+    std::string retStr = nameStr.substr(0, INTERCEPT_HEAD_PART_LEN_FOR_NAME) + DEFAULT_ANON_STR;
+    return retStr;
+}
 }  // namespace
 
 OsAccountManagerService::OsAccountManagerService()
 {
     innerManager_ = DelayedSingleton<IInnerOsAccountManager>::GetInstance();
     permissionManagerPtr_ = DelayedSingleton<AccountPermissionManager>::GetInstance();
-    bundleManagerPtr_ = DelayedSingleton<AccountBundleManager>::GetInstance();
 }
 OsAccountManagerService::~OsAccountManagerService()
 {}
@@ -87,7 +96,7 @@ ErrCode OsAccountManagerService::CreateOsAccount(
 ErrCode OsAccountManagerService::CreateOsAccountForDomain(
     const OsAccountType &type, const DomainAccountInfo &domainInfo, OsAccountInfo &osAccountInfo)
 {
-    ACCOUNT_LOGI("OsAccountManager CreateOsAccountForDomain START");
+    ACCOUNT_LOGI("start");
     bool isMultiOsAccountEnable = false;
     innerManager_->IsMultiOsAccountEnable(isMultiOsAccountEnable);
     if (!isMultiOsAccountEnable) {
@@ -315,7 +324,7 @@ ErrCode OsAccountManagerService::SetOsAccountName(const int id, const std::strin
 
     // parameters check
     if (name.size() > Constants::LOCAL_NAME_MAX_SIZE) {
-        ACCOUNT_LOGE("set os account name is out of allowed szie");
+        ACCOUNT_LOGE("set os account name is out of allowed size");
         return ERR_OSACCOUNT_SERVICE_MANAGER_NAME_SIZE_OVERFLOW_ERROR;
     }
     if (name.size() <= 0) {
@@ -523,9 +532,9 @@ ErrCode OsAccountManagerService::GetCreatedOsAccountNumFromDatabase(const std::s
 
 void OsAccountManagerService::CreateBasicAccounts()
 {
-    ACCOUNT_LOGE("CreateBasicAccounts enter!");
+    ACCOUNT_LOGI("enter!");
     innerManager_->Init();
-    ACCOUNT_LOGE("CreateBasicAccounts exit!");
+    ACCOUNT_LOGI("exit!");
 }
 
 ErrCode OsAccountManagerService::GetSerialNumberFromDatabase(const std::string& storeID,
@@ -566,7 +575,7 @@ ErrCode OsAccountManagerService::GetOsAccountListFromDatabase(const std::string&
 ErrCode OsAccountManagerService::DumpStateByAccounts(
     const std::vector<OsAccountInfo> &osAccountInfos, std::vector<std::string> &state)
 {
-    ACCOUNT_LOGI("enter");
+    ACCOUNT_LOGD("enter");
 
     for (auto osAccountInfo : osAccountInfos) {
         std::string info = "";
@@ -575,7 +584,7 @@ ErrCode OsAccountManagerService::DumpStateByAccounts(
         state.emplace_back("ID: " + localId);
 
         std::string localName = osAccountInfo.GetLocalName();
-        state.emplace_back(DUMP_TAB_CHARACTER + "Name: " + localName);
+        state.emplace_back(DUMP_TAB_CHARACTER + "Name: " + AnonymizeNameStr(localName));
 
         std::string type = "";
         auto it = DUMP_TYPE_MAP.find(osAccountInfo.GetType());
@@ -668,17 +677,17 @@ ErrCode OsAccountManagerService::SetSpecificOsAccountConstraints(const std::vect
     return innerManager_->SetSpecificOsAccountConstraints(constraints, enable, targetId, enforcerId, isDeviceOwner);
 }
 
-bool OsAccountManagerService::PermissionCheck(const std::string& permissionName, const std::string& constriantName)
+bool OsAccountManagerService::PermissionCheck(const std::string& permissionName, const std::string& constraintName)
 {
-    // constriants check
+    // constraints check
     int callerUid = IPCSkeleton::GetCallingUid();
-    if (!constriantName.empty()) {
+    if (!constraintName.empty()) {
         int callerUserId = callerUid / UID_TRANSFORM_DIVISOR;
         bool isEnable = true;
-        innerManager_->IsOsAccountConstraintEnable(callerUserId, constriantName, isEnable);
+        innerManager_->IsOsAccountConstraintEnable(callerUserId, constraintName, isEnable);
         if (isEnable) {
-            ACCOUNT_LOGE("constriant check %{public}s failed.", constriantName.c_str());
-            ReportPermissionFail(callerUid, IPCSkeleton::GetCallingPid(), constriantName);
+            ACCOUNT_LOGE("constraint check %{public}s failed.", constraintName.c_str());
+            ReportPermissionFail(callerUid, IPCSkeleton::GetCallingPid(), constraintName);
             return false;
         }
     }

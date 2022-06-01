@@ -164,7 +164,7 @@ const std::map<uint32_t, AppAccountStub::MessageProcFunction> AppAccountStub::me
 
 AppAccountStub::AppAccountStub()
 {
-    ACCOUNT_LOGI("enter");
+    ACCOUNT_LOGD("enter");
 }
 
 AppAccountStub::~AppAccountStub()
@@ -172,7 +172,7 @@ AppAccountStub::~AppAccountStub()
 
 int AppAccountStub::OnRemoteRequest(uint32_t code, MessageParcel &data, MessageParcel &reply, MessageOption &option)
 {
-    ACCOUNT_LOGI("enter");
+    ACCOUNT_LOGD("enter");
 
     if (data.ReadInterfaceToken() != GetDescriptor()) {
         ACCOUNT_LOGE("failed to check descriptor! code %{public}u.", code);
@@ -187,7 +187,7 @@ int AppAccountStub::OnRemoteRequest(uint32_t code, MessageParcel &data, MessageP
         }
     }
 
-    ACCOUNT_LOGI("end, code = %{public}u, flags = %{public}u", code, option.GetFlags());
+    ACCOUNT_LOGD("end, code = %{public}u, flags = %{public}u", code, option.GetFlags());
 
     return IPCObjectStub::OnRemoteRequest(code, data, reply, option);
 }
@@ -213,11 +213,11 @@ bool AppAccountStub::WriteParcelableVector(const std::vector<T> &parcelableVecto
 template<typename T>
 bool AppAccountStub::ReadParcelableVector(std::vector<T> &parcelableVector, MessageParcel &data)
 {
-    ACCOUNT_LOGI("enter");
+    ACCOUNT_LOGD("enter");
 
     uint32_t size = 0;
     if (!data.ReadUint32(size)) {
-        ACCOUNT_LOGI("read Parcelable size failed.");
+        ACCOUNT_LOGE("read Parcelable size failed.");
         return false;
     }
 
@@ -225,7 +225,7 @@ bool AppAccountStub::ReadParcelableVector(std::vector<T> &parcelableVector, Mess
     for (uint32_t index = 0; index < size; index++) {
         std::shared_ptr<T> info(data.ReadParcelable<T>());
         if (info == nullptr) {
-            ACCOUNT_LOGI("read Parcelable infos failed.");
+            ACCOUNT_LOGE("read Parcelable infos failed.");
             return false;
         }
         parcelableVector.emplace_back(*info);
@@ -248,7 +248,7 @@ static ErrCode CheckSpecialCharacters(const std::string &str)
 
 ErrCode AppAccountStub::ProcAddAccount(MessageParcel &data, MessageParcel &reply)
 {
-    ACCOUNT_LOGI("enter");
+    ACCOUNT_LOGD("enter");
     std::string name = data.ReadString();
     RETURN_IF_STRING_IS_EMPTY_OR_OVERSIZE(name, Constants::NAME_MAX_SIZE, "name is empty or oversize");
     RETURN_IF_STRING_CONTAINS_SPECIAL_CHAR(name);
@@ -290,7 +290,7 @@ ErrCode AppAccountStub::ProcAddAccountImplicitly(MessageParcel &data, MessagePar
 
 ErrCode AppAccountStub::ProcDeleteAccount(MessageParcel &data, MessageParcel &reply)
 {
-    ACCOUNT_LOGI("enter");
+    ACCOUNT_LOGD("enter");
 
     std::string name = data.ReadString();
     RETURN_IF_STRING_IS_EMPTY_OR_OVERSIZE(name, Constants::NAME_MAX_SIZE, "name is empty or oversize");
@@ -306,7 +306,7 @@ ErrCode AppAccountStub::ProcDeleteAccount(MessageParcel &data, MessageParcel &re
 
 ErrCode AppAccountStub::ProcGetAccountExtraInfo(MessageParcel &data, MessageParcel &reply)
 {
-    ACCOUNT_LOGI("enter");
+    ACCOUNT_LOGD("enter");
     std::string name = data.ReadString();
     RETURN_IF_STRING_IS_EMPTY_OR_OVERSIZE(name, Constants::NAME_MAX_SIZE, "name is empty or oversize");
     RETURN_IF_STRING_CONTAINS_SPECIAL_CHAR(name);
@@ -325,7 +325,7 @@ ErrCode AppAccountStub::ProcGetAccountExtraInfo(MessageParcel &data, MessageParc
 
 ErrCode AppAccountStub::ProcSetAccountExtraInfo(MessageParcel &data, MessageParcel &reply)
 {
-    ACCOUNT_LOGI("enter");
+    ACCOUNT_LOGD("enter");
     std::string name = data.ReadString();
     RETURN_IF_STRING_IS_EMPTY_OR_OVERSIZE(name, Constants::NAME_MAX_SIZE, "name is empty or oversize");
     RETURN_IF_STRING_CONTAINS_SPECIAL_CHAR(name);
@@ -341,7 +341,7 @@ ErrCode AppAccountStub::ProcSetAccountExtraInfo(MessageParcel &data, MessageParc
 
 ErrCode AppAccountStub::ProcEnableAppAccess(MessageParcel &data, MessageParcel &reply)
 {
-    ACCOUNT_LOGI("enter");
+    ACCOUNT_LOGD("enter");
     std::string name = data.ReadString();
     RETURN_IF_STRING_IS_EMPTY_OR_OVERSIZE(name, Constants::NAME_MAX_SIZE, "name is empty or oversize");
     RETURN_IF_STRING_CONTAINS_SPECIAL_CHAR(name);
@@ -358,7 +358,7 @@ ErrCode AppAccountStub::ProcEnableAppAccess(MessageParcel &data, MessageParcel &
 
 ErrCode AppAccountStub::ProcDisableAppAccess(MessageParcel &data, MessageParcel &reply)
 {
-    ACCOUNT_LOGI("enter");
+    ACCOUNT_LOGD("enter");
     std::string name = data.ReadString();
     RETURN_IF_STRING_IS_EMPTY_OR_OVERSIZE(name, Constants::NAME_MAX_SIZE, "name is empty or oversize");
     RETURN_IF_STRING_CONTAINS_SPECIAL_CHAR(name);
@@ -375,7 +375,7 @@ ErrCode AppAccountStub::ProcDisableAppAccess(MessageParcel &data, MessageParcel 
 
 ErrCode AppAccountStub::ProcCheckAppAccountSyncEnable(MessageParcel &data, MessageParcel &reply)
 {
-    ACCOUNT_LOGI("enter");
+    ACCOUNT_LOGD("enter");
     std::string name = data.ReadString();
     RETURN_IF_STRING_IS_EMPTY_OR_OVERSIZE(name, Constants::NAME_MAX_SIZE, "name is empty or oversize");
     RETURN_IF_STRING_CONTAINS_SPECIAL_CHAR(name);
@@ -394,7 +394,7 @@ ErrCode AppAccountStub::ProcCheckAppAccountSyncEnable(MessageParcel &data, Messa
 
 ErrCode AppAccountStub::ProcSetAppAccountSyncEnable(MessageParcel &data, MessageParcel &reply)
 {
-    ACCOUNT_LOGI("enter");
+    ACCOUNT_LOGD("enter");
     std::string name = data.ReadString();
     RETURN_IF_STRING_IS_EMPTY_OR_OVERSIZE(name, Constants::NAME_MAX_SIZE, "name is empty or oversize");
     RETURN_IF_STRING_CONTAINS_SPECIAL_CHAR(name);
@@ -409,7 +409,7 @@ ErrCode AppAccountStub::ProcSetAppAccountSyncEnable(MessageParcel &data, Message
 
 ErrCode AppAccountStub::ProcGetAssociatedData(MessageParcel &data, MessageParcel &reply)
 {
-    ACCOUNT_LOGI("enter");
+    ACCOUNT_LOGD("enter");
     std::string name = data.ReadString();
     RETURN_IF_STRING_IS_EMPTY_OR_OVERSIZE(name, Constants::NAME_MAX_SIZE, "name is empty or oversize");
     RETURN_IF_STRING_CONTAINS_SPECIAL_CHAR(name);
@@ -430,7 +430,7 @@ ErrCode AppAccountStub::ProcGetAssociatedData(MessageParcel &data, MessageParcel
 
 ErrCode AppAccountStub::ProcSetAssociatedData(MessageParcel &data, MessageParcel &reply)
 {
-    ACCOUNT_LOGI("enter");
+    ACCOUNT_LOGD("enter");
     std::string name = data.ReadString();
     RETURN_IF_STRING_IS_EMPTY_OR_OVERSIZE(name, Constants::NAME_MAX_SIZE, "name is empty or oversize");
     RETURN_IF_STRING_CONTAINS_SPECIAL_CHAR(name);
@@ -448,7 +448,7 @@ ErrCode AppAccountStub::ProcSetAssociatedData(MessageParcel &data, MessageParcel
 
 ErrCode AppAccountStub::ProcGetAccountCredential(MessageParcel &data, MessageParcel &reply)
 {
-    ACCOUNT_LOGI("enter");
+    ACCOUNT_LOGD("enter");
     std::string name = data.ReadString();
     RETURN_IF_STRING_IS_EMPTY_OR_OVERSIZE(name, Constants::NAME_MAX_SIZE, "name is empty or oversize");
     RETURN_IF_STRING_CONTAINS_SPECIAL_CHAR(name);
@@ -470,7 +470,7 @@ ErrCode AppAccountStub::ProcGetAccountCredential(MessageParcel &data, MessagePar
 
 ErrCode AppAccountStub::ProcSetAccountCredential(MessageParcel &data, MessageParcel &reply)
 {
-    ACCOUNT_LOGI("enter");
+    ACCOUNT_LOGD("enter");
     std::string name = data.ReadString();
     RETURN_IF_STRING_IS_EMPTY_OR_OVERSIZE(name, Constants::NAME_MAX_SIZE, "name is empty or oversize");
     RETURN_IF_STRING_CONTAINS_SPECIAL_CHAR(name);
@@ -682,7 +682,7 @@ ErrCode AppAccountStub::ProcGetAuthenticatorCallback(MessageParcel &data, Messag
 
 ErrCode AppAccountStub::ProcGetAllAccounts(MessageParcel &data, MessageParcel &reply)
 {
-    ACCOUNT_LOGI("enter");
+    ACCOUNT_LOGD("enter");
     std::string owner = data.ReadString();
     RETURN_IF_STRING_IS_EMPTY_OR_OVERSIZE(owner, Constants::OWNER_MAX_SIZE, "owner is empty or oversize");
     std::vector<AppAccountInfo> appAccounts;
@@ -700,7 +700,7 @@ ErrCode AppAccountStub::ProcGetAllAccounts(MessageParcel &data, MessageParcel &r
 
 ErrCode AppAccountStub::ProcGetAllAccessibleAccounts(MessageParcel &data, MessageParcel &reply)
 {
-    ACCOUNT_LOGI("enter");
+    ACCOUNT_LOGD("enter");
     std::vector<AppAccountInfo> appAccounts;
     ErrCode result = GetAllAccessibleAccounts(appAccounts);
     if (!reply.WriteInt32(result)) {
@@ -716,7 +716,7 @@ ErrCode AppAccountStub::ProcGetAllAccessibleAccounts(MessageParcel &data, Messag
 
 ErrCode AppAccountStub::ProcSubscribeAccount(MessageParcel &data, MessageParcel &reply)
 {
-    ACCOUNT_LOGI("enter");
+    ACCOUNT_LOGD("enter");
     std::unique_ptr<AppAccountSubscribeInfo> subscribeInfo(data.ReadParcelable<AppAccountSubscribeInfo>());
     if (!subscribeInfo) {
         ACCOUNT_LOGE("failed to read parcelable for subscribeInfo");
@@ -737,7 +737,7 @@ ErrCode AppAccountStub::ProcSubscribeAccount(MessageParcel &data, MessageParcel 
 
 ErrCode AppAccountStub::ProcUnsubscribeAccount(MessageParcel &data, MessageParcel &reply)
 {
-    ACCOUNT_LOGI("enter");
+    ACCOUNT_LOGD("enter");
     sptr<IRemoteObject> eventListener = data.ReadRemoteObject();
     if (eventListener == nullptr) {
         ACCOUNT_LOGE("failed to read remote object for eventListener");

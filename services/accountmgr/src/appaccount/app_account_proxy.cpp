@@ -22,7 +22,7 @@ namespace OHOS {
 namespace AccountSA {
 AppAccountProxy::AppAccountProxy(const sptr<IRemoteObject> &object) : IRemoteProxy<IAppAccount>(object)
 {
-    ACCOUNT_LOGI("enter");
+    ACCOUNT_LOGD("enter");
 }
 
 AppAccountProxy::~AppAccountProxy()
@@ -30,7 +30,7 @@ AppAccountProxy::~AppAccountProxy()
 
 ErrCode AppAccountProxy::AddAccount(const std::string &name, const std::string &extraInfo)
 {
-    ACCOUNT_LOGI("enter");
+    ACCOUNT_LOGD("enter");
 
     MessageParcel data;
     MessageParcel reply;
@@ -56,7 +56,7 @@ ErrCode AppAccountProxy::AddAccount(const std::string &name, const std::string &
     }
 
     result = reply.ReadInt32();
-    ACCOUNT_LOGI("result = %{public}d", result);
+    ACCOUNT_LOGD("result = %{public}d", result);
 
     return result;
 }
@@ -99,7 +99,7 @@ ErrCode AppAccountProxy::AddAccountImplicitly(const std::string &owner, const st
 
 ErrCode AppAccountProxy::DeleteAccount(const std::string &name)
 {
-    ACCOUNT_LOGI("enter");
+    ACCOUNT_LOGD("enter");
 
     MessageParcel data;
     MessageParcel reply;
@@ -121,14 +121,14 @@ ErrCode AppAccountProxy::DeleteAccount(const std::string &name)
 
     result = reply.ReadInt32();
 
-    ACCOUNT_LOGI("result = %{public}d", result);
+    ACCOUNT_LOGD("result = %{public}d", result);
 
     return result;
 }
 
 ErrCode AppAccountProxy::GetAccountExtraInfo(const std::string &name, std::string &extraInfo)
 {
-    ACCOUNT_LOGI("enter");
+    ACCOUNT_LOGD("enter");
 
     MessageParcel data;
     MessageParcel reply;
@@ -150,14 +150,14 @@ ErrCode AppAccountProxy::GetAccountExtraInfo(const std::string &name, std::strin
 
     result = reply.ReadInt32();
     extraInfo = reply.ReadString();
-    ACCOUNT_LOGI("result = %{public}d, extraInfo = %{public}s", result, extraInfo.c_str());
+    ACCOUNT_LOGD("result = %{public}d, extraInfo = %{public}s", result, extraInfo.c_str());
 
     return result;
 }
 
 ErrCode AppAccountProxy::SetAccountExtraInfo(const std::string &name, const std::string &extraInfo)
 {
-    ACCOUNT_LOGI("enter");
+    ACCOUNT_LOGD("enter");
 
     MessageParcel data;
     MessageParcel reply;
@@ -183,14 +183,14 @@ ErrCode AppAccountProxy::SetAccountExtraInfo(const std::string &name, const std:
     }
 
     result = reply.ReadInt32();
-    ACCOUNT_LOGI("result = %{public}d", result);
+    ACCOUNT_LOGD("result = %{public}d", result);
 
     return result;
 }
 
 ErrCode AppAccountProxy::EnableAppAccess(const std::string &name, const std::string &authorizedApp)
 {
-    ACCOUNT_LOGI("enter");
+    ACCOUNT_LOGD("enter");
 
     MessageParcel data;
     MessageParcel reply;
@@ -216,14 +216,14 @@ ErrCode AppAccountProxy::EnableAppAccess(const std::string &name, const std::str
     }
 
     result = reply.ReadInt32();
-    ACCOUNT_LOGI("result = %{public}d", result);
+    ACCOUNT_LOGD("result = %{public}d", result);
 
     return result;
 }
 
 ErrCode AppAccountProxy::DisableAppAccess(const std::string &name, const std::string &authorizedApp)
 {
-    ACCOUNT_LOGI("enter");
+    ACCOUNT_LOGD("enter");
 
     MessageParcel data;
     MessageParcel reply;
@@ -249,14 +249,14 @@ ErrCode AppAccountProxy::DisableAppAccess(const std::string &name, const std::st
     }
 
     result = reply.ReadInt32();
-    ACCOUNT_LOGI("result = %{public}d", result);
+    ACCOUNT_LOGD("result = %{public}d", result);
 
     return result;
 }
 
 ErrCode AppAccountProxy::CheckAppAccountSyncEnable(const std::string &name, bool &syncEnable)
 {
-    ACCOUNT_LOGI("enter");
+    ACCOUNT_LOGD("enter");
 
     MessageParcel data;
     MessageParcel reply;
@@ -278,14 +278,14 @@ ErrCode AppAccountProxy::CheckAppAccountSyncEnable(const std::string &name, bool
 
     result = reply.ReadInt32();
     syncEnable = reply.ReadBool();
-    ACCOUNT_LOGI("result = %{public}d, syncEnable = %{public}d", result, syncEnable);
+    ACCOUNT_LOGD("result = %{public}d, syncEnable = %{public}d", result, syncEnable);
 
     return result;
 }
 
 ErrCode AppAccountProxy::SetAppAccountSyncEnable(const std::string &name, const bool &syncEnable)
 {
-    ACCOUNT_LOGI("enter");
+    ACCOUNT_LOGD("enter");
 
     MessageParcel data;
     MessageParcel reply;
@@ -311,14 +311,14 @@ ErrCode AppAccountProxy::SetAppAccountSyncEnable(const std::string &name, const 
     }
 
     result = reply.ReadInt32();
-    ACCOUNT_LOGI("result = %{public}d", result);
+    ACCOUNT_LOGD("result = %{public}d", result);
 
     return result;
 }
 
 ErrCode AppAccountProxy::GetAssociatedData(const std::string &name, const std::string &key, std::string &value)
 {
-    ACCOUNT_LOGI("enter");
+    ACCOUNT_LOGD("enter");
 
     MessageParcel data;
     MessageParcel reply;
@@ -335,7 +335,7 @@ ErrCode AppAccountProxy::GetAssociatedData(const std::string &name, const std::s
 
     if (!data.WriteString(key)) {
         ACCOUNT_LOGE("failed to write string for key");
-        return ERR_APPACCOUNT_KIT_WRITE_STRING_ASSOCIATEKEY;
+        return ERR_APPACCOUNT_KIT_WRITE_STRING_ASSOCIATED_KEY;
     }
 
     ErrCode result = SendRequest(IAppAccount::Message::GET_ASSOCIATED_DATA, data, reply);
@@ -345,14 +345,14 @@ ErrCode AppAccountProxy::GetAssociatedData(const std::string &name, const std::s
 
     result = reply.ReadInt32();
     value = reply.ReadString();
-    ACCOUNT_LOGI("result = %{public}d, value = %{public}s", result, value.c_str());
+    ACCOUNT_LOGD("result = %{public}d, value = %{public}s", result, value.c_str());
 
     return result;
 }
 
 ErrCode AppAccountProxy::SetAssociatedData(const std::string &name, const std::string &key, const std::string &value)
 {
-    ACCOUNT_LOGI("enter");
+    ACCOUNT_LOGD("enter");
 
     MessageParcel data;
     MessageParcel reply;
@@ -383,7 +383,7 @@ ErrCode AppAccountProxy::SetAssociatedData(const std::string &name, const std::s
     }
 
     result = reply.ReadInt32();
-    ACCOUNT_LOGI("result = %{public}d", result);
+    ACCOUNT_LOGD("result = %{public}d", result);
 
     return result;
 }
@@ -391,7 +391,7 @@ ErrCode AppAccountProxy::SetAssociatedData(const std::string &name, const std::s
 ErrCode AppAccountProxy::GetAccountCredential(
     const std::string &name, const std::string &credentialType, std::string &credential)
 {
-    ACCOUNT_LOGI("enter");
+    ACCOUNT_LOGD("enter");
 
     MessageParcel data;
     MessageParcel reply;
@@ -418,7 +418,7 @@ ErrCode AppAccountProxy::GetAccountCredential(
 
     result = reply.ReadInt32();
     credential = reply.ReadString();
-    ACCOUNT_LOGI("result = %{public}d", result);
+    ACCOUNT_LOGD("result = %{public}d", result);
 
     return result;
 }
@@ -426,7 +426,7 @@ ErrCode AppAccountProxy::GetAccountCredential(
 ErrCode AppAccountProxy::SetAccountCredential(
     const std::string &name, const std::string &credentialType, const std::string &credential)
 {
-    ACCOUNT_LOGI("enter");
+    ACCOUNT_LOGD("enter");
 
     MessageParcel data;
     MessageParcel reply;
@@ -457,7 +457,7 @@ ErrCode AppAccountProxy::SetAccountCredential(
     }
 
     result = reply.ReadInt32();
-    ACCOUNT_LOGI("result = %{public}d", result);
+    ACCOUNT_LOGD("result = %{public}d", result);
 
     return result;
 }
@@ -792,7 +792,7 @@ ErrCode AppAccountProxy::GetAuthenticatorCallback(const std::string &sessionId, 
 
 ErrCode AppAccountProxy::GetAllAccounts(const std::string &owner, std::vector<AppAccountInfo> &appAccounts)
 {
-    ACCOUNT_LOGI("enter");
+    ACCOUNT_LOGD("enter");
 
     MessageParcel data;
     MessageParcel reply;
@@ -819,14 +819,14 @@ ErrCode AppAccountProxy::GetAllAccounts(const std::string &owner, std::vector<Ap
         return ERR_APPACCOUNT_KIT_READ_PARCELABLE_APP_ACCOUNT_INFO;
     }
 
-    ACCOUNT_LOGI("result = %{public}d", result);
+    ACCOUNT_LOGD("result = %{public}d", result);
 
     return result;
 }
 
 ErrCode AppAccountProxy::GetAllAccessibleAccounts(std::vector<AppAccountInfo> &appAccounts)
 {
-    ACCOUNT_LOGI("enter");
+    ACCOUNT_LOGD("enter");
 
     MessageParcel data;
     MessageParcel reply;
@@ -848,7 +848,7 @@ ErrCode AppAccountProxy::GetAllAccessibleAccounts(std::vector<AppAccountInfo> &a
         return ERR_APPACCOUNT_KIT_READ_PARCELABLE_APP_ACCOUNT_INFO;
     }
 
-    ACCOUNT_LOGI("result = %{public}d", result);
+    ACCOUNT_LOGD("result = %{public}d", result);
 
     return result;
 }
@@ -856,7 +856,7 @@ ErrCode AppAccountProxy::GetAllAccessibleAccounts(std::vector<AppAccountInfo> &a
 ErrCode AppAccountProxy::SubscribeAppAccount(
     const AppAccountSubscribeInfo &subscribeInfo, const sptr<IRemoteObject> &eventListener)
 {
-    ACCOUNT_LOGI("enter");
+    ACCOUNT_LOGD("enter");
 
     MessageParcel data;
     MessageParcel reply;
@@ -882,14 +882,14 @@ ErrCode AppAccountProxy::SubscribeAppAccount(
     }
 
     result = reply.ReadInt32();
-    ACCOUNT_LOGI("result = %{public}d", result);
+    ACCOUNT_LOGD("result = %{public}d", result);
 
     return result;
 }
 
 ErrCode AppAccountProxy::UnsubscribeAppAccount(const sptr<IRemoteObject> &eventListener)
 {
-    ACCOUNT_LOGI("enter");
+    ACCOUNT_LOGD("enter");
 
     MessageParcel data;
     MessageParcel reply;
@@ -910,14 +910,14 @@ ErrCode AppAccountProxy::UnsubscribeAppAccount(const sptr<IRemoteObject> &eventL
     }
 
     result = reply.ReadInt32();
-    ACCOUNT_LOGI("result = %{public}d", result);
+    ACCOUNT_LOGD("result = %{public}d", result);
 
     return result;
 }
 
 ErrCode AppAccountProxy::SendRequest(IAppAccount::Message code, MessageParcel &data, MessageParcel &reply)
 {
-    ACCOUNT_LOGI("enter");
+    ACCOUNT_LOGD("enter");
 
     sptr<IRemoteObject> remote = Remote();
     if (remote == nullptr) {
@@ -956,7 +956,7 @@ bool AppAccountProxy::WriteParcelableVector(const std::vector<T> &parcelableVect
 template<typename T>
 bool AppAccountProxy::ReadParcelableVector(std::vector<T> &parcelableVector, MessageParcel &data)
 {
-    ACCOUNT_LOGI("enter");
+    ACCOUNT_LOGD("enter");
 
     uint32_t size = 0;
     if (!data.ReadUint32(size)) {

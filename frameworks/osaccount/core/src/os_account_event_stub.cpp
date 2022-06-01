@@ -37,7 +37,7 @@ int OsAccountEventStub::OnRemoteRequest(uint32_t code, MessageParcel &data, Mess
             int id;
             if (!data.ReadInt32(id)) {
                 ACCOUNT_LOGE("failed to read localId");
-                return ERR_OSACCOUNT_KIT_READ_IN_LOCALID_ERROR;
+                return ERR_OSACCOUNT_KIT_READ_IN_LOCAL_ID_ERROR;
             }
             OnAccountsChanged(id);
             break;

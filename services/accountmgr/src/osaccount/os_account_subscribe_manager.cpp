@@ -22,7 +22,8 @@
 namespace OHOS {
 namespace AccountSA {
 OsAccountSubscribeManager::OsAccountSubscribeManager()
-    : subscribeDeathRecipient_(sptr<IRemoteObject::DeathRecipient>(new OsAccountSubscribeDeathRecipient()))
+    : subscribeDeathRecipient_(sptr<IRemoteObject::DeathRecipient>(
+        new (std::nothrow) OsAccountSubscribeDeathRecipient()))
 {}
 
 OsAccountSubscribeManager::~OsAccountSubscribeManager()

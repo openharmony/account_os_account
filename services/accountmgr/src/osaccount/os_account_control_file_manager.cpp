@@ -98,7 +98,7 @@ void OsAccountControlFileManager::Init()
 
 void OsAccountControlFileManager::BuildAndSaveAccountListJsonFile(const std::vector<std::string>& accounts)
 {
-    ACCOUNT_LOGI("enter.");
+    ACCOUNT_LOGD("enter.");
     Json accountList = Json {
         {Constants::ACCOUNT_LIST, accounts},
         {Constants::COUNT_ACCOUNT_NUM, accounts.size()},
@@ -195,12 +195,11 @@ void OsAccountControlFileManager::RecoverAccountListJsonFile()
 
 ErrCode OsAccountControlFileManager::GetOsAccountList(std::vector<OsAccountInfo> &osAccountList)
 {
-    ACCOUNT_LOGI("OsAccountControlFileManager GetOsAccountList  start");
+    ACCOUNT_LOGD("start");
     osAccountList.clear();
     Json accountListJson;
     if (GetAccountListFromFile(accountListJson) != ERR_OK) {
-        ACCOUNT_LOGE(
-            "OsAccountControlFileManager GetOsAccountList ERR_OSACCOUNT_SERVICE_CONTROL_GET_OS_ACCOUNT_LIST_ERROR");
+        ACCOUNT_LOGE("GetAccountListFromFile failed!");
         return ERR_OSACCOUNT_SERVICE_CONTROL_GET_OS_ACCOUNT_LIST_ERROR;
     }
     const auto &jsonObjectEnd = accountListJson.end();
@@ -220,26 +219,26 @@ ErrCode OsAccountControlFileManager::GetOsAccountList(std::vector<OsAccountInfo>
             }
         }
     }
-    ACCOUNT_LOGI("OsAccountControlFileManager GetOsAccountList  end");
+    ACCOUNT_LOGD("end");
     return ERR_OK;
 }
 
 ErrCode OsAccountControlFileManager::GetOsAccountInfoById(const int id, OsAccountInfo &osAccountInfo)
 {
-    ACCOUNT_LOGI("OsAccountControlFileManager GetOsAccountInfoById start");
+    ACCOUNT_LOGD("start");
     std::string path = Constants::USER_INFO_BASE + Constants::PATH_SEPARATOR + std::to_string(id) +
                        Constants::PATH_SEPARATOR + Constants::USER_INFO_FILE_NAME;
     if (!accountFileOperator_->IsExistFile(path)) {
-        ACCOUNT_LOGE("OsAccountControlFileManager GetOsAccountInfoById file does not exist err");
+        ACCOUNT_LOGE("file %{public}s does not exist err", path.c_str());
         return ERR_OSACCOUNT_SERVICE_CONTROL_SELECT_OS_ACCOUNT_ERROR;
     }
     std::string accountInfoStr;
     if (accountFileOperator_->GetFileContentByPath(path, accountInfoStr) != ERR_OK) {
-        ACCOUNT_LOGE("OsAccountControlFileManager GetOsAccountInfoById file cannot get info err");
+        ACCOUNT_LOGE("get content from file %{public}s failed!", path.c_str());
         return ERR_OSACCOUNT_SERVICE_CONTROL_SELECT_OS_ACCOUNT_ERROR;
     }
     osAccountInfo.FromJson(Json::parse(accountInfoStr, nullptr, false));
-    ACCOUNT_LOGI("OsAccountControlFileManager GetOsAccountInfoById end");
+    ACCOUNT_LOGD("end");
     return ERR_OK;
 }
 
@@ -604,7 +603,7 @@ ErrCode OsAccountControlFileManager::UpdateAccountList(const std::string& idStr,
 
 ErrCode OsAccountControlFileManager::InsertOsAccount(OsAccountInfo &osAccountInfo)
 {
-    ACCOUNT_LOGI("enter");
+    ACCOUNT_LOGD("enter");
     if (osAccountInfo.GetLocalId() < Constants::ADMIN_LOCAL_ID ||
         osAccountInfo.GetLocalId() > Constants::MAX_USER_ID) {
         ACCOUNT_LOGE("error id %{public}d cannot insert", osAccountInfo.GetLocalId());
@@ -625,7 +624,7 @@ ErrCode OsAccountControlFileManager::InsertOsAccount(OsAccountInfo &osAccountInf
     }
 
     if (accountFileOperator_->InputFileByPathAndContent(path, accountInfoStr) != ERR_OK) {
-        ACCOUNT_LOGE("OsAccountControlFileManager InsertOsAccount");
+        ACCOUNT_LOGE("InputFileByPathAndContent failed! path %{public}s.", path.c_str());
         return ERR_OSACCOUNT_SERVICE_CONTROL_INSERT_OS_ACCOUNT_FILE_ERROR;
     }
     osAccountDataBaseOperator_->InsertOsAccountIntoDataBase(osAccountInfo);
@@ -633,12 +632,13 @@ ErrCode OsAccountControlFileManager::InsertOsAccount(OsAccountInfo &osAccountInf
     if (osAccountInfo.GetLocalId() >= Constants::START_USER_ID) {
         return UpdateAccountList(osAccountInfo.GetPrimeKey(), true);
     }
+    ACCOUNT_LOGD("end");
     return ERR_OK;
 }
 
 ErrCode OsAccountControlFileManager::DelOsAccount(const int id)
 {
-    ACCOUNT_LOGI("enter");
+    ACCOUNT_LOGD("enter");
     if (id <= Constants::START_USER_ID || id > Constants::MAX_USER_ID) {
         ACCOUNT_LOGE("invalid input id %{public}d to delete!", id);
         return ERR_OSACCOUNT_SERVICE_CONTROL_CANNOT_DELETE_ID_ERROR;
@@ -646,7 +646,7 @@ ErrCode OsAccountControlFileManager::DelOsAccount(const int id)
 
     std::string path = Constants::USER_INFO_BASE + Constants::PATH_SEPARATOR + std::to_string(id);
     if (accountFileOperator_->DeleteDirOrFile(path) != ERR_OK) {
-        ACCOUNT_LOGE("OsAccountControlFileManager DelOsAccount delete dir error");
+        ACCOUNT_LOGE("DeleteDirOrFile failed! path %{public}s.", path.c_str());
         return ERR_OSACCOUNT_SERVICE_CONTROL_DEL_OS_ACCOUNT_INFO_ERROR;
     }
     osAccountDataBaseOperator_->DelOsAccountFromDatabase(id);
@@ -655,7 +655,7 @@ ErrCode OsAccountControlFileManager::DelOsAccount(const int id)
 
 ErrCode OsAccountControlFileManager::UpdateOsAccount(OsAccountInfo &osAccountInfo)
 {
-    ACCOUNT_LOGI("OsAccountControlFileManager UpdateOsAccount start");
+    ACCOUNT_LOGD("start");
     std::string path = Constants::USER_INFO_BASE + Constants::PATH_SEPARATOR + osAccountInfo.GetPrimeKey() +
                        Constants::PATH_SEPARATOR + Constants::USER_INFO_FILE_NAME;
     if (!accountFileOperator_->IsExistFile(path)) {
@@ -678,13 +678,13 @@ ErrCode OsAccountControlFileManager::UpdateOsAccount(OsAccountInfo &osAccountInf
         osAccountDataBaseOperator_->UpdateOsAccountInDatabase(osAccountInfo);
     }
 
-    ACCOUNT_LOGI("OsAccountControlFileManager UpdateOsAccount end");
+    ACCOUNT_LOGD("end");
     return ERR_OK;
 }
 
 ErrCode OsAccountControlFileManager::GetMaxCreatedOsAccountNum(int &maxCreatedOsAccountNum)
 {
-    ACCOUNT_LOGI("OsAccountControlFileManager GetMaxCreatedOsAccountNum start");
+    ACCOUNT_LOGD("start");
     Json accountListJson;
     if (GetAccountListFromFile(accountListJson) != ERR_OK) {
         return ERR_OSACCOUNT_SERVICE_CONTROL_GET_OS_ACCOUNT_LIST_ERROR;
@@ -695,7 +695,7 @@ ErrCode OsAccountControlFileManager::GetMaxCreatedOsAccountNum(int &maxCreatedOs
         maxCreatedOsAccountNum,
         OHOS::AccountSA::JsonType::NUMBER);
     maxCreatedOsAccountNum -= Constants::START_USER_ID;
-    ACCOUNT_LOGI("OsAccountControlFileManager GetMaxCreatedOsAccountNum end");
+    ACCOUNT_LOGD("end");
     return ERR_OK;
 }
 
@@ -783,7 +783,7 @@ ErrCode OsAccountControlFileManager::GetAllowCreateId(int &id)
 
 ErrCode OsAccountControlFileManager::GetAccountListFromFile(Json &accountListJson)
 {
-    ACCOUNT_LOGI("enter");
+    ACCOUNT_LOGD("enter");
     accountListJson.clear();
     std::string accountList;
     std::lock_guard<std::mutex> lock(accountListFileLock_);
@@ -794,7 +794,7 @@ ErrCode OsAccountControlFileManager::GetAccountListFromFile(Json &accountListJso
         return ERR_OSACCOUNT_SERVICE_CONTROL_GET_ACCOUNT_LIST_ERROR;
     }
     accountListJson = Json::parse(accountList, nullptr, false);
-    ACCOUNT_LOGI("end");
+    ACCOUNT_LOGD("end");
     return ERR_OK;
 }
 
@@ -951,14 +951,14 @@ ErrCode OsAccountControlFileManager::IsFromSpecificOAConstraintsList(const int32
 
 ErrCode OsAccountControlFileManager::SaveAccountListToFile(const Json &accountListJson)
 {
-    ACCOUNT_LOGI("enter!");
+    ACCOUNT_LOGD("enter!");
     std::lock_guard<std::mutex> lock(accountListFileLock_);
     if (accountFileOperator_->InputFileByPathAndContent(Constants::ACCOUNT_LIST_FILE_JSON_PATH,
         accountListJson.dump()) != ERR_OK) {
         ACCOUNT_LOGE("cannot save save account list file content!");
         return ERR_OSACCOUNT_SERVICE_CONTROL_SET_ACCOUNT_LIST_ERROR;
     }
-    ACCOUNT_LOGI("save account list file succeed!");
+    ACCOUNT_LOGD("save account list file succeed!");
     return ERR_OK;
 }
 
@@ -1041,7 +1041,7 @@ ErrCode OsAccountControlFileManager::SaveAccountListToFileAndDataBase(const Json
 
 ErrCode OsAccountControlFileManager::IsOsAccountExists(const int id, bool &isExists)
 {
-    ACCOUNT_LOGI("OsAccountControlFileManager IsOsAccountExists start");
+    ACCOUNT_LOGD("start");
     isExists = false;
     std::string path = Constants::USER_INFO_BASE + Constants::PATH_SEPARATOR + std::to_string(id) +
                        Constants::PATH_SEPARATOR + Constants::USER_INFO_FILE_NAME;
@@ -1058,7 +1058,7 @@ ErrCode OsAccountControlFileManager::IsOsAccountExists(const int id, bool &isExi
     }
 
     isExists = true;
-    ACCOUNT_LOGI("OsAccountControlFileManager IsOsAccountExists path is %{public}d", isExists);
+    ACCOUNT_LOGD("end");
     return ERR_OK;
 }
 
