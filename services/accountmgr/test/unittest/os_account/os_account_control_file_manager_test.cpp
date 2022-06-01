@@ -133,7 +133,7 @@ HWTEST_F(OsAccountControlFileManagerTest, OsAccountControlFileManagerTest002, Te
 
 /**
  * @tc.name: OsAccountControlFileManagerTest003
- * @tc.desc: Test GetOsAccountInfoById by unvalid data
+ * @tc.desc: Test GetOsAccountInfoById by invalid data
  * @tc.type: FUNC
  * @tc.require: SR000GGVFN
  */
@@ -152,10 +152,10 @@ HWTEST_F(OsAccountControlFileManagerTest, OsAccountControlFileManagerTest003, Te
  */
 HWTEST_F(OsAccountControlFileManagerTest, OsAccountControlFileManagerTest004, TestSize.Level1)
 {
-    std::vector<std::string> constratins;
-    EXPECT_EQ(osAccountControlManager_->GetConstraintsByType(OsAccountType::ADMIN, constratins), ERR_OK);
+    std::vector<std::string> constraints;
+    EXPECT_EQ(osAccountControlManager_->GetConstraintsByType(OsAccountType::ADMIN, constraints), ERR_OK);
     const unsigned int size = 0;
-    EXPECT_NE(size, constratins.size());
+    EXPECT_NE(size, constraints.size());
 }
 
 /**
@@ -166,8 +166,8 @@ HWTEST_F(OsAccountControlFileManagerTest, OsAccountControlFileManagerTest004, Te
  */
 HWTEST_F(OsAccountControlFileManagerTest, OsAccountControlFileManagerTest005, TestSize.Level1)
 {
-    std::vector<std::string> constratins;
-    EXPECT_EQ(osAccountControlManager_->GetConstraintsByType(OsAccountType::GUEST, constratins), ERR_OK);
+    std::vector<std::string> constraints;
+    EXPECT_EQ(osAccountControlManager_->GetConstraintsByType(OsAccountType::GUEST, constraints), ERR_OK);
 }
 
 /**
@@ -261,7 +261,7 @@ HWTEST_F(OsAccountControlFileManagerTest, OsAccountControlFileManagerTest011, Te
 
 /**
  * @tc.name: OsAccountControlFileManagerTest012
- * @tc.desc: Test InsertOsAccount with unvalid data
+ * @tc.desc: Test InsertOsAccount with invalid data
  * @tc.type: FUNC
  * @tc.require: SR000GGVFN
  */
@@ -275,7 +275,7 @@ HWTEST_F(OsAccountControlFileManagerTest, OsAccountControlFileManagerTest012, Te
 
 /**
  * @tc.name: OsAccountControlFileManagerTest013
- * @tc.desc: Test InsertOsAccount with unvalid data
+ * @tc.desc: Test InsertOsAccount with invalid data
  * @tc.type: FUNC
  * @tc.require: SR000GGVFN
  */
@@ -307,7 +307,7 @@ HWTEST_F(OsAccountControlFileManagerTest, OsAccountControlFileManagerTest014, Te
 
 /**
  * @tc.name: OsAccountControlFileManagerTest015
- * @tc.desc: Test DelOsAccount with unvalid data
+ * @tc.desc: Test DelOsAccount with invalid data
  * @tc.type: FUNC
  * @tc.require: SR000GGVFN
  */

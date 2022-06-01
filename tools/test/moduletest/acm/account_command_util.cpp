@@ -47,6 +47,9 @@ void AccountCommandUtil::DeleteLastOsAccount()
     ErrCode result = OsAccountManager::QueryAllCreatedOsAccounts(osAccounts);
     GTEST_LOG_(INFO) << "AccountCommandUtil::DeleteLastOsAccount result = " << result;
     GTEST_LOG_(INFO) << "AccountCommandUtil::DeleteLastOsAccount osAccounts size = " << osAccounts.size();
+    if (osAccounts.empty()) {
+        return;
+    }
 
     std::string localAccountId = std::to_string(osAccounts.begin()->GetLocalId());
 
@@ -64,6 +67,10 @@ void AccountCommandUtil::DumpLastOsAccount()
     GTEST_LOG_(INFO) << "AccountCommandUtil::DumpLastOsAccount result = " << result;
     GTEST_LOG_(INFO) << "AccountCommandUtil::DumpLastOsAccount osAccounts size = " << osAccounts.size();
 
+    if (osAccounts.empty()) {
+        return;
+    }
+
     std::string localAccountId = std::to_string(osAccounts.rbegin()->GetLocalId());
 
     std::string command = TOOL_NAME + " dump -i " + localAccountId;
@@ -80,6 +87,10 @@ void AccountCommandUtil::SwitchToFirstOsAccount()
     GTEST_LOG_(INFO) << "AccountCommandUtil::SwitchToFirstOsAccount result = " << result;
     GTEST_LOG_(INFO) << "AccountCommandUtil::SwitchToFirstOsAccount osAccounts size = " << osAccounts.size();
 
+    if (osAccounts.empty()) {
+        return;
+    }
+
     std::string localAccountId = std::to_string(osAccounts.begin()->GetLocalId());
 
     std::string command = TOOL_NAME + " switch -i " + localAccountId;
@@ -95,6 +106,11 @@ void AccountCommandUtil::SwitchToLastOsAccount()
     ErrCode result = OsAccountManager::QueryAllCreatedOsAccounts(osAccounts);
     GTEST_LOG_(INFO) << "AccountCommandUtil::SwitchToLastOsAccount result = " << result;
     GTEST_LOG_(INFO) << "AccountCommandUtil::SwitchToLastOsAccount osAccounts size = " << osAccounts.size();
+
+    if (osAccounts.empty()) {
+        return;
+    }
+
     std::string localAccountId = "";
 
     std::string command = TOOL_NAME + " switch -i " + localAccountId;

@@ -22,14 +22,13 @@
 #include "account_info.h"
 #include "account_log_wrapper.h"
 #include "account_mgr_service.h"
-#include "bundlemgr/bundle_mgr_interface.h"
+#include "bundle_manager_adapter.h"
 #include "hisysevent_adapter.h"
 #include "if_system_ability_manager.h"
 #include "ipc_skeleton.h"
 #include "iservice_registry.h"
 #include "ohos_account_kits.h"
 #include "string_ex.h"
-#include "system_ability_definition.h"
 
 namespace OHOS {
 namespace AccountSA {
@@ -40,34 +39,6 @@ const std::string PERMISSION_MANAGE_USERS = "ohos.permission.MANAGE_LOCAL_ACCOUN
 const std::string PERMISSION_DISTRIBUTED_DATASYNC = "ohos.permission.DISTRIBUTED_DATASYNC";
 constexpr std::int32_t ROOT_UID = 0;
 constexpr std::int32_t SYSTEM_UID = 1000;
-
-std::int32_t GetBundleNamesForUid(std::int32_t uid, std::string &bundleName)
-{
-    sptr<ISystemAbilityManager> systemMgr = SystemAbilityManagerClient::GetInstance().GetSystemAbilityManager();
-    if (systemMgr == nullptr) {
-        ACCOUNT_LOGE("Fail to get system ability mgr");
-        return ERR_ACCOUNT_ZIDL_ACCOUNT_STUB_ERROR;
-    }
-
-    sptr<IRemoteObject> remoteObject = systemMgr->GetSystemAbility(BUNDLE_MGR_SERVICE_SYS_ABILITY_ID);
-    if (remoteObject == nullptr) {
-        ACCOUNT_LOGE("Fail to get bundle manager proxy");
-        return ERR_ACCOUNT_ZIDL_ACCOUNT_STUB_ERROR;
-    }
-
-    sptr<OHOS::AppExecFwk::IBundleMgr> bundleMgrProxy = iface_cast<OHOS::AppExecFwk::IBundleMgr>(remoteObject);
-    if (bundleMgrProxy == nullptr) {
-        ACCOUNT_LOGE("Bundle mgr proxy is nullptr");
-        return ERR_ACCOUNT_ZIDL_ACCOUNT_STUB_ERROR;
-    }
-
-    if (!bundleMgrProxy->GetBundleNameForUid(uid, bundleName)) {
-        ACCOUNT_LOGE("Get bundle name failed");
-        return ERR_ACCOUNT_ZIDL_ACCOUNT_STUB_ERROR;
-    }
-
-    return ERR_OK;
-}
 }  // namespace
 const std::map<std::uint32_t, AccountStubFunc> AccountStub::stubFuncMap_{
     std::make_pair(UPDATE_OHOS_ACCOUNT_INFO, &AccountStub::CmdUpdateOhosAccountInfo),
@@ -89,12 +60,12 @@ std::int32_t AccountStub::CmdUpdateOhosAccountInfo(MessageParcel &data, MessageP
     // ignore the real account name
     const std::string accountName = Str16ToStr8(data.ReadString16());
     if (accountName.empty()) {
-        ACCOUNT_LOGE("invalid account name");
+        ACCOUNT_LOGE("empty account name!");
         return ERR_ACCOUNT_ZIDL_ACCOUNT_STUB_ERROR;
     }
     const std::string uid = Str16ToStr8(data.ReadString16());
     if (uid.empty()) {
-        ACCOUNT_LOGE("invalid user id");
+        ACCOUNT_LOGE("empty uid!");
         return ERR_ACCOUNT_ZIDL_ACCOUNT_STUB_ERROR;
     }
     const std::string eventStr = Str16ToStr8(data.ReadString16());
@@ -213,7 +184,7 @@ std::int32_t AccountStub::CmdQueryDeviceAccountId(MessageParcel &data, MessagePa
 
 std::int32_t AccountStub::CmdGetAppAccountService(MessageParcel &data, MessageParcel &reply)
 {
-    ACCOUNT_LOGI("enter");
+    ACCOUNT_LOGD("enter");
 
     auto remoteObject = GetAppAccountService();
     if (!reply.WriteRemoteObject(remoteObject)) {
@@ -225,7 +196,7 @@ std::int32_t AccountStub::CmdGetAppAccountService(MessageParcel &data, MessagePa
 }
 std::int32_t AccountStub::CmdGetOsAccountService(MessageParcel &data, MessageParcel &reply)
 {
-    ACCOUNT_LOGI("enter");
+    ACCOUNT_LOGD("enter");
 
     auto remoteObject = GetOsAccountService();
     if (!reply.WriteRemoteObject(remoteObject)) {
@@ -239,7 +210,7 @@ std::int32_t AccountStub::CmdGetOsAccountService(MessageParcel &data, MessagePar
 std::int32_t AccountStub::OnRemoteRequest(
     std::uint32_t code, MessageParcel &data, MessageParcel &reply, MessageOption &option)
 {
-    ACCOUNT_LOGI("Received stub message: %{public}d", code);
+    ACCOUNT_LOGD("Received stub message: %{public}d", code);
     if (!IsServiceStarted()) {
         ACCOUNT_LOGE("account mgr not ready");
         return ERR_ACCOUNT_ZIDL_MGR_NOT_READY_ERROR;
@@ -292,7 +263,7 @@ bool AccountStub::CheckCallerForTrustList()
 {
     std::string bundleName;
     std::int32_t uid = IPCSkeleton::GetCallingUid();
-    if (GetBundleNamesForUid(uid, bundleName) != ERR_OK) {
+    if (!BundleManagerAdapter::GetInstance()->GetBundleNameForUid(uid, bundleName)) {
         return false;
     }
 

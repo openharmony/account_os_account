@@ -17,7 +17,6 @@
 #define OS_ACCOUNT_SERVICES_ACCOUNTMGR_INCLUDE_OSACCOUNT_OS_ACCOUNT_MANAGER_SERVICE_H
 
 #include <memory>
-#include "account_bundle_manager.h"
 #include "account_permission_manager.h"
 #include "os_account_stub.h"
 #include "iinner_os_account.h"
@@ -107,11 +106,10 @@ public:
 private:
     virtual ErrCode DumpStateByAccounts(
         const std::vector<OsAccountInfo> &osAccountInfos, std::vector<std::string> &state);
-    bool PermissionCheck(const std::string& permissionName, const std::string& constriantName);
+    bool PermissionCheck(const std::string& permissionName, const std::string& constraintName);
 
 private:
     std::shared_ptr<IInnerOsAccount> innerManager_;
-    std::shared_ptr<AccountBundleManager> bundleManagerPtr_;
     std::shared_ptr<AccountPermissionManager> permissionManagerPtr_;
     DISALLOW_COPY_AND_MOVE(OsAccountManagerService);
 };

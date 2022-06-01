@@ -228,7 +228,7 @@ ErrCode AppAccountInfo::GetOAuthToken(const std::string &authType, std::string &
     token = "";
     auto it = oauthTokens_.find(authType);
     if ((it == oauthTokens_.end()) || (it->second.token.empty())) {
-        ACCOUNT_LOGI("oauth token not exist");
+        ACCOUNT_LOGE("oauth token not exist");
         return ERR_APPACCOUNT_SERVICE_OAUTH_TOKEN_NOT_EXIST;
     }
     token = it->second.token;
@@ -385,7 +385,7 @@ AppAccountInfo *AppAccountInfo::Unmarshalling(Parcel &parcel)
     AppAccountInfo *appAccountInfo = new (std::nothrow) AppAccountInfo();
 
     if (appAccountInfo && !appAccountInfo->ReadFromParcel(parcel)) {
-        ACCOUNT_LOGE("failed to read from pacel");
+        ACCOUNT_LOGE("failed to read from parcel");
         delete appAccountInfo;
         appAccountInfo = nullptr;
     }

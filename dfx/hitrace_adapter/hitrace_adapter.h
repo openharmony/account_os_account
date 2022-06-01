@@ -21,9 +21,13 @@
 namespace OHOS {
 namespace AccountSA {
 void InitHiTrace();
-void StartSyncTrace(const std::string& value);
-void EndSyncTrace();
 void ValueTrace(const std::string& name, int64_t count);
+
+class HiTraceAdapterSyncTrace {
+public:
+    explicit HiTraceAdapterSyncTrace(const std::string &value);
+    virtual ~HiTraceAdapterSyncTrace();
+};
 } // AccountSA
 } // OHOS
 #endif // OS_ACCOUNT_DFX_HITRACE_ADAPTER_H

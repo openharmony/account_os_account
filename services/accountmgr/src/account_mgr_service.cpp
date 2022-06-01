@@ -14,6 +14,7 @@
  */
 
 #include "account_mgr_service.h"
+#include <cerrno>
 #include "account_dump_helper.h"
 #include "account_log_wrapper.h"
 #include "app_account_manager_service.h"
@@ -32,12 +33,28 @@
 
 namespace OHOS {
 namespace AccountSA {
-const std::string DEVICE_OWNER_DIR = "/data/system/users/0/";
-
-IAccountContext *IAccountContext::instance_ = nullptr;
-
+namespace {
 const bool REGISTER_RESULT =
     SystemAbility::MakeAndRegisterAbility(&DelayedRefSingleton<AccountMgrService>::GetInstance());
+const std::string DEVICE_OWNER_DIR = "/data/system/users/0/";
+void CreateDeviceDir()
+{
+    if (!OHOS::FileExists(DEVICE_OWNER_DIR)) {
+        ACCOUNT_LOGI("Device owner dir not exist, create!");
+        if (!OHOS::ForceCreateDirectory(DEVICE_OWNER_DIR)) {
+            ACCOUNT_LOGW("Create device owner dir failure! errno %{public}d.", errno);
+            ReportFileOperationFail(errno, "ForceCreateDirectory", DEVICE_OWNER_DIR);
+        } else {
+            if (!OHOS::ChangeModeDirectory(DEVICE_OWNER_DIR, S_IRWXU)) {
+                ReportFileOperationFail(errno, "ChangeModeDirectory", DEVICE_OWNER_DIR);
+                ACCOUNT_LOGW("failed to create dir, path = %{public}s errno %{public}d.",
+                    DEVICE_OWNER_DIR.c_str(), errno);
+            }
+        }
+    }
+}
+}
+IAccountContext *IAccountContext::instance_ = nullptr;
 
 AccountMgrService::AccountMgrService() : SystemAbility(SUBSYS_ACCOUNT_SYS_ABILITY_ID_BEGIN, true)
 {
@@ -50,13 +67,13 @@ AccountMgrService::~AccountMgrService()
 bool AccountMgrService::UpdateOhosAccountInfo(
     const std::string &accountName, const std::string &uid, const std::string &eventStr)
 {
-    ACCOUNT_LOGI("Account event %s", eventStr.c_str());
+    ACCOUNT_LOGD("Account event %s", eventStr.c_str());
     if (!ohosAccountMgr_->OhosAccountStateChange(accountName, uid, eventStr)) {
         ACCOUNT_LOGE("Ohos account state change failed");
         return false;
     }
 
-    ACCOUNT_LOGI("Successful");
+    ACCOUNT_LOGD("Successful");
     return true;
 }
 
@@ -87,13 +104,13 @@ std::int32_t AccountMgrService::QueryDeviceAccountId(std::int32_t &accountId)
 
 sptr<IRemoteObject> AccountMgrService::GetAppAccountService()
 {
-    ACCOUNT_LOGI("enter");
+    ACCOUNT_LOGD("enter");
 
     return appAccountManagerService_;
 }
 sptr<IRemoteObject> AccountMgrService::GetOsAccountService()
 {
-    ACCOUNT_LOGI("enter");
+    ACCOUNT_LOGD("enter");
 
     return osAccountManagerService_;
 }
@@ -111,7 +128,7 @@ void AccountMgrService::OnStart()
     }
 
     InitHiTrace();
-    StartSyncTrace("accountmgr service onstart");
+    HiTraceAdapterSyncTrace tracer("accountmgr service onstart");
     ValueTrace("activeid", -1);
 
     PerfStat::GetInstance().SetInstanceStartTime(GetTickCount());
@@ -121,7 +138,6 @@ void AccountMgrService::OnStart()
         return;
     }
     state_ = ServiceRunningState::STATE_RUNNING;
-    EndSyncTrace();
 
     // create and start basic accounts
     osAccountManagerServiceOrg_->CreateBasicAccounts();
@@ -143,18 +159,13 @@ bool AccountMgrService::Init()
         return false;
     }
 
-    if (!OHOS::FileExists(DEVICE_OWNER_DIR)) {
-        ACCOUNT_LOGI("Device owner dir not exist, create!");
-        if (!OHOS::ForceCreateDirectory(DEVICE_OWNER_DIR)) {
-            ACCOUNT_LOGW("Create device owner dir failure!");
-        }
-    }
+    CreateDeviceDir();
 
     bool ret = false;
     if (!registerToService_) {
         ret = Publish(&DelayedRefSingleton<AccountMgrService>::GetInstance());
         if (!ret) {
-            ReportServiceStartFail(ERR_ACCOUNT_MGR_ADD_TO_SA_ERROR);
+            ReportServiceStartFail(ERR_ACCOUNT_MGR_ADD_TO_SA_ERROR, "Publish service failed!");
             ACCOUNT_LOGE("AccountMgrService::Init Publish failed!");
             return false;
         }
@@ -165,15 +176,24 @@ bool AccountMgrService::Init()
     ret = ohosAccountMgr_->OnInitialize();
     if (!ret) {
         ACCOUNT_LOGE("Ohos account manager initialize failed");
-        ReportServiceStartFail(ERR_ACCOUNT_MGR_OHOS_MGR_INIT_ERROR);
+        ReportServiceStartFail(ERR_ACCOUNT_MGR_OHOS_MGR_INIT_ERROR, "OnInitialize failed!");
         return ret;
     }
 
     IAccountContext::SetInstance(this);
     auto appAccountManagerService = new (std::nothrow) AppAccountManagerService();
+    if (appAccountManagerService == nullptr) {
+        ReportServiceStartFail(ERR_ACCOUNT_COMMON_INSUFFICIENT_MEMORY_ERROR,
+            "Insufficient memory to create app account manager service");
+        ACCOUNT_LOGE("memory alloc failed for appAccountManagerService!");
+        return false;
+    }
     osAccountManagerServiceOrg_ = new (std::nothrow) OsAccountManagerService();
-    if (appAccountManagerService == nullptr || osAccountManagerServiceOrg_ == nullptr) {
-        ACCOUNT_LOGE("memory alloc failed!");
+    if (osAccountManagerServiceOrg_ == nullptr) {
+        ACCOUNT_LOGE("memory alloc failed for osAccountManagerServiceOrg_!");
+        delete appAccountManagerService;
+        ReportServiceStartFail(ERR_ACCOUNT_COMMON_INSUFFICIENT_MEMORY_ERROR,
+            "Insufficient memory to create os account manager service");
         return false;
     }
     dumpHelper_ = std::make_unique<AccountDumpHelper>(ohosAccountMgr_, osAccountManagerServiceOrg_);
@@ -197,7 +217,7 @@ std::int32_t AccountMgrService::Dump(std::int32_t fd, const std::vector<std::u16
 
     std::vector<std::string> argsInStr;
     for (const auto &arg : args) {
-        ACCOUNT_LOGI("Dump args: %s", Str16ToStr8(arg).c_str());
+        ACCOUNT_LOGD("Dump args: %s", Str16ToStr8(arg).c_str());
         argsInStr.emplace_back(Str16ToStr8(arg));
     }
 
@@ -215,7 +235,7 @@ void AccountMgrService::SelfClean()
 {
     state_ = ServiceRunningState::STATE_NOT_START;
     registerToService_ = false;
-    ACCOUNT_LOGI("selfclean finished");
+    ACCOUNT_LOGI("self-clean finished");
 }
 
 void AccountMgrService::HandleNotificationEvents(const std::string &eventStr)
@@ -225,7 +245,7 @@ void AccountMgrService::HandleNotificationEvents(const std::string &eventStr)
         return;
     }
 
-    ACCOUNT_LOGI("Unhandled event: %{public}s", eventStr.c_str());
+    ACCOUNT_LOGD("Unhandled event: %{public}s", eventStr.c_str());
 }
 }  // namespace AccountSA
 }  // namespace OHOS

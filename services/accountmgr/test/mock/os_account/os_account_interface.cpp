@@ -19,72 +19,72 @@ namespace OHOS {
 namespace AccountSA {
 ErrCode OsAccountInterface::SendToAMSAccountStart(OsAccountInfo &osAccountInfo)
 {
-    ACCOUNT_LOGI("OsAccountInterface SendToAMSAccountStart start");
+    ACCOUNT_LOGI("mock OsAccountInterface SendToAMSAccountStart start");
     return ERR_OK;
 }
 
 ErrCode OsAccountInterface::SendToAMSAccountStop(OsAccountInfo &osAccountInfo)
 {
-    ACCOUNT_LOGI("OsAccountInterface SendToAMSAccountStop start");
+    ACCOUNT_LOGI("mock OsAccountInterface SendToAMSAccountStop start");
     return ERR_OK;
 }
 
 ErrCode OsAccountInterface::SendToBMSAccountCreate(OsAccountInfo &osAccountInfo)
 {
-    ACCOUNT_LOGI("OsAccountInterface SendToBMSAccountCreate start");
+    ACCOUNT_LOGI("mock OsAccountInterface SendToBMSAccountCreate start");
     return ERR_OK;
 }
 
 ErrCode OsAccountInterface::SendToBMSAccountDelete(OsAccountInfo &osAccountInfo)
 {
-    ACCOUNT_LOGI("OsAccountInterface SendToBMSAccountDelete start");
+    ACCOUNT_LOGI("mock OsAccountInterface SendToBMSAccountDelete start");
     return ERR_OK;
 }
 
 #ifdef HAS_USER_IDM_PART
 ErrCode OsAccountInterface::SendToIDMAccountDelete(OsAccountInfo &osAccountInfo)
 {
-    ACCOUNT_LOGI("OsAccountInterface SendToIDMAccountDelete start");
+    ACCOUNT_LOGI("mock OsAccountInterface SendToIDMAccountDelete start");
     return ERR_OK;
 }
 #endif // HAS_USER_IDM_PART
 
 void OsAccountInterface::SendToCESAccountCreate(OsAccountInfo &osAccountInfo)
 {
-    ACCOUNT_LOGI("OsAccountInterface SendToCESAccountCreate start");
+    ACCOUNT_LOGI("mock OsAccountInterface SendToCESAccountCreate start");
 }
 
 void OsAccountInterface::SendToCESAccountDelete(OsAccountInfo &osAccountInfo)
 {
-    ACCOUNT_LOGI("OsAccountInterface SendToCESAccountDelete start");
+    ACCOUNT_LOGI("mock OsAccountInterface SendToCESAccountDelete start");
 }
 
 void OsAccountInterface::SendToCESAccountSwitched(OsAccountInfo &osAccountInfo)
 {
-    ACCOUNT_LOGI("OsAccountInterface SendToCESAccountSwitched start");
+    ACCOUNT_LOGI("mock OsAccountInterface SendToCESAccountSwitched start");
 }
 
 ErrCode OsAccountInterface::SendToStorageAccountCreate(OsAccountInfo &osAccountInfo)
 {
-    ACCOUNT_LOGI("OsAccountInterface SendToStorageAccountCreate start");
+    ACCOUNT_LOGI("mock OsAccountInterface SendToStorageAccountCreate start");
     return ERR_OK;
 }
 
 ErrCode OsAccountInterface::SendToStorageAccountRemove(OsAccountInfo &osAccountInfo)
 {
-    ACCOUNT_LOGI("OsAccountInterface SendToStorageAccountRemove start");
+    ACCOUNT_LOGI("mock OsAccountInterface SendToStorageAccountRemove start");
     return ERR_OK;
 }
 
 ErrCode OsAccountInterface::SendToStorageAccountStart(OsAccountInfo &osAccountInfo)
 {
-    ACCOUNT_LOGI("OsAccountInterface SendToStorageAccountStart start");
+    ACCOUNT_LOGI("mock OsAccountInterface SendToStorageAccountStart start");
     return ERR_OK;
 }
 
 ErrCode OsAccountInterface::SendToStorageAccountStop(OsAccountInfo &osAccountInfo)
 {
-    ACCOUNT_LOGI("OsAccountInterface SendToStorageAccountStop start");
+    ACCOUNT_LOGI("mock OsAccountInterface SendToStorageAccountStop start");
     return ERR_OK;
 }
 }  // namespace AccountSA

@@ -13,8 +13,10 @@
  * limitations under the License.
  */
 
+#include <cerrno>
 #include <gtest/gtest.h>
 #include <thread>
+#include <unistd.h>
 #include "account_info.h"
 #include "account_log_wrapper.h"
 #include "account_proxy.h"
@@ -29,6 +31,7 @@
 #include "parameter.h"
 #include "system_ability.h"
 #include "system_ability_definition.h"
+
 using namespace testing::ext;
 using namespace OHOS;
 using namespace OHOS::AccountSA;
@@ -43,6 +46,8 @@ const std::int64_t INVALID_SERIAL_NUM = 123;
 const std::int32_t WAIT_A_MOMENT = 3000;
 const std::int32_t MAIN_ACCOUNT_ID = 100;
 const std::uint32_t MAX_WAIT_FOR_READY_CNT = 100;
+const uid_t ACCOUNT_UID = 3058;
+const gid_t ACCOUNT_GID = 3058;
 
 const std::vector<std::string> CONSTANTS_VECTOR {
     "constraint.print",
@@ -299,6 +304,14 @@ HWTEST_F(OsAccountManagerModuleTest, OsAccountManagerModuleTest006, TestSize.Lev
 
     // rewrite file content
     g_accountFileOperator->InputFileByPathAndContent(Constants::ACCOUNT_LIST_FILE_JSON_PATH, fileContext);
+
+    // recover permission
+    if (chmod(Constants::ACCOUNT_LIST_FILE_JSON_PATH.c_str(), S_IRUSR | S_IWUSR) != 0) {
+        ACCOUNT_LOGE("OsAccountManagerModuleTest006, chmod failed! errno %{public}d.", errno);
+    }
+    if (chown(Constants::ACCOUNT_LIST_FILE_JSON_PATH.c_str(), ACCOUNT_UID, ACCOUNT_GID) != 0) {
+        ACCOUNT_LOGE("OsAccountManagerModuleTest006, chown failed! errno %{public}d.", errno);
+    }
 }
 
 /**
@@ -416,8 +429,8 @@ HWTEST_F(OsAccountManagerModuleTest, OsAccountManagerModuleTest014, TestSize.Lev
         ERR_OK);
     OsAccountInfo osAccountInfoTwo;
     EXPECT_EQ(OsAccountManager::QueryOsAccountById(osAccountInfoOne.GetLocalId(), osAccountInfoTwo), ERR_OK);
-    std::vector<std::string> contstans = osAccountInfoTwo.GetConstraints();
-    for (auto it = contstans.begin(); it != contstans.end(); it++) {
+    std::vector<std::string> constraints = osAccountInfoTwo.GetConstraints();
+    for (auto it = constraints.begin(); it != constraints.end(); it++) {
         GTEST_LOG_(INFO) << *it;
     }
     EXPECT_EQ(OsAccountManager::RemoveOsAccount(osAccountInfoOne.GetLocalId()), ERR_OK);
@@ -439,8 +452,8 @@ HWTEST_F(OsAccountManagerModuleTest, OsAccountManagerModuleTest015, TestSize.Lev
         ERR_OK);
     OsAccountInfo osAccountInfoTwo;
     EXPECT_EQ(OsAccountManager::QueryOsAccountById(osAccountInfoOne.GetLocalId(), osAccountInfoTwo), ERR_OK);
-    std::vector<std::string> contstans = osAccountInfoTwo.GetConstraints();
-    for (auto it = contstans.begin(); it != contstans.end(); it++) {
+    std::vector<std::string> constraints = osAccountInfoTwo.GetConstraints();
+    for (auto it = constraints.begin(); it != constraints.end(); it++) {
         GTEST_LOG_(INFO) << *it;
     }
     EXPECT_EQ(OsAccountManager::RemoveOsAccount(osAccountInfoOne.GetLocalId()), ERR_OK);

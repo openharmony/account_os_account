@@ -21,17 +21,17 @@ namespace OHOS {
 namespace AccountSA {
 AppAccountSubscribeInfo::AppAccountSubscribeInfo()
 {
-    ACCOUNT_LOGI("enter");
+    ACCOUNT_LOGD("enter");
 }
 
 AppAccountSubscribeInfo::AppAccountSubscribeInfo(std::vector<std::string> &owners) : owners_(owners)
 {
-    ACCOUNT_LOGI("enter");
+    ACCOUNT_LOGD("enter");
 }
 
 ErrCode AppAccountSubscribeInfo::GetOwners(std::vector<std::string> &owners) const
 {
-    ACCOUNT_LOGI("enter");
+    ACCOUNT_LOGD("enter");
 
     owners = owners_;
 
@@ -40,7 +40,7 @@ ErrCode AppAccountSubscribeInfo::GetOwners(std::vector<std::string> &owners) con
 
 ErrCode AppAccountSubscribeInfo::SetOwners(const std::vector<std::string> &owners)
 {
-    ACCOUNT_LOGI("enter");
+    ACCOUNT_LOGD("enter");
 
     owners_ = owners;
 
@@ -49,7 +49,7 @@ ErrCode AppAccountSubscribeInfo::SetOwners(const std::vector<std::string> &owner
 
 bool AppAccountSubscribeInfo::Marshalling(Parcel &parcel) const
 {
-    ACCOUNT_LOGI("enter");
+    ACCOUNT_LOGD("enter");
 
     if (!parcel.WriteStringVector(owners_)) {
         ACCOUNT_LOGE("failed to write string vector owners_");
@@ -61,12 +61,12 @@ bool AppAccountSubscribeInfo::Marshalling(Parcel &parcel) const
 
 AppAccountSubscribeInfo *AppAccountSubscribeInfo::Unmarshalling(Parcel &parcel)
 {
-    ACCOUNT_LOGI("enter");
+    ACCOUNT_LOGD("enter");
 
     AppAccountSubscribeInfo *subscribeInfo = new (std::nothrow) AppAccountSubscribeInfo();
 
     if (subscribeInfo && !subscribeInfo->ReadFromParcel(parcel)) {
-        ACCOUNT_LOGE("failed to read from pacel");
+        ACCOUNT_LOGE("failed to read from parcel");
         delete subscribeInfo;
         subscribeInfo = nullptr;
     }
@@ -76,7 +76,7 @@ AppAccountSubscribeInfo *AppAccountSubscribeInfo::Unmarshalling(Parcel &parcel)
 
 bool AppAccountSubscribeInfo::ReadFromParcel(Parcel &parcel)
 {
-    ACCOUNT_LOGI("enter");
+    ACCOUNT_LOGD("enter");
 
     if (!parcel.ReadStringVector(&owners_)) {
         ACCOUNT_LOGE("failed to read string vector owners_");

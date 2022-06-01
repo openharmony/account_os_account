@@ -162,7 +162,7 @@ HWTEST_F(InnerAppAccountManagerTest, AppAccount_SubscribeAppAccount_001, TestSiz
     std::vector<std::string> owners;
     owners.emplace_back(STRING_OWNER);
 
-    // make subcribe info
+    // make subscribe info
     AppAccountSubscribeInfo subscribeInfo;
     subscribeInfo.SetOwners(owners);
 
@@ -186,7 +186,7 @@ HWTEST_F(InnerAppAccountManagerTest, AppAccount_SubscribeAppAccount_002, TestSiz
     std::vector<std::string> owners;
     owners.emplace_back(STRING_OWNER);
 
-    // make subcribe info
+    // make subscribe info
     AppAccountSubscribeInfo subscribeInfo;
     subscribeInfo.SetOwners(owners);
 

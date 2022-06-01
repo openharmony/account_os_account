@@ -16,7 +16,6 @@
 #include "account_permission_manager.h"
 
 #include "accesstoken_kit.h"
-#include "account_bundle_manager.h"
 #include "account_log_wrapper.h"
 #include "ipc_skeleton.h"
 
@@ -33,12 +32,12 @@ const std::string AccountPermissionManager::INTERACT_ACROSS_LOCAL_ACCOUNTS =
     "ohos.permission.INTERACT_ACROSS_LOCAL_ACCOUNTS";
 AccountPermissionManager::AccountPermissionManager()
 {
-    ACCOUNT_LOGI("enter");
+    ACCOUNT_LOGD("enter");
 }
 
 AccountPermissionManager::~AccountPermissionManager()
 {
-    ACCOUNT_LOGI("enter");
+    ACCOUNT_LOGD("enter");
 }
 
 ErrCode AccountPermissionManager::VerifyPermission(const std::string &permissionName)

@@ -33,8 +33,7 @@ IInnerOsAccountManager::IInnerOsAccountManager() : subscribeManagerPtr_(OsAccoun
     operatingId_.clear();
     osAccountControl_ = std::make_shared<OsAccountControlFileManager>();
     osAccountControl_->Init();
-    osAccountControl_->GetDeviceOwnerId(deviceOwnerId_);
-    ACCOUNT_LOGI("OsAccountAccountMgr Init end");
+    ACCOUNT_LOGD("OsAccountAccountMgr Init end");
 }
 
 void IInnerOsAccountManager::CreateBaseAdminAccount()
@@ -69,7 +68,7 @@ void IInnerOsAccountManager::CreateBaseStandardAccount()
         std::vector<std::string> constants;
         ErrCode errCode = osAccountControl_->GetConstraintsByType(OsAccountType::ADMIN, constants);
         if (errCode != ERR_OK) {
-            ACCOUNT_LOGE("find first standard type err");
+            ACCOUNT_LOGE("find first standard type err, errCode %{public}d.", errCode);
             return;
         }
         osAccountInfo.SetConstraints(constants);
@@ -88,7 +87,8 @@ void IInnerOsAccountManager::StartAccount()
     OsAccountInfo osAccountInfo;
     ErrCode errCode = osAccountControl_->GetOsAccountInfoById(Constants::START_USER_ID, osAccountInfo);
     if (errCode != ERR_OK) {
-        ACCOUNT_LOGE("OsAccountAccountMgr init start base account failed. cannot find account");
+        ACCOUNT_LOGE("OsAccountAccountMgr init start base account failed. cannot find account, errCode %{public}d.",
+            errCode);
         return;
     }
     ResetActiveStatus();
@@ -113,7 +113,7 @@ void IInnerOsAccountManager::CreateBaseStandardAccountSendToOther(void)
         ErrCode errCode = OsAccountInterface::SendToStorageAccountCreate(osAccountInfo);
         if (errCode != ERR_OK) {
             if (++counterForStandardCreate_ == MAX_TRY_TIMES) {
-                ACCOUNT_LOGE("failed connect storage to create account");
+                ACCOUNT_LOGE("failed connect storage to create account, errCode %{public}d.", errCode);
             } else {
                 GetEventHandler();
                 OHOS::AppExecFwk::InnerEvent::Callback callback =
@@ -131,7 +131,7 @@ void IInnerOsAccountManager::CreateBaseStandardAccountSendToOther(void)
     ErrCode errCodeForBM = OsAccountInterface::SendToBMSAccountCreate(osAccountInfo);
     if (errCodeForBM != ERR_OK) {
         if (++counterForStandardCreate_ == MAX_TRY_TIMES) {
-            ACCOUNT_LOGE("failed connect BM to create account");
+            ACCOUNT_LOGE("failed connect BM to create account, errCodeForBM %{public}d.", errCodeForBM);
         } else {
             GetEventHandler();
             OHOS::AppExecFwk::InnerEvent::Callback callback =
@@ -177,7 +177,7 @@ void IInnerOsAccountManager::StartBaseStandardAccount(void)
         ErrCode errCode = OsAccountInterface::SendToStorageAccountStart(osAccountInfo);
         if (errCode != ERR_OK) {
             if (++counterForStandard_ == MAX_TRY_TIMES) {
-                ACCOUNT_LOGE("failed connect storage to start account");
+                ACCOUNT_LOGE("failed connect storage to start account, errCode %{public}d.", errCode);
             } else {
                 GetEventHandler();
                 OHOS::AppExecFwk::InnerEvent::Callback callback =
@@ -193,7 +193,7 @@ void IInnerOsAccountManager::StartBaseStandardAccount(void)
     ErrCode errCodeForAM = OsAccountInterface::SendToAMSAccountStart(osAccountInfo);
     if (errCodeForAM != ERR_OK) {
         if (++counterForStandard_ == MAX_TRY_TIMES) {
-            ACCOUNT_LOGE("failed connect AM to start account");
+            ACCOUNT_LOGE("failed connect AM to start account, errCodeForAM %{public}d.", errCodeForAM);
         } else {
             GetEventHandler();
             OHOS::AppExecFwk::InnerEvent::Callback callback =
@@ -219,20 +219,20 @@ ErrCode IInnerOsAccountManager::PrepareOsAccountInfo(const std::string &name, co
     int64_t serialNumber;
     ErrCode errCode = osAccountControl_->GetSerialNumber(serialNumber);
     if (errCode != ERR_OK) {
-        ACCOUNT_LOGE("failed to GetSerialNumber");
+        ACCOUNT_LOGE("failed to GetSerialNumber, errCode %{public}d.", errCode);
         return ERR_OSACCOUNT_SERVICE_INNER_GET_SERIAL_NUMBER_ERROR;
     }
     int id = 0;
     errCode = osAccountControl_->GetAllowCreateId(id);
     if (errCode != ERR_OK) {
-        ACCOUNT_LOGE("failed to GetAllowCreateId");
+        ACCOUNT_LOGE("failed to GetAllowCreateId, errCode %{public}d.", errCode);
         return ERR_OSACCOUNT_SERVICE_INNER_GET_OSACCOUNT_ID_ERROR;
     }
     std::vector<std::string> constraints;
     constraints.clear();
     errCode = osAccountControl_->GetConstraintsByType(type, constraints);
     if (errCode != ERR_OK) {
-        ACCOUNT_LOGE("failed to GetConstraintsByType");
+        ACCOUNT_LOGE("failed to GetConstraintsByType, errCode %{public}d.", errCode);
         return ERR_OSACCOUNT_SERVICE_INNER_GET_TYPE_CONSTRAINTS_ERROR;
     }
     osAccountInfo = OsAccountInfo(id, name, type, serialNumber);
@@ -247,7 +247,7 @@ ErrCode IInnerOsAccountManager::PrepareOsAccountInfo(const std::string &name, co
 
     errCode = osAccountControl_->InsertOsAccount(osAccountInfo);
     if (errCode != ERR_OK) {
-        ACCOUNT_LOGE("insert osaccountinfo err");
+        ACCOUNT_LOGE("insert os account info err, errCode %{public}d.", errCode);
         return ERR_OSACCOUNT_SERVICE_INNER_CREATE_ACCOUNT_ERROR;
     }
     errCode = osAccountControl_->UpdateBaseOAConstraints(std::to_string(id), constraints, true);
@@ -262,19 +262,19 @@ ErrCode IInnerOsAccountManager::SendMsgForAccountCreate(OsAccountInfo &osAccount
 {
     ErrCode errCode = OsAccountInterface::SendToStorageAccountCreate(osAccountInfo);
     if (errCode != ERR_OK) {
-        ACCOUNT_LOGE("create os account SendToStorageAccountCreate failed");
+        ACCOUNT_LOGE("create os account SendToStorageAccountCreate failed, errCode %{public}d.", errCode);
         return ERR_OSACCOUNT_SERVICE_INTERFACE_TO_STORAGE_ACCOUNT_CREATE_ERROR;
     }
     errCode = OsAccountInterface::SendToBMSAccountCreate(osAccountInfo);
     if (errCode != ERR_OK) {
-        ACCOUNT_LOGE("create os account SendToBMSAccountCreate failed");
+        ACCOUNT_LOGE("create os account SendToBMSAccountCreate failed, errCode %{public}d.", errCode);
         return ERR_OSACCOUNT_SERVICE_INNER_SEND_BM_ACCOUNT_CREATE_ERROR;
     }
 
     osAccountInfo.SetIsCreateCompleted(true);
     errCode = osAccountControl_->UpdateOsAccount(osAccountInfo);
     if (errCode != ERR_OK) {
-        ACCOUNT_LOGE("create os account when update isCreateComplated");
+        ACCOUNT_LOGE("create os account when update isCreateCompleted");
         ReportAccountOperationFail(osAccountInfo.GetLocalId(), errCode, "create", "UpdateOsAccount failed!");
         return ERR_OSACCOUNT_SERVICE_INNER_UPDATE_ACCOUNT_ERROR;
     }
@@ -343,7 +343,7 @@ ErrCode IInnerOsAccountManager::RemoveOsAccount(const int id)
     ErrCode errCode = osAccountControl_->GetOsAccountInfoById(id, osAccountInfo);
     if (errCode != ERR_OK) {
         RemoveLocalIdToOperating(id);
-        ACCOUNT_LOGE("RemoveOsAccount cannot find os account info");
+        ACCOUNT_LOGE("RemoveOsAccount cannot find os account info, errCode %{public}d.", errCode);
         return ERR_OSACCOUNT_SERVICE_INNER_CANNOT_FIND_OSACCOUNT_ERROR;
     }
 
@@ -448,7 +448,7 @@ ErrCode IInnerOsAccountManager::IsOsAccountActived(const int id, bool &isOsAccou
     OsAccountInfo osAccountInfo;
     ErrCode errCode = osAccountControl_->GetOsAccountInfoById(id, osAccountInfo);
     if (errCode != ERR_OK) {
-        ACCOUNT_LOGE("get osaccount info error");
+        ACCOUNT_LOGE("get osaccount info error, errCode %{public}d.", errCode);
         return ERR_OSACCOUNT_SERVICE_INNER_SELECT_OSACCOUNT_BYID_ERROR;
     }
     if (id == Constants::ADMIN_LOCAL_ID) {
@@ -465,8 +465,8 @@ ErrCode IInnerOsAccountManager::IsOsAccountConstraintEnable(
     OsAccountInfo osAccountInfo;
     ErrCode errCode = osAccountControl_->GetOsAccountInfoById(id, osAccountInfo);
     if (errCode != ERR_OK) {
-        ACCOUNT_LOGE("get osaccount info error");
-        return errCode;
+        ACCOUNT_LOGE("get osaccount info error, errCode %{public}d.", errCode);
+        return ERR_OSACCOUNT_SERVICE_INNER_SELECT_OSACCOUNT_BYID_ERROR;
     }
     std::vector<std::string> constraints;
     constraints = osAccountInfo.GetConstraints();
@@ -497,7 +497,7 @@ ErrCode IInnerOsAccountManager::IsOsAccountVerified(const int id, bool &isVerifi
     OsAccountInfo osAccountInfo;
     ErrCode errCode = osAccountControl_->GetOsAccountInfoById(id, osAccountInfo);
     if (errCode != ERR_OK) {
-        ACCOUNT_LOGE("get osaccount info error");
+        ACCOUNT_LOGE("get osaccount info error, errCode %{public}d.", errCode);
         return ERR_OSACCOUNT_SERVICE_INNER_SELECT_OSACCOUNT_BYID_ERROR;
     }
     isVerified = osAccountInfo.GetIsVerified();
@@ -509,7 +509,7 @@ ErrCode IInnerOsAccountManager::GetCreatedOsAccountsCount(unsigned int &createdO
     std::vector<OsAccountInfo> osAccountInfos;
     ErrCode errCode = osAccountControl_->GetOsAccountList(osAccountInfos);
     if (errCode != ERR_OK) {
-        ACCOUNT_LOGE("get osaccount info list error");
+        ACCOUNT_LOGE("get osaccount info list error, errCode %{public}d.", errCode);
         return errCode;
     }
     createdOsAccountCount = osAccountInfos.size();
@@ -520,7 +520,7 @@ ErrCode IInnerOsAccountManager::QueryMaxOsAccountNumber(int &maxOsAccountNumber)
 {
     ErrCode errCode = osAccountControl_->GetMaxCreatedOsAccountNum(maxOsAccountNumber);
     if (errCode != ERR_OK) {
-        ACCOUNT_LOGE("get max created osaccount num error");
+        ACCOUNT_LOGE("get max created osaccount num error, errCode %{public}d.", errCode);
         return errCode;
     }
     return ERR_OK;
@@ -531,7 +531,7 @@ ErrCode IInnerOsAccountManager::GetOsAccountAllConstraints(const int id, std::ve
     OsAccountInfo osAccountInfo;
     ErrCode errCode = osAccountControl_->GetOsAccountInfoById(id, osAccountInfo);
     if (errCode != ERR_OK) {
-        ACCOUNT_LOGE("get osaccount info error");
+        ACCOUNT_LOGE("get osaccount info error, errCode %{public}d.", errCode);
         return ERR_OSACCOUNT_SERVICE_INNER_SELECT_OSACCOUNT_BYID_ERROR;
     }
     constraints = osAccountInfo.GetConstraints();
@@ -700,7 +700,7 @@ ErrCode IInnerOsAccountManager::QueryAllCreatedOsAccounts(std::vector<OsAccountI
 {
     ErrCode errCode = osAccountControl_->GetOsAccountList(osAccountInfos);
     if (errCode != ERR_OK) {
-        ACCOUNT_LOGE("get osaccount info list error");
+        ACCOUNT_LOGE("get osaccount info list error, errCode %{public}d.", errCode);
         return ERR_OSACCOUNT_SERVICE_INNER_GET_ACCOUNT_LIST_ERROR;
     }
     for (auto osAccountInfosPtr = osAccountInfos.begin(); osAccountInfosPtr != osAccountInfos.end();
@@ -731,7 +731,7 @@ ErrCode IInnerOsAccountManager::DealWithDeviceOwnerId(const bool isDeviceOwner, 
 
 void IInnerOsAccountManager::CleanGarbageAccounts()
 {
-    ACCOUNT_LOGI("enter.");
+    ACCOUNT_LOGD("enter.");
     std::vector<OsAccountInfo> osAccountInfos;
     if (QueryAllCreatedOsAccounts(osAccountInfos) != ERR_OK) {
         ACCOUNT_LOGI("QueryAllCreatedOsAccounts failed.");
@@ -798,7 +798,7 @@ ErrCode IInnerOsAccountManager::QueryOsAccountById(const int id, OsAccountInfo &
 {
     ErrCode errCode = osAccountControl_->GetOsAccountInfoById(id, osAccountInfo);
     if (errCode != ERR_OK) {
-        ACCOUNT_LOGE("get osaccount info error");
+        ACCOUNT_LOGE("get osaccount info error, errCode %{public}d.", errCode);
         return ERR_OSACCOUNT_SERVICE_INNER_SELECT_OSACCOUNT_BYID_ERROR;
     }
 
@@ -812,7 +812,7 @@ ErrCode IInnerOsAccountManager::QueryOsAccountById(const int id, OsAccountInfo &
         std::string photo = osAccountInfo.GetPhoto();
         errCode = osAccountControl_->GetPhotoById(osAccountInfo.GetLocalId(), photo);
         if (errCode != ERR_OK) {
-            ACCOUNT_LOGE("get osaccount photo error");
+            ACCOUNT_LOGE("get osaccount photo error, errCode %{public}d.", errCode);
             return errCode;
         }
         osAccountInfo.SetPhoto(photo);
@@ -825,7 +825,7 @@ ErrCode IInnerOsAccountManager::GetOsAccountType(const int id, OsAccountType &ty
     OsAccountInfo osAccountInfo;
     ErrCode errCode = osAccountControl_->GetOsAccountInfoById(id, osAccountInfo);
     if (errCode != ERR_OK) {
-        ACCOUNT_LOGE("get osaccount info error");
+        ACCOUNT_LOGE("get osaccount info error, errCode %{public}d.", errCode);
         return ERR_OSACCOUNT_SERVICE_INNER_SELECT_OSACCOUNT_BYID_ERROR;
     }
     type = osAccountInfo.GetType();
@@ -837,7 +837,7 @@ ErrCode IInnerOsAccountManager::GetOsAccountProfilePhoto(const int id, std::stri
     OsAccountInfo osAccountInfo;
     ErrCode errCode = QueryOsAccountById(id, osAccountInfo);
     if (errCode != ERR_OK) {
-        ACCOUNT_LOGE("QueryOsAccountById return error");
+        ACCOUNT_LOGE("QueryOsAccountById return error, errCode %{public}d.", errCode);
         return ERR_OSACCOUNT_SERVICE_INNER_SELECT_OSACCOUNT_BYID_ERROR;
     }
     photo = osAccountInfo.GetPhoto();
@@ -848,7 +848,7 @@ ErrCode IInnerOsAccountManager::IsMultiOsAccountEnable(bool &isMultiOsAccountEna
 {
     ErrCode errCode = osAccountControl_->GetIsMultiOsAccountEnable(isMultiOsAccountEnable);
     if (errCode != ERR_OK) {
-        ACCOUNT_LOGE("GetIsMultiOsAccountEnable error");
+        ACCOUNT_LOGE("GetIsMultiOsAccountEnable error, errCode %{public}d.", errCode);
         return errCode;
     }
     return ERR_OK;
@@ -859,7 +859,7 @@ ErrCode IInnerOsAccountManager::SetOsAccountName(const int id, const std::string
     OsAccountInfo osAccountInfo;
     ErrCode errCode = osAccountControl_->GetOsAccountInfoById(id, osAccountInfo);
     if (errCode != ERR_OK) {
-        ACCOUNT_LOGE("get osaccount info error");
+        ACCOUNT_LOGE("get osaccount info error, errCode %{public}d.", errCode);
         return ERR_OSACCOUNT_SERVICE_INNER_SELECT_OSACCOUNT_BYID_ERROR;
     }
 
@@ -872,7 +872,7 @@ ErrCode IInnerOsAccountManager::SetOsAccountName(const int id, const std::string
     osAccountInfo.SetLocalName(name);
     errCode = osAccountControl_->UpdateOsAccount(osAccountInfo);
     if (errCode != ERR_OK) {
-        ACCOUNT_LOGE("update osaccount info error,id: %{public}d", osAccountInfo.GetLocalId());
+        ACCOUNT_LOGE("update osaccount info error %{public}d, id: %{public}d", errCode, osAccountInfo.GetLocalId());
         return ERR_OSACCOUNT_SERVICE_INNER_UPDATE_ACCOUNT_ERROR;
     }
     return ERR_OK;
@@ -884,7 +884,7 @@ ErrCode IInnerOsAccountManager::SetOsAccountConstraints(
     OsAccountInfo osAccountInfo;
     ErrCode errCode = osAccountControl_->GetOsAccountInfoById(id, osAccountInfo);
     if (errCode != ERR_OK) {
-        ACCOUNT_LOGE("get osaccount info error");
+        ACCOUNT_LOGE("get osaccount info error, errCode %{public}d.", errCode);
         return ERR_OSACCOUNT_SERVICE_INNER_SELECT_OSACCOUNT_BYID_ERROR;
     }
 
@@ -901,21 +901,21 @@ ErrCode IInnerOsAccountManager::SetOsAccountConstraints(
         ACCOUNT_LOGE("input constraints not in constraints list or is oversize!");
         return ERR_OSACCOUNT_SERVICE_INNER_SER_CONSTRAINTS_ERROR;
     }
-    std::vector<std::string> oldconstraints = osAccountInfo.GetConstraints();
+    std::vector<std::string> oldConstraints = osAccountInfo.GetConstraints();
     for (auto it = constraints.begin(); it != constraints.end(); it++) {
         if (enable) {
-            if (std::find(oldconstraints.begin(), oldconstraints.end(), *it) == oldconstraints.end()) {
-                oldconstraints.push_back(*it);
+            if (std::find(oldConstraints.begin(), oldConstraints.end(), *it) == oldConstraints.end()) {
+                oldConstraints.push_back(*it);
             }
         } else {
-            oldconstraints.erase(
-                std::remove(oldconstraints.begin(), oldconstraints.end(), *it), oldconstraints.end());
+            oldConstraints.erase(
+                std::remove(oldConstraints.begin(), oldConstraints.end(), *it), oldConstraints.end());
         }
     }
-    osAccountInfo.SetConstraints(oldconstraints);
+    osAccountInfo.SetConstraints(oldConstraints);
     errCode = osAccountControl_->UpdateOsAccount(osAccountInfo);
     if (errCode != ERR_OK) {
-        ACCOUNT_LOGE("update osaccount info error,id: %{public}d", osAccountInfo.GetLocalId());
+        ACCOUNT_LOGE("update osaccount info error %{public}d, id: %{public}d", errCode, osAccountInfo.GetLocalId());
         return ERR_OSACCOUNT_SERVICE_INNER_UPDATE_ACCOUNT_ERROR;
     }
     return ERR_OK;
@@ -926,7 +926,7 @@ ErrCode IInnerOsAccountManager::SetOsAccountProfilePhoto(const int id, const std
     OsAccountInfo osAccountInfo;
     ErrCode errCode = osAccountControl_->GetOsAccountInfoById(id, osAccountInfo);
     if (errCode != ERR_OK) {
-        ACCOUNT_LOGE("get osaccount info error");
+        ACCOUNT_LOGE("get osaccount info error, errCode %{public}d.", errCode);
         return ERR_OSACCOUNT_SERVICE_INNER_SELECT_OSACCOUNT_BYID_ERROR;
     }
 
@@ -938,7 +938,7 @@ ErrCode IInnerOsAccountManager::SetOsAccountProfilePhoto(const int id, const std
 
     errCode = osAccountControl_->SetPhotoById(id, photo);
     if (errCode != ERR_OK) {
-        ACCOUNT_LOGE("set photo by id error");
+        ACCOUNT_LOGE("set photo by id error, errCode %{public}d.", errCode);
         return errCode;
     }
     auto sizeType = photo.find(Constants::USER_PHOTO_BASE_JPG_HEAD);
@@ -949,7 +949,7 @@ ErrCode IInnerOsAccountManager::SetOsAccountProfilePhoto(const int id, const std
     }
     errCode = osAccountControl_->UpdateOsAccount(osAccountInfo);
     if (errCode != ERR_OK) {
-        ACCOUNT_LOGE("update osaccount info error,id: %{public}d", osAccountInfo.GetLocalId());
+        ACCOUNT_LOGE("update osaccount info error %{public}d, id: %{public}d", errCode, osAccountInfo.GetLocalId());
         return ERR_OSACCOUNT_SERVICE_INNER_UPDATE_ACCOUNT_ERROR;
     }
     return ERR_OK;
@@ -990,7 +990,7 @@ ErrCode IInnerOsAccountManager::ActivateOsAccount(const int id)
     ErrCode errCode = osAccountControl_->GetOsAccountInfoById(id, osAccountInfo);
     if (errCode != ERR_OK) {
         RemoveLocalIdToOperating(id);
-        ACCOUNT_LOGE("cannot find os account info by id:%{public}d", id);
+        ACCOUNT_LOGE("cannot find os account info by id:%{public}d, errCode %{public}d.", id, errCode);
         return ERR_OSACCOUNT_SERVICE_INNER_SELECT_OSACCOUNT_BYID_ERROR;
     }
 
@@ -1013,7 +1013,7 @@ ErrCode IInnerOsAccountManager::ActivateOsAccount(const int id)
     errCode = SendMsgForAccountActivate(osAccountInfo);
     if (errCode != ERR_OK) {
         RemoveLocalIdToOperating(id);
-        ACCOUNT_LOGE("update %{public}d account info failed", id);
+        ACCOUNT_LOGE("update %{public}d account info failed, errCode %{public}d.", id, errCode);
         return errCode;
     }
     RemoveLocalIdToOperating(id);
@@ -1026,12 +1026,14 @@ ErrCode IInnerOsAccountManager::SendMsgForAccountActivate(OsAccountInfo &osAccou
 {
     ErrCode errCode = OsAccountInterface::SendToStorageAccountStart(osAccountInfo);
     if (errCode != ERR_OK) {
-        ACCOUNT_LOGE("account %{public}d call storage active failed", osAccountInfo.GetLocalId());
+        ACCOUNT_LOGE("account %{public}d call storage active failed, errCode %{public}d.",
+            osAccountInfo.GetLocalId(), errCode);
         return ERR_OSACCOUNT_SERVICE_INTERFACE_TO_STORAGE_ACCOUNT_START_ERROR;
     }
     errCode = OsAccountInterface::SendToAMSAccountStart(osAccountInfo);
     if (errCode != ERR_OK) {
-        ACCOUNT_LOGE("account %{public}d call am active failed", osAccountInfo.GetLocalId());
+        ACCOUNT_LOGE("account %{public}d call am active failed, errCode %{public}d.",
+            osAccountInfo.GetLocalId(), errCode);
         return ERR_OSACCOUNT_SERVICE_INNER_SEND_AM_ACCOUNT_SWITCH_ERROR;
     }
     // update info
@@ -1041,7 +1043,8 @@ ErrCode IInnerOsAccountManager::SendMsgForAccountActivate(OsAccountInfo &osAccou
     osAccountInfo.SetLastLoginTime(time);
     errCode = osAccountControl_->UpdateOsAccount(osAccountInfo);
     if (errCode != ERR_OK) {
-        ACCOUNT_LOGE("update %{public}d account info failed", osAccountInfo.GetLocalId());
+        ACCOUNT_LOGE("update %{public}d account info failed, errCode %{public}d.",
+            osAccountInfo.GetLocalId(), errCode);
         return ERR_OSACCOUNT_SERVICE_INNER_UPDATE_ACCOUNT_ERROR;
     }
     RefreshActiveList(osAccountInfo.GetLocalId());
@@ -1101,30 +1104,24 @@ ErrCode IInnerOsAccountManager::GetSerialNumberByOsAccountLocalId(const int &id,
 ErrCode IInnerOsAccountManager::SubscribeOsAccount(
     const OsAccountSubscribeInfo &subscribeInfo, const sptr<IRemoteObject> &eventListener)
 {
-    ACCOUNT_LOGI("IInnerOsAccountManager SubscribeOsAccount start");
-
     if (!subscribeManagerPtr_) {
-        ACCOUNT_LOGE("IInnerOsAccountManager SubscribeOsAccount subscribeManagerPtr_ is nullptr");
+        ACCOUNT_LOGE("subscribeManagerPtr_ is nullptr");
         return ERR_OSACCOUNT_SERVICE_SUBSCRIBE_MANAGER_PTR_IS_NULLPTR;
     }
 
     auto subscribeInfoPtr = std::make_shared<OsAccountSubscribeInfo>(subscribeInfo);
     if (subscribeInfoPtr == nullptr) {
-        ACCOUNT_LOGE("IInnerOsAccountManager SubscribeOsAccount subscribeInfoPtr is nullptr");
+        ACCOUNT_LOGE("subscribeInfoPtr is nullptr");
     }
-    ACCOUNT_LOGI("IInnerOsAccountManager SubscribeOsAccount end");
     return subscribeManagerPtr_->SubscribeOsAccount(subscribeInfoPtr, eventListener);
 }
 
 ErrCode IInnerOsAccountManager::UnsubscribeOsAccount(const sptr<IRemoteObject> &eventListener)
 {
-    ACCOUNT_LOGI("IInnerOsAccountManager UnsubscribeOsAccount start");
-
     if (!subscribeManagerPtr_) {
         ACCOUNT_LOGE("controlManagerPtr_ is nullptr");
         return ERR_OSACCOUNT_SERVICE_SUBSCRIBE_MANAGER_PTR_IS_NULLPTR;
     }
-    ACCOUNT_LOGI("IInnerOsAccountManager UnsubscribeOsAccount end");
     return subscribeManagerPtr_->UnsubscribeOsAccount(eventListener);
 }
 
@@ -1138,7 +1135,7 @@ ErrCode IInnerOsAccountManager::IsOsAccountCompleted(const int id, bool &isOsAcc
     OsAccountInfo osAccountInfo;
     ErrCode errCode = osAccountControl_->GetOsAccountInfoById(id, osAccountInfo);
     if (errCode != ERR_OK) {
-        ACCOUNT_LOGE("get osaccount info error");
+        ACCOUNT_LOGE("get osaccount info error, errCode %{public}d.", errCode);
         return ERR_OSACCOUNT_SERVICE_INNER_SELECT_OSACCOUNT_BYID_ERROR;
     }
     isOsAccountCompleted = osAccountInfo.GetIsCreateCompleted();
@@ -1150,7 +1147,7 @@ ErrCode IInnerOsAccountManager::SetOsAccountIsVerified(const int id, const bool 
     OsAccountInfo osAccountInfo;
     ErrCode errCode = osAccountControl_->GetOsAccountInfoById(id, osAccountInfo);
     if (errCode != ERR_OK) {
-        ACCOUNT_LOGE("get osaccount info error");
+        ACCOUNT_LOGE("get osaccount info error, errCode %{public}d.", errCode);
         return ERR_OSACCOUNT_SERVICE_INNER_SELECT_OSACCOUNT_BYID_ERROR;
     }
 
@@ -1163,7 +1160,8 @@ ErrCode IInnerOsAccountManager::SetOsAccountIsVerified(const int id, const bool 
     osAccountInfo.SetIsVerified(isVerified);
     errCode = osAccountControl_->UpdateOsAccount(osAccountInfo);
     if (errCode != ERR_OK) {
-        ACCOUNT_LOGE("update osaccount info error,id: %{public}d", osAccountInfo.GetLocalId());
+        ACCOUNT_LOGE("update osaccount info error %{public}d, id: %{public}d",
+            errCode, osAccountInfo.GetLocalId());
         return ERR_OSACCOUNT_SERVICE_INNER_UPDATE_ACCOUNT_ERROR;
     }
     return ERR_OK;

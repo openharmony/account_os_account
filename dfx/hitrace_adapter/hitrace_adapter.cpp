@@ -26,7 +26,17 @@ void InitHiTrace()
 #endif // HAS_HITRACE_PART
 }
 
-void StartSyncTrace(const std::string& value)
+void ValueTrace(const std::string& name, int64_t count)
+{
+#ifdef HAS_HITRACE_PART
+    CountTrace(HITRACE_TAG_ACCOUNT_MANAGER, name, count);
+#else // HAS_HITRACE_PART
+    (void)name;
+    (void)count;
+#endif // HAS_HITRACE_PART
+}
+
+HiTraceAdapterSyncTrace::HiTraceAdapterSyncTrace(const std::string &value)
 {
 #ifdef HAS_HITRACE_PART
     StartTrace(HITRACE_TAG_ACCOUNT_MANAGER, value);
@@ -35,20 +45,10 @@ void StartSyncTrace(const std::string& value)
 #endif // HAS_HITRACE_PART
 }
 
-void EndSyncTrace()
+HiTraceAdapterSyncTrace::~HiTraceAdapterSyncTrace()
 {
 #ifdef HAS_HITRACE_PART
     FinishTrace(HITRACE_TAG_ACCOUNT_MANAGER);
-#endif // HAS_HITRACE_PART
-}
-
-void ValueTrace(const std::string& name, int64_t count)
-{
-#ifdef HAS_HITRACE_PART
-    CountTrace(HITRACE_TAG_ACCOUNT_MANAGER, name, count);
-#else // HAS_HITRACE_PART
-    (void)name;
-    (void)count;
 #endif // HAS_HITRACE_PART
 }
 } // AccountSA
