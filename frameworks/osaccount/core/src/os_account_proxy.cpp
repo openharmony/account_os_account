@@ -1317,6 +1317,136 @@ ErrCode OsAccountProxy::QueryActiveOsAccountIds(std::vector<int32_t>& ids)
     return ERR_OK;
 }
 
+ErrCode OsAccountProxy::QueryOsAccountConstraintSourceTypes(const int32_t id,
+    const std::string &constraint, std::vector<ConstraintSourceTypeInfo> &constraintSourceTypeInfos)
+{
+    constraintSourceTypeInfos.clear();
+    MessageParcel data;
+    MessageParcel reply;
+
+    if (!data.WriteInterfaceToken(GetDescriptor())) {
+        ACCOUNT_LOGE("failed to write descriptor!");
+        return ERR_ACCOUNT_COMMON_WRITE_DESCRIPTOR_ERROR;
+    }
+
+    if (!data.WriteInt32(id)) {
+        ACCOUNT_LOGE("failed to write int for id");
+        return ERR_OSACCOUNT_KIT_WRITE_INT_LOCAL_ID_ERROR;
+    }
+
+    if (!data.WriteString(constraint)) {
+        ACCOUNT_LOGE("failed to write string for constraint");
+        return ERR_OSACCOUNT_KIT_WRITE_STRING_STOREID_ERROR;
+    }
+
+    ErrCode result = SendRequest(IOsAccount::Message::QUERY_OS_ACCOUNT_CONSTRAINT_SOURCE_TYPES, data, reply);
+    if (result != ERR_OK) {
+        ACCOUNT_LOGE("SendRequest err, result %{public}d.", result);
+        return result;
+    }
+    result = reply.ReadInt32();
+    if (result != ERR_OK) {
+        return ERR_OSACCOUNT_KIT_GET_OS_ACCOUNT_LIST_FROM_DATABASE_ERROR;
+    }
+    uint32_t size = reply.ReadUint32();
+    for (uint32_t i = 0; i < size; ++i) {
+        ConstraintSourceTypeInfo constraintSrcInfo;
+        constraintSrcInfo.localId = reply.ReadInt32();
+        constraintSrcInfo.typeInfo = static_cast<ConstraintSourceType>(reply.ReadInt32());
+        constraintSourceTypeInfos.push_back(constraintSrcInfo);
+    }
+    return ERR_OK;
+}
+
+ErrCode OsAccountProxy::SetGlobalOsAccountConstraints(const std::vector<std::string> &constraints,
+    const bool enable, const int32_t enforcerId, const bool isDeviceOwner)
+{
+    MessageParcel data;
+    MessageParcel reply;
+
+    if (!data.WriteInterfaceToken(GetDescriptor())) {
+        ACCOUNT_LOGE("failed to write descriptor!");
+        return ERR_ACCOUNT_COMMON_WRITE_DESCRIPTOR_ERROR;
+    }
+    if (!data.WriteStringVector(constraints)) {
+        ACCOUNT_LOGE("failed to write stringVector for constraints");
+        return ERR_OSACCOUNT_KIT_WRITE_STRING_VECTOR_CONSTRAINTS_ERROR;
+    }
+
+    if (!data.WriteBool(enable)) {
+        ACCOUNT_LOGE("failed to write bool for enable");
+        return ERR_OSACCOUNT_KIT_WRITE_BOOL_ENABLE_ERROR;
+    }
+
+    if (!data.WriteInt32(enforcerId)) {
+        ACCOUNT_LOGE("failed to write int for enforcerId");
+        return ERR_OSACCOUNT_KIT_WRITE_INT_LOCAL_ID_ERROR;
+    }
+
+    if (!data.WriteBool(isDeviceOwner)) {
+        ACCOUNT_LOGE("failed to write bool for isDeviceOwner");
+        return ERR_OSACCOUNT_KIT_WRITE_BOOL_ENABLE_ERROR;
+    }
+    ErrCode result = SendRequest(IOsAccount::Message::SET_GLOBAL_OS_ACCOUNT_CONSTRAINTS, data, reply);
+    if (result != ERR_OK) {
+        ACCOUNT_LOGE("SendRequest err, result %{public}d.", result);
+        return result;
+    }
+    result = reply.ReadInt32();
+    if (result != ERR_OK) {
+        ACCOUNT_LOGE("failed to read reply for set global os account constraints.");
+        return result;
+    }
+    return ERR_OK;
+}
+
+ErrCode OsAccountProxy::SetSpecificOsAccountConstraints(const std::vector<std::string> &constraints,
+    const bool enable, const int32_t targetId, const int32_t enforcerId, const bool isDeviceOwner)
+{
+    MessageParcel data;
+    MessageParcel reply;
+
+    if (!data.WriteInterfaceToken(GetDescriptor())) {
+        ACCOUNT_LOGE("failed to write descriptor!");
+        return ERR_ACCOUNT_COMMON_WRITE_DESCRIPTOR_ERROR;
+    }
+    if (!data.WriteStringVector(constraints)) {
+        ACCOUNT_LOGE("failed to write stringVector for constraints");
+        return ERR_OSACCOUNT_KIT_WRITE_STRING_VECTOR_CONSTRAINTS_ERROR;
+    }
+
+    if (!data.WriteBool(enable)) {
+        ACCOUNT_LOGE("failed to write bool for enable");
+        return ERR_OSACCOUNT_KIT_WRITE_BOOL_ENABLE_ERROR;
+    }
+
+    if (!data.WriteInt32(targetId)) {
+        ACCOUNT_LOGE("failed to write int for targetId");
+        return ERR_OSACCOUNT_KIT_WRITE_INT_LOCAL_ID_ERROR;
+    }
+
+    if (!data.WriteInt32(enforcerId)) {
+        ACCOUNT_LOGE("failed to write int for enforcerId");
+        return ERR_OSACCOUNT_KIT_WRITE_INT_LOCAL_ID_ERROR;
+    }
+    
+    if (!data.WriteBool(isDeviceOwner)) {
+        ACCOUNT_LOGE("failed to write bool for isDeviceOwner");
+        return ERR_OSACCOUNT_KIT_WRITE_BOOL_ENABLE_ERROR;
+    }
+    ErrCode result = SendRequest(IOsAccount::Message::SET_SPECIFIC_OS_ACCOUNT_CONSTRAINTS, data, reply);
+    if (result != ERR_OK) {
+        ACCOUNT_LOGE("SendRequest err, result %{public}d.", result);
+        return result;
+    }
+    result = reply.ReadInt32();
+    if (result != ERR_OK) {
+        ACCOUNT_LOGE("failed to read reply for set specific os account constraints.");
+        return result;
+    }
+    return ERR_OK;
+}
+
 template<typename T>
 bool OsAccountProxy::WriteParcelableVector(const std::vector<T> &parcelableVector, MessageParcel &data)
 {

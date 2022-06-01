@@ -1043,6 +1043,103 @@ void ParseQueryAllCreateOA(napi_env env, napi_callback_info cbInfo, QueryCreateO
     }
 }
 
+napi_value ParseQueryOAConstraintSrcTypes(napi_env env, napi_callback_info cbInfo,
+    QueryOAConstraintSrcTypeContext *queryConstraintSource)
+{
+    ACCOUNT_LOGI("enter");
+    size_t argc = ARGS_SIZE_THREE;
+    napi_value argv[ARGS_SIZE_THREE] = {0};
+    napi_get_cb_info(env, cbInfo, &argc, argv, nullptr, nullptr);
+
+    for (size_t i = 0; i < argc; i++) {
+        napi_valuetype valueType = napi_undefined;
+        napi_typeof(env, argv[i], &valueType);
+        if (i == 0 && valueType == napi_number) {
+            queryConstraintSource->id = GetIntProperty(env, argv[i]);
+        } else if (i == 1 && valueType == napi_string) {
+            queryConstraintSource->constraint = GetStringProperty(env, argv[i]);
+        } else if (valueType == napi_function) {
+            napi_create_reference(env, argv[i], 1, &queryConstraintSource->callbackRef);
+            break;
+        } else {
+            ACCOUNT_LOGE("Type matching failed");
+            return nullptr;
+        }
+    }
+    return WrapVoidToJS(env);
+}
+
+void QueryOAContSrcTypeExecuteCB(napi_env env, void *data)
+{
+    ACCOUNT_LOGI("napi_create_async_work running");
+    QueryOAConstraintSrcTypeContext *queryConstraintSource = reinterpret_cast<QueryOAConstraintSrcTypeContext *>(data);
+    queryConstraintSource->errCode = OsAccountManager::QueryOsAccountConstraintSourceTypes(queryConstraintSource->id,
+        queryConstraintSource->constraint, queryConstraintSource->constraintSourceTypeInfos);
+    ACCOUNT_LOGI("errocde is %{public}d", queryConstraintSource->errCode);
+    queryConstraintSource->status = (queryConstraintSource->errCode == 0) ? napi_ok : napi_generic_failure;
+}
+
+void QueryOAContSrcTypeCallbackCompletedCB(napi_env env, napi_status status, void *data)
+{
+    ACCOUNT_LOGI("napi_create_async_work complete");
+    QueryOAConstraintSrcTypeContext *queryConstraintSource = reinterpret_cast<QueryOAConstraintSrcTypeContext *>(data);
+    napi_value queryResult[RESULT_COUNT] = {0};
+    queryResult[PARAMZERO] = GetErrorCodeValue(env, queryConstraintSource->errCode);
+    napi_create_array(env, &queryResult[PARAMONE]);
+    QueryOAContSrcTypeForResult(env, queryConstraintSource->constraintSourceTypeInfos, queryResult[PARAMONE]);
+    CBOrPromiseToQueryOAContSrcType(env, queryConstraintSource, queryResult[PARAMZERO], queryResult[PARAMONE]);
+    napi_delete_async_work(env, queryConstraintSource->work);
+    delete queryConstraintSource;
+    queryConstraintSource = nullptr;
+}
+
+void QueryOAContSrcTypeForResult(napi_env env, const std::vector<ConstraintSourceTypeInfo> &infos, napi_value result)
+{
+    ACCOUNT_LOGD("enter");
+
+    uint32_t index = 0;
+
+    for (auto item : infos) {
+        napi_value objTypeInfo = nullptr;
+        napi_create_object(env, &objTypeInfo);
+        
+        napi_value srcLocalId = nullptr;
+        napi_create_int32(env, item.localId, &srcLocalId);
+        napi_set_named_property(env, objTypeInfo, "localId", srcLocalId);
+
+        napi_value valToJs = nullptr;
+        napi_create_int32(env, item.typeInfo, &valToJs);
+
+        napi_set_named_property(env, objTypeInfo, "ConstraintSourceType", valToJs);
+        napi_set_element(env, result, index, objTypeInfo);
+        index++;
+    }
+}
+
+void CBOrPromiseToQueryOAContSrcType(napi_env env,
+    const QueryOAConstraintSrcTypeContext *queryConstraintSource, napi_value err, napi_value data)
+{
+    ACCOUNT_LOGI("enter");
+    napi_value args[RESULT_COUNT] = {err, data};
+    if (queryConstraintSource->deferred) {
+        ACCOUNT_LOGI("Promise");
+        if (queryConstraintSource->status == napi_ok) {
+            napi_resolve_deferred(env, queryConstraintSource->deferred, args[1]);
+        } else {
+            napi_reject_deferred(env, queryConstraintSource->deferred, args[0]);
+        }
+    } else {
+        ACCOUNT_LOGI("Callback");
+        napi_value callback = nullptr;
+        napi_get_reference_value(env, queryConstraintSource->callbackRef, &callback);
+        napi_value returnVal = nullptr;
+        napi_call_function(env, nullptr, callback, RESULT_COUNT, &args[0], &returnVal);
+        if (queryConstraintSource->callbackRef != nullptr) {
+            napi_delete_reference(env, queryConstraintSource->callbackRef);
+        }
+    }
+}
+
 void ParseQueryActiveIds(napi_env env, napi_callback_info cbInfo, QueryActiveIdsAsyncContext *queryActiveIds)
 {
     ACCOUNT_LOGD("enter");

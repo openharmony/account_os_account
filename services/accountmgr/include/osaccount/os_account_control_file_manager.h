@@ -56,6 +56,23 @@ public:
     ErrCode GetOsAccountListFromDatabase(const std::string& storeID,
         std::vector<OsAccountInfo>& osAccountList) override;
 
+    ErrCode RemoveOAConstraintsInfo(const int32_t id) override;
+    ErrCode IsFromBaseOAConstraintsList(const int32_t id, const std::string constraint, bool &isExits) override;
+    ErrCode IsFromGlobalOAConstraintsList(const int32_t id, const int32_t deviceOwnerId,
+        const std::string constraint, std::vector<ConstraintSourceTypeInfo> &globalSourceList) override;
+    ErrCode IsFromSpecificOAConstraintsList(const int32_t id, const int32_t deviceOwnerId,
+        const std::string constraint, std::vector<ConstraintSourceTypeInfo> &specificSourceList) override;
+    ErrCode GetGlobalOAConstraintsList(std::vector<std::string> &constraintsList) override;
+    ErrCode GetSpecificOAConstraintsList(const int32_t id, std::vector<std::string> &constraintsList) override;
+    ErrCode UpdateBaseOAConstraints(const std::string& idStr,
+        const std::vector<std::string>& ConstraintStr, bool isAdd) override;
+    ErrCode UpdateGlobalOAConstraints(const std::string& idStr,
+        const std::vector<std::string>& ConstraintStr, bool isAdd) override;
+    ErrCode UpdateSpecificOAConstraints(const std::string& idStr,
+        const std::string& targetIdStr, const std::vector<std::string>& ConstraintStr, bool isAdd) override;
+    ErrCode GetDeviceOwnerId(int32_t &deviceOwnerId) override;
+    ErrCode UpdateDeviceOwnerId(const int32_t deviceOwnerId) override;
+
 private:
     ErrCode UpdateAccountList(const std::string& idStr, bool isAdd);
     ErrCode GetAccountListFromFile(Json& accountListJson);
@@ -63,6 +80,24 @@ private:
     ErrCode SaveAccountListToFileAndDataBase(const Json& accountListJson);
     void BuildAndSaveAccountListJsonFile(const std::vector<std::string>& accounts);
     void RecoverAccountListJsonFile();
+    void BuildAndSaveBaseOAConstraintsJsonFile();
+    void BuildAndSaveGlobalOAConstraintsJsonFile();
+    void BuildAndSaveSpecificOAConstraintsJsonFile();
+    void GlobalConstraintsDataOperate(const std::string& idStr,
+        const std::vector<std::string>& ConstraintStr, bool isAdd, Json &globalOAConstraintsJson);
+    void SpecificConstraintsDataOperate(const std::string& idStr, const std::string& targetIdStr,
+        const std::vector<std::string>& ConstraintStr, bool isAdd, Json& userPrivateConstraintsDataJson);
+
+    ErrCode GetBaseOAConstraintsFromFile(Json &baseOAConstraintsJson);
+    ErrCode GetGlobalOAConstraintsFromFile(Json &globalOAConstraintsJson);
+    ErrCode GetSpecificOAConstraintsFromFile(Json &specificOAConstraintsJson);
+    ErrCode SaveBaseOAConstraintsToFile(const Json &baseOAConstraints);
+    ErrCode SaveGlobalOAConstraintsToFile(const Json &globalOAConstraints);
+    ErrCode SaveSpecificOAConstraintsToFile(const Json &specificOAConstraints);
+
+    ErrCode RemoveOABaseConstraintsInfo(const int32_t id);
+    ErrCode RemoveOAGlobalConstraintsInfo(const int32_t id);
+    ErrCode RemoveOASpecificConstraintsInfo(const int32_t id);
 
 private:
     std::shared_ptr<AccountFileOperator> accountFileOperator_;
@@ -70,6 +105,9 @@ private:
     std::shared_ptr<OsAccountFileOperator> osAccountFileOperator_;
     std::shared_ptr<OsAccountPhotoOperator> osAccountPhotoOperator_;
     std::mutex accountListFileLock_;
+    std::mutex baseOAConstraintsFileLock_;
+    std::mutex globalOAConstraintsFileLock_;
+    std::mutex specificOAConstraintsFileLock_;
 };
 }  // namespace AccountSA
 }  // namespace OHOS
