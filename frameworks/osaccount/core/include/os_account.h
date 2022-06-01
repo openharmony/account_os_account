@@ -71,6 +71,12 @@ public:
     ErrCode GetOsAccountListFromDatabase(const std::string& storeID,
         std::vector<OsAccountInfo> &osAccountList);
     ErrCode QueryActiveOsAccountIds(std::vector<int32_t>& ids);
+    ErrCode QueryOsAccountConstraintSourceTypes(const int32_t id, const std::string &constraint,
+        std::vector<ConstraintSourceTypeInfo> &constraintSourceTypeInfos);
+    ErrCode SetGlobalOsAccountConstraints(const std::vector<std::string> &constraints,
+        const bool enable, const int32_t enforcerId, const bool isDeviceOwner);
+    ErrCode SetSpecificOsAccountConstraints(const std::vector<std::string> &constraints,
+        const bool enable, const int32_t targetId, const int32_t enforcerId, const bool isDeviceOwner);
 
 private:
     ErrCode GetOsAccountProxy();

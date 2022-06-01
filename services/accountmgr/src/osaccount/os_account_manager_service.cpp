@@ -353,7 +353,7 @@ ErrCode OsAccountManagerService::SetOsAccountConstraints(
         return ERR_OSACCOUNT_SERVICE_MANAGER_ID_ERROR;
     }
 
-    return innerManager_->SetOsAccountConstraints(id, constraints, enable);
+    return innerManager_->SetBaseOsAccountConstraints(id, constraints, enable);
 }
 
 ErrCode OsAccountManagerService::SetOsAccountProfilePhoto(const int id, const std::string &photo)
@@ -621,6 +621,60 @@ ErrCode OsAccountManagerService::DumpStateByAccounts(
 ErrCode OsAccountManagerService::QueryActiveOsAccountIds(std::vector<int32_t>& ids)
 {
     return innerManager_->QueryActiveOsAccountIds(ids);
+}
+
+ErrCode OsAccountManagerService::QueryOsAccountConstraintSourceTypes(const int32_t id,
+    const std::string &constraint, std::vector<ConstraintSourceTypeInfo> &constraintSourceTypeInfos)
+{
+    // permission check
+    ACCOUNT_LOGE("QueryOsAccountConstraintSourceTypes Enter");
+    if (!PermissionCheck(AccountPermissionManager::MANAGE_LOCAL_ACCOUNTS, "")) {
+        ACCOUNT_LOGE("account manager service, permission denied!");
+        return ERR_OSACCOUNT_SERVICE_PERMISSION_DENIED;
+    }
+
+    // parameters check
+    if (id < Constants::START_USER_ID) {
+        ACCOUNT_LOGE("invalid input id %{public}d.", id);
+        return ERR_OSACCOUNT_SERVICE_MANAGER_ID_ERROR;
+    }
+    return innerManager_->QueryOsAccountConstraintSourceTypes(id, constraint, constraintSourceTypeInfos);
+}
+
+ErrCode OsAccountManagerService::SetGlobalOsAccountConstraints(const std::vector<std::string> &constraints,
+    const bool enable, const int32_t enforcerId, const bool isDeviceOwner)
+{
+    // permission check
+    if (!PermissionCheck(AccountPermissionManager::MANAGE_LOCAL_ACCOUNTS, "")) {
+        ACCOUNT_LOGE("account manager service, permission denied!");
+        return ERR_OSACCOUNT_SERVICE_PERMISSION_DENIED;
+    }
+
+    // parameters check
+    if (enforcerId < Constants::START_USER_ID) {
+        ACCOUNT_LOGE("invalid input account id %{public}d.", enforcerId);
+        return ERR_OSACCOUNT_SERVICE_MANAGER_ID_ERROR;
+    }
+
+    return innerManager_->SetGlobalOsAccountConstraints(constraints, enable, enforcerId, isDeviceOwner);
+}
+
+ErrCode OsAccountManagerService::SetSpecificOsAccountConstraints(const std::vector<std::string> &constraints,
+    const bool enable, const int32_t targetId, const int32_t enforcerId, const bool isDeviceOwner)
+{
+    // permission check
+    if (!PermissionCheck(AccountPermissionManager::MANAGE_LOCAL_ACCOUNTS, "")) {
+        ACCOUNT_LOGE("account manager service, permission denied!");
+        return ERR_OSACCOUNT_SERVICE_PERMISSION_DENIED;
+    }
+
+    // parameters check
+    if (targetId < Constants::START_USER_ID || enforcerId < Constants::START_USER_ID) {
+        ACCOUNT_LOGE("invalid input account id %{public}d or %{public}d.", targetId, enforcerId);
+        return ERR_OSACCOUNT_SERVICE_MANAGER_ID_ERROR;
+    }
+
+    return innerManager_->SetSpecificOsAccountConstraints(constraints, enable, targetId, enforcerId, isDeviceOwner);
 }
 
 bool OsAccountManagerService::PermissionCheck(const std::string& permissionName, const std::string& constraintName)

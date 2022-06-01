@@ -24,6 +24,10 @@ OsAccountFileOperator::OsAccountFileOperator()
 {
     accountFileOperator_ = std::make_shared<AccountFileOperator>();
     isAlreadyInit_ = false;
+    constraintsConfig_.clear();
+    baseOsAccountConstraintsConfig_.clear();
+    globalOsAccountConstraintsConfig_.clear();
+    specificOsAccountConstraintsConfig_.clear();
     constraintList_.clear();
 }
 OsAccountFileOperator::~OsAccountFileOperator()
@@ -73,6 +77,74 @@ ErrCode OsAccountFileOperator::GetConstraintsByType(const int type, std::vector<
     OHOS::AccountSA::GetDataByType<std::vector<std::string>>(
         typeJson, typeJson.end(), std::to_string(type), constraints, OHOS::AccountSA::JsonType::ARRAY);
     ACCOUNT_LOGD("end");
+    return ERR_OK;
+}
+
+ErrCode OsAccountFileOperator::GetBaseOAConstraintsList(const int id, std::vector<std::string> &constraints)
+{
+    std::string baseUserConstraintsConfigStr;
+    if (accountFileOperator_->IsExistFile(Constants::BASE_OSACCOUNT_CONSTRAINTS_JSON_PATH)) {
+        accountFileOperator_->GetFileContentByPath(
+            Constants::BASE_OSACCOUNT_CONSTRAINTS_JSON_PATH, baseUserConstraintsConfigStr);
+        baseOsAccountConstraintsConfig_ = Json::parse(baseUserConstraintsConfigStr, nullptr, false);
+    }
+    if (baseOsAccountConstraintsConfig_.size() == 0) {
+        ACCOUNT_LOGE("baseOsAccountConstraints data is empty");
+        return ERR_OSACCOUNT_SERVICE_GET_DATA_FROM_BASE_CONSTRAINTS_FILE_EMPTY;
+    }
+    OHOS::AccountSA::GetDataByType<std::vector<std::string>>(baseOsAccountConstraintsConfig_,
+        baseOsAccountConstraintsConfig_.end(),
+        std::to_string(id),
+        constraints,
+        OHOS::AccountSA::JsonType::ARRAY);
+    return ERR_OK;
+}
+
+ErrCode OsAccountFileOperator::GetGlobalOAConstraintsList(std::vector<std::string> &constraints)
+{
+    std::string globalOsAccountConstraintsConfigStr;
+    if (accountFileOperator_->IsExistFile(Constants::GLOBAL_OSACCOUNT_CONSTRAINTS_JSON_PATH)) {
+        accountFileOperator_->GetFileContentByPath(
+            Constants::GLOBAL_OSACCOUNT_CONSTRAINTS_JSON_PATH, globalOsAccountConstraintsConfigStr);
+        globalOsAccountConstraintsConfig_ = Json::parse(globalOsAccountConstraintsConfigStr, nullptr, false);
+    }
+
+    if (globalOsAccountConstraintsConfig_.size() == 0) {
+        ACCOUNT_LOGE("globalOsAccountConstraints data is empty");
+        return ERR_OSACCOUNT_SERVICE_GET_DATA_FROM_GLOBAL_CONSTRAINTS_FILE_EMPTY;
+    }
+    OHOS::AccountSA::GetDataByType<std::vector<std::string>>(globalOsAccountConstraintsConfig_,
+        globalOsAccountConstraintsConfig_.end(),
+        Constants::ALL_GLOBAL_CONSTRAINTS,
+        constraints,
+        OHOS::AccountSA::JsonType::ARRAY);
+    return ERR_OK;
+}
+
+ErrCode OsAccountFileOperator::GetSpecificOAConstraintsList(const int id, std::vector<std::string> &constraints)
+{
+    std::string specificOsAccountConstraintsConfigStr;
+    if (accountFileOperator_->IsExistFile(Constants::SPECIFIC_OSACCOUNT_CONSTRAINTS_JSON_PATH)) {
+        accountFileOperator_->GetFileContentByPath(
+            Constants::SPECIFIC_OSACCOUNT_CONSTRAINTS_JSON_PATH, specificOsAccountConstraintsConfigStr);
+        specificOsAccountConstraintsConfig_ = Json::parse(specificOsAccountConstraintsConfigStr, nullptr, false);
+    }
+
+    if (specificOsAccountConstraintsConfig_.size() == 0) {
+        ACCOUNT_LOGE("globalOsAccountConstraints data is empty");
+        return ERR_OSACCOUNT_SERVICE_GET_DATA_FROM_SPECIFIC_CONSTRAINTS_FILE_EMPTY;
+    }
+    Json SpecificOAConstraintsData;
+    OHOS::AccountSA::GetDataByType<Json>(specificOsAccountConstraintsConfig_,
+        specificOsAccountConstraintsConfig_.end(),
+        std::to_string(id),
+        SpecificOAConstraintsData,
+        OHOS::AccountSA::JsonType::OBJECT);
+    OHOS::AccountSA::GetDataByType<std::vector<std::string>>(SpecificOAConstraintsData,
+        SpecificOAConstraintsData.end(),
+        Constants::ALL_SPECIFIC_CONSTRAINTS,
+        constraints,
+        OHOS::AccountSA::JsonType::ARRAY);
     return ERR_OK;
 }
 

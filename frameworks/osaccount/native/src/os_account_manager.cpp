@@ -292,5 +292,32 @@ ErrCode OsAccountManager::QueryActiveOsAccountIds(std::vector<int32_t>& ids)
     ACCOUNT_LOGD("start");
     return DelayedSingleton<OsAccount>::GetInstance()->QueryActiveOsAccountIds(ids);
 }
+
+ErrCode OsAccountManager::QueryOsAccountConstraintSourceTypes(const int32_t id, const std::string constraint,
+    std::vector<ConstraintSourceTypeInfo> &constraintSourceTypeInfos)
+{
+    ACCOUNT_LOGD ("start");
+
+    return DelayedSingleton<OsAccount>::GetInstance()->
+        QueryOsAccountConstraintSourceTypes(id, constraint, constraintSourceTypeInfos);
+}
+
+ErrCode OsAccountManager::SetGlobalOsAccountConstraints(const std::vector<std::string> &constraints,
+    const bool enable, const int32_t enforcerId, const bool isDeviceOwner)
+{
+    ACCOUNT_LOGD("start");
+
+    return DelayedSingleton<OsAccount>::GetInstance()->
+        SetGlobalOsAccountConstraints(constraints, enable, enforcerId, isDeviceOwner);
+}
+
+ErrCode OsAccountManager::SetSpecificOsAccountConstraints(const std::vector<std::string> &constraints,
+    const bool enable, const int32_t targetId, const int32_t enforcerId, const bool isDeviceOwner)
+{
+    ACCOUNT_LOGD("start");
+
+    return DelayedSingleton<OsAccount>::GetInstance()->
+        SetSpecificOsAccountConstraints(constraints, enable, targetId, enforcerId, isDeviceOwner);
+}
 }  // namespace AccountSA
 }  // namespace OHOS

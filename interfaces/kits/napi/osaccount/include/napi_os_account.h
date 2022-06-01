@@ -202,6 +202,20 @@ struct QueryCreateOAAsyncContext {
     napi_status status;
 };
 
+struct QueryOAConstraintSrcTypeContext {
+    napi_env env;
+    napi_async_work work;
+
+    int32_t id = 0;
+    int errCode = 0;
+    std::string constraint;
+    std::vector<ConstraintSourceTypeInfo> constraintSourceTypeInfos;
+
+    napi_deferred deferred;
+    napi_ref callbackRef;
+    napi_status status;
+};
+
 struct QueryActiveIdsAsyncContext {
     napi_env env;
     napi_async_work work;
@@ -477,6 +491,8 @@ napi_value GetOsAccountLocalIdFromDomain(napi_env env, napi_callback_info cbInfo
 napi_value SetOsAccountProfilePhoto(napi_env env, napi_callback_info cbInfo);
 
 napi_value QueryMaxOsAccountNumber(napi_env env, napi_callback_info cbInfo);
+
+napi_value QueryOsAccountConstraintSourceTypes(napi_env env, napi_callback_info cbInfo);
 
 napi_value IsOsAccountActived(napi_env env, napi_callback_info cbInfo);
 
