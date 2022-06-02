@@ -263,10 +263,7 @@ ErrCode OsAccountControlFileManager::UpdateBaseOAConstraints(const std::string& 
         if (!isAdd) {
             return ERR_OK;
         }
-        Json constraintsJson = Json {
-            {idStr, ConstraintStr},
-        };
-        baseOAConstraintsJson.push_back(constraintsJson);
+        baseOAConstraintsJson.emplace(idStr, ConstraintStr);
     } else {
         std::vector<std::string> baseOAConstraints;
         auto jsonEnd = baseOAConstraintsJson.end();
