@@ -309,12 +309,6 @@ int AbilityManagerProxy::UninstallApp(const std::string &bundleName, int32_t uid
     return ERR_ACCOUNT_COMMON_INTERFACE_NOT_SUPPORT_ERROR;
 }
 
-int AbilityManagerProxy::UpdateConfiguration(const AppExecFwk::Configuration &config)
-{
-    ACCOUNT_LOGE("interface not support!");
-    return ERR_ACCOUNT_COMMON_INTERFACE_NOT_SUPPORT_ERROR;
-}
-
 sptr<IWantSender> AbilityManagerProxy::GetWantSender(
     const WantSenderInfo &wantSenderInfo, const sptr<IRemoteObject> &callerToken)
 {
