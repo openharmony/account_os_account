@@ -33,6 +33,7 @@ IInnerOsAccountManager::IInnerOsAccountManager() : subscribeManagerPtr_(OsAccoun
     operatingId_.clear();
     osAccountControl_ = std::make_shared<OsAccountControlFileManager>();
     osAccountControl_->Init();
+    osAccountControl_->GetDeviceOwnerId(deviceOwnerId_);
     ACCOUNT_LOGD("OsAccountAccountMgr Init end");
 }
 
