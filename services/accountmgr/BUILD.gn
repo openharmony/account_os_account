@@ -60,7 +60,7 @@ config("accountmgr_config") {
 
 config("ability_manager_config") {
   include_dirs = [
-    "${aafwk_path}/interfaces/innerkits/ability_manager/include",
+    "${aafwk_path}/interfaces/inner_api/ability_manager/include",
     "${aafwk_path}/ability_base/interfaces/inner_api/want/include",
     "${aafwk_path}/services/abilitymgr/include",
     "${aafwk_path}/services/common/include",
