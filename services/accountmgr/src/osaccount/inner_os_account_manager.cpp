@@ -371,6 +371,9 @@ ErrCode IInnerOsAccountManager::RemoveOsAccount(const int id)
         ACCOUNT_LOGE("RemoveOsAccount failed to remove os account constraints info");
         return errCode;
     }
+    if (id == deviceOwnerId_) {
+        osAccountControl_->UpdateDeviceOwnerId(-1);
+    }
     ACCOUNT_LOGI("IInnerOsAccountManager RemoveOsAccount end");
     return ERR_OK;
 }
