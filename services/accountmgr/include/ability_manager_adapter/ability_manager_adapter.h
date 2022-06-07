@@ -17,8 +17,8 @@
 #define OS_ACCOUNT_SERVICE_ABILITY_MANAGER_ADAPTER_H
 
 #include <mutex>
+
 #include "ability_connect_callback_interface.h"
-#include "ability_manager_interface.h"
 #include "stop_user_callback.h"
 #include "want.h"
 
@@ -46,7 +46,7 @@ public:
         const Want &want,
         const sptr<IAbilityConnection> &connect,
         const sptr<IRemoteObject> &callerToken,
-        int32_t userId = DEFAULT_INVAL_VALUE);
+        int32_t userId = -1);
 
     /**
      * DisconnectAbility, disconnect session with service ability.
@@ -85,13 +85,13 @@ private:
         DISALLOW_COPY_AND_MOVE(AbilityMgrDeathRecipient);
     };
 
-    sptr<IAbilityManager> GetAbilityManager();
+    sptr<IRemoteObject> GetAbilityManager();
     void ResetProxy(const wptr<IRemoteObject>& remote);
 
     static std::mutex instanceMutex_;
     static std::shared_ptr<AbilityManagerAdapter> instance_;
     std::mutex proxyMutex_;
-    sptr<IAbilityManager> proxy_;
+    sptr<IRemoteObject> proxy_;
     sptr<IRemoteObject::DeathRecipient> deathRecipient_;
 };
 }  // namespace AAFwk
