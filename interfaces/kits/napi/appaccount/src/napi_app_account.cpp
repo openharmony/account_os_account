@@ -128,8 +128,6 @@ napi_value NapiAppAccount::AddAccount(napi_env env, napi_callback_info cbInfo)
     asyncContext->env = env;
     asyncContext->callbackRef = nullptr;
     ParseContextWithExInfo(env, cbInfo, asyncContext);
-    ACCOUNT_LOGD("Parsing completed, name = %{public}s, extraInfo = %{public}s",
-        asyncContext->name.c_str(), asyncContext->extraInfo.c_str());
 
     napi_value result = nullptr;
     if (asyncContext->callbackRef == nullptr) {
@@ -231,7 +229,6 @@ napi_value NapiAppAccount::DeleteAccount(napi_env env, napi_callback_info cbInfo
     asyncContext->env = env;
     asyncContext->callbackRef = nullptr;
     ParseContextWithTwoPara(env, cbInfo, asyncContext);
-    ACCOUNT_LOGD("Parameter parsing completed, name = %{public}s", asyncContext->name.c_str());
 
     napi_value result = nullptr;
     if (asyncContext->callbackRef == nullptr) {
@@ -283,8 +280,6 @@ napi_value NapiAppAccount::DisableAppAccess(napi_env env, napi_callback_info cbI
     asyncContext->env = env;
     asyncContext->callbackRef = nullptr;
     ParseContextWithBdName(env, cbInfo, asyncContext);
-    ACCOUNT_LOGD("Parsing completed, name = %{public}s, bundleName = %{public}s",
-        asyncContext->name.c_str(), asyncContext->bundleName.c_str());
 
     napi_value result = nullptr;
     if (asyncContext->callbackRef == nullptr) {
@@ -389,7 +384,6 @@ napi_value NapiAppAccount::CheckAppAccountSyncEnable(napi_env env, napi_callback
     asyncContext->env = env;
     asyncContext->callbackRef = nullptr;
     ParseContextWithTwoPara(env, cbInfo, asyncContext);
-    ACCOUNT_LOGD("Parameter parsing completed, name = %{public}s", asyncContext->name.c_str());
 
     napi_value result = nullptr;
     if (asyncContext->callbackRef == nullptr) {
@@ -442,9 +436,6 @@ napi_value NapiAppAccount::SetAccountCredential(napi_env env, napi_callback_info
     asyncContext->env = env;
     asyncContext->callbackRef = nullptr;
     ParseContextToSetCredential(env, cbInfo, asyncContext);
-    ACCOUNT_LOGD("Parsing completed, name = %{public}s, credentialType = %{public}s.",
-        asyncContext->name.c_str(),
-        asyncContext->credentialType.c_str());
 
     napi_value result = nullptr;
     if (asyncContext->callbackRef == nullptr) {
@@ -497,8 +488,6 @@ napi_value NapiAppAccount::SetAccountExtraInfo(napi_env env, napi_callback_info 
     asyncContext->env = env;
     asyncContext->callbackRef = nullptr;
     ParseContextForSetExInfo(env, cbInfo, asyncContext);
-    ACCOUNT_LOGD("Parameter parsing completed, name = %{public}s, extraInfo = %{public}s",
-        asyncContext->name.c_str(), asyncContext->extraInfo.c_str());
 
     napi_value result = nullptr;
     if (asyncContext->callbackRef == nullptr) {
@@ -551,7 +540,6 @@ napi_value NapiAppAccount::SetAppAccountSyncEnable(napi_env env, napi_callback_i
     asyncContext->env = env;
     asyncContext->callbackRef = nullptr;
     ParseContextWithIsEnable(env, cbInfo, asyncContext);
-    ACCOUNT_LOGD("Parameter parsing completed, name = %{public}s", asyncContext->name.c_str());
 
     napi_value result = nullptr;
     if (asyncContext->callbackRef == nullptr) {
@@ -604,7 +592,6 @@ napi_value NapiAppAccount::SetAssociatedData(napi_env env, napi_callback_info cb
     asyncContext->env = env;
     asyncContext->callbackRef = nullptr;
     ParseContextForAssociatedData(env, cbInfo, asyncContext);
-    ACCOUNT_LOGD("Parameter parsing completed, name = %{public}s", asyncContext->name.c_str());
 
     napi_value result = nullptr;
     if (asyncContext->callbackRef == nullptr) {
@@ -761,8 +748,6 @@ napi_value NapiAppAccount::GetAccountCredential(napi_env env, napi_callback_info
     asyncContext->env = env;
     asyncContext->callbackRef = nullptr;
     ParseContextWithCredentialType(env, cbInfo, asyncContext);
-    ACCOUNT_LOGD("Parameter parsing completed, name = %{public}s, credentialType = %{public}s",
-        asyncContext->name.c_str(), asyncContext->credentialType.c_str());
 
     napi_value result = nullptr;
     if (asyncContext->callbackRef == nullptr) {
@@ -815,7 +800,6 @@ napi_value NapiAppAccount::GetAccountExtraInfo(napi_env env, napi_callback_info 
     asyncContext->env = env;
     asyncContext->callbackRef = nullptr;
     ParseContextWithTwoPara(env, cbInfo, asyncContext);
-    ACCOUNT_LOGD("Parameter parsing completed, name = %{public}s", asyncContext->name.c_str());
 
     napi_value result = nullptr;
     if (asyncContext->callbackRef == nullptr) {
@@ -867,7 +851,6 @@ napi_value NapiAppAccount::GetAssociatedData(napi_env env, napi_callback_info cb
     asyncContext->env = env;
     asyncContext->callbackRef = nullptr;
     ParseContextToGetData(env, cbInfo, asyncContext);
-    ACCOUNT_LOGD("Parameter parsing completed, name = %{public}s", asyncContext->name.c_str());
 
     napi_value result = nullptr;
     if (asyncContext->callbackRef == nullptr) {

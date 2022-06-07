@@ -90,7 +90,6 @@ ErrCode AppAccount::DeleteAccount(const std::string &name)
 
 ErrCode AppAccount::GetAccountExtraInfo(const std::string &name, std::string &extraInfo)
 {
-    ACCOUNT_LOGD("enter, name = %{public}s.", name.c_str());
     RETURN_IF_STRING_IS_EMPTY_OR_OVERSIZE(name, Constants::NAME_MAX_SIZE, "name is empty or oversize");
     RETURN_IF_STRING_CONTAINS_SPECIAL_CHAR(name);
     RETURN_IF_STRING_IS_OVERSIZE(extraInfo, Constants::EXTRA_INFO_MAX_SIZE, "extraInfo is empty or oversize");
@@ -100,7 +99,6 @@ ErrCode AppAccount::GetAccountExtraInfo(const std::string &name, std::string &ex
 
 ErrCode AppAccount::SetAccountExtraInfo(const std::string &name, const std::string &extraInfo)
 {
-    ACCOUNT_LOGD("enter, name = %{public}s, extraInfo = %{public}s", name.c_str(), extraInfo.c_str());
     RETURN_IF_STRING_IS_EMPTY_OR_OVERSIZE(name, Constants::NAME_MAX_SIZE, "name is empty or oversize");
     RETURN_IF_STRING_CONTAINS_SPECIAL_CHAR(name);
     RETURN_IF_STRING_IS_OVERSIZE(extraInfo, Constants::EXTRA_INFO_MAX_SIZE, "extraInfo is empty or oversize");
@@ -110,7 +108,6 @@ ErrCode AppAccount::SetAccountExtraInfo(const std::string &name, const std::stri
 
 ErrCode AppAccount::EnableAppAccess(const std::string &name, const std::string &bundleName)
 {
-    ACCOUNT_LOGD("enter, name = %{public}s, bundleName = %{public}s", name.c_str(), bundleName.c_str());
     RETURN_IF_STRING_IS_EMPTY_OR_OVERSIZE(name, Constants::NAME_MAX_SIZE, "name is empty or oversize");
     RETURN_IF_STRING_CONTAINS_SPECIAL_CHAR(name);
     RETURN_IF_STRING_IS_EMPTY_OR_OVERSIZE(bundleName, Constants::BUNDLE_NAME_MAX_SIZE,
@@ -121,7 +118,6 @@ ErrCode AppAccount::EnableAppAccess(const std::string &name, const std::string &
 
 ErrCode AppAccount::DisableAppAccess(const std::string &name, const std::string &bundleName)
 {
-    ACCOUNT_LOGD("enter, name = %{public}s, bundleName = %{public}s", name.c_str(), bundleName.c_str());
     RETURN_IF_STRING_IS_EMPTY_OR_OVERSIZE(name, Constants::NAME_MAX_SIZE, "name is empty or oversize");
     RETURN_IF_STRING_CONTAINS_SPECIAL_CHAR(name);
     RETURN_IF_STRING_IS_EMPTY_OR_OVERSIZE(bundleName, Constants::BUNDLE_NAME_MAX_SIZE,
@@ -132,7 +128,6 @@ ErrCode AppAccount::DisableAppAccess(const std::string &name, const std::string 
 
 ErrCode AppAccount::CheckAppAccountSyncEnable(const std::string &name, bool &syncEnable)
 {
-    ACCOUNT_LOGD("enter, name = %{public}s", name.c_str());
     RETURN_IF_STRING_IS_EMPTY_OR_OVERSIZE(name, Constants::NAME_MAX_SIZE, "name is empty or oversize");
     RETURN_IF_STRING_CONTAINS_SPECIAL_CHAR(name);
     RETURN_IF_PROXY_IS_NULLPTR();
@@ -141,7 +136,6 @@ ErrCode AppAccount::CheckAppAccountSyncEnable(const std::string &name, bool &syn
 
 ErrCode AppAccount::SetAppAccountSyncEnable(const std::string &name, const bool &syncEnable)
 {
-    ACCOUNT_LOGD("enter, name = %{public}s, syncEnable = %{public}d", name.c_str(), syncEnable);
     RETURN_IF_STRING_IS_EMPTY_OR_OVERSIZE(name, Constants::NAME_MAX_SIZE, "name is empty or oversize");
     RETURN_IF_STRING_CONTAINS_SPECIAL_CHAR(name);
     RETURN_IF_PROXY_IS_NULLPTR();
@@ -150,7 +144,6 @@ ErrCode AppAccount::SetAppAccountSyncEnable(const std::string &name, const bool 
 
 ErrCode AppAccount::GetAssociatedData(const std::string &name, const std::string &key, std::string &value)
 {
-    ACCOUNT_LOGD("enter, name = %{public}s, key = %{public}s", name.c_str(), key.c_str());
     RETURN_IF_STRING_IS_EMPTY_OR_OVERSIZE(name, Constants::NAME_MAX_SIZE, "name is empty or oversize");
     RETURN_IF_STRING_CONTAINS_SPECIAL_CHAR(name);
     RETURN_IF_STRING_IS_EMPTY_OR_OVERSIZE(key, Constants::ASSOCIATED_KEY_MAX_SIZE, "key is empty or oversize");
@@ -160,7 +153,6 @@ ErrCode AppAccount::GetAssociatedData(const std::string &name, const std::string
 
 ErrCode AppAccount::SetAssociatedData(const std::string &name, const std::string &key, const std::string &value)
 {
-    ACCOUNT_LOGD("enter, name = %{public}s, key = %{public}s", name.c_str(), key.c_str());
     RETURN_IF_STRING_IS_EMPTY_OR_OVERSIZE(name, Constants::NAME_MAX_SIZE, "name is empty or oversize");
     RETURN_IF_STRING_CONTAINS_SPECIAL_CHAR(name);
     RETURN_IF_STRING_IS_EMPTY_OR_OVERSIZE(key, Constants::ASSOCIATED_KEY_MAX_SIZE, "key is empty or oversize");
@@ -172,7 +164,6 @@ ErrCode AppAccount::SetAssociatedData(const std::string &name, const std::string
 ErrCode AppAccount::GetAccountCredential(
     const std::string &name, const std::string &credentialType, std::string &credential)
 {
-    ACCOUNT_LOGD("enter, name = %{public}s, credentialType = %{public}s", name.c_str(), credentialType.c_str());
     RETURN_IF_STRING_IS_EMPTY_OR_OVERSIZE(name, Constants::NAME_MAX_SIZE, "name is empty or oversize");
     RETURN_IF_STRING_CONTAINS_SPECIAL_CHAR(name);
     RETURN_IF_STRING_IS_EMPTY_OR_OVERSIZE(credentialType, Constants::CREDENTIAL_TYPE_MAX_SIZE,
@@ -184,7 +175,6 @@ ErrCode AppAccount::GetAccountCredential(
 ErrCode AppAccount::SetAccountCredential(
     const std::string &name, const std::string &credentialType, const std::string &credential)
 {
-    ACCOUNT_LOGD("enter, name = %{public}s, credentialType = %{public}s", name.c_str(), credentialType.c_str());
     RETURN_IF_STRING_IS_EMPTY_OR_OVERSIZE(name, Constants::NAME_MAX_SIZE, "name is empty or oversize");
     RETURN_IF_STRING_CONTAINS_SPECIAL_CHAR(name);
     RETURN_IF_STRING_IS_EMPTY_OR_OVERSIZE(credentialType, Constants::CREDENTIAL_TYPE_MAX_SIZE,
@@ -305,7 +295,6 @@ ErrCode AppAccount::GetAuthenticatorCallback(const std::string &sessionId, sptr<
 
 ErrCode AppAccount::GetAllAccounts(const std::string &owner, std::vector<AppAccountInfo> &appAccounts)
 {
-    ACCOUNT_LOGD("enter, owner = %{public}s", owner.c_str());
     RETURN_IF_STRING_IS_EMPTY_OR_OVERSIZE(owner, Constants::OWNER_MAX_SIZE, "owner is empty or oversize");
     RETURN_IF_PROXY_IS_NULLPTR();
     return appAccountProxy_->GetAllAccounts(owner, appAccounts);
@@ -422,8 +411,6 @@ ErrCode AppAccount::ResetAppAccountProxy()
 
 ErrCode AppAccount::CheckSpecialCharacters(const std::string &name)
 {
-    ACCOUNT_LOGD("enter, name = %{public}s", name.c_str());
-
     for (auto specialCharacter : Constants::SPECIAL_CHARACTERS) {
         std::size_t found = name.find(specialCharacter);
         if (found != std::string::npos) {

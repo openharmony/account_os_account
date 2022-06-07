@@ -67,7 +67,6 @@ AccountMgrService::~AccountMgrService()
 bool AccountMgrService::UpdateOhosAccountInfo(
     const std::string &accountName, const std::string &uid, const std::string &eventStr)
 {
-    ACCOUNT_LOGD("Account event %s", eventStr.c_str());
     if (!ohosAccountMgr_->OhosAccountStateChange(accountName, uid, eventStr)) {
         ACCOUNT_LOGE("Ohos account state change failed");
         return false;
@@ -217,7 +216,6 @@ std::int32_t AccountMgrService::Dump(std::int32_t fd, const std::vector<std::u16
 
     std::vector<std::string> argsInStr;
     for (const auto &arg : args) {
-        ACCOUNT_LOGD("Dump args: %s", Str16ToStr8(arg).c_str());
         argsInStr.emplace_back(Str16ToStr8(arg));
     }
 
@@ -244,8 +242,6 @@ void AccountMgrService::HandleNotificationEvents(const std::string &eventStr)
         ACCOUNT_LOGW("service not running for handling event: %{public}s", eventStr.c_str());
         return;
     }
-
-    ACCOUNT_LOGD("Unhandled event: %{public}s", eventStr.c_str());
 }
 }  // namespace AccountSA
 }  // namespace OHOS

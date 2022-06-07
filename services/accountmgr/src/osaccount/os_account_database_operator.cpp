@@ -96,8 +96,6 @@ ErrCode OsAccountDatabaseOperator::GetOsAccountListFromDatabase(const std::strin
             osAccountList.push_back(curOsInfo);
         }
     }
-    ACCOUNT_LOGD("Totally get %{public}zu os accounts from database. storeID %{public}s.",
-        osAccountList.size(), storeID.c_str());
     return ERR_OK;
 }
 

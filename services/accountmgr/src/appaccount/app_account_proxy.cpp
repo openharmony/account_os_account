@@ -150,7 +150,6 @@ ErrCode AppAccountProxy::GetAccountExtraInfo(const std::string &name, std::strin
 
     result = reply.ReadInt32();
     extraInfo = reply.ReadString();
-    ACCOUNT_LOGD("result = %{public}d, extraInfo = %{public}s", result, extraInfo.c_str());
 
     return result;
 }
@@ -278,7 +277,6 @@ ErrCode AppAccountProxy::CheckAppAccountSyncEnable(const std::string &name, bool
 
     result = reply.ReadInt32();
     syncEnable = reply.ReadBool();
-    ACCOUNT_LOGD("result = %{public}d, syncEnable = %{public}d", result, syncEnable);
 
     return result;
 }
@@ -345,7 +343,6 @@ ErrCode AppAccountProxy::GetAssociatedData(const std::string &name, const std::s
 
     result = reply.ReadInt32();
     value = reply.ReadString();
-    ACCOUNT_LOGD("result = %{public}d, value = %{public}s", result, value.c_str());
 
     return result;
 }
