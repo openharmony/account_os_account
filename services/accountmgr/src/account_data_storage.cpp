@@ -47,8 +47,6 @@ void AccountDataStorage::TryTwice(const std::function<DistributedKv::Status()> &
         status = func();
         ACCOUNT_LOGE("distribute database ipc error and try again, status = %{public}d", status);
     }
-
-    ACCOUNT_LOGD("end, status = %{public}d", status);
 }
 
 OHOS::DistributedKv::Status AccountDataStorage::GetKvStore()
@@ -67,8 +65,6 @@ OHOS::DistributedKv::Status AccountDataStorage::GetKvStore()
         ACCOUNT_LOGE("GetSingleKvStore failed! status %{public}d, kvStorePtr_ is nullptr", status);
         return status;
     }
-
-    ACCOUNT_LOGI("end, GetSingleKvStore succeed! status = %{public}d", status);
     return status;
 }
 
@@ -217,7 +213,6 @@ OHOS::DistributedKv::Status AccountDataStorage::GetEntries(
     std::lock_guard<std::mutex> lock(kvStorePtrMutex_);
     OHOS::DistributedKv::Status status = kvStorePtr_->GetEntries(allEntryKeyPrefix, allEntries);
 
-    ACCOUNT_LOGD("end, status = %{public}d, allEntries.size() = %{public}zu", status, allEntries.size());
     return status;
 }
 
@@ -270,8 +265,6 @@ ErrCode AccountDataStorage::GetAccountInfoById(const std::string id, IAccountInf
 ErrCode AccountDataStorage::LoadDataByLocalFuzzyQuery(
     std::string subId, std::map<std::string, std::shared_ptr<IAccountInfo>> &infos)
 {
-    ACCOUNT_LOGD("enter, subId = %{public}s", subId.c_str());
-
     if (!CheckKvStore()) {
         ACCOUNT_LOGE("kvStore is nullptr");
         return OHOS::ERR_OSACCOUNT_SERVICE_MANAGER_QUERY_DISTRIBUTE_DATA_ERROR;

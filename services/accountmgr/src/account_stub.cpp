@@ -210,7 +210,6 @@ std::int32_t AccountStub::CmdGetOsAccountService(MessageParcel &data, MessagePar
 std::int32_t AccountStub::OnRemoteRequest(
     std::uint32_t code, MessageParcel &data, MessageParcel &reply, MessageOption &option)
 {
-    ACCOUNT_LOGD("Received stub message: %{public}d", code);
     if (!IsServiceStarted()) {
         ACCOUNT_LOGE("account mgr not ready");
         return ERR_ACCOUNT_ZIDL_MGR_NOT_READY_ERROR;
