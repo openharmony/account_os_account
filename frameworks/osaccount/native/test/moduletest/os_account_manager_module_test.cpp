@@ -1407,7 +1407,7 @@ HWTEST_F(OsAccountManagerModuleTest, OsAccountManagerModuleTest066, TestSize.Lev
  * @tc.name: OsAccountManagerModuleTest067
  * @tc.desc: Test GetBundleIdFromUid.
  * @tc.type: FUNC
- * @tc.require: SR000GGVFF
+ * @tc.require: SR000GV99I
  */
 HWTEST_F(OsAccountManagerModuleTest, OsAccountManagerModuleTest067, TestSize.Level1)
 {
@@ -1423,7 +1423,7 @@ HWTEST_F(OsAccountManagerModuleTest, OsAccountManagerModuleTest067, TestSize.Lev
  * @tc.name: OsAccountManagerModuleTest068
  * @tc.desc: Test IsMainOsAccount.
  * @tc.type: FUNC
- * @tc.require: SR000GGVFF
+ * @tc.require: SR000GV99I
  */
 HWTEST_F(OsAccountManagerModuleTest, OsAccountManagerModuleTest068, TestSize.Level1)
 {
@@ -1437,4 +1437,254 @@ HWTEST_F(OsAccountManagerModuleTest, OsAccountManagerModuleTest068, TestSize.Lev
     } else {
         EXPECT_EQ(isMainOsAccount, false);
     }
+}
+
+/**
+ * @tc.name: OsAccountManagerModuleTest069
+ * @tc.desc: Test SetGlobalOsAccountConstraints.
+ * @tc.type: FUNC
+ * @tc.require: SR000GV99I
+ */
+HWTEST_F(OsAccountManagerModuleTest, OsAccountManagerModuleTest069, TestSize.Level1)
+{
+    ACCOUNT_LOGI("OsAccountManagerModuleTest069");
+    OsAccountInfo osAccountInfoOne;
+    ASSERT_EQ(OsAccountManager::CreateOsAccount(STRING_TEST_NAME, OsAccountType::NORMAL, osAccountInfoOne), ERR_OK);
+
+    EXPECT_EQ(OsAccountManager::SetGlobalOsAccountConstraints(
+        CONSTANTS_VECTOR, true, osAccountInfoOne.GetLocalId(), true), ERR_OK);
+    bool isEnable = false;
+    EXPECT_EQ(
+        OsAccountManager::IsOsAccountConstraintEnable(osAccountInfoOne.GetLocalId(), CONSTANT_PRINT, isEnable),
+        ERR_OK);
+    EXPECT_EQ(isEnable, true);
+    isEnable = false;
+    EXPECT_EQ(
+        OsAccountManager::IsOsAccountConstraintEnable(MAIN_ACCOUNT_ID, CONSTANT_PRINT, isEnable),
+        ERR_OK);
+    EXPECT_EQ(isEnable, true);
+
+    EXPECT_EQ(OsAccountManager::SetGlobalOsAccountConstraints(
+        CONSTANTS_VECTOR, false, osAccountInfoOne.GetLocalId(), true), ERR_OK);
+    EXPECT_EQ(
+        OsAccountManager::IsOsAccountConstraintEnable(osAccountInfoOne.GetLocalId(), CONSTANT_PRINT, isEnable),
+        ERR_OK);
+    EXPECT_EQ(isEnable, false);
+    EXPECT_EQ(
+        OsAccountManager::IsOsAccountConstraintEnable(MAIN_ACCOUNT_ID, CONSTANT_PRINT, isEnable),
+        ERR_OK);
+    EXPECT_EQ(isEnable, false);
+
+    ASSERT_EQ(OsAccountManager::RemoveOsAccount(osAccountInfoOne.GetLocalId()), ERR_OK);
+}
+
+/**
+ * @tc.name: OsAccountManagerModuleTest070
+ * @tc.desc: Test SetGlobalOsAccountConstraints.
+ * @tc.type: FUNC
+ * @tc.require: SR000GV99I
+ */
+HWTEST_F(OsAccountManagerModuleTest, OsAccountManagerModuleTest070, TestSize.Level1)
+{
+    ACCOUNT_LOGI("OsAccountManagerModuleTest070");
+    OsAccountInfo osAccountInfoOne;
+    ASSERT_EQ(OsAccountManager::CreateOsAccount(STRING_TEST_NAME, OsAccountType::NORMAL, osAccountInfoOne), ERR_OK);
+    OsAccountInfo osAccountInfoTwo;
+    ASSERT_EQ(OsAccountManager::CreateOsAccount(STRING_TEST_NAME_TWO, OsAccountType::NORMAL, osAccountInfoTwo), ERR_OK);
+
+    EXPECT_EQ(OsAccountManager::SetGlobalOsAccountConstraints(
+        CONSTANTS_VECTOR, true, osAccountInfoOne.GetLocalId(), true), ERR_OK);
+    EXPECT_EQ(OsAccountManager::SetGlobalOsAccountConstraints(
+        CONSTANTS_VECTOR, true, osAccountInfoTwo.GetLocalId(), true), ERR_OK);
+    bool isEnable = false;
+    EXPECT_EQ(
+        OsAccountManager::IsOsAccountConstraintEnable(osAccountInfoOne.GetLocalId(), CONSTANT_PRINT, isEnable),
+        ERR_OK);
+    EXPECT_EQ(isEnable, true);
+    isEnable = false;
+    EXPECT_EQ(
+        OsAccountManager::IsOsAccountConstraintEnable(MAIN_ACCOUNT_ID, CONSTANT_PRINT, isEnable),
+        ERR_OK);
+    EXPECT_EQ(isEnable, true);
+
+    EXPECT_EQ(OsAccountManager::SetGlobalOsAccountConstraints(
+        CONSTANTS_VECTOR, false, osAccountInfoOne.GetLocalId(), true), ERR_OK);
+    EXPECT_EQ(
+        OsAccountManager::IsOsAccountConstraintEnable(osAccountInfoOne.GetLocalId(), CONSTANT_PRINT, isEnable),
+        ERR_OK);
+    EXPECT_EQ(isEnable, true);
+    EXPECT_EQ(
+        OsAccountManager::IsOsAccountConstraintEnable(MAIN_ACCOUNT_ID, CONSTANT_PRINT, isEnable),
+        ERR_OK);
+    EXPECT_EQ(isEnable, true);
+
+    ASSERT_EQ(OsAccountManager::RemoveOsAccount(osAccountInfoOne.GetLocalId()), ERR_OK);
+    ASSERT_EQ(OsAccountManager::RemoveOsAccount(osAccountInfoTwo.GetLocalId()), ERR_OK);
+    EXPECT_EQ(
+        OsAccountManager::IsOsAccountConstraintEnable(MAIN_ACCOUNT_ID, CONSTANT_PRINT, isEnable),
+        ERR_OK);
+    EXPECT_EQ(isEnable, false);
+}
+
+/**
+ * @tc.name: OsAccountManagerModuleTest071
+ * @tc.desc: Test SetSpecificOsAccountConstraints.
+ * @tc.type: FUNC
+ * @tc.require: SR000GV99I
+ */
+HWTEST_F(OsAccountManagerModuleTest, OsAccountManagerModuleTest071, TestSize.Level1)
+{
+    ACCOUNT_LOGI("OsAccountManagerModuleTest071");
+    OsAccountInfo osAccountInfoOne;
+    ASSERT_EQ(OsAccountManager::CreateOsAccount(STRING_TEST_NAME, OsAccountType::NORMAL, osAccountInfoOne), ERR_OK);
+
+    EXPECT_EQ(OsAccountManager::SetSpecificOsAccountConstraints(
+        CONSTANTS_VECTOR, true, MAIN_ACCOUNT_ID, osAccountInfoOne.GetLocalId(), true), ERR_OK);
+    bool isEnable = false;
+    EXPECT_EQ(
+        OsAccountManager::IsOsAccountConstraintEnable(osAccountInfoOne.GetLocalId(), CONSTANT_PRINT, isEnable),
+        ERR_OK);
+    EXPECT_EQ(isEnable, false);
+    EXPECT_EQ(
+        OsAccountManager::IsOsAccountConstraintEnable(MAIN_ACCOUNT_ID, CONSTANT_PRINT, isEnable),
+        ERR_OK);
+    EXPECT_EQ(isEnable, true);
+
+    EXPECT_EQ(OsAccountManager::SetSpecificOsAccountConstraints(
+        CONSTANTS_VECTOR, false, MAIN_ACCOUNT_ID, osAccountInfoOne.GetLocalId(), true), ERR_OK);
+    EXPECT_EQ(
+        OsAccountManager::IsOsAccountConstraintEnable(MAIN_ACCOUNT_ID, CONSTANT_PRINT, isEnable),
+        ERR_OK);
+    EXPECT_EQ(isEnable, false);
+    ASSERT_EQ(OsAccountManager::RemoveOsAccount(osAccountInfoOne.GetLocalId()), ERR_OK);
+}
+
+/**
+ * @tc.name: OsAccountManagerModuleTest072
+ * @tc.desc: Test QueryOsAccountConstraintSourceTypes.
+ * @tc.type: FUNC
+ * @tc.require: SR000GV99I
+ */
+HWTEST_F(OsAccountManagerModuleTest, OsAccountManagerModuleTest072, TestSize.Level1)
+{
+    ACCOUNT_LOGI("OsAccountManagerModuleTest072");
+    OsAccountInfo osAccountInfoOne;
+    ASSERT_EQ(OsAccountManager::CreateOsAccount(STRING_TEST_NAME, OsAccountType::NORMAL, osAccountInfoOne), ERR_OK);
+    EXPECT_EQ(OsAccountManager::SetSpecificOsAccountConstraints(
+        CONSTANTS_VECTOR, true, MAIN_ACCOUNT_ID, osAccountInfoOne.GetLocalId(), true), ERR_OK);
+    bool isEnable = false;
+    EXPECT_EQ(
+        OsAccountManager::IsOsAccountConstraintEnable(MAIN_ACCOUNT_ID, CONSTANT_PRINT, isEnable),
+        ERR_OK);
+    EXPECT_EQ(isEnable, true);
+
+    std::vector<ConstraintSourceTypeInfo> constraintSourceTypeInfos;
+    EXPECT_EQ(OsAccountManager::QueryOsAccountConstraintSourceTypes(
+        MAIN_ACCOUNT_ID, CONSTANT_PRINT, constraintSourceTypeInfos), ERR_OK);
+    ACCOUNT_LOGI("OsAccountManagerModuleTest072 constraintSourceTypeInfos.size %{public}zu",
+        constraintSourceTypeInfos.size());
+    EXPECT_EQ(constraintSourceTypeInfos[0].typeInfo, 2);
+    ASSERT_EQ(OsAccountManager::RemoveOsAccount(osAccountInfoOne.GetLocalId()), ERR_OK);
+    EXPECT_EQ(
+        OsAccountManager::IsOsAccountConstraintEnable(MAIN_ACCOUNT_ID, CONSTANT_PRINT, isEnable),
+        ERR_OK);
+    EXPECT_EQ(isEnable, false);
+}
+
+/**
+ * @tc.name: OsAccountManagerModuleTest073
+ * @tc.desc: Test QueryOsAccountConstraintSourceTypes.
+ * @tc.type: FUNC
+ * @tc.require: SR000GV99I
+ */
+HWTEST_F(OsAccountManagerModuleTest, OsAccountManagerModuleTest073, TestSize.Level1)
+{
+    ACCOUNT_LOGI("OsAccountManagerModuleTest073");
+    OsAccountInfo osAccountInfoOne;
+    ASSERT_EQ(OsAccountManager::CreateOsAccount(STRING_TEST_NAME, OsAccountType::NORMAL, osAccountInfoOne), ERR_OK);
+    std::this_thread::sleep_for(std::chrono::milliseconds(300));
+    OsAccountInfo osAccountInfoTwo;
+    ASSERT_EQ(OsAccountManager::CreateOsAccount(STRING_TEST_NAME_TWO, OsAccountType::NORMAL, osAccountInfoTwo), ERR_OK);
+
+    std::vector<ConstraintSourceTypeInfo> constraintSourceTypeInfos;
+    EXPECT_EQ(OsAccountManager::QueryOsAccountConstraintSourceTypes(
+        MAIN_ACCOUNT_ID, CONSTANT_PRINT, constraintSourceTypeInfos), ERR_OK);
+    EXPECT_EQ(constraintSourceTypeInfos[0].typeInfo, 0);
+
+    EXPECT_EQ(OsAccountManager::SetGlobalOsAccountConstraints(
+        CONSTANTS_VECTOR_TEST, true, osAccountInfoOne.GetLocalId(), false), ERR_OK);
+    std::this_thread::sleep_for(std::chrono::milliseconds(300));
+    EXPECT_EQ(OsAccountManager::SetGlobalOsAccountConstraints(
+        CONSTANTS_VECTOR_TEST, true, osAccountInfoTwo.GetLocalId(), false), ERR_OK);
+
+    bool isEnable = false;
+    EXPECT_EQ(
+        OsAccountManager::IsOsAccountConstraintEnable(MAIN_ACCOUNT_ID, CONSTRAINT_PRIVATE_DNS_SET, isEnable),
+        ERR_OK);
+    EXPECT_EQ(isEnable, true);
+
+    EXPECT_EQ(OsAccountManager::QueryOsAccountConstraintSourceTypes(
+        MAIN_ACCOUNT_ID, CONSTRAINT_PRIVATE_DNS_SET, constraintSourceTypeInfos), ERR_OK);
+    EXPECT_EQ(constraintSourceTypeInfos.size(), 2);
+    ACCOUNT_LOGD("OsAccountManagerModuleTest073  constraintSourceTypeInfos %{public}d  %{public}d",
+        constraintSourceTypeInfos[0].localId, constraintSourceTypeInfos[0].typeInfo);
+    ACCOUNT_LOGD("OsAccountManagerModuleTest073  constraintSourceTypeInfos %{public}d  %{public}d",
+        constraintSourceTypeInfos[1].localId, constraintSourceTypeInfos[1].typeInfo);
+    ASSERT_EQ(OsAccountManager::RemoveOsAccount(osAccountInfoTwo.GetLocalId()), ERR_OK);
+
+    ASSERT_EQ(OsAccountManager::RemoveOsAccount(osAccountInfoOne.GetLocalId()), ERR_OK);
+
+    EXPECT_EQ(OsAccountManager::QueryOsAccountConstraintSourceTypes(
+        MAIN_ACCOUNT_ID, CONSTRAINT_PRIVATE_DNS_SET, constraintSourceTypeInfos), ERR_OK);
+    EXPECT_EQ(constraintSourceTypeInfos.size(), 1);
+    EXPECT_EQ(constraintSourceTypeInfos[0].typeInfo, 0);
+}
+
+/**
+ * @tc.name: OsAccountManagerModuleTest074
+ * @tc.desc: Test QueryOsAccountConstraintSourceTypes.
+ * @tc.type: FUNC
+ * @tc.require: SR000GV99I
+ */
+HWTEST_F(OsAccountManagerModuleTest, OsAccountManagerModuleTest074, TestSize.Level1)
+{
+    ACCOUNT_LOGI("OsAccountManagerModuleTest074");
+    std::vector<ConstraintSourceTypeInfo> constraintSourceTypeInfos;
+    EXPECT_EQ(OsAccountManager::QueryOsAccountConstraintSourceTypes(
+        MAIN_ACCOUNT_ID, CONSTANT_WIFI, constraintSourceTypeInfos), ERR_OK);
+    EXPECT_EQ(constraintSourceTypeInfos[0].typeInfo, 1);
+
+    EXPECT_EQ(OsAccountManager::QueryOsAccountConstraintSourceTypes(
+        MAIN_ACCOUNT_ID, CONSTRAINT_PRIVATE_DNS_SET, constraintSourceTypeInfos), ERR_OK);
+    EXPECT_EQ(constraintSourceTypeInfos.size(), 1);
+    EXPECT_EQ(constraintSourceTypeInfos[0].typeInfo, 0);
+}
+
+/**
+ * @tc.name: OsAccountManagerModuleTest075
+ * @tc.desc: Test GetOsAccountAllConstraints.
+ * @tc.type: FUNC
+ * @tc.require: SR000GV99I
+ */
+HWTEST_F(OsAccountManagerModuleTest, OsAccountManagerModuleTest075, TestSize.Level1)
+{
+    ACCOUNT_LOGI("OsAccountManagerModuleTest075");
+    OsAccountInfo osAccountInfoOne;
+    ASSERT_EQ(OsAccountManager::CreateOsAccount(STRING_TEST_NAME, OsAccountType::NORMAL, osAccountInfoOne), ERR_OK);
+
+    std::vector<std::string> constraints;
+    EXPECT_EQ(OsAccountManager::GetOsAccountAllConstraints(osAccountInfoOne.GetLocalId(), constraints), ERR_OK);
+    int counts = constraints.size();
+
+    EXPECT_EQ(OsAccountManager::SetGlobalOsAccountConstraints(
+        CONSTANTS_VECTOR_TEST, true, osAccountInfoOne.GetLocalId(), true), ERR_OK);
+
+    EXPECT_EQ(OsAccountManager::SetSpecificOsAccountConstraints(
+        CONSTANTS_VECTOR_TEST, true, MAIN_ACCOUNT_ID, osAccountInfoOne.GetLocalId(), true), ERR_OK);
+
+    constraints.clear();
+    EXPECT_EQ(OsAccountManager::GetOsAccountAllConstraints(osAccountInfoOne.GetLocalId(), constraints), ERR_OK);
+    EXPECT_NE(constraints.size(), counts + 2); // test number
+ 
+    ASSERT_EQ(OsAccountManager::RemoveOsAccount(osAccountInfoOne.GetLocalId()), ERR_OK);
 }
