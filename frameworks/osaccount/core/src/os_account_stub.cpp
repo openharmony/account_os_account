@@ -216,7 +216,6 @@ int OsAccountStub::OnRemoteRequest(uint32_t code, MessageParcel &data, MessagePa
             return (this->*messageProcFunction)(data, reply);
         }
     }
-    ACCOUNT_LOGD("end, code = %{public}u, flags = %{public}u", code, option.GetFlags());
     return IPCObjectStub::OnRemoteRequest(code, data, reply, option);
 }
 

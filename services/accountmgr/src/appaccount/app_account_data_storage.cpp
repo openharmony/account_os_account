@@ -49,9 +49,6 @@ Json AppAccountDataStorage::GetAccessibleAccountsFromAuthorizedAccounts(const st
     }
 
     ACCOUNT_LOGD("accessibleAccounts.size() = %{public}zu", accessibleAccounts.size());
-    for (auto account : accessibleAccounts) {
-        ACCOUNT_LOGD("account = %{public}s", account.c_str());
-    }
 
     return jsonObject;
 }
@@ -63,7 +60,6 @@ ErrCode AppAccountDataStorage::GetAccessibleAccountsFromDataStorage(
 
     std::string authorizedAccounts;
     ErrCode result = GetValueFromKvStore(AUTHORIZED_ACCOUNTS, authorizedAccounts);
-    ACCOUNT_LOGD("authorizedAccounts = %{public}s", authorizedAccounts.c_str());
     if (result != ERR_OK) {
         ACCOUNT_LOGE("failed to get config by id from data storage");
     }

@@ -137,7 +137,6 @@ napi_value OsAccountJsConstructor(napi_env env, napi_callback_info cbinfo)
         OsAccountManager *objInfo = (OsAccountManager *)data;
         delete objInfo;
     }, nullptr, nullptr);
-    ACCOUNT_LOGD("OsAccountManager objectInfo at JsConstructor = %{public}p", objectInfo);
 
     return thisVar;
 }
@@ -165,7 +164,6 @@ napi_value QueryOsAccountById(napi_env env, napi_callback_info cbInfo)
         delete queryOAByIdCB;
         return WrapVoidToJS(env);
     }
-    ACCOUNT_LOGD("Parse completed, id = %{public}d", queryOAByIdCB->id);
 
     napi_value result = nullptr;
     if (queryOAByIdCB->callbackRef == nullptr) {
@@ -207,7 +205,6 @@ napi_value RemoveOsAccount(napi_env env, napi_callback_info cbInfo)
         delete removeOACB;
         return WrapVoidToJS(env);
     }
-    ACCOUNT_LOGD("Parse completed, id = %{public}d", removeOACB->id);
 
     napi_value result = nullptr;
     if (removeOACB->callbackRef == nullptr) {
@@ -244,7 +241,6 @@ napi_value SetOsAccountName(napi_env env, napi_callback_info cbInfo)
         delete setOANameCB;
         return WrapVoidToJS(env);
     }
-    ACCOUNT_LOGD("Parse completed, id = %{public}d, name = %{public}s", setOANameCB->id, setOANameCB->name.c_str());
 
     napi_value result = nullptr;
     if (setOANameCB->callbackRef == nullptr) {
@@ -286,7 +282,6 @@ napi_value SetOsAccountConstraints(napi_env env, napi_callback_info cbInfo)
         delete setOAConsCB;
         return WrapVoidToJS(env);
     }
-    ACCOUNT_LOGD("Parse completed, id = %{public}d", setOAConsCB->id);
 
     napi_value result = nullptr;
     if (setOAConsCB->callbackRef == nullptr) {
@@ -328,7 +323,6 @@ napi_value ActivateOsAccount(napi_env env, napi_callback_info cbInfo)
         delete activeOACB;
         return WrapVoidToJS(env);
     }
-    ACCOUNT_LOGD("Parse completed, id = %{public}d", activeOACB->id);
 
     napi_value result = nullptr;
     if (activeOACB->callbackRef == nullptr) {
@@ -370,7 +364,6 @@ napi_value CreateOsAccount(napi_env env, napi_callback_info cbInfo)
         delete createOACB;
         return WrapVoidToJS(env);
     }
-    ACCOUNT_LOGD("Parse completed, type = %{public}d, name = %{public}s", createOACB->type, createOACB->name.c_str());
 
     napi_value result = nullptr;
     if (createOACB->callbackRef == nullptr) {
@@ -710,7 +703,6 @@ napi_value GetOsAccountProfilePhoto(napi_env env, napi_callback_info cbInfo)
         delete getPhoto;
         return WrapVoidToJS(env);
     }
-    ACCOUNT_LOGD("Parse completed, id = %{public}d", getPhoto->id);
 
     napi_value result = nullptr;
     if (getPhoto->callbackRef == nullptr) {
@@ -1311,7 +1303,6 @@ napi_value Subscribe(napi_env env, napi_callback_info cbInfo)
 
     NAPI_CALL(env, napi_get_cb_info(env, cbInfo, &argc, argv, &thisVar, NULL));
     NAPI_ASSERT(env, argc >= ARGS_SIZE_THREE, "Wrong number of arguments");
-    ACCOUNT_LOGD("thisVar = %{public}p", thisVar);
     if (ParseParaToSubscriber(env, argv, callback, onType, onName) == nullptr) {
         ACCOUNT_LOGE("Parse subscribe failed");
         return WrapVoidToJS(env);
@@ -1327,7 +1318,6 @@ napi_value Subscribe(napi_env env, napi_callback_info cbInfo)
     subscribeCBInfo->callbackRef = callback;
     subscribeCBInfo->name = onName;
     subscribeCBInfo->osSubscribeType = onType;
-    ACCOUNT_LOGD("callbackRef = %{public}p", subscribeCBInfo->callbackRef);
 
     // make osaccount subscribe info
     OsAccountSubscribeInfo subscribeInfo(onType, onName);
@@ -1337,7 +1327,6 @@ napi_value Subscribe(napi_env env, napi_callback_info cbInfo)
     OsAccountManager *objectInfo = nullptr;
     napi_unwrap(env, thisVar, reinterpret_cast<void **>(&objectInfo));
     subscribeCBInfo->osManager = objectInfo;
-    ACCOUNT_LOGD("OsAccountManager objectInfo = %{public}p", objectInfo);
 
     {
         std::lock_guard<std::mutex> lock(g_lockForOsAccountSubscribers);
@@ -1469,7 +1458,6 @@ napi_value Unsubscribe(napi_env env, napi_callback_info cbInfo)
 
     NAPI_CALL(env, napi_get_cb_info(env, cbInfo, &argc, argv, &thisVar, NULL));
     NAPI_ASSERT(env, argc >= ARGS_SIZE_TWO, "Wrong number of arguments");
-    ACCOUNT_LOGD("Unsubscribe thisVar = %{public}p", thisVar);
 
     napi_ref callback = nullptr;
     if (ParseParaToUnsubscriber(env, argc, argv, callback, offType, offName) == nullptr) {
@@ -1524,7 +1512,6 @@ void FindSubscriberInMap(
 
     ACCOUNT_LOGD("g_osAccountSubscribers.size = %{public}zu", g_osAccountSubscribers.size());
     for (auto subscriberInstance : g_osAccountSubscribers) {
-        ACCOUNT_LOGD("Through map to get the subscribe objectInfo = %{public}p", subscriberInstance.first);
         if (subscriberInstance.first == unsubscribeCBInfo->osManager) {
             for (auto item : subscriberInstance.second) {
                 OsAccountSubscribeInfo subscribeInfo;
