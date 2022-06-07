@@ -132,7 +132,6 @@ int BundleManagerAdapterProxy::GetUidByBundleName(const std::string &bundleName,
         ACCOUNT_LOGE("failed to GetUidByBundleName due to bundleName empty");
         return AppExecFwk::Constants::INVALID_UID;
     }
-    ACCOUNT_LOGD("begin to get uid of %{public}s, userId : %{public}d", bundleName.c_str(), userId);
 
     MessageParcel data;
     if (!data.WriteInterfaceToken(GetDescriptor())) {
@@ -166,7 +165,6 @@ std::string BundleManagerAdapterProxy::GetAppIdByBundleName(const std::string &b
 
 bool BundleManagerAdapterProxy::GetBundleNameForUid(const int uid, std::string &bundleName)
 {
-    ACCOUNT_LOGD("begin to GetBundleNameForUid of %{public}d", uid);
     MessageParcel data;
     if (!data.WriteInterfaceToken(GetDescriptor())) {
         ACCOUNT_LOGE("fail to GetBundleNameForUid due to write InterfaceToken fail");

@@ -89,7 +89,6 @@ ErrCode OsAccountManager::GetOsAccountLocalIdFromUid(const int uid, int &id)
         return ERR_OSACCOUNT_SERVICE_MANAGER_BAD_UID_ERROR;
     }
     id = uid / UID_TRANSFORM_DIVISOR;
-    ACCOUNT_LOGD("uid %{public}d, os account id %{public}d.", uid, id);
     return ERR_OK;
 }
 
@@ -100,7 +99,6 @@ ErrCode OsAccountManager::GetBundleIdFromUid(const int uid, int &bundleId)
         return ERR_OSACCOUNT_SERVICE_MANAGER_BAD_UID_ERROR;
     }
     bundleId = uid % UID_TRANSFORM_DIVISOR;
-    ACCOUNT_LOGD("uid %{public}d, get bundle id %{public}d.", uid, bundleId);
     return ERR_OK;
 }
 
