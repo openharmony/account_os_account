@@ -84,6 +84,7 @@ public:
     std::string GetSessionId() const;
     void GetRequest(OAuthRequest &request) const;
     ErrCode GetAuthenticatorCallback(const OAuthRequest &request, sptr<IRemoteObject> &callback) const;
+    ErrCode AddClientDeathRecipient();
 
 private:
     int32_t UpdateAuthInfo(const AAFwk::Want &result) const;
