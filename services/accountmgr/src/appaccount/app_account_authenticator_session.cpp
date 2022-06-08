@@ -158,9 +158,6 @@ void AppAccountAuthenticatorSession::Init()
         return;
     }
     sessionId_ = std::to_string(reinterpret_cast<int64_t>(this));
-    if ((request_.callback != nullptr) && (request_.callback->AsObject() != nullptr)) {
-        request_.callback->AsObject()->AddDeathRecipient(clientDeathRecipient_);
-    }
     userId_ = request_.callerUid / UID_TRANSFORM_DIVISOR;
     ownerUid_ = BundleManagerAdapter::GetInstance()->GetUidByBundleName(request_.owner, userId_);
     isInitialized_ = true;
@@ -170,17 +167,17 @@ ErrCode AppAccountAuthenticatorSession::Open()
 {
     ACCOUNT_LOGD("enter");
     if (isOpened_) {
-        ACCOUNT_LOGE("session has been opened");
+        ACCOUNT_LOGD("session has been opened");
         return ERR_APPACCOUNT_SERVICE_OAUTH_SERVICE_EXCEPTION;
     }
     if (!isInitialized_) {
-        ACCOUNT_LOGE("session has not been initialized");
+        ACCOUNT_LOGD("session has not been initialized");
         return ERR_APPACCOUNT_SERVICE_OAUTH_SERVICE_EXCEPTION;
     }
     AuthenticatorInfo info;
     ErrCode errCode = authenticatorMgr_->GetAuthenticatorInfo(request_, info);
     if (errCode != ERR_OK) {
-        ACCOUNT_LOGI("authenticator not exist, owner: %{public}s, ownerUid: %{public}d, errCode: %{public}d.",
+        ACCOUNT_LOGD("authenticator not exist, owner: %{public}s, ownerUid: %{public}d, errCode: %{public}d.",
             request_.owner.c_str(), ownerUid_, errCode);
         return errCode;
     }
@@ -190,8 +187,22 @@ ErrCode AppAccountAuthenticatorSession::Open()
     if (errCode == ERR_OK) {
         isOpened_ = true;
     }
-    ACCOUNT_LOGD("end");
     return errCode;
+}
+
+ErrCode AppAccountAuthenticatorSession::AddClientDeathRecipient()
+{
+    if (!isOpened_) {
+        return ERR_APPACCOUNT_SERVICE_OAUTH_SERVICE_EXCEPTION;
+    }
+    if ((request_.callback == nullptr) || (request_.callback->AsObject() == nullptr)) {
+        return ERR_OK;
+    }
+    bool result = request_.callback->AsObject()->AddDeathRecipient(clientDeathRecipient_);
+    if (!result) {
+        return ERR_APPACCOUNT_SERVICE_OAUTH_SERVICE_EXCEPTION;
+    }
+    return ERR_OK;
 }
 
 void AppAccountAuthenticatorSession::OnAbilityConnectDone(
