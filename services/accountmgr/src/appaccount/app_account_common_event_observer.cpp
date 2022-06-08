@@ -37,6 +37,7 @@ AppAccountCommonEventObserver::AppAccountCommonEventObserver(const CommonEventCa
     counter_ = 0;
     MatchingSkills matchingSkills;
     matchingSkills.AddEvent(CommonEventSupport::COMMON_EVENT_PACKAGE_REMOVED);
+    matchingSkills.AddEvent(CommonEventSupport::COMMON_EVENT_USER_REMOVED);
 
     CommonEventSubscribeInfo subscribeInfo(matchingSkills);
     subscriber_ = std::make_shared<AppAccountCommonEventSubscriber>(
@@ -115,6 +116,11 @@ void AppAccountCommonEventObserver::OnReceiveEvent(const CommonEventData &data)
             ACCOUNT_LOGI("uid = %{public}d, bundleName = %{public}s.", uid, bundleName.c_str());
             callback_.OnPackageRemoved(uid, bundleName);
         }
+        return;
+    }
+    if ((action == CommonEventSupport::COMMON_EVENT_USER_REMOVED) && (callback_.OnUserRemoved != nullptr)) {
+        callback_.OnUserRemoved(data.GetCode());
+        return;
     }
 }
 #endif // HAS_CES_PART

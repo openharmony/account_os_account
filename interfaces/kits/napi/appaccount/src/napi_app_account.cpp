@@ -1434,7 +1434,8 @@ napi_value NapiAppAccount::Subscribe(napi_env env, napi_callback_info cbInfo)
         delete asyncContextForOn;
         return NapiGetNull(env);
     }
-    asyncContextForOn->callbackRef = callback;
+    asyncContextForOn->subscriber->SetEnv(env);
+    asyncContextForOn->subscriber->SetCallbackRef(callback);
     AppAccountManager *objectInfo = nullptr;
     napi_unwrap(env, thisVar, reinterpret_cast<void **>(&objectInfo));
     asyncContextForOn->appAccountManager = objectInfo;
@@ -1444,21 +1445,7 @@ napi_value NapiAppAccount::Subscribe(napi_env env, napi_callback_info cbInfo)
         g_AppAccountSubscribers[objectInfo].emplace_back(asyncContextForOn);
     }
 
-    napi_value resourceName = nullptr;
-    napi_create_string_latin1(env, "Subscribe", NAPI_AUTO_LENGTH, &resourceName);
-
-    napi_create_async_work(env,
-        nullptr,
-        resourceName,
-        SubscribeExecuteCB,
-        [](napi_env env, napi_status status, void *data) {
-            ACCOUNT_LOGD("Subscribe, napi_create_async_work complete.");
-            AsyncContextForSubscribe *asyncContextForOn = reinterpret_cast<AsyncContextForSubscribe *>(data);
-            napi_delete_async_work(env, asyncContextForOn->work);
-        },
-        reinterpret_cast<void *>(asyncContextForOn),
-        &asyncContextForOn->work);
-    napi_queue_async_work(env, asyncContextForOn->work);
+    AppAccountManager::SubscribeAppAccount(asyncContextForOn->subscriber);
     return NapiGetNull(env);
 }
 
