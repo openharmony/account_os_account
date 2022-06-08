@@ -14,6 +14,8 @@
  */
 
 #include "ability_manager_adapter.h"
+#include "ability_manager_errors.h"
+#include "ability_manager_interface.h"
 #include "account_error_no.h"
 #include "account_log_wrapper.h"
 #include "iservice_registry.h"
@@ -21,6 +23,9 @@
 
 namespace OHOS {
 namespace AAFwk {
+namespace {
+const std::u16string ABILITY_MGR_DESCRIPTOR = u"ohos.aafwk.AbilityManager";
+}
 using namespace AccountSA;
 std::shared_ptr<AbilityManagerAdapter> AbilityManagerAdapter::instance_ = nullptr;
 std::mutex AbilityManagerAdapter::instanceMutex_;
@@ -43,27 +48,49 @@ AbilityManagerAdapter::~AbilityManagerAdapter()
 ErrCode AbilityManagerAdapter::ConnectAbility(const AAFwk::Want &want, const sptr<AAFwk::IAbilityConnection> &connect,
     const sptr<IRemoteObject> &callerToken, int32_t userId)
 {
-    std::lock_guard<std::mutex> lock(proxyMutex_);
     auto abms = GetAbilityManager();
     if (abms == nullptr) {
         ACCOUNT_LOGE("ability manager proxy is nullptr.");
         return ERR_ACCOUNT_COMMON_CONNECT_ABILITY_MANAGER_SERVICE_ERROR;
     }
+
     ACCOUNT_LOGI("Connect ability called, bundleName:%{public}s, abilityName:%{public}s, userId:%{public}d.",
         want.GetElement().GetBundleName().c_str(), want.GetElement().GetAbilityName().c_str(), userId);
-    return abms->ConnectAbility(want, connect, callerToken, userId);
+    return DoConnectAbility(abms, want, connect, callerToken, userId);
 }
 
 ErrCode AbilityManagerAdapter::DisconnectAbility(const sptr<AAFwk::IAbilityConnection> &connect)
 {
-    std::lock_guard<std::mutex> lock(proxyMutex_);
     auto abms = GetAbilityManager();
     if (abms == nullptr) {
         ACCOUNT_LOGE("ability manager proxy is nullptr.");
         return ERR_ACCOUNT_COMMON_CONNECT_ABILITY_MANAGER_SERVICE_ERROR;
     }
     ACCOUNT_LOGI("Disconnect ability begin.");
-    return abms->DisconnectAbility(connect);
+
+    int error;
+    MessageParcel data;
+    MessageParcel reply;
+    MessageOption option;
+    if (connect == nullptr) {
+        ACCOUNT_LOGE("disconnect ability fail, connect is nullptr");
+        return ERR_INVALID_VALUE;
+    }
+    if (!data.WriteInterfaceToken(ABILITY_MGR_DESCRIPTOR)) {
+        ACCOUNT_LOGE("write interface token failed.");
+        return INNER_ERR;
+    }
+    if (!data.WriteRemoteObject(connect->AsObject())) {
+        ACCOUNT_LOGE("connect write failed.");
+        return ERR_INVALID_VALUE;
+    }
+
+    error = abms->SendRequest(IAbilityManager::DISCONNECT_ABILITY, data, reply, option);
+    if (error != NO_ERROR) {
+        ACCOUNT_LOGE("Send request error: %{public}d", error);
+        return error;
+    }
+    return reply.ReadInt32();
 }
 
 void AbilityManagerAdapter::Connect()
@@ -91,39 +118,138 @@ void AbilityManagerAdapter::Connect()
         ACCOUNT_LOGE("Add death recipient to AbilityManagerService failed.");
         return;
     }
-
-    proxy_ = iface_cast<AAFwk::IAbilityManager>(remoteObj);
-    if (proxy_ == nullptr) {
-        ACCOUNT_LOGE("proxy_ is nullptr!");
-        return;
-    }
+    proxy_ = remoteObj;
     ACCOUNT_LOGI("Connect ability manager service success.");
 }
 
 ErrCode AbilityManagerAdapter::StartUser(int accountId)
 {
-    std::lock_guard<std::mutex> lock(proxyMutex_);
     auto abms = GetAbilityManager();
     if (abms == nullptr) {
         ACCOUNT_LOGE("ability manager proxy is nullptr.");
         return ERR_ACCOUNT_COMMON_CONNECT_ABILITY_MANAGER_SERVICE_ERROR;
     }
-    return abms->StartUser(accountId);
+
+    int error;
+    MessageParcel data;
+    MessageParcel reply;
+    MessageOption option;
+
+    if (!data.WriteInterfaceToken(ABILITY_MGR_DESCRIPTOR)) {
+        ACCOUNT_LOGE("write interface token failed.");
+        return INNER_ERR;
+    }
+
+    if (!data.WriteInt32(accountId)) {
+        ACCOUNT_LOGE("StartUser:WriteInt32 fail.");
+        return ERR_INVALID_VALUE;
+    }
+    error = abms->SendRequest(IAbilityManager::START_USER, data, reply, option);
+    if (error != NO_ERROR) {
+        ACCOUNT_LOGE("StartUser:SendRequest error: %{public}d", error);
+        return error;
+    }
+    return reply.ReadInt32();
 }
 
 ErrCode AbilityManagerAdapter::StopUser(int accountId, const sptr<AAFwk::IStopUserCallback> &callback)
 {
-    std::lock_guard<std::mutex> lock(proxyMutex_);
     auto abms = GetAbilityManager();
     if (abms == nullptr) {
         ACCOUNT_LOGE("ability manager proxy is nullptr.");
         return ERR_ACCOUNT_COMMON_CONNECT_ABILITY_MANAGER_SERVICE_ERROR;
     }
-    return abms->StopUser(accountId, callback);
+
+    int error;
+    MessageParcel data;
+    MessageParcel reply;
+    MessageOption option;
+
+    if (!data.WriteInterfaceToken(ABILITY_MGR_DESCRIPTOR)) {
+        ACCOUNT_LOGE("write interface token failed.");
+        return INNER_ERR;
+    }
+    if (!data.WriteInt32(accountId)) {
+        ACCOUNT_LOGE("StopUser:WriteInt32 fail.");
+        return ERR_INVALID_VALUE;
+    }
+
+    if (!callback) {
+        data.WriteBool(false);
+    } else {
+        data.WriteBool(true);
+        if (!data.WriteRemoteObject(callback->AsObject())) {
+            ACCOUNT_LOGE("StopUser:write IStopUserCallback fail.");
+            return ERR_INVALID_VALUE;
+        }
+    }
+    error = abms->SendRequest(IAbilityManager::STOP_USER, data, reply, option);
+    if (error != NO_ERROR) {
+        ACCOUNT_LOGE("StopUser:SendRequest error: %{public}d", error);
+        return error;
+    }
+    return reply.ReadInt32();
 }
 
-sptr<AAFwk::IAbilityManager> AbilityManagerAdapter::GetAbilityManager()
+ErrCode AbilityManagerAdapter::DoConnectAbility(const sptr<IRemoteObject> proxy, const AAFwk::Want &want,
+    const sptr<AAFwk::IAbilityConnection> &connect, const sptr<IRemoteObject> &callerToken, int32_t userId)
 {
+    int error;
+    MessageParcel data;
+    MessageParcel reply;
+    MessageOption option;
+
+    if (proxy == nullptr || connect == nullptr) {
+        ACCOUNT_LOGE("connect ability fail, proxy or connect is nullptr");
+        return ERR_INVALID_VALUE;
+    }
+
+    if (!data.WriteInterfaceToken(ABILITY_MGR_DESCRIPTOR)) {
+        ACCOUNT_LOGE("write interface token failed.");
+        return INNER_ERR;
+    }
+
+    if (!data.WriteParcelable(&want)) {
+        ACCOUNT_LOGE("want write failed.");
+        return ERR_INVALID_VALUE;
+    }
+    if (connect->AsObject()) {
+        if (!data.WriteBool(true) || !data.WriteRemoteObject(connect->AsObject())) {
+            ACCOUNT_LOGE("flag and connect write failed.");
+            return ERR_INVALID_VALUE;
+        }
+    } else {
+        if (!data.WriteBool(false)) {
+            ACCOUNT_LOGE("flag write failed.");
+            return ERR_INVALID_VALUE;
+        }
+    }
+    if (callerToken) {
+        if (!data.WriteBool(true) || !data.WriteRemoteObject(callerToken)) {
+            ACCOUNT_LOGE("flag and callerToken write failed.");
+            return ERR_INVALID_VALUE;
+        }
+    } else {
+        if (!data.WriteBool(false)) {
+            ACCOUNT_LOGE("flag write failed.");
+            return ERR_INVALID_VALUE;
+        }
+    }
+    if (!data.WriteInt32(userId)) {
+        ACCOUNT_LOGE("userId write failed.");
+        return INNER_ERR;
+    }
+    error = proxy->SendRequest(IAbilityManager::CONNECT_ABILITY, data, reply, option);
+    if (error != NO_ERROR) {
+        ACCOUNT_LOGE("Send request error: %{public}d", error);
+        return error;
+    }
+    return reply.ReadInt32();
+}
+
+sptr<IRemoteObject> AbilityManagerAdapter::GetAbilityManager()
+{
+    std::lock_guard<std::mutex> lock(proxyMutex_);
     if (!proxy_) {
         Connect();
     }
@@ -133,9 +259,8 @@ sptr<AAFwk::IAbilityManager> AbilityManagerAdapter::GetAbilityManager()
 void AbilityManagerAdapter::ResetProxy(const wptr<IRemoteObject>& remote)
 {
     std::lock_guard<std::mutex> lock(proxyMutex_);
-    auto serviceRemote = proxy_->AsObject();
-    if ((serviceRemote != nullptr) && (serviceRemote == remote.promote())) {
-        serviceRemote->RemoveDeathRecipient(deathRecipient_);
+    if ((proxy_ != nullptr) && (proxy_ == remote.promote())) {
+        proxy_->RemoveDeathRecipient(deathRecipient_);
         proxy_ = nullptr;
     }
 }

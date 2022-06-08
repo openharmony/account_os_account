@@ -54,7 +54,6 @@ config("ability_manager_config") {
 ability_manager_sources = [
   "${aafwk_path}/services/abilitymgr/src/stop_user_callback_stub.cpp",
   "${services_path}/accountmgr/src/ability_manager_adapter/ability_manager_adapter.cpp",
-  "${services_path}/accountmgr/src/ability_manager_adapter/ability_manager_adapter_proxy.cpp",
 ]
 
 config("bundle_manager_config") {
