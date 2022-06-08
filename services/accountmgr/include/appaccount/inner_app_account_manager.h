@@ -79,6 +79,7 @@ public:
     ErrCode UnsubscribeAppAccount(const sptr<IRemoteObject> &eventListener);
 
     ErrCode OnPackageRemoved(const uid_t &uid, const std::string &bundleName);
+    ErrCode OnUserRemoved(int32_t userId);
 
 private:
     std::shared_ptr<AppAccountControlManager> controlManagerPtr_ = nullptr;
