@@ -75,6 +75,12 @@ public:
 
 private:
     void Connect();
+    ErrCode DoConnectAbility(
+        const sptr<IRemoteObject> proxy,
+        const Want &want,
+        const sptr<IAbilityConnection> &connect,
+        const sptr<IRemoteObject> &callerToken,
+        int32_t userId = -1);
 
     class AbilityMgrDeathRecipient : public IRemoteObject::DeathRecipient {
     public:
