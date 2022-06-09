@@ -297,12 +297,6 @@ bool BundleManagerAdapterProxy::QueryAllAbilityInfos(const Want &want, int32_t u
     return false;
 }
 
-bool BundleManagerAdapterProxy::QueryAbilityInfosForClone(const Want &want, std::vector<AbilityInfo> &abilityInfos)
-{
-    ACCOUNT_LOGE("not support interface!");
-    return false;
-}
-
 bool BundleManagerAdapterProxy::QueryAbilityInfoByUri(const std::string &abilityUri, AbilityInfo &abilityInfo)
 {
     ACCOUNT_LOGE("not support interface!");
@@ -584,38 +578,6 @@ bool BundleManagerAdapterProxy::GetShortcutInfos(const std::string &bundleName,
 
 bool BundleManagerAdapterProxy::GetAllCommonEventInfo(const std::string &eventKey,
     std::vector<CommonEventInfo> &commonEventInfos)
-{
-    ACCOUNT_LOGE("not support interface!");
-    return false;
-}
-
-bool BundleManagerAdapterProxy::GetModuleUsageRecords(const int32_t number,
-    std::vector<ModuleUsageRecord> &moduleUsageRecords)
-{
-    ACCOUNT_LOGE("not support interface!");
-    return false;
-}
-
-bool BundleManagerAdapterProxy::NotifyAbilityLifeStatus(
-    const std::string &bundleName, const std::string &abilityName, const int64_t launchTime, const int uid)
-{
-    ACCOUNT_LOGE("not support interface!");
-    return false;
-}
-
-bool BundleManagerAdapterProxy::CheckBundleNameInAllowList(const std::string &bundleName)
-{
-    ACCOUNT_LOGE("not support interface!");
-    return false;
-}
-
-bool BundleManagerAdapterProxy::BundleClone(const std::string &bundleName)
-{
-    ACCOUNT_LOGE("not support interface!");
-    return false;
-}
-
-bool BundleManagerAdapterProxy::RemoveClonedBundle(const std::string &bundleName, const int32_t uid)
 {
     ACCOUNT_LOGE("not support interface!");
     return false;
