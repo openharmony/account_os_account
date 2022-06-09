@@ -261,13 +261,6 @@ public:
     virtual bool QueryAbilityInfos(
         const Want &want, int32_t flags, int32_t userId, std::vector<AbilityInfo> &abilityInfos) override;
     /**
-     * @brief Query the AbilityInfo of list for clone by the given Want.
-     * @param want Indicates the information of the ability.
-     * @param abilityInfos Indicates the obtained AbilityInfos object.
-     * @return Returns true if the AbilityInfos is successfully obtained; returns false otherwise.
-     */
-    virtual bool QueryAbilityInfosForClone(const Want &want, std::vector<AbilityInfo> &abilityInfos) override;
-    /**
      * @brief Query the AbilityInfo of list for all service on launcher.
      * @param userId Indicates the information of the user.
      * @param abilityInfos Indicates the obtained AbilityInfos object.
@@ -524,43 +517,6 @@ public:
      */
     virtual bool GetAllCommonEventInfo(const std::string &eventKey,
         std::vector<CommonEventInfo> &commonEventInfos) override;
-    /**
-     * @brief Get module usage record list in descending order of lastLaunchTime.
-     * @param maxNum the return size of the records, must be in range of 1 to 1000.
-     * @param moduleUsageRecords List of ModuleUsageRecord objects if obtained.
-     * @return Returns true if this function is successfully called; returns false otherwise.
-     */
-    virtual bool GetModuleUsageRecords(
-        const int32_t number, std::vector<ModuleUsageRecord> &moduleUsageRecords) override;
-    /**
-     * @brief  Notify a specified ability for ability.
-     * @param bundleName Indicates the bundle name of the ability to ability.
-     * @param abilityName Indicates the name of the ability to ability.
-     * @param launchTime Indicates the ability launchTime.
-     * @param uid Indicates the uid.
-     * @return Returns true if this function is successfully called; returns false otherwise.
-     */
-    virtual bool NotifyAbilityLifeStatus(const std::string &bundleName,
-        const std::string &abilityName, const int64_t launchTime, const int uid) override;
-    /**
-     * @brief Remove cloned bundle.
-     * @param bundleName Indicates the bundle name of remove cloned bundle.
-     * @param uid Indicates the uid of remove cloned bundle.
-     * @return Returns true if this function is successfully called; returns false otherwise.
-     */
-    virtual bool RemoveClonedBundle(const std::string &bundleName, const int32_t uid) override;
-    /**
-     * @brief create bundle clone.
-     * @param bundleName Indicates the bundle name of create bundle clone.
-     * @return Returns true if this function is successfully called; returns false otherwise.
-     */
-    virtual bool BundleClone(const std::string &bundleName) override;
-    /**
-     * @brief Determine whether the application is in the allow list.
-     * @param bundleName Indicates the bundle Names.
-     * @return Returns true if bundle name in the allow list successfully; returns false otherwise.
-     */
-    virtual bool CheckBundleNameInAllowList(const std::string &bundleName) override;
     /**
      * @brief Obtains the DistributedBundleInfo based on a given bundle name and networkId.
      * @param networkId Indicates the networkId of remote device.
