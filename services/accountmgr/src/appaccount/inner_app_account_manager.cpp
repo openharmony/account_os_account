@@ -446,5 +446,14 @@ ErrCode InnerAppAccountManager::OnPackageRemoved(const uid_t &uid, const std::st
     ErrCode result = controlManagerPtr_->OnPackageRemoved(uid, bundleName);
     return result;
 }
+
+ErrCode InnerAppAccountManager::OnUserRemoved(int32_t userId)
+{
+    if (!controlManagerPtr_) {
+        ACCOUNT_LOGE("controlManagerPtr_ is nullptr");
+        return ERR_APPACCOUNT_SERVICE_CONTROL_MANAGER_PTR_IS_NULLPTR;
+    }
+    return controlManagerPtr_->OnUserRemoved(userId);
+}
 }  // namespace AccountSA
 }  // namespace OHOS

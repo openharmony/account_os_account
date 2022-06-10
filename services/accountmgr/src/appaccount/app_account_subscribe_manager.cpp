@@ -31,35 +31,6 @@ AppAccountSubscribeManager::AppAccountSubscribeManager()
     ACCOUNT_LOGD("enter");
 }
 
-std::shared_ptr<AppAccountDataStorage> AppAccountSubscribeManager::GetDataStorage(
-    const uid_t &uid, const bool &autoSync)
-{
-    ACCOUNT_LOGD("enter");
-
-    std::string storeId;
-    ErrCode result = GetStoreId(uid, storeId);
-    if (result != ERR_OK) {
-        ACCOUNT_LOGE("failed to get store id, result = %{public}d", result);
-        return nullptr;
-    }
-
-    if (autoSync == true) {
-        storeId = storeId + AppAccountDataStorage::DATA_STORAGE_SUFFIX;
-    }
-
-    return std::make_shared<AppAccountDataStorage>(storeId, autoSync);
-}
-
-ErrCode AppAccountSubscribeManager::GetStoreId(const uid_t &uid, std::string &storeId)
-{
-    std::int32_t uidToGetDeviceAccountId = uid;
-
-    auto deviceAccountId = OhosAccountKits::GetInstance().GetDeviceAccountIdByUID(uidToGetDeviceAccountId);
-    storeId = std::to_string(deviceAccountId);
-
-    return ERR_OK;
-}
-
 ErrCode AppAccountSubscribeManager::GetEventHandler(void)
 {
     ACCOUNT_LOGD("enter");
@@ -194,24 +165,28 @@ ErrCode AppAccountSubscribeManager::CheckAppAccess(
         return ERR_APPACCOUNT_SERVICE_GET_OWNERS;
     }
 
-    auto dataStoragePtr = GetDataStorage(uid);
+    auto controlManagerPtr = AppAccountControlManager::GetInstance();
+    if (controlManagerPtr == nullptr) {
+        ACCOUNT_LOGE("controlManagerPtr is nullptr");
+        return ERR_APPACCOUNT_SERVICE_CONTROL_MANAGER_PTR_IS_NULLPTR;
+    }
+
+    auto dataStoragePtr = controlManagerPtr->GetDataStorage(uid);
     if (dataStoragePtr == nullptr) {
         ACCOUNT_LOGE("dataStoragePtr is nullptr");
         return ERR_APPACCOUNT_SERVICE_DATA_STORAGE_PTR_IS_NULLPTR;
     }
 
+    std::vector<std::string> accessibleAccounts;
+    ErrCode ret = dataStoragePtr->GetAccessibleAccountsFromDataStorage(bundleName, accessibleAccounts);
+    if (ret != ERR_OK) {
+        ACCOUNT_LOGE("failed to get accessible account from data storage, ret %{public}d.", ret);
+        return ret;
+    }
     for (auto owner : owners) {
         if (owner == bundleName) {
             continue;
         }
-
-        std::vector<std::string> accessibleAccounts;
-        ErrCode ret = dataStoragePtr->GetAccessibleAccountsFromDataStorage(bundleName, accessibleAccounts);
-        if (ret != ERR_OK) {
-            ACCOUNT_LOGE("failed to get accessible account from data storage, ret %{public}d.", ret);
-            return ret;
-        }
-
         auto it = std::find_if(
             accessibleAccounts.begin(),
             accessibleAccounts.end(),
@@ -337,16 +312,16 @@ bool AppAccountSubscribeManager::PublishAccount(
 ErrCode AppAccountSubscribeManager::OnAccountsChanged(const std::shared_ptr<AppAccountEventRecord> &record)
 {
     auto uid = record->uid;
-    auto dataStoragePtr = GetDataStorage(uid);
-    if (dataStoragePtr == nullptr) {
-        ACCOUNT_LOGE("dataStoragePtr is nullptr");
-        return ERR_APPACCOUNT_SERVICE_DATA_STORAGE_PTR_IS_NULLPTR;
-    }
-
     auto controlManagerPtr = AppAccountControlManager::GetInstance();
     if (controlManagerPtr == nullptr) {
         ACCOUNT_LOGE("controlManagerPtr is nullptr");
         return ERR_APPACCOUNT_SERVICE_CONTROL_MANAGER_PTR_IS_NULLPTR;
+    }
+
+    auto dataStoragePtr = controlManagerPtr->GetDataStorage(uid);
+    if (dataStoragePtr == nullptr) {
+        ACCOUNT_LOGE("dataStoragePtr is nullptr");
+        return ERR_APPACCOUNT_SERVICE_DATA_STORAGE_PTR_IS_NULLPTR;
     }
 
     for (auto receiver : record->receivers) {

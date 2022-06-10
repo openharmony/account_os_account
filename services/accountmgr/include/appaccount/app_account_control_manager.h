@@ -75,19 +75,20 @@ public:
         std::vector<AppAccountInfo> &appAccounts, const uid_t &uid, const std::string &bundleName);
 
     ErrCode OnPackageRemoved(const uid_t &uid, const std::string &bundleName);
+    ErrCode OnUserRemoved(int32_t userId);
 
     ErrCode GetAllAccountsFromDataStorage(const std::string &owner, std::vector<AppAccountInfo> &appAccounts,
         const std::string &bundleName, const std::shared_ptr<AppAccountDataStorage> &dataStoragePtr);
     ErrCode GetAllAccessibleAccountsFromDataStorage(std::vector<AppAccountInfo> &appAccounts,
         const std::string &bundleName, const std::shared_ptr<AppAccountDataStorage> &dataStoragePtr);
+    std::shared_ptr<AppAccountDataStorage> GetDataStorage(const uid_t &uid, const bool &autoSync = false);
 
 private:
-    std::shared_ptr<AppAccountDataStorage> GetDataStorage(const uid_t &uid, const bool &autoSync = false);
+    std::shared_ptr<AppAccountDataStorage> GetDataStorageByUserId(int32_t userId, const bool &autoSync = false);
     ErrCode GetStoreId(const uid_t &uid, std::string &storeId);
-
     bool NeedSyncDataStorage(const AppAccountInfo &appAccountInfo);
     ErrCode GetAccountInfoFromDataStorage(
-        AppAccountInfo &appAccountInfo, std::shared_ptr<AppAccountDataStorage> &dataStoragePtr, const uid_t &uid);
+        AppAccountInfo &appAccountInfo, std::shared_ptr<AppAccountDataStorage> &dataStoragePtr);
     ErrCode AddAccountInfoIntoDataStorage(AppAccountInfo &appAccountInfo,
         const std::shared_ptr<AppAccountDataStorage> &dataStoragePtr, const uid_t &uid);
     ErrCode SaveAccountInfoIntoDataStorage(AppAccountInfo &appAccountInfo,
@@ -106,6 +107,8 @@ private:
 
 private:
     std::mutex mutex_;
+    std::mutex storePtrMutex_;
+    std::map<std::string, std::shared_ptr<AppAccountDataStorage>> storePtrMap_;
     std::size_t ACCOUNT_MAX_SIZE = 1000;
 };
 }  // namespace AccountSA
