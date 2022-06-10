@@ -79,6 +79,7 @@ public:
     ErrCode UnsubscribeAppAccount(const sptr<IRemoteObject> &eventListener) override;
 
     virtual ErrCode OnPackageRemoved(const uid_t &uid, const std::string &bundleName);
+    virtual ErrCode OnUserRemoved(int32_t userId);
 
 private:
     ErrCode GetBundleNameAndCheckPerm(int32_t &callingUid, std::string &bundleName, const std::string &permName);

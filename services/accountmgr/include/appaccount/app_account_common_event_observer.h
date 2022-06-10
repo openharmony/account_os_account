@@ -25,6 +25,7 @@ namespace AccountSA {
 #ifdef HAS_CES_PART
 struct CommonEventCallback {
     std::function<void(const uid_t &uid, const std::string &bundleName)> OnPackageRemoved;
+    std::function<void(int32_t userId)> OnUserRemoved;
 };
 
 class AppAccountCommonEventObserver {

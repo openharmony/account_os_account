@@ -1004,16 +1004,6 @@ napi_value ParseParametersByUnsubscribe(
     return result;
 }
 
-void SubscribeExecuteCB(napi_env env, void *data)
-{
-    ACCOUNT_LOGD("Subscribe, napi_create_async_work running.");
-    AsyncContextForSubscribe *asyncContextForOn = reinterpret_cast<AsyncContextForSubscribe *>(data);
-    asyncContextForOn->subscriber->SetEnv(env);
-    asyncContextForOn->subscriber->SetCallbackRef(asyncContextForOn->callbackRef);
-    int errCode = AppAccountManager::SubscribeAppAccount(asyncContextForOn->subscriber);
-    ACCOUNT_LOGD("Subscribe errcode parameter is %{public}d", errCode);
-}
-
 void UnsubscribeExecuteCB(napi_env env, void *data)
 {
     ACCOUNT_LOGD("Unsubscribe napi_create_async_work start.");

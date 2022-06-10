@@ -32,6 +32,7 @@ AppAccountManagerService::AppAccountManagerService()
 #ifdef HAS_CES_PART
     CommonEventCallback callback = {
         std::bind(&AppAccountManagerService::OnPackageRemoved, this, std::placeholders::_1, std::placeholders::_2),
+        std::bind(&AppAccountManagerService::OnUserRemoved, this, std::placeholders::_1),
     };
     observer_ = std::make_shared<AppAccountCommonEventObserver>(callback);
 #endif // HAS_CES_PART
@@ -469,6 +470,11 @@ ErrCode AppAccountManagerService::UnsubscribeAppAccount(const sptr<IRemoteObject
 ErrCode AppAccountManagerService::OnPackageRemoved(const uid_t &uid, const std::string &bundleName)
 {
     return innerManager_->OnPackageRemoved(uid, bundleName);
+}
+
+ErrCode AppAccountManagerService::OnUserRemoved(int32_t userId)
+{
+    return innerManager_->OnUserRemoved(userId);
 }
 
 ErrCode AppAccountManagerService::GetBundleNameAndCheckPerm(int32_t &callingUid,
