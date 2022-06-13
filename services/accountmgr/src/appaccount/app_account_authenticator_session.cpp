@@ -177,8 +177,8 @@ ErrCode AppAccountAuthenticatorSession::Open()
     AuthenticatorInfo info;
     ErrCode errCode = authenticatorMgr_->GetAuthenticatorInfo(request_, info);
     if (errCode != ERR_OK) {
-        ACCOUNT_LOGD("authenticator not exist, owner: %{public}s, ownerUid: %{public}d, errCode: %{public}d.",
-            request_.owner.c_str(), ownerUid_, errCode);
+        ACCOUNT_LOGD("authenticator not exist, owner: %{public}s, errCode: %{public}d.",
+            request_.owner.c_str(), errCode);
         return errCode;
     }
     AAFwk::Want want;
