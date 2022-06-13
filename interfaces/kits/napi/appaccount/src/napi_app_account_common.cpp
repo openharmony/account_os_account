@@ -959,7 +959,6 @@ napi_value GetSubscriberByUnsubscribe(const napi_env &env, std::vector<std::shar
         ACCOUNT_LOGD("g_AppAccountSubscribers.size = %{public}zu", g_AppAccountSubscribers.size());
 
         for (auto subscriberInstance : g_AppAccountSubscribers) {
-            ACCOUNT_LOGD("Through map to get the subscribe objectInfo = %{public}p", subscriberInstance.first);
             if (subscriberInstance.first == asyncContextForOff->appAccountManager) {
                 for (auto item : subscriberInstance.second) {
                     subscribers.emplace_back(item->subscriber);
