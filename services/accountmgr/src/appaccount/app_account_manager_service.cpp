@@ -186,15 +186,8 @@ ErrCode AppAccountManagerService::SetAppAccountSyncEnable(const std::string &nam
 ErrCode AppAccountManagerService::GetAssociatedData(
     const std::string &name, const std::string &key, std::string &value)
 {
-    int32_t callingUid = -1;
-    std::string bundleName;
-    ErrCode result = GetBundleNameAndCallingUid(callingUid, bundleName);
-    if (result != ERR_OK) {
-        ACCOUNT_LOGE("failed to get bundle name");
-        return result;
-    }
-
-    return innerManager_->GetAssociatedData(name, key, value, callingUid, bundleName);
+    int32_t callingUid = IPCSkeleton::GetCallingUid();
+    return innerManager_->GetAssociatedData(name, key, value, callingUid);
 }
 
 ErrCode AppAccountManagerService::SetAssociatedData(
