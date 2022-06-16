@@ -19,6 +19,7 @@
 #include "app_account_authenticator_session.h"
 #include "app_account_control_manager.h"
 #include "app_account_subscribe_manager.h"
+#include "hitrace_adapter.h"
 
 namespace OHOS {
 namespace AccountSA {
@@ -178,14 +179,15 @@ ErrCode InnerAppAccountManager::SetAppAccountSyncEnable(
 }
 
 ErrCode InnerAppAccountManager::GetAssociatedData(const std::string &name, const std::string &key, std::string &value,
-    const uid_t &uid, const std::string &bundleName)
+    const uid_t &uid)
 {
+    HiTraceAdapterSyncTrace tracer("INNER_APP_ACCOUNT GetAssociatedData");
     if (!controlManagerPtr_) {
         ACCOUNT_LOGE("controlManagerPtr_ is nullptr");
         return ERR_APPACCOUNT_SERVICE_CONTROL_MANAGER_PTR_IS_NULLPTR;
     }
 
-    ErrCode result = controlManagerPtr_->GetAssociatedData(name, key, value, uid, bundleName);
+    ErrCode result = controlManagerPtr_->GetAssociatedData(name, key, value, uid);
 
     return result;
 }
@@ -198,15 +200,16 @@ ErrCode InnerAppAccountManager::SetAssociatedData(const std::string &name, const
         return ERR_APPACCOUNT_SERVICE_CONTROL_MANAGER_PTR_IS_NULLPTR;
     }
 
-    AppAccountInfo appAccountInfo(name, bundleName);
-    ErrCode result = controlManagerPtr_->SetAssociatedData(name, key, value, uid, bundleName, appAccountInfo);
+    ErrCode result = controlManagerPtr_->SetAssociatedData(name, key, value, uid, bundleName);
 
     if (!subscribeManagerPtr_) {
         ACCOUNT_LOGE("subscribeManagerPtr_ is nullptr");
-    } else if (subscribeManagerPtr_->PublishAccount(appAccountInfo, uid, bundleName) != true) {
+        return result;
+    }
+    AppAccountInfo appAccountInfo(name, bundleName);
+    if (!subscribeManagerPtr_->PublishAccount(appAccountInfo, uid, bundleName)) {
         ACCOUNT_LOGE("failed to publish account");
     }
-
     return result;
 }
 

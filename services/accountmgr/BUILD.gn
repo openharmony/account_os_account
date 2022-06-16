@@ -131,6 +131,7 @@ ohos_shared_library("accountmgr") {
     "src/account_state_machine.cpp",
     "src/account_stub.cpp",
     "src/appaccount/app_account.cpp",
+    "src/appaccount/app_account_app_state_observer.cpp",
     "src/appaccount/app_account_authenticator_callback.cpp",
     "src/appaccount/app_account_authenticator_callback_proxy.cpp",
     "src/appaccount/app_account_authenticator_callback_stub.cpp",

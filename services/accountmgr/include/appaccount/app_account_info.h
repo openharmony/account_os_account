@@ -55,6 +55,7 @@ public:
     ErrCode GetSyncEnable(bool &syncEnable) const;
     ErrCode SetSyncEnable(const bool &syncEnable);
 
+    ErrCode GetAllAssociatedData(std::map<std::string, std::string> &data) const;
     ErrCode GetAssociatedData(const std::string &key, std::string &value) const;
     ErrCode SetAssociatedData(const std::string &key, const std::string &value);
 
