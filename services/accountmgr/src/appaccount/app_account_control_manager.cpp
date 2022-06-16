@@ -16,11 +16,16 @@
 #include "app_account_control_manager.h"
 
 #include "account_log_wrapper.h"
+#include "app_account_app_state_observer.h"
 #include "app_account_data_storage.h"
 #include "app_account_info.h"
+#include "bundle_manager_adapter.h"
+#include "hitrace_adapter.h"
 #include "ipc_skeleton.h"
+#include "iservice_registry.h"
 #include "ohos_account_kits.h"
 #include "singleton.h"
+#include "system_ability_definition.h"
 
 namespace OHOS {
 namespace AccountSA {
@@ -241,48 +246,104 @@ ErrCode AppAccountControlManager::SetAppAccountSyncEnable(const std::string &nam
     return ERR_OK;
 }
 
-ErrCode AppAccountControlManager::GetAssociatedData(const std::string &name, const std::string &key,
-    std::string &value, const uid_t &uid, const std::string &bundleName)
+void AppAccountControlManager::PopDataFromAssociatedDataCache()
 {
+    auto it = associatedDataCache_.begin();
+    auto toPopedIt = it++;
+    for (; it != associatedDataCache_.end(); ++it) {
+        if (toPopedIt->second.freq > it->second.freq) {
+            toPopedIt = it;
+        }
+        it->second.freq = 0;
+    }
+    associatedDataCache_.erase(toPopedIt);
+}
+
+ErrCode AppAccountControlManager::GetAssociatedDataFromStorage(const std::string &name, const std::string &key,
+    std::string &value, const uid_t &uid)
+{
+    ACCOUNT_LOGD("enter");
+    std::string bundleName;
+    if (!BundleManagerAdapter::GetInstance()->GetBundleNameForUid(uid, bundleName)) {
+        ACCOUNT_LOGD("failed to get bundle name");
+        return ERR_APPACCOUNT_SERVICE_GET_BUNDLE_NAME;
+    }
     AppAccountInfo appAccountInfo(name, bundleName);
-    std::shared_ptr<AppAccountDataStorage> dataStoragePtr = GetDataStorage(uid);
-    ErrCode result = GetAccountInfoFromDataStorage(appAccountInfo, dataStoragePtr);
+    std::shared_ptr<AppAccountDataStorage> storePtr = GetDataStorage(uid);
+    if (storePtr == nullptr) {
+        ACCOUNT_LOGD("failed to get data storage");
+        return ERR_APPACCOUNT_SERVICE_DATA_STORAGE_PTR_IS_NULLPTR;
+    }
+    ErrCode result = GetAccountInfoFromDataStorage(appAccountInfo, storePtr);
     if (result != ERR_OK) {
-        ACCOUNT_LOGE("failed to get account info from data storage, result %{public}d.", result);
+        ACCOUNT_LOGD("failed to get account info from data storage");
         return result;
     }
-
-    result = appAccountInfo.GetAssociatedData(key, value);
-    if (result != ERR_OK) {
-        ACCOUNT_LOGE("failed to get associated data, result %{public}d.", result);
-        return ERR_APPACCOUNT_SERVICE_GET_ASSOCIATED_DATA;
+    AssociatedDataCacheItem item;
+    item.name = name;
+    item.freq = 0;
+    appAccountInfo.GetAllAssociatedData(item.data);
+    if ((associatedDataCache_.size() == 0) && (!RegisterApplicationStateObserver())) {
+        ACCOUNT_LOGD("failed to register application state observer");
+        return ERR_OK;
     }
+    if (associatedDataCache_.size() >= ASSOCIATED_DATA_CACHE_MAX_SIZE) {
+        PopDataFromAssociatedDataCache();
+    }
+    associatedDataCache_.emplace(uid, item);
+    auto it = item.data.find(key);
+    if (it == item.data.end()) {
+        return ERR_APPACCOUNT_SERVICE_ASSOCIATED_DATA_KEY_NOT_EXIST;
+    }
+    value = it->second;
+    return ERR_OK;
+}
 
+ErrCode AppAccountControlManager::GetAssociatedData(const std::string &name, const std::string &key,
+    std::string &value, const uid_t &uid)
+{
+    ACCOUNT_LOGD("enter");
+    std::lock_guard<std::mutex> lock(associatedDataMutex_);
+    auto it = associatedDataCache_.find(uid);
+    if ((it == associatedDataCache_.end()) || (it->second.name != name)) {
+        associatedDataCache_.erase(uid);
+        return GetAssociatedDataFromStorage(name, key, value, uid);
+    }
+    it->second.freq++;
+    auto dataIt = it->second.data.find(key);
+    if (dataIt == it->second.data.end()) {
+        return ERR_APPACCOUNT_SERVICE_ASSOCIATED_DATA_KEY_NOT_EXIST;
+    }
+    value = dataIt->second;
     return ERR_OK;
 }
 
 ErrCode AppAccountControlManager::SetAssociatedData(const std::string &name, const std::string &key,
-    const std::string &value, const uid_t &uid, const std::string &bundleName, AppAccountInfo &appAccountInfo)
+    const std::string &value, const uid_t &uid, const std::string &bundleName)
 {
-    std::shared_ptr<AppAccountDataStorage> dataStoragePtr = GetDataStorage(uid);
-    ErrCode result = GetAccountInfoFromDataStorage(appAccountInfo, dataStoragePtr);
+    ACCOUNT_LOGD("enter");
+    std::shared_ptr<AppAccountDataStorage> storePtr = GetDataStorage(uid);
+    AppAccountInfo appAccountInfo(name, bundleName);
+    std::lock_guard<std::mutex> lock(associatedDataMutex_);
+    ErrCode result = GetAccountInfoFromDataStorage(appAccountInfo, storePtr);
     if (result != ERR_OK) {
-        ACCOUNT_LOGE("failed to get account info from data storage, result %{public}d.", result);
+        ACCOUNT_LOGD("failed to get account info from data storage, result %{public}d.", result);
         return result;
     }
-
     result = appAccountInfo.SetAssociatedData(key, value);
     if (result != ERR_OK) {
-        ACCOUNT_LOGE("failed to set associated data, result %{public}d.", result);
+        ACCOUNT_LOGD("failed to set associated data, result %{public}d.", result);
         return ERR_APPACCOUNT_SERVICE_SET_ASSOCIATED_DATA;
     }
-
-    result = SaveAccountInfoIntoDataStorage(appAccountInfo, dataStoragePtr, uid);
+    result = SaveAccountInfoIntoDataStorage(appAccountInfo, storePtr, uid);
     if (result != ERR_OK) {
-        ACCOUNT_LOGE("failed to save account info into data storage, result %{public}d.", result);
+        ACCOUNT_LOGD("failed to save account info into data storage, result %{public}d.", result);
         return result;
     }
-
+    auto it = associatedDataCache_.find(uid);
+    if ((it != associatedDataCache_.end()) && (it->second.name == name)) {
+        it->second.data[key] = value;
+    }
     return ERR_OK;
 }
 
@@ -609,6 +670,57 @@ ErrCode AppAccountControlManager::OnUserRemoved(int32_t userId)
     storePtrMap_.erase(storeId);
     storePtrMap_.erase(syncStoreId);
     return ERR_OK;
+}
+
+bool AppAccountControlManager::RegisterApplicationStateObserver()
+{
+    ACCOUNT_LOGD("enter");
+    if (appStateObserver_ != nullptr) {
+        return false;
+    }
+    appStateObserver_ = new (std::nothrow) AppAccountAppStateObserver();
+    if (appStateObserver_ == nullptr) {
+        ACCOUNT_LOGE("failed to create AppAccountAppStateObserver instance");
+        return false;
+    }
+    sptr<ISystemAbilityManager> samgrClient = SystemAbilityManagerClient::GetInstance().GetSystemAbilityManager();
+    if (samgrClient == nullptr) {
+        ACCOUNT_LOGE("failed to system ability manager");
+        return false;
+    }
+    iAppMgr_ = iface_cast<AppExecFwk::IAppMgr>(samgrClient->GetSystemAbility(APP_MGR_SERVICE_ID));
+    if (iAppMgr_ == nullptr) {
+        appStateObserver_ = nullptr;
+        ACCOUNT_LOGE("failed to get ability manager service");
+        return false;
+    }
+    int32_t result = iAppMgr_->RegisterApplicationStateObserver(appStateObserver_);
+    if (result != ERR_OK) {
+        return false;
+    }
+    return true;
+}
+
+void AppAccountControlManager::UnregisterApplicationStateObserver()
+{
+    if (iAppMgr_) {
+        iAppMgr_->UnregisterApplicationStateObserver(appStateObserver_);
+    }
+    iAppMgr_ = nullptr;
+    appStateObserver_ = nullptr;
+}
+
+void AppAccountControlManager::OnAbilityStateChanged(const AppExecFwk::AbilityStateData &abilityStateData)
+{
+    ACCOUNT_LOGE("enter");
+    if (abilityStateData.abilityState != Constants::ABILITY_STATE_TERMINATED) {
+        return;
+    }
+    std::lock_guard<std::mutex> lock(associatedDataMutex_);
+    associatedDataCache_.erase(abilityStateData.uid);
+    if (associatedDataCache_.size() == 0) {
+        UnregisterApplicationStateObserver();
+    }
 }
 
 ErrCode AppAccountControlManager::GetAllAccountsFromDataStorage(const std::string &owner,

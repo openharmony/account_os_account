@@ -38,6 +38,7 @@ const std::string KEY_CALLER_ABILITY_NAME = "callerAbilityName";
 const std::string KEY_CALLER_PID = "callerPid";
 const std::string KEY_CALLER_UID = "callerUid";
 const std::string SPECIAL_CHARACTERS = " ";
+constexpr int32_t ABILITY_STATE_TERMINATED = 4;
 constexpr std::size_t APP_ACCOUNT_SUBSCRIBER_MAX_SIZE = 200;
 constexpr std::size_t NAME_MAX_SIZE = 512;
 constexpr std::size_t EXTRA_INFO_MAX_SIZE = 1024;
