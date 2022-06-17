@@ -283,20 +283,22 @@ ErrCode AppAccountControlManager::GetAssociatedDataFromStorage(const std::string
     item.name = name;
     item.freq = 0;
     appAccountInfo.GetAllAssociatedData(item.data);
+    auto it = item.data.find(key);
+    if (it != item.data.end()) {
+        value = it->second;
+    } else {
+        ACCOUNT_LOGD("key not exists");
+        result = ERR_APPACCOUNT_SERVICE_ASSOCIATED_DATA_KEY_NOT_EXIST;
+    }
     if ((associatedDataCache_.size() == 0) && (!RegisterApplicationStateObserver())) {
         ACCOUNT_LOGD("failed to register application state observer");
-        return ERR_OK;
+        return result;
     }
     if (associatedDataCache_.size() >= ASSOCIATED_DATA_CACHE_MAX_SIZE) {
         PopDataFromAssociatedDataCache();
     }
     associatedDataCache_.emplace(uid, item);
-    auto it = item.data.find(key);
-    if (it == item.data.end()) {
-        return ERR_APPACCOUNT_SERVICE_ASSOCIATED_DATA_KEY_NOT_EXIST;
-    }
-    value = it->second;
-    return ERR_OK;
+    return result;
 }
 
 ErrCode AppAccountControlManager::GetAssociatedData(const std::string &name, const std::string &key,
