@@ -20,20 +20,20 @@ ohos_moduletest("account_command_create_module_test") {
   module_out_path = module_output_path
 
   include_dirs = [
-    "${aafwk_path}/tools/aa/include",
-    "${aafwk_path}/tools/test/systemtest/aa",
+    "${ability_runtime_path}/tools/aa/include",
+    "${ability_runtime_path}/tools/test/systemtest/aa",
   ]
 
   sources = [
-    "${aafwk_path}/tools/aa/src/shell_command.cpp",
-    "${aafwk_path}/tools/test/systemtest/aa/tool_system_test.cpp",
+    "${ability_runtime_path}/tools/aa/src/shell_command.cpp",
+    "${ability_runtime_path}/tools/test/systemtest/aa/tool_system_test.cpp",
     "${tools_path}/acm/src/account_command.cpp",
     "account_command_create_module_test.cpp",
     "account_command_util.cpp",
   ]
 
   configs = [
-    "${aafwk_path}/interfaces/inner_api/ability_manager:ability_manager_public_config",
+    "${ability_runtime_path}/interfaces/inner_api/ability_manager:ability_manager_public_config",
     "${tools_path}/acm:tools_acm_config",
   ]
 
@@ -61,20 +61,20 @@ ohos_moduletest("account_command_delete_module_test") {
   module_out_path = module_output_path
 
   include_dirs = [
-    "${aafwk_path}/tools/aa/include",
-    "${aafwk_path}/tools/test/systemtest/aa",
+    "${ability_runtime_path}/tools/aa/include",
+    "${ability_runtime_path}/tools/test/systemtest/aa",
   ]
 
   sources = [
-    "${aafwk_path}/tools/aa/src/shell_command.cpp",
-    "${aafwk_path}/tools/test/systemtest/aa/tool_system_test.cpp",
+    "${ability_runtime_path}/tools/aa/src/shell_command.cpp",
+    "${ability_runtime_path}/tools/test/systemtest/aa/tool_system_test.cpp",
     "${tools_path}/acm/src/account_command.cpp",
     "account_command_delete_module_test.cpp",
     "account_command_util.cpp",
   ]
 
   configs = [
-    "${aafwk_path}/interfaces/inner_api/ability_manager:ability_manager_public_config",
+    "${ability_runtime_path}/interfaces/inner_api/ability_manager:ability_manager_public_config",
     "${tools_path}/acm:tools_acm_config",
   ]
 
@@ -102,20 +102,20 @@ ohos_moduletest("account_command_dump_module_test") {
   module_out_path = module_output_path
 
   include_dirs = [
-    "${aafwk_path}/tools/aa/include",
-    "${aafwk_path}/tools/test/systemtest/aa",
+    "${ability_runtime_path}/tools/aa/include",
+    "${ability_runtime_path}/tools/test/systemtest/aa",
   ]
 
   sources = [
-    "${aafwk_path}/tools/aa/src/shell_command.cpp",
-    "${aafwk_path}/tools/test/systemtest/aa/tool_system_test.cpp",
+    "${ability_runtime_path}/tools/aa/src/shell_command.cpp",
+    "${ability_runtime_path}/tools/test/systemtest/aa/tool_system_test.cpp",
     "${tools_path}/acm/src/account_command.cpp",
     "account_command_dump_module_test.cpp",
     "account_command_util.cpp",
   ]
 
   configs = [
-    "${aafwk_path}/interfaces/inner_api/ability_manager:ability_manager_public_config",
+    "${ability_runtime_path}/interfaces/inner_api/ability_manager:ability_manager_public_config",
     "${tools_path}/acm:tools_acm_config",
   ]
 
@@ -143,20 +143,20 @@ ohos_moduletest("account_command_set_module_test") {
   module_out_path = module_output_path
 
   include_dirs = [
-    "${aafwk_path}/tools/aa/include",
-    "${aafwk_path}/tools/test/systemtest/aa",
+    "${ability_runtime_path}/tools/aa/include",
+    "${ability_runtime_path}/tools/test/systemtest/aa",
   ]
 
   sources = [
-    "${aafwk_path}/tools/aa/src/shell_command.cpp",
-    "${aafwk_path}/tools/test/systemtest/aa/tool_system_test.cpp",
+    "${ability_runtime_path}/tools/aa/src/shell_command.cpp",
+    "${ability_runtime_path}/tools/test/systemtest/aa/tool_system_test.cpp",
     "${tools_path}/acm/src/account_command.cpp",
     "account_command_set_module_test.cpp",
     "account_command_util.cpp",
   ]
 
   configs = [
-    "${aafwk_path}/interfaces/inner_api/ability_manager:ability_manager_public_config",
+    "${ability_runtime_path}/interfaces/inner_api/ability_manager:ability_manager_public_config",
     "${tools_path}/acm:tools_acm_config",
   ]
 
@@ -184,20 +184,20 @@ ohos_moduletest("account_command_switch_module_test") {
   module_out_path = module_output_path
 
   include_dirs = [
-    "${aafwk_path}/tools/aa/include",
-    "${aafwk_path}/tools/test/systemtest/aa",
+    "${ability_runtime_path}/tools/aa/include",
+    "${ability_runtime_path}/tools/test/systemtest/aa",
   ]
 
   sources = [
-    "${aafwk_path}/tools/aa/src/shell_command.cpp",
-    "${aafwk_path}/tools/test/systemtest/aa/tool_system_test.cpp",
+    "${ability_runtime_path}/tools/aa/src/shell_command.cpp",
+    "${ability_runtime_path}/tools/test/systemtest/aa/tool_system_test.cpp",
     "${tools_path}/acm/src/account_command.cpp",
     "account_command_switch_module_test.cpp",
     "account_command_util.cpp",
   ]
 
   configs = [
-    "${aafwk_path}/interfaces/inner_api/ability_manager:ability_manager_public_config",
+    "${ability_runtime_path}/interfaces/inner_api/ability_manager:ability_manager_public_config",
     "${tools_path}/acm:tools_acm_config",
   ]
 

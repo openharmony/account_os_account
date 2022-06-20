@@ -22,13 +22,13 @@ ohos_unittest("account_command_create_test") {
   include_dirs = []
 
   sources = [
-    "${aafwk_path}/tools/aa/src/shell_command.cpp",
+    "${ability_runtime_path}/tools/aa/src/shell_command.cpp",
     "${tools_path}/acm/src/account_command.cpp",
     "account_command_create_test.cpp",
   ]
 
   configs = [
-    "${aafwk_path}/tools/aa:ability_command_config",
+    "${ability_runtime_path}/tools/aa:ability_command_config",
     "${tools_path}/acm:tools_acm_config",
   ]
 
@@ -56,13 +56,13 @@ ohos_unittest("account_command_delete_test") {
   include_dirs = []
 
   sources = [
-    "${aafwk_path}/tools/aa/src/shell_command.cpp",
+    "${ability_runtime_path}/tools/aa/src/shell_command.cpp",
     "${tools_path}/acm/src/account_command.cpp",
     "account_command_delete_test.cpp",
   ]
 
   configs = [
-    "${aafwk_path}/tools/aa:ability_command_config",
+    "${ability_runtime_path}/tools/aa:ability_command_config",
     "${tools_path}/acm:tools_acm_config",
   ]
 
@@ -90,13 +90,13 @@ ohos_unittest("account_command_dump_test") {
   include_dirs = []
 
   sources = [
-    "${aafwk_path}/tools/aa/src/shell_command.cpp",
+    "${ability_runtime_path}/tools/aa/src/shell_command.cpp",
     "${tools_path}/acm/src/account_command.cpp",
     "account_command_dump_test.cpp",
   ]
 
   configs = [
-    "${aafwk_path}/tools/aa:ability_command_config",
+    "${ability_runtime_path}/tools/aa:ability_command_config",
     "${tools_path}/acm:tools_acm_config",
   ]
 
@@ -124,13 +124,13 @@ ohos_unittest("account_command_set_test") {
   include_dirs = []
 
   sources = [
-    "${aafwk_path}/tools/aa/src/shell_command.cpp",
+    "${ability_runtime_path}/tools/aa/src/shell_command.cpp",
     "${tools_path}/acm/src/account_command.cpp",
     "account_command_set_test.cpp",
   ]
 
   configs = [
-    "${aafwk_path}/tools/aa:ability_command_config",
+    "${ability_runtime_path}/tools/aa:ability_command_config",
     "${tools_path}/acm:tools_acm_config",
   ]
 
@@ -158,13 +158,13 @@ ohos_unittest("account_command_switch_test") {
   include_dirs = []
 
   sources = [
-    "${aafwk_path}/tools/aa/src/shell_command.cpp",
+    "${ability_runtime_path}/tools/aa/src/shell_command.cpp",
     "${tools_path}/acm/src/account_command.cpp",
     "account_command_switch_test.cpp",
   ]
 
   configs = [
-    "${aafwk_path}/tools/aa:ability_command_config",
+    "${ability_runtime_path}/tools/aa:ability_command_config",
     "${tools_path}/acm:tools_acm_config",
   ]
 
@@ -192,13 +192,13 @@ ohos_unittest("account_command_test") {
   include_dirs = []
 
   sources = [
-    "${aafwk_path}/tools/aa/src/shell_command.cpp",
+    "${ability_runtime_path}/tools/aa/src/shell_command.cpp",
     "${tools_path}/acm/src/account_command.cpp",
     "account_command_test.cpp",
   ]
 
   configs = [
-    "${aafwk_path}/tools/aa:ability_command_config",
+    "${ability_runtime_path}/tools/aa:ability_command_config",
     "${tools_path}/acm:tools_acm_config",
   ]
 
