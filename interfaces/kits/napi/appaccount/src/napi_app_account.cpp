@@ -147,7 +147,8 @@ napi_value NapiAppAccount::AddAccount(napi_env env, napi_callback_info cbInfo)
         [](napi_env env, void *data) {
             ACCOUNT_LOGD("AddAccount, napi_create_async_work running.");
             AppAccountAsyncContext *asyncContext = reinterpret_cast<AppAccountAsyncContext *>(data);
-            asyncContext->errCode = AppAccountManager::AddAccount(asyncContext->name, asyncContext->extraInfo);
+            ErrCode errCode = AppAccountManager::AddAccount(asyncContext->name, asyncContext->extraInfo);
+            asyncContext->errCode = ConvertToJSErrCode(errCode);
             ACCOUNT_LOGD("AddAccount errcode parameter is %{public}d", asyncContext->errCode);
             asyncContext->status = asyncContext->errCode == 0 ? napi_ok : napi_generic_failure;
         },
@@ -248,7 +249,8 @@ napi_value NapiAppAccount::DeleteAccount(napi_env env, napi_callback_info cbInfo
         [](napi_env env, void *data) {
             ACCOUNT_LOGD("DeleteAccount, napi_create_async_work running.");
             AppAccountAsyncContext *asyncContext = reinterpret_cast<AppAccountAsyncContext *>(data);
-            asyncContext->errCode = AppAccountManager::DeleteAccount(asyncContext->name);
+            ErrCode errCode = AppAccountManager::DeleteAccount(asyncContext->name);
+            asyncContext->errCode = ConvertToJSErrCode(errCode);
             ACCOUNT_LOGD("DeleteAccount errcode parameter is %{public}d", asyncContext->errCode);
             asyncContext->status = asyncContext->errCode == 0 ? napi_ok : napi_generic_failure;
         },
@@ -299,7 +301,8 @@ napi_value NapiAppAccount::DisableAppAccess(napi_env env, napi_callback_info cbI
         [](napi_env env, void *data) {
             ACCOUNT_LOGD("DisableAppAccess, napi_create_async_work running.");
             AppAccountAsyncContext *asyncContext = reinterpret_cast<AppAccountAsyncContext *>(data);
-            asyncContext->errCode = AppAccountManager::DisableAppAccess(asyncContext->name, asyncContext->bundleName);
+            ErrCode errCode = AppAccountManager::DisableAppAccess(asyncContext->name, asyncContext->bundleName);
+            asyncContext->errCode = ConvertToJSErrCode(errCode);
             ACCOUNT_LOGD("DisableAppAccess errcode parameter is %{public}d", asyncContext->errCode);
             asyncContext->status = asyncContext->errCode == 0 ? napi_ok : napi_generic_failure;
         },
@@ -352,7 +355,8 @@ napi_value NapiAppAccount::EnableAppAccess(napi_env env, napi_callback_info cbIn
         [](napi_env env, void *data) {
             ACCOUNT_LOGD("EnableAppAccess, napi_create_async_work running.");
             AppAccountAsyncContext *asyncContext = reinterpret_cast<AppAccountAsyncContext *>(data);
-            asyncContext->errCode = AppAccountManager::EnableAppAccess(asyncContext->name, asyncContext->bundleName);
+            ErrCode errCode = AppAccountManager::EnableAppAccess(asyncContext->name, asyncContext->bundleName);
+            asyncContext->errCode = ConvertToJSErrCode(errCode);
             ACCOUNT_LOGD("EnableAppAccess errcode parameter is %{public}d", asyncContext->errCode);
             asyncContext->status = asyncContext->errCode == 0 ? napi_ok : napi_generic_failure;
         },
@@ -403,8 +407,9 @@ napi_value NapiAppAccount::CheckAppAccountSyncEnable(napi_env env, napi_callback
         [](napi_env env, void *data) {
             ACCOUNT_LOGD("CheckAppAccountSyncEnable, napi_create_async_work running.");
             AppAccountAsyncContext *asyncContext = reinterpret_cast<AppAccountAsyncContext *>(data);
-            asyncContext->errCode =
+            ErrCode errCode =
                 AppAccountManager::CheckAppAccountSyncEnable(asyncContext->name, asyncContext->result);
+            asyncContext->errCode = ConvertToJSErrCode(errCode);
             ACCOUNT_LOGD("CheckAppAccountSyncEnable errcode parameter is %{public}d", asyncContext->errCode);
             asyncContext->status = asyncContext->errCode == 0 ? napi_ok : napi_generic_failure;
         },
@@ -455,8 +460,9 @@ napi_value NapiAppAccount::SetAccountCredential(napi_env env, napi_callback_info
         [](napi_env env, void *data) {
             ACCOUNT_LOGD("SetAccountCredential, napi_create_async_work running.");
             AppAccountAsyncContext *asyncContext = reinterpret_cast<AppAccountAsyncContext *>(data);
-            asyncContext->errCode = AppAccountManager::SetAccountCredential(
+            ErrCode errCode = AppAccountManager::SetAccountCredential(
                 asyncContext->name, asyncContext->credentialType, asyncContext->credential);
+            asyncContext->errCode = ConvertToJSErrCode(errCode);
             ACCOUNT_LOGD("SetAccountCredential errcode parameter is %{public}d", asyncContext->errCode);
             asyncContext->status = asyncContext->errCode == 0 ? napi_ok : napi_generic_failure;
         },
@@ -507,8 +513,9 @@ napi_value NapiAppAccount::SetAccountExtraInfo(napi_env env, napi_callback_info 
         [](napi_env env, void *data) {
             ACCOUNT_LOGD("SetAccountExtraInfo, napi_create_async_work running.");
             AppAccountAsyncContext *asyncContext = reinterpret_cast<AppAccountAsyncContext *>(data);
-            asyncContext->errCode = AppAccountManager::SetAccountExtraInfo(
+            ErrCode errCode = AppAccountManager::SetAccountExtraInfo(
                 asyncContext->name, asyncContext->extraInfo);
+            asyncContext->errCode = ConvertToJSErrCode(errCode);
             ACCOUNT_LOGD("SetAccountExtraInfo errcode parameter is %{public}d", asyncContext->errCode);
             asyncContext->status = asyncContext->errCode == 0 ? napi_ok : napi_generic_failure;
         },
@@ -559,8 +566,9 @@ napi_value NapiAppAccount::SetAppAccountSyncEnable(napi_env env, napi_callback_i
         [](napi_env env, void *data) {
             ACCOUNT_LOGD("SetAppAccountSyncEnable, napi_create_async_work running.");
             AppAccountAsyncContext *asyncContext = reinterpret_cast<AppAccountAsyncContext *>(data);
-            asyncContext->errCode =
+            ErrCode errCode =
                 AppAccountManager::SetAppAccountSyncEnable(asyncContext->name, asyncContext->isEnable);
+            asyncContext->errCode = ConvertToJSErrCode(errCode);
             ACCOUNT_LOGD("SetAppAccountSyncEnable errcode parameter is %{public}d", asyncContext->errCode);
             asyncContext->status = asyncContext->errCode == 0 ? napi_ok : napi_generic_failure;
         },
@@ -611,8 +619,9 @@ napi_value NapiAppAccount::SetAssociatedData(napi_env env, napi_callback_info cb
         [](napi_env env, void *data) {
             ACCOUNT_LOGD("SetAssociatedData, napi_create_async_work running.");
             AppAccountAsyncContext *asyncContext = reinterpret_cast<AppAccountAsyncContext *>(data);
-            asyncContext->errCode =
+            ErrCode errCode =
                 AppAccountManager::SetAssociatedData(asyncContext->name, asyncContext->key, asyncContext->value);
+            asyncContext->errCode = ConvertToJSErrCode(errCode);
             ACCOUNT_LOGD("SetAssociatedData errcode parameter is %{public}d", asyncContext->errCode);
             asyncContext->status = asyncContext->errCode == 0 ? napi_ok : napi_generic_failure;
         },
@@ -663,7 +672,8 @@ napi_value NapiAppAccount::GetAllAccessibleAccounts(napi_env env, napi_callback_
         [](napi_env env, void *data) {
             ACCOUNT_LOGD("GetAllAccessibleAccounts, napi_create_async_work running.");
             GetAccountsAsyncContext *asyncContext = reinterpret_cast<GetAccountsAsyncContext *>(data);
-            asyncContext->errCode = AppAccountManager::GetAllAccessibleAccounts(asyncContext->appAccounts);
+            ErrCode errCode = AppAccountManager::GetAllAccessibleAccounts(asyncContext->appAccounts);
+            asyncContext->errCode = ConvertToJSErrCode(errCode);
             ACCOUNT_LOGD("GetAllAccessibleAccounts errcode parameter is %{public}d", asyncContext->errCode);
             asyncContext->status = asyncContext->errCode == 0 ? napi_ok : napi_generic_failure;
         },
@@ -715,7 +725,8 @@ napi_value NapiAppAccount::GetAllAccounts(napi_env env, napi_callback_info cbInf
         [](napi_env env, void *data) {
             ACCOUNT_LOGD("GetAllAccounts, napi_create_async_work running.");
             GetAccountsAsyncContext *asyncContext = reinterpret_cast<GetAccountsAsyncContext *>(data);
-            asyncContext->errCode = AppAccountManager::GetAllAccounts(asyncContext->owner, asyncContext->appAccounts);
+            ErrCode errCode = AppAccountManager::GetAllAccounts(asyncContext->owner, asyncContext->appAccounts);
+            asyncContext->errCode = ConvertToJSErrCode(errCode);
             ACCOUNT_LOGD("GetAllAccounts errcode parameter is %{public}d", asyncContext->errCode);
             asyncContext->status = asyncContext->errCode == 0 ? napi_ok : napi_generic_failure;
         },
@@ -767,8 +778,9 @@ napi_value NapiAppAccount::GetAccountCredential(napi_env env, napi_callback_info
         [](napi_env env, void *data) {
             ACCOUNT_LOGD("GetAccountCredential, napi_create_async_work running.");
             AppAccountAsyncContext *asyncContext = reinterpret_cast<AppAccountAsyncContext *>(data);
-            asyncContext->errCode = AppAccountManager::GetAccountCredential(
+            ErrCode errCode = AppAccountManager::GetAccountCredential(
                 asyncContext->name, asyncContext->credentialType, asyncContext->credential);
+            asyncContext->errCode = ConvertToJSErrCode(errCode);
             ACCOUNT_LOGD("GetAccountCredential errcode parameter is %{public}d", asyncContext->errCode);
             asyncContext->status = asyncContext->errCode == 0 ? napi_ok : napi_generic_failure;
         },
@@ -819,7 +831,8 @@ napi_value NapiAppAccount::GetAccountExtraInfo(napi_env env, napi_callback_info 
         [](napi_env env, void *data) {
             ACCOUNT_LOGD("GetAccountExtraInfo, napi_create_async_work running.");
             AppAccountAsyncContext *asyncContext = reinterpret_cast<AppAccountAsyncContext *>(data);
-            asyncContext->errCode = AppAccountManager::GetAccountExtraInfo(asyncContext->name, asyncContext->extraInfo);
+            ErrCode errCode = AppAccountManager::GetAccountExtraInfo(asyncContext->name, asyncContext->extraInfo);
+            asyncContext->errCode = ConvertToJSErrCode(errCode);
             ACCOUNT_LOGD("GetAccountExtraInfo errcode parameter is %{public}d", asyncContext->errCode);
             asyncContext->status = asyncContext->errCode == 0 ? napi_ok : napi_generic_failure;
         },
@@ -870,8 +883,9 @@ napi_value NapiAppAccount::GetAssociatedData(napi_env env, napi_callback_info cb
         [](napi_env env, void *data) {
             ACCOUNT_LOGD("GetAssociatedData, napi_create_async_work running.");
             AppAccountAsyncContext *asyncContext = reinterpret_cast<AppAccountAsyncContext *>(data);
-            asyncContext->errCode =
+            ErrCode errCode =
                 AppAccountManager::GetAssociatedData(asyncContext->name, asyncContext->key, asyncContext->value);
+            asyncContext->errCode = ConvertToJSErrCode(errCode);
             ACCOUNT_LOGD("GetAssociatedData errcode parameter is %{public}d", asyncContext->errCode);
             asyncContext->status = asyncContext->errCode == 0 ? napi_ok : napi_generic_failure;
         },
