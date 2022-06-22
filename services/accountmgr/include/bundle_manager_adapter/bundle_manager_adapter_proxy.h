@@ -113,7 +113,7 @@ public:
      * @return Returns true if the BundlePackInfo is successfully obtained; returns false otherwise.
      */
     virtual bool GetBundlePackInfo(const std::string &bundleName, const BundlePackFlag flags,
-        BundlePackInfo &bundlePackInfo) override;
+        BundlePackInfo &bundlePackInfo, int32_t userId = Constants::UNSPECIFIED_USERID) override;
     /**
      * @brief Obtains the BundlePackInfo based on a given bundle name.
      * @param bundleName Indicates the application bundle name to be queried.
@@ -122,7 +122,7 @@ public:
      * @return Returns true if the BundlePackInfo is successfully obtained; returns false otherwise.
      */
     virtual bool GetBundlePackInfo(const std::string &bundleName, int32_t flags,
-        BundlePackInfo &bundlePackInfo) override;
+        BundlePackInfo &bundlePackInfo, int32_t userId = Constants::UNSPECIFIED_USERID) override;
     /**
      * @brief Obtains BundleInfo of all bundles available in the system through the proxy object.
      * @param flag Indicates the flag used to specify information contained in the BundleInfo that will be returned.

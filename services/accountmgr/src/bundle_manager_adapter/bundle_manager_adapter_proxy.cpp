@@ -99,14 +99,14 @@ bool BundleManagerAdapterProxy::GetBundleInfo(
 }
 
 bool BundleManagerAdapterProxy::GetBundlePackInfo(
-    const std::string &bundleName, const BundlePackFlag flag, BundlePackInfo &bundlePackInfo)
+    const std::string &bundleName, const BundlePackFlag flag, BundlePackInfo &bundlePackInfo, int32_t userId)
 {
     ACCOUNT_LOGE("not support interface!");
     return false;
 }
 
 bool BundleManagerAdapterProxy::GetBundlePackInfo(const std::string &bundleName, int32_t flags,
-    BundlePackInfo &bundlePackInfo)
+    BundlePackInfo &bundlePackInfo, int32_t userId)
 {
     ACCOUNT_LOGE("not support interface!");
     return false;
