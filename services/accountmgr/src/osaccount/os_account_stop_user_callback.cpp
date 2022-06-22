@@ -21,11 +21,11 @@ namespace OHOS {
 namespace AccountSA {
 void OsAccountStopUserCallback::OnStopUserDone(int userId, int errcode)
 {
-    ACCOUNT_LOGE("in call back account, id is %{public}d", userId);
-    ACCOUNT_LOGE("in call back account, errcode is %{public}d", errcode);
+    ACCOUNT_LOGI("in call back account, id is %{public}d, errcode is %{public}d.",
+        userId, errcode);
     isCallBackOk_ = true;
     if (errcode == 0) {
-        isReaturnOk_ = true;
+        isReturnOk_ = true;
     }
 }
 }  // namespace AccountSA

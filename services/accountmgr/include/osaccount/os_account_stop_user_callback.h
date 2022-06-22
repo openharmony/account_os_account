@@ -26,7 +26,7 @@ public:
 
 public:
     bool isCallBackOk_ = false;
-    bool isReaturnOk_ = false;
+    bool isReturnOk_ = false;
 };
 }  // namespace AccountSA
 }  // namespace OHOS

@@ -18,8 +18,6 @@
 
 #include "account_error_no.h"
 #include "app_account_common.h"
-#include "bundle_mgr_interface.h"
-#include "bundle_mgr_proxy.h"
 #include "singleton.h"
 
 namespace OHOS {
@@ -35,7 +33,6 @@ private:
 
 private:
     bool isInitialized_ = false;
-    sptr<AppExecFwk::IBundleMgr> bundleMgr_ = nullptr;
 };
 }  // namespace AccountSA
 }  // namespace OHOS

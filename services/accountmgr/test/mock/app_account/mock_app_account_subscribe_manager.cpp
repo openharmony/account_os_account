@@ -25,33 +25,35 @@ namespace OHOS {
 namespace AccountSA {
 MockAppAccountSubscribeManager::MockAppAccountSubscribeManager()
 {
-    ACCOUNT_LOGI("enter");
+    ACCOUNT_LOGI("mock enter");
 }
 
 MockAppAccountSubscribeManager::~MockAppAccountSubscribeManager()
 {
-    ACCOUNT_LOGI("enter");
+    ACCOUNT_LOGI("mock enter");
 }
 
 ErrCode MockAppAccountSubscribeManager::SubscribeAppAccount(
     const std::shared_ptr<AppAccountSubscribeInfo> &subscribeInfoPtr, const sptr<IRemoteObject> &eventListener,
     const std::string &bundleName)
 {
-    ACCOUNT_LOGI("enter");
+    ACCOUNT_LOGI("mock enter");
 
     std::vector<std::string> owners;
     if (subscribeInfoPtr->GetOwners(owners) != ERR_OK) {
-        ACCOUNT_LOGE("failed to get owners");
+        ACCOUNT_LOGE("mock failed to get owners");
         return ERR_APPACCOUNT_SERVICE_OTHER;
     }
 
     if (owners.size() == 0) {
-        ACCOUNT_LOGE("owners.size() = %{public}zu", owners.size());
+        ACCOUNT_LOGE("mock owners.size() = %{public}zu", owners.size());
         return ERR_APPACCOUNT_SERVICE_OTHER;
     }
 
     auto owner = owners.front();
     if (owner != STRING_OWNER) {
+        ACCOUNT_LOGE("mock owner %{public}s != STRING_OWNER %{public}s.",
+            owner.c_str(), STRING_OWNER.c_str());
         return ERR_APPACCOUNT_SERVICE_OTHER;
     }
 
@@ -60,7 +62,7 @@ ErrCode MockAppAccountSubscribeManager::SubscribeAppAccount(
 
 ErrCode MockAppAccountSubscribeManager::UnsubscribeAppAccount(const sptr<IRemoteObject> &eventListener)
 {
-    ACCOUNT_LOGI("enter");
+    ACCOUNT_LOGI("mock enter");
 
     return ERR_OK;
 }

@@ -22,7 +22,7 @@ namespace AccountSA {
 AppAccountEventListener::AppAccountEventListener(const std::shared_ptr<AppAccountSubscriber> &subscriber)
     : appAccountSubscriber_(subscriber)
 {
-    ACCOUNT_LOGI("enter");
+    ACCOUNT_LOGD("enter");
 }
 
 AppAccountEventListener::~AppAccountEventListener()
@@ -42,7 +42,7 @@ void AppAccountEventListener::OnAccountsChanged(const std::vector<AppAccountInfo
 
 void AppAccountEventListener::Stop()
 {
-    ACCOUNT_LOGI("enter");
+    ACCOUNT_LOGD("enter");
 }
 }  // namespace AccountSA
 }  // namespace OHOS

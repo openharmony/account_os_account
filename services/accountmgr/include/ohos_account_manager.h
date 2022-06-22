@@ -158,11 +158,6 @@ private:
     void BuildEventsMapper();
 
     /**
-     * Records dfx event of ohos account status
-     */
-    void ReportPublishFailureEvent(std::int32_t errCode, std::int32_t oldStatus, const AccountInfo &account);
-
-    /**
      * Config current account config.
      *
      * @param ohosAccountInfo target ohos account information.

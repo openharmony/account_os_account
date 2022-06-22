@@ -36,12 +36,14 @@ void OsAccountEventProxy::OnAccountsChanged(const int &localId)
     }
 
     if (!data.WriteInt32(localId)) {
-        ACCOUNT_LOGE("failed to write WriteInt32 localId");
+        ACCOUNT_LOGE("failed to write WriteInt32 localId %{public}d.", localId);
         return;
     }
 
     ErrCode result = SendRequest(IOsAccountEvent::Message::ACCOUNT_CHANGED, data, reply);
     if (result != ERR_OK) {
+        ACCOUNT_LOGE("SendRequest for account changed failed! result %{public}d, localId %{public}d.",
+            result, localId);
         return;
     }
 }

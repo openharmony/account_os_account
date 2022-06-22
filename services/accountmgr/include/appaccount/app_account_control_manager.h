@@ -16,6 +16,9 @@
 #ifndef OS_ACCOUNT_SERVICES_ACCOUNTMGR_INCLUDE_APPACCOUNT_APP_ACCOUNT_CONTROL_MANAGER_H
 #define OS_ACCOUNT_SERVICES_ACCOUNTMGR_INCLUDE_APPACCOUNT_APP_ACCOUNT_CONTROL_MANAGER_H
 
+#include "app_account_app_state_observer.h"
+#include "app_mgr_interface.h"
+#include "app_mgr_proxy.h"
 #include "app_account_authenticator_manager.h"
 #include "app_account_data_storage.h"
 #include "iapp_account_authenticator_callback.h"
@@ -25,6 +28,14 @@
 
 namespace OHOS {
 namespace AccountSA {
+namespace {
+struct AssociatedDataCacheItem {
+    std::map<std::string, std::string> data;
+    std::string name;
+    int32_t freq;
+};
+}
+
 class AppAccountControlManager : public DelayedSingleton<AppAccountControlManager> {
 public:
     AppAccountControlManager();
@@ -49,11 +60,9 @@ public:
         const std::string &name, bool &syncEnable, const uid_t &uid, const std::string &bundleName);
     ErrCode SetAppAccountSyncEnable(const std::string &name, const bool &syncEnable, const uid_t &uid,
         const std::string &bundleName, AppAccountInfo &appAccountInfo);
-
-    ErrCode GetAssociatedData(const std::string &name, const std::string &key, std::string &value, const uid_t &uid,
-        const std::string &bundleName);
+    ErrCode GetAssociatedData(const std::string &name, const std::string &key, std::string &value, const uid_t &uid);
     ErrCode SetAssociatedData(const std::string &name, const std::string &key, const std::string &value,
-        const uid_t &uid, const std::string &bundleName, AppAccountInfo &appAccountInfo);
+        const uid_t &uid, const std::string &bundleName);
 
     ErrCode GetAccountCredential(const std::string &name, const std::string &credentialType, std::string &credential,
         const uid_t &uid, const std::string &bundleName);
@@ -75,19 +84,27 @@ public:
         std::vector<AppAccountInfo> &appAccounts, const uid_t &uid, const std::string &bundleName);
 
     ErrCode OnPackageRemoved(const uid_t &uid, const std::string &bundleName);
+    ErrCode OnUserRemoved(int32_t userId);
 
     ErrCode GetAllAccountsFromDataStorage(const std::string &owner, std::vector<AppAccountInfo> &appAccounts,
         const std::string &bundleName, const std::shared_ptr<AppAccountDataStorage> &dataStoragePtr);
     ErrCode GetAllAccessibleAccountsFromDataStorage(std::vector<AppAccountInfo> &appAccounts,
         const std::string &bundleName, const std::shared_ptr<AppAccountDataStorage> &dataStoragePtr);
+    std::shared_ptr<AppAccountDataStorage> GetDataStorage(const uid_t &uid, const bool &autoSync = false);
+
+    void OnAbilityStateChanged(const AppExecFwk::AbilityStateData &abilityStateData);
 
 private:
-    std::shared_ptr<AppAccountDataStorage> GetDataStorage(const uid_t &uid, const bool &autoSync = false);
+    bool RegisterApplicationStateObserver();
+    void UnregisterApplicationStateObserver();
+    void PopDataFromAssociatedDataCache();
+    ErrCode GetAssociatedDataFromStorage(const std::string &name, const std::string &key, std::string &value,
+        const uid_t &uid);
+    std::shared_ptr<AppAccountDataStorage> GetDataStorageByUserId(int32_t userId, const bool &autoSync = false);
     ErrCode GetStoreId(const uid_t &uid, std::string &storeId);
-
     bool NeedSyncDataStorage(const AppAccountInfo &appAccountInfo);
     ErrCode GetAccountInfoFromDataStorage(
-        AppAccountInfo &appAccountInfo, std::shared_ptr<AppAccountDataStorage> &dataStoragePtr, const uid_t &uid);
+        AppAccountInfo &appAccountInfo, std::shared_ptr<AppAccountDataStorage> &dataStoragePtr);
     ErrCode AddAccountInfoIntoDataStorage(AppAccountInfo &appAccountInfo,
         const std::shared_ptr<AppAccountDataStorage> &dataStoragePtr, const uid_t &uid);
     ErrCode SaveAccountInfoIntoDataStorage(AppAccountInfo &appAccountInfo,
@@ -106,7 +123,14 @@ private:
 
 private:
     std::mutex mutex_;
+    std::mutex storePtrMutex_;
+    std::mutex associatedDataMutex_;
+    std::map<int32_t, AssociatedDataCacheItem> associatedDataCache_;
+    std::map<std::string, std::shared_ptr<AppAccountDataStorage>> storePtrMap_;
+    sptr<AppExecFwk::IAppMgr> iAppMgr_;
+    sptr<AppAccountAppStateObserver> appStateObserver_;
     std::size_t ACCOUNT_MAX_SIZE = 1000;
+    std::size_t ASSOCIATED_DATA_CACHE_MAX_SIZE = 5;
 };
 }  // namespace AccountSA
 }  // namespace OHOS

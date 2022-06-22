@@ -30,8 +30,8 @@ using namespace OHOS;
 using namespace OHOS::AccountSA;
 
 namespace {
-const std::string STRING_NAME = "app_account_subsrcibe_mt_name";
-const std::string STRING_NAME_TWO = "app_account_subsrcibe_mt_name_two";
+const std::string STRING_NAME = "app_account_subscribe_mt_name";
+const std::string STRING_NAME_TWO = "app_account_subscribe_mt_name_two";
 const std::string STRING_OWNER = "com.example.owner";
 const std::string STRING_BUNDLE_NAME = "com.example.third_party";
 const std::string STRING_BUNDLE_NAME_TWO = "com.example.third_party_two";
@@ -372,7 +372,7 @@ HWTEST_F(AppAccountManagerServiceSubscribeModuleTest, AppAccountManagerServiceSu
 
     // subscribe app account
     ErrCode result = g_appAccountManagerServicePtr->SubscribeAppAccount(subscribeInfo, appAccountEventListener);
-    EXPECT_EQ(result, ERR_APPACCOUNT_SERVICE_SUBSCRIBE_PERMISSON_DENIED);
+    EXPECT_EQ(result, ERR_APPACCOUNT_SERVICE_SUBSCRIBE_PERMISSION_DENIED);
 }
 
 /**

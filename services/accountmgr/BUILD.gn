@@ -35,12 +35,16 @@ ohos_prebuilt_etc("constraints_list_collection") {
 config("accountmgr_config") {
   include_dirs = [
     "./include",
+    "./include/ability_manager_adapter",
     "./include/appaccount",
     "./include/osaccount",
     "${common_path}/log/include",
     "${common_path}/perf_stat/include",
     "${common_path}/account_error/include",
     "${innerkits_path}/include",
+    "${os_account_dfx_path}/hidumper_adapter",
+    "${os_account_dfx_path}/hitrace_adapter",
+    "${os_account_dfx_path}/hisysevent_adapter",
     "//third_party/json/include",
     "//third_party/mbedtls/include",
     "//utils/native/base/include",
@@ -54,6 +58,15 @@ config("accountmgr_config") {
   cflags_cc = [ "-fexceptions" ]
 }
 
+config("ability_manager_config") {
+  include_dirs = [
+    "${aafwk_path}/interfaces/inner_api/ability_manager/include",
+    "${aafwk_path}/ability_base/interfaces/inner_api/want/include",
+    "${aafwk_path}/services/abilitymgr/include",
+    "${aafwk_path}/services/common/include",
+  ]
+}
+
 config("accountmgr_public_config") {
   visibility = [ ":*" ]
 
@@ -63,6 +76,27 @@ config("accountmgr_public_config") {
     "${services_path}/accountmgr/include/osaccount",
   ]
 }
+
+ability_manager_sources = [
+  "${aafwk_path}/services/abilitymgr/src/ability_connect_callback_stub.cpp",
+  "${aafwk_path}/services/abilitymgr/src/stop_user_callback_stub.cpp",
+  "src/ability_manager_adapter/ability_manager_adapter.cpp",
+]
+
+config("bundle_manager_config") {
+  include_dirs = [
+    "${services_path}/accountmgr/include/bundle_manager_adapter",
+    "${bundle_framework_path}/common/log/include",
+    "${bundle_framework_path}/interfaces/inner_api/appexecfwk_core/include/bundlemgr",
+  ]
+}
+
+bundle_manager_sources = [
+  "${bundle_framework_path}/common/log/src/app_log_wrapper.cpp",
+  "src/bundle_manager_adapter/bundle_manager_adapter.cpp",
+  "src/bundle_manager_adapter/bundle_manager_adapter_proxy.cpp",
+  "src/bundle_manager_adapter/bundle_user_manager_adapter_proxy.cpp",
+]
 
 group("accountmgr_target") {
   deps = [
@@ -85,9 +119,10 @@ ohos_shared_library("accountmgr") {
   ]
 
   sources = [
-    "src/account_bundle_manager.cpp",
+    "${os_account_dfx_path}/hidumper_adapter/account_dump_helper.cpp",
+    "${os_account_dfx_path}/hisysevent_adapter/hisysevent_adapter.cpp",
+    "${os_account_dfx_path}/hitrace_adapter/hitrace_adapter.cpp",
     "src/account_data_storage.cpp",
-    "src/account_dump_helper.cpp",
     "src/account_event_provider.cpp",
     "src/account_file_operator.cpp",
     "src/account_helper_data.cpp",
@@ -96,6 +131,7 @@ ohos_shared_library("accountmgr") {
     "src/account_state_machine.cpp",
     "src/account_stub.cpp",
     "src/appaccount/app_account.cpp",
+    "src/appaccount/app_account_app_state_observer.cpp",
     "src/appaccount/app_account_authenticator_callback.cpp",
     "src/appaccount/app_account_authenticator_callback_proxy.cpp",
     "src/appaccount/app_account_authenticator_callback_stub.cpp",
@@ -104,7 +140,7 @@ ohos_shared_library("accountmgr") {
     "src/appaccount/app_account_authenticator_session.cpp",
     "src/appaccount/app_account_authenticator_session_manager.cpp",
     "src/appaccount/app_account_authenticator_stub.cpp",
-    "src/appaccount/app_account_common_event_oberserver.cpp",
+    "src/appaccount/app_account_common_event_observer.cpp",
     "src/appaccount/app_account_common_event_subscriber.cpp",
     "src/appaccount/app_account_control_manager.cpp",
     "src/appaccount/app_account_data_storage.cpp",
@@ -129,12 +165,19 @@ ohos_shared_library("accountmgr") {
     "src/osaccount/os_account_subscribe_manager.cpp",
   ]
 
+  sources += ability_manager_sources
+  sources += bundle_manager_sources
+
   defines = [
     "ACCOUNT_LOG_TAG = \"AccountMgrService\"",
     "LOG_DOMAIN = 0xD001B00",
   ]
 
-  configs = [ ":accountmgr_config" ]
+  configs = [
+    ":accountmgr_config",
+    ":ability_manager_config",
+    ":bundle_manager_config",
+  ]
 
   public_configs = [ ":accountmgr_public_config" ]
 
@@ -150,21 +193,17 @@ ohos_shared_library("accountmgr") {
 
   if (has_user_idm_part) {
     cflags_cc += [ "-DHAS_USER_IDM_PART" ]
-    deps +=
-        [ "//base/user_iam/user_auth/frameworks/user_idm:useridm_framework" ]
+    deps += [ "//base/useriam/user_auth_framework/frameworks/user_idm:useridm_framework" ]
   }
 
   external_deps = [
     "ability_base:base",
     "ability_base:want",
-    "ability_runtime:ability_manager",
     "ability_runtime:app_manager",
     "access_token:libaccesstoken_sdk",
     "bundle_framework:appexecfwk_base",
-    "bundle_framework:appexecfwk_core",
     "distributeddatamgr:distributeddata_inner",
     "eventhandler:libeventhandler",
-    "hisysevent_native:libhisysevent",
     "hiviewdfx_hilog_native:libhilog",
     "ipc:ipc_core",
     "safwk:system_ability_fwk",
@@ -173,9 +212,24 @@ ohos_shared_library("accountmgr") {
     "storage_service:storage_manager_sa_proxy",
   ]
 
+  if (build_selinux) {
+    external_deps += [ "selinux:librestorecon" ]
+    cflags += [ "-DWITH_SELINUX" ]
+  }
+
   if (has_ces_part) {
     cflags_cc += [ "-DHAS_CES_PART" ]
     external_deps += [ "common_event_service:cesfwk_innerkits" ]
+  }
+
+  if (has_hiviewdfx_hisysevent_part) {
+    cflags_cc += [ "-DHAS_HISYSEVENT_PART" ]
+    external_deps += [ "hisysevent_native:libhisysevent" ]
+  }
+
+  if (has_hiviewdfx_hitrace_part) {
+    cflags_cc += [ "-DHAS_HITRACE_PART" ]
+    external_deps += [ "hitrace_native:hitrace_meter" ]
   }
 
   part_name = "os_account"

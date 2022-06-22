@@ -23,7 +23,7 @@ namespace OHOS {
 namespace AccountSA {
 class OsAccount {
 public:
-    enum SubscribeState { ALREADY_SUBSCRIBED = 0, INITIAL_SUBSCRIPTION, SUBSCRIBE_FAILD };
+    enum SubscribeState { ALREADY_SUBSCRIBED = 0, INITIAL_SUBSCRIPTION, SUBSCRIBE_FAILED };
     ErrCode CreateOsAccount(const std::string &name, const OsAccountType &type, OsAccountInfo &osAccountInfo);
     ErrCode CreateOsAccountForDomain(
         const OsAccountType &type, const DomainAccountInfo &domainInfo, OsAccountInfo &osAccountInfo);
@@ -71,6 +71,12 @@ public:
     ErrCode GetOsAccountListFromDatabase(const std::string& storeID,
         std::vector<OsAccountInfo> &osAccountList);
     ErrCode QueryActiveOsAccountIds(std::vector<int32_t>& ids);
+    ErrCode QueryOsAccountConstraintSourceTypes(const int32_t id, const std::string &constraint,
+        std::vector<ConstraintSourceTypeInfo> &constraintSourceTypeInfos);
+    ErrCode SetGlobalOsAccountConstraints(const std::vector<std::string> &constraints,
+        const bool enable, const int32_t enforcerId, const bool isDeviceOwner);
+    ErrCode SetSpecificOsAccountConstraints(const std::vector<std::string> &constraints,
+        const bool enable, const int32_t targetId, const int32_t enforcerId, const bool isDeviceOwner);
 
 private:
     ErrCode GetOsAccountProxy();

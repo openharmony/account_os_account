@@ -39,19 +39,19 @@ void OsAccountDatabaseOperator::Init()
 bool OsAccountDatabaseOperator::InnerInit()
 {
     if (accountDataStorage_ == nullptr) {
-        ACCOUNT_LOGI("database operator innerinit, enter!");
+        ACCOUNT_LOGI("database operator inner init, enter!");
         accountDataStorage_ = std::make_shared<OsAccountDataStorage>(
-            Constants::APP_ID, storeID_, Constants::SYNC_OS_ACCOUNT_DATABSE);
+            Constants::APP_ID, storeID_, Constants::SYNC_OS_ACCOUNT_DATABASE);
         if (accountDataStorage_ == nullptr) {
             ACCOUNT_LOGE("accountDataStorage_ is still nullptr.");
             return false;
         }
 
         if (!accountDataStorage_->IsKeyExists(Constants::ACCOUNT_LIST)) {
-            ACCOUNT_LOGI("database operator innerinit, create account list.");
-            std::vector<std::string> accountListt;
+            ACCOUNT_LOGI("database operator inner init, create account list.");
+            std::vector<std::string> accountListVec;
             Json accountList = Json {
-                {Constants::ACCOUNT_LIST, accountListt},
+                {Constants::ACCOUNT_LIST, accountListVec},
                 {Constants::COUNT_ACCOUNT_NUM, 0},
                 {Constants::MAX_ALLOW_CREATE_ACCOUNT_ID, Constants::MAX_USER_ID},
                 {Constants::SERIAL_NUMBER_NUM, Constants::SERIAL_NUMBER_NUM_START},
@@ -77,7 +77,7 @@ ErrCode OsAccountDatabaseOperator::GetOsAccountListFromDatabase(const std::strin
         errCode = accountDataStorage_->LoadAllData(osAccountMapInfos);
     } else {
         std::shared_ptr<AccountDataStorage> storagePtr = std::make_shared<OsAccountDataStorage>(
-            Constants::APP_ID, storeID, Constants::SYNC_OS_ACCOUNT_DATABSE);
+            Constants::APP_ID, storeID, Constants::SYNC_OS_ACCOUNT_DATABASE);
         if (storagePtr == nullptr) {
             ACCOUNT_LOGE("storagePtr is still nullptr, storeID %{public}s.", storeID.c_str());
             return ERR_ACCOUNT_COMMON_INSUFFICIENT_MEMORY_ERROR;
@@ -96,8 +96,6 @@ ErrCode OsAccountDatabaseOperator::GetOsAccountListFromDatabase(const std::strin
             osAccountList.push_back(curOsInfo);
         }
     }
-    ACCOUNT_LOGI("Totally get %{public}zu os accounts from database. storeID %{public}s.",
-        osAccountList.size(), storeID.c_str());
     return ERR_OK;
 }
 
@@ -140,16 +138,16 @@ void OsAccountDatabaseOperator::DelOsAccountFromDatabase(const int id)
 void OsAccountDatabaseOperator::UpdateOsAccountInDatabase(const OsAccountInfo &osAccountInfo)
 {
     if (!InnerInit()) {
-        ACCOUNT_LOGE("InnerInit failed! localid %{public}d!", osAccountInfo.GetLocalId());
+        ACCOUNT_LOGE("InnerInit failed! local id %{public}d!", osAccountInfo.GetLocalId());
         return;
     }
 
     ErrCode errCode = accountDataStorage_->SaveAccountInfo(osAccountInfo);
     if (errCode != ERR_OK) {
-        ACCOUNT_LOGE("updata os account info in database for account %{public}d failed! errCode = %{public}d.",
+        ACCOUNT_LOGE("update os account info in database for account %{public}d failed! errCode = %{public}d.",
             osAccountInfo.GetLocalId(), errCode);
     } else {
-        ACCOUNT_LOGI("updata os account info in database for account %{public}d succeed!", osAccountInfo.GetLocalId());
+        ACCOUNT_LOGI("update os account info in database for account %{public}d succeed!", osAccountInfo.GetLocalId());
     }
 }
 
@@ -167,7 +165,7 @@ ErrCode OsAccountDatabaseOperator::GetOsAccountFromDatabase(const std::string& s
     }
 
     std::shared_ptr<AccountDataStorage> storagePtr = std::make_shared<OsAccountDataStorage>(
-        Constants::APP_ID, storeID, Constants::SYNC_OS_ACCOUNT_DATABSE);
+        Constants::APP_ID, storeID, Constants::SYNC_OS_ACCOUNT_DATABASE);
     if (storagePtr == nullptr) {
         ACCOUNT_LOGE("storagePtr is nullptr, for other storeID %{public}s, id %{public}d.", storeID.c_str(), id);
         return ERR_ACCOUNT_COMMON_INSUFFICIENT_MEMORY_ERROR;
@@ -195,7 +193,7 @@ void OsAccountDatabaseOperator::UpdateOsAccountIDListInDatabase(const Json &acco
         ACCOUNT_LOGE("update os account id list to database failed.");
         return;
     }
-    ACCOUNT_LOGI("update os account id list to database succeed.");
+    ACCOUNT_LOGD("update os account id list to database succeed.");
 }
 
 ErrCode OsAccountDatabaseOperator::GetSerialNumberFromDatabase(
@@ -242,7 +240,7 @@ ErrCode OsAccountDatabaseOperator::GetAccountListFromStoreID(
         errCode = accountDataStorage_->GetValueFromKvStore(Constants::ACCOUNT_LIST, accountList);
     } else {
         std::shared_ptr<AccountDataStorage> storagePtr = std::make_shared<OsAccountDataStorage>(
-            Constants::APP_ID, storeID, Constants::SYNC_OS_ACCOUNT_DATABSE);
+            Constants::APP_ID, storeID, Constants::SYNC_OS_ACCOUNT_DATABASE);
         if (storagePtr == nullptr) {
             ACCOUNT_LOGE("storagePtr is nullptr, for other storeID %{public}s.", storeID.c_str());
             return ERR_ACCOUNT_COMMON_INSUFFICIENT_MEMORY_ERROR;
@@ -269,7 +267,7 @@ ErrCode OsAccountDatabaseOperator::SaveAccountListToDatabase(const Json &account
         ACCOUNT_LOGE("Save or Add config info to database failed! errCode %{public}d.", errCode);
         return ERR_OSACCOUNT_SERVICE_CONTROL_SET_ACCOUNT_LIST_ERROR;
     }
-    ACCOUNT_LOGI("save or add account list info to database succeed!");
+    ACCOUNT_LOGD("save or add account list info to database succeed!");
     return ERR_OK;
 }
 }  // namespace AccountSA

@@ -27,17 +27,18 @@ namespace OHOS {
 namespace AccountSA {
 ErrCode OsAccount::CreateOsAccount(const std::string &name, const OsAccountType &type, OsAccountInfo &osAccountInfo)
 {
-    ACCOUNT_LOGI("name.size(): %{public}zu", name.size());
-    ACCOUNT_LOGI("NAME_MAX_SIZE: %{public}d", Constants::LOCAL_NAME_MAX_SIZE);
+    ACCOUNT_LOGD("name.size(): %{public}zu, NAME_MAX_SIZE: %{public}u.", name.size(), Constants::LOCAL_NAME_MAX_SIZE);
     if (name.size() > Constants::LOCAL_NAME_MAX_SIZE) {
+        ACCOUNT_LOGE("name length %{public}zu is too long!", name.size());
         return ERR_OSACCOUNT_KIT_LOCAL_NAME_OUTFLOW_ERROR;
     }
     if (name.empty()) {
+        ACCOUNT_LOGE("name is empty!");
         return ERR_OSACCOUNT_KIT_LOCAL_NAME_EMPTY_ERROR;
     }
     ErrCode result = GetOsAccountProxy();
     if (result != ERR_OK) {
-        ACCOUNT_LOGE("failed to get osAccountProxy_");
+        ACCOUNT_LOGE("failed to get osAccountProxy_, result %{public}d.", result);
         return result;
     }
 
@@ -47,23 +48,23 @@ ErrCode OsAccount::CreateOsAccount(const std::string &name, const OsAccountType 
 ErrCode OsAccount::CreateOsAccountForDomain(
     const OsAccountType &type, const DomainAccountInfo &domainInfo, OsAccountInfo &osAccountInfo)
 {
-    ACCOUNT_LOGI("domain.size(): %{public}zu", domainInfo.domain_.size());
-    ACCOUNT_LOGI("domainAccountName.size(): %{public}zu", domainInfo.accountName_.size());
-    ACCOUNT_LOGI("DOMAIN_NAME_MAX_SIZE: %{public}d", Constants::DOMAIN_NAME_MAX_SIZE);
-    ACCOUNT_LOGI("DOMAIN_ACCOUNT_NAME_MAX_SIZE: %{public}d", Constants::DOMAIN_ACCOUNT_NAME_MAX_SIZE);
+    ACCOUNT_LOGD("domain.size(): %{public}zu, domainAccountName.size(): %{public}zu.",
+        domainInfo.domain_.size(), domainInfo.accountName_.size());
     if (domainInfo.domain_.empty() ||
         domainInfo.domain_.size() > Constants::DOMAIN_NAME_MAX_SIZE) {
+        ACCOUNT_LOGE("domain is empty or too long, len %{public}zu.", domainInfo.domain_.size());
         return ERR_OSACCOUNT_KIT_DOMAIN_NAME_LENGTH_INVALID_ERROR;
     }
 
     if (domainInfo.accountName_.empty() ||
         domainInfo.accountName_.size() > Constants::DOMAIN_ACCOUNT_NAME_MAX_SIZE) {
+        ACCOUNT_LOGE("account name is empty or too long, len %{public}zu.", domainInfo.accountName_.size());
         return ERR_OSACCOUNT_KIT_DOMAIN_ACCOUNT_NAME_LENGTH_INVALID_ERROR;
     }
 
     ErrCode result = GetOsAccountProxy();
     if (result != ERR_OK) {
-        ACCOUNT_LOGE("failed to get osAccountProxy_");
+        ACCOUNT_LOGE("failed to get osAccountProxy_, result %{public}d.", result);
         return result;
     }
 
@@ -74,11 +75,12 @@ ErrCode OsAccount::RemoveOsAccount(const int id)
 {
     ACCOUNT_LOGI("id: %{public}d", id);
     if (id <= Constants::START_USER_ID) {
+        ACCOUNT_LOGE("invalid operate os account id %{public}d.", id);
         return ERR_OSACCOUNT_KIT_CANNOT_DELETE_ID_ERROR;
     }
     ErrCode result = GetOsAccountProxy();
     if (result != ERR_OK) {
-        ACCOUNT_LOGE("failed to get osAccountProxy_");
+        ACCOUNT_LOGE("failed to get osAccountProxy_, result %{public}d.", result);
         return result;
     }
 
@@ -87,12 +89,9 @@ ErrCode OsAccount::RemoveOsAccount(const int id)
 
 ErrCode OsAccount::IsOsAccountExists(const int id, bool &isOsAccountExists)
 {
-    ACCOUNT_LOGI("OsAccount::IsOsAccountExists start");
-    ACCOUNT_LOGI("id: %{public}d", id);
-
     ErrCode result = GetOsAccountProxy();
     if (result != ERR_OK) {
-        ACCOUNT_LOGE("failed to get osAccountProxy_");
+        ACCOUNT_LOGE("failed to get osAccountProxy_, result %{public}d.", result);
         return result;
     }
 
@@ -101,10 +100,9 @@ ErrCode OsAccount::IsOsAccountExists(const int id, bool &isOsAccountExists)
 
 ErrCode OsAccount::IsOsAccountActived(const int id, bool &isOsAccountActived)
 {
-    ACCOUNT_LOGI("OsAccount::IsOsAccountActived start");
     ErrCode result = GetOsAccountProxy();
     if (result != ERR_OK) {
-        ACCOUNT_LOGE("failed to get osAccountProxy_");
+        ACCOUNT_LOGE("failed to get osAccountProxy_, result %{public}d.", result);
         return result;
     }
 
@@ -113,10 +111,9 @@ ErrCode OsAccount::IsOsAccountActived(const int id, bool &isOsAccountActived)
 
 ErrCode OsAccount::IsOsAccountConstraintEnable(const int id, const std::string &constraint, bool &isConstraintEnable)
 {
-    ACCOUNT_LOGI("OsAccount::IsOsAccountConstraintEnable start");
     ErrCode result = GetOsAccountProxy();
     if (result != ERR_OK) {
-        ACCOUNT_LOGE("failed to get osAccountProxy_");
+        ACCOUNT_LOGE("failed to get osAccountProxy_, result %{public}d.", result);
         return result;
     }
 
@@ -125,10 +122,9 @@ ErrCode OsAccount::IsOsAccountConstraintEnable(const int id, const std::string &
 
 ErrCode OsAccount::IsOsAccountVerified(const int id, bool &isVerified)
 {
-    ACCOUNT_LOGI("OsAccount::IsOsAccountVerified start");
     ErrCode result = GetOsAccountProxy();
     if (result != ERR_OK) {
-        ACCOUNT_LOGE("failed to get osAccountProxy_");
+        ACCOUNT_LOGE("failed to get osAccountProxy_, result %{public}d.", result);
         return result;
     }
 
@@ -137,10 +133,9 @@ ErrCode OsAccount::IsOsAccountVerified(const int id, bool &isVerified)
 
 ErrCode OsAccount::GetCreatedOsAccountsCount(unsigned int &osAccountsCount)
 {
-    ACCOUNT_LOGI("OsAccount::GetCreatedOsAccountsCount start");
     ErrCode result = GetOsAccountProxy();
     if (result != ERR_OK) {
-        ACCOUNT_LOGE("failed to get osAccountProxy_");
+        ACCOUNT_LOGE("failed to get osAccountProxy_, result %{public}d.", result);
         return result;
     }
 
@@ -149,10 +144,9 @@ ErrCode OsAccount::GetCreatedOsAccountsCount(unsigned int &osAccountsCount)
 
 ErrCode OsAccount::GetOsAccountLocalIdFromProcess(int &id)
 {
-    ACCOUNT_LOGI("OsAccount::GetOsAccountLocalIdFromProcess start");
     ErrCode result = GetOsAccountProxy();
     if (result != ERR_OK) {
-        ACCOUNT_LOGE("failed to get osAccountProxy_");
+        ACCOUNT_LOGE("failed to get osAccountProxy_, result %{public}d.", result);
         return result;
     }
 
@@ -161,10 +155,9 @@ ErrCode OsAccount::GetOsAccountLocalIdFromProcess(int &id)
 
 ErrCode OsAccount::IsMainOsAccount(bool &isMainOsAccount)
 {
-    ACCOUNT_LOGI("OsAccount::IsMainOsAccount start");
     ErrCode result = GetOsAccountProxy();
     if (result != ERR_OK) {
-        ACCOUNT_LOGE("failed to get osAccountProxy_");
+        ACCOUNT_LOGE("failed to get osAccountProxy_, result %{public}d.", result);
         return result;
     }
 
@@ -173,8 +166,6 @@ ErrCode OsAccount::IsMainOsAccount(bool &isMainOsAccount)
 
 ErrCode OsAccount::GetOsAccountLocalIdFromDomain(const DomainAccountInfo &domainInfo, int &id)
 {
-    ACCOUNT_LOGI("OsAccount::GetOsAccountLocalIdFromDomain start");
-
     if (domainInfo.domain_.empty() ||
         domainInfo.domain_.size() > Constants::DOMAIN_NAME_MAX_SIZE) {
         ACCOUNT_LOGE("invalid domain name length %{public}zu.", domainInfo.domain_.size());
@@ -189,7 +180,7 @@ ErrCode OsAccount::GetOsAccountLocalIdFromDomain(const DomainAccountInfo &domain
 
     ErrCode result = GetOsAccountProxy();
     if (result != ERR_OK) {
-        ACCOUNT_LOGE("failed to get osAccountProxy_");
+        ACCOUNT_LOGE("failed to get osAccountProxy_, result %{public}d.", result);
         return result;
     }
 
@@ -198,10 +189,9 @@ ErrCode OsAccount::GetOsAccountLocalIdFromDomain(const DomainAccountInfo &domain
 
 ErrCode OsAccount::QueryMaxOsAccountNumber(int &maxOsAccountNumber)
 {
-    ACCOUNT_LOGI("OsAccount::QueryMaxOsAccountNumber start");
     ErrCode result = GetOsAccountProxy();
     if (result != ERR_OK) {
-        ACCOUNT_LOGE("failed to get osAccountProxy_");
+        ACCOUNT_LOGE("failed to get osAccountProxy_, result %{public}d.", result);
         return result;
     }
 
@@ -210,10 +200,9 @@ ErrCode OsAccount::QueryMaxOsAccountNumber(int &maxOsAccountNumber)
 
 ErrCode OsAccount::GetOsAccountAllConstraints(const int id, std::vector<std::string> &constraints)
 {
-    ACCOUNT_LOGI("OsAccount::GetOsAccountAllConstraints start");
     ErrCode result = GetOsAccountProxy();
     if (result != ERR_OK) {
-        ACCOUNT_LOGE("failed to get osAccountProxy_");
+        ACCOUNT_LOGE("failed to get osAccountProxy_, result %{public}d.", result);
         return result;
     }
 
@@ -222,10 +211,9 @@ ErrCode OsAccount::GetOsAccountAllConstraints(const int id, std::vector<std::str
 
 ErrCode OsAccount::QueryAllCreatedOsAccounts(std::vector<OsAccountInfo> &osAccountInfos)
 {
-    ACCOUNT_LOGI("OsAccount::QueryAllCreatedOsAccounts start");
     ErrCode result = GetOsAccountProxy();
     if (result != ERR_OK) {
-        ACCOUNT_LOGE("failed to get osAccountProxy_");
+        ACCOUNT_LOGE("failed to get osAccountProxy_, result %{public}d.", result);
         return result;
     }
 
@@ -234,10 +222,9 @@ ErrCode OsAccount::QueryAllCreatedOsAccounts(std::vector<OsAccountInfo> &osAccou
 
 ErrCode OsAccount::QueryCurrentOsAccount(OsAccountInfo &osAccountInfo)
 {
-    ACCOUNT_LOGI("OsAccount::QueryCurrentOsAccount start");
     ErrCode result = GetOsAccountProxy();
     if (result != ERR_OK) {
-        ACCOUNT_LOGE("failed to get osAccountProxy_");
+        ACCOUNT_LOGE("failed to get osAccountProxy_, result %{public}d.", result);
         return result;
     }
 
@@ -246,10 +233,9 @@ ErrCode OsAccount::QueryCurrentOsAccount(OsAccountInfo &osAccountInfo)
 
 ErrCode OsAccount::QueryOsAccountById(const int id, OsAccountInfo &osAccountInfo)
 {
-    ACCOUNT_LOGI("OsAccount::QueryOsAccountById start");
     ErrCode result = GetOsAccountProxy();
     if (result != ERR_OK) {
-        ACCOUNT_LOGE("failed to get osAccountProxy_");
+        ACCOUNT_LOGE("failed to get osAccountProxy_, result %{public}d.", result);
         return result;
     }
 
@@ -258,10 +244,9 @@ ErrCode OsAccount::QueryOsAccountById(const int id, OsAccountInfo &osAccountInfo
 
 ErrCode OsAccount::GetOsAccountTypeFromProcess(OsAccountType &type)
 {
-    ACCOUNT_LOGI("OsAccount::GetOsAccountTypeFromProcess start");
     ErrCode result = GetOsAccountProxy();
     if (result != ERR_OK) {
-        ACCOUNT_LOGE("failed to get osAccountProxy_");
+        ACCOUNT_LOGE("failed to get osAccountProxy_, result %{public}d.", result);
         return result;
     }
 
@@ -270,10 +255,9 @@ ErrCode OsAccount::GetOsAccountTypeFromProcess(OsAccountType &type)
 
 ErrCode OsAccount::GetOsAccountProfilePhoto(const int id, std::string &photo)
 {
-    ACCOUNT_LOGI("OsAccount::GetOsAccountProfilePhoto start");
     ErrCode result = GetOsAccountProxy();
     if (result != ERR_OK) {
-        ACCOUNT_LOGE("failed to get osAccountProxy_");
+        ACCOUNT_LOGE("failed to get osAccountProxy_, result %{public}d.", result);
         return result;
     }
 
@@ -282,10 +266,9 @@ ErrCode OsAccount::GetOsAccountProfilePhoto(const int id, std::string &photo)
 
 ErrCode OsAccount::IsMultiOsAccountEnable(bool &isMultiOsAccountEnable)
 {
-    ACCOUNT_LOGI("OsAccount::IsMultiOsAccountEnable start");
     ErrCode result = GetOsAccountProxy();
     if (result != ERR_OK) {
-        ACCOUNT_LOGE("failed to get osAccountProxy_");
+        ACCOUNT_LOGE("failed to get osAccountProxy_, result %{public}d.", result);
         return result;
     }
 
@@ -294,16 +277,17 @@ ErrCode OsAccount::IsMultiOsAccountEnable(bool &isMultiOsAccountEnable)
 
 ErrCode OsAccount::SetOsAccountName(const int id, const std::string &localName)
 {
-    ACCOUNT_LOGI("OsAccount::SetOsAccountName start");
     if (localName.size() > Constants::LOCAL_NAME_MAX_SIZE) {
+        ACCOUNT_LOGE("name length %{public}zu too long!", localName.size());
         return ERR_OSACCOUNT_KIT_LOCAL_NAME_OUTFLOW_ERROR;
     }
-    if (localName.size() <= 0) {
+    if (localName.empty()) {
+        ACCOUNT_LOGE("name is empty!");
         return ERR_OSACCOUNT_KIT_LOCAL_NAME_EMPTY_ERROR;
     }
     ErrCode result = GetOsAccountProxy();
     if (result != ERR_OK) {
-        ACCOUNT_LOGE("failed to get osAccountProxy_");
+        ACCOUNT_LOGE("failed to get osAccountProxy_, result %{public}d.", result);
         return result;
     }
 
@@ -313,10 +297,9 @@ ErrCode OsAccount::SetOsAccountName(const int id, const std::string &localName)
 ErrCode OsAccount::SetOsAccountConstraints(
     const int id, const std::vector<std::string> &constraints, const bool enable)
 {
-    ACCOUNT_LOGI("OsAccount::SetOsAccountConstraints start");
     ErrCode result = GetOsAccountProxy();
     if (result != ERR_OK) {
-        ACCOUNT_LOGE("failed to get osAccountProxy_");
+        ACCOUNT_LOGE("failed to get osAccountProxy_, result %{public}d.", result);
         return result;
     }
 
@@ -325,13 +308,13 @@ ErrCode OsAccount::SetOsAccountConstraints(
 
 ErrCode OsAccount::SetOsAccountProfilePhoto(const int id, const std::string &photo)
 {
-    ACCOUNT_LOGI("OsAccount::SetOsAccountProfilePhoto start");
     if (photo.size() > Constants::LOCAL_PHOTO_MAX_SIZE) {
+        ACCOUNT_LOGE("photo size %{public}zu too long!", photo.size());
         return ERR_OSACCOUNT_KIT_PHOTO_OUTFLOW_ERROR;
     }
     ErrCode result = GetOsAccountProxy();
     if (result != ERR_OK) {
-        ACCOUNT_LOGE("failed to get osAccountProxy_");
+        ACCOUNT_LOGE("failed to get osAccountProxy_, result %{public}d.", result);
         return result;
     }
 
@@ -346,19 +329,16 @@ ErrCode OsAccount::GetDistributedVirtualDeviceId(std::string &deviceId)
         if (res.second.uid_ != DEFAULT_OHOS_ACCOUNT_UID) {
             deviceId = res.second.uid_;
         }
-        ACCOUNT_LOGI("QueryOhosAccountInfo succeed!");
         return ERR_OK;
     }
-    ACCOUNT_LOGE("QueryOhosAccountInfo failed!");
     return ERR_OSACCOUNT_KIT_GET_DISTRIBUTED_VIRTUAL_DEVICE_ID_ERROR;
 }
 
 ErrCode OsAccount::ActivateOsAccount(const int id)
 {
-    ACCOUNT_LOGI("OsAccount::ActivateOsAccount start");
     ErrCode result = GetOsAccountProxy();
     if (result != ERR_OK) {
-        ACCOUNT_LOGE("failed to get osAccountProxy_");
+        ACCOUNT_LOGE("failed to get osAccountProxy_, result %{public}d.", result);
         return result;
     }
 
@@ -367,10 +347,9 @@ ErrCode OsAccount::ActivateOsAccount(const int id)
 
 ErrCode OsAccount::StartOsAccount(const int id)
 {
-    ACCOUNT_LOGI("OsAccount::StartOsAccount start");
     ErrCode result = GetOsAccountProxy();
     if (result != ERR_OK) {
-        ACCOUNT_LOGE("failed to get osAccountProxy_");
+        ACCOUNT_LOGE("failed to get osAccountProxy_, result %{public}d.", result);
         return result;
     }
 
@@ -379,10 +358,9 @@ ErrCode OsAccount::StartOsAccount(const int id)
 
 ErrCode OsAccount::StopOsAccount(const int id)
 {
-    ACCOUNT_LOGI("OsAccount::StopOsAccount start");
     ErrCode result = GetOsAccountProxy();
     if (result != ERR_OK) {
-        ACCOUNT_LOGE("failed to get osAccountProxy_");
+        ACCOUNT_LOGE("failed to get osAccountProxy_, result %{public}d.", result);
         return result;
     }
     return osAccountProxy_->StopOsAccount(id);
@@ -390,10 +368,9 @@ ErrCode OsAccount::StopOsAccount(const int id)
 
 ErrCode OsAccount::GetOsAccountLocalIdBySerialNumber(const int64_t serialNumber, int &id)
 {
-    ACCOUNT_LOGI("OsAccount::GetOsAccountLocalIdBySerialNumber start");
     ErrCode result = GetOsAccountProxy();
     if (result != ERR_OK) {
-        ACCOUNT_LOGE("failed to get osAccountProxy_");
+        ACCOUNT_LOGE("failed to get osAccountProxy_, result %{public}d.", result);
         return result;
     }
     return osAccountProxy_->GetOsAccountLocalIdBySerialNumber(serialNumber, id);
@@ -401,10 +378,9 @@ ErrCode OsAccount::GetOsAccountLocalIdBySerialNumber(const int64_t serialNumber,
 
 ErrCode OsAccount::GetSerialNumberByOsAccountLocalId(const int &id, int64_t &serialNumber)
 {
-    ACCOUNT_LOGI("OsAccount::GetSerialNumberByOsAccountLocalId start");
     ErrCode result = GetOsAccountProxy();
     if (result != ERR_OK) {
-        ACCOUNT_LOGE("failed to get osAccountProxy_");
+        ACCOUNT_LOGE("failed to get osAccountProxy_, result %{public}d.", result);
         return result;
     }
     return osAccountProxy_->GetSerialNumberByOsAccountLocalId(id, serialNumber);
@@ -469,17 +445,15 @@ ErrCode OsAccount::UnsubscribeOsAccount(const std::shared_ptr<OsAccountSubscribe
             eventListener->second->Stop();
             eventListeners_.erase(eventListener);
         }
-
         return result;
     } else {
         ACCOUNT_LOGE("no specified subscriber has been registered");
-        return ERR_OSACCOUNT_KIT_NO_SPECIFIED_SUBSCRIBER_HAS_BEEN_REGESITERED;
+        return ERR_OSACCOUNT_KIT_NO_SPECIFIED_SUBSCRIBER_HAS_BEEN_REGISTERED;
     }
 }
 
 OS_ACCOUNT_SWITCH_MOD OsAccount::GetOsAccountSwitchMod()
 {
-    ACCOUNT_LOGI("OsAccount::GetOsAccountSwitchMod start");
     if (GetOsAccountProxy() != ERR_OK) {
         ACCOUNT_LOGE("os account proxy is nullptr");
         return OS_ACCOUNT_SWITCH_MOD::ERROR_MOD;
@@ -491,7 +465,7 @@ ErrCode OsAccount::DumpState(const int &id, std::vector<std::string> &state)
 {
     ErrCode result = GetOsAccountProxy();
     if (result != ERR_OK) {
-        ACCOUNT_LOGE("failed to get osAccountProxy_");
+        ACCOUNT_LOGE("failed to get osAccountProxy_, result %{public}d.", result);
         return result;
     }
 
@@ -511,10 +485,9 @@ ErrCode OsAccount::ResetOsAccountProxy()
 
 ErrCode OsAccount::IsCurrentOsAccountVerified(bool &isVerified)
 {
-    ACCOUNT_LOGI("OsAccount::IsCurrentOsAccountVerified start");
     ErrCode result = GetOsAccountProxy();
     if (result != ERR_OK) {
-        ACCOUNT_LOGE("failed to get osAccountProxy_");
+        ACCOUNT_LOGE("failed to get osAccountProxy_, result %{public}d.", result);
         return result;
     }
     return osAccountProxy_->IsCurrentOsAccountVerified(isVerified);
@@ -522,10 +495,9 @@ ErrCode OsAccount::IsCurrentOsAccountVerified(bool &isVerified)
 
 ErrCode OsAccount::IsOsAccountCompleted(const int id, bool &isOsAccountCompleted)
 {
-    ACCOUNT_LOGI("OsAccount::IsOsAccountCompleted start");
     ErrCode result = GetOsAccountProxy();
     if (result != ERR_OK) {
-        ACCOUNT_LOGE("failed to get osAccountProxy_");
+        ACCOUNT_LOGE("failed to get osAccountProxy_, result %{public}d.", result);
         return result;
     }
     return osAccountProxy_->IsOsAccountCompleted(id, isOsAccountCompleted);
@@ -533,10 +505,9 @@ ErrCode OsAccount::IsOsAccountCompleted(const int id, bool &isOsAccountCompleted
 
 ErrCode OsAccount::SetCurrentOsAccountIsVerified(const bool isVerified)
 {
-    ACCOUNT_LOGI("OsAccount::SetCurrentOsAccountIsVerified start");
     ErrCode result = GetOsAccountProxy();
     if (result != ERR_OK) {
-        ACCOUNT_LOGE("failed to get osAccountProxy_");
+        ACCOUNT_LOGE("failed to get osAccountProxy_, result %{public}d.", result);
         return result;
     }
     return osAccountProxy_->SetCurrentOsAccountIsVerified(isVerified);
@@ -544,10 +515,9 @@ ErrCode OsAccount::SetCurrentOsAccountIsVerified(const bool isVerified)
 
 ErrCode OsAccount::SetOsAccountIsVerified(const int id, const bool isVerified)
 {
-    ACCOUNT_LOGI("OsAccount::SetOsAccountIsVerified start");
     ErrCode result = GetOsAccountProxy();
     if (result != ERR_OK) {
-        ACCOUNT_LOGE("failed to get osAccountProxy_");
+        ACCOUNT_LOGE("failed to get osAccountProxy_, result %{public}d.", result);
         return result;
     }
     return osAccountProxy_->SetOsAccountIsVerified(id, isVerified);
@@ -608,7 +578,7 @@ ErrCode OsAccount::CreateOsAccountEventListener(
 {
     if (subscriber == nullptr) {
         ACCOUNT_LOGE("subscriber is nullptr");
-        return SUBSCRIBE_FAILD;
+        return SUBSCRIBE_FAILED;
     }
 
     std::lock_guard<std::mutex> lock(eventListenersMutex_);
@@ -616,18 +586,18 @@ ErrCode OsAccount::CreateOsAccountEventListener(
     auto eventListener = eventListeners_.find(subscriber);
     if (eventListener != eventListeners_.end()) {
         osAccountEventListener = eventListener->second->AsObject();
-        ACCOUNT_LOGE("subscriber already has os account event listener");
+        ACCOUNT_LOGI("subscriber already has os account event listener");
         return ALREADY_SUBSCRIBED;
     } else {
         if (eventListeners_.size() == Constants::SUBSCRIBER_MAX_SIZE) {
             ACCOUNT_LOGE("the maximum number of subscribers has been reached");
-            return SUBSCRIBE_FAILD;
+            return SUBSCRIBE_FAILED;
         }
 
         sptr<OsAccountEventListener> listener = new (std::nothrow) OsAccountEventListener(subscriber);
         if (!listener) {
-            ACCOUNT_LOGE("the os account event listener is null");
-            return SUBSCRIBE_FAILD;
+            ACCOUNT_LOGE("memory allocation for listener failed!");
+            return SUBSCRIBE_FAILED;
         }
         osAccountEventListener = listener->AsObject();
         eventListeners_[subscriber] = listener;
@@ -638,10 +608,9 @@ ErrCode OsAccount::CreateOsAccountEventListener(
 
 ErrCode OsAccount::GetCreatedOsAccountNumFromDatabase(const std::string& storeID, int &createdOsAccountNum)
 {
-    ACCOUNT_LOGI("OsAccount::GetCreatedOsAccountNumFromDatabase start");
     ErrCode result = GetOsAccountProxy();
     if (result != ERR_OK) {
-        ACCOUNT_LOGE("failed to get osAccountProxy_");
+        ACCOUNT_LOGE("failed to get osAccountProxy_, result %{public}d.", result);
         return result;
     }
     return osAccountProxy_->GetCreatedOsAccountNumFromDatabase(storeID, createdOsAccountNum);
@@ -649,10 +618,9 @@ ErrCode OsAccount::GetCreatedOsAccountNumFromDatabase(const std::string& storeID
 
 ErrCode OsAccount::GetSerialNumberFromDatabase(const std::string& storeID, int64_t &serialNumber)
 {
-    ACCOUNT_LOGI("OsAccount::GetSerialNumberFromDatabase start");
     ErrCode result = GetOsAccountProxy();
     if (result != ERR_OK) {
-        ACCOUNT_LOGE("failed to get osAccountProxy_");
+        ACCOUNT_LOGE("failed to get osAccountProxy_, result %{public}d.", result);
         return result;
     }
     return osAccountProxy_->GetSerialNumberFromDatabase(storeID, serialNumber);
@@ -660,10 +628,9 @@ ErrCode OsAccount::GetSerialNumberFromDatabase(const std::string& storeID, int64
 
 ErrCode OsAccount::GetMaxAllowCreateIdFromDatabase(const std::string& storeID, int &id)
 {
-    ACCOUNT_LOGI("OsAccount::GetMaxAllowCreateIdFromDatabase start");
     ErrCode result = GetOsAccountProxy();
     if (result != ERR_OK) {
-        ACCOUNT_LOGE("failed to get osAccountProxy_");
+        ACCOUNT_LOGE("failed to get osAccountProxy_, result %{public}d.", result);
         return result;
     }
     return osAccountProxy_->GetMaxAllowCreateIdFromDatabase(storeID, id);
@@ -671,10 +638,9 @@ ErrCode OsAccount::GetMaxAllowCreateIdFromDatabase(const std::string& storeID, i
 
 ErrCode OsAccount::GetOsAccountFromDatabase(const std::string& storeID, const int id, OsAccountInfo &osAccountInfo)
 {
-    ACCOUNT_LOGI("OsAccount::GetOsAccountFromDatabase start");
     ErrCode result = GetOsAccountProxy();
     if (result != ERR_OK) {
-        ACCOUNT_LOGE("failed to get osAccountProxy_");
+        ACCOUNT_LOGE("failed to get osAccountProxy_, result %{public}d.", result);
         return result;
     }
     return osAccountProxy_->GetOsAccountFromDatabase(storeID, id, osAccountInfo);
@@ -682,10 +648,9 @@ ErrCode OsAccount::GetOsAccountFromDatabase(const std::string& storeID, const in
 
 ErrCode OsAccount::GetOsAccountListFromDatabase(const std::string& storeID, std::vector<OsAccountInfo> &osAccountList)
 {
-    ACCOUNT_LOGI("OsAccount::GetOsAccountListFromDatabase start");
     ErrCode result = GetOsAccountProxy();
     if (result != ERR_OK) {
-        ACCOUNT_LOGE("failed to get osAccountProxy_");
+        ACCOUNT_LOGE("failed to get osAccountProxy_, result %{public}d.", result);
         return result;
     }
     return osAccountProxy_->GetOsAccountListFromDatabase(storeID, osAccountList);
@@ -693,13 +658,51 @@ ErrCode OsAccount::GetOsAccountListFromDatabase(const std::string& storeID, std:
 
 ErrCode OsAccount::QueryActiveOsAccountIds(std::vector<int32_t>& ids)
 {
-    ACCOUNT_LOGI("OsAccount::QueryActiveOsAccountIds start");
+    ErrCode result = GetOsAccountProxy();
+    if (result != ERR_OK) {
+        ACCOUNT_LOGE("failed to get osAccountProxy_, result %{public}d.", result);
+        return result;
+    }
+    return osAccountProxy_->QueryActiveOsAccountIds(ids);
+}
+
+ErrCode OsAccount::QueryOsAccountConstraintSourceTypes(const int32_t id, const std::string &constraint,
+    std::vector<ConstraintSourceTypeInfo> &constraintSourceTypeInfos)
+{
+    ACCOUNT_LOGD ("OsAccount::QueryOsAccountConstraintSourceTypes start");
     ErrCode result = GetOsAccountProxy();
     if (result != ERR_OK) {
         ACCOUNT_LOGE("failed to get osAccountProxy_");
         return result;
     }
-    return osAccountProxy_->QueryActiveOsAccountIds(ids);
+
+    return osAccountProxy_->QueryOsAccountConstraintSourceTypes(id, constraint, constraintSourceTypeInfos);
+}
+
+ErrCode OsAccount::SetGlobalOsAccountConstraints(const std::vector<std::string> &constraints,
+    const bool enable, const int32_t enforcerId, const bool isDeviceOwner)
+{
+    ACCOUNT_LOGD ("OsAccount::SetGlobalOsAccountConstraints start");
+    ErrCode result = GetOsAccountProxy();
+    if (result != ERR_OK) {
+        ACCOUNT_LOGE("failed to get osAccountProxy_");
+        return result;
+    }
+
+    return osAccountProxy_->SetGlobalOsAccountConstraints(constraints, enable, enforcerId, isDeviceOwner);
+}
+
+ErrCode OsAccount::SetSpecificOsAccountConstraints(const std::vector<std::string> &constraints,
+    const bool enable, const int32_t targetId, const int32_t enforcerId, const bool isDeviceOwner)
+{
+    ACCOUNT_LOGD ("OsAccount::SetSpecificOsAccountConstraints start");
+    ErrCode result = GetOsAccountProxy();
+    if (result != ERR_OK) {
+        ACCOUNT_LOGE("failed to get osAccountProxy_");
+        return result;
+    }
+
+    return osAccountProxy_->SetSpecificOsAccountConstraints(constraints, enable, targetId, enforcerId, isDeviceOwner);
 }
 }  // namespace AccountSA
 }  // namespace OHOS

@@ -37,6 +37,7 @@ const std::string HYPHEN = "#";
 constexpr uint32_t APP_INDEX = 0;
 constexpr uint32_t MAX_TOKEN_NUMBER = 128;
 constexpr uint32_t MAX_OAUTH_LIST_SIZE = 512;
+constexpr uint32_t MAX_ASSOCIATED_DATA_NUMBER = 512;
 }  // namespace
 
 AppAccountInfo::AppAccountInfo()
@@ -142,6 +143,22 @@ ErrCode AppAccountInfo::SetSyncEnable(const bool &syncEnable)
     return ERR_OK;
 }
 
+ErrCode AppAccountInfo::GetAllAssociatedData(std::map<std::string, std::string> &data) const
+{
+    auto jsonObject = Json::parse(associatedData_, nullptr, false);
+    if (!jsonObject.is_object()) {
+        ACCOUNT_LOGD("jsonObject is_discarded");
+        return ERR_APPACCOUNT_SERVICE_GET_ASSOCIATED_DATA;
+    }
+    try {
+        data = jsonObject.get<std::map<std::string, std::string>>();
+    }  catch (Json::type_error& err) {
+        ACCOUNT_LOGE("failed to convert json object to map, reason: %{public}s", err.what());
+        return ERR_APPACCOUNT_SERVICE_GET_ASSOCIATED_DATA;
+    }
+    return ERR_OK;
+}
+
 ErrCode AppAccountInfo::GetAssociatedData(const std::string &key, std::string &value) const
 {
     auto jsonObject = Json::parse(associatedData_, nullptr, false);
@@ -166,7 +183,10 @@ ErrCode AppAccountInfo::SetAssociatedData(const std::string &key, const std::str
         ACCOUNT_LOGI("jsonObject is discarded");
         jsonObject = Json::object();
     }
-
+    if (jsonObject.size() >= MAX_ASSOCIATED_DATA_NUMBER) {
+        ACCOUNT_LOGD("associated data is over size, the max number is: %{public}d", MAX_ASSOCIATED_DATA_NUMBER);
+        return ERR_APPACCOUNT_SERVICE_ASSOCIATED_DATA_OVER_SIZE;
+    }
     auto it = jsonObject.find(key);
     if (it == jsonObject.end()) {
         jsonObject.emplace(key, value);
@@ -228,7 +248,7 @@ ErrCode AppAccountInfo::GetOAuthToken(const std::string &authType, std::string &
     token = "";
     auto it = oauthTokens_.find(authType);
     if ((it == oauthTokens_.end()) || (it->second.token.empty())) {
-        ACCOUNT_LOGI("oauth token not exist");
+        ACCOUNT_LOGE("oauth token not exist");
         return ERR_APPACCOUNT_SERVICE_OAUTH_TOKEN_NOT_EXIST;
     }
     token = it->second.token;
@@ -385,7 +405,7 @@ AppAccountInfo *AppAccountInfo::Unmarshalling(Parcel &parcel)
     AppAccountInfo *appAccountInfo = new (std::nothrow) AppAccountInfo();
 
     if (appAccountInfo && !appAccountInfo->ReadFromParcel(parcel)) {
-        ACCOUNT_LOGE("failed to read from pacel");
+        ACCOUNT_LOGE("failed to read from parcel");
         delete appAccountInfo;
         appAccountInfo = nullptr;
     }

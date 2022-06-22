@@ -27,6 +27,18 @@ typedef enum {
     GUEST,
 } OsAccountType;
 
+typedef enum {
+    CONSTRAINT_NOT_EXIST = 0,
+    CONSTRAINT_TYPE_BASE,
+    CONSTRAINT_TYPE_DEVICE_OWNER,
+    CONSTRAINT_TYPE_PROFILE_OWNER,
+} ConstraintSourceType;
+
+struct ConstraintSourceTypeInfo {
+    int32_t localId;
+    ConstraintSourceType typeInfo;
+};
+
 class DomainAccountInfo {
 public:
     DomainAccountInfo()

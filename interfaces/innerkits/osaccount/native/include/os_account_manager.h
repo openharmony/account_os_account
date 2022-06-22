@@ -73,6 +73,12 @@ public:
     static ErrCode GetOsAccountListFromDatabase(const std::string& storeID,
                                                 std::vector<OsAccountInfo> &osAccountList);
     static ErrCode QueryActiveOsAccountIds(std::vector<int32_t>& ids);
+    static ErrCode QueryOsAccountConstraintSourceTypes(const int32_t id, const std::string constraint,
+        std::vector<ConstraintSourceTypeInfo> &constraintSourceTypeInfos);
+    static ErrCode SetGlobalOsAccountConstraints(const std::vector<std::string> &constraints,
+        const bool enable, const int32_t enforcerId, const bool isDeviceOwner);
+    static ErrCode SetSpecificOsAccountConstraints(const std::vector<std::string> &constraints,
+        const bool enable, const int32_t targetId, const int32_t enforcerId, const bool isDeviceOwner);
 };
 }  // namespace AccountSA
 }  // namespace OHOS

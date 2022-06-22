@@ -13,34 +13,35 @@
  * limitations under the License.
  */
 
-#ifndef OS_ACCOUNT_SERVICES_ACCOUNTMGR_INCLUDE_ACCOUNT_DUMP_HELPER_H
-#define OS_ACCOUNT_SERVICES_ACCOUNTMGR_INCLUDE_ACCOUNT_DUMP_HELPER_H
+#ifndef OS_ACCOUNT_DFX_HIDUMPER_ADAPTER_H
+#define OS_ACCOUNT_DFX_HIDUMPER_ADAPTER_H
 
 #include <string>
 #include <vector>
 #include "ohos_account_manager.h"
+#include "os_account_manager_service.h"
 
 namespace OHOS {
 namespace AccountSA {
-class AccountMgrService;
-
 class AccountDumpHelper {
 public:
-    explicit AccountDumpHelper(const std::shared_ptr<OhosAccountManager>& accountMgr);
+    AccountDumpHelper(const std::shared_ptr<OhosAccountManager>& ohosAccountMgr,
+        OsAccountManagerService* osAccountMgrService);
     ~AccountDumpHelper() = default;
-    bool Dump(const std::vector<std::string>& args, std::string& result) const;
+    void Dump(const std::vector<std::string>& args, std::string& result) const;
 
 private:
     void ShowIllegalInformation(std::string& result) const;
     void ShowHelp(std::string& result) const;
-    bool ProcessOneParameter(const std::string& arg, std::string& result) const;
-    bool ProcessTwoParameter(const std::string& arg1, const std::string& arg2, std::string& result) const;
-    std::weak_ptr<OhosAccountManager> accountMgr_;
-    void ShowAccountInfo(std::string &result) const;
-    bool SimulateInputEvent(const std::string &eventStr, std::string &result) const;
-    bool SetLogLevel(const std::string& levelStr, std::string& result) const;
+    void ProcessOneParameter(const std::string& arg, std::string& result) const;
+    void ProcessTwoParameter(const std::string& arg1, const std::string& arg2, std::string& result) const;
+    std::weak_ptr<OhosAccountManager> ohosAccountMgr_;
+    OsAccountManagerService* osAccountMgrService_;
+    void ShowOhosAccountInfo(std::string &result) const;
+    void ShowOsAccountInfo(std::string &result) const;
+    void SetLogLevel(const std::string& levelStr, std::string& result) const;
 };
 }  // namespace AccountSA
 }  // namespace OHOS
 
-#endif  // OS_ACCOUNT_SERVICES_ACCOUNTMGR_INCLUDE_ACCOUNT_DUMP_HELPER_H
+#endif  // OS_ACCOUNT_DFX_HIDUMPER_ADAPTER_H

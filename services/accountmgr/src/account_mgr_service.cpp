@@ -14,6 +14,7 @@
  */
 
 #include "account_mgr_service.h"
+#include <cerrno>
 #include "account_dump_helper.h"
 #include "account_log_wrapper.h"
 #include "app_account_manager_service.h"
@@ -21,7 +22,8 @@
 #include "device_account_info.h"
 #include "directory_ex.h"
 #include "file_ex.h"
-#include "hisysevent.h"
+#include "hisysevent_adapter.h"
+#include "hitrace_adapter.h"
 #include "if_system_ability_manager.h"
 #include "ipc_skeleton.h"
 #include "iservice_registry.h"
@@ -31,12 +33,28 @@
 
 namespace OHOS {
 namespace AccountSA {
-const std::string DEVICE_OWNER_DIR = "/data/system/users/0/";
-
-IAccountContext *IAccountContext::instance_ = nullptr;
-
+namespace {
 const bool REGISTER_RESULT =
     SystemAbility::MakeAndRegisterAbility(&DelayedRefSingleton<AccountMgrService>::GetInstance());
+const std::string DEVICE_OWNER_DIR = "/data/system/users/0/";
+void CreateDeviceDir()
+{
+    if (!OHOS::FileExists(DEVICE_OWNER_DIR)) {
+        ACCOUNT_LOGI("Device owner dir not exist, create!");
+        if (!OHOS::ForceCreateDirectory(DEVICE_OWNER_DIR)) {
+            ACCOUNT_LOGW("Create device owner dir failure! errno %{public}d.", errno);
+            ReportFileOperationFail(errno, "ForceCreateDirectory", DEVICE_OWNER_DIR);
+        } else {
+            if (!OHOS::ChangeModeDirectory(DEVICE_OWNER_DIR, S_IRWXU)) {
+                ReportFileOperationFail(errno, "ChangeModeDirectory", DEVICE_OWNER_DIR);
+                ACCOUNT_LOGW("failed to create dir, path = %{public}s errno %{public}d.",
+                    DEVICE_OWNER_DIR.c_str(), errno);
+            }
+        }
+    }
+}
+}
+IAccountContext *IAccountContext::instance_ = nullptr;
 
 AccountMgrService::AccountMgrService() : SystemAbility(SUBSYS_ACCOUNT_SYS_ABILITY_ID_BEGIN, true)
 {
@@ -49,13 +67,12 @@ AccountMgrService::~AccountMgrService()
 bool AccountMgrService::UpdateOhosAccountInfo(
     const std::string &accountName, const std::string &uid, const std::string &eventStr)
 {
-    ACCOUNT_LOGI("Account event %s", eventStr.c_str());
     if (!ohosAccountMgr_->OhosAccountStateChange(accountName, uid, eventStr)) {
         ACCOUNT_LOGE("Ohos account state change failed");
         return false;
     }
 
-    ACCOUNT_LOGI("Successful");
+    ACCOUNT_LOGD("Successful");
     return true;
 }
 
@@ -86,13 +103,13 @@ std::int32_t AccountMgrService::QueryDeviceAccountId(std::int32_t &accountId)
 
 sptr<IRemoteObject> AccountMgrService::GetAppAccountService()
 {
-    ACCOUNT_LOGI("enter");
+    ACCOUNT_LOGD("enter");
 
     return appAccountManagerService_;
 }
 sptr<IRemoteObject> AccountMgrService::GetOsAccountService()
 {
-    ACCOUNT_LOGI("enter");
+    ACCOUNT_LOGD("enter");
 
     return osAccountManagerService_;
 }
@@ -108,6 +125,10 @@ void AccountMgrService::OnStart()
         ACCOUNT_LOGI("AccountMgrService has already started.");
         return;
     }
+
+    InitHiTrace();
+    HiTraceAdapterSyncTrace tracer("accountmgr service onstart");
+    ValueTrace("activeid", -1);
 
     PerfStat::GetInstance().SetInstanceStartTime(GetTickCount());
     ACCOUNT_LOGI("start is triggered");
@@ -137,22 +158,13 @@ bool AccountMgrService::Init()
         return false;
     }
 
-    if (!OHOS::FileExists(DEVICE_OWNER_DIR)) {
-        ACCOUNT_LOGI("Device owner dir not exist, create!");
-        if (!OHOS::ForceCreateDirectory(DEVICE_OWNER_DIR)) {
-            ACCOUNT_LOGW("Create device owner dir failure!");
-        }
-    }
+    CreateDeviceDir();
 
     bool ret = false;
     if (!registerToService_) {
         ret = Publish(&DelayedRefSingleton<AccountMgrService>::GetInstance());
         if (!ret) {
-            HiviewDFX::HiSysEvent::Write("OS_ACCOUNT",
-                "SERVICE_START_FAILED",
-                HiviewDFX::HiSysEvent::EventType::FAULT,
-                "ERROR_TYPE",
-                ERR_ACCOUNT_MGR_ADD_TO_SA_ERROR);
+            ReportServiceStartFail(ERR_ACCOUNT_MGR_ADD_TO_SA_ERROR, "Publish service failed!");
             ACCOUNT_LOGE("AccountMgrService::Init Publish failed!");
             return false;
         }
@@ -163,60 +175,65 @@ bool AccountMgrService::Init()
     ret = ohosAccountMgr_->OnInitialize();
     if (!ret) {
         ACCOUNT_LOGE("Ohos account manager initialize failed");
-        HiviewDFX::HiSysEvent::Write("OS_ACCOUNT",
-            "SERVICE_START_FAILED",
-            HiviewDFX::HiSysEvent::EventType::FAULT,
-            "ERROR_TYPE",
-            ret);
+        ReportServiceStartFail(ERR_ACCOUNT_MGR_OHOS_MGR_INIT_ERROR, "OnInitialize failed!");
         return ret;
     }
-    dumpHelper_ = std::make_unique<AccountDumpHelper>(ohosAccountMgr_);
+
     IAccountContext::SetInstance(this);
     auto appAccountManagerService = new (std::nothrow) AppAccountManagerService();
-    osAccountManagerServiceOrg_ = new (std::nothrow) OsAccountManagerService();
-    if (appAccountManagerService == nullptr || osAccountManagerServiceOrg_ == nullptr) {
-        ACCOUNT_LOGE("memory alloc failed!");
+    if (appAccountManagerService == nullptr) {
+        ReportServiceStartFail(ERR_ACCOUNT_COMMON_INSUFFICIENT_MEMORY_ERROR,
+            "Insufficient memory to create app account manager service");
+        ACCOUNT_LOGE("memory alloc failed for appAccountManagerService!");
         return false;
     }
+    osAccountManagerServiceOrg_ = new (std::nothrow) OsAccountManagerService();
+    if (osAccountManagerServiceOrg_ == nullptr) {
+        ACCOUNT_LOGE("memory alloc failed for osAccountManagerServiceOrg_!");
+        delete appAccountManagerService;
+        ReportServiceStartFail(ERR_ACCOUNT_COMMON_INSUFFICIENT_MEMORY_ERROR,
+            "Insufficient memory to create os account manager service");
+        return false;
+    }
+    dumpHelper_ = std::make_unique<AccountDumpHelper>(ohosAccountMgr_, osAccountManagerServiceOrg_);
     appAccountManagerService_ = appAccountManagerService->AsObject();
     osAccountManagerService_ = osAccountManagerServiceOrg_->AsObject();
     ACCOUNT_LOGI("init end success");
     return true;
 }
 
-int AccountMgrService::Dump(std::int32_t fd, const std::vector<std::u16string> &args)
+std::int32_t AccountMgrService::Dump(std::int32_t fd, const std::vector<std::u16string> &args)
 {
     if (fd < 0) {
         ACCOUNT_LOGE("dump fd invalid");
         return ERR_ACCOUNT_MGR_DUMP_ERROR;
     }
 
+    if (dumpHelper_ == nullptr) {
+        ACCOUNT_LOGE("dumpHelper_ is nullptr!");
+        return ERR_ACCOUNT_MGR_DUMP_ERROR;
+    }
+
     std::vector<std::string> argsInStr;
     for (const auto &arg : args) {
-        ACCOUNT_LOGI("Dump args: %s", Str16ToStr8(arg).c_str());
         argsInStr.emplace_back(Str16ToStr8(arg));
     }
 
     std::string result;
-    if (dumpHelper_ && dumpHelper_->Dump(argsInStr, result)) {
-        ACCOUNT_LOGI("%s", result.c_str());
-        std::int32_t ret = dprintf(fd, "%s", result.c_str());
-        if (ret < 0) {
-            ACCOUNT_LOGE("dprintf to dump fd failed");
-            return ERR_ACCOUNT_MGR_DUMP_ERROR;
-        }
-        return ERR_OK;
+    dumpHelper_->Dump(argsInStr, result);
+    std::int32_t ret = dprintf(fd, "%s", result.c_str());
+    if (ret < 0) {
+        ACCOUNT_LOGE("dprintf to dump fd failed");
+        return ERR_ACCOUNT_MGR_DUMP_ERROR;
     }
-
-    ACCOUNT_LOGW("dumpHelper failed");
-    return ERR_ACCOUNT_MGR_DUMP_ERROR;
+    return ERR_OK;
 }
 
 void AccountMgrService::SelfClean()
 {
     state_ = ServiceRunningState::STATE_NOT_START;
     registerToService_ = false;
-    ACCOUNT_LOGI("selfclean finished");
+    ACCOUNT_LOGI("self-clean finished");
 }
 
 void AccountMgrService::HandleNotificationEvents(const std::string &eventStr)
@@ -225,8 +242,6 @@ void AccountMgrService::HandleNotificationEvents(const std::string &eventStr)
         ACCOUNT_LOGW("service not running for handling event: %{public}s", eventStr.c_str());
         return;
     }
-
-    ACCOUNT_LOGI("Unhandled event: %{public}s", eventStr.c_str());
 }
 }  // namespace AccountSA
 }  // namespace OHOS
