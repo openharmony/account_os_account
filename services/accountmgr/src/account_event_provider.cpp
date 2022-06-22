@@ -21,8 +21,9 @@
 #include "account_log_wrapper.h"
 #ifdef HAS_CES_PART
 #include "common_event_manager.h"
-#include "ohos/aafwk/content/want.h"
+#include "want.h"
 #endif // HAS_CES_PART
+#include "hitrace_adapter.h"
 
 #ifdef HAS_CES_PART
 using namespace OHOS::EventFwk;
@@ -37,7 +38,7 @@ bool AccountEventProvider::EventPublish(const std::string& event)
     want.SetAction(event);
     CommonEventData data;
     data.SetWant(want);
-
+    HiTraceAdapterSyncTrace tracer("Ohos account event publish.");
     /* publish */
     if (!CommonEventManager::PublishCommonEvent(data)) {
         ACCOUNT_LOGE("PublishCommonEvent failed! event %{public}s.", event.c_str());

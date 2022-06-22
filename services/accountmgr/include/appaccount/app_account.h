@@ -29,7 +29,7 @@ public:
     enum SubscribeState {
         ALREADY_SUBSCRIBED = 0,
         INITIAL_SUBSCRIPTION,
-        SUBSCRIBE_FAILD,
+        SUBSCRIBE_FAILED,
     };
 
     ErrCode AddAccount(const std::string &name, const std::string &extraInfo);

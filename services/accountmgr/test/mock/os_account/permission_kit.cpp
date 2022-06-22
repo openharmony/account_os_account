@@ -22,7 +22,7 @@ namespace Security {
 namespace Permission {
 ErrCode PermissionKit::VerifyPermission(const std::string &permissionName)
 {
-    ACCOUNT_LOGI("permissionName = %{public}s", permissionName.c_str());
+    ACCOUNT_LOGI("mock permissionName = %{public}s", permissionName.c_str());
 
     return ERR_OK;
 }

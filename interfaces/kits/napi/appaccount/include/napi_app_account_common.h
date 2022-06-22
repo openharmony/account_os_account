@@ -124,6 +124,7 @@ struct SubscriberAccountsWorker {
     napi_ref ref = nullptr;
     std::vector<AppAccountInfo> accounts;
     int code = 0;
+    SubscriberPtr *subscriber = nullptr;
 };
 
 struct AsyncContextForSubscribe {
@@ -252,8 +253,6 @@ napi_value ParseParametersByUnsubscribe(
 
 napi_value GetSubscriberByUnsubscribe(const napi_env &env, std::vector<std::shared_ptr<SubscriberPtr>> &subscriber,
     AsyncContextForUnsubscribe *asyncContextForOff, bool &isFind);
-
-void SubscribeExecuteCB(napi_env env, void *data);
 
 void UnsubscribeExecuteCB(napi_env env, void *data);
 

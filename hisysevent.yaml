@@ -11,22 +11,56 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-domain: OS_ACCOUNT
+domain: ACCOUNT
 
 SERVICE_START_FAILED:
-  __BASE: {type: FAULT, level: CRITICAL, tag: usability, desc: service start}
+  __BASE: {type: FAULT, level: CRITICAL, tag: usability, desc: service start errors}
   ERROR_TYPE: {type: INT32, desc: error code}
+  ERROR_MSG: {type: STRING, desc: error message}
 
-OHOS_ACCOUNT_STATE_MACHINE_EVENT:
-  __BASE: {type: FAULT, level: MINOR, desc: state change}
+OHOS_ACCOUNT_COMMON_EVENT_FAILED:
+  __BASE: {type: FAULT, level: MINOR, tag: usability, desc: ohosaccount publish event errors}
+  OLD_STATE: {type: INT32, desc: ohos account old state}
+  NEW_STATE: {type: INT32, desc: ohos account new state}
+  USER_ID: {type: INT32, desc: local account id}
+
+KVSTORE_ACCESS_FAILED:
+  __BASE: {type: FAULT, level: MINOR, tag: usability, desc: kvstore related errors}
+  KVSTORE_STATUS: {type: INT32, desc: the status returned by kvstore}
+  ERROR_MSG: {type: STRING, desc: error message}
+
+PERMISSION_EXCEPTION:
+  __BASE: {type: SECURITY, level: CRITICAL, tag: security, desc: permission verification errors}
+  CALLER_UID: {type: INT32, desc: caller uid}
+  CALLER_PID: {type: INT32, desc: caller pid}
+  PERMISSION_NAME: {type: STRING, desc: permission name}
+
+OS_ACCOUNT_OPERATE_FAILED:
+  __BASE: {type: FAULT, level: CRITICAL, tag: usability, desc: osaccount operation errors}
+  OSACCOUNT_ID: {type: INT32, desc: the id of os account}
+  OPERATE_TYPE: {type: STRING, desc: operation type on an os account}
+  ERROR_TYPE: {type: INT32, desc: error code}
+  ERROR_MSG: {type: STRING, desc: error message}
+
+FILE_IO_OPERATE_FAILED:
+  __BASE: {type: FAULT, level: CRITICAL, tag: usability, desc: file operation errors}
+  OPERATE_TYPE: {type: STRING, desc: operation type on a file or directory}
+  ERROR_TYPE: {type: INT32, desc: error code}
+  TARGET_PATH: {type: STRING, desc: target path}
+
+OS_ACCOUNT_LIFE_CYCLE_EVENT:
+  __BASE: {type: BEHAVIOR, level: MINOR, tag: usability, desc: osaccount create or delete event}
+  ACCOUNT_ID: {type: INT32, desc: the id of os account which is created or deleted}
+  OPERATE_TYPE: {type: STRING, desc: operation type on an os account create or delete}
+
+OS_ACCOUNT_SWITCH_EVENT:
+  __BASE: {type: BEHAVIOR, level: MINOR, tag: usability, desc: osaccount switch event}
+  CURRENT_ID: {type: INT32, desc: the id of os account after switch}
+  OLD_ID: {type: INT32, desc: the id of os account before switch}
+
+OHOS_ACCOUNT_STATE_CHANGE_EVENT:
+  __BASE: {type: BEHAVIOR, level: MINOR, desc: ohosaccount state change events}
   USER_ID: {type: INT32, desc: local account id}
   OPERATION_TYPE: {type: INT32, desc: operation type}
   OLD_STATE: {type: INT32, desc: ohos account old state}
   NEW_STATE: {type: INT32, desc: ohos account new state}
-
-PUBLISH_COMMON_EVENT_FAILED:
-  __BASE: {type: FAULT, level: CRITICAL, tag: usability, desc: publish event}
-  ERROR_TYPE: {type: INT32, desc: error code}
-  OLD_STATE: {type: INT32, desc: ohos account old state}
-  NEW_STATE: {type: INT32, desc: ohos account new state}
-  USER_ID: {type: INT32, desc: local account id}

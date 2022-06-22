@@ -48,8 +48,7 @@ public:
     ErrCode SetAppAccountSyncEnable(
         const std::string &name, const bool &syncEnable, const uid_t &uid, const std::string &bundleName);
 
-    ErrCode GetAssociatedData(const std::string &name, const std::string &key, std::string &value, const uid_t &uid,
-        const std::string &bundleName);
+    ErrCode GetAssociatedData(const std::string &name, const std::string &key, std::string &value, const uid_t &uid);
     ErrCode SetAssociatedData(const std::string &name, const std::string &key, const std::string &value,
         const uid_t &uid, const std::string &bundleName);
 
@@ -79,6 +78,7 @@ public:
     ErrCode UnsubscribeAppAccount(const sptr<IRemoteObject> &eventListener);
 
     ErrCode OnPackageRemoved(const uid_t &uid, const std::string &bundleName);
+    ErrCode OnUserRemoved(int32_t userId);
 
 private:
     std::shared_ptr<AppAccountControlManager> controlManagerPtr_ = nullptr;

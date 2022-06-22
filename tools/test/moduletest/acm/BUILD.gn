@@ -33,7 +33,7 @@ ohos_moduletest("account_command_create_module_test") {
   ]
 
   configs = [
-    "${aafwk_path}/interfaces/innerkits/ability_manager:ability_manager_public_config",
+    "${aafwk_path}/interfaces/inner_api/ability_manager:ability_manager_public_config",
     "${tools_path}/acm:tools_acm_config",
   ]
 
@@ -51,6 +51,7 @@ ohos_moduletest("account_command_create_module_test") {
   ]
 
   external_deps = [
+    "ability_base:base",
     "hiviewdfx_hilog_native:libhilog",
     "ipc:ipc_core",
   ]
@@ -73,7 +74,7 @@ ohos_moduletest("account_command_delete_module_test") {
   ]
 
   configs = [
-    "${aafwk_path}/interfaces/innerkits/ability_manager:ability_manager_public_config",
+    "${aafwk_path}/interfaces/inner_api/ability_manager:ability_manager_public_config",
     "${tools_path}/acm:tools_acm_config",
   ]
 
@@ -91,6 +92,7 @@ ohos_moduletest("account_command_delete_module_test") {
   ]
 
   external_deps = [
+    "ability_base:base",
     "hiviewdfx_hilog_native:libhilog",
     "ipc:ipc_core",
   ]
@@ -113,7 +115,7 @@ ohos_moduletest("account_command_dump_module_test") {
   ]
 
   configs = [
-    "${aafwk_path}/interfaces/innerkits/ability_manager:ability_manager_public_config",
+    "${aafwk_path}/interfaces/inner_api/ability_manager:ability_manager_public_config",
     "${tools_path}/acm:tools_acm_config",
   ]
 
@@ -131,6 +133,7 @@ ohos_moduletest("account_command_dump_module_test") {
   ]
 
   external_deps = [
+    "ability_base:base",
     "hiviewdfx_hilog_native:libhilog",
     "ipc:ipc_core",
   ]
@@ -153,7 +156,7 @@ ohos_moduletest("account_command_set_module_test") {
   ]
 
   configs = [
-    "${aafwk_path}/interfaces/innerkits/ability_manager:ability_manager_public_config",
+    "${aafwk_path}/interfaces/inner_api/ability_manager:ability_manager_public_config",
     "${tools_path}/acm:tools_acm_config",
   ]
 
@@ -171,6 +174,7 @@ ohos_moduletest("account_command_set_module_test") {
   ]
 
   external_deps = [
+    "ability_base:base",
     "hiviewdfx_hilog_native:libhilog",
     "ipc:ipc_core",
   ]
@@ -193,7 +197,7 @@ ohos_moduletest("account_command_switch_module_test") {
   ]
 
   configs = [
-    "${aafwk_path}/interfaces/innerkits/ability_manager:ability_manager_public_config",
+    "${aafwk_path}/interfaces/inner_api/ability_manager:ability_manager_public_config",
     "${tools_path}/acm:tools_acm_config",
   ]
 
@@ -211,6 +215,7 @@ ohos_moduletest("account_command_switch_module_test") {
   ]
 
   external_deps = [
+    "ability_base:base",
     "hiviewdfx_hilog_native:libhilog",
     "ipc:ipc_core",
   ]

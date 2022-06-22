@@ -237,7 +237,7 @@ OsAccountInfo *OsAccountInfo::Unmarshalling(Parcel &parcel)
     OsAccountInfo *osAccountInfo = new (std::nothrow) OsAccountInfo();
 
     if (osAccountInfo && !osAccountInfo->ReadFromParcel(parcel)) {
-        ACCOUNT_LOGE("failed to read from pacel");
+        ACCOUNT_LOGE("failed to read from parcel");
         delete osAccountInfo;
         osAccountInfo = nullptr;
     }

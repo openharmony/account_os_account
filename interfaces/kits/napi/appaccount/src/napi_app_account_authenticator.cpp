@@ -34,7 +34,7 @@ namespace AccountJsKit {
 NapiAppAccountAuthenticator::NapiAppAccountAuthenticator(const napi_env &env,
     const napi_ref &addAccountImplicitlyRef, const napi_ref &authenticateRef)
 {
-    ACCOUNT_LOGI("Enter");
+    ACCOUNT_LOGD("enter");
     env_ = env;
     addAccountImplicitlyRef_ = addAccountImplicitlyRef;
     authenticateRef_ = authenticateRef;
@@ -42,7 +42,7 @@ NapiAppAccountAuthenticator::NapiAppAccountAuthenticator(const napi_env &env,
 
 NapiAppAccountAuthenticator::~NapiAppAccountAuthenticator()
 {
-    ACCOUNT_LOGI("Enter");
+    ACCOUNT_LOGD("enter");
     if (addAccountImplicitlyRef_ != nullptr) {
         napi_status status = napi_delete_reference(env_, addAccountImplicitlyRef_);
         NAPI_ASSERT_RETURN_VOID(env_, status == napi_ok, "failed to delete addAccountImplicitlyRef to js RemoteObject");
@@ -69,10 +69,10 @@ ErrCode NapiAppAccountAuthenticator::AddAccountImplicitly(
     const std::string &authType, const std::string &callerBundleName,
     const AAFwk::WantParams &options, const sptr<IRemoteObject> &remoteObject)
 {
-    ACCOUNT_LOGI("Enter");
+    ACCOUNT_LOGD("enter");
     std::shared_ptr<struct ThreadLockInfo> lockInfo = std::make_shared<struct ThreadLockInfo>();
     if (lockInfo == nullptr) {
-        ACCOUNT_LOGI("fail to create ThreadLockInfo");
+        ACCOUNT_LOGE("fail to create ThreadLockInfo");
         return ERR_APPACCOUNT_SERVICE_OAUTH_SERVICE_EXCEPTION;
     }
     AuthParam *authParam = new (std::nothrow) AuthParam {
@@ -94,10 +94,10 @@ ErrCode NapiAppAccountAuthenticator::AddAccountImplicitly(
 ErrCode NapiAppAccountAuthenticator::Authenticate(const std::string &name, const std::string &authType,
     const std::string &callerBundleName, const AAFwk::WantParams &options, const sptr<IRemoteObject> &remoteObject)
 {
-    ACCOUNT_LOGI("Enter");
+    ACCOUNT_LOGD("enter");
     std::shared_ptr<struct ThreadLockInfo> lockInfo = std::make_shared<struct ThreadLockInfo>();
     if (lockInfo == nullptr) {
-        ACCOUNT_LOGI("fail to create ThreadLockInfo");
+        ACCOUNT_LOGE("fail to create ThreadLockInfo");
         return ERR_APPACCOUNT_SERVICE_OAUTH_SERVICE_EXCEPTION;
     }
     AuthParam *authParam = new (std::nothrow) AuthParam {
@@ -119,7 +119,7 @@ ErrCode NapiAppAccountAuthenticator::Authenticate(const std::string &name, const
 
 napi_value NapiAppAccountAuthenticator::Init(napi_env env, napi_value exports)
 {
-    ACCOUNT_LOGI("Enter");
+    ACCOUNT_LOGD("enter");
     const std::string className = "Authenticator";
     napi_property_descriptor properties[] = {};
     napi_value constructor = nullptr;
@@ -199,7 +199,7 @@ void UvQueueWorkCallJsFunction(uv_work_t *work, int status)
 
 ErrCode NapiAppAccountAuthenticator::CallJsFunction(AuthParam *param)
 {
-    ACCOUNT_LOGI("Enter");
+    ACCOUNT_LOGD("enter");
     if ((param == nullptr) || (param->lockInfo == nullptr)) {
         ACCOUNT_LOGE("param or lockInfo is nullptr!");
         return ERR_ACCOUNT_COMMON_INSUFFICIENT_MEMORY_ERROR;
@@ -222,7 +222,7 @@ ErrCode NapiAppAccountAuthenticator::CallJsFunction(AuthParam *param)
 
 napi_value NapiAppAccountAuthenticator::JsConstructor(napi_env env, napi_callback_info info)
 {
-    ACCOUNT_LOGI("Enter");
+    ACCOUNT_LOGD("enter");
     napi_value thisVar = nullptr;
     napi_value jsFunc = nullptr;
     napi_ref addAccountImplicitlyRef = nullptr;

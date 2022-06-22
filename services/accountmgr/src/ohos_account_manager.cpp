@@ -27,7 +27,7 @@
 #ifdef HAS_CES_PART
 #include "common_event_support.h"
 #endif // HAS_CES_PART
-#include "hisysevent.h"
+#include "hisysevent_adapter.h"
 #include "ipc_skeleton.h"
 #include "mbedtls/sha256.h"
 #include "system_ability_definition.h"
@@ -213,9 +213,7 @@ bool OhosAccountManager::HandleEvent(AccountInfo &curOhosAccount, const std::str
     }
     std::int32_t newState = accountState_->GetAccountState();
     if (newState != curOhosAccount.ohosAccountStatus_) {
-        HiviewDFX::HiSysEvent::Write("OS_ACCOUNT", "OHOS_ACCOUNT_STATE_MACHINE_EVENT",
-            HiviewDFX::HiSysEvent::EventType::FAULT, "USER_ID", curOhosAccount.userId_,
-            "OPERATION_TYPE", event, "OLD_STATE", curOhosAccount.ohosAccountStatus_, "NEW_STATE", newState);
+        ReportOhosAccountStateChange(curOhosAccount.userId_, event, curOhosAccount.ohosAccountStatus_, newState);
         curOhosAccount.ohosAccountStatus_ = newState;
     }
     return true;
@@ -285,7 +283,7 @@ bool OhosAccountManager::LoginOhosAccount(const std::string &name, const std::st
     if (!errCode) {
         ACCOUNT_LOGE("publish ohos account login event failed! callingUserId %{public}d, ohosAccountUid %{public}s.",
             callingUserId, ohosAccountUid.c_str());
-        ReportPublishFailureEvent(errCode, oldStatus, currOhosAccountInfo);
+        ReportOhosAccountCESFail(oldStatus, currOhosAccountInfo.ohosAccountStatus_, currOhosAccountInfo.userId_);
         return false;
     }
     ACCOUNT_LOGI("LoginOhosAccount success! callingUserId %{public}d, ohosAccountUid %{public}s.",
@@ -331,12 +329,12 @@ bool OhosAccountManager::LogoutOhosAccount(const std::string &name, const std::s
 #ifdef HAS_CES_PART
     ret = AccountEventProvider::EventPublish(EventFwk::CommonEventSupport::COMMON_EVENT_HWID_LOGOUT);
 #else // HAS_CES_PART
-    ACCOUNT_LOGI("No commom event part! Publish nothing!");
+    ACCOUNT_LOGI("No common event part! Publish nothing!");
 #endif // HAS_CES_PART
     if (!ret) {
         ACCOUNT_LOGE("publish account logout event failed, callingUserId %{public}d, ohosAccountUid %{public}s.",
             callingUserId, uid.c_str());
-        ReportPublishFailureEvent(ret, oldStatus, currentAccount);
+        ReportOhosAccountCESFail(oldStatus, currentAccount.ohosAccountStatus_, currentAccount.userId_);
         return false;
     }
 
@@ -388,7 +386,7 @@ bool OhosAccountManager::LogoffOhosAccount(const std::string &name, const std::s
     if (errCode != true) {
         ACCOUNT_LOGE("publish account logoff event failed, callingUserId %{public}d, ohosAccountUid %{public}s.",
             callingUserId, uid.c_str());
-        ReportPublishFailureEvent(errCode, oldStatus, currentAccount);
+        ReportOhosAccountCESFail(oldStatus, currentAccount.ohosAccountStatus_, currentAccount.userId_);
         return false;
     }
     ACCOUNT_LOGI("LogoffOhosAccount success, callingUserId %{public}d, ohosAccountUid %{public}s.",
@@ -440,7 +438,7 @@ bool OhosAccountManager::HandleOhosAccountTokenInvalidEvent(const std::string &n
     if (errCode != true) {
         ACCOUNT_LOGE("publish token invalid event failed, callingUserId %{public}d, ohosAccountUid %{public}s.",
             callingUserId, uid.c_str());
-        ReportPublishFailureEvent(errCode, oldStatus, currentOhosAccount);
+        ReportOhosAccountCESFail(oldStatus, currentOhosAccount.ohosAccountStatus_, currentOhosAccount.userId_);
         return false;
     }
     ACCOUNT_LOGI("success, callingUserId %{public}d, ohosAccountUid %{public}s.", callingUserId, uid.c_str());
@@ -516,15 +514,6 @@ void OhosAccountManager::HandleDevAccountSwitchEvent()
     if (!OnInitialize()) {
         ACCOUNT_LOGE("Handle dev Account SwitchEvent failed");
     }
-}
-
-void OhosAccountManager::ReportPublishFailureEvent(std::int32_t errCode,
-                                                   std::int32_t oldStatus,
-                                                   const AccountInfo &account)
-{
-    HiviewDFX::HiSysEvent::Write("OS_ACCOUNT", "PUBLISH_COMMON_EVENT_FAILED",
-        HiviewDFX::HiSysEvent::EventType::FAULT, "ERROR_TYPE", errCode, "OLD_STATE", oldStatus,
-        "NEW_STATE", account.ohosAccountStatus_, "USER_ID", account.userId_);
 }
 
 bool OhosAccountManager::CheckOhosAccountCanBind(const std::string &newOhosUid) const

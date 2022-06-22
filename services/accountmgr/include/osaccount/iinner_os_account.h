@@ -71,6 +71,14 @@ public:
     virtual ErrCode GetOsAccountListFromDatabase(const std::string& storeID,
         std::vector<OsAccountInfo> &osAccountList) = 0;
     virtual ErrCode QueryActiveOsAccountIds(std::vector<int32_t>& ids) = 0;
+    virtual ErrCode QueryOsAccountConstraintSourceTypes(const int32_t id,
+        const std::string &constraint, std::vector<ConstraintSourceTypeInfo> &constraintSourceTypeInfos) = 0;
+    virtual ErrCode SetGlobalOsAccountConstraints(const std::vector<std::string> &constraints,
+        const bool enable, const int32_t enforcerId, const bool isDeviceOwner) = 0;
+    virtual ErrCode SetSpecificOsAccountConstraints(const std::vector<std::string> &constraints,
+        const bool enable, const int32_t targetId, const int32_t enforcerId, const bool isDeviceOwner) = 0;
+    virtual ErrCode SetBaseOsAccountConstraints(const int32_t id,
+        const std::vector<std::string> &constraints, const bool enable) = 0;
 };
 }  // namespace AccountSA
 }  // namespace OHOS

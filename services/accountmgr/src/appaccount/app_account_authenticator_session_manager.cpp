@@ -46,13 +46,13 @@ void SessionAppStateObserver::SetSessionManager(AppAccountAuthenticatorSessionMa
 
 AppAccountAuthenticatorSessionManager::AppAccountAuthenticatorSessionManager()
 {
-    ACCOUNT_LOGI("enter");
+    ACCOUNT_LOGD("enter");
     Init();
 }
 
 AppAccountAuthenticatorSessionManager::~AppAccountAuthenticatorSessionManager()
 {
-    ACCOUNT_LOGI("enter");
+    ACCOUNT_LOGD("enter");
     if (!isInitialized_) {
         return;
     }
@@ -67,7 +67,7 @@ AppAccountAuthenticatorSessionManager::~AppAccountAuthenticatorSessionManager()
 void AppAccountAuthenticatorSessionManager::Init()
 {
     if (isInitialized_) {
-        ACCOUNT_LOGI("app account session manager has been initialized");
+        ACCOUNT_LOGD("app account session manager has been initialized");
         return;
     }
     appStateObserver_ = new (std::nothrow) SessionAppStateObserver(this);
@@ -102,7 +102,7 @@ ErrCode AppAccountAuthenticatorSessionManager::Authenticate(const OAuthRequest &
 
 ErrCode AppAccountAuthenticatorSessionManager::OpenSession(const std::string &action, const OAuthRequest &request)
 {
-    ACCOUNT_LOGI("enter");
+    ACCOUNT_LOGD("enter");
     if (!isInitialized_) {
         Init();
     }
@@ -112,15 +112,16 @@ ErrCode AppAccountAuthenticatorSessionManager::OpenSession(const std::string &ac
         return ERR_APPACCOUNT_SERVICE_OAUTH_SERVICE_EXCEPTION;
     }
     std::string sessionId = session->GetSessionId();
+    ErrCode result = ERR_OK;
     {
         std::lock_guard<std::mutex> lock(mutex_);
         if (sessionMap_.size() == SESSION_MAX_NUM) {
-            ACCOUNT_LOGE("app account mgr service is busy");
+            ACCOUNT_LOGD("app account mgr service is busy");
             return ERR_APPACCOUNT_SERVICE_OAUTH_BUSY;
         }
-        ErrCode result = session->Open();
+        result = session->Open();
         if (result != ERR_OK) {
-            ACCOUNT_LOGI("failed to open session");
+            ACCOUNT_LOGD("failed to open session, result: %{public}d.", result);
             return result;
         }
         sessionMap_.emplace(sessionId, session);
@@ -133,6 +134,11 @@ ErrCode AppAccountAuthenticatorSessionManager::OpenSession(const std::string &ac
             sessionSet.emplace(sessionId);
             abilitySessions_.emplace(key, sessionSet);
         }
+    }
+    result = session->AddClientDeathRecipient();
+    if (result != ERR_OK) {
+        ACCOUNT_LOGD("failed to add client death recipient for session, result: %{public}d.", result);
+        CloseSession(sessionId);
     }
     return ERR_OK;
 }
@@ -176,7 +182,7 @@ void AppAccountAuthenticatorSessionManager::OnAbilityStateChanged(const AppExecF
 
 void AppAccountAuthenticatorSessionManager::CloseSession(const std::string &sessionId)
 {
-    ACCOUNT_LOGI("enter");
+    ACCOUNT_LOGD("enter");
     std::lock_guard<std::mutex> lock(mutex_);
     auto it = sessionMap_.find(sessionId);
     if (it == sessionMap_.end()) {

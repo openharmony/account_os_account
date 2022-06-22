@@ -15,6 +15,7 @@
 #include "os_account_manager_service.h"
 #include "account_info.h"
 #include "account_log_wrapper.h"
+#include "hisysevent_adapter.h"
 #include "iinner_os_account_manager.h"
 #include "ipc_skeleton.h"
 #include "os_account_constants.h"
@@ -33,13 +34,22 @@ const std::string CONSTANT_REMOVE = "constraint.os.account.remove";
 const std::string CONSTANT_START = "constraint.os.account.start";
 const std::string CONSTANT_SET_ICON = "constraint.os.account.set.icon";
 const std::int32_t ROOT_UID = 0;
+const std::string DEFAULT_ANON_STR = "**********";
+const size_t INTERCEPT_HEAD_PART_LEN_FOR_NAME = 1;
+std::string AnonymizeNameStr(const std::string& nameStr)
+{
+    if (nameStr.empty()) {
+        return nameStr;
+    }
+    std::string retStr = nameStr.substr(0, INTERCEPT_HEAD_PART_LEN_FOR_NAME) + DEFAULT_ANON_STR;
+    return retStr;
+}
 }  // namespace
 
 OsAccountManagerService::OsAccountManagerService()
 {
     innerManager_ = DelayedSingleton<IInnerOsAccountManager>::GetInstance();
     permissionManagerPtr_ = DelayedSingleton<AccountPermissionManager>::GetInstance();
-    bundleManagerPtr_ = DelayedSingleton<AccountBundleManager>::GetInstance();
 }
 OsAccountManagerService::~OsAccountManagerService()
 {}
@@ -86,7 +96,7 @@ ErrCode OsAccountManagerService::CreateOsAccount(
 ErrCode OsAccountManagerService::CreateOsAccountForDomain(
     const OsAccountType &type, const DomainAccountInfo &domainInfo, OsAccountInfo &osAccountInfo)
 {
-    ACCOUNT_LOGI("OsAccountManager CreateOsAccountForDomain START");
+    ACCOUNT_LOGI("start");
     bool isMultiOsAccountEnable = false;
     innerManager_->IsMultiOsAccountEnable(isMultiOsAccountEnable);
     if (!isMultiOsAccountEnable) {
@@ -314,7 +324,7 @@ ErrCode OsAccountManagerService::SetOsAccountName(const int id, const std::strin
 
     // parameters check
     if (name.size() > Constants::LOCAL_NAME_MAX_SIZE) {
-        ACCOUNT_LOGE("set os account name is out of allowed szie");
+        ACCOUNT_LOGE("set os account name is out of allowed size");
         return ERR_OSACCOUNT_SERVICE_MANAGER_NAME_SIZE_OVERFLOW_ERROR;
     }
     if (name.size() <= 0) {
@@ -343,7 +353,7 @@ ErrCode OsAccountManagerService::SetOsAccountConstraints(
         return ERR_OSACCOUNT_SERVICE_MANAGER_ID_ERROR;
     }
 
-    return innerManager_->SetOsAccountConstraints(id, constraints, enable);
+    return innerManager_->SetBaseOsAccountConstraints(id, constraints, enable);
 }
 
 ErrCode OsAccountManagerService::SetOsAccountProfilePhoto(const int id, const std::string &photo)
@@ -522,9 +532,9 @@ ErrCode OsAccountManagerService::GetCreatedOsAccountNumFromDatabase(const std::s
 
 void OsAccountManagerService::CreateBasicAccounts()
 {
-    ACCOUNT_LOGE("CreateBasicAccounts enter!");
+    ACCOUNT_LOGI("enter!");
     innerManager_->Init();
-    ACCOUNT_LOGE("CreateBasicAccounts exit!");
+    ACCOUNT_LOGI("exit!");
 }
 
 ErrCode OsAccountManagerService::GetSerialNumberFromDatabase(const std::string& storeID,
@@ -565,7 +575,7 @@ ErrCode OsAccountManagerService::GetOsAccountListFromDatabase(const std::string&
 ErrCode OsAccountManagerService::DumpStateByAccounts(
     const std::vector<OsAccountInfo> &osAccountInfos, std::vector<std::string> &state)
 {
-    ACCOUNT_LOGI("enter");
+    ACCOUNT_LOGD("enter");
 
     for (auto osAccountInfo : osAccountInfos) {
         std::string info = "";
@@ -574,7 +584,7 @@ ErrCode OsAccountManagerService::DumpStateByAccounts(
         state.emplace_back("ID: " + localId);
 
         std::string localName = osAccountInfo.GetLocalName();
-        state.emplace_back(DUMP_TAB_CHARACTER + "Name: " + localName);
+        state.emplace_back(DUMP_TAB_CHARACTER + "Name: " + AnonymizeNameStr(localName));
 
         std::string type = "";
         auto it = DUMP_TYPE_MAP.find(osAccountInfo.GetType());
@@ -584,14 +594,8 @@ ErrCode OsAccountManagerService::DumpStateByAccounts(
             type = "unknown";
         }
         state.emplace_back(DUMP_TAB_CHARACTER + "Type: " + type);
-
-        std::string status = "";
-        if (osAccountInfo.GetIsActived()) {
-            status = "active";
-        } else {
-            status = "inactive";
-        }
-        state.emplace_back(DUMP_TAB_CHARACTER + "Status: " + status);
+        state.emplace_back(DUMP_TAB_CHARACTER + "Status: " +
+            (osAccountInfo.GetIsActived() ? "active" : "inactive"));
 
         state.emplace_back(DUMP_TAB_CHARACTER + "Constraints:");
         auto constraints = osAccountInfo.GetConstraints();
@@ -599,25 +603,15 @@ ErrCode OsAccountManagerService::DumpStateByAccounts(
             state.emplace_back(DUMP_TAB_CHARACTER + DUMP_TAB_CHARACTER + constraint);
         }
 
-        std::string verifiedStatus = "";
-        if (osAccountInfo.GetIsVerified()) {
-            verifiedStatus = "true";
-        } else {
-            verifiedStatus = "false";
-        }
-        state.emplace_back(DUMP_TAB_CHARACTER + "Verified: " + verifiedStatus);
+        state.emplace_back(DUMP_TAB_CHARACTER + "Verified: " +
+            (osAccountInfo.GetIsVerified() ? "true" : "false"));
 
         int64_t serialNumber = osAccountInfo.GetSerialNumber();
         state.emplace_back(DUMP_TAB_CHARACTER + "Serial Number: " + std::to_string(serialNumber));
-
-        std::string createCompletedStatus = "";
-        if (osAccountInfo.GetIsCreateCompleted()) {
-            createCompletedStatus = "true";
-        } else {
-            createCompletedStatus = "false";
-        }
-        state.emplace_back(DUMP_TAB_CHARACTER + "Create Completed: " + createCompletedStatus);
-
+        state.emplace_back(DUMP_TAB_CHARACTER + "Create Completed: " +
+            (osAccountInfo.GetIsCreateCompleted() ? "true" : "false"));
+        state.emplace_back(DUMP_TAB_CHARACTER + "To Be Removed: " +
+            (osAccountInfo.GetToBeRemoved() ? "true" : "false"));
         state.emplace_back("\n");
     }
 
@@ -629,16 +623,71 @@ ErrCode OsAccountManagerService::QueryActiveOsAccountIds(std::vector<int32_t>& i
     return innerManager_->QueryActiveOsAccountIds(ids);
 }
 
-bool OsAccountManagerService::PermissionCheck(const std::string& permissionName, const std::string& constriantName)
+ErrCode OsAccountManagerService::QueryOsAccountConstraintSourceTypes(const int32_t id,
+    const std::string &constraint, std::vector<ConstraintSourceTypeInfo> &constraintSourceTypeInfos)
 {
-    // constriants check
+    // permission check
+    ACCOUNT_LOGE("QueryOsAccountConstraintSourceTypes Enter");
+    if (!PermissionCheck(AccountPermissionManager::MANAGE_LOCAL_ACCOUNTS, "")) {
+        ACCOUNT_LOGE("account manager service, permission denied!");
+        return ERR_OSACCOUNT_SERVICE_PERMISSION_DENIED;
+    }
+
+    // parameters check
+    if (id < Constants::START_USER_ID) {
+        ACCOUNT_LOGE("invalid input id %{public}d.", id);
+        return ERR_OSACCOUNT_SERVICE_MANAGER_ID_ERROR;
+    }
+    return innerManager_->QueryOsAccountConstraintSourceTypes(id, constraint, constraintSourceTypeInfos);
+}
+
+ErrCode OsAccountManagerService::SetGlobalOsAccountConstraints(const std::vector<std::string> &constraints,
+    const bool enable, const int32_t enforcerId, const bool isDeviceOwner)
+{
+    // permission check
+    if (!PermissionCheck(AccountPermissionManager::MANAGE_LOCAL_ACCOUNTS, "")) {
+        ACCOUNT_LOGE("account manager service, permission denied!");
+        return ERR_OSACCOUNT_SERVICE_PERMISSION_DENIED;
+    }
+
+    // parameters check
+    if (enforcerId < Constants::START_USER_ID) {
+        ACCOUNT_LOGE("invalid input account id %{public}d.", enforcerId);
+        return ERR_OSACCOUNT_SERVICE_MANAGER_ID_ERROR;
+    }
+
+    return innerManager_->SetGlobalOsAccountConstraints(constraints, enable, enforcerId, isDeviceOwner);
+}
+
+ErrCode OsAccountManagerService::SetSpecificOsAccountConstraints(const std::vector<std::string> &constraints,
+    const bool enable, const int32_t targetId, const int32_t enforcerId, const bool isDeviceOwner)
+{
+    // permission check
+    if (!PermissionCheck(AccountPermissionManager::MANAGE_LOCAL_ACCOUNTS, "")) {
+        ACCOUNT_LOGE("account manager service, permission denied!");
+        return ERR_OSACCOUNT_SERVICE_PERMISSION_DENIED;
+    }
+
+    // parameters check
+    if (targetId < Constants::START_USER_ID || enforcerId < Constants::START_USER_ID) {
+        ACCOUNT_LOGE("invalid input account id %{public}d or %{public}d.", targetId, enforcerId);
+        return ERR_OSACCOUNT_SERVICE_MANAGER_ID_ERROR;
+    }
+
+    return innerManager_->SetSpecificOsAccountConstraints(constraints, enable, targetId, enforcerId, isDeviceOwner);
+}
+
+bool OsAccountManagerService::PermissionCheck(const std::string& permissionName, const std::string& constraintName)
+{
+    // constraints check
     int callerUid = IPCSkeleton::GetCallingUid();
-    if (!constriantName.empty()) {
+    if (!constraintName.empty()) {
         int callerUserId = callerUid / UID_TRANSFORM_DIVISOR;
         bool isEnable = true;
-        innerManager_->IsOsAccountConstraintEnable(callerUserId, constriantName, isEnable);
+        innerManager_->IsOsAccountConstraintEnable(callerUserId, constraintName, isEnable);
         if (isEnable) {
-            ACCOUNT_LOGE("constriant check %{public}s failed.", constriantName.c_str());
+            ACCOUNT_LOGE("constraint check %{public}s failed.", constraintName.c_str());
+            ReportPermissionFail(callerUid, IPCSkeleton::GetCallingPid(), constraintName);
             return false;
         }
     }
@@ -654,6 +703,7 @@ bool OsAccountManagerService::PermissionCheck(const std::string& permissionName,
     }
 
     ACCOUNT_LOGE("failed to verify permission for %{public}s.", permissionName.c_str());
+    ReportPermissionFail(callerUid, IPCSkeleton::GetCallingPid(), permissionName);
     return false;
 }
 }  // namespace AccountSA

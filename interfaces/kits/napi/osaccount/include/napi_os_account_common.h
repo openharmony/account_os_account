@@ -162,11 +162,11 @@ void CBOrPromiseToQueryOA(napi_env env, const QueryCreateOAAsyncContext *queryOA
 void CBOrPromiseToQueryActiveIds(napi_env env, const QueryActiveIdsAsyncContext *queryActiveIds,
     napi_value err, napi_value data);
 
-napi_value ParseParaGetPhote(napi_env env, napi_callback_info cbInfo, GetOAPhotoAsyncContext *getPhoto);
+napi_value ParseParaGetPhoto(napi_env env, napi_callback_info cbInfo, GetOAPhotoAsyncContext *getPhoto);
 
-void GetOAPhoteExecuteCB(napi_env env, void *data);
+void GetOAPhotoExecuteCB(napi_env env, void *data);
 
-void GetOAPhoteCallbackCompletedCB(napi_env env, napi_status status, void *data);
+void GetOAPhotoCallbackCompletedCB(napi_env env, napi_status status, void *data);
 
 void CBOrPromiseToGetPhoto(napi_env env, const GetOAPhotoAsyncContext *getPhoto, napi_value err, napi_value data);
 
@@ -290,6 +290,18 @@ void SubscribeCompletedCB(napi_env env, napi_status status, void *data);
 
 napi_value ParseParaToUnsubscriber(const napi_env &env, const size_t &argc, const napi_value (&argv)[ARGS_SIZE_THREE],
     napi_ref &callback, OS_ACCOUNT_SUBSCRIBE_TYPE &offType, std::string &offName);
+
+napi_value ParseQueryOAConstraintSrcTypes(napi_env env, napi_callback_info cbInfo,
+    QueryOAConstraintSrcTypeContext *queryConstraintsSource);
+
+void QueryOAContSrcTypeExecuteCB(napi_env env, void *data);
+
+void QueryOAContSrcTypeCallbackCompletedCB(napi_env env, napi_status status, void *data);
+
+void QueryOAContSrcTypeForResult(napi_env env, const std::vector<ConstraintSourceTypeInfo> &infos, napi_value result);
+
+void CBOrPromiseToQueryOAContSrcType(napi_env env,
+    const QueryOAConstraintSrcTypeContext *queryConstraintsSource, napi_value err, napi_value data);
 }  // namespace AccountJsKit
 }  // namespace OHOS
 

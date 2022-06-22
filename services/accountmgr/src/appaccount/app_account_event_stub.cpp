@@ -21,7 +21,7 @@ namespace OHOS {
 namespace AccountSA {
 AppAccountEventStub::AppAccountEventStub()
 {
-    ACCOUNT_LOGI("enter");
+    ACCOUNT_LOGD("enter");
 }
 
 AppAccountEventStub::~AppAccountEventStub()
@@ -61,7 +61,7 @@ int AppAccountEventStub::OnRemoteRequest(
 template<typename T>
 bool AppAccountEventStub::ReadParcelableVector(std::vector<T> &parcelableVector, MessageParcel &data)
 {
-    ACCOUNT_LOGI("enter");
+    ACCOUNT_LOGD("enter");
 
     uint32_t size = 0;
     if (!data.ReadUint32(size)) {

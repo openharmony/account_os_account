@@ -46,8 +46,8 @@ config("os_account_core_public_config") {
     "${os_account_interfaces_native_path}/include",
     "${innerkits_path}/include",
     "${services_path}/accountmgr/include",
-    "//foundation/aafwk/standard/interfaces/innerkits/base/include/",
-    "//foundation/aafwk/standard/interfaces/innerkits/want/include",
+    "//foundation/ability/ability_runtime/interfaces/inner_api/base/include/",
+    "//foundation/ability/ability_runtime/interfaces/inner_api/want/include",
     "//utils/native/base/include",
     "//utils/system/safwk/native/include",
     "//foundation/communication/ipc/interfaces/innerkits/ipc_core/include",
@@ -80,8 +80,6 @@ ohos_shared_library("os_account_core") {
 
   external_deps = [
     "ability_base:want",
-    "bundle_framework:appexecfwk_base",
-    "bundle_framework:appexecfwk_core",
     "hiviewdfx_hilog_native:libhilog",
     "ipc:ipc_core",
     "samgr_standard:samgr_proxy",

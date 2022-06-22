@@ -12,7 +12,8 @@
 # limitations under the License.
 
 os_account_path = "//base/account/os_account"
-aafwk_path = "//foundation/aafwk/standard"
+aafwk_path = "//foundation/ability/ability_runtime"
+bundle_framework_path = "//foundation/bundlemanager/bundle_framework"
 common_path = "${os_account_path}/frameworks/common"
 services_path = "${os_account_path}/services"
 tools_path = "${os_account_path}/tools"
@@ -33,11 +34,10 @@ os_account_innerkits_native_path =
     "${os_account_path}/frameworks/osaccount/native"
 os_account_core_path = "${os_account_path}/frameworks/osaccount/core"
 os_account_kits_path = "${os_account_path}/interfaces/kits/napi/osaccount"
-
-aafwk_path = "//foundation/aafwk/standard"
+os_account_dfx_path = "${os_account_path}/dfx"
 
 if (!defined(global_parts_info) ||
-    defined(global_parts_info.useriam_user_auth)) {
+    defined(global_parts_info.useriam_user_auth_framework)) {
   has_user_auth_part = true
   has_user_idm_part = true
 } else {
@@ -57,4 +57,18 @@ if (!defined(global_parts_info) ||
   has_ces_part = true
 } else {
   has_ces_part = false
+}
+
+if (!defined(global_parts_info) ||
+    defined(global_parts_info.hiviewdfx_hisysevent_native)) {
+  has_hiviewdfx_hisysevent_part = true
+} else {
+  has_hiviewdfx_hisysevent_part = false
+}
+
+if (!defined(global_parts_info) ||
+    defined(global_parts_info.hiviewdfx_hitrace_native)) {
+  has_hiviewdfx_hitrace_part = true
+} else {
+  has_hiviewdfx_hitrace_part = false
 }

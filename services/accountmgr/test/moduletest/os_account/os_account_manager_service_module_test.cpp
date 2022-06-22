@@ -12,9 +12,10 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
+#include <cerrno>
 #include <gtest/gtest.h>
 #include <thread>
+#include <unistd.h>
 #include "account_error_no.h"
 #include "account_log_wrapper.h"
 #include "os_account_constants.h"
@@ -36,6 +37,8 @@ const std::string STRING_EMPTY = "";
 const std::string STRING_NAME = "name";
 const std::string STRING_TEST_NAME = "test";
 const OsAccountType INT_TEST_TYPE = OsAccountType::GUEST;
+const uid_t ACCOUNT_UID = 3058;
+const gid_t ACCOUNT_GID = 3058;
 
 const std::vector<std::string> CONSTANTS_VECTOR {
     "constraint.print",
@@ -166,14 +169,14 @@ void OsAccountManagerServiceModuleTest::SetUpTestCase(void)
     g_osAccountManagerService = std::make_shared<OsAccountManagerService>();
     std::this_thread::sleep_for(std::chrono::milliseconds(DELAY_FOR_OPERATION));
 
-    bool isOsAccountActived = false;
-    ErrCode ret = g_osAccountManagerService->IsOsAccountActived(MAIN_ACCOUNT_ID, isOsAccountActived);
+    bool isOsAccountActive = false;
+    ErrCode ret = g_osAccountManagerService->IsOsAccountActived(MAIN_ACCOUNT_ID, isOsAccountActive);
     std::uint32_t waitCnt = 0;
-    while (ret != ERR_OK || !isOsAccountActived) {
+    while (ret != ERR_OK || !isOsAccountActive) {
         std::this_thread::sleep_for(std::chrono::milliseconds(WAIT_A_MOMENT));
         waitCnt++;
         GTEST_LOG_(INFO) << "SetUpTestCase waitCnt " << waitCnt << " ret = " << ret;
-        ret = g_osAccountManagerService->IsOsAccountActived(MAIN_ACCOUNT_ID, isOsAccountActived);
+        ret = g_osAccountManagerService->IsOsAccountActived(MAIN_ACCOUNT_ID, isOsAccountActive);
         if (waitCnt >= MAX_WAIT_FOR_READY_CNT) {
             GTEST_LOG_(INFO) << "SetUpTestCase waitCnt " << waitCnt;
             GTEST_LOG_(INFO) << "SetUpTestCase wait for ready failed!";
@@ -277,7 +280,7 @@ HWTEST_F(OsAccountManagerServiceModuleTest, OsAccountManagerServiceModuleTest005
 
 /**
  * @tc.name: OsAccountManagerServiceModuleTest006
- * @tc.desc: Test actived os account can be remove.
+ * @tc.desc: Test active os account can be remove.
  * @tc.type: FUNC
  * @tc.require: SR000GGVFJ
  */
@@ -311,6 +314,14 @@ HWTEST_F(OsAccountManagerServiceModuleTest, OsAccountManagerServiceModuleTest007
 
     // restore file content
     g_accountFileOperator->InputFileByPathAndContent(Constants::ACCOUNT_LIST_FILE_JSON_PATH, fileContext);
+
+    // recover permission
+    if (chmod(Constants::ACCOUNT_LIST_FILE_JSON_PATH.c_str(), S_IRUSR | S_IWUSR) != 0) {
+        ACCOUNT_LOGE("OsAccountManagerModuleTest006, chmod failed! errno %{public}d.", errno);
+    }
+    if (chown(Constants::ACCOUNT_LIST_FILE_JSON_PATH.c_str(), ACCOUNT_UID, ACCOUNT_GID) != 0) {
+        ACCOUNT_LOGE("OsAccountManagerModuleTest006, chown failed! errno %{public}d.", errno);
+    }
 }
 
 /**
@@ -392,9 +403,9 @@ HWTEST_F(OsAccountManagerServiceModuleTest, OsAccountManagerServiceModuleTest012
 HWTEST_F(OsAccountManagerServiceModuleTest, OsAccountManagerServiceModuleTest013, TestSize.Level1)
 {
     ACCOUNT_LOGI("OsAccountManagerServiceModuleTest013");
-    bool isOsAccountActived = false;
-    EXPECT_EQ(g_osAccountManagerService->IsOsAccountActived(Constants::START_USER_ID, isOsAccountActived), ERR_OK);
-    EXPECT_EQ(isOsAccountActived, true);
+    bool isOsAccountActive = false;
+    EXPECT_EQ(g_osAccountManagerService->IsOsAccountActived(Constants::START_USER_ID, isOsAccountActive), ERR_OK);
+    EXPECT_EQ(isOsAccountActive, true);
 }
 
 /**
@@ -435,8 +446,8 @@ HWTEST_F(OsAccountManagerServiceModuleTest, OsAccountManagerServiceModuleTest015
     EXPECT_EQ(g_osAccountManagerService->QueryOsAccountById(osAccountInfoOne.GetLocalId(), osAccountInfoTwo),
         ERR_OK);
 
-    std::vector<std::string> contstans = osAccountInfoTwo.GetConstraints();
-    for (auto it = contstans.begin(); it != contstans.end(); it++) {
+    std::vector<std::string> constraints = osAccountInfoTwo.GetConstraints();
+    for (auto it = constraints.begin(); it != constraints.end(); it++) {
         GTEST_LOG_(INFO) << *it;
     }
     EXPECT_EQ(g_osAccountManagerService->RemoveOsAccount(osAccountInfoOne.GetLocalId()), ERR_OK);
@@ -459,8 +470,8 @@ HWTEST_F(OsAccountManagerServiceModuleTest, OsAccountManagerServiceModuleTest016
     OsAccountInfo osAccountInfoTwo;
     EXPECT_EQ(g_osAccountManagerService->QueryOsAccountById(osAccountInfoOne.GetLocalId(), osAccountInfoTwo),
         ERR_OK);
-    std::vector<std::string> contstans = osAccountInfoTwo.GetConstraints();
-    for (auto it = contstans.begin(); it != contstans.end(); it++) {
+    std::vector<std::string> constraints = osAccountInfoTwo.GetConstraints();
+    for (auto it = constraints.begin(); it != constraints.end(); it++) {
         GTEST_LOG_(INFO) << *it;
     }
     EXPECT_EQ(g_osAccountManagerService->RemoveOsAccount(osAccountInfoOne.GetLocalId()), ERR_OK);
@@ -603,7 +614,7 @@ HWTEST_F(OsAccountManagerServiceModuleTest, OsAccountManagerServiceModuleTest025
 
 /**
  * @tc.name: OsAccountManagerServiceModuleTest026
- * @tc.desc: Test GetOsAccountAllConstraints with exisit os account id.
+ * @tc.desc: Test GetOsAccountAllConstraints with exist os account id.
  * @tc.type: FUNC
  * @tc.require: SR000GGVFE SR000GH18T
  */
@@ -618,7 +629,7 @@ HWTEST_F(OsAccountManagerServiceModuleTest, OsAccountManagerServiceModuleTest026
 
 /**
  * @tc.name: OsAccountManagerServiceModuleTest027
- * @tc.desc: Test GetOsAccountAllConstraints with does not exisit os account id.
+ * @tc.desc: Test GetOsAccountAllConstraints with does not exist os account id.
  * @tc.type: FUNC
  * @tc.require: SR000GGVFE SR000GH18T
  */

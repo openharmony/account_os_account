@@ -17,6 +17,7 @@
 #include <thread>
 #include <unistd.h>
 #include "account_log_wrapper.h"
+#include "hisysevent_adapter.h"
 
 namespace OHOS {
 namespace AccountSA {
@@ -39,20 +40,18 @@ AccountDataStorage::~AccountDataStorage()
 
 void AccountDataStorage::TryTwice(const std::function<DistributedKv::Status()> &func) const
 {
-    ACCOUNT_LOGI("enter");
+    ACCOUNT_LOGD("enter");
 
     OHOS::DistributedKv::Status status = func();
     if (status == OHOS::DistributedKv::Status::IPC_ERROR) {
         status = func();
         ACCOUNT_LOGE("distribute database ipc error and try again, status = %{public}d", status);
     }
-
-    ACCOUNT_LOGI("end, status = %{public}d", status);
 }
 
 OHOS::DistributedKv::Status AccountDataStorage::GetKvStore()
 {
-    ACCOUNT_LOGI("enter");
+    ACCOUNT_LOGD("enter");
 
     OHOS::DistributedKv::Options options = {
         .createIfMissing = true,
@@ -61,28 +60,28 @@ OHOS::DistributedKv::Status AccountDataStorage::GetKvStore()
         .kvStoreType = OHOS::DistributedKv::KvStoreType::SINGLE_VERSION
     };
 
-    auto status = dataManager_.GetSingleKvStore(options, appId_, storeId_, kvStorePtr_);
-    if (kvStorePtr_ == nullptr) {
-        ACCOUNT_LOGE("kvStorePtr_ is nullptr");
+    OHOS::DistributedKv::Status status = dataManager_.GetSingleKvStore(options, appId_, storeId_, kvStorePtr_);
+    if (status != OHOS::DistributedKv::Status::SUCCESS || kvStorePtr_ == nullptr) {
+        ACCOUNT_LOGE("GetSingleKvStore failed! status %{public}d, kvStorePtr_ is nullptr", status);
+        return status;
     }
-
-    ACCOUNT_LOGI("end, status = %{public}d", status);
     return status;
 }
 
 bool AccountDataStorage::CheckKvStore()
 {
-    ACCOUNT_LOGI("enter");
+    ACCOUNT_LOGD("enter");
     std::lock_guard<std::mutex> lock(kvStorePtrMutex_);
 
     if (kvStorePtr_ != nullptr) {
         return true;
     }
     int32_t tryTimes = MAX_TIMES;
+    OHOS::DistributedKv::Status status = OHOS::DistributedKv::Status::SUCCESS;
     while (tryTimes > 0) {
-        OHOS::DistributedKv::Status status = GetKvStore();
+        status = GetKvStore();
         if (status == OHOS::DistributedKv::Status::SUCCESS && kvStorePtr_ != nullptr) {
-            return true;
+            break;
         }
 
         ACCOUNT_LOGI("tryTimes = %{public}d status = %{public}d.", tryTimes, status);
@@ -90,21 +89,25 @@ bool AccountDataStorage::CheckKvStore()
         tryTimes--;
     }
 
-    ACCOUNT_LOGI("end");
+    if (kvStorePtr_ == nullptr) {
+        ReportKvStoreAccessFail(status, "GetSingleKvStore failed!");
+        return false;
+    }
 
-    return kvStorePtr_ != nullptr;
+    ACCOUNT_LOGI("end");
+    return true;
 }
 
 ErrCode AccountDataStorage::LoadAllData(std::map<std::string, std::shared_ptr<IAccountInfo>> &infos)
 {
-    ACCOUNT_LOGI("enter");
+    ACCOUNT_LOGD("enter");
 
     if (!CheckKvStore()) {
         ACCOUNT_LOGE("kvStore is nullptr");
         return OHOS::ERR_OSACCOUNT_SERVICE_MANAGER_QUERY_DISTRIBUTE_DATA_ERROR;
     }
 
-    OHOS::DistributedKv::Status status;
+    OHOS::DistributedKv::Status status = DistributedKv::Status::SUCCESS;
     std::vector<OHOS::DistributedKv::Entry> allEntries;
     TryTwice([this, &status, &allEntries] {
         status = GetEntries("", allEntries);
@@ -116,6 +119,7 @@ ErrCode AccountDataStorage::LoadAllData(std::map<std::string, std::shared_ptr<IA
         // KEY_NOT_FOUND means no data in database, no need to report.
         if (status != OHOS::DistributedKv::Status::KEY_NOT_FOUND) {
             ACCOUNT_LOGE("status != OHOS::DistributedKv::Status::KEY_NOT_FOUND");
+            ReportKvStoreAccessFail(status, "GetEntries failed!");
         }
         return OHOS::ERR_OSACCOUNT_SERVICE_MANAGER_QUERY_DISTRIBUTE_DATA_ERROR;
     }
@@ -126,7 +130,7 @@ ErrCode AccountDataStorage::LoadAllData(std::map<std::string, std::shared_ptr<IA
 
 ErrCode AccountDataStorage::AddAccountInfo(const IAccountInfo &iAccountInfo)
 {
-    ACCOUNT_LOGI("enter");
+    ACCOUNT_LOGD("enter");
     if (IsKeyExists(iAccountInfo.GetPrimeKey())) {
         ACCOUNT_LOGE("the key already exists.");
         return ERR_OSACCOUNT_SERVICE_DATA_STORAGE_KEY_EXISTED_ERROR;
@@ -142,7 +146,7 @@ ErrCode AccountDataStorage::AddAccountInfo(const IAccountInfo &iAccountInfo)
 
 ErrCode AccountDataStorage::SaveAccountInfo(const IAccountInfo &iAccountInfo)
 {
-    ACCOUNT_LOGI("enter");
+    ACCOUNT_LOGD("enter");
     if (!IsKeyExists(iAccountInfo.GetPrimeKey())) {
         ACCOUNT_LOGE("the key does not exist");
         return ERR_OSACCOUNT_SERVICE_DATA_STORAGE_KEY_NOT_EXISTS_ERROR;
@@ -176,6 +180,10 @@ ErrCode AccountDataStorage::RemoveValueFromKvStore(const std::string &keyStr)
         }
         if (status != OHOS::DistributedKv::Status::SUCCESS) {
             ACCOUNT_LOGI("key does not exist in kvStore.");
+            // KEY_NOT_FOUND means no data in database, no need to report.
+            if (status != OHOS::DistributedKv::Status::KEY_NOT_FOUND) {
+                ReportKvStoreAccessFail(status, "get value from kvstore failed!");
+            }
             return ERR_OK;
         }
 
@@ -192,26 +200,25 @@ ErrCode AccountDataStorage::RemoveValueFromKvStore(const std::string &keyStr)
         return ERR_ACCOUNT_COMMON_DELETE_KEY_FROM_KVSTORE_ERROR;
     }
 
-    ACCOUNT_LOGI("delete key from kvStore succeed!");
+    ACCOUNT_LOGD("delete key from kvStore succeed!");
     return ERR_OK;
 }
 
 OHOS::DistributedKv::Status AccountDataStorage::GetEntries(
     std::string subId, std::vector<OHOS::DistributedKv::Entry> &allEntries) const
 {
-    ACCOUNT_LOGI("enter");
+    ACCOUNT_LOGD("enter");
 
     OHOS::DistributedKv::Key allEntryKeyPrefix(subId);
     std::lock_guard<std::mutex> lock(kvStorePtrMutex_);
     OHOS::DistributedKv::Status status = kvStorePtr_->GetEntries(allEntryKeyPrefix, allEntries);
 
-    ACCOUNT_LOGE("end, status = %{public}d, allEntries.size() = %{public}zu", status, allEntries.size());
     return status;
 }
 
 ErrCode AccountDataStorage::DeleteKvStore()
 {
-    ACCOUNT_LOGI("enter");
+    ACCOUNT_LOGD("enter");
 
     if (!CheckKvStore()) {
         ACCOUNT_LOGE("kvStore is nullptr");
@@ -227,17 +234,18 @@ ErrCode AccountDataStorage::DeleteKvStore()
     }
     if (status != OHOS::DistributedKv::Status::SUCCESS) {
         ACCOUNT_LOGE("error, status = %{public}d", status);
+        ReportKvStoreAccessFail(status, "DeleteKvStore failed!");
         return OHOS::ERR_OSACCOUNT_SERVICE_MANAGER_QUERY_DISTRIBUTE_DATA_ERROR;
     }
 
-    ACCOUNT_LOGE("end");
+    ACCOUNT_LOGD("end");
 
     return ERR_OK;
 }
 
 ErrCode AccountDataStorage::GetAccountInfoById(const std::string id, IAccountInfo &iAccountInfo)
 {
-    ACCOUNT_LOGI("enter");
+    ACCOUNT_LOGD("enter");
     std::string valueStr;
     ErrCode ret = GetValueFromKvStore(id, valueStr);
     if (ret != ERR_OK) {
@@ -257,16 +265,12 @@ ErrCode AccountDataStorage::GetAccountInfoById(const std::string id, IAccountInf
 ErrCode AccountDataStorage::LoadDataByLocalFuzzyQuery(
     std::string subId, std::map<std::string, std::shared_ptr<IAccountInfo>> &infos)
 {
-    ACCOUNT_LOGI("enter");
-
-    ACCOUNT_LOGI("subId = %{public}s", subId.c_str());
-
     if (!CheckKvStore()) {
         ACCOUNT_LOGE("kvStore is nullptr");
         return OHOS::ERR_OSACCOUNT_SERVICE_MANAGER_QUERY_DISTRIBUTE_DATA_ERROR;
     }
 
-    OHOS::DistributedKv::Status status;
+    OHOS::DistributedKv::Status status = OHOS::DistributedKv::Status::SUCCESS;
     std::vector<OHOS::DistributedKv::Entry> allEntries;
     TryTwice([this, &status, &allEntries, subId] {
         status = GetEntries(subId, allEntries);
@@ -277,7 +281,8 @@ ErrCode AccountDataStorage::LoadDataByLocalFuzzyQuery(
         ACCOUNT_LOGE("get entries error: %{public}d", status);
         // KEY_NOT_FOUND means no data in database, no need to report.
         if (status != OHOS::DistributedKv::Status::KEY_NOT_FOUND) {
-            ACCOUNT_LOGE("status != OHOS::DistributedKv::Status::KEY_NOT_FOUND");
+            ACCOUNT_LOGE("GetEntries failed! status %{public}d.", status);
+            ReportKvStoreAccessFail(status, "GetEntries failed!");
         }
         return OHOS::ERR_OSACCOUNT_SERVICE_MANAGER_QUERY_DISTRIBUTE_DATA_ERROR;
     }
@@ -307,9 +312,10 @@ ErrCode AccountDataStorage::PutValueToKvStore(const std::string &keyStr, const s
 
     if (status != OHOS::DistributedKv::Status::SUCCESS) {
         ACCOUNT_LOGE("put value to kvStore error, status = %{public}d", status);
+        ReportKvStoreAccessFail(status, "put value to kvStore failed!");
         return OHOS::ERR_OSACCOUNT_SERVICE_MANAGER_QUERY_DISTRIBUTE_DATA_ERROR;
     }
-    ACCOUNT_LOGI("put value to kvStore succeed!");
+    ACCOUNT_LOGD("put value to kvStore succeed!");
     return ERR_OK;
 }
 
@@ -335,6 +341,10 @@ ErrCode AccountDataStorage::GetValueFromKvStore(const std::string &keyStr, std::
 
     if (status != OHOS::DistributedKv::Status::SUCCESS) {
         ACCOUNT_LOGE("get value from kvstore error, status %{public}d.", status);
+        // KEY_NOT_FOUND means no data in database, no need to report.
+        if (status != OHOS::DistributedKv::Status::KEY_NOT_FOUND) {
+            ReportKvStoreAccessFail(status, "get value from kvstore failed!");
+        }
         return ERR_OSACCOUNT_SERVICE_MANAGER_QUERY_DISTRIBUTE_DATA_ERROR;
     }
 
@@ -344,7 +354,7 @@ ErrCode AccountDataStorage::GetValueFromKvStore(const std::string &keyStr, std::
 
 bool AccountDataStorage::IsKeyExists(const std::string keyStr)
 {
-    ACCOUNT_LOGI("enter");
+    ACCOUNT_LOGD("enter");
     std::string valueStr;
     if (GetValueFromKvStore(keyStr, valueStr) != ERR_OK) {
         return false;

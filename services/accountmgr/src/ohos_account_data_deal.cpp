@@ -14,15 +14,19 @@
  */
 
 #include "ohos_account_data_deal.h"
+#include <cerrno>
 #include <fstream>
 #include <iostream>
 #include <vector>
+#ifdef WITH_SELINUX
+#include <policycoreutils.h>
+#endif // WITH_SELINUX
 #include "account_error_no.h"
 #include "account_info.h"
 #include "account_log_wrapper.h"
 #include "directory_ex.h"
 #include "file_ex.h"
-
+#include "hisysevent_adapter.h"
 namespace OHOS {
 namespace AccountSA {
 namespace {
@@ -45,11 +49,15 @@ ErrCode OhosAccountDataDeal::Init(std::int32_t userId)
     if (!FileExists(configFile)) {
         ACCOUNT_LOGI("file %{public}s not exist, create!", configFile.c_str());
         BuildJsonFileFromScratch(userId);
+#ifdef WITH_SELINUX
+        Restorecon(configFile.c_str());
+#endif // WITH_SELINUX
     }
 
     std::ifstream fin(configFile);
     if (!fin) {
-        ACCOUNT_LOGE("Failed to open config file %{public}s", configFile.c_str());
+        ACCOUNT_LOGE("Failed to open config file %{public}s, errno %{public}d.", configFile.c_str(), errno);
+        ReportFileOperationFail(errno, "OhosAccountInitOpenFileToRead", configFile);
         return ERR_ACCOUNT_DATADEAL_INPUT_FILE_ERROR;
     }
 
@@ -60,7 +68,8 @@ ErrCode OhosAccountDataDeal::Init(std::int32_t userId)
     if (!jsonData_.is_structured()) {
         ACCOUNT_LOGE("Invalid json file, remove");
         if (RemoveFile(configFile)) {
-            ACCOUNT_LOGE("Remove invalid json file failed");
+            ACCOUNT_LOGE("Remove invalid json file %{public}s failed, errno %{public}d.", configFile.c_str(), errno);
+            ReportFileOperationFail(errno, "OhosAccountRemoveFile", configFile);
         }
         return ERR_ACCOUNT_DATADEAL_JSON_FILE_CORRUPTION;
     }
@@ -83,7 +92,8 @@ ErrCode OhosAccountDataDeal::AccountInfoFromJson(AccountInfo &accountInfo, const
     }
     std::ifstream fin(configFile);
     if (!fin) {
-        ACCOUNT_LOGE("Failed to open config file %{public}s", configFile.c_str());
+        ACCOUNT_LOGE("Failed to open config file %{public}s, errno %{public}d.", configFile.c_str(), errno);
+        ReportFileOperationFail(errno, "OhosAccountOpenFileToRead", configFile);
         return ERR_ACCOUNT_DATADEAL_INPUT_FILE_ERROR;
     }
 
@@ -115,8 +125,6 @@ ErrCode OhosAccountDataDeal::AccountInfoFromJson(AccountInfo &accountInfo, const
         accountInfo.ohosAccountStatus_ = jsonData_.at(DATADEAL_JSON_KEY_STATUS).get<std::int32_t>();
     }
 
-    ACCOUNT_LOGI("AccountInfo, ohos account %{public}s status: %{public}d",
-        accountInfo.ohosAccountName_.c_str(), accountInfo.ohosAccountStatus_);
     return ERR_OK;
 }
 
@@ -143,11 +151,18 @@ void OhosAccountDataDeal::SaveAccountInfo(const AccountInfo &accountInfo) const
     std::string configFile = configFileDir_ + std::to_string(accountInfo.userId_) + ACCOUNT_CFG_FILE_NAME;
     std::ofstream out(configFile);
     if (!out) {
-        ACCOUNT_LOGE("Failed to open file %{public}s", configFile.c_str());
+        ACCOUNT_LOGE("Failed to open file %{public}s, errno %{public}d.", configFile.c_str(), errno);
+        ReportFileOperationFail(errno, "OhosAccountOpenFileToWrite", configFile);
         return;
     }
     out << jsonData;
     out.close();
+
+    // change mode
+    if (!ChangeModeFile(configFile, S_IRUSR | S_IWUSR)) {
+        ACCOUNT_LOGW("failed to change mode for file %{public}s, errno %{public}d.", configFile.c_str(), errno);
+        ReportFileOperationFail(errno, "ChangeModeFile", configFile);
+    }
 }
 
 void OhosAccountDataDeal::BuildJsonFileFromScratch(std::int32_t userId) const

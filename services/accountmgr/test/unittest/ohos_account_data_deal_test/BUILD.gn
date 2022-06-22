@@ -24,6 +24,7 @@ config("accountmgr_data_deal_test_config") {
     "${app_account_interfaces_native_path}/include",
     "${common_path}/log/include",
     "${common_path}/account_error/include",
+    "${os_account_dfx_path}/hisysevent_adapter",
     "${services_path}/accountmgr/include",
     "//third_party/json/include",
     "${innerkits_path}/include",
@@ -33,11 +34,13 @@ config("accountmgr_data_deal_test_config") {
 
 ohos_unittest("AccountSADataDealTest") {
   module_out_path = module_output_path
+  cflags_cc = []
   resource_config_file =
       "${os_account_path}/test/resource/accountmgrservice/ohos_test.xml"
 
   sources = [
     "${common_path}/log/src/account_log_wrapper.cpp",
+    "${os_account_dfx_path}/hisysevent_adapter/hisysevent_adapter.cpp",
     "${services_path}/accountmgr/src/ohos_account_data_deal.cpp",
   ]
 
@@ -55,6 +58,10 @@ ohos_unittest("AccountSADataDealTest") {
   ]
 
   external_deps = [ "hiviewdfx_hilog_native:libhilog" ]
+  if (has_hiviewdfx_hisysevent_part) {
+    cflags_cc += [ "-DHAS_HISYSEVENT_PART" ]
+    external_deps += [ "hisysevent_native:libhisysevent" ]
+  }
   part_name = "os_account"
 }
 

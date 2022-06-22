@@ -73,6 +73,9 @@ private:
     ErrCode ProcGetOsAccountFromDatabase(MessageParcel &data, MessageParcel &reply);
     ErrCode ProcGetOsAccountListFromDatabase(MessageParcel &data, MessageParcel &reply);
     ErrCode ProcQueryActiveOsAccountIds(MessageParcel &data, MessageParcel &reply);
+    ErrCode ProcQueryOsAccountConstraintSourceTypes(MessageParcel &data, MessageParcel &reply);
+    ErrCode ProcSetGlobalOsAccountConstraints(MessageParcel &data, MessageParcel &reply);
+    ErrCode ProcSetSpecificOsAccountConstraints(MessageParcel &data, MessageParcel &reply);
 
 private:
     template<typename T>
