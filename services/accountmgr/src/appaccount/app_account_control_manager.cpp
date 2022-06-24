@@ -17,8 +17,10 @@
 
 #include "account_log_wrapper.h"
 #include "app_account_app_state_observer.h"
+#include "app_account_check_labels_session.h"
 #include "app_account_data_storage.h"
 #include "app_account_info.h"
+#include "app_account_subscribe_manager.h"
 #include "bundle_manager_adapter.h"
 #include "hitrace_adapter.h"
 #include "ipc_skeleton.h"
@@ -201,6 +203,21 @@ ErrCode AppAccountControlManager::DisableAppAccess(const std::string &name, cons
     return ERR_OK;
 }
 
+ErrCode AppAccountControlManager::CheckAppAccess(const std::string &name, const std::string &authorizedApp,
+    bool &isAccessible, const uid_t &uid, const std::string &bundleName)
+{
+    ACCOUNT_LOGI("enter");
+    isAccessible = false;
+    std::shared_ptr<AppAccountDataStorage> dataStoragePtr = GetDataStorage(uid);
+    AppAccountInfo appAccountInfo(name, bundleName);
+    ErrCode result = GetAccountInfoFromDataStorage(appAccountInfo, dataStoragePtr);
+    if (result != ERR_OK) {
+        ACCOUNT_LOGE("failed to get account info from data storage, result %{public}d.", result);
+        return ERR_APPACCOUNT_SERVICE_ACCOUNT_NOT_EXIST;
+    }
+    return appAccountInfo.CheckAppAccess(authorizedApp, isAccessible);
+}
+
 ErrCode AppAccountControlManager::CheckAppAccountSyncEnable(
     const std::string &name, bool &syncEnable, const uid_t &uid, const std::string &bundleName)
 {
@@ -370,16 +387,17 @@ ErrCode AppAccountControlManager::GetAccountCredential(const std::string &name, 
 }
 
 ErrCode AppAccountControlManager::SetAccountCredential(const std::string &name, const std::string &credentialType,
-    const std::string &credential, const uid_t &uid, const std::string &bundleName, AppAccountInfo &appAccountInfo)
+    const std::string &credential, const uid_t &uid, const std::string &bundleName, bool isDelete)
 {
     std::shared_ptr<AppAccountDataStorage> dataStoragePtr = GetDataStorage(uid);
+    AppAccountInfo appAccountInfo(name, bundleName);
     ErrCode result = GetAccountInfoFromDataStorage(appAccountInfo, dataStoragePtr);
     if (result != ERR_OK) {
         ACCOUNT_LOGE("failed to get account info from data storage, result %{public}d.", result);
-        return result;
+        return ERR_APPACCOUNT_SERVICE_ACCOUNT_NOT_EXIST;
     }
 
-    result = appAccountInfo.SetAccountCredential(credentialType, credential);
+    result = appAccountInfo.SetAccountCredential(credentialType, credential, isDelete);
     if (result != ERR_OK) {
         ACCOUNT_LOGE("failed to set account credential, result %{public}d.", result);
         return ERR_APPACCOUNT_SERVICE_SET_ACCOUNT_CREDENTIAL;
@@ -394,7 +412,7 @@ ErrCode AppAccountControlManager::SetAccountCredential(const std::string &name, 
     return ERR_OK;
 }
 
-ErrCode AppAccountControlManager::GetOAuthToken(const OAuthRequest &request, std::string &token)
+ErrCode AppAccountControlManager::GetOAuthToken(const AuthenticatorSessionRequest &request, std::string &token)
 {
     AppAccountInfo appAccountInfo(request.name, request.owner);
     std::shared_ptr<AppAccountDataStorage> dataStoragePtr = GetDataStorage(request.callerUid);
@@ -412,7 +430,7 @@ ErrCode AppAccountControlManager::GetOAuthToken(const OAuthRequest &request, std
     return appAccountInfo.GetOAuthToken(request.authType, token);
 }
 
-ErrCode AppAccountControlManager::SetOAuthToken(const OAuthRequest &request)
+ErrCode AppAccountControlManager::SetOAuthToken(const AuthenticatorSessionRequest &request)
 {
     std::lock_guard<std::mutex> lock(mutex_);
     AppAccountInfo appAccountInfo(request.name, request.callerBundleName);
@@ -435,7 +453,7 @@ ErrCode AppAccountControlManager::SetOAuthToken(const OAuthRequest &request)
     return ERR_OK;
 }
 
-ErrCode AppAccountControlManager::DeleteOAuthToken(const OAuthRequest &request)
+ErrCode AppAccountControlManager::DeleteOAuthToken(const AuthenticatorSessionRequest &request)
 {
     std::lock_guard<std::mutex> lock(mutex_);
     AppAccountInfo appAccountInfo(request.name, request.owner);
@@ -464,7 +482,7 @@ ErrCode AppAccountControlManager::DeleteOAuthToken(const OAuthRequest &request)
     return ERR_OK;
 }
 
-ErrCode AppAccountControlManager::SetOAuthTokenVisibility(const OAuthRequest &request)
+ErrCode AppAccountControlManager::SetOAuthTokenVisibility(const AuthenticatorSessionRequest &request)
 {
     std::lock_guard<std::mutex> lock(mutex_);
     AppAccountInfo appAccountInfo(request.name, request.callerBundleName);
@@ -487,7 +505,7 @@ ErrCode AppAccountControlManager::SetOAuthTokenVisibility(const OAuthRequest &re
     return ERR_OK;
 }
 
-ErrCode AppAccountControlManager::CheckOAuthTokenVisibility(const OAuthRequest &request, bool &isVisible)
+ErrCode AppAccountControlManager::CheckOAuthTokenVisibility(const AuthenticatorSessionRequest &request, bool &isVisible)
 {
     isVisible = false;
     AppAccountInfo appAccountInfo(request.name, request.owner);
@@ -501,7 +519,7 @@ ErrCode AppAccountControlManager::CheckOAuthTokenVisibility(const OAuthRequest &
 }
 
 ErrCode AppAccountControlManager::GetAllOAuthTokens(
-    const OAuthRequest &request, std::vector<OAuthTokenInfo> &tokenInfos)
+    const AuthenticatorSessionRequest &request, std::vector<OAuthTokenInfo> &tokenInfos)
 {
     tokenInfos.clear();
     AppAccountInfo appAccountInfo(request.name, request.owner);
@@ -535,7 +553,7 @@ ErrCode AppAccountControlManager::GetAllOAuthTokens(
 }
 
 ErrCode AppAccountControlManager::GetOAuthList(
-    const OAuthRequest &request, std::set<std::string> &oauthList)
+    const AuthenticatorSessionRequest &request, std::set<std::string> &oauthList)
 {
     AppAccountInfo appAccountInfo(request.name, request.callerBundleName);
     std::shared_ptr<AppAccountDataStorage> dataStoragePtr = GetDataStorage(request.callerUid);
@@ -610,6 +628,60 @@ ErrCode AppAccountControlManager::GetAllAccessibleAccounts(
     }
 
     return ERR_OK;
+}
+
+ErrCode AppAccountControlManager::SelectAccountsByOptions(
+    const SelectAccountsOptions &options, const sptr<IAppAccountAuthenticatorCallback> &callback,
+    const uid_t &uid, const std::string &bundleName)
+{
+    ACCOUNT_LOGD("enter");
+    AAFwk::Want result;
+    if ((!options.hasAccounts) && (!options.hasOwners) && (!options.hasLabels)) {
+        callback->OnResult(ERR_JS_SUCCESS, result);
+        return ERR_OK;
+    }
+    std::set<std::string> allowedAccounts;
+    for (auto account : options.allowedAccounts) {
+        allowedAccounts.emplace(account.first + "_" + account.second);
+    }
+    std::set<std::string> allowedOwners(options.allowedOwners.begin(), options.allowedOwners.end());
+    std::vector<AppAccountInfo> accessibleAccounts;
+    ErrCode errCode = GetAllAccessibleAccounts(accessibleAccounts, uid, bundleName);
+    if (errCode != ERR_OK) {
+        ACCOUNT_LOGD("failed to get all accessible accounts");
+        return errCode;
+    }
+    std::vector<AppAccountInfo> candidateAccounts;
+    for (auto account : accessibleAccounts) {
+        std::string owner = account.GetOwner();
+        if (options.hasOwners && allowedOwners.count(owner) == 0) {
+            continue;
+        }
+        if (options.hasAccounts && allowedAccounts.count(owner + "_" + account.GetName()) == 0) {
+            continue;
+        }
+        candidateAccounts.push_back(account);
+    }
+    if (options.requiredLabels.size() == 0) {
+        std::vector<std::string> names;
+        std::vector<std::string> owners;
+        for (auto account : candidateAccounts) {
+            names.push_back(account.GetName());
+            owners.push_back(account.GetOwner());
+        }
+        result.SetParam(Constants::KEY_ACCOUNT_NAMES, names);
+        result.SetParam(Constants::KEY_ACCOUNT_OWNERS, owners);
+        callback->OnResult(ERR_JS_SUCCESS, result);
+        return ERR_OK;
+    }
+    AuthenticatorSessionRequest request;
+    request.callerUid = uid;
+    request.labels = options.requiredLabels;
+    auto sessionManager = AppAccountAuthenticatorSessionManager::GetInstance();
+    if (sessionManager == nullptr) {
+        return ERR_APPACCOUNT_SERVICE_OAUTH_SERVICE_EXCEPTION;
+    }
+    return sessionManager->SelectAccountsByOptions(candidateAccounts, request);
 }
 
 ErrCode AppAccountControlManager::OnPackageRemoved(const uid_t &uid, const std::string &bundleName)

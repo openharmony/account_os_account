@@ -58,7 +58,7 @@ ErrCode AppAccountManagerService::AddAccount(const std::string &name, const std:
 ErrCode AppAccountManagerService::AddAccountImplicitly(const std::string &owner, const std::string &authType,
     const AAFwk::Want &options, const sptr<IRemoteObject> &callback)
 {
-    OAuthRequest request;
+    AuthenticatorSessionRequest request;
     request.callerPid = IPCSkeleton::GetCallingPid();
     ErrCode result = GetBundleNameAndCallingUid(request.callerUid, request.callerBundleName);
     if (result != ERR_OK) {
@@ -235,7 +235,7 @@ ErrCode AppAccountManagerService::SetAccountCredential(
 ErrCode AppAccountManagerService::Authenticate(const std::string &name, const std::string &owner,
     const std::string &authType, const AAFwk::Want &options, const sptr<IRemoteObject> &callback)
 {
-    OAuthRequest request;
+    AuthenticatorSessionRequest request;
     request.callerPid = IPCSkeleton::GetCallingPid();
     ErrCode result = GetBundleNameAndCallingUid(request.callerUid, request.callerBundleName);
     if (result != ERR_OK) {
@@ -257,7 +257,7 @@ ErrCode AppAccountManagerService::Authenticate(const std::string &name, const st
 ErrCode AppAccountManagerService::GetOAuthToken(
     const std::string &name, const std::string &owner, const std::string &authType, std::string &token)
 {
-    OAuthRequest request;
+    AuthenticatorSessionRequest request;
     ErrCode result = GetBundleNameAndCallingUid(request.callerUid, request.callerBundleName);
     if (result != ERR_OK) {
         ACCOUNT_LOGE("failed to get bundle name");
@@ -272,7 +272,7 @@ ErrCode AppAccountManagerService::GetOAuthToken(
 ErrCode AppAccountManagerService::SetOAuthToken(
     const std::string &name, const std::string &authType, const std::string &token)
 {
-    OAuthRequest request;
+    AuthenticatorSessionRequest request;
     ErrCode result = GetBundleNameAndCallingUid(request.callerUid, request.callerBundleName);
     if (result != ERR_OK) {
         ACCOUNT_LOGE("failed to get bundle name");
@@ -288,7 +288,7 @@ ErrCode AppAccountManagerService::SetOAuthToken(
 ErrCode AppAccountManagerService::DeleteOAuthToken(
     const std::string &name, const std::string &owner, const std::string &authType, const std::string &token)
 {
-    OAuthRequest request;
+    AuthenticatorSessionRequest request;
     ErrCode result = GetBundleNameAndCallingUid(request.callerUid, request.callerBundleName);
     if (result != ERR_OK) {
         ACCOUNT_LOGE("failed to get bundle name");
@@ -304,7 +304,7 @@ ErrCode AppAccountManagerService::DeleteOAuthToken(
 ErrCode AppAccountManagerService::SetOAuthTokenVisibility(
     const std::string &name, const std::string &authType, const std::string &bundleName, bool isVisible)
 {
-    OAuthRequest request;
+    AuthenticatorSessionRequest request;
     ErrCode result = GetBundleNameAndCallingUid(request.callerUid, request.callerBundleName);
     if (result != ERR_OK) {
         ACCOUNT_LOGE("failed to get bundle name");
@@ -321,7 +321,7 @@ ErrCode AppAccountManagerService::SetOAuthTokenVisibility(
 ErrCode AppAccountManagerService::CheckOAuthTokenVisibility(
     const std::string &name, const std::string &authType, const std::string &bundleName, bool &isVisible)
 {
-    OAuthRequest request;
+    AuthenticatorSessionRequest request;
     ErrCode result = GetBundleNameAndCallingUid(request.callerUid, request.callerBundleName);
     if (result != ERR_OK) {
         ACCOUNT_LOGE("failed to get bundle name");
@@ -336,7 +336,7 @@ ErrCode AppAccountManagerService::CheckOAuthTokenVisibility(
 
 ErrCode AppAccountManagerService::GetAuthenticatorInfo(const std::string &owner, AuthenticatorInfo &info)
 {
-    OAuthRequest request;
+    AuthenticatorSessionRequest request;
     request.callerUid = IPCSkeleton::GetCallingUid();
     request.owner = owner;
     return innerManager_->GetAuthenticatorInfo(request, info);
@@ -345,7 +345,7 @@ ErrCode AppAccountManagerService::GetAuthenticatorInfo(const std::string &owner,
 ErrCode AppAccountManagerService::GetAllOAuthTokens(
     const std::string &name, const std::string &owner, std::vector<OAuthTokenInfo> &tokenInfos)
 {
-    OAuthRequest request;
+    AuthenticatorSessionRequest request;
     ErrCode result = GetBundleNameAndCallingUid(request.callerUid, request.callerBundleName);
     if (result != ERR_OK) {
         ACCOUNT_LOGE("failed to get bundle name");
@@ -359,7 +359,7 @@ ErrCode AppAccountManagerService::GetAllOAuthTokens(
 ErrCode AppAccountManagerService::GetOAuthList(
     const std::string &name, const std::string &authType, std::set<std::string> &oauthList)
 {
-    OAuthRequest request;
+    AuthenticatorSessionRequest request;
     ErrCode result = GetBundleNameAndCallingUid(request.callerUid, request.callerBundleName);
     if (result != ERR_OK) {
         ACCOUNT_LOGE("failed to get bundle name");
@@ -373,7 +373,7 @@ ErrCode AppAccountManagerService::GetOAuthList(
 ErrCode AppAccountManagerService::GetAuthenticatorCallback(
     const std::string &sessionId, sptr<IRemoteObject> &callback)
 {
-    OAuthRequest request;
+    AuthenticatorSessionRequest request;
     ErrCode result = GetBundleNameAndCallingUid(request.callerUid, request.callerBundleName);
     if (result != ERR_OK) {
         ACCOUNT_LOGE("failed to get bundle name");
@@ -415,6 +415,99 @@ ErrCode AppAccountManagerService::GetAllAccessibleAccounts(std::vector<AppAccoun
     }
 
     return innerManager_->GetAllAccessibleAccounts(appAccounts, callingUid, bundleName);
+}
+
+ErrCode AppAccountManagerService::CheckAppAccess(
+    const std::string &name, const std::string &authorizedApp, bool &isAccessible)
+{
+    ACCOUNT_LOGD("enter");
+    int32_t callingUid = -1;
+    std::string bundleName;
+    ErrCode result = GetBundleNameAndCallingUid(callingUid, bundleName);
+    if (result != ERR_OK) {
+        ACCOUNT_LOGE("failed to get bundle name");
+        return result;
+    }
+    return innerManager_->CheckAppAccess(name, authorizedApp, isAccessible, callingUid, bundleName);
+}
+
+ErrCode AppAccountManagerService::DeleteAccountCredential(
+    const std::string &name, const std::string &credentialType)
+{
+    ACCOUNT_LOGD("enter");
+    int32_t callingUid = -1;
+    std::string bundleName;
+    ErrCode result = GetBundleNameAndCallingUid(callingUid, bundleName);
+    if (result != ERR_OK) {
+        ACCOUNT_LOGE("failed to get bundle name");
+        return result;
+    }
+    return innerManager_->DeleteAccountCredential(name, credentialType, callingUid, bundleName);
+}
+
+ErrCode AppAccountManagerService::SelectAccountsByOptions(
+    const SelectAccountsOptions &options, const sptr<IRemoteObject> &callback)
+{
+    ACCOUNT_LOGD("enter");
+    int32_t callingUid = -1;
+    std::string bundleName;
+    ErrCode result = GetBundleNameAndCallingUid(callingUid, bundleName);
+    if (result != ERR_OK) {
+        ACCOUNT_LOGE("failed to get bundle name");
+        return result;
+    }
+    auto authenticatorCallback = iface_cast<IAppAccountAuthenticatorCallback>(callback);
+    return innerManager_->SelectAccountsByOptions(options, authenticatorCallback, callingUid, bundleName);
+}
+
+ErrCode AppAccountManagerService::VerifyCredential(const std::string &name, const std::string &owner,
+    const VerifyCredentialOptions &options, const sptr<IRemoteObject> &callback)
+{
+    ACCOUNT_LOGD("enter");
+    AuthenticatorSessionRequest request;
+    ErrCode result = GetBundleNameAndCallingUid(request.callerUid, request.callerBundleName);
+    if (result != ERR_OK) {
+        ACCOUNT_LOGE("failed to get bundle name");
+        return result;
+    }
+    request.name = name;
+    request.owner = owner;
+    request.verifyCredOptions = options;
+    request.callback = iface_cast<IAppAccountAuthenticatorCallback>(callback);
+    return innerManager_->VerifyCredential(request);
+}
+
+ErrCode AppAccountManagerService::CheckAccountLabels(const std::string &name, const std::string &owner,
+    const std::vector<std::string> &labels, const sptr<IRemoteObject> &callback)
+{
+    ACCOUNT_LOGD("enter");
+    AuthenticatorSessionRequest request;
+    ErrCode result = GetBundleNameAndCallingUid(request.callerUid, request.callerBundleName);
+    if (result != ERR_OK) {
+        ACCOUNT_LOGE("failed to get bundle name");
+        return result;
+    }
+    request.name = name;
+    request.owner = owner;
+    request.labels = labels;
+    request.callback = iface_cast<IAppAccountAuthenticatorCallback>(callback);
+    return innerManager_->CheckAccountLabels(request);
+}
+
+ErrCode AppAccountManagerService::SetAuthenticatorProperties(
+    const std::string &owner, const SetPropertiesOptions &options, const sptr<IRemoteObject> &callback)
+{
+    ACCOUNT_LOGD("enter");
+    AuthenticatorSessionRequest request;
+    ErrCode result = GetBundleNameAndCallingUid(request.callerUid, request.callerBundleName);
+    if (result != ERR_OK) {
+        ACCOUNT_LOGE("failed to get bundle name");
+        return result;
+    }
+    request.owner = owner;
+    request.setPropOptions = options;
+    request.callback = iface_cast<IAppAccountAuthenticatorCallback>(callback);
+    return innerManager_->SetAuthenticatorProperties(request);
 }
 
 ErrCode AppAccountManagerService::SubscribeAppAccount(

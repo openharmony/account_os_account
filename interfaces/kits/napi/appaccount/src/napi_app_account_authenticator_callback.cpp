@@ -49,6 +49,7 @@ napi_value NapiAppAccountAuthenticatorCallback::Init(napi_env env, napi_value ex
     napi_property_descriptor properties[] = {
         DECLARE_NAPI_FUNCTION("onResult", JsOnResult),
         DECLARE_NAPI_FUNCTION("onRequestRedirected", JsOnRequestRedirected),
+        DECLARE_NAPI_FUNCTION("onRequestContinued", JsOnRequestContinued),
     };
     napi_value constructor = nullptr;
     NAPI_CALL(env, napi_define_class(env, className.c_str(), className.length(), JsConstructor, nullptr,
@@ -184,6 +185,46 @@ napi_value NapiAppAccountAuthenticatorCallback::JsOnRequestRedirected(napi_env e
             },
             [](napi_env env, napi_status status, void *data) {
                 ACCOUNT_LOGI("JsOnRequestRedirected, napi_create_async_work complete.");
+                CallbackParam *param = reinterpret_cast<CallbackParam *>(data);
+                napi_delete_async_work(env, param->work);
+                delete param;
+                param = nullptr;
+            },
+            reinterpret_cast<void *>(param),
+            &param->work));
+    NAPI_CALL(env, napi_queue_async_work(env, param->work));
+    return NapiGetNull(env);
+}
+
+napi_value NapiAppAccountAuthenticatorCallback::JsOnRequestContinued(napi_env env, napi_callback_info cbInfo)
+{
+    ACCOUNT_LOGD("enter");
+    auto *param = new (std::nothrow) CallbackParam();
+    if (param == nullptr) {
+        ACCOUNT_LOGE("insufficient memory for param!");
+        return NapiGetNull(env);
+    }
+    napi_value thisVar = nullptr;
+    napi_get_cb_info(env, cbInfo, nullptr, nullptr, &thisVar, nullptr);
+    napi_unwrap(env, thisVar, reinterpret_cast<void **>(&(param->callback)));
+    napi_value resourceName = nullptr;
+    NAPI_CALL(env, napi_create_string_latin1(env, "JsOnRequestContinued", NAPI_AUTO_LENGTH, &resourceName));
+    NAPI_CALL(env,
+        napi_create_async_work(env,
+            nullptr,
+            resourceName,
+            [](napi_env env, void *data) {
+                CallbackParam *param = reinterpret_cast<CallbackParam *>(data);
+                if ((param == nullptr) || (param->callback == nullptr)) {
+                    ACCOUNT_LOGE("invalid parameters");
+                    return;
+                }
+                auto callbackProxy = iface_cast<IAppAccountAuthenticatorCallback>(param->callback->GetRemoteObject());
+                if ((callbackProxy != nullptr) && (callbackProxy->AsObject() != nullptr)) {
+                    callbackProxy->OnRequestContinued();
+                }
+            },
+            [](napi_env env, napi_status status, void *data) {
                 CallbackParam *param = reinterpret_cast<CallbackParam *>(data);
                 napi_delete_async_work(env, param->work);
                 delete param;

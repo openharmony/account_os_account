@@ -74,6 +74,10 @@ int AppAccountAuthenticatorCallbackStub::OnRemoteRequest(
             }
             break;
         }
+        case static_cast<uint32_t>(IAppAccountAuthenticatorCallback::Message::ACCOUNT_REQUEST_CONTINUED): {
+            OnRequestContinued();
+            break;
+        }
         default:
             ACCOUNT_LOGI("default, code = %{public}u, flags = %{public}u", code, option.GetFlags());
             return IPCObjectStub::OnRemoteRequest(code, data, reply, option);
