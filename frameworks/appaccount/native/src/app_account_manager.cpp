@@ -88,8 +88,6 @@ ErrCode AppAccountManager::SetAppAccountSyncEnable(const std::string &name, cons
 
 ErrCode AppAccountManager::GetAssociatedData(const std::string &name, const std::string &key, std::string &value)
 {
-    ACCOUNT_LOGD("enter");
-
     return DelayedSingleton<AppAccount>::GetInstance()->GetAssociatedData(name, key, value);
 }
 
@@ -208,6 +206,40 @@ ErrCode AppAccountManager::GetAllAccessibleAccounts(std::vector<AppAccountInfo> 
     ACCOUNT_LOGD("enter");
 
     return DelayedSingleton<AppAccount>::GetInstance()->GetAllAccessibleAccounts(appAccounts);
+}
+
+ErrCode AppAccountManager::CheckAppAccess(const std::string &name, const std::string &authorizedApp, bool &isAccessible)
+{
+    return DelayedSingleton<AppAccount>::GetInstance()->CheckAppAccess(name, authorizedApp, isAccessible);
+}
+
+ErrCode AppAccountManager::DeleteAccountCredential(const std::string &name, const std::string &credentialType)
+{
+    return DelayedSingleton<AppAccount>::GetInstance()->DeleteAccountCredential(name, credentialType);
+}
+
+ErrCode AppAccountManager::SelectAccountsByOptions(
+    const SelectAccountsOptions &options, const sptr<IAppAccountAuthenticatorCallback> &callback)
+{
+    return DelayedSingleton<AppAccount>::GetInstance()->SelectAccountsByOptions(options, callback);
+}
+
+ErrCode AppAccountManager::VerifyCredential(const std::string &name, const std::string &owner,
+    const VerifyCredentialOptions &options, const sptr<IAppAccountAuthenticatorCallback> &callback)
+{
+    return DelayedSingleton<AppAccount>::GetInstance()->VerifyCredential(name, owner, options, callback);
+}
+
+ErrCode AppAccountManager::CheckAccountLabels(const std::string &name, const std::string &owner,
+    const std::vector<std::string> labels, const sptr<IAppAccountAuthenticatorCallback> &callback)
+{
+    return DelayedSingleton<AppAccount>::GetInstance()->CheckAccountLabels(name, owner, labels, callback);
+}
+
+ErrCode AppAccountManager::SetAuthenticatorProperties(const std::string &owner,
+    const SetPropertiesOptions &options, const sptr<IAppAccountAuthenticatorCallback> &callback)
+{
+    return DelayedSingleton<AppAccount>::GetInstance()->SetAuthenticatorProperties(owner, options, callback);
 }
 
 ErrCode AppAccountManager::SubscribeAppAccount(const std::shared_ptr<AppAccountSubscriber> &subscriber)

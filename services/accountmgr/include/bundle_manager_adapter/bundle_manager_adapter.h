@@ -23,6 +23,7 @@
 #include "account_error_no.h"
 #include "bundle_info.h"
 #include "bundle_mgr_interface.h"
+#include "extension_ability_info.h"
 #include "want.h"
 
 namespace OHOS {
@@ -41,6 +42,8 @@ public:
     int GetUidByBundleName(const std::string &bundleName, const int userId);
     bool QueryAbilityInfos(const AAFwk::Want &want, int32_t flags, int32_t userId,
         std::vector<AppExecFwk::AbilityInfo> &abilityInfos);
+    bool QueryExtensionAbilityInfos(const AAFwk::Want &want, const int32_t &flag, const int32_t &userId,
+        std::vector<AppExecFwk::ExtensionAbilityInfo> &extensionInfos);
 
 private:
     ErrCode Connect();
