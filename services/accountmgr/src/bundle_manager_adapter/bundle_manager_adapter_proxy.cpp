@@ -153,7 +153,6 @@ int BundleManagerAdapterProxy::GetUidByBundleName(const std::string &bundleName,
         return AppExecFwk::Constants::INVALID_UID;
     }
     int32_t uid = reply.ReadInt32();
-    ACCOUNT_LOGD("uid is %{public}d", uid);
     return uid;
 }
 
