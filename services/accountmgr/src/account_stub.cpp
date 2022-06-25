@@ -38,7 +38,6 @@ const std::string OHOS_ACCOUNT_QUIT_TIPS_CONTENT = "";
 const std::string PERMISSION_MANAGE_USERS = "ohos.permission.MANAGE_LOCAL_ACCOUNTS";
 const std::string PERMISSION_DISTRIBUTED_DATASYNC = "ohos.permission.DISTRIBUTED_DATASYNC";
 constexpr std::int32_t ROOT_UID = 0;
-constexpr std::int32_t SYSTEM_UID = 1000;
 }  // namespace
 const std::map<std::uint32_t, AccountStubFunc> AccountStub::stubFuncMap_{
     std::make_pair(UPDATE_OHOS_ACCOUNT_INFO, &AccountStub::CmdUpdateOhosAccountInfo),
@@ -52,7 +51,7 @@ const std::map<std::uint32_t, AccountStubFunc> AccountStub::stubFuncMap_{
 
 std::int32_t AccountStub::CmdUpdateOhosAccountInfo(MessageParcel &data, MessageParcel &reply)
 {
-    if (!HasAccountRequestPermission(PERMISSION_MANAGE_USERS, false)) {
+    if (!HasAccountRequestPermission(PERMISSION_MANAGE_USERS)) {
         ACCOUNT_LOGE("Check permission failed");
         return ERR_ACCOUNT_ZIDL_CHECK_PERMISSION_ERROR;
     }
@@ -86,8 +85,8 @@ std::int32_t AccountStub::CmdUpdateOhosAccountInfo(MessageParcel &data, MessageP
 
 std::int32_t AccountStub::CmdQueryOhosAccountInfo(MessageParcel &data, MessageParcel &reply)
 {
-    if (!HasAccountRequestPermission(PERMISSION_MANAGE_USERS, true) &&
-        !HasAccountRequestPermission(PERMISSION_DISTRIBUTED_DATASYNC, true)) {
+    if (!HasAccountRequestPermission(PERMISSION_MANAGE_USERS) &&
+        !HasAccountRequestPermission(PERMISSION_DISTRIBUTED_DATASYNC)) {
         ACCOUNT_LOGE("Check permission failed");
         return ERR_ACCOUNT_ZIDL_CHECK_PERMISSION_ERROR;
     }
@@ -148,8 +147,8 @@ std::int32_t AccountStub::CmdQueryOhosAccountInfoByUserId(MessageParcel &data, M
 
 std::int32_t AccountStub::CmdQueryOhosQuitTips(MessageParcel &data, MessageParcel &reply)
 {
-    if (!HasAccountRequestPermission(PERMISSION_MANAGE_USERS, true) &&
-        !HasAccountRequestPermission(PERMISSION_DISTRIBUTED_DATASYNC, true)) {
+    if (!HasAccountRequestPermission(PERMISSION_MANAGE_USERS) &&
+        !HasAccountRequestPermission(PERMISSION_DISTRIBUTED_DATASYNC)) {
         ACCOUNT_LOGE("Check permission failed");
         return ERR_ACCOUNT_ZIDL_CHECK_PERMISSION_ERROR;
     }
@@ -229,16 +228,11 @@ std::int32_t AccountStub::OnRemoteRequest(
     return IPCObjectStub::OnRemoteRequest(code, data, reply, option);
 }
 
-bool AccountStub::HasAccountRequestPermission(const std::string &permissionName, bool isSystemPermit)
+bool AccountStub::HasAccountRequestPermission(const std::string &permissionName)
 {
     // check root
     std::int32_t uid = IPCSkeleton::GetCallingUid();
     if (uid == ROOT_UID) {
-        return true;
-    }
-
-    // check system
-    if (isSystemPermit && (uid == SYSTEM_UID)) {
         return true;
     }
 
