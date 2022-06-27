@@ -54,7 +54,7 @@ ErrCode OsAccountManager::IsOsAccountActived(const int id, bool &isOsAccountActi
 ErrCode OsAccountManager::IsOsAccountConstraintEnable(
     const int id, const std::string &constraint, bool &isConstraintEnable)
 {
-    ACCOUNT_LOGD("start, id %{public}d. constraint %{public}s.", id, constraint.c_str());
+    ACCOUNT_LOGD("start, id %{public}d.", id);
     return DelayedSingleton<OsAccount>::GetInstance()->IsOsAccountConstraintEnable(id, constraint, isConstraintEnable);
 }
 
