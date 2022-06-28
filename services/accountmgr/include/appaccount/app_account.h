@@ -73,6 +73,16 @@ public:
 
     ErrCode GetAllAccounts(const std::string &owner, std::vector<AppAccountInfo> &appAccounts);
     ErrCode GetAllAccessibleAccounts(std::vector<AppAccountInfo> &appAccounts);
+    ErrCode CheckAppAccess(const std::string &name, const std::string &authorizedApp, bool &isAccessible);
+    ErrCode DeleteAccountCredential(const std::string &name, const std::string &credentialType);
+    ErrCode SelectAccountsByOptions(
+        const SelectAccountsOptions &options, const sptr<IAppAccountAuthenticatorCallback> &callback);
+    ErrCode VerifyCredential(const std::string &name, const std::string &owner,
+        const VerifyCredentialOptions &options, const sptr<IAppAccountAuthenticatorCallback> &callback);
+    ErrCode CheckAccountLabels(const std::string &name, const std::string &owner,
+        const std::vector<std::string> labels, const sptr<IAppAccountAuthenticatorCallback> &callback);
+    ErrCode SetAuthenticatorProperties(const std::string &owner,
+        const SetPropertiesOptions &options, const sptr<IAppAccountAuthenticatorCallback> &callback);
 
     ErrCode SubscribeAppAccount(const std::shared_ptr<AppAccountSubscriber> &subscriber);
     ErrCode UnsubscribeAppAccount(const std::shared_ptr<AppAccountSubscriber> &subscriber);

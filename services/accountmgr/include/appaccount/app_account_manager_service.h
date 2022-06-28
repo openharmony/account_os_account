@@ -39,6 +39,7 @@ public:
 
     ErrCode EnableAppAccess(const std::string &name, const std::string &authorizedApp) override;
     ErrCode DisableAppAccess(const std::string &name, const std::string &authorizedApp) override;
+    ErrCode CheckAppAccess(const std::string &name, const std::string &authorizedApp, bool &isAccessible) override;
 
     ErrCode CheckAppAccountSyncEnable(const std::string &name, bool &syncEnable) override;
     ErrCode SetAppAccountSyncEnable(const std::string &name, const bool &syncEnable) override;
@@ -51,6 +52,7 @@ public:
         const std::string &name, const std::string &credentialType, std::string &credential) override;
     ErrCode SetAccountCredential(
         const std::string &name, const std::string &credentialType, const std::string &credential) override;
+    ErrCode DeleteAccountCredential(const std::string &name, const std::string &credentialType) override;
 
     ErrCode Authenticate(const std::string &name, const std::string &owner, const std::string &authType,
         const AAFwk::Want &options, const sptr<IRemoteObject> &callback) override;
@@ -73,6 +75,14 @@ public:
 
     ErrCode GetAllAccounts(const std::string &owner, std::vector<AppAccountInfo> &appAccounts) override;
     ErrCode GetAllAccessibleAccounts(std::vector<AppAccountInfo> &appAccounts) override;
+    ErrCode SelectAccountsByOptions(
+        const SelectAccountsOptions &options, const sptr<IRemoteObject> &callback) override;
+    ErrCode VerifyCredential(const std::string &name, const std::string &owner,
+        const VerifyCredentialOptions &options, const sptr<IRemoteObject> &callback) override;
+    ErrCode CheckAccountLabels(const std::string &name, const std::string &owner,
+        const std::vector<std::string> &labels, const sptr<IRemoteObject> &callback) override;
+    ErrCode SetAuthenticatorProperties(
+        const std::string &owner, const SetPropertiesOptions &options, const sptr<IRemoteObject> &callback) override;
 
     ErrCode SubscribeAppAccount(
         const AppAccountSubscribeInfo &subscribeInfo, const sptr<IRemoteObject> &eventListener) override;

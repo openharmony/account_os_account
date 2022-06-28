@@ -26,7 +26,7 @@ class AppAccountAuthenticatorManager : public DelayedSingleton<AppAccountAuthent
 public:
     AppAccountAuthenticatorManager();
     virtual ~AppAccountAuthenticatorManager();
-    ErrCode GetAuthenticatorInfo(const OAuthRequest &request, AuthenticatorInfo &info);
+    ErrCode GetAuthenticatorInfo(const std::string &owner, int32_t userId, AuthenticatorInfo &info);
 
 private:
     void Init();

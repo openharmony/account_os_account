@@ -30,6 +30,33 @@ AppAccountAuthenticatorStub::~AppAccountAuthenticatorStub()
     ACCOUNT_LOGD("enter");
 }
 
+const std::map<uint32_t, AppAccountAuthenticatorStub::MessageProcFunction> AppAccountAuthenticatorStub::funcMap_ = {
+    {
+        static_cast<uint32_t>(IAppAccountAuthenticator::Message::ADD_ACCOUNT_IMPLICITLY),
+        &AppAccountAuthenticatorStub::ProcAddAccountImplicitly,
+    },
+    {
+        static_cast<uint32_t>(IAppAccountAuthenticator::Message::AUTHENTICATE),
+        &AppAccountAuthenticatorStub::ProcAuthenticate,
+    },
+    {
+        static_cast<uint32_t>(IAppAccountAuthenticator::Message::VERIFY_CREDENTIAL),
+        &AppAccountAuthenticatorStub::ProcVerifyCredential,
+    },
+    {
+        static_cast<uint32_t>(IAppAccountAuthenticator::Message::CHECK_ACCOUNT_LABELS),
+        &AppAccountAuthenticatorStub::ProcCheckAccountLabels,
+    },
+    {
+        static_cast<uint32_t>(IAppAccountAuthenticator::Message::SET_PROPERTIES),
+        &AppAccountAuthenticatorStub::ProcSetProperties,
+    },
+    {
+        static_cast<uint32_t>(IAppAccountAuthenticator::Message::IS_ACCOUNT_REMOVABLE),
+        &AppAccountAuthenticatorStub::ProcIsAccountRemovable,
+    }
+};
+
 int AppAccountAuthenticatorStub::OnRemoteRequest(
     uint32_t code, MessageParcel &data, MessageParcel &reply, MessageOption &option)
 {
@@ -40,48 +67,122 @@ int AppAccountAuthenticatorStub::OnRemoteRequest(
         return ERR_ACCOUNT_COMMON_CHECK_DESCRIPTOR_ERROR;
     }
 
+    auto messageProc = funcMap_.find(code);
+    if (messageProc != funcMap_.end()) {
+        auto messageProcFunction = messageProc->second;
+        if (messageProcFunction != nullptr) {
+            return (this->*messageProcFunction)(data, reply);
+        }
+    }
+    ACCOUNT_LOGD("default, code = %{public}u, flags = %{public}u", code, option.GetFlags());
+    return IPCObjectStub::OnRemoteRequest(code, data, reply, option);
+}
+
+ErrCode AppAccountAuthenticatorStub::ProcAddAccountImplicitly(MessageParcel &data, MessageParcel &reply)
+{
+    std::string authType = data.ReadString();
+    std::string callerBundleName = data.ReadString();
+    std::shared_ptr<AAFwk::WantParams> options(data.ReadParcelable<AAFwk::WantParams>());
+    sptr<IRemoteObject> callback = data.ReadRemoteObject();
     ErrCode result = ERR_OK;
-    switch (code) {
-        case static_cast<uint32_t>(IAppAccountAuthenticator::Message::AUTHENTICATE): {
-            std::string name = data.ReadString();
-            std::string authType = data.ReadString();
-            std::string callerBundleName = data.ReadString();
-            std::shared_ptr<AAFwk::WantParams> options(data.ReadParcelable<AAFwk::WantParams>());
-            sptr<IRemoteObject> callback = data.ReadRemoteObject();
-            if ((options == nullptr) || (callback == nullptr)) {
-                ACCOUNT_LOGE("invalid request parameters");
-                result = ERR_APPACCOUNT_SERVICE_INVALID_PARAMETER;
-            }
-            if (result == ERR_OK) {
-                result = Authenticate(name, authType, callerBundleName, *options, callback);
-            }
-            if (!reply.WriteInt32(result)) {
-                ACCOUNT_LOGE("failed to write reply");
-                return IPC_STUB_WRITE_PARCEL_ERR;
-            }
-            break;
-        }
-        case static_cast<uint32_t>(IAppAccountAuthenticator::Message::ADD_ACCOUNT_IMPLICITLY): {
-            std::string authType = data.ReadString();
-            std::string callerBundleName = data.ReadString();
-            std::shared_ptr<AAFwk::WantParams> options(data.ReadParcelable<AAFwk::WantParams>());
-            sptr<IRemoteObject> callback = data.ReadRemoteObject();
-            if ((options == nullptr) || (callback == nullptr)) {
-                ACCOUNT_LOGE("invalid request parameters");
-                result = ERR_APPACCOUNT_SERVICE_INVALID_PARAMETER;
-            }
-            if (result == ERR_OK) {
-                result = AddAccountImplicitly(authType, callerBundleName, *options, callback);
-            }
-            if (!reply.WriteInt32(result)) {
-                ACCOUNT_LOGE("failed to write reply");
-                return IPC_STUB_WRITE_PARCEL_ERR;
-            }
-            break;
-        }
-        default:
-            ACCOUNT_LOGI("default, code = %{public}u, flags = %{public}u", code, option.GetFlags());
-            return IPCObjectStub::OnRemoteRequest(code, data, reply, option);
+    if ((options == nullptr) || (callback == nullptr)) {
+        ACCOUNT_LOGE("invalid request parameters");
+        result = ERR_APPACCOUNT_SERVICE_INVALID_PARAMETER;
+    }
+    if (result == ERR_OK) {
+        result = AddAccountImplicitly(authType, callerBundleName, *options, callback);
+    }
+    if (!reply.WriteInt32(result)) {
+        ACCOUNT_LOGE("failed to write reply");
+        return IPC_STUB_WRITE_PARCEL_ERR;
+    }
+    return ERR_NONE;
+}
+
+ErrCode AppAccountAuthenticatorStub::ProcAuthenticate(MessageParcel &data, MessageParcel &reply)
+{
+    std::string name = data.ReadString();
+    std::string authType = data.ReadString();
+    std::string callerBundleName = data.ReadString();
+    std::shared_ptr<AAFwk::WantParams> options(data.ReadParcelable<AAFwk::WantParams>());
+    sptr<IRemoteObject> callback = data.ReadRemoteObject();
+    ErrCode result = ERR_OK;
+    if ((options == nullptr) || (callback == nullptr)) {
+        ACCOUNT_LOGE("invalid request parameters");
+        result = ERR_APPACCOUNT_SERVICE_INVALID_PARAMETER;
+    }
+    if (result == ERR_OK) {
+        result = Authenticate(name, authType, callerBundleName, *options, callback);
+    }
+    if (!reply.WriteInt32(result)) {
+        ACCOUNT_LOGE("failed to write reply");
+        return IPC_STUB_WRITE_PARCEL_ERR;
+    }
+    return ERR_NONE;
+}
+
+ErrCode AppAccountAuthenticatorStub::ProcVerifyCredential(MessageParcel &data, MessageParcel &reply)
+{
+    ACCOUNT_LOGI("enter");
+    std::string name = data.ReadString();
+    sptr<VerifyCredentialOptions> options = data.ReadParcelable<VerifyCredentialOptions>();
+    sptr<IRemoteObject> callback = data.ReadRemoteObject();
+    ErrCode result = ERR_OK;
+    if ((options == nullptr) || (callback == nullptr)) {
+        ACCOUNT_LOGE("invalid request parameters");
+        result = ERR_APPACCOUNT_SERVICE_INVALID_PARAMETER;
+    }
+    if (result == ERR_OK) {
+        result = VerifyCredential(name, *options, callback);
+    }
+    if (!reply.WriteInt32(result)) {
+        ACCOUNT_LOGE("failed to write reply");
+        return IPC_STUB_WRITE_PARCEL_ERR;
+    }
+    return ERR_NONE;
+}
+
+ErrCode AppAccountAuthenticatorStub::ProcCheckAccountLabels(MessageParcel &data, MessageParcel &reply)
+{
+    std::string name = data.ReadString();
+    std::vector<std::string> labels;
+    data.ReadStringVector(&labels);
+    sptr<IRemoteObject> callback = data.ReadRemoteObject();
+    ErrCode result = CheckAccountLabels(name, labels, callback);
+    if (!reply.WriteInt32(result)) {
+        ACCOUNT_LOGE("failed to write reply");
+        return IPC_STUB_WRITE_PARCEL_ERR;
+    }
+    return ERR_NONE;
+}
+
+ErrCode AppAccountAuthenticatorStub::ProcSetProperties(MessageParcel &data, MessageParcel &reply)
+{
+    sptr<SetPropertiesOptions> options = data.ReadParcelable<SetPropertiesOptions>();
+    sptr<IRemoteObject> callback = data.ReadRemoteObject();
+    ErrCode result = ERR_OK;
+    if ((options == nullptr) || (callback == nullptr)) {
+        ACCOUNT_LOGE("invalid request parameters");
+        result = ERR_APPACCOUNT_SERVICE_INVALID_PARAMETER;
+    }
+    if (result == ERR_OK) {
+        result = SetProperties(*options, callback);
+    }
+    if (!reply.WriteInt32(result)) {
+        ACCOUNT_LOGE("failed to write reply");
+        return IPC_STUB_WRITE_PARCEL_ERR;
+    }
+    return ERR_NONE;
+}
+
+ErrCode AppAccountAuthenticatorStub::ProcIsAccountRemovable(MessageParcel &data, MessageParcel &reply)
+{
+    std::string name = data.ReadString();
+    sptr<IRemoteObject> callback = data.ReadRemoteObject();
+    ErrCode result = IsAccountRemovable(name, callback);
+    if (!reply.WriteInt32(result)) {
+        ACCOUNT_LOGE("failed to write reply");
+        return IPC_STUB_WRITE_PARCEL_ERR;
     }
     return ERR_NONE;
 }

@@ -33,7 +33,36 @@ struct AuthenticatorInfo {
     int32_t labelId;
 };
 
-struct OAuthRequest {
+struct SelectAccountsOptions : public Parcelable {
+    bool hasAccounts;
+    bool hasOwners;
+    bool hasLabels;
+    std::vector<std::pair<std::string, std::string>> allowedAccounts;
+    std::vector<std::string> allowedOwners;
+    std::vector<std::string> requiredLabels;
+    bool ReadFromParcel(Parcel &parcel);
+    virtual bool Marshalling(Parcel &parcel) const override;
+    static SelectAccountsOptions *Unmarshalling(Parcel &parcel);
+};
+
+struct VerifyCredentialOptions : public Parcelable {
+    std::string credentialType;
+    std::string credential;
+    AAFwk::WantParams parameters;
+    bool ReadFromParcel(Parcel &parcel);
+    virtual bool Marshalling(Parcel &parcel) const override;
+    static VerifyCredentialOptions *Unmarshalling(Parcel &parcel);
+};
+
+struct SetPropertiesOptions : public Parcelable {
+    AAFwk::WantParams properties;
+    AAFwk::WantParams parameters;
+    bool ReadFromParcel(Parcel &parcel);
+    virtual bool Marshalling(Parcel &parcel) const override;
+    static SetPropertiesOptions *Unmarshalling(Parcel &parcel);
+};
+
+struct AuthenticatorSessionRequest {
     std::string action;
     std::string sessionId;
     std::string name = UNKONW_STRING_VALUE;
@@ -47,7 +76,19 @@ struct OAuthRequest {
     pid_t callerPid;
     pid_t callerUid;
     AAFwk::Want options;
+    std::vector<std::string> labels;
+    VerifyCredentialOptions verifyCredOptions;
+    SetPropertiesOptions setPropOptions;
     sptr<IAppAccountAuthenticatorCallback> callback = nullptr;
+};
+
+enum AuthenticatorAction {
+    ADD_ACCOUNT_IMPLICITLY,
+    AUTHENTICATE,
+    VERIFY_CREDENTIAL,
+    CHECK_ACCOUNT_LABELS,
+    SET_AUTHENTICATOR_PROPERTIES,
+    IS_ACCOUNT_REMOVABLE,
 };
 
 enum JSResultCode {
