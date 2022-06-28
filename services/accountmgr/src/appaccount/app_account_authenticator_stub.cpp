@@ -148,7 +148,14 @@ ErrCode AppAccountAuthenticatorStub::ProcCheckAccountLabels(MessageParcel &data,
     std::vector<std::string> labels;
     data.ReadStringVector(&labels);
     sptr<IRemoteObject> callback = data.ReadRemoteObject();
-    ErrCode result = CheckAccountLabels(name, labels, callback);
+    ErrCode result = ERR_OK;
+    if (callback == nullptr) {
+        ACCOUNT_LOGE("invalid request parameters");
+        result = ERR_APPACCOUNT_SERVICE_INVALID_PARAMETER;
+    }
+    if (result == ERR_OK) {
+        result = CheckAccountLabels(name, labels, callback);
+    }
     if (!reply.WriteInt32(result)) {
         ACCOUNT_LOGE("failed to write reply");
         return IPC_STUB_WRITE_PARCEL_ERR;
@@ -179,7 +186,14 @@ ErrCode AppAccountAuthenticatorStub::ProcIsAccountRemovable(MessageParcel &data,
 {
     std::string name = data.ReadString();
     sptr<IRemoteObject> callback = data.ReadRemoteObject();
-    ErrCode result = IsAccountRemovable(name, callback);
+    ErrCode result = ERR_OK;
+    if (callback == nullptr) {
+        ACCOUNT_LOGE("invalid request parameters");
+        result = ERR_APPACCOUNT_SERVICE_INVALID_PARAMETER;
+    }
+    if (result == ERR_OK) {
+        result = IsAccountRemovable(name, callback);
+    }
     if (!reply.WriteInt32(result)) {
         ACCOUNT_LOGE("failed to write reply");
         return IPC_STUB_WRITE_PARCEL_ERR;

@@ -28,6 +28,7 @@ public:
     ~AppAccountCheckLabelsSession();
 
     ErrCode Open() override;
+    ErrCode CheckLabels();
     std::string GetSessionId() const override;
     void GetRequest(AuthenticatorSessionRequest &request) const override;
 

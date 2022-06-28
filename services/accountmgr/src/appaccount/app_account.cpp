@@ -300,7 +300,6 @@ ErrCode AppAccount::GetAllAccounts(const std::string &owner, std::vector<AppAcco
     return appAccountProxy_->GetAllAccounts(owner, appAccounts);
 }
 
-
 ErrCode AppAccount::CheckAppAccess(const std::string &name, const std::string &authorizedApp, bool &isAccessible)
 {
     ACCOUNT_LOGD("enter");

@@ -118,7 +118,8 @@ ErrCode AppAccountAuthenticatorSessionManager::SelectAccountsByOptions(
     const std::vector<AppAccountInfo> accounts, const AuthenticatorSessionRequest &request)
 {
     auto session = std::make_shared<AppAccountCheckLabelsSession>(accounts, request);
-    return OpenSession(session);
+    OpenSession(session);
+    return session->CheckLabels();
 }
 
 ErrCode AppAccountAuthenticatorSessionManager::SetAuthenticatorProperties(const AuthenticatorSessionRequest &request)
@@ -145,7 +146,7 @@ ErrCode AppAccountAuthenticatorSessionManager::OpenSession(
         }
         result = session->Open();
         if (result != ERR_OK) {
-            ACCOUNT_LOGD("failed to open session, result: %{public}d.", result);
+            ACCOUNT_LOGE("failed to open session, result: %{public}d.", result);
             return result;
         }
         if (sessionMap_.size() == 0) {
@@ -164,11 +165,7 @@ ErrCode AppAccountAuthenticatorSessionManager::OpenSession(
             abilitySessions_.emplace(key, sessionSet);
         }
     }
-    result = session->AddClientDeathRecipient();
-    if (result != ERR_OK) {
-        ACCOUNT_LOGD("failed to add client death recipient for session, result: %{public}d.", result);
-        CloseSession(sessionId);
-    }
+    session->AddClientDeathRecipient();
     return ERR_OK;
 }
 

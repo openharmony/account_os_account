@@ -89,6 +89,8 @@ public:
 protected:
     AuthenticatorAction action_;
     AuthenticatorSessionRequest request_;
+    std::string sessionId_;
+    bool isOpened_ = false;
 
 private:
     void Init();
@@ -97,7 +99,6 @@ private:
     int32_t OnAddAccountImplicitlyDone(const AAFwk::Want &result) const;
 
 private:
-    std::string sessionId_;
     sptr<SessionConnection> conn_ = nullptr;
     sptr<SessionClientDeathRecipient> clientDeathRecipient_ = nullptr;
     sptr<SessionServerDeathRecipient> serverDeathRecipient_ = nullptr;
@@ -109,7 +110,6 @@ private:
     int32_t userId_;
     pid_t ownerUid_;
     bool isInitialized_ = false;
-    bool isOpened_ = false;
     bool isConnected_ = false;
 };
 }  // namespace AccountSA

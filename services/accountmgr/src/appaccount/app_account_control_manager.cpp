@@ -675,6 +675,7 @@ ErrCode AppAccountControlManager::SelectAccountsByOptions(
         return ERR_OK;
     }
     AuthenticatorSessionRequest request;
+    request.callback = callback;
     request.callerUid = uid;
     request.labels = options.requiredLabels;
     auto sessionManager = AppAccountAuthenticatorSessionManager::GetInstance();

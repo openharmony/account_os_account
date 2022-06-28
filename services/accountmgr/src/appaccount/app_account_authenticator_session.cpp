@@ -107,6 +107,7 @@ AppAccountAuthenticatorSession::AppAccountAuthenticatorSession(
 
 AppAccountAuthenticatorSession::~AppAccountAuthenticatorSession()
 {
+    ACCOUNT_LOGD("enter");
     if (isOpened_) {
         Close();
     }
@@ -171,7 +172,7 @@ ErrCode AppAccountAuthenticatorSession::Open()
 
 void AppAccountAuthenticatorSession::Close()
 {
-    ACCOUNT_LOGE("enter");
+    ACCOUNT_LOGD("enter");
     clientDeathRecipient_->SetSession(nullptr);
     serverDeathRecipient_->SetSession(nullptr);
     conn_->SetSession(nullptr);
@@ -228,7 +229,6 @@ void AppAccountAuthenticatorSession::OnAbilityConnectDone(
                 request_.options.GetParams(), authenticatorCb_->AsObject());
             break;
         case VERIFY_CREDENTIAL:
-            ACCOUNT_LOGE("enter");
             resultCode = authenticatorProxy_->VerifyCredential(
                 request_.name, request_.verifyCredOptions, authenticatorCb_->AsObject());
             break;
