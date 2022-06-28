@@ -173,6 +173,13 @@ void CheckAccountLabelsOnResultWork(uv_work_t *work, int status)
 void CheckAccountLabelsCallback::OnResult(int32_t resultCode, const AAFwk::Want &result)
 {
     ACCOUNT_LOGD("enter");
+    {
+        std::lock_guard<std::mutex> lock(mutex_);
+        if (isDone) {
+            return;
+        }
+        isDone = true;
+    }
     uv_loop_s *loop = nullptr;
     uv_work_t *work = nullptr;
     AuthenticatorCallbackParam *param = nullptr;
@@ -183,6 +190,7 @@ void CheckAccountLabelsCallback::OnResult(int32_t resultCode, const AAFwk::Want 
         return;
     }
     param->context = context;
+    param->context->env = env_;
     param->context->callbackRef = callbackRef_;
     param->context->deferred = deferred_;
     param->context->errCode = resultCode;
@@ -247,6 +255,13 @@ void SelectAccountsOnResultWork(uv_work_t *work, int status)
 void SelectAccountsCallback::OnResult(int32_t resultCode, const AAFwk::Want &result)
 {
     ACCOUNT_LOGD("enter");
+    {
+        std::lock_guard<std::mutex> lock(mutex_);
+        if (isDone) {
+            return;
+        }
+        isDone = true;
+    }
     uv_loop_s *loop = nullptr;
     uv_work_t *work = nullptr;
     AuthenticatorCallbackParam *param = nullptr;
@@ -257,6 +272,7 @@ void SelectAccountsCallback::OnResult(int32_t resultCode, const AAFwk::Want &res
         return;
     }
     param->context = context;
+    param->context->env = env_;
     param->context->callbackRef = callbackRef_;
     param->context->deferred = deferred_;
     param->context->errCode = resultCode;
@@ -336,6 +352,7 @@ void UvQueueWorkOnRequestRedirected(uv_work_t *work, int status)
 
 void UvQueueWorkOnRequestContinued(uv_work_t *work, int status)
 {
+    ACCOUNT_LOGD("enter");
     if ((work == nullptr) || (work->data == nullptr)) {
         ACCOUNT_LOGE("work or data is nullptr");
         return;
@@ -343,7 +360,11 @@ void UvQueueWorkOnRequestContinued(uv_work_t *work, int status)
     AuthenticatorCallbackParam *data = reinterpret_cast<AuthenticatorCallbackParam *>(work->data);
     napi_value callback = nullptr;
     napi_get_reference_value(data->env, data->callback.onRequestContinued, &callback);
-    napi_call_function(data->env, nullptr, callback, 0, nullptr, nullptr);
+    napi_value undefined = nullptr;
+    napi_get_undefined(data->env, &undefined);
+    napi_value results[0];
+    napi_value resultout = nullptr;
+    napi_call_function(data->env, undefined, callback, 0, results, &resultout);
     delete data;
     data = nullptr;
     delete work;
@@ -1268,13 +1289,16 @@ void ParseSelectAccountsOptions(napi_env env, napi_value object, SelectAccountsO
         napi_get_named_property(env, object, "allowedAccounts", &value);
         ParseAccountVector(env, value, options.allowedAccounts);
     }
+    napi_has_named_property(env, object, "allowedOwners", &options.hasOwners);
     if (options.hasOwners) {
         napi_get_named_property(env, object, "allowedOwners", &value);
         ParseStringVector(env, value, options.allowedOwners);
     }
+    napi_has_named_property(env, object, "requiredLabels", &options.hasLabels);
     if (options.hasLabels) {
         napi_get_named_property(env, object, "requiredLabels", &value);
         ParseStringVector(env, value, options.requiredLabels);
+        ACCOUNT_LOGE("requiredLabels.size: %{public}zu", options.requiredLabels.size());
     }
 }
 
@@ -1372,7 +1396,7 @@ void ParseContextForSelectAccount(napi_env env, napi_callback_info info, SelectA
     }
 }
 
-void ParseAccountVector(napi_env env, napi_value value, std::vector<std::pair<std::string, std::string>> accountVec)
+void ParseAccountVector(napi_env env, napi_value value, std::vector<std::pair<std::string, std::string>> &accountVec)
 {
     bool isArray = false;
     uint32_t length = 0;
@@ -1391,7 +1415,7 @@ void ParseAccountVector(napi_env env, napi_value value, std::vector<std::pair<st
         napi_value item = nullptr;
         napi_get_element(env, value, i, &item);
         NAPI_CALL_RETURN_VOID(env, napi_typeof(env, item, &valueType));
-        if (valueType == napi_object) {
+        if (valueType != napi_object) {
             ACCOUNT_LOGD("Wrong argument type, Object expected");
             return;
         }
@@ -1400,14 +1424,13 @@ void ParseAccountVector(napi_env env, napi_value value, std::vector<std::pair<st
         std::string name = GetNamedProperty(env, data);
         napi_get_named_property(env, item, "owner", &data);
         std::string owner = GetNamedProperty(env, data);
-        accountVec.emplace_back(std::make_pair(name, owner));
+        accountVec.push_back(std::make_pair(owner, name));
     }
 }
 
-void ParseStringVector(napi_env env, napi_value value, std::vector<std::string> strVec)
+void ParseStringVector(napi_env env, napi_value value, std::vector<std::string> &strVec)
 {
     bool isArray = false;
-    size_t strLen = 0;
     uint32_t length = 0;
     NAPI_CALL_RETURN_VOID(env, napi_is_array(env, value, &isArray));
     if (!isArray) {
@@ -1424,13 +1447,11 @@ void ParseStringVector(napi_env env, napi_value value, std::vector<std::string> 
         napi_value item = nullptr;
         napi_get_element(env, value, i, &item);
         NAPI_CALL_RETURN_VOID(env, napi_typeof(env, item, &valueType));
-        if (valueType == napi_string) {
-            ACCOUNT_LOGD("Wrong argument type, String expected");
+        if (valueType != napi_string) {
+            ACCOUNT_LOGE("Wrong argument type, String expected");
             return;
         }
-        char str[STR_MAX_SIZE] = {0};
-        NAPI_CALL_RETURN_VOID(env, napi_get_value_string_utf8(env, item, str, STR_MAX_SIZE - 1, &strLen));
-        strVec.emplace_back(str);
+        strVec.push_back(GetNamedProperty(env, item));
     }
 }
 

@@ -25,8 +25,8 @@ namespace OHOS {
 namespace AccountSA {
 class AppAccountCheckLabelsCallback : public AppAccountAuthenticatorCallbackStub {
 public:
-    explicit AppAccountCheckLabelsCallback(
-        std::vector<AppAccountInfo> accounts, const AuthenticatorSessionRequest &request);
+    explicit AppAccountCheckLabelsCallback(std::vector<AppAccountInfo> accounts,
+        const AuthenticatorSessionRequest &request, const std::string &sessionId);
     ~AppAccountCheckLabelsCallback() override;
 
     void OnResult(int32_t resultCode, const AAFwk::Want &result) override;
@@ -43,6 +43,7 @@ private:
     std::vector<std::string> labels_;
     std::vector<AppAccountInfo> accountsWithLabels_;
     std::uint32_t index_ = 0;
+    std::string sessionId_;
 };
 }
 }
