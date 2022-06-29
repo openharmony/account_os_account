@@ -23,7 +23,6 @@
 #include "app_account_common.h"
 #include "bundle_manager_adapter.h"
 #include "iservice_registry.h"
-#include "want.h"
 
 namespace OHOS {
 namespace AccountSA {
@@ -98,7 +97,8 @@ void SessionConnection::SetSession(AppAccountAuthenticatorSession *session)
     session_ = session;
 }
 
-AppAccountAuthenticatorSession::AppAccountAuthenticatorSession(const std::string &action, const OAuthRequest &request)
+AppAccountAuthenticatorSession::AppAccountAuthenticatorSession(
+    AuthenticatorAction action, const AuthenticatorSessionRequest &request)
     : action_(action), request_(request)
 {
     ACCOUNT_LOGD("enter");
@@ -108,26 +108,9 @@ AppAccountAuthenticatorSession::AppAccountAuthenticatorSession(const std::string
 AppAccountAuthenticatorSession::~AppAccountAuthenticatorSession()
 {
     ACCOUNT_LOGD("enter");
-    clientDeathRecipient_->SetSession(nullptr);
-    serverDeathRecipient_->SetSession(nullptr);
-    conn_->SetSession(nullptr);
-    if ((authenticatorProxy_ != nullptr) && (authenticatorProxy_->AsObject() != nullptr)) {
-        authenticatorProxy_->AsObject()->RemoveDeathRecipient(serverDeathRecipient_);
+    if (isOpened_) {
+        Close();
     }
-    authenticatorProxy_ = nullptr;
-    if ((request_.callback != nullptr) && (request_.callback->AsObject() != nullptr)) {
-        request_.callback->AsObject()->RemoveDeathRecipient(clientDeathRecipient_);
-    }
-    request_.callback = nullptr;
-    if (isConnected_) {
-        AAFwk::AbilityManagerAdapter::GetInstance()->DisconnectAbility(conn_);
-    }
-    authenticatorCb_ = nullptr;
-    clientDeathRecipient_ = nullptr;
-    serverDeathRecipient_ = nullptr;
-    sessionManager_ = nullptr;
-    controlManager_ = nullptr;
-    authenticatorMgr_ = nullptr;
 }
 
 void AppAccountAuthenticatorSession::Init()
@@ -152,9 +135,6 @@ void AppAccountAuthenticatorSession::Init()
         clientDeathRecipient_ = nullptr;
         serverDeathRecipient_ = nullptr;
         authenticatorCb_ = nullptr;
-        sessionManager_ = nullptr;
-        controlManager_ = nullptr;
-        authenticatorMgr_ = nullptr;
         return;
     }
     sessionId_ = std::to_string(reinterpret_cast<int64_t>(this));
@@ -175,7 +155,7 @@ ErrCode AppAccountAuthenticatorSession::Open()
         return ERR_APPACCOUNT_SERVICE_OAUTH_SERVICE_EXCEPTION;
     }
     AuthenticatorInfo info;
-    ErrCode errCode = authenticatorMgr_->GetAuthenticatorInfo(request_, info);
+    ErrCode errCode = authenticatorMgr_->GetAuthenticatorInfo(request_.owner, userId_, info);
     if (errCode != ERR_OK) {
         ACCOUNT_LOGD("authenticator not exist, owner: %{public}s, errCode: %{public}d.",
             request_.owner.c_str(), errCode);
@@ -188,6 +168,26 @@ ErrCode AppAccountAuthenticatorSession::Open()
         isOpened_ = true;
     }
     return errCode;
+}
+
+void AppAccountAuthenticatorSession::Close()
+{
+    ACCOUNT_LOGD("enter");
+    clientDeathRecipient_->SetSession(nullptr);
+    serverDeathRecipient_->SetSession(nullptr);
+    conn_->SetSession(nullptr);
+    if ((authenticatorProxy_ != nullptr) && (authenticatorProxy_->AsObject() != nullptr)) {
+        authenticatorProxy_->AsObject()->RemoveDeathRecipient(serverDeathRecipient_);
+    }
+    authenticatorProxy_ = nullptr;
+    if ((request_.callback != nullptr) && (request_.callback->AsObject() != nullptr)) {
+        request_.callback->AsObject()->RemoveDeathRecipient(clientDeathRecipient_);
+    }
+    request_.callback = nullptr;
+    if (isConnected_) {
+        AAFwk::AbilityManagerAdapter::GetInstance()->DisconnectAbility(conn_);
+    }
+    isOpened_ = false;
 }
 
 ErrCode AppAccountAuthenticatorSession::AddClientDeathRecipient()
@@ -218,16 +218,35 @@ void AppAccountAuthenticatorSession::OnAbilityConnectDone(
         return;
     }
     authenticatorProxy_->AsObject()->AddDeathRecipient(serverDeathRecipient_);
-    if (action_ == Constants::OAUTH_ACTION_AUTHENTICATE) {
-        resultCode = authenticatorProxy_->Authenticate(request_.name, request_.authType, request_.callerBundleName,
-            request_.options.GetParams(), authenticatorCb_->AsObject());
-    } else if (action_ == Constants::OAUTH_ACTION_ADD_ACCOUNT_IMPLICITLY) {
-        resultCode = authenticatorProxy_->AddAccountImplicitly(
-            request_.authType, request_.callerBundleName, request_.options.GetParams(), authenticatorCb_->AsObject());
-    } else {
-        ACCOUNT_LOGE("unsupported action: %{public}s", action_.c_str());
-        OnResult(ERR_JS_OAUTH_UNSUPPORT_ACTION, errResult_);
-        return;
+    switch (action_) {
+        case ADD_ACCOUNT_IMPLICITLY:
+            resultCode = authenticatorProxy_->AddAccountImplicitly(request_.authType, request_.callerBundleName,
+                request_.options.GetParams(), authenticatorCb_->AsObject());
+            break;
+        case AUTHENTICATE:
+            resultCode = authenticatorProxy_->Authenticate(
+                request_.name, request_.authType, request_.callerBundleName,
+                request_.options.GetParams(), authenticatorCb_->AsObject());
+            break;
+        case VERIFY_CREDENTIAL:
+            resultCode = authenticatorProxy_->VerifyCredential(
+                request_.name, request_.verifyCredOptions, authenticatorCb_->AsObject());
+            break;
+        case CHECK_ACCOUNT_LABELS:
+            resultCode = authenticatorProxy_->CheckAccountLabels(
+                request_.name, request_.labels, authenticatorCb_->AsObject());
+            break;
+        case SET_AUTHENTICATOR_PROPERTIES:
+            resultCode = authenticatorProxy_->SetProperties(
+                request_.setPropOptions, authenticatorCb_->AsObject());
+            break;
+        case IS_ACCOUNT_REMOVABLE:
+            resultCode = authenticatorProxy_->IsAccountRemovable(request_.name, authenticatorCb_->AsObject());
+            break;
+        default:
+            ACCOUNT_LOGE("unsupported action: %{public}d", action_);
+            OnResult(ERR_JS_OAUTH_UNSUPPORT_ACTION, errResult_);
+            return;
     }
     if (resultCode != ERR_OK) {
         OnResult(ERR_JS_OAUTH_SERVICE_EXCEPTION, errResult_);
@@ -259,12 +278,15 @@ int32_t AppAccountAuthenticatorSession::OnResult(int32_t resultCode, const AAFwk
 {
     ACCOUNT_LOGD("enter");
     if (resultCode == ERR_JS_SUCCESS) {
-        if (action_ == Constants::OAUTH_ACTION_AUTHENTICATE) {
-            resultCode = OnAuthenticateDone(result);
-        } else if (action_ == Constants::OAUTH_ACTION_ADD_ACCOUNT_IMPLICITLY) {
-            resultCode = OnAddAccountImplicitlyDone(result);
-        } else {
-            resultCode = ERR_JS_OAUTH_UNSUPPORT_ACTION;
+        switch (action_) {
+            case ADD_ACCOUNT_IMPLICITLY:
+                resultCode = OnAddAccountImplicitlyDone(result);
+                break;
+            case AUTHENTICATE:
+                resultCode = OnAuthenticateDone(result);
+                break;
+            default:
+                break;
         }
     }
     if ((request_.callback != nullptr) && (request_.callback->AsObject() != nullptr)) {
@@ -283,28 +305,43 @@ int32_t AppAccountAuthenticatorSession::OnRequestRedirected(AAFwk::Want &newRequ
     AAFwk::Want errResult_;
     AppExecFwk::ElementName element = newRequest.GetElement();
     if (element.GetBundleName() != request_.owner) {
-        ACCOUNT_LOGE("invalid response");
+        ACCOUNT_LOGD("invalid response");
         OnResult(ERR_JS_INVALID_RESPONSE, errResult_);
         return ERR_JS_SUCCESS;
     }
     if ((!request_.callback) || (!request_.callback->AsObject())) {
-        ACCOUNT_LOGI("app account callback is nullptr");
+        ACCOUNT_LOGD("app account callback is nullptr");
         if (isConnected_) {
             AAFwk::AbilityManagerAdapter::GetInstance()->DisconnectAbility(conn_);
         }
         sessionManager_->CloseSession(sessionId_);
         return ERR_JS_SUCCESS;
     }
-    if (action_ == Constants::OAUTH_ACTION_AUTHENTICATE) {
-        newRequest.SetParam(Constants::KEY_NAME, request_.name);
-    }
     newRequest.SetParam(Constants::KEY_ACTION, action_);
+    newRequest.SetParam(Constants::KEY_NAME, request_.name);
     newRequest.SetParam(Constants::KEY_SESSION_ID, sessionId_);
-    newRequest.SetParam(Constants::KEY_AUTH_TYPE, request_.authType);
     newRequest.SetParam(Constants::KEY_CALLER_BUNDLE_NAME, request_.callerBundleName);
     newRequest.SetParam(Constants::KEY_CALLER_PID, request_.callerPid);
     newRequest.SetParam(Constants::KEY_CALLER_UID, request_.callerUid);
+    if (action_ == AUTHENTICATE || action_ == ADD_ACCOUNT_IMPLICITLY) {
+        newRequest.SetParam(Constants::KEY_AUTH_TYPE, request_.authType);
+    }
     request_.callback->OnRequestRedirected(newRequest);
+    return ERR_JS_SUCCESS;
+}
+
+int32_t AppAccountAuthenticatorSession::OnRequestContinued() const
+{
+    ACCOUNT_LOGD("enter");
+    if ((!request_.callback) || (!request_.callback->AsObject())) {
+        ACCOUNT_LOGD("app account callback is nullptr");
+        if (isConnected_) {
+            AAFwk::AbilityManagerAdapter::GetInstance()->DisconnectAbility(conn_);
+        }
+        sessionManager_->CloseSession(sessionId_);
+        return ERR_JS_SUCCESS;
+    }
+    request_.callback->OnRequestContinued();
     return ERR_JS_SUCCESS;
 }
 
@@ -317,7 +354,7 @@ int32_t AppAccountAuthenticatorSession::UpdateAuthInfo(const AAFwk::Want &result
     ErrCode errCode = ERR_OK;
     controlManager_->AddAccount(name, "", ownerUid_, request_.owner, info);
     if (!token.empty()) {
-        OAuthRequest request = {
+        AuthenticatorSessionRequest request = {
             .name = name,
             .authType = authType,
             .token = token,
@@ -327,7 +364,7 @@ int32_t AppAccountAuthenticatorSession::UpdateAuthInfo(const AAFwk::Want &result
         errCode = controlManager_->SetOAuthToken(request);
     }
     if (authType == request_.authType) {
-        OAuthRequest request = {
+        AuthenticatorSessionRequest request = {
             .name = name,
             .authType = authType,
             .token = token,
@@ -359,13 +396,13 @@ int32_t AppAccountAuthenticatorSession::OnAddAccountImplicitlyDone(const AAFwk::
     return UpdateAuthInfo(result);
 }
 
-void AppAccountAuthenticatorSession::GetRequest(OAuthRequest &request) const
+void AppAccountAuthenticatorSession::GetRequest(AuthenticatorSessionRequest &request) const
 {
     request = request_;
 }
 
 ErrCode AppAccountAuthenticatorSession::GetAuthenticatorCallback(
-    const OAuthRequest &request, sptr<IRemoteObject> &callback) const
+    const AuthenticatorSessionRequest &request, sptr<IRemoteObject> &callback) const
 {
     ACCOUNT_LOGD("enter");
     callback = nullptr;

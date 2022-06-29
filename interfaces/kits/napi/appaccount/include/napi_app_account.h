@@ -52,6 +52,12 @@ private:
     static napi_value GetAllOAuthTokens(napi_env env, napi_callback_info cbInfo);
     static napi_value GetOAuthList(napi_env env, napi_callback_info cbInfo);
     static napi_value GetAuthenticatorCallback(napi_env env, napi_callback_info cbInfo);
+    static napi_value CheckAppAccess(napi_env env, napi_callback_info cbInfo);
+    static napi_value CheckAccountLabels(napi_env env, napi_callback_info cbInfo);
+    static napi_value SelectAccountsByOptions(napi_env env, napi_callback_info cbInfo);
+    static napi_value VerifyCredential(napi_env env, napi_callback_info cbInfo);
+    static napi_value SetAuthenticatorProperties(napi_env env, napi_callback_info cbInfo);
+    static napi_value DeleteAccountCredential(napi_env env, napi_callback_info cbInfo);
     static napi_value Subscribe(napi_env env, napi_callback_info cbInfo);
     static napi_value Unsubscribe(napi_env env, napi_callback_info cbInfo);
     static napi_value JsConstructor(napi_env env, napi_callback_info cbinfo);
