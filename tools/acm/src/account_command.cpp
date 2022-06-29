@@ -36,16 +36,16 @@ const struct option LONG_OPTIONS[] = {
 
 AccountCommand::AccountCommand(int argc, char *argv[]) : ShellCommand(argc, argv, TOOL_NAME)
 {
-    ACCOUNT_LOGI("enter");
+    ACCOUNT_LOGD("enter");
 
     for (int i = 0; i < argc_; i++) {
-        ACCOUNT_LOGI("argv_[%{public}d]: %{public}s", i, argv_[i]);
+        ACCOUNT_LOGD("argv_[%{public}d]: %{public}s", i, argv_[i]);
     }
 }
 
 ErrCode AccountCommand::CreateCommandMap()
 {
-    ACCOUNT_LOGI("enter");
+    ACCOUNT_LOGD("enter");
 
     commandMap_ = {
         {"help", std::bind(&AccountCommand::RunAsHelpCommand, this)},
@@ -54,6 +54,9 @@ ErrCode AccountCommand::CreateCommandMap()
         {"dump", std::bind(&AccountCommand::RunAsDumpCommand, this)},
         {"set", std::bind(&AccountCommand::RunAsSetCommand, this)},
         {"switch", std::bind(&AccountCommand::RunAsSwitchCommand, this)},
+#ifdef ENABLE_MULTIPLE_ACTIVE_ACCOUNTS
+        {"stop", std::bind(&AccountCommand::RunAsStopCommand, this)},
+#endif // ENABLE_MULTIPLE_ACTIVE_ACCOUNTS
     };
 
     return ERR_OK;
@@ -61,14 +64,14 @@ ErrCode AccountCommand::CreateCommandMap()
 
 ErrCode AccountCommand::CreateMessageMap()
 {
-    ACCOUNT_LOGI("enter");
+    ACCOUNT_LOGD("enter");
 
     return ERR_OK;
 }
 
 ErrCode AccountCommand::init()
 {
-    ACCOUNT_LOGI("enter");
+    ACCOUNT_LOGD("enter");
 
     ErrCode result = ERR_OK;
 
@@ -84,7 +87,7 @@ ErrCode AccountCommand::init()
 
 ErrCode AccountCommand::RunAsHelpCommand(void)
 {
-    ACCOUNT_LOGI("enter");
+    ACCOUNT_LOGD("enter");
 
     resultReceiver_.append(HELP_MSG);
 
@@ -93,7 +96,7 @@ ErrCode AccountCommand::RunAsHelpCommand(void)
 
 ErrCode AccountCommand::RunAsCreateCommand(void)
 {
-    ACCOUNT_LOGI("enter");
+    ACCOUNT_LOGD("enter");
 
     ErrCode result = ERR_OK;
 
@@ -106,7 +109,7 @@ ErrCode AccountCommand::RunAsCreateCommand(void)
         counter++;
 
         int option = getopt_long(argc_, argv_, SHORT_OPTIONS.c_str(), LONG_OPTIONS, nullptr);
-        ACCOUNT_LOGI("option: %{public}d, optopt: %{public}d, optind: %{public}d", option, optopt, optind);
+        ACCOUNT_LOGD("option: %{public}d, optopt: %{public}d, optind: %{public}d", option, optopt, optind);
 
         if (option == -1) {
             if (counter == 1) {
@@ -125,7 +128,7 @@ ErrCode AccountCommand::RunAsCreateCommand(void)
 
     if (result == ERR_OK) {
         if (name.size() == 0 || osAccountType == static_cast<OsAccountType>(-1)) {
-            ACCOUNT_LOGI("'acm create' without enough options");
+            ACCOUNT_LOGD("'acm create' without enough options");
 
             if (name.size() == 0) {
                 resultReceiver_.append(HELP_MSG_NO_NAME_OPTION + "\n");
@@ -156,14 +159,14 @@ ErrCode AccountCommand::RunAsCreateCommand(void)
         }
     }
 
-    ACCOUNT_LOGI("result = %{public}d, name = %{public}s, type = %{public}d", result, name.c_str(), osAccountType);
+    ACCOUNT_LOGD("result = %{public}d, name = %{public}s, type = %{public}d", result, name.c_str(), osAccountType);
 
     return result;
 }
 
 ErrCode AccountCommand::RunAsDeleteCommand(void)
 {
-    ACCOUNT_LOGI("enter");
+    ACCOUNT_LOGD("enter");
 
     ErrCode result = ERR_OK;
 
@@ -175,7 +178,7 @@ ErrCode AccountCommand::RunAsDeleteCommand(void)
         counter++;
 
         int option = getopt_long(argc_, argv_, SHORT_OPTIONS.c_str(), LONG_OPTIONS, nullptr);
-        ACCOUNT_LOGI("option: %{public}d, optopt: %{public}d, optind: %{public}d", option, optopt, optind);
+        ACCOUNT_LOGD("option: %{public}d, optopt: %{public}d, optind: %{public}d", option, optopt, optind);
 
         if (option == -1) {
             if (counter == 1) {
@@ -206,14 +209,14 @@ ErrCode AccountCommand::RunAsDeleteCommand(void)
         }
     }
 
-    ACCOUNT_LOGI("result = %{public}d, id = %{public}d", result, id);
+    ACCOUNT_LOGD("result = %{public}d, id = %{public}d", result, id);
 
     return result;
 }
 
 ErrCode AccountCommand::RunAsDumpCommand(void)
 {
-    ACCOUNT_LOGI("enter");
+    ACCOUNT_LOGD("enter");
 
     ErrCode result = ERR_OK;
 
@@ -225,7 +228,7 @@ ErrCode AccountCommand::RunAsDumpCommand(void)
         counter++;
 
         int option = getopt_long(argc_, argv_, SHORT_OPTIONS.c_str(), LONG_OPTIONS, nullptr);
-        ACCOUNT_LOGI("option: %{public}d, optopt: %{public}d, optind: %{public}d", option, optopt, optind);
+        ACCOUNT_LOGD("option: %{public}d, optopt: %{public}d, optind: %{public}d", option, optopt, optind);
 
         if (option == -1) {
             if (counter == 1) {
@@ -259,14 +262,14 @@ ErrCode AccountCommand::RunAsDumpCommand(void)
         }
     }
 
-    ACCOUNT_LOGI("result = %{public}d, id = %{public}d", result, id);
+    ACCOUNT_LOGD("result = %{public}d, id = %{public}d", result, id);
 
     return result;
 }
 
 ErrCode AccountCommand::RunAsSetCommand(void)
 {
-    ACCOUNT_LOGI("enter");
+    ACCOUNT_LOGD("enter");
 
     ErrCode result = ERR_OK;
 
@@ -280,7 +283,7 @@ ErrCode AccountCommand::RunAsSetCommand(void)
         counter++;
 
         int option = getopt_long(argc_, argv_, SHORT_OPTIONS.c_str(), LONG_OPTIONS, nullptr);
-        ACCOUNT_LOGI("option: %{public}d, optopt: %{public}d, optind: %{public}d", option, optopt, optind);
+        ACCOUNT_LOGD("option: %{public}d, optopt: %{public}d, optind: %{public}d", option, optopt, optind);
 
         if (option == -1) {
             if (counter == 1) {
@@ -299,7 +302,7 @@ ErrCode AccountCommand::RunAsSetCommand(void)
 
     if (result == ERR_OK) {
         if (id == -1 || constraints.size() == 0) {
-            ACCOUNT_LOGI("'acm set' without enough options");
+            ACCOUNT_LOGD("'acm set' without enough options");
 
             if (id == -1) {
                 resultReceiver_.append(HELP_MSG_NO_ID_OPTION + "\n");
@@ -327,9 +330,9 @@ ErrCode AccountCommand::RunAsSetCommand(void)
         }
     }
 
-    ACCOUNT_LOGI("result = %{public}d, id = %{public}d, enable = %{public}d", result, id, enable);
+    ACCOUNT_LOGD("result = %{public}d, id = %{public}d, enable = %{public}d", result, id, enable);
     for (auto constraint : constraints) {
-        ACCOUNT_LOGI("constraint = %{public}s", constraint.c_str());
+        ACCOUNT_LOGD("constraint = %{public}s", constraint.c_str());
     }
 
     return result;
@@ -337,7 +340,7 @@ ErrCode AccountCommand::RunAsSetCommand(void)
 
 ErrCode AccountCommand::RunAsSwitchCommand(void)
 {
-    ACCOUNT_LOGI("enter");
+    ACCOUNT_LOGD("enter");
 
     ErrCode result = ERR_OK;
 
@@ -349,7 +352,7 @@ ErrCode AccountCommand::RunAsSwitchCommand(void)
         counter++;
 
         int option = getopt_long(argc_, argv_, SHORT_OPTIONS.c_str(), LONG_OPTIONS, nullptr);
-        ACCOUNT_LOGI("option: %{public}d, optopt: %{public}d, optind: %{public}d", option, optopt, optind);
+        ACCOUNT_LOGD("option: %{public}d, optopt: %{public}d, optind: %{public}d", option, optopt, optind);
 
         if (option == -1) {
             if (counter == 1) {
@@ -380,14 +383,64 @@ ErrCode AccountCommand::RunAsSwitchCommand(void)
         }
     }
 
-    ACCOUNT_LOGI("result = %{public}d, id = %{public}d", result, id);
+    ACCOUNT_LOGD("result = %{public}d, id = %{public}d", result, id);
+
+    return result;
+}
+
+ErrCode AccountCommand::RunAsStopCommand(void)
+{
+    ACCOUNT_LOGD("enter");
+
+    ErrCode result = ERR_OK;
+
+    int counter = 0;
+
+    int id = -1;
+
+    while (true) {
+        counter++;
+
+        int option = getopt_long(argc_, argv_, SHORT_OPTIONS.c_str(), LONG_OPTIONS, nullptr);
+        ACCOUNT_LOGD("option: %{public}d, optopt: %{public}d, optind: %{public}d", option, optopt, optind);
+
+        if (option == -1) {
+            if (counter == 1) {
+                result = RunAsStopCommandError();
+            }
+            break;
+        }
+
+        if (option == '?') {
+            result = RunAsStopCommandMissingOptionArgument();
+            break;
+        }
+
+        result = RunAsStopCommandExistentOptionArgument(option, id);
+    }
+
+    if (result != ERR_OK) {
+        resultReceiver_.append(HELP_MSG_STOP);
+    } else {
+        /* stop */
+
+        // stop an os account
+        result = osAccountPtr_->StopOsAccount(id);
+        if (result == ERR_OK) {
+            resultReceiver_ = STRING_STOP_OS_ACCOUNT_OK + "\n";
+        } else {
+            resultReceiver_ = STRING_STOP_OS_ACCOUNT_NG + "\n";
+        }
+    }
+
+    ACCOUNT_LOGD("result = %{public}d, id = %{public}d", result, id);
 
     return result;
 }
 
 ErrCode AccountCommand::RunAsCreateCommandError(void)
 {
-    ACCOUNT_LOGI("enter");
+    ACCOUNT_LOGD("enter");
 
     ErrCode result = ERR_OK;
 
@@ -399,20 +452,20 @@ ErrCode AccountCommand::RunAsCreateCommandError(void)
     if (strcmp(argv_[optind], cmd_.c_str()) == 0) {
         // 'acm create' with no option: acm create
         // 'acm create' with a wrong argument: acm create xxx
-        ACCOUNT_LOGI("'acm create' with no option.");
+        ACCOUNT_LOGD("'acm create' with no option.");
 
         resultReceiver_.append(HELP_MSG_NO_OPTION + "\n");
         result = ERR_INVALID_VALUE;
     }
 
-    ACCOUNT_LOGI("end, result = %{public}d", result);
+    ACCOUNT_LOGD("end, result = %{public}d", result);
 
     return result;
 }
 
 ErrCode AccountCommand::RunAsCreateCommandMissingOptionArgument(void)
 {
-    ACCOUNT_LOGI("enter");
+    ACCOUNT_LOGD("enter");
 
     ErrCode result = ERR_OK;
 
@@ -420,7 +473,7 @@ ErrCode AccountCommand::RunAsCreateCommandMissingOptionArgument(void)
         case 'n': {
             // 'acm create -n <name>' with no argument: acm create -n
             // 'acm create --name <name>' with no argument: acm create --name
-            ACCOUNT_LOGI("'acm create -n' with no argument.");
+            ACCOUNT_LOGD("'acm create -n' with no argument.");
 
             resultReceiver_.append(HELP_MSG_OPTION_REQUIRES_AN_ARGUMENT + "\n");
             result = ERR_INVALID_VALUE;
@@ -429,7 +482,7 @@ ErrCode AccountCommand::RunAsCreateCommandMissingOptionArgument(void)
         case 't': {
             // 'acm create -t <type>' with no argument: acm create -t
             // 'acm create --type <type>' with no argument: acm create --type
-            ACCOUNT_LOGI("'acm create -t' with no argument.");
+            ACCOUNT_LOGD("'acm create -t' with no argument.");
 
             resultReceiver_.append(HELP_MSG_OPTION_REQUIRES_AN_ARGUMENT + "\n");
 
@@ -442,7 +495,7 @@ ErrCode AccountCommand::RunAsCreateCommandMissingOptionArgument(void)
             std::string unknownOption = "";
             std::string unknownOptionMsg = GetUnknownOptionMsg(unknownOption);
 
-            ACCOUNT_LOGI("'acm create' with an unknown option.");
+            ACCOUNT_LOGD("'acm create' with an unknown option.");
 
             resultReceiver_.append(unknownOptionMsg);
             result = ERR_INVALID_VALUE;
@@ -454,7 +507,7 @@ ErrCode AccountCommand::RunAsCreateCommandMissingOptionArgument(void)
             std::string unknownOption = "";
             std::string unknownOptionMsg = GetUnknownOptionMsg(unknownOption);
 
-            ACCOUNT_LOGI("'acm create' with an unknown option.");
+            ACCOUNT_LOGD("'acm create' with an unknown option.");
 
             resultReceiver_.append(unknownOptionMsg);
             result = ERR_INVALID_VALUE;
@@ -462,7 +515,7 @@ ErrCode AccountCommand::RunAsCreateCommandMissingOptionArgument(void)
         }
     }
 
-    ACCOUNT_LOGI("end, result = %{public}d", result);
+    ACCOUNT_LOGD("end, result = %{public}d", result);
 
     return result;
 }
@@ -470,7 +523,7 @@ ErrCode AccountCommand::RunAsCreateCommandMissingOptionArgument(void)
 ErrCode AccountCommand::RunAsCreateCommandExistentOptionArgument(
     const int &option, std::string &name, OsAccountType &type)
 {
-    ACCOUNT_LOGI("enter");
+    ACCOUNT_LOGD("enter");
 
     ErrCode result = ERR_OK;
 
@@ -501,14 +554,14 @@ ErrCode AccountCommand::RunAsCreateCommandExistentOptionArgument(
         }
     }
 
-    ACCOUNT_LOGI("end, result = %{public}d", result);
+    ACCOUNT_LOGD("end, result = %{public}d", result);
 
     return result;
 }
 
 ErrCode AccountCommand::RunAsDeleteCommandError(void)
 {
-    ACCOUNT_LOGI("enter");
+    ACCOUNT_LOGD("enter");
 
     ErrCode result = ERR_OK;
 
@@ -520,20 +573,20 @@ ErrCode AccountCommand::RunAsDeleteCommandError(void)
     if (strcmp(argv_[optind], cmd_.c_str()) == 0) {
         // 'acm delete' with no option: acm delete
         // 'acm delete' with a wrong argument: acm delete xxx
-        ACCOUNT_LOGI("'acm delete' with no option.");
+        ACCOUNT_LOGD("'acm delete' with no option.");
 
         resultReceiver_.append(HELP_MSG_NO_OPTION + "\n");
         result = ERR_INVALID_VALUE;
     }
 
-    ACCOUNT_LOGI("end, result = %{public}d", result);
+    ACCOUNT_LOGD("end, result = %{public}d", result);
 
     return result;
 }
 
 ErrCode AccountCommand::RunAsDeleteCommandMissingOptionArgument(void)
 {
-    ACCOUNT_LOGI("enter");
+    ACCOUNT_LOGD("enter");
 
     ErrCode result = ERR_OK;
 
@@ -541,7 +594,7 @@ ErrCode AccountCommand::RunAsDeleteCommandMissingOptionArgument(void)
         case 'i': {
             // 'acm delete -i <id>' with no argument: acm delete -i
             // 'acm delete --id <id>' with no argument: acm delete --id
-            ACCOUNT_LOGI("'acm delete -i' with no argument.");
+            ACCOUNT_LOGD("'acm delete -i' with no argument.");
 
             resultReceiver_.append(HELP_MSG_OPTION_REQUIRES_AN_ARGUMENT + "\n");
             result = ERR_INVALID_VALUE;
@@ -553,7 +606,7 @@ ErrCode AccountCommand::RunAsDeleteCommandMissingOptionArgument(void)
             std::string unknownOption = "";
             std::string unknownOptionMsg = GetUnknownOptionMsg(unknownOption);
 
-            ACCOUNT_LOGI("'acm delete' with an unknown option.");
+            ACCOUNT_LOGD("'acm delete' with an unknown option.");
 
             resultReceiver_.append(unknownOptionMsg);
             result = ERR_INVALID_VALUE;
@@ -565,7 +618,7 @@ ErrCode AccountCommand::RunAsDeleteCommandMissingOptionArgument(void)
             std::string unknownOption = "";
             std::string unknownOptionMsg = GetUnknownOptionMsg(unknownOption);
 
-            ACCOUNT_LOGI("'acm delete' with an unknown option.");
+            ACCOUNT_LOGD("'acm delete' with an unknown option.");
 
             resultReceiver_.append(unknownOptionMsg);
             result = ERR_INVALID_VALUE;
@@ -578,7 +631,7 @@ ErrCode AccountCommand::RunAsDeleteCommandMissingOptionArgument(void)
 
 ErrCode AccountCommand::RunAsDeleteCommandExistentOptionArgument(const int &option, int &id)
 {
-    ACCOUNT_LOGI("enter");
+    ACCOUNT_LOGD("enter");
 
     ErrCode result = ERR_OK;
 
@@ -608,7 +661,7 @@ ErrCode AccountCommand::RunAsDeleteCommandExistentOptionArgument(const int &opti
 
 ErrCode AccountCommand::RunAsDumpCommandError(void)
 {
-    ACCOUNT_LOGI("enter");
+    ACCOUNT_LOGD("enter");
 
     ErrCode result = ERR_OK;
 
@@ -620,20 +673,20 @@ ErrCode AccountCommand::RunAsDumpCommandError(void)
     if (strcmp(argv_[optind], cmd_.c_str()) == 0) {
         // 'acm dump' with no option: acm dump
         // 'acm dump' with a wrong argument: acm dump xxx
-        ACCOUNT_LOGI("'acm dump' with no option.");
+        ACCOUNT_LOGD("'acm dump' with no option.");
 
         resultReceiver_.append(HELP_MSG_NO_OPTION + "\n");
         result = ERR_INVALID_VALUE;
     }
 
-    ACCOUNT_LOGI("end, result = %{public}d", result);
+    ACCOUNT_LOGD("end, result = %{public}d", result);
 
     return result;
 }
 
 ErrCode AccountCommand::RunAsDumpCommandMissingOptionArgument(void)
 {
-    ACCOUNT_LOGI("enter");
+    ACCOUNT_LOGD("enter");
 
     ErrCode result = ERR_OK;
 
@@ -641,7 +694,7 @@ ErrCode AccountCommand::RunAsDumpCommandMissingOptionArgument(void)
         case 'i': {
             // 'acm dump -i <id>' with no argument: acm dump -i
             // 'acm dump --id <id>' with no argument: acm dump --id
-            ACCOUNT_LOGI("'acm dump -i' with no argument.");
+            ACCOUNT_LOGD("'acm dump -i' with no argument.");
 
             resultReceiver_.append(HELP_MSG_OPTION_REQUIRES_AN_ARGUMENT + "\n");
             result = ERR_INVALID_VALUE;
@@ -653,7 +706,7 @@ ErrCode AccountCommand::RunAsDumpCommandMissingOptionArgument(void)
             std::string unknownOption = "";
             std::string unknownOptionMsg = GetUnknownOptionMsg(unknownOption);
 
-            ACCOUNT_LOGI("'acm dump' with an unknown option.");
+            ACCOUNT_LOGD("'acm dump' with an unknown option.");
 
             resultReceiver_.append(unknownOptionMsg);
             result = ERR_INVALID_VALUE;
@@ -665,7 +718,7 @@ ErrCode AccountCommand::RunAsDumpCommandMissingOptionArgument(void)
             std::string unknownOption = "";
             std::string unknownOptionMsg = GetUnknownOptionMsg(unknownOption);
 
-            ACCOUNT_LOGI("'acm dump' with an unknown option.");
+            ACCOUNT_LOGD("'acm dump' with an unknown option.");
 
             resultReceiver_.append(unknownOptionMsg);
             result = ERR_INVALID_VALUE;
@@ -678,7 +731,7 @@ ErrCode AccountCommand::RunAsDumpCommandMissingOptionArgument(void)
 
 ErrCode AccountCommand::RunAsDumpCommandExistentOptionArgument(const int &option, int &id)
 {
-    ACCOUNT_LOGI("enter");
+    ACCOUNT_LOGD("enter");
 
     ErrCode result = ERR_OK;
 
@@ -708,14 +761,14 @@ ErrCode AccountCommand::RunAsDumpCommandExistentOptionArgument(const int &option
         }
     }
 
-    ACCOUNT_LOGI("end, result = %{public}d, id = %{public}d", result, id);
+    ACCOUNT_LOGD("end, result = %{public}d, id = %{public}d", result, id);
 
     return result;
 }
 
 ErrCode AccountCommand::RunAsSetCommandError(void)
 {
-    ACCOUNT_LOGI("enter");
+    ACCOUNT_LOGD("enter");
 
     ErrCode result = ERR_OK;
 
@@ -727,20 +780,20 @@ ErrCode AccountCommand::RunAsSetCommandError(void)
     if (strcmp(argv_[optind], cmd_.c_str()) == 0) {
         // 'acm set' with no option: acm set
         // 'acm set' with a wrong argument: acm set xxx
-        ACCOUNT_LOGI("'acm set' with no option.");
+        ACCOUNT_LOGD("'acm set' with no option.");
 
         resultReceiver_.append(HELP_MSG_NO_OPTION + "\n");
         result = ERR_INVALID_VALUE;
     }
 
-    ACCOUNT_LOGI("end, result = %{public}d", result);
+    ACCOUNT_LOGD("end, result = %{public}d", result);
 
     return result;
 }
 
 ErrCode AccountCommand::RunAsSetCommandMissingOptionArgument(void)
 {
-    ACCOUNT_LOGI("enter");
+    ACCOUNT_LOGD("enter");
 
     ErrCode result = ERR_OK;
 
@@ -748,7 +801,7 @@ ErrCode AccountCommand::RunAsSetCommandMissingOptionArgument(void)
         case 'i': {
             // 'acm set -i <id>' with no argument: acm set -i
             // 'acm set --id <id>' with no argument: acm set --id
-            ACCOUNT_LOGI("'acm set -i' with no argument.");
+            ACCOUNT_LOGD("'acm set -i' with no argument.");
 
             resultReceiver_.append(HELP_MSG_OPTION_REQUIRES_AN_ARGUMENT + "\n");
             result = ERR_INVALID_VALUE;
@@ -757,7 +810,7 @@ ErrCode AccountCommand::RunAsSetCommandMissingOptionArgument(void)
         case 'c': {
             // 'acm set -c <constraints>' with no argument: acm set -c
             // 'acm set --constraint <constraints>' with no argument: acm set --constraint
-            ACCOUNT_LOGI("'acm set -c' with no argument.");
+            ACCOUNT_LOGD("'acm set -c' with no argument.");
 
             resultReceiver_.append(HELP_MSG_OPTION_REQUIRES_AN_ARGUMENT + "\n");
             result = ERR_INVALID_VALUE;
@@ -769,7 +822,7 @@ ErrCode AccountCommand::RunAsSetCommandMissingOptionArgument(void)
             std::string unknownOption = "";
             std::string unknownOptionMsg = GetUnknownOptionMsg(unknownOption);
 
-            ACCOUNT_LOGI("'acm set' with an unknown option.");
+            ACCOUNT_LOGD("'acm set' with an unknown option.");
 
             resultReceiver_.append(unknownOptionMsg);
             result = ERR_INVALID_VALUE;
@@ -781,7 +834,7 @@ ErrCode AccountCommand::RunAsSetCommandMissingOptionArgument(void)
             std::string unknownOption = "";
             std::string unknownOptionMsg = GetUnknownOptionMsg(unknownOption);
 
-            ACCOUNT_LOGI("'set dump' with an unknown option.");
+            ACCOUNT_LOGD("'set dump' with an unknown option.");
 
             resultReceiver_.append(unknownOptionMsg);
             result = ERR_INVALID_VALUE;
@@ -795,7 +848,7 @@ ErrCode AccountCommand::RunAsSetCommandMissingOptionArgument(void)
 ErrCode AccountCommand::RunAsSetCommandExistentOptionArgument(
     const int &option, int &id, std::vector<std::string> &constraints, bool &enable)
 {
-    ACCOUNT_LOGI("enter");
+    ACCOUNT_LOGD("enter");
 
     ErrCode result = ERR_OK;
 
@@ -832,14 +885,14 @@ ErrCode AccountCommand::RunAsSetCommandExistentOptionArgument(
         }
     }
 
-    ACCOUNT_LOGI("end, result = %{public}d, id = %{public}d", result, id);
+    ACCOUNT_LOGD("end, result = %{public}d, id = %{public}d", result, id);
 
     return result;
 }
 
 ErrCode AccountCommand::RunAsSwitchCommandError(void)
 {
-    ACCOUNT_LOGI("enter");
+    ACCOUNT_LOGD("enter");
 
     ErrCode result = ERR_OK;
 
@@ -851,20 +904,45 @@ ErrCode AccountCommand::RunAsSwitchCommandError(void)
     if (strcmp(argv_[optind], cmd_.c_str()) == 0) {
         // 'acm switch' with no option: acm switch
         // 'acm switch' with a wrong argument: acm switch xxx
-        ACCOUNT_LOGI("'acm switch' with no option.");
+        ACCOUNT_LOGD("'acm switch' with no option.");
 
         resultReceiver_.append(HELP_MSG_NO_OPTION + "\n");
         result = ERR_INVALID_VALUE;
     }
 
-    ACCOUNT_LOGI("end, result = %{public}d", result);
+    ACCOUNT_LOGD("end, result = %{public}d", result);
+
+    return result;
+}
+
+ErrCode AccountCommand::RunAsStopCommandError(void)
+{
+    ACCOUNT_LOGD("enter");
+
+    ErrCode result = ERR_OK;
+
+    if (optind < 0 || optind >= argc_) {
+        return ERR_INVALID_VALUE;
+    }
+
+    // When scanning the first argument
+    if (strcmp(argv_[optind], cmd_.c_str()) == 0) {
+        // 'acm stop' with no option: acm stop
+        // 'acm stop' with a wrong argument: acm stop xxx
+        ACCOUNT_LOGD("'acm stop' with no option.");
+
+        resultReceiver_.append(HELP_MSG_NO_OPTION + "\n");
+        result = ERR_INVALID_VALUE;
+    }
+
+    ACCOUNT_LOGD("end, result = %{public}d", result);
 
     return result;
 }
 
 ErrCode AccountCommand::RunAsSwitchCommandMissingOptionArgument(void)
 {
-    ACCOUNT_LOGI("enter");
+    ACCOUNT_LOGD("enter");
 
     ErrCode result = ERR_OK;
 
@@ -872,7 +950,7 @@ ErrCode AccountCommand::RunAsSwitchCommandMissingOptionArgument(void)
         case 'i': {
             // 'acm switch -i <id>' with no argument: acm switch -i
             // 'acm switch --id <id>' with no argument: acm switch --id
-            ACCOUNT_LOGI("'acm switch -i' with no argument.");
+            ACCOUNT_LOGD("'acm switch -i' with no argument.");
 
             resultReceiver_.append(HELP_MSG_OPTION_REQUIRES_AN_ARGUMENT + "\n");
             result = ERR_INVALID_VALUE;
@@ -884,7 +962,7 @@ ErrCode AccountCommand::RunAsSwitchCommandMissingOptionArgument(void)
             std::string unknownOption = "";
             std::string unknownOptionMsg = GetUnknownOptionMsg(unknownOption);
 
-            ACCOUNT_LOGI("'acm switch' with an unknown option.");
+            ACCOUNT_LOGD("'acm switch' with an unknown option.");
 
             resultReceiver_.append(unknownOptionMsg);
             result = ERR_INVALID_VALUE;
@@ -896,7 +974,40 @@ ErrCode AccountCommand::RunAsSwitchCommandMissingOptionArgument(void)
             std::string unknownOption = "";
             std::string unknownOptionMsg = GetUnknownOptionMsg(unknownOption);
 
-            ACCOUNT_LOGI("'acm switch' with an unknown option.");
+            ACCOUNT_LOGD("'acm switch' with an unknown option.");
+
+            resultReceiver_.append(unknownOptionMsg);
+            result = ERR_INVALID_VALUE;
+            break;
+        }
+    }
+
+    return result;
+}
+
+ErrCode AccountCommand::RunAsStopCommandMissingOptionArgument(void)
+{
+    ACCOUNT_LOGD("enter");
+
+    ErrCode result = ERR_OK;
+
+    switch (optopt) {
+        case 'i': {
+            // 'acm stop -i <id>' with no argument: acm stop -i
+            // 'acm stop --id <id>' with no argument: acm stop --id
+            ACCOUNT_LOGD("'acm stop -i' with no argument.");
+
+            resultReceiver_.append(HELP_MSG_OPTION_REQUIRES_AN_ARGUMENT + "\n");
+            result = ERR_INVALID_VALUE;
+            break;
+        }
+        default: {
+            // 'acm stop' with an unknown option: acm stop -x
+            // 'acm stop' with an unknown option: acm stop -xxx
+            std::string unknownOption = "";
+            std::string unknownOptionMsg = GetUnknownOptionMsg(unknownOption);
+
+            ACCOUNT_LOGD("'acm stop' with an unknown option.");
 
             resultReceiver_.append(unknownOptionMsg);
             result = ERR_INVALID_VALUE;
@@ -909,7 +1020,7 @@ ErrCode AccountCommand::RunAsSwitchCommandMissingOptionArgument(void)
 
 ErrCode AccountCommand::RunAsSwitchCommandExistentOptionArgument(const int &option, int &id)
 {
-    ACCOUNT_LOGI("enter");
+    ACCOUNT_LOGD("enter");
 
     ErrCode result = ERR_OK;
 
@@ -927,6 +1038,33 @@ ErrCode AccountCommand::RunAsSwitchCommandExistentOptionArgument(const int &opti
             break;
         }
         case 0: {
+            break;
+        }
+        default: {
+            break;
+        }
+    }
+
+    return result;
+}
+
+ErrCode AccountCommand::RunAsStopCommandExistentOptionArgument(const int &option, int &id)
+{
+    ACCOUNT_LOGD("enter");
+
+    ErrCode result = ERR_OK;
+
+    switch (option) {
+        case 'h': {
+            // 'acm stop -h'
+            // 'acm stop --help'
+            result = ERR_INVALID_VALUE;
+            break;
+        }
+        case 'i': {
+            // 'acm stop -i <id>'
+            // 'acm stop --id <id>'
+            result = AnalyzeLocalIdArgument(id);
             break;
         }
         default: {
@@ -977,10 +1115,10 @@ ErrCode AccountCommand::AnalyzeLocalIdArgument(int &id)
 
 ErrCode AccountCommand::AnalyzeConstraintArgument(std::vector<std::string> &constraints)
 {
-    ACCOUNT_LOGI("enter");
+    ACCOUNT_LOGD("enter");
 
     std::string constraintsByUser = optarg;
-    ACCOUNT_LOGI("constraintsByUser = %{public}s", constraintsByUser.c_str());
+    ACCOUNT_LOGD("constraintsByUser = %{public}s", constraintsByUser.c_str());
 
     constraints.clear();
     std::string constraint = "";
@@ -990,13 +1128,13 @@ ErrCode AccountCommand::AnalyzeConstraintArgument(std::vector<std::string> &cons
     size_t next = 0;
     while ((next = constraintsByUser.find(delimiter, last)) != std::string::npos) {
         constraint = constraintsByUser.substr(last, next - last);
-        ACCOUNT_LOGI("constraint = %{public}s", constraint.c_str());
+        ACCOUNT_LOGD("constraint = %{public}s", constraint.c_str());
 
         constraints.emplace_back(constraint);
         last = next + 1;
     }
     constraint = constraintsByUser.substr(last);
-    ACCOUNT_LOGI("constraint = %{public}s", constraint.c_str());
+    ACCOUNT_LOGD("constraint = %{public}s", constraint.c_str());
     constraints.emplace_back(constraint);
 
     return ERR_OK;
