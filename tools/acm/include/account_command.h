@@ -30,6 +30,9 @@ const std::string HELP_MSG = "usage: acm <command> [<options>]\n"
                              "  create              create a local account with options\n"
                              "  delete              delete a local account with options\n"
                              "  switch              switch to a local account with options\n"
+#ifdef ENABLE_MULTIPLE_ACTIVE_ACCOUNTS
+                             "  stop                stop the local accounts\n"
+#endif // ENABLE_MULTIPLE_ACTIVE_ACCOUNTS
                              "  set                 set constraints of a local account\n"
                              "  dump                dump the info of local accounts\n";
 
@@ -65,6 +68,12 @@ const std::string HELP_MSG_SWITCH =
     "  -h, --help                                       list available commands\n"
     "  -i <local-account-id>                            switch a local account with an id\n";
 
+const std::string HELP_MSG_STOP =
+    "usage: acm stop <options>\n"
+    "options list:\n"
+    "  -h, --help                                       list available commands\n"
+    "  -i <local-account-id>                            stop a local account with an id\n";
+
 const std::string HELP_MSG_OPTION_REQUIRES_AN_ARGUMENT = "error: option requires an argument.";
 const std::string HELP_MSG_NO_NAME_OPTION = "error: -n <local-account-name> is expected";
 const std::string HELP_MSG_NO_TYPE_OPTION = "error: -t <type> is expected";
@@ -82,6 +91,8 @@ const std::string STRING_SET_OS_ACCOUNT_CONSTRAINTS_OK = "set constraints for th
 const std::string STRING_SET_OS_ACCOUNT_CONSTRAINTS_NG = "error: failed to set constraints for the local account.";
 const std::string STRING_SWITCH_OS_ACCOUNT_OK = "switch the local account successfully.";
 const std::string STRING_SWITCH_OS_ACCOUNT_NG = "error: failed to switch the local account.";
+const std::string STRING_STOP_OS_ACCOUNT_OK = "stop the local account successfully.";
+const std::string STRING_STOP_OS_ACCOUNT_NG = "error: failed to stop the local account.";
 }  // namespace
 
 class AccountCommand : public OHOS::AAFwk::ShellCommand {
@@ -98,6 +109,7 @@ private:
     ErrCode RunAsCreateCommand(void);
     ErrCode RunAsDeleteCommand(void);
     ErrCode RunAsSwitchCommand(void);
+    ErrCode RunAsStopCommand(void);
     ErrCode RunAsDumpCommand(void);
     ErrCode RunAsSetCommand(void);
 
@@ -117,6 +129,9 @@ private:
     ErrCode RunAsSwitchCommandError(void);
     ErrCode RunAsSwitchCommandMissingOptionArgument(void);
     ErrCode RunAsSwitchCommandExistentOptionArgument(const int &option, int &id);
+    ErrCode RunAsStopCommandError(void);
+    ErrCode RunAsStopCommandMissingOptionArgument(void);
+    ErrCode RunAsStopCommandExistentOptionArgument(const int &option, int &id);
 
     ErrCode AnalyzeTypeArgument(OsAccountType &type);
     ErrCode AnalyzeLocalIdArgument(int &id);
