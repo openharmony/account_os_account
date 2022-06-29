@@ -18,6 +18,7 @@
 
 #include "application_state_observer_stub.h"
 #include "app_account_common.h"
+#include "app_account_info.h"
 #include "app_mgr_interface.h"
 #include "app_mgr_proxy.h"
 #include "iapp_account_authenticator_callback.h"
@@ -28,18 +29,15 @@
 namespace OHOS {
 namespace AccountSA {
 class AppAccountAuthenticatorSession;
+class AppAccountCheckLabelsSession;
 class AppAccountAuthenticatorSessionManager;
 
 class SessionAppStateObserver : public AppExecFwk::ApplicationStateObserverStub {
 public:
-    explicit SessionAppStateObserver(AppAccountAuthenticatorSessionManager *sessionManager);
+    explicit SessionAppStateObserver();
     virtual ~SessionAppStateObserver() = default;
-    
-    void OnAbilityStateChanged(const AppExecFwk::AbilityStateData &abilityStateData) override;
-    void SetSessionManager(AppAccountAuthenticatorSessionManager *sessionManager);
 
-private:
-    AppAccountAuthenticatorSessionManager *sessionManager_;
+    void OnAbilityStateChanged(const AppExecFwk::AbilityStateData &abilityStateData) override;
 };
 
 class AppAccountAuthenticatorSessionManager : public DelayedSingleton<AppAccountAuthenticatorSessionManager> {
@@ -47,13 +45,23 @@ public:
     AppAccountAuthenticatorSessionManager();
     virtual ~AppAccountAuthenticatorSessionManager();
 
-    ErrCode AddAccountImplicitly(const OAuthRequest &request);
-    ErrCode Authenticate(const OAuthRequest &request);
-    ErrCode GetAuthenticatorCallback(const OAuthRequest &request, sptr<IRemoteObject> &callback);
+    ErrCode AddAccountImplicitly(const AuthenticatorSessionRequest &request);
+    ErrCode Authenticate(const AuthenticatorSessionRequest &request);
+    ErrCode GetAuthenticatorCallback(const AuthenticatorSessionRequest &request, sptr<IRemoteObject> &callback);
+    ErrCode VerifyCredential(const AuthenticatorSessionRequest &request);
+    ErrCode CheckAccountLabels(const AuthenticatorSessionRequest &request);
+    ErrCode IsAccountRemovable(const AuthenticatorSessionRequest &request);
+    ErrCode SelectAccountsByOptions(
+        const std::vector<AppAccountInfo> accounts, const AuthenticatorSessionRequest &request);
+    ErrCode SetAuthenticatorProperties(const AuthenticatorSessionRequest &request);
     void OnAbilityStateChanged(const AppExecFwk::AbilityStateData &abilityStateData);
     void Init();
     void CloseSession(const std::string &sessionId);
-    ErrCode OpenSession(const std::string &action, const OAuthRequest &request);
+    ErrCode OpenSession(const std::shared_ptr<AppAccountAuthenticatorSession> &session);
+
+private:
+    void RegisterApplicationStateObserver();
+    void UnregisterApplicationStateObserver();
 
 private:
     std::mutex mutex_;

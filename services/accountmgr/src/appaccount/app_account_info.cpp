@@ -65,6 +65,11 @@ AppAccountInfo::AppAccountInfo(const std::string &name, const std::string &owner
     oauthTokens_.clear();
 }
 
+std::string AppAccountInfo::GetOwner()
+{
+    return owner_;
+}
+
 ErrCode AppAccountInfo::GetOwner(std::string &owner)
 {
     owner = owner_;
@@ -75,6 +80,11 @@ ErrCode AppAccountInfo::SetOwner(const std::string &owner)
 {
     owner_ = owner;
     return ERR_OK;
+}
+
+std::string AppAccountInfo::GetName()
+{
+    return name_;
 }
 
 ErrCode AppAccountInfo::GetName(std::string &name) const
@@ -115,6 +125,16 @@ ErrCode AppAccountInfo::DisableAppAccess(const std::string &authorizedApp)
     auto result = authorizedApps_.erase(authorizedApp);
     if (result == 0) {
         return ERR_APPACCOUNT_SERVICE_DISABLE_APP_ACCESS_NOT_EXISTED;
+    }
+    return ERR_OK;
+}
+
+ErrCode AppAccountInfo::CheckAppAccess(const std::string &authorizedApp, bool &isAccessible)
+{
+    isAccessible = false;
+    auto it = authorizedApps_.find(authorizedApp);
+    if (it != authorizedApps_.end()) {
+        isAccessible = true;
     }
     return ERR_OK;
 }
@@ -219,7 +239,8 @@ ErrCode AppAccountInfo::GetAccountCredential(const std::string &credentialType, 
     return ERR_OK;
 }
 
-ErrCode AppAccountInfo::SetAccountCredential(const std::string &credentialType, const std::string &credential)
+ErrCode AppAccountInfo::SetAccountCredential(
+    const std::string &credentialType, const std::string &credential, bool isDelete)
 {
     auto jsonObject = Json::parse(accountCredential_, nullptr, false);
     if (jsonObject.is_discarded() || (!jsonObject.is_object())) {
@@ -227,9 +248,8 @@ ErrCode AppAccountInfo::SetAccountCredential(const std::string &credentialType, 
         jsonObject = Json::object();
     }
 
-    auto it = jsonObject.find(credentialType);
-    if (it == jsonObject.end()) {
-        jsonObject.emplace(credentialType, credential);
+    if (isDelete) {
+        jsonObject.erase(credentialType);
     } else {
         jsonObject[credentialType] = credential;
     }

@@ -17,6 +17,7 @@
 #define OS_ACCOUNT_INTERFACES_KITS_NAPI_APPACCOUNT_INCLUDE_NAPI_APP_ACCOUNT_AUTHENTICATOR_H
 
 #include <mutex>
+#include <uv.h>
 
 #include "account_error_no.h"
 #include "app_account_authenticator_stub.h"
@@ -28,25 +29,31 @@
 
 namespace OHOS {
 namespace AccountJsKit {
-struct AuthParam {
+struct JsAuthenticator {
+    napi_ref addAccountImplicitly = nullptr;
+    napi_ref authenticate = nullptr;
+    napi_ref verifyCredential = nullptr;
+    napi_ref checkAccountLabels = nullptr;
+    napi_ref setProperties = nullptr;
+    napi_ref isAccountRemovable = nullptr;
+};
+
+struct JsAuthenticatorParam {
     napi_env env;
-    napi_ref addAccountImplicitlyRef;
-    napi_ref authenticateRef;
-    std::string funcName;
+    JsAuthenticator jsAuthenticator;
     std::string name;
     std::string authType;
     std::string callerBundleName;
     AAFwk::WantParams options;
-    sptr<IRemoteObject> remote;
-    ThreadLockInfo *lockInfo;
-    IAppAccountAuthenticator *authenticatorPtr;
-    ErrCode errCode = ERR_OK;
+    std::vector<std::string> labels;
+    VerifyCredentialOptions verifyCredOptions;
+    SetPropertiesOptions setPropOptions;
+    sptr<IRemoteObject> callback;
 };
 
 class NapiAppAccountAuthenticator : public AccountSA::AppAccountAuthenticatorStub {
 public:
-    NapiAppAccountAuthenticator(const napi_env &env,
-        const napi_ref &addAccountImplicitlyRef, const napi_ref &authenticateRef);
+    NapiAppAccountAuthenticator(napi_env env, JsAuthenticator &jsAuthenticator);
     ~NapiAppAccountAuthenticator() override;
     bool CheckObjectLegality() const override;
     int GetObjectType() const override;
@@ -56,14 +63,34 @@ public:
     ErrCode Authenticate(
         const std::string &name, const std::string &authType, const std::string &callerBundleName,
         const AAFwk::WantParams &options, const sptr<IRemoteObject> &callback) override;
+    ErrCode VerifyCredential(
+        const std::string &name, const VerifyCredentialOptions &options, const sptr<IRemoteObject> &callback) override;
+    ErrCode CheckAccountLabels(
+        const std::string &name, const std::vector<std::string> &labels, const sptr<IRemoteObject> &callback) override;
+    ErrCode SetProperties(const SetPropertiesOptions &options, const sptr<IRemoteObject> &callback) override;
+    ErrCode IsAccountRemovable(const std::string &name, const sptr<IRemoteObject> &callback) override;
+    ErrCode InitWorkEnv(uv_loop_s **loop, uv_work_t **work, JsAuthenticatorParam **param);
+    napi_value GetJsRemoteObject();
+    void SetJsRemoteObject(napi_value remoteObject);
 
 private:
-    ErrCode CallJsFunction(AuthParam *param);
     static napi_value JsConstructor(napi_env env, napi_callback_info cbinfo);
+    static napi_value GetRemoteObject(napi_env env, napi_callback_info cbInfo);
+    static void CallJsFunction(napi_env env, napi_ref funcRef, napi_value *argv, size_t argc);
+    static void CreateAuthenticatorCallback(napi_env env, sptr<IRemoteObject> nativeCallback, napi_value *jsCallback);
+    static void CreateJsVerifyCredentialOptions(napi_env env, VerifyCredentialOptions &options, napi_value *jsOptions);
+    static void CreateJsSetPropertiesOptions(napi_env env, SetPropertiesOptions &options, napi_value *jsOptions);
+    static void AddAccountImplicitlyWork(uv_work_t *work, int status);
+    static void AuthenticateWork(uv_work_t *work, int status);
+    static void VerifyCredentialWork(uv_work_t *work, int status);
+    static void CheckAccountLabelsWork(uv_work_t *work, int status);
+    static void SetPropertiesWork(uv_work_t *work, int status);
+    static void IsAccountRemovableWork(uv_work_t *work, int status);
+
 private:
     napi_env env_ = nullptr;
-    napi_ref addAccountImplicitlyRef_ = nullptr;
-    napi_ref authenticateRef_ = nullptr;
+    JsAuthenticator jsAuthenticator_;
+    napi_value remoteObject_ = nullptr;
 };
 }  // namespace AccountJsKit
 }  // namespace OHOS

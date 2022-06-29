@@ -23,12 +23,22 @@ namespace OHOS {
 namespace AccountSA {
 class AppAccountAuthenticatorStub : public IRemoteStub<IAppAccountAuthenticator> {
 public:
+    using MessageProcFunction = ErrCode (AppAccountAuthenticatorStub::*)(MessageParcel &data, MessageParcel &reply);
     AppAccountAuthenticatorStub();
     ~AppAccountAuthenticatorStub() override;
     int OnRemoteRequest(
         uint32_t code, MessageParcel &data, MessageParcel &reply, MessageOption &option) override;
 
 private:
+    ErrCode ProcAddAccountImplicitly(MessageParcel &data, MessageParcel &reply);
+    ErrCode ProcAuthenticate(MessageParcel &data, MessageParcel &reply);
+    ErrCode ProcVerifyCredential(MessageParcel &data, MessageParcel &reply);
+    ErrCode ProcCheckAccountLabels(MessageParcel &data, MessageParcel &reply);
+    ErrCode ProcSetProperties(MessageParcel &data, MessageParcel &reply);
+    ErrCode ProcIsAccountRemovable(MessageParcel &data, MessageParcel &reply);
+
+private:
+    static const std::map<uint32_t, MessageProcFunction> funcMap_;
     DISALLOW_COPY_AND_MOVE(AppAccountAuthenticatorStub);
 };
 }  // namespace AccountSA

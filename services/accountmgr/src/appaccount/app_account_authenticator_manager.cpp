@@ -44,29 +44,43 @@ void AppAccountAuthenticatorManager::Init()
     isInitialized_ = true;
 }
 
-ErrCode AppAccountAuthenticatorManager::GetAuthenticatorInfo(const OAuthRequest &request, AuthenticatorInfo &info)
+ErrCode AppAccountAuthenticatorManager::GetAuthenticatorInfo(
+    const std::string &owner, int32_t userId, AuthenticatorInfo &info)
 {
     if (!isInitialized_) {
         Init();
     }
 
     AAFwk::Want want;
-    want.SetBundle(request.owner);
+    want.SetBundle(owner);
     want.SetAction(Constants::SYSTEM_ACTION_APP_ACCOUNT_OAUTH);
     std::vector<AppExecFwk::AbilityInfo> abilityInfos;
-    int32_t userId = request.callerUid / UID_TRANSFORM_DIVISOR;
+    std::vector<AppExecFwk::ExtensionAbilityInfo> extensionInfos;
     bool result = BundleManagerAdapter::GetInstance()->QueryAbilityInfos(
         want, AppExecFwk::BundleFlag::GET_BUNDLE_WITH_ABILITIES, userId, abilityInfos);
+    if (!result) {
+        result = BundleManagerAdapter::GetInstance()->QueryExtensionAbilityInfos(
+            want, AppExecFwk::BundleFlag::GET_BUNDLE_WITH_ABILITIES, userId, extensionInfos);
+    }
     if (!result) {
         ACCOUNT_LOGE("failed to query ability info");
         return ERR_APPACCOUNT_SERVICE_OAUTH_AUTHENTICATOR_NOT_EXIST;
     }
     for (auto abilityInfo: abilityInfos) {
         if ((abilityInfo.type == AppExecFwk::AbilityType::SERVICE) && (abilityInfo.visible)) {
-            info.owner = request.owner;
+            info.owner = owner;
             info.abilityName = abilityInfo.name;
             info.iconId = abilityInfo.iconId;
             info.labelId = abilityInfo.labelId;
+            return ERR_OK;
+        }
+    }
+    for (auto extensionInfo: extensionInfos) {
+        if ((extensionInfo.type == AppExecFwk::ExtensionAbilityType::SERVICE) && (extensionInfo.visible)) {
+            info.owner = owner;
+            info.abilityName = extensionInfo.name;
+            info.iconId = extensionInfo.iconId;
+            info.labelId = extensionInfo.labelId;
             return ERR_OK;
         }
     }

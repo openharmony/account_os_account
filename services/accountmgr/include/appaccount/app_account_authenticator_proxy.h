@@ -31,7 +31,12 @@ public:
     ErrCode Authenticate(
         const std::string &name, const std::string &authType, const std::string &callerBundleName,
         const AAFwk::WantParams &options, const sptr<IRemoteObject> &callback) override;
-
+    ErrCode VerifyCredential(
+        const std::string &name, const VerifyCredentialOptions &options, const sptr<IRemoteObject> &callback) override;
+    ErrCode CheckAccountLabels(
+        const std::string &name, const std::vector<std::string> &labels, const sptr<IRemoteObject> &callback) override;
+    ErrCode SetProperties(const SetPropertiesOptions &options, const sptr<IRemoteObject> &callback) override;
+    ErrCode IsAccountRemovable(const std::string &name, const sptr<IRemoteObject> &callback) override;
 private:
     ErrCode SendRequest(IAppAccountAuthenticator::Message code, MessageParcel &data, MessageParcel &reply);
 

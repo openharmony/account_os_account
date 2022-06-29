@@ -69,11 +69,12 @@ private:
 
 class AppAccountAuthenticatorSession {
 public:
-    AppAccountAuthenticatorSession(const std::string &action, const OAuthRequest &request);
-    ~AppAccountAuthenticatorSession();
-    void Init();
-    ErrCode Open();
-    ErrCode Close();
+    AppAccountAuthenticatorSession(AuthenticatorAction action, const AuthenticatorSessionRequest &request);
+    virtual ~AppAccountAuthenticatorSession();
+    virtual ErrCode Open();
+    virtual void Close();
+    virtual std::string GetSessionId() const;
+    virtual void GetRequest(AuthenticatorSessionRequest &request) const;
     void OnAbilityConnectDone(
         const AppExecFwk::ElementName &element, const sptr<IRemoteObject> &remoteObject, int32_t resultCode);
     void OnAbilityDisconnectDone(const AppExecFwk::ElementName &element, int resultCode);
@@ -81,20 +82,23 @@ public:
     void OnServerDied();
     int32_t OnResult(int32_t resultCode, const AAFwk::Want &result) const;
     int32_t OnRequestRedirected(AAFwk::Want &request) const;
-    std::string GetSessionId() const;
-    void GetRequest(OAuthRequest &request) const;
-    ErrCode GetAuthenticatorCallback(const OAuthRequest &request, sptr<IRemoteObject> &callback) const;
+    int32_t OnRequestContinued() const;
+    ErrCode GetAuthenticatorCallback(const AuthenticatorSessionRequest &request, sptr<IRemoteObject> &callback) const;
     ErrCode AddClientDeathRecipient();
 
+protected:
+    AuthenticatorAction action_;
+    AuthenticatorSessionRequest request_;
+    std::string sessionId_;
+    bool isOpened_ = false;
+
 private:
+    void Init();
     int32_t UpdateAuthInfo(const AAFwk::Want &result) const;
     int32_t OnAuthenticateDone(const AAFwk::Want &result) const;
     int32_t OnAddAccountImplicitlyDone(const AAFwk::Want &result) const;
 
 private:
-    std::string action_;
-    std::string sessionId_;
-    OAuthRequest request_;
     sptr<SessionConnection> conn_ = nullptr;
     sptr<SessionClientDeathRecipient> clientDeathRecipient_ = nullptr;
     sptr<SessionServerDeathRecipient> serverDeathRecipient_ = nullptr;
@@ -106,7 +110,6 @@ private:
     int32_t userId_;
     pid_t ownerUid_;
     bool isInitialized_ = false;
-    bool isOpened_ = false;
     bool isConnected_ = false;
 };
 }  // namespace AccountSA
