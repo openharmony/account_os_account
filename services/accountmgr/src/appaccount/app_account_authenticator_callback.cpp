@@ -33,7 +33,7 @@ AppAccountAuthenticatorCallback::~AppAccountAuthenticatorCallback()
 
 void AppAccountAuthenticatorCallback::OnResult(int32_t resultCode, const AAFwk::Want &result)
 {
-    ACCOUNT_LOGI("enter");
+    ACCOUNT_LOGD("enter");
     if (!session_) {
         ACCOUNT_LOGE("session is nullptr");
         return;
@@ -43,13 +43,22 @@ void AppAccountAuthenticatorCallback::OnResult(int32_t resultCode, const AAFwk::
 
 void AppAccountAuthenticatorCallback::OnRequestRedirected(AAFwk::Want &request)
 {
-    ACCOUNT_LOGI("enter");
+    ACCOUNT_LOGD("enter");
     if (!session_) {
         ACCOUNT_LOGE("session is nullptr");
         return;
     }
     session_->OnRequestRedirected(request);
 }
+
+void AppAccountAuthenticatorCallback::OnRequestContinued()
+{
+    ACCOUNT_LOGD("enter");
+    if (!session_) {
+        ACCOUNT_LOGE("session is nullptr");
+        return;
+    }
+    session_->OnRequestContinued();
+}
 }  // namespace AccountSA
 }  // namespace OHOS
-

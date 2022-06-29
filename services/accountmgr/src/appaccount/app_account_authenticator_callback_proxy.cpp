@@ -71,6 +71,19 @@ void AppAccountAuthenticatorCallbackProxy::OnRequestRedirected(AAFwk::Want &requ
     SendRequest(IAppAccountAuthenticatorCallback::Message::ACCOUNT_REQUEST_REDIRECTED, data, reply);
 }
 
+void AppAccountAuthenticatorCallbackProxy::OnRequestContinued()
+{
+    ACCOUNT_LOGD("enter");
+    MessageParcel data;
+    MessageParcel reply;
+
+    if (!data.WriteInterfaceToken(GetDescriptor())) {
+        ACCOUNT_LOGE("failed to write descriptor!");
+        return;
+    }
+    SendRequest(IAppAccountAuthenticatorCallback::Message::ACCOUNT_REQUEST_CONTINUED, data, reply);
+}
+
 ErrCode AppAccountAuthenticatorCallbackProxy::SendRequest(
     IAppAccountAuthenticatorCallback::Message code, MessageParcel &data, MessageParcel &reply)
 {
@@ -90,4 +103,3 @@ ErrCode AppAccountAuthenticatorCallbackProxy::SendRequest(
 }
 }  // namespace AccountSA
 }  // namespace OHOS
-

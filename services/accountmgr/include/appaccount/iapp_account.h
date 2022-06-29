@@ -39,6 +39,7 @@ public:
 
     virtual ErrCode EnableAppAccess(const std::string &name, const std::string &authorizedApp) = 0;
     virtual ErrCode DisableAppAccess(const std::string &name, const std::string &authorizedApp) = 0;
+    virtual ErrCode CheckAppAccess(const std::string &name, const std::string &authorizedApp, bool &isAccessible) = 0;
 
     virtual ErrCode CheckAppAccountSyncEnable(const std::string &name, bool &syncEnable) = 0;
     virtual ErrCode SetAppAccountSyncEnable(const std::string &name, const bool &syncEnable) = 0;
@@ -50,6 +51,7 @@ public:
         const std::string &name, const std::string &credentialType, std::string &credential) = 0;
     virtual ErrCode SetAccountCredential(
         const std::string &name, const std::string &credentialType, const std::string &credential) = 0;
+    virtual ErrCode DeleteAccountCredential(const std::string &name, const std::string &credentialType) = 0;
 
     virtual ErrCode Authenticate(const std::string &name, const std::string &owner, const std::string &authType,
         const AAFwk::Want &options, const sptr<IRemoteObject> &callback) = 0;
@@ -72,6 +74,14 @@ public:
 
     virtual ErrCode GetAllAccounts(const std::string &owner, std::vector<AppAccountInfo> &appAccounts) = 0;
     virtual ErrCode GetAllAccessibleAccounts(std::vector<AppAccountInfo> &appAccounts) = 0;
+    virtual ErrCode SelectAccountsByOptions(
+        const SelectAccountsOptions &options, const sptr<IRemoteObject> &callback) = 0;
+    virtual ErrCode VerifyCredential(const std::string &name, const std::string &owner,
+        const VerifyCredentialOptions &options, const sptr<IRemoteObject> &callback) = 0;
+    virtual ErrCode CheckAccountLabels(const std::string &name, const std::string &owner,
+        const std::vector<std::string> &labels, const sptr<IRemoteObject> &callback) = 0;
+    virtual ErrCode SetAuthenticatorProperties(
+        const std::string &owner, const SetPropertiesOptions &options, const sptr<IRemoteObject> &callback) = 0;
 
     virtual ErrCode SubscribeAppAccount(
         const AppAccountSubscribeInfo &subscribeInfo, const sptr<IRemoteObject> &eventListener) = 0;
@@ -106,6 +116,12 @@ public:
         GET_ALL_ACCESSIBLE_ACCOUNTS,
         SUBSCRIBE_ACCOUNT,
         UNSUBSCRIBE_ACCOUNT,
+        CHECK_APP_ACCESS,
+        DELETE_ACCOUNT_CREDENTIAL,
+        SELECT_ACCOUNTS_BY_OPTIONS,
+        VERIFY_CREDENTIAL,
+        CHECK_ACCOUNT_LABELS,
+        SET_AUTHENTICATOR_PROPERTIES,
     };
 };
 }  // namespace AccountSA

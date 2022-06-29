@@ -55,6 +55,8 @@ public:
         const std::string &bundleName, AppAccountInfo &appAccountInfo);
     ErrCode DisableAppAccess(const std::string &name, const std::string &authorizedApp, const uid_t &uid,
         const std::string &bundleName, AppAccountInfo &appAccountInfo);
+    ErrCode CheckAppAccess(const std::string &name, const std::string &authorizedApp, bool &isAccessible,
+        const uid_t &uid, const std::string &bundleName);
 
     ErrCode CheckAppAccountSyncEnable(
         const std::string &name, bool &syncEnable, const uid_t &uid, const std::string &bundleName);
@@ -67,21 +69,24 @@ public:
     ErrCode GetAccountCredential(const std::string &name, const std::string &credentialType, std::string &credential,
         const uid_t &uid, const std::string &bundleName);
     ErrCode SetAccountCredential(const std::string &name, const std::string &credentialType,
-        const std::string &credential, const uid_t &uid, const std::string &bundleName,
-        AppAccountInfo &appAccountInfo);
+        const std::string &credential, const uid_t &uid, const std::string &bundleName, bool isDelete = false);
 
-    ErrCode GetOAuthToken(const OAuthRequest &request, std::string &token);
-    ErrCode SetOAuthToken(const OAuthRequest &request);
-    ErrCode DeleteOAuthToken(const OAuthRequest &request);
-    ErrCode SetOAuthTokenVisibility(const OAuthRequest &request);
-    ErrCode CheckOAuthTokenVisibility(const OAuthRequest &request, bool &isVisible);
-    ErrCode GetAllOAuthTokens(const OAuthRequest &request, std::vector<OAuthTokenInfo> &tokenInfos);
-    ErrCode GetOAuthList(const OAuthRequest &request, std::set<std::string> &oauthList);
+    ErrCode GetOAuthToken(const AuthenticatorSessionRequest &request, std::string &token);
+    ErrCode SetOAuthToken(const AuthenticatorSessionRequest &request);
+    ErrCode DeleteOAuthToken(const AuthenticatorSessionRequest &request);
+    ErrCode SetOAuthTokenVisibility(const AuthenticatorSessionRequest &request);
+    ErrCode CheckOAuthTokenVisibility(const AuthenticatorSessionRequest &request, bool &isVisible);
+    ErrCode GetAllOAuthTokens(const AuthenticatorSessionRequest &request, std::vector<OAuthTokenInfo> &tokenInfos);
+    ErrCode GetOAuthList(const AuthenticatorSessionRequest &request, std::set<std::string> &oauthList);
 
     ErrCode GetAllAccounts(const std::string &owner, std::vector<AppAccountInfo> &appAccounts, const uid_t &uid,
         const std::string &bundleName);
     ErrCode GetAllAccessibleAccounts(
         std::vector<AppAccountInfo> &appAccounts, const uid_t &uid, const std::string &bundleName);
+
+    ErrCode SelectAccountsByOptions(
+        const SelectAccountsOptions &options, const sptr<IAppAccountAuthenticatorCallback> &callback,
+        const uid_t &uid, const std::string &bundleName);
 
     ErrCode OnPackageRemoved(const uid_t &uid, const std::string &bundleName);
     ErrCode OnUserRemoved(int32_t userId);

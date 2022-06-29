@@ -13,8 +13,8 @@
  * limitations under the License.
  */
 
-#ifndef OS_ACCOUNT_SERVICES_ACCOUNTMGR_INCLUDE_APPACCOUNT_APP_ACCOUNT_AUTHENTICATOR_CALLBACK_H
-#define OS_ACCOUNT_SERVICES_ACCOUNTMGR_INCLUDE_APPACCOUNT_APP_ACCOUNT_AUTHENTICATOR_CALLBACK_H
+#ifndef OS_ACCOUNT_SERVICES_ACCOUNTMGR_TEST_MOCK_APP_ACCOUNT_MOCK_APP_ACCOUNT_AUTHENTICATOR_CALLBACK_H
+#define OS_ACCOUNT_SERVICES_ACCOUNTMGR_TEST_MOCK_APP_ACCOUNT_MOCK_APP_ACCOUNT_AUTHENTICATOR_CALLBACK_H
 
 #include "app_account_authenticator_callback_stub.h"
 
@@ -22,21 +22,21 @@
 
 namespace OHOS {
 namespace AccountSA {
-class AppAccountAuthenticatorSession;
-
-class AppAccountAuthenticatorCallback : public AppAccountAuthenticatorCallbackStub {
+class MockAppAccountSelectAccountsCallback : public AppAccountAuthenticatorCallbackStub {
 public:
-    explicit AppAccountAuthenticatorCallback(AppAccountAuthenticatorSession *session);
-    ~AppAccountAuthenticatorCallback() override;
+    explicit MockAppAccountSelectAccountsCallback(
+        int32_t expectedCode, std::set<std::string> expectedAccounts);
+    ~MockAppAccountSelectAccountsCallback() override;
 
     void OnResult(int32_t resultCode, const AAFwk::Want &result) override;
     void OnRequestRedirected(AAFwk::Want &request) override;
     void OnRequestContinued() override;
 
 private:
-    AppAccountAuthenticatorSession *session_;
+    int32_t expectedCode_;
+    std::set<std::string> expectedAccounts_;
 };
 }  // namespace AccountSA
 }  // namespace OHOS
 
-#endif  // OS_ACCOUNT_SERVICES_ACCOUNTMGR_INCLUDE_APPACCOUNT_APP_ACCOUNT_AUTHENTICATOR_CALLBACK_H
+#endif  // OS_ACCOUNT_SERVICES_ACCOUNTMGR_TEST_MOCK_APP_ACCOUNT_MOCK_APP_ACCOUNT_AUTHENTICATOR_CALLBACK_H

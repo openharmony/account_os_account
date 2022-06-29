@@ -68,6 +68,17 @@ public:
 
     ErrCode GetAllAccounts(const std::string &owner, std::vector<AppAccountInfo> &appAccounts) override;
     ErrCode GetAllAccessibleAccounts(std::vector<AppAccountInfo> &appAccounts) override;
+    
+    ErrCode CheckAppAccess(const std::string &name, const std::string &authorizedApp, bool &isAccessible) override;
+    ErrCode DeleteAccountCredential(const std::string &name, const std::string &credentialType) override;
+    ErrCode SelectAccountsByOptions(
+        const SelectAccountsOptions &options, const sptr<IRemoteObject> &callback) override;
+    ErrCode VerifyCredential(const std::string &name, const std::string &owner,
+        const VerifyCredentialOptions &options, const sptr<IRemoteObject> &callback) override;
+    ErrCode CheckAccountLabels(const std::string &name, const std::string &owner,
+        const std::vector<std::string> &labels, const sptr<IRemoteObject> &callback) override;
+    ErrCode SetAuthenticatorProperties(
+        const std::string &owner, const SetPropertiesOptions &options, const sptr<IRemoteObject> &callback) override;
 
     ErrCode SubscribeAppAccount(
         const AppAccountSubscribeInfo &subscribeInfo, const sptr<IRemoteObject> &eventListener) override;
