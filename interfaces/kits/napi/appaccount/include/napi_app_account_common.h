@@ -193,6 +193,8 @@ public:
     void OnRequestContinued() override;
 
 private:
+    std::mutex mutex_;
+    bool isDone = false;
     napi_env env_;
     napi_ref callbackRef_;
     napi_deferred deferred_;
@@ -208,6 +210,8 @@ public:
     void OnRequestContinued() override;
 
 private:
+    std::mutex mutex_;
+    bool isDone = false;
     napi_env env_;
     napi_ref callbackRef_;
     napi_deferred deferred_;
@@ -307,8 +311,8 @@ napi_value ParseParametersByUnsubscribe(
 napi_value GetSubscriberByUnsubscribe(const napi_env &env, std::vector<std::shared_ptr<SubscriberPtr>> &subscriber,
     AsyncContextForUnsubscribe *asyncContextForOff, bool &isFind);
 
-void ParseStringVector(napi_env env, napi_value value, std::vector<std::string> strVec);
-void ParseAccountVector(napi_env env, napi_value value, std::vector<std::pair<std::string, std::string>> accountVec);
+void ParseStringVector(napi_env env, napi_value value, std::vector<std::string> &strVec);
+void ParseAccountVector(napi_env env, napi_value value, std::vector<std::pair<std::string, std::string>> &accountVec);
 void ParseVerifyCredentialOptions(napi_value object, VerifyCredentialOptions &options);
 void ParseSelectAccountsOptions(napi_value object, SelectAccountsOptions &options);
 void ParseSetPropertiesOptions(napi_value object, SetPropertiesOptions &options);

@@ -21,15 +21,17 @@
 
 namespace OHOS {
 namespace AccountSA {
-AppAccountCheckLabelsCallback::AppAccountCheckLabelsCallback(
-    std::vector<AppAccountInfo> accounts, const AuthenticatorSessionRequest &request)
-    : accounts_(accounts), request_(request)
+AppAccountCheckLabelsCallback::AppAccountCheckLabelsCallback(std::vector<AppAccountInfo> accounts,
+    const AuthenticatorSessionRequest &request, const std::string &sessionId)
+    : accounts_(accounts), request_(request), sessionId_(sessionId)
 {
     ACCOUNT_LOGD("enter");
 }
 
 AppAccountCheckLabelsCallback::~AppAccountCheckLabelsCallback()
-{}
+{
+    ACCOUNT_LOGD("enter");
+}
 
 void AppAccountCheckLabelsCallback::SendResult(int32_t resultCode)
 {
@@ -51,8 +53,13 @@ void AppAccountCheckLabelsCallback::SendResult(int32_t resultCode)
 ErrCode AppAccountCheckLabelsCallback::CheckLabels()
 {
     ACCOUNT_LOGD("enter");
+    auto sessionManager = AppAccountAuthenticatorSessionManager::GetInstance();
+    if (sessionManager == nullptr) {
+        return ERR_APPACCOUNT_SERVICE_OAUTH_SERVICE_EXCEPTION;
+    }
     if (index_ >= accounts_.size()) {
         SendResult(ERR_JS_SUCCESS);
+        sessionManager->CloseSession(sessionId_);
         return ERR_OK;
     }
     AppAccountInfo account = accounts_[index_];
@@ -60,13 +67,10 @@ ErrCode AppAccountCheckLabelsCallback::CheckLabels()
     account.GetOwner(newRequest.owner);
     account.GetName(newRequest.name);
     newRequest.callback = this;
-    auto sessionManager = AppAccountAuthenticatorSessionManager::GetInstance();
-    if (sessionManager == nullptr) {
-        return ERR_APPACCOUNT_SERVICE_OAUTH_SERVICE_EXCEPTION;
-    }
     ErrCode result = sessionManager->CheckAccountLabels(newRequest);
     if (result != ERR_OK) {
         SendResult(ERR_JS_OAUTH_SERVICE_EXCEPTION);
+        sessionManager->CloseSession(sessionId_);
     }
     return ERR_OK;
 }
