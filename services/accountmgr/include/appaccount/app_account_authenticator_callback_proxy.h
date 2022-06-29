@@ -28,6 +28,7 @@ public:
 
     void OnResult(int32_t resultCode, const AAFwk::Want &result) override;
     void OnRequestRedirected(AAFwk::Want &request) override;
+    void OnRequestContinued() override;
 
 private:
     ErrCode SendRequest(IAppAccountAuthenticatorCallback::Message code, MessageParcel &data, MessageParcel &reply);

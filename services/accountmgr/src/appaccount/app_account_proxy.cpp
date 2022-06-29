@@ -850,6 +850,184 @@ ErrCode AppAccountProxy::GetAllAccessibleAccounts(std::vector<AppAccountInfo> &a
     return result;
 }
 
+ErrCode AppAccountProxy::CheckAppAccess(
+    const std::string &name, const std::string &authorizedApp, bool &isAccessible)
+{
+    ACCOUNT_LOGD("enter");
+    MessageParcel data;
+    MessageParcel reply;
+    if (!data.WriteInterfaceToken(GetDescriptor())) {
+        ACCOUNT_LOGE("failed to write descriptor!");
+        return ERR_ACCOUNT_COMMON_WRITE_DESCRIPTOR_ERROR;
+    }
+    if (!data.WriteString(name)) {
+        ACCOUNT_LOGE("failed to write string for name");
+        return ERR_APPACCOUNT_KIT_WRITE_STRING_NAME;
+    }
+    if (!data.WriteString(authorizedApp)) {
+        ACCOUNT_LOGE("failed to write string for authorizedApp");
+        return ERR_APPACCOUNT_KIT_WRITE_STRING_AUTHORIZED_APP;
+    }
+    ErrCode result = SendRequest(IAppAccount::Message::CHECK_APP_ACCESS, data, reply);
+    if (result != ERR_OK) {
+        ACCOUNT_LOGE("failed to send request, errCode: %{public}d", result);
+        return result;
+    }
+    result = reply.ReadInt32();
+    isAccessible = reply.ReadBool();
+    return result;
+}
+
+ErrCode AppAccountProxy::DeleteAccountCredential(
+    const std::string &name, const std::string &credentialType)
+{
+    ACCOUNT_LOGD("enter");
+    MessageParcel data;
+    MessageParcel reply;
+    if (!data.WriteInterfaceToken(GetDescriptor())) {
+        ACCOUNT_LOGE("failed to write descriptor!");
+        return ERR_ACCOUNT_COMMON_WRITE_DESCRIPTOR_ERROR;
+    }
+    if (!data.WriteString(name)) {
+        ACCOUNT_LOGE("failed to write string for name");
+        return ERR_APPACCOUNT_KIT_WRITE_STRING_NAME;
+    }
+    if (!data.WriteString(credentialType)) {
+        ACCOUNT_LOGE("failed to write string for credentialType");
+        return ERR_APPACCOUNT_KIT_WRITE_STRING_CREDENTIAL_TYPE;
+    }
+    ErrCode result = SendRequest(IAppAccount::Message::DELETE_ACCOUNT_CREDENTIAL, data, reply);
+    if (result != ERR_OK) {
+        ACCOUNT_LOGE("failed to send request, errCode: %{public}d", result);
+        return result;
+    }
+    return reply.ReadInt32();
+}
+
+ErrCode AppAccountProxy::SelectAccountsByOptions(
+    const SelectAccountsOptions &options, const sptr<IRemoteObject> &callback)
+{
+    ACCOUNT_LOGD("enter");
+    MessageParcel data;
+    MessageParcel reply;
+    if (!data.WriteInterfaceToken(GetDescriptor())) {
+        ACCOUNT_LOGE("failed to write descriptor!");
+        return ERR_ACCOUNT_COMMON_WRITE_DESCRIPTOR_ERROR;
+    }
+    if (!data.WriteParcelable(&options)) {
+        ACCOUNT_LOGE("failed to write parcelable for options");
+        return ERR_APPACCOUNT_KIT_WRITE_PARCELABLE_OPTIONS;
+    }
+    if (!data.WriteRemoteObject(callback)) {
+        ACCOUNT_LOGE("failed to write remote object for callback");
+        return ERR_APPACCOUNT_KIT_WRITE_PARCELABLE_CALLBACK;
+    }
+    ErrCode result = SendRequest(IAppAccount::Message::SELECT_ACCOUNTS_BY_OPTIONS, data, reply);
+    if (result != ERR_OK) {
+        ACCOUNT_LOGE("failed to send request, errCode: %{public}d", result);
+        return result;
+    }
+    return reply.ReadInt32();
+}
+
+ErrCode AppAccountProxy::VerifyCredential(const std::string &name, const std::string &owner,
+    const VerifyCredentialOptions &options, const sptr<IRemoteObject> &callback)
+{
+    ACCOUNT_LOGD("enter");
+    MessageParcel data;
+    MessageParcel reply;
+    if (!data.WriteInterfaceToken(GetDescriptor())) {
+        ACCOUNT_LOGE("failed to write descriptor!");
+        return ERR_ACCOUNT_COMMON_WRITE_DESCRIPTOR_ERROR;
+    }
+    if (!data.WriteString(name)) {
+        ACCOUNT_LOGE("failed to write string for name");
+        return ERR_APPACCOUNT_KIT_WRITE_STRING_NAME;
+    }
+    if (!data.WriteString(owner)) {
+        ACCOUNT_LOGE("failed to write string for owner");
+        return ERR_APPACCOUNT_KIT_WRITE_STRING_OWNER;
+    }
+    if (!data.WriteParcelable(&options)) {
+        ACCOUNT_LOGE("failed to write string for options");
+        return ERR_APPACCOUNT_KIT_WRITE_PARCELABLE_OPTIONS;
+    }
+    if (!data.WriteRemoteObject(callback)) {
+        ACCOUNT_LOGE("failed to write string for callback");
+        return ERR_APPACCOUNT_KIT_WRITE_PARCELABLE_CALLBACK;
+    }
+    ErrCode result = SendRequest(IAppAccount::Message::VERIFY_CREDENTIAL, data, reply);
+    if (result != ERR_OK) {
+        ACCOUNT_LOGE("failed to send request, errCode: %{public}d", result);
+        return result;
+    }
+    return reply.ReadInt32();
+}
+
+ErrCode AppAccountProxy::CheckAccountLabels(const std::string &name, const std::string &owner,
+    const std::vector<std::string> &labels, const sptr<IRemoteObject> &callback)
+{
+    ACCOUNT_LOGD("enter");
+    MessageParcel data;
+    MessageParcel reply;
+    if (!data.WriteInterfaceToken(GetDescriptor())) {
+        ACCOUNT_LOGE("failed to write descriptor!");
+        return ERR_ACCOUNT_COMMON_WRITE_DESCRIPTOR_ERROR;
+    }
+    if (!data.WriteString(name)) {
+        ACCOUNT_LOGE("failed to write string for name");
+        return ERR_APPACCOUNT_KIT_WRITE_STRING_NAME;
+    }
+    if (!data.WriteString(owner)) {
+        ACCOUNT_LOGE("failed to write string for owner");
+        return ERR_APPACCOUNT_KIT_WRITE_STRING_OWNER;
+    }
+    if (!data.WriteStringVector(labels)) {
+        ACCOUNT_LOGE("failed to write string vector for labels");
+        return ERR_APPACCOUNT_KIT_WRITE_STRING_VECTOR;
+    }
+    if (!data.WriteRemoteObject(callback)) {
+        ACCOUNT_LOGE("failed to write string for callback");
+        return ERR_APPACCOUNT_KIT_WRITE_PARCELABLE_CALLBACK;
+    }
+    ErrCode result = SendRequest(IAppAccount::Message::CHECK_ACCOUNT_LABELS, data, reply);
+    if (result != ERR_OK) {
+        ACCOUNT_LOGE("failed to send request, errCode: %{public}d", result);
+        return result;
+    }
+    return reply.ReadInt32();
+}
+
+ErrCode AppAccountProxy::SetAuthenticatorProperties(
+    const std::string &owner, const SetPropertiesOptions &options, const sptr<IRemoteObject> &callback)
+{
+    ACCOUNT_LOGD("enter");
+    MessageParcel data;
+    MessageParcel reply;
+    if (!data.WriteInterfaceToken(GetDescriptor())) {
+        ACCOUNT_LOGE("failed to write descriptor!");
+        return ERR_ACCOUNT_COMMON_WRITE_DESCRIPTOR_ERROR;
+    }
+    if (!data.WriteString(owner)) {
+        ACCOUNT_LOGE("failed to write string for owner");
+        return ERR_APPACCOUNT_KIT_WRITE_STRING_OWNER;
+    }
+    if (!data.WriteParcelable(&options)) {
+        ACCOUNT_LOGE("failed to write string for options");
+        return ERR_APPACCOUNT_KIT_WRITE_PARCELABLE_OPTIONS;
+    }
+    if (!data.WriteRemoteObject(callback)) {
+        ACCOUNT_LOGE("failed to write remote object for callback");
+        return ERR_APPACCOUNT_KIT_WRITE_PARCELABLE_CALLBACK;
+    }
+    ErrCode result = SendRequest(IAppAccount::Message::SET_AUTHENTICATOR_PROPERTIES, data, reply);
+    if (result != ERR_OK) {
+        ACCOUNT_LOGE("failed to send request, errCode: %{public}d", result);
+        return result;
+    }
+    return reply.ReadInt32();
+}
+
 ErrCode AppAccountProxy::SubscribeAppAccount(
     const AppAccountSubscribeInfo &subscribeInfo, const sptr<IRemoteObject> &eventListener)
 {

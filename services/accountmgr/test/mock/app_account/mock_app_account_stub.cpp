@@ -246,6 +246,53 @@ ErrCode MockAppAccountStub::GetAllAccessibleAccounts(std::vector<AppAccountInfo>
     return ERR_OK;
 }
 
+ErrCode MockAppAccountStub::CheckAppAccess(
+    const std::string &name, const std::string &authorizedApp, bool &isAccessible)
+{
+    ACCOUNT_LOGD("mock enter");
+
+    return ERR_OK;
+}
+
+ErrCode MockAppAccountStub::DeleteAccountCredential(const std::string &name, const std::string &credentialType)
+{
+    ACCOUNT_LOGD("mock enter");
+
+    return ERR_OK;
+}
+
+ErrCode MockAppAccountStub::SelectAccountsByOptions(
+    const SelectAccountsOptions &options, const sptr<IRemoteObject> &callback)
+{
+    ACCOUNT_LOGD("mock enter");
+
+    return ERR_OK;
+}
+
+ErrCode MockAppAccountStub::VerifyCredential(const std::string &name, const std::string &owner,
+    const VerifyCredentialOptions &options, const sptr<IRemoteObject> &callback)
+{
+    ACCOUNT_LOGD("mock enter");
+
+    return ERR_OK;
+}
+
+ErrCode MockAppAccountStub::CheckAccountLabels(const std::string &name, const std::string &owner,
+    const std::vector<std::string> &labels, const sptr<IRemoteObject> &callback)
+{
+    ACCOUNT_LOGD("mock enter");
+
+    return ERR_OK;
+}
+
+ErrCode MockAppAccountStub::SetAuthenticatorProperties(
+    const std::string &owner, const SetPropertiesOptions &options, const sptr<IRemoteObject> &callback)
+{
+    ACCOUNT_LOGD("mock enter");
+
+    return ERR_OK;
+}
+
 ErrCode MockAppAccountStub::SubscribeAppAccount(
     const AppAccountSubscribeInfo &subscribeInfo, const sptr<IRemoteObject> &eventListener)
 {

@@ -27,10 +27,12 @@ public:
 
     virtual void OnResult(int32_t resultCode, const AAFwk::Want &result) = 0;
     virtual void OnRequestRedirected(AAFwk::Want &request) = 0;
+    virtual void OnRequestContinued() = 0;
 
     enum class Message {
         ACCOUNT_RESULT = 0,
         ACCOUNT_REQUEST_REDIRECTED,
+        ACCOUNT_REQUEST_CONTINUED,
     };
 };
 }  // namespace AccountSA

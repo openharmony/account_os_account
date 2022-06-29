@@ -105,6 +105,117 @@ ErrCode AppAccountAuthenticatorProxy::Authenticate(const std::string &name, cons
     return reply.ReadInt32();
 }
 
+ErrCode AppAccountAuthenticatorProxy::VerifyCredential(
+    const std::string &name, const VerifyCredentialOptions &options, const sptr<IRemoteObject> &callback)
+{
+    ACCOUNT_LOGD("enter");
+    MessageParcel data;
+    MessageParcel reply;
+
+    if (!data.WriteInterfaceToken(GetDescriptor())) {
+        ACCOUNT_LOGE("failed to write descriptor!");
+        return ERR_ACCOUNT_COMMON_WRITE_DESCRIPTOR_ERROR;
+    }
+    if (!data.WriteString(name)) {
+        ACCOUNT_LOGE("failed to write WriteString name");
+        return ERR_APPACCOUNT_KIT_WRITE_STRING_NAME;
+    }
+    if (!data.WriteParcelable(&options)) {
+        ACCOUNT_LOGE("failed to write WriteParcelable options");
+        return ERR_APPACCOUNT_KIT_WRITE_STRING_NAME;
+    }
+    if (!data.WriteRemoteObject(callback)) {
+        ACCOUNT_LOGE("failed to write WriteString callback");
+        return ERR_APPACCOUNT_KIT_WRITE_PARCELABLE_EVENT_LISTENER;
+    }
+    ErrCode result = SendRequest(IAppAccountAuthenticator::Message::VERIFY_CREDENTIAL, data, reply);
+    if (result != ERR_OK) {
+        return result;
+    }
+    return reply.ReadInt32();
+}
+
+ErrCode AppAccountAuthenticatorProxy::CheckAccountLabels(
+    const std::string &name, const std::vector<std::string> &labels, const sptr<IRemoteObject> &callback)
+{
+    ACCOUNT_LOGD("enter");
+    MessageParcel data;
+    MessageParcel reply;
+
+    if (!data.WriteInterfaceToken(GetDescriptor())) {
+        ACCOUNT_LOGE("failed to write descriptor!");
+        return ERR_ACCOUNT_COMMON_WRITE_DESCRIPTOR_ERROR;
+    }
+    if (!data.WriteString(name)) {
+        ACCOUNT_LOGE("failed to write WriteString name");
+        return ERR_APPACCOUNT_KIT_WRITE_STRING_NAME;
+    }
+    if (!data.WriteStringVector(labels)) {
+        ACCOUNT_LOGE("failed to write WriteStringVector labels");
+        return ERR_APPACCOUNT_KIT_WRITE_STRING_NAME;
+    }
+    if (!data.WriteRemoteObject(callback)) {
+        ACCOUNT_LOGE("failed to write WriteRemoteObject callback");
+        return ERR_APPACCOUNT_KIT_WRITE_PARCELABLE_EVENT_LISTENER;
+    }
+    ErrCode result = SendRequest(IAppAccountAuthenticator::Message::CHECK_ACCOUNT_LABELS, data, reply);
+    if (result != ERR_OK) {
+        return result;
+    }
+    return reply.ReadInt32();
+}
+
+ErrCode AppAccountAuthenticatorProxy::SetProperties(
+    const SetPropertiesOptions &options, const sptr<IRemoteObject> &callback)
+{
+    ACCOUNT_LOGD("enter");
+    MessageParcel data;
+    MessageParcel reply;
+
+    if (!data.WriteInterfaceToken(GetDescriptor())) {
+        ACCOUNT_LOGE("failed to write descriptor!");
+        return ERR_ACCOUNT_COMMON_WRITE_DESCRIPTOR_ERROR;
+    }
+    if (!data.WriteParcelable(&options)) {
+        ACCOUNT_LOGE("failed to write WriteParcelable options");
+        return ERR_APPACCOUNT_KIT_WRITE_STRING_NAME;
+    }
+    if (!data.WriteRemoteObject(callback)) {
+        ACCOUNT_LOGE("failed to write WriteString callback");
+        return ERR_APPACCOUNT_KIT_WRITE_PARCELABLE_EVENT_LISTENER;
+    }
+    ErrCode result = SendRequest(IAppAccountAuthenticator::Message::SET_PROPERTIES, data, reply);
+    if (result != ERR_OK) {
+        return result;
+    }
+    return reply.ReadInt32();
+}
+
+ErrCode AppAccountAuthenticatorProxy::IsAccountRemovable(const std::string &name, const sptr<IRemoteObject> &callback)
+{
+    ACCOUNT_LOGD("enter");
+    MessageParcel data;
+    MessageParcel reply;
+
+    if (!data.WriteInterfaceToken(GetDescriptor())) {
+        ACCOUNT_LOGE("failed to write descriptor!");
+        return ERR_ACCOUNT_COMMON_WRITE_DESCRIPTOR_ERROR;
+    }
+    if (!data.WriteString(name)) {
+        ACCOUNT_LOGE("failed to write WriteString name");
+        return ERR_APPACCOUNT_KIT_WRITE_STRING_NAME;
+    }
+    if (!data.WriteRemoteObject(callback)) {
+        ACCOUNT_LOGE("failed to write WriteRemoteObject callback");
+        return ERR_APPACCOUNT_KIT_WRITE_PARCELABLE_EVENT_LISTENER;
+    }
+    ErrCode result = SendRequest(IAppAccountAuthenticator::Message::IS_ACCOUNT_REMOVABLE, data, reply);
+    if (result != ERR_OK) {
+        return result;
+    }
+    return reply.ReadInt32();
+}
+
 ErrCode AppAccountAuthenticatorProxy::SendRequest(
     IAppAccountAuthenticator::Message code, MessageParcel &data, MessageParcel &reply)
 {
