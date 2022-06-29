@@ -369,12 +369,42 @@ void NapiAppAccountAuthenticator::IsAccountRemovableWork(uv_work_t *work, int st
     CallJsFunction(param->env, param->jsAuthenticator.isAccountRemovable, argv, ARGS_SIZE_TWO);
 }
 
+napi_value NapiAppAccountAuthenticator::GetJsRemoteObject()
+{
+    return remoteObject_;
+}
+
+void NapiAppAccountAuthenticator::SetJsRemoteObject(napi_value remoteObject)
+{
+    remoteObject_ = remoteObject;
+}
+
 napi_value NapiAppAccountAuthenticator::GetRemoteObject(napi_env env, napi_callback_info cbInfo)
 {
     ACCOUNT_LOGD("enter");
+    napi_value jsFunc = nullptr;
     napi_value thisVar = nullptr;
     napi_get_cb_info(env, cbInfo, nullptr, nullptr, &thisVar, nullptr);
-    return thisVar;
+    JsAuthenticator jsAuthenticator;
+    napi_get_named_property(env, thisVar, "addAccountImplicitly", &jsFunc);
+    napi_create_reference(env, jsFunc, 1, &jsAuthenticator.addAccountImplicitly);
+    napi_get_named_property(env, thisVar, "authenticate", &jsFunc);
+    napi_create_reference(env, jsFunc, 1, &jsAuthenticator.authenticate);
+    napi_get_named_property(env, thisVar, "verifyCredential", &jsFunc);
+    napi_create_reference(env, jsFunc, 1, &jsAuthenticator.verifyCredential);
+    napi_get_named_property(env, thisVar, "checkAccountLabels", &jsFunc);
+    napi_create_reference(env, jsFunc, 1, &jsAuthenticator.checkAccountLabels);
+    napi_get_named_property(env, thisVar, "isAccountRemovable", &jsFunc);
+    napi_create_reference(env, jsFunc, 1, &jsAuthenticator.isAccountRemovable);
+    napi_get_named_property(env, thisVar, "setProperties", &jsFunc);
+    napi_create_reference(env, jsFunc, 1, &jsAuthenticator.setProperties);
+    sptr<NapiAppAccountAuthenticator> authenticator =
+        new (std::nothrow) NapiAppAccountAuthenticator(env, jsAuthenticator);
+    if (authenticator == nullptr) {
+        ACCOUNT_LOGD("failed to construct NapiAppAccountAuthenticator");
+        return nullptr;
+    }
+    return NAPI_ohos_rpc_CreateJsRemoteObject(env, authenticator->AsObject());
 }
 
 napi_value NapiAppAccountAuthenticator::Init(napi_env env, napi_value exports)
@@ -402,28 +432,8 @@ napi_value NapiAppAccountAuthenticator::JsConstructor(napi_env env, napi_callbac
 {
     ACCOUNT_LOGD("enter");
     napi_value thisVar = nullptr;
-    napi_value jsFunc = nullptr;
-    JsAuthenticator jsAuthenticator;
     napi_get_cb_info(env, info, nullptr, nullptr, &thisVar, nullptr);
-    napi_get_named_property(env, thisVar, "addAccountImplicitly", &jsFunc);
-    napi_create_reference(env, jsFunc, 1, &jsAuthenticator.addAccountImplicitly);
-    napi_get_named_property(env, thisVar, "authenticate", &jsFunc);
-    napi_create_reference(env, jsFunc, 1, &jsAuthenticator.authenticate);
-    napi_get_named_property(env, thisVar, "verifyCredential", &jsFunc);
-    napi_create_reference(env, jsFunc, 1, &jsAuthenticator.verifyCredential);
-    napi_get_named_property(env, thisVar, "checkAccountLabels", &jsFunc);
-    napi_create_reference(env, jsFunc, 1, &jsAuthenticator.checkAccountLabels);
-    napi_get_named_property(env, thisVar, "isAccountRemovable", &jsFunc);
-    napi_create_reference(env, jsFunc, 1, &jsAuthenticator.isAccountRemovable);
-    napi_get_named_property(env, thisVar, "setProperties", &jsFunc);
-    napi_create_reference(env, jsFunc, 1, &jsAuthenticator.setProperties);
-    sptr<NapiAppAccountAuthenticator> authenticator =
-        new (std::nothrow) NapiAppAccountAuthenticator(env, jsAuthenticator);
-    if (authenticator == nullptr) {
-        ACCOUNT_LOGD("failed to construct NapiAppAccountAuthenticator");
-        return nullptr;
-    }
-    return NAPI_ohos_rpc_CreateJsRemoteObject(env, authenticator->AsObject());
+    return thisVar;
 }
 }  // namespace AccountJsKit
 }  // namespace OHOS

@@ -70,6 +70,8 @@ public:
     ErrCode SetProperties(const SetPropertiesOptions &options, const sptr<IRemoteObject> &callback) override;
     ErrCode IsAccountRemovable(const std::string &name, const sptr<IRemoteObject> &callback) override;
     ErrCode InitWorkEnv(uv_loop_s **loop, uv_work_t **work, JsAuthenticatorParam **param);
+    napi_value GetJsRemoteObject();
+    void SetJsRemoteObject(napi_value remoteObject);
 
 private:
     static napi_value JsConstructor(napi_env env, napi_callback_info cbinfo);
@@ -88,6 +90,7 @@ private:
 private:
     napi_env env_ = nullptr;
     JsAuthenticator jsAuthenticator_;
+    napi_value remoteObject_ = nullptr;
 };
 }  // namespace AccountJsKit
 }  // namespace OHOS
