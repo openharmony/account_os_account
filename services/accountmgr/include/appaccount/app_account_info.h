@@ -37,9 +37,11 @@ public:
     explicit AppAccountInfo(const std::string &name, const std::string &owner);
     virtual ~AppAccountInfo() = default;
 
+    std::string GetOwner();
     ErrCode GetOwner(std::string &owner);
     ErrCode SetOwner(const std::string &owner);
 
+    std::string GetName();
     ErrCode GetName(std::string &name) const;
     ErrCode SetName(const std::string &name);
 
@@ -48,6 +50,7 @@ public:
 
     ErrCode EnableAppAccess(const std::string &authorizedApp);
     ErrCode DisableAppAccess(const std::string &authorizedApp);
+    ErrCode CheckAppAccess(const std::string &authorizedApp, bool &isAccessible);
 
     ErrCode GetAuthorizedApps(std::set<std::string> &apps) const;
     ErrCode SetAuthorizedApps(const std::set<std::string> &apps);
@@ -60,7 +63,8 @@ public:
     ErrCode SetAssociatedData(const std::string &key, const std::string &value);
 
     ErrCode GetAccountCredential(const std::string &credentialType, std::string &credential) const;
-    ErrCode SetAccountCredential(const std::string &credentialType, const std::string &credential);
+    ErrCode SetAccountCredential(
+        const std::string &credentialType, const std::string &credential, bool isDelete = false);
 
     ErrCode GetOAuthToken(const std::string &authType, std::string &token) const;
     ErrCode SetOAuthToken(const std::string &authType, const std::string &token);

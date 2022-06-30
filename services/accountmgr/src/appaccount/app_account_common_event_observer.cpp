@@ -122,6 +122,9 @@ void AppAccountCommonEventObserver::OnReceiveEvent(const CommonEventData &data)
         callback_.OnUserRemoved(data.GetCode());
         return;
     }
+    if ((action == CommonEventSupport::COMMON_EVENT_USER_REMOVED) && (callback_.OnUserRemoved != nullptr)) {
+        callback_.OnUserRemoved(data.GetCode());
+    }
 }
 #endif // HAS_CES_PART
 }  // namespace AccountSA

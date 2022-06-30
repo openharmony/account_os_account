@@ -43,12 +43,14 @@ private:
     ErrCode ProcSetAccountExtraInfo(MessageParcel &data, MessageParcel &reply);
     ErrCode ProcEnableAppAccess(MessageParcel &data, MessageParcel &reply);
     ErrCode ProcDisableAppAccess(MessageParcel &data, MessageParcel &reply);
+    ErrCode ProcCheckAppAccess(MessageParcel &data, MessageParcel &reply);
     ErrCode ProcCheckAppAccountSyncEnable(MessageParcel &data, MessageParcel &reply);
     ErrCode ProcSetAppAccountSyncEnable(MessageParcel &data, MessageParcel &reply);
     ErrCode ProcGetAssociatedData(MessageParcel &data, MessageParcel &reply);
     ErrCode ProcSetAssociatedData(MessageParcel &data, MessageParcel &reply);
     ErrCode ProcGetAccountCredential(MessageParcel &data, MessageParcel &reply);
     ErrCode ProcSetAccountCredential(MessageParcel &data, MessageParcel &reply);
+    ErrCode ProcDeleteAccountCredential(MessageParcel &data, MessageParcel &reply);
     ErrCode ProcAuthenticate(MessageParcel &data, MessageParcel &reply);
     ErrCode ProcGetOAuthToken(MessageParcel &data, MessageParcel &reply);
     ErrCode ProcSetOAuthToken(MessageParcel &data, MessageParcel &reply);
@@ -63,6 +65,10 @@ private:
     ErrCode ProcGetAllAccessibleAccounts(MessageParcel &data, MessageParcel &reply);
     ErrCode ProcSubscribeAccount(MessageParcel &data, MessageParcel &reply);
     ErrCode ProcUnsubscribeAccount(MessageParcel &data, MessageParcel &reply);
+    ErrCode ProcSelectAccountsByOptions(MessageParcel &data, MessageParcel &reply);
+    ErrCode ProcVerifyCredential(MessageParcel &data, MessageParcel &reply);
+    ErrCode ProcCheckAccountLabels(MessageParcel &data, MessageParcel &reply);
+    ErrCode ProcSetAuthenticatorProperties(MessageParcel &data, MessageParcel &reply);
 
 private:
     static const std::map<uint32_t, MessageProcFunction> messageProcMap_;

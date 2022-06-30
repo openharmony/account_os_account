@@ -21,6 +21,114 @@
 
 namespace OHOS {
 namespace AccountSA {
+bool SelectAccountsOptions::Marshalling(Parcel &parcel) const
+{
+    if (!parcel.WriteBool(hasAccounts) || !parcel.WriteBool(hasOwners) || !parcel.WriteBool(hasLabels)) {
+        return false;
+    }
+    if (!parcel.WriteUint32(allowedAccounts.size())) {
+        return false;
+    }
+    for (auto item : allowedAccounts) {
+        if ((!parcel.WriteString(item.first)) || (!parcel.WriteString(item.second))) {
+            ACCOUNT_LOGE("WriteString failed");
+            return false;
+        }
+    }
+    return parcel.WriteStringVector(allowedOwners) && parcel.WriteStringVector(requiredLabels);
+}
+
+SelectAccountsOptions *SelectAccountsOptions::Unmarshalling(Parcel &parcel)
+{
+    SelectAccountsOptions *info = new (std::nothrow) SelectAccountsOptions();
+    if (info && !info->ReadFromParcel(parcel)) {
+        ACCOUNT_LOGW("read from parcel failed");
+        delete info;
+        info = nullptr;
+    }
+    return info;
+}
+
+bool SelectAccountsOptions::ReadFromParcel(Parcel &parcel)
+{
+    if (!parcel.ReadBool(hasAccounts) || !parcel.ReadBool(hasOwners) || !parcel.ReadBool(hasLabels)) {
+        return false;
+    }
+    uint32_t size = 0;
+    if (!parcel.ReadUint32(size)) {
+        return false;
+    }
+    std::string name;
+    std::string type;
+    for (uint32_t i = 0; i < size; ++i) {
+        if ((!parcel.ReadString(name)) || (!parcel.ReadString(type))) {
+            return false;
+        }
+        allowedAccounts.push_back(std::make_pair(name, type));
+    }
+    return parcel.ReadStringVector(&allowedOwners) && parcel.ReadStringVector(&requiredLabels);
+}
+
+bool VerifyCredentialOptions::Marshalling(Parcel &parcel) const
+{
+    return parcel.WriteString(credentialType) && parcel.WriteString(credential) && parcel.WriteParcelable(&parameters);
+}
+
+VerifyCredentialOptions *VerifyCredentialOptions::Unmarshalling(Parcel &parcel)
+{
+    VerifyCredentialOptions *info = new (std::nothrow) VerifyCredentialOptions();
+    if (info && !info->ReadFromParcel(parcel)) {
+        ACCOUNT_LOGW("read from parcel failed");
+        delete info;
+        info = nullptr;
+    }
+    return info;
+}
+
+bool VerifyCredentialOptions::ReadFromParcel(Parcel &parcel)
+{
+    if ((!parcel.ReadString(credentialType)) || (!parcel.ReadString(credential))) {
+        return false;
+    }
+    sptr<AAFwk::WantParams> wantParams = parcel.ReadParcelable<AAFwk::WantParams>();
+    if (wantParams == nullptr) {
+        return false;
+    }
+    parameters = *wantParams;
+    return true;
+}
+
+bool SetPropertiesOptions::Marshalling(Parcel &parcel) const
+{
+    return parcel.WriteParcelable(&properties) && parcel.WriteParcelable(&parameters);
+}
+
+SetPropertiesOptions *SetPropertiesOptions::Unmarshalling(Parcel &parcel)
+{
+    SetPropertiesOptions *info = new (std::nothrow) SetPropertiesOptions();
+    if (info && !info->ReadFromParcel(parcel)) {
+        ACCOUNT_LOGW("read from parcel failed");
+        delete info;
+        info = nullptr;
+    }
+    return info;
+}
+
+bool SetPropertiesOptions::ReadFromParcel(Parcel &parcel)
+{
+    sptr<AAFwk::WantParams> wantParams = parcel.ReadParcelable<AAFwk::WantParams>();
+    if (!wantParams) {
+        return false;
+    }
+    properties = *wantParams;
+    wantParams = parcel.ReadParcelable<AAFwk::WantParams>();
+    if (!wantParams) {
+        return false;
+    }
+    parameters = *wantParams;
+    return true;
+}
+
 int32_t ConvertToJSErrCode(int32_t errCode)
 {
     if (errCode == ERR_OK) {

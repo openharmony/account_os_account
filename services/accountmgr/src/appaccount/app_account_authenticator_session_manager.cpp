@@ -17,60 +17,46 @@
 
 #include "account_log_wrapper.h"
 #include "app_account_authenticator_session.h"
+#include "app_account_check_labels_session.h"
 #include "iservice_registry.h"
-#include "singleton.h"
 #include "system_ability_definition.h"
 
 namespace OHOS {
 namespace AccountSA {
 namespace {
 constexpr size_t SESSION_MAX_NUM = 256;
-constexpr int32_t ABILITY_STATE_TERMINATED = 4;
 }
 
-SessionAppStateObserver::SessionAppStateObserver(AppAccountAuthenticatorSessionManager *sessionManager)
-    : sessionManager_(sessionManager)
+SessionAppStateObserver::SessionAppStateObserver()
 {}
 
 void SessionAppStateObserver::OnAbilityStateChanged(const AppExecFwk::AbilityStateData &abilityStateData)
 {
-    if (sessionManager_ != nullptr) {
-        sessionManager_->OnAbilityStateChanged(abilityStateData);
+    auto sessionManager = AppAccountAuthenticatorSessionManager::GetInstance();
+    if (sessionManager != nullptr) {
+        sessionManager->OnAbilityStateChanged(abilityStateData);
     }
-}
-
-void SessionAppStateObserver::SetSessionManager(AppAccountAuthenticatorSessionManager *sessionManager)
-{
-    sessionManager_ = sessionManager;
 }
 
 AppAccountAuthenticatorSessionManager::AppAccountAuthenticatorSessionManager()
 {
     ACCOUNT_LOGD("enter");
-    Init();
 }
 
 AppAccountAuthenticatorSessionManager::~AppAccountAuthenticatorSessionManager()
 {
     ACCOUNT_LOGD("enter");
-    if (!isInitialized_) {
-        return;
-    }
+    UnregisterApplicationStateObserver();
     sessionMap_.clear();
     abilitySessions_.clear();
-    appStateObserver_->SetSessionManager(nullptr);
-    iAppMgr_->UnregisterApplicationStateObserver(appStateObserver_);
-    iAppMgr_ = nullptr;
-    appStateObserver_ = nullptr;
 }
 
-void AppAccountAuthenticatorSessionManager::Init()
+void AppAccountAuthenticatorSessionManager::RegisterApplicationStateObserver()
 {
-    if (isInitialized_) {
-        ACCOUNT_LOGD("app account session manager has been initialized");
+    if (appStateObserver_ != nullptr) {
         return;
     }
-    appStateObserver_ = new (std::nothrow) SessionAppStateObserver(this);
+    appStateObserver_ = new (std::nothrow) SessionAppStateObserver();
     if (appStateObserver_ == nullptr) {
         ACCOUNT_LOGE("failed to create SessionAppStateObserver instance");
         return;
@@ -87,26 +73,65 @@ void AppAccountAuthenticatorSessionManager::Init()
         return;
     }
     iAppMgr_->RegisterApplicationStateObserver(appStateObserver_);
-    isInitialized_ = true;
 }
 
-ErrCode AppAccountAuthenticatorSessionManager::AddAccountImplicitly(const OAuthRequest &request)
+void AppAccountAuthenticatorSessionManager::UnregisterApplicationStateObserver()
 {
-    return OpenSession(Constants::OAUTH_ACTION_ADD_ACCOUNT_IMPLICITLY, request);
+    if (iAppMgr_) {
+        iAppMgr_->RegisterApplicationStateObserver(appStateObserver_);
+    }
+    iAppMgr_ = nullptr;
+    appStateObserver_ = nullptr;
 }
 
-ErrCode AppAccountAuthenticatorSessionManager::Authenticate(const OAuthRequest &request)
+ErrCode AppAccountAuthenticatorSessionManager::AddAccountImplicitly(const AuthenticatorSessionRequest &request)
 {
-    return OpenSession(Constants::OAUTH_ACTION_AUTHENTICATE, request);
+    auto session = std::make_shared<AppAccountAuthenticatorSession>(ADD_ACCOUNT_IMPLICITLY, request);
+    return OpenSession(session);
 }
 
-ErrCode AppAccountAuthenticatorSessionManager::OpenSession(const std::string &action, const OAuthRequest &request)
+ErrCode AppAccountAuthenticatorSessionManager::Authenticate(const AuthenticatorSessionRequest &request)
+{
+    auto session = std::make_shared<AppAccountAuthenticatorSession>(AUTHENTICATE, request);
+    return OpenSession(session);
+}
+
+ErrCode AppAccountAuthenticatorSessionManager::VerifyCredential(const AuthenticatorSessionRequest &request)
+{
+    auto session = std::make_shared<AppAccountAuthenticatorSession>(VERIFY_CREDENTIAL, request);
+    return OpenSession(session);
+}
+
+ErrCode AppAccountAuthenticatorSessionManager::CheckAccountLabels(const AuthenticatorSessionRequest &request)
+{
+    auto session = std::make_shared<AppAccountAuthenticatorSession>(CHECK_ACCOUNT_LABELS, request);
+    return OpenSession(session);
+}
+
+ErrCode AppAccountAuthenticatorSessionManager::IsAccountRemovable(const AuthenticatorSessionRequest &request)
+{
+    auto session = std::make_shared<AppAccountAuthenticatorSession>(IS_ACCOUNT_REMOVABLE, request);
+    return OpenSession(session);
+}
+
+ErrCode AppAccountAuthenticatorSessionManager::SelectAccountsByOptions(
+    const std::vector<AppAccountInfo> accounts, const AuthenticatorSessionRequest &request)
+{
+    auto session = std::make_shared<AppAccountCheckLabelsSession>(accounts, request);
+    OpenSession(session);
+    return session->CheckLabels();
+}
+
+ErrCode AppAccountAuthenticatorSessionManager::SetAuthenticatorProperties(const AuthenticatorSessionRequest &request)
+{
+    auto session = std::make_shared<AppAccountAuthenticatorSession>(SET_AUTHENTICATOR_PROPERTIES, request);
+    return OpenSession(session);
+}
+
+ErrCode AppAccountAuthenticatorSessionManager::OpenSession(
+    const std::shared_ptr<AppAccountAuthenticatorSession> &session)
 {
     ACCOUNT_LOGD("enter");
-    if (!isInitialized_) {
-        Init();
-    }
-    auto session = std::make_shared<AppAccountAuthenticatorSession>(action, request);
     if (session == nullptr) {
         ACCOUNT_LOGE("failed to create AppAccountAuthenticatorSession");
         return ERR_APPACCOUNT_SERVICE_OAUTH_SERVICE_EXCEPTION;
@@ -121,10 +146,15 @@ ErrCode AppAccountAuthenticatorSessionManager::OpenSession(const std::string &ac
         }
         result = session->Open();
         if (result != ERR_OK) {
-            ACCOUNT_LOGD("failed to open session, result: %{public}d.", result);
+            ACCOUNT_LOGE("failed to open session, result: %{public}d.", result);
             return result;
         }
+        if (sessionMap_.size() == 0) {
+            RegisterApplicationStateObserver();
+        }
         sessionMap_.emplace(sessionId, session);
+        AuthenticatorSessionRequest request;
+        session->GetRequest(request);
         std::string key = request.callerAbilityName + std::to_string(request.callerUid);
         auto it = abilitySessions_.find(key);
         if (it != abilitySessions_.end()) {
@@ -135,20 +165,13 @@ ErrCode AppAccountAuthenticatorSessionManager::OpenSession(const std::string &ac
             abilitySessions_.emplace(key, sessionSet);
         }
     }
-    result = session->AddClientDeathRecipient();
-    if (result != ERR_OK) {
-        ACCOUNT_LOGD("failed to add client death recipient for session, result: %{public}d.", result);
-        CloseSession(sessionId);
-    }
+    session->AddClientDeathRecipient();
     return ERR_OK;
 }
 
 ErrCode AppAccountAuthenticatorSessionManager::GetAuthenticatorCallback(
-    const OAuthRequest &request, sptr<IRemoteObject> &callback)
+    const AuthenticatorSessionRequest &request, sptr<IRemoteObject> &callback)
 {
-    if (!isInitialized_) {
-        Init();
-    }
     callback = nullptr;
     std::lock_guard<std::mutex> lock(mutex_);
     auto it = sessionMap_.find(request.sessionId);
@@ -161,7 +184,7 @@ ErrCode AppAccountAuthenticatorSessionManager::GetAuthenticatorCallback(
 
 void AppAccountAuthenticatorSessionManager::OnAbilityStateChanged(const AppExecFwk::AbilityStateData &abilityStateData)
 {
-    if (abilityStateData.abilityState != ABILITY_STATE_TERMINATED) {
+    if (abilityStateData.abilityState != Constants::ABILITY_STATE_TERMINATED) {
         return;
     }
     std::string key = abilityStateData.abilityName + std::to_string(abilityStateData.uid);
@@ -189,7 +212,7 @@ void AppAccountAuthenticatorSessionManager::CloseSession(const std::string &sess
         ACCOUNT_LOGI("session not exist, sessionId=%{public}s", sessionId.c_str());
         return;
     }
-    OAuthRequest request;
+    AuthenticatorSessionRequest request;
     it->second->GetRequest(request);
     std::string key = request.callerAbilityName + std::to_string(request.callerUid);
     auto asIt = abilitySessions_.find(key);
@@ -197,6 +220,9 @@ void AppAccountAuthenticatorSessionManager::CloseSession(const std::string &sess
         asIt->second.erase(sessionId);
     }
     sessionMap_.erase(it);
+    if (sessionMap_.size() == 0) {
+        iAppMgr_->UnregisterApplicationStateObserver(appStateObserver_);
+    }
 }
 }  // namespace AccountSA
 }  // namespace OHOS

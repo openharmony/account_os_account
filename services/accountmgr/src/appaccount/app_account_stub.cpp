@@ -81,6 +81,10 @@ const std::map<uint32_t, AppAccountStub::MessageProcFunction> AppAccountStub::me
         &AppAccountStub::ProcDisableAppAccess,
     },
     {
+        static_cast<uint32_t>(IAppAccount::Message::CHECK_APP_ACCESS),
+        &AppAccountStub::ProcCheckAppAccess,
+    },
+    {
         static_cast<uint32_t>(IAppAccount::Message::CHECK_APP_ACCOUNT_SYNC_ENABLE),
         &AppAccountStub::ProcCheckAppAccountSyncEnable,
     },
@@ -103,6 +107,10 @@ const std::map<uint32_t, AppAccountStub::MessageProcFunction> AppAccountStub::me
     {
         static_cast<uint32_t>(IAppAccount::Message::SET_ACCOUNT_CREDENTIAL),
         &AppAccountStub::ProcSetAccountCredential,
+    },
+    {
+        static_cast<uint32_t>(IAppAccount::Message::DELETE_ACCOUNT_CREDENTIAL),
+        &AppAccountStub::ProcDeleteAccountCredential,
     },
     {
         static_cast<uint32_t>(IAppAccount::Message::AUTHENTICATE),
@@ -151,6 +159,22 @@ const std::map<uint32_t, AppAccountStub::MessageProcFunction> AppAccountStub::me
     {
         static_cast<uint32_t>(IAppAccount::Message::GET_ALL_ACCESSIBLE_ACCOUNTS),
         &AppAccountStub::ProcGetAllAccessibleAccounts,
+    },
+    {
+        static_cast<uint32_t>(IAppAccount::Message::SELECT_ACCOUNTS_BY_OPTIONS),
+        &AppAccountStub::ProcSelectAccountsByOptions,
+    },
+    {
+        static_cast<uint32_t>(IAppAccount::Message::VERIFY_CREDENTIAL),
+        &AppAccountStub::ProcVerifyCredential,
+    },
+    {
+        static_cast<uint32_t>(IAppAccount::Message::CHECK_ACCOUNT_LABELS),
+        &AppAccountStub::ProcCheckAccountLabels,
+    },
+    {
+        static_cast<uint32_t>(IAppAccount::Message::SET_AUTHENTICATOR_PROPERTIES),
+        &AppAccountStub::ProcSetAuthenticatorProperties,
     },
     {
         static_cast<uint32_t>(IAppAccount::Message::SUBSCRIBE_ACCOUNT),
@@ -411,10 +435,7 @@ ErrCode AppAccountStub::ProcGetAssociatedData(MessageParcel &data, MessageParcel
 {
     ACCOUNT_LOGD("enter");
     std::string name = data.ReadString();
-    RETURN_IF_STRING_IS_EMPTY_OR_OVERSIZE(name, Constants::NAME_MAX_SIZE, "name is empty or oversize");
-    RETURN_IF_STRING_CONTAINS_SPECIAL_CHAR(name);
     std::string key = data.ReadString();
-    RETURN_IF_STRING_IS_EMPTY_OR_OVERSIZE(key, Constants::ASSOCIATED_KEY_MAX_SIZE, "key is empty or oversize");
     std::string value;
     ErrCode result = GetAssociatedData(name, key, value);
     if (!reply.WriteInt32(result)) {
@@ -709,6 +730,126 @@ ErrCode AppAccountStub::ProcGetAllAccessibleAccounts(MessageParcel &data, Messag
     }
     if (!WriteParcelableVector(appAccounts, reply)) {
         ACCOUNT_LOGE("failed to write vector<AppAccount> for appAccounts");
+        return IPC_STUB_WRITE_PARCEL_ERR;
+    }
+    return ERR_NONE;
+}
+
+ErrCode AppAccountStub::ProcCheckAppAccess(MessageParcel &data, MessageParcel &reply)
+{
+    ACCOUNT_LOGD("enter");
+    std::string name = data.ReadString();
+    RETURN_IF_STRING_IS_EMPTY_OR_OVERSIZE(name, Constants::NAME_MAX_SIZE, "name is empty or oversize");
+    std::string bundleName = data.ReadString();
+    RETURN_IF_STRING_IS_EMPTY_OR_OVERSIZE(bundleName, Constants::BUNDLE_NAME_MAX_SIZE,
+        "bundleName is empty or oversize");
+    bool isAccessible = false;
+    ErrCode result = CheckAppAccess(name, bundleName, isAccessible);
+    if ((!reply.WriteInt32(result)) || (!reply.WriteBool(isAccessible))) {
+        ACCOUNT_LOGE("failed to write reply");
+        return IPC_STUB_WRITE_PARCEL_ERR;
+    }
+    return ERR_NONE;
+}
+
+ErrCode AppAccountStub::ProcDeleteAccountCredential(MessageParcel &data, MessageParcel &reply)
+{
+    ACCOUNT_LOGD("enter");
+    std::string name = data.ReadString();
+    RETURN_IF_STRING_IS_EMPTY_OR_OVERSIZE(name, Constants::NAME_MAX_SIZE, "name is empty or oversize");
+    std::string credentialType = data.ReadString();
+    RETURN_IF_STRING_IS_EMPTY_OR_OVERSIZE(credentialType, Constants::CREDENTIAL_TYPE_MAX_SIZE,
+        "credentialType is empty or oversize");
+    ErrCode result = DeleteAccountCredential(name, credentialType);
+    if (!reply.WriteInt32(result)) {
+        ACCOUNT_LOGE("failed to write reply");
+        return IPC_STUB_WRITE_PARCEL_ERR;
+    }
+    return ERR_NONE;
+}
+
+ErrCode AppAccountStub::ProcSelectAccountsByOptions(MessageParcel &data, MessageParcel &reply)
+{
+    ACCOUNT_LOGD("enter");
+    std::shared_ptr<SelectAccountsOptions> options(data.ReadParcelable<SelectAccountsOptions>());
+    sptr<IRemoteObject> callback = data.ReadRemoteObject();
+    ErrCode result = ERR_OK;
+    if (options == nullptr|| callback == nullptr) {
+        ACCOUNT_LOGE("invalid parameters");
+        result = ERR_APPACCOUNT_SERVICE_INVALID_PARAMETER;
+    } else {
+        result = SelectAccountsByOptions(*options, callback);
+    }
+    if (!reply.WriteInt32(result)) {
+        ACCOUNT_LOGE("failed to write reply");
+        return IPC_STUB_WRITE_PARCEL_ERR;
+    }
+    return ERR_NONE;
+}
+
+ErrCode AppAccountStub::ProcVerifyCredential(MessageParcel &data, MessageParcel &reply)
+{
+    ACCOUNT_LOGD("enter");
+    std::string name = data.ReadString();
+    RETURN_IF_STRING_IS_EMPTY_OR_OVERSIZE(name, Constants::NAME_MAX_SIZE, "name is empty or oversize");
+    std::string owner = data.ReadString();
+    RETURN_IF_STRING_IS_EMPTY_OR_OVERSIZE(owner, Constants::OWNER_MAX_SIZE, "owner is empty or oversize");
+    std::shared_ptr<VerifyCredentialOptions> options(data.ReadParcelable<VerifyCredentialOptions>());
+    sptr<IRemoteObject> callback = data.ReadRemoteObject();
+    ErrCode result = ERR_OK;
+    if (options == nullptr || callback == nullptr) {
+        ACCOUNT_LOGE("invalid options");
+        result = ERR_APPACCOUNT_SERVICE_INVALID_PARAMETER;
+    } else {
+        result = VerifyCredential(name, owner, *options, callback);
+    }
+    if (!reply.WriteInt32(result)) {
+        ACCOUNT_LOGE("failed to write reply");
+        return IPC_STUB_WRITE_PARCEL_ERR;
+    }
+    return ERR_NONE;
+}
+
+ErrCode AppAccountStub::ProcCheckAccountLabels(MessageParcel &data, MessageParcel &reply)
+{
+    ACCOUNT_LOGD("enter");
+    std::string name = data.ReadString();
+    RETURN_IF_STRING_IS_EMPTY_OR_OVERSIZE(name, Constants::NAME_MAX_SIZE, "name is empty or oversize");
+    std::string owner = data.ReadString();
+    RETURN_IF_STRING_IS_EMPTY_OR_OVERSIZE(owner, Constants::OWNER_MAX_SIZE, "owner is empty or oversize");
+    std::vector<std::string> labels;
+    data.ReadStringVector(&labels);
+    sptr<IRemoteObject> callback = data.ReadRemoteObject();
+    ErrCode result = ERR_OK;
+    if (callback == nullptr) {
+        ACCOUNT_LOGE("invalid options");
+        result = ERR_APPACCOUNT_SERVICE_INVALID_PARAMETER;
+    } else {
+        result = CheckAccountLabels(name, owner, labels, callback);
+    }
+    if (!reply.WriteInt32(result)) {
+        ACCOUNT_LOGE("failed to write reply");
+        return IPC_STUB_WRITE_PARCEL_ERR;
+    }
+    return ERR_NONE;
+}
+
+ErrCode AppAccountStub::ProcSetAuthenticatorProperties(MessageParcel &data, MessageParcel &reply)
+{
+    ACCOUNT_LOGD("enter");
+    std::string owner = data.ReadString();
+    RETURN_IF_STRING_IS_EMPTY_OR_OVERSIZE(owner, Constants::OWNER_MAX_SIZE,  "owner is empyt or oversize");
+    std::shared_ptr<SetPropertiesOptions> options(data.ReadParcelable<SetPropertiesOptions>());
+    sptr<IRemoteObject> callback = data.ReadRemoteObject();
+    ErrCode result = ERR_OK;
+    if (options == nullptr || callback == nullptr) {
+        ACCOUNT_LOGE("invalid options");
+        result = ERR_APPACCOUNT_SERVICE_INVALID_PARAMETER;
+    } else {
+        result = SetAuthenticatorProperties(owner, *options, callback);
+    }
+    if (!reply.WriteInt32(result)) {
+        ACCOUNT_LOGE("failed to write reply");
         return IPC_STUB_WRITE_PARCEL_ERR;
     }
     return ERR_NONE;
