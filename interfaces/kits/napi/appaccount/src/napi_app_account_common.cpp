@@ -13,7 +13,6 @@
  * limitations under the License.
  */
 #include "napi_app_account_common.h"
-#include <uv.h>
 #include "account_log_wrapper.h"
 #include "app_account_constants.h"
 #include "app_account_manager.h"
@@ -144,7 +143,157 @@ void SubscriberPtr::SetCallbackRef(const napi_ref &ref)
     ref_ = ref;
 }
 
-AppAccountManagerCallback::AppAccountManagerCallback()
+CheckAccountLabelsCallback::CheckAccountLabelsCallback(napi_env env, napi_ref callbackRef, napi_deferred deferred)
+    : env_(env), callbackRef_(callbackRef), deferred_(deferred)
+{
+    ACCOUNT_LOGD("enter");
+}
+
+CheckAccountLabelsCallback::~CheckAccountLabelsCallback()
+{
+    ACCOUNT_LOGD("enter");
+}
+
+void CheckAccountLabelsOnResultWork(uv_work_t *work, int status)
+{
+    AuthenticatorCallbackParam *param = reinterpret_cast<AuthenticatorCallbackParam*>(work->data);
+    napi_value checkResult[RESULT_COUNT] = {0};
+    if (param->context->errCode == ERR_JS_SUCCESS) {
+        bool hasLabels = param->result.GetBoolParam(Constants::KEY_BOOL_RESULT, false);
+        napi_get_boolean(param->context->env, hasLabels, &checkResult[PARAMONE]);
+    } else {
+        checkResult[PARAMZERO] = GetErrorCodeValue(param->context->env, param->context->errCode);
+    }
+    ProcessCallbackOrPromise(param->context->env, param->context, checkResult[PARAMZERO], checkResult[PARAMONE]);
+    delete param->context;
+    delete param;
+    delete work;
+}
+
+void CheckAccountLabelsCallback::OnResult(int32_t resultCode, const AAFwk::Want &result)
+{
+    ACCOUNT_LOGD("enter");
+    {
+        std::lock_guard<std::mutex> lock(mutex_);
+        if (isDone) {
+            return;
+        }
+        isDone = true;
+    }
+    uv_loop_s *loop = nullptr;
+    uv_work_t *work = nullptr;
+    AuthenticatorCallbackParam *param = nullptr;
+    CommonAsyncContext *context = nullptr;
+    bool initRet = InitOnResultWorkEnv(env_, &loop, &work, &param, &context);
+    if (!initRet) {
+        ACCOUNT_LOGE("failed to init work environment");
+        return;
+    }
+    param->context = context;
+    param->context->env = env_;
+    param->context->callbackRef = callbackRef_;
+    param->context->deferred = deferred_;
+    param->context->errCode = resultCode;
+    param->result = result;
+    work->data = param;
+    int32_t ret = uv_queue_work(loop, work, [](uv_work_t *work) {}, CheckAccountLabelsOnResultWork);
+    if (ret != 0) {
+        delete context;
+        delete param;
+        delete work;
+    }
+}
+
+void CheckAccountLabelsCallback::OnRequestRedirected(AAFwk::Want &request)
+{}
+
+void CheckAccountLabelsCallback::OnRequestContinued()
+{}
+
+SelectAccountsCallback::SelectAccountsCallback(napi_env env, napi_ref callbackRef, napi_deferred deferred)
+    : env_(env), callbackRef_(callbackRef), deferred_(deferred)
+{
+    ACCOUNT_LOGD("enter");
+}
+
+SelectAccountsCallback::~SelectAccountsCallback()
+{
+    ACCOUNT_LOGD("enter");
+}
+
+void SelectAccountsOnResultWork(uv_work_t *work, int status)
+{
+    AuthenticatorCallbackParam *param = reinterpret_cast<AuthenticatorCallbackParam*>(work->data);
+    std::vector<std::string> names = param->result.GetStringArrayParam(Constants::KEY_ACCOUNT_NAMES);
+    std::vector<std::string> owners = param->result.GetStringArrayParam(Constants::KEY_ACCOUNT_OWNERS);
+    if (names.size() != owners.size()) {
+        param->context->errCode = ERR_JS_INVALID_RESPONSE;
+    }
+    napi_env env = param->context->env;
+    napi_value selectResult[RESULT_COUNT] = {0};
+    if (param->context->errCode == ERR_JS_SUCCESS) {
+        napi_create_array(env, &selectResult[PARAMONE]);
+        for (size_t i = 0; i < names.size(); ++i) {
+            napi_value object = nullptr;
+            napi_create_object(env, &object);
+            napi_value value = nullptr;
+            napi_create_string_utf8(env, names[i].c_str(), NAPI_AUTO_LENGTH, &value);
+            napi_set_named_property(env, object, "name", value);
+            napi_create_string_utf8(env, owners[i].c_str(), NAPI_AUTO_LENGTH, &value);
+            napi_set_named_property(env, object, "owner", value);
+            napi_set_element(env, selectResult[PARAMONE], i, object);
+        }
+    } else {
+        selectResult[PARAMZERO] = GetErrorCodeValue(env, param->context->errCode);
+    }
+    ProcessCallbackOrPromise(env, param->context, selectResult[PARAMZERO], selectResult[PARAMONE]);
+    delete param->context;
+    delete param;
+    delete work;
+}
+
+void SelectAccountsCallback::OnResult(int32_t resultCode, const AAFwk::Want &result)
+{
+    ACCOUNT_LOGD("enter");
+    {
+        std::lock_guard<std::mutex> lock(mutex_);
+        if (isDone) {
+            return;
+        }
+        isDone = true;
+    }
+    uv_loop_s *loop = nullptr;
+    uv_work_t *work = nullptr;
+    AuthenticatorCallbackParam *param = nullptr;
+    CommonAsyncContext *context = nullptr;
+    bool initRet = InitOnResultWorkEnv(env_, &loop, &work, &param, &context);
+    if (!initRet) {
+        ACCOUNT_LOGE("failed to init work environment");
+        return;
+    }
+    param->context = context;
+    param->context->env = env_;
+    param->context->callbackRef = callbackRef_;
+    param->context->deferred = deferred_;
+    param->context->errCode = resultCode;
+    param->result = result;
+    work->data = param;
+    int32_t ret = uv_queue_work(loop, work, [](uv_work_t *work) {}, SelectAccountsOnResultWork);
+    if (ret != 0) {
+        delete context;
+        delete param;
+        delete work;
+    }
+}
+
+void SelectAccountsCallback::OnRequestRedirected(AAFwk::Want &request)
+{}
+
+void SelectAccountsCallback::OnRequestContinued()
+{}
+
+AppAccountManagerCallback::AppAccountManagerCallback(napi_env env, JSAuthCallback callback)
+    : env_(env), callback_(callback)
 {
     ACCOUNT_LOGD("enter");
 }
@@ -162,20 +311,20 @@ void UvQueueWorkOnResult(uv_work_t *work, int status)
     }
     AuthenticatorCallbackParam *data = reinterpret_cast<AuthenticatorCallbackParam *>(work->data);
     napi_value results[ARGS_SIZE_TWO] = {nullptr};
-    results[0] = GetErrorCodeValue(data->env, data->resultCode);
-    results[ARGS_SIZE_ONE] = AppExecFwk::WrapWantParams(data->env, data->result);
+    napi_create_int32(data->env, data->resultCode, &results[0]);
+    results[ARGS_SIZE_ONE] = AppExecFwk::WrapWantParams(data->env, data->result.GetParams());
     napi_value undefined = nullptr;
     napi_get_undefined(data->env, &undefined);
     napi_value callback = nullptr;
     napi_value resultout = nullptr;
-    napi_get_reference_value(data->env, data->resultRef, &callback);
+    napi_get_reference_value(data->env, data->callback.onResult, &callback);
     napi_call_function(data->env, undefined, callback, ARGS_SIZE_TWO, results, &resultout);
-    if (data->resultRef != nullptr) {
-        napi_delete_reference(data->env, data->resultRef);
-    }
-    if (data->requestRedirectedRef != nullptr) {
-        napi_delete_reference(data->env, data->requestRedirectedRef);
-    }
+    napi_delete_reference(data->env, data->callback.onResult);
+    napi_delete_reference(data->env, data->callback.onRequestRedirected);
+    napi_delete_reference(data->env, data->callback.onRequestContinued);
+    data->callback.onResult = nullptr;
+    data->callback.onRequestRedirected = nullptr;
+    data->callback.onRequestContinued = nullptr;
     delete data;
     data = nullptr;
     delete work;
@@ -194,8 +343,28 @@ void UvQueueWorkOnRequestRedirected(uv_work_t *work, int status)
     napi_get_undefined(data->env, &undefined);
     napi_value callback = nullptr;
     napi_value resultout = nullptr;
-    napi_get_reference_value(data->env, data->requestRedirectedRef, &callback);
+    napi_get_reference_value(data->env, data->callback.onRequestRedirected, &callback);
     napi_call_function(data->env, undefined, callback, ARGS_SIZE_ONE, results, &resultout);
+    delete data;
+    data = nullptr;
+    delete work;
+}
+
+void UvQueueWorkOnRequestContinued(uv_work_t *work, int status)
+{
+    ACCOUNT_LOGD("enter");
+    if ((work == nullptr) || (work->data == nullptr)) {
+        ACCOUNT_LOGE("work or data is nullptr");
+        return;
+    }
+    AuthenticatorCallbackParam *data = reinterpret_cast<AuthenticatorCallbackParam *>(work->data);
+    napi_value callback = nullptr;
+    napi_get_reference_value(data->env, data->callback.onRequestContinued, &callback);
+    napi_value undefined = nullptr;
+    napi_get_undefined(data->env, &undefined);
+    napi_value results[0];
+    napi_value resultout = nullptr;
+    napi_call_function(data->env, undefined, callback, 0, results, &resultout);
     delete data;
     data = nullptr;
     delete work;
@@ -218,10 +387,14 @@ void AppAccountManagerCallback::OnResult(int32_t resultCode, const AAFwk::Want &
     AuthenticatorCallbackParam *param = new (std::nothrow) AuthenticatorCallbackParam {
         .env = env_,
         .resultCode = resultCode,
-        .result = result.GetParams(),
-        .resultRef = resultRef_,
-        .requestRedirectedRef = requestRedirectedRef_,
+        .result = result,
+        .callback = callback_
     };
+    if (param == nullptr) {
+        ACCOUNT_LOGE("failed to create AuthenticatorCallbackParam");
+        delete work;
+        return;
+    }
     work->data = reinterpret_cast<void *>(param);
     uv_queue_work(loop, work, [](uv_work_t *work) {}, UvQueueWorkOnResult);
 }
@@ -243,26 +416,75 @@ void AppAccountManagerCallback::OnRequestRedirected(AAFwk::Want &request)
     AuthenticatorCallbackParam *param = new (std::nothrow) AuthenticatorCallbackParam {
         .env = env_,
         .request = request,
-        .resultRef = resultRef_,
-        .requestRedirectedRef = requestRedirectedRef_,
+        .callback = callback_
     };
+    if (param == nullptr) {
+        ACCOUNT_LOGE("failed to create AuthenticatorCallbackParam");
+        delete work;
+        return;
+    }
     work->data = reinterpret_cast<void *>(param);
     uv_queue_work(loop, work, [](uv_work_t *work) {}, UvQueueWorkOnRequestRedirected);
 }
 
-void AppAccountManagerCallback::SetEnv(const napi_env &env)
+void AppAccountManagerCallback::OnRequestContinued()
 {
-    env_ = env;
+    ACCOUNT_LOGD("enter");
+    uv_loop_s *loop = nullptr;
+    napi_get_uv_event_loop(env_, &loop);
+    if (loop == nullptr) {
+        ACCOUNT_LOGI("loop instance is nullptr");
+        return;
+    }
+    uv_work_t *work = new (std::nothrow) uv_work_t;
+    if (work == nullptr) {
+        ACCOUNT_LOGI("work is null");
+        return;
+    }
+    AuthenticatorCallbackParam *param = new (std::nothrow) AuthenticatorCallbackParam {
+        .env = env_,
+        .callback = callback_
+    };
+    if (param == nullptr) {
+        ACCOUNT_LOGE("failed to create AuthenticatorCallbackParam");
+        delete work;
+        return;
+    }
+    work->data = reinterpret_cast<void *>(param);
+    uv_queue_work(loop, work, [](uv_work_t *work) {}, UvQueueWorkOnRequestContinued);
 }
 
-void AppAccountManagerCallback::SetResultRef(const napi_ref &ref)
+bool InitOnResultWorkEnv(napi_env env, uv_loop_s **loop, uv_work_t **work,
+    AuthenticatorCallbackParam **param, CommonAsyncContext **context)
 {
-    resultRef_ = ref;
-}
-
-void AppAccountManagerCallback::SetRequestRedirectedRef(const napi_ref &ref)
-{
-    requestRedirectedRef_ = ref;
+    napi_get_uv_event_loop(env, loop);
+    if (*loop == nullptr) {
+        ACCOUNT_LOGE("loop instance is nullptr");
+        return false;
+    }
+    *work = new (std::nothrow) uv_work_t;
+    if (*work == nullptr) {
+        ACCOUNT_LOGE("work is null");
+        return false;
+    }
+    *param = new (std::nothrow) AuthenticatorCallbackParam();
+    if (*param == nullptr) {
+        ACCOUNT_LOGE("failed to create AuthenticatorCallbackParam");
+        delete *work;
+        *work = nullptr;
+        *loop = nullptr;
+        return false;
+    }
+    *context = new (std::nothrow) CommonAsyncContext();
+    if (*context == nullptr) {
+        delete *work;
+        delete *param;
+        *work = nullptr;
+        *param = nullptr;
+        *loop = nullptr;
+        return false;
+    }
+    return true;
 }
 
 napi_value NapiGetNull(napi_env env)
@@ -470,7 +692,6 @@ void ParseArguments(napi_env env, napi_value *argv, const napi_valuetype *valueT
 
 void ParseContextForAuthenticate(napi_env env, napi_callback_info cbInfo, OAuthAsyncContext *asyncContext, size_t argc)
 {
-    napi_valuetype valuetype = napi_undefined;
     napi_value argv[ARGS_SIZE_FIVE] = {0};
     napi_valuetype valueTypes[ARGS_SIZE_FIVE] = {napi_string, napi_string, napi_string, napi_object, napi_object};
     napi_value thisVar;
@@ -500,26 +721,9 @@ void ParseContextForAuthenticate(napi_env env, napi_callback_info cbInfo, OAuthA
         auto abilityInfo = ability->GetAbilityInfo();
         asyncContext->options.SetParam(Constants::KEY_CALLER_ABILITY_NAME, abilityInfo->name);
     }
-    asyncContext->appAccountMgrCb = new (std::nothrow) AppAccountManagerCallback();
-    if (asyncContext->appAccountMgrCb == nullptr) {
-        ACCOUNT_LOGI("appAccountMgrCb is nullptr");
-        return;
-    }
-    asyncContext->appAccountMgrCb->SetEnv(env);
-    napi_value jsFunc = nullptr;
-    napi_ref jsFuncRef = nullptr;
-    napi_get_named_property(env, argv[index], "onResult", &jsFunc);
-    napi_typeof(env, jsFunc, &valuetype);
-    if (valuetype == napi_function) {
-        napi_create_reference(env, jsFunc, 1, &jsFuncRef);
-        asyncContext->appAccountMgrCb->SetResultRef(jsFuncRef);
-    }
-    napi_get_named_property(env, argv[index], "onRequestRedirected", &jsFunc);
-    napi_typeof(env, jsFunc, &valuetype);
-    if (valuetype == napi_function) {
-        napi_create_reference(env, jsFunc, 1, &jsFuncRef);
-        asyncContext->appAccountMgrCb->SetRequestRedirectedRef(jsFuncRef);
-    }
+    JSAuthCallback callback;
+    ParseJSAuthCallback(env, argv[index], callback);
+    asyncContext->appAccountMgrCb = new (std::nothrow) AppAccountManagerCallback(env, callback);
 }
 
 void ParseContextForGetOAuthToken(napi_env env, napi_callback_info cbInfo, OAuthAsyncContext *asyncContext)
@@ -857,14 +1061,12 @@ void ProcessCallbackOrPromise(napi_env env, const CommonAsyncContext *asyncConte
     ACCOUNT_LOGD("enter");
     napi_value args[RESULT_COUNT] = {err, data};
     if (asyncContext->deferred) {
-        ACCOUNT_LOGI("Promise");
-        if (asyncContext->status == napi_ok) {
+        if (asyncContext->errCode == ERR_OK) {
             napi_resolve_deferred(env, asyncContext->deferred, args[1]);
         } else {
             napi_reject_deferred(env, asyncContext->deferred, args[0]);
         }
     } else {
-        ACCOUNT_LOGI("Callback");
         napi_value callback = nullptr;
         napi_get_reference_value(env, asyncContext->callbackRef, &callback);
         napi_value returnVal = nullptr;
@@ -881,14 +1083,12 @@ void ProcessCallbackOrPromiseCBArray(
     ACCOUNT_LOGD("enter");
     napi_value args[RESULT_COUNT] = {err, data};
     if (asyncContext->deferred) {
-        ACCOUNT_LOGD("Promise");
-        if (asyncContext->status == napi_ok) {
+        if (asyncContext->errCode == ERR_OK) {
             napi_resolve_deferred(env, asyncContext->deferred, args[1]);
         } else {
             napi_reject_deferred(env, asyncContext->deferred, args[0]);
         }
     } else {
-        ACCOUNT_LOGD("Callback");
         napi_value callback = nullptr;
         napi_get_reference_value(env, asyncContext->callbackRef, &callback);
         napi_value returnVal = nullptr;
@@ -1060,6 +1260,221 @@ void UnsubscribeCallbackCompletedCB(napi_env env, napi_status status, void *data
     }
     delete asyncContextForOff;
     asyncContextForOff = nullptr;
+}
+
+void ParseVerifyCredentialOptions(napi_env env, napi_value object, VerifyCredentialOptions &options)
+{
+    napi_valuetype valueType = napi_undefined;
+    napi_typeof(env, object, &valueType);
+    if (valueType != napi_object) {
+        return;
+    }
+    napi_value value = nullptr;
+    napi_get_named_property(env, object, "credential", &value);
+    options.credential = GetNamedProperty(env, value);
+    napi_get_named_property(env, object, "credentialType", &value);
+    options.credentialType = GetNamedProperty(env, value);
+}
+
+void ParseSelectAccountsOptions(napi_env env, napi_value object, SelectAccountsOptions &options)
+{
+    napi_valuetype valueType = napi_undefined;
+    napi_typeof(env, object, &valueType);
+    if (valueType != napi_object) {
+        return;
+    }
+    napi_value value = nullptr;
+    napi_has_named_property(env, object, "allowedAccounts", &options.hasAccounts);
+    if (options.hasAccounts) {
+        napi_get_named_property(env, object, "allowedAccounts", &value);
+        ParseAccountVector(env, value, options.allowedAccounts);
+    }
+    napi_has_named_property(env, object, "allowedOwners", &options.hasOwners);
+    if (options.hasOwners) {
+        napi_get_named_property(env, object, "allowedOwners", &value);
+        ParseStringVector(env, value, options.allowedOwners);
+    }
+    napi_has_named_property(env, object, "requiredLabels", &options.hasLabels);
+    if (options.hasLabels) {
+        napi_get_named_property(env, object, "requiredLabels", &value);
+        ParseStringVector(env, value, options.requiredLabels);
+        ACCOUNT_LOGE("requiredLabels.size: %{public}zu", options.requiredLabels.size());
+    }
+}
+
+void ParseSetPropertiesOptions(napi_env env, napi_value object, SetPropertiesOptions &options)
+{
+    napi_valuetype valueType = napi_undefined;
+    napi_typeof(env, object, &valueType);
+    if (valueType != napi_object) {
+        return;
+    }
+    napi_value value = nullptr;
+    napi_get_named_property(env, object, "properties", &value);
+    AppExecFwk::UnwrapWantParams(env, value, options.properties);
+    napi_get_named_property(env, object, "parameters", &value);
+    AppExecFwk::UnwrapWantParams(env, value, options.parameters);
+}
+
+napi_ref GetNamedFunction(napi_env env, napi_value object, std::string name)
+{
+    napi_value value = nullptr;
+    napi_valuetype valueType = napi_undefined;
+    napi_ref funcRef = nullptr;
+    napi_get_named_property(env, object, name.c_str(), &value);
+    napi_typeof(env, value, &valueType);
+    if (valueType == napi_function) {
+        napi_create_reference(env, value, 1, &funcRef);
+    }
+    if (funcRef == nullptr) {
+        ACCOUNT_LOGI("funcRef is nullptr");
+    }
+    return funcRef;
+}
+
+void ParseJSAuthCallback(napi_env env, napi_value object, JSAuthCallback &callback)
+{
+    napi_valuetype valueType = napi_undefined;
+    napi_typeof(env, object, &valueType);
+    if (valueType != napi_object) {
+        return;
+    }
+    callback.onResult = GetNamedFunction(env, object, "onResult");
+    callback.onRequestRedirected = GetNamedFunction(env, object, "onRequestRedirected");
+    callback.onRequestContinued = GetNamedFunction(env, object, "onRequestContinued");
+}
+
+void ParseContextForVerifyCredential(napi_env env, napi_callback_info info, VerifyCredentialContext *context)
+{
+    size_t argc = ARGS_SIZE_FOUR;
+    napi_value argv[ARGS_SIZE_FOUR] = {0};
+    napi_get_cb_info(env, info, &argc, argv, nullptr, nullptr);
+    if (argc < ARGS_SIZE_THREE) {
+        return;
+    }
+    int32_t index = 0;
+    context->name = GetNamedProperty(env, argv[index++]);
+    context->owner = GetNamedProperty(env, argv[index++]);
+    if (argc == ARGS_SIZE_FOUR) {
+        ParseVerifyCredentialOptions(env, argv[index++], context->options);
+    }
+    ParseJSAuthCallback(env, argv[index], context->callback);
+}
+
+void ParseContextForSetProperties(napi_env env, napi_callback_info info, SetPropertiesContext *context)
+{
+    size_t argc = ARGS_SIZE_THREE;
+    napi_value argv[ARGS_SIZE_THREE] = {0};
+    napi_get_cb_info(env, info, &argc, argv, nullptr, nullptr);
+    if (argc < ARGS_SIZE_TWO) {
+        return;
+    }
+    int32_t index = 0;
+    context->owner = GetNamedProperty(env, argv[index++]);
+    if (argc == ARGS_SIZE_THREE) {
+        ParseSetPropertiesOptions(env, argv[index++], context->options);
+    }
+    ParseJSAuthCallback(env, argv[index], context->callback);
+}
+
+void ParseContextForSelectAccount(napi_env env, napi_callback_info info, SelectAccountsContext *context)
+{
+    size_t argc = ARGS_SIZE_TWO;
+    napi_value argv[ARGS_SIZE_TWO] = {0};
+    napi_get_cb_info(env, info, &argc, argv, nullptr, nullptr);
+    if (argc < ARGS_SIZE_ONE) {
+        return;
+    }
+    ParseSelectAccountsOptions(env, argv[0], context->options);
+    if (argc != ARGS_SIZE_TWO) {
+        return;
+    }
+    napi_valuetype valueType = napi_undefined;
+    napi_typeof(env, argv[PARAMONE], &valueType);
+    if (valueType == napi_function) {
+        napi_create_reference(env, argv[PARAMONE], PARAMTWO, &context->callbackRef);
+    }
+}
+
+void ParseAccountVector(napi_env env, napi_value value, std::vector<std::pair<std::string, std::string>> &accountVec)
+{
+    bool isArray = false;
+    uint32_t length = 0;
+    NAPI_CALL_RETURN_VOID(env, napi_is_array(env, value, &isArray));
+    if (!isArray) {
+        ACCOUNT_LOGD("Wrong argument type, Array<string> expected");
+        return;
+    }
+    NAPI_CALL_RETURN_VOID(env, napi_get_array_length(env, value, &length));
+    if (length <= 0) {
+        ACCOUNT_LOGD("The array is empty");
+        return;
+    }
+    napi_valuetype valueType = napi_undefined;
+    for (uint32_t i = 0; i < length; ++i) {
+        napi_value item = nullptr;
+        napi_get_element(env, value, i, &item);
+        NAPI_CALL_RETURN_VOID(env, napi_typeof(env, item, &valueType));
+        if (valueType != napi_object) {
+            ACCOUNT_LOGD("Wrong argument type, Object expected");
+            return;
+        }
+        napi_value data = nullptr;
+        napi_get_named_property(env, item, "name", &data);
+        std::string name = GetNamedProperty(env, data);
+        napi_get_named_property(env, item, "owner", &data);
+        std::string owner = GetNamedProperty(env, data);
+        accountVec.push_back(std::make_pair(owner, name));
+    }
+}
+
+void ParseStringVector(napi_env env, napi_value value, std::vector<std::string> &strVec)
+{
+    bool isArray = false;
+    uint32_t length = 0;
+    NAPI_CALL_RETURN_VOID(env, napi_is_array(env, value, &isArray));
+    if (!isArray) {
+        ACCOUNT_LOGD("Wrong argument type, Array<string> expected");
+        return;
+    }
+    NAPI_CALL_RETURN_VOID(env, napi_get_array_length(env, value, &length));
+    if (length <= 0) {
+        ACCOUNT_LOGD("The array is empty");
+        return;
+    }
+    napi_valuetype valueType = napi_undefined;
+    for (uint32_t i = 0; i < length; ++i) {
+        napi_value item = nullptr;
+        napi_get_element(env, value, i, &item);
+        NAPI_CALL_RETURN_VOID(env, napi_typeof(env, item, &valueType));
+        if (valueType != napi_string) {
+            ACCOUNT_LOGE("Wrong argument type, String expected");
+            return;
+        }
+        strVec.push_back(GetNamedProperty(env, item));
+    }
+}
+
+void ParseContextForCheckAccountLabels(napi_env env, napi_callback_info info, CheckAccountLabelsContext *context)
+{
+    ACCOUNT_LOGI("enter");
+    size_t argc = ARGS_SIZE_FOUR;
+    napi_value argv[ARGS_SIZE_FOUR] = {0};
+    napi_get_cb_info(env, info, &argc, argv, nullptr, nullptr);
+    if (argc < ARGS_SIZE_THREE) {
+        return;
+    }
+    context->name = GetNamedProperty(env, argv[PARAMZERO]);
+    context->owner = GetNamedProperty(env, argv[PARAMONE]);
+    ParseStringVector(env, argv[PARAMTWO], context->labels);
+    if (argc != ARGS_SIZE_FOUR) {
+        return;
+    }
+    napi_valuetype valueType = napi_undefined;
+    napi_typeof(env, argv[PARAMTHREE], &valueType);
+    if (valueType == napi_function) {
+        napi_create_reference(env, argv[PARAMTHREE], PARAMTWO, &context->callbackRef);
+    }
 }
 }  // namespace AccountJsKit
 }  // namespace OHOS
