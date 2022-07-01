@@ -203,12 +203,12 @@ ErrCode AppAccountInfo::SetAssociatedData(const std::string &key, const std::str
         ACCOUNT_LOGI("jsonObject is discarded");
         jsonObject = Json::object();
     }
-    if (jsonObject.size() >= MAX_ASSOCIATED_DATA_NUMBER) {
-        ACCOUNT_LOGD("associated data is over size, the max number is: %{public}d", MAX_ASSOCIATED_DATA_NUMBER);
-        return ERR_APPACCOUNT_SERVICE_ASSOCIATED_DATA_OVER_SIZE;
-    }
     auto it = jsonObject.find(key);
     if (it == jsonObject.end()) {
+        if (jsonObject.size() >= MAX_ASSOCIATED_DATA_NUMBER) {
+            ACCOUNT_LOGD("associated data is over size, the max number is: %{public}d", MAX_ASSOCIATED_DATA_NUMBER);
+            return ERR_APPACCOUNT_SERVICE_ASSOCIATED_DATA_OVER_SIZE;
+        }
         jsonObject.emplace(key, value);
     } else {
         jsonObject[key] = value;
