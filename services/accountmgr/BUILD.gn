@@ -59,10 +59,10 @@ config("accountmgr_config") {
 
 config("ability_manager_config") {
   include_dirs = [
-    "${aafwk_path}/interfaces/inner_api/ability_manager/include",
-    "${aafwk_path}/ability_base/interfaces/inner_api/want/include",
-    "${aafwk_path}/services/abilitymgr/include",
-    "${aafwk_path}/services/common/include",
+    "${ability_runtime_path}/interfaces/inner_api/ability_manager/include",
+    "${ability_runtime_path}/ability_base/interfaces/inner_api/want/include",
+    "${ability_runtime_path}/services/abilitymgr/include",
+    "${ability_runtime_path}/services/common/include",
   ]
 }
 
@@ -77,8 +77,8 @@ config("accountmgr_public_config") {
 }
 
 ability_manager_sources = [
-  "${aafwk_path}/services/abilitymgr/src/ability_connect_callback_stub.cpp",
-  "${aafwk_path}/services/abilitymgr/src/stop_user_callback_stub.cpp",
+  "${ability_runtime_path}/services/abilitymgr/src/ability_connect_callback_stub.cpp",
+  "${ability_runtime_path}/services/abilitymgr/src/stop_user_callback_stub.cpp",
   "src/ability_manager_adapter/ability_manager_adapter.cpp",
 ]
 
