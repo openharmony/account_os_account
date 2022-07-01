@@ -57,20 +57,21 @@ ErrCode AppAccountCheckLabelsCallback::CheckLabels()
     if (sessionManager == nullptr) {
         return ERR_APPACCOUNT_SERVICE_OAUTH_SERVICE_EXCEPTION;
     }
+    while (index_ < accounts_.size()) {
+        AppAccountInfo account = accounts_[index_];
+        AuthenticatorSessionRequest newRequest = request_;
+        account.GetOwner(newRequest.owner);
+        account.GetName(newRequest.name);
+        newRequest.callback = this;
+        if (sessionManager->CheckAccountLabels(newRequest) == ERR_OK) {
+            break;
+        }
+        index_++;
+    }
     if (index_ >= accounts_.size()) {
         SendResult(ERR_JS_SUCCESS);
         sessionManager->CloseSession(sessionId_);
         return ERR_OK;
-    }
-    AppAccountInfo account = accounts_[index_];
-    AuthenticatorSessionRequest newRequest = request_;
-    account.GetOwner(newRequest.owner);
-    account.GetName(newRequest.name);
-    newRequest.callback = this;
-    ErrCode result = sessionManager->CheckAccountLabels(newRequest);
-    if (result != ERR_OK) {
-        SendResult(ERR_JS_OAUTH_SERVICE_EXCEPTION);
-        sessionManager->CloseSession(sessionId_);
     }
     return ERR_OK;
 }
