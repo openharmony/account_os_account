@@ -16,7 +16,7 @@ import("//build/ohos.gni")
 
 config("tools_acm_config") {
   include_dirs = [
-    "${aafwk_path}/services/common/include",
+    "${ability_runtime_path}/services/common/include",
     "include",
   ]
 
@@ -28,13 +28,13 @@ config("tools_acm_config") {
 
 ohos_source_set("tools_acm_source_set") {
   sources = [
-    "${aafwk_path}/tools/aa/src/shell_command.cpp",
+    "${ability_runtime_path}/tools/aa/src/shell_command.cpp",
     "src/account_command.cpp",
     "src/main.cpp",
   ]
 
   public_configs = [
-    "${aafwk_path}/tools/aa:ability_command_config",
+    "${ability_runtime_path}/tools/aa:ability_command_config",
     ":tools_acm_config",
   ]
 

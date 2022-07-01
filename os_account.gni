@@ -12,7 +12,7 @@
 # limitations under the License.
 
 os_account_path = "//base/account/os_account"
-aafwk_path = "//foundation/ability/ability_runtime"
+ability_runtime_path = "//foundation/ability/ability_runtime"
 bundle_framework_path = "//foundation/bundlemanager/bundle_framework"
 common_path = "${os_account_path}/frameworks/common"
 services_path = "${os_account_path}/services"
