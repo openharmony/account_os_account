@@ -116,6 +116,9 @@ ohos_shared_library("accountmgr") {
     "-Wfloat-equal",
     "-Wshadow",
   ]
+  if (os_account_multiple_active_accounts) {
+    cflags += [ "-DENABLE_MULTIPLE_ACTIVE_ACCOUNTS" ]
+  }
 
   sources = [
     "${os_account_dfx_path}/hidumper_adapter/account_dump_helper.cpp",

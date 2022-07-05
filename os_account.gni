@@ -72,3 +72,7 @@ if (!defined(global_parts_info) ||
 } else {
   has_hiviewdfx_hitrace_part = false
 }
+
+declare_args() {
+  os_account_multiple_active_accounts = false
+}
