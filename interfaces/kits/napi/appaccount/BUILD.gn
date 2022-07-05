@@ -21,7 +21,7 @@ config("appaccount_kit_config") {
     "//third_party/node/src",
     "//foundation/arkui/napi/interfaces/kits",
     "${app_account_kits_path}/include",
-    "${ability_runtime_path}/frameworks/js/napi/aafwk/inner/napi_common",
+    "${ability_runtime_napi_path}/inner/napi_common",
   ]
 
   cflags = []
@@ -51,7 +51,7 @@ ohos_shared_library("appaccount") {
   ]
 
   deps = [
-    "${ability_runtime_path}/frameworks/js/napi/aafwk/inner/napi_common:napi_common",
+    "${ability_runtime_napi_path}/inner/napi_common:napi_common",
     "${app_account_services_path}:accountmgr",
     "${app_account_services_path}/src/appaccount:app_account_service_core",
     "${common_path}:libaccount_common",
