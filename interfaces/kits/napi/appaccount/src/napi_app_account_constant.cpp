@@ -26,9 +26,9 @@ napi_value NapiAppAccountConstant::Init(napi_env env, napi_value exports)
 {
     ACCOUNT_LOGI("enter");
     napi_value resultCode = nullptr;
-    napi_value constant = nullptr;
+    napi_value constants = nullptr;
     napi_create_object(env, &resultCode);
-    napi_create_object(env, &constant);
+    napi_create_object(env, &constants);
 
     SetNamedProperty(env, resultCode, ERR_JS_SUCCESS, "SUCCESS");
     SetNamedProperty(env, resultCode, ERR_JS_ACCOUNT_NOT_EXIST, "ERROR_ACCOUNT_NOT_EXIST");
@@ -50,22 +50,22 @@ napi_value NapiAppAccountConstant::Init(napi_env env, napi_value exports)
     SetNamedProperty(env, resultCode, ERR_JS_OAUTH_UNSUPPORT_AUTH_TYPE, "ERROR_OAUTH_UNSUPPORT_AUTH_TYPE");
     SetNamedProperty(env, resultCode, ERR_JS_PERMISSION_DENIED, "ERROR_PERMISSION_DENIED");
 
-    SetNamedProperty(env, constant, Constants::OAUTH_ACTION_ADD_ACCOUNT_IMPLICITLY.c_str(),
+    SetNamedProperty(env, constants, Constants::OAUTH_ACTION_ADD_ACCOUNT_IMPLICITLY.c_str(),
         "ACTION_ADD_ACCOUNT_IMPLICITLY");
-    SetNamedProperty(env, constant, Constants::OAUTH_ACTION_AUTHENTICATE.c_str(), "ACTION_AUTHENTICATE");
-    SetNamedProperty(env, constant, Constants::KEY_NAME.c_str(), "KEY_NAME");
-    SetNamedProperty(env, constant, Constants::KEY_OWNER.c_str(), "KEY_OWNER");
-    SetNamedProperty(env, constant, Constants::KEY_TOKEN.c_str(), "KEY_TOKEN");
-    SetNamedProperty(env, constant, Constants::KEY_ACTION.c_str(), "KEY_ACTION");
-    SetNamedProperty(env, constant, Constants::KEY_AUTH_TYPE.c_str(), "KEY_AUTH_TYPE");
-    SetNamedProperty(env, constant, Constants::KEY_SESSION_ID.c_str(), "KEY_SESSION_ID");
-    SetNamedProperty(env, constant, Constants::KEY_CALLER_BUNDLE_NAME.c_str(), "KEY_CALLER_BUNDLE_NAME");
-    SetNamedProperty(env, constant, Constants::KEY_CALLER_PID.c_str(), "KEY_CALLER_PID");
-    SetNamedProperty(env, constant, Constants::KEY_CALLER_UID.c_str(), "KEY_CALLER_UID");
+    SetNamedProperty(env, constants, Constants::OAUTH_ACTION_AUTHENTICATE.c_str(), "ACTION_AUTHENTICATE");
+    SetNamedProperty(env, constants, Constants::KEY_NAME.c_str(), "KEY_NAME");
+    SetNamedProperty(env, constants, Constants::KEY_OWNER.c_str(), "KEY_OWNER");
+    SetNamedProperty(env, constants, Constants::KEY_TOKEN.c_str(), "KEY_TOKEN");
+    SetNamedProperty(env, constants, Constants::KEY_ACTION.c_str(), "KEY_ACTION");
+    SetNamedProperty(env, constants, Constants::KEY_AUTH_TYPE.c_str(), "KEY_AUTH_TYPE");
+    SetNamedProperty(env, constants, Constants::KEY_SESSION_ID.c_str(), "KEY_SESSION_ID");
+    SetNamedProperty(env, constants, Constants::KEY_CALLER_BUNDLE_NAME.c_str(), "KEY_CALLER_BUNDLE_NAME");
+    SetNamedProperty(env, constants, Constants::KEY_CALLER_PID.c_str(), "KEY_CALLER_PID");
+    SetNamedProperty(env, constants, Constants::KEY_CALLER_UID.c_str(), "KEY_CALLER_UID");
 
     napi_property_descriptor exportFuncs[] = {
         DECLARE_NAPI_PROPERTY("ResultCode", resultCode),
-        DECLARE_NAPI_PROPERTY("Constant", constant),
+        DECLARE_NAPI_PROPERTY("Constants", constants),
     };
     napi_define_properties(env, exports, sizeof(exportFuncs) / sizeof(*exportFuncs), exportFuncs);
 
