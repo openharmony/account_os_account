@@ -85,12 +85,14 @@ public:
 
 private:
     void StartAccount();
+    void RestartActiveAccount();
     void CreateBaseAdminAccount();
     void CreateBaseStandardAccount();
     void CreateBaseStandardAccountSendToOther();
     void StartBaseStandardAccount(void);
-    void DeActivateOsAccount(const int id);
     void ResetActiveStatus(void);
+    void StartActivatedAccount(int32_t id);
+    ErrCode DeActivateOsAccount(const int id);
     ErrCode GetEventHandler(void);
     ErrCode PrepareOsAccountInfo(const std::string &name, const OsAccountType &type,
         const DomainAccountInfo &domainAccount, OsAccountInfo &osAccountInfo);
@@ -105,7 +107,8 @@ private:
     ErrCode DealWithDeviceOwnerId(const bool isDeviceOwner, const int32_t localId);
 
     // operations for active list
-    void PushIDIntoActiveList(int32_t id);
+    void PushIdIntoActiveList(int32_t id);
+    void EraseIdFromActiveList(int32_t id);
     bool IsOsAccountIDInActiveList(int32_t id);
     void CopyFromActiveList(std::vector<int32_t>& idList);
     void RefreshActiveList(int32_t newId);
@@ -117,6 +120,7 @@ private:
     std::shared_ptr<IOsAccountSubscribe> subscribeManagerPtr_;
     std::int32_t counterForStandard_;
     std::int32_t counterForStandardCreate_;
+    std::int32_t counterForAccountStart_;
     std::int32_t deviceOwnerId_;
     bool isSendToStorageCreate_;
     bool isSendToStorageStart_;
