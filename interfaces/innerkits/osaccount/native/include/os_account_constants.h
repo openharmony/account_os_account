@@ -22,7 +22,7 @@ namespace OHOS {
 namespace AccountSA {
 namespace Constants {
 const std::string PATH_SEPARATOR = "/";
-const std::string USER_INFO_BASE = "/data/system/users";
+const std::string USER_INFO_BASE = "/data/service/el1/public/account";
 const std::string SYSTEM_ETC_BASE = "/system/etc/account";
 const std::string OSACCOUNT_CONSTRAINTS_JSON_PATH = SYSTEM_ETC_BASE + PATH_SEPARATOR + "osaccount_constraints.json";
 const std::string CONSTRAINTS_LIST_JSON_PATH = SYSTEM_ETC_BASE + PATH_SEPARATOR + "constraints_list_collection.json";

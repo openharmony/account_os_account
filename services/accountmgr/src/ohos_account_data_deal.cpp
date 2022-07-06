@@ -89,6 +89,9 @@ ErrCode OhosAccountDataDeal::AccountInfoFromJson(AccountInfo &accountInfo, const
     if (!FileExists(configFile)) {
         ACCOUNT_LOGI("file %{public}s not exist, create!", configFile.c_str());
         BuildJsonFileFromScratch(userId); // create default config file for first login
+#ifdef WITH_SELINUX
+        Restorecon(configFile.c_str());
+#endif // WITH_SELINUX
     }
     std::ifstream fin(configFile);
     if (!fin) {
