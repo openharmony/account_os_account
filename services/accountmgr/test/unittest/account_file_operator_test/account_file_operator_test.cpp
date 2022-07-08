@@ -23,9 +23,9 @@
 namespace OHOS {
 namespace AccountSA {
 namespace {
-const std::string TEST_DIR_1 = "/data/system/users/1";
+const std::string TEST_DIR_1 = "/data/service/el1/public/account/1";
 const std::string TEST_FILE_1 = "1.txt";
-const std::string TEST_DIR_2 = "/data/system/users/2";
+const std::string TEST_DIR_2 = "/data/service/el1/public/account/2";
 }
 using namespace testing::ext;
 using namespace OHOS::AccountSA;
