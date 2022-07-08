@@ -76,7 +76,7 @@ public:
     static ErrCode VerifyCredential(const std::string &name, const std::string &owner,
         const VerifyCredentialOptions &options, const sptr<IAppAccountAuthenticatorCallback> &callback);
     static ErrCode CheckAccountLabels(const std::string &name, const std::string &owner,
-        const std::vector<std::string> labels, const sptr<IAppAccountAuthenticatorCallback> &callback);
+        const std::vector<std::string> &labels, const sptr<IAppAccountAuthenticatorCallback> &callback);
     static ErrCode SetAuthenticatorProperties(const std::string &owner,
         const SetPropertiesOptions &options, const sptr<IAppAccountAuthenticatorCallback> &callback);
 

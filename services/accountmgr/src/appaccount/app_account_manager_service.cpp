@@ -428,6 +428,10 @@ ErrCode AppAccountManagerService::CheckAppAccess(
         ACCOUNT_LOGE("failed to get bundle name");
         return result;
     }
+    if (authorizedApp == bundleName) {
+        isAccessible = true;
+        return ERR_OK;
+    }
     return innerManager_->CheckAppAccess(name, authorizedApp, isAccessible, callingUid, bundleName);
 }
 

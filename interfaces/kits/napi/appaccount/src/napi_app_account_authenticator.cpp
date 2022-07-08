@@ -351,6 +351,12 @@ void NapiAppAccountAuthenticator::CheckAccountLabelsWork(uv_work_t *work, int st
     napi_value jsName;
     napi_create_string_utf8(param->env, param->name.c_str(), NAPI_AUTO_LENGTH, &jsName);
     napi_value jsLabels = nullptr;
+    napi_create_array(param->env, &jsLabels);
+    for (size_t i = 0; i < param->labels.size(); ++i) {
+        napi_value value = nullptr;
+        napi_create_string_utf8(param->env, param->labels[i].c_str(), NAPI_AUTO_LENGTH, &value);
+        napi_set_element(param->env, jsLabels, i, value);
+    }
     napi_value jsCallback;
     CreateAuthenticatorCallback(param->env, param->callback, &jsCallback);
     napi_value argv[] = {jsName, jsLabels, jsCallback};

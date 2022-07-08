@@ -348,7 +348,7 @@ ErrCode AppAccount::VerifyCredential(const std::string &name, const std::string 
 }
 
 ErrCode AppAccount::CheckAccountLabels(const std::string &name, const std::string &owner,
-    const std::vector<std::string> labels, const sptr<IAppAccountAuthenticatorCallback> &callback)
+    const std::vector<std::string> &labels, const sptr<IAppAccountAuthenticatorCallback> &callback)
 {
     ACCOUNT_LOGD("enter");
     if (callback == nullptr) {
