@@ -231,7 +231,7 @@ ErrCode AppAccountManager::VerifyCredential(const std::string &name, const std::
 }
 
 ErrCode AppAccountManager::CheckAccountLabels(const std::string &name, const std::string &owner,
-    const std::vector<std::string> labels, const sptr<IAppAccountAuthenticatorCallback> &callback)
+    const std::vector<std::string> &labels, const sptr<IAppAccountAuthenticatorCallback> &callback)
 {
     return DelayedSingleton<AppAccount>::GetInstance()->CheckAccountLabels(name, owner, labels, callback);
 }
