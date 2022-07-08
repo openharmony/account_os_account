@@ -25,7 +25,7 @@
 
 namespace OHOS {
 namespace AccountSA {
-const std::string ACCOUNT_CFG_DIR_ROOT_PATH = "/data/system/users/";
+const std::string ACCOUNT_CFG_DIR_ROOT_PATH = "/data/service/el1/public/account/";
 
 class OhosAccountManager;
 using OhosAccountEventFunc = bool (OhosAccountManager::*)(const std::string &name, const std::string &uid,

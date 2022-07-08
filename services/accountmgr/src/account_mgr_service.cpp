@@ -36,7 +36,7 @@ namespace AccountSA {
 namespace {
 const bool REGISTER_RESULT =
     SystemAbility::MakeAndRegisterAbility(&DelayedRefSingleton<AccountMgrService>::GetInstance());
-const std::string DEVICE_OWNER_DIR = "/data/system/users/0/";
+const std::string DEVICE_OWNER_DIR = "/data/service/el1/public/account/0/";
 void CreateDeviceDir()
 {
     if (!OHOS::FileExists(DEVICE_OWNER_DIR)) {
