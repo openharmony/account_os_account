@@ -22,7 +22,6 @@
 #include "app_account_info.h"
 #include "app_account_subscribe_manager.h"
 #include "bundle_manager_adapter.h"
-#include "hitrace_adapter.h"
 #include "ipc_skeleton.h"
 #include "iservice_registry.h"
 #include "ohos_account_kits.h"

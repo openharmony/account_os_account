@@ -43,7 +43,6 @@ config("accountmgr_config") {
     "${common_path}/account_error/include",
     "${innerkits_path}/include",
     "${os_account_dfx_path}/hidumper_adapter",
-    "${os_account_dfx_path}/hitrace_adapter",
     "${os_account_dfx_path}/hisysevent_adapter",
     "//third_party/json/include",
     "//third_party/mbedtls/include",
@@ -123,7 +122,6 @@ ohos_shared_library("accountmgr") {
   sources = [
     "${os_account_dfx_path}/hidumper_adapter/account_dump_helper.cpp",
     "${os_account_dfx_path}/hisysevent_adapter/hisysevent_adapter.cpp",
-    "${os_account_dfx_path}/hitrace_adapter/hitrace_adapter.cpp",
     "src/account_data_storage.cpp",
     "src/account_event_provider.cpp",
     "src/account_file_operator.cpp",
@@ -231,10 +229,7 @@ ohos_shared_library("accountmgr") {
     external_deps += [ "hisysevent_native:libhisysevent" ]
   }
 
-  if (has_hiviewdfx_hitrace_part) {
-    cflags_cc += [ "-DHAS_HITRACE_PART" ]
-    external_deps += [ "hitrace_native:hitrace_meter" ]
-  }
+  external_deps += [ "hitrace_native:hitrace_meter" ]
 
   part_name = "os_account"
 }

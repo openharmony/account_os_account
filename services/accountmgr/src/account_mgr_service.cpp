@@ -23,7 +23,7 @@
 #include "directory_ex.h"
 #include "file_ex.h"
 #include "hisysevent_adapter.h"
-#include "hitrace_adapter.h"
+#include "hitrace_meter.h"
 #include "if_system_ability_manager.h"
 #include "ipc_skeleton.h"
 #include "iservice_registry.h"
@@ -126,14 +126,15 @@ void AccountMgrService::OnStart()
         return;
     }
 
-    InitHiTrace();
-    HiTraceAdapterSyncTrace tracer("accountmgr service onstart");
-    ValueTrace("activeid", -1);
+    UpdateTraceLabel();
+    StartTrace(HITRACE_TAG_ACCOUNT_MANAGER, "accountmgr service onstart");
+    CountTrace(HITRACE_TAG_ACCOUNT_MANAGER, "activeid", -1);
 
     PerfStat::GetInstance().SetInstanceStartTime(GetTickCount());
     ACCOUNT_LOGI("start is triggered");
     if (!Init()) {
         ACCOUNT_LOGE("failed to init AccountMgrService");
+        FinishTrace(HITRACE_TAG_ACCOUNT_MANAGER);
         return;
     }
     state_ = ServiceRunningState::STATE_RUNNING;
@@ -141,6 +142,7 @@ void AccountMgrService::OnStart()
     // create and start basic accounts
     osAccountManagerServiceOrg_->CreateBasicAccounts();
     ACCOUNT_LOGI("AccountMgrService::OnStart start service finished.");
+    FinishTrace(HITRACE_TAG_ACCOUNT_MANAGER);
 }
 
 void AccountMgrService::OnStop()
