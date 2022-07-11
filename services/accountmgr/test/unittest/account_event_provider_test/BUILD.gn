@@ -25,7 +25,6 @@ config("accountmgr_event_provider_test_config") {
     "${common_path}/log/include",
     "${common_path}/perf_stat/include",
     "${common_path}/account_error/include",
-    "${os_account_dfx_path}/hitrace_adapter",
     "${services_path}/accountmgr/include",
     "${innerkits_path}/include",
     "//third_party/json/include",
@@ -39,7 +38,6 @@ ohos_unittest("AccountEventProviderTest") {
   cflags_cc = []
   sources = [
     "${common_path}/log/src/account_log_wrapper.cpp",
-    "${os_account_dfx_path}/hitrace_adapter/hitrace_adapter.cpp",
     "${services_path}/accountmgr/src/account_event_provider.cpp",
   ]
   sources += [ "account_event_provider_test.cpp" ]
@@ -77,10 +75,7 @@ ohos_unittest("AccountEventProviderTest") {
     external_deps += [ "hisysevent_native:libhisysevent" ]
   }
 
-  if (has_hiviewdfx_hitrace_part) {
-    cflags_cc += [ "-DHAS_HITRACE_PART" ]
-    external_deps += [ "hitrace_native:hitrace_meter" ]
-  }
+  external_deps += [ "hitrace_native:hitrace_meter" ]
 
   part_name = "os_account"
 }
