@@ -80,7 +80,7 @@ public:
     ErrCode VerifyCredential(const std::string &name, const std::string &owner,
         const VerifyCredentialOptions &options, const sptr<IAppAccountAuthenticatorCallback> &callback);
     ErrCode CheckAccountLabels(const std::string &name, const std::string &owner,
-        const std::vector<std::string> labels, const sptr<IAppAccountAuthenticatorCallback> &callback);
+        const std::vector<std::string> &labels, const sptr<IAppAccountAuthenticatorCallback> &callback);
     ErrCode SetAuthenticatorProperties(const std::string &owner,
         const SetPropertiesOptions &options, const sptr<IAppAccountAuthenticatorCallback> &callback);
 
