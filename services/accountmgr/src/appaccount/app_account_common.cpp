@@ -129,13 +129,33 @@ bool SetPropertiesOptions::ReadFromParcel(Parcel &parcel)
     return true;
 }
 
+int32_t ConvertOtherJSErrCode(int32_t errCode)
+{
+    switch (errCode) {
+        case ERR_OK:
+            return ERR_JS_SUCCESS;
+        case ERR_APPACCOUNT_SERVICE_ACCOUNT_NOT_EXIST:
+            return ERR_JS_ACCOUNT_NOT_EXIST;
+        case ERR_APPACCOUNT_SERVICE_OAUTH_AUTHENTICATOR_NOT_EXIST:
+            return ERR_JS_OAUTH_AUTHENTICATOR_NOT_EXIST;
+        case ERR_APPACCOUNT_SERVICE_OAUTH_BUSY:
+            return ERR_JS_OAUTH_SERVICE_BUSY;
+        case ERR_APPACCOUNT_SERVICE_OAUTH_LIST_MAX_SIZE:
+            return ERR_JS_OAUTH_LIST_TOO_LARGE;
+        case ERR_APPACCOUNT_SERVICE_OAUTH_SESSION_NOT_EXIST:
+            return ERR_JS_OAUTH_SESSION_NOT_EXIST;
+        case ERR_APPACCOUNT_SERVICE_OAUTH_TOKEN_NOT_EXIST:
+            return ERR_JS_OAUTH_TOKEN_NOT_EXIST;
+        case ERR_APPACCOUNT_SERVICE_OAUTH_TOKEN_MAX_SIZE:
+            return ERR_JS_OAUTH_TOKEN_TOO_MANY;
+        default:
+            return ERR_JS_APP_ACCOUNT_SERVICE_EXCEPTION;
+    }
+}
+
 int32_t ConvertToJSErrCode(int32_t errCode)
 {
-    if (errCode == ERR_OK) {
-        return ERR_JS_SUCCESS;
-    } else if (errCode == ERR_APPACCOUNT_SERVICE_ACCOUNT_NOT_EXIST) {
-        return ERR_JS_ACCOUNT_NOT_EXIST;
-    } else if ((errCode >= ERR_APPACCOUNT_KIT_NAME_IS_EMPTY && errCode <= ERR_APPACCOUNT_KIT_SEND_REQUEST) ||
+    if ((errCode >= ERR_APPACCOUNT_KIT_NAME_IS_EMPTY && errCode <= ERR_APPACCOUNT_KIT_SEND_REQUEST) ||
         (errCode >= ERR_APPACCOUNT_SERVICE_NAME_IS_EMPTY && errCode <= ERR_APPACCOUNT_SERVICE_INVALID_PARAMETER) ||
         (errCode >= ERR_APPACCOUNT_SERVICE_ADD_EXISTING_ACCOUNT &&
         errCode <= ERR_APPACCOUNT_SERVICE_DISABLE_APP_ACCESS_NOT_EXISTED)) {
@@ -145,23 +165,11 @@ int32_t ConvertToJSErrCode(int32_t errCode)
         (errCode == ERR_APPACCOUNT_SERVICE_OAUTH_INVALID_RESPONSE) ||
         (errCode == ERR_APPACCOUNT_SERVICE_OAUTH_AUTHENTICATOR_CALLBACK_NOT_EXIST)) {
         return ERR_JS_INVALID_RESPONSE;
-    } else if (errCode == ERR_APPACCOUNT_SERVICE_OAUTH_AUTHENTICATOR_NOT_EXIST) {
-        return ERR_JS_OAUTH_AUTHENTICATOR_NOT_EXIST;
-    } else if (errCode == ERR_APPACCOUNT_SERVICE_OAUTH_BUSY) {
-        return ERR_JS_OAUTH_SERVICE_BUSY;
-    } else if (errCode == ERR_APPACCOUNT_SERVICE_OAUTH_LIST_MAX_SIZE) {
-        return ERR_JS_OAUTH_LIST_TOO_LARGE;
-    } else if (errCode == ERR_APPACCOUNT_SERVICE_OAUTH_SESSION_NOT_EXIST) {
-        return ERR_JS_OAUTH_SESSION_NOT_EXIST;
-    } else if (errCode == ERR_APPACCOUNT_SERVICE_OAUTH_TOKEN_NOT_EXIST) {
-        return ERR_JS_OAUTH_TOKEN_NOT_EXIST;
-    } else if (errCode == ERR_APPACCOUNT_SERVICE_OAUTH_TOKEN_MAX_SIZE) {
-        return ERR_JS_OAUTH_TOKEN_TOO_MANY;
     } else if (errCode == ERR_APPACCOUNT_SERVICE_PERMISSION_DENIED ||
         errCode == ERR_APPACCOUNT_SERVICE_SUBSCRIBE_PERMISSION_DENIED) {
         return ERR_JS_PERMISSION_DENIED;
     } else {
-        return ERR_JS_APP_ACCOUNT_SERVICE_EXCEPTION;
+        return ConvertOtherJSErrCode(errCode);
     }
 }
 }  // namespace AccountSA
