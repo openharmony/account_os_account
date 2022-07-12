@@ -27,7 +27,6 @@ config("accountmgr_service_test_config") {
     "${innerkits_path}/include",
     "${os_account_dfx_path}/hidumper_adapter",
     "${os_account_dfx_path}/hisysevent_adapter",
-    "${os_account_dfx_path}/hitrace_adapter",
     "${services_path}/accountmgr/include",
     "${services_path}/accountmgr/include/ability_manager_adapter",
     "//third_party/json/include",
@@ -80,7 +79,6 @@ ohos_unittest("account_mgr_test") {
     "${innerkits_native_path}/src/account_proxy.cpp",
     "${os_account_dfx_path}/hidumper_adapter/account_dump_helper.cpp",
     "${os_account_dfx_path}/hisysevent_adapter/hisysevent_adapter.cpp",
-    "${os_account_dfx_path}/hitrace_adapter/hitrace_adapter.cpp",
     "${services_path}/accountmgr/src/account_data_storage.cpp",
     "${services_path}/accountmgr/src/account_event_provider.cpp",
     "${services_path}/accountmgr/src/account_file_operator.cpp",
@@ -171,10 +169,7 @@ ohos_unittest("account_mgr_test") {
     external_deps += [ "hisysevent_native:libhisysevent" ]
   }
 
-  if (has_hiviewdfx_hitrace_part) {
-    cflags_cc += [ "-DHAS_HITRACE_PART" ]
-    external_deps += [ "hitrace_native:hitrace_meter" ]
-  }
+  external_deps += [ "hitrace_native:hitrace_meter" ]
 
   part_name = "os_account"
 }
