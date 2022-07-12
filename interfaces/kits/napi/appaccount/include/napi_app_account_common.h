@@ -180,13 +180,13 @@ struct AuthenticatorCallbackParam {
     AAFwk::Want result;
     AAFwk::Want request;
     JSAuthCallback callback;
-    CommonAsyncContext *context;
+    CommonAsyncContext context;
 };
 
-class CheckAccountLabelsCallback : public AppAccountAuthenticatorCallbackStub {
+class AuthenticatorAsyncCallback : public AppAccountAuthenticatorCallbackStub {
 public:
-    CheckAccountLabelsCallback(napi_env env, napi_ref callbackRef, napi_deferred deferred);
-    ~CheckAccountLabelsCallback();
+    explicit AuthenticatorAsyncCallback(const CommonAsyncContext &context, uv_after_work_cb workCb);
+    ~AuthenticatorAsyncCallback();
 
     void OnResult(int32_t resultCode, const AAFwk::Want &result) override;
     void OnRequestRedirected(AAFwk::Want &request) override;
@@ -195,31 +195,13 @@ public:
 private:
     std::mutex mutex_;
     bool isDone = false;
-    napi_env env_;
-    napi_ref callbackRef_;
-    napi_deferred deferred_;
-};
-
-class SelectAccountsCallback : public AppAccountAuthenticatorCallbackStub {
-public:
-    SelectAccountsCallback(napi_env env, napi_ref callbackRef, napi_deferred deferred);
-    ~SelectAccountsCallback();
-
-    void OnResult(int32_t resultCode, const AAFwk::Want &result) override;
-    void OnRequestRedirected(AAFwk::Want &request) override;
-    void OnRequestContinued() override;
-
-private:
-    std::mutex mutex_;
-    bool isDone = false;
-    napi_env env_;
-    napi_ref callbackRef_;
-    napi_deferred deferred_;
+    CommonAsyncContext context_;
+    uv_after_work_cb workCb_;
 };
 
 class AppAccountManagerCallback : public AppAccountAuthenticatorCallbackStub {
 public:
-    AppAccountManagerCallback(napi_env env, JSAuthCallback callback);
+    explicit AppAccountManagerCallback(napi_env env, JSAuthCallback callback);
     ~AppAccountManagerCallback();
 
     void OnResult(int32_t resultCode, const AAFwk::Want &result) override;
@@ -231,8 +213,8 @@ private:
     JSAuthCallback callback_;
 };
 
-bool InitOnResultWorkEnv(napi_env env, uv_loop_s **loop, uv_work_t **work,
-    AuthenticatorCallbackParam **param, CommonAsyncContext **context);
+bool InitAuthenticatorWorkEnv(
+    napi_env env, uv_loop_s **loop, uv_work_t **work, AuthenticatorCallbackParam **param);
 
 napi_value NapiGetNull(napi_env env);
 
@@ -243,6 +225,12 @@ void SetNamedProperty(napi_env env, napi_value dstObj, const char *objName, cons
 void SetNamedProperty(napi_env env, napi_value dstObj, const int32_t objValue, const char *propName);
 
 napi_value GetErrorCodeValue(napi_env env, int errCode);
+
+uint32_t GetArrayLength(napi_env env, napi_value value);
+
+void CheckAccountLabelsOnResultWork(uv_work_t *work, int status);
+
+void SelectAccountsOnResultWork(uv_work_t *work, int status);
 
 void GetAppAccountInfoForResult(napi_env env, const std::vector<AppAccountInfo> &info, napi_value result);
 
@@ -325,6 +313,9 @@ void ParseContextForCheckAccountLabels(napi_env env, napi_callback_info info, Ch
 
 void UnsubscribeExecuteCB(napi_env env, void *data);
 void UnsubscribeCallbackCompletedCB(napi_env env, napi_status status, void *data);
+void VerifyCredCompleteCB(napi_env env, napi_status status, void *data);
+void ProcessOnResultCallback(
+    napi_env env, JSAuthCallback &callback, int32_t resultCode, const AAFwk::WantParams &result);
 }  // namespace AccountJsKit
 }  // namespace OHOS
 
