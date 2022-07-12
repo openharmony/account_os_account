@@ -250,7 +250,9 @@ ErrCode MockAppAccountStub::CheckAppAccess(
     const std::string &name, const std::string &authorizedApp, bool &isAccessible)
 {
     ACCOUNT_LOGD("mock enter");
-
+    (void) name;
+    (void) authorizedApp;
+    (void) isAccessible;
     return ERR_OK;
 }
 
