@@ -16,7 +16,7 @@
 #include "account_error_no.h"
 #include "account_log_wrapper.h"
 #include "hisysevent_adapter.h"
-#include "hitrace_adapter.h"
+#include "hitrace_meter.h"
 #include "if_system_ability_manager.h"
 #include "iservice_registry.h"
 #include "system_ability_definition.h"
@@ -54,8 +54,10 @@ bool BundleManagerAdapter::GetBundleNameForUid(const int uid, std::string &bundl
         ACCOUNT_LOGE("failed to connect bundle manager service.");
         return false;
     }
-    HiTraceAdapterSyncTrace tracer("Bundle manager service, GetBundleNameForUid");
-    return proxy_->GetBundleNameForUid(uid, bundleName);
+    StartTrace(HITRACE_TAG_ACCOUNT_MANAGER, "Bundle manager service, GetBundleNameForUid");
+    auto ret = proxy_->GetBundleNameForUid(uid, bundleName);
+    FinishTrace(HITRACE_TAG_ACCOUNT_MANAGER);
+    return ret;
 }
 
 int BundleManagerAdapter::GetUidByBundleName(const std::string &bundleName, const int userId)
@@ -67,8 +69,10 @@ int BundleManagerAdapter::GetUidByBundleName(const std::string &bundleName, cons
         ACCOUNT_LOGE("failed to connect bundle manager service.");
         return result;
     }
-    HiTraceAdapterSyncTrace tracer("Bundle manager service, GetUidByBundleName");
-    return proxy_->GetUidByBundleName(bundleName, userId);
+    StartTrace(HITRACE_TAG_ACCOUNT_MANAGER, "Bundle manager service, GetUidByBundleName");
+    auto ret = proxy_->GetUidByBundleName(bundleName, userId);
+    FinishTrace(HITRACE_TAG_ACCOUNT_MANAGER);
+    return ret;
 }
 
 bool BundleManagerAdapter::GetBundleInfo(const std::string &bundleName, const AppExecFwk::BundleFlag flag,
@@ -81,8 +85,10 @@ bool BundleManagerAdapter::GetBundleInfo(const std::string &bundleName, const Ap
         ACCOUNT_LOGE("failed to connect bundle manager service.");
         return false;
     }
-    HiTraceAdapterSyncTrace tracer("Bundle manager service, GetBundleInfo");
-    return proxy_->GetBundleInfo(bundleName, flag, bundleInfo, userId);
+    StartTrace(HITRACE_TAG_ACCOUNT_MANAGER, "Bundle manager service, GetBundleInfo");
+    auto ret = proxy_->GetBundleInfo(bundleName, flag, bundleInfo, userId);
+    FinishTrace(HITRACE_TAG_ACCOUNT_MANAGER);
+    return ret;
 }
 
 bool BundleManagerAdapter::QueryAbilityInfos(const AAFwk::Want &want, int32_t flags, int32_t userId,
@@ -94,9 +100,10 @@ bool BundleManagerAdapter::QueryAbilityInfos(const AAFwk::Want &want, int32_t fl
         ACCOUNT_LOGE("failed to connect bundle manager service.");
         return false;
     }
-
-    HiTraceAdapterSyncTrace tracer("Bundle manager service, QueryAbilityInfos");
-    return proxy_->QueryAbilityInfos(want, flags, userId, abilityInfos);
+    StartTrace(HITRACE_TAG_ACCOUNT_MANAGER, "Bundle manager service, QueryAbilityInfos");
+    auto ret = proxy_->QueryAbilityInfos(want, flags, userId, abilityInfos);
+    FinishTrace(HITRACE_TAG_ACCOUNT_MANAGER);
+    return ret;
 }
 
 bool BundleManagerAdapter::QueryExtensionAbilityInfos(const AAFwk::Want &want, const int32_t &flag,
@@ -108,9 +115,10 @@ bool BundleManagerAdapter::QueryExtensionAbilityInfos(const AAFwk::Want &want, c
         ACCOUNT_LOGE("failed to connect bundle manager service.");
         return false;
     }
-
-    HiTraceAdapterSyncTrace tracer("Bundle manager service, QueryExtensionAbilityInfos");
-    return proxy_->QueryExtensionAbilityInfos(want, flag, userId, extensionInfos);
+    StartTrace(HITRACE_TAG_ACCOUNT_MANAGER, "Bundle manager service, QueryExtensionAbilityInfos");
+    auto ret = proxy_->QueryExtensionAbilityInfos(want, flag, userId, extensionInfos);
+    FinishTrace(HITRACE_TAG_ACCOUNT_MANAGER);
+    return ret;
 }
 
 ErrCode BundleManagerAdapter::CreateNewUser(int32_t userId)
@@ -136,10 +144,10 @@ ErrCode BundleManagerAdapter::CreateNewUser(int32_t userId)
             "GetBundleUserMgr from BundleManager proxy failed!");
         return ERR_OSACCOUNT_SERVICE_INTERFACE_TO_BM_ACCOUNT_CREATE_ERROR;
     }
-
-    HiTraceAdapterSyncTrace tracer("BundleManageService CreateNewUser");
+    StartTrace(HITRACE_TAG_ACCOUNT_MANAGER, "BundleManageService CreateNewUser");
     bundleUserMgrProxy->CreateNewUser(userId);
     ACCOUNT_LOGI("call bm to create user ok, userId %{public}d.", userId);
+    FinishTrace(HITRACE_TAG_ACCOUNT_MANAGER);
     return ERR_OK;
 }
 
@@ -164,10 +172,10 @@ ErrCode BundleManagerAdapter::RemoveUser(int32_t userId)
             "GetBundleUserMgr from BundleManager proxy failed!");
         return ERR_OSACCOUNT_SERVICE_INTERFACE_TO_BM_ACCOUNT_DELETE_ERROR;
     }
-
-    HiTraceAdapterSyncTrace tracer("BundleManageService RemoveUser");
+    StartTrace(HITRACE_TAG_ACCOUNT_MANAGER, "BundleManageService RemoveUser");
     bundleUserMgrProxy->RemoveUser(userId);
     ACCOUNT_LOGI("call bm to remove user ok. userId %{public}d.", userId);
+    FinishTrace(HITRACE_TAG_ACCOUNT_MANAGER);
     return ERR_OK;
 }
 
@@ -175,36 +183,42 @@ ErrCode BundleManagerAdapter::Connect()
 {
     ACCOUNT_LOGI("bundle manager connect begin");
     if (proxy_ == nullptr) {
-        HiTraceAdapterSyncTrace tracer("Connect Bundle Manager Service");
+        StartTrace(HITRACE_TAG_ACCOUNT_MANAGER, "Connect Bundle Manager Service");
         sptr<ISystemAbilityManager> systemAbilityManager =
             SystemAbilityManagerClient::GetInstance().GetSystemAbilityManager();
         if (systemAbilityManager == nullptr) {
             ACCOUNT_LOGE("failed to get system ability manager");
+            FinishTrace(HITRACE_TAG_ACCOUNT_MANAGER);
             return ERR_ACCOUNT_COMMON_CONNECT_BUNDLE_MANAGER_SERVICE_ERROR;
         }
 
         sptr<IRemoteObject> remoteObj = systemAbilityManager->GetSystemAbility(BUNDLE_MGR_SERVICE_SYS_ABILITY_ID);
         if (remoteObj == nullptr) {
             ACCOUNT_LOGE("Fail to connect bundle manager service.");
+            FinishTrace(HITRACE_TAG_ACCOUNT_MANAGER);
             return ERR_ACCOUNT_COMMON_CONNECT_BUNDLE_MANAGER_SERVICE_ERROR;
         }
 
         deathRecipient_ = sptr<IRemoteObject::DeathRecipient>(new (std::nothrow) BundleMgrDeathRecipient());
         if (deathRecipient_ == nullptr) {
             ACCOUNT_LOGE("Failed to create BundleMgrDeathRecipient!");
+            FinishTrace(HITRACE_TAG_ACCOUNT_MANAGER);
             return ERR_ACCOUNT_COMMON_CONNECT_BUNDLE_MANAGER_SERVICE_ERROR;
         }
 
         if ((remoteObj->IsProxyObject()) && (!remoteObj->AddDeathRecipient(deathRecipient_))) {
             ACCOUNT_LOGE("Add death recipient to AbilityManagerService failed.");
+            FinishTrace(HITRACE_TAG_ACCOUNT_MANAGER);
             return ERR_ACCOUNT_COMMON_CONNECT_BUNDLE_MANAGER_SERVICE_ERROR;
         }
 
         proxy_ = iface_cast<AppExecFwk::IBundleMgr>(remoteObj);
         if (proxy_ == nullptr) {
             ACCOUNT_LOGE("failed to get bundle mgr service remote object");
+            FinishTrace(HITRACE_TAG_ACCOUNT_MANAGER);
             return ERR_ACCOUNT_COMMON_CONNECT_BUNDLE_MANAGER_SERVICE_ERROR;
         }
+        FinishTrace(HITRACE_TAG_ACCOUNT_MANAGER);
     }
 
     ACCOUNT_LOGI("bundle manager connect end");

@@ -25,7 +25,7 @@
 #endif // HAS_CES_PART
 #include "datetime_ex.h"
 #include "hisysevent_adapter.h"
-#include "hitrace_adapter.h"
+#include "hitrace_meter.h"
 #include "if_system_ability_manager.h"
 #include "iservice_registry.h"
 #include "istorage_manager.h"
@@ -47,15 +47,17 @@ namespace AccountSA {
 ErrCode OsAccountInterface::SendToAMSAccountStart(OsAccountInfo &osAccountInfo)
 {
     ACCOUNT_LOGI("start");
-    HiTraceAdapterSyncTrace tracer("AbilityManagerAdapter StartUser");
+    StartTrace(HITRACE_TAG_ACCOUNT_MANAGER, "AbilityManagerAdapter StartUser");
     ErrCode code = AAFwk::AbilityManagerAdapter::GetInstance()->StartUser(osAccountInfo.GetLocalId());
     if (code != ERR_OK) {
         ACCOUNT_LOGE("AbilityManagerAdapter StartUser failed! errcode is %{public}d", code);
         ReportAccountOperationFail(osAccountInfo.GetLocalId(), code, "activate",
             "AbilityManagerAdapter StartUser failed!");
+        FinishTrace(HITRACE_TAG_ACCOUNT_MANAGER);
         return ERR_OSACCOUNT_SERVICE_INTERFACE_TO_AM_ACCOUNT_START_ERROR;
     }
     ACCOUNT_LOGI("end, succeed!");
+    FinishTrace(HITRACE_TAG_ACCOUNT_MANAGER);
     return ERR_OK;
 }
 
@@ -71,13 +73,13 @@ ErrCode OsAccountInterface::SendToAMSAccountStop(OsAccountInfo &osAccountInfo)
             "malloc for OsAccountStopUserCallback failed!");
         return ERR_ACCOUNT_COMMON_INSUFFICIENT_MEMORY_ERROR;
     }
-
-    HiTraceAdapterSyncTrace tracer("AbilityManagerAdapter StopUser");
+    StartTrace(HITRACE_TAG_ACCOUNT_MANAGER, "AbilityManagerAdapter StopUser");
     ErrCode code = AAFwk::AbilityManagerAdapter::GetInstance()->StopUser(osAccountInfo.GetLocalId(),
         osAccountStopUserCallback);
     if (code != ERR_OK) {
         ACCOUNT_LOGE("failed to AbilityManagerAdapter stop errcode is %{public}d", code);
         ReportAccountOperationFail(osAccountInfo.GetLocalId(), code, "stop", "AbilityManagerService StopUser failed!");
+        FinishTrace(HITRACE_TAG_ACCOUNT_MANAGER);
         return ERR_OSACCOUNT_SERVICE_INTERFACE_TO_AM_ACCOUNT_START_ERROR;
     }
     struct tm startTime = {0};
@@ -93,9 +95,11 @@ ErrCode OsAccountInterface::SendToAMSAccountStop(OsAccountInfo &osAccountInfo)
         ACCOUNT_LOGE("failed to AbilityManagerService stop in call back");
         ReportAccountOperationFail(osAccountInfo.GetLocalId(), -1, "stop",
             "AbilityManagerService StopUser timeout!");
+        FinishTrace(HITRACE_TAG_ACCOUNT_MANAGER);
         return ERR_OSACCOUNT_SERVICE_INTERFACE_TO_AM_ACCOUNT_START_ERROR;
     }
     ACCOUNT_LOGI("end, succeed!");
+    FinishTrace(HITRACE_TAG_ACCOUNT_MANAGER);
     return ERR_OK;
 }
 
@@ -121,12 +125,12 @@ ErrCode OsAccountInterface::SendToIDMAccountDelete(OsAccountInfo &osAccountInfo)
             "malloc for OsAccountDeleteUserIdmCallback failed!");
         return ERR_ACCOUNT_COMMON_INSUFFICIENT_MEMORY_ERROR;
     }
-
-    HiTraceAdapterSyncTrace tracer("UserIDMClient EnforceDelUser");
+    StartTrace(HITRACE_TAG_ACCOUNT_MANAGER, "UserIDMClient EnforceDelUser");
     int32_t ret = UserIAM::UserIDM::UserIDMClient::GetInstance().EnforceDelUser(osAccountInfo.GetLocalId(), callback);
     if (ret != 0) {
         ACCOUNT_LOGE("idm enforce delete user failed! error %{public}d", ret);
         ReportAccountOperationFail(osAccountInfo.GetLocalId(), ret, "delete", "UserIDMClient EnforceDelUser failed!");
+        FinishTrace(HITRACE_TAG_ACCOUNT_MANAGER);
         return ERR_OK;    // do not return fail
     }
 
@@ -144,9 +148,11 @@ ErrCode OsAccountInterface::SendToIDMAccountDelete(OsAccountInfo &osAccountInfo)
         ACCOUNT_LOGE("idm did not call back! timeout!");
         ReportAccountOperationFail(osAccountInfo.GetLocalId(), -1, "delete",
             "UserIDMClient EnforceDelUser timeout!");
+        FinishTrace(HITRACE_TAG_ACCOUNT_MANAGER);
         return ERR_OK;    // do not return fail
     }
     ACCOUNT_LOGI("send to idm account delete and get callback succeed!");
+    FinishTrace(HITRACE_TAG_ACCOUNT_MANAGER);
     return ERR_OK;
 }
 #endif // HAS_USER_IDM_PART
@@ -155,7 +161,7 @@ void OsAccountInterface::SendToCESAccountCreate(OsAccountInfo &osAccountInfo)
 {
     int osAccountID = osAccountInfo.GetLocalId();
 #ifdef HAS_CES_PART
-    HiTraceAdapterSyncTrace tracer("PublishCommonEvent account create");
+    StartTrace(HITRACE_TAG_ACCOUNT_MANAGER, "PublishCommonEvent account create");
     OHOS::AAFwk::Want want;
     want.SetAction(OHOS::EventFwk::CommonEventSupport::COMMON_EVENT_USER_ADDED);
     OHOS::EventFwk::CommonEventData data;
@@ -167,6 +173,7 @@ void OsAccountInterface::SendToCESAccountCreate(OsAccountInfo &osAccountInfo)
     } else {
         ACCOUNT_LOGI("PublishCommonEvent for create account %{public}d succeed!", osAccountID);
     }
+    FinishTrace(HITRACE_TAG_ACCOUNT_MANAGER);
 #else // HAS_CES_PART
     ACCOUNT_LOGI("No common event part, do not publish for account %{public}d create!", osAccountID);
 #endif // HAS_CES_PART
@@ -176,7 +183,7 @@ void OsAccountInterface::SendToCESAccountDelete(OsAccountInfo &osAccountInfo)
 {
     int osAccountID = osAccountInfo.GetLocalId();
 #ifdef HAS_CES_PART
-    HiTraceAdapterSyncTrace tracer("PublishCommonEvent account delete");
+    StartTrace(HITRACE_TAG_ACCOUNT_MANAGER, "PublishCommonEvent account delete");
     OHOS::AAFwk::Want want;
     want.SetAction(OHOS::EventFwk::CommonEventSupport::COMMON_EVENT_USER_REMOVED);
     OHOS::EventFwk::CommonEventData data;
@@ -188,6 +195,7 @@ void OsAccountInterface::SendToCESAccountDelete(OsAccountInfo &osAccountInfo)
     } else {
         ACCOUNT_LOGI("PublishCommonEvent for delete account %{public}d succeed!", osAccountID);
     }
+    FinishTrace(HITRACE_TAG_ACCOUNT_MANAGER);
 #else // HAS_CES_PART
     ACCOUNT_LOGI("No common event part, do not publish for account %{public}d delete!", osAccountID);
 #endif // HAS_CES_PART
@@ -197,7 +205,7 @@ void OsAccountInterface::SendToCESAccountSwitched(OsAccountInfo &osAccountInfo)
 {
     int osAccountID = osAccountInfo.GetLocalId();
 #ifdef HAS_CES_PART
-    HiTraceAdapterSyncTrace tracer("PublishCommonEvent account switch");
+    StartTrace(HITRACE_TAG_ACCOUNT_MANAGER, "PublishCommonEvent account switch");
     OHOS::AAFwk::Want want;
     want.SetAction(OHOS::EventFwk::CommonEventSupport::COMMON_EVENT_USER_SWITCHED);
     OHOS::EventFwk::CommonEventData data;
@@ -209,6 +217,7 @@ void OsAccountInterface::SendToCESAccountSwitched(OsAccountInfo &osAccountInfo)
     } else {
         ACCOUNT_LOGI("PublishCommonEvent for switched to account %{public}d succeed!", osAccountID);
     }
+    FinishTrace(HITRACE_TAG_ACCOUNT_MANAGER);
 #else // HAS_CES_PART
     ACCOUNT_LOGI("No common event part, do not publish for account %{public}d switched!", osAccountID);
 #endif // HAS_CES_PART
@@ -240,7 +249,7 @@ ErrCode OsAccountInterface::SendToStorageAccountCreate(OsAccountInfo &osAccountI
         ACCOUNT_LOGE("failed to get STORAGE_MANAGER_MANAGER_ID proxy.");
         return ERR_OSACCOUNT_SERVICE_INTERFACE_TO_STORAGE_ACCOUNT_CREATE_ERROR;
     }
-    HiTraceAdapterSyncTrace tracer("StorageManager PrepareAddUser");
+    StartTrace(HITRACE_TAG_ACCOUNT_MANAGER, "StorageManager PrepareAddUser");
     int err = proxy->PrepareAddUser(osAccountInfo.GetLocalId(),
         StorageManager::CRYPTO_FLAG_EL1 | StorageManager::CRYPTO_FLAG_EL2);
     if (err != 0) {
@@ -248,6 +257,7 @@ ErrCode OsAccountInterface::SendToStorageAccountCreate(OsAccountInfo &osAccountI
     }
 
     ACCOUNT_LOGI("end, Storage PrepareAddUser ret %{public}d.", err);
+    FinishTrace(HITRACE_TAG_ACCOUNT_MANAGER);
     return ERR_OK;
 }
 
@@ -278,7 +288,7 @@ ErrCode OsAccountInterface::SendToStorageAccountRemove(OsAccountInfo &osAccountI
         return ERR_OSACCOUNT_SERVICE_INTERFACE_TO_STORAGE_ACCOUNT_REMOVE_ERROR;
     }
 
-    HiTraceAdapterSyncTrace tracer("StorageManager RemoveUser");
+    StartTrace(HITRACE_TAG_ACCOUNT_MANAGER, "StorageManager RemoveUser");
     int err = proxy->RemoveUser(osAccountInfo.GetLocalId(),
         StorageManager::CRYPTO_FLAG_EL1 | StorageManager::CRYPTO_FLAG_EL2);
     if (err != 0) {
@@ -286,6 +296,7 @@ ErrCode OsAccountInterface::SendToStorageAccountRemove(OsAccountInfo &osAccountI
     }
 
     ACCOUNT_LOGI("end, Storage RemoveUser ret %{public}d.", err);
+    FinishTrace(HITRACE_TAG_ACCOUNT_MANAGER);
     return ERR_OK;
 }
 
@@ -315,13 +326,14 @@ ErrCode OsAccountInterface::SendToStorageAccountStart(OsAccountInfo &osAccountIn
         ACCOUNT_LOGE("failed to get STORAGE_MANAGER_MANAGER_ID proxy.");
         return ERR_OSACCOUNT_SERVICE_INTERFACE_TO_STORAGE_ACCOUNT_START_ERROR;
     }
-    HiTraceAdapterSyncTrace tracer("StorageManager PrepareStartUser");
+    StartTrace(HITRACE_TAG_ACCOUNT_MANAGER, "StorageManager PrepareStartUser");
     int err = proxy->PrepareStartUser(osAccountInfo.GetLocalId());
     if (err != 0) {
         ReportAccountOperationFail(osAccountInfo.GetLocalId(), err, "activate", "Storage PrepareStartUser failed!");
     }
 
     ACCOUNT_LOGI("end, Storage PrepareStartUser ret %{public}d.", err);
+    FinishTrace(HITRACE_TAG_ACCOUNT_MANAGER);
     return ERR_OK;
 }
 
@@ -351,13 +363,13 @@ ErrCode OsAccountInterface::SendToStorageAccountStop(OsAccountInfo &osAccountInf
         ACCOUNT_LOGE("failed to get STORAGE_MANAGER_MANAGER_ID proxy.");
         return ERR_OSACCOUNT_SERVICE_INTERFACE_TO_STORAGE_ACCOUNT_STOP_ERROR;
     }
-
-    HiTraceAdapterSyncTrace tracer("StorageManager StopUser");
+    StartTrace(HITRACE_TAG_ACCOUNT_MANAGER, "StorageManager StopUser");
     int err = proxy->StopUser(osAccountInfo.GetLocalId());
     if (err != 0) {
         ReportAccountOperationFail(osAccountInfo.GetLocalId(), err, "stop", "Storage StopUser failed!");
     }
     ACCOUNT_LOGI("end, Storage StopUser ret %{public}d", err);
+    FinishTrace(HITRACE_TAG_ACCOUNT_MANAGER);
     return ERR_OK;
 }
 }  // namespace AccountSA
