@@ -263,17 +263,17 @@ ErrCode InnerAppAccountManager::DeleteAccountCredential(const std::string &name,
 {
     ACCOUNT_LOGD("enter");
     if (!controlManagerPtr_) {
-        ACCOUNT_LOGE("controlManagerPtr_ is nullptr");
+        ACCOUNT_LOGD("controlManagerPtr_ is nullptr");
         return ERR_APPACCOUNT_SERVICE_CONTROL_MANAGER_PTR_IS_NULLPTR;
     }
     ErrCode result = controlManagerPtr_->SetAccountCredential(name, credentialType, "", uid, bundleName, true);
     if (!subscribeManagerPtr_) {
-        ACCOUNT_LOGE("subscribeManagerPtr_ is nullptr");
+        ACCOUNT_LOGD("subscribeManagerPtr_ is nullptr");
         return result;
     }
     AppAccountInfo appAccountInfo(name, bundleName);
     if (subscribeManagerPtr_->PublishAccount(appAccountInfo, uid, bundleName) != true) {
-        ACCOUNT_LOGE("failed to publish account");
+        ACCOUNT_LOGD("failed to publish account");
     }
     return result;
 }
