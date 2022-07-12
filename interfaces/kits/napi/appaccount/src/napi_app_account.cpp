@@ -1380,12 +1380,6 @@ napi_value NapiAppAccount::CheckAccountLabels(napi_env env, napi_callback_info c
     } else {
         NAPI_CALL(env, napi_get_undefined(env, &result));
     }
-    context->appAccountMgrCb = new (std::nothrow) CheckAccountLabelsCallback(
-        env, context->callbackRef, context->deferred);
-    if (context->appAccountMgrCb == nullptr) {
-        ACCOUNT_LOGE("failed to create CheckAccountLabelsCallback for insufficient memory");
-        return NapiGetNull(env);
-    }
     napi_value resource = nullptr;
     NAPI_CALL(env, napi_create_string_utf8(env, "CheckAccountLabels", NAPI_AUTO_LENGTH, &resource));
     NAPI_CALL(env, napi_create_async_work(env,
@@ -1393,23 +1387,28 @@ napi_value NapiAppAccount::CheckAccountLabels(napi_env env, napi_callback_info c
         resource,
         [](napi_env env, void *data) {
             auto context = reinterpret_cast<CheckAccountLabelsContext *>(data);
+            sptr<AuthenticatorAsyncCallback> callback = new (std::nothrow) AuthenticatorAsyncCallback(
+                *context, CheckAccountLabelsOnResultWork);
+            if (callback == nullptr) {
+                ACCOUNT_LOGD("failed to create AuthenticatorAsyncCallback for insufficient memory");
+                context->errCode = ERR_ACCOUNT_COMMON_INSUFFICIENT_MEMORY_ERROR;
+                return;
+            }
             context->errCode = AppAccountManager::CheckAccountLabels(
-                context->name, context->owner, context->labels, context->appAccountMgrCb);
-            context->errCode = ConvertToJSErrCode(context->errCode);
+                context->name, context->owner, context->labels, callback);
         },
         [](napi_env env, napi_status status, void *data) {
             auto context = reinterpret_cast<CheckAccountLabelsContext *>(data);
-            if (context->errCode != ERR_JS_SUCCESS) {
+            if (context->errCode != ERR_OK) {
                 napi_value checkResult[RESULT_COUNT] = {0};
-                checkResult[PARAMZERO] = GetErrorCodeValue(env, context->errCode);
+                checkResult[PARAMZERO] = GetErrorCodeValue(env, ConvertToJSErrCode(context->errCode));
                 ProcessCallbackOrPromise(env, context, checkResult[PARAMZERO], checkResult[PARAMONE]);
             }
             napi_delete_async_work(env, context->work);
             delete context;
             context = nullptr;
         },
-        reinterpret_cast<void *>(context),
-        &context->work));
+        reinterpret_cast<void *>(context), &context->work));
     NAPI_CALL(env, napi_queue_async_work(env, context->work));
     return result;
 }
@@ -1430,12 +1429,6 @@ napi_value NapiAppAccount::SelectAccountsByOptions(napi_env env, napi_callback_i
     } else {
         NAPI_CALL(env, napi_get_undefined(env, &result));
     }
-    context->appAccountMgrCb = new (std::nothrow) SelectAccountsCallback(
-        env, context->callbackRef, context->deferred);
-    if (context->appAccountMgrCb == nullptr) {
-        ACCOUNT_LOGE("failed to create SelectAccountsCallback for insufficient memory");
-        return NapiGetNull(env);
-    }
     napi_value resource = nullptr;
     NAPI_CALL(env, napi_create_string_utf8(env, "SelectAccountsByOptions", NAPI_AUTO_LENGTH, &resource));
     NAPI_CALL(env, napi_create_async_work(env,
@@ -1443,23 +1436,28 @@ napi_value NapiAppAccount::SelectAccountsByOptions(napi_env env, napi_callback_i
         resource,
         [](napi_env env, void *data) {
             auto context = reinterpret_cast<SelectAccountsContext *>(data);
+            sptr<AuthenticatorAsyncCallback> callback = new (std::nothrow) AuthenticatorAsyncCallback(
+                *context, SelectAccountsOnResultWork);
+            if (callback == nullptr) {
+                ACCOUNT_LOGD("failed to create AuthenticatorAsyncCallback for insufficient memory");
+                context->errCode = ERR_ACCOUNT_COMMON_INSUFFICIENT_MEMORY_ERROR;
+                return;
+            }
             context->errCode =
-                AppAccountManager::SelectAccountsByOptions(context->options, context->appAccountMgrCb);
+                AppAccountManager::SelectAccountsByOptions(context->options, callback);
         },
         [](napi_env env, napi_status status, void *data) {
             auto context = reinterpret_cast<SelectAccountsContext *>(data);
             if (context->errCode != ERR_OK) {
                 napi_value selectResult[RESULT_COUNT] = {0};
-                context->errCode = ConvertToJSErrCode(context->errCode);
-                selectResult[PARAMZERO] = GetErrorCodeValue(env, context->errCode);
+                selectResult[PARAMZERO] = GetErrorCodeValue(env, ConvertToJSErrCode(context->errCode));
                 ProcessCallbackOrPromise(env, context, selectResult[PARAMZERO], selectResult[PARAMONE]);
             }
             napi_delete_async_work(env, context->work);
             delete context;
             context = nullptr;
         },
-        reinterpret_cast<void *>(context),
-        &context->work));
+        reinterpret_cast<void *>(context), &context->work));
     NAPI_CALL(env, napi_queue_async_work(env, context->work));
     return result;
 }
@@ -1476,7 +1474,10 @@ napi_value NapiAppAccount::VerifyCredential(napi_env env, napi_callback_info cbI
     ParseContextForVerifyCredential(env, cbInfo, context);
     context->appAccountMgrCb = new (std::nothrow) AppAccountManagerCallback(env, context->callback);
     if (context->appAccountMgrCb == nullptr) {
-        ACCOUNT_LOGE("failed to create AppAccountManagerCallback for insufficient memory");
+        ACCOUNT_LOGD("failed to create AppAccountManagerCallback for insufficient memory");
+        AAFwk::WantParams result;
+        ProcessOnResultCallback(env, context->callback, ERR_JS_APP_ACCOUNT_SERVICE_EXCEPTION, result);
+        delete context;
         return NapiGetNull(env);
     }
     napi_value resource = nullptr;
@@ -1490,18 +1491,7 @@ napi_value NapiAppAccount::VerifyCredential(napi_env env, napi_callback_info cbI
                 context->name, context->owner, context->options, context->appAccountMgrCb);
             context->errCode = ConvertToJSErrCode(errCode);
         },
-        [](napi_env env, napi_status status, void *data) {
-            auto context = reinterpret_cast<VerifyCredentialContext *>(data);
-            if ((context->errCode != ERR_JS_SUCCESS) && (context->appAccountMgrCb != nullptr)) {
-                AAFwk::Want errResult;
-                context->appAccountMgrCb->OnResult(context->errCode, errResult);
-            }
-            napi_delete_async_work(env, context->work);
-            delete context;
-            context = nullptr;
-        },
-        reinterpret_cast<void *>(context),
-        &context->work));
+        VerifyCredCompleteCB, reinterpret_cast<void *>(context), &context->work));
     NAPI_CALL(env, napi_queue_async_work(env, context->work));
     return NapiGetNull(env);
 }
@@ -1518,7 +1508,10 @@ napi_value NapiAppAccount::SetAuthenticatorProperties(napi_env env, napi_callbac
     ParseContextForSetProperties(env, cbInfo, context);
     context->appAccountMgrCb = new (std::nothrow) AppAccountManagerCallback(env, context->callback);
     if (context->appAccountMgrCb == nullptr) {
-        ACCOUNT_LOGE("failed to create AppAccountManagerCallback for insufficient memory");
+        ACCOUNT_LOGD("failed to create AppAccountManagerCallback for insufficient memory");
+        AAFwk::WantParams result;
+        ProcessOnResultCallback(env, context->callback, ERR_JS_APP_ACCOUNT_SERVICE_EXCEPTION, result);
+        delete context;
         return NapiGetNull(env);
     }
     napi_value resource = nullptr;

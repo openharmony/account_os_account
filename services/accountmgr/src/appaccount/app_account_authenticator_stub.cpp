@@ -86,7 +86,7 @@ ErrCode AppAccountAuthenticatorStub::ProcAddAccountImplicitly(MessageParcel &dat
     sptr<IRemoteObject> callback = data.ReadRemoteObject();
     ErrCode result = ERR_OK;
     if ((options == nullptr) || (callback == nullptr)) {
-        ACCOUNT_LOGE("invalid request parameters");
+        ACCOUNT_LOGD("invalid request parameters");
         result = ERR_APPACCOUNT_SERVICE_INVALID_PARAMETER;
     }
     if (result == ERR_OK) {
@@ -108,7 +108,7 @@ ErrCode AppAccountAuthenticatorStub::ProcAuthenticate(MessageParcel &data, Messa
     sptr<IRemoteObject> callback = data.ReadRemoteObject();
     ErrCode result = ERR_OK;
     if ((options == nullptr) || (callback == nullptr)) {
-        ACCOUNT_LOGE("invalid request parameters");
+        ACCOUNT_LOGD("invalid request parameters");
         result = ERR_APPACCOUNT_SERVICE_INVALID_PARAMETER;
     }
     if (result == ERR_OK) {
