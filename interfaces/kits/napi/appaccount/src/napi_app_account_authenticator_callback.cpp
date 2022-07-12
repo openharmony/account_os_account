@@ -108,6 +108,15 @@ static void ParseContextForRequestRedirected(napi_env env, napi_callback_info cb
     }
 }
 
+static void OnAuthenticatorWorkComplete(napi_env env, napi_status status, void *data)
+{
+    (void)status;
+    CallbackParam *param = reinterpret_cast<CallbackParam *>(data);
+    napi_delete_async_work(env, param->work);
+    delete param;
+    param = nullptr;
+}
+
 napi_value NapiAppAccountAuthenticatorCallback::JsOnResult(napi_env env, napi_callback_info cbInfo)
 {
     ACCOUNT_LOGD("enter");
@@ -127,7 +136,6 @@ napi_value NapiAppAccountAuthenticatorCallback::JsOnResult(napi_env env, napi_ca
             nullptr,
             resourceName,
             [](napi_env env, void *data) {
-                ACCOUNT_LOGI("JsOnResult, napi_create_async_work running.");
                 CallbackParam *param = reinterpret_cast<CallbackParam *>(data);
                 if ((param == nullptr) || (param->callback == nullptr)) {
                     ACCOUNT_LOGE("invalid parameters");
@@ -140,15 +148,8 @@ napi_value NapiAppAccountAuthenticatorCallback::JsOnResult(napi_env env, napi_ca
                     callbackProxy->OnResult(param->resultCode, result);
                 }
             },
-            [](napi_env env, napi_status status, void *data) {
-                ACCOUNT_LOGI("JsOnResult, napi_create_async_work complete.");
-                CallbackParam *param = reinterpret_cast<CallbackParam *>(data);
-                napi_delete_async_work(env, param->work);
-                delete param;
-                param = nullptr;
-            },
-            reinterpret_cast<void *>(param),
-            &param->work));
+            OnAuthenticatorWorkComplete,
+            reinterpret_cast<void *>(param), &param->work));
     NAPI_CALL(env, napi_queue_async_work(env, param->work));
     return NapiGetNull(env);
 }
@@ -172,7 +173,6 @@ napi_value NapiAppAccountAuthenticatorCallback::JsOnRequestRedirected(napi_env e
             nullptr,
             resourceName,
             [](napi_env env, void *data) {
-                ACCOUNT_LOGI("JsOnRequestRedirected, napi_create_async_work running.");
                 CallbackParam *param = reinterpret_cast<CallbackParam *>(data);
                 if ((param == nullptr) || (param->callback == nullptr)) {
                     ACCOUNT_LOGE("invalid parameters");
@@ -183,15 +183,8 @@ napi_value NapiAppAccountAuthenticatorCallback::JsOnRequestRedirected(napi_env e
                     callbackProxy->OnRequestRedirected(param->request);
                 }
             },
-            [](napi_env env, napi_status status, void *data) {
-                ACCOUNT_LOGI("JsOnRequestRedirected, napi_create_async_work complete.");
-                CallbackParam *param = reinterpret_cast<CallbackParam *>(data);
-                napi_delete_async_work(env, param->work);
-                delete param;
-                param = nullptr;
-            },
-            reinterpret_cast<void *>(param),
-            &param->work));
+            OnAuthenticatorWorkComplete,
+            reinterpret_cast<void *>(param), &param->work));
     NAPI_CALL(env, napi_queue_async_work(env, param->work));
     return NapiGetNull(env);
 }
@@ -224,12 +217,7 @@ napi_value NapiAppAccountAuthenticatorCallback::JsOnRequestContinued(napi_env en
                     callbackProxy->OnRequestContinued();
                 }
             },
-            [](napi_env env, napi_status status, void *data) {
-                CallbackParam *param = reinterpret_cast<CallbackParam *>(data);
-                napi_delete_async_work(env, param->work);
-                delete param;
-                param = nullptr;
-            },
+            OnAuthenticatorWorkComplete,
             reinterpret_cast<void *>(param),
             &param->work));
     NAPI_CALL(env, napi_queue_async_work(env, param->work));
