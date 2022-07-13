@@ -122,15 +122,12 @@ napi_value NapiAppAccountAuthenticatorCallback::JsOnResult(napi_env env, napi_ca
     napi_value resourceName = nullptr;
     NAPI_CALL(env, napi_create_string_latin1(env, "JsOnResult", NAPI_AUTO_LENGTH, &resourceName));
 
-    NAPI_CALL(env,
-        napi_create_async_work(env,
-            nullptr,
-            resourceName,
+    NAPI_CALL(env, napi_create_async_work(env, nullptr, resourceName,
             [](napi_env env, void *data) {
                 ACCOUNT_LOGI("JsOnResult, napi_create_async_work running.");
                 CallbackParam *param = reinterpret_cast<CallbackParam *>(data);
                 if ((param == nullptr) || (param->callback == nullptr)) {
-                    ACCOUNT_LOGE("invalid parameters");
+                    ACCOUNT_LOGD("invalid parameters");
                     return;
                 }
                 auto callbackProxy = iface_cast<IAppAccountAuthenticatorCallback>(param->callback->GetRemoteObject());
@@ -167,15 +164,12 @@ napi_value NapiAppAccountAuthenticatorCallback::JsOnRequestRedirected(napi_env e
     napi_value resourceName = nullptr;
     NAPI_CALL(env, napi_create_string_latin1(env, "JsOnRequestRedirected", NAPI_AUTO_LENGTH, &resourceName));
 
-    NAPI_CALL(env,
-        napi_create_async_work(env,
-            nullptr,
-            resourceName,
+    NAPI_CALL(env, napi_create_async_work(env, nullptr, resourceName,
             [](napi_env env, void *data) {
                 ACCOUNT_LOGI("JsOnRequestRedirected, napi_create_async_work running.");
                 CallbackParam *param = reinterpret_cast<CallbackParam *>(data);
                 if ((param == nullptr) || (param->callback == nullptr)) {
-                    ACCOUNT_LOGE("invalid parameters");
+                    ACCOUNT_LOGD("invalid parameters");
                     return;
                 }
                 auto callbackProxy = iface_cast<IAppAccountAuthenticatorCallback>(param->callback->GetRemoteObject());
@@ -209,14 +203,11 @@ napi_value NapiAppAccountAuthenticatorCallback::JsOnRequestContinued(napi_env en
     napi_unwrap(env, thisVar, reinterpret_cast<void **>(&(param->callback)));
     napi_value resourceName = nullptr;
     NAPI_CALL(env, napi_create_string_latin1(env, "JsOnRequestContinued", NAPI_AUTO_LENGTH, &resourceName));
-    NAPI_CALL(env,
-        napi_create_async_work(env,
-            nullptr,
-            resourceName,
+    NAPI_CALL(env, napi_create_async_work(env, nullptr, resourceName,
             [](napi_env env, void *data) {
                 CallbackParam *param = reinterpret_cast<CallbackParam *>(data);
                 if ((param == nullptr) || (param->callback == nullptr)) {
-                    ACCOUNT_LOGE("invalid parameters");
+                    ACCOUNT_LOGD("invalid parameters");
                     return;
                 }
                 auto callbackProxy = iface_cast<IAppAccountAuthenticatorCallback>(param->callback->GetRemoteObject());
