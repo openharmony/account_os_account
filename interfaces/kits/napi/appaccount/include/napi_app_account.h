@@ -42,6 +42,7 @@ private:
     static napi_value GetAccountCredential(napi_env env, napi_callback_info cbInfo);
     static napi_value GetAccountExtraInfo(napi_env env, napi_callback_info cbInfo);
     static napi_value GetAssociatedData(napi_env env, napi_callback_info cbInfo);
+    static napi_value GetAssociatedDataSync(napi_env env, napi_callback_info cbInfo);
     static napi_value Authenticate(napi_env env, napi_callback_info cbInfo);
     static napi_value GetOAuthToken(napi_env env, napi_callback_info cbInfo);
     static napi_value SetOAuthToken(napi_env env, napi_callback_info cbInfo);
