@@ -54,6 +54,7 @@ napi_value NapiAppAccount::Init(napi_env env, napi_value exports)
         DECLARE_NAPI_FUNCTION("getAccountCredential", GetAccountCredential),
         DECLARE_NAPI_FUNCTION("getAccountExtraInfo", GetAccountExtraInfo),
         DECLARE_NAPI_FUNCTION("getAssociatedData", GetAssociatedData),
+        DECLARE_NAPI_FUNCTION("getAssociatedDataSync", GetAssociatedDataSync),
         DECLARE_NAPI_FUNCTION("getOAuthToken", GetOAuthToken),
         DECLARE_NAPI_FUNCTION("setOAuthToken", SetOAuthToken),
         DECLARE_NAPI_FUNCTION("deleteOAuthToken", DeleteOAuthToken),
@@ -820,6 +821,18 @@ napi_value NapiAppAccount::GetAssociatedData(napi_env env, napi_callback_info cb
         reinterpret_cast<void *>(asyncContext),
         &asyncContext->work);
     napi_queue_async_work(env, asyncContext->work);
+    return result;
+}
+
+napi_value NapiAppAccount::GetAssociatedDataSync(napi_env env, napi_callback_info cbInfo)
+{
+    AppAccountAsyncContext asyncContext;
+    ParseContextToGetData(env, cbInfo, &asyncContext);
+    napi_value result = nullptr;
+    ErrCode errCode = AppAccountManager::GetAssociatedData(asyncContext.name, asyncContext.key, asyncContext.value);
+    if (errCode == ERR_OK) {
+        NAPI_CALL(env, napi_create_string_utf8(env, asyncContext.value.c_str(), NAPI_AUTO_LENGTH, &result));
+    }
     return result;
 }
 
