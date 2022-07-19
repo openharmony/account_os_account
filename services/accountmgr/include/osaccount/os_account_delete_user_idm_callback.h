@@ -15,13 +15,13 @@
 #ifndef OS_ACCOUNT_SERVICES_ACCOUNTMGR_INCLUDE_OSACCOUNT_OS_ACCOUNT_DELETE_USER_IAM_CALLBACK_H
 #define OS_ACCOUNT_SERVICES_ACCOUNTMGR_INCLUDE_OSACCOUNT_OS_ACCOUNT_DELETE_USER_IAM_CALLBACK_H
 #ifdef HAS_USER_IDM_PART
-#include "useridm_callback.h"
+#include "user_idm_client_callback.h"
 #endif // HAS_USER_IDM_PART
 
 namespace OHOS {
 namespace AccountSA {
 #ifdef HAS_USER_IDM_PART
-class OsAccountDeleteUserIdmCallback : public OHOS::UserIAM::UserIDM::IDMCallback {
+class OsAccountDeleteUserIdmCallback : public OHOS::UserIam::UserAuth::UserIdmClientCallback {
 public:
     OsAccountDeleteUserIdmCallback() {}
     virtual ~OsAccountDeleteUserIdmCallback() {}
@@ -31,7 +31,7 @@ public:
      * @param strcut reqRet .
      * @return void.
      */
-    void OnResult(int32_t result, UserIAM::UserIDM::RequestResult reqRet) override;
+    void OnResult(int32_t result, const UserIam::UserAuth::Attributes &extraInfo) override;
 
     /**
      * @brief
@@ -40,7 +40,7 @@ public:
      * @param reqRet .
      * @return void.
      */
-    void OnAcquireInfo(int32_t module, int32_t acquire, UserIAM::UserIDM::RequestResult reqRet) override;
+    void OnAcquireInfo(int32_t module, uint32_t acquireInfo, const UserIam::UserAuth::Attributes &extraInfo) override;
 
 public:
     bool isIdmOnResultCallBack_ = false;

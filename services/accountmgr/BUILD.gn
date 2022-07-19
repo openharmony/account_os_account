@@ -195,7 +195,7 @@ ohos_shared_library("accountmgr") {
 
   if (has_user_idm_part) {
     cflags_cc += [ "-DHAS_USER_IDM_PART" ]
-    deps += [ "//base/useriam/user_auth_framework/frameworks/user_idm:useridm_framework" ]
+    deps += [ "//base/useriam/user_auth_framework/frameworks/native/client:userauth_client" ]
   }
 
   external_deps = [
