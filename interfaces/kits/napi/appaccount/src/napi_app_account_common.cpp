@@ -149,7 +149,7 @@ void CheckAccountLabelsOnResultWork(uv_work_t *work, int status)
     AuthenticatorCallbackParam *param = reinterpret_cast<AuthenticatorCallbackParam*>(work->data);
     napi_value checkResult[RESULT_COUNT] = {0};
     if (param->context.errCode == ERR_JS_SUCCESS) {
-        bool hasLabels = param->result.GetBoolParam(Constants::KEY_BOOL_RESULT, false);
+        bool hasLabels = param->result.GetBoolParam(Constants::KEY_BOOLEAN_RESULT, false);
         napi_get_boolean(param->context.env, hasLabels, &checkResult[PARAMONE]);
     } else {
         checkResult[PARAMZERO] = GetErrorCodeValue(param->context.env, param->context.errCode);
