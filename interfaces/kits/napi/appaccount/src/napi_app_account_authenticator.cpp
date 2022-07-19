@@ -132,8 +132,8 @@ ErrCode NapiAppAccountAuthenticator::Authenticate(const std::string &name, const
     if (result != ERR_OK) {
         return result;
     }
-    param->name = name;
     param->authType = authType;
+    param->name = name;
     param->callerBundleName = callerBundleName;
     param->options = options;
     param->callback = callback;
@@ -156,8 +156,8 @@ ErrCode NapiAppAccountAuthenticator::VerifyCredential(
     if (result != ERR_OK) {
         return result;
     }
-    param->name = name;
     param->verifyCredOptions = options;
+    param->name = name;
     param->callback = callback;
     work->data = reinterpret_cast<void *>(param);
     uv_queue_work(loop, work, [](uv_work_t *work) {}, VerifyCredentialWork);
@@ -199,8 +199,8 @@ ErrCode NapiAppAccountAuthenticator::CheckAccountLabels(
     if (result != ERR_OK) {
         return result;
     }
-    param->name = name;
     param->labels = labels;
+    param->name = name;
     param->callback = callback;
     work->data = reinterpret_cast<void *>(param);
     uv_queue_work(loop, work, [](uv_work_t *work) {}, CheckAccountLabelsWork);
