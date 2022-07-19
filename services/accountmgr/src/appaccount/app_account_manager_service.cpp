@@ -471,7 +471,7 @@ ErrCode AppAccountManagerService::VerifyCredential(const std::string &name, cons
     AuthenticatorSessionRequest request;
     ErrCode result = GetBundleNameAndCallingUid(request.callerUid, request.callerBundleName);
     if (result != ERR_OK) {
-        ACCOUNT_LOGE("failed to get bundle name");
+        ACCOUNT_LOGD("failed to get bundle name");
         return result;
     }
     request.name = name;
@@ -488,13 +488,13 @@ ErrCode AppAccountManagerService::CheckAccountLabels(const std::string &name, co
     AuthenticatorSessionRequest request;
     ErrCode result = GetBundleNameAndCallingUid(request.callerUid, request.callerBundleName);
     if (result != ERR_OK) {
-        ACCOUNT_LOGE("failed to get bundle name");
+        ACCOUNT_LOGD("failed to get bundle name");
         return result;
     }
-    request.name = name;
-    request.owner = owner;
     request.labels = labels;
     request.callback = iface_cast<IAppAccountAuthenticatorCallback>(callback);
+    request.name = name;
+    request.owner = owner;
     return innerManager_->CheckAccountLabels(request);
 }
 
