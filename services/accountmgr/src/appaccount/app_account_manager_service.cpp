@@ -388,9 +388,18 @@ ErrCode AppAccountManagerService::GetAllAccounts(const std::string &owner, std::
 {
     int32_t callingUid = -1;
     std::string bundleName;
-    ErrCode ret = GetBundleNameAndCheckPerm(callingUid, bundleName, AccountPermissionManager::GET_ALL_APP_ACCOUNTS);
-    if (ret != ERR_OK) {
-        return ret;
+    ErrCode errCode = GetBundleNameAndCallingUid(callingUid, bundleName);
+    if (errCode != ERR_OK) {
+        ACCOUNT_LOGD("failed to get caller bundle name and uid");
+        return errCode;
+    }
+    if ((owner != bundleName) &&
+        (permissionManagerPtr_->VerifyPermission(AccountPermissionManager::GET_ALL_APP_ACCOUNTS) != ERR_OK)) {
+        ACCOUNT_LOGD("failed to verify permission for %{public}s",
+            AccountPermissionManager::GET_ALL_APP_ACCOUNTS.c_str());
+        ReportPermissionFail(callingUid, IPCSkeleton::GetCallingPid(),
+            AccountPermissionManager::GET_ALL_APP_ACCOUNTS);
+        return ERR_APPACCOUNT_SERVICE_PERMISSION_DENIED;
     }
 
     AppExecFwk::BundleInfo bundleInfo;
@@ -398,7 +407,7 @@ ErrCode AppAccountManagerService::GetAllAccounts(const std::string &owner, std::
     bool result = BundleManagerAdapter::GetInstance()->GetBundleInfo(
         owner, AppExecFwk::BundleFlag::GET_BUNDLE_DEFAULT, bundleInfo, userId);
     if (!result) {
-        ACCOUNT_LOGE("failed to get bundle info");
+        ACCOUNT_LOGD("failed to get bundle info");
         return ERR_APPACCOUNT_SERVICE_GET_BUNDLE_INFO;
     }
 
