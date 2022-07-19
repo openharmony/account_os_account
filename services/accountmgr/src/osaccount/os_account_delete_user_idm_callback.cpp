@@ -20,16 +20,16 @@
 namespace OHOS {
 namespace AccountSA {
 #ifdef HAS_USER_IDM_PART
-void OsAccountDeleteUserIdmCallback::OnResult(int32_t result, UserIAM::UserIDM::RequestResult reqRet)
+void OsAccountDeleteUserIdmCallback::OnResult(int32_t result, const UserIam::UserAuth::Attributes &extraInfo)
 {
     ACCOUNT_LOGI("IAM OnResult callback! result %{public}d", result);
     isIdmOnResultCallBack_ = true;
 }
 
-void OsAccountDeleteUserIdmCallback::OnAcquireInfo(int32_t module, int32_t acquire,
-    UserIAM::UserIDM::RequestResult reqRet)
+void OsAccountDeleteUserIdmCallback::OnAcquireInfo(int32_t module, uint32_t acquireInfo,
+    const UserIam::UserAuth::Attributes &extraInfo)
 {
-    ACCOUNT_LOGI("IAM OnAcquireInfo callback! module %{public}d, acquire %{public}d.", module, acquire);
+    ACCOUNT_LOGI("IAM OnAcquireInfo callback! module %{public}d, acquire %{public}u.", module, acquireInfo);
 }
 #endif // HAS_USER_IDM_PART
 }  // namespace AccountSA
