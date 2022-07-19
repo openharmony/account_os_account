@@ -36,7 +36,7 @@
 #include "storage_manager_proxy.h"
 #include "system_ability_definition.h"
 #ifdef HAS_USER_IDM_PART
-#include "useridm_client.h"
+#include "user_idm_client.h"
 #endif // HAS_USER_IDM_PART
 #ifdef HAS_CES_PART
 #include "want.h"
@@ -126,7 +126,7 @@ ErrCode OsAccountInterface::SendToIDMAccountDelete(OsAccountInfo &osAccountInfo)
         return ERR_ACCOUNT_COMMON_INSUFFICIENT_MEMORY_ERROR;
     }
     StartTrace(HITRACE_TAG_ACCOUNT_MANAGER, "UserIDMClient EnforceDelUser");
-    int32_t ret = UserIAM::UserIDM::UserIDMClient::GetInstance().EnforceDelUser(osAccountInfo.GetLocalId(), callback);
+    int32_t ret = UserIam::UserAuth::UserIdmClient::GetInstance().EraseUser(osAccountInfo.GetLocalId(), callback);
     if (ret != 0) {
         ACCOUNT_LOGE("idm enforce delete user failed! error %{public}d", ret);
         ReportAccountOperationFail(osAccountInfo.GetLocalId(), ret, "delete", "UserIDMClient EnforceDelUser failed!");
