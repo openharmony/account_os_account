@@ -62,6 +62,8 @@ napi_value NapiAppAccountConstant::Init(napi_env env, napi_value exports)
     SetNamedProperty(env, constants, Constants::KEY_CALLER_BUNDLE_NAME.c_str(), "KEY_CALLER_BUNDLE_NAME");
     SetNamedProperty(env, constants, Constants::KEY_CALLER_PID.c_str(), "KEY_CALLER_PID");
     SetNamedProperty(env, constants, Constants::KEY_CALLER_UID.c_str(), "KEY_CALLER_UID");
+    SetNamedProperty(env, constants, Constants::KEY_REQUIRED_LABELS.c_str(), "KEY_REQUIRED_LABELS");
+    SetNamedProperty(env, constants, Constants::KEY_BOOLEAN_RESULT.c_str(), "KEY_BOOLEAN_RESULT");
 
     napi_property_descriptor exportFuncs[] = {
         DECLARE_NAPI_PROPERTY("ResultCode", resultCode),
