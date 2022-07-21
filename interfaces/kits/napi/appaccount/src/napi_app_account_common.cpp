@@ -340,25 +340,13 @@ void AppAccountManagerCallback::OnRequestContinued()
 {
     ACCOUNT_LOGD("enter");
     uv_loop_s *loop = nullptr;
-    napi_get_uv_event_loop(env_, &loop);
-    if (loop == nullptr) {
-        ACCOUNT_LOGI("loop instance is nullptr");
+    uv_work_t *work = nullptr;
+    AuthenticatorCallbackParam *param = nullptr;
+    if (!InitAuthenticatorWorkEnv(env_, &loop, &work, &param)) {
+        ACCOUNT_LOGD("failed to init authenticator work environment");
         return;
     }
-    uv_work_t *work = new (std::nothrow) uv_work_t;
-    if (work == nullptr) {
-        ACCOUNT_LOGI("work is null");
-        return;
-    }
-    AuthenticatorCallbackParam *param = new (std::nothrow) AuthenticatorCallbackParam {
-        .env = env_,
-        .callback = callback_
-    };
-    if (param == nullptr) {
-        ACCOUNT_LOGE("failed to create AuthenticatorCallbackParam");
-        delete work;
-        return;
-    }
+    param->callback = callback_;
     work->data = reinterpret_cast<void *>(param);
     uv_queue_work(loop, work, [](uv_work_t *work) {}, UvQueueWorkOnRequestContinued);
 }
