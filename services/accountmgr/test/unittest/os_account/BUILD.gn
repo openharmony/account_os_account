@@ -26,7 +26,7 @@ config("os_account_control_file_manager_test_config") {
     "${common_path}/account_error/include",
     "${innerkits_path}/include",
     "//third_party/json/include",
-    "//utils/native/base/include",
+    "//commonlibrary/c_utils/base/include",
     "//utils/system/safwk/native/include",
   ]
 }
@@ -47,10 +47,10 @@ ohos_unittest("OsAccountControlFileManagerTest") {
     "${services_path}/accountmgr:accountmgr",
     "//third_party/googletest:gmock_main",
     "//third_party/googletest:gtest_main",
-    "//utils/native/base:utils",
   ]
 
   external_deps = [
+    "c_utils:utils",
     "distributeddatamgr:distributeddata_inner",
     "hiviewdfx_hilog_native:libhilog",
     "init:libbegetutil",
@@ -68,7 +68,7 @@ config("os_account_data_storage_test_config") {
     "${common_path}/account_error/include",
     "${innerkits_path}/include",
     "//third_party/json/include",
-    "//utils/native/base/include",
+    "//commonlibrary/c_utils/base/include",
     "//utils/system/safwk/native/include",
   ]
 }
@@ -91,10 +91,10 @@ ohos_unittest("OsAccountDataStorageTest") {
     "${services_path}/accountmgr:accountmgr",
     "//third_party/googletest:gmock_main",
     "//third_party/googletest:gtest_main",
-    "//utils/native/base:utils",
   ]
 
   external_deps = [
+    "c_utils:utils",
     "distributeddatamgr:distributeddata_inner",
     "hiviewdfx_hilog_native:libhilog",
   ]

@@ -28,7 +28,7 @@ config("accountmgr_event_provider_test_config") {
     "${services_path}/accountmgr/include",
     "${innerkits_path}/include",
     "//third_party/json/include",
-    "//utils/native/base/include",
+    "//commonlibrary/c_utils/base/include",
     "//utils/system/safwk/native/include",
   ]
 }
@@ -50,7 +50,6 @@ ohos_unittest("AccountEventProviderTest") {
   deps = [
     "//third_party/googletest:gmock_main",
     "//third_party/googletest:gtest_main",
-    "//utils/native/base:utils",
   ]
   external_deps = [
     "ability_base:base",
@@ -58,6 +57,7 @@ ohos_unittest("AccountEventProviderTest") {
     "ability_runtime:ability_manager",
     "bundle_framework:appexecfwk_base",
     "bundle_framework:appexecfwk_core",
+    "c_utils:utils",
     "hiviewdfx_hilog_native:libhilog",
     "init:libbegetutil",
     "ipc:ipc_core",
