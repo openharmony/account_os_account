@@ -28,7 +28,7 @@ config("os_account_manager_service_test_config") {
     "${common_path}/account_error/include",
     "${innerkits_path}/include",
     "//third_party/json/include",
-    "//utils/native/base/include",
+    "//commonlibrary/c_utils/base/include",
     "//utils/system/safwk/native/include",
   ]
 }
@@ -53,11 +53,11 @@ ohos_moduletest("os_account_manager_service_module_test") {
     "${services_path}/accountmgr:accountmgr",
     "//third_party/googletest:gmock_main",
     "//third_party/googletest:gtest_main",
-    "//utils/native/base:utils",
   ]
 
   external_deps = [
     "ability_runtime:ability_manager",
+    "c_utils:utils",
     "distributeddatamgr:distributeddata_inner",
     "hiviewdfx_hilog_native:libhilog",
   ]
@@ -74,7 +74,7 @@ config("os_account_manager_service_create_os_account_test_config") {
     "${common_path}/account_error/include",
     "${innerkits_path}/include",
     "//third_party/json/include",
-    "//utils/native/base/include",
+    "//commonlibrary/c_utils/base/include",
     "//utils/system/safwk/native/include",
   ]
 }
@@ -99,11 +99,11 @@ ohos_moduletest("os_account_manager_service_create_os_account_test") {
     "${services_path}/accountmgr:accountmgr",
     "//third_party/googletest:gmock_main",
     "//third_party/googletest:gtest_main",
-    "//utils/native/base:utils",
   ]
 
   external_deps = [
     "ability_runtime:ability_manager",
+    "c_utils:utils",
     "distributeddatamgr:distributeddata_inner",
     "hiviewdfx_hilog_native:libhilog",
   ]
@@ -120,7 +120,7 @@ config("os_account_manager_service_subscribe_test_config") {
     "${common_path}/account_error/include",
     "${innerkits_path}/include",
     "//third_party/json/include",
-    "//utils/native/base/include",
+    "//commonlibrary/c_utils/base/include",
     "//utils/system/safwk/native/include",
   ]
 }
@@ -146,10 +146,10 @@ ohos_moduletest("os_account_manager_service_subscribe_module_test") {
     "${services_path}/accountmgr:accountmgr",
     "//third_party/googletest:gmock_main",
     "//third_party/googletest:gtest_main",
-    "//utils/native/base:utils",
   ]
   external_deps = [
     "ability_runtime:ability_manager",
+    "c_utils:utils",
     "distributeddatamgr:distributeddata_inner",
     "hiviewdfx_hilog_native:libhilog",
   ]

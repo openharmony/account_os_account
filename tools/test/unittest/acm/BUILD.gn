@@ -41,10 +41,10 @@ ohos_unittest("account_command_create_test") {
     "${common_path}:libaccount_common",
     "${os_account_core_path}:os_account_core",
     "//third_party/googletest:gtest_main",
-    "//utils/native/base:utils",
   ]
 
   external_deps = [
+    "c_utils:utils",
     "hiviewdfx_hilog_native:libhilog",
     "ipc:ipc_core",
   ]
@@ -75,10 +75,10 @@ ohos_unittest("account_command_delete_test") {
     "${common_path}:libaccount_common",
     "${os_account_core_path}:os_account_core",
     "//third_party/googletest:gtest_main",
-    "//utils/native/base:utils",
   ]
 
   external_deps = [
+    "c_utils:utils",
     "hiviewdfx_hilog_native:libhilog",
     "ipc:ipc_core",
   ]
@@ -109,10 +109,10 @@ ohos_unittest("account_command_dump_test") {
     "${common_path}:libaccount_common",
     "${os_account_core_path}:os_account_core",
     "//third_party/googletest:gtest_main",
-    "//utils/native/base:utils",
   ]
 
   external_deps = [
+    "c_utils:utils",
     "hiviewdfx_hilog_native:libhilog",
     "ipc:ipc_core",
   ]
@@ -143,10 +143,10 @@ ohos_unittest("account_command_set_test") {
     "${common_path}:libaccount_common",
     "${os_account_core_path}:os_account_core",
     "//third_party/googletest:gtest_main",
-    "//utils/native/base:utils",
   ]
 
   external_deps = [
+    "c_utils:utils",
     "hiviewdfx_hilog_native:libhilog",
     "ipc:ipc_core",
   ]
@@ -177,10 +177,10 @@ ohos_unittest("account_command_switch_test") {
     "${common_path}:libaccount_common",
     "${os_account_core_path}:os_account_core",
     "//third_party/googletest:gtest_main",
-    "//utils/native/base:utils",
   ]
 
   external_deps = [
+    "c_utils:utils",
     "hiviewdfx_hilog_native:libhilog",
     "ipc:ipc_core",
   ]
@@ -211,10 +211,10 @@ ohos_unittest("account_command_test") {
     "${common_path}:libaccount_common",
     "${os_account_core_path}:os_account_core",
     "//third_party/googletest:gtest_main",
-    "//utils/native/base:utils",
   ]
 
   external_deps = [
+    "c_utils:utils",
     "hiviewdfx_hilog_native:libhilog",
     "ipc:ipc_core",
   ]

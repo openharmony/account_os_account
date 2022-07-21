@@ -47,7 +47,7 @@ config("accountmgr_config") {
     "${app_account_innerkits_native_path}/include",
     "//third_party/json/include",
     "//third_party/mbedtls/include",
-    "//utils/native/base/include",
+    "//commonlibrary/c_utils/base/include",
     "//utils/system/safwk/native/include",
     "//foundation/storage/storage_manager/interfaces/innerkits/storage_manager/native",
     "//foundation/filemanagement/storage_service/services/storage_manager/include/ipc",
@@ -187,7 +187,6 @@ ohos_shared_library("accountmgr") {
     "${os_account_core_path}:os_account_core",
     "${os_account_innerkits_native_path}:os_account_innerkits",
     "//third_party/mbedtls:mbedtls",
-    "//utils/native/base:utils",
   ]
 
   if (has_user_idm_part) {
@@ -201,6 +200,7 @@ ohos_shared_library("accountmgr") {
     "ability_runtime:app_manager",
     "access_token:libaccesstoken_sdk",
     "bundle_framework:appexecfwk_base",
+    "c_utils:utils",
     "distributeddatamgr:distributeddata_inner",
     "eventhandler:libeventhandler",
     "hiviewdfx_hilog_native:libhilog",
