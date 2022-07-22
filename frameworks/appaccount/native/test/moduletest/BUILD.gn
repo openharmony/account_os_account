@@ -18,8 +18,10 @@ module_output_path = "app_account/frameworks"
 
 config("app_account_interfaces_native_config_mock") {
   include_dirs = [
-    "//third_party/googletest/googlemock/include",
     "${app_account_innerkits_native_path}/test/mock",
+    "${app_account_services_path}/include/appaccount",
+    "${app_account_services_path}/include",
+    "//third_party/googletest/googlemock/include",
   ]
 }
 
@@ -54,8 +56,6 @@ ohos_moduletest("app_account_manager_module_test") {
 
   deps = [
     "${app_account_innerkits_native_path}:app_account_innerkits",
-    "${app_account_services_path}:accountmgr",
-    "${app_account_services_path}/src/appaccount:app_account_service_core",
     "${common_path}:libaccount_common",
     "//third_party/googletest:gmock_main",
     "//third_party/googletest:gtest_main",

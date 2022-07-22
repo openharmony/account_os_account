@@ -44,7 +44,6 @@ ohos_moduletest("os_account_frameworks_module_test") {
   deps = [
     "${common_path}:libaccount_common",
     "${os_account_innerkits_native_path}:os_account_innerkits",
-    "${services_path}/accountmgr:accountmgr",
     "//third_party/googletest:gmock_main",
     "//third_party/googletest:gtest_main",
   ]
