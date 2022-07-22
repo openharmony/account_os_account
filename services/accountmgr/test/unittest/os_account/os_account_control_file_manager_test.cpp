@@ -412,12 +412,9 @@ HWTEST_F(OsAccountControlFileManagerTest, OsAccountControlFileManagerTest020, Te
     ret = osAccountControlManager_->GetOsAccountListFromDatabase(storeID_, osAccountList);
     EXPECT_EQ(ret, ERR_OK);
 
-    bool checkIdValid = false;
-    checkIdValid = (osAccountList.size() > 0);
-    EXPECT_EQ(checkIdValid, true);
     for (uint32_t i = 0; i < osAccountList.size(); ++i) {
         int curID = osAccountList[i].GetLocalId();
-        checkIdValid = (curID >= Constants::START_USER_ID);
+        bool checkIdValid = (curID >= Constants::START_USER_ID);
         EXPECT_EQ(checkIdValid, true);
 
         OsAccountInfo curOsAccountInfo;
@@ -468,9 +465,6 @@ HWTEST_F(OsAccountControlFileManagerTest, OsAccountControlFileManagerTest021, Te
     std::vector<OsAccountInfo> osAccountList;
     ret = osAccountControlManager_->GetOsAccountListFromDatabase(storeID_, osAccountList);
     EXPECT_EQ(ret, ERR_OK);
-
-    bool checkValid = osAccountList.size() > 0;
-    EXPECT_EQ(checkValid, true);
 
     std::vector<OsAccountInfo> osAccountListByDefault;
     ret = osAccountControlManager_->GetOsAccountListFromDatabase(std::string(""), osAccountListByDefault);
