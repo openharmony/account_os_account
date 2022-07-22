@@ -22,6 +22,9 @@ config("appaccount_kit_config") {
     "//foundation/arkui/napi/interfaces/kits",
     "${app_account_kits_path}/include",
     "${ability_runtime_napi_path}/inner/napi_common",
+    "//foundation/ability/ability_runtime/frameworks/js/napi/aafwk/inner/napi_common",
+    "include",
+    "${app_account_innerkits_native_path}/include",
   ]
 
   cflags = []
@@ -42,18 +45,16 @@ ohos_shared_library("appaccount") {
 
   public_configs = [ ":appaccount_kit_config" ]
   sources = [
-    "${app_account_kits_path}/src/napi_app_account.cpp",
-    "${app_account_kits_path}/src/napi_app_account_authenticator.cpp",
-    "${app_account_kits_path}/src/napi_app_account_authenticator_callback.cpp",
-    "${app_account_kits_path}/src/napi_app_account_common.cpp",
-    "${app_account_kits_path}/src/napi_app_account_constant.cpp",
-    "${app_account_kits_path}/src/napi_app_account_module.cpp",
+    "src/napi_app_account.cpp",
+    "src/napi_app_account_authenticator.cpp",
+    "src/napi_app_account_authenticator_callback.cpp",
+    "src/napi_app_account_common.cpp",
+    "src/napi_app_account_constant.cpp",
+    "src/napi_app_account_module.cpp",
   ]
 
   deps = [
     "${ability_runtime_napi_path}/inner/napi_common:napi_common",
-    "${app_account_services_path}:accountmgr",
-    "${app_account_services_path}/src/appaccount:app_account_service_core",
     "${common_path}:libaccount_common",
     "//foundation/arkui/napi/:ace_napi",
     "//foundation/distributedschedule/samgr/interfaces/innerkits/samgr_proxy:samgr_proxy",
@@ -70,6 +71,7 @@ ohos_shared_library("appaccount") {
     "ipc:ipc_core",
     "ipc_js:rpc",
     "os_account:app_account_innerkits",
+    "safwk:system_ability_fwk",
   ]
 
   subsystem_name = "account"

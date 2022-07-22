@@ -21,6 +21,7 @@ config("app_account_service_config_mock") {
     "//third_party/googletest/googlemock/include",
     "${app_account_services_path}/test/mock/app_account",
     "${app_account_services_path}/test/mock/common",
+    "${app_account_innerkits_native_path}/include",
   ]
 }
 
@@ -56,6 +57,7 @@ ohos_moduletest("account_permission_manager_module_test") {
   sources = [ "account_permission_manager_module_test.cpp" ]
 
   deps = [
+    "${app_account_innerkits_native_path}:app_account_innerkits",
     "${app_account_services_path}:accountmgr",
     "${common_path}:libaccount_common",
     "//third_party/googletest:gmock_main",
@@ -88,6 +90,7 @@ ohos_moduletest("app_account_control_manager_module_test") {
   ]
 
   deps = [
+    "${app_account_innerkits_native_path}:app_account_innerkits",
     "${app_account_services_path}:accountmgr",
     "${app_account_services_path}/src/appaccount:app_account_service_core",
     "${common_path}:libaccount_common",
@@ -122,6 +125,7 @@ ohos_moduletest("app_account_manager_service_module_test") {
   ]
 
   deps = [
+    "${app_account_innerkits_native_path}:app_account_innerkits",
     "${app_account_services_path}:accountmgr",
     "${app_account_services_path}/src/appaccount:app_account_service_core",
     "${common_path}:libaccount_common",
@@ -162,6 +166,7 @@ ohos_moduletest("app_account_manager_service_subscribe_module_test") {
   ]
 
   deps = [
+    "${app_account_innerkits_native_path}:app_account_innerkits",
     "${app_account_services_path}:accountmgr",
     "${app_account_services_path}/src/appaccount:app_account_service_core",
     "${common_path}:libaccount_common",
@@ -202,6 +207,7 @@ ohos_moduletest("app_account_manager_service_sync_module_test") {
   ]
 
   deps = [
+    "${app_account_innerkits_native_path}:app_account_innerkits",
     "${app_account_services_path}:accountmgr",
     "${app_account_services_path}/src/appaccount:app_account_service_core",
     "${common_path}:libaccount_common",
@@ -242,6 +248,7 @@ ohos_moduletest("app_account_manager_service_thread_module_test") {
   ]
 
   deps = [
+    "${app_account_innerkits_native_path}:app_account_innerkits",
     "${app_account_services_path}:accountmgr",
     "${app_account_services_path}/src/appaccount:app_account_service_core",
     "${common_path}:libaccount_common",

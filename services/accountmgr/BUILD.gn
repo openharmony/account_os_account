@@ -44,6 +44,7 @@ config("accountmgr_config") {
     "${innerkits_path}/include",
     "${os_account_dfx_path}/hidumper_adapter",
     "${os_account_dfx_path}/hisysevent_adapter",
+    "${app_account_innerkits_native_path}/include",
     "//third_party/json/include",
     "//third_party/mbedtls/include",
     "//utils/native/base/include",
@@ -124,29 +125,24 @@ ohos_shared_library("accountmgr") {
     "${os_account_dfx_path}/hisysevent_adapter/hisysevent_adapter.cpp",
     "src/account_data_storage.cpp",
     "src/account_event_provider.cpp",
-    "src/account_file_operator.cpp",
     "src/account_helper_data.cpp",
     "src/account_mgr_service.cpp",
     "src/account_permission_manager.cpp",
     "src/account_state_machine.cpp",
     "src/account_stub.cpp",
-    "src/appaccount/app_account.cpp",
     "src/appaccount/app_account_app_state_observer.cpp",
     "src/appaccount/app_account_authenticator_callback.cpp",
     "src/appaccount/app_account_authenticator_callback_proxy.cpp",
-    "src/appaccount/app_account_authenticator_callback_stub.cpp",
     "src/appaccount/app_account_authenticator_manager.cpp",
     "src/appaccount/app_account_authenticator_proxy.cpp",
     "src/appaccount/app_account_authenticator_session.cpp",
     "src/appaccount/app_account_authenticator_session_manager.cpp",
-    "src/appaccount/app_account_authenticator_stub.cpp",
     "src/appaccount/app_account_check_labels_callback.cpp",
     "src/appaccount/app_account_check_labels_session.cpp",
     "src/appaccount/app_account_common_event_observer.cpp",
     "src/appaccount/app_account_common_event_subscriber.cpp",
     "src/appaccount/app_account_control_manager.cpp",
     "src/appaccount/app_account_data_storage.cpp",
-    "src/appaccount/app_account_death_recipient.cpp",
     "src/appaccount/app_account_manager_service.cpp",
     "src/appaccount/app_account_subscribe_death_recipient.cpp",
     "src/appaccount/app_account_subscribe_manager.cpp",
@@ -184,6 +180,7 @@ ohos_shared_library("accountmgr") {
   public_configs = [ ":accountmgr_public_config" ]
 
   deps = [
+    "${app_account_innerkits_native_path}:app_account_innerkits",
     "${app_account_services_path}/src/appaccount:app_account_service_core",
     "${common_path}:libaccount_common",
     "${innerkits_native_path}:libaccountkits",
@@ -195,7 +192,7 @@ ohos_shared_library("accountmgr") {
 
   if (has_user_idm_part) {
     cflags_cc += [ "-DHAS_USER_IDM_PART" ]
-    deps += [ "//base/useriam/user_auth_framework/frameworks/user_idm:useridm_framework" ]
+    deps += [ "//base/useriam/user_auth_framework/frameworks/native/client:userauth_client" ]
   }
 
   external_deps = [

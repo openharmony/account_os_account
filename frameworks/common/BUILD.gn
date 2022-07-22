@@ -22,15 +22,19 @@ config("account_common_config") {
   include_dirs = [
     "account_error/include",
     "database/include",
+    "file_operator/include",
     "log/include",
     "perf_stat/include",
     "//utils/native/base/include",
     "//third_party/json/include",
+    "${os_account_dfx_path}/hisysevent_adapter",
   ]
 }
 
 ohos_shared_library("libaccount_common") {
   sources = [
+    "${os_account_dfx_path}/hisysevent_adapter/hisysevent_adapter.cpp",
+    "file_operator/src/account_file_operator.cpp",
     "log/src/account_log_wrapper.cpp",
     "perf_stat/src/perf_stat.cpp",
   ]
