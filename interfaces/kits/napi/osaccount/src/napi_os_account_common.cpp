@@ -265,7 +265,12 @@ void CBOrPromiseToQueryOAById(
     napi_env env, const QueryOAByIdAsyncContext *queryOAByIdCB, napi_value err, napi_value data)
 {
     ACCOUNT_LOGD("enter");
-    napi_value args[RESULT_COUNT] = {err, data};
+    napi_value args[RESULT_COUNT] = {nullptr};
+    if (queryOAByIdCB->status == napi_ok) {
+        args[1] = data;
+    } else {
+        args[0] = err;
+    }
     if (queryOAByIdCB->deferred) {
         ACCOUNT_LOGD("Promise");
         if (queryOAByIdCB->status == napi_ok) {
@@ -278,7 +283,7 @@ void CBOrPromiseToQueryOAById(
         napi_value callback = nullptr;
         napi_get_reference_value(env, queryOAByIdCB->callbackRef, &callback);
         napi_value returnVal = nullptr;
-        napi_call_function(env, nullptr, callback, RESULT_COUNT, &args[0], &returnVal);
+        napi_call_function(env, nullptr, callback, RESULT_COUNT, args, &returnVal);
         if (queryOAByIdCB->callbackRef != nullptr) {
             napi_delete_reference(env, queryOAByIdCB->callbackRef);
         }
@@ -333,7 +338,12 @@ void RemoveOACallbackCompletedCB(napi_env env, napi_status status, void *data)
 void CBOrPromiseToRemoveOA(napi_env env, const RemoveOAAsyncContext *removeOACB, napi_value err, napi_value data)
 {
     ACCOUNT_LOGD("enter");
-    napi_value args[RESULT_COUNT] = {err, data};
+    napi_value args[RESULT_COUNT] = {nullptr};
+    if (removeOACB->status == napi_ok) {
+        args[1] = data;
+    } else {
+        args[0] = err;
+    }
     if (removeOACB->deferred) {
         ACCOUNT_LOGD("Promise");
         if (removeOACB->status == napi_ok) {
@@ -403,7 +413,12 @@ void SetOANameCallbackCompletedCB(napi_env env, napi_status status, void *data)
 void CBOrPromiseToSetOAName(napi_env env, const SetOANameAsyncContext *setOANameCB, napi_value err, napi_value data)
 {
     ACCOUNT_LOGD("enter");
-    napi_value args[RESULT_COUNT] = {err, data};
+    napi_value args[RESULT_COUNT] = {nullptr};
+    if (setOANameCB->status == napi_ok) {
+        args[1] = data;
+    } else {
+        args[0] = err;
+    }
     if (setOANameCB->deferred) {
         ACCOUNT_LOGD("Promise");
         if (setOANameCB->status == napi_ok) {
@@ -507,7 +522,12 @@ void SetOAConsCallbackCompletedCB(napi_env env, napi_status status, void *data)
 void CBOrPromiseToSetOACons(napi_env env, const SetOAConsAsyncContext *setOAConsCB, napi_value err, napi_value data)
 {
     ACCOUNT_LOGD("enter");
-    napi_value args[RESULT_COUNT] = {err, data};
+    napi_value args[RESULT_COUNT] = {nullptr};
+    if (setOAConsCB->status == napi_ok) {
+        args[1] = data;
+    } else {
+        args[0] = err;
+    }
     if (setOAConsCB->deferred) {
         ACCOUNT_LOGD("Promise");
         if (setOAConsCB->status == napi_ok) {
@@ -575,7 +595,12 @@ void ActivateOACallbackCompletedCB(napi_env env, napi_status status, void *data)
 void CBOrPromiseToActivateOA(napi_env env, const ActivateOAAsyncContext *activateOA, napi_value err, napi_value data)
 {
     ACCOUNT_LOGD("enter");
-    napi_value args[RESULT_COUNT] = {err, data};
+    napi_value args[RESULT_COUNT] = {nullptr};
+    if (activateOA->status == napi_ok) {
+        args[1] = data;
+    } else {
+        args[0] = err;
+    }
     if (activateOA->deferred) {
         ACCOUNT_LOGD("Promise");
         if (activateOA->status == napi_ok) {
@@ -703,7 +728,12 @@ void CreateOAForDomainCallbackCompletedCB(napi_env env, napi_status status, void
 void CBOrPromiseToCreateOA(napi_env env, const CreateOAAsyncContext *createOACB, napi_value err, napi_value data)
 {
     ACCOUNT_LOGD("enter");
-    napi_value args[RESULT_COUNT] = {err, data};
+    napi_value args[RESULT_COUNT] = {nullptr};
+    if (createOACB->status == napi_ok) {
+        args[1] = data;
+    } else {
+        args[0] = err;
+    }
     if (createOACB->deferred) {
         ACCOUNT_LOGD("Promise");
         if (createOACB->status == napi_ok) {
@@ -727,7 +757,12 @@ void CBOrPromiseToCreateOAForDomain(napi_env env, const CreateOAForDomainAsyncCo
     napi_value err, napi_value data)
 {
     ACCOUNT_LOGD("enter");
-    napi_value args[RESULT_COUNT] = {err, data};
+    napi_value args[RESULT_COUNT] = {nullptr};
+    if (createOAForDomainCB->status == napi_ok) {
+        args[1] = data;
+    } else {
+        args[0] = err;
+    }
     if (createOAForDomainCB->deferred) {
         ACCOUNT_LOGD("Promise");
         if (createOAForDomainCB->status == napi_ok) {
@@ -788,7 +823,12 @@ void GetOACountCallbackCompletedCB(napi_env env, napi_status status, void *data)
 void CBOrPromiseToGetOACount(napi_env env, const GetOACountAsyncContext *getOACount, napi_value err, napi_value data)
 {
     ACCOUNT_LOGD("enter");
-    napi_value args[RESULT_COUNT] = {err, data};
+    napi_value args[RESULT_COUNT] = {nullptr};
+    if (getOACount->status == napi_ok) {
+        args[1] = data;
+    } else {
+        args[0] = err;
+    }
     if (getOACount->deferred) {
         ACCOUNT_LOGD("Promise");
         if (getOACount->status == napi_ok) {
@@ -849,7 +889,12 @@ void DbDeviceIdCallbackCompletedCB(napi_env env, napi_status status, void *data)
 void CBOrPromiseToDbDeviceId(napi_env env, const DbDeviceIdAsyncContext *dbDeviceId, napi_value err, napi_value data)
 {
     ACCOUNT_LOGD("enter");
-    napi_value args[RESULT_COUNT] = {err, data};
+    napi_value args[RESULT_COUNT] = {nullptr};
+    if (dbDeviceId->status == napi_ok) {
+        args[1] = data;
+    } else {
+        args[0] = err;
+    }
     if (dbDeviceId->deferred) {
         ACCOUNT_LOGD("Promise");
         if (dbDeviceId->status == napi_ok) {
@@ -946,7 +991,12 @@ void GetActiveIds(napi_env env, const std::vector<int> &ids, napi_value result)
 void CBOrPromiseToGetAllCons(napi_env env, const GetAllConsAsyncContext *getAllCons, napi_value err, napi_value data)
 {
     ACCOUNT_LOGD("enter");
-    napi_value args[RESULT_COUNT] = {err, data};
+    napi_value args[RESULT_COUNT] = {nullptr};
+    if (getAllCons->status == napi_ok) {
+        args[1] = data;
+    } else {
+        args[0] = err;
+    }
     if (getAllCons->deferred) {
         ACCOUNT_LOGD("Promise");
         if (getAllCons->status == napi_ok) {
@@ -1007,7 +1057,12 @@ void GetProcessIdCallbackCompletedCB(napi_env env, napi_status status, void *dat
 void CBOrPromiseToGetProcessId(napi_env env, const GetIdAsyncContext *getIdCB, napi_value err, napi_value data)
 {
     ACCOUNT_LOGD("enter");
-    napi_value args[RESULT_COUNT] = {err, data};
+    napi_value args[RESULT_COUNT] = {nullptr};
+    if (getIdCB->status == napi_ok) {
+        args[1] = data;
+    } else {
+        args[0] = err;
+    }
     if (getIdCB->deferred) {
         ACCOUNT_LOGD("Promise");
         if (getIdCB->status == napi_ok) {
@@ -1120,7 +1175,12 @@ void CBOrPromiseToQueryOAContSrcType(napi_env env,
     const QueryOAConstraintSrcTypeContext *queryConstraintSource, napi_value err, napi_value data)
 {
     ACCOUNT_LOGI("enter");
-    napi_value args[RESULT_COUNT] = {err, data};
+    napi_value args[RESULT_COUNT] = {nullptr};
+    if (queryConstraintSource->status == napi_ok) {
+        args[1] = data;
+    } else {
+        args[0] = err;
+    }
     if (queryConstraintSource->deferred) {
         ACCOUNT_LOGI("Promise");
         if (queryConstraintSource->status == napi_ok) {
@@ -1218,7 +1278,12 @@ void QueryOAInfoForResult(napi_env env, const std::vector<OsAccountInfo> &info, 
 void CBOrPromiseToQueryOA(napi_env env, const QueryCreateOAAsyncContext *queryOA, napi_value err, napi_value data)
 {
     ACCOUNT_LOGD("enter");
-    napi_value args[RESULT_COUNT] = {err, data};
+    napi_value args[RESULT_COUNT] = {nullptr};
+    if (queryOA->status == napi_ok) {
+        args[1] = data;
+    } else {
+        args[0] = err;
+    }
     if (queryOA->deferred) {
         ACCOUNT_LOGD("Promise");
         if (queryOA->status == napi_ok) {
@@ -1242,7 +1307,12 @@ void CBOrPromiseToQueryActiveIds(napi_env env, const QueryActiveIdsAsyncContext 
     napi_value err, napi_value data)
 {
     ACCOUNT_LOGD("enter");
-    napi_value args[RESULT_COUNT] = {err, data};
+    napi_value args[RESULT_COUNT] = {nullptr};
+    if (queryActiveIds->status == napi_ok) {
+        args[1] = data;
+    } else {
+        args[0] = err;
+    }
     if (queryActiveIds->deferred) {
         ACCOUNT_LOGD("Promise");
         if (queryActiveIds->status == napi_ok) {
@@ -1310,7 +1380,12 @@ void GetOAPhotoCallbackCompletedCB(napi_env env, napi_status status, void *data)
 void CBOrPromiseToGetPhoto(napi_env env, const GetOAPhotoAsyncContext *getPhoto, napi_value err, napi_value data)
 {
     ACCOUNT_LOGD("enter");
-    napi_value args[RESULT_COUNT] = {err, data};
+    napi_value args[RESULT_COUNT] = {nullptr};
+    if (getPhoto->status == napi_ok) {
+        args[1] = data;
+    } else {
+        args[0] = err;
+    }
     if (getPhoto->deferred) {
         ACCOUNT_LOGD("Promise");
         if (getPhoto->status == napi_ok) {
@@ -1372,7 +1447,12 @@ void QueryCurrentOACallbackCompletedCB(napi_env env, napi_status status, void *d
 void CBOrPromiseQueryCurrentOA(napi_env env, const CurrentOAAsyncContext *currentOA, napi_value err, napi_value data)
 {
     ACCOUNT_LOGD("enter");
-    napi_value args[RESULT_COUNT] = {err, data};
+    napi_value args[RESULT_COUNT] = {nullptr};
+    if (currentOA->status == napi_ok) {
+        args[1] = data;
+    } else {
+        args[0] = err;
+    }
     if (currentOA->deferred) {
         ACCOUNT_LOGD("Promise");
         if (currentOA->status == napi_ok) {
@@ -1514,7 +1594,12 @@ void GetIdByDomainCallbackCompletedCB(napi_env env, napi_status status, void *da
 void CBOrPromiseGetIdByUid(napi_env env, const GetIdByUidAsyncContext *idByUid, napi_value err, napi_value data)
 {
     ACCOUNT_LOGD("enter");
-    napi_value args[RESULT_COUNT] = {err, data};
+    napi_value args[RESULT_COUNT] = {nullptr};
+    if (idByUid->status == napi_ok) {
+        args[1] = data;
+    } else {
+        args[0] = err;
+    }
     if (idByUid->deferred) {
         ACCOUNT_LOGD("Promise");
         if (idByUid->status == napi_ok) {
@@ -1538,7 +1623,12 @@ void CBOrPromiseGetBundleIdByUid(napi_env env, const GetIdByUidAsyncContext *bun
     napi_value err, napi_value data)
 {
     ACCOUNT_LOGD("enter");
-    napi_value args[RESULT_COUNT] = {err, data};
+    napi_value args[RESULT_COUNT] = {nullptr};
+    if (bundleIdByUid->status == napi_ok) {
+        args[1] = data;
+    } else {
+        args[0] = err;
+    }
     if (bundleIdByUid->deferred) {
         ACCOUNT_LOGD("Promise");
         if (bundleIdByUid->status == napi_ok) {
@@ -1562,7 +1652,12 @@ void CBOrPromiseGetIdByDomain(napi_env env, const GetIdByDomainAsyncContext *idB
     napi_value err, napi_value data)
 {
     ACCOUNT_LOGD("enter");
-    napi_value args[RESULT_COUNT] = {err, data};
+    napi_value args[RESULT_COUNT] = {nullptr};
+    if (idByDomain->status == napi_ok) {
+        args[1] = data;
+    } else {
+        args[0] = err;
+    }
     if (idByDomain->deferred) {
         ACCOUNT_LOGD("Promise");
         if (idByDomain->status == napi_ok) {
@@ -1632,7 +1727,12 @@ void SetPhotoCompletedCB(napi_env env, napi_status status, void *data)
 void CBOrPromiseSetPhoto(napi_env env, const SetOAPhotoAsyncContext *setPhoto, napi_value err, napi_value data)
 {
     ACCOUNT_LOGD("enter");
-    napi_value args[RESULT_COUNT] = {err, data};
+    napi_value args[RESULT_COUNT] = {nullptr};
+    if (setPhoto->status == napi_ok) {
+        args[1] = data;
+    } else {
+        args[0] = err;
+    }
     if (setPhoto->deferred) {
         ACCOUNT_LOGD("Promise");
         if (setPhoto->status == napi_ok) {
@@ -1693,7 +1793,12 @@ void QueryMaxNumCompletedCB(napi_env env, napi_status status, void *data)
 void CBOrPromiseMaxNum(napi_env env, const QueryMaxNumAsyncContext *maxNum, napi_value err, napi_value data)
 {
     ACCOUNT_LOGD("enter");
-    napi_value args[RESULT_COUNT] = {err, data};
+    napi_value args[RESULT_COUNT] = {nullptr};
+    if (maxNum->status == napi_ok) {
+        args[1] = data;
+    } else {
+        args[0] = err;
+    }
     if (maxNum->deferred) {
         ACCOUNT_LOGD("Promise");
         if (maxNum->status == napi_ok) {
@@ -1761,7 +1866,12 @@ void IsActivedCompletedCB(napi_env env, napi_status status, void *data)
 void CBOrPromiseIsActived(napi_env env, const IsActivedAsyncContext *isActived, napi_value err, napi_value data)
 {
     ACCOUNT_LOGD("enter");
-    napi_value args[RESULT_COUNT] = {err, data};
+    napi_value args[RESULT_COUNT] = {nullptr};
+    if (isActived->status == napi_ok) {
+        args[1] = data;
+    } else {
+        args[0] = err;
+    }
     if (isActived->deferred) {
         ACCOUNT_LOGD("Promise");
         if (isActived->status == napi_ok) {
@@ -1832,7 +1942,12 @@ void IsEnableCompletedCB(napi_env env, napi_status status, void *data)
 void CBOrPromiseIsEnable(napi_env env, const IsConEnableAsyncContext *isEnable, napi_value err, napi_value data)
 {
     ACCOUNT_LOGD("enter");
-    napi_value args[RESULT_COUNT] = {err, data};
+    napi_value args[RESULT_COUNT] = {nullptr};
+    if (isEnable->status == napi_ok) {
+        args[1] = data;
+    } else {
+        args[0] = err;
+    }
     if (isEnable->deferred) {
         ACCOUNT_LOGD("Promise");
         if (isEnable->status == napi_ok) {
@@ -1911,7 +2026,12 @@ void GetTypeCompletedCB(napi_env env, napi_status status, void *data)
 void CBOrPromiseGetType(napi_env env, const GetTypeAsyncContext *getType, napi_value err, napi_value data)
 {
     ACCOUNT_LOGD("enter");
-    napi_value args[RESULT_COUNT] = {err, data};
+    napi_value args[RESULT_COUNT] = {nullptr};
+    if (getType->status == napi_ok) {
+        args[1] = data;
+    } else {
+        args[0] = err;
+    }
     if (getType->deferred) {
         ACCOUNT_LOGD("Promise");
         if (getType->status == napi_ok) {
@@ -1972,7 +2092,12 @@ void IsMultiEnCompletedCB(napi_env env, napi_status status, void *data)
 void CBOrPromiseIsMultiEn(napi_env env, const IsMultiEnAsyncContext *multiEn, napi_value err, napi_value data)
 {
     ACCOUNT_LOGD("enter");
-    napi_value args[RESULT_COUNT] = {err, data};
+    napi_value args[RESULT_COUNT] = {nullptr};
+    if (multiEn->status == napi_ok) {
+        args[1] = data;
+    } else {
+        args[0] = err;
+    }
     if (multiEn->deferred) {
         ACCOUNT_LOGD("Promise");
         if (multiEn->status == napi_ok) {
@@ -2043,7 +2168,12 @@ void IsVerifiedCompletedCB(napi_env env, napi_status status, void *data)
 void CBOrPromiseIsVerified(napi_env env, const IsVerifiedAsyncContext *isVerified, napi_value err, napi_value data)
 {
     ACCOUNT_LOGD("enter");
-    napi_value args[RESULT_COUNT] = {err, data};
+    napi_value args[RESULT_COUNT] = {nullptr};
+    if (isVerified->status == napi_ok) {
+        args[1] = data;
+    } else {
+        args[0] = err;
+    }
     if (isVerified->deferred) {
         ACCOUNT_LOGD("Promise");
         if (isVerified->status == napi_ok) {
@@ -2112,7 +2242,12 @@ void SerialNumIdCompletedCB(napi_env env, napi_status status, void *data)
 void CBOrPromiseSerialNum(napi_env env, const GetSerialNumIdCBInfo *serialNumId, napi_value err, napi_value data)
 {
     ACCOUNT_LOGD("enter");
-    napi_value args[RESULT_COUNT] = {err, data};
+    napi_value args[RESULT_COUNT] = {nullptr};
+    if (serialNumId->status == napi_ok) {
+        args[1] = data;
+    } else {
+        args[0] = err;
+    }
     if (serialNumId->deferred) {
         ACCOUNT_LOGD("Promise");
         if (serialNumId->status == napi_ok) {
@@ -2181,7 +2316,12 @@ void GetSerialNumCompletedCB(napi_env env, napi_status status, void *data)
 void CBOrPromiseGetSerialNum(napi_env env, const GetSerialNumForOAInfo *getSerialNum, napi_value err, napi_value data)
 {
     ACCOUNT_LOGD("enter");
-    napi_value args[RESULT_COUNT] = {err, data};
+    napi_value args[RESULT_COUNT] = {nullptr};
+    if (getSerialNum->status == napi_ok) {
+        args[1] = data;
+    } else {
+        args[0] = err;
+    }
     if (getSerialNum->deferred) {
         ACCOUNT_LOGD("Promise");
         if (getSerialNum->status == napi_ok) {
@@ -2236,7 +2376,12 @@ void ParseParaIsMainOA(napi_env env, napi_callback_info cbInfo, IsMainOAInfo *is
 void CBOrPromiseIsTestOA(napi_env env, const IsTestOAInfo *isTest, napi_value err, napi_value data)
 {
     ACCOUNT_LOGD("enter");
-    napi_value args[RESULT_COUNT] = {err, data};
+    napi_value args[RESULT_COUNT] = {nullptr};
+    if (isTest->status == napi_ok) {
+        args[1] = data;
+    } else {
+        args[0] = err;
+    }
     if (isTest->deferred) {
         ACCOUNT_LOGD("Promise");
         if (isTest->status == napi_ok) {
@@ -2259,7 +2404,12 @@ void CBOrPromiseIsTestOA(napi_env env, const IsTestOAInfo *isTest, napi_value er
 void CBOrPromiseIsMainOA(napi_env env, const IsMainOAInfo *isMain, napi_value err, napi_value data)
 {
     ACCOUNT_LOGD("enter");
-    napi_value args[RESULT_COUNT] = {err, data};
+    napi_value args[RESULT_COUNT] = {nullptr};
+    if (isMain->status == napi_ok) {
+        args[1] = data;
+    } else {
+        args[0] = err;
+    }
     if (isMain->deferred) {
         ACCOUNT_LOGD("Promise");
         if (isMain->status == napi_ok) {
