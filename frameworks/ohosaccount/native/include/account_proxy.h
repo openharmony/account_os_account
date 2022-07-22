@@ -16,9 +16,10 @@
 #ifndef OS_ACCOUNT_SERVICES_ACCOUNTMGR_INCLUDE_ACCOUNT_PROXY_H
 #define OS_ACCOUNT_SERVICES_ACCOUNTMGR_INCLUDE_ACCOUNT_PROXY_H
 
-#include "iaccount.h"
-#include "account_info.h"
 #include <iremote_proxy.h>
+#include "account_info.h"
+#include "iaccount.h"
+
 
 namespace OHOS {
 namespace AccountSA {

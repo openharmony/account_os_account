@@ -18,6 +18,8 @@ config("app_account_service_core_config") {
   include_dirs = [
     "./include",
     "./include/appaccount",
+    "${app_account_innerkits_native_path}/include",
+    "${app_account_kits_path}/include",
     "${common_path}/log/include",
     "${common_path}/perf_stat/include",
     "${common_path}/account_error/include",
@@ -49,15 +51,8 @@ config("app_account_service_core_public_config") {
 
 ohos_shared_library("app_account_service_core") {
   sources = [
-    "app_account_common.cpp",
-    "app_account_event_listener.cpp",
     "app_account_event_proxy.cpp",
-    "app_account_event_stub.cpp",
-    "app_account_info.cpp",
-    "app_account_proxy.cpp",
     "app_account_stub.cpp",
-    "app_account_subscribe_info.cpp",
-    "app_account_subscriber.cpp",
   ]
 
   defines = [
@@ -70,6 +65,7 @@ ohos_shared_library("app_account_service_core") {
   public_configs = [ ":app_account_service_core_public_config" ]
 
   deps = [
+    "${app_account_innerkits_native_path}:app_account_innerkits",
     "${common_path}:libaccount_common",
     "//utils/native/base:utils",
   ]
