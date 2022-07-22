@@ -948,29 +948,12 @@ void ParseContextWithStrCBArray(napi_env env, napi_callback_info cbInfo, GetAcco
 void ProcessCallbackOrPromise(napi_env env, const CommonAsyncContext *asyncContext, napi_value err, napi_value data)
 {
     ACCOUNT_LOGD("enter");
-    napi_value args[RESULT_COUNT] = {err, data};
-    if (asyncContext->deferred) {
-        if (asyncContext->errCode == ERR_OK) {
-            napi_resolve_deferred(env, asyncContext->deferred, args[1]);
-        } else {
-            napi_reject_deferred(env, asyncContext->deferred, args[0]);
-        }
+    napi_value args[RESULT_COUNT] = {nullptr};
+    if (asyncContext->errCode == ERR_OK) {
+        args[1] = data;
     } else {
-        napi_value callback = nullptr;
-        napi_get_reference_value(env, asyncContext->callbackRef, &callback);
-        napi_value returnVal = nullptr;
-        napi_call_function(env, nullptr, callback, RESULT_COUNT, &args[0], &returnVal);
-        if (asyncContext->callbackRef != nullptr) {
-            napi_delete_reference(env, asyncContext->callbackRef);
-        }
+        args[0] = err;
     }
-}
-
-void ProcessCallbackOrPromiseCBArray(
-    napi_env env, const GetAccountsAsyncContext *asyncContext, napi_value err, napi_value data)
-{
-    ACCOUNT_LOGD("enter");
-    napi_value args[RESULT_COUNT] = {err, data};
     if (asyncContext->deferred) {
         if (asyncContext->errCode == ERR_OK) {
             napi_resolve_deferred(env, asyncContext->deferred, args[1]);
