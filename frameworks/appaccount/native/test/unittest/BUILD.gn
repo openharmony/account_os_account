@@ -54,7 +54,6 @@ ohos_unittest("app_account_manager_test") {
 
   deps = [
     "${app_account_innerkits_native_path}:app_account_innerkits",
-    "${app_account_services_path}/src/appaccount:app_account_service_core",
     "${common_path}:libaccount_common",
     "//third_party/googletest:gmock_main",
     "//third_party/googletest:gtest_main",
@@ -80,7 +79,6 @@ ohos_unittest("app_account_manager_subscribe_test") {
 
   deps = [
     "${app_account_innerkits_native_path}:app_account_innerkits",
-    "${app_account_services_path}/src/appaccount:app_account_service_core",
     "${common_path}:libaccount_common",
     "//third_party/googletest:gmock_main",
     "//third_party/googletest:gtest_main",

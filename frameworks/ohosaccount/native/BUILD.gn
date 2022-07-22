@@ -24,10 +24,11 @@ config("accountkits_config") {
     "LOG_DOMAIN = 0xD001B00",
   ]
   include_dirs = [
+    "include",
+    "${innerkits_native_path}/include",
     "${common_path}/log/include",
     "${common_path}/perf_stat/include",
     "${common_path}/account_error/include",
-    "${services_path}/accountmgr/include",
     "${innerkits_path}/include",
     "//third_party/json/include",
     "//utils/native/base/include",

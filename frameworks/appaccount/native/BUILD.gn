@@ -17,7 +17,7 @@ import("//build/ohos.gni")
 config("app_account_innnerkits_config") {
   visibility = [ ":*" ]
 
-  include_dirs = []
+  include_dirs = [ "${os_account_path}/frameworks/ohosaccount/native/include" ]
 
   cflags = []
   if (target_cpu == "arm") {
@@ -26,6 +26,7 @@ config("app_account_innnerkits_config") {
 
   cflags += [ "-pipe" ]
   cflags_cc = [
+    "-fexceptions",
     "-Wdate-time",
     "-Wformat=2",
     "-Wfloat-equal",
@@ -44,21 +45,35 @@ config("app_account_innerkits_public_config") {
   include_dirs = [
     "${app_account_core_path}/include",
     "${app_account_interfaces_native_path}/include",
-    "${services_path}/accountmgr/include/appaccount",
+    "${innerkits_path}/include",
+    "${innerkits_native_path}/include",
+    "include",
   ]
 }
 
 ohos_shared_library("app_account_innerkits") {
-  sources =
-      [ "${app_account_innerkits_native_path}/src/app_account_manager.cpp" ]
+  sources = [
+    "src/app_account.cpp",
+    "src/app_account_authenticator_callback_stub.cpp",
+    "src/app_account_authenticator_stub.cpp",
+    "src/app_account_common.cpp",
+    "src/app_account_death_recipient.cpp",
+    "src/app_account_event_listener.cpp",
+    "src/app_account_event_stub.cpp",
+    "src/app_account_info.cpp",
+    "src/app_account_manager.cpp",
+    "src/app_account_proxy.cpp",
+    "src/app_account_subscribe_info.cpp",
+    "src/app_account_subscriber.cpp",
+  ]
 
   configs = [ ":app_account_innnerkits_config" ]
 
   public_configs = [ ":app_account_innerkits_public_config" ]
 
   deps = [
-    "${app_account_services_path}:accountmgr",
     "${common_path}:libaccount_common",
+    "${innerkits_native_path}:libaccountkits",
     "//utils/native/base:utils",
   ]
 
@@ -66,6 +81,8 @@ ohos_shared_library("app_account_innerkits") {
     "ability_base:want",
     "hiviewdfx_hilog_native:libhilog",
     "ipc:ipc_core",
+    "safwk:system_ability_fwk",
+    "samgr_standard:samgr_proxy",
   ]
 
   subsystem_name = "account"
