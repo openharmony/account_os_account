@@ -86,7 +86,6 @@ napi_value ParseParaQueryOAByIdCB(napi_env env, napi_callback_info cbInfo, Query
             break;
         } else {
             ACCOUNT_LOGE("Type matching failed");
-            return nullptr;
         }
     }
     return WrapVoidToJS(env);
@@ -302,7 +301,6 @@ napi_value ParseParaRemoveOACB(napi_env env, napi_callback_info cbInfo, RemoveOA
             break;
         } else {
             ACCOUNT_LOGE("Type matching failed");
-            return nullptr;
         }
     }
     return WrapVoidToJS(env);
@@ -372,7 +370,6 @@ napi_value ParseParaSetOAName(napi_env env, napi_callback_info cbInfo, SetOAName
             break;
         } else {
             ACCOUNT_LOGE("Type matching failed");
-            return nullptr;
         }
     }
     return WrapVoidToJS(env);
@@ -442,7 +439,6 @@ napi_value ParseParaSetOAConstraints(napi_env env, napi_callback_info cbInfo, Se
         setOAConsCB->id = GetIntProperty(env, argv[0]);
     } else {
         ACCOUNT_LOGE("Wrong argument type");
-        return nullptr;
     }
 
     // argv[1] : Array<string>
@@ -468,7 +464,6 @@ napi_value ParseParaSetOAConstraints(napi_env env, napi_callback_info cbInfo, Se
         NAPI_CALL(env, napi_get_value_bool(env, argv[PARAMTWO], &setOAConsCB->enable));
     } else {
         ACCOUNT_LOGE("Wrong argument type");
-        return nullptr;
     }
 
     // argv[3] : callback
@@ -544,7 +539,6 @@ napi_value ParseParaActiveOA(napi_env env, napi_callback_info cbInfo, ActivateOA
             break;
         } else {
             ACCOUNT_LOGE("Type matching failed");
-            return nullptr;
         }
     }
     return WrapVoidToJS(env);
@@ -614,7 +608,6 @@ napi_value ParseParaCreateOA(napi_env env, napi_callback_info cbInfo, CreateOAAs
             break;
         } else {
             ACCOUNT_LOGE("Type matching failed");
-            return nullptr;
         }
     }
     return WrapVoidToJS(env);
@@ -646,7 +639,6 @@ napi_value ParseParaCreateOAForDomain(napi_env env, napi_callback_info cbInfo,
             break;
         } else {
             ACCOUNT_LOGE("Type matching failed");
-            return nullptr;
         }
     }
     return WrapVoidToJS(env);
@@ -886,7 +878,6 @@ napi_value ParseParaGetAllCons(napi_env env, napi_callback_info cbInfo, GetAllCo
             break;
         } else {
             ACCOUNT_LOGE("Type matching failed");
-            return nullptr;
         }
     }
     return WrapVoidToJS(env);
@@ -1063,7 +1054,6 @@ napi_value ParseQueryOAConstraintSrcTypes(napi_env env, napi_callback_info cbInf
             break;
         } else {
             ACCOUNT_LOGE("Type matching failed");
-            return nullptr;
         }
     }
     return WrapVoidToJS(env);
@@ -1279,7 +1269,6 @@ napi_value ParseParaGetPhoto(napi_env env, napi_callback_info cbInfo, GetOAPhoto
             break;
         } else {
             ACCOUNT_LOGE("Type matching failed");
-            return nullptr;
         }
     }
     return WrapVoidToJS(env);
@@ -1409,7 +1398,6 @@ napi_value ParseParaGetIdByUid(napi_env env, napi_callback_info cbInfo, GetIdByU
             break;
         } else {
             ACCOUNT_LOGE("Type matching failed");
-            return nullptr;
         }
     }
     return WrapVoidToJS(env);
@@ -1438,7 +1426,6 @@ napi_value ParseParaGetIdByDomain(napi_env env, napi_callback_info cbInfo, GetId
             break;
         } else {
             ACCOUNT_LOGE("Type matching failed");
-            return nullptr;
         }
     }
     return WrapVoidToJS(env);
@@ -1601,7 +1588,6 @@ napi_value ParseParaSetPhoto(napi_env env, napi_callback_info cbInfo, SetOAPhoto
             break;
         } else {
             ACCOUNT_LOGE("Type matching failed");
-            return nullptr;
         }
     }
     return WrapVoidToJS(env);
@@ -1730,7 +1716,6 @@ napi_value ParseParaIsActived(napi_env env, napi_callback_info cbInfo, IsActived
             break;
         } else {
             ACCOUNT_LOGE("Type matching failed");
-            return nullptr;
         }
     }
     return WrapVoidToJS(env);
@@ -1800,7 +1785,6 @@ napi_value ParseParaIsEnable(napi_env env, napi_callback_info cbInfo, IsConEnabl
             break;
         } else {
             ACCOUNT_LOGE("Type matching failed");
-            return nullptr;
         }
     }
     return WrapVoidToJS(env);
@@ -2012,7 +1996,6 @@ napi_value ParseParaIsVerified(napi_env env, napi_callback_info cbInfo, IsVerifi
             break;
         } else {
             ACCOUNT_LOGE("Type matching failed");
-            return nullptr;
         }
     }
     return WrapVoidToJS(env);
@@ -2080,7 +2063,6 @@ napi_value ParseParaSerialNumId(napi_env env, napi_callback_info cbInfo, GetSeri
             break;
         } else {
             ACCOUNT_LOGE("Type matching failed");
-            return nullptr;
         }
     }
     return WrapVoidToJS(env);
@@ -2149,7 +2131,6 @@ napi_value ParseParaGetSerialNum(napi_env env, napi_callback_info cbInfo, GetSer
             break;
         } else {
             ACCOUNT_LOGE("Type matching failed");
-            return nullptr;
         }
     }
     return WrapVoidToJS(env);
