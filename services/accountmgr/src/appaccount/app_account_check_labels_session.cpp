@@ -36,18 +36,12 @@ ErrCode AppAccountCheckLabelsSession::Open()
     if (isOpened_) {
         return ERR_APPACCOUNT_SERVICE_OAUTH_SERVICE_EXCEPTION;
     }
-    sessionId_ = std::to_string(reinterpret_cast<int64_t>(this));
     checkCallback_ = new (std::nothrow) AppAccountCheckLabelsCallback(accounts_, request_, sessionId_);
     if (checkCallback_ == nullptr) {
         return ERR_ACCOUNT_COMMON_INSUFFICIENT_MEMORY_ERROR;
     }
     isOpened_ = true;
     return ERR_OK;
-}
-
-std::string AppAccountCheckLabelsSession::GetSessionId() const
-{
-    return sessionId_;
 }
 
 ErrCode AppAccountCheckLabelsSession::CheckLabels()

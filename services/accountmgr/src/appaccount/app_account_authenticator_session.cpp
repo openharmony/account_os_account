@@ -26,7 +26,7 @@
 
 namespace OHOS {
 namespace AccountSA {
-SessionClientDeathRecipient::SessionClientDeathRecipient(AppAccountAuthenticatorSession *session) : session_(session)
+SessionClientDeathRecipient::SessionClientDeathRecipient(const std::string &sessionId) : sessionId_(sessionId)
 {
     ACCOUNT_LOGD("enter");
 }
@@ -34,18 +34,14 @@ SessionClientDeathRecipient::SessionClientDeathRecipient(AppAccountAuthenticator
 void SessionClientDeathRecipient::OnRemoteDied(const wptr<IRemoteObject> &remote)
 {
     ACCOUNT_LOGD("enter");
-    if (session_ != nullptr) {
-        session_->OnClientDied();
+    (void)remote;
+    auto sessionMgr = AppAccountAuthenticatorSessionManager::GetInstance();
+    if (sessionMgr != nullptr) {
+        sessionMgr->CloseSession(sessionId_);
     }
 }
 
-void SessionClientDeathRecipient::SetSession(AppAccountAuthenticatorSession *session)
-{
-    ACCOUNT_LOGD("enter");
-    session_ = session;
-}
-
-SessionServerDeathRecipient::SessionServerDeathRecipient(AppAccountAuthenticatorSession *session) : session_(session)
+SessionServerDeathRecipient::SessionServerDeathRecipient(const std::string &sessionId) : sessionId_(sessionId)
 {
     ACCOUNT_LOGD("enter");
 }
@@ -53,18 +49,14 @@ SessionServerDeathRecipient::SessionServerDeathRecipient(AppAccountAuthenticator
 void SessionServerDeathRecipient::OnRemoteDied(const wptr<IRemoteObject> &remote)
 {
     ACCOUNT_LOGD("enter");
-    if (session_ != nullptr) {
-        session_->OnServerDied();
+    (void)remote;
+    auto sessionMgr = AppAccountAuthenticatorSessionManager::GetInstance();
+    if (sessionMgr != nullptr) {
+        sessionMgr->OnSessionServerDied(sessionId_);
     }
 }
 
-void SessionServerDeathRecipient::SetSession(AppAccountAuthenticatorSession *session)
-{
-    ACCOUNT_LOGD("enter");
-    session_ = session;
-}
-
-SessionConnection::SessionConnection(AppAccountAuthenticatorSession *session) : session_(session)
+SessionConnection::SessionConnection(const std::string &sessionId) : sessionId_(sessionId)
 {
     ACCOUNT_LOGD("enter");
 }
@@ -78,23 +70,19 @@ void SessionConnection::OnAbilityConnectDone(
     const AppExecFwk::ElementName &element, const sptr<IRemoteObject> &remoteObject, int resultCode)
 {
     ACCOUNT_LOGD("enter");
-    if (session_ != nullptr) {
-        session_->OnAbilityConnectDone(element, remoteObject, resultCode);
+    auto sessionMgr = AppAccountAuthenticatorSessionManager::GetInstance();
+    if (sessionMgr != nullptr) {
+        sessionMgr->OnSessionAbilityConnectDone(sessionId_, element, remoteObject, resultCode);
     }
 }
 
 void SessionConnection::OnAbilityDisconnectDone(const AppExecFwk::ElementName &element, int resultCode)
 {
     ACCOUNT_LOGD("enter");
-    if (session_ != nullptr) {
-        session_->OnAbilityDisconnectDone(element, resultCode);
+    auto sessionMgr = AppAccountAuthenticatorSessionManager::GetInstance();
+    if (sessionMgr != nullptr) {
+        sessionMgr->OnSessionAbilityDisconnectDone(sessionId_, element, resultCode);
     }
-}
-
-void SessionConnection::SetSession(AppAccountAuthenticatorSession *session)
-{
-    ACCOUNT_LOGD("enter");
-    session_ = session;
 }
 
 AppAccountAuthenticatorSession::AppAccountAuthenticatorSession(
@@ -121,15 +109,15 @@ void AppAccountAuthenticatorSession::Init()
         return;
     }
 
-    conn_ = new (std::nothrow) SessionConnection(this);
-    clientDeathRecipient_ = new (std::nothrow) SessionClientDeathRecipient(this);
-    serverDeathRecipient_ = new (std::nothrow) SessionServerDeathRecipient(this);
-    authenticatorCb_ = new (std::nothrow) AppAccountAuthenticatorCallback(this);
-    sessionManager_ = AppAccountAuthenticatorSessionManager::GetInstance();
+    sessionId_ = std::to_string(reinterpret_cast<int64_t>(this));
+    conn_ = new (std::nothrow) SessionConnection(sessionId_);
+    clientDeathRecipient_ = new (std::nothrow) SessionClientDeathRecipient(sessionId_);
+    serverDeathRecipient_ = new (std::nothrow) SessionServerDeathRecipient(sessionId_);
+    authenticatorCb_ = new (std::nothrow) AppAccountAuthenticatorCallback(sessionId_);
     controlManager_ = AppAccountControlManager::GetInstance();
     authenticatorMgr_ = AppAccountAuthenticatorManager::GetInstance();
     if ((conn_ == nullptr) || (clientDeathRecipient_ == nullptr)
-        || (serverDeathRecipient_ == nullptr) || (authenticatorCb_ == nullptr) || (sessionManager_ == nullptr)
+        || (serverDeathRecipient_ == nullptr) || (authenticatorCb_ == nullptr)
         || (controlManager_ == nullptr) || (authenticatorMgr_ == nullptr)) {
         conn_ = nullptr;
         clientDeathRecipient_ = nullptr;
@@ -137,7 +125,6 @@ void AppAccountAuthenticatorSession::Init()
         authenticatorCb_ = nullptr;
         return;
     }
-    sessionId_ = std::to_string(reinterpret_cast<int64_t>(this));
     userId_ = request_.callerUid / UID_TRANSFORM_DIVISOR;
     ownerUid_ = BundleManagerAdapter::GetInstance()->GetUidByBundleName(request_.owner, userId_);
     isInitialized_ = true;
@@ -173,21 +160,24 @@ ErrCode AppAccountAuthenticatorSession::Open()
 void AppAccountAuthenticatorSession::Close()
 {
     ACCOUNT_LOGD("enter");
-    clientDeathRecipient_->SetSession(nullptr);
-    serverDeathRecipient_->SetSession(nullptr);
-    conn_->SetSession(nullptr);
     if ((authenticatorProxy_ != nullptr) && (authenticatorProxy_->AsObject() != nullptr)) {
         authenticatorProxy_->AsObject()->RemoveDeathRecipient(serverDeathRecipient_);
     }
-    authenticatorProxy_ = nullptr;
     if ((request_.callback != nullptr) && (request_.callback->AsObject() != nullptr)) {
         request_.callback->AsObject()->RemoveDeathRecipient(clientDeathRecipient_);
     }
-    request_.callback = nullptr;
     if (isConnected_) {
         AAFwk::AbilityManagerAdapter::GetInstance()->DisconnectAbility(conn_);
     }
     isOpened_ = false;
+}
+
+void AppAccountAuthenticatorSession::CloseSelf() const
+{
+    auto sessionManager = AppAccountAuthenticatorSessionManager::GetInstance();
+    if (sessionManager != nullptr) {
+        sessionManager->CloseSession(sessionId_);
+    }
 }
 
 ErrCode AppAccountAuthenticatorSession::AddClientDeathRecipient()
@@ -259,15 +249,6 @@ void AppAccountAuthenticatorSession::OnAbilityDisconnectDone(const AppExecFwk::E
     isConnected_ = false;
 }
 
-void AppAccountAuthenticatorSession::OnClientDied()
-{
-    request_.callback = nullptr;
-    if (isConnected_) {
-        AAFwk::AbilityManagerAdapter::GetInstance()->DisconnectAbility(conn_);
-    }
-    sessionManager_->CloseSession(sessionId_);
-}
-
 void AppAccountAuthenticatorSession::OnServerDied()
 {
     AAFwk::Want result;
@@ -295,7 +276,7 @@ int32_t AppAccountAuthenticatorSession::OnResult(int32_t resultCode, const AAFwk
     if (isConnected_) {
         AAFwk::AbilityManagerAdapter::GetInstance()->DisconnectAbility(conn_);
     }
-    sessionManager_->CloseSession(sessionId_);
+    CloseSelf();
     return resultCode;
 }
 
@@ -314,7 +295,7 @@ int32_t AppAccountAuthenticatorSession::OnRequestRedirected(AAFwk::Want &newRequ
         if (isConnected_) {
             AAFwk::AbilityManagerAdapter::GetInstance()->DisconnectAbility(conn_);
         }
-        sessionManager_->CloseSession(sessionId_);
+        CloseSelf();
         return ERR_JS_SUCCESS;
     }
     newRequest.SetParam(Constants::KEY_ACTION, action_);
@@ -338,7 +319,7 @@ int32_t AppAccountAuthenticatorSession::OnRequestContinued() const
         if (isConnected_) {
             AAFwk::AbilityManagerAdapter::GetInstance()->DisconnectAbility(conn_);
         }
-        sessionManager_->CloseSession(sessionId_);
+        CloseSelf();
         return ERR_JS_SUCCESS;
     }
     request_.callback->OnRequestContinued();

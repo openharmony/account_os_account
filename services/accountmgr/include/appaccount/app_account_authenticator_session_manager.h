@@ -58,6 +58,15 @@ public:
     void Init();
     void CloseSession(const std::string &sessionId);
     ErrCode OpenSession(const std::shared_ptr<AppAccountAuthenticatorSession> &session);
+    std::shared_ptr<AppAccountAuthenticatorSession> GetSession(const std::string &sessionId);
+    void OnSessionServerDied(const std::string &sessionId);
+    void OnSessionAbilityConnectDone(const std::string &sessionId, const AppExecFwk::ElementName &element,
+        const sptr<IRemoteObject> &remoteObject, int32_t resultCode);
+    void OnSessionAbilityDisconnectDone(
+        const std::string &sessionId, const AppExecFwk::ElementName &element, int resultCode);
+    void OnSessionResult(const std::string &sessionId, int32_t resultCode, const AAFwk::Want &result);
+    void OnSessionRequestRedirected(const std::string &sessionId, AAFwk::Want &request);
+    void OnSessionRequestContinued(const std::string &sessionId);
 
 private:
     void RegisterApplicationStateObserver();
