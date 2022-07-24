@@ -20,8 +20,8 @@
 
 namespace OHOS {
 namespace AccountSA {
-AppAccountAuthenticatorCallback::AppAccountAuthenticatorCallback(AppAccountAuthenticatorSession *session)
-    : session_(session)
+AppAccountAuthenticatorCallback::AppAccountAuthenticatorCallback(const std::string &sessionId)
+    : sessionId_(sessionId)
 {
     ACCOUNT_LOGD("enter");
 }
@@ -34,31 +34,28 @@ AppAccountAuthenticatorCallback::~AppAccountAuthenticatorCallback()
 void AppAccountAuthenticatorCallback::OnResult(int32_t resultCode, const AAFwk::Want &result)
 {
     ACCOUNT_LOGD("enter");
-    if (!session_) {
-        ACCOUNT_LOGE("session is nullptr");
-        return;
+    auto sessionMgr = AppAccountAuthenticatorSessionManager::GetInstance();
+    if (sessionMgr != nullptr) {
+        sessionMgr->OnSessionResult(sessionId_, resultCode, result);
     }
-    session_->OnResult(resultCode, result);
 }
 
 void AppAccountAuthenticatorCallback::OnRequestRedirected(AAFwk::Want &request)
 {
     ACCOUNT_LOGD("enter");
-    if (!session_) {
-        ACCOUNT_LOGE("session is nullptr");
-        return;
+    auto sessionMgr = AppAccountAuthenticatorSessionManager::GetInstance();
+    if (sessionMgr != nullptr) {
+        sessionMgr->OnSessionRequestRedirected(sessionId_, request);
     }
-    session_->OnRequestRedirected(request);
 }
 
 void AppAccountAuthenticatorCallback::OnRequestContinued()
 {
     ACCOUNT_LOGD("enter");
-    if (!session_) {
-        ACCOUNT_LOGE("session is nullptr");
-        return;
+    auto sessionMgr = AppAccountAuthenticatorSessionManager::GetInstance();
+    if (sessionMgr != nullptr) {
+        sessionMgr->OnSessionRequestContinued(sessionId_);
     }
-    session_->OnRequestContinued();
 }
 }  // namespace AccountSA
 }  // namespace OHOS

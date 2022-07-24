@@ -31,40 +31,37 @@ class AppAccountAuthenticatorSession;
 
 class SessionClientDeathRecipient : public IRemoteObject::DeathRecipient {
 public:
-    explicit SessionClientDeathRecipient(AppAccountAuthenticatorSession *session);
+    explicit SessionClientDeathRecipient(const std::string &sessionId);
     virtual ~SessionClientDeathRecipient() = default;
 
     virtual void OnRemoteDied(const wptr<IRemoteObject> &remote);
-    void SetSession(AppAccountAuthenticatorSession *session);
 
 private:
-    AppAccountAuthenticatorSession *session_;
+    std::string sessionId_;
 };
 
 class SessionServerDeathRecipient : public IRemoteObject::DeathRecipient {
 public:
-    explicit SessionServerDeathRecipient(AppAccountAuthenticatorSession *session);
+    explicit SessionServerDeathRecipient(const std::string &sessionId);
     virtual ~SessionServerDeathRecipient() = default;
 
     virtual void OnRemoteDied(const wptr<IRemoteObject> &remote);
-    void SetSession(AppAccountAuthenticatorSession *session);
 
 private:
-    AppAccountAuthenticatorSession *session_;
+    std::string sessionId_;
 };
 
 class SessionConnection : public AAFwk::AbilityConnectionStub {
 public:
-    explicit SessionConnection(AppAccountAuthenticatorSession *session);
+    explicit SessionConnection(const std::string &sessionId);
     virtual ~SessionConnection();
 
     void OnAbilityConnectDone(
         const AppExecFwk::ElementName &element, const sptr<IRemoteObject> &remoteObject, int32_t resultCode) override;
     void OnAbilityDisconnectDone(const AppExecFwk::ElementName &element, int resultCode) override;
-    void SetSession(AppAccountAuthenticatorSession *session);
 
 private:
-    AppAccountAuthenticatorSession *session_;
+    std::string sessionId_;
 };
 
 class AppAccountAuthenticatorSession {
@@ -73,12 +70,11 @@ public:
     virtual ~AppAccountAuthenticatorSession();
     virtual ErrCode Open();
     virtual void Close();
-    virtual std::string GetSessionId() const;
     virtual void GetRequest(AuthenticatorSessionRequest &request) const;
+    std::string GetSessionId() const;
     void OnAbilityConnectDone(
         const AppExecFwk::ElementName &element, const sptr<IRemoteObject> &remoteObject, int32_t resultCode);
     void OnAbilityDisconnectDone(const AppExecFwk::ElementName &element, int resultCode);
-    void OnClientDied();
     void OnServerDied();
     int32_t OnResult(int32_t resultCode, const AAFwk::Want &result) const;
     int32_t OnRequestRedirected(AAFwk::Want &request) const;
@@ -94,6 +90,7 @@ protected:
 
 private:
     void Init();
+    void CloseSelf() const;
     int32_t UpdateAuthInfo(const AAFwk::Want &result) const;
     int32_t OnAuthenticateDone(const AAFwk::Want &result) const;
     int32_t OnAddAccountImplicitlyDone(const AAFwk::Want &result) const;
@@ -104,7 +101,6 @@ private:
     sptr<SessionServerDeathRecipient> serverDeathRecipient_ = nullptr;
     sptr<IAppAccountAuthenticatorCallback> authenticatorCb_ = nullptr;
     sptr<IAppAccountAuthenticator> authenticatorProxy_ = nullptr;
-    std::shared_ptr<AppAccountAuthenticatorSessionManager> sessionManager_ = nullptr;
     std::shared_ptr<AppAccountControlManager> controlManager_ = nullptr;
     std::shared_ptr<AppAccountAuthenticatorManager> authenticatorMgr_ = nullptr;
     int32_t userId_;
