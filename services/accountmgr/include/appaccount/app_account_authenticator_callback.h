@@ -26,7 +26,7 @@ class AppAccountAuthenticatorSession;
 
 class AppAccountAuthenticatorCallback : public AppAccountAuthenticatorCallbackStub {
 public:
-    explicit AppAccountAuthenticatorCallback(AppAccountAuthenticatorSession *session);
+    explicit AppAccountAuthenticatorCallback(const std::string &sessionId);
     ~AppAccountAuthenticatorCallback() override;
 
     void OnResult(int32_t resultCode, const AAFwk::Want &result) override;
@@ -34,7 +34,7 @@ public:
     void OnRequestContinued() override;
 
 private:
-    AppAccountAuthenticatorSession *session_;
+    std::string sessionId_;
 };
 }  // namespace AccountSA
 }  // namespace OHOS

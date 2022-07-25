@@ -47,7 +47,10 @@ void AppAccountCheckLabelsCallback::SendResult(int32_t resultCode)
         result.SetParam(Constants::KEY_ACCOUNT_NAMES, names);
         result.SetParam(Constants::KEY_ACCOUNT_OWNERS, owners);
     }
-    request_.callback->OnResult(resultCode, result);
+    auto sessionManager = AppAccountAuthenticatorSessionManager::GetInstance();
+    if (sessionManager != nullptr) {
+        sessionManager->OnSessionResult(sessionId_, resultCode, result);
+    }
 }
 
 ErrCode AppAccountCheckLabelsCallback::CheckLabels()
