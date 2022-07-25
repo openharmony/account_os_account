@@ -169,6 +169,16 @@ ErrCode AppAccountAuthenticatorSessionManager::OpenSession(
     return ERR_OK;
 }
 
+std::shared_ptr<AppAccountAuthenticatorSession> AppAccountAuthenticatorSessionManager::GetSession(
+    const std::string &sessionId)
+{
+    std::lock_guard<std::mutex> lock(mutex_);
+    auto it = sessionMap_.find(sessionId);
+    if (it == sessionMap_.end()) {
+        return nullptr;
+    }
+    return it->second;
+}
 ErrCode AppAccountAuthenticatorSessionManager::GetAuthenticatorCallback(
     const AuthenticatorSessionRequest &request, sptr<IRemoteObject> &callback)
 {
@@ -201,6 +211,58 @@ void AppAccountAuthenticatorSessionManager::OnAbilityStateChanged(const AppExecF
         }
     }
     abilitySessions_.erase(it);
+}
+
+void AppAccountAuthenticatorSessionManager::OnSessionServerDied(const std::string &sessionId)
+{
+    auto session = GetSession(sessionId);
+    if (session != nullptr) {
+        session->OnServerDied();
+    }
+}
+
+void AppAccountAuthenticatorSessionManager::OnSessionAbilityConnectDone(const std::string &sessionId,
+    const AppExecFwk::ElementName &element, const sptr<IRemoteObject> &remoteObject, int32_t resultCode)
+{
+    auto session = GetSession(sessionId);
+    if (session != nullptr) {
+        session->OnAbilityConnectDone(element, remoteObject, resultCode);
+    }
+}
+
+void AppAccountAuthenticatorSessionManager::OnSessionAbilityDisconnectDone(
+    const std::string &sessionId, const AppExecFwk::ElementName &element, int resultCode)
+{
+    auto session = GetSession(sessionId);
+    if (session != nullptr) {
+        session->OnAbilityDisconnectDone(element, resultCode);
+    }
+}
+
+void AppAccountAuthenticatorSessionManager::OnSessionResult(
+    const std::string &sessionId, int32_t resultCode, const AAFwk::Want &result)
+{
+    auto session = GetSession(sessionId);
+    if (session != nullptr) {
+        session->OnResult(resultCode, result);
+    }
+}
+
+void AppAccountAuthenticatorSessionManager::OnSessionRequestRedirected(
+    const std::string &sessionId, AAFwk::Want &request)
+{
+    auto session = GetSession(sessionId);
+    if (session != nullptr) {
+        session->OnRequestRedirected(request);
+    }
+}
+
+void AppAccountAuthenticatorSessionManager::OnSessionRequestContinued(const std::string &sessionId)
+{
+    auto session = GetSession(sessionId);
+    if (session != nullptr) {
+        session->OnRequestContinued();
+    }
 }
 
 void AppAccountAuthenticatorSessionManager::CloseSession(const std::string &sessionId)
