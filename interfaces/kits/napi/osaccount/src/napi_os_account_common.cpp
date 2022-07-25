@@ -85,7 +85,6 @@ napi_value ParseParaQueryOAByIdCB(napi_env env, napi_callback_info cbInfo, Query
             break;
         } else {
             ACCOUNT_LOGE("Type matching failed");
-            return nullptr;
         }
     }
     return WrapVoidToJS(env);
@@ -270,7 +269,12 @@ void CBOrPromiseToQueryOAById(
     napi_env env, const QueryOAByIdAsyncContext *queryOAByIdCB, napi_value err, napi_value data)
 {
     ACCOUNT_LOGI("enter");
-    napi_value args[RESULT_COUNT] = {err, data};
+    napi_value args[RESULT_COUNT] = {nullptr};
+    if (queryOAByIdCB->status == napi_ok) {
+        args[1] = data;
+    } else {
+        args[0] = err;
+    }
     if (queryOAByIdCB->deferred) {
         ACCOUNT_LOGI("Promise");
         if (queryOAByIdCB->status == napi_ok) {
@@ -307,7 +311,6 @@ napi_value ParseParaRemoveOACB(napi_env env, napi_callback_info cbInfo, RemoveOA
             break;
         } else {
             ACCOUNT_LOGE("Type matching failed");
-            return nullptr;
         }
     }
     return WrapVoidToJS(env);
@@ -338,7 +341,12 @@ void RemoveOACallbackCompletedCB(napi_env env, napi_status status, void *data)
 void CBOrPromiseToRemoveOA(napi_env env, const RemoveOAAsyncContext *removeOACB, napi_value err, napi_value data)
 {
     ACCOUNT_LOGI("enter");
-    napi_value args[RESULT_COUNT] = {err, data};
+    napi_value args[RESULT_COUNT] = {nullptr};
+    if (removeOACB->status == napi_ok) {
+        args[1] = data;
+    } else {
+        args[0] = err;
+    }
     if (removeOACB->deferred) {
         ACCOUNT_LOGI("Promise");
         if (removeOACB->status == napi_ok) {
@@ -377,7 +385,6 @@ napi_value ParseParaSetOAName(napi_env env, napi_callback_info cbInfo, SetOAName
             break;
         } else {
             ACCOUNT_LOGE("Type matching failed");
-            return nullptr;
         }
     }
     return WrapVoidToJS(env);
@@ -408,7 +415,12 @@ void SetOANameCallbackCompletedCB(napi_env env, napi_status status, void *data)
 void CBOrPromiseToSetOAName(napi_env env, const SetOANameAsyncContext *setOANameCB, napi_value err, napi_value data)
 {
     ACCOUNT_LOGI("enter");
-    napi_value args[RESULT_COUNT] = {err, data};
+    napi_value args[RESULT_COUNT] = {nullptr};
+    if (setOANameCB->status == napi_ok) {
+        args[1] = data;
+    } else {
+        args[0] = err;
+    }
     if (setOANameCB->deferred) {
         ACCOUNT_LOGI("Promise");
         if (setOANameCB->status == napi_ok) {
@@ -447,7 +459,6 @@ napi_value ParseParaSetOAConstraints(napi_env env, napi_callback_info cbInfo, Se
         setOAConsCB->id = GetIntProperty(env, argv[0]);
     } else {
         ACCOUNT_LOGI("Wrong argument type");
-        return nullptr;
     }
 
     // argv[1] : Array<string>
@@ -473,7 +484,6 @@ napi_value ParseParaSetOAConstraints(napi_env env, napi_callback_info cbInfo, Se
         NAPI_CALL(env, napi_get_value_bool(env, argv[PARAMTWO], &setOAConsCB->enable));
     } else {
         ACCOUNT_LOGI("Wrong argument type");
-        return nullptr;
     }
 
     // argv[3] : callback
@@ -512,7 +522,12 @@ void SetOAConsCallbackCompletedCB(napi_env env, napi_status status, void *data)
 void CBOrPromiseToSetOACons(napi_env env, const SetOAConsAsyncContext *setOAConsCB, napi_value err, napi_value data)
 {
     ACCOUNT_LOGI("enter");
-    napi_value args[RESULT_COUNT] = {err, data};
+    napi_value args[RESULT_COUNT] = {nullptr};
+    if (setOAConsCB->status == napi_ok) {
+        args[1] = data;
+    } else {
+        args[0] = err;
+    }
     if (setOAConsCB->deferred) {
         ACCOUNT_LOGI("Promise");
         if (setOAConsCB->status == napi_ok) {
@@ -549,7 +564,6 @@ napi_value ParseParaActiveOA(napi_env env, napi_callback_info cbInfo, ActivateOA
             break;
         } else {
             ACCOUNT_LOGE("Type matching failed");
-            return nullptr;
         }
     }
     return WrapVoidToJS(env);
@@ -580,7 +594,12 @@ void ActivateOACallbackCompletedCB(napi_env env, napi_status status, void *data)
 void CBOrPromiseToActivateOA(napi_env env, const ActivateOAAsyncContext *activateOA, napi_value err, napi_value data)
 {
     ACCOUNT_LOGI("enter");
-    napi_value args[RESULT_COUNT] = {err, data};
+    napi_value args[RESULT_COUNT] = {nullptr};
+    if (activateOA->status == napi_ok) {
+        args[1] = data;
+    } else {
+        args[0] = err;
+    }
     if (activateOA->deferred) {
         ACCOUNT_LOGI("Promise");
         if (activateOA->status == napi_ok) {
@@ -619,7 +638,6 @@ napi_value ParseParaCreateOA(napi_env env, napi_callback_info cbInfo, CreateOAAs
             break;
         } else {
             ACCOUNT_LOGE("Type matching failed");
-            return nullptr;
         }
     }
     return WrapVoidToJS(env);
@@ -651,7 +669,6 @@ napi_value ParseParaCreateOAForDomain(napi_env env, napi_callback_info cbInfo,
             break;
         } else {
             ACCOUNT_LOGE("Type matching failed");
-            return nullptr;
         }
     }
     return WrapVoidToJS(env);
@@ -708,7 +725,12 @@ void CreateOAForDomainCallbackCompletedCB(napi_env env, napi_status status, void
 void CBOrPromiseToCreateOA(napi_env env, const CreateOAAsyncContext *createOACB, napi_value err, napi_value data)
 {
     ACCOUNT_LOGI("enter");
-    napi_value args[RESULT_COUNT] = {err, data};
+    napi_value args[RESULT_COUNT] = {nullptr};
+    if (createOACB->status == napi_ok) {
+        args[1] = data;
+    } else {
+        args[0] = err;
+    }
     if (createOACB->deferred) {
         ACCOUNT_LOGI("Promise");
         if (createOACB->status == napi_ok) {
@@ -732,7 +754,12 @@ void CBOrPromiseToCreateOAForDomain(napi_env env, const CreateOAForDomainAsyncCo
     napi_value err, napi_value data)
 {
     ACCOUNT_LOGI("enter");
-    napi_value args[RESULT_COUNT] = {err, data};
+    napi_value args[RESULT_COUNT] = {nullptr};
+    if (createOAForDomainCB->status == napi_ok) {
+        args[1] = data;
+    } else {
+        args[0] = err;
+    }
     if (createOAForDomainCB->deferred) {
         ACCOUNT_LOGI("Promise");
         if (createOAForDomainCB->status == napi_ok) {
@@ -793,7 +820,12 @@ void GetOACountCallbackCompletedCB(napi_env env, napi_status status, void *data)
 void CBOrPromiseToGetOACount(napi_env env, const GetOACountAsyncContext *getOACount, napi_value err, napi_value data)
 {
     ACCOUNT_LOGI("enter");
-    napi_value args[RESULT_COUNT] = {err, data};
+    napi_value args[RESULT_COUNT] = {nullptr};
+    if (getOACount->status == napi_ok) {
+        args[1] = data;
+    } else {
+        args[0] = err;
+    }
     if (getOACount->deferred) {
         ACCOUNT_LOGI("Promise");
         if (getOACount->status == napi_ok) {
@@ -854,7 +886,12 @@ void DbDeviceIdCallbackCompletedCB(napi_env env, napi_status status, void *data)
 void CBOrPromiseToDbDeviceId(napi_env env, const DbDeviceIdAsyncContext *dbDeviceId, napi_value err, napi_value data)
 {
     ACCOUNT_LOGI("enter");
-    napi_value args[RESULT_COUNT] = {err, data};
+    napi_value args[RESULT_COUNT] = {nullptr};
+    if (dbDeviceId->status == napi_ok) {
+        args[1] = data;
+    } else {
+        args[0] = err;
+    }
     if (dbDeviceId->deferred) {
         ACCOUNT_LOGI("Promise");
         if (dbDeviceId->status == napi_ok) {
@@ -891,7 +928,6 @@ napi_value ParseParaGetAllCons(napi_env env, napi_callback_info cbInfo, GetAllCo
             break;
         } else {
             ACCOUNT_LOGE("Type matching failed");
-            return nullptr;
         }
     }
     return WrapVoidToJS(env);
@@ -951,7 +987,12 @@ void GetActiveIds(napi_env env, const std::vector<int> &ids, napi_value result)
 void CBOrPromiseToGetAllCons(napi_env env, const GetAllConsAsyncContext *getAllCons, napi_value err, napi_value data)
 {
     ACCOUNT_LOGI("enter");
-    napi_value args[RESULT_COUNT] = {err, data};
+    napi_value args[RESULT_COUNT] = {nullptr};
+    if (getAllCons->status == napi_ok) {
+        args[1] = data;
+    } else {
+        args[0] = err;
+    }
     if (getAllCons->deferred) {
         ACCOUNT_LOGI("Promise");
         if (getAllCons->status == napi_ok) {
@@ -1012,7 +1053,12 @@ void GetProcessIdCallbackCompletedCB(napi_env env, napi_status status, void *dat
 void CBOrPromiseToGetProcessId(napi_env env, const GetIdAsyncContext *getIdCB, napi_value err, napi_value data)
 {
     ACCOUNT_LOGI("enter");
-    napi_value args[RESULT_COUNT] = {err, data};
+    napi_value args[RESULT_COUNT] = {nullptr};
+    if (getIdCB->status == napi_ok) {
+        args[1] = data;
+    } else {
+        args[0] = err;
+    }
     if (getIdCB->deferred) {
         ACCOUNT_LOGI("Promise");
         if (getIdCB->status == napi_ok) {
@@ -1126,7 +1172,12 @@ void QueryOAInfoForResult(napi_env env, const std::vector<OsAccountInfo> &info, 
 void CBOrPromiseToQueryOA(napi_env env, const QueryCreateOAAsyncContext *queryOA, napi_value err, napi_value data)
 {
     ACCOUNT_LOGI("enter");
-    napi_value args[RESULT_COUNT] = {err, data};
+    napi_value args[RESULT_COUNT] = {nullptr};
+    if (queryOA->status == napi_ok) {
+        args[1] = data;
+    } else {
+        args[0] = err;
+    }
     if (queryOA->deferred) {
         ACCOUNT_LOGI("Promise");
         if (queryOA->status == napi_ok) {
@@ -1150,7 +1201,12 @@ void CBOrPromiseToQueryActiveIds(napi_env env, const QueryActiveIdsAsyncContext 
     napi_value err, napi_value data)
 {
     ACCOUNT_LOGI("enter");
-    napi_value args[RESULT_COUNT] = {err, data};
+    napi_value args[RESULT_COUNT] = {nullptr};
+    if (queryActiveIds->status == napi_ok) {
+        args[1] = data;
+    } else {
+        args[0] = err;
+    }
     if (queryActiveIds->deferred) {
         ACCOUNT_LOGI("Promise");
         if (queryActiveIds->status == napi_ok) {
@@ -1187,7 +1243,6 @@ napi_value ParseParaGetPhote(napi_env env, napi_callback_info cbInfo, GetOAPhoto
             break;
         } else {
             ACCOUNT_LOGE("Type matching failed");
-            return nullptr;
         }
     }
     return WrapVoidToJS(env);
@@ -1218,7 +1273,12 @@ void GetOAPhoteCallbackCompletedCB(napi_env env, napi_status status, void *data)
 void CBOrPromiseToGetPhoto(napi_env env, const GetOAPhotoAsyncContext *getPhoto, napi_value err, napi_value data)
 {
     ACCOUNT_LOGI("enter");
-    napi_value args[RESULT_COUNT] = {err, data};
+    napi_value args[RESULT_COUNT] = {nullptr};
+    if (getPhoto->status == napi_ok) {
+        args[1] = data;
+    } else {
+        args[0] = err;
+    }
     if (getPhoto->deferred) {
         ACCOUNT_LOGI("Promise");
         if (getPhoto->status == napi_ok) {
@@ -1280,7 +1340,12 @@ void QueryCurrentOACallbackCompletedCB(napi_env env, napi_status status, void *d
 void CBOrPromiseQueryCurrentOA(napi_env env, const CurrentOAAsyncContext *currentOA, napi_value err, napi_value data)
 {
     ACCOUNT_LOGI("enter");
-    napi_value args[RESULT_COUNT] = {err, data};
+    napi_value args[RESULT_COUNT] = {nullptr};
+    if (currentOA->status == napi_ok) {
+        args[1] = data;
+    } else {
+        args[0] = err;
+    }
     if (currentOA->deferred) {
         ACCOUNT_LOGI("Promise");
         if (currentOA->status == napi_ok) {
@@ -1317,7 +1382,6 @@ napi_value ParseParaGetIdByUid(napi_env env, napi_callback_info cbInfo, GetIdByU
             break;
         } else {
             ACCOUNT_LOGE("Type matching failed");
-            return nullptr;
         }
     }
     return WrapVoidToJS(env);
@@ -1346,7 +1410,6 @@ napi_value ParseParaGetIdByDomain(napi_env env, napi_callback_info cbInfo, GetId
             break;
         } else {
             ACCOUNT_LOGE("Type matching failed");
-            return nullptr;
         }
     }
     return WrapVoidToJS(env);
@@ -1400,7 +1463,12 @@ void GetIdByDomainCallbackCompletedCB(napi_env env, napi_status status, void *da
 void CBOrPromiseGetIdByUid(napi_env env, const GetIdByUidAsyncContext *idByUid, napi_value err, napi_value data)
 {
     ACCOUNT_LOGI("enter");
-    napi_value args[RESULT_COUNT] = {err, data};
+    napi_value args[RESULT_COUNT] = {nullptr};
+    if (idByUid->status == napi_ok) {
+        args[1] = data;
+    } else {
+        args[0] = err;
+    }
     if (idByUid->deferred) {
         ACCOUNT_LOGI("Promise");
         if (idByUid->status == napi_ok) {
@@ -1424,7 +1492,12 @@ void CBOrPromiseGetIdByDomain(napi_env env, const GetIdByDomainAsyncContext *idB
     napi_value err, napi_value data)
 {
     ACCOUNT_LOGI("enter");
-    napi_value args[RESULT_COUNT] = {err, data};
+    napi_value args[RESULT_COUNT] = {nullptr};
+    if (idByDomain->status == napi_ok) {
+        args[1] = data;
+    } else {
+        args[0] = err;
+    }
     if (idByDomain->deferred) {
         ACCOUNT_LOGI("Promise");
         if (idByDomain->status == napi_ok) {
@@ -1463,7 +1536,6 @@ napi_value ParseParaSetPhoto(napi_env env, napi_callback_info cbInfo, SetOAPhoto
             break;
         } else {
             ACCOUNT_LOGE("Type matching failed");
-            return nullptr;
         }
     }
     return WrapVoidToJS(env);
@@ -1494,7 +1566,12 @@ void SetPhotoCompletedCB(napi_env env, napi_status status, void *data)
 void CBOrPromiseSetPhoto(napi_env env, const SetOAPhotoAsyncContext *setPhoto, napi_value err, napi_value data)
 {
     ACCOUNT_LOGI("enter");
-    napi_value args[RESULT_COUNT] = {err, data};
+    napi_value args[RESULT_COUNT] = {nullptr};
+    if (setPhoto->status == napi_ok) {
+        args[1] = data;
+    } else {
+        args[0] = err;
+    }
     if (setPhoto->deferred) {
         ACCOUNT_LOGI("Promise");
         if (setPhoto->status == napi_ok) {
@@ -1555,7 +1632,12 @@ void QueryMaxNumCompletedCB(napi_env env, napi_status status, void *data)
 void CBOrPromiseMaxNum(napi_env env, const QueryMaxNumAsyncContext *maxNum, napi_value err, napi_value data)
 {
     ACCOUNT_LOGI("enter");
-    napi_value args[RESULT_COUNT] = {err, data};
+    napi_value args[RESULT_COUNT] = {nullptr};
+    if (maxNum->status == napi_ok) {
+        args[1] = data;
+    } else {
+        args[0] = err;
+    }
     if (maxNum->deferred) {
         ACCOUNT_LOGI("Promise");
         if (maxNum->status == napi_ok) {
@@ -1592,7 +1674,6 @@ napi_value ParseParaIsActived(napi_env env, napi_callback_info cbInfo, IsActived
             break;
         } else {
             ACCOUNT_LOGE("Type matching failed");
-            return nullptr;
         }
     }
     return WrapVoidToJS(env);
@@ -1623,7 +1704,12 @@ void IsActivedCompletedCB(napi_env env, napi_status status, void *data)
 void CBOrPromiseIsActived(napi_env env, const IsActivedAsyncContext *isActived, napi_value err, napi_value data)
 {
     ACCOUNT_LOGI("enter");
-    napi_value args[RESULT_COUNT] = {err, data};
+    napi_value args[RESULT_COUNT] = {nullptr};
+    if (isActived->status == napi_ok) {
+        args[1] = data;
+    } else {
+        args[0] = err;
+    }
     if (isActived->deferred) {
         ACCOUNT_LOGI("Promise");
         if (isActived->status == napi_ok) {
@@ -1662,7 +1748,6 @@ napi_value ParseParaIsEnable(napi_env env, napi_callback_info cbInfo, IsConEnabl
             break;
         } else {
             ACCOUNT_LOGE("Type matching failed");
-            return nullptr;
         }
     }
     return WrapVoidToJS(env);
@@ -1694,7 +1779,12 @@ void IsEnableCompletedCB(napi_env env, napi_status status, void *data)
 void CBOrPromiseIsEnable(napi_env env, const IsConEnableAsyncContext *isEnable, napi_value err, napi_value data)
 {
     ACCOUNT_LOGI("enter");
-    napi_value args[RESULT_COUNT] = {err, data};
+    napi_value args[RESULT_COUNT] = {nullptr};
+    if (isEnable->status == napi_ok) {
+        args[1] = data;
+    } else {
+        args[0] = err;
+    }
     if (isEnable->deferred) {
         ACCOUNT_LOGI("Promise");
         if (isEnable->status == napi_ok) {
@@ -1773,7 +1863,12 @@ void GetTypeCompletedCB(napi_env env, napi_status status, void *data)
 void CBOrPromiseGetType(napi_env env, const GetTypeAsyncContext *getType, napi_value err, napi_value data)
 {
     ACCOUNT_LOGI("enter");
-    napi_value args[RESULT_COUNT] = {err, data};
+    napi_value args[RESULT_COUNT] = {nullptr};
+    if (getType->status == napi_ok) {
+        args[1] = data;
+    } else {
+        args[0] = err;
+    }
     if (getType->deferred) {
         ACCOUNT_LOGI("Promise");
         if (getType->status == napi_ok) {
@@ -1834,7 +1929,12 @@ void IsMultiEnCompletedCB(napi_env env, napi_status status, void *data)
 void CBOrPromiseIsMultiEn(napi_env env, const IsMultiEnAsyncContext *multiEn, napi_value err, napi_value data)
 {
     ACCOUNT_LOGI("enter");
-    napi_value args[RESULT_COUNT] = {err, data};
+    napi_value args[RESULT_COUNT] = {nullptr};
+    if (multiEn->status == napi_ok) {
+        args[1] = data;
+    } else {
+        args[0] = err;
+    }
     if (multiEn->deferred) {
         ACCOUNT_LOGI("Promise");
         if (multiEn->status == napi_ok) {
@@ -1874,7 +1974,6 @@ napi_value ParseParaIsVerified(napi_env env, napi_callback_info cbInfo, IsVerifi
             break;
         } else {
             ACCOUNT_LOGE("Type matching failed");
-            return nullptr;
         }
     }
     return WrapVoidToJS(env);
@@ -1905,7 +2004,12 @@ void IsVerifiedCompletedCB(napi_env env, napi_status status, void *data)
 void CBOrPromiseIsVerified(napi_env env, const IsVerifiedAsyncContext *isVerified, napi_value err, napi_value data)
 {
     ACCOUNT_LOGI("enter");
-    napi_value args[RESULT_COUNT] = {err, data};
+    napi_value args[RESULT_COUNT] = {nullptr};
+    if (isVerified->status == napi_ok) {
+        args[1] = data;
+    } else {
+        args[0] = err;
+    }
     if (isVerified->deferred) {
         ACCOUNT_LOGI("Promise");
         if (isVerified->status == napi_ok) {
@@ -1942,7 +2046,6 @@ napi_value ParseParaSerialNumId(napi_env env, napi_callback_info cbInfo, GetSeri
             break;
         } else {
             ACCOUNT_LOGE("Type matching failed");
-            return nullptr;
         }
     }
     return WrapVoidToJS(env);
@@ -1974,7 +2077,12 @@ void SerialNumIdCompletedCB(napi_env env, napi_status status, void *data)
 void CBOrPromiseSerialNum(napi_env env, const GetSerialNumIdCBInfo *serialNumId, napi_value err, napi_value data)
 {
     ACCOUNT_LOGI("enter");
-    napi_value args[RESULT_COUNT] = {err, data};
+    napi_value args[RESULT_COUNT] = {nullptr};
+    if (serialNumId->status == napi_ok) {
+        args[1] = data;
+    } else {
+        args[0] = err;
+    }
     if (serialNumId->deferred) {
         ACCOUNT_LOGI("Promise");
         if (serialNumId->status == napi_ok) {
@@ -2011,7 +2119,6 @@ napi_value ParseParaGetSerialNum(napi_env env, napi_callback_info cbInfo, GetSer
             break;
         } else {
             ACCOUNT_LOGE("Type matching failed");
-            return nullptr;
         }
     }
     return WrapVoidToJS(env);
@@ -2043,7 +2150,12 @@ void GetSerialNumCompletedCB(napi_env env, napi_status status, void *data)
 void CBOrPromiseGetSerialNum(napi_env env, const GetSerialNumForOAInfo *getSerialNum, napi_value err, napi_value data)
 {
     ACCOUNT_LOGI("enter");
-    napi_value args[RESULT_COUNT] = {err, data};
+    napi_value args[RESULT_COUNT] = {nullptr};
+    if (getSerialNum->status == napi_ok) {
+        args[1] = data;
+    } else {
+        args[0] = err;
+    }
     if (getSerialNum->deferred) {
         ACCOUNT_LOGI("Promise");
         if (getSerialNum->status == napi_ok) {
@@ -2082,7 +2194,12 @@ void ParseParaIsTestOA(napi_env env, napi_callback_info cbInfo, IsTestOAInfo *is
 void CBOrPromiseIsTestOA(napi_env env, const IsTestOAInfo *isTest, napi_value err, napi_value data)
 {
     ACCOUNT_LOGI("enter");
-    napi_value args[RESULT_COUNT] = {err, data};
+    napi_value args[RESULT_COUNT] = {nullptr};
+    if (isTest->status == napi_ok) {
+        args[1] = data;
+    } else {
+        args[0] = err;
+    }
     if (isTest->deferred) {
         ACCOUNT_LOGI("Promise");
         if (isTest->status == napi_ok) {
