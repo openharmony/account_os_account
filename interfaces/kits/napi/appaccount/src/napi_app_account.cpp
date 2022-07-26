@@ -626,7 +626,7 @@ napi_value NapiAppAccount::GetAllAccessibleAccounts(napi_env env, napi_callback_
             getResult[PARAMZERO] = GetErrorCodeValue(env, asyncContext->errCode);
             napi_create_array(env, &getResult[PARAMONE]);
             GetAppAccountInfoForResult(env, asyncContext->appAccounts, getResult[PARAMONE]);
-            ProcessCallbackOrPromiseCBArray(env, asyncContext, getResult[PARAMZERO], getResult[PARAMONE]);
+            ProcessCallbackOrPromise(env, asyncContext, getResult[PARAMZERO], getResult[PARAMONE]);
             napi_delete_async_work(env, asyncContext->work);
             delete asyncContext;
             asyncContext = nullptr;
@@ -674,7 +674,7 @@ napi_value NapiAppAccount::GetAllAccounts(napi_env env, napi_callback_info cbInf
             getResult[PARAMZERO] = GetErrorCodeValue(env, asyncContext->errCode);
             napi_create_array(env, &getResult[PARAMONE]);
             GetAppAccountInfoForResult(env, asyncContext->appAccounts, getResult[PARAMONE]);
-            ProcessCallbackOrPromiseCBArray(env, asyncContext, getResult[PARAMZERO], getResult[PARAMONE]);
+            ProcessCallbackOrPromise(env, asyncContext, getResult[PARAMZERO], getResult[PARAMONE]);
             napi_delete_async_work(env, asyncContext->work);
             delete asyncContext;
             asyncContext = nullptr;
