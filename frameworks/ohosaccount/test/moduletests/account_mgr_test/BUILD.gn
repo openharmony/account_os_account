@@ -28,7 +28,7 @@ config("accountmgr_mst_test_config") {
     "${common_path}/account_error/include",
     "//third_party/json/include",
     "${innerkits_path}/include",
-    "//utils/native/base/include",
+    "//commonlibrary/c_utils/base/include",
     "//utils/system/safwk/native/include",
   ]
   configs = []
@@ -51,13 +51,11 @@ ohos_moduletest("AccountInnerSdkModuleTest") {
     "${services_path}/accountmgr/test:accountmgr_test_config",
   ]
 
-  deps = [
-    "//third_party/googletest:gtest_main",
-    "//utils/native/base:utils",
-  ]
+  deps = [ "//third_party/googletest:gtest_main" ]
 
   external_deps = [
     "ability_base:base",
+    "c_utils:utils",
     "eventhandler:libeventhandler",
     "hiviewdfx_hilog_native:libhilog",
     "ipc:ipc_core",

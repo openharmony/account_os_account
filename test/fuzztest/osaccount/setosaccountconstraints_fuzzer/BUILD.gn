@@ -32,10 +32,12 @@ ohos_fuzztest("SetOsAccountConstraintsFuzzTest") {
   deps = [
     "//base/account/os_account/frameworks/common:libaccount_common",
     "//base/account/os_account/frameworks/osaccount/native:os_account_innerkits",
-    "//utils/native/base:utils",
   ]
 
-  external_deps = [ "hiviewdfx_hilog_native:libhilog" ]
+  external_deps = [
+    "c_utils:utils",
+    "hiviewdfx_hilog_native:libhilog",
+  ]
 
   defines = [
     "ACCOUNT_LOG_TAG = \"OsAccountFuzzTest\"",
