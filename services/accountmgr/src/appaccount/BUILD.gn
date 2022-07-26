@@ -26,7 +26,7 @@ config("app_account_service_core_config") {
     "${innerkits_path}/include",
     "//foundation/arkui/napi/interfaces/kits",
     "//third_party/json/include",
-    "//utils/native/base/include",
+    "//commonlibrary/c_utils/base/include",
     "//utils/system/safwk/native/include",
   ]
 
@@ -67,11 +67,11 @@ ohos_shared_library("app_account_service_core") {
   deps = [
     "${app_account_innerkits_native_path}:app_account_innerkits",
     "${common_path}:libaccount_common",
-    "//utils/native/base:utils",
   ]
 
   external_deps = [
     "ability_base:want",
+    "c_utils:utils",
     "hiviewdfx_hilog_native:libhilog",
     "ipc:ipc_core",
   ]
