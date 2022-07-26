@@ -13,8 +13,8 @@
  * limitations under the License.
  */
 
+#include <cstdint>
 #include "iosfwd"
-#include <stdint.h>
 #include "string"
 
 #include <gtest/gtest.h>
