@@ -287,9 +287,6 @@ void ParseContextWithStrCBArray(napi_env env, napi_callback_info cbInfo, GetAcco
 void ProcessCallbackOrPromise(
     napi_env env, const CommonAsyncContext *asyncContext, napi_value err, napi_value data);
 
-void ProcessCallbackOrPromiseCBArray(
-    napi_env env, const GetAccountsAsyncContext *asyncContext, napi_value err, napi_value data);
-
 napi_value ParseParametersBySubscribe(const napi_env &env, const napi_value (&argv)[SUBSCRIBE_MAX_PARA],
     std::vector<std::string> &owners, napi_ref &callback);
 
