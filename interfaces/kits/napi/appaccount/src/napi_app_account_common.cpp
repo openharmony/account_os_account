@@ -837,7 +837,12 @@ void ParseContextWithStrCBArray(napi_env env, napi_callback_info cbInfo, GetAcco
 void ProcessCallbackOrPromise(napi_env env, const CommonAsyncContext *asyncContext, napi_value err, napi_value data)
 {
     ACCOUNT_LOGI("enter");
-    napi_value args[RESULT_COUNT] = {err, data};
+    napi_value args[RESULT_COUNT] = {nullptr};
+    if (asyncContext->status == napi_ok) {
+        args[1] = data;
+    } else {
+        args[0] = err;
+    }
     if (asyncContext->deferred) {
         ACCOUNT_LOGI("Promise");
         if (asyncContext->status == napi_ok) {
@@ -861,7 +866,12 @@ void ProcessCallbackOrPromiseCBArray(
     napi_env env, const GetAccountsAsyncContext *asyncContext, napi_value err, napi_value data)
 {
     ACCOUNT_LOGI("enter");
-    napi_value args[RESULT_COUNT] = {err, data};
+    napi_value args[RESULT_COUNT] = {nullptr};
+    if (asyncContext->status == napi_ok) {
+        args[1] = data;
+    } else {
+        args[0] = err;
+    }
     if (asyncContext->deferred) {
         ACCOUNT_LOGI("Promise");
         if (asyncContext->status == napi_ok) {
