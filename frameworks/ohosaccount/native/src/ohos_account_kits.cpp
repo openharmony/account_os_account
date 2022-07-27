@@ -14,6 +14,8 @@
  */
 
 #include "ohos_account_kits.h"
+
+#include "singleton.h"
 #include "ohos_account_kits_impl.h"
 
 namespace OHOS {
