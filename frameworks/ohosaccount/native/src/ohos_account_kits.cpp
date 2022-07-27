@@ -15,7 +15,7 @@
 
 #include "ohos_account_kits.h"
 
-#include "new"
+#include <new>
 #include "singleton.h"
 #include "ohos_account_kits_impl.h"
 
