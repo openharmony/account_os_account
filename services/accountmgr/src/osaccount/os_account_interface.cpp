@@ -327,11 +327,13 @@ ErrCode OsAccountInterface::SendToStorageAccountStart(OsAccountInfo &osAccountIn
         return ERR_OSACCOUNT_SERVICE_INTERFACE_TO_STORAGE_ACCOUNT_START_ERROR;
     }
     StartTrace(HITRACE_TAG_ACCOUNT_MANAGER, "StorageManager PrepareStartUser");
-    int err = proxy->PrepareStartUser(osAccountInfo.GetLocalId());
+    int localId = osAccountInfo.GetLocalId();
+    std::vector<uint8_t> emptyData;
+    proxy->ActiveUserKey(localId, emptyData, emptyData);
+    int err = proxy->PrepareStartUser(localId);
     if (err != 0) {
-        ReportAccountOperationFail(osAccountInfo.GetLocalId(), err, "activate", "Storage PrepareStartUser failed!");
+        ReportAccountOperationFail(localId, err, "activate", "Storage PrepareStartUser failed!");
     }
-
     ACCOUNT_LOGI("end, Storage PrepareStartUser ret %{public}d.", err);
     FinishTrace(HITRACE_TAG_ACCOUNT_MANAGER);
     return ERR_OK;
@@ -364,9 +366,14 @@ ErrCode OsAccountInterface::SendToStorageAccountStop(OsAccountInfo &osAccountInf
         return ERR_OSACCOUNT_SERVICE_INTERFACE_TO_STORAGE_ACCOUNT_STOP_ERROR;
     }
     StartTrace(HITRACE_TAG_ACCOUNT_MANAGER, "StorageManager StopUser");
-    int err = proxy->StopUser(osAccountInfo.GetLocalId());
+    int localId = osAccountInfo.GetLocalId();
+    int err = proxy->StopUser(localId);
     if (err != 0) {
-        ReportAccountOperationFail(osAccountInfo.GetLocalId(), err, "stop", "Storage StopUser failed!");
+        ReportAccountOperationFail(localId, err, "stop", "Storage StopUser failed!");
+    }
+    err = proxy->InactiveUserKey(localId);
+    if (err != 0) {
+        ReportAccountOperationFail(localId, err, "activate", "Storage InactiveUserKey failed!");
     }
     ACCOUNT_LOGI("end, Storage StopUser ret %{public}d", err);
     FinishTrace(HITRACE_TAG_ACCOUNT_MANAGER);
