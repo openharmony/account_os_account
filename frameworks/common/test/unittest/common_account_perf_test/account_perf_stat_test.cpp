@@ -13,8 +13,15 @@
  * limitations under the License.
  */
 
-#include <gtest/gtest.h>
+#include <cstdint>
+#include <iosfwd>
+#include <string>
 
+#include <gtest/gtest.h>
+#include "gtest/gtest-message.h"
+#include "gtest/gtest-test-part.h"
+#include "gtest/hwext/gtest-ext.h"
+#include "gtest/hwext/gtest-tag.h"
 #include "perf_stat.h"
 
 using namespace testing::ext;
