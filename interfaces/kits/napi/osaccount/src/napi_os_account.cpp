@@ -146,10 +146,8 @@ napi_value QueryOsAccountById(napi_env env, napi_callback_info cbInfo)
     queryOAByIdCB->env = env;
     queryOAByIdCB->callbackRef = nullptr;
 
-    if (ParseParaQueryOAByIdCB(env, cbInfo, queryOAByIdCB) == nullptr) {
-        ACCOUNT_LOGI("Parse query by id failed");
-        return WrapVoidToJS(env);
-    }
+    ParseParaQueryOAByIdCB(env, cbInfo, queryOAByIdCB);
+
     ACCOUNT_LOGI("Parse completed, id = %{public}d", queryOAByIdCB->id);
 
     napi_value result = nullptr;
@@ -187,10 +185,8 @@ napi_value RemoveOsAccount(napi_env env, napi_callback_info cbInfo)
     removeOACB->env = env;
     removeOACB->callbackRef = nullptr;
 
-    if (ParseParaRemoveOACB(env, cbInfo, removeOACB) == nullptr) {
-        ACCOUNT_LOGI("Parse remove osaccount failed");
-        return WrapVoidToJS(env);
-    }
+    ParseParaRemoveOACB(env, cbInfo, removeOACB);
+
     ACCOUNT_LOGI("Parse completed, id = %{public}d", removeOACB->id);
 
     napi_value result = nullptr;
@@ -223,10 +219,8 @@ napi_value SetOsAccountName(napi_env env, napi_callback_info cbInfo)
     setOANameCB->env = env;
     setOANameCB->callbackRef = nullptr;
 
-    if (ParseParaSetOAName(env, cbInfo, setOANameCB) == nullptr) {
-        ACCOUNT_LOGI("Parse set osaccount name failed");
-        return WrapVoidToJS(env);
-    }
+    ParseParaSetOAName(env, cbInfo, setOANameCB);
+
     ACCOUNT_LOGI("Parse completed, id = %{public}d, name = %{public}s", setOANameCB->id, setOANameCB->name.c_str());
 
     napi_value result = nullptr;
@@ -264,10 +258,8 @@ napi_value SetOsAccountConstraints(napi_env env, napi_callback_info cbInfo)
     setOAConsCB->env = env;
     setOAConsCB->callbackRef = nullptr;
 
-    if (ParseParaSetOAConstraints(env, cbInfo, setOAConsCB) == nullptr) {
-        ACCOUNT_LOGI("Parse set constraints failed");
-        return WrapVoidToJS(env);
-    }
+    ParseParaSetOAConstraints(env, cbInfo, setOAConsCB);
+
     ACCOUNT_LOGI("Parse completed, id = %{public}d", setOAConsCB->id);
 
     napi_value result = nullptr;
@@ -305,10 +297,8 @@ napi_value ActivateOsAccount(napi_env env, napi_callback_info cbInfo)
     activeOACB->env = env;
     activeOACB->callbackRef = nullptr;
 
-    if (ParseParaActiveOA(env, cbInfo, activeOACB) == nullptr) {
-        ACCOUNT_LOGI("Parse activite faile");
-        return WrapVoidToJS(env);
-    }
+    ParseParaActiveOA(env, cbInfo, activeOACB);
+
     ACCOUNT_LOGI("Parse completed, id = %{public}d", activeOACB->id);
 
     napi_value result = nullptr;
@@ -346,10 +336,8 @@ napi_value CreateOsAccount(napi_env env, napi_callback_info cbInfo)
     createOACB->env = env;
     createOACB->callbackRef = nullptr;
 
-    if (ParseParaCreateOA(env, cbInfo, createOACB) == nullptr) {
-        ACCOUNT_LOGI("Parse create osaccount failed");
-        return WrapVoidToJS(env);
-    }
+    ParseParaCreateOA(env, cbInfo, createOACB);
+
     ACCOUNT_LOGI("Parse completed, type = %{publilc}d, name = %{public}s", createOACB->type, createOACB->name.c_str());
 
     napi_value result = nullptr;
@@ -382,10 +370,7 @@ napi_value CreateOsAccountForDomain(napi_env env, napi_callback_info cbInfo)
     createOAForDomainCB->env = env;
     createOAForDomainCB->callbackRef = nullptr;
 
-    if (ParseParaCreateOAForDomain(env, cbInfo, createOAForDomainCB) == nullptr) {
-        ACCOUNT_LOGI("Parse create osaccount failed");
-        return WrapVoidToJS(env);
-    }
+    ParseParaCreateOAForDomain(env, cbInfo, createOAForDomainCB);
 
     napi_value result = nullptr;
     if (createOAForDomainCB->callbackRef == nullptr) {
@@ -491,10 +476,7 @@ napi_value GetOsAccountAllConstraints(napi_env env, napi_callback_info cbInfo)
     getAllConsCB->env = env;
     getAllConsCB->callbackRef = nullptr;
 
-    if (ParseParaGetAllCons(env, cbInfo, getAllConsCB) == nullptr) {
-        ACCOUNT_LOGI("Parse get all constraints failed");
-        return WrapVoidToJS(env);
-    }
+    ParseParaGetAllCons(env, cbInfo, getAllConsCB);
 
     napi_value result = nullptr;
     if (getAllConsCB->callbackRef == nullptr) {
@@ -642,10 +624,8 @@ napi_value GetOsAccountProfilePhoto(napi_env env, napi_callback_info cbInfo)
     getPhoto->env = env;
     getPhoto->callbackRef = nullptr;
 
-    if (ParseParaGetPhote(env, cbInfo, getPhoto) == nullptr) {
-        ACCOUNT_LOGI("Parse get osaccount profile photo failed");
-        return WrapVoidToJS(env);
-    }
+    ParseParaGetPhote(env, cbInfo, getPhoto);
+
     ACCOUNT_LOGI("Parse completed, id = %{public}d", getPhoto->id);
 
     napi_value result = nullptr;
@@ -715,10 +695,7 @@ napi_value GetOsAccountLocalIdFromUid(napi_env env, napi_callback_info cbInfo)
     idByUid->env = env;
     idByUid->callbackRef = nullptr;
 
-    if (ParseParaGetIdByUid(env, cbInfo, idByUid) == nullptr) {
-        ACCOUNT_LOGI("Parse get osaccount local id from uid failed");
-        return WrapVoidToJS(env);
-    }
+    ParseParaGetIdByUid(env, cbInfo, idByUid);
 
     napi_value result = nullptr;
     if (idByUid->callbackRef == nullptr) {
@@ -750,10 +727,7 @@ napi_value GetOsAccountLocalIdFromDomain(napi_env env, napi_callback_info cbInfo
     idByDomain->env = env;
     idByDomain->callbackRef = nullptr;
 
-    if (ParseParaGetIdByDomain(env, cbInfo, idByDomain) == nullptr) {
-        ACCOUNT_LOGI("Parse get osaccount local id from uid failed");
-        return WrapVoidToJS(env);
-    }
+    ParseParaGetIdByDomain(env, cbInfo, idByDomain);
 
     napi_value result = nullptr;
     if (idByDomain->callbackRef == nullptr) {
@@ -785,10 +759,7 @@ napi_value SetOsAccountProfilePhoto(napi_env env, napi_callback_info cbInfo)
     setPhoto->env = env;
     setPhoto->callbackRef = nullptr;
 
-    if (ParseParaSetPhoto(env, cbInfo, setPhoto) == nullptr) {
-        ACCOUNT_LOGI("Parse set profile photo failed");
-        return WrapVoidToJS(env);
-    }
+    ParseParaSetPhoto(env, cbInfo, setPhoto);
 
     napi_value result = nullptr;
     if (setPhoto->callbackRef == nullptr) {
@@ -852,10 +823,7 @@ napi_value IsOsAccountActived(napi_env env, napi_callback_info cbInfo)
     isActived->env = env;
     isActived->callbackRef = nullptr;
 
-    if (ParseParaIsActived(env, cbInfo, isActived) == nullptr) {
-        ACCOUNT_LOGI("Parse is osaccount activated failed");
-        return WrapVoidToJS(env);
-    }
+    ParseParaIsActived(env, cbInfo, isActived);
 
     napi_value result = nullptr;
     if (isActived->callbackRef == nullptr) {
@@ -887,10 +855,7 @@ napi_value IsOsAccountConstraintEnable(napi_env env, napi_callback_info cbInfo)
     isEnable->env = env;
     isEnable->callbackRef = nullptr;
 
-    if (ParseParaIsEnable(env, cbInfo, isEnable) == nullptr) {
-        ACCOUNT_LOGI("Parse is osaccount constraint enable failed");
-        return WrapVoidToJS(env);
-    }
+    ParseParaIsEnable(env, cbInfo, isEnable);
 
     napi_value result = nullptr;
     if (isEnable->callbackRef == nullptr) {
@@ -986,10 +951,7 @@ napi_value IsOsAccountVerified(napi_env env, napi_callback_info cbInfo)
     isVerified->env = env;
     isVerified->callbackRef = nullptr;
 
-    if (ParseParaIsVerified(env, cbInfo, isVerified) == nullptr) {
-        ACCOUNT_LOGI("Parse is verfied failed");
-        return WrapVoidToJS(env);
-    }
+    ParseParaIsVerified(env, cbInfo, isVerified);
 
     napi_value result = nullptr;
     if (isVerified->callbackRef == nullptr) {
@@ -1021,10 +983,7 @@ napi_value GetOsAccountLocalIdBySerialNumber(napi_env env, napi_callback_info cb
     serialNumId->env = env;
     serialNumId->callbackRef = nullptr;
 
-    if (ParseParaSerialNumId(env, cbInfo, serialNumId) == nullptr) {
-        ACCOUNT_LOGI("Parse get local id by serial number failed");
-        return WrapVoidToJS(env);
-    }
+    ParseParaSerialNumId(env, cbInfo, serialNumId);
 
     napi_value result = nullptr;
     if (serialNumId->callbackRef == nullptr) {
@@ -1056,10 +1015,7 @@ napi_value GetSerialNumberByOsAccountLocalId(napi_env env, napi_callback_info cb
     getSerialNum->env = env;
     getSerialNum->callbackRef = nullptr;
 
-    if (ParseParaGetSerialNum(env, cbInfo, getSerialNum) == nullptr) {
-        ACCOUNT_LOGI("Parse get serial number failed");
-        return WrapVoidToJS(env);
-    }
+    ParseParaGetSerialNum(env, cbInfo, getSerialNum);
 
     napi_value result = nullptr;
     if (getSerialNum->callbackRef == nullptr) {

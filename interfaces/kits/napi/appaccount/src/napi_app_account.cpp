@@ -1401,7 +1401,7 @@ napi_value NapiAppAccount::GetAuthenticatorCallback(napi_env env, napi_callback_
                     asyncContext->sessionId, asyncContext->authenticatorCb);
                 asyncContext->errCode = ConvertToJSErrCode(errCode);
                 ACCOUNT_LOGI("GetOAuthList errcode parameter is %{public}d", asyncContext->errCode);
-                ACCOUNT_LOGI("New the js instance complete");
+                asyncContext->status = asyncContext->errCode == 0 ? napi_ok : napi_generic_failure;
             },
             [](napi_env env, napi_status status, void *data) {
                 ACCOUNT_LOGI("GetAuthenticatorCallback, napi_create_async_work complete.");
