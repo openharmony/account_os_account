@@ -79,7 +79,7 @@ ErrCode AppAccountCheckLabelsCallback::CheckLabels()
 void AppAccountCheckLabelsCallback::OnResult(int32_t resultCode, const AAFwk::Want &result)
 {
     ACCOUNT_LOGD("enter");
-    if (result.GetBoolParam(Constants::KEY_BOOL_RESULT, false)) {
+    if (result.GetBoolParam(Constants::KEY_BOOLEAN_RESULT, false)) {
         accountsWithLabels_.push_back(accounts_[index_]);
     }
     index_++;
