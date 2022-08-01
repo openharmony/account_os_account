@@ -1,0 +1,88 @@
+# Copyright (c) 2022 Huawei Device Co., Ltd.
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#     http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
+import("//base/account/os_account/os_account.gni")
+import("//build/ohos.gni")
+
+config("account_iam_kit_config") {
+  include_dirs = [
+    "${account_iam_kits_path}/include",
+    "//foundation/ace/napi/interfaces/kits",
+    "//third_party/libuv/include",
+    "//third_party/node/src",
+  ]
+
+  cflags = []
+  if (target_cpu == "arm") {
+    cflags += [ "-DBINDER_IPC_32BIT" ]
+  }
+
+  cflags += [ "-pipe" ]
+  cflags_cc = [
+    "-Wdate-time",
+    "-Wformat=2",
+    "-Wfloat-equal",
+    "-Wshadow",
+  ]
+
+  if (has_user_auth_part) {
+    cflags_cc += [ "-DHAS_USER_AUTH_PART" ]
+  }
+
+  if (has_pin_auth_part) {
+    cflags_cc += [ "-DHAS_PIN_AUTH_PART" ]
+  }
+}
+
+ohos_shared_library("account_iam_napi") {
+  include_dirs = []
+  configs = [ ":account_iam_kit_config" ]
+  public_configs = [ ":account_iam_kit_config" ]
+  sources = [
+    "${account_iam_kits_path}/src/napi_account_iam_common.cpp",
+    "${account_iam_kits_path}/src/napi_account_iam_constant.cpp",
+    "${account_iam_kits_path}/src/napi_account_iam_identity_manager.cpp",
+    "${account_iam_kits_path}/src/napi_account_iam_module.cpp",
+    "${account_iam_kits_path}/src/napi_account_iam_pin_auth.cpp",
+    "${account_iam_kits_path}/src/napi_account_iam_user_auth.cpp",
+  ]
+
+  defines = [
+    "ACCOUNT_LOG_TAG = \"AccountIAM\"",
+    "LOG_DOMAIN = 0xD001B00",
+  ]
+
+  deps = [
+    "${account_iam_framework_path}:account_iam_innerkits",
+    "${common_path}:libaccount_common",
+    "//foundation/arkui/napi/:ace_napi",
+    "//utils/native/base:utils",
+  ]
+
+  if (has_user_auth_part) {
+    deps += [
+      "//base/useriam/user_auth_framework/frameworks/native/client:userauth_client",
+      "//base/useriam/user_auth_framework/frameworks/native/ipc:userauth_client_ipc",
+    ]
+  }
+
+  external_deps = [
+    "hiviewdfx_hilog_native:libhilog",
+    "ipc:ipc_core",
+    "safwk:system_ability_fwk",
+    "samgr_standard:samgr_proxy",
+  ]
+
+  subsystem_name = "account"
+  part_name = "os_account"
+}
