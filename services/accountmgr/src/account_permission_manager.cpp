@@ -30,6 +30,9 @@ const std::string AccountPermissionManager::INTERACT_ACROSS_LOCAL_ACCOUNTS_EXTEN
     "ohos.permission.INTERACT_ACROSS_LOCAL_ACCOUNTS_EXTENSION";
 const std::string AccountPermissionManager::INTERACT_ACROSS_LOCAL_ACCOUNTS =
     "ohos.permission.INTERACT_ACROSS_LOCAL_ACCOUNTS";
+const std::string AccountPermissionManager::ACCESS_USER_AUTH_INTERNAL = "ohos.permission.ACCESS_USER_AUTH_INTERNAL";
+const std::string AccountPermissionManager::MANAGE_USER_IDM = "ohos.permission.MANAGE_USER_IDM";
+
 AccountPermissionManager::AccountPermissionManager()
 {
     ACCOUNT_LOGD("enter");

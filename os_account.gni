@@ -37,6 +37,11 @@ os_account_core_path = "${os_account_path}/frameworks/osaccount/core"
 os_account_kits_path = "${os_account_path}/interfaces/kits/napi/osaccount"
 os_account_dfx_path = "${os_account_path}/dfx"
 
+account_iam_kits_path = "${os_account_path}/interfaces/kits/napi/account_iam"
+account_iam_interfaces_native_path =
+    "${os_account_path}/interfaces/innerkits/account_iam/native"
+account_iam_framework_path = "${os_account_path}/frameworks/account_iam"
+
 if (!defined(global_parts_info) ||
     defined(global_parts_info.useriam_user_auth_framework)) {
   has_user_auth_part = true
@@ -72,6 +77,13 @@ if (!defined(global_parts_info) ||
   has_hiviewdfx_hitrace_part = true
 } else {
   has_hiviewdfx_hitrace_part = false
+}
+
+if (!defined(global_parts_info) ||
+    defined(global_parts_info.filemanagement_storage_service)) {
+  has_storage_service_part = true
+} else {
+  has_storage_service_part = false
 }
 
 declare_args() {
