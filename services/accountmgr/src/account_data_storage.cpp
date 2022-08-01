@@ -23,6 +23,7 @@ namespace OHOS {
 namespace AccountSA {
 const int32_t MAX_TIMES = 10;
 const int32_t SLEEP_INTERVAL = 100 * 1000;
+const std::string KVSTORE_BASE_DIR = "/data/service/el1/public/database/";
 
 AccountDataStorage::AccountDataStorage(const std::string &appId, const std::string &storeId, const bool &autoSync)
 {
@@ -57,7 +58,9 @@ OHOS::DistributedKv::Status AccountDataStorage::GetKvStore()
         .createIfMissing = true,
         .encrypt = false,
         .autoSync = autoSync_,
-        .kvStoreType = OHOS::DistributedKv::KvStoreType::SINGLE_VERSION
+        .kvStoreType = OHOS::DistributedKv::KvStoreType::SINGLE_VERSION,
+        .area = OHOS::DistributedKv::EL1,
+        .baseDir = KVSTORE_BASE_DIR + appId_.appId
     };
 
     OHOS::DistributedKv::Status status = dataManager_.GetSingleKvStore(options, appId_, storeId_, kvStorePtr_);
@@ -230,7 +233,8 @@ ErrCode AccountDataStorage::DeleteKvStore()
         std::lock_guard<std::mutex> lock(kvStorePtrMutex_);
         dataManager_.CloseKvStore(this->appId_, this->storeId_);
         kvStorePtr_ = nullptr;
-        status = dataManager_.DeleteKvStore(this->appId_, this->storeId_);
+        std::string baseDir = KVSTORE_BASE_DIR + this->appId_.appId;
+        status = dataManager_.DeleteKvStore(this->appId_, this->storeId_, baseDir);
     }
     if (status != OHOS::DistributedKv::Status::SUCCESS) {
         ACCOUNT_LOGE("error, status = %{public}d", status);
