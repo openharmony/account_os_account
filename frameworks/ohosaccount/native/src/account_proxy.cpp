@@ -165,6 +165,7 @@ sptr<IRemoteObject> AccountProxy::GetAppAccountService()
     ACCOUNT_LOGD("exit");
     return reply.ReadRemoteObject();
 }
+
 sptr<IRemoteObject> AccountProxy::GetOsAccountService()
 {
     ACCOUNT_LOGD("enter");
@@ -183,6 +184,26 @@ sptr<IRemoteObject> AccountProxy::GetOsAccountService()
         return nullptr;
     }
     ACCOUNT_LOGD("exit");
+    return reply.ReadRemoteObject();
+}
+
+sptr<IRemoteObject> AccountProxy::GetAccountIAMService()
+{
+    MessageParcel data;
+    MessageParcel reply;
+    MessageOption option;
+
+    if (!data.WriteInterfaceToken(GetDescriptor())) {
+        ACCOUNT_LOGD("Write descriptor failed");
+        return nullptr;
+    }
+
+    auto ret = Remote()->SendRequest(GET_ACCOUNT_IAM_SERVICE, data, reply, option);
+    if (ret != ERR_NONE) {
+        ACCOUNT_LOGD("SendRequest failed %d", ret);
+        return nullptr;
+    }
+
     return reply.ReadRemoteObject();
 }
 }  // namespace AccountSA
