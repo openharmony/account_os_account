@@ -36,10 +36,6 @@ config("osaccount_kit_config") {
     "-Wshadow",
   ]
 
-  if (has_user_idm_part) {
-    cflags_cc += [ "-DHAS_USER_IDM_PART" ]
-  }
-
   if (has_user_auth_part) {
     cflags_cc += [ "-DHAS_USER_AUTH_PART" ]
   }
@@ -73,18 +69,8 @@ ohos_shared_library("osaccount") {
     "//foundation/arkui/napi/:ace_napi",
   ]
 
-  if (has_user_auth_part) {
-    deps += [ "//base/useriam/user_auth_framework/frameworks/js/napi/user_auth:userauth" ]
-  }
-
-  if (has_pin_auth_part) {
-    deps += [ "//base/useriam/pin_auth/interfaces/kits/napi:pinauth" ]
-  }
-
-  if (has_user_idm_part) {
-    deps += [
-      "//base/useriam/user_auth_framework/frameworks/js/napi/user_idm:useridm",
-    ]
+  if (has_user_auth_part && has_pin_auth_part) {
+    deps += [ "${account_iam_kits_path}:account_iam_napi" ]
   }
 
   relative_install_dir = "module/account"
