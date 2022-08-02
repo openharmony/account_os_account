@@ -14,17 +14,9 @@
  */
 
 #include "napi_os_account.h"
-#ifdef HAS_USER_IDM_PART
-#include "authface_userIDM_helper.h"
-#endif // HAS_USER_IDM_PART
-#include "napi/native_api.h"
-#include "napi/native_node_api.h"
-#ifdef HAS_PIN_AUTH_PART
-#include "pin_auth_helper.h"
-#endif // HAS_PIN_AUTH_PART
-#ifdef HAS_USER_AUTH_PART
-#include "user_auth_helper.h"
-#endif // HAS_USER_AUTH_PART
+#if defined(HAS_USER_AUTH_PART) && defined(HAS_PIN_AUTH_PART)
+#include "napi_account_iam_module.h"
+#endif
 
 namespace OHOS {
 namespace AccountJsKit {
@@ -39,18 +31,9 @@ static napi_value Init(napi_env env, napi_value exports)
      * Propertise define
      */
     OsAccountInit(env, exports);
-#ifdef HAS_PIN_AUTH_PART
-    PinAuth::Init(env, exports);
-    PinAuth::EnumExport(env, exports);
-#endif // HAS_PIN_AUTH_PART
-#ifdef HAS_USER_AUTH_PART
-    UserIAM::UserAuth::UserAuthInit(env, exports);
-    UserIAM::UserAuth::EnumExport(env, exports);
-#endif // HAS_USER_AUTH_PART
-#ifdef HAS_USER_IDM_PART
-    UserIAM::UserIDM::AuthFaceInit(env, exports);
-    UserIAM::UserIDM::EnumExport(env, exports);
-#endif // HAS_USER_IDM_PART
+#if defined(HAS_USER_AUTH_PART) && defined(HAS_PIN_AUTH_PART)
+    AccountIAMInit(env, exports);
+#endif
     return exports;
 }
 EXTERN_C_END
