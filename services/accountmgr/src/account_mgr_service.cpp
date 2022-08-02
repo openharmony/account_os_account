@@ -16,6 +16,9 @@
 #include "account_mgr_service.h"
 #include <cerrno>
 #include "account_dump_helper.h"
+#if defined(HAS_USER_AUTH_PART)
+#include "account_iam_service.h"
+#endif
 #include "account_log_wrapper.h"
 #include "app_account_manager_service.h"
 #include "datetime_ex.h"
@@ -107,11 +110,19 @@ sptr<IRemoteObject> AccountMgrService::GetAppAccountService()
 
     return appAccountManagerService_;
 }
+
 sptr<IRemoteObject> AccountMgrService::GetOsAccountService()
 {
     ACCOUNT_LOGD("enter");
 
     return osAccountManagerService_;
+}
+
+sptr<IRemoteObject> AccountMgrService::GetAccountIAMService()
+{
+    ACCOUNT_LOGD("enter");
+
+    return accountIAMService_;
 }
 
 bool AccountMgrService::IsServiceStarted(void) const
@@ -197,10 +208,26 @@ bool AccountMgrService::Init()
             "Insufficient memory to create os account manager service");
         return false;
     }
+    if (!CreateIAMService()) {
+        return false;
+    }
     dumpHelper_ = std::make_unique<AccountDumpHelper>(ohosAccountMgr_, osAccountManagerServiceOrg_);
     appAccountManagerService_ = appAccountManagerService->AsObject();
     osAccountManagerService_ = osAccountManagerServiceOrg_->AsObject();
     ACCOUNT_LOGI("init end success");
+    return true;
+}
+
+bool AccountMgrService::CreateIAMService()
+{
+#if defined(HAS_USER_AUTH_PART)
+    auto accountIAMService = new (std::nothrow) AccountIAMService();
+    if (accountIAMService == nullptr) {
+        ACCOUNT_LOGE("memory alloc for AccountIAMService failed!");
+        return false;
+    }
+    accountIAMService_ = accountIAMService->AsObject();
+#endif
     return true;
 }
 

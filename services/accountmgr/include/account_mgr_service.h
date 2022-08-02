@@ -50,6 +50,7 @@ public:
     std::int32_t QueryDeviceAccountId(std::int32_t &accountId) override;
     sptr<IRemoteObject> GetAppAccountService() override;
     sptr<IRemoteObject> GetOsAccountService() override;
+    sptr<IRemoteObject> GetAccountIAMService() override;
 
     void OnStart() override;
     void OnStop() override;
@@ -65,6 +66,7 @@ private:
     bool Init();
     void SelfClean();
     std::int32_t GetDeviceAccountIdFromCurrentProcess();
+    bool CreateIAMService();
 
     bool registerToService_ = false;
     ServiceRunningState state_ = ServiceRunningState::STATE_NOT_START;
@@ -73,6 +75,7 @@ private:
 
     sptr<IRemoteObject> appAccountManagerService_ = nullptr;
     sptr<IRemoteObject> osAccountManagerService_ = nullptr;
+    sptr<IRemoteObject> accountIAMService_ = nullptr;
     OsAccountManagerService* osAccountManagerServiceOrg_ = nullptr;
 };
 }  // namespace AccountSA

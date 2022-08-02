@@ -44,6 +44,7 @@ config("accountmgr_config") {
     "${innerkits_path}/include",
     "${os_account_dfx_path}/hidumper_adapter",
     "${os_account_dfx_path}/hisysevent_adapter",
+    "${account_iam_interfaces_native_path}/include",
     "${app_account_innerkits_native_path}/include",
     "//third_party/json/include",
     "//third_party/mbedtls/include",
@@ -74,6 +75,10 @@ config("accountmgr_public_config") {
     "${services_path}/accountmgr/include/appaccount",
     "${services_path}/accountmgr/include/osaccount",
   ]
+
+  if (has_user_auth_part) {
+    include_dirs += [ "${services_path}/accountmgr/include/account_iam" ]
+  }
 }
 
 ability_manager_sources = [
@@ -166,6 +171,13 @@ ohos_shared_library("accountmgr") {
   sources += ability_manager_sources
   sources += bundle_manager_sources
 
+  if (has_user_auth_part) {
+    sources += [
+      "src/account_iam/account_iam_service.cpp",
+      "src/account_iam/account_iam_stub.cpp",
+    ]
+  }
+
   defines = [
     "ACCOUNT_LOG_TAG = \"AccountMgrService\"",
     "LOG_DOMAIN = 0xD001B00",
@@ -189,9 +201,17 @@ ohos_shared_library("accountmgr") {
     "//third_party/mbedtls:mbedtls",
   ]
 
-  if (has_user_idm_part) {
-    cflags_cc += [ "-DHAS_USER_IDM_PART" ]
+  if (has_user_auth_part) {
+    cflags_cc += [
+      "-DHAS_USER_AUTH_PART",
+      "-DHAS_USER_IDM_PART",
+    ]
     deps += [ "//base/useriam/user_auth_framework/frameworks/native/client:userauth_client" ]
+  }
+
+  if (has_pin_auth_part) {
+    cflags_cc += [ "-DHAS_PIN_AUTH_PART" ]
+    deps += [ "//base/useriam/pin_auth/frameworks:pinauth_framework" ]
   }
 
   external_deps = [
@@ -208,8 +228,12 @@ ohos_shared_library("accountmgr") {
     "ipc:ipc_core",
     "safwk:system_ability_fwk",
     "samgr_standard:samgr_proxy",
-    "storage_service:storage_manager_sa_proxy",
   ]
+
+  if (has_storage_service_part) {
+    cflags += [ "-DHAS_STORAGE_PART" ]
+    external_deps += [ "storage_service:storage_manager_sa_proxy" ]
+  }
 
   if (build_selinux) {
     external_deps += [ "selinux:librestorecon" ]

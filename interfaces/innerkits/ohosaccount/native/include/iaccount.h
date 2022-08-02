@@ -37,6 +37,7 @@ public:
         QUERY_DEVICE_ACCOUNT_ID = 104,
         GET_APP_ACCOUNT_SERVICE = 105,
         GET_OS_ACCOUNT_SERVICE = 106,
+        GET_ACCOUNT_IAM_SERVICE = 107,
     };
 
     virtual bool UpdateOhosAccountInfo(
@@ -46,6 +47,7 @@ public:
     virtual std::int32_t QueryDeviceAccountId(std::int32_t &accountId) = 0;
     virtual sptr<IRemoteObject> GetAppAccountService() = 0;
     virtual sptr<IRemoteObject> GetOsAccountService() = 0;
+    virtual sptr<IRemoteObject> GetAccountIAMService() = 0;
 };
 }  // namespace AccountSA
 }  // namespace OHOS
