@@ -28,12 +28,16 @@
 #include "hitrace_meter.h"
 #include "if_system_ability_manager.h"
 #include "iservice_registry.h"
+#ifdef HAS_STORAGE_PART
 #include "istorage_manager.h"
+#endif
 #include "os_account_constants.h"
 #include "os_account_delete_user_idm_callback.h"
 #include "os_account_stop_user_callback.h"
+#ifdef HAS_STORAGE_PART
 #include "storage_manager.h"
 #include "storage_manager_proxy.h"
+#endif
 #include "system_ability_definition.h"
 #ifdef HAS_USER_IDM_PART
 #include "user_idm_client.h"
@@ -226,6 +230,7 @@ void OsAccountInterface::SendToCESAccountSwitched(OsAccountInfo &osAccountInfo)
 ErrCode OsAccountInterface::SendToStorageAccountCreate(OsAccountInfo &osAccountInfo)
 {
     ACCOUNT_LOGI("start");
+#ifdef HAS_STORAGE_PART
     auto systemAbilityManager = SystemAbilityManagerClient::GetInstance().GetSystemAbilityManager();
     if (!systemAbilityManager) {
         ACCOUNT_LOGE("failed to get system ability mgr.");
@@ -258,12 +263,14 @@ ErrCode OsAccountInterface::SendToStorageAccountCreate(OsAccountInfo &osAccountI
 
     ACCOUNT_LOGI("end, Storage PrepareAddUser ret %{public}d.", err);
     FinishTrace(HITRACE_TAG_ACCOUNT_MANAGER);
+#endif
     return ERR_OK;
 }
 
 ErrCode OsAccountInterface::SendToStorageAccountRemove(OsAccountInfo &osAccountInfo)
 {
     ACCOUNT_LOGI("start");
+#ifdef HAS_STORAGE_PART
     auto systemAbilityManager = SystemAbilityManagerClient::GetInstance().GetSystemAbilityManager();
     if (!systemAbilityManager) {
         ACCOUNT_LOGE("failed to get system ability mgr.");
@@ -297,12 +304,14 @@ ErrCode OsAccountInterface::SendToStorageAccountRemove(OsAccountInfo &osAccountI
 
     ACCOUNT_LOGI("end, Storage RemoveUser ret %{public}d.", err);
     FinishTrace(HITRACE_TAG_ACCOUNT_MANAGER);
+#endif
     return ERR_OK;
 }
 
 ErrCode OsAccountInterface::SendToStorageAccountStart(OsAccountInfo &osAccountInfo)
 {
     ACCOUNT_LOGI("start");
+#ifdef HAS_STORAGE_PART
     auto systemAbilityManager = SystemAbilityManagerClient::GetInstance().GetSystemAbilityManager();
     if (!systemAbilityManager) {
         ACCOUNT_LOGE("failed to get system ability mgr.");
@@ -336,12 +345,14 @@ ErrCode OsAccountInterface::SendToStorageAccountStart(OsAccountInfo &osAccountIn
     }
     ACCOUNT_LOGI("end, Storage PrepareStartUser ret %{public}d.", err);
     FinishTrace(HITRACE_TAG_ACCOUNT_MANAGER);
+#endif
     return ERR_OK;
 }
 
 ErrCode OsAccountInterface::SendToStorageAccountStop(OsAccountInfo &osAccountInfo)
 {
     ACCOUNT_LOGI("start");
+#ifdef HAS_STORAGE_PART
     auto systemAbilityManager = SystemAbilityManagerClient::GetInstance().GetSystemAbilityManager();
     if (!systemAbilityManager) {
         ACCOUNT_LOGE("failed to get system ability mgr.");
@@ -377,6 +388,7 @@ ErrCode OsAccountInterface::SendToStorageAccountStop(OsAccountInfo &osAccountInf
     }
     ACCOUNT_LOGI("end, Storage StopUser ret %{public}d", err);
     FinishTrace(HITRACE_TAG_ACCOUNT_MANAGER);
+#endif
     return ERR_OK;
 }
 }  // namespace AccountSA

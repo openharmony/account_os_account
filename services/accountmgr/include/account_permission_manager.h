@@ -33,6 +33,8 @@ public:
     static const std::string MANAGE_LOCAL_ACCOUNTS;
     static const std::string INTERACT_ACROSS_LOCAL_ACCOUNTS_EXTENSION;
     static const std::string INTERACT_ACROSS_LOCAL_ACCOUNTS;
+    static const std::string ACCESS_USER_AUTH_INTERNAL;
+    static const std::string MANAGE_USER_IDM;
 };
 }  // namespace AccountSA
 }  // namespace OHOS
