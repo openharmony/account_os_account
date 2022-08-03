@@ -99,6 +99,8 @@ ErrCode AccountIAMClient::UpdateCredential(const CredentialParameters& credInfo,
     }
     int32_t userId = 0;
     OsAccountManager::GetOsAccountLocalIdFromProcess(userId);
+    PinSubType pinType = credInfo.pinType.value_or(PinSubType::PIN_MAX);
+    SetAuthSubType(userId, pinType);
     auto idmCallback = std::make_shared<UpdateCredCallback>(userId, credInfo, callback);
     UserIDMClient::GetInstance().UpdateCredential(0, credInfo, idmCallback);
     return ERR_OK;
@@ -303,6 +305,22 @@ void AccountIAMClient::ClearCredential(int32_t userId, int32_t authSubType)
     std::string key = std::to_string(userId) + std::to_string(authSubType);
     std::lock_guard<std::mutex> lock(mutex_);
     credentialMap_.erase(key);
+}
+
+void AccountIAMClient::SetAuthSubType(int32_t userId, int32_t authSubType)
+{
+    std::lock_guard<std::mutex> lock(mutex_);
+    authSubTypeMap_[userId] = authSubType;
+}
+
+int32_t AccountIAMClient::GetAuthSubType(int32_t userId)
+{
+    std::lock_guard<std::mutex> lock(mutex_);
+    auto it = authSubTypeMap_.find(userId);
+    if (it != authSubTypeMap_.end()) {
+        return it->second;
+    }
+    return 0;
 }
 
 ErrCode AccountIAMClient::ActivateUserKey(
