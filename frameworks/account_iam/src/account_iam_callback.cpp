@@ -310,6 +310,7 @@ void IAMInputer::OnGetData(int32_t authSubType, std::shared_ptr<IInputerData> in
         innerInputer_->OnGetData(authSubType, inputerData_);
         return;
     }
+    authSubType = AccountIAMClient::GetInstance().GetAuthSubType(userId_);
     CredentialPair credPair;
     AccountIAMClient::GetInstance().GetCredential(userId_, authSubType, credPair);
     if (state == ROLL_BACK_UPDATE_CRED) {
