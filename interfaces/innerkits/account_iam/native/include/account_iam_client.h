@@ -52,6 +52,8 @@ public:
     ErrCode SetProperty(const SetPropertyRequest &request, std::shared_ptr<SetPropCallback> callback);
     ErrCode RegisterInputer(const std::shared_ptr<IInputer> inputer, bool &isSucceed);
     ErrCode UnRegisterInputer();
+    void SetAuthSubType(int32_t userId, int32_t authSubType);
+    int32_t GetAuthSubType(int32_t userId);
     IAMState GetState(int32_t userId);
     void SetState(int32_t userId, IAMState state);
     void GetChallenge(int32_t userId, std::vector<uint8_t> &challenge);
@@ -81,6 +83,7 @@ private:
     std::mutex mutex_;
     sptr<IAccountIAM> proxy_ = nullptr;
     sptr<IRemoteObject::DeathRecipient> deathRecipient_ = nullptr;
+    std::map<int32_t, int32_t> authSubTypeMap_;
     std::map<int32_t, IAMState> userStateMap_;
     std::map<std::string, CredentialPair> credentialMap_;
     std::map<int32_t, std::vector<uint8_t>> userChallengeMap_;
