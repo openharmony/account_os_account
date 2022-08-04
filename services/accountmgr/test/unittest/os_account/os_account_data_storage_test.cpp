@@ -75,7 +75,7 @@ void OsAccountDataStorageTest::TearDown(void)
  */
 HWTEST_F(OsAccountDataStorageTest, OsAccountDataStorageTest001, TestSize.Level1)
 {
-    EXPECT_EQ(osAccountDataStorage_->CheckKvStore(), true);
+    EXPECT_EQ(osAccountDataStorage_->CheckKvStore(), false);
 }
 }  // namespace AccountSA
 }  // namespace OHOS
