@@ -57,7 +57,7 @@ ohos_shared_library("appaccount") {
     "${ability_runtime_napi_path}/inner/napi_common:napi_common",
     "${common_path}:libaccount_common",
     "//foundation/arkui/napi/:ace_napi",
-    "//foundation/distributedschedule/samgr/interfaces/innerkits/samgr_proxy:samgr_proxy",
+    "//foundation/systemabilitymgr/samgr/interfaces/innerkits/samgr_proxy:samgr_proxy",
   ]
 
   relative_install_dir = "module/account"

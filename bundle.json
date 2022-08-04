@@ -47,7 +47,7 @@
         "napi",
         "pin_auth",
         "safwk",
-        "samgr_standard",
+        "samgr",
         "selinux",
         "storage_service",
         "user_auth_framework"
