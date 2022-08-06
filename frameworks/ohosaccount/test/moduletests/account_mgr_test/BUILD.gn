@@ -61,7 +61,7 @@ ohos_moduletest("AccountInnerSdkModuleTest") {
     "ipc:ipc_core",
     "os_account:libaccountkits",
     "safwk:system_ability_fwk",
-    "samgr_standard:samgr_proxy",
+    "samgr:samgr_proxy",
   ]
   part_name = "os_account"
 }
