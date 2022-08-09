@@ -53,7 +53,7 @@ ohos_moduletest("os_account_frameworks_module_test") {
     "ability_base:want",
     "bundle_framework:appexecfwk_base",
     "bundle_framework:appexecfwk_core",
-    "distributeddatamgr:distributeddata_inner",
+    "kv_store:distributeddata_inner",
     "eventhandler:libeventhandler",
     "hiviewdfx_hilog_native:libhilog",
     "init:libbegetutil",

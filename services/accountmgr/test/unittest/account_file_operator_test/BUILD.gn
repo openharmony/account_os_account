@@ -53,7 +53,7 @@ ohos_unittest("AccountFileOperatorTest") {
 
   external_deps = [
     "c_utils:utils",
-    "distributeddatamgr:distributeddata_inner",
+    "kv_store:distributeddata_inner",
     "hiviewdfx_hilog_native:libhilog",
   ]
   part_name = "os_account"

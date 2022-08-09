@@ -51,7 +51,7 @@ ohos_unittest("OsAccountControlFileManagerTest") {
 
   external_deps = [
     "c_utils:utils",
-    "distributeddatamgr:distributeddata_inner",
+    "kv_store:distributeddata_inner",
     "hiviewdfx_hilog_native:libhilog",
     "init:libbegetutil",
   ]
@@ -95,7 +95,7 @@ ohos_unittest("OsAccountDataStorageTest") {
 
   external_deps = [
     "c_utils:utils",
-    "distributeddatamgr:distributeddata_inner",
+    "kv_store:distributeddata_inner",
     "hiviewdfx_hilog_native:libhilog",
   ]
   part_name = "os_account"

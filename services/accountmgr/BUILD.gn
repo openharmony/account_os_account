@@ -221,7 +221,7 @@ ohos_shared_library("accountmgr") {
     "access_token:libaccesstoken_sdk",
     "bundle_framework:appexecfwk_base",
     "c_utils:utils",
-    "distributeddatamgr:distributeddata_inner",
+    "kv_store:distributeddata_inner",
     "eventhandler:libeventhandler",
     "hiviewdfx_hilog_native:libhilog",
     "init:libbegetutil",
