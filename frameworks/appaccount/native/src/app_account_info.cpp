@@ -44,6 +44,7 @@ AppAccountInfo::AppAccountInfo()
 {
     owner_ = "";
     name_ = "";
+    appIndex_ = APP_INDEX;
     extraInfo_ = "";
     authorizedApps_.clear();
     syncEnable_ = false;
@@ -56,7 +57,7 @@ AppAccountInfo::AppAccountInfo(const std::string &name, const std::string &owner
 {
     name_ = name;
     owner_ = owner;
-
+    appIndex_ = APP_INDEX;
     extraInfo_ = "";
     authorizedApps_.clear();
     syncEnable_ = false;
@@ -97,6 +98,16 @@ ErrCode AppAccountInfo::SetName(const std::string &name)
 {
     name_ = name;
     return ERR_OK;
+}
+
+uint32_t AppAccountInfo::GetAppIndex()
+{
+    return appIndex_;
+}
+
+void AppAccountInfo::SetAppIndex(const uint32_t &appIndex)
+{
+    appIndex_ = appIndex;
 }
 
 ErrCode AppAccountInfo::GetExtraInfo(std::string &extraInfo) const
@@ -515,7 +526,7 @@ std::string AppAccountInfo::ToString() const
 
 std::string AppAccountInfo::GetPrimeKey() const
 {
-    return (owner_ + HYPHEN + name_ + HYPHEN + std::to_string(APP_INDEX));
+    return (owner_ + HYPHEN + std::to_string(appIndex_) + HYPHEN + name_);
 }
 
 bool AppAccountInfo::ReadFromParcel(Parcel &parcel)
