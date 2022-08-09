@@ -88,12 +88,13 @@ public:
         const AppAccountSubscribeInfo &subscribeInfo, const sptr<IRemoteObject> &eventListener) override;
     ErrCode UnsubscribeAppAccount(const sptr<IRemoteObject> &eventListener) override;
 
-    virtual ErrCode OnPackageRemoved(const uid_t &uid, const std::string &bundleName);
+    virtual ErrCode OnPackageRemoved(const uid_t &uid, const std::string &bundleName, const uint32_t &appIndex);
     virtual ErrCode OnUserRemoved(int32_t userId);
 
 private:
     ErrCode GetBundleNameAndCheckPerm(int32_t &callingUid, std::string &bundleName, const std::string &permName);
     ErrCode GetBundleNameAndCallingUid(int32_t &callingUid, std::string &bundleName);
+    ErrCode GetCallingTokenInfoAndAppIndex(uint32_t &appIndex);
 
 private:
     std::shared_ptr<InnerAppAccountManager> innerManager_ = nullptr;
