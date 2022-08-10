@@ -107,6 +107,7 @@ void IDMAuthCallback::OnResult(int32_t result, const Attributes &extraInfo)
         userId_, credentialId_, token, secret);
     if (updateKeyResult == 0) {
         ACCOUNT_LOGD("unlock user key successfully");
+        AccountIAMClient::GetInstance().SetState(userId_, AFTER_OPEN_SESSION);
         idmCallback_->OnResult(oldResult_, reqResult_);
         return;
     }
@@ -123,6 +124,7 @@ void IDMAuthCallback::OnResult(int32_t result, const Attributes &extraInfo)
         auto updateCallback = std::make_shared<UpdateCredCallback>(userId_, credInfo_, idmCallback_);
         UserIDMClient::GetInstance().UpdateCredential(0, credInfo_, updateCallback);
     } else {
+        AccountIAMClient::GetInstance().SetState(userId_, AFTER_OPEN_SESSION);
         idmCallback_->OnResult(oldResult_, reqResult_);
     }
 }
@@ -247,11 +249,10 @@ void DelCredCallback::OnResult(int32_t result, const Attributes &extraInfo)
         innerCallback_->OnResult(ResultCode::FAIL, errResult);
         return;
     }
-    if (result == 0) {
-        AccountIAMClient::GetInstance().SetState(userId_, AFTER_OPEN_SESSION);
-    } else {
+    if (result != 0) {
         AccountIAMClient::GetInstance().RestoreUserKey(userId_, credentialId_, authToken_);
     }
+    AccountIAMClient::GetInstance().SetState(userId_, AFTER_OPEN_SESSION);
     innerCallback_->OnResult(result, extraInfo);
 }
 
