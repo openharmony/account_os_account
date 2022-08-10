@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021 Huawei Device Co., Ltd.
+ * Copyright (c) 2021-2022 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -17,7 +17,7 @@
 
 #include "account_error_no.h"
 #define private public
-#include "app_account_manager_service.h"
+#include "mock_app_account_manager_service.h"
 #undef private
 #include "mock_inner_app_account_manager.h"
 
@@ -50,7 +50,7 @@ void AppAccountManagerServiceTest::TearDownTestCase(void)
 
 void AppAccountManagerServiceTest::SetUp(void)
 {
-    auto servicePtr = new (std::nothrow) AppAccountManagerService();
+    auto servicePtr = new (std::nothrow) MockAppAccountManagerService();
     if (servicePtr == nullptr) {
         return;
     }

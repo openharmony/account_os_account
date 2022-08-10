@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021 Huawei Device Co., Ltd.
+ * Copyright (c) 2021-2022 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -26,11 +26,12 @@ public:
     MockInnerAppAccountManager();
     virtual ~MockInnerAppAccountManager();
 
-    ErrCode AddAccount(const std::string &name, const std::string &extraInfo, const std::string &bundleName);
-    ErrCode DeleteAccount(const std::string &name, const std::string &bundleName);
+    ErrCode AddAccount(
+        const std::string &name, const std::string &extraInfo, const std::string &bundleName, const uint32_t &appIndex);
+    ErrCode DeleteAccount(const std::string &name, const std::string &bundleName, const uint32_t &appIndex);
 
     ErrCode SubscribeAppAccount(const AppAccountSubscribeInfo &subscribeInfo, const sptr<IRemoteObject> &eventListener,
-        const std::string &bundleName);
+        const std::string &bundleName, const uint32_t &appIndex);
     ErrCode UnsubscribeAppAccount(const sptr<IRemoteObject> &eventListener);
 };
 }  // namespace AccountSA

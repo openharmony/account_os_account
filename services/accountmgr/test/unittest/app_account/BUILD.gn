@@ -1,4 +1,4 @@
-# Copyright (c) 2021 Huawei Device Co., Ltd.
+# Copyright (c) 2021-2022 Huawei Device Co., Ltd.
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
 # You may obtain a copy of the License at
@@ -28,6 +28,7 @@ config("app_account_service_config_mock") {
 app_account_mock_sources = [
   "${app_account_services_path}/test/mock/app_account/accesstoken_kit.cpp",
   "${app_account_services_path}/test/mock/app_account/mock_app_account_control_manager.cpp",
+  "${app_account_services_path}/test/mock/app_account/mock_app_account_manager_service.cpp",
   "${app_account_services_path}/test/mock/app_account/mock_app_account_stub.cpp",
   "${app_account_services_path}/test/mock/app_account/mock_app_account_subscribe_manager.cpp",
   "${app_account_services_path}/test/mock/app_account/mock_inner_app_account_manager.cpp",
