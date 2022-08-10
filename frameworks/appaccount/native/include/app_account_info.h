@@ -45,6 +45,9 @@ public:
     ErrCode GetName(std::string &name) const;
     ErrCode SetName(const std::string &name);
 
+    uint32_t GetAppIndex();
+    void SetAppIndex(const uint32_t &appIndex);
+
     ErrCode GetExtraInfo(std::string &extraInfo) const;
     ErrCode SetExtraInfo(const std::string &extraInfo);
 
@@ -97,6 +100,7 @@ private:
 private:
     std::string owner_;
     std::string name_;
+    uint32_t appIndex_;
     std::string extraInfo_;
     std::set<std::string> authorizedApps_;
     bool syncEnable_ = false;

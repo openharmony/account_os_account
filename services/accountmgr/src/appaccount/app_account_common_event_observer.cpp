@@ -38,6 +38,7 @@ AppAccountCommonEventObserver::AppAccountCommonEventObserver(const CommonEventCa
     MatchingSkills matchingSkills;
     matchingSkills.AddEvent(CommonEventSupport::COMMON_EVENT_PACKAGE_REMOVED);
     matchingSkills.AddEvent(CommonEventSupport::COMMON_EVENT_USER_REMOVED);
+    matchingSkills.AddEvent(CommonEventSupport::COMMON_EVENT_SANDBOX_PACKAGE_REMOVED);
 
     CommonEventSubscribeInfo subscribeInfo(matchingSkills);
     subscriber_ = std::make_shared<AppAccountCommonEventSubscriber>(
@@ -106,15 +107,19 @@ void AppAccountCommonEventObserver::OnReceiveEvent(const CommonEventData &data)
 
     auto want = data.GetWant();
     std::string action = want.GetAction();
-    if (action == CommonEventSupport::COMMON_EVENT_PACKAGE_REMOVED) {
+    if (action == CommonEventSupport::COMMON_EVENT_PACKAGE_REMOVED ||
+        action == CommonEventSupport::COMMON_EVENT_SANDBOX_PACKAGE_REMOVED) {
         if (callback_.OnPackageRemoved != nullptr) {
             auto wantTemp = data.GetWant();
             auto element = wantTemp.GetElement();
             std::string bundleName = element.GetBundleName();
             auto uid = wantTemp.GetIntParam(AppExecFwk::Constants::UID, -1);
-
+            uint32_t appIndex = 0;
+            if (action == CommonEventSupport::COMMON_EVENT_SANDBOX_PACKAGE_REMOVED) {
+                appIndex = wantTemp.GetIntParam(AppExecFwk::Constants::SANDBOX_APP_INDEX, -1);
+            }
             ACCOUNT_LOGI("uid = %{public}d, bundleName = %{public}s.", uid, bundleName.c_str());
-            callback_.OnPackageRemoved(uid, bundleName);
+            callback_.OnPackageRemoved(uid, bundleName, appIndex);
         }
         return;
     }

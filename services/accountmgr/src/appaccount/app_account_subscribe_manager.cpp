@@ -48,7 +48,7 @@ ErrCode AppAccountSubscribeManager::GetEventHandler(void)
 
 ErrCode AppAccountSubscribeManager::SubscribeAppAccount(
     const std::shared_ptr<AppAccountSubscribeInfo> &subscribeInfoPtr, const sptr<IRemoteObject> &eventListener,
-    const uid_t &uid, const std::string &bundleName)
+    const uid_t &uid, const std::string &bundleName, const uint32_t &appIndex)
 {
     ACCOUNT_LOGD("enter");
 
@@ -73,7 +73,7 @@ ErrCode AppAccountSubscribeManager::SubscribeAppAccount(
         return ERR_APPACCOUNT_SERVICE_OWNERS_SIZE_IS_ZERO;
     }
 
-    ErrCode result = CheckAppAccess(subscribeInfoPtr, uid, bundleName);
+    ErrCode result = CheckAppAccess(subscribeInfoPtr, uid, bundleName, appIndex);
     if (result != ERR_OK) {
         ACCOUNT_LOGE("failed to check app access, result %{public}d.", result);
         return result;
@@ -88,6 +88,7 @@ ErrCode AppAccountSubscribeManager::SubscribeAppAccount(
     subscribeRecordPtr->subscribeInfoPtr = subscribeInfoPtr;
     subscribeRecordPtr->eventListener = eventListener;
     subscribeRecordPtr->bundleName = bundleName;
+    subscribeRecordPtr->appIndex = appIndex;
 
     if (subscribeDeathRecipient_ != nullptr) {
         eventListener->AddDeathRecipient(subscribeDeathRecipient_);
@@ -148,8 +149,8 @@ std::vector<AppAccountSubscribeRecordPtr> AppAccountSubscribeManager::GetSubscri
     return records;
 }
 
-ErrCode AppAccountSubscribeManager::CheckAppAccess(
-    const std::shared_ptr<AppAccountSubscribeInfo> &subscribeInfoPtr, const uid_t &uid, const std::string &bundleName)
+ErrCode AppAccountSubscribeManager::CheckAppAccess(const std::shared_ptr<AppAccountSubscribeInfo> &subscribeInfoPtr,
+    const uid_t &uid, const std::string &bundleName, const uint32_t &appIndex)
 {
     ACCOUNT_LOGD("enter");
 
@@ -288,6 +289,7 @@ bool AppAccountSubscribeManager::PublishAccount(
 
     std::string name;
     appAccountInfo.GetName(name);
+    uint32_t appIndex = appAccountInfo.GetAppIndex();
 
     auto eventRecordPtr = std::make_shared<AppAccountEventRecord>();
     if (eventRecordPtr == nullptr) {
@@ -298,6 +300,7 @@ bool AppAccountSubscribeManager::PublishAccount(
     eventRecordPtr->receivers = GetSubscribeRecords(bundleName);
     eventRecordPtr->uid = uid;
     eventRecordPtr->bundleName = bundleName;
+    eventRecordPtr->appIndex = appIndex;
 
     if (GetEventHandler() != ERR_OK) {
         ACCOUNT_LOGE("failed to get event handler");
@@ -327,7 +330,7 @@ ErrCode AppAccountSubscribeManager::OnAccountsChanged(const std::shared_ptr<AppA
     for (auto receiver : record->receivers) {
         std::vector<AppAccountInfo> accessibleAccounts;
         ErrCode result = controlManagerPtr->GetAllAccessibleAccountsFromDataStorage(
-            accessibleAccounts, receiver->bundleName, dataStoragePtr);
+            accessibleAccounts, receiver->bundleName, dataStoragePtr, record->appIndex);
         if (result != ERR_OK) {
             ACCOUNT_LOGE("failed to get all accessible accounts from data storage, result = %{public}d", result);
             return result;
