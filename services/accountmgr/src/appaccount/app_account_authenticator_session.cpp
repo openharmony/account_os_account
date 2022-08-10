@@ -332,6 +332,7 @@ int32_t AppAccountAuthenticatorSession::UpdateAuthInfo(const AAFwk::Want &result
     std::string authType = result.GetStringParam(Constants::KEY_AUTH_TYPE);
     std::string token = result.GetStringParam(Constants::KEY_TOKEN);
     AppAccountInfo info(name, request_.owner);
+    info.SetAppIndex(request_.appIndex);
     ErrCode errCode = ERR_OK;
     controlManager_->AddAccount(name, "", ownerUid_, request_.owner, info);
     if (!token.empty()) {

@@ -28,38 +28,40 @@ public:
     InnerAppAccountManager();
     virtual ~InnerAppAccountManager();
 
-    ErrCode AddAccount(
-        const std::string &name, const std::string &extraInfo, const uid_t &uid, const std::string &bundleName);
+    ErrCode AddAccount(const std::string &name, const std::string &extraInfo,
+        const uid_t &uid, const std::string &bundleName, const uint32_t &appIndex);
     ErrCode AddAccountImplicitly(const AuthenticatorSessionRequest &request);
-    ErrCode DeleteAccount(const std::string &name, const uid_t &uid, const std::string &bundleName);
+    ErrCode DeleteAccount(
+        const std::string &name, const uid_t &uid, const std::string &bundleName, const uint32_t &appIndex);
 
-    ErrCode GetAccountExtraInfo(
-        const std::string &name, std::string &extraInfo, const uid_t &uid, const std::string &bundleName);
-    ErrCode SetAccountExtraInfo(
-        const std::string &name, const std::string &extraInfo, const uid_t &uid, const std::string &bundleName);
+    ErrCode GetAccountExtraInfo(const std::string &name, std::string &extraInfo,
+        const uid_t &uid, const std::string &bundleName, const uint32_t &appIndex);
+    ErrCode SetAccountExtraInfo(const std::string &name, const std::string &extraInfo,
+        const uid_t &uid, const std::string &bundleName, const uint32_t &appIndex);
 
-    ErrCode EnableAppAccess(
-        const std::string &name, const std::string &authorizedApp, const uid_t &uid, const std::string &bundleName);
-    ErrCode DisableAppAccess(
-        const std::string &name, const std::string &authorizedApp, const uid_t &uid, const std::string &bundleName);
+    ErrCode EnableAppAccess(const std::string &name, const std::string &authorizedApp,
+        const uid_t &uid, const std::string &bundleName, const uint32_t &appIndex);
+    ErrCode DisableAppAccess(const std::string &name, const std::string &authorizedApp,
+        const uid_t &uid, const std::string &bundleName, const uint32_t &appIndex);
     ErrCode CheckAppAccess(const std::string &name, const std::string &authorizedApp, bool &isAccessible,
-        const uid_t &uid, const std::string &bundleName);
+        const AppAccountCallingInfo &appAccountCallingInfo);
 
-    ErrCode CheckAppAccountSyncEnable(
-        const std::string &name, bool &syncEnable, const uid_t &uid, const std::string &bundleName);
-    ErrCode SetAppAccountSyncEnable(
-        const std::string &name, const bool &syncEnable, const uid_t &uid, const std::string &bundleName);
+    ErrCode CheckAppAccountSyncEnable(const std::string &name, bool &syncEnable,
+        const uid_t &uid, const std::string &bundleName, const uint32_t &appIndex);
+    ErrCode SetAppAccountSyncEnable(const std::string &name, const bool &syncEnable,
+        const uid_t &uid, const std::string &bundleName, const uint32_t &appIndex);
 
-    ErrCode GetAssociatedData(const std::string &name, const std::string &key, std::string &value, const uid_t &uid);
+    ErrCode GetAssociatedData(const std::string &name, const std::string &key,
+        std::string &value, const uid_t &uid, const uint32_t &appIndex);
     ErrCode SetAssociatedData(const std::string &name, const std::string &key, const std::string &value,
-        const uid_t &uid, const std::string &bundleName);
+        const AppAccountCallingInfo &appAccountCallingInfo);
 
     ErrCode GetAccountCredential(const std::string &name, const std::string &credentialType, std::string &credential,
-        const uid_t &uid, const std::string &bundleName);
+        const AppAccountCallingInfo &appAccountCallingInfo);
     ErrCode SetAccountCredential(const std::string &name, const std::string &credentialType,
-        const std::string &credential, const uid_t &uid, const std::string &bundleName);
+        const std::string &credential, const AppAccountCallingInfo &appAccountCallingInfo);
     ErrCode DeleteAccountCredential(const std::string &name, const std::string &credentialType,
-        const uid_t &uid, const std::string &bundleName);
+        const uid_t &uid, const std::string &bundleName, const uint32_t &appIndex);
 
     ErrCode Authenticate(const AuthenticatorSessionRequest &request);
     ErrCode GetOAuthToken(const AuthenticatorSessionRequest &request, std::string &token);
@@ -73,22 +75,22 @@ public:
     ErrCode GetAuthenticatorInfo(const AuthenticatorSessionRequest &request, AuthenticatorInfo &authenticator);
 
     ErrCode GetAllAccounts(const std::string &owner, std::vector<AppAccountInfo> &appAccounts, const uid_t &uid,
-        const std::string &bundleName);
-    ErrCode GetAllAccessibleAccounts(
-        std::vector<AppAccountInfo> &appAccounts, const uid_t &uid, const std::string &bundleName);
+        const std::string &bundleName, const uint32_t &appIndex);
+    ErrCode GetAllAccessibleAccounts(std::vector<AppAccountInfo> &appAccounts,
+        const uid_t &uid, const std::string &bundleName, const uint32_t &appIndex);
     
     ErrCode SelectAccountsByOptions(
         const SelectAccountsOptions &options, const sptr<IAppAccountAuthenticatorCallback> &callback,
-        const uid_t &uid, const std::string &bundleName);
+        const uid_t &uid, const std::string &bundleName, const uint32_t &appIndex);
     ErrCode VerifyCredential(const AuthenticatorSessionRequest &request);
     ErrCode CheckAccountLabels(const AuthenticatorSessionRequest &request);
     ErrCode SetAuthenticatorProperties(const AuthenticatorSessionRequest &request);
 
     ErrCode SubscribeAppAccount(const AppAccountSubscribeInfo &subscribeInfo, const sptr<IRemoteObject> &eventListener,
-        const uid_t &uid, const std::string &bundleName);
+        const uid_t &uid, const std::string &bundleName, const uint32_t &appIndex);
     ErrCode UnsubscribeAppAccount(const sptr<IRemoteObject> &eventListener);
 
-    ErrCode OnPackageRemoved(const uid_t &uid, const std::string &bundleName);
+    ErrCode OnPackageRemoved(const uid_t &uid, const std::string &bundleName, const uint32_t &appIndex);
     ErrCode OnUserRemoved(int32_t userId);
 
 private:

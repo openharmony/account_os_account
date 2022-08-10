@@ -126,11 +126,7 @@
        "//base/account/os_account/tools:unittest",
        "//base/account/os_account/tools:moduletest",
        "//base/account/os_account/test/systemtest:systemtest",
-       "//base/account/os_account/test/fuzztest/osaccount:fuzztest",
-       "//base/account/os_account/frameworks/appaccount/native/test:moduletest",
-       "//base/account/os_account/frameworks/appaccount/native/test:unittest",
-       "//base/account/os_account/services/accountmgr/test/moduletest/app_account:moduletest",
-       "//base/account/os_account/services/accountmgr/test/unittest/app_account:unittest"
+       "//base/account/os_account/test/fuzztest/osaccount:fuzztest"
      ]
    }
   }

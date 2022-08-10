@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021 Huawei Device Co., Ltd.
+ * Copyright (c) 2021-2022 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -24,7 +24,7 @@ namespace OHOS {
 namespace AccountSA {
 #ifdef HAS_CES_PART
 struct CommonEventCallback {
-    std::function<void(const uid_t &uid, const std::string &bundleName)> OnPackageRemoved;
+    std::function<void(const uid_t &uid, const std::string &bundleName, const uint32_t &appIndex)> OnPackageRemoved;
     std::function<void(int32_t userId)> OnUserRemoved;
 };
 
