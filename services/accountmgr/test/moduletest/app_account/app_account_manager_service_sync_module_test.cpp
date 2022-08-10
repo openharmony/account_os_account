@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021 Huawei Device Co., Ltd.
+ * Copyright (c) 2021-2022 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -18,7 +18,7 @@
 #include "account_log_wrapper.h"
 #define private public
 #include "app_account_control_manager.h"
-#include "app_account_manager_service.h"
+#include "mock_app_account_manager_service.h"
 #undef private
 
 using namespace testing::ext;
@@ -47,8 +47,8 @@ constexpr std::int32_t WAIT_FOR_KVSTORE = 5000;
 constexpr std::size_t SIZE_ZERO = 0;
 constexpr std::size_t SIZE_ONE = 1;
 std::shared_ptr<AppAccountControlManager> g_controlManagerPtr = std::make_shared<AppAccountControlManager>();
-std::shared_ptr<AppAccountManagerService> g_appAccountManagerServicePtr =
-    std::make_shared<AppAccountManagerService>();
+std::shared_ptr<MockAppAccountManagerService> g_appAccountManagerServicePtr =
+    std::make_shared<MockAppAccountManagerService>();
 }  // namespace
 
 class AppAccountManagerServiceSyncModuleTest : public testing::Test {
