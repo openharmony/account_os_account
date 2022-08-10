@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021 Huawei Device Co., Ltd.
+ * Copyright (c) 2021-2022 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -18,7 +18,7 @@
 #include <thread>
 #include "account_log_wrapper.h"
 #define private public
-#include "app_account_manager_service.h"
+#include "mock_app_account_manager_service.h"
 #undef private
 #include "event_handler.h"
 
@@ -39,8 +39,8 @@ constexpr std::size_t SIZE_ZERO = 0;
 constexpr std::size_t SIZE_ONE = 1;
 constexpr std::int32_t WAIT_FOR_EXIT = 1000;
 constexpr std::int32_t DELAY_FOR_OPERATION = 3000;
-std::shared_ptr<AppAccountManagerService> g_appAccountManagerServicePtr =
-    std::make_shared<AppAccountManagerService>();
+std::shared_ptr<MockAppAccountManagerService> g_appAccountManagerServicePtr =
+    std::make_shared<MockAppAccountManagerService>();
 std::shared_ptr<OHOS::AppExecFwk::EventHandler> g_handler =
     std::make_shared<OHOS::AppExecFwk::EventHandler>(OHOS::AppExecFwk::EventRunner::Create());
 }  // namespace

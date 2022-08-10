@@ -226,7 +226,7 @@ HWTEST_F(AppAccountManagerModuleTest, AppAccountManager_GetAssociatedData_0100, 
 
     std::string value;
     ErrCode result = AppAccountManager::GetAssociatedData(STRING_NAME, STRING_KEY, value);
-    EXPECT_EQ(result, ERR_APPACCOUNT_SERVICE_GET_BUNDLE_NAME);
+    EXPECT_EQ(result, ERR_APPACCOUNT_SERVICE_GET_APP_INDEX);
 }
 
 /**
