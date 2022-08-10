@@ -26,6 +26,12 @@ namespace {
 const std::string UNKONW_STRING_VALUE = "unknown";
 }
 
+struct AppAccountCallingInfo {
+    int32_t callingUid = -1;
+    std::string bundleName;
+    uint32_t appIndex;
+};
+
 struct AuthenticatorInfo {
     std::string owner;
     std::string abilityName;
@@ -72,6 +78,7 @@ struct AuthenticatorSessionRequest {
     std::string bundleName = UNKONW_STRING_VALUE;
     std::string callerBundleName;
     std::string callerAbilityName = UNKONW_STRING_VALUE;
+    uint32_t appIndex;
     bool isTokenVisible = false;
     pid_t callerPid;
     pid_t callerUid;

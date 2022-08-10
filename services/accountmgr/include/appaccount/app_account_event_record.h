@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021 Huawei Device Co., Ltd.
+ * Copyright (c) 2021-2022 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -26,6 +26,7 @@ struct AppAccountSubscribeRecord {
     std::shared_ptr<AppAccountSubscribeInfo> subscribeInfoPtr;
     sptr<IRemoteObject> eventListener;
     std::string bundleName;
+    uint32_t appIndex;
 
     AppAccountSubscribeRecord() : subscribeInfoPtr(nullptr), eventListener(nullptr)
     {}
@@ -39,6 +40,7 @@ struct AppAccountEventRecord {
 
     uid_t uid;
     std::string bundleName;
+    uint32_t appIndex;
 
     AppAccountEventRecord() : info(nullptr), uid(0)
     {}
