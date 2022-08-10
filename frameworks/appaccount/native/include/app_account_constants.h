@@ -42,6 +42,7 @@ const std::string KEY_BOOLEAN_RESULT = "booleanResult";
 const std::string KEY_ACCOUNT_NAMES = "accountNames";
 const std::string KEY_ACCOUNT_OWNERS = "accountOwners";
 const std::string SPECIAL_CHARACTERS = " ";
+const std::string HYPHEN = "#";
 constexpr int32_t ABILITY_STATE_TERMINATED = 4;
 constexpr std::size_t APP_ACCOUNT_SUBSCRIBER_MAX_SIZE = 200;
 constexpr std::size_t NAME_MAX_SIZE = 512;

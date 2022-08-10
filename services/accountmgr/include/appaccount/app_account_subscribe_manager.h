@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021 Huawei Device Co., Ltd.
+ * Copyright (c) 2021-2022 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -36,7 +36,8 @@ public:
     virtual ~AppAccountSubscribeManager() = default;
 
     ErrCode SubscribeAppAccount(const std::shared_ptr<AppAccountSubscribeInfo> &subscribeInfoPtr,
-        const sptr<IRemoteObject> &eventListener, const uid_t &uid, const std::string &bundleName);
+        const sptr<IRemoteObject> &eventListener, const uid_t &uid,
+        const std::string &bundleName, const uint32_t &appIndex);
     ErrCode UnsubscribeAppAccount(const sptr<IRemoteObject> &eventListener);
 
     bool PublishAccount(AppAccountInfo &appAccountInfo, const uid_t &uid, const std::string &bundleName);
@@ -52,7 +53,7 @@ private:
         const std::vector<AppAccountInfo> &accessibleAccounts, std::vector<AppAccountInfo> &appAccounts);
 
     ErrCode CheckAppAccess(const std::shared_ptr<AppAccountSubscribeInfo> &subscribeInfoPtr, const uid_t &uid,
-        const std::string &bundleName);
+        const std::string &bundleName, const uint32_t &appIndex);
 
     ErrCode InsertSubscribeRecord(
         const std::vector<std::string> &owners, const AppAccountSubscribeRecordPtr &subscribeRecordPtr);
