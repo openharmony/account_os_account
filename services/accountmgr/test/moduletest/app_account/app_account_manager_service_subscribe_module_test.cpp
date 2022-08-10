@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021 Huawei Device Co., Ltd.
+ * Copyright (c) 2021-2022 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -19,7 +19,7 @@
 #define private public
 #include "app_account.h"
 #include "app_account_control_manager.h"
-#include "app_account_manager_service.h"
+#include "mock_app_account_manager_service.h"
 #undef private
 #include "app_account_subscriber.h"
 #include "datetime_ex.h"
@@ -46,8 +46,8 @@ constexpr std::int32_t WAIT_FOR_EXIT = 1000;
 std::int32_t g_counter = 0;
 constexpr std::int32_t COUNTER_MAX = 2;
 std::shared_ptr<AppAccountControlManager> g_controlManagerPtr = std::make_shared<AppAccountControlManager>();
-std::shared_ptr<AppAccountManagerService> g_appAccountManagerServicePtr =
-    std::make_shared<AppAccountManagerService>();
+std::shared_ptr<MockAppAccountManagerService> g_appAccountManagerServicePtr =
+    std::make_shared<MockAppAccountManagerService>();
 }  // namespace
 
 class AppAccountManagerServiceSubscribeModuleTest : public testing::Test {
@@ -440,12 +440,12 @@ HWTEST_F(AppAccountManagerServiceSubscribeModuleTest, AppAccountManagerServiceSu
 
     // add an account
     ErrCode result = g_appAccountManagerServicePtr->innerManager_->AddAccount(STRING_NAME,
-        STRING_EXTRA_INFO, UID, STRING_BUNDLE_NAME);
+        STRING_EXTRA_INFO, UID, STRING_BUNDLE_NAME, 0);
     EXPECT_EQ(result, ERR_OK);
 
     // enable app access
     result = g_appAccountManagerServicePtr->innerManager_->EnableAppAccess(STRING_NAME,
-        STRING_OWNER, UID, STRING_BUNDLE_NAME);
+        STRING_OWNER, UID, STRING_BUNDLE_NAME, 0);
     EXPECT_EQ(result, ERR_OK);
 
     // make owners
@@ -474,12 +474,12 @@ HWTEST_F(AppAccountManagerServiceSubscribeModuleTest, AppAccountManagerServiceSu
 
     // disable app access
     result = g_appAccountManagerServicePtr->innerManager_->DisableAppAccess(STRING_NAME,
-        STRING_OWNER, UID, STRING_BUNDLE_NAME);
+        STRING_OWNER, UID, STRING_BUNDLE_NAME, 0);
     EXPECT_EQ(result, ERR_OK);
 
     // set extra info
     result = g_appAccountManagerServicePtr->innerManager_->SetAccountExtraInfo(STRING_NAME,
-        STRING_EXTRA_INFO, UID, STRING_BUNDLE_NAME);
+        STRING_EXTRA_INFO, UID, STRING_BUNDLE_NAME, 0);
     EXPECT_EQ(result, ERR_OK);
 
     // record start time
@@ -507,7 +507,7 @@ HWTEST_F(AppAccountManagerServiceSubscribeModuleTest, AppAccountManagerServiceSu
     EXPECT_EQ(result, ERR_OK);
 
     // delete account
-    result = g_appAccountManagerServicePtr->innerManager_->DeleteAccount(STRING_NAME, UID, STRING_BUNDLE_NAME);
+    result = g_appAccountManagerServicePtr->innerManager_->DeleteAccount(STRING_NAME, UID, STRING_BUNDLE_NAME, 0);
     EXPECT_EQ(result, ERR_OK);
 
     // unlock the mutex
@@ -527,15 +527,15 @@ HWTEST_F(AppAccountManagerServiceSubscribeModuleTest, AppAccountManagerServiceSu
 
     // add an account
     ErrCode result = g_appAccountManagerServicePtr->innerManager_->AddAccount(STRING_NAME,
-        STRING_EXTRA_INFO, UID, STRING_BUNDLE_NAME);
+        STRING_EXTRA_INFO, UID, STRING_BUNDLE_NAME, 0);
     EXPECT_EQ(result, ERR_OK);
     result = g_appAccountManagerServicePtr->innerManager_->AddAccount(STRING_NAME_TWO,
-        STRING_EXTRA_INFO, UID, STRING_BUNDLE_NAME);
+        STRING_EXTRA_INFO, UID, STRING_BUNDLE_NAME, 0);
     EXPECT_EQ(result, ERR_OK);
 
     // enable app access
     result = g_appAccountManagerServicePtr->innerManager_->EnableAppAccess(STRING_NAME,
-        STRING_OWNER, UID, STRING_BUNDLE_NAME);
+        STRING_OWNER, UID, STRING_BUNDLE_NAME, 0);
     EXPECT_EQ(result, ERR_OK);
 
     // make owners
@@ -564,12 +564,12 @@ HWTEST_F(AppAccountManagerServiceSubscribeModuleTest, AppAccountManagerServiceSu
 
     // disable app access
     result = g_appAccountManagerServicePtr->innerManager_->DisableAppAccess(STRING_NAME,
-        STRING_OWNER, UID, STRING_BUNDLE_NAME);
+        STRING_OWNER, UID, STRING_BUNDLE_NAME, 0);
     EXPECT_EQ(result, ERR_OK);
 
     // set extra info
     result = g_appAccountManagerServicePtr->innerManager_->SetAccountExtraInfo(STRING_NAME,
-        STRING_EXTRA_INFO, UID, STRING_BUNDLE_NAME);
+        STRING_EXTRA_INFO, UID, STRING_BUNDLE_NAME, 0);
     EXPECT_EQ(result, ERR_OK);
 
     // record start time
@@ -597,9 +597,9 @@ HWTEST_F(AppAccountManagerServiceSubscribeModuleTest, AppAccountManagerServiceSu
     EXPECT_EQ(result, ERR_OK);
 
     // delete account
-    result = g_appAccountManagerServicePtr->innerManager_->DeleteAccount(STRING_NAME, UID, STRING_BUNDLE_NAME);
+    result = g_appAccountManagerServicePtr->innerManager_->DeleteAccount(STRING_NAME, UID, STRING_BUNDLE_NAME, 0);
     EXPECT_EQ(result, ERR_OK);
-    result = g_appAccountManagerServicePtr->innerManager_->DeleteAccount(STRING_NAME_TWO, UID, STRING_BUNDLE_NAME);
+    result = g_appAccountManagerServicePtr->innerManager_->DeleteAccount(STRING_NAME_TWO, UID, STRING_BUNDLE_NAME, 0);
     EXPECT_EQ(result, ERR_OK);
 
     // unlock the mutex
@@ -619,15 +619,15 @@ HWTEST_F(AppAccountManagerServiceSubscribeModuleTest, AppAccountManagerServiceSu
 
     // add an account
     ErrCode result = g_appAccountManagerServicePtr->innerManager_->AddAccount(STRING_NAME,
-        STRING_EXTRA_INFO, UID, STRING_BUNDLE_NAME);
+        STRING_EXTRA_INFO, UID, STRING_BUNDLE_NAME, 0);
     EXPECT_EQ(result, ERR_OK);
     result = g_appAccountManagerServicePtr->innerManager_->AddAccount(STRING_NAME_TWO,
-        STRING_EXTRA_INFO, UID, STRING_BUNDLE_NAME);
+        STRING_EXTRA_INFO, UID, STRING_BUNDLE_NAME, 0);
     EXPECT_EQ(result, ERR_OK);
 
     // enable app access
     result = g_appAccountManagerServicePtr->innerManager_->EnableAppAccess(STRING_NAME,
-        STRING_OWNER, UID, STRING_BUNDLE_NAME);
+        STRING_OWNER, UID, STRING_BUNDLE_NAME, 0);
     EXPECT_EQ(result, ERR_OK);
 
     // make owners
@@ -656,7 +656,7 @@ HWTEST_F(AppAccountManagerServiceSubscribeModuleTest, AppAccountManagerServiceSu
 
     // set extra info
     result = g_appAccountManagerServicePtr->innerManager_->SetAccountExtraInfo(STRING_NAME,
-        STRING_EXTRA_INFO, UID, STRING_BUNDLE_NAME);
+        STRING_EXTRA_INFO, UID, STRING_BUNDLE_NAME, 0);
     EXPECT_EQ(result, ERR_OK);
 
     // record start time
@@ -684,9 +684,9 @@ HWTEST_F(AppAccountManagerServiceSubscribeModuleTest, AppAccountManagerServiceSu
     EXPECT_EQ(result, ERR_OK);
 
     // delete account
-    result = g_appAccountManagerServicePtr->innerManager_->DeleteAccount(STRING_NAME, UID, STRING_BUNDLE_NAME);
+    result = g_appAccountManagerServicePtr->innerManager_->DeleteAccount(STRING_NAME, UID, STRING_BUNDLE_NAME, 0);
     EXPECT_EQ(result, ERR_OK);
-    result = g_appAccountManagerServicePtr->innerManager_->DeleteAccount(STRING_NAME_TWO, UID, STRING_BUNDLE_NAME);
+    result = g_appAccountManagerServicePtr->innerManager_->DeleteAccount(STRING_NAME_TWO, UID, STRING_BUNDLE_NAME, 0);
     EXPECT_EQ(result, ERR_OK);
 
     // unlock the mutex

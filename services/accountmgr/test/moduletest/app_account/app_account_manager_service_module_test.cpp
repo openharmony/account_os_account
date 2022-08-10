@@ -29,6 +29,7 @@
 #include "common_event_support.h"
 #endif // HAS_CES_PART
 #include "iremote_object.h"
+#include "mock_app_account_manager_service.h"
 
 using namespace testing::ext;
 using namespace OHOS;
@@ -80,8 +81,8 @@ constexpr std::int32_t DELAY_FOR_PACKAGE_REMOVED = 3;
 constexpr std::int32_t DELAY_FOR_MESSAGE = 1000;
 constexpr std::int32_t WAIT_FOR_ONE_CASE = 1000;
 std::shared_ptr<AppAccountControlManager> g_controlManagerPtr = AppAccountControlManager::GetInstance();
-std::shared_ptr<AppAccountManagerService> g_accountManagerService =
-    std::make_shared<AppAccountManagerService>();
+std::shared_ptr<MockAppAccountManagerService> g_accountManagerService =
+    std::make_shared<MockAppAccountManagerService>();
 }  // namespace
 
 class AppAccountManagerServiceModuleTest : public testing::Test {
@@ -1407,7 +1408,7 @@ HWTEST_F(AppAccountManagerServiceModuleTest, AppAccountManagerService_GetAuthent
  */
 HWTEST_F(AppAccountManagerServiceModuleTest, AppAccountManagerService_GetAuthenticatorCallback_0100, TestSize.Level1)
 {
-    ACCOUNT_LOGI("AppAccountManagerService_GetAuthenticatorInfo_0100");
+    ACCOUNT_LOGI("AppAccountManagerService_GetAuthenticatorCallback_0100");
 
     sptr<IRemoteObject> callback;
     ErrCode result = g_accountManagerService->GetAuthenticatorCallback(STRING_SESSION_ID, callback);
