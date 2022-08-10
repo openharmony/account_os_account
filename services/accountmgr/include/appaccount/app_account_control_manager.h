@@ -46,8 +46,8 @@ public:
     ErrCode DeleteAccount(
         const std::string &name, const uid_t &uid, const std::string &bundleName, AppAccountInfo &appAccountInfo);
 
-    ErrCode GetAccountExtraInfo(
-        const std::string &name, std::string &extraInfo, const uid_t &uid, const std::string &bundleName);
+    ErrCode GetAccountExtraInfo(const std::string &name, std::string &extraInfo,
+        const uid_t &uid, const std::string &bundleName, const uint32_t &appIndex);
     ErrCode SetAccountExtraInfo(const std::string &name, const std::string &extraInfo, const uid_t &uid,
         const std::string &bundleName, AppAccountInfo &appAccountInfo);
 
@@ -56,20 +56,21 @@ public:
     ErrCode DisableAppAccess(const std::string &name, const std::string &authorizedApp, const uid_t &uid,
         const std::string &bundleName, AppAccountInfo &appAccountInfo);
     ErrCode CheckAppAccess(const std::string &name, const std::string &authorizedApp, bool &isAccessible,
-        const uid_t &uid, const std::string &bundleName);
+        const AppAccountCallingInfo &appAccountCallingInfo);
 
-    ErrCode CheckAppAccountSyncEnable(
-        const std::string &name, bool &syncEnable, const uid_t &uid, const std::string &bundleName);
+    ErrCode CheckAppAccountSyncEnable(const std::string &name, bool &syncEnable,
+        const uid_t &uid, const std::string &bundleName, const uint32_t &appIndex);
     ErrCode SetAppAccountSyncEnable(const std::string &name, const bool &syncEnable, const uid_t &uid,
         const std::string &bundleName, AppAccountInfo &appAccountInfo);
-    ErrCode GetAssociatedData(const std::string &name, const std::string &key, std::string &value, const uid_t &uid);
+    ErrCode GetAssociatedData(const std::string &name, const std::string &key,
+        std::string &value, const uid_t &uid, const uint32_t &appIndex);
     ErrCode SetAssociatedData(const std::string &name, const std::string &key, const std::string &value,
-        const uid_t &uid, const std::string &bundleName);
+        const AppAccountCallingInfo &appAccountCallingInfo);
 
     ErrCode GetAccountCredential(const std::string &name, const std::string &credentialType, std::string &credential,
-        const uid_t &uid, const std::string &bundleName);
+        const AppAccountCallingInfo &appAccountCallingInfo);
     ErrCode SetAccountCredential(const std::string &name, const std::string &credentialType,
-        const std::string &credential, const uid_t &uid, const std::string &bundleName, bool isDelete = false);
+        const std::string &credential, const AppAccountCallingInfo &appAccountCallingInfo, bool isDelete = false);
 
     ErrCode GetOAuthToken(const AuthenticatorSessionRequest &request, std::string &token);
     ErrCode SetOAuthToken(const AuthenticatorSessionRequest &request);
@@ -80,21 +81,22 @@ public:
     ErrCode GetOAuthList(const AuthenticatorSessionRequest &request, std::set<std::string> &oauthList);
 
     ErrCode GetAllAccounts(const std::string &owner, std::vector<AppAccountInfo> &appAccounts, const uid_t &uid,
-        const std::string &bundleName);
-    ErrCode GetAllAccessibleAccounts(
-        std::vector<AppAccountInfo> &appAccounts, const uid_t &uid, const std::string &bundleName);
+        const std::string &bundleName, const uint32_t &appIndex);
+    ErrCode GetAllAccessibleAccounts(std::vector<AppAccountInfo> &appAccounts,
+        const uid_t &uid, const std::string &bundleName, const uint32_t &appIndex);
 
     ErrCode SelectAccountsByOptions(
         const SelectAccountsOptions &options, const sptr<IAppAccountAuthenticatorCallback> &callback,
-        const uid_t &uid, const std::string &bundleName);
+        const uid_t &uid, const std::string &bundleName, const uint32_t &appIndex);
 
-    ErrCode OnPackageRemoved(const uid_t &uid, const std::string &bundleName);
+    ErrCode OnPackageRemoved(const uid_t &uid, const std::string &bundleName, const uint32_t &appIndex);
     ErrCode OnUserRemoved(int32_t userId);
 
     ErrCode GetAllAccountsFromDataStorage(const std::string &owner, std::vector<AppAccountInfo> &appAccounts,
         const std::string &bundleName, const std::shared_ptr<AppAccountDataStorage> &dataStoragePtr);
     ErrCode GetAllAccessibleAccountsFromDataStorage(std::vector<AppAccountInfo> &appAccounts,
-        const std::string &bundleName, const std::shared_ptr<AppAccountDataStorage> &dataStoragePtr);
+        const std::string &bundleName, const std::shared_ptr<AppAccountDataStorage> &dataStoragePtr,
+        const uint32_t &appIndex);
     std::shared_ptr<AppAccountDataStorage> GetDataStorage(const uid_t &uid, const bool &autoSync = false);
 
     void OnAbilityStateChanged(const AppExecFwk::AbilityStateData &abilityStateData);
@@ -104,7 +106,7 @@ private:
     void UnregisterApplicationStateObserver();
     void PopDataFromAssociatedDataCache();
     ErrCode GetAssociatedDataFromStorage(const std::string &name, const std::string &key, std::string &value,
-        const uid_t &uid);
+        const uid_t &uid, const uint32_t &appIndex);
     std::shared_ptr<AppAccountDataStorage> GetDataStorageByUserId(int32_t userId, const bool &autoSync = false);
     ErrCode GetStoreId(const uid_t &uid, std::string &storeId);
     bool NeedSyncDataStorage(const AppAccountInfo &appAccountInfo);
