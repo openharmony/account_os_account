@@ -55,7 +55,7 @@ ErrCode OsAccountInterface::SendToAMSAccountStart(OsAccountInfo &osAccountInfo)
     ErrCode code = AAFwk::AbilityManagerAdapter::GetInstance()->StartUser(osAccountInfo.GetLocalId());
     if (code != ERR_OK) {
         ACCOUNT_LOGE("AbilityManagerAdapter StartUser failed! errcode is %{public}d", code);
-        ReportAccountOperationFail(osAccountInfo.GetLocalId(), code, "activate",
+        ReportOsAccountOperationFail(osAccountInfo.GetLocalId(), Constants::OPERATION_ACTIVATE, code,
             "AbilityManagerAdapter StartUser failed!");
         FinishTrace(HITRACE_TAG_ACCOUNT_MANAGER);
         return ERR_OSACCOUNT_SERVICE_INTERFACE_TO_AM_ACCOUNT_START_ERROR;
@@ -71,9 +71,8 @@ ErrCode OsAccountInterface::SendToAMSAccountStop(OsAccountInfo &osAccountInfo)
     sptr<OsAccountStopUserCallback> osAccountStopUserCallback = new (std::nothrow) OsAccountStopUserCallback();
     if (osAccountStopUserCallback == nullptr) {
         ACCOUNT_LOGE("alloc memory for stop user callback failed!");
-        ReportAccountOperationFail(osAccountInfo.GetLocalId(),
+        ReportOsAccountOperationFail(osAccountInfo.GetLocalId(), Constants::OPERATION_STOP,
             ERR_ACCOUNT_COMMON_INSUFFICIENT_MEMORY_ERROR,
-            "stop",
             "malloc for OsAccountStopUserCallback failed!");
         return ERR_ACCOUNT_COMMON_INSUFFICIENT_MEMORY_ERROR;
     }
@@ -82,7 +81,8 @@ ErrCode OsAccountInterface::SendToAMSAccountStop(OsAccountInfo &osAccountInfo)
         osAccountStopUserCallback);
     if (code != ERR_OK) {
         ACCOUNT_LOGE("failed to AbilityManagerAdapter stop errcode is %{public}d", code);
-        ReportAccountOperationFail(osAccountInfo.GetLocalId(), code, "stop", "AbilityManagerService StopUser failed!");
+        ReportOsAccountOperationFail(osAccountInfo.GetLocalId(), Constants::OPERATION_STOP, code,
+            "AbilityManagerService StopUser failed!");
         FinishTrace(HITRACE_TAG_ACCOUNT_MANAGER);
         return ERR_OSACCOUNT_SERVICE_INTERFACE_TO_AM_ACCOUNT_START_ERROR;
     }
@@ -97,7 +97,7 @@ ErrCode OsAccountInterface::SendToAMSAccountStop(OsAccountInfo &osAccountInfo)
     }
     if (!osAccountStopUserCallback->isReturnOk_) {
         ACCOUNT_LOGE("failed to AbilityManagerService stop in call back");
-        ReportAccountOperationFail(osAccountInfo.GetLocalId(), -1, "stop",
+        ReportOsAccountOperationFail(osAccountInfo.GetLocalId(), Constants::OPERATION_STOP, -1,
             "AbilityManagerService StopUser timeout!");
         FinishTrace(HITRACE_TAG_ACCOUNT_MANAGER);
         return ERR_OSACCOUNT_SERVICE_INTERFACE_TO_AM_ACCOUNT_START_ERROR;
@@ -123,9 +123,8 @@ ErrCode OsAccountInterface::SendToIDMAccountDelete(OsAccountInfo &osAccountInfo)
     std::shared_ptr<OsAccountDeleteUserIdmCallback> callback = std::make_shared<OsAccountDeleteUserIdmCallback>();
     if (callback == nullptr) {
         ACCOUNT_LOGE("get idm callback ptr failed! insufficient memory!");
-        ReportAccountOperationFail(osAccountInfo.GetLocalId(),
+        ReportOsAccountOperationFail(osAccountInfo.GetLocalId(), Constants::OPERATION_DELETE,
             ERR_ACCOUNT_COMMON_INSUFFICIENT_MEMORY_ERROR,
-            "delete",
             "malloc for OsAccountDeleteUserIdmCallback failed!");
         return ERR_ACCOUNT_COMMON_INSUFFICIENT_MEMORY_ERROR;
     }
@@ -133,7 +132,8 @@ ErrCode OsAccountInterface::SendToIDMAccountDelete(OsAccountInfo &osAccountInfo)
     int32_t ret = UserIam::UserAuth::UserIdmClient::GetInstance().EraseUser(osAccountInfo.GetLocalId(), callback);
     if (ret != 0) {
         ACCOUNT_LOGE("idm enforce delete user failed! error %{public}d", ret);
-        ReportAccountOperationFail(osAccountInfo.GetLocalId(), ret, "delete", "UserIDMClient EnforceDelUser failed!");
+        ReportOsAccountOperationFail(osAccountInfo.GetLocalId(), Constants::OPERATION_DELETE, ret,
+            "UserIDMClient EnforceDelUser failed!");
         FinishTrace(HITRACE_TAG_ACCOUNT_MANAGER);
         return ERR_OK;    // do not return fail
     }
@@ -150,7 +150,7 @@ ErrCode OsAccountInterface::SendToIDMAccountDelete(OsAccountInfo &osAccountInfo)
     }
     if (!callback->isIdmOnResultCallBack_) {
         ACCOUNT_LOGE("idm did not call back! timeout!");
-        ReportAccountOperationFail(osAccountInfo.GetLocalId(), -1, "delete",
+        ReportOsAccountOperationFail(osAccountInfo.GetLocalId(), Constants::OPERATION_DELETE, -1,
             "UserIDMClient EnforceDelUser timeout!");
         FinishTrace(HITRACE_TAG_ACCOUNT_MANAGER);
         return ERR_OK;    // do not return fail
@@ -173,7 +173,7 @@ void OsAccountInterface::SendToCESAccountCreate(OsAccountInfo &osAccountInfo)
     data.SetWant(want);
     if (!OHOS::EventFwk::CommonEventManager::PublishCommonEvent(data)) {
         ACCOUNT_LOGE("PublishCommonEvent for create account %{public}d failed!", osAccountID);
-        ReportAccountOperationFail(osAccountID, -1, "create", "PublishCommonEvent failed!");
+        ReportOsAccountOperationFail(osAccountID, Constants::OPERATION_CREATE, -1, "PublishCommonEvent failed!");
     } else {
         ACCOUNT_LOGI("PublishCommonEvent for create account %{public}d succeed!", osAccountID);
     }
@@ -195,7 +195,7 @@ void OsAccountInterface::SendToCESAccountDelete(OsAccountInfo &osAccountInfo)
     data.SetWant(want);
     if (!OHOS::EventFwk::CommonEventManager::PublishCommonEvent(data)) {
         ACCOUNT_LOGE("PublishCommonEvent for delete account %{public}d failed!", osAccountID);
-        ReportAccountOperationFail(osAccountID, -1, "delete", "PublishCommonEvent failed!");
+        ReportOsAccountOperationFail(osAccountID, Constants::OPERATION_DELETE, -1, "PublishCommonEvent failed!");
     } else {
         ACCOUNT_LOGI("PublishCommonEvent for delete account %{public}d succeed!", osAccountID);
     }
@@ -217,7 +217,7 @@ void OsAccountInterface::SendToCESAccountSwitched(OsAccountInfo &osAccountInfo)
     data.SetWant(want);
     if (!OHOS::EventFwk::CommonEventManager::PublishCommonEvent(data)) {
         ACCOUNT_LOGE("PublishCommonEvent for switched to account %{public}d failed!", osAccountID);
-        ReportAccountOperationFail(osAccountID, -1, "switch", "PublishCommonEvent failed!");
+        ReportOsAccountOperationFail(osAccountID, Constants::OPERATION_SWITCH, -1, "PublishCommonEvent failed!");
     } else {
         ACCOUNT_LOGI("PublishCommonEvent for switched to account %{public}d succeed!", osAccountID);
     }
@@ -234,18 +234,16 @@ ErrCode OsAccountInterface::SendToStorageAccountCreate(OsAccountInfo &osAccountI
     auto systemAbilityManager = SystemAbilityManagerClient::GetInstance().GetSystemAbilityManager();
     if (!systemAbilityManager) {
         ACCOUNT_LOGE("failed to get system ability mgr.");
-        ReportAccountOperationFail(osAccountInfo.GetLocalId(),
+        ReportOsAccountOperationFail(osAccountInfo.GetLocalId(), Constants::OPERATION_CREATE,
             ERR_OSACCOUNT_SERVICE_INTERFACE_TO_STORAGE_ACCOUNT_CREATE_ERROR,
-            "create",
             "GetSystemAbilityManager for storage failed!");
         return ERR_OSACCOUNT_SERVICE_INTERFACE_TO_STORAGE_ACCOUNT_CREATE_ERROR;
     }
     auto remote = systemAbilityManager->GetSystemAbility(STORAGE_MANAGER_MANAGER_ID);
     if (!remote) {
         ACCOUNT_LOGE("failed to get STORAGE_MANAGER_MANAGER_ID service.");
-        ReportAccountOperationFail(osAccountInfo.GetLocalId(),
+        ReportOsAccountOperationFail(osAccountInfo.GetLocalId(), Constants::OPERATION_CREATE,
             ERR_OSACCOUNT_SERVICE_INTERFACE_TO_STORAGE_ACCOUNT_CREATE_ERROR,
-            "create",
             "GetSystemAbility for storage failed!");
         return ERR_OSACCOUNT_SERVICE_INTERFACE_TO_STORAGE_ACCOUNT_CREATE_ERROR;
     }
@@ -258,7 +256,8 @@ ErrCode OsAccountInterface::SendToStorageAccountCreate(OsAccountInfo &osAccountI
     int err = proxy->PrepareAddUser(osAccountInfo.GetLocalId(),
         StorageManager::CRYPTO_FLAG_EL1 | StorageManager::CRYPTO_FLAG_EL2);
     if (err != 0) {
-        ReportAccountOperationFail(osAccountInfo.GetLocalId(), err, "create", "Storage PrepareAddUser failed!");
+        ReportOsAccountOperationFail(osAccountInfo.GetLocalId(), Constants::OPERATION_CREATE,
+            err, "Storage PrepareAddUser failed!");
     }
 
     ACCOUNT_LOGI("end, Storage PrepareAddUser ret %{public}d.", err);
@@ -274,18 +273,16 @@ ErrCode OsAccountInterface::SendToStorageAccountRemove(OsAccountInfo &osAccountI
     auto systemAbilityManager = SystemAbilityManagerClient::GetInstance().GetSystemAbilityManager();
     if (!systemAbilityManager) {
         ACCOUNT_LOGE("failed to get system ability mgr.");
-        ReportAccountOperationFail(osAccountInfo.GetLocalId(),
+        ReportOsAccountOperationFail(osAccountInfo.GetLocalId(), Constants::OPERATION_DELETE,
             ERR_OSACCOUNT_SERVICE_INTERFACE_TO_STORAGE_ACCOUNT_REMOVE_ERROR,
-            "delete",
             "GetSystemAbilityManager for storage failed!");
         return ERR_OSACCOUNT_SERVICE_INTERFACE_TO_STORAGE_ACCOUNT_REMOVE_ERROR;
     }
     auto remote = systemAbilityManager->GetSystemAbility(STORAGE_MANAGER_MANAGER_ID);
     if (!remote) {
         ACCOUNT_LOGE("failed to get STORAGE_MANAGER_MANAGER_ID service.");
-        ReportAccountOperationFail(osAccountInfo.GetLocalId(),
+        ReportOsAccountOperationFail(osAccountInfo.GetLocalId(), Constants::OPERATION_DELETE,
             ERR_OSACCOUNT_SERVICE_INTERFACE_TO_STORAGE_ACCOUNT_REMOVE_ERROR,
-            "delete",
             "GetSystemAbility for storage failed!");
         return ERR_OSACCOUNT_SERVICE_INTERFACE_TO_STORAGE_ACCOUNT_REMOVE_ERROR;
     }
@@ -299,7 +296,8 @@ ErrCode OsAccountInterface::SendToStorageAccountRemove(OsAccountInfo &osAccountI
     int err = proxy->RemoveUser(osAccountInfo.GetLocalId(),
         StorageManager::CRYPTO_FLAG_EL1 | StorageManager::CRYPTO_FLAG_EL2);
     if (err != 0) {
-        ReportAccountOperationFail(osAccountInfo.GetLocalId(), err, "delete", "Storage RemoveUser failed!");
+        ReportOsAccountOperationFail(osAccountInfo.GetLocalId(), Constants::OPERATION_DELETE,
+            err, "Storage RemoveUser failed!");
     }
 
     ACCOUNT_LOGI("end, Storage RemoveUser ret %{public}d.", err);
@@ -315,18 +313,16 @@ ErrCode OsAccountInterface::SendToStorageAccountStart(OsAccountInfo &osAccountIn
     auto systemAbilityManager = SystemAbilityManagerClient::GetInstance().GetSystemAbilityManager();
     if (!systemAbilityManager) {
         ACCOUNT_LOGE("failed to get system ability mgr.");
-        ReportAccountOperationFail(osAccountInfo.GetLocalId(),
+        ReportOsAccountOperationFail(osAccountInfo.GetLocalId(), Constants::OPERATION_ACTIVATE,
             ERR_OSACCOUNT_SERVICE_INTERFACE_TO_STORAGE_ACCOUNT_START_ERROR,
-            "activate",
             "GetSystemAbilityManager for storage failed!");
         return ERR_OSACCOUNT_SERVICE_INTERFACE_TO_STORAGE_ACCOUNT_START_ERROR;
     }
     auto remote = systemAbilityManager->GetSystemAbility(STORAGE_MANAGER_MANAGER_ID);
     if (!remote) {
         ACCOUNT_LOGE("failed to get STORAGE_MANAGER_MANAGER_ID service.");
-        ReportAccountOperationFail(osAccountInfo.GetLocalId(),
+        ReportOsAccountOperationFail(osAccountInfo.GetLocalId(), Constants::OPERATION_ACTIVATE,
             ERR_OSACCOUNT_SERVICE_INTERFACE_TO_STORAGE_ACCOUNT_START_ERROR,
-            "activate",
             "GetSystemAbility for storage failed!");
         return ERR_OSACCOUNT_SERVICE_INTERFACE_TO_STORAGE_ACCOUNT_START_ERROR;
     }
@@ -341,7 +337,8 @@ ErrCode OsAccountInterface::SendToStorageAccountStart(OsAccountInfo &osAccountIn
     proxy->ActiveUserKey(localId, emptyData, emptyData);
     int err = proxy->PrepareStartUser(localId);
     if (err != 0) {
-        ReportAccountOperationFail(localId, err, "activate", "Storage PrepareStartUser failed!");
+        ReportOsAccountOperationFail(osAccountInfo.GetLocalId(), Constants::OPERATION_ACTIVATE,
+            err, "Storage PrepareStartUser failed!");
     }
     ACCOUNT_LOGI("end, Storage PrepareStartUser ret %{public}d.", err);
     FinishTrace(HITRACE_TAG_ACCOUNT_MANAGER);
@@ -356,18 +353,16 @@ ErrCode OsAccountInterface::SendToStorageAccountStop(OsAccountInfo &osAccountInf
     auto systemAbilityManager = SystemAbilityManagerClient::GetInstance().GetSystemAbilityManager();
     if (!systemAbilityManager) {
         ACCOUNT_LOGE("failed to get system ability mgr.");
-        ReportAccountOperationFail(osAccountInfo.GetLocalId(),
+        ReportOsAccountOperationFail(osAccountInfo.GetLocalId(), Constants::OPERATION_STOP,
             ERR_OSACCOUNT_SERVICE_INTERFACE_TO_STORAGE_ACCOUNT_STOP_ERROR,
-            "stop",
             "GetSystemAbilityManager for storage failed!");
         return ERR_OSACCOUNT_SERVICE_INTERFACE_TO_STORAGE_ACCOUNT_STOP_ERROR;
     }
     auto remote = systemAbilityManager->GetSystemAbility(STORAGE_MANAGER_MANAGER_ID);
     if (!remote) {
         ACCOUNT_LOGE("failed to get STORAGE_MANAGER_MANAGER_ID service.");
-        ReportAccountOperationFail(osAccountInfo.GetLocalId(),
+        ReportOsAccountOperationFail(osAccountInfo.GetLocalId(), Constants::OPERATION_STOP,
             ERR_OSACCOUNT_SERVICE_INTERFACE_TO_STORAGE_ACCOUNT_STOP_ERROR,
-            "stop",
             "GetSystemAbility for storage failed!");
         return ERR_OSACCOUNT_SERVICE_INTERFACE_TO_STORAGE_ACCOUNT_STOP_ERROR;
     }
@@ -380,11 +375,13 @@ ErrCode OsAccountInterface::SendToStorageAccountStop(OsAccountInfo &osAccountInf
     int localId = osAccountInfo.GetLocalId();
     int err = proxy->StopUser(localId);
     if (err != 0) {
-        ReportAccountOperationFail(localId, err, "stop", "Storage StopUser failed!");
+        ReportOsAccountOperationFail(osAccountInfo.GetLocalId(), Constants::OPERATION_STOP,
+            err, "Storage StopUser failed!");
     }
     err = proxy->InactiveUserKey(localId);
     if (err != 0) {
-        ReportAccountOperationFail(localId, err, "activate", "Storage InactiveUserKey failed!");
+        ReportOsAccountOperationFail(osAccountInfo.GetLocalId(), Constants::OPERATION_STOP,
+            err, "Storage StopUser failed!");
     }
     ACCOUNT_LOGI("end, Storage StopUser ret %{public}d", err);
     FinishTrace(HITRACE_TAG_ACCOUNT_MANAGER);

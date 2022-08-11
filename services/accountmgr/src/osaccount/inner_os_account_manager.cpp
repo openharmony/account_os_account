@@ -327,10 +327,11 @@ ErrCode IInnerOsAccountManager::SendMsgForAccountCreate(OsAccountInfo &osAccount
     errCode = osAccountControl_->UpdateOsAccount(osAccountInfo);
     if (errCode != ERR_OK) {
         ACCOUNT_LOGE("create os account when update isCreateCompleted");
-        ReportAccountOperationFail(osAccountInfo.GetLocalId(), errCode, "create", "UpdateOsAccount failed!");
+        ReportOsAccountOperationFail(osAccountInfo.GetLocalId(), Constants::OPERATION_CREATE,
+            errCode, "UpdateOsAccount failed!");
         return ERR_OSACCOUNT_SERVICE_INNER_UPDATE_ACCOUNT_ERROR;
     }
-    ReportOsAccountLifeCycleEvent(osAccountInfo.GetLocalId(), "create");
+    ReportOsAccountLifeCycle(osAccountInfo.GetLocalId(), Constants::OPERATION_CREATE);
     OsAccountInterface::SendToCESAccountCreate(osAccountInfo);
     ACCOUNT_LOGI("send other subsystem to create os account ok");
     return ERR_OK;
@@ -487,7 +488,7 @@ ErrCode IInnerOsAccountManager::SendMsgForAccountRemove(OsAccountInfo &osAccount
         return ERR_OSACCOUNT_SERVICE_INNER_CANNOT_DELE_OSACCOUNT_ERROR;
     }
     OsAccountInterface::SendToCESAccountDelete(osAccountInfo);
-    ReportOsAccountLifeCycleEvent(osAccountInfo.GetLocalId(), "delete");
+    ReportOsAccountLifeCycle(osAccountInfo.GetLocalId(), Constants::OPERATION_DELETE);
     return errCode;
 }
 
@@ -1427,7 +1428,7 @@ void IInnerOsAccountManager::RefreshActiveList(int32_t newId)
         DeActivateOsAccount(activeAccountId_[i]);
     }
     int32_t oldId = (activeAccountId_.empty() ? -1 : activeAccountId_[0]);
-    ReportOsAccountSwitchEvent(newId, oldId);
+    ReportOsAccountSwitch(newId, oldId);
     activeAccountId_.clear();
     PushIdIntoActiveList(newId);
 }

@@ -253,7 +253,6 @@ bool OhosAccountManager::LoginOhosAccount(const std::string &name, const std::st
         return false;
     }
 
-    std::int32_t oldStatus = currOhosAccountInfo.ohosAccountStatus_;
     ret = HandleEvent(currOhosAccountInfo, eventStr); // update account status
     if (!ret) {
         ACCOUNT_LOGE("HandleEvent %{public}s failed! callingUserId %{public}d, ohosAccountUid %{public}s.",
@@ -283,7 +282,8 @@ bool OhosAccountManager::LoginOhosAccount(const std::string &name, const std::st
     if (!errCode) {
         ACCOUNT_LOGE("publish ohos account login event failed! callingUserId %{public}d, ohosAccountUid %{public}s.",
             callingUserId, ohosAccountUid.c_str());
-        ReportOhosAccountCESFail(oldStatus, currOhosAccountInfo.ohosAccountStatus_, currOhosAccountInfo.userId_);
+        ReportOhosAccountOperationFail(
+            currOhosAccountInfo.userId_, EVENT_PUBLISH, errCode, "publish COMMON_EVENT_HWID_LOGIN failed");
         return false;
     }
     ACCOUNT_LOGI("LoginOhosAccount success! callingUserId %{public}d, ohosAccountUid %{public}s.",
@@ -311,7 +311,6 @@ bool OhosAccountManager::LogoutOhosAccount(const std::string &name, const std::s
         return false;
     }
 
-    std::int32_t oldStatus = currentAccount.ohosAccountStatus_;
     bool ret = HandleEvent(currentAccount, eventStr); // update account status
     if (!ret) {
         ACCOUNT_LOGE("HandleEvent %{public}s failed, callingUserId %{public}d, ohosAccountUid %{public}s.",
@@ -334,7 +333,8 @@ bool OhosAccountManager::LogoutOhosAccount(const std::string &name, const std::s
     if (!ret) {
         ACCOUNT_LOGE("publish account logout event failed, callingUserId %{public}d, ohosAccountUid %{public}s.",
             callingUserId, uid.c_str());
-        ReportOhosAccountCESFail(oldStatus, currentAccount.ohosAccountStatus_, currentAccount.userId_);
+        ReportOhosAccountOperationFail(
+            currentAccount.userId_, EVENT_PUBLISH, ret, "publish COMMON_EVENT_HWID_LOGOUT failed");
         return false;
     }
 
@@ -363,7 +363,6 @@ bool OhosAccountManager::LogoffOhosAccount(const std::string &name, const std::s
         return false;
     }
 
-    std::int32_t oldStatus = currentAccount.ohosAccountStatus_;
     bool ret = HandleEvent(currentAccount, eventStr); // update account status
     if (!ret) {
         ACCOUNT_LOGE("HandleEvent %{public}s failed, callingUserId %{public}d, ohosAccountUid %{public}s.",
@@ -386,7 +385,8 @@ bool OhosAccountManager::LogoffOhosAccount(const std::string &name, const std::s
     if (errCode != true) {
         ACCOUNT_LOGE("publish account logoff event failed, callingUserId %{public}d, ohosAccountUid %{public}s.",
             callingUserId, uid.c_str());
-        ReportOhosAccountCESFail(oldStatus, currentAccount.ohosAccountStatus_, currentAccount.userId_);
+        ReportOhosAccountOperationFail(
+            currentAccount.userId_, EVENT_PUBLISH, errCode, "publish COMMON_EVENT_HWID_LOGOFF failed");
         return false;
     }
     ACCOUNT_LOGI("LogoffOhosAccount success, callingUserId %{public}d, ohosAccountUid %{public}s.",
@@ -415,7 +415,6 @@ bool OhosAccountManager::HandleOhosAccountTokenInvalidEvent(const std::string &n
         return false;
     }
 
-    std::int32_t oldStatus = currentOhosAccount.ohosAccountStatus_;
     bool ret = HandleEvent(currentOhosAccount, eventStr); // update account status
     if (!ret) {
         ACCOUNT_LOGE("HandleEvent %{public}s failed, callingUserId %{public}d, ohosAccountUid %{public}s.",
@@ -438,7 +437,8 @@ bool OhosAccountManager::HandleOhosAccountTokenInvalidEvent(const std::string &n
     if (errCode != true) {
         ACCOUNT_LOGE("publish token invalid event failed, callingUserId %{public}d, ohosAccountUid %{public}s.",
             callingUserId, uid.c_str());
-        ReportOhosAccountCESFail(oldStatus, currentOhosAccount.ohosAccountStatus_, currentOhosAccount.userId_);
+        ReportOhosAccountOperationFail(
+            currentOhosAccount.userId_, EVENT_PUBLISH, errCode, "publish COMMON_EVENT_HWID_TOKEN_INVALID failed");
         return false;
     }
     ACCOUNT_LOGI("success, callingUserId %{public}d, ohosAccountUid %{public}s.", callingUserId, uid.c_str());
