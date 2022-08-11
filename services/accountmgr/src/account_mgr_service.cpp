@@ -33,6 +33,7 @@
 #include "perf_stat.h"
 #include "string_ex.h"
 #include "system_ability_definition.h"
+#include "account_info.h"
 
 namespace OHOS {
 namespace AccountSA {
@@ -46,10 +47,10 @@ void CreateDeviceDir()
         ACCOUNT_LOGI("Device owner dir not exist, create!");
         if (!OHOS::ForceCreateDirectory(DEVICE_OWNER_DIR)) {
             ACCOUNT_LOGW("Create device owner dir failure! errno %{public}d.", errno);
-            ReportFileOperationFail(errno, "ForceCreateDirectory", DEVICE_OWNER_DIR);
+            ReportOsAccountOperationFail(0, OPERATION_FORCE_CREATE_DIRECTORY, errno, DEVICE_OWNER_DIR);
         } else {
             if (!OHOS::ChangeModeDirectory(DEVICE_OWNER_DIR, S_IRWXU)) {
-                ReportFileOperationFail(errno, "ChangeModeDirectory", DEVICE_OWNER_DIR);
+                ReportOsAccountOperationFail(0, OPERATION_CHANGE_MODE_DIRECTORY, errno, DEVICE_OWNER_DIR);
                 ACCOUNT_LOGW("failed to create dir, path = %{public}s errno %{public}d.",
                     DEVICE_OWNER_DIR.c_str(), errno);
             }

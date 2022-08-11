@@ -61,70 +61,13 @@ void ReportPermissionFail(int32_t callerUid, int32_t callerPid, const std::strin
 #endif // HAS_HISYSEVENT_PART
 }
 
-void ReportOhosAccountCESFail(int32_t oldStat, int32_t newStat, int32_t id)
+void ReportOsAccountOperationFail(
+    int32_t id, const std::string& operationStr, int32_t errCode, const std::string& errMsg)
 {
 #ifdef HAS_HISYSEVENT_PART
-    int ret = HiSysEventNameSpace::Write(DOMAIN_STR, "OHOS_ACCOUNT_COMMON_EVENT_FAILED",
+    int ret = HiSysEventNameSpace::Write(DOMAIN_STR, "OS_ACCOUNT_FAILED",
         HiSysEventNameSpace::EventType::FAULT,
-        "OLD_STATE", oldStat,
-        "NEW_STATE", newStat,
-        "USER_ID", id);
-    if (ret != 0) {
-        ACCOUNT_LOGE("hisysevent failed! ret %{public}d, oldStat %{public}d, newStat %{public}d, id %{public}d",
-            ret, oldStat, newStat, id);
-    }
-#else // HAS_HISYSEVENT_PART
-    (void)oldStat;
-    (void)newStat;
-    (void)id;
-#endif // HAS_HISYSEVENT_PART
-}
-
-void ReportOhosAccountStateChange(int32_t id, int32_t operateType, int32_t oldStat, int32_t newStat)
-{
-#ifdef HAS_HISYSEVENT_PART
-    int ret = HiSysEventNameSpace::Write(DOMAIN_STR, "OHOS_ACCOUNT_STATE_CHANGE_EVENT",
-        HiSysEventNameSpace::EventType::BEHAVIOR,
-        "USER_ID", id,
-        "OPERATION_TYPE", operateType,
-        "OLD_STATE", oldStat,
-        "NEW_STATE", newStat);
-    if (ret != 0) {
-        ACCOUNT_LOGE("hisysevent failed! ret %{public}d, [%{public}d, %{public}d, %{public}d, %{public}d]",
-            ret, id, operateType, oldStat, newStat);
-    }
-#else // HAS_HISYSEVENT_PART
-    (void)id;
-    (void)operateType;
-    (void)oldStat;
-    (void)newStat;
-#endif // HAS_HISYSEVENT_PART
-}
-
-void ReportKvStoreAccessFail(int32_t status, const std::string& errMsg)
-{
-#ifdef HAS_HISYSEVENT_PART
-    int ret = HiSysEventNameSpace::Write(DOMAIN_STR, "KVSTORE_ACCESS_FAILED",
-        HiSysEventNameSpace::EventType::FAULT,
-        "KVSTORE_STATUS", status,
-        "ERROR_MSG", errMsg);
-    if (ret != 0) {
-        ACCOUNT_LOGE("hisysevent failed! ret %{public}d, status %{public}d, errMsg %{public}s.",
-            ret, status, errMsg.c_str());
-    }
-#else // HAS_HISYSEVENT_PART
-    (void)status;
-    (void)errMsg;
-#endif // HAS_HISYSEVENT_PART
-}
-
-void ReportAccountOperationFail(int32_t id, int32_t errCode, const std::string& operationStr,
-    const std::string& errMsg)
-{
-#ifdef HAS_HISYSEVENT_PART
-    int ret = HiSysEventNameSpace::Write(DOMAIN_STR, "OS_ACCOUNT_OPERATE_FAILED",
-        HiSysEventNameSpace::EventType::FAULT,
-        "OSACCOUNT_ID", id,
+        "ID", id,
         "OPERATE_TYPE", operationStr,
         "ERROR_TYPE", errCode,
         "ERROR_MSG", errMsg);
@@ -140,29 +83,58 @@ void ReportAccountOperationFail(int32_t id, int32_t errCode, const std::string& 
 #endif // HAS_HISYSEVENT_PART
 }
 
-void ReportFileOperationFail(int32_t errCode, const std::string& operationStr, const std::string& path)
+void ReportOhosAccountOperationFail(
+    int32_t userId, const std::string& operationStr, int32_t errCode, const std::string& errMsg)
 {
 #ifdef HAS_HISYSEVENT_PART
-    int ret = HiSysEventNameSpace::Write(DOMAIN_STR, "FILE_IO_OPERATE_FAILED",
+    int ret = HiSysEventNameSpace::Write(DOMAIN_STR, "DISTRIBUTED_ACCOUNT_FAILED",
         HiSysEventNameSpace::EventType::FAULT,
+        "USER_ID", userId,
         "OPERATE_TYPE", operationStr,
         "ERROR_TYPE", errCode,
-        "TARGET_PATH", path);
+        "ERROR_MSG", errMsg);
     if (ret != 0) {
-        ACCOUNT_LOGE("ret %{public}d, opStr %{public}s, errCode %{public}d path %{public}s.",
-            ret, operationStr.c_str(), errCode, path.c_str());
+        ACCOUNT_LOGE("ret %{public}d, userId %{public}d, opStr %{public}s, errCode %{public}d errMsg %{public}s.",
+            ret, userId, operationStr.c_str(), errCode, errMsg.c_str());
     }
 #else // HAS_HISYSEVENT_PART
-    (void)errCode;
+    (void)userId;
     (void)operationStr;
-    (void)path;
+    (void)errCode;
+    (void)errMsg;
 #endif // HAS_HISYSEVENT_PART
 }
 
-void ReportOsAccountLifeCycleEvent(int32_t id, const std::string& operationStr)
+void ReportAppAccountOperationFail(const std::string &name, const std::string &owner, const std::string& operationStr,
+    int32_t errCode, const std::string& errMsg)
 {
 #ifdef HAS_HISYSEVENT_PART
-    int ret = HiSysEventNameSpace::Write(DOMAIN_STR, "OS_ACCOUNT_LIFE_CYCLE_EVENT",
+    int ret = HiSysEventNameSpace::Write(DOMAIN_STR, "APP_ACCOUNT_FAILED",
+        HiSysEventNameSpace::EventType::FAULT,
+        "NAME", name,
+        "OWNER", owner,
+        "OPERATE_TYPE", operationStr,
+        "ERROR_TYPE", errCode,
+        "ERROR_MSG", errMsg);
+    if (ret != 0) {
+        ACCOUNT_LOGE(
+            "ret %{public}d, name %{public}s, owner %{public}s, opStr %{public}s, "
+            "errCode %{public}d, errMsg %{public}s.",
+            ret, name.c_str(), owner.c_str(), operationStr.c_str(), errCode, errMsg.c_str());
+    }
+#else // HAS_HISYSEVENT_PART
+    (void)name;
+    (void)owner;
+    (void)errCode;
+    (void)operationStr;
+    (void)errMsg;
+#endif // HAS_HISYSEVENT_PART
+}
+
+void ReportOsAccountLifeCycle(int32_t id, const std::string& operationStr)
+{
+#ifdef HAS_HISYSEVENT_PART
+    int ret = HiSysEventNameSpace::Write(DOMAIN_STR, "OS_ACCOUNT_LIFE_CYCLE",
         HiSysEventNameSpace::EventType::BEHAVIOR,
         "ACCOUNT_ID", id,
         "OPERATE_TYPE", operationStr);
@@ -176,10 +148,10 @@ void ReportOsAccountLifeCycleEvent(int32_t id, const std::string& operationStr)
 #endif // HAS_HISYSEVENT_PART
 }
 
-void ReportOsAccountSwitchEvent(int32_t currentId, int32_t oldId)
+void ReportOsAccountSwitch(int32_t currentId, int32_t oldId)
 {
 #ifdef HAS_HISYSEVENT_PART
-    int ret = HiSysEventNameSpace::Write(DOMAIN_STR, "OS_ACCOUNT_SWITCH_EVENT",
+    int ret = HiSysEventNameSpace::Write(DOMAIN_STR, "OS_ACCOUNT_SWITCH",
         HiSysEventNameSpace::EventType::BEHAVIOR,
         "CURRENT_ID", currentId,
         "OLD_ID", oldId);
@@ -190,6 +162,27 @@ void ReportOsAccountSwitchEvent(int32_t currentId, int32_t oldId)
 #else // HAS_HISYSEVENT_PART
     (void)currentId;
     (void)oldId;
+#endif // HAS_HISYSEVENT_PART
+}
+
+void ReportOhosAccountStateChange(int32_t userId, int32_t operateType, int32_t oldStat, int32_t newStat)
+{
+#ifdef HAS_HISYSEVENT_PART
+    int ret = HiSysEventNameSpace::Write(DOMAIN_STR, "DISTRIBUTED_ACCOUNT_CHANGE",
+        HiSysEventNameSpace::EventType::BEHAVIOR,
+        "USER_ID", userId,
+        "OPERATION_TYPE", operateType,
+        "OLD_STATE", oldStat,
+        "NEW_STATE", newStat);
+    if (ret != 0) {
+        ACCOUNT_LOGE("ret %{public}d, [%{public}d, %{public}d, %{public}d, %{public}d]",
+            ret, userId, operateType, oldStat, newStat);
+    }
+#else // HAS_HISYSEVENT_PART
+    (void)userId;
+    (void)operateType;
+    (void)oldStat;
+    (void)newStat;
 #endif // HAS_HISYSEVENT_PART
 }
 } // AccountSA
