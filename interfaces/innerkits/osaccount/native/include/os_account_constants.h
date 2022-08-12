@@ -38,6 +38,11 @@ const std::string USER_PHOTO_FILE_JPG_NAME = "fase.jpg";
 const std::string USER_PHOTO_BASE_JPG_HEAD = "data:image/jpeg;base64,";
 const std::string USER_PHOTO_BASE_PNG_HEAD = "data:image/png;base64,";
 const std::string USER_INFO_FILE_NAME = "account_info.json";
+const std::string OPERATION_ACTIVATE = "activate";
+const std::string OPERATION_CREATE = "create";
+const std::string OPERATION_DELETE = "delete";
+const std::string OPERATION_SWITCH = "switch";
+const std::string OPERATION_STOP = "stop";
 
 // distributed database
 const std::string APP_ID = "os_account_mgr_service";
@@ -77,7 +82,7 @@ const bool IS_SERIAL_NUMBER_FULL_INIT_VALUE = false;
 const int64_t TIME_WAIT_TIME_OUT = 5;
 const std::int32_t WAIT_ONE_TIME = 1000;
 
-// type temeplate
+// type template
 const std::string DEVICE_OWNER_ID = "deviceOwnerId";
 const std::string ALL_GLOBAL_CONSTRAINTS = "allGlobalConstraints";
 const std::string ALL_SPECIFIC_CONSTRAINTS = "allSpecificConstraints";

@@ -38,10 +38,18 @@ typedef enum : std::int32_t {
 } OHOS_ACCOUNT_STATE;
 
 // event string
+const std::string EVENT_PUBLISH                    = "event publish";
 const std::string OHOS_ACCOUNT_EVENT_LOGIN         = "Ohos.account.event.LOGIN";
 const std::string OHOS_ACCOUNT_EVENT_LOGOUT        = "Ohos.account.event.LOGOUT";
 const std::string OHOS_ACCOUNT_EVENT_TOKEN_INVALID = "Ohos.account.event.TOKEN_INVALID";
 const std::string OHOS_ACCOUNT_EVENT_LOGOFF        = "Ohos.account.event.LOGOFF";
+const std::string OPERATION_INIT_OPEN_FILE_TO_READ = "InitOpenFileToRead";
+const std::string OPERATION_REMOVE_FILE = "RemoveFile";
+const std::string OPERATION_OPEN_FILE_TO_READ = "OpenFileToRead";
+const std::string OPERATION_OPEN_FILE_TO_WRITE = "OpenFileToWrite";
+const std::string OPERATION_CHANGE_MODE_FILE = "ChangeModeFile";
+const std::string OPERATION_FORCE_CREATE_DIRECTORY = "ForceCreateDirectory";
+const std::string OPERATION_CHANGE_MODE_DIRECTORY = "ChangeModeDirectory";
 /**
  * Account operation events
  */
