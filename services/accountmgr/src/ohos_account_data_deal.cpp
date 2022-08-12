@@ -57,7 +57,7 @@ ErrCode OhosAccountDataDeal::Init(std::int32_t userId)
     std::ifstream fin(configFile);
     if (!fin) {
         ACCOUNT_LOGE("Failed to open config file %{public}s, errno %{public}d.", configFile.c_str(), errno);
-        ReportFileOperationFail(errno, "OhosAccountInitOpenFileToRead", configFile);
+        ReportOhosAccountOperationFail(userId, OPERATION_INIT_OPEN_FILE_TO_READ, errno, configFile);
         return ERR_ACCOUNT_DATADEAL_INPUT_FILE_ERROR;
     }
 
@@ -69,7 +69,7 @@ ErrCode OhosAccountDataDeal::Init(std::int32_t userId)
         ACCOUNT_LOGE("Invalid json file, remove");
         if (RemoveFile(configFile)) {
             ACCOUNT_LOGE("Remove invalid json file %{public}s failed, errno %{public}d.", configFile.c_str(), errno);
-            ReportFileOperationFail(errno, "OhosAccountRemoveFile", configFile);
+            ReportOhosAccountOperationFail(userId, OPERATION_REMOVE_FILE, errno, configFile);
         }
         return ERR_ACCOUNT_DATADEAL_JSON_FILE_CORRUPTION;
     }
@@ -96,7 +96,7 @@ ErrCode OhosAccountDataDeal::AccountInfoFromJson(AccountInfo &accountInfo, const
     std::ifstream fin(configFile);
     if (!fin) {
         ACCOUNT_LOGE("Failed to open config file %{public}s, errno %{public}d.", configFile.c_str(), errno);
-        ReportFileOperationFail(errno, "OhosAccountOpenFileToRead", configFile);
+        ReportOhosAccountOperationFail(userId, OPERATION_OPEN_FILE_TO_READ, errno, configFile);
         return ERR_ACCOUNT_DATADEAL_INPUT_FILE_ERROR;
     }
 
@@ -155,7 +155,7 @@ void OhosAccountDataDeal::SaveAccountInfo(const AccountInfo &accountInfo) const
     std::ofstream out(configFile);
     if (!out) {
         ACCOUNT_LOGE("Failed to open file %{public}s, errno %{public}d.", configFile.c_str(), errno);
-        ReportFileOperationFail(errno, "OhosAccountOpenFileToWrite", configFile);
+        ReportOhosAccountOperationFail(accountInfo.userId_, OPERATION_OPEN_FILE_TO_WRITE, errno, configFile);
         return;
     }
     out << jsonData;
@@ -164,7 +164,7 @@ void OhosAccountDataDeal::SaveAccountInfo(const AccountInfo &accountInfo) const
     // change mode
     if (!ChangeModeFile(configFile, S_IRUSR | S_IWUSR)) {
         ACCOUNT_LOGW("failed to change mode for file %{public}s, errno %{public}d.", configFile.c_str(), errno);
-        ReportFileOperationFail(errno, "ChangeModeFile", configFile);
+        ReportOhosAccountOperationFail(accountInfo.userId_, OPERATION_CHANGE_MODE_FILE, errno, configFile);
     }
 }
 

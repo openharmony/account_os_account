@@ -128,9 +128,8 @@ ErrCode BundleManagerAdapter::CreateNewUser(int32_t userId)
     ErrCode result = Connect();
     if (result != ERR_OK) {
         ACCOUNT_LOGE("failed to connect bundle manager service.");
-        ReportAccountOperationFail(userId,
+        ReportOsAccountOperationFail(userId, "create",
             ERR_OSACCOUNT_SERVICE_INTERFACE_TO_BM_ACCOUNT_CREATE_ERROR,
-            "create",
             "Connect bundle manager service failed!");
         return ERR_OSACCOUNT_SERVICE_INTERFACE_TO_BM_ACCOUNT_CREATE_ERROR;
     }
@@ -138,9 +137,8 @@ ErrCode BundleManagerAdapter::CreateNewUser(int32_t userId)
     auto bundleUserMgrProxy = proxy_->GetBundleUserMgr();
     if (!bundleUserMgrProxy) {
         ACCOUNT_LOGE("failed to get bundleUserMgrProxy");
-        ReportAccountOperationFail(userId,
+        ReportOsAccountOperationFail(userId, "create",
             ERR_OSACCOUNT_SERVICE_INTERFACE_TO_BM_ACCOUNT_CREATE_ERROR,
-            "create",
             "GetBundleUserMgr from BundleManager proxy failed!");
         return ERR_OSACCOUNT_SERVICE_INTERFACE_TO_BM_ACCOUNT_CREATE_ERROR;
     }
@@ -158,17 +156,16 @@ ErrCode BundleManagerAdapter::RemoveUser(int32_t userId)
     ErrCode result = Connect();
     if (result != ERR_OK) {
         ACCOUNT_LOGE("failed to connect bundle manager service.");
-        ReportAccountOperationFail(userId,
-            result, "delete", "Connect bundle manager service failed!");
+        ReportOsAccountOperationFail(userId, "delete",
+            result, "Connect bundle manager service failed!");
         return result;
     }
 
     auto bundleUserMgrProxy = proxy_->GetBundleUserMgr();
     if (!bundleUserMgrProxy) {
         ACCOUNT_LOGE("failed to get bundleUserMgrProxy");
-        ReportAccountOperationFail(userId,
+        ReportOsAccountOperationFail(userId, "delete",
             ERR_OSACCOUNT_SERVICE_INTERFACE_TO_BM_ACCOUNT_DELETE_ERROR,
-            "delete",
             "GetBundleUserMgr from BundleManager proxy failed!");
         return ERR_OSACCOUNT_SERVICE_INTERFACE_TO_BM_ACCOUNT_DELETE_ERROR;
     }

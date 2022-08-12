@@ -22,14 +22,15 @@ namespace OHOS {
 namespace AccountSA {
 void ReportServiceStartFail(int32_t errCode, const std::string& errMsg);
 void ReportPermissionFail(int32_t callerUid, int32_t callerPid, const std::string& permName);
-void ReportOhosAccountCESFail(int32_t oldStat, int32_t newStat, int32_t id);
-void ReportOhosAccountStateChange(int32_t id, int32_t operateType, int32_t oldStat, int32_t newStat);
-void ReportKvStoreAccessFail(int32_t status, const std::string& errMsg);
-void ReportAccountOperationFail(int32_t id, int32_t errCode, const std::string& operationStr,
-    const std::string& errMsg);
-void ReportFileOperationFail(int32_t errCode, const std::string& operationStr, const std::string& path);
-void ReportOsAccountLifeCycleEvent(int32_t id, const std::string& operationStr);
-void ReportOsAccountSwitchEvent(int32_t currentId, int32_t oldId);
+void ReportOsAccountOperationFail(
+    int32_t id, const std::string& operationStr, int32_t errCode, const std::string& errMsg);
+void ReportOhosAccountOperationFail(
+    int32_t userId, const std::string& operationStr, int32_t errCode, const std::string& errMsg);
+void ReportAppAccountOperationFail(const std::string &name, const std::string &owner, const std::string& operationStr,
+    int32_t errCode, const std::string& errMsg);
+void ReportOsAccountLifeCycle(int32_t id, const std::string& operationStr);
+void ReportOsAccountSwitch(int32_t currentId, int32_t oldId);
+void ReportOhosAccountStateChange(int32_t userId, int32_t operateType, int32_t oldStat, int32_t newStat);
 } // AccountSA
 } // OHOS
 #endif // OS_ACCOUNT_DFX_HISYSEVENT_ADAPTER_H
