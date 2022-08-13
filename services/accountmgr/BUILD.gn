@@ -221,11 +221,11 @@ ohos_shared_library("accountmgr") {
     "access_token:libaccesstoken_sdk",
     "bundle_framework:appexecfwk_base",
     "c_utils:utils",
-    "kv_store:distributeddata_inner",
     "eventhandler:libeventhandler",
     "hiviewdfx_hilog_native:libhilog",
     "init:libbegetutil",
     "ipc:ipc_core",
+    "kv_store:distributeddata_inner",
     "safwk:system_ability_fwk",
     "samgr_standard:samgr_proxy",
   ]
