@@ -74,6 +74,8 @@ ErrCode AccountIAMClient::AddCredential(const CredentialParameters& credInfo,
     }
     int32_t userId = 0;
     OsAccountManager::GetOsAccountLocalIdFromProcess(userId);
+    PinSubType pinType = credInfo.pinType.value_or(PinSubType::PIN_MAX);
+    SetAuthSubType(userId, pinType);
     auto idmCallback = std::make_shared<AddCredCallback>(userId, credInfo, callback);
     UserIDMClient::GetInstance().AddCredential(0, credInfo, idmCallback);
     return ERR_OK;
