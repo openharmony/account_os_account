@@ -116,7 +116,7 @@ void AppAccountCommonEventObserver::OnReceiveEvent(const CommonEventData &data)
             auto uid = wantTemp.GetIntParam(AppExecFwk::Constants::UID, -1);
             uint32_t appIndex = 0;
             if (action == CommonEventSupport::COMMON_EVENT_SANDBOX_PACKAGE_REMOVED) {
-                appIndex = wantTemp.GetIntParam(AppExecFwk::Constants::SANDBOX_APP_INDEX, -1);
+                appIndex = wantTemp.GetIntParam(AppExecFwk::Constants::SANDBOX_APP_INDEX, 0);
             }
             ACCOUNT_LOGI("uid = %{public}d, bundleName = %{public}s.", uid, bundleName.c_str());
             callback_.OnPackageRemoved(uid, bundleName, appIndex);

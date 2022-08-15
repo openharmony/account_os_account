@@ -398,14 +398,8 @@ ErrCode AppAccountManagerService::SetOAuthTokenVisibility(
     const std::string &name, const std::string &authType, const std::string &bundleName, bool isVisible)
 {
     AuthenticatorSessionRequest request;
-    ErrCode result = GetBundleNameAndCallingUid(request.callerUid, request.callerBundleName);
+    ErrCode result = GetCallingInfo(request.callerUid, request.callerBundleName, request.appIndex);
     if (result != ERR_OK) {
-        ACCOUNT_LOGE("failed to get bundle name");
-        return result;
-    }
-    result = GetCallingTokenInfoAndAppIndex(request.appIndex);
-    if (result != ERR_OK) {
-        ACCOUNT_LOGE("failed to get app index");
         return result;
     }
     request.name = name;
@@ -420,14 +414,8 @@ ErrCode AppAccountManagerService::CheckOAuthTokenVisibility(
     const std::string &name, const std::string &authType, const std::string &bundleName, bool &isVisible)
 {
     AuthenticatorSessionRequest request;
-    ErrCode result = GetBundleNameAndCallingUid(request.callerUid, request.callerBundleName);
+    ErrCode result = GetCallingInfo(request.callerUid, request.callerBundleName, request.appIndex);
     if (result != ERR_OK) {
-        ACCOUNT_LOGE("failed to get bundle name");
-        return result;
-    }
-    result = GetCallingTokenInfoAndAppIndex(request.appIndex);
-    if (result != ERR_OK) {
-        ACCOUNT_LOGE("failed to get app index");
         return result;
     }
     request.name = name;
@@ -454,14 +442,8 @@ ErrCode AppAccountManagerService::GetAllOAuthTokens(
     const std::string &name, const std::string &owner, std::vector<OAuthTokenInfo> &tokenInfos)
 {
     AuthenticatorSessionRequest request;
-    ErrCode result = GetBundleNameAndCallingUid(request.callerUid, request.callerBundleName);
+    ErrCode result = GetCallingInfo(request.callerUid, request.callerBundleName, request.appIndex);
     if (result != ERR_OK) {
-        ACCOUNT_LOGE("failed to get bundle name");
-        return result;
-    }
-    result = GetCallingTokenInfoAndAppIndex(request.appIndex);
-    if (result != ERR_OK) {
-        ACCOUNT_LOGE("failed to get app index");
         return result;
     }
     request.name = name;
@@ -473,14 +455,8 @@ ErrCode AppAccountManagerService::GetOAuthList(
     const std::string &name, const std::string &authType, std::set<std::string> &oauthList)
 {
     AuthenticatorSessionRequest request;
-    ErrCode result = GetBundleNameAndCallingUid(request.callerUid, request.callerBundleName);
+    ErrCode result = GetCallingInfo(request.callerUid, request.callerBundleName, request.appIndex);
     if (result != ERR_OK) {
-        ACCOUNT_LOGE("failed to get bundle name");
-        return result;
-    }
-    result = GetCallingTokenInfoAndAppIndex(request.appIndex);
-    if (result != ERR_OK) {
-        ACCOUNT_LOGE("failed to get app index");
         return result;
     }
     request.name = name;
@@ -492,14 +468,8 @@ ErrCode AppAccountManagerService::GetAuthenticatorCallback(
     const std::string &sessionId, sptr<IRemoteObject> &callback)
 {
     AuthenticatorSessionRequest request;
-    ErrCode result = GetBundleNameAndCallingUid(request.callerUid, request.callerBundleName);
+    ErrCode result = GetCallingInfo(request.callerUid, request.callerBundleName, request.appIndex);
     if (result != ERR_OK) {
-        ACCOUNT_LOGE("failed to get bundle name");
-        return result;
-    }
-    result = GetCallingTokenInfoAndAppIndex(request.appIndex);
-    if (result != ERR_OK) {
-        ACCOUNT_LOGE("failed to get app index");
         return result;
     }
     request.sessionId = sessionId;
@@ -512,15 +482,9 @@ ErrCode AppAccountManagerService::GetAllAccounts(const std::string &owner, std::
     int32_t callingUid = -1;
     std::string bundleName;
     uint32_t appIndex;
-    ErrCode errCode = GetBundleNameAndCallingUid(callingUid, bundleName);
-    if (errCode != ERR_OK) {
-        ACCOUNT_LOGD("failed to get caller bundle name and uid");
-        return errCode;
-    }
-    errCode = GetCallingTokenInfoAndAppIndex(appIndex);
-    if (errCode != ERR_OK) {
-        ACCOUNT_LOGE("failed to get app index");
-        return errCode;
+    ErrCode ret = GetCallingInfo(callingUid, bundleName, appIndex);
+    if (ret != ERR_OK) {
+        return ret;
     }
     if ((owner != bundleName) &&
         (permissionManagerPtr_->VerifyPermission(AccountPermissionManager::GET_ALL_APP_ACCOUNTS) != ERR_OK)) {
@@ -565,14 +529,9 @@ ErrCode AppAccountManagerService::CheckAppAccess(
 {
     ACCOUNT_LOGD("enter");
     AppAccountCallingInfo appAccountCallingInfo;
-    ErrCode result = GetBundleNameAndCallingUid(appAccountCallingInfo.callingUid, appAccountCallingInfo.bundleName);
+    ErrCode result = GetCallingInfo(appAccountCallingInfo.callingUid, appAccountCallingInfo.bundleName,
+        appAccountCallingInfo.appIndex);
     if (result != ERR_OK) {
-        ACCOUNT_LOGE("failed to get bundle name");
-        return result;
-    }
-    result = GetCallingTokenInfoAndAppIndex(appAccountCallingInfo.appIndex);
-    if (result != ERR_OK) {
-        ACCOUNT_LOGE("failed to get app index");
         return result;
     }
     if (authorizedApp == appAccountCallingInfo.bundleName) {
@@ -589,15 +548,9 @@ ErrCode AppAccountManagerService::DeleteAccountCredential(
     int32_t callingUid = -1;
     std::string bundleName;
     uint32_t appIndex;
-    ErrCode result = GetBundleNameAndCallingUid(callingUid, bundleName);
-    if (result != ERR_OK) {
-        ACCOUNT_LOGE("failed to get bundle name");
-        return result;
-    }
-    result = GetCallingTokenInfoAndAppIndex(appIndex);
-    if (result != ERR_OK) {
-        ACCOUNT_LOGE("failed to get app index");
-        return result;
+    ErrCode ret = GetCallingInfo(callingUid, bundleName, appIndex);
+    if (ret != ERR_OK) {
+        return ret;
     }
     return innerManager_->DeleteAccountCredential(name, credentialType, callingUid, bundleName, appIndex);
 }
@@ -609,15 +562,9 @@ ErrCode AppAccountManagerService::SelectAccountsByOptions(
     int32_t callingUid = -1;
     std::string bundleName;
     uint32_t appIndex;
-    ErrCode result = GetBundleNameAndCallingUid(callingUid, bundleName);
-    if (result != ERR_OK) {
-        ACCOUNT_LOGE("failed to get bundle name");
-        return result;
-    }
-    result = GetCallingTokenInfoAndAppIndex(appIndex);
-    if (result != ERR_OK) {
-        ACCOUNT_LOGE("failed to get app index");
-        return result;
+    ErrCode ret = GetCallingInfo(callingUid, bundleName, appIndex);
+    if (ret != ERR_OK) {
+        return ret;
     }
     auto authenticatorCallback = iface_cast<IAppAccountAuthenticatorCallback>(callback);
     return innerManager_->SelectAccountsByOptions(options, authenticatorCallback, callingUid, bundleName, appIndex);
@@ -628,14 +575,8 @@ ErrCode AppAccountManagerService::VerifyCredential(const std::string &name, cons
 {
     ACCOUNT_LOGD("enter");
     AuthenticatorSessionRequest request;
-    ErrCode result = GetBundleNameAndCallingUid(request.callerUid, request.callerBundleName);
+    ErrCode result = GetCallingInfo(request.callerUid, request.callerBundleName, request.appIndex);
     if (result != ERR_OK) {
-        ACCOUNT_LOGD("failed to get bundle name");
-        return result;
-    }
-    result = GetCallingTokenInfoAndAppIndex(request.appIndex);
-    if (result != ERR_OK) {
-        ACCOUNT_LOGE("failed to get app index");
         return result;
     }
     request.name = name;
@@ -650,14 +591,8 @@ ErrCode AppAccountManagerService::CheckAccountLabels(const std::string &name, co
 {
     ACCOUNT_LOGD("enter");
     AuthenticatorSessionRequest request;
-    ErrCode result = GetBundleNameAndCallingUid(request.callerUid, request.callerBundleName);
+    ErrCode result = GetCallingInfo(request.callerUid, request.callerBundleName, request.appIndex);
     if (result != ERR_OK) {
-        ACCOUNT_LOGD("failed to get bundle name");
-        return result;
-    }
-    result = GetCallingTokenInfoAndAppIndex(request.appIndex);
-    if (result != ERR_OK) {
-        ACCOUNT_LOGE("failed to get app index");
         return result;
     }
     request.labels = labels;
@@ -672,14 +607,8 @@ ErrCode AppAccountManagerService::SetAuthenticatorProperties(
 {
     ACCOUNT_LOGD("enter");
     AuthenticatorSessionRequest request;
-    ErrCode result = GetBundleNameAndCallingUid(request.callerUid, request.callerBundleName);
+    ErrCode result = GetCallingInfo(request.callerUid, request.callerBundleName, request.appIndex);
     if (result != ERR_OK) {
-        ACCOUNT_LOGE("failed to get bundle name");
-        return result;
-    }
-    result = GetCallingTokenInfoAndAppIndex(request.appIndex);
-    if (result != ERR_OK) {
-        ACCOUNT_LOGE("failed to get app index");
         return result;
     }
     request.owner = owner;
@@ -696,15 +625,9 @@ ErrCode AppAccountManagerService::SubscribeAppAccount(
     int32_t callingUid = -1;
     std::string bundleName;
     uint32_t appIndex;
-    ErrCode result = GetBundleNameAndCallingUid(callingUid, bundleName);
-    if (result != ERR_OK) {
-        ACCOUNT_LOGE("failed to get bundle name");
-        return result;
-    }
-    result = GetCallingTokenInfoAndAppIndex(appIndex);
-    if (result != ERR_OK) {
-        ACCOUNT_LOGE("failed to get app index");
-        return result;
+    ErrCode ret = GetCallingInfo(callingUid, bundleName, appIndex);
+    if (ret != ERR_OK) {
+        return ret;
     }
 
     std::vector<std::string> owners;
@@ -779,15 +702,35 @@ ErrCode AppAccountManagerService::GetBundleNameAndCallingUid(int32_t &callingUid
 
 ErrCode AppAccountManagerService::GetCallingTokenInfoAndAppIndex(uint32_t &appIndex)
 {
-    int32_t callingTokenId = IPCSkeleton::GetCallingTokenID();
+    uint32_t callingTokenId = IPCSkeleton::GetCallingTokenID();
     Security::AccessToken::HapTokenInfo hapTokenInfo;
     int result = Security::AccessToken::AccessTokenKit::GetHapTokenInfo(callingTokenId, hapTokenInfo);
     if (result) {
         ACCOUNT_LOGE("failed to get hap token info, result = %{public}d", result);
         return ERR_APPACCOUNT_SERVICE_GET_APP_INDEX;
     }
+    if (hapTokenInfo.instIndex < 0) {
+        ACCOUNT_LOGE("get invalid app index from hap token info, index = %{public}d", hapTokenInfo.instIndex);
+        return ERR_APPACCOUNT_SERVICE_GET_APP_INDEX;
+    }
     appIndex = hapTokenInfo.instIndex;
     return ERR_OK;
+}
+
+
+ErrCode AppAccountManagerService::GetCallingInfo(int32_t &callingUid, std::string &bundleName, uint32_t &appIndex)
+{
+    ErrCode result = GetBundleNameAndCallingUid(callingUid, bundleName);
+    if (result != ERR_OK) {
+        ACCOUNT_LOGD("failed to get bundle name");
+        return result;
+    }
+    result = GetCallingTokenInfoAndAppIndex(appIndex);
+    if (result != ERR_OK) {
+        ACCOUNT_LOGE("failed to get app index");
+        return result;
+    }
+    return result;
 }
 }  // namespace AccountSA
 }  // namespace OHOS
