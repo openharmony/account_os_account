@@ -307,11 +307,13 @@ void IAMInputer::OnGetData(int32_t authSubType, std::shared_ptr<IInputerData> in
     }
     inputerData_->ResetInnerInputerData(inputerData);
     IAMState state = AccountIAMClient::GetInstance().GetState(userId_);
+    if (authSubType == 0) {
+        authSubType = AccountIAMClient::GetInstance().GetAuthSubType(userId_);
+    }
     if (state < AFTER_ADD_CRED) {
         innerInputer_->OnGetData(authSubType, inputerData_);
         return;
     }
-    authSubType = AccountIAMClient::GetInstance().GetAuthSubType(userId_);
     CredentialPair credPair;
     AccountIAMClient::GetInstance().GetCredential(userId_, authSubType, credPair);
     if (state == ROLL_BACK_UPDATE_CRED) {
