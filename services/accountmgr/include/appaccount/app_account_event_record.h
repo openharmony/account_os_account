@@ -42,7 +42,7 @@ struct AppAccountEventRecord {
     std::string bundleName;
     uint32_t appIndex;
 
-    AppAccountEventRecord() : info(nullptr), uid(0)
+    AppAccountEventRecord() : info(nullptr), uid(0), appIndex(0)
     {}
 };
 }  // namespace AccountSA
