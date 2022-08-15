@@ -467,25 +467,25 @@ ErrCode AppAccountControlManager::DeleteOAuthToken(const AuthenticatorSessionReq
     AppAccountInfo appAccountInfo(request.name, request.owner);
     appAccountInfo.SetAppIndex(request.appIndex);
     std::shared_ptr<AppAccountDataStorage> dataStoragePtr = GetDataStorage(request.callerUid);
-    ErrCode result = GetAccountInfoFromDataStorage(appAccountInfo, dataStoragePtr);
-    if (result != ERR_OK) {
-        ACCOUNT_LOGE("failed to get account info from data storage, result %{public}d.", result);
+    ErrCode ret = GetAccountInfoFromDataStorage(appAccountInfo, dataStoragePtr);
+    if (ret != ERR_OK) {
+        ACCOUNT_LOGE("failed to get account info from data storage, result %{public}d.", ret);
         return ERR_APPACCOUNT_SERVICE_ACCOUNT_NOT_EXIST;
     }
     bool isVisible = false;
-    result = appAccountInfo.CheckOAuthTokenVisibility(request.authType, request.callerBundleName, isVisible);
-    if ((!isVisible) || (result != ERR_OK)) {
-        ACCOUNT_LOGE("failed to delete oauth token for permission denied, result %{public}d.", result);
+    ret = appAccountInfo.CheckOAuthTokenVisibility(request.authType, request.callerBundleName, isVisible);
+    if ((!isVisible) || (ret != ERR_OK)) {
+        ACCOUNT_LOGE("failed to delete oauth token for permission denied, result %{public}d.", ret);
         return ERR_APPACCOUNT_SERVICE_PERMISSION_DENIED;
     }
-    result = appAccountInfo.DeleteOAuthToken(request.authType, request.token);
-    if (result != ERR_OK) {
-        ACCOUNT_LOGE("failed to delete oauth token, result %{public}d.", result);
+    ret = appAccountInfo.DeleteOAuthToken(request.authType, request.token);
+    if (ret != ERR_OK) {
+        ACCOUNT_LOGE("failed to delete oauth token, result %{public}d.", ret);
         return ERR_OK;
     }
-    result = SaveAccountInfoIntoDataStorage(appAccountInfo, dataStoragePtr, request.callerUid);
-    if (result != ERR_OK) {
-        ACCOUNT_LOGE("failed to save account info into data storage, result %{public}d.", result);
+    ret = SaveAccountInfoIntoDataStorage(appAccountInfo, dataStoragePtr, request.callerUid);
+    if (ret != ERR_OK) {
+        ACCOUNT_LOGE("failed to save account info into data storage, result %{public}d.", ret);
         return ERR_APPACCOUNT_SERVICE_SAVE_ACCOUNT_INFO;
     }
     return ERR_OK;
@@ -497,19 +497,19 @@ ErrCode AppAccountControlManager::SetOAuthTokenVisibility(const AuthenticatorSes
     AppAccountInfo appAccountInfo(request.name, request.callerBundleName);
     appAccountInfo.SetAppIndex(request.appIndex);
     std::shared_ptr<AppAccountDataStorage> dataStoragePtr = GetDataStorage(request.callerUid);
-    ErrCode result = GetAccountInfoFromDataStorage(appAccountInfo, dataStoragePtr);
-    if (result != ERR_OK) {
-        ACCOUNT_LOGE("failed to get account info from data storage, result %{public}d.", result);
+    ErrCode ret = GetAccountInfoFromDataStorage(appAccountInfo, dataStoragePtr);
+    if (ret != ERR_OK) {
+        ACCOUNT_LOGE("failed to get account info from data storage, result %{public}d.", ret);
         return ERR_APPACCOUNT_SERVICE_ACCOUNT_NOT_EXIST;
     }
-    result = appAccountInfo.SetOAuthTokenVisibility(request.authType, request.bundleName, request.isTokenVisible);
-    if (result != ERR_OK) {
-        ACCOUNT_LOGE("failed to set oauth token visibility, result %{public}d.", result);
-        return result;
+    ret = appAccountInfo.SetOAuthTokenVisibility(request.authType, request.bundleName, request.isTokenVisible);
+    if (ret != ERR_OK) {
+        ACCOUNT_LOGE("failed to set oauth token visibility, result %{public}d.", ret);
+        return ret;
     }
-    result = SaveAccountInfoIntoDataStorage(appAccountInfo, dataStoragePtr, request.callerUid);
-    if (result != ERR_OK) {
-        ACCOUNT_LOGE("failed to save account info into data storage, result %{public}d.", result);
+    ret = SaveAccountInfoIntoDataStorage(appAccountInfo, dataStoragePtr, request.callerUid);
+    if (ret != ERR_OK) {
+        ACCOUNT_LOGE("failed to save account info into data storage, result %{public}d.", ret);
         return ERR_APPACCOUNT_SERVICE_SAVE_ACCOUNT_INFO;
     }
     return ERR_OK;

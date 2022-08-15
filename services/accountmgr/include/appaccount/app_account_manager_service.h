@@ -95,6 +95,7 @@ private:
     ErrCode GetBundleNameAndCheckPerm(int32_t &callingUid, std::string &bundleName, const std::string &permName);
     ErrCode GetBundleNameAndCallingUid(int32_t &callingUid, std::string &bundleName);
     ErrCode GetCallingTokenInfoAndAppIndex(uint32_t &appIndex);
+    ErrCode GetCallingInfo(int32_t &callingUid, std::string &bundleName, uint32_t &appIndex);
 
 private:
     std::shared_ptr<InnerAppAccountManager> innerManager_ = nullptr;
