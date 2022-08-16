@@ -219,6 +219,12 @@ ErrCode OsAccountManagerService::GetOsAccountLocalIdFromProcess(int &id)
 
 ErrCode OsAccountManagerService::IsMainOsAccount(bool &isMainOsAccount)
 {
+    // permission check
+    if (!PermissionCheck(AccountPermissionManager::MANAGE_LOCAL_ACCOUNTS, "")) {
+        ACCOUNT_LOGW("account manager service, permission denied!");
+        return ERR_OSACCOUNT_SERVICE_PERMISSION_DENIED;
+    }
+
     const std::int32_t uid = IPCSkeleton::GetCallingUid();
     isMainOsAccount = ((uid / UID_TRANSFORM_DIVISOR) == MAIN_OS_ACCOUNT_LOCAL_ID);
     return ERR_OK;
