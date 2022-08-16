@@ -948,7 +948,7 @@ void ParseContextWithStrCBArray(napi_env env, napi_callback_info cbInfo, GetAcco
 void ProcessCallbackOrPromise(napi_env env, const CommonAsyncContext *asyncContext, napi_value err, napi_value data)
 {
     ACCOUNT_LOGD("enter");
-    napi_value args[RESULT_COUNT] = {nullptr};
+    napi_value args[RESULT_COUNT] = {NapiGetNull(env), NapiGetNull(env)};
     if (asyncContext->errCode == ERR_OK) {
         args[1] = data;
     } else {

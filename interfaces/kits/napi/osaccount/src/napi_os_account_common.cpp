@@ -264,7 +264,7 @@ void CBOrPromiseToQueryOAById(
     napi_env env, const QueryOAByIdAsyncContext *queryOAByIdCB, napi_value err, napi_value data)
 {
     ACCOUNT_LOGD("enter");
-    napi_value args[RESULT_COUNT] = {nullptr};
+    napi_value args[RESULT_COUNT] = {WrapVoidToJS(env), WrapVoidToJS(env)};
     if (queryOAByIdCB->status == napi_ok) {
         args[1] = data;
     } else {
@@ -336,7 +336,7 @@ void RemoveOACallbackCompletedCB(napi_env env, napi_status status, void *data)
 void CBOrPromiseToRemoveOA(napi_env env, const RemoveOAAsyncContext *removeOACB, napi_value err, napi_value data)
 {
     ACCOUNT_LOGD("enter");
-    napi_value args[RESULT_COUNT] = {nullptr};
+    napi_value args[RESULT_COUNT] = {WrapVoidToJS(env), WrapVoidToJS(env)};
     if (removeOACB->status == napi_ok) {
         args[1] = data;
     } else {
@@ -410,7 +410,7 @@ void SetOANameCallbackCompletedCB(napi_env env, napi_status status, void *data)
 void CBOrPromiseToSetOAName(napi_env env, const SetOANameAsyncContext *setOANameCB, napi_value err, napi_value data)
 {
     ACCOUNT_LOGD("enter");
-    napi_value args[RESULT_COUNT] = {nullptr};
+    napi_value args[RESULT_COUNT] = {WrapVoidToJS(env), WrapVoidToJS(env)};
     if (setOANameCB->status == napi_ok) {
         args[1] = data;
     } else {
@@ -517,7 +517,7 @@ void SetOAConsCallbackCompletedCB(napi_env env, napi_status status, void *data)
 void CBOrPromiseToSetOACons(napi_env env, const SetOAConsAsyncContext *setOAConsCB, napi_value err, napi_value data)
 {
     ACCOUNT_LOGD("enter");
-    napi_value args[RESULT_COUNT] = {nullptr};
+    napi_value args[RESULT_COUNT] = {WrapVoidToJS(env), WrapVoidToJS(env)};
     if (setOAConsCB->status == napi_ok) {
         args[1] = data;
     } else {
@@ -589,7 +589,7 @@ void ActivateOACallbackCompletedCB(napi_env env, napi_status status, void *data)
 void CBOrPromiseToActivateOA(napi_env env, const ActivateOAAsyncContext *activateOA, napi_value err, napi_value data)
 {
     ACCOUNT_LOGD("enter");
-    napi_value args[RESULT_COUNT] = {nullptr};
+    napi_value args[RESULT_COUNT] = {WrapVoidToJS(env), WrapVoidToJS(env)};
     if (activateOA->status == napi_ok) {
         args[1] = data;
     } else {
@@ -720,7 +720,7 @@ void CreateOAForDomainCallbackCompletedCB(napi_env env, napi_status status, void
 void CBOrPromiseToCreateOA(napi_env env, const CreateOAAsyncContext *createOACB, napi_value err, napi_value data)
 {
     ACCOUNT_LOGD("enter");
-    napi_value args[RESULT_COUNT] = {nullptr};
+    napi_value args[RESULT_COUNT] = {WrapVoidToJS(env), WrapVoidToJS(env)};
     if (createOACB->status == napi_ok) {
         args[1] = data;
     } else {
@@ -749,7 +749,7 @@ void CBOrPromiseToCreateOAForDomain(napi_env env, const CreateOAForDomainAsyncCo
     napi_value err, napi_value data)
 {
     ACCOUNT_LOGD("enter");
-    napi_value args[RESULT_COUNT] = {nullptr};
+    napi_value args[RESULT_COUNT] = {WrapVoidToJS(env), WrapVoidToJS(env)};
     if (createOAForDomainCB->status == napi_ok) {
         args[1] = data;
     } else {
@@ -815,7 +815,7 @@ void GetOACountCallbackCompletedCB(napi_env env, napi_status status, void *data)
 void CBOrPromiseToGetOACount(napi_env env, const GetOACountAsyncContext *getOACount, napi_value err, napi_value data)
 {
     ACCOUNT_LOGD("enter");
-    napi_value args[RESULT_COUNT] = {nullptr};
+    napi_value args[RESULT_COUNT] = {WrapVoidToJS(env), WrapVoidToJS(env)};
     if (getOACount->status == napi_ok) {
         args[1] = data;
     } else {
@@ -881,7 +881,7 @@ void DbDeviceIdCallbackCompletedCB(napi_env env, napi_status status, void *data)
 void CBOrPromiseToDbDeviceId(napi_env env, const DbDeviceIdAsyncContext *dbDeviceId, napi_value err, napi_value data)
 {
     ACCOUNT_LOGD("enter");
-    napi_value args[RESULT_COUNT] = {nullptr};
+    napi_value args[RESULT_COUNT] = {WrapVoidToJS(env), WrapVoidToJS(env)};
     if (dbDeviceId->status == napi_ok) {
         args[1] = data;
     } else {
@@ -982,7 +982,7 @@ void GetActiveIds(napi_env env, const std::vector<int> &ids, napi_value result)
 void CBOrPromiseToGetAllCons(napi_env env, const GetAllConsAsyncContext *getAllCons, napi_value err, napi_value data)
 {
     ACCOUNT_LOGD("enter");
-    napi_value args[RESULT_COUNT] = {nullptr};
+    napi_value args[RESULT_COUNT] = {WrapVoidToJS(env), WrapVoidToJS(env)};
     if (getAllCons->status == napi_ok) {
         args[1] = data;
     } else {
@@ -1048,7 +1048,7 @@ void GetProcessIdCallbackCompletedCB(napi_env env, napi_status status, void *dat
 void CBOrPromiseToGetProcessId(napi_env env, const GetIdAsyncContext *getIdCB, napi_value err, napi_value data)
 {
     ACCOUNT_LOGD("enter");
-    napi_value args[RESULT_COUNT] = {nullptr};
+    napi_value args[RESULT_COUNT] = {WrapVoidToJS(env), WrapVoidToJS(env)};
     if (getIdCB->status == napi_ok) {
         args[1] = data;
     } else {
@@ -1165,7 +1165,7 @@ void CBOrPromiseToQueryOAContSrcType(napi_env env,
     const QueryOAConstraintSrcTypeContext *queryConstraintSource, napi_value err, napi_value data)
 {
     ACCOUNT_LOGI("enter");
-    napi_value args[RESULT_COUNT] = {nullptr};
+    napi_value args[RESULT_COUNT] = {WrapVoidToJS(env), WrapVoidToJS(env)};
     if (queryConstraintSource->status == napi_ok) {
         args[1] = data;
     } else {
@@ -1268,7 +1268,7 @@ void QueryOAInfoForResult(napi_env env, const std::vector<OsAccountInfo> &info, 
 void CBOrPromiseToQueryOA(napi_env env, const QueryCreateOAAsyncContext *queryOA, napi_value err, napi_value data)
 {
     ACCOUNT_LOGD("enter");
-    napi_value args[RESULT_COUNT] = {nullptr};
+    napi_value args[RESULT_COUNT] = {WrapVoidToJS(env), WrapVoidToJS(env)};
     if (queryOA->status == napi_ok) {
         args[1] = data;
     } else {
@@ -1297,7 +1297,7 @@ void CBOrPromiseToQueryActiveIds(napi_env env, const QueryActiveIdsAsyncContext 
     napi_value err, napi_value data)
 {
     ACCOUNT_LOGD("enter");
-    napi_value args[RESULT_COUNT] = {nullptr};
+    napi_value args[RESULT_COUNT] = {WrapVoidToJS(env), WrapVoidToJS(env)};
     if (queryActiveIds->status == napi_ok) {
         args[1] = data;
     } else {
@@ -1369,7 +1369,7 @@ void GetOAPhotoCallbackCompletedCB(napi_env env, napi_status status, void *data)
 void CBOrPromiseToGetPhoto(napi_env env, const GetOAPhotoAsyncContext *getPhoto, napi_value err, napi_value data)
 {
     ACCOUNT_LOGD("enter");
-    napi_value args[RESULT_COUNT] = {nullptr};
+    napi_value args[RESULT_COUNT] = {WrapVoidToJS(env), WrapVoidToJS(env)};
     if (getPhoto->status == napi_ok) {
         args[1] = data;
     } else {
@@ -1436,7 +1436,7 @@ void QueryCurrentOACallbackCompletedCB(napi_env env, napi_status status, void *d
 void CBOrPromiseQueryCurrentOA(napi_env env, const CurrentOAAsyncContext *currentOA, napi_value err, napi_value data)
 {
     ACCOUNT_LOGD("enter");
-    napi_value args[RESULT_COUNT] = {nullptr};
+    napi_value args[RESULT_COUNT] = {WrapVoidToJS(env), WrapVoidToJS(env)};
     if (currentOA->status == napi_ok) {
         args[1] = data;
     } else {
@@ -1581,7 +1581,7 @@ void GetIdByDomainCallbackCompletedCB(napi_env env, napi_status status, void *da
 void CBOrPromiseGetIdByUid(napi_env env, const GetIdByUidAsyncContext *idByUid, napi_value err, napi_value data)
 {
     ACCOUNT_LOGD("enter");
-    napi_value args[RESULT_COUNT] = {nullptr};
+    napi_value args[RESULT_COUNT] = {WrapVoidToJS(env), WrapVoidToJS(env)};
     if (idByUid->status == napi_ok) {
         args[1] = data;
     } else {
@@ -1610,7 +1610,7 @@ void CBOrPromiseGetBundleIdByUid(napi_env env, const GetIdByUidAsyncContext *bun
     napi_value err, napi_value data)
 {
     ACCOUNT_LOGD("enter");
-    napi_value args[RESULT_COUNT] = {nullptr};
+    napi_value args[RESULT_COUNT] = {WrapVoidToJS(env), WrapVoidToJS(env)};
     if (bundleIdByUid->status == napi_ok) {
         args[1] = data;
     } else {
@@ -1639,7 +1639,7 @@ void CBOrPromiseGetIdByDomain(napi_env env, const GetIdByDomainAsyncContext *idB
     napi_value err, napi_value data)
 {
     ACCOUNT_LOGD("enter");
-    napi_value args[RESULT_COUNT] = {nullptr};
+    napi_value args[RESULT_COUNT] = {WrapVoidToJS(env), WrapVoidToJS(env)};
     if (idByDomain->status == napi_ok) {
         args[1] = data;
     } else {
@@ -1713,7 +1713,7 @@ void SetPhotoCompletedCB(napi_env env, napi_status status, void *data)
 void CBOrPromiseSetPhoto(napi_env env, const SetOAPhotoAsyncContext *setPhoto, napi_value err, napi_value data)
 {
     ACCOUNT_LOGD("enter");
-    napi_value args[RESULT_COUNT] = {nullptr};
+    napi_value args[RESULT_COUNT] = {WrapVoidToJS(env), WrapVoidToJS(env)};
     if (setPhoto->status == napi_ok) {
         args[1] = data;
     } else {
@@ -1779,7 +1779,7 @@ void QueryMaxNumCompletedCB(napi_env env, napi_status status, void *data)
 void CBOrPromiseMaxNum(napi_env env, const QueryMaxNumAsyncContext *maxNum, napi_value err, napi_value data)
 {
     ACCOUNT_LOGD("enter");
-    napi_value args[RESULT_COUNT] = {nullptr};
+    napi_value args[RESULT_COUNT] = {WrapVoidToJS(env), WrapVoidToJS(env)};
     if (maxNum->status == napi_ok) {
         args[1] = data;
     } else {
@@ -1851,7 +1851,7 @@ void IsActivedCompletedCB(napi_env env, napi_status status, void *data)
 void CBOrPromiseIsActived(napi_env env, const IsActivedAsyncContext *isActived, napi_value err, napi_value data)
 {
     ACCOUNT_LOGD("enter");
-    napi_value args[RESULT_COUNT] = {nullptr};
+    napi_value args[RESULT_COUNT] = {WrapVoidToJS(env), WrapVoidToJS(env)};
     if (isActived->status == napi_ok) {
         args[1] = data;
     } else {
@@ -1926,7 +1926,7 @@ void IsEnableCompletedCB(napi_env env, napi_status status, void *data)
 void CBOrPromiseIsEnable(napi_env env, const IsConEnableAsyncContext *isEnable, napi_value err, napi_value data)
 {
     ACCOUNT_LOGD("enter");
-    napi_value args[RESULT_COUNT] = {nullptr};
+    napi_value args[RESULT_COUNT] = {WrapVoidToJS(env), WrapVoidToJS(env)};
     if (isEnable->status == napi_ok) {
         args[1] = data;
     } else {
@@ -2010,7 +2010,7 @@ void GetTypeCompletedCB(napi_env env, napi_status status, void *data)
 void CBOrPromiseGetType(napi_env env, const GetTypeAsyncContext *getType, napi_value err, napi_value data)
 {
     ACCOUNT_LOGD("enter");
-    napi_value args[RESULT_COUNT] = {nullptr};
+    napi_value args[RESULT_COUNT] = {WrapVoidToJS(env), WrapVoidToJS(env)};
     if (getType->status == napi_ok) {
         args[1] = data;
     } else {
@@ -2076,7 +2076,7 @@ void IsMultiEnCompletedCB(napi_env env, napi_status status, void *data)
 void CBOrPromiseIsMultiEn(napi_env env, const IsMultiEnAsyncContext *multiEn, napi_value err, napi_value data)
 {
     ACCOUNT_LOGD("enter");
-    napi_value args[RESULT_COUNT] = {nullptr};
+    napi_value args[RESULT_COUNT] = {WrapVoidToJS(env), WrapVoidToJS(env)};
     if (multiEn->status == napi_ok) {
         args[1] = data;
     } else {
@@ -2151,7 +2151,7 @@ void IsVerifiedCompletedCB(napi_env env, napi_status status, void *data)
 void CBOrPromiseIsVerified(napi_env env, const IsVerifiedAsyncContext *isVerified, napi_value err, napi_value data)
 {
     ACCOUNT_LOGD("enter");
-    napi_value args[RESULT_COUNT] = {nullptr};
+    napi_value args[RESULT_COUNT] = {WrapVoidToJS(env), WrapVoidToJS(env)};
     if (isVerified->status == napi_ok) {
         args[1] = data;
     } else {
@@ -2224,7 +2224,7 @@ void SerialNumIdCompletedCB(napi_env env, napi_status status, void *data)
 void CBOrPromiseSerialNum(napi_env env, const GetSerialNumIdCBInfo *serialNumId, napi_value err, napi_value data)
 {
     ACCOUNT_LOGD("enter");
-    napi_value args[RESULT_COUNT] = {nullptr};
+    napi_value args[RESULT_COUNT] = {WrapVoidToJS(env), WrapVoidToJS(env)};
     if (serialNumId->status == napi_ok) {
         args[1] = data;
     } else {
@@ -2297,7 +2297,7 @@ void GetSerialNumCompletedCB(napi_env env, napi_status status, void *data)
 void CBOrPromiseGetSerialNum(napi_env env, const GetSerialNumForOAInfo *getSerialNum, napi_value err, napi_value data)
 {
     ACCOUNT_LOGD("enter");
-    napi_value args[RESULT_COUNT] = {nullptr};
+    napi_value args[RESULT_COUNT] = {WrapVoidToJS(env), WrapVoidToJS(env)};
     if (getSerialNum->status == napi_ok) {
         args[1] = data;
     } else {
@@ -2357,7 +2357,7 @@ void ParseParaIsMainOA(napi_env env, napi_callback_info cbInfo, IsMainOAInfo *is
 void CBOrPromiseIsTestOA(napi_env env, const IsTestOAInfo *isTest, napi_value err, napi_value data)
 {
     ACCOUNT_LOGD("enter");
-    napi_value args[RESULT_COUNT] = {nullptr};
+    napi_value args[RESULT_COUNT] = {WrapVoidToJS(env), WrapVoidToJS(env)};
     if (isTest->status == napi_ok) {
         args[1] = data;
     } else {
@@ -2385,7 +2385,7 @@ void CBOrPromiseIsTestOA(napi_env env, const IsTestOAInfo *isTest, napi_value er
 void CBOrPromiseIsMainOA(napi_env env, const IsMainOAInfo *isMain, napi_value err, napi_value data)
 {
     ACCOUNT_LOGD("enter");
-    napi_value args[RESULT_COUNT] = {nullptr};
+    napi_value args[RESULT_COUNT] = {WrapVoidToJS(env), WrapVoidToJS(env)};
     if (isMain->status == napi_ok) {
         args[1] = data;
     } else {
