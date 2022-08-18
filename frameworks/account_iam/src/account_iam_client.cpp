@@ -15,360 +15,183 @@
 
 #include "account_iam_client.h"
 
-#include "account_iam_callback.h"
+#include "account_error_no.h"
+#include "account_iam_callback_service.h"
 #include "account_log_wrapper.h"
 #include "account_proxy.h"
 #include "iservice_registry.h"
-#include "os_account_manager.h"
-#include "pinauth_register.h"
 #include "system_ability_definition.h"
-#include "user_auth_client.h"
-#include "user_auth_client_impl.h"
-#include "user_idm_client.h"
 
 namespace OHOS {
 namespace AccountSA {
-using UserIDMClient = UserIam::UserAuth::UserIdmClient;
-using UserAuthClient = UserIam::UserAuth::UserAuthClient;
-using PinAuthRegister = UserIam::PinAuth::PinAuthRegister;
-using UserAuthClientImpl = UserIam::UserAuth::UserAuthClientImpl;
-
 AccountIAMClient::AccountIAMClient()
-{
-    userStateMap_[0] = IDLE;
-}
+{}
 
-ErrCode AccountIAMClient::OpenSession(int32_t userId, std::vector<uint8_t> &challenge)
+void AccountIAMClient::OpenSession(int32_t userId, std::vector<uint8_t> &challenge)
 {
-    challenge = UserIDMClient::GetInstance().OpenSession(userId);
-    std::lock_guard<std::mutex> lock(mutex_);
-    userStateMap_[userId] = AFTER_OPEN_SESSION;
-    userChallengeMap_[userId] = challenge;
-    return ERR_OK;
-}
-
-ErrCode AccountIAMClient::CloseSession(int32_t userId)
-{
-    UserIDMClient::GetInstance().CloseSession(userId);
-    std::lock_guard<std::mutex> lock(mutex_);
-    if (userId == 0) {
-        userStateMap_[0] = IDLE;
-    } else {
-        userStateMap_.erase(userId);
-    }
-    userChallengeMap_.erase(userId);
-    return ERR_OK;
-}
-
-ErrCode AccountIAMClient::AddCredential(const CredentialParameters& credInfo,
-    const std::shared_ptr<UserIdmClientCallback>& callback)
-{
-    ACCOUNT_LOGD("enter");
-    if (callback == nullptr) {
-        ACCOUNT_LOGD("callback is nullptr");
-        return ERR_ACCOUNT_COMMON_NULL_PTR_ERROR;
-    }
-    if (credInfo.authType != AuthType::PIN) {
-        UserIDMClient::GetInstance().AddCredential(0, credInfo, callback);
-        return ERR_OK;
-    }
-    int32_t userId = 0;
-    OsAccountManager::GetOsAccountLocalIdFromProcess(userId);
-    PinSubType pinType = credInfo.pinType.value_or(PinSubType::PIN_MAX);
-    SetAuthSubType(userId, pinType);
-    auto idmCallback = std::make_shared<AddCredCallback>(userId, credInfo, callback);
-    UserIDMClient::GetInstance().AddCredential(0, credInfo, idmCallback);
-    return ERR_OK;
-}
-
-ErrCode AccountIAMClient::UpdateCredential(const CredentialParameters& credInfo,
-    const std::shared_ptr<UserIdmClientCallback>& callback)
-{
-    ACCOUNT_LOGD("enter");
-    if (callback == nullptr) {
-        ACCOUNT_LOGD("callback is nullptr");
-        return ERR_ACCOUNT_COMMON_NULL_PTR_ERROR;
-    }
-    if (credInfo.token.empty()) {
-        ACCOUNT_LOGD("token is empty");
-        Attributes emptyResult;
-        callback->OnResult(ResultCode::INVALID_PARAMETERS, emptyResult);
-        return ERR_OK;
-    }
-    if (credInfo.authType != AuthType::PIN) {
-        UserIDMClient::GetInstance().UpdateCredential(0, credInfo, callback);
-        return ERR_OK;
-    }
-    int32_t userId = 0;
-    OsAccountManager::GetOsAccountLocalIdFromProcess(userId);
-    PinSubType pinType = credInfo.pinType.value_or(PinSubType::PIN_MAX);
-    SetAuthSubType(userId, pinType);
-    auto idmCallback = std::make_shared<UpdateCredCallback>(userId, credInfo, callback);
-    UserIDMClient::GetInstance().UpdateCredential(0, credInfo, idmCallback);
-    return ERR_OK;
-}
-
-ErrCode AccountIAMClient::DelCred(uint64_t credentialId, std::vector<uint8_t> authToken,
-    const std::shared_ptr<UserIdmClientCallback>& callback)
-{
-    ACCOUNT_LOGD("enter");
-    if (callback == nullptr) {
-        ACCOUNT_LOGD("callback is nullptr");
-        return ERR_ACCOUNT_COMMON_NULL_PTR_ERROR;
-    }
-    Attributes errResult;
-    if (authToken.empty()) {
-        ACCOUNT_LOGD("token is empty");
-        callback->OnResult(ResultCode::INVALID_PARAMETERS, errResult);
-        return ERR_OK;
-    }
-    int32_t userId = 0;
-    OsAccountManager::GetOsAccountLocalIdFromProcess(userId);
-    std::vector<uint8_t> secret;
-    ErrCode result = UpdateUserKey(userId, credentialId, authToken, secret);
-    if (result != ERR_OK) {
-        callback->OnResult(result, errResult);
-        return ERR_OK;
-    }
-    auto idmCallback = std::make_shared<DelCredCallback>(userId, credentialId, authToken, callback);
-    UserIDMClient::GetInstance().DeleteCredential(0, credentialId, authToken, idmCallback);
-    return ERR_OK;
-}
-
-ErrCode AccountIAMClient::DelUser(std::vector<uint8_t> authToken,
-    const std::shared_ptr<UserIdmClientCallback>& callback)
-{
-    ACCOUNT_LOGD("enter");
-    if (callback == nullptr) {
-        ACCOUNT_LOGD("callback is nullptr");
-        return ERR_ACCOUNT_COMMON_NULL_PTR_ERROR;
-    }
-    Attributes errResult;
-    if (authToken.empty()) {
-        ACCOUNT_LOGD("token is empty");
-        callback->OnResult(ResultCode::INVALID_PARAMETERS, errResult);
-        return ERR_OK;
-    }
-    int32_t userId = 0;
-    OsAccountManager::GetOsAccountLocalIdFromProcess(userId);
-    ErrCode result = RemoveUserKey(userId, authToken);
-    if (result != ERR_OK) {
-        callback->OnResult(result, errResult);
-        return ERR_OK;
-    }
-    auto idmCallback = std::make_shared<DelCredCallback>(userId, 0, authToken, callback);
-    UserIDMClient::GetInstance().DeleteUser(userId, authToken, idmCallback);
-    return ERR_OK;
-}
-
-ErrCode AccountIAMClient::GetAuthInfo(AuthType authType, const std::shared_ptr<GetCredentialInfoCallback>& callback)
-{
-    UserIDMClient::GetInstance().GetCredentialInfo(0, authType, callback);
-    return ERR_OK;
-}
-
-ErrCode AccountIAMClient::Cancel(uint64_t challenge, int32_t &resultCode)
-{
-    resultCode = UserIDMClient::GetInstance().Cancel(challenge);
-    return ERR_OK;
-}
-
-ErrCode AccountIAMClient::Auth(const std::vector<uint8_t> &challenge, const AuthType authType,
-    const AuthTrustLevel authTrustLevel, const std::shared_ptr<AuthenticationCallback> &callback, uint64_t &contextId)
-{
-    ACCOUNT_LOGD("enter");
-    int32_t userId = 0;
-    OsAccountManager::GetOsAccountLocalIdFromProcess(userId);
-    return AuthUser(userId, challenge, authType, authTrustLevel, callback, contextId);
-}
-
-ErrCode AccountIAMClient::AuthUser(
-    const int32_t userId, const std::vector<uint8_t> &challenge, const AuthType authType,
-    const AuthTrustLevel authTrustLevel, const std::shared_ptr<AuthenticationCallback> &callback, uint64_t &contextId)
-{
-    ACCOUNT_LOGD("enter");
-    if (callback == nullptr) {
-        ACCOUNT_LOGD("callback is nullptr");
-        return ERR_ACCOUNT_COMMON_NULL_PTR_ERROR;
-    }
-    if (authType != AuthType::PIN) {
-        contextId = UserAuthClient::GetInstance().BeginAuthentication(
-            userId, challenge, authType, authTrustLevel, callback);
-        return ERR_OK;
-    }
-    auto userAuthCallback = std::make_shared<AuthCallback>(userId, callback);
-    contextId = UserAuthClient::GetInstance().BeginAuthentication(
-        userId, challenge, authType, authTrustLevel, userAuthCallback);
-    return ERR_OK;
-}
-
-ErrCode AccountIAMClient::CancelAuth(const uint64_t contextId, int32_t &resultCode)
-{
-    resultCode = UserAuthClient::GetInstance().CancelAuthentication(contextId);
-    return ERR_OK;
-}
-
-ErrCode AccountIAMClient::GetAvailableStatus(
-    const AuthType authType, const AuthTrustLevel authTrustLevel, int32_t &status)
-{
-    status = UserAuthClientImpl::Instance().GetAvailableStatus(authType, authTrustLevel);
-    return ERR_OK;
-}
-
-ErrCode AccountIAMClient::GetProperty(const GetPropertyRequest &request, std::shared_ptr<GetPropCallback> callback)
-{
-    UserAuthClient::GetInstance().GetProperty(0, request, callback);
-    return ERR_OK;
-}
-
-ErrCode AccountIAMClient::SetProperty(const SetPropertyRequest &request, std::shared_ptr<SetPropCallback> callback)
-{
-    UserAuthClient::GetInstance().SetProperty(0, request, callback);
-    return ERR_OK;
-}
-
-ErrCode AccountIAMClient::RegisterInputer(const std::shared_ptr<IInputer> inputer, bool &isSucceed)
-{
-    ACCOUNT_LOGD("enter");
-    isSucceed = false;
-    int32_t userId = 0;
-    OsAccountManager::GetOsAccountLocalIdFromProcess(userId);
-    auto iamInputer = std::make_shared<IAMInputer>(userId, inputer);
-    isSucceed = PinAuthRegister::GetInstance().RegisterInputer(iamInputer);
-    return ERR_OK;
-}
-
-ErrCode AccountIAMClient::UnRegisterInputer()
-{
-    ACCOUNT_LOGD("enter");
-    PinAuthRegister::GetInstance().UnRegisterInputer();
-    return ERR_OK;
-}
-
-IAMState AccountIAMClient::GetState(int32_t userId)
-{
-    ACCOUNT_LOGD("enter");
-    std::lock_guard<std::mutex> lock(mutex_);
-    auto it = userStateMap_.find(userId);
-    if (it != userStateMap_.end()) {
-        return it->second;
-    }
-    return userStateMap_[0];
-}
-
-void AccountIAMClient::SetState(int32_t userId, IAMState state)
-{
-    ACCOUNT_LOGD("enter");
-    std::lock_guard<std::mutex> lock(mutex_);
-    userStateMap_[userId] = state;
-}
-
-void AccountIAMClient::GetChallenge(int32_t userId, std::vector<uint8_t> &challenge)
-{
-    ACCOUNT_LOGD("enter");
-    std::lock_guard<std::mutex> lock(mutex_);
-    auto it = userChallengeMap_.find(userId);
-    if (it != userChallengeMap_.end()) {
-        challenge = it->second;
-    } else {
-        challenge = userChallengeMap_[0];
-    }
-}
-
-void AccountIAMClient::GetCredential(int32_t userId, int32_t authSubType, CredentialPair &credPair)
-{
-    ACCOUNT_LOGD("enter");
-    std::string key = std::to_string(userId) + std::to_string(authSubType);
-    std::lock_guard<std::mutex> lock(mutex_);
-    auto it = credentialMap_.find(key);
-    if (it != credentialMap_.end()) {
-        credPair = it->second;
-    }
-}
-
-void AccountIAMClient::SetCredential(int32_t userId, int32_t authSubType, const std::vector<uint8_t> &credential)
-{
-    ACCOUNT_LOGD("enter");
-    std::string key = std::to_string(userId) + std::to_string(authSubType);
-    std::lock_guard<std::mutex> lock(mutex_);
-    auto it = credentialMap_.find(key);
-    if (it != credentialMap_.end()) {
-        it->second.oldCredential = it->second.credential;
-        it->second.credential = credential;
+    if (GetAccountIAMProxy() != ERR_OK) {
+        ACCOUNT_LOGD("fail to get account iam proxy");
         return;
     }
-    credentialMap_[key] = {
-        .credential = credential
-    };
+    proxy_->OpenSession(userId, challenge);
 }
 
-void AccountIAMClient::ClearCredential(int32_t userId, int32_t authSubType)
+void AccountIAMClient::CloseSession(int32_t userId)
 {
-    std::string key = std::to_string(userId) + std::to_string(authSubType);
-    std::lock_guard<std::mutex> lock(mutex_);
-    credentialMap_.erase(key);
-}
-
-void AccountIAMClient::SetAuthSubType(int32_t userId, int32_t authSubType)
-{
-    std::lock_guard<std::mutex> lock(mutex_);
-    authSubTypeMap_[userId] = authSubType;
-}
-
-int32_t AccountIAMClient::GetAuthSubType(int32_t userId)
-{
-    std::lock_guard<std::mutex> lock(mutex_);
-    auto it = authSubTypeMap_.find(userId);
-    if (it != authSubTypeMap_.end()) {
-        return it->second;
-    }
-    return 0;
-}
-
-ErrCode AccountIAMClient::ActivateUserKey(
-    int32_t userId, const std::vector<uint8_t> &token, const std::vector<uint8_t> &secret)
-{
-    ACCOUNT_LOGD("enter");
-    ErrCode result = GetAccountIAMProxy();
-    if (result != ERR_OK) {
+    if (GetAccountIAMProxy() != ERR_OK) {
         ACCOUNT_LOGD("fail to get account iam proxy");
-        return result;
+        return;
     }
-    return proxy_->ActivateUserKey(userId, token, secret);
+    proxy_->CloseSession(userId);
 }
 
-ErrCode AccountIAMClient::UpdateUserKey(int32_t userId, uint64_t credentialId,
-    const std::vector<uint8_t> &token, const std::vector<uint8_t> &newSecret)
+void AccountIAMClient::AddCredential(
+    int32_t userId, const CredentialParameters& credInfo, const std::shared_ptr<IDMCallback> &callback)
 {
-    ACCOUNT_LOGD("enter");
-    ErrCode result = GetAccountIAMProxy();
-    if (result != ERR_OK) {
+    if (GetAccountIAMProxy() != ERR_OK) {
         ACCOUNT_LOGD("fail to get account iam proxy");
-        return result;
+        return;
     }
-    return proxy_->UpdateUserKey(userId, credentialId, token, newSecret);
+    sptr<IIDMCallback> wrapper = new (std::nothrow) IDMCallbackService(callback);
+    proxy_->AddCredential(userId, credInfo, wrapper);
 }
 
-ErrCode AccountIAMClient::RemoveUserKey(int32_t userId, const std::vector<uint8_t> &token)
+void AccountIAMClient::UpdateCredential(
+    int32_t userId, const CredentialParameters& credInfo, const std::shared_ptr<IDMCallback> &callback)
 {
-    ACCOUNT_LOGD("enter");
-    ErrCode result = GetAccountIAMProxy();
-    if (result != ERR_OK) {
+    if (GetAccountIAMProxy() != ERR_OK) {
         ACCOUNT_LOGD("fail to get account iam proxy");
-        return result;
+        return;
     }
-    return proxy_->RemoveUserKey(userId, token);
+    sptr<IIDMCallback> wrapper = new (std::nothrow) IDMCallbackService(callback);
+    proxy_->UpdateCredential(userId, credInfo, wrapper);
 }
 
-ErrCode AccountIAMClient::RestoreUserKey(int32_t userId, uint64_t credentialId, const std::vector<uint8_t> &token)
+void AccountIAMClient::DelCred(int32_t userId, uint64_t credentialId, const std::vector<uint8_t> &authToken,
+    const std::shared_ptr<IDMCallback>& callback)
 {
-    ACCOUNT_LOGD("enter");
-    ErrCode result = GetAccountIAMProxy();
-    if (result != ERR_OK) {
+    if (GetAccountIAMProxy() != ERR_OK) {
         ACCOUNT_LOGD("fail to get account iam proxy");
-        return result;
+        return;
     }
-    return proxy_->RestoreUserKey(userId, credentialId, token);
+    sptr<IIDMCallback> wrapper = new (std::nothrow) IDMCallbackService(callback);
+    proxy_->DelCred(userId, credentialId, authToken, wrapper);
+}
+
+void AccountIAMClient::DelUser(
+    int32_t userId, const std::vector<uint8_t> &authToken, const std::shared_ptr<IDMCallback> &callback)
+{
+    if (GetAccountIAMProxy() != ERR_OK) {
+        ACCOUNT_LOGD("fail to get account iam proxy");
+        return;
+    }
+    sptr<IIDMCallback> wrapper = new (std::nothrow) IDMCallbackService(callback);
+    proxy_->DelUser(userId, authToken, wrapper);
+}
+
+void AccountIAMClient::GetCredentialInfo(
+    int32_t userId, AuthType authType, const std::shared_ptr<GetCredInfoCallback> &callback)
+{
+    if (GetAccountIAMProxy() != ERR_OK) {
+        ACCOUNT_LOGD("fail to get account iam proxy");
+        return;
+    }
+    sptr<IGetCredInfoCallback> wrapper = new (std::nothrow) GetCredInfoCallbackService(callback);
+    proxy_->GetCredentialInfo(userId, authType, wrapper);
+}
+
+int32_t AccountIAMClient::Cancel(int32_t userId, uint64_t challenge)
+{
+    if (GetAccountIAMProxy() != ERR_OK) {
+        ACCOUNT_LOGD("fail to get account iam proxy");
+        return ResultCode::FAIL;
+    }
+    return proxy_->Cancel(userId, challenge);
+}
+
+uint64_t AccountIAMClient::Auth(const std::vector<uint8_t> &challenge, AuthType authType,
+    AuthTrustLevel authTrustLevel, const std::shared_ptr<IDMCallback> &callback)
+{
+    uint64_t contextId = 0;
+    if (GetAccountIAMProxy() != ERR_OK) {
+        ACCOUNT_LOGD("fail to get account iam proxy");
+        return contextId;
+    }
+    sptr<IIDMCallback> wrapper = new (std::nothrow) IDMCallbackService(callback);
+    return proxy_->AuthUser(0, challenge, authType, authTrustLevel, wrapper);
+}
+
+uint64_t AccountIAMClient::AuthUser(
+    int32_t userId, const std::vector<uint8_t> &challenge, AuthType authType,
+    AuthTrustLevel authTrustLevel, const std::shared_ptr<IDMCallback> &callback)
+{
+    uint64_t contextId = 0;
+    if (GetAccountIAMProxy() != ERR_OK) {
+        ACCOUNT_LOGD("fail to get account iam proxy");
+        return contextId;
+    }
+    sptr<IIDMCallback> wrapper = new (std::nothrow) IDMCallbackService(callback);
+    return proxy_->AuthUser(userId, challenge, authType, authTrustLevel, wrapper);
+}
+
+int32_t AccountIAMClient::CancelAuth(uint64_t contextId)
+{
+    if (GetAccountIAMProxy() != ERR_OK) {
+        ACCOUNT_LOGD("fail to get account iam proxy");
+        return ResultCode::FAIL;
+    }
+    return proxy_->CancelAuth(contextId);
+}
+
+int32_t AccountIAMClient::GetAvailableStatus(AuthType authType, AuthTrustLevel authTrustLevel)
+{
+    int32_t status = 0;
+    if (GetAccountIAMProxy() != ERR_OK) {
+        ACCOUNT_LOGD("fail to get account iam proxy");
+        return status;
+    }
+    return proxy_->GetAvailableStatus(authType, authTrustLevel);
+}
+
+void AccountIAMClient::GetProperty(
+    int32_t userId, const GetPropertyRequest &request, const std::shared_ptr<GetSetPropCallback> &callback)
+{
+    if (GetAccountIAMProxy() != ERR_OK) {
+        ACCOUNT_LOGD("fail to get account iam proxy");
+        return;
+    }
+    sptr<IGetSetPropCallback> wrapper = new (std::nothrow) GetSetPropCallbackService(callback);
+    proxy_->GetProperty(userId, request, wrapper);
+}
+
+void AccountIAMClient::SetProperty(
+    int32_t userId, const SetPropertyRequest &request, const std::shared_ptr<GetSetPropCallback> &callback)
+{
+    if (GetAccountIAMProxy() != ERR_OK) {
+        ACCOUNT_LOGD("fail to get account iam proxy");
+        return;
+    }
+    sptr<IGetSetPropCallback> wrapper = new (std::nothrow) GetSetPropCallbackService(callback);
+    proxy_->SetProperty(userId, request, wrapper);
+}
+
+bool AccountIAMClient::RegisterInputer(const std::shared_ptr<GetDataCallback> &inputer)
+{
+    if (GetAccountIAMProxy() != ERR_OK) {
+        ACCOUNT_LOGD("fail to get account iam proxy");
+        return false;
+    }
+    sptr<IGetDataCallback> wrapper = new (std::nothrow) GetDataCallbackService(inputer);
+    return proxy_->RegisterInputer(wrapper);
+}
+
+void AccountIAMClient::UnRegisterInputer()
+{
+    if (GetAccountIAMProxy() != ERR_OK) {
+        ACCOUNT_LOGD("fail to get account iam proxy");
+        return;
+    }
+    proxy_->UnRegisterInputer();
 }
 
 void AccountIAMClient::ResetAccountIAMProxy(const wptr<IRemoteObject>& remote)
@@ -385,7 +208,7 @@ void AccountIAMClient::ResetAccountIAMProxy(const wptr<IRemoteObject>& remote)
     }
 }
 
-void AccountIAMClient::AccountIAMDeathRecipient::OnRemoteDied(const wptr<IRemoteObject>& remote)
+void AccountIAMClient::AccountIAMDeathRecipient::OnRemoteDied(const wptr<IRemoteObject> &remote)
 {
     if (remote == nullptr) {
         ACCOUNT_LOGD("remote is nullptr");

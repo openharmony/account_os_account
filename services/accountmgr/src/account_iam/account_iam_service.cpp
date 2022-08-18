@@ -16,177 +16,172 @@
 #include "account_iam_service.h"
 
 #include "account_log_wrapper.h"
-#include "account_permission_manager.h"
-#include "iservice_registry.h"
-#include "system_ability_definition.h"
+#include "iaccount_iam_callback.h"
+#include "inner_account_iam_manager.h"
+#include "ipc_skeleton.h"
+#include "os_account_manager.h"
 
 namespace OHOS {
 namespace AccountSA {
-namespace {
-#ifdef HAS_STORAGE_PART
-const int32_t ERROR_STORAGE_KEY_NOT_EXIST = -2;
-#endif
-}
-
 AccountIAMService::AccountIAMService()
 {}
 
 AccountIAMService::~AccountIAMService()
 {}
 
-ErrCode AccountIAMService::ActivateUserKey(
-    int32_t userId, const std::vector<uint8_t> &token, const std::vector<uint8_t> &secret)
+void AccountIAMService::OpenSession(int32_t userId, std::vector<uint8_t> &challenge)
 {
-    ACCOUNT_LOGD("enter");
-#ifdef HAS_STORAGE_PART
-    ErrCode result = GetStorageManagerProxy();
-    if (result != ERR_OK) {
-        ACCOUNT_LOGD("fail to get storage proxy");
-        return result;
+    if (userId == 0) {
+        int32_t callingUid = IPCSkeleton::GetCallingUid();
+        if (OsAccountManager::GetOsAccountLocalIdFromUid(callingUid, userId) != ERR_OK) {
+            return;
+        }
     }
-    result = storageMgrProxy_->ActiveUserKey(userId, token, secret);
-    if (result != ERR_OK && result != ERROR_STORAGE_KEY_NOT_EXIST) {
-        ACCOUNT_LOGD("fail to active user key, error code: %{public}d", result);
-        return result;
-    }
-    storageMgrProxy_->PrepareStartUser(userId);
-#endif
-    std::lock_guard<std::mutex> lock(mutex_);
-    auto it = credInfoMap_.find(userId);
-    if (it != credInfoMap_.end()) {
-        it->second.secret = secret;
-    } else {
-        credInfoMap_[userId] = {
-            .secret = secret
-        };
-    }
-    return ERR_OK;
+    InnerAccountIAMManager::GetInstance().OpenSession(userId, challenge);
 }
 
-ErrCode AccountIAMService::UpdateUserKey(int32_t userId, uint64_t credentialId,
-    const std::vector<uint8_t> &token, const std::vector<uint8_t> &newSecret)
+void AccountIAMService::CloseSession(int32_t userId)
 {
-    ACCOUNT_LOGD("enter");
-    ErrCode result = ERR_OK;
-    CredentialInfo oldCredInfo;
-    std::lock_guard<std::mutex> lock(mutex_);
-    auto it = credInfoMap_.find(userId);
-    if (it != credInfoMap_.end()) {
-        oldCredInfo = it->second;
+    if (userId == 0) {
+        int32_t callingUid = IPCSkeleton::GetCallingUid();
+        if (OsAccountManager::GetOsAccountLocalIdFromUid(callingUid, userId) != ERR_OK) {
+            return;
+        }
     }
-    if (newSecret.empty() && credentialId != oldCredInfo.credentialId) {
-        ACCOUNT_LOGD("the key do not need to be removed");
-        return ERR_OK;
-    }
-#ifdef HAS_STORAGE_PART
-    result = GetStorageManagerProxy();
-    if (result != ERR_OK) {
-        ACCOUNT_LOGD("fail to get storage proxy");
-        return result;
-    }
-    result = storageMgrProxy_->UpdateUserAuth(userId, token, oldCredInfo.secret, newSecret);
-    if (result != ERR_OK && result != ERROR_STORAGE_KEY_NOT_EXIST) {
-        ACCOUNT_LOGD("fail to update user auth");
-        return result;
-    }
-    result = storageMgrProxy_->UpdateKeyContext(userId);
-#endif
-    credInfoMap_[userId] = {
-        .credentialId = credentialId,
-        .oldSecret = oldCredInfo.secret,
-        .secret = newSecret
-    };
-    return result;
+    InnerAccountIAMManager::GetInstance().CloseSession(userId);
 }
 
-ErrCode AccountIAMService::RemoveUserKey(int32_t userId, const std::vector<uint8_t> &token)
+void AccountIAMService::AddCredential(
+    int32_t userId, const CredentialParameters &credInfo, const sptr<IIDMCallback> &callback)
 {
-    ACCOUNT_LOGD("enter");
-    ErrCode result = ERR_OK;
-    std::lock_guard<std::mutex> lock(mutex_);
-    auto it = credInfoMap_.find(userId);
-    if (it == credInfoMap_.end()) {
-        return ERR_OK;
+    if (userId == 0) {
+        int32_t callingUid = IPCSkeleton::GetCallingUid();
+        if (OsAccountManager::GetOsAccountLocalIdFromUid(callingUid, userId) != ERR_OK) {
+            return;
+        }
     }
-    CredentialInfo oldCredInfo = it->second;
-    std::vector<uint8_t> newSecret;
-#ifdef HAS_STORAGE_PART
-    result = GetStorageManagerProxy();
-    if (result != ERR_OK) {
-        ACCOUNT_LOGD("fail to get storage proxy");
-        return result;
-    }
-    result = storageMgrProxy_->UpdateUserAuth(userId, token, oldCredInfo.secret, newSecret);
-    if (result != ERR_OK && result != ERROR_STORAGE_KEY_NOT_EXIST) {
-        ACCOUNT_LOGD("fail to update user auth");
-        return result;
-    }
-    result = storageMgrProxy_->UpdateKeyContext(userId);
-#endif
-    credInfoMap_[userId] = {
-        .oldSecret = oldCredInfo.secret,
-        .secret = newSecret
-    };
-    return result;
+    InnerAccountIAMManager::GetInstance().AddCredential(userId, credInfo, callback);
 }
 
-ErrCode AccountIAMService::RestoreUserKey(int32_t userId, uint64_t credentialId,
-    const std::vector<uint8_t> &token)
+void AccountIAMService::UpdateCredential(int32_t userId, const CredentialParameters &credInfo,
+    const sptr<IIDMCallback> &callback)
 {
-    ACCOUNT_LOGD("enter");
-    ErrCode result = ERR_OK;
-    CredentialInfo credInfo;
-    std::lock_guard<std::mutex> lock(mutex_);
-    auto it = credInfoMap_.find(userId);
-    if (it != credInfoMap_.end()) {
-        credInfo = it->second;
+    if (userId == 0) {
+        int32_t callingUid = IPCSkeleton::GetCallingUid();
+        if (OsAccountManager::GetOsAccountLocalIdFromUid(callingUid, userId) != ERR_OK) {
+            return;
+        }
     }
-    if (credentialId != 0 && credInfo.credentialId != credentialId) {
-        return ERR_OK;
-    }
-#ifdef HAS_STORAGE_PART
-    result = GetStorageManagerProxy();
-    if (result != ERR_OK) {
-        ACCOUNT_LOGD("fail to get storage proxy");
-        return result;
-    }
-    result = storageMgrProxy_->UpdateUserAuth(userId, token, credInfo.secret, credInfo.oldSecret);
-    if (result != ERR_OK && result != ERROR_STORAGE_KEY_NOT_EXIST) {
-        ACCOUNT_LOGD("fail to update user auth");
-        return result;
-    }
-    result = storageMgrProxy_->UpdateKeyContext(userId);
-#endif
-    credInfoMap_[userId] = {
-        .secret = credInfo.oldSecret
-    };
-    return result;
+    InnerAccountIAMManager::GetInstance().UpdateCredential(userId, credInfo, callback);
 }
 
-#ifdef HAS_STORAGE_PART
-ErrCode AccountIAMService::GetStorageManagerProxy()
+int32_t AccountIAMService::Cancel(int32_t userId, uint64_t challenge)
 {
-    ACCOUNT_LOGD("enter");
-    if (storageMgrProxy_ != nullptr) {
-        return ERR_OK;
+    if (userId == 0) {
+        int32_t callingUid = IPCSkeleton::GetCallingUid();
+        if (OsAccountManager::GetOsAccountLocalIdFromUid(callingUid, userId) != ERR_OK) {
+            return ResultCode::FAIL;
+        }
     }
-    auto systemAbilityManager = SystemAbilityManagerClient::GetInstance().GetSystemAbilityManager();
-    if (!systemAbilityManager) {
-        ACCOUNT_LOGD("failed to get system ability mgr");
-        return ERR_ACCOUNT_IAM_SERVICE_GET_STORAGE_SYSTEM_ABILITY;
-    }
-    auto remote = systemAbilityManager->GetSystemAbility(STORAGE_MANAGER_MANAGER_ID);
-    if (!remote) {
-        ACCOUNT_LOGD("failed to get STORAGE_MANAGER_MANAGER_ID service");
-        return ERR_ACCOUNT_IAM_SERVICE_REMOTE_IS_NULLPTR;
-    }
-    storageMgrProxy_ = iface_cast<StorageManager::IStorageManager>(remote);
-    if (!storageMgrProxy_) {
-        ACCOUNT_LOGD("failed to get STORAGE_MANAGER_MANAGER_ID proxy");
-        return ERR_ACCOUNT_IAM_SERVICE_REMOTE_IS_NULLPTR;
-    }
-    return ERR_OK;
+    return InnerAccountIAMManager::GetInstance().Cancel(userId, challenge);
 }
-#endif
+
+void AccountIAMService::DelCred(
+    int32_t userId, uint64_t credentialId, const std::vector<uint8_t> &authToken, const sptr<IIDMCallback> &callback)
+{
+    if (userId == 0) {
+        int32_t callingUid = IPCSkeleton::GetCallingUid();
+        if (OsAccountManager::GetOsAccountLocalIdFromUid(callingUid, userId) != ERR_OK) {
+            return;
+        }
+    }
+    InnerAccountIAMManager::GetInstance().DelCred(userId, credentialId, authToken, callback);
+}
+
+void AccountIAMService::DelUser(
+    int32_t userId, const std::vector<uint8_t> &authToken, const sptr<IIDMCallback> &callback)
+{
+    if (userId == 0) {
+        int32_t callingUid = IPCSkeleton::GetCallingUid();
+        if (OsAccountManager::GetOsAccountLocalIdFromUid(callingUid, userId) != ERR_OK) {
+            return;
+        }
+    }
+    InnerAccountIAMManager::GetInstance().DelUser(userId, authToken, callback);
+}
+
+void AccountIAMService::GetCredentialInfo(
+    int32_t userId, AuthType authType, const sptr<IGetCredInfoCallback> &callback)
+{
+    if (userId == 0) {
+        int32_t callingUid = IPCSkeleton::GetCallingUid();
+        if (OsAccountManager::GetOsAccountLocalIdFromUid(callingUid, userId) != ERR_OK) {
+            return;
+        }
+    }
+    InnerAccountIAMManager::GetInstance().GetCredentialInfo(userId, authType, callback);
+}
+
+uint64_t AccountIAMService::AuthUser(int32_t userId, const std::vector<uint8_t> &challenge, AuthType authType,
+    AuthTrustLevel authTrustLevel, const sptr<IIDMCallback> &callback)
+{
+    if (userId == 0) {
+        int32_t callingUid = IPCSkeleton::GetCallingUid();
+        if (OsAccountManager::GetOsAccountLocalIdFromUid(callingUid, userId) != ERR_OK) {
+            return ResultCode::FAIL;
+        }
+    }
+    return InnerAccountIAMManager::GetInstance().AuthUser(
+        userId, challenge, authType, authTrustLevel, callback);
+}
+
+int32_t AccountIAMService::CancelAuth(uint64_t contextId)
+{
+    return InnerAccountIAMManager::GetInstance().CancelAuth(contextId);
+}
+
+int32_t AccountIAMService::GetAvailableStatus(AuthType authType, AuthTrustLevel authTrustLevel)
+{
+    return InnerAccountIAMManager::GetInstance().GetAvailableStatus(authType, authTrustLevel);
+}
+
+void AccountIAMService::GetProperty(
+    int32_t userId, const GetPropertyRequest &request, const sptr<IGetSetPropCallback> &callback)
+{
+    if (userId == 0) {
+        int32_t callingUid = IPCSkeleton::GetCallingUid();
+        if (OsAccountManager::GetOsAccountLocalIdFromUid(callingUid, userId) != ERR_OK) {
+            return;
+        }
+    }
+    return InnerAccountIAMManager::GetInstance().GetProperty(userId, request, callback);
+}
+
+void AccountIAMService::SetProperty(
+    int32_t userId, const SetPropertyRequest &request, const sptr<IGetSetPropCallback> &callback)
+{
+    if (userId == 0) {
+        int32_t callingUid = IPCSkeleton::GetCallingUid();
+        if (OsAccountManager::GetOsAccountLocalIdFromUid(callingUid, userId) != ERR_OK) {
+            return;
+        }
+    }
+    InnerAccountIAMManager::GetInstance().SetProperty(userId, request, callback);
+}
+
+bool AccountIAMService::RegisterInputer(const sptr<IGetDataCallback> &inputer)
+{
+    int32_t userId = 0;
+    int32_t callingUid = IPCSkeleton::GetCallingUid();
+    if (OsAccountManager::GetOsAccountLocalIdFromUid(callingUid, userId) != ERR_OK) {
+        return false;
+    }
+    return InnerAccountIAMManager::GetInstance().RegisterInputer(userId, inputer);
+}
+
+void AccountIAMService::UnRegisterInputer()
+{
+    return InnerAccountIAMManager::GetInstance().UnRegisterInputer();
+}
 }  // namespace AccountSA
 }  // namespace OHOS

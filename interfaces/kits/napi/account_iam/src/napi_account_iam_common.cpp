@@ -626,12 +626,11 @@ napi_value OnSetData(napi_env env, napi_callback_info info)
     NAPI_CALL(env, napi_get_value_int32(env, argv[PARAM_ZERO], &authSubType));
     std::vector<uint8_t> data;
     NAPI_CALL(env, ParseUint8TypedArrayToVector(env, argv[PARAM_ONE], data));
-    ACCOUNT_LOGD("data size: %{public}zu", data.size());
     context->inputerData->OnSetData(authSubType, data);
     return nullptr;
 }
 
-napi_value GetCtorIInputerData(napi_env env, std::shared_ptr<AccountSA::IInputerData> &inputerData)
+napi_value GetCtorIInputerData(napi_env env, const sptr<ISetDataCallback> &inputerData)
 {
     ACCOUNT_LOGD("enter");
     if (inputerData == nullptr) {
@@ -686,13 +685,13 @@ static void OnGetDataWork(uv_work_t* work, int status)
         napi_call_function(context->env, nullptr, callback, ARG_SIZE_TWO, argv, &return_val));
 }
 
-NapiInputer::NapiInputer(napi_env env, napi_ref callback) : env_(env), callback_(callback)
+NapiGetDataCallback::NapiGetDataCallback(napi_env env, napi_ref callback) : env_(env), callback_(callback)
 {}
 
-NapiInputer::~NapiInputer()
+NapiGetDataCallback::~NapiGetDataCallback()
 {}
 
-void NapiInputer::OnGetData(int32_t authSubType, std::shared_ptr<AccountSA::IInputerData> inputerData)
+void NapiGetDataCallback::OnGetData(int32_t authSubType, const sptr<ISetDataCallback> &inputerData)
 {
     ACCOUNT_LOGD("enter");
     std::unique_ptr<uv_work_t> work = std::make_unique<uv_work_t>();

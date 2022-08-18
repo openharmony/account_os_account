@@ -16,9 +16,9 @@
 #ifndef OS_ACCOUNT_INTERFACES_INNERKITS_ACCOUNT_IAM_NATIVE_INCLUDE_ACCOUNT_IAM_CLIENT_H
 #define OS_ACCOUNT_INTERFACES_INNERKITS_ACCOUNT_IAM_NATIVE_INCLUDE_ACCOUNT_IAM_CLIENT_H
 
-#include <map>
+#include <mutex>
 #include <vector>
-#include "account_iam_callback.h"
+#include "account_iam_client_callback.h"
 #include "account_iam_info.h"
 #include "account_error_no.h"
 #include "iaccount_iam.h"
@@ -29,42 +29,29 @@ namespace AccountSA {
 class AccountIAMClient : public DelayedRefSingleton<AccountIAMClient> {
 public:
     AccountIAMClient();
-    ErrCode OpenSession(int32_t userId, std::vector<uint8_t> &challenge);
-    ErrCode CloseSession(int32_t userId);
-    ErrCode AddCredential(
-        const CredentialParameters& credInfo, const std::shared_ptr<UserIdmClientCallback>& callback);
-    ErrCode UpdateCredential(
-        const CredentialParameters& credInfo, const std::shared_ptr<UserIdmClientCallback>& callback);
-    ErrCode Cancel(uint64_t challenge, int32_t &resultCode);
-    ErrCode DelCred(
-        uint64_t credentialId, std::vector<uint8_t> authToken, const std::shared_ptr<UserIdmClientCallback>& callback);
-    ErrCode DelUser(std::vector<uint8_t> authToken, const std::shared_ptr<UserIdmClientCallback>& callback);
-    ErrCode GetAuthInfo(AuthType authType, const std::shared_ptr<GetCredentialInfoCallback>& callback);
-    ErrCode Auth(
-        const std::vector<uint8_t> &challenge, const AuthType authType, const AuthTrustLevel authTrustLevel,
-        const std::shared_ptr<AuthenticationCallback> &callback, uint64_t &contextId);
-    ErrCode AuthUser(const int32_t userId, const std::vector<uint8_t> &challenge, const AuthType authType,
-        const AuthTrustLevel authTrustLevel, const std::shared_ptr<AuthenticationCallback> &callback,
-        uint64_t &contextId);
-    ErrCode CancelAuth(const uint64_t contextId, int32_t &resultCode);
-    ErrCode GetAvailableStatus(const AuthType authType, const AuthTrustLevel authTrustLevel, int32_t &status);
-    ErrCode GetProperty(const GetPropertyRequest &request, std::shared_ptr<GetPropCallback> callback);
-    ErrCode SetProperty(const SetPropertyRequest &request, std::shared_ptr<SetPropCallback> callback);
-    ErrCode RegisterInputer(const std::shared_ptr<IInputer> inputer, bool &isSucceed);
-    ErrCode UnRegisterInputer();
-    void SetAuthSubType(int32_t userId, int32_t authSubType);
-    int32_t GetAuthSubType(int32_t userId);
-    IAMState GetState(int32_t userId);
-    void SetState(int32_t userId, IAMState state);
-    void GetChallenge(int32_t userId, std::vector<uint8_t> &challenge);
-    void SetCredential(int32_t userId, int32_t authSubType, const std::vector<uint8_t> &credential);
-    void GetCredential(int32_t userId, int32_t authSubType, CredentialPair &credPair);
-    void ClearCredential(int32_t userId, int32_t authSubType);
-    ErrCode ActivateUserKey(int32_t userId, const std::vector<uint8_t> &token, const std::vector<uint8_t> &secret);
-    ErrCode UpdateUserKey(int32_t userId, uint64_t credentialId,
-        const std::vector<uint8_t> &token, const std::vector<uint8_t> &newSecret);
-    ErrCode RemoveUserKey(int32_t userId, const std::vector<uint8_t> &token);
-    ErrCode RestoreUserKey(int32_t userId, uint64_t credentialId, const std::vector<uint8_t> &token);
+    void OpenSession(int32_t userId, std::vector<uint8_t> &challenge);
+    void CloseSession(int32_t userId);
+    void AddCredential(
+        int32_t userId, const CredentialParameters& credInfo, const std::shared_ptr<IDMCallback> &callback);
+    void UpdateCredential(
+        int32_t userId, const CredentialParameters& credInfo, const std::shared_ptr<IDMCallback> &callback);
+    int32_t Cancel(int32_t userId, uint64_t challenge);
+    void DelCred(int32_t userId, uint64_t credentialId, const std::vector<uint8_t> &authToken,
+        const std::shared_ptr<IDMCallback>& callback);
+    void DelUser(int32_t userId, const std::vector<uint8_t> &authToken, const std::shared_ptr<IDMCallback> &callback);
+    void GetCredentialInfo(int32_t userId, AuthType authType, const std::shared_ptr<GetCredInfoCallback> &callback);
+    uint64_t Auth(const std::vector<uint8_t> &challenge, AuthType authType, AuthTrustLevel authTrustLevel,
+        const std::shared_ptr<IDMCallback> &callback);
+    uint64_t AuthUser(int32_t userId, const std::vector<uint8_t> &challenge, AuthType authType,
+        AuthTrustLevel authTrustLevel, const std::shared_ptr<IDMCallback> &callback);
+    int32_t CancelAuth(uint64_t contextId);
+    int32_t GetAvailableStatus(AuthType authType, AuthTrustLevel authTrustLevel);
+    void GetProperty(
+        int32_t userId, const GetPropertyRequest &request, const std::shared_ptr<GetSetPropCallback> &callback);
+    void SetProperty(
+        int32_t userId, const SetPropertyRequest &request, const std::shared_ptr<GetSetPropCallback> &callback);
+    bool RegisterInputer(const std::shared_ptr<GetDataCallback> &inputer);
+    void UnRegisterInputer();
 
 private:
     class AccountIAMDeathRecipient : public IRemoteObject::DeathRecipient {
@@ -82,11 +69,7 @@ private:
 private:
     std::mutex mutex_;
     sptr<IAccountIAM> proxy_ = nullptr;
-    sptr<IRemoteObject::DeathRecipient> deathRecipient_ = nullptr;
-    std::map<int32_t, int32_t> authSubTypeMap_;
-    std::map<int32_t, IAMState> userStateMap_;
-    std::map<std::string, CredentialPair> credentialMap_;
-    std::map<int32_t, std::vector<uint8_t>> userChallengeMap_;
+    sptr<AccountIAMDeathRecipient> deathRecipient_ = nullptr;
 };
 }  // namespace AccountSA
 }  // namespace OHOS
