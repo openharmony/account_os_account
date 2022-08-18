@@ -86,7 +86,7 @@ napi_value NapiAccountIAMIdentityManager::OpenSession(napi_env env, napi_callbac
     NAPI_CALL(env, napi_create_async_work(env, nullptr, resourceName,
         [](napi_env env, void *data) {
             IDMContext *context = reinterpret_cast<IDMContext *>(data);
-            context->errCode = AccountIAMClient::GetInstance().OpenSession(0, context->challenge);
+            AccountIAMClient::GetInstance().OpenSession(0, context->challenge);
         },
         [](napi_env env, napi_status status, void *data) {
             IDMContext *context = reinterpret_cast<IDMContext *>(data);
@@ -132,7 +132,7 @@ napi_value NapiAccountIAMIdentityManager::AddCredential(napi_env env, napi_callb
         [](napi_env env, void *data) {
             IDMContext *context = reinterpret_cast<IDMContext *>(data);
             auto idmCallback = std::make_shared<NapiIDMCallback>(context->env, context->callback);
-            AccountIAMClient::GetInstance().AddCredential(context->addCredInfo, idmCallback);
+            AccountIAMClient::GetInstance().AddCredential(0, context->addCredInfo, idmCallback);
         },
         [](napi_env env, napi_status status, void *data) {
             delete reinterpret_cast<IDMContext *>(data);
@@ -160,7 +160,7 @@ napi_value NapiAccountIAMIdentityManager::UpdateCredential(napi_env env, napi_ca
         [](napi_env env, void *data) {
             IDMContext *context = reinterpret_cast<IDMContext *>(data);
             auto idmCallback = std::make_shared<NapiIDMCallback>(context->env, context->callback);
-            AccountIAMClient::GetInstance().UpdateCredential(context->addCredInfo, idmCallback);
+            AccountIAMClient::GetInstance().UpdateCredential(0, context->addCredInfo, idmCallback);
         },
         [](napi_env env, napi_status status, void *data) {
             delete reinterpret_cast<IDMContext *>(data);
@@ -197,8 +197,7 @@ napi_value NapiAccountIAMIdentityManager::Cancel(napi_env env, napi_callback_inf
         return nullptr;
     }
     uint64_t *challenge = reinterpret_cast<uint64_t *>(reinterpret_cast<void *>(data));
-    int32_t ret;
-    AccountIAMClient::GetInstance().Cancel(*challenge, ret);
+    int32_t ret = AccountIAMClient::GetInstance().Cancel(0, *challenge);
     napi_value result = nullptr;
     NAPI_CALL(env, napi_create_int32(env, ret, &result));
     return result;
@@ -233,7 +232,7 @@ napi_value NapiAccountIAMIdentityManager::DelUser(napi_env env, napi_callback_in
         [](napi_env env, void *data) {
             IDMContext *context = reinterpret_cast<IDMContext *>(data);
             auto idmCallback = std::make_shared<NapiIDMCallback>(context->env, context->callback);
-            AccountIAMClient::GetInstance().DelUser(context->token, idmCallback);
+            AccountIAMClient::GetInstance().DelUser(0, context->token, idmCallback);
         },
         [](napi_env env, napi_status status, void *data) {
             delete reinterpret_cast<IDMContext *>(data);
@@ -275,7 +274,7 @@ napi_value NapiAccountIAMIdentityManager::DelCred(napi_env env, napi_callback_in
         [](napi_env env, void *data) {
             IDMContext *context = reinterpret_cast<IDMContext *>(data);
             auto idmCallback = std::make_shared<NapiIDMCallback>(context->env, context->callback);
-            AccountIAMClient::GetInstance().DelCred(context->credentialId, context->token, idmCallback);
+            AccountIAMClient::GetInstance().DelCred(0, context->credentialId, context->token, idmCallback);
         },
         [](napi_env env, napi_status status, void *data) {
             delete reinterpret_cast<IDMContext *>(data);
@@ -334,7 +333,7 @@ napi_value NapiAccountIAMIdentityManager::GetAuthInfo(napi_env env, napi_callbac
             GetAuthInfoContext *context = reinterpret_cast<GetAuthInfoContext *>(data);
             auto idmCallback = std::make_shared<NapiGetInfoCallback>(
                 context->env, context->callbackRef, context->deferred);
-            AccountIAMClient::GetInstance().GetAuthInfo(context->authType, idmCallback);
+            AccountIAMClient::GetInstance().GetCredentialInfo(0, context->authType, idmCallback);
             context->callbackRef = nullptr;
         },
         [](napi_env env, napi_status status, void *data) {
