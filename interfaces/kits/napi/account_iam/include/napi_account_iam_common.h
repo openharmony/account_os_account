@@ -17,6 +17,7 @@
 #define OS_ACCOUNT_INTERFACES_KITS_NAPI_IAM_INCLUDE_NAPI_IAM_COMMON_H
 
 #include "account_error_no.h"
+#include "account_iam_client_callback.h"
 #include "account_iam_info.h"
 #include "i_inputer.h"
 #include "napi/native_api.h"
@@ -78,7 +79,7 @@ struct AuthContext {
     int32_t authType;
     int32_t trustLevel;
     std::vector<uint8_t> challenge;
-    std::shared_ptr<AccountSA::AuthenticationCallback> callback;
+    std::shared_ptr<AccountSA::IDMCallback> callback;
 };
 
 struct IDMContext : public IAMAsyncContext {
@@ -111,7 +112,7 @@ struct SetPropertyContext : public IAMAsyncContext {
     int32_t result;
 };
 
-class NapiIDMCallback : public AccountSA::UserIdmClientCallback {
+class NapiIDMCallback : public AccountSA::IDMCallback {
 public:
     explicit NapiIDMCallback(napi_env env, const JsIAMCallback &callback);
     virtual ~NapiIDMCallback();
@@ -126,7 +127,7 @@ private:
     JsIAMCallback callback_;
 };
 
-class NapiGetInfoCallback : public AccountSA::GetCredentialInfoCallback {
+class NapiGetInfoCallback : public AccountSA::GetCredInfoCallback {
 public:
     explicit NapiGetInfoCallback(napi_env env, napi_ref callbackRef, napi_deferred deferred);
     virtual ~NapiGetInfoCallback();
@@ -138,7 +139,7 @@ private:
     napi_deferred deferred_;
 };
 
-class NapiUserAuthCallback : public AccountSA::AuthenticationCallback {
+class NapiUserAuthCallback : public AccountSA::IDMCallback {
 public:
     explicit NapiUserAuthCallback(napi_env env, JsIAMCallback callback);
     virtual ~NapiUserAuthCallback();
@@ -150,7 +151,7 @@ private:
     JsIAMCallback callback_;
 };
 
-class NapiGetPropCallback : public AccountSA::GetPropCallback {
+class NapiGetPropCallback : public AccountSA::GetSetPropCallback {
 public:
     explicit NapiGetPropCallback(napi_env env, napi_ref callbackRef, napi_deferred deferred);
     virtual ~NapiGetPropCallback();
@@ -162,10 +163,11 @@ private:
     napi_deferred deferred_;
 };
 
-class NapiSetPropCallback : public AccountSA::SetPropCallback {
+class NapiSetPropCallback : public AccountSA::GetSetPropCallback {
 public:
     explicit NapiSetPropCallback(napi_env env, napi_ref callbackRef, napi_deferred deferred);
     virtual ~NapiSetPropCallback();
+
     void OnResult(int32_t result, const AccountSA::Attributes &extraInfo) override;
 
 private:
@@ -180,15 +182,16 @@ struct InputerContext {
     napi_env env = nullptr;
     napi_ref callback = nullptr;
     int32_t authSubType = -1;
-    std::shared_ptr<AccountSA::IInputerData> inputerData = nullptr;
+    sptr<AccountSA::ISetDataCallback> inputerData = nullptr;
 };
 
-class NapiInputer : public AccountSA::IInputer {
+class NapiGetDataCallback : public AccountSA::GetDataCallback {
 public:
-    NapiInputer(napi_env env, napi_ref callback);
-    virtual ~NapiInputer();
+    NapiGetDataCallback(napi_env env, napi_ref callback);
+    virtual ~NapiGetDataCallback();
 
-    void OnGetData(int32_t authSubType, std::shared_ptr<AccountSA::IInputerData> inputerData);
+    void OnGetData(int32_t authSubType, const sptr<AccountSA::ISetDataCallback> &inputerData) override;
+
 private:
     napi_env env_;
     napi_ref callback_;

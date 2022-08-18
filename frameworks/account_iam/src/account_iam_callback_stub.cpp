@@ -17,6 +17,7 @@
 
 #include "account_error_no.h"
 #include "account_log_wrapper.h"
+#include "ipc_skeleton.h"
 
 namespace OHOS {
 namespace AccountSA {

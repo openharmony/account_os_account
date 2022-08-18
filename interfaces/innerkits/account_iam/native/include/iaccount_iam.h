@@ -16,7 +16,7 @@
 #ifndef OS_ACCOUNT_INTERFACES_INNERKITS_ACCOUNT_IAM_NATIVE_INCLUDE_IACCOUNT_IAM_H
 #define OS_ACCOUNT_INTERFACES_INNERKITS_ACCOUNT_IAM_NATIVE_INCLUDE_IACCOUNT_IAM_H
 
-#include "account_log_wrapper.h"
+#include "iaccount_iam_callback.h"
 #include "iremote_broker.h"
 #include "iremote_object.h"
 
@@ -26,18 +26,46 @@ class IAccountIAM : public IRemoteBroker {
 public:
     DECLARE_INTERFACE_DESCRIPTOR(u"ohos.accountfwk.IAccountIAM");
 
-    virtual ErrCode ActivateUserKey(
-        int32_t userId, const std::vector<uint8_t> &token, const std::vector<uint8_t> &secret) = 0;
-    virtual ErrCode UpdateUserKey(int32_t userId, uint64_t credentialId,
-        const std::vector<uint8_t> &token, const std::vector<uint8_t> &newSecret) = 0;
-    virtual ErrCode RemoveUserKey(int32_t userId, const std::vector<uint8_t> &token) = 0;
-    virtual ErrCode RestoreUserKey(int32_t userId, uint64_t credentialId, const std::vector<uint8_t> &token) = 0;
+    virtual void OpenSession(int32_t userId, std::vector<uint8_t> &challenge) = 0;
+    virtual void CloseSession(int32_t userId) = 0;
+    virtual void AddCredential(
+        int32_t userId, const CredentialParameters &credInfo, const sptr<IIDMCallback> &callback) = 0;
+    virtual void UpdateCredential(int32_t userId, const CredentialParameters &credInfo,
+        const sptr<IIDMCallback> &callback) = 0;
+    virtual int32_t Cancel(int32_t userId, uint64_t challenge) = 0;
+    virtual void DelCred(int32_t userId, uint64_t credentialId, const std::vector<uint8_t> &authToken,
+        const sptr<IIDMCallback> &callback) = 0;
+    virtual void DelUser(
+        int32_t userId, const std::vector<uint8_t> &authToken, const sptr<IIDMCallback> &callback) = 0;
+    virtual void GetCredentialInfo(
+        int32_t userId, AuthType authType, const sptr<IGetCredInfoCallback> &callback) = 0;
+    virtual uint64_t AuthUser(int32_t userId, const std::vector<uint8_t> &challenge, AuthType authType,
+        AuthTrustLevel authTrustLevel, const sptr<IIDMCallback> &callback) = 0;
+    virtual int32_t CancelAuth(uint64_t contextId) = 0;
+    virtual int32_t GetAvailableStatus(AuthType authType, AuthTrustLevel authTrustLevel) = 0;
+    virtual void GetProperty(
+        int32_t userId, const GetPropertyRequest &request, const sptr<IGetSetPropCallback> &callback) = 0;
+    virtual void SetProperty(
+        int32_t userId, const SetPropertyRequest &request, const sptr<IGetSetPropCallback> &callback) = 0;
+    virtual bool RegisterInputer(const sptr<IGetDataCallback> &inputer) = 0;
+    virtual void UnRegisterInputer() = 0;
 
     enum class Message {
-        ACTIVATE_USER_KEY,
-        UPDATE_USER_KEY,
-        REMOVE_USER_KEY,
-        RESTORE_USER_KEY
+        OPEN_SESSION,
+        CLOSE_SESSION,
+        ADD_CREDENTIAL,
+        UPDATE_CREDENTIAL,
+        CANCEL,
+        DEL_CRED,
+        DEL_USER,
+        GET_CREDENTIAL_INFO,
+        AUTH_USER,
+        CANCEL_AUTH,
+        GET_AVAILABLE_STATUS,
+        GET_PROPERTY,
+        SET_PROPERTY,
+        REGISTER_INPUTER,
+        UNREGISTER_INPUTER
     };
 };
 }  // namespace AccountSA

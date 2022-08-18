@@ -56,9 +56,11 @@ config("account_iam_innerkits_public_config") {
 
 ohos_shared_library("account_iam_innerkits") {
   sources = [
-    "${account_iam_framework_path}/src/account_iam_callback.cpp",
+    "${account_iam_framework_path}/src/account_iam_callback_proxy.cpp",
+    "${account_iam_framework_path}/src/account_iam_callback_service.cpp",
+    "${account_iam_framework_path}/src/account_iam_callback_stub.cpp",
     "${account_iam_framework_path}/src/account_iam_client.cpp",
-    "${account_iam_framework_path}/src/account_iam_proxy.cpp",
+    "${account_iam_framework_path}/src/account_iam_mgr_proxy.cpp",
   ]
 
   configs = [ ":account_iam_innnerkits_config" ]
@@ -70,10 +72,6 @@ ohos_shared_library("account_iam_innerkits") {
     "${innerkits_native_path}:libaccountkits",
     "${os_account_innerkits_native_path}:os_account_innerkits",
   ]
-
-  if (has_pin_auth_part) {
-    deps += [ "//base/useriam/pin_auth/frameworks:pinauth_framework" ]
-  }
 
   if (has_user_auth_part) {
     deps += [
