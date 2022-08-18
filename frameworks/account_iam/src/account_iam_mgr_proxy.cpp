@@ -13,20 +13,20 @@
  * limitations under the License.
  */
 
-#include "account_iam_proxy.h"
+#include "account_iam_mgr_proxy.h"
 
 #include "account_error_no.h"
 #include "account_log_wrapper.h"
 
 namespace OHOS {
 namespace AccountSA {
-AccountIAMProxy::AccountIAMProxy(const sptr<IRemoteObject> &object) : IRemoteProxy<IAccountIAM>(object)
+AccountIAMMgrProxy::AccountIAMMgrProxy(const sptr<IRemoteObject> &object) : IRemoteProxy<IAccountIAM>(object)
 {}
 
-AccountIAMProxy::~AccountIAMProxy()
+AccountIAMMgrProxy::~AccountIAMMgrProxy()
 {}
 
-ErrCode AccountIAMProxy::SendRequest(IAccountIAM::Message code, MessageParcel &data, MessageParcel &reply)
+ErrCode AccountIAMMgrProxy::SendRequest(IAccountIAM::Message code, MessageParcel &data, MessageParcel &reply)
 {
     sptr<IRemoteObject> remote = Remote();
     if (remote == nullptr) {
@@ -42,7 +42,7 @@ ErrCode AccountIAMProxy::SendRequest(IAccountIAM::Message code, MessageParcel &d
     return ERR_OK;
 }
 
-bool AccountIAMProxy::WriteCommonData(MessageParcel &data, int32_t userId)
+bool AccountIAMMgrProxy::WriteCommonData(MessageParcel &data, int32_t userId)
 {
     if (!data.WriteInterfaceToken(GetDescriptor())) {
         ACCOUNT_LOGD("failed to write descriptor!");
@@ -55,7 +55,7 @@ bool AccountIAMProxy::WriteCommonData(MessageParcel &data, int32_t userId)
     return true;
 }
 
-void AccountIAMProxy::OpenSession(int32_t userId, std::vector<uint8_t> &challenge)
+void AccountIAMMgrProxy::OpenSession(int32_t userId, std::vector<uint8_t> &challenge)
 {
     challenge.clear();
     MessageParcel data;
@@ -71,7 +71,7 @@ void AccountIAMProxy::OpenSession(int32_t userId, std::vector<uint8_t> &challeng
     }
 }
 
-void AccountIAMProxy::CloseSession(int32_t userId)
+void AccountIAMMgrProxy::CloseSession(int32_t userId)
 {
     MessageParcel data;
     if (!WriteCommonData(data, userId)) {
@@ -81,7 +81,7 @@ void AccountIAMProxy::CloseSession(int32_t userId)
     SendRequest(IAccountIAM::Message::CLOSE_SESSION, data, reply);
 }
 
-void AccountIAMProxy::AddOrUpdateCredential(
+void AccountIAMMgrProxy::AddOrUpdateCredential(
     int32_t userId, const CredentialParameters &credInfo, const sptr<IIDMCallback> &callback, bool isAdd)
 {
     if (callback == nullptr) {
@@ -117,19 +117,19 @@ void AccountIAMProxy::AddOrUpdateCredential(
     }
 }
 
-void AccountIAMProxy::AddCredential(
+void AccountIAMMgrProxy::AddCredential(
     int32_t userId, const CredentialParameters &credInfo, const sptr<IIDMCallback> &callback)
 {
     AddOrUpdateCredential(userId, credInfo, callback, true);
 }
 
-void AccountIAMProxy::UpdateCredential(
+void AccountIAMMgrProxy::UpdateCredential(
     int32_t userId, const CredentialParameters &credInfo, const sptr<IIDMCallback> &callback)
 {
     AddOrUpdateCredential(userId, credInfo, callback, false);
 }
 
-int32_t AccountIAMProxy::Cancel(int32_t userId, uint64_t challenge)
+int32_t AccountIAMMgrProxy::Cancel(int32_t userId, uint64_t challenge)
 {
     MessageParcel data;
     int32_t result = ResultCode::FAIL;
@@ -146,7 +146,7 @@ int32_t AccountIAMProxy::Cancel(int32_t userId, uint64_t challenge)
     return result;
 }
 
-void AccountIAMProxy::DelCred(
+void AccountIAMMgrProxy::DelCred(
     int32_t userId, uint64_t credentialId, const std::vector<uint8_t> &authToken, const sptr<IIDMCallback> &callback)
 {
     if (callback == nullptr) {
@@ -173,7 +173,8 @@ void AccountIAMProxy::DelCred(
     SendRequest(IAccountIAM::Message::DEL_CRED, data, reply);
 }
 
-void AccountIAMProxy::DelUser(int32_t userId, const std::vector<uint8_t> &authToken, const sptr<IIDMCallback> &callback)
+void AccountIAMMgrProxy::DelUser(
+    int32_t userId, const std::vector<uint8_t> &authToken, const sptr<IIDMCallback> &callback)
 {
     if (callback == nullptr) {
         ACCOUNT_LOGD("callback is nullptr");
@@ -195,7 +196,7 @@ void AccountIAMProxy::DelUser(int32_t userId, const std::vector<uint8_t> &authTo
     SendRequest(IAccountIAM::Message::DEL_USER, data, reply);
 }
 
-void AccountIAMProxy::GetCredentialInfo(
+void AccountIAMMgrProxy::GetCredentialInfo(
     int32_t userId, AuthType authType, const sptr<IGetCredInfoCallback> &callback)
 {
     if (callback == nullptr) {
@@ -218,7 +219,7 @@ void AccountIAMProxy::GetCredentialInfo(
     SendRequest(IAccountIAM::Message::GET_CREDENTIAL_INFO, data, reply);
 }
 
-uint64_t AccountIAMProxy::AuthUser(int32_t userId, const std::vector<uint8_t> &challenge, AuthType authType,
+uint64_t AccountIAMMgrProxy::AuthUser(int32_t userId, const std::vector<uint8_t> &challenge, AuthType authType,
     AuthTrustLevel authTrustLevel, const sptr<IIDMCallback> &callback)
 {
     uint64_t contextId = 0;
@@ -256,7 +257,7 @@ uint64_t AccountIAMProxy::AuthUser(int32_t userId, const std::vector<uint8_t> &c
     return contextId;
 }
 
-int32_t AccountIAMProxy::CancelAuth(uint64_t contextId)
+int32_t AccountIAMMgrProxy::CancelAuth(uint64_t contextId)
 {
     int32_t result = ResultCode::FAIL;
     MessageParcel data;
@@ -278,7 +279,7 @@ int32_t AccountIAMProxy::CancelAuth(uint64_t contextId)
     return result;
 }
 
-int32_t AccountIAMProxy::GetAvailableStatus(const AuthType authType, const AuthTrustLevel authTrustLevel)
+int32_t AccountIAMMgrProxy::GetAvailableStatus(const AuthType authType, const AuthTrustLevel authTrustLevel)
 {
     int32_t status = 0;
     MessageParcel data;
@@ -304,7 +305,7 @@ int32_t AccountIAMProxy::GetAvailableStatus(const AuthType authType, const AuthT
     return status;
 }
 
-void AccountIAMProxy::GetProperty(
+void AccountIAMMgrProxy::GetProperty(
     int32_t userId, const GetPropertyRequest &request, const sptr<IGetSetPropCallback> &callback)
 {
     if (callback == nullptr) {
@@ -335,7 +336,7 @@ void AccountIAMProxy::GetProperty(
     SendRequest(IAccountIAM::Message::GET_PROPERTY, data, reply);
 }
 
-void AccountIAMProxy::SetProperty(
+void AccountIAMMgrProxy::SetProperty(
     int32_t userId, const SetPropertyRequest &request, const sptr<IGetSetPropCallback> &callback)
 {
     if (callback == nullptr) {
@@ -363,7 +364,7 @@ void AccountIAMProxy::SetProperty(
     SendRequest(IAccountIAM::Message::SET_PROPERTY, data, reply);
 }
 
-bool AccountIAMProxy::RegisterInputer(const sptr<IGetDataCallback> &inputer)
+bool AccountIAMMgrProxy::RegisterInputer(const sptr<IGetDataCallback> &inputer)
 {
     bool result = false;
     MessageParcel data;
@@ -385,7 +386,7 @@ bool AccountIAMProxy::RegisterInputer(const sptr<IGetDataCallback> &inputer)
     return result;
 }
 
-void AccountIAMProxy::UnRegisterInputer()
+void AccountIAMMgrProxy::UnRegisterInputer()
 {
     MessageParcel data;
     if (!data.WriteInterfaceToken(GetDescriptor())) {

@@ -76,9 +76,8 @@ napi_value NapiAccountIAMPINAuth::RegisterInputer(napi_env env, napi_callback_in
     if (!ParseContextForRegisterInputer(env, info, &callback)) {
         return result;
     }
-    std::shared_ptr<IInputer> inputer = std::make_shared<NapiInputer>(env, callback);
-    bool isSucceed = false;
-    AccountIAMClient::GetInstance().RegisterInputer(inputer, isSucceed);
+    auto inputer = std::make_shared<NapiGetDataCallback>(env, callback);
+    bool isSucceed = AccountIAMClient::GetInstance().RegisterInputer(inputer);
     NAPI_CALL(env, napi_get_boolean(env, isSucceed, &result));
     return result;
 }

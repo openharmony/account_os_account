@@ -84,9 +84,8 @@ napi_value NapiAccountIAMUserAuth::GetAvailableStatus(napi_env env, napi_callbac
     }
     int32_t authSubType = -1;
     napi_get_value_int32(env, argv[PARAM_ONE], &authSubType);
-    int32_t status = ResultCode::INVALID_PARAMETERS;
-    AccountIAMClient::GetInstance().GetAvailableStatus(
-        static_cast<AuthType>(authType), static_cast<AuthTrustLevel>(authSubType), status);
+    int32_t status = AccountIAMClient::GetInstance().GetAvailableStatus(
+        static_cast<AuthType>(authType), static_cast<AuthTrustLevel>(authSubType));
     NAPI_CALL(env, napi_create_int32(env, status, &result));
     return result;
 }
@@ -134,7 +133,7 @@ napi_value NapiAccountIAMUserAuth::GetProperty(napi_env env, napi_callback_info 
             GetPropertyContext *context = reinterpret_cast<GetPropertyContext *>(data);
             auto getPropCallback = std::make_shared<NapiGetPropCallback>(
                 context->env, context->callbackRef, context->deferred);
-            AccountIAMClient::GetInstance().GetProperty(context->request, getPropCallback);
+            AccountIAMClient::GetInstance().GetProperty(0, context->request, getPropCallback);
             context->callbackRef = nullptr;
         },
         [](napi_env env, napi_status status, void *data) {
@@ -189,7 +188,7 @@ napi_value NapiAccountIAMUserAuth::SetProperty(napi_env env, napi_callback_info 
             SetPropertyContext *context = reinterpret_cast<SetPropertyContext *>(data);
             auto setPropCallback = std::make_shared<NapiSetPropCallback>(
                 context->env, context->callbackRef, context->deferred);
-            AccountIAMClient::GetInstance().SetProperty(context->request, setPropCallback);
+            AccountIAMClient::GetInstance().SetProperty(0, context->request, setPropCallback);
             context->callbackRef = nullptr;
         },
         [](napi_env env, napi_status status, void *data) {
@@ -223,8 +222,6 @@ static napi_status ParseContextForAuth(
     napi_get_value_int32(env, argv[index++], &context.trustLevel);
     JsIAMCallback jsCallback;
     ParseIAMCallback(env, argv[index++], jsCallback);
-    ACCOUNT_LOGD("userId: %{public}d, challenge: %{public}zu, authType: %{public}d, level: %{public}d",
-        context.userId, context.challenge.size(), context.authType, context.trustLevel);
     NapiUserAuthCallback *object = new (std::nothrow) NapiUserAuthCallback(env, jsCallback);
     if (object == nullptr) {
         ACCOUNT_LOGD("failed to create NapiUserAuthCallback");
@@ -239,9 +236,8 @@ napi_value NapiAccountIAMUserAuth::Auth(napi_env env, napi_callback_info info)
     ACCOUNT_LOGD("enter");
     AuthContext context;
     NAPI_CALL(env, ParseContextForAuth(env, info, context));
-    uint64_t contextId;
-    AccountIAMClient::GetInstance().Auth(context.challenge, static_cast<AuthType>(context.authType),
-        static_cast<AuthTrustLevel>(context.trustLevel), context.callback, contextId);
+    uint64_t contextId = AccountIAMClient::GetInstance().Auth(context.challenge,
+        static_cast<AuthType>(context.authType), static_cast<AuthTrustLevel>(context.trustLevel), context.callback);
     return CreateUint8Array(env, reinterpret_cast<uint8_t *>(&contextId), sizeof(uint64_t));
 }
 
@@ -252,8 +248,7 @@ napi_value NapiAccountIAMUserAuth::AuthUser(napi_env env, napi_callback_info inf
     NAPI_CALL(env, ParseContextForAuth(env, info, context, true));
     uint64_t contextId;
     AccountIAMClient::GetInstance().AuthUser(context.userId, context.challenge,
-        static_cast<AuthType>(context.authType), static_cast<AuthTrustLevel>(context.trustLevel),
-        context.callback, contextId);
+        static_cast<AuthType>(context.authType), static_cast<AuthTrustLevel>(context.trustLevel), context.callback);
     return CreateUint8Array(env, reinterpret_cast<uint8_t *>(&contextId), sizeof(uint64_t));
 }
 
@@ -269,8 +264,7 @@ napi_value NapiAccountIAMUserAuth::CancelAuth(napi_env env, napi_callback_info i
     }
     uint64_t contextId = 0;
     NAPI_CALL(env, ParseUint8TypedArrayToUint64(env, argv[0], contextId));
-    int32_t result;
-    AccountIAMClient::GetInstance().CancelAuth(contextId, result);
+    int32_t result = AccountIAMClient::GetInstance().CancelAuth(contextId);
     napi_value napiResult = nullptr;
     NAPI_CALL(env, napi_create_int32(env, result, &napiResult));
     return napiResult;

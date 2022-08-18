@@ -17,43 +17,40 @@
 #define OS_ACCOUNT_SERVICES_ACCOUNTMGR_INCLUDE_ACCOUNT_IAM_SERVICE_H
 
 #include <vector>
-#include "account_iam_stub.h"
+#include "account_iam_mgr_stub.h"
 #include "account_error_no.h"
-#ifdef HAS_STORAGE_PART
-#include "istorage_manager.h"
-#include "storage_manager.h"
-#include "storage_manager_proxy.h"
-#endif
 
 namespace OHOS {
 namespace AccountSA {
-struct CredentialInfo {
-    uint64_t credentialId = 0;
-    std::vector<uint8_t> oldSecret;
-    std::vector<uint8_t> secret;
-};
-
-class AccountIAMService : public AccountIAMStub {
+class AccountIAMService : public AccountIAMMgrStub {
 public:
     AccountIAMService();
     ~AccountIAMService() override;
 
-    ErrCode ActivateUserKey(
-        int32_t userId, const std::vector<uint8_t> &token, const std::vector<uint8_t> &secret) override;
-    ErrCode UpdateUserKey(int32_t userId, uint64_t credentialId,
-        const std::vector<uint8_t> &token, const std::vector<uint8_t> &newSecret) override;
-    ErrCode RemoveUserKey(int32_t userId, const std::vector<uint8_t> &token) override;
-    ErrCode RestoreUserKey(int32_t userId, uint64_t credentialId, const std::vector<uint8_t> &token) override;
+    void OpenSession(int32_t userId, std::vector<uint8_t> &challenge) override;
+    void CloseSession(int32_t userId) override;
+    void AddCredential(
+        int32_t userId, const CredentialParameters &credInfo, const sptr<IIDMCallback> &callback) override;
+    void UpdateCredential(
+        int32_t userId, const CredentialParameters &credInfo, const sptr<IIDMCallback> &callback) override;
+    int32_t Cancel(int32_t userId, uint64_t challenge) override;
+    void DelCred(int32_t userId, uint64_t credentialId, const std::vector<uint8_t> &authToken,
+        const sptr<IIDMCallback> &callback) override;
+    void DelUser(int32_t userId, const std::vector<uint8_t> &authToken, const sptr<IIDMCallback> &callback) override;
+    void GetCredentialInfo(
+        int32_t userId, AuthType authType, const sptr<IGetCredInfoCallback> &callback) override;
+    uint64_t AuthUser(int32_t userId, const std::vector<uint8_t> &challenge, AuthType authType,
+        AuthTrustLevel authTrustLevel, const sptr<IIDMCallback> &callback) override;
+    int32_t CancelAuth(uint64_t contextId) override;
+    int32_t GetAvailableStatus(AuthType authType, AuthTrustLevel authTrustLevel) override;
+    void GetProperty(
+        int32_t userId, const GetPropertyRequest &request, const sptr<IGetSetPropCallback> &callback) override;
+    void SetProperty(
+        int32_t userId, const SetPropertyRequest &request, const sptr<IGetSetPropCallback> &callback) override;
+    bool RegisterInputer(const sptr<IGetDataCallback> &inputer) override;
+    void UnRegisterInputer() override;
 
 private:
-    ErrCode GetStorageManagerProxy();
-
-private:
-#ifdef HAS_STORAGE_PART
-    sptr<StorageManager::IStorageManager> storageMgrProxy_;
-#endif
-    std::mutex mutex_;
-    std::map<int32_t, CredentialInfo> credInfoMap_;
     DISALLOW_COPY_AND_MOVE(AccountIAMService);
 };
 }  // namespace AccountSA

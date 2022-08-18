@@ -13,7 +13,7 @@
  * limitations under the License.
  */
 
-#include "account_iam_stub.h"
+#include "account_iam_mgr_stub.h"
 
 #include "access_token.h"
 #include "account_iam_callback_proxy.h"
@@ -24,81 +24,82 @@
 
 namespace OHOS {
 namespace AccountSA {
-AccountIAMStub::AccountIAMStub()
+AccountIAMMgrStub::AccountIAMMgrStub()
 {}
 
-AccountIAMStub::~AccountIAMStub()
+AccountIAMMgrStub::~AccountIAMMgrStub()
 {}
 
-const std::map<uint32_t, AccountIAMStub::MessageProcFunction> AccountIAMStub::messageProcMap_ = {
+const std::map<uint32_t, AccountIAMMgrStub::MessageProcFunction> AccountIAMMgrStub::messageProcMap_ = {
     {
         static_cast<uint32_t>(IAccountIAM::Message::OPEN_SESSION),
-        &AccountIAMStub::ProcOpenSession
+        &AccountIAMMgrStub::ProcOpenSession
     },
     {
         static_cast<uint32_t>(IAccountIAM::Message::CLOSE_SESSION),
-        &AccountIAMStub::ProcCloseSession
+        &AccountIAMMgrStub::ProcCloseSession
     },
     {
         static_cast<uint32_t>(IAccountIAM::Message::ADD_CREDENTIAL),
-        &AccountIAMStub::ProcAddCredential
+        &AccountIAMMgrStub::ProcAddCredential
     },
     {
         static_cast<uint32_t>(IAccountIAM::Message::UPDATE_CREDENTIAL),
-        &AccountIAMStub::ProcUpdateCredential
+        &AccountIAMMgrStub::ProcUpdateCredential
     },
     {
         static_cast<uint32_t>(IAccountIAM::Message::DEL_CRED),
-        &AccountIAMStub::ProcDelCred
+        &AccountIAMMgrStub::ProcDelCred
     },
     {
         static_cast<uint32_t>(IAccountIAM::Message::DEL_USER),
-        &AccountIAMStub::ProcDelUser
+        &AccountIAMMgrStub::ProcDelUser
     },
     {
         static_cast<uint32_t>(IAccountIAM::Message::CANCEL),
-        &AccountIAMStub::ProcCancel
+        &AccountIAMMgrStub::ProcCancel
     },
     {
         static_cast<uint32_t>(IAccountIAM::Message::GET_CREDENTIAL_INFO),
-        &AccountIAMStub::ProcGetCredentialInfo
+        &AccountIAMMgrStub::ProcGetCredentialInfo
     },
     {
         static_cast<uint32_t>(IAccountIAM::Message::AUTH_USER),
-        &AccountIAMStub::ProcAuthUser
+        &AccountIAMMgrStub::ProcAuthUser
     },
     {
         static_cast<uint32_t>(IAccountIAM::Message::CANCEL_AUTH),
-        &AccountIAMStub::ProcCancelAuth
+        &AccountIAMMgrStub::ProcCancelAuth
     },
     {
         static_cast<uint32_t>(IAccountIAM::Message::GET_AVAILABLE_STATUS),
-        &AccountIAMStub::ProcGetAvailableStatus
+        &AccountIAMMgrStub::ProcGetAvailableStatus
     },
     {
         static_cast<uint32_t>(IAccountIAM::Message::GET_PROPERTY),
-        &AccountIAMStub::ProcGetProperty
+        &AccountIAMMgrStub::ProcGetProperty
     },
     {
         static_cast<uint32_t>(IAccountIAM::Message::SET_PROPERTY),
-        &AccountIAMStub::ProcSetProperty
+        &AccountIAMMgrStub::ProcSetProperty
     },
     {
         static_cast<uint32_t>(IAccountIAM::Message::REGISTER_INPUTER),
-        &AccountIAMStub::ProcRegisterInputer
+        &AccountIAMMgrStub::ProcRegisterInputer
     },
     {
         static_cast<uint32_t>(IAccountIAM::Message::UNREGISTER_INPUTER),
-        &AccountIAMStub::ProcUnRegisterInputer
+        &AccountIAMMgrStub::ProcUnRegisterInputer
     }
 };
 
-std::int32_t AccountIAMStub::OnRemoteRequest(
+std::int32_t AccountIAMMgrStub::OnRemoteRequest(
     std::uint32_t code, MessageParcel &data, MessageParcel &reply, MessageOption &option)
 {
     ACCOUNT_LOGD("Received stub message: %{public}d, callingPid: %{public}d", code, IPCSkeleton::GetCallingPid());
     Security::AccessToken::AccessTokenID tokenCaller = IPCSkeleton::GetCallingTokenID();
     int result = SetFirstCallerTokenID(tokenCaller);
+    ACCOUNT_LOGD("SetFirstCallerTokenID result: %{public}d", result);
     if (data.ReadInterfaceToken() != GetDescriptor()) {
         ACCOUNT_LOGD("check descriptor failed! code %{public}u.", code);
         return ERR_ACCOUNT_COMMON_CHECK_DESCRIPTOR_ERROR;
@@ -111,7 +112,7 @@ std::int32_t AccountIAMStub::OnRemoteRequest(
     return IPCObjectStub::OnRemoteRequest(code, data, reply, option);
 }
 
-ErrCode AccountIAMStub::ProcOpenSession(MessageParcel &data, MessageParcel &reply)
+ErrCode AccountIAMMgrStub::ProcOpenSession(MessageParcel &data, MessageParcel &reply)
 {
     int32_t userId;
     if (!data.ReadInt32(userId)) {
@@ -123,7 +124,7 @@ ErrCode AccountIAMStub::ProcOpenSession(MessageParcel &data, MessageParcel &repl
     return reply.WriteUInt8Vector(challenge);
 }
 
-ErrCode AccountIAMStub::ProcCloseSession(MessageParcel &data, MessageParcel &reply)
+ErrCode AccountIAMMgrStub::ProcCloseSession(MessageParcel &data, MessageParcel &reply)
 {
     int32_t userId;
     if (!data.ReadInt32(userId)) {
@@ -134,7 +135,7 @@ ErrCode AccountIAMStub::ProcCloseSession(MessageParcel &data, MessageParcel &rep
     return ERR_NONE;
 }
 
-ErrCode AccountIAMStub::ReadUserIdAndAuthType(MessageParcel &data, int32_t &userId, int32_t &authType)
+ErrCode AccountIAMMgrStub::ReadUserIdAndAuthType(MessageParcel &data, int32_t &userId, int32_t &authType)
 {
     if (!data.ReadInt32(userId)) {
         ACCOUNT_LOGD("failed to read userId");
@@ -147,7 +148,7 @@ ErrCode AccountIAMStub::ReadUserIdAndAuthType(MessageParcel &data, int32_t &user
     return ERR_OK;
 }
 
-ErrCode AccountIAMStub::AddOrUpdateCredential(MessageParcel &data, MessageParcel &reply, bool isAdd)
+ErrCode AccountIAMMgrStub::AddOrUpdateCredential(MessageParcel &data, MessageParcel &reply, bool isAdd)
 {
     ACCOUNT_LOGD("isAddCredentail: %{public}d", isAdd);
     int32_t userId;
@@ -181,17 +182,17 @@ ErrCode AccountIAMStub::AddOrUpdateCredential(MessageParcel &data, MessageParcel
     return ERR_NONE;
 }
 
-ErrCode AccountIAMStub::ProcAddCredential(MessageParcel &data, MessageParcel &reply)
+ErrCode AccountIAMMgrStub::ProcAddCredential(MessageParcel &data, MessageParcel &reply)
 {
     return AddOrUpdateCredential(data, reply);
 }
 
-ErrCode AccountIAMStub::ProcUpdateCredential(MessageParcel &data, MessageParcel &reply)
+ErrCode AccountIAMMgrStub::ProcUpdateCredential(MessageParcel &data, MessageParcel &reply)
 {
     return AddOrUpdateCredential(data, reply, false);
 }
 
-ErrCode AccountIAMStub::ProcDelCred(MessageParcel &data, MessageParcel &reply)
+ErrCode AccountIAMMgrStub::ProcDelCred(MessageParcel &data, MessageParcel &reply)
 {
     int32_t userId;
     if (!data.ReadInt32(userId)) {
@@ -217,7 +218,7 @@ ErrCode AccountIAMStub::ProcDelCred(MessageParcel &data, MessageParcel &reply)
     return ERR_NONE;
 }
 
-ErrCode AccountIAMStub::ProcDelUser(MessageParcel &data, MessageParcel &reply)
+ErrCode AccountIAMMgrStub::ProcDelUser(MessageParcel &data, MessageParcel &reply)
 {
     int32_t userId;
     if (!data.ReadInt32(userId)) {
@@ -238,7 +239,7 @@ ErrCode AccountIAMStub::ProcDelUser(MessageParcel &data, MessageParcel &reply)
     return ERR_NONE;
 }
 
-ErrCode AccountIAMStub::ProcCancel(MessageParcel &data, MessageParcel &reply)
+ErrCode AccountIAMMgrStub::ProcCancel(MessageParcel &data, MessageParcel &reply)
 {
     int32_t userId;
     if (!data.ReadInt32(userId)) {
@@ -254,7 +255,7 @@ ErrCode AccountIAMStub::ProcCancel(MessageParcel &data, MessageParcel &reply)
     return reply.WriteInt32(resultCode);
 }
 
-ErrCode AccountIAMStub::ProcGetCredentialInfo(MessageParcel &data, MessageParcel &reply)
+ErrCode AccountIAMMgrStub::ProcGetCredentialInfo(MessageParcel &data, MessageParcel &reply)
 {
     int32_t userId;
     int32_t authType;
@@ -271,7 +272,7 @@ ErrCode AccountIAMStub::ProcGetCredentialInfo(MessageParcel &data, MessageParcel
     return ERR_NONE;
 }
 
-ErrCode AccountIAMStub::ProcAuthUser(MessageParcel &data, MessageParcel &reply)
+ErrCode AccountIAMMgrStub::ProcAuthUser(MessageParcel &data, MessageParcel &reply)
 {
     int32_t userId;
     if (!data.ReadInt32(userId)) {
@@ -303,7 +304,7 @@ ErrCode AccountIAMStub::ProcAuthUser(MessageParcel &data, MessageParcel &reply)
     return reply.WriteUint64(contextId);
 }
 
-ErrCode AccountIAMStub::ProcCancelAuth(MessageParcel &data, MessageParcel &reply)
+ErrCode AccountIAMMgrStub::ProcCancelAuth(MessageParcel &data, MessageParcel &reply)
 {
     uint64_t contextId;
     if (!data.ReadUint64(contextId)) {
@@ -314,7 +315,7 @@ ErrCode AccountIAMStub::ProcCancelAuth(MessageParcel &data, MessageParcel &reply
     return reply.WriteInt32(result);
 }
 
-ErrCode AccountIAMStub::ProcGetAvailableStatus(MessageParcel &data, MessageParcel &reply)
+ErrCode AccountIAMMgrStub::ProcGetAvailableStatus(MessageParcel &data, MessageParcel &reply)
 {
     int32_t authType;
     if (!data.ReadInt32(authType)) {
@@ -330,7 +331,7 @@ ErrCode AccountIAMStub::ProcGetAvailableStatus(MessageParcel &data, MessageParce
     return reply.WriteInt32(status);
 }
 
-ErrCode AccountIAMStub::ProcGetProperty(MessageParcel &data, MessageParcel &reply)
+ErrCode AccountIAMMgrStub::ProcGetProperty(MessageParcel &data, MessageParcel &reply)
 {
     int32_t userId;
     int32_t authType;
@@ -357,7 +358,7 @@ ErrCode AccountIAMStub::ProcGetProperty(MessageParcel &data, MessageParcel &repl
     return ERR_NONE;
 }
 
-ErrCode AccountIAMStub::ProcSetProperty(MessageParcel &data, MessageParcel &reply)
+ErrCode AccountIAMMgrStub::ProcSetProperty(MessageParcel &data, MessageParcel &reply)
 {
     int32_t userId;
     int32_t authType;
@@ -383,7 +384,7 @@ ErrCode AccountIAMStub::ProcSetProperty(MessageParcel &data, MessageParcel &repl
     return ERR_NONE;
 }
 
-ErrCode AccountIAMStub::ProcRegisterInputer(MessageParcel &data, MessageParcel &reply)
+ErrCode AccountIAMMgrStub::ProcRegisterInputer(MessageParcel &data, MessageParcel &reply)
 {
     sptr<IGetDataCallback> inputer = iface_cast<IGetDataCallback>(data.ReadRemoteObject());
     if (inputer == nullptr) {
@@ -394,7 +395,7 @@ ErrCode AccountIAMStub::ProcRegisterInputer(MessageParcel &data, MessageParcel &
     return reply.WriteBool(result);
 }
 
-ErrCode AccountIAMStub::ProcUnRegisterInputer(MessageParcel &data, MessageParcel &reply)
+ErrCode AccountIAMMgrStub::ProcUnRegisterInputer(MessageParcel &data, MessageParcel &reply)
 {
     UnRegisterInputer();
     return ERR_NONE;
