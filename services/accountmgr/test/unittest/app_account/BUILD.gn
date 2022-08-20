@@ -55,12 +55,8 @@ ohos_unittest("account_permission_manager_test") {
   module_out_path = module_output_path
 
   sources = [ "account_permission_manager_test.cpp" ]
-  sources += app_account_mock_sources
 
-  configs = [
-    ":app_account_service_config_mock",
-    ":app_account_service_config_unittest",
-  ]
+  configs = [ ":app_account_service_config_unittest" ]
 
   deps = [
     "${app_account_innerkits_native_path}:app_account_innerkits",
