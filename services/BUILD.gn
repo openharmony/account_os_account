@@ -12,5 +12,8 @@
 # limitations under the License.
 
 group("services_target") {
-  deps = [ "accountmgr:accountmgr_target" ]
+  deps = [
+    "accountmgr:accountmgr_target",
+    "domain_account_mgr:domain_account_mgr_target"
+  ]
 }
