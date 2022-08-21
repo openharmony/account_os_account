@@ -1,0 +1,82 @@
+# Copyright (c) 2022 Huawei Device Co., Ltd.
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#     http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
+import("//base/account/os_account/os_account.gni")
+import("//build/ohos.gni")
+
+config("domain_account_mgr_config") {
+  include_dirs = [
+    "./include",
+  ]
+
+  cflags_cc = [ "-fexceptions" ]
+}
+
+config("domain_account_mgr_public_config") {
+  visibility = [ ":*" ]
+
+  include_dirs = [
+    "./include",
+    "${domain_account_interfaces_native_path}/include",
+    "${services_path}/domain_account_mgr/include",
+  ]
+}
+
+group("domain_account_mgr_target") {
+  deps = [
+    ":domain_account_mgr"
+  ]
+}
+
+ohos_shared_library("domain_account_mgr") {
+  visibility = [ "${os_account_path}/*" ]
+
+  cflags = [ "-pipe" ]
+  cflags_cc = [
+    "-Wdate-time",
+    "-Wformat=2",
+    "-Wfloat-equal",
+    "-Wshadow",
+  ]
+
+  sources = [
+    "src/domain_account_mgr_service.cpp",
+    "src/domain_account_mgr_stub.cpp"
+  ]
+
+  defines = [
+    "ACCOUNT_LOG_TAG = \"DomainAccountMgrService\"",
+    "LOG_DOMAIN = 0xD001B00",
+  ]
+
+  configs = [ ":domain_account_mgr_config" ]
+
+  public_configs = [ ":domain_account_mgr_public_config" ]
+
+  deps = [
+    "${common_path}:libaccount_common"
+  ]
+
+  external_deps = [
+    "ipc:ipc_core",
+    "hiviewdfx_hilog_native:libhilog",
+    "safwk:system_ability_fwk"
+  ]
+
+  if (build_selinux) {
+    external_deps += [ "selinux:librestorecon" ]
+    cflags += [ "-DWITH_SELINUX" ]
+  }
+
+  part_name = "os_account"
+}
