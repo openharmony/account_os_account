@@ -31,8 +31,8 @@ namespace OHOS {
         bool result = false;
         if (size > 0) {
             bool isEnable = false;
-            result = OsAccountManager::IsOsAccountConstraintEnable(LOCAL_ID, reinterpret_cast<const char*>(data),
-                isEnable);
+            std::string testConstraint(reinterpret_cast<const char*>(data), size);
+            result = OsAccountManager::IsOsAccountConstraintEnable(LOCAL_ID, testConstraint, isEnable);
         }
         return result;
     }
