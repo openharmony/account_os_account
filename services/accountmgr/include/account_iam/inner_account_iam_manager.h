@@ -61,16 +61,9 @@ public:
         int32_t userId, const GetPropertyRequest &request, const sptr<IGetSetPropCallback> &callback);
     void SetProperty(
         int32_t userId, const SetPropertyRequest &request, const sptr<IGetSetPropCallback> &callback);
-    bool RegisterInputer(int32_t userId, const sptr<IGetDataCallback> &inputer);
-    void UnRegisterInputer();
-    void SetAuthSubType(int32_t userId, int32_t authSubType);
-    int32_t GetAuthSubType(int32_t userId);
     IAMState GetState(int32_t userId);
     void SetState(int32_t userId, IAMState state);
     void GetChallenge(int32_t userId, std::vector<uint8_t> &challenge);
-    void SetCredential(int32_t userId, int32_t authSubType, const std::vector<uint8_t> &credential);
-    void GetCredential(int32_t userId, int32_t authSubType, CredentialPair &credPair);
-    void ClearCredential(int32_t userId, int32_t authSubType);
     ErrCode ActivateUserKey(int32_t userId, const std::vector<uint8_t> &token, const std::vector<uint8_t> &secret);
     ErrCode UpdateUserKey(int32_t userId, uint64_t credentialId,
         const std::vector<uint8_t> &token, const std::vector<uint8_t> &newSecret);
@@ -82,9 +75,7 @@ private:
 
 private:
     std::mutex mutex_;
-    std::map<int32_t, int32_t> authSubTypeMap_;
     std::map<int32_t, IAMState> userStateMap_;
-    std::map<std::string, CredentialPair> credentialMap_;
     std::map<int32_t, std::vector<uint8_t>> userChallengeMap_;
     std::map<int32_t, AccountCredentialInfo> credInfoMap_;
 #ifdef HAS_STORAGE_PART

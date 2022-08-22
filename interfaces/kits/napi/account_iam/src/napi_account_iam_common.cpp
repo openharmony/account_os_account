@@ -630,7 +630,7 @@ napi_value OnSetData(napi_env env, napi_callback_info info)
     return nullptr;
 }
 
-napi_value GetCtorIInputerData(napi_env env, const sptr<ISetDataCallback> &inputerData)
+napi_value GetCtorIInputerData(napi_env env, const std::shared_ptr<AccountSA::IInputerData> &inputerData)
 {
     ACCOUNT_LOGD("enter");
     if (inputerData == nullptr) {
@@ -691,7 +691,7 @@ NapiGetDataCallback::NapiGetDataCallback(napi_env env, napi_ref callback) : env_
 NapiGetDataCallback::~NapiGetDataCallback()
 {}
 
-void NapiGetDataCallback::OnGetData(int32_t authSubType, const sptr<ISetDataCallback> &inputerData)
+void NapiGetDataCallback::OnGetData(int32_t authSubType, const std::shared_ptr<AccountSA::IInputerData> inputerData)
 {
     ACCOUNT_LOGD("enter");
     std::unique_ptr<uv_work_t> work = std::make_unique<uv_work_t>();

@@ -16,6 +16,7 @@
 #ifndef OS_ACCOUNT_INTERFACES_INNERKITS_ACCOUNT_IAM_NATIVE_INCLUDE_IACCOUNT_IAM_H
 #define OS_ACCOUNT_INTERFACES_INNERKITS_ACCOUNT_IAM_NATIVE_INCLUDE_IACCOUNT_IAM_H
 
+#include "account_iam_info.h"
 #include "iaccount_iam_callback.h"
 #include "iremote_broker.h"
 #include "iremote_object.h"
@@ -47,8 +48,7 @@ public:
         int32_t userId, const GetPropertyRequest &request, const sptr<IGetSetPropCallback> &callback) = 0;
     virtual void SetProperty(
         int32_t userId, const SetPropertyRequest &request, const sptr<IGetSetPropCallback> &callback) = 0;
-    virtual bool RegisterInputer(const sptr<IGetDataCallback> &inputer) = 0;
-    virtual void UnRegisterInputer() = 0;
+    virtual IAMState GetAccountState(int32_t userId) = 0;
 
     enum class Message {
         OPEN_SESSION,
@@ -64,8 +64,7 @@ public:
         GET_AVAILABLE_STATUS,
         GET_PROPERTY,
         SET_PROPERTY,
-        REGISTER_INPUTER,
-        UNREGISTER_INPUTER
+        GET_ACCOUNT_STATE
     };
 };
 }  // namespace AccountSA

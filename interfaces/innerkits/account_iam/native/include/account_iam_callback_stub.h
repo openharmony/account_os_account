@@ -67,36 +67,6 @@ private:
     static const std::map<uint32_t, MessageProcFunction> messageProcMap_;
     DISALLOW_COPY_AND_MOVE(GetSetPropCallbackStub);
 };
-
-class SetDataCallbackStub : public IRemoteStub<ISetDataCallback> {
-public:
-    using MessageProcFunction = ErrCode (SetDataCallbackStub::*)(MessageParcel &data, MessageParcel &reply);
-    SetDataCallbackStub() {};
-    int OnRemoteRequest(
-        uint32_t code, MessageParcel &data, MessageParcel &reply, MessageOption &option) override;
-
-private:
-    ErrCode ProcOnSetData(MessageParcel &data, MessageParcel &reply);
-
-private:
-    static const std::map<uint32_t, MessageProcFunction> messageProcMap_;
-    DISALLOW_COPY_AND_MOVE(SetDataCallbackStub);
-};
-
-class GetDataCallbackStub : public IRemoteStub<IGetDataCallback> {
-public:
-    using MessageProcFunction = ErrCode (GetDataCallbackStub::*)(MessageParcel &data, MessageParcel &reply);
-    GetDataCallbackStub() {};
-    int OnRemoteRequest(
-        uint32_t code, MessageParcel &data, MessageParcel &reply, MessageOption &option) override;
-
-private:
-    ErrCode ProcOnGetData(MessageParcel &data, MessageParcel &reply);
-
-private:
-    static const std::map<uint32_t, MessageProcFunction> messageProcMap_;
-    DISALLOW_COPY_AND_MOVE(GetDataCallbackStub);
-};
 }  // namespace AccountSA
 }  // namespace OHOS
 #endif  // OS_ACCOUNT_INTERFACES_INNERKITS_ACCOUNT_IAM_NATIVE_INCLUDE_ACCOUNT_IAM_CALLBACK_STUB_H

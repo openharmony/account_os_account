@@ -59,30 +59,6 @@ private:
 private:
     static inline BrokerDelegator<GetSetPropCallbackProxy> delegator_;
 };
-
-class SetDataCallbackProxy : public IRemoteProxy<ISetDataCallback> {
-public:
-    explicit SetDataCallbackProxy(const sptr<IRemoteObject> &object);
-    void OnSetData(int32_t authSubType, std::vector<uint8_t> data) override;
-
-private:
-    ErrCode SendRequest(ISetDataCallback::Message code, MessageParcel &data, MessageParcel &reply);
-
-private:
-    static inline BrokerDelegator<SetDataCallbackProxy> delegator_;
-};
-
-class GetDataCallbackProxy : public IRemoteProxy<IGetDataCallback> {
-public:
-    explicit GetDataCallbackProxy(const sptr<IRemoteObject> &object);
-    void OnGetData(int32_t authSubType, const sptr<ISetDataCallback> &inputerSetData) override;
-
-private:
-    ErrCode SendRequest(IGetDataCallback::Message code, MessageParcel &data, MessageParcel &reply);
-
-private:
-    static inline BrokerDelegator<GetDataCallbackProxy> delegator_;
-};
 }  // namespace AccountSA
 }  // namespace OHOS
 #endif  // OS_ACCOUNT_INTERFACES_INNERKITS_ACCOUNT_IAM_NATIVE_INCLUDE_ACCOUNT_IAM_CALLBACK_PROXY_H
