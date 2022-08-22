@@ -138,53 +138,5 @@ void GetSetPropCallbackProxy::OnResult(int32_t result, const Attributes &extraIn
     uint32_t code = static_cast<uint32_t>(IGetSetPropCallback::Message::ON_RESULT);
     OnResultFunc(Remote(), code, GetDescriptor(), result, extraInfo);
 }
-
-GetDataCallbackProxy::GetDataCallbackProxy(const sptr<IRemoteObject> &object)
-    : IRemoteProxy<IGetDataCallback>(object)
-{}
-
-void GetDataCallbackProxy::OnGetData(int32_t authSubType, const sptr<ISetDataCallback> &setDataCb)
-{
-    MessageParcel data;
-    MessageParcel reply;
-    if (!data.WriteInterfaceToken(GetDescriptor())) {
-        ACCOUNT_LOGD("write descriptor fail");
-        return;
-    }
-    if (!data.WriteInt32(authSubType)) {
-        ACCOUNT_LOGD("write authSubType fail");
-        return;
-    }
-    if (!data.WriteRemoteObject(setDataCb->AsObject())) {
-        ACCOUNT_LOGD("write inputerData fail");
-        return;
-    }
-    uint32_t code = static_cast<uint32_t>(IGetDataCallback::Message::ON_GET_DATA);
-    SendRequestFunc(Remote(), code, data, reply);
-}
-
-SetDataCallbackProxy::SetDataCallbackProxy(const sptr<IRemoteObject> &object)
-    : IRemoteProxy<ISetDataCallback>(object)
-{}
-
-void SetDataCallbackProxy::OnSetData(int32_t authSubType, std::vector<uint8_t> data)
-{
-    MessageParcel dataParcel;
-    MessageParcel reply;
-    if (!dataParcel.WriteInterfaceToken(GetDescriptor())) {
-        ACCOUNT_LOGD("write descriptor fail");
-        return;
-    }
-    if (!dataParcel.WriteInt64(authSubType)) {
-        ACCOUNT_LOGD(" write authSubType fail");
-        return;
-    }
-    if (!dataParcel.WriteUInt8Vector(data)) {
-        ACCOUNT_LOGD("write data fail");
-        return;
-    }
-    uint32_t code = static_cast<uint32_t>(ISetDataCallback::Message::ON_SET_DATA);
-    SendRequestFunc(Remote(), code, dataParcel, reply);
-}
 }  // namespace AccountSA
 }  // namespace OHOS

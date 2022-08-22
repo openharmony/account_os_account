@@ -35,6 +35,14 @@ config("account_iam_innnerkits_config") {
     "-Wshadow",
   ]
 
+  if (has_pin_auth_part) {
+    cflags_cc += [ "-DHAS_PIN_AUTH_PART" ]
+  }
+
+  if (has_user_auth_part) {
+    cflags_cc += [ "-DHAS_USER_AUTH_PART" ]
+  }
+
   defines = [
     "ACCOUNT_LOG_TAG = \"AccountIAMFwk\"",
     "LOG_DOMAIN = 0xD001B00",
@@ -56,7 +64,6 @@ config("account_iam_innerkits_public_config") {
 
 ohos_shared_library("account_iam_innerkits") {
   sources = [
-    "${account_iam_framework_path}/src/account_iam_callback_proxy.cpp",
     "${account_iam_framework_path}/src/account_iam_callback_service.cpp",
     "${account_iam_framework_path}/src/account_iam_callback_stub.cpp",
     "${account_iam_framework_path}/src/account_iam_client.cpp",
@@ -73,11 +80,12 @@ ohos_shared_library("account_iam_innerkits") {
     "${os_account_innerkits_native_path}:os_account_innerkits",
   ]
 
+  if (has_pin_auth_part) {
+    deps += [ "//base/useriam/pin_auth/frameworks:pinauth_framework" ]
+  }
+
   if (has_user_auth_part) {
-    deps += [
-      "//base/useriam/user_auth_framework/frameworks/native/client:userauth_client",
-      "//base/useriam/user_auth_framework/frameworks/native/ipc:userauth_client_ipc",
-    ]
+    deps += [ "//base/useriam/user_auth_framework/frameworks/native/client:userauth_client" ]
   }
 
   external_deps = [

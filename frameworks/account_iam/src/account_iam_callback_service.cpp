@@ -16,6 +16,7 @@
 #include "account_iam_callback_service.h"
 
 #include "account_error_no.h"
+#include "account_iam_client.h"
 #include "account_log_wrapper.h"
 
 namespace OHOS {
@@ -67,16 +68,67 @@ void GetSetPropCallbackService::OnResult(int32_t result, const Attributes &extra
     callback_->OnResult(result, extraInfo);
 }
 
-GetDataCallbackService::GetDataCallbackService(const std::shared_ptr<GetDataCallback> &callback) : callback_(callback)
+IAMInputerData::IAMInputerData(int32_t userId, const std::shared_ptr<IInputerData> &inputerData)
+    : userId_(userId), innerInputerData_(inputerData)
 {}
 
-void GetDataCallbackService::OnGetData(int32_t authSubType, const sptr<ISetDataCallback> &inputerSetData)
+IAMInputerData::~IAMInputerData()
+{}
+
+void IAMInputerData::OnSetData(int32_t authSubType, std::vector<uint8_t> data)
 {
-    if (callback_ == nullptr) {
-        ACCOUNT_LOGD("callback is nullptr");
+    AccountIAMClient::GetInstance().SetCredential(userId_, authSubType, data);
+    AccountIAMClient::GetInstance().SetCredential(userId_, 0, data);
+    innerInputerData_->OnSetData(authSubType, data);
+}
+
+void IAMInputerData::ResetInnerInputerData(const std::shared_ptr<IInputerData> &inputerData)
+{
+    innerInputerData_ = inputerData;
+}
+
+IAMInputer::IAMInputer(int32_t userId, const std::shared_ptr<IInputer> &inputer)
+    : userId_(userId), innerInputer_(inputer)
+{
+    auto iamInputerData = new (std::nothrow) IAMInputerData(userId, nullptr);
+    if (iamInputerData == nullptr) {
+        ACCOUNT_LOGD("failed to create IAMInputerData");
         return;
     }
-    callback_->OnGetData(authSubType, inputerSetData);
+    inputerData_.reset(iamInputerData);
+}
+
+IAMInputer::~IAMInputer()
+{}
+
+void IAMInputer::OnGetData(int32_t authSubType, std::shared_ptr<IInputerData> inputerData)
+{
+    ACCOUNT_LOGD("enter");
+    if (inputerData_ == nullptr) {
+        ACCOUNT_LOGD("inputerData_ is nullptr");
+        return;
+    }
+    inputerData_->ResetInnerInputerData(inputerData);
+    IAMState state = AccountIAMClient::GetInstance().GetAccountState(userId_);
+    if (authSubType == 0) {
+        authSubType = AccountIAMClient::GetInstance().GetAuthSubType(userId_);
+    }
+    if (state < AFTER_ADD_CRED) {
+        innerInputer_->OnGetData(authSubType, inputerData_);
+        return;
+    }
+    CredentialPair credPair;
+    AccountIAMClient::GetInstance().GetCredential(userId_, authSubType, credPair);
+    if (state == ROLL_BACK_UPDATE_CRED) {
+        inputerData->OnSetData(authSubType, credPair.oldCredential);
+    } else {
+        inputerData->OnSetData(authSubType, credPair.credential);
+    }
+}
+
+void IAMInputer::ResetInnerInputer(const std::shared_ptr<IInputer> &inputer)
+{
+    innerInputer_ = inputer;
 }
 }  // namespace AccountSA
 }  // namespace OHOS

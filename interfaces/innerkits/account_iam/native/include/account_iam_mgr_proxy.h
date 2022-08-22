@@ -13,8 +13,8 @@
  * limitations under the License.
  */
 
-#ifndef OS_ACCOUNT_SERVICES_ACCOUNTMGR_INCLUDE_ACCOUNT_IAM_MGR_PROXY_H
-#define OS_ACCOUNT_SERVICES_ACCOUNTMGR_INCLUDE_ACCOUNT_IAM_MGR_PROXY_H
+#ifndef OS_ACCOUNT_INTERFACES_INNERKITS_ACCOUNT_IAM_NATIVE_INCLUDE_ACCOUNT_IAM_MGR_PROXY_H
+#define OS_ACCOUNT_INTERFACES_INNERKITS_ACCOUNT_IAM_NATIVE_INCLUDE_ACCOUNT_IAM_MGR_PROXY_H
 
 #include "account_error_no.h"
 #include "account_iam_info.h"
@@ -48,8 +48,7 @@ public:
         int32_t userId, const GetPropertyRequest &request, const sptr<IGetSetPropCallback> &callback) override;
     void SetProperty(
         int32_t userId, const SetPropertyRequest &request, const sptr<IGetSetPropCallback> &callback) override;
-    bool RegisterInputer(const sptr<IGetDataCallback> &inputer) override;
-    void UnRegisterInputer() override;
+    IAMState GetAccountState(int32_t userId) override;
 
 private:
     ErrCode SendRequest(IAccountIAM::Message code, MessageParcel &data, MessageParcel &reply);
@@ -62,4 +61,4 @@ private:
 };
 }  // namespace AccountSA
 }  // namespace OHOS
-#endif  // OS_ACCOUNT_SERVICES_ACCOUNTMGR_INCLUDE_ACCOUNT_IAM_MGR_PROXY_H
+#endif  // OS_ACCOUNT_INTERFACES_INNERKITS_ACCOUNT_IAM_NATIVE_INCLUDE_ACCOUNT_IAM_MGR_PROXY_H

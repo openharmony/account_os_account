@@ -53,26 +53,6 @@ public:
         ON_RESULT
     };
 };
-
-class ISetDataCallback : public IRemoteBroker {
-public:
-    DECLARE_INTERFACE_DESCRIPTOR(u"ohos.accountfwk.ISetDataCallback");
-    virtual void OnSetData(int32_t authSubType, std::vector<uint8_t> data) = 0;
-
-    enum class Message {
-        ON_SET_DATA
-    };
-};
-
-class IGetDataCallback : public IRemoteBroker {
-public:
-    DECLARE_INTERFACE_DESCRIPTOR(u"ohos.accountfwk.IGetDataCallback");
-    virtual void OnGetData(int32_t authSubType, const sptr<ISetDataCallback> &inputerSetData) = 0;
-
-    enum class Message {
-        ON_GET_DATA
-    };
-};
 }  // namespace AccountSA
 }  // OHOS
 #endif  // OS_ACCOUNT_INTERFACES_INNERKITS_ACCOUNT_IAM_NATIVE_INCLUDE_ACCOUNT_IAM_CALLBACK_H

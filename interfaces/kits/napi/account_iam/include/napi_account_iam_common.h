@@ -182,15 +182,15 @@ struct InputerContext {
     napi_env env = nullptr;
     napi_ref callback = nullptr;
     int32_t authSubType = -1;
-    sptr<AccountSA::ISetDataCallback> inputerData = nullptr;
+    std::shared_ptr<AccountSA::IInputerData> inputerData = nullptr;
 };
 
-class NapiGetDataCallback : public AccountSA::GetDataCallback {
+class NapiGetDataCallback : public AccountSA::IInputer {
 public:
     NapiGetDataCallback(napi_env env, napi_ref callback);
     virtual ~NapiGetDataCallback();
 
-    void OnGetData(int32_t authSubType, const sptr<AccountSA::ISetDataCallback> &inputerData) override;
+    void OnGetData(int32_t authSubType, const std::shared_ptr<AccountSA::IInputerData> inputerData) override;
 
 private:
     napi_env env_;

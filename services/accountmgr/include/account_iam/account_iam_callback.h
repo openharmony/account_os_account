@@ -18,8 +18,8 @@
 
 #include <map>
 #include <vector>
-#include "account_iam_callback_stub.h"
 #include "account_iam_info.h"
+#include "iaccount_iam_callback.h"
 
 namespace OHOS {
 namespace AccountSA {
@@ -100,33 +100,6 @@ private:
     uint64_t credentialId_;
     std::vector<uint8_t> authToken_;
     const sptr<IIDMCallback> innerCallback_ = nullptr;
-};
-
-class IAMInputerData : public SetDataCallbackStub {
-public:
-    explicit IAMInputerData(int32_t userId, const std::shared_ptr<IInputerData> &inputerData);
-    virtual ~IAMInputerData() = default;
-
-    void OnSetData(int32_t authSubType, std::vector<uint8_t> data) override;
-
-private:
-    int32_t userId_;
-    std::shared_ptr<IInputerData> innerInputerData_;
-    std::map<std::string, std::vector<uint8_t>> credMap_;
-};
-
-class IAMInputer : public IInputer {
-public:
-    explicit IAMInputer(int32_t userId, const sptr<IGetDataCallback> &inputer);
-    virtual ~IAMInputer() = default;
-
-    void OnGetData(int32_t authSubType, std::shared_ptr<IInputerData> inputerData);
-
-private:
-    int32_t userId_;
-    std::vector<uint8_t> oldCredential_;
-    sptr<IGetDataCallback> innerInputer_ = nullptr;
-    sptr<IAMInputerData> inputerData_ = nullptr;
 };
 
 class GetCredInfoCallbackWrapper : public GetCredentialInfoCallback {
