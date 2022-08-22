@@ -16,7 +16,7 @@
 #ifndef OS_ACCOUNT_INTERFACES_INNERKITS_ACCOUNT_IAM_NATIVE_INCLUDE_ACCOUNT_IAM_CLIENT_CALLBACK_H
 #define OS_ACCOUNT_INTERFACES_INNERKITS_ACCOUNT_IAM_NATIVE_INCLUDE_ACCOUNT_IAM_CLIENT_CALLBACK_H
 
-#include "account_iam_callback_stub.h"
+#include "account_iam_info.h"
 
 namespace OHOS {
 namespace AccountSA {
@@ -34,11 +34,6 @@ public:
 class GetSetPropCallback {
 public:
     virtual void OnResult(int32_t result, const Attributes &extraInfo) = 0;
-};
-
-class GetDataCallback {
-public:
-    virtual void OnGetData(int32_t authSubType, const sptr<ISetDataCallback> &inputerData) = 0;
 };
 }  // namespace AccountSA
 }  // namespace OHOS

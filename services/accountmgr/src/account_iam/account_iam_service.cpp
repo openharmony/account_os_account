@@ -169,19 +169,9 @@ void AccountIAMService::SetProperty(
     InnerAccountIAMManager::GetInstance().SetProperty(userId, request, callback);
 }
 
-bool AccountIAMService::RegisterInputer(const sptr<IGetDataCallback> &inputer)
+IAMState AccountIAMService::GetAccountState(int32_t userId)
 {
-    int32_t userId = 0;
-    int32_t callingUid = IPCSkeleton::GetCallingUid();
-    if (OsAccountManager::GetOsAccountLocalIdFromUid(callingUid, userId) != ERR_OK) {
-        return false;
-    }
-    return InnerAccountIAMManager::GetInstance().RegisterInputer(userId, inputer);
-}
-
-void AccountIAMService::UnRegisterInputer()
-{
-    return InnerAccountIAMManager::GetInstance().UnRegisterInputer();
+    return InnerAccountIAMManager::GetInstance().GetState(userId);
 }
 }  // namespace AccountSA
 }  // namespace OHOS

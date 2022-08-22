@@ -364,37 +364,20 @@ void AccountIAMMgrProxy::SetProperty(
     SendRequest(IAccountIAM::Message::SET_PROPERTY, data, reply);
 }
 
-bool AccountIAMMgrProxy::RegisterInputer(const sptr<IGetDataCallback> &inputer)
+IAMState AccountIAMMgrProxy::GetAccountState(int32_t userId)
 {
-    bool result = false;
+    IAMState defaultState = IDLE;
     MessageParcel data;
-    if (!data.WriteInterfaceToken(GetDescriptor())) {
-        ACCOUNT_LOGD("failed to write descriptor");
-        return result;
-    }
-    if (!data.WriteRemoteObject(inputer->AsObject())) {
-        ACCOUNT_LOGD("failed to write inputer");
-        return result;
+    if (!WriteCommonData(data, userId)) {
+        return defaultState;
     }
     MessageParcel reply;
-    if (SendRequest(IAccountIAM::Message::REGISTER_INPUTER, data, reply) != ERR_OK) {
-        return result;
+    SendRequest(IAccountIAM::Message::GET_ACCOUNT_STATE, data, reply);
+    int32_t state = defaultState;
+    if (!reply.ReadInt32(state)) {
+        ACCOUNT_LOGD("failed to read state");
     }
-    if (!reply.ReadBool(result)) {
-        ACCOUNT_LOGD("failed to read result");
-    }
-    return result;
-}
-
-void AccountIAMMgrProxy::UnRegisterInputer()
-{
-    MessageParcel data;
-    if (!data.WriteInterfaceToken(GetDescriptor())) {
-        ACCOUNT_LOGD("failed to write descriptor");
-        return;
-    }
-    MessageParcel reply;
-    SendRequest(IAccountIAM::Message::UNREGISTER_INPUTER, data, reply);
+    return static_cast<IAMState>(state);
 }
 }  // namespace AccountSA
 }  // namespace OHOS

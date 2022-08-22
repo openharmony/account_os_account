@@ -47,8 +47,7 @@ public:
         int32_t userId, const GetPropertyRequest &request, const sptr<IGetSetPropCallback> &callback) override;
     void SetProperty(
         int32_t userId, const SetPropertyRequest &request, const sptr<IGetSetPropCallback> &callback) override;
-    bool RegisterInputer(const sptr<IGetDataCallback> &inputer) override;
-    void UnRegisterInputer() override;
+    IAMState GetAccountState(int32_t userId) override;
 
 private:
     DISALLOW_COPY_AND_MOVE(AccountIAMService);

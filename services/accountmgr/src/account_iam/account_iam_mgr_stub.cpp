@@ -16,7 +16,6 @@
 #include "account_iam_mgr_stub.h"
 
 #include "access_token.h"
-#include "account_iam_callback_proxy.h"
 #include "account_log_wrapper.h"
 #include "iaccount_iam_callback.h"
 #include "ipc_skeleton.h"
@@ -84,12 +83,8 @@ const std::map<uint32_t, AccountIAMMgrStub::MessageProcFunction> AccountIAMMgrSt
         &AccountIAMMgrStub::ProcSetProperty
     },
     {
-        static_cast<uint32_t>(IAccountIAM::Message::REGISTER_INPUTER),
-        &AccountIAMMgrStub::ProcRegisterInputer
-    },
-    {
-        static_cast<uint32_t>(IAccountIAM::Message::UNREGISTER_INPUTER),
-        &AccountIAMMgrStub::ProcUnRegisterInputer
+        static_cast<uint32_t>(IAccountIAM::Message::GET_ACCOUNT_STATE),
+        &AccountIAMMgrStub::ProcGetAccountState
     }
 };
 
@@ -384,21 +379,15 @@ ErrCode AccountIAMMgrStub::ProcSetProperty(MessageParcel &data, MessageParcel &r
     return ERR_NONE;
 }
 
-ErrCode AccountIAMMgrStub::ProcRegisterInputer(MessageParcel &data, MessageParcel &reply)
+ErrCode AccountIAMMgrStub::ProcGetAccountState(MessageParcel &data, MessageParcel &reply)
 {
-    sptr<IGetDataCallback> inputer = iface_cast<IGetDataCallback>(data.ReadRemoteObject());
-    if (inputer == nullptr) {
-        ACCOUNT_LOGD("inputer is nullptr");
+    int32_t userId;
+    if (!data.ReadInt32(userId)) {
+        ACCOUNT_LOGD("failed to read userId");
         return ERR_ACCOUNT_IAM_SERVICE_READ_PARCEL_FAIL;
     }
-    bool result = RegisterInputer(inputer);
-    return reply.WriteBool(result);
-}
-
-ErrCode AccountIAMMgrStub::ProcUnRegisterInputer(MessageParcel &data, MessageParcel &reply)
-{
-    UnRegisterInputer();
-    return ERR_NONE;
+    IAMState state = GetAccountState(userId);
+    return reply.WriteInt32(state);
 }
 }  // AccountSA
 }  // OHOS

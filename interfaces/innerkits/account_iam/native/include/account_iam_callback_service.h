@@ -18,6 +18,7 @@
 
 #include "account_iam_callback_stub.h"
 #include "account_iam_client_callback.h"
+#include "account_iam_info.h"
 
 namespace OHOS {
 namespace AccountSA {
@@ -52,14 +53,31 @@ private:
     DISALLOW_COPY_AND_MOVE(GetSetPropCallbackService);
 };
 
-class GetDataCallbackService : public GetDataCallbackStub {
+class IAMInputerData : public IInputerData {
 public:
-    explicit GetDataCallbackService(const std::shared_ptr<GetDataCallback> &callback);
-    void OnGetData(int32_t authSubType, const sptr<ISetDataCallback> &inputerSetData) override;
+    IAMInputerData(int32_t userId, const std::shared_ptr<IInputerData> &inputerData);
+    virtual~IAMInputerData();
+    void OnSetData(int32_t authSubType, std::vector<uint8_t> data) override;
+    void ResetInnerInputerData(const std::shared_ptr<IInputerData> &inputerData);
 
 private:
-    std::shared_ptr<GetDataCallback> callback_;
-    DISALLOW_COPY_AND_MOVE(GetDataCallbackService);
+    int32_t userId_;
+    std::shared_ptr<IInputerData> innerInputerData_;
+    std::map<std::string, std::vector<uint8_t>> credMap_;
+};
+
+class IAMInputer : public IInputer {
+public:
+    IAMInputer(int32_t userId, const std::shared_ptr<IInputer> &inputer);
+    virtual ~IAMInputer();
+
+    void OnGetData(int32_t authSubType, std::shared_ptr<IInputerData> inputerData);
+    void ResetInnerInputer(const std::shared_ptr<IInputer> &inputer);
+private:
+    int32_t userId_;
+    std::vector<uint8_t> oldCredential_;
+    std::shared_ptr<IInputer> innerInputer_ = nullptr;
+    std::shared_ptr<IAMInputerData> inputerData_ = nullptr;
 };
 }  // namespace AccountSA
 }  // namespace OHOS
