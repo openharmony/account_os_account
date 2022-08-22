@@ -33,7 +33,8 @@ namespace OHOS {
         if (size > 0) {
             OsAccountInfo osAccountInfoOne;
             OsAccountType testType = static_cast<OsAccountType>(size % CONSTANTS_NUMBER_FIVE);
-            result = OsAccountManager::CreateOsAccount(reinterpret_cast<const char*>(data), testType, osAccountInfoOne);
+            std::string accountName(reinterpret_cast<const char*>(data), size);
+            result = OsAccountManager::CreateOsAccount(accountName, testType, osAccountInfoOne);
             if (result == ERR_OK) {
                 ACCOUNT_LOGI("CreateOsAccountFuzzTest RemoveOsAccount");
                 OsAccountManager::RemoveOsAccount(osAccountInfoOne.GetLocalId());

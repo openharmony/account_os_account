@@ -29,7 +29,9 @@ namespace OHOS {
     {
         bool result = false;
         if (size > 0) {
-            DomainAccountInfo domainInfo(reinterpret_cast<const char*>(data), reinterpret_cast<const char*>(data));
+            std::string accountName(reinterpret_cast<const char*>(data), size);
+            std::string domain(reinterpret_cast<const char*>(data), size);
+            DomainAccountInfo domainInfo(accountName, domain);
             int resID = -1;
             result = OsAccountManager::GetOsAccountLocalIdFromDomain(domainInfo, resID);
         }
