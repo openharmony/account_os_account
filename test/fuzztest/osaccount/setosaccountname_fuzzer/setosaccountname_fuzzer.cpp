@@ -31,7 +31,8 @@ namespace OHOS {
     {
         bool result = false;
         if (size > 0) {
-            result = OsAccountManager::SetOsAccountName(LOCAL_ID, reinterpret_cast<const char*>(data));
+            std::string testName(reinterpret_cast<const char*>(data), size);
+            result = OsAccountManager::SetOsAccountName(LOCAL_ID, testName);
         }
         return result;
     }

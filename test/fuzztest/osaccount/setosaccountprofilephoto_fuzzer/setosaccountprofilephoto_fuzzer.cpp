@@ -31,7 +31,8 @@ namespace OHOS {
     {
         bool result = false;
         if (size > 0) {
-            result = OsAccountManager::SetOsAccountProfilePhoto(LOCAL_ID, reinterpret_cast<const char*>(data));
+            std::string testPhotoStr(reinterpret_cast<const char*>(data), size);
+            result = OsAccountManager::SetOsAccountProfilePhoto(LOCAL_ID, testPhotoStr);
         }
         return result;
     }
