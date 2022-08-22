@@ -20,10 +20,14 @@
 #include "account_log_wrapper.h"
 #include "account_proxy.h"
 #include "iservice_registry.h"
+#include "os_account_manager.h"
+#include "pinauth_register.h"
 #include "system_ability_definition.h"
 
 namespace OHOS {
 namespace AccountSA {
+using PinAuthRegister = UserIam::PinAuth::PinAuthRegister;
+
 AccountIAMClient::AccountIAMClient()
 {}
 
@@ -52,6 +56,13 @@ void AccountIAMClient::AddCredential(
         ACCOUNT_LOGD("fail to get account iam proxy");
         return;
     }
+    if ((userId == 0) && (OsAccountManager::GetOsAccountLocalIdFromProcess(userId) != ERR_OK)) {
+        ACCOUNT_LOGD("fail to get current user id");
+        return;
+    }
+    if (credInfo.authType == AuthType::PIN) {
+        SetAuthSubType(userId, static_cast<int32_t>(credInfo.pinType.value_or(PinSubType::PIN_MAX)));
+    }
     sptr<IIDMCallback> wrapper = new (std::nothrow) IDMCallbackService(callback);
     proxy_->AddCredential(userId, credInfo, wrapper);
 }
@@ -62,6 +73,13 @@ void AccountIAMClient::UpdateCredential(
     if (GetAccountIAMProxy() != ERR_OK) {
         ACCOUNT_LOGD("fail to get account iam proxy");
         return;
+    }
+    if ((userId == 0) && (OsAccountManager::GetOsAccountLocalIdFromProcess(userId) != ERR_OK)) {
+        ACCOUNT_LOGD("fail to get current user id");
+        return;
+    }
+    if (credInfo.authType == AuthType::PIN) {
+        SetAuthSubType(userId, static_cast<int32_t>(credInfo.pinType.value_or(PinSubType::PIN_MAX)));
     }
     sptr<IIDMCallback> wrapper = new (std::nothrow) IDMCallbackService(callback);
     proxy_->UpdateCredential(userId, credInfo, wrapper);
@@ -175,23 +193,76 @@ void AccountIAMClient::SetProperty(
     proxy_->SetProperty(userId, request, wrapper);
 }
 
-bool AccountIAMClient::RegisterInputer(const std::shared_ptr<GetDataCallback> &inputer)
+bool AccountIAMClient::RegisterInputer(const std::shared_ptr<IInputer> &inputer)
 {
-    if (GetAccountIAMProxy() != ERR_OK) {
-        ACCOUNT_LOGD("fail to get account iam proxy");
+    int32_t userId = 0;
+    if (OsAccountManager::GetOsAccountLocalIdFromProcess(userId) != ERR_OK) {
         return false;
     }
-    sptr<IGetDataCallback> wrapper = new (std::nothrow) GetDataCallbackService(inputer);
-    return proxy_->RegisterInputer(wrapper);
+    auto iamInputer = std::make_shared<IAMInputer>(userId, inputer);
+    return PinAuthRegister::GetInstance().RegisterInputer(iamInputer);
 }
 
 void AccountIAMClient::UnRegisterInputer()
 {
+    PinAuthRegister::GetInstance().UnRegisterInputer();
+}
+
+IAMState AccountIAMClient::GetAccountState(int32_t userId)
+{
     if (GetAccountIAMProxy() != ERR_OK) {
         ACCOUNT_LOGD("fail to get account iam proxy");
+        return IDLE;
+    }
+    return proxy_->GetAccountState(userId);
+}
+
+void AccountIAMClient::GetCredential(int32_t userId, int32_t authSubType, CredentialPair &credPair)
+{
+    std::string key = std::to_string(userId) + std::to_string(authSubType);
+    std::lock_guard<std::mutex> lock(mutex_);
+    auto it = credentialMap_.find(key);
+    if (it != credentialMap_.end()) {
+        credPair = it->second;
+    }
+}
+
+void AccountIAMClient::SetCredential(int32_t userId, int32_t authSubType, const std::vector<uint8_t> &credential)
+{
+    std::string key = std::to_string(userId) + std::to_string(authSubType);
+    std::lock_guard<std::mutex> lock(mutex_);
+    auto it = credentialMap_.find(key);
+    if (it != credentialMap_.end()) {
+        it->second.oldCredential = it->second.credential;
+        it->second.credential = credential;
         return;
     }
-    proxy_->UnRegisterInputer();
+    credentialMap_[key] = {
+        .credential = credential
+    };
+}
+
+void AccountIAMClient::ClearCredential(int32_t userId, int32_t authSubType)
+{
+    std::string key = std::to_string(userId) + std::to_string(authSubType);
+    std::lock_guard<std::mutex> lock(mutex_);
+    credentialMap_.erase(key);
+}
+
+void AccountIAMClient::SetAuthSubType(int32_t userId, int32_t authSubType)
+{
+    std::lock_guard<std::mutex> lock(mutex_);
+    authSubTypeMap_[userId] = authSubType;
+}
+
+int32_t AccountIAMClient::GetAuthSubType(int32_t userId)
+{
+    std::lock_guard<std::mutex> lock(mutex_);
+    auto it = authSubTypeMap_.find(userId);
+    if (it != authSubTypeMap_.end()) {
+        return it->second;
+    }
+    return 0;
 }
 
 void AccountIAMClient::ResetAccountIAMProxy(const wptr<IRemoteObject>& remote)
@@ -225,36 +296,34 @@ ErrCode AccountIAMClient::GetAccountIAMProxy()
     }
     sptr<ISystemAbilityManager> saMgr =
         SystemAbilityManagerClient::GetInstance().GetSystemAbilityManager();
-    if (!saMgr) {
+    if (saMgr == nullptr) {
         ACCOUNT_LOGD("failed to get system ability manager");
-        return ERR_APPACCOUNT_KIT_GET_SYSTEM_ABILITY_MANAGER;
+        return ERR_ACCOUNT_COMMON_GET_SYSTEM_ABILITY_MANAGER;
     }
     sptr<IRemoteObject> remoteObject = saMgr->GetSystemAbility(SUBSYS_ACCOUNT_SYS_ABILITY_ID_BEGIN);
-    if (!remoteObject) {
+    if (remoteObject == nullptr) {
         ACCOUNT_LOGD("failed to get account system ability");
-        return ERR_APPACCOUNT_KIT_GET_ACCOUNT_SYSTEM_ABILITY;
+        return ERR_ACCOUNT_COMMON_GET_SYSTEM_ABILITY;
     }
     sptr<IAccount> accountProxy = iface_cast<AccountProxy>(remoteObject);
-    if (!accountProxy) {
+    if (accountProxy == nullptr) {
         ACCOUNT_LOGD("failed to cast account proxy");
-        return ERR_APPACCOUNT_KIT_CAST_ACCOUNT_PROXY;
+        return ERR_ACCOUNT_COMMON_GET_PROXY;
     }
-    sptr<IRemoteObject> accountIAMRemoteObject = accountProxy->GetAccountIAMService();
-    if (!accountIAMRemoteObject) {
-        ACCOUNT_LOGD("failed to get account iam service");
-        return ERR_APPACCOUNT_KIT_GET_APP_ACCOUNT_SERVICE;
-    }
-    proxy_ = iface_cast<IAccountIAM>(accountIAMRemoteObject);
-    if ((!proxy_) || (!proxy_->AsObject())) {
+    proxy_ = iface_cast<IAccountIAM>(accountProxy->GetAccountIAMService());
+    if ((proxy_ == nullptr) || (proxy_->AsObject() == nullptr)) {
         ACCOUNT_LOGD("failed to cast account iam proxy");
-        return ERR_APPACCOUNT_KIT_GET_APP_ACCOUNT_PROXY;
+        return ERR_ACCOUNT_COMMON_GET_PROXY;
     }
     deathRecipient_ = new (std::nothrow) AccountIAMDeathRecipient();
-    if (!deathRecipient_) {
+    if (deathRecipient_ == nullptr) {
         ACCOUNT_LOGD("failed to create account iam death recipient");
-        return ERR_APPACCOUNT_KIT_CREATE_APP_ACCOUNT_DEATH_RECIPIENT;
+        proxy_ = nullptr;
+        return ERR_ACCOUNT_COMMON_CREATE_DEATH_RECIPIENT;
     }
-    proxy_->AsObject()->AddDeathRecipient(deathRecipient_);
+    if (!proxy_->AsObject()->AddDeathRecipient(deathRecipient_)) {
+        proxy_ = nullptr;
+    }
     return ERR_OK;
 }
 }  // namespace AccountSA

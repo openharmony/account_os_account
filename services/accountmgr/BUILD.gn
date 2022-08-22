@@ -60,9 +60,6 @@ config("accountmgr_config") {
 config("account_iam_config") {
   include_dirs = [
     "${account_iam_interfaces_native_path}/include",
-    "//base/useriam/pin_auth/frameworks/ipc/common_defines",
-    "//base/useriam/pin_auth/frameworks/ipc/inc",
-    "//base/useriam/pin_auth/interfaces/inner_api",
     "//base/useriam/user_auth_framework/interfaces/inner_api",
   ]
 }
@@ -183,6 +180,7 @@ ohos_shared_library("accountmgr") {
   if (has_user_auth_part) {
     sources += [
       "src/account_iam/account_iam_callback.cpp",
+      "src/account_iam/account_iam_client_callback_proxy.cpp",
       "src/account_iam/account_iam_mgr_stub.cpp",
       "src/account_iam/account_iam_service.cpp",
       "src/account_iam/inner_account_iam_manager.cpp",
@@ -222,16 +220,10 @@ ohos_shared_library("accountmgr") {
       "-DHAS_USER_IDM_PART",
     ]
     deps += [
-      "${account_iam_framework_path}:account_iam_innerkits",
       "//base/security/access_token/interfaces/innerkits/token_setproc:libtoken_setproc",
       "//base/useriam/user_auth_framework/frameworks/native/client:userauth_client",
       "//base/useriam/user_auth_framework/frameworks/native/ipc:userauth_client_ipc",
     ]
-  }
-
-  if (has_pin_auth_part) {
-    cflags_cc += [ "-DHAS_PIN_AUTH_PART" ]
-    deps += [ "//base/useriam/pin_auth/frameworks:pinauth_framework" ]
   }
 
   external_deps = [

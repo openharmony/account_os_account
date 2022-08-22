@@ -18,7 +18,9 @@
 
 #include "attributes.h"
 #include "iam_common_defines.h"
+#ifdef HAS_PIN_AUTH_PART
 #include "i_inputer.h"
+#endif
 #include "user_auth_client_callback.h"
 #include "user_auth_client_defines.h"
 #include "user_idm_client.h"
@@ -27,8 +29,11 @@
 
 namespace OHOS {
 namespace AccountSA {
+#ifdef HAS_PIN_AUTH_PART
 typedef UserIam::PinAuth::IInputer IInputer;
 typedef UserIam::PinAuth::IInputerData IInputerData;
+#endif
+#ifdef HAS_USER_AUTH_PART
 typedef UserIam::UserAuth::ResultCode ResultCode;
 typedef UserIam::UserAuth::AuthType AuthType;
 typedef UserIam::UserAuth::Attributes Attributes;
@@ -44,6 +49,7 @@ typedef UserIam::UserAuth::UserIdmClientCallback UserIdmClientCallback;
 typedef UserIam::UserAuth::CredentialParameters CredentialParameters;
 typedef UserIam::UserAuth::CredentialInfo CredentialInfo;
 typedef UserIam::UserAuth::GetCredentialInfoCallback GetCredentialInfoCallback;
+#endif
 
 enum IAMState {
     IDLE = 0,

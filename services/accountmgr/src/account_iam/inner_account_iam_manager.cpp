@@ -18,7 +18,6 @@
 #include "account_iam_callback.h"
 #include "account_log_wrapper.h"
 #include "iservice_registry.h"
-#include "pinauth_register.h"
 #include "system_ability_definition.h"
 #include "user_auth_client.h"
 #include "user_auth_client_impl.h"
@@ -33,7 +32,6 @@ const int32_t ERROR_STORAGE_KEY_NOT_EXIST = -2;
 }
 using UserIDMClient = UserIam::UserAuth::UserIdmClient;
 using UserAuthClient = UserIam::UserAuth::UserAuthClient;
-using PinAuthRegister = UserIam::PinAuth::PinAuthRegister;
 using UserAuthClientImpl = UserIam::UserAuth::UserAuthClientImpl;
 
 InnerAccountIAMManager::InnerAccountIAMManager()
@@ -68,8 +66,6 @@ void InnerAccountIAMManager::AddCredential(
         ACCOUNT_LOGD("callback is nullptr");
         return;
     }
-    PinSubType pinType = credInfo.pinType.value_or(PinSubType::PIN_MAX);
-    SetAuthSubType(userId, pinType);
     auto idmCallback = std::make_shared<AddCredCallback>(userId, credInfo, callback);
     UserIDMClient::GetInstance().AddCredential(userId, credInfo, idmCallback);
 }
@@ -87,8 +83,6 @@ void InnerAccountIAMManager::UpdateCredential(
         callback->OnResult(ResultCode::INVALID_PARAMETERS, emptyResult);
         return;
     }
-    PinSubType pinType = credInfo.pinType.value_or(PinSubType::PIN_MAX);
-    SetAuthSubType(userId, pinType);
     auto idmCallback = std::make_shared<UpdateCredCallback>(userId, credInfo, callback);
     UserIDMClient::GetInstance().UpdateCredential(userId, credInfo, idmCallback);
 }
@@ -187,17 +181,6 @@ void InnerAccountIAMManager::SetProperty(
     UserAuthClient::GetInstance().SetProperty(userId, request, setCallback);
 }
 
-bool InnerAccountIAMManager::RegisterInputer(int32_t userId, const sptr<IGetDataCallback> &inputer)
-{
-    auto iamInputer = std::make_shared<IAMInputer>(userId, inputer);
-    return PinAuthRegister::GetInstance().RegisterInputer(iamInputer);
-}
-
-void InnerAccountIAMManager::UnRegisterInputer()
-{
-    PinAuthRegister::GetInstance().UnRegisterInputer();
-}
-
 IAMState InnerAccountIAMManager::GetState(int32_t userId)
 {
     std::lock_guard<std::mutex> lock(mutex_);
@@ -223,54 +206,6 @@ void InnerAccountIAMManager::GetChallenge(int32_t userId, std::vector<uint8_t> &
     } else {
         challenge = userChallengeMap_[0];
     }
-}
-
-void InnerAccountIAMManager::GetCredential(int32_t userId, int32_t authSubType, CredentialPair &credPair)
-{
-    std::string key = std::to_string(userId) + std::to_string(authSubType);
-    std::lock_guard<std::mutex> lock(mutex_);
-    auto it = credentialMap_.find(key);
-    if (it != credentialMap_.end()) {
-        credPair = it->second;
-    }
-}
-
-void InnerAccountIAMManager::SetCredential(int32_t userId, int32_t authSubType, const std::vector<uint8_t> &credential)
-{
-    std::string key = std::to_string(userId) + std::to_string(authSubType);
-    std::lock_guard<std::mutex> lock(mutex_);
-    auto it = credentialMap_.find(key);
-    if (it != credentialMap_.end()) {
-        it->second.oldCredential = it->second.credential;
-        it->second.credential = credential;
-        return;
-    }
-    credentialMap_[key] = {
-        .credential = credential
-    };
-}
-
-void InnerAccountIAMManager::ClearCredential(int32_t userId, int32_t authSubType)
-{
-    std::string key = std::to_string(userId) + std::to_string(authSubType);
-    std::lock_guard<std::mutex> lock(mutex_);
-    credentialMap_.erase(key);
-}
-
-void InnerAccountIAMManager::SetAuthSubType(int32_t userId, int32_t authSubType)
-{
-    std::lock_guard<std::mutex> lock(mutex_);
-    authSubTypeMap_[userId] = authSubType;
-}
-
-int32_t InnerAccountIAMManager::GetAuthSubType(int32_t userId)
-{
-    std::lock_guard<std::mutex> lock(mutex_);
-    auto it = authSubTypeMap_.find(userId);
-    if (it != authSubTypeMap_.end()) {
-        return it->second;
-    }
-    return 0;
 }
 
 ErrCode InnerAccountIAMManager::ActivateUserKey(
