@@ -537,7 +537,7 @@ public:
     /**
      * @brief Query extension info.
      * @param Want Indicates the information of extension info.
-     * @param flag Indicates the query flag which will fliter any specified stuff in the extension info.
+     * @param flag Indicates the query flag which will filter any specified stuff in the extension info.
      * @param userId Indicates the userId in the system.
      * @param extensionInfos Indicates the obtained extensions.
      * @return Returns true if this function is successfully called; returns false otherwise.
@@ -548,7 +548,7 @@ public:
      * @brief Query extension info.
      * @param Want Indicates the information of extension info.
      * @param extensionType Indicates the type of the extension.
-     * @param flag Indicates the query flag which will fliter any specified stuff in the extension info.
+     * @param flag Indicates the query flag which will filter any specified stuff in the extension info.
      * @param userId Indicates the userId in the system.
      * @param extensionInfos Indicates the obtained extensions.
      * @return Returns true if this function is successfully called; returns false otherwise.
