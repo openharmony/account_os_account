@@ -133,7 +133,7 @@ void AppAccountManagerServiceModuleTest::DeleteKvStore(void)
  * @tc.name: AppAccountManagerService_AddAccount_0100
  * @tc.desc: Add an app account with valid data.
  * @tc.type: FUNC
- * @tc.require: SR000GGV11
+ * @tc.require: issueI5N90B
  */
 HWTEST_F(AppAccountManagerServiceModuleTest, AppAccountManagerService_AddAccount_0100, TestSize.Level0)
 {
@@ -151,7 +151,7 @@ HWTEST_F(AppAccountManagerServiceModuleTest, AppAccountManagerService_AddAccount
  * @tc.name: AppAccountManagerService_AddAccount_0200
  * @tc.desc: Add an app account with valid data.
  * @tc.type: FUNC
- * @tc.require: SR000GGV11
+ * @tc.require: issueI5N90B
  */
 HWTEST_F(AppAccountManagerServiceModuleTest, AppAccountManagerService_AddAccount_0200, TestSize.Level1)
 {
@@ -168,7 +168,7 @@ HWTEST_F(AppAccountManagerServiceModuleTest, AppAccountManagerService_AddAccount
  * @tc.name: AppAccountManagerService_AddAccount_0300
  * @tc.desc: Add an app account with valid data.
  * @tc.type: FUNC
- * @tc.require: SR000GGV11
+ * @tc.require: issueI5N90B
  */
 HWTEST_F(AppAccountManagerServiceModuleTest, AppAccountManagerService_AddAccount_0300, TestSize.Level1)
 {
@@ -185,7 +185,7 @@ HWTEST_F(AppAccountManagerServiceModuleTest, AppAccountManagerService_AddAccount
  * @tc.name: AppAccountManagerService_AddAccount_0400
  * @tc.desc: Add an app account with valid data.
  * @tc.type: FUNC
- * @tc.require: SR000GGV11
+ * @tc.require: issueI5N90B
  */
 HWTEST_F(AppAccountManagerServiceModuleTest, AppAccountManagerService_AddAccount_0400, TestSize.Level1)
 {
@@ -202,7 +202,7 @@ HWTEST_F(AppAccountManagerServiceModuleTest, AppAccountManagerService_AddAccount
  * @tc.name: AppAccountManagerService_AddAccount_0500
  * @tc.desc: Add an app account with invalid data.
  * @tc.type: FUNC
- * @tc.require: SR000GGV11
+ * @tc.require: issueI5N90B
  */
 HWTEST_F(AppAccountManagerServiceModuleTest, AppAccountManagerService_AddAccount_0500, TestSize.Level1)
 {
@@ -222,7 +222,7 @@ HWTEST_F(AppAccountManagerServiceModuleTest, AppAccountManagerService_AddAccount
  * @tc.name: AppAccountManagerService_DeleteAccount_0100
  * @tc.desc: Delete an app account with valid data.
  * @tc.type: FUNC
- * @tc.require: SR000GGV11
+ * @tc.require: issueI5N90B
  */
 HWTEST_F(AppAccountManagerServiceModuleTest, AppAccountManagerService_DeleteAccount_0100, TestSize.Level0)
 {
@@ -250,7 +250,7 @@ HWTEST_F(AppAccountManagerServiceModuleTest, AppAccountManagerService_DeleteAcco
  * @tc.name: AppAccountManagerService_DeleteAccount_0200
  * @tc.desc: Delete an app account with invalid data.
  * @tc.type: FUNC
- * @tc.require: SR000GGV11
+ * @tc.require: issueI5N90B
  */
 HWTEST_F(AppAccountManagerServiceModuleTest, AppAccountManagerService_DeleteAccount_0200, TestSize.Level1)
 {
@@ -264,7 +264,7 @@ HWTEST_F(AppAccountManagerServiceModuleTest, AppAccountManagerService_DeleteAcco
  * @tc.name: AppAccountManagerService_GetAccountExtraInfo_0100
  * @tc.desc: Get extra info of an app account with valid data.
  * @tc.type: FUNC
- * @tc.require: SR000GGVFS
+ * @tc.require: issueI5N90B
  */
 HWTEST_F(AppAccountManagerServiceModuleTest, AppAccountManagerService_GetAccountExtraInfo_0100, TestSize.Level1)
 {
@@ -286,7 +286,7 @@ HWTEST_F(AppAccountManagerServiceModuleTest, AppAccountManagerService_GetAccount
  * @tc.name: AppAccountManagerService_GetAccountExtraInfo_0200
  * @tc.desc: Get extra info of an app account with invalid data.
  * @tc.type: FUNC
- * @tc.require: SR000GGVFS
+ * @tc.require: issueI5N90B
  */
 HWTEST_F(AppAccountManagerServiceModuleTest, AppAccountManagerService_GetAccountExtraInfo_0200, TestSize.Level1)
 {
@@ -302,7 +302,7 @@ HWTEST_F(AppAccountManagerServiceModuleTest, AppAccountManagerService_GetAccount
  * @tc.name: AppAccountManagerService_SetAccountExtraInfo_0100
  * @tc.desc: Set extra info of an app account with valid data.
  * @tc.type: FUNC
- * @tc.require: SR000GGVFS
+ * @tc.require: issueI5N90B
  */
 HWTEST_F(AppAccountManagerServiceModuleTest, AppAccountManagerService_SetAccountExtraInfo_0100, TestSize.Level1)
 {
@@ -327,7 +327,7 @@ HWTEST_F(AppAccountManagerServiceModuleTest, AppAccountManagerService_SetAccount
  * @tc.name: AppAccountManagerService_SetAccountExtraInfo_0200
  * @tc.desc: Set extra info of an app account with valid data.
  * @tc.type: FUNC
- * @tc.require: SR000GGVFS
+ * @tc.require: issueI5N90B
  */
 HWTEST_F(AppAccountManagerServiceModuleTest, AppAccountManagerService_SetAccountExtraInfo_0200, TestSize.Level1)
 {
@@ -352,7 +352,7 @@ HWTEST_F(AppAccountManagerServiceModuleTest, AppAccountManagerService_SetAccount
  * @tc.name: AppAccountManagerService_SetAccountExtraInfo_0300
  * @tc.desc: Set extra info of an app account with invalid data.
  * @tc.type: FUNC
- * @tc.require: SR000GGVFS
+ * @tc.require: issueI5N90B
  */
 HWTEST_F(AppAccountManagerServiceModuleTest, AppAccountManagerService_SetAccountExtraInfo_0300, TestSize.Level1)
 {
@@ -366,7 +366,7 @@ HWTEST_F(AppAccountManagerServiceModuleTest, AppAccountManagerService_SetAccount
  * @tc.name: seAppAccountManagerService_EnableAppAccess_0100
  * @tc.desc: Enable app access with valid data.
  * @tc.type: FUNC
- * @tc.require: AR000GH17J
+ * @tc.require: issueI5N90B
  */
 HWTEST_F(AppAccountManagerServiceModuleTest, seAppAccountManagerService_EnableAppAccess_0100, TestSize.Level1)
 {
@@ -389,7 +389,7 @@ HWTEST_F(AppAccountManagerServiceModuleTest, seAppAccountManagerService_EnableAp
  * @tc.name: seAppAccountManagerService_EnableAppAccess_0200
  * @tc.desc: Enable app access with invalid data.
  * @tc.type: FUNC
- * @tc.require: AR000GH17J
+ * @tc.require: issueI5N90B
  */
 HWTEST_F(AppAccountManagerServiceModuleTest, seAppAccountManagerService_EnableAppAccess_0200, TestSize.Level1)
 {
@@ -409,7 +409,7 @@ HWTEST_F(AppAccountManagerServiceModuleTest, seAppAccountManagerService_EnableAp
  * @tc.name: seAppAccountManagerService_EnableAppAccess_0300
  * @tc.desc: Enable app access with valid data.
  * @tc.type: FUNC
- * @tc.require: AR000GH17J
+ * @tc.require: issueI5N90B
  */
 HWTEST_F(AppAccountManagerServiceModuleTest, seAppAccountManagerService_EnableAppAccess_0300, TestSize.Level1)
 {
@@ -432,7 +432,7 @@ HWTEST_F(AppAccountManagerServiceModuleTest, seAppAccountManagerService_EnableAp
  * @tc.name: seAppAccountManagerService_EnableAppAccess_0400
  * @tc.desc: Enable app access with invalid data.
  * @tc.type: FUNC
- * @tc.require: AR000GH17J
+ * @tc.require: issueI5N90B
  */
 HWTEST_F(AppAccountManagerServiceModuleTest, seAppAccountManagerService_EnableAppAccess_0400, TestSize.Level1)
 {
@@ -446,7 +446,7 @@ HWTEST_F(AppAccountManagerServiceModuleTest, seAppAccountManagerService_EnableAp
  * @tc.name: seAppAccountManagerService_DisableAppAccess_0100
  * @tc.desc: Disable app access with invalid data.
  * @tc.type: FUNC
- * @tc.require: AR000GH17J
+ * @tc.require: issueI5N90B
  */
 HWTEST_F(AppAccountManagerServiceModuleTest, seAppAccountManagerService_DisableAppAccess_0100, TestSize.Level1)
 {
@@ -466,7 +466,7 @@ HWTEST_F(AppAccountManagerServiceModuleTest, seAppAccountManagerService_DisableA
  * @tc.name: seAppAccountManagerService_DisableAppAccess_0200
  * @tc.desc: Disable app access with invalid data.
  * @tc.type: FUNC
- * @tc.require: AR000GH17J
+ * @tc.require: issueI5N90B
  */
 HWTEST_F(AppAccountManagerServiceModuleTest, seAppAccountManagerService_DisableAppAccess_0200, TestSize.Level1)
 {
@@ -480,7 +480,7 @@ HWTEST_F(AppAccountManagerServiceModuleTest, seAppAccountManagerService_DisableA
  * @tc.name: seAppAccountManagerService_CheckAppAccountSyncEnable_0100
  * @tc.desc: Check account sync enable with valid data.
  * @tc.type: FUNC
- * @tc.require: AR000GH17J
+ * @tc.require: issueI5N90B
  */
 HWTEST_F(
     AppAccountManagerServiceModuleTest, seAppAccountManagerService_CheckAppAccountSyncEnable_0100, TestSize.Level1)
@@ -503,7 +503,7 @@ HWTEST_F(
  * @tc.name: seAppAccountManagerService_CheckAppAccountSyncEnable_0200
  * @tc.desc: Check account sync enable with invalid data.
  * @tc.type: FUNC
- * @tc.require: AR000GH17J
+ * @tc.require: issueI5N90B
  */
 HWTEST_F(
     AppAccountManagerServiceModuleTest, seAppAccountManagerService_CheckAppAccountSyncEnable_0200, TestSize.Level1)
@@ -520,7 +520,7 @@ HWTEST_F(
  * @tc.name: seAppAccountManagerService_SetAppAccountSyncEnable_0100
  * @tc.desc: Set account sync enable with valid data.
  * @tc.type: FUNC
- * @tc.require: AR000GH17J
+ * @tc.require: issueI5N90B
  */
 HWTEST_F(AppAccountManagerServiceModuleTest, seAppAccountManagerService_SetAppAccountSyncEnable_0100, TestSize.Level1)
 {
@@ -545,7 +545,7 @@ HWTEST_F(AppAccountManagerServiceModuleTest, seAppAccountManagerService_SetAppAc
  * @tc.name: seAppAccountManagerService_SetAppAccountSyncEnable_0200
  * @tc.desc: Set account sync enable with valid data.
  * @tc.type: FUNC
- * @tc.require: AR000GH17J
+ * @tc.require: issueI5N90B
  */
 HWTEST_F(AppAccountManagerServiceModuleTest, seAppAccountManagerService_SetAppAccountSyncEnable_0200, TestSize.Level1)
 {
@@ -570,7 +570,7 @@ HWTEST_F(AppAccountManagerServiceModuleTest, seAppAccountManagerService_SetAppAc
  * @tc.name: seAppAccountManagerService_SetAppAccountSyncEnable_0300
  * @tc.desc: Set account sync enable with invalid data.
  * @tc.type: FUNC
- * @tc.require: AR000GH17J
+ * @tc.require: issueI5N90B
  */
 HWTEST_F(AppAccountManagerServiceModuleTest, seAppAccountManagerService_SetAppAccountSyncEnable_0300, TestSize.Level1)
 {
@@ -584,7 +584,7 @@ HWTEST_F(AppAccountManagerServiceModuleTest, seAppAccountManagerService_SetAppAc
  * @tc.name: AppAccountManagerService_GetAssociatedData_0100
  * @tc.desc: Get associated data with valid data.
  * @tc.type: FUNC
- * @tc.require: SR000GGVFS
+ * @tc.require: issueI5N90B
  */
 HWTEST_F(AppAccountManagerServiceModuleTest, AppAccountManagerService_GetAssociatedData_0100, TestSize.Level1)
 {
@@ -609,7 +609,7 @@ HWTEST_F(AppAccountManagerServiceModuleTest, AppAccountManagerService_GetAssocia
  * @tc.name: AppAccountManagerService_GetAssociatedData_0200
  * @tc.desc: Get associated data with invalid data.
  * @tc.type: FUNC
- * @tc.require: SR000GGVFS
+ * @tc.require: issueI5N90B
  */
 HWTEST_F(AppAccountManagerServiceModuleTest, AppAccountManagerService_GetAssociatedData_0200, TestSize.Level1)
 {
@@ -631,7 +631,7 @@ HWTEST_F(AppAccountManagerServiceModuleTest, AppAccountManagerService_GetAssocia
  * @tc.name: AppAccountManagerService_GetAssociatedData_0300
  * @tc.desc: Get associated data with invalid data.
  * @tc.type: FUNC
- * @tc.require: SR000GGVFS
+ * @tc.require: issueI5N90B
  */
 HWTEST_F(AppAccountManagerServiceModuleTest, AppAccountManagerService_GetAssociatedData_0300, TestSize.Level1)
 {
@@ -647,7 +647,7 @@ HWTEST_F(AppAccountManagerServiceModuleTest, AppAccountManagerService_GetAssocia
  * @tc.name: AppAccountManagerService_GetAssociatedData_0400
  * @tc.desc: Get associated data with valid data.
  * @tc.type: FUNC
- * @tc.require: SR000GGVFS
+ * @tc.require: issueI5N90B
  */
 HWTEST_F(AppAccountManagerServiceModuleTest, AppAccountManagerService_GetAssociatedData_0400, TestSize.Level1)
 {
@@ -679,7 +679,7 @@ HWTEST_F(AppAccountManagerServiceModuleTest, AppAccountManagerService_GetAssocia
  * @tc.name: AppAccountManagerService_SetAssociatedData_0100
  * @tc.desc: Set associated data with valid data.
  * @tc.type: FUNC
- * @tc.require: SR000GGVFS
+ * @tc.require: issueI5N90B
  */
 HWTEST_F(AppAccountManagerServiceModuleTest, AppAccountManagerService_SetAssociatedData_0100, TestSize.Level1)
 {
@@ -699,7 +699,7 @@ HWTEST_F(AppAccountManagerServiceModuleTest, AppAccountManagerService_SetAssocia
  * @tc.name: AppAccountManagerService_SetAssociatedData_0200
  * @tc.desc: Set associated data with valid data.
  * @tc.type: FUNC
- * @tc.require: SR000GGVFS
+ * @tc.require: issueI5N90B
  */
 HWTEST_F(AppAccountManagerServiceModuleTest, AppAccountManagerService_SetAssociatedData_0200, TestSize.Level1)
 {
@@ -727,7 +727,7 @@ HWTEST_F(AppAccountManagerServiceModuleTest, AppAccountManagerService_SetAssocia
  * @tc.name: AppAccountManagerService_SetAssociatedData_0300
  * @tc.desc: Set associated data with invalid data.
  * @tc.type: FUNC
- * @tc.require: SR000GGVFS
+ * @tc.require: issueI5N90B
  */
 HWTEST_F(AppAccountManagerServiceModuleTest, AppAccountManagerService_SetAssociatedData_0300, TestSize.Level1)
 {
@@ -741,7 +741,7 @@ HWTEST_F(AppAccountManagerServiceModuleTest, AppAccountManagerService_SetAssocia
  * @tc.name: AppAccountManagerService_GetAccountCredential_0100
  * @tc.desc: Get account credential with valid data.
  * @tc.type: FUNC
- * @tc.require: SR000GGVFS
+ * @tc.require: issueI5N90B
  */
 HWTEST_F(AppAccountManagerServiceModuleTest, AppAccountManagerService_GetAccountCredential_0100, TestSize.Level1)
 {
@@ -766,7 +766,7 @@ HWTEST_F(AppAccountManagerServiceModuleTest, AppAccountManagerService_GetAccount
  * @tc.name: AppAccountManagerService_GetAccountCredential_0200
  * @tc.desc: Get account credential with valid data.
  * @tc.type: FUNC
- * @tc.require: SR000GGVFS
+ * @tc.require: issueI5N90B
  */
 HWTEST_F(AppAccountManagerServiceModuleTest, AppAccountManagerService_GetAccountCredential_0200, TestSize.Level1)
 {
@@ -788,7 +788,7 @@ HWTEST_F(AppAccountManagerServiceModuleTest, AppAccountManagerService_GetAccount
  * @tc.name: AppAccountManagerService_GetAccountCredential_0300
  * @tc.desc: Get account credential with invalid data.
  * @tc.type: FUNC
- * @tc.require: SR000GGVFS
+ * @tc.require: issueI5N90B
  */
 HWTEST_F(AppAccountManagerServiceModuleTest, AppAccountManagerService_GetAccountCredential_0300, TestSize.Level1)
 {
@@ -804,7 +804,7 @@ HWTEST_F(AppAccountManagerServiceModuleTest, AppAccountManagerService_GetAccount
  * @tc.name: AppAccountManagerService_GetAccountCredential_0400
  * @tc.desc: Get account credential with valid data.
  * @tc.type: FUNC
- * @tc.require: SR000GGVFS
+ * @tc.require: issueI5N90B
  */
 HWTEST_F(AppAccountManagerServiceModuleTest, AppAccountManagerService_GetAccountCredential_0400, TestSize.Level1)
 {
@@ -837,7 +837,7 @@ HWTEST_F(AppAccountManagerServiceModuleTest, AppAccountManagerService_GetAccount
  * @tc.name: AppAccountManagerService_SetAccountCredential_0100
  * @tc.desc: Set account credential with valid data.
  * @tc.type: FUNC
- * @tc.require: SR000GGVFS
+ * @tc.require: issueI5N90B
  */
 HWTEST_F(AppAccountManagerServiceModuleTest, AppAccountManagerService_SetAccountCredential_0100, TestSize.Level1)
 {
@@ -857,7 +857,7 @@ HWTEST_F(AppAccountManagerServiceModuleTest, AppAccountManagerService_SetAccount
  * @tc.name: AppAccountManagerService_SetAccountCredential_0200
  * @tc.desc: Set account credential with valid data.
  * @tc.type: FUNC
- * @tc.require: SR000GGVFS
+ * @tc.require: issueI5N90B
  */
 HWTEST_F(AppAccountManagerServiceModuleTest, AppAccountManagerService_SetAccountCredential_0200, TestSize.Level1)
 {
@@ -886,7 +886,7 @@ HWTEST_F(AppAccountManagerServiceModuleTest, AppAccountManagerService_SetAccount
  * @tc.name: AppAccountManagerService_SetAccountCredential_0300
  * @tc.desc: Set account credential with invalid data.
  * @tc.type: FUNC
- * @tc.require: SR000GGVFS
+ * @tc.require: issueI5N90B
  */
 HWTEST_F(AppAccountManagerServiceModuleTest, AppAccountManagerService_SetAccountCredential_0300, TestSize.Level1)
 {
@@ -901,7 +901,7 @@ HWTEST_F(AppAccountManagerServiceModuleTest, AppAccountManagerService_SetAccount
  * @tc.name: AppAccountManagerService_GetOAuthToken_0100
  * @tc.desc: Get oauth token failed with non-existent account.
  * @tc.type: FUNC
- * @tc.require: SR000GGVFU
+ * @tc.require: issueI5N90B
  */
 HWTEST_F(AppAccountManagerServiceModuleTest, AppAccountManagerService_GetOAuthToken_0100, TestSize.Level0)
 {
@@ -917,7 +917,7 @@ HWTEST_F(AppAccountManagerServiceModuleTest, AppAccountManagerService_GetOAuthTo
  * @tc.name: AppAccountManagerService_GetOAuthToken_0200
  * @tc.desc: Get oauth token failed for non-existent oauth token.
  * @tc.type: FUNC
- * @tc.require: SR000GGVFU
+ * @tc.require: issueI5N90B
  */
 HWTEST_F(AppAccountManagerServiceModuleTest, AppAccountManagerService_GetOAuthToken_0200, TestSize.Level0)
 {
@@ -947,7 +947,7 @@ HWTEST_F(AppAccountManagerServiceModuleTest, AppAccountManagerService_GetOAuthTo
  * @tc.name: AppAccountManagerService_GetOAuthToken_0300
  * @tc.desc: Get oauth token successfully.
  * @tc.type: FUNC
- * @tc.require: SR000GGVFU
+ * @tc.require: issueI5N90B
  */
 HWTEST_F(AppAccountManagerServiceModuleTest, AppAccountManagerService_GetOAuthToken_0300, TestSize.Level1)
 {
@@ -980,7 +980,7 @@ HWTEST_F(AppAccountManagerServiceModuleTest, AppAccountManagerService_GetOAuthTo
  * @tc.name: AppAccountManagerService_SetOAuthToken_0100
  * @tc.desc: Set oauth token failed with non-exist account.
  * @tc.type: FUNC
- * @tc.require: SR000GGVFU
+ * @tc.require: issueI5N90B
  */
 HWTEST_F(AppAccountManagerServiceModuleTest, AppAccountManagerService_SetOAuthToken_0100, TestSize.Level1)
 {
@@ -994,7 +994,7 @@ HWTEST_F(AppAccountManagerServiceModuleTest, AppAccountManagerService_SetOAuthTo
  * @tc.name: AppAccountManagerService_SetOAuthToken_0200
  * @tc.desc: Set oauth token successfully.
  * @tc.type: FUNC
- * @tc.require: SR000GGVFU
+ * @tc.require: issueI5N90B
  */
 HWTEST_F(AppAccountManagerServiceModuleTest, AppAccountManagerService_SetOAuthToken_0200, TestSize.Level1)
 {
@@ -1030,7 +1030,7 @@ HWTEST_F(AppAccountManagerServiceModuleTest, AppAccountManagerService_SetOAuthTo
  * @tc.name: AppAccountManagerService_DeleteOAuthToken_0100
  * @tc.desc: Delete oauth token failed with non-exist account.
  * @tc.type: FUNC
- * @tc.require: SR000GGVFU
+ * @tc.require: issueI5N90B
  */
 HWTEST_F(AppAccountManagerServiceModuleTest, AppAccountManagerService_DeleteOAuthToken_0100, TestSize.Level1)
 {
@@ -1045,7 +1045,7 @@ HWTEST_F(AppAccountManagerServiceModuleTest, AppAccountManagerService_DeleteOAut
  * @tc.name: AppAccountManagerService_DeleteOAuthToken_0200
  * @tc.desc: Delete oauth token successfully with non-existent token.
  * @tc.type: FUNC
- * @tc.require: SR000GGVFU
+ * @tc.require: issueI5N90B
  */
 HWTEST_F(AppAccountManagerServiceModuleTest, AppAccountManagerService_DeleteOAuthToken_0200, TestSize.Level1)
 {
@@ -1078,7 +1078,7 @@ HWTEST_F(AppAccountManagerServiceModuleTest, AppAccountManagerService_DeleteOAut
  * @tc.name: AppAccountManagerService_DeleteOAuthToken_0300
  * @tc.desc: Delete oauth token successfully with existent token.
  * @tc.type: FUNC
- * @tc.require: SR000GGVFU
+ * @tc.require: issueI5N90B
  */
 HWTEST_F(AppAccountManagerServiceModuleTest, AppAccountManagerService_DeleteOAuthToken_0300, TestSize.Level1)
 {
@@ -1114,7 +1114,7 @@ HWTEST_F(AppAccountManagerServiceModuleTest, AppAccountManagerService_DeleteOAut
  * @tc.name: AppAccountManagerService_GetAllOAuthTokens_0100
  * @tc.desc: Get all oauth token failed for non-existent account.
  * @tc.type: FUNC
- * @tc.require: SR000GGVFU
+ * @tc.require: issueI5N90B
  */
 HWTEST_F(AppAccountManagerServiceModuleTest, AppAccountManagerService_GetAllOAuthTokens_0100, TestSize.Level1)
 {
@@ -1129,7 +1129,7 @@ HWTEST_F(AppAccountManagerServiceModuleTest, AppAccountManagerService_GetAllOAut
  * @tc.name: AppAccountManagerService_GetAllOAuthTokens_0200
  * @tc.desc: Get all oauth token successfully.
  * @tc.type: FUNC
- * @tc.require: SR000GGVFU
+ * @tc.require: issueI5N90B
  */
 HWTEST_F(AppAccountManagerServiceModuleTest, AppAccountManagerService_GetAllOAuthTokens_0200, TestSize.Level1)
 {
@@ -1172,7 +1172,7 @@ HWTEST_F(AppAccountManagerServiceModuleTest, AppAccountManagerService_GetAllOAut
  * @tc.name: AppAccountManagerService_SetOAuthTokenVisibility_0100
  * @tc.desc: Set oauth token failed with non-existent account.
  * @tc.type: FUNC
- * @tc.require: SR000GGVFU
+ * @tc.require: issueI5N90B
  */
 HWTEST_F(AppAccountManagerServiceModuleTest, AppAccountManagerService_SetOAuthTokenVisibility_0100, TestSize.Level1)
 {
@@ -1187,7 +1187,7 @@ HWTEST_F(AppAccountManagerServiceModuleTest, AppAccountManagerService_SetOAuthTo
  * @tc.name: AppAccountManagerService_SetOAuthTokenVisibility_0200
  * @tc.desc: Set oauth token visibility with non-existent authType successfully.
  * @tc.type: FUNC
- * @tc.require: SR000GGVFU
+ * @tc.require: issueI5N90B
  */
 HWTEST_F(AppAccountManagerServiceModuleTest, AppAccountManagerService_SetOAuthTokenVisibility_0200, TestSize.Level1)
 {
@@ -1220,7 +1220,7 @@ HWTEST_F(AppAccountManagerServiceModuleTest, AppAccountManagerService_SetOAuthTo
  * @tc.name: AppAccountManagerService_SetOAuthTokenVisibility_0300
  * @tc.desc: Set oauth token visibility with existent authType successfully.
  * @tc.type: FUNC
- * @tc.require: SR000GGVFU
+ * @tc.require: issueI5N90B
  */
 HWTEST_F(AppAccountManagerServiceModuleTest, AppAccountManagerService_SetOAuthTokenVisibility_0300, TestSize.Level1)
 {
@@ -1258,7 +1258,7 @@ HWTEST_F(AppAccountManagerServiceModuleTest, AppAccountManagerService_SetOAuthTo
  * @tc.name: AppAccountManagerService_CheckOAuthTokenVisibility_0100
  * @tc.desc: Check oauth token visibility successfully.
  * @tc.type: FUNC
- * @tc.require: SR000GGVFU
+ * @tc.require: issueI5N90B
  */
 HWTEST_F(AppAccountManagerServiceModuleTest, AppAccountManagerService_CheckOAuthTokenVisibility_0100, TestSize.Level1)
 {
@@ -1317,7 +1317,7 @@ HWTEST_F(AppAccountManagerServiceModuleTest, AppAccountManagerService_CheckOAuth
  * @tc.name: AppAccountManagerService_GetOAuthList_0100
  * @tc.desc: Get oauth list failed with non-existent account.
  * @tc.type: FUNC
- * @tc.require: SR000GGVFU
+ * @tc.require: issueI5N90B
  */
 HWTEST_F(AppAccountManagerServiceModuleTest, AppAccountManagerService_GetOAuthList_0100, TestSize.Level1)
 {
@@ -1332,7 +1332,7 @@ HWTEST_F(AppAccountManagerServiceModuleTest, AppAccountManagerService_GetOAuthLi
  * @tc.name: AppAccountManagerService_GetOAuthList_0200
  * @tc.desc: Get oauth list with non-existent authType successfully.
  * @tc.type: FUNC
- * @tc.require: SR000GGVFU
+ * @tc.require: issueI5N90B
  */
 HWTEST_F(AppAccountManagerServiceModuleTest, AppAccountManagerService_GetOAuthList_0200, TestSize.Level1)
 {
@@ -1354,7 +1354,7 @@ HWTEST_F(AppAccountManagerServiceModuleTest, AppAccountManagerService_GetOAuthLi
  * @tc.name: AppAccountManagerService_GetOAuthList_0300
  * @tc.desc: Get oauth list with existent authType successfully.
  * @tc.type: FUNC
- * @tc.require: SR000GGVFU
+ * @tc.require: issueI5N90B
  */
 HWTEST_F(AppAccountManagerServiceModuleTest, AppAccountManagerService_GetOAuthList_0300, TestSize.Level1)
 {
@@ -1389,7 +1389,7 @@ HWTEST_F(AppAccountManagerServiceModuleTest, AppAccountManagerService_GetOAuthLi
  * @tc.name: AppAccountManagerService_GetAuthenticatorInfo_0100
  * @tc.desc: Get authenticator info failed for non-existent oauth service.
  * @tc.type: FUNC
- * @tc.require: SR000GGVFU
+ * @tc.require: issueI5N90B
  */
 HWTEST_F(AppAccountManagerServiceModuleTest, AppAccountManagerService_GetAuthenticatorInfo_0100, TestSize.Level1)
 {
@@ -1404,7 +1404,7 @@ HWTEST_F(AppAccountManagerServiceModuleTest, AppAccountManagerService_GetAuthent
  * @tc.name: AppAccountManagerService_GetAuthenticatorCallback_0100
  * @tc.desc: Get authenticator callback failed with non-existent sessionId.
  * @tc.type: FUNC
- * @tc.require: SR000GGVFU
+ * @tc.require: issueI5N90B
  */
 HWTEST_F(AppAccountManagerServiceModuleTest, AppAccountManagerService_GetAuthenticatorCallback_0100, TestSize.Level1)
 {
@@ -1419,7 +1419,7 @@ HWTEST_F(AppAccountManagerServiceModuleTest, AppAccountManagerService_GetAuthent
  * @tc.name: AppAccountManagerService_AddAccountImplicitly_0100
  * @tc.desc: Add account implicitly failed for non-existent oauth service.
  * @tc.type: FUNC
- * @tc.require: SR000GGVFU
+ * @tc.require: issueI5N90B
  */
 HWTEST_F(AppAccountManagerServiceModuleTest, AppAccountManagerService_AddAccountImplicitly_0100, TestSize.Level1)
 {
@@ -1437,7 +1437,7 @@ HWTEST_F(AppAccountManagerServiceModuleTest, AppAccountManagerService_AddAccount
  * @tc.name: AppAccountManagerService_Authenticate_0100
  * @tc.desc: authenticate failed for non-existent oauth service.
  * @tc.type: FUNC
- * @tc.require: SR000GGVFU
+ * @tc.require: issueI5N90B
  */
 HWTEST_F(AppAccountManagerServiceModuleTest, AppAccountManagerService_Authenticate_0100, TestSize.Level1)
 {
@@ -1455,7 +1455,7 @@ HWTEST_F(AppAccountManagerServiceModuleTest, AppAccountManagerService_Authentica
  * @tc.name: AppAccountManagerService_GetAllAccounts_0100
  * @tc.desc: Get all accounts with valid data.
  * @tc.type: FUNC
- * @tc.require: SR000GGVFR
+ * @tc.require: issueI5N90B
  */
 HWTEST_F(AppAccountManagerServiceModuleTest, AppAccountManagerService_GetAllAccounts_0100, TestSize.Level0)
 {
@@ -1471,7 +1471,7 @@ HWTEST_F(AppAccountManagerServiceModuleTest, AppAccountManagerService_GetAllAcco
  * @tc.name: AppAccountManagerService_GetAllAccounts_0200
  * @tc.desc: Get all accounts with valid data.
  * @tc.type: FUNC
- * @tc.require: SR000GGVFR
+ * @tc.require: issueI5N90B
  */
 HWTEST_F(AppAccountManagerServiceModuleTest, AppAccountManagerService_GetAllAccounts_0200, TestSize.Level1)
 {
@@ -1508,7 +1508,7 @@ HWTEST_F(AppAccountManagerServiceModuleTest, AppAccountManagerService_GetAllAcco
  * @tc.name: AppAccountManagerService_GetAllAccounts_0300
  * @tc.desc: Get all accounts with valid data.
  * @tc.type: FUNC
- * @tc.require: SR000GGVFR
+ * @tc.require: issueI5N90B
  */
 HWTEST_F(AppAccountManagerServiceModuleTest, AppAccountManagerService_GetAllAccounts_0300, TestSize.Level1)
 {
@@ -1524,7 +1524,7 @@ HWTEST_F(AppAccountManagerServiceModuleTest, AppAccountManagerService_GetAllAcco
  * @tc.name: AppAccountManagerService_GetAllAccounts_0400
  * @tc.desc: Get all accounts with valid data.
  * @tc.type: FUNC
- * @tc.require: SR000GGVFR
+ * @tc.require: issueI5N90B
  */
 HWTEST_F(AppAccountManagerServiceModuleTest, AppAccountManagerService_GetAllAccounts_0400, TestSize.Level1)
 {
@@ -1557,7 +1557,7 @@ HWTEST_F(AppAccountManagerServiceModuleTest, AppAccountManagerService_GetAllAcco
  * @tc.name: AppAccountManagerService_GetAllAccounts_0500
  * @tc.desc: Get all accounts with valid data.
  * @tc.type: FUNC
- * @tc.require: SR000GGVFR
+ * @tc.require: issueI5N90B
  */
 HWTEST_F(AppAccountManagerServiceModuleTest, AppAccountManagerService_GetAllAccounts_0500, TestSize.Level1)
 {
@@ -1602,7 +1602,7 @@ HWTEST_F(AppAccountManagerServiceModuleTest, AppAccountManagerService_GetAllAcco
  * @tc.name: AppAccountManagerService_GetAllAccounts_0600
  * @tc.desc: Get all accounts with invalid data.
  * @tc.type: FUNC
- * @tc.require: SR000GGVFR
+ * @tc.require: issueI5N90B
  */
 HWTEST_F(AppAccountManagerServiceModuleTest, AppAccountManagerService_GetAllAccounts_0600, TestSize.Level1)
 {
@@ -1617,7 +1617,7 @@ HWTEST_F(AppAccountManagerServiceModuleTest, AppAccountManagerService_GetAllAcco
  * @tc.name: AppAccountManagerService_GetAllAccessibleAccounts_0100
  * @tc.desc: Get all accessible accounts with valid data.
  * @tc.type: FUNC
- * @tc.require: SR000GGVFR
+ * @tc.require: issueI5N90B
  */
 HWTEST_F(AppAccountManagerServiceModuleTest, AppAccountManagerService_GetAllAccessibleAccounts_0100, TestSize.Level0)
 {
@@ -1633,7 +1633,7 @@ HWTEST_F(AppAccountManagerServiceModuleTest, AppAccountManagerService_GetAllAcce
  * @tc.name: AppAccountManagerService_GetAllAccessibleAccounts_0200
  * @tc.desc: Get all accessible accounts with valid data.
  * @tc.type: FUNC
- * @tc.require: SR000GGVFR
+ * @tc.require: issueI5N90B
  */
 HWTEST_F(AppAccountManagerServiceModuleTest, AppAccountManagerService_GetAllAccessibleAccounts_0200, TestSize.Level1)
 {
@@ -1660,7 +1660,7 @@ HWTEST_F(AppAccountManagerServiceModuleTest, AppAccountManagerService_GetAllAcce
  * @tc.name: AppAccountManagerService_GetAllAccessibleAccounts_0300
  * @tc.desc: Get all accessible accounts with valid data.
  * @tc.type: FUNC
- * @tc.require: SR000GGVFR
+ * @tc.require: issueI5N90B
  */
 HWTEST_F(AppAccountManagerServiceModuleTest, AppAccountManagerService_GetAllAccessibleAccounts_0300, TestSize.Level1)
 {
@@ -1692,7 +1692,7 @@ HWTEST_F(AppAccountManagerServiceModuleTest, AppAccountManagerService_GetAllAcce
  * @tc.name: AppAccountManagerService_OnPackageRemoved_0100
  * @tc.desc: On package removed with valid data.
  * @tc.type: FUNC
- * @tc.require: SR000GGV11
+ * @tc.require: issueI5N90B
  */
 HWTEST_F(AppAccountManagerServiceModuleTest, AppAccountManagerService_OnPackageRemoved_0100, TestSize.Level1)
 {
