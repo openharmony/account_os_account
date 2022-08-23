@@ -200,7 +200,7 @@ ErrCode AccountCommand::RunAsDeleteCommand(void)
     } else {
         /* delete */
 
-        // delte an os account
+        // delete an os account
         result = osAccountPtr_->RemoveOsAccount(id);
         if (result == ERR_OK) {
             resultReceiver_ = STRING_DELETE_OS_ACCOUNT_OK + "\n";
