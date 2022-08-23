@@ -108,7 +108,6 @@ private:
     ErrCode GetAssociatedDataFromStorage(const std::string &name, const std::string &key, std::string &value,
         const uid_t &uid, const uint32_t &appIndex);
     std::shared_ptr<AppAccountDataStorage> GetDataStorageByUserId(int32_t userId, const bool &autoSync = false);
-    ErrCode GetStoreId(const uid_t &uid, std::string &storeId);
     bool NeedSyncDataStorage(const AppAccountInfo &appAccountInfo);
     ErrCode GetAccountInfoFromDataStorage(
         AppAccountInfo &appAccountInfo, std::shared_ptr<AppAccountDataStorage> &dataStoragePtr);
