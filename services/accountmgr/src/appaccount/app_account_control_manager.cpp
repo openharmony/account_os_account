@@ -907,17 +907,6 @@ std::shared_ptr<AppAccountDataStorage> AppAccountControlManager::GetDataStorage(
     return GetDataStorageByUserId(uid / UID_TRANSFORM_DIVISOR, autoSync);
 }
 
-ErrCode AppAccountControlManager::GetStoreId(const uid_t &uid, std::string &storeId)
-{
-    std::int32_t uidToGetDeviceAccountId = uid;
-
-    auto deviceAccountId = OhosAccountKits::GetInstance().GetDeviceAccountIdByUID(uidToGetDeviceAccountId);
-
-    storeId = std::to_string(deviceAccountId);
-
-    return ERR_OK;
-}
-
 bool AppAccountControlManager::NeedSyncDataStorage(const AppAccountInfo &appAccountInfo)
 {
     bool syncEnable = false;
