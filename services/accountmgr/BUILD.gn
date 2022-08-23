@@ -126,6 +126,11 @@ ohos_shared_library("accountmgr") {
   }
 
   sources = [
+    "${app_account_innerkits_native_path}/src/app_account_authenticator_callback_proxy.cpp",
+    "${app_account_innerkits_native_path}/src/app_account_authenticator_callback_stub.cpp",
+    "${app_account_innerkits_native_path}/src/app_account_common.cpp",
+    "${app_account_innerkits_native_path}/src/app_account_info.cpp",
+    "${app_account_innerkits_native_path}/src/app_account_subscribe_info.cpp",
     "${os_account_dfx_path}/hidumper_adapter/account_dump_helper.cpp",
     "${os_account_dfx_path}/hisysevent_adapter/hisysevent_adapter.cpp",
     "src/account_data_storage.cpp",
@@ -137,7 +142,6 @@ ohos_shared_library("accountmgr") {
     "src/account_stub.cpp",
     "src/appaccount/app_account_app_state_observer.cpp",
     "src/appaccount/app_account_authenticator_callback.cpp",
-    "src/appaccount/app_account_authenticator_callback_proxy.cpp",
     "src/appaccount/app_account_authenticator_manager.cpp",
     "src/appaccount/app_account_authenticator_proxy.cpp",
     "src/appaccount/app_account_authenticator_session.cpp",
@@ -148,7 +152,9 @@ ohos_shared_library("accountmgr") {
     "src/appaccount/app_account_common_event_subscriber.cpp",
     "src/appaccount/app_account_control_manager.cpp",
     "src/appaccount/app_account_data_storage.cpp",
+    "src/appaccount/app_account_event_proxy.cpp",
     "src/appaccount/app_account_manager_service.cpp",
+    "src/appaccount/app_account_stub.cpp",
     "src/appaccount/app_account_subscribe_death_recipient.cpp",
     "src/appaccount/app_account_subscribe_manager.cpp",
     "src/appaccount/inner_app_account_manager.cpp",
@@ -192,10 +198,7 @@ ohos_shared_library("accountmgr") {
   public_configs = [ ":accountmgr_public_config" ]
 
   deps = [
-    "${app_account_innerkits_native_path}:app_account_innerkits",
-    "${app_account_services_path}/src/appaccount:app_account_service_core",
     "${common_path}:libaccount_common",
-    "${innerkits_native_path}:libaccountkits",
     "${os_account_core_path}:os_account_core",
     "${os_account_innerkits_native_path}:os_account_innerkits",
     "//third_party/mbedtls:mbedtls",
