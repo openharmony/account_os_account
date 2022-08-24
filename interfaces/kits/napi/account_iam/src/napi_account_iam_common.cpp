@@ -99,9 +99,9 @@ void NapiIDMCallback::OnResult(int32_t result, const Attributes &extraInfo)
         return;
     }
     param->env = env_;
-    param->callback = callback_;
     param->result = result;
     extraInfo.GetUint64Value(Attributes::AttributeKey::ATTR_CREDENTIAL_ID, param->credentialId);
+    param->callback = callback_;
     work->data = reinterpret_cast<void *>(param.get());
     NAPI_CALL_RETURN_VOID(env_, uv_queue_work(loop, work.get(), [] (uv_work_t *work) {}, OnIDMResultWork));
     work.release();
@@ -247,7 +247,6 @@ napi_value CreateCredInfoArray(napi_env env, const std::vector<CredentialInfo> &
 
 napi_status ParseGetPropRequest(napi_env env, napi_value object, GetPropertyRequest &request)
 {
-    ACCOUNT_LOGD("enter");
     napi_valuetype valueType = napi_undefined;
     napi_typeof(env, object, &valueType);
     if (valueType != napi_object) {
@@ -271,23 +270,22 @@ napi_status ParseGetPropRequest(napi_env env, napi_value object, GetPropertyRequ
 
 napi_status ParseSetPropRequest(napi_env env, napi_value object, SetPropertyRequest &request)
 {
-    ACCOUNT_LOGD("enter");
     napi_valuetype valueType = napi_undefined;
     napi_typeof(env, object, &valueType);
     if (valueType != napi_object) {
         ACCOUNT_LOGD("invalid object");
         return napi_invalid_arg;
     }
-    napi_value napiAuthType = nullptr;
-    napi_get_named_property(env, object, "authType", &napiAuthType);
-    int32_t authType = -1;
-    napi_get_value_int32(env, napiAuthType, &authType);
-    request.authType = static_cast<AuthType>(authType);
     napi_value napiKey = nullptr;
     napi_get_named_property(env, object, "key", &napiKey);
     int32_t key = -1;
     napi_get_value_int32(env, napiKey, &key);
     request.mode = static_cast<PropertyMode>(key);
+    napi_value napiAuthType = nullptr;
+    napi_get_named_property(env, object, "authType", &napiAuthType);
+    int32_t authType = -1;
+    napi_get_value_int32(env, napiAuthType, &authType);
+    request.authType = static_cast<AuthType>(authType);
     napi_value napiSetInfo = nullptr;
     napi_get_named_property(env, object, "setInfo", &napiSetInfo);
     std::vector<uint8_t> setInfo;
@@ -390,7 +388,6 @@ NapiUserAuthCallback::~NapiUserAuthCallback()
 
 void NapiUserAuthCallback::OnResult(int32_t result, const Attributes &extraInfo)
 {
-    ACCOUNT_LOGD("enter");
     std::unique_ptr<uv_work_t> work = std::make_unique<uv_work_t>();
     std::unique_ptr<AuthCallbackParam> param = std::make_unique<AuthCallbackParam>();
     uv_loop_s *loop = nullptr;
@@ -399,12 +396,12 @@ void NapiUserAuthCallback::OnResult(int32_t result, const Attributes &extraInfo)
         ACCOUNT_LOGE("fail for nullptr");
         return;
     }
-    param->env = env_;
-    param->callback = callback_;
     param->resultCode = result;
     extraInfo.GetUint8ArrayValue(Attributes::AttributeKey::ATTR_SIGNATURE, param->token);
     extraInfo.GetInt32Value(Attributes::AttributeKey::ATTR_REMAIN_TIMES, param->remainTimes);
     extraInfo.GetInt32Value(Attributes::AttributeKey::ATTR_FREEZING_TIME, param->freezingTime);
+    param->env = env_;
+    param->callback = callback_;
     work->data = reinterpret_cast<void *>(param.get());
     NAPI_CALL_RETURN_VOID(env_, uv_queue_work(loop, work.get(), [] (uv_work_t *work) {}, OnUserAuthResultWork));
     work.release();
@@ -413,7 +410,6 @@ void NapiUserAuthCallback::OnResult(int32_t result, const Attributes &extraInfo)
 
 void NapiUserAuthCallback::OnAcquireInfo(int32_t module, uint32_t acquireInfo, const Attributes &extraInfo)
 {
-    ACCOUNT_LOGD("enter");
     std::unique_ptr<uv_work_t> work = std::make_unique<uv_work_t>();
     std::unique_ptr<AuthCallbackParam> param = std::make_unique<AuthCallbackParam>();
     uv_loop_s *loop = nullptr;
@@ -422,11 +418,11 @@ void NapiUserAuthCallback::OnAcquireInfo(int32_t module, uint32_t acquireInfo, c
         ACCOUNT_LOGE("fail for nullptr");
         return;
     }
-    param->env = env_;
-    param->callback = callback_;
     param->module = module;
     param->acquireInfo = acquireInfo;
     param->extraInfo = 0;
+    param->env = env_;
+    param->callback = callback_;
     work->data = reinterpret_cast<void *>(param.get());
     NAPI_CALL_RETURN_VOID(env_, uv_queue_work(loop, work.get(), [] (uv_work_t *work) {}, OnUserAuthAcquireInfoWork));
     work.release();
@@ -518,13 +514,13 @@ void NapiGetPropCallback::OnResult(int32_t result, const UserIam::UserAuth::Attr
         ACCOUNT_LOGE("fail for nullptr");
         return;
     }
+    extraInfo.GetInt32Value(Attributes::ATTR_PIN_SUB_TYPE, context->authSubType);
+    extraInfo.GetInt32Value(Attributes::ATTR_REMAIN_TIMES, context->remainTimes);
+    extraInfo.GetInt32Value(Attributes::ATTR_FREEZING_TIME, context->freezingTime);
     context->callbackRef = callbackRef_;
     context->deferred = deferred_;
     context->errCode = ERR_OK;
     context->result = result;
-    extraInfo.GetInt32Value(Attributes::ATTR_PIN_SUB_TYPE, context->authSubType);
-    extraInfo.GetInt32Value(Attributes::ATTR_REMAIN_TIMES, context->remainTimes);
-    extraInfo.GetInt32Value(Attributes::ATTR_FREEZING_TIME, context->freezingTime);
     work->data = reinterpret_cast<void *>(context.get());
     NAPI_CALL_RETURN_VOID(env_, uv_queue_work(loop, work.get(), [] (uv_work_t *work) {}, OnGetPropertyWork));
     work.release();
