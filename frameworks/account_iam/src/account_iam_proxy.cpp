@@ -27,7 +27,6 @@ AccountIAMProxy::~AccountIAMProxy()
 
 ErrCode AccountIAMProxy::SendRequest(IAccountIAM::Message code, MessageParcel &data, MessageParcel &reply)
 {
-    ACCOUNT_LOGD("enter");
     sptr<IRemoteObject> remote = Remote();
     if (remote == nullptr) {
         ACCOUNT_LOGD("remote is nullptr, code = %{public}d", code);
@@ -45,25 +44,24 @@ ErrCode AccountIAMProxy::SendRequest(IAccountIAM::Message code, MessageParcel &d
 ErrCode AccountIAMProxy::ActivateUserKey(
     int32_t userId, const std::vector<uint8_t> &token, const std::vector<uint8_t> &secret)
 {
-    ACCOUNT_LOGD("enter");
     MessageParcel data;
-    MessageParcel reply;
     if (!data.WriteInterfaceToken(GetDescriptor())) {
-        ACCOUNT_LOGD("failed to write descriptor!");
+        ACCOUNT_LOGD("failed to write descriptor for activating user key!");
         return ERR_ACCOUNT_COMMON_WRITE_DESCRIPTOR_ERROR;
     }
     if (!data.WriteInt32(userId)) {
-        ACCOUNT_LOGD("failed to write userId!");
+        ACCOUNT_LOGD("failed to write userId for activating user key!");
         return ERR_ACCOUNT_IAM_WRITE_USER_ID;
     }
     if (!data.WriteUInt8Vector(token)) {
-        ACCOUNT_LOGD("failed to write token!");
+        ACCOUNT_LOGD("failed to write token for activating user key!");
         return ERR_ACCOUNT_IAM_WRITE_TOKEN;
     }
     if (!data.WriteUInt8Vector(secret)) {
-        ACCOUNT_LOGD("failed to write secret!");
+        ACCOUNT_LOGD("failed to write secret for activating user key!");
         return ERR_ACCOUNT_IAM_WRITE_SECRET;
     }
+    MessageParcel reply;
     ErrCode result = SendRequest(IAccountIAM::Message::ACTIVATE_USER_KEY, data, reply);
     if (result != ERR_OK) {
         return result;
@@ -76,29 +74,28 @@ ErrCode AccountIAMProxy::ActivateUserKey(
 ErrCode AccountIAMProxy::UpdateUserKey(int32_t userId, uint64_t credentialId, const std::vector<uint8_t> &token,
     const std::vector<uint8_t> &newSecret)
 {
-    ACCOUNT_LOGD("enter");
     MessageParcel data;
-    MessageParcel reply;
     if (!data.WriteInterfaceToken(GetDescriptor())) {
-        ACCOUNT_LOGD("failed to write descriptor!");
+        ACCOUNT_LOGD("failed to write descriptor for updating user key!");
         return ERR_ACCOUNT_COMMON_WRITE_DESCRIPTOR_ERROR;
     }
     if (!data.WriteInt32(userId)) {
-        ACCOUNT_LOGD("failed to write userId!");
+        ACCOUNT_LOGD("failed to write userId for updating user key!");
         return ERR_ACCOUNT_IAM_WRITE_USER_ID;
     }
     if (!data.WriteUint64(credentialId)) {
-        ACCOUNT_LOGD("failed to write credentialId!");
+        ACCOUNT_LOGD("failed to write credentialId for updating user key!");
         return ERR_ACCOUNT_IAM_WRITE_CREDENTIAL_ID;
     }
     if (!data.WriteUInt8Vector(token)) {
-        ACCOUNT_LOGD("failed to write token!");
+        ACCOUNT_LOGD("failed to write token for updating user key!");
         return ERR_ACCOUNT_IAM_WRITE_TOKEN;
     }
     if (!data.WriteUInt8Vector(newSecret)) {
-        ACCOUNT_LOGD("failed to write secret!");
+        ACCOUNT_LOGD("failed to write secret for updating user key!");
         return ERR_ACCOUNT_IAM_WRITE_SECRET;
     }
+    MessageParcel reply;
     ErrCode result = SendRequest(IAccountIAM::Message::UPDATE_USER_KEY, data, reply);
     if (result != ERR_OK) {
         return result;
@@ -109,21 +106,20 @@ ErrCode AccountIAMProxy::UpdateUserKey(int32_t userId, uint64_t credentialId, co
 
 ErrCode AccountIAMProxy::RemoveUserKey(int32_t userId, const std::vector<uint8_t> &token)
 {
-    ACCOUNT_LOGD("enter");
     MessageParcel data;
-    MessageParcel reply;
     if (!data.WriteInterfaceToken(GetDescriptor())) {
-        ACCOUNT_LOGD("failed to write descriptor!");
+        ACCOUNT_LOGD("failed to write descriptor for removing user key!");
         return ERR_ACCOUNT_COMMON_WRITE_DESCRIPTOR_ERROR;
     }
     if (!data.WriteInt32(userId)) {
-        ACCOUNT_LOGD("failed to write userId!");
+        ACCOUNT_LOGD("failed to write userId for removing user key!");
         return ERR_ACCOUNT_IAM_WRITE_USER_ID;
     }
     if (!data.WriteUInt8Vector(token)) {
-        ACCOUNT_LOGD("failed to write token!");
+        ACCOUNT_LOGD("failed to write token for removing user key!");
         return ERR_ACCOUNT_IAM_WRITE_TOKEN;
     }
+    MessageParcel reply;
     ErrCode result = SendRequest(IAccountIAM::Message::REMOVE_USER_KEY, data, reply);
     if (result != ERR_OK) {
         return result;
@@ -134,25 +130,24 @@ ErrCode AccountIAMProxy::RemoveUserKey(int32_t userId, const std::vector<uint8_t
 
 ErrCode AccountIAMProxy::RestoreUserKey(int32_t userId, uint64_t credentialId, const std::vector<uint8_t> &token)
 {
-    ACCOUNT_LOGD("enter");
     MessageParcel data;
-    MessageParcel reply;
     if (!data.WriteInterfaceToken(GetDescriptor())) {
-        ACCOUNT_LOGD("failed to write descriptor!");
+        ACCOUNT_LOGD("failed to write descriptor for restoring user key!");
         return ERR_ACCOUNT_COMMON_WRITE_DESCRIPTOR_ERROR;
     }
     if (!data.WriteInt32(userId)) {
-        ACCOUNT_LOGD("failed to write userId!");
+        ACCOUNT_LOGD("failed to write userId for restoring user key!");
         return ERR_ACCOUNT_IAM_WRITE_USER_ID;
     }
     if (!data.WriteUint64(credentialId)) {
-        ACCOUNT_LOGD("failed to write credentialId!");
+        ACCOUNT_LOGD("failed to write credentialId for restoring user key!");
         return ERR_ACCOUNT_IAM_WRITE_CREDENTIAL_ID;
     }
     if (!data.WriteUInt8Vector(token)) {
-        ACCOUNT_LOGD("failed to write token!");
+        ACCOUNT_LOGD("failed to write token for restoring user key!");
         return ERR_ACCOUNT_IAM_WRITE_TOKEN;
     }
+    MessageParcel reply;
     ErrCode result = SendRequest(IAccountIAM::Message::RESTORE_USER_KEY, data, reply);
     if (result != ERR_OK) {
         return result;
