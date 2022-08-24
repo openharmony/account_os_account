@@ -47,8 +47,8 @@ struct IAMAsyncContext {
 };
 
 struct JsIAMCallback {
-    napi_ref onResult;
-    napi_ref onAcquireInfo;
+    napi_ref onResult = nullptr;
+    napi_ref onAcquireInfo = nullptr;
 };
 
 #ifdef HAS_USER_AUTH_PART
@@ -57,7 +57,7 @@ struct IDMCallbackParam {
     JsIAMCallback callback;
     int32_t result;
     int32_t module;
-    int32_t acquire;
+    uint32_t acquire;
     uint64_t credentialId;
 };
 
@@ -84,7 +84,7 @@ struct AuthContext {
 struct IDMContext : public IAMAsyncContext {
     explicit IDMContext(napi_env napiEnv) : IAMAsyncContext(napiEnv) {};
     std::vector<uint8_t> challenge;
-    uint64_t credentialId;
+    uint64_t credentialId = 0;
     std::vector<uint8_t> token;
     AccountSA::CredentialParameters addCredInfo;
     JsIAMCallback callback;
@@ -99,7 +99,7 @@ struct GetAuthInfoContext : public IAMAsyncContext {
 struct GetPropertyContext : public IAMAsyncContext {
     explicit GetPropertyContext(napi_env napiEnv) : IAMAsyncContext(napiEnv) {};
     AccountSA::GetPropertyRequest request;
-    int32_t result;
+    int32_t result = 0;
     int32_t authSubType = 0;
     int32_t remainTimes = 0;
     int32_t freezingTime = 0;
@@ -108,7 +108,7 @@ struct GetPropertyContext : public IAMAsyncContext {
 struct SetPropertyContext : public IAMAsyncContext {
     explicit SetPropertyContext(napi_env napiEnv) : IAMAsyncContext(napiEnv) {};
     AccountSA::SetPropertyRequest request;
-    int32_t result;
+    int32_t result = 0;
 };
 
 class NapiIDMCallback : public AccountSA::UserIdmClientCallback {
