@@ -41,6 +41,7 @@ private:
     ErrCode GetEventHandler(void);
     void SubscribeCommonEvent(void);
     void OnReceiveEvent(const CommonEventData &data);
+    void DealWithRemoveEvent(const AAFwk::Want &want, const std::string action);
 
 private:
     std::shared_ptr<EventHandler> handler_ = nullptr;
