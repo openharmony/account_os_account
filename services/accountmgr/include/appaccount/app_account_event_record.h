@@ -28,7 +28,7 @@ struct AppAccountSubscribeRecord {
     std::string bundleName;
     uint32_t appIndex;
 
-    AppAccountSubscribeRecord() : subscribeInfoPtr(nullptr), eventListener(nullptr)
+    AppAccountSubscribeRecord() : subscribeInfoPtr(nullptr), eventListener(nullptr), appIndex(0)
     {}
 };
 
