@@ -54,6 +54,7 @@ config("app_account_innerkits_public_config") {
 ohos_shared_library("app_account_innerkits") {
   sources = [
     "src/app_account.cpp",
+    "src/app_account_authenticator_callback_proxy.cpp",
     "src/app_account_authenticator_callback_stub.cpp",
     "src/app_account_authenticator_stub.cpp",
     "src/app_account_common.cpp",
