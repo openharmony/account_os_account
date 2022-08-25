@@ -32,25 +32,25 @@ public:
     ErrCode OpenSession(int32_t userId, std::vector<uint8_t> &challenge);
     ErrCode CloseSession(int32_t userId);
     ErrCode AddCredential(
-        const CredentialParameters& credInfo, const std::shared_ptr<UserIdmClientCallback>& callback);
+        const CredentialParameters &credInfo, const std::shared_ptr<UserIdmClientCallback> &callback);
     ErrCode UpdateCredential(
-        const CredentialParameters& credInfo, const std::shared_ptr<UserIdmClientCallback>& callback);
+        const CredentialParameters &credInfo, const std::shared_ptr<UserIdmClientCallback> &callback);
     ErrCode Cancel(uint64_t challenge, int32_t &resultCode);
-    ErrCode DelCred(
-        uint64_t credentialId, std::vector<uint8_t> authToken, const std::shared_ptr<UserIdmClientCallback>& callback);
-    ErrCode DelUser(std::vector<uint8_t> authToken, const std::shared_ptr<UserIdmClientCallback>& callback);
-    ErrCode GetAuthInfo(AuthType authType, const std::shared_ptr<GetCredentialInfoCallback>& callback);
+    ErrCode DelCred(uint64_t credentialId, const std::vector<uint8_t> &authToken,
+        const std::shared_ptr<UserIdmClientCallback> &callback);
+    ErrCode DelUser(const std::vector<uint8_t> &authToken, const std::shared_ptr<UserIdmClientCallback> &callback);
+    ErrCode GetAuthInfo(AuthType authType, const std::shared_ptr<GetCredentialInfoCallback> &callback);
     ErrCode Auth(
         const std::vector<uint8_t> &challenge, const AuthType authType, const AuthTrustLevel authTrustLevel,
         const std::shared_ptr<AuthenticationCallback> &callback, uint64_t &contextId);
-    ErrCode AuthUser(const int32_t userId, const std::vector<uint8_t> &challenge, const AuthType authType,
-        const AuthTrustLevel authTrustLevel, const std::shared_ptr<AuthenticationCallback> &callback,
+    ErrCode AuthUser(int32_t userId, const std::vector<uint8_t> &challenge, AuthType authType,
+        AuthTrustLevel authTrustLevel, const std::shared_ptr<AuthenticationCallback> &callback,
         uint64_t &contextId);
-    ErrCode CancelAuth(const uint64_t contextId, int32_t &resultCode);
-    ErrCode GetAvailableStatus(const AuthType authType, const AuthTrustLevel authTrustLevel, int32_t &status);
-    ErrCode GetProperty(const GetPropertyRequest &request, std::shared_ptr<GetPropCallback> callback);
-    ErrCode SetProperty(const SetPropertyRequest &request, std::shared_ptr<SetPropCallback> callback);
-    ErrCode RegisterInputer(const std::shared_ptr<IInputer> inputer, bool &isSucceed);
+    ErrCode CancelAuth(uint64_t contextId, int32_t &resultCode);
+    ErrCode GetAvailableStatus(AuthType authType, AuthTrustLevel authTrustLevel, int32_t &status);
+    ErrCode GetProperty(const GetPropertyRequest &request, const std::shared_ptr<GetPropCallback> &callback);
+    ErrCode SetProperty(const SetPropertyRequest &request, const std::shared_ptr<SetPropCallback> &callback);
+    ErrCode RegisterInputer(const std::shared_ptr<IInputer> &inputer, bool &isSucceed);
     ErrCode UnRegisterInputer();
     void SetAuthSubType(int32_t userId, int32_t authSubType);
     int32_t GetAuthSubType(int32_t userId);

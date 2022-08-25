@@ -60,8 +60,8 @@ ErrCode AccountIAMClient::CloseSession(int32_t userId)
     return ERR_OK;
 }
 
-ErrCode AccountIAMClient::AddCredential(const CredentialParameters& credInfo,
-    const std::shared_ptr<UserIdmClientCallback>& callback)
+ErrCode AccountIAMClient::AddCredential(const CredentialParameters &credInfo,
+    const std::shared_ptr<UserIdmClientCallback> &callback)
 {
     ACCOUNT_LOGD("enter");
     if (callback == nullptr) {
@@ -81,8 +81,8 @@ ErrCode AccountIAMClient::AddCredential(const CredentialParameters& credInfo,
     return ERR_OK;
 }
 
-ErrCode AccountIAMClient::UpdateCredential(const CredentialParameters& credInfo,
-    const std::shared_ptr<UserIdmClientCallback>& callback)
+ErrCode AccountIAMClient::UpdateCredential(const CredentialParameters &credInfo,
+    const std::shared_ptr<UserIdmClientCallback> &callback)
 {
     ACCOUNT_LOGD("enter");
     if (callback == nullptr) {
@@ -108,18 +108,17 @@ ErrCode AccountIAMClient::UpdateCredential(const CredentialParameters& credInfo,
     return ERR_OK;
 }
 
-ErrCode AccountIAMClient::DelCred(uint64_t credentialId, std::vector<uint8_t> authToken,
-    const std::shared_ptr<UserIdmClientCallback>& callback)
+ErrCode AccountIAMClient::DelCred(uint64_t credentialId, const std::vector<uint8_t> &authToken,
+    const std::shared_ptr<UserIdmClientCallback> &callback)
 {
-    ACCOUNT_LOGD("enter");
     if (callback == nullptr) {
         ACCOUNT_LOGD("callback is nullptr");
         return ERR_ACCOUNT_COMMON_NULL_PTR_ERROR;
     }
-    Attributes errResult;
+    Attributes emptyResult;
     if (authToken.empty()) {
         ACCOUNT_LOGD("token is empty");
-        callback->OnResult(ResultCode::INVALID_PARAMETERS, errResult);
+        callback->OnResult(ResultCode::INVALID_PARAMETERS, emptyResult);
         return ERR_OK;
     }
     int32_t userId = 0;
@@ -127,7 +126,7 @@ ErrCode AccountIAMClient::DelCred(uint64_t credentialId, std::vector<uint8_t> au
     std::vector<uint8_t> secret;
     ErrCode result = UpdateUserKey(userId, credentialId, authToken, secret);
     if (result != ERR_OK) {
-        callback->OnResult(result, errResult);
+        callback->OnResult(result, emptyResult);
         return ERR_OK;
     }
     auto idmCallback = std::make_shared<DelCredCallback>(userId, credentialId, authToken, callback);
@@ -135,10 +134,9 @@ ErrCode AccountIAMClient::DelCred(uint64_t credentialId, std::vector<uint8_t> au
     return ERR_OK;
 }
 
-ErrCode AccountIAMClient::DelUser(std::vector<uint8_t> authToken,
-    const std::shared_ptr<UserIdmClientCallback>& callback)
+ErrCode AccountIAMClient::DelUser(const std::vector<uint8_t> &authToken,
+    const std::shared_ptr<UserIdmClientCallback> &callback)
 {
-    ACCOUNT_LOGD("enter");
     if (callback == nullptr) {
         ACCOUNT_LOGD("callback is nullptr");
         return ERR_ACCOUNT_COMMON_NULL_PTR_ERROR;
@@ -161,7 +159,7 @@ ErrCode AccountIAMClient::DelUser(std::vector<uint8_t> authToken,
     return ERR_OK;
 }
 
-ErrCode AccountIAMClient::GetAuthInfo(AuthType authType, const std::shared_ptr<GetCredentialInfoCallback>& callback)
+ErrCode AccountIAMClient::GetAuthInfo(AuthType authType, const std::shared_ptr<GetCredentialInfoCallback> &callback)
 {
     UserIDMClient::GetInstance().GetCredentialInfo(0, authType, callback);
     return ERR_OK;
@@ -173,8 +171,8 @@ ErrCode AccountIAMClient::Cancel(uint64_t challenge, int32_t &resultCode)
     return ERR_OK;
 }
 
-ErrCode AccountIAMClient::Auth(const std::vector<uint8_t> &challenge, const AuthType authType,
-    const AuthTrustLevel authTrustLevel, const std::shared_ptr<AuthenticationCallback> &callback, uint64_t &contextId)
+ErrCode AccountIAMClient::Auth(const std::vector<uint8_t> &challenge, AuthType authType,
+    AuthTrustLevel authTrustLevel, const std::shared_ptr<AuthenticationCallback> &callback, uint64_t &contextId)
 {
     ACCOUNT_LOGD("enter");
     int32_t userId = 0;
@@ -183,8 +181,8 @@ ErrCode AccountIAMClient::Auth(const std::vector<uint8_t> &challenge, const Auth
 }
 
 ErrCode AccountIAMClient::AuthUser(
-    const int32_t userId, const std::vector<uint8_t> &challenge, const AuthType authType,
-    const AuthTrustLevel authTrustLevel, const std::shared_ptr<AuthenticationCallback> &callback, uint64_t &contextId)
+    int32_t userId, const std::vector<uint8_t> &challenge, AuthType authType,
+    AuthTrustLevel authTrustLevel, const std::shared_ptr<AuthenticationCallback> &callback, uint64_t &contextId)
 {
     ACCOUNT_LOGD("enter");
     if (callback == nullptr) {
@@ -202,32 +200,34 @@ ErrCode AccountIAMClient::AuthUser(
     return ERR_OK;
 }
 
-ErrCode AccountIAMClient::CancelAuth(const uint64_t contextId, int32_t &resultCode)
+ErrCode AccountIAMClient::CancelAuth(uint64_t contextId, int32_t &resultCode)
 {
     resultCode = UserAuthClient::GetInstance().CancelAuthentication(contextId);
     return ERR_OK;
 }
 
 ErrCode AccountIAMClient::GetAvailableStatus(
-    const AuthType authType, const AuthTrustLevel authTrustLevel, int32_t &status)
+    AuthType authType, AuthTrustLevel authTrustLevel, int32_t &status)
 {
     status = UserAuthClientImpl::Instance().GetAvailableStatus(authType, authTrustLevel);
     return ERR_OK;
 }
 
-ErrCode AccountIAMClient::GetProperty(const GetPropertyRequest &request, std::shared_ptr<GetPropCallback> callback)
+ErrCode AccountIAMClient::GetProperty(
+    const GetPropertyRequest &request, const std::shared_ptr<GetPropCallback> &callback)
 {
     UserAuthClient::GetInstance().GetProperty(0, request, callback);
     return ERR_OK;
 }
 
-ErrCode AccountIAMClient::SetProperty(const SetPropertyRequest &request, std::shared_ptr<SetPropCallback> callback)
+ErrCode AccountIAMClient::SetProperty(
+    const SetPropertyRequest &request, const std::shared_ptr<SetPropCallback> &callback)
 {
     UserAuthClient::GetInstance().SetProperty(0, request, callback);
     return ERR_OK;
 }
 
-ErrCode AccountIAMClient::RegisterInputer(const std::shared_ptr<IInputer> inputer, bool &isSucceed)
+ErrCode AccountIAMClient::RegisterInputer(const std::shared_ptr<IInputer> &inputer, bool &isSucceed)
 {
     ACCOUNT_LOGD("enter");
     isSucceed = false;

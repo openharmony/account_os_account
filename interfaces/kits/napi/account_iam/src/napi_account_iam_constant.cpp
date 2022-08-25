@@ -260,22 +260,21 @@ napi_value FaceTipsCodeConstructor(napi_env env)
 
 napi_value FingerprintTipsConstructorForKits(napi_env env)
 {
-    ACCOUNT_LOGD("enter");
     napi_value fingerprintTips = nullptr;
-    napi_value fingerprintTipGood = nullptr;
-    napi_value fingerprintTipImagerDirty = nullptr;
-    napi_value fingerprintTipInsufficient = nullptr;
-    napi_value fingerprintTipPartial = nullptr;
-    napi_value fingerprintTipTooFast = nullptr;
-    napi_value fingerprintTipTooSlow = nullptr;
     NAPI_CALL(env, napi_create_object(env, &fingerprintTips));
+    napi_value fingerprintTipGood = nullptr;
     NAPI_CALL(env, napi_create_int32(env, FingerprintTips::FINGERPRINT_AUTH_TIP_GOOD, &fingerprintTipGood));
+    napi_value fingerprintTipImagerDirty = nullptr;
     NAPI_CALL(env, napi_create_int32(env, FingerprintTips::FINGERPRINT_AUTH_TIP_IMAGER_DIRTY,
         &fingerprintTipImagerDirty));
+    napi_value fingerprintTipInsufficient = nullptr;
     NAPI_CALL(env, napi_create_int32(env, FingerprintTips::FINGERPRINT_AUTH_TIP_INSUFFICIENT,
         &fingerprintTipInsufficient));
+    napi_value fingerprintTipPartial = nullptr;
     NAPI_CALL(env, napi_create_int32(env, FingerprintTips::FINGERPRINT_AUTH_TIP_PARTIAL, &fingerprintTipPartial));
+    napi_value fingerprintTipTooFast = nullptr;
     NAPI_CALL(env, napi_create_int32(env, FingerprintTips::FINGERPRINT_AUTH_TIP_TOO_FAST, &fingerprintTipTooFast));
+    napi_value fingerprintTipTooSlow = nullptr;
     NAPI_CALL(env, napi_create_int32(env, FingerprintTips::FINGERPRINT_AUTH_TIP_TOO_SLOW, &fingerprintTipTooSlow));
     NAPI_CALL(env, napi_set_named_property(env, fingerprintTips, "FINGERPRINT_AUTH_TIP_GOOD", fingerprintTipGood));
     NAPI_CALL(env, napi_set_named_property(env, fingerprintTips,
@@ -293,7 +292,6 @@ napi_value FingerprintTipsConstructorForKits(napi_env env)
 
 napi_value FingerprintTipsConstructorForInnerkits(napi_env env)
 {
-    ACCOUNT_LOGD("enter");
     napi_value fingerprintTips = nullptr;
     napi_value fingerprintTipGood = nullptr;
     napi_value fingerprintTipImagerDirty = nullptr;

@@ -182,7 +182,6 @@ UpdateCredCallback::~UpdateCredCallback()
 
 void UpdateCredCallback::OnResult(int32_t result, const Attributes &extraInfo)
 {
-    ACCOUNT_LOGD("enter");
     if (innerCallback_ == nullptr) {
         ACCOUNT_LOGD("inner callback is nullptr");
         return;
@@ -191,8 +190,6 @@ void UpdateCredCallback::OnResult(int32_t result, const Attributes &extraInfo)
     if (state == ROLL_BACK_UPDATE_CRED) {
         if (result != 0) {
             ACCOUNT_LOGE("roll back credential failed");
-        } else {
-            ACCOUNT_LOGD("roll back credential successully");
         }
         AccountIAMClient::GetInstance().SetState(userId_, AFTER_OPEN_SESSION);
         Attributes errResult;
@@ -232,7 +229,6 @@ DelCredCallback::~DelCredCallback()
 
 void DelCredCallback::OnResult(int32_t result, const Attributes &extraInfo)
 {
-    ACCOUNT_LOGD("enter");
     if (innerCallback_ == nullptr) {
         ACCOUNT_LOGD("innerCallback_ is nullptr");
         return;
@@ -241,8 +237,6 @@ void DelCredCallback::OnResult(int32_t result, const Attributes &extraInfo)
     if (state == ROLL_BACK_ADD_CRED) {
         if (result != 0) {
             ACCOUNT_LOGE("roll back credential failed");
-        } else {
-            ACCOUNT_LOGD("roll back credential successully");
         }
         AccountIAMClient::GetInstance().SetState(userId_, AFTER_OPEN_SESSION);
         Attributes errResult;

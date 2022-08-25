@@ -63,6 +63,26 @@ ErrCode AccountIAMService::ActivateUserKey(
     return ERR_OK;
 }
 
+ErrCode AccountIAMService::UpdateStorageKey(int32_t userId, const std::vector<uint8_t> &token,
+    const std::vector<uint8_t> &oldSecret, const std::vector<uint8_t> &newSecret)
+{
+#ifdef HAS_STORAGE_PART
+    ErrCode result = GetStorageManagerProxy();
+    if (result != ERR_OK) {
+        ACCOUNT_LOGD("fail to get storage proxy");
+        return result;
+    }
+    result = storageMgrProxy_->UpdateUserAuth(userId, token, oldSecret, newSecret);
+    if (result != ERR_OK && result != ERROR_STORAGE_KEY_NOT_EXIST) {
+        ACCOUNT_LOGD("fail to update user auth");
+        return result;
+    }
+    return storageMgrProxy_->UpdateKeyContext(userId);
+#elif
+    return ERR_OK;
+#endif
+}
+
 ErrCode AccountIAMService::UpdateUserKey(int32_t userId, uint64_t credentialId,
     const std::vector<uint8_t> &token, const std::vector<uint8_t> &newSecret)
 {
@@ -78,19 +98,10 @@ ErrCode AccountIAMService::UpdateUserKey(int32_t userId, uint64_t credentialId,
         ACCOUNT_LOGD("the key do not need to be removed");
         return ERR_OK;
     }
-#ifdef HAS_STORAGE_PART
-    result = GetStorageManagerProxy();
+    result = UpdateStorageKey(userId, token, oldCredInfo.secret, newSecret);
     if (result != ERR_OK) {
-        ACCOUNT_LOGD("fail to get storage proxy");
         return result;
     }
-    result = storageMgrProxy_->UpdateUserAuth(userId, token, oldCredInfo.secret, newSecret);
-    if (result != ERR_OK && result != ERROR_STORAGE_KEY_NOT_EXIST) {
-        ACCOUNT_LOGD("fail to update user auth");
-        return result;
-    }
-    result = storageMgrProxy_->UpdateKeyContext(userId);
-#endif
     credInfoMap_[userId] = {
         .credentialId = credentialId,
         .oldSecret = oldCredInfo.secret,
@@ -110,19 +121,10 @@ ErrCode AccountIAMService::RemoveUserKey(int32_t userId, const std::vector<uint8
     }
     CredentialInfo oldCredInfo = it->second;
     std::vector<uint8_t> newSecret;
-#ifdef HAS_STORAGE_PART
-    result = GetStorageManagerProxy();
+    result = UpdateStorageKey(userId, token, oldCredInfo.secret, newSecret);
     if (result != ERR_OK) {
-        ACCOUNT_LOGD("fail to get storage proxy");
         return result;
     }
-    result = storageMgrProxy_->UpdateUserAuth(userId, token, oldCredInfo.secret, newSecret);
-    if (result != ERR_OK && result != ERROR_STORAGE_KEY_NOT_EXIST) {
-        ACCOUNT_LOGD("fail to update user auth");
-        return result;
-    }
-    result = storageMgrProxy_->UpdateKeyContext(userId);
-#endif
     credInfoMap_[userId] = {
         .oldSecret = oldCredInfo.secret,
         .secret = newSecret
@@ -144,19 +146,10 @@ ErrCode AccountIAMService::RestoreUserKey(int32_t userId, uint64_t credentialId,
     if (credentialId != 0 && credInfo.credentialId != credentialId) {
         return ERR_OK;
     }
-#ifdef HAS_STORAGE_PART
-    result = GetStorageManagerProxy();
+    result = UpdateStorageKey(userId, token, credInfo.secret, credInfo.oldSecret);
     if (result != ERR_OK) {
-        ACCOUNT_LOGD("fail to get storage proxy");
         return result;
     }
-    result = storageMgrProxy_->UpdateUserAuth(userId, token, credInfo.secret, credInfo.oldSecret);
-    if (result != ERR_OK && result != ERROR_STORAGE_KEY_NOT_EXIST) {
-        ACCOUNT_LOGD("fail to update user auth");
-        return result;
-    }
-    result = storageMgrProxy_->UpdateKeyContext(userId);
-#endif
     credInfoMap_[userId] = {
         .secret = credInfo.oldSecret
     };
