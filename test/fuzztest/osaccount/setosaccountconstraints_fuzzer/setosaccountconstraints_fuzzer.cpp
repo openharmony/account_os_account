@@ -39,9 +39,9 @@ namespace OHOS {
                 "constraint.share.into.profile"
             };
             int temp = size % CONSTANTS_NUMBER_THREE;
-            string str(reinterpret_cast<const char*>(data));
+            std::string testConstraint(reinterpret_cast<const char*>(data), size);
             if (!temp) {
-                CONSTANTS_VECTOR.push_back(str);
+                CONSTANTS_VECTOR.push_back(testConstraint);
             }
             bool enable = ((size % CONSTANTS_NUMBER_TWO) == 0);
             result = OsAccountManager::SetOsAccountConstraints(LOCAL_ID, CONSTANTS_VECTOR, enable);
