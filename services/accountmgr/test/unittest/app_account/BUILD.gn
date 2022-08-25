@@ -73,10 +73,10 @@ ohos_unittest("account_permission_manager_test") {
     "bundle_framework:appexecfwk_base",
     "bundle_framework:appexecfwk_core",
     "c_utils:utils",
-    "distributeddatamgr:distributeddata_inner",
     "eventhandler:libeventhandler",
     "hiviewdfx_hilog_native:libhilog",
     "ipc:ipc_core",
+    "kv_store:distributeddata_inner",
   ]
 }
 
@@ -106,10 +106,10 @@ ohos_unittest("app_account_data_storage_test") {
     "ability_runtime:app_manager",
     "bundle_framework:appexecfwk_base",
     "bundle_framework:appexecfwk_core",
-    "distributeddatamgr:distributeddata_inner",
     "eventhandler:libeventhandler",
     "hiviewdfx_hilog_native:libhilog",
     "ipc:ipc_core",
+    "kv_store:distributeddata_inner",
   ]
 }
 
@@ -139,10 +139,10 @@ ohos_unittest("app_account_info_test") {
     "ability_runtime:app_manager",
     "bundle_framework:appexecfwk_base",
     "bundle_framework:appexecfwk_core",
-    "distributeddatamgr:distributeddata_inner",
     "eventhandler:libeventhandler",
     "hiviewdfx_hilog_native:libhilog",
     "ipc:ipc_core",
+    "kv_store:distributeddata_inner",
   ]
 }
 
@@ -173,10 +173,10 @@ ohos_unittest("app_account_manager_service_test") {
     "bundle_framework:appexecfwk_base",
     "bundle_framework:appexecfwk_core",
     "c_utils:utils",
-    "distributeddatamgr:distributeddata_inner",
     "eventhandler:libeventhandler",
     "hiviewdfx_hilog_native:libhilog",
     "ipc:ipc_core",
+    "kv_store:distributeddata_inner",
   ]
 
   if (has_ces_part) {
@@ -211,10 +211,10 @@ ohos_unittest("app_account_subscribe_info_test") {
     "ability_runtime:app_manager",
     "bundle_framework:appexecfwk_base",
     "bundle_framework:appexecfwk_core",
-    "distributeddatamgr:distributeddata_inner",
     "eventhandler:libeventhandler",
     "hiviewdfx_hilog_native:libhilog",
     "ipc:ipc_core",
+    "kv_store:distributeddata_inner",
   ]
 }
 
@@ -244,10 +244,10 @@ ohos_unittest("app_account_test") {
     "ability_runtime:app_manager",
     "bundle_framework:appexecfwk_base",
     "bundle_framework:appexecfwk_core",
-    "distributeddatamgr:distributeddata_inner",
     "eventhandler:libeventhandler",
     "hiviewdfx_hilog_native:libhilog",
     "ipc:ipc_core",
+    "kv_store:distributeddata_inner",
   ]
 }
 
@@ -277,10 +277,10 @@ ohos_unittest("inner_app_account_manager_test") {
     "ability_runtime:app_manager",
     "bundle_framework:appexecfwk_base",
     "bundle_framework:appexecfwk_core",
-    "distributeddatamgr:distributeddata_inner",
     "eventhandler:libeventhandler",
     "hiviewdfx_hilog_native:libhilog",
     "ipc:ipc_core",
+    "kv_store:distributeddata_inner",
   ]
 }
 
