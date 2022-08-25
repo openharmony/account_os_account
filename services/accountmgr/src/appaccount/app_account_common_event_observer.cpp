@@ -38,6 +38,7 @@ AppAccountCommonEventObserver::AppAccountCommonEventObserver(const CommonEventCa
     MatchingSkills matchingSkills;
     matchingSkills.AddEvent(CommonEventSupport::COMMON_EVENT_PACKAGE_REMOVED);
     matchingSkills.AddEvent(CommonEventSupport::COMMON_EVENT_USER_REMOVED);
+    matchingSkills.AddEvent(CommonEventSupport::COMMON_EVENT_SANDBOX_PACKAGE_REMOVED);
 
     CommonEventSubscribeInfo subscribeInfo(matchingSkills);
     subscriber_ = std::make_shared<AppAccountCommonEventSubscriber>(
