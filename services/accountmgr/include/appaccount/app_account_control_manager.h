@@ -105,6 +105,8 @@ private:
     bool RegisterApplicationStateObserver();
     void UnregisterApplicationStateObserver();
     void PopDataFromAssociatedDataCache();
+    void RemoveAssociatedDataCacheByUid(const uid_t &uid);
+    void RemoveAssociatedDataCacheByAccount(const uid_t &uid, const std::string &name);
     ErrCode GetAssociatedDataFromStorage(const std::string &name, const std::string &key, std::string &value,
         const uid_t &uid, const uint32_t &appIndex);
     std::shared_ptr<AppAccountDataStorage> GetDataStorageByUserId(int32_t userId, const bool &autoSync = false);
@@ -131,7 +133,7 @@ private:
     std::mutex mutex_;
     std::mutex storePtrMutex_;
     std::mutex associatedDataMutex_;
-    std::map<int32_t, AssociatedDataCacheItem> associatedDataCache_;
+    std::map<uid_t, AssociatedDataCacheItem> associatedDataCache_;
     std::map<std::string, std::shared_ptr<AppAccountDataStorage>> storePtrMap_;
     sptr<AppExecFwk::IAppMgr> iAppMgr_;
     sptr<AppAccountAppStateObserver> appStateObserver_;
