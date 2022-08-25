@@ -71,6 +71,7 @@ ErrCode AppAccountControlManager::DeleteAccount(
         ACCOUNT_LOGE("failed to delete account info from data storage, result %{public}d.", result);
         return result;
     }
+    RemoveAssociatedDataCacheByAccount(uid, name);
 
     std::set<std::string> authorizedApps;
     appAccountInfo.GetAuthorizedApps(authorizedApps);
@@ -698,9 +699,32 @@ ErrCode AppAccountControlManager::SelectAccountsByOptions(
     return sessionManager->SelectAccountsByOptions(candidateAccounts, request);
 }
 
+void AppAccountControlManager::RemoveAssociatedDataCacheByUid(const uid_t &uid)
+{
+    std::lock_guard<std::mutex> lock(associatedDataMutex_);
+    associatedDataCache_.erase(uid);
+    if (associatedDataCache_.empty()) {
+        UnregisterApplicationStateObserver();
+    }
+}
+
+void AppAccountControlManager::RemoveAssociatedDataCacheByAccount(const uid_t &uid, const std::string &name)
+{
+    std::lock_guard<std::mutex> lock(associatedDataMutex_);
+    auto it = associatedDataCache_.find(uid);
+    if ((it == associatedDataCache_.end()) || (it->second.name != name)) {
+        return;
+    }
+    associatedDataCache_.erase(it);
+    if (associatedDataCache_.empty()) {
+        UnregisterApplicationStateObserver();
+    }
+}
+
 ErrCode AppAccountControlManager::OnPackageRemoved(
     const uid_t &uid, const std::string &bundleName, const uint32_t &appIndex)
 {
+    RemoveAssociatedDataCacheByUid(uid);
     auto dataStoragePtr = GetDataStorage(uid);
     if (dataStoragePtr == nullptr) {
         ACCOUNT_LOGE("dataStoragePtr is nullptr");
@@ -803,15 +827,10 @@ void AppAccountControlManager::UnregisterApplicationStateObserver()
 
 void AppAccountControlManager::OnAbilityStateChanged(const AppExecFwk::AbilityStateData &abilityStateData)
 {
-    ACCOUNT_LOGE("enter");
     if (abilityStateData.abilityState != Constants::ABILITY_STATE_TERMINATED) {
         return;
     }
-    std::lock_guard<std::mutex> lock(associatedDataMutex_);
-    associatedDataCache_.erase(abilityStateData.uid);
-    if (associatedDataCache_.size() == 0) {
-        UnregisterApplicationStateObserver();
-    }
+    RemoveAssociatedDataCacheByUid(abilityStateData.uid);
 }
 
 ErrCode AppAccountControlManager::GetAllAccountsFromDataStorage(const std::string &owner,
