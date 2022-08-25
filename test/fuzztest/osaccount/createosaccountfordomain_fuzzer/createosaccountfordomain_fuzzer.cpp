@@ -31,7 +31,9 @@ namespace OHOS {
     {
         bool result = false;
         if (size > 0) {
-            DomainAccountInfo domainInfo(reinterpret_cast<const char*>(data), reinterpret_cast<const char*>(data));
+            std::string accountName(reinterpret_cast<const char*>(data), size);
+            std::string domain(reinterpret_cast<const char*>(data), size);
+            DomainAccountInfo domainInfo(accountName, domain);
             OsAccountType testType = static_cast<OsAccountType>(size % CONSTANTS_NUMBER_FIVE);
             OsAccountInfo osAccountInfo;
             result = OsAccountManager::CreateOsAccountForDomain(testType, domainInfo, osAccountInfo);

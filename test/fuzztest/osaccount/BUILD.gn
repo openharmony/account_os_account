@@ -18,7 +18,6 @@ group("fuzztest") {
   deps += [
     # deps file
     "createosaccount_fuzzer:CreateOsAccountFuzzTest",
-    "createosaccountfordomain_fuzzer:CreateOsAccountForDomainFuzzTest",
     "getosaccountlocalidbyserialnumber_fuzzer:GetOsAccountLocalIdBySerialNumberFuzzTest",
     "getosaccountlocalidfromdomain_fuzzer:GetOsAccountLocalIdFromDomainFuzzTest",
     "isosaccountconstraintenable_fuzzer:IsOsAccountConstraintEnableFuzzTest",
