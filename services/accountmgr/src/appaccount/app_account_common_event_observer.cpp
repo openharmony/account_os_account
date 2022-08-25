@@ -109,27 +109,33 @@ void AppAccountCommonEventObserver::OnReceiveEvent(const CommonEventData &data)
     std::string action = want.GetAction();
     if (action == CommonEventSupport::COMMON_EVENT_PACKAGE_REMOVED ||
         action == CommonEventSupport::COMMON_EVENT_SANDBOX_PACKAGE_REMOVED) {
-        if (callback_.OnPackageRemoved != nullptr) {
-            auto wantTemp = data.GetWant();
-            auto element = wantTemp.GetElement();
-            std::string bundleName = element.GetBundleName();
-            auto uid = wantTemp.GetIntParam(AppExecFwk::Constants::UID, -1);
-            uint32_t appIndex = 0;
-            if (action == CommonEventSupport::COMMON_EVENT_SANDBOX_PACKAGE_REMOVED) {
-                appIndex = wantTemp.GetIntParam(AppExecFwk::Constants::SANDBOX_APP_INDEX, 0);
-            }
-            ACCOUNT_LOGI("uid = %{public}d, bundleName = %{public}s.", uid, bundleName.c_str());
-            callback_.OnPackageRemoved(uid, bundleName, appIndex);
+        DealWithRemoveEvent(want, action);
+        return;
+    }
+    if ((action == CommonEventSupport::COMMON_EVENT_USER_REMOVED) && (callback_.OnUserRemoved != nullptr)) {
+        callback_.OnUserRemoved(data.GetCode());
+    }
+}
+
+void AppAccountCommonEventObserver::DealWithRemoveEvent(const AAFwk::Want &want, const std::string action)
+{
+    if (callback_.OnPackageRemoved == nullptr) {
+        return;
+    }
+    auto element = want.GetElement();
+    std::string bundleName = element.GetBundleName();
+    auto uid = want.GetIntParam(AppExecFwk::Constants::UID, -1);
+    int32_t appIndex = 0;
+    if (action == CommonEventSupport::COMMON_EVENT_SANDBOX_PACKAGE_REMOVED) {
+        appIndex = want.GetIntParam(AppExecFwk::Constants::SANDBOX_APP_INDEX, -1);
+        if (appIndex < 0) {
+            ACCOUNT_LOGW("appIndex = %{public}d is invalid.", appIndex);
+            return;
         }
-        return;
     }
-    if ((action == CommonEventSupport::COMMON_EVENT_USER_REMOVED) && (callback_.OnUserRemoved != nullptr)) {
-        callback_.OnUserRemoved(data.GetCode());
-        return;
-    }
-    if ((action == CommonEventSupport::COMMON_EVENT_USER_REMOVED) && (callback_.OnUserRemoved != nullptr)) {
-        callback_.OnUserRemoved(data.GetCode());
-    }
+    ACCOUNT_LOGI("uid = %{public}d, bundleName = %{public}s. appIndex = %{public}d",
+        uid, bundleName.c_str(), appIndex);
+    callback_.OnPackageRemoved(uid, bundleName, appIndex);
 }
 #endif // HAS_CES_PART
 }  // namespace AccountSA
