@@ -46,7 +46,10 @@ config("account_iam_kit_config") {
 
 ohos_shared_library("account_iam_napi") {
   include_dirs = []
-  configs = [ ":account_iam_kit_config" ]
+  configs = [
+    ":account_iam_kit_config",
+    "${account_coverage_config_path}:coverage_flags",
+  ]
   public_configs = [ ":account_iam_kit_config" ]
   sources = [
     "${account_iam_kits_path}/src/napi_account_iam_common.cpp",

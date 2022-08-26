@@ -68,6 +68,8 @@ ohos_source_set("tools_acm_source_set") {
 ohos_executable("acm") {
   deps = [ ":tools_acm_source_set" ]
 
+  configs = [ "${account_coverage_config_path}:coverage_flags" ]
+
   install_enable = true
 
   subsystem_name = "account"
