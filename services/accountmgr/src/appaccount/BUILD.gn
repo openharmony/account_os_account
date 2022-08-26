@@ -60,7 +60,10 @@ ohos_shared_library("app_account_service_core") {
     "LOG_DOMAIN = 0xD001B00",
   ]
 
-  configs = [ ":app_account_service_core_config" ]
+  configs = [
+    ":app_account_service_core_config",
+    "${account_coverage_config_path}:coverage_flags",
+  ]
 
   public_configs = [ ":app_account_service_core_public_config" ]
 
