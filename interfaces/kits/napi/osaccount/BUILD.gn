@@ -52,7 +52,10 @@ config("osaccount_kit_config") {
 
 ohos_shared_library("osaccount") {
   include_dirs = []
-  configs = [ ":osaccount_kit_config" ]
+  configs = [
+    ":osaccount_kit_config",
+    "${account_coverage_config_path}:coverage_flags",
+  ]
   public_configs = [
     ":osaccount_kit_config",
     "${innerkits_native_path}:public_account_config",

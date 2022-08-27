@@ -68,7 +68,10 @@ ohos_shared_library("os_account_core") {
     "${os_account_innerkits_native_path}/src/os_account_subscriber.cpp",
   ]
 
-  configs = [ ":os_account_core_config" ]
+  configs = [
+    ":os_account_core_config",
+    "${account_coverage_config_path}:coverage_flags",
+  ]
 
   public_configs = [ ":os_account_core_public_config" ]
 
