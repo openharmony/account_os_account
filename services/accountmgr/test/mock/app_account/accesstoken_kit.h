@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021 Huawei Device Co., Ltd.
+ * Copyright (c) 2021-2022 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -17,6 +17,8 @@
 #define OS_ACCOUNT_SERVICES_ACCOUNTMGR_TEST_MOCK_APP_ACCOUNT_ACCESSTOKEN_KIT_H
 
 #include <string>
+#include "access_token.h"
+#include "hap_token_info.h"
 
 namespace OHOS {
 namespace Security {
@@ -24,6 +26,7 @@ namespace AccessToken {
 class AccessTokenKit {
 public:
     static int VerifyAccessToken(unsigned int tokenID, const std::string &permissionName);
+    static int GetHapTokenInfo(AccessTokenID tokenID, HapTokenInfo& hapTokenInfoRes);
 };
 }  // namespace AccessToken
 }  // namespace Security

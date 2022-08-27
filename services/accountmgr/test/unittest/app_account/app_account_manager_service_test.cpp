@@ -17,7 +17,7 @@
 
 #include "account_error_no.h"
 #define private public
-#include "mock_app_account_manager_service.h"
+#include "app_account_manager_service.h"
 #undef private
 #include "mock_inner_app_account_manager.h"
 
@@ -29,6 +29,7 @@ namespace {
 const std::string STRING_NAME = "name";
 const std::string STRING_EXTRA_INFO = "extra_info";
 const std::string STRING_OWNER = "com.example.owner";
+constexpr std::int32_t UID = 10000;
 }  // namespace
 
 class AppAccountManagerServiceTest : public testing::Test {
@@ -46,11 +47,24 @@ void AppAccountManagerServiceTest::SetUpTestCase(void)
 {}
 
 void AppAccountManagerServiceTest::TearDownTestCase(void)
-{}
+{
+    auto dataStoragePtr = AppAccountControlManager::GetInstance()->GetDataStorage(UID);
+    ASSERT_NE(dataStoragePtr, nullptr);
+
+    ErrCode result = dataStoragePtr->DeleteKvStore();
+    ASSERT_EQ(result, ERR_OK);
+
+    dataStoragePtr = AppAccountControlManager::GetInstance()->GetDataStorage(UID, true);
+    ASSERT_NE(dataStoragePtr, nullptr);
+
+    result = dataStoragePtr->DeleteKvStore();
+    ASSERT_EQ(result, ERR_OK);
+    GTEST_LOG_(INFO) << "TearDownTestCase!";
+}
 
 void AppAccountManagerServiceTest::SetUp(void)
 {
-    auto servicePtr = new (std::nothrow) MockAppAccountManagerService();
+    auto servicePtr = new (std::nothrow) AppAccountManagerService();
     if (servicePtr == nullptr) {
         return;
     }

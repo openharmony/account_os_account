@@ -36,7 +36,7 @@ const std::int32_t DELAY_FOR_OPERATION = 250;
 std::shared_ptr<OsAccountManagerService> g_osAccountManagerService = nullptr;
 const std::int32_t MAIN_ACCOUNT_ID = 100;
 const std::int32_t WAIT_A_MOMENT = 3000;
-const std::uint32_t MAX_WAIT_FOR_READY_CNT = 100;
+const std::uint32_t MAX_WAIT_FOR_READY_CNT = 10;
 }  // namespace
 
 class OsAccountManagerServiceCreateOsAccountTest : public testing::Test {

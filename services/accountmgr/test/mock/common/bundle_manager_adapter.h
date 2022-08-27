@@ -36,9 +36,11 @@ public:
     int GetUidByBundleName(const std::string &bundleName, const int userId);
     bool QueryAbilityInfos(const AAFwk::Want &want, int32_t flags, int32_t userId,
         std::vector<AppExecFwk::AbilityInfo> &abilityInfos);
+    bool QueryExtensionAbilityInfos(const AAFwk::Want &want, const int32_t &flag,
+    const int32_t &userId, std::vector<AppExecFwk::ExtensionAbilityInfo> &extensionInfos);
 
 private:
-    static std::mutex instanceMutex_;
+    static std::mutex mockInstanceMutex_;
     static std::shared_ptr<BundleManagerAdapter> instance_;
 };
 }  // namespace AccountSA

@@ -19,7 +19,10 @@ module_output_path = "os_account/frameworks"
 config("os_account_frameworks_config_unittest") {
   visibility = [ ":*" ]
 
-  include_dirs = [ "${innerkits_path}/include" ]
+  include_dirs = [
+    "${innerkits_path}/include",
+    "${innerkits_native_path}/include",
+  ]
 
   cflags = []
   if (target_cpu == "arm") {
@@ -66,5 +69,5 @@ ohos_moduletest("os_account_frameworks_module_test") {
 group("moduletest") {
   testonly = true
 
-  deps = []
+  deps = [ ":os_account_frameworks_module_test" ]
 }

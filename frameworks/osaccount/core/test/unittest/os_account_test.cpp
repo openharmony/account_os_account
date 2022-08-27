@@ -115,7 +115,7 @@ const std::string STRING_DOMAIN_ACCOUNT_NAME_OUT_OF_RANGE =
 const std::string STRING_DOMAIN_VALID = "TestDomainUT";
 const std::string STRING_DOMAIN_ACCOUNT_NAME_VALID = "TestDomainAccountNameUT";
 std::shared_ptr<OsAccount> g_osAccount = nullptr;
-const std::uint32_t MAX_WAIT_FOR_READY_CNT = 100;
+const std::uint32_t MAX_WAIT_FOR_READY_CNT = 10;
 }  // namespace
 class OsAccountTest : public testing::Test {
 public:
