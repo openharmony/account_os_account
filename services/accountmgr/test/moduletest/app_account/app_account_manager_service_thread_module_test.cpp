@@ -18,7 +18,7 @@
 #include <thread>
 #include "account_log_wrapper.h"
 #define private public
-#include "mock_app_account_manager_service.h"
+#include "app_account_manager_service.h"
 #undef private
 #include "event_handler.h"
 
@@ -39,8 +39,9 @@ constexpr std::size_t SIZE_ZERO = 0;
 constexpr std::size_t SIZE_ONE = 1;
 constexpr std::int32_t WAIT_FOR_EXIT = 1000;
 constexpr std::int32_t DELAY_FOR_OPERATION = 3000;
-std::shared_ptr<MockAppAccountManagerService> g_appAccountManagerServicePtr =
-    std::make_shared<MockAppAccountManagerService>();
+constexpr std::int32_t UID = 10000;
+std::shared_ptr<AppAccountManagerService> g_appAccountManagerServicePtr =
+    std::make_shared<AppAccountManagerService>();
 std::shared_ptr<OHOS::AppExecFwk::EventHandler> g_handler =
     std::make_shared<OHOS::AppExecFwk::EventHandler>(OHOS::AppExecFwk::EventRunner::Create());
 }  // namespace
@@ -68,7 +69,12 @@ void AppAccountManagerServiceThreadModuleTest::SetUpTestCase(void)
 void AppAccountManagerServiceThreadModuleTest::TearDownTestCase(void)
 {
     std::this_thread::sleep_for(std::chrono::milliseconds(WAIT_FOR_EXIT));
-    GTEST_LOG_(INFO) << "TearDownTestCase exit!";
+    GTEST_LOG_(INFO) << "TearDownTestCase enter";
+    auto dataStoragePtr = AppAccountControlManager::GetInstance()->GetDataStorage(UID);
+    ASSERT_NE(dataStoragePtr, nullptr);
+
+    ErrCode result = dataStoragePtr->DeleteKvStore();
+    ASSERT_EQ(result, ERR_OK);
 }
 
 void AppAccountManagerServiceThreadModuleTest::SetUp(void)

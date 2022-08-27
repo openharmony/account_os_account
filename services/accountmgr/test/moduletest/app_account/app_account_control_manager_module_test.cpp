@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021 Huawei Device Co., Ltd.
+ * Copyright (c) 2021-2022 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -50,7 +50,14 @@ void AppAccountControlManagerModuleTest::SetUpTestCase(void)
 {}
 
 void AppAccountControlManagerModuleTest::TearDownTestCase(void)
-{}
+{
+    GTEST_LOG_(INFO) << "TearDownTestCase enter";
+    auto dataStoragePtr = AppAccountControlManager::GetInstance()->GetDataStorage(UID);
+    ASSERT_NE(dataStoragePtr, nullptr);
+
+    ErrCode result = dataStoragePtr->DeleteKvStore();
+    ASSERT_EQ(result, ERR_OK);
+}
 
 void AppAccountControlManagerModuleTest::SetUp(void)
 {}

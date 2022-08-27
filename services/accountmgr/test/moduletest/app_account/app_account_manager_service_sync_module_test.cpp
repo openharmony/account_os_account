@@ -18,7 +18,7 @@
 #include "account_log_wrapper.h"
 #define private public
 #include "app_account_control_manager.h"
-#include "mock_app_account_manager_service.h"
+#include "app_account_manager_service.h"
 #undef private
 
 using namespace testing::ext;
@@ -46,9 +46,9 @@ constexpr std::int32_t WAIT_FOR_KVSTORE = 5000;
 
 constexpr std::size_t SIZE_ZERO = 0;
 constexpr std::size_t SIZE_ONE = 1;
-std::shared_ptr<AppAccountControlManager> g_controlManagerPtr = std::make_shared<AppAccountControlManager>();
-std::shared_ptr<MockAppAccountManagerService> g_appAccountManagerServicePtr =
-    std::make_shared<MockAppAccountManagerService>();
+std::shared_ptr<AppAccountControlManager> g_controlManagerPtr = AppAccountControlManager::GetInstance();
+std::shared_ptr<AppAccountManagerService> g_appAccountManagerServicePtr =
+    std::make_shared<AppAccountManagerService>();
 }  // namespace
 
 class AppAccountManagerServiceSyncModuleTest : public testing::Test {
@@ -57,19 +57,13 @@ public:
     static void TearDownTestCase(void);
     void SetUp(void) override;
     void TearDown(void) override;
-    static void DeleteKvStore(void);
+    void ClearDataStorage(std::shared_ptr<AppAccountDataStorage> &dataStoragePtr);
 };
 
 void AppAccountManagerServiceSyncModuleTest::SetUpTestCase(void)
 {}
 
 void AppAccountManagerServiceSyncModuleTest::TearDownTestCase(void)
-{
-    std::this_thread::sleep_for(std::chrono::milliseconds(WAIT_FOR_EXIT));
-    GTEST_LOG_(INFO) << "TearDownTestCase!";
-}
-
-void AppAccountManagerServiceSyncModuleTest::DeleteKvStore(void)
 {
     auto dataStoragePtr = g_controlManagerPtr->GetDataStorage(UID);
     ASSERT_NE(dataStoragePtr, nullptr);
@@ -82,13 +76,35 @@ void AppAccountManagerServiceSyncModuleTest::DeleteKvStore(void)
 
     result = dataStoragePtr->DeleteKvStore();
     ASSERT_EQ(result, ERR_OK);
+    std::this_thread::sleep_for(std::chrono::milliseconds(WAIT_FOR_EXIT));
+    GTEST_LOG_(INFO) << "TearDownTestCase!";
 }
 
 void AppAccountManagerServiceSyncModuleTest::SetUp(void)
 {
     GTEST_LOG_(INFO) << "SetUp enter!";
-    DeleteKvStore();
+    auto dataStoragePtr = g_controlManagerPtr->GetDataStorage(UID);
+    ClearDataStorage(dataStoragePtr);
+    dataStoragePtr = g_controlManagerPtr->GetDataStorage(UID, true);
+    ClearDataStorage(dataStoragePtr);
     GTEST_LOG_(INFO) << "SetUp exit!";
+}
+
+void AppAccountManagerServiceSyncModuleTest::ClearDataStorage(std::shared_ptr<AppAccountDataStorage> &dataStoragePtr)
+{
+    std::map<std::string, std::shared_ptr<IAccountInfo>> accounts;
+    ErrCode result = dataStoragePtr->LoadAllData(accounts);
+    GTEST_LOG_(INFO) << "LoadAllData result!" << result;
+    if (!accounts.empty()) {
+        GTEST_LOG_(INFO) << "LoadAllData accounts.size =" << accounts.size();
+        for (auto accountPtr : accounts) {
+            GTEST_LOG_(INFO) << "RemoveValueFromKvStore result: " << result;
+            result = dataStoragePtr->RemoveValueFromKvStore(accountPtr.first);
+            GTEST_LOG_(INFO) << "AccountInfo truely key: " << accountPtr.first << "remove result:" << result;
+        }
+    }
+    result = dataStoragePtr->LoadAllData(accounts);
+    GTEST_LOG_(INFO) << "LoadAllData end accounts.size =" << accounts.size();
 }
 
 void AppAccountManagerServiceSyncModuleTest::TearDown(void)
@@ -532,7 +548,7 @@ HWTEST_F(AppAccountManagerServiceSyncModuleTest, AppAccountManagerServiceSync_En
         auto accountPtr = accessibleAccounts.begin();
         ASSERT_NE(accountPtr, accessibleAccounts.end());
 
-        EXPECT_EQ(*accountPtr, STRING_OWNER + HYPHEN + STRING_NAME + HYPHEN + APP_INDEX);
+        EXPECT_EQ(*accountPtr, STRING_OWNER + HYPHEN + APP_INDEX + HYPHEN + STRING_NAME);
     }
     {
         auto dataStoragePtr = g_controlManagerPtr->GetDataStorage(UID, true);
@@ -551,7 +567,7 @@ HWTEST_F(AppAccountManagerServiceSyncModuleTest, AppAccountManagerServiceSync_En
         auto accountPtr = accessibleAccounts.begin();
         ASSERT_NE(accountPtr, accessibleAccounts.end());
 
-        EXPECT_EQ(*accountPtr, STRING_OWNER + HYPHEN + STRING_NAME + HYPHEN + APP_INDEX);
+        EXPECT_EQ(*accountPtr, STRING_OWNER + HYPHEN + APP_INDEX + HYPHEN + STRING_NAME);
     }
 
     result = g_appAccountManagerServicePtr->DeleteAccount(STRING_NAME);
@@ -600,7 +616,7 @@ HWTEST_F(AppAccountManagerServiceSyncModuleTest, AppAccountManagerServiceSync_En
         auto accountPtr = accessibleAccounts.begin();
         ASSERT_NE(accountPtr, accessibleAccounts.end());
 
-        EXPECT_EQ(*accountPtr, STRING_OWNER + HYPHEN + STRING_NAME + HYPHEN + APP_INDEX);
+        EXPECT_EQ(*accountPtr, STRING_OWNER + HYPHEN + APP_INDEX + HYPHEN + STRING_NAME);
     }
     {
         auto dataStoragePtr = g_controlManagerPtr->GetDataStorage(UID, true);
@@ -620,7 +636,7 @@ HWTEST_F(AppAccountManagerServiceSyncModuleTest, AppAccountManagerServiceSync_En
         auto accountPtr = accessibleAccounts.begin();
         ASSERT_NE(accountPtr, accessibleAccounts.end());
 
-        EXPECT_EQ(*accountPtr, STRING_OWNER + HYPHEN + STRING_NAME + HYPHEN + APP_INDEX);
+        EXPECT_EQ(*accountPtr, STRING_OWNER + HYPHEN + APP_INDEX + HYPHEN + STRING_NAME);
     }
 
     result = g_appAccountManagerServicePtr->DeleteAccount(STRING_NAME);

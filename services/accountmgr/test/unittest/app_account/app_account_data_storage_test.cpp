@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021 Huawei Device Co., Ltd.
+ * Copyright (c) 2021-2022 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -19,6 +19,7 @@
 #include "account_log_wrapper.h"
 #include "app_account_data_storage.h"
 #include "app_account_info.h"
+#include "app_account_control_manager.h"
 
 using namespace testing::ext;
 using namespace OHOS;
@@ -32,7 +33,7 @@ const std::string STRING_EXTRA_INFO_TWO = "extra_info_two";
 const std::string STRING_BUNDLE_NAME = "com.example.third_party";
 const std::string STRING_ACCOUNT_ID = "0";
 const std::string STRING_STORE_ID = STRING_ACCOUNT_ID;
-
+constexpr std::int32_t UID = 10000;
 constexpr std::size_t SIZE_ZERO = 0;
 constexpr std::size_t SIZE_ONE = 1;
 }  // namespace
@@ -43,19 +44,48 @@ public:
     static void TearDownTestCase(void);
     void SetUp(void) override;
     void TearDown(void) override;
+    void ClearDataStorage(void);
 };
 
 void AppAccountDataStorageTest::SetUpTestCase(void)
 {}
 
 void AppAccountDataStorageTest::TearDownTestCase(void)
-{}
+{
+    GTEST_LOG_(INFO) << "TearDownTestCase enter";
+    auto dataStoragePtr = AppAccountControlManager::GetInstance()->GetDataStorage(UID);
+    ASSERT_NE(dataStoragePtr, nullptr);
+
+    ErrCode result = dataStoragePtr->DeleteKvStore();
+    ASSERT_EQ(result, ERR_OK);
+}
 
 void AppAccountDataStorageTest::SetUp(void)
-{}
+{
+    GTEST_LOG_(INFO) << "SetUp enter!";
+    ClearDataStorage();
+}
 
 void AppAccountDataStorageTest::TearDown(void)
 {}
+
+void AppAccountDataStorageTest::ClearDataStorage(void)
+{
+    auto dataStoragePtr = std::make_shared<AppAccountDataStorage>(STRING_STORE_ID);
+    std::map<std::string, std::shared_ptr<IAccountInfo>> accounts;
+    ErrCode result = dataStoragePtr->LoadAllData(accounts);
+    GTEST_LOG_(INFO) << "LoadAllData result!" << result;
+    if (!accounts.empty()) {
+        GTEST_LOG_(INFO) << "LoadAllData accounts.size =" << accounts.size();
+        for (auto accountPtr : accounts) {
+            GTEST_LOG_(INFO) << "RemoveValueFromKvStore result: " << result;
+            result = dataStoragePtr->RemoveValueFromKvStore(accountPtr.first);
+            GTEST_LOG_(INFO) << "AccountInfo truely key: " << accountPtr.first << "remove result:" << result;
+        }
+    }
+    result = dataStoragePtr->LoadAllData(accounts);
+    GTEST_LOG_(INFO) << "LoadAllData end accounts.size =" << accounts.size();
+}
 
 /**
  * @tc.name: AppAccountDataStorage_AddAccountInfo_0100

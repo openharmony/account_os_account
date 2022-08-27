@@ -29,7 +29,6 @@
 #include "common_event_support.h"
 #endif // HAS_CES_PART
 #include "iremote_object.h"
-#include "mock_app_account_manager_service.h"
 
 using namespace testing::ext;
 using namespace OHOS;
@@ -81,8 +80,8 @@ constexpr std::int32_t DELAY_FOR_PACKAGE_REMOVED = 3;
 constexpr std::int32_t DELAY_FOR_MESSAGE = 1000;
 constexpr std::int32_t WAIT_FOR_ONE_CASE = 1000;
 std::shared_ptr<AppAccountControlManager> g_controlManagerPtr = AppAccountControlManager::GetInstance();
-std::shared_ptr<MockAppAccountManagerService> g_accountManagerService =
-    std::make_shared<MockAppAccountManagerService>();
+std::shared_ptr<AppAccountManagerService> g_accountManagerService =
+    std::make_shared<AppAccountManagerService>();
 }  // namespace
 
 class AppAccountManagerServiceModuleTest : public testing::Test {
@@ -91,8 +90,26 @@ public:
     static void TearDownTestCase(void);
     void SetUp(void) override;
     void TearDown(void) override;
-    void DeleteKvStore(void);
+    void ClearDataStorage(); 
 };
+
+void AppAccountManagerServiceModuleTest::ClearDataStorage()
+{
+    auto dataStoragePtr = g_controlManagerPtr->GetDataStorage(UID);
+    std::map<std::string, std::shared_ptr<IAccountInfo>> accounts;
+    ErrCode result = dataStoragePtr->LoadAllData(accounts);
+    GTEST_LOG_(INFO) << "LoadAllData result!" << result;
+    if (!accounts.empty()) {
+        GTEST_LOG_(INFO) << "LoadAllData accounts.size =" << accounts.size();
+        for (auto accountPtr : accounts) {
+            GTEST_LOG_(INFO) << "RemoveValueFromKvStore result: " << result;
+            result = dataStoragePtr->RemoveValueFromKvStore(accountPtr.first);
+            GTEST_LOG_(INFO) << "AccountInfo truely key: " << accountPtr.first << "remove result:" << result;
+        }
+    }
+    result = dataStoragePtr->LoadAllData(accounts);
+    GTEST_LOG_(INFO) << "LoadAllData end accounts.size =" << accounts.size();
+}
 
 void AppAccountManagerServiceModuleTest::SetUpTestCase(void)
 {
@@ -103,31 +120,22 @@ void AppAccountManagerServiceModuleTest::TearDownTestCase(void)
 {
     GTEST_LOG_(INFO) << "TearDownTestCase enter";
     std::this_thread::sleep_for(std::chrono::milliseconds(DELAY_FOR_MESSAGE));
+    auto dataStoragePtr = g_controlManagerPtr->GetDataStorage(UID);
+    ASSERT_NE(dataStoragePtr, nullptr);
+
+    ErrCode result = dataStoragePtr->DeleteKvStore();
+    ASSERT_EQ(result, ERR_OK);
     GTEST_LOG_(INFO) << "TearDownTestCase exit";
 }
 
 void AppAccountManagerServiceModuleTest::SetUp(void)
 {
     std::this_thread::sleep_for(std::chrono::milliseconds(WAIT_FOR_ONE_CASE));
+    ClearDataStorage();
 }
 
 void AppAccountManagerServiceModuleTest::TearDown(void)
 {}
-
-void AppAccountManagerServiceModuleTest::DeleteKvStore(void)
-{
-    auto dataStoragePtr = g_controlManagerPtr->GetDataStorage(UID);
-    ASSERT_NE(dataStoragePtr, nullptr);
-
-    ErrCode result = dataStoragePtr->DeleteKvStore();
-    ASSERT_EQ(result, ERR_OK);
-
-    dataStoragePtr = g_controlManagerPtr->GetDataStorage(UID, true);
-    ASSERT_NE(dataStoragePtr, nullptr);
-
-    result = dataStoragePtr->DeleteKvStore();
-    ASSERT_EQ(result, ERR_OK);
-}
 
 /**
  * @tc.name: AppAccountManagerService_AddAccount_0100
@@ -620,7 +628,7 @@ HWTEST_F(AppAccountManagerServiceModuleTest, AppAccountManagerService_GetAssocia
 
     std::string value;
     result = g_accountManagerService->GetAssociatedData(STRING_NAME, STRING_KEY, value);
-    EXPECT_EQ(result, ERR_APPACCOUNT_SERVICE_GET_ASSOCIATED_DATA);
+    EXPECT_EQ(result, ERR_APPACCOUNT_SERVICE_ASSOCIATED_DATA_KEY_NOT_EXIST);
     EXPECT_EQ(value, STRING_EMPTY);
 
     result = g_accountManagerService->DeleteAccount(STRING_NAME);
@@ -894,7 +902,7 @@ HWTEST_F(AppAccountManagerServiceModuleTest, AppAccountManagerService_SetAccount
 
     ErrCode result = g_accountManagerService->SetAccountCredential(STRING_NAME,
         STRING_CREDENTIAL_TYPE, STRING_CREDENTIAL);
-    EXPECT_EQ(result, ERR_APPACCOUNT_SERVICE_GET_ACCOUNT_INFO_BY_ID);
+    EXPECT_EQ(result, ERR_APPACCOUNT_SERVICE_ACCOUNT_NOT_EXIST);
 }
 
 /**
@@ -1697,7 +1705,6 @@ HWTEST_F(AppAccountManagerServiceModuleTest, AppAccountManagerService_GetAllAcce
 HWTEST_F(AppAccountManagerServiceModuleTest, AppAccountManagerService_OnPackageRemoved_0100, TestSize.Level1)
 {
     ACCOUNT_LOGI("AppAccountManagerService_OnPackageRemoved_0100");
-    DeleteKvStore();
     auto dataStoragePtr = g_controlManagerPtr->GetDataStorage(UID);
     ASSERT_NE(dataStoragePtr, nullptr);
 
