@@ -34,6 +34,8 @@ ohos_shared_library("distributedaccount") {
     "-Wshadow",
   ]
 
+  configs = [ "${account_coverage_config_path}:coverage_flags" ]
+
   sources = [ "src/napi_distributed_account.cpp" ]
 
   defines = [

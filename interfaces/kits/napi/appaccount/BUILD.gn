@@ -41,7 +41,10 @@ config("appaccount_kit_config") {
 
 ohos_shared_library("appaccount") {
   include_dirs = []
-  configs = [ ":appaccount_kit_config" ]
+  configs = [
+    ":appaccount_kit_config",
+    "${account_coverage_config_path}:coverage_flags",
+  ]
 
   public_configs = [ ":appaccount_kit_config" ]
   sources = [

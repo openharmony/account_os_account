@@ -43,13 +43,17 @@ ohos_shared_library("libaccountkits") {
     "src/ohos_account_kits_impl.cpp",
   ]
 
-  configs = [ ":accountkits_config" ]
   cflags = [ "-pipe" ]
   cflags_cc = [
     "-Wdate-time",
     "-Wformat=2",
     "-Wfloat-equal",
     "-Wshadow",
+  ]
+
+  configs = [
+    ":accountkits_config",
+    "${account_coverage_config_path}:coverage_flags",
   ]
 
   public_configs = [ ":public_account_config" ]

@@ -19,7 +19,8 @@
     "features": [
       "os_account_enable_app_account = true",
       "os_account_enable_os_account = true",
-      "os_account_multiple_active_accounts"
+      "os_account_multiple_active_accounts = false",
+      "os_account_test_case_coverage_feature = false"
     ],
     "hisysevent_config": [
       "//base/account/os_account/hisysevent.yaml"

@@ -44,7 +44,10 @@ ohos_shared_library("os_account_innerkits") {
     "LOG_DOMAIN = 0xD001B00",
   ]
 
-  configs = [ ":osaccountinterface_config" ]
+  configs = [
+    ":osaccountinterface_config",
+    "${account_coverage_config_path}:coverage_flags",
+  ]
   public_configs = [ ":osaccountinterface_config" ]
 
   deps = [
