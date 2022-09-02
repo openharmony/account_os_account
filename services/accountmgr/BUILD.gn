@@ -49,12 +49,15 @@ config("accountmgr_config") {
     "//third_party/mbedtls/include",
     "//commonlibrary/c_utils/base/include",
     "//utils/system/safwk/native/include",
-    "//foundation/storage/storage_manager/interfaces/innerkits/storage_manager/native",
-    "//foundation/filemanagement/storage_service/services/storage_manager/include/ipc",
-    "//foundation/storage/storage_manager/services/storage_manager/include/ipc",
   ]
 
-  cflags_cc = [ "-fexceptions" ]
+  if (has_storage_service_part) {
+    include_dirs += [
+      "//foundation/storage/storage_manager/interfaces/innerkits/storage_manager/native",
+      "//foundation/filemanagement/storage_service/services/storage_manager/include/ipc",
+      "//foundation/storage/storage_manager/services/storage_manager/include/ipc",
+    ]
+  }
 }
 
 config("account_iam_config") {
@@ -210,6 +213,8 @@ ohos_shared_library("accountmgr") {
   }
 
   public_configs = [ ":accountmgr_public_config" ]
+
+  use_exceptions = true
 
   deps = [
     "${common_path}:libaccount_common",
