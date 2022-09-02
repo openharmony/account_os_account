@@ -85,7 +85,7 @@ if (!defined(global_parts_info) ||
     defined(global_parts_info.filemanagement_storage_service)) {
   has_storage_service_part = true
 } else {
-  has_storage_service_part = true
+  has_storage_service_part = false
 }
 
 declare_args() {

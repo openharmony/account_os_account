@@ -27,7 +27,6 @@ config("os_account_core_config") {
 
   cflags += [ "-pipe" ]
   cflags_cc = [
-    "-fexceptions",
     "-Wdate-time",
     "-Wformat=2",
     "-Wfloat-equal",
@@ -74,6 +73,8 @@ ohos_shared_library("os_account_core") {
   ]
 
   public_configs = [ ":os_account_core_public_config" ]
+
+  use_exceptions = true
 
   deps = [
     "${common_path}:libaccount_common",
