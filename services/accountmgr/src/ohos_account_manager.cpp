@@ -75,11 +75,11 @@ std::string GenerateOhosUdidWithSha256(const std::string &name, const std::strin
     unsigned char hash[HASH_LENGTH] = { 0 };
     mbedtls_sha256_context context;
     mbedtls_sha256_init(&context);
-    mbedtls_sha256_starts_ret(&context, 0);
+    mbedtls_sha256_starts(&context, 0);
 
     std::string plainStr = uid;
-    mbedtls_sha256_update_ret(&context, (const unsigned char*)plainStr.c_str(), plainStr.length());
-    mbedtls_sha256_finish_ret(&context, hash);
+    mbedtls_sha256_update(&context, (const unsigned char*)plainStr.c_str(), plainStr.length());
+    mbedtls_sha256_finish(&context, hash);
     mbedtls_sha256_free(&context);
 
     std::stringstream ss;
