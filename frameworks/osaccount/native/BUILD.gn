@@ -28,7 +28,6 @@ config("osaccountinterface_config") {
     cflags += [ "-DBINDER_IPC_32BIT" ]
   }
   cflags += [ "-pipe" ]
-  cflags_cc = [ "-fexceptions" ]
 }
 
 ohos_shared_library("os_account_innerkits") {
@@ -49,6 +48,7 @@ ohos_shared_library("os_account_innerkits") {
     "${account_coverage_config_path}:coverage_flags",
   ]
   public_configs = [ ":osaccountinterface_config" ]
+  use_exceptions = true
 
   deps = [
     "${common_path}:libaccount_common",
