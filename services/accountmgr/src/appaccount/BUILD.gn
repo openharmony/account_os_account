@@ -32,7 +32,6 @@ config("app_account_service_core_config") {
 
   cflags = [ "-pipe" ]
   cflags_cc = [
-    "-fexceptions",
     "-Wdate-time",
     "-Wformat=2",
     "-Wfloat-equal",

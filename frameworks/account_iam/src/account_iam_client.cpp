@@ -322,7 +322,9 @@ ErrCode AccountIAMClient::GetAccountIAMProxy()
         return ERR_ACCOUNT_COMMON_CREATE_DEATH_RECIPIENT;
     }
     if (!proxy_->AsObject()->AddDeathRecipient(deathRecipient_)) {
+        ACCOUNT_LOGD("failed to add account iam death recipient");
         proxy_ = nullptr;
+        return ERR_ACCOUNT_COMMON_ADD_DEATH_RECIPIENT;
     }
     return ERR_OK;
 }
