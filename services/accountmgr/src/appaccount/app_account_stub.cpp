@@ -838,7 +838,7 @@ ErrCode AppAccountStub::ProcSetAuthenticatorProperties(MessageParcel &data, Mess
 {
     ACCOUNT_LOGD("enter");
     std::string owner = data.ReadString();
-    RETURN_IF_STRING_IS_EMPTY_OR_OVERSIZE(owner, Constants::OWNER_MAX_SIZE,  "owner is empyt or oversize");
+    RETURN_IF_STRING_IS_EMPTY_OR_OVERSIZE(owner, Constants::OWNER_MAX_SIZE,  "owner is empty or oversize");
     std::shared_ptr<SetPropertiesOptions> options(data.ReadParcelable<SetPropertiesOptions>());
     sptr<IRemoteObject> callback = data.ReadRemoteObject();
     ErrCode result = ERR_OK;
