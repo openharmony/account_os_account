@@ -151,7 +151,7 @@ std::shared_ptr<OsAccountControlFileManager> g_osAccountControlFileManager =
 std::shared_ptr<AccountFileOperator> g_accountFileOperator = std::make_shared<AccountFileOperator>();
 const std::int32_t MAIN_ACCOUNT_ID = 100;
 const std::int32_t WAIT_A_MOMENT = 3000;
-const std::uint32_t MAX_WAIT_FOR_READY_CNT = 100;
+const std::uint32_t MAX_WAIT_FOR_READY_CNT = 10;
 }  // namespace
 
 class OsAccountManagerServiceModuleTest : public testing::Test {

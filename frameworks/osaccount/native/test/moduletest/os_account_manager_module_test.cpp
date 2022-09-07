@@ -25,7 +25,6 @@
 #include "os_account_manager.h"
 #define private public
 #include "account_file_operator.h"
-#include "os_account_control_file_manager.h"
 #undef private
 #include "os_account_constants.h"
 #include "parameter.h"
@@ -39,13 +38,14 @@ using namespace OHOS::AccountSA;
 namespace {
 const std::string STRING_EMPTY = "";
 const std::string STRING_NAME = "name";
-const std::string STRING_TEST_NAME = "test";
+const std::string STRING_TEST_NAME = "test_account_name";
+const std::string STRING_TEST_NAME_TWO = "test_account_name_2";
 const std::int32_t ERROR_LOCAL_ID = -1;
 const std::int32_t WAIT_FOR_EXIT = 1000;
 const std::int64_t INVALID_SERIAL_NUM = 123;
 const std::int32_t WAIT_A_MOMENT = 3000;
 const std::int32_t MAIN_ACCOUNT_ID = 100;
-const std::uint32_t MAX_WAIT_FOR_READY_CNT = 100;
+const std::uint32_t MAX_WAIT_FOR_READY_CNT = 10;
 const uid_t ACCOUNT_UID = 3058;
 const gid_t ACCOUNT_GID = 3058;
 
@@ -54,6 +54,13 @@ const std::vector<std::string> CONSTANTS_VECTOR {
     "constraint.screen.timeout.set",
     "constraint.share.into.profile"
 };
+
+const std::vector<std::string> CONSTANTS_VECTOR_TEST {
+    "constraint.private.dns.set",
+};
+const std::string CONSTRAINT_PRIVATE_DNS_SET = "constraint.private.dns.set";
+const std::string CONSTANT_WIFI = "constraint.wifi";
+
 const std::string CONSTANT_PRINT = "constraint.print";
 const std::string STRING_NAME_OUT_OF_RANGE =
     "name_out_of_range_"
