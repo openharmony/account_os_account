@@ -145,7 +145,7 @@ ErrCode AccountIAMMgrStub::ReadUserIdAndAuthType(MessageParcel &data, int32_t &u
 
 ErrCode AccountIAMMgrStub::AddOrUpdateCredential(MessageParcel &data, MessageParcel &reply, bool isAdd)
 {
-    ACCOUNT_LOGD("isAddCredentail: %{public}d", isAdd);
+    ACCOUNT_LOGD("isAddCredential: %{public}d", isAdd);
     int32_t userId;
     int32_t authType;
     ErrCode ret = ReadUserIdAndAuthType(data, userId, authType);
