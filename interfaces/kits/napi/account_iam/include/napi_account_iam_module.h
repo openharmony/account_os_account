@@ -23,5 +23,5 @@ namespace OHOS {
 namespace AccountJsKit {
 napi_value AccountIAMInit(napi_env env, napi_value exports);
 }  // namespace AccountJsKit
-}  // namesapce OHOS
+}  // namespace OHOS
 #endif  // OS_ACCOUNT_INTERFACES_KITS_NAPI_IAM_INCLUDE_NAPI_IAM_MODULE_H
