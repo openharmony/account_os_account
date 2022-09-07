@@ -19,7 +19,7 @@
 #define private public
 #include "app_account.h"
 #include "app_account_control_manager.h"
-#include "mock_app_account_manager_service.h"
+#include "app_account_manager_service.h"
 #undef private
 #include "app_account_subscriber.h"
 #include "datetime_ex.h"
@@ -45,9 +45,9 @@ constexpr std::size_t SIZE_ONE = 1;
 constexpr std::int32_t WAIT_FOR_EXIT = 1000;
 std::int32_t g_counter = 0;
 constexpr std::int32_t COUNTER_MAX = 2;
-std::shared_ptr<AppAccountControlManager> g_controlManagerPtr = std::make_shared<AppAccountControlManager>();
-std::shared_ptr<MockAppAccountManagerService> g_appAccountManagerServicePtr =
-    std::make_shared<MockAppAccountManagerService>();
+std::shared_ptr<AppAccountControlManager> g_controlManagerPtr = AppAccountControlManager::GetInstance();
+std::shared_ptr<AppAccountManagerService> g_appAccountManagerServicePtr =
+    std::make_shared<AppAccountManagerService>();
 }  // namespace
 
 class AppAccountManagerServiceSubscribeModuleTest : public testing::Test {
@@ -67,6 +67,11 @@ void AppAccountManagerServiceSubscribeModuleTest::TearDownTestCase(void)
 {
     std::this_thread::sleep_for(std::chrono::milliseconds(WAIT_FOR_EXIT));
     GTEST_LOG_(INFO) << "TearDownTestCase";
+    auto dataStoragePtr = g_controlManagerPtr->GetDataStorage(UID);
+    ASSERT_NE(dataStoragePtr, nullptr);
+
+    ErrCode result = dataStoragePtr->DeleteKvStore();
+    ASSERT_EQ(result, ERR_OK);
 }
 
 void AppAccountManagerServiceSubscribeModuleTest::SetUp(void)

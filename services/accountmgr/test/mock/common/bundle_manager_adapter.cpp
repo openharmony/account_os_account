@@ -23,11 +23,11 @@ const std::string STRING_OWNER = "com.example.owner";
 }  // namespace
 
 std::shared_ptr<BundleManagerAdapter> BundleManagerAdapter::instance_ = nullptr;
-std::mutex BundleManagerAdapter::instanceMutex_;
+std::mutex BundleManagerAdapter::mockInstanceMutex_;
 
 std::shared_ptr<BundleManagerAdapter> BundleManagerAdapter::GetInstance()
 {
-    std::lock_guard<std::mutex> lock(instanceMutex_);
+    std::lock_guard<std::mutex> lock(mockInstanceMutex_);
     if (instance_ == nullptr) {
         instance_ = std::make_shared<BundleManagerAdapter>();
     }
@@ -64,6 +64,13 @@ bool BundleManagerAdapter::GetBundleInfo(const std::string &bundleName, const Ap
 
 bool BundleManagerAdapter::QueryAbilityInfos(const AAFwk::Want &want, int32_t flags, int32_t userId,
     std::vector<AppExecFwk::AbilityInfo> &abilityInfos)
+{
+    ACCOUNT_LOGI("mock enter, userId = %{public}d", userId);
+    return false;
+}
+
+bool BundleManagerAdapter::QueryExtensionAbilityInfos(const AAFwk::Want &want, const int32_t &flag,
+    const int32_t &userId, std::vector<AppExecFwk::ExtensionAbilityInfo> &extensionInfos)
 {
     ACCOUNT_LOGI("mock enter, userId = %{public}d", userId);
     return false;
