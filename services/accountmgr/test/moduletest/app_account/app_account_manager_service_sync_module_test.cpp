@@ -46,9 +46,6 @@ constexpr std::int32_t WAIT_FOR_KVSTORE = 5000;
 
 constexpr std::size_t SIZE_ZERO = 0;
 constexpr std::size_t SIZE_ONE = 1;
-std::shared_ptr<AppAccountControlManager> g_controlManagerPtr = AppAccountControlManager::GetInstance();
-std::shared_ptr<AppAccountManagerService> g_appAccountManagerServicePtr =
-    std::make_shared<AppAccountManagerService>();
 }  // namespace
 
 class AppAccountManagerServiceSyncModuleTest : public testing::Test {
@@ -58,6 +55,9 @@ public:
     void SetUp(void) override;
     void TearDown(void) override;
     void ClearDataStorage(std::shared_ptr<AppAccountDataStorage> &dataStoragePtr);
+    std::shared_ptr<AppAccountManagerService>
+        appAccountManagerServicePtr_ = std::make_shared<AppAccountManagerService>();
+    std::shared_ptr<AppAccountControlManager> controlManagerPtr_ = AppAccountControlManager::GetInstance();
 };
 
 void AppAccountManagerServiceSyncModuleTest::SetUpTestCase(void)
@@ -65,27 +65,17 @@ void AppAccountManagerServiceSyncModuleTest::SetUpTestCase(void)
 
 void AppAccountManagerServiceSyncModuleTest::TearDownTestCase(void)
 {
-    auto dataStoragePtr = g_controlManagerPtr->GetDataStorage(UID);
-    ASSERT_NE(dataStoragePtr, nullptr);
-
-    ErrCode result = dataStoragePtr->DeleteKvStore();
-    ASSERT_EQ(result, ERR_OK);
-
-    dataStoragePtr = g_controlManagerPtr->GetDataStorage(UID, true);
-    ASSERT_NE(dataStoragePtr, nullptr);
-
-    result = dataStoragePtr->DeleteKvStore();
-    ASSERT_EQ(result, ERR_OK);
-    std::this_thread::sleep_for(std::chrono::milliseconds(WAIT_FOR_EXIT));
     GTEST_LOG_(INFO) << "TearDownTestCase!";
+    DelayedSingleton<AppAccountControlManager>::DestroyInstance();
+    std::this_thread::sleep_for(std::chrono::milliseconds(WAIT_FOR_EXIT));
 }
 
 void AppAccountManagerServiceSyncModuleTest::SetUp(void)
 {
     GTEST_LOG_(INFO) << "SetUp enter!";
-    auto dataStoragePtr = g_controlManagerPtr->GetDataStorage(UID);
+    auto dataStoragePtr = controlManagerPtr_->GetDataStorage(UID);
     ClearDataStorage(dataStoragePtr);
-    dataStoragePtr = g_controlManagerPtr->GetDataStorage(UID, true);
+    dataStoragePtr = controlManagerPtr_->GetDataStorage(UID, true);
     ClearDataStorage(dataStoragePtr);
     GTEST_LOG_(INFO) << "SetUp exit!";
 }
@@ -120,10 +110,10 @@ HWTEST_F(AppAccountManagerServiceSyncModuleTest, AppAccountManagerServiceSync_Ad
 {
     ACCOUNT_LOGI("AppAccountManagerServiceSync_AddAccount_0100");
 
-    ErrCode result = g_appAccountManagerServicePtr->AddAccount(STRING_NAME, STRING_EXTRA_INFO);
+    ErrCode result = appAccountManagerServicePtr_->AddAccount(STRING_NAME, STRING_EXTRA_INFO);
     EXPECT_EQ(result, ERR_OK);
     std::this_thread::sleep_for(std::chrono::milliseconds(WAIT_FOR_KVSTORE));
-    auto dataStoragePtr = g_controlManagerPtr->GetDataStorage(UID);
+    auto dataStoragePtr = controlManagerPtr_->GetDataStorage(UID);
     ASSERT_NE(dataStoragePtr, nullptr);
 
     std::map<std::string, std::shared_ptr<IAccountInfo>> accounts;
@@ -141,7 +131,7 @@ HWTEST_F(AppAccountManagerServiceSyncModuleTest, AppAccountManagerServiceSync_Ad
     EXPECT_EQ(result, ERR_OK);
     EXPECT_EQ(name, STRING_NAME);
 
-    result = g_appAccountManagerServicePtr->DeleteAccount(STRING_NAME);
+    result = appAccountManagerServicePtr_->DeleteAccount(STRING_NAME);
     EXPECT_EQ(result, ERR_OK);
 }
 
@@ -155,16 +145,16 @@ HWTEST_F(AppAccountManagerServiceSyncModuleTest, AppAccountManagerServiceSync_Ad
 {
     ACCOUNT_LOGI("AppAccountManagerServiceSync_AddAccount_0200");
 
-    ErrCode result = g_appAccountManagerServicePtr->AddAccount(STRING_NAME, STRING_EXTRA_INFO);
+    ErrCode result = appAccountManagerServicePtr_->AddAccount(STRING_NAME, STRING_EXTRA_INFO);
     EXPECT_EQ(result, ERR_OK);
 
-    result = g_appAccountManagerServicePtr->SetAppAccountSyncEnable(STRING_NAME, SYNC_ENABLE_TRUE);
+    result = appAccountManagerServicePtr_->SetAppAccountSyncEnable(STRING_NAME, SYNC_ENABLE_TRUE);
     EXPECT_EQ(result, ERR_OK);
 
     std::this_thread::sleep_for(std::chrono::milliseconds(WAIT_FOR_KVSTORE));
 
     {
-        auto dataStoragePtr = g_controlManagerPtr->GetDataStorage(UID);
+        auto dataStoragePtr = controlManagerPtr_->GetDataStorage(UID);
         ASSERT_NE(dataStoragePtr, nullptr);
 
         std::map<std::string, std::shared_ptr<IAccountInfo>> accounts;
@@ -182,7 +172,7 @@ HWTEST_F(AppAccountManagerServiceSyncModuleTest, AppAccountManagerServiceSync_Ad
         EXPECT_EQ(name, STRING_NAME);
     }
     {
-        auto dataStoragePtr = g_controlManagerPtr->GetDataStorage(UID, true);
+        auto dataStoragePtr = controlManagerPtr_->GetDataStorage(UID, true);
         ASSERT_NE(dataStoragePtr, nullptr);
 
         std::map<std::string, std::shared_ptr<IAccountInfo>> accounts;
@@ -200,7 +190,7 @@ HWTEST_F(AppAccountManagerServiceSyncModuleTest, AppAccountManagerServiceSync_Ad
         EXPECT_EQ(name, STRING_NAME);
     }
 
-    result = g_appAccountManagerServicePtr->DeleteAccount(STRING_NAME);
+    result = appAccountManagerServicePtr_->DeleteAccount(STRING_NAME);
     EXPECT_EQ(result, ERR_OK);
 }
 
@@ -214,19 +204,19 @@ HWTEST_F(AppAccountManagerServiceSyncModuleTest, AppAccountManagerServiceSync_De
 {
     ACCOUNT_LOGI("AppAccountManagerServiceSync_DeleteAccount_0100");
 
-    ErrCode result = g_appAccountManagerServicePtr->AddAccount(STRING_NAME, STRING_EXTRA_INFO);
+    ErrCode result = appAccountManagerServicePtr_->AddAccount(STRING_NAME, STRING_EXTRA_INFO);
     EXPECT_EQ(result, ERR_OK);
 
-    result = g_appAccountManagerServicePtr->SetAppAccountSyncEnable(STRING_NAME, SYNC_ENABLE_TRUE);
+    result = appAccountManagerServicePtr_->SetAppAccountSyncEnable(STRING_NAME, SYNC_ENABLE_TRUE);
     EXPECT_EQ(result, ERR_OK);
 
     std::this_thread::sleep_for(std::chrono::milliseconds(WAIT_FOR_KVSTORE));
 
-    result = g_appAccountManagerServicePtr->DeleteAccount(STRING_NAME);
+    result = appAccountManagerServicePtr_->DeleteAccount(STRING_NAME);
     EXPECT_EQ(result, ERR_OK);
 
     {
-        auto dataStoragePtr = g_controlManagerPtr->GetDataStorage(UID);
+        auto dataStoragePtr = controlManagerPtr_->GetDataStorage(UID);
         ASSERT_NE(dataStoragePtr, nullptr);
 
         std::map<std::string, std::shared_ptr<IAccountInfo>> accounts;
@@ -235,7 +225,7 @@ HWTEST_F(AppAccountManagerServiceSyncModuleTest, AppAccountManagerServiceSync_De
         EXPECT_EQ(accounts.size(), SIZE_ZERO);
     }
     {
-        auto dataStoragePtr = g_controlManagerPtr->GetDataStorage(UID, true);
+        auto dataStoragePtr = controlManagerPtr_->GetDataStorage(UID, true);
         ASSERT_NE(dataStoragePtr, nullptr);
 
         std::map<std::string, std::shared_ptr<IAccountInfo>> accounts;
@@ -255,23 +245,23 @@ HWTEST_F(AppAccountManagerServiceSyncModuleTest, AppAccountManagerServiceSync_De
 {
     ACCOUNT_LOGI("AppAccountManagerServiceSync_DeleteAccount_0200");
 
-    ErrCode result = g_appAccountManagerServicePtr->AddAccount(STRING_NAME, STRING_EXTRA_INFO);
+    ErrCode result = appAccountManagerServicePtr_->AddAccount(STRING_NAME, STRING_EXTRA_INFO);
     EXPECT_EQ(result, ERR_OK);
 
-    result = g_appAccountManagerServicePtr->SetAppAccountSyncEnable(STRING_NAME, SYNC_ENABLE_TRUE);
-    EXPECT_EQ(result, ERR_OK);
-
-    std::this_thread::sleep_for(std::chrono::milliseconds(WAIT_FOR_KVSTORE));
-
-    result = g_appAccountManagerServicePtr->SetAppAccountSyncEnable(STRING_NAME, SYNC_ENABLE_FALSE);
+    result = appAccountManagerServicePtr_->SetAppAccountSyncEnable(STRING_NAME, SYNC_ENABLE_TRUE);
     EXPECT_EQ(result, ERR_OK);
 
     std::this_thread::sleep_for(std::chrono::milliseconds(WAIT_FOR_KVSTORE));
 
-    result = g_appAccountManagerServicePtr->DeleteAccount(STRING_NAME);
+    result = appAccountManagerServicePtr_->SetAppAccountSyncEnable(STRING_NAME, SYNC_ENABLE_FALSE);
+    EXPECT_EQ(result, ERR_OK);
+
+    std::this_thread::sleep_for(std::chrono::milliseconds(WAIT_FOR_KVSTORE));
+
+    result = appAccountManagerServicePtr_->DeleteAccount(STRING_NAME);
     EXPECT_EQ(result, ERR_OK);
     {
-        auto dataStoragePtr = g_controlManagerPtr->GetDataStorage(UID);
+        auto dataStoragePtr = controlManagerPtr_->GetDataStorage(UID);
         ASSERT_NE(dataStoragePtr, nullptr);
 
         std::map<std::string, std::shared_ptr<IAccountInfo>> accounts;
@@ -292,19 +282,19 @@ HWTEST_F(
 {
     ACCOUNT_LOGI("AppAccountManagerServiceSync_SetAccountExtraInfo_0100");
 
-    ErrCode result = g_appAccountManagerServicePtr->AddAccount(STRING_NAME, STRING_EXTRA_INFO);
+    ErrCode result = appAccountManagerServicePtr_->AddAccount(STRING_NAME, STRING_EXTRA_INFO);
     EXPECT_EQ(result, ERR_OK);
 
-    result = g_appAccountManagerServicePtr->SetAppAccountSyncEnable(STRING_NAME, SYNC_ENABLE_TRUE);
+    result = appAccountManagerServicePtr_->SetAppAccountSyncEnable(STRING_NAME, SYNC_ENABLE_TRUE);
     EXPECT_EQ(result, ERR_OK);
 
     std::this_thread::sleep_for(std::chrono::milliseconds(WAIT_FOR_KVSTORE));
 
-    result = g_appAccountManagerServicePtr->SetAccountExtraInfo(STRING_NAME, STRING_EXTRA_INFO);
+    result = appAccountManagerServicePtr_->SetAccountExtraInfo(STRING_NAME, STRING_EXTRA_INFO);
     EXPECT_EQ(result, ERR_OK);
 
     {
-        auto dataStoragePtr = g_controlManagerPtr->GetDataStorage(UID);
+        auto dataStoragePtr = controlManagerPtr_->GetDataStorage(UID);
         ASSERT_NE(dataStoragePtr, nullptr);
 
         std::map<std::string, std::shared_ptr<IAccountInfo>> accounts;
@@ -325,7 +315,7 @@ HWTEST_F(
         EXPECT_EQ(extraInfo, STRING_EXTRA_INFO);
     }
     {
-        auto dataStoragePtr = g_controlManagerPtr->GetDataStorage(UID, true);
+        auto dataStoragePtr = controlManagerPtr_->GetDataStorage(UID, true);
         ASSERT_NE(dataStoragePtr, nullptr);
 
         std::map<std::string, std::shared_ptr<IAccountInfo>> accounts;
@@ -346,7 +336,7 @@ HWTEST_F(
         EXPECT_EQ(extraInfo, STRING_EXTRA_INFO);
     }
 
-    result = g_appAccountManagerServicePtr->DeleteAccount(STRING_NAME);
+    result = appAccountManagerServicePtr_->DeleteAccount(STRING_NAME);
     EXPECT_EQ(result, ERR_OK);
 }
 
@@ -361,27 +351,27 @@ HWTEST_F(
 {
     ACCOUNT_LOGI("AppAccountManagerServiceSync_SetAccountExtraInfo_0200");
 
-    ErrCode result = g_appAccountManagerServicePtr->AddAccount(STRING_NAME, STRING_EXTRA_INFO);
+    ErrCode result = appAccountManagerServicePtr_->AddAccount(STRING_NAME, STRING_EXTRA_INFO);
     ASSERT_EQ(result, ERR_OK);
 
-    result = g_appAccountManagerServicePtr->SetAppAccountSyncEnable(STRING_NAME, SYNC_ENABLE_TRUE);
+    result = appAccountManagerServicePtr_->SetAppAccountSyncEnable(STRING_NAME, SYNC_ENABLE_TRUE);
     EXPECT_EQ(result, ERR_OK);
 
     std::this_thread::sleep_for(std::chrono::milliseconds(WAIT_FOR_KVSTORE));
 
-    result = g_appAccountManagerServicePtr->SetAccountExtraInfo(STRING_NAME, STRING_EXTRA_INFO);
+    result = appAccountManagerServicePtr_->SetAccountExtraInfo(STRING_NAME, STRING_EXTRA_INFO);
     EXPECT_EQ(result, ERR_OK);
 
-    result = g_appAccountManagerServicePtr->SetAppAccountSyncEnable(STRING_NAME, SYNC_ENABLE_FALSE);
+    result = appAccountManagerServicePtr_->SetAppAccountSyncEnable(STRING_NAME, SYNC_ENABLE_FALSE);
     EXPECT_EQ(result, ERR_OK);
 
     std::this_thread::sleep_for(std::chrono::milliseconds(WAIT_FOR_KVSTORE));
 
-    result = g_appAccountManagerServicePtr->SetAccountExtraInfo(STRING_NAME, STRING_EXTRA_INFO_TWO);
+    result = appAccountManagerServicePtr_->SetAccountExtraInfo(STRING_NAME, STRING_EXTRA_INFO_TWO);
     EXPECT_EQ(result, ERR_OK);
 
     {
-        auto dataStoragePtr = g_controlManagerPtr->GetDataStorage(UID);
+        auto dataStoragePtr = controlManagerPtr_->GetDataStorage(UID);
         ASSERT_NE(dataStoragePtr, nullptr);
 
         std::map<std::string, std::shared_ptr<IAccountInfo>> accounts;
@@ -405,7 +395,7 @@ HWTEST_F(
         EXPECT_EQ(extraInfo, STRING_EXTRA_INFO_TWO);
     }
     {
-        auto dataStoragePtr = g_controlManagerPtr->GetDataStorage(UID, true);
+        auto dataStoragePtr = controlManagerPtr_->GetDataStorage(UID, true);
         ASSERT_NE(dataStoragePtr, nullptr);
 
         std::map<std::string, std::shared_ptr<IAccountInfo>> accounts;
@@ -426,7 +416,7 @@ HWTEST_F(
         EXPECT_EQ(extraInfo, STRING_EXTRA_INFO);
     }
 
-    result = g_appAccountManagerServicePtr->DeleteAccount(STRING_NAME);
+    result = appAccountManagerServicePtr_->DeleteAccount(STRING_NAME);
     EXPECT_EQ(result, ERR_OK);
 }
 
@@ -441,32 +431,32 @@ HWTEST_F(
 {
     ACCOUNT_LOGI("AppAccountManagerServiceSync_SetAccountExtraInfo_0300");
 
-    ErrCode result = g_appAccountManagerServicePtr->AddAccount(STRING_NAME, STRING_EXTRA_INFO);
+    ErrCode result = appAccountManagerServicePtr_->AddAccount(STRING_NAME, STRING_EXTRA_INFO);
     ASSERT_EQ(result, ERR_OK);
 
-    result = g_appAccountManagerServicePtr->SetAppAccountSyncEnable(STRING_NAME, SYNC_ENABLE_TRUE);
+    result = appAccountManagerServicePtr_->SetAppAccountSyncEnable(STRING_NAME, SYNC_ENABLE_TRUE);
     EXPECT_EQ(result, ERR_OK);
 
     std::this_thread::sleep_for(std::chrono::milliseconds(WAIT_FOR_KVSTORE));
 
-    result = g_appAccountManagerServicePtr->SetAccountExtraInfo(STRING_NAME, STRING_EXTRA_INFO);
+    result = appAccountManagerServicePtr_->SetAccountExtraInfo(STRING_NAME, STRING_EXTRA_INFO);
     EXPECT_EQ(result, ERR_OK);
 
-    result = g_appAccountManagerServicePtr->SetAppAccountSyncEnable(STRING_NAME, SYNC_ENABLE_FALSE);
+    result = appAccountManagerServicePtr_->SetAppAccountSyncEnable(STRING_NAME, SYNC_ENABLE_FALSE);
     EXPECT_EQ(result, ERR_OK);
 
     std::this_thread::sleep_for(std::chrono::milliseconds(WAIT_FOR_KVSTORE));
 
-    result = g_appAccountManagerServicePtr->SetAccountExtraInfo(STRING_NAME, STRING_EXTRA_INFO_TWO);
+    result = appAccountManagerServicePtr_->SetAccountExtraInfo(STRING_NAME, STRING_EXTRA_INFO_TWO);
     EXPECT_EQ(result, ERR_OK);
 
-    result = g_appAccountManagerServicePtr->SetAppAccountSyncEnable(STRING_NAME, SYNC_ENABLE_TRUE);
+    result = appAccountManagerServicePtr_->SetAppAccountSyncEnable(STRING_NAME, SYNC_ENABLE_TRUE);
     EXPECT_EQ(result, ERR_OK);
 
     std::this_thread::sleep_for(std::chrono::milliseconds(WAIT_FOR_KVSTORE));
 
     {
-        auto dataStoragePtr = g_controlManagerPtr->GetDataStorage(UID);
+        auto dataStoragePtr = controlManagerPtr_->GetDataStorage(UID);
         ASSERT_NE(dataStoragePtr, nullptr);
 
         std::map<std::string, std::shared_ptr<IAccountInfo>> accounts;
@@ -486,7 +476,7 @@ HWTEST_F(
         EXPECT_EQ(extraInfo, STRING_EXTRA_INFO_TWO);
     }
     {
-        auto dataStoragePtr = g_controlManagerPtr->GetDataStorage(UID, true);
+        auto dataStoragePtr = controlManagerPtr_->GetDataStorage(UID, true);
         ASSERT_NE(dataStoragePtr, nullptr);
 
         std::map<std::string, std::shared_ptr<IAccountInfo>> accounts;
@@ -506,7 +496,7 @@ HWTEST_F(
         EXPECT_EQ(extraInfo, STRING_EXTRA_INFO_TWO);
     }
 
-    result = g_appAccountManagerServicePtr->DeleteAccount(STRING_NAME);
+    result = appAccountManagerServicePtr_->DeleteAccount(STRING_NAME);
     EXPECT_EQ(result, ERR_OK);
 }
 
@@ -520,19 +510,19 @@ HWTEST_F(AppAccountManagerServiceSyncModuleTest, AppAccountManagerServiceSync_En
 {
     ACCOUNT_LOGI("AppAccountManagerServiceSync_EnableAppAccess_0100");
 
-    ErrCode result = g_appAccountManagerServicePtr->AddAccount(STRING_NAME, STRING_EXTRA_INFO);
+    ErrCode result = appAccountManagerServicePtr_->AddAccount(STRING_NAME, STRING_EXTRA_INFO);
     EXPECT_EQ(result, ERR_OK);
 
-    result = g_appAccountManagerServicePtr->SetAppAccountSyncEnable(STRING_NAME, SYNC_ENABLE_TRUE);
+    result = appAccountManagerServicePtr_->SetAppAccountSyncEnable(STRING_NAME, SYNC_ENABLE_TRUE);
     EXPECT_EQ(result, ERR_OK);
 
     std::this_thread::sleep_for(std::chrono::milliseconds(WAIT_FOR_KVSTORE));
 
-    result = g_appAccountManagerServicePtr->EnableAppAccess(STRING_NAME, STRING_BUNDLE_NAME);
+    result = appAccountManagerServicePtr_->EnableAppAccess(STRING_NAME, STRING_BUNDLE_NAME);
     EXPECT_EQ(result, ERR_OK);
 
     {
-        auto dataStoragePtr = g_controlManagerPtr->GetDataStorage(UID);
+        auto dataStoragePtr = controlManagerPtr_->GetDataStorage(UID);
         ASSERT_NE(dataStoragePtr, nullptr);
 
         std::string authorizedAccounts;
@@ -551,7 +541,7 @@ HWTEST_F(AppAccountManagerServiceSyncModuleTest, AppAccountManagerServiceSync_En
         EXPECT_EQ(*accountPtr, STRING_OWNER + HYPHEN + APP_INDEX + HYPHEN + STRING_NAME);
     }
     {
-        auto dataStoragePtr = g_controlManagerPtr->GetDataStorage(UID, true);
+        auto dataStoragePtr = controlManagerPtr_->GetDataStorage(UID, true);
         ASSERT_NE(dataStoragePtr, nullptr);
 
         std::string authorizedAccounts;
@@ -570,7 +560,7 @@ HWTEST_F(AppAccountManagerServiceSyncModuleTest, AppAccountManagerServiceSync_En
         EXPECT_EQ(*accountPtr, STRING_OWNER + HYPHEN + APP_INDEX + HYPHEN + STRING_NAME);
     }
 
-    result = g_appAccountManagerServicePtr->DeleteAccount(STRING_NAME);
+    result = appAccountManagerServicePtr_->DeleteAccount(STRING_NAME);
     EXPECT_EQ(result, ERR_OK);
 }
 
@@ -584,22 +574,22 @@ HWTEST_F(AppAccountManagerServiceSyncModuleTest, AppAccountManagerServiceSync_En
 {
     ACCOUNT_LOGI("AppAccountManagerServiceSync_EnableAppAccess_0200");
 
-    ErrCode result = g_appAccountManagerServicePtr->AddAccount(STRING_NAME, STRING_EXTRA_INFO);
+    ErrCode result = appAccountManagerServicePtr_->AddAccount(STRING_NAME, STRING_EXTRA_INFO);
     EXPECT_EQ(result, ERR_OK);
 
-    result = g_appAccountManagerServicePtr->SetAppAccountSyncEnable(STRING_NAME, SYNC_ENABLE_TRUE);
+    result = appAccountManagerServicePtr_->SetAppAccountSyncEnable(STRING_NAME, SYNC_ENABLE_TRUE);
     EXPECT_EQ(result, ERR_OK);
 
     std::this_thread::sleep_for(std::chrono::milliseconds(WAIT_FOR_KVSTORE));
 
-    result = g_appAccountManagerServicePtr->EnableAppAccess(STRING_NAME, STRING_BUNDLE_NAME);
+    result = appAccountManagerServicePtr_->EnableAppAccess(STRING_NAME, STRING_BUNDLE_NAME);
     EXPECT_EQ(result, ERR_OK);
 
-    result = g_appAccountManagerServicePtr->EnableAppAccess(STRING_NAME, STRING_BUNDLE_NAME);
+    result = appAccountManagerServicePtr_->EnableAppAccess(STRING_NAME, STRING_BUNDLE_NAME);
     EXPECT_EQ(result, ERR_APPACCOUNT_SERVICE_ENABLE_APP_ACCESS_ALREADY_EXISTS);
 
     {
-        auto dataStoragePtr = g_controlManagerPtr->GetDataStorage(UID);
+        auto dataStoragePtr = controlManagerPtr_->GetDataStorage(UID);
         ASSERT_NE(dataStoragePtr, nullptr);
 
         std::string authorizedAccounts;
@@ -619,7 +609,7 @@ HWTEST_F(AppAccountManagerServiceSyncModuleTest, AppAccountManagerServiceSync_En
         EXPECT_EQ(*accountPtr, STRING_OWNER + HYPHEN + APP_INDEX + HYPHEN + STRING_NAME);
     }
     {
-        auto dataStoragePtr = g_controlManagerPtr->GetDataStorage(UID, true);
+        auto dataStoragePtr = controlManagerPtr_->GetDataStorage(UID, true);
         ASSERT_NE(dataStoragePtr, nullptr);
 
         std::string authorizedAccounts;
@@ -639,7 +629,7 @@ HWTEST_F(AppAccountManagerServiceSyncModuleTest, AppAccountManagerServiceSync_En
         EXPECT_EQ(*accountPtr, STRING_OWNER + HYPHEN + APP_INDEX + HYPHEN + STRING_NAME);
     }
 
-    result = g_appAccountManagerServicePtr->DeleteAccount(STRING_NAME);
+    result = appAccountManagerServicePtr_->DeleteAccount(STRING_NAME);
     EXPECT_EQ(result, ERR_OK);
 }
 
@@ -653,22 +643,22 @@ HWTEST_F(AppAccountManagerServiceSyncModuleTest, AppAccountManagerServiceSync_Di
 {
     ACCOUNT_LOGI("AppAccountManagerServiceSync_DisableAppAccess_0100");
 
-    ErrCode result = g_appAccountManagerServicePtr->AddAccount(STRING_NAME, STRING_EXTRA_INFO);
+    ErrCode result = appAccountManagerServicePtr_->AddAccount(STRING_NAME, STRING_EXTRA_INFO);
     EXPECT_EQ(result, ERR_OK);
 
-    result = g_appAccountManagerServicePtr->SetAppAccountSyncEnable(STRING_NAME, SYNC_ENABLE_TRUE);
+    result = appAccountManagerServicePtr_->SetAppAccountSyncEnable(STRING_NAME, SYNC_ENABLE_TRUE);
     EXPECT_EQ(result, ERR_OK);
 
     std::this_thread::sleep_for(std::chrono::milliseconds(WAIT_FOR_KVSTORE));
 
-    result = g_appAccountManagerServicePtr->EnableAppAccess(STRING_NAME, STRING_BUNDLE_NAME);
+    result = appAccountManagerServicePtr_->EnableAppAccess(STRING_NAME, STRING_BUNDLE_NAME);
     EXPECT_EQ(result, ERR_OK);
 
-    result = g_appAccountManagerServicePtr->DisableAppAccess(STRING_NAME, STRING_BUNDLE_NAME);
+    result = appAccountManagerServicePtr_->DisableAppAccess(STRING_NAME, STRING_BUNDLE_NAME);
     EXPECT_EQ(result, ERR_OK);
 
     {
-        auto dataStoragePtr = g_controlManagerPtr->GetDataStorage(UID);
+        auto dataStoragePtr = controlManagerPtr_->GetDataStorage(UID);
         ASSERT_NE(dataStoragePtr, nullptr);
 
         std::string authorizedAccounts;
@@ -683,7 +673,7 @@ HWTEST_F(AppAccountManagerServiceSyncModuleTest, AppAccountManagerServiceSync_Di
         EXPECT_EQ(accessibleAccounts.size(), SIZE_ZERO);
     }
     {
-        auto dataStoragePtr = g_controlManagerPtr->GetDataStorage(UID, true);
+        auto dataStoragePtr = controlManagerPtr_->GetDataStorage(UID, true);
         ASSERT_NE(dataStoragePtr, nullptr);
 
         std::string authorizedAccounts;
@@ -698,6 +688,6 @@ HWTEST_F(AppAccountManagerServiceSyncModuleTest, AppAccountManagerServiceSync_Di
         EXPECT_EQ(accessibleAccounts.size(), SIZE_ZERO);
     }
 
-    result = g_appAccountManagerServicePtr->DeleteAccount(STRING_NAME);
+    result = appAccountManagerServicePtr_->DeleteAccount(STRING_NAME);
     EXPECT_EQ(result, ERR_OK);
 }
