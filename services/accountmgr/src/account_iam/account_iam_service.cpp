@@ -17,9 +17,9 @@
 
 #include "account_log_wrapper.h"
 #include "iaccount_iam_callback.h"
+#include "iinner_os_account_manager.h"
 #include "inner_account_iam_manager.h"
 #include "ipc_skeleton.h"
-#include "os_account_manager.h"
 
 namespace OHOS {
 namespace AccountSA {
@@ -31,22 +31,16 @@ AccountIAMService::~AccountIAMService()
 
 void AccountIAMService::OpenSession(int32_t userId, std::vector<uint8_t> &challenge)
 {
-    if (userId == 0) {
-        int32_t callingUid = IPCSkeleton::GetCallingUid();
-        if (OsAccountManager::GetOsAccountLocalIdFromUid(callingUid, userId) != ERR_OK) {
-            return;
-        }
+    if ((userId == 0) && (!GetCurrentUserId(userId))) {
+        return;
     }
     InnerAccountIAMManager::GetInstance().OpenSession(userId, challenge);
 }
 
 void AccountIAMService::CloseSession(int32_t userId)
 {
-    if (userId == 0) {
-        int32_t callingUid = IPCSkeleton::GetCallingUid();
-        if (OsAccountManager::GetOsAccountLocalIdFromUid(callingUid, userId) != ERR_OK) {
-            return;
-        }
+    if ((userId == 0) && (!GetCurrentUserId(userId))) {
+        return;
     }
     InnerAccountIAMManager::GetInstance().CloseSession(userId);
 }
@@ -54,11 +48,8 @@ void AccountIAMService::CloseSession(int32_t userId)
 void AccountIAMService::AddCredential(
     int32_t userId, const CredentialParameters &credInfo, const sptr<IIDMCallback> &callback)
 {
-    if (userId == 0) {
-        int32_t callingUid = IPCSkeleton::GetCallingUid();
-        if (OsAccountManager::GetOsAccountLocalIdFromUid(callingUid, userId) != ERR_OK) {
-            return;
-        }
+    if ((userId == 0) && (!GetCurrentUserId(userId))) {
+        return;
     }
     InnerAccountIAMManager::GetInstance().AddCredential(userId, credInfo, callback);
 }
@@ -66,22 +57,16 @@ void AccountIAMService::AddCredential(
 void AccountIAMService::UpdateCredential(int32_t userId, const CredentialParameters &credInfo,
     const sptr<IIDMCallback> &callback)
 {
-    if (userId == 0) {
-        int32_t callingUid = IPCSkeleton::GetCallingUid();
-        if (OsAccountManager::GetOsAccountLocalIdFromUid(callingUid, userId) != ERR_OK) {
-            return;
-        }
+    if ((userId == 0) && (!GetCurrentUserId(userId))) {
+        return;
     }
     InnerAccountIAMManager::GetInstance().UpdateCredential(userId, credInfo, callback);
 }
 
 int32_t AccountIAMService::Cancel(int32_t userId, uint64_t challenge)
 {
-    if (userId == 0) {
-        int32_t callingUid = IPCSkeleton::GetCallingUid();
-        if (OsAccountManager::GetOsAccountLocalIdFromUid(callingUid, userId) != ERR_OK) {
-            return ResultCode::FAIL;
-        }
+    if ((userId == 0) && (!GetCurrentUserId(userId))) {
+        return ResultCode::FAIL;
     }
     return InnerAccountIAMManager::GetInstance().Cancel(userId, challenge);
 }
@@ -89,11 +74,8 @@ int32_t AccountIAMService::Cancel(int32_t userId, uint64_t challenge)
 void AccountIAMService::DelCred(
     int32_t userId, uint64_t credentialId, const std::vector<uint8_t> &authToken, const sptr<IIDMCallback> &callback)
 {
-    if (userId == 0) {
-        int32_t callingUid = IPCSkeleton::GetCallingUid();
-        if (OsAccountManager::GetOsAccountLocalIdFromUid(callingUid, userId) != ERR_OK) {
-            return;
-        }
+    if ((userId == 0) && (!GetCurrentUserId(userId))) {
+        return;
     }
     InnerAccountIAMManager::GetInstance().DelCred(userId, credentialId, authToken, callback);
 }
@@ -101,11 +83,8 @@ void AccountIAMService::DelCred(
 void AccountIAMService::DelUser(
     int32_t userId, const std::vector<uint8_t> &authToken, const sptr<IIDMCallback> &callback)
 {
-    if (userId == 0) {
-        int32_t callingUid = IPCSkeleton::GetCallingUid();
-        if (OsAccountManager::GetOsAccountLocalIdFromUid(callingUid, userId) != ERR_OK) {
-            return;
-        }
+    if ((userId == 0) && (!GetCurrentUserId(userId))) {
+        return;
     }
     InnerAccountIAMManager::GetInstance().DelUser(userId, authToken, callback);
 }
@@ -113,11 +92,8 @@ void AccountIAMService::DelUser(
 void AccountIAMService::GetCredentialInfo(
     int32_t userId, AuthType authType, const sptr<IGetCredInfoCallback> &callback)
 {
-    if (userId == 0) {
-        int32_t callingUid = IPCSkeleton::GetCallingUid();
-        if (OsAccountManager::GetOsAccountLocalIdFromUid(callingUid, userId) != ERR_OK) {
-            return;
-        }
+    if ((userId == 0) && (!GetCurrentUserId(userId))) {
+        return;
     }
     InnerAccountIAMManager::GetInstance().GetCredentialInfo(userId, authType, callback);
 }
@@ -125,11 +101,8 @@ void AccountIAMService::GetCredentialInfo(
 uint64_t AccountIAMService::AuthUser(int32_t userId, const std::vector<uint8_t> &challenge, AuthType authType,
     AuthTrustLevel authTrustLevel, const sptr<IIDMCallback> &callback)
 {
-    if (userId == 0) {
-        int32_t callingUid = IPCSkeleton::GetCallingUid();
-        if (OsAccountManager::GetOsAccountLocalIdFromUid(callingUid, userId) != ERR_OK) {
-            return ResultCode::FAIL;
-        }
+    if ((userId == 0) && (!GetCurrentUserId(userId))) {
+        return ResultCode::FAIL;
     }
     return InnerAccountIAMManager::GetInstance().AuthUser(
         userId, challenge, authType, authTrustLevel, callback);
@@ -148,11 +121,8 @@ int32_t AccountIAMService::GetAvailableStatus(AuthType authType, AuthTrustLevel 
 void AccountIAMService::GetProperty(
     int32_t userId, const GetPropertyRequest &request, const sptr<IGetSetPropCallback> &callback)
 {
-    if (userId == 0) {
-        int32_t callingUid = IPCSkeleton::GetCallingUid();
-        if (OsAccountManager::GetOsAccountLocalIdFromUid(callingUid, userId) != ERR_OK) {
-            return;
-        }
+    if ((userId == 0) && (!GetCurrentUserId(userId))) {
+        return;
     }
     return InnerAccountIAMManager::GetInstance().GetProperty(userId, request, callback);
 }
@@ -160,11 +130,8 @@ void AccountIAMService::GetProperty(
 void AccountIAMService::SetProperty(
     int32_t userId, const SetPropertyRequest &request, const sptr<IGetSetPropCallback> &callback)
 {
-    if (userId == 0) {
-        int32_t callingUid = IPCSkeleton::GetCallingUid();
-        if (OsAccountManager::GetOsAccountLocalIdFromUid(callingUid, userId) != ERR_OK) {
-            return;
-        }
+    if ((userId == 0) && (!GetCurrentUserId(userId))) {
+        return;
     }
     InnerAccountIAMManager::GetInstance().SetProperty(userId, request, callback);
 }
@@ -172,6 +139,18 @@ void AccountIAMService::SetProperty(
 IAMState AccountIAMService::GetAccountState(int32_t userId)
 {
     return InnerAccountIAMManager::GetInstance().GetState(userId);
+}
+
+bool AccountIAMService::GetCurrentUserId(int32_t &userId)
+{
+    std::vector<int32_t> userIds;
+    ErrCode errCode = IInnerOsAccountManager::GetInstance()->QueryActiveOsAccountIds(userIds);
+    if ((errCode != ERR_OK) || userIds.empty()) {
+        ACCOUNT_LOGE("fail to get activated os account ids");
+        return false;
+    }
+    userId = userIds[0];
+    return true;
 }
 }  // namespace AccountSA
 }  // namespace OHOS
