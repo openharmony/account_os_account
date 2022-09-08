@@ -24,18 +24,19 @@ namespace OHOS {
 namespace AccountSA {
 class IDMCallbackService : public IDMCallbackStub {
 public:
-    explicit IDMCallbackService(std::shared_ptr<IDMCallback> callback);
+    explicit IDMCallbackService(int32_t userId, const std::shared_ptr<IDMCallback> &callback);
     void OnAcquireInfo(int32_t module, uint32_t acquireInfo, const Attributes &extraInfo) override;
     void OnResult(int32_t result, const Attributes &extraInfo) override;
 
 private:
+    int32_t userId_;
     std::shared_ptr<IDMCallback> callback_;
     DISALLOW_COPY_AND_MOVE(IDMCallbackService);
 };
 
 class GetCredInfoCallbackService : public GetCredInfoCallbackStub {
 public:
-    explicit GetCredInfoCallbackService(std::shared_ptr<GetCredInfoCallback> callback);
+    explicit GetCredInfoCallbackService(const std::shared_ptr<GetCredInfoCallback> &callback);
     void OnCredentialInfo(const std::vector<CredentialInfo> &infoList) override;
 
 private:
@@ -45,7 +46,7 @@ private:
 
 class GetSetPropCallbackService : public GetSetPropCallbackStub {
 public:
-    explicit GetSetPropCallbackService(std::shared_ptr<GetSetPropCallback> callback);
+    explicit GetSetPropCallbackService(const std::shared_ptr<GetSetPropCallback> &callback);
     void OnResult(int32_t result, const Attributes &extraInfo) override;
 
 private:

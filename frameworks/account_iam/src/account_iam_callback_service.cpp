@@ -21,7 +21,8 @@
 
 namespace OHOS {
 namespace AccountSA {
-IDMCallbackService::IDMCallbackService(std::shared_ptr<IDMCallback> callback) : callback_(callback)
+IDMCallbackService::IDMCallbackService(int32_t userId, const std::shared_ptr<IDMCallback> &callback)
+    : userId_(userId), callback_(callback)
 {}
 
 void IDMCallbackService::OnAcquireInfo(int32_t module, uint32_t acquireInfo, const Attributes &extraInfo)
@@ -40,9 +41,10 @@ void IDMCallbackService::OnResult(int32_t result, const Attributes &extraInfo)
         return;
     }
     callback_->OnResult(result, extraInfo);
+    AccountIAMClient::GetInstance().ClearCredential(userId_);
 }
 
-GetCredInfoCallbackService::GetCredInfoCallbackService(std::shared_ptr<GetCredInfoCallback> callback)
+GetCredInfoCallbackService::GetCredInfoCallbackService(const std::shared_ptr<GetCredInfoCallback> &callback)
     : callback_(callback)
 {}
 
@@ -55,7 +57,7 @@ void GetCredInfoCallbackService::OnCredentialInfo(const std::vector<CredentialIn
     callback_->OnCredentialInfo(infoList);
 }
 
-GetSetPropCallbackService::GetSetPropCallbackService(std::shared_ptr<GetSetPropCallback> callback)
+GetSetPropCallbackService::GetSetPropCallbackService(const std::shared_ptr<GetSetPropCallback> &callback)
     : callback_(callback)
 {}
 
@@ -77,8 +79,7 @@ IAMInputerData::~IAMInputerData()
 
 void IAMInputerData::OnSetData(int32_t authSubType, std::vector<uint8_t> data)
 {
-    AccountIAMClient::GetInstance().SetCredential(userId_, authSubType, data);
-    AccountIAMClient::GetInstance().SetCredential(userId_, 0, data);
+    AccountIAMClient::GetInstance().SetCredential(userId_, data);
     innerInputerData_->OnSetData(authSubType, data);
 }
 
@@ -103,7 +104,6 @@ IAMInputer::~IAMInputer()
 
 void IAMInputer::OnGetData(int32_t authSubType, std::shared_ptr<IInputerData> inputerData)
 {
-    ACCOUNT_LOGD("enter");
     if (inputerData_ == nullptr) {
         ACCOUNT_LOGD("inputerData_ is nullptr");
         return;
@@ -117,12 +117,12 @@ void IAMInputer::OnGetData(int32_t authSubType, std::shared_ptr<IInputerData> in
         innerInputer_->OnGetData(authSubType, inputerData_);
         return;
     }
-    CredentialPair credPair;
-    AccountIAMClient::GetInstance().GetCredential(userId_, authSubType, credPair);
+    CredentialItem credItem;
+    AccountIAMClient::GetInstance().GetCredential(userId_, credItem);
     if (state == ROLL_BACK_UPDATE_CRED) {
-        inputerData->OnSetData(authSubType, credPair.oldCredential);
+        inputerData->OnSetData(authSubType, credItem.oldCredential);
     } else {
-        inputerData->OnSetData(authSubType, credPair.credential);
+        inputerData->OnSetData(authSubType, credItem.credential);
     }
 }
 
