@@ -50,6 +50,9 @@ public:
     IAMState GetAccountState(int32_t userId) override;
 
 private:
+    bool GetCurrentUserId(int32_t &userId);
+
+private:
     DISALLOW_COPY_AND_MOVE(AccountIAMService);
 };
 }  // namespace AccountSA
