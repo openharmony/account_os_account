@@ -33,7 +33,6 @@ const std::string STRING_EXTRA_INFO_TWO = "extra_info_two";
 const std::string STRING_BUNDLE_NAME = "com.example.third_party";
 const std::string STRING_ACCOUNT_ID = "0";
 const std::string STRING_STORE_ID = STRING_ACCOUNT_ID;
-constexpr std::int32_t UID = 10000;
 constexpr std::size_t SIZE_ZERO = 0;
 constexpr std::size_t SIZE_ONE = 1;
 }  // namespace
@@ -52,12 +51,8 @@ void AppAccountDataStorageTest::SetUpTestCase(void)
 
 void AppAccountDataStorageTest::TearDownTestCase(void)
 {
-    GTEST_LOG_(INFO) << "TearDownTestCase enter";
-    auto dataStoragePtr = AppAccountControlManager::GetInstance()->GetDataStorage(UID);
-    ASSERT_NE(dataStoragePtr, nullptr);
-
-    ErrCode result = dataStoragePtr->DeleteKvStore();
-    ASSERT_EQ(result, ERR_OK);
+    GTEST_LOG_(INFO) << "TearDownTestCase!";
+    DelayedSingleton<AppAccountControlManager>::DestroyInstance();
 }
 
 void AppAccountDataStorageTest::SetUp(void)

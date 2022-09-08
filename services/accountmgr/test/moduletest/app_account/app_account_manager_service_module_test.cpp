@@ -79,9 +79,9 @@ constexpr std::size_t SIZE_TWO = 2;
 constexpr std::int32_t DELAY_FOR_PACKAGE_REMOVED = 3;
 constexpr std::int32_t DELAY_FOR_MESSAGE = 1000;
 constexpr std::int32_t WAIT_FOR_ONE_CASE = 1000;
-std::shared_ptr<AppAccountControlManager> g_controlManagerPtr = AppAccountControlManager::GetInstance();
 std::shared_ptr<AppAccountManagerService> g_accountManagerService =
     std::make_shared<AppAccountManagerService>();
+std::shared_ptr<AppAccountControlManager> g_controlManagerPtr = AppAccountControlManager::GetInstance();
 }  // namespace
 
 class AppAccountManagerServiceModuleTest : public testing::Test {
@@ -90,7 +90,7 @@ public:
     static void TearDownTestCase(void);
     void SetUp(void) override;
     void TearDown(void) override;
-    void ClearDataStorage(); 
+    void ClearDataStorage();
 };
 
 void AppAccountManagerServiceModuleTest::ClearDataStorage()
@@ -119,12 +119,18 @@ void AppAccountManagerServiceModuleTest::SetUpTestCase(void)
 void AppAccountManagerServiceModuleTest::TearDownTestCase(void)
 {
     GTEST_LOG_(INFO) << "TearDownTestCase enter";
-    std::this_thread::sleep_for(std::chrono::milliseconds(DELAY_FOR_MESSAGE));
     auto dataStoragePtr = g_controlManagerPtr->GetDataStorage(UID);
     ASSERT_NE(dataStoragePtr, nullptr);
 
     ErrCode result = dataStoragePtr->DeleteKvStore();
     ASSERT_EQ(result, ERR_OK);
+
+    dataStoragePtr = g_controlManagerPtr->GetDataStorage(UID, true);
+    ASSERT_NE(dataStoragePtr, nullptr);
+
+    result = dataStoragePtr->DeleteKvStore();
+    ASSERT_EQ(result, ERR_OK);
+    DelayedSingleton<AppAccountControlManager>::DestroyInstance();
     GTEST_LOG_(INFO) << "TearDownTestCase exit";
 }
 

@@ -43,7 +43,7 @@ public:
     static void TearDownTestCase(void);
     void SetUp(void) override;
     void TearDown(void) override;
-    std::shared_ptr<AppAccountControlManager> controlManagerPtr_;
+    std::shared_ptr<AppAccountControlManager> controlManagerPtr_ = AppAccountControlManager::GetInstance();
 };
 
 void AppAccountControlManagerModuleTest::SetUpTestCase(void)
@@ -52,11 +52,7 @@ void AppAccountControlManagerModuleTest::SetUpTestCase(void)
 void AppAccountControlManagerModuleTest::TearDownTestCase(void)
 {
     GTEST_LOG_(INFO) << "TearDownTestCase enter";
-    auto dataStoragePtr = AppAccountControlManager::GetInstance()->GetDataStorage(UID);
-    ASSERT_NE(dataStoragePtr, nullptr);
-
-    ErrCode result = dataStoragePtr->DeleteKvStore();
-    ASSERT_EQ(result, ERR_OK);
+    DelayedSingleton<AppAccountControlManager>::DestroyInstance();
 }
 
 void AppAccountControlManagerModuleTest::SetUp(void)
@@ -75,10 +71,9 @@ HWTEST_F(AppAccountControlManagerModuleTest, AppAccountControlManager_AccountMax
 {
     ACCOUNT_LOGI("AppAccountControlManager_AccountMaxSize_0100");
 
-    auto controlManagerPtr = AppAccountControlManager::GetInstance();
-    ASSERT_NE(controlManagerPtr, nullptr);
+    ASSERT_NE(controlManagerPtr_, nullptr);
 
-    EXPECT_EQ(controlManagerPtr->ACCOUNT_MAX_SIZE, ACCOUNT_MAX_SIZE);
+    EXPECT_EQ(controlManagerPtr_->ACCOUNT_MAX_SIZE, ACCOUNT_MAX_SIZE);
 }
 
 /**
@@ -91,8 +86,7 @@ HWTEST_F(AppAccountControlManagerModuleTest, AppAccountControlManager_AccountMax
 {
     ACCOUNT_LOGI("AppAccountControlManager_AccountMaxSize_0200");
 
-    auto controlManagerPtr = AppAccountControlManager::GetInstance();
-    ASSERT_NE(controlManagerPtr, nullptr);
+    ASSERT_NE(controlManagerPtr_, nullptr);
 
     ErrCode result;
     std::string name;
@@ -102,14 +96,14 @@ HWTEST_F(AppAccountControlManagerModuleTest, AppAccountControlManager_AccountMax
         GTEST_LOG_(INFO) << "before AddAccount, index = " << index;
 
         AppAccountInfo appAccountInfo(name, STRING_OWNER);
-        result = controlManagerPtr->AddAccount(name, STRING_EXTRA_INFO, UID, STRING_OWNER, appAccountInfo);
+        result = controlManagerPtr_->AddAccount(name, STRING_EXTRA_INFO, UID, STRING_OWNER, appAccountInfo);
         ASSERT_EQ(result, ERR_OK);
 
         std::this_thread::sleep_for(std::chrono::milliseconds(DELAY_FOR_OPERATION));
     }
 
     AppAccountInfo appAccountInfo(STRING_NAME, STRING_OWNER);
-    result = controlManagerPtr->AddAccount(STRING_NAME, STRING_EXTRA_INFO, UID, STRING_OWNER, appAccountInfo);
+    result = controlManagerPtr_->AddAccount(STRING_NAME, STRING_EXTRA_INFO, UID, STRING_OWNER, appAccountInfo);
     EXPECT_EQ(result, ERR_APPACCOUNT_SERVICE_ACCOUNT_MAX_SIZE);
 
     for (std::size_t index = 0; index < ACCOUNT_MAX_SIZE; index++) {
@@ -118,7 +112,7 @@ HWTEST_F(AppAccountControlManagerModuleTest, AppAccountControlManager_AccountMax
         GTEST_LOG_(INFO) << "before DeleteAccount, index = " << index;
 
         AppAccountInfo appAccountInfo(name, STRING_OWNER);
-        result = controlManagerPtr->DeleteAccount(name, UID, STRING_OWNER, appAccountInfo);
+        result = controlManagerPtr_->DeleteAccount(name, UID, STRING_OWNER, appAccountInfo);
         ASSERT_EQ(result, ERR_OK);
 
         std::this_thread::sleep_for(std::chrono::milliseconds(DELAY_FOR_OPERATION));
