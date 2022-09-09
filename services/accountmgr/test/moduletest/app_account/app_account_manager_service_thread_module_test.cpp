@@ -39,11 +39,6 @@ constexpr std::size_t SIZE_ZERO = 0;
 constexpr std::size_t SIZE_ONE = 1;
 constexpr std::int32_t WAIT_FOR_EXIT = 1000;
 constexpr std::int32_t DELAY_FOR_OPERATION = 3000;
-constexpr std::int32_t UID = 10000;
-std::shared_ptr<AppAccountManagerService> g_appAccountManagerServicePtr =
-    std::make_shared<AppAccountManagerService>();
-std::shared_ptr<OHOS::AppExecFwk::EventHandler> g_handler =
-    std::make_shared<OHOS::AppExecFwk::EventHandler>(OHOS::AppExecFwk::EventRunner::Create());
 }  // namespace
 
 class AppAccountManagerServiceThreadModuleTest : public testing::Test {
@@ -54,6 +49,10 @@ public:
     static void TearDownTestCase(void);
     void SetUp(void) override;
     void TearDown(void) override;
+    std::shared_ptr<AppAccountManagerService>
+        appAccountManagerServicePtr_ = std::make_shared<AppAccountManagerService>();
+    std::shared_ptr<OHOS::AppExecFwk::EventHandler>
+        handler_ = std::make_shared<OHOS::AppExecFwk::EventHandler>(OHOS::AppExecFwk::EventRunner::Create());
 
     void AddAccount(const std::shared_ptr<AppAccountManagerService> &servicePtr);
     void DeleteAccount(const std::shared_ptr<AppAccountManagerService> &servicePtr);
@@ -68,13 +67,9 @@ void AppAccountManagerServiceThreadModuleTest::SetUpTestCase(void)
 
 void AppAccountManagerServiceThreadModuleTest::TearDownTestCase(void)
 {
-    std::this_thread::sleep_for(std::chrono::milliseconds(WAIT_FOR_EXIT));
     GTEST_LOG_(INFO) << "TearDownTestCase enter";
-    auto dataStoragePtr = AppAccountControlManager::GetInstance()->GetDataStorage(UID);
-    ASSERT_NE(dataStoragePtr, nullptr);
-
-    ErrCode result = dataStoragePtr->DeleteKvStore();
-    ASSERT_EQ(result, ERR_OK);
+    DelayedSingleton<AppAccountControlManager>::DestroyInstance();
+    std::this_thread::sleep_for(std::chrono::milliseconds(WAIT_FOR_EXIT));
 }
 
 void AppAccountManagerServiceThreadModuleTest::SetUp(void)
@@ -137,23 +132,23 @@ HWTEST_F(AppAccountManagerServiceThreadModuleTest, AppAccountManagerServiceThrea
     ACCOUNT_LOGI("AppAccountManagerServiceThread_AddAccount_0100");
 
     Callback callbackAdd = std::bind(&AppAccountManagerServiceThreadModuleTest::AddAccount, this,
-        g_appAccountManagerServicePtr);
-    g_handler->PostTask(callbackAdd);
+        appAccountManagerServicePtr_);
+    handler_->PostTask(callbackAdd);
 
     std::this_thread::sleep_for(std::chrono::milliseconds(DELAY_FOR_OPERATION));
 
     std::vector<AppAccountInfo> appAccounts;
-    ErrCode result = g_appAccountManagerServicePtr->GetAllAccounts(STRING_OWNER, appAccounts);
+    ErrCode result = appAccountManagerServicePtr_->GetAllAccounts(STRING_OWNER, appAccounts);
     EXPECT_EQ(result, ERR_OK);
     ASSERT_EQ(appAccounts.size(), SIZE_ONE);
 
     Callback callbackDel = std::bind(&AppAccountManagerServiceThreadModuleTest::DeleteAccount, this,
-        g_appAccountManagerServicePtr);
-    g_handler->PostTask(callbackDel);
+        appAccountManagerServicePtr_);
+    handler_->PostTask(callbackDel);
 
     std::this_thread::sleep_for(std::chrono::milliseconds(DELAY_FOR_OPERATION));
 
-    result = g_appAccountManagerServicePtr->GetAllAccounts(STRING_OWNER, appAccounts);
+    result = appAccountManagerServicePtr_->GetAllAccounts(STRING_OWNER, appAccounts);
     EXPECT_EQ(result, ERR_OK);
     ASSERT_EQ(appAccounts.size(), SIZE_ZERO);
 }
@@ -168,17 +163,17 @@ HWTEST_F(AppAccountManagerServiceThreadModuleTest, AppAccountManagerServiceThrea
 {
     ACCOUNT_LOGI("AppAccountManagerServiceThread_DeleteAccount_0100");
 
-    ErrCode result = g_appAccountManagerServicePtr->AddAccount(STRING_NAME, STRING_EXTRA_INFO);
+    ErrCode result = appAccountManagerServicePtr_->AddAccount(STRING_NAME, STRING_EXTRA_INFO);
     EXPECT_EQ(result, ERR_OK);
 
     Callback callback = std::bind(&AppAccountManagerServiceThreadModuleTest::DeleteAccount, this,
-        g_appAccountManagerServicePtr);
-    g_handler->PostTask(callback);
+        appAccountManagerServicePtr_);
+    handler_->PostTask(callback);
 
     std::this_thread::sleep_for(std::chrono::milliseconds(DELAY_FOR_OPERATION));
 
     std::string extraInfo;
-    result = g_appAccountManagerServicePtr->GetAccountExtraInfo(STRING_NAME, extraInfo);
+    result = appAccountManagerServicePtr_->GetAccountExtraInfo(STRING_NAME, extraInfo);
     EXPECT_EQ(result, ERR_APPACCOUNT_SERVICE_GET_ACCOUNT_INFO_BY_ID);
     EXPECT_EQ(extraInfo, STRING_EMPTY);
 }
@@ -194,36 +189,36 @@ HWTEST_F(
 {
     ACCOUNT_LOGI("AppAccountManagerServiceThread_SetAssociatedData_0100");
 
-    ErrCode result = g_appAccountManagerServicePtr->AddAccount(STRING_NAME, STRING_EXTRA_INFO);
+    ErrCode result = appAccountManagerServicePtr_->AddAccount(STRING_NAME, STRING_EXTRA_INFO);
     EXPECT_EQ(result, ERR_OK);
 
     Callback callbackSetAss = std::bind(&AppAccountManagerServiceThreadModuleTest::SetAssociatedData, this,
-        g_appAccountManagerServicePtr);
-    g_handler->PostTask(callbackSetAss);
+        appAccountManagerServicePtr_);
+    handler_->PostTask(callbackSetAss);
 
     Callback callbackSetTwo = std::bind(&AppAccountManagerServiceThreadModuleTest::SetAssociatedDataTwo, this,
-        g_appAccountManagerServicePtr);
-    g_handler->PostTask(callbackSetTwo);
+        appAccountManagerServicePtr_);
+    handler_->PostTask(callbackSetTwo);
 
     std::this_thread::sleep_for(std::chrono::milliseconds(DELAY_FOR_OPERATION));
 
     std::string value;
-    result = g_appAccountManagerServicePtr->GetAssociatedData(STRING_NAME, STRING_KEY, value);
+    result = appAccountManagerServicePtr_->GetAssociatedData(STRING_NAME, STRING_KEY, value);
     EXPECT_EQ(result, ERR_OK);
     EXPECT_EQ(value, STRING_VALUE);
 
-    result = g_appAccountManagerServicePtr->GetAssociatedData(STRING_NAME, STRING_KEY_TWO, value);
+    result = appAccountManagerServicePtr_->GetAssociatedData(STRING_NAME, STRING_KEY_TWO, value);
     EXPECT_EQ(result, ERR_OK);
     EXPECT_EQ(value, STRING_VALUE_TWO);
 
     Callback callbackDel = std::bind(&AppAccountManagerServiceThreadModuleTest::DeleteAccount, this,
-        g_appAccountManagerServicePtr);
-    g_handler->PostTask(callbackDel);
+        appAccountManagerServicePtr_);
+    handler_->PostTask(callbackDel);
 
     std::this_thread::sleep_for(std::chrono::milliseconds(DELAY_FOR_OPERATION));
 
     std::vector<AppAccountInfo> appAccounts;
-    result = g_appAccountManagerServicePtr->GetAllAccounts(STRING_OWNER, appAccounts);
+    result = appAccountManagerServicePtr_->GetAllAccounts(STRING_OWNER, appAccounts);
     EXPECT_EQ(result, ERR_OK);
     ASSERT_EQ(appAccounts.size(), SIZE_ZERO);
 }
