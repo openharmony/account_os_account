@@ -29,19 +29,20 @@ public:
     void SetUp(void) override;
     void TearDown(void) override;
 
-    std::shared_ptr<AccountPermissionManager> permissionManagerPtr_;
+    std::shared_ptr<AccountPermissionManager>
+        permissionManagerPtr_ = DelayedSingleton<AccountPermissionManager>::GetInstance();
 };
 
 void AccountPermissionManagerModuleTest::SetUpTestCase(void)
 {}
 
 void AccountPermissionManagerModuleTest::TearDownTestCase(void)
-{}
+{
+    DelayedSingleton<AccountPermissionManager>::DestroyInstance();
+}
 
 void AccountPermissionManagerModuleTest::SetUp(void)
-{
-    permissionManagerPtr_ = DelayedSingleton<AccountPermissionManager>::GetInstance();
-}
+{}
 
 void AccountPermissionManagerModuleTest::TearDown(void)
 {}

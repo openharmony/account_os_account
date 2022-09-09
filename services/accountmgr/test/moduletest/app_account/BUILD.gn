@@ -26,16 +26,6 @@ config("app_account_service_config_mock") {
   ]
 }
 
-app_account_mock_sources = [
-  "${app_account_services_path}/test/mock/app_account/accesstoken_kit.cpp",
-  "${app_account_services_path}/test/mock/app_account/mock_app_account_authenticator_manager.cpp",
-  "${app_account_services_path}/test/mock/app_account/mock_app_account_authenticator_session_manager.cpp",
-  "${app_account_services_path}/test/mock/app_account/mock_app_account_control_manager.cpp",
-  "${app_account_services_path}/test/mock/app_account/mock_app_account_subscribe_manager.cpp",
-  "${app_account_services_path}/test/mock/app_account/mock_inner_app_account_manager.cpp",
-  "${app_account_services_path}/test/mock/common/bundle_manager_adapter.cpp",
-]
-
 config("app_account_service_config_unittest") {
   visibility = [ ":*" ]
 
@@ -83,12 +73,8 @@ ohos_moduletest("app_account_control_manager_module_test") {
   module_out_path = module_output_path
 
   sources = [ "app_account_control_manager_module_test.cpp" ]
-  sources += app_account_mock_sources
 
-  configs = [
-    ":app_account_service_config_mock",
-    ":app_account_service_config_unittest",
-  ]
+  configs = [ ":app_account_service_config_unittest" ]
 
   deps = [
     "${app_account_innerkits_native_path}:app_account_innerkits",
@@ -117,8 +103,11 @@ ohos_moduletest("app_account_control_manager_module_test") {
 ohos_moduletest("app_account_manager_service_module_test") {
   module_out_path = module_output_path
   cflags_cc = []
-  sources = [ "app_account_manager_service_module_test.cpp" ]
-  sources += app_account_mock_sources
+  sources = [
+    "${app_account_services_path}/test/mock/app_account/accesstoken_kit.cpp",
+    "${app_account_services_path}/test/mock/common/bundle_manager_adapter.cpp",
+    "app_account_manager_service_module_test.cpp",
+  ]
 
   configs = [
     ":app_account_service_config_mock",
@@ -158,8 +147,11 @@ ohos_moduletest("app_account_manager_service_module_test") {
 ohos_moduletest("app_account_manager_service_subscribe_module_test") {
   module_out_path = module_output_path
   cflags_cc = []
-  sources = [ "app_account_manager_service_subscribe_module_test.cpp" ]
-  sources += app_account_mock_sources
+  sources = [
+    "${app_account_services_path}/test/mock/app_account/accesstoken_kit.cpp",
+    "${app_account_services_path}/test/mock/common/bundle_manager_adapter.cpp",
+    "app_account_manager_service_subscribe_module_test.cpp",
+  ]
 
   configs = [
     ":app_account_service_config_mock",
@@ -199,8 +191,11 @@ ohos_moduletest("app_account_manager_service_subscribe_module_test") {
 ohos_moduletest("app_account_manager_service_sync_module_test") {
   module_out_path = module_output_path
   cflags_cc = []
-  sources = [ "app_account_manager_service_sync_module_test.cpp" ]
-  sources += app_account_mock_sources
+  sources = [
+    "${app_account_services_path}/test/mock/app_account/accesstoken_kit.cpp",
+    "${app_account_services_path}/test/mock/common/bundle_manager_adapter.cpp",
+    "app_account_manager_service_sync_module_test.cpp",
+  ]
 
   configs = [
     ":app_account_service_config_mock",
@@ -240,8 +235,11 @@ ohos_moduletest("app_account_manager_service_sync_module_test") {
 ohos_moduletest("app_account_manager_service_thread_module_test") {
   module_out_path = module_output_path
   cflags_cc = []
-  sources = [ "app_account_manager_service_thread_module_test.cpp" ]
-  sources += app_account_mock_sources
+  sources = [
+    "${app_account_services_path}/test/mock/app_account/accesstoken_kit.cpp",
+    "${app_account_services_path}/test/mock/common/bundle_manager_adapter.cpp",
+    "app_account_manager_service_thread_module_test.cpp",
+  ]
 
   configs = [
     ":app_account_service_config_mock",
