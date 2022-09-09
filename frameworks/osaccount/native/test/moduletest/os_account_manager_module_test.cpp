@@ -45,6 +45,7 @@ const std::int32_t WAIT_FOR_EXIT = 1000;
 const std::int64_t INVALID_SERIAL_NUM = 123;
 const std::int32_t WAIT_A_MOMENT = 3000;
 const std::int32_t MAIN_ACCOUNT_ID = 100;
+const std::int32_t INVALID_ID = 200;
 const std::uint32_t MAX_WAIT_FOR_READY_CNT = 10;
 const uid_t ACCOUNT_UID = 3058;
 const gid_t ACCOUNT_GID = 3058;
@@ -210,9 +211,8 @@ void OsAccountManagerModuleTest::TearDown(void)
  * @tc.name: OsAccountManagerModuleTest001
  * @tc.desc: Test create guest account.
  * @tc.type: FUNC
- * @tc.require: SR000GGV0U
+ * @tc.require: issueI4IU74
  */
-
 HWTEST_F(OsAccountManagerModuleTest, OsAccountManagerModuleTest001, TestSize.Level0)
 {
     ACCOUNT_LOGI("OsAccountManagerModuleTest001");
@@ -229,7 +229,7 @@ HWTEST_F(OsAccountManagerModuleTest, OsAccountManagerModuleTest001, TestSize.Lev
  * @tc.name: OsAccountManagerModuleTest002
  * @tc.desc: Test CreateOsAccount with too long name.
  * @tc.type: FUNC
- * @tc.require: SR000GGVFN
+ * @tc.require: issueI4IU51
  */
 HWTEST_F(OsAccountManagerModuleTest, OsAccountManagerModuleTest002, TestSize.Level1)
 {
@@ -243,7 +243,7 @@ HWTEST_F(OsAccountManagerModuleTest, OsAccountManagerModuleTest002, TestSize.Lev
  * @tc.name: OsAccountManagerModuleTest003
  * @tc.desc: Test CreateOsAccount with empty name.
  * @tc.type: FUNC
- * @tc.require: SR000GGVFN
+ * @tc.require: issueI4IU51
  */
 HWTEST_F(OsAccountManagerModuleTest, OsAccountManagerModuleTest003, TestSize.Level1)
 {
@@ -256,7 +256,7 @@ HWTEST_F(OsAccountManagerModuleTest, OsAccountManagerModuleTest003, TestSize.Lev
  * @tc.name: OsAccountManagerModuleTest004
  * @tc.desc: Test create admin account.
  * @tc.type: FUNC
- * @tc.require: SR000GGVFN
+ * @tc.require: issueI4IU51
  */
 HWTEST_F(OsAccountManagerModuleTest, OsAccountManagerModuleTest004, TestSize.Level1)
 {
@@ -274,7 +274,7 @@ HWTEST_F(OsAccountManagerModuleTest, OsAccountManagerModuleTest004, TestSize.Lev
  * @tc.name: OsAccountManagerModuleTest005
  * @tc.desc: Test create normal account.
  * @tc.type: FUNC
- * @tc.require: SR000GGVFN
+ * @tc.require: issueI4IU51
  */
 HWTEST_F(OsAccountManagerModuleTest, OsAccountManagerModuleTest005, TestSize.Level1)
 {
@@ -292,7 +292,7 @@ HWTEST_F(OsAccountManagerModuleTest, OsAccountManagerModuleTest005, TestSize.Lev
  * @tc.name: OsAccountManagerModuleTest006
  * @tc.desc: Test CreateOsAccount when cannot find account_list.json.
  * @tc.type: FUNC
- * @tc.require: SR000GGVFN
+ * @tc.require: issueI4IU51
  */
 HWTEST_F(OsAccountManagerModuleTest, OsAccountManagerModuleTest006, TestSize.Level1)
 {
@@ -325,7 +325,7 @@ HWTEST_F(OsAccountManagerModuleTest, OsAccountManagerModuleTest006, TestSize.Lev
  * @tc.name: OsAccountManagerModuleTest007
  * @tc.desc: Test RemoveOsAccount with valid data.
  * @tc.type: FUNC
- * @tc.require: SR000GGV0U
+ * @tc.require: issueI4IU74
  */
 HWTEST_F(OsAccountManagerModuleTest, OsAccountManagerModuleTest007, TestSize.Level0)
 {
@@ -341,7 +341,7 @@ HWTEST_F(OsAccountManagerModuleTest, OsAccountManagerModuleTest007, TestSize.Lev
  * @tc.name: OsAccountManagerModuleTest008
  * @tc.desc: Test RemoveOsAccount with cannot remove id.
  * @tc.type: FUNC
- * @tc.require: SR000GGV0U
+ * @tc.require: issueI4IU74
  */
 HWTEST_F(OsAccountManagerModuleTest, OsAccountManagerModuleTest008, TestSize.Level1)
 {
@@ -353,7 +353,7 @@ HWTEST_F(OsAccountManagerModuleTest, OsAccountManagerModuleTest008, TestSize.Lev
  * @tc.name: OsAccountManagerModuleTest009
  * @tc.desc: Test RemoveOsAccount with does not exists id.
  * @tc.type: FUNC
- * @tc.require: SR000GGVFN
+ * @tc.require: issueI4IU51
  */
 HWTEST_F(OsAccountManagerModuleTest, OsAccountManagerModuleTest009, TestSize.Level1)
 {
@@ -365,7 +365,7 @@ HWTEST_F(OsAccountManagerModuleTest, OsAccountManagerModuleTest009, TestSize.Lev
  * @tc.name: OsAccountManagerModuleTest010
  * @tc.desc: Test IsOsAccountExists with valid data.
  * @tc.type: FUNC
- * @tc.require: SR000GGVFN
+ * @tc.require: issueI4IU51
  */
 HWTEST_F(OsAccountManagerModuleTest, OsAccountManagerModuleTest010, TestSize.Level1)
 {
@@ -379,7 +379,7 @@ HWTEST_F(OsAccountManagerModuleTest, OsAccountManagerModuleTest010, TestSize.Lev
  * @tc.name: OsAccountManagerModuleTest011
  * @tc.desc: Test IsOsAccountExists with not exists data.
  * @tc.type: FUNC
- * @tc.require: SR000GGVFN
+ * @tc.require: issueI4IU51
  */
 HWTEST_F(OsAccountManagerModuleTest, OsAccountManagerModuleTest011, TestSize.Level1)
 {
@@ -393,7 +393,7 @@ HWTEST_F(OsAccountManagerModuleTest, OsAccountManagerModuleTest011, TestSize.Lev
  * @tc.name: OsAccountManagerModuleTest012
  * @tc.desc: Test IsOsAccountActived with valid data.
  * @tc.type: FUNC
- * @tc.require: SR000GGVFG
+ * @tc.require: issueI4JBFF
  */
 HWTEST_F(OsAccountManagerModuleTest, OsAccountManagerModuleTest012, TestSize.Level0)
 {
@@ -407,7 +407,7 @@ HWTEST_F(OsAccountManagerModuleTest, OsAccountManagerModuleTest012, TestSize.Lev
  * @tc.name: OsAccountManagerModuleTest013
  * @tc.desc: Test IsOsAccountActived with not active account id.
  * @tc.type: FUNC
- * @tc.require: SR000GGVFG
+ * @tc.require: issueI4JBFF
  */
 HWTEST_F(OsAccountManagerModuleTest, OsAccountManagerModuleTest013, TestSize.Level1)
 {
@@ -424,7 +424,7 @@ HWTEST_F(OsAccountManagerModuleTest, OsAccountManagerModuleTest013, TestSize.Lev
  * @tc.name: OsAccountManagerModuleTest014
  * @tc.desc: Test SetOsAccountConstraints with valid data.
  * @tc.type: FUNC
- * @tc.require: SR000GGVFE
+ * @tc.require: issueI4IU6A
  */
 HWTEST_F(OsAccountManagerModuleTest, OsAccountManagerModuleTest014, TestSize.Level1)
 {
@@ -447,7 +447,7 @@ HWTEST_F(OsAccountManagerModuleTest, OsAccountManagerModuleTest014, TestSize.Lev
  * @tc.name: OsAccountManagerModuleTest015
  * @tc.desc: Test SetOsAccountConstraints with valid data.
  * @tc.type: FUNC
- * @tc.require: SR000GGVFE
+ * @tc.require: issueI4IU6A
  */
 HWTEST_F(OsAccountManagerModuleTest, OsAccountManagerModuleTest015, TestSize.Level1)
 {
@@ -470,7 +470,7 @@ HWTEST_F(OsAccountManagerModuleTest, OsAccountManagerModuleTest015, TestSize.Lev
  * @tc.name: OsAccountManagerModuleTest016
  * @tc.desc: Test IsOsAccountConstraintEnable with valid data.
  * @tc.type: FUNC
- * @tc.require: SR000GGVFE SR000GH18T
+ * @tc.require: issueI4IU6A issueI4RCGG
  */
 HWTEST_F(OsAccountManagerModuleTest, OsAccountManagerModuleTest016, TestSize.Level1)
 {
@@ -492,7 +492,7 @@ HWTEST_F(OsAccountManagerModuleTest, OsAccountManagerModuleTest016, TestSize.Lev
  * @tc.name: OsAccountManagerModuleTest017
  * @tc.desc: Test IsOsAccountConstraintEnable with valid data.
  * @tc.type: FUNC
- * @tc.require: SR000GGVFE SR000GH18T
+ * @tc.require: issueI4IU6A issueI4RCGG
  */
 HWTEST_F(OsAccountManagerModuleTest, OsAccountManagerModuleTest017, TestSize.Level1)
 {
@@ -511,7 +511,7 @@ HWTEST_F(OsAccountManagerModuleTest, OsAccountManagerModuleTest017, TestSize.Lev
  * @tc.name: OsAccountManagerModuleTest018
  * @tc.desc: Test IsMultiOsAccountEnable
  * @tc.type: FUNC
- * @tc.require: SR000GGVFG
+ * @tc.require: issueI4JBFF
  */
 HWTEST_F(OsAccountManagerModuleTest, OsAccountManagerModuleTest018, TestSize.Level1)
 {
@@ -525,7 +525,7 @@ HWTEST_F(OsAccountManagerModuleTest, OsAccountManagerModuleTest018, TestSize.Lev
  * @tc.name: OsAccountManagerModuleTest019
  * @tc.desc: Test IsOsAccountVerified with not verified os account id.
  * @tc.type: FUNC
- * @tc.require: SR000GGVFG
+ * @tc.require: issueI4JBFF
  */
 HWTEST_F(OsAccountManagerModuleTest, OsAccountManagerModuleTest019, TestSize.Level1)
 {
@@ -545,7 +545,7 @@ HWTEST_F(OsAccountManagerModuleTest, OsAccountManagerModuleTest019, TestSize.Lev
  * @tc.name: OsAccountManagerModuleTest020
  * @tc.desc: Test IsOsAccountVerified with does not exists os account id.
  * @tc.type: FUNC
- * @tc.require: SR000GGVFG
+ * @tc.require: issueI4JBFF
  */
 HWTEST_F(OsAccountManagerModuleTest, OsAccountManagerModuleTest020, TestSize.Level1)
 {
@@ -558,7 +558,7 @@ HWTEST_F(OsAccountManagerModuleTest, OsAccountManagerModuleTest020, TestSize.Lev
  * @tc.name: OsAccountManagerModuleTest021
  * @tc.desc: Test IsOsAccountVerified with does not exists os account id.
  * @tc.type: FUNC
- * @tc.require: SR000GGVFG
+ * @tc.require: issueI4JBFF
  */
 HWTEST_F(OsAccountManagerModuleTest, OsAccountManagerModuleTest021, TestSize.Level1)
 {
@@ -571,7 +571,7 @@ HWTEST_F(OsAccountManagerModuleTest, OsAccountManagerModuleTest021, TestSize.Lev
  * @tc.name: OsAccountManagerModuleTest022
  * @tc.desc: Test GetCreatedOsAccountsCount.
  * @tc.type: FUNC
- * @tc.require: SR000GGVFG
+ * @tc.require: issueI4JBFF
  */
 HWTEST_F(OsAccountManagerModuleTest, OsAccountManagerModuleTest022, TestSize.Level1)
 {
@@ -584,7 +584,7 @@ HWTEST_F(OsAccountManagerModuleTest, OsAccountManagerModuleTest022, TestSize.Lev
  * @tc.name: OsAccountManagerModuleTest023
  * @tc.desc: Test GetOsAccountLocalIdFromProcess.
  * @tc.type: FUNC
- * @tc.require: SR000GGVFF
+ * @tc.require: issueI4IU6N
  */
 HWTEST_F(OsAccountManagerModuleTest, OsAccountManagerModuleTest023, TestSize.Level1)
 {
@@ -597,7 +597,7 @@ HWTEST_F(OsAccountManagerModuleTest, OsAccountManagerModuleTest023, TestSize.Lev
  * @tc.name: OsAccountManagerModuleTest024
  * @tc.desc: Test GetOsAccountLocalIdFromUid.
  * @tc.type: FUNC
- * @tc.require: SR000GGVFF
+ * @tc.require: issueI4IU6N
  */
 HWTEST_F(OsAccountManagerModuleTest, OsAccountManagerModuleTest024, TestSize.Level1)
 {
@@ -613,7 +613,7 @@ HWTEST_F(OsAccountManagerModuleTest, OsAccountManagerModuleTest024, TestSize.Lev
  * @tc.name: OsAccountManagerModuleTest025
  * @tc.desc: Test QueryMaxOsAccountNumber.
  * @tc.type: FUNC
- * @tc.require: SR000GGVFG
+ * @tc.require: issueI4JBFF
  */
 HWTEST_F(OsAccountManagerModuleTest, OsAccountManagerModuleTest025, TestSize.Level1)
 {
@@ -626,7 +626,7 @@ HWTEST_F(OsAccountManagerModuleTest, OsAccountManagerModuleTest025, TestSize.Lev
  * @tc.name: OsAccountManagerModuleTest026
  * @tc.desc: Test GetOsAccountAllConstraints with exisit os account id.
  * @tc.type: FUNC
- * @tc.require: SR000GGVFE SR000GH18T
+ * @tc.require: issueI4IU6A issueI4RCGG
  */
 HWTEST_F(OsAccountManagerModuleTest, OsAccountManagerModuleTest026, TestSize.Level1)
 {
@@ -641,7 +641,7 @@ HWTEST_F(OsAccountManagerModuleTest, OsAccountManagerModuleTest026, TestSize.Lev
  * @tc.name: OsAccountManagerModuleTest027
  * @tc.desc: Test GetOsAccountAllConstraints with does not exisit os account id.
  * @tc.type: FUNC
- * @tc.require: SR000GGVFE SR000GH18T
+ * @tc.require: issueI4IU6A issueI4RCGG
  */
 HWTEST_F(OsAccountManagerModuleTest, OsAccountManagerModuleTest027, TestSize.Level1)
 {
@@ -654,7 +654,7 @@ HWTEST_F(OsAccountManagerModuleTest, OsAccountManagerModuleTest027, TestSize.Lev
  * @tc.name: OsAccountManagerModuleTest028
  * @tc.desc: Test QueryAllCreatedOsAccounts.
  * @tc.type: FUNC
- * @tc.require: SR000GH18T
+ * @tc.require: issueI4RCGG
  */
 HWTEST_F(OsAccountManagerModuleTest, OsAccountManagerModuleTest028, TestSize.Level1)
 {
@@ -669,7 +669,7 @@ HWTEST_F(OsAccountManagerModuleTest, OsAccountManagerModuleTest028, TestSize.Lev
  * @tc.name: OsAccountManagerModuleTest029
  * @tc.desc: Test QueryCurrentOsAccount.
  * @tc.type: FUNC
- * @tc.require: SR000GGVFG
+ * @tc.require: issueI4JBFF
  */
 HWTEST_F(OsAccountManagerModuleTest, OsAccountManagerModuleTest029, TestSize.Level1)
 {
@@ -682,7 +682,7 @@ HWTEST_F(OsAccountManagerModuleTest, OsAccountManagerModuleTest029, TestSize.Lev
  * @tc.name: OsAccountManagerModuleTest030
  * @tc.desc: Test QueryOsAccountById with valid data.
  * @tc.type: FUNC
- * @tc.require: SR000GGVFF
+ * @tc.require: issueI4IU6N
  */
 HWTEST_F(OsAccountManagerModuleTest, OsAccountManagerModuleTest030, TestSize.Level0)
 {
@@ -696,7 +696,7 @@ HWTEST_F(OsAccountManagerModuleTest, OsAccountManagerModuleTest030, TestSize.Lev
  * @tc.name: OsAccountManagerModuleTest031
  * @tc.desc: Test QueryOsAccountById with invalid data.
  * @tc.type: FUNC
- * @tc.require: SR000GGVFF
+ * @tc.require: issueI4IU6N
  */
 HWTEST_F(OsAccountManagerModuleTest, OsAccountManagerModuleTest031, TestSize.Level1)
 {
@@ -709,7 +709,7 @@ HWTEST_F(OsAccountManagerModuleTest, OsAccountManagerModuleTest031, TestSize.Lev
  * @tc.name: OsAccountManagerModuleTest032
  * @tc.desc: Test GetOsAccountTypeFromProcess.
  * @tc.type: FUNC
- * @tc.require: SR000GGVFG
+ * @tc.require: issueI4JBFF
  */
 HWTEST_F(OsAccountManagerModuleTest, OsAccountManagerModuleTest032, TestSize.Level1)
 {
@@ -722,7 +722,7 @@ HWTEST_F(OsAccountManagerModuleTest, OsAccountManagerModuleTest032, TestSize.Lev
  * @tc.name: OsAccountManagerModuleTest033
  * @tc.desc: Test SetOsAccountName with valid data.
  * @tc.type: FUNC
- * @tc.require: SR000GGVFF
+ * @tc.require: issueI4IU6N
  */
 HWTEST_F(OsAccountManagerModuleTest, OsAccountManagerModuleTest033, TestSize.Level1)
 {
@@ -740,7 +740,7 @@ HWTEST_F(OsAccountManagerModuleTest, OsAccountManagerModuleTest033, TestSize.Lev
  * @tc.name: OsAccountManagerModuleTest034
  * @tc.desc: Test SetOsAccountName with invalid data.
  * @tc.type: FUNC
- * @tc.require: SR000GGVFF
+ * @tc.require: issueI4IU6N
  */
 HWTEST_F(OsAccountManagerModuleTest, OsAccountManagerModuleTest034, TestSize.Level1)
 {
@@ -755,7 +755,7 @@ HWTEST_F(OsAccountManagerModuleTest, OsAccountManagerModuleTest034, TestSize.Lev
  * @tc.name: OsAccountManagerModuleTest035
  * @tc.desc: Test SetOsAccountName with invalid data.
  * @tc.type: FUNC
- * @tc.require: SR000GGVFF
+ * @tc.require: issueI4IU6N
  */
 HWTEST_F(OsAccountManagerModuleTest, OsAccountManagerModuleTest035, TestSize.Level1)
 {
@@ -770,7 +770,7 @@ HWTEST_F(OsAccountManagerModuleTest, OsAccountManagerModuleTest035, TestSize.Lev
  * @tc.name: OsAccountManagerModuleTest036
  * @tc.desc: Test GetDistributedVirtualDeviceId.
  * @tc.type: FUNC
- * @tc.require: SR000GGVFG
+ * @tc.require: issueI4JBFF
  */
 HWTEST_F(OsAccountManagerModuleTest, OsAccountManagerModuleTest036, TestSize.Level1)
 {
@@ -804,7 +804,7 @@ HWTEST_F(OsAccountManagerModuleTest, OsAccountManagerModuleTest036, TestSize.Lev
  * @tc.name: OsAccountManagerModuleTest037
  * @tc.desc: Test GetOsAccountLocalIdBySerialNumber with valid data.
  * @tc.type: FUNC
- * @tc.require: SR000GGVFF
+ * @tc.require: issueI4IU6N
  */
 HWTEST_F(OsAccountManagerModuleTest, OsAccountManagerModuleTest037, TestSize.Level1)
 {
@@ -819,7 +819,7 @@ HWTEST_F(OsAccountManagerModuleTest, OsAccountManagerModuleTest037, TestSize.Lev
  * @tc.name: OsAccountManagerModuleTest038
  * @tc.desc: Test GetOsAccountLocalIdBySerialNumber with invalid data.
  * @tc.type: FUNC
- * @tc.require: SR000GGVFF
+ * @tc.require: issueI4IU6N
  */
 HWTEST_F(OsAccountManagerModuleTest, OsAccountManagerModuleTest038, TestSize.Level1)
 {
@@ -832,7 +832,7 @@ HWTEST_F(OsAccountManagerModuleTest, OsAccountManagerModuleTest038, TestSize.Lev
  * @tc.name: OsAccountManagerModuleTest039
  * @tc.desc: Test GetSerialNumberByOsAccountLocalId with valid data.
  * @tc.type: FUNC
- * @tc.require: SR000GGVFF
+ * @tc.require: issueI4IU6N
  */
 HWTEST_F(OsAccountManagerModuleTest, OsAccountManagerModuleTest039, TestSize.Level1)
 {
@@ -846,7 +846,7 @@ HWTEST_F(OsAccountManagerModuleTest, OsAccountManagerModuleTest039, TestSize.Lev
  * @tc.name: OsAccountManagerModuleTest040
  * @tc.desc: Test GetSerialNumberByOsAccountLocalId with invalid data.
  * @tc.type: FUNC
- * @tc.require: SR000GGVFF
+ * @tc.require: issueI4IU6N
  */
 HWTEST_F(OsAccountManagerModuleTest, OsAccountManagerModuleTest040, TestSize.Level1)
 {
@@ -859,7 +859,7 @@ HWTEST_F(OsAccountManagerModuleTest, OsAccountManagerModuleTest040, TestSize.Lev
  * @tc.name: OsAccountManagerModuleTest041
  * @tc.desc: Test SetOsAccountProfilePhoto with valid data.
  * @tc.type: FUNC
- * @tc.require: SR000GGVFI
+ * @tc.require: issueI4IU33
  */
 HWTEST_F(OsAccountManagerModuleTest, OsAccountManagerModuleTest041, TestSize.Level1)
 {
@@ -874,7 +874,7 @@ HWTEST_F(OsAccountManagerModuleTest, OsAccountManagerModuleTest041, TestSize.Lev
  * @tc.name: OsAccountManagerModuleTest042
  * @tc.desc: Test SetOsAccountProfilePhoto with invalid data.
  * @tc.type: FUNC
- * @tc.require: SR000GGVFI
+ * @tc.require: issueI4IU33
  */
 HWTEST_F(OsAccountManagerModuleTest, OsAccountManagerModuleTest042, TestSize.Level1)
 {
@@ -890,7 +890,7 @@ HWTEST_F(OsAccountManagerModuleTest, OsAccountManagerModuleTest042, TestSize.Lev
  * @tc.name: OsAccountManagerModuleTest043
  * @tc.desc: Test SetOsAccountProfilePhoto with invalid data.
  * @tc.type: FUNC
- * @tc.require: SR000GGVFI
+ * @tc.require: issueI4IU33
  */
 HWTEST_F(OsAccountManagerModuleTest, OsAccountManagerModuleTest043, TestSize.Level1)
 {
@@ -905,7 +905,7 @@ HWTEST_F(OsAccountManagerModuleTest, OsAccountManagerModuleTest043, TestSize.Lev
  * @tc.name: OsAccountManagerModuleTest044
  * @tc.desc: Test GetOsAccountProfilePhoto with valid data.
  * @tc.type: FUNC
- * @tc.require: SR000GGVFF
+ * @tc.require: issueI4IU6N
  */
 HWTEST_F(OsAccountManagerModuleTest, OsAccountManagerModuleTest044, TestSize.Level1)
 {
@@ -923,7 +923,7 @@ HWTEST_F(OsAccountManagerModuleTest, OsAccountManagerModuleTest044, TestSize.Lev
  * @tc.name: OsAccountManagerModuleTest045
  * @tc.desc: test get default photo.
  * @tc.type: FUNC
- * @tc.require: SR000GGVFF
+ * @tc.require: issueI4IU6N
  */
 HWTEST_F(OsAccountManagerModuleTest, OsAccountManagerModuleTest045, TestSize.Level1)
 {
@@ -939,7 +939,7 @@ HWTEST_F(OsAccountManagerModuleTest, OsAccountManagerModuleTest045, TestSize.Lev
  * @tc.name: OsAccountManagerModuleTest046
  * @tc.desc: Test GetOsAccountProfilePhoto with invalid id.
  * @tc.type: FUNC
- * @tc.require: SR000GGVFF
+ * @tc.require: issueI4IU6N
  */
 HWTEST_F(OsAccountManagerModuleTest, OsAccountManagerModuleTest046, TestSize.Level1)
 {
@@ -952,7 +952,7 @@ HWTEST_F(OsAccountManagerModuleTest, OsAccountManagerModuleTest046, TestSize.Lev
  * @tc.name: OsAccountManagerModuleTest047
  * @tc.desc: Test StartOsAccount with valid id.
  * @tc.type: FUNC
- * @tc.require: SR000GGVFJ
+ * @tc.require: issueI4IU3B
  */
 HWTEST_F(OsAccountManagerModuleTest, OsAccountManagerModuleTest047, TestSize.Level1)
 {
@@ -968,7 +968,7 @@ HWTEST_F(OsAccountManagerModuleTest, OsAccountManagerModuleTest047, TestSize.Lev
  * @tc.name: OsAccountManagerModuleTest048
  * @tc.desc: Test StartOsAccount with invalid id.
  * @tc.type: FUNC
- * @tc.require: SR000GGVFJ
+ * @tc.require: issueI4IU3B
  */
 HWTEST_F(OsAccountManagerModuleTest, OsAccountManagerModuleTest048, TestSize.Level1)
 {
@@ -980,7 +980,7 @@ HWTEST_F(OsAccountManagerModuleTest, OsAccountManagerModuleTest048, TestSize.Lev
  * @tc.name: OsAccountManagerModuleTest049
  * @tc.desc: Test StartOsAccount with started id.
  * @tc.type: FUNC
- * @tc.require: SR000GGVFJ
+ * @tc.require: issueI4IU3B
  */
 HWTEST_F(OsAccountManagerModuleTest, OsAccountManagerModuleTest049, TestSize.Level1)
 {
@@ -992,7 +992,7 @@ HWTEST_F(OsAccountManagerModuleTest, OsAccountManagerModuleTest049, TestSize.Lev
  * @tc.name: OsAccountManagerModuleTest050
  * @tc.desc: Test StopOsAccount with valid data.
  * @tc.type: FUNC
- * @tc.require: SR000GGVFJ
+ * @tc.require: issueI4IU3B
  */
 HWTEST_F(OsAccountManagerModuleTest, OsAccountManagerModuleTest050, TestSize.Level1)
 {
@@ -1009,7 +1009,7 @@ HWTEST_F(OsAccountManagerModuleTest, OsAccountManagerModuleTest050, TestSize.Lev
  * @tc.name: OsAccountManagerModuleTest051
  * @tc.desc: Test StopOsAccount with invalid data.
  * @tc.type: FUNC
- * @tc.require: SR000GGVFJ
+ * @tc.require: issueI4IU3B
  */
 HWTEST_F(OsAccountManagerModuleTest, OsAccountManagerModuleTest051, TestSize.Level1)
 {
@@ -1021,7 +1021,7 @@ HWTEST_F(OsAccountManagerModuleTest, OsAccountManagerModuleTest051, TestSize.Lev
  * @tc.name: OsAccountManagerModuleTest052
  * @tc.desc: Test IsOsAccountVerified with invalid data.
  * @tc.type: FUNC
- * @tc.require: SR000GGVFJ
+ * @tc.require: issueI4IU3B
  */
 HWTEST_F(OsAccountManagerModuleTest, OsAccountManagerModuleTest052, TestSize.Level1)
 {
@@ -1034,7 +1034,7 @@ HWTEST_F(OsAccountManagerModuleTest, OsAccountManagerModuleTest052, TestSize.Lev
  * @tc.name: OsAccountManagerModuleTest053
  * @tc.desc: Create os account for domain, and remove it
  * @tc.type: FUNC
- * @tc.require: SR000GGVFL
+ * @tc.require: issueI4IU3V
  */
 HWTEST_F(OsAccountManagerModuleTest, OsAccountManagerModuleTest053, TestSize.Level1)
 {
@@ -1065,7 +1065,7 @@ HWTEST_F(OsAccountManagerModuleTest, OsAccountManagerModuleTest053, TestSize.Lev
  * @tc.name: OsAccountManagerModuleTest054
  * @tc.desc: Create os account for domain, and activate it.
  * @tc.type: FUNC
- * @tc.require: SR000GGVFL
+ * @tc.require: issueI4IU3V
  */
 HWTEST_F(OsAccountManagerModuleTest, OsAccountManagerModuleTest054, TestSize.Level1)
 {
@@ -1114,7 +1114,7 @@ HWTEST_F(OsAccountManagerModuleTest, OsAccountManagerModuleTest054, TestSize.Lev
  * @tc.name: OsAccountManagerModuleTest055
  * @tc.desc: Create os account for domain use invalid data.
  * @tc.type: FUNC
- * @tc.require: SR000GGVFL
+ * @tc.require: issueI4IU3V
  */
 HWTEST_F(OsAccountManagerModuleTest, OsAccountManagerModuleTest055, TestSize.Level1)
 {
@@ -1142,7 +1142,7 @@ HWTEST_F(OsAccountManagerModuleTest, OsAccountManagerModuleTest055, TestSize.Lev
  * @tc.name: OsAccountManagerModuleTest056
  * @tc.desc: repeat create os account for domain by module
  * @tc.type: FUNC
- * @tc.require: SR000GGVFL
+ * @tc.require: issueI4IU3V
  */
 HWTEST_F(OsAccountManagerModuleTest, OsAccountManagerModuleTest056, TestSize.Level1)
 {
@@ -1162,7 +1162,7 @@ HWTEST_F(OsAccountManagerModuleTest, OsAccountManagerModuleTest056, TestSize.Lev
  * @tc.name: OsAccountManagerModuleTest057
  * @tc.desc: repeat create os account for domain after remove by module
  * @tc.type: FUNC
- * @tc.require: SR000GGVFL
+ * @tc.require: issueI4IU3V
  */
 HWTEST_F(OsAccountManagerModuleTest, OsAccountManagerModuleTest057, TestSize.Level1)
 {
@@ -1193,7 +1193,7 @@ HWTEST_F(OsAccountManagerModuleTest, OsAccountManagerModuleTest057, TestSize.Lev
  * @tc.name: OsAccountManagerModuleTest058
  * @tc.desc: query os account by domain info
  * @tc.type: FUNC
- * @tc.require: SR000GGVFL
+ * @tc.require: issueI4IU3V
  */
 HWTEST_F(OsAccountManagerModuleTest, OsAccountManagerModuleTest058, TestSize.Level1)
 {
@@ -1212,7 +1212,7 @@ HWTEST_F(OsAccountManagerModuleTest, OsAccountManagerModuleTest058, TestSize.Lev
  * @tc.name: OsAccountManagerModuleTest059
  * @tc.desc: query os account by domain info
  * @tc.type: FUNC
- * @tc.require: SR000GGVFL
+ * @tc.require: issueI4IU3V
  */
 HWTEST_F(OsAccountManagerModuleTest, OsAccountManagerModuleTest059, TestSize.Level1)
 {
@@ -1242,7 +1242,7 @@ HWTEST_F(OsAccountManagerModuleTest, OsAccountManagerModuleTest059, TestSize.Lev
  * @tc.name: OsAccountManagerModuleTest060
  * @tc.desc: query os account by domain info
  * @tc.type: FUNC
- * @tc.require: SR000GGVFL
+ * @tc.require: issueI4IU3V
  */
 HWTEST_F(OsAccountManagerModuleTest, OsAccountManagerModuleTest060, TestSize.Level1)
 {
@@ -1277,7 +1277,7 @@ HWTEST_F(OsAccountManagerModuleTest, OsAccountManagerModuleTest060, TestSize.Lev
  * @tc.name: OsAccountManagerModuleTest061
  * @tc.desc: Test get os account info from database
  * @tc.type: FUNC
- * @tc.require: SR000GGVFK
+ * @tc.require: issueI4JBFI
  */
 HWTEST_F(OsAccountManagerModuleTest, OsAccountManagerModuleTest061, TestSize.Level1)
 {
@@ -1291,7 +1291,7 @@ HWTEST_F(OsAccountManagerModuleTest, OsAccountManagerModuleTest061, TestSize.Lev
  * @tc.name: OsAccountManagerModuleTest062
  * @tc.desc: Test get os account info from database
  * @tc.type: FUNC
- * @tc.require: SR000GGVFK
+ * @tc.require: issueI4JBFI
  */
 HWTEST_F(OsAccountManagerModuleTest, OsAccountManagerModuleTest062, TestSize.Level1)
 {
@@ -1305,7 +1305,7 @@ HWTEST_F(OsAccountManagerModuleTest, OsAccountManagerModuleTest062, TestSize.Lev
  * @tc.name: OsAccountManagerModuleTest063
  * @tc.desc: Test get os account info from database
  * @tc.type: FUNC
- * @tc.require: SR000GGVFK
+ * @tc.require: issueI4JBFI
  */
 HWTEST_F(OsAccountManagerModuleTest, OsAccountManagerModuleTest063, TestSize.Level1)
 {
@@ -1335,7 +1335,7 @@ HWTEST_F(OsAccountManagerModuleTest, OsAccountManagerModuleTest063, TestSize.Lev
  * @tc.name: OsAccountManagerModuleTest064
  * @tc.desc: Test get os account info from database
  * @tc.type: FUNC
- * @tc.require: SR000GGVFK
+ * @tc.require: issueI4JBFI
  */
 HWTEST_F(OsAccountManagerModuleTest, OsAccountManagerModuleTest064, TestSize.Level1)
 {
@@ -1360,7 +1360,7 @@ HWTEST_F(OsAccountManagerModuleTest, OsAccountManagerModuleTest064, TestSize.Lev
  * @tc.name: OsAccountManagerModuleTest065
  * @tc.desc: Test get os account info from database
  * @tc.type: FUNC
- * @tc.require: SR000GGVFK
+ * @tc.require: issueI4JBFI
  */
 HWTEST_F(OsAccountManagerModuleTest, OsAccountManagerModuleTest065, TestSize.Level1)
 {
@@ -1398,7 +1398,7 @@ HWTEST_F(OsAccountManagerModuleTest, OsAccountManagerModuleTest065, TestSize.Lev
  * @tc.name: OsAccountManagerModuleTest066
  * @tc.desc: Test query active os account ids.
  * @tc.type: FUNC
- * @tc.require: SR000GGVFQ
+ * @tc.require: issueI4M8FW
  */
 HWTEST_F(OsAccountManagerModuleTest, OsAccountManagerModuleTest066, TestSize.Level1)
 {
@@ -1414,7 +1414,7 @@ HWTEST_F(OsAccountManagerModuleTest, OsAccountManagerModuleTest066, TestSize.Lev
  * @tc.name: OsAccountManagerModuleTest067
  * @tc.desc: Test GetBundleIdFromUid.
  * @tc.type: FUNC
- * @tc.require: SR000GV99I
+ * @tc.require: 
  */
 HWTEST_F(OsAccountManagerModuleTest, OsAccountManagerModuleTest067, TestSize.Level1)
 {
@@ -1430,7 +1430,7 @@ HWTEST_F(OsAccountManagerModuleTest, OsAccountManagerModuleTest067, TestSize.Lev
  * @tc.name: OsAccountManagerModuleTest068
  * @tc.desc: Test IsMainOsAccount.
  * @tc.type: FUNC
- * @tc.require: SR000GV99I
+ * @tc.require: 
  */
 HWTEST_F(OsAccountManagerModuleTest, OsAccountManagerModuleTest068, TestSize.Level1)
 {
@@ -1450,7 +1450,7 @@ HWTEST_F(OsAccountManagerModuleTest, OsAccountManagerModuleTest068, TestSize.Lev
  * @tc.name: OsAccountManagerModuleTest069
  * @tc.desc: Test SetGlobalOsAccountConstraints.
  * @tc.type: FUNC
- * @tc.require: SR000GV99I
+ * @tc.require: 
  */
 HWTEST_F(OsAccountManagerModuleTest, OsAccountManagerModuleTest069, TestSize.Level1)
 {
@@ -1489,7 +1489,7 @@ HWTEST_F(OsAccountManagerModuleTest, OsAccountManagerModuleTest069, TestSize.Lev
  * @tc.name: OsAccountManagerModuleTest070
  * @tc.desc: Test SetGlobalOsAccountConstraints.
  * @tc.type: FUNC
- * @tc.require: SR000GV99I
+ * @tc.require: 
  */
 HWTEST_F(OsAccountManagerModuleTest, OsAccountManagerModuleTest070, TestSize.Level1)
 {
@@ -1537,7 +1537,7 @@ HWTEST_F(OsAccountManagerModuleTest, OsAccountManagerModuleTest070, TestSize.Lev
  * @tc.name: OsAccountManagerModuleTest071
  * @tc.desc: Test SetSpecificOsAccountConstraints.
  * @tc.type: FUNC
- * @tc.require: SR000GV99I
+ * @tc.require: 
  */
 HWTEST_F(OsAccountManagerModuleTest, OsAccountManagerModuleTest071, TestSize.Level1)
 {
@@ -1570,7 +1570,7 @@ HWTEST_F(OsAccountManagerModuleTest, OsAccountManagerModuleTest071, TestSize.Lev
  * @tc.name: OsAccountManagerModuleTest072
  * @tc.desc: Test QueryOsAccountConstraintSourceTypes.
  * @tc.type: FUNC
- * @tc.require: SR000GV99I
+ * @tc.require: 
  */
 HWTEST_F(OsAccountManagerModuleTest, OsAccountManagerModuleTest072, TestSize.Level1)
 {
@@ -1602,7 +1602,7 @@ HWTEST_F(OsAccountManagerModuleTest, OsAccountManagerModuleTest072, TestSize.Lev
  * @tc.name: OsAccountManagerModuleTest073
  * @tc.desc: Test QueryOsAccountConstraintSourceTypes.
  * @tc.type: FUNC
- * @tc.require: SR000GV99I
+ * @tc.require: 
  */
 HWTEST_F(OsAccountManagerModuleTest, OsAccountManagerModuleTest073, TestSize.Level1)
 {
@@ -1651,7 +1651,7 @@ HWTEST_F(OsAccountManagerModuleTest, OsAccountManagerModuleTest073, TestSize.Lev
  * @tc.name: OsAccountManagerModuleTest074
  * @tc.desc: Test QueryOsAccountConstraintSourceTypes.
  * @tc.type: FUNC
- * @tc.require: SR000GV99I
+ * @tc.require: 
  */
 HWTEST_F(OsAccountManagerModuleTest, OsAccountManagerModuleTest074, TestSize.Level1)
 {
@@ -1671,7 +1671,7 @@ HWTEST_F(OsAccountManagerModuleTest, OsAccountManagerModuleTest074, TestSize.Lev
  * @tc.name: OsAccountManagerModuleTest075
  * @tc.desc: Test GetOsAccountAllConstraints.
  * @tc.type: FUNC
- * @tc.require: SR000GV99I
+ * @tc.require: 
  */
 HWTEST_F(OsAccountManagerModuleTest, OsAccountManagerModuleTest075, TestSize.Level1)
 {
@@ -1694,4 +1694,251 @@ HWTEST_F(OsAccountManagerModuleTest, OsAccountManagerModuleTest075, TestSize.Lev
     EXPECT_NE(constraints.size(), counts + 2); // test number
  
     ASSERT_EQ(OsAccountManager::RemoveOsAccount(osAccountInfoOne.GetLocalId()), ERR_OK);
+}
+
+/**
+ * @tc.name: OsAccountManagerModuleTest078
+ * @tc.desc: Test IsCurrentOsAccountVerified.
+ * @tc.type: FUNC
+ * @tc.require: issueI4JBFI
+ */
+HWTEST_F(OsAccountManagerModuleTest, OsAccountManagerModuleTest078, TestSize.Level1)
+{
+    ACCOUNT_LOGI("OsAccountManagerModuleTest078");
+    bool isVerified = false;
+    EXPECT_EQ(OsAccountManager::IsCurrentOsAccountVerified(isVerified), ERR_OK);
+    EXPECT_EQ(isVerified, false);
+}
+
+/**
+ * @tc.name: OsAccountManagerModuleTest079
+ * @tc.desc: Test IsOsAccountCompleted.
+ * @tc.type: FUNC
+ * @tc.require: issueI4JBFI
+ */
+HWTEST_F(OsAccountManagerModuleTest, OsAccountManagerModuleTest079, TestSize.Level1)
+{
+    ACCOUNT_LOGI("OsAccountManagerModuleTest079");
+    bool isOsAccountCompleted = false;
+    EXPECT_EQ(OsAccountManager::IsOsAccountCompleted(MAIN_ACCOUNT_ID, isOsAccountCompleted), ERR_OK);
+    EXPECT_EQ(isOsAccountCompleted, true);
+}
+
+/**
+ * @tc.name: OsAccountManagerModuleTest080
+ * @tc.desc: Test IsOsAccountCompleted.
+ * @tc.type: FUNC
+ * @tc.require: issueI4JBFI
+ */
+HWTEST_F(OsAccountManagerModuleTest, OsAccountManagerModuleTest080, TestSize.Level1)
+{
+    ACCOUNT_LOGI("OsAccountManagerModuleTest080");
+    bool isOsAccountCompleted = false;
+    EXPECT_NE(OsAccountManager::IsOsAccountCompleted(ERROR_LOCAL_ID, isOsAccountCompleted), ERR_OK);
+    EXPECT_EQ(isOsAccountCompleted, false);
+}
+
+/**
+ * @tc.name: OsAccountManagerModuleTest081
+ * @tc.desc: Test SetCurrentOsAccountIsVerified.
+ * @tc.type: FUNC
+ * @tc.require: issueI4JBFI
+ */
+HWTEST_F(OsAccountManagerModuleTest, OsAccountManagerModuleTest081, TestSize.Level1)
+{
+    ACCOUNT_LOGI("OsAccountManagerModuleTest081");
+    bool isVerified = false;
+    EXPECT_NE(OsAccountManager::SetCurrentOsAccountIsVerified(true), ERR_OK);
+    EXPECT_EQ(OsAccountManager::IsCurrentOsAccountVerified(isVerified), ERR_OK);
+    EXPECT_EQ(isVerified, false);
+}
+
+/**
+ * @tc.name: OsAccountManagerModuleTest082
+ * @tc.desc: Test GetCreatedOsAccountNumFromDatabase.
+ * @tc.type: FUNC
+ * @tc.require: issueI4JBFI
+ */
+HWTEST_F(OsAccountManagerModuleTest, OsAccountManagerModuleTest082, TestSize.Level1)
+{
+    ACCOUNT_LOGI("OsAccountManagerModuleTest082");
+    int createdOsAccountNum = -1;
+    EXPECT_EQ(OsAccountManager::GetCreatedOsAccountNumFromDatabase("", createdOsAccountNum), ERR_OK);
+    EXPECT_NE(createdOsAccountNum, -1);
+}
+
+/**
+ * @tc.name: OsAccountManagerModuleTest083
+ * @tc.desc: Test GetCreatedOsAccountNumFromDatabase.
+ * @tc.type: FUNC
+ * @tc.require: issueI4JBFI
+ */
+HWTEST_F(OsAccountManagerModuleTest, OsAccountManagerModuleTest083, TestSize.Level1)
+{
+    ACCOUNT_LOGI("OsAccountManagerModuleTest083");
+    int createdOsAccountNum = -1;
+    EXPECT_NE(OsAccountManager::GetCreatedOsAccountNumFromDatabase("ERROR_STORE_ID", createdOsAccountNum), ERR_OK);
+    EXPECT_EQ(createdOsAccountNum, -1);
+}
+
+/**
+ * @tc.name: OsAccountManagerModuleTest084
+ * @tc.desc: Test GetSerialNumberFromDatabase.
+ * @tc.type: FUNC
+ * @tc.require: issueI4JBFI
+ */
+HWTEST_F(OsAccountManagerModuleTest, OsAccountManagerModuleTest084, TestSize.Level1)
+{
+    ACCOUNT_LOGI("OsAccountManagerModuleTest084");
+    int64_t serialNumber = -1;
+    EXPECT_EQ(OsAccountManager::GetSerialNumberFromDatabase("", serialNumber), ERR_OK);
+    EXPECT_NE(serialNumber, -1);
+}
+
+/**
+ * @tc.name: OsAccountManagerModuleTest085
+ * @tc.desc: Test GetSerialNumberFromDatabase.
+ * @tc.type: FUNC
+ * @tc.require: issueI4JBFI
+ */
+HWTEST_F(OsAccountManagerModuleTest, OsAccountManagerModuleTest085, TestSize.Level1)
+{
+    ACCOUNT_LOGI("OsAccountManagerModuleTest085");
+    int64_t serialNumber = -1;
+    EXPECT_NE(OsAccountManager::GetSerialNumberFromDatabase("ERROR_STORE_ID", serialNumber), ERR_OK);
+    EXPECT_EQ(serialNumber, -1);
+}
+
+/**
+ * @tc.name: OsAccountManagerModuleTest086
+ * @tc.desc: Test GetMaxAllowCreateIdFromDatabase.
+ * @tc.type: FUNC
+ * @tc.require: issueI4JBFI
+ */
+HWTEST_F(OsAccountManagerModuleTest, OsAccountManagerModuleTest086, TestSize.Level1)
+{
+    ACCOUNT_LOGI("OsAccountManagerModuleTest086");
+    int maxAllowCreateId = -1;
+    EXPECT_EQ(OsAccountManager::GetMaxAllowCreateIdFromDatabase("", maxAllowCreateId), ERR_OK);
+    EXPECT_NE(maxAllowCreateId, -1);
+}
+
+/**
+ * @tc.name: OsAccountManagerModuleTest087
+ * @tc.desc: Test GetMaxAllowCreateIdFromDatabase.
+ * @tc.type: FUNC
+ * @tc.require: issueI4JBFI
+ */
+HWTEST_F(OsAccountManagerModuleTest, OsAccountManagerModuleTest087, TestSize.Level1)
+{
+    ACCOUNT_LOGI("OsAccountManagerModuleTest087");
+    int maxAllowCreateId = -1;
+    EXPECT_NE(OsAccountManager::GetMaxAllowCreateIdFromDatabase("ERROR_STORE_ID", maxAllowCreateId), ERR_OK);
+    EXPECT_EQ(maxAllowCreateId, -1);
+}
+
+/**
+ * @tc.name: OsAccountManagerModuleTest088
+ * @tc.desc: Test GetOsAccountListFromDatabase.
+ * @tc.type: FUNC
+ * @tc.require: issueI4JBFI
+ */
+HWTEST_F(OsAccountManagerModuleTest, OsAccountManagerModuleTest088, TestSize.Level1)
+{
+    ACCOUNT_LOGI("OsAccountManagerModuleTest088");
+    std::vector<OsAccountInfo> osAccountList;
+    EXPECT_EQ(OsAccountManager::GetOsAccountListFromDatabase("", osAccountList), ERR_OK);
+    EXPECT_NE(osAccountList.size(), 0);
+}
+
+/**
+ * @tc.name: OsAccountManagerModuleTest089
+ * @tc.desc: Test GetOsAccountListFromDatabase.
+ * @tc.type: FUNC
+ * @tc.require: issueI4JBFI
+ */
+HWTEST_F(OsAccountManagerModuleTest, OsAccountManagerModuleTest089, TestSize.Level1)
+{
+    ACCOUNT_LOGI("OsAccountManagerModuleTest089");
+    std::vector<OsAccountInfo> osAccountList;
+    EXPECT_EQ(OsAccountManager::GetOsAccountListFromDatabase("ERROR_STORE_ID", osAccountList), ERR_OK);
+    EXPECT_EQ(osAccountList.size(), 0);
+}
+
+/**
+ * @tc.name: OsAccountManagerModuleTest090
+ * @tc.desc: Test ActivateOsAccount.
+ * @tc.type: FUNC
+ * @tc.require: issueI4JBFI
+ */
+HWTEST_F(OsAccountManagerModuleTest, OsAccountManagerModuleTest090, TestSize.Level1)
+{
+    ACCOUNT_LOGI("OsAccountManagerModuleTest090");
+    EXPECT_NE(OsAccountManager::ActivateOsAccount(INVALID_ID), ERR_OK);
+}
+
+/**
+ * @tc.name: OsAccountManagerModuleTest091
+ * @tc.desc: Test ActivateOsAccount.
+ * @tc.type: FUNC
+ * @tc.require: issueI4JBFI
+ */
+HWTEST_F(OsAccountManagerModuleTest, OsAccountManagerModuleTest091, TestSize.Level1)
+{
+    ACCOUNT_LOGI("OsAccountManagerModuleTest091");
+    EXPECT_NE(OsAccountManager::ActivateOsAccount(ERROR_LOCAL_ID), ERR_OK);
+}
+
+/**
+ * @tc.name: OsAccountManagerModuleTest092
+ * @tc.desc: Test remove activating os account.
+ * @tc.type: FUNC
+ * @tc.require: issueI4JBFI
+ */
+HWTEST_F(OsAccountManagerModuleTest, OsAccountManagerModuleTest092, TestSize.Level1)
+{
+    ACCOUNT_LOGI("OsAccountManagerModuleTest092");
+    OsAccountInfo osAccountInfoOne;
+    EXPECT_EQ(OsAccountManager::CreateOsAccount(STRING_TEST_NAME, OsAccountType::NORMAL, osAccountInfoOne), ERR_OK);
+    EXPECT_EQ(OsAccountManager::ActivateOsAccount(osAccountInfoOne.GetLocalId()), ERR_OK);
+    EXPECT_EQ(OsAccountManager::RemoveOsAccount(osAccountInfoOne.GetLocalId()), ERR_OK);
+}
+
+/**
+ * @tc.name: OsAccountManagerModuleTest093
+ * @tc.desc: Test SubscribeOsAccount.
+ * @tc.type: FUNC
+ * @tc.require: issueI4JBFI
+ */
+HWTEST_F(OsAccountManagerModuleTest, OsAccountManagerModuleTest093, TestSize.Level1)
+{
+    ACCOUNT_LOGI("OsAccountManagerModuleTest093");
+    std::shared_ptr<OsAccountSubscriber> subscriber = nullptr;
+    EXPECT_NE(OsAccountManager::SubscribeOsAccount(subscriber), ERR_OK);
+}
+
+/**
+ * @tc.name: OsAccountManagerModuleTest094
+ * @tc.desc: Test UnsubscribeOsAccount.
+ * @tc.type: FUNC
+ * @tc.require: issueI4JBFI
+ */
+HWTEST_F(OsAccountManagerModuleTest, OsAccountManagerModuleTest094, TestSize.Level1)
+{
+    ACCOUNT_LOGI("OsAccountManagerModuleTest094");
+    std::shared_ptr<OsAccountSubscriber> subscriber = nullptr;
+    EXPECT_NE(OsAccountManager::UnsubscribeOsAccount(subscriber), ERR_OK);
+}
+
+/**
+ * @tc.name: OsAccountManagerModuleTest095
+ * @tc.desc: Test GetOsAccountSwitchMod.
+ * @tc.type: FUNC
+ * @tc.require: issueI4JBFI
+ */
+HWTEST_F(OsAccountManagerModuleTest, OsAccountManagerModuleTest095, TestSize.Level1)
+{
+    ACCOUNT_LOGI("OsAccountManagerModuleTest095");
+    int modResult = 1;
+    EXPECT_EQ(OsAccountManager::GetOsAccountSwitchMod(), modResult);
 }
