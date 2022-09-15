@@ -67,7 +67,6 @@ ohos_shared_library("account_iam_napi") {
 
   deps = [
     "${account_iam_framework_path}:account_iam_innerkits",
-    "${common_path}:libaccount_common",
     "//foundation/arkui/napi/:ace_napi",
   ]
 
@@ -82,8 +81,6 @@ ohos_shared_library("account_iam_napi") {
     "c_utils:utils",
     "hiviewdfx_hilog_native:libhilog",
     "ipc:ipc_core",
-    "safwk:system_ability_fwk",
-    "samgr:samgr_proxy",
   ]
 
   subsystem_name = "account"
