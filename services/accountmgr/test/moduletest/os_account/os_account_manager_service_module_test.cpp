@@ -1347,5 +1347,75 @@ HWTEST_F(OsAccountManagerServiceModuleTest, OsAccountManagerServiceModuleTest068
         EXPECT_EQ(isMainOsAccount, false);
     }
 }
+
+/**
+ * @tc.name: OsAccountManagerServiceModuleTest069
+ * @tc.desc: Test GetCreatedOsAccountNumFromDatabase with empty storeID.
+ * @tc.type: FUNC
+ * @tc.require: issueI4M8FW
+ */
+HWTEST_F(OsAccountManagerServiceModuleTest, OsAccountManagerServiceModuleTest069, TestSize.Level1)
+{
+    ACCOUNT_LOGI("OsAccountManagerServiceModuleTest069");
+    std::string storeID = "";
+    int createdOsAccountNum = -1;
+    ErrCode ret = osAccountManagerService_->GetCreatedOsAccountNumFromDatabase(storeID, createdOsAccountNum);
+    EXPECT_EQ(ret, ERR_OK);
+    EXPECT_NE(createdOsAccountNum, -1);
+}
+
+/**
+ * @tc.name: OsAccountManagerServiceModuleTest070
+ * @tc.desc: Test GetCreatedOsAccountNumFromDatabase with invalid storeID.
+ * @tc.type: FUNC
+ * @tc.require: issueI4M8FW
+ */
+HWTEST_F(OsAccountManagerServiceModuleTest, OsAccountManagerServiceModuleTest070, TestSize.Level1)
+{
+    ACCOUNT_LOGI("OsAccountManagerServiceModuleTest070");
+    std::string storeID = "testStoreID";
+    int createdOsAccountNum = -1;
+    ErrCode ret = osAccountManagerService_->GetCreatedOsAccountNumFromDatabase(storeID, createdOsAccountNum);
+    EXPECT_NE(ret, ERR_OK);
+    EXPECT_EQ(createdOsAccountNum, -1);
+}
+
+/**
+ * @tc.name: OsAccountManagerServiceModuleTest071
+ * @tc.desc: Test DumpState with two accounts.
+ * @tc.type: FUNC
+ * @tc.require: issueI4M8FW
+ */
+HWTEST_F(OsAccountManagerServiceModuleTest, OsAccountManagerServiceModuleTest071, TestSize.Level1)
+{
+    ACCOUNT_LOGI("OsAccountManagerServiceModuleTest071");
+    std::vector<OsAccountInfo> osAccountInfos;
+    EXPECT_EQ(osAccountManagerService_->QueryAllCreatedOsAccounts(osAccountInfos), ERR_OK);
+    std::vector<std::string> state;
+    ASSERT_EQ(osAccountManagerService_->DumpOsAccountInfo(state), ERR_OK);
+    int cnt = 0;
+    for (auto const &curString : state) {
+        if (curString == "\n") {
+            ++cnt;
+        }
+    }
+    EXPECT_EQ(cnt, osAccountInfos.size());
+}
+
+/**
+ * @tc.name: OsAccountManagerServiceModuleTest072
+ * @tc.desc: Test QueryOsAccountConstraintSourceTypes.
+ * @tc.type: FUNC
+ * @tc.require: 
+ */
+HWTEST_F(OsAccountManagerServiceModuleTest, OsAccountManagerServiceModuleTest072, TestSize.Level1)
+{
+    ACCOUNT_LOGI("OsAccountManagerServiceModuleTest072");
+    const std::string CONSTANT_WIFI = "constraint.wifi";
+    std::vector<ConstraintSourceTypeInfo> constraintSourceTypeInfos;
+    EXPECT_EQ(osAccountManagerService_->
+        QueryOsAccountConstraintSourceTypes(100, CONSTANT_WIFI, constraintSourceTypeInfos), ERR_OK);
+    EXPECT_NE(constraintSourceTypeInfos.size(), 0);
+}
 }  // namespace AccountSA
 }  // namespace OHOS
