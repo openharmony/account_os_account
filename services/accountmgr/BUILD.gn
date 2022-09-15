@@ -236,7 +236,6 @@ ohos_shared_library("accountmgr") {
   }
 
   external_deps = [
-    "ability_base:base",
     "ability_base:want",
     "ability_runtime:app_manager",
     "access_token:libaccesstoken_sdk",

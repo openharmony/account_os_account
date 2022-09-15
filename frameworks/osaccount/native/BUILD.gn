@@ -50,10 +50,7 @@ ohos_shared_library("os_account_innerkits") {
   public_configs = [ ":osaccountinterface_config" ]
   use_exceptions = true
 
-  deps = [
-    "${common_path}:libaccount_common",
-    "${os_account_core_path}:os_account_core",
-  ]
+  deps = [ "${os_account_core_path}:os_account_core" ]
 
   external_deps = [
     "c_utils:utils",

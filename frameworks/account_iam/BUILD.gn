@@ -78,7 +78,6 @@ ohos_shared_library("account_iam_innerkits") {
   public_configs = [ ":account_iam_innerkits_public_config" ]
 
   deps = [
-    "${common_path}:libaccount_common",
     "${innerkits_native_path}:libaccountkits",
     "${os_account_innerkits_native_path}:os_account_innerkits",
   ]
@@ -95,7 +94,6 @@ ohos_shared_library("account_iam_innerkits") {
     "c_utils:utils",
     "hiviewdfx_hilog_native:libhilog",
     "ipc:ipc_core",
-    "safwk:system_ability_fwk",
     "samgr:samgr_proxy",
   ]
 

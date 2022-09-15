@@ -17,7 +17,6 @@ import("//build/ohos.gni")
 ohos_shared_library("distributedaccount") {
   include_dirs = [
     "include",
-    "//third_party/libuv/include",
     "//third_party/node/src",
     "//foundation/arkui/napi/interfaces/kits",
   ]
@@ -43,10 +42,7 @@ ohos_shared_library("distributedaccount") {
     "LOG_DOMAIN = 0xD001B00",
   ]
 
-  deps = [
-    "${common_path}:libaccount_common",
-    "//foundation/arkui/napi/:ace_napi",
-  ]
+  deps = [ "//foundation/arkui/napi/:ace_napi" ]
 
   relative_install_dir = "module/account"
 
@@ -54,7 +50,6 @@ ohos_shared_library("distributedaccount") {
   external_deps = [
     "c_utils:utils",
     "hiviewdfx_hilog_native:libhilog",
-    "ipc:ipc_core",
     "os_account:libaccountkits",
   ]
   part_name = "os_account"
