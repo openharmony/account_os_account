@@ -16,8 +16,11 @@
 #include <gtest/gtest.h>
 
 #include <thread>
+#include <gmock/gmock.h>
 #include "account_log_wrapper.h"
+#include "datetime_ex.h"
 #define private public
+#include "app_account_authenticator_callback_stub.h"
 #include "app_account_common.h"
 #include "app_account_constants.h"
 #include "app_account_control_manager.h"
@@ -29,6 +32,7 @@
 #include "common_event_support.h"
 #endif // HAS_CES_PART
 #include "iremote_object.h"
+#include "app_account_manager_service.h"
 
 using namespace testing::ext;
 using namespace OHOS;
@@ -68,11 +72,16 @@ const std::string STRING_AUTH_TYPE = "read";
 const std::string STRING_AUTH_TYPE_TWO = "write";
 const std::string STRING_SESSION_ID = "100";
 const std::string STRING_ABILITY_NAME = "com.example.owner.MainAbility";
+const std::vector<std::string> TEST_LABELS = {
+    "test_label1",
+    "test_label2",
+};
 
 const bool SYNC_ENABLE_TRUE = true;
 const bool SYNC_ENABLE_FALSE = false;
 
 constexpr std::int32_t UID = 10000;
+constexpr std::int32_t TEST_USER_ID = 101;
 constexpr std::size_t SIZE_ZERO = 0;
 constexpr std::size_t SIZE_ONE = 1;
 constexpr std::size_t SIZE_TWO = 2;
@@ -83,6 +92,13 @@ std::shared_ptr<AppAccountManagerService> g_accountManagerService =
     std::make_shared<AppAccountManagerService>();
 std::shared_ptr<AppAccountControlManager> g_controlManagerPtr = AppAccountControlManager::GetInstance();
 }  // namespace
+
+class MockAuthenticatorCallback final : public AppAccountAuthenticatorCallbackStub {
+public:
+    MOCK_METHOD2(OnResult, void(int32_t resultCode, const AAFwk::Want &result));
+    MOCK_METHOD1(OnRequestRedirected, void(AAFwk::Want &request));
+    MOCK_METHOD0(OnRequestContinued, void());
+};
 
 class AppAccountManagerServiceModuleTest : public testing::Test {
 public:
@@ -1746,3 +1762,316 @@ HWTEST_F(AppAccountManagerServiceModuleTest, AppAccountManagerService_OnPackageR
     EXPECT_EQ(result, ERR_OK);
     EXPECT_EQ(accounts.size(), SIZE_ZERO);
 }
+
+/**
+ * @tc.name: AppAccountManagerService_CheckAppAccess_0100
+ * @tc.desc: test CheckAppAccess
+ * @tc.type: FUNC
+ * @tc.require: issueI5N90B
+ */
+
+HWTEST_F(AppAccountManagerServiceModuleTest, AppAccountManagerService_CheckAppAccess_0100, TestSize.Level1)
+{
+    ACCOUNT_LOGI("AppAccountManagerService_CheckAppAccess_0100");
+    bool isAccessible = false;
+    ErrCode result = g_accountManagerService->CheckAppAccess(STRING_NAME, STRING_BUNDLE_NAME_NOT_INSTALLED, isAccessible);
+    EXPECT_NE(result, ERR_OK);
+    EXPECT_EQ(isAccessible, false);
+}
+
+/**
+ * @tc.name: AppAccountManagerService_CheckAppAccess_0200
+ * @tc.desc: test CheckAppAccess
+ * @tc.type: FUNC
+ * @tc.require: issueI5N90B
+ */
+
+HWTEST_F(AppAccountManagerServiceModuleTest, AppAccountManagerService_CheckAppAccess_0200, TestSize.Level1)
+{
+    ACCOUNT_LOGI("AppAccountManagerService_CheckAppAccess_0200");
+    ErrCode result = g_accountManagerService->AddAccount(STRING_NAME, STRING_EXTRA_INFO);
+    EXPECT_EQ(result, ERR_OK);
+
+    bool isAccessible = false;
+    result = g_accountManagerService->CheckAppAccess(STRING_NAME, STRING_BUNDLE_NAME, isAccessible);
+    EXPECT_EQ(result, ERR_OK);
+    EXPECT_EQ(isAccessible, false);
+
+    result = g_accountManagerService->DeleteAccount(STRING_NAME);
+    EXPECT_EQ(result, ERR_OK);
+}
+
+/**
+ * @tc.name: AppAccountManagerService_CheckAppAccess_0300
+ * @tc.desc: test CheckAppAccess
+ * @tc.type: FUNC
+ * @tc.require: issueI5N90B
+ */
+
+HWTEST_F(AppAccountManagerServiceModuleTest, AppAccountManagerService_CheckAppAccess_0300, TestSize.Level1)
+{
+    ACCOUNT_LOGI("AppAccountManagerService_CheckAppAccess_0300");
+    ErrCode result = g_accountManagerService->AddAccount(STRING_NAME, STRING_EXTRA_INFO);
+    EXPECT_EQ(result, ERR_OK);
+
+    result = g_accountManagerService->EnableAppAccess(STRING_NAME, STRING_BUNDLE_NAME);
+    EXPECT_EQ(result, ERR_OK);
+    bool isAccessible = false;
+    result = g_accountManagerService->CheckAppAccess(STRING_NAME, STRING_BUNDLE_NAME, isAccessible);
+    EXPECT_EQ(result, ERR_OK);
+    EXPECT_EQ(isAccessible, true);
+
+    result = g_accountManagerService->DeleteAccount(STRING_NAME);
+    EXPECT_EQ(result, ERR_OK);
+}
+
+/**
+ * @tc.name: AppAccountManagerService_DeleteAccountCredential_0100
+ * @tc.desc: test DeleteAccountCredential
+ * @tc.type: FUNC
+ * @tc.require: issueI5N90B
+ */
+
+HWTEST_F(AppAccountManagerServiceModuleTest, AppAccountManagerService_DeleteAccountCredential_0100, TestSize.Level1)
+{
+    ACCOUNT_LOGI("AppAccountManagerService_DeleteAccountCredential_0100");
+
+    ErrCode result = g_accountManagerService->AddAccount(STRING_NAME, STRING_EXTRA_INFO);
+    EXPECT_EQ(result, ERR_OK);
+
+    result = g_accountManagerService->SetAccountCredential(STRING_NAME, STRING_CREDENTIAL_TYPE, STRING_CREDENTIAL);
+    EXPECT_EQ(result, ERR_OK);
+
+    std::string credential;
+    result = g_accountManagerService->GetAccountCredential(STRING_NAME, STRING_CREDENTIAL_TYPE, credential);
+    EXPECT_EQ(result, ERR_OK);
+    EXPECT_EQ(credential, STRING_CREDENTIAL);
+
+    result = g_accountManagerService->DeleteAccountCredential(STRING_NAME, STRING_CREDENTIAL_TYPE);
+    EXPECT_EQ(result, ERR_OK);
+
+    credential = "";
+    result = g_accountManagerService->GetAccountCredential(STRING_NAME, STRING_CREDENTIAL_TYPE, credential);
+    EXPECT_NE(result, ERR_OK);
+    EXPECT_EQ(credential, "");
+
+    result = g_accountManagerService->DeleteAccount(STRING_NAME);
+    EXPECT_EQ(result, ERR_OK);
+}
+
+/**
+ * @tc.name: AppAccountManagerService_DeleteAccountCredential_0200
+ * @tc.desc: test DeleteAccountCredential
+ * @tc.type: FUNC
+ * @tc.require: issueI5N90B
+ */
+
+HWTEST_F(AppAccountManagerServiceModuleTest, AppAccountManagerService_DeleteAccountCredential_0200, TestSize.Level1)
+{
+    ACCOUNT_LOGI("AppAccountManagerService_DeleteAccountCredential_0200");
+
+    ErrCode result = g_accountManagerService->AddAccount(STRING_NAME, STRING_EXTRA_INFO);
+    EXPECT_EQ(result, ERR_OK);
+
+    result = g_accountManagerService->DeleteAccountCredential(STRING_NAME, STRING_CREDENTIAL_TYPE);
+    EXPECT_EQ(result, ERR_OK);
+
+    result = g_accountManagerService->DeleteAccount(STRING_NAME);
+    EXPECT_EQ(result, ERR_OK);
+}
+
+/**
+ * @tc.name: AppAccountManagerService_DeleteAccountCredential_0300
+ * @tc.desc: test DeleteAccountCredential
+ * @tc.type: FUNC
+ * @tc.require: issueI5N90B
+ */
+
+HWTEST_F(AppAccountManagerServiceModuleTest, AppAccountManagerService_DeleteAccountCredential_0300, TestSize.Level1)
+{
+    ACCOUNT_LOGI("AppAccountManagerService_DeleteAccountCredential_0300");
+
+    ErrCode result = g_accountManagerService->DeleteAccountCredential(STRING_NAME, STRING_CREDENTIAL_TYPE);
+    EXPECT_NE(result, ERR_OK);
+}
+
+HWTEST_F(AppAccountManagerServiceModuleTest, AppAccountManagerService_DeleteAccountCredential_0400, TestSize.Level1)
+{
+    ACCOUNT_LOGI("AppAccountManagerService_DeleteAccountCredential_0400");
+
+    ErrCode result = g_accountManagerService->AddAccount(STRING_NAME, STRING_EXTRA_INFO);
+    EXPECT_EQ(result, ERR_OK);
+
+    result = g_accountManagerService->SetAccountCredential(STRING_NAME, STRING_CREDENTIAL_TYPE, STRING_CREDENTIAL);
+    EXPECT_EQ(result, ERR_OK);
+
+    result = g_accountManagerService->DeleteAccountCredential(STRING_NAME, STRING_CREDENTIAL_TYPE_TWO);
+    EXPECT_EQ(result, ERR_OK);
+
+    result = g_accountManagerService->DeleteAccount(STRING_NAME);
+    EXPECT_EQ(result, ERR_OK);
+}
+
+/**
+ * @tc.name: AppAccountManagerService_SelectAccountsByOptions_0100
+ * @tc.desc: test SelectAccountsByOptions
+ * @tc.type: FUNC
+ * @tc.require: issueI5N90B
+ */
+
+HWTEST_F(AppAccountManagerServiceModuleTest, AppAccountManagerService_SelectAccountsByOptions_0100, TestSize.Level1)
+{
+    ACCOUNT_LOGI("AppAccountManagerService_SelectAccountsByOptions_0100");
+
+    SelectAccountsOptions options;
+    options.hasAccounts = false;
+    options.hasOwners = false;
+    options.hasLabels = false;
+    options.allowedAccounts.emplace_back("test_key","value");
+    options.allowedOwners = TEST_LABELS;
+    options.requiredLabels = TEST_LABELS;
+    sptr<IRemoteObject> callback = new MockAuthenticatorCallback();
+    ErrCode result = g_accountManagerService->SelectAccountsByOptions(options, callback);
+    EXPECT_EQ(result, ERR_OK);
+}
+
+/**
+ * @tc.name: AppAccountManagerService_VerifyCredential_0100
+ * @tc.desc: test VerifyCredential
+ * @tc.type: FUNC
+ * @tc.require: issueI5N90B
+ */
+
+HWTEST_F(AppAccountManagerServiceModuleTest, AppAccountManagerService_VerifyCredential_0100, TestSize.Level1)
+{
+    ACCOUNT_LOGI("AppAccountManagerService_VerifyCredential_0100");
+    VerifyCredentialOptions options;
+    options.credentialType = STRING_CREDENTIAL_TYPE;
+    options.credential = STRING_CREDENTIAL;
+    AAFwk::WantParams want;
+    options.parameters = want;
+    sptr<IRemoteObject> callback = new MockAuthenticatorCallback();
+    ErrCode result = g_accountManagerService->VerifyCredential(STRING_NAME, STRING_OWNER, options, callback);
+    EXPECT_NE(result, ERR_OK);
+}
+
+/**
+ * @tc.name: AppAccountManagerService_VerifyCredential_0200
+ * @tc.desc: test VerifyCredential
+ * @tc.type: FUNC
+ * @tc.require: issueI5N90B
+ */
+
+HWTEST_F(AppAccountManagerServiceModuleTest, AppAccountManagerService_VerifyCredential_0200, TestSize.Level1)
+{
+    ACCOUNT_LOGI("AppAccountManagerService_VerifyCredential_0200");
+    VerifyCredentialOptions options;
+    options.credentialType = STRING_CREDENTIAL_TYPE;
+    options.credential = STRING_CREDENTIAL;
+    AAFwk::WantParams want;
+    options.parameters = want;
+    sptr<IRemoteObject> callback = new MockAuthenticatorCallback();
+    ErrCode result = g_accountManagerService->AddAccount(STRING_NAME, STRING_EXTRA_INFO);
+    EXPECT_EQ(result, ERR_OK);
+    result = g_accountManagerService->VerifyCredential(STRING_NAME, STRING_OWNER, options, callback);
+    EXPECT_NE(result, ERR_OK);
+    result = g_accountManagerService->DeleteAccount(STRING_NAME);
+    EXPECT_EQ(result, ERR_OK);
+}
+
+/**
+ * @tc.name: AppAccountManagerService_CheckAccountLabels_0100
+ * @tc.desc: test CheckAccountLabels
+ * @tc.type: FUNC
+ * @tc.require: issueI5N90B
+ */
+
+HWTEST_F(AppAccountManagerServiceModuleTest, AppAccountManagerService_CheckAccountLabels_0100, TestSize.Level1)
+{
+    ACCOUNT_LOGI("AppAccountManagerService_CheckAccountLabels_0100");
+    sptr<IRemoteObject> callback = new MockAuthenticatorCallback();
+    ErrCode result = g_accountManagerService->AddAccount(STRING_NAME, STRING_EXTRA_INFO);
+    EXPECT_EQ(result, ERR_OK);
+    result = g_accountManagerService->CheckAccountLabels(STRING_NAME, STRING_OWNER, TEST_LABELS, callback);
+    EXPECT_NE(result, ERR_OK);
+    result = g_accountManagerService->DeleteAccount(STRING_NAME);
+    EXPECT_EQ(result, ERR_OK);
+}
+
+/**
+ * @tc.name: AppAccountManagerService_CheckAccountLabels_0200
+ * @tc.desc: test CheckAccountLabels
+ * @tc.type: FUNC
+ * @tc.require: issueI5N90B
+ */
+
+HWTEST_F(AppAccountManagerServiceModuleTest, AppAccountManagerService_CheckAccountLabels_0200, TestSize.Level1)
+{
+    ACCOUNT_LOGI("AppAccountManagerService_CheckAccountLabels_0200");
+    sptr<IRemoteObject> callback = new MockAuthenticatorCallback();
+    ErrCode result = g_accountManagerService->CheckAccountLabels(STRING_NAME, STRING_OWNER, TEST_LABELS, callback);
+    EXPECT_NE(result, ERR_OK);
+}
+
+/**
+ * @tc.name: AppAccountManagerService_SetAuthenticatorProperties_0100
+ * @tc.desc: test SetAuthenticatorProperties
+ * @tc.type: FUNC
+ * @tc.require: issueI5N90B
+ */
+
+HWTEST_F(AppAccountManagerServiceModuleTest, AppAccountManagerService_SetAuthenticatorProperties_0100, TestSize.Level1)
+{
+    ACCOUNT_LOGI("AppAccountManagerService_SetAuthenticatorProperties_0100");
+    SetPropertiesOptions options;
+    sptr<IRemoteObject> callback = new MockAuthenticatorCallback();
+    ErrCode result = g_accountManagerService->SetAuthenticatorProperties(STRING_OWNER, options, callback);
+    EXPECT_NE(result, ERR_OK);
+}
+
+/**
+ * @tc.name: AppAccountManagerService_SetAuthenticatorProperties_0200
+ * @tc.desc: test SetAuthenticatorProperties
+ * @tc.type: FUNC
+ * @tc.require: issueI5N90B
+ */
+
+HWTEST_F(AppAccountManagerServiceModuleTest, AppAccountManagerService_SetAuthenticatorProperties_0200, TestSize.Level1)
+{
+    ACCOUNT_LOGI("AppAccountManagerService_SetAuthenticatorProperties_0200");
+    SetPropertiesOptions options;
+    AAFwk::WantParams want;
+    options.properties = want;
+    sptr<IRemoteObject> callback = new MockAuthenticatorCallback();
+    ErrCode result = g_accountManagerService->SetAuthenticatorProperties(STRING_OWNER, options, callback);
+    EXPECT_NE(result, ERR_OK);
+}
+
+/**
+ * @tc.name: AppAccountManagerService_OnPackageRemoved_0200
+ * @tc.desc: test OnPackageRemoved
+ * @tc.type: FUNC
+ * @tc.require: issueI5N90B
+ */
+
+HWTEST_F(AppAccountManagerServiceModuleTest, AppAccountManagerService_OnPackageRemoved_0200, TestSize.Level1)
+{
+    ACCOUNT_LOGI("AppAccountManagerService_OnPackageRemoved_0200");
+    ErrCode result = g_accountManagerService->OnPackageRemoved(UID, STRING_OWNER, 0);
+    EXPECT_EQ(result, ERR_OK);
+}
+
+/**
+ * @tc.name: AppAccountManagerService_OnUserRemoved_0100
+ * @tc.desc: test OnUserRemoved
+ * @tc.type: FUNC
+ * @tc.require: issueI5N90B
+ */
+
+HWTEST_F(AppAccountManagerServiceModuleTest, AppAccountManagerService_OnUserRemoved_0100, TestSize.Level1)
+{
+    ACCOUNT_LOGI("AppAccountManagerService_OnUserRemoved_0100");
+    ErrCode result = g_accountManagerService->OnUserRemoved(TEST_USER_ID);
+    EXPECT_EQ(result, ERR_OK);
+}
+
