@@ -29,18 +29,24 @@ const std::string STRING_OWNER = "com.example.owner";
 const std::string STRING_NAME = "name";
 const std::string STRING_EXTRA_INFO = "extra_info";
 const std::string STRING_BUNDLE_NAME = "com.example.third_party";
+const std::string STRING_BUNDLE_NAME_TWO = "com.example.bundletwo";
 const std::string STRING_ASSOCIATED_KEY = "associated_key";
 const std::string STRING_ASSOCIATED_VALUE = "associated_value";
 const std::string STRING_ASSOCIATED_DATA = "{\"associated_key\": \"associated_value\"}";
 const std::string STRING_CREDENTIAL_TYPE = "password";
 const std::string STRING_CREDENTIAL = "1024";
 const std::string STRING_ACCOUNT_CREDENTIAL = "{\"password\": \"1024\"}";
+const std::string STRING_TOKEN = "token123";
+const std::string STRING_AUTH_TYPE = "getSocialData";
+const std::string STRING_EMPTY = "";
 
 const bool SYNC_ENABLE_TRUE = true;
 const bool SYNC_ENABLE_FALSE = false;
 
 constexpr std::size_t SIZE_ZERO = 0;
 constexpr std::size_t SIZE_ONE = 1;
+constexpr int32_t MAX_TOKEN_NUMBER = 128;
+constexpr int32_t MAX_OAUTH_LIST_SIZE = 512;
 }  // namespace
 
 class AppAccountInfoTest : public testing::Test {
@@ -67,7 +73,7 @@ void AppAccountInfoTest::TearDown(void)
  * @tc.name: AppAccountInfo_GetOwner_0100
  * @tc.desc: Get the owner with valid data.
  * @tc.type: FUNC
- * @tc.require: SR000GGVFQ
+ * @tc.require: issueI4M8FW
  */
 HWTEST_F(AppAccountInfoTest, AppAccountInfo_GetOwner_0100, TestSize.Level0)
 {
@@ -93,7 +99,7 @@ HWTEST_F(AppAccountInfoTest, AppAccountInfo_GetOwner_0100, TestSize.Level0)
  * @tc.name: AppAccountInfo_SetOwner_0100
  * @tc.desc: Set the owner with valid data.
  * @tc.type: FUNC
- * @tc.require: SR000GGVFQ
+ * @tc.require: issueI4M8FW
  */
 HWTEST_F(AppAccountInfoTest, AppAccountInfo_SetOwner_0100, TestSize.Level1)
 {
@@ -117,7 +123,7 @@ HWTEST_F(AppAccountInfoTest, AppAccountInfo_SetOwner_0100, TestSize.Level1)
  * @tc.name: AppAccountInfo_GetName_0100
  * @tc.desc: Get the name with valid data.
  * @tc.type: FUNC
- * @tc.require: SR000GGVFQ
+ * @tc.require: issueI4M8FW
  */
 HWTEST_F(AppAccountInfoTest, AppAccountInfo_GetName_0100, TestSize.Level1)
 {
@@ -143,7 +149,7 @@ HWTEST_F(AppAccountInfoTest, AppAccountInfo_GetName_0100, TestSize.Level1)
  * @tc.name: AppAccountInfo_SetName_0100
  * @tc.desc: Set the name with valid data.
  * @tc.type: FUNC
- * @tc.require: SR000GGVFQ
+ * @tc.require: issueI4M8FW
  */
 HWTEST_F(AppAccountInfoTest, AppAccountInfo_SetName_0100, TestSize.Level1)
 {
@@ -167,7 +173,7 @@ HWTEST_F(AppAccountInfoTest, AppAccountInfo_SetName_0100, TestSize.Level1)
  * @tc.name: AppAccountInfo_GetExtraInfo_0100
  * @tc.desc: Get the extra info with valid data.
  * @tc.type: FUNC
- * @tc.require: SR000GGVFQ
+ * @tc.require: issueI4M8FW
  */
 HWTEST_F(AppAccountInfoTest, AppAccountInfo_GetExtraInfo_0100, TestSize.Level1)
 {
@@ -193,7 +199,7 @@ HWTEST_F(AppAccountInfoTest, AppAccountInfo_GetExtraInfo_0100, TestSize.Level1)
  * @tc.name: AppAccountInfo_SetExtraInfo_0100
  * @tc.desc: Set the extra info with valid data.
  * @tc.type: FUNC
- * @tc.require: SR000GGVFQ
+ * @tc.require: issueI4M8FW
  */
 HWTEST_F(AppAccountInfoTest, AppAccountInfo_SetExtraInfo_0100, TestSize.Level1)
 {
@@ -217,7 +223,7 @@ HWTEST_F(AppAccountInfoTest, AppAccountInfo_SetExtraInfo_0100, TestSize.Level1)
  * @tc.name: AppAccountInfo_EnableAppAccess_0100
  * @tc.desc: Enable the app access with valid data.
  * @tc.type: FUNC
- * @tc.require: SR000GGVFQ
+ * @tc.require: issueI4M8FW
  */
 HWTEST_F(AppAccountInfoTest, AppAccountInfo_EnableAppAccess_0100, TestSize.Level1)
 {
@@ -242,7 +248,7 @@ HWTEST_F(AppAccountInfoTest, AppAccountInfo_EnableAppAccess_0100, TestSize.Level
  * @tc.name: AppAccountInfo_DisableAppAccess_0100
  * @tc.desc: Disable the app access with valid data.
  * @tc.type: FUNC
- * @tc.require: SR000GGVFQ
+ * @tc.require: issueI4M8FW
  */
 HWTEST_F(AppAccountInfoTest, AppAccountInfo_DisableAppAccess_0100, TestSize.Level1)
 {
@@ -267,7 +273,7 @@ HWTEST_F(AppAccountInfoTest, AppAccountInfo_DisableAppAccess_0100, TestSize.Leve
  * @tc.name: AppAccountInfo_GetAuthorizedApps_0100
  * @tc.desc: Get the authorized apps with valid data.
  * @tc.type: FUNC
- * @tc.require: SR000GGVFQ
+ * @tc.require: issueI4M8FW
  */
 HWTEST_F(AppAccountInfoTest, AppAccountInfo_GetAuthorizedApps_0100, TestSize.Level1)
 {
@@ -298,7 +304,7 @@ HWTEST_F(AppAccountInfoTest, AppAccountInfo_GetAuthorizedApps_0100, TestSize.Lev
  * @tc.name: AppAccountInfo_SetAuthorizedApps_0100
  * @tc.desc: Set the authorized apps with valid data.
  * @tc.type: FUNC
- * @tc.require: SR000GGVFQ
+ * @tc.require: issueI4M8FW
  */
 HWTEST_F(AppAccountInfoTest, AppAccountInfo_SetAuthorizedApps_0100, TestSize.Level1)
 {
@@ -327,7 +333,7 @@ HWTEST_F(AppAccountInfoTest, AppAccountInfo_SetAuthorizedApps_0100, TestSize.Lev
  * @tc.name: AppAccountInfo_GetSyncEnable_0100
  * @tc.desc: Get the sync enable with valid data.
  * @tc.type: FUNC
- * @tc.require: SR000GGVFQ
+ * @tc.require: issueI4M8FW
  */
 HWTEST_F(AppAccountInfoTest, AppAccountInfo_GetSyncEnable_0100, TestSize.Level1)
 {
@@ -353,7 +359,7 @@ HWTEST_F(AppAccountInfoTest, AppAccountInfo_GetSyncEnable_0100, TestSize.Level1)
  * @tc.name: AppAccountInfo_SetSyncEnable_0100
  * @tc.desc: Set the sync enable with valid data.
  * @tc.type: FUNC
- * @tc.require: SR000GGVFQ
+ * @tc.require: issueI4M8FW
  */
 HWTEST_F(AppAccountInfoTest, AppAccountInfo_SetSyncEnable_0100, TestSize.Level1)
 {
@@ -377,7 +383,7 @@ HWTEST_F(AppAccountInfoTest, AppAccountInfo_SetSyncEnable_0100, TestSize.Level1)
  * @tc.name: AppAccountInfo_GetAssociatedData_0100
  * @tc.desc: Get the associated data with valid data.
  * @tc.type: FUNC
- * @tc.require: SR000GGVFQ
+ * @tc.require: issueI4M8FW
  */
 HWTEST_F(AppAccountInfoTest, AppAccountInfo_GetAssociatedData_0100, TestSize.Level1)
 {
@@ -403,7 +409,7 @@ HWTEST_F(AppAccountInfoTest, AppAccountInfo_GetAssociatedData_0100, TestSize.Lev
  * @tc.name: AppAccountInfo_SetAssociatedData_0100
  * @tc.desc: Set the associated data with valid data.
  * @tc.type: FUNC
- * @tc.require: SR000GGVFQ
+ * @tc.require: issueI4M8FW
  */
 HWTEST_F(AppAccountInfoTest, AppAccountInfo_SetAssociatedData_0100, TestSize.Level1)
 {
@@ -433,7 +439,7 @@ HWTEST_F(AppAccountInfoTest, AppAccountInfo_SetAssociatedData_0100, TestSize.Lev
  * @tc.name: AppAccountInfo_GetAccountCredential_0100
  * @tc.desc: Get the account credential with valid data.
  * @tc.type: FUNC
- * @tc.require: SR000GGVFQ
+ * @tc.require: issueI4M8FW
  */
 HWTEST_F(AppAccountInfoTest, AppAccountInfo_GetAccountCredential_0100, TestSize.Level1)
 {
@@ -459,7 +465,7 @@ HWTEST_F(AppAccountInfoTest, AppAccountInfo_GetAccountCredential_0100, TestSize.
  * @tc.name: AppAccountInfo_SetAccountCredential_0100
  * @tc.desc: Set the account credential with valid data.
  * @tc.type: FUNC
- * @tc.require: SR000GGVFQ
+ * @tc.require: issueI4M8FW
  */
 HWTEST_F(AppAccountInfoTest, AppAccountInfo_SetAccountCredential_0100, TestSize.Level1)
 {
@@ -486,10 +492,153 @@ HWTEST_F(AppAccountInfoTest, AppAccountInfo_SetAccountCredential_0100, TestSize.
 }
 
 /**
+ * @tc.name: AppAccountInfo_GetOAuthList_0100
+ * @tc.desc: Get a oauth list with non-existent auth type.
+ * @tc.type: FUNC
+ * @tc.require: issueI4M8FW
+ */
+HWTEST_F(AppAccountInfoTest, AppAccountInfo_GetOAuthList_0100, TestSize.Level1)
+{
+    ACCOUNT_LOGI("AppAccountInfo_GetOAuthList_0100");
+    AppAccountInfo appAccountInfo;
+    std::set<std::string> oauthList;
+    ErrCode result = appAccountInfo.GetOAuthList(STRING_AUTH_TYPE, oauthList);
+    EXPECT_EQ(result, ERR_OK);
+    EXPECT_TRUE(oauthList.empty());
+}
+
+/**
+ * @tc.name: AppAccountInfo_GetOAuthList_0200
+ * @tc.desc: Get a oauth list with existent auth type.
+ * @tc.type: FUNC
+ * @tc.require: issueI4M8FW
+ */
+HWTEST_F(AppAccountInfoTest, AppAccountInfo_GetOAuthList_0200, TestSize.Level1)
+{
+    ACCOUNT_LOGI("AppAccountInfo_GetOAuthList_0200");
+    AppAccountInfo appAccountInfo;
+    std::set<std::string> oauthList;
+    ErrCode result = appAccountInfo.SetOAuthTokenVisibility(STRING_AUTH_TYPE, STRING_BUNDLE_NAME, true);
+    EXPECT_EQ(result, ERR_OK);
+    result = appAccountInfo.GetOAuthList(STRING_AUTH_TYPE, oauthList);
+    EXPECT_EQ(result, ERR_OK);
+    EXPECT_FALSE(oauthList.empty());
+}
+
+/**
+ * @tc.name: AppAccountInfo_GetAllOAuthTokens_0100
+ * @tc.desc: Get a oauth list with existent auth type.
+ * @tc.type: FUNC
+ * @tc.require: issueI4M8FW
+ */
+HWTEST_F(AppAccountInfoTest, AppAccountInfo_GetAllOAuthTokens_0100, TestSize.Level1)
+{
+    ACCOUNT_LOGI("AppAccountInfo_GetAllOAuthTokens_0100");
+    AppAccountInfo appAccountInfo;
+    std::vector<OAuthTokenInfo> tokens;
+    ErrCode result = appAccountInfo.SetOAuthToken(STRING_AUTH_TYPE, STRING_TOKEN);
+    EXPECT_EQ(result, ERR_OK);
+    result = appAccountInfo.GetAllOAuthTokens(tokens);
+    EXPECT_EQ(result, ERR_OK);
+    ASSERT_EQ(tokens.size(), 1);
+    EXPECT_EQ(tokens[0].token, STRING_TOKEN);
+}
+
+/**
+ * @tc.name: AppAccountInfo_SetOAuthTokenVisibility_0100
+ * @tc.desc: Set oauth token visibility with non-existent auth type.
+ * @tc.type: FUNC
+ * @tc.require: issueI4M8FW
+ */
+HWTEST_F(AppAccountInfoTest, AppAccountInfo_SetOAuthTokenVisibility_0100, TestSize.Level1)
+{
+    ACCOUNT_LOGI("AppAccountInfo_SetOAuthTokenVisibility_0100");
+    AppAccountInfo appAccountInfo;
+    bool isVisible = true;
+    for (int32_t i = 0; i < MAX_TOKEN_NUMBER; ++i) {
+        std::string key = STRING_AUTH_TYPE + std::to_string(i);
+        appAccountInfo.SetOAuthTokenVisibility(key, STRING_BUNDLE_NAME, true);
+        appAccountInfo.CheckOAuthTokenVisibility(key, STRING_BUNDLE_NAME, isVisible);
+        EXPECT_TRUE(isVisible);
+    }
+    ErrCode result = appAccountInfo.SetOAuthTokenVisibility(STRING_AUTH_TYPE, STRING_BUNDLE_NAME, true);
+    EXPECT_EQ(result, ERR_APPACCOUNT_SERVICE_OAUTH_TOKEN_MAX_SIZE);
+    appAccountInfo.CheckOAuthTokenVisibility(STRING_AUTH_TYPE, STRING_BUNDLE_NAME, isVisible);
+    EXPECT_FALSE(isVisible);
+}
+
+/**
+ * @tc.name: AppAccountInfo_SetOAuthTokenVisibility_0200
+ * @tc.desc: Set oauth token visibility with non-existent auth type.
+ * @tc.type: FUNC
+ * @tc.require: issueI4M8FW
+ */
+HWTEST_F(AppAccountInfoTest, AppAccountInfo_SetOAuthTokenVisibility_0200, TestSize.Level1)
+{
+    ACCOUNT_LOGI("AppAccountInfo_SetOAuthTokenVisibility_0200");
+    AppAccountInfo appAccountInfo;
+    bool isVisible = true;
+    for (int32_t i = 0; i < MAX_OAUTH_LIST_SIZE; ++i) {
+        std::string key = STRING_BUNDLE_NAME + std::to_string(i);
+        appAccountInfo.SetOAuthTokenVisibility(STRING_AUTH_TYPE, key, true);
+        appAccountInfo.CheckOAuthTokenVisibility(STRING_AUTH_TYPE, key, isVisible);
+        EXPECT_TRUE(isVisible);
+    }
+    ErrCode result = appAccountInfo.SetOAuthTokenVisibility(STRING_AUTH_TYPE, STRING_BUNDLE_NAME, true);
+    EXPECT_EQ(result, ERR_APPACCOUNT_SERVICE_OAUTH_LIST_MAX_SIZE);
+    result = appAccountInfo.CheckOAuthTokenVisibility(STRING_AUTH_TYPE, STRING_BUNDLE_NAME, isVisible);
+    EXPECT_FALSE(isVisible);
+}
+
+/**
+ * @tc.name: AppAccountInfo_SetOAuthTokenVisibility_0300
+ * @tc.desc: Set oauth token visibility with existent auth type.
+ * @tc.type: FUNC
+ * @tc.require: issueI4M8FW
+ */
+HWTEST_F(AppAccountInfoTest, AppAccountInfo_SetOAuthTokenVisibility_0300, TestSize.Level1)
+{
+    ACCOUNT_LOGI("AppAccountInfo_SetOAuthTokenVisibility_0300");
+    AppAccountInfo appAccountInfo;
+    appAccountInfo.SetOAuthTokenVisibility(STRING_AUTH_TYPE, STRING_BUNDLE_NAME, true);
+    bool isVisible = false;
+    appAccountInfo.CheckOAuthTokenVisibility(STRING_AUTH_TYPE, STRING_BUNDLE_NAME, isVisible);
+    EXPECT_TRUE(isVisible);
+    appAccountInfo.SetOAuthTokenVisibility(STRING_AUTH_TYPE, STRING_BUNDLE_NAME_TWO, true);
+    appAccountInfo.CheckOAuthTokenVisibility(STRING_AUTH_TYPE, STRING_BUNDLE_NAME_TWO, isVisible);
+    EXPECT_TRUE(isVisible);
+}
+
+/**
+ * @tc.name: AppAccountInfo_OAuthToken_0100
+ * @tc.desc: Get, set, delete oauth token.
+ * @tc.type: FUNC
+ * @tc.require: issueI4M8FW
+ */
+HWTEST_F(AppAccountInfoTest, AppAccountInfo_OAuthToken_0100, TestSize.Level1)
+{
+    ACCOUNT_LOGI("AppAccountInfo_GetOAuthToken_0100");
+    AppAccountInfo appAccountInfo;
+    std::string token;
+    ErrCode result = appAccountInfo.GetOAuthToken(STRING_AUTH_TYPE, token);
+    EXPECT_EQ(result, ERR_APPACCOUNT_SERVICE_OAUTH_TOKEN_NOT_EXIST);
+    token = STRING_TOKEN;
+    result = appAccountInfo.SetOAuthToken(STRING_AUTH_TYPE, token);
+    EXPECT_EQ(result, ERR_OK);
+    token = STRING_EMPTY;
+    result = appAccountInfo.GetOAuthToken(STRING_AUTH_TYPE, token);
+    EXPECT_EQ(token, STRING_TOKEN);
+    result = appAccountInfo.DeleteOAuthToken(STRING_AUTH_TYPE, token);
+    EXPECT_EQ(result, ERR_OK);
+    result = appAccountInfo.GetOAuthToken(STRING_AUTH_TYPE, token);
+    EXPECT_EQ(result, ERR_APPACCOUNT_SERVICE_OAUTH_TOKEN_NOT_EXIST);
+}
+
+/**
  * @tc.name: AppAccountInfo_Marshalling_0100
  * @tc.desc: Marshalling Unmarshalling with valid data.
  * @tc.type: FUNC
- * @tc.require: SR000GGVFQ
+ * @tc.require: issueI4M8FW
  */
 HWTEST_F(AppAccountInfoTest, AppAccountInfo_Marshalling_0100, TestSize.Level0)
 {
