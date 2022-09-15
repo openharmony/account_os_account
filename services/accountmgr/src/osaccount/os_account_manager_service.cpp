@@ -524,6 +524,20 @@ ErrCode OsAccountManagerService::DumpState(const int &id, std::vector<std::strin
     return DumpStateByAccounts(osAccountInfos, state);
 }
 
+ErrCode OsAccountManagerService::DumpOsAccountInfo(std::vector<std::string> &state)
+{
+    state.clear();
+
+    ErrCode result = ERR_OK;
+    std::vector<OsAccountInfo> osAccountInfos;
+    result = innerManager_->QueryAllCreatedOsAccounts(osAccountInfos);
+    if (result != ERR_OK) {
+        return result;
+    }
+
+    return DumpStateByAccounts(osAccountInfos, state);
+}
+
 ErrCode OsAccountManagerService::GetCreatedOsAccountNumFromDatabase(const std::string& storeID,
     int &createdOsAccountNum)
 {
