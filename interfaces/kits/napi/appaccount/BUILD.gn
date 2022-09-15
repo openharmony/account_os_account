@@ -58,23 +58,19 @@ ohos_shared_library("appaccount") {
 
   deps = [
     "${ability_runtime_napi_path}/inner/napi_common:napi_common",
-    "${common_path}:libaccount_common",
     "//foundation/arkui/napi/:ace_napi",
-    "//foundation/systemabilitymgr/samgr/interfaces/innerkits/samgr_proxy:samgr_proxy",
   ]
 
   relative_install_dir = "module/account"
 
   external_deps = [
     "ability_base:want",
-    "ability_runtime:ability_manager",
     "ability_runtime:abilitykit_native",
     "c_utils:utils",
     "hiviewdfx_hilog_native:libhilog",
     "ipc:ipc_core",
     "ipc_js:rpc",
     "os_account:app_account_innerkits",
-    "safwk:system_ability_fwk",
   ]
 
   subsystem_name = "account"

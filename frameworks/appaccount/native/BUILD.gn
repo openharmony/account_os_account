@@ -76,17 +76,13 @@ ohos_shared_library("app_account_innerkits") {
 
   use_exceptions = true
 
-  deps = [
-    "${common_path}:libaccount_common",
-    "${innerkits_native_path}:libaccountkits",
-  ]
+  deps = [ "${innerkits_native_path}:libaccountkits" ]
 
   external_deps = [
     "ability_base:want",
     "c_utils:utils",
     "hiviewdfx_hilog_native:libhilog",
     "ipc:ipc_core",
-    "safwk:system_ability_fwk",
     "samgr:samgr_proxy",
   ]
 

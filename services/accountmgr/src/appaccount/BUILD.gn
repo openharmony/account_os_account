@@ -66,10 +66,7 @@ ohos_shared_library("app_account_service_core") {
 
   public_configs = [ ":app_account_service_core_public_config" ]
 
-  deps = [
-    "${app_account_innerkits_native_path}:app_account_innerkits",
-    "${common_path}:libaccount_common",
-  ]
+  deps = [ "${app_account_innerkits_native_path}:app_account_innerkits" ]
 
   external_deps = [
     "ability_base:want",

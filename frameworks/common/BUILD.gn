@@ -20,14 +20,19 @@ group("common_target") {
 
 config("account_common_config") {
   include_dirs = [
-    "account_error/include",
-    "database/include",
     "file_operator/include",
     "log/include",
     "perf_stat/include",
     "//commonlibrary/c_utils/base/include",
     "//third_party/json/include",
     "${os_account_dfx_path}/hisysevent_adapter",
+  ]
+}
+
+config("account_common_all_dependent_configs") {
+  include_dirs = [
+    "database/include",
+    "account_error/include",
   ]
 }
 
@@ -58,6 +63,8 @@ ohos_shared_library("libaccount_common") {
     ":account_common_config",
     "//commonlibrary/c_utils/base:utils_config",
   ]
+
+  all_dependent_configs = [ ":account_common_all_dependent_configs" ]
 
   public_deps = [ "//commonlibrary/c_utils/base:utils" ]
 
