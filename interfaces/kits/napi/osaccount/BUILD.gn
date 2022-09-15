@@ -67,7 +67,6 @@ ohos_shared_library("osaccount") {
   ]
 
   deps = [
-    "${common_path}:libaccount_common",
     "${innerkits_native_path}:libaccountkits",
     "//foundation/arkui/napi/:ace_napi",
   ]
@@ -81,7 +80,6 @@ ohos_shared_library("osaccount") {
   external_deps = [
     "c_utils:utils",
     "hiviewdfx_hilog_native:libhilog",
-    "ipc:ipc_core",
     "os_account:os_account_innerkits",
   ]
 

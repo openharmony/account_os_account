@@ -53,14 +53,11 @@ ohos_source_set("tools_acm_source_set") {
     "-Wshadow",
   ]
 
-  deps = [
-    "${common_path}:libaccount_common",
-    "${os_account_core_path}:os_account_core",
-  ]
+  deps = [ "${os_account_core_path}:os_account_core" ]
 
   external_deps = [
+    "c_utils:utils",
     "hiviewdfx_hilog_native:libhilog",
-    "ipc:ipc_core",
   ]
   part_name = "os_account"
 }
