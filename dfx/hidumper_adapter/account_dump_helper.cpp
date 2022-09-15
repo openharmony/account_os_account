@@ -159,7 +159,7 @@ void AccountDumpHelper::ShowOsAccountInfo(std::string& result) const
     }
 
     std::vector<std::string> states;
-    ErrCode ret = osAccountMgrService_->DumpState(-1, states);  // -1 means query all
+    ErrCode ret = osAccountMgrService_->DumpOsAccountInfo(states);
     if (ret != ERR_OK) {
         result.append("Cannot query os account list, error code ");
         result.append(std::to_string(ret));

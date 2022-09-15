@@ -83,6 +83,7 @@ public:
     ErrCode SetCurrentOsAccountIsVerified(const bool isVerified) override;
     ErrCode SetOsAccountIsVerified(const int id, const bool isVerified) override;
     ErrCode DumpState(const int &id, std::vector<std::string> &state) override;
+    ErrCode DumpOsAccountInfo(std::vector<std::string> &state);
 
     void CreateBasicAccounts() override;
     ErrCode GetCreatedOsAccountNumFromDatabase(const std::string& storeID,
