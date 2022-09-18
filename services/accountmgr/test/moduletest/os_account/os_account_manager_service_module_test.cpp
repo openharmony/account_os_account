@@ -46,7 +46,15 @@ const std::vector<std::string> CONSTANTS_VECTOR {
     "constraint.screen.timeout.set",
     "constraint.share.into.profile"
 };
+const std::vector<std::string> CONSTANTS_VECTOR_TEST {
+    "constraint.wifi",
+};
+const std::string CONSTANT_PRINT = "constraint.print";
+const std::string CONSTANT_WIFI = "constraint.wifi";
 const std::string CONSTANTS_STRING_WIFI = "constraint.print";
+const std::vector<std::string> INVALID_CONSTRAINT = {
+    "invalid_constraint"
+};
 const std::string STRING_NAME_OUT_OF_RANGE =
     "name_out_of_range_"
     "1234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890"
@@ -147,6 +155,7 @@ const std::string STRING_DOMAIN_ACCOUNT_NAME_OUT_OF_RANGE =
 const std::string STRING_DOMAIN_VALID = "TestDomainMT";
 const std::string STRING_DOMAIN_ACCOUNT_NAME_VALID = "TestDomainAccountNameMT";
 const std::int32_t MAIN_ACCOUNT_ID = 100;
+const std::int32_t INVALID_ACCOUNT_ID = 200;
 }  // namespace
 
 class OsAccountManagerServiceModuleTest : public testing::Test {
@@ -1404,18 +1413,298 @@ HWTEST_F(OsAccountManagerServiceModuleTest, OsAccountManagerServiceModuleTest071
 
 /**
  * @tc.name: OsAccountManagerServiceModuleTest072
- * @tc.desc: Test QueryOsAccountConstraintSourceTypes.
+ * @tc.desc: Test QueryOsAccountConstraintSourceTypes normal case.
  * @tc.type: FUNC
  * @tc.require: 
  */
 HWTEST_F(OsAccountManagerServiceModuleTest, OsAccountManagerServiceModuleTest072, TestSize.Level1)
 {
     ACCOUNT_LOGI("OsAccountManagerServiceModuleTest072");
-    const std::string CONSTANT_WIFI = "constraint.wifi";
     std::vector<ConstraintSourceTypeInfo> constraintSourceTypeInfos;
-    EXPECT_EQ(osAccountManagerService_->
-        QueryOsAccountConstraintSourceTypes(100, CONSTANT_WIFI, constraintSourceTypeInfos), ERR_OK);
+    EXPECT_EQ(osAccountManagerService_->QueryOsAccountConstraintSourceTypes(
+        MAIN_ACCOUNT_ID, CONSTANT_WIFI, constraintSourceTypeInfos), ERR_OK);
     EXPECT_NE(constraintSourceTypeInfos.size(), 0);
+}
+
+/**
+ * @tc.name: OsAccountManagerServiceModuleTest073
+ * @tc.desc: Test DumpState normal case.
+ * @tc.type: FUNC
+ * @tc.require: 
+ */
+HWTEST_F(OsAccountManagerServiceModuleTest, OsAccountManagerServiceModuleTest073, TestSize.Level1)
+{
+    ACCOUNT_LOGI("OsAccountManagerServiceModuleTest073");
+    std::vector<std::string> state;
+    // id is -1, refers to query all accounts info
+    EXPECT_EQ(osAccountManagerService_->DumpState(-1, state), ERR_OK);
+    EXPECT_NE(state.size(), 0);
+
+    EXPECT_EQ(osAccountManagerService_->DumpState(MAIN_ACCOUNT_ID, state), ERR_OK);
+    EXPECT_NE(state.size(), 0);
+}
+
+/**
+ * @tc.name: OsAccountManagerServiceModuleTest074
+ * @tc.desc: Test DumpState with invalid local id.
+ * @tc.type: FUNC
+ * @tc.require: 
+ */
+HWTEST_F(OsAccountManagerServiceModuleTest, OsAccountManagerServiceModuleTest074, TestSize.Level1)
+{
+    ACCOUNT_LOGI("OsAccountManagerServiceModuleTest074");
+    std::vector<std::string> state;
+    
+    EXPECT_NE(osAccountManagerService_->DumpState(INVALID_ACCOUNT_ID, state), ERR_OK);
+}
+
+/**
+ * @tc.name: OsAccountManagerServiceModuleTest075
+ * @tc.desc: Test GetSerialNumberFromDatabase with invalid store id.
+ * @tc.type: FUNC
+ * @tc.require: 
+ */
+HWTEST_F(OsAccountManagerServiceModuleTest, OsAccountManagerServiceModuleTest075, TestSize.Level1)
+{
+    ACCOUNT_LOGI("OsAccountManagerServiceModuleTest075");
+    std::string storeID = "testStoreID";
+    int64_t serialNumber = -1;
+    EXPECT_NE(osAccountManagerService_->GetSerialNumberFromDatabase(storeID, serialNumber), ERR_OK);
+}
+
+/**
+ * @tc.name: OsAccountManagerServiceModuleTest076
+ * @tc.desc: Test GetSerialNumberFromDatabase normal case.
+ * @tc.type: FUNC
+ * @tc.require: 
+ */
+HWTEST_F(OsAccountManagerServiceModuleTest, OsAccountManagerServiceModuleTest076, TestSize.Level1)
+{
+    ACCOUNT_LOGI("OsAccountManagerServiceModuleTest076");
+    std::string storeID = "";
+    int64_t serialNumber = -1;
+    EXPECT_EQ(osAccountManagerService_->GetSerialNumberFromDatabase(storeID, serialNumber), ERR_OK);
+    EXPECT_NE(serialNumber, -1);
+}
+
+/**
+ * @tc.name: OsAccountManagerServiceModuleTest077
+ * @tc.desc: Test GetMaxAllowCreateIdFromDatabase with invalid store id.
+ * @tc.type: FUNC
+ * @tc.require: 
+ */
+HWTEST_F(OsAccountManagerServiceModuleTest, OsAccountManagerServiceModuleTest077, TestSize.Level1)
+{
+    ACCOUNT_LOGI("OsAccountManagerServiceModuleTest077");
+    std::string storeID = "testStoreID";
+    int id = -1;
+    EXPECT_NE(osAccountManagerService_->GetMaxAllowCreateIdFromDatabase(storeID, id), ERR_OK);
+}
+
+/**
+ * @tc.name: OsAccountManagerServiceModuleTest078
+ * @tc.desc: Test GetMaxAllowCreateIdFromDatabase normal case.
+ * @tc.type: FUNC
+ * @tc.require: 
+ */
+HWTEST_F(OsAccountManagerServiceModuleTest, OsAccountManagerServiceModuleTest078, TestSize.Level1)
+{
+    ACCOUNT_LOGI("OsAccountManagerServiceModuleTest078");
+    std::string storeID = "";
+    int id = 0;
+    EXPECT_EQ(osAccountManagerService_->GetMaxAllowCreateIdFromDatabase(storeID, id), ERR_OK);
+    EXPECT_NE(id, 0);
+}
+
+/**
+ * @tc.name: OsAccountManagerServiceModuleTest079
+ * @tc.desc: Test GetOsAccountFromDatabase with invalid local id.
+ * @tc.type: FUNC
+ * @tc.require: 
+ */
+HWTEST_F(OsAccountManagerServiceModuleTest, OsAccountManagerServiceModuleTest079, TestSize.Level1)
+{
+    ACCOUNT_LOGI("OsAccountManagerServiceModuleTest079");
+    std::string storeID = "";
+    int invalidLocalID = -1;
+    OsAccountInfo osAccountInfo;
+    EXPECT_NE(osAccountManagerService_->GetOsAccountFromDatabase(storeID, invalidLocalID, osAccountInfo), ERR_OK);
+}
+
+/**
+ * @tc.name: OsAccountManagerServiceModuleTest080
+ * @tc.desc: Test GetOsAccountFromDatabase with invalid store id.
+ * @tc.type: FUNC
+ * @tc.require: 
+ */
+HWTEST_F(OsAccountManagerServiceModuleTest, OsAccountManagerServiceModuleTest080, TestSize.Level1)
+{
+    ACCOUNT_LOGI("OsAccountManagerServiceModuleTest080");
+    std::string storeID = "testStoreID";
+    OsAccountInfo osAccountInfo;
+    EXPECT_NE(osAccountManagerService_->GetOsAccountFromDatabase(storeID, MAIN_ACCOUNT_ID, osAccountInfo), ERR_OK);
+}
+
+/**
+ * @tc.name: OsAccountManagerServiceModuleTest081
+ * @tc.desc: Test GetOsAccountFromDatabase normal case.
+ * @tc.type: FUNC
+ * @tc.require: 
+ */
+HWTEST_F(OsAccountManagerServiceModuleTest, OsAccountManagerServiceModuleTest081, TestSize.Level1)
+{
+    ACCOUNT_LOGI("OsAccountManagerServiceModuleTest081");
+    std::string storeID = "";
+    OsAccountInfo osAccountInfo;
+    EXPECT_EQ(osAccountManagerService_->GetOsAccountFromDatabase(storeID, MAIN_ACCOUNT_ID, osAccountInfo), ERR_OK);
+    EXPECT_EQ(osAccountInfo.GetLocalId(), MAIN_ACCOUNT_ID);
+}
+
+/**
+ * @tc.name: OsAccountManagerServiceModuleTest082
+ * @tc.desc: Test GetOsAccountListFromDatabase normal case.
+ * @tc.type: FUNC
+ * @tc.require: 
+ */
+HWTEST_F(OsAccountManagerServiceModuleTest, OsAccountManagerServiceModuleTest082, TestSize.Level1)
+{
+    ACCOUNT_LOGI("OsAccountManagerServiceModuleTest082");
+    std::string storeID = "";
+    std::vector<OsAccountInfo> osAccountList;
+    EXPECT_EQ(osAccountManagerService_->GetOsAccountListFromDatabase(storeID, osAccountList), ERR_OK);
+    EXPECT_NE(osAccountList.size(), 0);
+}
+
+/**
+ * @tc.name: OsAccountManagerServiceModuleTest083
+ * @tc.desc: Test GetOsAccountListFromDatabase with invalid store id.
+ * @tc.type: FUNC
+ * @tc.require: 
+ */
+HWTEST_F(OsAccountManagerServiceModuleTest, OsAccountManagerServiceModuleTest083, TestSize.Level1)
+{
+    ACCOUNT_LOGI("OsAccountManagerServiceModuleTest083");
+    std::string storeID = "testStoreID";
+    std::vector<OsAccountInfo> osAccountList;
+    EXPECT_EQ(osAccountManagerService_->GetOsAccountListFromDatabase(storeID, osAccountList), ERR_OK);
+    EXPECT_EQ(osAccountList.size(), 0);
+}
+
+/**
+ * @tc.name: OsAccountManagerServiceModuleTest084
+ * @tc.desc: Test SetGlobalOsAccountConstraints normal case.
+ * @tc.type: FUNC
+ * @tc.require: 
+ */
+HWTEST_F(OsAccountManagerServiceModuleTest, OsAccountManagerServiceModuleTest084, TestSize.Level1)
+{
+    ACCOUNT_LOGI("OsAccountManagerServiceModuleTest084");
+
+    bool isConstraintEnable = false;
+    EXPECT_EQ(osAccountManagerService_->IsOsAccountConstraintEnable(
+        MAIN_ACCOUNT_ID, CONSTANT_PRINT, isConstraintEnable), ERR_OK);
+    EXPECT_EQ(isConstraintEnable, false);
+    EXPECT_EQ(osAccountManagerService_->SetGlobalOsAccountConstraints(
+        CONSTANTS_VECTOR, true, MAIN_ACCOUNT_ID , true), ERR_OK);
+    EXPECT_EQ(osAccountManagerService_->IsOsAccountConstraintEnable(
+        MAIN_ACCOUNT_ID, CONSTANT_PRINT, isConstraintEnable), ERR_OK);
+    EXPECT_EQ(isConstraintEnable, true);
+    EXPECT_EQ(osAccountManagerService_->SetGlobalOsAccountConstraints(
+        CONSTANTS_VECTOR, false, MAIN_ACCOUNT_ID , true), ERR_OK);
+    EXPECT_EQ(osAccountManagerService_->IsOsAccountConstraintEnable(
+        MAIN_ACCOUNT_ID, CONSTANT_PRINT, isConstraintEnable), ERR_OK);
+    EXPECT_EQ(isConstraintEnable, false);
+}
+
+/**
+ * @tc.name: OsAccountManagerServiceModuleTest085
+ * @tc.desc: Test SetGlobalOsAccountConstraints exception case.
+ * @tc.type: FUNC
+ * @tc.require: 
+ */
+HWTEST_F(OsAccountManagerServiceModuleTest, OsAccountManagerServiceModuleTest085, TestSize.Level1)
+{
+    ACCOUNT_LOGI("OsAccountManagerServiceModuleTest073");
+    bool isConstraintEnable = false;
+    // test invalid id
+    EXPECT_NE(osAccountManagerService_->IsOsAccountConstraintEnable(
+        INVALID_ACCOUNT_ID, CONSTANT_WIFI, isConstraintEnable), ERR_OK);
+    // set exit constraints
+    EXPECT_EQ(osAccountManagerService_->SetGlobalOsAccountConstraints(
+        CONSTANTS_VECTOR_TEST, true, MAIN_ACCOUNT_ID , true), ERR_OK);
+    // test invalid enforcer id
+    EXPECT_NE(osAccountManagerService_->SetGlobalOsAccountConstraints(
+        CONSTANTS_VECTOR, true, INVALID_ACCOUNT_ID , true), ERR_OK);
+    // remove not exit constraints
+    EXPECT_EQ(osAccountManagerService_->SetGlobalOsAccountConstraints(
+        CONSTANTS_VECTOR, false, MAIN_ACCOUNT_ID , true), ERR_OK);
+    // add invalid constraints
+    EXPECT_NE(osAccountManagerService_->SetGlobalOsAccountConstraints(
+        INVALID_CONSTRAINT, true, MAIN_ACCOUNT_ID , true), ERR_OK);
+}
+
+/**
+ * @tc.name: OsAccountManagerServiceModuleTest086
+ * @tc.desc: Test SetSpecificOsAccountConstraints normal case.
+ * @tc.type: FUNC
+ * @tc.require: 
+ */
+HWTEST_F(OsAccountManagerServiceModuleTest, OsAccountManagerServiceModuleTest086, TestSize.Level1)
+{
+    ACCOUNT_LOGI("OsAccountManagerServiceModuleTest073");
+    OsAccountInfo osAccountInfo;
+    ErrCode errCode = 
+        osAccountManagerService_->CreateOsAccount(STRING_TEST_NAME, INT_TEST_TYPE, osAccountInfo);
+    EXPECT_EQ(errCode, ERR_OK);
+    bool isConstraintEnable = false;
+    EXPECT_EQ(osAccountManagerService_->IsOsAccountConstraintEnable(
+        MAIN_ACCOUNT_ID, CONSTANT_PRINT, isConstraintEnable), ERR_OK);
+    EXPECT_EQ(isConstraintEnable, false);
+    EXPECT_EQ(osAccountManagerService_->SetSpecificOsAccountConstraints(
+        CONSTANTS_VECTOR, true, osAccountInfo.GetLocalId(), MAIN_ACCOUNT_ID, false), ERR_OK);
+
+    EXPECT_EQ(osAccountManagerService_->IsOsAccountConstraintEnable(
+        osAccountInfo.GetLocalId(), CONSTANT_PRINT, isConstraintEnable), ERR_OK);
+    EXPECT_EQ(isConstraintEnable, true);
+
+    EXPECT_EQ(osAccountManagerService_->SetSpecificOsAccountConstraints(
+        CONSTANTS_VECTOR, false, osAccountInfo.GetLocalId(), MAIN_ACCOUNT_ID, false), ERR_OK);
+    EXPECT_EQ(osAccountManagerService_->IsOsAccountConstraintEnable(
+        MAIN_ACCOUNT_ID, CONSTANT_PRINT, isConstraintEnable), ERR_OK);
+    EXPECT_EQ(isConstraintEnable, false);
+
+    EXPECT_EQ(osAccountManagerService_->RemoveOsAccount(osAccountInfo.GetLocalId()), ERR_OK);
+}
+
+/**
+ * @tc.name: OsAccountManagerServiceModuleTest087
+ * @tc.desc: Test SetSpecificOsAccountConstraints exception case.
+ * @tc.type: FUNC
+ * @tc.require: 
+ */
+HWTEST_F(OsAccountManagerServiceModuleTest, OsAccountManagerServiceModuleTest087, TestSize.Level1)
+{
+    ACCOUNT_LOGI("OsAccountManagerServiceModuleTest087");
+    // test invalid target id
+    EXPECT_NE(osAccountManagerService_->SetSpecificOsAccountConstraints(
+        CONSTANTS_VECTOR, true, INVALID_ACCOUNT_ID, MAIN_ACCOUNT_ID, false), ERR_OK);
+    // test invalid enforcer id
+    EXPECT_NE(osAccountManagerService_->SetSpecificOsAccountConstraints(
+        CONSTANTS_VECTOR, true, MAIN_ACCOUNT_ID, INVALID_ACCOUNT_ID, false), ERR_OK);
+    // set exit constraints
+    OsAccountInfo osAccountInfo;
+    ErrCode errCode = osAccountManagerService_->CreateOsAccount(STRING_TEST_NAME, INT_TEST_TYPE, osAccountInfo);
+    EXPECT_EQ(errCode, ERR_OK);
+    EXPECT_EQ(osAccountManagerService_->SetSpecificOsAccountConstraints(
+        CONSTANTS_VECTOR_TEST, true, MAIN_ACCOUNT_ID, osAccountInfo.GetLocalId(), true), ERR_OK);
+    // add invalid constraints
+    EXPECT_NE(osAccountManagerService_->SetSpecificOsAccountConstraints(
+        INVALID_CONSTRAINT, true, MAIN_ACCOUNT_ID, osAccountInfo.GetLocalId(), false), ERR_OK);
+    // remove not exit constraints
+    EXPECT_EQ(osAccountManagerService_->SetSpecificOsAccountConstraints(
+        CONSTANTS_VECTOR, false, osAccountInfo.GetLocalId(), MAIN_ACCOUNT_ID, false), ERR_OK);
+
+    EXPECT_EQ(osAccountManagerService_->RemoveOsAccount(osAccountInfo.GetLocalId()), ERR_OK);
 }
 }  // namespace AccountSA
 }  // namespace OHOS
