@@ -1942,3 +1942,36 @@ HWTEST_F(OsAccountManagerModuleTest, OsAccountManagerModuleTest095, TestSize.Lev
     int modResult = 1;
     EXPECT_EQ(OsAccountManager::GetOsAccountSwitchMod(), modResult);
 }
+
+/**
+ * @tc.name: OsAccountManagerModuleTest096
+ * @tc.desc: test create domain account and query its osaccount info.
+ * @tc.type: FUNC
+ * @tc.require: issueI4IU3V
+ */
+HWTEST_F(OsAccountManagerModuleTest, OsAccountManagerModuleTest096, TestSize.Level1)
+{
+    ACCOUNT_LOGI("OsAccountManagerModuleTest096");
+    // create
+    std::string TEST_DOMAIN_NAME = "test_domain_name";
+    std::string TEST_DOMAIN = "test_domain";
+    DomainAccountInfo domainInfo(TEST_DOMAIN_NAME, TEST_DOMAIN);
+    OsAccountType type = NORMAL;
+    OsAccountInfo osAccountInfo;
+    ErrCode ret = OsAccountManager::CreateOsAccountForDomain(type, domainInfo, osAccountInfo);
+    EXPECT_EQ(ret, ERR_OK);
+
+    // get os account local id by domain
+    int resID = -1;
+    ret = OsAccountManager::GetOsAccountLocalIdFromDomain(domainInfo, resID);
+    EXPECT_EQ(ret, ERR_OK);
+    EXPECT_EQ(resID, osAccountInfo.GetLocalId());
+
+    // remove
+    ret = OsAccountManager::RemoveOsAccount(osAccountInfo.GetLocalId());
+    EXPECT_EQ(ret, ERR_OK);
+
+    // cannot query
+    ret = OsAccountManager::GetOsAccountLocalIdFromDomain(domainInfo, resID);
+    EXPECT_NE(ret, ERR_OK);
+}
