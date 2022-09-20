@@ -67,7 +67,8 @@ enum IAMState {
     DURING_DEL_USER,
 };
 
-struct CredentialPair {
+struct CredentialItem {
+    int32_t type = 0;
     std::vector<uint8_t> oldCredential;
     std::vector<uint8_t> credential;
 };

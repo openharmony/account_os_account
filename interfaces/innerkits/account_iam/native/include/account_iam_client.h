@@ -56,9 +56,9 @@ public:
     IAMState GetAccountState(int32_t userId);
     void SetAuthSubType(int32_t userId, int32_t authSubType);
     int32_t GetAuthSubType(int32_t userId);
-    void SetCredential(int32_t userId, int32_t authSubType, const std::vector<uint8_t> &credential);
-    void GetCredential(int32_t userId, int32_t authSubType, CredentialPair &credPair);
-    void ClearCredential(int32_t userId, int32_t authSubType);
+    void SetCredential(int32_t userId, const std::vector<uint8_t> &credential);
+    void GetCredential(int32_t userId, CredentialItem &credItem);
+    void ClearCredential(int32_t userId);
 
 private:
     class AccountIAMDeathRecipient : public IRemoteObject::DeathRecipient {
@@ -72,13 +72,13 @@ private:
     };
     ErrCode GetAccountIAMProxy();
     void ResetAccountIAMProxy(const wptr<IRemoteObject>& remote);
+    bool GetCurrentUserId(int32_t &userId);
 
 private:
     std::mutex mutex_;
     sptr<IAccountIAM> proxy_ = nullptr;
     sptr<AccountIAMDeathRecipient> deathRecipient_ = nullptr;
-    std::map<std::string, CredentialPair> credentialMap_;
-    std::map<int32_t, int32_t> authSubTypeMap_;
+    std::map<int32_t, CredentialItem> credentialMap_;
 };
 }  // namespace AccountSA
 }  // namespace OHOS
