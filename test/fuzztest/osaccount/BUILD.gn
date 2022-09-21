@@ -25,9 +25,12 @@ group("fuzztest") {
     "getosaccountlistfromdatabase_fuzzer:GetOsAccountListFromDatabaseFuzzTest",
     "getosaccountlocalidbyserialnumber_fuzzer:GetOsAccountLocalIdBySerialNumberFuzzTest",
     "getosaccountlocalidfromdomain_fuzzer:GetOsAccountLocalIdFromDomainFuzzTest",
+    "getserialnumberfromdatabase_fuzzer:GetSerialNumberFromDatabaseFuzzTest",
     "isosaccountconstraintenable_fuzzer:IsOsAccountConstraintEnableFuzzTest",
+    "setglobalosaccountconstraints_fuzzer:SetGlobalOsAccountConstraintsFuzzTest",
     "setosaccountconstraints_fuzzer:SetOsAccountConstraintsFuzzTest",
     "setosaccountname_fuzzer:SetOsAccountNameFuzzTest",
     "setosaccountprofilephoto_fuzzer:SetOsAccountProfilePhotoFuzzTest",
+    "setspecificosaccountconstraints_fuzzer:SetSpecificOsAccountConstraintsFuzzTest",
   ]
 }
