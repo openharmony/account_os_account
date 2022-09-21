@@ -71,6 +71,8 @@ public:
     ErrCode RestoreUserKey(int32_t userId, uint64_t credentialId, const std::vector<uint8_t> &token);
 
 private:
+    ErrCode UpdateStorageKey(int32_t userId, const std::vector<uint8_t> &token,
+        const std::vector<uint8_t> &oldSecret, const std::vector<uint8_t> &newSecret);
     ErrCode GetStorageManagerProxy();
 
 private:
