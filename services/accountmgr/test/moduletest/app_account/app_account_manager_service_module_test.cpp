@@ -114,17 +114,13 @@ void AppAccountManagerServiceModuleTest::ClearDataStorage()
     auto dataStoragePtr = g_controlManagerPtr->GetDataStorage(UID);
     std::map<std::string, std::shared_ptr<IAccountInfo>> accounts;
     ErrCode result = dataStoragePtr->LoadAllData(accounts);
-    GTEST_LOG_(INFO) << "LoadAllData result!" << result;
     if (!accounts.empty()) {
-        GTEST_LOG_(INFO) << "LoadAllData accounts.size =" << accounts.size();
         for (auto accountPtr : accounts) {
-            GTEST_LOG_(INFO) << "RemoveValueFromKvStore result: " << result;
             result = dataStoragePtr->RemoveValueFromKvStore(accountPtr.first);
-            GTEST_LOG_(INFO) << "AccountInfo truely key: " << accountPtr.first << "remove result:" << result;
         }
     }
     result = dataStoragePtr->LoadAllData(accounts);
-    GTEST_LOG_(INFO) << "LoadAllData end accounts.size =" << accounts.size();
+    GTEST_LOG_(INFO) << "AppAccountManagerServiceModuleTest ClearDataStorage end, accounts.size =" << accounts.size();
 }
 
 void AppAccountManagerServiceModuleTest::SetUpTestCase(void)

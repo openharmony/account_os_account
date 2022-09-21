@@ -162,11 +162,11 @@ void AccountIAMMgrProxy::DelCred(
         return;
     }
     if (!data.WriteUInt8Vector(authToken)) {
-        ACCOUNT_LOGD("failed to write token");
+        ACCOUNT_LOGD("failed to write token for DelCred");
         return;
     }
     if (!data.WriteRemoteObject(callback->AsObject())) {
-        ACCOUNT_LOGD("failed to write callback");
+        ACCOUNT_LOGD("failed to write callback for DelCred");
         return;
     }
     MessageParcel reply;
@@ -185,11 +185,11 @@ void AccountIAMMgrProxy::DelUser(
         return;
     }
     if (!data.WriteUInt8Vector(authToken)) {
-        ACCOUNT_LOGD("failed to write token");
+        ACCOUNT_LOGD("failed to write token for DelUser");
         return;
     }
     if (!data.WriteRemoteObject(callback->AsObject())) {
-        ACCOUNT_LOGD("failed to write callback");
+        ACCOUNT_LOGD("failed to write callback for DelUser");
         return;
     }
     MessageParcel reply;
@@ -317,7 +317,7 @@ void AccountIAMMgrProxy::GetProperty(
         return;
     }
     if (!data.WriteInt32(request.authType)) {
-        ACCOUNT_LOGD("failed to write authType");
+        ACCOUNT_LOGD("failed to write authType for GetProperty");
         return;
     }
     std::vector<uint32_t> attrKeys;
@@ -348,7 +348,7 @@ void AccountIAMMgrProxy::SetProperty(
         return;
     }
     if (!data.WriteInt32(request.authType)) {
-        ACCOUNT_LOGD("failed to write authType");
+        ACCOUNT_LOGD("failed to write authType for SetProperty");
         return;
     }
     auto buffer = request.attrs.Serialize();

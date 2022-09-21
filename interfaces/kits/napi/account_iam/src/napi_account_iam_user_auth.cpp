@@ -25,7 +25,6 @@ using namespace OHOS::AccountSA;
 
 napi_value NapiAccountIAMUserAuth::Init(napi_env env, napi_value exports)
 {
-    ACCOUNT_LOGD("enter");
     napi_value cons;
     napi_property_descriptor clzDes[] = {
         DECLARE_NAPI_FUNCTION("getVersion", GetVersion),
@@ -44,7 +43,6 @@ napi_value NapiAccountIAMUserAuth::Init(napi_env env, napi_value exports)
 
 napi_value NapiAccountIAMUserAuth::JsConstructor(napi_env env, napi_callback_info info)
 {
-    ACCOUNT_LOGD("enter");
     napi_value thisVar = nullptr;
     NAPI_CALL(env, napi_get_cb_info(env, info, nullptr, nullptr, &thisVar, nullptr));
     return thisVar;
@@ -52,7 +50,6 @@ napi_value NapiAccountIAMUserAuth::JsConstructor(napi_env env, napi_callback_inf
 
 napi_value NapiAccountIAMUserAuth::GetVersion(napi_env env, napi_callback_info info)
 {
-    ACCOUNT_LOGD("enter");
     int32_t result = 0;
     napi_value version = 0;
     NAPI_CALL(env, napi_create_int32(env, result, &version));
@@ -61,7 +58,6 @@ napi_value NapiAccountIAMUserAuth::GetVersion(napi_env env, napi_callback_info i
 
 napi_value NapiAccountIAMUserAuth::GetAvailableStatus(napi_env env, napi_callback_info info)
 {
-    ACCOUNT_LOGD("enter");
     napi_value result = nullptr;
     napi_create_int32(env, ResultCode::INVALID_PARAMETERS, &result);
     size_t argc = ARG_SIZE_TWO;
@@ -90,10 +86,9 @@ napi_value NapiAccountIAMUserAuth::GetAvailableStatus(napi_env env, napi_callbac
     return result;
 }
 
-static napi_status ParseContextForGetProperty(
-    napi_env env, napi_callback_info info, GetPropertyContext *context, napi_value *result)
+static napi_status ParseContextForGetSetProperty(
+    napi_env env, napi_callback_info info, IAMAsyncContext *context, napi_value *result, bool isGet = true)
 {
-    ACCOUNT_LOGD("enter");
     size_t argc = ARG_SIZE_TWO;
     napi_value argv[ARG_SIZE_TWO] = {0};
     NAPI_CALL_BASE(env, napi_get_cb_info(env, info, &argc, argv, nullptr, nullptr), napi_generic_failure);
@@ -101,7 +96,11 @@ static napi_status ParseContextForGetProperty(
         ACCOUNT_LOGD("expect at least 1 parameter, but got zero");
         return napi_generic_failure;
     }
-    ParseGetPropRequest(env, argv[PARAM_ZERO], context->request);
+    if (isGet) {
+        ParseGetPropRequest(env, argv[PARAM_ZERO], reinterpret_cast<GetPropertyContext *>(context)->request);
+    } else {
+        ParseSetPropRequest(env, argv[PARAM_ZERO], reinterpret_cast<SetPropertyContext *>(context)->request);
+    }
     napi_valuetype valueType = napi_undefined;
     if (argc == ARG_SIZE_TWO) {
         NAPI_CALL_BASE(env, napi_typeof(env, argv[PARAM_ONE], &valueType), napi_generic_failure);
@@ -117,7 +116,6 @@ static napi_status ParseContextForGetProperty(
 
 napi_value NapiAccountIAMUserAuth::GetProperty(napi_env env, napi_callback_info info)
 {
-    ACCOUNT_LOGD("enter");
     napi_value result = nullptr;
     GetPropertyContext *context = new (std::nothrow) GetPropertyContext(env);
     if (context == nullptr) {
@@ -125,7 +123,7 @@ napi_value NapiAccountIAMUserAuth::GetProperty(napi_env env, napi_callback_info 
         return result;
     }
     std::unique_ptr<GetPropertyContext> contextPtr(context);
-    NAPI_CALL(env, ParseContextForGetProperty(env, info, context, &result));
+    NAPI_CALL(env, ParseContextForGetSetProperty(env, info, context, &result));
     napi_value resourceName = nullptr;
     NAPI_CALL(env, napi_create_string_utf8(env, "GetProperty", NAPI_AUTO_LENGTH, &resourceName));
     NAPI_CALL(env, napi_create_async_work(env, nullptr, resourceName,
@@ -145,34 +143,8 @@ napi_value NapiAccountIAMUserAuth::GetProperty(napi_env env, napi_callback_info 
     return result;
 }
 
-static napi_status ParseContextForSetProperty(
-    napi_env env, napi_callback_info info, SetPropertyContext *context, napi_value *result)
-{
-    ACCOUNT_LOGD("enter");
-    size_t argc = ARG_SIZE_TWO;
-    napi_value argv[ARG_SIZE_TWO] = {0};
-    NAPI_CALL_BASE(env, napi_get_cb_info(env, info, &argc, argv, nullptr, nullptr), napi_generic_failure);
-    if (argc < ARG_SIZE_ONE) {
-        ACCOUNT_LOGD("expect at least 1 parameter, but got zero");
-        return napi_generic_failure;
-    }
-    ParseSetPropRequest(env, argv[PARAM_ZERO], context->request);
-    napi_valuetype valueType = napi_undefined;
-    if (argc == ARG_SIZE_TWO) {
-        NAPI_CALL_BASE(env, napi_typeof(env, argv[PARAM_ONE], &valueType), napi_generic_failure);
-    }
-    if (valueType == napi_function) {
-        NAPI_CALL_BASE(env,
-            napi_create_reference(env, argv[PARAM_ONE], 1, &context->callbackRef), napi_generic_failure);
-    } else {
-        NAPI_CALL_BASE(env, napi_create_promise(env, &context->deferred, result), napi_generic_failure);
-    }
-    return napi_ok;
-}
-
 napi_value NapiAccountIAMUserAuth::SetProperty(napi_env env, napi_callback_info info)
 {
-    ACCOUNT_LOGD("enter");
     napi_value result = nullptr;
     SetPropertyContext *context = new (std::nothrow) SetPropertyContext(env);
     if (context == nullptr) {
@@ -180,7 +152,7 @@ napi_value NapiAccountIAMUserAuth::SetProperty(napi_env env, napi_callback_info 
         return result;
     }
     std::unique_ptr<SetPropertyContext> contextPtr(context);
-    NAPI_CALL(env, ParseContextForSetProperty(env, info, context, &result));
+    NAPI_CALL(env, ParseContextForGetSetProperty(env, info, context, &result, false));
     napi_value resourceName = nullptr;
     NAPI_CALL(env, napi_create_string_utf8(env, "SetProperty", NAPI_AUTO_LENGTH, &resourceName));
     NAPI_CALL(env, napi_create_async_work(env, nullptr, resourceName,
@@ -203,7 +175,6 @@ napi_value NapiAccountIAMUserAuth::SetProperty(napi_env env, napi_callback_info 
 static napi_status ParseContextForAuth(
     napi_env env, napi_callback_info info, AuthContext &context, bool needUser = false)
 {
-    ACCOUNT_LOGD("enter");
     size_t expectedSize = needUser ? ARG_SIZE_FIVE : ARG_SIZE_FOUR;
     size_t argc = ARG_SIZE_FIVE;
     napi_value argv[ARG_SIZE_FIVE] = {0};
@@ -233,7 +204,6 @@ static napi_status ParseContextForAuth(
 
 napi_value NapiAccountIAMUserAuth::Auth(napi_env env, napi_callback_info info)
 {
-    ACCOUNT_LOGD("enter");
     AuthContext context;
     NAPI_CALL(env, ParseContextForAuth(env, info, context));
     uint64_t contextId = AccountIAMClient::GetInstance().Auth(context.challenge,
@@ -243,7 +213,6 @@ napi_value NapiAccountIAMUserAuth::Auth(napi_env env, napi_callback_info info)
 
 napi_value NapiAccountIAMUserAuth::AuthUser(napi_env env, napi_callback_info info)
 {
-    ACCOUNT_LOGD("enter");
     AuthContext context;
     NAPI_CALL(env, ParseContextForAuth(env, info, context, true));
     uint64_t contextId;
@@ -254,7 +223,6 @@ napi_value NapiAccountIAMUserAuth::AuthUser(napi_env env, napi_callback_info inf
 
 napi_value NapiAccountIAMUserAuth::CancelAuth(napi_env env, napi_callback_info info)
 {
-    ACCOUNT_LOGD("enter");
     size_t argc = ARG_SIZE_ONE;
     napi_value argv[ARG_SIZE_ONE] = {0};
     napi_get_cb_info(env, info, &argc, argv, nullptr, nullptr);

@@ -54,16 +54,14 @@ void AppAccountEventProxy::OnAccountsChanged(const std::vector<AppAccountInfo> &
 
 ErrCode AppAccountEventProxy::SendRequest(IAppAccountEvent::Message code, MessageParcel &data, MessageParcel &reply)
 {
-    ACCOUNT_LOGD("enter");
-
-    sptr<IRemoteObject> remote = Remote();
-    if (remote == nullptr) {
+    sptr<IRemoteObject> remoteEvent = Remote();
+    if (remoteEvent == nullptr) {
         ACCOUNT_LOGE("remote is nullptr, code = %{public}d", code);
         return ERR_APPACCOUNT_KIT_REMOTE_IS_NULLPTR;
     }
 
     MessageOption option(MessageOption::TF_SYNC);
-    int32_t result = remote->SendRequest(static_cast<uint32_t>(code), data, reply, option);
+    int32_t result = remoteEvent->SendRequest(static_cast<uint32_t>(code), data, reply, option);
     if (result != ERR_OK) {
         ACCOUNT_LOGE("failed to SendRequest, code = %{public}d, result = %{public}d", code, result);
         return ERR_APPACCOUNT_KIT_SEND_REQUEST;
