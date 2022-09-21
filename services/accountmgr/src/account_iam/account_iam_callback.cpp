@@ -173,8 +173,6 @@ void UpdateCredCallback::OnResult(int32_t result, const Attributes &extraInfo)
     if (state == ROLL_BACK_UPDATE_CRED) {
         if (result != 0) {
             ACCOUNT_LOGE("roll back credential failed");
-        } else {
-            ACCOUNT_LOGD("roll back credential successfully");
         }
         InnerAccountIAMManager::GetInstance().SetState(userId_, AFTER_OPEN_SESSION);
         Attributes errResult;
@@ -219,8 +217,6 @@ void DelCredCallback::OnResult(int32_t result, const Attributes &extraInfo)
     if (state == ROLL_BACK_ADD_CRED) {
         if (result != 0) {
             ACCOUNT_LOGE("roll back credential failed");
-        } else {
-            ACCOUNT_LOGD("roll back credential successfully");
         }
         InnerAccountIAMManager::GetInstance().SetState(userId_, AFTER_OPEN_SESSION);
         Attributes errResult;
