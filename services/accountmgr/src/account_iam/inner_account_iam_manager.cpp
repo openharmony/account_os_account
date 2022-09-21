@@ -94,16 +94,16 @@ void InnerAccountIAMManager::DelCred(
         ACCOUNT_LOGD("callback is nullptr");
         return;
     }
-    Attributes errResult;
+    Attributes emptyResult;
     if (authToken.empty()) {
         ACCOUNT_LOGD("token is empty");
-        callback->OnResult(ResultCode::INVALID_PARAMETERS, errResult);
+        callback->OnResult(ResultCode::INVALID_PARAMETERS, emptyResult);
         return;
     }
     std::vector<uint8_t> secret;
     ErrCode result = UpdateUserKey(userId, credentialId, authToken, secret);
     if (result != ERR_OK) {
-        callback->OnResult(result, errResult);
+        callback->OnResult(result, emptyResult);
         return;
     }
     auto idmCallback = std::make_shared<DelCredCallback>(userId, credentialId, authToken, callback);
@@ -208,6 +208,26 @@ void InnerAccountIAMManager::GetChallenge(int32_t userId, std::vector<uint8_t> &
     }
 }
 
+ErrCode InnerAccountIAMManager::UpdateStorageKey(int32_t userId, const std::vector<uint8_t> &token,
+    const std::vector<uint8_t> &oldSecret, const std::vector<uint8_t> &newSecret)
+{
+#ifdef HAS_STORAGE_PART
+    ErrCode result = GetStorageManagerProxy();
+    if (result != ERR_OK) {
+        ACCOUNT_LOGE("fail to get storage proxy");
+        return result;
+    }
+    result = storageMgrProxy_->UpdateUserAuth(userId, token, oldSecret, newSecret);
+    if ((result != ERR_OK) && (result != ERROR_STORAGE_KEY_NOT_EXIST)) {
+        ACCOUNT_LOGE("fail to update user auth");
+        return result;
+    }
+    return storageMgrProxy_->UpdateKeyContext(userId);
+#elif
+    return ERR_OK;
+#endif
+}
+
 ErrCode InnerAccountIAMManager::ActivateUserKey(
     int32_t userId, const std::vector<uint8_t> &token, const std::vector<uint8_t> &secret)
 {
@@ -250,19 +270,10 @@ ErrCode InnerAccountIAMManager::UpdateUserKey(int32_t userId, uint64_t credentia
         ACCOUNT_LOGD("the key do not need to be removed");
         return ERR_OK;
     }
-#ifdef HAS_STORAGE_PART
-    result = GetStorageManagerProxy();
+    result = UpdateStorageKey(userId, token, oldCredInfo.secret, newSecret);
     if (result != ERR_OK) {
-        ACCOUNT_LOGD("fail to get storage proxy");
         return result;
     }
-    result = storageMgrProxy_->UpdateUserAuth(userId, token, oldCredInfo.secret, newSecret);
-    if (result != ERR_OK && result != ERROR_STORAGE_KEY_NOT_EXIST) {
-        ACCOUNT_LOGD("fail to update user auth");
-        return result;
-    }
-    result = storageMgrProxy_->UpdateKeyContext(userId);
-#endif
     credInfoMap_[userId] = {
         .credentialId = credentialId,
         .oldSecret = oldCredInfo.secret,
@@ -281,19 +292,10 @@ ErrCode InnerAccountIAMManager::RemoveUserKey(int32_t userId, const std::vector<
     }
     AccountCredentialInfo oldCredInfo = it->second;
     std::vector<uint8_t> newSecret;
-#ifdef HAS_STORAGE_PART
-    result = GetStorageManagerProxy();
+    result = UpdateStorageKey(userId, token, oldCredInfo.secret, newSecret);
     if (result != ERR_OK) {
-        ACCOUNT_LOGD("fail to get storage proxy");
         return result;
     }
-    result = storageMgrProxy_->UpdateUserAuth(userId, token, oldCredInfo.secret, newSecret);
-    if (result != ERR_OK && result != ERROR_STORAGE_KEY_NOT_EXIST) {
-        ACCOUNT_LOGD("fail to update user auth");
-        return result;
-    }
-    result = storageMgrProxy_->UpdateKeyContext(userId);
-#endif
     credInfoMap_[userId] = {
         .oldSecret = oldCredInfo.secret,
         .secret = newSecret
@@ -314,19 +316,10 @@ ErrCode InnerAccountIAMManager::RestoreUserKey(int32_t userId, uint64_t credenti
     if (credentialId != 0 && credInfo.credentialId != credentialId) {
         return ERR_OK;
     }
-#ifdef HAS_STORAGE_PART
-    result = GetStorageManagerProxy();
+    result = UpdateStorageKey(userId, token, credInfo.secret, credInfo.oldSecret);
     if (result != ERR_OK) {
-        ACCOUNT_LOGD("fail to get storage proxy");
         return result;
     }
-    result = storageMgrProxy_->UpdateUserAuth(userId, token, credInfo.secret, credInfo.oldSecret);
-    if (result != ERR_OK && result != ERROR_STORAGE_KEY_NOT_EXIST) {
-        ACCOUNT_LOGD("fail to update user auth");
-        return result;
-    }
-    result = storageMgrProxy_->UpdateKeyContext(userId);
-#endif
     credInfoMap_[userId] = {
         .secret = credInfo.oldSecret
     };
@@ -340,22 +333,24 @@ ErrCode InnerAccountIAMManager::GetStorageManagerProxy()
         return ERR_OK;
     }
     auto systemAbilityManager = SystemAbilityManagerClient::GetInstance().GetSystemAbilityManager();
-    if (!systemAbilityManager) {
-        ACCOUNT_LOGD("failed to get system ability mgr");
+    if (systemAbilityManager == nullptr) {
+        ACCOUNT_LOGE("failed to get system ability mgr");
         return ERR_ACCOUNT_IAM_SERVICE_GET_STORAGE_SYSTEM_ABILITY;
     }
     auto remote = systemAbilityManager->GetSystemAbility(STORAGE_MANAGER_MANAGER_ID);
-    if (!remote) {
-        ACCOUNT_LOGD("failed to get STORAGE_MANAGER_MANAGER_ID service");
+    if (remote == nullptr) {
+        ACCOUNT_LOGE("failed to get STORAGE_MANAGER_MANAGER_ID service");
         return ERR_ACCOUNT_IAM_SERVICE_REMOTE_IS_NULLPTR;
     }
     storageMgrProxy_ = iface_cast<StorageManager::IStorageManager>(remote);
-    if (!storageMgrProxy_) {
-        ACCOUNT_LOGD("failed to get STORAGE_MANAGER_MANAGER_ID proxy");
+    if (storageMgrProxy_ == nullptr) {
+        ACCOUNT_LOGE("failed to get STORAGE_MANAGER_MANAGER_ID proxy");
         return ERR_ACCOUNT_IAM_SERVICE_REMOTE_IS_NULLPTR;
     }
-#endif
     return ERR_OK;
+#else
+    return ERR_ACCOUNT_IAM_SERVICE_REMOTE_IS_NULLPTR;
+#endif
 }
 }  // namespace AccountSA
 }  // namespace OHOS

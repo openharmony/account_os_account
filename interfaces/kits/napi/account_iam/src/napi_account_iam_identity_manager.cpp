@@ -26,7 +26,6 @@ using namespace OHOS::AccountSA;
 
 napi_value NapiAccountIAMIdentityManager::Init(napi_env env, napi_value exports)
 {
-    ACCOUNT_LOGD("enter");
     napi_value cons;
     napi_property_descriptor clzDes[] = {
         DECLARE_NAPI_FUNCTION("openSession", OpenSession),
@@ -46,7 +45,6 @@ napi_value NapiAccountIAMIdentityManager::Init(napi_env env, napi_value exports)
 
 napi_value NapiAccountIAMIdentityManager::JsConstructor(napi_env env, napi_callback_info info)
 {
-    ACCOUNT_LOGD("enter");
     napi_value thisVar = nullptr;
     NAPI_CALL(env, napi_get_cb_info(env, info, nullptr, nullptr, &thisVar, nullptr));
     return thisVar;
@@ -72,7 +70,6 @@ static napi_status ParseContextForOpenSession(
 
 napi_value NapiAccountIAMIdentityManager::OpenSession(napi_env env, napi_callback_info info)
 {
-    ACCOUNT_LOGD("enter");
     napi_value result = nullptr;
     IDMContext *context = new (std::nothrow) IDMContext(env);
     if (context == nullptr) {
@@ -103,7 +100,6 @@ napi_value NapiAccountIAMIdentityManager::OpenSession(napi_env env, napi_callbac
 
 static napi_status ParseContextForUpdateCredential(napi_env env, napi_callback_info info, IDMContext *context)
 {
-    ACCOUNT_LOGD("enter");
     size_t argc = ARG_SIZE_TWO;
     napi_value argv[ARG_SIZE_TWO] = {0};
     NAPI_CALL_BASE(env, napi_get_cb_info(env, info, &argc, argv, nullptr, nullptr), napi_generic_failure);
@@ -118,7 +114,6 @@ static napi_status ParseContextForUpdateCredential(napi_env env, napi_callback_i
 
 napi_value NapiAccountIAMIdentityManager::AddCredential(napi_env env, napi_callback_info info)
 {
-    ACCOUNT_LOGD("enter");
     IDMContext *context = new (std::nothrow) IDMContext(env);
     if (context == nullptr) {
         ACCOUNT_LOGD("failed to create IDMContext");
@@ -137,8 +132,7 @@ napi_value NapiAccountIAMIdentityManager::AddCredential(napi_env env, napi_callb
         [](napi_env env, napi_status status, void *data) {
             delete reinterpret_cast<IDMContext *>(data);
         },
-        reinterpret_cast<void *>(context),
-        &context->work));
+        reinterpret_cast<void *>(context), &context->work));
     NAPI_CALL(env, napi_queue_async_work(env, context->work));
     contextPtr.release();
     return nullptr;
@@ -146,7 +140,6 @@ napi_value NapiAccountIAMIdentityManager::AddCredential(napi_env env, napi_callb
 
 napi_value NapiAccountIAMIdentityManager::UpdateCredential(napi_env env, napi_callback_info info)
 {
-    ACCOUNT_LOGD("enter");
     IDMContext *context = new (std::nothrow) IDMContext(env);
     if (context == nullptr) {
         ACCOUNT_LOGD("failed to create IDMContext");
@@ -173,7 +166,6 @@ napi_value NapiAccountIAMIdentityManager::UpdateCredential(napi_env env, napi_ca
 
 napi_value NapiAccountIAMIdentityManager::CloseSession(napi_env env, napi_callback_info info)
 {
-    ACCOUNT_LOGD("enter");
     AccountIAMClient::GetInstance().CloseSession(0);
     napi_value result = nullptr;
     napi_get_null(env, &result);
@@ -182,7 +174,6 @@ napi_value NapiAccountIAMIdentityManager::CloseSession(napi_env env, napi_callba
 
 napi_value NapiAccountIAMIdentityManager::Cancel(napi_env env, napi_callback_info info)
 {
-    ACCOUNT_LOGD("enter");
     size_t argc = ARG_SIZE_ONE;
     napi_value argv[ARG_SIZE_ONE] = {0};
     napi_get_cb_info(env, info, &argc, argv, nullptr, nullptr);
@@ -218,7 +209,6 @@ static napi_status ParseContextForDelUser(napi_env env, napi_callback_info info,
 
 napi_value NapiAccountIAMIdentityManager::DelUser(napi_env env, napi_callback_info info)
 {
-    ACCOUNT_LOGD("enter");
     IDMContext *context = new (std::nothrow) IDMContext(env);
     if (context == nullptr) {
         ACCOUNT_LOGD("failed to create IDMContext");
@@ -237,8 +227,7 @@ napi_value NapiAccountIAMIdentityManager::DelUser(napi_env env, napi_callback_in
         [](napi_env env, napi_status status, void *data) {
             delete reinterpret_cast<IDMContext *>(data);
         },
-        reinterpret_cast<void *>(context),
-        &context->work));
+        reinterpret_cast<void *>(context), &context->work));
     NAPI_CALL(env, napi_queue_async_work(env, context->work));
     contextPtr.release();
     return nullptr;
@@ -260,7 +249,6 @@ static napi_status ParseContextForDelCred(napi_env env, napi_callback_info info,
 
 napi_value NapiAccountIAMIdentityManager::DelCred(napi_env env, napi_callback_info info)
 {
-    ACCOUNT_LOGD("enter");
     IDMContext *context = new (std::nothrow) IDMContext(env);
     if (context == nullptr) {
         ACCOUNT_LOGD("failed to create IDMContext");
@@ -317,7 +305,6 @@ static napi_status ParseContextForGetAuthInfo(
 
 napi_value NapiAccountIAMIdentityManager::GetAuthInfo(napi_env env, napi_callback_info info)
 {
-    ACCOUNT_LOGD("enter");
     napi_value result = nullptr;
     GetAuthInfoContext *context = new (std::nothrow) GetAuthInfoContext(env);
     if (context == nullptr) {

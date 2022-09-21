@@ -74,13 +74,13 @@ ErrCode IDMCallbackStub::ProcOnAcquireInfo(MessageParcel &data, MessageParcel &r
 ErrCode IDMCallbackStub::ProcOnResult(MessageParcel &data, MessageParcel &reply)
 {
     int32_t result;
-    std::vector<uint8_t> buffer;
     if (!data.ReadInt32(result)) {
-        ACCOUNT_LOGD("failed to read result");
+        ACCOUNT_LOGD("failed to read result for IDMCallback OnResult");
         return ERR_ACCOUNT_IAM_KIT_READ_PARCEL_FAIL;
     }
+    std::vector<uint8_t> buffer;
     if (!data.ReadUInt8Vector(&buffer)) {
-        ACCOUNT_LOGD("failed to read buffer");
+        ACCOUNT_LOGD("failed to read buffer for IDMCallback OnResult");
         return ERR_ACCOUNT_IAM_KIT_READ_PARCEL_FAIL;
     }
     Attributes extraInfo(buffer);
@@ -176,13 +176,13 @@ int GetSetPropCallbackStub::OnRemoteRequest(
 ErrCode GetSetPropCallbackStub::ProcOnResult(MessageParcel &data, MessageParcel &reply)
 {
     int32_t result;
-    std::vector<uint8_t> buffer;
     if (!data.ReadInt32(result)) {
-        ACCOUNT_LOGD("failed to read result");
+        ACCOUNT_LOGD("failed to read result for GetSetPropCallback OnResult");
         return ERR_ACCOUNT_IAM_KIT_READ_PARCEL_FAIL;
     }
+    std::vector<uint8_t> buffer;
     if (!data.ReadUInt8Vector(&buffer)) {
-        ACCOUNT_LOGD("failed to read buffer");
+        ACCOUNT_LOGD("failed to read buffer for GetSetPropCallback OnResult");
         return ERR_ACCOUNT_IAM_KIT_READ_PARCEL_FAIL;
     }
     Attributes extraInfo(buffer);
