@@ -13,6 +13,7 @@
  * limitations under the License.
  */
 #include "os_account_manager_service.h"
+#include <algorithm>
 #include "account_info.h"
 #include "account_log_wrapper.h"
 #include "hisysevent_adapter.h"
@@ -605,9 +606,8 @@ ErrCode OsAccountManagerService::DumpStateByAccounts(
 
         state.emplace_back(DUMP_TAB_CHARACTER + "Constraints:");
         auto constraints = osAccountInfo.GetConstraints();
-        for (auto constraint : constraints) {
-            state.emplace_back(DUMP_TAB_CHARACTER + DUMP_TAB_CHARACTER + constraint);
-        }
+        std::transform(constraints.begin(), constraints.end(), std::back_inserter(state),
+            [](auto constraint) {return DUMP_TAB_CHARACTER + DUMP_TAB_CHARACTER + constraint; });
 
         state.emplace_back(DUMP_TAB_CHARACTER + "Verified: " +
             (osAccountInfo.GetIsVerified() ? "true" : "false"));

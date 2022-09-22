@@ -15,6 +15,7 @@
 
 #include "app_account_authenticator_manager.h"
 
+#include <algorithm>
 #include "account_error_no.h"
 #include "account_info.h"
 #include "account_log_wrapper.h"
@@ -66,23 +67,29 @@ ErrCode AppAccountAuthenticatorManager::GetAuthenticatorInfo(
         ACCOUNT_LOGE("failed to query ability info");
         return ERR_APPACCOUNT_SERVICE_OAUTH_AUTHENTICATOR_NOT_EXIST;
     }
-    for (auto abilityInfo: abilityInfos) {
-        if ((abilityInfo.type == AppExecFwk::AbilityType::SERVICE) && (abilityInfo.visible)) {
-            info.owner = owner;
-            info.abilityName = abilityInfo.name;
-            info.iconId = abilityInfo.iconId;
-            info.labelId = abilityInfo.labelId;
-            return ERR_OK;
-        }
+
+    auto iter = std::find_if(abilityInfos.begin(), abilityInfos.end(),
+        [abilityInfos](AppExecFwk::AbilityInfo abilityInfo) {
+            return ((abilityInfo.type == AppExecFwk::AbilityType::SERVICE) && (abilityInfo.visible));
+        });
+    if (iter != abilityInfos.end()) {
+        info.owner = owner;
+        info.abilityName = iter->name;
+        info.iconId = iter->iconId;
+        info.labelId = iter->labelId;
+        return ERR_OK;
     }
-    for (auto extensionInfo: extensionInfos) {
-        if ((extensionInfo.type == AppExecFwk::ExtensionAbilityType::SERVICE) && (extensionInfo.visible)) {
-            info.owner = owner;
-            info.abilityName = extensionInfo.name;
-            info.iconId = extensionInfo.iconId;
-            info.labelId = extensionInfo.labelId;
-            return ERR_OK;
-        }
+
+    auto iter_extensionInfos = std::find_if(extensionInfos.begin(), extensionInfos.end(),
+        [extensionInfos](AppExecFwk::ExtensionAbilityInfo extensionInfo) {
+            return ((extensionInfo.type == AppExecFwk::ExtensionAbilityType::SERVICE) && (extensionInfo.visible));
+        });
+    if (iter_extensionInfos != extensionInfos.end()) {
+        info.owner = owner;
+        info.abilityName = iter_extensionInfos->name;
+        info.iconId = iter_extensionInfos->iconId;
+        info.labelId = iter_extensionInfos->labelId;
+        return ERR_OK;
     }
     return ERR_APPACCOUNT_SERVICE_OAUTH_AUTHENTICATOR_NOT_EXIST;
 }
