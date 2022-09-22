@@ -245,9 +245,8 @@ std::int32_t AccountMgrService::Dump(std::int32_t fd, const std::vector<std::u16
     }
 
     std::vector<std::string> argsInStr;
-    for (const auto &arg : args) {
-        argsInStr.emplace_back(Str16ToStr8(arg));
-    }
+    std::transform(args.begin(), args.end(), std::back_inserter(argsInStr),
+        [](const auto &arg) { return Str16ToStr8(arg); });
 
     std::string result;
     dumpHelper_->Dump(argsInStr, result);

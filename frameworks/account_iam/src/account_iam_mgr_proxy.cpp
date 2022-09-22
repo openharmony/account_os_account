@@ -321,9 +321,9 @@ void AccountIAMMgrProxy::GetProperty(
         return;
     }
     std::vector<uint32_t> attrKeys;
-    for (const auto &key : request.keys) {
-        attrKeys.push_back(static_cast<uint32_t>(key));
-    }
+    std::transform(request.keys.begin(), request.keys.end(), std::back_inserter(attrKeys),
+        [](const auto &key) { return static_cast<uint32_t>(key); });
+
     if (!data.WriteUInt32Vector(attrKeys)) {
         ACCOUNT_LOGD("failed to write keys");
         return;
