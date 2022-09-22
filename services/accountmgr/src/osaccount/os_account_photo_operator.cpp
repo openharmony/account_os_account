@@ -105,8 +105,8 @@ std::string OsAccountPhotoOperator::DeCode(std::string const &baseStr)
         }
     }
 
-    size_t j = 0;
     if (i) {
+        size_t j = 0;
         for (j = i; j < SIZET_FOUR; j++)
             char_array_4[j] = 0;
 
