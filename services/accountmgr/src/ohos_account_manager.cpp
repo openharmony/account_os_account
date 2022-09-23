@@ -84,8 +84,7 @@ std::string GenerateOhosUdidWithSha256(const std::string &name, const std::strin
 
     std::stringstream ss;
     for (std::uint32_t i = 0; i < HASH_LENGTH; ++i) {
-        ss << std::hex << std::uppercase << std::setw(WIDTH_FOR_HEX)
-            << std::setfill('0') << std::uint16_t(hash[i]);
+        ss << std::hex << std::uppercase << std::setw(WIDTH_FOR_HEX) << std::setfill('0') << std::uint16_t(hash[i]);
     }
 
     std::string ohosUidStr;
