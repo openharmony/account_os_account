@@ -21,6 +21,10 @@
 
 namespace OHOS {
 namespace AccountSA {
+namespace {
+constexpr const uint32_t MAX_OPTION_SIZE = 1024;
+}
+
 bool SelectAccountsOptions::Marshalling(Parcel &parcel) const
 {
     if (!parcel.WriteBool(hasAccounts) || !parcel.WriteBool(hasOwners) || !parcel.WriteBool(hasLabels)) {
@@ -56,6 +60,9 @@ bool SelectAccountsOptions::ReadFromParcel(Parcel &parcel)
     }
     uint32_t size = 0;
     if (!parcel.ReadUint32(size)) {
+        return false;
+    }
+    if (size > MAX_OPTION_SIZE) {
         return false;
     }
     std::string name;

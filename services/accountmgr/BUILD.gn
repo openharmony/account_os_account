@@ -270,6 +270,10 @@ ohos_shared_library("accountmgr") {
     external_deps += [ "hisysevent_native:libhisysevent" ]
   }
 
+  if (use_musl) {
+    cflags_cc += [ "-DUSE_MUSL" ]
+  }
+
   external_deps += [ "hitrace_native:hitrace_meter" ]
 
   part_name = "os_account"

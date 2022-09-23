@@ -32,6 +32,7 @@ const std::string AccountPermissionManager::INTERACT_ACROSS_LOCAL_ACCOUNTS =
     "ohos.permission.INTERACT_ACROSS_LOCAL_ACCOUNTS";
 const std::string AccountPermissionManager::ACCESS_USER_AUTH_INTERNAL = "ohos.permission.ACCESS_USER_AUTH_INTERNAL";
 const std::string AccountPermissionManager::MANAGE_USER_IDM = "ohos.permission.MANAGE_USER_IDM";
+const std::string AccountPermissionManager::USE_USER_IDM = "ohos.permission.USE_USER_IDM";
 
 AccountPermissionManager::AccountPermissionManager()
 {

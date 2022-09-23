@@ -76,6 +76,7 @@ public:
 private:
     static napi_value JsConstructor(napi_env env, napi_callback_info cbinfo);
     static napi_value GetRemoteObject(napi_env env, napi_callback_info cbInfo);
+    static napi_status GetNamedFunction(napi_env env, napi_value value, const std::string &name, napi_ref *result);
     static void CallJsFunction(napi_env env, napi_ref funcRef, napi_value *argv, size_t argc);
     static void CreateAuthenticatorCallback(napi_env env, sptr<IRemoteObject> nativeCallback, napi_value *jsCallback);
     static void CreateJsVerifyCredentialOptions(napi_env env, VerifyCredentialOptions &options, napi_value *jsOptions);

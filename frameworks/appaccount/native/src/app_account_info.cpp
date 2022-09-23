@@ -688,6 +688,10 @@ bool AppAccountInfo::ReadTokenInfos(std::map<std::string, OAuthTokenInfo> &token
         ACCOUNT_LOGE("failed to ReadInt32 for size");
         return false;
     }
+    if (size > MAX_TOKEN_NUMBER) {
+        ACCOUNT_LOGE("invalid token number");
+        return false;
+    }
     tokenInfos.clear();
     for (int32_t index = 0; index < size; ++index) {
         OAuthTokenInfo tokenInfo;
