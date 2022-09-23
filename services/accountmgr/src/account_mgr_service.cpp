@@ -16,9 +16,6 @@
 #include "account_mgr_service.h"
 #include <cerrno>
 #include "account_dump_helper.h"
-#if defined(HAS_USER_AUTH_PART)
-#include "account_iam_service.h"
-#endif
 #include "account_log_wrapper.h"
 #include "app_account_manager_service.h"
 #include "datetime_ex.h"
@@ -107,23 +104,26 @@ std::int32_t AccountMgrService::QueryDeviceAccountId(std::int32_t &accountId)
 
 sptr<IRemoteObject> AccountMgrService::GetAppAccountService()
 {
-    ACCOUNT_LOGD("enter");
-
-    return appAccountManagerService_;
+    if (appAccountManagerService_ != nullptr) {
+        return appAccountManagerService_->AsObject();
+    }
+    return nullptr;
 }
 
 sptr<IRemoteObject> AccountMgrService::GetOsAccountService()
 {
-    ACCOUNT_LOGD("enter");
-
-    return osAccountManagerService_;
+    if (osAccountManagerService_ != nullptr) {
+        return osAccountManagerService_->AsObject();
+    }
+    return nullptr;
 }
 
 sptr<IRemoteObject> AccountMgrService::GetAccountIAMService()
 {
-    ACCOUNT_LOGD("enter");
-
-    return accountIAMService_;
+    if (accountIAMService_ != nullptr) {
+        return accountIAMService_->AsObject();
+    }
+    return nullptr;
 }
 
 bool AccountMgrService::IsServiceStarted(void) const
@@ -152,7 +152,7 @@ void AccountMgrService::OnStart()
     state_ = ServiceRunningState::STATE_RUNNING;
 
     // create and start basic accounts
-    osAccountManagerServiceOrg_->CreateBasicAccounts();
+    osAccountManagerService_->CreateBasicAccounts();
     ACCOUNT_LOGI("AccountMgrService::OnStart start service finished.");
     FinishTrace(HITRACE_TAG_ACCOUNT_MANAGER);
 }
@@ -194,27 +194,27 @@ bool AccountMgrService::Init()
     }
 
     IAccountContext::SetInstance(this);
-    auto appAccountManagerService = new (std::nothrow) AppAccountManagerService();
-    if (appAccountManagerService == nullptr) {
+    appAccountManagerService_ = new (std::nothrow) AppAccountManagerService();
+    if (appAccountManagerService_ == nullptr) {
         ReportServiceStartFail(ERR_ACCOUNT_COMMON_INSUFFICIENT_MEMORY_ERROR,
             "Insufficient memory to create app account manager service");
         ACCOUNT_LOGE("memory alloc failed for appAccountManagerService!");
         return false;
     }
-    osAccountManagerServiceOrg_ = new (std::nothrow) OsAccountManagerService();
-    if (osAccountManagerServiceOrg_ == nullptr) {
-        ACCOUNT_LOGE("memory alloc failed for osAccountManagerServiceOrg_!");
-        delete appAccountManagerService;
+    osAccountManagerService_ = new (std::nothrow) OsAccountManagerService();
+    if (osAccountManagerService_ == nullptr) {
+        ACCOUNT_LOGE("memory alloc failed for osAccountManagerService_!");
+        appAccountManagerService_ = nullptr;
         ReportServiceStartFail(ERR_ACCOUNT_COMMON_INSUFFICIENT_MEMORY_ERROR,
             "Insufficient memory to create os account manager service");
         return false;
     }
     if (!CreateIAMService()) {
+        appAccountManagerService_ = nullptr;
+        osAccountManagerService_ = nullptr;
         return false;
     }
-    dumpHelper_ = std::make_unique<AccountDumpHelper>(ohosAccountMgr_, osAccountManagerServiceOrg_);
-    appAccountManagerService_ = appAccountManagerService->AsObject();
-    osAccountManagerService_ = osAccountManagerServiceOrg_->AsObject();
+    dumpHelper_ = std::make_unique<AccountDumpHelper>(ohosAccountMgr_, osAccountManagerService_);
     ACCOUNT_LOGI("init end success");
     return true;
 }
@@ -222,12 +222,13 @@ bool AccountMgrService::Init()
 bool AccountMgrService::CreateIAMService()
 {
 #if defined(HAS_USER_AUTH_PART)
-    auto accountIAMService = new (std::nothrow) AccountIAMService();
-    if (accountIAMService == nullptr) {
+    accountIAMService_ = new (std::nothrow) AccountIAMService();
+    if (accountIAMService_ == nullptr) {
         ACCOUNT_LOGE("memory alloc for AccountIAMService failed!");
+        ReportServiceStartFail(ERR_ACCOUNT_COMMON_INSUFFICIENT_MEMORY_ERROR,
+            "Insufficient memory to create account iam service");
         return false;
     }
-    accountIAMService_ = accountIAMService->AsObject();
 #endif
     return true;
 }
