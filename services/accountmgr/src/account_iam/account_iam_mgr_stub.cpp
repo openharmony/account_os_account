@@ -201,7 +201,7 @@ ErrCode AccountIAMMgrStub::ProcDelCred(MessageParcel &data, MessageParcel &reply
     }
     std::vector<uint8_t> authToken;
     if (!data.ReadUInt8Vector(&authToken)) {
-        ACCOUNT_LOGD("failed to read authToken");
+        ACCOUNT_LOGD("failed to read authToken for delCred");
         return ERR_ACCOUNT_IAM_SERVICE_READ_PARCEL_FAIL;
     }
     sptr<IIDMCallback> callback = iface_cast<IIDMCallback>(data.ReadRemoteObject());
@@ -222,7 +222,7 @@ ErrCode AccountIAMMgrStub::ProcDelUser(MessageParcel &data, MessageParcel &reply
     }
     std::vector<uint8_t> authToken;
     if (!data.ReadUInt8Vector(&authToken)) {
-        ACCOUNT_LOGD("failed to read authToken");
+        ACCOUNT_LOGD("failed to read authToken for delUser");
         return ERR_ACCOUNT_IAM_SERVICE_READ_PARCEL_FAIL;
     }
     sptr<IIDMCallback> callback = iface_cast<IIDMCallback>(data.ReadRemoteObject());
@@ -281,12 +281,12 @@ ErrCode AccountIAMMgrStub::ProcAuthUser(MessageParcel &data, MessageParcel &repl
     }
     int32_t authType;
     if (!data.ReadInt32(authType)) {
-        ACCOUNT_LOGD("failed to read authType");
+        ACCOUNT_LOGD("failed to read authType for AuthUser");
         return ERR_ACCOUNT_IAM_SERVICE_READ_PARCEL_FAIL;
     }
     uint32_t authTrustLevel;
     if (!data.ReadUint32(authTrustLevel)) {
-        ACCOUNT_LOGD("failed to read authTrustLevel");
+        ACCOUNT_LOGD("failed to read authTrustLevel for AuthUser");
         return ERR_ACCOUNT_IAM_SERVICE_READ_PARCEL_FAIL;
     }
     sptr<IIDMCallback> callback = iface_cast<IIDMCallback>(data.ReadRemoteObject());
@@ -314,12 +314,12 @@ ErrCode AccountIAMMgrStub::ProcGetAvailableStatus(MessageParcel &data, MessagePa
 {
     int32_t authType;
     if (!data.ReadInt32(authType)) {
-        ACCOUNT_LOGD("failed to read authType");
+        ACCOUNT_LOGD("failed to read authType for GetAvailableStatus");
         return ERR_ACCOUNT_IAM_SERVICE_READ_PARCEL_FAIL;
     }
     uint32_t authTrustLevel;
     if (!data.ReadUint32(authTrustLevel)) {
-        ACCOUNT_LOGD("failed to read authTrustLevel");
+        ACCOUNT_LOGD("failed to read authTrustLevel for GetAvailableStatus");
         return ERR_ACCOUNT_IAM_SERVICE_READ_PARCEL_FAIL;
     }
     int32_t status = GetAvailableStatus(static_cast<AuthType>(authType), static_cast<AuthTrustLevel>(authTrustLevel));

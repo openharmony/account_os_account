@@ -30,7 +30,6 @@ IAMAsyncContext::IAMAsyncContext(napi_env napiEnv)
 
 IAMAsyncContext::~IAMAsyncContext()
 {
-    ACCOUNT_LOGD("enter");
     if (env == nullptr) {
         return;
     }
@@ -55,7 +54,6 @@ NapiIDMCallback::~NapiIDMCallback()
 
 static void OnIDMResultWork(uv_work_t* work, int status)
 {
-    ACCOUNT_LOGD("enter");
     IDMCallbackParam *param = reinterpret_cast<IDMCallbackParam *>(work->data);
     if (param == nullptr) {
         ACCOUNT_LOGD("param is null");
@@ -82,7 +80,6 @@ static void OnIDMResultWork(uv_work_t* work, int status)
 
 void NapiIDMCallback::OnResult(int32_t result, const Attributes &extraInfo)
 {
-    ACCOUNT_LOGD("enter");
     {
         std::lock_guard<std::mutex> lock(mutex_);
         if (isCalled_) {
@@ -99,9 +96,9 @@ void NapiIDMCallback::OnResult(int32_t result, const Attributes &extraInfo)
         return;
     }
     param->env = env_;
-    param->callback = callback_;
     param->result = result;
     extraInfo.GetUint64Value(Attributes::AttributeKey::ATTR_CREDENTIAL_ID, param->credentialId);
+    param->callback = callback_;
     work->data = reinterpret_cast<void *>(param.get());
     NAPI_CALL_RETURN_VOID(env_, uv_queue_work(loop, work.get(), [] (uv_work_t *work) {}, OnIDMResultWork));
     work.release();
@@ -110,7 +107,6 @@ void NapiIDMCallback::OnResult(int32_t result, const Attributes &extraInfo)
 
 static void OnAcquireInfoWork(uv_work_t* work, int status)
 {
-    ACCOUNT_LOGD("enter");
     std::unique_ptr<uv_work_t> workPtr(work);
     if (work == nullptr || work->data == nullptr) {
         ACCOUNT_LOGD("param is null");
@@ -141,7 +137,6 @@ static void OnAcquireInfoWork(uv_work_t* work, int status)
 
 void NapiIDMCallback::OnAcquireInfo(int32_t module, uint32_t acquireInfo, const Attributes &extraInfo)
 {
-    ACCOUNT_LOGD("enter");
     std::unique_ptr<uv_work_t> work = std::make_unique<uv_work_t>();
     std::unique_ptr<IDMCallbackParam> param = std::make_unique<IDMCallbackParam>();
     uv_loop_s *loop = nullptr;
@@ -163,7 +158,6 @@ void NapiIDMCallback::OnAcquireInfo(int32_t module, uint32_t acquireInfo, const 
 
 napi_status ParseAddCredInfo(napi_env env, napi_value value, CredentialParameters &addCredInfo)
 {
-    ACCOUNT_LOGD("enter");
     napi_valuetype valueType = napi_undefined;
     napi_typeof(env, value, &valueType);
     if (valueType != napi_object) {
@@ -185,7 +179,6 @@ napi_status ParseAddCredInfo(napi_env env, napi_value value, CredentialParameter
 
 napi_status ParseIAMCallback(napi_env env, napi_value object, JsIAMCallback &callback)
 {
-    ACCOUNT_LOGD("enter");
     napi_valuetype valueType = napi_undefined;
     napi_typeof(env, object, &valueType);
     if (valueType != napi_object) {
@@ -219,7 +212,6 @@ napi_status ParseIAMCallback(napi_env env, napi_value object, JsIAMCallback &cal
 
 napi_value CreateCredInfoArray(napi_env env, const std::vector<CredentialInfo> &info)
 {
-    ACCOUNT_LOGD("enter");
     napi_value arr = nullptr;
     napi_create_array_with_length(env, info.size(), &arr);
     uint32_t index = 0;
@@ -247,7 +239,6 @@ napi_value CreateCredInfoArray(napi_env env, const std::vector<CredentialInfo> &
 
 napi_status ParseGetPropRequest(napi_env env, napi_value object, GetPropertyRequest &request)
 {
-    ACCOUNT_LOGD("enter");
     napi_valuetype valueType = napi_undefined;
     napi_typeof(env, object, &valueType);
     if (valueType != napi_object) {
@@ -271,23 +262,22 @@ napi_status ParseGetPropRequest(napi_env env, napi_value object, GetPropertyRequ
 
 napi_status ParseSetPropRequest(napi_env env, napi_value object, SetPropertyRequest &request)
 {
-    ACCOUNT_LOGD("enter");
     napi_valuetype valueType = napi_undefined;
     napi_typeof(env, object, &valueType);
     if (valueType != napi_object) {
         ACCOUNT_LOGD("invalid object");
         return napi_invalid_arg;
     }
-    napi_value napiAuthType = nullptr;
-    napi_get_named_property(env, object, "authType", &napiAuthType);
-    int32_t authType = -1;
-    napi_get_value_int32(env, napiAuthType, &authType);
-    request.authType = static_cast<AuthType>(authType);
     napi_value napiKey = nullptr;
     napi_get_named_property(env, object, "key", &napiKey);
     int32_t key = -1;
     napi_get_value_int32(env, napiKey, &key);
     request.mode = static_cast<PropertyMode>(key);
+    napi_value napiAuthType = nullptr;
+    napi_get_named_property(env, object, "authType", &napiAuthType);
+    int32_t authType = -1;
+    napi_get_value_int32(env, napiAuthType, &authType);
+    request.authType = static_cast<AuthType>(authType);
     napi_value napiSetInfo = nullptr;
     napi_get_named_property(env, object, "setInfo", &napiSetInfo);
     std::vector<uint8_t> setInfo;
@@ -298,7 +288,6 @@ napi_status ParseSetPropRequest(napi_env env, napi_value object, SetPropertyRequ
 
 napi_value CreateExecutorProperty(napi_env env, const GetPropertyContext &prop)
 {
-    ACCOUNT_LOGD("enter");
     ACCOUNT_LOGD("result: %{public}d, authSubType: %{public}d", prop.result, prop.authSubType);
     napi_value object = nullptr;
     NAPI_CALL(env, napi_create_object(env, &object));
@@ -319,7 +308,6 @@ napi_value CreateExecutorProperty(napi_env env, const GetPropertyContext &prop)
 
 napi_value CreateAuthResult(napi_env env, const std::vector<uint8_t> &token, int32_t remainTimes, int32_t freezingTime)
 {
-    ACCOUNT_LOGD("enter");
     napi_value object = nullptr;
     NAPI_CALL(env, napi_create_object(env, &object));
     napi_value napiRemainTimes = 0;
@@ -335,7 +323,6 @@ napi_value CreateAuthResult(napi_env env, const std::vector<uint8_t> &token, int
 
 static void OnUserAuthResultWork(uv_work_t *work, int status)
 {
-    ACCOUNT_LOGD("enter");
     AuthCallbackParam *param = reinterpret_cast<AuthCallbackParam *>(work->data);
     if (param == nullptr) {
         ACCOUNT_LOGD("param is null");
@@ -356,7 +343,6 @@ static void OnUserAuthResultWork(uv_work_t *work, int status)
 
 static void OnUserAuthAcquireInfoWork(uv_work_t *work, int status)
 {
-    ACCOUNT_LOGD("enter");
     AuthCallbackParam *param = reinterpret_cast<AuthCallbackParam *>(work->data);
     if (param == nullptr) {
         ACCOUNT_LOGD("param is null");
@@ -379,18 +365,13 @@ static void OnUserAuthAcquireInfoWork(uv_work_t *work, int status)
 
 NapiUserAuthCallback::NapiUserAuthCallback(napi_env env, JsIAMCallback callback)
     : env_(env), callback_(callback)
-{
-    ACCOUNT_LOGD("enter");
-}
+{}
 
 NapiUserAuthCallback::~NapiUserAuthCallback()
-{
-    ACCOUNT_LOGD("enter");
-}
+{}
 
 void NapiUserAuthCallback::OnResult(int32_t result, const Attributes &extraInfo)
 {
-    ACCOUNT_LOGD("enter");
     std::unique_ptr<uv_work_t> work = std::make_unique<uv_work_t>();
     std::unique_ptr<AuthCallbackParam> param = std::make_unique<AuthCallbackParam>();
     uv_loop_s *loop = nullptr;
@@ -399,12 +380,12 @@ void NapiUserAuthCallback::OnResult(int32_t result, const Attributes &extraInfo)
         ACCOUNT_LOGE("fail for nullptr");
         return;
     }
-    param->env = env_;
-    param->callback = callback_;
     param->resultCode = result;
     extraInfo.GetUint8ArrayValue(Attributes::AttributeKey::ATTR_SIGNATURE, param->token);
     extraInfo.GetInt32Value(Attributes::AttributeKey::ATTR_REMAIN_TIMES, param->remainTimes);
     extraInfo.GetInt32Value(Attributes::AttributeKey::ATTR_FREEZING_TIME, param->freezingTime);
+    param->env = env_;
+    param->callback = callback_;
     work->data = reinterpret_cast<void *>(param.get());
     NAPI_CALL_RETURN_VOID(env_, uv_queue_work(loop, work.get(), [] (uv_work_t *work) {}, OnUserAuthResultWork));
     work.release();
@@ -413,7 +394,6 @@ void NapiUserAuthCallback::OnResult(int32_t result, const Attributes &extraInfo)
 
 void NapiUserAuthCallback::OnAcquireInfo(int32_t module, uint32_t acquireInfo, const Attributes &extraInfo)
 {
-    ACCOUNT_LOGD("enter");
     std::unique_ptr<uv_work_t> work = std::make_unique<uv_work_t>();
     std::unique_ptr<AuthCallbackParam> param = std::make_unique<AuthCallbackParam>();
     uv_loop_s *loop = nullptr;
@@ -422,11 +402,11 @@ void NapiUserAuthCallback::OnAcquireInfo(int32_t module, uint32_t acquireInfo, c
         ACCOUNT_LOGE("fail for nullptr");
         return;
     }
-    param->env = env_;
-    param->callback = callback_;
     param->module = module;
     param->acquireInfo = acquireInfo;
     param->extraInfo = 0;
+    param->env = env_;
+    param->callback = callback_;
     work->data = reinterpret_cast<void *>(param.get());
     NAPI_CALL_RETURN_VOID(env_, uv_queue_work(loop, work.get(), [] (uv_work_t *work) {}, OnUserAuthAcquireInfoWork));
     work.release();
@@ -436,18 +416,13 @@ void NapiUserAuthCallback::OnAcquireInfo(int32_t module, uint32_t acquireInfo, c
 
 NapiGetInfoCallback::NapiGetInfoCallback(napi_env env, napi_ref callbackRef, napi_deferred deferred)
     : env_(env), callbackRef_(callbackRef), deferred_(deferred)
-{
-    ACCOUNT_LOGD("enter");
-}
+{}
 
 NapiGetInfoCallback::~NapiGetInfoCallback()
-{
-    ACCOUNT_LOGD("enter");
-}
+{}
 
 static void OnGetInfoWork(uv_work_t *work, int status)
 {
-    ACCOUNT_LOGD("enter");
     GetAuthInfoContext *context = reinterpret_cast<GetAuthInfoContext *>(work->data);
     if (context == nullptr) {
         ACCOUNT_LOGD("context is null");
@@ -463,7 +438,6 @@ static void OnGetInfoWork(uv_work_t *work, int status)
 
 void NapiGetInfoCallback::OnCredentialInfo(const std::vector<AccountSA::CredentialInfo> &infoList)
 {
-    ACCOUNT_LOGD("enter");
     std::unique_ptr<uv_work_t> work = std::make_unique<uv_work_t>();
     std::unique_ptr<GetAuthInfoContext> context = std::make_unique<GetAuthInfoContext>(env_);
     uv_loop_s *loop = nullptr;
@@ -483,18 +457,13 @@ void NapiGetInfoCallback::OnCredentialInfo(const std::vector<AccountSA::Credenti
 
 NapiGetPropCallback::NapiGetPropCallback(napi_env env, napi_ref callbackRef, napi_deferred deferred)
     : env_(env), callbackRef_(callbackRef), deferred_(deferred)
-{
-    ACCOUNT_LOGD("enter");
-}
+{}
 
 NapiGetPropCallback::~NapiGetPropCallback()
-{
-    ACCOUNT_LOGD("enter");
-}
+{}
 
 static void OnGetPropertyWork(uv_work_t* work, int status)
 {
-    ACCOUNT_LOGD("enter");
     GetPropertyContext *context = reinterpret_cast<GetPropertyContext *>(work->data);
     if (context == nullptr) {
         ACCOUNT_LOGD("context is null");
@@ -509,7 +478,6 @@ static void OnGetPropertyWork(uv_work_t* work, int status)
 
 void NapiGetPropCallback::OnResult(int32_t result, const UserIam::UserAuth::Attributes &extraInfo)
 {
-    ACCOUNT_LOGD("enter");
     std::unique_ptr<uv_work_t> work = std::make_unique<uv_work_t>();
     std::unique_ptr<GetPropertyContext> context = std::make_unique<GetPropertyContext>(env_);
     uv_loop_s *loop = nullptr;
@@ -518,13 +486,13 @@ void NapiGetPropCallback::OnResult(int32_t result, const UserIam::UserAuth::Attr
         ACCOUNT_LOGE("fail for nullptr");
         return;
     }
+    extraInfo.GetInt32Value(Attributes::ATTR_PIN_SUB_TYPE, context->authSubType);
+    extraInfo.GetInt32Value(Attributes::ATTR_REMAIN_TIMES, context->remainTimes);
+    extraInfo.GetInt32Value(Attributes::ATTR_FREEZING_TIME, context->freezingTime);
     context->callbackRef = callbackRef_;
     context->deferred = deferred_;
     context->errCode = ERR_OK;
     context->result = result;
-    extraInfo.GetInt32Value(Attributes::ATTR_PIN_SUB_TYPE, context->authSubType);
-    extraInfo.GetInt32Value(Attributes::ATTR_REMAIN_TIMES, context->remainTimes);
-    extraInfo.GetInt32Value(Attributes::ATTR_FREEZING_TIME, context->freezingTime);
     work->data = reinterpret_cast<void *>(context.get());
     NAPI_CALL_RETURN_VOID(env_, uv_queue_work(loop, work.get(), [] (uv_work_t *work) {}, OnGetPropertyWork));
     work.release();
@@ -540,7 +508,6 @@ NapiSetPropCallback::~NapiSetPropCallback()
 
 static void OnSetPropertyWork(uv_work_t* work, int status)
 {
-    ACCOUNT_LOGD("enter");
     SetPropertyContext *context = reinterpret_cast<SetPropertyContext *>(work->data);
     if (context == nullptr) {
         ACCOUNT_LOGD("context is null");
@@ -556,7 +523,6 @@ static void OnSetPropertyWork(uv_work_t* work, int status)
 
 void NapiSetPropCallback::OnResult(int32_t result, const UserIam::UserAuth::Attributes &extraInfo)
 {
-    ACCOUNT_LOGD("enter");
     std::unique_ptr<uv_work_t> work = std::make_unique<uv_work_t>();
     std::unique_ptr<SetPropertyContext> context = std::make_unique<SetPropertyContext>(env_);
     uv_loop_s *loop = nullptr;
@@ -579,7 +545,6 @@ void NapiSetPropCallback::OnResult(int32_t result, const UserIam::UserAuth::Attr
 #ifdef HAS_PIN_AUTH_PART
 napi_value InputDataConstructor(napi_env env, napi_callback_info info)
 {
-    ACCOUNT_LOGD("enter");
     napi_value thisVar;
     void *data;
     size_t argc = ARG_SIZE_ONE;
@@ -607,7 +572,6 @@ napi_value InputDataConstructor(napi_env env, napi_callback_info info)
 
 napi_value OnSetData(napi_env env, napi_callback_info info)
 {
-    ACCOUNT_LOGD("enter");
     size_t argc = ARG_SIZE_TWO;
     napi_value thisVar = nullptr;
     napi_value argv[ARG_SIZE_TWO] = {nullptr};
@@ -632,7 +596,6 @@ napi_value OnSetData(napi_env env, napi_callback_info info)
 
 napi_value GetCtorIInputerData(napi_env env, const std::shared_ptr<AccountSA::IInputerData> &inputerData)
 {
-    ACCOUNT_LOGD("enter");
     if (inputerData == nullptr) {
         ACCOUNT_LOGD("inputerData nullptr");
         return nullptr;
@@ -655,7 +618,6 @@ napi_value GetCtorIInputerData(napi_env env, const std::shared_ptr<AccountSA::II
 
 static napi_status GetInputerInstance(InputerContext *context, napi_value *inputerDataVarCtor)
 {
-    ACCOUNT_LOGD("enter");
     napi_value cons = GetCtorIInputerData(context->env, context->inputerData);
     if (cons == nullptr) {
         ACCOUNT_LOGD("failed to GetCtorIInputerData");
@@ -666,7 +628,6 @@ static napi_status GetInputerInstance(InputerContext *context, napi_value *input
 
 static void OnGetDataWork(uv_work_t* work, int status)
 {
-    ACCOUNT_LOGD("enter");
     InputerContext *context = reinterpret_cast<InputerContext *>(work->data);
     if (context == nullptr) {
         ACCOUNT_LOGD("context is null");
@@ -693,7 +654,6 @@ NapiGetDataCallback::~NapiGetDataCallback()
 
 void NapiGetDataCallback::OnGetData(int32_t authSubType, const std::shared_ptr<AccountSA::IInputerData> inputerData)
 {
-    ACCOUNT_LOGD("enter");
     std::unique_ptr<uv_work_t> work = std::make_unique<uv_work_t>();
     std::unique_ptr<InputerContext> context = std::make_unique<InputerContext>();
     uv_loop_s *loop = nullptr;
@@ -715,7 +675,6 @@ void NapiGetDataCallback::OnGetData(int32_t authSubType, const std::shared_ptr<A
 
 void CallbackAsyncOrPromise(napi_env env, IAMAsyncContext *context, napi_value data)
 {
-    ACCOUNT_LOGD("enter");
     napi_value err = nullptr;
     if (context->errCode == ERR_OK) {
         napi_get_null(env, &err);
@@ -740,7 +699,6 @@ void CallbackAsyncOrPromise(napi_env env, IAMAsyncContext *context, napi_value d
 
 napi_status ParseUInt32Array(napi_env env, napi_value value, std::vector<uint32_t> &data)
 {
-    ACCOUNT_LOGD("enter");
     data.clear();
     bool isArray = false;
     napi_is_array(env, value, &isArray);
@@ -765,7 +723,6 @@ napi_status ParseUInt32Array(napi_env env, napi_value value, std::vector<uint32_
 
 napi_status ParseUint8TypedArray(napi_env env, napi_value value, uint8_t **data, size_t *length)
 {
-    ACCOUNT_LOGD("enter");
     *data = nullptr;
     *length = 0;
     bool isTypedArray = false;
@@ -788,7 +745,6 @@ napi_status ParseUint8TypedArray(napi_env env, napi_value value, uint8_t **data,
 
 napi_status ParseUint8TypedArrayToVector(napi_env env, napi_value value, std::vector<uint8_t> &vec)
 {
-    ACCOUNT_LOGD("enter");
     uint8_t *data = nullptr;
     size_t length = 0;
     napi_status status = ParseUint8TypedArray(env, value, &data, &length);
@@ -802,7 +758,6 @@ napi_status ParseUint8TypedArrayToVector(napi_env env, napi_value value, std::ve
 
 napi_status ParseUint8TypedArrayToUint64(napi_env env, napi_value value, uint64_t &result)
 {
-    ACCOUNT_LOGD("enter");
     uint8_t *data = nullptr;
     size_t length = 0;
     napi_status status = ParseUint8TypedArray(env, value, &data, &length);
@@ -824,7 +779,6 @@ napi_status ParseUint8TypedArrayToUint64(napi_env env, napi_value value, uint64_
 
 napi_value CreateUint8Array(napi_env env, const uint8_t *srcData, size_t length)
 {
-    ACCOUNT_LOGD("enter");
     napi_value result = nullptr;
     void* dstData = nullptr;
     napi_value napiArr = nullptr;
@@ -838,7 +792,6 @@ napi_value CreateUint8Array(napi_env env, const uint8_t *srcData, size_t length)
 
 napi_value CreateErrorObject(napi_env env, int32_t code)
 {
-    ACCOUNT_LOGD("enter");
     napi_value errObj = nullptr;
     NAPI_CALL(env, napi_create_object(env, &errObj));
     napi_value number = 0;
