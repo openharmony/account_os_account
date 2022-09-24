@@ -33,10 +33,12 @@ bool GetValidAccountID(const std::string& dirName, std::int32_t& accountID)
         return false;
     }
 
-    for (char c : dirName) {
-        if (c < '0' || c > '9') {  // check whether it is digit
-            return false;
-        }
+    auto iter = std::any_of(dirName.begin(), dirName.end(),
+        [dirName](char c) {
+            return (c < '0' || c > '9');
+        });
+    if (iter) {
+        return false;
     }
 
     // convert to osaccount id

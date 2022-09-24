@@ -637,9 +637,8 @@ ErrCode AppAccountControlManager::GetAllAccessibleAccounts(std::vector<AppAccoun
         return result;
     }
 
-    for (auto account : currentAppAccounts) {
-        appAccounts.emplace_back(account);
-    }
+    std::transform(currentAppAccounts.begin(), currentAppAccounts.end(), std::back_inserter(appAccounts),
+        [](auto account) { return account; });
 
     return ERR_OK;
 }
@@ -852,9 +851,8 @@ ErrCode AppAccountControlManager::GetAllAccountsFromDataStorage(const std::strin
         return ERR_APPACCOUNT_SERVICE_GET_ACCOUNT_INFO_BY_OWNER;
     }
 
-    for (auto account : accounts) {
-        appAccounts.emplace_back(*(std::static_pointer_cast<AppAccountInfo>(account.second)));
-    }
+    std::transform(accounts.begin(), accounts.end(), std::back_inserter(appAccounts),
+        [](auto account) { return *(std::static_pointer_cast<AppAccountInfo>(account.second)); });
 
     return ERR_OK;
 }
@@ -897,9 +895,8 @@ ErrCode AppAccountControlManager::GetAllAccessibleAccountsFromDataStorage(
         return result;
     }
 
-    for (auto account : currentAppAccounts) {
-        appAccounts.emplace_back(account);
-    }
+    std::transform(currentAppAccounts.begin(), currentAppAccounts.end(), std::back_inserter(appAccounts),
+        [](auto account) { return account; });
 
     return ERR_OK;
 }
@@ -1186,9 +1183,8 @@ ErrCode AppAccountControlManager::SaveAuthorizedAccountIntoDataStorage(const std
 
     auto accessibleAccountArray = Json::array();
     ACCOUNT_LOGD("accessibleAccounts.size() = %{public}zu", accessibleAccounts.size());
-    for (auto account : accessibleAccounts) {
-        accessibleAccountArray.emplace_back(account);
-    }
+    std::transform(accessibleAccounts.begin(), accessibleAccounts.end(), std::back_inserter(accessibleAccountArray),
+        [](auto account) { return account; });
 
     jsonObject[authorizedApp] = accessibleAccountArray;
     try {
@@ -1232,9 +1228,8 @@ ErrCode AppAccountControlManager::RemoveAuthorizedAccountFromDataStorage(const s
     }
 
     auto accessibleAccountArray = Json::array();
-    for (auto account : accessibleAccounts) {
-        accessibleAccountArray.emplace_back(account);
-    }
+    std::transform(accessibleAccounts.begin(), accessibleAccounts.end(), std::back_inserter(accessibleAccountArray),
+        [](auto account) { return account; });
 
     jsonObject[authorizedApp] = accessibleAccountArray;
     try {
