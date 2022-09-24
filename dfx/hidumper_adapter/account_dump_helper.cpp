@@ -56,7 +56,7 @@ std::string AnonymizeUidStr(const std::string& uidStr)
         return uidStr;
     }
 
-    size_t anonymizeLen = static_cast<size_t>(((double)uidStr.length()) * ANONYMIZE_RATIO);
+    size_t anonymizeLen = static_cast<size_t>(static_cast<double>(uidStr.length()) * ANONYMIZE_RATIO);
     size_t interceptLen = (uidStr.length() - anonymizeLen) / 2;  // Half head and half tail
     if (anonymizeLen < MIN_ANONYMIZE_PART_LEN || interceptLen == 0) {
         return DEFAULT_ANON_STR;
@@ -71,7 +71,7 @@ std::string AnonymizeUidStr(const std::string& uidStr)
 } // namespace
 
 AccountDumpHelper::AccountDumpHelper(const std::shared_ptr<OhosAccountManager>& ohosAccountMgr,
-    OsAccountManagerService* osAccountMgrService)
+    const sptr<OsAccountManagerService> &osAccountMgrService)
 {
     ohosAccountMgr_ = ohosAccountMgr;
     osAccountMgrService_ = osAccountMgrService;
