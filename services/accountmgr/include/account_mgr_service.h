@@ -22,6 +22,9 @@
 #include "account_dump_helper.h"
 #include "account_event_provider.h"
 #include "account_info.h"
+#if defined(HAS_USER_AUTH_PART)
+#include "account_iam_service.h"
+#endif
 #include "account_stub.h"
 #include "app_account_manager_service.h"
 #include "os_account_manager_service.h"
@@ -73,10 +76,9 @@ private:
     std::unique_ptr<AccountDumpHelper> dumpHelper_{};
     std::shared_ptr<OhosAccountManager> ohosAccountMgr_{};
 
-    sptr<IRemoteObject> appAccountManagerService_ = nullptr;
-    sptr<IRemoteObject> osAccountManagerService_ = nullptr;
-    sptr<IRemoteObject> accountIAMService_ = nullptr;
-    OsAccountManagerService* osAccountManagerServiceOrg_ = nullptr;
+    sptr<AppAccountManagerService> appAccountManagerService_ = nullptr;
+    sptr<OsAccountManagerService> osAccountManagerService_ = nullptr;
+    sptr<AccountIAMService> accountIAMService_ = nullptr;
 };
 }  // namespace AccountSA
 }  // namespace OHOS
