@@ -18,6 +18,7 @@
 #include "account_log_wrapper.h"
 #include "app_account_authenticator_session.h"
 #include "app_account_check_labels_session.h"
+#include "app_mgr_constants.h"
 #include "iservice_registry.h"
 #include "system_ability_definition.h"
 
@@ -39,13 +40,10 @@ void SessionAppStateObserver::OnAbilityStateChanged(const AppExecFwk::AbilitySta
 }
 
 AppAccountAuthenticatorSessionManager::AppAccountAuthenticatorSessionManager()
-{
-    ACCOUNT_LOGD("enter");
-}
+{}
 
 AppAccountAuthenticatorSessionManager::~AppAccountAuthenticatorSessionManager()
 {
-    ACCOUNT_LOGD("enter");
     UnregisterApplicationStateObserver();
     sessionMap_.clear();
     abilitySessions_.clear();
@@ -146,7 +144,7 @@ ErrCode AppAccountAuthenticatorSessionManager::OpenSession(
         }
         result = session->Open();
         if (result != ERR_OK) {
-            ACCOUNT_LOGE("failed to open session, result: %{public}d.", result);
+            ACCOUNT_LOGE("failed to open session, result: %{private}d.", result);
             return result;
         }
         if (sessionMap_.size() == 0) {
@@ -179,6 +177,7 @@ std::shared_ptr<AppAccountAuthenticatorSession> AppAccountAuthenticatorSessionMa
     }
     return it->second;
 }
+
 ErrCode AppAccountAuthenticatorSessionManager::GetAuthenticatorCallback(
     const AuthenticatorSessionRequest &request, sptr<IRemoteObject> &callback)
 {
@@ -186,7 +185,7 @@ ErrCode AppAccountAuthenticatorSessionManager::GetAuthenticatorCallback(
     std::lock_guard<std::mutex> lock(mutex_);
     auto it = sessionMap_.find(request.sessionId);
     if ((it == sessionMap_.end()) || (it->second == nullptr)) {
-        ACCOUNT_LOGE("failed to find a session by id=%{public}s.", request.sessionId.c_str());
+        ACCOUNT_LOGE("failed to find a session by id=%{private}s.", request.sessionId.c_str());
         return ERR_APPACCOUNT_SERVICE_OAUTH_SESSION_NOT_EXIST;
     }
     return it->second->GetAuthenticatorCallback(request, callback);
@@ -194,7 +193,7 @@ ErrCode AppAccountAuthenticatorSessionManager::GetAuthenticatorCallback(
 
 void AppAccountAuthenticatorSessionManager::OnAbilityStateChanged(const AppExecFwk::AbilityStateData &abilityStateData)
 {
-    if (abilityStateData.abilityState != Constants::ABILITY_STATE_TERMINATED) {
+    if (abilityStateData.abilityState != static_cast<int32_t>(AppExecFwk::AbilityState::ABILITY_STATE_TERMINATED)) {
         return;
     }
     std::string key = abilityStateData.abilityName + std::to_string(abilityStateData.uid);
@@ -206,7 +205,7 @@ void AppAccountAuthenticatorSessionManager::OnAbilityStateChanged(const AppExecF
     for (auto sessionId : it->second) {
         auto sessionIt = sessionMap_.find(sessionId);
         if (sessionIt != sessionMap_.end()) {
-            ACCOUNT_LOGI("session{id=%{public}s} will be cleared", sessionId.c_str());
+            ACCOUNT_LOGI("session{id=%{private}s} will be cleared", sessionId.c_str());
             sessionMap_.erase(sessionIt);
         }
     }
@@ -267,11 +266,10 @@ void AppAccountAuthenticatorSessionManager::OnSessionRequestContinued(const std:
 
 void AppAccountAuthenticatorSessionManager::CloseSession(const std::string &sessionId)
 {
-    ACCOUNT_LOGD("enter");
     std::lock_guard<std::mutex> lock(mutex_);
     auto it = sessionMap_.find(sessionId);
     if (it == sessionMap_.end()) {
-        ACCOUNT_LOGI("session not exist, sessionId=%{public}s", sessionId.c_str());
+        ACCOUNT_LOGI("session not exist, sessionId=%{private}s", sessionId.c_str());
         return;
     }
     AuthenticatorSessionRequest request;

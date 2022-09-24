@@ -416,7 +416,11 @@ ErrCode OsAccount::SubscribeOsAccount(const std::shared_ptr<OsAccountSubscriber>
     sptr<IRemoteObject> osAccountEventListener = nullptr;
     ErrCode subscribeState = CreateOsAccountEventListener(subscriber, osAccountEventListener);
     if (subscribeState == INITIAL_SUBSCRIPTION) {
-        return osAccountProxy_->SubscribeOsAccount(subscribeInfo, osAccountEventListener);
+        subscribeState = osAccountProxy_->SubscribeOsAccount(subscribeInfo, osAccountEventListener);
+        if (subscribeState != ERR_OK) {
+            eventListeners_.erase(subscriber);
+        }
+        return subscribeState;
     } else if (subscribeState == ALREADY_SUBSCRIBED) {
         return ERR_OK;
     } else {
@@ -557,12 +561,14 @@ ErrCode OsAccount::GetOsAccountProxy()
             osAccountProxy_ = iface_cast<IOsAccount>(osAccountRemoteObject);
             if ((!osAccountProxy_) || (!osAccountProxy_->AsObject())) {
                 ACCOUNT_LOGE("failed to cast os account proxy");
+                osAccountProxy_ = nullptr;
                 return ERR_OSACCOUNT_KIT_GET_APP_ACCOUNT_PROXY_ERROR;
             }
 
             deathRecipient_ = new (std::nothrow) OsAccountDeathRecipient();
             if (!deathRecipient_) {
                 ACCOUNT_LOGE("failed to create os account death recipient");
+                osAccountProxy_ = nullptr;
                 return ERR_OSACCOUNT_KIT_CREATE_APP_ACCOUNT_DEATH_RECIPIENT_ERROR;
             }
 

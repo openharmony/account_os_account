@@ -26,7 +26,7 @@ namespace AccountSA {
 class AccountDumpHelper {
 public:
     AccountDumpHelper(const std::shared_ptr<OhosAccountManager>& ohosAccountMgr,
-        OsAccountManagerService* osAccountMgrService);
+        const sptr<OsAccountManagerService> &osAccountMgrService);
     ~AccountDumpHelper() = default;
     void Dump(const std::vector<std::string>& args, std::string& result) const;
 
@@ -36,7 +36,7 @@ private:
     void ProcessOneParameter(const std::string& arg, std::string& result) const;
     void ProcessTwoParameter(const std::string& arg1, const std::string& arg2, std::string& result) const;
     std::weak_ptr<OhosAccountManager> ohosAccountMgr_;
-    OsAccountManagerService* osAccountMgrService_;
+    sptr<OsAccountManagerService> osAccountMgrService_;
     void ShowOhosAccountInfo(std::string &result) const;
     void ShowOsAccountInfo(std::string &result) const;
     void SetLogLevel(const std::string& levelStr, std::string& result) const;

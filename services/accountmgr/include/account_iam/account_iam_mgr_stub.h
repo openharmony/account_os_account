@@ -49,6 +49,7 @@ private:
     ErrCode ProcGetAccountState(MessageParcel &data, MessageParcel &reply);
     ErrCode ReadUserIdAndAuthType(MessageParcel &data, int32_t &userId, int32_t &authType);
     ErrCode AddOrUpdateCredential(MessageParcel &data, MessageParcel &reply, bool isAdd = true);
+    bool CheckPermission(const std::string &permission);
 
 private:
     static const std::map<uint32_t, MessageProcFunction> messageProcMap_;

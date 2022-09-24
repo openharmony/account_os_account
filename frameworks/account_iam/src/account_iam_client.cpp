@@ -52,6 +52,7 @@ void AccountIAMClient::AddCredential(
         return;
     }
     if ((userId == 0) && (!GetCurrentUserId(userId))) {
+        ACCOUNT_LOGE("fail to add credential for invalid userId");
         return;
     }
     if (credInfo.authType == AuthType::PIN) {
@@ -68,6 +69,7 @@ void AccountIAMClient::UpdateCredential(
         return;
     }
     if ((userId == 0) && (!GetCurrentUserId(userId))) {
+        ACCOUNT_LOGE("fail to update credential for invalid userId");
         return;
     }
     if (credInfo.authType == AuthType::PIN) {
