@@ -557,12 +557,14 @@ ErrCode OsAccount::GetOsAccountProxy()
             osAccountProxy_ = iface_cast<IOsAccount>(osAccountRemoteObject);
             if ((!osAccountProxy_) || (!osAccountProxy_->AsObject())) {
                 ACCOUNT_LOGE("failed to cast os account proxy");
+                osAccountProxy_ = nullptr;
                 return ERR_OSACCOUNT_KIT_GET_APP_ACCOUNT_PROXY_ERROR;
             }
 
             deathRecipient_ = new (std::nothrow) OsAccountDeathRecipient();
             if (!deathRecipient_) {
                 ACCOUNT_LOGE("failed to create os account death recipient");
+                osAccountProxy_ = nullptr;
                 return ERR_OSACCOUNT_KIT_CREATE_APP_ACCOUNT_DEATH_RECIPIENT_ERROR;
             }
 
