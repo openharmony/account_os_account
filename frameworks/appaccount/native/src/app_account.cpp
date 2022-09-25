@@ -530,12 +530,14 @@ ErrCode AppAccount::GetAppAccountProxy()
         appAccountProxy_ = iface_cast<IAppAccount>(appAccountRemoteObject);
         if ((!appAccountProxy_) || (!appAccountProxy_->AsObject())) {
             ACCOUNT_LOGE("failed to cast app account proxy");
+            appAccountProxy_ = nullptr;
             return ERR_APPACCOUNT_KIT_GET_APP_ACCOUNT_PROXY;
         }
 
         deathRecipient_ = new (std::nothrow) AppAccountDeathRecipient();
         if (!deathRecipient_) {
             ACCOUNT_LOGE("failed to create app account death recipient");
+            appAccountProxy_ = nullptr;
             return ERR_APPACCOUNT_KIT_CREATE_APP_ACCOUNT_DEATH_RECIPIENT;
         }
 
