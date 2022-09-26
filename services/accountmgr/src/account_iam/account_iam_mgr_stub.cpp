@@ -17,6 +17,7 @@
 
 #include "access_token.h"
 #include "account_log_wrapper.h"
+#include "account_permission_manager.h"
 #include "iaccount_iam_callback.h"
 #include "ipc_skeleton.h"
 #include "token_setproc.h"
@@ -109,6 +110,9 @@ std::int32_t AccountIAMMgrStub::OnRemoteRequest(
 
 ErrCode AccountIAMMgrStub::ProcOpenSession(MessageParcel &data, MessageParcel &reply)
 {
+    if (!CheckPermission(AccountPermissionManager::MANAGE_USER_IDM)) {
+        return ERR_ACCOUNT_ZIDL_CHECK_PERMISSION_ERROR;
+    }
     int32_t userId;
     if (!data.ReadInt32(userId)) {
         ACCOUNT_LOGD("failed to read userId");
@@ -121,6 +125,9 @@ ErrCode AccountIAMMgrStub::ProcOpenSession(MessageParcel &data, MessageParcel &r
 
 ErrCode AccountIAMMgrStub::ProcCloseSession(MessageParcel &data, MessageParcel &reply)
 {
+    if (!CheckPermission(AccountPermissionManager::MANAGE_USER_IDM)) {
+        return ERR_ACCOUNT_ZIDL_CHECK_PERMISSION_ERROR;
+    }
     int32_t userId;
     if (!data.ReadInt32(userId)) {
         ACCOUNT_LOGD("failed to read userId");
@@ -145,7 +152,9 @@ ErrCode AccountIAMMgrStub::ReadUserIdAndAuthType(MessageParcel &data, int32_t &u
 
 ErrCode AccountIAMMgrStub::AddOrUpdateCredential(MessageParcel &data, MessageParcel &reply, bool isAdd)
 {
-    ACCOUNT_LOGD("isAddCredential: %{public}d", isAdd);
+    if (!CheckPermission(AccountPermissionManager::MANAGE_USER_IDM)) {
+        return ERR_ACCOUNT_ZIDL_CHECK_PERMISSION_ERROR;
+    }
     int32_t userId;
     int32_t authType;
     ErrCode ret = ReadUserIdAndAuthType(data, userId, authType);
@@ -189,6 +198,9 @@ ErrCode AccountIAMMgrStub::ProcUpdateCredential(MessageParcel &data, MessageParc
 
 ErrCode AccountIAMMgrStub::ProcDelCred(MessageParcel &data, MessageParcel &reply)
 {
+    if (!CheckPermission(AccountPermissionManager::MANAGE_USER_IDM)) {
+        return ERR_ACCOUNT_ZIDL_CHECK_PERMISSION_ERROR;
+    }
     int32_t userId;
     if (!data.ReadInt32(userId)) {
         ACCOUNT_LOGD("failed to read userId");
@@ -215,6 +227,9 @@ ErrCode AccountIAMMgrStub::ProcDelCred(MessageParcel &data, MessageParcel &reply
 
 ErrCode AccountIAMMgrStub::ProcDelUser(MessageParcel &data, MessageParcel &reply)
 {
+    if (!CheckPermission(AccountPermissionManager::MANAGE_USER_IDM)) {
+        return ERR_ACCOUNT_ZIDL_CHECK_PERMISSION_ERROR;
+    }
     int32_t userId;
     if (!data.ReadInt32(userId)) {
         ACCOUNT_LOGD("failed to read userId");
@@ -236,6 +251,9 @@ ErrCode AccountIAMMgrStub::ProcDelUser(MessageParcel &data, MessageParcel &reply
 
 ErrCode AccountIAMMgrStub::ProcCancel(MessageParcel &data, MessageParcel &reply)
 {
+    if (!CheckPermission(AccountPermissionManager::MANAGE_USER_IDM)) {
+        return ERR_ACCOUNT_ZIDL_CHECK_PERMISSION_ERROR;
+    }
     int32_t userId;
     if (!data.ReadInt32(userId)) {
         ACCOUNT_LOGD("failed to read userId");
@@ -252,6 +270,9 @@ ErrCode AccountIAMMgrStub::ProcCancel(MessageParcel &data, MessageParcel &reply)
 
 ErrCode AccountIAMMgrStub::ProcGetCredentialInfo(MessageParcel &data, MessageParcel &reply)
 {
+    if (!CheckPermission(AccountPermissionManager::USE_USER_IDM)) {
+        return ERR_ACCOUNT_ZIDL_CHECK_PERMISSION_ERROR;
+    }
     int32_t userId;
     int32_t authType;
     ErrCode ret = ReadUserIdAndAuthType(data, userId, authType);
@@ -269,6 +290,9 @@ ErrCode AccountIAMMgrStub::ProcGetCredentialInfo(MessageParcel &data, MessagePar
 
 ErrCode AccountIAMMgrStub::ProcAuthUser(MessageParcel &data, MessageParcel &reply)
 {
+    if (!CheckPermission(AccountPermissionManager::ACCESS_USER_AUTH_INTERNAL)) {
+        return ERR_ACCOUNT_ZIDL_CHECK_PERMISSION_ERROR;
+    }
     int32_t userId;
     if (!data.ReadInt32(userId)) {
         ACCOUNT_LOGD("failed to read userId");
@@ -301,6 +325,9 @@ ErrCode AccountIAMMgrStub::ProcAuthUser(MessageParcel &data, MessageParcel &repl
 
 ErrCode AccountIAMMgrStub::ProcCancelAuth(MessageParcel &data, MessageParcel &reply)
 {
+    if (!CheckPermission(AccountPermissionManager::ACCESS_USER_AUTH_INTERNAL)) {
+        return ERR_ACCOUNT_ZIDL_CHECK_PERMISSION_ERROR;
+    }
     uint64_t contextId;
     if (!data.ReadUint64(contextId)) {
         ACCOUNT_LOGD("failed to read contextId");
@@ -312,6 +339,9 @@ ErrCode AccountIAMMgrStub::ProcCancelAuth(MessageParcel &data, MessageParcel &re
 
 ErrCode AccountIAMMgrStub::ProcGetAvailableStatus(MessageParcel &data, MessageParcel &reply)
 {
+    if (!CheckPermission(AccountPermissionManager::ACCESS_USER_AUTH_INTERNAL)) {
+        return ERR_ACCOUNT_ZIDL_CHECK_PERMISSION_ERROR;
+    }
     int32_t authType;
     if (!data.ReadInt32(authType)) {
         ACCOUNT_LOGD("failed to read authType for GetAvailableStatus");
@@ -328,11 +358,13 @@ ErrCode AccountIAMMgrStub::ProcGetAvailableStatus(MessageParcel &data, MessagePa
 
 ErrCode AccountIAMMgrStub::ProcGetProperty(MessageParcel &data, MessageParcel &reply)
 {
+    if (!CheckPermission(AccountPermissionManager::ACCESS_USER_AUTH_INTERNAL)) {
+        return ERR_ACCOUNT_ZIDL_CHECK_PERMISSION_ERROR;
+    }
     int32_t userId;
     int32_t authType;
-    ErrCode ret = ReadUserIdAndAuthType(data, userId, authType);
-    if (ret != ERR_OK) {
-        return ret;
+    if (ReadUserIdAndAuthType(data, userId, authType) != ERR_OK) {
+        return ERR_ACCOUNT_IAM_SERVICE_READ_PARCEL_FAIL;
     }
     std::vector<uint32_t> keys;
     if (!data.ReadUInt32Vector(&keys)) {
@@ -355,11 +387,13 @@ ErrCode AccountIAMMgrStub::ProcGetProperty(MessageParcel &data, MessageParcel &r
 
 ErrCode AccountIAMMgrStub::ProcSetProperty(MessageParcel &data, MessageParcel &reply)
 {
+    if (!CheckPermission(AccountPermissionManager::ACCESS_USER_AUTH_INTERNAL)) {
+        return ERR_ACCOUNT_ZIDL_CHECK_PERMISSION_ERROR;
+    }
     int32_t userId;
     int32_t authType;
-    ErrCode ret = ReadUserIdAndAuthType(data, userId, authType);
-    if (ret != ERR_OK) {
-        return ret;
+    if (ReadUserIdAndAuthType(data, userId, authType) != ERR_OK) {
+        return ERR_ACCOUNT_IAM_SERVICE_READ_PARCEL_FAIL;
     }
     std::vector<uint8_t> attr;
     if (!data.ReadUInt8Vector(&attr)) {
@@ -388,6 +422,15 @@ ErrCode AccountIAMMgrStub::ProcGetAccountState(MessageParcel &data, MessageParce
     }
     IAMState state = GetAccountState(userId);
     return reply.WriteInt32(state);
+}
+
+bool AccountIAMMgrStub::CheckPermission(const std::string &permission)
+{
+    if (AccountPermissionManager::GetInstance()->VerifyPermission(permission) != ERR_OK) {
+        ACCOUNT_LOGE("check permission failed, permission name: %{public}s", permission.c_str());
+        return false;
+    }
+    return true;
 }
 }  // AccountSA
 }  // OHOS
