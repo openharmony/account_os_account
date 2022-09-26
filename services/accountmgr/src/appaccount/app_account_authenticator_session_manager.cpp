@@ -18,6 +18,7 @@
 #include "account_log_wrapper.h"
 #include "app_account_authenticator_session.h"
 #include "app_account_check_labels_session.h"
+#include "app_mgr_constants.h"
 #include "iservice_registry.h"
 #include "system_ability_definition.h"
 
@@ -192,7 +193,7 @@ ErrCode AppAccountAuthenticatorSessionManager::GetAuthenticatorCallback(
 
 void AppAccountAuthenticatorSessionManager::OnAbilityStateChanged(const AppExecFwk::AbilityStateData &abilityStateData)
 {
-    if (abilityStateData.abilityState != Constants::ABILITY_STATE_TERMINATED) {
+    if (abilityStateData.abilityState != static_cast<int32_t>(AppExecFwk::AbilityState::ABILITY_STATE_TERMINATED)) {
         return;
     }
     std::string key = abilityStateData.abilityName + std::to_string(abilityStateData.uid);

@@ -383,8 +383,6 @@ ErrCode AppAccount::GetAllAccessibleAccounts(std::vector<AppAccountInfo> &appAcc
 
 ErrCode AppAccount::SubscribeAppAccount(const std::shared_ptr<AppAccountSubscriber> &subscriber)
 {
-    ACCOUNT_LOGD("enter");
-
     if (subscriber == nullptr) {
         ACCOUNT_LOGE("subscriber is nullptr");
         return ERR_APPACCOUNT_KIT_SUBSCRIBER_IS_NULLPTR;
@@ -431,7 +429,11 @@ ErrCode AppAccount::SubscribeAppAccount(const std::shared_ptr<AppAccountSubscrib
     sptr<IRemoteObject> appAccountEventListener = nullptr;
     ErrCode subscribeState = CreateAppAccountEventListener(subscriber, appAccountEventListener);
     if (subscribeState == INITIAL_SUBSCRIPTION) {
-        return appAccountProxy_->SubscribeAppAccount(subscribeInfo, appAccountEventListener);
+        subscribeState = appAccountProxy_->SubscribeAppAccount(subscribeInfo, appAccountEventListener);
+        if (subscribeState != ERR_OK) {
+            eventListeners_.erase(subscriber);
+        }
+        return subscribeState;
     } else if (subscribeState == ALREADY_SUBSCRIBED) {
         return ERR_OK;
     } else {

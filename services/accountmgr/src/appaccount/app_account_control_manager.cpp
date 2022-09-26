@@ -21,6 +21,7 @@
 #include "app_account_data_storage.h"
 #include "app_account_info.h"
 #include "app_account_subscribe_manager.h"
+#include "app_mgr_constants.h"
 #include "bundle_manager_adapter.h"
 #include "ipc_skeleton.h"
 #include "iservice_registry.h"
@@ -826,7 +827,7 @@ void AppAccountControlManager::UnregisterApplicationStateObserver()
 
 void AppAccountControlManager::OnAbilityStateChanged(const AppExecFwk::AbilityStateData &abilityStateData)
 {
-    if (abilityStateData.abilityState != Constants::ABILITY_STATE_TERMINATED) {
+    if (abilityStateData.abilityState != static_cast<int32_t>(AppExecFwk::AbilityState::ABILITY_STATE_TERMINATED)) {
         return;
     }
     RemoveAssociatedDataCacheByUid(abilityStateData.uid);
