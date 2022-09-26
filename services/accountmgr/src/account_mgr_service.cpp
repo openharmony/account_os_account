@@ -214,7 +214,7 @@ bool AccountMgrService::Init()
         osAccountManagerService_ = nullptr;
         return false;
     }
-    dumpHelper_ = std::make_unique<AccountDumpHelper>(ohosAccountMgr_, osAccountManagerService_);
+    dumpHelper_ = std::make_unique<AccountDumpHelper>(ohosAccountMgr_, osAccountManagerService_.GetRefPtr());
     ACCOUNT_LOGI("init end success");
     return true;
 }

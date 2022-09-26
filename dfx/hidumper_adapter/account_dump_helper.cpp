@@ -71,7 +71,7 @@ std::string AnonymizeUidStr(const std::string& uidStr)
 } // namespace
 
 AccountDumpHelper::AccountDumpHelper(const std::shared_ptr<OhosAccountManager>& ohosAccountMgr,
-    const sptr<OsAccountManagerService> &osAccountMgrService)
+    OsAccountManagerService *osAccountMgrService)
 {
     ohosAccountMgr_ = ohosAccountMgr;
     osAccountMgrService_ = osAccountMgrService;
