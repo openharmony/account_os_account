@@ -38,6 +38,11 @@ const std::string OHOS_ACCOUNT_QUIT_TIPS_CONTENT = "";
 const std::string PERMISSION_MANAGE_USERS = "ohos.permission.MANAGE_LOCAL_ACCOUNTS";
 const std::string PERMISSION_DISTRIBUTED_DATASYNC = "ohos.permission.DISTRIBUTED_DATASYNC";
 constexpr std::int32_t ROOT_UID = 0;
+#ifdef USE_MUSL
+constexpr std::int32_t DSOFTBUS_UID = 1024;
+#else
+constexpr std::int32_t DSOFTBUS_UID = 5533;
+#endif
 }  // namespace
 const std::map<std::uint32_t, AccountStubFunc> AccountStub::stubFuncMap_{
     std::make_pair(UPDATE_OHOS_ACCOUNT_INFO, &AccountStub::CmdUpdateOhosAccountInfo),
@@ -117,6 +122,13 @@ std::int32_t AccountStub::CmdQueryOhosAccountInfo(MessageParcel &data, MessagePa
 
 std::int32_t AccountStub::CmdQueryOhosAccountInfoByUserId(MessageParcel &data, MessageParcel &reply)
 {
+    if ((!HasAccountRequestPermission(PERMISSION_MANAGE_USERS)) &&
+        (!HasAccountRequestPermission(PERMISSION_DISTRIBUTED_DATASYNC)) &&
+        (IPCSkeleton::GetCallingUid() != DSOFTBUS_UID)) {
+        ACCOUNT_LOGE("Check permission failed");
+        return ERR_ACCOUNT_ZIDL_CHECK_PERMISSION_ERROR;
+    }
+
     std::int32_t userId = data.ReadInt32();
     if (userId < 0) {
         ACCOUNT_LOGE("negative userID %{public}d detected!", userId);

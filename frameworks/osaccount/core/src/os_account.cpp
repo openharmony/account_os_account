@@ -416,7 +416,11 @@ ErrCode OsAccount::SubscribeOsAccount(const std::shared_ptr<OsAccountSubscriber>
     sptr<IRemoteObject> osAccountEventListener = nullptr;
     ErrCode subscribeState = CreateOsAccountEventListener(subscriber, osAccountEventListener);
     if (subscribeState == INITIAL_SUBSCRIPTION) {
-        return osAccountProxy_->SubscribeOsAccount(subscribeInfo, osAccountEventListener);
+        subscribeState = osAccountProxy_->SubscribeOsAccount(subscribeInfo, osAccountEventListener);
+        if (subscribeState != ERR_OK) {
+            eventListeners_.erase(subscriber);
+        }
+        return subscribeState;
     } else if (subscribeState == ALREADY_SUBSCRIBED) {
         return ERR_OK;
     } else {
