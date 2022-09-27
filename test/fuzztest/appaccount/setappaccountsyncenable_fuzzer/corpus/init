@@ -11,19 +11,4 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-group("fuzztest") {
-  testonly = true
-  deps = []
-
-  deps += [
-    # deps file
-    "addaccount_fuzzer:AddAccountFuzzTest",
-    "checkappaccountsyncenable_fuzzer:CheckAppAccountSyncEnableFuzzTest",
-    "deleteaccount_fuzzer:DeleteAccountFuzzTest",
-    "disableappaccess_fuzzer:DisableAppAccessFuzzTest",
-    "enableappaccess_fuzzer:EnableAppAccessFuzzTest",
-    "getaccountextrainfo_fuzzer:GetAccountExtraInfoFuzzTest",
-    "setaccountextrainfo_fuzzer:SetAccountExtranInfoFuzzTest",
-    "setappaccountsyncenable_fuzzer:SetAppAccountSyncEnableFuzzTest",
-  ]
-}
+FUZZ
