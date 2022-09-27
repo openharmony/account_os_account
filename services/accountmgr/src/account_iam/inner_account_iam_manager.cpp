@@ -223,7 +223,7 @@ ErrCode InnerAccountIAMManager::UpdateStorageKey(int32_t userId, const std::vect
         return result;
     }
     return storageMgrProxy_->UpdateKeyContext(userId);
-#elif
+#else
     return ERR_OK;
 #endif
 }
