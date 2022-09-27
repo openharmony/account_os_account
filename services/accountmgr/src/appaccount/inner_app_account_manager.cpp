@@ -28,9 +28,7 @@ InnerAppAccountManager::InnerAppAccountManager()
       subscribeManagerPtr_(AppAccountSubscribeManager::GetInstance()),
       sessionManagerPtr_(AppAccountAuthenticatorSessionManager::GetInstance()),
       authenticatorManagerPtr_(AppAccountAuthenticatorManager::GetInstance())
-{
-    ACCOUNT_LOGD("enter");
-}
+{}
 
 InnerAppAccountManager::~InnerAppAccountManager()
 {}
@@ -52,7 +50,6 @@ ErrCode InnerAppAccountManager::AddAccount(const std::string &name, const std::s
 
 ErrCode InnerAppAccountManager::AddAccountImplicitly(const AuthenticatorSessionRequest &request)
 {
-    ACCOUNT_LOGD("enter");
     if (!sessionManagerPtr_) {
         ACCOUNT_LOGE("sessionManagerPtr_ is nullptr");
         return ERR_APPACCOUNT_SERVICE_SESSION_MANAGER_PTR_IS_NULLPTR;
@@ -160,7 +157,6 @@ ErrCode InnerAppAccountManager::DisableAppAccess(const std::string &name, const 
 ErrCode InnerAppAccountManager::CheckAppAccess(const std::string &name, const std::string &authorizedApp,
     bool &isAccessible, const AppAccountCallingInfo &appAccountCallingInfo)
 {
-    ACCOUNT_LOGD("enter");
     if (!controlManagerPtr_) {
         ACCOUNT_LOGE("controlManagerPtr_ is nullptr");
         return ERR_APPACCOUNT_SERVICE_CONTROL_MANAGER_PTR_IS_NULLPTR;
@@ -272,9 +268,8 @@ ErrCode InnerAppAccountManager::SetAccountCredential(const std::string &name, co
 ErrCode InnerAppAccountManager::DeleteAccountCredential(const std::string &name, const std::string &credentialType,
     const uid_t &uid, const std::string &bundleName, const uint32_t &appIndex)
 {
-    ACCOUNT_LOGD("enter");
     if (!controlManagerPtr_) {
-        ACCOUNT_LOGD("controlManagerPtr_ is nullptr");
+        ACCOUNT_LOGE("controlManagerPtr_ is nullptr");
         return ERR_APPACCOUNT_SERVICE_CONTROL_MANAGER_PTR_IS_NULLPTR;
     }
     AppAccountCallingInfo appAccountCallingInfo;
@@ -283,20 +278,19 @@ ErrCode InnerAppAccountManager::DeleteAccountCredential(const std::string &name,
     appAccountCallingInfo.appIndex = appIndex;
     ErrCode result = controlManagerPtr_->SetAccountCredential(name, credentialType, "", appAccountCallingInfo, true);
     if (!subscribeManagerPtr_) {
-        ACCOUNT_LOGD("subscribeManagerPtr_ is nullptr");
+        ACCOUNT_LOGE("subscribeManagerPtr_ is nullptr");
         return result;
     }
     AppAccountInfo appAccountInfo(name, bundleName);
     appAccountInfo.SetAppIndex(appIndex);
     if (subscribeManagerPtr_->PublishAccount(appAccountInfo, uid, bundleName) != true) {
-        ACCOUNT_LOGD("failed to publish account");
+        ACCOUNT_LOGE("failed to publish account");
     }
     return result;
 }
 
 ErrCode InnerAppAccountManager::Authenticate(const AuthenticatorSessionRequest &request)
 {
-    ACCOUNT_LOGD("enter");
     if (!controlManagerPtr_) {
         ACCOUNT_LOGE("controlManagerPtr_ is nullptr");
         return ERR_APPACCOUNT_SERVICE_CONTROL_MANAGER_PTR_IS_NULLPTR;
@@ -322,7 +316,6 @@ ErrCode InnerAppAccountManager::Authenticate(const AuthenticatorSessionRequest &
 
 ErrCode InnerAppAccountManager::GetOAuthToken(const AuthenticatorSessionRequest &request, std::string &token)
 {
-    ACCOUNT_LOGD("enter");
     if (!controlManagerPtr_) {
         ACCOUNT_LOGE("controlManagerPtr_ is nullptr");
         return ERR_APPACCOUNT_SERVICE_CONTROL_MANAGER_PTR_IS_NULLPTR;
@@ -332,7 +325,6 @@ ErrCode InnerAppAccountManager::GetOAuthToken(const AuthenticatorSessionRequest 
 
 ErrCode InnerAppAccountManager::SetOAuthToken(const AuthenticatorSessionRequest &request)
 {
-    ACCOUNT_LOGD("enter");
     if (!controlManagerPtr_) {
         ACCOUNT_LOGE("controlManagerPtr_ is nullptr");
         return ERR_APPACCOUNT_SERVICE_CONTROL_MANAGER_PTR_IS_NULLPTR;
@@ -355,7 +347,6 @@ ErrCode InnerAppAccountManager::SetOAuthToken(const AuthenticatorSessionRequest 
 
 ErrCode InnerAppAccountManager::DeleteOAuthToken(const AuthenticatorSessionRequest &request)
 {
-    ACCOUNT_LOGD("enter");
     if (!controlManagerPtr_) {
         ACCOUNT_LOGE("controlManagerPtr_ is nullptr");
         return ERR_APPACCOUNT_SERVICE_CONTROL_MANAGER_PTR_IS_NULLPTR;
@@ -365,7 +356,6 @@ ErrCode InnerAppAccountManager::DeleteOAuthToken(const AuthenticatorSessionReque
 
 ErrCode InnerAppAccountManager::SetOAuthTokenVisibility(const AuthenticatorSessionRequest &request)
 {
-    ACCOUNT_LOGD("enter");
     if (!controlManagerPtr_) {
         ACCOUNT_LOGE("controlManagerPtr_ is nullptr");
         return ERR_APPACCOUNT_SERVICE_CONTROL_MANAGER_PTR_IS_NULLPTR;
@@ -375,7 +365,6 @@ ErrCode InnerAppAccountManager::SetOAuthTokenVisibility(const AuthenticatorSessi
 
 ErrCode InnerAppAccountManager::CheckOAuthTokenVisibility(const AuthenticatorSessionRequest &request, bool &isVisible)
 {
-    ACCOUNT_LOGD("enter");
     if (!controlManagerPtr_) {
         ACCOUNT_LOGE("controlManagerPtr_ is nullptr");
         return ERR_APPACCOUNT_SERVICE_CONTROL_MANAGER_PTR_IS_NULLPTR;
@@ -386,7 +375,6 @@ ErrCode InnerAppAccountManager::CheckOAuthTokenVisibility(const AuthenticatorSes
 ErrCode InnerAppAccountManager::GetAuthenticatorInfo(
     const AuthenticatorSessionRequest &request, AuthenticatorInfo &info)
 {
-    ACCOUNT_LOGD("enter");
     if (!authenticatorManagerPtr_) {
         ACCOUNT_LOGE("authenticatorManagerPtr_ is nullptr");
         return ERR_APPACCOUNT_SERVICE_AUTHENTICATOR_MANAGER_PTR_IS_NULLPTR;
@@ -398,7 +386,6 @@ ErrCode InnerAppAccountManager::GetAuthenticatorInfo(
 ErrCode InnerAppAccountManager::GetAllOAuthTokens(
     const AuthenticatorSessionRequest &request, std::vector<OAuthTokenInfo> &tokenInfos)
 {
-    ACCOUNT_LOGD("enter");
     if (!controlManagerPtr_) {
         ACCOUNT_LOGE("controlManagerPtr_ is nullptr");
         return ERR_APPACCOUNT_SERVICE_CONTROL_MANAGER_PTR_IS_NULLPTR;
@@ -409,7 +396,6 @@ ErrCode InnerAppAccountManager::GetAllOAuthTokens(
 ErrCode InnerAppAccountManager::GetOAuthList(
     const AuthenticatorSessionRequest &request, std::set<std::string> &oauthList)
 {
-    ACCOUNT_LOGD("enter");
     if (!controlManagerPtr_) {
         ACCOUNT_LOGE("controlManagerPtr_ is nullptr");
         return ERR_APPACCOUNT_SERVICE_CONTROL_MANAGER_PTR_IS_NULLPTR;
@@ -420,14 +406,13 @@ ErrCode InnerAppAccountManager::GetOAuthList(
 ErrCode InnerAppAccountManager::GetAuthenticatorCallback(
     const AuthenticatorSessionRequest &request, sptr<IRemoteObject> &callback)
 {
-    ACCOUNT_LOGD("enter");
     callback = nullptr;
     if (!sessionManagerPtr_) {
         ACCOUNT_LOGE("controlManagerPtr_ is nullptr");
         return ERR_APPACCOUNT_SERVICE_CONTROL_MANAGER_PTR_IS_NULLPTR;
     }
     ErrCode result = sessionManagerPtr_->GetAuthenticatorCallback(request, callback);
-    ACCOUNT_LOGD("end");
+
     return result;
 }
 
@@ -447,8 +432,6 @@ ErrCode InnerAppAccountManager::GetAllAccounts(const std::string &owner, std::ve
 ErrCode InnerAppAccountManager::GetAllAccessibleAccounts(std::vector<AppAccountInfo> &appAccounts,
     const uid_t &uid, const std::string &bundleName, const uint32_t &appIndex)
 {
-    ACCOUNT_LOGD("enter");
-
     if (!controlManagerPtr_) {
         ACCOUNT_LOGE("controlManagerPtr_ is nullptr");
         return ERR_APPACCOUNT_SERVICE_CONTROL_MANAGER_PTR_IS_NULLPTR;
@@ -463,7 +446,6 @@ ErrCode InnerAppAccountManager::SelectAccountsByOptions(
     const SelectAccountsOptions &options, const sptr<IAppAccountAuthenticatorCallback> &callback,
     const uid_t &uid, const std::string &bundleName, const uint32_t &appIndex)
 {
-    ACCOUNT_LOGD("enter");
     if (!controlManagerPtr_) {
         ACCOUNT_LOGE("controlManagerPtr_ is nullptr");
         return ERR_APPACCOUNT_SERVICE_CONTROL_MANAGER_PTR_IS_NULLPTR;
@@ -475,7 +457,6 @@ ErrCode InnerAppAccountManager::SelectAccountsByOptions(
 
 ErrCode InnerAppAccountManager::VerifyCredential(const AuthenticatorSessionRequest &request)
 {
-    ACCOUNT_LOGD("enter");
     if (!sessionManagerPtr_) {
         ACCOUNT_LOGE("sessionManagerPtr_ is nullptr");
         return ERR_APPACCOUNT_SERVICE_SESSION_MANAGER_PTR_IS_NULLPTR;
@@ -485,7 +466,6 @@ ErrCode InnerAppAccountManager::VerifyCredential(const AuthenticatorSessionReque
 
 ErrCode InnerAppAccountManager::CheckAccountLabels(const AuthenticatorSessionRequest &request)
 {
-    ACCOUNT_LOGD("enter");
     if (!sessionManagerPtr_) {
         ACCOUNT_LOGE("sessionManagerPtr_ is nullptr");
         return ERR_APPACCOUNT_SERVICE_SESSION_MANAGER_PTR_IS_NULLPTR;
@@ -495,7 +475,6 @@ ErrCode InnerAppAccountManager::CheckAccountLabels(const AuthenticatorSessionReq
 
 ErrCode InnerAppAccountManager::SetAuthenticatorProperties(const AuthenticatorSessionRequest &request)
 {
-    ACCOUNT_LOGD("enter");
     if (!sessionManagerPtr_) {
         ACCOUNT_LOGE("sessionManagerPtr_ is nullptr");
         return ERR_APPACCOUNT_SERVICE_CONTROL_MANAGER_PTR_IS_NULLPTR;
@@ -506,8 +485,6 @@ ErrCode InnerAppAccountManager::SetAuthenticatorProperties(const AuthenticatorSe
 ErrCode InnerAppAccountManager::SubscribeAppAccount(const AppAccountSubscribeInfo &subscribeInfo,
     const sptr<IRemoteObject> &eventListener, const uid_t &uid, const std::string &bundleName, const uint32_t &appIndex)
 {
-    ACCOUNT_LOGD("enter");
-
     if (!subscribeManagerPtr_) {
         ACCOUNT_LOGE("subscribeManagerPtr_ is nullptr");
         return ERR_APPACCOUNT_SERVICE_SUBSCRIBE_MANAGER_PTR_IS_NULLPTR;
@@ -522,8 +499,6 @@ ErrCode InnerAppAccountManager::SubscribeAppAccount(const AppAccountSubscribeInf
 
 ErrCode InnerAppAccountManager::UnsubscribeAppAccount(const sptr<IRemoteObject> &eventListener)
 {
-    ACCOUNT_LOGD("enter");
-
     if (!subscribeManagerPtr_) {
         ACCOUNT_LOGE("subscribeManagerPtr_ is nullptr");
         return ERR_APPACCOUNT_SERVICE_SUBSCRIBE_MANAGER_PTR_IS_NULLPTR;
@@ -537,8 +512,6 @@ ErrCode InnerAppAccountManager::UnsubscribeAppAccount(const sptr<IRemoteObject> 
 ErrCode InnerAppAccountManager::OnPackageRemoved(
     const uid_t &uid, const std::string &bundleName, const uint32_t &appIndex)
 {
-    ACCOUNT_LOGD("enter");
-
     if (!controlManagerPtr_) {
         ACCOUNT_LOGE("controlManagerPtr_ is nullptr");
         return ERR_APPACCOUNT_SERVICE_CONTROL_MANAGER_PTR_IS_NULLPTR;

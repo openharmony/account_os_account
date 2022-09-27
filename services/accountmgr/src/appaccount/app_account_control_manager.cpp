@@ -31,9 +31,7 @@
 namespace OHOS {
 namespace AccountSA {
 AppAccountControlManager::AppAccountControlManager()
-{
-    ACCOUNT_LOGD("enter");
-}
+{}
 
 ErrCode AppAccountControlManager::AddAccount(const std::string &name, const std::string &extraInfo, const uid_t &uid,
     const std::string &bundleName, AppAccountInfo &appAccountInfo)
@@ -207,7 +205,6 @@ ErrCode AppAccountControlManager::DisableAppAccess(const std::string &name, cons
 ErrCode AppAccountControlManager::CheckAppAccess(const std::string &name, const std::string &authorizedApp,
     bool &isAccessible, const AppAccountCallingInfo &appAccountCallingInfo)
 {
-    ACCOUNT_LOGI("enter");
     isAccessible = false;
     std::shared_ptr<AppAccountDataStorage> dataStoragePtr = GetDataStorage(appAccountCallingInfo.callingUid);
     AppAccountInfo appAccountInfo(name, appAccountCallingInfo.bundleName);
@@ -282,22 +279,21 @@ void AppAccountControlManager::PopDataFromAssociatedDataCache()
 ErrCode AppAccountControlManager::GetAssociatedDataFromStorage(const std::string &name, const std::string &key,
     std::string &value, const uid_t &uid, const uint32_t &appIndex)
 {
-    ACCOUNT_LOGD("enter");
     std::string bundleName;
     if (!BundleManagerAdapter::GetInstance()->GetBundleNameForUid(uid, bundleName)) {
-        ACCOUNT_LOGD("failed to get bundle name");
+        ACCOUNT_LOGE("failed to get bundle name");
         return ERR_APPACCOUNT_SERVICE_GET_BUNDLE_NAME;
     }
     AppAccountInfo appAccountInfo(name, bundleName);
     appAccountInfo.SetAppIndex(appIndex);
     std::shared_ptr<AppAccountDataStorage> storePtr = GetDataStorage(uid);
     if (storePtr == nullptr) {
-        ACCOUNT_LOGD("failed to get data storage");
+        ACCOUNT_LOGE("failed to get data storage");
         return ERR_APPACCOUNT_SERVICE_DATA_STORAGE_PTR_IS_NULLPTR;
     }
     ErrCode result = GetAccountInfoFromDataStorage(appAccountInfo, storePtr);
     if (result != ERR_OK) {
-        ACCOUNT_LOGD("failed to get account info from data storage");
+        ACCOUNT_LOGE("failed to get account info from data storage");
         return result;
     }
     AssociatedDataCacheItem item;
@@ -308,11 +304,10 @@ ErrCode AppAccountControlManager::GetAssociatedDataFromStorage(const std::string
     if (it != item.data.end()) {
         value = it->second;
     } else {
-        ACCOUNT_LOGD("key not exists");
         result = ERR_APPACCOUNT_SERVICE_ASSOCIATED_DATA_KEY_NOT_EXIST;
     }
     if ((associatedDataCache_.size() == 0) && (!RegisterApplicationStateObserver())) {
-        ACCOUNT_LOGD("failed to register application state observer");
+        ACCOUNT_LOGE("failed to register application state observer");
         return result;
     }
     if (associatedDataCache_.size() >= ASSOCIATED_DATA_CACHE_MAX_SIZE) {
@@ -325,7 +320,6 @@ ErrCode AppAccountControlManager::GetAssociatedDataFromStorage(const std::string
 ErrCode AppAccountControlManager::GetAssociatedData(const std::string &name, const std::string &key,
     std::string &value, const uid_t &uid, const uint32_t &appIndex)
 {
-    ACCOUNT_LOGD("enter");
     std::lock_guard<std::mutex> lock(associatedDataMutex_);
     auto it = associatedDataCache_.find(uid);
     if ((it == associatedDataCache_.end()) || (it->second.name != name)) {
@@ -344,24 +338,23 @@ ErrCode AppAccountControlManager::GetAssociatedData(const std::string &name, con
 ErrCode AppAccountControlManager::SetAssociatedData(const std::string &name, const std::string &key,
     const std::string &value, const AppAccountCallingInfo &appAccountCallingInfo)
 {
-    ACCOUNT_LOGD("enter");
     std::shared_ptr<AppAccountDataStorage> storePtr = GetDataStorage(appAccountCallingInfo.callingUid);
     AppAccountInfo appAccountInfo(name, appAccountCallingInfo.bundleName);
     appAccountInfo.SetAppIndex(appAccountCallingInfo.appIndex);
     std::lock_guard<std::mutex> lock(associatedDataMutex_);
     ErrCode result = GetAccountInfoFromDataStorage(appAccountInfo, storePtr);
     if (result != ERR_OK) {
-        ACCOUNT_LOGD("failed to get account info from data storage, result %{public}d.", result);
+        ACCOUNT_LOGE("failed to get account info from data storage, result %{public}d.", result);
         return result;
     }
     result = appAccountInfo.SetAssociatedData(key, value);
     if (result != ERR_OK) {
-        ACCOUNT_LOGD("failed to set associated data, result %{public}d.", result);
+        ACCOUNT_LOGE("failed to set associated data, result %{public}d.", result);
         return ERR_APPACCOUNT_SERVICE_SET_ASSOCIATED_DATA;
     }
     result = SaveAccountInfoIntoDataStorage(appAccountInfo, storePtr, appAccountCallingInfo.callingUid);
     if (result != ERR_OK) {
-        ACCOUNT_LOGD("failed to save account info into data storage, result %{public}d.", result);
+        ACCOUNT_LOGE("failed to save account info into data storage, result %{public}d.", result);
         return result;
     }
     auto it = associatedDataCache_.find(appAccountCallingInfo.callingUid);
@@ -647,7 +640,6 @@ ErrCode AppAccountControlManager::SelectAccountsByOptions(
     const SelectAccountsOptions &options, const sptr<IAppAccountAuthenticatorCallback> &callback,
     const uid_t &uid, const std::string &bundleName, const uint32_t &appIndex)
 {
-    ACCOUNT_LOGD("enter");
     AAFwk::Want result;
     if ((!options.hasAccounts) && (!options.hasOwners) && (!options.hasLabels)) {
         callback->OnResult(ERR_JS_SUCCESS, result);
@@ -661,7 +653,7 @@ ErrCode AppAccountControlManager::SelectAccountsByOptions(
     std::vector<AppAccountInfo> accessibleAccounts;
     ErrCode errCode = GetAllAccessibleAccounts(accessibleAccounts, uid, bundleName, appIndex);
     if (errCode != ERR_OK) {
-        ACCOUNT_LOGD("failed to get all accessible accounts");
+        ACCOUNT_LOGE("failed to get all accessible accounts");
         return errCode;
     }
     std::vector<AppAccountInfo> candidateAccounts;
@@ -788,7 +780,6 @@ ErrCode AppAccountControlManager::OnUserRemoved(int32_t userId)
 
 bool AppAccountControlManager::RegisterApplicationStateObserver()
 {
-    ACCOUNT_LOGD("enter");
     if (appStateObserver_ != nullptr) {
         return false;
     }
@@ -1005,8 +996,6 @@ ErrCode AppAccountControlManager::AddAccountInfoIntoDataStorage(
 ErrCode AppAccountControlManager::SaveAccountInfoIntoDataStorage(
     AppAccountInfo &appAccountInfo, const std::shared_ptr<AppAccountDataStorage> &dataStoragePtr, const uid_t &uid)
 {
-    ACCOUNT_LOGD("enter");
-
     if (dataStoragePtr == nullptr) {
         ACCOUNT_LOGE("dataStoragePtr is nullptr");
         return ERR_APPACCOUNT_SERVICE_DATA_STORAGE_PTR_IS_NULLPTR;
@@ -1051,7 +1040,6 @@ ErrCode AppAccountControlManager::SaveAccountInfoIntoDataStorage(
 ErrCode AppAccountControlManager::DeleteAccountInfoFromDataStorage(
     AppAccountInfo &appAccountInfo, std::shared_ptr<AppAccountDataStorage> &dataStoragePtr, const uid_t &uid)
 {
-    ACCOUNT_LOGD("enter");
     if (dataStoragePtr == nullptr) {
         ACCOUNT_LOGE("dataStoragePtr is nullptr");
         return ERR_APPACCOUNT_SERVICE_DATA_STORAGE_PTR_IS_NULLPTR;
@@ -1089,8 +1077,6 @@ ErrCode AppAccountControlManager::DeleteAccountInfoFromDataStorage(
 ErrCode AppAccountControlManager::SaveAuthorizedAccount(const std::string &bundleName,
     AppAccountInfo &appAccountInfo, const std::shared_ptr<AppAccountDataStorage> &dataStoragePtr, const uid_t &uid)
 {
-    ACCOUNT_LOGD("enter");
-
     if (dataStoragePtr == nullptr) {
         ACCOUNT_LOGE("dataStoragePtr is nullptr");
         return ERR_APPACCOUNT_SERVICE_DATA_STORAGE_PTR_IS_NULLPTR;
@@ -1123,8 +1109,6 @@ ErrCode AppAccountControlManager::SaveAuthorizedAccount(const std::string &bundl
 ErrCode AppAccountControlManager::RemoveAuthorizedAccount(const std::string &bundleName,
     AppAccountInfo &appAccountInfo, const std::shared_ptr<AppAccountDataStorage> &dataStoragePtr, const uid_t &uid)
 {
-    ACCOUNT_LOGD("enter");
-
     if (dataStoragePtr == nullptr) {
         ACCOUNT_LOGE("dataStoragePtr is nullptr");
         return ERR_APPACCOUNT_SERVICE_DATA_STORAGE_PTR_IS_NULLPTR;
@@ -1177,12 +1161,10 @@ ErrCode AppAccountControlManager::SaveAuthorizedAccountIntoDataStorage(const std
 
     auto it = std::find(accessibleAccounts.begin(), accessibleAccounts.end(), accountId);
     if (it == accessibleAccounts.end()) {
-        ACCOUNT_LOGI("failed to find accountId, accountId = %{public}s", accountId.c_str());
         accessibleAccounts.emplace_back(accountId);
     }
 
     auto accessibleAccountArray = Json::array();
-    ACCOUNT_LOGD("accessibleAccounts.size() = %{public}zu", accessibleAccounts.size());
     std::transform(accessibleAccounts.begin(), accessibleAccounts.end(), std::back_inserter(accessibleAccountArray),
         [](auto account) { return account; });
 

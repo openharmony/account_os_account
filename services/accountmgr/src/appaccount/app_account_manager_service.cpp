@@ -26,8 +26,6 @@ namespace OHOS {
 namespace AccountSA {
 AppAccountManagerService::AppAccountManagerService()
 {
-    ACCOUNT_LOGD("enter");
-
     innerManager_ = std::make_shared<InnerAppAccountManager>();
     permissionManagerPtr_ = DelayedSingleton<AccountPermissionManager>::GetInstance();
 #ifdef HAS_CES_PART
@@ -38,7 +36,6 @@ AppAccountManagerService::AppAccountManagerService()
     };
     observer_ = std::make_shared<AppAccountCommonEventObserver>(callback);
 #endif // HAS_CES_PART
-    ACCOUNT_LOGD("end");
 }
 
 AppAccountManagerService::~AppAccountManagerService()
@@ -398,7 +395,7 @@ ErrCode AppAccountManagerService::GetAllAccounts(const std::string &owner, std::
     }
     if ((owner != bundleName) &&
         (permissionManagerPtr_->VerifyPermission(AccountPermissionManager::GET_ALL_APP_ACCOUNTS) != ERR_OK)) {
-        ACCOUNT_LOGD("failed to verify permission for %{public}s",
+        ACCOUNT_LOGE("failed to verify permission for %{public}s",
             AccountPermissionManager::GET_ALL_APP_ACCOUNTS.c_str());
         ReportPermissionFail(callingUid, IPCSkeleton::GetCallingPid(),
             AccountPermissionManager::GET_ALL_APP_ACCOUNTS);
@@ -410,7 +407,6 @@ ErrCode AppAccountManagerService::GetAllAccounts(const std::string &owner, std::
     bool result = BundleManagerAdapter::GetInstance()->GetBundleInfo(
         owner, AppExecFwk::BundleFlag::GET_BUNDLE_DEFAULT, bundleInfo, userId);
     if (!result) {
-        ACCOUNT_LOGD("failed to get bundle info");
         return ERR_APPACCOUNT_SERVICE_GET_BUNDLE_INFO;
     }
 
@@ -437,7 +433,6 @@ ErrCode AppAccountManagerService::GetAllAccessibleAccounts(std::vector<AppAccoun
 ErrCode AppAccountManagerService::CheckAppAccess(
     const std::string &name, const std::string &authorizedApp, bool &isAccessible)
 {
-    ACCOUNT_LOGD("enter");
     AppAccountCallingInfo appAccountCallingInfo;
     ErrCode result = GetCallingInfo(appAccountCallingInfo.callingUid, appAccountCallingInfo.bundleName,
         appAccountCallingInfo.appIndex);
@@ -454,7 +449,6 @@ ErrCode AppAccountManagerService::CheckAppAccess(
 ErrCode AppAccountManagerService::DeleteAccountCredential(
     const std::string &name, const std::string &credentialType)
 {
-    ACCOUNT_LOGD("enter");
     int32_t callingUid = -1;
     std::string bundleName;
     uint32_t appIndex;
@@ -468,7 +462,6 @@ ErrCode AppAccountManagerService::DeleteAccountCredential(
 ErrCode AppAccountManagerService::SelectAccountsByOptions(
     const SelectAccountsOptions &options, const sptr<IRemoteObject> &callback)
 {
-    ACCOUNT_LOGD("enter");
     int32_t callingUid = -1;
     std::string bundleName;
     uint32_t appIndex;
@@ -483,7 +476,6 @@ ErrCode AppAccountManagerService::SelectAccountsByOptions(
 ErrCode AppAccountManagerService::VerifyCredential(const std::string &name, const std::string &owner,
     const VerifyCredentialOptions &options, const sptr<IRemoteObject> &callback)
 {
-    ACCOUNT_LOGD("enter");
     AuthenticatorSessionRequest request;
     ErrCode result = GetCallingInfo(request.callerUid, request.callerBundleName, request.appIndex);
     if (result != ERR_OK) {
@@ -499,7 +491,6 @@ ErrCode AppAccountManagerService::VerifyCredential(const std::string &name, cons
 ErrCode AppAccountManagerService::CheckAccountLabels(const std::string &name, const std::string &owner,
     const std::vector<std::string> &labels, const sptr<IRemoteObject> &callback)
 {
-    ACCOUNT_LOGD("enter");
     AuthenticatorSessionRequest request;
     ErrCode result = GetCallingInfo(request.callerUid, request.callerBundleName, request.appIndex);
     if (result != ERR_OK) {
@@ -515,7 +506,6 @@ ErrCode AppAccountManagerService::CheckAccountLabels(const std::string &name, co
 ErrCode AppAccountManagerService::SetAuthenticatorProperties(
     const std::string &owner, const SetPropertiesOptions &options, const sptr<IRemoteObject> &callback)
 {
-    ACCOUNT_LOGD("enter");
     AuthenticatorSessionRequest request;
     ErrCode result = GetCallingInfo(request.callerUid, request.callerBundleName, request.appIndex);
     if (result != ERR_OK) {
@@ -530,8 +520,6 @@ ErrCode AppAccountManagerService::SetAuthenticatorProperties(
 ErrCode AppAccountManagerService::SubscribeAppAccount(
     const AppAccountSubscribeInfo &subscribeInfo, const sptr<IRemoteObject> &eventListener)
 {
-    ACCOUNT_LOGD("enter");
-
     int32_t callingUid = -1;
     std::string bundleName;
     uint32_t appIndex;

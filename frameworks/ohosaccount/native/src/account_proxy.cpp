@@ -24,7 +24,6 @@ namespace AccountSA {
 bool AccountProxy::UpdateOhosAccountInfo(
     const std::string &accountName, const std::string &uid, const std::string &eventStr)
 {
-    ACCOUNT_LOGD("enter");
     MessageParcel data;
     MessageParcel reply;
     MessageOption option;
@@ -69,7 +68,6 @@ bool AccountProxy::UpdateOhosAccountInfo(
 
 std::pair<bool, OhosAccountInfo> AccountProxy::QueryOhosAccountInfo(void)
 {
-    ACCOUNT_LOGD("enter");
     MessageParcel data;
     MessageParcel reply;
     MessageOption option;
@@ -94,7 +92,6 @@ std::pair<bool, OhosAccountInfo> AccountProxy::QueryOhosAccountInfo(void)
 
 std::pair<bool, OhosAccountInfo> AccountProxy::QueryOhosAccountInfoByUserId(std::int32_t userId)
 {
-    ACCOUNT_LOGD("enter");
     MessageParcel data;
     MessageParcel reply;
     MessageOption option;
@@ -118,13 +115,12 @@ std::pair<bool, OhosAccountInfo> AccountProxy::QueryOhosAccountInfoByUserId(std:
     std::u16string name = reply.ReadString16();
     std::u16string uid = reply.ReadString16();
     std::int32_t status = reply.ReadInt32();
-    ACCOUNT_LOGD("exit");
+
     return std::make_pair(true, OhosAccountInfo(Str16ToStr8(name), Str16ToStr8(uid), status));
 }
 
 std::int32_t AccountProxy::QueryDeviceAccountId(std::int32_t &accountId)
 {
-    ACCOUNT_LOGD("enter");
     MessageParcel data;
     MessageParcel reply;
     MessageOption option;
@@ -141,13 +137,12 @@ std::int32_t AccountProxy::QueryDeviceAccountId(std::int32_t &accountId)
     }
 
     accountId = reply.ReadInt32();
-    ACCOUNT_LOGD("exit");
+
     return ERR_OK;
 }
 
 sptr<IRemoteObject> AccountProxy::GetAppAccountService()
 {
-    ACCOUNT_LOGD("enter");
     MessageParcel data;
     MessageParcel reply;
     MessageOption option;
@@ -162,13 +157,12 @@ sptr<IRemoteObject> AccountProxy::GetAppAccountService()
         ACCOUNT_LOGE("SendRequest failed %{public}d", ret);
         return nullptr;
     }
-    ACCOUNT_LOGD("exit");
+
     return reply.ReadRemoteObject();
 }
 
 sptr<IRemoteObject> AccountProxy::GetOsAccountService()
 {
-    ACCOUNT_LOGD("enter");
     MessageParcel data;
     MessageParcel reply;
     MessageOption option;
@@ -183,7 +177,7 @@ sptr<IRemoteObject> AccountProxy::GetOsAccountService()
         ACCOUNT_LOGE("SendRequest failed %{public}d", ret);
         return nullptr;
     }
-    ACCOUNT_LOGD("exit");
+
     return reply.ReadRemoteObject();
 }
 
@@ -194,13 +188,13 @@ sptr<IRemoteObject> AccountProxy::GetAccountIAMService()
     MessageOption option;
 
     if (!data.WriteInterfaceToken(GetDescriptor())) {
-        ACCOUNT_LOGD("Write descriptor failed");
+        ACCOUNT_LOGE("Write descriptor failed");
         return nullptr;
     }
 
     auto ret = Remote()->SendRequest(GET_ACCOUNT_IAM_SERVICE, data, reply, option);
     if (ret != ERR_NONE) {
-        ACCOUNT_LOGD("SendRequest failed %d", ret);
+        ACCOUNT_LOGE("SendRequest failed %d", ret);
         return nullptr;
     }
 

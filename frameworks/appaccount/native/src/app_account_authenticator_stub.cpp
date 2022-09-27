@@ -21,14 +21,10 @@
 namespace OHOS {
 namespace AccountSA {
 AppAccountAuthenticatorStub::AppAccountAuthenticatorStub()
-{
-    ACCOUNT_LOGD("enter");
-}
+{}
 
 AppAccountAuthenticatorStub::~AppAccountAuthenticatorStub()
-{
-    ACCOUNT_LOGD("enter");
-}
+{}
 
 const std::map<uint32_t, AppAccountAuthenticatorStub::MessageProcFunction> AppAccountAuthenticatorStub::funcMap_ = {
     {
@@ -60,8 +56,6 @@ const std::map<uint32_t, AppAccountAuthenticatorStub::MessageProcFunction> AppAc
 int AppAccountAuthenticatorStub::OnRemoteRequest(
     uint32_t code, MessageParcel &data, MessageParcel &reply, MessageOption &option)
 {
-    ACCOUNT_LOGI("enter");
-
     if (data.ReadInterfaceToken() != GetDescriptor()) {
         ACCOUNT_LOGE("failed to check descriptor! code %{public}u.", code);
         return ERR_ACCOUNT_COMMON_CHECK_DESCRIPTOR_ERROR;
@@ -74,7 +68,7 @@ int AppAccountAuthenticatorStub::OnRemoteRequest(
             return (this->*messageProcFunction)(data, reply);
         }
     }
-    ACCOUNT_LOGD("default, code = %{public}u, flags = %{public}u", code, option.GetFlags());
+
     return IPCObjectStub::OnRemoteRequest(code, data, reply, option);
 }
 
@@ -86,7 +80,7 @@ ErrCode AppAccountAuthenticatorStub::ProcAddAccountImplicitly(MessageParcel &dat
     sptr<IRemoteObject> callback = data.ReadRemoteObject();
     ErrCode result = ERR_OK;
     if ((options == nullptr) || (callback == nullptr)) {
-        ACCOUNT_LOGD("invalid request parameters");
+        ACCOUNT_LOGE("invalid request parameters");
         result = ERR_APPACCOUNT_SERVICE_INVALID_PARAMETER;
     }
     if (result == ERR_OK) {
@@ -108,7 +102,7 @@ ErrCode AppAccountAuthenticatorStub::ProcAuthenticate(MessageParcel &data, Messa
     sptr<IRemoteObject> callback = data.ReadRemoteObject();
     ErrCode result = ERR_OK;
     if ((options == nullptr) || (callback == nullptr)) {
-        ACCOUNT_LOGD("invalid request parameters");
+        ACCOUNT_LOGE("invalid request parameters");
         result = ERR_APPACCOUNT_SERVICE_INVALID_PARAMETER;
     }
     if (result == ERR_OK) {

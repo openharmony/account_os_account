@@ -95,7 +95,6 @@ ErrCode AccountFileOperator::InputFileByPathAndContent(const std::string &path, 
         ACCOUNT_LOGW("failed to change mode for file %{public}s, errno %{public}d.", path.c_str(), errno);
     }
 
-    ACCOUNT_LOGI("end");
     return ERR_OK;
 }
 

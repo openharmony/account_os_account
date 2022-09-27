@@ -63,7 +63,7 @@ void InnerAccountIAMManager::AddCredential(
     int32_t userId, const CredentialParameters &credInfo, const sptr<IIDMCallback> &callback)
 {
     if (callback == nullptr) {
-        ACCOUNT_LOGD("callback is nullptr");
+        ACCOUNT_LOGE("callback is nullptr");
         return;
     }
     auto idmCallback = std::make_shared<AddCredCallback>(userId, credInfo, callback);
@@ -74,11 +74,11 @@ void InnerAccountIAMManager::UpdateCredential(
     int32_t userId, const CredentialParameters &credInfo, const sptr<IIDMCallback> &callback)
 {
     if (callback == nullptr) {
-        ACCOUNT_LOGD("callback is nullptr");
+        ACCOUNT_LOGE("callback is nullptr");
         return;
     }
     if (credInfo.token.empty()) {
-        ACCOUNT_LOGD("token is empty");
+        ACCOUNT_LOGE("token is empty");
         Attributes emptyResult;
         callback->OnResult(ResultCode::INVALID_PARAMETERS, emptyResult);
         return;
@@ -91,7 +91,7 @@ void InnerAccountIAMManager::DelCred(
     int32_t userId, uint64_t credentialId, const std::vector<uint8_t> &authToken, const sptr<IIDMCallback> &callback)
 {
     if (callback == nullptr) {
-        ACCOUNT_LOGD("callback is nullptr");
+        ACCOUNT_LOGE("callback is nullptr");
         return;
     }
     Attributes emptyResult;
@@ -114,12 +114,12 @@ void InnerAccountIAMManager::DelUser(
     int32_t userId, const std::vector<uint8_t> &authToken, const sptr<IIDMCallback> &callback)
 {
     if (callback == nullptr) {
-        ACCOUNT_LOGD("callback is nullptr");
+        ACCOUNT_LOGE("callback is nullptr");
         return;
     }
     Attributes errResult;
     if (authToken.empty()) {
-        ACCOUNT_LOGD("token is empty");
+        ACCOUNT_LOGE("token is empty");
         callback->OnResult(ResultCode::INVALID_PARAMETERS, errResult);
         return;
     }
@@ -148,7 +148,7 @@ uint64_t InnerAccountIAMManager::AuthUser(int32_t userId, const std::vector<uint
     AuthTrustLevel authTrustLevel, const sptr<IIDMCallback> &callback)
 {
     if (callback == nullptr) {
-        ACCOUNT_LOGD("callback is nullptr");
+        ACCOUNT_LOGE("callback is nullptr");
         return ERR_ACCOUNT_COMMON_NULL_PTR_ERROR;
     }
     auto userAuthCallback = std::make_shared<AuthCallback>(userId, authType, callback);
@@ -234,12 +234,12 @@ ErrCode InnerAccountIAMManager::ActivateUserKey(
 #ifdef HAS_STORAGE_PART
     ErrCode result = GetStorageManagerProxy();
     if (result != ERR_OK) {
-        ACCOUNT_LOGD("fail to get storage proxy");
+        ACCOUNT_LOGE("fail to get storage proxy");
         return result;
     }
     result = storageMgrProxy_->ActiveUserKey(userId, token, secret);
     if (result != ERR_OK && result != ERROR_STORAGE_KEY_NOT_EXIST) {
-        ACCOUNT_LOGD("fail to active user key, error code: %{public}d", result);
+        ACCOUNT_LOGE("fail to active user key, error code: %{public}d", result);
         return result;
     }
     storageMgrProxy_->PrepareStartUser(userId);
@@ -267,7 +267,7 @@ ErrCode InnerAccountIAMManager::UpdateUserKey(int32_t userId, uint64_t credentia
         oldCredInfo = it->second;
     }
     if (newSecret.empty() && credentialId != oldCredInfo.credentialId) {
-        ACCOUNT_LOGD("the key do not need to be removed");
+        ACCOUNT_LOGE("the key do not need to be removed");
         return ERR_OK;
     }
     result = UpdateStorageKey(userId, token, oldCredInfo.secret, newSecret);

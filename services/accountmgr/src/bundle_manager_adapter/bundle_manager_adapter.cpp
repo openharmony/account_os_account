@@ -36,18 +36,13 @@ std::shared_ptr<BundleManagerAdapter> BundleManagerAdapter::GetInstance()
 }
 
 BundleManagerAdapter::BundleManagerAdapter()
-{
-    ACCOUNT_LOGD("create BundleManagerAdapter");
-}
+{}
 
 BundleManagerAdapter::~BundleManagerAdapter()
-{
-    ACCOUNT_LOGD("destroy BundleManagerAdapter");
-}
+{}
 
 bool BundleManagerAdapter::GetBundleNameForUid(const int uid, std::string &bundleName)
 {
-    ACCOUNT_LOGI("GetBundleNameForUid begin");
     std::lock_guard<std::mutex> lock(proxyMutex_);
     ErrCode result = Connect();
     if (result != ERR_OK) {
@@ -62,7 +57,6 @@ bool BundleManagerAdapter::GetBundleNameForUid(const int uid, std::string &bundl
 
 int BundleManagerAdapter::GetUidByBundleName(const std::string &bundleName, const int userId)
 {
-    ACCOUNT_LOGI("GetUidByBundleName begin");
     std::lock_guard<std::mutex> lock(proxyMutex_);
     ErrCode result = Connect();
     if (result != ERR_OK) {
@@ -78,7 +72,6 @@ int BundleManagerAdapter::GetUidByBundleName(const std::string &bundleName, cons
 bool BundleManagerAdapter::GetBundleInfo(const std::string &bundleName, const AppExecFwk::BundleFlag flag,
     AppExecFwk::BundleInfo &bundleInfo, int32_t userId)
 {
-    ACCOUNT_LOGI("GetBundleInfo begin");
     std::lock_guard<std::mutex> lock(proxyMutex_);
     ErrCode result = Connect();
     if (result != ERR_OK) {
@@ -123,7 +116,6 @@ bool BundleManagerAdapter::QueryExtensionAbilityInfos(const AAFwk::Want &want, c
 
 ErrCode BundleManagerAdapter::CreateNewUser(int32_t userId)
 {
-    ACCOUNT_LOGI("CreateNewUser begin. userId %{public}d.", userId);
     std::lock_guard<std::mutex> lock(proxyMutex_);
     ErrCode result = Connect();
     if (result != ERR_OK) {
@@ -144,14 +136,12 @@ ErrCode BundleManagerAdapter::CreateNewUser(int32_t userId)
     }
     StartTrace(HITRACE_TAG_ACCOUNT_MANAGER, "BundleManageService CreateNewUser");
     bundleUserMgrProxy->CreateNewUser(userId);
-    ACCOUNT_LOGI("call bm to create user ok, userId %{public}d.", userId);
     FinishTrace(HITRACE_TAG_ACCOUNT_MANAGER);
     return ERR_OK;
 }
 
 ErrCode BundleManagerAdapter::RemoveUser(int32_t userId)
 {
-    ACCOUNT_LOGI("RemoveUser begin. userId %{public}d.", userId);
     std::lock_guard<std::mutex> lock(proxyMutex_);
     ErrCode result = Connect();
     if (result != ERR_OK) {
@@ -171,14 +161,12 @@ ErrCode BundleManagerAdapter::RemoveUser(int32_t userId)
     }
     StartTrace(HITRACE_TAG_ACCOUNT_MANAGER, "BundleManageService RemoveUser");
     bundleUserMgrProxy->RemoveUser(userId);
-    ACCOUNT_LOGI("call bm to remove user ok. userId %{public}d.", userId);
     FinishTrace(HITRACE_TAG_ACCOUNT_MANAGER);
     return ERR_OK;
 }
 
 ErrCode BundleManagerAdapter::Connect()
 {
-    ACCOUNT_LOGI("bundle manager connect begin");
     if (proxy_ == nullptr) {
         StartTrace(HITRACE_TAG_ACCOUNT_MANAGER, "Connect Bundle Manager Service");
         sptr<ISystemAbilityManager> systemAbilityManager =
@@ -218,7 +206,6 @@ ErrCode BundleManagerAdapter::Connect()
         FinishTrace(HITRACE_TAG_ACCOUNT_MANAGER);
     }
 
-    ACCOUNT_LOGI("bundle manager connect end");
     return ERR_OK;
 }
 

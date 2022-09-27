@@ -21,17 +21,13 @@ namespace OHOS {
 namespace AccountSA {
 AppAccountEventListener::AppAccountEventListener(const std::shared_ptr<AppAccountSubscriber> &subscriber)
     : appAccountSubscriber_(subscriber)
-{
-    ACCOUNT_LOGD("enter");
-}
+{}
 
 AppAccountEventListener::~AppAccountEventListener()
 {}
 
 void AppAccountEventListener::OnAccountsChanged(const std::vector<AppAccountInfo> &accounts)
 {
-    ACCOUNT_LOGI("enter");
-
     if (appAccountSubscriber_ == nullptr) {
         ACCOUNT_LOGI("appAccountSubscriber_ is nullptr");
         return;
@@ -41,8 +37,6 @@ void AppAccountEventListener::OnAccountsChanged(const std::vector<AppAccountInfo
 }
 
 void AppAccountEventListener::Stop()
-{
-    ACCOUNT_LOGD("enter");
-}
+{}
 }  // namespace AccountSA
 }  // namespace OHOS

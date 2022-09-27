@@ -232,8 +232,6 @@ Json OsAccountInfo::ToJson() const
 }
 OsAccountInfo *OsAccountInfo::Unmarshalling(Parcel &parcel)
 {
-    ACCOUNT_LOGI("enter");
-
     OsAccountInfo *osAccountInfo = new (std::nothrow) OsAccountInfo();
 
     if (osAccountInfo && !osAccountInfo->ReadFromParcel(parcel)) {

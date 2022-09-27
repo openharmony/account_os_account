@@ -54,8 +54,6 @@ ErrCode AbilityManagerAdapter::ConnectAbility(const AAFwk::Want &want, const spt
         return ERR_ACCOUNT_COMMON_CONNECT_ABILITY_MANAGER_SERVICE_ERROR;
     }
 
-    ACCOUNT_LOGI("Connect ability called, bundleName:%{public}s, abilityName:%{public}s, userId:%{public}d.",
-        want.GetElement().GetBundleName().c_str(), want.GetElement().GetAbilityName().c_str(), userId);
     return DoConnectAbility(abms, want, connect, callerToken, userId);
 }
 
@@ -66,7 +64,6 @@ ErrCode AbilityManagerAdapter::DisconnectAbility(const sptr<AAFwk::IAbilityConne
         ACCOUNT_LOGE("ability manager proxy is nullptr.");
         return ERR_ACCOUNT_COMMON_CONNECT_ABILITY_MANAGER_SERVICE_ERROR;
     }
-    ACCOUNT_LOGI("Disconnect ability begin.");
 
     int error;
     MessageParcel data;
@@ -119,7 +116,6 @@ void AbilityManagerAdapter::Connect()
         return;
     }
     proxy_ = remoteObj;
-    ACCOUNT_LOGI("Connect ability manager service success.");
 }
 
 ErrCode AbilityManagerAdapter::StartUser(int accountId)

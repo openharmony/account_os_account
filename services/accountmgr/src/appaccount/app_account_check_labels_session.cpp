@@ -23,16 +23,13 @@ namespace AccountSA {
 AppAccountCheckLabelsSession::AppAccountCheckLabelsSession(
     std::vector<AppAccountInfo> accounts, const AuthenticatorSessionRequest &request)
     : AppAccountAuthenticatorSession(CHECK_ACCOUNT_LABELS, request), accounts_(accounts)
-{
-    ACCOUNT_LOGD("enter");
-}
+{}
 
 AppAccountCheckLabelsSession::~AppAccountCheckLabelsSession()
 {}
 
 ErrCode AppAccountCheckLabelsSession::Open()
 {
-    ACCOUNT_LOGD("enter");
     if (isOpened_) {
         return ERR_APPACCOUNT_SERVICE_OAUTH_SERVICE_EXCEPTION;
     }

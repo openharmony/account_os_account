@@ -129,7 +129,6 @@ ErrCode AppAccountAuthenticatorSessionManager::SetAuthenticatorProperties(const 
 ErrCode AppAccountAuthenticatorSessionManager::OpenSession(
     const std::shared_ptr<AppAccountAuthenticatorSession> &session)
 {
-    ACCOUNT_LOGD("enter");
     if (session == nullptr) {
         ACCOUNT_LOGE("failed to create AppAccountAuthenticatorSession");
         return ERR_APPACCOUNT_SERVICE_OAUTH_SERVICE_EXCEPTION;

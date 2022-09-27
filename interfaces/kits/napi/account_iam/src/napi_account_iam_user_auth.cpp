@@ -64,7 +64,7 @@ napi_value NapiAccountIAMUserAuth::GetAvailableStatus(napi_env env, napi_callbac
     napi_value argv[ARG_SIZE_TWO] = {0};
     NAPI_CALL(env, napi_get_cb_info(env, info, &argc, argv, nullptr, nullptr));
     if (argc != ARG_SIZE_TWO) {
-        ACCOUNT_LOGD("expect 2 parameters, but got %{public}zu", argc);
+        ACCOUNT_LOGE("expect 2 parameters, but got %{public}zu", argc);
         return result;
     }
     napi_valuetype valType = napi_undefined;
@@ -93,7 +93,7 @@ static napi_status ParseContextForGetSetProperty(
     napi_value argv[ARG_SIZE_TWO] = {0};
     NAPI_CALL_BASE(env, napi_get_cb_info(env, info, &argc, argv, nullptr, nullptr), napi_generic_failure);
     if (argc < ARG_SIZE_ONE) {
-        ACCOUNT_LOGD("expect at least 1 parameter, but got zero");
+        ACCOUNT_LOGE("expect at least 1 parameter, but got zero");
         return napi_generic_failure;
     }
     if (isGet) {
@@ -119,7 +119,7 @@ napi_value NapiAccountIAMUserAuth::GetProperty(napi_env env, napi_callback_info 
     napi_value result = nullptr;
     GetPropertyContext *context = new (std::nothrow) GetPropertyContext(env);
     if (context == nullptr) {
-        ACCOUNT_LOGD("failed to create GetPropertyContext");
+        ACCOUNT_LOGE("failed to create GetPropertyContext");
         return result;
     }
     std::unique_ptr<GetPropertyContext> contextPtr(context);
@@ -148,7 +148,7 @@ napi_value NapiAccountIAMUserAuth::SetProperty(napi_env env, napi_callback_info 
     napi_value result = nullptr;
     SetPropertyContext *context = new (std::nothrow) SetPropertyContext(env);
     if (context == nullptr) {
-        ACCOUNT_LOGD("failed to create SetPropertyContext");
+        ACCOUNT_LOGE("failed to create SetPropertyContext");
         return result;
     }
     std::unique_ptr<SetPropertyContext> contextPtr(context);
@@ -180,7 +180,7 @@ static napi_status ParseContextForAuth(
     napi_value argv[ARG_SIZE_FIVE] = {0};
     napi_get_cb_info(env, info, &argc, argv, nullptr, nullptr);
     if (argc != expectedSize) {
-        ACCOUNT_LOGD("failed to parse parameters, expect %{public}zu parameters, but got %{public}zu",
+        ACCOUNT_LOGE("failed to parse parameters, expect %{public}zu parameters, but got %{public}zu",
             expectedSize, argc);
         return napi_invalid_arg;
     }
@@ -195,7 +195,7 @@ static napi_status ParseContextForAuth(
     ParseIAMCallback(env, argv[index++], jsCallback);
     NapiUserAuthCallback *object = new (std::nothrow) NapiUserAuthCallback(env, jsCallback);
     if (object == nullptr) {
-        ACCOUNT_LOGD("failed to create NapiUserAuthCallback");
+        ACCOUNT_LOGE("failed to create NapiUserAuthCallback");
         return napi_generic_failure;
     }
     context.callback.reset(object);
@@ -227,7 +227,7 @@ napi_value NapiAccountIAMUserAuth::CancelAuth(napi_env env, napi_callback_info i
     napi_value argv[ARG_SIZE_ONE] = {0};
     napi_get_cb_info(env, info, &argc, argv, nullptr, nullptr);
     if (argc != ARG_SIZE_ONE) {
-        ACCOUNT_LOGD("failed to parse parameters, expect at least one parameter, but got %zu", argc);
+        ACCOUNT_LOGE("failed to parse parameters, expect at least one parameter, but got %zu", argc);
         return nullptr;
     }
     uint64_t contextId = 0;
