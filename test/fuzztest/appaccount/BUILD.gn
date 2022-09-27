@@ -22,7 +22,10 @@ group("fuzztest") {
     "deleteaccount_fuzzer:DeleteAccountFuzzTest",
     "disableappaccess_fuzzer:DisableAppAccessFuzzTest",
     "enableappaccess_fuzzer:EnableAppAccessFuzzTest",
+    "getaccountcredential_fuzzer:GetAccountCredentialFuzzTest",
     "getaccountextrainfo_fuzzer:GetAccountExtraInfoFuzzTest",
+    "getassociateddata_fuzzer:GetAssociatedDataFuzzTest",
+    "getoauthtoken_fuzzer:GetOAuthTokenFuzzTest",
     "setaccountextrainfo_fuzzer:SetAccountExtranInfoFuzzTest",
     "setappaccountsyncenable_fuzzer:SetAppAccountSyncEnableFuzzTest",
   ]
