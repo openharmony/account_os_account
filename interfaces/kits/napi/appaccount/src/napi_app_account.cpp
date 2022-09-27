@@ -30,7 +30,6 @@ namespace OHOS {
 namespace AccountJsKit {
 napi_value NapiAppAccount::Init(napi_env env, napi_value exports)
 {
-    ACCOUNT_LOGD("enter");
     napi_property_descriptor descriptor[] = {
         DECLARE_NAPI_FUNCTION("createAppAccountManager", CreateAppAccountManager),
     };
@@ -83,7 +82,6 @@ napi_value NapiAppAccount::Init(napi_env env, napi_value exports)
 
 napi_value NapiAppAccount::JsConstructor(napi_env env, napi_callback_info cbinfo)
 {
-    ACCOUNT_LOGD("enter");
     napi_value thisVar = nullptr;
     NAPI_CALL(env, napi_get_cb_info(env, cbinfo, nullptr, nullptr, &thisVar, nullptr));
 
@@ -102,23 +100,21 @@ napi_value NapiAppAccount::JsConstructor(napi_env env, napi_callback_info cbinfo
 
 napi_value NapiAppAccount::CreateAppAccountManager(napi_env env, napi_callback_info cbInfo)
 {
-    ACCOUNT_LOGD("enter");
     napi_value instance = nullptr;
     napi_value cons = nullptr;
     if (napi_get_reference_value(env, appAccountRef_, &cons) != napi_ok) {
         return nullptr;
     }
-    ACCOUNT_LOGI("Get a reference to the global variable appAccountRef_ complete");
+
     if (napi_new_instance(env, cons, 0, nullptr, &instance) != napi_ok) {
         return nullptr;
     }
-    ACCOUNT_LOGI("New the js instance complete");
+
     return instance;
 }
 
 napi_value NapiAppAccount::AddAccount(napi_env env, napi_callback_info cbInfo)
 {
-    ACCOUNT_LOGD("enter");
     auto *asyncContext = new (std::nothrow) AppAccountAsyncContext();
     if (asyncContext == nullptr) {
         ACCOUNT_LOGE("insufficient memory for asyncContext!");
@@ -165,7 +161,6 @@ napi_value NapiAppAccount::AddAccount(napi_env env, napi_callback_info cbInfo)
 
 napi_value NapiAppAccount::AddAccountImplicitly(napi_env env, napi_callback_info cbInfo)
 {
-    ACCOUNT_LOGD("start");
     auto *asyncContext = new (std::nothrow) OAuthAsyncContext();
     if (asyncContext == nullptr) {
         ACCOUNT_LOGE("insufficient memory for asyncContext!");
@@ -207,7 +202,6 @@ napi_value NapiAppAccount::AddAccountImplicitly(napi_env env, napi_callback_info
 
 napi_value NapiAppAccount::DeleteAccount(napi_env env, napi_callback_info cbInfo)
 {
-    ACCOUNT_LOGD("enter");
     auto *asyncContext = new (std::nothrow) AppAccountAsyncContext();
     if (asyncContext == nullptr) {
         ACCOUNT_LOGE("insufficient memory for asyncContext!");
@@ -254,7 +248,6 @@ napi_value NapiAppAccount::DeleteAccount(napi_env env, napi_callback_info cbInfo
 
 napi_value NapiAppAccount::DisableAppAccess(napi_env env, napi_callback_info cbInfo)
 {
-    ACCOUNT_LOGD("enter");
     auto *asyncContext = new (std::nothrow) AppAccountAsyncContext();
     if (asyncContext == nullptr) {
         ACCOUNT_LOGE("insufficient memory for asyncContext!");
@@ -301,7 +294,6 @@ napi_value NapiAppAccount::DisableAppAccess(napi_env env, napi_callback_info cbI
 
 napi_value NapiAppAccount::EnableAppAccess(napi_env env, napi_callback_info cbInfo)
 {
-    ACCOUNT_LOGD("enter");
     auto *asyncContext = new (std::nothrow) AppAccountAsyncContext();
     if (asyncContext == nullptr) {
         ACCOUNT_LOGE("insufficient memory for asyncContext!");
@@ -348,7 +340,6 @@ napi_value NapiAppAccount::EnableAppAccess(napi_env env, napi_callback_info cbIn
 
 napi_value NapiAppAccount::CheckAppAccountSyncEnable(napi_env env, napi_callback_info cbInfo)
 {
-    ACCOUNT_LOGD("enter");
     auto *asyncContext = new (std::nothrow) AppAccountAsyncContext();
     if (asyncContext == nullptr) {
         ACCOUNT_LOGE("insufficient memory for asyncContext!");
@@ -396,7 +387,6 @@ napi_value NapiAppAccount::CheckAppAccountSyncEnable(napi_env env, napi_callback
 
 napi_value NapiAppAccount::SetAccountCredential(napi_env env, napi_callback_info cbInfo)
 {
-    ACCOUNT_LOGD("enter");
     auto *asyncContext = new (std::nothrow) AppAccountAsyncContext();
     if (asyncContext == nullptr) {
         ACCOUNT_LOGE("insufficient memory for asyncContext!");
@@ -444,7 +434,6 @@ napi_value NapiAppAccount::SetAccountCredential(napi_env env, napi_callback_info
 
 napi_value NapiAppAccount::SetAccountExtraInfo(napi_env env, napi_callback_info cbInfo)
 {
-    ACCOUNT_LOGD("enter");
     auto *asyncContext = new (std::nothrow) AppAccountAsyncContext();
     if (asyncContext == nullptr) {
         ACCOUNT_LOGE("insufficient memory for asyncContext!");
@@ -456,10 +445,8 @@ napi_value NapiAppAccount::SetAccountExtraInfo(napi_env env, napi_callback_info 
 
     napi_value result = nullptr;
     if (asyncContext->callbackRef == nullptr) {
-        ACCOUNT_LOGD("Create promise");
         napi_create_promise(env, &asyncContext->deferred, &result);
     } else {
-        ACCOUNT_LOGD("Undefined the result parameter");
         napi_get_undefined(env, &result);
     }
 
@@ -470,7 +457,6 @@ napi_value NapiAppAccount::SetAccountExtraInfo(napi_env env, napi_callback_info 
         nullptr,
         resource,
         [](napi_env env, void *data) {
-            ACCOUNT_LOGD("SetAccountExtraInfo, napi_create_async_work running.");
             AppAccountAsyncContext *asyncContext = reinterpret_cast<AppAccountAsyncContext *>(data);
             ErrCode errCode = AppAccountManager::SetAccountExtraInfo(
                 asyncContext->name, asyncContext->extraInfo);
@@ -495,7 +481,6 @@ napi_value NapiAppAccount::SetAccountExtraInfo(napi_env env, napi_callback_info 
 
 napi_value NapiAppAccount::SetAppAccountSyncEnable(napi_env env, napi_callback_info cbInfo)
 {
-    ACCOUNT_LOGD("enter");
     auto *asyncContext = new (std::nothrow) AppAccountAsyncContext();
     if (asyncContext == nullptr) {
         ACCOUNT_LOGE("insufficient memory for asyncContext!");
@@ -543,7 +528,6 @@ napi_value NapiAppAccount::SetAppAccountSyncEnable(napi_env env, napi_callback_i
 
 napi_value NapiAppAccount::SetAssociatedData(napi_env env, napi_callback_info cbInfo)
 {
-    ACCOUNT_LOGD("enter");
     auto *asyncContext = new (std::nothrow) AppAccountAsyncContext();
     if (asyncContext == nullptr) {
         ACCOUNT_LOGE("insufficient memory for asyncContext!");
@@ -591,7 +575,6 @@ napi_value NapiAppAccount::SetAssociatedData(napi_env env, napi_callback_info cb
 
 napi_value NapiAppAccount::GetAllAccessibleAccounts(napi_env env, napi_callback_info cbInfo)
 {
-    ACCOUNT_LOGD("enter");
     auto *asyncContext = new (std::nothrow) GetAccountsAsyncContext();
     if (asyncContext == nullptr) {
         ACCOUNT_LOGE("insufficient memory for asyncContext!");
@@ -639,7 +622,6 @@ napi_value NapiAppAccount::GetAllAccessibleAccounts(napi_env env, napi_callback_
 
 napi_value NapiAppAccount::GetAllAccounts(napi_env env, napi_callback_info cbInfo)
 {
-    ACCOUNT_LOGD("enter");
     auto *asyncContext = new (std::nothrow) GetAccountsAsyncContext();
     if (asyncContext == nullptr) {
         ACCOUNT_LOGE("insufficient memory for asyncContext!");
@@ -687,7 +669,6 @@ napi_value NapiAppAccount::GetAllAccounts(napi_env env, napi_callback_info cbInf
 
 napi_value NapiAppAccount::GetAccountCredential(napi_env env, napi_callback_info cbInfo)
 {
-    ACCOUNT_LOGD("enter");
     auto *asyncContext = new (std::nothrow) AppAccountAsyncContext();
     if (asyncContext == nullptr) {
         ACCOUNT_LOGE("insufficient memory for asyncContext!");
@@ -735,7 +716,6 @@ napi_value NapiAppAccount::GetAccountCredential(napi_env env, napi_callback_info
 
 napi_value NapiAppAccount::GetAccountExtraInfo(napi_env env, napi_callback_info cbInfo)
 {
-    ACCOUNT_LOGD("enter");
     auto *asyncContext = new (std::nothrow) AppAccountAsyncContext();
     if (asyncContext == nullptr) {
         ACCOUNT_LOGE("insufficient memory for asyncContext!");
@@ -838,7 +818,6 @@ napi_value NapiAppAccount::GetAssociatedDataSync(napi_env env, napi_callback_inf
 
 napi_value NapiAppAccount::Authenticate(napi_env env, napi_callback_info cbInfo)
 {
-    ACCOUNT_LOGD("start");
     auto *asyncContext = new (std::nothrow) OAuthAsyncContext();
     if (asyncContext == nullptr) {
         ACCOUNT_LOGE("insufficient memory for asyncContext!");
@@ -882,7 +861,6 @@ napi_value NapiAppAccount::Authenticate(napi_env env, napi_callback_info cbInfo)
 
 napi_value NapiAppAccount::GetOAuthToken(napi_env env, napi_callback_info cbInfo)
 {
-    ACCOUNT_LOGD("enter");
     auto *asyncContext = new (std::nothrow) OAuthAsyncContext();
     if (asyncContext == nullptr) {
         ACCOUNT_LOGE("insufficient memory for asyncContext!");
@@ -927,7 +905,6 @@ napi_value NapiAppAccount::GetOAuthToken(napi_env env, napi_callback_info cbInfo
 
 napi_value NapiAppAccount::SetOAuthToken(napi_env env, napi_callback_info cbInfo)
 {
-    ACCOUNT_LOGD("enter");
     auto *asyncContext = new (std::nothrow) OAuthAsyncContext();
     if (asyncContext == nullptr) {
         ACCOUNT_LOGE("insufficient memory for asyncContext!");
@@ -1015,7 +992,6 @@ napi_value NapiAppAccount::DeleteOAuthToken(napi_env env, napi_callback_info cbI
 
 napi_value NapiAppAccount::SetOAuthTokenVisibility(napi_env env, napi_callback_info cbInfo)
 {
-    ACCOUNT_LOGD("enter.");
     auto *asyncContext = new (std::nothrow) OAuthAsyncContext();
     if (asyncContext == nullptr) {
         ACCOUNT_LOGE("insufficient memory for asyncContext!");
@@ -1060,7 +1036,6 @@ napi_value NapiAppAccount::SetOAuthTokenVisibility(napi_env env, napi_callback_i
 
 napi_value NapiAppAccount::CheckOAuthTokenVisibility(napi_env env, napi_callback_info cbInfo)
 {
-    ACCOUNT_LOGD("enter.");
     auto *asyncContext = new (std::nothrow) OAuthAsyncContext();
     if (asyncContext == nullptr) {
         ACCOUNT_LOGE("insufficient memory for asyncContext!");
@@ -1105,7 +1080,6 @@ napi_value NapiAppAccount::CheckOAuthTokenVisibility(napi_env env, napi_callback
 
 napi_value NapiAppAccount::GetAuthenticatorInfo(napi_env env, napi_callback_info cbInfo)
 {
-    ACCOUNT_LOGD("enter.");
     auto *asyncContext = new (std::nothrow) OAuthAsyncContext();
     if (asyncContext == nullptr) {
         ACCOUNT_LOGE("insufficient memory for asyncContext!");
@@ -1151,7 +1125,6 @@ napi_value NapiAppAccount::GetAuthenticatorInfo(napi_env env, napi_callback_info
 
 napi_value NapiAppAccount::GetAllOAuthTokens(napi_env env, napi_callback_info cbInfo)
 {
-    ACCOUNT_LOGD("enter.");
     auto *asyncContext = new (std::nothrow) OAuthAsyncContext();
     if (asyncContext == nullptr) {
         ACCOUNT_LOGE("insufficient memory for asyncContext!");
@@ -1197,7 +1170,6 @@ napi_value NapiAppAccount::GetAllOAuthTokens(napi_env env, napi_callback_info cb
 
 napi_value NapiAppAccount::GetOAuthList(napi_env env, napi_callback_info cbInfo)
 {
-    ACCOUNT_LOGD("enter.");
     auto *asyncContext = new (std::nothrow) OAuthAsyncContext();
     if (asyncContext == nullptr) {
         ACCOUNT_LOGE("insufficient memory for asyncContext!");
@@ -1243,7 +1215,6 @@ napi_value NapiAppAccount::GetOAuthList(napi_env env, napi_callback_info cbInfo)
 
 napi_value NapiAppAccount::GetAuthenticatorCallback(napi_env env, napi_callback_info cbInfo)
 {
-    ACCOUNT_LOGD("enter.");
     auto *asyncContext = new (std::nothrow) OAuthAsyncContext();
     if (asyncContext == nullptr) {
         ACCOUNT_LOGE("insufficient memory for asyncContext!");
@@ -1288,7 +1259,6 @@ napi_value NapiAppAccount::GetAuthenticatorCallback(napi_env env, napi_callback_
 
 napi_value NapiAppAccount::CheckAppAccess(napi_env env, napi_callback_info cbInfo)
 {
-    ACCOUNT_LOGD("enter");
     auto *context = new (std::nothrow) AppAccountAsyncContext();
     if (context == nullptr) {
         ACCOUNT_LOGE("insufficient memory for context!");
@@ -1334,7 +1304,6 @@ napi_value NapiAppAccount::CheckAppAccess(napi_env env, napi_callback_info cbInf
 
 napi_value NapiAppAccount::DeleteAccountCredential(napi_env env, napi_callback_info cbInfo)
 {
-    ACCOUNT_LOGD("enter");
     auto *context = new (std::nothrow) AppAccountAsyncContext();
     if (context == nullptr) {
         ACCOUNT_LOGE("insufficient memory for context!");
@@ -1379,7 +1348,6 @@ napi_value NapiAppAccount::DeleteAccountCredential(napi_env env, napi_callback_i
 
 napi_value NapiAppAccount::CheckAccountLabels(napi_env env, napi_callback_info cbInfo)
 {
-    ACCOUNT_LOGD("enter");
     auto context = new (std::nothrow) CheckAccountLabelsContext();
     if (context == nullptr) {
         ACCOUNT_LOGE("insufficient memory for context!");
@@ -1428,7 +1396,6 @@ napi_value NapiAppAccount::CheckAccountLabels(napi_env env, napi_callback_info c
 
 napi_value NapiAppAccount::SelectAccountsByOptions(napi_env env, napi_callback_info cbInfo)
 {
-    ACCOUNT_LOGD("enter");
     auto *context = new (std::nothrow) SelectAccountsContext();
     if (context == nullptr) {
         ACCOUNT_LOGE("insufficient memory for context!");
@@ -1477,7 +1444,6 @@ napi_value NapiAppAccount::SelectAccountsByOptions(napi_env env, napi_callback_i
 
 napi_value NapiAppAccount::VerifyCredential(napi_env env, napi_callback_info cbInfo)
 {
-    ACCOUNT_LOGD("enter");
     auto *context = new (std::nothrow) VerifyCredentialContext();
     if (context == nullptr) {
         ACCOUNT_LOGE("insufficient memory for context!");
@@ -1511,7 +1477,6 @@ napi_value NapiAppAccount::VerifyCredential(napi_env env, napi_callback_info cbI
 
 napi_value NapiAppAccount::SetAuthenticatorProperties(napi_env env, napi_callback_info cbInfo)
 {
-    ACCOUNT_LOGD("enter");
     auto *context = new (std::nothrow) SetPropertiesContext();
     if (context == nullptr) {
         ACCOUNT_LOGE("insufficient memory for context!");
@@ -1556,8 +1521,6 @@ napi_value NapiAppAccount::SetAuthenticatorProperties(napi_env env, napi_callbac
 
 napi_value NapiAppAccount::Subscribe(napi_env env, napi_callback_info cbInfo)
 {
-    ACCOUNT_LOGD("enter.");
-
     size_t argc = SUBSCRIBE_MAX_PARA;
     napi_value argv[SUBSCRIBE_MAX_PARA] = {nullptr};
     napi_value thisVar = nullptr;
@@ -1605,8 +1568,6 @@ napi_value NapiAppAccount::Subscribe(napi_env env, napi_callback_info cbInfo)
 
 napi_value NapiAppAccount::Unsubscribe(napi_env env, napi_callback_info cbInfo)
 {
-    ACCOUNT_LOGD("enter.");
-
     // Argument parsing
     size_t argc = UNSUBSCRIBE_MAX_PARA;
     napi_value argv[UNSUBSCRIBE_MAX_PARA] = {nullptr};

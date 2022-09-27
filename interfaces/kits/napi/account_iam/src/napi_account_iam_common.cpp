@@ -34,12 +34,10 @@ IAMAsyncContext::~IAMAsyncContext()
         return;
     }
     if (work != nullptr) {
-        ACCOUNT_LOGD("delete async work");
         napi_delete_async_work(env, work);
         work = nullptr;
     }
     if (callbackRef != nullptr) {
-        ACCOUNT_LOGD("delete callbackRef");
         napi_delete_reference(env, callbackRef);
         callbackRef = nullptr;
     }
@@ -56,7 +54,7 @@ static void OnIDMResultWork(uv_work_t* work, int status)
 {
     IDMCallbackParam *param = reinterpret_cast<IDMCallbackParam *>(work->data);
     if (param == nullptr) {
-        ACCOUNT_LOGD("param is null");
+        ACCOUNT_LOGE("param is null");
         delete work;
         return;
     }
@@ -109,7 +107,7 @@ static void OnAcquireInfoWork(uv_work_t* work, int status)
 {
     std::unique_ptr<uv_work_t> workPtr(work);
     if (work == nullptr || work->data == nullptr) {
-        ACCOUNT_LOGD("param is null");
+        ACCOUNT_LOGE("param is null");
         return;
     }
     IDMCallbackParam *param = reinterpret_cast<IDMCallbackParam *>(work->data);
@@ -122,7 +120,7 @@ static void OnAcquireInfoWork(uv_work_t* work, int status)
     napi_env env = param->env;
     napi_get_global(env, &global);
     if (global == nullptr) {
-        ACCOUNT_LOGD("napi_get_global failed");
+        ACCOUNT_LOGE("napi_get_global failed");
         return;
     }
     NAPI_CALL_RETURN_VOID(env, napi_create_int32(env, param->module, &argv[PARAM_ZERO]));
@@ -161,7 +159,7 @@ napi_status ParseAddCredInfo(napi_env env, napi_value value, CredentialParameter
     napi_valuetype valueType = napi_undefined;
     napi_typeof(env, value, &valueType);
     if (valueType != napi_object) {
-        ACCOUNT_LOGD("value is not an object");
+        ACCOUNT_LOGE("value is not an object");
         return napi_invalid_arg;
     }
     napi_value result = nullptr;
@@ -182,7 +180,7 @@ napi_status ParseIAMCallback(napi_env env, napi_value object, JsIAMCallback &cal
     napi_valuetype valueType = napi_undefined;
     napi_typeof(env, object, &valueType);
     if (valueType != napi_object) {
-        ACCOUNT_LOGD("invalid object");
+        ACCOUNT_LOGE("invalid object");
         return napi_invalid_arg;
     }
     napi_value result = nullptr;
@@ -191,7 +189,7 @@ napi_status ParseIAMCallback(napi_env env, napi_value object, JsIAMCallback &cal
     if (valueType == napi_function) {
         NAPI_CALL_BASE(env, napi_create_reference(env, result, 1, &callback.onResult), napi_generic_failure);
     } else {
-        ACCOUNT_LOGD("onResult is not a function");
+        ACCOUNT_LOGE("onResult is not a function");
         return napi_invalid_arg;
     }
     bool hasOnAcquireInfo = false;
@@ -204,7 +202,7 @@ napi_status ParseIAMCallback(napi_env env, napi_value object, JsIAMCallback &cal
     if (valueType == napi_function) {
         NAPI_CALL_BASE(env, napi_create_reference(env, result, 1, &callback.onAcquireInfo), napi_generic_failure);
     } else {
-        ACCOUNT_LOGD("onAcquireInfo is not a function");
+        ACCOUNT_LOGE("onAcquireInfo is not a function");
         return napi_invalid_arg;
     }
     return napi_ok;
@@ -242,7 +240,7 @@ napi_status ParseGetPropRequest(napi_env env, napi_value object, GetPropertyRequ
     napi_valuetype valueType = napi_undefined;
     napi_typeof(env, object, &valueType);
     if (valueType != napi_object) {
-        ACCOUNT_LOGD("invalid object");
+        ACCOUNT_LOGE("invalid object");
         return napi_invalid_arg;
     }
     napi_value napiAuthType = nullptr;
@@ -265,7 +263,7 @@ napi_status ParseSetPropRequest(napi_env env, napi_value object, SetPropertyRequ
     napi_valuetype valueType = napi_undefined;
     napi_typeof(env, object, &valueType);
     if (valueType != napi_object) {
-        ACCOUNT_LOGD("invalid object");
+        ACCOUNT_LOGE("invalid object");
         return napi_invalid_arg;
     }
     napi_value napiKey = nullptr;
@@ -288,7 +286,6 @@ napi_status ParseSetPropRequest(napi_env env, napi_value object, SetPropertyRequ
 
 napi_value CreateExecutorProperty(napi_env env, const GetPropertyContext &prop)
 {
-    ACCOUNT_LOGD("result: %{public}d, authSubType: %{public}d", prop.result, prop.authSubType);
     napi_value object = nullptr;
     NAPI_CALL(env, napi_create_object(env, &object));
     napi_value napiResult = 0;
@@ -325,7 +322,7 @@ static void OnUserAuthResultWork(uv_work_t *work, int status)
 {
     AuthCallbackParam *param = reinterpret_cast<AuthCallbackParam *>(work->data);
     if (param == nullptr) {
-        ACCOUNT_LOGD("param is null");
+        ACCOUNT_LOGE("param is null");
         delete work;
         return;
     }
@@ -345,7 +342,7 @@ static void OnUserAuthAcquireInfoWork(uv_work_t *work, int status)
 {
     AuthCallbackParam *param = reinterpret_cast<AuthCallbackParam *>(work->data);
     if (param == nullptr) {
-        ACCOUNT_LOGD("param is null");
+        ACCOUNT_LOGE("param is null");
         delete work;
         return;
     }
@@ -357,7 +354,7 @@ static void OnUserAuthAcquireInfoWork(uv_work_t *work, int status)
     napi_create_uint32(param->env, param->acquireInfo, &argv[PARAM_ONE]);
     napi_create_int32(param->env, param->extraInfo, &argv[PARAM_TWO]);
     if (napi_call_function(param->env, nullptr, callback, ARG_SIZE_THREE, argv, &return_val) != napi_ok) {
-        ACCOUNT_LOGD("napi_call_function failed");
+        ACCOUNT_LOGE("napi_call_function failed");
     }
     delete param;
     delete work;
@@ -425,7 +422,7 @@ static void OnGetInfoWork(uv_work_t *work, int status)
 {
     GetAuthInfoContext *context = reinterpret_cast<GetAuthInfoContext *>(work->data);
     if (context == nullptr) {
-        ACCOUNT_LOGD("context is null");
+        ACCOUNT_LOGE("context is null");
         delete work;
         return;
     }
@@ -466,7 +463,7 @@ static void OnGetPropertyWork(uv_work_t* work, int status)
 {
     GetPropertyContext *context = reinterpret_cast<GetPropertyContext *>(work->data);
     if (context == nullptr) {
-        ACCOUNT_LOGD("context is null");
+        ACCOUNT_LOGE("context is null");
         delete work;
         return;
     }
@@ -510,7 +507,7 @@ static void OnSetPropertyWork(uv_work_t* work, int status)
 {
     SetPropertyContext *context = reinterpret_cast<SetPropertyContext *>(work->data);
     if (context == nullptr) {
-        ACCOUNT_LOGD("context is null");
+        ACCOUNT_LOGE("context is null");
         delete work;
         return;
     }
@@ -552,11 +549,11 @@ napi_value InputDataConstructor(napi_env env, napi_callback_info info)
     NAPI_CALL(env, napi_get_cb_info(env, info, &argc, argv, &thisVar, &data));
     InputerContext *context = static_cast<InputerContext *>(data);
     if (thisVar == nullptr) {
-        ACCOUNT_LOGD("thisVar is nullptr");
+        ACCOUNT_LOGE("thisVar is nullptr");
         return nullptr;
     }
     if (context == nullptr) {
-        ACCOUNT_LOGD("inputerData is nullptr");
+        ACCOUNT_LOGE("inputerData is nullptr");
         return nullptr;
     }
     NAPI_CALL(env, napi_wrap(env, thisVar, context,
@@ -577,13 +574,13 @@ napi_value OnSetData(napi_env env, napi_callback_info info)
     napi_value argv[ARG_SIZE_TWO] = {nullptr};
     NAPI_CALL(env, napi_get_cb_info(env, info, &argc, argv, &thisVar, nullptr));
     if (argc != ARG_SIZE_TWO) {
-        ACCOUNT_LOGD("failed to parse parameters, expect three parameters, but got %{public}zu", argc);
+        ACCOUNT_LOGE("failed to parse parameters, expect three parameters, but got %{public}zu", argc);
         return nullptr;
     }
     InputerContext *context = nullptr;
     NAPI_CALL(env, napi_unwrap(env, thisVar, (void **)&context));
     if (context == nullptr || context->inputerData == nullptr) {
-        ACCOUNT_LOGD("context or inputerData is nullptr");
+        ACCOUNT_LOGE("context or inputerData is nullptr");
         return nullptr;
     }
     int32_t authSubType;
@@ -597,12 +594,12 @@ napi_value OnSetData(napi_env env, napi_callback_info info)
 napi_value GetCtorIInputerData(napi_env env, const std::shared_ptr<AccountSA::IInputerData> &inputerData)
 {
     if (inputerData == nullptr) {
-        ACCOUNT_LOGD("inputerData nullptr");
+        ACCOUNT_LOGE("inputerData nullptr");
         return nullptr;
     }
     InputerContext *context = new (std::nothrow) InputerContext();
     if (context == nullptr) {
-        ACCOUNT_LOGD("inputer context is nullptr");
+        ACCOUNT_LOGE("inputer context is nullptr");
         return nullptr;
     }
     napi_property_descriptor clzDes[] = {
@@ -630,7 +627,7 @@ static void OnGetDataWork(uv_work_t* work, int status)
 {
     InputerContext *context = reinterpret_cast<InputerContext *>(work->data);
     if (context == nullptr) {
-        ACCOUNT_LOGD("context is null");
+        ACCOUNT_LOGE("context is null");
         delete work;
         return;
     }
@@ -703,7 +700,7 @@ napi_status ParseUInt32Array(napi_env env, napi_value value, std::vector<uint32_
     bool isArray = false;
     napi_is_array(env, value, &isArray);
     if (!isArray) {
-        ACCOUNT_LOGD("value is not an array");
+        ACCOUNT_LOGE("value is not an array");
         return napi_invalid_arg;
     }
     uint32_t arrLen = 0;
@@ -728,7 +725,7 @@ napi_status ParseUint8TypedArray(napi_env env, napi_value value, uint8_t **data,
     bool isTypedArray = false;
     napi_is_typedarray(env, value, &isTypedArray);
     if (!isTypedArray) {
-        ACCOUNT_LOGD("invalid uint8 array");
+        ACCOUNT_LOGE("invalid uint8 array");
         return napi_ok;
     }
     napi_typedarray_type arrayType;
@@ -736,7 +733,7 @@ napi_status ParseUint8TypedArray(napi_env env, napi_value value, uint8_t **data,
     size_t offset = 0;
     napi_get_typedarray_info(env, value, &arrayType, length, reinterpret_cast<void **>(data), &buffer, &offset);
     if (arrayType != napi_uint8_array) {
-        ACCOUNT_LOGD("invalid uint8 array");
+        ACCOUNT_LOGE("invalid uint8 array");
         *data = nullptr;
         *length = 0;
     }
@@ -749,7 +746,7 @@ napi_status ParseUint8TypedArrayToVector(napi_env env, napi_value value, std::ve
     size_t length = 0;
     napi_status status = ParseUint8TypedArray(env, value, &data, &length);
     if (status != napi_ok) {
-        ACCOUNT_LOGD("failed to ParseUint8TypedArray");
+        ACCOUNT_LOGE("failed to ParseUint8TypedArray");
         return status;
     }
     vec.assign(data, data + length);
@@ -762,7 +759,7 @@ napi_status ParseUint8TypedArrayToUint64(napi_env env, napi_value value, uint64_
     size_t length = 0;
     napi_status status = ParseUint8TypedArray(env, value, &data, &length);
     if (status != napi_ok) {
-        ACCOUNT_LOGD("failed to ParseUint8TypedArray");
+        ACCOUNT_LOGE("failed to ParseUint8TypedArray");
         return status;
     }
     if (data == nullptr) {
@@ -770,7 +767,7 @@ napi_status ParseUint8TypedArrayToUint64(napi_env env, napi_value value, uint64_
         return napi_ok;
     }
     if (length != sizeof(uint64_t)) {
-        ACCOUNT_LOGD("failed to convert to uint64_t value");
+        ACCOUNT_LOGE("failed to convert to uint64_t value");
         return napi_invalid_arg;
     }
     result = *(reinterpret_cast<uint64_t *>(data));

@@ -26,7 +26,6 @@ OsAccountProxy::~OsAccountProxy()
 ErrCode OsAccountProxy::CreateOsAccount(
     const std::string &name, const OsAccountType &type, OsAccountInfo &osAccountInfo)
 {
-    ACCOUNT_LOGD("start");
     MessageParcel data;
     MessageParcel reply;
 
@@ -56,14 +55,13 @@ ErrCode OsAccountProxy::CreateOsAccount(
         return ERR_OSACCOUNT_KIT_CREATE_OS_ACCOUNT_ERROR;
     }
     osAccountInfo = *(reply.ReadParcelable<OsAccountInfo>());
-    ACCOUNT_LOGD("end");
+
     return ERR_OK;
 }
 
 ErrCode OsAccountProxy::CreateOsAccountForDomain(
     const OsAccountType &type, const DomainAccountInfo &domainInfo, OsAccountInfo &osAccountInfo)
 {
-    ACCOUNT_LOGD("start");
     MessageParcel data;
     MessageParcel reply;
 
@@ -99,13 +97,12 @@ ErrCode OsAccountProxy::CreateOsAccountForDomain(
         return result;
     }
     osAccountInfo = *(reply.ReadParcelable<OsAccountInfo>());
-    ACCOUNT_LOGD("end");
+
     return ERR_OK;
 }
 
 ErrCode OsAccountProxy::RemoveOsAccount(const int id)
 {
-    ACCOUNT_LOGD("start");
     MessageParcel data;
     MessageParcel reply;
 
@@ -130,14 +127,12 @@ ErrCode OsAccountProxy::RemoveOsAccount(const int id)
         ACCOUNT_LOGE("failed to read reply for remove os account info, result %{public}d.", result);
         return ERR_OSACCOUNT_KIT_REMOVE_OSACCOUNT_ERROR;
     }
-    ACCOUNT_LOGD("end");
+
     return ERR_OK;
 }
 
 ErrCode OsAccountProxy::IsOsAccountExists(const int id, bool &isOsAccountExists)
 {
-    ACCOUNT_LOGD("start");
-
     MessageParcel data;
     MessageParcel reply;
 
@@ -162,13 +157,12 @@ ErrCode OsAccountProxy::IsOsAccountExists(const int id, bool &isOsAccountExists)
         return ERR_OSACCOUNT_KIT_IS_OS_ACCOUNT_EXISTS_ERROR;
     }
     isOsAccountExists = reply.ReadBool();
-    ACCOUNT_LOGD("end");
+
     return ERR_OK;
 }
 
 ErrCode OsAccountProxy::IsOsAccountActived(const int id, bool &isOsAccountActived)
 {
-    ACCOUNT_LOGD("start");
     MessageParcel data;
     MessageParcel reply;
 
@@ -192,14 +186,13 @@ ErrCode OsAccountProxy::IsOsAccountActived(const int id, bool &isOsAccountActive
         return ERR_OSACCOUNT_KIT_IS_OS_ACCOUNT_ACTIVED_ERROR;
     }
     isOsAccountActived = reply.ReadBool();
-    ACCOUNT_LOGD("end");
+
     return ERR_OK;
 }
 
 ErrCode OsAccountProxy::IsOsAccountConstraintEnable(
     const int id, const std::string &constraint, bool &isConstraintEnable)
 {
-    ACCOUNT_LOGD("start");
     MessageParcel data;
     MessageParcel reply;
 
@@ -227,13 +220,12 @@ ErrCode OsAccountProxy::IsOsAccountConstraintEnable(
         return ERR_OSACCOUNT_KIT_IS_OS_ACCOUNT_CONSTRAINT_ENABLE_ERROR;
     }
     isConstraintEnable = reply.ReadBool();
-    ACCOUNT_LOGD("end");
+
     return ERR_OK;
 }
 
 ErrCode OsAccountProxy::IsOsAccountVerified(const int id, bool &isVerified)
 {
-    ACCOUNT_LOGD("start");
     MessageParcel data;
     MessageParcel reply;
 
@@ -257,13 +249,12 @@ ErrCode OsAccountProxy::IsOsAccountVerified(const int id, bool &isVerified)
         return ERR_OSACCOUNT_KIT_IS_OS_ACCOUNT_VERIFIED_ERROR;
     }
     isVerified = reply.ReadBool();
-    ACCOUNT_LOGD("end");
+
     return ERR_OK;
 }
 
 ErrCode OsAccountProxy::GetCreatedOsAccountsCount(unsigned int &osAccountsCount)
 {
-    ACCOUNT_LOGD("start");
     osAccountsCount = 0;
     MessageParcel data;
     MessageParcel reply;
@@ -284,13 +275,12 @@ ErrCode OsAccountProxy::GetCreatedOsAccountsCount(unsigned int &osAccountsCount)
         return ERR_OSACCOUNT_KIT_GET_CREATED_OS_ACCOUNT_COUNT_ERROR;
     }
     osAccountsCount = reply.ReadUint32();
-    ACCOUNT_LOGD("end, osAccountsCount %{public}u.", osAccountsCount);
+
     return ERR_OK;
 }
 
 ErrCode OsAccountProxy::GetOsAccountLocalIdFromProcess(int &id)
 {
-    ACCOUNT_LOGD("start");
     MessageParcel data;
     MessageParcel reply;
 
@@ -310,13 +300,12 @@ ErrCode OsAccountProxy::GetOsAccountLocalIdFromProcess(int &id)
         return ERR_OSACCOUNT_KIT_GET_OS_ACCOUNT_LOCAL_ID_FROM_PROCESS_ERROR;
     }
     id = reply.ReadInt32();
-    ACCOUNT_LOGD("end");
+
     return ERR_OK;
 }
 
 ErrCode OsAccountProxy::IsMainOsAccount(bool &isMainOsAccount)
 {
-    ACCOUNT_LOGD("start");
     MessageParcel data;
     MessageParcel reply;
 
@@ -336,13 +325,12 @@ ErrCode OsAccountProxy::IsMainOsAccount(bool &isMainOsAccount)
         return result;
     }
     isMainOsAccount = reply.ReadBool();
-    ACCOUNT_LOGD("end");
+
     return ERR_OK;
 }
 
 ErrCode OsAccountProxy::GetOsAccountLocalIdFromDomain(const DomainAccountInfo &domainInfo, int &id)
 {
-    ACCOUNT_LOGD("start");
     MessageParcel data;
     MessageParcel reply;
 
@@ -370,13 +358,12 @@ ErrCode OsAccountProxy::GetOsAccountLocalIdFromDomain(const DomainAccountInfo &d
         return ERR_OSACCOUNT_KIT_GET_OS_ACCOUNT_LOCAL_ID_FOR_DOMAIN_ERROR;
     }
     id = reply.ReadInt32();
-    ACCOUNT_LOGD("end");
+
     return ERR_OK;
 }
 
 ErrCode OsAccountProxy::QueryMaxOsAccountNumber(int &maxOsAccountNumber)
 {
-    ACCOUNT_LOGD("start");
     MessageParcel data;
     MessageParcel reply;
 
@@ -396,13 +383,12 @@ ErrCode OsAccountProxy::QueryMaxOsAccountNumber(int &maxOsAccountNumber)
         return ERR_OSACCOUNT_KIT_QUERY_MAX_OS_ACCOUNT_NUMBER_ERROR;
     }
     maxOsAccountNumber = reply.ReadInt32();
-    ACCOUNT_LOGD("end");
+
     return ERR_OK;
 }
 
 ErrCode OsAccountProxy::GetOsAccountAllConstraints(const int id, std::vector<std::string> &constraints)
 {
-    ACCOUNT_LOGD("start");
     MessageParcel data;
     MessageParcel reply;
 
@@ -430,13 +416,12 @@ ErrCode OsAccountProxy::GetOsAccountAllConstraints(const int id, std::vector<std
         ACCOUNT_LOGE("ReadStringVector failed, result %{public}d.", result);
         return ERR_OSACCOUNT_KIT_READ_CONSTRAINTS_ERROR;
     }
-    ACCOUNT_LOGD("end");
+
     return ERR_OK;
 }
 
 ErrCode OsAccountProxy::QueryAllCreatedOsAccounts(std::vector<OsAccountInfo> &osAccountInfos)
 {
-    ACCOUNT_LOGD("start");
     MessageParcel data;
     MessageParcel reply;
 
@@ -457,13 +442,11 @@ ErrCode OsAccountProxy::QueryAllCreatedOsAccounts(std::vector<OsAccountInfo> &os
     }
     ReadParcelableVector(osAccountInfos, reply);
 
-    ACCOUNT_LOGD("end, query count %{public}zu", osAccountInfos.size());
     return ERR_OK;
 }
 
 ErrCode OsAccountProxy::QueryCurrentOsAccount(OsAccountInfo &osAccountInfo)
 {
-    ACCOUNT_LOGD("start");
     MessageParcel data;
     MessageParcel reply;
 
@@ -483,13 +466,12 @@ ErrCode OsAccountProxy::QueryCurrentOsAccount(OsAccountInfo &osAccountInfo)
         return ERR_OSACCOUNT_KIT_QUERY_CURRENT_OS_ACCOUNT_ERROR;
     }
     osAccountInfo = *(reply.ReadParcelable<OsAccountInfo>());
-    ACCOUNT_LOGD("end");
+
     return ERR_OK;
 }
 
 ErrCode OsAccountProxy::QueryOsAccountById(const int id, OsAccountInfo &osAccountInfo)
 {
-    ACCOUNT_LOGD("start");
     MessageParcel data;
     MessageParcel reply;
 
@@ -513,13 +495,12 @@ ErrCode OsAccountProxy::QueryOsAccountById(const int id, OsAccountInfo &osAccoun
         return ERR_OSACCOUNT_KIT_QUERY_OS_ACCOUNT_BY_ID_ERROR;
     }
     osAccountInfo = *(reply.ReadParcelable<OsAccountInfo>());
-    ACCOUNT_LOGD("end");
+
     return ERR_OK;
 }
 
 ErrCode OsAccountProxy::GetOsAccountTypeFromProcess(OsAccountType &type)
 {
-    ACCOUNT_LOGD("start");
     MessageParcel data;
     MessageParcel reply;
 
@@ -539,13 +520,12 @@ ErrCode OsAccountProxy::GetOsAccountTypeFromProcess(OsAccountType &type)
         return ERR_OSACCOUNT_KIT_GET_OS_ACCOUNT_TYPE_FROM_PROCESS_ERROR;
     }
     type = static_cast<OsAccountType>(reply.ReadInt32());
-    ACCOUNT_LOGD("end");
+
     return ERR_OK;
 }
 
 ErrCode OsAccountProxy::GetOsAccountProfilePhoto(const int id, std::string &photo)
 {
-    ACCOUNT_LOGD("start");
     MessageParcel data;
     MessageParcel reply;
 
@@ -569,13 +549,12 @@ ErrCode OsAccountProxy::GetOsAccountProfilePhoto(const int id, std::string &phot
         return ERR_OSACCOUNT_KIT_GET_OS_ACCOUNT_PROFILE_PHOTO_ERROR;
     }
     photo = reply.ReadString();
-    ACCOUNT_LOGD("end");
+
     return ERR_OK;
 }
 
 ErrCode OsAccountProxy::IsMultiOsAccountEnable(bool &isMultiOsAccountEnable)
 {
-    ACCOUNT_LOGD("start");
     MessageParcel data;
     MessageParcel reply;
 
@@ -595,13 +574,12 @@ ErrCode OsAccountProxy::IsMultiOsAccountEnable(bool &isMultiOsAccountEnable)
         return ERR_OSACCOUNT_KIT_IS_MULTI_OS_ACCOUNT_ENABLE_ERROR;
     }
     isMultiOsAccountEnable = reply.ReadBool();
-    ACCOUNT_LOGD("end");
+
     return ERR_OK;
 }
 
 ErrCode OsAccountProxy::SetOsAccountName(const int id, const std::string &name)
 {
-    ACCOUNT_LOGD("start");
     MessageParcel data;
     MessageParcel reply;
 
@@ -628,14 +606,13 @@ ErrCode OsAccountProxy::SetOsAccountName(const int id, const std::string &name)
         ACCOUNT_LOGE("failed to read reply for set os account name, result %{public}d.", result);
         return ERR_OSACCOUNT_KIT_SET_OS_ACCOUNT_NAME_ERROR;
     }
-    ACCOUNT_LOGD("end");
+
     return ERR_OK;
 }
 
 ErrCode OsAccountProxy::SetOsAccountConstraints(
     const int id, const std::vector<std::string> &constraints, const bool enable)
 {
-    ACCOUNT_LOGD("start");
     MessageParcel data;
     MessageParcel reply;
 
@@ -666,13 +643,12 @@ ErrCode OsAccountProxy::SetOsAccountConstraints(
         ACCOUNT_LOGE("failed to read reply for set os account constraints, result %{public}d.", result);
         return ERR_OSACCOUNT_KIT_SET_OS_ACCOUNT_CONSTRAINTS_ERROR;
     }
-    ACCOUNT_LOGD("end");
+
     return ERR_OK;
 }
 
 ErrCode OsAccountProxy::SetOsAccountProfilePhoto(const int id, const std::string &photo)
 {
-    ACCOUNT_LOGD("start");
     MessageParcel data;
     MessageParcel reply;
 
@@ -699,13 +675,12 @@ ErrCode OsAccountProxy::SetOsAccountProfilePhoto(const int id, const std::string
         ACCOUNT_LOGE("failed to read reply for set os account profile photo, result %{public}d.", result);
         return ERR_OSACCOUNT_KIT_SET_OS_ACCOUNT_PROFILE_PHOTO_ERROR;
     }
-    ACCOUNT_LOGD("end");
+
     return ERR_OK;
 }
 
 ErrCode OsAccountProxy::ActivateOsAccount(const int id)
 {
-    ACCOUNT_LOGD("start");
     MessageParcel data;
     MessageParcel reply;
 
@@ -728,13 +703,12 @@ ErrCode OsAccountProxy::ActivateOsAccount(const int id)
         ACCOUNT_LOGE("failed to read reply for activate os account, result %{public}d.", result);
         return ERR_OSACCOUNT_KIT_ACTIVATE_OS_ACCOUNT_ERROR;
     }
-    ACCOUNT_LOGD("end");
+
     return ERR_OK;
 }
 
 ErrCode OsAccountProxy::StartOsAccount(const int id)
 {
-    ACCOUNT_LOGD("start");
     MessageParcel data;
     MessageParcel reply;
 
@@ -757,13 +731,12 @@ ErrCode OsAccountProxy::StartOsAccount(const int id)
         ACCOUNT_LOGE("failed to read reply for start os account, result %{public}d.", result);
         return ERR_OSACCOUNT_KIT_START_OS_ACCOUNT_ERROR;
     }
-    ACCOUNT_LOGD("end");
+
     return ERR_OK;
 }
 
 ErrCode OsAccountProxy::StopOsAccount(const int id)
 {
-    ACCOUNT_LOGD("start");
     MessageParcel data;
     MessageParcel reply;
 
@@ -786,13 +759,12 @@ ErrCode OsAccountProxy::StopOsAccount(const int id)
         ACCOUNT_LOGE("failed to read reply for stop os account, result %{public}d.", result);
         return ERR_OSACCOUNT_KIT_STOP_OS_ACCOUNT_ERROR;
     }
-    ACCOUNT_LOGD("end");
+
     return ERR_OK;
 }
 
 ErrCode OsAccountProxy::GetOsAccountLocalIdBySerialNumber(const int64_t serialNumber, int &id)
 {
-    ACCOUNT_LOGD("start");
     MessageParcel data;
     MessageParcel reply;
 
@@ -816,13 +788,12 @@ ErrCode OsAccountProxy::GetOsAccountLocalIdBySerialNumber(const int64_t serialNu
         return ERR_OSACCOUNT_KIT_GET_OS_ACCOUNT_LOCAL_ID_FOR_SERIAL_NUMBER_ERROR;
     }
     id = reply.ReadInt32();
-    ACCOUNT_LOGD("end");
+
     return ERR_OK;
 }
 
 ErrCode OsAccountProxy::GetSerialNumberByOsAccountLocalId(const int &id, int64_t &serialNumber)
 {
-    ACCOUNT_LOGD("start");
     MessageParcel data;
     MessageParcel reply;
 
@@ -846,14 +817,13 @@ ErrCode OsAccountProxy::GetSerialNumberByOsAccountLocalId(const int &id, int64_t
         return ERR_OSACCOUNT_KIT_GET_SERIAL_NUMBER_FOR_OS_ACCOUNT__ERROR;
     }
     serialNumber = reply.ReadInt64();
-    ACCOUNT_LOGD("end");
+
     return ERR_OK;
 }
 
 ErrCode OsAccountProxy::SubscribeOsAccount(
     const OsAccountSubscribeInfo &subscribeInfo, const sptr<IRemoteObject> &eventListener)
 {
-    ACCOUNT_LOGD("start");
     MessageParcel data;
     MessageParcel reply;
 
@@ -883,13 +853,12 @@ ErrCode OsAccountProxy::SubscribeOsAccount(
         ACCOUNT_LOGE("failed to read reply for subscriber os account, result %{public}d.", result);
         return ERR_OSACCOUNT_KIT_SUBSCRIBE_ERROR;
     }
-    ACCOUNT_LOGD("end");
+
     return ERR_OK;
 }
 
 ErrCode OsAccountProxy::UnsubscribeOsAccount(const sptr<IRemoteObject> &eventListener)
 {
-    ACCOUNT_LOGD("start");
     MessageParcel data;
     MessageParcel reply;
 
@@ -914,12 +883,11 @@ ErrCode OsAccountProxy::UnsubscribeOsAccount(const sptr<IRemoteObject> &eventLis
         ACCOUNT_LOGE("failed to read reply for unsubscribe os account.");
         return ERR_OSACCOUNT_KIT_UNSUBSCRIBE_ERROR;
     }
-    ACCOUNT_LOGD("end");
+
     return ERR_OK;
 }
 OS_ACCOUNT_SWITCH_MOD OsAccountProxy::GetOsAccountSwitchMod()
 {
-    ACCOUNT_LOGD("start");
     MessageParcel data;
     MessageParcel reply;
 
@@ -935,7 +903,7 @@ OS_ACCOUNT_SWITCH_MOD OsAccountProxy::GetOsAccountSwitchMod()
     }
 
     OS_ACCOUNT_SWITCH_MOD osAccountSwitchMod = static_cast<OS_ACCOUNT_SWITCH_MOD>(reply.ReadInt32());
-    ACCOUNT_LOGD("end");
+
     return osAccountSwitchMod;
 }
 
@@ -959,7 +927,6 @@ ErrCode OsAccountProxy::SendRequest(IOsAccount::Message code, MessageParcel &dat
 
 ErrCode OsAccountProxy::IsCurrentOsAccountVerified(bool &isVerified)
 {
-    ACCOUNT_LOGD("start");
     MessageParcel data;
     MessageParcel reply;
 
@@ -980,13 +947,12 @@ ErrCode OsAccountProxy::IsCurrentOsAccountVerified(bool &isVerified)
         return ERR_OSACCOUNT_KIT_UNSUBSCRIBE_ERROR;
     }
     isVerified = reply.ReadBool();
-    ACCOUNT_LOGD("end");
+
     return ERR_OK;
 }
 
 ErrCode OsAccountProxy::IsOsAccountCompleted(const int id, bool &isOsAccountCompleted)
 {
-    ACCOUNT_LOGD("start");
     MessageParcel data;
     MessageParcel reply;
 
@@ -1011,13 +977,11 @@ ErrCode OsAccountProxy::IsOsAccountCompleted(const int id, bool &isOsAccountComp
         return ERR_OSACCOUNT_KIT_UNSUBSCRIBE_ERROR;
     }
     isOsAccountCompleted = reply.ReadBool();
-    ACCOUNT_LOGD("end");
     return ERR_OK;
 }
 
 ErrCode OsAccountProxy::SetCurrentOsAccountIsVerified(const bool isVerified)
 {
-    ACCOUNT_LOGD("start");
     MessageParcel data;
     MessageParcel reply;
 
@@ -1041,13 +1005,11 @@ ErrCode OsAccountProxy::SetCurrentOsAccountIsVerified(const bool isVerified)
         ACCOUNT_LOGE("failed to read reply for set current os account verified, result %{public}d.", result);
         return ERR_OSACCOUNT_KIT_UNSUBSCRIBE_ERROR;
     }
-    ACCOUNT_LOGD("end");
     return ERR_OK;
 }
 
 ErrCode OsAccountProxy::SetOsAccountIsVerified(const int id, const bool isVerified)
 {
-    ACCOUNT_LOGD("start");
     MessageParcel data;
     MessageParcel reply;
 
@@ -1076,13 +1038,11 @@ ErrCode OsAccountProxy::SetOsAccountIsVerified(const int id, const bool isVerifi
         ACCOUNT_LOGE("failed to read reply for set os account verified, result %{public}d.", result);
         return ERR_OSACCOUNT_KIT_UNSUBSCRIBE_ERROR;
     }
-    ACCOUNT_LOGD("end");
     return ERR_OK;
 }
 
 ErrCode OsAccountProxy::DumpState(const int &id, std::vector<std::string> &state)
 {
-    ACCOUNT_LOGD("start");
     MessageParcel data;
     MessageParcel reply;
 
@@ -1113,7 +1073,6 @@ ErrCode OsAccountProxy::DumpState(const int &id, std::vector<std::string> &state
         std::string info = reply.ReadString();
         state.emplace_back(info);
     }
-    ACCOUNT_LOGD("end");
     return ERR_OK;
 }
 
@@ -1125,7 +1084,6 @@ void OsAccountProxy::CreateBasicAccounts()
 ErrCode OsAccountProxy::GetCreatedOsAccountNumFromDatabase(const std::string& storeID,
     int &createdOsAccountNum)
 {
-    ACCOUNT_LOGD("start");
     MessageParcel data;
     MessageParcel reply;
 
@@ -1150,13 +1108,11 @@ ErrCode OsAccountProxy::GetCreatedOsAccountNumFromDatabase(const std::string& st
         return ERR_OSACCOUNT_KIT_GET_CREATED_OS_ACCOUNT_NUM_FROM_DATABASE_ERROR;
     }
     createdOsAccountNum = reply.ReadInt32();
-    ACCOUNT_LOGD("end");
     return ERR_OK;
 }
 
 ErrCode OsAccountProxy::GetSerialNumberFromDatabase(const std::string& storeID, int64_t &serialNumber)
 {
-    ACCOUNT_LOGD("start");
     MessageParcel data;
     MessageParcel reply;
 
@@ -1181,13 +1137,11 @@ ErrCode OsAccountProxy::GetSerialNumberFromDatabase(const std::string& storeID, 
         return ERR_OSACCOUNT_KIT_GET_SERIAL_NUM_FROM_DATABASE_ERROR;
     }
     serialNumber = reply.ReadInt64();
-    ACCOUNT_LOGD("end");
     return ERR_OK;
 }
 
 ErrCode OsAccountProxy::GetMaxAllowCreateIdFromDatabase(const std::string& storeID, int &id)
 {
-    ACCOUNT_LOGD("start");
     MessageParcel data;
     MessageParcel reply;
 
@@ -1212,14 +1166,12 @@ ErrCode OsAccountProxy::GetMaxAllowCreateIdFromDatabase(const std::string& store
         return ERR_OSACCOUNT_KIT_GET_MAX_ALLOWED_CREATE_ID_FROM_DATABASE_ERROR;
     }
     id = reply.ReadInt32();
-    ACCOUNT_LOGD("end");
     return ERR_OK;
 }
 
 ErrCode OsAccountProxy::GetOsAccountFromDatabase(const std::string& storeID,
     const int id, OsAccountInfo &osAccountInfo)
 {
-    ACCOUNT_LOGD("start");
     MessageParcel data;
     MessageParcel reply;
 
@@ -1249,14 +1201,12 @@ ErrCode OsAccountProxy::GetOsAccountFromDatabase(const std::string& storeID,
         return ERR_OSACCOUNT_KIT_GET_OS_ACCOUNT_FROM_DATABASE_ERROR;
     }
     osAccountInfo = *(reply.ReadParcelable<OsAccountInfo>());
-    ACCOUNT_LOGD("end");
     return ERR_OK;
 }
 
 ErrCode OsAccountProxy::GetOsAccountListFromDatabase(const std::string& storeID,
     std::vector<OsAccountInfo> &osAccountList)
 {
-    ACCOUNT_LOGD("start");
     MessageParcel data;
     MessageParcel reply;
 
@@ -1281,13 +1231,11 @@ ErrCode OsAccountProxy::GetOsAccountListFromDatabase(const std::string& storeID,
         return ERR_OSACCOUNT_KIT_GET_OS_ACCOUNT_LIST_FROM_DATABASE_ERROR;
     }
     ReadParcelableVector(osAccountList, reply);
-    ACCOUNT_LOGD("end");
     return ERR_OK;
 }
 
 ErrCode OsAccountProxy::QueryActiveOsAccountIds(std::vector<int32_t>& ids)
 {
-    ACCOUNT_LOGD("start");
     MessageParcel data;
     MessageParcel reply;
 
@@ -1313,7 +1261,6 @@ ErrCode OsAccountProxy::QueryActiveOsAccountIds(std::vector<int32_t>& ids)
         ACCOUNT_LOGE("failed to read vector for active ids.");
         return ERR_OSACCOUNT_KIT_QUERY_ACTIVE_OS_ACCOUNT_IDS_ERROR;
     }
-    ACCOUNT_LOGD("end");
     return ERR_OK;
 }
 

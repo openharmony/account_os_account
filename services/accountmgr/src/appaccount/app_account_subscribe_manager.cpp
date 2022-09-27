@@ -27,14 +27,10 @@ namespace AccountSA {
 AppAccountSubscribeManager::AppAccountSubscribeManager()
     : subscribeDeathRecipient_(sptr<IRemoteObject::DeathRecipient>(
         new (std::nothrow) AppAccountSubscribeDeathRecipient()))
-{
-    ACCOUNT_LOGD("enter");
-}
+{}
 
 ErrCode AppAccountSubscribeManager::GetEventHandler(void)
 {
-    ACCOUNT_LOGD("enter");
-
     if (!handler_) {
         handler_ = std::make_shared<EventHandler>(EventRunner::Create());
         if (handler_ == nullptr) {
@@ -50,8 +46,6 @@ ErrCode AppAccountSubscribeManager::SubscribeAppAccount(
     const std::shared_ptr<AppAccountSubscribeInfo> &subscribeInfoPtr, const sptr<IRemoteObject> &eventListener,
     const uid_t &uid, const std::string &bundleName, const uint32_t &appIndex)
 {
-    ACCOUNT_LOGD("enter");
-
     if (subscribeInfoPtr == nullptr) {
         ACCOUNT_LOGE("subscribeInfoPtr is nullptr");
         return ERR_APPACCOUNT_SERVICE_SUBSCRIBE_INFO_PTR_IS_NULLPTR;
@@ -99,8 +93,6 @@ ErrCode AppAccountSubscribeManager::SubscribeAppAccount(
 
 ErrCode AppAccountSubscribeManager::UnsubscribeAppAccount(const sptr<IRemoteObject> &eventListener)
 {
-    ACCOUNT_LOGD("enter");
-
     if (eventListener == nullptr) {
         ACCOUNT_LOGE("eventListener is nullptr");
         return ERR_APPACCOUNT_SERVICE_EVENT_LISTENER_IS_NULLPTR;
@@ -119,13 +111,11 @@ std::vector<AppAccountSubscribeRecordPtr> AppAccountSubscribeManager::GetSubscri
 
     std::lock_guard<std::mutex> lock(mutex_);
     if (ownerSubscribeRecords_.size() == 0) {
-        ACCOUNT_LOGI("ownerSubscribeRecords_ size is 0");
         return records;
     }
 
     auto subscribeRecordsPtr = ownerSubscribeRecords_.find(owner);
     if (subscribeRecordsPtr == ownerSubscribeRecords_.end()) {
-        ACCOUNT_LOGI("subscribeRecordsPtr is ownerSubscribeRecords_ end");
         return records;
     }
 
@@ -152,8 +142,6 @@ std::vector<AppAccountSubscribeRecordPtr> AppAccountSubscribeManager::GetSubscri
 ErrCode AppAccountSubscribeManager::CheckAppAccess(const std::shared_ptr<AppAccountSubscribeInfo> &subscribeInfoPtr,
     const uid_t &uid, const std::string &bundleName, const uint32_t &appIndex)
 {
-    ACCOUNT_LOGD("enter");
-
     if (subscribeInfoPtr == nullptr) {
         ACCOUNT_LOGE("subscribeInfoPtr is nullptr");
         return ERR_APPACCOUNT_SERVICE_SUBSCRIBE_INFO_PTR_IS_NULLPTR;
@@ -211,8 +199,6 @@ ErrCode AppAccountSubscribeManager::CheckAppAccess(const std::shared_ptr<AppAcco
 ErrCode AppAccountSubscribeManager::InsertSubscribeRecord(
     const std::vector<std::string> &owners, const AppAccountSubscribeRecordPtr &subscribeRecordPtr)
 {
-    ACCOUNT_LOGD("enter");
-
     if (owners.size() == 0) {
         ACCOUNT_LOGE("owners size is 0");
         return ERR_APPACCOUNT_SERVICE_OWNERS_SIZE_IS_ZERO;
@@ -228,10 +214,8 @@ ErrCode AppAccountSubscribeManager::InsertSubscribeRecord(
     for (auto owner : owners) {
         auto item = ownerSubscribeRecords_.find(owner);
         if (item != ownerSubscribeRecords_.end()) {
-            ACCOUNT_LOGD("item != ownerSubscribeRecords_.end()");
             item->second.insert(subscribeRecordPtr);
         } else {
-            ACCOUNT_LOGD("item == ownerSubscribeRecords_.end()");
             std::multiset<AppAccountSubscribeRecordPtr> subscribeRecords;
             subscribeRecords.insert(subscribeRecordPtr);
             ownerSubscribeRecords_[owner] = subscribeRecords;
@@ -239,15 +223,12 @@ ErrCode AppAccountSubscribeManager::InsertSubscribeRecord(
     }
 
     subscribeRecords_.emplace_back(subscribeRecordPtr);
-    ACCOUNT_LOGD("subscribeRecords_.size() = %{public}zu", subscribeRecords_.size());
 
     return ERR_OK;
 }
 
 ErrCode AppAccountSubscribeManager::RemoveSubscribeRecord(const sptr<IRemoteObject> &eventListener)
 {
-    ACCOUNT_LOGD("enter");
-
     if (eventListener == nullptr) {
         ACCOUNT_LOGE("eventListener is nullptr");
         return ERR_APPACCOUNT_SERVICE_EVENT_LISTENER_IS_NULLPTR;
@@ -285,8 +266,6 @@ ErrCode AppAccountSubscribeManager::RemoveSubscribeRecord(const sptr<IRemoteObje
 bool AppAccountSubscribeManager::PublishAccount(
     AppAccountInfo &appAccountInfo, const uid_t &uid, const std::string &bundleName)
 {
-    ACCOUNT_LOGD("enter");
-
     std::string name;
     appAccountInfo.GetName(name);
     uint32_t appIndex = appAccountInfo.GetAppIndex();
@@ -359,8 +338,6 @@ ErrCode AppAccountSubscribeManager::GetAccessibleAccountsBySubscribeInfo(
     const std::shared_ptr<AppAccountSubscribeInfo> &subscribeInfoPtr,
     const std::vector<AppAccountInfo> &accessibleAccounts, std::vector<AppAccountInfo> &appAccounts)
 {
-    ACCOUNT_LOGD("enter");
-
     if (subscribeInfoPtr == nullptr) {
         ACCOUNT_LOGE("subscribeInfoPtr is nullptr");
         return ERR_APPACCOUNT_SERVICE_SUBSCRIBE_INFO_PTR_IS_NULLPTR;
@@ -391,7 +368,6 @@ ErrCode AppAccountSubscribeManager::GetAccessibleAccountsBySubscribeInfo(
         }
 
         if (std::find(owners.begin(), owners.end(), owner) != owners.end()) {
-            ACCOUNT_LOGD("found owner");
             appAccounts.emplace_back(accessibleAccount);
         }
     }

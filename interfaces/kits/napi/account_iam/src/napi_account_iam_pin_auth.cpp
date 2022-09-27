@@ -25,7 +25,6 @@ using namespace OHOS::AccountSA;
 
 napi_value NapiAccountIAMPINAuth::Init(napi_env env, napi_value exports)
 {
-    ACCOUNT_LOGD("enter");
     napi_value cons;
     napi_property_descriptor clzDes[] = {
         DECLARE_NAPI_FUNCTION("registerInputer", RegisterInputer),
@@ -39,7 +38,6 @@ napi_value NapiAccountIAMPINAuth::Init(napi_env env, napi_value exports)
 
 napi_value NapiAccountIAMPINAuth::JsConstructor(napi_env env, napi_callback_info info)
 {
-    ACCOUNT_LOGD("enter");
     napi_value thisVar = nullptr;
     NAPI_CALL(env, napi_get_cb_info(env, info, nullptr, nullptr, &thisVar, nullptr));
     return thisVar;
@@ -61,7 +59,7 @@ static bool ParseContextForRegisterInputer(napi_env env, napi_callback_info info
     } else if (valuetype == napi_function) {
         onGetData = argv[PARAM_ZERO];
     } else {
-        ACCOUNT_LOGD("inputer param type error");
+        ACCOUNT_LOGE("inputer param type error");
         return false;
     }
     return napi_create_reference(env, onGetData, 1, callback) == napi_ok ? true : false;
@@ -69,7 +67,6 @@ static bool ParseContextForRegisterInputer(napi_env env, napi_callback_info info
 
 napi_value NapiAccountIAMPINAuth::RegisterInputer(napi_env env, napi_callback_info info)
 {
-    ACCOUNT_LOGD("enter");
     napi_value result;
     NAPI_CALL(env, napi_get_boolean(env, false, &result));
     napi_ref callback = nullptr;
@@ -84,7 +81,6 @@ napi_value NapiAccountIAMPINAuth::RegisterInputer(napi_env env, napi_callback_in
 
 napi_value NapiAccountIAMPINAuth::UnregisterInputer(napi_env env, napi_callback_info info)
 {
-    ACCOUNT_LOGD("enter");
     AccountIAMClient::GetInstance().UnRegisterInputer();
     napi_value result = nullptr;
     NAPI_CALL(env, napi_get_null(env, &result));

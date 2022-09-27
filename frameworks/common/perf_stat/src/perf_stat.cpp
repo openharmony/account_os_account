@@ -20,13 +20,10 @@
 namespace OHOS {
 namespace AccountSA {
 PerfStat::PerfStat()
-{
-    ACCOUNT_LOGD("create");
-}
+{}
 
 PerfStat::~PerfStat()
 {
-    ACCOUNT_LOGD("destroy");
     Reset();
 }
 

@@ -22,8 +22,6 @@ namespace OHOS {
 namespace AccountSA {
 void AppAccountSubscribeDeathRecipient::OnRemoteDied(const wptr<IRemoteObject> &remote)
 {
-    ACCOUNT_LOGD("enter");
-
     if (remote == nullptr) {
         ACCOUNT_LOGE("remote object is nullptr");
         return;
@@ -36,8 +34,6 @@ void AppAccountSubscribeDeathRecipient::OnRemoteDied(const wptr<IRemoteObject> &
     }
 
     DelayedSingleton<AppAccountSubscribeManager>::GetInstance()->UnsubscribeAppAccount(object);
-
-    ACCOUNT_LOGD("end");
 }
 }  // namespace AccountSA
 }  // namespace OHOS

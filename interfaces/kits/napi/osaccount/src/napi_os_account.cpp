@@ -29,7 +29,6 @@ std::map<OsAccountManager *, std::vector<SubscribeCBInfo *>> g_osAccountSubscrib
 }  // namespace
 napi_value OsAccountInit(napi_env env, napi_value exports)
 {
-    ACCOUNT_LOGD("enter");
     napi_property_descriptor descriptor[] = {
         DECLARE_NAPI_FUNCTION("getAccountManager", GetAccountManager),
     };
@@ -108,23 +107,21 @@ napi_value OsAccountInit(napi_env env, napi_value exports)
 
 napi_value GetAccountManager(napi_env env, napi_callback_info cbInfo)
 {
-    ACCOUNT_LOGD("enter");
     napi_value instance = nullptr;
     napi_value cons = nullptr;
     if (napi_get_reference_value(env, osAccountRef_, &cons) != napi_ok) {
         return nullptr;
     }
-    ACCOUNT_LOGI("Get a reference to the global variable osAccountRef_ complete.");
+
     if (napi_new_instance(env, cons, 0, nullptr, &instance) != napi_ok) {
         return nullptr;
     }
-    ACCOUNT_LOGI("napi_new_instance complete.");
+
     return instance;
 }
 
 napi_value OsAccountJsConstructor(napi_env env, napi_callback_info cbinfo)
 {
-    ACCOUNT_LOGD("enter");
     napi_value thisVar = nullptr;
     NAPI_CALL(env, napi_get_cb_info(env, cbinfo, nullptr, nullptr, &thisVar, nullptr));
 
@@ -150,7 +147,6 @@ void SetEnumProperty(napi_env env, napi_value dstObj, const int objValue, const 
 
 napi_value QueryOsAccountById(napi_env env, napi_callback_info cbInfo)
 {
-    ACCOUNT_LOGD("enter");
     QueryOAByIdAsyncContext *queryOAByIdCB = new (std::nothrow) QueryOAByIdAsyncContext();
     if (queryOAByIdCB == nullptr) {
         ACCOUNT_LOGE("insufficient memory for queryOAByIdCB!");
@@ -163,10 +159,8 @@ napi_value QueryOsAccountById(napi_env env, napi_callback_info cbInfo)
 
     napi_value result = nullptr;
     if (queryOAByIdCB->callbackRef == nullptr) {
-        ACCOUNT_LOGD("Create promise");
         napi_create_promise(env, &queryOAByIdCB->deferred, &result);
     } else {
-        ACCOUNT_LOGD("Undefined the result parameter");
         napi_get_undefined(env, &result);
     }
 
@@ -187,7 +181,6 @@ napi_value QueryOsAccountById(napi_env env, napi_callback_info cbInfo)
 
 napi_value RemoveOsAccount(napi_env env, napi_callback_info cbInfo)
 {
-    ACCOUNT_LOGD("enter");
     RemoveOAAsyncContext *removeOACB = new (std::nothrow) RemoveOAAsyncContext();
     if (removeOACB == nullptr) {
         ACCOUNT_LOGE("insufficient memory for removeOACB!");
@@ -200,10 +193,8 @@ napi_value RemoveOsAccount(napi_env env, napi_callback_info cbInfo)
 
     napi_value result = nullptr;
     if (removeOACB->callbackRef == nullptr) {
-        ACCOUNT_LOGD("Create promise");
         napi_create_promise(env, &removeOACB->deferred, &result);
     } else {
-        ACCOUNT_LOGD("Undefined the result parameter");
         napi_get_undefined(env, &result);
     }
 
@@ -219,7 +210,6 @@ napi_value RemoveOsAccount(napi_env env, napi_callback_info cbInfo)
 
 napi_value SetOsAccountName(napi_env env, napi_callback_info cbInfo)
 {
-    ACCOUNT_LOGD("enter");
     SetOANameAsyncContext *setOANameCB = new (std::nothrow) SetOANameAsyncContext();
     if (setOANameCB == nullptr) {
         ACCOUNT_LOGE("insufficient memory for setOANameCB!");
@@ -232,10 +222,8 @@ napi_value SetOsAccountName(napi_env env, napi_callback_info cbInfo)
 
     napi_value result = nullptr;
     if (setOANameCB->callbackRef == nullptr) {
-        ACCOUNT_LOGD("Create promise");
         napi_create_promise(env, &setOANameCB->deferred, &result);
     } else {
-        ACCOUNT_LOGD("Undefined the result parameter");
         napi_get_undefined(env, &result);
     }
 
@@ -256,7 +244,6 @@ napi_value SetOsAccountName(napi_env env, napi_callback_info cbInfo)
 
 napi_value SetOsAccountConstraints(napi_env env, napi_callback_info cbInfo)
 {
-    ACCOUNT_LOGD("enter");
     SetOAConsAsyncContext *setOAConsCB = new (std::nothrow) SetOAConsAsyncContext();
     if (setOAConsCB == nullptr) {
         ACCOUNT_LOGE("insufficient memory for setOAConsCB!");
@@ -269,10 +256,8 @@ napi_value SetOsAccountConstraints(napi_env env, napi_callback_info cbInfo)
 
     napi_value result = nullptr;
     if (setOAConsCB->callbackRef == nullptr) {
-        ACCOUNT_LOGD("Create promise");
         napi_create_promise(env, &setOAConsCB->deferred, &result);
     } else {
-        ACCOUNT_LOGD("Undefined the result parameter");
         napi_get_undefined(env, &result);
     }
 
@@ -293,7 +278,6 @@ napi_value SetOsAccountConstraints(napi_env env, napi_callback_info cbInfo)
 
 napi_value ActivateOsAccount(napi_env env, napi_callback_info cbInfo)
 {
-    ACCOUNT_LOGD("enter");
     ActivateOAAsyncContext *activeOACB = new (std::nothrow) ActivateOAAsyncContext();
     if (activeOACB == nullptr) {
         ACCOUNT_LOGE("insufficient memory for activeOACB!");
@@ -306,10 +290,8 @@ napi_value ActivateOsAccount(napi_env env, napi_callback_info cbInfo)
 
     napi_value result = nullptr;
     if (activeOACB->callbackRef == nullptr) {
-        ACCOUNT_LOGD("Create promise");
         napi_create_promise(env, &activeOACB->deferred, &result);
     } else {
-        ACCOUNT_LOGD("Undefined the result parameter");
         napi_get_undefined(env, &result);
     }
 
@@ -330,7 +312,6 @@ napi_value ActivateOsAccount(napi_env env, napi_callback_info cbInfo)
 
 napi_value CreateOsAccount(napi_env env, napi_callback_info cbInfo)
 {
-    ACCOUNT_LOGD("enter");
     CreateOAAsyncContext *createOACB = new (std::nothrow) CreateOAAsyncContext();
     if (createOACB == nullptr) {
         ACCOUNT_LOGE("insufficient memory for createOACB!");
@@ -343,10 +324,8 @@ napi_value CreateOsAccount(napi_env env, napi_callback_info cbInfo)
 
     napi_value result = nullptr;
     if (createOACB->callbackRef == nullptr) {
-        ACCOUNT_LOGD("Create promise");
         napi_create_promise(env, &createOACB->deferred, &result);
     } else {
-        ACCOUNT_LOGD("Undefined the result parameter");
         napi_get_undefined(env, &result);
     }
 
@@ -362,7 +341,6 @@ napi_value CreateOsAccount(napi_env env, napi_callback_info cbInfo)
 
 napi_value CreateOsAccountForDomain(napi_env env, napi_callback_info cbInfo)
 {
-    ACCOUNT_LOGD("enter");
     CreateOAForDomainAsyncContext *createOAForDomainCB = new (std::nothrow) CreateOAForDomainAsyncContext();
     if (createOAForDomainCB == nullptr) {
         ACCOUNT_LOGE("insufficient memory for createOAForDomainCB!");
@@ -375,10 +353,8 @@ napi_value CreateOsAccountForDomain(napi_env env, napi_callback_info cbInfo)
 
     napi_value result = nullptr;
     if (createOAForDomainCB->callbackRef == nullptr) {
-        ACCOUNT_LOGD("Create promise");
         napi_create_promise(env, &createOAForDomainCB->deferred, &result);
     } else {
-        ACCOUNT_LOGD("Undefined the result parameter");
         napi_get_undefined(env, &result);
     }
 
@@ -394,7 +370,6 @@ napi_value CreateOsAccountForDomain(napi_env env, napi_callback_info cbInfo)
 
 napi_value GetCreatedOsAccountsCount(napi_env env, napi_callback_info cbInfo)
 {
-    ACCOUNT_LOGD("enter");
     GetOACountAsyncContext *getOACount = new (std::nothrow) GetOACountAsyncContext();
     if (getOACount == nullptr) {
         ACCOUNT_LOGE("insufficient memory for getOACount!");
@@ -407,10 +382,8 @@ napi_value GetCreatedOsAccountsCount(napi_env env, napi_callback_info cbInfo)
 
     napi_value result = nullptr;
     if (getOACount->callbackRef == nullptr) {
-        ACCOUNT_LOGD("Create promise");
         napi_create_promise(env, &getOACount->deferred, &result);
     } else {
-        ACCOUNT_LOGD("Undefined the result parameter");
         napi_get_undefined(env, &result);
     }
 
@@ -431,7 +404,6 @@ napi_value GetCreatedOsAccountsCount(napi_env env, napi_callback_info cbInfo)
 
 napi_value GetDistributedVirtualDeviceId(napi_env env, napi_callback_info cbInfo)
 {
-    ACCOUNT_LOGD("enter");
     DbDeviceIdAsyncContext *dbDeviceId = new (std::nothrow) DbDeviceIdAsyncContext();
     if (dbDeviceId == nullptr) {
         ACCOUNT_LOGE("insufficient memory for DbDeviceId!");
@@ -444,10 +416,8 @@ napi_value GetDistributedVirtualDeviceId(napi_env env, napi_callback_info cbInfo
 
     napi_value result = nullptr;
     if (dbDeviceId->callbackRef == nullptr) {
-        ACCOUNT_LOGD("Create promise");
         napi_create_promise(env, &dbDeviceId->deferred, &result);
     } else {
-        ACCOUNT_LOGD("Undefined the result parameter");
         napi_get_undefined(env, &result);
     }
 
@@ -468,7 +438,6 @@ napi_value GetDistributedVirtualDeviceId(napi_env env, napi_callback_info cbInfo
 
 napi_value GetOsAccountAllConstraints(napi_env env, napi_callback_info cbInfo)
 {
-    ACCOUNT_LOGD("enter");
     GetAllConsAsyncContext *getAllConsCB = new (std::nothrow) GetAllConsAsyncContext();
     if (getAllConsCB == nullptr) {
         ACCOUNT_LOGE("insufficient memory for getAllConsCB!");
@@ -481,10 +450,8 @@ napi_value GetOsAccountAllConstraints(napi_env env, napi_callback_info cbInfo)
 
     napi_value result = nullptr;
     if (getAllConsCB->callbackRef == nullptr) {
-        ACCOUNT_LOGD("Create promise");
         napi_create_promise(env, &getAllConsCB->deferred, &result);
     } else {
-        ACCOUNT_LOGD("Undefined the result parameter");
         napi_get_undefined(env, &result);
     }
 
@@ -505,7 +472,6 @@ napi_value GetOsAccountAllConstraints(napi_env env, napi_callback_info cbInfo)
 
 napi_value GetOsAccountLocalIdFromProcess(napi_env env, napi_callback_info cbInfo)
 {
-    ACCOUNT_LOGD("enter");
     GetIdAsyncContext *getIdCB = new (std::nothrow) GetIdAsyncContext();
     if (getIdCB == nullptr) {
         ACCOUNT_LOGE("insufficient memory for getIdCB!");
@@ -518,10 +484,8 @@ napi_value GetOsAccountLocalIdFromProcess(napi_env env, napi_callback_info cbInf
 
     napi_value result = nullptr;
     if (getIdCB->callbackRef == nullptr) {
-        ACCOUNT_LOGD("Create promise");
         napi_create_promise(env, &getIdCB->deferred, &result);
     } else {
-        ACCOUNT_LOGD("Undefined the result parameter");
         napi_get_undefined(env, &result);
     }
 
@@ -542,7 +506,6 @@ napi_value GetOsAccountLocalIdFromProcess(napi_env env, napi_callback_info cbInf
 
 napi_value QueryAllCreatedOsAccounts(napi_env env, napi_callback_info cbInfo)
 {
-    ACCOUNT_LOGD("enter");
     QueryCreateOAAsyncContext *queryAllOA = new (std::nothrow) QueryCreateOAAsyncContext();
     if (queryAllOA == nullptr) {
         ACCOUNT_LOGE("insufficient memory for queryAllOA!");
@@ -555,10 +518,8 @@ napi_value QueryAllCreatedOsAccounts(napi_env env, napi_callback_info cbInfo)
 
     napi_value result = nullptr;
     if (queryAllOA->callbackRef == nullptr) {
-        ACCOUNT_LOGD("Create promise");
         napi_create_promise(env, &queryAllOA->deferred, &result);
     } else {
-        ACCOUNT_LOGD("Undefined the result parameter");
         napi_get_undefined(env, &result);
     }
 
@@ -579,10 +540,9 @@ napi_value QueryAllCreatedOsAccounts(napi_env env, napi_callback_info cbInfo)
 
 napi_value QueryOsAccountConstraintSourceTypes(napi_env env, napi_callback_info cbInfo)
 {
-    ACCOUNT_LOGI("enter");
     QueryOAConstraintSrcTypeContext *queryConstraintSource = new (std::nothrow) QueryOAConstraintSrcTypeContext();
     if (queryConstraintSource == nullptr) {
-        ACCOUNT_LOGI("queryConstraintSource == nullptr");
+        ACCOUNT_LOGE("queryConstraintSource == nullptr");
         return WrapVoidToJS(env);
     }
     queryConstraintSource->env = env;
@@ -592,10 +552,8 @@ napi_value QueryOsAccountConstraintSourceTypes(napi_env env, napi_callback_info 
 
     napi_value result = nullptr;
     if (queryConstraintSource->callbackRef == nullptr) {
-        ACCOUNT_LOGI("Create promise");
         napi_create_promise(env, &queryConstraintSource->deferred, &result);
     } else {
-        ACCOUNT_LOGI("Undefined the result parameter");
         napi_get_undefined(env, &result);
     }
 
@@ -616,7 +574,6 @@ napi_value QueryOsAccountConstraintSourceTypes(napi_env env, napi_callback_info 
 
 napi_value QueryActivatedOsAccountIds(napi_env env, napi_callback_info cbInfo)
 {
-    ACCOUNT_LOGD("enter");
     QueryActiveIdsAsyncContext *queryActiveIds = new (std::nothrow) QueryActiveIdsAsyncContext();
     if (queryActiveIds == nullptr) {
         ACCOUNT_LOGE("insufficient memory for queryActiveIds!");
@@ -629,10 +586,8 @@ napi_value QueryActivatedOsAccountIds(napi_env env, napi_callback_info cbInfo)
 
     napi_value result = nullptr;
     if (queryActiveIds->callbackRef == nullptr) {
-        ACCOUNT_LOGD("Create promise");
         napi_create_promise(env, &queryActiveIds->deferred, &result);
     } else {
-        ACCOUNT_LOGD("Undefined the result parameter");
         napi_get_undefined(env, &result);
     }
 
@@ -653,7 +608,6 @@ napi_value QueryActivatedOsAccountIds(napi_env env, napi_callback_info cbInfo)
 
 napi_value GetOsAccountProfilePhoto(napi_env env, napi_callback_info cbInfo)
 {
-    ACCOUNT_LOGD("enter");
     GetOAPhotoAsyncContext *getPhoto = new (std::nothrow) GetOAPhotoAsyncContext();
     if (getPhoto == nullptr) {
         ACCOUNT_LOGE("insufficient memory for queryAllOA!");
@@ -666,10 +620,8 @@ napi_value GetOsAccountProfilePhoto(napi_env env, napi_callback_info cbInfo)
 
     napi_value result = nullptr;
     if (getPhoto->callbackRef == nullptr) {
-        ACCOUNT_LOGD("Create promise");
         napi_create_promise(env, &getPhoto->deferred, &result);
     } else {
-        ACCOUNT_LOGD("Undefined the result parameter");
         napi_get_undefined(env, &result);
     }
 
@@ -685,7 +637,6 @@ napi_value GetOsAccountProfilePhoto(napi_env env, napi_callback_info cbInfo)
 
 napi_value QueryCurrentOsAccount(napi_env env, napi_callback_info cbInfo)
 {
-    ACCOUNT_LOGD("enter");
     CurrentOAAsyncContext *currentOA = new (std::nothrow) CurrentOAAsyncContext();
     if (currentOA == nullptr) {
         ACCOUNT_LOGE("insufficient memory for currentOA!");
@@ -698,10 +649,8 @@ napi_value QueryCurrentOsAccount(napi_env env, napi_callback_info cbInfo)
 
     napi_value result = nullptr;
     if (currentOA->callbackRef == nullptr) {
-        ACCOUNT_LOGD("Create promise");
         napi_create_promise(env, &currentOA->deferred, &result);
     } else {
-        ACCOUNT_LOGD("Undefined the result parameter");
         napi_get_undefined(env, &result);
     }
 
@@ -722,7 +671,6 @@ napi_value QueryCurrentOsAccount(napi_env env, napi_callback_info cbInfo)
 
 napi_value GetOsAccountLocalIdFromUid(napi_env env, napi_callback_info cbInfo)
 {
-    ACCOUNT_LOGD("enter");
     GetIdByUidAsyncContext *idByUid = new (std::nothrow) GetIdByUidAsyncContext();
     if (idByUid == nullptr) {
         ACCOUNT_LOGE("insufficient memory for idByUid!");
@@ -735,10 +683,8 @@ napi_value GetOsAccountLocalIdFromUid(napi_env env, napi_callback_info cbInfo)
 
     napi_value result = nullptr;
     if (idByUid->callbackRef == nullptr) {
-        ACCOUNT_LOGD("Create promise");
         napi_create_promise(env, &idByUid->deferred, &result);
     } else {
-        ACCOUNT_LOGD("Undefined the result parameter");
         napi_get_undefined(env, &result);
     }
 
@@ -754,7 +700,6 @@ napi_value GetOsAccountLocalIdFromUid(napi_env env, napi_callback_info cbInfo)
 
 napi_value GetBundleIdFromUid(napi_env env, napi_callback_info cbInfo)
 {
-    ACCOUNT_LOGD("enter");
     GetIdByUidAsyncContext *bundleIdByUid = new (std::nothrow) GetIdByUidAsyncContext();
     if (bundleIdByUid == nullptr) {
         ACCOUNT_LOGE("insufficient memory for bundleIdByUid!");
@@ -767,10 +712,8 @@ napi_value GetBundleIdFromUid(napi_env env, napi_callback_info cbInfo)
 
     napi_value result = nullptr;
     if (bundleIdByUid->callbackRef == nullptr) {
-        ACCOUNT_LOGD("Create promise");
         napi_create_promise(env, &bundleIdByUid->deferred, &result);
     } else {
-        ACCOUNT_LOGD("Undefined the result parameter");
         napi_get_undefined(env, &result);
     }
 
@@ -789,7 +732,6 @@ napi_value GetBundleIdFromUid(napi_env env, napi_callback_info cbInfo)
 
 napi_value GetOsAccountLocalIdFromDomain(napi_env env, napi_callback_info cbInfo)
 {
-    ACCOUNT_LOGD("enter");
     GetIdByDomainAsyncContext *idByDomain = new (std::nothrow) GetIdByDomainAsyncContext();
     if (idByDomain == nullptr) {
         ACCOUNT_LOGE("insufficient memory for idByDomain!");
@@ -802,10 +744,8 @@ napi_value GetOsAccountLocalIdFromDomain(napi_env env, napi_callback_info cbInfo
 
     napi_value result = nullptr;
     if (idByDomain->callbackRef == nullptr) {
-        ACCOUNT_LOGD("Create promise");
         napi_create_promise(env, &idByDomain->deferred, &result);
     } else {
-        ACCOUNT_LOGD("Undefined the result parameter");
         napi_get_undefined(env, &result);
     }
 
@@ -821,7 +761,6 @@ napi_value GetOsAccountLocalIdFromDomain(napi_env env, napi_callback_info cbInfo
 
 napi_value SetOsAccountProfilePhoto(napi_env env, napi_callback_info cbInfo)
 {
-    ACCOUNT_LOGD("enter");
     SetOAPhotoAsyncContext *setPhoto = new (std::nothrow) SetOAPhotoAsyncContext();
     if (setPhoto == nullptr) {
         ACCOUNT_LOGE("insufficient memory for setPhoto!");
@@ -834,10 +773,8 @@ napi_value SetOsAccountProfilePhoto(napi_env env, napi_callback_info cbInfo)
 
     napi_value result = nullptr;
     if (setPhoto->callbackRef == nullptr) {
-        ACCOUNT_LOGD("Create promise");
         napi_create_promise(env, &setPhoto->deferred, &result);
     } else {
-        ACCOUNT_LOGD("Undefined the result parameter");
         napi_get_undefined(env, &result);
     }
 
@@ -853,7 +790,6 @@ napi_value SetOsAccountProfilePhoto(napi_env env, napi_callback_info cbInfo)
 
 napi_value QueryMaxOsAccountNumber(napi_env env, napi_callback_info cbInfo)
 {
-    ACCOUNT_LOGD("enter");
     QueryMaxNumAsyncContext *maxNum = new (std::nothrow) QueryMaxNumAsyncContext();
     if (maxNum == nullptr) {
         ACCOUNT_LOGE("insufficient memory for maxNum!");
@@ -866,10 +802,8 @@ napi_value QueryMaxOsAccountNumber(napi_env env, napi_callback_info cbInfo)
 
     napi_value result = nullptr;
     if (maxNum->callbackRef == nullptr) {
-        ACCOUNT_LOGD("Create promise");
         napi_create_promise(env, &maxNum->deferred, &result);
     } else {
-        ACCOUNT_LOGD("Undefined the result parameter");
         napi_get_undefined(env, &result);
     }
 
@@ -885,7 +819,6 @@ napi_value QueryMaxOsAccountNumber(napi_env env, napi_callback_info cbInfo)
 
 napi_value IsOsAccountActived(napi_env env, napi_callback_info cbInfo)
 {
-    ACCOUNT_LOGD("enter");
     IsActivedAsyncContext *isActived = new (std::nothrow) IsActivedAsyncContext();
     if (isActived == nullptr) {
         ACCOUNT_LOGE("insufficient memory for isActived!");
@@ -898,10 +831,8 @@ napi_value IsOsAccountActived(napi_env env, napi_callback_info cbInfo)
 
     napi_value result = nullptr;
     if (isActived->callbackRef == nullptr) {
-        ACCOUNT_LOGD("Create promise");
         napi_create_promise(env, &isActived->deferred, &result);
     } else {
-        ACCOUNT_LOGD("Undefined the result parameter");
         napi_get_undefined(env, &result);
     }
 
@@ -917,7 +848,6 @@ napi_value IsOsAccountActived(napi_env env, napi_callback_info cbInfo)
 
 napi_value IsOsAccountConstraintEnable(napi_env env, napi_callback_info cbInfo)
 {
-    ACCOUNT_LOGD("enter");
     IsConEnableAsyncContext *isEnable = new (std::nothrow) IsConEnableAsyncContext();
     if (isEnable == nullptr) {
         ACCOUNT_LOGE("insufficient memory for isEnable!");
@@ -930,10 +860,8 @@ napi_value IsOsAccountConstraintEnable(napi_env env, napi_callback_info cbInfo)
 
     napi_value result = nullptr;
     if (isEnable->callbackRef == nullptr) {
-        ACCOUNT_LOGD("Create promise");
         napi_create_promise(env, &isEnable->deferred, &result);
     } else {
-        ACCOUNT_LOGD("Undefined the result parameter");
         napi_get_undefined(env, &result);
     }
 
@@ -949,7 +877,6 @@ napi_value IsOsAccountConstraintEnable(napi_env env, napi_callback_info cbInfo)
 
 napi_value GetOsAccountTypeFromProcess(napi_env env, napi_callback_info cbInfo)
 {
-    ACCOUNT_LOGD("enter");
     GetTypeAsyncContext *getType = new (std::nothrow) GetTypeAsyncContext();
     if (getType == nullptr) {
         ACCOUNT_LOGE("insufficient memory for getType!");
@@ -962,10 +889,8 @@ napi_value GetOsAccountTypeFromProcess(napi_env env, napi_callback_info cbInfo)
 
     napi_value result = nullptr;
     if (getType->callbackRef == nullptr) {
-        ACCOUNT_LOGD("Create promise");
         napi_create_promise(env, &getType->deferred, &result);
     } else {
-        ACCOUNT_LOGD("Undefined the result parameter");
         napi_get_undefined(env, &result);
     }
 
@@ -981,7 +906,6 @@ napi_value GetOsAccountTypeFromProcess(napi_env env, napi_callback_info cbInfo)
 
 napi_value IsMultiOsAccountEnable(napi_env env, napi_callback_info cbInfo)
 {
-    ACCOUNT_LOGD("enter");
     IsMultiEnAsyncContext *multiEn = new (std::nothrow) IsMultiEnAsyncContext();
     if (multiEn == nullptr) {
         ACCOUNT_LOGE("insufficient memory for multiEn!");
@@ -994,10 +918,8 @@ napi_value IsMultiOsAccountEnable(napi_env env, napi_callback_info cbInfo)
 
     napi_value result = nullptr;
     if (multiEn->callbackRef == nullptr) {
-        ACCOUNT_LOGD("Create promise");
         napi_create_promise(env, &multiEn->deferred, &result);
     } else {
-        ACCOUNT_LOGD("Undefined the result parameter");
         napi_get_undefined(env, &result);
     }
 
@@ -1013,7 +935,6 @@ napi_value IsMultiOsAccountEnable(napi_env env, napi_callback_info cbInfo)
 
 napi_value IsOsAccountVerified(napi_env env, napi_callback_info cbInfo)
 {
-    ACCOUNT_LOGD("enter");
     IsVerifiedAsyncContext *isVerified = new (std::nothrow) IsVerifiedAsyncContext();
     if (isVerified == nullptr) {
         ACCOUNT_LOGE("insufficient memory for isVerified!");
@@ -1026,10 +947,8 @@ napi_value IsOsAccountVerified(napi_env env, napi_callback_info cbInfo)
 
     napi_value result = nullptr;
     if (isVerified->callbackRef == nullptr) {
-        ACCOUNT_LOGD("Create promise");
         napi_create_promise(env, &isVerified->deferred, &result);
     } else {
-        ACCOUNT_LOGD("Undefined the result parameter");
         napi_get_undefined(env, &result);
     }
 
@@ -1045,7 +964,6 @@ napi_value IsOsAccountVerified(napi_env env, napi_callback_info cbInfo)
 
 napi_value GetOsAccountLocalIdBySerialNumber(napi_env env, napi_callback_info cbInfo)
 {
-    ACCOUNT_LOGD("enter");
     GetSerialNumIdCBInfo *serialNumId = new (std::nothrow) GetSerialNumIdCBInfo();
     if (serialNumId == nullptr) {
         ACCOUNT_LOGE("insufficient memory for serialNumId!");
@@ -1058,10 +976,8 @@ napi_value GetOsAccountLocalIdBySerialNumber(napi_env env, napi_callback_info cb
 
     napi_value result = nullptr;
     if (serialNumId->callbackRef == nullptr) {
-        ACCOUNT_LOGD("Create promise");
         napi_create_promise(env, &serialNumId->deferred, &result);
     } else {
-        ACCOUNT_LOGD("Undefined the result parameter");
         napi_get_undefined(env, &result);
     }
 
@@ -1077,7 +993,6 @@ napi_value GetOsAccountLocalIdBySerialNumber(napi_env env, napi_callback_info cb
 
 napi_value GetSerialNumberByOsAccountLocalId(napi_env env, napi_callback_info cbInfo)
 {
-    ACCOUNT_LOGD("enter");
     GetSerialNumForOAInfo *getSerialNum = new (std::nothrow) GetSerialNumForOAInfo();
     if (getSerialNum == nullptr) {
         ACCOUNT_LOGE("insufficient memory for getSerialNum!");
@@ -1090,10 +1005,8 @@ napi_value GetSerialNumberByOsAccountLocalId(napi_env env, napi_callback_info cb
 
     napi_value result = nullptr;
     if (getSerialNum->callbackRef == nullptr) {
-        ACCOUNT_LOGD("Create promise");
         napi_create_promise(env, &getSerialNum->deferred, &result);
     } else {
-        ACCOUNT_LOGD("Undefined the result parameter");
         napi_get_undefined(env, &result);
     }
 
@@ -1114,7 +1027,6 @@ napi_value GetSerialNumberByOsAccountLocalId(napi_env env, napi_callback_info cb
 
 napi_value IsTestOsAccount(napi_env env, napi_callback_info cbInfo)
 {
-    ACCOUNT_LOGD("enter");
     IsTestOAInfo *isTest = new (std::nothrow) IsTestOAInfo();
     if (isTest == nullptr) {
         ACCOUNT_LOGE("insufficient memory for isTest!");
@@ -1127,10 +1039,8 @@ napi_value IsTestOsAccount(napi_env env, napi_callback_info cbInfo)
 
     napi_value result = nullptr;
     if (isTest->callbackRef == nullptr) {
-        ACCOUNT_LOGD("Create promise");
         napi_create_promise(env, &isTest->deferred, &result);
     } else {
-        ACCOUNT_LOGD("Undefined the result parameter");
         napi_get_undefined(env, &result);
     }
 
@@ -1163,7 +1073,6 @@ napi_value IsTestOsAccount(napi_env env, napi_callback_info cbInfo)
 
 napi_value IsMainOsAccount(napi_env env, napi_callback_info cbInfo)
 {
-    ACCOUNT_LOGD("enter");
     IsMainOAInfo *isMain = new (std::nothrow) IsMainOAInfo();
     if (isMain == nullptr) {
         ACCOUNT_LOGE("insufficient memory for isMain!");
@@ -1176,10 +1085,8 @@ napi_value IsMainOsAccount(napi_env env, napi_callback_info cbInfo)
 
     napi_value result = nullptr;
     if (isMain->callbackRef == nullptr) {
-        ACCOUNT_LOGD("Create promise");
         napi_create_promise(env, &isMain->deferred, &result);
     } else {
-        ACCOUNT_LOGD("Undefined the result parameter");
         napi_get_undefined(env, &result);
     }
 
@@ -1190,7 +1097,6 @@ napi_value IsMainOsAccount(napi_env env, napi_callback_info cbInfo)
         nullptr,
         resource,
         [](napi_env env, void *data) {
-            ACCOUNT_LOGD("napi_create_async_work running");
             IsMainOAInfo *isMain = reinterpret_cast<IsMainOAInfo *>(data);
             isMain->errCode = OsAccountManager::IsMainOsAccount(isMain->isMainOsAccount);
             ACCOUNT_LOGD("error code is %{public}d", isMain->errCode);
@@ -1216,8 +1122,6 @@ napi_value IsMainOsAccount(napi_env env, napi_callback_info cbInfo)
 
 napi_value Subscribe(napi_env env, napi_callback_info cbInfo)
 {
-    ACCOUNT_LOGD("enter");
-
     size_t argc = ARGS_SIZE_THREE;
     napi_value argv[ARGS_SIZE_THREE] = {nullptr};
     napi_value thisVar = nullptr;
@@ -1255,7 +1159,6 @@ napi_value Subscribe(napi_env env, napi_callback_info cbInfo)
     {
         std::lock_guard<std::mutex> lock(g_lockForOsAccountSubscribers);
         g_osAccountSubscribers[objectInfo].emplace_back(subscribeCBInfo);
-        ACCOUNT_LOGI("g_osAccountSubscribers.size = %{public}zu", g_osAccountSubscribers.size());
     }
 
     napi_value resourceName = nullptr;
@@ -1280,12 +1183,10 @@ SubscriberPtr::~SubscriberPtr()
 
 void SubscriberPtr::OnAccountsChanged(const int &id_)
 {
-    ACCOUNT_LOGD("enter");
-
     uv_loop_s *loop = nullptr;
     napi_get_uv_event_loop(env_, &loop);
     if (loop == nullptr) {
-        ACCOUNT_LOGI("loop instance is nullptr");
+        ACCOUNT_LOGE("loop instance is nullptr");
         return;
     }
     uv_work_t *work = new (std::nothrow) uv_work_t;
@@ -1308,13 +1209,10 @@ void SubscriberPtr::OnAccountsChanged(const int &id_)
     subscriberOAWorker->subscriber = this;
     work->data = reinterpret_cast<void *>(subscriberOAWorker);
     uv_queue_work(loop, work, [](uv_work_t *work) {}, UvQueueWorkOnAccountsChanged);
-
-    ACCOUNT_LOGD("end");
 }
 
 void UvQueueWorkOnAccountsChanged(uv_work_t *work, int status)
 {
-    ACCOUNT_LOGD("enter");
     if (work == nullptr || work->data == nullptr) {
         return;
     }
@@ -1345,7 +1243,6 @@ void UvQueueWorkOnAccountsChanged(uv_work_t *work, int status)
         if (!isFound) {
             ACCOUNT_LOGI("subscriber has already been deleted, ignore callback.");
         } else {
-            ACCOUNT_LOGD("subscriber has been found.");
             napi_get_reference_value(subscriberOAWorkerData->env, subscriberOAWorkerData->ref, &callback);
         }
     }
@@ -1357,8 +1254,6 @@ void UvQueueWorkOnAccountsChanged(uv_work_t *work, int status)
     delete subscriberOAWorkerData;
     subscriberOAWorkerData = nullptr;
     delete work;
-
-    ACCOUNT_LOGD("end");
 }
 
 void SubscriberPtr::SetEnv(const napi_env &env)
@@ -1373,7 +1268,6 @@ void SubscriberPtr::SetCallbackRef(const napi_ref &ref)
 
 napi_value Unsubscribe(napi_env env, napi_callback_info cbInfo)
 {
-    ACCOUNT_LOGD("enter");
     size_t argc = ARGS_SIZE_THREE;
     napi_value argv[ARGS_SIZE_THREE] = {nullptr};
     napi_value thisVar = nullptr;
@@ -1411,7 +1305,6 @@ napi_value Unsubscribe(napi_env env, napi_callback_info cbInfo)
         return WrapVoidToJS(env);
     }
     unsubscribeCBInfo->subscribers = subscribers;
-    ACCOUNT_LOGI("UnsubscribeExecuteCB Off size = %{public}zu", unsubscribeCBInfo->subscribers.size());
 
     napi_value resourceName = nullptr;
     napi_create_string_latin1(env, "Unsubscribe", NAPI_AUTO_LENGTH, &resourceName);
@@ -1430,11 +1323,8 @@ napi_value Unsubscribe(napi_env env, napi_callback_info cbInfo)
 void FindSubscriberInMap(
     std::vector<std::shared_ptr<SubscriberPtr>> &subscribers, UnsubscribeCBInfo *unsubscribeCBInfo, bool &isFind)
 {
-    ACCOUNT_LOGD("enter");
-
     std::lock_guard<std::mutex> lock(g_lockForOsAccountSubscribers);
 
-    ACCOUNT_LOGD("g_osAccountSubscribers.size = %{public}zu", g_osAccountSubscribers.size());
     for (auto subscriberInstance : g_osAccountSubscribers) {
         if (subscriberInstance.first == unsubscribeCBInfo->osManager) {
             for (auto item : subscriberInstance.second) {
@@ -1458,7 +1348,6 @@ void FindSubscriberInMap(
 
 void UnsubscribeExecuteCB(napi_env env, void *data)
 {
-    ACCOUNT_LOGD("napi_create_async_work running");
     UnsubscribeCBInfo *unsubscribeCBInfo = reinterpret_cast<UnsubscribeCBInfo *>(data);
     ACCOUNT_LOGI("UnsubscribeExecuteCB Off size = %{public}zu", unsubscribeCBInfo->subscribers.size());
     for (auto offSubscriber : unsubscribeCBInfo->subscribers) {
@@ -1510,17 +1399,14 @@ void UnsubscribeCallbackCompletedCB(napi_env env, napi_status status, void *data
                     (*it)->osSubscribeType == unsubscribeCBInfo->osSubscribeType) {
                     napi_delete_reference(env, (*it)->callbackRef);
                     it = subscribe->second.erase(it);
-                    ACCOUNT_LOGD("Erase vector, vector.size = %{public}zu", subscribe->second.size());
                 } else {
                     ++it;
                 }
             }
 
             if (subscribe->second.size() == 0) {
-                ACCOUNT_LOGD("No subscriberInfo in the vector, erase the map");
                 g_osAccountSubscribers.erase(subscribe);
             }
-            ACCOUNT_LOGI("Erase end g_osAccountSubscribers.size = %{public}zu", g_osAccountSubscribers.size());
         }
     }
 

@@ -137,7 +137,6 @@ void OsAccountControlFileManager::BuildAndSaveGlobalOAConstraintsJsonFile()
 
 void OsAccountControlFileManager::BuildAndSaveSpecificOAConstraintsJsonFile()
 {
-    ACCOUNT_LOGI("enter.");
     Json OsAccountConstraintsList = Json {
         {Constants::ALL_SPECIFIC_CONSTRAINTS, {}},
     };
@@ -796,7 +795,6 @@ ErrCode OsAccountControlFileManager::GetAccountListFromFile(Json &accountListJso
 
 ErrCode OsAccountControlFileManager::GetBaseOAConstraintsFromFile(Json &baseOAConstraintsJson)
 {
-    ACCOUNT_LOGI("enter");
     baseOAConstraintsJson.clear();
     std::string baseOAConstraints;
     std::lock_guard<std::mutex> lock(baseOAConstraintsFileLock_);
@@ -811,13 +809,12 @@ ErrCode OsAccountControlFileManager::GetBaseOAConstraintsFromFile(Json &baseOACo
         ACCOUNT_LOGE("base constraints json data parse failed code.");
         return ERR_OSACCOUNT_SERVICE_CONTROL_GET_BASE_CONSTRAINTS_FROM_FILE_ERROR;
     }
-    ACCOUNT_LOGI("end");
+
     return ERR_OK;
 }
 
 ErrCode OsAccountControlFileManager::GetGlobalOAConstraintsFromFile(Json &globalOAConstraintsJson)
 {
-    ACCOUNT_LOGI("enter");
     globalOAConstraintsJson.clear();
     std::string globalOAConstraints;
     std::lock_guard<std::mutex> lock(globalOAConstraintsFileLock_);
@@ -832,13 +829,12 @@ ErrCode OsAccountControlFileManager::GetGlobalOAConstraintsFromFile(Json &global
         ACCOUNT_LOGE("global constraints json data parse failed code.");
         return ERR_OSACCOUNT_SERVICE_CONTROL_GET_GLOBAL_CONSTRAINTS_FROM_FILE_ERROR;
     }
-    ACCOUNT_LOGI("end");
+
     return ERR_OK;
 }
 
 ErrCode OsAccountControlFileManager::GetSpecificOAConstraintsFromFile(Json &specificOAConstraintsJson)
 {
-    ACCOUNT_LOGI("enter");
     specificOAConstraintsJson.clear();
     std::string specificOAConstraints;
     std::lock_guard<std::mutex> lock(specificOAConstraintsFileLock_);
@@ -853,7 +849,7 @@ ErrCode OsAccountControlFileManager::GetSpecificOAConstraintsFromFile(Json &spec
         ACCOUNT_LOGE("specific constraints json data parse failed code.");
         return ERR_OSACCOUNT_SERVICE_CONTROL_GET_GLOBAL_CONSTRAINTS_FROM_FILE_ERROR;
     }
-    ACCOUNT_LOGI("end");
+
     return ERR_OK;
 }
 
@@ -972,40 +968,37 @@ ErrCode OsAccountControlFileManager::SaveAccountListToFile(const Json &accountLi
 
 ErrCode OsAccountControlFileManager::SaveBaseOAConstraintsToFile(const Json &baseOAConstraints)
 {
-    ACCOUNT_LOGI("enter!");
     std::lock_guard<std::mutex> lock(baseOAConstraintsFileLock_);
     if (accountFileOperator_->InputFileByPathAndContent(Constants::BASE_OSACCOUNT_CONSTRAINTS_JSON_PATH,
         baseOAConstraints.dump()) != ERR_OK) {
         ACCOUNT_LOGE("cannot save base osaccount constraints file content!");
         return ERR_OSACCOUNT_SERVICE_CONTROL_SAVE_BASE_CONSTRAINTS_TO_FILE_ERROR;
     }
-    ACCOUNT_LOGI("save base osAccount constraints file succeed!");
+
     return ERR_OK;
 }
 
 ErrCode OsAccountControlFileManager::SaveGlobalOAConstraintsToFile(const Json &globalOAConstraints)
 {
-    ACCOUNT_LOGI("enter!");
     std::lock_guard<std::mutex> lock(globalOAConstraintsFileLock_);
     if (accountFileOperator_->InputFileByPathAndContent(Constants::GLOBAL_OSACCOUNT_CONSTRAINTS_JSON_PATH,
         globalOAConstraints.dump()) != ERR_OK) {
         ACCOUNT_LOGE("cannot save global osAccount constraints file content!");
         return ERR_OSACCOUNT_SERVICE_CONTROL_SAVE_GLOBAL_CONSTRAINTS_TO_FILE_ERROR;
     }
-    ACCOUNT_LOGI("save global osAccount constraints file succeed!");
+
     return ERR_OK;
 }
 
 ErrCode OsAccountControlFileManager::SaveSpecificOAConstraintsToFile(const Json &specificOAConstraints)
 {
-    ACCOUNT_LOGI("enter!");
     std::lock_guard<std::mutex> lock(specificOAConstraintsFileLock_);
     if (accountFileOperator_->InputFileByPathAndContent(Constants::SPECIFIC_OSACCOUNT_CONSTRAINTS_JSON_PATH,
         specificOAConstraints.dump()) != ERR_OK) {
         ACCOUNT_LOGE("cannot save specific osAccount constraints file content!");
         return ERR_OSACCOUNT_SERVICE_CONTROL_SAVE_SPECIFIC_CONSTRAINTS_TO_FILE_ERROR;
     }
-    ACCOUNT_LOGI("save specific osAccount constraints file succeed!");
+
     return ERR_OK;
 }
 

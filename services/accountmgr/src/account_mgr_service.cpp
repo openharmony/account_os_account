@@ -73,7 +73,6 @@ bool AccountMgrService::UpdateOhosAccountInfo(
         return false;
     }
 
-    ACCOUNT_LOGD("Successful");
     return true;
 }
 

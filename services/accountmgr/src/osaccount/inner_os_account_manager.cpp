@@ -333,7 +333,7 @@ ErrCode IInnerOsAccountManager::SendMsgForAccountCreate(OsAccountInfo &osAccount
     }
     ReportOsAccountLifeCycle(osAccountInfo.GetLocalId(), Constants::OPERATION_CREATE);
     OsAccountInterface::SendToCESAccountCreate(osAccountInfo);
-    ACCOUNT_LOGI("send other subsystem to create os account ok");
+
     return ERR_OK;
 }
 

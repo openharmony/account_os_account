@@ -22,20 +22,14 @@
 namespace OHOS {
 namespace AccountSA {
 AppAccountAuthenticatorCallbackStub::AppAccountAuthenticatorCallbackStub()
-{
-    ACCOUNT_LOGD("enter");
-}
+{}
 
 AppAccountAuthenticatorCallbackStub::~AppAccountAuthenticatorCallbackStub()
-{
-    ACCOUNT_LOGD("enter");
-}
+{}
 
 int AppAccountAuthenticatorCallbackStub::OnRemoteRequest(
     uint32_t code, MessageParcel &data, MessageParcel &reply, MessageOption &option)
 {
-    ACCOUNT_LOGI("enter");
-
     if (data.ReadInterfaceToken() != GetDescriptor()) {
         ACCOUNT_LOGE("failed to check descriptor! code %{public}u.", code);
         return ERR_ACCOUNT_COMMON_CHECK_DESCRIPTOR_ERROR;

@@ -27,7 +27,6 @@ namespace OHOS {
 namespace AccountSA {
 ErrCode OsAccount::CreateOsAccount(const std::string &name, const OsAccountType &type, OsAccountInfo &osAccountInfo)
 {
-    ACCOUNT_LOGD("name.size(): %{public}zu, NAME_MAX_SIZE: %{public}u.", name.size(), Constants::LOCAL_NAME_MAX_SIZE);
     if (name.size() > Constants::LOCAL_NAME_MAX_SIZE) {
         ACCOUNT_LOGE("name length %{public}zu is too long!", name.size());
         return ERR_OSACCOUNT_KIT_LOCAL_NAME_OUTFLOW_ERROR;
@@ -48,8 +47,6 @@ ErrCode OsAccount::CreateOsAccount(const std::string &name, const OsAccountType 
 ErrCode OsAccount::CreateOsAccountForDomain(
     const OsAccountType &type, const DomainAccountInfo &domainInfo, OsAccountInfo &osAccountInfo)
 {
-    ACCOUNT_LOGD("domain.size(): %{public}zu, domainAccountName.size(): %{public}zu.",
-        domainInfo.domain_.size(), domainInfo.accountName_.size());
     if (domainInfo.domain_.empty() ||
         domainInfo.domain_.size() > Constants::DOMAIN_NAME_MAX_SIZE) {
         ACCOUNT_LOGE("domain is empty or too long, len %{public}zu.", domainInfo.domain_.size());
@@ -73,7 +70,6 @@ ErrCode OsAccount::CreateOsAccountForDomain(
 
 ErrCode OsAccount::RemoveOsAccount(const int id)
 {
-    ACCOUNT_LOGI("id: %{public}d", id);
     if (id <= Constants::START_USER_ID) {
         ACCOUNT_LOGE("invalid operate os account id %{public}d.", id);
         return ERR_OSACCOUNT_KIT_CANNOT_DELETE_ID_ERROR;
@@ -675,7 +671,6 @@ ErrCode OsAccount::QueryActiveOsAccountIds(std::vector<int32_t>& ids)
 ErrCode OsAccount::QueryOsAccountConstraintSourceTypes(const int32_t id, const std::string &constraint,
     std::vector<ConstraintSourceTypeInfo> &constraintSourceTypeInfos)
 {
-    ACCOUNT_LOGD ("OsAccount::QueryOsAccountConstraintSourceTypes start");
     ErrCode result = GetOsAccountProxy();
     if (result != ERR_OK) {
         ACCOUNT_LOGE("failed to get osAccountProxy_");
@@ -688,7 +683,6 @@ ErrCode OsAccount::QueryOsAccountConstraintSourceTypes(const int32_t id, const s
 ErrCode OsAccount::SetGlobalOsAccountConstraints(const std::vector<std::string> &constraints,
     const bool enable, const int32_t enforcerId, const bool isDeviceOwner)
 {
-    ACCOUNT_LOGD ("OsAccount::SetGlobalOsAccountConstraints start");
     ErrCode result = GetOsAccountProxy();
     if (result != ERR_OK) {
         ACCOUNT_LOGE("failed to get osAccountProxy_");
@@ -701,7 +695,6 @@ ErrCode OsAccount::SetGlobalOsAccountConstraints(const std::vector<std::string> 
 ErrCode OsAccount::SetSpecificOsAccountConstraints(const std::vector<std::string> &constraints,
     const bool enable, const int32_t targetId, const int32_t enforcerId, const bool isDeviceOwner)
 {
-    ACCOUNT_LOGD ("OsAccount::SetSpecificOsAccountConstraints start");
     ErrCode result = GetOsAccountProxy();
     if (result != ERR_OK) {
         ACCOUNT_LOGE("failed to get osAccountProxy_");

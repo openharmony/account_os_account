@@ -24,7 +24,6 @@ namespace OHOS {
 namespace AccountJsKit {
 napi_value NapiAppAccountConstant::Init(napi_env env, napi_value exports)
 {
-    ACCOUNT_LOGI("enter");
     napi_value resultCode = nullptr;
     napi_value constants = nullptr;
     napi_create_object(env, &resultCode);

@@ -35,14 +35,10 @@ const std::string AccountPermissionManager::MANAGE_USER_IDM = "ohos.permission.M
 const std::string AccountPermissionManager::USE_USER_IDM = "ohos.permission.USE_USER_IDM";
 
 AccountPermissionManager::AccountPermissionManager()
-{
-    ACCOUNT_LOGD("enter");
-}
+{}
 
 AccountPermissionManager::~AccountPermissionManager()
-{
-    ACCOUNT_LOGD("enter");
-}
+{}
 
 ErrCode AccountPermissionManager::VerifyPermission(const std::string &permissionName)
 {

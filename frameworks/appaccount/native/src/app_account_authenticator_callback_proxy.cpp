@@ -22,18 +22,13 @@ namespace OHOS {
 namespace AccountSA {
 AppAccountAuthenticatorCallbackProxy::AppAccountAuthenticatorCallbackProxy(const sptr<IRemoteObject> &object)
     : IRemoteProxy<IAppAccountAuthenticatorCallback>(object)
-{
-    ACCOUNT_LOGD("enter");
-}
+{}
 
 AppAccountAuthenticatorCallbackProxy::~AppAccountAuthenticatorCallbackProxy()
-{
-    ACCOUNT_LOGD("enter");
-}
+{}
 
 void AppAccountAuthenticatorCallbackProxy::OnResult(int32_t resultCode, const AAFwk::Want &result)
 {
-    ACCOUNT_LOGI("enter");
     MessageParcel data;
     MessageParcel reply;
 
@@ -55,7 +50,6 @@ void AppAccountAuthenticatorCallbackProxy::OnResult(int32_t resultCode, const AA
 
 void AppAccountAuthenticatorCallbackProxy::OnRequestRedirected(AAFwk::Want &request)
 {
-    ACCOUNT_LOGD("enter");
     MessageParcel data;
     MessageParcel reply;
 
@@ -73,7 +67,6 @@ void AppAccountAuthenticatorCallbackProxy::OnRequestRedirected(AAFwk::Want &requ
 
 void AppAccountAuthenticatorCallbackProxy::OnRequestContinued()
 {
-    ACCOUNT_LOGD("enter");
     MessageParcel data;
     MessageParcel reply;
 

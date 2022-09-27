@@ -20,18 +20,13 @@ namespace OHOS {
 namespace AccountSA {
 BundleUserManagerAdapterProxy::BundleUserManagerAdapterProxy(const sptr<IRemoteObject> &object)
     : IRemoteProxy<AppExecFwk::IBundleUserMgr>(object)
-{
-    ACCOUNT_LOGD("create BundleUserManagerAdapterProxy instance");
-}
+{}
 
 BundleUserManagerAdapterProxy::~BundleUserManagerAdapterProxy()
-{
-    ACCOUNT_LOGD("destroy BundleUserManagerAdapterProxy instance");
-}
+{}
 
 void BundleUserManagerAdapterProxy::CreateNewUser(int32_t userId)
 {
-    ACCOUNT_LOGI("CreateNewUser %{public}d", userId);
     MessageParcel data;
     MessageParcel reply;
     MessageOption option(MessageOption::TF_SYNC);
@@ -46,7 +41,6 @@ void BundleUserManagerAdapterProxy::CreateNewUser(int32_t userId)
 
 void BundleUserManagerAdapterProxy::RemoveUser(int32_t userId)
 {
-    ACCOUNT_LOGI("RemoveUser %{public}d", userId);
     MessageParcel data;
     MessageParcel reply;
     MessageOption option(MessageOption::TF_SYNC);

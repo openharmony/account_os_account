@@ -23,13 +23,13 @@ static ErrCode SendRequestFunc(
     const sptr<IRemoteObject> &remote, uint32_t code, MessageParcel &data, MessageParcel &reply)
 {
     if (remote == nullptr) {
-        ACCOUNT_LOGD("remote is nullptr, code = %{public}d", code);
+        ACCOUNT_LOGE("remote is nullptr, code = %{public}d", code);
         return ERR_ACCOUNT_COMMON_NULL_PTR_ERROR;
     }
     MessageOption option(MessageOption::TF_SYNC);
     int32_t result = remote->SendRequest(code, data, reply, option);
     if (result != ERR_OK) {
-        ACCOUNT_LOGD("failed to SendRequest, code = %{public}d, result = %{public}d", code, result);
+        ACCOUNT_LOGE("failed to SendRequest, code = %{public}d, result = %{public}d", code, result);
         return ERR_ACCOUNT_IAM_KIT_SEND_REQUEST;
     }
     return ERR_OK;
@@ -41,16 +41,16 @@ static void OnResultFunc(const sptr<IRemoteObject> &remote, uint32_t code, std::
     MessageParcel data;
     MessageParcel reply;
     if (!data.WriteInterfaceToken(descriptor)) {
-        ACCOUNT_LOGD("write descriptor fail");
+        ACCOUNT_LOGE("write descriptor fail");
         return;
     }
     if (!data.WriteInt32(result)) {
-        ACCOUNT_LOGD("write result fail");
+        ACCOUNT_LOGE("write result fail");
         return;
     }
     auto buffer = extraInfo.Serialize();
     if (!data.WriteUInt8Vector(buffer)) {
-        ACCOUNT_LOGD("write buffer fail");
+        ACCOUNT_LOGE("write buffer fail");
         return;
     }
     SendRequestFunc(remote, code, data, reply);
@@ -64,20 +64,20 @@ void IDMCallbackProxy::OnAcquireInfo(int32_t module, uint32_t acquireInfo, const
     MessageParcel data;
     MessageParcel reply;
     if (!data.WriteInterfaceToken(GetDescriptor())) {
-        ACCOUNT_LOGD("write descriptor fail");
+        ACCOUNT_LOGE("write descriptor fail");
         return;
     }
     if (!data.WriteInt32(module)) {
-        ACCOUNT_LOGD("write module fail");
+        ACCOUNT_LOGE("write module fail");
         return;
     }
     if (!data.WriteUint32(acquireInfo)) {
-        ACCOUNT_LOGD("write acquireInfo fail");
+        ACCOUNT_LOGE("write acquireInfo fail");
         return;
     }
     auto buffer = extraInfo.Serialize();
     if (!data.WriteUInt8Vector(buffer)) {
-        ACCOUNT_LOGD("write buffer fail");
+        ACCOUNT_LOGE("write buffer fail");
         return;
     }
     uint32_t code = static_cast<uint32_t>(IGetCredInfoCallback::Message::ON_CREDENTIAL_INFO);
@@ -99,29 +99,29 @@ void GetCredInfoCallbackProxy::OnCredentialInfo(const std::vector<CredentialInfo
     MessageParcel data;
     MessageParcel reply;
     if (!data.WriteInterfaceToken(GetDescriptor())) {
-        ACCOUNT_LOGD("write descriptor fail");
+        ACCOUNT_LOGE("write descriptor fail");
         return;
     }
     if (!data.WriteUint32(infoList.size())) {
-        ACCOUNT_LOGD("write info size fail");
+        ACCOUNT_LOGE("write info size fail");
         return;
     }
     for (const auto &info : infoList) {
         if (!data.WriteUint64(info.credentialId)) {
-            ACCOUNT_LOGD("write credentialId fail");
+            ACCOUNT_LOGE("write credentialId fail");
             return;
         }
         if (!data.WriteInt32(info.authType)) {
-            ACCOUNT_LOGD("write authType fail");
+            ACCOUNT_LOGE("write authType fail");
             return;
         }
         PinSubType pinType = info.pinType.value_or(PinSubType::PIN_MAX);
         if (!data.WriteInt32(pinType)) {
-            ACCOUNT_LOGD("write authSubType fail");
+            ACCOUNT_LOGE("write authSubType fail");
             return;
         }
         if (!data.WriteUint64(info.templateId)) {
-            ACCOUNT_LOGD("write templateId fail");
+            ACCOUNT_LOGE("write templateId fail");
             return;
         }
     }

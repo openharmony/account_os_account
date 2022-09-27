@@ -33,7 +33,7 @@ void AuthCallback::OnResult(int32_t result, const Attributes &extraInfo)
 {
     InnerAccountIAMManager::GetInstance().SetState(userId_, AFTER_OPEN_SESSION);
     if (innerCallback_ == nullptr) {
-        ACCOUNT_LOGD("innerCallback_ is nullptr");
+        ACCOUNT_LOGE("innerCallback_ is nullptr");
         return;
     }
     if (result != 0 || authType_ != AuthType::PIN) {
@@ -64,7 +64,7 @@ void AuthCallback::OnResult(int32_t result, const Attributes &extraInfo)
 void AuthCallback::OnAcquireInfo(int32_t module, uint32_t acquireInfo, const Attributes &extraInfo)
 {
     if (innerCallback_ == nullptr) {
-        ACCOUNT_LOGD("innerCallback_ is nullptr");
+        ACCOUNT_LOGE("innerCallback_ is nullptr");
         return;
     }
     innerCallback_->OnAcquireInfo(module, acquireInfo, extraInfo);
@@ -81,7 +81,7 @@ IDMAuthCallback::IDMAuthCallback(uint32_t userId, const CredentialParameters &cr
 void IDMAuthCallback::OnResult(int32_t result, const Attributes &extraInfo)
 {
     if (idmCallback_ == nullptr) {
-        ACCOUNT_LOGD("inner callback is nullptr");
+        ACCOUNT_LOGE("inner callback is nullptr");
         return;
     }
     if (result != 0) {
@@ -96,7 +96,6 @@ void IDMAuthCallback::OnResult(int32_t result, const Attributes &extraInfo)
     int32_t updateKeyResult = InnerAccountIAMManager::GetInstance().UpdateUserKey(
         userId_, credentialId_, token, secret);
     if (updateKeyResult == 0) {
-        ACCOUNT_LOGD("unlock user key successfully");
         InnerAccountIAMManager::GetInstance().SetState(userId_, AFTER_OPEN_SESSION);
         idmCallback_->OnResult(oldResult_, reqResult_);
         return;
@@ -121,7 +120,7 @@ void IDMAuthCallback::OnResult(int32_t result, const Attributes &extraInfo)
 
 void IDMAuthCallback::OnAcquireInfo(int32_t module, uint32_t acquireInfo, const Attributes &extraInfo)
 {
-    ACCOUNT_LOGD("unsupported operation");
+    ACCOUNT_LOGW("unsupported operation");
 }
 
 AddCredCallback::AddCredCallback(uint32_t userId, const CredentialParameters &credInfo,
@@ -132,11 +131,11 @@ AddCredCallback::AddCredCallback(uint32_t userId, const CredentialParameters &cr
 void AddCredCallback::OnResult(int32_t result, const Attributes &extraInfo)
 {
     if (innerCallback_ == nullptr) {
-        ACCOUNT_LOGD("inner callback is nullptr");
+        ACCOUNT_LOGE("inner callback is nullptr");
         return;
     }
     if (result != 0 || credInfo_.authType != AuthType::PIN) {
-        ACCOUNT_LOGD("failed to add credential");
+        ACCOUNT_LOGE("failed to add credential");
         innerCallback_->OnResult(result, extraInfo);
         InnerAccountIAMManager::GetInstance().SetState(userId_, AFTER_OPEN_SESSION);
         return;
@@ -152,7 +151,7 @@ void AddCredCallback::OnResult(int32_t result, const Attributes &extraInfo)
 void AddCredCallback::OnAcquireInfo(int32_t module, uint32_t acquireInfo, const Attributes &extraInfo)
 {
     if (innerCallback_ == nullptr) {
-        ACCOUNT_LOGD("innerCallback_ is nullptr");
+        ACCOUNT_LOGE("innerCallback_ is nullptr");
         return;
     }
     innerCallback_->OnAcquireInfo(module, acquireInfo, extraInfo);
@@ -166,7 +165,7 @@ UpdateCredCallback::UpdateCredCallback(
 void UpdateCredCallback::OnResult(int32_t result, const Attributes &extraInfo)
 {
     if (innerCallback_ == nullptr) {
-        ACCOUNT_LOGD("inner callback is nullptr");
+        ACCOUNT_LOGE("inner callback is nullptr");
         return;
     }
     IAMState state = InnerAccountIAMManager::GetInstance().GetState(userId_);
@@ -180,7 +179,7 @@ void UpdateCredCallback::OnResult(int32_t result, const Attributes &extraInfo)
         return;
     }
     if (result != 0 || credInfo_.authType != AuthType::PIN) {
-        ACCOUNT_LOGD("failed to update credential");
+        ACCOUNT_LOGE("failed to update credential");
         innerCallback_->OnResult(result, extraInfo);
         InnerAccountIAMManager::GetInstance().SetState(userId_, AFTER_OPEN_SESSION);
         return;
@@ -196,7 +195,7 @@ void UpdateCredCallback::OnResult(int32_t result, const Attributes &extraInfo)
 void UpdateCredCallback::OnAcquireInfo(int32_t module, uint32_t acquireInfo, const Attributes &extraInfo)
 {
     if (innerCallback_ == nullptr) {
-        ACCOUNT_LOGD("innerCallback_ is nullptr");
+        ACCOUNT_LOGE("innerCallback_ is nullptr");
         return;
     }
     innerCallback_->OnAcquireInfo(module, acquireInfo, extraInfo);
@@ -210,7 +209,7 @@ DelCredCallback::DelCredCallback(int32_t userId, uint64_t credentialId, const st
 void DelCredCallback::OnResult(int32_t result, const Attributes &extraInfo)
 {
     if (innerCallback_ == nullptr) {
-        ACCOUNT_LOGD("innerCallback_ is nullptr");
+        ACCOUNT_LOGE("innerCallback_ is nullptr");
         return;
     }
     IAMState state = InnerAccountIAMManager::GetInstance().GetState(userId_);
@@ -233,7 +232,7 @@ void DelCredCallback::OnResult(int32_t result, const Attributes &extraInfo)
 void DelCredCallback::OnAcquireInfo(int32_t module, uint32_t acquireInfo, const Attributes &extraInfo)
 {
     if (innerCallback_ == nullptr) {
-        ACCOUNT_LOGD("inner callback is nullptr");
+        ACCOUNT_LOGE("inner callback is nullptr");
         return;
     }
     innerCallback_->OnAcquireInfo(module, acquireInfo, extraInfo);
@@ -257,7 +256,7 @@ GetPropCallbackWrapper::GetPropCallbackWrapper(const sptr<IGetSetPropCallback> &
 void GetPropCallbackWrapper::OnResult(int32_t result, const Attributes &extraInfo)
 {
     if (innerCallback_ == nullptr) {
-        ACCOUNT_LOGD("inner callback is nullptr");
+        ACCOUNT_LOGE("inner callback is nullptr");
         return;
     }
     innerCallback_->OnResult(result, extraInfo);
@@ -269,7 +268,7 @@ SetPropCallbackWrapper::SetPropCallbackWrapper(const sptr<IGetSetPropCallback> &
 void SetPropCallbackWrapper::OnResult(int32_t result, const Attributes &extraInfo)
 {
     if (innerCallback_ == nullptr) {
-        ACCOUNT_LOGD("inner callback is nullptr");
+        ACCOUNT_LOGE("inner callback is nullptr");
         return;
     }
     innerCallback_->OnResult(result, extraInfo);
