@@ -22,19 +22,14 @@ namespace OHOS {
 namespace AccountSA {
 AppAccountAuthenticatorProxy::AppAccountAuthenticatorProxy(const sptr<IRemoteObject> &object)
     : IRemoteProxy<IAppAccountAuthenticator>(object)
-{
-    ACCOUNT_LOGD("enter");
-}
+{}
 
 AppAccountAuthenticatorProxy::~AppAccountAuthenticatorProxy()
-{
-    ACCOUNT_LOGD("enter");
-}
+{}
 
 ErrCode AppAccountAuthenticatorProxy::AddAccountImplicitly(const std::string &authType,
     const std::string &callerBundleName, const AAFwk::WantParams &options, const sptr<IRemoteObject> &callback)
 {
-    ACCOUNT_LOGD("enter");
     MessageParcel data;
     MessageParcel reply;
 
@@ -69,7 +64,6 @@ ErrCode AppAccountAuthenticatorProxy::AddAccountImplicitly(const std::string &au
 ErrCode AppAccountAuthenticatorProxy::Authenticate(const std::string &name, const std::string &authType,
     const std::string &callerBundleName, const AAFwk::WantParams &options, const sptr<IRemoteObject> &callback)
 {
-    ACCOUNT_LOGD("enter");
     MessageParcel data;
     MessageParcel reply;
 
@@ -108,7 +102,6 @@ ErrCode AppAccountAuthenticatorProxy::Authenticate(const std::string &name, cons
 ErrCode AppAccountAuthenticatorProxy::VerifyCredential(
     const std::string &name, const VerifyCredentialOptions &options, const sptr<IRemoteObject> &callback)
 {
-    ACCOUNT_LOGD("enter");
     MessageParcel data;
     MessageParcel reply;
 
@@ -138,7 +131,6 @@ ErrCode AppAccountAuthenticatorProxy::VerifyCredential(
 ErrCode AppAccountAuthenticatorProxy::CheckAccountLabels(
     const std::string &name, const std::vector<std::string> &labels, const sptr<IRemoteObject> &callback)
 {
-    ACCOUNT_LOGD("enter");
     MessageParcel data;
     MessageParcel reply;
 
@@ -168,7 +160,6 @@ ErrCode AppAccountAuthenticatorProxy::CheckAccountLabels(
 ErrCode AppAccountAuthenticatorProxy::SetProperties(
     const SetPropertiesOptions &options, const sptr<IRemoteObject> &callback)
 {
-    ACCOUNT_LOGD("enter");
     MessageParcel data;
     MessageParcel reply;
 
@@ -193,7 +184,6 @@ ErrCode AppAccountAuthenticatorProxy::SetProperties(
 
 ErrCode AppAccountAuthenticatorProxy::IsAccountRemovable(const std::string &name, const sptr<IRemoteObject> &callback)
 {
-    ACCOUNT_LOGD("enter");
     MessageParcel data;
     MessageParcel reply;
 

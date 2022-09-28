@@ -73,7 +73,7 @@ napi_value NapiAccountIAMIdentityManager::OpenSession(napi_env env, napi_callbac
     napi_value result = nullptr;
     IDMContext *context = new (std::nothrow) IDMContext(env);
     if (context == nullptr) {
-        ACCOUNT_LOGD("failed to create IDMContext for insufficient memory");
+        ACCOUNT_LOGE("failed to create IDMContext for insufficient memory");
         return result;
     }
     std::unique_ptr<IDMContext> contextPtr(context);
@@ -104,7 +104,7 @@ static napi_status ParseContextForUpdateCredential(napi_env env, napi_callback_i
     napi_value argv[ARG_SIZE_TWO] = {0};
     NAPI_CALL_BASE(env, napi_get_cb_info(env, info, &argc, argv, nullptr, nullptr), napi_generic_failure);
     if (argc != ARG_SIZE_TWO) {
-        ACCOUNT_LOGD("failed to parse parameters, expect 2 parameters, but got %{public}zu", argc);
+        ACCOUNT_LOGE("failed to parse parameters, expect 2 parameters, but got %{public}zu", argc);
         return napi_generic_failure;
     }
     ParseAddCredInfo(env, argv[PARAM_ZERO], context->addCredInfo);
@@ -116,7 +116,7 @@ napi_value NapiAccountIAMIdentityManager::AddCredential(napi_env env, napi_callb
 {
     IDMContext *context = new (std::nothrow) IDMContext(env);
     if (context == nullptr) {
-        ACCOUNT_LOGD("failed to create IDMContext");
+        ACCOUNT_LOGE("failed to create IDMContext");
         return nullptr;
     }
     std::unique_ptr<IDMContext> contextPtr(context);
@@ -142,7 +142,7 @@ napi_value NapiAccountIAMIdentityManager::UpdateCredential(napi_env env, napi_ca
 {
     IDMContext *context = new (std::nothrow) IDMContext(env);
     if (context == nullptr) {
-        ACCOUNT_LOGD("failed to create IDMContext");
+        ACCOUNT_LOGE("failed to create IDMContext");
         return nullptr;
     }
     std::unique_ptr<IDMContext> contextPtr(context);
@@ -178,7 +178,7 @@ napi_value NapiAccountIAMIdentityManager::Cancel(napi_env env, napi_callback_inf
     napi_value argv[ARG_SIZE_ONE] = {0};
     napi_get_cb_info(env, info, &argc, argv, nullptr, nullptr);
     if (argc != ARG_SIZE_ONE) {
-        ACCOUNT_LOGD("failed to parse parameters, expect one parameter, but got %{public}zu", argc);
+        ACCOUNT_LOGE("failed to parse parameters, expect one parameter, but got %{public}zu", argc);
         return nullptr;
     }
     uint8_t *data = nullptr;
@@ -200,7 +200,7 @@ static napi_status ParseContextForDelUser(napi_env env, napi_callback_info info,
     napi_value argv[ARG_SIZE_TWO] = {0};
     napi_get_cb_info(env, info, &argc, argv, nullptr, nullptr);
     if (argc != ARG_SIZE_TWO) {
-        ACCOUNT_LOGD("failed to parse parameters, expect two parameters, but got one");
+        ACCOUNT_LOGE("failed to parse parameters, expect two parameters, but got one");
         return napi_invalid_arg;
     }
     NAPI_CALL_BASE(env, ParseUint8TypedArrayToVector(env, argv[0], context->token), napi_invalid_arg);
@@ -211,7 +211,7 @@ napi_value NapiAccountIAMIdentityManager::DelUser(napi_env env, napi_callback_in
 {
     IDMContext *context = new (std::nothrow) IDMContext(env);
     if (context == nullptr) {
-        ACCOUNT_LOGD("failed to create IDMContext");
+        ACCOUNT_LOGE("failed to create IDMContext");
         return nullptr;
     }
     std::unique_ptr<IDMContext> contextPtr(context);
@@ -239,7 +239,7 @@ static napi_status ParseContextForDelCred(napi_env env, napi_callback_info info,
     napi_value argv[ARG_SIZE_THREE] = {0};
     napi_get_cb_info(env, info, &argc, argv, nullptr, nullptr);
     if (argc != ARG_SIZE_THREE) {
-        ACCOUNT_LOGD("failed to parse parameters, expect three parameters, but got %zu", argc);
+        ACCOUNT_LOGE("failed to parse parameters, expect three parameters, but got %zu", argc);
         return napi_invalid_arg;
     }
     ParseUint8TypedArrayToUint64(env, argv[0], context->credentialId);
@@ -251,7 +251,7 @@ napi_value NapiAccountIAMIdentityManager::DelCred(napi_env env, napi_callback_in
 {
     IDMContext *context = new (std::nothrow) IDMContext(env);
     if (context == nullptr) {
-        ACCOUNT_LOGD("failed to create IDMContext");
+        ACCOUNT_LOGE("failed to create IDMContext");
         return nullptr;
     }
     std::unique_ptr<IDMContext> contextPtr(context);
@@ -308,7 +308,7 @@ napi_value NapiAccountIAMIdentityManager::GetAuthInfo(napi_env env, napi_callbac
     napi_value result = nullptr;
     GetAuthInfoContext *context = new (std::nothrow) GetAuthInfoContext(env);
     if (context == nullptr) {
-        ACCOUNT_LOGD("failed to create GetAuthInfoContext");
+        ACCOUNT_LOGE("failed to create GetAuthInfoContext");
         return result;
     }
     std::unique_ptr<GetAuthInfoContext> contextPtr(context);

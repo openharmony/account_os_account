@@ -28,9 +28,7 @@ namespace OHOS {
 namespace AccountJsKit {
 NapiAppAccountAuthenticatorCallback::NapiAppAccountAuthenticatorCallback(const sptr<IRemoteObject> &object)
     : object_(object)
-{
-    ACCOUNT_LOGD("enter");
-}
+{}
 
 NapiAppAccountAuthenticatorCallback::~NapiAppAccountAuthenticatorCallback()
 {
@@ -44,7 +42,6 @@ sptr<IRemoteObject> NapiAppAccountAuthenticatorCallback::GetRemoteObject()
 
 napi_value NapiAppAccountAuthenticatorCallback::Init(napi_env env, napi_value exports)
 {
-    ACCOUNT_LOGD("Enter");
     const std::string className = "AuthenticatorCallback";
     napi_property_descriptor properties[] = {
         DECLARE_NAPI_FUNCTION("onResult", JsOnResult),
@@ -67,7 +64,6 @@ napi_value NapiAppAccountAuthenticatorCallback::Init(napi_env env, napi_value ex
 
 static void ParseContextForOnResult(napi_env env, napi_callback_info cbInfo, CallbackParam *param)
 {
-    ACCOUNT_LOGD("enter");
     size_t argc = ARGS_SIZE_FOUR;
     napi_value argv[ARGS_SIZE_FOUR] = {0};
     napi_value thisVar = nullptr;
@@ -91,7 +87,6 @@ static void ParseContextForOnResult(napi_env env, napi_callback_info cbInfo, Cal
 
 static void ParseContextForRequestRedirected(napi_env env, napi_callback_info cbInfo, CallbackParam *param)
 {
-    ACCOUNT_LOGD("enter");
     size_t argc = ARGS_SIZE_ONE;
     napi_value argv[ARGS_SIZE_ONE] = {0};
     napi_value thisVar = nullptr;
@@ -119,7 +114,6 @@ static void OnAuthenticatorWorkComplete(napi_env env, napi_status status, void *
 
 napi_value NapiAppAccountAuthenticatorCallback::JsOnResult(napi_env env, napi_callback_info cbInfo)
 {
-    ACCOUNT_LOGD("enter");
     auto *param = new (std::nothrow) CallbackParam();
     if (param == nullptr) {
         ACCOUNT_LOGE("insufficient memory for param!");
@@ -135,7 +129,7 @@ napi_value NapiAppAccountAuthenticatorCallback::JsOnResult(napi_env env, napi_ca
             [](napi_env env, void *data) {
                 CallbackParam *param = reinterpret_cast<CallbackParam *>(data);
                 if ((param == nullptr) || (param->callback == nullptr)) {
-                    ACCOUNT_LOGD("invalid parameters");
+                    ACCOUNT_LOGE("invalid parameters");
                     return;
                 }
                 auto callbackProxy = iface_cast<IAppAccountAuthenticatorCallback>(param->callback->GetRemoteObject());
@@ -153,7 +147,6 @@ napi_value NapiAppAccountAuthenticatorCallback::JsOnResult(napi_env env, napi_ca
 
 napi_value NapiAppAccountAuthenticatorCallback::JsOnRequestRedirected(napi_env env, napi_callback_info cbInfo)
 {
-    ACCOUNT_LOGD("enter");
     auto *param = new (std::nothrow) CallbackParam();
     if (param == nullptr) {
         ACCOUNT_LOGE("insufficient memory for param!");
@@ -169,7 +162,7 @@ napi_value NapiAppAccountAuthenticatorCallback::JsOnRequestRedirected(napi_env e
             [](napi_env env, void *data) {
                 CallbackParam *param = reinterpret_cast<CallbackParam *>(data);
                 if ((param == nullptr) || (param->callback == nullptr)) {
-                    ACCOUNT_LOGD("invalid parameters");
+                    ACCOUNT_LOGE("invalid parameters");
                     return;
                 }
                 auto callbackProxy = iface_cast<IAppAccountAuthenticatorCallback>(param->callback->GetRemoteObject());
@@ -185,7 +178,6 @@ napi_value NapiAppAccountAuthenticatorCallback::JsOnRequestRedirected(napi_env e
 
 napi_value NapiAppAccountAuthenticatorCallback::JsOnRequestContinued(napi_env env, napi_callback_info cbInfo)
 {
-    ACCOUNT_LOGD("enter");
     auto *param = new (std::nothrow) CallbackParam();
     if (param == nullptr) {
         ACCOUNT_LOGE("insufficient memory for param!");
@@ -200,7 +192,7 @@ napi_value NapiAppAccountAuthenticatorCallback::JsOnRequestContinued(napi_env en
             [](napi_env env, void *data) {
                 CallbackParam *param = reinterpret_cast<CallbackParam *>(data);
                 if ((param == nullptr) || (param->callback == nullptr)) {
-                    ACCOUNT_LOGD("invalid parameters");
+                    ACCOUNT_LOGE("invalid parameters");
                     return;
                 }
                 auto callbackProxy = iface_cast<IAppAccountAuthenticatorCallback>(param->callback->GetRemoteObject());
@@ -217,7 +209,6 @@ napi_value NapiAppAccountAuthenticatorCallback::JsOnRequestContinued(napi_env en
 
 napi_value NapiAppAccountAuthenticatorCallback::JsConstructor(napi_env env, napi_callback_info info)
 {
-    ACCOUNT_LOGD("enter");
     napi_value thisVar = nullptr;
     size_t argc = 1;
     napi_value argv[1] = { 0 };
@@ -238,7 +229,6 @@ napi_value NapiAppAccountAuthenticatorCallback::JsConstructor(napi_env env, napi
     status = napi_wrap(
         env, thisVar, callback,
         [](napi_env env, void *data, void *hint) {
-            ACCOUNT_LOGI("NapiAppAccountAuthenticatorCallback destructed by js callback");
             delete (reinterpret_cast<NapiAppAccountAuthenticatorCallback *>(data));
         },
         nullptr, nullptr);

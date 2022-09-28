@@ -33,7 +33,6 @@ SubscriberPtr::~SubscriberPtr()
 
 void UvQueueWorkOnAppAccountsChanged(uv_work_t *work, int status)
 {
-    ACCOUNT_LOGD("enter");
     if (work == nullptr || work->data == nullptr) {
         return;
     }
@@ -99,24 +98,22 @@ void UvQueueWorkOnAppAccountsChanged(uv_work_t *work, int status)
 
 void SubscriberPtr::OnAccountsChanged(const std::vector<AppAccountInfo> &accounts_)
 {
-    ACCOUNT_LOGD("enter");
-
     uv_loop_s *loop = nullptr;
     napi_get_uv_event_loop(env_, &loop);
     if (loop == nullptr) {
-        ACCOUNT_LOGI("loop instance is nullptr");
+        ACCOUNT_LOGE("loop instance is nullptr");
         return;
     }
     uv_work_t *work = new (std::nothrow) uv_work_t;
     if (work == nullptr) {
-        ACCOUNT_LOGI("work is null");
+        ACCOUNT_LOGE("work is null");
         return;
     }
 
     SubscriberAccountsWorker *subscriberAccountsWorker = new (std::nothrow) SubscriberAccountsWorker();
 
     if (subscriberAccountsWorker == nullptr) {
-        ACCOUNT_LOGI("SubscriberAccountsWorker is null");
+        ACCOUNT_LOGE("SubscriberAccountsWorker is null");
         delete work;
         return;
     }
@@ -129,8 +126,6 @@ void SubscriberPtr::OnAccountsChanged(const std::vector<AppAccountInfo> &account
     work->data = reinterpret_cast<void *>(subscriberAccountsWorker);
 
     uv_queue_work(loop, work, [](uv_work_t *work) {}, UvQueueWorkOnAppAccountsChanged);
-
-    ACCOUNT_LOGD("end");
 }
 
 void SubscriberPtr::SetEnv(const napi_env &env)
@@ -193,18 +188,13 @@ void SelectAccountsOnResultWork(uv_work_t *work, int status)
 AuthenticatorAsyncCallback::AuthenticatorAsyncCallback(
     const CommonAsyncContext &context, uv_after_work_cb workCb)
     : context_(context), workCb_(workCb)
-{
-    ACCOUNT_LOGD("enter");
-}
+{}
 
 AuthenticatorAsyncCallback::~AuthenticatorAsyncCallback()
-{
-    ACCOUNT_LOGD("enter");
-}
+{}
 
 void AuthenticatorAsyncCallback::OnResult(int32_t resultCode, const AAFwk::Want &result)
 {
-    ACCOUNT_LOGD("enter");
     {
         std::lock_guard<std::mutex> lock(mutex_);
         if (isDone) {
@@ -216,7 +206,7 @@ void AuthenticatorAsyncCallback::OnResult(int32_t resultCode, const AAFwk::Want 
     uv_work_t *work = nullptr;
     AuthenticatorCallbackParam *param = nullptr;
     if (!InitAuthenticatorWorkEnv(context_.env, &loop, &work, &param)) {
-        ACCOUNT_LOGD("failed to init work environment");
+        ACCOUNT_LOGE("failed to init work environment");
         return;
     }
     param->context = context_;
@@ -241,14 +231,10 @@ void AuthenticatorAsyncCallback::OnRequestContinued()
 
 AppAccountManagerCallback::AppAccountManagerCallback(napi_env env, JSAuthCallback callback)
     : env_(env), callback_(callback)
-{
-    ACCOUNT_LOGD("enter");
-}
+{}
 
 AppAccountManagerCallback::~AppAccountManagerCallback()
-{
-    ACCOUNT_LOGD("enter");
-}
+{}
 
 void UvQueueWorkOnResult(uv_work_t *work, int status)
 {
@@ -305,12 +291,11 @@ void UvQueueWorkOnRequestContinued(uv_work_t *work, int status)
 
 void AppAccountManagerCallback::OnResult(int32_t resultCode, const AAFwk::Want &result)
 {
-    ACCOUNT_LOGD("enter");
     uv_loop_s *loop = nullptr;
     uv_work_t *work = nullptr;
     AuthenticatorCallbackParam *param = nullptr;
     if (!InitAuthenticatorWorkEnv(env_, &loop, &work, &param)) {
-        ACCOUNT_LOGD("failed to init authenticator work environment");
+        ACCOUNT_LOGE("failed to init authenticator work environment");
         return;
     }
     param->resultCode = resultCode;
@@ -322,12 +307,11 @@ void AppAccountManagerCallback::OnResult(int32_t resultCode, const AAFwk::Want &
 
 void AppAccountManagerCallback::OnRequestRedirected(AAFwk::Want &request)
 {
-    ACCOUNT_LOGD("enter");
     uv_loop_s *loop = nullptr;
     uv_work_t *work = nullptr;
     AuthenticatorCallbackParam *param = nullptr;
     if (!InitAuthenticatorWorkEnv(env_, &loop, &work, &param)) {
-        ACCOUNT_LOGD("failed to init authenticator work environment");
+        ACCOUNT_LOGE("failed to init authenticator work environment");
         return;
     }
     param->request = request;
@@ -338,12 +322,11 @@ void AppAccountManagerCallback::OnRequestRedirected(AAFwk::Want &request)
 
 void AppAccountManagerCallback::OnRequestContinued()
 {
-    ACCOUNT_LOGD("enter");
     uv_loop_s *loop = nullptr;
     uv_work_t *work = nullptr;
     AuthenticatorCallbackParam *param = nullptr;
     if (!InitAuthenticatorWorkEnv(env_, &loop, &work, &param)) {
-        ACCOUNT_LOGD("failed to init authenticator work environment");
+        ACCOUNT_LOGE("failed to init authenticator work environment");
         return;
     }
     param->callback = callback_;
@@ -356,17 +339,17 @@ bool InitAuthenticatorWorkEnv(napi_env env, uv_loop_s **loop, uv_work_t **work,
 {
     napi_get_uv_event_loop(env, loop);
     if (*loop == nullptr) {
-        ACCOUNT_LOGD("loop instance is nullptr");
+        ACCOUNT_LOGE("loop instance is nullptr");
         return false;
     }
     *work = new (std::nothrow) uv_work_t;
     if (*work == nullptr) {
-        ACCOUNT_LOGD("work is null");
+        ACCOUNT_LOGE("work is null");
         return false;
     }
     *param = new (std::nothrow) AuthenticatorCallbackParam();
     if (*param == nullptr) {
-        ACCOUNT_LOGD("failed to create AuthenticatorCallbackParam");
+        ACCOUNT_LOGE("failed to create AuthenticatorCallbackParam");
         delete *work;
         *work = nullptr;
         *loop = nullptr;
@@ -386,7 +369,6 @@ napi_value NapiGetNull(napi_env env)
 
 std::string GetNamedProperty(napi_env env, napi_value obj)
 {
-    ACCOUNT_LOGD("enter");
     char propValue[MAX_VALUE_LEN] = {0};
     size_t propLen;
     if (napi_get_value_string_utf8(env, obj, propValue, MAX_VALUE_LEN, &propLen) != napi_ok) {
@@ -412,7 +394,6 @@ void SetNamedProperty(napi_env env, napi_value dstObj, const int32_t objValue, c
 
 napi_value GetErrorCodeValue(napi_env env, int errCode)
 {
-    ACCOUNT_LOGD("enter");
     napi_value jsObject = nullptr;
     napi_value jsValue = nullptr;
     NAPI_CALL(env, napi_create_int32(env, errCode, &jsValue));
@@ -423,8 +404,6 @@ napi_value GetErrorCodeValue(napi_env env, int errCode)
 
 void GetAppAccountInfoForResult(napi_env env, const std::vector<AppAccountInfo> &info, napi_value result)
 {
-    ACCOUNT_LOGD("enter");
-
     uint32_t index = 0;
 
     for (auto item : info) {
@@ -521,7 +500,6 @@ void GetAuthenticatorCallbackForResult(napi_env env, sptr<IRemoteObject> callbac
 
 void ParseContextWithExInfo(napi_env env, napi_callback_info cbInfo, AppAccountAsyncContext *asyncContext)
 {
-    ACCOUNT_LOGD("enter");
     size_t argc = ARGS_SIZE_THREE;
     napi_value argv[ARGS_SIZE_THREE] = {0};
     napi_get_cb_info(env, cbInfo, &argc, argv, nullptr, nullptr);
@@ -547,7 +525,6 @@ void ParseContextWithExInfo(napi_env env, napi_callback_info cbInfo, AppAccountA
 
 void ParseContextForSetExInfo(napi_env env, napi_callback_info cbInfo, AppAccountAsyncContext *asyncContext)
 {
-    ACCOUNT_LOGD("enter");
     size_t argc = ARGS_SIZE_THREE;
     napi_value argv[ARGS_SIZE_THREE] = {0};
     napi_get_cb_info(env, cbInfo, &argc, argv, nullptr, nullptr);
@@ -597,7 +574,7 @@ void ParseContextForAuthenticate(napi_env env, napi_callback_info cbInfo, OAuthA
     asyncContext->authType = GetNamedProperty(env, argv[index++]);
     AAFwk::WantParams params;
     if (!AppExecFwk::UnwrapWantParams(env, argv[index++], params)) {
-        ACCOUNT_LOGI("UnwrapWantParams failed");
+        ACCOUNT_LOGE("UnwrapWantParams failed");
     }
     asyncContext->options.SetParams(params);
     napi_value global;
@@ -617,7 +594,6 @@ void ParseContextForAuthenticate(napi_env env, napi_callback_info cbInfo, OAuthA
 
 void ParseContextForGetOAuthToken(napi_env env, napi_callback_info cbInfo, OAuthAsyncContext *asyncContext)
 {
-    ACCOUNT_LOGD("enter");
     size_t argc = ARGS_SIZE_FOUR;
     napi_value argv[ARGS_SIZE_FOUR] = {0};
     napi_valuetype valueTypes[] = {napi_string, napi_string, napi_string, napi_function};
@@ -631,7 +607,6 @@ void ParseContextForGetOAuthToken(napi_env env, napi_callback_info cbInfo, OAuth
 
 void ParseContextForSetOAuthToken(napi_env env, napi_callback_info cbInfo, OAuthAsyncContext *asyncContext)
 {
-    ACCOUNT_LOGD("enter");
     size_t argc = ARGS_SIZE_FOUR;
     napi_value argv[ARGS_SIZE_FOUR] = {0};
     napi_valuetype valueTypes[] = {napi_string, napi_string, napi_string, napi_function};
@@ -645,7 +620,6 @@ void ParseContextForSetOAuthToken(napi_env env, napi_callback_info cbInfo, OAuth
 
 void ParseContextForDeleteOAuthToken(napi_env env, napi_callback_info cbInfo, OAuthAsyncContext *asyncContext)
 {
-    ACCOUNT_LOGD("enter");
     size_t argc = ARGS_SIZE_FIVE;
     napi_value argv[ARGS_SIZE_FIVE] = {0};
     napi_valuetype valueTypes[] = {napi_string, napi_string, napi_string, napi_string, napi_function};
@@ -660,7 +634,6 @@ void ParseContextForDeleteOAuthToken(napi_env env, napi_callback_info cbInfo, OA
 
 void ParseContextForSetOAuthTokenVisibility(napi_env env, napi_callback_info cbInfo, OAuthAsyncContext *asyncContext)
 {
-    ACCOUNT_LOGD("enter");
     size_t argc = ARGS_SIZE_FIVE;
     napi_value argv[ARGS_SIZE_FIVE] = {0};
     napi_valuetype valueTypes[] = {napi_string, napi_string, napi_string, napi_boolean, napi_function};
@@ -675,7 +648,6 @@ void ParseContextForSetOAuthTokenVisibility(napi_env env, napi_callback_info cbI
 
 void ParseContextForCheckOAuthTokenVisibility(napi_env env, napi_callback_info cbInfo, OAuthAsyncContext *asyncContext)
 {
-    ACCOUNT_LOGD("enter");
     size_t argc = ARGS_SIZE_FOUR;
     napi_value argv[ARGS_SIZE_FOUR] = {0};
     napi_valuetype valueTypes[] = {napi_string, napi_string, napi_string, napi_function};
@@ -689,7 +661,6 @@ void ParseContextForCheckOAuthTokenVisibility(napi_env env, napi_callback_info c
 
 void ParseContextForGetAuthenticatorInfo(napi_env env, napi_callback_info cbInfo, OAuthAsyncContext *asyncContext)
 {
-    ACCOUNT_LOGD("enter");
     size_t argc = ARGS_SIZE_TWO;
     napi_value argv[ARGS_SIZE_TWO] = {0};
     napi_valuetype valueTypes[] = {napi_string, napi_function};
@@ -701,7 +672,6 @@ void ParseContextForGetAuthenticatorInfo(napi_env env, napi_callback_info cbInfo
 
 void ParseContextForGetAllOAuthTokens(napi_env env, napi_callback_info cbInfo, OAuthAsyncContext *asyncContext)
 {
-    ACCOUNT_LOGD("enter");
     size_t argc = ARGS_SIZE_THREE;
     napi_value argv[ARGS_SIZE_THREE] = {0};
     napi_valuetype valueTypes[] = {napi_string, napi_string, napi_function};
@@ -714,7 +684,6 @@ void ParseContextForGetAllOAuthTokens(napi_env env, napi_callback_info cbInfo, O
 
 void ParseContextForGetOAuthList(napi_env env, napi_callback_info cbInfo, OAuthAsyncContext *asyncContext)
 {
-    ACCOUNT_LOGD("enter");
     size_t argc = ARGS_SIZE_THREE;
     napi_value argv[ARGS_SIZE_THREE] = {0};
     napi_valuetype valueTypes[] = {napi_string, napi_string, napi_function};
@@ -727,7 +696,6 @@ void ParseContextForGetOAuthList(napi_env env, napi_callback_info cbInfo, OAuthA
 
 void ParseContextForGetAuthenticatorCallback(napi_env env, napi_callback_info cbInfo, OAuthAsyncContext *asyncContext)
 {
-    ACCOUNT_LOGD("enter");
     size_t argc = ARGS_SIZE_TWO;
     napi_value argv[ARGS_SIZE_TWO] = {0};
     napi_valuetype valueTypes[] = {napi_string, napi_function};
@@ -739,7 +707,6 @@ void ParseContextForGetAuthenticatorCallback(napi_env env, napi_callback_info cb
 
 void ParseContextWithBdName(napi_env env, napi_callback_info cbInfo, AppAccountAsyncContext *asyncContext)
 {
-    ACCOUNT_LOGD("enter");
     size_t argc = ARGS_SIZE_THREE;
     napi_value argv[ARGS_SIZE_THREE] = {0};
     napi_get_cb_info(env, cbInfo, &argc, argv, nullptr, nullptr);
@@ -762,7 +729,6 @@ void ParseContextWithBdName(napi_env env, napi_callback_info cbInfo, AppAccountA
 
 void ParseContextWithIsEnable(napi_env env, napi_callback_info cbInfo, AppAccountAsyncContext *asyncContext)
 {
-    ACCOUNT_LOGD("enter");
     size_t argc = ARGS_SIZE_THREE;
     napi_value argv[ARGS_SIZE_THREE] = {0};
     napi_get_cb_info(env, cbInfo, &argc, argv, nullptr, nullptr);
@@ -774,11 +740,6 @@ void ParseContextWithIsEnable(napi_env env, napi_callback_info cbInfo, AppAccoun
             asyncContext->name = GetNamedProperty(env, argv[i]);
         } else if (i == 1 && valueType == napi_boolean) {
             napi_get_value_bool(env, argv[i], &asyncContext->isEnable);
-            if (asyncContext->isEnable) {
-                ACCOUNT_LOGI("isEnable para is true");
-            } else {
-                ACCOUNT_LOGI("isEnable para is false");
-            }
         } else if (valueType == napi_function) {
             napi_create_reference(env, argv[i], 1, &asyncContext->callbackRef);
             break;
@@ -790,7 +751,6 @@ void ParseContextWithIsEnable(napi_env env, napi_callback_info cbInfo, AppAccoun
 
 void ParseContextWithTwoPara(napi_env env, napi_callback_info cbInfo, AppAccountAsyncContext *asyncContext)
 {
-    ACCOUNT_LOGD("enter");
     size_t argc = ARGS_SIZE_TWO;
     napi_value argv[ARGS_SIZE_TWO] = {0};
     napi_get_cb_info(env, cbInfo, &argc, argv, nullptr, nullptr);
@@ -811,7 +771,6 @@ void ParseContextWithTwoPara(napi_env env, napi_callback_info cbInfo, AppAccount
 
 void ParseContextToSetCredential(napi_env env, napi_callback_info cbInfo, AppAccountAsyncContext *asyncContext)
 {
-    ACCOUNT_LOGD("enter");
     size_t argc = ARGS_SIZE_FOUR;
     napi_value argv[ARGS_SIZE_FOUR] = {0};
     napi_get_cb_info(env, cbInfo, &argc, argv, nullptr, nullptr);
@@ -836,7 +795,6 @@ void ParseContextToSetCredential(napi_env env, napi_callback_info cbInfo, AppAcc
 
 void ParseContextForAssociatedData(napi_env env, napi_callback_info cbInfo, AppAccountAsyncContext *asyncContext)
 {
-    ACCOUNT_LOGD("enter");
     size_t argc = ARGS_SIZE_FOUR;
     napi_value argv[ARGS_SIZE_FOUR] = {0};
     napi_get_cb_info(env, cbInfo, &argc, argv, nullptr, nullptr);
@@ -861,7 +819,6 @@ void ParseContextForAssociatedData(napi_env env, napi_callback_info cbInfo, AppA
 
 void ParseContextToGetData(napi_env env, napi_callback_info cbInfo, AppAccountAsyncContext *asyncContext)
 {
-    ACCOUNT_LOGD("enter");
     size_t argc = ARGS_SIZE_THREE;
     napi_value argv[ARGS_SIZE_THREE] = {0};
     napi_get_cb_info(env, cbInfo, &argc, argv, nullptr, nullptr);
@@ -884,7 +841,6 @@ void ParseContextToGetData(napi_env env, napi_callback_info cbInfo, AppAccountAs
 
 void ParseContextCBArray(napi_env env, napi_callback_info cbInfo, GetAccountsAsyncContext *asyncContext)
 {
-    ACCOUNT_LOGD("enter");
     size_t argc = ARGS_SIZE_ONE;
     napi_value argv[ARGS_SIZE_ONE] = {0};
     napi_get_cb_info(env, cbInfo, &argc, argv, nullptr, nullptr);
@@ -903,7 +859,6 @@ void ParseContextCBArray(napi_env env, napi_callback_info cbInfo, GetAccountsAsy
 
 void ParseContextWithCredentialType(napi_env env, napi_callback_info cbInfo, AppAccountAsyncContext *asyncContext)
 {
-    ACCOUNT_LOGD("enter");
     size_t argc = ARGS_SIZE_THREE;
     napi_value argv[ARGS_SIZE_THREE] = {0};
     napi_get_cb_info(env, cbInfo, &argc, argv, nullptr, nullptr);
@@ -926,7 +881,6 @@ void ParseContextWithCredentialType(napi_env env, napi_callback_info cbInfo, App
 
 void ParseContextWithStrCBArray(napi_env env, napi_callback_info cbInfo, GetAccountsAsyncContext *asyncContext)
 {
-    ACCOUNT_LOGD("enter");
     size_t argc = ARGS_SIZE_TWO;
     napi_value argv[ARGS_SIZE_TWO] = {0};
     napi_get_cb_info(env, cbInfo, &argc, argv, nullptr, nullptr);
@@ -947,7 +901,6 @@ void ParseContextWithStrCBArray(napi_env env, napi_callback_info cbInfo, GetAcco
 
 void ProcessCallbackOrPromise(napi_env env, const CommonAsyncContext *asyncContext, napi_value err, napi_value data)
 {
-    ACCOUNT_LOGD("enter");
     napi_value args[RESULT_COUNT] = {NapiGetNull(env), NapiGetNull(env)};
     if (asyncContext->errCode == ERR_OK) {
         args[1] = data;
@@ -974,8 +927,6 @@ void ProcessCallbackOrPromise(napi_env env, const CommonAsyncContext *asyncConte
 napi_value ParseParametersBySubscribe(const napi_env &env, const napi_value (&argv)[ARGS_SIZE_THREE],
     std::vector<std::string> &owners, napi_ref &callback)
 {
-    ACCOUNT_LOGD("enter");
-
     bool isArray = false;
     uint32_t length = 0;
     size_t strLen = 0;
@@ -1023,12 +974,10 @@ napi_value ParseParametersBySubscribe(const napi_env &env, const napi_value (&ar
 napi_value GetSubscriberByUnsubscribe(const napi_env &env, std::vector<std::shared_ptr<SubscriberPtr>> &subscribers,
     AsyncContextForUnsubscribe *asyncContextForOff, bool &isFind)
 {
-    ACCOUNT_LOGD("enter");
     napi_value result;
 
     {
         std::lock_guard<std::mutex> lock(g_lockForAppAccountSubscribers);
-        ACCOUNT_LOGD("g_AppAccountSubscribers.size = %{public}zu", g_AppAccountSubscribers.size());
 
         for (auto subscriberInstance : g_AppAccountSubscribers) {
             if (subscriberInstance.first == asyncContextForOff->appAccountManager) {
@@ -1048,8 +997,6 @@ napi_value GetSubscriberByUnsubscribe(const napi_env &env, std::vector<std::shar
 napi_value ParseParametersByUnsubscribe(
     const napi_env &env, const size_t &argc, const napi_value (&argv)[UNSUBSCRIBE_MAX_PARA], napi_ref &callback)
 {
-    ACCOUNT_LOGD("enter");
-
     napi_valuetype valuetype;
     napi_value result = nullptr;
     // argv[0]: type: 'change'
@@ -1077,7 +1024,6 @@ napi_value ParseParametersByUnsubscribe(
 
 void UnsubscribeExecuteCB(napi_env env, void *data)
 {
-    ACCOUNT_LOGD("Unsubscribe napi_create_async_work start.");
     AsyncContextForUnsubscribe *asyncContextForOff = reinterpret_cast<AsyncContextForUnsubscribe *>(data);
     for (auto offSubscriber : asyncContextForOff->subscribers) {
         int errCode = AppAccountManager::UnsubscribeAppAccount(offSubscriber);
@@ -1087,7 +1033,6 @@ void UnsubscribeExecuteCB(napi_env env, void *data)
 
 void UnsubscribeCallbackCompletedCB(napi_env env, napi_status status, void *data)
 {
-    ACCOUNT_LOGD("Unsubscribe napi_create_async_work end.");
     AsyncContextForUnsubscribe *asyncContextForOff = reinterpret_cast<AsyncContextForUnsubscribe *>(data);
     if (asyncContextForOff == nullptr) {
         return;

@@ -56,7 +56,6 @@ namespace AccountSA {
 
 ErrCode AppAccount::AddAccount(const std::string &name, const std::string &extraInfo)
 {
-    ACCOUNT_LOGD("enter");
     RETURN_IF_STRING_IS_EMPTY_OR_OVERSIZE(name, Constants::NAME_MAX_SIZE, "name is empty or oversize");
     RETURN_IF_STRING_CONTAINS_SPECIAL_CHAR(name);
     RETURN_IF_STRING_IS_OVERSIZE(extraInfo, Constants::EXTRA_INFO_MAX_SIZE, "extraInfo is empty or oversize");
@@ -81,7 +80,6 @@ ErrCode AppAccount::AddAccountImplicitly(const std::string &owner, const std::st
 
 ErrCode AppAccount::DeleteAccount(const std::string &name)
 {
-    ACCOUNT_LOGD("enter");
     RETURN_IF_STRING_IS_EMPTY_OR_OVERSIZE(name, Constants::NAME_MAX_SIZE, "name is empty or oversize");
     RETURN_IF_STRING_CONTAINS_SPECIAL_CHAR(name);
     RETURN_IF_PROXY_IS_NULLPTR();
@@ -302,7 +300,6 @@ ErrCode AppAccount::GetAllAccounts(const std::string &owner, std::vector<AppAcco
 
 ErrCode AppAccount::CheckAppAccess(const std::string &name, const std::string &authorizedApp, bool &isAccessible)
 {
-    ACCOUNT_LOGD("enter");
     RETURN_IF_STRING_IS_EMPTY_OR_OVERSIZE(name, Constants::NAME_MAX_SIZE, "name is empty or oversize");
     RETURN_IF_STRING_IS_EMPTY_OR_OVERSIZE(authorizedApp, Constants::BUNDLE_NAME_MAX_SIZE,
         "authorizedApp is empty or oversize");
@@ -313,7 +310,6 @@ ErrCode AppAccount::CheckAppAccess(const std::string &name, const std::string &a
 
 ErrCode AppAccount::DeleteAccountCredential(const std::string &name, const std::string &credentialType)
 {
-    ACCOUNT_LOGD("enter");
     RETURN_IF_STRING_IS_EMPTY_OR_OVERSIZE(name, Constants::NAME_MAX_SIZE, "name is empty or oversize");
     RETURN_IF_STRING_IS_EMPTY_OR_OVERSIZE(credentialType, Constants::CREDENTIAL_TYPE_MAX_SIZE,
         "credential type is empty or oversize");
@@ -324,9 +320,8 @@ ErrCode AppAccount::DeleteAccountCredential(const std::string &name, const std::
 ErrCode AppAccount::SelectAccountsByOptions(
     const SelectAccountsOptions &options, const sptr<IAppAccountAuthenticatorCallback> &callback)
 {
-    ACCOUNT_LOGD("enter");
     if (callback == nullptr) {
-        ACCOUNT_LOGD("callback is nullptr");
+        ACCOUNT_LOGE("callback is nullptr");
         return ERR_APPACCOUNT_KIT_INVALID_PARAMETER;
     }
     RETURN_IF_PROXY_IS_NULLPTR();
@@ -336,9 +331,8 @@ ErrCode AppAccount::SelectAccountsByOptions(
 ErrCode AppAccount::VerifyCredential(const std::string &name, const std::string &owner,
     const VerifyCredentialOptions &options, const sptr<IAppAccountAuthenticatorCallback> &callback)
 {
-    ACCOUNT_LOGD("enter");
     if (callback == nullptr) {
-        ACCOUNT_LOGD("callback is nullptr");
+        ACCOUNT_LOGE("callback is nullptr");
         return ERR_APPACCOUNT_KIT_INVALID_PARAMETER;
     }
     RETURN_IF_STRING_IS_EMPTY_OR_OVERSIZE(name, Constants::NAME_MAX_SIZE, "name is empty or oversize");
@@ -350,9 +344,8 @@ ErrCode AppAccount::VerifyCredential(const std::string &name, const std::string 
 ErrCode AppAccount::CheckAccountLabels(const std::string &name, const std::string &owner,
     const std::vector<std::string> &labels, const sptr<IAppAccountAuthenticatorCallback> &callback)
 {
-    ACCOUNT_LOGD("enter");
     if (callback == nullptr) {
-        ACCOUNT_LOGD("callback is nullptr");
+        ACCOUNT_LOGE("callback is nullptr");
         return ERR_APPACCOUNT_KIT_INVALID_PARAMETER;
     }
     RETURN_IF_STRING_IS_EMPTY_OR_OVERSIZE(name, Constants::NAME_MAX_SIZE, "name is empty or oversize");
@@ -364,9 +357,8 @@ ErrCode AppAccount::CheckAccountLabels(const std::string &name, const std::strin
 ErrCode AppAccount::SetAuthenticatorProperties(const std::string &owner,
     const SetPropertiesOptions &options, const sptr<IAppAccountAuthenticatorCallback> &callback)
 {
-    ACCOUNT_LOGD("enter");
     if (callback == nullptr) {
-        ACCOUNT_LOGD("callback is nullptr");
+        ACCOUNT_LOGE("callback is nullptr");
         return ERR_APPACCOUNT_KIT_INVALID_PARAMETER;
     }
     RETURN_IF_STRING_IS_EMPTY_OR_OVERSIZE(owner, Constants::OWNER_MAX_SIZE, "owner is empty or oversize");
@@ -376,7 +368,6 @@ ErrCode AppAccount::SetAuthenticatorProperties(const std::string &owner,
 
 ErrCode AppAccount::GetAllAccessibleAccounts(std::vector<AppAccountInfo> &appAccounts)
 {
-    ACCOUNT_LOGD("enter");
     RETURN_IF_PROXY_IS_NULLPTR();
     return appAccountProxy_->GetAllAccessibleAccounts(appAccounts);
 }
@@ -400,7 +391,6 @@ ErrCode AppAccount::SubscribeAppAccount(const std::shared_ptr<AppAccountSubscrib
         return ERR_APPACCOUNT_KIT_GET_OWNERS;
     }
 
-    ACCOUNT_LOGD("owners.size() = %{public}zu", owners.size());
     if (owners.size() == 0) {
         return ERR_APPACCOUNT_KIT_SUBSCRIBER_HAS_NO_OWNER;
     }
@@ -408,7 +398,6 @@ ErrCode AppAccount::SubscribeAppAccount(const std::shared_ptr<AppAccountSubscrib
     // remove duplicate ones
     std::sort(owners.begin(), owners.end());
     owners.erase(std::unique(owners.begin(), owners.end()), owners.end());
-    ACCOUNT_LOGD("owners.size() = %{public}zu", owners.size());
     if (subscribeInfo.SetOwners(owners) != ERR_OK) {
         ACCOUNT_LOGE("failed to set owners");
         return ERR_APPACCOUNT_KIT_SET_OWNERS;
@@ -443,8 +432,6 @@ ErrCode AppAccount::SubscribeAppAccount(const std::shared_ptr<AppAccountSubscrib
 
 ErrCode AppAccount::UnsubscribeAppAccount(const std::shared_ptr<AppAccountSubscriber> &subscriber)
 {
-    ACCOUNT_LOGD("enter");
-
     if (subscriber == nullptr) {
         ACCOUNT_LOGE("subscriber is nullptr");
         return ERR_APPACCOUNT_KIT_SUBSCRIBER_IS_NULLPTR;
@@ -474,8 +461,6 @@ ErrCode AppAccount::UnsubscribeAppAccount(const std::shared_ptr<AppAccountSubscr
 
 ErrCode AppAccount::ResetAppAccountProxy()
 {
-    ACCOUNT_LOGD("enter");
-
     std::lock_guard<std::mutex> lock(mutex_);
     if ((appAccountProxy_ != nullptr) && (appAccountProxy_->AsObject() != nullptr)) {
         appAccountProxy_->AsObject()->RemoveDeathRecipient(deathRecipient_);
@@ -500,8 +485,6 @@ ErrCode AppAccount::CheckSpecialCharacters(const std::string &name)
 
 ErrCode AppAccount::GetAppAccountProxy()
 {
-    ACCOUNT_LOGD("enter");
-
     std::lock_guard<std::mutex> lock(mutex_);
     if (!appAccountProxy_) {
         sptr<ISystemAbilityManager> systemAbilityManager =
@@ -552,8 +535,6 @@ ErrCode AppAccount::GetAppAccountProxy()
 ErrCode AppAccount::CreateAppAccountEventListener(
     const std::shared_ptr<AppAccountSubscriber> &subscriber, sptr<IRemoteObject> &appAccountEventListener)
 {
-    ACCOUNT_LOGD("enter");
-
     if (subscriber == nullptr) {
         ACCOUNT_LOGE("subscriber is nullptr");
         return SUBSCRIBE_FAILED;

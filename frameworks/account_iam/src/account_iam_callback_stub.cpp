@@ -38,7 +38,7 @@ int IDMCallbackStub::OnRemoteRequest(
     ACCOUNT_LOGD("Received stub message: %{public}d, callingUid: %{public}d, callingPid: %{public}d",
         code, IPCSkeleton::GetCallingUid(), IPCSkeleton::GetCallingPid());
     if (data.ReadInterfaceToken() != GetDescriptor()) {
-        ACCOUNT_LOGD("check IDMCallbackStub descriptor failed! code %{public}u.", code);
+        ACCOUNT_LOGE("check IDMCallbackStub descriptor failed! code %{public}u.", code);
         return ERR_ACCOUNT_COMMON_CHECK_DESCRIPTOR_ERROR;
     }
     const auto &itFunc = messageProcMap_.find(code);
@@ -55,15 +55,15 @@ ErrCode IDMCallbackStub::ProcOnAcquireInfo(MessageParcel &data, MessageParcel &r
     int32_t acquireInfo;
     std::vector<uint8_t> buffer;
     if (!data.ReadInt32(module)) {
-        ACCOUNT_LOGD("failed to read module");
+        ACCOUNT_LOGE("failed to read module");
         return ERR_ACCOUNT_IAM_KIT_READ_PARCEL_FAIL;
     }
     if (!data.ReadInt32(acquireInfo)) {
-        ACCOUNT_LOGD("failed to read acquireInfo");
+        ACCOUNT_LOGE("failed to read acquireInfo");
         return ERR_ACCOUNT_IAM_KIT_READ_PARCEL_FAIL;
     }
     if (!data.ReadUInt8Vector(&buffer)) {
-        ACCOUNT_LOGD("failed to read buffer");
+        ACCOUNT_LOGE("failed to read buffer");
         return ERR_ACCOUNT_IAM_KIT_READ_PARCEL_FAIL;
     }
     Attributes extraInfo(buffer);
@@ -75,12 +75,12 @@ ErrCode IDMCallbackStub::ProcOnResult(MessageParcel &data, MessageParcel &reply)
 {
     int32_t result;
     if (!data.ReadInt32(result)) {
-        ACCOUNT_LOGD("failed to read result for IDMCallback OnResult");
+        ACCOUNT_LOGE("failed to read result for IDMCallback OnResult");
         return ERR_ACCOUNT_IAM_KIT_READ_PARCEL_FAIL;
     }
     std::vector<uint8_t> buffer;
     if (!data.ReadUInt8Vector(&buffer)) {
-        ACCOUNT_LOGD("failed to read buffer for IDMCallback OnResult");
+        ACCOUNT_LOGE("failed to read result for IDMCallback OnResult");
         return ERR_ACCOUNT_IAM_KIT_READ_PARCEL_FAIL;
     }
     Attributes extraInfo(buffer);
@@ -102,7 +102,7 @@ int GetCredInfoCallbackStub::OnRemoteRequest(
     ACCOUNT_LOGD("Received stub message: %{public}d, callingUid: %{public}d, callingPid: %{public}d",
         code, IPCSkeleton::GetCallingUid(), IPCSkeleton::GetCallingPid());
     if (data.ReadInterfaceToken() != GetDescriptor()) {
-        ACCOUNT_LOGD("check GetCredInfoCallbackStub descriptor failed! code %{public}u.", code);
+        ACCOUNT_LOGE("check GetCredInfoCallbackStub descriptor failed! code %{public}u.", code);
         return ERR_ACCOUNT_COMMON_CHECK_DESCRIPTOR_ERROR;
     }
     const auto &itFunc = messageProcMap_.find(code);
@@ -118,7 +118,7 @@ ErrCode GetCredInfoCallbackStub::ProcOnCredentialInfo(MessageParcel &data, Messa
     uint32_t vectorSize = 0;
     std::vector<CredentialInfo> infoList;
     if (!data.ReadUint32(vectorSize)) {
-        ACCOUNT_LOGD("read size fail");
+        ACCOUNT_LOGE("read size fail");
         return ERR_ACCOUNT_IAM_KIT_READ_PARCEL_FAIL;
     }
     for (uint32_t i = 0; i < vectorSize; ++i) {
@@ -126,19 +126,19 @@ ErrCode GetCredInfoCallbackStub::ProcOnCredentialInfo(MessageParcel &data, Messa
         int32_t authType = 0;
         int32_t pinType = 0;
         if (!data.ReadUint64(info.credentialId)) {
-            ACCOUNT_LOGD("failed to read credentialId");
+            ACCOUNT_LOGE("failed to read credentialId");
             return ERR_ACCOUNT_IAM_KIT_READ_PARCEL_FAIL;
         }
         if (!data.ReadInt32(authType)) {
-            ACCOUNT_LOGD("failed to read authType");
+            ACCOUNT_LOGE("failed to read authType");
             return ERR_ACCOUNT_IAM_KIT_READ_PARCEL_FAIL;
         }
         if (!data.ReadInt32(pinType)) {
-            ACCOUNT_LOGD("failed to read pinSubType");
+            ACCOUNT_LOGE("failed to read pinSubType");
             return ERR_ACCOUNT_IAM_KIT_READ_PARCEL_FAIL;
         }
         if (!data.ReadUint64(info.templateId)) {
-            ACCOUNT_LOGD("failed to read templateId");
+            ACCOUNT_LOGE("failed to read templateId");
             return ERR_ACCOUNT_IAM_KIT_READ_PARCEL_FAIL;
         }
         info.authType = static_cast<AuthType>(authType);
@@ -162,7 +162,7 @@ int GetSetPropCallbackStub::OnRemoteRequest(
     ACCOUNT_LOGD("Received stub message: %{public}d, callingUid: %{public}d, callingPid: %{public}d",
         code, IPCSkeleton::GetCallingUid(), IPCSkeleton::GetCallingPid());
     if (data.ReadInterfaceToken() != GetDescriptor()) {
-        ACCOUNT_LOGD("check GetSetPropCallbackStub descriptor failed! code %{public}u.", code);
+        ACCOUNT_LOGE("check GetSetPropCallbackStub descriptor failed! code %{public}u.", code);
         return ERR_ACCOUNT_COMMON_CHECK_DESCRIPTOR_ERROR;
     }
     const auto &itFunc = messageProcMap_.find(code);
@@ -177,12 +177,12 @@ ErrCode GetSetPropCallbackStub::ProcOnResult(MessageParcel &data, MessageParcel 
 {
     int32_t result;
     if (!data.ReadInt32(result)) {
-        ACCOUNT_LOGD("failed to read result for GetSetPropCallback OnResult");
+        ACCOUNT_LOGE("failed to read result for GetSetPropCallback OnResult");
         return ERR_ACCOUNT_IAM_KIT_READ_PARCEL_FAIL;
     }
     std::vector<uint8_t> buffer;
     if (!data.ReadUInt8Vector(&buffer)) {
-        ACCOUNT_LOGD("failed to read buffer for GetSetPropCallback OnResult");
+        ACCOUNT_LOGE("failed to read result for GetSetPropCallback OnResult");
         return ERR_ACCOUNT_IAM_KIT_READ_PARCEL_FAIL;
     }
     Attributes extraInfo(buffer);

@@ -89,19 +89,14 @@ bool ParseInfo(std::string &infoStr, T &info)
 }
 
 BundleManagerAdapterProxy::BundleManagerAdapterProxy(const sptr<IRemoteObject> &impl) : IRemoteProxy<IBundleMgr>(impl)
-{
-    ACCOUNT_LOGD("create BundleManagerAdapterProxy instance");
-}
+{}
 
 BundleManagerAdapterProxy::~BundleManagerAdapterProxy()
-{
-    ACCOUNT_LOGD("destroy BundleManagerAdapterProxy instance");
-}
+{}
 
 bool BundleManagerAdapterProxy::GetBundleInfo(
     const std::string &bundleName, const BundleFlag flag, BundleInfo &bundleInfo, int32_t userId)
 {
-    ACCOUNT_LOGI("begin to get bundle info of %{public}s", bundleName.c_str());
     if (bundleName.empty()) {
         ACCOUNT_LOGE("fail to GetBundleInfo due to params empty");
         return false;
@@ -190,7 +185,6 @@ bool BundleManagerAdapterProxy::GetBundleNameForUid(const int uid, std::string &
 bool BundleManagerAdapterProxy::QueryAbilityInfos(
     const Want &want, int32_t flags, int32_t userId, std::vector<AbilityInfo> &abilityInfos)
 {
-    ACCOUNT_LOGD("enter.");
     MessageParcel data;
     if (!data.WriteInterfaceToken(GetDescriptor())) {
         ACCOUNT_LOGE("fail to QueryAbilityInfos due to write MessageParcel fail");
@@ -289,7 +283,7 @@ bool BundleManagerAdapterProxy::GetParcelableInfo(IBundleMgr::Message code, Mess
         return false;
     }
     parcelableInfo = *info;
-    ACCOUNT_LOGI("get parcelable info success");
+
     return true;
 }
 

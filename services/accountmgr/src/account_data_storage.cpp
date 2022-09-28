@@ -41,8 +41,6 @@ AccountDataStorage::~AccountDataStorage()
 
 void AccountDataStorage::TryTwice(const std::function<DistributedKv::Status()> &func) const
 {
-    ACCOUNT_LOGD("enter");
-
     OHOS::DistributedKv::Status status = func();
     if (status == OHOS::DistributedKv::Status::IPC_ERROR) {
         status = func();
@@ -52,8 +50,6 @@ void AccountDataStorage::TryTwice(const std::function<DistributedKv::Status()> &
 
 OHOS::DistributedKv::Status AccountDataStorage::GetKvStore()
 {
-    ACCOUNT_LOGD("enter");
-
     OHOS::DistributedKv::Options options = {
         .createIfMissing = true,
         .encrypt = false,
@@ -73,7 +69,6 @@ OHOS::DistributedKv::Status AccountDataStorage::GetKvStore()
 
 bool AccountDataStorage::CheckKvStore()
 {
-    ACCOUNT_LOGD("enter");
     std::lock_guard<std::mutex> lock(kvStorePtrMutex_);
 
     if (kvStorePtr_ != nullptr) {
@@ -87,7 +82,6 @@ bool AccountDataStorage::CheckKvStore()
             break;
         }
 
-        ACCOUNT_LOGI("tryTimes = %{public}d status = %{public}d.", tryTimes, status);
         usleep(SLEEP_INTERVAL);
         tryTimes--;
     }
@@ -96,14 +90,11 @@ bool AccountDataStorage::CheckKvStore()
         return false;
     }
 
-    ACCOUNT_LOGI("end");
     return true;
 }
 
 ErrCode AccountDataStorage::LoadAllData(std::map<std::string, std::shared_ptr<IAccountInfo>> &infos)
 {
-    ACCOUNT_LOGD("enter");
-
     if (!CheckKvStore()) {
         ACCOUNT_LOGE("kvStore is nullptr");
         return OHOS::ERR_OSACCOUNT_SERVICE_MANAGER_QUERY_DISTRIBUTE_DATA_ERROR;
@@ -127,7 +118,6 @@ ErrCode AccountDataStorage::LoadAllData(std::map<std::string, std::shared_ptr<IA
 
 ErrCode AccountDataStorage::AddAccountInfo(const IAccountInfo &iAccountInfo)
 {
-    ACCOUNT_LOGD("enter");
     if (IsKeyExists(iAccountInfo.GetPrimeKey())) {
         ACCOUNT_LOGE("the key already exists.");
         return ERR_OSACCOUNT_SERVICE_DATA_STORAGE_KEY_EXISTED_ERROR;
@@ -143,7 +133,6 @@ ErrCode AccountDataStorage::AddAccountInfo(const IAccountInfo &iAccountInfo)
 
 ErrCode AccountDataStorage::SaveAccountInfo(const IAccountInfo &iAccountInfo)
 {
-    ACCOUNT_LOGD("enter");
     if (!IsKeyExists(iAccountInfo.GetPrimeKey())) {
         ACCOUNT_LOGE("the key does not exist");
         return ERR_OSACCOUNT_SERVICE_DATA_STORAGE_KEY_NOT_EXISTS_ERROR;
@@ -200,8 +189,6 @@ ErrCode AccountDataStorage::RemoveValueFromKvStore(const std::string &keyStr)
 OHOS::DistributedKv::Status AccountDataStorage::GetEntries(
     std::string subId, std::vector<OHOS::DistributedKv::Entry> &allEntries) const
 {
-    ACCOUNT_LOGD("enter");
-
     OHOS::DistributedKv::Key allEntryKeyPrefix(subId);
     std::lock_guard<std::mutex> lock(kvStorePtrMutex_);
     OHOS::DistributedKv::Status status = kvStorePtr_->GetEntries(allEntryKeyPrefix, allEntries);
@@ -211,8 +198,6 @@ OHOS::DistributedKv::Status AccountDataStorage::GetEntries(
 
 ErrCode AccountDataStorage::DeleteKvStore()
 {
-    ACCOUNT_LOGD("enter");
-
     if (!CheckKvStore()) {
         ACCOUNT_LOGE("kvStore is nullptr");
         return OHOS::ERR_OSACCOUNT_SERVICE_MANAGER_QUERY_DISTRIBUTE_DATA_ERROR;
@@ -231,14 +216,11 @@ ErrCode AccountDataStorage::DeleteKvStore()
         return OHOS::ERR_OSACCOUNT_SERVICE_MANAGER_QUERY_DISTRIBUTE_DATA_ERROR;
     }
 
-    ACCOUNT_LOGD("end");
-
     return ERR_OK;
 }
 
 ErrCode AccountDataStorage::GetAccountInfoById(const std::string id, IAccountInfo &iAccountInfo)
 {
-    ACCOUNT_LOGD("enter");
     std::string valueStr;
     ErrCode ret = GetValueFromKvStore(id, valueStr);
     if (ret != ERR_OK) {
@@ -302,7 +284,7 @@ ErrCode AccountDataStorage::PutValueToKvStore(const std::string &keyStr, const s
         ACCOUNT_LOGE("put value to kvStore error, status = %{public}d", status);
         return OHOS::ERR_OSACCOUNT_SERVICE_MANAGER_QUERY_DISTRIBUTE_DATA_ERROR;
     }
-    ACCOUNT_LOGD("put value to kvStore succeed!");
+
     return ERR_OK;
 }
 
@@ -337,7 +319,6 @@ ErrCode AccountDataStorage::GetValueFromKvStore(const std::string &keyStr, std::
 
 bool AccountDataStorage::IsKeyExists(const std::string keyStr)
 {
-    ACCOUNT_LOGD("enter");
     std::string valueStr;
     if (GetValueFromKvStore(keyStr, valueStr) != ERR_OK) {
         return false;
