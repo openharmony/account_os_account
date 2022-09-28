@@ -74,7 +74,6 @@ std::int32_t AccountStub::CmdUpdateOhosAccountInfo(MessageParcel &data, MessageP
         return ERR_ACCOUNT_ZIDL_ACCOUNT_STUB_ERROR;
     }
     const std::string eventStr = Str16ToStr8(data.ReadString16());
-    ACCOUNT_LOGI("CmdUpdateOhosAccountInfo eventStr: %{public}s", eventStr.c_str());
 
     std::int32_t ret = ERR_OK;
     bool result = UpdateOhosAccountInfo(accountName, uid, eventStr);
@@ -174,7 +173,7 @@ std::int32_t AccountStub::CmdQueryOhosQuitTips(MessageParcel &data, MessageParce
         ACCOUNT_LOGE("Write quit tips content failed");
         return ERR_ACCOUNT_ZIDL_WRITE_RESULT_ERROR;
     }
-    ACCOUNT_LOGI("CmdQueryOhosQuitTips exit");
+
     return ERR_OK;
 }
 
@@ -196,8 +195,6 @@ std::int32_t AccountStub::CmdQueryDeviceAccountId(MessageParcel &data, MessagePa
 
 std::int32_t AccountStub::CmdGetAppAccountService(MessageParcel &data, MessageParcel &reply)
 {
-    ACCOUNT_LOGD("enter");
-
     auto remoteObject = GetAppAccountService();
     if (!reply.WriteRemoteObject(remoteObject)) {
         ACCOUNT_LOGE("Write result data failed");
@@ -208,8 +205,6 @@ std::int32_t AccountStub::CmdGetAppAccountService(MessageParcel &data, MessagePa
 }
 std::int32_t AccountStub::CmdGetOsAccountService(MessageParcel &data, MessageParcel &reply)
 {
-    ACCOUNT_LOGD("enter");
-
     auto remoteObject = GetOsAccountService();
     if (!reply.WriteRemoteObject(remoteObject)) {
         ACCOUNT_LOGE("Write result data failed");
@@ -221,8 +216,6 @@ std::int32_t AccountStub::CmdGetOsAccountService(MessageParcel &data, MessagePar
 
 std::int32_t AccountStub::CmdGetAccountIAMService(MessageParcel &data, MessageParcel &reply)
 {
-    ACCOUNT_LOGD("enter");
-
     auto remoteObject = GetAccountIAMService();
     if (!reply.WriteRemoteObject(remoteObject)) {
         ACCOUNT_LOGE("Write result data failed");

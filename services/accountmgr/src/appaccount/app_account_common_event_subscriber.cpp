@@ -23,14 +23,10 @@ namespace AccountSA {
 AppAccountCommonEventSubscriber::AppAccountCommonEventSubscriber(
     const CommonEventSubscribeInfo &subscribeInfo, const std::function<void(const CommonEventData &)> &callback)
     : CommonEventSubscriber(subscribeInfo), callback_(callback)
-{
-    ACCOUNT_LOGD("enter");
-}
+{}
 
 void AppAccountCommonEventSubscriber::OnReceiveEvent(const CommonEventData &data)
 {
-    ACCOUNT_LOGD("enter");
-
     if (callback_ != nullptr) {
         callback_(data);
     }

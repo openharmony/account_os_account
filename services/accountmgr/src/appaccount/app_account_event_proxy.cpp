@@ -21,17 +21,13 @@
 namespace OHOS {
 namespace AccountSA {
 AppAccountEventProxy::AppAccountEventProxy(const sptr<IRemoteObject> &object) : IRemoteProxy<IAppAccountEvent>(object)
-{
-    ACCOUNT_LOGD("enter");
-}
+{}
 
 AppAccountEventProxy::~AppAccountEventProxy()
 {}
 
 void AppAccountEventProxy::OnAccountsChanged(const std::vector<AppAccountInfo> &accounts)
 {
-    ACCOUNT_LOGI("enter");
-
     MessageParcel data;
     MessageParcel reply;
 

@@ -67,7 +67,6 @@ ErrCode OsAccountInterface::SendToAMSAccountStart(OsAccountInfo &osAccountInfo)
 
 ErrCode OsAccountInterface::SendToAMSAccountStop(OsAccountInfo &osAccountInfo)
 {
-    ACCOUNT_LOGI("start");
     sptr<OsAccountStopUserCallback> osAccountStopUserCallback = new (std::nothrow) OsAccountStopUserCallback();
     if (osAccountStopUserCallback == nullptr) {
         ACCOUNT_LOGE("alloc memory for stop user callback failed!");
@@ -102,7 +101,7 @@ ErrCode OsAccountInterface::SendToAMSAccountStop(OsAccountInfo &osAccountInfo)
         FinishTrace(HITRACE_TAG_ACCOUNT_MANAGER);
         return ERR_OSACCOUNT_SERVICE_INTERFACE_TO_AM_ACCOUNT_START_ERROR;
     }
-    ACCOUNT_LOGI("end, succeed!");
+
     FinishTrace(HITRACE_TAG_ACCOUNT_MANAGER);
     return ERR_OK;
 }
@@ -229,7 +228,6 @@ void OsAccountInterface::SendToCESAccountSwitched(OsAccountInfo &osAccountInfo)
 
 ErrCode OsAccountInterface::SendToStorageAccountCreate(OsAccountInfo &osAccountInfo)
 {
-    ACCOUNT_LOGI("start");
 #ifdef HAS_STORAGE_PART
     auto systemAbilityManager = SystemAbilityManagerClient::GetInstance().GetSystemAbilityManager();
     if (!systemAbilityManager) {
@@ -260,7 +258,6 @@ ErrCode OsAccountInterface::SendToStorageAccountCreate(OsAccountInfo &osAccountI
             err, "Storage PrepareAddUser failed!");
     }
 
-    ACCOUNT_LOGI("end, Storage PrepareAddUser ret %{public}d.", err);
     FinishTrace(HITRACE_TAG_ACCOUNT_MANAGER);
 #endif
     return ERR_OK;
@@ -348,7 +345,6 @@ ErrCode OsAccountInterface::SendToStorageAccountStart(OsAccountInfo &osAccountIn
 
 ErrCode OsAccountInterface::SendToStorageAccountStop(OsAccountInfo &osAccountInfo)
 {
-    ACCOUNT_LOGI("start");
 #ifdef HAS_STORAGE_PART
     auto systemAbilityManager = SystemAbilityManagerClient::GetInstance().GetSystemAbilityManager();
     if (!systemAbilityManager) {
@@ -383,7 +379,7 @@ ErrCode OsAccountInterface::SendToStorageAccountStop(OsAccountInfo &osAccountInf
         ReportOsAccountOperationFail(osAccountInfo.GetLocalId(), Constants::OPERATION_STOP,
             err, "Storage StopUser failed!");
     }
-    ACCOUNT_LOGI("end, Storage StopUser ret %{public}d", err);
+
     FinishTrace(HITRACE_TAG_ACCOUNT_MANAGER);
 #endif
     return ERR_OK;

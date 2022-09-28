@@ -28,7 +28,6 @@ napi_value WrapVoidToJS(napi_env env)
 
 int GetIntProperty(napi_env env, napi_value obj)
 {
-    ACCOUNT_LOGD("enter");
     int intTypeToJs = 0;
     if (napi_get_value_int32(env, obj, &intTypeToJs) != napi_ok) {
     }
@@ -38,7 +37,6 @@ int GetIntProperty(napi_env env, napi_value obj)
 
 int64_t GetLongIntProperty(napi_env env, napi_value obj)
 {
-    ACCOUNT_LOGD("enter");
     int64_t intTypeToJs = 0;
     if (napi_get_value_int64(env, obj, &intTypeToJs) != napi_ok) {
     }
@@ -48,7 +46,6 @@ int64_t GetLongIntProperty(napi_env env, napi_value obj)
 
 napi_value GetErrorCodeValue(napi_env env, int errCode)
 {
-    ACCOUNT_LOGD("enter");
     napi_value jsObject = nullptr;
     napi_value jsValue = nullptr;
     NAPI_CALL(env, napi_create_int32(env, errCode, &jsValue));
@@ -59,7 +56,6 @@ napi_value GetErrorCodeValue(napi_env env, int errCode)
 
 std::string GetStringProperty(napi_env env, napi_value obj)
 {
-    ACCOUNT_LOGD("enter");
     char propValue[MAX_VALUE_LEN] = {0};
     size_t propLen;
     if (napi_get_value_string_utf8(env, obj, propValue, MAX_VALUE_LEN, &propLen) != napi_ok) {
@@ -71,7 +67,6 @@ std::string GetStringProperty(napi_env env, napi_value obj)
 
 napi_value ParseParaQueryOAByIdCB(napi_env env, napi_callback_info cbInfo, QueryOAByIdAsyncContext *queryOAByIdCB)
 {
-    ACCOUNT_LOGD("enter");
     size_t argc = ARGS_SIZE_TWO;
     napi_value argv[ARGS_SIZE_TWO] = {0};
     napi_get_cb_info(env, cbInfo, &argc, argv, nullptr, nullptr);
@@ -93,7 +88,6 @@ napi_value ParseParaQueryOAByIdCB(napi_env env, napi_callback_info cbInfo, Query
 
 void QueryOAByIdExecuteCB(napi_env env, void *data)
 {
-    ACCOUNT_LOGD("napi_create_async_work running");
     QueryOAByIdAsyncContext *queryOAByIdCB = reinterpret_cast<QueryOAByIdAsyncContext *>(data);
     queryOAByIdCB->errCode = OsAccountManager::QueryOsAccountById(queryOAByIdCB->id, queryOAByIdCB->osAccountInfos);
     ACCOUNT_LOGD("errcode is %{public}d", queryOAByIdCB->errCode);
@@ -116,7 +110,6 @@ void QueryOAByIdCallbackCompletedCB(napi_env env, napi_status status, void *data
 
 void GetOACBInfoToJs(napi_env env, OsAccountInfo &info, napi_value objOAInfo)
 {
-    ACCOUNT_LOGD("enter");
     // localId
     int id = info.GetLocalId();
     napi_value idToJs = nullptr;
@@ -248,8 +241,6 @@ void GetOACBInfoToJs(napi_env env, OsAccountInfo &info, napi_value objOAInfo)
 
 void MakeArrayToJs(napi_env env, const std::vector<std::string> &constraints, napi_value jsArray)
 {
-    ACCOUNT_LOGD("enter");
-
     uint32_t index = 0;
 
     for (auto item : constraints) {
@@ -263,7 +254,6 @@ void MakeArrayToJs(napi_env env, const std::vector<std::string> &constraints, na
 void CBOrPromiseToQueryOAById(
     napi_env env, const QueryOAByIdAsyncContext *queryOAByIdCB, napi_value err, napi_value data)
 {
-    ACCOUNT_LOGD("enter");
     napi_value args[RESULT_COUNT] = {WrapVoidToJS(env), WrapVoidToJS(env)};
     if (queryOAByIdCB->status == napi_ok) {
         args[1] = data;
@@ -271,14 +261,12 @@ void CBOrPromiseToQueryOAById(
         args[0] = err;
     }
     if (queryOAByIdCB->deferred) {
-        ACCOUNT_LOGD("Promise");
         if (queryOAByIdCB->status == napi_ok) {
             napi_resolve_deferred(env, queryOAByIdCB->deferred, args[1]);
         } else {
             napi_reject_deferred(env, queryOAByIdCB->deferred, args[0]);
         }
     } else {
-        ACCOUNT_LOGD("Callback");
         napi_value callback = nullptr;
         napi_get_reference_value(env, queryOAByIdCB->callbackRef, &callback);
         napi_value returnVal = nullptr;
@@ -291,7 +279,6 @@ void CBOrPromiseToQueryOAById(
 
 napi_value ParseParaRemoveOACB(napi_env env, napi_callback_info cbInfo, RemoveOAAsyncContext *removeOACB)
 {
-    ACCOUNT_LOGD("enter");
     size_t argc = ARGS_SIZE_TWO;
     napi_value argv[ARGS_SIZE_TWO] = {0};
     napi_get_cb_info(env, cbInfo, &argc, argv, nullptr, nullptr);
@@ -313,7 +300,6 @@ napi_value ParseParaRemoveOACB(napi_env env, napi_callback_info cbInfo, RemoveOA
 
 void RemoveOAExecuteCB(napi_env env, void *data)
 {
-    ACCOUNT_LOGD("napi_create_async_work running");
     RemoveOAAsyncContext *removeOACB = reinterpret_cast<RemoveOAAsyncContext *>(data);
     removeOACB->errCode = OsAccountManager::RemoveOsAccount(removeOACB->id);
     ACCOUNT_LOGD("errcode is %{public}d", removeOACB->errCode);
@@ -335,7 +321,6 @@ void RemoveOACallbackCompletedCB(napi_env env, napi_status status, void *data)
 
 void CBOrPromiseToRemoveOA(napi_env env, const RemoveOAAsyncContext *removeOACB, napi_value err, napi_value data)
 {
-    ACCOUNT_LOGD("enter");
     napi_value args[RESULT_COUNT] = {WrapVoidToJS(env), WrapVoidToJS(env)};
     if (removeOACB->status == napi_ok) {
         args[1] = data;
@@ -343,14 +328,12 @@ void CBOrPromiseToRemoveOA(napi_env env, const RemoveOAAsyncContext *removeOACB,
         args[0] = err;
     }
     if (removeOACB->deferred) {
-        ACCOUNT_LOGD("Promise");
         if (removeOACB->status == napi_ok) {
             napi_resolve_deferred(env, removeOACB->deferred, args[1]);
         } else {
             napi_reject_deferred(env, removeOACB->deferred, args[0]);
         }
     } else {
-        ACCOUNT_LOGD("Callback");
         napi_value callback = nullptr;
         napi_get_reference_value(env, removeOACB->callbackRef, &callback);
         napi_value returnVal = nullptr;
@@ -363,7 +346,6 @@ void CBOrPromiseToRemoveOA(napi_env env, const RemoveOAAsyncContext *removeOACB,
 
 napi_value ParseParaSetOAName(napi_env env, napi_callback_info cbInfo, SetOANameAsyncContext *setOANameCB)
 {
-    ACCOUNT_LOGD("enter");
     size_t argc = ARGS_SIZE_THREE;
     napi_value argv[ARGS_SIZE_THREE] = {0};
     napi_get_cb_info(env, cbInfo, &argc, argv, nullptr, nullptr);
@@ -387,7 +369,6 @@ napi_value ParseParaSetOAName(napi_env env, napi_callback_info cbInfo, SetOAName
 
 void SetOANameExecuteCB(napi_env env, void *data)
 {
-    ACCOUNT_LOGD("napi_create_async_work running");
     SetOANameAsyncContext *setOANameCB = reinterpret_cast<SetOANameAsyncContext *>(data);
     setOANameCB->errCode = OsAccountManager::SetOsAccountName(setOANameCB->id, setOANameCB->name);
     ACCOUNT_LOGD("errcode is %{public}d", setOANameCB->errCode);
@@ -409,7 +390,6 @@ void SetOANameCallbackCompletedCB(napi_env env, napi_status status, void *data)
 
 void CBOrPromiseToSetOAName(napi_env env, const SetOANameAsyncContext *setOANameCB, napi_value err, napi_value data)
 {
-    ACCOUNT_LOGD("enter");
     napi_value args[RESULT_COUNT] = {WrapVoidToJS(env), WrapVoidToJS(env)};
     if (setOANameCB->status == napi_ok) {
         args[1] = data;
@@ -417,14 +397,12 @@ void CBOrPromiseToSetOAName(napi_env env, const SetOANameAsyncContext *setOAName
         args[0] = err;
     }
     if (setOANameCB->deferred) {
-        ACCOUNT_LOGD("Promise");
         if (setOANameCB->status == napi_ok) {
             napi_resolve_deferred(env, setOANameCB->deferred, args[1]);
         } else {
             napi_reject_deferred(env, setOANameCB->deferred, args[0]);
         }
     } else {
-        ACCOUNT_LOGD("Callback");
         napi_value callback = nullptr;
         napi_get_reference_value(env, setOANameCB->callbackRef, &callback);
         napi_value returnVal = nullptr;
@@ -437,8 +415,6 @@ void CBOrPromiseToSetOAName(napi_env env, const SetOANameAsyncContext *setOAName
 
 napi_value ParseParaSetOAConstraints(napi_env env, napi_callback_info cbInfo, SetOAConsAsyncContext *setOAConsCB)
 {
-    ACCOUNT_LOGD("enter");
-
     uint32_t length = 0;
     size_t strLen = 0;
     bool isArray = false;
@@ -446,7 +422,6 @@ napi_value ParseParaSetOAConstraints(napi_env env, napi_callback_info cbInfo, Se
     napi_valuetype valueType = napi_undefined;
     napi_value argv[ARGS_SIZE_FOUR] = {0};
     NAPI_CALL(env, napi_get_cb_info(env, cbInfo, &argc, argv, nullptr, nullptr));
-    ACCOUNT_LOGD("argc = [%{public}zu]", argc);
 
     // argv[0] : localId
     NAPI_CALL(env, napi_typeof(env, argv[0], &valueType));
@@ -493,7 +468,6 @@ napi_value ParseParaSetOAConstraints(napi_env env, napi_callback_info cbInfo, Se
 
 void SetOAConsExecuteCB(napi_env env, void *data)
 {
-    ACCOUNT_LOGD("napi_create_async_work running");
     SetOAConsAsyncContext *setOAConsCB = reinterpret_cast<SetOAConsAsyncContext *>(data);
     setOAConsCB->errCode =
         OsAccountManager::SetOsAccountConstraints(setOAConsCB->id, setOAConsCB->constraints, setOAConsCB->enable);
@@ -516,7 +490,6 @@ void SetOAConsCallbackCompletedCB(napi_env env, napi_status status, void *data)
 
 void CBOrPromiseToSetOACons(napi_env env, const SetOAConsAsyncContext *setOAConsCB, napi_value err, napi_value data)
 {
-    ACCOUNT_LOGD("enter");
     napi_value args[RESULT_COUNT] = {WrapVoidToJS(env), WrapVoidToJS(env)};
     if (setOAConsCB->status == napi_ok) {
         args[1] = data;
@@ -524,14 +497,12 @@ void CBOrPromiseToSetOACons(napi_env env, const SetOAConsAsyncContext *setOACons
         args[0] = err;
     }
     if (setOAConsCB->deferred) {
-        ACCOUNT_LOGD("Promise");
         if (setOAConsCB->status == napi_ok) {
             napi_resolve_deferred(env, setOAConsCB->deferred, args[1]);
         } else {
             napi_reject_deferred(env, setOAConsCB->deferred, args[0]);
         }
     } else {
-        ACCOUNT_LOGD("Callback");
         napi_value callback = nullptr;
         napi_get_reference_value(env, setOAConsCB->callbackRef, &callback);
         napi_value returnVal = nullptr;
@@ -544,7 +515,6 @@ void CBOrPromiseToSetOACons(napi_env env, const SetOAConsAsyncContext *setOACons
 
 napi_value ParseParaActiveOA(napi_env env, napi_callback_info cbInfo, ActivateOAAsyncContext *activeOACB)
 {
-    ACCOUNT_LOGD("enter");
     size_t argc = ARGS_SIZE_TWO;
     napi_value argv[ARGS_SIZE_TWO] = {0};
     napi_get_cb_info(env, cbInfo, &argc, argv, nullptr, nullptr);
@@ -566,7 +536,6 @@ napi_value ParseParaActiveOA(napi_env env, napi_callback_info cbInfo, ActivateOA
 
 void ActivateOAExecuteCB(napi_env env, void *data)
 {
-    ACCOUNT_LOGD("napi_create_async_work running");
     ActivateOAAsyncContext *activateOACB = reinterpret_cast<ActivateOAAsyncContext *>(data);
     activateOACB->errCode = OsAccountManager::ActivateOsAccount(activateOACB->id);
     ACCOUNT_LOGD("errcode is %{public}d", activateOACB->errCode);
@@ -588,7 +557,6 @@ void ActivateOACallbackCompletedCB(napi_env env, napi_status status, void *data)
 
 void CBOrPromiseToActivateOA(napi_env env, const ActivateOAAsyncContext *activateOA, napi_value err, napi_value data)
 {
-    ACCOUNT_LOGD("enter");
     napi_value args[RESULT_COUNT] = {WrapVoidToJS(env), WrapVoidToJS(env)};
     if (activateOA->status == napi_ok) {
         args[1] = data;
@@ -596,14 +564,12 @@ void CBOrPromiseToActivateOA(napi_env env, const ActivateOAAsyncContext *activat
         args[0] = err;
     }
     if (activateOA->deferred) {
-        ACCOUNT_LOGD("Promise");
         if (activateOA->status == napi_ok) {
             napi_resolve_deferred(env, activateOA->deferred, args[1]);
         } else {
             napi_reject_deferred(env, activateOA->deferred, args[0]);
         }
     } else {
-        ACCOUNT_LOGD("Callback");
         napi_value callback = nullptr;
         napi_get_reference_value(env, activateOA->callbackRef, &callback);
         napi_value returnVal = nullptr;
@@ -616,7 +582,6 @@ void CBOrPromiseToActivateOA(napi_env env, const ActivateOAAsyncContext *activat
 
 napi_value ParseParaCreateOA(napi_env env, napi_callback_info cbInfo, CreateOAAsyncContext *createOACB)
 {
-    ACCOUNT_LOGD("enter");
     size_t argc = ARGS_SIZE_THREE;
     napi_value argv[ARGS_SIZE_THREE] = {0};
     napi_get_cb_info(env, cbInfo, &argc, argv, nullptr, nullptr);
@@ -641,7 +606,6 @@ napi_value ParseParaCreateOA(napi_env env, napi_callback_info cbInfo, CreateOAAs
 napi_value ParseParaCreateOAForDomain(napi_env env, napi_callback_info cbInfo,
     CreateOAForDomainAsyncContext *createOAForDomainCB)
 {
-    ACCOUNT_LOGD("enter");
     size_t argc = ARGS_SIZE_THREE;
     napi_value argv[ARGS_SIZE_THREE] = {0};
     napi_get_cb_info(env, cbInfo, &argc, argv, nullptr, nullptr);
@@ -675,13 +639,11 @@ void CreateOAExecuteCB(napi_env env, void *data)
     CreateOAAsyncContext *createOACB = reinterpret_cast<CreateOAAsyncContext *>(data);
     createOACB->errCode =
         OsAccountManager::CreateOsAccount(createOACB->name, createOACB->type, createOACB->osAccountInfos);
-    ACCOUNT_LOGI("error code is %{public}d", createOACB->errCode);
     createOACB->status = (createOACB->errCode == 0) ? napi_ok : napi_generic_failure;
 }
 
 void CreateOAForDomainExecuteCB(napi_env env, void *data)
 {
-    ACCOUNT_LOGD("napi_create_async_work running");
     CreateOAForDomainAsyncContext *createOAForDomainCB = reinterpret_cast<CreateOAForDomainAsyncContext *>(data);
     createOAForDomainCB->errCode = OsAccountManager::CreateOsAccountForDomain(createOAForDomainCB->type,
         createOAForDomainCB->domainInfo, createOAForDomainCB->osAccountInfos);
@@ -719,7 +681,6 @@ void CreateOAForDomainCallbackCompletedCB(napi_env env, napi_status status, void
 
 void CBOrPromiseToCreateOA(napi_env env, const CreateOAAsyncContext *createOACB, napi_value err, napi_value data)
 {
-    ACCOUNT_LOGD("enter");
     napi_value args[RESULT_COUNT] = {WrapVoidToJS(env), WrapVoidToJS(env)};
     if (createOACB->status == napi_ok) {
         args[1] = data;
@@ -727,14 +688,12 @@ void CBOrPromiseToCreateOA(napi_env env, const CreateOAAsyncContext *createOACB,
         args[0] = err;
     }
     if (createOACB->deferred) {
-        ACCOUNT_LOGD("Promise");
         if (createOACB->status == napi_ok) {
             napi_resolve_deferred(env, createOACB->deferred, args[1]);
         } else {
             napi_reject_deferred(env, createOACB->deferred, args[0]);
         }
     } else {
-        ACCOUNT_LOGD("Callback");
         napi_value callback = nullptr;
         napi_get_reference_value(env, createOACB->callbackRef, &callback);
         napi_value returnVal = nullptr;
@@ -748,7 +707,6 @@ void CBOrPromiseToCreateOA(napi_env env, const CreateOAAsyncContext *createOACB,
 void CBOrPromiseToCreateOAForDomain(napi_env env, const CreateOAForDomainAsyncContext *createOAForDomainCB,
     napi_value err, napi_value data)
 {
-    ACCOUNT_LOGD("enter");
     napi_value args[RESULT_COUNT] = {WrapVoidToJS(env), WrapVoidToJS(env)};
     if (createOAForDomainCB->status == napi_ok) {
         args[1] = data;
@@ -756,14 +714,12 @@ void CBOrPromiseToCreateOAForDomain(napi_env env, const CreateOAForDomainAsyncCo
         args[0] = err;
     }
     if (createOAForDomainCB->deferred) {
-        ACCOUNT_LOGD("Promise");
         if (createOAForDomainCB->status == napi_ok) {
             napi_resolve_deferred(env, createOAForDomainCB->deferred, args[1]);
         } else {
             napi_reject_deferred(env, createOAForDomainCB->deferred, args[0]);
         }
     } else {
-        ACCOUNT_LOGD("Callback");
         napi_value callback = nullptr;
         napi_get_reference_value(env, createOAForDomainCB->callbackRef, &callback);
         napi_value returnVal = nullptr;
@@ -776,7 +732,6 @@ void CBOrPromiseToCreateOAForDomain(napi_env env, const CreateOAForDomainAsyncCo
 
 void ParseParaGetOACount(napi_env env, napi_callback_info cbInfo, GetOACountAsyncContext *getOACount)
 {
-    ACCOUNT_LOGD("enter");
     size_t argc = ARGS_SIZE_ONE;
     napi_value argv[ARGS_SIZE_ONE] = {0};
     napi_get_cb_info(env, cbInfo, &argc, argv, nullptr, nullptr);
@@ -792,7 +747,6 @@ void ParseParaGetOACount(napi_env env, napi_callback_info cbInfo, GetOACountAsyn
 
 void GetOACountExecuteCB(napi_env env, void *data)
 {
-    ACCOUNT_LOGD("napi_create_async_work running");
     GetOACountAsyncContext *getOACount = reinterpret_cast<GetOACountAsyncContext *>(data);
     getOACount->errCode = OsAccountManager::GetCreatedOsAccountsCount(getOACount->osAccountsCount);
     ACCOUNT_LOGD("error code is %{public}d", getOACount->errCode);
@@ -814,7 +768,6 @@ void GetOACountCallbackCompletedCB(napi_env env, napi_status status, void *data)
 
 void CBOrPromiseToGetOACount(napi_env env, const GetOACountAsyncContext *getOACount, napi_value err, napi_value data)
 {
-    ACCOUNT_LOGD("enter");
     napi_value args[RESULT_COUNT] = {WrapVoidToJS(env), WrapVoidToJS(env)};
     if (getOACount->status == napi_ok) {
         args[1] = data;
@@ -822,14 +775,12 @@ void CBOrPromiseToGetOACount(napi_env env, const GetOACountAsyncContext *getOACo
         args[0] = err;
     }
     if (getOACount->deferred) {
-        ACCOUNT_LOGD("Promise");
         if (getOACount->status == napi_ok) {
             napi_resolve_deferred(env, getOACount->deferred, args[1]);
         } else {
             napi_reject_deferred(env, getOACount->deferred, args[0]);
         }
     } else {
-        ACCOUNT_LOGD("Callback");
         napi_value callback = nullptr;
         napi_get_reference_value(env, getOACount->callbackRef, &callback);
         napi_value returnVal = nullptr;
@@ -842,7 +793,6 @@ void CBOrPromiseToGetOACount(napi_env env, const GetOACountAsyncContext *getOACo
 
 void ParseParaDbDeviceId(napi_env env, napi_callback_info cbInfo, DbDeviceIdAsyncContext *dbDeviceId)
 {
-    ACCOUNT_LOGD("enter");
     size_t argc = ARGS_SIZE_ONE;
     napi_value argv[ARGS_SIZE_ONE] = {0};
     napi_get_cb_info(env, cbInfo, &argc, argv, nullptr, nullptr);
@@ -858,7 +808,6 @@ void ParseParaDbDeviceId(napi_env env, napi_callback_info cbInfo, DbDeviceIdAsyn
 
 void DbDeviceIdExecuteCB(napi_env env, void *data)
 {
-    ACCOUNT_LOGD("napi_create_async_work running");
     DbDeviceIdAsyncContext *dbDeviceId = reinterpret_cast<DbDeviceIdAsyncContext *>(data);
     dbDeviceId->errCode = OsAccountManager::GetDistributedVirtualDeviceId(dbDeviceId->deviceId);
     ACCOUNT_LOGD("error code is %{public}d", dbDeviceId->errCode);
@@ -880,7 +829,6 @@ void DbDeviceIdCallbackCompletedCB(napi_env env, napi_status status, void *data)
 
 void CBOrPromiseToDbDeviceId(napi_env env, const DbDeviceIdAsyncContext *dbDeviceId, napi_value err, napi_value data)
 {
-    ACCOUNT_LOGD("enter");
     napi_value args[RESULT_COUNT] = {WrapVoidToJS(env), WrapVoidToJS(env)};
     if (dbDeviceId->status == napi_ok) {
         args[1] = data;
@@ -888,14 +836,12 @@ void CBOrPromiseToDbDeviceId(napi_env env, const DbDeviceIdAsyncContext *dbDevic
         args[0] = err;
     }
     if (dbDeviceId->deferred) {
-        ACCOUNT_LOGD("Promise");
         if (dbDeviceId->status == napi_ok) {
             napi_resolve_deferred(env, dbDeviceId->deferred, args[1]);
         } else {
             napi_reject_deferred(env, dbDeviceId->deferred, args[0]);
         }
     } else {
-        ACCOUNT_LOGD("Callback");
         napi_value callback = nullptr;
         napi_get_reference_value(env, dbDeviceId->callbackRef, &callback);
         napi_value returnVal = nullptr;
@@ -908,7 +854,6 @@ void CBOrPromiseToDbDeviceId(napi_env env, const DbDeviceIdAsyncContext *dbDevic
 
 napi_value ParseParaGetAllCons(napi_env env, napi_callback_info cbInfo, GetAllConsAsyncContext *getAllConsCB)
 {
-    ACCOUNT_LOGD("enter");
     size_t argc = ARGS_SIZE_TWO;
     napi_value argv[ARGS_SIZE_TWO] = {0};
     napi_get_cb_info(env, cbInfo, &argc, argv, nullptr, nullptr);
@@ -930,7 +875,6 @@ napi_value ParseParaGetAllCons(napi_env env, napi_callback_info cbInfo, GetAllCo
 
 void GetAllConsExecuteCB(napi_env env, void *data)
 {
-    ACCOUNT_LOGD("napi_create_async_work running");
     GetAllConsAsyncContext *getAllConsCB = reinterpret_cast<GetAllConsAsyncContext *>(data);
     getAllConsCB->errCode = OsAccountManager::GetOsAccountAllConstraints(getAllConsCB->id, getAllConsCB->constraints);
     ACCOUNT_LOGD("error code is %{public}d", getAllConsCB->errCode);
@@ -953,8 +897,6 @@ void GetAllConsCallbackCompletedCB(napi_env env, napi_status status, void *data)
 
 void GetAllAccountCons(napi_env env, const std::vector<std::string> &info, napi_value result)
 {
-    ACCOUNT_LOGD("enter");
-
     uint32_t index = 0;
 
     for (auto item : info) {
@@ -967,8 +909,6 @@ void GetAllAccountCons(napi_env env, const std::vector<std::string> &info, napi_
 
 void GetActiveIds(napi_env env, const std::vector<int> &ids, napi_value result)
 {
-    ACCOUNT_LOGD("enter");
-
     uint32_t index = 0;
 
     for (auto id : ids) {
@@ -981,7 +921,6 @@ void GetActiveIds(napi_env env, const std::vector<int> &ids, napi_value result)
 
 void CBOrPromiseToGetAllCons(napi_env env, const GetAllConsAsyncContext *getAllCons, napi_value err, napi_value data)
 {
-    ACCOUNT_LOGD("enter");
     napi_value args[RESULT_COUNT] = {WrapVoidToJS(env), WrapVoidToJS(env)};
     if (getAllCons->status == napi_ok) {
         args[1] = data;
@@ -989,14 +928,12 @@ void CBOrPromiseToGetAllCons(napi_env env, const GetAllConsAsyncContext *getAllC
         args[0] = err;
     }
     if (getAllCons->deferred) {
-        ACCOUNT_LOGD("Promise");
         if (getAllCons->status == napi_ok) {
             napi_resolve_deferred(env, getAllCons->deferred, args[1]);
         } else {
             napi_reject_deferred(env, getAllCons->deferred, args[0]);
         }
     } else {
-        ACCOUNT_LOGD("Callback");
         napi_value callback = nullptr;
         napi_get_reference_value(env, getAllCons->callbackRef, &callback);
         napi_value returnVal = nullptr;
@@ -1009,7 +946,6 @@ void CBOrPromiseToGetAllCons(napi_env env, const GetAllConsAsyncContext *getAllC
 
 void ParseParaProcessId(napi_env env, napi_callback_info cbInfo, GetIdAsyncContext *getIdCB)
 {
-    ACCOUNT_LOGD("enter");
     size_t argc = ARGS_SIZE_ONE;
     napi_value argv[ARGS_SIZE_ONE] = {0};
     napi_get_cb_info(env, cbInfo, &argc, argv, nullptr, nullptr);
@@ -1025,7 +961,6 @@ void ParseParaProcessId(napi_env env, napi_callback_info cbInfo, GetIdAsyncConte
 
 void GetProcessIdExecuteCB(napi_env env, void *data)
 {
-    ACCOUNT_LOGD("napi_create_async_work running");
     GetIdAsyncContext *getIdCB = reinterpret_cast<GetIdAsyncContext *>(data);
     getIdCB->errCode = OsAccountManager::GetOsAccountLocalIdFromProcess(getIdCB->id);
     ACCOUNT_LOGD("error code is %{public}d", getIdCB->errCode);
@@ -1047,7 +982,6 @@ void GetProcessIdCallbackCompletedCB(napi_env env, napi_status status, void *dat
 
 void CBOrPromiseToGetProcessId(napi_env env, const GetIdAsyncContext *getIdCB, napi_value err, napi_value data)
 {
-    ACCOUNT_LOGD("enter");
     napi_value args[RESULT_COUNT] = {WrapVoidToJS(env), WrapVoidToJS(env)};
     if (getIdCB->status == napi_ok) {
         args[1] = data;
@@ -1055,14 +989,12 @@ void CBOrPromiseToGetProcessId(napi_env env, const GetIdAsyncContext *getIdCB, n
         args[0] = err;
     }
     if (getIdCB->deferred) {
-        ACCOUNT_LOGD("Promise");
         if (getIdCB->status == napi_ok) {
             napi_resolve_deferred(env, getIdCB->deferred, args[1]);
         } else {
             napi_reject_deferred(env, getIdCB->deferred, args[0]);
         }
     } else {
-        ACCOUNT_LOGD("Callback");
         napi_value callback = nullptr;
         napi_get_reference_value(env, getIdCB->callbackRef, &callback);
         napi_value returnVal = nullptr;
@@ -1075,7 +1007,6 @@ void CBOrPromiseToGetProcessId(napi_env env, const GetIdAsyncContext *getIdCB, n
 
 void ParseQueryAllCreateOA(napi_env env, napi_callback_info cbInfo, QueryCreateOAAsyncContext *queryAllOA)
 {
-    ACCOUNT_LOGD("enter");
     size_t argc = ARGS_SIZE_ONE;
     napi_value argv[ARGS_SIZE_ONE] = {0};
     napi_get_cb_info(env, cbInfo, &argc, argv, nullptr, nullptr);
@@ -1092,7 +1023,6 @@ void ParseQueryAllCreateOA(napi_env env, napi_callback_info cbInfo, QueryCreateO
 napi_value ParseQueryOAConstraintSrcTypes(napi_env env, napi_callback_info cbInfo,
     QueryOAConstraintSrcTypeContext *queryConstraintSource)
 {
-    ACCOUNT_LOGI("enter");
     size_t argc = ARGS_SIZE_THREE;
     napi_value argv[ARGS_SIZE_THREE] = {0};
     napi_get_cb_info(env, cbInfo, &argc, argv, nullptr, nullptr);
@@ -1116,7 +1046,6 @@ napi_value ParseQueryOAConstraintSrcTypes(napi_env env, napi_callback_info cbInf
 
 void QueryOAContSrcTypeExecuteCB(napi_env env, void *data)
 {
-    ACCOUNT_LOGI("napi_create_async_work running");
     QueryOAConstraintSrcTypeContext *queryConstraintSource = reinterpret_cast<QueryOAConstraintSrcTypeContext *>(data);
     queryConstraintSource->errCode = OsAccountManager::QueryOsAccountConstraintSourceTypes(queryConstraintSource->id,
         queryConstraintSource->constraint, queryConstraintSource->constraintSourceTypeInfos);
@@ -1140,8 +1069,6 @@ void QueryOAContSrcTypeCallbackCompletedCB(napi_env env, napi_status status, voi
 
 void QueryOAContSrcTypeForResult(napi_env env, const std::vector<ConstraintSourceTypeInfo> &infos, napi_value result)
 {
-    ACCOUNT_LOGD("enter");
-
     uint32_t index = 0;
 
     for (auto item : infos) {
@@ -1164,7 +1091,6 @@ void QueryOAContSrcTypeForResult(napi_env env, const std::vector<ConstraintSourc
 void CBOrPromiseToQueryOAContSrcType(napi_env env,
     const QueryOAConstraintSrcTypeContext *queryConstraintSource, napi_value err, napi_value data)
 {
-    ACCOUNT_LOGI("enter");
     napi_value args[RESULT_COUNT] = {WrapVoidToJS(env), WrapVoidToJS(env)};
     if (queryConstraintSource->status == napi_ok) {
         args[1] = data;
@@ -1172,14 +1098,12 @@ void CBOrPromiseToQueryOAContSrcType(napi_env env,
         args[0] = err;
     }
     if (queryConstraintSource->deferred) {
-        ACCOUNT_LOGI("Promise");
         if (queryConstraintSource->status == napi_ok) {
             napi_resolve_deferred(env, queryConstraintSource->deferred, args[1]);
         } else {
             napi_reject_deferred(env, queryConstraintSource->deferred, args[0]);
         }
     } else {
-        ACCOUNT_LOGI("Callback");
         napi_value callback = nullptr;
         napi_get_reference_value(env, queryConstraintSource->callbackRef, &callback);
         napi_value returnVal = nullptr;
@@ -1192,7 +1116,6 @@ void CBOrPromiseToQueryOAContSrcType(napi_env env,
 
 void ParseQueryActiveIds(napi_env env, napi_callback_info cbInfo, QueryActiveIdsAsyncContext *queryActiveIds)
 {
-    ACCOUNT_LOGD("enter");
     size_t argc = ARGS_SIZE_ONE;
     napi_value argv[ARGS_SIZE_ONE] = {0};
     napi_get_cb_info(env, cbInfo, &argc, argv, nullptr, nullptr);
@@ -1206,7 +1129,6 @@ void ParseQueryActiveIds(napi_env env, napi_callback_info cbInfo, QueryActiveIds
 
 void QueryCreateOAExecuteCB(napi_env env, void *data)
 {
-    ACCOUNT_LOGD("napi_create_async_work running");
     QueryCreateOAAsyncContext *queryAllOA = reinterpret_cast<QueryCreateOAAsyncContext *>(data);
     queryAllOA->errCode = OsAccountManager::QueryAllCreatedOsAccounts(queryAllOA->osAccountInfos);
     ACCOUNT_LOGD("error code is %{public}d", queryAllOA->errCode);
@@ -1215,7 +1137,6 @@ void QueryCreateOAExecuteCB(napi_env env, void *data)
 
 void QueryActiveIdsExecuteCB(napi_env env, void *data)
 {
-    ACCOUNT_LOGD("napi_create_async_work running");
     QueryActiveIdsAsyncContext *queryActiveIds = reinterpret_cast<QueryActiveIdsAsyncContext *>(data);
     queryActiveIds->errCode = OsAccountManager::QueryActiveOsAccountIds(queryActiveIds->osAccountIds);
     ACCOUNT_LOGD("error code is %{public}d", queryActiveIds->errCode);
@@ -1252,8 +1173,6 @@ void QueryActiveIdsCallbackCompletedCB(napi_env env, napi_status status, void *d
 
 void QueryOAInfoForResult(napi_env env, const std::vector<OsAccountInfo> &info, napi_value result)
 {
-    ACCOUNT_LOGD("enter");
-
     uint32_t index = 0;
 
     for (auto item : info) {
@@ -1267,7 +1186,6 @@ void QueryOAInfoForResult(napi_env env, const std::vector<OsAccountInfo> &info, 
 
 void CBOrPromiseToQueryOA(napi_env env, const QueryCreateOAAsyncContext *queryOA, napi_value err, napi_value data)
 {
-    ACCOUNT_LOGD("enter");
     napi_value args[RESULT_COUNT] = {WrapVoidToJS(env), WrapVoidToJS(env)};
     if (queryOA->status == napi_ok) {
         args[1] = data;
@@ -1275,14 +1193,12 @@ void CBOrPromiseToQueryOA(napi_env env, const QueryCreateOAAsyncContext *queryOA
         args[0] = err;
     }
     if (queryOA->deferred) {
-        ACCOUNT_LOGD("Promise");
         if (queryOA->status == napi_ok) {
             napi_resolve_deferred(env, queryOA->deferred, args[1]);
         } else {
             napi_reject_deferred(env, queryOA->deferred, args[0]);
         }
     } else {
-        ACCOUNT_LOGD("Callback");
         napi_value callback = nullptr;
         napi_get_reference_value(env, queryOA->callbackRef, &callback);
         napi_value returnVal = nullptr;
@@ -1296,7 +1212,6 @@ void CBOrPromiseToQueryOA(napi_env env, const QueryCreateOAAsyncContext *queryOA
 void CBOrPromiseToQueryActiveIds(napi_env env, const QueryActiveIdsAsyncContext *queryActiveIds,
     napi_value err, napi_value data)
 {
-    ACCOUNT_LOGD("enter");
     napi_value args[RESULT_COUNT] = {WrapVoidToJS(env), WrapVoidToJS(env)};
     if (queryActiveIds->status == napi_ok) {
         args[1] = data;
@@ -1304,14 +1219,12 @@ void CBOrPromiseToQueryActiveIds(napi_env env, const QueryActiveIdsAsyncContext 
         args[0] = err;
     }
     if (queryActiveIds->deferred) {
-        ACCOUNT_LOGD("Promise");
         if (queryActiveIds->status == napi_ok) {
             napi_resolve_deferred(env, queryActiveIds->deferred, args[1]);
         } else {
             napi_reject_deferred(env, queryActiveIds->deferred, args[0]);
         }
     } else {
-        ACCOUNT_LOGD("Callback");
         napi_value callback = nullptr;
         napi_get_reference_value(env, queryActiveIds->callbackRef, &callback);
         napi_value returnVal = nullptr;
@@ -1324,7 +1237,6 @@ void CBOrPromiseToQueryActiveIds(napi_env env, const QueryActiveIdsAsyncContext 
 
 napi_value ParseParaGetPhoto(napi_env env, napi_callback_info cbInfo, GetOAPhotoAsyncContext *getPhoto)
 {
-    ACCOUNT_LOGD("enter");
     size_t argc = ARGS_SIZE_TWO;
     napi_value argv[ARGS_SIZE_TWO] = {0};
     napi_get_cb_info(env, cbInfo, &argc, argv, nullptr, nullptr);
@@ -1349,7 +1261,6 @@ void GetOAPhotoExecuteCB(napi_env env, void *data)
     ACCOUNT_LOGD("napi_create_async_work running");
     GetOAPhotoAsyncContext *getPhoto = reinterpret_cast<GetOAPhotoAsyncContext *>(data);
     getPhoto->errCode = OsAccountManager::GetOsAccountProfilePhoto(getPhoto->id, getPhoto->photo);
-    ACCOUNT_LOGI("error code is %{public}d", getPhoto->errCode);
     getPhoto->status = (getPhoto->errCode == 0) ? napi_ok : napi_generic_failure;
 }
 
@@ -1368,7 +1279,6 @@ void GetOAPhotoCallbackCompletedCB(napi_env env, napi_status status, void *data)
 
 void CBOrPromiseToGetPhoto(napi_env env, const GetOAPhotoAsyncContext *getPhoto, napi_value err, napi_value data)
 {
-    ACCOUNT_LOGD("enter");
     napi_value args[RESULT_COUNT] = {WrapVoidToJS(env), WrapVoidToJS(env)};
     if (getPhoto->status == napi_ok) {
         args[1] = data;
@@ -1376,14 +1286,12 @@ void CBOrPromiseToGetPhoto(napi_env env, const GetOAPhotoAsyncContext *getPhoto,
         args[0] = err;
     }
     if (getPhoto->deferred) {
-        ACCOUNT_LOGD("Promise");
         if (getPhoto->status == napi_ok) {
             napi_resolve_deferred(env, getPhoto->deferred, args[1]);
         } else {
             napi_reject_deferred(env, getPhoto->deferred, args[0]);
         }
     } else {
-        ACCOUNT_LOGD("Callback");
         napi_value callback = nullptr;
         napi_get_reference_value(env, getPhoto->callbackRef, &callback);
         napi_value returnVal = nullptr;
@@ -1396,7 +1304,6 @@ void CBOrPromiseToGetPhoto(napi_env env, const GetOAPhotoAsyncContext *getPhoto,
 
 void ParseParaCurrentOA(napi_env env, napi_callback_info cbInfo, CurrentOAAsyncContext *currentOA)
 {
-    ACCOUNT_LOGD("enter");
     size_t argc = ARGS_SIZE_ONE;
     napi_value argv[ARGS_SIZE_ONE] = {0};
     napi_get_cb_info(env, cbInfo, &argc, argv, nullptr, nullptr);
@@ -1412,7 +1319,6 @@ void ParseParaCurrentOA(napi_env env, napi_callback_info cbInfo, CurrentOAAsyncC
 
 void QueryCurrentOAExecuteCB(napi_env env, void *data)
 {
-    ACCOUNT_LOGD("napi_create_async_work running");
     CurrentOAAsyncContext *currentOA = reinterpret_cast<CurrentOAAsyncContext *>(data);
     currentOA->errCode = OsAccountManager::QueryCurrentOsAccount(currentOA->osAccountInfos);
     ACCOUNT_LOGD("error code is %{public}d", currentOA->errCode);
@@ -1435,7 +1341,6 @@ void QueryCurrentOACallbackCompletedCB(napi_env env, napi_status status, void *d
 
 void CBOrPromiseQueryCurrentOA(napi_env env, const CurrentOAAsyncContext *currentOA, napi_value err, napi_value data)
 {
-    ACCOUNT_LOGD("enter");
     napi_value args[RESULT_COUNT] = {WrapVoidToJS(env), WrapVoidToJS(env)};
     if (currentOA->status == napi_ok) {
         args[1] = data;
@@ -1443,14 +1348,12 @@ void CBOrPromiseQueryCurrentOA(napi_env env, const CurrentOAAsyncContext *curren
         args[0] = err;
     }
     if (currentOA->deferred) {
-        ACCOUNT_LOGD("Promise");
         if (currentOA->status == napi_ok) {
             napi_resolve_deferred(env, currentOA->deferred, args[1]);
         } else {
             napi_reject_deferred(env, currentOA->deferred, args[0]);
         }
     } else {
-        ACCOUNT_LOGD("Callback");
         napi_value callback = nullptr;
         napi_get_reference_value(env, currentOA->callbackRef, &callback);
         napi_value returnVal = nullptr;
@@ -1463,7 +1366,6 @@ void CBOrPromiseQueryCurrentOA(napi_env env, const CurrentOAAsyncContext *curren
 
 napi_value ParseParaGetIdByUid(napi_env env, napi_callback_info cbInfo, GetIdByUidAsyncContext *idByUid)
 {
-    ACCOUNT_LOGD("enter");
     size_t argc = ARGS_SIZE_TWO;
     napi_value argv[ARGS_SIZE_TWO] = {0};
     napi_get_cb_info(env, cbInfo, &argc, argv, nullptr, nullptr);
@@ -1485,7 +1387,6 @@ napi_value ParseParaGetIdByUid(napi_env env, napi_callback_info cbInfo, GetIdByU
 
 napi_value ParseParaGetIdByDomain(napi_env env, napi_callback_info cbInfo, GetIdByDomainAsyncContext *idByDomain)
 {
-    ACCOUNT_LOGD("enter");
     size_t argc = ARGS_SIZE_TWO;
     napi_value argv[ARGS_SIZE_TWO] = {0};
     napi_get_cb_info(env, cbInfo, &argc, argv, nullptr, nullptr);
@@ -1513,7 +1414,6 @@ napi_value ParseParaGetIdByDomain(napi_env env, napi_callback_info cbInfo, GetId
 
 void GetIdByUidExecuteCB(napi_env env, void *data)
 {
-    ACCOUNT_LOGD("napi_create_async_work running");
     GetIdByUidAsyncContext *idByUid = reinterpret_cast<GetIdByUidAsyncContext *>(data);
     idByUid->errCode = OsAccountManager::GetOsAccountLocalIdFromUid(idByUid->uid, idByUid->id);
     ACCOUNT_LOGD("error code is %{public}d", idByUid->errCode);
@@ -1522,7 +1422,6 @@ void GetIdByUidExecuteCB(napi_env env, void *data)
 
 void GetBundleIdByUidExecuteCB(napi_env env, void *data)
 {
-    ACCOUNT_LOGD("napi_create_async_work running");
     GetIdByUidAsyncContext *bundleIdByUid = reinterpret_cast<GetIdByUidAsyncContext *>(data);
     bundleIdByUid->errCode = OsAccountManager::GetBundleIdFromUid(bundleIdByUid->uid, bundleIdByUid->id);
     ACCOUNT_LOGD("error code is %{public}d", bundleIdByUid->errCode);
@@ -1531,7 +1430,6 @@ void GetBundleIdByUidExecuteCB(napi_env env, void *data)
 
 void GetIdByDomainExecuteCB(napi_env env, void *data)
 {
-    ACCOUNT_LOGD("napi_create_async_work running");
     GetIdByDomainAsyncContext *idByDomain = reinterpret_cast<GetIdByDomainAsyncContext *>(data);
     idByDomain->errCode = OsAccountManager::GetOsAccountLocalIdFromDomain(
         idByDomain->domainInfo, idByDomain->id);
@@ -1580,7 +1478,6 @@ void GetIdByDomainCallbackCompletedCB(napi_env env, napi_status status, void *da
 
 void CBOrPromiseGetIdByUid(napi_env env, const GetIdByUidAsyncContext *idByUid, napi_value err, napi_value data)
 {
-    ACCOUNT_LOGD("enter");
     napi_value args[RESULT_COUNT] = {WrapVoidToJS(env), WrapVoidToJS(env)};
     if (idByUid->status == napi_ok) {
         args[1] = data;
@@ -1588,14 +1485,12 @@ void CBOrPromiseGetIdByUid(napi_env env, const GetIdByUidAsyncContext *idByUid, 
         args[0] = err;
     }
     if (idByUid->deferred) {
-        ACCOUNT_LOGD("Promise");
         if (idByUid->status == napi_ok) {
             napi_resolve_deferred(env, idByUid->deferred, args[1]);
         } else {
             napi_reject_deferred(env, idByUid->deferred, args[0]);
         }
     } else {
-        ACCOUNT_LOGD("Callback");
         napi_value callback = nullptr;
         napi_get_reference_value(env, idByUid->callbackRef, &callback);
         napi_value returnVal = nullptr;
@@ -1609,7 +1504,6 @@ void CBOrPromiseGetIdByUid(napi_env env, const GetIdByUidAsyncContext *idByUid, 
 void CBOrPromiseGetBundleIdByUid(napi_env env, const GetIdByUidAsyncContext *bundleIdByUid,
     napi_value err, napi_value data)
 {
-    ACCOUNT_LOGD("enter");
     napi_value args[RESULT_COUNT] = {WrapVoidToJS(env), WrapVoidToJS(env)};
     if (bundleIdByUid->status == napi_ok) {
         args[1] = data;
@@ -1617,14 +1511,12 @@ void CBOrPromiseGetBundleIdByUid(napi_env env, const GetIdByUidAsyncContext *bun
         args[0] = err;
     }
     if (bundleIdByUid->deferred) {
-        ACCOUNT_LOGD("Promise");
         if (bundleIdByUid->status == napi_ok) {
             napi_resolve_deferred(env, bundleIdByUid->deferred, args[1]);
         } else {
             napi_reject_deferred(env, bundleIdByUid->deferred, args[0]);
         }
     } else {
-        ACCOUNT_LOGD("Callback");
         napi_value callback = nullptr;
         napi_get_reference_value(env, bundleIdByUid->callbackRef, &callback);
         napi_value returnVal = nullptr;
@@ -1638,7 +1530,6 @@ void CBOrPromiseGetBundleIdByUid(napi_env env, const GetIdByUidAsyncContext *bun
 void CBOrPromiseGetIdByDomain(napi_env env, const GetIdByDomainAsyncContext *idByDomain,
     napi_value err, napi_value data)
 {
-    ACCOUNT_LOGD("enter");
     napi_value args[RESULT_COUNT] = {WrapVoidToJS(env), WrapVoidToJS(env)};
     if (idByDomain->status == napi_ok) {
         args[1] = data;
@@ -1646,14 +1537,12 @@ void CBOrPromiseGetIdByDomain(napi_env env, const GetIdByDomainAsyncContext *idB
         args[0] = err;
     }
     if (idByDomain->deferred) {
-        ACCOUNT_LOGD("Promise");
         if (idByDomain->status == napi_ok) {
             napi_resolve_deferred(env, idByDomain->deferred, args[1]);
         } else {
             napi_reject_deferred(env, idByDomain->deferred, args[0]);
         }
     } else {
-        ACCOUNT_LOGD("Callback");
         napi_value callback = nullptr;
         napi_get_reference_value(env, idByDomain->callbackRef, &callback);
         napi_value returnVal = nullptr;
@@ -1666,7 +1555,6 @@ void CBOrPromiseGetIdByDomain(napi_env env, const GetIdByDomainAsyncContext *idB
 
 napi_value ParseParaSetPhoto(napi_env env, napi_callback_info cbInfo, SetOAPhotoAsyncContext *setPhoto)
 {
-    ACCOUNT_LOGD("enter");
     size_t argc = ARGS_SIZE_THREE;
     napi_value argv[ARGS_SIZE_THREE] = {0};
     napi_get_cb_info(env, cbInfo, &argc, argv, nullptr, nullptr);
@@ -1690,7 +1578,6 @@ napi_value ParseParaSetPhoto(napi_env env, napi_callback_info cbInfo, SetOAPhoto
 
 void SetPhotoExecuteCB(napi_env env, void *data)
 {
-    ACCOUNT_LOGD("napi_create_async_work running");
     SetOAPhotoAsyncContext *setPhoto = reinterpret_cast<SetOAPhotoAsyncContext *>(data);
     setPhoto->errCode = OsAccountManager::SetOsAccountProfilePhoto(setPhoto->id, setPhoto->photo);
     ACCOUNT_LOGD("error code is %{public}d", setPhoto->errCode);
@@ -1712,7 +1599,6 @@ void SetPhotoCompletedCB(napi_env env, napi_status status, void *data)
 
 void CBOrPromiseSetPhoto(napi_env env, const SetOAPhotoAsyncContext *setPhoto, napi_value err, napi_value data)
 {
-    ACCOUNT_LOGD("enter");
     napi_value args[RESULT_COUNT] = {WrapVoidToJS(env), WrapVoidToJS(env)};
     if (setPhoto->status == napi_ok) {
         args[1] = data;
@@ -1720,14 +1606,12 @@ void CBOrPromiseSetPhoto(napi_env env, const SetOAPhotoAsyncContext *setPhoto, n
         args[0] = err;
     }
     if (setPhoto->deferred) {
-        ACCOUNT_LOGD("Promise");
         if (setPhoto->status == napi_ok) {
             napi_resolve_deferred(env, setPhoto->deferred, args[1]);
         } else {
             napi_reject_deferred(env, setPhoto->deferred, args[0]);
         }
     } else {
-        ACCOUNT_LOGD("Callback");
         napi_value callback = nullptr;
         napi_get_reference_value(env, setPhoto->callbackRef, &callback);
         napi_value returnVal = nullptr;
@@ -1740,7 +1624,6 @@ void CBOrPromiseSetPhoto(napi_env env, const SetOAPhotoAsyncContext *setPhoto, n
 
 void ParseParaQueryMaxNum(napi_env env, napi_callback_info cbInfo, QueryMaxNumAsyncContext *maxNum)
 {
-    ACCOUNT_LOGD("enter");
     size_t argc = ARGS_SIZE_ONE;
     napi_value argv[ARGS_SIZE_ONE] = {0};
     napi_get_cb_info(env, cbInfo, &argc, argv, nullptr, nullptr);
@@ -1756,7 +1639,6 @@ void ParseParaQueryMaxNum(napi_env env, napi_callback_info cbInfo, QueryMaxNumAs
 
 void QueryMaxNumExecuteCB(napi_env env, void *data)
 {
-    ACCOUNT_LOGD("napi_create_async_work running");
     QueryMaxNumAsyncContext *maxNum = reinterpret_cast<QueryMaxNumAsyncContext *>(data);
     maxNum->errCode = OsAccountManager::QueryMaxOsAccountNumber(maxNum->maxOsAccountNumber);
     ACCOUNT_LOGD("error code is %{public}d", maxNum->errCode);
@@ -1778,7 +1660,6 @@ void QueryMaxNumCompletedCB(napi_env env, napi_status status, void *data)
 
 void CBOrPromiseMaxNum(napi_env env, const QueryMaxNumAsyncContext *maxNum, napi_value err, napi_value data)
 {
-    ACCOUNT_LOGD("enter");
     napi_value args[RESULT_COUNT] = {WrapVoidToJS(env), WrapVoidToJS(env)};
     if (maxNum->status == napi_ok) {
         args[1] = data;
@@ -1786,14 +1667,12 @@ void CBOrPromiseMaxNum(napi_env env, const QueryMaxNumAsyncContext *maxNum, napi
         args[0] = err;
     }
     if (maxNum->deferred) {
-        ACCOUNT_LOGD("Promise");
         if (maxNum->status == napi_ok) {
             napi_resolve_deferred(env, maxNum->deferred, args[1]);
         } else {
             napi_reject_deferred(env, maxNum->deferred, args[0]);
         }
     } else {
-        ACCOUNT_LOGD("Callback");
         napi_value callback = nullptr;
         napi_get_reference_value(env, maxNum->callbackRef, &callback);
         napi_value returnVal = nullptr;
@@ -1806,7 +1685,6 @@ void CBOrPromiseMaxNum(napi_env env, const QueryMaxNumAsyncContext *maxNum, napi
 
 napi_value ParseParaIsActived(napi_env env, napi_callback_info cbInfo, IsActivedAsyncContext *isActived)
 {
-    ACCOUNT_LOGD("enter");
     size_t argc = ARGS_SIZE_TWO;
     napi_value argv[ARGS_SIZE_TWO] = {0};
     napi_get_cb_info(env, cbInfo, &argc, argv, nullptr, nullptr);
@@ -1828,7 +1706,6 @@ napi_value ParseParaIsActived(napi_env env, napi_callback_info cbInfo, IsActived
 
 void IsActivedExecuteCB(napi_env env, void *data)
 {
-    ACCOUNT_LOGD("napi_create_async_work running");
     IsActivedAsyncContext *isActived = reinterpret_cast<IsActivedAsyncContext *>(data);
     isActived->errCode = OsAccountManager::IsOsAccountActived(isActived->id, isActived->isOsAccountActived);
     ACCOUNT_LOGD("error code is %{public}d", isActived->errCode);
@@ -1850,7 +1727,6 @@ void IsActivedCompletedCB(napi_env env, napi_status status, void *data)
 
 void CBOrPromiseIsActived(napi_env env, const IsActivedAsyncContext *isActived, napi_value err, napi_value data)
 {
-    ACCOUNT_LOGD("enter");
     napi_value args[RESULT_COUNT] = {WrapVoidToJS(env), WrapVoidToJS(env)};
     if (isActived->status == napi_ok) {
         args[1] = data;
@@ -1858,14 +1734,12 @@ void CBOrPromiseIsActived(napi_env env, const IsActivedAsyncContext *isActived, 
         args[0] = err;
     }
     if (isActived->deferred) {
-        ACCOUNT_LOGD("Promise");
         if (isActived->status == napi_ok) {
             napi_resolve_deferred(env, isActived->deferred, args[1]);
         } else {
             napi_reject_deferred(env, isActived->deferred, args[0]);
         }
     } else {
-        ACCOUNT_LOGD("Callback");
         napi_value callback = nullptr;
         napi_get_reference_value(env, isActived->callbackRef, &callback);
         napi_value returnVal = nullptr;
@@ -1878,7 +1752,6 @@ void CBOrPromiseIsActived(napi_env env, const IsActivedAsyncContext *isActived, 
 
 napi_value ParseParaIsEnable(napi_env env, napi_callback_info cbInfo, IsConEnableAsyncContext *isEnable)
 {
-    ACCOUNT_LOGD("enter");
     size_t argc = ARGS_SIZE_THREE;
     napi_value argv[ARGS_SIZE_THREE] = {0};
     napi_get_cb_info(env, cbInfo, &argc, argv, nullptr, nullptr);
@@ -1902,7 +1775,6 @@ napi_value ParseParaIsEnable(napi_env env, napi_callback_info cbInfo, IsConEnabl
 
 void IsEnableExecuteCB(napi_env env, void *data)
 {
-    ACCOUNT_LOGD("napi_create_async_work running");
     IsConEnableAsyncContext *isEnable = reinterpret_cast<IsConEnableAsyncContext *>(data);
     isEnable->errCode =
         OsAccountManager::IsOsAccountConstraintEnable(isEnable->id, isEnable->constraint, isEnable->isConsEnable);
@@ -1925,7 +1797,6 @@ void IsEnableCompletedCB(napi_env env, napi_status status, void *data)
 
 void CBOrPromiseIsEnable(napi_env env, const IsConEnableAsyncContext *isEnable, napi_value err, napi_value data)
 {
-    ACCOUNT_LOGD("enter");
     napi_value args[RESULT_COUNT] = {WrapVoidToJS(env), WrapVoidToJS(env)};
     if (isEnable->status == napi_ok) {
         args[1] = data;
@@ -1933,14 +1804,12 @@ void CBOrPromiseIsEnable(napi_env env, const IsConEnableAsyncContext *isEnable, 
         args[0] = err;
     }
     if (isEnable->deferred) {
-        ACCOUNT_LOGD("Promise");
         if (isEnable->status == napi_ok) {
             napi_resolve_deferred(env, isEnable->deferred, args[1]);
         } else {
             napi_reject_deferred(env, isEnable->deferred, args[0]);
         }
     } else {
-        ACCOUNT_LOGD("Callback");
         napi_value callback = nullptr;
         napi_get_reference_value(env, isEnable->callbackRef, &callback);
         napi_value returnVal = nullptr;
@@ -1953,7 +1822,6 @@ void CBOrPromiseIsEnable(napi_env env, const IsConEnableAsyncContext *isEnable, 
 
 void ParseParaGetType(napi_env env, napi_callback_info cbInfo, GetTypeAsyncContext *getType)
 {
-    ACCOUNT_LOGD("enter");
     size_t argc = ARGS_SIZE_ONE;
     napi_value argv[ARGS_SIZE_ONE] = {0};
     napi_get_cb_info(env, cbInfo, &argc, argv, nullptr, nullptr);
@@ -1969,7 +1837,6 @@ void ParseParaGetType(napi_env env, napi_callback_info cbInfo, GetTypeAsyncConte
 
 void GetTypeExecuteCB(napi_env env, void *data)
 {
-    ACCOUNT_LOGD("napi_create_async_work running");
     GetTypeAsyncContext *getType = reinterpret_cast<GetTypeAsyncContext *>(data);
     getType->errCode = OsAccountManager::GetOsAccountTypeFromProcess(getType->type);
     ACCOUNT_LOGD("error code is %{public}d", getType->errCode);
@@ -1978,7 +1845,6 @@ void GetTypeExecuteCB(napi_env env, void *data)
 
 void GetTypeCompletedCB(napi_env env, napi_status status, void *data)
 {
-    ACCOUNT_LOGD("napi_create_async_work complete");
     GetTypeAsyncContext *getType = reinterpret_cast<GetTypeAsyncContext *>(data);
     napi_value result[RESULT_COUNT] = {0};
     napi_value jsType = nullptr;
@@ -2009,7 +1875,6 @@ void GetTypeCompletedCB(napi_env env, napi_status status, void *data)
 
 void CBOrPromiseGetType(napi_env env, const GetTypeAsyncContext *getType, napi_value err, napi_value data)
 {
-    ACCOUNT_LOGD("enter");
     napi_value args[RESULT_COUNT] = {WrapVoidToJS(env), WrapVoidToJS(env)};
     if (getType->status == napi_ok) {
         args[1] = data;
@@ -2017,14 +1882,12 @@ void CBOrPromiseGetType(napi_env env, const GetTypeAsyncContext *getType, napi_v
         args[0] = err;
     }
     if (getType->deferred) {
-        ACCOUNT_LOGD("Promise");
         if (getType->status == napi_ok) {
             napi_resolve_deferred(env, getType->deferred, args[1]);
         } else {
             napi_reject_deferred(env, getType->deferred, args[0]);
         }
     } else {
-        ACCOUNT_LOGD("Callback");
         napi_value callback = nullptr;
         napi_get_reference_value(env, getType->callbackRef, &callback);
         napi_value returnVal = nullptr;
@@ -2037,7 +1900,6 @@ void CBOrPromiseGetType(napi_env env, const GetTypeAsyncContext *getType, napi_v
 
 void ParseParaIsMultiEn(napi_env env, napi_callback_info cbInfo, IsMultiEnAsyncContext *multiEn)
 {
-    ACCOUNT_LOGD("enter");
     size_t argc = ARGS_SIZE_ONE;
     napi_value argv[ARGS_SIZE_ONE] = {0};
     napi_get_cb_info(env, cbInfo, &argc, argv, nullptr, nullptr);
@@ -2053,7 +1915,6 @@ void ParseParaIsMultiEn(napi_env env, napi_callback_info cbInfo, IsMultiEnAsyncC
 
 void IsMultiEnExecuteCB(napi_env env, void *data)
 {
-    ACCOUNT_LOGD("napi_create_async_work running");
     IsMultiEnAsyncContext *multiEn = reinterpret_cast<IsMultiEnAsyncContext *>(data);
     multiEn->errCode = OsAccountManager::IsMultiOsAccountEnable(multiEn->isMultiOAEnable);
     ACCOUNT_LOGD("error code is %{public}d", multiEn->errCode);
@@ -2075,7 +1936,6 @@ void IsMultiEnCompletedCB(napi_env env, napi_status status, void *data)
 
 void CBOrPromiseIsMultiEn(napi_env env, const IsMultiEnAsyncContext *multiEn, napi_value err, napi_value data)
 {
-    ACCOUNT_LOGD("enter");
     napi_value args[RESULT_COUNT] = {WrapVoidToJS(env), WrapVoidToJS(env)};
     if (multiEn->status == napi_ok) {
         args[1] = data;
@@ -2083,14 +1943,12 @@ void CBOrPromiseIsMultiEn(napi_env env, const IsMultiEnAsyncContext *multiEn, na
         args[0] = err;
     }
     if (multiEn->deferred) {
-        ACCOUNT_LOGD("Promise");
         if (multiEn->status == napi_ok) {
             napi_resolve_deferred(env, multiEn->deferred, args[1]);
         } else {
             napi_reject_deferred(env, multiEn->deferred, args[0]);
         }
     } else {
-        ACCOUNT_LOGD("Callback");
         napi_value callback = nullptr;
         napi_get_reference_value(env, multiEn->callbackRef, &callback);
         napi_value returnVal = nullptr;
@@ -2103,7 +1961,6 @@ void CBOrPromiseIsMultiEn(napi_env env, const IsMultiEnAsyncContext *multiEn, na
 
 napi_value ParseParaIsVerified(napi_env env, napi_callback_info cbInfo, IsVerifiedAsyncContext *isVerified)
 {
-    ACCOUNT_LOGD("enter");
     size_t argc = ARGS_SIZE_TWO;
     napi_value argv[ARGS_SIZE_TWO] = {0};
     napi_get_cb_info(env, cbInfo, &argc, argv, nullptr, nullptr);
@@ -2128,7 +1985,6 @@ napi_value ParseParaIsVerified(napi_env env, napi_callback_info cbInfo, IsVerifi
 
 void IsVerifiedExecuteCB(napi_env env, void *data)
 {
-    ACCOUNT_LOGD("napi_create_async_work running");
     IsVerifiedAsyncContext *isVerified = reinterpret_cast<IsVerifiedAsyncContext *>(data);
     isVerified->errCode = OsAccountManager::IsOsAccountVerified(isVerified->id, isVerified->isTestOA);
     ACCOUNT_LOGD("error code is %{public}d", isVerified->errCode);
@@ -2150,7 +2006,6 @@ void IsVerifiedCompletedCB(napi_env env, napi_status status, void *data)
 
 void CBOrPromiseIsVerified(napi_env env, const IsVerifiedAsyncContext *isVerified, napi_value err, napi_value data)
 {
-    ACCOUNT_LOGD("enter");
     napi_value args[RESULT_COUNT] = {WrapVoidToJS(env), WrapVoidToJS(env)};
     if (isVerified->status == napi_ok) {
         args[1] = data;
@@ -2158,14 +2013,12 @@ void CBOrPromiseIsVerified(napi_env env, const IsVerifiedAsyncContext *isVerifie
         args[0] = err;
     }
     if (isVerified->deferred) {
-        ACCOUNT_LOGD("Promise");
         if (isVerified->status == napi_ok) {
             napi_resolve_deferred(env, isVerified->deferred, args[1]);
         } else {
             napi_reject_deferred(env, isVerified->deferred, args[0]);
         }
     } else {
-        ACCOUNT_LOGD("Callback");
         napi_value callback = nullptr;
         napi_get_reference_value(env, isVerified->callbackRef, &callback);
         napi_value returnVal = nullptr;
@@ -2178,7 +2031,6 @@ void CBOrPromiseIsVerified(napi_env env, const IsVerifiedAsyncContext *isVerifie
 
 napi_value ParseParaSerialNumId(napi_env env, napi_callback_info cbInfo, GetSerialNumIdCBInfo *serialNumId)
 {
-    ACCOUNT_LOGD("enter");
     size_t argc = ARGS_SIZE_TWO;
     napi_value argv[ARGS_SIZE_TWO] = {0};
     napi_get_cb_info(env, cbInfo, &argc, argv, nullptr, nullptr);
@@ -2200,17 +2052,14 @@ napi_value ParseParaSerialNumId(napi_env env, napi_callback_info cbInfo, GetSeri
 
 void SerialNumIdExecuteCB(napi_env env, void *data)
 {
-    ACCOUNT_LOGD("napi_create_async_work running");
     GetSerialNumIdCBInfo *serialNumId = reinterpret_cast<GetSerialNumIdCBInfo *>(data);
     serialNumId->errCode =
         OsAccountManager::GetOsAccountLocalIdBySerialNumber(serialNumId->serialNumber, serialNumId->id);
-    ACCOUNT_LOGI("error code is %{public}d", serialNumId->errCode);
     serialNumId->status = (serialNumId->errCode == 0) ? napi_ok : napi_generic_failure;
 }
 
 void SerialNumIdCompletedCB(napi_env env, napi_status status, void *data)
 {
-    ACCOUNT_LOGD("napi_create_async_work complete");
     GetSerialNumIdCBInfo *serialNumId = reinterpret_cast<GetSerialNumIdCBInfo *>(data);
     napi_value result[RESULT_COUNT] = {0};
     result[PARAMZERO] = GetErrorCodeValue(env, serialNumId->errCode);
@@ -2223,7 +2072,6 @@ void SerialNumIdCompletedCB(napi_env env, napi_status status, void *data)
 
 void CBOrPromiseSerialNum(napi_env env, const GetSerialNumIdCBInfo *serialNumId, napi_value err, napi_value data)
 {
-    ACCOUNT_LOGD("enter");
     napi_value args[RESULT_COUNT] = {WrapVoidToJS(env), WrapVoidToJS(env)};
     if (serialNumId->status == napi_ok) {
         args[1] = data;
@@ -2231,14 +2079,12 @@ void CBOrPromiseSerialNum(napi_env env, const GetSerialNumIdCBInfo *serialNumId,
         args[0] = err;
     }
     if (serialNumId->deferred) {
-        ACCOUNT_LOGD("Promise");
         if (serialNumId->status == napi_ok) {
             napi_resolve_deferred(env, serialNumId->deferred, args[1]);
         } else {
             napi_reject_deferred(env, serialNumId->deferred, args[0]);
         }
     } else {
-        ACCOUNT_LOGD("Callback");
         napi_value callback = nullptr;
         napi_get_reference_value(env, serialNumId->callbackRef, &callback);
         napi_value returnVal = nullptr;
@@ -2251,7 +2097,6 @@ void CBOrPromiseSerialNum(napi_env env, const GetSerialNumIdCBInfo *serialNumId,
 
 napi_value ParseParaGetSerialNum(napi_env env, napi_callback_info cbInfo, GetSerialNumForOAInfo *getSerialNum)
 {
-    ACCOUNT_LOGD("enter");
     size_t argc = ARGS_SIZE_TWO;
     napi_value argv[ARGS_SIZE_TWO] = {0};
     napi_get_cb_info(env, cbInfo, &argc, argv, nullptr, nullptr);
@@ -2273,7 +2118,6 @@ napi_value ParseParaGetSerialNum(napi_env env, napi_callback_info cbInfo, GetSer
 
 void GetSerialNumExecuteCB(napi_env env, void *data)
 {
-    ACCOUNT_LOGD("napi_create_async_work running");
     GetSerialNumForOAInfo *getSerialNum = reinterpret_cast<GetSerialNumForOAInfo *>(data);
     getSerialNum->errCode =
         OsAccountManager::GetSerialNumberByOsAccountLocalId(getSerialNum->id, getSerialNum->serialNum);
@@ -2296,7 +2140,6 @@ void GetSerialNumCompletedCB(napi_env env, napi_status status, void *data)
 
 void CBOrPromiseGetSerialNum(napi_env env, const GetSerialNumForOAInfo *getSerialNum, napi_value err, napi_value data)
 {
-    ACCOUNT_LOGD("enter");
     napi_value args[RESULT_COUNT] = {WrapVoidToJS(env), WrapVoidToJS(env)};
     if (getSerialNum->status == napi_ok) {
         args[1] = data;
@@ -2304,14 +2147,12 @@ void CBOrPromiseGetSerialNum(napi_env env, const GetSerialNumForOAInfo *getSeria
         args[0] = err;
     }
     if (getSerialNum->deferred) {
-        ACCOUNT_LOGD("Promise");
         if (getSerialNum->status == napi_ok) {
             napi_resolve_deferred(env, getSerialNum->deferred, args[1]);
         } else {
             napi_reject_deferred(env, getSerialNum->deferred, args[0]);
         }
     } else {
-        ACCOUNT_LOGD("Callback");
         napi_value callback = nullptr;
         napi_get_reference_value(env, getSerialNum->callbackRef, &callback);
         napi_value returnVal = nullptr;
@@ -2324,7 +2165,6 @@ void CBOrPromiseGetSerialNum(napi_env env, const GetSerialNumForOAInfo *getSeria
 
 void ParseParaIsTestOA(napi_env env, napi_callback_info cbInfo, IsTestOAInfo *isTest)
 {
-    ACCOUNT_LOGD("enter");
     size_t argc = ARGS_SIZE_ONE;
     napi_value argv[ARGS_SIZE_ONE] = {0};
     napi_get_cb_info(env, cbInfo, &argc, argv, nullptr, nullptr);
@@ -2340,7 +2180,6 @@ void ParseParaIsTestOA(napi_env env, napi_callback_info cbInfo, IsTestOAInfo *is
 
 void ParseParaIsMainOA(napi_env env, napi_callback_info cbInfo, IsMainOAInfo *isMain)
 {
-    ACCOUNT_LOGD("enter");
     size_t argc = ARGS_SIZE_ONE;
     napi_value argv[ARGS_SIZE_ONE] = {0};
     napi_get_cb_info(env, cbInfo, &argc, argv, nullptr, nullptr);
@@ -2356,7 +2195,6 @@ void ParseParaIsMainOA(napi_env env, napi_callback_info cbInfo, IsMainOAInfo *is
 
 void CBOrPromiseIsTestOA(napi_env env, const IsTestOAInfo *isTest, napi_value err, napi_value data)
 {
-    ACCOUNT_LOGD("enter");
     napi_value args[RESULT_COUNT] = {WrapVoidToJS(env), WrapVoidToJS(env)};
     if (isTest->status == napi_ok) {
         args[1] = data;
@@ -2364,14 +2202,12 @@ void CBOrPromiseIsTestOA(napi_env env, const IsTestOAInfo *isTest, napi_value er
         args[0] = err;
     }
     if (isTest->deferred) {
-        ACCOUNT_LOGD("Promise");
         if (isTest->status == napi_ok) {
             napi_resolve_deferred(env, isTest->deferred, args[1]);
         } else {
             napi_reject_deferred(env, isTest->deferred, args[0]);
         }
     } else {
-        ACCOUNT_LOGD("Callback");
         napi_value callback = nullptr;
         napi_get_reference_value(env, isTest->callbackRef, &callback);
         napi_value returnVal = nullptr;
@@ -2384,7 +2220,6 @@ void CBOrPromiseIsTestOA(napi_env env, const IsTestOAInfo *isTest, napi_value er
 
 void CBOrPromiseIsMainOA(napi_env env, const IsMainOAInfo *isMain, napi_value err, napi_value data)
 {
-    ACCOUNT_LOGD("enter");
     napi_value args[RESULT_COUNT] = {WrapVoidToJS(env), WrapVoidToJS(env)};
     if (isMain->status == napi_ok) {
         args[1] = data;
@@ -2392,14 +2227,12 @@ void CBOrPromiseIsMainOA(napi_env env, const IsMainOAInfo *isMain, napi_value er
         args[0] = err;
     }
     if (isMain->deferred) {
-        ACCOUNT_LOGD("Promise");
         if (isMain->status == napi_ok) {
             napi_resolve_deferred(env, isMain->deferred, args[1]);
         } else {
             napi_reject_deferred(env, isMain->deferred, args[0]);
         }
     } else {
-        ACCOUNT_LOGD("Callback");
         napi_value callback = nullptr;
         napi_get_reference_value(env, isMain->callbackRef, &callback);
         napi_value returnVal = nullptr;
@@ -2413,8 +2246,6 @@ void CBOrPromiseIsMainOA(napi_env env, const IsMainOAInfo *isMain, napi_value er
 napi_value ParseParaToSubscriber(const napi_env &env, const napi_value (&argv)[ARGS_SIZE_THREE], napi_ref &callback,
     OS_ACCOUNT_SUBSCRIBE_TYPE &onType, std::string &onName)
 {
-    ACCOUNT_LOGD("enter");
-
     // argv[0] type: 'activate' | 'activating'
     napi_valuetype valuetype = napi_undefined;
     napi_typeof(env, argv[0], &valuetype);
@@ -2460,7 +2291,6 @@ napi_value ParseParaToSubscriber(const napi_env &env, const napi_value (&argv)[A
 
 void SubscribeExecuteCB(napi_env env, void *data)
 {
-    ACCOUNT_LOGD("napi_create_async_work running");
     SubscribeCBInfo *subscribeCBInfo = reinterpret_cast<SubscribeCBInfo *>(data);
     subscribeCBInfo->subscriber->SetEnv(env);
     subscribeCBInfo->subscriber->SetCallbackRef(subscribeCBInfo->callbackRef);
@@ -2478,8 +2308,6 @@ void SubscribeCompletedCB(napi_env env, napi_status status, void *data)
 napi_value ParseParaToUnsubscriber(const napi_env &env, const size_t &argc, const napi_value (&argv)[ARGS_SIZE_THREE],
     napi_ref &callback, OS_ACCOUNT_SUBSCRIBE_TYPE &offType, std::string &offName)
 {
-    ACCOUNT_LOGD("enter");
-
     // argv[0] type: 'activate' | 'activating'
     napi_valuetype valuetype = napi_undefined;
     napi_typeof(env, argv[0], &valuetype);

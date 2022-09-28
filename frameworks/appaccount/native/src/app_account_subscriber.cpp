@@ -21,20 +21,14 @@
 namespace OHOS {
 namespace AccountSA {
 AppAccountSubscriber::AppAccountSubscriber()
-{
-    ACCOUNT_LOGD("enter");
-}
+{}
 
 AppAccountSubscriber::AppAccountSubscriber(const AppAccountSubscribeInfo &subscribeInfo)
     : subscribeInfo_(subscribeInfo)
-{
-    ACCOUNT_LOGD("enter");
-}
+{}
 
 ErrCode AppAccountSubscriber::GetSubscribeInfo(AppAccountSubscribeInfo &subscribeInfo) const
 {
-    ACCOUNT_LOGD("enter");
-
     subscribeInfo = subscribeInfo_;
 
     return ERR_OK;

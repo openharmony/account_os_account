@@ -178,7 +178,7 @@ ErrCode AppAccountInfo::GetAllAssociatedData(std::map<std::string, std::string> 
 {
     auto jsonObject = Json::parse(associatedData_, nullptr, false);
     if (!jsonObject.is_object()) {
-        ACCOUNT_LOGD("jsonObject is_discarded");
+        ACCOUNT_LOGE("jsonObject is_discarded");
         return ERR_APPACCOUNT_SERVICE_GET_ASSOCIATED_DATA;
     }
     try {
@@ -217,7 +217,7 @@ ErrCode AppAccountInfo::SetAssociatedData(const std::string &key, const std::str
     auto it = jsonObject.find(key);
     if (it == jsonObject.end()) {
         if (jsonObject.size() >= MAX_ASSOCIATED_DATA_NUMBER) {
-            ACCOUNT_LOGD("associated data is over size, the max number is: %{public}d", MAX_ASSOCIATED_DATA_NUMBER);
+            ACCOUNT_LOGW("associated data is over size, the max number is: %{public}d", MAX_ASSOCIATED_DATA_NUMBER);
             return ERR_APPACCOUNT_SERVICE_ASSOCIATED_DATA_OVER_SIZE;
         }
         jsonObject.emplace(key, value);

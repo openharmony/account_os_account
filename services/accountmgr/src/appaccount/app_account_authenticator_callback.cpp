@@ -22,18 +22,13 @@ namespace OHOS {
 namespace AccountSA {
 AppAccountAuthenticatorCallback::AppAccountAuthenticatorCallback(const std::string &sessionId)
     : sessionId_(sessionId)
-{
-    ACCOUNT_LOGD("enter");
-}
+{}
 
 AppAccountAuthenticatorCallback::~AppAccountAuthenticatorCallback()
-{
-    ACCOUNT_LOGD("enter");
-}
+{}
 
 void AppAccountAuthenticatorCallback::OnResult(int32_t resultCode, const AAFwk::Want &result)
 {
-    ACCOUNT_LOGD("enter");
     auto sessionMgr = AppAccountAuthenticatorSessionManager::GetInstance();
     if (sessionMgr != nullptr) {
         sessionMgr->OnSessionResult(sessionId_, resultCode, result);
@@ -42,7 +37,6 @@ void AppAccountAuthenticatorCallback::OnResult(int32_t resultCode, const AAFwk::
 
 void AppAccountAuthenticatorCallback::OnRequestRedirected(AAFwk::Want &request)
 {
-    ACCOUNT_LOGD("enter");
     auto sessionMgr = AppAccountAuthenticatorSessionManager::GetInstance();
     if (sessionMgr != nullptr) {
         sessionMgr->OnSessionRequestRedirected(sessionId_, request);
@@ -51,7 +45,6 @@ void AppAccountAuthenticatorCallback::OnRequestRedirected(AAFwk::Want &request)
 
 void AppAccountAuthenticatorCallback::OnRequestContinued()
 {
-    ACCOUNT_LOGD("enter");
     auto sessionMgr = AppAccountAuthenticatorSessionManager::GetInstance();
     if (sessionMgr != nullptr) {
         sessionMgr->OnSessionRequestContinued(sessionId_);

@@ -24,18 +24,13 @@ namespace AccountSA {
 AppAccountCheckLabelsCallback::AppAccountCheckLabelsCallback(std::vector<AppAccountInfo> accounts,
     const AuthenticatorSessionRequest &request, const std::string &sessionId)
     : accounts_(accounts), request_(request), sessionId_(sessionId)
-{
-    ACCOUNT_LOGD("enter");
-}
+{}
 
 AppAccountCheckLabelsCallback::~AppAccountCheckLabelsCallback()
-{
-    ACCOUNT_LOGD("enter");
-}
+{}
 
 void AppAccountCheckLabelsCallback::SendResult(int32_t resultCode)
 {
-    ACCOUNT_LOGD("enter");
     AAFwk::Want result;
     if (resultCode == ERR_JS_SUCCESS) {
         std::vector<std::string> names;
@@ -55,7 +50,6 @@ void AppAccountCheckLabelsCallback::SendResult(int32_t resultCode)
 
 ErrCode AppAccountCheckLabelsCallback::CheckLabels()
 {
-    ACCOUNT_LOGD("enter");
     auto sessionManager = AppAccountAuthenticatorSessionManager::GetInstance();
     if (sessionManager == nullptr) {
         return ERR_APPACCOUNT_SERVICE_OAUTH_SERVICE_EXCEPTION;
@@ -81,7 +75,6 @@ ErrCode AppAccountCheckLabelsCallback::CheckLabels()
 
 void AppAccountCheckLabelsCallback::OnResult(int32_t resultCode, const AAFwk::Want &result)
 {
-    ACCOUNT_LOGD("enter");
     if (result.GetBoolParam(Constants::KEY_BOOLEAN_RESULT, false)) {
         accountsWithLabels_.push_back(accounts_[index_]);
     }

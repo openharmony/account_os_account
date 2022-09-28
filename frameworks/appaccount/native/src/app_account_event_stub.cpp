@@ -20,9 +20,7 @@
 namespace OHOS {
 namespace AccountSA {
 AppAccountEventStub::AppAccountEventStub()
-{
-    ACCOUNT_LOGD("enter");
-}
+{}
 
 AppAccountEventStub::~AppAccountEventStub()
 {}
@@ -30,8 +28,6 @@ AppAccountEventStub::~AppAccountEventStub()
 int AppAccountEventStub::OnRemoteRequest(
     uint32_t code, MessageParcel &data, MessageParcel &reply, MessageOption &option)
 {
-    ACCOUNT_LOGI("enter");
-
     if (data.ReadInterfaceToken() != GetDescriptor()) {
         ACCOUNT_LOGE("failed to check descriptor! code %{public}u.", code);
         return ERR_ACCOUNT_COMMON_CHECK_DESCRIPTOR_ERROR;
@@ -61,8 +57,6 @@ int AppAccountEventStub::OnRemoteRequest(
 template<typename T>
 bool AppAccountEventStub::ReadParcelableVector(std::vector<T> &parcelableVector, MessageParcel &data)
 {
-    ACCOUNT_LOGD("enter");
-
     uint32_t size = 0;
     if (!data.ReadUint32(size)) {
         ACCOUNT_LOGE("failed to ReadInt32 for size");

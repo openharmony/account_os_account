@@ -270,7 +270,7 @@ void AccountIAMClient::ResetAccountIAMProxy(const wptr<IRemoteObject>& remote)
 {
     std::lock_guard<std::mutex> lock(mutex_);
     if (proxy_ == nullptr) {
-        ACCOUNT_LOGD("proxy is nullptr");
+        ACCOUNT_LOGE("proxy is nullptr");
         return;
     }
     auto serviceRemote = proxy_->AsObject();
@@ -283,7 +283,7 @@ void AccountIAMClient::ResetAccountIAMProxy(const wptr<IRemoteObject>& remote)
 void AccountIAMClient::AccountIAMDeathRecipient::OnRemoteDied(const wptr<IRemoteObject> &remote)
 {
     if (remote == nullptr) {
-        ACCOUNT_LOGD("remote is nullptr");
+        ACCOUNT_LOGE("remote is nullptr");
         return;
     }
     AccountIAMClient::GetInstance().ResetAccountIAMProxy(remote);

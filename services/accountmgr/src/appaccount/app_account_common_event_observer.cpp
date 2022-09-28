@@ -32,8 +32,6 @@ namespace AccountSA {
 AppAccountCommonEventObserver::AppAccountCommonEventObserver(const CommonEventCallback &callback)
     : callback_(callback)
 {
-    ACCOUNT_LOGD("enter");
-
     counter_ = 0;
     MatchingSkills matchingSkills;
     matchingSkills.AddEvent(CommonEventSupport::COMMON_EVENT_PACKAGE_REMOVED);
@@ -50,14 +48,10 @@ AppAccountCommonEventObserver::AppAccountCommonEventObserver(const CommonEventCa
         Callback callbackTemp = std::bind(&AppAccountCommonEventObserver::SubscribeCommonEvent, this);
         handler_->PostTask(callbackTemp, DELAY_FOR_COMMON_EVENT_SERVICE);
     }
-
-    ACCOUNT_LOGD("end");
 }
 
 AppAccountCommonEventObserver::~AppAccountCommonEventObserver()
 {
-    ACCOUNT_LOGD("enter");
-
     if (handler_) {
         handler_.reset();
     }
@@ -67,8 +61,6 @@ AppAccountCommonEventObserver::~AppAccountCommonEventObserver()
 
 ErrCode AppAccountCommonEventObserver::GetEventHandler(void)
 {
-    ACCOUNT_LOGD("enter");
-
     if (!handler_) {
         handler_ = std::make_shared<EventHandler>(EventRunner::Create());
         if (handler_ == nullptr) {
@@ -82,10 +74,7 @@ ErrCode AppAccountCommonEventObserver::GetEventHandler(void)
 
 void AppAccountCommonEventObserver::SubscribeCommonEvent(void)
 {
-    ACCOUNT_LOGD("enter");
-
     bool result = CommonEventManager::SubscribeCommonEvent(subscriber_);
-    ACCOUNT_LOGI("result = %{public}d", result);
     if (result) {
         counter_ = 0;
     } else {
@@ -97,14 +86,10 @@ void AppAccountCommonEventObserver::SubscribeCommonEvent(void)
             handler_->PostTask(callback, DELAY_FOR_TIME_INTERVAL);
         }
     }
-
-    ACCOUNT_LOGI("end, counter_ = %{public}d", counter_);
 }
 
 void AppAccountCommonEventObserver::OnReceiveEvent(const CommonEventData &data)
 {
-    ACCOUNT_LOGI("enter");
-
     auto want = data.GetWant();
     std::string action = want.GetAction();
     if (action == CommonEventSupport::COMMON_EVENT_PACKAGE_REMOVED ||
@@ -133,7 +118,7 @@ void AppAccountCommonEventObserver::DealWithRemoveEvent(const AAFwk::Want &want,
             return;
         }
     }
-    ACCOUNT_LOGI("uid = %{public}d, bundleName = %{public}s. appIndex = %{public}d",
+    ACCOUNT_LOGD("uid = %{public}d, bundleName = %{public}s. appIndex = %{public}d",
         uid, bundleName.c_str(), appIndex);
     callback_.OnPackageRemoved(uid, bundleName, appIndex);
 }

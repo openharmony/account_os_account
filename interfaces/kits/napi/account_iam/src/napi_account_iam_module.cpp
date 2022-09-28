@@ -33,7 +33,6 @@ using namespace OHOS::AccountSA;
 
 napi_value AccountIAMInit(napi_env env, napi_value exports)
 {
-    ACCOUNT_LOGD("enter");
 #ifdef HAS_PIN_AUTH_PART
     NapiAccountIAMPINAuth::Init(env, exports);
 #endif

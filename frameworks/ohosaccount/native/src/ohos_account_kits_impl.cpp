@@ -70,7 +70,6 @@ sptr<IAccount> OhosAccountKitsImpl::GetService()
         ACCOUNT_LOGE("Failed to add death recipient");
     }
 
-    ACCOUNT_LOGI("get remote object ok");
     accountProxy_ = iface_cast<AccountProxy>(object);
     if (accountProxy_ == nullptr) {
         ACCOUNT_LOGE("account iface_cast failed");
@@ -152,7 +151,6 @@ ErrCode OhosAccountKitsImpl::QueryDeviceAccountId(std::int32_t& accountId)
 std::int32_t OhosAccountKitsImpl::GetDeviceAccountIdByUID(std::int32_t& uid)
 {
     std::int32_t accountID = uid / UID_TRANSFORM_DIVISOR;
-    ACCOUNT_LOGI("uid %{public}d, accountID %{public}d.", uid, accountID);
     return accountID;
 }
 } // namespace AccountSA

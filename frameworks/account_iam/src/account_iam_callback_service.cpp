@@ -28,7 +28,7 @@ IDMCallbackService::IDMCallbackService(int32_t userId, const std::shared_ptr<IDM
 void IDMCallbackService::OnAcquireInfo(int32_t module, uint32_t acquireInfo, const Attributes &extraInfo)
 {
     if (callback_ == nullptr) {
-        ACCOUNT_LOGD("callback is nullptr");
+        ACCOUNT_LOGE("callback is nullptr");
         return;
     }
     callback_->OnAcquireInfo(module, acquireInfo, extraInfo);
@@ -37,7 +37,7 @@ void IDMCallbackService::OnAcquireInfo(int32_t module, uint32_t acquireInfo, con
 void IDMCallbackService::OnResult(int32_t result, const Attributes &extraInfo)
 {
     if (callback_ == nullptr) {
-        ACCOUNT_LOGD("callback is nullptr");
+        ACCOUNT_LOGE("callback is nullptr");
         return;
     }
     callback_->OnResult(result, extraInfo);
@@ -51,7 +51,7 @@ GetCredInfoCallbackService::GetCredInfoCallbackService(const std::shared_ptr<Get
 void GetCredInfoCallbackService::OnCredentialInfo(const std::vector<CredentialInfo> &infoList)
 {
     if (callback_ == nullptr) {
-        ACCOUNT_LOGD("callback is nullptr");
+        ACCOUNT_LOGE("callback is nullptr");
         return;
     }
     callback_->OnCredentialInfo(infoList);
@@ -64,7 +64,7 @@ GetSetPropCallbackService::GetSetPropCallbackService(const std::shared_ptr<GetSe
 void GetSetPropCallbackService::OnResult(int32_t result, const Attributes &extraInfo)
 {
     if (callback_ == nullptr) {
-        ACCOUNT_LOGD("callback is nullptr");
+        ACCOUNT_LOGE("callback is nullptr");
         return;
     }
     callback_->OnResult(result, extraInfo);
@@ -93,7 +93,7 @@ IAMInputer::IAMInputer(int32_t userId, const std::shared_ptr<IInputer> &inputer)
 {
     auto iamInputerData = new (std::nothrow) IAMInputerData(userId, nullptr);
     if (iamInputerData == nullptr) {
-        ACCOUNT_LOGD("failed to create IAMInputerData");
+        ACCOUNT_LOGE("failed to create IAMInputerData");
         return;
     }
     inputerData_.reset(iamInputerData);
@@ -105,7 +105,7 @@ IAMInputer::~IAMInputer()
 void IAMInputer::OnGetData(int32_t authSubType, std::shared_ptr<IInputerData> inputerData)
 {
     if (inputerData_ == nullptr) {
-        ACCOUNT_LOGD("inputerData_ is nullptr");
+        ACCOUNT_LOGE("inputerData_ is nullptr");
         return;
     }
     inputerData_->ResetInnerInputerData(inputerData);
