@@ -136,11 +136,11 @@ bool SetPropertiesOptions::ReadFromParcel(Parcel &parcel)
     return true;
 }
 
-int32_t ConvertOtherJSErrCode(int32_t errCode)
+int32_t ConvertOtherJSErrCodeV8(int32_t errCode)
 {
     switch (errCode) {
         case ERR_OK:
-            return ERR_JS_SUCCESS;
+            return ERR_JS_SUCCESS_V8;
         case ERR_APPACCOUNT_SERVICE_ACCOUNT_NOT_EXIST:
             return ERR_JS_ACCOUNT_NOT_EXIST;
         case ERR_APPACCOUNT_SERVICE_OAUTH_AUTHENTICATOR_NOT_EXIST:
@@ -160,7 +160,7 @@ int32_t ConvertOtherJSErrCode(int32_t errCode)
     }
 }
 
-int32_t ConvertToJSErrCode(int32_t errCode)
+int32_t ConvertToJSErrCodeV8(int32_t errCode)
 {
     if ((errCode >= ERR_APPACCOUNT_KIT_NAME_IS_EMPTY && errCode <= ERR_APPACCOUNT_KIT_SEND_REQUEST) ||
         (errCode >= ERR_APPACCOUNT_SERVICE_NAME_IS_EMPTY && errCode <= ERR_APPACCOUNT_SERVICE_INVALID_PARAMETER) ||
@@ -174,9 +174,9 @@ int32_t ConvertToJSErrCode(int32_t errCode)
         return ERR_JS_INVALID_RESPONSE;
     } else if (errCode == ERR_APPACCOUNT_SERVICE_PERMISSION_DENIED ||
         errCode == ERR_APPACCOUNT_SERVICE_SUBSCRIBE_PERMISSION_DENIED) {
-        return ERR_JS_PERMISSION_DENIED;
+        return ERR_JS_PERMISSION_DENIED_V8;
     } else {
-        return ConvertOtherJSErrCode(errCode);
+        return ConvertOtherJSErrCodeV8(errCode);
     }
 }
 }  // namespace AccountSA
