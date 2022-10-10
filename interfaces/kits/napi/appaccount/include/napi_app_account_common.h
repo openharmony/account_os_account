@@ -24,6 +24,7 @@
 #include "app_account_subscriber.h"
 #include "napi/native_api.h"
 #include "napi/native_node_api.h"
+#include "napi_account_common.h"
 #include "want.h"
 
 namespace OHOS {
@@ -67,14 +68,6 @@ public:
 private:
     napi_env env_ = nullptr;
     napi_ref ref_ = nullptr;
-};
-
-struct CommonAsyncContext {
-    napi_env env = nullptr;
-    napi_async_work work = nullptr;
-    napi_deferred deferred = nullptr;
-    napi_ref callbackRef = nullptr;
-    ErrCode errCode = ERR_OK;
 };
 
 struct AppAccountAsyncContext : public CommonAsyncContext {
@@ -283,9 +276,6 @@ void ParseContextCBArray(napi_env env, napi_callback_info cbInfo, GetAccountsAsy
 void ParseContextWithCredentialType(napi_env env, napi_callback_info cbInfo, AppAccountAsyncContext *asyncContext);
 
 void ParseContextWithStrCBArray(napi_env env, napi_callback_info cbInfo, GetAccountsAsyncContext *asyncContext);
-
-void ProcessCallbackOrPromise(
-    napi_env env, const CommonAsyncContext *asyncContext, napi_value err, napi_value data);
 
 napi_value ParseParametersBySubscribe(const napi_env &env, const napi_value (&argv)[SUBSCRIBE_MAX_PARA],
     std::vector<std::string> &owners, napi_ref &callback);

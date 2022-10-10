@@ -29,7 +29,7 @@ napi_value NapiAppAccountConstant::Init(napi_env env, napi_value exports)
     napi_create_object(env, &resultCode);
     napi_create_object(env, &constants);
 
-    SetNamedProperty(env, resultCode, ERR_JS_SUCCESS, "SUCCESS");
+    SetNamedProperty(env, resultCode, ERR_JS_SUCCESS_V8, "SUCCESS");
     SetNamedProperty(env, resultCode, ERR_JS_ACCOUNT_NOT_EXIST, "ERROR_ACCOUNT_NOT_EXIST");
     SetNamedProperty(env, resultCode, ERR_JS_APP_ACCOUNT_SERVICE_EXCEPTION, "ERROR_APP_ACCOUNT_SERVICE_EXCEPTION");
     SetNamedProperty(env, resultCode, ERR_JS_INVALID_PASSWORD, "ERROR_INVALID_PASSWORD");
@@ -47,7 +47,7 @@ napi_value NapiAppAccountConstant::Init(napi_env env, napi_value exports)
     SetNamedProperty(env, resultCode, ERR_JS_OAUTH_SERVICE_BUSY, "ERROR_OAUTH_SERVICE_BUSY");
     SetNamedProperty(env, resultCode, ERR_JS_OAUTH_UNSUPPORT_ACTION, "ERROR_OAUTH_UNSUPPORT_ACTION");
     SetNamedProperty(env, resultCode, ERR_JS_OAUTH_UNSUPPORT_AUTH_TYPE, "ERROR_OAUTH_UNSUPPORT_AUTH_TYPE");
-    SetNamedProperty(env, resultCode, ERR_JS_PERMISSION_DENIED, "ERROR_PERMISSION_DENIED");
+    SetNamedProperty(env, resultCode, ERR_JS_PERMISSION_DENIED_V8, "ERROR_PERMISSION_DENIED");
 
     SetNamedProperty(env, constants, Constants::OAUTH_ACTION_ADD_ACCOUNT_IMPLICITLY.c_str(),
         "ACTION_ADD_ACCOUNT_IMPLICITLY");
