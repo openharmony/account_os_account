@@ -37,6 +37,31 @@ constexpr size_t PARAM_TWO = 2;
 constexpr size_t PARAM_THREE = 3;
 constexpr size_t PARAM_FOUR = 4;
 
+enum IAMResultCode : int32_t {
+    ERR_IAM_SUCCESS = 0,
+    ERR_IAM_FAIL = 1,
+    ERR_IAM_GENERAL_ERROR = 2,
+    ERR_IAM_CANCELED = 3,
+    ERR_IAM_TIMEOUT = 4,
+    ERR_IAM_TYPE_NOT_SUPPORT = 5,
+    ERR_IAM_TRUST_LEVEL_NOT_SUPPORT = 6,
+    ERR_IAM_BUSY = 7,
+    ERR_IAM_INVALID_PARAMETERS = 8,
+    ERR_IAM_LOCKED = 9,
+    ERR_IAM_NOT_ENROLLED = 10,
+    ERR_IAM_HARDWARE_NOT_SUPPORTED = 11,
+    ERR_IAM_SYSTEM_ERROR_CODE_BEGIN = 1000,
+    ERR_IAM_IPC_ERROR = 1001,
+    ERR_IAM_INVALID_CONTEXT_ID = 1002,
+    ERR_IAM_READ_PARCEL_ERROR = 1003,
+    ERR_IAM_WRITE_PARCEL_ERROR = 1004,
+    ERR_IAM_CHECK_PERMISSION_FAILED = 1005,
+    ERR_IAM_INVALID_HDI_INTERFACE = 1006,
+    ERR_IAM_VENDOR_ERROR_CODE_BEGIN = 10000,
+};
+
+int32_t AccountIAMConvertToJSErrCode(int32_t errCode);
+
 struct IAMAsyncContext {
     explicit IAMAsyncContext(napi_env napiEnv);
     virtual ~IAMAsyncContext();
