@@ -424,7 +424,7 @@ ErrCode AppAccount::SubscribeAppAccount(const std::shared_ptr<AppAccountSubscrib
         }
         return subscribeState;
     } else if (subscribeState == ALREADY_SUBSCRIBED) {
-        return ERR_OK;
+        return ERR_APPACCOUNT_SUBSCRIBER_ALREADY_REGISTERED;
     } else {
         return ERR_APPACCOUNT_KIT_SUBSCRIBE;
     }

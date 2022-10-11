@@ -27,8 +27,15 @@ public:
 
 private:
     static napi_value GetDistributedAccountAbility(napi_env env, napi_callback_info cbInfo);
-    static napi_value QueryOhosAccountInfo(napi_env env, napi_callback_info cbInfo);
+
+    static napi_value QueryOsAccountDistributedInfo(napi_env env, napi_callback_info cbInfo);
+    static napi_value GetOsAccountDistributedInfo(napi_env env, napi_callback_info cbInfo);
+    static napi_value QueryOhosAccountInfo(napi_env env, napi_callback_info cbInfo, bool throwErr);
+
     static napi_value UpdateOsAccountDistributedInfo(napi_env env, napi_callback_info cbInfo);
+    static napi_value SetOsAccountDistributedInfo(napi_env env, napi_callback_info cbInfo);
+    static napi_value UpdateOhosAccountInfo(napi_env env, napi_callback_info cbInfo, bool throwErr);
+
     static napi_value JsConstructor(napi_env env, napi_callback_info cbinfo);
 };
 } // namespace AccountJsKit

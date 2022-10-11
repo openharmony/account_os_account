@@ -76,6 +76,17 @@ bool AccountMgrService::UpdateOhosAccountInfo(
     return true;
 }
 
+std::int32_t AccountMgrService::SetOhosAccountInfo(const std::string &accountName, const std::string &uid,
+    const std::string &eventStr)
+{
+    if (!ohosAccountMgr_->OhosAccountStateChange(accountName, uid, eventStr)) {
+        ACCOUNT_LOGE("Ohos account state change failed");
+        return ERR_ACCOUNT_ZIDL_ACCOUNT_SERVICE_ERROR;
+    }
+
+    return ERR_OK;
+}
+
 std::pair<bool, OhosAccountInfo> AccountMgrService::QueryOhosAccountInfo(void)
 {
     AccountInfo accountInfo = ohosAccountMgr_->GetCurrentOhosAccountInfo();
@@ -83,6 +94,13 @@ std::pair<bool, OhosAccountInfo> AccountMgrService::QueryOhosAccountInfo(void)
     std::string id = accountInfo.ohosAccountUid_;
     std::int32_t status = accountInfo.ohosAccountStatus_;
     return std::make_pair(true, OhosAccountInfo(name, id, status));
+}
+
+std::int32_t AccountMgrService::GetOhosAccountInfo(OhosAccountInfo &accountInfo)
+{
+    auto info = QueryOhosAccountInfo();
+    accountInfo = info.second;
+    return ERR_OK;
 }
 
 std::pair<bool, OhosAccountInfo> AccountMgrService::QueryOhosAccountInfoByUserId(std::int32_t userId)

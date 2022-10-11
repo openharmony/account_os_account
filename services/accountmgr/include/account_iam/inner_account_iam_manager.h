@@ -56,7 +56,7 @@ public:
     uint64_t AuthUser(int32_t userId, const std::vector<uint8_t> &challenge, AuthType authType,
         AuthTrustLevel authTrustLevel, const sptr<IIDMCallback> &callback);
     int32_t CancelAuth(uint64_t contextId);
-    int32_t GetAvailableStatus(AuthType authType, const AuthTrustLevel authTrustLevel);
+    int32_t GetAvailableStatus(AuthType authType, const AuthTrustLevel authTrustLevel, int32_t &status);
     void GetProperty(
         int32_t userId, const GetPropertyRequest &request, const sptr<IGetSetPropCallback> &callback);
     void SetProperty(

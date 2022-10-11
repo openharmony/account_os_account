@@ -113,9 +113,9 @@ int32_t AccountIAMService::CancelAuth(uint64_t contextId)
     return InnerAccountIAMManager::GetInstance().CancelAuth(contextId);
 }
 
-int32_t AccountIAMService::GetAvailableStatus(AuthType authType, AuthTrustLevel authTrustLevel)
+int32_t AccountIAMService::GetAvailableStatus(AuthType authType, AuthTrustLevel authTrustLevel, int32_t &status)
 {
-    return InnerAccountIAMManager::GetInstance().GetAvailableStatus(authType, authTrustLevel);
+    return InnerAccountIAMManager::GetInstance().GetAvailableStatus(authType, authTrustLevel, status);
 }
 
 void AccountIAMService::GetProperty(

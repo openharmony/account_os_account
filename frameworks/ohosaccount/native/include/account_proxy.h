@@ -32,7 +32,10 @@ public:
 
     bool UpdateOhosAccountInfo(
         const std::string &accountName, const std::string &uid, const std::string &eventStr) override;
+    std::int32_t SetOhosAccountInfo(const std::string &accountName, const std::string &uid,
+        const std::string &eventStr) override;
     std::pair<bool, OhosAccountInfo> QueryOhosAccountInfo(void) override;
+    std::int32_t GetOhosAccountInfo(OhosAccountInfo &accountInfo) override;
     std::pair<bool, OhosAccountInfo> QueryOhosAccountInfoByUserId(std::int32_t userId) override;
     std::int32_t QueryDeviceAccountId(std::int32_t &accountId) override;
     sptr<IRemoteObject> GetAppAccountService() override;

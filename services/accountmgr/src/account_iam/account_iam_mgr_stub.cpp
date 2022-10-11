@@ -352,7 +352,8 @@ ErrCode AccountIAMMgrStub::ProcGetAvailableStatus(MessageParcel &data, MessagePa
         ACCOUNT_LOGE("failed to read authTrustLevel for GetAvailableStatus");
         return ERR_ACCOUNT_IAM_SERVICE_READ_PARCEL_FAIL;
     }
-    int32_t status = GetAvailableStatus(static_cast<AuthType>(authType), static_cast<AuthTrustLevel>(authTrustLevel));
+    int32_t status;
+    GetAvailableStatus(static_cast<AuthType>(authType), static_cast<AuthTrustLevel>(authTrustLevel), status);
     return reply.WriteInt32(status);
 }
 
