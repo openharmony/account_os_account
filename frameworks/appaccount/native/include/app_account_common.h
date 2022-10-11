@@ -99,7 +99,7 @@ enum AuthenticatorAction {
 };
 
 enum JSResultCode {
-    ERR_JS_SUCCESS = 0,
+    ERR_JS_SUCCESS_V8 = 0,
     ERR_JS_ACCOUNT_NOT_EXIST = 10001,
     ERR_JS_APP_ACCOUNT_SERVICE_EXCEPTION = 10002,
     ERR_JS_INVALID_PASSWORD = 10003,
@@ -117,10 +117,10 @@ enum JSResultCode {
     ERR_JS_OAUTH_TOKEN_TOO_MANY = 10015,
     ERR_JS_OAUTH_UNSUPPORT_ACTION = 10016,
     ERR_JS_OAUTH_UNSUPPORT_AUTH_TYPE = 10017,
-    ERR_JS_PERMISSION_DENIED = 10018,
+    ERR_JS_PERMISSION_DENIED_V8 = 10018
 };
 
-int32_t ConvertToJSErrCode(int32_t errCode);
+int32_t ConvertToJSErrCodeV8(int32_t errCode);
 }  // namespace AccountSA
 }  // namespace OHOS
 

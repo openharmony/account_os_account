@@ -39,6 +39,7 @@ config("account_common_all_dependent_configs") {
 ohos_shared_library("libaccount_common") {
   sources = [
     "${os_account_dfx_path}/hisysevent_adapter/hisysevent_adapter.cpp",
+    "account_error/src/account_error_no.cpp",
     "file_operator/src/account_file_operator.cpp",
     "log/src/account_log_wrapper.cpp",
     "perf_stat/src/perf_stat.cpp",
