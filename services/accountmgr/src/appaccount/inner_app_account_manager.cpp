@@ -57,6 +57,30 @@ ErrCode InnerAppAccountManager::AddAccountImplicitly(const AuthenticatorSessionR
     return sessionManagerPtr_->AddAccountImplicitly(request);
 }
 
+ErrCode InnerAppAccountManager::CreateAccount(const std::string &name, const CreateAccountOptions &options,
+    const uid_t &uid, const std::string &bundleName, const uint32_t &appIndex)
+{
+    if (!controlManagerPtr_) {
+        ACCOUNT_LOGE("controlManagerPtr_ is nullptr");
+        return ERR_APPACCOUNT_SERVICE_CONTROL_MANAGER_PTR_IS_NULLPTR;
+    }
+
+    AppAccountInfo appAccountInfo(name, bundleName);
+    appAccountInfo.SetAppIndex(appIndex);
+    ErrCode result = controlManagerPtr_->CreateAccount(name, options, uid, bundleName, appAccountInfo);
+
+    return result;
+}
+
+ErrCode InnerAppAccountManager::CreateAccountImplicitly(const AuthenticatorSessionRequest &request)
+{
+    if (!sessionManagerPtr_) {
+        ACCOUNT_LOGE("sessionManagerPtr_ is nullptr");
+        return ERR_APPACCOUNT_SERVICE_SESSION_MANAGER_PTR_IS_NULLPTR;
+    }
+    return sessionManagerPtr_->CreateAccountImplicitly(request);
+}
+
 ErrCode InnerAppAccountManager::DeleteAccount(
     const std::string &name, const uid_t &uid, const std::string &bundleName, const uint32_t &appIndex)
 {
@@ -310,6 +334,10 @@ ErrCode InnerAppAccountManager::Authenticate(const AuthenticatorSessionRequest &
     if (!sessionManagerPtr_) {
         ACCOUNT_LOGE("sessionManagerPtr_ is nullptr");
         return ERR_APPACCOUNT_SERVICE_SESSION_MANAGER_PTR_IS_NULLPTR;
+    }
+    bool isApi9 = request.options.GetBoolParam(Constants::API_V9, false);
+    if (isApi9) {
+        return sessionManagerPtr_->Auth(request);
     }
     return sessionManagerPtr_->Authenticate(request);
 }

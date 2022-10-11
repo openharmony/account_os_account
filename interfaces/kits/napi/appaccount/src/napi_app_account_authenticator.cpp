@@ -23,6 +23,7 @@
 #include "ipc_object_stub.h"
 #include "napi/native_api.h"
 #include "napi/native_node_api.h"
+#include "napi_account_common.h"
 #include "napi_app_account_authenticator_callback.h"
 #include "napi_app_account_common.h"
 #include "napi_common.h"
@@ -137,6 +138,48 @@ ErrCode NapiAppAccountAuthenticator::Authenticate(const std::string &name, const
     uv_queue_work(loop, work, [](uv_work_t *work) {}, AuthenticateWork);
     return ERR_OK;
 }
+ErrCode NapiAppAccountAuthenticator::CreateAccountImplicitly(
+    const CreateAccountImplicitlyOptions &options, const sptr<IRemoteObject> &callback)
+{
+    if (jsAuthenticator_.createAccountImplicitly == nullptr) {
+        return ERR_APPACCOUNT_SERVICE_OAUTH_SERVICE_EXCEPTION;
+    }
+    uv_loop_s *loop = nullptr;
+    uv_work_t *work = nullptr;
+    JsAuthenticatorParam *param = nullptr;
+    ErrCode result = InitWorkEnv(&loop, &work, &param);
+    if (result != ERR_OK) {
+        ACCOUNT_LOGE("failed to InitWorkEnv");
+        return result;
+    }
+    param->createOptions = options;
+    param->callback = callback;
+    work->data = reinterpret_cast<void *>(param);
+    uv_queue_work(loop, work, [](uv_work_t *work) {}, CreateAccountImplicitlyWork);
+    return ERR_OK;
+}
+
+ErrCode NapiAppAccountAuthenticator::Auth(const std::string &name, const std::string &authType,
+    const AAFwk::WantParams &options, const sptr<IRemoteObject> &callback)
+{
+    if (jsAuthenticator_.auth == nullptr) {
+        return ERR_APPACCOUNT_SERVICE_OAUTH_SERVICE_EXCEPTION;
+    }
+    uv_loop_s *loop = nullptr;
+    uv_work_t *work = nullptr;
+    JsAuthenticatorParam *param = nullptr;
+    ErrCode result = InitWorkEnv(&loop, &work, &param);
+    if (result != ERR_OK) {
+        return result;
+    }
+    param->authType = authType;
+    param->name = name;
+    param->options = options;
+    param->callback = callback;
+    work->data = reinterpret_cast<void *>(param);
+    uv_queue_work(loop, work, [](uv_work_t *work) {}, AuthWork);
+    return ERR_OK;
+}
 
 ErrCode NapiAppAccountAuthenticator::VerifyCredential(
     const std::string &name, const VerifyCredentialOptions &options, const sptr<IRemoteObject> &callback)
@@ -244,11 +287,11 @@ void NapiAppAccountAuthenticator::CreateJsVerifyCredentialOptions(
     napi_env env, VerifyCredentialOptions &options, napi_value *jsOptions)
 {
     NAPI_CALL_RETURN_VOID(env, napi_create_object(env, jsOptions));
-    napi_value string;
-    NAPI_CALL_RETURN_VOID(env, napi_create_string_utf8(env, options.credentialType.c_str(), NAPI_AUTO_LENGTH, &string));
-    NAPI_CALL_RETURN_VOID(env, napi_set_named_property(env, *jsOptions, "credentialType", string));
-    NAPI_CALL_RETURN_VOID(env, napi_create_string_utf8(env, options.credential.c_str(), NAPI_AUTO_LENGTH, &string));
-    NAPI_CALL_RETURN_VOID(env, napi_set_named_property(env, *jsOptions, "credentialType", string));
+    napi_value strVal;
+    NAPI_CALL_RETURN_VOID(env, napi_create_string_utf8(env, options.credentialType.c_str(), NAPI_AUTO_LENGTH, &strVal));
+    NAPI_CALL_RETURN_VOID(env, napi_set_named_property(env, *jsOptions, "credentialType", strVal));
+    NAPI_CALL_RETURN_VOID(env, napi_create_string_utf8(env, options.credential.c_str(), NAPI_AUTO_LENGTH, &strVal));
+    NAPI_CALL_RETURN_VOID(env, napi_set_named_property(env, *jsOptions, "credentialType", strVal));
     napi_value jsParam = AppExecFwk::WrapWantParams(env, options.parameters);
     NAPI_CALL_RETURN_VOID(env, napi_set_named_property(env, *jsOptions, "parameters", jsParam));
 }
@@ -302,6 +345,42 @@ void NapiAppAccountAuthenticator::AuthenticateWork(uv_work_t *work, int status)
     CreateAuthenticatorCallback(param->env, param->callback, &jsCallback);
     napi_value argv[] = { jsName, jsAuthType, jsCallerBundleName, jsOptions, jsCallback};
     CallJsFunction(param->env, param->jsAuthenticator.authenticate, argv, ARGS_SIZE_FIVE);
+}
+
+void NapiAppAccountAuthenticator::CreateAccountImplicitlyWork(uv_work_t *work, int status)
+{
+    JsAuthenticatorParam *param = reinterpret_cast<JsAuthenticatorParam *>(work->data);
+    napi_value jsObject = nullptr;
+    napi_create_object(param->env, &jsObject);
+    if (param->createOptions.hasAuthType) {
+        napi_value jsAuthType;
+        napi_create_string_utf8(param->env, param->createOptions.authType.c_str(), NAPI_AUTO_LENGTH, &jsAuthType);
+        napi_set_named_property(param->env, jsObject, "authType", jsAuthType);
+    }
+    if (param->createOptions.hasRequiredLabels) {
+        napi_value jsRequiredLabels = CreateStringArray(param->env, param->createOptions.requiredLabels);
+        napi_set_named_property(param->env, jsObject, "requiredLabels", jsRequiredLabels);
+    }
+    napi_value jsParams = AppExecFwk::WrapWantParams(param->env, param->createOptions.parameters.GetParams());
+    napi_set_named_property(param->env, jsObject, "parameters", jsParams);
+    napi_value jsCallback;
+    CreateAuthenticatorCallback(param->env, param->callback, &jsCallback);
+    napi_value argv[] = {jsObject, jsCallback};
+    CallJsFunction(param->env, param->jsAuthenticator.createAccountImplicitly, argv, ARGS_SIZE_TWO);
+}
+
+void NapiAppAccountAuthenticator::AuthWork(uv_work_t *work, int status)
+{
+    JsAuthenticatorParam *param = reinterpret_cast<JsAuthenticatorParam *>(work->data);
+    napi_value jsName;
+    napi_create_string_utf8(param->env, param->name.c_str(), NAPI_AUTO_LENGTH, &jsName);
+    napi_value jsAuthType;
+    napi_create_string_utf8(param->env, param->authType.c_str(), NAPI_AUTO_LENGTH, &jsAuthType);
+    napi_value jsOptions = AppExecFwk::WrapWantParams(param->env, param->options);
+    napi_value jsCallback;
+    CreateAuthenticatorCallback(param->env, param->callback, &jsCallback);
+    napi_value argv[] = { jsName, jsAuthType, jsOptions, jsCallback};
+    CallJsFunction(param->env, param->jsAuthenticator.auth, argv, ARGS_SIZE_FOUR);
 }
 
 void NapiAppAccountAuthenticator::VerifyCredentialWork(uv_work_t *work, int status)
@@ -406,6 +485,8 @@ napi_value NapiAppAccountAuthenticator::JsConstructor(napi_env env, napi_callbac
     GetNamedFunction(env, thisVar, "checkAccountLabels", &jsAuthenticator.checkAccountLabels);
     GetNamedFunction(env, thisVar, "isAccountRemovable", &jsAuthenticator.isAccountRemovable);
     GetNamedFunction(env, thisVar, "setProperties", &jsAuthenticator.setProperties);
+    GetNamedFunction(env, thisVar, "createAccountImplicitly", &jsAuthenticator.createAccountImplicitly);
+    GetNamedFunction(env, thisVar, "auth", &jsAuthenticator.auth);
     napi_value object = nullptr;
     napi_create_object(env, &object);
     NAPIRemoteObjectExport(env, object);

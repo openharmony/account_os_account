@@ -37,6 +37,10 @@ public:
         const std::string &name, const std::vector<std::string> &labels, const sptr<IRemoteObject> &callback) = 0;
     virtual ErrCode SetProperties(const SetPropertiesOptions &options, const sptr<IRemoteObject> &callback) = 0;
     virtual ErrCode IsAccountRemovable(const std::string &name, const sptr<IRemoteObject> &callback) = 0;
+    virtual ErrCode CreateAccountImplicitly(
+        const CreateAccountImplicitlyOptions &options, const sptr<IRemoteObject> &callback) = 0;
+    virtual ErrCode Auth(const std::string &name, const std::string &authType,
+        const AAFwk::WantParams &options, const sptr<IRemoteObject> &callback) = 0;
 
     enum class Message {
         ADD_ACCOUNT_IMPLICITLY = 0,
@@ -44,7 +48,9 @@ public:
         VERIFY_CREDENTIAL,
         CHECK_ACCOUNT_LABELS,
         SET_PROPERTIES,
-        IS_ACCOUNT_REMOVABLE
+        IS_ACCOUNT_REMOVABLE,
+        CREATE_ACCOUNT_IMPLICITLY,
+        AUTH
     };
 };
 }  // namespace AccountSA

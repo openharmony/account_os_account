@@ -31,6 +31,9 @@ public:
     ErrCode AddAccount(const std::string &name, const std::string &extraInfo,
         const uid_t &uid, const std::string &bundleName, const uint32_t &appIndex);
     ErrCode AddAccountImplicitly(const AuthenticatorSessionRequest &request);
+    ErrCode CreateAccount(const std::string &name, const CreateAccountOptions &options,
+        const uid_t &uid, const std::string &bundleName, const uint32_t &appIndex);
+    ErrCode CreateAccountImplicitly(const AuthenticatorSessionRequest &request);
     ErrCode DeleteAccount(
         const std::string &name, const uid_t &uid, const std::string &bundleName, const uint32_t &appIndex);
 

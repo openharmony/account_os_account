@@ -42,7 +42,7 @@ int AppAccountAuthenticatorCallbackStub::OnRemoteRequest(
             std::shared_ptr<AAFwk::Want> resultPtr(data.ReadParcelable<AAFwk::Want>());
             if (resultPtr == nullptr) {
                 AAFwk::Want result;
-                OnResult(ERR_JS_INVALID_RESPONSE, result);
+                OnResult(ERR_JS_ACCOUNT_AUTHENTICATOR_SERVICE_EXCEPTION, result);
                 errCode = ERR_APPACCOUNT_SERVICE_OAUTH_INVALID_RESPONSE;
             } else {
                 OnResult(resultCode, *resultPtr);

@@ -88,9 +88,21 @@ ErrCode AppAccountAuthenticatorSessionManager::AddAccountImplicitly(const Authen
     return OpenSession(session);
 }
 
+ErrCode AppAccountAuthenticatorSessionManager::CreateAccountImplicitly(const AuthenticatorSessionRequest &request)
+{
+    auto session = std::make_shared<AppAccountAuthenticatorSession>(CREATE_ACCOUNT_IMPLICITLY, request);
+    return OpenSession(session);
+}
+
 ErrCode AppAccountAuthenticatorSessionManager::Authenticate(const AuthenticatorSessionRequest &request)
 {
     auto session = std::make_shared<AppAccountAuthenticatorSession>(AUTHENTICATE, request);
+    return OpenSession(session);
+}
+
+ErrCode AppAccountAuthenticatorSessionManager::Auth(const AuthenticatorSessionRequest &request)
+{
+    auto session = std::make_shared<AppAccountAuthenticatorSession>(AUTH, request);
     return OpenSession(session);
 }
 
@@ -143,7 +155,7 @@ ErrCode AppAccountAuthenticatorSessionManager::OpenSession(
         }
         result = session->Open();
         if (result != ERR_OK) {
-            ACCOUNT_LOGE("failed to open session, result: %{private}d.", result);
+            ACCOUNT_LOGE("failed to open session, result: %{public}d.", result);
             return result;
         }
         if (sessionMap_.size() == 0) {
