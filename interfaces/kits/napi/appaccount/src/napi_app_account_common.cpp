@@ -13,6 +13,7 @@
  * limitations under the License.
  */
 #include "napi_app_account_common.h"
+#include "account_error_no.h"
 #include "account_log_wrapper.h"
 #include "app_account_constants.h"
 #include "app_account_manager.h"
@@ -142,7 +143,7 @@ void CheckAccountLabelsOnResultWork(uv_work_t *work, int status)
 {
     (void)status;
     AuthenticatorCallbackParam *param = reinterpret_cast<AuthenticatorCallbackParam*>(work->data);
-    napi_value checkResult[RESULT_COUNT] = {0};
+    napi_value checkResult[RESULT_COUNT] = {NapiGetNull(param->context.env)};
     if (param->context.errCode == ERR_JS_SUCCESS) {
         bool hasLabels = param->result.GetBoolParam(Constants::KEY_BOOLEAN_RESULT, false);
         napi_get_boolean(param->context.env, hasLabels, &checkResult[PARAMONE]);
@@ -161,7 +162,7 @@ void SelectAccountsOnResultWork(uv_work_t *work, int status)
     std::vector<std::string> names = param->result.GetStringArrayParam(Constants::KEY_ACCOUNT_NAMES);
     std::vector<std::string> owners = param->result.GetStringArrayParam(Constants::KEY_ACCOUNT_OWNERS);
     if (names.size() != owners.size()) {
-        param->context.errCode = ERR_JS_INVALID_RESPONSE;
+        param->context.errCode = ERR_JS_ACCOUNT_AUTHENTICATOR_SERVICE_EXCEPTION;
     }
     napi_env env = param->context.env;
     napi_value selectResult[RESULT_COUNT] = {0};
@@ -498,19 +499,22 @@ void GetAuthenticatorCallbackForResult(napi_env env, sptr<IRemoteObject> callbac
     napi_new_instance(env, jsAuthCallbackConstructor, argc, argv, result);
 }
 
-void ParseContextWithExInfo(napi_env env, napi_callback_info cbInfo, AppAccountAsyncContext *asyncContext)
+bool ParseContextWithExInfo(napi_env env, napi_callback_info cbInfo, AppAccountAsyncContext *asyncContext)
 {
     size_t argc = ARGS_SIZE_THREE;
     napi_value argv[ARGS_SIZE_THREE] = {0};
     napi_get_cb_info(env, cbInfo, &argc, argv, nullptr, nullptr);
-
+    if (argc < ARGS_SIZE_ONE) {
+        asyncContext->errMsg = "the number of parameters should be at least 1";
+        return false;
+    }
     for (size_t i = 0; i < argc; i++) {
         napi_valuetype valueType = napi_undefined;
         napi_typeof(env, argv[i], &valueType);
         if (i == 0 && valueType == napi_string) {
-            asyncContext->name = GetNamedProperty(env, argv[i]);
+            GetStringProperty(env, argv[i], asyncContext->name);
         } else if (i == 1 && valueType == napi_string) {
-            asyncContext->extraInfo = GetNamedProperty(env, argv[i]);
+            GetStringProperty(env, argv[i], asyncContext->extraInfo);
         } else if (i == 1 && valueType == napi_function) {
             napi_create_reference(env, argv[i], 1, &asyncContext->callbackRef);
             break;
@@ -519,49 +523,98 @@ void ParseContextWithExInfo(napi_env env, napi_callback_info cbInfo, AppAccountA
             break;
         } else {
             ACCOUNT_LOGE("Type matching failed");
+            asyncContext->errMsg = "the type of param " + std::to_string(i) + " is incorrect";
+            return false;
         }
     }
+    return true;
 }
 
-void ParseContextForSetExInfo(napi_env env, napi_callback_info cbInfo, AppAccountAsyncContext *asyncContext)
+bool ParseContextForSetExInfo(napi_env env, napi_callback_info cbInfo, AppAccountAsyncContext *asyncContext)
 {
     size_t argc = ARGS_SIZE_THREE;
     napi_value argv[ARGS_SIZE_THREE] = {0};
     napi_get_cb_info(env, cbInfo, &argc, argv, nullptr, nullptr);
-
-    for (size_t i = 0; i < argc; i++) {
-        napi_valuetype valueType = napi_undefined;
-        napi_typeof(env, argv[i], &valueType);
-        if (i == 0 && valueType == napi_string) {
-            asyncContext->name = GetNamedProperty(env, argv[i]);
-        } else if (i == 1 && valueType == napi_string) {
-            asyncContext->extraInfo = GetNamedProperty(env, argv[i]);
-        } else if (i == PARAMTWO && valueType == napi_function) {
-            napi_create_reference(env, argv[i], 1, &asyncContext->callbackRef);
-            break;
-        } else {
-            ACCOUNT_LOGE("Type matching failed");
-        }
+    if (argc < ARGS_SIZE_TWO) {
+        asyncContext->errMsg = "the number of parameter should be at least 2";
+        return false;
     }
+    if ((argc == ARGS_SIZE_THREE) && (!GetCallbackProperty(env, argv[PARAMTWO], asyncContext->callbackRef, 1))) {
+        asyncContext->errMsg = "the callback is not a function";
+        return false;
+    }
+    if (!GetStringProperty(env, argv[0], asyncContext->name)) {
+        asyncContext->errMsg = "the name is not a string";
+        return false;
+    }
+    if (!GetStringProperty(env, argv[1], asyncContext->extraInfo)) {
+        asyncContext->errMsg = "the extraInfo is not a string";
+        return false;
+    }
+    return true;
 }
 
-void ParseArguments(napi_env env, napi_value *argv, const napi_valuetype *valueTypes, size_t argc)
+bool ParseArguments(napi_env env, napi_value *argv, const napi_valuetype *valueTypes, size_t argc)
 {
     napi_valuetype valuetype = napi_undefined;
     for (size_t i = 0; i < argc; ++i) {
         napi_typeof(env, argv[i], &valuetype);
         if (valuetype != valueTypes[i]) {
             argv[i] = nullptr;
+            return false;
         }
     }
+    return true;
+}
+
+bool ParseContextForAuth(napi_env env, napi_callback_info cbInfo, OAuthAsyncContext *context)
+{
+    std::string abilityName;
+    GetAbilityName(env, abilityName);
+    context->options.SetParam(Constants::KEY_CALLER_ABILITY_NAME, abilityName);
+    size_t argc = ARGS_SIZE_FIVE;
+    napi_value argv[ARGS_SIZE_FIVE] = {0};
+    napi_get_cb_info(env, cbInfo, &argc, argv, nullptr, nullptr);
+    if (argc < ARGS_SIZE_FOUR) {
+        context->errMsg = "the number of parameters should be at least 4";
+        return false;
+    }
+    size_t index = 0;
+    if (!GetStringProperty(env, argv[index++], context->name)) {
+        context->errMsg = "the name is not string";
+        return false;
+    }
+    if (!GetStringProperty(env, argv[index++], context->owner)) {
+        context->errMsg = "the owner is not string";
+        return false;
+    }
+    if (!GetStringProperty(env, argv[index++], context->authType)) {
+        context->errMsg = "the authType is not string";
+        return false;
+    }
+    AAFwk::WantParams params;
+    if ((argc == ARGS_SIZE_FIVE) && (!AppExecFwk::UnwrapWantParams(env, argv[index++], params))) {
+        ACCOUNT_LOGE("UnwrapWantParams failed");
+        context->errMsg = "the type of options is incorrect";
+        return false;
+    }
+    context->options.SetParams(params);
+    context->options.SetParam(Constants::KEY_CALLER_ABILITY_NAME, abilityName);
+    JSAuthCallback callback;
+    if (!ParseJSAuthCallback(env, argv[index], callback)) {
+        context->errMsg = "the type of authCallback is incorrect";
+        return false;
+    }
+    context->appAccountMgrCb = new (std::nothrow) AppAccountManagerCallback(env, callback);
+    return true;
 }
 
 void ParseContextForAuthenticate(napi_env env, napi_callback_info cbInfo, OAuthAsyncContext *asyncContext, size_t argc)
 {
     napi_value argv[ARGS_SIZE_FIVE] = {0};
-    napi_valuetype valueTypes[ARGS_SIZE_FIVE] = {napi_string, napi_string, napi_string, napi_object, napi_object};
     napi_value thisVar;
     napi_get_cb_info(env, cbInfo, &argc, argv, &thisVar, nullptr);
+    napi_valuetype valueTypes[ARGS_SIZE_FIVE] = {napi_string, napi_string, napi_string, napi_object, napi_object};
     size_t index = 0;
     if (argc == ARGS_SIZE_FIVE) {
         ParseArguments(env, argv, valueTypes, argc);
@@ -577,373 +630,531 @@ void ParseContextForAuthenticate(napi_env env, napi_callback_info cbInfo, OAuthA
         ACCOUNT_LOGE("UnwrapWantParams failed");
     }
     asyncContext->options.SetParams(params);
-    napi_value global;
-    napi_get_global(env, &global);
-    napi_value abilityObj;
-    napi_get_named_property(env, global, "ability", &abilityObj);
-    if (abilityObj != nullptr) {
-        AppExecFwk::Ability *ability = nullptr;
-        napi_get_value_external(env, abilityObj, reinterpret_cast<void **>(&ability));
-        auto abilityInfo = ability->GetAbilityInfo();
-        asyncContext->options.SetParam(Constants::KEY_CALLER_ABILITY_NAME, abilityInfo->name);
-    }
+    std::string abilityName;
+    GetAbilityName(env, abilityName);
+    asyncContext->options.SetParam(Constants::KEY_CALLER_ABILITY_NAME, abilityName);
     JSAuthCallback callback;
     ParseJSAuthCallback(env, argv[index], callback);
     asyncContext->appAccountMgrCb = new (std::nothrow) AppAccountManagerCallback(env, callback);
 }
 
-void ParseContextForGetOAuthToken(napi_env env, napi_callback_info cbInfo, OAuthAsyncContext *asyncContext)
+bool ParseContextForGetOAuthToken(napi_env env, napi_callback_info cbInfo, OAuthAsyncContext *asyncContext)
 {
     size_t argc = ARGS_SIZE_FOUR;
     napi_value argv[ARGS_SIZE_FOUR] = {0};
-    napi_valuetype valueTypes[] = {napi_string, napi_string, napi_string, napi_function};
     napi_get_cb_info(env, cbInfo, &argc, argv, nullptr, nullptr);
-    ParseArguments(env, argv, valueTypes, argc);
-    asyncContext->name = GetNamedProperty(env, argv[0]);
-    asyncContext->owner = GetNamedProperty(env, argv[1]);
-    asyncContext->authType = GetNamedProperty(env, argv[PARAMTWO]);
-    napi_create_reference(env, argv[PARAMTHREE], 1, &asyncContext->callbackRef);
+    if (argc < ARGS_SIZE_THREE) {
+        asyncContext->errMsg = "the number of parameter should be at least 3";
+        return false;
+    }
+    if ((argc == ARGS_SIZE_FOUR) && (!GetCallbackProperty(env, argv[PARAMTHREE], asyncContext->callbackRef, 1))) {
+        asyncContext->errMsg = "the callback is not a function";
+        return false;
+    }
+    if (!GetStringProperty(env, argv[0], asyncContext->name)) {
+        asyncContext->errMsg = "the name is not a string";
+        return false;
+    }
+    if (!GetStringProperty(env, argv[1], asyncContext->owner)) {
+        asyncContext->errMsg = "the owner is not a string";
+        return false;
+    }
+    if (!GetStringProperty(env, argv[PARAMTWO], asyncContext->authType)) {
+        asyncContext->errMsg = "the authType is not a string";
+        return false;
+    }
+    return true;
 }
 
-void ParseContextForSetOAuthToken(napi_env env, napi_callback_info cbInfo, OAuthAsyncContext *asyncContext)
+bool ParseContextForSetOAuthToken(napi_env env, napi_callback_info cbInfo, OAuthAsyncContext *asyncContext)
 {
     size_t argc = ARGS_SIZE_FOUR;
     napi_value argv[ARGS_SIZE_FOUR] = {0};
-    napi_valuetype valueTypes[] = {napi_string, napi_string, napi_string, napi_function};
     napi_get_cb_info(env, cbInfo, &argc, argv, nullptr, nullptr);
-    ParseArguments(env, argv, valueTypes, argc);
-    asyncContext->name = GetNamedProperty(env, argv[0]);
-    asyncContext->authType = GetNamedProperty(env, argv[1]);
-    asyncContext->token = GetNamedProperty(env, argv[PARAMTWO]);
-    napi_create_reference(env, argv[PARAMTHREE], 1, &asyncContext->callbackRef);
+    if (argc < ARGS_SIZE_THREE) {
+        asyncContext->errMsg = "the number of parameter should be at least 3";
+        return false;
+    }
+    if ((argc == ARGS_SIZE_FOUR) && (!GetCallbackProperty(env, argv[PARAMTHREE], asyncContext->callbackRef, 1))) {
+        asyncContext->errMsg = "the callback is not a function";
+        return false;
+    }
+    if (!GetStringProperty(env, argv[0], asyncContext->name)) {
+        asyncContext->errMsg = "the name is not a string";
+        return false;
+    }
+    if (!GetStringProperty(env, argv[1], asyncContext->authType)) {
+        asyncContext->errMsg = "the authType is not a string";
+        return false;
+    }
+    if (!GetStringProperty(env, argv[PARAMTWO], asyncContext->token)) {
+        asyncContext->errMsg = "the token is not a string";
+        return false;
+    }
+    return true;
 }
 
-void ParseContextForDeleteOAuthToken(napi_env env, napi_callback_info cbInfo, OAuthAsyncContext *asyncContext)
+bool ParseContextForDeleteOAuthToken(napi_env env, napi_callback_info cbInfo, OAuthAsyncContext *asyncContext)
 {
     size_t argc = ARGS_SIZE_FIVE;
     napi_value argv[ARGS_SIZE_FIVE] = {0};
-    napi_valuetype valueTypes[] = {napi_string, napi_string, napi_string, napi_string, napi_function};
     napi_get_cb_info(env, cbInfo, &argc, argv, nullptr, nullptr);
-    ParseArguments(env, argv, valueTypes, argc);
-    asyncContext->name = GetNamedProperty(env, argv[0]);
-    asyncContext->owner = GetNamedProperty(env, argv[1]);
-    asyncContext->authType = GetNamedProperty(env, argv[PARAMTWO]);
-    asyncContext->token = GetNamedProperty(env, argv[PARAMTHREE]);
-    napi_create_reference(env, argv[PARAMFOUR], 1, &asyncContext->callbackRef);
+    if (argc < ARGS_SIZE_FOUR) {
+        asyncContext->errMsg = "the number of parameter should be at least 4";
+        return false;
+    }
+    if ((argc == ARGS_SIZE_FIVE) && (!GetCallbackProperty(env, argv[PARAMFOUR], asyncContext->callbackRef, 1))) {
+        asyncContext->errMsg = "the callback is not a function";
+        return false;
+    }
+    if (!GetStringProperty(env, argv[0], asyncContext->name)) {
+        asyncContext->errMsg = "the name is not a string";
+        return false;
+    }
+    if (!GetStringProperty(env, argv[1], asyncContext->owner)) {
+        asyncContext->errMsg = "the owner is not a string";
+        return false;
+    }
+    if (!GetStringProperty(env, argv[PARAMTWO], asyncContext->authType)) {
+        asyncContext->errMsg = "the authType is not a string";
+        return false;
+    }
+    if (!GetStringProperty(env, argv[PARAMTHREE], asyncContext->token)) {
+        asyncContext->errMsg = "the token is not a string";
+        return false;
+    }
+    return true;
 }
 
-void ParseContextForSetOAuthTokenVisibility(napi_env env, napi_callback_info cbInfo, OAuthAsyncContext *asyncContext)
+bool ParseContextForSetOAuthTokenVisibility(napi_env env, napi_callback_info cbInfo, OAuthAsyncContext *asyncContext)
 {
     size_t argc = ARGS_SIZE_FIVE;
     napi_value argv[ARGS_SIZE_FIVE] = {0};
-    napi_valuetype valueTypes[] = {napi_string, napi_string, napi_string, napi_boolean, napi_function};
     napi_get_cb_info(env, cbInfo, &argc, argv, nullptr, nullptr);
-    ParseArguments(env, argv, valueTypes, argc);
-    asyncContext->name = GetNamedProperty(env, argv[0]);
-    asyncContext->authType = GetNamedProperty(env, argv[1]);
-    asyncContext->bundleName = GetNamedProperty(env, argv[PARAMTWO]);
-    napi_get_value_bool(env, argv[PARAMTHREE], &asyncContext->isVisible);
-    napi_create_reference(env, argv[PARAMFOUR], 1, &asyncContext->callbackRef);
-}
-
-void ParseContextForCheckOAuthTokenVisibility(napi_env env, napi_callback_info cbInfo, OAuthAsyncContext *asyncContext)
-{
-    size_t argc = ARGS_SIZE_FOUR;
-    napi_value argv[ARGS_SIZE_FOUR] = {0};
-    napi_valuetype valueTypes[] = {napi_string, napi_string, napi_string, napi_function};
-    napi_get_cb_info(env, cbInfo, &argc, argv, nullptr, nullptr);
-    ParseArguments(env, argv, valueTypes, argc);
-    asyncContext->name = GetNamedProperty(env, argv[0]);
-    asyncContext->authType = GetNamedProperty(env, argv[1]);
-    asyncContext->bundleName = GetNamedProperty(env, argv[PARAMTWO]);
-    napi_create_reference(env, argv[PARAMTHREE], 1, &asyncContext->callbackRef);
-}
-
-void ParseContextForGetAuthenticatorInfo(napi_env env, napi_callback_info cbInfo, OAuthAsyncContext *asyncContext)
-{
-    size_t argc = ARGS_SIZE_TWO;
-    napi_value argv[ARGS_SIZE_TWO] = {0};
-    napi_valuetype valueTypes[] = {napi_string, napi_function};
-    napi_get_cb_info(env, cbInfo, &argc, argv, nullptr, nullptr);
-    ParseArguments(env, argv, valueTypes, argc);
-    asyncContext->owner = GetNamedProperty(env, argv[0]);
-    napi_create_reference(env, argv[1], 1, &asyncContext->callbackRef);
-}
-
-void ParseContextForGetAllOAuthTokens(napi_env env, napi_callback_info cbInfo, OAuthAsyncContext *asyncContext)
-{
-    size_t argc = ARGS_SIZE_THREE;
-    napi_value argv[ARGS_SIZE_THREE] = {0};
-    napi_valuetype valueTypes[] = {napi_string, napi_string, napi_function};
-    napi_get_cb_info(env, cbInfo, &argc, argv, nullptr, nullptr);
-    ParseArguments(env, argv, valueTypes, argc);
-    asyncContext->name = GetNamedProperty(env, argv[0]);
-    asyncContext->owner = GetNamedProperty(env, argv[1]);
-    napi_create_reference(env, argv[PARAMTWO], 1, &asyncContext->callbackRef);
-}
-
-void ParseContextForGetOAuthList(napi_env env, napi_callback_info cbInfo, OAuthAsyncContext *asyncContext)
-{
-    size_t argc = ARGS_SIZE_THREE;
-    napi_value argv[ARGS_SIZE_THREE] = {0};
-    napi_valuetype valueTypes[] = {napi_string, napi_string, napi_function};
-    napi_get_cb_info(env, cbInfo, &argc, argv, nullptr, nullptr);
-    ParseArguments(env, argv, valueTypes, argc);
-    asyncContext->name = GetNamedProperty(env, argv[0]);
-    asyncContext->authType = GetNamedProperty(env, argv[1]);
-    napi_create_reference(env, argv[PARAMTWO], 1, &asyncContext->callbackRef);
-}
-
-void ParseContextForGetAuthenticatorCallback(napi_env env, napi_callback_info cbInfo, OAuthAsyncContext *asyncContext)
-{
-    size_t argc = ARGS_SIZE_TWO;
-    napi_value argv[ARGS_SIZE_TWO] = {0};
-    napi_valuetype valueTypes[] = {napi_string, napi_function};
-    napi_get_cb_info(env, cbInfo, &argc, argv, nullptr, nullptr);
-    ParseArguments(env, argv, valueTypes, argc);
-    asyncContext->sessionId = GetNamedProperty(env, argv[0]);
-    napi_create_reference(env, argv[1], 1, &asyncContext->callbackRef);
-}
-
-void ParseContextWithBdName(napi_env env, napi_callback_info cbInfo, AppAccountAsyncContext *asyncContext)
-{
-    size_t argc = ARGS_SIZE_THREE;
-    napi_value argv[ARGS_SIZE_THREE] = {0};
-    napi_get_cb_info(env, cbInfo, &argc, argv, nullptr, nullptr);
-
-    for (size_t i = 0; i < argc; i++) {
-        napi_valuetype valueType = napi_undefined;
-        napi_typeof(env, argv[i], &valueType);
-        if (i == 0 && valueType == napi_string) {
-            asyncContext->name = GetNamedProperty(env, argv[i]);
-        } else if (i == 1 && valueType == napi_string) {
-            asyncContext->bundleName = GetNamedProperty(env, argv[i]);
-        } else if (valueType == napi_function) {
-            napi_create_reference(env, argv[i], 1, &asyncContext->callbackRef);
-            break;
-        } else {
-            ACCOUNT_LOGE("Type matching failed");
-        }
+    if (argc < ARGS_SIZE_FOUR) {
+        asyncContext->errMsg = "the number of parameter should be at least 4";
+        return false;
     }
-}
-
-void ParseContextWithIsEnable(napi_env env, napi_callback_info cbInfo, AppAccountAsyncContext *asyncContext)
-{
-    size_t argc = ARGS_SIZE_THREE;
-    napi_value argv[ARGS_SIZE_THREE] = {0};
-    napi_get_cb_info(env, cbInfo, &argc, argv, nullptr, nullptr);
-
-    for (size_t i = 0; i < argc; i++) {
-        napi_valuetype valueType = napi_undefined;
-        napi_typeof(env, argv[i], &valueType);
-        if (i == 0 && valueType == napi_string) {
-            asyncContext->name = GetNamedProperty(env, argv[i]);
-        } else if (i == 1 && valueType == napi_boolean) {
-            napi_get_value_bool(env, argv[i], &asyncContext->isEnable);
-        } else if (valueType == napi_function) {
-            napi_create_reference(env, argv[i], 1, &asyncContext->callbackRef);
-            break;
-        } else {
-            ACCOUNT_LOGE("Type matching failed");
-        }
+    if ((argc == ARGS_SIZE_FIVE) && (!GetCallbackProperty(env, argv[PARAMFOUR], asyncContext->callbackRef, 1))) {
+        asyncContext->errMsg = "the callback is not a function";
+        return false;
     }
-}
-
-void ParseContextWithTwoPara(napi_env env, napi_callback_info cbInfo, AppAccountAsyncContext *asyncContext)
-{
-    size_t argc = ARGS_SIZE_TWO;
-    napi_value argv[ARGS_SIZE_TWO] = {0};
-    napi_get_cb_info(env, cbInfo, &argc, argv, nullptr, nullptr);
-
-    for (size_t i = 0; i < argc; i++) {
-        napi_valuetype valueType = napi_undefined;
-        napi_typeof(env, argv[i], &valueType);
-        if (i == 0 && valueType == napi_string) {
-            asyncContext->name = GetNamedProperty(env, argv[i]);
-        } else if (valueType == napi_function) {
-            napi_create_reference(env, argv[i], 1, &asyncContext->callbackRef);
-            break;
-        } else {
-            ACCOUNT_LOGE("Type matching failed");
-        }
+    if (!GetStringProperty(env, argv[0], asyncContext->name)) {
+        asyncContext->errMsg = "the name is not a string";
+        return false;
     }
+    if (!GetStringProperty(env, argv[1], asyncContext->authType)) {
+        asyncContext->errMsg = "the authType is not a string";
+        return false;
+    }
+    if (!GetStringProperty(env, argv[PARAMTWO], asyncContext->bundleName)) {
+        asyncContext->errMsg = "the bundleName is not a string";
+        return false;
+    }
+    if (napi_get_value_bool(env, argv[PARAMTHREE], &asyncContext->isVisible) != napi_ok) {
+        asyncContext->errMsg = "the isVisible is not a bool value";
+        return false;
+    }
+    return true;
 }
 
-void ParseContextToSetCredential(napi_env env, napi_callback_info cbInfo, AppAccountAsyncContext *asyncContext)
+bool ParseContextForCheckOAuthTokenVisibility(napi_env env, napi_callback_info cbInfo, OAuthAsyncContext *asyncContext)
 {
     size_t argc = ARGS_SIZE_FOUR;
     napi_value argv[ARGS_SIZE_FOUR] = {0};
     napi_get_cb_info(env, cbInfo, &argc, argv, nullptr, nullptr);
-
-    for (size_t i = 0; i < argc; i++) {
-        napi_valuetype valueType = napi_undefined;
-        napi_typeof(env, argv[i], &valueType);
-        if (i == 0 && valueType == napi_string) {
-            asyncContext->name = GetNamedProperty(env, argv[i]);
-        } else if (i == 1 && valueType == napi_string) {
-            asyncContext->credentialType = GetNamedProperty(env, argv[i]);
-        } else if (i == PARAMTWO && valueType == napi_string) {
-            asyncContext->credential = GetNamedProperty(env, argv[i]);
-        } else if (valueType == napi_function) {
-            napi_create_reference(env, argv[i], 1, &asyncContext->callbackRef);
-            break;
-        } else {
-            ACCOUNT_LOGE("Type matching failed");
-        }
+    if (argc < ARGS_SIZE_THREE) {
+        asyncContext->errMsg = "the number of parameter should be at least 3";
+        return false;
     }
+    if ((argc == ARGS_SIZE_FOUR) && (!GetCallbackProperty(env, argv[PARAMTHREE], asyncContext->callbackRef, 1))) {
+        asyncContext->errMsg = "the callback is not a function";
+        return false;
+    }
+    if (!GetStringProperty(env, argv[0], asyncContext->name)) {
+        asyncContext->errMsg = "the name is not a string";
+        return false;
+    }
+    if (!GetStringProperty(env, argv[1], asyncContext->authType)) {
+        asyncContext->errMsg = "the authType is not a string";
+        return false;
+    }
+    if (!GetStringProperty(env, argv[PARAMTWO], asyncContext->bundleName)) {
+        asyncContext->errMsg = "the bundleName is not a string";
+        return false;
+    }
+    return true;
 }
 
-void ParseContextForAssociatedData(napi_env env, napi_callback_info cbInfo, AppAccountAsyncContext *asyncContext)
+bool ParseContextForGetAuthenticatorInfo(napi_env env, napi_callback_info cbInfo, OAuthAsyncContext *asyncContext)
 {
-    size_t argc = ARGS_SIZE_FOUR;
-    napi_value argv[ARGS_SIZE_FOUR] = {0};
+    size_t argc = ARGS_SIZE_TWO;
+    napi_value argv[ARGS_SIZE_TWO] = {0};
     napi_get_cb_info(env, cbInfo, &argc, argv, nullptr, nullptr);
-
-    for (size_t i = 0; i < argc; i++) {
-        napi_valuetype valueType = napi_undefined;
-        napi_typeof(env, argv[i], &valueType);
-        if (i == 0 && valueType == napi_string) {
-            asyncContext->name = GetNamedProperty(env, argv[i]);
-        } else if (i == 1 && valueType == napi_string) {
-            asyncContext->key = GetNamedProperty(env, argv[i]);
-        } else if (i == PARAMTWO && valueType == napi_string) {
-            asyncContext->value = GetNamedProperty(env, argv[i]);
-        } else if (valueType == napi_function) {
-            napi_create_reference(env, argv[i], 1, &asyncContext->callbackRef);
-            break;
-        } else {
-            ACCOUNT_LOGE("Type matching failed");
-        }
+    if (argc < ARGS_SIZE_ONE) {
+        asyncContext->errMsg = "the number of parameter should be at least 1";
+        return false;
     }
+    if ((argc == ARGS_SIZE_TWO) && (!GetCallbackProperty(env, argv[1], asyncContext->callbackRef, 1))) {
+        asyncContext->errMsg = "the callback is not a function";
+        return false;
+    }
+    if (!GetStringProperty(env, argv[0], asyncContext->owner)) {
+        asyncContext->errMsg = "the owner is not a string";
+        return false;
+    }
+    return true;
 }
 
-void ParseContextToGetData(napi_env env, napi_callback_info cbInfo, AppAccountAsyncContext *asyncContext)
+bool ParseContextForGetAllOAuthTokens(napi_env env, napi_callback_info cbInfo, OAuthAsyncContext *asyncContext)
 {
     size_t argc = ARGS_SIZE_THREE;
     napi_value argv[ARGS_SIZE_THREE] = {0};
     napi_get_cb_info(env, cbInfo, &argc, argv, nullptr, nullptr);
-
-    for (size_t i = 0; i < argc; i++) {
-        napi_valuetype valueType = napi_undefined;
-        napi_typeof(env, argv[i], &valueType);
-        if (i == 0 && valueType == napi_string) {
-            asyncContext->name = GetNamedProperty(env, argv[i]);
-        } else if (i == 1 && valueType == napi_string) {
-            asyncContext->key = GetNamedProperty(env, argv[i]);
-        } else if (valueType == napi_function) {
-            napi_create_reference(env, argv[i], 1, &asyncContext->callbackRef);
-            break;
-        } else {
-            ACCOUNT_LOGE("Type matching failed");
-        }
+    if (argc < ARGS_SIZE_TWO) {
+        asyncContext->errMsg = "the number of parameter should be at least 2";
+        return false;
     }
+    if ((argc == ARGS_SIZE_THREE) && (!GetCallbackProperty(env, argv[PARAMTWO], asyncContext->callbackRef, 1))) {
+        asyncContext->errMsg = "the callback is not a function";
+        return false;
+    }
+    if (!GetStringProperty(env, argv[0], asyncContext->name)) {
+        asyncContext->errMsg = "the name is not a string";
+        return false;
+    }
+    if (!GetStringProperty(env, argv[1], asyncContext->owner)) {
+        asyncContext->errMsg = "the owner is not a string";
+        return false;
+    }
+    return true;
 }
 
-void ParseContextCBArray(napi_env env, napi_callback_info cbInfo, GetAccountsAsyncContext *asyncContext)
+bool ParseContextForGetOAuthList(napi_env env, napi_callback_info cbInfo, OAuthAsyncContext *asyncContext)
+{
+    size_t argc = ARGS_SIZE_THREE;
+    napi_value argv[ARGS_SIZE_THREE] = {0};
+    napi_get_cb_info(env, cbInfo, &argc, argv, nullptr, nullptr);
+    if (argc < ARGS_SIZE_TWO) {
+        asyncContext->errMsg = "the number of parameter should be at least 2";
+        return false;
+    }
+    if ((argc == ARGS_SIZE_THREE) && (!GetCallbackProperty(env, argv[PARAMTWO], asyncContext->callbackRef, 1))) {
+        asyncContext->errMsg = "the callback is not a function";
+        return false;
+    }
+    if (!GetStringProperty(env, argv[0], asyncContext->name)) {
+        asyncContext->errMsg = "the name is not a string";
+        return false;
+    }
+    if (!GetStringProperty(env, argv[1], asyncContext->authType)) {
+        asyncContext->errMsg = "the authType is not a string";
+        return false;
+    }
+    return true;
+}
+
+bool ParseContextForGetAuthenticatorCallback(napi_env env, napi_callback_info cbInfo, OAuthAsyncContext *asyncContext)
+{
+    size_t argc = ARGS_SIZE_TWO;
+    napi_value argv[ARGS_SIZE_TWO] = {0};
+    napi_get_cb_info(env, cbInfo, &argc, argv, nullptr, nullptr);
+    if (argc < ARGS_SIZE_ONE) {
+        asyncContext->errMsg = "the number of parameters should be at least 1";
+        return false;
+    }
+    if ((argc == ARGS_SIZE_TWO) && (!GetCallbackProperty(env, argv[1], asyncContext->callbackRef, 1))) {
+        asyncContext->errMsg = "the callback is not a function";
+        return false;
+    }
+    if (!GetStringProperty(env, argv[0], asyncContext->sessionId)) {
+        asyncContext->errMsg = "the sessionId is not a string";
+        return false;
+    }
+    return true;
+}
+
+bool ParseContextWithBdName(napi_env env, napi_callback_info cbInfo, AppAccountAsyncContext *asyncContext)
+{
+    size_t argc = ARGS_SIZE_THREE;
+    napi_value argv[ARGS_SIZE_THREE] = {0};
+    napi_get_cb_info(env, cbInfo, &argc, argv, nullptr, nullptr);
+    if (argc < ARGS_SIZE_TWO) {
+        asyncContext->errMsg = "the number of parameters should be at least 2";
+        return false;
+    }
+    if ((argc == ARGS_SIZE_THREE) && (!GetCallbackProperty(env, argv[PARAMTWO], asyncContext->callbackRef, 1))) {
+        asyncContext->errMsg = "the callback is not a function";
+        return false;
+    }
+    if (!GetStringProperty(env, argv[0], asyncContext->name)) {
+        asyncContext->errMsg = "the name is not a string";
+        return false;
+    }
+    if (!GetStringProperty(env, argv[1], asyncContext->bundleName)) {
+        asyncContext->errMsg = "the bundleName is not a string";
+        return false;
+    }
+    return true;
+}
+
+bool ParseContextForSetAppAccess(napi_env env, napi_callback_info cbInfo, AppAccountAsyncContext *asyncContext)
+{
+    size_t argc = ARGS_SIZE_FOUR;
+    napi_value argv[ARGS_SIZE_FOUR] = {0};
+    napi_get_cb_info(env, cbInfo, &argc, argv, nullptr, nullptr);
+    if (argc < ARGS_SIZE_THREE) {
+        asyncContext->errMsg = "the number of parameters should be at least 2";
+        return false;
+    }
+    if ((argc == ARGS_SIZE_FOUR) && (!GetCallbackProperty(env, argv[PARAMTWO], asyncContext->callbackRef, 1))) {
+        asyncContext->errMsg = "the callback is not a function";
+        return false;
+    }
+    if (!GetStringProperty(env, argv[0], asyncContext->name)) {
+        asyncContext->errMsg = "the name is not a string";
+        return false;
+    }
+    if (!GetStringProperty(env, argv[1], asyncContext->bundleName)) {
+        asyncContext->errMsg = "the bundleName is not a string";
+        return false;
+    }
+    if (napi_get_value_bool(env, argv[PARAMTWO], &asyncContext->isAccessible) != napi_ok) {
+        asyncContext->errMsg = "the isAccessible is not a bool value";
+        return false;
+    }
+    return true;
+}
+
+bool ParseContextWithIsEnable(napi_env env, napi_callback_info cbInfo, AppAccountAsyncContext *asyncContext)
+{
+    size_t argc = ARGS_SIZE_THREE;
+    napi_value argv[ARGS_SIZE_THREE] = {0};
+    napi_get_cb_info(env, cbInfo, &argc, argv, nullptr, nullptr);
+    if (argc < ARGS_SIZE_TWO) {
+        asyncContext->errMsg = "the number of parameters should be at least 2";
+        return false;
+    }
+    if ((argc == ARGS_SIZE_THREE) && (!GetCallbackProperty(env, argv[PARAMTWO], asyncContext->callbackRef, 1))) {
+        asyncContext->errMsg = "the callback is not a function";
+        return false;
+    }
+    if (!GetStringProperty(env, argv[0], asyncContext->name)) {
+        asyncContext->errMsg = "the name is not a string";
+        return false;
+    }
+    if (napi_get_value_bool(env, argv[1], &asyncContext->isEnable) != napi_ok) {
+        asyncContext->errMsg = "the isEnable is not a string";
+        return false;
+    }
+    return true;
+}
+
+bool ParseContextWithTwoPara(napi_env env, napi_callback_info cbInfo, AppAccountAsyncContext *asyncContext)
+{
+    size_t argc = ARGS_SIZE_TWO;
+    napi_value argv[ARGS_SIZE_TWO] = {0};
+    napi_get_cb_info(env, cbInfo, &argc, argv, nullptr, nullptr);
+    if (argc < ARGS_SIZE_ONE) {
+        asyncContext->errMsg = "the number of parameters should be at least 1";
+        return false;
+    }
+    if ((argc == ARGS_SIZE_TWO) && (!GetCallbackProperty(env, argv[1], asyncContext->callbackRef, 1))) {
+        asyncContext->errMsg = "the callback is not a function";
+        return false;
+    }
+    if (!GetStringProperty(env, argv[0], asyncContext->name)) {
+        asyncContext->errMsg = "the name is not a string";
+        return false;
+    }
+    return true;
+}
+
+bool ParseContextToSetCredential(napi_env env, napi_callback_info cbInfo, AppAccountAsyncContext *asyncContext)
+{
+    size_t argc = ARGS_SIZE_FOUR;
+    napi_value argv[ARGS_SIZE_FOUR] = {0};
+    napi_get_cb_info(env, cbInfo, &argc, argv, nullptr, nullptr);
+    if (argc < ARGS_SIZE_THREE) {
+        asyncContext->errMsg = "the number of parameters should be at least 3";
+        return false;
+    }
+    if ((argc == ARGS_SIZE_FOUR) && (!GetCallbackProperty(env, argv[PARAMTHREE], asyncContext->callbackRef, 1))) {
+        asyncContext->errMsg = "the callback is not a function";
+        return false;
+    }
+    if (!GetStringProperty(env, argv[0], asyncContext->name)) {
+        asyncContext->errMsg = "the name is not a string";
+        return false;
+    }
+    if (!GetStringProperty(env, argv[1], asyncContext->credentialType)) {
+        asyncContext->errMsg = "the credentialType is not a string";
+        return false;
+    }
+    if (!GetStringProperty(env, argv[PARAMTWO], asyncContext->credential)) {
+        asyncContext->errMsg = "the credential is not a string";
+        return false;
+    }
+    return true;
+}
+
+bool ParseContextForAssociatedData(napi_env env, napi_callback_info cbInfo, AppAccountAsyncContext *asyncContext)
+{
+    size_t argc = ARGS_SIZE_FOUR;
+    napi_value argv[ARGS_SIZE_FOUR] = {0};
+    napi_get_cb_info(env, cbInfo, &argc, argv, nullptr, nullptr);
+    if (argc < ARGS_SIZE_THREE) {
+        asyncContext->errMsg = "the number of parameters should be at least 3";
+        return false;
+    }
+    if ((argc == ARGS_SIZE_FOUR) && (!GetCallbackProperty(env, argv[PARAMTHREE], asyncContext->callbackRef, 1))) {
+        asyncContext->errMsg = "the callback is not a function";
+        return false;
+    }
+    if (!GetStringProperty(env, argv[0], asyncContext->name)) {
+        asyncContext->errMsg = "the name is not a string";
+        return false;
+    }
+    if (!GetStringProperty(env, argv[1], asyncContext->key)) {
+        asyncContext->errMsg = "the key is not a string";
+        return false;
+    }
+    if (!GetStringProperty(env, argv[PARAMTWO], asyncContext->value)) {
+        asyncContext->errMsg = "the value is not a string";
+        return false;
+    }
+    return true;
+}
+
+bool ParseContextToGetData(napi_env env, napi_callback_info cbInfo, AppAccountAsyncContext *asyncContext)
+{
+    size_t argc = ARGS_SIZE_THREE;
+    napi_value argv[ARGS_SIZE_THREE] = {0};
+    napi_get_cb_info(env, cbInfo, &argc, argv, nullptr, nullptr);
+    if (argc < ARGS_SIZE_TWO) {
+        asyncContext->errMsg = "the number of parameter shoulde be 3";
+        return false;
+    }
+    if ((argc == ARGS_SIZE_THREE) && (!GetCallbackProperty(env, argv[PARAMTWO], asyncContext->callbackRef, 1))) {
+        asyncContext->errMsg = "the callback is not a function";
+        return false;
+    }
+    if (!GetStringProperty(env, argv[0], asyncContext->name)) {
+        asyncContext->errMsg = "the name is not a string";
+        return false;
+    }
+    if (!GetStringProperty(env, argv[1], asyncContext->key)) {
+        asyncContext->errMsg = "the key is not a string";
+        return false;
+    }
+    return true;
+}
+
+bool ParseContextCBArray(napi_env env, napi_callback_info cbInfo, GetAccountsAsyncContext *asyncContext)
 {
     size_t argc = ARGS_SIZE_ONE;
     napi_value argv[ARGS_SIZE_ONE] = {0};
     napi_get_cb_info(env, cbInfo, &argc, argv, nullptr, nullptr);
-
-    bool callBackMode = false;
-    if (argc >= 1) {
-        napi_valuetype valueType = napi_undefined;
-        napi_typeof(env, argv[0], &valueType);
-        callBackMode = valueType == napi_function ? true : false;
+    if ((argc == ARGS_SIZE_ONE) && (!GetCallbackProperty(env, argv[0], asyncContext->callbackRef, 1))) {
+        asyncContext->errMsg = "the callback is not a function";
+        return false;
     }
-
-    if (callBackMode) {
-        napi_create_reference(env, argv[0], 1, &asyncContext->callbackRef);
-    }
+    return true;
 }
 
-void ParseContextWithCredentialType(napi_env env, napi_callback_info cbInfo, AppAccountAsyncContext *asyncContext)
+bool ParseContextWithCredentialType(napi_env env, napi_callback_info cbInfo, AppAccountAsyncContext *asyncContext)
 {
     size_t argc = ARGS_SIZE_THREE;
     napi_value argv[ARGS_SIZE_THREE] = {0};
     napi_get_cb_info(env, cbInfo, &argc, argv, nullptr, nullptr);
-
-    for (size_t i = 0; i < argc; i++) {
-        napi_valuetype valueType = napi_undefined;
-        napi_typeof(env, argv[i], &valueType);
-        if (i == 0 && valueType == napi_string) {
-            asyncContext->name = GetNamedProperty(env, argv[i]);
-        } else if (i == 1 && valueType == napi_string) {
-            asyncContext->credentialType = GetNamedProperty(env, argv[i]);
-        } else if (valueType == napi_function) {
-            napi_create_reference(env, argv[i], 1, &asyncContext->callbackRef);
-            break;
-        } else {
-            ACCOUNT_LOGE("Type matching failed");
-        }
+    if (argc < ARGS_SIZE_TWO) {
+        asyncContext->errMsg = "the number of parameter should be at least 2";
+        return false;
     }
+    if ((argc == ARGS_SIZE_THREE) && (!GetCallbackProperty(env, argv[PARAMTWO], asyncContext->callbackRef, 1))) {
+        asyncContext->errMsg = "the callback is not a function";
+        return false;
+    }
+    if (!GetStringProperty(env, argv[0], asyncContext->name)) {
+        asyncContext->errMsg = "the name is not a string";
+        return false;
+    }
+    if (!GetStringProperty(env, argv[1], asyncContext->credentialType)) {
+        asyncContext->errMsg = "the credentialType is not a string";
+        return false;
+    }
+    return true;
 }
 
-void ParseContextWithStrCBArray(napi_env env, napi_callback_info cbInfo, GetAccountsAsyncContext *asyncContext)
+bool ParseContextWithStrCBArray(napi_env env, napi_callback_info cbInfo, GetAccountsAsyncContext *asyncContext)
 {
     size_t argc = ARGS_SIZE_TWO;
     napi_value argv[ARGS_SIZE_TWO] = {0};
     napi_get_cb_info(env, cbInfo, &argc, argv, nullptr, nullptr);
-
-    for (size_t i = 0; i < argc; i++) {
-        napi_valuetype valueType = napi_undefined;
-        napi_typeof(env, argv[i], &valueType);
-        if (i == 0 && valueType == napi_string) {
-            asyncContext->owner = GetNamedProperty(env, argv[i]);
-        } else if (valueType == napi_function) {
-            napi_create_reference(env, argv[i], 1, &asyncContext->callbackRef);
-            break;
-        } else {
-            ACCOUNT_LOGE("Type matching failed");
-        }
+    if (argc < ARGS_SIZE_ONE) {
+        asyncContext->errMsg = "the number of parameter should be at least 2";
+        return false;
     }
+    if ((argc == ARGS_SIZE_TWO) && (!GetCallbackProperty(env, argv[1], asyncContext->callbackRef, 1))) {
+        asyncContext->errMsg = "the callback is not a function";
+        return false;
+    }
+    if (!GetStringProperty(env, argv[0], asyncContext->owner)) {
+        asyncContext->errMsg = "the owner is not a string";
+        return false;
+    }
+    return true;
 }
 
-napi_value ParseParametersBySubscribe(const napi_env &env, const napi_value (&argv)[ARGS_SIZE_THREE],
-    std::vector<std::string> &owners, napi_ref &callback)
+bool ParseParametersBySubscribe(const napi_env &env, napi_callback_info cbInfo, AsyncContextForSubscribe *context)
 {
+    size_t argc = SUBSCRIBE_MAX_PARA;
+    napi_value argv[SUBSCRIBE_MAX_PARA] = {nullptr};
+    napi_value thisVar = nullptr;
+    napi_get_cb_info(env, cbInfo, &argc, argv, &thisVar, nullptr);
+    context->errCode = ERR_JS_PARAMETER_ERROR;
+    if (argc != SUBSCRIBE_MAX_PARA) {
+        context->errMsg = "the number of parameters should be 3";
+        return false;
+    }
+    if (!GetStringProperty(env, argv[0], context->type)) {
+        context->type = "the type is not a string";
+        return false;
+    }
+    if ((context->type != "change") && (context->type != "accountChange")) {
+        context->errMsg = "the type is invalid";
+        context->errCode = ERR_JS_INVALID_PARAMETER;
+        return false;
+    }
     bool isArray = false;
+    napi_is_array(env, argv[1], &isArray);
+    if (!isArray) {
+        context->errMsg = "the owners is not a string array";
+        return false;
+    }
     uint32_t length = 0;
-    size_t strLen = 0;
-    napi_valuetype valuetype;
-
-    // argv[0] type: 'change'
-    NAPI_CALL(env, napi_typeof(env, argv[0], &valuetype));
-    if (valuetype == napi_string) {
-        std::string type = GetNamedProperty(env, argv[0]);
-        if (type != "change") {
-            ACCOUNT_LOGE("Wrong type=%{public}s", type.c_str());
-            return nullptr;
-        }
-    } else {
-        ACCOUNT_LOGE("Wrong argument type.");
-        return nullptr;
+    napi_get_array_length(env, argv[1], &length);
+    if (length == 0) {
+        context->errMsg = "the owers should not be empty";
+        context->errCode = ERR_JS_INVALID_PARAMETER;
+        return false;
     }
-
-    // argv[1] owners: Array<string>
-    NAPI_CALL(env, napi_is_array(env, argv[1], &isArray));
-    NAPI_ASSERT(env, isArray, "Wrong argument type for arg1. Array<string> expected.");
-    if (isArray) {
-        NAPI_CALL(env, napi_get_array_length(env, argv[1], &length));
-        NAPI_ASSERT(env, length > 0, "The array is empty.");
-        for (size_t i = 0; i < length; i++) {
-            napi_value ownerStr = nullptr;
-            napi_get_element(env, argv[1], i, &ownerStr);
-            NAPI_CALL(env, napi_typeof(env, ownerStr, &valuetype));
-            NAPI_ASSERT(env, valuetype == napi_string, "Wrong argument type. String expected.");
-            char str[STR_MAX_SIZE] = {0};
-            NAPI_CALL(env, napi_get_value_string_utf8(env, ownerStr, str, STR_MAX_SIZE - 1, &strLen));
-            ACCOUNT_LOGI("Get owners.string by subscribe str = %{public}s", str);
-            owners.emplace_back(str);
+    for (size_t i = 0; i < length; i++) {
+        napi_value ownerStr = nullptr;
+        napi_get_element(env, argv[1], i, &ownerStr);
+        std::string owner;
+        if (!GetStringProperty(env, ownerStr, owner)) {
+            context->errMsg = "the owners is not a string array";
+            return false;
         }
+        context->owners.emplace_back(owner);
     }
-
-    // argv[2] callback
-    NAPI_CALL(env, napi_typeof(env, argv[PARAMTWO], &valuetype));
-    NAPI_ASSERT(env, valuetype == napi_function, "Wrong argument type. Function expected.");
-    NAPI_CALL(env, napi_create_reference(env, argv[PARAMTWO], 1, &callback));
-
-    return NapiGetNull(env);
+    if (!GetCallbackProperty(env, argv[PARAMTWO], context->callbackRef, 1)) {
+        context->errMsg = "the callback is not a function";
+        return false;
+    }
+    napi_unwrap(env, thisVar, reinterpret_cast<void **>(&context->appAccountManager));
+    return true;
 }
 
 napi_value GetSubscriberByUnsubscribe(const napi_env &env, std::vector<std::shared_ptr<SubscriberPtr>> &subscribers,
@@ -969,32 +1180,41 @@ napi_value GetSubscriberByUnsubscribe(const napi_env &env, std::vector<std::shar
     return result;
 }
 
-napi_value ParseParametersByUnsubscribe(
-    const napi_env &env, const size_t &argc, const napi_value (&argv)[UNSUBSCRIBE_MAX_PARA], napi_ref &callback)
+bool ParseParametersByUnsubscribe(
+    const napi_env &env, napi_callback_info cbInfo, AsyncContextForUnsubscribe *context)
 {
-    napi_valuetype valuetype;
-    napi_value result = nullptr;
-    // argv[0]: type: 'change'
-    NAPI_CALL(env, napi_typeof(env, argv[0], &valuetype));
-    NAPI_ASSERT(env, valuetype == napi_string, "Wrong argument type for arg0. String expected.");
-    if (valuetype == napi_string) {
-        std::string type = GetNamedProperty(env, argv[0]);
-        if (type != "change") {
-            ACCOUNT_LOGE("Wrong type=%{public}s", type.c_str());
-            return nullptr;
-        }
-    } else {
-        ACCOUNT_LOGE("Wrong argument type.");
-        return nullptr;
+    size_t argc = UNSUBSCRIBE_MAX_PARA;
+    napi_value argv[UNSUBSCRIBE_MAX_PARA] = {nullptr};
+    napi_value thisVar = nullptr;
+    std::vector<std::shared_ptr<SubscriberPtr>> subscribers = {nullptr};
+    NAPI_CALL_BASE(env, napi_get_cb_info(env, cbInfo, &argc, argv, &thisVar, NULL), false);
+    if (argc < 1) {
+        context->errMsg = "the number of parameters should be at least 1";
+        context->errCode = ERR_JS_PARAMETER_ERROR;
+        return false;
     }
-
-    // argv[1]:callback
-    if (argc >= UNSUBSCRIBE_MAX_PARA) {
-        NAPI_CALL(env, napi_typeof(env, argv[1], &valuetype));
-        NAPI_ASSERT(env, valuetype == napi_function, "Wrong argument type. Function expected.");
-        NAPI_CALL(env, napi_create_reference(env, argv[1], 1, &callback));
+    if (!GetStringProperty(env, argv[0], context->type)) {
+        context->errMsg = "the type is not a string";
+        context->errCode = ERR_JS_PARAMETER_ERROR;
+        return false;
     }
-    return result;
+    if ((context->type != "change") && (context->type != "accountChange")) {
+        context->errMsg = "the type is invalid";
+        context->errCode = ERR_JS_INVALID_PARAMETER;
+        return false;
+    }
+    if ((argc == UNSUBSCRIBE_MAX_PARA) && (!GetCallbackProperty(env, argv[1], context->callbackRef, 1))) {
+        context->errMsg = "the callback is not a function";
+        context->errCode = ERR_JS_PARAMETER_ERROR;
+        return false;
+    }
+    napi_unwrap(env, thisVar, reinterpret_cast<void **>(&context->appAccountManager));
+    if (context->appAccountManager == nullptr) {
+        ACCOUNT_LOGE("appAccountManager is nullptr");
+        return false;
+    }
+    context->argc = argc;
+    return true;
 }
 
 void UnsubscribeExecuteCB(napi_env env, void *data)
@@ -1054,209 +1274,268 @@ void UnsubscribeCallbackCompletedCB(napi_env env, napi_status status, void *data
     asyncContextForOff = nullptr;
 }
 
-void ParseVerifyCredentialOptions(napi_env env, napi_value object, VerifyCredentialOptions &options)
+bool ParseVerifyCredentialOptions(napi_env env, napi_value object, VerifyCredentialOptions &options)
 {
     napi_valuetype valueType = napi_undefined;
     napi_typeof(env, object, &valueType);
     if (valueType != napi_object) {
-        return;
+        ACCOUNT_LOGE("the type of object is not napi_object");
+        return false;
     }
     napi_value value = nullptr;
-    napi_get_named_property(env, object, "credential", &value);
-    options.credential = GetNamedProperty(env, value);
-    napi_get_named_property(env, object, "credentialType", &value);
-    options.credentialType = GetNamedProperty(env, value);
+    bool result = true;
+    bool hasProp = false;
+    napi_has_named_property(env, object, "credential", &hasProp);
+    if (hasProp) {
+        napi_get_named_property(env, object, "credential", &value);
+        result &= GetStringProperty(env, value, options.credential);
+    }
+    napi_has_named_property(env, object, "credentialType", &hasProp);
+    if (hasProp) {
+        napi_get_named_property(env, object, "credentialType", &value);
+        result &= GetStringProperty(env, value, options.credentialType);
+    }
+    napi_has_named_property(env, object, "parameters", &hasProp);
+    if (hasProp) {
+        napi_get_named_property(env, object, "parameters", &value);
+        result &= AppExecFwk::UnwrapWantParams(env, value, options.parameters);
+    }
+    return result;
 }
 
-void ParseSelectAccountsOptions(napi_env env, napi_value object, SelectAccountsOptions &options)
+bool ParseSelectAccountsOptions(napi_env env, napi_value object, SelectAccountsOptions &options)
 {
     napi_valuetype valueType = napi_undefined;
     napi_typeof(env, object, &valueType);
     if (valueType != napi_object) {
-        return;
+        return false;
     }
     napi_value value = nullptr;
+    bool result = true;
     napi_has_named_property(env, object, "allowedAccounts", &options.hasAccounts);
     if (options.hasAccounts) {
         napi_get_named_property(env, object, "allowedAccounts", &value);
-        ParseAccountVector(env, value, options.allowedAccounts);
+        result &= ParseAccountVector(env, value, options.allowedAccounts);
     }
     napi_has_named_property(env, object, "allowedOwners", &options.hasOwners);
     if (options.hasOwners) {
         napi_get_named_property(env, object, "allowedOwners", &value);
-        ParseStringVector(env, value, options.allowedOwners);
+        result &= ParseStringVector(env, value, options.allowedOwners);
     }
     napi_has_named_property(env, object, "requiredLabels", &options.hasLabels);
     if (options.hasLabels) {
         napi_get_named_property(env, object, "requiredLabels", &value);
-        ParseStringVector(env, value, options.requiredLabels);
-        ACCOUNT_LOGE("requiredLabels.size: %{public}zu", options.requiredLabels.size());
+        result &= ParseStringVector(env, value, options.requiredLabels);
     }
+    return result;
 }
 
-void ParseSetPropertiesOptions(napi_env env, napi_value object, SetPropertiesOptions &options)
+bool ParseSetPropertiesOptions(napi_env env, napi_value object, SetPropertiesOptions &options)
 {
     napi_valuetype valueType = napi_undefined;
     napi_typeof(env, object, &valueType);
     if (valueType != napi_object) {
-        return;
+        return false;
     }
     napi_value value = nullptr;
-    napi_get_named_property(env, object, "properties", &value);
-    AppExecFwk::UnwrapWantParams(env, value, options.properties);
-    napi_get_named_property(env, object, "parameters", &value);
-    AppExecFwk::UnwrapWantParams(env, value, options.parameters);
+    bool hasProp = false;
+    bool result = true;
+    napi_has_named_property(env, object, "properties", &hasProp);
+    if (hasProp) {
+        napi_get_named_property(env, object, "properties", &value);
+        result &= AppExecFwk::UnwrapWantParams(env, value, options.properties);
+    }
+    napi_has_named_property(env, object, "parameters", &hasProp);
+    if (hasProp) {
+        napi_get_named_property(env, object, "parameters", &value);
+        result &= AppExecFwk::UnwrapWantParams(env, value, options.parameters);
+    }
+    return result;
 }
 
-napi_ref GetNamedFunction(napi_env env, napi_value object, std::string name)
+bool GetNamedFunction(napi_env env, napi_value object, std::string name, napi_ref &funcRef)
 {
     napi_value value = nullptr;
-    napi_valuetype valueType = napi_undefined;
-    napi_ref funcRef = nullptr;
     napi_get_named_property(env, object, name.c_str(), &value);
-    napi_typeof(env, value, &valueType);
-    if (valueType == napi_function) {
-        napi_create_reference(env, value, 1, &funcRef);
-    }
-    if (funcRef == nullptr) {
-        ACCOUNT_LOGI("funcRef is nullptr");
-    }
-    return funcRef;
+    return GetCallbackProperty(env, value, funcRef, 1);
 }
 
-void ParseJSAuthCallback(napi_env env, napi_value object, JSAuthCallback &callback)
+bool ParseJSAuthCallback(napi_env env, napi_value object, JSAuthCallback &callback)
 {
     napi_valuetype valueType = napi_undefined;
     napi_typeof(env, object, &valueType);
     if (valueType != napi_object) {
-        return;
+        return false;
     }
-    callback.onResult = GetNamedFunction(env, object, "onResult");
-    callback.onRequestRedirected = GetNamedFunction(env, object, "onRequestRedirected");
-    callback.onRequestContinued = GetNamedFunction(env, object, "onRequestContinued");
+    bool hasProp = false;
+    napi_has_named_property(env, object, "onRequestContinued", &hasProp);
+    if (hasProp && (!GetNamedFunction(env, object, "onRequestContinued", callback.onRequestContinued))) {
+        return false;
+    }
+    return GetNamedFunction(env, object, "onResult", callback.onResult) ||
+        GetNamedFunction(env, object, "onRequestRedirected", callback.onRequestRedirected);
 }
 
-void ParseContextForVerifyCredential(napi_env env, napi_callback_info info, VerifyCredentialContext *context)
+bool ParseContextForVerifyCredential(napi_env env, napi_callback_info info, VerifyCredentialContext *context)
 {
     size_t argc = ARGS_SIZE_FOUR;
     napi_value argv[ARGS_SIZE_FOUR] = {0};
     napi_get_cb_info(env, info, &argc, argv, nullptr, nullptr);
     if (argc < ARGS_SIZE_THREE) {
-        return;
+        context->errMsg = "the number of parameter shoulde be at least 3";
+        return false;
     }
     int32_t index = 0;
-    context->name = GetNamedProperty(env, argv[index++]);
-    context->owner = GetNamedProperty(env, argv[index++]);
-    if (argc == ARGS_SIZE_FOUR) {
-        ParseVerifyCredentialOptions(env, argv[index++], context->options);
+    if (!GetStringProperty(env, argv[index++], context->name)) {
+        context->errMsg = "the name is not a string";
+        return false;
     }
-    ParseJSAuthCallback(env, argv[index], context->callback);
+    if (!GetStringProperty(env, argv[index++], context->owner)) {
+        context->errMsg = "the owner is not a string";
+        return false;
+    }
+    if ((argc == ARGS_SIZE_FOUR) && (!ParseVerifyCredentialOptions(env, argv[index++], context->options))) {
+        context->errMsg = "the type of options is not VerifyCredentialOptions";
+        return false;
+    }
+    if (!ParseJSAuthCallback(env, argv[index], context->callback)) {
+        context->errMsg = "the type of callback is not AuthCallback";
+        return false;
+    }
+    return true;
 }
 
-void ParseContextForSetProperties(napi_env env, napi_callback_info info, SetPropertiesContext *context)
+bool ParseContextForSetProperties(napi_env env, napi_callback_info info, SetPropertiesContext *context)
 {
     size_t argc = ARGS_SIZE_THREE;
     napi_value argv[ARGS_SIZE_THREE] = {0};
     napi_get_cb_info(env, info, &argc, argv, nullptr, nullptr);
     if (argc < ARGS_SIZE_TWO) {
-        return;
+        context->errMsg = "the number of parameter shoulde be at least 2";
+        return false;
     }
     int32_t index = 0;
-    context->owner = GetNamedProperty(env, argv[index++]);
-    if (argc == ARGS_SIZE_THREE) {
-        ParseSetPropertiesOptions(env, argv[index++], context->options);
+    if (!GetStringProperty(env, argv[index++], context->owner)) {
+        context->errMsg = "the owner is not a string";
+        return false;
     }
-    ParseJSAuthCallback(env, argv[index], context->callback);
+    if (argc == ARGS_SIZE_THREE) {
+        if (!ParseSetPropertiesOptions(env, argv[index++], context->options)) {
+            context->errMsg = "the type of options is not SetPropertiesOptions";
+            return false;
+        }
+    }
+    if (!ParseJSAuthCallback(env, argv[index], context->callback)) {
+        context->errMsg = "the type of callback is not AuthCallback";
+        return false;
+    }
+    return true;
 }
 
-void ParseContextForSelectAccount(napi_env env, napi_callback_info info, SelectAccountsContext *context)
+bool ParseContextForSelectAccount(napi_env env, napi_callback_info info, SelectAccountsContext *context)
 {
     size_t argc = ARGS_SIZE_TWO;
     napi_value argv[ARGS_SIZE_TWO] = {0};
     napi_get_cb_info(env, info, &argc, argv, nullptr, nullptr);
     if (argc < ARGS_SIZE_ONE) {
-        return;
+        context->errMsg = "the number of parameter shoulde be at least 1";
+        return false;
     }
-    ParseSelectAccountsOptions(env, argv[0], context->options);
-    if (argc != ARGS_SIZE_TWO) {
-        return;
+    if ((argc == ARGS_SIZE_TWO) && (!GetCallbackProperty(env, argv[PARAMONE], context->callbackRef, PARAMTWO))) {
+        context->errMsg = "the callback is not a function";
+        return false;
     }
-    napi_valuetype valueType = napi_undefined;
-    napi_typeof(env, argv[PARAMONE], &valueType);
-    if (valueType == napi_function) {
-        napi_create_reference(env, argv[PARAMONE], PARAMTWO, &context->callbackRef);
+    if (!ParseSelectAccountsOptions(env, argv[0], context->options)) {
+        context->errMsg = "the type of options is not SelectAccountsOptions";
+        return false;
     }
+    return true;
 }
 
-uint32_t GetArrayLength(napi_env env, napi_value value)
+bool GetArrayLength(napi_env env, napi_value value, uint32_t &length)
 {
     bool isArray = false;
-    uint32_t length = 0;
     napi_is_array(env, value, &isArray);
     if (!isArray) {
-        ACCOUNT_LOGD("Wrong argument type, array expected");
-    } else {
-        napi_get_array_length(env, value, &length);
+        ACCOUNT_LOGE("wrong argument type, array expected");
+        return false;
     }
-    return length;
+    napi_get_array_length(env, value, &length);
+    return true;
 }
 
-void ParseAccountVector(napi_env env, napi_value value, std::vector<std::pair<std::string, std::string>> &accountVec)
+bool ParseAccountVector(napi_env env, napi_value value, std::vector<std::pair<std::string, std::string>> &accountVec)
 {
-    uint32_t length = GetArrayLength(env, value);
+    uint32_t length = 0;
+    if (!GetArrayLength(env, value, length)) {
+        return false;
+    }
     napi_valuetype valueType = napi_undefined;
     for (uint32_t i = 0; i < length; ++i) {
         napi_value item = nullptr;
         napi_get_element(env, value, i, &item);
-        NAPI_CALL_RETURN_VOID(env, napi_typeof(env, item, &valueType));
+        NAPI_CALL_BASE(env, napi_typeof(env, item, &valueType), false);
         if (valueType != napi_object) {
             ACCOUNT_LOGD("Wrong argument type, Object expected");
-            return;
+            return false;
         }
-        napi_value data = nullptr;
-        napi_get_named_property(env, item, "name", &data);
-        std::string name = GetNamedProperty(env, data);
-        napi_get_named_property(env, item, "owner", &data);
-        std::string owner = GetNamedProperty(env, data);
+        std::string name;
+        if (!GetStringPropertyByKey(env, item, "name", name)) {
+            return false;
+        }
+        std::string owner;
+        if (!GetStringPropertyByKey(env, item, "owner", owner)) {
+            return false;
+        }
         accountVec.push_back(std::make_pair(owner, name));
     }
+    return true;
 }
 
-void ParseStringVector(napi_env env, napi_value value, std::vector<std::string> &strVec)
+bool ParseStringVector(napi_env env, napi_value value, std::vector<std::string> &strVec)
 {
-    uint32_t length = GetArrayLength(env, value);
-    napi_valuetype valueType = napi_undefined;
+    uint32_t length = 0;
+    if (!GetArrayLength(env, value, length)) {
+        return false;
+    }
     for (uint32_t i = 0; i < length; ++i) {
         napi_value item = nullptr;
         napi_get_element(env, value, i, &item);
-        NAPI_CALL_RETURN_VOID(env, napi_typeof(env, item, &valueType));
-        if (valueType != napi_string) {
-            ACCOUNT_LOGD("Wrong argument type, String expected");
-            return;
+        std::string str;
+        if (!GetStringProperty(env, item, str)) {
+            return false;
         }
-        strVec.push_back(GetNamedProperty(env, item));
+        strVec.push_back(str);
     }
+    return true;
 }
 
-void ParseContextForCheckAccountLabels(napi_env env, napi_callback_info info, CheckAccountLabelsContext *context)
+bool ParseContextForCheckAccountLabels(napi_env env, napi_callback_info info, CheckAccountLabelsContext *context)
 {
     size_t argc = ARGS_SIZE_FOUR;
     napi_value argv[ARGS_SIZE_FOUR] = {0};
     napi_get_cb_info(env, info, &argc, argv, nullptr, nullptr);
     if (argc < ARGS_SIZE_THREE) {
-        return;
+        context->errMsg = "the number of parameter should be at least 3";
+        return false;
     }
-    context->name = GetNamedProperty(env, argv[PARAMZERO]);
-    context->owner = GetNamedProperty(env, argv[PARAMONE]);
-    ParseStringVector(env, argv[PARAMTWO], context->labels);
-    if (argc != ARGS_SIZE_FOUR) {
-        return;
+    if ((argc == ARGS_SIZE_FOUR) && (!GetCallbackProperty(env, argv[PARAMTHREE], context->callbackRef, PARAMTWO))) {
+        context->errMsg = "the callback is not a function";
+        return false;
     }
-    napi_valuetype valueType = napi_undefined;
-    napi_typeof(env, argv[PARAMTHREE], &valueType);
-    if (valueType == napi_function) {
-        napi_create_reference(env, argv[PARAMTHREE], PARAMTWO, &context->callbackRef);
+    if (!GetStringProperty(env, argv[0], context->name)) {
+        context->errMsg = "the name is not a string";
+        return false;
     }
+    if (!GetStringProperty(env, argv[PARAMONE], context->owner)) {
+        context->errMsg = "the owner is not a string";
+        return false;
+    }
+    if (!ParseStringVector(env, argv[PARAMTWO], context->labels)) {
+        context->errMsg = "the labels is not a string vector";
+        return false;
+    }
+    return true;
 }
 
 void VerifyCredCompleteCB(napi_env env, napi_status status, void *data)
@@ -1296,6 +1575,28 @@ void ProcessOnResultCallback(
         napi_delete_reference(env, callback.onRequestContinued);
         callback.onRequestContinued = nullptr;
     }
+}
+
+bool GetAbilityName(napi_env env, std::string &abilityName)
+{
+    napi_value global;
+    napi_get_global(env, &global);
+    napi_value abilityObj;
+    napi_get_named_property(env, global, "ability", &abilityObj);
+    if (abilityObj == nullptr) {
+        return false;
+    }
+    AppExecFwk::Ability *ability = nullptr;
+    napi_get_value_external(env, abilityObj, reinterpret_cast<void **>(&ability));
+    if (ability == nullptr) {
+        return false;
+    }
+    auto abilityInfo = ability->GetAbilityInfo();
+    if (abilityInfo == nullptr) {
+        return false;
+    }
+    abilityName = abilityInfo->name;
+    return true;
 }
 }  // namespace AccountJsKit
 }  // namespace OHOS
