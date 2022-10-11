@@ -19,6 +19,8 @@ ohos_shared_library("distributedaccount") {
     "include",
     "//third_party/node/src",
     "//foundation/arkui/napi/interfaces/kits",
+    "${os_account_path}/interfaces/kits/napi/common/include",
+    "//base/useriam/user_auth_framework/interfaces/inner_api",
   ]
 
   cflags = [
@@ -35,7 +37,12 @@ ohos_shared_library("distributedaccount") {
 
   configs = [ "${account_coverage_config_path}:coverage_flags" ]
 
-  sources = [ "src/napi_distributed_account.cpp" ]
+  sources = [
+    "${os_account_path}/frameworks/common/account_error/src/account_error_no.cpp",
+    "${os_account_path}/interfaces/kits/napi/common/src/napi_account_common.cpp",
+    "${os_account_path}/interfaces/kits/napi/common/src/napi_account_error.cpp",
+    "src/napi_distributed_account.cpp",
+  ]
 
   defines = [
     "ACCOUNT_LOG_TAG = \"DistributedAccountJsKit\"",

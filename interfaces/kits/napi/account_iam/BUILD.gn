@@ -20,6 +20,8 @@ config("account_iam_kit_config") {
     "//foundation/ace/napi/interfaces/kits",
     "//third_party/libuv/include",
     "//third_party/node/src",
+    "${os_account_path}/interfaces/kits/napi/common/include",
+    "//base/useriam/user_auth_framework/interfaces/inner_api",
   ]
 
   cflags = []
@@ -58,6 +60,9 @@ ohos_shared_library("account_iam_napi") {
     "${account_iam_kits_path}/src/napi_account_iam_module.cpp",
     "${account_iam_kits_path}/src/napi_account_iam_pin_auth.cpp",
     "${account_iam_kits_path}/src/napi_account_iam_user_auth.cpp",
+    "${os_account_path}/frameworks/common/account_error/src/account_error_no.cpp",
+    "${os_account_path}/interfaces/kits/napi/common/src/napi_account_common.cpp",
+    "${os_account_path}/interfaces/kits/napi/common/src/napi_account_error.cpp",
   ]
 
   defines = [

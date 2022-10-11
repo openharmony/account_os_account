@@ -18,6 +18,8 @@
 #include <uv.h>
 #include "account_error_no.h"
 #include "account_log_wrapper.h"
+#include "napi_account_error.h"
+#include "napi_account_common.h"
 #include "securec.h"
 
 namespace OHOS {
@@ -575,6 +577,8 @@ napi_value OnSetData(napi_env env, napi_callback_info info)
     NAPI_CALL(env, napi_get_cb_info(env, info, &argc, argv, &thisVar, nullptr));
     if (argc != ARG_SIZE_TWO) {
         ACCOUNT_LOGE("failed to parse parameters, expect three parameters, but got %{public}zu", argc);
+        std::string errMsg = "The arg number must be at least 2 characters";
+        AccountNapiThrow(env, ERR_JS_PARAMETER_ERROR, errMsg, true);
         return nullptr;
     }
     InputerContext *context = nullptr;
@@ -584,9 +588,19 @@ napi_value OnSetData(napi_env env, napi_callback_info info)
         return nullptr;
     }
     int32_t authSubType;
-    NAPI_CALL(env, napi_get_value_int32(env, argv[PARAM_ZERO], &authSubType));
+    if (!GetIntProperty(env, argv[PARAM_ZERO], authSubType)) {
+        ACCOUNT_LOGE("Get authSubType failed");
+        std::string errMsg = "The type of arg 1 must be number";
+        AccountNapiThrow(env, ERR_JS_PARAMETER_ERROR, errMsg, true);
+        return nullptr;
+    }
     std::vector<uint8_t> data;
-    NAPI_CALL(env, ParseUint8TypedArrayToVector(env, argv[PARAM_ONE], data));
+    if (ParseUint8TypedArrayToVector(env, argv[PARAM_ONE], data) != napi_ok) {
+        ACCOUNT_LOGE("Get data failed");
+        std::string errMsg = "The type of arg 2 must be int array";
+        AccountNapiThrow(env, ERR_JS_PARAMETER_ERROR, errMsg, true);
+        return nullptr;
+    }
     context->inputerData->OnSetData(authSubType, data);
     return nullptr;
 }
@@ -687,10 +701,12 @@ void CallbackAsyncOrPromise(napi_env env, IAMAsyncContext *context, napi_value d
         napi_call_function(env, nullptr, callback, ARG_SIZE_TWO, argv, &result);
         napi_delete_reference(env, context->callbackRef);
         context->callbackRef = nullptr;
-    } else if (context->errCode == ERR_OK) {
-        NAPI_CALL_RETURN_VOID(env, napi_resolve_deferred(env, context->deferred, data));
     } else {
-        NAPI_CALL_RETURN_VOID(env, napi_reject_deferred(env, context->deferred, err));
+        if (context->errCode == ERR_OK) {
+            NAPI_CALL_RETURN_VOID(env, napi_resolve_deferred(env, context->deferred, data));
+        } else {
+            NAPI_CALL_RETURN_VOID(env, napi_reject_deferred(env, context->deferred, err));
+        }
     }
 }
 

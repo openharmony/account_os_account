@@ -279,30 +279,32 @@ int32_t AccountIAMMgrProxy::CancelAuth(uint64_t contextId)
     return result;
 }
 
-int32_t AccountIAMMgrProxy::GetAvailableStatus(const AuthType authType, const AuthTrustLevel authTrustLevel)
+int32_t AccountIAMMgrProxy::GetAvailableStatus(const AuthType authType, const AuthTrustLevel authTrustLevel,
+    int32_t &status)
 {
-    int32_t status = 0;
     MessageParcel data;
     if (!data.WriteInterfaceToken(GetDescriptor())) {
         ACCOUNT_LOGE("failed to write descriptor");
-        return status;
+        return ERR_ACCOUNT_IAM_KIT_WRITE_PARCEL_FAIL;
     }
     if (!data.WriteInt32(authType)) {
         ACCOUNT_LOGE("failed to write authType");
-        return status;
+        return ERR_ACCOUNT_IAM_KIT_WRITE_PARCEL_FAIL;
     }
     if (!data.WriteUint32(authTrustLevel)) {
         ACCOUNT_LOGE("failed to write authTrustLevel");
-        return status;
+        return ERR_ACCOUNT_IAM_KIT_WRITE_PARCEL_FAIL;
     }
     MessageParcel reply;
-    if (SendRequest(IAccountIAM::Message::GET_AVAILABLE_STATUS, data, reply) != ERR_OK) {
-        return status;
+    int32_t res = SendRequest(IAccountIAM::Message::GET_AVAILABLE_STATUS, data, reply);
+    if (res != ERR_OK) {
+        return res;
     }
     if (!reply.ReadInt32(status)) {
         ACCOUNT_LOGE("failed to read status");
+        return ERR_ACCOUNT_IAM_KIT_READ_PARCEL_FAIL;
     }
-    return status;
+    return ERR_OK;
 }
 
 void AccountIAMMgrProxy::GetProperty(

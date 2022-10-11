@@ -45,6 +45,7 @@ struct IAMAsyncContext {
     napi_deferred deferred = nullptr;
     napi_ref callbackRef = nullptr;
     ErrCode errCode = ERR_OK;
+    bool throwErr = true;
 };
 
 struct JsIAMCallback {
@@ -78,6 +79,7 @@ struct AuthContext {
     int32_t userId = 0;
     int32_t authType;
     int32_t trustLevel;
+    bool throwErr = true;
     std::vector<uint8_t> challenge;
     std::shared_ptr<AccountSA::IDMCallback> callback;
 };

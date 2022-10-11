@@ -152,13 +152,12 @@ int32_t AccountIAMClient::CancelAuth(uint64_t contextId)
     return proxy_->CancelAuth(contextId);
 }
 
-int32_t AccountIAMClient::GetAvailableStatus(AuthType authType, AuthTrustLevel authTrustLevel)
+int32_t AccountIAMClient::GetAvailableStatus(AuthType authType, AuthTrustLevel authTrustLevel, int32_t &status)
 {
-    int32_t status = 0;
     if (GetAccountIAMProxy() != ERR_OK) {
-        return status;
+        return ERR_ACCOUNT_IAM_KIT_PROXY_ERROR;
     }
-    return proxy_->GetAvailableStatus(authType, authTrustLevel);
+    return proxy_->GetAvailableStatus(authType, authTrustLevel, status);
 }
 
 void AccountIAMClient::GetProperty(
