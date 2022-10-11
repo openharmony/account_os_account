@@ -14,6 +14,7 @@
  */
 
 #include "napi_os_account.h"
+#include "napi_account_error.h"
 #include "napi_os_account_common.h"
 
 using namespace OHOS::AccountSA;
@@ -64,27 +65,43 @@ napi_value OsAccountInit(napi_env env, napi_value exports)
         DECLARE_NAPI_FUNCTION("createOsAccount", CreateOsAccount),
         DECLARE_NAPI_FUNCTION("createOsAccountForDomain", CreateOsAccountForDomain),
         DECLARE_NAPI_FUNCTION("getCreatedOsAccountsCount", GetCreatedOsAccountsCount),
+        DECLARE_NAPI_FUNCTION("getOsAccountCount", GetOsAccountCount),
         DECLARE_NAPI_FUNCTION("getDistributedVirtualDeviceId", GetDistributedVirtualDeviceId),
+        DECLARE_NAPI_FUNCTION("queryDistributedVirtualDeviceId", QueryDistributedVirtualDeviceId),
         DECLARE_NAPI_FUNCTION("getOsAccountAllConstraints", GetOsAccountAllConstraints),
+        DECLARE_NAPI_FUNCTION("getOsAccountConstraints", GetOsAccountConstraints),
         DECLARE_NAPI_FUNCTION("getOsAccountLocalIdFromProcess", GetOsAccountLocalIdFromProcess),
+        DECLARE_NAPI_FUNCTION("queryOsAccountLocalIdFromProcess", QueryOsAccountLocalIdFromProcess),
         DECLARE_NAPI_FUNCTION("queryAllCreatedOsAccounts", QueryAllCreatedOsAccounts),
         DECLARE_NAPI_FUNCTION("queryOsAccountConstraintSourceTypes", QueryOsAccountConstraintSourceTypes),
         DECLARE_NAPI_FUNCTION("queryActivatedOsAccountIds", QueryActivatedOsAccountIds),
+        DECLARE_NAPI_FUNCTION("getActivatedOsAccountIds", GetActivatedOsAccountIds),
         DECLARE_NAPI_FUNCTION("getOsAccountProfilePhoto", GetOsAccountProfilePhoto),
         DECLARE_NAPI_FUNCTION("queryCurrentOsAccount", QueryCurrentOsAccount),
+        DECLARE_NAPI_FUNCTION("getCurrentOsAccount", GetCurrentOsAccount),
         DECLARE_NAPI_FUNCTION("getOsAccountLocalIdFromUid", GetOsAccountLocalIdFromUid),
+        DECLARE_NAPI_FUNCTION("queryOsAccountLocalIdFromUid", QueryOsAccountLocalIdFromUid),
         DECLARE_NAPI_FUNCTION("getBundleIdFromUid", GetBundleIdFromUid),
         DECLARE_NAPI_FUNCTION("getOsAccountLocalIdFromDomain", GetOsAccountLocalIdFromDomain),
+        DECLARE_NAPI_FUNCTION("queryOsAccountLocalIdFromDomain", QueryOsAccountLocalIdFromDomain),
         DECLARE_NAPI_FUNCTION("setOsAccountProfilePhoto", SetOsAccountProfilePhoto),
         DECLARE_NAPI_FUNCTION("queryMaxOsAccountNumber", QueryMaxOsAccountNumber),
         DECLARE_NAPI_FUNCTION("isOsAccountActived", IsOsAccountActived),
+        DECLARE_NAPI_FUNCTION("checkOsAccountActivated", CheckOsAccountActivated),
         DECLARE_NAPI_FUNCTION("isOsAccountConstraintEnable", IsOsAccountConstraintEnable),
+        DECLARE_NAPI_FUNCTION("checkConstraintEnabled", CheckConstraintEnabled),
         DECLARE_NAPI_FUNCTION("getOsAccountTypeFromProcess", GetOsAccountTypeFromProcess),
+        DECLARE_NAPI_FUNCTION("getOsAccountType", GetOsAccountType),
         DECLARE_NAPI_FUNCTION("isMultiOsAccountEnable", IsMultiOsAccountEnable),
+        DECLARE_NAPI_FUNCTION("checkMultiOsAccountEnabled", CheckMultiOsAccountEnabled),
         DECLARE_NAPI_FUNCTION("isOsAccountVerified", IsOsAccountVerified),
+        DECLARE_NAPI_FUNCTION("checkOsAccountVerified", CheckOsAccountVerified),
         DECLARE_NAPI_FUNCTION("getOsAccountLocalIdBySerialNumber", GetOsAccountLocalIdBySerialNumber),
+        DECLARE_NAPI_FUNCTION("queryOsAccountLocalIdBySerialNumber", QueryOsAccountLocalIdBySerialNumber),
         DECLARE_NAPI_FUNCTION("getSerialNumberByOsAccountLocalId", GetSerialNumberByOsAccountLocalId),
+        DECLARE_NAPI_FUNCTION("querySerialNumberByOsAccountLocalId", QuerySerialNumberByOsAccountLocalId),
         DECLARE_NAPI_FUNCTION("isTestOsAccount", IsTestOsAccount),
+        DECLARE_NAPI_FUNCTION("checkOsAccountTestable", CheckOsAccountTestable),
         DECLARE_NAPI_FUNCTION("isMainOsAccount", IsMainOsAccount),
         DECLARE_NAPI_FUNCTION("on", Subscribe),
         DECLARE_NAPI_FUNCTION("off", Unsubscribe),
@@ -131,8 +148,8 @@ napi_value OsAccountJsConstructor(napi_env env, napi_callback_info cbinfo)
         return WrapVoidToJS(env);
     }
     napi_wrap(env, thisVar, objectInfo, [](napi_env env, void *data, void *hint) {
-        OsAccountManager *objInfo = (OsAccountManager *)data;
-        delete objInfo;
+            OsAccountManager *objInfo = (OsAccountManager *)data;
+            delete objInfo;
     }, nullptr, nullptr);
 
     return thisVar;
@@ -154,8 +171,12 @@ napi_value QueryOsAccountById(napi_env env, napi_callback_info cbInfo)
     }
     queryOAByIdCB->env = env;
     queryOAByIdCB->callbackRef = nullptr;
+    queryOAByIdCB->throwErr = true;
 
-    ParseParaQueryOAByIdCB(env, cbInfo, queryOAByIdCB);
+    if (!ParseParaQueryOAByIdCB(env, cbInfo, queryOAByIdCB)) {
+        delete queryOAByIdCB;
+        return nullptr;
+    }
 
     napi_value result = nullptr;
     if (queryOAByIdCB->callbackRef == nullptr) {
@@ -188,8 +209,12 @@ napi_value RemoveOsAccount(napi_env env, napi_callback_info cbInfo)
     }
     removeOACB->env = env;
     removeOACB->callbackRef = nullptr;
+    removeOACB->throwErr = true;
 
-    ParseParaRemoveOACB(env, cbInfo, removeOACB);
+    if (!ParseParaRemoveOACB(env, cbInfo, removeOACB)) {
+        delete removeOACB;
+        return nullptr;
+    }
 
     napi_value result = nullptr;
     if (removeOACB->callbackRef == nullptr) {
@@ -217,8 +242,12 @@ napi_value SetOsAccountName(napi_env env, napi_callback_info cbInfo)
     }
     setOANameCB->env = env;
     setOANameCB->callbackRef = nullptr;
+    setOANameCB->throwErr = true;
 
-    ParseParaSetOAName(env, cbInfo, setOANameCB);
+    if (!ParseParaSetOAName(env, cbInfo, setOANameCB)) {
+        delete setOANameCB;
+        return nullptr;
+    }
 
     napi_value result = nullptr;
     if (setOANameCB->callbackRef == nullptr) {
@@ -251,8 +280,12 @@ napi_value SetOsAccountConstraints(napi_env env, napi_callback_info cbInfo)
     }
     setOAConsCB->env = env;
     setOAConsCB->callbackRef = nullptr;
+    setOAConsCB->throwErr = true;
 
-    ParseParaSetOAConstraints(env, cbInfo, setOAConsCB);
+    if (!ParseParaSetOAConstraints(env, cbInfo, setOAConsCB)) {
+        delete setOAConsCB;
+        return nullptr;
+    }
 
     napi_value result = nullptr;
     if (setOAConsCB->callbackRef == nullptr) {
@@ -285,8 +318,12 @@ napi_value ActivateOsAccount(napi_env env, napi_callback_info cbInfo)
     }
     activeOACB->env = env;
     activeOACB->callbackRef = nullptr;
+    activeOACB->throwErr = true;
 
-    ParseParaActiveOA(env, cbInfo, activeOACB);
+    if (!ParseParaActiveOA(env, cbInfo, activeOACB)) {
+        delete activeOACB;
+        return nullptr;
+    }
 
     napi_value result = nullptr;
     if (activeOACB->callbackRef == nullptr) {
@@ -319,8 +356,12 @@ napi_value CreateOsAccount(napi_env env, napi_callback_info cbInfo)
     }
     createOACB->env = env;
     createOACB->callbackRef = nullptr;
+    createOACB->throwErr = true;
 
-    ParseParaCreateOA(env, cbInfo, createOACB);
+    if (!ParseParaCreateOA(env, cbInfo, createOACB)) {
+        delete createOACB;
+        return nullptr;
+    }
 
     napi_value result = nullptr;
     if (createOACB->callbackRef == nullptr) {
@@ -348,8 +389,12 @@ napi_value CreateOsAccountForDomain(napi_env env, napi_callback_info cbInfo)
     }
     createOAForDomainCB->env = env;
     createOAForDomainCB->callbackRef = nullptr;
+    createOAForDomainCB->throwErr = true;
 
-    ParseParaCreateOAForDomain(env, cbInfo, createOAForDomainCB);
+    if (!ParseParaCreateOAForDomain(env, cbInfo, createOAForDomainCB)) {
+        delete createOAForDomainCB;
+        return nullptr;
+    }
 
     napi_value result = nullptr;
     if (createOAForDomainCB->callbackRef == nullptr) {
@@ -368,7 +413,17 @@ napi_value CreateOsAccountForDomain(napi_env env, napi_callback_info cbInfo)
     return result;
 }
 
+napi_value GetOsAccountCount(napi_env env, napi_callback_info cbInfo)
+{
+    return GetCreatedOsAccountsCountInner(env, cbInfo, true);
+}
+
 napi_value GetCreatedOsAccountsCount(napi_env env, napi_callback_info cbInfo)
+{
+    return GetCreatedOsAccountsCountInner(env, cbInfo, false);
+}
+
+napi_value GetCreatedOsAccountsCountInner(napi_env env, napi_callback_info cbInfo, bool throwErr)
 {
     GetOACountAsyncContext *getOACount = new (std::nothrow) GetOACountAsyncContext();
     if (getOACount == nullptr) {
@@ -377,8 +432,12 @@ napi_value GetCreatedOsAccountsCount(napi_env env, napi_callback_info cbInfo)
     }
     getOACount->env = env;
     getOACount->callbackRef = nullptr;
+    getOACount->throwErr = throwErr;
 
-    ParseParaGetOACount(env, cbInfo, getOACount);
+    if (!ParseParaGetOACount(env, cbInfo, getOACount) && throwErr) {
+        delete getOACount;
+        return nullptr;
+    }
 
     napi_value result = nullptr;
     if (getOACount->callbackRef == nullptr) {
@@ -388,7 +447,7 @@ napi_value GetCreatedOsAccountsCount(napi_env env, napi_callback_info cbInfo)
     }
 
     napi_value resource = nullptr;
-    napi_create_string_utf8(env, "GetCreatedOsAccountsCount", NAPI_AUTO_LENGTH, &resource);
+    napi_create_string_utf8(env, "GetCreatedOsAccountsCountInner", NAPI_AUTO_LENGTH, &resource);
 
     napi_create_async_work(env,
         nullptr,
@@ -402,7 +461,17 @@ napi_value GetCreatedOsAccountsCount(napi_env env, napi_callback_info cbInfo)
     return result;
 }
 
+napi_value QueryDistributedVirtualDeviceId(napi_env env, napi_callback_info cbInfo)
+{
+    return GetDistributedVirtualDeviceIdInner(env, cbInfo, true);
+}
+
 napi_value GetDistributedVirtualDeviceId(napi_env env, napi_callback_info cbInfo)
+{
+    return GetDistributedVirtualDeviceIdInner(env, cbInfo, false);
+}
+
+napi_value GetDistributedVirtualDeviceIdInner(napi_env env, napi_callback_info cbInfo, bool throwErr)
 {
     DbDeviceIdAsyncContext *dbDeviceId = new (std::nothrow) DbDeviceIdAsyncContext();
     if (dbDeviceId == nullptr) {
@@ -411,8 +480,12 @@ napi_value GetDistributedVirtualDeviceId(napi_env env, napi_callback_info cbInfo
     }
     dbDeviceId->env = env;
     dbDeviceId->callbackRef = nullptr;
+    dbDeviceId->throwErr = throwErr;
 
-    ParseParaDbDeviceId(env, cbInfo, dbDeviceId);
+    if (!ParseParaDbDeviceId(env, cbInfo, dbDeviceId) && throwErr) {
+        delete dbDeviceId;
+        return nullptr;
+    }
 
     napi_value result = nullptr;
     if (dbDeviceId->callbackRef == nullptr) {
@@ -422,7 +495,7 @@ napi_value GetDistributedVirtualDeviceId(napi_env env, napi_callback_info cbInfo
     }
 
     napi_value resource = nullptr;
-    napi_create_string_utf8(env, "GetDistributedVirtualDeviceId", NAPI_AUTO_LENGTH, &resource);
+    napi_create_string_utf8(env, "GetDistributedVirtualDeviceIdInner", NAPI_AUTO_LENGTH, &resource);
 
     napi_create_async_work(env,
         nullptr,
@@ -436,7 +509,17 @@ napi_value GetDistributedVirtualDeviceId(napi_env env, napi_callback_info cbInfo
     return result;
 }
 
+napi_value GetOsAccountConstraints(napi_env env, napi_callback_info cbInfo)
+{
+    return GetOsAccountAllConstraintsInner(env, cbInfo, true);
+}
+
 napi_value GetOsAccountAllConstraints(napi_env env, napi_callback_info cbInfo)
+{
+    return GetOsAccountAllConstraintsInner(env, cbInfo, false);
+}
+
+napi_value GetOsAccountAllConstraintsInner(napi_env env, napi_callback_info cbInfo, bool throwErr)
 {
     GetAllConsAsyncContext *getAllConsCB = new (std::nothrow) GetAllConsAsyncContext();
     if (getAllConsCB == nullptr) {
@@ -445,8 +528,12 @@ napi_value GetOsAccountAllConstraints(napi_env env, napi_callback_info cbInfo)
     }
     getAllConsCB->env = env;
     getAllConsCB->callbackRef = nullptr;
+    getAllConsCB->throwErr = throwErr;
 
-    ParseParaGetAllCons(env, cbInfo, getAllConsCB);
+    if (!ParseParaGetAllCons(env, cbInfo, getAllConsCB) && throwErr) {
+        delete getAllConsCB;
+        return nullptr;
+    }
 
     napi_value result = nullptr;
     if (getAllConsCB->callbackRef == nullptr) {
@@ -470,7 +557,17 @@ napi_value GetOsAccountAllConstraints(napi_env env, napi_callback_info cbInfo)
     return result;
 }
 
+napi_value QueryOsAccountLocalIdFromProcess(napi_env env, napi_callback_info cbInfo)
+{
+    return GetOsAccountLocalIdFromProcessInner(env, cbInfo, true);
+}
+
 napi_value GetOsAccountLocalIdFromProcess(napi_env env, napi_callback_info cbInfo)
+{
+    return GetOsAccountLocalIdFromProcessInner(env, cbInfo, false);
+}
+
+napi_value GetOsAccountLocalIdFromProcessInner(napi_env env, napi_callback_info cbInfo, bool throwErr)
 {
     GetIdAsyncContext *getIdCB = new (std::nothrow) GetIdAsyncContext();
     if (getIdCB == nullptr) {
@@ -479,8 +576,12 @@ napi_value GetOsAccountLocalIdFromProcess(napi_env env, napi_callback_info cbInf
     }
     getIdCB->env = env;
     getIdCB->callbackRef = nullptr;
+    getIdCB->throwErr = throwErr;
 
-    ParseParaProcessId(env, cbInfo, getIdCB);
+    if (!ParseParaProcessId(env, cbInfo, getIdCB) && throwErr) {
+        delete getIdCB;
+        return nullptr;
+    }
 
     napi_value result = nullptr;
     if (getIdCB->callbackRef == nullptr) {
@@ -490,7 +591,7 @@ napi_value GetOsAccountLocalIdFromProcess(napi_env env, napi_callback_info cbInf
     }
 
     napi_value resource = nullptr;
-    napi_create_string_utf8(env, "GetOsAccountLocalIdFromProcess", NAPI_AUTO_LENGTH, &resource);
+    napi_create_string_utf8(env, "GetOsAccountLocalIdFromProcessInner", NAPI_AUTO_LENGTH, &resource);
 
     napi_create_async_work(env,
         nullptr,
@@ -513,8 +614,12 @@ napi_value QueryAllCreatedOsAccounts(napi_env env, napi_callback_info cbInfo)
     }
     queryAllOA->env = env;
     queryAllOA->callbackRef = nullptr;
+    queryAllOA->throwErr = true;
 
-    ParseQueryAllCreateOA(env, cbInfo, queryAllOA);
+    if (!ParseQueryAllCreateOA(env, cbInfo, queryAllOA)) {
+        delete queryAllOA;
+        return nullptr;
+    }
 
     napi_value result = nullptr;
     if (queryAllOA->callbackRef == nullptr) {
@@ -547,8 +652,12 @@ napi_value QueryOsAccountConstraintSourceTypes(napi_env env, napi_callback_info 
     }
     queryConstraintSource->env = env;
     queryConstraintSource->callbackRef = nullptr;
+    queryConstraintSource->throwErr = true;
 
-    ParseQueryOAConstraintSrcTypes(env, cbInfo, queryConstraintSource);
+    if (!ParseQueryOAConstraintSrcTypes(env, cbInfo, queryConstraintSource)) {
+        delete queryConstraintSource;
+        return nullptr;
+    }
 
     napi_value result = nullptr;
     if (queryConstraintSource->callbackRef == nullptr) {
@@ -572,7 +681,17 @@ napi_value QueryOsAccountConstraintSourceTypes(napi_env env, napi_callback_info 
     return result;
 }
 
+napi_value GetActivatedOsAccountIds(napi_env env, napi_callback_info cbInfo)
+{
+    return QueryActivatedOsAccountIdsInner(env, cbInfo, true);
+}
+
 napi_value QueryActivatedOsAccountIds(napi_env env, napi_callback_info cbInfo)
+{
+    return QueryActivatedOsAccountIdsInner(env, cbInfo, false);
+}
+
+napi_value QueryActivatedOsAccountIdsInner(napi_env env, napi_callback_info cbInfo, bool throwErr)
 {
     QueryActiveIdsAsyncContext *queryActiveIds = new (std::nothrow) QueryActiveIdsAsyncContext();
     if (queryActiveIds == nullptr) {
@@ -581,8 +700,12 @@ napi_value QueryActivatedOsAccountIds(napi_env env, napi_callback_info cbInfo)
     }
     queryActiveIds->env = env;
     queryActiveIds->callbackRef = nullptr;
+    queryActiveIds->throwErr = throwErr;
 
-    ParseQueryActiveIds(env, cbInfo, queryActiveIds);
+    if (!ParseQueryActiveIds(env, cbInfo, queryActiveIds) && throwErr) {
+        delete queryActiveIds;
+        return nullptr;
+    }
 
     napi_value result = nullptr;
     if (queryActiveIds->callbackRef == nullptr) {
@@ -592,7 +715,7 @@ napi_value QueryActivatedOsAccountIds(napi_env env, napi_callback_info cbInfo)
     }
 
     napi_value resource = nullptr;
-    napi_create_string_utf8(env, "QueryActivatedOsAccountIds", NAPI_AUTO_LENGTH, &resource);
+    napi_create_string_utf8(env, "QueryActivatedOsAccountIdsInner", NAPI_AUTO_LENGTH, &resource);
 
     napi_create_async_work(env,
         nullptr,
@@ -615,8 +738,12 @@ napi_value GetOsAccountProfilePhoto(napi_env env, napi_callback_info cbInfo)
     }
     getPhoto->env = env;
     getPhoto->callbackRef = nullptr;
+    getPhoto->throwErr = true;
 
-    ParseParaGetPhoto(env, cbInfo, getPhoto);
+    if (!ParseParaGetPhoto(env, cbInfo, getPhoto)) {
+        delete getPhoto;
+        return nullptr;
+    }
 
     napi_value result = nullptr;
     if (getPhoto->callbackRef == nullptr) {
@@ -635,7 +762,17 @@ napi_value GetOsAccountProfilePhoto(napi_env env, napi_callback_info cbInfo)
     return result;
 }
 
+napi_value GetCurrentOsAccount(napi_env env, napi_callback_info cbInfo)
+{
+    return QueryCurrentOsAccountInner(env, cbInfo, true);
+}
+
 napi_value QueryCurrentOsAccount(napi_env env, napi_callback_info cbInfo)
+{
+    return QueryCurrentOsAccountInner(env, cbInfo, false);
+}
+
+napi_value QueryCurrentOsAccountInner(napi_env env, napi_callback_info cbInfo, bool throwErr)
 {
     CurrentOAAsyncContext *currentOA = new (std::nothrow) CurrentOAAsyncContext();
     if (currentOA == nullptr) {
@@ -644,8 +781,12 @@ napi_value QueryCurrentOsAccount(napi_env env, napi_callback_info cbInfo)
     }
     currentOA->env = env;
     currentOA->callbackRef = nullptr;
+    currentOA->throwErr = throwErr;
 
-    ParseParaCurrentOA(env, cbInfo, currentOA);
+    if (!ParseParaCurrentOA(env, cbInfo, currentOA) && throwErr) {
+        delete currentOA;
+        return nullptr;
+    }
 
     napi_value result = nullptr;
     if (currentOA->callbackRef == nullptr) {
@@ -669,7 +810,17 @@ napi_value QueryCurrentOsAccount(napi_env env, napi_callback_info cbInfo)
     return result;
 }
 
+napi_value QueryOsAccountLocalIdFromUid(napi_env env, napi_callback_info cbInfo)
+{
+    return GetOsAccountLocalIdFromUidInner(env, cbInfo, true);
+}
+
 napi_value GetOsAccountLocalIdFromUid(napi_env env, napi_callback_info cbInfo)
+{
+    return GetOsAccountLocalIdFromUidInner(env, cbInfo, false);
+}
+
+napi_value GetOsAccountLocalIdFromUidInner(napi_env env, napi_callback_info cbInfo, bool throwErr)
 {
     GetIdByUidAsyncContext *idByUid = new (std::nothrow) GetIdByUidAsyncContext();
     if (idByUid == nullptr) {
@@ -678,8 +829,12 @@ napi_value GetOsAccountLocalIdFromUid(napi_env env, napi_callback_info cbInfo)
     }
     idByUid->env = env;
     idByUid->callbackRef = nullptr;
+    idByUid->throwErr = throwErr;
 
-    ParseParaGetIdByUid(env, cbInfo, idByUid);
+    if (!ParseParaGetIdByUid(env, cbInfo, idByUid) && throwErr) {
+        delete idByUid;
+        return nullptr;
+    }
 
     napi_value result = nullptr;
     if (idByUid->callbackRef == nullptr) {
@@ -689,7 +844,7 @@ napi_value GetOsAccountLocalIdFromUid(napi_env env, napi_callback_info cbInfo)
     }
 
     napi_value resource = nullptr;
-    napi_create_string_utf8(env, "GetOsAccountLocalIdFromUid", NAPI_AUTO_LENGTH, &resource);
+    napi_create_string_utf8(env, "GetOsAccountLocalIdFromUidInner", NAPI_AUTO_LENGTH, &resource);
 
     napi_create_async_work(env, nullptr, resource, GetIdByUidExecuteCB, GetIdByUidCallbackCompletedCB,
         reinterpret_cast<void *>(idByUid), &idByUid->work);
@@ -707,8 +862,12 @@ napi_value GetBundleIdFromUid(napi_env env, napi_callback_info cbInfo)
     }
     bundleIdByUid->env = env;
     bundleIdByUid->callbackRef = nullptr;
+    bundleIdByUid->throwErr = true;
 
-    ParseParaGetIdByUid(env, cbInfo, bundleIdByUid);
+    if (!ParseParaGetIdByUid(env, cbInfo, bundleIdByUid)) {
+        delete bundleIdByUid;
+        return nullptr;
+    }
 
     napi_value result = nullptr;
     if (bundleIdByUid->callbackRef == nullptr) {
@@ -730,7 +889,17 @@ napi_value GetBundleIdFromUid(napi_env env, napi_callback_info cbInfo)
     return result;
 }
 
+napi_value QueryOsAccountLocalIdFromDomain(napi_env env, napi_callback_info cbInfo)
+{
+    return GetOsAccountLocalIdFromDomainInner(env, cbInfo, true);
+}
+
 napi_value GetOsAccountLocalIdFromDomain(napi_env env, napi_callback_info cbInfo)
+{
+    return GetOsAccountLocalIdFromDomainInner(env, cbInfo, false);
+}
+
+napi_value GetOsAccountLocalIdFromDomainInner(napi_env env, napi_callback_info cbInfo, bool throwErr)
 {
     GetIdByDomainAsyncContext *idByDomain = new (std::nothrow) GetIdByDomainAsyncContext();
     if (idByDomain == nullptr) {
@@ -739,8 +908,12 @@ napi_value GetOsAccountLocalIdFromDomain(napi_env env, napi_callback_info cbInfo
     }
     idByDomain->env = env;
     idByDomain->callbackRef = nullptr;
+    idByDomain->throwErr = throwErr;
 
-    ParseParaGetIdByDomain(env, cbInfo, idByDomain);
+    if (!ParseParaGetIdByDomain(env, cbInfo, idByDomain) && throwErr) {
+        delete idByDomain;
+        return nullptr;
+    }
 
     napi_value result = nullptr;
     if (idByDomain->callbackRef == nullptr) {
@@ -750,7 +923,7 @@ napi_value GetOsAccountLocalIdFromDomain(napi_env env, napi_callback_info cbInfo
     }
 
     napi_value resource = nullptr;
-    napi_create_string_utf8(env, "GetOsAccountLocalIdFromDomain", NAPI_AUTO_LENGTH, &resource);
+    napi_create_string_utf8(env, "GetOsAccountLocalIdFromDomainInner", NAPI_AUTO_LENGTH, &resource);
 
     napi_create_async_work(env, nullptr, resource, GetIdByDomainExecuteCB, GetIdByDomainCallbackCompletedCB,
         reinterpret_cast<void *>(idByDomain), &idByDomain->work);
@@ -768,8 +941,12 @@ napi_value SetOsAccountProfilePhoto(napi_env env, napi_callback_info cbInfo)
     }
     setPhoto->env = env;
     setPhoto->callbackRef = nullptr;
+    setPhoto->throwErr = true;
 
-    ParseParaSetPhoto(env, cbInfo, setPhoto);
+    if (!ParseParaSetPhoto(env, cbInfo, setPhoto)) {
+        delete setPhoto;
+        return nullptr;
+    }
 
     napi_value result = nullptr;
     if (setPhoto->callbackRef == nullptr) {
@@ -797,8 +974,12 @@ napi_value QueryMaxOsAccountNumber(napi_env env, napi_callback_info cbInfo)
     }
     maxNum->env = env;
     maxNum->callbackRef = nullptr;
+    maxNum->throwErr = true;
 
-    ParseParaQueryMaxNum(env, cbInfo, maxNum);
+    if (!ParseParaQueryMaxNum(env, cbInfo, maxNum)) {
+        delete maxNum;
+        return nullptr;
+    }
 
     napi_value result = nullptr;
     if (maxNum->callbackRef == nullptr) {
@@ -817,7 +998,7 @@ napi_value QueryMaxOsAccountNumber(napi_env env, napi_callback_info cbInfo)
     return result;
 }
 
-napi_value IsOsAccountActived(napi_env env, napi_callback_info cbInfo)
+napi_value InnerIsOsAccountActived(napi_env env, napi_callback_info cbInfo, bool throwErr)
 {
     IsActivedAsyncContext *isActived = new (std::nothrow) IsActivedAsyncContext();
     if (isActived == nullptr) {
@@ -826,8 +1007,12 @@ napi_value IsOsAccountActived(napi_env env, napi_callback_info cbInfo)
     }
     isActived->env = env;
     isActived->callbackRef = nullptr;
+    isActived->throwErr = throwErr;
 
-    ParseParaIsActived(env, cbInfo, isActived);
+    if (!ParseParaIsActived(env, cbInfo, isActived) && throwErr) {
+        delete isActived;
+        return nullptr;
+    }
 
     napi_value result = nullptr;
     if (isActived->callbackRef == nullptr) {
@@ -846,7 +1031,17 @@ napi_value IsOsAccountActived(napi_env env, napi_callback_info cbInfo)
     return result;
 }
 
-napi_value IsOsAccountConstraintEnable(napi_env env, napi_callback_info cbInfo)
+napi_value CheckOsAccountActivated(napi_env env, napi_callback_info cbInfo)
+{
+    return InnerIsOsAccountActived(env, cbInfo, true);
+}
+
+napi_value IsOsAccountActived(napi_env env, napi_callback_info cbInfo)
+{
+    return InnerIsOsAccountActived(env, cbInfo, false);
+}
+
+napi_value InnerIsOsAccountConstraintEnable(napi_env env, napi_callback_info cbInfo, bool throwErr)
 {
     IsConEnableAsyncContext *isEnable = new (std::nothrow) IsConEnableAsyncContext();
     if (isEnable == nullptr) {
@@ -855,8 +1050,12 @@ napi_value IsOsAccountConstraintEnable(napi_env env, napi_callback_info cbInfo)
     }
     isEnable->env = env;
     isEnable->callbackRef = nullptr;
+    isEnable->throwErr = throwErr;
 
-    ParseParaIsEnable(env, cbInfo, isEnable);
+    if (!ParseParaIsEnable(env, cbInfo, isEnable) && throwErr) {
+        delete isEnable;
+        return nullptr;
+    }
 
     napi_value result = nullptr;
     if (isEnable->callbackRef == nullptr) {
@@ -875,7 +1074,27 @@ napi_value IsOsAccountConstraintEnable(napi_env env, napi_callback_info cbInfo)
     return result;
 }
 
+napi_value IsOsAccountConstraintEnable(napi_env env, napi_callback_info cbInfo)
+{
+    return InnerIsOsAccountConstraintEnable(env, cbInfo, false);
+}
+
+napi_value CheckConstraintEnabled(napi_env env, napi_callback_info cbInfo)
+{
+    return InnerIsOsAccountConstraintEnable(env, cbInfo, true);
+}
+
+napi_value GetOsAccountType(napi_env env, napi_callback_info cbInfo)
+{
+    return GetOsAccountTypeFromProcessInner(env, cbInfo, true);
+}
+
 napi_value GetOsAccountTypeFromProcess(napi_env env, napi_callback_info cbInfo)
+{
+    return GetOsAccountTypeFromProcessInner(env, cbInfo, false);
+}
+
+napi_value GetOsAccountTypeFromProcessInner(napi_env env, napi_callback_info cbInfo, bool throwErr)
 {
     GetTypeAsyncContext *getType = new (std::nothrow) GetTypeAsyncContext();
     if (getType == nullptr) {
@@ -884,8 +1103,12 @@ napi_value GetOsAccountTypeFromProcess(napi_env env, napi_callback_info cbInfo)
     }
     getType->env = env;
     getType->callbackRef = nullptr;
+    getType->throwErr = throwErr;
 
-    ParseParaGetType(env, cbInfo, getType);
+    if (!ParseParaGetType(env, cbInfo, getType) && throwErr) {
+        delete getType;
+        return nullptr;
+    }
 
     napi_value result = nullptr;
     if (getType->callbackRef == nullptr) {
@@ -895,7 +1118,7 @@ napi_value GetOsAccountTypeFromProcess(napi_env env, napi_callback_info cbInfo)
     }
 
     napi_value resource = nullptr;
-    napi_create_string_utf8(env, "GetOsAccountTypeFromProcess", NAPI_AUTO_LENGTH, &resource);
+    napi_create_string_utf8(env, "GetOsAccountTypeFromProcessInner", NAPI_AUTO_LENGTH, &resource);
 
     napi_create_async_work(env, nullptr, resource, GetTypeExecuteCB, GetTypeCompletedCB,
         reinterpret_cast<void *>(getType), &getType->work);
@@ -906,6 +1129,16 @@ napi_value GetOsAccountTypeFromProcess(napi_env env, napi_callback_info cbInfo)
 
 napi_value IsMultiOsAccountEnable(napi_env env, napi_callback_info cbInfo)
 {
+    return InnerIsMultiOsAccountEnable(env, cbInfo, false);
+}
+
+napi_value CheckMultiOsAccountEnabled(napi_env env, napi_callback_info cbInfo)
+{
+    return InnerIsMultiOsAccountEnable(env, cbInfo, true);
+}
+
+napi_value InnerIsMultiOsAccountEnable(napi_env env, napi_callback_info cbInfo, bool throwErr)
+{
     IsMultiEnAsyncContext *multiEn = new (std::nothrow) IsMultiEnAsyncContext();
     if (multiEn == nullptr) {
         ACCOUNT_LOGE("insufficient memory for multiEn!");
@@ -913,8 +1146,12 @@ napi_value IsMultiOsAccountEnable(napi_env env, napi_callback_info cbInfo)
     }
     multiEn->env = env;
     multiEn->callbackRef = nullptr;
+    multiEn->throwErr = throwErr;
 
-    ParseParaIsMultiEn(env, cbInfo, multiEn);
+    if (!ParseParaIsMultiEn(env, cbInfo, multiEn) && throwErr) {
+        delete multiEn;
+        return nullptr;
+    }
 
     napi_value result = nullptr;
     if (multiEn->callbackRef == nullptr) {
@@ -933,7 +1170,7 @@ napi_value IsMultiOsAccountEnable(napi_env env, napi_callback_info cbInfo)
     return result;
 }
 
-napi_value IsOsAccountVerified(napi_env env, napi_callback_info cbInfo)
+napi_value InnerIsOsAccountVerified(napi_env env, napi_callback_info cbInfo, bool throwErr)
 {
     IsVerifiedAsyncContext *isVerified = new (std::nothrow) IsVerifiedAsyncContext();
     if (isVerified == nullptr) {
@@ -942,8 +1179,12 @@ napi_value IsOsAccountVerified(napi_env env, napi_callback_info cbInfo)
     }
     isVerified->env = env;
     isVerified->callbackRef = nullptr;
+    isVerified->throwErr = throwErr;
 
-    ParseParaIsVerified(env, cbInfo, isVerified);
+    if (!ParseParaIsVerified(env, cbInfo, isVerified) && throwErr) {
+        delete isVerified;
+        return nullptr;
+    }
 
     napi_value result = nullptr;
     if (isVerified->callbackRef == nullptr) {
@@ -962,7 +1203,27 @@ napi_value IsOsAccountVerified(napi_env env, napi_callback_info cbInfo)
     return result;
 }
 
+napi_value IsOsAccountVerified(napi_env env, napi_callback_info cbInfo)
+{
+    return InnerIsOsAccountVerified(env, cbInfo, false);
+}
+
+napi_value CheckOsAccountVerified(napi_env env, napi_callback_info cbInfo)
+{
+    return InnerIsOsAccountVerified(env, cbInfo, true);
+}
+
+napi_value QueryOsAccountLocalIdBySerialNumber(napi_env env, napi_callback_info cbInfo)
+{
+    return GetOsAccountLocalIdBySerialNumberInner(env, cbInfo, true);
+}
+
 napi_value GetOsAccountLocalIdBySerialNumber(napi_env env, napi_callback_info cbInfo)
+{
+    return GetOsAccountLocalIdBySerialNumberInner(env, cbInfo, false);
+}
+
+napi_value GetOsAccountLocalIdBySerialNumberInner(napi_env env, napi_callback_info cbInfo, bool throwErr)
 {
     GetSerialNumIdCBInfo *serialNumId = new (std::nothrow) GetSerialNumIdCBInfo();
     if (serialNumId == nullptr) {
@@ -971,8 +1232,12 @@ napi_value GetOsAccountLocalIdBySerialNumber(napi_env env, napi_callback_info cb
     }
     serialNumId->env = env;
     serialNumId->callbackRef = nullptr;
+    serialNumId->throwErr = throwErr;
 
-    ParseParaSerialNumId(env, cbInfo, serialNumId);
+    if (!ParseParaSerialNumId(env, cbInfo, serialNumId) && throwErr) {
+        delete serialNumId;
+        return nullptr;
+    }
 
     napi_value result = nullptr;
     if (serialNumId->callbackRef == nullptr) {
@@ -982,7 +1247,7 @@ napi_value GetOsAccountLocalIdBySerialNumber(napi_env env, napi_callback_info cb
     }
 
     napi_value resource = nullptr;
-    napi_create_string_utf8(env, "GetOsAccountLocalIdBySerialNumber", NAPI_AUTO_LENGTH, &resource);
+    napi_create_string_utf8(env, "GetOsAccountLocalIdBySerialNumberInner", NAPI_AUTO_LENGTH, &resource);
 
     napi_create_async_work(env, nullptr, resource, SerialNumIdExecuteCB, SerialNumIdCompletedCB,
         reinterpret_cast<void *>(serialNumId), &serialNumId->work);
@@ -991,7 +1256,17 @@ napi_value GetOsAccountLocalIdBySerialNumber(napi_env env, napi_callback_info cb
     return result;
 }
 
+napi_value QuerySerialNumberByOsAccountLocalId(napi_env env, napi_callback_info cbInfo)
+{
+    return GetSerialNumberByOsAccountLocalIdInner(env, cbInfo, true);
+}
+
 napi_value GetSerialNumberByOsAccountLocalId(napi_env env, napi_callback_info cbInfo)
+{
+    return GetSerialNumberByOsAccountLocalIdInner(env, cbInfo, false);
+}
+
+napi_value GetSerialNumberByOsAccountLocalIdInner(napi_env env, napi_callback_info cbInfo, bool throwErr)
 {
     GetSerialNumForOAInfo *getSerialNum = new (std::nothrow) GetSerialNumForOAInfo();
     if (getSerialNum == nullptr) {
@@ -1000,8 +1275,12 @@ napi_value GetSerialNumberByOsAccountLocalId(napi_env env, napi_callback_info cb
     }
     getSerialNum->env = env;
     getSerialNum->callbackRef = nullptr;
+    getSerialNum->throwErr = throwErr;
 
-    ParseParaGetSerialNum(env, cbInfo, getSerialNum);
+    if (!ParseParaGetSerialNum(env, cbInfo, getSerialNum) && throwErr) {
+        delete getSerialNum;
+        return nullptr;
+    }
 
     napi_value result = nullptr;
     if (getSerialNum->callbackRef == nullptr) {
@@ -1027,6 +1306,16 @@ napi_value GetSerialNumberByOsAccountLocalId(napi_env env, napi_callback_info cb
 
 napi_value IsTestOsAccount(napi_env env, napi_callback_info cbInfo)
 {
+    return InnerIsTestOsAccount(env, cbInfo, false);
+}
+
+napi_value CheckOsAccountTestable(napi_env env, napi_callback_info cbInfo)
+{
+    return InnerIsTestOsAccount(env, cbInfo, true);
+}
+
+napi_value InnerIsTestOsAccount(napi_env env, napi_callback_info cbInfo, bool throwErr)
+{
     IsTestOAInfo *isTest = new (std::nothrow) IsTestOAInfo();
     if (isTest == nullptr) {
         ACCOUNT_LOGE("insufficient memory for isTest!");
@@ -1034,8 +1323,12 @@ napi_value IsTestOsAccount(napi_env env, napi_callback_info cbInfo)
     }
     isTest->env = env;
     isTest->callbackRef = nullptr;
+    isTest->throwErr = throwErr;
 
-    ParseParaIsTestOA(env, cbInfo, isTest);
+    if (!ParseParaIsTestOA(env, cbInfo, isTest) && throwErr) {
+        delete isTest;
+        return nullptr;
+    }
 
     napi_value result = nullptr;
     if (isTest->callbackRef == nullptr) {
@@ -1057,9 +1350,9 @@ napi_value IsTestOsAccount(napi_env env, napi_callback_info cbInfo)
             isTest->errCode = 0;
             isTest->isTestOsAccount = false;
             napi_value result[RESULT_COUNT] = {0};
-            result[PARAMZERO] = GetErrorCodeValue(env, isTest->errCode);
+            result[PARAMZERO] = GenerateBusinessError(env, isTest->errCode);
             napi_get_boolean(env, isTest->isTestOsAccount, &result[PARAMONE]);
-            CBOrPromiseIsTestOA(env, isTest, result[PARAMZERO], result[PARAMONE]);
+            ProcessCallbackOrPromise(env, isTest, result[PARAMZERO], result[PARAMONE]);
             napi_delete_async_work(env, isTest->work);
             delete isTest;
             isTest = nullptr;
@@ -1080,8 +1373,12 @@ napi_value IsMainOsAccount(napi_env env, napi_callback_info cbInfo)
     }
     isMain->env = env;
     isMain->callbackRef = nullptr;
+    isMain->throwErr = true;
 
-    ParseParaIsMainOA(env, cbInfo, isMain);
+    if (!ParseParaIsMainOA(env, cbInfo, isMain)) {
+        delete isMain;
+        return nullptr;
+    }
 
     napi_value result = nullptr;
     if (isMain->callbackRef == nullptr) {
@@ -1106,9 +1403,9 @@ napi_value IsMainOsAccount(napi_env env, napi_callback_info cbInfo)
             ACCOUNT_LOGD("napi_create_async_work complete");
             IsMainOAInfo *isMain = reinterpret_cast<IsMainOAInfo *>(data);
             napi_value result[RESULT_COUNT] = {0};
-            result[PARAMZERO] = GetErrorCodeValue(env, isMain->errCode);
+            result[PARAMZERO] = GenerateBusinessError(env, isMain->errCode);
             napi_get_boolean(env, isMain->isMainOsAccount, &result[PARAMONE]);
-            CBOrPromiseIsMainOA(env, isMain, result[PARAMZERO], result[PARAMONE]);
+            ProcessCallbackOrPromise(env, isMain, result[PARAMZERO], result[PARAMONE]);
             napi_delete_async_work(env, isMain->work);
             delete isMain;
             isMain = nullptr;
@@ -1122,33 +1419,25 @@ napi_value IsMainOsAccount(napi_env env, napi_callback_info cbInfo)
 
 napi_value Subscribe(napi_env env, napi_callback_info cbInfo)
 {
-    size_t argc = ARGS_SIZE_THREE;
-    napi_value argv[ARGS_SIZE_THREE] = {nullptr};
-    napi_value thisVar = nullptr;
-    napi_ref callback = nullptr;
-    std::string onName;
-    OS_ACCOUNT_SUBSCRIBE_TYPE onType;
-
-    NAPI_CALL(env, napi_get_cb_info(env, cbInfo, &argc, argv, &thisVar, NULL));
-    NAPI_ASSERT(env, argc >= ARGS_SIZE_THREE, "Wrong number of arguments");
-    if (ParseParaToSubscriber(env, argv, callback, onType, onName) == nullptr) {
-        ACCOUNT_LOGE("Parse subscribe failed");
-        return WrapVoidToJS(env);
-    }
-
     SubscribeCBInfo *subscribeCBInfo = new (std::nothrow) SubscribeCBInfo();
     if (subscribeCBInfo == nullptr) {
         ACCOUNT_LOGE("insufficient memory for subscribeCBInfo!");
-        return WrapVoidToJS(env);
+        return nullptr;
     }
     subscribeCBInfo->env = env;
-    subscribeCBInfo->work = nullptr;
-    subscribeCBInfo->callbackRef = callback;
-    subscribeCBInfo->name = onName;
-    subscribeCBInfo->osSubscribeType = onType;
+    subscribeCBInfo->callbackRef = nullptr;
+    subscribeCBInfo->throwErr = true;
+
+    napi_value thisVar = nullptr;
+
+    if (!ParseParaToSubscriber(env, cbInfo, subscribeCBInfo, &thisVar)) {
+        delete subscribeCBInfo;
+        ACCOUNT_LOGE("Parse subscribe failed");
+        return nullptr;
+    }
 
     // make osaccount subscribe info
-    OsAccountSubscribeInfo subscribeInfo(onType, onName);
+    OsAccountSubscribeInfo subscribeInfo(subscribeCBInfo->osSubscribeType, subscribeCBInfo->name);
     // make a subscriber
     subscribeCBInfo->subscriber = std::make_shared<SubscriberPtr>(subscribeInfo);
 
@@ -1268,34 +1557,26 @@ void SubscriberPtr::SetCallbackRef(const napi_ref &ref)
 
 napi_value Unsubscribe(napi_env env, napi_callback_info cbInfo)
 {
-    size_t argc = ARGS_SIZE_THREE;
-    napi_value argv[ARGS_SIZE_THREE] = {nullptr};
-    napi_value thisVar = nullptr;
-    std::string offName;
-    OS_ACCOUNT_SUBSCRIBE_TYPE offType;
-
-    NAPI_CALL(env, napi_get_cb_info(env, cbInfo, &argc, argv, &thisVar, NULL));
-    NAPI_ASSERT(env, argc >= ARGS_SIZE_TWO, "Wrong number of arguments");
-
-    napi_ref callback = nullptr;
-    if (ParseParaToUnsubscriber(env, argc, argv, callback, offType, offName) == nullptr) {
-        ACCOUNT_LOGE("Parse unsubscribe failed");
-        return WrapVoidToJS(env);
-    }
-
     UnsubscribeCBInfo *unsubscribeCBInfo = new (std::nothrow) UnsubscribeCBInfo();
     if (unsubscribeCBInfo == nullptr) {
         ACCOUNT_LOGE("insufficient memory for unsubscribeCBInfo!");
         return WrapVoidToJS(env);
     }
+    unsubscribeCBInfo->env = env;
+    unsubscribeCBInfo->callbackRef = nullptr;
+    unsubscribeCBInfo->throwErr = true;
+
+    napi_value thisVar = nullptr;
+
+    if (!ParseParaToUnsubscriber(env, cbInfo, unsubscribeCBInfo, &thisVar)) {
+        delete unsubscribeCBInfo;
+        ACCOUNT_LOGE("Parse unsubscribe failed");
+        return nullptr;
+    }
 
     OsAccountManager *objectInfo = nullptr;
     napi_unwrap(env, thisVar, reinterpret_cast<void **>(&objectInfo));
     unsubscribeCBInfo->osManager = objectInfo;
-    unsubscribeCBInfo->callbackRef = callback;
-    unsubscribeCBInfo->osSubscribeType = offType;
-    unsubscribeCBInfo->name = offName;
-    unsubscribeCBInfo->argc = argc;
 
     bool isFind = false;
     std::vector<std::shared_ptr<SubscriberPtr>> subscribers;
@@ -1364,7 +1645,7 @@ void UnsubscribeCallbackCompletedCB(napi_env env, napi_status status, void *data
         return;
     }
 
-    if (unsubscribeCBInfo->argc >= ARGS_SIZE_THREE) {
+    if (unsubscribeCBInfo->callbackRef != nullptr) {
         napi_value result = nullptr;
         napi_create_int32(env, 0, &result);
 
@@ -1380,9 +1661,7 @@ void UnsubscribeCallbackCompletedCB(napi_env env, napi_status status, void *data
 
         NAPI_CALL_RETURN_VOID(
             env, napi_call_function(env, undefined, callback, ARGS_SIZE_ONE, &results[0], &resultout));
-    }
 
-    if (unsubscribeCBInfo->callbackRef != nullptr) {
         napi_delete_reference(env, unsubscribeCBInfo->callbackRef);
     }
 
