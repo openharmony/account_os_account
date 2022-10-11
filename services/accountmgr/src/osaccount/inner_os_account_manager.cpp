@@ -278,7 +278,7 @@ ErrCode IInnerOsAccountManager::PrepareOsAccountInfo(const std::string &name, co
     errCode = osAccountControl_->GetAllowCreateId(id);
     if (errCode != ERR_OK) {
         ACCOUNT_LOGE("failed to GetAllowCreateId, errCode %{public}d.", errCode);
-        return ERR_OSACCOUNT_SERVICE_INNER_GET_OSACCOUNT_ID_ERROR;
+        return errCode;
     }
     std::vector<std::string> constraints;
     constraints.clear();

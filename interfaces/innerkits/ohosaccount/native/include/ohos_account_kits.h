@@ -45,6 +45,14 @@ public:
     virtual std::pair<bool, OhosAccountInfo> QueryOhosAccountInfo() = 0;
 
     /**
+     * Query OHOS Account Info.
+     *
+     * @param OhosAccountInfo. ohos account info
+     * @return Return error code.
+     */
+    virtual std::int32_t GetOhosAccountInfo(OhosAccountInfo &accountInfo) = 0;
+
+    /**
      * Query OHOS Account Info By user ID.
      *
      * @param userId. target local user id
@@ -63,6 +71,18 @@ public:
      */
     virtual bool UpdateOhosAccountInfo(const std::string& accountName, const std::string& uid,
         const std::string& eventStr) = 0;
+
+    /**
+     * Update OHOS Account Info.
+     *
+     * @param accountName Indicates the name of the OS account used for a distributed system.
+     * @param uid Uniquely identifies the OS account used for a distributed system.
+     * @param eventStr Indicates the event of the OS account used for a distributed system.
+     * @return Returns {@code true} if the distributed information of the account is updated;
+     *     returns {@code false} otherwise.
+     */
+    virtual std::int32_t SetOhosAccountInfo(const std::string &accountName, const std::string &uid,
+        const std::string &eventStr) = 0;
 
     /**
      * Query Device Account Id.

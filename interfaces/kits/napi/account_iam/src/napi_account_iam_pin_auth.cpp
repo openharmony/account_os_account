@@ -17,6 +17,7 @@
 
 #include "account_iam_client.h"
 #include "account_log_wrapper.h"
+#include "napi_account_error.h"
 #include "napi_account_iam_common.h"
 
 namespace OHOS {
@@ -49,6 +50,9 @@ static bool ParseContextForRegisterInputer(napi_env env, napi_callback_info info
     napi_value argv[ARG_SIZE_ONE] = {nullptr};
     napi_get_cb_info(env, info, &argc, argv, nullptr, nullptr);
     if (argc != ARG_SIZE_ONE) {
+        ACCOUNT_LOGE("expect at least one parameter, but got %zu", argc);
+        std::string errMsg = "The arg number must be at least " + std::to_string(ARG_SIZE_ONE) + " characters";
+        AccountNapiThrow(env, ERR_JS_PARAMETER_ERROR, errMsg, true);
         return false;
     }
     napi_valuetype valuetype = napi_undefined;
@@ -60,6 +64,8 @@ static bool ParseContextForRegisterInputer(napi_env env, napi_callback_info info
         onGetData = argv[PARAM_ZERO];
     } else {
         ACCOUNT_LOGE("inputer param type error");
+        std::string errMsg = "The type of arg 1 must be function or object";
+        AccountNapiThrow(env, ERR_JS_PARAMETER_ERROR, errMsg, true);
         return false;
     }
     return napi_create_reference(env, onGetData, 1, callback) == napi_ok ? true : false;
@@ -75,8 +81,15 @@ napi_value NapiAccountIAMPINAuth::RegisterInputer(napi_env env, napi_callback_in
     }
     auto inputer = std::make_shared<NapiGetDataCallback>(env, callback);
     bool isSucceed = AccountIAMClient::GetInstance().RegisterInputer(inputer);
-    NAPI_CALL(env, napi_get_boolean(env, isSucceed, &result));
-    return result;
+    napi_value napiResult = nullptr;
+    if (isSucceed) {
+        NAPI_CALL(env, napi_get_boolean(env, isSucceed, &napiResult));
+        return napiResult;
+    }
+    ACCOUNT_LOGE("Failed to register inputer");
+    std::string errMsg = "PIN inputer is already registered, please do not repeat register";
+    AccountNapiThrow(env, ERR_JS_PIN_INPUTER_ALREADY_EXIST, errMsg, true);
+    return nullptr;
 }
 
 napi_value NapiAccountIAMPINAuth::UnregisterInputer(napi_env env, napi_callback_info info)
