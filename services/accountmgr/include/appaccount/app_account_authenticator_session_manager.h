@@ -47,6 +47,8 @@ public:
 
     ErrCode AddAccountImplicitly(const AuthenticatorSessionRequest &request);
     ErrCode Authenticate(const AuthenticatorSessionRequest &request);
+    ErrCode CreateAccountImplicitly(const AuthenticatorSessionRequest &request);
+    ErrCode Auth(const AuthenticatorSessionRequest &request);
     ErrCode GetAuthenticatorCallback(const AuthenticatorSessionRequest &request, sptr<IRemoteObject> &callback);
     ErrCode VerifyCredential(const AuthenticatorSessionRequest &request);
     ErrCode CheckAccountLabels(const AuthenticatorSessionRequest &request);

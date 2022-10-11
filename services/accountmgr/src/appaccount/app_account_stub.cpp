@@ -61,6 +61,14 @@ const std::map<uint32_t, AppAccountStub::MessageProcFunction> AppAccountStub::me
         &AppAccountStub::ProcAddAccountImplicitly,
     },
     {
+        static_cast<uint32_t>(IAppAccount::Message::CREATE_ACCOUNT),
+        &AppAccountStub::ProcCreateAccount,
+    },
+    {
+        static_cast<uint32_t>(IAppAccount::Message::CREATE_ACCOUNT_IMPLICITLY),
+        &AppAccountStub::ProcCreateAccountImplicitly,
+    },
+    {
         static_cast<uint32_t>(IAppAccount::Message::DELETE_ACCOUNT),
         &AppAccountStub::ProcDeleteAccount,
     },
@@ -297,6 +305,47 @@ ErrCode AppAccountStub::ProcAddAccountImplicitly(MessageParcel &data, MessagePar
     if (result == ERR_OK) {
         sptr<IRemoteObject> callback = data.ReadRemoteObject();
         result = AddAccountImplicitly(owner, authType, *options, callback);
+    }
+    if (!reply.WriteInt32(result)) {
+        ACCOUNT_LOGE("failed to write reply");
+        return IPC_STUB_WRITE_PARCEL_ERR;
+    }
+    return ERR_NONE;
+}
+
+ErrCode AppAccountStub::ProcCreateAccount(MessageParcel &data, MessageParcel &reply)
+{
+    std::string name = data.ReadString();
+    RETURN_IF_STRING_IS_EMPTY_OR_OVERSIZE(name, Constants::NAME_MAX_SIZE, "name is empty or oversize");
+    sptr<CreateAccountOptions> options = data.ReadParcelable<CreateAccountOptions>();
+    ErrCode result = ERR_OK;
+    if (options == nullptr) {
+        ACCOUNT_LOGE("invalid options");
+        result = ERR_APPACCOUNT_SERVICE_INVALID_PARAMETER;
+    } else {
+        result = CreateAccount(name, *options);
+    }
+    if (!reply.WriteInt32(result)) {
+        ACCOUNT_LOGE("failed to write reply");
+        return IPC_STUB_WRITE_PARCEL_ERR;
+    }
+    return ERR_NONE;
+}
+
+ErrCode AppAccountStub::ProcCreateAccountImplicitly(MessageParcel &data, MessageParcel &reply)
+{
+    std::string owner = data.ReadString();
+    RETURN_IF_STRING_IS_EMPTY_OR_OVERSIZE(owner, Constants::OWNER_MAX_SIZE, "owner is empty or oversize");
+    sptr<CreateAccountImplicitlyOptions> options = data.ReadParcelable<CreateAccountImplicitlyOptions>();
+    ErrCode result = ERR_OK;
+    if (options == nullptr) {
+        ACCOUNT_LOGE("invalid options");
+        result = ERR_APPACCOUNT_SERVICE_INVALID_PARAMETER;
+    } else {
+        RETURN_IF_STRING_IS_EMPTY_OR_OVERSIZE(options->parameters.GetStringParam(Constants::KEY_CALLER_ABILITY_NAME),
+            Constants::ABILITY_NAME_MAX_SIZE, "abilityName is empty or oversize");
+        sptr<IRemoteObject> callback = data.ReadRemoteObject();
+        result = CreateAccountImplicitly(owner, *options, callback);
     }
     if (!reply.WriteInt32(result)) {
         ACCOUNT_LOGE("failed to write reply");

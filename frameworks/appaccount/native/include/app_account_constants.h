@@ -43,6 +43,7 @@ const std::string KEY_ACCOUNT_NAMES = "accountNames";
 const std::string KEY_ACCOUNT_OWNERS = "accountOwners";
 const std::string SPECIAL_CHARACTERS = " ";
 const std::string HYPHEN = "#";
+const std::string API_V9 = "apiV9";
 constexpr int32_t ABILITY_STATE_TERMINATED = 4;
 constexpr std::size_t APP_ACCOUNT_SUBSCRIBER_MAX_SIZE = 200;
 constexpr std::size_t NAME_MAX_SIZE = 512;
@@ -57,6 +58,7 @@ constexpr std::size_t OWNER_MAX_SIZE = 1024;
 constexpr std::size_t AUTH_TYPE_MAX_SIZE = 1024;
 constexpr std::size_t ABILITY_NAME_MAX_SIZE = 512;
 constexpr std::size_t SESSION_ID_MAX_SIZE = 1024;
+constexpr uint32_t MAX_CUSTOM_DATA_SIZE = 1024;
 };  // namespace Constants
 }  // namespace AccountSA
 }  // namespace OHOS

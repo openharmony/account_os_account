@@ -36,6 +36,8 @@ struct JsAuthenticator {
     napi_ref checkAccountLabels = nullptr;
     napi_ref setProperties = nullptr;
     napi_ref isAccountRemovable = nullptr;
+    napi_ref createAccountImplicitly = nullptr;
+    napi_ref auth = nullptr;
 };
 
 struct JsAuthenticatorParam {
@@ -48,6 +50,7 @@ struct JsAuthenticatorParam {
     std::vector<std::string> labels;
     VerifyCredentialOptions verifyCredOptions;
     SetPropertiesOptions setPropOptions;
+    CreateAccountImplicitlyOptions createOptions;
     sptr<IRemoteObject> callback;
 };
 
@@ -63,6 +66,11 @@ public:
     ErrCode Authenticate(
         const std::string &name, const std::string &authType, const std::string &callerBundleName,
         const AAFwk::WantParams &options, const sptr<IRemoteObject> &callback) override;
+    ErrCode CreateAccountImplicitly(
+        const CreateAccountImplicitlyOptions &options, const sptr<IRemoteObject> &callback) override;
+    ErrCode Auth(
+        const std::string &name, const std::string &authType, const AAFwk::WantParams &options,
+        const sptr<IRemoteObject> &callback) override;
     ErrCode VerifyCredential(
         const std::string &name, const VerifyCredentialOptions &options, const sptr<IRemoteObject> &callback) override;
     ErrCode CheckAccountLabels(
@@ -87,6 +95,8 @@ private:
     static void CheckAccountLabelsWork(uv_work_t *work, int status);
     static void SetPropertiesWork(uv_work_t *work, int status);
     static void IsAccountRemovableWork(uv_work_t *work, int status);
+    static void CreateAccountImplicitlyWork(uv_work_t *work, int status);
+    static void AuthWork(uv_work_t *work, int status);
 
 private:
     napi_env env_ = nullptr;

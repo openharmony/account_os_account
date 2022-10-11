@@ -29,6 +29,9 @@ public:
     ErrCode AddAccount(const std::string &name, const std::string &extraInfo) override;
     ErrCode AddAccountImplicitly(const std::string &owner, const std::string &authType,
         const AAFwk::Want &options, const sptr<IRemoteObject> &callback) override;
+    ErrCode CreateAccount(const std::string &name, const CreateAccountOptions &options) override;
+    ErrCode CreateAccountImplicitly(const std::string &owner, const CreateAccountImplicitlyOptions &options,
+        const sptr<IRemoteObject> &callback) override;
     ErrCode DeleteAccount(const std::string &name) override;
 
     ErrCode GetAccountExtraInfo(const std::string &name, std::string &extraInfo) override;

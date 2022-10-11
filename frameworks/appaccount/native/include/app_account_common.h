@@ -68,6 +68,24 @@ struct SetPropertiesOptions : public Parcelable {
     static SetPropertiesOptions *Unmarshalling(Parcel &parcel);
 };
 
+struct CreateAccountOptions : public Parcelable {
+    std::map<std::string, std::string> customData;
+    bool ReadFromParcel(Parcel &parcel);
+    virtual bool Marshalling(Parcel &parcel) const override;
+    static CreateAccountOptions *Unmarshalling(Parcel &parcel);
+};
+
+struct CreateAccountImplicitlyOptions : public Parcelable {
+    bool hasAuthType;
+    bool hasRequiredLabels;
+    std::string authType;
+    std::vector<std::string> requiredLabels;
+    AAFwk::Want parameters;
+    bool ReadFromParcel(Parcel &parcel);
+    virtual bool Marshalling(Parcel &parcel) const override;
+    static CreateAccountImplicitlyOptions *Unmarshalling(Parcel &parcel);
+};
+
 struct AuthenticatorSessionRequest {
     std::string action;
     std::string sessionId;
@@ -86,6 +104,7 @@ struct AuthenticatorSessionRequest {
     std::vector<std::string> labels;
     VerifyCredentialOptions verifyCredOptions;
     SetPropertiesOptions setPropOptions;
+    CreateAccountImplicitlyOptions createOptions;
     sptr<IAppAccountAuthenticatorCallback> callback = nullptr;
 };
 
@@ -96,6 +115,8 @@ enum AuthenticatorAction {
     CHECK_ACCOUNT_LABELS,
     SET_AUTHENTICATOR_PROPERTIES,
     IS_ACCOUNT_REMOVABLE,
+    CREATE_ACCOUNT_IMPLICITLY,
+    AUTH,
 };
 
 enum JSResultCode {

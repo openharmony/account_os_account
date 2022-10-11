@@ -22,7 +22,7 @@
 namespace OHOS {
 namespace AccountSA {
 namespace {
-constexpr const uint32_t MAX_OPTION_SIZE = 1024;
+constexpr uint32_t MAX_OPTION_SIZE = 1024;
 }
 
 bool SelectAccountsOptions::Marshalling(Parcel &parcel) const
@@ -45,7 +45,7 @@ bool SelectAccountsOptions::Marshalling(Parcel &parcel) const
 SelectAccountsOptions *SelectAccountsOptions::Unmarshalling(Parcel &parcel)
 {
     SelectAccountsOptions *info = new (std::nothrow) SelectAccountsOptions();
-    if (info && !info->ReadFromParcel(parcel)) {
+    if ((info != nullptr) && (!info->ReadFromParcel(parcel))) {
         ACCOUNT_LOGW("read from parcel failed");
         delete info;
         info = nullptr;
@@ -84,7 +84,7 @@ bool VerifyCredentialOptions::Marshalling(Parcel &parcel) const
 VerifyCredentialOptions *VerifyCredentialOptions::Unmarshalling(Parcel &parcel)
 {
     VerifyCredentialOptions *info = new (std::nothrow) VerifyCredentialOptions();
-    if (info && !info->ReadFromParcel(parcel)) {
+    if ((info != nullptr) && (!info->ReadFromParcel(parcel))) {
         ACCOUNT_LOGW("read from parcel failed");
         delete info;
         info = nullptr;
@@ -113,7 +113,7 @@ bool SetPropertiesOptions::Marshalling(Parcel &parcel) const
 SetPropertiesOptions *SetPropertiesOptions::Unmarshalling(Parcel &parcel)
 {
     SetPropertiesOptions *info = new (std::nothrow) SetPropertiesOptions();
-    if (info && !info->ReadFromParcel(parcel)) {
+    if ((info != nullptr) && (!info->ReadFromParcel(parcel))) {
         ACCOUNT_LOGW("read from parcel failed");
         delete info;
         info = nullptr;
@@ -133,6 +133,93 @@ bool SetPropertiesOptions::ReadFromParcel(Parcel &parcel)
         return false;
     }
     parameters = *wantParams;
+    return true;
+}
+
+bool CreateAccountOptions::Marshalling(Parcel &parcel) const
+{
+    if (!parcel.WriteUint32(customData.size())) {
+        ACCOUNT_LOGE("failed to write custom data size");
+        return false;
+    }
+    for (const auto& it : customData) {
+        if (!parcel.WriteString(it.first)) {
+            ACCOUNT_LOGE("failed to write key");
+            return false;
+        }
+        if (!parcel.WriteString(it.second)) {
+            ACCOUNT_LOGE("failed to write value");
+            return false;
+        }
+    }
+    return true;
+}
+
+CreateAccountOptions *CreateAccountOptions::Unmarshalling(Parcel &parcel)
+{
+    CreateAccountOptions *info = new (std::nothrow) CreateAccountOptions();
+    if ((info != nullptr) && (!info->ReadFromParcel(parcel))) {
+        ACCOUNT_LOGW("read from parcel failed");
+        delete info;
+        info = nullptr;
+    }
+    return info;
+}
+
+bool CreateAccountOptions::ReadFromParcel(Parcel &parcel)
+{
+    customData.clear();
+    uint32_t size = 0;
+    if (!parcel.ReadUint32(size)) {
+        ACCOUNT_LOGE("fail to read custom data size");
+        return false;
+    }
+    if (size > Constants::MAX_CUSTOM_DATA_SIZE) {
+        ACCOUNT_LOGE("custom data is oversize, the limit is %{public}d", Constants::MAX_CUSTOM_DATA_SIZE);
+        return false;
+    }
+    for (uint32_t i = 0; i < size; ++i) {
+        std::string key;
+        if (!parcel.ReadString(key)) {
+            ACCOUNT_LOGE("fail to read custom data key");
+            return false;
+        }
+        std::string value;
+        if (!parcel.ReadString(value)) {
+            ACCOUNT_LOGE("fail to read custom data value");
+            return false;
+        }
+        customData.emplace(key, value);
+    }
+    return true;
+}
+
+bool CreateAccountImplicitlyOptions::Marshalling(Parcel &parcel) const
+{
+    return parcel.WriteBool(hasAuthType) && parcel.WriteBool(hasRequiredLabels) && parcel.WriteString(authType) &&
+        parcel.WriteStringVector(requiredLabels) && parcel.WriteParcelable(&parameters);
+}
+
+CreateAccountImplicitlyOptions *CreateAccountImplicitlyOptions::Unmarshalling(Parcel &parcel)
+{
+    CreateAccountImplicitlyOptions *info = new (std::nothrow) CreateAccountImplicitlyOptions();
+    if ((info != nullptr) && (!info->ReadFromParcel(parcel))) {
+        ACCOUNT_LOGW("read from parcel failed");
+        delete info;
+        info = nullptr;
+    }
+    return info;
+}
+
+bool CreateAccountImplicitlyOptions::ReadFromParcel(Parcel &parcel)
+{
+    bool result = parcel.ReadBool(hasAuthType) && parcel.ReadBool(hasRequiredLabels) && parcel.ReadString(authType) &&
+        parcel.ReadStringVector(&requiredLabels);
+    sptr<AAFwk::Want> params = parcel.ReadParcelable<AAFwk::Want>();
+    if ((!result) || (params == nullptr)) {
+        return false;
+    }
+    parameters = *params;
     return true;
 }
 

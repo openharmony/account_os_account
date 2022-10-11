@@ -92,6 +92,59 @@ ErrCode AppAccountProxy::AddAccountImplicitly(const std::string &owner, const st
     return result;
 }
 
+
+ErrCode AppAccountProxy::CreateAccount(const std::string &name, const CreateAccountOptions &options)
+{
+    MessageParcel data;
+    if (!data.WriteInterfaceToken(GetDescriptor())) {
+        ACCOUNT_LOGE("failed to write descriptor!");
+        return ERR_ACCOUNT_COMMON_WRITE_DESCRIPTOR_ERROR;
+    }
+    if (!data.WriteString(name)) {
+        ACCOUNT_LOGE("failed to write name");
+        return ERR_APPACCOUNT_KIT_WRITE_STRING_NAME;
+    }
+    if (!data.WriteParcelable(&options)) {
+        ACCOUNT_LOGE("failed to write options");
+        return ERR_APPACCOUNT_KIT_WRITE_PARCELABLE_OPTIONS;
+    }
+    MessageParcel reply;
+    ErrCode result = SendRequest(IAppAccount::Message::CREATE_ACCOUNT, data, reply);
+    if (result != ERR_OK) {
+        return result;
+    }
+    return reply.ReadInt32();
+}
+
+ErrCode AppAccountProxy::CreateAccountImplicitly(
+    const std::string &owner, const CreateAccountImplicitlyOptions &options, const sptr<IRemoteObject> &callback)
+{
+    MessageParcel data;
+    if (!data.WriteInterfaceToken(GetDescriptor())) {
+        ACCOUNT_LOGE("failed to write descriptor!");
+        return ERR_ACCOUNT_COMMON_WRITE_DESCRIPTOR_ERROR;
+    }
+    if (!data.WriteString(owner)) {
+        ACCOUNT_LOGE("failed to write owner");
+        return ERR_APPACCOUNT_KIT_WRITE_STRING_OWNER;
+    }
+    if (!data.WriteParcelable(&options)) {
+        ACCOUNT_LOGE("failed to write options");
+        return ERR_APPACCOUNT_KIT_WRITE_PARCELABLE_OPTIONS;
+    }
+    if (!data.WriteRemoteObject(callback)) {
+        ACCOUNT_LOGE("failed to write remote object for callback");
+        return ERR_APPACCOUNT_KIT_WRITE_PARCELABLE_CALLBACK;
+    }
+    MessageParcel reply;
+    ErrCode result = SendRequest(IAppAccount::Message::CREATE_ACCOUNT_IMPLICITLY, data, reply);
+    if (result != ERR_OK) {
+        ACCOUNT_LOGE("failed to send request, errCode: %{public}d", result);
+        return result;
+    }
+    return reply.ReadInt32();
+}
+
 ErrCode AppAccountProxy::DeleteAccount(const std::string &name)
 {
     MessageParcel data;
