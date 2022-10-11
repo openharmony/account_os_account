@@ -36,6 +36,8 @@ namespace {
 const std::string OHOS_ACCOUNT_QUIT_TIPS_TITLE = "";
 const std::string OHOS_ACCOUNT_QUIT_TIPS_CONTENT = "";
 const std::string PERMISSION_MANAGE_USERS = "ohos.permission.MANAGE_LOCAL_ACCOUNTS";
+const std::string PERMISSION_MANAGE_DISTRIBUTED_ACCOUNTS = "ohos.permission.MANAGE_DISTRIBUTED_ACCOUNTS";
+const std::string PERMISSION_GET_DISTRIBUTED_ACCOUNTS = "ohos.permission.GET_DISTRIBUTED_ACCOUNTS";
 const std::string PERMISSION_DISTRIBUTED_DATASYNC = "ohos.permission.DISTRIBUTED_DATASYNC";
 constexpr std::int32_t ROOT_UID = 0;
 #ifdef USE_MUSL
@@ -46,7 +48,9 @@ constexpr std::int32_t DSOFTBUS_UID = 5533;
 }  // namespace
 const std::map<std::uint32_t, AccountStubFunc> AccountStub::stubFuncMap_{
     std::make_pair(UPDATE_OHOS_ACCOUNT_INFO, &AccountStub::CmdUpdateOhosAccountInfo),
+    std::make_pair(SET_OHOS_ACCOUNT_INFO, &AccountStub::CmdSetOhosAccountInfo),
     std::make_pair(QUERY_OHOS_ACCOUNT_INFO, &AccountStub::CmdQueryOhosAccountInfo),
+    std::make_pair(GET_OHOS_ACCOUNT_INFO, &AccountStub::CmdGetOhosAccountInfo),
     std::make_pair(QUERY_OHOS_ACCOUNT_QUIT_TIPS, &AccountStub::CmdQueryOhosQuitTips),
     std::make_pair(QUERY_OHOS_ACCOUNT_INFO_BY_USER_ID, &AccountStub::CmdQueryOhosAccountInfoByUserId),
     std::make_pair(QUERY_DEVICE_ACCOUNT_ID, &AccountStub::CmdQueryDeviceAccountId),
@@ -55,13 +59,8 @@ const std::map<std::uint32_t, AccountStubFunc> AccountStub::stubFuncMap_{
     std::make_pair(GET_ACCOUNT_IAM_SERVICE, &AccountStub::CmdGetAccountIAMService),
 };
 
-std::int32_t AccountStub::CmdUpdateOhosAccountInfo(MessageParcel &data, MessageParcel &reply)
+std::int32_t AccountStub::InnerUpdateOhosAccountInfo(MessageParcel &data, MessageParcel &reply)
 {
-    if (!HasAccountRequestPermission(PERMISSION_MANAGE_USERS)) {
-        ACCOUNT_LOGE("Check permission failed");
-        return ERR_ACCOUNT_ZIDL_CHECK_PERMISSION_ERROR;
-    }
-
     // ignore the real account name
     const std::string accountName = Str16ToStr8(data.ReadString16());
     if (accountName.empty()) {
@@ -88,14 +87,28 @@ std::int32_t AccountStub::CmdUpdateOhosAccountInfo(MessageParcel &data, MessageP
     return ret;
 }
 
-std::int32_t AccountStub::CmdQueryOhosAccountInfo(MessageParcel &data, MessageParcel &reply)
+std::int32_t AccountStub::CmdUpdateOhosAccountInfo(MessageParcel &data, MessageParcel &reply)
 {
-    if (!HasAccountRequestPermission(PERMISSION_MANAGE_USERS) &&
-        !HasAccountRequestPermission(PERMISSION_DISTRIBUTED_DATASYNC)) {
+    if (!HasAccountRequestPermission(PERMISSION_MANAGE_USERS)) {
         ACCOUNT_LOGE("Check permission failed");
         return ERR_ACCOUNT_ZIDL_CHECK_PERMISSION_ERROR;
     }
 
+    return InnerUpdateOhosAccountInfo(data, reply);
+}
+
+std::int32_t AccountStub::CmdSetOhosAccountInfo(MessageParcel &data, MessageParcel &reply)
+{
+    if (!HasAccountRequestPermission(PERMISSION_MANAGE_DISTRIBUTED_ACCOUNTS)) {
+        ACCOUNT_LOGE("Check permission failed");
+        return ERR_ACCOUNT_ZIDL_CHECK_PERMISSION_ERROR;
+    }
+
+    return InnerUpdateOhosAccountInfo(data, reply);
+}
+
+std::int32_t AccountStub::InnerQueryOhosAccountInfo(MessageParcel &data, MessageParcel &reply)
+{
     std::pair<bool, OhosAccountInfo> info = QueryOhosAccountInfo();
     if (!info.first) {
         ACCOUNT_LOGE("Query ohos account info failed");
@@ -117,6 +130,29 @@ std::int32_t AccountStub::CmdQueryOhosAccountInfo(MessageParcel &data, MessagePa
         return ERR_ACCOUNT_ZIDL_WRITE_ACCOUNT_STATUS_ERROR;
     }
     return ERR_OK;
+}
+
+std::int32_t AccountStub::CmdQueryOhosAccountInfo(MessageParcel &data, MessageParcel &reply)
+{
+    if (!HasAccountRequestPermission(PERMISSION_MANAGE_USERS) &&
+        !HasAccountRequestPermission(PERMISSION_DISTRIBUTED_DATASYNC)) {
+        ACCOUNT_LOGE("Check permission failed");
+        return ERR_ACCOUNT_ZIDL_CHECK_PERMISSION_ERROR;
+    }
+
+    return InnerQueryOhosAccountInfo(data, reply);
+}
+
+std::int32_t AccountStub::CmdGetOhosAccountInfo(MessageParcel &data, MessageParcel &reply)
+{
+    if (!HasAccountRequestPermission(PERMISSION_MANAGE_DISTRIBUTED_ACCOUNTS) &&
+        !HasAccountRequestPermission(PERMISSION_DISTRIBUTED_DATASYNC) &&
+        !HasAccountRequestPermission(PERMISSION_GET_DISTRIBUTED_ACCOUNTS)) {
+        ACCOUNT_LOGE("Check permission failed");
+        return ERR_ACCOUNT_ZIDL_CHECK_PERMISSION_ERROR;
+    }
+
+    return InnerQueryOhosAccountInfo(data, reply);
 }
 
 std::int32_t AccountStub::CmdQueryOhosAccountInfoByUserId(MessageParcel &data, MessageParcel &reply)

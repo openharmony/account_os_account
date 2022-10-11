@@ -162,9 +162,10 @@ int32_t InnerAccountIAMManager::CancelAuth(uint64_t contextId)
 }
 
 int32_t InnerAccountIAMManager::GetAvailableStatus(
-    AuthType authType, AuthTrustLevel authTrustLevel)
+    AuthType authType, AuthTrustLevel authTrustLevel, int32_t &status)
 {
-    return UserAuthClientImpl::Instance().GetAvailableStatus(authType, authTrustLevel);
+    status = UserAuthClientImpl::Instance().GetAvailableStatus(authType, authTrustLevel);
+    return ERR_OK;
 }
 
 void InnerAccountIAMManager::GetProperty(

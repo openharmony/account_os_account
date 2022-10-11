@@ -66,6 +66,49 @@ bool AccountProxy::UpdateOhosAccountInfo(
     return true;
 }
 
+std::int32_t AccountProxy::SetOhosAccountInfo(const std::string &accountName, const std::string &uid,
+    const std::string &eventStr)
+{
+    MessageParcel data;
+    MessageParcel reply;
+    MessageOption option;
+
+    if (!data.WriteInterfaceToken(GetDescriptor())) {
+        ACCOUNT_LOGE("Write descriptor failed!");
+        return ERR_ACCOUNT_ZIDL_WRITE_PARCEL_DATA_ERROR;
+    }
+    if (!data.WriteString16(Str8ToStr16(accountName))) {
+        ACCOUNT_LOGE("Write accountName failed!");
+        return ERR_ACCOUNT_ZIDL_WRITE_PARCEL_DATA_ERROR;
+    }
+    if (!data.WriteString16(Str8ToStr16(uid))) {
+        ACCOUNT_LOGE("Write uid failed!");
+        return ERR_ACCOUNT_ZIDL_WRITE_PARCEL_DATA_ERROR;
+    }
+    if (!data.WriteString16(Str8ToStr16(eventStr))) {
+        ACCOUNT_LOGE("Write eventStr failed!");
+        return ERR_ACCOUNT_ZIDL_WRITE_PARCEL_DATA_ERROR;
+    }
+
+    auto ret = Remote()->SendRequest(SET_OHOS_ACCOUNT_INFO, data, reply, option);
+    if (ret != ERR_NONE) {
+        ACCOUNT_LOGE("SendRequest failed %{public}d", ret);
+        return ret;
+    }
+
+    std::int32_t result = ERR_OK;
+    if (!reply.ReadInt32(result)) {
+        ACCOUNT_LOGE("reply ReadInt32 failed");
+        return ERR_ACCOUNT_ZIDL_READ_RESULT_ERROR;
+    }
+
+    if (result != ERR_OK) {
+        ACCOUNT_LOGE("UpdateOhosAccountInfo failed: %{public}d", result);
+    }
+    ACCOUNT_LOGD("UpdateOhosAccountInfo exit");
+    return result;
+}
+
 std::pair<bool, OhosAccountInfo> AccountProxy::QueryOhosAccountInfo(void)
 {
     MessageParcel data;
@@ -88,6 +131,31 @@ std::pair<bool, OhosAccountInfo> AccountProxy::QueryOhosAccountInfo(void)
     std::int32_t status = reply.ReadInt32();
     ACCOUNT_LOGD("QueryOhosAccountInfo exit");
     return std::make_pair(true, OhosAccountInfo(Str16ToStr8(name), Str16ToStr8(uid), status));
+}
+
+std::int32_t AccountProxy::GetOhosAccountInfo(OhosAccountInfo &accountInfo)
+{
+    MessageParcel data;
+    MessageParcel reply;
+    MessageOption option;
+
+    if (!data.WriteInterfaceToken(GetDescriptor())) {
+        ACCOUNT_LOGE("Write descriptor failed");
+        return ERR_ACCOUNT_ZIDL_WRITE_DESCRIPTOR_ERROR;
+    }
+
+    auto ret = Remote()->SendRequest(GET_OHOS_ACCOUNT_INFO, data, reply, option);
+    if (ret != ERR_NONE) {
+        ACCOUNT_LOGE("SendRequest failed %{public}d", ret);
+        return ret;
+    }
+
+    std::u16string name = reply.ReadString16();
+    std::u16string uid = reply.ReadString16();
+    std::int32_t status = reply.ReadInt32();
+    accountInfo = OhosAccountInfo(Str16ToStr8(name), Str16ToStr8(uid), status);
+    ACCOUNT_LOGD("QueryOhosAccountInfo exit");
+    return ERR_OK;
 }
 
 std::pair<bool, OhosAccountInfo> AccountProxy::QueryOhosAccountInfoByUserId(std::int32_t userId)
