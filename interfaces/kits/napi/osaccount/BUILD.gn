@@ -21,6 +21,8 @@ config("osaccount_kit_config") {
     "//third_party/node/src",
     "//foundation/arkui/napi/interfaces/kits",
     "${os_account_kits_path}/include",
+    "${os_account_path}/interfaces/kits/napi/common/include",
+    "//base/useriam/user_auth_framework/interfaces/inner_api",
   ]
 
   cflags = []
@@ -64,6 +66,9 @@ ohos_shared_library("osaccount") {
     "${os_account_kits_path}/src/napi_init.cpp",
     "${os_account_kits_path}/src/napi_os_account.cpp",
     "${os_account_kits_path}/src/napi_os_account_common.cpp",
+    "${os_account_path}/frameworks/common/account_error/src/account_error_no.cpp",
+    "${os_account_path}/interfaces/kits/napi/common/src/napi_account_common.cpp",
+    "${os_account_path}/interfaces/kits/napi/common/src/napi_account_error.cpp",
   ]
 
   deps = [
