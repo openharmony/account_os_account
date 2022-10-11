@@ -37,6 +37,10 @@ public:
         const std::string &name, const std::vector<std::string> &labels, const sptr<IRemoteObject> &callback) override;
     ErrCode SetProperties(const SetPropertiesOptions &options, const sptr<IRemoteObject> &callback) override;
     ErrCode IsAccountRemovable(const std::string &name, const sptr<IRemoteObject> &callback) override;
+    ErrCode CreateAccountImplicitly(
+        const CreateAccountImplicitlyOptions &options, const sptr<IRemoteObject> &callback) override;
+    ErrCode Auth(const std::string &name, const std::string &authType,
+        const AAFwk::WantParams &options, const sptr<IRemoteObject> &callback) override;
 private:
     ErrCode SendRequest(IAppAccountAuthenticator::Message code, MessageParcel &data, MessageParcel &reply);
 

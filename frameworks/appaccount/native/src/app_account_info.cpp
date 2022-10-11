@@ -37,7 +37,7 @@ const std::string HYPHEN = "#";
 constexpr uint32_t APP_INDEX = 0;
 constexpr uint32_t MAX_TOKEN_NUMBER = 128;
 constexpr uint32_t MAX_OAUTH_LIST_SIZE = 512;
-constexpr uint32_t MAX_ASSOCIATED_DATA_NUMBER = 512;
+constexpr uint32_t MAX_ASSOCIATED_DATA_NUMBER = 1024;
 }  // namespace
 
 AppAccountInfo::AppAccountInfo()
@@ -171,6 +171,18 @@ ErrCode AppAccountInfo::GetSyncEnable(bool &syncEnable) const
 ErrCode AppAccountInfo::SetSyncEnable(const bool &syncEnable)
 {
     syncEnable_ = syncEnable;
+    return ERR_OK;
+}
+
+ErrCode AppAccountInfo::InitCustomData(const std::map<std::string, std::string> &data)
+{
+    Json jsonObject = data;
+    try {
+        associatedData_ = jsonObject.dump();
+    } catch (Json::type_error& err) {
+        ACCOUNT_LOGE("failed to dump json object, reason: %{public}s", err.what());
+        return ERR_APPACCOUNT_SERVICE_DUMP_JSON;
+    }
     return ERR_OK;
 }
 
@@ -435,7 +447,7 @@ AppAccountInfo *AppAccountInfo::Unmarshalling(Parcel &parcel)
 {
     AppAccountInfo *appAccountInfo = new (std::nothrow) AppAccountInfo();
 
-    if (appAccountInfo && !appAccountInfo->ReadFromParcel(parcel)) {
+    if ((appAccountInfo != nullptr) && (!appAccountInfo->ReadFromParcel(parcel))) {
         ACCOUNT_LOGE("failed to read from parcel");
         delete appAccountInfo;
         appAccountInfo = nullptr;
@@ -634,7 +646,7 @@ bool AppAccountInfo::WriteStringMap(const std::map<std::string, std::string> &st
 
 bool AppAccountInfo::WriteTokenInfos(const std::map<std::string, OAuthTokenInfo> &tokenInfos, Parcel &data) const
 {
-    if (!data.WriteInt32(tokenInfos.size())) {
+    if (!data.WriteUint32(tokenInfos.size())) {
         ACCOUNT_LOGE("failed to WriteInt32 for stringSet.size()");
         return false;
     }
@@ -683,8 +695,8 @@ bool AppAccountInfo::ReadStringMap(std::map<std::string, std::string> &stringMap
 
 bool AppAccountInfo::ReadTokenInfos(std::map<std::string, OAuthTokenInfo> &tokenInfos, Parcel &data)
 {
-    int32_t size = 0;
-    if (!data.ReadInt32(size)) {
+    uint32_t size = 0;
+    if (!data.ReadUint32(size)) {
         ACCOUNT_LOGE("failed to ReadInt32 for size");
         return false;
     }

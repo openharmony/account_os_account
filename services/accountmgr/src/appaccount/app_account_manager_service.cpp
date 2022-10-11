@@ -73,6 +73,36 @@ ErrCode AppAccountManagerService::AddAccountImplicitly(const std::string &owner,
     return innerManager_->AddAccountImplicitly(request);
 }
 
+ErrCode AppAccountManagerService::CreateAccount(const std::string &name, const CreateAccountOptions &options)
+{
+    int32_t callingUid = -1;
+    std::string bundleName;
+    uint32_t appIndex;
+    ErrCode ret = GetCallingInfo(callingUid, bundleName, appIndex);
+    if (ret != ERR_OK) {
+        return ret;
+    }
+    return innerManager_->CreateAccount(name, options, callingUid, bundleName, appIndex);
+}
+
+ErrCode AppAccountManagerService::CreateAccountImplicitly(const std::string &owner,
+    const CreateAccountImplicitlyOptions &options, const sptr<IRemoteObject> &callback)
+{
+    AuthenticatorSessionRequest request;
+    request.callerPid = IPCSkeleton::GetCallingPid();
+    ErrCode result = GetCallingInfo(request.callerUid, request.callerBundleName, request.appIndex);
+    if (result != ERR_OK) {
+        return result;
+    }
+    request.owner = owner;
+    request.callerAbilityName = options.parameters.GetStringParam(Constants::KEY_CALLER_ABILITY_NAME);
+    request.callback = iface_cast<IAppAccountAuthenticatorCallback>(callback);
+    request.createOptions = options;
+    request.createOptions.parameters.RemoveParam(Constants::KEY_CALLER_ABILITY_NAME);
+    request.createOptions.parameters.SetParam(Constants::KEY_CALLER_BUNDLE_NAME, request.callerBundleName);
+    return innerManager_->CreateAccountImplicitly(request);
+}
+
 ErrCode AppAccountManagerService::DeleteAccount(const std::string &name)
 {
     int32_t callingUid = -1;
@@ -252,7 +282,7 @@ ErrCode AppAccountManagerService::Authenticate(const std::string &name, const st
     request.callerAbilityName = options.GetStringParam(Constants::KEY_CALLER_ABILITY_NAME);
     request.callback = iface_cast<IAppAccountAuthenticatorCallback>(callback);
     request.options.RemoveParam(Constants::KEY_CALLER_ABILITY_NAME);
-    request.options.SetParam(Constants::KEY_CALLER_PID, request.callerPid);
+    request.options.SetParam(Constants::KEY_CALLER_BUNDLE_NAME, request.callerBundleName);
     request.options.SetParam(Constants::KEY_CALLER_UID, request.callerUid);
     return innerManager_->Authenticate(request);
 }

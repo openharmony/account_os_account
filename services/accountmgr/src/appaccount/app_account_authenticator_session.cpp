@@ -186,7 +186,7 @@ void AppAccountAuthenticatorSession::OnAbilityConnectDone(
     authenticatorProxy_ = iface_cast<IAppAccountAuthenticator>(remoteObject);
     if ((!authenticatorProxy_) || (!authenticatorProxy_->AsObject())) {
         ACCOUNT_LOGE("failed to cast app account authenticator proxy");
-        OnResult(ERR_JS_OAUTH_SERVICE_EXCEPTION, errResult_);
+        OnResult(ERR_JS_ACCOUNT_AUTHENTICATOR_SERVICE_EXCEPTION, errResult_);
         return;
     }
     authenticatorProxy_->AsObject()->AddDeathRecipient(serverDeathRecipient_);
@@ -196,9 +196,16 @@ void AppAccountAuthenticatorSession::OnAbilityConnectDone(
                 request_.options.GetParams(), authenticatorCb_->AsObject());
             break;
         case AUTHENTICATE:
-            resultCode = authenticatorProxy_->Authenticate(
-                request_.name, request_.authType, request_.callerBundleName,
+            resultCode = authenticatorProxy_->Authenticate(request_.name, request_.authType, request_.callerBundleName,
                 request_.options.GetParams(), authenticatorCb_->AsObject());
+            break;
+        case CREATE_ACCOUNT_IMPLICITLY:
+            resultCode = authenticatorProxy_->CreateAccountImplicitly(request_.createOptions,
+                authenticatorCb_->AsObject());
+            break;
+        case AUTH:
+            resultCode = authenticatorProxy_->Auth(
+                request_.name, request_.authType, request_.options.GetParams(), authenticatorCb_->AsObject());
             break;
         case VERIFY_CREDENTIAL:
             resultCode = authenticatorProxy_->VerifyCredential(
@@ -209,19 +216,18 @@ void AppAccountAuthenticatorSession::OnAbilityConnectDone(
                 request_.name, request_.labels, authenticatorCb_->AsObject());
             break;
         case SET_AUTHENTICATOR_PROPERTIES:
-            resultCode = authenticatorProxy_->SetProperties(
-                request_.setPropOptions, authenticatorCb_->AsObject());
+            resultCode = authenticatorProxy_->SetProperties(request_.setPropOptions, authenticatorCb_->AsObject());
             break;
         case IS_ACCOUNT_REMOVABLE:
             resultCode = authenticatorProxy_->IsAccountRemovable(request_.name, authenticatorCb_->AsObject());
             break;
         default:
             ACCOUNT_LOGE("unsupported action: %{public}d", action_);
-            OnResult(ERR_JS_OAUTH_UNSUPPORT_ACTION, errResult_);
+            OnResult(ERR_JS_ACCOUNT_AUTHENTICATOR_SERVICE_EXCEPTION, errResult_);
             return;
     }
     if (resultCode != ERR_OK) {
-        OnResult(ERR_JS_OAUTH_SERVICE_EXCEPTION, errResult_);
+        OnResult(ERR_JS_ACCOUNT_AUTHENTICATOR_SERVICE_EXCEPTION, errResult_);
     }
 }
 
@@ -233,7 +239,7 @@ void AppAccountAuthenticatorSession::OnAbilityDisconnectDone(const AppExecFwk::E
 void AppAccountAuthenticatorSession::OnServerDied()
 {
     AAFwk::Want result;
-    OnResult(ERR_JS_OAUTH_SERVICE_EXCEPTION, result);
+    OnResult(ERR_JS_ACCOUNT_AUTHENTICATOR_SERVICE_EXCEPTION, result);
 }
 
 int32_t AppAccountAuthenticatorSession::OnResult(int32_t resultCode, const AAFwk::Want &result) const
@@ -266,7 +272,7 @@ int32_t AppAccountAuthenticatorSession::OnRequestRedirected(AAFwk::Want &newRequ
     AppExecFwk::ElementName element = newRequest.GetElement();
     if (element.GetBundleName() != request_.owner) {
         ACCOUNT_LOGD("invalid response");
-        OnResult(ERR_JS_INVALID_RESPONSE, errResult_);
+        OnResult(ERR_JS_ACCOUNT_AUTHENTICATOR_SERVICE_EXCEPTION, errResult_);
         return ERR_JS_SUCCESS;
     }
     if ((!request_.callback) || (!request_.callback->AsObject())) {
@@ -342,7 +348,7 @@ int32_t AppAccountAuthenticatorSession::OnAuthenticateDone(const AAFwk::Want &re
 {
     std::string name = result.GetStringParam(Constants::KEY_NAME);
     if (name != request_.name) {
-        return ERR_JS_INVALID_RESPONSE;
+        return ERR_JS_ACCOUNT_AUTHENTICATOR_SERVICE_EXCEPTION;
     }
     return UpdateAuthInfo(result);
 }
@@ -351,7 +357,7 @@ int32_t AppAccountAuthenticatorSession::OnAddAccountImplicitlyDone(const AAFwk::
 {
     std::string name = result.GetStringParam(Constants::KEY_NAME);
     if (name.empty()) {
-        return ERR_JS_INVALID_RESPONSE;
+        return ERR_JS_ACCOUNT_AUTHENTICATOR_SERVICE_EXCEPTION;
     }
     return UpdateAuthInfo(result);
 }

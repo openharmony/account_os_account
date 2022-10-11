@@ -60,6 +60,30 @@ ErrCode AppAccountControlManager::AddAccount(const std::string &name, const std:
     return ERR_OK;
 }
 
+ErrCode AppAccountControlManager::CreateAccount(const std::string &name, const CreateAccountOptions &options,
+    const uid_t &uid, const std::string &bundleName, AppAccountInfo &appAccountInfo)
+{
+    std::shared_ptr<AppAccountDataStorage> dataStoragePtr = GetDataStorage(uid);
+    ErrCode result = GetAccountInfoFromDataStorage(appAccountInfo, dataStoragePtr);
+    if (result != ERR_OK) {
+        result = appAccountInfo.InitCustomData(options.customData);
+        if (result != ERR_OK) {
+            ACCOUNT_LOGE("failed to set custom data, result %{public}d.", result);
+            return ERR_APPACCOUNT_SERVICE_SET_ASSOCIATED_DATA;
+        }
+        result = AddAccountInfoIntoDataStorage(appAccountInfo, dataStoragePtr, uid);
+        if (result != ERR_OK) {
+            ACCOUNT_LOGE("failed to add account info into data storage, result %{public}d.", result);
+            return result;
+        }
+    } else {
+        ACCOUNT_LOGE("add existing account");
+        return ERR_APPACCOUNT_SERVICE_ADD_EXISTING_ACCOUNT;
+    }
+
+    return ERR_OK;
+}
+
 ErrCode AppAccountControlManager::DeleteAccount(
     const std::string &name, const uid_t &uid, const std::string &bundleName, AppAccountInfo &appAccountInfo)
 {

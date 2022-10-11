@@ -33,6 +33,17 @@ ErrCode AppAccountManager::AddAccountImplicitly(const std::string &owner, const 
         owner, authType, options, callback);
 }
 
+ErrCode AppAccountManager::CreateAccount(const std::string &name, const CreateAccountOptions &options)
+{
+    return DelayedSingleton<AppAccount>::GetInstance()->CreateAccount(name, options);
+}
+
+ErrCode AppAccountManager::CreateAccountImplicitly(const std::string &owner,
+    const CreateAccountImplicitlyOptions &options, const sptr<IAppAccountAuthenticatorCallback> &callback)
+{
+    return DelayedSingleton<AppAccount>::GetInstance()->CreateAccountImplicitly(owner, options, callback);
+}
+
 ErrCode AppAccountManager::DeleteAccount(const std::string &name)
 {
     return DelayedSingleton<AppAccount>::GetInstance()->DeleteAccount(name);

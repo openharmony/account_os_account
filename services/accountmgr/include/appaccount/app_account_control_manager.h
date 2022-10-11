@@ -43,6 +43,8 @@ public:
 
     ErrCode AddAccount(const std::string &name, const std::string &extraInfo, const uid_t &uid,
         const std::string &bundleName, AppAccountInfo &appAccountInfo);
+    ErrCode CreateAccount(const std::string &name, const CreateAccountOptions &options, const uid_t &uid,
+        const std::string &bundleName, AppAccountInfo &appAccountInfo);
     ErrCode DeleteAccount(
         const std::string &name, const uid_t &uid, const std::string &bundleName, AppAccountInfo &appAccountInfo);
 
