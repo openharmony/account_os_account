@@ -50,6 +50,14 @@ const std::map<uint32_t, AppAccountAuthenticatorStub::MessageProcFunction> AppAc
     {
         static_cast<uint32_t>(IAppAccountAuthenticator::Message::IS_ACCOUNT_REMOVABLE),
         &AppAccountAuthenticatorStub::ProcIsAccountRemovable,
+    },
+    {
+        static_cast<uint32_t>(IAppAccountAuthenticator::Message::CREATE_ACCOUNT_IMPLICITLY),
+        &AppAccountAuthenticatorStub::ProcCreateAccountImplicitly,
+    },
+    {
+        static_cast<uint32_t>(IAppAccountAuthenticator::Message::AUTH),
+        &AppAccountAuthenticatorStub::ProcAuth,
     }
 };
 
@@ -82,8 +90,7 @@ ErrCode AppAccountAuthenticatorStub::ProcAddAccountImplicitly(MessageParcel &dat
     if ((options == nullptr) || (callback == nullptr)) {
         ACCOUNT_LOGE("invalid request parameters");
         result = ERR_APPACCOUNT_SERVICE_INVALID_PARAMETER;
-    }
-    if (result == ERR_OK) {
+    } else {
         result = AddAccountImplicitly(authType, callerBundleName, *options, callback);
     }
     if (!reply.WriteInt32(result)) {
@@ -104,9 +111,46 @@ ErrCode AppAccountAuthenticatorStub::ProcAuthenticate(MessageParcel &data, Messa
     if ((options == nullptr) || (callback == nullptr)) {
         ACCOUNT_LOGE("invalid request parameters");
         result = ERR_APPACCOUNT_SERVICE_INVALID_PARAMETER;
-    }
-    if (result == ERR_OK) {
+    } else {
         result = Authenticate(name, authType, callerBundleName, *options, callback);
+    }
+    if (!reply.WriteInt32(result)) {
+        ACCOUNT_LOGE("failed to write reply");
+        return IPC_STUB_WRITE_PARCEL_ERR;
+    }
+    return ERR_NONE;
+}
+
+ErrCode AppAccountAuthenticatorStub::ProcCreateAccountImplicitly(MessageParcel &data, MessageParcel &reply)
+{
+    sptr<CreateAccountImplicitlyOptions> options = data.ReadParcelable<CreateAccountImplicitlyOptions>();
+    sptr<IRemoteObject> callback = data.ReadRemoteObject();
+    ErrCode result = ERR_OK;
+    if ((options == nullptr) || (callback == nullptr)) {
+        ACCOUNT_LOGE("invalid request parameters");
+        result = ERR_APPACCOUNT_SERVICE_INVALID_PARAMETER;
+    } else {
+        result = CreateAccountImplicitly(*options, callback);
+    }
+    if (!reply.WriteInt32(result)) {
+        ACCOUNT_LOGE("failed to write reply");
+        return IPC_STUB_WRITE_PARCEL_ERR;
+    }
+    return ERR_NONE;
+}
+
+ErrCode AppAccountAuthenticatorStub::ProcAuth(MessageParcel &data, MessageParcel &reply)
+{
+    std::string name = data.ReadString();
+    std::string authType = data.ReadString();
+    std::shared_ptr<AAFwk::WantParams> options(data.ReadParcelable<AAFwk::WantParams>());
+    sptr<IRemoteObject> callback = data.ReadRemoteObject();
+    ErrCode result = ERR_OK;
+    if ((options == nullptr) || (callback == nullptr)) {
+        ACCOUNT_LOGE("invalid request parameters");
+        result = ERR_APPACCOUNT_SERVICE_INVALID_PARAMETER;
+    } else {
+        result = Auth(name, authType, *options, callback);
     }
     if (!reply.WriteInt32(result)) {
         ACCOUNT_LOGE("failed to write reply");
@@ -117,7 +161,6 @@ ErrCode AppAccountAuthenticatorStub::ProcAuthenticate(MessageParcel &data, Messa
 
 ErrCode AppAccountAuthenticatorStub::ProcVerifyCredential(MessageParcel &data, MessageParcel &reply)
 {
-    ACCOUNT_LOGI("enter");
     std::string name = data.ReadString();
     sptr<VerifyCredentialOptions> options = data.ReadParcelable<VerifyCredentialOptions>();
     sptr<IRemoteObject> callback = data.ReadRemoteObject();
@@ -125,8 +168,7 @@ ErrCode AppAccountAuthenticatorStub::ProcVerifyCredential(MessageParcel &data, M
     if ((options == nullptr) || (callback == nullptr)) {
         ACCOUNT_LOGE("invalid request parameters");
         result = ERR_APPACCOUNT_SERVICE_INVALID_PARAMETER;
-    }
-    if (result == ERR_OK) {
+    } else {
         result = VerifyCredential(name, *options, callback);
     }
     if (!reply.WriteInt32(result)) {
@@ -146,8 +188,7 @@ ErrCode AppAccountAuthenticatorStub::ProcCheckAccountLabels(MessageParcel &data,
     if (callback == nullptr) {
         ACCOUNT_LOGE("invalid request parameters");
         result = ERR_APPACCOUNT_SERVICE_INVALID_PARAMETER;
-    }
-    if (result == ERR_OK) {
+    } else {
         result = CheckAccountLabels(name, labels, callback);
     }
     if (!reply.WriteInt32(result)) {
@@ -165,8 +206,7 @@ ErrCode AppAccountAuthenticatorStub::ProcSetProperties(MessageParcel &data, Mess
     if ((options == nullptr) || (callback == nullptr)) {
         ACCOUNT_LOGE("invalid request parameters");
         result = ERR_APPACCOUNT_SERVICE_INVALID_PARAMETER;
-    }
-    if (result == ERR_OK) {
+    } else {
         result = SetProperties(*options, callback);
     }
     if (!reply.WriteInt32(result)) {
@@ -184,8 +224,7 @@ ErrCode AppAccountAuthenticatorStub::ProcIsAccountRemovable(MessageParcel &data,
     if (callback == nullptr) {
         ACCOUNT_LOGE("invalid request parameters");
         result = ERR_APPACCOUNT_SERVICE_INVALID_PARAMETER;
-    }
-    if (result == ERR_OK) {
+    } else {
         result = IsAccountRemovable(name, callback);
     }
     if (!reply.WriteInt32(result)) {

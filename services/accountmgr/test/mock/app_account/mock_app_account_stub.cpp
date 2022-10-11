@@ -63,6 +63,19 @@ ErrCode MockAppAccountStub::AddAccountImplicitly(const std::string &owner, const
     return ERR_OK;
 }
 
+ErrCode MockAppAccountStub::CreateAccount(const std::string &name, const CreateAccountOptions &options)
+{
+    ACCOUNT_LOGI("mock enter");
+    return ERR_OK;
+}
+
+ErrCode MockAppAccountStub::CreateAccountImplicitly(
+    const std::string &owner, const CreateAccountImplicitlyOptions &options, const sptr<IRemoteObject> &callback)
+{
+    ACCOUNT_LOGI("mock enter");
+    return ERR_OK;
+}
+
 ErrCode MockAppAccountStub::DeleteAccount(const std::string &name)
 {
     ACCOUNT_LOGI("mock enter");

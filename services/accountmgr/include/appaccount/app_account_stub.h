@@ -38,6 +38,8 @@ private:
 
     ErrCode ProcAddAccount(MessageParcel &data, MessageParcel &reply);
     ErrCode ProcAddAccountImplicitly(MessageParcel &data, MessageParcel &reply);
+    ErrCode ProcCreateAccount(MessageParcel &data, MessageParcel &reply);
+    ErrCode ProcCreateAccountImplicitly(MessageParcel &data, MessageParcel &reply);
     ErrCode ProcDeleteAccount(MessageParcel &data, MessageParcel &reply);
     ErrCode ProcGetAccountExtraInfo(MessageParcel &data, MessageParcel &reply);
     ErrCode ProcSetAccountExtraInfo(MessageParcel &data, MessageParcel &reply);

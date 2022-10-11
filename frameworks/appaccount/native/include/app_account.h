@@ -35,6 +35,9 @@ public:
     ErrCode AddAccount(const std::string &name, const std::string &extraInfo);
     ErrCode AddAccountImplicitly(const std::string &owner, const std::string &authType,
         const AAFwk::Want &options, const sptr<IAppAccountAuthenticatorCallback> &callback);
+    ErrCode CreateAccount(const std::string &name, const CreateAccountOptions &options);
+    ErrCode CreateAccountImplicitly(const std::string &owner, const CreateAccountImplicitlyOptions &options,
+        const sptr<IAppAccountAuthenticatorCallback> &callback);
     ErrCode DeleteAccount(const std::string &name);
 
     ErrCode GetAccountExtraInfo(const std::string &name, std::string &extraInfo);

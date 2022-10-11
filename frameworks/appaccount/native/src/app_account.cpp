@@ -78,6 +78,27 @@ ErrCode AppAccount::AddAccountImplicitly(const std::string &owner, const std::st
     return appAccountProxy_->AddAccountImplicitly(owner, authType, options, callbackObj);
 }
 
+ErrCode AppAccount::CreateAccount(const std::string &name, const CreateAccountOptions &options)
+{
+    RETURN_IF_STRING_IS_EMPTY_OR_OVERSIZE(name, Constants::NAME_MAX_SIZE, "name is empty or oversize");
+    RETURN_IF_PROXY_IS_NULLPTR();
+    return appAccountProxy_->CreateAccount(name, options);
+}
+
+ErrCode AppAccount::CreateAccountImplicitly(const std::string &owner, const CreateAccountImplicitlyOptions &options,
+    const sptr<IAppAccountAuthenticatorCallback> &callback)
+{
+    sptr<IRemoteObject> callbackObj = nullptr;
+    if (callback != nullptr) {
+        callbackObj = callback->AsObject();
+    }
+    RETURN_IF_STRING_IS_EMPTY_OR_OVERSIZE(owner, Constants::OWNER_MAX_SIZE, "owner is empty or oversize");
+    RETURN_IF_STRING_IS_EMPTY_OR_OVERSIZE(options.parameters.GetStringParam(Constants::KEY_CALLER_ABILITY_NAME),
+        Constants::ABILITY_NAME_MAX_SIZE, "abilityName is empty or oversize");
+    RETURN_IF_PROXY_IS_NULLPTR();
+    return appAccountProxy_->CreateAccountImplicitly(owner, options, callbackObj);
+}
+
 ErrCode AppAccount::DeleteAccount(const std::string &name)
 {
     RETURN_IF_STRING_IS_EMPTY_OR_OVERSIZE(name, Constants::NAME_MAX_SIZE, "name is empty or oversize");

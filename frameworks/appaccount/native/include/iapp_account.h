@@ -32,6 +32,9 @@ public:
     virtual ErrCode AddAccount(const std::string &name, const std::string &extraInfo) = 0;
     virtual ErrCode AddAccountImplicitly(const std::string &owner, const std::string &authType,
         const AAFwk::Want &options, const sptr<IRemoteObject> &callback) = 0;
+    virtual ErrCode CreateAccount(const std::string &name, const CreateAccountOptions &options) = 0;
+    virtual ErrCode CreateAccountImplicitly(const std::string &owner, const CreateAccountImplicitlyOptions &options,
+        const sptr<IRemoteObject> &callback) = 0;
     virtual ErrCode DeleteAccount(const std::string &name) = 0;
 
     virtual ErrCode GetAccountExtraInfo(const std::string &name, std::string &extraInfo) = 0;
@@ -122,6 +125,8 @@ public:
         VERIFY_CREDENTIAL,
         CHECK_ACCOUNT_LABELS,
         SET_AUTHENTICATOR_PROPERTIES,
+        CREATE_ACCOUNT,
+        CREATE_ACCOUNT_IMPLICITLY
     };
 };
 }  // namespace AccountSA

@@ -36,6 +36,8 @@ private:
     ErrCode ProcCheckAccountLabels(MessageParcel &data, MessageParcel &reply);
     ErrCode ProcSetProperties(MessageParcel &data, MessageParcel &reply);
     ErrCode ProcIsAccountRemovable(MessageParcel &data, MessageParcel &reply);
+    ErrCode ProcCreateAccountImplicitly(MessageParcel &data, MessageParcel &reply);
+    ErrCode ProcAuth(MessageParcel &data, MessageParcel &reply);
 
 private:
     static const std::map<uint32_t, MessageProcFunction> funcMap_;

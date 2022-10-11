@@ -99,6 +99,62 @@ ErrCode AppAccountAuthenticatorProxy::Authenticate(const std::string &name, cons
     return reply.ReadInt32();
 }
 
+ErrCode AppAccountAuthenticatorProxy::CreateAccountImplicitly(
+    const CreateAccountImplicitlyOptions &options, const sptr<IRemoteObject> &callback)
+{
+    MessageParcel data;
+    if (!data.WriteInterfaceToken(GetDescriptor())) {
+        ACCOUNT_LOGE("failed to write descriptor!");
+        return ERR_ACCOUNT_COMMON_WRITE_DESCRIPTOR_ERROR;
+    }
+    if (!data.WriteParcelable(&options)) {
+        ACCOUNT_LOGE("failed to write options");
+        return ERR_APPACCOUNT_SERVICE_WRITE_PARCEL;
+    }
+    if (!data.WriteRemoteObject(callback)) {
+        ACCOUNT_LOGE("failed to write callback");
+        return ERR_APPACCOUNT_SERVICE_WRITE_PARCEL;
+    }
+    MessageParcel reply;
+    ErrCode result = SendRequest(IAppAccountAuthenticator::Message::CREATE_ACCOUNT_IMPLICITLY, data, reply);
+    if (result != ERR_OK) {
+        return result;
+    }
+    return reply.ReadInt32();
+}
+
+ErrCode AppAccountAuthenticatorProxy::Auth(const std::string &name, const std::string &authType,
+    const AAFwk::WantParams &options, const sptr<IRemoteObject> &callback)
+{
+    MessageParcel data;
+    if (!data.WriteInterfaceToken(GetDescriptor())) {
+        ACCOUNT_LOGE("failed to write descriptor!");
+        return ERR_APPACCOUNT_SERVICE_WRITE_PARCEL;
+    }
+    if (!data.WriteString(name)) {
+        ACCOUNT_LOGE("failed to write name");
+        return ERR_APPACCOUNT_SERVICE_WRITE_PARCEL;
+    }
+    if (!data.WriteString(authType)) {
+        ACCOUNT_LOGE("failed to write authType");
+        return ERR_APPACCOUNT_SERVICE_WRITE_PARCEL;
+    }
+    if (!data.WriteParcelable(&options)) {
+        ACCOUNT_LOGE("failed to write options");
+        return ERR_APPACCOUNT_SERVICE_WRITE_PARCEL;
+    }
+    if (!data.WriteRemoteObject(callback)) {
+        ACCOUNT_LOGE("failed to write callback");
+        return ERR_APPACCOUNT_SERVICE_WRITE_PARCEL;
+    }
+    MessageParcel reply;
+    ErrCode result = SendRequest(IAppAccountAuthenticator::Message::AUTH, data, reply);
+    if (result != ERR_OK) {
+        return result;
+    }
+    return reply.ReadInt32();
+}
+
 ErrCode AppAccountAuthenticatorProxy::VerifyCredential(
     const std::string &name, const VerifyCredentialOptions &options, const sptr<IRemoteObject> &callback)
 {
