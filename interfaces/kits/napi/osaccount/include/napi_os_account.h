@@ -25,6 +25,7 @@
 #include "account_log_wrapper.h"
 #include "napi/native_api.h"
 #include "napi/native_node_api.h"
+#include "napi_account_common.h"
 
 namespace OHOS {
 namespace AccountJsKit {
@@ -49,379 +50,144 @@ private:
     napi_ref ref_ = nullptr;
 };
 
-struct QueryOAByIdAsyncContext {
-    napi_env env;
-    napi_async_work work;
-
+struct QueryOAByIdAsyncContext : public CommonAsyncContext {
     int id = -1;
-    int errCode = 0;
     OsAccountInfo osAccountInfos;
-
-    napi_deferred deferred;
-    napi_ref callbackRef;
-    napi_status status;
 };
 
-struct RemoveOAAsyncContext {
-    napi_env env;
-    napi_async_work work;
-
+struct RemoveOAAsyncContext : public CommonAsyncContext {
     int id = 0;
-    int errCode = 0;
-
-    napi_deferred deferred;
-    napi_ref callbackRef;
-    napi_status status;
 };
 
-struct SetOANameAsyncContext {
-    napi_env env;
-    napi_async_work work;
-
+struct SetOANameAsyncContext : public CommonAsyncContext {
     int id = 0;
-    int errCode = 0;
     std::string name;
-
-    napi_deferred deferred;
-    napi_ref callbackRef;
-    napi_status status;
 };
 
-struct SetOAConsAsyncContext {
-    napi_env env;
-    napi_async_work work;
-
+struct SetOAConsAsyncContext : public CommonAsyncContext {
     int id = 0;
-    int errCode = 0;
     bool enable = false;
     std::vector<std::string> constraints;
-
-    napi_deferred deferred;
-    napi_ref callbackRef;
-    napi_status status;
 };
 
-struct ActivateOAAsyncContext {
-    napi_env env;
-    napi_async_work work;
-
+struct ActivateOAAsyncContext : public CommonAsyncContext {
     int id = -1;
-    int errCode = 0;
-
-    napi_deferred deferred;
-    napi_ref callbackRef;
-    napi_status status;
 };
 
-struct CreateOAAsyncContext {
-    napi_env env;
-    napi_async_work work;
-
+struct CreateOAAsyncContext : public CommonAsyncContext {
     OsAccountType type;
-    int errCode = 0;
     std::string name;
     OsAccountInfo osAccountInfos;
-
-    napi_deferred deferred;
-    napi_ref callbackRef;
-    napi_status status;
 };
 
-struct CreateOAForDomainAsyncContext {
-    napi_env env;
-    napi_async_work work;
-
+struct CreateOAForDomainAsyncContext : public CommonAsyncContext {
     OsAccountType type;
-    int errCode = 0;
     DomainAccountInfo domainInfo;
     OsAccountInfo osAccountInfos;
-
-    napi_deferred deferred;
-    napi_ref callbackRef;
-    napi_status status;
 };
 
-struct GetOACountAsyncContext {
-    napi_env env;
-    napi_async_work work;
-
+struct GetOACountAsyncContext : public CommonAsyncContext {
     unsigned int osAccountsCount = 0;
-    int errCode = 0;
-
-    napi_deferred deferred;
-    napi_ref callbackRef;
-    napi_status status;
 };
 
-struct DbDeviceIdAsyncContext {
-    napi_env env;
-    napi_async_work work;
-
+struct DbDeviceIdAsyncContext : public CommonAsyncContext {
     std::string deviceId;
-    int errCode = 0;
-
-    napi_deferred deferred;
-    napi_ref callbackRef;
-    napi_status status;
 };
 
-struct GetAllConsAsyncContext {
-    napi_env env;
-    napi_async_work work;
-
+struct GetAllConsAsyncContext : public CommonAsyncContext {
     int id = 0;
-    int errCode = 0;
     std::vector<std::string> constraints;
-
-    napi_deferred deferred;
-    napi_ref callbackRef;
-    napi_status status;
 };
 
-struct GetIdAsyncContext {
-    napi_env env;
-    napi_async_work work;
-
+struct GetIdAsyncContext : public CommonAsyncContext {
     int id = 0;
-    int errCode = 0;
-
-    napi_deferred deferred;
-    napi_ref callbackRef;
-    napi_status status;
 };
 
-struct QueryCreateOAAsyncContext {
-    napi_env env;
-    napi_async_work work;
-
-    int errCode = 0;
+struct QueryCreateOAAsyncContext : public CommonAsyncContext {
     std::vector<OsAccountInfo> osAccountInfos;
-
-    napi_deferred deferred;
-    napi_ref callbackRef;
-    napi_status status;
 };
 
-struct QueryOAConstraintSrcTypeContext {
-    napi_env env;
-    napi_async_work work;
-
+struct QueryOAConstraintSrcTypeContext : public CommonAsyncContext {
     int32_t id = 0;
-    int errCode = 0;
     std::string constraint;
     std::vector<ConstraintSourceTypeInfo> constraintSourceTypeInfos;
-
-    napi_deferred deferred;
-    napi_ref callbackRef;
-    napi_status status;
 };
 
-struct QueryActiveIdsAsyncContext {
-    napi_env env;
-    napi_async_work work;
-
-    int errCode = 0;
+struct QueryActiveIdsAsyncContext : public CommonAsyncContext {
     std::vector<int> osAccountIds;
-
-    napi_deferred deferred;
-    napi_ref callbackRef;
-    napi_status status;
 };
 
-struct GetOAPhotoAsyncContext {
-    napi_env env;
-    napi_async_work work;
-
+struct GetOAPhotoAsyncContext : public CommonAsyncContext {
     int id = 0;
-    int errCode = 0;
     std::string photo;
-
-    napi_deferred deferred;
-    napi_ref callbackRef;
-    napi_status status;
 };
 
-struct CurrentOAAsyncContext {
-    napi_env env;
-    napi_async_work work;
-
-    int errCode = 0;
+struct CurrentOAAsyncContext : public CommonAsyncContext {
     OsAccountInfo osAccountInfos;
-
-    napi_deferred deferred;
-    napi_ref callbackRef;
-    napi_status status;
 };
 
-struct GetIdByUidAsyncContext {
-    napi_env env;
-    napi_async_work work;
-
+struct GetIdByUidAsyncContext : public CommonAsyncContext {
     int id = 0;
     int uid = 0;
-    int errCode = 0;
-
-    napi_deferred deferred;
-    napi_ref callbackRef;
-    napi_status status;
 };
 
-struct GetIdByDomainAsyncContext {
-    napi_env env;
-    napi_async_work work;
-
+struct GetIdByDomainAsyncContext : public CommonAsyncContext {
     int id = 0;
     DomainAccountInfo domainInfo;
-    int errCode = 0;
-
-    napi_deferred deferred;
-    napi_ref callbackRef;
-    napi_status status;
 };
 
-struct SetOAPhotoAsyncContext {
-    napi_env env;
-    napi_async_work work;
-
+struct SetOAPhotoAsyncContext : public CommonAsyncContext {
     int id = 0;
-    int errCode = 0;
     std::string photo;
-
-    napi_deferred deferred;
-    napi_ref callbackRef;
-    napi_status status;
 };
 
-struct QueryMaxNumAsyncContext {
-    napi_env env;
-    napi_async_work work;
-
+struct QueryMaxNumAsyncContext : public CommonAsyncContext {
     int maxOsAccountNumber = 0;
-    int errCode = 0;
-
-    napi_deferred deferred;
-    napi_ref callbackRef;
-    napi_status status;
 };
 
-struct IsActivedAsyncContext {
-    napi_env env;
-    napi_async_work work;
-
+struct IsActivedAsyncContext : public CommonAsyncContext {
     int id = -1;
-    int errCode = 0;
     bool isOsAccountActived = false;
-
-    napi_deferred deferred;
-    napi_ref callbackRef;
-    napi_status status;
 };
 
-struct IsConEnableAsyncContext {
-    napi_env env;
-    napi_async_work work;
-
+struct IsConEnableAsyncContext : public CommonAsyncContext {
     int id = 0;
-    int errCode = 0;
     std::string constraint;
     bool isConsEnable = false;
-
-    napi_deferred deferred;
-    napi_ref callbackRef;
-    napi_status status;
 };
 
-struct GetTypeAsyncContext {
-    napi_env env;
-    napi_async_work work;
-
+struct GetTypeAsyncContext : public CommonAsyncContext {
     OsAccountType type;
-    int errCode = 0;
-
-    napi_deferred deferred;
-    napi_ref callbackRef;
-    napi_status status;
 };
 
-struct IsMultiEnAsyncContext {
-    napi_env env;
-    napi_async_work work;
-
-    int errCode = 0;
+struct IsMultiEnAsyncContext : public CommonAsyncContext {
     bool isMultiOAEnable = false;
-
-    napi_deferred deferred;
-    napi_ref callbackRef;
-    napi_status status;
 };
 
-struct IsVerifiedAsyncContext {
-    napi_env env;
-    napi_async_work work;
-
+struct IsVerifiedAsyncContext : public CommonAsyncContext {
     int id = 0;
-    int errCode = 0;
     bool isTestOA = false;
-
-    napi_deferred deferred;
-    napi_ref callbackRef;
-    napi_status status;
 };
 
-struct GetSerialNumIdCBInfo {
-    napi_env env;
-    napi_async_work work;
-
+struct GetSerialNumIdCBInfo : public CommonAsyncContext {
     int id = 0;
-    int errCode = 0;
     int64_t serialNumber;
-
-    napi_deferred deferred;
-    napi_ref callbackRef;
-    napi_status status;
 };
 
-struct GetSerialNumForOAInfo {
-    napi_env env;
-    napi_async_work work;
-
+struct GetSerialNumForOAInfo : public CommonAsyncContext {
     int id = 0;
-    int errCode = 0;
     int64_t serialNum;
-
-    napi_deferred deferred;
-    napi_ref callbackRef;
-    napi_status status;
 };
 
-struct IsTestOAInfo {
-    napi_env env;
-    napi_async_work work;
-
-    int errCode = 0;
+struct IsTestOAInfo : public CommonAsyncContext {
     bool isTestOsAccount = false;
-
-    napi_deferred deferred;
-    napi_ref callbackRef;
-    napi_status status;
 };
 
-struct IsMainOAInfo {
-    napi_env env;
-    napi_async_work work;
-
-    int errCode = 0;
+struct IsMainOAInfo : public CommonAsyncContext {
     bool isMainOsAccount = false;
-
-    napi_deferred deferred;
-    napi_ref callbackRef;
-    napi_status status;
 };
 
-struct SubscribeCBInfo {
-    napi_env env;
-    napi_async_work work;
-    napi_ref callbackRef;
+struct SubscribeCBInfo : public CommonAsyncContext {
     OS_ACCOUNT_SUBSCRIBE_TYPE osSubscribeType;
     std::string name;
     OsAccountManager *osManager = nullptr;
@@ -435,11 +201,7 @@ struct SubscriberOAWorker {
     SubscriberPtr *subscriber = nullptr;
 };
 
-struct UnsubscribeCBInfo {
-    napi_env env;
-    napi_async_work work;
-    napi_ref callbackRef;
-    size_t argc = 0;
+struct UnsubscribeCBInfo : public CommonAsyncContext {
     OS_ACCOUNT_SUBSCRIBE_TYPE osSubscribeType;
     std::string name;
     OsAccountManager *osManager = nullptr;
@@ -466,27 +228,59 @@ napi_value CreateOsAccount(napi_env env, napi_callback_info cbInfo);
 
 napi_value CreateOsAccountForDomain(napi_env env, napi_callback_info cbInfo);
 
+napi_value GetOsAccountCount(napi_env env, napi_callback_info cbInfo);
+
 napi_value GetCreatedOsAccountsCount(napi_env env, napi_callback_info cbInfo);
+
+napi_value GetCreatedOsAccountsCountInner(napi_env env, napi_callback_info cbInfo, bool throwErr);
+
+napi_value QueryDistributedVirtualDeviceId(napi_env env, napi_callback_info cbInfo);
 
 napi_value GetDistributedVirtualDeviceId(napi_env env, napi_callback_info cbInfo);
 
+napi_value GetDistributedVirtualDeviceIdInner(napi_env env, napi_callback_info cbInfo, bool throwErr);
+
+napi_value GetOsAccountConstraints(napi_env env, napi_callback_info cbInfo);
+
 napi_value GetOsAccountAllConstraints(napi_env env, napi_callback_info cbInfo);
+
+napi_value GetOsAccountAllConstraintsInner(napi_env env, napi_callback_info cbInfo, bool throwErr);
+
+napi_value QueryOsAccountLocalIdFromProcess(napi_env env, napi_callback_info cbInfo);
 
 napi_value GetOsAccountLocalIdFromProcess(napi_env env, napi_callback_info cbInfo);
 
+napi_value GetOsAccountLocalIdFromProcessInner(napi_env env, napi_callback_info cbInfo, bool throwErr);
+
 napi_value QueryAllCreatedOsAccounts(napi_env env, napi_callback_info cbInfo);
+
+napi_value GetActivatedOsAccountIds(napi_env env, napi_callback_info cbInfo);
 
 napi_value QueryActivatedOsAccountIds(napi_env env, napi_callback_info cbInfo);
 
+napi_value QueryActivatedOsAccountIdsInner(napi_env env, napi_callback_info cbInfo, bool throwErr);
+
 napi_value GetOsAccountProfilePhoto(napi_env env, napi_callback_info cbInfo);
+
+napi_value GetCurrentOsAccount(napi_env env, napi_callback_info cbInfo);
 
 napi_value QueryCurrentOsAccount(napi_env env, napi_callback_info cbInfo);
 
+napi_value QueryCurrentOsAccountInner(napi_env env, napi_callback_info cbInfo, bool throwErr);
+
+napi_value QueryOsAccountLocalIdFromUid(napi_env env, napi_callback_info cbInfo);
+
 napi_value GetOsAccountLocalIdFromUid(napi_env env, napi_callback_info cbInfo);
+
+napi_value GetOsAccountLocalIdFromUidInner(napi_env env, napi_callback_info cbInfo, bool throwErr);
 
 napi_value GetBundleIdFromUid(napi_env env, napi_callback_info cbInfo);
 
 napi_value GetOsAccountLocalIdFromDomain(napi_env env, napi_callback_info cbInfo);
+
+napi_value QueryOsAccountLocalIdFromDomain(napi_env env, napi_callback_info cbInfo);
+
+napi_value GetOsAccountLocalIdFromDomainInner(napi_env env, napi_callback_info cbInfo, bool throwErr);
 
 napi_value SetOsAccountProfilePhoto(napi_env env, napi_callback_info cbInfo);
 
@@ -496,21 +290,47 @@ napi_value QueryOsAccountConstraintSourceTypes(napi_env env, napi_callback_info 
 
 napi_value IsOsAccountActived(napi_env env, napi_callback_info cbInfo);
 
+napi_value CheckOsAccountActivated(napi_env env, napi_callback_info cbInfo);
+
 napi_value IsOsAccountConstraintEnable(napi_env env, napi_callback_info cbInfo);
+
+napi_value CheckConstraintEnabled(napi_env env, napi_callback_info cbInfo);
+
+napi_value GetOsAccountType(napi_env env, napi_callback_info cbInfo);
 
 napi_value GetOsAccountTypeFromProcess(napi_env env, napi_callback_info cbInfo);
 
+napi_value GetOsAccountTypeFromProcessInner(napi_env env, napi_callback_info cbInfo, bool throwErr);
+
 napi_value IsMultiOsAccountEnable(napi_env env, napi_callback_info cbInfo);
+
+napi_value CheckMultiOsAccountEnabled(napi_env env, napi_callback_info cbInfo);
+
+napi_value InnerIsMultiOsAccountEnable(napi_env env, napi_callback_info cbInfo, bool throwErr);
 
 napi_value IsOsAccountVerified(napi_env env, napi_callback_info cbInfo);
 
+napi_value CheckOsAccountVerified(napi_env env, napi_callback_info cbInfo);
+
 napi_value GetApplicationConstraints(napi_env env, napi_callback_info cbInfo);
+
+napi_value QueryOsAccountLocalIdBySerialNumber(napi_env env, napi_callback_info cbInfo);
 
 napi_value GetOsAccountLocalIdBySerialNumber(napi_env env, napi_callback_info cbInfo);
 
+napi_value GetOsAccountLocalIdBySerialNumberInner(napi_env env, napi_callback_info cbInfo, bool throwErr);
+
+napi_value QuerySerialNumberByOsAccountLocalId(napi_env env, napi_callback_info cbInfo);
+
 napi_value GetSerialNumberByOsAccountLocalId(napi_env env, napi_callback_info cbInfo);
 
+napi_value GetSerialNumberByOsAccountLocalIdInner(napi_env env, napi_callback_info cbInfo, bool throwErr);
+
 napi_value IsTestOsAccount(napi_env env, napi_callback_info cbInfo);
+
+napi_value CheckOsAccountTestable(napi_env env, napi_callback_info cbInfo);
+
+napi_value InnerIsTestOsAccount(napi_env env, napi_callback_info cbInfo, bool throwErr);
 
 napi_value IsMainOsAccount(napi_env env, napi_callback_info cbInfo);
 
