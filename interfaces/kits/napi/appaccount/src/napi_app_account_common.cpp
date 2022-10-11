@@ -899,31 +899,6 @@ void ParseContextWithStrCBArray(napi_env env, napi_callback_info cbInfo, GetAcco
     }
 }
 
-void ProcessCallbackOrPromise(napi_env env, const CommonAsyncContext *asyncContext, napi_value err, napi_value data)
-{
-    napi_value args[RESULT_COUNT] = {NapiGetNull(env), NapiGetNull(env)};
-    if (asyncContext->errCode == ERR_OK) {
-        args[1] = data;
-    } else {
-        args[0] = err;
-    }
-    if (asyncContext->deferred) {
-        if (asyncContext->errCode == ERR_OK) {
-            napi_resolve_deferred(env, asyncContext->deferred, args[1]);
-        } else {
-            napi_reject_deferred(env, asyncContext->deferred, args[0]);
-        }
-    } else {
-        napi_value callback = nullptr;
-        napi_get_reference_value(env, asyncContext->callbackRef, &callback);
-        napi_value returnVal = nullptr;
-        napi_call_function(env, nullptr, callback, RESULT_COUNT, &args[0], &returnVal);
-        if (asyncContext->callbackRef != nullptr) {
-            napi_delete_reference(env, asyncContext->callbackRef);
-        }
-    }
-}
-
 napi_value ParseParametersBySubscribe(const napi_env &env, const napi_value (&argv)[ARGS_SIZE_THREE],
     std::vector<std::string> &owners, napi_ref &callback)
 {
