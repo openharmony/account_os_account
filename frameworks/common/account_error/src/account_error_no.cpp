@@ -114,8 +114,7 @@ static bool IsAppAccountKitError(int32_t errCode)
 
 static bool IsAppAccountServiceError(int32_t errCode)
 {
-    return (errCode >= ERR_APPACCOUNT_SERVICE_NAME_IS_EMPTY &&
-        errCode <= ERR_APPACCOUNT_SUBSCRIBER_ALREADY_REGISTERED);
+    return (errCode >= ERR_APPACCOUNT_SERVICE_NAME_IS_EMPTY && errCode <= ERR_APPACCOUNT_SERVICE_OTHER);
 }
 
 static bool IsOsAccountKitError(int32_t errCode)
@@ -139,6 +138,8 @@ int32_t ConvertToJSErrCode(int32_t nativeErrCode)
         return AppAccountConvertToJSErrCode(nativeErrCode);
     } else if (IsOsAccountKitError(nativeErrCode) || IsOsAccountServiceError(nativeErrCode)) {
         return OsAccountConvertToJSErrCode(nativeErrCode);
+    } else if (nativeErrCode == ERR_ACCOUNT_ZIDL_CHECK_PERMISSION_ERROR) {
+        return ERR_JS_PERMISSION_DENIED;
     } else {
         return ERR_JS_SYSTEM_SERVICE_EXCEPTION;
     }
