@@ -23,6 +23,7 @@
 #include "app_account_manager.h"
 #include "napi/native_api.h"
 #include "napi/native_node_api.h"
+#include "napi_account_error.h"
 #include "napi_app_account_common.h"
 
 using namespace OHOS::AccountSA;
@@ -1521,85 +1522,60 @@ napi_value NapiAppAccount::SetAuthenticatorProperties(napi_env env, napi_callbac
 
 napi_value NapiAppAccount::Subscribe(napi_env env, napi_callback_info cbInfo)
 {
-    size_t argc = SUBSCRIBE_MAX_PARA;
-    napi_value argv[SUBSCRIBE_MAX_PARA] = {nullptr};
-    napi_value thisVar = nullptr;
-    NAPI_CALL(env, napi_get_cb_info(env, cbInfo, &argc, argv, &thisVar, NULL));
-    NAPI_ASSERT(env, argc >= SUBSCRIBE_MAX_PARA, "Wrong number of arguments");
-
-    std::vector<std::string> owners;
-
-    napi_ref callback = nullptr;
-
-    if (ParseParametersBySubscribe(env, argv, owners, callback) == nullptr) {
-        return NapiGetNull(env);
-    }
-
-    AsyncContextForSubscribe *asyncContextForOn = new (std::nothrow) AsyncContextForSubscribe();
-    if (asyncContextForOn == nullptr) {
+    AsyncContextForSubscribe *context = new (std::nothrow) AsyncContextForSubscribe(env);
+    if (context == nullptr) {
         ACCOUNT_LOGE("asyncContextForOn is null");
         return NapiGetNull(env);
     }
-    asyncContextForOn->env = env;
-    asyncContextForOn->work = nullptr;
-    asyncContextForOn->callbackRef = nullptr;
-
-    AppAccountSubscribeInfo subscribeInfo(owners);
-    asyncContextForOn->subscriber = std::make_shared<SubscriberPtr>(subscribeInfo);
-    if (asyncContextForOn->subscriber == nullptr) {
-        ACCOUNT_LOGE("fail to create subscriber");
-        delete asyncContextForOn;
+    if (!ParseParametersBySubscribe(env, cbInfo, context)) {
+        napi_throw(env, GenerateBusinessError(env, context->errCode, context->errMsg));
+        delete context;
         return NapiGetNull(env);
     }
-    asyncContextForOn->subscriber->SetEnv(env);
-    asyncContextForOn->subscriber->SetCallbackRef(callback);
-    AppAccountManager *objectInfo = nullptr;
-    napi_unwrap(env, thisVar, reinterpret_cast<void **>(&objectInfo));
-    asyncContextForOn->appAccountManager = objectInfo;
+    if (context->appAccountManager == nullptr) {
+        napi_throw(env, GenerateBusinessError(env, ERR_JS_SYSTEM_SERVICE_EXCEPTION, "system service exception"));
+        delete context;
+        return NapiGetNull(env);
+    }
+    AppAccountSubscribeInfo subscribeInfo(context->owners);
+    context->subscriber = std::make_shared<SubscriberPtr>(subscribeInfo);
+    if (context->subscriber == nullptr) {
+        ACCOUNT_LOGE("fail to create subscriber");
+        delete context;
+        return NapiGetNull(env);
+    }
+    context->subscriber->SetEnv(env);
+    context->subscriber->SetCallbackRef(context->callbackRef);
 
     {
         std::lock_guard<std::mutex> lock(g_lockForAppAccountSubscribers);
-        g_AppAccountSubscribers[objectInfo].emplace_back(asyncContextForOn);
+        g_AppAccountSubscribers[context->appAccountManager].emplace_back(context);
     }
 
-    AppAccountManager::SubscribeAppAccount(asyncContextForOn->subscriber);
+    AppAccountManager::SubscribeAppAccount(context->subscriber);
     return NapiGetNull(env);
 }
 
 napi_value NapiAppAccount::Unsubscribe(napi_env env, napi_callback_info cbInfo)
 {
-    // Argument parsing
-    size_t argc = UNSUBSCRIBE_MAX_PARA;
-    napi_value argv[UNSUBSCRIBE_MAX_PARA] = {nullptr};
-    napi_value thisVar = nullptr;
-    std::vector<std::shared_ptr<SubscriberPtr>> subscribers = {nullptr};
-    NAPI_CALL(env, napi_get_cb_info(env, cbInfo, &argc, argv, &thisVar, NULL));
-    NAPI_ASSERT(env, argc >= 1, "Wrong number of arguments");
-
-    napi_ref callback = nullptr;
-    ParseParametersByUnsubscribe(env, argc, argv, callback);
-    AsyncContextForUnsubscribe *asyncContextForOff = new (std::nothrow) AsyncContextForUnsubscribe();
-    if (asyncContextForOff == nullptr) {
+    AsyncContextForUnsubscribe *context = new (std::nothrow) AsyncContextForUnsubscribe(env);
+    if (context == nullptr) {
         ACCOUNT_LOGE("asyncContextForOff is null");
         return NapiGetNull(env);
     }
-    asyncContextForOff->env = env;
-    asyncContextForOff->work = nullptr;
-    asyncContextForOff->callbackRef = nullptr;
-
-    AppAccountManager *objectInfo = nullptr;
-    napi_unwrap(env, thisVar, reinterpret_cast<void **>(&objectInfo));
-
-    asyncContextForOff->appAccountManager = objectInfo;
-    asyncContextForOff->callbackRef = callback;
-    asyncContextForOff->argc = argc;
+    if (!ParseParametersByUnsubscribe(env, cbInfo, context)) {
+        napi_throw(env, GenerateBusinessError(env, context->errCode, context->errMsg));
+        delete context;
+        return NapiGetNull(env);
+    };
     bool isFind = false;
-    napi_value result = GetSubscriberByUnsubscribe(env, subscribers, asyncContextForOff, isFind);
+    std::vector<std::shared_ptr<SubscriberPtr>> subscribers = {nullptr};
+    napi_value result = GetSubscriberByUnsubscribe(env, subscribers, context, isFind);
     if (!result) {
         ACCOUNT_LOGE("Unsubscribe failed. The current subscriber does not exist");
         return NapiGetNull(env);
     }
-    asyncContextForOff->subscribers = subscribers;
+    context->subscribers = subscribers;
 
     napi_value resourceName = nullptr;
     napi_create_string_latin1(env, "Unsubscribe", NAPI_AUTO_LENGTH, &resourceName);
@@ -1609,9 +1585,9 @@ napi_value NapiAppAccount::Unsubscribe(napi_env env, napi_callback_info cbInfo)
         resourceName,
         UnsubscribeExecuteCB,
         UnsubscribeCallbackCompletedCB,
-        reinterpret_cast<void *>(asyncContextForOff),
-        &asyncContextForOff->work);
-    napi_queue_async_work(env, asyncContextForOff->work);
+        reinterpret_cast<void *>(context),
+        &context->work);
+    napi_queue_async_work(env, context->work);
     return NapiGetNull(env);
 }
 }  // namespace AccountJsKit
