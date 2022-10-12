@@ -79,16 +79,20 @@ napi_value GenerateBusinessError(napi_env env, int32_t jsErrCode, const std::str
     return errJs;
 }
 
+static std::string ConvertToJsErrMsg(int32_t jsErrCode)
+{
+    auto iter = g_errorStringMap.find(jsErrCode);
+    if (iter != g_errorStringMap.end()) {
+        return iter->second;
+    } else {
+        return "Unknown error, please reboot your device and try again";
+    }
+}
+
 napi_value GenerateBusinessError(napi_env env, int32_t nativeErrCode)
 {
     int32_t jsErrCode = ConvertToJSErrCode(nativeErrCode);
-    std::string jsErrMsg;
-    auto iter = g_errorStringMap.find(ConvertToJSErrCode(jsErrCode));
-    if (iter != g_errorStringMap.end()) {
-        jsErrMsg = iter->second;
-    } else {
-        jsErrMsg = "Unknown error, please reboot your device and try again";
-    }
+    std::string jsErrMsg = ConvertToJsErrMsg(jsErrCode);
 
     return GenerateBusinessError(env, jsErrCode, jsErrMsg);
 }
@@ -104,6 +108,13 @@ void AccountNapiThrow(napi_env env, int32_t jsErrCode, const std::string &jsErrM
 {
     if (throwErr) {
         napi_throw(env, GenerateBusinessError(env, jsErrCode, jsErrMsg));
+    }
+}
+
+void AccountIAMNapiThrow(napi_env env, int32_t jsErrCode, bool throwErr)
+{
+    if (throwErr) {
+        napi_throw(env, GenerateBusinessError(env, jsErrCode, ConvertToJsErrMsg(jsErrCode)));
     }
 }
 } // namespace AccountJsKit
