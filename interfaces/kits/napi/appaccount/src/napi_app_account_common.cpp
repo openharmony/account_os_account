@@ -1579,6 +1579,11 @@ void ProcessOnResultCallback(
 
 bool ParseCreateAccountOptions(napi_env env, napi_value object, CreateAccountOptions &options)
 {
+    bool hasCustomData = false;
+    napi_has_named_property(env, object, "customData", &hasCustomData);
+    if (!hasCustomData) {
+        return true;
+    }
     napi_value customDataValue = nullptr;
     napi_get_named_property(env, object, "customData", &customDataValue);
     napi_valuetype valueType = napi_undefined;
