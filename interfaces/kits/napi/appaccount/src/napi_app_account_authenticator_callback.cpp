@@ -43,6 +43,7 @@ sptr<IRemoteObject> NapiAppAccountAuthenticatorCallback::GetRemoteObject()
 napi_value NapiAppAccountAuthenticatorCallback::Init(napi_env env, napi_value exports)
 {
     const std::string className = "AuthenticatorCallback";
+    const std::string classNameNew = "AuthCallback";
     napi_property_descriptor properties[] = {
         DECLARE_NAPI_FUNCTION("onResult", JsOnResult),
         DECLARE_NAPI_FUNCTION("onRequestRedirected", JsOnRequestRedirected),
@@ -51,8 +52,12 @@ napi_value NapiAppAccountAuthenticatorCallback::Init(napi_env env, napi_value ex
     napi_value constructor = nullptr;
     NAPI_CALL(env, napi_define_class(env, className.c_str(), className.length(), JsConstructor, nullptr,
         sizeof(properties) / sizeof(napi_property_descriptor), properties, &constructor));
+    NAPI_CALL(env, napi_define_class(env, classNameNew.c_str(), classNameNew.length(), JsConstructor, nullptr,
+        sizeof(properties) / sizeof(napi_property_descriptor), properties, &constructor));
     NAPI_ASSERT(env, constructor != nullptr, "define js class Authenticator failed");
     napi_status status = napi_set_named_property(env, exports, className.c_str(), constructor);
+    NAPI_ASSERT(env, status == napi_ok, "set property Authenticator to exports failed");
+    status = napi_set_named_property(env, exports, classNameNew.c_str(), constructor);
     NAPI_ASSERT(env, status == napi_ok, "set property Authenticator to exports failed");
     napi_value global = nullptr;
     status = napi_get_global(env, &global);
