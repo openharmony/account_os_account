@@ -1048,6 +1048,8 @@ napi_value NapiAppAccount::GetAssociatedDataSync(napi_env env, napi_callback_inf
     ErrCode errCode = AppAccountManager::GetAssociatedData(asyncContext.name, asyncContext.key, asyncContext.value);
     if (errCode == ERR_OK) {
         NAPI_CALL(env, napi_create_string_utf8(env, asyncContext.value.c_str(), NAPI_AUTO_LENGTH, &result));
+    } else {
+        napi_throw(env, GenerateBusinessError(env, errCode));
     }
     return result;
 }
@@ -1928,7 +1930,10 @@ napi_value NapiAppAccount::Subscribe(napi_env env, napi_callback_info cbInfo)
         g_AppAccountSubscribers[context->appAccountManager].emplace_back(context);
     }
 
-    AppAccountManager::SubscribeAppAccount(context->subscriber);
+    ErrCode errCode = AppAccountManager::SubscribeAppAccount(context->subscriber);
+    if (errCode != ERR_OK) {
+        napi_throw(env, GenerateBusinessError(env, errCode));
+    }
     return NapiGetNull(env);
 }
 
