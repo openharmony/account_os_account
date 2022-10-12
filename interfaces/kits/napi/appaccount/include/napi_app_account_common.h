@@ -142,6 +142,22 @@ struct GetAccountsAsyncContext : public CommonAsyncContext {
     std::vector<AppAccountInfo> appAccounts;
 };
 
+struct CreateAccountContext : public CommonAsyncContext {
+public:
+    explicit CreateAccountContext(napi_env napiEnv) : CommonAsyncContext(napiEnv) {};
+    std::string name;
+    CreateAccountOptions options;
+    sptr<IAppAccountAuthenticatorCallback> appAccountMgrCb = nullptr;
+};
+
+struct CreateAccountImplicitlyContext : public CommonAsyncContext {
+    explicit CreateAccountImplicitlyContext(napi_env napiEnv) : CommonAsyncContext(napiEnv) {};
+    std::string owner;
+    CreateAccountImplicitlyOptions options;
+    JSAuthCallback callback;
+    sptr<IAppAccountAuthenticatorCallback> appAccountMgrCb = nullptr;
+};
+
 struct SubscriberAccountsWorker {
     napi_env env = nullptr;
     napi_ref ref = nullptr;
@@ -279,6 +295,11 @@ bool ParseContextCBArray(napi_env env, napi_callback_info cbInfo, GetAccountsAsy
 bool ParseContextWithCredentialType(napi_env env, napi_callback_info cbInfo, AppAccountAsyncContext *asyncContext);
 
 bool ParseContextWithStrCBArray(napi_env env, napi_callback_info cbInfo, GetAccountsAsyncContext *asyncContext);
+
+bool ParseContextForCreateAccount(napi_env env, napi_callback_info cbInfo, CreateAccountContext *context);
+
+bool ParseContextForCreateAccountImplicitly(
+    napi_env env, napi_callback_info cbInfo, CreateAccountImplicitlyContext *context);
 
 bool ParseParametersBySubscribe(const napi_env &env, napi_callback_info cbInfo, AsyncContextForSubscribe *context);
 

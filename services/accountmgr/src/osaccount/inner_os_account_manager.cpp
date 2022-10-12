@@ -485,7 +485,7 @@ ErrCode IInnerOsAccountManager::SendMsgForAccountRemove(OsAccountInfo &osAccount
     if (errCode != ERR_OK) {
         ACCOUNT_LOGE("remove osaccount info failed, id: %{public}d, errCode %{public}d",
             osAccountInfo.GetLocalId(), errCode);
-        return ERR_OSACCOUNT_SERVICE_INNER_CANNOT_DELE_OSACCOUNT_ERROR;
+        return errCode;
     }
     OsAccountInterface::SendToCESAccountDelete(osAccountInfo);
     ReportOsAccountLifeCycle(osAccountInfo.GetLocalId(), Constants::OPERATION_DELETE);
