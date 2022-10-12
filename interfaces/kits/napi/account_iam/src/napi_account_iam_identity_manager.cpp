@@ -224,7 +224,7 @@ napi_value NapiAccountIAMIdentityManager::Cancel(napi_env env, napi_callback_inf
         return napiResult;
     }
     ACCOUNT_LOGE("Failed to cancel account, ret = %d", ret);
-    AccountNapiThrow(env, ret, true);
+    AccountIAMNapiThrow(env, AccountIAMConvertToJSErrCode(ret), true);
     return nullptr;
 }
 

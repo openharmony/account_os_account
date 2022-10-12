@@ -1577,6 +1577,138 @@ void ProcessOnResultCallback(
     }
 }
 
+bool ParseCreateAccountOptions(napi_env env, napi_value object, CreateAccountOptions &options)
+{
+    bool hasCustomData = false;
+    napi_has_named_property(env, object, "customData", &hasCustomData);
+    if (!hasCustomData) {
+        return true;
+    }
+    napi_value customDataValue = nullptr;
+    napi_get_named_property(env, object, "customData", &customDataValue);
+    napi_valuetype valueType = napi_undefined;
+    napi_typeof(env, customDataValue, &valueType);
+    if (valueType != napi_object) {
+        ACCOUNT_LOGE("not napi object");
+        return false;
+    }
+    napi_value keyArr = nullptr;
+    napi_get_property_names(env, customDataValue, &keyArr);
+    uint32_t keyNum = 0;
+    napi_get_array_length(env, keyArr, &keyNum);
+    for (uint32_t i = 0; i < keyNum; ++i) {
+        napi_value item = nullptr;
+        napi_get_element(env, keyArr, i, &item);
+        std::string keyStr;
+        if (!GetStringProperty(env, item, keyStr)) {
+            ACCOUNT_LOGE("fail to get string");
+            return false;
+        }
+        napi_value val = nullptr;
+        napi_get_named_property(env, customDataValue, keyStr.c_str(), &val);
+        std::string valStr;
+        if (!GetStringProperty(env, val, valStr)) {
+            ACCOUNT_LOGE("fail to get string");
+            return false;
+        }
+        options.customData.emplace(keyStr, valStr);
+    }
+    return true;
+}
+
+bool ParseCreateAccountImplicitlyOptions(napi_env env, napi_value object, CreateAccountImplicitlyOptions &options)
+{
+    napi_valuetype valueType = napi_undefined;
+    napi_typeof(env, object, &valueType);
+    if (valueType != napi_object) {
+        return false;
+    }
+    napi_value value = nullptr;
+    bool result = true;
+    napi_has_named_property(env, object, "requiredLabels", &options.hasRequiredLabels);
+    if (options.hasRequiredLabels) {
+        napi_get_named_property(env, object, "requiredLabels", &value);
+        result &= ParseStringVector(env, value, options.requiredLabels);
+    }
+    napi_has_named_property(env, object, "authType", &options.hasAuthType);
+    if (options.hasAuthType) {
+        napi_get_named_property(env, object, "authType", &value);
+        result &= GetStringProperty(env, value, options.authType);
+    }
+    bool hasParam = false;
+    napi_has_named_property(env, object, "parameters", &hasParam);
+    AAFwk::WantParams params;
+    if (hasParam) {
+        napi_get_named_property(env, object, "parameters", &value);
+        result &= AppExecFwk::UnwrapWantParams(env, value, params);
+    }
+    options.parameters.SetParams(params);
+    return result;
+}
+
+bool ParseContextForCreateAccount(napi_env env, napi_callback_info cbInfo, CreateAccountContext *context)
+{
+    size_t argc = ARGS_SIZE_THREE;
+    napi_value argv[ARGS_SIZE_THREE] = {0};
+    napi_get_cb_info(env, cbInfo, &argc, argv, nullptr, nullptr);
+    if (argc < ARGS_SIZE_ONE) {
+        context->errMsg = "the number of parameters should be at least 1";
+        return false;
+    }
+    for (size_t i = 0; i < argc; i++) {
+        napi_valuetype valueType = napi_undefined;
+        napi_typeof(env, argv[i], &valueType);
+        if (i == 0 && valueType == napi_string) {
+            GetStringProperty(env, argv[i], context->name);
+        } else if (i == 1 && valueType == napi_object) {
+            if (!ParseCreateAccountOptions(env, argv[i], context->options)) {
+                context->errMsg = "the type of options is not CreateAccountOptions";
+                return false;
+            }
+        } else if (i == 1 && valueType == napi_function) {
+            napi_create_reference(env, argv[i], 1, &context->callbackRef);
+            break;
+        } else if (i == PARAMTWO && valueType == napi_function) {
+            napi_create_reference(env, argv[i], 1, &context->callbackRef);
+            break;
+        } else {
+            ACCOUNT_LOGE("Type matching failed");
+            context->errMsg = "the type of param " + std::to_string(i) + " is incorrect";
+            return false;
+        }
+    }
+    return true;
+}
+
+bool ParseContextForCreateAccountImplicitly(
+    napi_env env, napi_callback_info cbInfo, CreateAccountImplicitlyContext *context)
+{
+    size_t argc = ARGS_SIZE_THREE;
+    napi_value argv[ARGS_SIZE_THREE] = {0};
+    napi_get_cb_info(env, cbInfo, &argc, argv, nullptr, nullptr);
+    if (argc < ARGS_SIZE_TWO) {
+        context->errMsg = "the number of parameters should be at least 2";
+        return false;
+    }
+    size_t index = 0;
+    if (!GetStringProperty(env, argv[index++], context->owner)) {
+        context->errMsg = "the type of owner is not string";
+        return false;
+    }
+    if ((argc == ARGS_SIZE_THREE) && (!ParseCreateAccountImplicitlyOptions(env, argv[index++], context->options))) {
+        context->errMsg = "the type of options is not CreateAccountImplicitlyOptions";
+        return false;
+    }
+    if (!ParseJSAuthCallback(env, argv[index], context->callback)) {
+        context->errMsg = "the type of callback is not AuthCallback";
+        return false;
+    }
+    std::string abilityName;
+    GetAbilityName(env, abilityName);
+    context->options.parameters.SetParam(Constants::KEY_CALLER_ABILITY_NAME, abilityName);
+    return true;
+}
+
 bool GetAbilityName(napi_env env, std::string &abilityName)
 {
     napi_value global;

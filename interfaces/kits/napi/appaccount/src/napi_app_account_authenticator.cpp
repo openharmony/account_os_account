@@ -291,7 +291,7 @@ void NapiAppAccountAuthenticator::CreateJsVerifyCredentialOptions(
     NAPI_CALL_RETURN_VOID(env, napi_create_string_utf8(env, options.credentialType.c_str(), NAPI_AUTO_LENGTH, &strVal));
     NAPI_CALL_RETURN_VOID(env, napi_set_named_property(env, *jsOptions, "credentialType", strVal));
     NAPI_CALL_RETURN_VOID(env, napi_create_string_utf8(env, options.credential.c_str(), NAPI_AUTO_LENGTH, &strVal));
-    NAPI_CALL_RETURN_VOID(env, napi_set_named_property(env, *jsOptions, "credentialType", strVal));
+    NAPI_CALL_RETURN_VOID(env, napi_set_named_property(env, *jsOptions, "credential", strVal));
     napi_value jsParam = AppExecFwk::WrapWantParams(env, options.parameters);
     NAPI_CALL_RETURN_VOID(env, napi_set_named_property(env, *jsOptions, "parameters", jsParam));
 }
