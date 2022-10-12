@@ -93,7 +93,7 @@ napi_value NapiAccountIAMUserAuth::GetAvailableStatus(napi_env env, napi_callbac
     if (errCode == ERR_OK) {
         napi_create_int32(env, status, &result);
     } else {
-        AccountNapiThrow(env, errCode, true);
+        AccountIAMNapiThrow(env, AccountIAMConvertToJSErrCode(errCode), true);
     }
     return result;
 }
@@ -300,7 +300,7 @@ napi_value NapiAccountIAMUserAuth::CancelAuth(napi_env env, napi_callback_info i
         NAPI_CALL(env, napi_create_int32(env, result, &napiResult));
         return napiResult;
     }
-    AccountNapiThrow(env, result, true);
+    AccountIAMNapiThrow(env, AccountIAMConvertToJSErrCode(result), true);
     return nullptr;
 }
 }  // namespace AccountJsKit

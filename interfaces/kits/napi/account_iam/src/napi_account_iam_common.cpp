@@ -26,6 +26,35 @@ namespace OHOS {
 namespace AccountJsKit {
 using namespace OHOS::AccountSA;
 
+int32_t AccountIAMConvertToJSErrCode(int32_t errCode)
+{
+    if ((errCode >= ERR_ACCOUNT_IAM_KIT_SEND_REQUEST && errCode <= ERR_ACCOUNT_IAM_KIT_READ_PARCEL_FAIL) ||
+        (errCode >= ERR_ACCOUNT_IAM_SERVICE_GET_STORAGE_SYSTEM_ABILITY &&
+         errCode <= ERR_ACCOUNT_IAM_SERVICE_READ_PARCEL_FAIL)) {
+        return ERR_JS_SYSTEM_SERVICE_EXCEPTION;
+    } else if (errCode == ERR_ACCOUNT_IAM_SERVICE_PERMISSION_DENIED || errCode == ERR_IAM_CHECK_PERMISSION_FAILED) {
+        return ERR_JS_PERMISSION_DENIED;
+    }
+    switch (errCode) {
+        case ERR_IAM_TRUST_LEVEL_NOT_SUPPORT:
+            return ERR_JS_TRUST_LEVEL_NOT_SUPPORTED;
+        case ERR_IAM_TYPE_NOT_SUPPORT:
+            return ERR_JS_AUTH_TYPE_NOT_SUPPORTED;
+        case ERR_IAM_TIMEOUT:
+            return ERR_JS_AUTH_TIMEOUT;
+        case ERR_IAM_BUSY:
+            return ERR_JS_AUTH_SERVICE_BUSY;
+        case ERR_IAM_LOCKED:
+            return ERR_JS_AUTH_SERVICE_LOCKED;
+        case ERR_IAM_NOT_ENROLLED:
+            return ERR_JS_CREDENTIAL_NOT_EXIST;
+        case ERR_IAM_INVALID_CONTEXT_ID:
+            return ERR_JS_INVALID_CONTEXT_ID;
+        default:
+            return ERR_JS_SYSTEM_SERVICE_EXCEPTION;
+    }
+}
+
 IAMAsyncContext::IAMAsyncContext(napi_env napiEnv)
     : env(napiEnv)
 {}
