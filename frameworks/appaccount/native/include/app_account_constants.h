@@ -26,6 +26,10 @@ namespace Constants {
 const std::string SYSTEM_ACTION_APP_ACCOUNT_OAUTH = "ohos.account.appAccount.action.oauth";
 const std::string OAUTH_ACTION_ADD_ACCOUNT_IMPLICITLY = "addAccountImplicitly";
 const std::string OAUTH_ACTION_AUTHENTICATE = "authenticate";
+const std::string ACTION_CREATE_ACCOUNT_IMPLICITLY = "createAccountImplicitly";
+const std::string ACTION_AUTH = "auth";
+const std::string ACTION_VERIFY_CREDENTIAL = "verifyCredential";
+const std::string ACTION_SET_AUTHENTICATOR_PROPERTIES = "setAuthenticatorProperties";
 const std::string APP_ACCOUNT_APP_ID = "app_account_manager_service";
 const std::string KEY_NAME = "name";
 const std::string KEY_OWNER = "owner";
