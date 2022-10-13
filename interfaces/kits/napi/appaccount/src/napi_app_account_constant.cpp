@@ -52,6 +52,12 @@ napi_value NapiAppAccountConstant::Init(napi_env env, napi_value exports)
     SetNamedProperty(env, constants, Constants::OAUTH_ACTION_ADD_ACCOUNT_IMPLICITLY.c_str(),
         "ACTION_ADD_ACCOUNT_IMPLICITLY");
     SetNamedProperty(env, constants, Constants::OAUTH_ACTION_AUTHENTICATE.c_str(), "ACTION_AUTHENTICATE");
+    SetNamedProperty(env, constants, Constants::ACTION_CREATE_ACCOUNT_IMPLICITLY.c_str(),
+        "ACTION_CREATE_ACCOUNT_IMPLICITLY");
+    SetNamedProperty(env, constants, Constants::ACTION_AUTH.c_str(), "ACTION_AUTH");
+    SetNamedProperty(env, constants, Constants::ACTION_VERIFY_CREDENTIAL.c_str(), "ACTION_VERIFY_CREDENTIAL");
+    SetNamedProperty(env, constants, Constants::ACTION_SET_AUTHENTICATOR_PROPERTIES.c_str(),
+        "ACTION_SET_AUTHENTICATOR_PROPERTIES");
     SetNamedProperty(env, constants, Constants::KEY_NAME.c_str(), "KEY_NAME");
     SetNamedProperty(env, constants, Constants::KEY_OWNER.c_str(), "KEY_OWNER");
     SetNamedProperty(env, constants, Constants::KEY_TOKEN.c_str(), "KEY_TOKEN");
