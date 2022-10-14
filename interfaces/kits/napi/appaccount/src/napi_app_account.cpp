@@ -489,6 +489,7 @@ napi_value NapiAppAccount::CheckDataSyncEnabledInternal(napi_env env, napi_callb
         return NapiGetNull(env);
     }
     asyncContext->env = env;
+    asyncContext->throwErr = isThrowable;
     if ((!ParseContextWithTwoPara(env, cbInfo, asyncContext)) && isThrowable) {
         napi_throw(env, GenerateBusinessError(env, ERR_JS_PARAMETER_ERROR, asyncContext->errMsg));
         delete asyncContext;
@@ -763,6 +764,7 @@ napi_value NapiAppAccount::GetAllAccessibleAccountsInternal(napi_env env, napi_c
         return NapiGetNull(env);
     }
     asyncContext->env = env;
+    asyncContext->throwErr = isThrowable;
     if ((!ParseContextCBArray(env, cbInfo, asyncContext)) && isThrowable) {
         napi_throw(env, GenerateBusinessError(env, ERR_JS_PARAMETER_ERROR, asyncContext->errMsg));
         delete asyncContext;
@@ -837,6 +839,7 @@ napi_value NapiAppAccount::GetAccountsByOwnerInternal(napi_env env, napi_callbac
         return NapiGetNull(env);
     }
     asyncContext->env = env;
+    asyncContext->throwErr = isThrowable;
     if ((!ParseContextWithStrCBArray(env, cbInfo, asyncContext)) && isThrowable) {
         napi_throw(env, GenerateBusinessError(env, ERR_JS_PARAMETER_ERROR, asyncContext->errMsg));
         delete asyncContext;
