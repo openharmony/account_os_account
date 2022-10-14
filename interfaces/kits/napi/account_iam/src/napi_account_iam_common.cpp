@@ -825,7 +825,7 @@ napi_value CreateUint8Array(napi_env env, const uint8_t *srcData, size_t length)
     void* dstData = nullptr;
     napi_value napiArr = nullptr;
     NAPI_CALL(env, napi_create_arraybuffer(env, length, &dstData, &napiArr));
-    if (memcpy_s(dstData, length, srcData, length) != EOK) {
+    if ((length > 0) && (memcpy_s(dstData, length, srcData, length) != EOK)) {
         return result;
     }
     NAPI_CALL(env, napi_create_typedarray(env, napi_uint8_array, length, napiArr, 0, &result));
