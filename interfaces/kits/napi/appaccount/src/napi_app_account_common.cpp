@@ -907,7 +907,7 @@ bool ParseContextForSetAppAccess(napi_env env, napi_callback_info cbInfo, AppAcc
         asyncContext->errMsg = "the number of parameters should be at least 2";
         return false;
     }
-    if ((argc == ARGS_SIZE_FOUR) && (!GetCallbackProperty(env, argv[PARAMTWO], asyncContext->callbackRef, 1))) {
+    if ((argc == ARGS_SIZE_FOUR) && (!GetCallbackProperty(env, argv[PARAMTHREE], asyncContext->callbackRef, 1))) {
         asyncContext->errMsg = "the callback is not a function";
         return false;
     }
