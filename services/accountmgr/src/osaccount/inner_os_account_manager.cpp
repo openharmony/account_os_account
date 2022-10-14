@@ -1045,7 +1045,7 @@ ErrCode IInnerOsAccountManager::DeActivateOsAccount(const int id)
     if (errCode != ERR_OK) {
         ACCOUNT_LOGE("DeActivateOsAccount cannot get os account %{public}d info. error %{public}d.",
             id, errCode);
-        return errCode;
+        return ERR_OSACCOUNT_SERVICE_INNER_CANNOT_FIND_OSACCOUNT_ERROR;
     }
     osAccountInfo.SetIsActived(false);
     errCode = osAccountControl_->UpdateOsAccount(osAccountInfo);
