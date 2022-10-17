@@ -1118,7 +1118,7 @@ bool ParseParametersBySubscribe(const napi_env &env, napi_callback_info cbInfo, 
         return false;
     }
     if (!GetStringProperty(env, argv[0], context->type)) {
-        context->type = "the type is not a string";
+        context->errMsg = "the type is not a string";
         return false;
     }
     if ((context->type != "change") && (context->type != "accountChange")) {

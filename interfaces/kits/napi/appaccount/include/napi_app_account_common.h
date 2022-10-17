@@ -46,6 +46,7 @@ constexpr int PARAMTHREE = 3;
 constexpr int PARAMFOUR = 4;
 constexpr int PARAMFIVE = 5;
 const std::string APP_ACCOUNT_CLASS_NAME = "AppAccountManager";
+const std::string TYPE_CHANGE = "change";
 
 static const std::int32_t SUBSCRIBE_MAX_PARA = 3;
 static const std::int32_t UNSUBSCRIBE_MAX_PARA = 2;

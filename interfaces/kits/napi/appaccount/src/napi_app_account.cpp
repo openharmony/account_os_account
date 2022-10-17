@@ -1909,12 +1909,16 @@ napi_value NapiAppAccount::Subscribe(napi_env env, napi_callback_info cbInfo)
         return NapiGetNull(env);
     }
     if (!ParseParametersBySubscribe(env, cbInfo, context)) {
-        napi_throw(env, GenerateBusinessError(env, context->errCode, context->errMsg));
+        if (context->type != TYPE_CHANGE) {
+            napi_throw(env, GenerateBusinessError(env, context->errCode, context->errMsg));
+        }
         delete context;
         return NapiGetNull(env);
     }
     if (context->appAccountManager == nullptr) {
-        napi_throw(env, GenerateBusinessError(env, ERR_JS_SYSTEM_SERVICE_EXCEPTION, "system service exception"));
+        if (context->type != TYPE_CHANGE) {
+            napi_throw(env, GenerateBusinessError(env, ERR_JS_SYSTEM_SERVICE_EXCEPTION, "system service exception"));
+        }
         delete context;
         return NapiGetNull(env);
     }
@@ -1934,7 +1938,7 @@ napi_value NapiAppAccount::Subscribe(napi_env env, napi_callback_info cbInfo)
     }
 
     ErrCode errCode = AppAccountManager::SubscribeAppAccount(context->subscriber);
-    if (errCode != ERR_OK) {
+    if ((errCode != ERR_OK) && (context->type != TYPE_CHANGE)) {
         napi_throw(env, GenerateBusinessError(env, errCode));
     }
     return NapiGetNull(env);
@@ -1948,7 +1952,9 @@ napi_value NapiAppAccount::Unsubscribe(napi_env env, napi_callback_info cbInfo)
         return NapiGetNull(env);
     }
     if (!ParseParametersByUnsubscribe(env, cbInfo, context)) {
-        napi_throw(env, GenerateBusinessError(env, context->errCode, context->errMsg));
+        if (context->type != TYPE_CHANGE) {
+            napi_throw(env, GenerateBusinessError(env, context->errCode, context->errMsg));
+        }
         delete context;
         return NapiGetNull(env);
     };
