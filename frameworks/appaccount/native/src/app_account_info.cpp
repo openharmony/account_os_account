@@ -212,7 +212,7 @@ ErrCode AppAccountInfo::GetAssociatedData(const std::string &key, std::string &v
 
     if (jsonObject.find(key) == jsonObject.end()) {
         ACCOUNT_LOGE("failed to find value, key = %{public}s", key.c_str());
-        return ERR_APPACCOUNT_SERVICE_GET_ASSOCIATED_DATA;
+        return ERR_APPACCOUNT_SERVICE_ASSOCIATED_DATA_KEY_NOT_EXIST;
     }
 
     value = jsonObject.at(key);
@@ -255,7 +255,7 @@ ErrCode AppAccountInfo::GetAccountCredential(const std::string &credentialType, 
 
     if (jsonObject.find(credentialType) == jsonObject.end()) {
         ACCOUNT_LOGE("failed to find value, credentialType = %{public}s", credentialType.c_str());
-        return ERR_APPACCOUNT_SERVICE_GET_ACCOUNT_CREDENTIAL;
+        return ERR_APPACCOUNT_SERVICE_ACCOUNT_CREDENTIAL_NOT_EXIST;
     }
 
     credential = jsonObject.at(credentialType);
@@ -272,7 +272,10 @@ ErrCode AppAccountInfo::SetAccountCredential(
     }
 
     if (isDelete) {
-        jsonObject.erase(credentialType);
+        auto ret = jsonObject.erase(credentialType);
+        if (ret == 0) {
+            return ERR_APPACCOUNT_SERVICE_ACCOUNT_CREDENTIAL_NOT_EXIST;
+        }
     } else {
         jsonObject[credentialType] = credential;
     }

@@ -803,7 +803,7 @@ HWTEST_F(AppAccountManagerServiceModuleTest, AppAccountManagerService_GetAccount
 
     std::string credential;
     result = g_accountManagerService->GetAccountCredential(STRING_NAME, STRING_CREDENTIAL_TYPE, credential);
-    EXPECT_EQ(result, ERR_APPACCOUNT_SERVICE_GET_ACCOUNT_CREDENTIAL);
+    EXPECT_EQ(result, ERR_APPACCOUNT_SERVICE_ACCOUNT_CREDENTIAL_NOT_EXIST);
     EXPECT_EQ(credential, STRING_EMPTY);
 
     result = g_accountManagerService->DeleteAccount(STRING_NAME);
