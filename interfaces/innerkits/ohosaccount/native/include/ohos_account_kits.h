@@ -16,6 +16,7 @@
 #ifndef BASE_ACCOUNT_OHOS_ACCOUNT_KITS_H
 #define BASE_ACCOUNT_OHOS_ACCOUNT_KITS_H
 
+#include "account_info.h"
 #include "nocopyable.h"
 #include "iaccount.h"
 
@@ -75,13 +76,13 @@ public:
     /**
      * Update OHOS Account Info.
      *
-     * @param accountName Indicates the name of the OS account used for a distributed system.
-     * @param uid Uniquely identifies the OS account used for a distributed system.
+     * @param ohosAccountInfo Indicates the information of the disctributed account.
+     * Update OHOS Account Info.
      * @param eventStr Indicates the event of the OS account used for a distributed system.
      * @return Returns {@code true} if the distributed information of the account is updated;
      *     returns {@code false} otherwise.
      */
-    virtual std::int32_t SetOhosAccountInfo(const std::string &accountName, const std::string &uid,
+    virtual std::int32_t SetOhosAccountInfo(const OhosAccountInfo &ohosAccountInfo,
         const std::string &eventStr) = 0;
 
     /**

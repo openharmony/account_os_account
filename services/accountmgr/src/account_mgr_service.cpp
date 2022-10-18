@@ -76,10 +76,10 @@ bool AccountMgrService::UpdateOhosAccountInfo(
     return true;
 }
 
-std::int32_t AccountMgrService::SetOhosAccountInfo(const std::string &accountName, const std::string &uid,
+std::int32_t AccountMgrService::SetOhosAccountInfo(const OhosAccountInfo &ohosAccountInfo,
     const std::string &eventStr)
 {
-    if (!ohosAccountMgr_->OhosAccountStateChange(accountName, uid, eventStr)) {
+    if (!ohosAccountMgr_->OhosAccountStateChange(ohosAccountInfo, eventStr)) {
         ACCOUNT_LOGE("Ohos account state change failed");
         return ERR_ACCOUNT_ZIDL_ACCOUNT_SERVICE_ERROR;
     }
@@ -90,25 +90,25 @@ std::int32_t AccountMgrService::SetOhosAccountInfo(const std::string &accountNam
 std::pair<bool, OhosAccountInfo> AccountMgrService::QueryOhosAccountInfo(void)
 {
     AccountInfo accountInfo = ohosAccountMgr_->GetCurrentOhosAccountInfo();
-    std::string name = accountInfo.ohosAccountName_;
-    std::string id = accountInfo.ohosAccountUid_;
-    std::int32_t status = accountInfo.ohosAccountStatus_;
+    std::string name = accountInfo.ohosAccountInfo_.name_;
+    std::string id = accountInfo.ohosAccountInfo_.uid_;
+    std::int32_t status = accountInfo.ohosAccountInfo_.status_;
     return std::make_pair(true, OhosAccountInfo(name, id, status));
 }
 
-std::int32_t AccountMgrService::GetOhosAccountInfo(OhosAccountInfo &accountInfo)
+std::int32_t AccountMgrService::GetOhosAccountInfo(OhosAccountInfo &ohosAccountInfo)
 {
-    auto info = QueryOhosAccountInfo();
-    accountInfo = info.second;
+    AccountInfo accountInfo = ohosAccountMgr_->GetCurrentOhosAccountInfo();
+    ohosAccountInfo = accountInfo.ohosAccountInfo_;
     return ERR_OK;
 }
 
 std::pair<bool, OhosAccountInfo> AccountMgrService::QueryOhosAccountInfoByUserId(std::int32_t userId)
 {
     AccountInfo accountInfo = ohosAccountMgr_->GetOhosAccountInfoByUserId(userId);
-    std::string name = accountInfo.ohosAccountName_;
-    std::string id = accountInfo.ohosAccountUid_;
-    std::int32_t status = accountInfo.ohosAccountStatus_;
+    std::string name = accountInfo.ohosAccountInfo_.name_;
+    std::string id = accountInfo.ohosAccountInfo_.uid_;
+    std::int32_t status = accountInfo.ohosAccountInfo_.status_;
     return std::make_pair(true, OhosAccountInfo(name, id, status));
 }
 

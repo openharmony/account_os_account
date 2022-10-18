@@ -69,6 +69,7 @@ ohos_shared_library("libaccountkits") {
   deps = [ "${common_path}:libaccount_common" ]
 
   external_deps = [
+    "ability_base:want",
     "hiviewdfx_hilog_native:libhilog",
     "ipc:ipc_core",
     "samgr:samgr_proxy",

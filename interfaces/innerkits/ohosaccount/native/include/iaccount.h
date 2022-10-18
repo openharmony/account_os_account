@@ -44,7 +44,7 @@ public:
 
     virtual bool UpdateOhosAccountInfo(
         const std::string &accountName, const std::string &uid, const std::string &eventStr) = 0;
-    virtual std::int32_t SetOhosAccountInfo(const std::string &accountName, const std::string &uid,
+    virtual std::int32_t SetOhosAccountInfo(const OhosAccountInfo &ohosAccountInfo,
         const std::string &eventStr) = 0;
     virtual std::pair<bool, OhosAccountInfo> QueryOhosAccountInfo(void) = 0;
     virtual std::int32_t GetOhosAccountInfo(OhosAccountInfo &accountInfo) = 0;
