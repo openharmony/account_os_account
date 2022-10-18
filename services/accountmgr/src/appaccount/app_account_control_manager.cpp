@@ -374,7 +374,7 @@ ErrCode AppAccountControlManager::SetAssociatedData(const std::string &name, con
     result = appAccountInfo.SetAssociatedData(key, value);
     if (result != ERR_OK) {
         ACCOUNT_LOGE("failed to set associated data, result %{public}d.", result);
-        return ERR_APPACCOUNT_SERVICE_SET_ASSOCIATED_DATA;
+        return result;
     }
     result = SaveAccountInfoIntoDataStorage(appAccountInfo, storePtr, appAccountCallingInfo.callingUid);
     if (result != ERR_OK) {
@@ -403,7 +403,7 @@ ErrCode AppAccountControlManager::GetAccountCredential(const std::string &name, 
     result = appAccountInfo.GetAccountCredential(credentialType, credential);
     if (result != ERR_OK) {
         ACCOUNT_LOGE("failed to get account credential, result %{public}d.", result);
-        return ERR_APPACCOUNT_SERVICE_GET_ACCOUNT_CREDENTIAL;
+        return result;
     }
 
     return ERR_OK;
@@ -424,7 +424,7 @@ ErrCode AppAccountControlManager::SetAccountCredential(const std::string &name, 
     result = appAccountInfo.SetAccountCredential(credentialType, credential, isDelete);
     if (result != ERR_OK) {
         ACCOUNT_LOGE("failed to set account credential, result %{public}d.", result);
-        return ERR_APPACCOUNT_SERVICE_SET_ACCOUNT_CREDENTIAL;
+        return result;
     }
 
     result = SaveAccountInfoIntoDataStorage(appAccountInfo, dataStoragePtr, appAccountCallingInfo.callingUid);
@@ -499,7 +499,7 @@ ErrCode AppAccountControlManager::DeleteOAuthToken(const AuthenticatorSessionReq
     ret = appAccountInfo.DeleteOAuthToken(request.authType, request.token);
     if (ret != ERR_OK) {
         ACCOUNT_LOGE("failed to delete oauth token, result %{public}d.", ret);
-        return ERR_OK;
+        return ret;
     }
     ret = SaveAccountInfoIntoDataStorage(appAccountInfo, dataStoragePtr, request.callerUid);
     if (ret != ERR_OK) {
