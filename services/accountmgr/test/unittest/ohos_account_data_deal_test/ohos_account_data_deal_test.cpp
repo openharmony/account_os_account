@@ -85,10 +85,10 @@ HWTEST_F(OhosAccountDataDealTest, ValidOhosAccountJsonTest001, TestSize.Level0)
 
     errCode = dataDeal.AccountInfoFromJson(accountInfo, TEST_VALID_USER_ID);
     EXPECT_EQ(errCode, ERR_OK);
-    EXPECT_EQ(accountInfo.ohosAccountStatus_, ACCOUNT_STATE_UNBOUND);
-    EXPECT_EQ(accountInfo.ohosAccountName_, TEST_STR_ACCOUNT_NAME);
+    EXPECT_EQ(accountInfo.ohosAccountInfo_.status_, ACCOUNT_STATE_UNBOUND);
+    EXPECT_EQ(accountInfo.ohosAccountInfo_.name_, TEST_STR_ACCOUNT_NAME);
     EXPECT_EQ(accountInfo.userId_, TEST_VALID_USER_ID);
-    EXPECT_EQ(accountInfo.ohosAccountUid_, TEST_STR_OPEN_ID);
+    EXPECT_EQ(accountInfo.ohosAccountInfo_.uid_, TEST_STR_OPEN_ID);
 }
 
 /**
@@ -116,8 +116,8 @@ HWTEST_F(OhosAccountDataDealTest, ValidOhosAccountJsonTest002, TestSize.Level0)
     /**
      * @tc.steps: step3. modify and write
      */
-    accountInfo.ohosAccountStatus_ = ACCOUNT_STATE_LOGIN;
-    accountInfo.ohosAccountUid_ = "rewrite content";
+    accountInfo.ohosAccountInfo_.status_ = ACCOUNT_STATE_LOGIN;
+    accountInfo.ohosAccountInfo_.uid_ = "rewrite content";
     errCode = dataDeal.AccountInfoToJson(accountInfo);
     EXPECT_EQ(errCode, ERR_OK);
 }
@@ -149,16 +149,16 @@ HWTEST_F(OhosAccountDataDealTest, InvalidOhosAccountJsonTest001, TestSize.Level0
      */
     errCode = dataDeal.AccountInfoFromJson(accountInfo, TEST_INVALID_USER_ID);
     EXPECT_EQ(errCode, ERR_OK);
-    EXPECT_EQ(accountInfo.ohosAccountStatus_, ACCOUNT_STATE_UNBOUND);
-    EXPECT_EQ(accountInfo.ohosAccountName_, DEFAULT_OHOS_ACCOUNT_NAME);
-    EXPECT_EQ(accountInfo.ohosAccountUid_, DEFAULT_OHOS_ACCOUNT_UID);
+    EXPECT_EQ(accountInfo.ohosAccountInfo_.status_, ACCOUNT_STATE_UNBOUND);
+    EXPECT_EQ(accountInfo.ohosAccountInfo_.name_, DEFAULT_OHOS_ACCOUNT_NAME);
+    EXPECT_EQ(accountInfo.ohosAccountInfo_.uid_, DEFAULT_OHOS_ACCOUNT_UID);
 
     /**
      * @tc.steps: step4. update content
      */
-    accountInfo.ohosAccountStatus_ = ACCOUNT_STATE_NOTLOGIN;
-    accountInfo.ohosAccountName_ = TEST_STR_ACCOUNT_NAME;
-    accountInfo.ohosAccountUid_ = TEST_STR_OPEN_ID;
+    accountInfo.ohosAccountInfo_.status_ = ACCOUNT_STATE_NOTLOGIN;
+    accountInfo.ohosAccountInfo_.name_ = TEST_STR_ACCOUNT_NAME;
+    accountInfo.ohosAccountInfo_.uid_ = TEST_STR_OPEN_ID;
     dataDeal.AccountInfoToJson(accountInfo);
 
     /**
@@ -170,7 +170,7 @@ HWTEST_F(OhosAccountDataDealTest, InvalidOhosAccountJsonTest001, TestSize.Level0
     AccountInfo accountInfoNew;
     errCode = dataDeal.AccountInfoFromJson(accountInfoNew, TEST_INVALID_USER_ID);
     EXPECT_EQ(errCode, ERR_OK);
-    EXPECT_EQ(accountInfoNew.ohosAccountStatus_, ACCOUNT_STATE_NOTLOGIN);
-    EXPECT_EQ(accountInfoNew.ohosAccountName_, TEST_STR_ACCOUNT_NAME);
-    EXPECT_EQ(accountInfoNew.ohosAccountUid_, TEST_STR_OPEN_ID);
+    EXPECT_EQ(accountInfoNew.ohosAccountInfo_.status_, ACCOUNT_STATE_NOTLOGIN);
+    EXPECT_EQ(accountInfoNew.ohosAccountInfo_.name_, TEST_STR_ACCOUNT_NAME);
+    EXPECT_EQ(accountInfoNew.ohosAccountInfo_.uid_, TEST_STR_OPEN_ID);
 }

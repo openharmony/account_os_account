@@ -113,20 +113,21 @@ bool OhosAccountKitsImpl::UpdateOhosAccountInfo(const std::string& accountName, 
         ACCOUNT_LOGE("Get proxy failed");
         return false;
     }
-
     return accountProxy->UpdateOhosAccountInfo(accountName, uid, eventStr);
 }
 
-std::int32_t OhosAccountKitsImpl::SetOhosAccountInfo(const std::string &accountName, const std::string &uid,
-    const std::string &eventStr)
+std::int32_t OhosAccountKitsImpl::SetOhosAccountInfo(
+    const OhosAccountInfo &ohosAccountInfo, const std::string &eventStr)
 {
     auto accountProxy = GetService();
     if (accountProxy == nullptr) {
         ACCOUNT_LOGE("Get proxy failed");
         return ERR_ACCOUNT_ZIDL_ACCOUNT_PROXY_ERROR;
     }
-
-    return accountProxy->UpdateOhosAccountInfo(accountName, uid, eventStr);
+    if (OhosAccountInfo::OhosAccountInfoIsValid(ohosAccountInfo)) {
+        return accountProxy->SetOhosAccountInfo(ohosAccountInfo, eventStr);
+    }
+    return ERR_OHOSACCOUNT_KIT_INVALID_PARAMETER;
 }
 
 std::pair<bool, OhosAccountInfo> OhosAccountKitsImpl::QueryOhosAccountInfo()

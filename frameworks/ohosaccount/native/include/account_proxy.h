@@ -20,7 +20,6 @@
 #include "account_info.h"
 #include "iaccount.h"
 
-
 namespace OHOS {
 namespace AccountSA {
 class AccountProxy : public IRemoteProxy<IAccount> {
@@ -32,8 +31,7 @@ public:
 
     bool UpdateOhosAccountInfo(
         const std::string &accountName, const std::string &uid, const std::string &eventStr) override;
-    std::int32_t SetOhosAccountInfo(const std::string &accountName, const std::string &uid,
-        const std::string &eventStr) override;
+    std::int32_t SetOhosAccountInfo(const OhosAccountInfo &ohosAccountInfo, const std::string &eventStr) override;
     std::pair<bool, OhosAccountInfo> QueryOhosAccountInfo(void) override;
     std::int32_t GetOhosAccountInfo(OhosAccountInfo &accountInfo) override;
     std::pair<bool, OhosAccountInfo> QueryOhosAccountInfoByUserId(std::int32_t userId) override;

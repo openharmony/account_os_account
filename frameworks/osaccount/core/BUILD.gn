@@ -87,6 +87,8 @@ ohos_shared_library("os_account_core") {
   deps = [ "${innerkits_native_path}:libaccountkits" ]
 
   external_deps = [
+    "ability_base:want",
+    "ability_runtime:wantagent_innerkits",
     "c_utils:utils",
     "hiviewdfx_hilog_native:libhilog",
     "ipc:ipc_core",

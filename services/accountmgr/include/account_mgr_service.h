@@ -48,7 +48,7 @@ public:
     DECLARE_SYSTEM_ABILITY(AccountMgrService);
     bool UpdateOhosAccountInfo(
         const std::string &accountName, const std::string &uid, const std::string &eventStr) override;
-    std::int32_t SetOhosAccountInfo(const std::string &accountName, const std::string &uid,
+    std::int32_t SetOhosAccountInfo(const OhosAccountInfo &ohosAccountInfo,
         const std::string &eventStr) override;
     std::pair<bool, OhosAccountInfo> QueryOhosAccountInfo(void) override;
     std::int32_t GetOhosAccountInfo(OhosAccountInfo &accountInfo) override;

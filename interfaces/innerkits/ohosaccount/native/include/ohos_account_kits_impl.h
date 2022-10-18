@@ -30,7 +30,7 @@ public:
     DISALLOW_COPY_AND_MOVE(OhosAccountKitsImpl);
     bool UpdateOhosAccountInfo(const std::string& accountName, const std::string& uid,
         const std::string& eventStr) final;
-    std::int32_t SetOhosAccountInfo(const std::string &accountName, const std::string &uid,
+    std::int32_t SetOhosAccountInfo(const OhosAccountInfo &ohosAccountInfo,
         const std::string &eventStr) final;
     std::pair<bool, OhosAccountInfo> QueryOhosAccountInfo() final;
     std::int32_t GetOhosAccountInfo(OhosAccountInfo &accountInfo) final;

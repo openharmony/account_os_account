@@ -66,8 +66,7 @@ bool AccountProxy::UpdateOhosAccountInfo(
     return true;
 }
 
-std::int32_t AccountProxy::SetOhosAccountInfo(const std::string &accountName, const std::string &uid,
-    const std::string &eventStr)
+std::int32_t AccountProxy::SetOhosAccountInfo(const OhosAccountInfo &ohosAccountInfo, const std::string &eventStr)
 {
     MessageParcel data;
     MessageParcel reply;
@@ -77,19 +76,14 @@ std::int32_t AccountProxy::SetOhosAccountInfo(const std::string &accountName, co
         ACCOUNT_LOGE("Write descriptor failed!");
         return ERR_ACCOUNT_ZIDL_WRITE_PARCEL_DATA_ERROR;
     }
-    if (!data.WriteString16(Str8ToStr16(accountName))) {
-        ACCOUNT_LOGE("Write accountName failed!");
-        return ERR_ACCOUNT_ZIDL_WRITE_PARCEL_DATA_ERROR;
-    }
-    if (!data.WriteString16(Str8ToStr16(uid))) {
-        ACCOUNT_LOGE("Write uid failed!");
+    if (!data.WriteParcelable(&ohosAccountInfo)) {
+        ACCOUNT_LOGE("Write ohosAccountInfo failed!");
         return ERR_ACCOUNT_ZIDL_WRITE_PARCEL_DATA_ERROR;
     }
     if (!data.WriteString16(Str8ToStr16(eventStr))) {
-        ACCOUNT_LOGE("Write eventStr failed!");
+    ACCOUNT_LOGE("Write eventStr failed!");
         return ERR_ACCOUNT_ZIDL_WRITE_PARCEL_DATA_ERROR;
     }
-
     auto ret = Remote()->SendRequest(SET_OHOS_ACCOUNT_INFO, data, reply, option);
     if (ret != ERR_NONE) {
         ACCOUNT_LOGE("SendRequest failed %{public}d", ret);
@@ -133,7 +127,7 @@ std::pair<bool, OhosAccountInfo> AccountProxy::QueryOhosAccountInfo(void)
     return std::make_pair(true, OhosAccountInfo(Str16ToStr8(name), Str16ToStr8(uid), status));
 }
 
-std::int32_t AccountProxy::GetOhosAccountInfo(OhosAccountInfo &accountInfo)
+std::int32_t AccountProxy::GetOhosAccountInfo(OhosAccountInfo &ohosAccountInfo)
 {
     MessageParcel data;
     MessageParcel reply;
@@ -150,10 +144,12 @@ std::int32_t AccountProxy::GetOhosAccountInfo(OhosAccountInfo &accountInfo)
         return ret;
     }
 
-    std::u16string name = reply.ReadString16();
-    std::u16string uid = reply.ReadString16();
-    std::int32_t status = reply.ReadInt32();
-    accountInfo = OhosAccountInfo(Str16ToStr8(name), Str16ToStr8(uid), status);
+    sptr<OhosAccountInfo> infoPtr = reply.ReadParcelable<OhosAccountInfo>();
+    if (infoPtr == nullptr) {
+        return ERR_ACCOUNT_COMMON_READ_PARCEL_ERROR;
+    }
+    ohosAccountInfo = *(infoPtr);
+
     ACCOUNT_LOGD("QueryOhosAccountInfo exit");
     return ERR_OK;
 }
@@ -180,11 +176,13 @@ std::pair<bool, OhosAccountInfo> AccountProxy::QueryOhosAccountInfoByUserId(std:
         return std::make_pair(false, OhosAccountInfo());
     }
 
-    std::u16string name = reply.ReadString16();
-    std::u16string uid = reply.ReadString16();
-    std::int32_t status = reply.ReadInt32();
+    sptr<OhosAccountInfo> infoPtr= reply.ReadParcelable<OhosAccountInfo>();
+    if (infoPtr == nullptr) {
+        return std::make_pair(false, OhosAccountInfo());
+    }
+    OhosAccountInfo ohosAccountInfo = *(infoPtr);
 
-    return std::make_pair(true, OhosAccountInfo(Str16ToStr8(name), Str16ToStr8(uid), status));
+    return std::make_pair(true, ohosAccountInfo);
 }
 
 std::int32_t AccountProxy::QueryDeviceAccountId(std::int32_t &accountId)
