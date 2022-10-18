@@ -83,6 +83,7 @@ ohos_shared_library("osaccount") {
   relative_install_dir = "module/account"
 
   external_deps = [
+    "ability_base:want",
     "c_utils:utils",
     "hiviewdfx_hilog_native:libhilog",
     "os_account:os_account_innerkits",

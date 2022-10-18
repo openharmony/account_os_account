@@ -28,7 +28,7 @@ namespace AccountSA {
 const std::string ACCOUNT_CFG_DIR_ROOT_PATH = "/data/service/el1/public/account/";
 
 class OhosAccountManager;
-using OhosAccountEventFunc = bool (OhosAccountManager::*)(const std::string &name, const std::string &uid,
+using OhosAccountEventFunc = bool (OhosAccountManager::*)(const OhosAccountInfo &ohosAccountInfo,
     const std::string &eventStr);
 /**
  * Ohos account manager
@@ -80,7 +80,7 @@ public:
      * @param eventStr ohos account state change event
      * @return true if the processing was completed, otherwise false
      */
-    bool LoginOhosAccount(const std::string &name, const std::string &uid, const std::string &eventStr);
+    bool LoginOhosAccount(const OhosAccountInfo &ohosAccountInfo, const std::string &eventStr);
 
     /**
      * logout ohos (for distributed network) account.
@@ -90,7 +90,7 @@ public:
      * @param eventStr ohos account state change event
      * @return true if the processing was completed, otherwise false
      */
-    bool LogoutOhosAccount(const std::string &name, const std::string &uid, const std::string &eventStr);
+    bool LogoutOhosAccount(const OhosAccountInfo &ohosAccountInfo, const std::string &eventStr);
 
     /**
      * logoff ohos (for distributed network) account.
@@ -100,7 +100,7 @@ public:
      * @param eventStr ohos account state change event
      * @return true if the processing was completed, otherwise false
      */
-    bool LogoffOhosAccount(const std::string &name, const std::string &uid, const std::string &eventStr);
+    bool LogoffOhosAccount(const OhosAccountInfo &ohosAccountInfo, const std::string &eventStr);
 
     /**
      * Handle token_invalid event of ohos (for distributed network) account .
@@ -110,8 +110,7 @@ public:
      * @param eventStr ohos account state change event
      * @return true if the processing was completed, otherwise false
      */
-    bool HandleOhosAccountTokenInvalidEvent(const std::string &name,
-        const std::string &uid, const std::string &eventStr);
+    bool HandleOhosAccountTokenInvalidEvent(const OhosAccountInfo &ohosAccountInfo, const std::string &eventStr);
 
     /**
      * Handle device account switch event.
@@ -130,6 +129,15 @@ public:
      * @return true if the processing was completed, otherwise false
      */
     bool OhosAccountStateChange(const std::string &name, const std::string &uid, const std::string &eventStr);
+
+    /**
+     * Ohos account state change.
+     *
+     * @param ohosAccountInfo ohos account information
+     * @param eventStr ohos account state change event
+     * @return true if the processing was completed, otherwise false
+     */
+    bool OhosAccountStateChange(const OhosAccountInfo &ohosAccountInfo, const std::string &eventStr);
 
 private:
     /**

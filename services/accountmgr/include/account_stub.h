@@ -35,10 +35,14 @@ public:
 private:
     std::int32_t InnerUpdateOhosAccountInfo(MessageParcel &data, MessageParcel &reply);
     std::int32_t CmdUpdateOhosAccountInfo(MessageParcel &data, MessageParcel &reply);
+    std::int32_t InnerSetOhosAccountInfo(MessageParcel &data, MessageParcel &reply);
     std::int32_t CmdSetOhosAccountInfo(MessageParcel &data, MessageParcel &reply);
+
+    std::int32_t InnerGetOhosAccountInfo(MessageParcel &data, MessageParcel &reply);
+    std::int32_t CmdGetOhosAccountInfo(MessageParcel &data, MessageParcel &reply);
     std::int32_t InnerQueryOhosAccountInfo(MessageParcel &data, MessageParcel &reply);
     std::int32_t CmdQueryOhosAccountInfo(MessageParcel &data, MessageParcel &reply);
-    std::int32_t CmdGetOhosAccountInfo(MessageParcel &data, MessageParcel &reply);
+    
     std::int32_t CmdQueryOhosQuitTips(MessageParcel &data, MessageParcel &reply);
     std::int32_t CmdQueryOhosAccountInfoByUserId(MessageParcel &data, MessageParcel &reply);
     std::int32_t CmdQueryDeviceAccountId(MessageParcel &data, MessageParcel &reply);

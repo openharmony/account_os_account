@@ -14,6 +14,7 @@
  */
 
 #include "account_stub.h"
+
 #include <dlfcn.h>
 #include <ipc_types.h>
 #include "accesstoken_kit.h"
@@ -28,7 +29,6 @@
 #include "ipc_skeleton.h"
 #include "iservice_registry.h"
 #include "ohos_account_kits.h"
-#include "string_ex.h"
 
 namespace OHOS {
 namespace AccountSA {
@@ -87,6 +87,28 @@ std::int32_t AccountStub::InnerUpdateOhosAccountInfo(MessageParcel &data, Messag
     return ret;
 }
 
+std::int32_t AccountStub::InnerSetOhosAccountInfo(MessageParcel &data, MessageParcel &reply)
+{
+    sptr<OhosAccountInfo> ohosAccountInfo = data.ReadParcelable<OhosAccountInfo>();
+    if (ohosAccountInfo == nullptr) {
+        ACCOUNT_LOGE("Read parcelable ohos account info failed");
+        return ERR_ACCOUNT_COMMON_READ_PARCEL_ERROR;
+    }
+    // ignore the real account name
+    const std::string eventStr = Str16ToStr8(data.ReadString16());
+
+    std::int32_t ret = SetOhosAccountInfo(*ohosAccountInfo, eventStr);
+    if (ret != ERR_OK) {
+        ACCOUNT_LOGE("Set ohos account info failed");
+        ret = ERR_ACCOUNT_ZIDL_ACCOUNT_STUB_ERROR;
+    }
+    if (!reply.WriteInt32(ret)) {
+        ACCOUNT_LOGE("Write result data failed");
+        ret = ERR_ACCOUNT_ZIDL_WRITE_RESULT_ERROR;
+    }
+    return ret;
+}
+
 std::int32_t AccountStub::CmdUpdateOhosAccountInfo(MessageParcel &data, MessageParcel &reply)
 {
     if (!HasAccountRequestPermission(PERMISSION_MANAGE_USERS)) {
@@ -104,7 +126,7 @@ std::int32_t AccountStub::CmdSetOhosAccountInfo(MessageParcel &data, MessageParc
         return ERR_ACCOUNT_ZIDL_CHECK_PERMISSION_ERROR;
     }
 
-    return InnerUpdateOhosAccountInfo(data, reply);
+    return InnerSetOhosAccountInfo(data, reply);
 }
 
 std::int32_t AccountStub::InnerQueryOhosAccountInfo(MessageParcel &data, MessageParcel &reply)
@@ -132,6 +154,21 @@ std::int32_t AccountStub::InnerQueryOhosAccountInfo(MessageParcel &data, Message
     return ERR_OK;
 }
 
+std::int32_t AccountStub::InnerGetOhosAccountInfo(MessageParcel &data, MessageParcel &reply)
+{
+    OhosAccountInfo ohosAccountInfo;
+    int ret = GetOhosAccountInfo(ohosAccountInfo);
+    if (ret != ERR_OK) {
+        ACCOUNT_LOGE("Get ohos account info failed");
+        return ERR_ACCOUNT_ZIDL_ACCOUNT_STUB_ERROR;
+    }
+    if (!reply.WriteParcelable(&ohosAccountInfo)) {
+        ACCOUNT_LOGE("Write parcelable ohos account info failed");
+        return ERR_ACCOUNT_COMMON_WRITE_PARCEL_ERROR;
+    }
+    return ERR_OK;
+}
+
 std::int32_t AccountStub::CmdQueryOhosAccountInfo(MessageParcel &data, MessageParcel &reply)
 {
     if (!HasAccountRequestPermission(PERMISSION_MANAGE_USERS) &&
@@ -152,7 +189,7 @@ std::int32_t AccountStub::CmdGetOhosAccountInfo(MessageParcel &data, MessageParc
         return ERR_ACCOUNT_ZIDL_CHECK_PERMISSION_ERROR;
     }
 
-    return InnerQueryOhosAccountInfo(data, reply);
+    return InnerGetOhosAccountInfo(data, reply);
 }
 
 std::int32_t AccountStub::CmdQueryOhosAccountInfoByUserId(MessageParcel &data, MessageParcel &reply)

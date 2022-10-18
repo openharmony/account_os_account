@@ -12,8 +12,6 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
-#include "ohos_account_data_deal.h"
 #include <cerrno>
 #include <fstream>
 #include <iostream>
@@ -27,15 +25,19 @@
 #include "directory_ex.h"
 #include "file_ex.h"
 #include "hisysevent_adapter.h"
+#include "ohos_account_data_deal.h"
 namespace OHOS {
 namespace AccountSA {
 namespace {
 const std::string ACCOUNT_CFG_FILE_NAME = "/account.json";
-const std::string DATADEAL_JSON_KEY_ACCOUNT_NAME = "account_name";
-const std::string DATADEAL_JSON_KEY_OPENID = "open_id";
+const std::string DATADEAL_JSON_KEY_OHOSACCOUNT_NAME = "account_name";
+const std::string DATADEAL_JSON_KEY_OHOSACCOUNT_UID = "open_id";
+const std::string DATADEAL_JSON_KEY_OHOSACCOUNT_STATUS = "bind_status";
+const std::string DATADEAL_JSON_KEY_OHOSACCOUNT_NICKNAME = "account_nickname";
+const std::string DATADEAL_JSON_KEY_OHOSACCOUNT_AVATAR = "account_avatar";
+const std::string DATADEAL_JSON_KEY_OHOSACCOUNT_SCALABLEDATA = "account_scalableData";
 const std::string DATADEAL_JSON_KEY_USERID = "user_id";
 const std::string DATADEAL_JSON_KEY_BIND_TIME = "bind_time";
-const std::string DATADEAL_JSON_KEY_STATUS = "bind_status";
 } // namespace
 
 OhosAccountDataDeal::OhosAccountDataDeal(const std::string &configFileDir) : configFileDir_(configFileDir)
@@ -84,7 +86,52 @@ ErrCode OhosAccountDataDeal::AccountInfoFromJson(AccountInfo &accountInfo, const
         ACCOUNT_LOGE("not init yet!");
         return ERR_ACCOUNT_DATADEAL_NOT_READY;
     }
+    return GetAccountInfo(accountInfo, userId);
+}
 
+ErrCode OhosAccountDataDeal::AccountInfoToJson(const AccountInfo &accountInfo) const
+{
+    if (!initOk_) {
+        ACCOUNT_LOGE("Not init ok");
+        return ERR_ACCOUNT_DATADEAL_NOT_READY;
+    }
+    return SaveAccountInfo(accountInfo);
+}
+
+int32_t OhosAccountDataDeal::SaveAccountInfo(const AccountInfo &accountInfo) const
+{
+    std::string scalableDataStr = (accountInfo.ohosAccountInfo_.scalableData_).ToString();
+    nlohmann::json jsonData = json {
+        {DATADEAL_JSON_KEY_BIND_TIME, accountInfo.bindTime_},
+        {DATADEAL_JSON_KEY_USERID, accountInfo.userId_},
+        {DATADEAL_JSON_KEY_OHOSACCOUNT_NAME, accountInfo.ohosAccountInfo_.name_},
+        {DATADEAL_JSON_KEY_OHOSACCOUNT_UID, accountInfo.ohosAccountInfo_.uid_},
+        {DATADEAL_JSON_KEY_OHOSACCOUNT_STATUS, accountInfo.ohosAccountInfo_.status_},
+        {DATADEAL_JSON_KEY_OHOSACCOUNT_NICKNAME, accountInfo.ohosAccountInfo_.nickname_},
+        {DATADEAL_JSON_KEY_OHOSACCOUNT_AVATAR, accountInfo.ohosAccountInfo_.avatar_},
+        {DATADEAL_JSON_KEY_OHOSACCOUNT_SCALABLEDATA, scalableDataStr}
+    };
+    std::string configFile = configFileDir_ + std::to_string(accountInfo.userId_) + ACCOUNT_CFG_FILE_NAME;
+    std::ofstream out(configFile);
+    if (!out) {
+        ACCOUNT_LOGE("Failed to open file %{public}s, errno %{public}d.", configFile.c_str(), errno);
+        ReportOhosAccountOperationFail(accountInfo.userId_, OPERATION_OPEN_FILE_TO_WRITE, errno, configFile);
+        return ERR_ACCOUNT_DATADEAL_FILE_PARSE_FAILED;
+    }
+    out << jsonData;
+    out.close();
+
+    // change mode
+    if (!ChangeModeFile(configFile, S_IRUSR | S_IWUSR)) {
+        ACCOUNT_LOGW("failed to change mode for file %{public}s, errno %{public}d.", configFile.c_str(), errno);
+        ReportOhosAccountOperationFail(accountInfo.userId_, OPERATION_CHANGE_MODE_FILE, errno, configFile);
+        return ERR_OHOSACCOUNT_SERVICE_FILE_CHANGE_DIR_MODE_ERROR;
+    }
+    return ERR_OK;
+}
+
+int32_t OhosAccountDataDeal::GetAccountInfo(AccountInfo &accountInfo, const std::int32_t userId)
+{
     std::string configFile = configFileDir_ + std::to_string(userId) + ACCOUNT_CFG_FILE_NAME;
     if (!FileExists(configFile)) {
         ACCOUNT_LOGI("file %{public}s not exist, create!", configFile.c_str());
@@ -110,62 +157,41 @@ ErrCode OhosAccountDataDeal::AccountInfoFromJson(AccountInfo &accountInfo, const
     }
 
     const auto &jsonObjectEnd = jsonData_.end();
-    if (jsonData_.find(DATADEAL_JSON_KEY_ACCOUNT_NAME) != jsonObjectEnd) {
-        accountInfo.ohosAccountName_ = jsonData_.at(DATADEAL_JSON_KEY_ACCOUNT_NAME).get<std::string>();
-    }
-
-    if (jsonData_.find(DATADEAL_JSON_KEY_OPENID) != jsonObjectEnd) {
-        accountInfo.ohosAccountUid_ = jsonData_.at(DATADEAL_JSON_KEY_OPENID).get<std::string>();
-    }
-
-    accountInfo.userId_ = userId;
-
     if (jsonData_.find(DATADEAL_JSON_KEY_BIND_TIME) != jsonObjectEnd) {
         accountInfo.bindTime_ = jsonData_.at(DATADEAL_JSON_KEY_BIND_TIME).get<std::time_t>();
     }
 
-    if (jsonData_.find(DATADEAL_JSON_KEY_STATUS) != jsonObjectEnd) {
-        accountInfo.ohosAccountStatus_ = jsonData_.at(DATADEAL_JSON_KEY_STATUS).get<std::int32_t>();
+    if (jsonData_.find(DATADEAL_JSON_KEY_OHOSACCOUNT_NAME) != jsonObjectEnd) {
+        accountInfo.ohosAccountInfo_.name_ = jsonData_.at(DATADEAL_JSON_KEY_OHOSACCOUNT_NAME).get<std::string>();
     }
 
+    if (jsonData_.find(DATADEAL_JSON_KEY_OHOSACCOUNT_UID) != jsonObjectEnd) {
+        accountInfo.ohosAccountInfo_.uid_ = jsonData_.at(DATADEAL_JSON_KEY_OHOSACCOUNT_UID).get<std::string>();
+    }
+
+    if (jsonData_.find(DATADEAL_JSON_KEY_OHOSACCOUNT_STATUS) != jsonObjectEnd) {
+        accountInfo.ohosAccountInfo_.status_ = jsonData_.at(DATADEAL_JSON_KEY_OHOSACCOUNT_STATUS).get<std::int32_t>();
+    }
+
+    if (jsonData_.find(DATADEAL_JSON_KEY_OHOSACCOUNT_NICKNAME) != jsonObjectEnd) {
+        accountInfo.ohosAccountInfo_.nickname_ =
+            jsonData_.at(DATADEAL_JSON_KEY_OHOSACCOUNT_NICKNAME).get<std::string>();
+    }
+
+    if (jsonData_.find(DATADEAL_JSON_KEY_OHOSACCOUNT_AVATAR) != jsonObjectEnd) {
+        accountInfo.ohosAccountInfo_.avatar_ = jsonData_.at(DATADEAL_JSON_KEY_OHOSACCOUNT_AVATAR).get<std::string>();
+    }
+
+    if (jsonData_.find(DATADEAL_JSON_KEY_OHOSACCOUNT_SCALABLEDATA) != jsonObjectEnd) {
+        auto scalableDataJson = jsonData_.at(DATADEAL_JSON_KEY_OHOSACCOUNT_SCALABLEDATA).get<std::string>();
+        sptr<AAFwk::Want> want = AAFwk::Want::FromString(scalableDataJson);
+        if (want == nullptr) {
+            return ERR_ACCOUNT_COMMON_NULL_PTR_ERROR;
+        }
+        accountInfo.ohosAccountInfo_.scalableData_ = *want;
+    }
+    accountInfo.userId_ = userId;
     return ERR_OK;
-}
-
-ErrCode OhosAccountDataDeal::AccountInfoToJson(const AccountInfo &accountInfo) const
-{
-    if (!initOk_) {
-        ACCOUNT_LOGE("Not init ok");
-        return ERR_ACCOUNT_DATADEAL_NOT_READY;
-    }
-
-    SaveAccountInfo(accountInfo);
-    return ERR_OK;
-}
-
-void OhosAccountDataDeal::SaveAccountInfo(const AccountInfo &accountInfo) const
-{
-    nlohmann::json jsonData = json {
-        {DATADEAL_JSON_KEY_BIND_TIME, accountInfo.bindTime_},
-        {DATADEAL_JSON_KEY_USERID, accountInfo.userId_},
-        {DATADEAL_JSON_KEY_OPENID, accountInfo.ohosAccountUid_},
-        {DATADEAL_JSON_KEY_ACCOUNT_NAME, accountInfo.ohosAccountName_},
-        {DATADEAL_JSON_KEY_STATUS, accountInfo.ohosAccountStatus_}
-    };
-    std::string configFile = configFileDir_ + std::to_string(accountInfo.userId_) + ACCOUNT_CFG_FILE_NAME;
-    std::ofstream out(configFile);
-    if (!out) {
-        ACCOUNT_LOGE("Failed to open file %{public}s, errno %{public}d.", configFile.c_str(), errno);
-        ReportOhosAccountOperationFail(accountInfo.userId_, OPERATION_OPEN_FILE_TO_WRITE, errno, configFile);
-        return;
-    }
-    out << jsonData;
-    out.close();
-
-    // change mode
-    if (!ChangeModeFile(configFile, S_IRUSR | S_IWUSR)) {
-        ACCOUNT_LOGW("failed to change mode for file %{public}s, errno %{public}d.", configFile.c_str(), errno);
-        ReportOhosAccountOperationFail(accountInfo.userId_, OPERATION_CHANGE_MODE_FILE, errno, configFile);
-    }
 }
 
 void OhosAccountDataDeal::BuildJsonFileFromScratch(std::int32_t userId) const
@@ -173,9 +199,9 @@ void OhosAccountDataDeal::BuildJsonFileFromScratch(std::int32_t userId) const
     AccountInfo accountInfo;
     accountInfo.userId_ = userId;
     accountInfo.bindTime_ = 0;
-    accountInfo.ohosAccountUid_ = DEFAULT_OHOS_ACCOUNT_UID;
-    accountInfo.ohosAccountName_ = DEFAULT_OHOS_ACCOUNT_NAME;
-    accountInfo.ohosAccountStatus_ = ACCOUNT_STATE_UNBOUND;
+    accountInfo.ohosAccountInfo_.uid_ = DEFAULT_OHOS_ACCOUNT_UID;
+    accountInfo.ohosAccountInfo_.name_ = DEFAULT_OHOS_ACCOUNT_NAME;
+    accountInfo.ohosAccountInfo_.status_ = ACCOUNT_STATE_UNBOUND;
     accountInfo.digest_ = "";
     SaveAccountInfo(accountInfo);
 }

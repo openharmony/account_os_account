@@ -21,6 +21,8 @@ ohos_shared_library("distributedaccount") {
     "//foundation/arkui/napi/interfaces/kits",
     "${os_account_path}/interfaces/kits/napi/common/include",
     "//base/useriam/user_auth_framework/interfaces/inner_api",
+    "${os_account_path}/interfaces/innerkits/ohosaccount/native/include",
+    "${os_account_path}/interfaces/innerkits/osaccount/native/include",
   ]
 
   cflags = [
@@ -49,12 +51,18 @@ ohos_shared_library("distributedaccount") {
     "LOG_DOMAIN = 0xD001B00",
   ]
 
-  deps = [ "//foundation/arkui/napi/:ace_napi" ]
+  deps = [
+    "${ability_runtime_napi_path}/inner/napi_common:napi_common",
+    "//foundation/arkui/napi/:ace_napi",
+  ]
 
   relative_install_dir = "module/account"
 
   subsystem_name = "account"
   external_deps = [
+    "ability_base:want",
+    "ability_runtime:abilitykit_native",
+    "ability_runtime:wantagent_innerkits",
     "c_utils:utils",
     "hiviewdfx_hilog_native:libhilog",
     "os_account:libaccountkits",
