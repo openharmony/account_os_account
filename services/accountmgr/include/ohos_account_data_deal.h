@@ -30,6 +30,7 @@ class OhosAccountDataDeal {
 public:
     explicit OhosAccountDataDeal(const std::string &configFileDir);
     ErrCode Init(std::int32_t userId);
+
     ErrCode AccountInfoFromJson(AccountInfo &accountInfo, const std::int32_t userId);
     ErrCode AccountInfoToJson(const AccountInfo &accountInfo) const;
     ~OhosAccountDataDeal() {}
@@ -40,7 +41,8 @@ private:
     std::mutex mutex_;
     nlohmann::json jsonData_;
     void BuildJsonFileFromScratch(std::int32_t userId) const;
-    void SaveAccountInfo(const AccountInfo &accountInfo) const;
+    int32_t SaveAccountInfo(const AccountInfo &accountInfo) const;
+    int32_t GetAccountInfo(AccountInfo &accountInfo, const std::int32_t userId);
 };
 }  // namespace AccountSA
 }  // namespace OHOS

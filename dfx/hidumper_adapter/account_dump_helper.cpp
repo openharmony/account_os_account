@@ -140,11 +140,11 @@ void AccountDumpHelper::ShowOhosAccountInfo(std::string& result) const
         result.append("     Bind local user id: ");
         result.append(std::to_string(accountInfo.userId_) + "\n");
         result.append("          OhosAccount name     : ");
-        result.append(AnonymizeNameStr(accountInfo.ohosAccountName_) + "\n");
+        result.append(AnonymizeNameStr(accountInfo.ohosAccountInfo_.name_) + "\n");
         result.append("          OhosAccount uid      : ");
-        result.append(AnonymizeUidStr(accountInfo.ohosAccountUid_) + "\n");
+        result.append(AnonymizeUidStr(accountInfo.ohosAccountInfo_.uid_) + "\n");
         result.append("          OhosAccount status   : ");
-        result.append(std::to_string(accountInfo.ohosAccountStatus_) + "\n");
+        result.append(std::to_string(accountInfo.ohosAccountInfo_.status_) + "\n");
         result.append("          OhosAccount bind time: ");
         result.append(std::to_string(accountInfo.bindTime_) + "\n");
     }
