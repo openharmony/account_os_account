@@ -25,6 +25,24 @@
 
 namespace OHOS {
 namespace AccountSA {
+static ErrCode CheckInvalidLocalId(int localId)
+{
+    if (localId > Constants::MAX_USER_ID) {
+        ACCOUNT_LOGE("id %{public}d is out of range", localId);
+        return ERR_OSACCOUNT_KIT_LOCAL_ID_INVALID_ERROR;
+    }
+    return ERR_OK;
+}
+
+static ErrCode CheckLocalId(int localId)
+{
+    if (localId < Constants::START_USER_ID) {
+        ACCOUNT_LOGE("id %{public}d is system reserved", localId);
+        return ERR_OSACCOUNT_SERVICE_MANAGER_ID_ERROR;
+    }
+    return CheckInvalidLocalId(localId);
+}
+
 ErrCode OsAccount::CreateOsAccount(const std::string &name, const OsAccountType &type, OsAccountInfo &osAccountInfo)
 {
     if (name.size() > Constants::LOCAL_NAME_MAX_SIZE) {
@@ -70,8 +88,12 @@ ErrCode OsAccount::CreateOsAccountForDomain(
 
 ErrCode OsAccount::RemoveOsAccount(const int id)
 {
-    if (id < Constants::START_USER_ID || id > Constants::MAX_USER_ID) {
-        ACCOUNT_LOGE("localId is out of range");
+    if (id <= Constants::START_USER_ID) {
+        ACCOUNT_LOGE("cannot remove system preinstalled user");
+        return ERR_OSACCOUNT_SERVICE_MANAGER_ID_ERROR;
+    }
+    if (id > Constants::MAX_USER_ID) {
+        ACCOUNT_LOGE("localId %{public}d is out of range", id);
         return ERR_OSACCOUNT_KIT_LOCAL_ID_INVALID_ERROR;
     }
     ErrCode result = GetOsAccountProxy();
@@ -85,11 +107,12 @@ ErrCode OsAccount::RemoveOsAccount(const int id)
 
 ErrCode OsAccount::IsOsAccountExists(const int id, bool &isOsAccountExists)
 {
-    if (id < Constants::START_USER_ID || id > Constants::MAX_USER_ID) {
-        ACCOUNT_LOGE("localId is out of range");
-        return ERR_OSACCOUNT_KIT_LOCAL_ID_INVALID_ERROR;
+    isOsAccountExists = false;
+    ErrCode result = CheckLocalId(id);
+    if (result != ERR_OK) {
+        return result;
     }
-    ErrCode result = GetOsAccountProxy();
+    result = GetOsAccountProxy();
     if (result != ERR_OK) {
         ACCOUNT_LOGE("failed to get osAccountProxy_, result %{public}d.", result);
         return result;
@@ -100,11 +123,12 @@ ErrCode OsAccount::IsOsAccountExists(const int id, bool &isOsAccountExists)
 
 ErrCode OsAccount::IsOsAccountActived(const int id, bool &isOsAccountActived)
 {
-    if (id < Constants::START_USER_ID || id > Constants::MAX_USER_ID) {
-        ACCOUNT_LOGE("localId is out of range");
-        return ERR_OSACCOUNT_KIT_LOCAL_ID_INVALID_ERROR;
+    isOsAccountActived = false;
+    ErrCode result = CheckInvalidLocalId(id);
+    if (result != ERR_OK) {
+        return result;
     }
-    ErrCode result = GetOsAccountProxy();
+    result = GetOsAccountProxy();
     if (result != ERR_OK) {
         ACCOUNT_LOGE("failed to get osAccountProxy_, result %{public}d.", result);
         return result;
@@ -115,11 +139,12 @@ ErrCode OsAccount::IsOsAccountActived(const int id, bool &isOsAccountActived)
 
 ErrCode OsAccount::IsOsAccountConstraintEnable(const int id, const std::string &constraint, bool &isConstraintEnable)
 {
-    if (id < Constants::START_USER_ID || id > Constants::MAX_USER_ID) {
-        ACCOUNT_LOGE("localId is out of range");
-        return ERR_OSACCOUNT_KIT_LOCAL_ID_INVALID_ERROR;
+    isConstraintEnable = false;
+    ErrCode result = CheckLocalId(id);
+    if (result != ERR_OK) {
+        return result;
     }
-    ErrCode result = GetOsAccountProxy();
+    result = GetOsAccountProxy();
     if (result != ERR_OK) {
         ACCOUNT_LOGE("failed to get osAccountProxy_, result %{public}d.", result);
         return result;
@@ -130,11 +155,12 @@ ErrCode OsAccount::IsOsAccountConstraintEnable(const int id, const std::string &
 
 ErrCode OsAccount::IsOsAccountVerified(const int id, bool &isVerified)
 {
-    if (id < Constants::START_USER_ID || id > Constants::MAX_USER_ID) {
-        ACCOUNT_LOGE("localId is out of range");
-        return ERR_OSACCOUNT_KIT_LOCAL_ID_INVALID_ERROR;
+    isVerified = false;
+    ErrCode result = CheckInvalidLocalId(id);
+    if (result != ERR_OK) {
+        return result;
     }
-    ErrCode result = GetOsAccountProxy();
+    result = GetOsAccountProxy();
     if (result != ERR_OK) {
         ACCOUNT_LOGE("failed to get osAccountProxy_, result %{public}d.", result);
         return result;
@@ -167,6 +193,7 @@ ErrCode OsAccount::GetOsAccountLocalIdFromProcess(int &id)
 
 ErrCode OsAccount::IsMainOsAccount(bool &isMainOsAccount)
 {
+    isMainOsAccount = false;
     ErrCode result = GetOsAccountProxy();
     if (result != ERR_OK) {
         ACCOUNT_LOGE("failed to get osAccountProxy_, result %{public}d.", result);
@@ -212,11 +239,11 @@ ErrCode OsAccount::QueryMaxOsAccountNumber(int &maxOsAccountNumber)
 
 ErrCode OsAccount::GetOsAccountAllConstraints(const int id, std::vector<std::string> &constraints)
 {
-    if (id < Constants::START_USER_ID || id > Constants::MAX_USER_ID) {
-        ACCOUNT_LOGE("localId is out of range");
-        return ERR_OSACCOUNT_KIT_LOCAL_ID_INVALID_ERROR;
+    ErrCode result = CheckInvalidLocalId(id);
+    if (result != ERR_OK) {
+        return result;
     }
-    ErrCode result = GetOsAccountProxy();
+    result = GetOsAccountProxy();
     if (result != ERR_OK) {
         ACCOUNT_LOGE("failed to get osAccountProxy_, result %{public}d.", result);
         return result;
@@ -249,11 +276,11 @@ ErrCode OsAccount::QueryCurrentOsAccount(OsAccountInfo &osAccountInfo)
 
 ErrCode OsAccount::QueryOsAccountById(const int id, OsAccountInfo &osAccountInfo)
 {
-    if (id < Constants::START_USER_ID || id > Constants::MAX_USER_ID) {
-        ACCOUNT_LOGE("localId is out of range");
-        return ERR_OSACCOUNT_KIT_LOCAL_ID_INVALID_ERROR;
+    ErrCode result = CheckLocalId(id);
+    if (result != ERR_OK) {
+        return result;
     }
-    ErrCode result = GetOsAccountProxy();
+    result = GetOsAccountProxy();
     if (result != ERR_OK) {
         ACCOUNT_LOGE("failed to get osAccountProxy_, result %{public}d.", result);
         return result;
@@ -275,11 +302,11 @@ ErrCode OsAccount::GetOsAccountTypeFromProcess(OsAccountType &type)
 
 ErrCode OsAccount::GetOsAccountProfilePhoto(const int id, std::string &photo)
 {
-    if (id < Constants::START_USER_ID || id > Constants::MAX_USER_ID) {
-        ACCOUNT_LOGE("localId is out of range");
-        return ERR_OSACCOUNT_KIT_LOCAL_ID_INVALID_ERROR;
+    ErrCode result = CheckLocalId(id);
+    if (result != ERR_OK) {
+        return result;
     }
-    ErrCode result = GetOsAccountProxy();
+    result = GetOsAccountProxy();
     if (result != ERR_OK) {
         ACCOUNT_LOGE("failed to get osAccountProxy_, result %{public}d.", result);
         return result;
@@ -290,6 +317,7 @@ ErrCode OsAccount::GetOsAccountProfilePhoto(const int id, std::string &photo)
 
 ErrCode OsAccount::IsMultiOsAccountEnable(bool &isMultiOsAccountEnable)
 {
+    isMultiOsAccountEnable = false;
     ErrCode result = GetOsAccountProxy();
     if (result != ERR_OK) {
         ACCOUNT_LOGE("failed to get osAccountProxy_, result %{public}d.", result);
@@ -301,9 +329,9 @@ ErrCode OsAccount::IsMultiOsAccountEnable(bool &isMultiOsAccountEnable)
 
 ErrCode OsAccount::SetOsAccountName(const int id, const std::string &localName)
 {
-    if (id < Constants::START_USER_ID || id > Constants::MAX_USER_ID) {
-        ACCOUNT_LOGE("localId is out of range");
-        return ERR_OSACCOUNT_KIT_LOCAL_ID_INVALID_ERROR;
+    ErrCode result = CheckLocalId(id);
+    if (result != ERR_OK) {
+        return result;
     }
     if (localName.size() > Constants::LOCAL_NAME_MAX_SIZE) {
         ACCOUNT_LOGE("name length %{public}zu too long!", localName.size());
@@ -313,7 +341,7 @@ ErrCode OsAccount::SetOsAccountName(const int id, const std::string &localName)
         ACCOUNT_LOGE("name is empty!");
         return ERR_OSACCOUNT_KIT_LOCAL_NAME_EMPTY_ERROR;
     }
-    ErrCode result = GetOsAccountProxy();
+    result = GetOsAccountProxy();
     if (result != ERR_OK) {
         ACCOUNT_LOGE("failed to get osAccountProxy_, result %{public}d.", result);
         return result;
@@ -325,11 +353,11 @@ ErrCode OsAccount::SetOsAccountName(const int id, const std::string &localName)
 ErrCode OsAccount::SetOsAccountConstraints(
     const int id, const std::vector<std::string> &constraints, const bool enable)
 {
-    if (id < Constants::START_USER_ID || id > Constants::MAX_USER_ID) {
-        ACCOUNT_LOGE("localId is out of range");
-        return ERR_OSACCOUNT_KIT_LOCAL_ID_INVALID_ERROR;
+    ErrCode result = CheckLocalId(id);
+    if (result != ERR_OK) {
+        return result;
     }
-    ErrCode result = GetOsAccountProxy();
+    result = GetOsAccountProxy();
     if (result != ERR_OK) {
         ACCOUNT_LOGE("failed to get osAccountProxy_, result %{public}d.", result);
         return result;
@@ -340,15 +368,15 @@ ErrCode OsAccount::SetOsAccountConstraints(
 
 ErrCode OsAccount::SetOsAccountProfilePhoto(const int id, const std::string &photo)
 {
-    if (id < Constants::START_USER_ID || id > Constants::MAX_USER_ID) {
-        ACCOUNT_LOGE("localId is out of range");
-        return ERR_OSACCOUNT_KIT_LOCAL_ID_INVALID_ERROR;
+    ErrCode result = CheckLocalId(id);
+    if (result != ERR_OK) {
+        return result;
     }
     if (photo.size() > Constants::LOCAL_PHOTO_MAX_SIZE) {
         ACCOUNT_LOGE("photo size %{public}zu too long!", photo.size());
         return ERR_OSACCOUNT_KIT_PHOTO_OUTFLOW_ERROR;
     }
-    ErrCode result = GetOsAccountProxy();
+    result = GetOsAccountProxy();
     if (result != ERR_OK) {
         ACCOUNT_LOGE("failed to get osAccountProxy_, result %{public}d.", result);
         return result;
@@ -372,11 +400,11 @@ ErrCode OsAccount::GetDistributedVirtualDeviceId(std::string &deviceId)
 
 ErrCode OsAccount::ActivateOsAccount(const int id)
 {
-    if (id < Constants::START_USER_ID || id > Constants::MAX_USER_ID) {
-        ACCOUNT_LOGE("localId is out of range");
-        return ERR_OSACCOUNT_KIT_LOCAL_ID_INVALID_ERROR;
+    ErrCode result = CheckLocalId(id);
+    if (result != ERR_OK) {
+        return result;
     }
-    ErrCode result = GetOsAccountProxy();
+    result = GetOsAccountProxy();
     if (result != ERR_OK) {
         ACCOUNT_LOGE("failed to get osAccountProxy_, result %{public}d.", result);
         return result;
@@ -387,11 +415,11 @@ ErrCode OsAccount::ActivateOsAccount(const int id)
 
 ErrCode OsAccount::StartOsAccount(const int id)
 {
-    if (id < Constants::START_USER_ID || id > Constants::MAX_USER_ID) {
-        ACCOUNT_LOGE("localId is out of range");
-        return ERR_OSACCOUNT_KIT_LOCAL_ID_INVALID_ERROR;
+    ErrCode result = CheckLocalId(id);
+    if (result != ERR_OK) {
+        return result;
     }
-    ErrCode result = GetOsAccountProxy();
+    result = GetOsAccountProxy();
     if (result != ERR_OK) {
         ACCOUNT_LOGE("failed to get osAccountProxy_, result %{public}d.", result);
         return result;
@@ -402,11 +430,11 @@ ErrCode OsAccount::StartOsAccount(const int id)
 
 ErrCode OsAccount::StopOsAccount(const int id)
 {
-    if (id < Constants::START_USER_ID || id > Constants::MAX_USER_ID) {
-        ACCOUNT_LOGE("localId is out of range");
-        return ERR_OSACCOUNT_KIT_LOCAL_ID_INVALID_ERROR;
+    ErrCode result = CheckLocalId(id);
+    if (result != ERR_OK) {
+        return result;
     }
-    ErrCode result = GetOsAccountProxy();
+    result = GetOsAccountProxy();
     if (result != ERR_OK) {
         ACCOUNT_LOGE("failed to get osAccountProxy_, result %{public}d.", result);
         return result;
@@ -426,7 +454,11 @@ ErrCode OsAccount::GetOsAccountLocalIdBySerialNumber(const int64_t serialNumber,
 
 ErrCode OsAccount::GetSerialNumberByOsAccountLocalId(const int &id, int64_t &serialNumber)
 {
-    ErrCode result = GetOsAccountProxy();
+    ErrCode result = CheckInvalidLocalId(id);
+    if (result != ERR_OK) {
+        return result;
+    }
+    result = GetOsAccountProxy();
     if (result != ERR_OK) {
         ACCOUNT_LOGE("failed to get osAccountProxy_, result %{public}d.", result);
         return result;
@@ -537,6 +569,7 @@ ErrCode OsAccount::ResetOsAccountProxy()
 
 ErrCode OsAccount::IsCurrentOsAccountVerified(bool &isVerified)
 {
+    isVerified = false;
     ErrCode result = GetOsAccountProxy();
     if (result != ERR_OK) {
         ACCOUNT_LOGE("failed to get osAccountProxy_, result %{public}d.", result);
@@ -547,11 +580,12 @@ ErrCode OsAccount::IsCurrentOsAccountVerified(bool &isVerified)
 
 ErrCode OsAccount::IsOsAccountCompleted(const int id, bool &isOsAccountCompleted)
 {
-    if (id < Constants::START_USER_ID || id > Constants::MAX_USER_ID) {
-        ACCOUNT_LOGE("localId is out of range");
-        return ERR_OSACCOUNT_KIT_LOCAL_ID_INVALID_ERROR;
+    isOsAccountCompleted = false;
+    ErrCode result = CheckLocalId(id);
+    if (result != ERR_OK) {
+        return result;
     }
-    ErrCode result = GetOsAccountProxy();
+    result = GetOsAccountProxy();
     if (result != ERR_OK) {
         ACCOUNT_LOGE("failed to get osAccountProxy_, result %{public}d.", result);
         return result;
@@ -571,11 +605,11 @@ ErrCode OsAccount::SetCurrentOsAccountIsVerified(const bool isVerified)
 
 ErrCode OsAccount::SetOsAccountIsVerified(const int id, const bool isVerified)
 {
-    if (id < Constants::START_USER_ID || id > Constants::MAX_USER_ID) {
-        ACCOUNT_LOGE("localId is out of range");
-        return ERR_OSACCOUNT_KIT_LOCAL_ID_INVALID_ERROR;
+    ErrCode result = CheckLocalId(id);
+    if (result != ERR_OK) {
+        return result;
     }
-    ErrCode result = GetOsAccountProxy();
+    result = GetOsAccountProxy();
     if (result != ERR_OK) {
         ACCOUNT_LOGE("failed to get osAccountProxy_, result %{public}d.", result);
         return result;
@@ -700,11 +734,11 @@ ErrCode OsAccount::GetMaxAllowCreateIdFromDatabase(const std::string& storeID, i
 
 ErrCode OsAccount::GetOsAccountFromDatabase(const std::string& storeID, const int id, OsAccountInfo &osAccountInfo)
 {
-    if (id < Constants::START_USER_ID || id > Constants::MAX_USER_ID) {
-        ACCOUNT_LOGE("localId is out of range");
-        return ERR_OSACCOUNT_KIT_LOCAL_ID_INVALID_ERROR;
+    ErrCode result = CheckLocalId(id);
+    if (result != ERR_OK) {
+        return result;
     }
-    ErrCode result = GetOsAccountProxy();
+    result = GetOsAccountProxy();
     if (result != ERR_OK) {
         ACCOUNT_LOGE("failed to get osAccountProxy_, result %{public}d.", result);
         return result;
