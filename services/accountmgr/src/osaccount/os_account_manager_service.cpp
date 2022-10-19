@@ -45,6 +45,24 @@ std::string AnonymizeNameStr(const std::string& nameStr)
     std::string retStr = nameStr.substr(0, INTERCEPT_HEAD_PART_LEN_FOR_NAME) + DEFAULT_ANON_STR;
     return retStr;
 }
+
+ErrCode CheckInvalidLocalId(int localId)
+{
+    if (localId > Constants::MAX_USER_ID) {
+        ACCOUNT_LOGE("id %{public}d is out of range", localId);
+        return ERR_OSACCOUNT_KIT_LOCAL_ID_INVALID_ERROR;
+    }
+    return ERR_OK;
+}
+
+ErrCode CheckLocalId(int localId)
+{
+    if (localId < Constants::START_USER_ID) {
+        ACCOUNT_LOGE("id %{public}d is system reserved", localId);
+        return ERR_OSACCOUNT_SERVICE_MANAGER_ID_ERROR;
+    }
+    return CheckInvalidLocalId(localId);
+}
 }  // namespace
 
 OsAccountManagerService::OsAccountManagerService()
@@ -132,16 +150,20 @@ ErrCode OsAccountManagerService::CreateOsAccountForDomain(
 
 ErrCode OsAccountManagerService::RemoveOsAccount(const int id)
 {
+    // parameters check
+    if (id <= Constants::START_USER_ID) {
+        ACCOUNT_LOGE("cannot remove system preinstalled user");
+        return ERR_OSACCOUNT_SERVICE_MANAGER_ID_ERROR;
+    }
+    if (id > Constants::MAX_USER_ID) {
+        ACCOUNT_LOGE("localId %{public}d is out of range", id);
+        return ERR_OSACCOUNT_KIT_LOCAL_ID_INVALID_ERROR;
+    }
+
     // permission check
     if (!PermissionCheck(AccountPermissionManager::MANAGE_LOCAL_ACCOUNTS, CONSTANT_REMOVE)) {
         ACCOUNT_LOGE("account manager service, permission denied!");
         return ERR_OSACCOUNT_SERVICE_PERMISSION_DENIED;
-    }
-
-    // parameters check
-    if (id <= Constants::START_USER_ID) {
-        ACCOUNT_LOGE("cannot remove system preinstalled user!");
-        return ERR_OSACCOUNT_SERVICE_MANAGER_ID_ERROR;
     }
 
     return innerManager_->RemoveOsAccount(id);
@@ -154,6 +176,11 @@ ErrCode OsAccountManagerService::IsOsAccountExists(const int id, bool &isOsAccou
 
 ErrCode OsAccountManagerService::IsOsAccountActived(const int id, bool &isOsAccountActived)
 {
+    ErrCode res = CheckInvalidLocalId(id);
+    if (res != ERR_OK) {
+        return res;
+    }
+
     // check current account state
     int callerUserId = IPCSkeleton::GetCallingUid() / UID_TRANSFORM_DIVISOR;
     if (callerUserId == id) {
@@ -173,6 +200,10 @@ ErrCode OsAccountManagerService::IsOsAccountActived(const int id, bool &isOsAcco
 ErrCode OsAccountManagerService::IsOsAccountConstraintEnable(
     const int id, const std::string &constraint, bool &isConstraintEnable)
 {
+    ErrCode res = CheckLocalId(id);
+    if (res != ERR_OK) {
+        return res;
+    }
     // permission check
     if (!PermissionCheck(AccountPermissionManager::MANAGE_LOCAL_ACCOUNTS, "")) {
         ACCOUNT_LOGE("account manager service, permission denied!");
@@ -184,6 +215,10 @@ ErrCode OsAccountManagerService::IsOsAccountConstraintEnable(
 
 ErrCode OsAccountManagerService::IsOsAccountVerified(const int id, bool &isVerified)
 {
+    ErrCode res = CheckInvalidLocalId(id);
+    if (res != ERR_OK) {
+        return res;
+    }
     // check current account state
     int callerUserId = IPCSkeleton::GetCallingUid() / UID_TRANSFORM_DIVISOR;
     if (callerUserId == id) {
@@ -233,6 +268,15 @@ ErrCode OsAccountManagerService::IsMainOsAccount(bool &isMainOsAccount)
 
 ErrCode OsAccountManagerService::GetOsAccountLocalIdFromDomain(const DomainAccountInfo &domainInfo, int &id)
 {
+    if (domainInfo.domain_.empty() || domainInfo.domain_.size() > Constants::DOMAIN_NAME_MAX_SIZE) {
+        ACCOUNT_LOGE("domain name length invalid. length %{public}zu.", domainInfo.domain_.size());
+        return ERR_OSACCOUNT_KIT_DOMAIN_NAME_LENGTH_INVALID_ERROR;
+    }
+
+    if (domainInfo.accountName_.empty() || domainInfo.accountName_.size() > Constants::DOMAIN_ACCOUNT_NAME_MAX_SIZE) {
+        ACCOUNT_LOGE("accountName length invalid. length %{public}zu.", domainInfo.accountName_.size());
+        return ERR_OSACCOUNT_KIT_DOMAIN_ACCOUNT_NAME_LENGTH_INVALID_ERROR;
+    }
     // permission check
     if (!PermissionCheck(AccountPermissionManager::MANAGE_LOCAL_ACCOUNTS, "")) {
         ACCOUNT_LOGE("account manager service, permission denied!");
@@ -249,6 +293,10 @@ ErrCode OsAccountManagerService::QueryMaxOsAccountNumber(int &maxOsAccountNumber
 
 ErrCode OsAccountManagerService::GetOsAccountAllConstraints(const int id, std::vector<std::string> &constraints)
 {
+    ErrCode res = CheckInvalidLocalId(id);
+    if (res != ERR_OK) {
+        return res;
+    }
     // permission check
     if (!PermissionCheck(AccountPermissionManager::MANAGE_LOCAL_ACCOUNTS, "")) {
         ACCOUNT_LOGE("account manager service, permission denied!");
@@ -283,6 +331,11 @@ ErrCode OsAccountManagerService::QueryCurrentOsAccount(OsAccountInfo &osAccountI
 
 ErrCode OsAccountManagerService::QueryOsAccountById(const int id, OsAccountInfo &osAccountInfo)
 {
+    // parameters check
+    ErrCode res = CheckLocalId(id);
+    if (res != ERR_OK) {
+        return res;
+    }
     // permission check
     if (!PermissionCheck(AccountPermissionManager::MANAGE_LOCAL_ACCOUNTS, "") &&
         !PermissionCheck(AccountPermissionManager::INTERACT_ACROSS_LOCAL_ACCOUNTS_EXTENSION, "")) {
@@ -301,6 +354,10 @@ ErrCode OsAccountManagerService::GetOsAccountTypeFromProcess(OsAccountType &type
 
 ErrCode OsAccountManagerService::GetOsAccountProfilePhoto(const int id, std::string &photo)
 {
+    ErrCode result = CheckLocalId(id);
+    if (result != ERR_OK) {
+        return result;
+    }
     // get current account photo
     int callerUserId = IPCSkeleton::GetCallingUid() / UID_TRANSFORM_DIVISOR;
     if (callerUserId == id) {
@@ -323,13 +380,11 @@ ErrCode OsAccountManagerService::IsMultiOsAccountEnable(bool &isMultiOsAccountEn
 
 ErrCode OsAccountManagerService::SetOsAccountName(const int id, const std::string &name)
 {
-    // permission check
-    if (!PermissionCheck(AccountPermissionManager::MANAGE_LOCAL_ACCOUNTS, "")) {
-        ACCOUNT_LOGE("account manager service, permission denied!");
-        return ERR_OSACCOUNT_SERVICE_PERMISSION_DENIED;
-    }
-
     // parameters check
+    ErrCode res = CheckLocalId(id);
+    if (res != ERR_OK) {
+        return res;
+    }
     if (name.size() > Constants::LOCAL_NAME_MAX_SIZE) {
         ACCOUNT_LOGE("set os account name is out of allowed size");
         return ERR_OSACCOUNT_SERVICE_MANAGER_NAME_SIZE_OVERFLOW_ERROR;
@@ -338,26 +393,28 @@ ErrCode OsAccountManagerService::SetOsAccountName(const int id, const std::strin
         ACCOUNT_LOGE("os account name is empty");
         return ERR_OSACCOUNT_SERVICE_MANAGER_NAME_SIZE_EMPTY_ERROR;
     }
-    if (id < Constants::START_USER_ID) {
-        ACCOUNT_LOGE("invalid input id %{public}d.", id);
-        return ERR_OSACCOUNT_SERVICE_MANAGER_ID_ERROR;
-    }
-    return innerManager_->SetOsAccountName(id, name);
-}
 
-ErrCode OsAccountManagerService::SetOsAccountConstraints(
-    const int id, const std::vector<std::string> &constraints, const bool enable)
-{
     // permission check
     if (!PermissionCheck(AccountPermissionManager::MANAGE_LOCAL_ACCOUNTS, "")) {
         ACCOUNT_LOGE("account manager service, permission denied!");
         return ERR_OSACCOUNT_SERVICE_PERMISSION_DENIED;
     }
 
-    // parameters check
-    if (id < Constants::START_USER_ID) {
-        ACCOUNT_LOGE("invalid input account id %{public}d.", id);
-        return ERR_OSACCOUNT_SERVICE_MANAGER_ID_ERROR;
+    return innerManager_->SetOsAccountName(id, name);
+}
+
+ErrCode OsAccountManagerService::SetOsAccountConstraints(
+    const int id, const std::vector<std::string> &constraints, const bool enable)
+{
+    ErrCode res = CheckLocalId(id);
+    if (res != ERR_OK) {
+        return res;
+    }
+
+    // permission check
+    if (!PermissionCheck(AccountPermissionManager::MANAGE_LOCAL_ACCOUNTS, "")) {
+        ACCOUNT_LOGE("account manager service, permission denied!");
+        return ERR_OSACCOUNT_SERVICE_PERMISSION_DENIED;
     }
 
     return innerManager_->SetBaseOsAccountConstraints(id, constraints, enable);
@@ -365,20 +422,20 @@ ErrCode OsAccountManagerService::SetOsAccountConstraints(
 
 ErrCode OsAccountManagerService::SetOsAccountProfilePhoto(const int id, const std::string &photo)
 {
-    // permission check
-    if (!PermissionCheck(AccountPermissionManager::MANAGE_LOCAL_ACCOUNTS, CONSTANT_SET_ICON)) {
-        ACCOUNT_LOGE("account manager service, permission denied!");
-        return ERR_OSACCOUNT_SERVICE_PERMISSION_DENIED;
-    }
-
     // parameters check
-    if (id < Constants::START_USER_ID) {
-        ACCOUNT_LOGE("invalid input id %{public}d.", id);
-        return ERR_OSACCOUNT_SERVICE_MANAGER_ID_ERROR;
+    ErrCode res = CheckLocalId(id);
+    if (res != ERR_OK) {
+        return res;
     }
     if (photo.size() > Constants::LOCAL_PHOTO_MAX_SIZE) {
         ACCOUNT_LOGE("photo out of allowed size");
         return ERR_OSACCOUNT_SERVICE_MANAGER_PHOTO_SIZE_OVERFLOW_ERROR;
+    }
+
+    // permission check
+    if (!PermissionCheck(AccountPermissionManager::MANAGE_LOCAL_ACCOUNTS, CONSTANT_SET_ICON)) {
+        ACCOUNT_LOGE("account manager service, permission denied!");
+        return ERR_OSACCOUNT_SERVICE_PERMISSION_DENIED;
     }
 
     return innerManager_->SetOsAccountProfilePhoto(id, photo);
@@ -386,16 +443,16 @@ ErrCode OsAccountManagerService::SetOsAccountProfilePhoto(const int id, const st
 
 ErrCode OsAccountManagerService::ActivateOsAccount(const int id)
 {
+    // parameters check
+    ErrCode res = CheckLocalId(id);
+    if (res != ERR_OK) {
+        return res;
+    }
+
     // permission check
     if (!PermissionCheck(AccountPermissionManager::INTERACT_ACROSS_LOCAL_ACCOUNTS_EXTENSION, CONSTANT_START)) {
         ACCOUNT_LOGE("account manager service, permission denied!");
         return ERR_OSACCOUNT_SERVICE_PERMISSION_DENIED;
-    }
-
-    // parameters check
-    if (id < Constants::START_USER_ID) {
-        ACCOUNT_LOGE("invalid input id %{public}d.", id);
-        return ERR_OSACCOUNT_SERVICE_MANAGER_ID_ERROR;
     }
 
     return innerManager_->ActivateOsAccount(id);
@@ -441,6 +498,10 @@ ErrCode OsAccountManagerService::GetOsAccountLocalIdBySerialNumber(const int64_t
 
 ErrCode OsAccountManagerService::GetSerialNumberByOsAccountLocalId(const int &id, int64_t &serialNumber)
 {
+    ErrCode result = CheckInvalidLocalId(id);
+    if (result != ERR_OK) {
+        return result;
+    }
     return innerManager_->GetSerialNumberByOsAccountLocalId(id, serialNumber);
 }
 
@@ -470,9 +531,9 @@ ErrCode OsAccountManagerService::SetCurrentOsAccountIsVerified(const bool isVeri
 
     // parameters check
     int id = IPCSkeleton::GetCallingUid() / UID_TRANSFORM_DIVISOR;
-    if (id < Constants::START_USER_ID) {
-        ACCOUNT_LOGE("invalid input id %{public}d.", id);
-        return ERR_OSACCOUNT_SERVICE_MANAGER_ID_ERROR;
+    ErrCode res = CheckLocalId(id);
+    if (res != ERR_OK) {
+        return res;
     }
 
     return innerManager_->SetOsAccountIsVerified(id, isVerified);
@@ -480,17 +541,18 @@ ErrCode OsAccountManagerService::SetCurrentOsAccountIsVerified(const bool isVeri
 
 ErrCode OsAccountManagerService::SetOsAccountIsVerified(const int id, const bool isVerified)
 {
+    // parameters check
+    ErrCode res = CheckLocalId(id);
+    if (res != ERR_OK) {
+        return res;
+    }
+
     // permission check
     if (!PermissionCheck(AccountPermissionManager::MANAGE_LOCAL_ACCOUNTS, "")) {
         ACCOUNT_LOGE("account manager service, permission denied!");
         return ERR_OSACCOUNT_SERVICE_PERMISSION_DENIED;
     }
 
-    // parameters check
-    if (id < Constants::START_USER_ID) {
-        ACCOUNT_LOGE("invalid input id %{public}d.", id);
-        return ERR_OSACCOUNT_SERVICE_MANAGER_ID_ERROR;
-    }
     return innerManager_->SetOsAccountIsVerified(id, isVerified);
 }
 
@@ -646,6 +708,16 @@ ErrCode OsAccountManagerService::QueryActiveOsAccountIds(std::vector<int32_t>& i
 ErrCode OsAccountManagerService::QueryOsAccountConstraintSourceTypes(const int32_t id,
     const std::string &constraint, std::vector<ConstraintSourceTypeInfo> &constraintSourceTypeInfos)
 {
+    // parameters check
+    ErrCode res = CheckLocalId(id);
+    if (res != ERR_OK) {
+        return res;
+    }
+    if (constraint.empty() || constraint.size() > Constants::CONSTRAINT_MAX_SIZE) {
+        ACCOUNT_LOGE("constraint length is invalid. length %{public}zu.", constraint.size());
+        return ERR_OSACCOUNT_KIT_DOMAIN_NAME_LENGTH_INVALID_ERROR;
+    }
+
     // permission check
     ACCOUNT_LOGE("QueryOsAccountConstraintSourceTypes Enter");
     if (!PermissionCheck(AccountPermissionManager::MANAGE_LOCAL_ACCOUNTS, "")) {
@@ -653,11 +725,6 @@ ErrCode OsAccountManagerService::QueryOsAccountConstraintSourceTypes(const int32
         return ERR_OSACCOUNT_SERVICE_PERMISSION_DENIED;
     }
 
-    // parameters check
-    if (id < Constants::START_USER_ID) {
-        ACCOUNT_LOGE("invalid input id %{public}d.", id);
-        return ERR_OSACCOUNT_SERVICE_MANAGER_ID_ERROR;
-    }
     return innerManager_->QueryOsAccountConstraintSourceTypes(id, constraint, constraintSourceTypeInfos);
 }
 
