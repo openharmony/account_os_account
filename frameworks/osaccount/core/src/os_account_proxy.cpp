@@ -46,7 +46,7 @@ ErrCode OsAccountProxy::CreateOsAccount(
     ErrCode result = SendRequest(IOsAccount::Message::CREATE_OS_ACCOUNT, data, reply);
     if (result != ERR_OK) {
         ACCOUNT_LOGE("SendRequest err, result %{public}d.", result);
-        return ERR_OSACCOUNT_KIT_CREATE_OS_ACCOUNT_ERROR;
+        return result;
     }
 
     result = reply.ReadInt32();

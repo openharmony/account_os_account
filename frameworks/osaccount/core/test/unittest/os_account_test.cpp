@@ -190,7 +190,11 @@ HWTEST_F(OsAccountTest, OsAccountTest002, TestSize.Level1)
 HWTEST_F(OsAccountTest, OsAccountTest003, TestSize.Level1)
 {
     ErrCode errCode = g_osAccount->RemoveOsAccount(0);
-    EXPECT_EQ(errCode, ERR_OSACCOUNT_KIT_CANNOT_DELETE_ID_ERROR);
+    EXPECT_EQ(errCode, ERR_OSACCOUNT_SERVICE_MANAGER_ID_ERROR);
+    errCode = g_osAccount->RemoveOsAccount(100);
+    EXPECT_EQ(errCode, ERR_OSACCOUNT_SERVICE_MANAGER_ID_ERROR);
+    errCode = g_osAccount->RemoveOsAccount(1100);
+    EXPECT_EQ(errCode, ERR_OSACCOUNT_KIT_LOCAL_ID_INVALID_ERROR);
 }
 
 /**
