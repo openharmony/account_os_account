@@ -1917,7 +1917,8 @@ napi_value NapiAppAccount::Subscribe(napi_env env, napi_callback_info cbInfo)
     }
     if (context->appAccountManager == nullptr) {
         if (context->type != TYPE_CHANGE) {
-            napi_throw(env, GenerateBusinessError(env, ERR_JS_SYSTEM_SERVICE_EXCEPTION, "system service exception"));
+            napi_throw(env, GenerateBusinessError(env, ERR_JS_SYSTEM_SERVICE_EXCEPTION,
+                std::string("system service exception")));
         }
         delete context;
         return NapiGetNull(env);
