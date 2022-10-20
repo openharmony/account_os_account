@@ -150,6 +150,18 @@ bool GetStringPropertyByKey(napi_env env, napi_value obj, const std::string &pro
     return GetStringProperty(env, value, property);
 }
 
+bool GetOptionalStringPropertyByKey(napi_env env, napi_value obj, const std::string &propertyName,
+    std::string &property)
+{
+    bool hasProp = false;
+    napi_has_named_property(env, obj, propertyName.c_str(), &hasProp);
+    if (!hasProp) {
+        return true;
+    }
+
+    return GetStringPropertyByKey(env, obj, propertyName.c_str(), property);
+}
+
 napi_value CreateStringArray(napi_env env, const std::vector<std::string> &strVec)
 {
     napi_value result = nullptr;
