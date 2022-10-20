@@ -82,6 +82,13 @@ ErrCode AppAccount::CreateAccount(const std::string &name, const CreateAccountOp
 {
     RETURN_IF_STRING_IS_EMPTY_OR_OVERSIZE(name, Constants::NAME_MAX_SIZE, "name is empty or oversize");
     RETURN_IF_PROXY_IS_NULLPTR();
+    if (options.customData.size() > Constants::MAX_CUSTOM_DATA_SIZE) {
+        return ERR_APPACCOUNT_SERVICE_ASSOCIATED_DATA_OVER_SIZE;
+    }
+    for (auto it : options.customData) {
+        RETURN_IF_STRING_IS_OVERSIZE(it.first, Constants::ASSOCIATED_KEY_MAX_SIZE, "customData key is oversize");
+        RETURN_IF_STRING_IS_OVERSIZE(it.second, Constants::ASSOCIATED_VALUE_MAX_SIZE, "customData value is oversize");
+    }
     return appAccountProxy_->CreateAccount(name, options);
 }
 
@@ -93,6 +100,7 @@ ErrCode AppAccount::CreateAccountImplicitly(const std::string &owner, const Crea
         callbackObj = callback->AsObject();
     }
     RETURN_IF_STRING_IS_EMPTY_OR_OVERSIZE(owner, Constants::OWNER_MAX_SIZE, "owner is empty or oversize");
+    RETURN_IF_STRING_IS_OVERSIZE(options.authType, Constants::AUTH_TYPE_MAX_SIZE, "authType is empty or oversize");
     RETURN_IF_STRING_IS_EMPTY_OR_OVERSIZE(options.parameters.GetStringParam(Constants::KEY_CALLER_ABILITY_NAME),
         Constants::ABILITY_NAME_MAX_SIZE, "abilityName is empty or oversize");
     RETURN_IF_PROXY_IS_NULLPTR();
