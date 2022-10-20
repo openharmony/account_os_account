@@ -1350,7 +1350,7 @@ napi_value InnerIsTestOsAccount(napi_env env, napi_callback_info cbInfo, bool th
             isTest->errCode = 0;
             isTest->isTestOsAccount = false;
             napi_value result[RESULT_COUNT] = {0};
-            result[PARAMZERO] = GenerateBusinessError(env, isTest->errCode);
+            result[PARAMZERO] = GenerateBusinessSuccess(env, isTest->throwErr);
             napi_get_boolean(env, isTest->isTestOsAccount, &result[PARAMONE]);
             ProcessCallbackOrPromise(env, isTest, result[PARAMZERO], result[PARAMONE]);
             napi_delete_async_work(env, isTest->work);
