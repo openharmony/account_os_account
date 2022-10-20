@@ -653,11 +653,6 @@ ErrCode OsAccountManagerService::QueryOsAccountConstraintSourceTypes(const int32
         return ERR_OSACCOUNT_SERVICE_PERMISSION_DENIED;
     }
 
-    // parameters check
-    if (id < Constants::START_USER_ID) {
-        ACCOUNT_LOGE("invalid input id %{public}d.", id);
-        return ERR_OSACCOUNT_SERVICE_MANAGER_ID_ERROR;
-    }
     return innerManager_->QueryOsAccountConstraintSourceTypes(id, constraint, constraintSourceTypeInfos);
 }
 
