@@ -385,7 +385,8 @@ HWTEST_F(OsAccountManagerModuleTest, OsAccountManagerModuleTest011, TestSize.Lev
 {
     ACCOUNT_LOGI("OsAccountManagerModuleTest011");
     bool isOsAccountExists = true;
-    EXPECT_EQ(OsAccountManager::IsOsAccountExists(Constants::MAX_USER_ID + 1, isOsAccountExists), ERR_OK);
+    EXPECT_EQ(OsAccountManager::IsOsAccountExists(Constants::MAX_USER_ID + 1, isOsAccountExists),
+        ERR_OSACCOUNT_KIT_LOCAL_ID_INVALID_ERROR);
     EXPECT_EQ(isOsAccountExists, false);
 }
 
@@ -973,7 +974,7 @@ HWTEST_F(OsAccountManagerModuleTest, OsAccountManagerModuleTest047, TestSize.Lev
 HWTEST_F(OsAccountManagerModuleTest, OsAccountManagerModuleTest048, TestSize.Level1)
 {
     ACCOUNT_LOGI("OsAccountManagerModuleTest048");
-    EXPECT_EQ(OsAccountManager::StartOsAccount(Constants::MAX_USER_ID + 1), ERR_OK);
+    EXPECT_EQ(OsAccountManager::StartOsAccount(Constants::MAX_USER_ID + 1), ERR_OSACCOUNT_KIT_LOCAL_ID_INVALID_ERROR);
 }
 
 /**
@@ -1014,7 +1015,7 @@ HWTEST_F(OsAccountManagerModuleTest, OsAccountManagerModuleTest050, TestSize.Lev
 HWTEST_F(OsAccountManagerModuleTest, OsAccountManagerModuleTest051, TestSize.Level1)
 {
     ACCOUNT_LOGI("OsAccountManagerModuleTest051");
-    EXPECT_EQ(OsAccountManager::StopOsAccount(Constants::MAX_USER_ID + 1), ERR_OK);
+    EXPECT_EQ(OsAccountManager::StopOsAccount(Constants::MAX_USER_ID + 1), ERR_OSACCOUNT_KIT_LOCAL_ID_INVALID_ERROR);
 }
 
 /**
