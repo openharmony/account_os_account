@@ -311,7 +311,7 @@ napi_value NapiDistributedAccount::QueryOhosAccountInfo(napi_env env, napi_callb
                     asyncContext->ohosAccountInfo.name_ = accountInfo.second.name_;
                     asyncContext->ohosAccountInfo.uid_ = accountInfo.second.uid_;
                     asyncContext->event = "";
-                    asyncContext->ohosAccountInfo.status_ = napi_ok;
+                    asyncContext->status = napi_ok;
                 } else {
                     asyncContext->status = napi_generic_failure;
                 }
