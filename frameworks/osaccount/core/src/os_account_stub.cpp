@@ -314,10 +314,10 @@ ErrCode OsAccountStub::ProcCreateOsAccountForDomain(MessageParcel &data, Message
 
 ErrCode OsAccountStub::ProcRemoveOsAccount(MessageParcel &data, MessageParcel &reply)
 {
-    int32_t localId = data.ReadInt32();
-    if (localId < Constants::START_USER_ID || localId > Constants::MAX_USER_ID) {
-        ACCOUNT_LOGE("localId is out of range");
-        return ERR_OSACCOUNT_KIT_LOCAL_ID_INVALID_ERROR;
+    int32_t localId;
+    if (!data.ReadInt32(localId)) {
+        ACCOUNT_LOGE("failed to read localId");
+        return ERR_ACCOUNT_COMMON_READ_PARCEL_ERROR;
     }
 
     ErrCode result = RemoveOsAccount(localId);
@@ -330,10 +330,10 @@ ErrCode OsAccountStub::ProcRemoveOsAccount(MessageParcel &data, MessageParcel &r
 
 ErrCode OsAccountStub::ProcSetOsAccountName(MessageParcel &data, MessageParcel &reply)
 {
-    int32_t localId = data.ReadInt32();
-    if (localId < Constants::START_USER_ID || localId > Constants::MAX_USER_ID) {
-        ACCOUNT_LOGE("localId is out of range");
-        return ERR_OSACCOUNT_KIT_LOCAL_ID_INVALID_ERROR;
+    int32_t localId;
+    if (!data.ReadInt32(localId)) {
+        ACCOUNT_LOGE("failed to read localId");
+        return ERR_ACCOUNT_COMMON_READ_PARCEL_ERROR;
     }
     std::string localName = data.ReadString();
     ErrCode result = SetOsAccountName(localId, localName);
@@ -346,10 +346,10 @@ ErrCode OsAccountStub::ProcSetOsAccountName(MessageParcel &data, MessageParcel &
 
 ErrCode OsAccountStub::ProcSetOsAccountConstraints(MessageParcel &data, MessageParcel &reply)
 {
-    int32_t localId = data.ReadInt32();
-    if (localId < Constants::START_USER_ID || localId > Constants::MAX_USER_ID) {
-        ACCOUNT_LOGE("localId is out of range");
-        return ERR_OSACCOUNT_KIT_LOCAL_ID_INVALID_ERROR;
+    int32_t localId;
+    if (!data.ReadInt32(localId)) {
+        ACCOUNT_LOGE("failed to read localId");
+        return ERR_ACCOUNT_COMMON_READ_PARCEL_ERROR;
     }
     std::vector<std::string> constraints;
     bool stringVectorReadSuccess = data.ReadStringVector(&constraints);
@@ -368,10 +368,10 @@ ErrCode OsAccountStub::ProcSetOsAccountConstraints(MessageParcel &data, MessageP
 
 ErrCode OsAccountStub::ProcSetOsAccountProfilePhoto(MessageParcel &data, MessageParcel &reply)
 {
-    int32_t localId = data.ReadInt32();
-    if (localId < Constants::START_USER_ID || localId > Constants::MAX_USER_ID) {
-        ACCOUNT_LOGE("localId is out of range");
-        return ERR_OSACCOUNT_KIT_LOCAL_ID_INVALID_ERROR;
+    int32_t localId;
+    if (!data.ReadInt32(localId)) {
+        ACCOUNT_LOGE("failed to read localId");
+        return ERR_ACCOUNT_COMMON_READ_PARCEL_ERROR;
     }
     std::string photo = data.ReadString();
     ErrCode result = SetOsAccountProfilePhoto(localId, photo);
@@ -384,10 +384,10 @@ ErrCode OsAccountStub::ProcSetOsAccountProfilePhoto(MessageParcel &data, Message
 
 ErrCode OsAccountStub::ProcQueryOsAccountById(MessageParcel &data, MessageParcel &reply)
 {
-    int32_t localId = data.ReadInt32();
-    if (localId < Constants::START_USER_ID || localId > Constants::MAX_USER_ID) {
-        ACCOUNT_LOGE("localId is out of range");
-        return ERR_OSACCOUNT_KIT_LOCAL_ID_INVALID_ERROR;
+    int32_t localId;
+    if (!data.ReadInt32(localId)) {
+        ACCOUNT_LOGE("failed to read localId");
+        return ERR_ACCOUNT_COMMON_READ_PARCEL_ERROR;
     }
     OsAccountInfo osAccountInfo = OsAccountInfo();
     ErrCode result = QueryOsAccountById(localId, osAccountInfo);
@@ -465,10 +465,10 @@ ErrCode OsAccountStub::ProcGetCreatedOsAccountsCount(MessageParcel &data, Messag
 
 ErrCode OsAccountStub::ProcGetOsAccountAllConstraints(MessageParcel &data, MessageParcel &reply)
 {
-    int32_t localId = data.ReadInt32();
-    if (localId < Constants::START_USER_ID || localId > Constants::MAX_USER_ID) {
-        ACCOUNT_LOGE("localId is out of range");
-        return ERR_OSACCOUNT_KIT_LOCAL_ID_INVALID_ERROR;
+    int32_t localId;
+    if (!data.ReadInt32(localId)) {
+        ACCOUNT_LOGE("failed to read localId");
+        return ERR_ACCOUNT_COMMON_READ_PARCEL_ERROR;
     }
     std::vector<std::string> constraints;
     ErrCode result = GetOsAccountAllConstraints(localId, constraints);
@@ -515,10 +515,10 @@ ErrCode OsAccountStub::ProcIsMainOsAccount(MessageParcel &data, MessageParcel &r
 
 ErrCode OsAccountStub::ProcGetOsAccountProfilePhoto(MessageParcel &data, MessageParcel &reply)
 {
-    int32_t localId = data.ReadInt32();
-    if (localId < Constants::START_USER_ID || localId > Constants::MAX_USER_ID) {
-        ACCOUNT_LOGE("localId is out of range");
-        return ERR_OSACCOUNT_KIT_LOCAL_ID_INVALID_ERROR;
+    int32_t localId;
+    if (!data.ReadInt32(localId)) {
+        ACCOUNT_LOGE("failed to read localId");
+        return ERR_ACCOUNT_COMMON_READ_PARCEL_ERROR;
     }
     std::string photo;
     ErrCode result = GetOsAccountProfilePhoto(localId, photo);
@@ -622,10 +622,10 @@ ErrCode OsAccountStub::ProcGetSerialNumberByOsAccountLocalId(MessageParcel &data
 
 ErrCode OsAccountStub::ProcIsOsAccountActived(MessageParcel &data, MessageParcel &reply)
 {
-    int32_t localId = data.ReadInt32();
-    if (localId < Constants::START_USER_ID || localId > Constants::MAX_USER_ID) {
-        ACCOUNT_LOGE("localId is out of range");
-        return ERR_OSACCOUNT_KIT_LOCAL_ID_INVALID_ERROR;
+    int32_t localId;
+    if (!data.ReadInt32(localId)) {
+        ACCOUNT_LOGE("failed to read localId");
+        return ERR_ACCOUNT_COMMON_READ_PARCEL_ERROR;
     }
     bool isOsAccountActived = false;
     ErrCode result = IsOsAccountActived(localId, isOsAccountActived);
@@ -642,10 +642,10 @@ ErrCode OsAccountStub::ProcIsOsAccountActived(MessageParcel &data, MessageParcel
 
 ErrCode OsAccountStub::ProcIsOsAccountConstraintEnable(MessageParcel &data, MessageParcel &reply)
 {
-    int32_t localId = data.ReadInt32();
-    if (localId < Constants::START_USER_ID || localId > Constants::MAX_USER_ID) {
-        ACCOUNT_LOGE("localId is out of range");
-        return ERR_OSACCOUNT_KIT_LOCAL_ID_INVALID_ERROR;
+    int32_t localId;
+    if (!data.ReadInt32(localId)) {
+        ACCOUNT_LOGE("failed to read localId");
+        return ERR_ACCOUNT_COMMON_READ_PARCEL_ERROR;
     }
     std::string constraint = data.ReadString();
     if (constraint.empty() || constraint.size() > Constants::CONSTRAINT_MAX_SIZE) {
@@ -684,10 +684,10 @@ ErrCode OsAccountStub::ProcIsMultiOsAccountEnable(MessageParcel &data, MessagePa
 
 ErrCode OsAccountStub::ProcIsOsAccountVerified(MessageParcel &data, MessageParcel &reply)
 {
-    int32_t localId = data.ReadInt32();
-    if (localId < Constants::START_USER_ID || localId > Constants::MAX_USER_ID) {
-        ACCOUNT_LOGE("localId is out of range");
-        return ERR_OSACCOUNT_KIT_LOCAL_ID_INVALID_ERROR;
+    int32_t localId;
+    if (!data.ReadInt32(localId)) {
+        ACCOUNT_LOGE("failed to read localId");
+        return ERR_ACCOUNT_COMMON_READ_PARCEL_ERROR;
     }
     bool isVerified = false;
     ErrCode result = IsOsAccountVerified(localId, isVerified);
@@ -704,10 +704,10 @@ ErrCode OsAccountStub::ProcIsOsAccountVerified(MessageParcel &data, MessageParce
 
 ErrCode OsAccountStub::ProcIsOsAccountExists(MessageParcel &data, MessageParcel &reply)
 {
-    int32_t localId = data.ReadInt32();
-    if (localId < Constants::START_USER_ID || localId > Constants::MAX_USER_ID) {
-        ACCOUNT_LOGE("localId is out of range");
-        return ERR_OSACCOUNT_KIT_LOCAL_ID_INVALID_ERROR;
+    int32_t localId;
+    if (!data.ReadInt32(localId)) {
+        ACCOUNT_LOGE("failed to read localId");
+        return ERR_ACCOUNT_COMMON_READ_PARCEL_ERROR;
     }
     bool isOsAccountExists = false;
     ErrCode result = IsOsAccountExists(localId, isOsAccountExists);
@@ -763,10 +763,10 @@ ErrCode OsAccountStub::ProcUnsubscribeOsAccount(MessageParcel &data, MessageParc
 
 ErrCode OsAccountStub::ProcActivateOsAccount(MessageParcel &data, MessageParcel &reply)
 {
-    int32_t localId = data.ReadInt32();
-    if (localId < Constants::START_USER_ID || localId > Constants::MAX_USER_ID) {
-        ACCOUNT_LOGE("localId is out of range");
-        return ERR_OSACCOUNT_KIT_LOCAL_ID_INVALID_ERROR;
+    int32_t localId;
+    if (!data.ReadInt32(localId)) {
+        ACCOUNT_LOGE("failed to read localId");
+        return ERR_ACCOUNT_COMMON_READ_PARCEL_ERROR;
     }
     ErrCode result = ActivateOsAccount(localId);
     if (!reply.WriteInt32(result)) {
@@ -778,10 +778,10 @@ ErrCode OsAccountStub::ProcActivateOsAccount(MessageParcel &data, MessageParcel 
 
 ErrCode OsAccountStub::ProcStartOsAccount(MessageParcel &data, MessageParcel &reply)
 {
-    int32_t localId = data.ReadInt32();
-    if (localId < Constants::START_USER_ID || localId > Constants::MAX_USER_ID) {
-        ACCOUNT_LOGE("localId is out of range");
-        return ERR_OSACCOUNT_KIT_LOCAL_ID_INVALID_ERROR;
+    int32_t localId;
+    if (!data.ReadInt32(localId)) {
+        ACCOUNT_LOGE("failed to read localId");
+        return ERR_ACCOUNT_COMMON_READ_PARCEL_ERROR;
     }
     ErrCode result = StartOsAccount(localId);
     if (!reply.WriteInt32(result)) {
@@ -793,10 +793,10 @@ ErrCode OsAccountStub::ProcStartOsAccount(MessageParcel &data, MessageParcel &re
 
 ErrCode OsAccountStub::ProcStopOsAccount(MessageParcel &data, MessageParcel &reply)
 {
-    int32_t localId = data.ReadInt32();
-    if (localId < Constants::START_USER_ID || localId > Constants::MAX_USER_ID) {
-        ACCOUNT_LOGE("localId is out of range");
-        return ERR_OSACCOUNT_KIT_LOCAL_ID_INVALID_ERROR;
+    int32_t localId;
+    if (!data.ReadInt32(localId)) {
+        ACCOUNT_LOGE("failed to read localId");
+        return ERR_ACCOUNT_COMMON_READ_PARCEL_ERROR;
     }
     ErrCode result = StopOsAccount(localId);
     if (!reply.WriteInt32(result)) {
@@ -830,10 +830,10 @@ ErrCode OsAccountStub::ProcIsCurrentOsAccountVerified(MessageParcel &data, Messa
 
 ErrCode OsAccountStub::ProcIsOsAccountCompleted(MessageParcel &data, MessageParcel &reply)
 {
-    int32_t localId = data.ReadInt32();
-    if (localId < Constants::START_USER_ID || localId > Constants::MAX_USER_ID) {
-        ACCOUNT_LOGE("localId is out of range");
-        return ERR_OSACCOUNT_KIT_LOCAL_ID_INVALID_ERROR;
+    int32_t localId;
+    if (!data.ReadInt32(localId)) {
+        ACCOUNT_LOGE("failed to read localId");
+        return ERR_ACCOUNT_COMMON_READ_PARCEL_ERROR;
     }
     bool isOsAccountCompleted = false;
     ErrCode result = IsOsAccountCompleted(localId, isOsAccountCompleted);
@@ -858,10 +858,10 @@ ErrCode OsAccountStub::ProcSetCurrentOsAccountIsVerified(MessageParcel &data, Me
 
 ErrCode OsAccountStub::ProcSetOsAccountIsVerified(MessageParcel &data, MessageParcel &reply)
 {
-    int32_t localId = data.ReadInt32();
-    if (localId < Constants::START_USER_ID || localId > Constants::MAX_USER_ID) {
-        ACCOUNT_LOGE("localId is out of range");
-        return ERR_OSACCOUNT_KIT_LOCAL_ID_INVALID_ERROR;
+    int32_t localId;
+    if (!data.ReadInt32(localId)) {
+        ACCOUNT_LOGE("failed to read localId");
+        return ERR_ACCOUNT_COMMON_READ_PARCEL_ERROR;
     }
     bool isVerified = data.ReadBool();
     ErrCode result = SetOsAccountIsVerified(localId, isVerified);
@@ -997,17 +997,15 @@ ErrCode OsAccountStub::ProcQueryActiveOsAccountIds(MessageParcel &data, MessageP
 
 ErrCode OsAccountStub::ProcQueryOsAccountConstraintSourceTypes(MessageParcel &data, MessageParcel &reply)
 {
-    int localId = data.ReadInt32();
-    if (localId < 0) {
-        ACCOUNT_LOGE("failed to read int for localId");
-        reply.WriteInt32(ERR_OSACCOUNT_KIT_READ_IN_LOCAL_ID_ERROR);
-        return ERR_NONE;
+    int32_t localId;
+    if (!data.ReadInt32(localId)) {
+        ACCOUNT_LOGE("failed to read localId");
+        return ERR_ACCOUNT_COMMON_READ_PARCEL_ERROR;
     }
-    std::string constraint = data.ReadString();
-    if (constraint.empty() || constraint.size() > Constants::CONSTRAINT_MAX_SIZE) {
-        ACCOUNT_LOGE("failed to read string for constraint. length %{public}zu.", constraint.size());
-        reply.WriteInt32(ERR_OSACCOUNT_KIT_DOMAIN_NAME_LENGTH_INVALID_ERROR);
-        return ERR_NONE;
+    std::string constraint;
+    if (!data.ReadString(constraint)) {
+        ACCOUNT_LOGE("failed to read constraint");
+        return ERR_ACCOUNT_COMMON_READ_PARCEL_ERROR;
     }
 
     std::vector<ConstraintSourceTypeInfo> constraintSourceTypeInfos;

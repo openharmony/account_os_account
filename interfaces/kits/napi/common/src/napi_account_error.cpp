@@ -89,6 +89,34 @@ static std::string ConvertToJsErrMsg(int32_t jsErrCode)
     }
 }
 
+static napi_value GetErrorCodeValue(napi_env env, int errCode)
+{
+    napi_value jsObject = nullptr;
+    napi_value jsValue = nullptr;
+    NAPI_CALL(env, napi_create_int32(env, errCode, &jsValue));
+    NAPI_CALL(env, napi_create_object(env, &jsObject));
+    NAPI_CALL(env, napi_set_named_property(env, jsObject, "code", jsValue));
+    return jsObject;
+}
+
+napi_value GenerateBusinessSuccess(napi_env env, bool throwErr)
+{
+    if (throwErr) {
+        napi_value errJs = nullptr;
+        napi_get_undefined(env, &errJs);
+        return errJs;
+    }
+    return GetErrorCodeValue(env, 0);
+}
+
+napi_value GenerateBusinessError(napi_env env, int32_t nativeErrCode, bool throwErr)
+{
+    if (throwErr) {
+        return GenerateBusinessError(env, nativeErrCode);
+    }
+    return GetErrorCodeValue(env, nativeErrCode);
+}
+
 napi_value GenerateBusinessError(napi_env env, int32_t nativeErrCode)
 {
     int32_t jsErrCode = ConvertToJSErrCode(nativeErrCode);
