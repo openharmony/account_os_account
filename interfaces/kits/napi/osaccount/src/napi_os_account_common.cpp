@@ -82,11 +82,11 @@ void QueryOAByIdCallbackCompletedCB(napi_env env, napi_status status, void *data
     napi_value errJs = nullptr;
     napi_value dataJs = nullptr;
     if (asyncContext->status == napi_ok) {
-        napi_get_undefined(env, &errJs);
+        napi_get_null(env, &errJs);
         GetOACBInfoToJs(env, asyncContext->osAccountInfos, dataJs);
     } else {
         errJs = GenerateBusinessError(env, asyncContext->errCode, asyncContext->throwErr);
-        napi_get_undefined(env, &dataJs);
+        napi_get_null(env, &dataJs);
     }
     ProcessCallbackOrPromise(env, asyncContext, errJs, dataJs);
     napi_delete_async_work(env, asyncContext->work);
@@ -277,11 +277,11 @@ void RemoveOACallbackCompletedCB(napi_env env, napi_status status, void *data)
     napi_value errJs = nullptr;
     napi_value dataJs = nullptr;
     if (asyncContext->status == napi_ok) {
-        napi_get_undefined(env, &errJs);
-        napi_get_undefined(env, &dataJs);
+        napi_get_null(env, &errJs);
+        napi_get_null(env, &dataJs);
     } else {
         errJs = GenerateBusinessError(env, asyncContext->errCode, asyncContext->throwErr);
-        napi_get_undefined(env, &dataJs);
+        napi_get_null(env, &dataJs);
     }
     ProcessCallbackOrPromise(env, asyncContext, errJs, dataJs);
     napi_delete_async_work(env, asyncContext->work);
@@ -335,11 +335,11 @@ void SetOANameCallbackCompletedCB(napi_env env, napi_status status, void *data)
     napi_value errJs = nullptr;
     napi_value dataJs = nullptr;
     if (asyncContext->status == napi_ok) {
-        napi_get_undefined(env, &errJs);
-        napi_get_undefined(env, &dataJs);
+        napi_get_null(env, &errJs);
+        napi_get_null(env, &dataJs);
     } else {
         errJs = GenerateBusinessError(env, asyncContext->errCode, asyncContext->throwErr);
-        napi_get_undefined(env, &dataJs);
+        napi_get_null(env, &dataJs);
     }
     ProcessCallbackOrPromise(env, asyncContext, errJs, dataJs);
     napi_delete_async_work(env, asyncContext->work);
@@ -406,11 +406,11 @@ void SetOAConsCallbackCompletedCB(napi_env env, napi_status status, void *data)
     napi_value errJs = nullptr;
     napi_value dataJs = nullptr;
     if (asyncContext->status == napi_ok) {
-        napi_get_undefined(env, &errJs);
-        napi_get_undefined(env, &dataJs);
+        napi_get_null(env, &errJs);
+        napi_get_null(env, &dataJs);
     } else {
         errJs = GenerateBusinessError(env, asyncContext->errCode, asyncContext->throwErr);
-        napi_get_undefined(env, &dataJs);
+        napi_get_null(env, &dataJs);
     }
     ProcessCallbackOrPromise(env, asyncContext, errJs, dataJs);
     napi_delete_async_work(env, asyncContext->work);
@@ -458,11 +458,11 @@ void ActivateOACallbackCompletedCB(napi_env env, napi_status status, void *data)
     napi_value errJs = nullptr;
     napi_value dataJs = nullptr;
     if (asyncContext->status == napi_ok) {
-        napi_get_undefined(env, &errJs);
-        napi_get_undefined(env, &dataJs);
+        napi_get_null(env, &errJs);
+        napi_get_null(env, &dataJs);
     } else {
         errJs = GenerateBusinessError(env, asyncContext->errCode, asyncContext->throwErr);
-        napi_get_undefined(env, &dataJs);
+        napi_get_null(env, &dataJs);
     }
     ProcessCallbackOrPromise(env, asyncContext, errJs, dataJs);
     napi_delete_async_work(env, asyncContext->work);
@@ -567,11 +567,11 @@ void CreateOACallbackCompletedCB(napi_env env, napi_status status, void *data)
     napi_value errJs = nullptr;
     napi_value dataJs = nullptr;
     if (asyncContext->status == napi_ok) {
-        napi_get_undefined(env, &errJs);
+        napi_get_null(env, &errJs);
         GetOACBInfoToJs(env, asyncContext->osAccountInfos, dataJs);
     } else {
         errJs = GenerateBusinessError(env, asyncContext->errCode, asyncContext->throwErr);
-        napi_get_undefined(env, &dataJs);
+        napi_get_null(env, &dataJs);
     }
     ProcessCallbackOrPromise(env, asyncContext, errJs, dataJs);
     napi_delete_async_work(env, asyncContext->work);
@@ -586,11 +586,11 @@ void CreateOAForDomainCallbackCompletedCB(napi_env env, napi_status status, void
     napi_value errJs = nullptr;
     napi_value dataJs = nullptr;
     if (asyncContext->status == napi_ok) {
-        napi_get_undefined(env, &errJs);
+        napi_get_null(env, &errJs);
         GetOACBInfoToJs(env, asyncContext->osAccountInfos, dataJs);
     } else {
         errJs = GenerateBusinessError(env, asyncContext->errCode, asyncContext->throwErr);
-        napi_get_undefined(env, &dataJs);
+        napi_get_null(env, &dataJs);
     }
     ProcessCallbackOrPromise(env, asyncContext, errJs, dataJs);
     napi_delete_async_work(env, asyncContext->work);
@@ -623,7 +623,7 @@ void GetOACountCallbackCompletedCB(napi_env env, napi_status status, void *data)
     } else {
         errJs = GenerateBusinessError(env, asyncContext->errCode, asyncContext->throwErr);
         if (asyncContext->throwErr) {
-            napi_get_undefined(env, &dataJs);
+            napi_get_null(env, &dataJs);
         } else {
             napi_create_uint32(env, asyncContext->osAccountsCount, &dataJs);
         }
@@ -659,7 +659,7 @@ void DbDeviceIdCallbackCompletedCB(napi_env env, napi_status status, void *data)
     } else {
         errJs = GenerateBusinessError(env, asyncContext->errCode, asyncContext->throwErr);
         if (asyncContext->throwErr) {
-            napi_get_undefined(env, &dataJs);
+            napi_get_null(env, &dataJs);
         } else {
             napi_create_string_utf8(env, asyncContext->deviceId.c_str(), NAPI_AUTO_LENGTH, &dataJs);
         }
@@ -715,7 +715,7 @@ void GetAllConsCallbackCompletedCB(napi_env env, napi_status status, void *data)
     } else {
         errJs = GenerateBusinessError(env, asyncContext->errCode, asyncContext->throwErr);
         if (asyncContext->throwErr) {
-            napi_get_undefined(env, &dataJs);
+            napi_get_null(env, &dataJs);
         } else {
             GetAllAccountCons(env, asyncContext->constraints, dataJs);
         }
@@ -777,7 +777,7 @@ void GetProcessIdCallbackCompletedCB(napi_env env, napi_status status, void *dat
     } else {
         errJs = GenerateBusinessError(env, asyncContext->errCode, asyncContext->throwErr);
         if (asyncContext->throwErr) {
-            napi_get_undefined(env, &dataJs);
+            napi_get_null(env, &dataJs);
         } else {
             napi_create_int32(env, asyncContext->id, &dataJs);
         }
@@ -840,11 +840,11 @@ void QueryOAContSrcTypeCallbackCompletedCB(napi_env env, napi_status status, voi
     napi_value errJs = nullptr;
     napi_value dataJs = nullptr;
     if (asyncContext->status == napi_ok) {
-        napi_get_undefined(env, &errJs);
+        napi_get_null(env, &errJs);
         QueryOAContSrcTypeForResult(env, asyncContext->constraintSourceTypeInfos, dataJs);
     } else {
         errJs = GenerateBusinessError(env, asyncContext->errCode, asyncContext->throwErr);
-        napi_get_undefined(env, &dataJs);
+        napi_get_null(env, &dataJs);
     }
     ProcessCallbackOrPromise(env, asyncContext, errJs, dataJs);
     napi_delete_async_work(env, asyncContext->work);
@@ -902,11 +902,11 @@ void QueryCreateOACallbackCompletedCB(napi_env env, napi_status status, void *da
     napi_value errJs = nullptr;
     napi_value dataJs = nullptr;
     if (asyncContext->status == napi_ok) {
-        napi_get_undefined(env, &errJs);
+        napi_get_null(env, &errJs);
         QueryOAInfoForResult(env, asyncContext->osAccountInfos, dataJs);
     } else {
         errJs = GenerateBusinessError(env, asyncContext->errCode, asyncContext->throwErr);
-        napi_get_undefined(env, &dataJs);
+        napi_get_null(env, &dataJs);
     }
     ProcessCallbackOrPromise(env, asyncContext, errJs, dataJs);
     napi_delete_async_work(env, asyncContext->work);
@@ -926,7 +926,7 @@ void QueryActiveIdsCallbackCompletedCB(napi_env env, napi_status status, void *d
     } else {
         errJs = GenerateBusinessError(env, asyncContext->errCode, asyncContext->throwErr);
         if (asyncContext->throwErr) {
-            napi_get_undefined(env, &dataJs);
+            napi_get_null(env, &dataJs);
         } else {
             GetActiveIds(env, asyncContext->osAccountIds, dataJs);
         }
@@ -989,11 +989,11 @@ void GetOAPhotoCallbackCompletedCB(napi_env env, napi_status status, void *data)
     napi_value errJs = nullptr;
     napi_value dataJs = nullptr;
     if (asyncContext->status == napi_ok) {
-        napi_get_undefined(env, &errJs);
+        napi_get_null(env, &errJs);
         napi_create_string_utf8(env, asyncContext->photo.c_str(), NAPI_AUTO_LENGTH, &dataJs);
     } else {
         errJs = GenerateBusinessError(env, asyncContext->errCode, asyncContext->throwErr);
-        napi_get_undefined(env, &dataJs);
+        napi_get_null(env, &dataJs);
     }
     ProcessCallbackOrPromise(env, asyncContext, errJs, dataJs);
     napi_delete_async_work(env, asyncContext->work);
@@ -1026,7 +1026,7 @@ void QueryCurrentOACallbackCompletedCB(napi_env env, napi_status status, void *d
     } else {
         errJs = GenerateBusinessError(env, asyncContext->errCode, asyncContext->throwErr);
         if (asyncContext->throwErr) {
-            napi_get_undefined(env, &dataJs);
+            napi_get_null(env, &dataJs);
         } else {
             GetOACBInfoToJs(env, asyncContext->osAccountInfos, dataJs);
         }
@@ -1127,7 +1127,7 @@ void GetIdByUidCallbackCompletedCB(napi_env env, napi_status status, void *data)
     } else {
         errJs = GenerateBusinessError(env, asyncContext->errCode, asyncContext->throwErr);
         if (asyncContext->throwErr) {
-            napi_get_undefined(env, &dataJs);
+            napi_get_null(env, &dataJs);
         } else {
             napi_create_int32(env, asyncContext->id, &dataJs);
         }
@@ -1145,11 +1145,11 @@ void GetBundleIdByUidCallbackCompletedCB(napi_env env, napi_status status, void 
     napi_value errJs = nullptr;
     napi_value dataJs = nullptr;
     if (asyncContext->status == napi_ok) {
-        napi_get_undefined(env, &errJs);
+        napi_get_null(env, &errJs);
         napi_create_int32(env, asyncContext->id, &dataJs);
     } else {
         errJs = GenerateBusinessError(env, asyncContext->errCode, asyncContext->throwErr);
-        napi_get_undefined(env, &dataJs);
+        napi_get_null(env, &dataJs);
     }
     ProcessCallbackOrPromise(env, asyncContext, errJs, dataJs);
     napi_delete_async_work(env, asyncContext->work);
@@ -1169,7 +1169,7 @@ void GetIdByDomainCallbackCompletedCB(napi_env env, napi_status status, void *da
     } else {
         errJs = GenerateBusinessError(env, asyncContext->errCode, asyncContext->throwErr);
         if (asyncContext->throwErr) {
-            napi_get_undefined(env, &dataJs);
+            napi_get_null(env, &dataJs);
         } else {
             napi_create_int32(env, asyncContext->id, &dataJs);
         }
@@ -1225,11 +1225,11 @@ void SetPhotoCompletedCB(napi_env env, napi_status status, void *data)
     napi_value errJs = nullptr;
     napi_value dataJs = nullptr;
     if (asyncContext->status == napi_ok) {
-        napi_get_undefined(env, &errJs);
-        napi_get_undefined(env, &dataJs);
+        napi_get_null(env, &errJs);
+        napi_get_null(env, &dataJs);
     } else {
         errJs = GenerateBusinessError(env, asyncContext->errCode, asyncContext->throwErr);
-        napi_get_undefined(env, &dataJs);
+        napi_get_null(env, &dataJs);
     }
     ProcessCallbackOrPromise(env, asyncContext, errJs, dataJs);
     napi_delete_async_work(env, asyncContext->work);
@@ -1257,11 +1257,11 @@ void QueryMaxNumCompletedCB(napi_env env, napi_status status, void *data)
     napi_value errJs = nullptr;
     napi_value dataJs = nullptr;
     if (asyncContext->status == napi_ok) {
-        napi_get_undefined(env, &errJs);
+        napi_get_null(env, &errJs);
         napi_create_int32(env, asyncContext->maxOsAccountNumber, &dataJs);
     } else {
         errJs = GenerateBusinessError(env, asyncContext->errCode, asyncContext->throwErr);
-        napi_get_undefined(env, &dataJs);
+        napi_get_null(env, &dataJs);
     }
     ProcessCallbackOrPromise(env, asyncContext, errJs, dataJs);
     napi_delete_async_work(env, asyncContext->work);
@@ -1313,7 +1313,7 @@ void IsActivedCompletedCB(napi_env env, napi_status status, void *data)
     } else {
         errJs = GenerateBusinessError(env, asyncContext->errCode, asyncContext->throwErr);
         if (asyncContext->throwErr) {
-            napi_get_undefined(env, &dataJs);
+            napi_get_null(env, &dataJs);
         } else {
             napi_get_boolean(env, asyncContext->isOsAccountActived, &dataJs);
         }
@@ -1374,7 +1374,7 @@ void IsEnableCompletedCB(napi_env env, napi_status status, void *data)
     } else {
         errJs = GenerateBusinessError(env, asyncContext->errCode, asyncContext->throwErr);
         if (asyncContext->throwErr) {
-            napi_get_undefined(env, &dataJs);
+            napi_get_null(env, &dataJs);
         } else {
             napi_get_boolean(env, asyncContext->isConsEnable, &dataJs);
         }
@@ -1432,7 +1432,7 @@ void GetTypeCompletedCB(napi_env env, napi_status status, void *data)
     } else {
         errJs = GenerateBusinessError(env, asyncContext->errCode, asyncContext->throwErr);
         if (asyncContext->throwErr) {
-            napi_get_undefined(env, &dataJs);
+            napi_get_null(env, &dataJs);
         } else {
             CreateTypeJs(env, asyncContext, dataJs);
         }
@@ -1468,7 +1468,7 @@ void IsMultiEnCompletedCB(napi_env env, napi_status status, void *data)
     } else {
         errJs = GenerateBusinessError(env, asyncContext->errCode, asyncContext->throwErr);
         if (asyncContext->throwErr) {
-            napi_get_undefined(env, &dataJs);
+            napi_get_null(env, &dataJs);
         } else {
             napi_get_boolean(env, asyncContext->isMultiOAEnable, &dataJs);
         }
@@ -1550,7 +1550,7 @@ void IsVerifiedCompletedCB(napi_env env, napi_status status, void *data)
     } else {
         errJs = GenerateBusinessError(env, asyncContext->errCode, asyncContext->throwErr);
         if (asyncContext->throwErr) {
-            napi_get_undefined(env, &dataJs);
+            napi_get_null(env, &dataJs);
         } else {
             napi_get_boolean(env, asyncContext->isTestOA, &dataJs);
         }
@@ -1603,7 +1603,7 @@ void SerialNumIdCompletedCB(napi_env env, napi_status status, void *data)
     } else {
         errJs = GenerateBusinessError(env, asyncContext->errCode, asyncContext->throwErr);
         if (asyncContext->throwErr) {
-            napi_get_undefined(env, &dataJs);
+            napi_get_null(env, &dataJs);
         } else {
             napi_create_int32(env, asyncContext->id, &dataJs);
         }
@@ -1658,7 +1658,7 @@ void GetSerialNumCompletedCB(napi_env env, napi_status status, void *data)
     } else {
         errJs = GenerateBusinessError(env, asyncContext->errCode, asyncContext->throwErr);
         if (asyncContext->throwErr) {
-            napi_get_undefined(env, &dataJs);
+            napi_get_null(env, &dataJs);
         } else {
             napi_create_int64(env, asyncContext->serialNum, &dataJs);
         }

@@ -177,7 +177,11 @@ void ProcessSetNamedProperty(napi_env env, const DistributedAccountAsyncContext 
 {
     napi_value result[RESULT_COUNT] = {0};
     if (asyncContext->status == napi_ok) {
-        napi_get_undefined(env, &result[0]);
+        if (asyncContext->throwErr) {
+            napi_get_null(env, &result[0]);
+        } else {
+            napi_get_undefined(env, &result[0]);
+        }
         napi_create_object(env, &result[1]);
         napi_value value = nullptr;
         napi_create_string_utf8(env, asyncContext->ohosAccountInfo.name_.c_str(),
@@ -201,7 +205,7 @@ void ProcessSetNamedProperty(napi_env env, const DistributedAccountAsyncContext 
     } else {
         if (asyncContext->throwErr) {
             result[0] = GenerateBusinessError(env, asyncContext->errCode);
-            napi_get_undefined(env, &result[1]);
+            napi_get_null(env, &result[1]);
         } else {
             napi_value message = nullptr;
             napi_create_string_utf8(env, "query ohos account info failed", NAPI_AUTO_LENGTH, &message);
@@ -377,12 +381,17 @@ napi_value NapiDistributedAccount::UpdateOhosAccountInfo(napi_env env, napi_call
             DistributedAccountAsyncContext *asyncContext = reinterpret_cast<DistributedAccountAsyncContext *>(data);
             napi_value result[RESULT_COUNT] = {0};
             if (asyncContext->status == napi_ok) {
-                napi_get_undefined(env, &result[0]);
-                napi_get_undefined(env, &result[1]);
+                if (asyncContext->throwErr) {
+                    napi_get_null(env, &result[0]);
+                    napi_get_null(env, &result[1]);
+                } else {
+                    napi_get_undefined(env, &result[0]);
+                    napi_get_undefined(env, &result[1]);
+                }
             } else {
                 if (asyncContext->throwErr) {
                     result[0] = GenerateBusinessError(env, asyncContext->errCode);
-                    napi_get_undefined(env, &result[1]);
+                    napi_get_null(env, &result[1]);
                 } else {
                     napi_value message = nullptr;
                     napi_create_string_utf8(env, "Update os account distributedInfo failed", NAPI_AUTO_LENGTH,
