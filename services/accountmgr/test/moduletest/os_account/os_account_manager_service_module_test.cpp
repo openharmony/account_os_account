@@ -1415,7 +1415,7 @@ HWTEST_F(OsAccountManagerServiceModuleTest, OsAccountManagerServiceModuleTest071
  * @tc.name: OsAccountManagerServiceModuleTest072
  * @tc.desc: Test QueryOsAccountConstraintSourceTypes normal case.
  * @tc.type: FUNC
- * @tc.require: 
+ * @tc.require:
  */
 HWTEST_F(OsAccountManagerServiceModuleTest, OsAccountManagerServiceModuleTest072, TestSize.Level1)
 {
@@ -1430,7 +1430,7 @@ HWTEST_F(OsAccountManagerServiceModuleTest, OsAccountManagerServiceModuleTest072
  * @tc.name: OsAccountManagerServiceModuleTest073
  * @tc.desc: Test DumpState normal case.
  * @tc.type: FUNC
- * @tc.require: 
+ * @tc.require:
  */
 HWTEST_F(OsAccountManagerServiceModuleTest, OsAccountManagerServiceModuleTest073, TestSize.Level1)
 {
@@ -1448,7 +1448,7 @@ HWTEST_F(OsAccountManagerServiceModuleTest, OsAccountManagerServiceModuleTest073
  * @tc.name: OsAccountManagerServiceModuleTest074
  * @tc.desc: Test DumpState with invalid local id.
  * @tc.type: FUNC
- * @tc.require: 
+ * @tc.require:
  */
 HWTEST_F(OsAccountManagerServiceModuleTest, OsAccountManagerServiceModuleTest074, TestSize.Level1)
 {
@@ -1462,7 +1462,7 @@ HWTEST_F(OsAccountManagerServiceModuleTest, OsAccountManagerServiceModuleTest074
  * @tc.name: OsAccountManagerServiceModuleTest075
  * @tc.desc: Test GetSerialNumberFromDatabase with invalid store id.
  * @tc.type: FUNC
- * @tc.require: 
+ * @tc.require:
  */
 HWTEST_F(OsAccountManagerServiceModuleTest, OsAccountManagerServiceModuleTest075, TestSize.Level1)
 {
@@ -1476,7 +1476,7 @@ HWTEST_F(OsAccountManagerServiceModuleTest, OsAccountManagerServiceModuleTest075
  * @tc.name: OsAccountManagerServiceModuleTest076
  * @tc.desc: Test GetSerialNumberFromDatabase normal case.
  * @tc.type: FUNC
- * @tc.require: 
+ * @tc.require:
  */
 HWTEST_F(OsAccountManagerServiceModuleTest, OsAccountManagerServiceModuleTest076, TestSize.Level1)
 {
@@ -1491,7 +1491,7 @@ HWTEST_F(OsAccountManagerServiceModuleTest, OsAccountManagerServiceModuleTest076
  * @tc.name: OsAccountManagerServiceModuleTest077
  * @tc.desc: Test GetMaxAllowCreateIdFromDatabase with invalid store id.
  * @tc.type: FUNC
- * @tc.require: 
+ * @tc.require:
  */
 HWTEST_F(OsAccountManagerServiceModuleTest, OsAccountManagerServiceModuleTest077, TestSize.Level1)
 {
@@ -1505,7 +1505,7 @@ HWTEST_F(OsAccountManagerServiceModuleTest, OsAccountManagerServiceModuleTest077
  * @tc.name: OsAccountManagerServiceModuleTest078
  * @tc.desc: Test GetMaxAllowCreateIdFromDatabase normal case.
  * @tc.type: FUNC
- * @tc.require: 
+ * @tc.require:
  */
 HWTEST_F(OsAccountManagerServiceModuleTest, OsAccountManagerServiceModuleTest078, TestSize.Level1)
 {
@@ -1520,7 +1520,7 @@ HWTEST_F(OsAccountManagerServiceModuleTest, OsAccountManagerServiceModuleTest078
  * @tc.name: OsAccountManagerServiceModuleTest079
  * @tc.desc: Test GetOsAccountFromDatabase with invalid local id.
  * @tc.type: FUNC
- * @tc.require: 
+ * @tc.require:
  */
 HWTEST_F(OsAccountManagerServiceModuleTest, OsAccountManagerServiceModuleTest079, TestSize.Level1)
 {
@@ -1535,7 +1535,7 @@ HWTEST_F(OsAccountManagerServiceModuleTest, OsAccountManagerServiceModuleTest079
  * @tc.name: OsAccountManagerServiceModuleTest080
  * @tc.desc: Test GetOsAccountFromDatabase with invalid store id.
  * @tc.type: FUNC
- * @tc.require: 
+ * @tc.require:
  */
 HWTEST_F(OsAccountManagerServiceModuleTest, OsAccountManagerServiceModuleTest080, TestSize.Level1)
 {
@@ -1549,7 +1549,7 @@ HWTEST_F(OsAccountManagerServiceModuleTest, OsAccountManagerServiceModuleTest080
  * @tc.name: OsAccountManagerServiceModuleTest081
  * @tc.desc: Test GetOsAccountFromDatabase normal case.
  * @tc.type: FUNC
- * @tc.require: 
+ * @tc.require:
  */
 HWTEST_F(OsAccountManagerServiceModuleTest, OsAccountManagerServiceModuleTest081, TestSize.Level1)
 {
@@ -1564,7 +1564,7 @@ HWTEST_F(OsAccountManagerServiceModuleTest, OsAccountManagerServiceModuleTest081
  * @tc.name: OsAccountManagerServiceModuleTest082
  * @tc.desc: Test GetOsAccountListFromDatabase normal case.
  * @tc.type: FUNC
- * @tc.require: 
+ * @tc.require:
  */
 HWTEST_F(OsAccountManagerServiceModuleTest, OsAccountManagerServiceModuleTest082, TestSize.Level1)
 {
@@ -1579,7 +1579,7 @@ HWTEST_F(OsAccountManagerServiceModuleTest, OsAccountManagerServiceModuleTest082
  * @tc.name: OsAccountManagerServiceModuleTest083
  * @tc.desc: Test GetOsAccountListFromDatabase with invalid store id.
  * @tc.type: FUNC
- * @tc.require: 
+ * @tc.require:
  */
 HWTEST_F(OsAccountManagerServiceModuleTest, OsAccountManagerServiceModuleTest083, TestSize.Level1)
 {
@@ -1594,7 +1594,7 @@ HWTEST_F(OsAccountManagerServiceModuleTest, OsAccountManagerServiceModuleTest083
  * @tc.name: OsAccountManagerServiceModuleTest084
  * @tc.desc: Test SetGlobalOsAccountConstraints normal case.
  * @tc.type: FUNC
- * @tc.require: 
+ * @tc.require:
  */
 HWTEST_F(OsAccountManagerServiceModuleTest, OsAccountManagerServiceModuleTest084, TestSize.Level1)
 {
@@ -1605,12 +1605,12 @@ HWTEST_F(OsAccountManagerServiceModuleTest, OsAccountManagerServiceModuleTest084
         MAIN_ACCOUNT_ID, CONSTANT_PRINT, isConstraintEnable), ERR_OK);
     EXPECT_EQ(isConstraintEnable, false);
     EXPECT_EQ(osAccountManagerService_->SetGlobalOsAccountConstraints(
-        CONSTANTS_VECTOR, true, MAIN_ACCOUNT_ID , true), ERR_OK);
+        CONSTANTS_VECTOR, true, MAIN_ACCOUNT_ID, true), ERR_OK);
     EXPECT_EQ(osAccountManagerService_->IsOsAccountConstraintEnable(
         MAIN_ACCOUNT_ID, CONSTANT_PRINT, isConstraintEnable), ERR_OK);
     EXPECT_EQ(isConstraintEnable, true);
     EXPECT_EQ(osAccountManagerService_->SetGlobalOsAccountConstraints(
-        CONSTANTS_VECTOR, false, MAIN_ACCOUNT_ID , true), ERR_OK);
+        CONSTANTS_VECTOR, false, MAIN_ACCOUNT_ID, true), ERR_OK);
     EXPECT_EQ(osAccountManagerService_->IsOsAccountConstraintEnable(
         MAIN_ACCOUNT_ID, CONSTANT_PRINT, isConstraintEnable), ERR_OK);
     EXPECT_EQ(isConstraintEnable, false);
@@ -1620,7 +1620,7 @@ HWTEST_F(OsAccountManagerServiceModuleTest, OsAccountManagerServiceModuleTest084
  * @tc.name: OsAccountManagerServiceModuleTest085
  * @tc.desc: Test SetGlobalOsAccountConstraints exception case.
  * @tc.type: FUNC
- * @tc.require: 
+ * @tc.require:
  */
 HWTEST_F(OsAccountManagerServiceModuleTest, OsAccountManagerServiceModuleTest085, TestSize.Level1)
 {
@@ -1631,30 +1631,29 @@ HWTEST_F(OsAccountManagerServiceModuleTest, OsAccountManagerServiceModuleTest085
         INVALID_ACCOUNT_ID, CONSTANT_WIFI, isConstraintEnable), ERR_OK);
     // set exit constraints
     EXPECT_EQ(osAccountManagerService_->SetGlobalOsAccountConstraints(
-        CONSTANTS_VECTOR_TEST, true, MAIN_ACCOUNT_ID , true), ERR_OK);
+        CONSTANTS_VECTOR_TEST, true, MAIN_ACCOUNT_ID, true), ERR_OK);
     // test invalid enforcer id
     EXPECT_NE(osAccountManagerService_->SetGlobalOsAccountConstraints(
-        CONSTANTS_VECTOR, true, INVALID_ACCOUNT_ID , true), ERR_OK);
+        CONSTANTS_VECTOR, true, INVALID_ACCOUNT_ID, true), ERR_OK);
     // remove not exit constraints
     EXPECT_EQ(osAccountManagerService_->SetGlobalOsAccountConstraints(
-        CONSTANTS_VECTOR, false, MAIN_ACCOUNT_ID , true), ERR_OK);
+        CONSTANTS_VECTOR, false, MAIN_ACCOUNT_ID, true), ERR_OK);
     // add invalid constraints
     EXPECT_NE(osAccountManagerService_->SetGlobalOsAccountConstraints(
-        INVALID_CONSTRAINT, true, MAIN_ACCOUNT_ID , true), ERR_OK);
+        INVALID_CONSTRAINT, true, MAIN_ACCOUNT_ID, true), ERR_OK);
 }
 
 /**
  * @tc.name: OsAccountManagerServiceModuleTest086
  * @tc.desc: Test SetSpecificOsAccountConstraints normal case.
  * @tc.type: FUNC
- * @tc.require: 
+ * @tc.require:
  */
 HWTEST_F(OsAccountManagerServiceModuleTest, OsAccountManagerServiceModuleTest086, TestSize.Level1)
 {
     ACCOUNT_LOGI("OsAccountManagerServiceModuleTest073");
     OsAccountInfo osAccountInfo;
-    ErrCode errCode = 
-        osAccountManagerService_->CreateOsAccount(STRING_TEST_NAME, INT_TEST_TYPE, osAccountInfo);
+    ErrCode errCode = osAccountManagerService_->CreateOsAccount(STRING_TEST_NAME, INT_TEST_TYPE, osAccountInfo);
     EXPECT_EQ(errCode, ERR_OK);
     bool isConstraintEnable = false;
     EXPECT_EQ(osAccountManagerService_->IsOsAccountConstraintEnable(
@@ -1680,7 +1679,7 @@ HWTEST_F(OsAccountManagerServiceModuleTest, OsAccountManagerServiceModuleTest086
  * @tc.name: OsAccountManagerServiceModuleTest087
  * @tc.desc: Test SetSpecificOsAccountConstraints exception case.
  * @tc.type: FUNC
- * @tc.require: 
+ * @tc.require:
  */
 HWTEST_F(OsAccountManagerServiceModuleTest, OsAccountManagerServiceModuleTest087, TestSize.Level1)
 {

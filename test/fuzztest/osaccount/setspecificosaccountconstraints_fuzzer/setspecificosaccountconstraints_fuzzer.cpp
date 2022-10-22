@@ -40,7 +40,8 @@ namespace OHOS {
             };
             bool enable = ((size % CONSTANTS_NUMBER_TWO) == 0);
             bool isDeviceOwner = ((size % CONSTANTS_NUMBER_THREE) == 0);
-            result = OsAccountManager::SetSpecificOsAccountConstraints(CONSTANTS_VECTOR, enable, TARGET_ID, ENFORCER_ID, isDeviceOwner);
+            result = OsAccountManager::SetSpecificOsAccountConstraints(
+                CONSTANTS_VECTOR, enable, TARGET_ID, ENFORCER_ID, isDeviceOwner);
         }
         return result;
     }
