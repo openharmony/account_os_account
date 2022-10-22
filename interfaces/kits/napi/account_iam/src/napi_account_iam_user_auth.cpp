@@ -215,13 +215,11 @@ static napi_status ParseContextForAuth(
         return napi_invalid_arg;
     }
     int32_t index = 0;
-    if (needUser) {
-        if (!GetIntProperty(env, argv[index++], context.userId)) {
-            ACCOUNT_LOGE("Get userId failed");
-            std::string errMsg = "The type of arg " + std::to_string(index) + " must be number";
-            AccountNapiThrow(env, ERR_JS_PARAMETER_ERROR, errMsg, context.throwErr);
-            return napi_invalid_arg;
-        }
+    if (needUser && !GetIntProperty(env, argv[index++], context.userId)) {
+        ACCOUNT_LOGE("Get userId failed");
+        std::string errMsg = "The type of arg " + std::to_string(index) + " must be number";
+        AccountNapiThrow(env, ERR_JS_PARAMETER_ERROR, errMsg, context.throwErr);
+        return napi_invalid_arg;
     }
     if (ParseUint8TypedArrayToVector(env, argv[index++], context.challenge)!= napi_ok) {
         ACCOUNT_LOGE("Get challenge failed");
