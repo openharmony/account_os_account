@@ -30,7 +30,7 @@ namespace OHOS {
         bool result = false;
         if (size > 0) {
             std::vector<OsAccountInfo> TEST_LIST{};
-            std::string randomId(reinterpret_cast<const char*>(data), size); 
+            std::string randomId(reinterpret_cast<const char*>(data), size);
             result = OsAccountManager::GetOsAccountListFromDatabase(randomId, TEST_LIST);
         }
         return result;

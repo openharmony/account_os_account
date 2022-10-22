@@ -1406,18 +1406,18 @@ static void CreateTypeJs(napi_env env, GetTypeAsyncContext* asyncContext, napi_v
     napi_create_int32(env, cType, &jsType);
 
     switch (cType) {
-    case PARAMZERO:
-        napi_set_named_property(env, value, "ADMIN", jsType);
-        break;
-    case PARAMONE:
-        napi_set_named_property(env, value, "NORMAL", jsType);
-        break;
-    case PARAMTWO:
-        napi_set_named_property(env, value, "GUEST", jsType);
-        break;
-    default:
-        ACCOUNT_LOGE("cType %{public}d is an invalid value", cType);
-        break;
+        case PARAMZERO:
+            napi_set_named_property(env, value, "ADMIN", jsType);
+            break;
+        case PARAMONE:
+            napi_set_named_property(env, value, "NORMAL", jsType);
+            break;
+        case PARAMTWO:
+            napi_set_named_property(env, value, "GUEST", jsType);
+            break;
+        default:
+            ACCOUNT_LOGE("cType %{public}d is an invalid value", cType);
+            break;
     }
 }
 

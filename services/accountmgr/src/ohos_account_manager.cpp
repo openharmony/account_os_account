@@ -284,7 +284,7 @@ bool OhosAccountManager::LoginOhosAccount(const OhosAccountInfo &ohosAccountInfo
     // update account info
     currAccountInfo.ohosAccountInfo_ = ohosAccountInfo;
     currAccountInfo.ohosAccountInfo_.uid_ = ohosAccountUid;
-    currAccountInfo.bindTime_ = std::time(nullptr); 
+    currAccountInfo.bindTime_ = std::time(nullptr);
     currAccountInfo.userId_ = callingUserId;
     ret = SaveOhosAccountInfo(currAccountInfo);
     if (!ret) {
