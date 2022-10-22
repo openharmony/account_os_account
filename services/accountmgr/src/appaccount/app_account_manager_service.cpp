@@ -82,6 +82,9 @@ ErrCode AppAccountManagerService::CreateAccount(const std::string &name, const C
     if (ret != ERR_OK) {
         return ret;
     }
+    if (options.customData.size() > Constants::MAX_CUSTOM_DATA_SIZE) {
+        return ERR_APPACCOUNT_KIT_INVALID_PARAMETER;
+    }
     return innerManager_->CreateAccount(name, options, callingUid, bundleName, appIndex);
 }
 
