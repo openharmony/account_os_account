@@ -82,8 +82,9 @@ ErrCode AppAccount::CreateAccount(const std::string &name, const CreateAccountOp
 {
     RETURN_IF_STRING_IS_EMPTY_OR_OVERSIZE(name, Constants::NAME_MAX_SIZE, "name is empty or oversize");
     RETURN_IF_PROXY_IS_NULLPTR();
+    RETURN_IF_STRING_CONTAINS_SPECIAL_CHAR(name);
     if (options.customData.size() > Constants::MAX_CUSTOM_DATA_SIZE) {
-        return ERR_APPACCOUNT_SERVICE_ASSOCIATED_DATA_OVER_SIZE;
+        return ERR_APPACCOUNT_KIT_INVALID_PARAMETER;
     }
     for (auto it : options.customData) {
         RETURN_IF_STRING_IS_OVERSIZE(it.first, Constants::ASSOCIATED_KEY_MAX_SIZE, "customData key is oversize");
