@@ -130,6 +130,17 @@ private:
     template <typename T>
     bool GetParcelableInfosFromAshmem(
         IBundleMgr::Message code, MessageParcel &data, std::vector<T> &parcelableInfos);
+
+    template<typename T>
+    bool GetVectorFromParcelIntelligent(
+        IBundleMgr::Message code, MessageParcel &data, std::vector<T> &parcelableInfos);
+
+    template<typename T>
+    ErrCode InnerGetVectorFromParcelIntelligent(
+        MessageParcel &reply, std::vector<T> &parcelableInfos);
+
+    bool SendData(void *&buffer, size_t size, const void *data);
+
     static inline BrokerDelegator<BundleManagerAdapterProxy> delegator_;
 };
 }  // namespace AccountSA
