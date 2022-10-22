@@ -708,7 +708,7 @@ bool AppAccountInfo::ReadTokenInfos(std::map<std::string, OAuthTokenInfo> &token
         return false;
     }
     tokenInfos.clear();
-    for (int32_t index = 0; index < size; ++index) {
+    for (uint32_t index = 0; index < size; ++index) {
         OAuthTokenInfo tokenInfo;
         if (!data.ReadString(tokenInfo.authType)) {
             ACCOUNT_LOGE("failed to ReadString for authType");

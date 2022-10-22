@@ -146,7 +146,6 @@ int32_t OhosAccountDataDeal::GetAccountInfo(AccountInfo &accountInfo, const std:
         ReportOhosAccountOperationFail(userId, OPERATION_OPEN_FILE_TO_READ, errno, configFile);
         return ERR_ACCOUNT_DATADEAL_INPUT_FILE_ERROR;
     }
-
     // NOT-allow exceptions when parse json file
     std::lock_guard<std::mutex> lock(mutex_);
     jsonData_ = json::parse(fin, nullptr, false);
