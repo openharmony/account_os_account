@@ -203,8 +203,8 @@ bool BundleManagerAdapterProxy::QueryAbilityInfos(
         return false;
     }
 
-    if (!GetParcelableInfosFromAshmem<AbilityInfo>(IBundleMgr::Message::QUERY_ABILITY_INFOS_MUTI_PARAM,
-                                                   data, abilityInfos)) {
+    if (!GetVectorFromParcelIntelligent<AbilityInfo>(IBundleMgr::Message::QUERY_ABILITY_INFOS_MUTI_PARAM,
+        data, abilityInfos)) {
         ACCOUNT_LOGE("fail to QueryAbilityInfos from server");
         return false;
     }
@@ -322,6 +322,63 @@ bool BundleManagerAdapterProxy::GetParcelableInfos(IBundleMgr::Message code, Mes
     return true;
 }
 
+template<typename T>
+bool BundleManagerAdapterProxy::GetVectorFromParcelIntelligent(
+    IBundleMgr::Message code, MessageParcel &data, std::vector<T> &parcelableInfos)
+{
+    MessageParcel reply;
+    if (!SendTransactCmd(code, data, reply)) {
+        return false;
+    }
+
+    if (!reply.ReadBool()) {
+        ACCOUNT_LOGE("readParcelableInfo failed");
+        return false;
+    }
+
+    if (InnerGetVectorFromParcelIntelligent<T>(reply, parcelableInfos) != ERR_OK) {
+        ACCOUNT_LOGE("InnerGetVectorFromParcelIntelligent failed");
+        return false;
+    }
+
+    return true;
+}
+
+template<typename T>
+ErrCode BundleManagerAdapterProxy::InnerGetVectorFromParcelIntelligent(
+    MessageParcel &reply, std::vector<T> &parcelableInfos)
+{
+    size_t dataSize = static_cast<size_t>(reply.ReadInt32());
+    if (dataSize == 0) {
+        ACCOUNT_LOGW("Parcel no data");
+        return ERR_OK;
+    }
+
+    void *buffer = nullptr;
+    if (!SendData(buffer, dataSize, reply.ReadRawData(dataSize))) {
+        ACCOUNT_LOGE("Fail to read raw data, length = %{public}zu", dataSize);
+        return ERR_APPEXECFWK_PARCEL_ERROR;
+    }
+
+    MessageParcel tempParcel;
+    if (!tempParcel.ParseFrom(reinterpret_cast<uintptr_t>(buffer), dataSize)) {
+        ACCOUNT_LOGE("Fail to ParseFrom");
+        return ERR_APPEXECFWK_PARCEL_ERROR;
+    }
+
+    int32_t infoSize = tempParcel.ReadInt32();
+    for (int32_t i = 0; i < infoSize; i++) {
+        std::unique_ptr<T> info(tempParcel.ReadParcelable<T>());
+        if (info == nullptr) {
+            ACCOUNT_LOGE("Read Parcelable infos failed");
+            return false;
+        }
+        parcelableInfos.emplace_back(*info);
+    }
+
+    return ERR_OK;
+}
+
 template <typename T>
 bool BundleManagerAdapterProxy::GetParcelableInfosFromAshmem(
     IBundleMgr::Message code, MessageParcel &data, std::vector<T> &parcelableInfos)
@@ -375,6 +432,33 @@ bool BundleManagerAdapterProxy::GetParcelableInfosFromAshmem(
         offset += strLen;
     }
     ClearAshmem(ashmem);
+    return true;
+}
+
+bool BundleManagerAdapterProxy::SendData(void *&buffer, size_t size, const void *data)
+{
+    if (data == nullptr) {
+        ACCOUNT_LOGE("data is nullptr");
+        return false;
+    }
+
+    if (size <= 0) {
+        ACCOUNT_LOGE("size is invalid");
+        return false;
+    }
+
+    buffer = malloc(size);
+    if (buffer == nullptr) {
+        ACCOUNT_LOGE("buffer malloc failed");
+        return false;
+    }
+
+    if (memcpy_s(buffer, size, data, size) != EOK) {
+        free(buffer);
+        ACCOUNT_LOGE("memcpy_s failed");
+        return false;
+    }
+
     return true;
 }
 
