@@ -39,6 +39,7 @@ ohos_moduletest("AccountInnerSdkModuleTest") {
 
   sources = [
     "${common_path}/log/src/account_log_wrapper.cpp",
+    "${innerkits_native_path}/src/account_info_parcel.cpp",
     "${innerkits_native_path}/src/account_proxy.cpp",
     "${innerkits_native_path}/src/ohos_account_kits.cpp",
     "${innerkits_native_path}/src/ohos_account_kits_impl.cpp",
