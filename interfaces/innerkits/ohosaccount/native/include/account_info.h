@@ -76,7 +76,7 @@ const std::string DEFAULT_OHOS_ACCOUNT_UID = "ohosAnonymousUid"; // default UID
 constexpr std::int32_t UID_TRANSFORM_DIVISOR = 200000; // local account id = uid / UID_TRANSFORM_DIVISOR
 constexpr std::int32_t MAIN_OS_ACCOUNT_LOCAL_ID = 100; // main os account local id = 100
 
-class OhosAccountInfo : public Parcelable {
+class OhosAccountInfo {
 public:
     std::string name_;
     std::string uid_;
@@ -105,52 +105,9 @@ public:
 
     ~OhosAccountInfo() {};
 
-    bool Marshalling(Parcel &parcel) const
+    bool IsValid() const
     {
-        return ((parcel.WriteString16(Str8ToStr16(name_))) && (parcel.WriteString16(Str8ToStr16(uid_))) &&
-            (parcel.WriteInt32(status_)) && (parcel.WriteString16(Str8ToStr16(nickname_))) &&
-            (parcel.WriteString16(Str8ToStr16(avatar_))) && (parcel.WriteParcelable(&scalableData_)));
-    }
-
-    static OhosAccountInfo *Unmarshalling(Parcel &parcel)
-    {
-        OhosAccountInfo *info = new (std::nothrow) OhosAccountInfo();
-        if ((info != nullptr) && (!info->ReadFromParcel(parcel))) {
-            delete info;
-            info = nullptr;
-        }
-        return info;
-    }
-
-    bool ReadFromParcel(Parcel &parcel)
-    {
-        std::u16string name, uid, nickname, avatar;
-        int32_t status;
-        if ((!parcel.ReadString16(name))|| (!parcel.ReadString16(uid)) || (!parcel.ReadInt32(status)) ||
-            (!parcel.ReadString16(nickname)) || (!parcel.ReadString16(avatar))) {
-            return false;
-        }
-        sptr<AAFwk::Want> want = parcel.ReadParcelable<AAFwk::Want>();
-        if (want == nullptr) {
-            return false;
-        }
-        name_ = Str16ToStr8(name);
-        uid_ = Str16ToStr8(uid);
-        status_ = status;
-        nickname_ = Str16ToStr8(nickname);
-        avatar_ = Str16ToStr8(avatar);
-        scalableData_ = *want;
-        return true;
-    }
-
-    static bool OhosAccountInfoIsValid (const OhosAccountInfo &ohosAccountInfo)
-    {
-        if (((ohosAccountInfo.nickname_).size() > Constants::NICKNAME_MAX_SIZE) ||
-            ((ohosAccountInfo.avatar_).size() > Constants::AVATAR_MAX_SIZE)) {
-            return false;
-        } else {
-            return true;
-        }
+        return (nickname_.size() <= Constants::NICKNAME_MAX_SIZE) && (avatar_.size() <= Constants::AVATAR_MAX_SIZE);
     }
 };
 

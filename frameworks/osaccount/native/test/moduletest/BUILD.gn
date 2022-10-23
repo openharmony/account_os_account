@@ -39,6 +39,7 @@ ohos_moduletest("os_account_frameworks_module_test") {
   module_out_path = module_output_path
 
   sources = [
+    "${innerkits_native_path}/src/account_info_parcel.cpp",
     "${innerkits_native_path}/src/account_proxy.cpp",
     "os_account_manager_module_test.cpp",
   ]
