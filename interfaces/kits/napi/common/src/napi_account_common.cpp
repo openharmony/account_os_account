@@ -25,7 +25,6 @@
 namespace OHOS {
 namespace AccountJsKit {
 namespace {
-constexpr int32_t MAX_VALUE_LEN = 4096;
 constexpr int32_t BUSINESS_ERROR_ARG_SIZE = 2;
 }
 
@@ -99,10 +98,11 @@ bool GetStringProperty(napi_env env, napi_value obj, std::string &property)
         return false;
     }
 
-    char propValue[MAX_VALUE_LEN] = {0};
     size_t propLen;
-    NAPI_CALL_BASE(env, napi_get_value_string_utf8(env, obj, propValue, MAX_VALUE_LEN, &propLen), false);
-    property = std::string(propValue);
+    NAPI_CALL_BASE(env, napi_get_value_string_utf8(env, obj, nullptr, 0, &propLen), false);
+    property.reserve(propLen + 1);
+    property.resize(propLen);
+    NAPI_CALL_BASE(env, napi_get_value_string_utf8(env, obj, property.data(), propLen + 1, &propLen), false);
     return true;
 }
 
