@@ -13,19 +13,16 @@
  * limitations under the License.
  */
 
-#ifndef OS_ACCOUNT_SERVICES_ACCOUNTMGR_INCLUDE_OHOSACCOUNT_ACCOUNT_CONSTANTS_H
-#define OS_ACCOUNT_SERVICES_ACCOUNTMGR_INCLUDE_OHOSACCOUNT_ACCOUNT_CONSTANTS_H
+#ifndef OS_ACCOUNT_SERVICES_ACCOUNTMGR_INCLUDE_ACCOUNT_INFO_PARCEL_H
+#define OS_ACCOUNT_SERVICES_ACCOUNTMGR_INCLUDE_ACCOUNT_INFO_PARCEL_H
 
-#include "account_error_no.h"
+#include "account_info.h"
 
 namespace OHOS {
 namespace AccountSA {
-namespace Constants {
-constexpr std::size_t NICKNAME_MAX_SIZE = 20;
-constexpr std::size_t AVATAR_MAX_SIZE = 3 * 1024 * 1024;
-constexpr std::size_t SCALABLEDATA_MAX_SIZE = 1024;
-};  // namespace Constants
+bool WriteOhosAccountInfo(MessageParcel &data, const OhosAccountInfo &ohosAccountInfo);
+bool ReadOhosAccountInfo(MessageParcel &reply, OhosAccountInfo &ohosAccountInfo);
 }  // namespace AccountSA
 }  // namespace OHOS
 
-#endif  // OS_ACCOUNT_SERVICES_ACCOUNTMGR_INCLUDE_APPACCOUNT_APP_ACCOUNT_CONSTANTS_H
+#endif  // OS_ACCOUNT_SERVICES_ACCOUNTMGR_INCLUDE_ACCOUNT_INFO_PARCEL_H
