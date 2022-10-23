@@ -123,7 +123,7 @@ int32_t OhosAccountDataDeal::SaveAccountInfo(const AccountInfo &accountInfo) con
 
     // change mode
     if (!ChangeModeFile(configFile, S_IRUSR | S_IWUSR)) {
-        ACCOUNT_LOGW("failed to change mode for file %{public}s, errno %{public}d.", configFile.c_str(), errno);
+        ACCOUNT_LOGE("failed to change mode for file %{public}s, errno %{public}d.", configFile.c_str(), errno);
         ReportOhosAccountOperationFail(accountInfo.userId_, OPERATION_CHANGE_MODE_FILE, errno, configFile);
         return ERR_OHOSACCOUNT_SERVICE_FILE_CHANGE_DIR_MODE_ERROR;
     }

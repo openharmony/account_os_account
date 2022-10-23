@@ -21,6 +21,7 @@
 #include "account_error_no.h"
 #include "account_helper_data.h"
 #include "account_info.h"
+#include "account_info_parcel.h"
 #include "account_log_wrapper.h"
 #include "account_mgr_service.h"
 #include "bundle_manager_adapter.h"
@@ -89,15 +90,18 @@ std::int32_t AccountStub::InnerUpdateOhosAccountInfo(MessageParcel &data, Messag
 
 std::int32_t AccountStub::InnerSetOhosAccountInfo(MessageParcel &data, MessageParcel &reply)
 {
-    sptr<OhosAccountInfo> ohosAccountInfo = data.ReadParcelable<OhosAccountInfo>();
-    if (ohosAccountInfo == nullptr) {
-        ACCOUNT_LOGE("Read parcelable ohos account info failed");
+    OhosAccountInfo info;
+    if (!ReadOhosAccountInfo(data, info)) {
         return ERR_ACCOUNT_COMMON_READ_PARCEL_ERROR;
+    }
+    if (!info.IsValid()) {
+        ACCOUNT_LOGE("Check OhosAccountInfo failed");
+        return ERR_OHOSACCOUNT_KIT_INVALID_PARAMETER;
     }
     // ignore the real account name
     const std::string eventStr = Str16ToStr8(data.ReadString16());
 
-    std::int32_t ret = SetOhosAccountInfo(*ohosAccountInfo, eventStr);
+    std::int32_t ret = SetOhosAccountInfo(info, eventStr);
     if (ret != ERR_OK) {
         ACCOUNT_LOGE("Set ohos account info failed");
         ret = ERR_ACCOUNT_ZIDL_ACCOUNT_STUB_ERROR;
@@ -162,8 +166,8 @@ std::int32_t AccountStub::InnerGetOhosAccountInfo(MessageParcel &data, MessagePa
         ACCOUNT_LOGE("Get ohos account info failed");
         return ERR_ACCOUNT_ZIDL_ACCOUNT_STUB_ERROR;
     }
-    if (!reply.WriteParcelable(&ohosAccountInfo)) {
-        ACCOUNT_LOGE("Write parcelable ohos account info failed");
+    if (!WriteOhosAccountInfo(reply, ohosAccountInfo)) {
+        ACCOUNT_LOGE("Write ohosAccountInfo failed!");
         return ERR_ACCOUNT_COMMON_WRITE_PARCEL_ERROR;
     }
     return ERR_OK;

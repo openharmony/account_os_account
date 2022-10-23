@@ -131,9 +131,6 @@ bool OhosAccountManager::OhosAccountStateChange(const std::string &name, const s
  */
 bool OhosAccountManager::OhosAccountStateChange(const OhosAccountInfo &ohosAccountInfo, const std::string &eventStr)
 {
-    if (!OhosAccountInfo::OhosAccountInfoIsValid(ohosAccountInfo)) {
-        return false;
-    }
     auto itFunc = eventFuncMap_.find(eventStr);
     if (itFunc == eventFuncMap_.end()) {
         ACCOUNT_LOGE("invalid event: %{public}s", eventStr.c_str());
@@ -260,22 +257,22 @@ bool OhosAccountManager::LoginOhosAccount(const OhosAccountInfo &ohosAccountInfo
     }
 
     // current local user cannot be bound again when it has already been bound to an ohos account
-    if (currAccountInfo.ohosAccountInfo_.status_ == ACCOUNT_STATE_LOGIN) {
+    std::string ohosAccountUid = GenerateOhosUdidWithSha256(ohosAccountInfo.name_, ohosAccountInfo.uid_);
+    if ((currAccountInfo.ohosAccountInfo_.status_ == ACCOUNT_STATE_LOGIN) &&
+        ((currAccountInfo.ohosAccountInfo_.uid_ != ohosAccountUid) ||
+        (currAccountInfo.ohosAccountInfo_.name_ != ohosAccountInfo.name_))) {
         ACCOUNT_LOGE("current account has already been bounded. callingUserId %{public}d.", callingUserId);
         return false;
     }
 
-    // traversal check
-    std::string ohosAccountUid = GenerateOhosUdidWithSha256(ohosAccountInfo.name_, ohosAccountInfo.uid_);
-    bool ret = CheckOhosAccountCanBind(ohosAccountUid);
-    if (!ret) {
+    if (!CheckOhosAccountCanBind(ohosAccountUid)) {
         ACCOUNT_LOGE("check can be bound failed, callingUserId %{public}d, ohosAccountUid %{public}s.",
             callingUserId, ohosAccountUid.c_str());
         return false;
     }
 
-    ret = HandleEvent(currAccountInfo, eventStr); // update account status
-    if (!ret) {
+     // update account status
+    if (!HandleEvent(currAccountInfo, eventStr)) {
         ACCOUNT_LOGE("HandleEvent %{public}s failed! callingUserId %{public}d, ohosAccountUid %{public}s.",
             eventStr.c_str(), callingUserId, ohosAccountUid.c_str());
         return false;
@@ -284,10 +281,10 @@ bool OhosAccountManager::LoginOhosAccount(const OhosAccountInfo &ohosAccountInfo
     // update account info
     currAccountInfo.ohosAccountInfo_ = ohosAccountInfo;
     currAccountInfo.ohosAccountInfo_.uid_ = ohosAccountUid;
-    currAccountInfo.bindTime_ = std::time(nullptr); 
+    currAccountInfo.ohosAccountInfo_.status_ = ACCOUNT_STATE_LOGIN;
+    currAccountInfo.bindTime_ = std::time(nullptr);
     currAccountInfo.userId_ = callingUserId;
-    ret = SaveOhosAccountInfo(currAccountInfo);
-    if (!ret) {
+    if (!SaveOhosAccountInfo(currAccountInfo)) {
         ACCOUNT_LOGE("SaveOhosAccountInfo failed! callingUserId %{public}d, ohosAccountUid %{public}s.",
             callingUserId, ohosAccountUid.c_str());
         return false;
@@ -570,31 +567,25 @@ bool OhosAccountManager::CheckOhosAccountCanBind(const std::string &newOhosUid) 
         if (curInfo.ohosAccountInfo_.status_ != ACCOUNT_STATE_LOGIN) {
             continue; // account not bind, skip check
         }
-
-        if (newOhosUid == curInfo.ohosAccountInfo_.uid_) {
-            ACCOUNT_LOGE("cannot bind, it has been bound with local account %{public}d.", curInfo.userId_);
-            (void)closedir(rootDir);
-            return false;
-        }
     }
 
     (void)closedir(rootDir);
     return true;
 }
 
-bool OhosAccountManager::GetCurOhosAccountAndCheckMatch(AccountInfo &curOhosAccountInfo,
+bool OhosAccountManager::GetCurOhosAccountAndCheckMatch(AccountInfo &curAccountInfo,
                                                         const std::string &inputName,
                                                         const std::string &inputUid,
                                                         const std::int32_t callingUserId) const
 {
-    if (dataDealer_->AccountInfoFromJson(curOhosAccountInfo, callingUserId) != ERR_OK) {
+    if (dataDealer_->AccountInfoFromJson(curAccountInfo, callingUserId) != ERR_OK) {
         ACCOUNT_LOGE("cannot read from config, inputName %{public}s.", inputName.c_str());
         return false;
     }
 
     std::string ohosAccountUid = GenerateOhosUdidWithSha256(inputName, inputUid);
-    if (inputName != curOhosAccountInfo.ohosAccountInfo_.name_ ||
-        ohosAccountUid != curOhosAccountInfo.ohosAccountInfo_.uid_) {
+    if (inputName != curAccountInfo.ohosAccountInfo_.name_ ||
+        ohosAccountUid != curAccountInfo.ohosAccountInfo_.uid_) {
         ACCOUNT_LOGE("account name %{public}s or ohosAccountUid %{public}s mismatch, calling user %{public}d.",
             inputName.c_str(), ohosAccountUid.c_str(), callingUserId);
         return false;
