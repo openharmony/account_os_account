@@ -44,6 +44,7 @@ config("accountkits_all_dependent_configs") {
 
 ohos_shared_library("libaccountkits") {
   sources = [
+    "src/account_info_parcel.cpp",
     "src/account_proxy.cpp",
     "src/ohos_account_kits.cpp",
     "src/ohos_account_kits_impl.cpp",

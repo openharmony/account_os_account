@@ -17,6 +17,7 @@
 #include <ipc_types.h>
 #include <string_ex.h>
 #include "account_error_no.h"
+#include "account_info_parcel.h"
 #include "account_log_wrapper.h"
 
 namespace OHOS {
@@ -76,12 +77,12 @@ std::int32_t AccountProxy::SetOhosAccountInfo(const OhosAccountInfo &ohosAccount
         ACCOUNT_LOGE("Write descriptor failed!");
         return ERR_ACCOUNT_ZIDL_WRITE_PARCEL_DATA_ERROR;
     }
-    if (!data.WriteParcelable(&ohosAccountInfo)) {
+    if (!WriteOhosAccountInfo(data, ohosAccountInfo)) {
         ACCOUNT_LOGE("Write ohosAccountInfo failed!");
         return ERR_ACCOUNT_ZIDL_WRITE_PARCEL_DATA_ERROR;
     }
     if (!data.WriteString16(Str8ToStr16(eventStr))) {
-    ACCOUNT_LOGE("Write eventStr failed!");
+        ACCOUNT_LOGE("Write eventStr failed!");
         return ERR_ACCOUNT_ZIDL_WRITE_PARCEL_DATA_ERROR;
     }
     auto ret = Remote()->SendRequest(SET_OHOS_ACCOUNT_INFO, data, reply, option);
@@ -97,9 +98,9 @@ std::int32_t AccountProxy::SetOhosAccountInfo(const OhosAccountInfo &ohosAccount
     }
 
     if (result != ERR_OK) {
-        ACCOUNT_LOGE("UpdateOhosAccountInfo failed: %{public}d", result);
+        ACCOUNT_LOGE("SetOhosAccountInfo failed: %{public}d", result);
     }
-    ACCOUNT_LOGD("UpdateOhosAccountInfo exit");
+    ACCOUNT_LOGD("SetOhosAccountInfo exit");
     return result;
 }
 
@@ -144,11 +145,13 @@ std::int32_t AccountProxy::GetOhosAccountInfo(OhosAccountInfo &ohosAccountInfo)
         return ret;
     }
 
-    sptr<OhosAccountInfo> infoPtr = reply.ReadParcelable<OhosAccountInfo>();
-    if (infoPtr == nullptr) {
+    if (!ReadOhosAccountInfo(reply, ohosAccountInfo)) {
         return ERR_ACCOUNT_COMMON_READ_PARCEL_ERROR;
     }
-    ohosAccountInfo = *(infoPtr);
+    if (!ohosAccountInfo.IsValid()) {
+        ACCOUNT_LOGE("Check OhosAccountInfo failed");
+        return ERR_OHOSACCOUNT_KIT_INVALID_PARAMETER;
+    }
 
     ACCOUNT_LOGD("QueryOhosAccountInfo exit");
     return ERR_OK;
@@ -176,7 +179,7 @@ std::pair<bool, OhosAccountInfo> AccountProxy::QueryOhosAccountInfoByUserId(std:
         return std::make_pair(false, OhosAccountInfo());
     }
 
-    sptr<OhosAccountInfo> infoPtr= reply.ReadParcelable<OhosAccountInfo>();
+    auto infoPtr = reinterpret_cast<const OhosAccountInfo*>(reply.ReadRawData(sizeof(OhosAccountInfo)));
     if (infoPtr == nullptr) {
         return std::make_pair(false, OhosAccountInfo());
     }
