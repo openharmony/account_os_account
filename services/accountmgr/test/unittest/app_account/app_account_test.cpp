@@ -478,3 +478,42 @@ HWTEST_F(AppAccountTest, AppAccount_CreateAppAccountEventListener_0200, TestSize
         }
     }
 }
+
+/**
+ * @tc.name: AppAccount_CreateAccount_001
+ * @tc.desc: Function CreateAccount normal branch.
+ * @tc.type: FUNC
+ * @tc.require: I5XC87
+ */
+HWTEST_F(AppAccountTest, AppAccount_CreateAccount_001, TestSize.Level1)
+{
+    ACCOUNT_LOGI("AppAccount_CreateAccount_001");
+
+    CreateAccountOptions option;
+    ErrCode result = appAccount_->CreateAccount("test", option);
+    EXPECT_EQ(result, ERR_OK);
+
+    result = appAccount_->DeleteAccount("test");
+    EXPECT_EQ(result, ERR_OK);
+}
+
+/**
+ * @tc.name: AppAccount_CreateAccount_002
+ * @tc.desc: Function CreateAccount abnormal branch.
+ * @tc.type: FUNC
+ * @tc.require: I5XC87
+ */
+HWTEST_F(AppAccountTest, AppAccount_CreateAccount_002, TestSize.Level1)
+{
+    ACCOUNT_LOGI("AppAccount_CreateAccount_002");
+
+    CreateAccountOptions option;
+
+    ErrCode result = appAccount_->CreateAccount("", option);
+
+    EXPECT_EQ(result, ERR_APPACCOUNT_KIT_INVALID_PARAMETER);
+
+    result = appAccount_->CreateAccount(STRING_NAME_OUT_OF_RANGE, option);
+
+    EXPECT_EQ(result, ERR_APPACCOUNT_KIT_INVALID_PARAMETER);
+}
