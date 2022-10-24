@@ -31,6 +31,7 @@
 #include "string_ex.h"
 #include "system_ability_definition.h"
 #include "account_info.h"
+#include "xcollie/watchdog.h"
 
 namespace OHOS {
 namespace AccountSA {
@@ -38,6 +39,7 @@ namespace {
 const bool REGISTER_RESULT =
     SystemAbility::MakeAndRegisterAbility(&DelayedRefSingleton<AccountMgrService>::GetInstance());
 const std::string DEVICE_OWNER_DIR = "/data/service/el1/public/account/0/";
+const int32_t timeout = 10 * 1000; // 10s
 void CreateDeviceDir()
 {
     if (!OHOS::FileExists(DEVICE_OWNER_DIR)) {
@@ -187,6 +189,24 @@ bool AccountMgrService::Init()
     if (state_ == ServiceRunningState::STATE_RUNNING) {
         ACCOUNT_LOGW("Service is already running!");
         return false;
+    }
+
+    if (runner_ == nullptr) {
+        runner_ = AppExecFwk::EventRunner::Create("AccountMgrService");
+        if (runner_ == nullptr) {
+            ACCOUNT_LOGW("Create EventRunner failed");
+        }
+    }
+    if (handler_ == nullptr) {
+        handler_ = std::make_shared<AppExecFwk::EventHandler>(runner_);
+        if (handler_ == nullptr) {
+            ACCOUNT_LOGW("Create EventHandler failed");
+        } else {
+            int ret = HiviewDFX::Watchdog::GetInstance().AddThread("AccountMgrService", handler_, timeout);
+            if (ret != ERR_OK) {
+                ACCOUNT_LOGW("Add watchdog thread failed");
+            }
+        }
     }
 
     CreateDeviceDir();
