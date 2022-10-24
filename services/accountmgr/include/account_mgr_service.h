@@ -27,6 +27,8 @@
 #endif
 #include "account_stub.h"
 #include "app_account_manager_service.h"
+#include "event_handler.h"
+#include "event_runner.h"
 #include "os_account_manager_service.h"
 #include "iaccount.h"
 #include "iremote_object.h"
@@ -82,6 +84,8 @@ private:
     sptr<AppAccountManagerService> appAccountManagerService_ = nullptr;
     sptr<OsAccountManagerService> osAccountManagerService_ = nullptr;
     sptr<AccountIAMService> accountIAMService_ = nullptr;
+    std::shared_ptr<AppExecFwk::EventRunner> runner_ = nullptr;
+    std::shared_ptr<AppExecFwk::EventHandler> handler_ = nullptr;
 };
 }  // namespace AccountSA
 }  // namespace OHOS
