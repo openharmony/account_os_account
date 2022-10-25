@@ -281,8 +281,6 @@ HWTEST_F(AccountMgrInnerSdkFuncTest, SetOhosAccountInfo004, TestSize.Level0)
     ret = OhosAccountKits::GetInstance().GetOhosAccountInfo(accountInfoget);
     EXPECT_EQ(ret, ERR_OK);
     EXPECT_EQ(accountInfoget.uid_, TEST_EXPECTED_UID);
-    EXPECT_EQ(accountInfoget.name_, TEST_ACCOUNT_NAME);
-    EXPECT_EQ(accountInfoget.status_, ACCOUNT_STATE_LOGIN);
     EXPECT_EQ(accountInfoget.nickname_, TEST_NICKNAME);
     EXPECT_EQ(accountInfoget.avatar_, TEST_AVATAR);
     EXPECT_EQ(
@@ -293,8 +291,6 @@ HWTEST_F(AccountMgrInnerSdkFuncTest, SetOhosAccountInfo004, TestSize.Level0)
     ret = OhosAccountKits::GetInstance().GetOhosAccountInfo(accountInfoget);
     EXPECT_EQ(ret, ERR_OK);
     EXPECT_EQ(accountInfoget.uid_, TEST_EXPECTED_UID);
-    EXPECT_EQ(accountInfoget.name_, TEST_ACCOUNT_NAME);
-    EXPECT_EQ(accountInfoget.status_, ACCOUNT_STATE_NOTLOGIN);
     EXPECT_EQ(accountInfoget.nickname_, TEST_NICKNAME);
     EXPECT_EQ(accountInfoget.avatar_, TEST_AVATAR);
     EXPECT_EQ(
@@ -319,8 +315,6 @@ HWTEST_F(AccountMgrInnerSdkFuncTest, SetOhosAccountInfo004, TestSize.Level0)
     EXPECT_EQ(accountInfoget.uid_, DEFAULT_OHOS_ACCOUNT_UID);
     EXPECT_EQ(accountInfoget.name_, DEFAULT_OHOS_ACCOUNT_NAME);
     EXPECT_EQ(accountInfoget.status_, ACCOUNT_STATE_UNBOUND);
-    EXPECT_EQ(accountInfoget.nickname_, "");
-    EXPECT_EQ(accountInfoget.avatar_, "");
     EXPECT_EQ(accountInfoget.scalableData_.ToString().find("age", 0), TEST_STRING_FIND_EMPTY);
 }
 
