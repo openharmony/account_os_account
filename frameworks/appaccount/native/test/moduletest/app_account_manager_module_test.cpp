@@ -115,6 +115,35 @@ HWTEST_F(AppAccountManagerModuleTest, AppAccountManager_AddAccount_0200, TestSiz
 }
 
 /**
+ * @tc.name: AppAccountManager_CreateAccount_0100
+ * @tc.desc: Add an account with valid data.
+ * @tc.type: FUNC
+ * @tc.require: 
+ */
+HWTEST_F(AppAccountManagerModuleTest, AppAccountManager_CreateAccount_0100, TestSize.Level0)
+{
+    ACCOUNT_LOGI("AppAccountManager_CreateAccount_0100");
+    CreateAccountOptions option;
+    ErrCode result = AppAccountManager::CreateAccount(STRING_NAME, option);
+    EXPECT_EQ(result, ERR_APPACCOUNT_SERVICE_GET_BUNDLE_NAME);
+}
+
+/**
+ * @tc.name: AppAccountManager_CreateAccount_0200
+ * @tc.desc: Add an account with valid data.
+ * @tc.type: FUNC
+ * @tc.require: 
+ */
+HWTEST_F(AppAccountManagerModuleTest, AppAccountManager_CreateAccount_0200, TestSize.Level1)
+{
+    ACCOUNT_LOGI("AppAccountManager_CreateAccount_0200");
+    CreateAccountOptions option;
+    option.customData.emplace(STRING_KEY, STRING_VALUE);
+    ErrCode result = AppAccountManager::CreateAccount(STRING_NAME_MAX_SIZE, option);
+    EXPECT_EQ(result, ERR_APPACCOUNT_SERVICE_GET_BUNDLE_NAME);
+}
+
+/**
  * @tc.name: AppAccountManager_DeleteAccount_0100
  * @tc.desc: Delete an account with valid data.
  * @tc.type: FUNC
