@@ -95,6 +95,21 @@ HWTEST_F(AppAccountManagerServiceTest, AppAccountManagerService_DeleteAccount_01
 }
 
 /**
+ * @tc.name: AppAccountManagerService_CreateAccount_0100
+ * @tc.desc: Add an app account with valid data.
+ * @tc.type: FUNC
+ * @tc.require: issueI5RWXN
+ */
+HWTEST_F(AppAccountManagerServiceTest, AppAccountManagerService_CreateAccount_0100, TestSize.Level1)
+{
+    CreateAccountOptions option;
+    ErrCode result = appAccountProxy_->CreateAccount(STRING_NAME, option);
+    EXPECT_EQ(result, ERR_OK);
+    result = appAccountProxy_->DeleteAccount(STRING_NAME);
+    EXPECT_EQ(result, ERR_OK);
+}
+
+/**
  * @tc.name: AppAccountManagerService_SubscribeAppAccount_0100
  * @tc.desc: Subscribe app accounts with invalid data.
  * @tc.type: FUNC
