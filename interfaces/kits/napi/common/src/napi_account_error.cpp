@@ -103,7 +103,7 @@ napi_value GenerateBusinessSuccess(napi_env env, bool throwErr)
 {
     if (throwErr) {
         napi_value errJs = nullptr;
-        napi_get_undefined(env, &errJs);
+        napi_get_null(env, &errJs);
         return errJs;
     }
     return GetErrorCodeValue(env, 0);
