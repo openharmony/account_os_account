@@ -8,9 +8,6 @@ using namespace testing::ext;
 using namespace OHOS;
 using namespace OHOS::AccountSA;
 
-namespace {
-}  // namespace
-
 class AppAccountCommonTest : public testing::Test {
 public:
     static void SetUpTestCase(void);
@@ -34,7 +31,7 @@ void AppAccountCommonTest::TearDown(void)
  * @tc.name: SelectAccountsOptions Marshalling test
  * @tc.desc: Func Marshalling.
  * @tc.type: FUNC
- * @tc.require: I5XC87
+ * @tc.require
  */
 HWTEST_F(AppAccountCommonTest, Marshalling001, TestSize.Level0)
 {
@@ -62,7 +59,7 @@ HWTEST_F(AppAccountCommonTest, Marshalling001, TestSize.Level0)
  * @tc.name: VerifyCredentialOptions Marshalling test
  * @tc.desc: Func Marshalling.
  * @tc.type: FUNC
- * @tc.require: I5XC87
+ * @tc.require
  */
 HWTEST_F(AppAccountCommonTest, Marshalling002, TestSize.Level0)
 {
@@ -84,7 +81,7 @@ HWTEST_F(AppAccountCommonTest, Marshalling002, TestSize.Level0)
  * @tc.name: CreateAccountOptions Marshalling test
  * @tc.desc: Func Marshalling.
  * @tc.type: FUNC
- * @tc.require: I5XC87
+ * @tc.require
  */
 HWTEST_F(AppAccountCommonTest, Marshalling003, TestSize.Level0)
 {
@@ -104,7 +101,7 @@ HWTEST_F(AppAccountCommonTest, Marshalling003, TestSize.Level0)
  * @tc.name: CreateAccountImplicitlyOptions Marshalling test
  * @tc.desc: Func Marshalling.
  * @tc.type: FUNC
- * @tc.require: I5XC87
+ * @tc.require
  */
 HWTEST_F(AppAccountCommonTest, Marshalling004, TestSize.Level0)
 {
@@ -130,7 +127,7 @@ HWTEST_F(AppAccountCommonTest, Marshalling004, TestSize.Level0)
  * @tc.name: ConvertOtherJSErrCodeV8 test
  * @tc.desc: Func ConvertOtherJSErrCodeV8.
  * @tc.type: FUNC
- * @tc.require: I5XC87
+ * @tc.require
  */
 HWTEST_F(AppAccountCommonTest, ConvertOtherJSErrCodeV8001, TestSize.Level0)
 {
@@ -150,8 +147,7 @@ HWTEST_F(AppAccountCommonTest, ConvertOtherJSErrCodeV8001, TestSize.Level0)
  * @tc.name: ConvertToJSErrCodeV8 test
  * @tc.desc: Func ConvertOtherJSErrCodeV8.
  * @tc.type: FUNC
- 
- * @tc.require: I5XC87
+ * @tc.require
  */
 HWTEST_F(AppAccountCommonTest, ConvertToJSErrCodeV8001, TestSize.Level0)
 {
