@@ -1954,8 +1954,8 @@ HWTEST_F(OsAccountManagerModuleTest, OsAccountManagerModuleTest096, TestSize.Lev
 {
     ACCOUNT_LOGI("OsAccountManagerModuleTest096");
     // create
-    std::string TEST_DOMAIN_NAME = "test_domain_name";
-    std::string TEST_DOMAIN = "test_domain";
+    const std::string TEST_DOMAIN_NAME = "test_domain_name";
+    const std::string TEST_DOMAIN = "test_domain";
     DomainAccountInfo domainInfo(TEST_DOMAIN_NAME, TEST_DOMAIN);
     OsAccountType type = NORMAL;
     OsAccountInfo osAccountInfo;

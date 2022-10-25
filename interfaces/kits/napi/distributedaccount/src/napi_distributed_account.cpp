@@ -67,7 +67,7 @@ bool ParseQueryOhosAccountInfoAsyncContext(napi_env env, napi_callback_info cbIn
     napi_value argv[QUERY_ARGC] = {nullptr};
     napi_get_cb_info(env, cbInfo, &argc, argv, nullptr, nullptr);
     if (argc >= QUERY_ARGC) {
-        if (!GetCallbackProperty(env, argv[0], asyncContext->callbackRef, 2)) {
+        if (!GetCallbackProperty(env, argv[0], asyncContext->callbackRef, 2)) { // 2: the second parameter
             std::string errMsg = "The type of arg 1 must be function";
             AccountNapiThrow(env, ERR_JS_PARAMETER_ERROR, errMsg, asyncContext->throwErr);
             return false;
@@ -126,7 +126,7 @@ bool ParseUpdateOhosAccountInfoAsyncContext(napi_env env, napi_callback_info cbI
     napi_value argv[UPDATE_ARGC] = {nullptr};
     napi_get_cb_info(env, cbInfo, &argc, argv, nullptr, nullptr);
     if (argc >= UPDATE_ARGC) {
-        if (!GetCallbackProperty(env, argv[1], asyncContext->callbackRef, 2)) {
+        if (!GetCallbackProperty(env, argv[1], asyncContext->callbackRef, 2)) { // 2: the second parameter
             ACCOUNT_LOGE("Failed to get callback property");
             std::string errMsg = "The type of arg 2 must be function";
             AccountNapiThrow(env, ERR_JS_PARAMETER_ERROR, errMsg, asyncContext->throwErr);
@@ -280,17 +280,14 @@ napi_value NapiDistributedAccount::QueryOhosAccountInfo(napi_env env, napi_callb
         delete asyncContext;
         return nullptr;
     }
-
     napi_value result = nullptr;
     if (asyncContext->callbackRef == nullptr) {
         napi_create_promise(env, &asyncContext->deferred, &result);
     } else {
         napi_get_undefined(env, &result);
     }
-
     napi_value resource = nullptr;
     napi_create_string_utf8(env, "QueryOhosAccountInfo", NAPI_AUTO_LENGTH, &resource);
-
     napi_create_async_work(
         env, nullptr, resource,
         [](napi_env env, void *data) {
@@ -322,10 +319,8 @@ napi_value NapiDistributedAccount::QueryOhosAccountInfo(napi_env env, napi_callb
             ProcessSetNamedProperty(env, asyncContext);
             napi_delete_async_work(env, asyncContext->work);
             delete asyncContext;
-        },
-        reinterpret_cast<void *>(asyncContext), &asyncContext->work);
+        }, reinterpret_cast<void *>(asyncContext), &asyncContext->work);
     napi_queue_async_work(env, asyncContext->work);
-
     return result;
 }
 
