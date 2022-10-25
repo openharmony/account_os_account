@@ -1770,7 +1770,8 @@ HWTEST_F(AppAccountManagerServiceModuleTest, AppAccountManagerService_CheckAppAc
 {
     ACCOUNT_LOGI("AppAccountManagerService_CheckAppAccess_0100");
     bool isAccessible = false;
-    ErrCode result = g_accountManagerService->CheckAppAccess(STRING_NAME, STRING_BUNDLE_NAME_NOT_INSTALLED, isAccessible);
+    ErrCode result = g_accountManagerService->CheckAppAccess(
+        STRING_NAME, STRING_BUNDLE_NAME_NOT_INSTALLED, isAccessible);
     EXPECT_NE(result, ERR_OK);
     EXPECT_EQ(isAccessible, false);
 }
@@ -1923,7 +1924,7 @@ HWTEST_F(AppAccountManagerServiceModuleTest, AppAccountManagerService_SelectAcco
     options.hasAccounts = false;
     options.hasOwners = false;
     options.hasLabels = false;
-    options.allowedAccounts.emplace_back("test_key","value");
+    options.allowedAccounts.emplace_back("test_key", "value");
     options.allowedOwners = TEST_LABELS;
     options.requiredLabels = TEST_LABELS;
     sptr<IRemoteObject> callback = new (std::nothrow)MockAuthenticatorCallback();
