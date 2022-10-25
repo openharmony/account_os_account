@@ -803,7 +803,7 @@ HWTEST_F(AppAccountManagerServiceModuleTest, AppAccountManagerService_GetAccount
 
     std::string credential;
     result = g_accountManagerService->GetAccountCredential(STRING_NAME, STRING_CREDENTIAL_TYPE, credential);
-    EXPECT_EQ(result, ERR_APPACCOUNT_SERVICE_GET_ACCOUNT_CREDENTIAL);
+    EXPECT_EQ(result, ERR_APPACCOUNT_SERVICE_ACCOUNT_CREDENTIAL_NOT_EXIST);
     EXPECT_EQ(credential, STRING_EMPTY);
 
     result = g_accountManagerService->DeleteAccount(STRING_NAME);
@@ -1089,7 +1089,7 @@ HWTEST_F(AppAccountManagerServiceModuleTest, AppAccountManagerService_DeleteOAut
     EXPECT_EQ(result, ERR_OK);
 
     result = g_accountManagerService->DeleteOAuthToken(STRING_NAME, owner, STRING_AUTH_TYPE, STRING_TOKEN);
-    EXPECT_EQ(result, ERR_OK);
+    EXPECT_EQ(result, ERR_APPACCOUNT_SERVICE_OAUTH_TOKEN_NOT_EXIST);
 
     std::string token;
     result = g_accountManagerService->GetOAuthToken(STRING_NAME, owner, STRING_AUTH_TYPE, token);
@@ -1770,7 +1770,8 @@ HWTEST_F(AppAccountManagerServiceModuleTest, AppAccountManagerService_CheckAppAc
 {
     ACCOUNT_LOGI("AppAccountManagerService_CheckAppAccess_0100");
     bool isAccessible = false;
-    ErrCode result = g_accountManagerService->CheckAppAccess(STRING_NAME, STRING_BUNDLE_NAME_NOT_INSTALLED, isAccessible);
+    ErrCode result = g_accountManagerService->CheckAppAccess(
+        STRING_NAME, STRING_BUNDLE_NAME_NOT_INSTALLED, isAccessible);
     EXPECT_NE(result, ERR_OK);
     EXPECT_EQ(isAccessible, false);
 }
@@ -1870,7 +1871,7 @@ HWTEST_F(AppAccountManagerServiceModuleTest, AppAccountManagerService_DeleteAcco
     EXPECT_EQ(result, ERR_OK);
 
     result = g_accountManagerService->DeleteAccountCredential(STRING_NAME, STRING_CREDENTIAL_TYPE);
-    EXPECT_EQ(result, ERR_OK);
+    EXPECT_EQ(result, ERR_APPACCOUNT_SERVICE_ACCOUNT_CREDENTIAL_NOT_EXIST);
 
     result = g_accountManagerService->DeleteAccount(STRING_NAME);
     EXPECT_EQ(result, ERR_OK);
@@ -1902,7 +1903,7 @@ HWTEST_F(AppAccountManagerServiceModuleTest, AppAccountManagerService_DeleteAcco
     EXPECT_EQ(result, ERR_OK);
 
     result = g_accountManagerService->DeleteAccountCredential(STRING_NAME, STRING_CREDENTIAL_TYPE_TWO);
-    EXPECT_EQ(result, ERR_OK);
+    EXPECT_EQ(result, ERR_APPACCOUNT_SERVICE_ACCOUNT_CREDENTIAL_NOT_EXIST);
 
     result = g_accountManagerService->DeleteAccount(STRING_NAME);
     EXPECT_EQ(result, ERR_OK);
@@ -1923,7 +1924,7 @@ HWTEST_F(AppAccountManagerServiceModuleTest, AppAccountManagerService_SelectAcco
     options.hasAccounts = false;
     options.hasOwners = false;
     options.hasLabels = false;
-    options.allowedAccounts.emplace_back("test_key","value");
+    options.allowedAccounts.emplace_back("test_key", "value");
     options.allowedOwners = TEST_LABELS;
     options.requiredLabels = TEST_LABELS;
     sptr<IRemoteObject> callback = new (std::nothrow)MockAuthenticatorCallback();

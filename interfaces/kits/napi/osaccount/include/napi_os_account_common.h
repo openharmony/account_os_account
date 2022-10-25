@@ -218,7 +218,8 @@ void SubscribeExecuteCB(napi_env env, void *data);
 
 void SubscribeCompletedCB(napi_env env, napi_status status, void *data);
 
-bool ParseParaToUnsubscriber(const napi_env &env, napi_callback_info cbInfo, UnsubscribeCBInfo *asyncContext, napi_value *thisVar);
+bool ParseParaToUnsubscriber(
+    const napi_env &env, napi_callback_info cbInfo, UnsubscribeCBInfo *asyncContext, napi_value *thisVar);
 
 bool ParseQueryOAConstraintSrcTypes(napi_env env, napi_callback_info cbInfo,
     QueryOAConstraintSrcTypeContext *queryConstraintsSource);
