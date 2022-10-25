@@ -483,7 +483,7 @@ HWTEST_F(AppAccountTest, AppAccount_CreateAppAccountEventListener_0200, TestSize
  * @tc.name: AppAccount_CreateAccount_001
  * @tc.desc: Function CreateAccount normal branch.
  * @tc.type: FUNC
- * @tc.require: I5XC87
+ * @tc.require:
  */
 HWTEST_F(AppAccountTest, AppAccount_CreateAccount_001, TestSize.Level1)
 {
@@ -501,7 +501,7 @@ HWTEST_F(AppAccountTest, AppAccount_CreateAccount_001, TestSize.Level1)
  * @tc.name: AppAccount_CreateAccount_002
  * @tc.desc: Function CreateAccount abnormal branch.
  * @tc.type: FUNC
- * @tc.require: I5XC87
+ * @tc.require: 
  */
 HWTEST_F(AppAccountTest, AppAccount_CreateAccount_002, TestSize.Level1)
 {
