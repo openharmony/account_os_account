@@ -163,7 +163,7 @@ const std::string STRING_OUT_OF_RANGE =
     "1234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890";
 const std::string STRING_ABILITY_NAME = "MainAbility";
 const std::string STRING_SESSION_ID = "123456";
-
+constexpr uint32_t MAX_CUSTOM_DATA_SIZE = 1024;
 const bool SYNC_ENABLE_FALSE = false;
 
 constexpr std::size_t SIZE_ZERO = 0;
@@ -246,6 +246,87 @@ HWTEST_F(AppAccountManagerTest, AppAccountManager_AddAccount_0400, TestSize.Leve
 }
 
 /**
+ * @tc.name: AppAccountManager_CreateAccount_0100
+ * @tc.desc: create an app account with invalid name data.
+ * @tc.type: FUNC
+ * @tc.require: issueI5RWXN 
+ */
+HWTEST_F(AppAccountManagerTest, AppAccountManager_CreateAccount_0100, TestSize.Level1)
+{
+    ACCOUNT_LOGI("AppAccountManager_CreateAccount_0100");
+    CreateAccountOptions option;
+    GTEST_LOG_(INFO) << "name size = " << STRING_NAME_OUT_OF_RANGE.size();
+    ErrCode result = AppAccountManager::CreateAccount(STRING_NAME_OUT_OF_RANGE, option);
+    EXPECT_EQ(result, ERR_APPACCOUNT_KIT_INVALID_PARAMETER);
+}
+
+/**
+ * @tc.name: AppAccountManager_CreateAccount_0200
+ * @tc.desc: create an app account with invalid name data.
+ * @tc.type: FUNC
+ * @tc.require: issueI5RWXN
+ */
+HWTEST_F(AppAccountManagerTest, AppAccountManager_CreateAccount_0200, TestSize.Level1)
+{
+    ACCOUNT_LOGI("AppAccountManager_CreateAccount_0200");
+    CreateAccountOptions option;
+    ErrCode result = AppAccountManager::CreateAccount(STRING_EMPTY, option);
+    EXPECT_EQ(result, ERR_APPACCOUNT_KIT_INVALID_PARAMETER);
+}
+
+/**
+ * @tc.name: AppAccountManager_CreateAccount_0300
+ * @tc.desc: create an app account with invalid option data.
+ * @tc.type: FUNC
+ * @tc.require: issueI5RWXN
+ */
+HWTEST_F(AppAccountManagerTest, AppAccountManager_CreateAccount_0300, TestSize.Level1)
+{
+    ACCOUNT_LOGI("AppAccountManager_CreateAccount_0300");
+    CreateAccountOptions option;
+    option.customData.emplace(STRING_KEY_OUT_OF_RANGE, STRING_VALUE);
+    GTEST_LOG_(INFO) << "key size = " << STRING_VALUE_OUT_OF_RANGE.size();
+    ErrCode result = AppAccountManager::CreateAccount(STRING_EMPTY, option);
+    EXPECT_EQ(result, ERR_APPACCOUNT_KIT_INVALID_PARAMETER);
+}
+
+/**
+ * @tc.name: AppAccountManager_CreateAccount_0400
+ * @tc.desc: create an app account with invalid option data.
+ * @tc.type: FUNC
+ * @tc.require: issueI5RWXN
+ */
+HWTEST_F(AppAccountManagerTest, AppAccountManager_CreateAccount_0400, TestSize.Level1)
+{
+    ACCOUNT_LOGI("AppAccountManager_CreateAccount_0400");
+    CreateAccountOptions option;
+    option.customData.emplace(STRING_KEY, STRING_VALUE_OUT_OF_RANGE);
+    GTEST_LOG_(INFO) << "value size = " << STRING_VALUE_OUT_OF_RANGE.size();
+    ErrCode result = AppAccountManager::CreateAccount(STRING_EMPTY, option);
+    EXPECT_EQ(result, ERR_APPACCOUNT_KIT_INVALID_PARAMETER);
+}
+
+/**
+ * @tc.name: AppAccountManager_CreateAccount_0500
+ * @tc.desc: create an app account with invalid option data.
+ * @tc.type: FUNC
+ * @tc.require: issueI5RWXN
+ */
+HWTEST_F(AppAccountManagerTest, AppAccountManager_CreateAccount_0500, TestSize.Level1)
+{
+    ACCOUNT_LOGI("AppAccountManager_CreateAccount_0500");
+    CreateAccountOptions option;
+    for (int i = 0; i < MAX_CUSTOM_DATA_SIZE + 1; i++) {
+        std::string test_key = "test_key" + std::to_string(i);
+        std::string test_value = "test_value" + std::to_string(i);
+        option.customData.emplace(test_key, test_value);
+    }
+    GTEST_LOG_(INFO) << "customData map size = " << option.customData.size();
+    ErrCode result = AppAccountManager::CreateAccount(STRING_EMPTY, option);
+    EXPECT_EQ(result, ERR_APPACCOUNT_KIT_INVALID_PARAMETER);
+}
+
+/**
  * @tc.name: AppAccountManager_AddAccountImplicitly_0100
  * @tc.desc: Fail to add an app account implicitly with invalid parameters.
  * @tc.type: FUNC
@@ -290,6 +371,55 @@ HWTEST_F(AppAccountManagerTest, AppAccountManager_AddAccountImplicitly_0200, Tes
     sptr<IAppAccountAuthenticatorCallback> callback = new (std::nothrow) MockAuthenticatorCallback();
     EXPECT_NE(callback, nullptr);
     ErrCode result = AppAccountManager::AddAccountImplicitly(STRING_OWNER, STRING_AUTH_TYPE, options, callback);
+    EXPECT_EQ(result, ERR_APPACCOUNT_SERVICE_GET_BUNDLE_NAME);
+}
+
+/**
+ * @tc.name: AppAccountManager_CreateAccountImplicitly_0100
+ * @tc.desc: Fail to add an app account implicitly with invalid parameters.
+ * @tc.type: FUNC
+ * @tc.require: issueI5RWXN
+ */
+HWTEST_F(AppAccountManagerTest, AppAccountManager_CreateAccountImplicitly_0100, TestSize.Level1)
+{
+    ACCOUNT_LOGI("AppAccountManager_CreateAccountImplicitly_0100");
+    CreateAccountImplicitlyOptions options;
+    options.parameters.SetParam(Constants::KEY_CALLER_ABILITY_NAME, STRING_ABILITY_NAME);
+    ErrCode result = AppAccountManager::CreateAccountImplicitly(STRING_OWNER, options, nullptr);
+    EXPECT_EQ(result, ERR_APPACCOUNT_KIT_WRITE_PARCELABLE_CALLBACK);
+
+    result = AppAccountManager::CreateAccountImplicitly(
+        STRING_OWNER_OUT_OF_RANGE, options, nullptr);
+    EXPECT_EQ(result, ERR_APPACCOUNT_KIT_INVALID_PARAMETER);
+    result = AppAccountManager::CreateAccountImplicitly(STRING_EMPTY, options, nullptr);
+    EXPECT_EQ(result, ERR_APPACCOUNT_KIT_INVALID_PARAMETER);
+
+    options.authType = STRING_OUT_OF_RANGE;
+    result = AppAccountManager::CreateAccountImplicitly(STRING_OWNER, options, nullptr);
+    EXPECT_EQ(result, ERR_APPACCOUNT_KIT_INVALID_PARAMETER);
+
+    options.parameters.SetParam(Constants::KEY_CALLER_ABILITY_NAME, STRING_EMPTY);
+    result = AppAccountManager::CreateAccountImplicitly(STRING_OWNER, options, nullptr);
+    EXPECT_EQ(result, ERR_APPACCOUNT_KIT_INVALID_PARAMETER);
+    options.parameters.SetParam(Constants::KEY_CALLER_ABILITY_NAME, STRING_OUT_OF_RANGE);
+    result = AppAccountManager::CreateAccountImplicitly(STRING_OWNER, options, nullptr);
+    EXPECT_EQ(result, ERR_APPACCOUNT_KIT_INVALID_PARAMETER);
+}
+
+/**
+ * @tc.name: AppAccountManager_CreateAccountImplicitly_0200
+ * @tc.desc: Fail to add an app account implicitly from shell process.
+ * @tc.type: FUNC
+ * @tc.require: issueI5RWXN
+ */
+HWTEST_F(AppAccountManagerTest, AppAccountManager_CreateAccountImplicitly_0200, TestSize.Level1)
+{
+    ACCOUNT_LOGI("AppAccountManager_CreateAccountImplicitly_0200");
+    CreateAccountImplicitlyOptions options;
+    options.parameters.SetParam(Constants::KEY_CALLER_ABILITY_NAME, STRING_ABILITY_NAME);
+    sptr<IAppAccountAuthenticatorCallback> callback = new (std::nothrow) MockAuthenticatorCallback();
+    EXPECT_NE(callback, nullptr);
+    ErrCode result = AppAccountManager::CreateAccountImplicitly(STRING_OWNER, options, callback);
     EXPECT_EQ(result, ERR_APPACCOUNT_SERVICE_GET_BUNDLE_NAME);
 }
 
