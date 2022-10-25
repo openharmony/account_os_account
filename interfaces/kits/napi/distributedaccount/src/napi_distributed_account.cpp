@@ -76,7 +76,7 @@ bool ParseQueryOhosAccountInfoAsyncContext(napi_env env, napi_callback_info cbIn
     return true;
 }
 
-bool GetOhosAccountInfo(napi_env env, napi_value object, DistributedAccountAsyncContext *asyncContext)
+bool GetAccountInfo(napi_env env, napi_value object, DistributedAccountAsyncContext *asyncContext)
 {
     if (!GetStringPropertyByKey(env, object, PROPERTY_KEY_NAME, asyncContext->ohosAccountInfo.name_)) {
         ACCOUNT_LOGE("Failed to get DistributedInfo's %{public}s property", PROPERTY_KEY_NAME.c_str());
@@ -136,7 +136,7 @@ bool ParseUpdateOhosAccountInfoAsyncContext(napi_env env, napi_callback_info cbI
     napi_valuetype valueType = napi_undefined;
     napi_typeof(env, argv[0], &valueType);
     if (valueType == napi_object) {
-        if (!GetOhosAccountInfo(env, argv[0], asyncContext)) {
+        if (!GetAccountInfo(env, argv[0], asyncContext)) {
             return false;
         }
         if (!GetStringPropertyByKey(env, argv[0], PROPERTY_KEY_EVENT, asyncContext->event)) {
