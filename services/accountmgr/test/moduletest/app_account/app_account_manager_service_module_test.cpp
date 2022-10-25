@@ -88,6 +88,7 @@ constexpr std::size_t SIZE_TWO = 2;
 constexpr std::int32_t DELAY_FOR_PACKAGE_REMOVED = 3;
 constexpr std::int32_t DELAY_FOR_MESSAGE = 1000;
 constexpr std::int32_t WAIT_FOR_ONE_CASE = 1000;
+constexpr uint32_t MAX_CUSTOM_DATA_SIZE = 1024;
 std::shared_ptr<AppAccountManagerService> g_accountManagerService =
     std::make_shared<AppAccountManagerService>();
 std::shared_ptr<AppAccountControlManager> g_controlManagerPtr = AppAccountControlManager::GetInstance();
@@ -242,6 +243,33 @@ HWTEST_F(AppAccountManagerServiceModuleTest, AppAccountManagerService_AddAccount
 
     result = g_accountManagerService->DeleteAccount(STRING_NAME);
     EXPECT_EQ(result, ERR_OK);
+}
+
+/**
+ * @tc.name: AppAccountManagerService_CreateAccount_0100
+ * @tc.desc: test create app account exception case.
+ * @tc.type: FUNC
+ * @tc.require: issueI5N90B
+ */
+HWTEST_F(AppAccountManagerServiceModuleTest, AppAccountManagerService_CreateAccount_0100, TestSize.Level1)
+{
+    ACCOUNT_LOGI("AppAccountManagerService_CreateAccount_0100");
+
+    CreateAccountOptions option;
+    ErrCode result = g_accountManagerService->CreateAccount(STRING_NAME, option);
+    EXPECT_EQ(result, ERR_OK);
+    result = g_accountManagerService->CreateAccount(STRING_NAME, option);
+    EXPECT_EQ(result, ERR_APPACCOUNT_SERVICE_ADD_EXISTING_ACCOUNT);
+    result = g_accountManagerService->DeleteAccount(STRING_NAME);
+    EXPECT_EQ(result, ERR_OK);
+
+    for (int i = 0; i < MAX_CUSTOM_DATA_SIZE + 1; i++) {
+        std::string test_key = "test_key" + std::to_string(i);
+        std::string test_value = "test_value" + std::to_string(i);
+        option.customData.emplace(test_key, test_value);
+    }
+    result = g_accountManagerService->CreateAccount(STRING_NAME, option);
+    EXPECT_EQ(result, ERR_APPACCOUNT_KIT_INVALID_PARAMETER);
 }
 
 /**
@@ -1460,6 +1488,24 @@ HWTEST_F(AppAccountManagerServiceModuleTest, AppAccountManagerService_AddAccount
 }
 
 /**
+ * @tc.name: AppAccountManagerService_CreateAccountImplicitly_0100
+ * @tc.desc: Add account implicitly failed for non-existent oauth service.
+ * @tc.type: FUNC
+ * @tc.require: 
+ */
+HWTEST_F(AppAccountManagerServiceModuleTest, AppAccountManagerService_CreateAccountImplicitly_0100, TestSize.Level1)
+{
+    ACCOUNT_LOGI("AppAccountManagerService_CreateAccountImplicitly_0100");
+
+    CreateAccountImplicitlyOptions options;
+    options.parameters.SetParam(AccountSA::Constants::KEY_CALLER_ABILITY_NAME, STRING_ABILITY_NAME);
+    sptr<IRemoteObject> callback = nullptr;
+    ErrCode result = g_accountManagerService->CreateAccountImplicitly(
+        STRING_OWNER, options, callback);
+    EXPECT_EQ(result, ERR_APPACCOUNT_SERVICE_OAUTH_AUTHENTICATOR_NOT_EXIST);
+}
+
+/**
  * @tc.name: AppAccountManagerService_Authenticate_0100
  * @tc.desc: authenticate failed for non-existent oauth service.
  * @tc.type: FUNC
@@ -2078,4 +2124,3 @@ HWTEST_F(AppAccountManagerServiceModuleTest, AppAccountManagerService_OnUserRemo
     ErrCode result = g_accountManagerService->OnUserRemoved(TEST_USER_ID);
     EXPECT_EQ(result, ERR_OK);
 }
-
