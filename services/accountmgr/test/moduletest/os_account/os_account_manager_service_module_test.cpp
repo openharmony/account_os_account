@@ -355,7 +355,7 @@ HWTEST_F(OsAccountManagerServiceModuleTest, OsAccountManagerServiceModuleTest010
 {
     ACCOUNT_LOGI("OsAccountManagerServiceModuleTest010");
     EXPECT_EQ(osAccountManagerService_->RemoveOsAccount(Constants::MAX_USER_ID + 1),
-        ERR_OSACCOUNT_SERVICE_INNER_CANNOT_FIND_OSACCOUNT_ERROR);
+        ERR_OSACCOUNT_KIT_LOCAL_ID_INVALID_ERROR);
 }
 
 /**
@@ -546,7 +546,7 @@ HWTEST_F(OsAccountManagerServiceModuleTest, OsAccountManagerServiceModuleTest021
     ACCOUNT_LOGI("OsAccountManagerServiceModuleTest021");
     bool isVerified = true;
     EXPECT_EQ(osAccountManagerService_->IsOsAccountVerified(Constants::MAX_USER_ID + 1, isVerified),
-        ERR_OSACCOUNT_SERVICE_INNER_SELECT_OSACCOUNT_BYID_ERROR);
+        ERR_OSACCOUNT_KIT_LOCAL_ID_INVALID_ERROR);
 }
 
 /**
@@ -560,7 +560,7 @@ HWTEST_F(OsAccountManagerServiceModuleTest, OsAccountManagerServiceModuleTest022
     ACCOUNT_LOGI("OsAccountManagerServiceModuleTest022");
     bool isVerified = true;
     EXPECT_EQ(osAccountManagerService_->IsOsAccountVerified(Constants::MAX_USER_ID + 1, isVerified),
-        ERR_OSACCOUNT_SERVICE_INNER_SELECT_OSACCOUNT_BYID_ERROR);
+        ERR_OSACCOUNT_KIT_LOCAL_ID_INVALID_ERROR);
 }
 
 /**
@@ -630,7 +630,7 @@ HWTEST_F(OsAccountManagerServiceModuleTest, OsAccountManagerServiceModuleTest027
     ACCOUNT_LOGI("OsAccountManagerServiceModuleTest027");
     std::vector<std::string> constraints;
     EXPECT_EQ(osAccountManagerService_->GetOsAccountAllConstraints(Constants::MAX_USER_ID + 1, constraints),
-        ERR_OSACCOUNT_SERVICE_INNER_SELECT_OSACCOUNT_BYID_ERROR);
+        ERR_OSACCOUNT_KIT_LOCAL_ID_INVALID_ERROR);
 }
 
 /**
@@ -686,7 +686,7 @@ HWTEST_F(OsAccountManagerServiceModuleTest, OsAccountManagerServiceModuleTest031
     ACCOUNT_LOGI("OsAccountManagerServiceModuleTest031");
     OsAccountInfo osAccountInfo;
     EXPECT_EQ(osAccountManagerService_->QueryOsAccountById(Constants::MAX_USER_ID + 1, osAccountInfo),
-        ERR_OSACCOUNT_SERVICE_INNER_SELECT_OSACCOUNT_BYID_ERROR);
+        ERR_OSACCOUNT_KIT_LOCAL_ID_INVALID_ERROR);
 }
 
 /**
@@ -904,7 +904,7 @@ HWTEST_F(OsAccountManagerServiceModuleTest, OsAccountManagerServiceModuleTest045
     ACCOUNT_LOGI("OsAccountManagerServiceModuleTest045");
     std::string photo;
     EXPECT_EQ(osAccountManagerService_->GetOsAccountProfilePhoto(Constants::MAX_USER_ID + 1, photo),
-        ERR_OSACCOUNT_SERVICE_INNER_SELECT_OSACCOUNT_BYID_ERROR);
+        ERR_OSACCOUNT_KIT_LOCAL_ID_INVALID_ERROR);
 }
 
 /**
