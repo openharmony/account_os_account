@@ -1089,7 +1089,7 @@ HWTEST_F(AppAccountManagerServiceModuleTest, AppAccountManagerService_DeleteOAut
     EXPECT_EQ(result, ERR_OK);
 
     result = g_accountManagerService->DeleteOAuthToken(STRING_NAME, owner, STRING_AUTH_TYPE, STRING_TOKEN);
-    EXPECT_EQ(result, ERR_APPACCOUNT_SERVICE_OAUTH_TOKEN_NOT_EXIST);
+    EXPECT_EQ(result, ERR_OK);
 
     std::string token;
     result = g_accountManagerService->GetOAuthToken(STRING_NAME, owner, STRING_AUTH_TYPE, token);
