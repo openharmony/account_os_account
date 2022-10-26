@@ -1,4 +1,4 @@
-# Copyright (c) 2021-2022 Huawei Device Co., Ltd.
+# Copyright (c) 2022 Huawei Device Co., Ltd.
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
 # You may obtain a copy of the License at
@@ -13,20 +13,32 @@
 
 import("//base/account/os_account/os_account.gni")
 import("//build/ohos.gni")
+import("//build/test.gni")
 
-config("common_test_config") {
-  defines = [
-    "ACCOUNT_LOG_TAG = \"AccountCommonTestFwk\"",
-    "LOG_DOMAIN = 0xD001B00",
+module_output_path = "os_account/accountdfx"
+
+ohos_unittest("AccountErrorCodeTest") {
+  module_out_path = module_output_path
+
+  sources = [ "${common_path}/account_error/src/account_error_no.cpp" ]
+  sources += [ "account_error_common_test.cpp" ]
+
+  configs = [
+    "${common_path}:account_common_config",
+    "${common_path}/test:common_test_config",
   ]
+
+  deps = [
+    "${common_path}:libaccount_common",
+    "//third_party/googletest:gtest_main",
+  ]
+
+  external_deps = [ "hiviewdfx_hilog_native:libhilog" ]
+  part_name = "os_account"
 }
 
 group("unittest") {
   testonly = true
 
-  deps = [
-    "unittest/account_error_test:unittest",
-    "unittest/common_account_log_test:unittest",
-    "unittest/common_account_perf_test:unittest",
-  ]
+  deps = [ ":AccountErrorCodeTest" ]
 }

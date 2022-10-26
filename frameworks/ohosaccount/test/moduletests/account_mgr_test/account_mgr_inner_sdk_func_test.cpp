@@ -131,7 +131,7 @@ HWTEST_F(AccountMgrInnerSdkFuncTest, UidTranslateTest, TestSize.Level0)
  * @tc.name: SetOhosAccountInfo001
  * @tc.desc: Test ohos account login and logout
  * @tc.type: FUNC
- * @tc.require:
+ * @tc.require: issueI5RWXT
  */
 HWTEST_F(AccountMgrInnerSdkFuncTest, SetOhosAccountInfo001, TestSize.Level0)
 {
@@ -172,7 +172,7 @@ HWTEST_F(AccountMgrInnerSdkFuncTest, SetOhosAccountInfo001, TestSize.Level0)
  * @tc.name: SetOhosAccountInfo002
  * @tc.desc: Test ohos account repeat login will fail
  * @tc.type: FUNC
- * @tc.require:
+ * @tc.require: issueI5RWXT
  */
 HWTEST_F(AccountMgrInnerSdkFuncTest, SetOhosAccountInfo002, TestSize.Level0)
 {
@@ -222,7 +222,7 @@ HWTEST_F(AccountMgrInnerSdkFuncTest, SetOhosAccountInfo002, TestSize.Level0)
  * @tc.name: SetOhosAccountInfo003
  * @tc.desc: Test ohos account login and logoff
  * @tc.type: FUNC
- * @tc.require:
+ * @tc.require: issueI5RWXT
  */
 HWTEST_F(AccountMgrInnerSdkFuncTest, SetOhosAccountInfo003, TestSize.Level0)
 {
@@ -263,7 +263,7 @@ HWTEST_F(AccountMgrInnerSdkFuncTest, SetOhosAccountInfo003, TestSize.Level0)
  * @tc.name: SetOhosAccountInfo004
  * @tc.desc: Test ohos account login and token invalid
  * @tc.type: FUNC
- * @tc.require:
+ * @tc.require: issueI5RWXT
  */
 HWTEST_F(AccountMgrInnerSdkFuncTest, SetOhosAccountInfo004, TestSize.Level0)
 {
@@ -322,7 +322,7 @@ HWTEST_F(AccountMgrInnerSdkFuncTest, SetOhosAccountInfo004, TestSize.Level0)
  * @tc.name: SetOhosAccountInfo005
  * @tc.desc: Test ohos account nickname invalid
  * @tc.type: FUNC
- * @tc.require:
+ * @tc.require: issueI5RWXT
  */
 HWTEST_F(AccountMgrInnerSdkFuncTest, SetOhosAccountInfo005, TestSize.Level0)
 {
@@ -351,7 +351,7 @@ HWTEST_F(AccountMgrInnerSdkFuncTest, SetOhosAccountInfo005, TestSize.Level0)
  * @tc.name: SetOhosAccountInfo006
  * @tc.desc: Test ohos account avatar invalid
  * @tc.type: FUNC
- * @tc.require:
+ * @tc.require: issueI5RWXT
  */
 HWTEST_F(AccountMgrInnerSdkFuncTest, SetOhosAccountInfo006, TestSize.Level0)
 {
@@ -377,4 +377,27 @@ HWTEST_F(AccountMgrInnerSdkFuncTest, SetOhosAccountInfo006, TestSize.Level0)
     EXPECT_EQ(accountInfoget.nickname_, "");
     EXPECT_EQ(accountInfoget.avatar_, "");
     EXPECT_EQ(accountInfoget.scalableData_.ToString().find("age", 0), TEST_STRING_FIND_EMPTY);
+}
+
+/**
+ * @tc.name: SetOhosAccountInfo007
+ * @tc.desc: Test SetOhosAccountInfo with invalid event.
+ * @tc.type: FUNC
+ * @tc.require: issueI5RWXT
+ */
+HWTEST_F(AccountMgrInnerSdkFuncTest, SetOhosAccountInfo007, TestSize.Level0)
+{
+    OhosAccountInfo accountInfo;
+    OhosAccountInfo accountInfoget;
+    accountInfo.name_ = TEST_DIFF_ACCOUNT_NAME;
+    accountInfo.status_ = ACCOUNT_STATE_UNBOUND;
+    accountInfo.uid_ = TEST_DIFF_ACCOUNT_UID;
+    accountInfo.nickname_ = TEST_NICKNAME;
+    accountInfo.avatar_ = TEST_AVATAR;
+    accountInfo.scalableData_.SetParam("age", 123);
+
+    std::string eventStr = "invalid_test_event";
+
+    auto ret = OhosAccountKits::GetInstance().SetOhosAccountInfo(accountInfo, eventStr);
+    EXPECT_EQ(ret, ERR_ACCOUNT_ZIDL_ACCOUNT_STUB_ERROR);
 }
