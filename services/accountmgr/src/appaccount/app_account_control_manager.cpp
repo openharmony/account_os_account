@@ -497,9 +497,8 @@ ErrCode AppAccountControlManager::DeleteOAuthToken(const AuthenticatorSessionReq
         return ERR_APPACCOUNT_SERVICE_PERMISSION_DENIED;
     }
     ret = appAccountInfo.DeleteOAuthToken(request.authType, request.token);
-    if (ret != ERR_OK) {
-        ACCOUNT_LOGE("failed to delete oauth token, result %{public}d.", ret);
-        return ret;
+    if (ret == ERR_APPACCOUNT_SERVICE_OAUTH_TOKEN_NOT_EXIST) {
+        return ERR_OK;
     }
     ret = SaveAccountInfoIntoDataStorage(appAccountInfo, dataStoragePtr, request.callerUid);
     if (ret != ERR_OK) {
