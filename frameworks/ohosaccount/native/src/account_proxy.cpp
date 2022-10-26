@@ -179,13 +179,14 @@ std::pair<bool, OhosAccountInfo> AccountProxy::QueryOhosAccountInfoByUserId(std:
         return std::make_pair(false, OhosAccountInfo());
     }
 
-    auto infoPtr = reinterpret_cast<const OhosAccountInfo*>(reply.ReadRawData(sizeof(OhosAccountInfo)));
-    if (infoPtr == nullptr) {
+    std::u16string name;
+    std::u16string uid;
+    std::int32_t status;
+    if ((!reply.ReadString16(name)) || (!reply.ReadString16(uid)) || (!reply.ReadInt32(status))) {
+        ACCOUNT_LOGE("failed to read from parcel");
         return std::make_pair(false, OhosAccountInfo());
     }
-    OhosAccountInfo ohosAccountInfo = *(infoPtr);
-
-    return std::make_pair(true, ohosAccountInfo);
+    return std::make_pair(true, OhosAccountInfo(Str16ToStr8(name), Str16ToStr8(uid), status));
 }
 
 std::int32_t AccountProxy::QueryDeviceAccountId(std::int32_t &accountId)
