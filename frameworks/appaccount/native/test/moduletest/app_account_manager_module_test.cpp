@@ -118,7 +118,7 @@ HWTEST_F(AppAccountManagerModuleTest, AppAccountManager_AddAccount_0200, TestSiz
  * @tc.name: AppAccountManager_CreateAccount_0100
  * @tc.desc: Add an account with valid data.
  * @tc.type: FUNC
- * @tc.require: 
+ * @tc.require: issueI5RWXN
  */
 HWTEST_F(AppAccountManagerModuleTest, AppAccountManager_CreateAccount_0100, TestSize.Level0)
 {
@@ -132,7 +132,7 @@ HWTEST_F(AppAccountManagerModuleTest, AppAccountManager_CreateAccount_0100, Test
  * @tc.name: AppAccountManager_CreateAccount_0200
  * @tc.desc: Add an account with valid data.
  * @tc.type: FUNC
- * @tc.require: 
+ * @tc.require: issueI5RWXN
  */
 HWTEST_F(AppAccountManagerModuleTest, AppAccountManager_CreateAccount_0200, TestSize.Level1)
 {
