@@ -380,6 +380,32 @@ HWTEST_F(AppAccountInfoTest, AppAccountInfo_SetSyncEnable_0100, TestSize.Level1)
 }
 
 /**
+ * @tc.name: AppAccountInfo_InitCustomData_0100
+ * @tc.desc: Set the custom data with valid data.
+ * @tc.type: FUNC
+ * @tc.require: issueI5RWXN
+ */
+HWTEST_F(AppAccountInfoTest, AppAccountInfo_InitCustomData_0100, TestSize.Level1)
+{
+    ACCOUNT_LOGI("AppAccountInfo_InitCustomData_0100");
+
+    // make custom data   
+    std::map<std::string, std::string> customData;
+    customData.emplace(STRING_ASSOCIATED_KEY, STRING_ASSOCIATED_VALUE);
+
+    // make info
+    AppAccountInfo appAccountInfo;
+
+    ErrCode result = appAccountInfo.InitCustomData(customData);
+    EXPECT_EQ(result, ERR_OK);
+
+    std::string test_value;
+    appAccountInfo.GetAssociatedData(STRING_ASSOCIATED_KEY, test_value);
+
+    EXPECT_EQ(STRING_ASSOCIATED_VALUE, test_value);
+}
+
+/**
  * @tc.name: AppAccountInfo_GetAssociatedData_0100
  * @tc.desc: Get the associated data with valid data.
  * @tc.type: FUNC
