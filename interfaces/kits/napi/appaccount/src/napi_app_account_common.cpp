@@ -1283,24 +1283,31 @@ bool ParseVerifyCredentialOptions(napi_env env, napi_value object, VerifyCredent
         return false;
     }
     napi_value value = nullptr;
-    bool result = true;
     bool hasProp = false;
     napi_has_named_property(env, object, "credential", &hasProp);
     if (hasProp) {
         napi_get_named_property(env, object, "credential", &value);
-        result &= GetStringProperty(env, value, options.credential);
+        if (!GetStringProperty(env, value, options.credential)) {
+            return false;
+        }
     }
+    hasProp = false;
     napi_has_named_property(env, object, "credentialType", &hasProp);
     if (hasProp) {
         napi_get_named_property(env, object, "credentialType", &value);
-        result &= GetStringProperty(env, value, options.credentialType);
+        if (!GetStringProperty(env, value, options.credentialType)) {
+            return false;
+        }
     }
+    hasProp = false;
     napi_has_named_property(env, object, "parameters", &hasProp);
     if (hasProp) {
         napi_get_named_property(env, object, "parameters", &value);
-        result &= AppExecFwk::UnwrapWantParams(env, value, options.parameters);
+        if (!AppExecFwk::UnwrapWantParams(env, value, options.parameters)) {
+            return false;
+        }
     }
-    return result;
+    return true;
 }
 
 bool ParseSelectAccountsOptions(napi_env env, napi_value object, SelectAccountsOptions &options)
@@ -1311,23 +1318,30 @@ bool ParseSelectAccountsOptions(napi_env env, napi_value object, SelectAccountsO
         return false;
     }
     napi_value value = nullptr;
-    bool result = true;
     napi_has_named_property(env, object, "allowedAccounts", &options.hasAccounts);
     if (options.hasAccounts) {
         napi_get_named_property(env, object, "allowedAccounts", &value);
-        result &= ParseAccountVector(env, value, options.allowedAccounts);
+        if (!ParseAccountVector(env, value, options.allowedAccounts)) {
+            return false;
+        }
     }
     napi_has_named_property(env, object, "allowedOwners", &options.hasOwners);
     if (options.hasOwners) {
+        value = nullptr;
         napi_get_named_property(env, object, "allowedOwners", &value);
-        result &= ParseStringVector(env, value, options.allowedOwners);
+        if (!ParseStringVector(env, value, options.allowedOwners)) {
+            return false;
+        }
     }
     napi_has_named_property(env, object, "requiredLabels", &options.hasLabels);
     if (options.hasLabels) {
+        value = nullptr;
         napi_get_named_property(env, object, "requiredLabels", &value);
-        result &= ParseStringVector(env, value, options.requiredLabels);
+        if (!ParseStringVector(env, value, options.requiredLabels)) {
+            return false;
+        }
     }
-    return result;
+    return true;
 }
 
 bool ParseSetPropertiesOptions(napi_env env, napi_value object, SetPropertiesOptions &options)
@@ -1339,18 +1353,22 @@ bool ParseSetPropertiesOptions(napi_env env, napi_value object, SetPropertiesOpt
     }
     napi_value value = nullptr;
     bool hasProp = false;
-    bool result = true;
     napi_has_named_property(env, object, "properties", &hasProp);
     if (hasProp) {
         napi_get_named_property(env, object, "properties", &value);
-        result &= AppExecFwk::UnwrapWantParams(env, value, options.properties);
+        if (!AppExecFwk::UnwrapWantParams(env, value, options.properties)) {
+            return false;
+        }
     }
+    hasProp = false;
     napi_has_named_property(env, object, "parameters", &hasProp);
     if (hasProp) {
         napi_get_named_property(env, object, "parameters", &value);
-        result &= AppExecFwk::UnwrapWantParams(env, value, options.parameters);
+        if (!AppExecFwk::UnwrapWantParams(env, value, options.parameters)) {
+            return false;
+        }
     }
-    return result;
+    return true;
 }
 
 bool GetNamedFunction(napi_env env, napi_value object, std::string name, napi_ref &funcRef)
@@ -1624,26 +1642,31 @@ bool ParseCreateAccountImplicitlyOptions(napi_env env, napi_value object, Create
         return false;
     }
     napi_value value = nullptr;
-    bool result = true;
     napi_has_named_property(env, object, "requiredLabels", &options.hasRequiredLabels);
     if (options.hasRequiredLabels) {
         napi_get_named_property(env, object, "requiredLabels", &value);
-        result &= ParseStringVector(env, value, options.requiredLabels);
+        if (!ParseStringVector(env, value, options.requiredLabels)) {
+            return false;
+        }
     }
     napi_has_named_property(env, object, "authType", &options.hasAuthType);
     if (options.hasAuthType) {
         napi_get_named_property(env, object, "authType", &value);
-        result &= GetStringProperty(env, value, options.authType);
+        if (!GetStringProperty(env, value, options.authType)) {
+            return false;
+        }
     }
     bool hasParam = false;
     napi_has_named_property(env, object, "parameters", &hasParam);
     AAFwk::WantParams params;
     if (hasParam) {
         napi_get_named_property(env, object, "parameters", &value);
-        result &= AppExecFwk::UnwrapWantParams(env, value, params);
+        if (!AppExecFwk::UnwrapWantParams(env, value, params)) {
+            return false;
+        }
     }
     options.parameters.SetParams(params);
-    return result;
+    return true;
 }
 
 bool ParseContextForCreateAccount(napi_env env, napi_callback_info cbInfo, CreateAccountContext *context)
