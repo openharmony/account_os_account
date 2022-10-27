@@ -30,6 +30,9 @@
 #include "ipc_skeleton.h"
 #include "iservice_registry.h"
 #include "ohos_account_kits.h"
+#ifdef HICOLLIE_ENABLE
+#include "xcollie/xcollie.h"
+#endif // HICOLLIE_ENABLE
 
 namespace OHOS {
 namespace AccountSA {
@@ -315,10 +318,19 @@ std::int32_t AccountStub::OnRemoteRequest(
         return ERR_ACCOUNT_COMMON_CHECK_DESCRIPTOR_ERROR;
     }
 
+#ifdef HICOLLIE_ENABLE
+    int timerId = HiviewDFX::XCollie::GetInstance().SetTimer(Constants::TIMER_NAME, Constants::TIMEOUT,
+        nullptr, nullptr, HiviewDFX::XCOLLIE_FLAG_LOG);
+#endif // HICOLLIE_ENABLE
+
     const auto &itFunc = stubFuncMap_.find(code);
     if (itFunc != stubFuncMap_.end()) {
         return (this->*(itFunc->second))(data, reply);
     }
+
+#ifdef HICOLLIE_ENABLE
+    HiviewDFX::XCollie::GetInstance().CancelTimer(timerId);
+#endif // HICOLLIE_ENABLE
 
     ACCOUNT_LOGW("remote request unhandled: %{public}d", code);
     return IPCObjectStub::OnRemoteRequest(code, data, reply, option);

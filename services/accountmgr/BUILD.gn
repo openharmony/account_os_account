@@ -244,7 +244,6 @@ ohos_shared_library("accountmgr") {
     "bundle_framework:appexecfwk_base",
     "c_utils:utils",
     "eventhandler:libeventhandler",
-    "hicollie_native:libhicollie",
     "hiviewdfx_hilog_native:libhilog",
     "init:libbegetutil",
     "ipc:ipc_core",
@@ -275,6 +274,11 @@ ohos_shared_library("accountmgr") {
 
   if (use_musl) {
     cflags_cc += [ "-DUSE_MUSL" ]
+  }
+
+  if (hicollie_enable == true) {
+    external_deps += [ "hicollie_native:libhicollie" ]
+    cflags_cc += [ "-DHICOLLIE_ENABLE" ]
   }
 
   external_deps += [ "hitrace_native:hitrace_meter" ]
