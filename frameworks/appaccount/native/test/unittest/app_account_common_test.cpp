@@ -22,6 +22,8 @@ using namespace testing::ext;
 using namespace OHOS;
 using namespace OHOS::AccountSA;
 
+constexpr uint32_t MAX_CUSTOM_DATA_SIZE = 1024;
+
 class AppAccountCommonTest : public testing::Test {
 public:
     static void SetUpTestCase(void);
@@ -45,7 +47,7 @@ void AppAccountCommonTest::TearDown(void)
  * @tc.name: SelectAccountsOptions Marshalling test
  * @tc.desc: Func Marshalling.
  * @tc.type: FUNC
- * @tc.require
+ * @tc.require issueI5RWXN
  */
 HWTEST_F(AppAccountCommonTest, Marshalling001, TestSize.Level0)
 {
@@ -73,7 +75,7 @@ HWTEST_F(AppAccountCommonTest, Marshalling001, TestSize.Level0)
  * @tc.name: VerifyCredentialOptions Marshalling test
  * @tc.desc: Func Marshalling.
  * @tc.type: FUNC
- * @tc.require
+ * @tc.require issueI5RWXN
  */
 HWTEST_F(AppAccountCommonTest, Marshalling002, TestSize.Level0)
 {
@@ -95,7 +97,7 @@ HWTEST_F(AppAccountCommonTest, Marshalling002, TestSize.Level0)
  * @tc.name: CreateAccountOptions Marshalling test
  * @tc.desc: Func Marshalling.
  * @tc.type: FUNC
- * @tc.require
+ * @tc.require issueI5RWXN
  */
 HWTEST_F(AppAccountCommonTest, Marshalling003, TestSize.Level0)
 {
@@ -115,7 +117,7 @@ HWTEST_F(AppAccountCommonTest, Marshalling003, TestSize.Level0)
  * @tc.name: CreateAccountImplicitlyOptions Marshalling test
  * @tc.desc: Func Marshalling.
  * @tc.type: FUNC
- * @tc.require
+ * @tc.require issueI5RWXN
  */
 HWTEST_F(AppAccountCommonTest, Marshalling004, TestSize.Level0)
 {
@@ -138,10 +140,33 @@ HWTEST_F(AppAccountCommonTest, Marshalling004, TestSize.Level0)
 }
 
 /**
+ * @tc.name: CreateAccountOptions Marshalling test
+ * @tc.desc: test ReadFromParcel of oversize customData.
+ * @tc.type: FUNC
+ * @tc.require issueI5RWXN
+ */
+HWTEST_F(AppAccountCommonTest, Marshalling005, TestSize.Level0)
+{
+    ACCOUNT_LOGI("Marshalling005");
+    Parcel Parcel;
+    CreateAccountOptions srcOptions;
+    
+    for (int i = 0; i < MAX_CUSTOM_DATA_SIZE + 1; i++) {
+        std::string test_key = "test_key" + std::to_string(i);
+        std::string test_value = "test_value" + std::to_string(i);
+        srcOptions.customData.emplace(test_key, test_value);
+    }
+
+    EXPECT_EQ(srcOptions.Marshalling(Parcel), true);
+    CreateAccountOptions *testOptions = srcOptions.Unmarshalling(Parcel);
+    EXPECT_EQ(testOptions, nullptr);
+}
+
+/**
  * @tc.name: ConvertOtherJSErrCodeV8 test
  * @tc.desc: Func ConvertOtherJSErrCodeV8.
  * @tc.type: FUNC
- * @tc.require
+ * @tc.require issueI5RWXN
  */
 HWTEST_F(AppAccountCommonTest, ConvertOtherJSErrCodeV8001, TestSize.Level0)
 {
@@ -161,7 +186,7 @@ HWTEST_F(AppAccountCommonTest, ConvertOtherJSErrCodeV8001, TestSize.Level0)
  * @tc.name: ConvertToJSErrCodeV8 test
  * @tc.desc: Func ConvertOtherJSErrCodeV8.
  * @tc.type: FUNC
- * @tc.require
+ * @tc.require issueI5RWXN
  */
 HWTEST_F(AppAccountCommonTest, ConvertToJSErrCodeV8001, TestSize.Level0)
 {

@@ -249,7 +249,7 @@ HWTEST_F(AppAccountManagerServiceModuleTest, AppAccountManagerService_AddAccount
  * @tc.name: AppAccountManagerService_CreateAccount_0100
  * @tc.desc: test create app account exception case.
  * @tc.type: FUNC
- * @tc.require: issueI5N90B
+ * @tc.require: issueI5RWXN
  */
 HWTEST_F(AppAccountManagerServiceModuleTest, AppAccountManagerService_CreateAccount_0100, TestSize.Level1)
 {
@@ -1491,7 +1491,7 @@ HWTEST_F(AppAccountManagerServiceModuleTest, AppAccountManagerService_AddAccount
  * @tc.name: AppAccountManagerService_CreateAccountImplicitly_0100
  * @tc.desc: Add account implicitly failed for non-existent oauth service.
  * @tc.type: FUNC
- * @tc.require: 
+ * @tc.require: issueI5RWXN
  */
 HWTEST_F(AppAccountManagerServiceModuleTest, AppAccountManagerService_CreateAccountImplicitly_0100, TestSize.Level1)
 {
@@ -1517,6 +1517,25 @@ HWTEST_F(AppAccountManagerServiceModuleTest, AppAccountManagerService_Authentica
 
     AAFwk::Want options;
     options.SetParam(AccountSA::Constants::KEY_CALLER_ABILITY_NAME, STRING_ABILITY_NAME);
+    sptr<IRemoteObject> callback = nullptr;
+    ErrCode result = g_accountManagerService->Authenticate(STRING_NAME,
+        STRING_OWNER, STRING_AUTH_TYPE, options, callback);
+    EXPECT_EQ(result, ERR_APPACCOUNT_SERVICE_OAUTH_AUTHENTICATOR_NOT_EXIST);
+}
+
+/**
+ * @tc.name: AppAccountManagerService_Authenticate_v9_0100
+ * @tc.desc: test version9 authenticate failed for non-existent oauth service.
+ * @tc.type: FUNC
+ * @tc.require: issueI5RWXN
+ */
+HWTEST_F(AppAccountManagerServiceModuleTest, AppAccountManagerService_Authenticate_v9_0100, TestSize.Level1)
+{
+    ACCOUNT_LOGI("AppAccountManagerService_Authenticate_0100");
+
+    AAFwk::Want options;
+    options.SetParam(AccountSA::Constants::KEY_CALLER_ABILITY_NAME, STRING_ABILITY_NAME);
+    options.SetParam(AccountSA::Constants::API_V9, true);
     sptr<IRemoteObject> callback = nullptr;
     ErrCode result = g_accountManagerService->Authenticate(STRING_NAME,
         STRING_OWNER, STRING_AUTH_TYPE, options, callback);
@@ -2124,3 +2143,4 @@ HWTEST_F(AppAccountManagerServiceModuleTest, AppAccountManagerService_OnUserRemo
     ErrCode result = g_accountManagerService->OnUserRemoved(TEST_USER_ID);
     EXPECT_EQ(result, ERR_OK);
 }
+

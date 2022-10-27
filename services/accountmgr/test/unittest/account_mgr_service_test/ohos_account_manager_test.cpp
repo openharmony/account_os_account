@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021 Huawei Device Co., Ltd.
+ * Copyright (c) 2021-2022 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -59,6 +59,7 @@ void OhosAccountManagerTest::SetUpTestCase()
 void OhosAccountManagerTest::TearDownTestCase() {}
 void OhosAccountManagerTest::SetUp() {}
 void OhosAccountManagerTest::TearDown() {}
+
 /**
  * @tc.name: OhosAccountManagerTestTokenInvalid004
  * @tc.desc: Account manager handle token invalid event test
@@ -98,4 +99,19 @@ HWTEST_F(OhosAccountManagerTest, OhosAccountManagerTestTokenInvalid004, TestSize
     */
     ret = accountManager.LogoutOhosAccount(name, uid, g_eventLogout);
     EXPECT_EQ(true, ret);
+}
+
+/**
+ * @tc.name: OhosAccountManagerTestTokenInvalid004
+ * @tc.desc: test GetOhosAccountInfoByUserId with invalid user id.
+ * @tc.type: FUNC
+ * @tc.require: issueI5RWXT
+ */
+HWTEST_F(OhosAccountManagerTest, OhosAccountManagerTestUserIdInvalid001, TestSize.Level0)
+{
+    OhosAccountManager accountManager;
+    accountManager.OnInitialize();
+    std::int32_t testUserId = 200; // 200 is test user id.
+    auto ret = accountManager.GetOhosAccountInfoByUserId(testUserId);
+    EXPECT_NE(true, ret);
 }
