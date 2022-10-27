@@ -95,3 +95,10 @@ declare_args() {
 declare_args() {
   os_account_test_case_coverage_feature = false
 }
+
+if (!defined(global_parts_info) ||
+    defined(global_parts_info.hiviewdfx_hicollie_native)) {
+  hicollie_enable = true
+} else {
+  hicollie_enable = false
+}
