@@ -105,9 +105,26 @@ public:
 
     ~OhosAccountInfo() {};
 
+    // filtering the input scalableData only
+    static std::string GetScalableDataString(const AAFwk::Want &scalableData)
+    {
+        std::string result = "";
+        AAFwk::WantParams wantParams = scalableData.GetParams();
+        for (auto it : wantParams.GetParams()) {
+            if (it.first != "moduleName") {
+                result += it.first;
+                int typeId = AAFwk::WantParams::GetDataType(it.second);
+                result += wantParams.GetStringByType(it.second, typeId);
+            }
+        }
+        return result;
+    }
+
     bool IsValid() const
     {
-        return (nickname_.size() <= Constants::NICKNAME_MAX_SIZE) && (avatar_.size() <= Constants::AVATAR_MAX_SIZE);
+        std::string str = GetScalableDataString(scalableData_);
+        return (nickname_.size() <= Constants::NICKNAME_MAX_SIZE) && (avatar_.size() <= Constants::AVATAR_MAX_SIZE) &&
+            (str.size() <= Constants::SCALABLEDATA_MAX_SIZE);
     }
 };
 
