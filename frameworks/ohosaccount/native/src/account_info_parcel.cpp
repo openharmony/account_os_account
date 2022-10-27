@@ -30,6 +30,10 @@ bool WriteOhosAccountInfo(MessageParcel &data, const OhosAccountInfo &ohosAccoun
         ACCOUNT_LOGE("write uid failed!");
         return false;
     }
+    if (!data.WriteString16(Str8ToStr16(ohosAccountInfo.GetRawUid()))) {
+        ACCOUNT_LOGE("write rawUid failed!");
+        return false;
+    }
     if (!data.WriteInt32(ohosAccountInfo.status_)) {
         ACCOUNT_LOGE("write status failed!");
         return false;
@@ -65,6 +69,11 @@ bool ReadOhosAccountInfo(MessageParcel &data, OhosAccountInfo &ohosAccountInfo)
         ACCOUNT_LOGE("read uid failed");
         return false;
     }
+    std::u16string rawUid;
+    if (!data.ReadString16(rawUid)) {
+        ACCOUNT_LOGE("read rawUid failed");
+        return false;
+    }
     int32_t status;
     if (!data.ReadInt32(status)) {
         ACCOUNT_LOGE("read status failed");
@@ -96,6 +105,7 @@ bool ReadOhosAccountInfo(MessageParcel &data, OhosAccountInfo &ohosAccountInfo)
     ohosAccountInfo.nickname_ = Str16ToStr8(nickname);
     ohosAccountInfo.avatar_ = avatar;
     ohosAccountInfo.scalableData_ = *want;
+    ohosAccountInfo.SetRawUid(Str16ToStr8(rawUid));
     return true;
 }
 }  // namespace AccountSA

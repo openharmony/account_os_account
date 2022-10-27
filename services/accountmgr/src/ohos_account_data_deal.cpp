@@ -31,6 +31,7 @@ namespace AccountSA {
 namespace {
 const std::string ACCOUNT_CFG_FILE_NAME = "/account.json";
 const std::string DATADEAL_JSON_KEY_OHOSACCOUNT_NAME = "account_name";
+const std::string DATADEAL_JSON_KEY_OHOSACCOUNT_RAW_UID = "raw_uid";
 const std::string DATADEAL_JSON_KEY_OHOSACCOUNT_UID = "open_id";
 const std::string DATADEAL_JSON_KEY_OHOSACCOUNT_STATUS = "bind_status";
 const std::string DATADEAL_JSON_KEY_OHOSACCOUNT_NICKNAME = "account_nickname";
@@ -105,6 +106,7 @@ int32_t OhosAccountDataDeal::SaveAccountInfo(const AccountInfo &accountInfo) con
         {DATADEAL_JSON_KEY_BIND_TIME, accountInfo.bindTime_},
         {DATADEAL_JSON_KEY_USERID, accountInfo.userId_},
         {DATADEAL_JSON_KEY_OHOSACCOUNT_NAME, accountInfo.ohosAccountInfo_.name_},
+        {DATADEAL_JSON_KEY_OHOSACCOUNT_RAW_UID, accountInfo.ohosAccountInfo_.GetRawUid()},
         {DATADEAL_JSON_KEY_OHOSACCOUNT_UID, accountInfo.ohosAccountInfo_.uid_},
         {DATADEAL_JSON_KEY_OHOSACCOUNT_STATUS, accountInfo.ohosAccountInfo_.status_},
         {DATADEAL_JSON_KEY_OHOSACCOUNT_NICKNAME, accountInfo.ohosAccountInfo_.nickname_},
@@ -164,6 +166,11 @@ int32_t OhosAccountDataDeal::GetAccountInfo(AccountInfo &accountInfo, const std:
         accountInfo.ohosAccountInfo_.name_ = jsonData_.at(DATADEAL_JSON_KEY_OHOSACCOUNT_NAME).get<std::string>();
     }
 
+    if (jsonData_.find(DATADEAL_JSON_KEY_OHOSACCOUNT_RAW_UID) != jsonObjectEnd) {
+        std::string rawUid = jsonData_.at(DATADEAL_JSON_KEY_OHOSACCOUNT_RAW_UID).get<std::string>();
+        accountInfo.ohosAccountInfo_.SetRawUid(rawUid);
+    }
+
     if (jsonData_.find(DATADEAL_JSON_KEY_OHOSACCOUNT_UID) != jsonObjectEnd) {
         accountInfo.ohosAccountInfo_.uid_ = jsonData_.at(DATADEAL_JSON_KEY_OHOSACCOUNT_UID).get<std::string>();
     }
@@ -202,6 +209,7 @@ void OhosAccountDataDeal::BuildJsonFileFromScratch(std::int32_t userId) const
     accountInfo.ohosAccountInfo_.name_ = DEFAULT_OHOS_ACCOUNT_NAME;
     accountInfo.ohosAccountInfo_.status_ = ACCOUNT_STATE_UNBOUND;
     accountInfo.digest_ = "";
+    accountInfo.ohosAccountInfo_.SetRawUid(DEFAULT_OHOS_ACCOUNT_UID);
     SaveAccountInfo(accountInfo);
 }
 } // namespace AccountSA

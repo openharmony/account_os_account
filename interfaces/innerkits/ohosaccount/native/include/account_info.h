@@ -86,7 +86,7 @@ public:
     AAFwk::Want scalableData_;
 
     OhosAccountInfo(const std::string &name, const std::string &id, std::int32_t status)
-        : name_(name), uid_(id), status_(status)
+        : name_(name), uid_(id), status_(status), rawUid_(id)
     {
         nickname_ = "";
         avatar_ = "";
@@ -109,6 +109,19 @@ public:
     {
         return (nickname_.size() <= Constants::NICKNAME_MAX_SIZE) && (avatar_.size() <= Constants::AVATAR_MAX_SIZE);
     }
+
+    std::string GetRawUid() const
+    {
+        return rawUid_;
+    }
+
+    void SetRawUid(std::string rawUid)
+    {
+        rawUid_ = rawUid;
+    }
+
+private:
+    std::string rawUid_;
 };
 
 class AccountInfo {
@@ -145,6 +158,7 @@ public:
         ohosAccountInfo_.nickname_ = "";
         ohosAccountInfo_.avatar_ = "";
         ohosAccountInfo_.scalableData_ = {};
+        ohosAccountInfo_.SetRawUid("");
         digest_.clear();
         bindTime_ = 0;
     }

@@ -187,16 +187,17 @@ AccountInfo OhosAccountManager::GetCurrentOhosAccountInfo()
     return currOhosAccountInfo;
 }
 
-AccountInfo OhosAccountManager::GetOhosAccountInfoByUserId(std::int32_t userId)
+ErrCode OhosAccountManager::GetAccountInfoByUserId(std::int32_t userId, AccountInfo &info)
 {
     std::lock_guard<std::mutex> mutexLock(mgrMutex_);
 
-    AccountInfo accountInfo;
-    if (dataDealer_->AccountInfoFromJson(accountInfo, userId) != ERR_OK) {
+    ErrCode ret = dataDealer_->AccountInfoFromJson(info, userId);
+    if (ret != ERR_OK) {
         ACCOUNT_LOGE("get ohos account info failed, userId %{public}d.", userId);
-        accountInfo.clear();
+        info.clear();
+        return ret; 
     }
-    return accountInfo;
+    return ERR_OK;
 }
 
 /**
@@ -280,6 +281,7 @@ bool OhosAccountManager::LoginOhosAccount(const OhosAccountInfo &ohosAccountInfo
 
     // update account info
     currAccountInfo.ohosAccountInfo_ = ohosAccountInfo;
+    currAccountInfo.ohosAccountInfo_.SetRawUid(ohosAccountInfo.uid_);
     currAccountInfo.ohosAccountInfo_.uid_ = ohosAccountUid;
     currAccountInfo.ohosAccountInfo_.status_ = ACCOUNT_STATE_LOGIN;
     currAccountInfo.bindTime_ = std::time(nullptr);
