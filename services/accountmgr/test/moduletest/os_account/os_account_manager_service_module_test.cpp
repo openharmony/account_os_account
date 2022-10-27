@@ -1529,6 +1529,8 @@ HWTEST_F(OsAccountManagerServiceModuleTest, OsAccountManagerServiceModuleTest079
     int invalidLocalID = -1;
     OsAccountInfo osAccountInfo;
     EXPECT_NE(osAccountManagerService_->GetOsAccountFromDatabase(storeID, invalidLocalID, osAccountInfo), ERR_OK);
+    invalidLocalID = 1100;
+    EXPECT_NE(osAccountManagerService_->GetOsAccountFromDatabase(storeID, invalidLocalID, osAccountInfo), ERR_OK);
 }
 
 /**
