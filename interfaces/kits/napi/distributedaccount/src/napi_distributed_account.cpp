@@ -293,7 +293,8 @@ napi_value NapiDistributedAccount::QueryOhosAccountInfo(napi_env env, napi_callb
         [](napi_env env, void *data) {
             DistributedAccountAsyncContext *asyncContext = reinterpret_cast<DistributedAccountAsyncContext *>(data);
             if (asyncContext->throwErr) {
-                asyncContext->errCode = OhosAccountKits::GetInstance().GetOhosAccountInfo(asyncContext->ohosAccountInfo);
+                asyncContext->errCode = OhosAccountKits::GetInstance().GetOhosAccountInfo(
+                    asyncContext->ohosAccountInfo);
             } else {
                 std::pair<bool, OhosAccountInfo> accountInfo = OhosAccountKits::GetInstance().QueryOhosAccountInfo();
                 if (accountInfo.first) {
