@@ -270,12 +270,12 @@ ErrCode OsAccountManagerService::GetOsAccountLocalIdFromDomain(const DomainAccou
 {
     if (domainInfo.domain_.empty() || domainInfo.domain_.size() > Constants::DOMAIN_NAME_MAX_SIZE) {
         ACCOUNT_LOGE("domain name length invalid. length %{public}zu.", domainInfo.domain_.size());
-        return ERR_OSACCOUNT_KIT_DOMAIN_NAME_LENGTH_INVALID_ERROR;
+        return ERR_OSACCOUNT_SERVICE_INNER_DOMAIN_NAME_LEN_ERROR;
     }
 
     if (domainInfo.accountName_.empty() || domainInfo.accountName_.size() > Constants::DOMAIN_ACCOUNT_NAME_MAX_SIZE) {
         ACCOUNT_LOGE("accountName length invalid. length %{public}zu.", domainInfo.accountName_.size());
-        return ERR_OSACCOUNT_KIT_DOMAIN_ACCOUNT_NAME_LENGTH_INVALID_ERROR;
+        return ERR_OSACCOUNT_SERVICE_INNER_DOMAIN_ACCOUNT_NAME_LEN_ERROR;
     }
     // permission check
     if (!PermissionCheck(AccountPermissionManager::MANAGE_LOCAL_ACCOUNTS, "")) {
@@ -715,7 +715,7 @@ ErrCode OsAccountManagerService::QueryOsAccountConstraintSourceTypes(const int32
     }
     if (constraint.empty() || constraint.size() > Constants::CONSTRAINT_MAX_SIZE) {
         ACCOUNT_LOGE("constraint length is invalid. length %{public}zu.", constraint.size());
-        return ERR_OSACCOUNT_KIT_DOMAIN_NAME_LENGTH_INVALID_ERROR;
+        return ERR_OSACCOUNT_SERVICE_INNER_DOMAIN_ACCOUNT_NAME_LEN_ERROR;
     }
 
     // permission check
