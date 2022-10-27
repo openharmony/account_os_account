@@ -77,7 +77,6 @@ void QueryOAByIdExecuteCB(napi_env env, void *data)
 
 void QueryOAByIdCallbackCompletedCB(napi_env env, napi_status status, void *data)
 {
-    ACCOUNT_LOGD("napi_create_async_work complete");
     QueryOAByIdAsyncContext *asyncContext = reinterpret_cast<QueryOAByIdAsyncContext *>(data);
     napi_value errJs = nullptr;
     napi_value dataJs = nullptr;
@@ -94,135 +93,133 @@ void QueryOAByIdCallbackCompletedCB(napi_env env, napi_status status, void *data
     asyncContext = nullptr;
 }
 
-void GetOACBInfoToJs(napi_env env, OsAccountInfo &info, napi_value &objOAInfo)
+void CreateJsDomainInfo(napi_env env, const DomainAccountInfo &info, napi_value &result)
 {
-    napi_create_object(env, &objOAInfo);
-    // localId
-    int id = info.GetLocalId();
-    napi_value idToJs = nullptr;
-    napi_create_int32(env, id, &idToJs);
-    napi_set_named_property(env, objOAInfo, "localId", idToJs);
+    napi_create_object(env, &result);
+    napi_value value = nullptr;
+    // domain
+    napi_create_string_utf8(env, info.domain_.c_str(), info.domain_.size(), &value);
+    napi_set_named_property(env, result, "domain", value);
 
-    // localName
-    std::string name = info.GetLocalName();
-    napi_value nameToJs = nullptr;
-    napi_create_string_utf8(env, name.c_str(), NAPI_AUTO_LENGTH, &nameToJs);
-    napi_set_named_property(env, objOAInfo, "localName", nameToJs);
+    // domain accountName
+    napi_create_string_utf8(env, info.accountName_.c_str(), info.accountName_.size(), &value);
+    napi_set_named_property(env, result, "accountName", value);
+}
 
-    // type
-    int type = static_cast<int>(info.GetType());
-    napi_value typeToJsObj = nullptr;
+void CreateJsDistributedInfo(napi_env env, const OhosAccountInfo &info, napi_value &result)
+{
+    napi_create_object(env, &result);
+    napi_value value = nullptr;
+    // name
+    napi_create_string_utf8(env, info.name_.c_str(), info.name_.size(), &value);
+    napi_set_named_property(env, result, "name", value);
+
+    // id
+    napi_create_string_utf8(env, info.uid_.c_str(), info.uid_.size(), &value);
+    napi_set_named_property(env, result, "id", value);
+
+    // event
+    napi_create_string_utf8(env, "", 0, &value);
+    napi_set_named_property(env, result, "event", value);
+
+    // scalableData
+    napi_value scalable = nullptr;
+    napi_create_object(env, &scalable);
+    napi_set_named_property(env, result, "scalableData", scalable);
+}
+
+void CreateJsAccountType(napi_env env, int32_t type, napi_value &result)
+{
+    napi_create_object(env, &result);
     napi_value valToJs = nullptr;
-    napi_create_object(env, &typeToJsObj);
     napi_create_int32(env, type, &valToJs);
     switch (type) {
         case PARAMZERO:
-            napi_set_named_property(env, typeToJsObj, "ADMIN", valToJs);
+            napi_set_named_property(env, result, "ADMIN", valToJs);
             break;
         case PARAMONE:
-            napi_set_named_property(env, typeToJsObj, "NORMAL", valToJs);
+            napi_set_named_property(env, result, "NORMAL", valToJs);
             break;
         case PARAMTWO:
-            napi_set_named_property(env, typeToJsObj, "GUEST", valToJs);
+            napi_set_named_property(env, result, "GUEST", valToJs);
             break;
         default:
             ACCOUNT_LOGE("cType %{public}d is an invalid value", type);
             break;
     }
+}
+
+void GetOACBInfoToJs(napi_env env, OsAccountInfo &info, napi_value &objOAInfo)
+{
+    napi_create_object(env, &objOAInfo);
+    // localId
+    napi_value idToJs = nullptr;
+    napi_create_int32(env, info.GetLocalId(), &idToJs);
+    napi_set_named_property(env, objOAInfo, "localId", idToJs);
+
+    // localName
+    napi_value nameToJs = nullptr;
+    napi_create_string_utf8(env, info.GetLocalName().c_str(), NAPI_AUTO_LENGTH, &nameToJs);
+    napi_set_named_property(env, objOAInfo, "localName", nameToJs);
+
+    // type
+    napi_value typeToJsObj = nullptr;
+    CreateJsAccountType(env, static_cast<int>(info.GetType()), typeToJsObj);
     napi_set_named_property(env, objOAInfo, "type", typeToJsObj);
 
     // constraints
-    std::vector<std::string> constraints = info.GetConstraints();
     napi_value constraintsToJs = nullptr;
     napi_create_array(env, &constraintsToJs);
-    MakeArrayToJs(env, constraints, constraintsToJs);
+    MakeArrayToJs(env, info.GetConstraints(), constraintsToJs);
     napi_set_named_property(env, objOAInfo, "constraints", constraintsToJs);
 
     // isVerified
-    bool isVerified = info.GetIsVerified();
     napi_value isVerifiedToJs = nullptr;
-    napi_get_boolean(env, isVerified, &isVerifiedToJs);
+    napi_get_boolean(env, info.GetIsVerified(), &isVerifiedToJs);
     napi_set_named_property(env, objOAInfo, "isVerified", isVerifiedToJs);
 
     // photo
-    std::string photo = info.GetPhoto();
     napi_value photoToJs = nullptr;
-    napi_create_string_utf8(env, photo.c_str(), NAPI_AUTO_LENGTH, &photoToJs);
+    napi_create_string_utf8(env, info.GetPhoto().c_str(), NAPI_AUTO_LENGTH, &photoToJs);
     napi_set_named_property(env, objOAInfo, "photo", photoToJs);
 
     // createTime
-    int64_t createTime = info.GetCreateTime();
     napi_value createTimeToJs = nullptr;
-    napi_create_int64(env, createTime, &createTimeToJs);
+    napi_create_int64(env, info.GetCreateTime(), &createTimeToJs);
     napi_set_named_property(env, objOAInfo, "createTime", createTimeToJs);
 
     // lastLoginTime
-    int64_t lastLoginTime = info.GetLastLoginTime();
     napi_value lastLoginTimeToJs = nullptr;
-    napi_create_int64(env, lastLoginTime, &lastLoginTimeToJs);
+    napi_create_int64(env, info.GetLastLoginTime(), &lastLoginTimeToJs);
     napi_set_named_property(env, objOAInfo, "lastLoginTime", lastLoginTimeToJs);
 
     // serialNumber
-    int64_t serialNumber = info.GetSerialNumber();
     napi_value serialNumberToJs = nullptr;
-    napi_create_int64(env, serialNumber, &serialNumberToJs);
+    napi_create_int64(env, info.GetSerialNumber(), &serialNumberToJs);
     napi_set_named_property(env, objOAInfo, "serialNumber", serialNumberToJs);
 
     // isActived
-    bool isActived = info.GetIsActived();
     napi_value isActivedToJs = nullptr;
-    napi_get_boolean(env, isActived, &isActivedToJs);
+    napi_get_boolean(env, info.GetIsActived(), &isActivedToJs);
     napi_set_named_property(env, objOAInfo, "isActived", isActivedToJs);
 
     // isCreateCompleted
-    bool isCreateCompleted = info.GetIsCreateCompleted();
     napi_value isCreateCompletedToJs = nullptr;
-    napi_get_boolean(env, isCreateCompleted, &isCreateCompletedToJs);
+    napi_get_boolean(env, info.GetIsCreateCompleted(), &isCreateCompletedToJs);
     napi_set_named_property(env, objOAInfo, "isCreateCompleted", isCreateCompletedToJs);
 
     // distributedInfo: distributedAccount.DistributedInfo
     napi_value dbInfoToJs = nullptr;
-    napi_value value = nullptr;
-    napi_create_object(env, &dbInfoToJs);
     std::pair<bool, OhosAccountInfo> dbAccountInfo = OhosAccountKits::GetInstance().QueryOhosAccountInfo();
     if (dbAccountInfo.first) {
-        // name
-        napi_create_string_utf8(env, dbAccountInfo.second.name_.c_str(), dbAccountInfo.second.name_.size(), &value);
-        napi_set_named_property(env, dbInfoToJs, "name", value);
-
-        // id
-        napi_create_string_utf8(env, dbAccountInfo.second.uid_.c_str(), dbAccountInfo.second.uid_.size(), &value);
-        napi_set_named_property(env, dbInfoToJs, "id", value);
-
-        // event
-        std::string event = "";
-        napi_create_string_utf8(env, event.c_str(), event.size(), &value);
-        napi_set_named_property(env, dbInfoToJs, "event", value);
-
-        // scalableData
-        napi_value scalable = nullptr;
-        napi_create_object(env, &scalable);
-        napi_set_named_property(env, dbInfoToJs, "scalableData", scalable);
-    } else {
-        napi_get_undefined(env, &dbInfoToJs);
+        CreateJsDistributedInfo(env, dbAccountInfo.second, dbInfoToJs);
     }
     napi_set_named_property(env, objOAInfo, "distributedInfo", dbInfoToJs);
 
     // domainInfo: domainInfo.DomainAccountInfo
-    dbInfoToJs = nullptr;
-    value = nullptr;
-    napi_create_object(env, &dbInfoToJs);
-
     DomainAccountInfo domainInfo;
     info.GetDomainInfo(domainInfo);
-
-    // domain
-    napi_create_string_utf8(env, domainInfo.domain_.c_str(), domainInfo.domain_.size(), &value);
-    napi_set_named_property(env, dbInfoToJs, "domain", value);
-
-    // domain accountName
-    napi_create_string_utf8(env, domainInfo.accountName_.c_str(), domainInfo.accountName_.size(), &value);
-    napi_set_named_property(env, dbInfoToJs, "accountName", value);
+    CreateJsDomainInfo(env, domainInfo, dbInfoToJs);
     napi_set_named_property(env, objOAInfo, "domainInfo", dbInfoToJs);
 }
 
@@ -581,7 +578,6 @@ void CreateOACallbackCompletedCB(napi_env env, napi_status status, void *data)
 
 void CreateOAForDomainCallbackCompletedCB(napi_env env, napi_status status, void *data)
 {
-    ACCOUNT_LOGD("napi_create_async_work complete");
     CreateOAForDomainAsyncContext *asyncContext = reinterpret_cast<CreateOAForDomainAsyncContext *>(data);
     napi_value errJs = nullptr;
     napi_value dataJs = nullptr;
@@ -1016,7 +1012,6 @@ void QueryCurrentOAExecuteCB(napi_env env, void *data)
 
 void QueryCurrentOACallbackCompletedCB(napi_env env, napi_status status, void *data)
 {
-    ACCOUNT_LOGD("napi_create_async_work complete");
     CurrentOAAsyncContext *asyncContext = reinterpret_cast<CurrentOAAsyncContext *>(data);
     napi_value errJs = nullptr;
     napi_value dataJs = nullptr;
