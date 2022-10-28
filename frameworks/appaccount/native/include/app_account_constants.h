@@ -48,6 +48,13 @@ const std::string KEY_ACCOUNT_OWNERS = "accountOwners";
 const std::string SPECIAL_CHARACTERS = " ";
 const std::string HYPHEN = "#";
 const std::string API_V9 = "apiV9";
+
+// for watchdog func
+#ifdef HICOLLIE_ENABLE
+const uint32_t TIMEOUT = 10; // 10s
+const std::string TIMER_NAME = "AccountMgrTimer";
+#endif // HICOLLIE_ENABLE
+
 constexpr int32_t ABILITY_STATE_TERMINATED = 4;
 constexpr std::size_t APP_ACCOUNT_SUBSCRIBER_MAX_SIZE = 200;
 constexpr std::size_t NAME_MAX_SIZE = 512;

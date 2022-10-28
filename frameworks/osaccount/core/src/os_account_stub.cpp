@@ -14,6 +14,9 @@
  */
 #include "os_account_stub.h"
 #include "account_log_wrapper.h"
+#ifdef HICOLLIE_ENABLE
+#include "xcollie/xcollie.h"
+#endif // HICOLLIE_ENABLE
 
 namespace OHOS {
 namespace AccountSA {
@@ -209,6 +212,11 @@ int OsAccountStub::OnRemoteRequest(uint32_t code, MessageParcel &data, MessagePa
         return ERR_ACCOUNT_COMMON_CHECK_DESCRIPTOR_ERROR;
     }
 
+#ifdef HICOLLIE_ENABLE
+    int timerId = HiviewDFX::XCollie::GetInstance().SetTimer(Constants::TIMER_NAME, Constants::TIMEOUT,
+        nullptr, nullptr, HiviewDFX::XCOLLIE_FLAG_LOG);
+#endif // HICOLLIE_ENABLE
+
     auto messageProc = messageProcMap_.find(code);
     if (messageProc != messageProcMap_.end()) {
         auto messageProcFunction = messageProc->second;
@@ -216,6 +224,9 @@ int OsAccountStub::OnRemoteRequest(uint32_t code, MessageParcel &data, MessagePa
             return (this->*messageProcFunction)(data, reply);
         }
     }
+#ifdef HICOLLIE_ENABLE
+    HiviewDFX::XCollie::GetInstance().CancelTimer(timerId);
+#endif // HICOLLIE_ENABLE
     return IPCObjectStub::OnRemoteRequest(code, data, reply, option);
 }
 
