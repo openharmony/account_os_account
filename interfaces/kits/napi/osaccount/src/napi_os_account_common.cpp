@@ -607,7 +607,10 @@ void GetOACountExecuteCB(napi_env env, void *data)
 {
     GetOACountAsyncContext *asyncContext = reinterpret_cast<GetOACountAsyncContext *>(data);
     asyncContext->errCode = OsAccountManager::GetCreatedOsAccountsCount(asyncContext->osAccountsCount);
-    ACCOUNT_LOGD("error code is %{public}d", asyncContext->errCode);
+    // for compatibility
+    if ((!asyncContext->throwErr) && (asyncContext->errCode == ERR_OSACCOUNT_SERVICE_PERMISSION_DENIED)) {
+        asyncContext->errCode = ERR_OSACCOUNT_KIT_GET_CREATED_OS_ACCOUNT_COUNT_ERROR;
+    }
     asyncContext->status = (asyncContext->errCode == 0) ? napi_ok : napi_generic_failure;
 }
 
@@ -699,7 +702,10 @@ void GetAllConsExecuteCB(napi_env env, void *data)
 {
     GetAllConsAsyncContext *asyncContext = reinterpret_cast<GetAllConsAsyncContext *>(data);
     asyncContext->errCode = OsAccountManager::GetOsAccountAllConstraints(asyncContext->id, asyncContext->constraints);
-    ACCOUNT_LOGD("error code is %{public}d", asyncContext->errCode);
+    // for compatibility
+    if ((!asyncContext->throwErr) && (asyncContext->errCode == ERR_OSACCOUNT_SERVICE_PERMISSION_DENIED)) {
+        asyncContext->errCode = ERR_OSACCOUNT_KIT_GET_OS_ACCOUNT_ALL_CONSTRAINTS_ERROR;
+    }
     asyncContext->status = (asyncContext->errCode == 0) ? napi_ok : napi_generic_failure;
 }
 
@@ -1010,7 +1016,10 @@ void QueryCurrentOAExecuteCB(napi_env env, void *data)
 {
     CurrentOAAsyncContext *asyncContext = reinterpret_cast<CurrentOAAsyncContext *>(data);
     asyncContext->errCode = OsAccountManager::QueryCurrentOsAccount(asyncContext->osAccountInfos);
-    ACCOUNT_LOGD("error code is %{public}d", asyncContext->errCode);
+    // for compatibility
+    if ((!asyncContext->throwErr) && (asyncContext->errCode == ERR_OSACCOUNT_SERVICE_PERMISSION_DENIED)) {
+        asyncContext->errCode = ERR_OSACCOUNT_KIT_QUERY_CURRENT_OS_ACCOUNT_ERROR;
+    }
     asyncContext->status = (asyncContext->errCode == 0) ? napi_ok : napi_generic_failure;
 }
 
@@ -1297,7 +1306,10 @@ void IsActivedExecuteCB(napi_env env, void *data)
 {
     IsActivedAsyncContext *asyncContext = reinterpret_cast<IsActivedAsyncContext *>(data);
     asyncContext->errCode = OsAccountManager::IsOsAccountActived(asyncContext->id, asyncContext->isOsAccountActived);
-    ACCOUNT_LOGD("error code is %{public}d", asyncContext->errCode);
+    // for compatibility
+    if ((!asyncContext->throwErr) && (asyncContext->errCode == ERR_OSACCOUNT_SERVICE_PERMISSION_DENIED)) {
+        asyncContext->errCode = ERR_OSACCOUNT_KIT_IS_OS_ACCOUNT_ACTIVED_ERROR;
+    }
     asyncContext->status = (asyncContext->errCode == 0) ? napi_ok : napi_generic_failure;
 }
 
@@ -1358,7 +1370,10 @@ void IsEnableExecuteCB(napi_env env, void *data)
     IsConEnableAsyncContext *asyncContext = reinterpret_cast<IsConEnableAsyncContext *>(data);
     asyncContext->errCode = OsAccountManager::IsOsAccountConstraintEnable(asyncContext->id, asyncContext->constraint,
         asyncContext->isConsEnable);
-    ACCOUNT_LOGD("error code is %{public}d", asyncContext->errCode);
+    // for compatibility
+    if ((!asyncContext->throwErr) && (asyncContext->errCode == ERR_OSACCOUNT_SERVICE_PERMISSION_DENIED)) {
+        asyncContext->errCode = ERR_OSACCOUNT_KIT_IS_OS_ACCOUNT_CONSTRAINT_ENABLE_ERROR;
+    }
     asyncContext->status = (asyncContext->errCode == 0) ? napi_ok : napi_generic_failure;
 }
 
@@ -1534,7 +1549,10 @@ void IsVerifiedExecuteCB(napi_env env, void *data)
 {
     IsVerifiedAsyncContext *asyncContext = reinterpret_cast<IsVerifiedAsyncContext *>(data);
     asyncContext->errCode = OsAccountManager::IsOsAccountVerified(asyncContext->id, asyncContext->isTestOA);
-    ACCOUNT_LOGD("error code is %{public}d", asyncContext->errCode);
+    // for compatibility
+    if ((!asyncContext->throwErr) && (asyncContext->errCode == ERR_OSACCOUNT_SERVICE_PERMISSION_DENIED)) {
+        asyncContext->errCode = ERR_OSACCOUNT_KIT_IS_OS_ACCOUNT_VERIFIED_ERROR;
+    }
     asyncContext->status = (asyncContext->errCode == 0) ? napi_ok : napi_generic_failure;
 }
 
