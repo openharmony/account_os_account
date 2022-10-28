@@ -142,7 +142,7 @@ std::pair<bool, OhosAccountInfo> OhosAccountKitsImpl::QueryOhosAccountInfo()
     return accountProxy->QueryOhosAccountInfo();
 }
 
-std::int32_t OhosAccountKitsImpl::GetOhosAccountInfo(OhosAccountInfo &accountInfo)
+ErrCode OhosAccountKitsImpl::GetOhosAccountInfo(OhosAccountInfo &accountInfo)
 {
     auto accountProxy = GetService();
     if (accountProxy == nullptr) {
@@ -151,6 +151,17 @@ std::int32_t OhosAccountKitsImpl::GetOhosAccountInfo(OhosAccountInfo &accountInf
     }
 
     return accountProxy->GetOhosAccountInfo(accountInfo);
+}
+
+ErrCode OhosAccountKitsImpl::GetOhosAccountInfoByUserId(int32_t userId, OhosAccountInfo &accountInfo)
+{
+    auto accountProxy = GetService();
+    if (accountProxy == nullptr) {
+        ACCOUNT_LOGE("Get proxy failed");
+        return ERR_ACCOUNT_ZIDL_ACCOUNT_PROXY_ERROR;
+    }
+
+    return accountProxy->GetOhosAccountInfoByUserId(userId, accountInfo);
 }
 
 std::pair<bool, OhosAccountInfo> OhosAccountKitsImpl::QueryOhosAccountInfoByUserId(std::int32_t userId)
