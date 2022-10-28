@@ -264,9 +264,9 @@ HWTEST_F(AppAccountManagerServiceModuleTest, AppAccountManagerService_CreateAcco
     EXPECT_EQ(result, ERR_OK);
 
     for (int i = 0; i < MAX_CUSTOM_DATA_SIZE + 1; i++) {
-        std::string test_key = "test_key" + std::to_string(i);
-        std::string test_value = "test_value" + std::to_string(i);
-        option.customData.emplace(test_key, test_value);
+        std::string testKey = "test_key" + std::to_string(i);
+        std::string testValue = "test_value" + std::to_string(i);
+        option.customData.emplace(testKey, testValue);
     }
     result = g_accountManagerService->CreateAccount(STRING_NAME, option);
     EXPECT_EQ(result, ERR_APPACCOUNT_KIT_INVALID_PARAMETER);

@@ -40,9 +40,9 @@ struct AuthenticatorInfo {
 };
 
 struct SelectAccountsOptions : public Parcelable {
-    bool hasAccounts;
-    bool hasOwners;
-    bool hasLabels;
+    bool hasAccounts = false;
+    bool hasOwners = false;
+    bool hasLabels = false;
     std::vector<std::pair<std::string, std::string>> allowedAccounts;
     std::vector<std::string> allowedOwners;
     std::vector<std::string> requiredLabels;
@@ -76,8 +76,8 @@ struct CreateAccountOptions : public Parcelable {
 };
 
 struct CreateAccountImplicitlyOptions : public Parcelable {
-    bool hasAuthType;
-    bool hasRequiredLabels;
+    bool hasAuthType = false;
+    bool hasRequiredLabels = false;
     std::string authType;
     std::vector<std::string> requiredLabels;
     AAFwk::Want parameters;
