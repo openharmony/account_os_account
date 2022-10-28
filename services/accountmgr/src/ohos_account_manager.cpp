@@ -187,16 +187,17 @@ AccountInfo OhosAccountManager::GetCurrentOhosAccountInfo()
     return currOhosAccountInfo;
 }
 
-AccountInfo OhosAccountManager::GetOhosAccountInfoByUserId(std::int32_t userId)
+ErrCode OhosAccountManager::GetAccountInfoByUserId(std::int32_t userId, AccountInfo &info)
 {
     std::lock_guard<std::mutex> mutexLock(mgrMutex_);
 
-    AccountInfo accountInfo;
-    if (dataDealer_->AccountInfoFromJson(accountInfo, userId) != ERR_OK) {
+    ErrCode ret = dataDealer_->AccountInfoFromJson(info, userId);
+    if (ret != ERR_OK) {
         ACCOUNT_LOGE("get ohos account info failed, userId %{public}d.", userId);
-        accountInfo.clear();
+        info.clear();
+        return ret; 
     }
-    return accountInfo;
+    return ERR_OK;
 }
 
 /**
@@ -280,6 +281,7 @@ bool OhosAccountManager::LoginOhosAccount(const OhosAccountInfo &ohosAccountInfo
 
     // update account info
     currAccountInfo.ohosAccountInfo_ = ohosAccountInfo;
+    currAccountInfo.ohosAccountInfo_.SetRawUid(ohosAccountInfo.uid_);
     currAccountInfo.ohosAccountInfo_.uid_ = ohosAccountUid;
     currAccountInfo.ohosAccountInfo_.status_ = ACCOUNT_STATE_LOGIN;
     currAccountInfo.bindTime_ = std::time(nullptr);
@@ -292,7 +294,8 @@ bool OhosAccountManager::LoginOhosAccount(const OhosAccountInfo &ohosAccountInfo
 
     // publish event
 #ifdef HAS_CES_PART
-    bool errCode = AccountEventProvider::EventPublish(EventFwk::CommonEventSupport::COMMON_EVENT_HWID_LOGIN);
+    bool errCode = AccountEventProvider::EventPublish(
+        EventFwk::CommonEventSupport::COMMON_EVENT_HWID_LOGIN, callingUserId);
 #else // HAS_CES_PART
     ACCOUNT_LOGI("No common event part, publish nothing!");
     bool errCode = true;
@@ -344,7 +347,7 @@ bool OhosAccountManager::LogoutOhosAccount(const OhosAccountInfo &ohosAccountInf
     }
 
 #ifdef HAS_CES_PART
-    ret = AccountEventProvider::EventPublish(EventFwk::CommonEventSupport::COMMON_EVENT_HWID_LOGOUT);
+    ret = AccountEventProvider::EventPublish(EventFwk::CommonEventSupport::COMMON_EVENT_HWID_LOGOUT, callingUserId);
 #else // HAS_CES_PART
     ACCOUNT_LOGI("No common event part! Publish nothing!");
 #endif // HAS_CES_PART
@@ -394,7 +397,8 @@ bool OhosAccountManager::LogoffOhosAccount(const OhosAccountInfo &ohosAccountInf
         return false;
     }
 #ifdef HAS_CES_PART
-    bool errCode = AccountEventProvider::EventPublish(EventFwk::CommonEventSupport::COMMON_EVENT_HWID_LOGOFF);
+    bool errCode = AccountEventProvider::EventPublish(
+        EventFwk::CommonEventSupport::COMMON_EVENT_HWID_LOGOFF, callingUserId);
 #else // HAS_CES_PART
     ACCOUNT_LOGI("No common event part, publish nothing for logoff!");
     bool errCode = true;
@@ -446,7 +450,8 @@ bool OhosAccountManager::HandleOhosAccountTokenInvalidEvent(
             callingUserId, ohosAccountInfo.uid_.c_str());
     }
 #ifdef HAS_CES_PART
-    bool errCode = AccountEventProvider::EventPublish(EventFwk::CommonEventSupport::COMMON_EVENT_HWID_TOKEN_INVALID);
+    bool errCode = AccountEventProvider::EventPublish(
+        EventFwk::CommonEventSupport::COMMON_EVENT_HWID_TOKEN_INVALID, callingUserId);
 #else // HAS_CES_PART
     ACCOUNT_LOGI("No common event part, publish nothing for token invalid event.");
     bool errCode = true;

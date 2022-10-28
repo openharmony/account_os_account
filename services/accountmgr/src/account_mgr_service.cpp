@@ -91,27 +91,35 @@ std::int32_t AccountMgrService::SetOhosAccountInfo(const OhosAccountInfo &ohosAc
 
 std::pair<bool, OhosAccountInfo> AccountMgrService::QueryOhosAccountInfo(void)
 {
-    AccountInfo accountInfo = ohosAccountMgr_->GetCurrentOhosAccountInfo();
-    std::string name = accountInfo.ohosAccountInfo_.name_;
-    std::string id = accountInfo.ohosAccountInfo_.uid_;
-    std::int32_t status = accountInfo.ohosAccountInfo_.status_;
-    return std::make_pair(true, OhosAccountInfo(name, id, status));
+    return QueryOhosAccountInfoByUserId(IPCSkeleton::GetCallingUid() / UID_TRANSFORM_DIVISOR);
 }
 
-std::int32_t AccountMgrService::GetOhosAccountInfo(OhosAccountInfo &ohosAccountInfo)
+ErrCode AccountMgrService::GetOhosAccountInfo(OhosAccountInfo &info)
 {
-    AccountInfo accountInfo = ohosAccountMgr_->GetCurrentOhosAccountInfo();
-    ohosAccountInfo = accountInfo.ohosAccountInfo_;
+    return GetOhosAccountInfoByUserId(IPCSkeleton::GetCallingUid() / UID_TRANSFORM_DIVISOR, info);
+}
+
+ErrCode AccountMgrService::GetOhosAccountInfoByUserId(int32_t userId, OhosAccountInfo &info)
+{
+    AccountInfo accountInfo;
+    ErrCode ret = ohosAccountMgr_->GetAccountInfoByUserId(userId, accountInfo);
+    if (ret != ERR_OK) {
+        return ret;
+    }
+    info = accountInfo.ohosAccountInfo_;
     return ERR_OK;
 }
 
 std::pair<bool, OhosAccountInfo> AccountMgrService::QueryOhosAccountInfoByUserId(std::int32_t userId)
 {
-    AccountInfo accountInfo = ohosAccountMgr_->GetOhosAccountInfoByUserId(userId);
-    std::string name = accountInfo.ohosAccountInfo_.name_;
-    std::string id = accountInfo.ohosAccountInfo_.uid_;
-    std::int32_t status = accountInfo.ohosAccountInfo_.status_;
-    return std::make_pair(true, OhosAccountInfo(name, id, status));
+    AccountInfo accountInfo;
+    ErrCode ret = ohosAccountMgr_->GetAccountInfoByUserId(userId, accountInfo);
+    bool flag = true;
+    if (ret != ERR_OK) {
+        flag = false;
+    }
+    return std::make_pair(flag, OhosAccountInfo(
+        accountInfo.ohosAccountInfo_.name_, accountInfo.ohosAccountInfo_.uid_, accountInfo.ohosAccountInfo_.status_));
 }
 
 std::int32_t AccountMgrService::QueryDeviceAccountId(std::int32_t &accountId)
