@@ -98,6 +98,10 @@ ErrCode OsAccountManagerService::CreateOsAccount(
         ACCOUNT_LOGE("os account name is empty");
         return ERR_OSACCOUNT_SERVICE_MANAGER_NAME_SIZE_EMPTY_ERROR;
     }
+    if ((type < OsAccountType::ADMIN) || (type >= OsAccountType::END)) {
+        ACCOUNT_LOGE("os account type is invalid");
+        return ERR_OSACCOUNT_SERVICE_MANAGER_CREATE_INVALID_TYPE_ACCOUNT_ERROR;
+    }
 
     bool isAllowedCreateAdmin = false;
     ErrCode errCode = innerManager_->IsAllowedCreateAdmin(isAllowedCreateAdmin);
@@ -129,6 +133,10 @@ ErrCode OsAccountManagerService::CreateOsAccountForDomain(
     }
 
     // parameters check
+    if ((type < OsAccountType::ADMIN) || (type >= OsAccountType::END)) {
+        ACCOUNT_LOGE("os account type is invalid");
+        return ERR_OSACCOUNT_SERVICE_MANAGER_CREATE_INVALID_TYPE_ACCOUNT_ERROR;
+    }
     if (domainInfo.accountName_.empty() || domainInfo.domain_.empty()) {
         return ERR_OSACCOUNT_SERVICE_MANAGER_NAME_SIZE_EMPTY_ERROR;
     }
