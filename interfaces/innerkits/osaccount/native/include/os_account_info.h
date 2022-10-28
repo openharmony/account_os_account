@@ -25,6 +25,7 @@ typedef enum {
     ADMIN = 0,
     NORMAL,
     GUEST,
+    END, // the upper bound of OsAccountType.
 } OsAccountType;
 
 typedef enum {
