@@ -53,8 +53,8 @@ void AccountCommandTest::TearDown()
 HWTEST_F(AccountCommandTest, Acm_Command_0100, TestSize.Level1)
 {
     char *argv[] = {
-        (char *)TOOL_NAME.c_str(),
-        (char *)"",
+        const_cast<char *>(TOOL_NAME.c_str()),
+        const_cast<char *>(""),
     };
     int argc = sizeof(argv) / sizeof(argv[0]) - 1;
 
@@ -71,9 +71,9 @@ HWTEST_F(AccountCommandTest, Acm_Command_0100, TestSize.Level1)
 HWTEST_F(AccountCommandTest, Acm_Command_0200, TestSize.Level1)
 {
     char *argv[] = {
-        (char *)TOOL_NAME.c_str(),
-        (char *)"xxx",
-        (char *)"",
+        const_cast<char *>(TOOL_NAME.c_str()),
+        const_cast<char *>("xxx"),
+        const_cast<char *>(""),
     };
     int argc = sizeof(argv) / sizeof(argv[0]) - 1;
 
@@ -90,9 +90,9 @@ HWTEST_F(AccountCommandTest, Acm_Command_0200, TestSize.Level1)
 HWTEST_F(AccountCommandTest, Acm_Command_0300, TestSize.Level1)
 {
     char *argv[] = {
-        (char *)TOOL_NAME.c_str(),
-        (char *)"-xxx",
-        (char *)"",
+        const_cast<char *>(TOOL_NAME.c_str()),
+        const_cast<char *>("-xxx"),
+        const_cast<char *>(""),
     };
     int argc = sizeof(argv) / sizeof(argv[0]) - 1;
 
@@ -109,9 +109,9 @@ HWTEST_F(AccountCommandTest, Acm_Command_0300, TestSize.Level1)
 HWTEST_F(AccountCommandTest, Acm_Command_0400, TestSize.Level1)
 {
     char *argv[] = {
-        (char *)TOOL_NAME.c_str(),
-        (char *)"--xxx",
-        (char *)"",
+        const_cast<char *>(TOOL_NAME.c_str()),
+        const_cast<char *>("--xxx"),
+        const_cast<char *>(""),
     };
     int argc = sizeof(argv) / sizeof(argv[0]) - 1;
 
@@ -128,9 +128,9 @@ HWTEST_F(AccountCommandTest, Acm_Command_0400, TestSize.Level1)
 HWTEST_F(AccountCommandTest, Acm_Command_0500, TestSize.Level1)
 {
     char *argv[] = {
-        (char *)TOOL_NAME.c_str(),
-        (char *)"help",
-        (char *)"",
+        const_cast<char *>(TOOL_NAME.c_str()),
+        const_cast<char *>("help"),
+        const_cast<char *>(""),
     };
     int argc = sizeof(argv) / sizeof(argv[0]) - 1;
 
