@@ -1728,7 +1728,7 @@ bool ParseParaToSubscriber(const napi_env &env, napi_callback_info cbInfo, Subsc
     } else {
         ACCOUNT_LOGE("Get type failed, type is invalid");
         std::string errMsg = "The value of arg 1 must be 'activate' or 'activating'";
-        AccountNapiThrow(env, ERR_JS_PARAMETER_ERROR, errMsg, asyncContext->throwErr);
+        AccountNapiThrow(env, ERR_JS_INVALID_PARAMETER, errMsg, asyncContext->throwErr);
         return false;
     }
 
@@ -1743,7 +1743,7 @@ bool ParseParaToSubscriber(const napi_env &env, napi_callback_info cbInfo, Subsc
     if (nameSize == 0 || nameSize > MAX_SUBSCRIBER_NAME_LEN) {
         ACCOUNT_LOGE("Subscriber name size %{public}zu is invalid.", nameSize);
         std::string errMsg = "The length of arg 2 is invalid";
-        AccountNapiThrow(env, ERR_JS_PARAMETER_ERROR, errMsg, asyncContext->throwErr);
+        AccountNapiThrow(env, ERR_JS_INVALID_PARAMETER, errMsg, asyncContext->throwErr);
         return false;
     }
 
@@ -1801,7 +1801,7 @@ bool ParseParaToUnsubscriber(const napi_env &env, napi_callback_info cbInfo, Uns
     } else {
         ACCOUNT_LOGE("Get type fail, type is invalid");
         std::string errMsg = "The value of arg 1 must be 'activate' or 'activating'";
-        AccountNapiThrow(env, ERR_JS_PARAMETER_ERROR, errMsg, asyncContext->throwErr);
+        AccountNapiThrow(env, ERR_JS_INVALID_PARAMETER, errMsg, asyncContext->throwErr);
         return false;
     }
 
@@ -1816,7 +1816,7 @@ bool ParseParaToUnsubscriber(const napi_env &env, napi_callback_info cbInfo, Uns
     if (nameSize == 0 || nameSize > MAX_SUBSCRIBER_NAME_LEN) {
         ACCOUNT_LOGE("Subscriber name size %{public}zu is invalid.", nameSize);
         std::string errMsg = "The length of arg 2 is invalid";
-        AccountNapiThrow(env, ERR_JS_PARAMETER_ERROR, errMsg, asyncContext->throwErr);
+        AccountNapiThrow(env, ERR_JS_INVALID_PARAMETER, errMsg, asyncContext->throwErr);
         return false;
     }
 
