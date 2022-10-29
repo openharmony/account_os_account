@@ -65,9 +65,9 @@ HWTEST_F(AccountCommandCreateTest, Acm_Command_Create_0100, TestSize.Level1)
 {
     ACCOUNT_LOGI("Acm_Command_Create_0100");
     char *argv[] = {
-        (char *)TOOL_NAME.c_str(),
-        (char *)cmd_.c_str(),
-        (char *)"",
+        const_cast<char *>(TOOL_NAME.c_str()),
+        const_cast<char *>(cmd_.c_str()),
+        const_cast<char *>(""),
     };
     int argc = sizeof(argv) / sizeof(argv[0]) - 1;
 
@@ -85,10 +85,10 @@ HWTEST_F(AccountCommandCreateTest, Acm_Command_Create_0200, TestSize.Level1)
 {
     ACCOUNT_LOGI("Acm_Command_Create_0200");
     char *argv[] = {
-        (char *)TOOL_NAME.c_str(),
-        (char *)cmd_.c_str(),
-        (char *)"xxx",
-        (char *)"",
+        const_cast<char *>(TOOL_NAME.c_str()),
+        const_cast<char *>(cmd_.c_str()),
+        const_cast<char *>("xxx"),
+        const_cast<char *>(""),
     };
     int argc = sizeof(argv) / sizeof(argv[0]) - 1;
 
@@ -106,10 +106,10 @@ HWTEST_F(AccountCommandCreateTest, Acm_Command_Create_0300, TestSize.Level1)
 {
     ACCOUNT_LOGI("Acm_Command_Create_0300");
     char *argv[] = {
-        (char *)TOOL_NAME.c_str(),
-        (char *)cmd_.c_str(),
-        (char *)"-x",
-        (char *)"",
+        const_cast<char *>(TOOL_NAME.c_str()),
+        const_cast<char *>(cmd_.c_str()),
+        const_cast<char *>("-x"),
+        const_cast<char *>(""),
     };
     int argc = sizeof(argv) / sizeof(argv[0]) - 1;
 
@@ -127,10 +127,10 @@ HWTEST_F(AccountCommandCreateTest, Acm_Command_Create_0400, TestSize.Level1)
 {
     ACCOUNT_LOGI("Acm_Command_Create_0400");
     char *argv[] = {
-        (char *)TOOL_NAME.c_str(),
-        (char *)cmd_.c_str(),
-        (char *)"-xxx",
-        (char *)"",
+        const_cast<char *>(TOOL_NAME.c_str()),
+        const_cast<char *>(cmd_.c_str()),
+        const_cast<char *>("-xxx"),
+        const_cast<char *>(""),
     };
     int argc = sizeof(argv) / sizeof(argv[0]) - 1;
 
@@ -148,10 +148,10 @@ HWTEST_F(AccountCommandCreateTest, Acm_Command_Create_0500, TestSize.Level1)
 {
     ACCOUNT_LOGI("Acm_Command_Create_0500");
     char *argv[] = {
-        (char *)TOOL_NAME.c_str(),
-        (char *)cmd_.c_str(),
-        (char *)"--x",
-        (char *)"",
+        const_cast<char *>(TOOL_NAME.c_str()),
+        const_cast<char *>(cmd_.c_str()),
+        const_cast<char *>("--x"),
+        const_cast<char *>(""),
     };
     int argc = sizeof(argv) / sizeof(argv[0]) - 1;
 
@@ -169,10 +169,10 @@ HWTEST_F(AccountCommandCreateTest, Acm_Command_Create_0600, TestSize.Level1)
 {
     ACCOUNT_LOGI("Acm_Command_Create_0600");
     char *argv[] = {
-        (char *)TOOL_NAME.c_str(),
-        (char *)cmd_.c_str(),
-        (char *)"--xxx",
-        (char *)"",
+        const_cast<char *>(TOOL_NAME.c_str()),
+        const_cast<char *>(cmd_.c_str()),
+        const_cast<char *>("--xxx"),
+        const_cast<char *>(""),
     };
     int argc = sizeof(argv) / sizeof(argv[0]) - 1;
 
@@ -190,10 +190,10 @@ HWTEST_F(AccountCommandCreateTest, Acm_Command_Create_0700, TestSize.Level1)
 {
     ACCOUNT_LOGI("Acm_Command_Create_0700");
     char *argv[] = {
-        (char *)TOOL_NAME.c_str(),
-        (char *)cmd_.c_str(),
-        (char *)"-h",
-        (char *)"",
+        const_cast<char *>(TOOL_NAME.c_str()),
+        const_cast<char *>(cmd_.c_str()),
+        const_cast<char *>("-h"),
+        const_cast<char *>(""),
     };
     int argc = sizeof(argv) / sizeof(argv[0]) - 1;
 
@@ -211,10 +211,10 @@ HWTEST_F(AccountCommandCreateTest, Acm_Command_Create_0800, TestSize.Level1)
 {
     ACCOUNT_LOGI("Acm_Command_Create_0800");
     char *argv[] = {
-        (char *)TOOL_NAME.c_str(),
-        (char *)cmd_.c_str(),
-        (char *)"--help",
-        (char *)"",
+        const_cast<char *>(TOOL_NAME.c_str()),
+        const_cast<char *>(cmd_.c_str()),
+        const_cast<char *>("--help"),
+        const_cast<char *>(""),
     };
     int argc = sizeof(argv) / sizeof(argv[0]) - 1;
 
@@ -232,10 +232,10 @@ HWTEST_F(AccountCommandCreateTest, Acm_Command_Create_0900, TestSize.Level1)
 {
     ACCOUNT_LOGI("Acm_Command_Create_0900");
     char *argv[] = {
-        (char *)TOOL_NAME.c_str(),
-        (char *)cmd_.c_str(),
-        (char *)"-n",
-        (char *)"",
+        const_cast<char *>(TOOL_NAME.c_str()),
+        const_cast<char *>(cmd_.c_str()),
+        const_cast<char *>("-n"),
+        const_cast<char *>(""),
     };
     int argc = sizeof(argv) / sizeof(argv[0]) - 1;
 
@@ -253,11 +253,11 @@ HWTEST_F(AccountCommandCreateTest, Acm_Command_Create_1000, TestSize.Level1)
 {
     ACCOUNT_LOGI("Acm_Command_Create_1000");
     char *argv[] = {
-        (char *)TOOL_NAME.c_str(),
-        (char *)cmd_.c_str(),
-        (char *)"-n",
-        (char *)STRING_LOCAL_ACCOUNT_NAME.c_str(),
-        (char *)"",
+        const_cast<char *>(TOOL_NAME.c_str()),
+        const_cast<char *>(cmd_.c_str()),
+        const_cast<char *>("-n"),
+        const_cast<char *>(STRING_LOCAL_ACCOUNT_NAME.c_str()),
+        const_cast<char *>(""),
     };
     int argc = sizeof(argv) / sizeof(argv[0]) - 1;
 
@@ -275,10 +275,10 @@ HWTEST_F(AccountCommandCreateTest, Acm_Command_Create_1100, TestSize.Level1)
 {
     ACCOUNT_LOGI("Acm_Command_Create_1100");
     char *argv[] = {
-        (char *)TOOL_NAME.c_str(),
-        (char *)cmd_.c_str(),
-        (char *)"-t",
-        (char *)"",
+        const_cast<char *>(TOOL_NAME.c_str()),
+        const_cast<char *>(cmd_.c_str()),
+        const_cast<char *>("-t"),
+        const_cast<char *>(""),
     };
     int argc = sizeof(argv) / sizeof(argv[0]) - 1;
 
@@ -296,11 +296,11 @@ HWTEST_F(AccountCommandCreateTest, Acm_Command_Create_1200, TestSize.Level1)
 {
     ACCOUNT_LOGI("Acm_Command_Create_1200");
     char *argv[] = {
-        (char *)TOOL_NAME.c_str(),
-        (char *)cmd_.c_str(),
-        (char *)"-t",
-        (char *)STRING_TYPE_INVALID.c_str(),
-        (char *)"",
+        const_cast<char *>(TOOL_NAME.c_str()),
+        const_cast<char *>(cmd_.c_str()),
+        const_cast<char *>("-t"),
+        const_cast<char *>(STRING_TYPE_INVALID.c_str()),
+        const_cast<char *>(""),
     };
     int argc = sizeof(argv) / sizeof(argv[0]) - 1;
 
@@ -318,11 +318,11 @@ HWTEST_F(AccountCommandCreateTest, Acm_Command_Create_1300, TestSize.Level1)
 {
     ACCOUNT_LOGI("Acm_Command_Create_1300");
     char *argv[] = {
-        (char *)TOOL_NAME.c_str(),
-        (char *)cmd_.c_str(),
-        (char *)"-t",
-        (char *)STRING_TYPE.c_str(),
-        (char *)"",
+        const_cast<char *>(TOOL_NAME.c_str()),
+        const_cast<char *>(cmd_.c_str()),
+        const_cast<char *>("-t"),
+        const_cast<char *>(STRING_TYPE.c_str()),
+        const_cast<char *>(""),
     };
     int argc = sizeof(argv) / sizeof(argv[0]) - 1;
 
@@ -340,12 +340,12 @@ HWTEST_F(AccountCommandCreateTest, Acm_Command_Create_1400, TestSize.Level1)
 {
     ACCOUNT_LOGI("Acm_Command_Create_1400");
     char *argv[] = {
-        (char *)TOOL_NAME.c_str(),
-        (char *)cmd_.c_str(),
-        (char *)"-n",
-        (char *)STRING_LOCAL_ACCOUNT_NAME.c_str(),
-        (char *)"-t",
-        (char *)"",
+        const_cast<char *>(TOOL_NAME.c_str()),
+        const_cast<char *>(cmd_.c_str()),
+        const_cast<char *>("-n"),
+        const_cast<char *>(STRING_LOCAL_ACCOUNT_NAME.c_str()),
+        const_cast<char *>("-t"),
+        const_cast<char *>(""),
     };
     int argc = sizeof(argv) / sizeof(argv[0]) - 1;
 
@@ -363,13 +363,13 @@ HWTEST_F(AccountCommandCreateTest, Acm_Command_Create_1500, TestSize.Level1)
 {
     ACCOUNT_LOGI("Acm_Command_Create_1500");
     char *argv[] = {
-        (char *)TOOL_NAME.c_str(),
-        (char *)cmd_.c_str(),
-        (char *)"-n",
-        (char *)STRING_LOCAL_ACCOUNT_NAME.c_str(),
-        (char *)"-t",
-        (char *)STRING_TYPE_INVALID.c_str(),
-        (char *)"",
+        const_cast<char *>(TOOL_NAME.c_str()),
+        const_cast<char *>(cmd_.c_str()),
+        const_cast<char *>("-n"),
+        const_cast<char *>(STRING_LOCAL_ACCOUNT_NAME.c_str()),
+        const_cast<char *>("-t"),
+        const_cast<char *>(STRING_TYPE_INVALID.c_str()),
+        const_cast<char *>(""),
     };
     int argc = sizeof(argv) / sizeof(argv[0]) - 1;
 
