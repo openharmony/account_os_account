@@ -653,6 +653,7 @@ HWTEST_F(AppAccountInfoTest, AppAccountInfo_OAuthToken_0100, TestSize.Level1)
     EXPECT_EQ(result, ERR_OK);
     token = STRING_EMPTY;
     result = appAccountInfo.GetOAuthToken(STRING_AUTH_TYPE, token);
+    EXPECT_EQ(result, ERR_OK);
     EXPECT_EQ(token, STRING_TOKEN);
     result = appAccountInfo.DeleteOAuthToken(STRING_AUTH_TYPE, token);
     EXPECT_EQ(result, ERR_OK);
