@@ -26,16 +26,13 @@ namespace OHOS {
 namespace AccountJsKit {
 using namespace OHOS::AccountSA;
 
-int32_t AccountIAMConvertToJSErrCode(int32_t errCode)
+static int32_t AccountIAMConvertOtherToJSErrCode(int32_t errCode)
 {
-    if ((errCode >= ERR_ACCOUNT_IAM_KIT_SEND_REQUEST && errCode <= ERR_ACCOUNT_IAM_KIT_READ_PARCEL_FAIL) ||
-        (errCode >= ERR_ACCOUNT_IAM_SERVICE_GET_STORAGE_SYSTEM_ABILITY &&
-         errCode <= ERR_ACCOUNT_IAM_SERVICE_READ_PARCEL_FAIL)) {
-        return ERR_JS_SYSTEM_SERVICE_EXCEPTION;
-    } else if (errCode == ERR_ACCOUNT_IAM_SERVICE_PERMISSION_DENIED || errCode == ERR_IAM_CHECK_PERMISSION_FAILED) {
-        return ERR_JS_PERMISSION_DENIED;
-    }
     switch (errCode) {
+        case ERR_IAM_SUCCESS:
+            return ERR_JS_SUCCESS;
+        case ERR_IAM_FAIL:
+            return ERR_JS_AUTH_CREDENTIAL_WRONG_ERROR;
         case ERR_IAM_TRUST_LEVEL_NOT_SUPPORT:
             return ERR_JS_TRUST_LEVEL_NOT_SUPPORTED;
         case ERR_IAM_TYPE_NOT_SUPPORT:
@@ -50,9 +47,28 @@ int32_t AccountIAMConvertToJSErrCode(int32_t errCode)
             return ERR_JS_CREDENTIAL_NOT_EXIST;
         case ERR_IAM_INVALID_CONTEXT_ID:
             return ERR_JS_INVALID_CONTEXT_ID;
+        case ERR_IAM_INVALID_PARAMETERS:
+            return ERR_JS_INVALID_PARAMETER;
+        case ERR_ACCOUNT_IAM_KIT_INPUTER_ALREADY_REGISTERED:
+            return ERR_JS_PIN_INPUTER_ALREADY_EXIST;
         default:
             return ERR_JS_SYSTEM_SERVICE_EXCEPTION;
     }
+}
+
+int32_t AccountIAMConvertToJSErrCode(int32_t errCode)
+{
+    if ((errCode >= ERR_ACCOUNT_IAM_KIT_SEND_REQUEST && errCode <= ERR_ACCOUNT_IAM_KIT_READ_PARCEL_FAIL) ||
+        (errCode >= ERR_ACCOUNT_IAM_SERVICE_GET_STORAGE_SYSTEM_ABILITY &&
+        errCode <= ERR_ACCOUNT_IAM_SERVICE_READ_PARCEL_FAIL)) {
+        return ERR_JS_SYSTEM_SERVICE_EXCEPTION;
+    } else if (errCode == ERR_ACCOUNT_IAM_SERVICE_PERMISSION_DENIED || errCode == ERR_IAM_CHECK_PERMISSION_FAILED) {
+        return ERR_JS_PERMISSION_DENIED;
+    } else if (errCode == ERR_ACCOUNT_IAM_SERVICE_PARAM_INVALID_ERROR ||
+        errCode == ERR_ACCOUNT_IAM_KIT_PARAM_INVALID_ERROR) {
+        return ERR_JS_INVALID_PARAMETER;
+    }
+    return AccountIAMConvertOtherToJSErrCode(errCode);
 }
 
 IAMAsyncContext::IAMAsyncContext(napi_env napiEnv)
@@ -96,7 +112,8 @@ static void OnIDMResultWork(uv_work_t* work, int status)
     napi_value callResult = nullptr;
     napi_value argv[ARG_SIZE_TWO] = {0};
     NAPI_CALL_RETURN_VOID(param->env, napi_get_global(param->env, &global));
-    NAPI_CALL_RETURN_VOID(param->env, napi_create_int32(param->env, param->result, &argv[0]));
+    NAPI_CALL_RETURN_VOID(
+        param->env, napi_create_int32(param->env, AccountIAMConvertToJSErrCode(param->result), &argv[PARAM_ZERO]));
     NAPI_CALL_RETURN_VOID(param->env, napi_create_object(param->env, &argv[PARAM_ONE]));
     credentialId = CreateUint8Array(
         param->env, reinterpret_cast<uint8_t *>(&param->credentialId), sizeof(uint64_t));
@@ -315,23 +332,35 @@ napi_status ParseSetPropRequest(napi_env env, napi_value object, SetPropertyRequ
     return napi_ok;
 }
 
-napi_value CreateExecutorProperty(napi_env env, const GetPropertyContext &prop)
+static void GeneratePropertyJs(napi_env env, const GetPropertyContext &prop, napi_value &dataJs)
 {
-    napi_value object = nullptr;
-    NAPI_CALL(env, napi_create_object(env, &object));
+    NAPI_CALL_RETURN_VOID(env, napi_create_object(env, &dataJs));
     napi_value napiResult = 0;
-    NAPI_CALL(env, napi_create_int32(env, prop.result, &napiResult));
-    NAPI_CALL(env, napi_set_named_property(env, object, "result", napiResult));
+    NAPI_CALL_RETURN_VOID(env, napi_create_int32(env, prop.result, &napiResult));
+    NAPI_CALL_RETURN_VOID(env, napi_set_named_property(env, dataJs, "result", napiResult));
     napi_value napiAuthSubType = 0;
-    NAPI_CALL(env, napi_create_uint32(env, prop.authSubType, &napiAuthSubType));
-    NAPI_CALL(env, napi_set_named_property(env, object, "authSubType", napiAuthSubType));
+    NAPI_CALL_RETURN_VOID(env, napi_create_uint32(env, prop.authSubType, &napiAuthSubType));
+    NAPI_CALL_RETURN_VOID(env, napi_set_named_property(env, dataJs, "authSubType", napiAuthSubType));
     napi_value napiRemainTimes = 0;
-    NAPI_CALL(env, napi_create_uint32(env, prop.remainTimes, &napiRemainTimes));
-    NAPI_CALL(env, napi_set_named_property(env, object, "remainTimes", napiRemainTimes));
+    NAPI_CALL_RETURN_VOID(env, napi_create_uint32(env, prop.remainTimes, &napiRemainTimes));
+    NAPI_CALL_RETURN_VOID(env, napi_set_named_property(env, dataJs, "remainTimes", napiRemainTimes));
     napi_value napiFreezingTimes = 0;
-    NAPI_CALL(env, napi_create_uint32(env, prop.freezingTime, &napiFreezingTimes));
-    NAPI_CALL(env, napi_set_named_property(env, object, "freezingTime", napiFreezingTimes));
-    return object;
+    NAPI_CALL_RETURN_VOID(env, napi_create_uint32(env, prop.freezingTime, &napiFreezingTimes));
+    NAPI_CALL_RETURN_VOID(env, napi_set_named_property(env, dataJs, "freezingTime", napiFreezingTimes));
+}
+
+static void CreateExecutorProperty(napi_env env, GetPropertyContext &prop, napi_value &errJs, napi_value &dataJs)
+{
+    if (prop.result != ERR_OK && prop.result != ERR_IAM_NOT_ENROLLED) {
+        prop.errCode = prop.result;
+        int32_t jsErrCode = AccountIAMConvertToJSErrCode(prop.result);
+        errJs = GenerateBusinessError(env, jsErrCode, ConvertToJsErrMsg(jsErrCode));
+        napi_get_null(env, &dataJs);
+    } else {
+        prop.errCode = 0;
+        napi_get_null(env, &errJs);
+        GeneratePropertyJs(env, prop, dataJs);
+    }
 }
 
 napi_value CreateAuthResult(napi_env env, const std::vector<uint8_t> &token, int32_t remainTimes, int32_t freezingTime)
@@ -361,7 +390,7 @@ static void OnUserAuthResultWork(uv_work_t *work, int status)
     napi_value argv[ARG_SIZE_TWO] = {nullptr};
     napi_value return_val = nullptr;
     napi_get_reference_value(param->env, param->callback.onResult, &callback);
-    napi_create_int32(param->env, param->resultCode, &argv[PARAM_ZERO]);
+    napi_create_int32(param->env, AccountIAMConvertToJSErrCode(param->resultCode), &argv[PARAM_ZERO]);
     argv[PARAM_ONE] = CreateAuthResult(param->env, param->token, param->remainTimes, param->freezingTime);
     napi_call_function(param->env, nullptr, callback, ARG_SIZE_TWO, argv, &return_val);
     napi_delete_reference(param->env, param->callback.onResult);
@@ -458,8 +487,17 @@ static void OnGetInfoWork(uv_work_t *work, int status)
         return;
     }
     napi_env env = context->env;
-    napi_value credInfoArr = CreateCredInfoArray(env, context->credInfo);
-    CallbackAsyncOrPromise(env, context, credInfoArr);
+    napi_value errJs = nullptr;
+    napi_value dataJs = nullptr;
+    if (context->errCode != ERR_OK) {
+        int32_t jsErrCode = AccountIAMConvertToJSErrCode(context->errCode);
+        errJs = GenerateBusinessError(env, jsErrCode, ConvertToJsErrMsg(jsErrCode));
+        napi_get_null(env, &dataJs);
+    } else {
+        napi_get_null(env, &errJs);
+        dataJs = CreateCredInfoArray(env, context->credInfo);
+    }
+    CallbackAsyncOrPromise(env, context, errJs, dataJs);
     delete context;
     delete work;
 }
@@ -498,8 +536,10 @@ static void OnGetPropertyWork(uv_work_t* work, int status)
         delete work;
         return;
     }
-    napi_value result = CreateExecutorProperty(context->env, *context);
-    CallbackAsyncOrPromise(context->env, context, result);
+    napi_value errJs = nullptr;
+    napi_value dataJs = nullptr;
+    CreateExecutorProperty(context->env, *context, errJs, dataJs);
+    CallbackAsyncOrPromise(context->env, context, errJs, dataJs);
     delete context;
     delete work;
 }
@@ -542,9 +582,19 @@ static void OnSetPropertyWork(uv_work_t* work, int status)
         delete work;
         return;
     }
-    napi_value result = nullptr;
-    napi_create_int32(context->env, context->result, &result);
-    CallbackAsyncOrPromise(context->env, context, result);
+    napi_env env = context->env;
+    napi_value errJs = nullptr;
+    napi_value dataJs = nullptr;
+    context->errCode = context->result;
+    if (context->result != ERR_OK) {
+        int32_t jsErrCode = AccountIAMConvertToJSErrCode(context->result);
+        errJs = GenerateBusinessError(env, jsErrCode, ConvertToJsErrMsg(jsErrCode));
+        napi_get_null(env, &dataJs);
+    } else {
+        napi_get_null(env, &errJs);
+        napi_get_null(env, &dataJs);
+    }
+    CallbackAsyncOrPromise(env, context, errJs, dataJs);
     delete context;
     delete work;
 }
@@ -713,17 +763,10 @@ void NapiGetDataCallback::OnGetData(int32_t authSubType, const std::shared_ptr<A
 }
 #endif  // HAS_PIN_AUTH_PART
 
-void CallbackAsyncOrPromise(napi_env env, IAMAsyncContext *context, napi_value data)
+void CallbackAsyncOrPromise(napi_env env, IAMAsyncContext *context, napi_value errJs, napi_value dataJs)
 {
-    napi_value err = nullptr;
-    if (context->errCode == ERR_OK) {
-        napi_get_null(env, &err);
-    } else {
-        err = CreateErrorObject(env, context->errCode);
-        napi_get_null(env, &data);
-    }
     if (context->callbackRef) {
-        napi_value argv[ARG_SIZE_TWO] = {err, data};
+        napi_value argv[ARG_SIZE_TWO] = {errJs, dataJs};
         napi_value result = nullptr;
         napi_value callback = nullptr;
         napi_get_reference_value(env, context->callbackRef, &callback);
@@ -732,9 +775,9 @@ void CallbackAsyncOrPromise(napi_env env, IAMAsyncContext *context, napi_value d
         context->callbackRef = nullptr;
     } else {
         if (context->errCode == ERR_OK) {
-            NAPI_CALL_RETURN_VOID(env, napi_resolve_deferred(env, context->deferred, data));
+            NAPI_CALL_RETURN_VOID(env, napi_resolve_deferred(env, context->deferred, dataJs));
         } else {
-            NAPI_CALL_RETURN_VOID(env, napi_reject_deferred(env, context->deferred, err));
+            NAPI_CALL_RETURN_VOID(env, napi_reject_deferred(env, context->deferred, errJs));
         }
     }
 }
@@ -809,7 +852,7 @@ napi_status ParseUint8TypedArrayToUint64(napi_env env, napi_value value, uint64_
     }
     if (data == nullptr) {
         result = 0;
-        return napi_ok;
+        return napi_invalid_arg;
     }
     if (length != sizeof(uint64_t)) {
         ACCOUNT_LOGE("failed to convert to uint64_t value");
