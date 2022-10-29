@@ -135,7 +135,7 @@ void AddCredCallback::OnResult(int32_t result, const Attributes &extraInfo)
         return;
     }
     if (result != 0 || credInfo_.authType != AuthType::PIN) {
-        ACCOUNT_LOGE("failed to add credential");
+        ACCOUNT_LOGE("failed to add credential, result = %{public}d", result);
         innerCallback_->OnResult(result, extraInfo);
         InnerAccountIAMManager::GetInstance().SetState(userId_, AFTER_OPEN_SESSION);
         return;

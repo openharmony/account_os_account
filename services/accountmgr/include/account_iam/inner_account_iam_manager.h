@@ -52,7 +52,7 @@ public:
         const sptr<IIDMCallback> &callback);
     void GetCredentialInfo(
         int32_t userId, AuthType authType, const sptr<IGetCredInfoCallback> &callback);
-    int32_t Cancel(int32_t userId, uint64_t challenge);
+    int32_t Cancel(int32_t userId);
     uint64_t AuthUser(int32_t userId, const std::vector<uint8_t> &challenge, AuthType authType,
         AuthTrustLevel authTrustLevel, const sptr<IIDMCallback> &callback);
     int32_t CancelAuth(uint64_t contextId);
