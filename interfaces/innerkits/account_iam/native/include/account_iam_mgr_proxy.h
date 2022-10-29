@@ -28,17 +28,17 @@ public:
     explicit AccountIAMMgrProxy(const sptr<IRemoteObject> &object);
     ~AccountIAMMgrProxy() override;
 
-    void OpenSession(int32_t userId, std::vector<uint8_t> &challenge) override;
-    void CloseSession(int32_t userId) override;
+    int32_t OpenSession(int32_t userId, std::vector<uint8_t> &challenge) override;
+    int32_t CloseSession(int32_t userId) override;
     void AddCredential(
         int32_t userId, const CredentialParameters &credInfo, const sptr<IIDMCallback> &callback) override;
     void UpdateCredential(int32_t userId, const CredentialParameters &credInfo,
         const sptr<IIDMCallback> &callback) override;
-    int32_t Cancel(int32_t userId, uint64_t challenge) override;
+    int32_t Cancel(int32_t userId) override;
     void DelCred(int32_t userId, uint64_t credentialId, const std::vector<uint8_t> &authToken,
         const sptr<IIDMCallback> &callback) override;
     void DelUser(int32_t userId, const std::vector<uint8_t> &authToken, const sptr<IIDMCallback> &callback) override;
-    void GetCredentialInfo(
+    int32_t GetCredentialInfo(
         int32_t userId, AuthType authType, const sptr<IGetCredInfoCallback> &callback) override;
     uint64_t AuthUser(int32_t userId, const std::vector<uint8_t> &challenge, AuthType authType,
         AuthTrustLevel authTrustLevel, const sptr<IIDMCallback> &callback) override;

@@ -225,7 +225,7 @@ private:
 };
 #endif  // HAS_PIN_AUTH_PART
 
-void CallbackAsyncOrPromise(napi_env env, IAMAsyncContext *context, napi_value data);
+void CallbackAsyncOrPromise(napi_env env, IAMAsyncContext *context, napi_value errJs, napi_value dataJs);
 napi_value CreateUint8Array(napi_env env, const uint8_t *data, size_t length);
 napi_value CreateErrorObject(napi_env env, int32_t code);
 napi_status ParseUint8TypedArray(napi_env env, napi_value value, uint8_t **data, size_t *length);
@@ -238,7 +238,6 @@ napi_status ParseAddCredInfo(napi_env env, napi_value value, AccountSA::Credenti
 napi_status ParseGetPropRequest(napi_env env, napi_value value, AccountSA::GetPropertyRequest &request);
 napi_status ParseSetPropRequest(napi_env env, napi_value value, AccountSA::SetPropertyRequest &request);
 napi_value CreateCredInfoArray(napi_env env, const std::vector<AccountSA::CredentialInfo> &info);
-napi_value CreateExecutorProperty(napi_env env, const GetPropertyContext &prop);
 napi_value CreateAuthResult(napi_env env, const std::vector<uint8_t> &token, int32_t remainTimes, int32_t freezingTime);
 #endif
 }  // namespace AccountJsKit

@@ -91,7 +91,12 @@ napi_value NapiAccountIAMUserAuth::GetAvailableStatus(napi_env env, napi_callbac
     int32_t errCode = AccountIAMClient::GetInstance().GetAvailableStatus(
         static_cast<AuthType>(authType), static_cast<AuthTrustLevel>(authSubType), status);
     if (errCode == ERR_OK) {
-        napi_create_int32(env, status, &result);
+        if ((status != ERR_IAM_SUCCESS) && (status != ERR_IAM_TYPE_NOT_SUPPORT) &&
+            (status != ERR_IAM_TRUST_LEVEL_NOT_SUPPORT) && (status != ERR_IAM_NOT_ENROLLED)) {
+            AccountIAMNapiThrow(env, AccountIAMConvertToJSErrCode(status), true);
+        } else {
+            napi_create_int32(env, status, &result);
+        }
     } else {
         AccountIAMNapiThrow(env, AccountIAMConvertToJSErrCode(errCode), true);
     }

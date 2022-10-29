@@ -107,8 +107,7 @@ HWTEST_F(AccountIAMClientTest, AccountIAMClient_UpdateCredential_0100, TestSize.
  */
 HWTEST_F(AccountIAMClientTest, AccountIAMClient_Cancel_0100, TestSize.Level0)
 {
-    uint64_t testChallenge = 0;
-    int32_t ret = AccountIAMClient::GetInstance().Cancel(TEST_USER_ID, testChallenge);
+    int32_t ret = AccountIAMClient::GetInstance().Cancel(TEST_USER_ID);
     EXPECT_NE(ret, 0);
 }
 
@@ -240,6 +239,7 @@ HWTEST_F(AccountIAMClientTest, AccountIAMClient_Auth_0100, TestSize.Level0)
 HWTEST_F(AccountIAMClientTest, AccountIAMClient_CancelAuth_0100, TestSize.Level0)
 {
     int32_t ret = AccountIAMClient::GetInstance().CancelAuth(TEST_CONTEXT_ID);
+    std::cout << ret << std::endl;
     EXPECT_NE(ret, 0);
 }
 }  // namespace AccountTest
