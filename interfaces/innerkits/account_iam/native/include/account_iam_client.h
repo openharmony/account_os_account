@@ -19,6 +19,7 @@
 #include <map>
 #include <mutex>
 #include <vector>
+#include <set>
 #include "account_iam_client_callback.h"
 #include "account_iam_info.h"
 #include "account_error_no.h"
@@ -30,17 +31,17 @@ namespace AccountSA {
 class AccountIAMClient : public DelayedRefSingleton<AccountIAMClient> {
 public:
     AccountIAMClient();
-    void OpenSession(int32_t userId, std::vector<uint8_t> &challenge);
-    void CloseSession(int32_t userId);
+    int32_t OpenSession(int32_t userId, std::vector<uint8_t> &challenge);
+    int32_t CloseSession(int32_t userId);
     void AddCredential(
         int32_t userId, const CredentialParameters& credInfo, const std::shared_ptr<IDMCallback> &callback);
     void UpdateCredential(
         int32_t userId, const CredentialParameters& credInfo, const std::shared_ptr<IDMCallback> &callback);
-    int32_t Cancel(int32_t userId, uint64_t challenge);
+    int32_t Cancel(int32_t userId);
     void DelCred(int32_t userId, uint64_t credentialId, const std::vector<uint8_t> &authToken,
         const std::shared_ptr<IDMCallback>& callback);
     void DelUser(int32_t userId, const std::vector<uint8_t> &authToken, const std::shared_ptr<IDMCallback> &callback);
-    void GetCredentialInfo(int32_t userId, AuthType authType, const std::shared_ptr<GetCredInfoCallback> &callback);
+    int32_t GetCredentialInfo(int32_t userId, AuthType authType, const std::shared_ptr<GetCredInfoCallback> &callback);
     uint64_t Auth(const std::vector<uint8_t> &challenge, AuthType authType, AuthTrustLevel authTrustLevel,
         const std::shared_ptr<IDMCallback> &callback);
     uint64_t AuthUser(int32_t userId, const std::vector<uint8_t> &challenge, AuthType authType,
@@ -51,7 +52,7 @@ public:
         int32_t userId, const GetPropertyRequest &request, const std::shared_ptr<GetSetPropCallback> &callback);
     void SetProperty(
         int32_t userId, const SetPropertyRequest &request, const std::shared_ptr<GetSetPropCallback> &callback);
-    bool RegisterInputer(const std::shared_ptr<IInputer> &inputer);
+    int32_t RegisterInputer(const std::shared_ptr<IInputer> &inputer);
     void UnRegisterInputer();
     IAMState GetAccountState(int32_t userId);
     void SetAuthSubType(int32_t userId, int32_t authSubType);
@@ -73,12 +74,17 @@ private:
     ErrCode GetAccountIAMProxy();
     void ResetAccountIAMProxy(const wptr<IRemoteObject>& remote);
     bool GetCurrentUserId(int32_t &userId);
+    bool IsInputerRegistered(int32_t userId);
+    void AddRegisteredInputer(int32_t userId);
+    void DelRegisteredInputer(int32_t userId);
 
 private:
     std::mutex mutex_;
     sptr<IAccountIAM> proxy_ = nullptr;
     sptr<AccountIAMDeathRecipient> deathRecipient_ = nullptr;
     std::map<int32_t, CredentialItem> credentialMap_;
+    std::mutex mutexRegUsers_;
+    std::set<int32_t> registeredUsers_;
 };
 }  // namespace AccountSA
 }  // namespace OHOS

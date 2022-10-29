@@ -23,6 +23,7 @@
 
 namespace OHOS {
 namespace AccountJsKit {
+std::string ConvertToJsErrMsg(int32_t jsErrCode);
 napi_value GenerateBusinessSuccess(napi_env env, bool throwErr);
 napi_value GenerateBusinessError(napi_env env, int32_t jsErrCode, const std::string &jsErrMsg);
 napi_value GenerateBusinessError(napi_env env, int32_t nativeErrCode);

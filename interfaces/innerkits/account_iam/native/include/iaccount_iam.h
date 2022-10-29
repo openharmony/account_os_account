@@ -27,18 +27,18 @@ class IAccountIAM : public IRemoteBroker {
 public:
     DECLARE_INTERFACE_DESCRIPTOR(u"ohos.accountfwk.IAccountIAM");
 
-    virtual void OpenSession(int32_t userId, std::vector<uint8_t> &challenge) = 0;
-    virtual void CloseSession(int32_t userId) = 0;
+    virtual int32_t OpenSession(int32_t userId, std::vector<uint8_t> &challenge) = 0;
+    virtual int32_t CloseSession(int32_t userId) = 0;
     virtual void AddCredential(
         int32_t userId, const CredentialParameters &credInfo, const sptr<IIDMCallback> &callback) = 0;
     virtual void UpdateCredential(int32_t userId, const CredentialParameters &credInfo,
         const sptr<IIDMCallback> &callback) = 0;
-    virtual int32_t Cancel(int32_t userId, uint64_t challenge) = 0;
+    virtual int32_t Cancel(int32_t userId) = 0;
     virtual void DelCred(int32_t userId, uint64_t credentialId, const std::vector<uint8_t> &authToken,
         const sptr<IIDMCallback> &callback) = 0;
     virtual void DelUser(
         int32_t userId, const std::vector<uint8_t> &authToken, const sptr<IIDMCallback> &callback) = 0;
-    virtual void GetCredentialInfo(
+    virtual int32_t GetCredentialInfo(
         int32_t userId, AuthType authType, const sptr<IGetCredInfoCallback> &callback) = 0;
     virtual uint64_t AuthUser(int32_t userId, const std::vector<uint8_t> &challenge, AuthType authType,
         AuthTrustLevel authTrustLevel, const sptr<IIDMCallback> &callback) = 0;

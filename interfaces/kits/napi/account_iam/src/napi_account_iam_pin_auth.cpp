@@ -80,15 +80,14 @@ napi_value NapiAccountIAMPINAuth::RegisterInputer(napi_env env, napi_callback_in
         return result;
     }
     auto inputer = std::make_shared<NapiGetDataCallback>(env, callback);
-    bool isSucceed = AccountIAMClient::GetInstance().RegisterInputer(inputer);
+    int32_t errCode = AccountIAMClient::GetInstance().RegisterInputer(inputer);
     napi_value napiResult = nullptr;
-    if (isSucceed) {
-        NAPI_CALL(env, napi_get_boolean(env, isSucceed, &napiResult));
+    if (errCode == ERR_OK) {
+        NAPI_CALL(env, napi_get_boolean(env, true, &napiResult));
         return napiResult;
     }
-    ACCOUNT_LOGE("Failed to register inputer");
-    std::string errMsg = "PIN inputer is already registered, please do not repeat register";
-    AccountNapiThrow(env, ERR_JS_PIN_INPUTER_ALREADY_EXIST, errMsg, true);
+    ACCOUNT_LOGE("Failed to register inputer, errCode=%{public}d", errCode);
+    AccountIAMNapiThrow(env, AccountIAMConvertToJSErrCode(errCode), true);
     return nullptr;
 }
 
