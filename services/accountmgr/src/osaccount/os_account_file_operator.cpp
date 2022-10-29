@@ -34,16 +34,16 @@ OsAccountFileOperator::~OsAccountFileOperator()
 {}
 void OsAccountFileOperator::Init()
 {
-    std::string constraintsConfigStr;
     if (accountFileOperator_->IsExistFile(Constants::OSACCOUNT_CONSTRAINTS_JSON_PATH)) {
+        std::string constraintsConfigStr;
         accountFileOperator_->GetFileContentByPath(Constants::OSACCOUNT_CONSTRAINTS_JSON_PATH, constraintsConfigStr);
         constraintsConfig_ = Json::parse(constraintsConfigStr, nullptr, false);
         isAlreadyInit_ = true;
     } else {
         isAlreadyInit_ = false;
     }
-    std::string constraintListCollectingStr;
     if (accountFileOperator_->IsExistFile(Constants::CONSTRAINTS_LIST_JSON_PATH)) {
+        std::string constraintListCollectingStr;
         accountFileOperator_->GetFileContentByPath(Constants::CONSTRAINTS_LIST_JSON_PATH, constraintListCollectingStr);
         Json constraintListCollecting = Json::parse(constraintListCollectingStr, nullptr, false);
         OHOS::AccountSA::GetDataByType<std::vector<std::string>>(constraintListCollecting,
@@ -82,8 +82,8 @@ ErrCode OsAccountFileOperator::GetConstraintsByType(const int type, std::vector<
 
 ErrCode OsAccountFileOperator::GetBaseOAConstraintsList(const int id, std::vector<std::string> &constraints)
 {
-    std::string baseUserConstraintsConfigStr;
     if (accountFileOperator_->IsExistFile(Constants::BASE_OSACCOUNT_CONSTRAINTS_JSON_PATH)) {
+        std::string baseUserConstraintsConfigStr;
         accountFileOperator_->GetFileContentByPath(
             Constants::BASE_OSACCOUNT_CONSTRAINTS_JSON_PATH, baseUserConstraintsConfigStr);
         baseOsAccountConstraintsConfig_ = Json::parse(baseUserConstraintsConfigStr, nullptr, false);
@@ -102,8 +102,8 @@ ErrCode OsAccountFileOperator::GetBaseOAConstraintsList(const int id, std::vecto
 
 ErrCode OsAccountFileOperator::GetGlobalOAConstraintsList(std::vector<std::string> &constraints)
 {
-    std::string globalOsAccountConstraintsConfigStr;
     if (accountFileOperator_->IsExistFile(Constants::GLOBAL_OSACCOUNT_CONSTRAINTS_JSON_PATH)) {
+        std::string globalOsAccountConstraintsConfigStr;
         accountFileOperator_->GetFileContentByPath(
             Constants::GLOBAL_OSACCOUNT_CONSTRAINTS_JSON_PATH, globalOsAccountConstraintsConfigStr);
         globalOsAccountConstraintsConfig_ = Json::parse(globalOsAccountConstraintsConfigStr, nullptr, false);
@@ -123,8 +123,8 @@ ErrCode OsAccountFileOperator::GetGlobalOAConstraintsList(std::vector<std::strin
 
 ErrCode OsAccountFileOperator::GetSpecificOAConstraintsList(const int id, std::vector<std::string> &constraints)
 {
-    std::string specificOsAccountConstraintsConfigStr;
     if (accountFileOperator_->IsExistFile(Constants::SPECIFIC_OSACCOUNT_CONSTRAINTS_JSON_PATH)) {
+        std::string specificOsAccountConstraintsConfigStr;
         accountFileOperator_->GetFileContentByPath(
             Constants::SPECIFIC_OSACCOUNT_CONSTRAINTS_JSON_PATH, specificOsAccountConstraintsConfigStr);
         specificOsAccountConstraintsConfig_ = Json::parse(specificOsAccountConstraintsConfigStr, nullptr, false);

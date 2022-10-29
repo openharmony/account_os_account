@@ -123,16 +123,16 @@ SetPropertiesOptions *SetPropertiesOptions::Unmarshalling(Parcel &parcel)
 
 bool SetPropertiesOptions::ReadFromParcel(Parcel &parcel)
 {
-    sptr<AAFwk::WantParams> wantParams = parcel.ReadParcelable<AAFwk::WantParams>();
-    if (!wantParams) {
+    sptr<AAFwk::WantParams> propPtr = parcel.ReadParcelable<AAFwk::WantParams>();
+    if (propPtr == nullptr) {
         return false;
     }
-    properties = *wantParams;
-    wantParams = parcel.ReadParcelable<AAFwk::WantParams>();
-    if (!wantParams) {
+    properties = *propPtr;
+    sptr<AAFwk::WantParams> paramsPtr = parcel.ReadParcelable<AAFwk::WantParams>();
+    if (paramsPtr == nullptr) {
         return false;
     }
-    parameters = *wantParams;
+    parameters = *paramsPtr;
     return true;
 }
 

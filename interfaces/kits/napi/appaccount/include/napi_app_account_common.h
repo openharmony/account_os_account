@@ -316,7 +316,7 @@ bool ParseVerifyCredentialOptions(napi_env env, napi_value object, VerifyCredent
 bool ParseSelectAccountsOptions(napi_env env, napi_value object, SelectAccountsOptions &options);
 bool ParseSetPropertiesOptions(napi_env env, napi_value object, SetPropertiesOptions &options);
 bool ParseCreateAccountOptions(napi_env env, napi_value object, CreateAccountOptions &options);
-napi_ref GetNamedFunction(napi_env, napi_value object, std::string name);
+bool GetNamedFunction(napi_env env, napi_value object, const std::string &name, napi_ref &funcRef);
 bool ParseJSAuthCallback(napi_env env, napi_value object, JSAuthCallback &callback);
 bool ParseContextForVerifyCredential(napi_env env, napi_callback_info info, VerifyCredentialContext *context);
 bool ParseContextForSetProperties(napi_env env, napi_callback_info info, SetPropertiesContext *context);

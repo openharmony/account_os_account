@@ -48,9 +48,6 @@ private:
         void OnRemoteDied(const wptr<IRemoteObject>& remote) final;
     };
 
-    template<typename F, typename... Args>
-    ErrCode CallService(F func, Args&&... args);
-
     void ResetService(const wptr<IRemoteObject>& remote);
     sptr<IAccount> GetService();
 
