@@ -148,7 +148,7 @@ napi_value OsAccountJsConstructor(napi_env env, napi_callback_info cbinfo)
         return WrapVoidToJS(env);
     }
     napi_wrap(env, thisVar, objectInfo, [](napi_env env, void *data, void *hint) {
-            OsAccountManager *objInfo = (OsAccountManager *)data;
+            OsAccountManager *objInfo = reinterpret_cast<OsAccountManager *>(data);
             delete objInfo;
     }, nullptr, nullptr);
 
@@ -1518,27 +1518,20 @@ void UvQueueWorkOnAccountsChanged(uv_work_t *work, int status)
     bool isFound = false;
     {
         std::lock_guard<std::mutex> lock(g_lockForOsAccountSubscribers);
+        SubscriberPtr *subscriber = subscriberOAWorkerData->subscriber;
         for (auto subscriberInstance : g_osAccountSubscribers) {
-            for (auto item : subscriberInstance.second) {
-                if (item->subscriber.get() == subscriberOAWorkerData->subscriber) {
-                    isFound = true;
-                    break;
-                }
-            }
+            isFound = std::any_of(subscriberInstance.second.begin(), subscriberInstance.second.end(),
+                [subscriber](const SubscribeCBInfo *item) {
+                    return item->subscriber.get() == subscriber;
+                });
             if (isFound) {
+                ACCOUNT_LOGD("os account subscriber has been found.");
+                napi_get_reference_value(subscriberOAWorkerData->env, subscriberOAWorkerData->ref, &callback);
+                napi_call_function(
+                    subscriberOAWorkerData->env, undefined, callback, ARGS_SIZE_ONE, &result[0], &resultout);
                 break;
             }
         }
-        if (!isFound) {
-            ACCOUNT_LOGI("subscriber has already been deleted, ignore callback.");
-        } else {
-            napi_get_reference_value(subscriberOAWorkerData->env, subscriberOAWorkerData->ref, &callback);
-        }
-    }
-    if (isFound) {
-        NAPI_CALL_RETURN_VOID(subscriberOAWorkerData->env,
-            napi_call_function(subscriberOAWorkerData->env, undefined, callback, ARGS_SIZE_ONE, &result[0],
-                &resultout));
     }
     delete subscriberOAWorkerData;
     subscriberOAWorkerData = nullptr;

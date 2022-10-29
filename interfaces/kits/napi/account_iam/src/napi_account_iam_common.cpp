@@ -651,7 +651,7 @@ napi_value GetCtorIInputerData(napi_env env, const std::shared_ptr<AccountSA::II
     context->inputerData = inputerData;
     napi_value cons;
     NAPI_CALL(env, napi_define_class(env, "InputerData", NAPI_AUTO_LENGTH,
-        InputDataConstructor, (void*)context,
+        InputDataConstructor, reinterpret_cast<void *>(context),
         sizeof(clzDes) / sizeof(napi_property_descriptor), clzDes, &cons));
     return cons;
 }
