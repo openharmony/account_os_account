@@ -68,28 +68,21 @@ void UvQueueWorkOnAppAccountsChanged(uv_work_t *work, int status)
     bool isFound = false;
     {
         std::lock_guard<std::mutex> lock(g_lockForAppAccountSubscribers);
+        SubscriberPtr *subscriber = subscriberAccountsWorkerData->subscriber;
         for (auto objectInfoTmp : g_AppAccountSubscribers) {
-            for (auto item : objectInfoTmp.second) {
-                if (item->subscriber.get() == subscriberAccountsWorkerData->subscriber) {
-                    isFound = true;
-                    break;
-                }
-            }
+            isFound = std::any_of(objectInfoTmp.second.begin(), objectInfoTmp.second.end(),
+                [subscriber](const AsyncContextForSubscribe *item) {
+                    return item->subscriber.get() == subscriber;
+                });
             if (isFound) {
+                ACCOUNT_LOGD("app account subscriber has been found.");
+                napi_get_reference_value(
+                    subscriberAccountsWorkerData->env, subscriberAccountsWorkerData->ref, &callback);
+                napi_call_function(
+                    subscriberAccountsWorkerData->env, undefined, callback, ARGS_SIZE_ONE, &results[0], &resultout);
                 break;
             }
         }
-        if (isFound) {
-            ACCOUNT_LOGI("app account subscriber has been found.");
-            napi_get_reference_value(subscriberAccountsWorkerData->env, subscriberAccountsWorkerData->ref, &callback);
-        } else {
-            ACCOUNT_LOGI("app account subscriber has already been deleted, ignore callback.");
-        }
-    }
-    if (isFound) {
-        NAPI_CALL_RETURN_VOID(subscriberAccountsWorkerData->env,
-            napi_call_function(subscriberAccountsWorkerData->env, undefined, callback, ARGS_SIZE_ONE,
-            &results[0], &resultout));
     }
 
     delete subscriberAccountsWorkerData;
@@ -481,7 +474,7 @@ void GetAuthenticatorCallbackForResult(napi_env env, sptr<IRemoteObject> callbac
         return;
     }
     napi_value remote;
-    napi_create_int64(env, reinterpret_cast<int64_t>((IRemoteObject *)callback), &remote);
+    napi_create_int64(env, reinterpret_cast<int64_t>(callback.GetRefPtr()), &remote);
     napi_value global = nullptr;
     napi_get_global(env, &global);
     if (global == nullptr) {
@@ -1186,7 +1179,6 @@ bool ParseParametersByUnsubscribe(
     size_t argc = UNSUBSCRIBE_MAX_PARA;
     napi_value argv[UNSUBSCRIBE_MAX_PARA] = {nullptr};
     napi_value thisVar = nullptr;
-    std::vector<std::shared_ptr<SubscriberPtr>> subscribers = {nullptr};
     NAPI_CALL_BASE(env, napi_get_cb_info(env, cbInfo, &argc, argv, &thisVar, NULL), false);
     if (argc < 1) {
         context->errMsg = "the number of parameters should be at least 1";
@@ -1371,7 +1363,7 @@ bool ParseSetPropertiesOptions(napi_env env, napi_value object, SetPropertiesOpt
     return true;
 }
 
-bool GetNamedFunction(napi_env env, napi_value object, std::string name, napi_ref &funcRef)
+bool GetNamedFunction(napi_env env, napi_value object, const std::string &name, napi_ref &funcRef)
 {
     napi_value value = nullptr;
     napi_get_named_property(env, object, name.c_str(), &value);

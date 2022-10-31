@@ -82,29 +82,6 @@ void OhosAccountKitsImpl::DeathRecipient::OnRemoteDied(const wptr<IRemoteObject>
     DelayedRefSingleton<OhosAccountKitsImpl>::GetInstance().ResetService(remote);
 }
 
-template<typename F, typename... Args>
-ErrCode OhosAccountKitsImpl::CallService(F func, Args&&... args)
-{
-    auto service = GetService();
-    if (service == nullptr) {
-        ACCOUNT_LOGE("get service failed");
-        return ERR_DEAD_OBJECT;
-    }
-
-    ErrCode result = (service->*func)(std::forward<Args>(args)...);
-    if (SUCCEEDED(result)) {
-        return ERR_OK;
-    }
-
-    // Reset service instance if 'ERR_DEAD_OBJECT' happened.
-    if (result == ERR_DEAD_OBJECT) {
-        ResetService(service);
-    }
-
-    ACCOUNT_LOGE("Call service failed with: %{public}d", result);
-    return result;
-}
-
 bool OhosAccountKitsImpl::UpdateOhosAccountInfo(const std::string& accountName, const std::string& uid,
     const std::string& eventStr)
 {
@@ -166,11 +143,13 @@ std::pair<bool, OhosAccountInfo> OhosAccountKitsImpl::QueryOhosAccountInfoByUser
 
 ErrCode OhosAccountKitsImpl::QueryDeviceAccountId(std::int32_t& accountId)
 {
-    auto ret = CallService(&IAccount::QueryDeviceAccountId, accountId);
-    if (ret != ERR_OK) {
-        ACCOUNT_LOGE("Query device account id failed: %{public}d", ret);
+    auto accountProxy = GetService();
+    if (accountProxy == nullptr) {
+        ACCOUNT_LOGE("Get proxy failed");
+        return ERR_ACCOUNT_ZIDL_ACCOUNT_PROXY_ERROR;
     }
-    return ret;
+
+    return accountProxy->QueryDeviceAccountId(accountId);
 }
 
 std::int32_t OhosAccountKitsImpl::GetDeviceAccountIdByUID(std::int32_t& uid)

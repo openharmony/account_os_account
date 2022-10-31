@@ -278,7 +278,7 @@ void NapiAppAccountAuthenticator::CreateAuthenticatorCallback(
         return;
     }
     napi_value callbackAddr;
-    napi_create_int64(env, reinterpret_cast<int64_t>((IRemoteObject *) nativeCallback), &callbackAddr);
+    napi_create_int64(env, reinterpret_cast<int64_t>(nativeCallback.GetRefPtr()), &callbackAddr);
     napi_value argv[] = { callbackAddr };
     napi_new_instance(env, jsAuthCallbackConstructor, ARGS_SIZE_ONE, argv, jsCallback);
 }

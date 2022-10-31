@@ -159,7 +159,7 @@ bool GetOptionalStringPropertyByKey(napi_env env, napi_value obj, const std::str
         return true;
     }
 
-    return GetStringPropertyByKey(env, obj, propertyName.c_str(), property);
+    return GetStringPropertyByKey(env, obj, propertyName, property);
 }
 
 napi_value CreateStringArray(napi_env env, const std::vector<std::string> &strVec)
