@@ -20,10 +20,10 @@
 
 #include "account_log_wrapper.h"
 #define private public
+#include "app_account_authenticator_callback.h"
 #include "app_account_authenticator_proxy.h"
 #include "app_account_authenticator_stub.h"
 #include "app_account_constants.h"
-#include "app_account_authenticator_callback.h"
 #undef private
 
 using namespace testing::ext;
@@ -33,7 +33,7 @@ using namespace OHOS::AccountSA;
 namespace {
 const std::string STRING_NAME = "name";
 const std::string STRING_AUTH_TYPE = "test.authType";
-std::string STRING_ABILITY_NAME = "MainAbility";
+std::string STRING_ABILITY_NAME = "test.mainAbility";
 }  // namespace
 
 class MockAuthenticatorCallback final : public AppAccountAuthenticatorCallbackStub {
@@ -64,29 +64,29 @@ public:
 
 ErrCode MockAppAccountAuthenticator::AddAccountImplicitly(
     const std::string &authType, const std::string &callerBundleName,
-        const AAFwk::WantParams &options, const sptr<IRemoteObject> &callback)
+    const AAFwk::WantParams &options, const sptr<IRemoteObject> &callback)
 {
     ACCOUNT_LOGI("mock enter");
     return ERR_OK;
 }
 
 ErrCode MockAppAccountAuthenticator::Authenticate(
-        const std::string &name, const std::string &authType, const std::string &callerBundleName,
-        const AAFwk::WantParams &options, const sptr<IRemoteObject> &callback)
+    const std::string &name, const std::string &authType, const std::string &callerBundleName,
+    const AAFwk::WantParams &options, const sptr<IRemoteObject> &callback)
 {
     ACCOUNT_LOGI("mock enter");
     return ERR_OK;
 }
 
 ErrCode MockAppAccountAuthenticator::VerifyCredential(
-        const std::string &name, const VerifyCredentialOptions &options, const sptr<IRemoteObject> &callback)
+    const std::string &name, const VerifyCredentialOptions &options, const sptr<IRemoteObject> &callback)
 {
     ACCOUNT_LOGI("mock enter");
     return ERR_OK;
 }
 
 ErrCode MockAppAccountAuthenticator::CheckAccountLabels(
-        const std::string &name, const std::vector<std::string> &labels, const sptr<IRemoteObject> &callback)
+    const std::string &name, const std::vector<std::string> &labels, const sptr<IRemoteObject> &callback)
 {
     ACCOUNT_LOGI("mock enter");
     return ERR_OK;
@@ -106,14 +106,14 @@ ErrCode MockAppAccountAuthenticator::IsAccountRemovable(const std::string &name,
 }
 
 ErrCode MockAppAccountAuthenticator::CreateAccountImplicitly(
-        const CreateAccountImplicitlyOptions &options, const sptr<IRemoteObject> &callback)
+    const CreateAccountImplicitlyOptions &options, const sptr<IRemoteObject> &callback)
 {
     ACCOUNT_LOGI("mock enter");
     return ERR_OK;
 }
 
 ErrCode MockAppAccountAuthenticator::Auth(const std::string &name, const std::string &authType,
-        const AAFwk::WantParams &options, const sptr<IRemoteObject> &callback)
+    const AAFwk::WantParams &options, const sptr<IRemoteObject> &callback)
 {
     ACCOUNT_LOGI("mock enter");
     return ERR_OK;
@@ -125,7 +125,7 @@ public:
     static void TearDownTestCase(void);
     void SetUp(void) override;
     void TearDown(void) override;
-    sptr<IAppAccountAuthenticator> authenticateProxyPtr_; 
+    sptr<IAppAccountAuthenticator> authenticateProxyPtr_;
 };
 
 void AppAccountAuthenticateModuleTest::SetUpTestCase(void)
