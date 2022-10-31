@@ -1415,7 +1415,7 @@ HWTEST_F(OsAccountManagerModuleTest, OsAccountManagerModuleTest066, TestSize.Lev
  * @tc.name: OsAccountManagerModuleTest067
  * @tc.desc: Test GetBundleIdFromUid.
  * @tc.type: FUNC
- * @tc.require: 
+ * @tc.require:
  */
 HWTEST_F(OsAccountManagerModuleTest, OsAccountManagerModuleTest067, TestSize.Level1)
 {
@@ -1431,7 +1431,7 @@ HWTEST_F(OsAccountManagerModuleTest, OsAccountManagerModuleTest067, TestSize.Lev
  * @tc.name: OsAccountManagerModuleTest068
  * @tc.desc: Test IsMainOsAccount.
  * @tc.type: FUNC
- * @tc.require: 
+ * @tc.require:
  */
 HWTEST_F(OsAccountManagerModuleTest, OsAccountManagerModuleTest068, TestSize.Level1)
 {
@@ -1451,7 +1451,7 @@ HWTEST_F(OsAccountManagerModuleTest, OsAccountManagerModuleTest068, TestSize.Lev
  * @tc.name: OsAccountManagerModuleTest069
  * @tc.desc: Test SetGlobalOsAccountConstraints.
  * @tc.type: FUNC
- * @tc.require: 
+ * @tc.require:
  */
 HWTEST_F(OsAccountManagerModuleTest, OsAccountManagerModuleTest069, TestSize.Level1)
 {
@@ -1490,7 +1490,7 @@ HWTEST_F(OsAccountManagerModuleTest, OsAccountManagerModuleTest069, TestSize.Lev
  * @tc.name: OsAccountManagerModuleTest070
  * @tc.desc: Test SetGlobalOsAccountConstraints.
  * @tc.type: FUNC
- * @tc.require: 
+ * @tc.require:
  */
 HWTEST_F(OsAccountManagerModuleTest, OsAccountManagerModuleTest070, TestSize.Level1)
 {
@@ -1538,7 +1538,7 @@ HWTEST_F(OsAccountManagerModuleTest, OsAccountManagerModuleTest070, TestSize.Lev
  * @tc.name: OsAccountManagerModuleTest071
  * @tc.desc: Test SetSpecificOsAccountConstraints.
  * @tc.type: FUNC
- * @tc.require: 
+ * @tc.require:
  */
 HWTEST_F(OsAccountManagerModuleTest, OsAccountManagerModuleTest071, TestSize.Level1)
 {
@@ -1571,7 +1571,7 @@ HWTEST_F(OsAccountManagerModuleTest, OsAccountManagerModuleTest071, TestSize.Lev
  * @tc.name: OsAccountManagerModuleTest072
  * @tc.desc: Test QueryOsAccountConstraintSourceTypes.
  * @tc.type: FUNC
- * @tc.require: 
+ * @tc.require:
  */
 HWTEST_F(OsAccountManagerModuleTest, OsAccountManagerModuleTest072, TestSize.Level1)
 {
@@ -1603,7 +1603,7 @@ HWTEST_F(OsAccountManagerModuleTest, OsAccountManagerModuleTest072, TestSize.Lev
  * @tc.name: OsAccountManagerModuleTest073
  * @tc.desc: Test QueryOsAccountConstraintSourceTypes.
  * @tc.type: FUNC
- * @tc.require: 
+ * @tc.require:
  */
 HWTEST_F(OsAccountManagerModuleTest, OsAccountManagerModuleTest073, TestSize.Level1)
 {
@@ -1652,7 +1652,7 @@ HWTEST_F(OsAccountManagerModuleTest, OsAccountManagerModuleTest073, TestSize.Lev
  * @tc.name: OsAccountManagerModuleTest074
  * @tc.desc: Test QueryOsAccountConstraintSourceTypes.
  * @tc.type: FUNC
- * @tc.require: 
+ * @tc.require:
  */
 HWTEST_F(OsAccountManagerModuleTest, OsAccountManagerModuleTest074, TestSize.Level1)
 {
@@ -1672,7 +1672,7 @@ HWTEST_F(OsAccountManagerModuleTest, OsAccountManagerModuleTest074, TestSize.Lev
  * @tc.name: OsAccountManagerModuleTest075
  * @tc.desc: Test GetOsAccountAllConstraints.
  * @tc.type: FUNC
- * @tc.require: 
+ * @tc.require:
  */
 HWTEST_F(OsAccountManagerModuleTest, OsAccountManagerModuleTest075, TestSize.Level1)
 {
