@@ -459,6 +459,7 @@ HWTEST_F(AppAccountManagerTest, AppAccountManager_Authenticate_0100, TestSize.Le
     options.SetParam(Constants::KEY_CALLER_ABILITY_NAME, STRING_OUT_OF_RANGE);
     result = AppAccountManager::Authenticate(
         STRING_NAME, STRING_OWNER, STRING_AUTH_TYPE, options, nullptr);
+    EXPECT_EQ(result, ERR_APPACCOUNT_KIT_INVALID_PARAMETER);
     options.SetParam(Constants::KEY_CALLER_ABILITY_NAME, STRING_EMPTY);
     result = AppAccountManager::Authenticate(
         STRING_NAME, STRING_OWNER, STRING_AUTH_TYPE, options, nullptr);
