@@ -1527,8 +1527,8 @@ void UvQueueWorkOnAccountsChanged(uv_work_t *work, int status)
             if (isFound) {
                 ACCOUNT_LOGD("os account subscriber has been found.");
                 napi_get_reference_value(subscriberOAWorkerData->env, subscriberOAWorkerData->ref, &callback);
-                napi_call_function(subscriberOAWorkerData->env, undefined, callback, ARGS_SIZE_ONE, &result[0],
-                        &resultout);
+                napi_call_function(
+                    subscriberOAWorkerData->env, undefined, callback, ARGS_SIZE_ONE, &result[0], &resultout);
                 break;
             }
         }
