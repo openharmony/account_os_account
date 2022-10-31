@@ -40,6 +40,7 @@ const std::string KEY_ACCOUNT_EVENT_LOGIN = "LOGIN";
 const std::string KEY_ACCOUNT_EVENT_LOGOUT = "LOGOUT";
 const std::string KEY_ACCOUNT_EVENT_TOKEN_INVALID = "TOKEN_INVALID";
 const std::string KEY_ACCOUNT_EVENT_LOGOFF = "LOGOFF";
+const std::string KEY_ACCOUNT_INFO_SCALABLEDATA = "age";
 std::string g_eventLogin = OHOS_ACCOUNT_EVENT_LOGIN;
 std::string g_eventLogout = OHOS_ACCOUNT_EVENT_LOGOUT;
 std::string g_eventTokenInvalid = OHOS_ACCOUNT_EVENT_TOKEN_INVALID;
@@ -52,7 +53,7 @@ const std::string TEST_EXPECTED_UID = "15E2B0D3C33891EBB0F1EF609EC419420C20E320C
 const std::string TEST_DIFF_ACCOUNT_NAME = "TestDiffAccountName";
 const std::string TEST_DIFF_ACCOUNT_UID = "9876432";
 const std::string TEST_DIFF_EXPECTED_UID = "FB293C538C2CD118B0441AB3B2EC429A5EA629286A04F31E0CC2EFB96525ADCC";
-const std::size_t TEST_STRING_FIND_EMPTY = 4294967295;
+const std::string TEST_EMPTY_STRING = "";
 const std::size_t TESR_AVATAR_MAX_SIZE = 3 * 1024 * 1024;
 }
 
@@ -142,7 +143,7 @@ HWTEST_F(AccountMgrInnerSdkFuncTest, SetOhosAccountInfo001, TestSize.Level0)
     accountInfo.uid_ = TEST_ACCOUNT_UID;
     accountInfo.nickname_ = TEST_NICKNAME;
     accountInfo.avatar_ = TEST_AVATAR;
-    accountInfo.scalableData_.SetParam("age", 123);
+    accountInfo.scalableData_.SetParam(KEY_ACCOUNT_INFO_SCALABLEDATA, 123);
 
     auto ret = OhosAccountKits::GetInstance().SetOhosAccountInfo(accountInfo, g_eventLogin);
     EXPECT_EQ(ret, ERR_OK);
@@ -153,8 +154,9 @@ HWTEST_F(AccountMgrInnerSdkFuncTest, SetOhosAccountInfo001, TestSize.Level0)
     EXPECT_EQ(accountInfoget.status_, ACCOUNT_STATE_LOGIN);
     EXPECT_EQ(accountInfoget.nickname_, TEST_NICKNAME);
     EXPECT_EQ(accountInfoget.avatar_, TEST_AVATAR);
-    EXPECT_EQ(
-        accountInfoget.scalableData_.ToString().find("age", 0), accountInfo.scalableData_.ToString().find("age", 0));
+    EXPECT_EQ(accountInfoget.scalableData_.GetStringParam(KEY_ACCOUNT_INFO_SCALABLEDATA),
+        accountInfo.scalableData_.GetStringParam(KEY_ACCOUNT_INFO_SCALABLEDATA));
+
 
     ret = OhosAccountKits::GetInstance().SetOhosAccountInfo(accountInfo, g_eventLogout);
     EXPECT_EQ(ret, ERR_OK);
@@ -163,9 +165,9 @@ HWTEST_F(AccountMgrInnerSdkFuncTest, SetOhosAccountInfo001, TestSize.Level0)
     EXPECT_EQ(accountInfoget.uid_, DEFAULT_OHOS_ACCOUNT_UID);
     EXPECT_EQ(accountInfoget.name_, DEFAULT_OHOS_ACCOUNT_NAME);
     EXPECT_EQ(accountInfoget.status_, ACCOUNT_STATE_UNBOUND);
-    EXPECT_EQ(accountInfoget.nickname_, "");
-    EXPECT_EQ(accountInfoget.avatar_, "");
-    EXPECT_EQ(accountInfoget.scalableData_.ToString().find("age", 0), TEST_STRING_FIND_EMPTY);
+    EXPECT_EQ(accountInfoget.nickname_, TEST_EMPTY_STRING);
+    EXPECT_EQ(accountInfoget.avatar_, TEST_EMPTY_STRING);
+    EXPECT_EQ(accountInfoget.scalableData_.GetStringParam(KEY_ACCOUNT_INFO_SCALABLEDATA), TEST_EMPTY_STRING);
 }
 
 /**
@@ -183,7 +185,7 @@ HWTEST_F(AccountMgrInnerSdkFuncTest, SetOhosAccountInfo002, TestSize.Level0)
     accountInfo.uid_ = TEST_ACCOUNT_UID;
     accountInfo.nickname_ = TEST_NICKNAME;
     accountInfo.avatar_ = TEST_AVATAR;
-    accountInfo.scalableData_.SetParam("age", 123);
+    accountInfo.scalableData_.SetParam(KEY_ACCOUNT_INFO_SCALABLEDATA, 123);
 
     auto ret = OhosAccountKits::GetInstance().SetOhosAccountInfo(accountInfo, g_eventLogin);
     EXPECT_EQ(ret, ERR_OK);
@@ -194,8 +196,8 @@ HWTEST_F(AccountMgrInnerSdkFuncTest, SetOhosAccountInfo002, TestSize.Level0)
     EXPECT_EQ(accountInfoget.status_, ACCOUNT_STATE_LOGIN);
     EXPECT_EQ(accountInfoget.nickname_, TEST_NICKNAME);
     EXPECT_EQ(accountInfoget.avatar_, TEST_AVATAR);
-    EXPECT_EQ(
-        accountInfoget.scalableData_.ToString().find("age", 0), accountInfo.scalableData_.ToString().find("age", 0));
+    EXPECT_EQ(accountInfoget.scalableData_.GetStringParam(KEY_ACCOUNT_INFO_SCALABLEDATA),
+        accountInfo.scalableData_.GetStringParam(KEY_ACCOUNT_INFO_SCALABLEDATA));
 
     ret = OhosAccountKits::GetInstance().SetOhosAccountInfo(accountInfo, g_eventLogin);
     EXPECT_EQ(ret, ERR_OK);
@@ -213,9 +215,9 @@ HWTEST_F(AccountMgrInnerSdkFuncTest, SetOhosAccountInfo002, TestSize.Level0)
     EXPECT_EQ(accountInfoget.uid_, DEFAULT_OHOS_ACCOUNT_UID);
     EXPECT_EQ(accountInfoget.name_, DEFAULT_OHOS_ACCOUNT_NAME);
     EXPECT_EQ(accountInfoget.status_, ACCOUNT_STATE_UNBOUND);
-    EXPECT_EQ(accountInfoget.nickname_, "");
-    EXPECT_EQ(accountInfoget.avatar_, "");
-    EXPECT_EQ(accountInfoget.scalableData_.ToString().find("age", 0), TEST_STRING_FIND_EMPTY);
+    EXPECT_EQ(accountInfoget.nickname_, TEST_EMPTY_STRING);
+    EXPECT_EQ(accountInfoget.avatar_, TEST_EMPTY_STRING);
+    EXPECT_EQ(accountInfoget.scalableData_.GetStringParam(KEY_ACCOUNT_INFO_SCALABLEDATA), TEST_EMPTY_STRING);
 }
 
 /**
@@ -233,7 +235,7 @@ HWTEST_F(AccountMgrInnerSdkFuncTest, SetOhosAccountInfo003, TestSize.Level0)
     accountInfo.uid_ = TEST_DIFF_ACCOUNT_UID;
     accountInfo.nickname_ = TEST_NICKNAME;
     accountInfo.avatar_ = TEST_AVATAR;
-    accountInfo.scalableData_.SetParam("age", 123);
+    accountInfo.scalableData_.SetParam(KEY_ACCOUNT_INFO_SCALABLEDATA, 123);
 
     auto ret = OhosAccountKits::GetInstance().SetOhosAccountInfo(accountInfo, g_eventLogin);
     EXPECT_EQ(ret, ERR_OK);
@@ -244,8 +246,8 @@ HWTEST_F(AccountMgrInnerSdkFuncTest, SetOhosAccountInfo003, TestSize.Level0)
     EXPECT_EQ(accountInfoget.status_, ACCOUNT_STATE_LOGIN);
     EXPECT_EQ(accountInfoget.nickname_, TEST_NICKNAME);
     EXPECT_EQ(accountInfoget.avatar_, TEST_AVATAR);
-    EXPECT_EQ(
-        accountInfoget.scalableData_.ToString().find("age", 0), accountInfo.scalableData_.ToString().find("age", 0));
+    EXPECT_EQ(accountInfoget.scalableData_.GetStringParam(KEY_ACCOUNT_INFO_SCALABLEDATA),
+        accountInfo.scalableData_.GetStringParam(KEY_ACCOUNT_INFO_SCALABLEDATA));
 
     ret = OhosAccountKits::GetInstance().SetOhosAccountInfo(accountInfo, g_eventLogoff);
     EXPECT_EQ(ret, ERR_OK);
@@ -254,9 +256,9 @@ HWTEST_F(AccountMgrInnerSdkFuncTest, SetOhosAccountInfo003, TestSize.Level0)
     EXPECT_EQ(accountInfoget.uid_, DEFAULT_OHOS_ACCOUNT_UID);
     EXPECT_EQ(accountInfoget.name_, DEFAULT_OHOS_ACCOUNT_NAME);
     EXPECT_EQ(accountInfoget.status_, ACCOUNT_STATE_LOGOFF);
-    EXPECT_EQ(accountInfoget.nickname_, "");
-    EXPECT_EQ(accountInfoget.avatar_, "");
-    EXPECT_EQ(accountInfoget.scalableData_.ToString().find("age", 0), TEST_STRING_FIND_EMPTY);
+    EXPECT_EQ(accountInfoget.nickname_, TEST_EMPTY_STRING);
+    EXPECT_EQ(accountInfoget.avatar_, TEST_EMPTY_STRING);
+    EXPECT_EQ(accountInfoget.scalableData_.GetStringParam(KEY_ACCOUNT_INFO_SCALABLEDATA), TEST_EMPTY_STRING);
 }
 
 /**
@@ -274,7 +276,7 @@ HWTEST_F(AccountMgrInnerSdkFuncTest, SetOhosAccountInfo004, TestSize.Level0)
     accountInfo.uid_ = TEST_ACCOUNT_UID;
     accountInfo.nickname_ = TEST_NICKNAME;
     accountInfo.avatar_ = TEST_AVATAR;
-    accountInfo.scalableData_.SetParam("age", 123);
+    accountInfo.scalableData_.SetParam(KEY_ACCOUNT_INFO_SCALABLEDATA, 123);
 
     auto ret = OhosAccountKits::GetInstance().SetOhosAccountInfo(accountInfo, g_eventLogin);
     EXPECT_EQ(ret, ERR_OK);
@@ -283,8 +285,8 @@ HWTEST_F(AccountMgrInnerSdkFuncTest, SetOhosAccountInfo004, TestSize.Level0)
     EXPECT_EQ(accountInfoget.uid_, TEST_EXPECTED_UID);
     EXPECT_EQ(accountInfoget.nickname_, TEST_NICKNAME);
     EXPECT_EQ(accountInfoget.avatar_, TEST_AVATAR);
-    EXPECT_EQ(
-        accountInfoget.scalableData_.ToString().find("age", 0), accountInfo.scalableData_.ToString().find("age", 0));
+    EXPECT_EQ(accountInfoget.scalableData_.GetStringParam(KEY_ACCOUNT_INFO_SCALABLEDATA),
+        accountInfo.scalableData_.GetStringParam(KEY_ACCOUNT_INFO_SCALABLEDATA));
 
     ret = OhosAccountKits::GetInstance().SetOhosAccountInfo(accountInfo, g_eventTokenInvalid);
     EXPECT_EQ(ret, ERR_OK);
@@ -293,8 +295,8 @@ HWTEST_F(AccountMgrInnerSdkFuncTest, SetOhosAccountInfo004, TestSize.Level0)
     EXPECT_EQ(accountInfoget.uid_, TEST_EXPECTED_UID);
     EXPECT_EQ(accountInfoget.nickname_, TEST_NICKNAME);
     EXPECT_EQ(accountInfoget.avatar_, TEST_AVATAR);
-    EXPECT_EQ(
-        accountInfoget.scalableData_.ToString().find("age", 0), accountInfo.scalableData_.ToString().find("age", 0));
+    EXPECT_EQ(accountInfoget.scalableData_.GetStringParam(KEY_ACCOUNT_INFO_SCALABLEDATA),
+        accountInfo.scalableData_.GetStringParam(KEY_ACCOUNT_INFO_SCALABLEDATA));
 
     ret = OhosAccountKits::GetInstance().SetOhosAccountInfo(accountInfo, g_eventLogin);
     EXPECT_EQ(ret, ERR_OK);
@@ -305,8 +307,8 @@ HWTEST_F(AccountMgrInnerSdkFuncTest, SetOhosAccountInfo004, TestSize.Level0)
     EXPECT_EQ(accountInfoget.status_, ACCOUNT_STATE_LOGIN);
     EXPECT_EQ(accountInfoget.nickname_, TEST_NICKNAME);
     EXPECT_EQ(accountInfoget.avatar_, TEST_AVATAR);
-    EXPECT_EQ(
-        accountInfoget.scalableData_.ToString().find("age", 0), accountInfo.scalableData_.ToString().find("age", 0));
+    EXPECT_EQ(accountInfoget.scalableData_.GetStringParam(KEY_ACCOUNT_INFO_SCALABLEDATA),
+        accountInfo.scalableData_.GetStringParam(KEY_ACCOUNT_INFO_SCALABLEDATA));
 
     ret = OhosAccountKits::GetInstance().SetOhosAccountInfo(accountInfo, g_eventLogout);
     EXPECT_EQ(ret, ERR_OK);
@@ -315,7 +317,7 @@ HWTEST_F(AccountMgrInnerSdkFuncTest, SetOhosAccountInfo004, TestSize.Level0)
     EXPECT_EQ(accountInfoget.uid_, DEFAULT_OHOS_ACCOUNT_UID);
     EXPECT_EQ(accountInfoget.name_, DEFAULT_OHOS_ACCOUNT_NAME);
     EXPECT_EQ(accountInfoget.status_, ACCOUNT_STATE_UNBOUND);
-    EXPECT_EQ(accountInfoget.scalableData_.ToString().find("age", 0), TEST_STRING_FIND_EMPTY);
+    EXPECT_EQ(accountInfoget.scalableData_.GetStringParam(KEY_ACCOUNT_INFO_SCALABLEDATA), TEST_EMPTY_STRING);
 }
 
 /**
@@ -333,7 +335,7 @@ HWTEST_F(AccountMgrInnerSdkFuncTest, SetOhosAccountInfo005, TestSize.Level0)
     accountInfo.uid_ = TEST_ACCOUNT_UID;
     accountInfo.nickname_ = "test_invalid_nickname_aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa";
     accountInfo.avatar_ = TEST_AVATAR;
-    accountInfo.scalableData_.SetParam("age", 123);
+    accountInfo.scalableData_.SetParam(KEY_ACCOUNT_INFO_SCALABLEDATA, 123);
 
     auto ret = OhosAccountKits::GetInstance().SetOhosAccountInfo(accountInfo, g_eventLogin);
     EXPECT_EQ(ret, ERR_OHOSACCOUNT_KIT_INVALID_PARAMETER);
@@ -342,9 +344,9 @@ HWTEST_F(AccountMgrInnerSdkFuncTest, SetOhosAccountInfo005, TestSize.Level0)
     EXPECT_EQ(accountInfoget.uid_, DEFAULT_OHOS_ACCOUNT_UID);
     EXPECT_EQ(accountInfoget.name_, DEFAULT_OHOS_ACCOUNT_NAME);
     EXPECT_EQ(accountInfoget.status_, ACCOUNT_STATE_UNBOUND);
-    EXPECT_EQ(accountInfoget.nickname_, "");
-    EXPECT_EQ(accountInfoget.avatar_, "");
-    EXPECT_EQ(accountInfoget.scalableData_.ToString().find("age", 0), TEST_STRING_FIND_EMPTY);
+    EXPECT_EQ(accountInfoget.nickname_, TEST_EMPTY_STRING);
+    EXPECT_EQ(accountInfoget.avatar_, TEST_EMPTY_STRING);
+    EXPECT_EQ(accountInfoget.scalableData_.GetStringParam(KEY_ACCOUNT_INFO_SCALABLEDATA), TEST_EMPTY_STRING);
 }
 
 /**
@@ -362,7 +364,7 @@ HWTEST_F(AccountMgrInnerSdkFuncTest, SetOhosAccountInfo006, TestSize.Level0)
     accountInfo.uid_ = TEST_ACCOUNT_UID;
     accountInfo.nickname_ = TEST_NICKNAME;
     accountInfo.avatar_ = ""; // 10*1024*1024
-    accountInfo.scalableData_.SetParam("age", 123);
+    accountInfo.scalableData_.SetParam(KEY_ACCOUNT_INFO_SCALABLEDATA, 123);
     for (std::size_t i = 0; i < TESR_AVATAR_MAX_SIZE + 1; i++) {
         accountInfo.avatar_.push_back('a');
     }
@@ -374,9 +376,9 @@ HWTEST_F(AccountMgrInnerSdkFuncTest, SetOhosAccountInfo006, TestSize.Level0)
     EXPECT_EQ(accountInfoget.uid_, DEFAULT_OHOS_ACCOUNT_UID);
     EXPECT_EQ(accountInfoget.name_, DEFAULT_OHOS_ACCOUNT_NAME);
     EXPECT_EQ(accountInfoget.status_, ACCOUNT_STATE_UNBOUND);
-    EXPECT_EQ(accountInfoget.nickname_, "");
-    EXPECT_EQ(accountInfoget.avatar_, "");
-    EXPECT_EQ(accountInfoget.scalableData_.ToString().find("age", 0), TEST_STRING_FIND_EMPTY);
+    EXPECT_EQ(accountInfoget.nickname_, TEST_EMPTY_STRING);
+    EXPECT_EQ(accountInfoget.avatar_, TEST_EMPTY_STRING);
+    EXPECT_EQ(accountInfoget.scalableData_.GetStringParam(KEY_ACCOUNT_INFO_SCALABLEDATA), TEST_EMPTY_STRING);
 }
 
 /**
@@ -394,7 +396,7 @@ HWTEST_F(AccountMgrInnerSdkFuncTest, SetOhosAccountInfo007, TestSize.Level0)
     accountInfo.uid_ = TEST_DIFF_ACCOUNT_UID;
     accountInfo.nickname_ = TEST_NICKNAME;
     accountInfo.avatar_ = TEST_AVATAR;
-    accountInfo.scalableData_.SetParam("age", 123);
+    accountInfo.scalableData_.SetParam(KEY_ACCOUNT_INFO_SCALABLEDATA, 123);
 
     std::string eventStr = "invalid_test_event";
 
