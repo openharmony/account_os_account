@@ -83,13 +83,13 @@ void AppAccountManagerServiceSyncModuleTest::SetUp(void)
 void AppAccountManagerServiceSyncModuleTest::ClearDataStorage(std::shared_ptr<AppAccountDataStorage> &dataStoragePtr)
 {
     std::map<std::string, std::shared_ptr<IAccountInfo>> accounts;
-    ErrCode result = dataStoragePtr->LoadAllData(accounts);
+    dataStoragePtr->LoadAllData(accounts);
     if (!accounts.empty()) {
         for (auto accountPtr : accounts) {
-            result = dataStoragePtr->RemoveValueFromKvStore(accountPtr.first);
+            dataStoragePtr->RemoveValueFromKvStore(accountPtr.first);
         }
     }
-    result = dataStoragePtr->LoadAllData(accounts);
+    dataStoragePtr->LoadAllData(accounts);
     GTEST_LOG_(INFO) << "AppAccountManagerServiceSyncModuleTest ClearDataStorage end, accounts.size =" <<
         accounts.size();
 }
