@@ -29,30 +29,37 @@ namespace AccountSA {
 AccountIAMClient::AccountIAMClient()
 {}
 
-void AccountIAMClient::OpenSession(int32_t userId, std::vector<uint8_t> &challenge)
+int32_t AccountIAMClient::OpenSession(int32_t userId, std::vector<uint8_t> &challenge)
 {
     if (GetAccountIAMProxy() != ERR_OK) {
-        return;
+        return ERR_ACCOUNT_IAM_KIT_PROXY_ERROR;
     }
-    proxy_->OpenSession(userId, challenge);
+    return proxy_->OpenSession(userId, challenge);
 }
 
-void AccountIAMClient::CloseSession(int32_t userId)
+int32_t AccountIAMClient::CloseSession(int32_t userId)
 {
     if (GetAccountIAMProxy() != ERR_OK) {
-        return;
+        return ERR_ACCOUNT_IAM_KIT_PROXY_ERROR;
     }
-    proxy_->CloseSession(userId);
+    return proxy_->CloseSession(userId);
 }
 
 void AccountIAMClient::AddCredential(
     int32_t userId, const CredentialParameters& credInfo, const std::shared_ptr<IDMCallback> &callback)
 {
+    if (callback == nullptr) {
+        ACCOUNT_LOGE("callback is nullptr");
+        return;
+    }
+    Attributes emptyResult;
     if (GetAccountIAMProxy() != ERR_OK) {
+        callback->OnResult(ERR_ACCOUNT_IAM_KIT_PROXY_ERROR, emptyResult);
         return;
     }
     if ((userId == 0) && (!GetCurrentUserId(userId))) {
         ACCOUNT_LOGE("fail to add credential for invalid userId");
+        callback->OnResult(ERR_ACCOUNT_IAM_KIT_PARAM_INVALID_ERROR, emptyResult);
         return;
     }
     if (credInfo.authType == AuthType::PIN) {
@@ -65,11 +72,18 @@ void AccountIAMClient::AddCredential(
 void AccountIAMClient::UpdateCredential(
     int32_t userId, const CredentialParameters& credInfo, const std::shared_ptr<IDMCallback> &callback)
 {
+    if (callback == nullptr) {
+        ACCOUNT_LOGE("callback is nullptr");
+        return;
+    }
+    Attributes emptyResult;
     if (GetAccountIAMProxy() != ERR_OK) {
+        callback->OnResult(ERR_ACCOUNT_IAM_KIT_PROXY_ERROR, emptyResult);
         return;
     }
     if ((userId == 0) && (!GetCurrentUserId(userId))) {
         ACCOUNT_LOGE("fail to update credential for invalid userId");
+        callback->OnResult(ERR_ACCOUNT_IAM_KIT_PARAM_INVALID_ERROR, emptyResult);
         return;
     }
     if (credInfo.authType == AuthType::PIN) {
@@ -82,10 +96,17 @@ void AccountIAMClient::UpdateCredential(
 void AccountIAMClient::DelCred(int32_t userId, uint64_t credentialId, const std::vector<uint8_t> &authToken,
     const std::shared_ptr<IDMCallback>& callback)
 {
+    if (callback == nullptr) {
+        ACCOUNT_LOGE("callback is nullptr");
+        return;
+    }
+    Attributes emptyResult;
     if (GetAccountIAMProxy() != ERR_OK) {
+        callback->OnResult(ERR_ACCOUNT_IAM_KIT_PROXY_ERROR, emptyResult);
         return;
     }
     if ((userId == 0) && (!GetCurrentUserId(userId))) {
+        callback->OnResult(ERR_ACCOUNT_IAM_KIT_PARAM_INVALID_ERROR, emptyResult);
         return;
     }
     sptr<IIDMCallback> wrapper = new (std::nothrow) IDMCallbackService(userId, callback);
@@ -95,32 +116,39 @@ void AccountIAMClient::DelCred(int32_t userId, uint64_t credentialId, const std:
 void AccountIAMClient::DelUser(
     int32_t userId, const std::vector<uint8_t> &authToken, const std::shared_ptr<IDMCallback> &callback)
 {
+    if (callback == nullptr) {
+        ACCOUNT_LOGE("callback is nullptr");
+        return;
+    }
+    Attributes emptyResult;
     if (GetAccountIAMProxy() != ERR_OK) {
+        callback->OnResult(ERR_ACCOUNT_IAM_KIT_PROXY_ERROR, emptyResult);
         return;
     }
     if ((userId == 0) && (!GetCurrentUserId(userId))) {
+        callback->OnResult(ERR_ACCOUNT_IAM_KIT_PARAM_INVALID_ERROR, emptyResult);
         return;
     }
     sptr<IIDMCallback> wrapper = new (std::nothrow) IDMCallbackService(userId, callback);
     proxy_->DelUser(userId, authToken, wrapper);
 }
 
-void AccountIAMClient::GetCredentialInfo(
+int32_t AccountIAMClient::GetCredentialInfo(
     int32_t userId, AuthType authType, const std::shared_ptr<GetCredInfoCallback> &callback)
 {
     if (GetAccountIAMProxy() != ERR_OK) {
-        return;
+        return ERR_ACCOUNT_IAM_KIT_PROXY_ERROR;
     }
     sptr<IGetCredInfoCallback> wrapper = new (std::nothrow) GetCredInfoCallbackService(callback);
-    proxy_->GetCredentialInfo(userId, authType, wrapper);
+    return proxy_->GetCredentialInfo(userId, authType, wrapper);
 }
 
-int32_t AccountIAMClient::Cancel(int32_t userId, uint64_t challenge)
+int32_t AccountIAMClient::Cancel(int32_t userId)
 {
     if (GetAccountIAMProxy() != ERR_OK) {
-        return ResultCode::FAIL;
+        return ERR_ACCOUNT_IAM_KIT_PROXY_ERROR;
     }
-    return proxy_->Cancel(userId, challenge);
+    return proxy_->Cancel(userId);
 }
 
 uint64_t AccountIAMClient::Auth(const std::vector<uint8_t> &challenge, AuthType authType,
@@ -147,7 +175,7 @@ uint64_t AccountIAMClient::AuthUser(
 int32_t AccountIAMClient::CancelAuth(uint64_t contextId)
 {
     if (GetAccountIAMProxy() != ERR_OK) {
-        return ResultCode::FAIL;
+        return ERR_ACCOUNT_IAM_KIT_PROXY_ERROR;
     }
     return proxy_->CancelAuth(contextId);
 }
@@ -157,13 +185,27 @@ int32_t AccountIAMClient::GetAvailableStatus(AuthType authType, AuthTrustLevel a
     if (GetAccountIAMProxy() != ERR_OK) {
         return ERR_ACCOUNT_IAM_KIT_PROXY_ERROR;
     }
+    if (authTrustLevel < UserIam::UserAuth::ATL1 || authTrustLevel > UserIam::UserAuth::ATL4) {
+        ACCOUNT_LOGE("authTrustLevel is not in correct range");
+        return ERR_ACCOUNT_IAM_KIT_PARAM_INVALID_ERROR;
+    }
+    if (authType < UserIam::UserAuth::ALL || authType > UserIam::UserAuth::FINGERPRINT) {
+        ACCOUNT_LOGE("authType is not in correct range");
+        return ERR_ACCOUNT_IAM_KIT_PARAM_INVALID_ERROR;
+    }
     return proxy_->GetAvailableStatus(authType, authTrustLevel, status);
 }
 
 void AccountIAMClient::GetProperty(
     int32_t userId, const GetPropertyRequest &request, const std::shared_ptr<GetSetPropCallback> &callback)
 {
+    if (callback == nullptr) {
+        ACCOUNT_LOGE("callback is nullptr");
+        return;
+    }
+    Attributes emptyResult;
     if (GetAccountIAMProxy() != ERR_OK) {
+        callback->OnResult(ERR_ACCOUNT_IAM_KIT_PROXY_ERROR, emptyResult);
         return;
     }
     sptr<IGetSetPropCallback> wrapper = new (std::nothrow) GetSetPropCallbackService(callback);
@@ -173,26 +215,62 @@ void AccountIAMClient::GetProperty(
 void AccountIAMClient::SetProperty(
     int32_t userId, const SetPropertyRequest &request, const std::shared_ptr<GetSetPropCallback> &callback)
 {
+    if (callback == nullptr) {
+        ACCOUNT_LOGE("callback is nullptr");
+        return;
+    }
+    Attributes emptyResult;
     if (GetAccountIAMProxy() != ERR_OK) {
+        callback->OnResult(ERR_ACCOUNT_IAM_KIT_PROXY_ERROR, emptyResult);
         return;
     }
     sptr<IGetSetPropCallback> wrapper = new (std::nothrow) GetSetPropCallbackService(callback);
     proxy_->SetProperty(userId, request, wrapper);
 }
 
-bool AccountIAMClient::RegisterInputer(const std::shared_ptr<IInputer> &inputer)
+bool AccountIAMClient::IsInputerRegistered(int32_t userId)
+{
+    std::lock_guard<std::mutex> lock(mutexRegUsers_);
+    return registeredUsers_.find(userId) != registeredUsers_.end();
+}
+
+void AccountIAMClient::AddRegisteredInputer(int32_t userId)
+{
+    std::lock_guard<std::mutex> lock(mutexRegUsers_);
+    registeredUsers_.emplace(userId);
+}
+
+void AccountIAMClient::DelRegisteredInputer(int32_t userId)
+{
+    std::lock_guard<std::mutex> lock(mutex_);
+    registeredUsers_.erase(userId);
+}
+
+int32_t AccountIAMClient::RegisterInputer(const std::shared_ptr<IInputer> &inputer)
 {
     int32_t userId = 0;
     if (!GetCurrentUserId(userId)) {
-        return false;
+        return ERR_ACCOUNT_IAM_KIT_GET_USERID_FAIL;
+    }
+    if (IsInputerRegistered(userId)) {
+        return ERR_ACCOUNT_IAM_KIT_INPUTER_ALREADY_REGISTERED;
     }
     auto iamInputer = std::make_shared<IAMInputer>(userId, inputer);
-    return UserIam::PinAuth::PinAuthRegister::GetInstance().RegisterInputer(iamInputer);
+    if (UserIam::PinAuth::PinAuthRegister::GetInstance().RegisterInputer(iamInputer)) {
+        AddRegisteredInputer(userId);
+        return ERR_OK;
+    }
+    return ERR_ACCOUNT_IAM_SERVICE_PERMISSION_DENIED;
 }
 
 void AccountIAMClient::UnRegisterInputer()
 {
     UserIam::PinAuth::PinAuthRegister::GetInstance().UnRegisterInputer();
+    int32_t userId = 0;
+    if (!GetCurrentUserId(userId)) {
+        return;
+    }
+    DelRegisteredInputer(userId);
 }
 
 IAMState AccountIAMClient::GetAccountState(int32_t userId)
