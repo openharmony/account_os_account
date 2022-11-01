@@ -33,7 +33,7 @@ using namespace OHOS::AccountSA;
 namespace {
 const std::string STRING_NAME = "name";
 const std::string STRING_AUTH_TYPE = "test.authType";
-std::string STRING_ABILITY_NAME = "test.mainAbility";
+const std::string STRING_ABILITY_NAME = "test.mainAbility";
 }  // namespace
 
 class MockAuthenticatorCallback final : public AppAccountAuthenticatorCallbackStub {
