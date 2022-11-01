@@ -93,13 +93,21 @@ napi_value NapiAccountIAMIdentityManager::OpenSession(napi_env env, napi_callbac
     NAPI_CALL(env, napi_create_async_work(env, nullptr, resourceName,
         [](napi_env env, void *data) {
             IDMContext *context = reinterpret_cast<IDMContext *>(data);
-            AccountIAMClient::GetInstance().OpenSession(0, context->challenge);
+            context->errCode = AccountIAMClient::GetInstance().OpenSession(0, context->challenge);
         },
         [](napi_env env, napi_status status, void *data) {
             IDMContext *context = reinterpret_cast<IDMContext *>(data);
-            napi_value napiChallenge = CreateUint8Array(
-                env, context->challenge.data(), context->challenge.size());
-            CallbackAsyncOrPromise(env, context, napiChallenge);
+            napi_value errJs = nullptr;
+            napi_value dataJs = nullptr;
+            if (context->errCode != 0) {
+                int32_t jsErrCode = AccountIAMConvertToJSErrCode(context->errCode);
+                errJs = GenerateBusinessError(env, jsErrCode, ConvertToJsErrMsg(jsErrCode));
+                napi_get_null(env, &dataJs);
+            } else {
+                napi_get_null(env, &errJs);
+                dataJs = CreateUint8Array(env, context->challenge.data(), context->challenge.size());
+            }
+            CallbackAsyncOrPromise(env, context, errJs, dataJs);
             delete context;
         },
         reinterpret_cast<void *>(context), &context->work));
@@ -216,8 +224,7 @@ napi_value NapiAccountIAMIdentityManager::Cancel(napi_env env, napi_callback_inf
         AccountNapiThrow(env, ERR_JS_PARAMETER_ERROR, errMsg, true);
         return nullptr;
     }
-    uint64_t *challenge = reinterpret_cast<uint64_t *>(reinterpret_cast<void *>(data));
-    int32_t ret = AccountIAMClient::GetInstance().Cancel(0, *challenge);
+    int32_t ret = AccountIAMClient::GetInstance().Cancel(0);
     napi_value napiResult = nullptr;
     if (ret == ERR_OK) {
         napi_create_int32(env, ret, &napiResult);

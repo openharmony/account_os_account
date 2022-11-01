@@ -111,7 +111,7 @@ std::int32_t AccountIAMMgrStub::OnRemoteRequest(
 ErrCode AccountIAMMgrStub::ProcOpenSession(MessageParcel &data, MessageParcel &reply)
 {
     if (!CheckPermission(AccountPermissionManager::MANAGE_USER_IDM)) {
-        return ERR_ACCOUNT_ZIDL_CHECK_PERMISSION_ERROR;
+        return ERR_ACCOUNT_IAM_SERVICE_PERMISSION_DENIED;
     }
     int32_t userId;
     if (!data.ReadInt32(userId)) {
@@ -119,21 +119,35 @@ ErrCode AccountIAMMgrStub::ProcOpenSession(MessageParcel &data, MessageParcel &r
         return ERR_ACCOUNT_IAM_SERVICE_READ_PARCEL_FAIL;
     }
     std::vector<uint8_t> challenge;
-    OpenSession(userId, challenge);
-    return reply.WriteUInt8Vector(challenge);
+    int32_t result = OpenSession(userId, challenge);
+    if (!reply.WriteInt32(result)) {
+        ACCOUNT_LOGE("failed to write result");
+        return ERR_ACCOUNT_IAM_SERVICE_WRITE_PARCEL_FAIL;
+    }
+    if (result == ERR_OK) {
+        if (!reply.WriteUInt8Vector(challenge)) {
+            ACCOUNT_LOGE("failed to write challenge");
+            return ERR_ACCOUNT_IAM_SERVICE_WRITE_PARCEL_FAIL;
+        }
+    }
+    return ERR_NONE;
 }
 
 ErrCode AccountIAMMgrStub::ProcCloseSession(MessageParcel &data, MessageParcel &reply)
 {
     if (!CheckPermission(AccountPermissionManager::MANAGE_USER_IDM)) {
-        return ERR_ACCOUNT_ZIDL_CHECK_PERMISSION_ERROR;
+        return ERR_ACCOUNT_IAM_SERVICE_PERMISSION_DENIED;
     }
     int32_t userId;
     if (!data.ReadInt32(userId)) {
         ACCOUNT_LOGE("failed to read userId");
         return ERR_ACCOUNT_IAM_SERVICE_READ_PARCEL_FAIL;
     }
-    CloseSession(userId);
+    int32_t result = CloseSession(userId);
+    if (!reply.WriteInt32(result)) {
+        ACCOUNT_LOGE("failed to write result");
+        return ERR_ACCOUNT_IAM_SERVICE_WRITE_PARCEL_FAIL;
+    }
     return ERR_NONE;
 }
 
@@ -153,7 +167,7 @@ ErrCode AccountIAMMgrStub::ReadUserIdAndAuthType(MessageParcel &data, int32_t &u
 ErrCode AccountIAMMgrStub::AddOrUpdateCredential(MessageParcel &data, MessageParcel &reply, bool isAdd)
 {
     if (!CheckPermission(AccountPermissionManager::MANAGE_USER_IDM)) {
-        return ERR_ACCOUNT_ZIDL_CHECK_PERMISSION_ERROR;
+        return ERR_ACCOUNT_IAM_SERVICE_PERMISSION_DENIED;
     }
     int32_t userId;
     int32_t authType;
@@ -199,7 +213,7 @@ ErrCode AccountIAMMgrStub::ProcUpdateCredential(MessageParcel &data, MessageParc
 ErrCode AccountIAMMgrStub::ProcDelCred(MessageParcel &data, MessageParcel &reply)
 {
     if (!CheckPermission(AccountPermissionManager::MANAGE_USER_IDM)) {
-        return ERR_ACCOUNT_ZIDL_CHECK_PERMISSION_ERROR;
+        return ERR_ACCOUNT_IAM_SERVICE_PERMISSION_DENIED;
     }
     int32_t userId;
     if (!data.ReadInt32(userId)) {
@@ -228,7 +242,7 @@ ErrCode AccountIAMMgrStub::ProcDelCred(MessageParcel &data, MessageParcel &reply
 ErrCode AccountIAMMgrStub::ProcDelUser(MessageParcel &data, MessageParcel &reply)
 {
     if (!CheckPermission(AccountPermissionManager::MANAGE_USER_IDM)) {
-        return ERR_ACCOUNT_ZIDL_CHECK_PERMISSION_ERROR;
+        return ERR_ACCOUNT_IAM_SERVICE_PERMISSION_DENIED;
     }
     int32_t userId;
     if (!data.ReadInt32(userId)) {
@@ -252,26 +266,25 @@ ErrCode AccountIAMMgrStub::ProcDelUser(MessageParcel &data, MessageParcel &reply
 ErrCode AccountIAMMgrStub::ProcCancel(MessageParcel &data, MessageParcel &reply)
 {
     if (!CheckPermission(AccountPermissionManager::MANAGE_USER_IDM)) {
-        return ERR_ACCOUNT_ZIDL_CHECK_PERMISSION_ERROR;
+        return ERR_ACCOUNT_IAM_SERVICE_PERMISSION_DENIED;
     }
     int32_t userId;
     if (!data.ReadInt32(userId)) {
         ACCOUNT_LOGE("failed to read userId");
         return ERR_ACCOUNT_IAM_SERVICE_READ_PARCEL_FAIL;
     }
-    uint64_t challenge;
-    if (!data.ReadUint64(challenge)) {
-        ACCOUNT_LOGE("failed to read challenge");
-        return ERR_ACCOUNT_IAM_SERVICE_READ_PARCEL_FAIL;
+    int32_t result = Cancel(userId);
+    if (!reply.WriteInt32(result)) {
+        ACCOUNT_LOGE("failed to write result");
+        return ERR_ACCOUNT_IAM_SERVICE_WRITE_PARCEL_FAIL;
     }
-    int32_t resultCode = Cancel(userId, challenge);
-    return reply.WriteInt32(resultCode);
+    return ERR_NONE;
 }
 
 ErrCode AccountIAMMgrStub::ProcGetCredentialInfo(MessageParcel &data, MessageParcel &reply)
 {
     if (!CheckPermission(AccountPermissionManager::USE_USER_IDM)) {
-        return ERR_ACCOUNT_ZIDL_CHECK_PERMISSION_ERROR;
+        return ERR_ACCOUNT_IAM_SERVICE_PERMISSION_DENIED;
     }
     int32_t userId;
     int32_t authType;
@@ -284,14 +297,18 @@ ErrCode AccountIAMMgrStub::ProcGetCredentialInfo(MessageParcel &data, MessagePar
         ACCOUNT_LOGE("callback is nullptr");
         return ERR_ACCOUNT_IAM_SERVICE_READ_PARCEL_FAIL;
     }
-    GetCredentialInfo(userId, static_cast<AuthType>(authType), callback);
+    int result = GetCredentialInfo(userId, static_cast<AuthType>(authType), callback);
+    if (!reply.WriteInt32(result)) {
+        ACCOUNT_LOGE("failed to write result");
+        return ERR_ACCOUNT_IAM_SERVICE_WRITE_PARCEL_FAIL;
+    }
     return ERR_NONE;
 }
 
 ErrCode AccountIAMMgrStub::ProcAuthUser(MessageParcel &data, MessageParcel &reply)
 {
     if (!CheckPermission(AccountPermissionManager::ACCESS_USER_AUTH_INTERNAL)) {
-        return ERR_ACCOUNT_ZIDL_CHECK_PERMISSION_ERROR;
+        return ERR_ACCOUNT_IAM_SERVICE_PERMISSION_DENIED;
     }
     int32_t userId;
     if (!data.ReadInt32(userId)) {
@@ -320,13 +337,17 @@ ErrCode AccountIAMMgrStub::ProcAuthUser(MessageParcel &data, MessageParcel &repl
     }
     uint64_t contextId = AuthUser(userId, challenge, static_cast<AuthType>(authType),
         static_cast<AuthTrustLevel>(authTrustLevel), callback);
-    return reply.WriteUint64(contextId);
+    if (!reply.WriteUint64(contextId)) {
+        ACCOUNT_LOGE("failed to write contextId");
+        return ERR_ACCOUNT_IAM_SERVICE_WRITE_PARCEL_FAIL;
+    }
+    return ERR_NONE;
 }
 
 ErrCode AccountIAMMgrStub::ProcCancelAuth(MessageParcel &data, MessageParcel &reply)
 {
     if (!CheckPermission(AccountPermissionManager::ACCESS_USER_AUTH_INTERNAL)) {
-        return ERR_ACCOUNT_ZIDL_CHECK_PERMISSION_ERROR;
+        return ERR_ACCOUNT_IAM_SERVICE_PERMISSION_DENIED;
     }
     uint64_t contextId;
     if (!data.ReadUint64(contextId)) {
@@ -334,13 +355,17 @@ ErrCode AccountIAMMgrStub::ProcCancelAuth(MessageParcel &data, MessageParcel &re
         return ERR_ACCOUNT_IAM_SERVICE_READ_PARCEL_FAIL;
     }
     int32_t result = CancelAuth(contextId);
-    return reply.WriteInt32(result);
+    if (!reply.WriteInt32(result)) {
+        ACCOUNT_LOGE("failed to write result");
+        return ERR_ACCOUNT_IAM_SERVICE_WRITE_PARCEL_FAIL;
+    }
+    return ERR_NONE;
 }
 
 ErrCode AccountIAMMgrStub::ProcGetAvailableStatus(MessageParcel &data, MessageParcel &reply)
 {
     if (!CheckPermission(AccountPermissionManager::ACCESS_USER_AUTH_INTERNAL)) {
-        return ERR_ACCOUNT_ZIDL_CHECK_PERMISSION_ERROR;
+        return ERR_ACCOUNT_IAM_SERVICE_PERMISSION_DENIED;
     }
     int32_t authType;
     if (!data.ReadInt32(authType)) {
@@ -353,14 +378,25 @@ ErrCode AccountIAMMgrStub::ProcGetAvailableStatus(MessageParcel &data, MessagePa
         return ERR_ACCOUNT_IAM_SERVICE_READ_PARCEL_FAIL;
     }
     int32_t status;
-    GetAvailableStatus(static_cast<AuthType>(authType), static_cast<AuthTrustLevel>(authTrustLevel), status);
-    return reply.WriteInt32(status);
+    int32_t result =
+        GetAvailableStatus(static_cast<AuthType>(authType), static_cast<AuthTrustLevel>(authTrustLevel), status);
+    if (!reply.WriteInt32(result)) {
+        ACCOUNT_LOGE("failed to write result");
+        return ERR_ACCOUNT_IAM_SERVICE_WRITE_PARCEL_FAIL;
+    }
+    if (result == ERR_OK) {
+        if (!reply.WriteInt32(status)) {
+            ACCOUNT_LOGE("failed to write status");
+            return ERR_ACCOUNT_IAM_SERVICE_WRITE_PARCEL_FAIL;
+        }
+    }
+    return ERR_NONE;
 }
 
 ErrCode AccountIAMMgrStub::ProcGetProperty(MessageParcel &data, MessageParcel &reply)
 {
     if (!CheckPermission(AccountPermissionManager::ACCESS_USER_AUTH_INTERNAL)) {
-        return ERR_ACCOUNT_ZIDL_CHECK_PERMISSION_ERROR;
+        return ERR_ACCOUNT_IAM_SERVICE_PERMISSION_DENIED;
     }
     int32_t userId;
     int32_t authType;
@@ -389,7 +425,7 @@ ErrCode AccountIAMMgrStub::ProcGetProperty(MessageParcel &data, MessageParcel &r
 ErrCode AccountIAMMgrStub::ProcSetProperty(MessageParcel &data, MessageParcel &reply)
 {
     if (!CheckPermission(AccountPermissionManager::ACCESS_USER_AUTH_INTERNAL)) {
-        return ERR_ACCOUNT_ZIDL_CHECK_PERMISSION_ERROR;
+        return ERR_ACCOUNT_IAM_SERVICE_PERMISSION_DENIED;
     }
     int32_t userId;
     int32_t authType;
@@ -422,7 +458,11 @@ ErrCode AccountIAMMgrStub::ProcGetAccountState(MessageParcel &data, MessageParce
         return ERR_ACCOUNT_IAM_SERVICE_READ_PARCEL_FAIL;
     }
     IAMState state = GetAccountState(userId);
-    return reply.WriteInt32(state);
+    if (!reply.WriteInt32(state)) {
+        ACCOUNT_LOGE("failed to write state");
+        return ERR_ACCOUNT_IAM_SERVICE_WRITE_PARCEL_FAIL;
+    }
+    return ERR_NONE;
 }
 
 bool AccountIAMMgrStub::CheckPermission(const std::string &permission)
