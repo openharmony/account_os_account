@@ -249,7 +249,7 @@ HWTEST_F(AppAccountManagerTest, AppAccountManager_AddAccount_0400, TestSize.Leve
  * @tc.name: AppAccountManager_CreateAccount_0100
  * @tc.desc: create an app account with invalid name data.
  * @tc.type: FUNC
- * @tc.require: issueI5RWXN 
+ * @tc.require: issueI5RWXN
  */
 HWTEST_F(AppAccountManagerTest, AppAccountManager_CreateAccount_0100, TestSize.Level1)
 {

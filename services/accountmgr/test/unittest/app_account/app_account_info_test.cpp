@@ -389,7 +389,7 @@ HWTEST_F(AppAccountInfoTest, AppAccountInfo_InitCustomData_0100, TestSize.Level1
 {
     ACCOUNT_LOGI("AppAccountInfo_InitCustomData_0100");
 
-    // make custom data   
+    // make custom data
     std::map<std::string, std::string> customData;
     customData.emplace(STRING_ASSOCIATED_KEY, STRING_ASSOCIATED_VALUE);
 
