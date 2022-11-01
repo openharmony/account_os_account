@@ -37,38 +37,11 @@ void UvQueueWorkOnAppAccountsChanged(uv_work_t *work, int status)
     if (work == nullptr || work->data == nullptr) {
         return;
     }
-    SubscriberAccountsWorker *subscriberAccountsWorkerData = reinterpret_cast<SubscriberAccountsWorker *>(work->data);
-    uint32_t index = 0;
-    napi_value results[ARGS_SIZE_ONE] = {nullptr};
-    napi_create_array(subscriberAccountsWorkerData->env, &results[0]);
-    for (auto item : subscriberAccountsWorkerData->accounts) {
-        napi_value objAppAccountInfo = nullptr;
-        napi_create_object(subscriberAccountsWorkerData->env, &objAppAccountInfo);
-
-        std::string name;
-        item.GetName(name);
-        napi_value nName;
-        napi_create_string_utf8(subscriberAccountsWorkerData->env, name.c_str(), NAPI_AUTO_LENGTH, &nName);
-        napi_set_named_property(subscriberAccountsWorkerData->env, objAppAccountInfo, "name", nName);
-
-        std::string owner;
-        item.GetOwner(owner);
-        napi_value nOwner = nullptr;
-        napi_create_string_utf8(subscriberAccountsWorkerData->env, owner.c_str(), NAPI_AUTO_LENGTH, &nOwner);
-        napi_set_named_property(subscriberAccountsWorkerData->env, objAppAccountInfo, "owner", nOwner);
-
-        napi_set_element(subscriberAccountsWorkerData->env, results[0], index, objAppAccountInfo);
-        index++;
-    }
-
-    napi_value undefined = nullptr;
-    napi_get_undefined(subscriberAccountsWorkerData->env, &undefined);
-    napi_value callback = nullptr;
-    napi_value resultout = nullptr;
+    SubscriberAccountsWorker *data = reinterpret_cast<SubscriberAccountsWorker *>(work->data);
     bool isFound = false;
     {
         std::lock_guard<std::mutex> lock(g_lockForAppAccountSubscribers);
-        SubscriberPtr *subscriber = subscriberAccountsWorkerData->subscriber;
+        SubscriberPtr *subscriber = data->subscriber;
         for (auto objectInfoTmp : g_AppAccountSubscribers) {
             isFound = std::any_of(objectInfoTmp.second.begin(), objectInfoTmp.second.end(),
                 [subscriber](const AsyncContextForSubscribe *item) {
@@ -76,17 +49,22 @@ void UvQueueWorkOnAppAccountsChanged(uv_work_t *work, int status)
                 });
             if (isFound) {
                 ACCOUNT_LOGD("app account subscriber has been found.");
-                napi_get_reference_value(
-                    subscriberAccountsWorkerData->env, subscriberAccountsWorkerData->ref, &callback);
-                napi_call_function(
-                    subscriberAccountsWorkerData->env, undefined, callback, ARGS_SIZE_ONE, &results[0], &resultout);
                 break;
             }
         }
     }
-
-    delete subscriberAccountsWorkerData;
-    subscriberAccountsWorkerData = nullptr;
+    if (isFound) {
+        napi_value undefined = nullptr;
+        napi_get_undefined(data->env, &undefined);
+        napi_value callback = nullptr;
+        napi_get_reference_value(data->env, data->ref, &callback);
+        napi_value results[ARGS_SIZE_ONE] = {nullptr};
+        GetAppAccountInfoForResult(data->env, data->accounts, results[0]);
+        napi_value resultOut = nullptr;
+        napi_call_function(data->env, undefined, callback, ARGS_SIZE_ONE, &results[0], &resultOut);
+    }
+    delete data;
+    data = nullptr;
     delete work;
 }
 
@@ -396,10 +374,10 @@ napi_value GetErrorCodeValue(napi_env env, int errCode)
     return jsObject;
 }
 
-void GetAppAccountInfoForResult(napi_env env, const std::vector<AppAccountInfo> &info, napi_value result)
+void GetAppAccountInfoForResult(napi_env env, const std::vector<AppAccountInfo> &info, napi_value &result)
 {
+    napi_create_array(env, &result);
     uint32_t index = 0;
-
     for (auto item : info) {
         napi_value objAppAccountInfo = nullptr;
         napi_create_object(env, &objAppAccountInfo);
