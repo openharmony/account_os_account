@@ -44,6 +44,8 @@ const std::string PERMISSION_MANAGE_DISTRIBUTED_ACCOUNTS = "ohos.permission.MANA
 const std::string PERMISSION_GET_DISTRIBUTED_ACCOUNTS = "ohos.permission.GET_DISTRIBUTED_ACCOUNTS";
 const std::string PERMISSION_DISTRIBUTED_DATASYNC = "ohos.permission.DISTRIBUTED_DATASYNC";
 constexpr std::int32_t ROOT_UID = 0;
+constexpr std::int32_t DLP_UID = 3019;
+constexpr std::int32_t DLP_CREDENTIAL_SA_UID = 3553;
 #ifdef USE_MUSL
 constexpr std::int32_t DSOFTBUS_UID = 1024;
 #else
@@ -57,6 +59,7 @@ const std::map<std::uint32_t, AccountStubFunc> AccountStub::stubFuncMap_{
     std::make_pair(GET_OHOS_ACCOUNT_INFO, &AccountStub::CmdGetOhosAccountInfo),
     std::make_pair(QUERY_OHOS_ACCOUNT_QUIT_TIPS, &AccountStub::CmdQueryOhosQuitTips),
     std::make_pair(QUERY_OHOS_ACCOUNT_INFO_BY_USER_ID, &AccountStub::CmdQueryOhosAccountInfoByUserId),
+    std::make_pair(GET_OHOS_ACCOUNT_INFO_BY_USER_ID, &AccountStub::CmdGetOhosAccountInfoByUserId),
     std::make_pair(QUERY_DEVICE_ACCOUNT_ID, &AccountStub::CmdQueryDeviceAccountId),
     std::make_pair(GET_APP_ACCOUNT_SERVICE, &AccountStub::CmdGetAppAccountService),
     std::make_pair(GET_OS_ACCOUNT_SERVICE, &AccountStub::CmdGetOsAccountService),
@@ -165,6 +168,7 @@ std::int32_t AccountStub::InnerGetOhosAccountInfo(MessageParcel &data, MessagePa
 {
     OhosAccountInfo ohosAccountInfo;
     int ret = GetOhosAccountInfo(ohosAccountInfo);
+    ohosAccountInfo.SetRawUid("");
     if (ret != ERR_OK) {
         ACCOUNT_LOGE("Get ohos account info failed");
         return ERR_ACCOUNT_ZIDL_ACCOUNT_STUB_ERROR;
@@ -187,7 +191,7 @@ std::int32_t AccountStub::CmdQueryOhosAccountInfo(MessageParcel &data, MessagePa
     return InnerQueryOhosAccountInfo(data, reply);
 }
 
-std::int32_t AccountStub::CmdGetOhosAccountInfo(MessageParcel &data, MessageParcel &reply)
+ErrCode AccountStub::CmdGetOhosAccountInfo(MessageParcel &data, MessageParcel &reply)
 {
     if (!HasAccountRequestPermission(PERMISSION_MANAGE_DISTRIBUTED_ACCOUNTS) &&
         !HasAccountRequestPermission(PERMISSION_DISTRIBUTED_DATASYNC) &&
@@ -197,6 +201,32 @@ std::int32_t AccountStub::CmdGetOhosAccountInfo(MessageParcel &data, MessageParc
     }
 
     return InnerGetOhosAccountInfo(data, reply);
+}
+
+ErrCode AccountStub::CmdGetOhosAccountInfoByUserId(MessageParcel &data, MessageParcel &reply)
+{
+    if (!HasAccountRequestPermission(PERMISSION_MANAGE_DISTRIBUTED_ACCOUNTS) &&
+        !HasAccountRequestPermission(PERMISSION_DISTRIBUTED_DATASYNC) &&
+        !HasAccountRequestPermission(PERMISSION_GET_DISTRIBUTED_ACCOUNTS)) {
+        ACCOUNT_LOGE("Check permission failed");
+        return ERR_ACCOUNT_ZIDL_CHECK_PERMISSION_ERROR;
+    }
+    std::int32_t userId = data.ReadInt32();
+    OhosAccountInfo ohosAccountInfo;
+    ErrCode ret = GetOhosAccountInfoByUserId(userId, ohosAccountInfo);
+    if (ret != ERR_OK) {
+        ACCOUNT_LOGE("Get ohos account info failed");
+        return ret;
+    }
+    int32_t uid = IPCSkeleton::GetCallingUid();
+    if ((uid != DLP_UID) && (uid != DLP_CREDENTIAL_SA_UID)) {
+        ohosAccountInfo.SetRawUid("");
+    }
+    if (!WriteOhosAccountInfo(reply, ohosAccountInfo)) {
+        ACCOUNT_LOGE("Write ohosAccountInfo failed!");
+        return ERR_ACCOUNT_COMMON_WRITE_PARCEL_ERROR;
+    }
+    return ERR_OK;
 }
 
 std::int32_t AccountStub::CmdQueryOhosAccountInfoByUserId(MessageParcel &data, MessageParcel &reply)

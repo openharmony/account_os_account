@@ -51,7 +51,15 @@ public:
      * @param OhosAccountInfo. ohos account info
      * @return Return error code.
      */
-    virtual std::int32_t GetOhosAccountInfo(OhosAccountInfo &accountInfo) = 0;
+    virtual ErrCode GetOhosAccountInfo(OhosAccountInfo &accountInfo) = 0;
+
+    /**
+     * Get OHOS account info by user id.
+     *
+     * @param OhosAccountInfo. ohos account info
+     * @return Return error code.
+     */
+    virtual ErrCode GetOhosAccountInfoByUserId(int32_t userId, OhosAccountInfo &accountInfo) = 0;
 
     /**
      * Query OHOS Account Info By user ID.
