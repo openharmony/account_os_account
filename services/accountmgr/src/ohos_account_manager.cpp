@@ -187,16 +187,17 @@ AccountInfo OhosAccountManager::GetCurrentOhosAccountInfo()
     return currOhosAccountInfo;
 }
 
-AccountInfo OhosAccountManager::GetOhosAccountInfoByUserId(std::int32_t userId)
+ErrCode OhosAccountManager::GetAccountInfoByUserId(std::int32_t userId, AccountInfo &info)
 {
     std::lock_guard<std::mutex> mutexLock(mgrMutex_);
 
-    AccountInfo accountInfo;
-    if (dataDealer_->AccountInfoFromJson(accountInfo, userId) != ERR_OK) {
+    ErrCode ret = dataDealer_->AccountInfoFromJson(info, userId);
+    if (ret != ERR_OK) {
         ACCOUNT_LOGE("get ohos account info failed, userId %{public}d.", userId);
-        accountInfo.clear();
+        info.clear();
+        return ret;
     }
-    return accountInfo;
+    return ERR_OK;
 }
 
 /**
@@ -266,45 +267,42 @@ bool OhosAccountManager::LoginOhosAccount(const OhosAccountInfo &ohosAccountInfo
     }
 
     if (!CheckOhosAccountCanBind(ohosAccountUid)) {
-        ACCOUNT_LOGE("check can be bound failed, callingUserId %{public}d, ohosAccountUid %{public}s.",
-            callingUserId, ohosAccountUid.c_str());
+        ACCOUNT_LOGE("check can be bound failed, callingUserId %{public}d.", callingUserId);
         return false;
     }
 
-     // update account status
+    // update account status
     if (!HandleEvent(currAccountInfo, eventStr)) {
-        ACCOUNT_LOGE("HandleEvent %{public}s failed! callingUserId %{public}d, ohosAccountUid %{public}s.",
-            eventStr.c_str(), callingUserId, ohosAccountUid.c_str());
+        ACCOUNT_LOGE("HandleEvent %{public}s failed! callingUserId %{public}d.", eventStr.c_str(), callingUserId);
         return false;
     }
 
     // update account info
     currAccountInfo.ohosAccountInfo_ = ohosAccountInfo;
+    currAccountInfo.ohosAccountInfo_.SetRawUid(ohosAccountInfo.uid_);
     currAccountInfo.ohosAccountInfo_.uid_ = ohosAccountUid;
     currAccountInfo.ohosAccountInfo_.status_ = ACCOUNT_STATE_LOGIN;
     currAccountInfo.bindTime_ = std::time(nullptr);
     currAccountInfo.userId_ = callingUserId;
     if (!SaveOhosAccountInfo(currAccountInfo)) {
-        ACCOUNT_LOGE("SaveOhosAccountInfo failed! callingUserId %{public}d, ohosAccountUid %{public}s.",
-            callingUserId, ohosAccountUid.c_str());
+        ACCOUNT_LOGE("SaveOhosAccountInfo failed! callingUserId %{public}d.", callingUserId);
         return false;
     }
 
     // publish event
 #ifdef HAS_CES_PART
-    bool errCode = AccountEventProvider::EventPublish(EventFwk::CommonEventSupport::COMMON_EVENT_HWID_LOGIN);
-    if (!errCode) {
-        ACCOUNT_LOGE("publish ohos account login event failed! callingUserId %{public}d, ohosAccountUid %{public}s.",
-            callingUserId, ohosAccountUid.c_str());
+    bool ret = AccountEventProvider::EventPublish(
+        EventFwk::CommonEventSupport::COMMON_EVENT_HWID_LOGIN, callingUserId);
+    if (!ret) {
+        ACCOUNT_LOGE("publish ohos account login event failed! callingUserId %{public}d.", callingUserId);
         ReportOhosAccountOperationFail(
-            currAccountInfo.userId_, EVENT_PUBLISH, errCode, "publish COMMON_EVENT_HWID_LOGIN failed");
+            currAccountInfo.userId_, EVENT_PUBLISH, ret, "publish COMMON_EVENT_HWID_LOGIN failed");
         return false;
     }
 #else // HAS_CES_PART
     ACCOUNT_LOGI("No common event part, publish nothing!");
 #endif // HAS_CES_PART
-    ACCOUNT_LOGI("LoginOhosAccount success! callingUserId %{public}d, ohosAccountUid %{public}s.",
-        callingUserId, ohosAccountUid.c_str());
+    ACCOUNT_LOGI("LoginOhosAccount success! callingUserId %{public}d", callingUserId);
     return true;
 }
 
@@ -323,30 +321,26 @@ bool OhosAccountManager::LogoutOhosAccount(const OhosAccountInfo &ohosAccountInf
     AccountInfo currentAccount;
     if (!GetCurOhosAccountAndCheckMatch(currentAccount, ohosAccountInfo.name_,
                                         ohosAccountInfo.uid_, callingUserId)) {
-        ACCOUNT_LOGE("check match failed, callingUserId %{public}d, ohosAccountUid %{public}s.",
-            callingUserId, ohosAccountInfo.uid_.c_str());
+        ACCOUNT_LOGE("check match failed, callingUserId %{public}d.", callingUserId);
         return false;
     }
 
     bool ret = HandleEvent(currentAccount, eventStr); // update account status
     if (!ret) {
-        ACCOUNT_LOGE("HandleEvent %{public}s failed, callingUserId %{public}d, ohosAccountUid %{public}s.",
-            eventStr.c_str(), callingUserId, ohosAccountInfo.uid_.c_str());
+        ACCOUNT_LOGE("HandleEvent %{public}s failed, callingUserId %{public}d.", eventStr.c_str(), callingUserId);
         return false;
     }
 
     ret = ClearOhosAccount(currentAccount); // clear account info with ACCOUNT_STATE_UNBOUND
     if (!ret) {
-        ACCOUNT_LOGE("ClearOhosAccount failed! callingUserId %{public}d, ohosAccountUid %{public}s.",
-            callingUserId, ohosAccountInfo.uid_.c_str());
+        ACCOUNT_LOGE("ClearOhosAccount failed! callingUserId %{public}d.", callingUserId);
         return false;
     }
 
 #ifdef HAS_CES_PART
-    ret = AccountEventProvider::EventPublish(EventFwk::CommonEventSupport::COMMON_EVENT_HWID_LOGOUT);
+    ret = AccountEventProvider::EventPublish(EventFwk::CommonEventSupport::COMMON_EVENT_HWID_LOGOUT, callingUserId);
     if (!ret) {
-        ACCOUNT_LOGE("publish account logout event failed, callingUserId %{public}d, ohosAccountUid %{public}s.",
-            callingUserId, ohosAccountInfo.uid_.c_str());
+        ACCOUNT_LOGE("publish account logout event failed, callingUserId %{public}d.", callingUserId);
         ReportOhosAccountOperationFail(
             currentAccount.userId_, EVENT_PUBLISH, ret, "publish COMMON_EVENT_HWID_LOGOUT failed");
         return false;
@@ -354,8 +348,7 @@ bool OhosAccountManager::LogoutOhosAccount(const OhosAccountInfo &ohosAccountInf
 #else // HAS_CES_PART
     ACCOUNT_LOGI("No common event part! Publish nothing!");
 #endif // HAS_CES_PART
-    ACCOUNT_LOGI("LogoutOhosAccount success, callingUserId %{public}d, ohosAccountUid %{public}s.",
-        callingUserId, ohosAccountInfo.uid_.c_str());
+    ACCOUNT_LOGI("LogoutOhosAccount success, callingUserId %{public}d.", callingUserId);
     return true;
 }
 
@@ -373,29 +366,26 @@ bool OhosAccountManager::LogoffOhosAccount(const OhosAccountInfo &ohosAccountInf
     std::int32_t callingUserId = GetCallingUserID();
     AccountInfo currentAccount;
     if (!GetCurOhosAccountAndCheckMatch(currentAccount, ohosAccountInfo.name_, ohosAccountInfo.uid_, callingUserId)) {
-        ACCOUNT_LOGE("check match failed, callingUserId %{public}d, ohosAccountUid %{public}s.",
-            callingUserId, ohosAccountInfo.uid_.c_str());
+        ACCOUNT_LOGE("check match failed, callingUserId %{public}d.", callingUserId);
         return false;
     }
 
     bool ret = HandleEvent(currentAccount, eventStr); // update account status
     if (!ret) {
-        ACCOUNT_LOGE("HandleEvent %{public}s failed, callingUserId %{public}d, ohosAccountUid %{public}s.",
-            eventStr.c_str(), callingUserId, ohosAccountInfo.uid_.c_str());
+        ACCOUNT_LOGE("HandleEvent %{public}s failed, callingUserId %{public}d.", eventStr.c_str(), callingUserId);
         return false;
     }
 
     ret = ClearOhosAccount(currentAccount, ACCOUNT_STATE_LOGOFF); // clear account info with ACCOUNT_STATE_LOGOFF
     if (!ret) {
-        ACCOUNT_LOGE("ClearOhosAccount failed, callingUserId %{public}d, ohosAccountUid %{public}s.",
-            callingUserId, ohosAccountInfo.uid_.c_str());
+        ACCOUNT_LOGE("ClearOhosAccount failed, callingUserId %{public}d.", callingUserId);
         return false;
     }
 #ifdef HAS_CES_PART
-    bool errCode = AccountEventProvider::EventPublish(EventFwk::CommonEventSupport::COMMON_EVENT_HWID_LOGOFF);
+    bool errCode = AccountEventProvider::EventPublish(
+        EventFwk::CommonEventSupport::COMMON_EVENT_HWID_LOGOFF, callingUserId);
     if (!errCode) {
-        ACCOUNT_LOGE("publish account logoff event failed, callingUserId %{public}d, ohosAccountUid %{public}s.",
-            callingUserId, ohosAccountInfo.uid_.c_str());
+        ACCOUNT_LOGE("publish account logoff event failed, callingUserId %{public}d.", callingUserId);
         ReportOhosAccountOperationFail(
             currentAccount.userId_, EVENT_PUBLISH, errCode, "publish COMMON_EVENT_HWID_LOGOFF failed");
         return false;
@@ -403,8 +393,7 @@ bool OhosAccountManager::LogoffOhosAccount(const OhosAccountInfo &ohosAccountInf
 #else // HAS_CES_PART
     ACCOUNT_LOGI("No common event part, publish nothing for logoff!");
 #endif // HAS_CES_PART
-    ACCOUNT_LOGI("LogoffOhosAccount success, callingUserId %{public}d, ohosAccountUid %{public}s.",
-        callingUserId, ohosAccountInfo.uid_.c_str());
+    ACCOUNT_LOGI("LogoffOhosAccount success, callingUserId %{public}d.", callingUserId);
     return true;
 }
 
@@ -424,29 +413,26 @@ bool OhosAccountManager::HandleOhosAccountTokenInvalidEvent(
     AccountInfo currentOhosAccount;
     if (!GetCurOhosAccountAndCheckMatch(currentOhosAccount, ohosAccountInfo.name_,
                                         ohosAccountInfo.uid_, callingUserId)) {
-        ACCOUNT_LOGE("check match failed, callingUserId %{public}d, ohosAccountUid %{public}s.",
-            callingUserId, ohosAccountInfo.uid_.c_str());
+        ACCOUNT_LOGE("check match failed, callingUserId %{public}d.", callingUserId);
         return false;
     }
 
     bool ret = HandleEvent(currentOhosAccount, eventStr); // update account status
     if (!ret) {
-        ACCOUNT_LOGE("HandleEvent %{public}s failed, callingUserId %{public}d, ohosAccountUid %{public}s.",
-            eventStr.c_str(), callingUserId, ohosAccountInfo.uid_.c_str());
+        ACCOUNT_LOGE("HandleEvent %{public}s failed, callingUserId %{public}d.", eventStr.c_str(), callingUserId);
         return false;
     }
 
     ret = SaveOhosAccountInfo(currentOhosAccount);
     if (!ret) {
         // moving on even if failed to update account info
-        ACCOUNT_LOGW("SaveOhosAccountInfo failed, callingUserId %{public}d, ohosAccountUid %{public}s.",
-            callingUserId, ohosAccountInfo.uid_.c_str());
+        ACCOUNT_LOGW("SaveOhosAccountInfo failed, callingUserId %{public}d.", callingUserId);
     }
 #ifdef HAS_CES_PART
-    bool errCode = AccountEventProvider::EventPublish(EventFwk::CommonEventSupport::COMMON_EVENT_HWID_TOKEN_INVALID);
+    bool errCode = AccountEventProvider::EventPublish(
+        EventFwk::CommonEventSupport::COMMON_EVENT_HWID_TOKEN_INVALID, callingUserId);
     if (!errCode) {
-        ACCOUNT_LOGE("publish token invalid event failed, callingUserId %{public}d, ohosAccountUid %{public}s.",
-            callingUserId, ohosAccountInfo.uid_.c_str());
+        ACCOUNT_LOGE("publish token invalid event failed, callingUserId %{public}d.", callingUserId);
         ReportOhosAccountOperationFail(
             currentOhosAccount.userId_, EVENT_PUBLISH, errCode, "publish COMMON_EVENT_HWID_TOKEN_INVALID failed");
         return false;
@@ -454,8 +440,7 @@ bool OhosAccountManager::HandleOhosAccountTokenInvalidEvent(
 #else // HAS_CES_PART
     ACCOUNT_LOGI("No common event part, publish nothing for token invalid event.");
 #endif // HAS_CES_PART
-    ACCOUNT_LOGI("success, callingUserId %{public}d, ohosAccountUid %{public}s.",
-        callingUserId, ohosAccountInfo.uid_.c_str());
+    ACCOUNT_LOGI("success, callingUserId %{public}d.", callingUserId);
     return true;
 }
 
