@@ -41,9 +41,8 @@ public:
 namespace OHOS {
     bool SubscribeOsAccountFuzzTest(const uint8_t* data, size_t size)
     {
-        int32_t result = ERR_OK;
         std::shared_ptr<OsAccountSubscriber> subscriber = make_shared<TestOsAccountSubscriber>();
-        result = OsAccountManager::SubscribeOsAccount(subscriber);
+        int32_t result = OsAccountManager::SubscribeOsAccount(subscriber);
         return result == OHOS::ERR_OK;
     }
 }
