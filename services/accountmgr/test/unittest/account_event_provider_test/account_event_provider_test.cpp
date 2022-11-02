@@ -31,6 +31,10 @@ using namespace OHOS::AccountSA;
 using namespace OHOS::EventFwk;
 #endif
 
+namespace {
+constexpr int32_t DEFAULT_USER_ID = 100;
+}
+
 class AccountEventProviderTest : public testing::Test {
 public:
 
@@ -57,7 +61,8 @@ void AccountEventProviderTest::TearDown() {}
 HWTEST_F(AccountEventProviderTest, AccountEventProviderTest001, TestSize.Level0)
 {
 #ifdef HAS_CES_PART
-    bool ret = AccountEventProvider::EventPublish(EventFwk::CommonEventSupport::COMMON_EVENT_HWID_LOGOFF);
+    bool ret = AccountEventProvider::EventPublish(
+        EventFwk::CommonEventSupport::COMMON_EVENT_HWID_LOGOFF, DEFAULT_USER_ID);
     EXPECT_EQ(true, ret);
 #endif // HAS_CES_PART
 }

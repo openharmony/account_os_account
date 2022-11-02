@@ -48,7 +48,7 @@ public:
      * @param userId target local account id
      * @return ohos account info which is bound to the local userId.
      */
-    AccountInfo GetOhosAccountInfoByUserId(std::int32_t userId);
+    ErrCode GetAccountInfoByUserId(std::int32_t userId, AccountInfo &info);
 
     /**
      * Get current account state.
