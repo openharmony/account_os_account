@@ -241,7 +241,7 @@ void CheckAccountLabelsOnResultWork(uv_work_t *work, int status);
 
 void SelectAccountsOnResultWork(uv_work_t *work, int status);
 
-void GetAppAccountInfoForResult(napi_env env, const std::vector<AppAccountInfo> &info, napi_value result);
+void GetAppAccountInfoForResult(napi_env env, const std::vector<AppAccountInfo> &info, napi_value &result);
 
 void GetAuthenticatorInfoForResult(napi_env env, const AuthenticatorInfo &info, napi_value &result);
 
