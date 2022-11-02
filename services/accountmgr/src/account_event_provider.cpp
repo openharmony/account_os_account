@@ -31,11 +31,12 @@ using namespace OHOS::EventFwk;
 
 namespace OHOS {
 namespace AccountSA {
-bool AccountEventProvider::EventPublish(const std::string& event)
+bool AccountEventProvider::EventPublish(const std::string& event, int32_t userId)
 {
 #ifdef HAS_CES_PART
     Want want;
     want.SetAction(event);
+    want.SetParam("userId", userId);
     CommonEventData data;
     data.SetWant(want);
     StartTrace(HITRACE_TAG_ACCOUNT_MANAGER, "Ohos account event publish.");

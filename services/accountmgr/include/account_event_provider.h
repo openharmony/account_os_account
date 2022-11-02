@@ -24,7 +24,7 @@ namespace OHOS {
 namespace AccountSA {
 class AccountEventProvider {
 public:
-    static bool EventPublish(const std::string& event);
+    static bool EventPublish(const std::string& event, int32_t userId);
 };
 }  // namespace AccountSA
 }  // namespace OHOS
