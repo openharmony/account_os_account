@@ -128,7 +128,7 @@ std::pair<bool, OhosAccountInfo> AccountProxy::QueryOhosAccountInfo(void)
     return std::make_pair(true, OhosAccountInfo(Str16ToStr8(name), Str16ToStr8(uid), status));
 }
 
-std::int32_t AccountProxy::GetOhosAccountInfo(OhosAccountInfo &ohosAccountInfo)
+ErrCode AccountProxy::GetOhosAccountInfo(OhosAccountInfo &ohosAccountInfo)
 {
     MessageParcel data;
     MessageParcel reply;
@@ -154,6 +154,30 @@ std::int32_t AccountProxy::GetOhosAccountInfo(OhosAccountInfo &ohosAccountInfo)
     }
 
     ACCOUNT_LOGD("QueryOhosAccountInfo exit");
+    return ERR_OK;
+}
+
+ErrCode AccountProxy::GetOhosAccountInfoByUserId(int32_t userId, OhosAccountInfo &info)
+{
+    MessageParcel data;
+    if (!data.WriteInterfaceToken(GetDescriptor())) {
+        ACCOUNT_LOGE("Write descriptor failed");
+        return ERR_ACCOUNT_ZIDL_WRITE_PARCEL_DATA_ERROR;
+    }
+    if (!data.WriteInt32(userId)) {
+        ACCOUNT_LOGE("failed to write int for userId %{public}d.", userId);
+        return ERR_ACCOUNT_ZIDL_WRITE_PARCEL_DATA_ERROR;
+    }
+    MessageParcel reply;
+    MessageOption option;
+    auto ret = Remote()->SendRequest(GET_OHOS_ACCOUNT_INFO_BY_USER_ID, data, reply, option);
+    if (ret != ERR_NONE) {
+        ACCOUNT_LOGE("SendRequest failed %{public}d", ret);
+        return ret;
+    }
+    if (!ReadOhosAccountInfo(reply, info)) {
+        return ERR_ACCOUNT_COMMON_READ_PARCEL_ERROR;
+    }
     return ERR_OK;
 }
 
