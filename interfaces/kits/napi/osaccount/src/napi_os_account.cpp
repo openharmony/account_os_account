@@ -1506,15 +1506,6 @@ void UvQueueWorkOnAccountsChanged(uv_work_t *work, int status)
         return;
     }
     SubscriberOAWorker *subscriberOAWorkerData = reinterpret_cast<SubscriberOAWorker *>(work->data);
-
-    napi_value result[ARGS_SIZE_ONE] = {nullptr};
-    napi_create_int32(subscriberOAWorkerData->env, subscriberOAWorkerData->id, &result[PARAMZERO]);
-
-    napi_value undefined = nullptr;
-    napi_get_undefined(subscriberOAWorkerData->env, &undefined);
-
-    napi_value callback = nullptr;
-    napi_value resultout = nullptr;
     bool isFound = false;
     {
         std::lock_guard<std::mutex> lock(g_lockForOsAccountSubscribers);
@@ -1526,12 +1517,20 @@ void UvQueueWorkOnAccountsChanged(uv_work_t *work, int status)
                 });
             if (isFound) {
                 ACCOUNT_LOGD("os account subscriber has been found.");
-                napi_get_reference_value(subscriberOAWorkerData->env, subscriberOAWorkerData->ref, &callback);
-                napi_call_function(
-                    subscriberOAWorkerData->env, undefined, callback, ARGS_SIZE_ONE, &result[0], &resultout);
                 break;
             }
         }
+    }
+    if (isFound) {
+        napi_value result[ARGS_SIZE_ONE] = {nullptr};
+        napi_create_int32(subscriberOAWorkerData->env, subscriberOAWorkerData->id, &result[PARAMZERO]);
+        napi_value undefined = nullptr;
+        napi_get_undefined(subscriberOAWorkerData->env, &undefined);
+        napi_value callback = nullptr;
+        napi_get_reference_value(subscriberOAWorkerData->env, subscriberOAWorkerData->ref, &callback);
+        napi_value resultOut = nullptr;
+        napi_call_function(
+            subscriberOAWorkerData->env, undefined, callback, ARGS_SIZE_ONE, &result[0], &resultOut);
     }
     delete subscriberOAWorkerData;
     subscriberOAWorkerData = nullptr;
