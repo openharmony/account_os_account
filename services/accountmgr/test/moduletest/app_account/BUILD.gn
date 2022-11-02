@@ -325,6 +325,7 @@ group("moduletest") {
 
   deps = [
     ":account_permission_manager_module_test",
+    ":app_account_authenticate_test",
     ":app_account_control_manager_module_test",
     ":app_account_manager_service_module_test",
     ":app_account_manager_service_subscribe_module_test",
