@@ -791,7 +791,6 @@ napi_value NapiAppAccount::GetAllAccessibleAccountsInternal(napi_env env, napi_c
         [](napi_env env, napi_status status, void *data) {
             GetAccountsAsyncContext *asyncContext = reinterpret_cast<GetAccountsAsyncContext *>(data);
             napi_value arrVal = nullptr;
-            napi_create_array(env, &arrVal);
             GetAppAccountInfoForResult(env, asyncContext->appAccounts, arrVal);
             if (asyncContext->throwErr) {
                 ProcessCallbackOrPromise(env, asyncContext,
@@ -866,15 +865,10 @@ napi_value NapiAppAccount::GetAccountsByOwnerInternal(napi_env env, napi_callbac
         [](napi_env env, napi_status status, void *data) {
             GetAccountsAsyncContext *asyncContext = reinterpret_cast<GetAccountsAsyncContext *>(data);
             napi_value arrVal = nullptr;
-            napi_create_array(env, &arrVal);
             GetAppAccountInfoForResult(env, asyncContext->appAccounts, arrVal);
-            if (asyncContext->throwErr) {
-                ProcessCallbackOrPromise(env, asyncContext,
-                    GenerateBusinessError(env, asyncContext->errCode), arrVal);
-            } else {
-                ProcessCallbackOrPromise(env, asyncContext,
-                    GetErrorCodeValue(env, ConvertToJSErrCodeV8(asyncContext->errCode)), arrVal);
-            }
+            napi_value err = asyncContext->throwErr ? GenerateBusinessError(env, asyncContext->errCode) :
+                GetErrorCodeValue(env, ConvertToJSErrCodeV8(asyncContext->errCode));
+            ProcessCallbackOrPromise(env, asyncContext, err, arrVal);
             napi_delete_async_work(env, asyncContext->work);
             delete asyncContext;
             asyncContext = nullptr;
