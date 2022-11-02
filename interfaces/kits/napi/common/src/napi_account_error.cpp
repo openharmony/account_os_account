@@ -43,8 +43,10 @@ static const std::unordered_map<uint32_t, std::string> g_errorStringMap = {
     {ERR_JS_AUTH_SERVICE_BUSY, "Auth service is busy, please try again later"},
     {ERR_JS_AUTH_SERVICE_LOCKED,
      "Auth service is locked, auth fail too many times, please try again after freezingTime"},
-    {ERR_JS_CREDENTIAL_NOT_EXIST, "Credential not found, please check whether Credential exists and try again"},
+    {ERR_JS_CREDENTIAL_NOT_EXIST, "Credential not found, please check whether credential exists and try again"},
     {ERR_JS_INVALID_CONTEXT_ID, "Context ID is invalid, please check the context ID and try again"},
+    {ERR_JS_AUTH_CREDENTIAL_WRONG_ERROR,
+     "Auth credential incorrect, please check the password or credential, and try again"},
     {ERR_JS_APPLICATION_NOT_EXIST, "Application not found, please check the bundle name and try again"},
     {ERR_JS_ACCOUNT_AUTHENTICATOR_NOT_EXIST, "Application account authenticator service is not available, please try "
                                              "again with applications that support authenticator service"},
@@ -79,7 +81,7 @@ napi_value GenerateBusinessError(napi_env env, int32_t jsErrCode, const std::str
     return errJs;
 }
 
-static std::string ConvertToJsErrMsg(int32_t jsErrCode)
+std::string ConvertToJsErrMsg(int32_t jsErrCode)
 {
     auto iter = g_errorStringMap.find(jsErrCode);
     if (iter != g_errorStringMap.end()) {

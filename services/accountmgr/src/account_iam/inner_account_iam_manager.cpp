@@ -139,7 +139,7 @@ void InnerAccountIAMManager::GetCredentialInfo(
     UserIDMClient::GetInstance().GetCredentialInfo(userId, authType, getCallback);
 }
 
-int32_t InnerAccountIAMManager::Cancel(int32_t userId, uint64_t challenge)
+int32_t InnerAccountIAMManager::Cancel(int32_t userId)
 {
     return UserIDMClient::GetInstance().Cancel(userId);
 }
