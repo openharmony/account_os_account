@@ -39,21 +39,17 @@ public:
 namespace OHOS {
     bool UpdateCredentialFuzzTest(const uint8_t* data, size_t size)
     {
-        if (size > 0) {
-            int32_t userId = static_cast<int32_t>(size);
-
-            AuthType authType = static_cast<AuthType>(size);
-            std::optional<PinSubType> pinType = {static_cast<PinSubType>(size)};
-            std::vector<uint8_t> token = {static_cast<uint8_t>(size)};
-            CredentialParameters credInfo = {
-                .authType = authType,
-                .pinType = pinType,
-                .token = token,
-            };
-
-            std::shared_ptr<IDMCallback> callback = make_shared<MockIDMCallback>();
-            AccountIAMClient::GetInstance().UpdateCredential(userId, credInfo, callback);
-        }
+        int32_t userId = static_cast<int32_t>(size);
+        AuthType authType = static_cast<AuthType>(size);
+        std::optional<PinSubType> pinType = {static_cast<PinSubType>(size)};
+        std::vector<uint8_t> token = {static_cast<uint8_t>(size)};
+        CredentialParameters credInfo = {
+            .authType = authType,
+            .pinType = pinType,
+            .token = token,
+        };
+        std::shared_ptr<IDMCallback> callback = make_shared<MockIDMCallback>();
+        AccountIAMClient::GetInstance().UpdateCredential(userId, credInfo, callback);
         return false;
     }
 }
