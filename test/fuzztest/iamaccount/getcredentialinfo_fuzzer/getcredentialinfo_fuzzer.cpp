@@ -35,14 +35,10 @@ public:
 namespace OHOS {
     bool GetCredentialInfoFuzzTest(const uint8_t* data, size_t size)
     {
-        int32_t result = ERR_OK;
-        if (size > 0) {
-            int32_t userId = static_cast<int32_t>(size);
-            AuthType authType = static_cast<AuthType>(size);
-
-            std::shared_ptr<GetCredInfoCallback> callback = make_shared<MockIDMCallback>();
-            result = AccountIAMClient::GetInstance().GetCredentialInfo(userId, authType, callback);
-        }
+        int32_t userId = static_cast<int32_t>(size);
+        AuthType authType = static_cast<AuthType>(size);
+        std::shared_ptr<GetCredInfoCallback> callback = make_shared<MockIDMCallback>();
+        int32_t result = AccountIAMClient::GetInstance().GetCredentialInfo(userId, authType, callback);
         return result == ERR_OK;
     }
 }

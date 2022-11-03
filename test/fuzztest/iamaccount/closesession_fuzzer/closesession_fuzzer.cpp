@@ -26,11 +26,8 @@ using namespace OHOS::AccountSA;
 namespace OHOS {
     bool CloseSessionFuzzTest(const uint8_t* data, size_t size)
     {
-        int32_t result = ERR_OK;
-        if (size > 0) {
-            int32_t userId = static_cast<int32_t>(size);
-            result = AccountIAMClient::GetInstance().CloseSession(userId);
-        }
+        int32_t userId = static_cast<int32_t>(size);
+        int32_t result = AccountIAMClient::GetInstance().CloseSession(userId);
         return result == ERR_OK;
     }
 }

@@ -13,30 +13,10 @@
  * limitations under the License.
  */
 
-#include "cancel_fuzzer.h"
+#ifndef TEST_FUZZTEST_CLEARCREDENTIAL_FUZZER_H
+#define TEST_FUZZTEST_CLEARCREDENTIAL_FUZZER_H
 
-#include <string>
-#include <vector>
-#include "account_iam_client.h"
+#define FUZZ_PROJECT_NAME "clearcredential_fuzzer"
 
-
-using namespace std;
-using namespace OHOS::AccountSA;
-
-namespace OHOS {
-    bool CancelFuzzTest(const uint8_t* data, size_t size)
-    {
-        int32_t userId = static_cast<int32_t>(size);
-        int32_t result = AccountIAMClient::GetInstance().Cancel(userId);
-        return result == ERR_OK;
-    }
-}
-
-/* Fuzzer entry point */
-extern "C" int LLVMFuzzerTestOneInput(const uint8_t* data, size_t size)
-{
-    /* Run your code on data */
-    OHOS::CancelFuzzTest(data, size);
-    return 0;
-}
+#endif // TEST_FUZZTEST_CLEARCREDENTIAL_FUZZER_H
 
