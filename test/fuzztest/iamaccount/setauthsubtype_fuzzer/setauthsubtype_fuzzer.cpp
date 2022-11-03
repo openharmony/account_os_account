@@ -13,7 +13,7 @@
  * limitations under the License.
  */
 
-#include "auth_fuzzer.h"
+#include "setauthsubtype_fuzzer.h"
 
 #include <string>
 #include <vector>
@@ -23,28 +23,13 @@
 using namespace std;
 using namespace OHOS::AccountSA;
 
-class MockIDMCallback : public OHOS::AccountSA::IDMCallback {
-public:
-    virtual ~MockIDMCallback() {}
-    void OnAcquireInfo(int32_t module, uint32_t acquireInfo, const Attributes &extraInfo) override
-    {
-        return;
-    }
-    void OnResult(int32_t result, const Attributes &extraInfo) override
-    {
-        return;
-    }
-};
-
 namespace OHOS {
-    bool AuthFuzzTest(const uint8_t* data, size_t size)
+    bool SetAuthSubTypeFuzzTest(const uint8_t* data, size_t size)
     {
-        std::vector<uint8_t> challenge = {static_cast<uint8_t>(size)};
-        AuthType authType = static_cast<AuthType>(size);
-        AuthTrustLevel authTrustLevel = static_cast<AuthTrustLevel>(size);
-        std::shared_ptr<IDMCallback> callback = make_shared<MockIDMCallback>();
-        uint64_t result = AccountIAMClient::GetInstance().Auth(challenge, authType, authTrustLevel, callback);
-        return result == ERR_OK;
+        int32_t userId = static_cast<int32_t>(size);
+        int32_t authSubType = static_cast<int32_t>(size);
+        AccountIAMClient::GetInstance().SetAuthSubType(userId, authSubType);
+        return false;
     }
 }
 
@@ -52,7 +37,7 @@ namespace OHOS {
 extern "C" int LLVMFuzzerTestOneInput(const uint8_t* data, size_t size)
 {
     /* Run your code on data */
-    OHOS::AuthFuzzTest(data, size);
+    OHOS::SetAuthSubTypeFuzzTest(data, size);
     return 0;
 }
 
