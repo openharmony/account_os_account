@@ -26,12 +26,9 @@ using namespace OHOS::AccountSA;
 namespace OHOS {
     bool OpenSessionFuzzTest(const uint8_t* data, size_t size)
     {
-        int32_t result = ERR_OK;
-        if (size > 0) {
-            int32_t userId = static_cast<int32_t>(size);
-            std::vector<uint8_t> challenge;
-            result = AccountIAMClient::GetInstance().OpenSession(userId, challenge);
-        }
+        int32_t userId = static_cast<int32_t>(size);
+        std::vector<uint8_t> challenge;
+        int32_t result = AccountIAMClient::GetInstance().OpenSession(userId, challenge);
         return result == ERR_OK;
     }
 }
