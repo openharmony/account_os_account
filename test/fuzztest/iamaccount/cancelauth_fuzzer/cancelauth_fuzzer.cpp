@@ -26,12 +26,8 @@ using namespace OHOS::AccountSA;
 namespace OHOS {
     bool CancelAuthFuzzTest(const uint8_t* data, size_t size)
     {
-        int32_t result = ERR_OK;
-        if (size > 0) {
-            uint64_t contextId = static_cast<uint64_t>(size);
-            
-            result = AccountIAMClient::GetInstance().CancelAuth(contextId);
-        }
+        uint64_t contextId = static_cast<uint64_t>(size);
+        int32_t result = AccountIAMClient::GetInstance().CancelAuth(contextId);
         return result == ERR_OK;
     }
 }
