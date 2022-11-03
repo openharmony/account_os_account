@@ -125,7 +125,7 @@ public:
     static void TearDownTestCase(void);
     void SetUp(void) override;
     void TearDown(void) override;
-    sptr<IAppAccountAuthenticator> authenticateProxyPtr_;
+    sptr<AppAccountAuthenticatorProxy> authenticateProxyPtr_;
 };
 
 void AppAccountAuthenticateModuleTest::SetUpTestCase(void)
@@ -141,7 +141,7 @@ void AppAccountAuthenticateModuleTest::SetUp(void)
     sptr<MockAppAccountAuthenticator> mockServicePtr_ =  new (std::nothrow) MockAppAccountAuthenticator();
 
     sptr<IRemoteObject> authenticorService_ = mockServicePtr_->AsObject();
-    authenticateProxyPtr_ = iface_cast<IAppAccountAuthenticator>(authenticorService_);
+    authenticateProxyPtr_ = new (std::nothrow) AppAccountAuthenticatorProxy(authenticorService_);
 }
 
 void AppAccountAuthenticateModuleTest::TearDown(void)
@@ -161,7 +161,7 @@ HWTEST_F(AppAccountAuthenticateModuleTest, AppAccountAuthenticateTest_CreateAcco
     sptr<IRemoteObject> callback = nullptr;
     options.parameters.SetParam(Constants::KEY_CALLER_ABILITY_NAME, STRING_ABILITY_NAME);
     ErrCode result = authenticateProxyPtr_->CreateAccountImplicitly(options, callback);
-    EXPECT_EQ(result, ERR_OK);
+    EXPECT_NE(result, ERR_OK);
 }
 
 /**
@@ -178,7 +178,7 @@ HWTEST_F(AppAccountAuthenticateModuleTest, AppAccountAuthenticateTest_Auth_0100,
     want.SetParam(Constants::KEY_CALLER_ABILITY_NAME, STRING_ABILITY_NAME);
     sptr<IRemoteObject> callback = nullptr;
     ErrCode result = authenticateProxyPtr_->Auth(STRING_NAME, STRING_AUTH_TYPE, want.GetParams(), callback);
-    EXPECT_EQ(result, ERR_OK);
+    EXPECT_NE(result, ERR_OK);
 }
 
 /**
@@ -189,7 +189,7 @@ HWTEST_F(AppAccountAuthenticateModuleTest, AppAccountAuthenticateTest_Auth_0100,
  */
 HWTEST_F(AppAccountAuthenticateModuleTest, AppAccountAuthenticateTest_CreateAccountImplicitly_0200, TestSize.Level1)
 {
-    ACCOUNT_LOGI("AppAccountAuthenticateTest_CreateAccountImplicitly_0100");
+    ACCOUNT_LOGI("AppAccountAuthenticateTest_CreateAccountImplicitly_0200");
 
     CreateAccountImplicitlyOptions options;
     options.parameters.SetParam(Constants::KEY_CALLER_ABILITY_NAME, STRING_ABILITY_NAME);
