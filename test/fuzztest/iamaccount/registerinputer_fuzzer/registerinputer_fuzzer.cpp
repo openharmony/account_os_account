@@ -13,7 +13,7 @@
  * limitations under the License.
  */
 
-#include "auth_fuzzer.h"
+#include "registerinputer_fuzzer.h"
 
 #include <string>
 #include <vector>
@@ -23,27 +23,19 @@
 using namespace std;
 using namespace OHOS::AccountSA;
 
-class MockIDMCallback : public OHOS::AccountSA::IDMCallback {
+class MockIInputer : public OHOS::AccountSA::IInputer {
 public:
-    virtual ~MockIDMCallback() {}
-    void OnAcquireInfo(int32_t module, uint32_t acquireInfo, const Attributes &extraInfo) override
-    {
-        return;
-    }
-    void OnResult(int32_t result, const Attributes &extraInfo) override
+    virtual ~MockIInputer() {}
+    void OnGetData(int32_t authSubType, std::shared_ptr<IInputerData> inputerData) override
     {
         return;
     }
 };
-
 namespace OHOS {
-    bool AuthFuzzTest(const uint8_t* data, size_t size)
+    bool RegisterInputerFuzzTest(const uint8_t* data, size_t size)
     {
-        std::vector<uint8_t> challenge = {static_cast<uint8_t>(size)};
-        AuthType authType = static_cast<AuthType>(size);
-        AuthTrustLevel authTrustLevel = static_cast<AuthTrustLevel>(size);
-        std::shared_ptr<IDMCallback> callback = make_shared<MockIDMCallback>();
-        uint64_t result = AccountIAMClient::GetInstance().Auth(challenge, authType, authTrustLevel, callback);
+        std::shared_ptr<IInputer> inputer = make_shared<MockIInputer>();
+        int32_t result = AccountIAMClient::GetInstance().RegisterInputer(inputer);
         return result == ERR_OK;
     }
 }
@@ -52,7 +44,7 @@ namespace OHOS {
 extern "C" int LLVMFuzzerTestOneInput(const uint8_t* data, size_t size)
 {
     /* Run your code on data */
-    OHOS::AuthFuzzTest(data, size);
+    OHOS::RegisterInputerFuzzTest(data, size);
     return 0;
 }
 
