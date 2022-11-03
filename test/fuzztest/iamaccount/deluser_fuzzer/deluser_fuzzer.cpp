@@ -38,13 +38,10 @@ public:
 namespace OHOS {
     bool DelUserFuzzTest(const uint8_t* data, size_t size)
     {
-        if (size > 0) {
-            int32_t userId = static_cast<int32_t>(size);
-            std::vector<uint8_t> authToken = {static_cast<uint8_t>(size)};
-            std::shared_ptr<IDMCallback> callback = make_shared<MockIDMCallback>();
-            
-            AccountIAMClient::GetInstance().DelUser(userId, authToken, callback);
-        }
+        int32_t userId = static_cast<int32_t>(size);
+        std::vector<uint8_t> authToken = {static_cast<uint8_t>(size)};
+        std::shared_ptr<IDMCallback> callback = make_shared<MockIDMCallback>();
+        AccountIAMClient::GetInstance().DelUser(userId, authToken, callback);
         return false;
     }
 }
