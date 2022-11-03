@@ -325,7 +325,11 @@ std::int32_t AccountStub::OnRemoteRequest(
 
     const auto &itFunc = stubFuncMap_.find(code);
     if (itFunc != stubFuncMap_.end()) {
-        return (this->*(itFunc->second))(data, reply);
+        int ret = (this->*(itFunc->second))(data, reply);
+#ifdef HICOLLIE_ENABLE
+        HiviewDFX::XCollie::GetInstance().CancelTimer(timerId);
+#endif // HICOLLIE_ENABLE
+        return ret;
     }
 
 #ifdef HICOLLIE_ENABLE
