@@ -39,16 +39,13 @@ public:
 namespace OHOS {
     bool AuthUserFuzzTest(const uint8_t* data, size_t size)
     {
-        uint64_t result = ERR_OK;
-        if (size > 0) {
-            int32_t userId = static_cast<int32_t>(size);
-            std::vector<uint8_t> challenge = {static_cast<uint8_t>(size)};
-            AuthType authType = static_cast<AuthType>(size);
-            AuthTrustLevel authTrustLevel = static_cast<AuthTrustLevel>(size);
-            std::shared_ptr<IDMCallback> callback = make_shared<MockIDMCallback>();
-
-            result = AccountIAMClient::GetInstance().AuthUser(userId, challenge, authType, authTrustLevel, callback);
-        }
+        int32_t userId = static_cast<int32_t>(size);
+        std::vector<uint8_t> challenge = {static_cast<uint8_t>(size)};
+        AuthType authType = static_cast<AuthType>(size);
+        AuthTrustLevel authTrustLevel = static_cast<AuthTrustLevel>(size);
+        std::shared_ptr<IDMCallback> callback = make_shared<MockIDMCallback>();
+        uint64_t result = AccountIAMClient::GetInstance().AuthUser(
+            userId, challenge, authType, authTrustLevel, callback);
         return result == ERR_OK;
     }
 }
