@@ -219,7 +219,11 @@ int AppAccountStub::OnRemoteRequest(uint32_t code, MessageParcel &data, MessageP
     if (messageProc != messageProcMap_.end()) {
         auto messageProcFunction = messageProc->second;
         if (messageProcFunction != nullptr) {
-            return (this->*messageProcFunction)(data, reply);
+            int ret = (this->*messageProcFunction)(data, reply);
+#ifdef HICOLLIE_ENABLE
+            HiviewDFX::XCollie::GetInstance().CancelTimer(timerId);
+#endif // HICOLLIE_ENABLE
+            return ret;
         }
     }
 
