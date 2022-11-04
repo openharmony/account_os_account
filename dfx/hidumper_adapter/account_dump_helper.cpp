@@ -136,7 +136,8 @@ void AccountDumpHelper::ShowOhosAccountInfo(std::string& result) const
 
     result.append("OhosAccount info:\n");
     for (size_t i = 0; i < osAccountInfos.size(); ++i) {
-        AccountInfo accountInfo = lockPtr->GetOhosAccountInfoByUserId(osAccountInfos[i].GetLocalId());
+        AccountInfo accountInfo;
+        lockPtr->GetAccountInfoByUserId(osAccountInfos[i].GetLocalId(), accountInfo);
         result.append("     Bind local user id: ");
         result.append(std::to_string(accountInfo.userId_) + "\n");
         result.append("          OhosAccount name     : ");
