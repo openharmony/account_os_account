@@ -16,6 +16,7 @@
 #include <gtest/gtest.h>
 
 #include "account_command.h"
+#include "singleton.h"
 
 using namespace testing::ext;
 using namespace OHOS;
@@ -24,6 +25,7 @@ using namespace OHOS::AccountSA;
 
 namespace {
 const std::string HELP_MSG_UNKNOWN_OPTION = "error: unknown option.";
+static std::shared_ptr<OsAccount> g_osAccountPtr = nullptr;
 }  // namespace
 
 class AccountCommandSwitchTest : public testing::Test {
@@ -37,7 +39,10 @@ public:
 };
 
 void AccountCommandSwitchTest::SetUpTestCase()
-{}
+{
+    g_osAccountPtr = DelayedSingleton<OsAccount>::GetInstance();
+    EXPECT_NE(g_osAccountPtr, nullptr);
+}
 
 void AccountCommandSwitchTest::TearDownTestCase()
 {}
@@ -46,6 +51,12 @@ void AccountCommandSwitchTest::SetUp()
 {
     // reset optind to 0
     optind = 0;
+
+    std::vector<OsAccountInfo> osAccountInfos;
+    g_osAccountPtr->QueryAllCreatedOsAccounts(osAccountInfos);
+    for (const auto &info : osAccountInfos) {
+        g_osAccountPtr->RemoveOsAccount(info.GetLocalId());
+    }
 }
 
 void AccountCommandSwitchTest::TearDown()
@@ -228,4 +239,30 @@ HWTEST_F(AccountCommandSwitchTest, Acm_Command_Switch_0900, TestSize.Level1)
 
     AccountCommand cmd(argc, argv);
     EXPECT_EQ(cmd.ExecCommand(), HELP_MSG_OPTION_REQUIRES_AN_ARGUMENT + "\n" + HELP_MSG_SWITCH);
+}
+
+/**
+ * @tc.name: Acm_Command_Switch_1000
+ * @tc.desc: Verify the "acm switch -i" command.
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(AccountCommandSwitchTest, Acm_Command_Switch_1000, TestSize.Level1)
+{
+    OsAccountInfo osAccountInfo;
+    // create an os account
+    EXPECT_EQ(ERR_OK, g_osAccountPtr->CreateOsAccount(TOOL_NAME, OsAccountType::NORMAL, osAccountInfo));
+
+    std::string userId = std::to_string(osAccountInfo.GetLocalId());
+    char *argv[] = {
+        const_cast<char *>(TOOL_NAME.c_str()),
+        const_cast<char *>(cmd_.c_str()),
+        const_cast<char *>("-i"),
+        const_cast<char *>(userId.c_str()),
+        const_cast<char *>(""),
+    };
+    int argc = sizeof(argv) / sizeof(argv[0]) - 1;
+
+    AccountCommand cmd(argc, argv);
+    EXPECT_EQ(cmd.ExecCommand(), STRING_SWITCH_OS_ACCOUNT_OK + "\n");
 }

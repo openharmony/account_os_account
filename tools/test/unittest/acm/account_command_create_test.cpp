@@ -16,6 +16,7 @@
 #include <gtest/gtest.h>
 #include "account_command.h"
 #include "account_log_wrapper.h"
+#include "singleton.h"
 
 using namespace testing::ext;
 using namespace OHOS;
@@ -26,8 +27,11 @@ namespace {
 const std::string HELP_MSG_UNKNOWN_OPTION = "error: unknown option.";
 
 const std::string STRING_LOCAL_ACCOUNT_NAME = "local_account_name";
-const std::string STRING_TYPE = "normal";
+const std::string STRING_TYPE_NORMAL = "normal";
+const std::string STRING_TYPE_ADMIN = "admin";
+const std::string STRING_TYPE_GUEST = "guest";
 const std::string STRING_TYPE_INVALID = "type_invalid";
+static std::shared_ptr<OsAccount> g_osAccountPtr = nullptr;
 }  // namespace
 
 class AccountCommandCreateTest : public testing::Test {
@@ -41,7 +45,10 @@ public:
 };
 
 void AccountCommandCreateTest::SetUpTestCase()
-{}
+{
+    g_osAccountPtr = DelayedSingleton<OsAccount>::GetInstance();
+    EXPECT_NE(g_osAccountPtr, nullptr);
+}
 
 void AccountCommandCreateTest::TearDownTestCase()
 {}
@@ -50,6 +57,12 @@ void AccountCommandCreateTest::SetUp()
 {
     // reset optind to 0
     optind = 0;
+
+    std::vector<OsAccountInfo> osAccountInfos;
+    g_osAccountPtr->QueryAllCreatedOsAccounts(osAccountInfos);
+    for (const auto &info : osAccountInfos) {
+        g_osAccountPtr->RemoveOsAccount(info.GetLocalId());
+    }
 }
 
 void AccountCommandCreateTest::TearDown()
@@ -321,7 +334,7 @@ HWTEST_F(AccountCommandCreateTest, Acm_Command_Create_1300, TestSize.Level1)
         const_cast<char *>(TOOL_NAME.c_str()),
         const_cast<char *>(cmd_.c_str()),
         const_cast<char *>("-t"),
-        const_cast<char *>(STRING_TYPE.c_str()),
+        const_cast<char *>(STRING_TYPE_NORMAL.c_str()),
         const_cast<char *>(""),
     };
     int argc = sizeof(argv) / sizeof(argv[0]) - 1;
@@ -375,4 +388,101 @@ HWTEST_F(AccountCommandCreateTest, Acm_Command_Create_1500, TestSize.Level1)
 
     AccountCommand cmd(argc, argv);
     EXPECT_EQ(cmd.ExecCommand(), HELP_MSG_INVALID_TYPE_ARGUMENT + "\n" + HELP_MSG_CREATE);
+}
+
+/**
+ * @tc.name: Acm_Command_Create_1600
+ * @tc.desc: Verify the "acm create -n <local-account-name> -t <type>" command with normal type.
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(AccountCommandCreateTest, Acm_Command_Create_1600, TestSize.Level1)
+{
+    ACCOUNT_LOGI("Acm_Command_Create_1600");
+    char *argv[] = {
+        const_cast<char *>(TOOL_NAME.c_str()),
+        const_cast<char *>(cmd_.c_str()),
+        const_cast<char *>("-n"),
+        const_cast<char *>(STRING_LOCAL_ACCOUNT_NAME.c_str()),
+        const_cast<char *>("-t"),
+        const_cast<char *>(STRING_TYPE_NORMAL.c_str()),
+        const_cast<char *>(""),
+    };
+    int argc = sizeof(argv) / sizeof(argv[0]) - 1;
+
+    AccountCommand cmd(argc, argv);
+    EXPECT_EQ(cmd.ExecCommand(), STRING_CREATE_OS_ACCOUNT_OK + "\n");
+}
+
+/**
+ * @tc.name: Acm_Command_Create_1700
+ * @tc.desc: Verify the "acm create -n <local-account-name> -t <type>" command with admin type.
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(AccountCommandCreateTest, Acm_Command_Create_1700, TestSize.Level1)
+{
+    ACCOUNT_LOGI("Acm_Command_Create_1700");
+    char *argv[] = {
+        const_cast<char *>(TOOL_NAME.c_str()),
+        const_cast<char *>(cmd_.c_str()),
+        const_cast<char *>("-n"),
+        const_cast<char *>(STRING_LOCAL_ACCOUNT_NAME.c_str()),
+        const_cast<char *>("-t"),
+        const_cast<char *>(STRING_TYPE_ADMIN.c_str()),
+        const_cast<char *>(""),
+    };
+    int argc = sizeof(argv) / sizeof(argv[0]) - 1;
+
+    AccountCommand cmd(argc, argv);
+    EXPECT_EQ(cmd.ExecCommand(), STRING_CREATE_OS_ACCOUNT_OK + "\n");
+}
+
+/**
+ * @tc.name: Acm_Command_Create_1800
+ * @tc.desc: Verify the "acm create -n <local-account-name> -t <type>" command with admin type.
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(AccountCommandCreateTest, Acm_Command_Create_1800, TestSize.Level1)
+{
+    ACCOUNT_LOGI("Acm_Command_Create_1800");
+    char *argv[] = {
+        const_cast<char *>(TOOL_NAME.c_str()),
+        const_cast<char *>(cmd_.c_str()),
+        const_cast<char *>("-n"),
+        const_cast<char *>(STRING_LOCAL_ACCOUNT_NAME.c_str()),
+        const_cast<char *>("-t"),
+        const_cast<char *>(STRING_TYPE_GUEST.c_str()),
+        const_cast<char *>(""),
+    };
+    int argc = sizeof(argv) / sizeof(argv[0]) - 1;
+
+    AccountCommand cmd(argc, argv);
+    EXPECT_EQ(cmd.ExecCommand(), STRING_CREATE_OS_ACCOUNT_OK + "\n");
+}
+
+/**
+ * @tc.name: Acm_Command_Create_1900
+ * @tc.desc: Verify the "acm create -n <local-account-name> -t <type>" command, local-account-name is over max length.
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(AccountCommandCreateTest, Acm_Command_Create_1900, TestSize.Level1)
+{
+    ACCOUNT_LOGI("Acm_Command_Create_1900");
+    std::string maxAccountName(1025, 's'); // 1025:over max length
+    char *argv[] = {
+        const_cast<char *>(TOOL_NAME.c_str()),
+        const_cast<char *>(cmd_.c_str()),
+        const_cast<char *>("-n"),
+        const_cast<char *>(maxAccountName.c_str()),
+        const_cast<char *>("-t"),
+        const_cast<char *>(STRING_TYPE_NORMAL.c_str()),
+        const_cast<char *>(""),
+    };
+    int argc = sizeof(argv) / sizeof(argv[0]) - 1;
+
+    AccountCommand cmd(argc, argv);
+    EXPECT_EQ(cmd.ExecCommand(), STRING_CREATE_OS_ACCOUNT_NG + "\n");
 }
