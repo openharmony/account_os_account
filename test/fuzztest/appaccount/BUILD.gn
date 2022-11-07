@@ -43,7 +43,7 @@ group("fuzztest") {
     "getoauthtoken_fuzzer:GetOAuthTokenFuzzTest",
     "selectaccountsbyoptions_fuzzer:SelectAccountsByOptionsFuzzTest",
     "setaccountcredential_fuzzer:SetAccountCredentialFuzzTest",
-    "setaccountextrainfo_fuzzer:SetAccountExtranInfoFuzzTest",
+    "setaccountextraninfo_fuzzer:SetAccountExtranInfoFuzzTest",
     "setappaccountsyncenable_fuzzer:SetAppAccountSyncEnableFuzzTest",
     "setassociateddata_fuzzer:SetAssociatedDataFuzzTest",
     "setauthenticatorproperties_fuzzer:SetAuthenticatorPropertiesFuzzTest",
