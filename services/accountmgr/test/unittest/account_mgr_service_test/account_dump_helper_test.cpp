@@ -15,18 +15,26 @@
 
 #include <gtest/gtest.h>
 
+#define private public
 #include "account_dump_helper.h"
+#undef private
 #include "account_error_no.h"
 #include "account_info.h"
 #include "account_log_wrapper.h"
 #include "account_event_provider.h"
+#include "iinner_os_account_manager.h"
+#include "ohos_account_kits.h"
 #include "ohos_account_manager.h"
+#include "os_account.h"
 #include "os_account_manager_service.h"
 
 using namespace testing::ext;
 using namespace OHOS;
 using namespace OHOS::AccountSA;
 
+const std::string TEST_ACCOUNT_NAME = "TestAccountName";
+const std::string TEST_ACCOUNT_UID = "123456789";
+static std::shared_ptr<OsAccount> g_osAccountPtr = nullptr;
 class AccountDumpHelperTest : public testing::Test {
 public:
     AccountDumpHelperTest();
@@ -43,9 +51,20 @@ public:
 
 AccountDumpHelperTest::AccountDumpHelperTest() {}
 
-void AccountDumpHelperTest::SetUpTestCase() {}
+void AccountDumpHelperTest::SetUpTestCase()
+{
+    g_osAccountPtr = DelayedSingleton<OsAccount>::GetInstance();
+    EXPECT_NE(g_osAccountPtr, nullptr);
+}
 
-void AccountDumpHelperTest::TearDownTestCase() {}
+void AccountDumpHelperTest::TearDownTestCase()
+{
+    std::vector<OsAccountInfo> osAccountInfos;
+    g_osAccountPtr->QueryAllCreatedOsAccounts(osAccountInfos);
+    for (const auto &info : osAccountInfos) {
+        g_osAccountPtr->RemoveOsAccount(info.GetLocalId());
+    }
+}
 
 void AccountDumpHelperTest::SetUp()
 {
@@ -72,6 +91,29 @@ void AccountDumpHelperTest::TearDown()
 }
 
 /**
+ * @tc.name: AccountDumpNoParameterTest001
+ * @tc.desc: Test account info with no parameter
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(AccountDumpHelperTest, AccountDumpNoParameterTest001, TestSize.Level0)
+{
+    /**
+     * @tc.steps: step1. Input no parameter
+     */
+    std::string out;
+    vector<std::string> cmd;
+    if (accountDumpHelper_ == nullptr) {
+        std::cout << "AccountDumpNoParameterTest001, accountDumpHelper_ is nullptr!" << std::endl;
+        return;
+    }
+
+    accountDumpHelper_->Dump(cmd, out);
+    auto pos = out.find("Account Manager service, enter '-h' for usage", 0);
+    EXPECT_NE(std::string::npos, pos);
+}
+
+/**
  * @tc.name: AccountDumpParameterTest001
  * @tc.desc: Test account info display
  * @tc.type: FUNC
@@ -79,6 +121,16 @@ void AccountDumpHelperTest::TearDown()
  */
 HWTEST_F(AccountDumpHelperTest, AccountDumpParameterTest001, TestSize.Level0)
 {
+    OsAccountInfo osAccountInfo;
+    // create an os account
+    EXPECT_EQ(ERR_OK, g_osAccountPtr->CreateOsAccount("test", OsAccountType::NORMAL, osAccountInfo));
+
+    OhosAccountInfo accountInfo;
+    accountInfo.name_ = TEST_ACCOUNT_NAME;
+    accountInfo.status_ = ACCOUNT_STATE_LOGIN;
+    accountInfo.uid_ = TEST_ACCOUNT_UID;
+    EXPECT_EQ(ERR_OK, OhosAccountKits::GetInstance().SetOhosAccountInfo(accountInfo, "Ohos.account.event.LOGIN"));
+
     /**
      * @tc.steps: step1. Input one parameter
      */
@@ -99,6 +151,163 @@ HWTEST_F(AccountDumpHelperTest, AccountDumpParameterTest001, TestSize.Level0)
     pos = out.find("OhosAccount bind time", 0);
     EXPECT_NE(std::string::npos, pos);
     pos = out.find("Bind local user id", 0);
+    EXPECT_NE(std::string::npos, pos);
+}
+
+/**
+ * @tc.name: AccountDumpParameterTest002
+ * @tc.desc: Test account info display
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(AccountDumpHelperTest, AccountDumpParameterTest002, TestSize.Level0)
+{
+    /**
+     * @tc.steps: step1. Input one parameter
+     */
+    std::string out;
+    vector<std::string> cmd = {"-os_account_infos"};
+    if (accountDumpHelper_ == nullptr) {
+        std::cout << "AccountDumpParameterTest002, accountDumpHelper_ is nullptr!" << std::endl;
+        return;
+    }
+
+    accountDumpHelper_->Dump(cmd, out);
+    auto pos = out.find("ID:", 0);
+    EXPECT_NE(std::string::npos, pos);
+}
+
+/**
+ * @tc.name: AccountDumpParameterTest003
+ * @tc.desc: Test account info display
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(AccountDumpHelperTest, AccountDumpParameterTest003, TestSize.Level0)
+{
+    /**
+     * @tc.steps: step1. Input one parameter
+     */
+    std::string out;
+    vector<std::string> cmd = {"-time_info_dump"};
+    if (accountDumpHelper_ == nullptr) {
+        std::cout << "AccountDumpParameterTest003, accountDumpHelper_ is nullptr!" << std::endl;
+        return;
+    }
+
+    accountDumpHelper_->Dump(cmd, out);
+    auto pos = out.find("ServiceInstanceCreateTime", 0);
+    EXPECT_NE(std::string::npos, pos);
+}
+
+/**
+ * @tc.name: AccountDumpParameterTest004
+ * @tc.desc: Test account info display
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(AccountDumpHelperTest, AccountDumpParameterTest004, TestSize.Level0)
+{
+    /**
+     * @tc.steps: step1. Input one parameter
+     */
+    std::string out;
+    vector<std::string> cmd = {"-h"};
+    if (accountDumpHelper_ == nullptr) {
+        std::cout << "AccountDumpParameterTest004, accountDumpHelper_ is nullptr!" << std::endl;
+        return;
+    }
+
+    accountDumpHelper_->Dump(cmd, out);
+    auto pos = out.find("Usage:dump", 0);
+    EXPECT_NE(std::string::npos, pos);
+}
+
+/**
+ * @tc.name: AccountDumpParameterTest005
+ * @tc.desc: Test account info display
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(AccountDumpHelperTest, AccountDumpParameterTest005, TestSize.Level0)
+{
+    accountDumpHelper_ = nullptr;
+    accountDumpHelper_ = std::make_unique<AccountDumpHelper>(nullptr, osAccount_);
+    if (accountDumpHelper_ == nullptr) {
+        std::cout << "AccountDumpHelperTest, error! accountDumpHelper_ is nullptr!" << std::endl;
+    }
+
+    std::string out;
+    vector<std::string> cmd = {"-ohos_account_infos"};
+
+    accountDumpHelper_->Dump(cmd, out);
+    auto pos = out.find("System error", 0);
+    EXPECT_NE(std::string::npos, pos);
+}
+
+/**
+ * @tc.name: AccountDumpParameterTest006
+ * @tc.desc: Test account info display
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(AccountDumpHelperTest, AccountDumpParameterTest006, TestSize.Level0)
+{
+    if (accountDumpHelper_ == nullptr) {
+        std::cout << "AccountDumpHelperTest, error! accountDumpHelper_ is nullptr!" << std::endl;
+    }
+    accountDumpHelper_->innerMgrService_ = nullptr;
+
+    std::string out;
+    vector<std::string> cmd = {"-ohos_account_infos"};
+
+    accountDumpHelper_->Dump(cmd, out);
+    auto pos = out.find("System error", 0);
+    EXPECT_NE(std::string::npos, pos);
+}
+
+/**
+ * @tc.name: AccountDumpParameterTest007
+ * @tc.desc: Test account info display
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(AccountDumpHelperTest, AccountDumpParameterTest007, TestSize.Level0)
+{
+    accountDumpHelper_ = nullptr;
+    accountDumpHelper_ = std::make_unique<AccountDumpHelper>(ohosAccount_, nullptr);
+    if (accountDumpHelper_ == nullptr) {
+        std::cout << "AccountDumpHelperTest, error! accountDumpHelper_ is nullptr!" << std::endl;
+    }
+
+    std::string out;
+    vector<std::string> cmd = {"-os_account_infos"};
+
+    accountDumpHelper_->Dump(cmd, out);
+    auto pos = out.find("System error", 0);
+    EXPECT_NE(std::string::npos, pos);
+}
+
+/**
+ * @tc.name: AccountDumpParameterTest008
+ * @tc.desc: Test account info display
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(AccountDumpHelperTest, AccountDumpParameterTest008, TestSize.Level0)
+{
+    /**
+     * @tc.steps: step1. Input one parameter
+     */
+    std::string out;
+    vector<std::string> cmd = {"-h"};
+    if (accountDumpHelper_ == nullptr) {
+        std::cout << "AccountDumpParameterTest008, accountDumpHelper_ is nullptr!" << std::endl;
+        return;
+    }
+
+    accountDumpHelper_->Dump(cmd, out);
+    auto pos = out.find("Usage:dump", 0);
     EXPECT_NE(std::string::npos, pos);
 }
 
