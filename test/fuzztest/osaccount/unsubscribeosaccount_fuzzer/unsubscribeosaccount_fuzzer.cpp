@@ -39,7 +39,7 @@ public:
 };
 
 namespace OHOS {
-    bool SubscribeOsAccountFuzzTest(const uint8_t* data, size_t size)
+    bool UnsubscribeOsAccountFuzzTest(const uint8_t* data, size_t size)
     {
         std::shared_ptr<OsAccountSubscriber> subscriber = make_shared<TestOsAccountSubscriber>();
         int32_t result = OsAccountManager::UnsubscribeOsAccount(subscriber);
@@ -51,7 +51,7 @@ namespace OHOS {
 extern "C" int LLVMFuzzerTestOneInput(const uint8_t* data, size_t size)
 {
     /* Run your code on data */
-    OHOS::SubscribeOsAccountFuzzTest(data, size);
+    OHOS::UnsubscribeOsAccountFuzzTest(data, size);
     return 0;
 }
 
