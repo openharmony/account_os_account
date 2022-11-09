@@ -354,18 +354,10 @@ ErrCode AppAccountSubscribeManager::GetAccessibleAccountsBySubscribeInfo(
 
     for (auto accessibleAccount : accessibleAccounts) {
         std::string name;
-        result = accessibleAccount.GetName(name);
-        if (result != ERR_OK) {
-            ACCOUNT_LOGE("failed to get name, result %{public}d.", result);
-            return result;
-        }
+        accessibleAccount.GetName(name);
 
         std::string owner;
-        result = accessibleAccount.GetOwner(owner);
-        if (result != ERR_OK) {
-            ACCOUNT_LOGE("failed to get owner, result %{public}d.", result);
-            return result;
-        }
+        accessibleAccount.GetOwner(owner);
 
         if (std::find(owners.begin(), owners.end(), owner) != owners.end()) {
             appAccounts.emplace_back(accessibleAccount);
