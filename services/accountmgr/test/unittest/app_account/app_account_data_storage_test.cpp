@@ -116,20 +116,17 @@ HWTEST_F(AppAccountDataStorageTest, AppAccountDataStorage_AddAccountInfo_0100, T
 
     // get name
     std::string name;
-    result = appAccountInfoPtr->GetName(name);
-    EXPECT_EQ(result, ERR_OK);
+    appAccountInfoPtr->GetName(name);
     EXPECT_EQ(name, STRING_NAME);
 
     // get extraInfo
     std::string extraInfo;
-    result = appAccountInfoPtr->GetExtraInfo(extraInfo);
-    EXPECT_EQ(result, ERR_OK);
+    appAccountInfoPtr->GetExtraInfo(extraInfo);
     EXPECT_EQ(extraInfo, STRING_EXTRA_INFO);
 
     // get AuthorizedApps
     std::set<std::string> apps;
-    result = appAccountInfoPtr->GetAuthorizedApps(apps);
-    EXPECT_EQ(result, ERR_OK);
+    appAccountInfoPtr->GetAuthorizedApps(apps);
     EXPECT_EQ(apps.size(), SIZE_ONE);
     EXPECT_EQ(*(apps.begin()), STRING_BUNDLE_NAME);
 
@@ -180,13 +177,11 @@ HWTEST_F(AppAccountDataStorageTest, AppAccountDataStorage_SaveAccountInfo_0100, 
     EXPECT_NE(appAccountInfoPtr, nullptr);
 
     std::string name;
-    result = appAccountInfoPtr->GetName(name);
-    EXPECT_EQ(result, ERR_OK);
+    appAccountInfoPtr->GetName(name);
     EXPECT_EQ(name, STRING_NAME);
 
     std::string extraInfo;
-    result = appAccountInfoPtr->GetExtraInfo(extraInfo);
-    EXPECT_EQ(result, ERR_OK);
+    appAccountInfoPtr->GetExtraInfo(extraInfo);
     EXPECT_EQ(extraInfo, STRING_EXTRA_INFO_TWO);
 
     // delete account
@@ -230,8 +225,7 @@ HWTEST_F(AppAccountDataStorageTest, AppAccountDataStorage_DeleteAccount_0100, Te
     EXPECT_NE(appAccountInfoPtr, nullptr);
 
     std::string name;
-    result = appAccountInfoPtr->GetName(name);
-    EXPECT_EQ(result, ERR_OK);
+    appAccountInfoPtr->GetName(name);
     EXPECT_EQ(name, STRING_NAME);
 
     const std::string id = appAccountInfo.GetPrimeKey();

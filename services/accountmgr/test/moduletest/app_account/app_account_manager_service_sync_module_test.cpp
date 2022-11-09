@@ -124,8 +124,7 @@ HWTEST_F(AppAccountManagerServiceSyncModuleTest, AppAccountManagerServiceSync_Ad
     ASSERT_NE(appAccountInfoPtr, nullptr);
 
     std::string name;
-    result = appAccountInfoPtr->GetName(name);
-    EXPECT_EQ(result, ERR_OK);
+    appAccountInfoPtr->GetName(name);
     EXPECT_EQ(name, STRING_NAME);
 
     result = appAccountManagerServicePtr_->DeleteAccount(STRING_NAME);
@@ -164,8 +163,7 @@ HWTEST_F(AppAccountManagerServiceSyncModuleTest, AppAccountManagerServiceSync_Ad
         ASSERT_NE(appAccountInfoPtr, nullptr);
 
         std::string name;
-        result = appAccountInfoPtr->GetName(name);
-        EXPECT_EQ(result, ERR_OK);
+        appAccountInfoPtr->GetName(name);
         EXPECT_EQ(name, STRING_NAME);
     }
     {
@@ -182,8 +180,7 @@ HWTEST_F(AppAccountManagerServiceSyncModuleTest, AppAccountManagerServiceSync_Ad
         ASSERT_NE(appAccountInfoPtr, nullptr);
 
         std::string name;
-        result = appAccountInfoPtr->GetName(name);
-        EXPECT_EQ(result, ERR_OK);
+        appAccountInfoPtr->GetName(name);
         EXPECT_EQ(name, STRING_NAME);
     }
 
