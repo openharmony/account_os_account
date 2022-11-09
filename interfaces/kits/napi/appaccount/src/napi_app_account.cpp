@@ -166,7 +166,7 @@ napi_value NapiAppAccount::AddAccount(napi_env env, napi_callback_info cbInfo)
         [](napi_env env, napi_status status, void *data) {
             AppAccountAsyncContext *asyncContext = reinterpret_cast<AppAccountAsyncContext *>(data);
             ProcessCallbackOrPromise(env, asyncContext,
-                GenerateBusinessError(env, asyncContext->errCode), NapiGetNull(env));
+                GetErrorCodeValue(env, ConvertToJSErrCodeV8(asyncContext->errCode)), NapiGetNull(env));
             napi_delete_async_work(env, asyncContext->work);
             delete asyncContext;
             asyncContext = nullptr;
@@ -279,7 +279,7 @@ napi_value NapiAppAccount::AddAccountImplicitly(napi_env env, napi_callback_info
                 OAuthAsyncContext *asyncContext = reinterpret_cast<OAuthAsyncContext *>(data);
                 ErrCode errCode = AppAccountManager::AddAccountImplicitly(asyncContext->owner,
                     asyncContext->authType, asyncContext->options, asyncContext->appAccountMgrCb);
-                asyncContext->errCode = ConvertToJSErrCode(errCode);
+                asyncContext->errCode = ConvertToJSErrCodeV8(errCode);
             },
             [](napi_env env, napi_status status, void *data) {
                 OAuthAsyncContext *asyncContext = reinterpret_cast<OAuthAsyncContext *>(data);
@@ -315,6 +315,7 @@ napi_value NapiAppAccount::RemoveAccountInternal(napi_env env, napi_callback_inf
         return NapiGetNull(env);
     }
     asyncContext->env = env;
+    asyncContext->throwErr = isThrowable;
     if ((!ParseContextWithTwoPara(env, cbInfo, asyncContext)) && isThrowable) {
         napi_throw(env, GenerateBusinessError(env, ERR_JS_PARAMETER_ERROR, asyncContext->errMsg));
         delete asyncContext;
@@ -340,8 +341,9 @@ napi_value NapiAppAccount::RemoveAccountInternal(napi_env env, napi_callback_inf
         },
         [](napi_env env, napi_status status, void *data) {
             AppAccountAsyncContext *asyncContext = reinterpret_cast<AppAccountAsyncContext *>(data);
-            ProcessCallbackOrPromise(env, asyncContext,
-                GenerateBusinessError(env, asyncContext->errCode), NapiGetNull(env));
+            napi_value err = asyncContext->throwErr ? GenerateBusinessError(env, asyncContext->errCode) :
+                GetErrorCodeValue(env, ConvertToJSErrCodeV8(asyncContext->errCode));
+            ProcessCallbackOrPromise(env, asyncContext, err, NapiGetNull(env));
             napi_delete_async_work(env, asyncContext->work);
             delete asyncContext;
             asyncContext = nullptr;
@@ -379,7 +381,7 @@ napi_value NapiAppAccount::DisableAppAccess(napi_env env, napi_callback_info cbI
         [](napi_env env, napi_status status, void *data) {
             AppAccountAsyncContext *asyncContext = reinterpret_cast<AppAccountAsyncContext *>(data);
             ProcessCallbackOrPromise(env, asyncContext,
-                GenerateBusinessError(env, asyncContext->errCode), NapiGetNull(env));
+                GetErrorCodeValue(env, ConvertToJSErrCodeV8(asyncContext->errCode)), NapiGetNull(env));
             napi_delete_async_work(env, asyncContext->work);
             delete asyncContext;
             asyncContext = nullptr;
@@ -418,7 +420,7 @@ napi_value NapiAppAccount::EnableAppAccess(napi_env env, napi_callback_info cbIn
         [](napi_env env, napi_status status, void *data) {
             AppAccountAsyncContext *asyncContext = reinterpret_cast<AppAccountAsyncContext *>(data);
             ProcessCallbackOrPromise(env, asyncContext,
-                GenerateBusinessError(env, asyncContext->errCode), NapiGetNull(env));
+                GetErrorCodeValue(env, ConvertToJSErrCodeV8(asyncContext->errCode)), NapiGetNull(env));
             napi_delete_async_work(env, asyncContext->work);
             delete asyncContext;
             asyncContext = nullptr;
@@ -518,13 +520,9 @@ napi_value NapiAppAccount::CheckDataSyncEnabledInternal(napi_env env, napi_callb
             AppAccountAsyncContext *asyncContext = reinterpret_cast<AppAccountAsyncContext *>(data);
             napi_value boolVal = nullptr;
             napi_get_boolean(env, asyncContext->result, &boolVal);
-            if (asyncContext->throwErr) {
-                ProcessCallbackOrPromise(env, asyncContext,
-                    GenerateBusinessError(env, asyncContext->errCode), boolVal);
-            } else {
-                ProcessCallbackOrPromise(env, asyncContext,
-                    GetErrorCodeValue(env, ConvertToJSErrCodeV8(asyncContext->errCode)), boolVal);
-            }
+            napi_value err = asyncContext->throwErr ? GenerateBusinessError(env, asyncContext->errCode) :
+                GetErrorCodeValue(env, ConvertToJSErrCodeV8(asyncContext->errCode));
+            ProcessCallbackOrPromise(env, asyncContext, err, boolVal);
             napi_delete_async_work(env, asyncContext->work);
             delete asyncContext;
             asyncContext = nullptr;
@@ -553,6 +551,7 @@ napi_value NapiAppAccount::SetCredentialInternal(napi_env env, napi_callback_inf
         return NapiGetNull(env);
     }
     asyncContext->env = env;
+    asyncContext->throwErr = isThrowable;
     if ((!ParseContextToSetCredential(env, cbInfo, asyncContext)) && isThrowable) {
         napi_throw(env, GenerateBusinessError(env, ERR_JS_PARAMETER_ERROR, asyncContext->errMsg));
         delete asyncContext;
@@ -579,8 +578,9 @@ napi_value NapiAppAccount::SetCredentialInternal(napi_env env, napi_callback_inf
         },
         [](napi_env env, napi_status status, void *data) {
             AppAccountAsyncContext *asyncContext = reinterpret_cast<AppAccountAsyncContext *>(data);
-            ProcessCallbackOrPromise(env, asyncContext,
-                GenerateBusinessError(env, asyncContext->errCode), NapiGetNull(env));
+            napi_value err = asyncContext->throwErr ? GenerateBusinessError(env, asyncContext->errCode) :
+                GetErrorCodeValue(env, ConvertToJSErrCodeV8(asyncContext->errCode));
+            ProcessCallbackOrPromise(env, asyncContext, err, NapiGetNull(env));
             napi_delete_async_work(env, asyncContext->work);
             delete asyncContext;
             asyncContext = nullptr;
@@ -622,7 +622,7 @@ napi_value NapiAppAccount::SetAccountExtraInfo(napi_env env, napi_callback_info 
         [](napi_env env, napi_status status, void *data) {
             AppAccountAsyncContext *asyncContext = reinterpret_cast<AppAccountAsyncContext *>(data);
             ProcessCallbackOrPromise(env, asyncContext,
-                GenerateBusinessError(env, asyncContext->errCode), NapiGetNull(env));
+                GetErrorCodeValue(env, ConvertToJSErrCodeV8(asyncContext->errCode)), NapiGetNull(env));
             napi_delete_async_work(env, asyncContext->work);
             delete asyncContext;
             asyncContext = nullptr;
@@ -678,13 +678,9 @@ napi_value NapiAppAccount::SetDataSyncEnabledInternal(napi_env env, napi_callbac
         },
         [](napi_env env, napi_status status, void *data) {
             AppAccountAsyncContext *asyncContext = reinterpret_cast<AppAccountAsyncContext *>(data);
-            if (asyncContext->throwErr) {
-                ProcessCallbackOrPromise(env, asyncContext,
-                    GenerateBusinessError(env, asyncContext->errCode), NapiGetNull(env));
-            } else {
-                ProcessCallbackOrPromise(env, asyncContext,
-                    GetErrorCodeValue(env, ConvertToJSErrCodeV8(asyncContext->errCode)), NapiGetNull(env));
-            }
+            napi_value err = asyncContext->throwErr ? GenerateBusinessError(env, asyncContext->errCode) :
+                GetErrorCodeValue(env, ConvertToJSErrCodeV8(asyncContext->errCode));
+            ProcessCallbackOrPromise(env, asyncContext, err, NapiGetNull(env));
             napi_delete_async_work(env, asyncContext->work);
             delete asyncContext;
             asyncContext = nullptr;
@@ -713,6 +709,7 @@ napi_value NapiAppAccount::SetCustomDataInternal(napi_env env, napi_callback_inf
         return NapiGetNull(env);
     }
     asyncContext->env = env;
+    asyncContext->throwErr = isThrowable;
     if ((!ParseContextForAssociatedData(env, cbInfo, asyncContext)) && isThrowable) {
         napi_throw(env, GenerateBusinessError(env, ERR_JS_PARAMETER_ERROR, asyncContext->errMsg));
         delete asyncContext;
@@ -739,8 +736,9 @@ napi_value NapiAppAccount::SetCustomDataInternal(napi_env env, napi_callback_inf
         },
         [](napi_env env, napi_status status, void *data) {
             AppAccountAsyncContext *asyncContext = reinterpret_cast<AppAccountAsyncContext *>(data);
-            ProcessCallbackOrPromise(env, asyncContext,
-                GenerateBusinessError(env, asyncContext->errCode), NapiGetNull(env));
+            napi_value err = asyncContext->throwErr ? GenerateBusinessError(env, asyncContext->errCode) :
+                GetErrorCodeValue(env, ConvertToJSErrCodeV8(asyncContext->errCode));
+            ProcessCallbackOrPromise(env, asyncContext, err, NapiGetNull(env));
             napi_delete_async_work(env, asyncContext->work);
             delete asyncContext;
             asyncContext = nullptr;
@@ -792,13 +790,9 @@ napi_value NapiAppAccount::GetAllAccessibleAccountsInternal(napi_env env, napi_c
             GetAccountsAsyncContext *asyncContext = reinterpret_cast<GetAccountsAsyncContext *>(data);
             napi_value arrVal = nullptr;
             GetAppAccountInfoForResult(env, asyncContext->appAccounts, arrVal);
-            if (asyncContext->throwErr) {
-                ProcessCallbackOrPromise(env, asyncContext,
-                    GenerateBusinessError(env, asyncContext->errCode), arrVal);
-            } else {
-                ProcessCallbackOrPromise(env, asyncContext,
-                    GetErrorCodeValue(env, ConvertToJSErrCodeV8(asyncContext->errCode)), arrVal);
-            }
+            napi_value err = asyncContext->throwErr ? GenerateBusinessError(env, asyncContext->errCode) :
+                GetErrorCodeValue(env, ConvertToJSErrCodeV8(asyncContext->errCode));
+            ProcessCallbackOrPromise(env, asyncContext, err, arrVal);
             napi_delete_async_work(env, asyncContext->work);
             delete asyncContext;
             asyncContext = nullptr;
@@ -897,6 +891,7 @@ napi_value NapiAppAccount::GetCredentialInternal(napi_env env, napi_callback_inf
         return NapiGetNull(env);
     }
     asyncContext->env = env;
+    asyncContext->throwErr = isThrowable;
     if ((!ParseContextWithCredentialType(env, cbInfo, asyncContext)) && isThrowable) {
         napi_throw(env, GenerateBusinessError(env, ERR_JS_PARAMETER_ERROR, asyncContext->errMsg));
         delete asyncContext;
@@ -924,8 +919,9 @@ napi_value NapiAppAccount::GetCredentialInternal(napi_env env, napi_callback_inf
             AppAccountAsyncContext *asyncContext = reinterpret_cast<AppAccountAsyncContext *>(data);
             napi_value strVal = nullptr;
             napi_create_string_utf8(env, asyncContext->credential.c_str(), NAPI_AUTO_LENGTH, &strVal);
-            ProcessCallbackOrPromise(env, asyncContext,
-                GenerateBusinessError(env, asyncContext->errCode), strVal);
+            napi_value err = asyncContext->throwErr ? GenerateBusinessError(env, asyncContext->errCode) :
+                GetErrorCodeValue(env, ConvertToJSErrCodeV8(asyncContext->errCode));
+            ProcessCallbackOrPromise(env, asyncContext, err, strVal);
             napi_delete_async_work(env, asyncContext->work);
             delete asyncContext;
             asyncContext = nullptr;
@@ -968,7 +964,7 @@ napi_value NapiAppAccount::GetAccountExtraInfo(napi_env env, napi_callback_info 
             napi_value strVal = nullptr;
             napi_create_string_utf8(env, asyncContext->extraInfo.c_str(), NAPI_AUTO_LENGTH, &strVal);
             ProcessCallbackOrPromise(env, asyncContext,
-                GenerateBusinessError(env, asyncContext->errCode), strVal);
+                GetErrorCodeValue(env, ConvertToJSErrCodeV8(asyncContext->errCode)), strVal);
             napi_delete_async_work(env, asyncContext->work);
             delete asyncContext;
             asyncContext = nullptr;
@@ -997,6 +993,7 @@ napi_value NapiAppAccount::GetCustomDataInternal(napi_env env, napi_callback_inf
         return NapiGetNull(env);
     }
     asyncContext->env = env;
+    asyncContext->throwErr = isThrowable;
     if ((!ParseContextToGetData(env, cbInfo, asyncContext)) && isThrowable) {
         napi_throw(env, GenerateBusinessError(env, ERR_JS_PARAMETER_ERROR, asyncContext->errMsg));
         delete asyncContext;
@@ -1022,8 +1019,9 @@ napi_value NapiAppAccount::GetCustomDataInternal(napi_env env, napi_callback_inf
             AppAccountAsyncContext *asyncContext = reinterpret_cast<AppAccountAsyncContext *>(data);
             napi_value strVal = NapiGetNull(env);
             napi_create_string_utf8(env, asyncContext->value.c_str(), NAPI_AUTO_LENGTH, &strVal);
-            ProcessCallbackOrPromise(env, asyncContext,
-                GenerateBusinessError(env, asyncContext->errCode), strVal);
+            napi_value err = asyncContext->throwErr ? GenerateBusinessError(env, asyncContext->errCode) :
+                GetErrorCodeValue(env, ConvertToJSErrCodeV8(asyncContext->errCode));
+            ProcessCallbackOrPromise(env, asyncContext, err, strVal);
             napi_delete_async_work(env, asyncContext->work);
             delete asyncContext;
             asyncContext = nullptr;
@@ -1069,6 +1067,7 @@ napi_value NapiAppAccount::AuthInternal(napi_env env, napi_callback_info cbInfo,
         return NapiGetNull(env);
     }
     asyncContext->env = env;
+    asyncContext->throwErr = isNewApi;
     if (isNewApi) {
         if (!ParseContextForAuth(env, cbInfo, asyncContext)) {
             napi_throw(env, GenerateBusinessError(env, ERR_JS_PARAMETER_ERROR, asyncContext->errMsg));
@@ -1088,14 +1087,13 @@ napi_value NapiAppAccount::AuthInternal(napi_env env, napi_callback_info cbInfo,
     napi_value resourceName = nullptr;
     NAPI_CALL(env, napi_create_string_latin1(env, "Authenticate", NAPI_AUTO_LENGTH, &resourceName));
     NAPI_CALL(env,
-        napi_create_async_work(env,
-            nullptr,
-            resourceName,
+        napi_create_async_work(env, nullptr, resourceName,
             [](napi_env env, void *data) {
                 auto asyncContext = reinterpret_cast<OAuthAsyncContext *>(data);
                 ErrCode errCode = AppAccountManager::Authenticate(asyncContext->name, asyncContext->owner,
                     asyncContext->authType, asyncContext->options, asyncContext->appAccountMgrCb);
-                asyncContext->errCode = ConvertToJSErrCode(errCode);
+                asyncContext->errCode =
+                    asyncContext->throwErr ? ConvertToJSErrCode(errCode) : ConvertToJSErrCodeV8(errCode);
             },
             [](napi_env env, napi_status status, void *data) {
                 OAuthAsyncContext *asyncContext = reinterpret_cast<OAuthAsyncContext *>(data);
@@ -1131,6 +1129,7 @@ napi_value NapiAppAccount::GetAuthTokenInternal(napi_env env, napi_callback_info
         return NapiGetNull(env);
     }
     asyncContext->env = env;
+    asyncContext->throwErr = isThrowable;
     if ((!ParseContextForGetOAuthToken(env, cbInfo, asyncContext)) && isThrowable) {
         napi_throw(env, GenerateBusinessError(env, ERR_JS_PARAMETER_ERROR, asyncContext->errMsg));
         delete asyncContext;
@@ -1156,8 +1155,9 @@ napi_value NapiAppAccount::GetAuthTokenInternal(napi_env env, napi_callback_info
             OAuthAsyncContext *asyncContext = reinterpret_cast<OAuthAsyncContext *>(data);
             napi_value strVal = nullptr;
             napi_create_string_utf8(env, asyncContext->token.c_str(), NAPI_AUTO_LENGTH, &strVal);
-            ProcessCallbackOrPromise(env, asyncContext,
-                GenerateBusinessError(env, asyncContext->errCode), strVal);
+            napi_value err = asyncContext->throwErr ? GenerateBusinessError(env, asyncContext->errCode) :
+                GetErrorCodeValue(env, ConvertToJSErrCodeV8(asyncContext->errCode));
+            ProcessCallbackOrPromise(env, asyncContext, err, strVal);
             napi_delete_async_work(env, asyncContext->work);
             delete asyncContext;
             asyncContext = nullptr;
@@ -1186,6 +1186,7 @@ napi_value NapiAppAccount::SetAuthTokenInternal(napi_env env, napi_callback_info
         return NapiGetNull(env);
     }
     asyncContext->env = env;
+    asyncContext->throwErr = isThrowable;
     if ((!ParseContextForSetOAuthToken(env, cbInfo, asyncContext)) && isThrowable) {
         napi_throw(env, GenerateBusinessError(env, ERR_JS_PARAMETER_ERROR, asyncContext->errMsg));
         delete asyncContext;
@@ -1209,8 +1210,9 @@ napi_value NapiAppAccount::SetAuthTokenInternal(napi_env env, napi_callback_info
         },
         [](napi_env env, napi_status status, void *data) {
             OAuthAsyncContext *asyncContext = reinterpret_cast<OAuthAsyncContext *>(data);
-            ProcessCallbackOrPromise(env, asyncContext,
-                GenerateBusinessError(env, asyncContext->errCode), NapiGetNull(env));
+            napi_value err = asyncContext->throwErr ? GenerateBusinessError(env, asyncContext->errCode) :
+                GetErrorCodeValue(env, ConvertToJSErrCodeV8(asyncContext->errCode));
+            ProcessCallbackOrPromise(env, asyncContext, err, NapiGetNull(env));
             napi_delete_async_work(env, asyncContext->work);
             delete asyncContext;
             asyncContext = nullptr;
@@ -1239,6 +1241,7 @@ napi_value NapiAppAccount::DeleteAuthTokenInternal(napi_env env, napi_callback_i
         return NapiGetNull(env);
     }
     asyncContext->env = env;
+    asyncContext->throwErr = isThrowable;
     if ((!ParseContextForDeleteOAuthToken(env, cbInfo, asyncContext)) && isThrowable) {
         napi_throw(env, GenerateBusinessError(env, ERR_JS_PARAMETER_ERROR, asyncContext->errMsg));
         delete asyncContext;
@@ -1263,8 +1266,9 @@ napi_value NapiAppAccount::DeleteAuthTokenInternal(napi_env env, napi_callback_i
             },
             [](napi_env env, napi_status status, void *data) {
                 OAuthAsyncContext *asyncContext = reinterpret_cast<OAuthAsyncContext *>(data);
-                ProcessCallbackOrPromise(env, asyncContext,
-                    GenerateBusinessError(env, asyncContext->errCode), NapiGetNull(env));
+                napi_value err = asyncContext->throwErr ? GenerateBusinessError(env, asyncContext->errCode) :
+                    GetErrorCodeValue(env, ConvertToJSErrCodeV8(asyncContext->errCode));
+                ProcessCallbackOrPromise(env, asyncContext, err, NapiGetNull(env));
                 napi_delete_async_work(env, asyncContext->work);
                 delete asyncContext;
                 asyncContext = nullptr;
@@ -1293,6 +1297,7 @@ napi_value NapiAppAccount::SetAuthTokenVisibilityInternal(napi_env env, napi_cal
         return NapiGetNull(env);
     }
     asyncContext->env = env;
+    asyncContext->throwErr = isThrowable;
     if ((!ParseContextForSetOAuthTokenVisibility(env, cbInfo, asyncContext)) && isThrowable) {
         napi_throw(env, GenerateBusinessError(env, ERR_JS_PARAMETER_ERROR, asyncContext->errMsg));
         delete asyncContext;
@@ -1317,8 +1322,9 @@ napi_value NapiAppAccount::SetAuthTokenVisibilityInternal(napi_env env, napi_cal
             },
             [](napi_env env, napi_status status, void *data) {
                 OAuthAsyncContext *asyncContext = reinterpret_cast<OAuthAsyncContext *>(data);
-                ProcessCallbackOrPromise(env, asyncContext,
-                    GenerateBusinessError(env, asyncContext->errCode), NapiGetNull(env));
+                napi_value err = asyncContext->throwErr ? GenerateBusinessError(env, asyncContext->errCode) :
+                    GetErrorCodeValue(env, ConvertToJSErrCodeV8(asyncContext->errCode));
+                ProcessCallbackOrPromise(env, asyncContext, err, NapiGetNull(env));
                 napi_delete_async_work(env, asyncContext->work);
                 delete asyncContext;
                 asyncContext = nullptr;
@@ -1347,6 +1353,7 @@ napi_value NapiAppAccount::CheckAuthTokenVisibilityInternal(napi_env env, napi_c
         return NapiGetNull(env);
     }
     asyncContext->env = env;
+    asyncContext->throwErr = isThrowable;
     if ((!ParseContextForCheckOAuthTokenVisibility(env, cbInfo, asyncContext)) && isThrowable) {
         napi_throw(env, GenerateBusinessError(env, ERR_JS_PARAMETER_ERROR, asyncContext->errMsg));
         delete asyncContext;
@@ -1371,12 +1378,11 @@ napi_value NapiAppAccount::CheckAuthTokenVisibilityInternal(napi_env env, napi_c
             },
             [](napi_env env, napi_status status, void *data) {
                 OAuthAsyncContext *asyncContext = reinterpret_cast<OAuthAsyncContext *>(data);
-                ACCOUNT_LOGE("errCode: %{public}d, isVisible: %{public}d",
-                    asyncContext->errCode, asyncContext->isVisible);
                 napi_value boolVal = nullptr;
                 napi_get_boolean(env, asyncContext->isVisible, &boolVal);
-                ProcessCallbackOrPromise(env, asyncContext,
-                    GenerateBusinessError(env, asyncContext->errCode), boolVal);
+                napi_value err = asyncContext->throwErr ? GenerateBusinessError(env, asyncContext->errCode) :
+                    GetErrorCodeValue(env, ConvertToJSErrCodeV8(asyncContext->errCode));
+                ProcessCallbackOrPromise(env, asyncContext, err, boolVal);
                 napi_delete_async_work(env, asyncContext->work);
                 delete asyncContext;
                 asyncContext = nullptr;
@@ -1405,6 +1411,7 @@ napi_value NapiAppAccount::QueryAuthenticatorInfoInternal(napi_env env, napi_cal
         return NapiGetNull(env);
     }
     asyncContext->env = env;
+    asyncContext->throwErr = isThrowable;
     if ((!ParseContextForGetAuthenticatorInfo(env, cbInfo, asyncContext)) && isThrowable) {
         napi_throw(env, GenerateBusinessError(env, ERR_JS_PARAMETER_ERROR, asyncContext->errMsg));
         delete asyncContext;
@@ -1432,7 +1439,9 @@ napi_value NapiAppAccount::QueryAuthenticatorInfoInternal(napi_env env, napi_cal
                 napi_value result = nullptr;
                 napi_create_object(env, &result);
                 GetAuthenticatorInfoForResult(env, asyncContext->authenticatorInfo, result);
-                ProcessCallbackOrPromise(env, asyncContext, GenerateBusinessError(env, asyncContext->errCode), result);
+                napi_value err = asyncContext->throwErr ? GenerateBusinessError(env, asyncContext->errCode) :
+                    GetErrorCodeValue(env, ConvertToJSErrCodeV8(asyncContext->errCode));
+                ProcessCallbackOrPromise(env, asyncContext, err, result);
                 napi_delete_async_work(env, asyncContext->work);
                 delete asyncContext;
                 asyncContext = nullptr;
@@ -1461,6 +1470,7 @@ napi_value NapiAppAccount::GetAllAuthTokensInternal(napi_env env, napi_callback_
         return NapiGetNull(env);
     }
     asyncContext->env = env;
+    asyncContext->throwErr = isThrowable;
     if ((!ParseContextForGetAllOAuthTokens(env, cbInfo, asyncContext)) && isThrowable) {
         napi_throw(env, GenerateBusinessError(env, ERR_JS_PARAMETER_ERROR, asyncContext->errMsg));
         delete asyncContext;
@@ -1488,8 +1498,9 @@ napi_value NapiAppAccount::GetAllAuthTokensInternal(napi_env env, napi_callback_
                 napi_value arrVal = nullptr;
                 napi_create_array(env, &arrVal);
                 GetOAuthTokenInfoForResult(env, asyncContext->oauthTokenInfos, arrVal);
-                ProcessCallbackOrPromise(env, asyncContext,
-                    GenerateBusinessError(env, asyncContext->errCode), arrVal);
+                napi_value err = asyncContext->throwErr ? GenerateBusinessError(env, asyncContext->errCode) :
+                    GetErrorCodeValue(env, ConvertToJSErrCodeV8(asyncContext->errCode));
+                ProcessCallbackOrPromise(env, asyncContext, err, arrVal);
                 napi_delete_async_work(env, asyncContext->work);
                 delete asyncContext;
                 asyncContext = nullptr;
@@ -1518,6 +1529,7 @@ napi_value NapiAppAccount::GetAuthListInternal(napi_env env, napi_callback_info 
         return NapiGetNull(env);
     }
     asyncContext->env = env;
+    asyncContext->throwErr = isThrowable;
     if ((!ParseContextForGetOAuthList(env, cbInfo, asyncContext)) && isThrowable) {
         napi_throw(env, GenerateBusinessError(env, ERR_JS_PARAMETER_ERROR, asyncContext->errMsg));
         delete asyncContext;
@@ -1545,8 +1557,9 @@ napi_value NapiAppAccount::GetAuthListInternal(napi_env env, napi_callback_info 
                 napi_value arrVal = nullptr;
                 napi_create_array(env, &arrVal);
                 GetOAuthListForResult(env, asyncContext->authList, arrVal);
-                ProcessCallbackOrPromise(env, asyncContext,
-                    GenerateBusinessError(env, asyncContext->errCode), arrVal);
+                napi_value err = asyncContext->throwErr ? GenerateBusinessError(env, asyncContext->errCode) :
+                    GetErrorCodeValue(env, ConvertToJSErrCodeV8(asyncContext->errCode));
+                ProcessCallbackOrPromise(env, asyncContext, err, arrVal);
                 napi_delete_async_work(env, asyncContext->work);
                 delete asyncContext;
                 asyncContext = nullptr;
@@ -1575,6 +1588,7 @@ napi_value NapiAppAccount::GetAuthCallbackInternal(napi_env env, napi_callback_i
         return NapiGetNull(env);
     }
     asyncContext->env = env;
+    asyncContext->throwErr = isThrowable;
     if ((!ParseContextForGetAuthenticatorCallback(env, cbInfo, asyncContext)) && isThrowable) {
         napi_throw(env, GenerateBusinessError(env, ERR_JS_PARAMETER_ERROR, asyncContext->errMsg));
         delete asyncContext;
@@ -1601,7 +1615,9 @@ napi_value NapiAppAccount::GetAuthCallbackInternal(napi_env env, napi_callback_i
                 OAuthAsyncContext *asyncContext = reinterpret_cast<OAuthAsyncContext *>(data);
                 napi_value result = nullptr;
                 GetAuthenticatorCallbackForResult(env, asyncContext->authenticatorCb, &result);
-                ProcessCallbackOrPromise(env, asyncContext, GenerateBusinessError(env, asyncContext->errCode), result);
+                napi_value err = asyncContext->throwErr ? GenerateBusinessError(env, asyncContext->errCode) :
+                    GetErrorCodeValue(env, ConvertToJSErrCodeV8(asyncContext->errCode));
+                ProcessCallbackOrPromise(env, asyncContext, err, result);
                 napi_delete_async_work(env, asyncContext->work);
                 delete asyncContext;
                 asyncContext = nullptr;
@@ -1697,7 +1713,6 @@ napi_value NapiAppAccount::DeleteCredentialInternal(napi_env env, napi_callback_
             if (context->throwErr) {
                 ProcessCallbackOrPromise(env, context, GenerateBusinessError(env, context->errCode), NapiGetNull(env));
             } else {
-                ACCOUNT_LOGE("ProcessCallbackOrPromise");
                 napi_value ret = nullptr;
                 napi_get_undefined(env, &ret);
                 ProcessCallbackOrPromise(env, context, GenerateBusinessError(env, context->errCode), ret);
