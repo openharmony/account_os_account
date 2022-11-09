@@ -15,11 +15,14 @@
 
 #include <gtest/gtest.h>
 
+#define private public
 #include "account_dump_helper.h"
+#undef private
 #include "account_error_no.h"
 #include "account_info.h"
 #include "account_log_wrapper.h"
 #include "account_event_provider.h"
+#include "iinner_os_account_manager.h"
 #include "ohos_account_kits.h"
 #include "ohos_account_manager.h"
 #include "os_account.h"
@@ -229,7 +232,7 @@ HWTEST_F(AccountDumpHelperTest, AccountDumpParameterTest004, TestSize.Level0)
 HWTEST_F(AccountDumpHelperTest, AccountDumpParameterTest005, TestSize.Level0)
 {
     accountDumpHelper_ = nullptr;
-    accountDumpHelper_ = std::make_unique<AccountDumpHelper>(ohosAccount_, nullptr);
+    accountDumpHelper_ = std::make_unique<AccountDumpHelper>(nullptr, osAccount_);
     if (accountDumpHelper_ == nullptr) {
         std::cout << "AccountDumpHelperTest, error! accountDumpHelper_ is nullptr!" << std::endl;
     }
@@ -250,11 +253,10 @@ HWTEST_F(AccountDumpHelperTest, AccountDumpParameterTest005, TestSize.Level0)
  */
 HWTEST_F(AccountDumpHelperTest, AccountDumpParameterTest006, TestSize.Level0)
 {
-    accountDumpHelper_ = nullptr;
-    accountDumpHelper_ = std::make_unique<AccountDumpHelper>(nullptr, osAccount_);
     if (accountDumpHelper_ == nullptr) {
         std::cout << "AccountDumpHelperTest, error! accountDumpHelper_ is nullptr!" << std::endl;
     }
+    accountDumpHelper_->innerMgrService_ = nullptr;
 
     std::string out;
     vector<std::string> cmd = {"-ohos_account_infos"};

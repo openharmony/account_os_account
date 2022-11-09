@@ -18,9 +18,9 @@
 
 #include <string>
 #include <vector>
+#include "iinner_os_account_manager.h"
 #include "ohos_account_manager.h"
 #include "os_account_manager_service.h"
-#include "iinner_os_account_manager.h"
 
 namespace OHOS {
 namespace AccountSA {
