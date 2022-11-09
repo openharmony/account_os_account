@@ -71,16 +71,14 @@ std::string AppAccountInfo::GetOwner()
     return owner_;
 }
 
-ErrCode AppAccountInfo::GetOwner(std::string &owner)
+void AppAccountInfo::GetOwner(std::string &owner)
 {
     owner = owner_;
-    return ERR_OK;
 }
 
-ErrCode AppAccountInfo::SetOwner(const std::string &owner)
+void AppAccountInfo::SetOwner(const std::string &owner)
 {
     owner_ = owner;
-    return ERR_OK;
 }
 
 std::string AppAccountInfo::GetName()
@@ -88,16 +86,14 @@ std::string AppAccountInfo::GetName()
     return name_;
 }
 
-ErrCode AppAccountInfo::GetName(std::string &name) const
+void AppAccountInfo::GetName(std::string &name) const
 {
     name = name_;
-    return ERR_OK;
 }
 
-ErrCode AppAccountInfo::SetName(const std::string &name)
+void AppAccountInfo::SetName(const std::string &name)
 {
     name_ = name;
-    return ERR_OK;
 }
 
 uint32_t AppAccountInfo::GetAppIndex()
@@ -110,16 +106,14 @@ void AppAccountInfo::SetAppIndex(const uint32_t &appIndex)
     appIndex_ = appIndex;
 }
 
-ErrCode AppAccountInfo::GetExtraInfo(std::string &extraInfo) const
+void AppAccountInfo::GetExtraInfo(std::string &extraInfo) const
 {
     extraInfo = extraInfo_;
-    return ERR_OK;
 }
 
-ErrCode AppAccountInfo::SetExtraInfo(const std::string &extraInfo)
+void AppAccountInfo::SetExtraInfo(const std::string &extraInfo)
 {
     extraInfo_ = extraInfo;
-    return ERR_OK;
 }
 
 ErrCode AppAccountInfo::EnableAppAccess(const std::string &authorizedApp)
@@ -150,28 +144,24 @@ ErrCode AppAccountInfo::CheckAppAccess(const std::string &authorizedApp, bool &i
     return ERR_OK;
 }
 
-ErrCode AppAccountInfo::GetAuthorizedApps(std::set<std::string> &apps) const
+void AppAccountInfo::GetAuthorizedApps(std::set<std::string> &apps) const
 {
     apps = authorizedApps_;
-    return ERR_OK;
 }
 
-ErrCode AppAccountInfo::SetAuthorizedApps(const std::set<std::string> &apps)
+void AppAccountInfo::SetAuthorizedApps(const std::set<std::string> &apps)
 {
     authorizedApps_ = apps;
-    return ERR_OK;
 }
 
-ErrCode AppAccountInfo::GetSyncEnable(bool &syncEnable) const
+void AppAccountInfo::GetSyncEnable(bool &syncEnable) const
 {
     syncEnable = syncEnable_;
-    return ERR_OK;
 }
 
-ErrCode AppAccountInfo::SetSyncEnable(const bool &syncEnable)
+void AppAccountInfo::SetSyncEnable(const bool &syncEnable)
 {
     syncEnable_ = syncEnable;
-    return ERR_OK;
 }
 
 ErrCode AppAccountInfo::InitCustomData(const std::map<std::string, std::string> &data)
