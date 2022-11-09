@@ -20,6 +20,7 @@
 #include <vector>
 #include "ohos_account_manager.h"
 #include "os_account_manager_service.h"
+#include "iinner_os_account_manager.h"
 
 namespace OHOS {
 namespace AccountSA {
@@ -37,6 +38,7 @@ private:
     void ProcessTwoParameter(const std::string& arg1, const std::string& arg2, std::string& result) const;
     std::weak_ptr<OhosAccountManager> ohosAccountMgr_;
     OsAccountManagerService *osAccountMgrService_;
+    std::shared_ptr<IInnerOsAccount> innerMgrService_;
     void ShowOhosAccountInfo(std::string &result) const;
     void ShowOsAccountInfo(std::string &result) const;
     void SetLogLevel(const std::string& levelStr, std::string& result) const;

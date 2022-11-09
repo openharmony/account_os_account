@@ -75,6 +75,7 @@ AccountDumpHelper::AccountDumpHelper(const std::shared_ptr<OhosAccountManager>& 
 {
     ohosAccountMgr_ = ohosAccountMgr;
     osAccountMgrService_ = osAccountMgrService;
+    innerMgrService_ = DelayedSingleton<IInnerOsAccountManager>::GetInstance();
 }
 
 void AccountDumpHelper::Dump(const std::vector<std::string>& args, std::string& result) const
@@ -122,7 +123,7 @@ void AccountDumpHelper::ShowOhosAccountInfo(std::string& result) const
 
     // check os account list
     std::vector<OsAccountInfo> osAccountInfos;
-    ErrCode ret = osAccountMgrService_->QueryAllCreatedOsAccounts(osAccountInfos);
+    ErrCode ret = innerMgrService_->QueryAllCreatedOsAccounts(osAccountInfos);
     if (ret != ERR_OK) {
         result.append("Cannot query os account list, error code ");
         result.append(std::to_string(ret));
