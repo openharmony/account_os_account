@@ -16,6 +16,7 @@
 #include <gtest/gtest.h>
 
 #include "account_command.h"
+#include "singleton.h"
 
 using namespace testing::ext;
 using namespace OHOS;
@@ -27,6 +28,8 @@ const std::string HELP_MSG_UNKNOWN_OPTION = "error: unknown option.";
 
 const std::string STRING_LOCAL_ACCOUNT_ID = "1024";
 const std::string STRING_CONSTRAINT = "constraint.bluetooth";
+const std::string STRING_CONSTRAINT1 = "constraint.bluetooth,constraint.bluetooth";
+static std::shared_ptr<OsAccount> g_osAccountPtr = nullptr;
 }  // namespace
 
 class AccountCommandSetTest : public testing::Test {
@@ -40,7 +43,10 @@ public:
 };
 
 void AccountCommandSetTest::SetUpTestCase()
-{}
+{
+    g_osAccountPtr = DelayedSingleton<OsAccount>::GetInstance();
+    EXPECT_NE(g_osAccountPtr, nullptr);
+}
 
 void AccountCommandSetTest::TearDownTestCase()
 {}
@@ -49,6 +55,12 @@ void AccountCommandSetTest::SetUp()
 {
     // reset optind to 0
     optind = 0;
+
+    std::vector<OsAccountInfo> osAccountInfos;
+    g_osAccountPtr->QueryAllCreatedOsAccounts(osAccountInfos);
+    for (const auto &info : osAccountInfos) {
+        g_osAccountPtr->RemoveOsAccount(info.GetLocalId());
+    }
 }
 
 void AccountCommandSetTest::TearDown()
@@ -337,4 +349,32 @@ HWTEST_F(AccountCommandSetTest, Acm_Command_Set_1400, TestSize.Level1)
 
     AccountCommand cmd(argc, argv);
     EXPECT_EQ(cmd.ExecCommand(), HELP_MSG_OPTION_REQUIRES_AN_ARGUMENT + "\n" + HELP_MSG_SET);
+}
+
+/**
+ * @tc.name: Acm_Command_Set_1500
+ * @tc.desc: Verify the "acm set -c <constraints> -i" command.
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(AccountCommandSetTest, Acm_Command_Set_1500, TestSize.Level1)
+{
+    OsAccountInfo osAccountInfo;
+    // create an os account
+    EXPECT_EQ(ERR_OK, g_osAccountPtr->CreateOsAccount(TOOL_NAME, OsAccountType::NORMAL, osAccountInfo));
+
+    std::string userId = std::to_string(osAccountInfo.GetLocalId());
+    char *argv[] = {
+        const_cast<char *>(TOOL_NAME.c_str()),
+        const_cast<char *>(cmd_.c_str()),
+        const_cast<char *>("-c"),
+        const_cast<char *>(STRING_CONSTRAINT1.c_str()),
+        const_cast<char *>("-i"),
+        const_cast<char *>(userId.c_str()),
+        const_cast<char *>(""),
+    };
+    int argc = sizeof(argv) / sizeof(argv[0]) - 1;
+
+    AccountCommand cmd(argc, argv);
+    EXPECT_EQ(cmd.ExecCommand(), STRING_SET_OS_ACCOUNT_CONSTRAINTS_OK + "\n");
 }
