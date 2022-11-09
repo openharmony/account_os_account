@@ -115,7 +115,7 @@ void AccountDumpHelper::ShowIllegalInformation(std::string& result) const
 void AccountDumpHelper::ShowOhosAccountInfo(std::string& result) const
 {
     auto lockPtr = ohosAccountMgr_.lock();
-    if (lockPtr == nullptr || osAccountMgrService_ == nullptr) {
+    if (lockPtr == nullptr || innerMgrService_ == nullptr) {
         result.append(SYSTEM_ERROR + "service ptr is null!\n");
         ACCOUNT_LOGE("service ptr is null!");
         return;
