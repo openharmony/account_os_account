@@ -55,7 +55,6 @@ const uint32_t TIMEOUT = 10; // 10s
 const std::string TIMER_NAME = "AccountMgrTimer";
 #endif // HICOLLIE_ENABLE
 
-constexpr int32_t ABILITY_STATE_TERMINATED = 4;
 constexpr std::size_t APP_ACCOUNT_SUBSCRIBER_MAX_SIZE = 200;
 constexpr std::size_t NAME_MAX_SIZE = 512;
 constexpr std::size_t EXTRA_INFO_MAX_SIZE = 1024;
