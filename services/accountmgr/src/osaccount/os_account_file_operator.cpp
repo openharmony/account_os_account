@@ -39,9 +39,8 @@ void OsAccountFileOperator::Init()
         accountFileOperator_->GetFileContentByPath(Constants::OSACCOUNT_CONSTRAINTS_JSON_PATH, constraintsConfigStr);
         constraintsConfig_ = Json::parse(constraintsConfigStr, nullptr, false);
         isAlreadyInit_ = true;
-    } else {
-        isAlreadyInit_ = false;
     }
+
     if (accountFileOperator_->IsExistFile(Constants::CONSTRAINTS_LIST_JSON_PATH)) {
         std::string constraintListCollectingStr;
         accountFileOperator_->GetFileContentByPath(Constants::CONSTRAINTS_LIST_JSON_PATH, constraintListCollectingStr);

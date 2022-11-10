@@ -25,7 +25,6 @@
 
 namespace OHOS {
 namespace AccountSA {
-namespace {
 bool GetValidAccountID(const std::string& dirName, std::int32_t& accountID)
 {
     // check length first
@@ -47,7 +46,6 @@ bool GetValidAccountID(const std::string& dirName, std::int32_t& accountID)
     sstream >> accountID;
     return (accountID >= Constants::ADMIN_LOCAL_ID && accountID <= Constants::MAX_USER_ID);
 }
-}
 
 OsAccountControlFileManager::OsAccountControlFileManager()
 {
@@ -63,32 +61,28 @@ void OsAccountControlFileManager::Init()
     ACCOUNT_LOGI("OsAccountControlFileManager Init start");
     osAccountDataBaseOperator_->Init();
     osAccountFileOperator_->Init();
-    if (!accountFileOperator_->IsExistFile(Constants::ACCOUNT_LIST_FILE_JSON_PATH) ||
-        !accountFileOperator_->IsJsonFormat(Constants::ACCOUNT_LIST_FILE_JSON_PATH)) {
+    if (!accountFileOperator_->IsJsonFileReady(Constants::ACCOUNT_LIST_FILE_JSON_PATH)) {
         ACCOUNT_LOGI("OsAccountControlFileManager there is not have valid account list, create!");
         RecoverAccountListJsonFile();
 #ifdef WITH_SELINUX
         Restorecon(Constants::ACCOUNT_LIST_FILE_JSON_PATH.c_str());
 #endif // WITH_SELINUX
     }
-    if (!accountFileOperator_->IsExistFile(Constants::BASE_OSACCOUNT_CONSTRAINTS_JSON_PATH) ||
-        !accountFileOperator_->IsJsonFormat(Constants::BASE_OSACCOUNT_CONSTRAINTS_JSON_PATH)) {
+    if (!accountFileOperator_->IsJsonFileReady(Constants::BASE_OSACCOUNT_CONSTRAINTS_JSON_PATH)) {
         ACCOUNT_LOGI("OsAccountControlFileManager there is not have valid account list, create!");
         BuildAndSaveBaseOAConstraintsJsonFile();
 #ifdef WITH_SELINUX
         Restorecon(Constants::BASE_OSACCOUNT_CONSTRAINTS_JSON_PATH.c_str());
 #endif // WITH_SELINUX
     }
-    if (!accountFileOperator_->IsExistFile(Constants::GLOBAL_OSACCOUNT_CONSTRAINTS_JSON_PATH) ||
-        !accountFileOperator_->IsJsonFormat(Constants::GLOBAL_OSACCOUNT_CONSTRAINTS_JSON_PATH)) {
+    if (!accountFileOperator_->IsJsonFileReady(Constants::GLOBAL_OSACCOUNT_CONSTRAINTS_JSON_PATH)) {
         ACCOUNT_LOGI("OsAccountControlFileManager there is not have valid account list, create!");
         BuildAndSaveGlobalOAConstraintsJsonFile();
 #ifdef WITH_SELINUX
         Restorecon(Constants::GLOBAL_OSACCOUNT_CONSTRAINTS_JSON_PATH.c_str());
 #endif // WITH_SELINUX
     }
-    if (!accountFileOperator_->IsExistFile(Constants::SPECIFIC_OSACCOUNT_CONSTRAINTS_JSON_PATH) ||
-        !accountFileOperator_->IsJsonFormat(Constants::SPECIFIC_OSACCOUNT_CONSTRAINTS_JSON_PATH)) {
+    if (!accountFileOperator_->IsJsonFileReady(Constants::SPECIFIC_OSACCOUNT_CONSTRAINTS_JSON_PATH)) {
         ACCOUNT_LOGI("OsAccountControlFileManager there is not have valid account list, create!");
         BuildAndSaveSpecificOAConstraintsJsonFile();
 #ifdef WITH_SELINUX
