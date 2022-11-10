@@ -47,6 +47,7 @@ constexpr std::size_t SIZE_ZERO = 0;
 constexpr std::size_t SIZE_ONE = 1;
 constexpr int32_t MAX_TOKEN_NUMBER = 128;
 constexpr int32_t MAX_OAUTH_LIST_SIZE = 512;
+constexpr int32_t OVERLOAD_MAX_TOKEN_NUMBER = 135;
 }  // namespace
 
 class AppAccountInfoTest : public testing::Test {
@@ -571,6 +572,27 @@ HWTEST_F(AppAccountInfoTest, AppAccountInfo_GetAllOAuthTokens_0100, TestSize.Lev
 }
 
 /**
+ * @tc.name: AppAccountInfo_ReadTokenInfos_0100
+ * @tc.desc: ReadTokenInfos abnormal branch.
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(AppAccountInfoTest, AppAccountInfo_ReadTokenInfos_0100, TestSize.Level1)
+{
+    AppAccountInfo appAccountInfo;
+    std::map<std::string, OAuthTokenInfo> tokenInfos;
+    for (int32_t i = 0; i < OVERLOAD_MAX_TOKEN_NUMBER; ++i) {
+        std::string key = STRING_AUTH_TYPE + std::to_string(i);
+        OAuthTokenInfo testOAuthTokenInfo;
+        testOAuthTokenInfo.authType = std::to_string(i);
+        tokenInfos[key] = testOAuthTokenInfo;
+    }
+    Parcel data;
+    EXPECT_EQ(appAccountInfo.WriteTokenInfos(tokenInfos, data), true);
+    EXPECT_EQ(appAccountInfo.ReadTokenInfos(tokenInfos, data), false);
+}
+
+/**
  * @tc.name: AppAccountInfo_SetOAuthTokenVisibility_0100
  * @tc.desc: Set oauth token visibility with non-existent auth type.
  * @tc.type: FUNC
@@ -709,4 +731,37 @@ HWTEST_F(AppAccountInfoTest, AppAccountInfo_Marshalling_0100, TestSize.Level0)
     EXPECT_EQ(syncEnable, infoPtr->syncEnable_);
     EXPECT_EQ(associatedData, infoPtr->associatedData_);
     EXPECT_EQ(accountCredential, infoPtr->accountCredential_);
+}
+
+/**
+ * @tc.name: AppAccountInfo GetName test
+ * @tc.desc: Func GetName.
+ * @tc.type: FUNC
+ * @tc.require
+ */
+HWTEST_F(AppAccountInfoTest, GetName001, TestSize.Level0)
+{
+    AppAccountInfo testInfo;
+    EXPECT_EQ(testInfo.SetName("test"), ERR_OK);
+    EXPECT_EQ(testInfo.GetName(), "test");
+    EXPECT_EQ(testInfo.SetOwner("test"), ERR_OK);
+    EXPECT_EQ(testInfo.GetOwner(), "test");
+}
+
+/**
+ * @tc.name: AppAccountInfo WriteStringMap test
+ * @tc.desc: Func WriteStringMap.
+ * @tc.type: FUNC
+ * @tc.require
+ */
+HWTEST_F(AppAccountInfoTest, WriteStringMap001, TestSize.Level0)
+{
+    AppAccountInfo testInfo;
+    Parcel data;
+    std::map<std::string, std::string> stringSet;
+    std::map<std::string, std::string> stringMap;
+    stringSet["testkey"] = "testvalue";
+    EXPECT_EQ(testInfo.WriteStringMap(stringSet, data), true);
+    EXPECT_EQ(testInfo.ReadStringMap(stringMap, data), true);
+    EXPECT_EQ(stringMap["testkey"], "testvalue");
 }
