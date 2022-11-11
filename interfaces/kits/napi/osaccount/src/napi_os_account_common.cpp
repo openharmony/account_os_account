@@ -313,7 +313,7 @@ bool ParseParaSetOAName(napi_env env, napi_callback_info cbInfo, SetOANameAsyncC
         AccountNapiThrow(env, ERR_JS_PARAMETER_ERROR, errMsg, asyncContext->throwErr);
         return false;
     }
-    
+
     return true;
 }
 
@@ -862,7 +862,7 @@ void QueryOAContSrcTypeForResult(napi_env env, const std::vector<ConstraintSourc
     for (auto item : infos) {
         napi_value objTypeInfo = nullptr;
         napi_create_object(env, &objTypeInfo);
-        
+
         napi_value srcLocalId = nullptr;
         napi_create_int32(env, item.localId, &srcLocalId);
         napi_set_named_property(env, objTypeInfo, "localId", srcLocalId);

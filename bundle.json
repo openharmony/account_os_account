@@ -115,27 +115,9 @@
         }
      ],
      "test": [
-       "//base/account/os_account/frameworks/common/test:unittest",
-       "//base/account/os_account/services/accountmgr/test:unittest",
-       "//base/account/os_account/frameworks/ohosaccount/test:moduletest",
-       "//base/account/os_account/frameworks/osaccount/core/test:unittest",
-       "//base/account/os_account/frameworks/osaccount/native/test/moduletest:moduletest",
-       "//base/account/os_account/frameworks/osaccount/native/test/benchmarktest:benchmarktest",
-       "//base/account/os_account/services/accountmgr/test/moduletest/os_account:moduletest",
-       "//base/account/os_account/frameworks/ohosaccount/test:moduletest",
-       "//base/account/os_account/frameworks/osaccount/native/test/unittest:unittest",
-       "//base/account/os_account/tools:unittest",
-       "//base/account/os_account/tools:moduletest",
-       "//base/account/os_account/test/systemtest:systemtest",
-       "//base/account/os_account/test/fuzztest/osaccount:fuzztest",
-       "//base/account/os_account/test/fuzztest/iamaccount:fuzztest",
-       "//base/account/os_account/test/fuzztest/appaccount:fuzztest",
-       "//base/account/os_account/test/fuzztest/ohosaccount:fuzztest",
-       "//base/account/os_account/frameworks/account_iam/test:unittest",
-       "//base/account/os_account/frameworks/appaccount/native/test:moduletest",
-       "//base/account/os_account/frameworks/appaccount/native/test:unittest",
-       "//base/account/os_account/services/accountmgr/test/moduletest/app_account:moduletest",
-       "//base/account/os_account/services/accountmgr/test/unittest/app_account:unittest"
+       "//base/account/os_account:account_build_unittest",
+       "//base/account/os_account:account_build_fuzztest",
+       "//base/account/os_account:account_build_moduletest"
     ]
    }
   }

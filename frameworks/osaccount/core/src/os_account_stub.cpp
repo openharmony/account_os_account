@@ -668,7 +668,7 @@ ErrCode OsAccountStub::ProcIsOsAccountConstraintEnable(MessageParcel &data, Mess
         reply.WriteInt32(ERR_OSACCOUNT_KIT_READ_CONSTRAINTS_ERROR);
         return ERR_NONE;
     }
-    
+
     bool isConstraintEnable = false;
     ErrCode result = IsOsAccountConstraintEnable(localId, constraint, isConstraintEnable);
     if (!reply.WriteInt32(result)) {

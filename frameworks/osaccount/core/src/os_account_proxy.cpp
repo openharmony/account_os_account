@@ -1374,7 +1374,7 @@ ErrCode OsAccountProxy::SetSpecificOsAccountConstraints(const std::vector<std::s
         ACCOUNT_LOGE("failed to write int for enforcerId");
         return ERR_OSACCOUNT_KIT_WRITE_INT_LOCAL_ID_ERROR;
     }
-    
+
     if (!data.WriteBool(isDeviceOwner)) {
         ACCOUNT_LOGE("failed to write bool for isDeviceOwner");
         return ERR_OSACCOUNT_KIT_WRITE_BOOL_ENABLE_ERROR;
