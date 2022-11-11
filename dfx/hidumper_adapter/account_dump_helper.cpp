@@ -199,7 +199,7 @@ void AccountDumpHelper::ProcessOneParameter(const std::string& arg, std::string&
 
 void AccountDumpHelper::SetLogLevel(const std::string& levelStr, std::string& result) const
 {
-    if (!regex_match(levelStr, std::regex("^\\d+$"))) {
+    if (!regex_match(levelStr, std::regex("^\\-?\\d+$"))) {
         ACCOUNT_LOGE("Invalid format of log level");
         result.append("Invalid format of log level\n");
         return;
