@@ -216,15 +216,7 @@ HWTEST_F(OsAccountMockTest, StopOsAccountMockTest001, TestSize.Level1)
 
 class TestOsAccountSubscriber : public OsAccountSubscriber {
 public:
-    virtual void OnAccountsChanged(const int& id)
-    {
-        return;
-    }
-
-    OHOS::ErrCode GetSubscribeInfo(OsAccountSubscribeInfo& subscribeInfo)
-    {
-        return OHOS::ERR_OK;
-    }
+    void OnAccountsChanged(const int& id) {}
 };
 
 /**

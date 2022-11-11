@@ -31,10 +31,10 @@ public:
     explicit OsAccountSubscribeInfo(OS_ACCOUNT_SUBSCRIBE_TYPE &osAccountSubscribeType, std::string &name);
     virtual ~OsAccountSubscribeInfo();
 
-    ErrCode GetOsAccountSubscribeType(OS_ACCOUNT_SUBSCRIBE_TYPE &osAccountSubscribeType) const;
-    ErrCode SetOsAccountSubscribeType(const OS_ACCOUNT_SUBSCRIBE_TYPE &osAccountSubscribeType);
-    ErrCode GetName(std::string &name) const;
-    ErrCode SetName(const std::string &name);
+    void GetOsAccountSubscribeType(OS_ACCOUNT_SUBSCRIBE_TYPE &osAccountSubscribeType) const;
+    void SetOsAccountSubscribeType(const OS_ACCOUNT_SUBSCRIBE_TYPE &osAccountSubscribeType);
+    void GetName(std::string &name) const;
+    void SetName(const std::string &name);
 
     bool Marshalling(Parcel &parcel) const override;
     static OsAccountSubscribeInfo *Unmarshalling(Parcel &parcel);

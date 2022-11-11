@@ -29,7 +29,7 @@ public:
 
     virtual void OnAccountsChanged(const int &id) = 0;
 
-    ErrCode GetSubscribeInfo(OsAccountSubscribeInfo &subscribeInfo) const;
+    void GetSubscribeInfo(OsAccountSubscribeInfo &subscribeInfo) const;
 
 private:
     OsAccountSubscribeInfo subscribeInfo_;
