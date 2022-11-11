@@ -27,15 +27,7 @@ using namespace OHOS::AccountSA;
 
 class TestOsAccountSubscriber : public OsAccountSubscriber {
 public:
-    virtual void OnAccountsChanged(const int& id)
-    {
-        return;
-    }
-
-    OHOS::ErrCode GetSubscribeInfo(OsAccountSubscribeInfo& subscribeInfo)
-    {
-        return OHOS::ERR_OK;
-    }
+    void OnAccountsChanged(const int& id) {}
 };
 
 namespace OHOS {
