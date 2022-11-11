@@ -28,7 +28,7 @@ const std::string HELP_MSG_UNKNOWN_OPTION = "error: unknown option.";
 
 const std::string STRING_LOCAL_ACCOUNT_ID = "1024";
 const std::string STRING_CONSTRAINT = "constraint.bluetooth";
-const std::string STRING_CONSTRAINT1 = "constraint.bluetooth,constraint.bluetooth";
+const std::string STRING_CONSTRAINT1 = "constraint.bluetooth,constraint.bluetooth.set";
 static std::shared_ptr<OsAccount> g_osAccountPtr = nullptr;
 }  // namespace
 

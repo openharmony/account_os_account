@@ -189,7 +189,7 @@ void OsAccountControlFileManager::RecoverAccountListJsonFile()
             accounts.push_back(curAccountIDStr);
         }
     }
-    
+
     (void)closedir(rootDir);
     BuildAndSaveAccountListJsonFile(accounts);
 }
@@ -863,7 +863,7 @@ ErrCode OsAccountControlFileManager::IsFromBaseOAConstraintsList(
         ACCOUNT_LOGE("GetBaseOAConstraintsList failed! error code %{public}d.", errCode);
         return errCode;
     }
-    
+
     if (std::find(constraintsList.begin(), constraintsList.end(), constraint) != constraintsList.end()) {
         isExist = true;
     }
@@ -923,7 +923,7 @@ ErrCode OsAccountControlFileManager::IsFromSpecificOAConstraintsList(const int32
         ACCOUNT_LOGE("GetSpecificOAConstraintsList failed! error code %{public}d.", errCode);
         return ERR_OSACCOUNT_SERVICE_CONTROL_GET_ACCOUNT_LIST_ERROR;
     }
-    
+
     if (std::find(constraintsList.begin(), constraintsList.end(), constraint) != constraintsList.end()) {
         Json specificOAConstraintsJson;
         if (GetSpecificOAConstraintsFromFile(specificOAConstraintsJson) != ERR_OK) {

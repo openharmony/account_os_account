@@ -90,7 +90,7 @@ HWTEST_F(AppAccountAuthenticatorCallbackModuleTest, AppAccountAuthenticatorCallb
     testCallbackProxy.OnRequestRedirected(request);
     EXPECT_EQ(g_status, true);
     g_status = false;
-    
+
     testCallbackProxy.OnRequestContinued();
     EXPECT_EQ(g_status, true);
     g_status = false;
