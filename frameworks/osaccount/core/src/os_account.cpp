@@ -474,20 +474,12 @@ ErrCode OsAccount::SubscribeOsAccount(const std::shared_ptr<OsAccountSubscriber>
     }
 
     OsAccountSubscribeInfo subscribeInfo;
-    if (subscriber->GetSubscribeInfo(subscribeInfo) != ERR_OK) {
-        ACCOUNT_LOGE("get subscribeInfo failed");
-        return ERR_OSACCOUNT_KIT_GET_SUBSCRIBE_INFO_ERROR;
-    }
+    subscriber->GetSubscribeInfo(subscribeInfo);
     OS_ACCOUNT_SUBSCRIBE_TYPE osAccountSubscribeType;
-    if (subscribeInfo.GetOsAccountSubscribeType(osAccountSubscribeType) != ERR_OK) {
-        ACCOUNT_LOGE("failed to get owners");
-        return ERR_OSACCOUNT_KIT_GET_OS_ACCOUNT_SUBSCRIBE_TYPE_ERROR;
-    }
+    subscribeInfo.GetOsAccountSubscribeType(osAccountSubscribeType);
     std::string name;
-    if (subscribeInfo.GetName(name) != ERR_OK) {
-        ACCOUNT_LOGE("failed to get owners");
-        return ERR_OSACCOUNT_KIT_GET_NAME_ERROR;
-    }
+    subscribeInfo.GetName(name);
+
     if (GetOsAccountProxy() != ERR_OK) {
         ACCOUNT_LOGE("os account proxy is nullptr");
         return ERR_APPACCOUNT_KIT_APP_ACCOUNT_PROXY_IS_NULLPTR;
