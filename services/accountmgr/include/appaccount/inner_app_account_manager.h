@@ -81,7 +81,7 @@ public:
         const std::string &bundleName, const uint32_t &appIndex);
     ErrCode GetAllAccessibleAccounts(std::vector<AppAccountInfo> &appAccounts,
         const uid_t &uid, const std::string &bundleName, const uint32_t &appIndex);
-    
+
     ErrCode SelectAccountsByOptions(
         const SelectAccountsOptions &options, const sptr<IAppAccountAuthenticatorCallback> &callback,
         const uid_t &uid, const std::string &bundleName, const uint32_t &appIndex);

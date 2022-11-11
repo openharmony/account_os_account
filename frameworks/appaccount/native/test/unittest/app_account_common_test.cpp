@@ -151,7 +151,7 @@ HWTEST_F(AppAccountCommonTest, Marshalling005, TestSize.Level0)
     ACCOUNT_LOGI("Marshalling005");
     Parcel Parcel;
     CreateAccountOptions srcOptions;
-    
+
     for (int i = 0; i < MAX_CUSTOM_DATA_SIZE + 1; i++) {
         std::string test_key = "test_key" + std::to_string(i);
         std::string test_value = "test_value" + std::to_string(i);

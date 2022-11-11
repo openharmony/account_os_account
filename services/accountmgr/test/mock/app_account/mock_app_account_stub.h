@@ -71,7 +71,7 @@ public:
 
     ErrCode GetAllAccounts(const std::string &owner, std::vector<AppAccountInfo> &appAccounts) override;
     ErrCode GetAllAccessibleAccounts(std::vector<AppAccountInfo> &appAccounts) override;
-    
+
     ErrCode CheckAppAccess(const std::string &name, const std::string &authorizedApp, bool &isAccessible) override;
     ErrCode DeleteAccountCredential(const std::string &name, const std::string &credentialType) override;
     ErrCode SelectAccountsByOptions(

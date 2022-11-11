@@ -15,7 +15,7 @@ import("//base/account/os_account/os_account.gni")
 import("//build/ohos.gni")
 import("//build/test.gni")
 
-module_output_path = "os_account/accountdfx"
+module_output_path = "os_account/frameworks/accountdfx"
 
 ohos_unittest("AccountErrorCodeTest") {
   module_out_path = module_output_path

@@ -1197,7 +1197,7 @@ HWTEST_F(AppAccountManagerServiceModuleTest, AppAccountManagerService_GetAllOAut
     std::vector<OAuthTokenInfo> tokenInfos;
     result = g_accountManagerService->GetAllOAuthTokens(STRING_NAME, owner, tokenInfos);
     EXPECT_EQ(result, ERR_OK);
-    ASSERT_EQ(tokenInfos.size(), 0);
+    ASSERT_EQ(tokenInfos.size(), static_cast<size_t>(0));
 
     result = g_accountManagerService->SetOAuthToken(STRING_NAME, STRING_AUTH_TYPE, STRING_TOKEN);
     EXPECT_EQ(result, ERR_OK);

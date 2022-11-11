@@ -153,7 +153,7 @@ public:
         userId_ = 0;
         digest_ = "";
     }
-    
+
     AccountInfo(const OhosAccountInfo &ohosAccountInfo)
     {
         ohosAccountInfo_ = ohosAccountInfo;
