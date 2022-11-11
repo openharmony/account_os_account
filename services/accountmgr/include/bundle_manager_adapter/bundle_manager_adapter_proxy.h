@@ -62,7 +62,7 @@ public:
      * @return Returns the uid if successfully obtained; returns -1 otherwise.
      */
     virtual int GetUidByBundleName(const std::string &bundleName, const int userId) override;
-    
+
     /** @brief Obtains the bundle name of a specified application based on the given UID through the proxy object.
      * @param uid Indicates the uid.
      * @param bundleName Indicates the obtained bundle name.
