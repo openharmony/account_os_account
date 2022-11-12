@@ -45,6 +45,7 @@ public:
 
     ErrCode EnableAppAccess(const std::string &name, const std::string &bundleName);
     ErrCode DisableAppAccess(const std::string &name, const std::string &bundleName);
+    ErrCode SetAppAccess(const std::string &name, const std::string &authorizedApp, bool isAccessible);
 
     ErrCode CheckAppAccountSyncEnable(const std::string &name, bool &syncEnable);
     ErrCode SetAppAccountSyncEnable(const std::string &name, const bool &syncEnable);
@@ -65,7 +66,11 @@ public:
         const std::string &name, const std::string &owner, const std::string &authType, const std::string &token);
     ErrCode SetOAuthTokenVisibility(
         const std::string &name, const std::string &authType, const std::string &bundleName, bool isVisible);
+    ErrCode SetAuthTokenVisibility(
+        const std::string &name, const std::string &authType, const std::string &bundleName, bool isVisible);
     ErrCode CheckOAuthTokenVisibility(
+        const std::string &name, const std::string &authType, const std::string &bundleName, bool &isVisible);
+    ErrCode CheckAuthTokenVisibility(
         const std::string &name, const std::string &authType, const std::string &bundleName, bool &isVisible);
     ErrCode GetAuthenticatorInfo(const std::string &owner, AuthenticatorInfo &info);
     ErrCode GetAllOAuthTokens(
@@ -95,6 +100,8 @@ public:
 private:
     ErrCode CheckParameters(const std::string &name, const std::string &extraInfo = "");
     ErrCode CheckSpecialCharacters(const std::string &name);
+    ErrCode CheckTokenVisibilityParam(
+        const std::string &name, const std::string &authType, const std::string &bundleName);
 
     ErrCode GetAppAccountProxy();
     ErrCode CreateAppAccountEventListener(

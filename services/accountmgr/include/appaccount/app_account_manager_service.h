@@ -42,6 +42,7 @@ public:
 
     ErrCode EnableAppAccess(const std::string &name, const std::string &authorizedApp) override;
     ErrCode DisableAppAccess(const std::string &name, const std::string &authorizedApp) override;
+    ErrCode SetAppAccess(const std::string &name, const std::string &authorizedApp, bool isAccessible) override;
     ErrCode CheckAppAccess(const std::string &name, const std::string &authorizedApp, bool &isAccessible) override;
 
     ErrCode CheckAppAccountSyncEnable(const std::string &name, bool &syncEnable) override;
@@ -67,7 +68,11 @@ public:
         const std::string &authType, const std::string &token) override;
     ErrCode SetOAuthTokenVisibility(const std::string &name, const std::string &authType,
         const std::string &bundleName, bool isVisible) override;
+    ErrCode SetAuthTokenVisibility(const std::string &name, const std::string &authType,
+        const std::string &bundleName, bool isVisible) override;
     ErrCode CheckOAuthTokenVisibility(const std::string &name, const std::string &authType,
+        const std::string &bundleName, bool &isVisible) override;
+    ErrCode CheckAuthTokenVisibility(const std::string &name, const std::string &authType,
         const std::string &bundleName, bool &isVisible) override;
     ErrCode GetAuthenticatorInfo(const std::string &owner, AuthenticatorInfo &info) override;
     ErrCode GetAllOAuthTokens(const std::string &name, const std::string &owner,
@@ -99,6 +104,8 @@ private:
     ErrCode GetBundleNameAndCallingUid(int32_t &callingUid, std::string &bundleName);
     ErrCode GetCallingTokenInfoAndAppIndex(uint32_t &appIndex);
     ErrCode GetCallingInfo(int32_t &callingUid, std::string &bundleName, uint32_t &appIndex);
+    ErrCode GetTokenVisibilityParam(const std::string &name,
+        const std::string &authType, const std::string &bundleName, AuthenticatorSessionRequest &request);
 
 private:
     std::shared_ptr<InnerAppAccountManager> innerManager_ = nullptr;
