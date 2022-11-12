@@ -75,7 +75,7 @@ public:
     ErrCode GetAllOAuthTokens(const AuthenticatorSessionRequest &request, std::vector<OAuthTokenInfo> &tokenInfos);
     ErrCode GetOAuthList(const AuthenticatorSessionRequest &request, std::set<std::string> &oauthList);
     ErrCode GetAuthenticatorCallback(const AuthenticatorSessionRequest &request, sptr<IRemoteObject> &callback);
-    ErrCode GetAuthenticatorInfo(const AuthenticatorSessionRequest &request, AuthenticatorInfo &authenticator);
+    ErrCode GetAuthenticatorInfo(const AuthenticatorSessionRequest &request, AuthenticatorInfo &info);
 
     ErrCode GetAllAccounts(const std::string &owner, std::vector<AppAccountInfo> &appAccounts, const uid_t &uid,
         const std::string &bundleName, const uint32_t &appIndex);

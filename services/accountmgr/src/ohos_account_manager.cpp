@@ -156,12 +156,12 @@ bool OhosAccountManager::ClearOhosAccount(AccountInfo &curOhosAccountInfo, std::
 /**
  * Config current account config.
  *
- * @param account account information.
+ * @param ohosAccountInfo distribute account information.
  * @return true if success.
  */
-bool OhosAccountManager::SaveOhosAccountInfo(AccountInfo &AccountInfo) const
+bool OhosAccountManager::SaveOhosAccountInfo(AccountInfo &ohosAccountInfo) const
 {
-    ErrCode errCode = dataDealer_->AccountInfoToJson(AccountInfo);
+    ErrCode errCode = dataDealer_->AccountInfoToJson(ohosAccountInfo);
     if (errCode != ERR_OK) {
         ACCOUNT_LOGE("AccountInfoToJson error.");
         return false;

@@ -54,9 +54,9 @@ ErrCode OsAccountManager::IsOsAccountConstraintEnable(
     return DelayedSingleton<OsAccount>::GetInstance()->IsOsAccountConstraintEnable(id, constraint, isConstraintEnable);
 }
 
-ErrCode OsAccountManager::IsOsAccountVerified(const int id, bool &isTestOsAccount)
+ErrCode OsAccountManager::IsOsAccountVerified(const int id, bool &isVerified)
 {
-    return DelayedSingleton<OsAccount>::GetInstance()->IsOsAccountVerified(id, isTestOsAccount);
+    return DelayedSingleton<OsAccount>::GetInstance()->IsOsAccountVerified(id, isVerified);
 }
 
 ErrCode OsAccountManager::GetCreatedOsAccountsCount(unsigned int &osAccountsCount)

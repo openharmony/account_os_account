@@ -82,7 +82,7 @@ public:
     void SetJsRemoteObject(napi_value remoteObject);
 
 private:
-    static napi_value JsConstructor(napi_env env, napi_callback_info cbinfo);
+    static napi_value JsConstructor(napi_env env, napi_callback_info info);
     static napi_value GetRemoteObject(napi_env env, napi_callback_info cbInfo);
     static napi_status GetNamedFunction(napi_env env, napi_value value, const std::string &name, napi_ref *result);
     static void CallJsFunction(napi_env env, napi_ref funcRef, napi_value *argv, size_t argc);
