@@ -21,7 +21,7 @@
 namespace OHOS {
 namespace AccountSA {
 bool WriteOhosAccountInfo(MessageParcel &data, const OhosAccountInfo &ohosAccountInfo);
-bool ReadOhosAccountInfo(MessageParcel &reply, OhosAccountInfo &ohosAccountInfo);
+bool ReadOhosAccountInfo(MessageParcel &data, OhosAccountInfo &ohosAccountInfo);
 }  // namespace AccountSA
 }  // namespace OHOS
 

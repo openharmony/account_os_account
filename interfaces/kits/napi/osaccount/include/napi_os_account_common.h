@@ -38,44 +38,44 @@ constexpr std::int32_t ARGS_SIZE_FOUR = 4;
 
 napi_value WrapVoidToJS(napi_env env);
 
-bool ParseParaQueryOAByIdCB(napi_env env, napi_callback_info cbInfo, QueryOAByIdAsyncContext *queryOAByIdCB);
+bool ParseParaQueryOAByIdCB(napi_env env, napi_callback_info cbInfo, QueryOAByIdAsyncContext *asyncContext);
 
 void QueryOAByIdExecuteCB(napi_env env, void *data);
 
 void QueryOAByIdCallbackCompletedCB(napi_env env, napi_status status, void *data);
 
-void GetOACBInfoToJs(napi_env env, OsAccountInfo &info, napi_value &result);
+void GetOACBInfoToJs(napi_env env, OsAccountInfo &info, napi_value &objOAInfo);
 
 void MakeArrayToJs(napi_env env, const std::vector<std::string> &constraints, napi_value jsArray);
 
-bool ParseParaRemoveOACB(napi_env env, napi_callback_info cbInfo, RemoveOAAsyncContext *removeOACB);
+bool ParseParaRemoveOACB(napi_env env, napi_callback_info cbInfo, RemoveOAAsyncContext *asyncContext);
 
 void RemoveOAExecuteCB(napi_env env, void *data);
 
 void RemoveOACallbackCompletedCB(napi_env env, napi_status status, void *data);
 
-bool ParseParaSetOAName(napi_env env, napi_callback_info cbInfo, SetOANameAsyncContext *setOANameCB);
+bool ParseParaSetOAName(napi_env env, napi_callback_info cbInfo, SetOANameAsyncContext *asyncContext);
 
 void SetOANameExecuteCB(napi_env env, void *data);
 
 void SetOANameCallbackCompletedCB(napi_env env, napi_status status, void *data);
 
-bool ParseParaSetOAConstraints(napi_env env, napi_callback_info cbInfo, SetOAConsAsyncContext *setOAConsCB);
+bool ParseParaSetOAConstraints(napi_env env, napi_callback_info cbInfo, SetOAConsAsyncContext *asyncContext);
 
 void SetOAConsExecuteCB(napi_env env, void *data);
 
 void SetOAConsCallbackCompletedCB(napi_env env, napi_status status, void *data);
 
-bool ParseParaActiveOA(napi_env env, napi_callback_info cbInfo, ActivateOAAsyncContext *activeOACB);
+bool ParseParaActiveOA(napi_env env, napi_callback_info cbInfo, ActivateOAAsyncContext *asyncContext);
 
 void ActivateOAExecuteCB(napi_env env, void *data);
 
 void ActivateOACallbackCompletedCB(napi_env env, napi_status status, void *data);
 
-bool ParseParaCreateOA(napi_env env, napi_callback_info cbInfo, CreateOAAsyncContext *createOACB);
+bool ParseParaCreateOA(napi_env env, napi_callback_info cbInfo, CreateOAAsyncContext *asyncContext);
 
 bool ParseParaCreateOAForDomain(napi_env env, napi_callback_info cbInfo,
-    CreateOAForDomainAsyncContext *createOAForDomainCB);
+    CreateOAForDomainAsyncContext *asyncContext);
 
 void CreateOAExecuteCB(napi_env env, void *data);
 
@@ -85,19 +85,19 @@ void CreateOACallbackCompletedCB(napi_env env, napi_status status, void *data);
 
 void CreateOAForDomainCallbackCompletedCB(napi_env env, napi_status status, void *data);
 
-bool ParseParaGetOACount(napi_env env, napi_callback_info cbInfo, GetOACountAsyncContext *getOACount);
+bool ParseParaGetOACount(napi_env env, napi_callback_info cbInfo, GetOACountAsyncContext *asyncContext);
 
 void GetOACountExecuteCB(napi_env env, void *data);
 
 void GetOACountCallbackCompletedCB(napi_env env, napi_status status, void *data);
 
-bool ParseParaDbDeviceId(napi_env env, napi_callback_info cbInfo, DbDeviceIdAsyncContext *dbDeviceId);
+bool ParseParaDbDeviceId(napi_env env, napi_callback_info cbInfo, DbDeviceIdAsyncContext *asyncContext);
 
 void DbDeviceIdExecuteCB(napi_env env, void *data);
 
 void DbDeviceIdCallbackCompletedCB(napi_env env, napi_status status, void *data);
 
-bool ParseParaGetAllCons(napi_env env, napi_callback_info cbInfo, GetAllConsAsyncContext *getAllConsCB);
+bool ParseParaGetAllCons(napi_env env, napi_callback_info cbInfo, GetAllConsAsyncContext *asyncContext);
 
 void GetAllConsExecuteCB(napi_env env, void *data);
 
@@ -105,15 +105,15 @@ void GetAllConsCallbackCompletedCB(napi_env env, napi_status status, void *data)
 
 void GetAllAccountCons(napi_env env, const std::vector<std::string> &info, napi_value &result);
 
-bool ParseParaProcessId(napi_env env, napi_callback_info cbInfo, GetIdAsyncContext *getIdCB);
+bool ParseParaProcessId(napi_env env, napi_callback_info cbInfo, GetIdAsyncContext *asyncContext);
 
 void GetProcessIdExecuteCB(napi_env env, void *data);
 
 void GetProcessIdCallbackCompletedCB(napi_env env, napi_status status, void *data);
 
-bool ParseQueryAllCreateOA(napi_env env, napi_callback_info cbInfo, QueryCreateOAAsyncContext *queryAllOA);
+bool ParseQueryAllCreateOA(napi_env env, napi_callback_info cbInfo, QueryCreateOAAsyncContext *asyncContext);
 
-bool ParseQueryActiveIds(napi_env env, napi_callback_info cbInfo, QueryActiveIdsAsyncContext *queryActiveIds);
+bool ParseQueryActiveIds(napi_env env, napi_callback_info cbInfo, QueryActiveIdsAsyncContext *asyncContext);
 
 void QueryCreateOAExecuteCB(napi_env env, void *data);
 
@@ -125,21 +125,21 @@ void QueryActiveIdsCallbackCompletedCB(napi_env env, napi_status status, void *d
 
 void QueryOAInfoForResult(napi_env env, const std::vector<OsAccountInfo> &info, napi_value &result);
 
-bool ParseParaGetPhoto(napi_env env, napi_callback_info cbInfo, GetOAPhotoAsyncContext *getPhoto);
+bool ParseParaGetPhoto(napi_env env, napi_callback_info cbInfo, GetOAPhotoAsyncContext *asyncContext);
 
 void GetOAPhotoExecuteCB(napi_env env, void *data);
 
 void GetOAPhotoCallbackCompletedCB(napi_env env, napi_status status, void *data);
 
-bool ParseParaCurrentOA(napi_env env, napi_callback_info cbInfo, CurrentOAAsyncContext *currentOA);
+bool ParseParaCurrentOA(napi_env env, napi_callback_info cbInfo, CurrentOAAsyncContext *asyncContext);
 
 void QueryCurrentOAExecuteCB(napi_env env, void *data);
 
 void QueryCurrentOACallbackCompletedCB(napi_env env, napi_status status, void *data);
 
-bool ParseParaGetIdByUid(napi_env env, napi_callback_info cbInfo, GetIdByUidAsyncContext *idByUid);
+bool ParseParaGetIdByUid(napi_env env, napi_callback_info cbInfo, GetIdByUidAsyncContext *asyncContext);
 
-bool ParseParaGetIdByDomain(napi_env env, napi_callback_info cbInfo, GetIdByDomainAsyncContext *idByDomain);
+bool ParseParaGetIdByDomain(napi_env env, napi_callback_info cbInfo, GetIdByDomainAsyncContext *asyncContext);
 
 void GetIdByUidExecuteCB(napi_env env, void *data);
 
@@ -153,63 +153,63 @@ void GetBundleIdByUidCallbackCompletedCB(napi_env env, napi_status status, void 
 
 void GetIdByDomainCallbackCompletedCB(napi_env env, napi_status status, void *data);
 
-bool ParseParaSetPhoto(napi_env env, napi_callback_info cbInfo, SetOAPhotoAsyncContext *setPhoto);
+bool ParseParaSetPhoto(napi_env env, napi_callback_info cbInfo, SetOAPhotoAsyncContext *asyncContext);
 
 void SetPhotoExecuteCB(napi_env env, void *data);
 
 void SetPhotoCompletedCB(napi_env env, napi_status status, void *data);
 
-bool ParseParaQueryMaxNum(napi_env env, napi_callback_info cbInfo, QueryMaxNumAsyncContext *maxNum);
+bool ParseParaQueryMaxNum(napi_env env, napi_callback_info cbInfo, QueryMaxNumAsyncContext *asyncContext);
 
 void QueryMaxNumExecuteCB(napi_env env, void *data);
 
 void QueryMaxNumCompletedCB(napi_env env, napi_status status, void *data);
 
-bool ParseParaIsActived(napi_env env, napi_callback_info cbInfo, IsActivedAsyncContext *isActived);
+bool ParseParaIsActived(napi_env env, napi_callback_info cbInfo, IsActivedAsyncContext *asyncContext);
 
 void IsActivedExecuteCB(napi_env env, void *data);
 
 void IsActivedCompletedCB(napi_env env, napi_status status, void *data);
 
-bool ParseParaIsEnable(napi_env env, napi_callback_info cbInfo, IsConEnableAsyncContext *isEnable);
+bool ParseParaIsEnable(napi_env env, napi_callback_info cbInfo, IsConEnableAsyncContext *asyncContext);
 
 void IsEnableExecuteCB(napi_env env, void *data);
 
 void IsEnableCompletedCB(napi_env env, napi_status status, void *data);
 
-bool ParseParaGetType(napi_env env, napi_callback_info cbInfo, GetTypeAsyncContext *getType);
+bool ParseParaGetType(napi_env env, napi_callback_info cbInfo, GetTypeAsyncContext *asyncContext);
 
 void GetTypeExecuteCB(napi_env env, void *data);
 
 void GetTypeCompletedCB(napi_env env, napi_status status, void *data);
 
-bool ParseParaIsMultiEn(napi_env env, napi_callback_info cbInfo, IsMultiEnAsyncContext *multiEn);
+bool ParseParaIsMultiEn(napi_env env, napi_callback_info cbInfo, IsMultiEnAsyncContext *asyncContext);
 
 void IsMultiEnExecuteCB(napi_env env, void *data);
 
 void IsMultiEnCompletedCB(napi_env env, napi_status status, void *data);
 
-bool ParseParaIsVerified(napi_env env, napi_callback_info cbInfo, IsVerifiedAsyncContext *isVerified);
+bool ParseParaIsVerified(napi_env env, napi_callback_info cbInfo, IsVerifiedAsyncContext *asyncContext);
 
 void IsVerifiedExecuteCB(napi_env env, void *data);
 
 void IsVerifiedCompletedCB(napi_env env, napi_status status, void *data);
 
-bool ParseParaSerialNumId(napi_env env, napi_callback_info cbInfo, GetSerialNumIdCBInfo *serialNumId);
+bool ParseParaSerialNumId(napi_env env, napi_callback_info cbInfo, GetSerialNumIdCBInfo *asyncContext);
 
 void SerialNumIdExecuteCB(napi_env env, void *data);
 
 void SerialNumIdCompletedCB(napi_env env, napi_status status, void *data);
 
-bool ParseParaGetSerialNum(napi_env env, napi_callback_info cbInfo, GetSerialNumForOAInfo *getSerialNum);
+bool ParseParaGetSerialNum(napi_env env, napi_callback_info cbInfo, GetSerialNumForOAInfo *asyncContext);
 
 void GetSerialNumExecuteCB(napi_env env, void *data);
 
 void GetSerialNumCompletedCB(napi_env env, napi_status status, void *data);
 
-bool ParseParaIsTestOA(napi_env env, napi_callback_info cbInfo, IsTestOAInfo *isTest);
+bool ParseParaIsTestOA(napi_env env, napi_callback_info cbInfo, IsTestOAInfo *asyncContext);
 
-bool ParseParaIsMainOA(napi_env env, napi_callback_info cbInfo, IsMainOAInfo *isMain);
+bool ParseParaIsMainOA(napi_env env, napi_callback_info cbInfo, IsMainOAInfo *asyncContext);
 
 bool ParseParaToSubscriber(const napi_env &env, napi_callback_info cbInfo, SubscribeCBInfo *asyncContext,
                            napi_value *thisVar);
@@ -222,7 +222,7 @@ bool ParseParaToUnsubscriber(
     const napi_env &env, napi_callback_info cbInfo, UnsubscribeCBInfo *asyncContext, napi_value *thisVar);
 
 bool ParseQueryOAConstraintSrcTypes(napi_env env, napi_callback_info cbInfo,
-    QueryOAConstraintSrcTypeContext *queryConstraintsSource);
+    QueryOAConstraintSrcTypeContext *asyncContext);
 
 void QueryOAContSrcTypeExecuteCB(napi_env env, void *data);
 

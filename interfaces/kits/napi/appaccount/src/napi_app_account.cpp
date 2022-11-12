@@ -106,10 +106,10 @@ napi_value NapiAppAccount::Init(napi_env env, napi_value exports)
     return exports;
 }
 
-napi_value NapiAppAccount::JsConstructor(napi_env env, napi_callback_info cbinfo)
+napi_value NapiAppAccount::JsConstructor(napi_env env, napi_callback_info cbInfo)
 {
     napi_value thisVar = nullptr;
-    NAPI_CALL(env, napi_get_cb_info(env, cbinfo, nullptr, nullptr, &thisVar, nullptr));
+    NAPI_CALL(env, napi_get_cb_info(env, cbInfo, nullptr, nullptr, &thisVar, nullptr));
 
     AppAccountManager *objectInfo = new (std::nothrow) AppAccountManager();
     if (objectInfo == nullptr) {

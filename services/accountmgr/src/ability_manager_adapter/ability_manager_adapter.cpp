@@ -118,7 +118,7 @@ void AbilityManagerAdapter::Connect()
     proxy_ = remoteObj;
 }
 
-ErrCode AbilityManagerAdapter::StartUser(int accountId)
+ErrCode AbilityManagerAdapter::StartUser(int32_t accountId)
 {
     auto abms = GetAbilityManager();
     if (abms == nullptr) {
@@ -148,7 +148,7 @@ ErrCode AbilityManagerAdapter::StartUser(int accountId)
     return reply.ReadInt32();
 }
 
-ErrCode AbilityManagerAdapter::StopUser(int accountId, const sptr<AAFwk::IStopUserCallback> &callback)
+ErrCode AbilityManagerAdapter::StopUser(int32_t accountId, const sptr<AAFwk::IStopUserCallback> &callback)
 {
     auto abms = GetAbilityManager();
     if (abms == nullptr) {

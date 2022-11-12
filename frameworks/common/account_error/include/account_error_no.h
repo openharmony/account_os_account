@@ -536,7 +536,7 @@ enum JSErrorCode {
     ERR_JS_CUSTOM_DATA_NOT_FOUND = 12400009
 };
 
-int32_t ConvertToJSErrCode(int32_t errCode);
+int32_t ConvertToJSErrCode(int32_t nativeErrCode);
 }  // namespace OHOS
 
 #endif  // OS_ACCOUNT_FRAMEWORKS_COMMON_ACCOUNT_ERROR_INCLUDE_ACCOUNT_ERROR_NO_H

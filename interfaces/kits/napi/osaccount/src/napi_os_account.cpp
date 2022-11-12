@@ -1470,7 +1470,7 @@ SubscriberPtr::SubscriberPtr(const OsAccountSubscribeInfo &subscribeInfo) : OsAc
 SubscriberPtr::~SubscriberPtr()
 {}
 
-void SubscriberPtr::OnAccountsChanged(const int &id_)
+void SubscriberPtr::OnAccountsChanged(const int &id)
 {
     uv_loop_s *loop = nullptr;
     napi_get_uv_event_loop(env_, &loop);
@@ -1492,7 +1492,7 @@ void SubscriberPtr::OnAccountsChanged(const int &id_)
         return;
     }
 
-    subscriberOAWorker->id = id_;
+    subscriberOAWorker->id = id;
     subscriberOAWorker->env = env_;
     subscriberOAWorker->ref = ref_;
     subscriberOAWorker->subscriber = this;

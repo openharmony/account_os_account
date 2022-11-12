@@ -226,7 +226,7 @@ static napi_status ParseContextForAuth(
         AccountNapiThrow(env, ERR_JS_PARAMETER_ERROR, errMsg, context.throwErr);
         return napi_invalid_arg;
     }
-    if (ParseUint8TypedArrayToVector(env, argv[index++], context.challenge)!= napi_ok) {
+    if (ParseUint8TypedArrayToVector(env, argv[index++], context.challenge) != napi_ok) {
         ACCOUNT_LOGE("Get challenge failed");
         std::string errMsg = "The type of arg " + std::to_string(index) + " must be valid int array";
         AccountNapiThrow(env, ERR_JS_PARAMETER_ERROR, errMsg, context.throwErr);
