@@ -95,3 +95,25 @@ HWTEST_F(AccountLogTest, AccountLogFileName003, TestSize.Level0)
     result = AccountLogWrapper::GetBriefFileName(fileName);
     EXPECT_EQ(fileName, result);
 }
+
+/**
+ * @tc.name: AccountLogFileName004
+ * @tc.desc: splice filename
+ * @tc.type: FUNC
+ * @tc.require: issueI5RWXN
+ */
+HWTEST_F(AccountLogTest, AccountLogFileName004, TestSize.Level0)
+{
+    /**
+     * @tc.steps: step1. Constructor fileName and execeptStr strings
+     */
+    std::string fileName = "\\test.cpp";
+    std::string exceptStr = "test.cpp";
+
+    /**
+     * @tc.steps: step2. Call the GetBriefFileName method to split the string
+     * @tc.expected: step2. The result string is "test.cpp"
+     */
+    std::string result = AccountLogWrapper::GetBriefFileName(fileName);
+    EXPECT_EQ(exceptStr, result);
+}
