@@ -17,19 +17,30 @@ import("//build/test.gni")
 
 module_output_path = "os_account/frameworks/accountdfx"
 
-ohos_unittest("AccountSALogTest") {
+ohos_unittest("AccountCommonTest") {
   module_out_path = module_output_path
 
-  sources = [ "${common_path}/log/src/account_log_wrapper.cpp" ]
+  sources = [
+    "${common_path}/account_error/src/account_error_no.cpp",
+    "${common_path}/file_operator/src/account_file_operator.cpp",
+    "${common_path}/log/src/account_log_wrapper.cpp",
+    "${common_path}/perf_stat/src/perf_stat.cpp",
+  ]
 
+  sources += [ "account_error_common_test.cpp" ]
+  sources += [ "account_file_operator.cpp" ]
   sources += [ "account_log_test.cpp" ]
+  sources += [ "account_perf_stat_test.cpp" ]
 
   configs = [
     "${common_path}:account_common_config",
     "${common_path}/test:common_test_config",
   ]
 
-  deps = [ "//third_party/googletest:gtest_main" ]
+  deps = [
+    "${common_path}:libaccount_common",
+    "//third_party/googletest:gtest_main",
+  ]
 
   external_deps = [ "hiviewdfx_hilog_native:libhilog" ]
   part_name = "os_account"
@@ -38,5 +49,5 @@ ohos_unittest("AccountSALogTest") {
 group("unittest") {
   testonly = true
 
-  deps = [ ":AccountSALogTest" ]
+  deps = [ ":AccountCommonTest" ]
 }
