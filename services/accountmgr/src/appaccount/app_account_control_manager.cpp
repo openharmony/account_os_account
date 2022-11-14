@@ -840,7 +840,7 @@ void AppAccountControlManager::UnregisterApplicationStateObserver()
 
 void AppAccountControlManager::OnAbilityStateChanged(const AppExecFwk::AbilityStateData &abilityStateData)
 {
-    if (abilityStateData.abilityState != Constants::ABILITY_STATE_TERMINATED) {
+    if (abilityStateData.abilityState != static_cast<int32_t>(AppExecFwk::AbilityState::ABILITY_STATE_TERMINATED)) {
         return;
     }
     RemoveAssociatedDataCacheByUid(abilityStateData.uid);

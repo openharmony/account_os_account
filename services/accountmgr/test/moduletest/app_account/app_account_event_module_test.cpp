@@ -59,9 +59,9 @@ void AppAccountEventModuleTest::TearDown(void)
 
 /**
  * @tc.name: AppAccountAuthenticateTest_CreateAccountImplicitly_0100
- * @tc.desc: test authenticate proxy func CreateAccountImplicitly.
+ * @tc.desc: event proxy cpp file.
  * @tc.type: FUNC
- * @tc.require: issueI5RWXN
+ * @tc.require:
  */
 HWTEST_F(AppAccountEventModuleTest, AppAccountEventTest_OnAccountsChanged_0100, TestSize.Level1)
 {
