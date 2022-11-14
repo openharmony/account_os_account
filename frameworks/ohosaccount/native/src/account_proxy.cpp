@@ -148,10 +148,6 @@ ErrCode AccountProxy::GetOhosAccountInfo(OhosAccountInfo &ohosAccountInfo)
     if (!ReadOhosAccountInfo(reply, ohosAccountInfo)) {
         return ERR_ACCOUNT_COMMON_READ_PARCEL_ERROR;
     }
-    if (!ohosAccountInfo.IsValid()) {
-        ACCOUNT_LOGE("Check OhosAccountInfo failed");
-        return ERR_OHOSACCOUNT_KIT_INVALID_PARAMETER;
-    }
 
     ACCOUNT_LOGD("QueryOhosAccountInfo exit");
     return ERR_OK;
