@@ -290,3 +290,17 @@ HWTEST_F(OsAccountTest, OsAccountTest009, TestSize.Level1)
     DomainAccountInfo domainInfoAccountInvalid(STRING_DOMAIN_VALID, STRING_DOMAIN_ACCOUNT_NAME_OUT_OF_RANGE);
     EXPECT_EQ(osAccountInfo.SetDomainInfo(domainInfoAccountInvalid), false);
 }
+
+/**
+ * @tc.name: OsAccountTest010
+ * @tc.desc: Test CreateOsAccountEventListener subscriber is nullptr.
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(OsAccountTest, OsAccountTest010, TestSize.Level1)
+{
+    const std::shared_ptr<OsAccountSubscriber> subscriber = nullptr;
+    sptr<IRemoteObject> osAccountEventListener;
+    EXPECT_EQ(OsAccount::SUBSCRIBE_FAILED,
+        g_osAccount->CreateOsAccountEventListener(subscriber, osAccountEventListener));
+}

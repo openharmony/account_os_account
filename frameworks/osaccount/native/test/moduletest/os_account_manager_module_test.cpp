@@ -1698,56 +1698,56 @@ HWTEST_F(OsAccountManagerModuleTest, OsAccountManagerModuleTest075, TestSize.Lev
 }
 
 /**
- * @tc.name: OsAccountManagerModuleTest078
+ * @tc.name: OsAccountManagerModuleTest076
  * @tc.desc: Test IsCurrentOsAccountVerified.
  * @tc.type: FUNC
  * @tc.require: issueI4JBFI
  */
-HWTEST_F(OsAccountManagerModuleTest, OsAccountManagerModuleTest078, TestSize.Level1)
+HWTEST_F(OsAccountManagerModuleTest, OsAccountManagerModuleTest076, TestSize.Level1)
 {
-    ACCOUNT_LOGI("OsAccountManagerModuleTest078");
+    ACCOUNT_LOGI("OsAccountManagerModuleTest076");
     bool isVerified = false;
     EXPECT_EQ(OsAccountManager::IsCurrentOsAccountVerified(isVerified), ERR_OK);
     EXPECT_EQ(isVerified, false);
 }
 
 /**
- * @tc.name: OsAccountManagerModuleTest079
+ * @tc.name: OsAccountManagerModuleTest077
  * @tc.desc: Test IsOsAccountCompleted.
  * @tc.type: FUNC
  * @tc.require: issueI4JBFI
  */
-HWTEST_F(OsAccountManagerModuleTest, OsAccountManagerModuleTest079, TestSize.Level1)
+HWTEST_F(OsAccountManagerModuleTest, OsAccountManagerModuleTest077, TestSize.Level1)
 {
-    ACCOUNT_LOGI("OsAccountManagerModuleTest079");
+    ACCOUNT_LOGI("OsAccountManagerModuleTest077");
     bool isOsAccountCompleted = false;
     EXPECT_EQ(OsAccountManager::IsOsAccountCompleted(MAIN_ACCOUNT_ID, isOsAccountCompleted), ERR_OK);
     EXPECT_EQ(isOsAccountCompleted, true);
 }
 
 /**
- * @tc.name: OsAccountManagerModuleTest080
+ * @tc.name: OsAccountManagerModuleTest078
  * @tc.desc: Test IsOsAccountCompleted.
  * @tc.type: FUNC
  * @tc.require: issueI4JBFI
  */
-HWTEST_F(OsAccountManagerModuleTest, OsAccountManagerModuleTest080, TestSize.Level1)
+HWTEST_F(OsAccountManagerModuleTest, OsAccountManagerModuleTest078, TestSize.Level1)
 {
-    ACCOUNT_LOGI("OsAccountManagerModuleTest080");
+    ACCOUNT_LOGI("OsAccountManagerModuleTest078");
     bool isOsAccountCompleted = false;
     EXPECT_NE(OsAccountManager::IsOsAccountCompleted(ERROR_LOCAL_ID, isOsAccountCompleted), ERR_OK);
     EXPECT_EQ(isOsAccountCompleted, false);
 }
 
 /**
- * @tc.name: OsAccountManagerModuleTest081
+ * @tc.name: OsAccountManagerModuleTest079
  * @tc.desc: Test SetCurrentOsAccountIsVerified.
  * @tc.type: FUNC
  * @tc.require: issueI4JBFI
  */
-HWTEST_F(OsAccountManagerModuleTest, OsAccountManagerModuleTest081, TestSize.Level1)
+HWTEST_F(OsAccountManagerModuleTest, OsAccountManagerModuleTest079, TestSize.Level1)
 {
-    ACCOUNT_LOGI("OsAccountManagerModuleTest081");
+    ACCOUNT_LOGI("OsAccountManagerModuleTest079");
     bool isVerified = false;
     EXPECT_NE(OsAccountManager::SetCurrentOsAccountIsVerified(true), ERR_OK);
     EXPECT_EQ(OsAccountManager::IsCurrentOsAccountVerified(isVerified), ERR_OK);
@@ -1755,150 +1755,150 @@ HWTEST_F(OsAccountManagerModuleTest, OsAccountManagerModuleTest081, TestSize.Lev
 }
 
 /**
- * @tc.name: OsAccountManagerModuleTest082
+ * @tc.name: OsAccountManagerModuleTest080
  * @tc.desc: Test GetCreatedOsAccountNumFromDatabase.
  * @tc.type: FUNC
  * @tc.require: issueI4JBFI
  */
-HWTEST_F(OsAccountManagerModuleTest, OsAccountManagerModuleTest082, TestSize.Level1)
+HWTEST_F(OsAccountManagerModuleTest, OsAccountManagerModuleTest080, TestSize.Level1)
 {
-    ACCOUNT_LOGI("OsAccountManagerModuleTest082");
+    ACCOUNT_LOGI("OsAccountManagerModuleTest080");
     int createdOsAccountNum = -1;
     EXPECT_EQ(OsAccountManager::GetCreatedOsAccountNumFromDatabase("", createdOsAccountNum), ERR_OK);
     EXPECT_NE(createdOsAccountNum, -1);
 }
 
 /**
- * @tc.name: OsAccountManagerModuleTest083
+ * @tc.name: OsAccountManagerModuleTest081
  * @tc.desc: Test GetCreatedOsAccountNumFromDatabase.
  * @tc.type: FUNC
  * @tc.require: issueI4JBFI
  */
-HWTEST_F(OsAccountManagerModuleTest, OsAccountManagerModuleTest083, TestSize.Level1)
+HWTEST_F(OsAccountManagerModuleTest, OsAccountManagerModuleTest081, TestSize.Level1)
 {
-    ACCOUNT_LOGI("OsAccountManagerModuleTest083");
+    ACCOUNT_LOGI("OsAccountManagerModuleTest081");
     int createdOsAccountNum = -1;
     EXPECT_NE(OsAccountManager::GetCreatedOsAccountNumFromDatabase("ERROR_STORE_ID", createdOsAccountNum), ERR_OK);
     EXPECT_EQ(createdOsAccountNum, -1);
 }
 
 /**
- * @tc.name: OsAccountManagerModuleTest084
+ * @tc.name: OsAccountManagerModuleTest082
  * @tc.desc: Test GetSerialNumberFromDatabase.
  * @tc.type: FUNC
  * @tc.require: issueI4JBFI
  */
-HWTEST_F(OsAccountManagerModuleTest, OsAccountManagerModuleTest084, TestSize.Level1)
+HWTEST_F(OsAccountManagerModuleTest, OsAccountManagerModuleTest082, TestSize.Level1)
 {
-    ACCOUNT_LOGI("OsAccountManagerModuleTest084");
+    ACCOUNT_LOGI("OsAccountManagerModuleTest082");
     int64_t serialNumber = -1;
     EXPECT_EQ(OsAccountManager::GetSerialNumberFromDatabase("", serialNumber), ERR_OK);
     EXPECT_NE(serialNumber, -1);
 }
 
 /**
- * @tc.name: OsAccountManagerModuleTest085
+ * @tc.name: OsAccountManagerModuleTest083
  * @tc.desc: Test GetSerialNumberFromDatabase.
  * @tc.type: FUNC
  * @tc.require: issueI4JBFI
  */
-HWTEST_F(OsAccountManagerModuleTest, OsAccountManagerModuleTest085, TestSize.Level1)
+HWTEST_F(OsAccountManagerModuleTest, OsAccountManagerModuleTest083, TestSize.Level1)
 {
-    ACCOUNT_LOGI("OsAccountManagerModuleTest085");
+    ACCOUNT_LOGI("OsAccountManagerModuleTest083");
     int64_t serialNumber = -1;
     EXPECT_NE(OsAccountManager::GetSerialNumberFromDatabase("ERROR_STORE_ID", serialNumber), ERR_OK);
     EXPECT_EQ(serialNumber, -1);
 }
 
 /**
- * @tc.name: OsAccountManagerModuleTest086
+ * @tc.name: OsAccountManagerModuleTest084
  * @tc.desc: Test GetMaxAllowCreateIdFromDatabase.
  * @tc.type: FUNC
  * @tc.require: issueI4JBFI
  */
-HWTEST_F(OsAccountManagerModuleTest, OsAccountManagerModuleTest086, TestSize.Level1)
+HWTEST_F(OsAccountManagerModuleTest, OsAccountManagerModuleTest084, TestSize.Level1)
 {
-    ACCOUNT_LOGI("OsAccountManagerModuleTest086");
+    ACCOUNT_LOGI("OsAccountManagerModuleTest084");
     int maxAllowCreateId = -1;
     EXPECT_EQ(OsAccountManager::GetMaxAllowCreateIdFromDatabase("", maxAllowCreateId), ERR_OK);
     EXPECT_NE(maxAllowCreateId, -1);
 }
 
 /**
- * @tc.name: OsAccountManagerModuleTest087
+ * @tc.name: OsAccountManagerModuleTest085
  * @tc.desc: Test GetMaxAllowCreateIdFromDatabase.
  * @tc.type: FUNC
  * @tc.require: issueI4JBFI
  */
-HWTEST_F(OsAccountManagerModuleTest, OsAccountManagerModuleTest087, TestSize.Level1)
+HWTEST_F(OsAccountManagerModuleTest, OsAccountManagerModuleTest085, TestSize.Level1)
 {
-    ACCOUNT_LOGI("OsAccountManagerModuleTest087");
+    ACCOUNT_LOGI("OsAccountManagerModuleTest085");
     int maxAllowCreateId = -1;
     EXPECT_NE(OsAccountManager::GetMaxAllowCreateIdFromDatabase("ERROR_STORE_ID", maxAllowCreateId), ERR_OK);
     EXPECT_EQ(maxAllowCreateId, -1);
 }
 
 /**
- * @tc.name: OsAccountManagerModuleTest088
+ * @tc.name: OsAccountManagerModuleTest086
  * @tc.desc: Test GetOsAccountListFromDatabase.
  * @tc.type: FUNC
  * @tc.require: issueI4JBFI
  */
-HWTEST_F(OsAccountManagerModuleTest, OsAccountManagerModuleTest088, TestSize.Level1)
+HWTEST_F(OsAccountManagerModuleTest, OsAccountManagerModuleTest086, TestSize.Level1)
 {
-    ACCOUNT_LOGI("OsAccountManagerModuleTest088");
+    ACCOUNT_LOGI("OsAccountManagerModuleTest086");
     std::vector<OsAccountInfo> osAccountList;
     EXPECT_EQ(OsAccountManager::GetOsAccountListFromDatabase("", osAccountList), ERR_OK);
     EXPECT_NE(osAccountList.size(), 0);
 }
 
 /**
- * @tc.name: OsAccountManagerModuleTest089
+ * @tc.name: OsAccountManagerModuleTest087
  * @tc.desc: Test GetOsAccountListFromDatabase.
  * @tc.type: FUNC
  * @tc.require: issueI4JBFI
  */
-HWTEST_F(OsAccountManagerModuleTest, OsAccountManagerModuleTest089, TestSize.Level1)
+HWTEST_F(OsAccountManagerModuleTest, OsAccountManagerModuleTest087, TestSize.Level1)
 {
-    ACCOUNT_LOGI("OsAccountManagerModuleTest089");
+    ACCOUNT_LOGI("OsAccountManagerModuleTest087");
     std::vector<OsAccountInfo> osAccountList;
     EXPECT_EQ(OsAccountManager::GetOsAccountListFromDatabase("ERROR_STORE_ID", osAccountList), ERR_OK);
     EXPECT_EQ(osAccountList.size(), 0);
 }
 
 /**
- * @tc.name: OsAccountManagerModuleTest090
+ * @tc.name: OsAccountManagerModuleTest088
  * @tc.desc: Test ActivateOsAccount.
+ * @tc.type: FUNC
+ * @tc.require: issueI4JBFI
+ */
+HWTEST_F(OsAccountManagerModuleTest, OsAccountManagerModuleTest088, TestSize.Level1)
+{
+    ACCOUNT_LOGI("OsAccountManagerModuleTest088");
+    EXPECT_NE(OsAccountManager::ActivateOsAccount(INVALID_ID), ERR_OK);
+}
+
+/**
+ * @tc.name: OsAccountManagerModuleTest089
+ * @tc.desc: Test ActivateOsAccount.
+ * @tc.type: FUNC
+ * @tc.require: issueI4JBFI
+ */
+HWTEST_F(OsAccountManagerModuleTest, OsAccountManagerModuleTest089, TestSize.Level1)
+{
+    ACCOUNT_LOGI("OsAccountManagerModuleTest089");
+    EXPECT_NE(OsAccountManager::ActivateOsAccount(ERROR_LOCAL_ID), ERR_OK);
+}
+
+/**
+ * @tc.name: OsAccountManagerModuleTest090
+ * @tc.desc: Test remove activating os account.
  * @tc.type: FUNC
  * @tc.require: issueI4JBFI
  */
 HWTEST_F(OsAccountManagerModuleTest, OsAccountManagerModuleTest090, TestSize.Level1)
 {
     ACCOUNT_LOGI("OsAccountManagerModuleTest090");
-    EXPECT_NE(OsAccountManager::ActivateOsAccount(INVALID_ID), ERR_OK);
-}
-
-/**
- * @tc.name: OsAccountManagerModuleTest091
- * @tc.desc: Test ActivateOsAccount.
- * @tc.type: FUNC
- * @tc.require: issueI4JBFI
- */
-HWTEST_F(OsAccountManagerModuleTest, OsAccountManagerModuleTest091, TestSize.Level1)
-{
-    ACCOUNT_LOGI("OsAccountManagerModuleTest091");
-    EXPECT_NE(OsAccountManager::ActivateOsAccount(ERROR_LOCAL_ID), ERR_OK);
-}
-
-/**
- * @tc.name: OsAccountManagerModuleTest092
- * @tc.desc: Test remove activating os account.
- * @tc.type: FUNC
- * @tc.require: issueI4JBFI
- */
-HWTEST_F(OsAccountManagerModuleTest, OsAccountManagerModuleTest092, TestSize.Level1)
-{
-    ACCOUNT_LOGI("OsAccountManagerModuleTest092");
     OsAccountInfo osAccountInfoOne;
     EXPECT_EQ(OsAccountManager::CreateOsAccount(STRING_TEST_NAME, OsAccountType::NORMAL, osAccountInfoOne), ERR_OK);
     EXPECT_EQ(OsAccountManager::ActivateOsAccount(osAccountInfoOne.GetLocalId()), ERR_OK);
@@ -1906,53 +1906,53 @@ HWTEST_F(OsAccountManagerModuleTest, OsAccountManagerModuleTest092, TestSize.Lev
 }
 
 /**
- * @tc.name: OsAccountManagerModuleTest093
+ * @tc.name: OsAccountManagerModuleTest091
  * @tc.desc: Test SubscribeOsAccount.
+ * @tc.type: FUNC
+ * @tc.require: issueI4JBFI
+ */
+HWTEST_F(OsAccountManagerModuleTest, OsAccountManagerModuleTest091, TestSize.Level1)
+{
+    ACCOUNT_LOGI("OsAccountManagerModuleTest091");
+    std::shared_ptr<OsAccountSubscriber> subscriber = nullptr;
+    EXPECT_NE(OsAccountManager::SubscribeOsAccount(subscriber), ERR_OK);
+}
+
+/**
+ * @tc.name: OsAccountManagerModuleTest092
+ * @tc.desc: Test UnsubscribeOsAccount.
+ * @tc.type: FUNC
+ * @tc.require: issueI4JBFI
+ */
+HWTEST_F(OsAccountManagerModuleTest, OsAccountManagerModuleTest092, TestSize.Level1)
+{
+    ACCOUNT_LOGI("OsAccountManagerModuleTest092");
+    std::shared_ptr<OsAccountSubscriber> subscriber = nullptr;
+    EXPECT_NE(OsAccountManager::UnsubscribeOsAccount(subscriber), ERR_OK);
+}
+
+/**
+ * @tc.name: OsAccountManagerModuleTest093
+ * @tc.desc: Test GetOsAccountSwitchMod.
  * @tc.type: FUNC
  * @tc.require: issueI4JBFI
  */
 HWTEST_F(OsAccountManagerModuleTest, OsAccountManagerModuleTest093, TestSize.Level1)
 {
     ACCOUNT_LOGI("OsAccountManagerModuleTest093");
-    std::shared_ptr<OsAccountSubscriber> subscriber = nullptr;
-    EXPECT_NE(OsAccountManager::SubscribeOsAccount(subscriber), ERR_OK);
-}
-
-/**
- * @tc.name: OsAccountManagerModuleTest094
- * @tc.desc: Test UnsubscribeOsAccount.
- * @tc.type: FUNC
- * @tc.require: issueI4JBFI
- */
-HWTEST_F(OsAccountManagerModuleTest, OsAccountManagerModuleTest094, TestSize.Level1)
-{
-    ACCOUNT_LOGI("OsAccountManagerModuleTest094");
-    std::shared_ptr<OsAccountSubscriber> subscriber = nullptr;
-    EXPECT_NE(OsAccountManager::UnsubscribeOsAccount(subscriber), ERR_OK);
-}
-
-/**
- * @tc.name: OsAccountManagerModuleTest095
- * @tc.desc: Test GetOsAccountSwitchMod.
- * @tc.type: FUNC
- * @tc.require: issueI4JBFI
- */
-HWTEST_F(OsAccountManagerModuleTest, OsAccountManagerModuleTest095, TestSize.Level1)
-{
-    ACCOUNT_LOGI("OsAccountManagerModuleTest095");
     int modResult = 1;
     EXPECT_EQ(OsAccountManager::GetOsAccountSwitchMod(), modResult);
 }
 
 /**
- * @tc.name: OsAccountManagerModuleTest096
+ * @tc.name: OsAccountManagerModuleTest094
  * @tc.desc: test create domain account and query its osaccount info.
  * @tc.type: FUNC
  * @tc.require: issueI4IU3V
  */
-HWTEST_F(OsAccountManagerModuleTest, OsAccountManagerModuleTest096, TestSize.Level1)
+HWTEST_F(OsAccountManagerModuleTest, OsAccountManagerModuleTest094, TestSize.Level1)
 {
-    ACCOUNT_LOGI("OsAccountManagerModuleTest096");
+    ACCOUNT_LOGI("OsAccountManagerModuleTest094");
     // create
     std::string testDomainName = "test_domain_name";
     std::string testDomain = "test_domain";
@@ -1975,4 +1975,122 @@ HWTEST_F(OsAccountManagerModuleTest, OsAccountManagerModuleTest096, TestSize.Lev
     // cannot query
     ret = OsAccountManager::GetOsAccountLocalIdFromDomain(domainInfo, resID);
     EXPECT_NE(ret, ERR_OK);
+}
+
+class TestOsAccountSubscriber : public OsAccountSubscriber {
+public:
+    void OnAccountsChanged(const int& id) {}
+};
+
+/**
+ * @tc.name: OsAccountManagerModuleTest095
+ * @tc.desc: test SubscribeOsAccount/UnSubscribeOsAccount nomal branch.
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(OsAccountManagerModuleTest, OsAccountManagerModuleTest095, TestSize.Level1)
+{
+    ACCOUNT_LOGI("OsAccountManagerModuleTest095");
+    auto subscriber = std::make_shared<TestOsAccountSubscriber>();
+    EXPECT_NE(nullptr, subscriber);
+    EXPECT_EQ(ERR_OK, OsAccountManager::SubscribeOsAccount(subscriber));
+    EXPECT_EQ(ERR_OK, OsAccountManager::UnsubscribeOsAccount(subscriber));
+}
+
+/**
+ * @tc.name: OsAccountManagerModuleTest096
+ * @tc.desc: test SubscribeOsAccount subscribed twice.
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(OsAccountManagerModuleTest, OsAccountManagerModuleTest096, TestSize.Level1)
+{
+    ACCOUNT_LOGI("OsAccountManagerModuleTest096");
+    auto subscriber = std::make_shared<TestOsAccountSubscriber>();
+    EXPECT_NE(nullptr, subscriber);
+    EXPECT_EQ(ERR_OK, OsAccountManager::SubscribeOsAccount(subscriber));
+    EXPECT_EQ(ERR_OK, OsAccountManager::SubscribeOsAccount(subscriber));
+    EXPECT_EQ(ERR_OK, OsAccountManager::UnsubscribeOsAccount(subscriber));
+}
+
+/**
+ * @tc.name: OsAccountManagerModuleTest097
+ * @tc.desc: test SubscribeOsAccount subscribed exceed limitation.
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(OsAccountManagerModuleTest, OsAccountManagerModuleTest097, TestSize.Level1)
+{
+    ACCOUNT_LOGI("OsAccountManagerModuleTest097");
+    std::vector<std::shared_ptr<OsAccountSubscriber>> subscribers;
+    for (int i = 0; i < Constants::SUBSCRIBER_MAX_SIZE; i++) {
+        auto subscriber = std::make_shared<TestOsAccountSubscriber>();
+        EXPECT_NE(nullptr, subscriber);
+        EXPECT_EQ(ERR_OK, OsAccountManager::SubscribeOsAccount(subscriber));
+        subscribers.emplace_back(subscriber);
+    }
+    auto subscriber = std::make_shared<TestOsAccountSubscriber>();
+    EXPECT_NE(nullptr, subscriber);
+    EXPECT_EQ(ERR_OSACCOUNT_KIT_SUBSCRIBE_ERROR, OsAccountManager::SubscribeOsAccount(subscriber));
+
+    for (int i = 0; i < Constants::SUBSCRIBER_MAX_SIZE; i++) {
+        EXPECT_EQ(ERR_OK, OsAccountManager::UnsubscribeOsAccount(subscribers[i]));
+    }
+}
+
+/**
+ * @tc.name: OsAccountManagerModuleTest098
+ * @tc.desc: test UnsubscribeOsAccount not subscribed .
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(OsAccountManagerModuleTest, OsAccountManagerModuleTest098, TestSize.Level1)
+{
+    ACCOUNT_LOGI("OsAccountManagerModuleTest098");
+    auto subscriber = std::make_shared<TestOsAccountSubscriber>();
+    EXPECT_NE(nullptr, subscriber);
+    EXPECT_EQ(ERR_OSACCOUNT_KIT_NO_SPECIFIED_SUBSCRIBER_HAS_BEEN_REGISTERED,
+        OsAccountManager::UnsubscribeOsAccount(subscriber));
+}
+
+/**
+ * @tc.name: OsAccountManagerModuleTest099
+ * @tc.desc: test GetOsAccountFromDatabase normal branch.
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(OsAccountManagerModuleTest, OsAccountManagerModuleTest099, TestSize.Level1)
+{
+    ACCOUNT_LOGI("OsAccountManagerModuleTest099");
+    OsAccountInfo osAccountInfo;
+    EXPECT_EQ(ERR_OK,
+        OsAccountManager::GetOsAccountFromDatabase("", MAIN_ACCOUNT_ID, osAccountInfo));
+}
+
+/**
+ * @tc.name: OsAccountManagerModuleTest100
+ * @tc.desc: test cGetOsAccountLocalIdFromUid with invalid uid.
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(OsAccountManagerModuleTest, OsAccountManagerModuleTest100, TestSize.Level1)
+{
+    ACCOUNT_LOGI("OsAccountManagerModuleTest100");
+    int uid = -1;
+    int id;
+    EXPECT_EQ(ERR_OSACCOUNT_SERVICE_MANAGER_BAD_UID_ERROR, OsAccountManager::GetOsAccountLocalIdFromUid(uid, id));
+}
+
+/**
+ * @tc.name: OsAccountManagerModuleTest101
+ * @tc.desc: test cGetOsAccountLocalIdFromUid with invalid uid.
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(OsAccountManagerModuleTest, OsAccountManagerModuleTest101, TestSize.Level1)
+{
+    ACCOUNT_LOGI("OsAccountManagerModuleTest101");
+    int uid = -1;
+    int bundleId;
+    EXPECT_EQ(ERR_OSACCOUNT_SERVICE_MANAGER_BAD_UID_ERROR, OsAccountManager::GetBundleIdFromUid(uid, bundleId));
 }
