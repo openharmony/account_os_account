@@ -24,9 +24,5 @@ config("common_test_config") {
 group("unittest") {
   testonly = true
 
-  deps = [
-    "unittest/account_error_test:unittest",
-    "unittest/common_account_log_test:unittest",
-    "unittest/common_account_perf_test:unittest",
-  ]
+  deps = [ "unittest/common_account_test:unittest" ]
 }
