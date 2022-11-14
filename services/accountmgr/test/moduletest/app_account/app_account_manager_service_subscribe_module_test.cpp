@@ -259,6 +259,10 @@ HWTEST_F(AppAccountManagerServiceSubscribeModuleTest, AppAccountManagerServiceSu
         subscriberTestPtr, appAccountEventListener);
     EXPECT_EQ(subscribeState, AppAccount::INITIAL_SUBSCRIPTION);
 
+    subscribeState =
+        DelayedSingleton<AppAccount>::GetInstance()->CreateAppAccountEventListener(nullptr, appAccountEventListener);
+    EXPECT_EQ(subscribeState, AppAccount::SUBSCRIBE_FAILED);
+
     // subscribe app account
     ErrCode result = appAccountManagerServicePtr_->SubscribeAppAccount(subscribeInfo, appAccountEventListener);
     EXPECT_EQ(result, ERR_OK);
