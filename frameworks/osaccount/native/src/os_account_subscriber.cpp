@@ -27,11 +27,9 @@ OsAccountSubscriber::OsAccountSubscriber(const OsAccountSubscribeInfo &subscribe
 OsAccountSubscriber::~OsAccountSubscriber()
 {}
 
-ErrCode OsAccountSubscriber::GetSubscribeInfo(OsAccountSubscribeInfo &subscribeInfo) const
+void OsAccountSubscriber::GetSubscribeInfo(OsAccountSubscribeInfo &subscribeInfo) const
 {
     subscribeInfo = subscribeInfo_;
-
-    return ERR_OK;
 }
 }  // namespace AccountSA
 }  // namespace OHOS
