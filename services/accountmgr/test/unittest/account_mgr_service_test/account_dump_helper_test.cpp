@@ -277,7 +277,7 @@ HWTEST_F(AccountDumpHelperTest, AccountDumpParameterTest007, TestSize.Level0)
     accountDumpHelper_ = nullptr;
     accountDumpHelper_ = std::make_unique<AccountDumpHelper>(ohosAccount_, nullptr);
     if (accountDumpHelper_ == nullptr) {
-        std::cout << "AccountDumpHelperTest, error! accountDumpHelper_ is nullptr!" << std::endl;
+        std::cout << "AccountDumpParameterTest007, error! accountDumpHelper_ is nullptr!" << std::endl;
     }
 
     std::string out;
@@ -289,25 +289,37 @@ HWTEST_F(AccountDumpHelperTest, AccountDumpParameterTest007, TestSize.Level0)
 }
 
 /**
- * @tc.name: AccountDumpParameterTest008
- * @tc.desc: Test account info display
+ * @tc.name: AccountDumpTwoParameterTest001
+ * @tc.desc: Test account log-level set
  * @tc.type: FUNC
  * @tc.require:
  */
-HWTEST_F(AccountDumpHelperTest, AccountDumpParameterTest008, TestSize.Level0)
+HWTEST_F(AccountDumpHelperTest, AccountDumpTwoParameterTest001, TestSize.Level0)
 {
-    /**
-     * @tc.steps: step1. Input one parameter
-     */
-    std::string out;
-    vector<std::string> cmd = {"-h"};
     if (accountDumpHelper_ == nullptr) {
-        std::cout << "AccountDumpParameterTest008, accountDumpHelper_ is nullptr!" << std::endl;
+        std::cout << "AccountDumpParameterTest001, accountDumpHelper_ is nullptr!" << std::endl;
         return;
     }
+    /**
+     * @tc.steps: step1. Input two parameters
+     */
+    std::string out;
+    std::string logLevel;
+    vector<std::string> setCmd = {"-set_log_level", "-1"};
+    accountDumpHelper_->Dump(setCmd, out);
+    auto pos = out.find("Invalid logLevel", 0);
+    EXPECT_NE(std::string::npos, pos);
 
-    accountDumpHelper_->Dump(cmd, out);
-    auto pos = out.find("Usage:dump", 0);
+    setCmd.clear();
+    setCmd = {"-set_log_level", "11"};
+    accountDumpHelper_->Dump(setCmd, out);
+    pos = out.find("Invalid logLevel", 0);
+    EXPECT_NE(std::string::npos, pos);
+
+    setCmd.clear();
+    setCmd = {"-set_log_level", "$$"};
+    accountDumpHelper_->Dump(setCmd, out);
+    pos = out.find("Invalid format of log level", 0);
     EXPECT_NE(std::string::npos, pos);
 }
 
@@ -340,6 +352,30 @@ HWTEST_F(AccountDumpHelperTest, AccountDumpTwoParameterTest002, TestSize.Level0)
     EXPECT_NE(std::string::npos, pos);
     logLevel = out.substr(pos + prompt.length());
     EXPECT_EQ("1", logLevel.substr(0, 1));
+}
+
+/**
+ * @tc.name: AccountDumpTwoParameterTest003
+ * @tc.desc: Test account log-level set
+ * @tc.type: FUNC
+ * @tc.require: AR000CUF6N
+ */
+HWTEST_F(AccountDumpHelperTest, AccountDumpTwoParameterTest003, TestSize.Level0)
+{
+    if (accountDumpHelper_ == nullptr) {
+        std::cout << "AccountDumpParameterTest001, accountDumpHelper_ is nullptr!" << std::endl;
+        return;
+    }
+    /**
+     * @tc.steps: step1. Input two parameters
+     */
+    std::string out;
+    std::string logLevel;
+    std::string prompt = "Current Log Level: ";
+    vector<std::string> setCmd = {"-ss", "1"};
+    accountDumpHelper_->Dump(setCmd, out);
+    auto pos = out.find("Usage:dump", 0);
+    EXPECT_NE(std::string::npos, pos);
 }
 
 /**
