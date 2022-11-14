@@ -19,6 +19,7 @@
 #include <thread>
 
 #include "account_log_wrapper.h"
+#include "app_account_common.h"
 #define private public
 #include "app_account_authenticator_callback.h"
 #include "app_account_authenticator_proxy.h"
@@ -34,6 +35,7 @@ namespace {
 const std::string STRING_NAME = "name";
 const std::string STRING_AUTH_TYPE = "test.authType";
 const std::string STRING_ABILITY_NAME = "test.mainAbility";
+const std::string CALLER_BUNDLE_NAME = "test.callerbundlename";
 }  // namespace
 
 class MockAuthenticatorCallback final : public AppAccountAuthenticatorCallbackStub {
@@ -215,5 +217,150 @@ HWTEST_F(AppAccountAuthenticateModuleTest, AppAccountAuthenticateTest_Auth_0200,
     sptr<IRemoteObject> callback = oauthCallbackPtr->AsObject();
     EXPECT_NE(callback, nullptr);
     ErrCode result = authenticateProxyPtr_->Auth(STRING_NAME, STRING_AUTH_TYPE, want.GetParams(), callback);
+    EXPECT_EQ(result, ERR_OK);
+}
+
+/**
+ * @tc.name: AppAccountAuthenticateTest_AddAccountImplicitly_0100
+ * @tc.desc: test authenticate proxy func AddAccountImplicitly.
+ * @tc.type: FUNC
+ * @tc.require
+ */
+HWTEST_F(AppAccountAuthenticateModuleTest, AppAccountAuthenticateTest_AddAccountImplicitly_0100, TestSize.Level1)
+{
+    ACCOUNT_LOGI("AppAccountAuthenticateTest_AddAccountImplicitly_0100");
+    AAFwk::Want want;
+    sptr<IRemoteObject> callback = nullptr;
+    ErrCode result =
+        authenticateProxyPtr_->AddAccountImplicitly(STRING_AUTH_TYPE, CALLER_BUNDLE_NAME, want.GetParams(), callback);
+    EXPECT_NE(result, ERR_OK);
+
+    want.SetParam(Constants::KEY_CALLER_ABILITY_NAME, STRING_ABILITY_NAME);
+    result =
+        authenticateProxyPtr_->AddAccountImplicitly(STRING_AUTH_TYPE, CALLER_BUNDLE_NAME, want.GetParams(), callback);
+    EXPECT_NE(result, ERR_OK);
+
+    sptr<IAppAccountAuthenticatorCallback> oauthCallbackPtr = new (std::nothrow) MockAuthenticatorCallback();
+    ASSERT_NE(oauthCallbackPtr, nullptr);
+    callback = oauthCallbackPtr->AsObject();
+    ASSERT_NE(callback, nullptr);
+    result =
+        authenticateProxyPtr_->AddAccountImplicitly(STRING_AUTH_TYPE, CALLER_BUNDLE_NAME, want.GetParams(), callback);
+    EXPECT_EQ(result, ERR_OK);
+}
+
+/**
+ * @tc.name: AppAccountAuthenticateTest_Authenticate_0100
+ * @tc.desc: test authenticate proxy func Authenticate.
+ * @tc.type: FUNC
+ * @tc.require
+ */
+HWTEST_F(AppAccountAuthenticateModuleTest, AppAccountAuthenticateTest_Authenticate_0100, TestSize.Level1)
+{
+    ACCOUNT_LOGI("AppAccountAuthenticateTest_Authenticate_0100");
+    AAFwk::Want want;
+    sptr<IRemoteObject> callback = nullptr;
+    ErrCode result = authenticateProxyPtr_->Authenticate(
+        STRING_NAME, STRING_AUTH_TYPE, CALLER_BUNDLE_NAME, want.GetParams(), callback);
+    EXPECT_NE(result, ERR_OK);
+
+    want.SetParam(Constants::KEY_CALLER_ABILITY_NAME, STRING_ABILITY_NAME);
+    result = authenticateProxyPtr_->Authenticate(
+        STRING_NAME, STRING_AUTH_TYPE, CALLER_BUNDLE_NAME, want.GetParams(), callback);
+    EXPECT_NE(result, ERR_OK);
+
+    sptr<IAppAccountAuthenticatorCallback> oauthCallbackPtr = new (std::nothrow) MockAuthenticatorCallback();
+    ASSERT_NE(oauthCallbackPtr, nullptr);
+    callback = oauthCallbackPtr->AsObject();
+    ASSERT_NE(callback, nullptr);
+    result = authenticateProxyPtr_->Authenticate(
+        STRING_NAME, STRING_AUTH_TYPE, CALLER_BUNDLE_NAME, want.GetParams(), callback);
+    EXPECT_EQ(result, ERR_OK);
+}
+
+/**
+ * @tc.name: AppAccountAuthenticateTest_VerifyCredential_0100
+ * @tc.desc: test authenticate proxy func VerifyCredential.
+ * @tc.type: FUNC
+ * @tc.require
+ */
+HWTEST_F(AppAccountAuthenticateModuleTest, AppAccountAuthenticateTest_VerifyCredential_0100, TestSize.Level1)
+{
+    ACCOUNT_LOGI("AppAccountAuthenticateTest_VerifyCredential_0100");
+    VerifyCredentialOptions options;
+    sptr<IRemoteObject> callback = nullptr;
+    ErrCode result = authenticateProxyPtr_->VerifyCredential(STRING_NAME, options, callback);
+    EXPECT_NE(result, ERR_OK);
+
+    sptr<IAppAccountAuthenticatorCallback> oauthCallbackPtr = new (std::nothrow) MockAuthenticatorCallback();
+    ASSERT_NE(oauthCallbackPtr, nullptr);
+    callback = oauthCallbackPtr->AsObject();
+    ASSERT_NE(callback, nullptr);
+    result = authenticateProxyPtr_->VerifyCredential(STRING_NAME, options, callback);
+    EXPECT_EQ(result, ERR_OK);
+}
+
+/**
+ * @tc.name: AppAccountAuthenticateTest_CheckAccountLabels_0100
+ * @tc.desc: test authenticate proxy func VerifyCredential.
+ * @tc.type: FUNC
+ * @tc.require
+ */
+HWTEST_F(AppAccountAuthenticateModuleTest, AppAccountAuthenticateTest_CheckAccountLabels_0100, TestSize.Level1)
+{
+    ACCOUNT_LOGI("AppAccountAuthenticateTest_CheckAccountLabels_0100");
+    std::vector<std::string> labels;
+    sptr<IRemoteObject> callback = nullptr;
+    ErrCode result = authenticateProxyPtr_->CheckAccountLabels(STRING_NAME, labels, callback);
+    EXPECT_NE(result, ERR_OK);
+
+    sptr<IAppAccountAuthenticatorCallback> oauthCallbackPtr = new (std::nothrow) MockAuthenticatorCallback();
+    ASSERT_NE(oauthCallbackPtr, nullptr);
+    callback = oauthCallbackPtr->AsObject();
+    ASSERT_NE(callback, nullptr);
+    result = authenticateProxyPtr_->CheckAccountLabels(STRING_NAME, labels, callback);
+    EXPECT_EQ(result, ERR_OK);
+}
+
+/**
+ * @tc.name: AppAccountAuthenticateTest_SetProperties_0100
+ * @tc.desc: test authenticate proxy func VerifyCredential.
+ * @tc.type: FUNC
+ * @tc.require
+ */
+HWTEST_F(AppAccountAuthenticateModuleTest, AppAccountAuthenticateTest_SetProperties_0100, TestSize.Level1)
+{
+    ACCOUNT_LOGI("AppAccountAuthenticateTest_SetProperties_0100");
+    SetPropertiesOptions options;
+    sptr<IRemoteObject> callback = nullptr;
+    ErrCode result = authenticateProxyPtr_->SetProperties(options, callback);
+    EXPECT_NE(result, ERR_OK);
+
+    sptr<IAppAccountAuthenticatorCallback> oauthCallbackPtr = new (std::nothrow) MockAuthenticatorCallback();
+    ASSERT_NE(oauthCallbackPtr, nullptr);
+    callback = oauthCallbackPtr->AsObject();
+    ASSERT_NE(callback, nullptr);
+    result = authenticateProxyPtr_->SetProperties(options, callback);
+    EXPECT_EQ(result, ERR_OK);
+}
+
+/**
+ * @tc.name: AppAccountAuthenticateTest_IsAccountRemovable_0100
+ * @tc.desc: test authenticate proxy func VerifyCredential.
+ * @tc.type: FUNC
+ * @tc.require
+ */
+HWTEST_F(AppAccountAuthenticateModuleTest, AppAccountAuthenticateTest_IsAccountRemovable_0100, TestSize.Level1)
+{
+    ACCOUNT_LOGI("AppAccountAuthenticateTest_IsAccountRemovable_0100");
+    sptr<IRemoteObject> callback = nullptr;
+    ErrCode result = authenticateProxyPtr_->IsAccountRemovable(STRING_NAME, callback);
+    EXPECT_NE(result, ERR_OK);
+
+    sptr<IAppAccountAuthenticatorCallback> oauthCallbackPtr = new (std::nothrow) MockAuthenticatorCallback();
+    ASSERT_NE(oauthCallbackPtr, nullptr);
+    callback = oauthCallbackPtr->AsObject();
+    ASSERT_NE(callback, nullptr);
+    result = authenticateProxyPtr_->IsAccountRemovable(STRING_NAME, callback);
     EXPECT_EQ(result, ERR_OK);
 }
