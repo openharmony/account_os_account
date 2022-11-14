@@ -23,6 +23,7 @@ using namespace OHOS;
 using namespace OHOS::AccountSA;
 
 constexpr int32_t MAX_CUSTOM_DATA_SIZE = 1024;
+constexpr int32_t INVALID_ERR_CODE = -1;
 
 class AppAccountCommonTest : public testing::Test {
 public:
@@ -163,6 +164,24 @@ HWTEST_F(AppAccountCommonTest, Marshalling005, TestSize.Level0)
 }
 
 /**
+ * @tc.name: SelectAccountsOptions Marshalling test
+ * @tc.desc: test ReadFromParcel.
+ * @tc.type: FUNC
+ * @tc.require issueI5RWXN
+ */
+HWTEST_F(AppAccountCommonTest, Marshalling006, TestSize.Level0)
+{
+    ACCOUNT_LOGI("Marshalling006");
+    Parcel testParcel;
+    SetPropertiesOptions options;
+    bool result = options.Marshalling(testParcel);
+    ASSERT_EQ(result, true);
+    result = false;
+    result = options.Unmarshalling(testParcel);
+    ASSERT_EQ(result, true);
+}
+
+/**
  * @tc.name: ConvertOtherJSErrCodeV8 test
  * @tc.desc: Func ConvertOtherJSErrCodeV8.
  * @tc.type: FUNC
@@ -180,6 +199,7 @@ HWTEST_F(AppAccountCommonTest, ConvertOtherJSErrCodeV8001, TestSize.Level0)
     EXPECT_EQ(ConvertToJSErrCodeV8(ERR_APPACCOUNT_SERVICE_OAUTH_SESSION_NOT_EXIST), ERR_JS_OAUTH_SESSION_NOT_EXIST);
     EXPECT_EQ(ConvertToJSErrCodeV8(ERR_APPACCOUNT_SERVICE_OAUTH_TOKEN_NOT_EXIST), ERR_JS_OAUTH_TOKEN_NOT_EXIST);
     EXPECT_EQ(ConvertToJSErrCodeV8(ERR_APPACCOUNT_SERVICE_OAUTH_TOKEN_MAX_SIZE), ERR_JS_OAUTH_TOKEN_TOO_MANY);
+    EXPECT_EQ(ConvertToJSErrCodeV8(INVALID_ERR_CODE), ERR_JS_APP_ACCOUNT_SERVICE_EXCEPTION);
 }
 
 /**
