@@ -403,3 +403,30 @@ HWTEST_F(AccountMgrInnerSdkFuncTest, SetOhosAccountInfo007, TestSize.Level0)
     auto ret = OhosAccountKits::GetInstance().SetOhosAccountInfo(accountInfo, eventStr);
     EXPECT_EQ(ret, ERR_ACCOUNT_ZIDL_ACCOUNT_STUB_ERROR);
 }
+
+/**
+ * @tc.name: GetOhosAccountInfoByUserIdTest
+ * @tc.desc: Test GetOhosAccountInfoByUserId with invalid userId.
+ * @tc.type: FUNC
+ * @tc.require: issueI603MF
+ */
+HWTEST_F(AccountMgrInnerSdkFuncTest, GetOhosAccountInfoByUserId, TestSize.Level0)
+{
+    OhosAccountInfo accountInfo;
+    std::int32_t testUserId = 200; // 200 is test user id.
+    auto ret = OhosAccountKits::GetInstance().GetOhosAccountInfoByUserId(testUserId, accountInfo);
+    EXPECT_NE(ERR_OK, ret);
+}
+
+/**
+ * @tc.name: QueryOhosAccountInfoByUserIdTest
+ * @tc.desc: Test QueryOhosAccountInfoByUserId with invalid userId.
+ * @tc.type: FUNC
+ * @tc.require: issueI603MF
+ */
+HWTEST_F(AccountMgrInnerSdkFuncTest, QueryOhosAccountInfoByUserId, TestSize.Level0)
+{
+    std::int32_t testUserId = 200; // 200 is test user id.
+    auto ret = OhosAccountKits::GetInstance().QueryOhosAccountInfoByUserId(testUserId);
+    EXPECT_NE(true, ret.first);
+}
