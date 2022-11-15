@@ -24,6 +24,9 @@
 #include "os_account_photo_operator.h"
 namespace OHOS {
 namespace AccountSA {
+
+bool GetValidAccountID(const std::string& dirName, std::int32_t& accountID);
+
 class OsAccountControlFileManager : public IOsAccountControl {
 public:
     OsAccountControlFileManager();

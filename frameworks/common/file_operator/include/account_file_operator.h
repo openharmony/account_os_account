@@ -34,6 +34,7 @@ public:
     ErrCode GetFileContentByPath(const std::string &path, std::string &content);
     bool IsExistFile(const std::string &path);
     bool IsJsonFormat(const std::string &path);
+    bool IsJsonFileReady(const std::string &path);
     bool IsExistDir(const std::string &path);
 };
 }  // namespace AccountSA
