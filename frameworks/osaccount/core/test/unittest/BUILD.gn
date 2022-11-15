@@ -39,6 +39,7 @@ ohos_unittest("os_account_test") {
 
   deps = [
     "${common_path}:libaccount_common",
+    "${innerkits_native_path}:libaccountkits",
     "${os_account_core_path}:os_account_core",
     "//third_party/googletest:gmock_main",
     "//third_party/googletest:gtest_main",
@@ -47,6 +48,7 @@ ohos_unittest("os_account_test") {
   external_deps = [
     "hiviewdfx_hilog_native:libhilog",
     "ipc:ipc_core",
+    "samgr:samgr_proxy",
   ]
 }
 group("unittest") {

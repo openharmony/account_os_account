@@ -57,8 +57,30 @@ ohos_unittest("os_account_info_test") {
     "kv_store:distributeddata_inner",
   ]
 }
+
+ohos_unittest("os_account_subscribe_info_test") {
+  module_out_path = module_output_path
+
+  sources = [ "os_account_subscribe_info_test.cpp" ]
+
+  configs = [ ":os_account_service_config_unittest" ]
+
+  deps = [
+    "${common_path}:libaccount_common",
+    "${os_account_innerkits_native_path}:os_account_innerkits",
+    "//third_party/googletest:gtest_main",
+  ]
+
+  external_deps = [
+    "ipc:ipc_core",
+  ]
+}
+
 group("unittest") {
   testonly = true
 
-  deps = [ ":os_account_info_test" ]
+  deps = [ 
+    ":os_account_info_test",
+    ":os_account_subscribe_info_test",
+   ]
 }
