@@ -1888,6 +1888,35 @@ HWTEST_F(AppAccountManagerServiceModuleTest, AppAccountManagerService_CheckAppAc
 }
 
 /**
+ * @tc.name: AppAccountManagerService_CheckAppAccess_0400
+ * @tc.desc: test CheckAppAccess
+ * @tc.type: FUNC
+ * @tc.require: issueI5N90B
+ */
+
+HWTEST_F(AppAccountManagerServiceModuleTest, AppAccountManagerService_CheckAppAccess_0400, TestSize.Level1)
+{
+    ACCOUNT_LOGI("AppAccountManagerService_CheckAppAccess_0400");
+    ErrCode result = g_accountManagerService->AddAccount(STRING_NAME, STRING_EXTRA_INFO);
+    EXPECT_EQ(result, ERR_OK);
+
+    result = g_accountManagerService->EnableAppAccess(STRING_NAME, STRING_BUNDLE_NAME);
+    EXPECT_EQ(result, ERR_OK);
+
+    bool isAccessible = false;
+    AppAccountCallingInfo appAccountCallingInfo;
+    result = g_accountManagerService->GetCallingInfo(
+        appAccountCallingInfo.callingUid, appAccountCallingInfo.bundleName, appAccountCallingInfo.appIndex);
+    EXPECT_EQ(result, ERR_OK);
+    result = g_accountManagerService->CheckAppAccess(STRING_NAME, appAccountCallingInfo.bundleName, isAccessible);
+    EXPECT_EQ(result, ERR_OK);
+    EXPECT_EQ(isAccessible, true);
+
+    result = g_accountManagerService->DeleteAccount(STRING_NAME);
+    EXPECT_EQ(result, ERR_OK);
+}
+
+/**
  * @tc.name: AppAccountManagerService_DeleteAccountCredential_0100
  * @tc.desc: test DeleteAccountCredential
  * @tc.type: FUNC

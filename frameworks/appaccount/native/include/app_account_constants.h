@@ -48,7 +48,6 @@ const std::string KEY_ACCOUNT_OWNERS = "accountOwners";
 const std::string SPECIAL_CHARACTERS = " ";
 const std::string HYPHEN = "#";
 const std::string API_V9 = "apiV9";
-constexpr int32_t ABILITY_STATE_TERMINATED = 4;
 constexpr std::size_t APP_ACCOUNT_SUBSCRIBER_MAX_SIZE = 200;
 constexpr std::size_t NAME_MAX_SIZE = 512;
 constexpr std::size_t EXTRA_INFO_MAX_SIZE = 1024;
