@@ -69,6 +69,75 @@ ohos_moduletest("account_permission_manager_module_test") {
   ]
 }
 
+ohos_moduletest("app_account_authenticator_callback_test") {
+  module_out_path = module_output_path
+  cflags_cc = []
+  sources = [ "app_account_authenticator_callback_test.cpp" ]
+
+  configs = [ ":app_account_service_config_unittest" ]
+
+  deps = [
+    "${app_account_innerkits_native_path}:app_account_innerkits",
+    "${app_account_services_path}/src/appaccount:app_account_service_core",
+    "${common_path}:libaccount_common",
+    "${innerkits_native_path}:libaccountkits",
+  ]
+
+  external_deps = [
+    "ability_base:base",
+    "ability_base:want",
+    "ability_runtime:app_manager",
+    "bundle_framework:appexecfwk_base",
+    "bundle_framework:appexecfwk_core",
+    "eventhandler:libeventhandler",
+    "hiviewdfx_hilog_native:libhilog",
+    "ipc:ipc_core",
+    "kv_store:distributeddata_inner",
+    "safwk:system_ability_fwk",
+    "samgr:samgr_proxy",
+  ]
+
+  if (has_ces_part) {
+    cflags_cc += [ "-DHAS_CES_PART" ]
+    external_deps += [ "common_event_service:cesfwk_innerkits" ]
+  }
+}
+
+ohos_moduletest("app_account_event_module_test") {
+  module_out_path = module_output_path
+  cflags_cc = []
+  sources = [ "app_account_event_module_test.cpp" ]
+
+  configs = [ ":app_account_service_config_unittest" ]
+
+  deps = [
+    "${app_account_innerkits_native_path}:app_account_innerkits",
+    "${app_account_services_path}/src/appaccount:app_account_service_core",
+    "${common_path}:libaccount_common",
+    "${innerkits_native_path}:libaccountkits",
+    "//third_party/googletest:gtest_main",
+  ]
+
+  external_deps = [
+    "ability_base:base",
+    "ability_base:want",
+    "ability_runtime:app_manager",
+    "bundle_framework:appexecfwk_base",
+    "bundle_framework:appexecfwk_core",
+    "eventhandler:libeventhandler",
+    "hiviewdfx_hilog_native:libhilog",
+    "ipc:ipc_core",
+    "kv_store:distributeddata_inner",
+    "safwk:system_ability_fwk",
+    "samgr:samgr_proxy",
+  ]
+
+  if (has_ces_part) {
+    cflags_cc += [ "-DHAS_CES_PART" ]
+    external_deps += [ "common_event_service:cesfwk_innerkits" ]
+  }
+}
+
 ohos_moduletest("app_account_authenticate_test") {
   module_out_path = module_output_path
   cflags_cc = []
@@ -186,6 +255,34 @@ ohos_moduletest("app_account_manager_service_module_test") {
     cflags_cc += [ "-DHAS_CES_PART" ]
     external_deps += [ "common_event_service:cesfwk_innerkits" ]
   }
+}
+
+ohos_moduletest("at_not_mock_app_account_manager_service_module_test") {
+  module_out_path = module_output_path
+  sources = [
+    "${app_account_services_path}/test/mock/common/bundle_manager_adapter.cpp",
+    "at_not_mock_app_account_manager_service_module_test.cpp",
+  ]
+
+  configs = [ ":app_account_service_config_unittest" ]
+
+  deps = [
+    "${app_account_innerkits_native_path}:app_account_innerkits",
+    "${app_account_services_path}:accountmgr",
+    "${app_account_services_path}/src/appaccount:app_account_service_core",
+    "${common_path}:libaccount_common",
+    "${innerkits_native_path}:libaccountkits",
+    "//third_party/googletest:gtest_main",
+  ]
+
+  external_deps = [
+    "ability_base:base",
+    "ability_base:want",
+    "ability_runtime:app_manager",
+    "hiviewdfx_hilog_native:libhilog",
+    "ipc:ipc_core",
+    "kv_store:distributeddata_inner",
+  ]
 }
 
 ohos_moduletest("app_account_manager_service_subscribe_module_test") {
@@ -326,10 +423,13 @@ group("moduletest") {
   deps = [
     ":account_permission_manager_module_test",
     ":app_account_authenticate_test",
+    ":app_account_authenticator_callback_test",
     ":app_account_control_manager_module_test",
+    ":app_account_event_module_test",
     ":app_account_manager_service_module_test",
     ":app_account_manager_service_subscribe_module_test",
     ":app_account_manager_service_sync_module_test",
     ":app_account_manager_service_thread_module_test",
+    ":at_not_mock_app_account_manager_service_module_test",
   ]
 }

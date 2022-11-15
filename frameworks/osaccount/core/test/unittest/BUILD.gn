@@ -51,8 +51,32 @@ ohos_unittest("os_account_test") {
     "samgr:samgr_proxy",
   ]
 }
+
+ohos_unittest("os_account_mock_test") {
+  module_out_path = module_output_path
+
+  sources = [
+    "//base/account/os_account/services/accountmgr/test/mock/src/mock_service_registry.cpp",
+    "os_account_mock_test.cpp",
+  ]
+
+  configs = [ ":os_account_core_config_unittest" ]
+
+  deps = [
+    "${os_account_core_path}:os_account_core",
+    "//third_party/googletest:gtest_main",
+  ]
+
+  external_deps = [
+    "c_utils:utils",
+    "ipc:ipc_core",
+  ]
+}
 group("unittest") {
   testonly = true
 
-  deps = [ ":os_account_test" ]
+  deps = [
+    ":os_account_mock_test",
+    ":os_account_test",
+  ]
 }
