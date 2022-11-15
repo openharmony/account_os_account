@@ -17,11 +17,15 @@
 #include <memory>
 #include <thread>
 #include "account_error_no.h"
+#include "account_proxy.h"
 #include "iremote_object.h"
+#include "iservice_registry.h"
+#include "os_account_proxy.h"
 #define private public
 #include "os_account.h"
 #undef private
 #include "singleton.h"
+#include "system_ability_definition.h"
 
 using namespace testing::ext;
 using namespace OHOS;
@@ -32,6 +36,7 @@ const std::string STRING_EMPTY = "";
 const std::string STRING_NAME = "name";
 const std::int32_t MAIN_ACCOUNT_ID = 100;
 const std::int32_t WAIT_A_MOMENT = 3000;
+const std::int32_t ILLEGAL_LOCAL_ID = -1;
 const std::string STRING_NAME_OUT_OF_RANGE =
     "name_out_of_range_"
     "1234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890"
@@ -112,9 +117,18 @@ const std::string STRING_DOMAIN_ACCOUNT_NAME_OUT_OF_RANGE =
     "1234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890"
     "1234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890"
     "1234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890";
+const std::string STRING_CONSTRAINT_OUT_OF_RANGE =
+    "1234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890"
+    "123456789012345678901234567890";
+const std::vector<std::string> CONSTANTS_VECTOR {
+    "constraint.print",
+    "constraint.screen.timeout.set",
+    "constraint.share.into.profile"
+};
 const std::string STRING_DOMAIN_VALID = "TestDomainUT";
 const std::string STRING_DOMAIN_ACCOUNT_NAME_VALID = "TestDomainAccountNameUT";
 std::shared_ptr<OsAccount> g_osAccount = nullptr;
+sptr<IOsAccount> osAccountProxy_ = nullptr;
 const std::uint32_t MAX_WAIT_FOR_READY_CNT = 10;
 }  // namespace
 class OsAccountTest : public testing::Test {
@@ -143,6 +157,15 @@ void OsAccountTest::SetUpTestCase(void)
             break;
         }
     }
+
+    sptr<ISystemAbilityManager> systemAbilityManager =
+        SystemAbilityManagerClient::GetInstance().GetSystemAbilityManager();
+    sptr<IRemoteObject> remoteObject =
+        systemAbilityManager->GetSystemAbility(SUBSYS_ACCOUNT_SYS_ABILITY_ID_BEGIN);
+    sptr<IAccount> accountProxy = iface_cast<AccountProxy>(remoteObject);
+    auto osAccountRemoteObject = accountProxy->GetOsAccountService();
+    osAccountProxy_ = iface_cast<IOsAccount>(osAccountRemoteObject);
+            
     GTEST_LOG_(INFO) << "SetUpTestCase finished, waitCnt " << waitCnt;
 }
 
@@ -289,4 +312,148 @@ HWTEST_F(OsAccountTest, OsAccountTest009, TestSize.Level1)
 
     DomainAccountInfo domainInfoAccountInvalid(STRING_DOMAIN_VALID, STRING_DOMAIN_ACCOUNT_NAME_OUT_OF_RANGE);
     EXPECT_EQ(osAccountInfo.SetDomainInfo(domainInfoAccountInvalid), false);
+}
+
+/**
+ * @tc.name: OsAccountTest010
+ * @tc.desc: Test CreateOsAccountEventListener subscriber is nullptr.
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(OsAccountTest, OsAccountTest010, TestSize.Level1)
+{
+    const std::shared_ptr<OsAccountSubscriber> subscriber = nullptr;
+    sptr<IRemoteObject> osAccountEventListener;
+    EXPECT_EQ(OsAccount::SUBSCRIBE_FAILED,
+        g_osAccount->CreateOsAccountEventListener(subscriber, osAccountEventListener));
+}
+
+/**
+ * @tc.name: OsAccountTest011
+ * @tc.desc: Test CreateOsAccount name is empty.
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(OsAccountTest, OsAccountTest011, TestSize.Level1)
+{
+    OsAccountType type = NORMAL;
+    OsAccountInfo osAccountInfo;
+    EXPECT_EQ(ERR_OSACCOUNT_KIT_READ_LOCALNAME_ERROR,
+        osAccountProxy_->CreateOsAccount(STRING_EMPTY, type, osAccountInfo));
+}
+
+/**
+ * @tc.name: OsAccountTest012
+ * @tc.desc: Test CreateOsAccountForDomain domain is illegal.
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(OsAccountTest, OsAccountTest012, TestSize.Level1)
+{
+    OsAccountType type = NORMAL;
+    DomainAccountInfo domainInfo(STRING_EMPTY, STRING_DOMAIN_ACCOUNT_NAME_VALID);
+    OsAccountInfo osAccountInfo;
+    EXPECT_EQ(ERR_OSACCOUNT_KIT_DOMAIN_NAME_LENGTH_INVALID_ERROR,
+        osAccountProxy_->CreateOsAccountForDomain(type, domainInfo, osAccountInfo));
+    
+    domainInfo.domain_ = STRING_DOMAIN_NAME_OUT_OF_RANGE;
+    EXPECT_EQ(ERR_OSACCOUNT_KIT_DOMAIN_NAME_LENGTH_INVALID_ERROR,
+        osAccountProxy_->CreateOsAccountForDomain(type, domainInfo, osAccountInfo));
+}
+
+/**
+ * @tc.name: OsAccountTest013
+ * @tc.desc: Test CreateOsAccountForDomain domainAccountName is illegal.
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(OsAccountTest, OsAccountTest013, TestSize.Level1)
+{
+    OsAccountType type = NORMAL;
+    DomainAccountInfo domainInfo(STRING_DOMAIN_VALID, STRING_EMPTY);
+    OsAccountInfo osAccountInfo;
+    EXPECT_EQ(ERR_OSACCOUNT_KIT_DOMAIN_ACCOUNT_NAME_LENGTH_INVALID_ERROR,
+        osAccountProxy_->CreateOsAccountForDomain(type, domainInfo, osAccountInfo));
+
+    domainInfo.accountName_ = STRING_DOMAIN_ACCOUNT_NAME_OUT_OF_RANGE;
+    EXPECT_EQ(ERR_OSACCOUNT_KIT_DOMAIN_ACCOUNT_NAME_LENGTH_INVALID_ERROR,
+        osAccountProxy_->CreateOsAccountForDomain(type, domainInfo, osAccountInfo));
+}
+
+/**
+ * @tc.name: OsAccountTest014
+ * @tc.desc: Test GetOsAccountLocalIdFromDomain domain is illegal.
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(OsAccountTest, OsAccountTest014, TestSize.Level1)
+{
+    DomainAccountInfo domainInfo(STRING_EMPTY, STRING_DOMAIN_ACCOUNT_NAME_VALID);
+    int id;
+    EXPECT_EQ(ERR_OSACCOUNT_KIT_DOMAIN_NAME_LENGTH_INVALID_ERROR,
+        osAccountProxy_->GetOsAccountLocalIdFromDomain(domainInfo, id));
+
+    domainInfo.domain_ = STRING_DOMAIN_NAME_OUT_OF_RANGE;
+    EXPECT_EQ(ERR_OSACCOUNT_KIT_DOMAIN_NAME_LENGTH_INVALID_ERROR,
+        osAccountProxy_->GetOsAccountLocalIdFromDomain(domainInfo, id));
+}
+
+/**
+ * @tc.name: OsAccountTest015
+ * @tc.desc: Test GetOsAccountLocalIdFromDomain domainAccountName is illegal.
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(OsAccountTest, OsAccountTest015, TestSize.Level1)
+{
+        DomainAccountInfo domainInfo(STRING_DOMAIN_VALID, STRING_EMPTY);
+    int id;
+    EXPECT_EQ(ERR_OSACCOUNT_KIT_DOMAIN_ACCOUNT_NAME_LENGTH_INVALID_ERROR,
+        osAccountProxy_->GetOsAccountLocalIdFromDomain(domainInfo, id));
+    domainInfo.accountName_ = STRING_DOMAIN_ACCOUNT_NAME_OUT_OF_RANGE;
+
+    EXPECT_EQ(ERR_OSACCOUNT_KIT_DOMAIN_ACCOUNT_NAME_LENGTH_INVALID_ERROR,
+        osAccountProxy_->GetOsAccountLocalIdFromDomain(domainInfo, id));
+}
+
+/**
+ * @tc.name: OsAccountTest016
+ * @tc.desc: Test IsOsAccountConstraintEnable constraint is illegal.
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(OsAccountTest, OsAccountTest016, TestSize.Level1)
+{
+    bool isConstraintEnable;
+    EXPECT_EQ(ERR_OSACCOUNT_KIT_READ_CONSTRAINTS_ERROR,
+        osAccountProxy_->IsOsAccountConstraintEnable(MAIN_ACCOUNT_ID, STRING_EMPTY, isConstraintEnable));
+
+    EXPECT_EQ(ERR_OSACCOUNT_KIT_READ_CONSTRAINTS_ERROR, osAccountProxy_->IsOsAccountConstraintEnable(
+        MAIN_ACCOUNT_ID, STRING_CONSTRAINT_OUT_OF_RANGE, isConstraintEnable));
+}
+
+/**
+ * @tc.name: OsAccountTest017
+ * @tc.desc: Test SetGlobalOsAccountConstraints local id is illegal.
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(OsAccountTest, OsAccountTest017, TestSize.Level1)
+{
+    EXPECT_EQ(ERR_OSACCOUNT_KIT_READ_IN_LOCAL_ID_ERROR,
+        osAccountProxy_->SetGlobalOsAccountConstraints(CONSTANTS_VECTOR, false, ILLEGAL_LOCAL_ID, false));
+}
+
+/**
+ * @tc.name: OsAccountTest018
+ * @tc.desc: Test SetSpecificOsAccountConstraints local id is illegal.
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(OsAccountTest, OsAccountTest018, TestSize.Level1)
+{
+    EXPECT_EQ(ERR_OSACCOUNT_KIT_READ_IN_LOCAL_ID_ERROR, osAccountProxy_->SetSpecificOsAccountConstraints(
+        CONSTANTS_VECTOR, false, ILLEGAL_LOCAL_ID, MAIN_ACCOUNT_ID, false));
+    EXPECT_EQ(ERR_OSACCOUNT_KIT_READ_IN_LOCAL_ID_ERROR, osAccountProxy_->SetSpecificOsAccountConstraints(
+        CONSTANTS_VECTOR, false, MAIN_ACCOUNT_ID, ILLEGAL_LOCAL_ID, false));
 }
