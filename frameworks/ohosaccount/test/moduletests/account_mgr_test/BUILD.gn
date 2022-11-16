@@ -17,7 +17,7 @@ import("//base/account/os_account/os_account.gni")
 import("//build/ohos.gni")
 import("//build/test.gni")
 
-module_output_path = "os_account/mstaccountmgr"
+module_output_path = "os_account/frameworks/accountdfx"
 
 # mst test common config defines here
 config("accountmgr_mst_test_config") {
