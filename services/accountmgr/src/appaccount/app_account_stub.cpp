@@ -337,15 +337,15 @@ ErrCode AppAccountStub::ProcCreateAccount(MessageParcel &data, MessageParcel &re
     if (options == nullptr) {
         ACCOUNT_LOGE("invalid options");
         result = ERR_APPACCOUNT_SERVICE_INVALID_PARAMETER;
+    } else {
+        RETURN_IF_STRING_IS_OVERSIZE(options->customData, Constants::MAX_CUSTOM_DATA_SIZE, "customData is oversize");
+        for (const auto &it : options->customData) {
+            RETURN_IF_STRING_IS_OVERSIZE(it.first, Constants::ASSOCIATED_KEY_MAX_SIZE, "customData key is oversize");
+            RETURN_IF_STRING_IS_OVERSIZE(
+                it.second, Constants::ASSOCIATED_VALUE_MAX_SIZE, "customData value is oversize");
+        }
+        result = CreateAccount(name, *options);
     }
-    if (options->customData.size() > Constants::MAX_CUSTOM_DATA_SIZE) {
-        return ERR_APPACCOUNT_KIT_INVALID_PARAMETER;
-    }
-    for (auto it : options->customData) {
-        RETURN_IF_STRING_IS_OVERSIZE(it.first, Constants::ASSOCIATED_KEY_MAX_SIZE, "customData key is oversize");
-        RETURN_IF_STRING_IS_OVERSIZE(it.second, Constants::ASSOCIATED_VALUE_MAX_SIZE, "customData value is oversize");
-    }
-    result = CreateAccount(name, *options);
     if (!reply.WriteInt32(result)) {
         ACCOUNT_LOGE("failed to write reply");
         return IPC_STUB_WRITE_PARCEL_ERR;
