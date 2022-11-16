@@ -69,6 +69,7 @@ ohos_unittest("account_iam_service_test") {
 
   external_deps = [
     "hiviewdfx_hilog_native:libhilog",
+    "init:libbegetutil",
     "ipc:ipc_core",
   ]
 }
