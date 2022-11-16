@@ -337,9 +337,15 @@ ErrCode AppAccountStub::ProcCreateAccount(MessageParcel &data, MessageParcel &re
     if (options == nullptr) {
         ACCOUNT_LOGE("invalid options");
         result = ERR_APPACCOUNT_SERVICE_INVALID_PARAMETER;
-    } else {
-        result = CreateAccount(name, *options);
     }
+    if (options->customData.size() > Constants::MAX_CUSTOM_DATA_SIZE) {
+        return ERR_APPACCOUNT_KIT_INVALID_PARAMETER;
+    }
+    for (auto it : options->customData) {
+        RETURN_IF_STRING_IS_OVERSIZE(it.first, Constants::ASSOCIATED_KEY_MAX_SIZE, "customData key is oversize");
+        RETURN_IF_STRING_IS_OVERSIZE(it.second, Constants::ASSOCIATED_VALUE_MAX_SIZE, "customData value is oversize");
+    }
+    result = CreateAccount(name, *options);
     if (!reply.WriteInt32(result)) {
         ACCOUNT_LOGE("failed to write reply");
         return IPC_STUB_WRITE_PARCEL_ERR;
@@ -357,8 +363,11 @@ ErrCode AppAccountStub::ProcCreateAccountImplicitly(MessageParcel &data, Message
         ACCOUNT_LOGE("invalid options");
         result = ERR_APPACCOUNT_SERVICE_INVALID_PARAMETER;
     } else {
+        RETURN_IF_STRING_IS_OVERSIZE(options->authType, Constants::AUTH_TYPE_MAX_SIZE, "authType is empty or oversize");
         RETURN_IF_STRING_IS_EMPTY_OR_OVERSIZE(options->parameters.GetStringParam(Constants::KEY_CALLER_ABILITY_NAME),
             Constants::ABILITY_NAME_MAX_SIZE, "abilityName is empty or oversize");
+        RETURN_IF_STRING_IS_OVERSIZE(
+            options->requiredLabels, Constants::MAX_ALLOWED_ARRAY_SIZE_INPUT, "requiredLabels array is oversize");
         sptr<IRemoteObject> callback = data.ReadRemoteObject();
         result = CreateAccountImplicitly(owner, *options, callback);
     }
@@ -812,6 +821,12 @@ ErrCode AppAccountStub::ProcDeleteAccountCredential(MessageParcel &data, Message
 ErrCode AppAccountStub::ProcSelectAccountsByOptions(MessageParcel &data, MessageParcel &reply)
 {
     std::shared_ptr<SelectAccountsOptions> options(data.ReadParcelable<SelectAccountsOptions>());
+    RETURN_IF_STRING_IS_OVERSIZE(
+        options->allowedAccounts, Constants::MAX_ALLOWED_ARRAY_SIZE_INPUT, "allowedAccounts array is oversize");
+    RETURN_IF_STRING_IS_OVERSIZE(
+        options->allowedOwners, Constants::MAX_ALLOWED_ARRAY_SIZE_INPUT, "allowedOwners array is oversize");
+    RETURN_IF_STRING_IS_OVERSIZE(
+        options->requiredLabels, Constants::MAX_ALLOWED_ARRAY_SIZE_INPUT, "requiredLabels array is oversize");
     sptr<IRemoteObject> callback = data.ReadRemoteObject();
     ErrCode result = ERR_OK;
     if (options == nullptr|| callback == nullptr) {
@@ -834,6 +849,9 @@ ErrCode AppAccountStub::ProcVerifyCredential(MessageParcel &data, MessageParcel 
     std::string owner = data.ReadString();
     RETURN_IF_STRING_IS_EMPTY_OR_OVERSIZE(owner, Constants::OWNER_MAX_SIZE, "owner is empty or oversize");
     std::shared_ptr<VerifyCredentialOptions> options(data.ReadParcelable<VerifyCredentialOptions>());
+    RETURN_IF_STRING_IS_OVERSIZE(
+        options->credentialType, Constants::CREDENTIAL_TYPE_MAX_SIZE, "the credential type is oversize");
+    RETURN_IF_STRING_IS_OVERSIZE(options->credential, Constants::CREDENTIAL_MAX_SIZE, "the credential is oversize");
     sptr<IRemoteObject> callback = data.ReadRemoteObject();
     ErrCode result = ERR_OK;
     if (options == nullptr || callback == nullptr) {
@@ -857,6 +875,8 @@ ErrCode AppAccountStub::ProcCheckAccountLabels(MessageParcel &data, MessageParce
     RETURN_IF_STRING_IS_EMPTY_OR_OVERSIZE(owner, Constants::OWNER_MAX_SIZE, "owner is empty or oversize");
     std::vector<std::string> labels;
     data.ReadStringVector(&labels);
+    RETURN_IF_STRING_IS_EMPTY_OR_OVERSIZE(
+        labels, Constants::MAX_ALLOWED_ARRAY_SIZE_INPUT, "labels array is empty or oversize");
     sptr<IRemoteObject> callback = data.ReadRemoteObject();
     ErrCode result = ERR_OK;
     if (callback == nullptr) {
