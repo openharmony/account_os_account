@@ -14,7 +14,7 @@
 import("//base/account/os_account/os_account.gni")
 import("//build/test.gni")
 
-module_output_path = "os_account/frameworks/account_iam"
+module_output_path = "os_account/services/account_iam"
 
 config("account_iam_native_config_unittest") {
   visibility = [ ":*" ]
@@ -22,6 +22,7 @@ config("account_iam_native_config_unittest") {
   include_dirs = [
     "include",
     "//base/useriam/user_auth_framework/interfaces/inner_api",
+    "${services_path}/accountmgr/include/account_iam",
   ]
 
   cflags = []
@@ -35,18 +36,23 @@ config("account_iam_native_config_unittest") {
   ]
 }
 
-ohos_unittest("account_iam_client_test") {
+ohos_unittest("account_iam_service_test") {
   module_out_path = module_output_path
 
-  sources = [ "src/account_iam_client_test.cpp" ]
+  sources = [ "account_iam_manager_test.cpp" ]
 
-  configs = [ ":account_iam_native_config_unittest" ]
+  configs = [
+    ":account_iam_native_config_unittest",
+    "${services_path}/accountmgr:account_iam_config",
+  ]
 
   deps = [
     "${account_iam_framework_path}:account_iam_innerkits",
     "${common_path}:libaccount_common",
+    "${services_path}/accountmgr:accountmgr",
     "//base/security/access_token/interfaces/innerkits/accesstoken:libaccesstoken_sdk",
     "//base/security/access_token/interfaces/innerkits/token_setproc:libtoken_setproc",
+    "//base/useriam/user_auth_framework/frameworks/native/client:userauth_client",
     "//third_party/googletest:gmock_main",
     "//third_party/googletest:gtest_main",
   ]
@@ -59,17 +65,17 @@ ohos_unittest("account_iam_client_test") {
 
   if (has_user_auth_part) {
     cflags_cc += [ "-DHAS_USER_AUTH_PART" ]
-    deps += [ "//base/useriam/user_auth_framework/frameworks/native/client:userauth_client" ]
   }
 
   external_deps = [
     "hiviewdfx_hilog_native:libhilog",
     "ipc:ipc_core",
+    "init:libbegetutil",
   ]
 }
 
 group("unittest") {
   testonly = true
 
-  deps = [ ":account_iam_client_test" ]
+  deps = [ ":account_iam_service_test" ]
 }
