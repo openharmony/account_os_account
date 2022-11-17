@@ -36,7 +36,7 @@ config("account_iam_native_config_unittest") {
   ]
 }
 
-ohos_unittest("account_iam_service_test") {
+ohos_unittest("account_iam_manager_test") {
   module_out_path = module_output_path
 
   sources = [ "account_iam_manager_test.cpp" ]
@@ -77,5 +77,5 @@ ohos_unittest("account_iam_service_test") {
 group("unittest") {
   testonly = true
 
-  deps = [ ":account_iam_service_test" ]
+  deps = [ ":account_iam_manager_test" ]
 }
