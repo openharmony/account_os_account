@@ -38,28 +38,28 @@ public:
     virtual ~AppAccountInfo() = default;
 
     std::string GetOwner();
-    ErrCode GetOwner(std::string &owner);
-    ErrCode SetOwner(const std::string &owner);
+    void GetOwner(std::string &owner);
+    void SetOwner(const std::string &owner);
 
     std::string GetName();
-    ErrCode GetName(std::string &name) const;
-    ErrCode SetName(const std::string &name);
+    void GetName(std::string &name) const;
+    void SetName(const std::string &name);
 
     uint32_t GetAppIndex();
     void SetAppIndex(const uint32_t &appIndex);
 
-    ErrCode GetExtraInfo(std::string &extraInfo) const;
-    ErrCode SetExtraInfo(const std::string &extraInfo);
+    void GetExtraInfo(std::string &extraInfo) const;
+    void SetExtraInfo(const std::string &extraInfo);
 
     ErrCode EnableAppAccess(const std::string &authorizedApp);
     ErrCode DisableAppAccess(const std::string &authorizedApp);
     ErrCode CheckAppAccess(const std::string &authorizedApp, bool &isAccessible);
 
-    ErrCode GetAuthorizedApps(std::set<std::string> &apps) const;
-    ErrCode SetAuthorizedApps(const std::set<std::string> &apps);
+    void GetAuthorizedApps(std::set<std::string> &apps) const;
+    void SetAuthorizedApps(const std::set<std::string> &apps);
 
-    ErrCode GetSyncEnable(bool &syncEnable) const;
-    ErrCode SetSyncEnable(const bool &syncEnable);
+    void GetSyncEnable(bool &syncEnable) const;
+    void SetSyncEnable(const bool &syncEnable);
 
     ErrCode InitCustomData(const std::map<std::string, std::string> &data);
     ErrCode GetAllAssociatedData(std::map<std::string, std::string> &data) const;

@@ -93,7 +93,6 @@ public:
 
         g_mtx.unlock();
 
-        ErrCode result;
         std::string owner;
         std::string name;
         std::string extraInfo;
@@ -101,16 +100,13 @@ public:
         ACCOUNT_LOGI("accounts.size() = %{public}zu", accounts.size());
 
         for (auto account : accounts) {
-            result = account.GetOwner(owner);
-            EXPECT_EQ(result, ERR_OK);
+            account.GetOwner(owner);
             ACCOUNT_LOGI("owner = %{public}s", owner.c_str());
 
-            result = account.GetName(name);
-            EXPECT_EQ(result, ERR_OK);
+            account.GetName(name);
             ACCOUNT_LOGI("name = %{public}s", name.c_str());
 
-            result = account.GetExtraInfo(extraInfo);
-            EXPECT_EQ(result, ERR_OK);
+            account.GetExtraInfo(extraInfo);
             ACCOUNT_LOGI("extraInfo = %{public}s", extraInfo.c_str());
         }
     }
@@ -156,7 +152,6 @@ public:
 
         g_mtx.unlock();
 
-        ErrCode result;
         std::string owner;
         std::string name;
         std::string extraInfo;
@@ -166,16 +161,13 @@ public:
         EXPECT_EQ(accounts.size(), SIZE_ONE);
 
         for (auto account : accounts) {
-            result = account.GetOwner(owner);
-            EXPECT_EQ(result, ERR_OK);
+            account.GetOwner(owner);
             EXPECT_EQ(owner, STRING_BUNDLE_NAME);
 
-            result = account.GetName(name);
-            EXPECT_EQ(result, ERR_OK);
+            account.GetName(name);
             EXPECT_EQ(name, STRING_NAME);
 
-            result = account.GetExtraInfo(extraInfo);
-            EXPECT_EQ(result, ERR_OK);
+            account.GetExtraInfo(extraInfo);
             EXPECT_EQ(extraInfo, STRING_EXTRA_INFO);
         }
     }
@@ -206,7 +198,6 @@ public:
             g_mtx.unlock();
         }
 
-        ErrCode result;
         std::string owner;
         std::string name;
         std::string extraInfo;
@@ -216,16 +207,13 @@ public:
         EXPECT_EQ(accounts.size(), SIZE_ONE);
 
         for (auto account : accounts) {
-            result = account.GetOwner(owner);
-            EXPECT_EQ(result, ERR_OK);
+            account.GetOwner(owner);
             EXPECT_EQ(owner, STRING_OWNER);
 
-            result = account.GetName(name);
-            EXPECT_EQ(result, ERR_OK);
+            account.GetName(name);
             EXPECT_EQ(name, STRING_NAME);
 
-            result = account.GetExtraInfo(extraInfo);
-            EXPECT_EQ(result, ERR_OK);
+            account.GetExtraInfo(extraInfo);
             EXPECT_EQ(extraInfo, STRING_EXTRA_INFO);
         }
     }
