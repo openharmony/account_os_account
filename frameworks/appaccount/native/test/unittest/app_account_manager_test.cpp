@@ -1645,7 +1645,7 @@ HWTEST_F(AppAccountManagerTest, AppAccountManager_SelectAccountsByOptions_0100, 
     EXPECT_EQ(result, ERR_APPACCOUNT_KIT_INVALID_PARAMETER);
 
     // check options.allowedOwners array size
-    options.allowedOwners.clear();
+    options.allowedAccounts.clear();
     for (int i = 0; i < ALLOWED_ARRAY_MAX_SIZE; i++) {
         std::string testOwner = "test_owner_" + std::to_string(i);
         options.allowedOwners.emplace_back(testOwner);
