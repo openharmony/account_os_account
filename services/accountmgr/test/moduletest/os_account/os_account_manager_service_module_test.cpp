@@ -1454,7 +1454,7 @@ HWTEST_F(OsAccountManagerServiceModuleTest, OsAccountManagerServiceModuleTest074
 {
     ACCOUNT_LOGI("OsAccountManagerServiceModuleTest074");
     std::vector<std::string> state;
-    
+
     EXPECT_NE(osAccountManagerService_->DumpState(INVALID_ACCOUNT_ID, state), ERR_OK);
 }
 
