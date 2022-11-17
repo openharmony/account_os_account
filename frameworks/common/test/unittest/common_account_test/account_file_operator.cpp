@@ -54,11 +54,11 @@ void AccountFileOperatorTest::TearDown() {}
 HWTEST_F(AccountFileOperatorTest, AccountFileOperator001, TestSize.Level0)
 {
     auto accountFileOperator_ = std::make_shared<AccountFileOperator>();
-    EXPECT_EQ(accountFileOperator_->CreateDir("../xx"), OHOS::ERR_OSACCOUNT_SERVICE_FILE_CREATE_DIR_ERROR);
-    EXPECT_EQ(accountFileOperator_->DeleteDirOrFile("../xx"), OHOS::ERR_OSACCOUNT_SERVICE_FILE_DELE_ERROR);
-    EXPECT_EQ(accountFileOperator_->InputFileByPathAndContent("../xx", "xx"),
+    EXPECT_EQ(accountFileOperator_->CreateDir("../../&*&"), OHOS::ERR_OSACCOUNT_SERVICE_FILE_CREATE_DIR_ERROR);
+    EXPECT_EQ(accountFileOperator_->DeleteDirOrFile("../../&*&"), OHOS::ERR_OSACCOUNT_SERVICE_FILE_DELE_ERROR);
+    EXPECT_EQ(accountFileOperator_->InputFileByPathAndContent("../../&*&", "xx"),
         OHOS::ERR_OSACCOUNT_SERVICE_FILE_CREATE_FILE_FAILED_ERROR);
     EXPECT_EQ(accountFileOperator_->IsExistFile(""), false);
-    EXPECT_EQ(accountFileOperator_->IsJsonFormat("../xx"), false);
+    EXPECT_EQ(accountFileOperator_->IsJsonFormat("../&*&"), false);
     EXPECT_EQ(accountFileOperator_->IsExistDir(""), false);
 }
