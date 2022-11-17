@@ -16,7 +16,7 @@ import("//base/account/os_account/os_account.gni")
 #####################hydra-fuzz###################
 import("//build/config/features.gni")
 import("//build/test.gni")
-module_output_path = "account_iam/account_iam"
+module_output_path = "os_account/iamaccount"
 
 ##############################fuzztest##########################################
 ohos_fuzztest("OpenSessionFuzzTest") {

@@ -14,7 +14,7 @@
 #####################hydra-fuzz###################
 import("//build/config/features.gni")
 import("//build/test.gni")
-module_output_path = "app_account/appaccount"
+module_output_path = "os_account/appaccount"
 
 ##############################fuzztest##########################################
 ohos_fuzztest("GetAccountExtraInfoFuzzTest") {

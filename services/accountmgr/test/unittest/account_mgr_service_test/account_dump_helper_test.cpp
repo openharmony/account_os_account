@@ -292,7 +292,7 @@ HWTEST_F(AccountDumpHelperTest, AccountDumpParameterTest007, TestSize.Level0)
  * @tc.name: AccountDumpTwoParameterTest001
  * @tc.desc: Test account log-level set
  * @tc.type: FUNC
- * @tc.require: AR000CUF6N
+ * @tc.require:
  */
 HWTEST_F(AccountDumpHelperTest, AccountDumpTwoParameterTest001, TestSize.Level0)
 {
