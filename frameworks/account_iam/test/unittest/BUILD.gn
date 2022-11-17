@@ -38,7 +38,43 @@ config("account_iam_native_config_unittest") {
 ohos_unittest("account_iam_client_test") {
   module_out_path = module_output_path
 
-  sources = [ "src/account_iam_client_test.cpp" ]
+  sources = [
+    "src/account_iam_callback_service_test.cpp",
+    "src/account_iam_client_test.cpp",
+  ]
+
+  configs = [ ":account_iam_native_config_unittest" ]
+
+  deps = [
+    "${account_iam_framework_path}:account_iam_innerkits",
+    "${common_path}:libaccount_common",
+    "//base/security/access_token/interfaces/innerkits/accesstoken:libaccesstoken_sdk",
+    "//base/security/access_token/interfaces/innerkits/token_setproc:libtoken_setproc",
+    "//third_party/googletest:gmock_main",
+    "//third_party/googletest:gtest_main",
+  ]
+
+  cflags_cc = []
+  if (has_pin_auth_part) {
+    cflags_cc += [ "-DHAS_PIN_AUTH_PART" ]
+    deps += [ "//base/useriam/pin_auth/frameworks:pinauth_framework" ]
+  }
+
+  if (has_user_auth_part) {
+    cflags_cc += [ "-DHAS_USER_AUTH_PART" ]
+    deps += [ "//base/useriam/user_auth_framework/frameworks/native/client:userauth_client" ]
+  }
+
+  external_deps = [
+    "hiviewdfx_hilog_native:libhilog",
+    "ipc:ipc_core",
+  ]
+}
+
+ohos_unittest("account_iam_client_no_permission_test") {
+  module_out_path = module_output_path
+
+  sources = [ "src/account_iam_client_no_permission_test.cpp" ]
 
   configs = [ ":account_iam_native_config_unittest" ]
 
@@ -71,5 +107,8 @@ ohos_unittest("account_iam_client_test") {
 group("unittest") {
   testonly = true
 
-  deps = [ ":account_iam_client_test" ]
+  deps = [
+    ":account_iam_client_no_permission_test",
+    ":account_iam_client_test",
+  ]
 }
