@@ -145,6 +145,11 @@ bool AccountFileOperator::IsJsonFormat(const std::string &path)
     return true;
 }
 
+bool AccountFileOperator::IsJsonFileReady(const std::string &path)
+{
+    return IsExistFile(path) && IsJsonFormat(path);
+}
+
 bool AccountFileOperator::IsExistDir(const std::string &path)
 {
     if (path.empty()) {
