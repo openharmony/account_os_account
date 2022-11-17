@@ -28,7 +28,7 @@ typedef enum {
 class OsAccountSubscribeInfo : public Parcelable {
 public:
     OsAccountSubscribeInfo();
-    explicit OsAccountSubscribeInfo(OS_ACCOUNT_SUBSCRIBE_TYPE &osAccountSubscribeType, std::string &name);
+    explicit OsAccountSubscribeInfo(const OS_ACCOUNT_SUBSCRIBE_TYPE &osAccountSubscribeType, const std::string &name);
     virtual ~OsAccountSubscribeInfo();
 
     void GetOsAccountSubscribeType(OS_ACCOUNT_SUBSCRIBE_TYPE &osAccountSubscribeType) const;
