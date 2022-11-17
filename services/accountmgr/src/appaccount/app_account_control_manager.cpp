@@ -41,11 +41,7 @@ ErrCode AppAccountControlManager::AddAccount(const std::string &name, const std:
     if (result != ERR_OK) {
         ACCOUNT_LOGE("failed to get account info from data storage, result %{public}d.", result);
 
-        result = appAccountInfo.SetExtraInfo(extraInfo);
-        if (result != ERR_OK) {
-            ACCOUNT_LOGE("failed to set extra info, result %{public}d.", result);
-            return ERR_APPACCOUNT_SERVICE_SET_EXTRA_INFO;
-        }
+        appAccountInfo.SetExtraInfo(extraInfo);
 
         result = AddAccountInfoIntoDataStorage(appAccountInfo, dataStoragePtr, uid);
         if (result != ERR_OK) {
@@ -121,11 +117,7 @@ ErrCode AppAccountControlManager::GetAccountExtraInfo(const std::string &name, s
         return result;
     }
 
-    result = appAccountInfo.GetExtraInfo(extraInfo);
-    if (result != ERR_OK) {
-        ACCOUNT_LOGE("failed to get extra info, result %{public}d.", result);
-        return ERR_APPACCOUNT_SERVICE_GET_EXTRA_INFO;
-    }
+    appAccountInfo.GetExtraInfo(extraInfo);
 
     return ERR_OK;
 }
@@ -140,11 +132,7 @@ ErrCode AppAccountControlManager::SetAccountExtraInfo(const std::string &name, c
         return result;
     }
 
-    result = appAccountInfo.SetExtraInfo(extraInfo);
-    if (result != ERR_OK) {
-        ACCOUNT_LOGE("failed to set extra info, result %{public}d.", result);
-        return ERR_APPACCOUNT_SERVICE_SET_EXTRA_INFO;
-    }
+    appAccountInfo.SetExtraInfo(extraInfo);
 
     result = SaveAccountInfoIntoDataStorage(appAccountInfo, dataStoragePtr, uid);
     if (result != ERR_OK) {
@@ -253,11 +241,7 @@ ErrCode AppAccountControlManager::CheckAppAccountSyncEnable(const std::string &n
         return result;
     }
 
-    result = appAccountInfo.GetSyncEnable(syncEnable);
-    if (result != ERR_OK) {
-        ACCOUNT_LOGE("failed to get sync enable, result %{public}d.", result);
-        return ERR_APPACCOUNT_SERVICE_GET_SYNC_ENABLE;
-    }
+    appAccountInfo.GetSyncEnable(syncEnable);
 
     return ERR_OK;
 }
@@ -272,11 +256,7 @@ ErrCode AppAccountControlManager::SetAppAccountSyncEnable(const std::string &nam
         return result;
     }
 
-    result = appAccountInfo.SetSyncEnable(syncEnable);
-    if (result != ERR_OK) {
-        ACCOUNT_LOGE("failed to set sync enable, result %{public}d.", result);
-        return ERR_APPACCOUNT_SERVICE_GET_SYNC_ENABLE;
-    }
+    appAccountInfo.SetSyncEnable(syncEnable);
 
     result = SaveAccountInfoIntoDataStorage(appAccountInfo, dataStoragePtr, uid);
     if (result != ERR_OK) {
@@ -940,11 +920,7 @@ std::shared_ptr<AppAccountDataStorage> AppAccountControlManager::GetDataStorage(
 bool AppAccountControlManager::NeedSyncDataStorage(const AppAccountInfo &appAccountInfo)
 {
     bool syncEnable = false;
-    ErrCode result = appAccountInfo.GetSyncEnable(syncEnable);
-    if (result != ERR_OK) {
-        ACCOUNT_LOGE("failed to get sync enable, result = %{public}d.", result);
-        return false;
-    }
+    appAccountInfo.GetSyncEnable(syncEnable);
 
     if (syncEnable == false) {
         return false;
@@ -972,15 +948,11 @@ ErrCode AppAccountControlManager::AddAccountInfoIntoDataStorage(
     }
 
     std::string owner;
-    ErrCode result = appAccountInfo.GetOwner(owner);
-    if (result != ERR_OK) {
-        ACCOUNT_LOGE("failed to get owner, result %{public}d.", result);
-        return ERR_APPACCOUNT_SERVICE_GET_OWNER;
-    }
+    appAccountInfo.GetOwner(owner);
 
     std::map<std::string, std::shared_ptr<IAccountInfo>> accounts;
     std::string key = owner + Constants::HYPHEN + std::to_string(appAccountInfo.GetAppIndex());
-    result = dataStoragePtr->LoadDataByLocalFuzzyQuery(key, accounts);
+    ErrCode result = dataStoragePtr->LoadDataByLocalFuzzyQuery(key, accounts);
     if (result != ERR_OK) {
         ACCOUNT_LOGE("failed to get accounts by owner, result %{public}d, owner = %{public}s",
             result, owner.c_str());

@@ -985,8 +985,7 @@ HWTEST_F(AppAccountManagerServiceModuleTest, AppAccountManagerService_GetOAuthTo
     EXPECT_EQ(result, ERR_OK);
     ASSERT_EQ(appAccounts.size(), SIZE_ONE);
     std::string owner;
-    result = appAccounts[0].GetOwner(owner);
-    EXPECT_EQ(result, ERR_OK);
+    appAccounts[0].GetOwner(owner);
 
     std::string token;
     result = g_accountManagerService->GetOAuthToken(STRING_NAME, owner, STRING_AUTH_TYPE, token);
@@ -1015,8 +1014,7 @@ HWTEST_F(AppAccountManagerServiceModuleTest, AppAccountManagerService_GetOAuthTo
     EXPECT_EQ(result, ERR_OK);
     ASSERT_EQ(appAccounts.size(), SIZE_ONE);
     std::string owner;
-    result = appAccounts[0].GetOwner(owner);
-    EXPECT_EQ(result, ERR_OK);
+    appAccounts[0].GetOwner(owner);
 
     result = g_accountManagerService->SetOAuthToken(STRING_NAME, STRING_AUTH_TYPE, STRING_TOKEN);
     EXPECT_EQ(result, ERR_OK);
@@ -1068,8 +1066,7 @@ HWTEST_F(AppAccountManagerServiceModuleTest, AppAccountManagerService_SetOAuthTo
     EXPECT_EQ(result, ERR_OK);
     ASSERT_EQ(appAccounts.size(), SIZE_ONE);
     std::string owner;
-    result = appAccounts[0].GetOwner(owner);
-    EXPECT_EQ(result, ERR_OK);
+    appAccounts[0].GetOwner(owner);
 
     std::string token;
     result = g_accountManagerService->GetOAuthToken(STRING_NAME, owner, STRING_AUTH_TYPE_TWO, token);
@@ -1113,8 +1110,7 @@ HWTEST_F(AppAccountManagerServiceModuleTest, AppAccountManagerService_DeleteOAut
     EXPECT_EQ(result, ERR_OK);
     ASSERT_EQ(appAccounts.size(), SIZE_ONE);
     std::string owner;
-    result = appAccounts[0].GetOwner(owner);
-    EXPECT_EQ(result, ERR_OK);
+    appAccounts[0].GetOwner(owner);
 
     result = g_accountManagerService->DeleteOAuthToken(STRING_NAME, owner, STRING_AUTH_TYPE, STRING_TOKEN);
     EXPECT_EQ(result, ERR_OK);
@@ -1146,8 +1142,7 @@ HWTEST_F(AppAccountManagerServiceModuleTest, AppAccountManagerService_DeleteOAut
     EXPECT_EQ(result, ERR_OK);
     ASSERT_EQ(appAccounts.size(), SIZE_ONE);
     std::string owner;
-    result = appAccounts[0].GetOwner(owner);
-    EXPECT_EQ(result, ERR_OK);
+    appAccounts[0].GetOwner(owner);
 
     result = g_accountManagerService->SetOAuthToken(STRING_NAME, STRING_AUTH_TYPE, STRING_TOKEN);
     EXPECT_EQ(result, ERR_OK);
@@ -1197,8 +1192,7 @@ HWTEST_F(AppAccountManagerServiceModuleTest, AppAccountManagerService_GetAllOAut
     EXPECT_EQ(result, ERR_OK);
     ASSERT_EQ(appAccounts.size(), SIZE_ONE);
     std::string owner;
-    result = appAccounts[0].GetOwner(owner);
-    EXPECT_EQ(result, ERR_OK);
+    appAccounts[0].GetOwner(owner);
 
     std::vector<OAuthTokenInfo> tokenInfos;
     result = g_accountManagerService->GetAllOAuthTokens(STRING_NAME, owner, tokenInfos);
@@ -1288,8 +1282,7 @@ HWTEST_F(AppAccountManagerServiceModuleTest, AppAccountManagerService_SetOAuthTo
     EXPECT_EQ(result, ERR_OK);
     ASSERT_EQ(appAccounts.size(), SIZE_ONE);
     std::string owner;
-    result = appAccounts[0].GetOwner(owner);
-    EXPECT_EQ(result, ERR_OK);
+    appAccounts[0].GetOwner(owner);
 
     result = g_accountManagerService->SetOAuthToken(STRING_NAME, STRING_AUTH_TYPE, STRING_TOKEN);
     EXPECT_EQ(result, ERR_OK);
@@ -1331,8 +1324,7 @@ HWTEST_F(AppAccountManagerServiceModuleTest, AppAccountManagerService_CheckOAuth
     EXPECT_EQ(result, ERR_OK);
     ASSERT_EQ(appAccounts.size(), SIZE_ONE);
     std::string owner;
-    result = appAccounts[0].GetOwner(owner);
-    EXPECT_EQ(result, ERR_OK);
+    appAccounts[0].GetOwner(owner);
 
     isVisible = true;
     result = g_accountManagerService->CheckOAuthTokenVisibility(STRING_NAME,
@@ -1580,12 +1572,10 @@ HWTEST_F(AppAccountManagerServiceModuleTest, AppAccountManagerService_GetAllAcco
     ASSERT_EQ(appAccounts.size(), SIZE_TWO);
 
     std::string name;
-    result = appAccounts.begin()->GetName(name);
-    EXPECT_EQ(result, ERR_OK);
+    appAccounts.begin()->GetName(name);
     EXPECT_EQ(name, STRING_NAME);
 
-    result = (appAccounts.begin() + SIZE_ONE)->GetName(name);
-    EXPECT_EQ(result, ERR_OK);
+    (appAccounts.begin() + SIZE_ONE)->GetName(name);
     EXPECT_EQ(name, STRING_NAME_TWO);
 
     result = g_accountManagerService->DeleteAccount(STRING_NAME);
@@ -1636,8 +1626,7 @@ HWTEST_F(AppAccountManagerServiceModuleTest, AppAccountManagerService_GetAllAcco
     ASSERT_EQ(appAccounts.size(), SIZE_ONE);
 
     std::string owner;
-    result = appAccounts.begin()->GetOwner(owner);
-    EXPECT_EQ(result, ERR_OK);
+    appAccounts.begin()->GetOwner(owner);
     EXPECT_EQ(owner, STRING_BUNDLE_NAME);
 
     result = g_controlManagerPtr->DeleteAccount(STRING_NAME, UID, STRING_BUNDLE_NAME, appAccountInfo);
@@ -1673,13 +1662,11 @@ HWTEST_F(AppAccountManagerServiceModuleTest, AppAccountManagerService_GetAllAcco
     ASSERT_EQ(appAccounts.size(), SIZE_ONE);
 
     std::string owner;
-    result = appAccounts.begin()->GetOwner(owner);
-    EXPECT_EQ(result, ERR_OK);
+    appAccounts.begin()->GetOwner(owner);
     EXPECT_EQ(owner, STRING_BUNDLE_NAME);
 
     std::string name;
-    result = appAccounts.begin()->GetName(name);
-    EXPECT_EQ(result, ERR_OK);
+    appAccounts.begin()->GetName(name);
     EXPECT_EQ(name, STRING_NAME);
 
     result = g_controlManagerPtr->DeleteAccount(STRING_NAME, UID, STRING_BUNDLE_NAME, appAccountInfo);
@@ -1739,8 +1726,7 @@ HWTEST_F(AppAccountManagerServiceModuleTest, AppAccountManagerService_GetAllAcce
     ASSERT_EQ(appAccounts.size(), SIZE_ONE);
 
     std::string name;
-    result = appAccounts.begin()->GetName(name);
-    EXPECT_EQ(result, ERR_OK);
+    appAccounts.begin()->GetName(name);
     EXPECT_EQ(name, STRING_NAME);
 
     result = g_accountManagerService->DeleteAccount(STRING_NAME);
@@ -1771,8 +1757,7 @@ HWTEST_F(AppAccountManagerServiceModuleTest, AppAccountManagerService_GetAllAcce
     ASSERT_EQ(appAccounts.size(), SIZE_ONE);
 
     std::string owner;
-    result = appAccounts.begin()->GetOwner(owner);
-    EXPECT_EQ(result, ERR_OK);
+    appAccounts.begin()->GetOwner(owner);
     EXPECT_EQ(owner, STRING_BUNDLE_NAME);
 
     result = g_controlManagerPtr->DeleteAccount(STRING_NAME, UID, STRING_BUNDLE_NAME, appAccountInfo);

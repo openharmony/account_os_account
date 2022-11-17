@@ -89,8 +89,7 @@ HWTEST_F(AppAccountInfoTest, AppAccountInfo_GetOwner_0100, TestSize.Level0)
 
     // get the owner
     std::string ownerFromInfo;
-    ErrCode result = appAccountInfo.GetOwner(ownerFromInfo);
-    EXPECT_EQ(result, ERR_OK);
+    appAccountInfo.GetOwner(ownerFromInfo);
 
     // check the owner
     EXPECT_EQ(owner, ownerFromInfo);
@@ -113,8 +112,7 @@ HWTEST_F(AppAccountInfoTest, AppAccountInfo_SetOwner_0100, TestSize.Level1)
     AppAccountInfo appAccountInfo;
 
     // set the owner
-    ErrCode result = appAccountInfo.SetOwner(owner);
-    EXPECT_EQ(result, ERR_OK);
+    appAccountInfo.SetOwner(owner);
 
     // check the owner
     EXPECT_EQ(owner, appAccountInfo.owner_);
@@ -139,8 +137,7 @@ HWTEST_F(AppAccountInfoTest, AppAccountInfo_GetName_0100, TestSize.Level1)
 
     // get the name
     std::string nameFromInfo;
-    ErrCode result = appAccountInfo.GetName(nameFromInfo);
-    EXPECT_EQ(result, ERR_OK);
+    appAccountInfo.GetName(nameFromInfo);
 
     // check the name
     EXPECT_EQ(name, nameFromInfo);
@@ -163,8 +160,7 @@ HWTEST_F(AppAccountInfoTest, AppAccountInfo_SetName_0100, TestSize.Level1)
     AppAccountInfo appAccountInfo;
 
     // set the name
-    ErrCode result = appAccountInfo.SetName(name);
-    EXPECT_EQ(result, ERR_OK);
+    appAccountInfo.SetName(name);
 
     // check the name
     EXPECT_EQ(name, appAccountInfo.name_);
@@ -189,8 +185,7 @@ HWTEST_F(AppAccountInfoTest, AppAccountInfo_GetExtraInfo_0100, TestSize.Level1)
 
     // get the extra info
     std::string extraInfoFromInfo;
-    ErrCode result = appAccountInfo.GetExtraInfo(extraInfoFromInfo);
-    EXPECT_EQ(result, ERR_OK);
+    appAccountInfo.GetExtraInfo(extraInfoFromInfo);
 
     // check the extra info
     EXPECT_EQ(extraInfo, extraInfoFromInfo);
@@ -213,8 +208,7 @@ HWTEST_F(AppAccountInfoTest, AppAccountInfo_SetExtraInfo_0100, TestSize.Level1)
     AppAccountInfo appAccountInfo;
 
     // set the extra info
-    ErrCode result = appAccountInfo.SetExtraInfo(extraInfo);
-    EXPECT_EQ(result, ERR_OK);
+    appAccountInfo.SetExtraInfo(extraInfo);
 
     // check the extra info
     EXPECT_EQ(extraInfo, appAccountInfo.extraInfo_);
@@ -293,8 +287,7 @@ HWTEST_F(AppAccountInfoTest, AppAccountInfo_GetAuthorizedApps_0100, TestSize.Lev
 
     // get the authorized apps
     std::set<std::string> appsFromInfo;
-    ErrCode result = appAccountInfo.GetAuthorizedApps(appsFromInfo);
-    EXPECT_EQ(result, ERR_OK);
+    appAccountInfo.GetAuthorizedApps(appsFromInfo);
 
     // check the authorized apps
     EXPECT_EQ(appsFromInfo.size(), SIZE_ONE);
@@ -322,8 +315,7 @@ HWTEST_F(AppAccountInfoTest, AppAccountInfo_SetAuthorizedApps_0100, TestSize.Lev
     AppAccountInfo appAccountInfo;
 
     // set the authorized apps
-    ErrCode result = appAccountInfo.SetAuthorizedApps(apps);
-    EXPECT_EQ(result, ERR_OK);
+    appAccountInfo.SetAuthorizedApps(apps);
 
     // check the authorized apps
     EXPECT_EQ(appAccountInfo.authorizedApps_.size(), SIZE_ONE);
@@ -349,8 +341,7 @@ HWTEST_F(AppAccountInfoTest, AppAccountInfo_GetSyncEnable_0100, TestSize.Level1)
 
     // get the sync enable
     bool syncEnableFromInfo = SYNC_ENABLE_FALSE;
-    ErrCode result = appAccountInfo.GetSyncEnable(syncEnableFromInfo);
-    EXPECT_EQ(result, ERR_OK);
+    appAccountInfo.GetSyncEnable(syncEnableFromInfo);
 
     // check the sync enable
     EXPECT_EQ(syncEnable, syncEnableFromInfo);
@@ -373,8 +364,7 @@ HWTEST_F(AppAccountInfoTest, AppAccountInfo_SetSyncEnable_0100, TestSize.Level1)
     AppAccountInfo appAccountInfo;
 
     // set the sync enable
-    ErrCode result = appAccountInfo.SetSyncEnable(syncEnable);
-    EXPECT_EQ(result, ERR_OK);
+    appAccountInfo.SetSyncEnable(syncEnable);
 
     // check the sync enable
     EXPECT_EQ(syncEnable, appAccountInfo.syncEnable_);
@@ -742,9 +732,9 @@ HWTEST_F(AppAccountInfoTest, AppAccountInfo_Marshalling_0100, TestSize.Level0)
 HWTEST_F(AppAccountInfoTest, GetName001, TestSize.Level0)
 {
     AppAccountInfo testInfo;
-    EXPECT_EQ(testInfo.SetName("test"), ERR_OK);
+    testInfo.SetName("test");
     EXPECT_EQ(testInfo.GetName(), "test");
-    EXPECT_EQ(testInfo.SetOwner("test"), ERR_OK);
+    testInfo.SetOwner("test");
     EXPECT_EQ(testInfo.GetOwner(), "test");
 }
 
