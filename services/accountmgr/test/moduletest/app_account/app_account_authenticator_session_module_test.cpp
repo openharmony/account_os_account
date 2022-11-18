@@ -15,8 +15,6 @@
 
 #include <gtest/gtest.h>
 #include <gmock/gmock.h>
-#include <new>
-#include "string"
 
 #include "account_log_wrapper.h"
 #include "app_mgr_constants.h"
@@ -43,6 +41,7 @@ const std::string SESSION_ID = "256";
 const std::string PARAM_VALUE = "VALUE";
 const std::string REQUEST_NAME = "NAME";
 const std::string STRING_OWNER = "OWNER";
+const std::string STRING_EMPTY = "";
 const std::int32_t INVALID_ACTION = -1;
 }
 
@@ -335,6 +334,24 @@ HWTEST_F(AppAccountSessionModuleTest, AppAccountSessionModuleTest_UpdateAuthInfo
     AuthenticatorAction action = SET_AUTHENTICATOR_PROPERTIES;
     std::string authType = result.GetStringParam(Constants::KEY_AUTH_TYPE);
     request.authType = authType;
+    auto appAccountAuthenticatorSessionPtr = std::make_shared<AppAccountAuthenticatorSession>(action, request);
+    ASSERT_NE(appAccountAuthenticatorSessionPtr, nullptr);
+    int32_t resultCode = appAccountAuthenticatorSessionPtr->UpdateAuthInfo(result);
+    ASSERT_EQ(resultCode, ERR_JS_SUCCESS);
+}
+
+/**
+ * @tc.name: AppAccountAuthenticateTest_UpdateAuthInfo_0200
+ * @tc.desc: test session func UpdateAuthInfo failed with token is empty.
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(AppAccountSessionModuleTest, AppAccountSessionModuleTest_UpdateAuthInfo_0200, TestSize.Level1)
+{
+    AuthenticatorSessionRequest request;
+    AAFwk::Want result;
+    AuthenticatorAction action = SET_AUTHENTICATOR_PROPERTIES;
+    result.SetParam(Constants::KEY_TOKEN, STRING_EMPTY);
     auto appAccountAuthenticatorSessionPtr = std::make_shared<AppAccountAuthenticatorSession>(action, request);
     ASSERT_NE(appAccountAuthenticatorSessionPtr, nullptr);
     int32_t resultCode = appAccountAuthenticatorSessionPtr->UpdateAuthInfo(result);
