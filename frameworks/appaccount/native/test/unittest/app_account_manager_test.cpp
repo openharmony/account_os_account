@@ -19,6 +19,11 @@
 #include "account_log_wrapper.h"
 #include "app_account_manager.h"
 #include "app_account_manager_test_callback.h"
+#include "app_account_subscribe_info.h"
+#define private public
+#include "app_account.h"
+#undef private
+#include "singleton.h"
 
 using namespace testing::ext;
 using namespace OHOS;
@@ -175,6 +180,23 @@ public:
     static void TearDownTestCase(void);
     void SetUp(void) override;
     void TearDown(void) override;
+};
+
+class AppAccountSubscriberTest : public AppAccountSubscriber {
+public:
+    explicit AppAccountSubscriberTest(const AppAccountSubscribeInfo &subscribeInfo)
+        : AppAccountSubscriber(subscribeInfo)
+    {
+        ACCOUNT_LOGI("enter");
+    }
+
+    ~AppAccountSubscriberTest()
+    {}
+
+    virtual void OnAccountsChanged(const std::vector<AppAccountInfo> &accounts)
+    {
+        ACCOUNT_LOGI("enter");
+    }
 };
 
 void AppAccountManagerTest::SetUpTestCase(void)
@@ -1753,4 +1775,25 @@ HWTEST_F(AppAccountManagerTest, AppAccountManager_GetAllAccessibleAccounts_0100,
     ErrCode result = AppAccountManager::GetAllAccessibleAccounts(appAccounts);
     EXPECT_EQ(result, ERR_APPACCOUNT_SERVICE_GET_BUNDLE_NAME);
     EXPECT_TRUE(appAccounts.empty());
+}
+
+/**
+ * @tc.name: AppAccountManager_UnsubscribeAppAccount_0100
+ * @tc.desc: Test func success UnsubscribeAppAccount.
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(AppAccountManagerTest, AppAccountManager_UnsubscribeAppAccount_0100, TestSize.Level1)
+{
+    auto appAccountPtr = DelayedSingleton<AppAccount>::GetInstance();
+    ASSERT_NE(appAccountPtr, nullptr);
+    AppAccountSubscribeInfo subscribeInfo;
+    std::shared_ptr<AppAccountSubscriberTest> appAccountSubscriberPtr =
+        std::make_shared<AppAccountSubscriberTest>(subscribeInfo);
+    ASSERT_NE(appAccountSubscriberPtr, nullptr);
+    auto appAccountEventListenerSptr = new (std::nothrow) AppAccountEventListener(appAccountSubscriberPtr);
+    ASSERT_NE(appAccountEventListenerSptr, nullptr);
+    appAccountPtr->eventListeners_[appAccountSubscriberPtr] = appAccountEventListenerSptr;
+    ErrCode result = appAccountPtr->UnsubscribeAppAccount(appAccountSubscriberPtr);
+    ASSERT_EQ(result, ERR_OK);
 }
