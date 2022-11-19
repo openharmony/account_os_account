@@ -88,7 +88,6 @@ constexpr std::size_t SIZE_TWO = 2;
 constexpr std::int32_t DELAY_FOR_PACKAGE_REMOVED = 3;
 constexpr std::int32_t DELAY_FOR_MESSAGE = 1000;
 constexpr std::int32_t WAIT_FOR_ONE_CASE = 1000;
-constexpr int32_t MAX_CUSTOM_DATA_SIZE = 1024;
 std::shared_ptr<AppAccountManagerService> g_accountManagerService =
     std::make_shared<AppAccountManagerService>();
 std::shared_ptr<AppAccountControlManager> g_controlManagerPtr = AppAccountControlManager::GetInstance();
@@ -262,14 +261,6 @@ HWTEST_F(AppAccountManagerServiceModuleTest, AppAccountManagerService_CreateAcco
     EXPECT_EQ(result, ERR_APPACCOUNT_SERVICE_ADD_EXISTING_ACCOUNT);
     result = g_accountManagerService->DeleteAccount(STRING_NAME);
     EXPECT_EQ(result, ERR_OK);
-
-    for (int i = 0; i < MAX_CUSTOM_DATA_SIZE + 1; i++) {
-        std::string testKey = "test_key" + std::to_string(i);
-        std::string testValue = "test_value" + std::to_string(i);
-        option.customData.emplace(testKey, testValue);
-    }
-    result = g_accountManagerService->CreateAccount(STRING_NAME, option);
-    EXPECT_EQ(result, ERR_APPACCOUNT_KIT_INVALID_PARAMETER);
 }
 
 /**
