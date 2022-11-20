@@ -94,8 +94,16 @@ std::string GenerateOhosUdidWithSha256(const std::string &name, const std::strin
 
 std::int32_t GetCallingUserID()
 {
-    std::int32_t callingUId = IPCSkeleton::GetCallingUid();
-    return (callingUId / UID_TRANSFORM_DIVISOR);
+    std::int32_t userId = IPCSkeleton::GetCallingUid() / UID_TRANSFORM_DIVISOR;
+    if (userId <= 0) {
+        std::vector<int32_t> userIds;
+        ErrCode errCode = IInnerOsAccountManager::GetInstance()->QueryActiveOsAccountIds(userIds);
+        if ((errCode != ERR_OK) || (userIds.empty())) {
+            return -1;  // invalid user id
+        }
+        userId = userIds[0];
+    }
+    return userId;
 }
 }
 
@@ -189,6 +197,9 @@ AccountInfo OhosAccountManager::GetCurrentOhosAccountInfo()
 
 ErrCode OhosAccountManager::GetAccountInfoByUserId(std::int32_t userId, AccountInfo &info)
 {
+    if (userId == 0) {
+        userId = GetCallingUserID();
+    }
     std::lock_guard<std::mutex> mutexLock(mgrMutex_);
 
     ErrCode ret = dataDealer_->AccountInfoFromJson(info, userId);
