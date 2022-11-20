@@ -408,7 +408,7 @@ HWTEST_F(AccountMgrInnerSdkFuncTest, SetOhosAccountInfo007, TestSize.Level0)
  * @tc.name: GetOhosAccountInfoByUserIdTest
  * @tc.desc: Test GetOhosAccountInfoByUserId with invalid userId.
  * @tc.type: FUNC
- * @tc.require: issueI603MF
+ * @tc.require: issueI5X50F
  */
 HWTEST_F(AccountMgrInnerSdkFuncTest, GetOhosAccountInfoByUserId, TestSize.Level0)
 {
@@ -422,7 +422,7 @@ HWTEST_F(AccountMgrInnerSdkFuncTest, GetOhosAccountInfoByUserId, TestSize.Level0
  * @tc.name: QueryOhosAccountInfoByUserIdTest
  * @tc.desc: Test QueryOhosAccountInfoByUserId with invalid userId.
  * @tc.type: FUNC
- * @tc.require: issueI603MF
+ * @tc.require: issueI5X50F
  */
 HWTEST_F(AccountMgrInnerSdkFuncTest, QueryOhosAccountInfoByUserId, TestSize.Level0)
 {
