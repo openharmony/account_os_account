@@ -89,9 +89,12 @@ HWTEST_F(AccountCommandDumpModuleTest, Acm_Command_Dump_0200, TestSize.Level1)
  */
 HWTEST_F(AccountCommandDumpModuleTest, Acm_Command_Dump_0300, TestSize.Level1)
 {
-    AccountCommandUtil::CreateOsAccount();
+    std::string commandResult = AccountCommandUtil::CreateOsAccount();
+    ASSERT_NE(commandResult.find(STRING_CREATE_OS_ACCOUNT_OK), std::string::npos);
 
-    AccountCommandUtil::DumpLastOsAccount();
+    commandResult = AccountCommandUtil::DumpLastOsAccount();
+    ASSERT_NE(commandResult, STRING_DUMP_OS_ACCOUNT_NG);
 
-    AccountCommandUtil::DeleteLastOsAccount();
+    commandResult = AccountCommandUtil::DeleteLastOsAccount();
+    ASSERT_NE(commandResult.find(STRING_DELETE_OS_ACCOUNT_OK), std::string::npos);
 }
