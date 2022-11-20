@@ -329,7 +329,6 @@ HWTEST_F(OsAccountMockTest, SetGlobalOsAccountConstraintsTest001, TestSize.Level
  */
 HWTEST_F(OsAccountMockTest, SetSpecificOsAccountConstraintsTest001, TestSize.Level1)
 {
-    std::vector<ConstraintSourceTypeInfo> constraintSourceTypeInfos;
     EXPECT_EQ(ERR_OSACCOUNT_KIT_GET_SYSTEM_ABILITY_MANAGER_ERROR,
         g_osAccount->SetSpecificOsAccountConstraints(CONSTANTS_VECTOR, true, MAIN_ACCOUNT_ID, MAIN_ACCOUNT_ID, true));
 }
