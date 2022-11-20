@@ -72,10 +72,10 @@ std::string AnonymizeUidStr(const std::string& uidStr)
 
 AccountDumpHelper::AccountDumpHelper(const std::shared_ptr<OhosAccountManager>& ohosAccountMgr,
     OsAccountManagerService *osAccountMgrService)
+    : innerMgrService_(DelayedSingleton<IInnerOsAccountManager>::GetInstance())
 {
     ohosAccountMgr_ = ohosAccountMgr;
     osAccountMgrService_ = osAccountMgrService;
-    innerMgrService_ = DelayedSingleton<IInnerOsAccountManager>::GetInstance();
 }
 
 void AccountDumpHelper::Dump(const std::vector<std::string>& args, std::string& result) const
