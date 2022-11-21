@@ -176,7 +176,6 @@ HWTEST_F(AppAccountCommonTest, Marshalling006, TestSize.Level0)
     SetPropertiesOptions options;
     bool result = options.Marshalling(testParcel);
     ASSERT_EQ(result, true);
-    result = false;
     result = options.Unmarshalling(testParcel);
     ASSERT_EQ(result, true);
 }

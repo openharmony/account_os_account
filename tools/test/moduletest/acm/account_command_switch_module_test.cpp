@@ -89,9 +89,9 @@ HWTEST_F(AccountCommandSwitchModuleTest, Acm_Command_Switch_0200, TestSize.Level
  */
 HWTEST_F(AccountCommandSwitchModuleTest, Acm_Command_Switch_0300, TestSize.Level1)
 {
-    GTEST_LOG_(INFO) << "before CreateOsAccount";
-    AccountCommandUtil::CreateOsAccount();
+    std::string commandResult = AccountCommandUtil::CreateOsAccount();
+    ASSERT_NE(commandResult.find(STRING_CREATE_OS_ACCOUNT_OK), std::string::npos);
 
-    GTEST_LOG_(INFO) << "before DeleteLastOsAccount";
-    AccountCommandUtil::DeleteLastOsAccount();
+    commandResult = AccountCommandUtil::DeleteLastOsAccount();
+    ASSERT_NE(commandResult.find(STRING_DELETE_OS_ACCOUNT_OK), std::string::npos);
 }

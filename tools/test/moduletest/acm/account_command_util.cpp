@@ -30,37 +30,40 @@ namespace AccountSA {
 namespace {
 const std::string STRING_LOCAL_ACCOUNT_NAME = "local_account_name";
 const std::string STRING_TYPE = "normal";
+const std::string STRING_EMPTY = "";
 }  // namespace
 
-void AccountCommandUtil::CreateOsAccount()
+std::string AccountCommandUtil::CreateOsAccount()
 {
     std::string command = TOOL_NAME + " create -n " + STRING_LOCAL_ACCOUNT_NAME + " -t " + STRING_TYPE;
     GTEST_LOG_(INFO) << "command = " << command;
 
     std::string commandResult = ToolSystemTest::ExecuteCommand(command);
     GTEST_LOG_(INFO) << "AccountCommandUtil::CreateOsAccount commandResult = " << commandResult;
+    return commandResult;
 }
 
-void AccountCommandUtil::DeleteLastOsAccount()
+std::string AccountCommandUtil::DeleteLastOsAccount()
 {
     std::vector<OsAccountInfo> osAccounts;
     ErrCode result = OsAccountManager::QueryAllCreatedOsAccounts(osAccounts);
     GTEST_LOG_(INFO) << "AccountCommandUtil::DeleteLastOsAccount result = " << result;
     GTEST_LOG_(INFO) << "AccountCommandUtil::DeleteLastOsAccount osAccounts size = " << osAccounts.size();
     if (osAccounts.empty()) {
-        return;
+        return STRING_EMPTY;
     }
 
-    std::string localAccountId = std::to_string(osAccounts.begin()->GetLocalId());
+    std::string localAccountId = std::to_string(osAccounts.rbegin()->GetLocalId());
 
     std::string command = TOOL_NAME + " delete -i " + localAccountId;
     GTEST_LOG_(INFO) << "command = " << command;
 
     std::string commandResult = ToolSystemTest::ExecuteCommand(command);
     GTEST_LOG_(INFO) << "commandResult = " << commandResult;
+    return commandResult;
 }
 
-void AccountCommandUtil::DumpLastOsAccount()
+std::string AccountCommandUtil::DumpLastOsAccount()
 {
     std::vector<OsAccountInfo> osAccounts;
     ErrCode result = OsAccountManager::QueryAllCreatedOsAccounts(osAccounts);
@@ -68,7 +71,7 @@ void AccountCommandUtil::DumpLastOsAccount()
     GTEST_LOG_(INFO) << "AccountCommandUtil::DumpLastOsAccount osAccounts size = " << osAccounts.size();
 
     if (osAccounts.empty()) {
-        return;
+        return STRING_EMPTY;
     }
 
     std::string localAccountId = std::to_string(osAccounts.rbegin()->GetLocalId());
@@ -78,9 +81,10 @@ void AccountCommandUtil::DumpLastOsAccount()
 
     std::string commandResult = ToolSystemTest::ExecuteCommand(command);
     GTEST_LOG_(INFO) << "AccountCommandUtil::DumpLastOsAccount commandResult " << commandResult;
+    return commandResult;
 }
 
-void AccountCommandUtil::SwitchToFirstOsAccount()
+std::string AccountCommandUtil::SwitchToFirstOsAccount()
 {
     std::vector<OsAccountInfo> osAccounts;
     ErrCode result = OsAccountManager::QueryAllCreatedOsAccounts(osAccounts);
@@ -88,7 +92,7 @@ void AccountCommandUtil::SwitchToFirstOsAccount()
     GTEST_LOG_(INFO) << "AccountCommandUtil::SwitchToFirstOsAccount osAccounts size = " << osAccounts.size();
 
     if (osAccounts.empty()) {
-        return;
+        return STRING_EMPTY;
     }
 
     std::string localAccountId = std::to_string(osAccounts.begin()->GetLocalId());
@@ -98,9 +102,10 @@ void AccountCommandUtil::SwitchToFirstOsAccount()
 
     std::string commandResult = ToolSystemTest::ExecuteCommand(command);
     GTEST_LOG_(INFO) << "AccountCommandUtil::SwitchToFirstOsAccount commandResult = " << commandResult;
+    return commandResult;
 }
 
-void AccountCommandUtil::SwitchToLastOsAccount()
+std::string AccountCommandUtil::SwitchToLastOsAccount()
 {
     std::vector<OsAccountInfo> osAccounts;
     ErrCode result = OsAccountManager::QueryAllCreatedOsAccounts(osAccounts);
@@ -108,16 +113,17 @@ void AccountCommandUtil::SwitchToLastOsAccount()
     GTEST_LOG_(INFO) << "AccountCommandUtil::SwitchToLastOsAccount osAccounts size = " << osAccounts.size();
 
     if (osAccounts.empty()) {
-        return;
+        return STRING_EMPTY;
     }
 
-    std::string localAccountId = "";
+    std::string localAccountId = std::to_string(osAccounts.rbegin()->GetLocalId());
 
     std::string command = TOOL_NAME + " switch -i " + localAccountId;
     GTEST_LOG_(INFO) << "command = " << command;
 
     std::string commandResult = ToolSystemTest::ExecuteCommand(command);
     GTEST_LOG_(INFO) << "AccountCommandUtil::SwitchToLastOsAccount commandResult = " << commandResult;
+    return commandResult;
 }
 }  // namespace AccountSA
 }  // namespace OHOS
