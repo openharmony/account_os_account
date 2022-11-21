@@ -177,9 +177,62 @@ ohos_unittest("OsAccountInnerAccmgrCovTest") {
   resource_config_file =
       "${os_account_path}/test/resource/accountmgrservice/ohos_test.xml"
 
-  sources = [ "os_account_inner_accmgr_cov.cpp" ]
+  sources = [ "os_account_inner_account_mgr_cov.cpp" ]
   configs = [
     ":os_account_amgr_test_config",
+    "${services_path}/accountmgr/test:accountmgr_test_config",
+    "${services_path}/accountmgr/:ability_manager_config",
+  ]
+
+  deps = [
+    "${common_path}:libaccount_common",
+    "${os_account_core_path}:os_account_core",
+    "${os_account_innerkits_native_path}:os_account_innerkits",
+    "${services_path}/accountmgr:accountmgr",
+    "//base/useriam/user_auth_framework/frameworks/native/client:userauth_client",
+    "//third_party/googletest:gmock_main",
+    "//third_party/googletest:gtest_main",
+  ]
+
+  external_deps = [
+    "ability_base:want",
+    "ability_runtime:wantagent_innerkits",
+    "c_utils:utils",
+    "hiviewdfx_hilog_native:libhilog",
+    "ipc:ipc_core",
+    "kv_store:distributeddata_inner",
+    "samgr:samgr_proxy",
+  ]
+  part_name = "os_account"
+}
+
+config("os_account_amgr_mock_config") {
+  include_dirs = [
+    "${services_path}/accountmgr/include",
+    "${services_path}/accountmgr/include/osaccount",
+    "${services_path}/accountmgr/include/ability_manager_adapter",
+    "${services_path}/accountmgr/test/unittest/os_account/mock",
+    "${common_path}/log/include",
+    "${common_path}/perf_stat/include",
+    "${common_path}/account_error/include",
+    "${innerkits_path}/include",
+    "//third_party/json/include",
+    "//commonlibrary/c_utils/base/include",
+    "//utils/system/safwk/native/include",
+  ]
+}
+
+ohos_unittest("OsAccountInnerAccmgrMockTest") {
+  module_out_path = module_output_path
+  resource_config_file =
+      "${os_account_path}/test/resource/accountmgrservice/ohos_test.xml"
+
+  sources = [
+    "${services_path}/accountmgr/test/mock/os_account/os_account_interface.cpp",
+    "os_account_inner_account_mgr_mock.cpp",
+  ]
+  configs = [
+    ":os_account_amgr_mock_config",
     "${services_path}/accountmgr/test:accountmgr_test_config",
     "${services_path}/accountmgr/:ability_manager_config",
   ]
@@ -213,6 +266,7 @@ group("unittest") {
     ":OsAccountControlFileManagerTest",
     ":OsAccountDataStorageTest",
     ":OsAccountInnerAccmgrCovTest",
+    ":OsAccountInnerAccmgrMockTest",
     ":OsAccountSubscribeDeathRecipientTest",
   ]
 }
