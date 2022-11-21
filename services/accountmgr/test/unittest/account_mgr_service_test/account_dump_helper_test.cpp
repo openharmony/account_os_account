@@ -32,9 +32,12 @@ using namespace testing::ext;
 using namespace OHOS;
 using namespace OHOS::AccountSA;
 
+namespace {
 const std::string TEST_ACCOUNT_NAME = "TestAccountName";
 const std::string TEST_ACCOUNT_UID = "123456789";
 static std::shared_ptr<OsAccount> g_osAccountPtr = nullptr;
+}
+
 class AccountDumpHelperTest : public testing::Test {
 public:
     AccountDumpHelperTest();
@@ -167,11 +170,7 @@ HWTEST_F(AccountDumpHelperTest, AccountDumpParameterTest002, TestSize.Level0)
      */
     std::string out;
     vector<std::string> cmd = {"-os_account_infos"};
-    if (accountDumpHelper_ == nullptr) {
-        std::cout << "AccountDumpParameterTest002, accountDumpHelper_ is nullptr!" << std::endl;
-        return;
-    }
-
+    ASSERT_NE(accountDumpHelper_, nullptr);
     accountDumpHelper_->Dump(cmd, out);
     auto pos = out.find("ID:", 0);
     EXPECT_NE(std::string::npos, pos);
@@ -190,11 +189,7 @@ HWTEST_F(AccountDumpHelperTest, AccountDumpParameterTest003, TestSize.Level0)
      */
     std::string out;
     vector<std::string> cmd = {"-time_info_dump"};
-    if (accountDumpHelper_ == nullptr) {
-        std::cout << "AccountDumpParameterTest003, accountDumpHelper_ is nullptr!" << std::endl;
-        return;
-    }
-
+    ASSERT_NE(accountDumpHelper_, nullptr);
     accountDumpHelper_->Dump(cmd, out);
     auto pos = out.find("ServiceInstanceCreateTime", 0);
     EXPECT_NE(std::string::npos, pos);
@@ -213,11 +208,7 @@ HWTEST_F(AccountDumpHelperTest, AccountDumpParameterTest004, TestSize.Level0)
      */
     std::string out;
     vector<std::string> cmd = {"-h"};
-    if (accountDumpHelper_ == nullptr) {
-        std::cout << "AccountDumpParameterTest004, accountDumpHelper_ is nullptr!" << std::endl;
-        return;
-    }
-
+    ASSERT_NE(accountDumpHelper_, nullptr);
     accountDumpHelper_->Dump(cmd, out);
     auto pos = out.find("Usage:dump", 0);
     EXPECT_NE(std::string::npos, pos);
@@ -233,13 +224,9 @@ HWTEST_F(AccountDumpHelperTest, AccountDumpParameterTest005, TestSize.Level0)
 {
     accountDumpHelper_ = nullptr;
     accountDumpHelper_ = std::make_unique<AccountDumpHelper>(nullptr, osAccount_);
-    if (accountDumpHelper_ == nullptr) {
-        std::cout << "AccountDumpHelperTest, error! accountDumpHelper_ is nullptr!" << std::endl;
-    }
-
+    ASSERT_NE(accountDumpHelper_, nullptr);
     std::string out;
     vector<std::string> cmd = {"-ohos_account_infos"};
-
     accountDumpHelper_->Dump(cmd, out);
     auto pos = out.find("System error", 0);
     EXPECT_NE(std::string::npos, pos);
@@ -253,14 +240,10 @@ HWTEST_F(AccountDumpHelperTest, AccountDumpParameterTest005, TestSize.Level0)
  */
 HWTEST_F(AccountDumpHelperTest, AccountDumpParameterTest006, TestSize.Level0)
 {
-    if (accountDumpHelper_ == nullptr) {
-        std::cout << "AccountDumpHelperTest, error! accountDumpHelper_ is nullptr!" << std::endl;
-    }
+    ASSERT_NE(accountDumpHelper_, nullptr);
     accountDumpHelper_->innerMgrService_ = nullptr;
-
     std::string out;
     vector<std::string> cmd = {"-ohos_account_infos"};
-
     accountDumpHelper_->Dump(cmd, out);
     auto pos = out.find("System error", 0);
     EXPECT_NE(std::string::npos, pos);
@@ -276,13 +259,9 @@ HWTEST_F(AccountDumpHelperTest, AccountDumpParameterTest007, TestSize.Level0)
 {
     accountDumpHelper_ = nullptr;
     accountDumpHelper_ = std::make_unique<AccountDumpHelper>(ohosAccount_, nullptr);
-    if (accountDumpHelper_ == nullptr) {
-        std::cout << "AccountDumpParameterTest007, error! accountDumpHelper_ is nullptr!" << std::endl;
-    }
-
+    ASSERT_NE(accountDumpHelper_, nullptr);
     std::string out;
     vector<std::string> cmd = {"-os_account_infos"};
-
     accountDumpHelper_->Dump(cmd, out);
     auto pos = out.find("System error", 0);
     EXPECT_NE(std::string::npos, pos);
@@ -296,15 +275,11 @@ HWTEST_F(AccountDumpHelperTest, AccountDumpParameterTest007, TestSize.Level0)
  */
 HWTEST_F(AccountDumpHelperTest, AccountDumpTwoParameterTest001, TestSize.Level0)
 {
-    if (accountDumpHelper_ == nullptr) {
-        std::cout << "AccountDumpParameterTest001, accountDumpHelper_ is nullptr!" << std::endl;
-        return;
-    }
+    ASSERT_NE(accountDumpHelper_, nullptr);
     /**
      * @tc.steps: step1. Input two parameters
      */
     std::string out;
-    std::string logLevel;
     vector<std::string> setCmd = {"-set_log_level", "-1"};
     accountDumpHelper_->Dump(setCmd, out);
     auto pos = out.find("Invalid logLevel", 0);
@@ -339,10 +314,7 @@ HWTEST_F(AccountDumpHelperTest, AccountDumpTwoParameterTest002, TestSize.Level0)
     std::string prompt = "Current Log Level: ";
     vector<std::string> setCmd = {"-set_log_level", "1"};
     vector<std::string> getCmd = {"-show_log_level"};
-    if (accountDumpHelper_ == nullptr) {
-        std::cout << "AccountDumpParameterTest001, accountDumpHelper_ is nullptr!" << std::endl;
-        return;
-    }
+    ASSERT_NE(accountDumpHelper_, nullptr);
 
     accountDumpHelper_->Dump(setCmd, out);
     auto pos = out.find("Set logLevel success", 0);
@@ -362,16 +334,11 @@ HWTEST_F(AccountDumpHelperTest, AccountDumpTwoParameterTest002, TestSize.Level0)
  */
 HWTEST_F(AccountDumpHelperTest, AccountDumpTwoParameterTest003, TestSize.Level0)
 {
-    if (accountDumpHelper_ == nullptr) {
-        std::cout << "AccountDumpParameterTest001, accountDumpHelper_ is nullptr!" << std::endl;
-        return;
-    }
+    ASSERT_NE(accountDumpHelper_, nullptr);
     /**
      * @tc.steps: step1. Input two parameters
      */
     std::string out;
-    std::string logLevel;
-    std::string prompt = "Current Log Level: ";
     vector<std::string> setCmd = {"-ss", "1"};
     accountDumpHelper_->Dump(setCmd, out);
     auto pos = out.find("Usage:dump", 0);
@@ -391,10 +358,7 @@ HWTEST_F(AccountDumpHelperTest, AccountDumpInvalidParameterTest003, TestSize.Lev
      */
     std::string out;
     vector<std::string> cmd = {"This_is_invalid_cmd"};
-    if (accountDumpHelper_ == nullptr) {
-        std::cout << "AccountDumpParameterTest001, accountDumpHelper_ is nullptr!" << std::endl;
-        return;
-    }
+    ASSERT_NE(accountDumpHelper_, nullptr);
     accountDumpHelper_->Dump(cmd, out);
     auto pos = out.find("Usage:dump", 0);
     EXPECT_NE(std::string::npos, pos);
