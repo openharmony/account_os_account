@@ -62,7 +62,8 @@ constexpr std::size_t OWNER_MAX_SIZE = 1024;
 constexpr std::size_t AUTH_TYPE_MAX_SIZE = 1024;
 constexpr std::size_t ABILITY_NAME_MAX_SIZE = 512;
 constexpr std::size_t SESSION_ID_MAX_SIZE = 1024;
-constexpr uint32_t MAX_CUSTOM_DATA_SIZE = 1024;
+constexpr std::size_t MAX_ALLOWED_ARRAY_SIZE_INPUT = 1024;
+constexpr std::size_t MAX_CUSTOM_DATA_SIZE = 1024;
 };  // namespace Constants
 }  // namespace AccountSA
 }  // namespace OHOS
