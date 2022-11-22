@@ -224,13 +224,7 @@ ErrCode AppAccountManagerService::GetAssociatedData(
     const std::string &name, const std::string &key, std::string &value)
 {
     int32_t callingUid = IPCSkeleton::GetCallingUid();
-    uint32_t appIndex;
-    ErrCode result = GetCallingTokenInfoAndAppIndex(appIndex);
-    if (result != ERR_OK) {
-        ACCOUNT_LOGE("failed to get app index");
-        return result;
-    }
-    return innerManager_->GetAssociatedData(name, key, value, callingUid, appIndex);
+    return innerManager_->GetAssociatedData(name, key, value, callingUid);
 }
 
 ErrCode AppAccountManagerService::SetAssociatedData(
@@ -647,7 +641,6 @@ ErrCode AppAccountManagerService::GetCallingTokenInfoAndAppIndex(uint32_t &appIn
     appIndex = hapTokenInfo.instIndex;
     return ERR_OK;
 }
-
 
 ErrCode AppAccountManagerService::GetCallingInfo(int32_t &callingUid, std::string &bundleName, uint32_t &appIndex)
 {
