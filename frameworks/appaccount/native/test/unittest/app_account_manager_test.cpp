@@ -164,6 +164,9 @@ const std::string STRING_OUT_OF_RANGE =
 const std::string STRING_ABILITY_NAME = "MainAbility";
 const std::string STRING_SESSION_ID = "123456";
 constexpr int32_t MAX_CUSTOM_DATA_SIZE = 1024;
+constexpr int32_t ALLOWED_ARRAY_MAX_SIZE = 1024;
+constexpr int32_t CREDENTIAL_TYPE_MAX_SIZE = 1024;
+constexpr int32_t CREDENTIAL_MAX_SIZE = 1024;
 const bool SYNC_ENABLE_FALSE = false;
 
 constexpr std::size_t SIZE_ZERO = 0;
@@ -384,24 +387,36 @@ HWTEST_F(AppAccountManagerTest, AppAccountManager_CreateAccountImplicitly_0100, 
 {
     ACCOUNT_LOGI("AppAccountManager_CreateAccountImplicitly_0100");
     CreateAccountImplicitlyOptions options;
-    options.parameters.SetParam(Constants::KEY_CALLER_ABILITY_NAME, STRING_ABILITY_NAME);
-    ErrCode result = AppAccountManager::CreateAccountImplicitly(STRING_OWNER, options, nullptr);
-    EXPECT_EQ(result, ERR_APPACCOUNT_KIT_WRITE_PARCELABLE_CALLBACK);
-
-    result = AppAccountManager::CreateAccountImplicitly(
+    // check owner
+    ErrCode result = AppAccountManager::CreateAccountImplicitly(
         STRING_OWNER_OUT_OF_RANGE, options, nullptr);
     EXPECT_EQ(result, ERR_APPACCOUNT_KIT_INVALID_PARAMETER);
     result = AppAccountManager::CreateAccountImplicitly(STRING_EMPTY, options, nullptr);
     EXPECT_EQ(result, ERR_APPACCOUNT_KIT_INVALID_PARAMETER);
 
+    // check options.authType
     options.authType = STRING_OUT_OF_RANGE;
     result = AppAccountManager::CreateAccountImplicitly(STRING_OWNER, options, nullptr);
     EXPECT_EQ(result, ERR_APPACCOUNT_KIT_INVALID_PARAMETER);
-
+    options.authType = "";
     options.parameters.SetParam(Constants::KEY_CALLER_ABILITY_NAME, STRING_EMPTY);
     result = AppAccountManager::CreateAccountImplicitly(STRING_OWNER, options, nullptr);
     EXPECT_EQ(result, ERR_APPACCOUNT_KIT_INVALID_PARAMETER);
     options.parameters.SetParam(Constants::KEY_CALLER_ABILITY_NAME, STRING_OUT_OF_RANGE);
+    result = AppAccountManager::CreateAccountImplicitly(STRING_OWNER, options, nullptr);
+    EXPECT_EQ(result, ERR_APPACCOUNT_KIT_INVALID_PARAMETER);
+    // check callback nullptr
+    options.parameters.SetParam(Constants::KEY_CALLER_ABILITY_NAME, STRING_ABILITY_NAME);
+    result = AppAccountManager::CreateAccountImplicitly(STRING_OWNER, options, nullptr);
+    EXPECT_EQ(result, ERR_APPACCOUNT_KIT_WRITE_PARCELABLE_CALLBACK);
+    // check options.requiredLabels
+    for (int i = 0; i < ALLOWED_ARRAY_MAX_SIZE; i++) {
+        std::string testLabel = "test_label_" + std::to_string(i);
+        options.requiredLabels.emplace_back(testLabel);
+    }
+    result = AppAccountManager::CreateAccountImplicitly(STRING_OWNER, options, nullptr);
+    EXPECT_EQ(result, ERR_APPACCOUNT_KIT_WRITE_PARCELABLE_CALLBACK);
+    options.requiredLabels.emplace_back("test_label_oversize");
     result = AppAccountManager::CreateAccountImplicitly(STRING_OWNER, options, nullptr);
     EXPECT_EQ(result, ERR_APPACCOUNT_KIT_INVALID_PARAMETER);
 }
@@ -1605,6 +1620,7 @@ HWTEST_F(AppAccountManagerTest, AppAccountManager_DeleteAccountCredential_0100, 
  */
 HWTEST_F(AppAccountManagerTest, AppAccountManager_SelectAccountsByOptions_0100, TestSize.Level1)
 {
+    // check callback
     ACCOUNT_LOGI("AppAccountManager_SelectAccountsByOptions_0100");
     SelectAccountsOptions options;
     ErrCode result = AppAccountManager::SelectAccountsByOptions(options, nullptr);
@@ -1614,6 +1630,43 @@ HWTEST_F(AppAccountManagerTest, AppAccountManager_SelectAccountsByOptions_0100, 
     EXPECT_NE(callback, nullptr);
     result = AppAccountManager::SelectAccountsByOptions(options, callback);
     EXPECT_EQ(result, ERR_APPACCOUNT_SERVICE_GET_BUNDLE_NAME);
+
+    // check options.allowedAccounts array size
+    options.allowedAccounts.clear();
+    for (int i = 0; i < ALLOWED_ARRAY_MAX_SIZE; i++) {
+        std::string testAccountName = "test_name_" + std::to_string(i);
+        std::string testAccountOwner = "test_owner_" + std::to_string(i);
+        options.allowedAccounts.emplace_back(testAccountOwner, testAccountName);
+    }
+    result = AppAccountManager::SelectAccountsByOptions(options, callback);
+    EXPECT_EQ(result, ERR_APPACCOUNT_SERVICE_GET_BUNDLE_NAME);
+    options.allowedAccounts.emplace_back("test_name_oversize", "test_owner_oversize");
+    result = AppAccountManager::SelectAccountsByOptions(options, callback);
+    EXPECT_EQ(result, ERR_APPACCOUNT_KIT_INVALID_PARAMETER);
+
+    // check options.allowedOwners array size
+    options.allowedAccounts.clear();
+    for (int i = 0; i < ALLOWED_ARRAY_MAX_SIZE; i++) {
+        std::string testOwner = "test_owner_" + std::to_string(i);
+        options.allowedOwners.emplace_back(testOwner);
+    }
+    result = AppAccountManager::SelectAccountsByOptions(options, callback);
+    EXPECT_EQ(result, ERR_APPACCOUNT_SERVICE_GET_BUNDLE_NAME);
+    options.allowedOwners.emplace_back("test_owner_oversize");
+    result = AppAccountManager::SelectAccountsByOptions(options, callback);
+    EXPECT_EQ(result, ERR_APPACCOUNT_KIT_INVALID_PARAMETER);
+
+    // check SelectAccountsOptions.requiredLabels array size
+    options.allowedOwners.clear();
+    for (int i = 0; i < ALLOWED_ARRAY_MAX_SIZE; i++) {
+        std::string testLabel= "test_label_" + std::to_string(i);
+        options.requiredLabels.emplace_back(testLabel);
+    }
+    result = AppAccountManager::SelectAccountsByOptions(options, callback);
+    EXPECT_EQ(result, ERR_APPACCOUNT_SERVICE_GET_BUNDLE_NAME);
+    options.requiredLabels.emplace_back("test_label_oversize");
+    result = AppAccountManager::SelectAccountsByOptions(options, callback);
+    EXPECT_EQ(result, ERR_APPACCOUNT_KIT_INVALID_PARAMETER);
 }
 
 /**
@@ -1626,14 +1679,17 @@ HWTEST_F(AppAccountManagerTest, AppAccountManager_VerifyCredential_0100, TestSiz
 {
     ACCOUNT_LOGI("AppAccountManager_SelectAccountsByOptions_0100");
     VerifyCredentialOptions options;
+    // check name
     ErrCode result = AppAccountManager::VerifyCredential(STRING_OUT_OF_RANGE, STRING_OWNER, options, nullptr);
     EXPECT_EQ(result, ERR_APPACCOUNT_KIT_INVALID_PARAMETER);
     result = AppAccountManager::VerifyCredential(STRING_EMPTY, STRING_OWNER, options, nullptr);
     EXPECT_EQ(result, ERR_APPACCOUNT_KIT_INVALID_PARAMETER);
+    // check owner
     result = AppAccountManager::VerifyCredential(STRING_NAME, STRING_OUT_OF_RANGE, options, nullptr);
     EXPECT_EQ(result, ERR_APPACCOUNT_KIT_INVALID_PARAMETER);
     result = AppAccountManager::VerifyCredential(STRING_NAME, STRING_EMPTY, options, nullptr);
     EXPECT_EQ(result, ERR_APPACCOUNT_KIT_INVALID_PARAMETER);
+    // check callback
     result = AppAccountManager::VerifyCredential(STRING_NAME, STRING_OWNER, options, nullptr);
     EXPECT_EQ(result, ERR_APPACCOUNT_KIT_INVALID_PARAMETER);
 
@@ -1641,6 +1697,25 @@ HWTEST_F(AppAccountManagerTest, AppAccountManager_VerifyCredential_0100, TestSiz
     EXPECT_NE(callback, nullptr);
     result = AppAccountManager::VerifyCredential(STRING_NAME, STRING_OWNER, options, callback);
     EXPECT_EQ(result, ERR_APPACCOUNT_SERVICE_GET_BUNDLE_NAME);
+    // check option.credentialType
+    std::string testCredentialType = "";
+    for (int i = 0; i < CREDENTIAL_TYPE_MAX_SIZE + 1; i++) {
+        testCredentialType += 'c';
+    }
+    options.credentialType = testCredentialType;
+    result = AppAccountManager::VerifyCredential(STRING_NAME, STRING_OWNER, options, callback);
+    EXPECT_EQ(result, ERR_APPACCOUNT_KIT_INVALID_PARAMETER);
+    options.credentialType = "";
+    result = AppAccountManager::VerifyCredential(STRING_NAME, STRING_OWNER, options, callback);
+    EXPECT_EQ(result, ERR_APPACCOUNT_SERVICE_GET_BUNDLE_NAME);
+    // check option.credential
+    std::string testCredential = "";
+    for (int i = 0; i < CREDENTIAL_MAX_SIZE + 1; i++) {
+        testCredential += 'c';
+    }
+    options.credential = testCredential;
+    result = AppAccountManager::VerifyCredential(STRING_NAME, STRING_OWNER, options, callback);
+    EXPECT_EQ(result, ERR_APPACCOUNT_KIT_INVALID_PARAMETER);
 }
 
 /**
@@ -1653,6 +1728,7 @@ HWTEST_F(AppAccountManagerTest, AppAccountManager_CheckAccountLabels_0100, TestS
 {
     ACCOUNT_LOGI("AppAccountManager_CheckAccountLabels_0100");
     std::vector<std::string> labels;
+    labels.clear();
     ErrCode result = AppAccountManager::CheckAccountLabels(STRING_OUT_OF_RANGE, STRING_OWNER, labels, nullptr);
     EXPECT_EQ(result, ERR_APPACCOUNT_KIT_INVALID_PARAMETER);
     result = AppAccountManager::CheckAccountLabels(STRING_EMPTY, STRING_OWNER, labels, nullptr);
@@ -1667,6 +1743,21 @@ HWTEST_F(AppAccountManagerTest, AppAccountManager_CheckAccountLabels_0100, TestS
     sptr<IAppAccountAuthenticatorCallback> callback = new (std::nothrow) MockAuthenticatorCallback();
     EXPECT_NE(callback, nullptr);
     result = AppAccountManager::CheckAccountLabels(STRING_NAME, STRING_OWNER, labels, callback);
+    EXPECT_EQ(result, ERR_APPACCOUNT_KIT_INVALID_PARAMETER);
+
+    for (int i = 0; i < ALLOWED_ARRAY_MAX_SIZE; i++) {
+        std::string testLabel = "test_label_" + std::to_string(i);
+        labels.emplace_back(testLabel);
+    }
+    result = AppAccountManager::CheckAccountLabels(STRING_NAME, STRING_OWNER, labels, callback);
+    EXPECT_EQ(result, ERR_APPACCOUNT_SERVICE_GET_BUNDLE_NAME);
+    labels.emplace_back("test_label_oversize");
+    result = AppAccountManager::CheckAccountLabels(STRING_NAME, STRING_OWNER, labels, callback);
+    EXPECT_EQ(result, ERR_APPACCOUNT_KIT_INVALID_PARAMETER);
+
+    labels.clear();
+    labels.emplace_back("test_label");
+    result = AppAccountManager::CheckAccountLabels(STRING_NAME, STRING_OWNER, labels, callback);
     EXPECT_EQ(result, ERR_APPACCOUNT_SERVICE_GET_BUNDLE_NAME);
 }
 
@@ -1680,10 +1771,12 @@ HWTEST_F(AppAccountManagerTest, AppAccountManager_SetAuthenticatorProperties_010
 {
     ACCOUNT_LOGI("AppAccountManager_SetAuthenticatorProperties_0100");
     SetPropertiesOptions options;
+    // check owner
     ErrCode result = AppAccountManager::SetAuthenticatorProperties(STRING_OUT_OF_RANGE, options, nullptr);
     EXPECT_EQ(result, ERR_APPACCOUNT_KIT_INVALID_PARAMETER);
     result = AppAccountManager::SetAuthenticatorProperties(STRING_EMPTY, options, nullptr);
     EXPECT_EQ(result, ERR_APPACCOUNT_KIT_INVALID_PARAMETER);
+    // check callback
     result = AppAccountManager::SetAuthenticatorProperties(STRING_OWNER, options, nullptr);
     EXPECT_EQ(result, ERR_APPACCOUNT_KIT_INVALID_PARAMETER);
 
