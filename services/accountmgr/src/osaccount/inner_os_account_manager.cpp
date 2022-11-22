@@ -38,6 +38,11 @@ IInnerOsAccountManager::IInnerOsAccountManager() : subscribeManagerPtr_(OsAccoun
     ACCOUNT_LOGD("OsAccountAccountMgr Init end");
 }
 
+void IInnerOsAccountManager::SetOsAccountControl(std::shared_ptr<IOsAccountControl> ptr)
+{
+    osAccountControl_ = ptr;
+}
+
 void IInnerOsAccountManager::CreateBaseAdminAccount()
 {
     bool isExistsAccount = false;

@@ -84,6 +84,7 @@ public:
         const bool enable, const int32_t targetId, const int32_t enforcerId, const bool isDeviceOwner) override;
 
 private:
+    void SetOsAccountControl(std::shared_ptr<IOsAccountControl> ptr);
     void StartAccount();
     void RestartActiveAccount();
     void CreateBaseAdminAccount();
