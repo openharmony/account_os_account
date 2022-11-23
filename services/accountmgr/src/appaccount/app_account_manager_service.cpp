@@ -339,6 +339,20 @@ ErrCode AppAccountManagerService::GetOAuthToken(
     return innerManager_->GetOAuthToken(request, token);
 }
 
+ErrCode AppAccountManagerService::GetAuthToken(
+    const std::string &name, const std::string &owner, const std::string &authType, std::string &token)
+{
+    AuthenticatorSessionRequest request;
+    ErrCode result = GetCallingInfo(request.callerUid, request.callerBundleName, request.appIndex);
+    if (result != ERR_OK) {
+        return result;
+    }
+    request.name = name;
+    request.owner = owner;
+    request.authType = authType;
+    return innerManager_->GetOAuthToken(request, token, Constants::API_VERSION9);
+}
+
 ErrCode AppAccountManagerService::SetOAuthToken(
     const std::string &name, const std::string &authType, const std::string &token)
 {
@@ -367,6 +381,21 @@ ErrCode AppAccountManagerService::DeleteOAuthToken(
     request.authType = authType;
     request.token = token;
     return innerManager_->DeleteOAuthToken(request);
+}
+
+ErrCode AppAccountManagerService::DeleteAuthToken(
+    const std::string &name, const std::string &owner, const std::string &authType, const std::string &token)
+{
+    AuthenticatorSessionRequest request;
+    ErrCode result = GetCallingInfo(request.callerUid, request.callerBundleName, request.appIndex);
+    if (result != ERR_OK) {
+        return result;
+    }
+    request.name = name;
+    request.owner = owner;
+    request.authType = authType;
+    request.token = token;
+    return innerManager_->DeleteOAuthToken(request, Constants::API_VERSION9);
 }
 
 ErrCode AppAccountManagerService::GetTokenVisibilityParam(const std::string &name,
@@ -483,6 +512,19 @@ ErrCode AppAccountManagerService::GetOAuthList(
     request.name = name;
     request.authType = authType;
     return innerManager_->GetOAuthList(request, oauthList);
+}
+
+ErrCode AppAccountManagerService::GetAuthList(
+    const std::string &name, const std::string &authType, std::set<std::string> &oauthList)
+{
+    AuthenticatorSessionRequest request;
+    ErrCode ret = GetCallingInfo(request.callerUid, request.callerBundleName, request.appIndex);
+    if (ret != ERR_OK) {
+        return ret;
+    }
+    request.name = name;
+    request.authType = authType;
+    return innerManager_->GetOAuthList(request, oauthList, Constants::API_VERSION9);
 }
 
 ErrCode AppAccountManagerService::GetAuthenticatorCallback(

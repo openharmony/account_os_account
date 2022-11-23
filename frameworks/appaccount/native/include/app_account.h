@@ -61,8 +61,12 @@ public:
         const AAFwk::Want &options, const sptr<IAppAccountAuthenticatorCallback> &callback);
     ErrCode GetOAuthToken(
         const std::string &name, const std::string &owner, const std::string &authType, std::string &token);
+    ErrCode GetAuthToken(
+        const std::string &name, const std::string &owner, const std::string &authType, std::string &token);
     ErrCode SetOAuthToken(const std::string &name, const std::string &authType, const std::string &token);
     ErrCode DeleteOAuthToken(
+        const std::string &name, const std::string &owner, const std::string &authType, const std::string &token);
+    ErrCode DeleteAuthToken(
         const std::string &name, const std::string &owner, const std::string &authType, const std::string &token);
     ErrCode SetOAuthTokenVisibility(
         const std::string &name, const std::string &authType, const std::string &bundleName, bool isVisible);
@@ -76,6 +80,8 @@ public:
     ErrCode GetAllOAuthTokens(
         const std::string &name, const std::string &owner, std::vector<OAuthTokenInfo> &tokenInfos);
     ErrCode GetOAuthList(
+        const std::string &name, const std::string &authType, std::set<std::string> &oauthList);
+    ErrCode GetAuthList(
         const std::string &name, const std::string &authType, std::set<std::string> &oauthList);
     ErrCode GetAuthenticatorCallback(const std::string &sessionId, sptr<IRemoteObject> &callback);
 

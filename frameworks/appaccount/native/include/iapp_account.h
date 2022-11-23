@@ -61,9 +61,13 @@ public:
         const AAFwk::Want &options, const sptr<IRemoteObject> &callback) = 0;
     virtual ErrCode GetOAuthToken(
         const std::string &name, const std::string &owner, const std::string &authType, std::string &token) = 0;
+    virtual ErrCode GetAuthToken(
+        const std::string &name, const std::string &owner, const std::string &authType, std::string &token) = 0;
     virtual ErrCode SetOAuthToken(
         const std::string &name, const std::string &authType, const std::string &token) = 0;
     virtual ErrCode DeleteOAuthToken(
+        const std::string &name, const std::string &owner, const std::string &authType, const std::string &token) = 0;
+    virtual ErrCode DeleteAuthToken(
         const std::string &name, const std::string &owner, const std::string &authType, const std::string &token) = 0;
     virtual ErrCode SetOAuthTokenVisibility(const std::string &name, const std::string &authType,
         const std::string &bundleName, bool isVisible) = 0;
@@ -77,6 +81,8 @@ public:
     virtual ErrCode GetAllOAuthTokens(const std::string &name, const std::string &owner,
         std::vector<OAuthTokenInfo> &tokenInfos) = 0;
     virtual ErrCode GetOAuthList(const std::string &name, const std::string &authType,
+        std::set<std::string> &oauthList) = 0;
+    virtual ErrCode GetAuthList(const std::string &name, const std::string &authType,
         std::set<std::string> &oauthList) = 0;
     virtual ErrCode GetAuthenticatorCallback(const std::string &sessionId, sptr<IRemoteObject> &callback) = 0;
 
@@ -112,8 +118,10 @@ public:
         SET_ACCOUNT_CREDENTIAL,
         AUTHENTICATE,
         GET_OAUTH_TOKEN,
+        GET_AUTH_TOKEN,
         SET_OAUTH_TOKEN,
         DELETE_OAUTH_TOKEN,
+        DELETE_AUTH_TOKEN,
         SET_OAUTH_TOKEN_VISIBILITY,
         SET_AUTH_TOKEN_VISIBILITY,
         CHECK_OAUTH_TOKEN_VISIBILITY,
@@ -121,6 +129,7 @@ public:
         GET_AUTHENTICATOR_INFO,
         GET_ALL_OAUTH_TOKENS,
         GET_OAUTH_LIST,
+        GET_AUTH_LIST,
         GET_AUTHENTICATOR_CALLBACK,
         CLEAR_OAUTH_TOKEN,
         GET_ALL_ACCOUNTS,

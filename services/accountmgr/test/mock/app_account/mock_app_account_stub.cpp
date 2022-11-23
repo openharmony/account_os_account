@@ -190,6 +190,14 @@ ErrCode MockAppAccountStub::GetOAuthToken(
     return ERR_OK;
 }
 
+ErrCode MockAppAccountStub::GetAuthToken(
+    const std::string &name, const std::string &owner, const std::string &authType, std::string &token)
+{
+    ACCOUNT_LOGI("mock enter");
+
+    return ERR_OK;
+}
+
 ErrCode MockAppAccountStub::SetOAuthToken(
     const std::string &name, const std::string &authType, const std::string &token)
 {
@@ -199,6 +207,14 @@ ErrCode MockAppAccountStub::SetOAuthToken(
 }
 
 ErrCode MockAppAccountStub::DeleteOAuthToken(const std::string &name, const std::string &owner,
+    const std::string &authType, const std::string &token)
+{
+    ACCOUNT_LOGI("mock enter");
+
+    return ERR_OK;
+}
+
+ErrCode MockAppAccountStub::DeleteAuthToken(const std::string &name, const std::string &owner,
     const std::string &authType, const std::string &token)
 {
     ACCOUNT_LOGI("mock enter");
@@ -255,6 +271,14 @@ ErrCode MockAppAccountStub::GetAllOAuthTokens(const std::string &name, const std
 }
 
 ErrCode MockAppAccountStub::GetOAuthList(const std::string &name, const std::string &authType,
+    std::set<std::string> &oauthList)
+{
+    ACCOUNT_LOGI("mock enter");
+
+    return ERR_OK;
+}
+
+ErrCode MockAppAccountStub::GetAuthList(const std::string &name, const std::string &authType,
     std::set<std::string> &oauthList)
 {
     ACCOUNT_LOGI("mock enter");

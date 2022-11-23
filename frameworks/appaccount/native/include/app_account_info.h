@@ -29,6 +29,7 @@ struct OAuthTokenInfo {
     std::string authType;
     std::string token;
     std::set<std::string> authList;
+    bool status = true;
 };
 
 class AppAccountInfo : public IAccountInfo, public Parcelable {
@@ -70,15 +71,18 @@ public:
     ErrCode SetAccountCredential(
         const std::string &credentialType, const std::string &credential, bool isDelete = false);
 
-    ErrCode GetOAuthToken(const std::string &authType, std::string &token) const;
+    ErrCode GetOAuthToken(
+        const std::string &authType, std::string &token, const uint32_t apiVersion = Constants::API_VERSION8) const;
     ErrCode SetOAuthToken(const std::string &authType, const std::string &token);
     ErrCode DeleteOAuthToken(const std::string &authType, const std::string &token);
+    ErrCode DeleteAuthToken(const std::string &authType, const std::string &token, bool isOwnerSelf);
     ErrCode SetOAuthTokenVisibility(const std::string &authType,
         const std::string &bundleName, bool isVisible, const uint32_t apiVersion = Constants::API_VERSION8);
     ErrCode CheckOAuthTokenVisibility(const std::string &authType,
         const std::string &bundleName, bool &isVisible, const uint32_t apiVersion = Constants::API_VERSION8) const;
     ErrCode GetAllOAuthTokens(std::vector<OAuthTokenInfo> &tokenInfos) const;
-    ErrCode GetOAuthList(const std::string &authType, std::set<std::string> &oauthList) const;
+    ErrCode GetOAuthList(const std::string &authType,
+        std::set<std::string> &oauthList, const uint32_t apiVersion = Constants::API_VERSION8) const;
 
     bool Marshalling(Parcel &parcel) const override;
     static AppAccountInfo *Unmarshalling(Parcel &parcel);

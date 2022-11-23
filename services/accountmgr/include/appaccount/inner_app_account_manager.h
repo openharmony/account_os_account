@@ -67,15 +67,18 @@ public:
         const uid_t &uid, const std::string &bundleName, const uint32_t &appIndex);
 
     ErrCode Authenticate(const AuthenticatorSessionRequest &request);
-    ErrCode GetOAuthToken(const AuthenticatorSessionRequest &request, std::string &token);
+    ErrCode GetOAuthToken(const AuthenticatorSessionRequest &request,
+        std::string &token, const uint32_t apiVersion = Constants::API_VERSION8);
     ErrCode SetOAuthToken(const AuthenticatorSessionRequest &request);
-    ErrCode DeleteOAuthToken(const AuthenticatorSessionRequest &request);
+    ErrCode DeleteOAuthToken(
+        const AuthenticatorSessionRequest &request, const uint32_t apiVersion = Constants::API_VERSION8);
     ErrCode SetOAuthTokenVisibility(const AuthenticatorSessionRequest &,
         const uint32_t apiVersion = Constants::API_VERSION8);
     ErrCode CheckOAuthTokenVisibility(const AuthenticatorSessionRequest &request,
         bool &isVisible, const uint32_t apiVersion = Constants::API_VERSION8);
     ErrCode GetAllOAuthTokens(const AuthenticatorSessionRequest &request, std::vector<OAuthTokenInfo> &tokenInfos);
-    ErrCode GetOAuthList(const AuthenticatorSessionRequest &request, std::set<std::string> &oauthList);
+    ErrCode GetOAuthList(const AuthenticatorSessionRequest &request,
+        std::set<std::string> &oauthList, const uint32_t apiVersion = Constants::API_VERSION8);
     ErrCode GetAuthenticatorCallback(const AuthenticatorSessionRequest &request, sptr<IRemoteObject> &callback);
     ErrCode GetAuthenticatorInfo(const AuthenticatorSessionRequest &request, AuthenticatorInfo &authenticator);
 
