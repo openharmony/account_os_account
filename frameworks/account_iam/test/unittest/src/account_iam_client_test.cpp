@@ -13,8 +13,8 @@
  * limitations under the License.
  */
 
+#include <gmock/gmock.h>
 #include "accesstoken_kit.h"
-#include "account_error_no.h"
 #include "account_iam_client.h"
 #include "account_iam_client_test_callback.h"
 #include "account_log_wrapper.h"
@@ -34,6 +34,15 @@ using namespace testing::ext;
 using namespace OHOS::AccountSA;
 using namespace OHOS::Security::AccessToken;
 using namespace OHOS::UserIam::UserAuth;
+
+class MockIInputer : public OHOS::AccountSA::IInputer {
+public:
+    virtual ~MockIInputer() {}
+    void OnGetData(int32_t authSubType, std::shared_ptr<IInputerData> inputerData) override
+    {
+        return;
+    }
+};
 
 class AccountIAMClientTest : public testing::Test {
 public:

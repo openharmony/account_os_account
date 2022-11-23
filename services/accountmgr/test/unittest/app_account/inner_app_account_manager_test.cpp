@@ -301,7 +301,7 @@ HWTEST_F(InnerAppAccountManagerTest, AppAccount_GetAssociatedData_001, TestSize.
 {
     MakeEmptyMockObjects();
     std::string value = "value";
-    ErrCode result = innerManagerPtr_->GetAssociatedData(STRING_NAME, KEY, value, UID, 0);
+    ErrCode result = innerManagerPtr_->GetAssociatedData(STRING_NAME, KEY, value, UID);
 
     EXPECT_EQ(result, ERR_APPACCOUNT_SERVICE_CONTROL_MANAGER_PTR_IS_NULLPTR);
 }

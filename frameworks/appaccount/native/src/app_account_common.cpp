@@ -22,7 +22,7 @@
 namespace OHOS {
 namespace AccountSA {
 namespace {
-constexpr uint32_t MAX_OPTION_SIZE = 1024;
+constexpr uint32_t MAX_VEC_SIZE = 1024;
 }
 
 bool SelectAccountsOptions::Marshalling(Parcel &parcel) const
@@ -62,7 +62,8 @@ bool SelectAccountsOptions::ReadFromParcel(Parcel &parcel)
     if (!parcel.ReadUint32(size)) {
         return false;
     }
-    if (size > MAX_OPTION_SIZE) {
+    if (size > MAX_VEC_SIZE) {
+        ACCOUNT_LOGE("option is oversize, the limit is %{public}d", MAX_VEC_SIZE);
         return false;
     }
     std::string name;
@@ -174,8 +175,8 @@ bool CreateAccountOptions::ReadFromParcel(Parcel &parcel)
         ACCOUNT_LOGE("fail to read custom data size");
         return false;
     }
-    if (size > Constants::MAX_CUSTOM_DATA_SIZE) {
-        ACCOUNT_LOGE("custom data is oversize, the limit is %{public}d", Constants::MAX_CUSTOM_DATA_SIZE);
+    if (size > MAX_VEC_SIZE) {
+        ACCOUNT_LOGE("custom data is oversize, the limit is %{public}d", MAX_VEC_SIZE);
         return false;
     }
     for (uint32_t i = 0; i < size; ++i) {

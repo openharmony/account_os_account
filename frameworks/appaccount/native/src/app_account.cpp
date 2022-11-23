@@ -104,6 +104,8 @@ ErrCode AppAccount::CreateAccountImplicitly(const std::string &owner, const Crea
     RETURN_IF_STRING_IS_OVERSIZE(options.authType, Constants::AUTH_TYPE_MAX_SIZE, "authType is empty or oversize");
     RETURN_IF_STRING_IS_EMPTY_OR_OVERSIZE(options.parameters.GetStringParam(Constants::KEY_CALLER_ABILITY_NAME),
         Constants::ABILITY_NAME_MAX_SIZE, "abilityName is empty or oversize");
+    RETURN_IF_STRING_IS_OVERSIZE(
+        options.requiredLabels, Constants::MAX_ALLOWED_ARRAY_SIZE_INPUT, "requiredLabels array is oversize");
     RETURN_IF_PROXY_IS_NULLPTR();
     return appAccountProxy_->CreateAccountImplicitly(owner, options, callbackObj);
 }
@@ -388,6 +390,12 @@ ErrCode AppAccount::DeleteAccountCredential(const std::string &name, const std::
 ErrCode AppAccount::SelectAccountsByOptions(
     const SelectAccountsOptions &options, const sptr<IAppAccountAuthenticatorCallback> &callback)
 {
+    RETURN_IF_STRING_IS_OVERSIZE(
+        options.allowedAccounts, Constants::MAX_ALLOWED_ARRAY_SIZE_INPUT, "allowedAccounts array is oversize");
+    RETURN_IF_STRING_IS_OVERSIZE(
+        options.allowedOwners, Constants::MAX_ALLOWED_ARRAY_SIZE_INPUT, "allowedOwners array is oversize");
+    RETURN_IF_STRING_IS_OVERSIZE(
+        options.requiredLabels, Constants::MAX_ALLOWED_ARRAY_SIZE_INPUT, "requiredLabels array is oversize");
     if (callback == nullptr) {
         ACCOUNT_LOGE("callback is nullptr");
         return ERR_APPACCOUNT_KIT_INVALID_PARAMETER;
@@ -405,6 +413,9 @@ ErrCode AppAccount::VerifyCredential(const std::string &name, const std::string 
     }
     RETURN_IF_STRING_IS_EMPTY_OR_OVERSIZE(name, Constants::NAME_MAX_SIZE, "name is empty or oversize");
     RETURN_IF_STRING_IS_EMPTY_OR_OVERSIZE(owner, Constants::OWNER_MAX_SIZE, "owner is empty or oversize");
+    RETURN_IF_STRING_IS_OVERSIZE(
+        options.credentialType, Constants::CREDENTIAL_TYPE_MAX_SIZE, "the credential type is oversize");
+    RETURN_IF_STRING_IS_OVERSIZE(options.credential, Constants::CREDENTIAL_MAX_SIZE, "the credential is oversize");
     RETURN_IF_PROXY_IS_NULLPTR();
     return appAccountProxy_->VerifyCredential(name, owner, options, callback->AsObject());
 }
@@ -418,6 +429,8 @@ ErrCode AppAccount::CheckAccountLabels(const std::string &name, const std::strin
     }
     RETURN_IF_STRING_IS_EMPTY_OR_OVERSIZE(name, Constants::NAME_MAX_SIZE, "name is empty or oversize");
     RETURN_IF_STRING_IS_EMPTY_OR_OVERSIZE(owner, Constants::OWNER_MAX_SIZE, "owner is empty or oversize");
+    RETURN_IF_STRING_IS_EMPTY_OR_OVERSIZE(
+        labels, Constants::MAX_ALLOWED_ARRAY_SIZE_INPUT, "labels array is empty or oversize");
     RETURN_IF_PROXY_IS_NULLPTR();
     return appAccountProxy_->CheckAccountLabels(name, owner, labels, callback->AsObject());
 }

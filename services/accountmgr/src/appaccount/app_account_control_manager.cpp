@@ -15,6 +15,7 @@
 
 #include "app_account_control_manager.h"
 
+#include "accesstoken_kit.h"
 #include "account_log_wrapper.h"
 #include "app_account_app_state_observer.h"
 #include "app_account_check_labels_session.h"
@@ -317,13 +318,20 @@ ErrCode AppAccountControlManager::GetAssociatedDataFromStorage(const std::string
 }
 
 ErrCode AppAccountControlManager::GetAssociatedData(const std::string &name, const std::string &key,
-    std::string &value, const uid_t &uid, const uint32_t &appIndex)
+    std::string &value, const uid_t &uid)
 {
     std::lock_guard<std::mutex> lock(associatedDataMutex_);
     auto it = associatedDataCache_.find(uid);
     if ((it == associatedDataCache_.end()) || (it->second.name != name)) {
+        uint32_t callingTokenId = IPCSkeleton::GetCallingTokenID();
+        Security::AccessToken::HapTokenInfo hapTokenInfo;
+        int result = Security::AccessToken::AccessTokenKit::GetHapTokenInfo(callingTokenId, hapTokenInfo);
+        if ((result != 0) || (hapTokenInfo.instIndex < 0)) {
+            ACCOUNT_LOGE("failed to get app index");
+            return ERR_APPACCOUNT_SERVICE_GET_APP_INDEX;
+        }
         associatedDataCache_.erase(uid);
-        return GetAssociatedDataFromStorage(name, key, value, uid, appIndex);
+        return GetAssociatedDataFromStorage(name, key, value, uid, hapTokenInfo.instIndex);
     }
     it->second.freq++;
     auto dataIt = it->second.data.find(key);

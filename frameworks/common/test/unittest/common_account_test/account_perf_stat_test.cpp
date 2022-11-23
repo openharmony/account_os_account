@@ -22,7 +22,10 @@
 #include "gtest/gtest-test-part.h"
 #include "gtest/hwext/gtest-ext.h"
 #include "gtest/hwext/gtest-tag.h"
+#define private public
 #include "perf_stat.h"
+#undef private
+
 
 using namespace testing::ext;
 using namespace OHOS::AccountSA;
@@ -65,7 +68,7 @@ void AccountPerfStatTest::TearDown() {}
  * @tc.name: AccountPerfEndGreaterBegin001
  * @tc.desc: Test bind start time and end
  * @tc.type: FUNC
- * @tc.require: AR000CUF6O
+ * @tc.require: issueI5RWXN
  */
 HWTEST_F(AccountPerfStatTest, AccountPerfEndGreaterBegin001, TestSize.Level0)
 {
@@ -135,7 +138,7 @@ HWTEST_F(AccountPerfStatTest, AccountPerfEndGreaterBegin001, TestSize.Level0)
  * @tc.name: AccountPerfInvalidEndTimeTest002
  * @tc.desc: invalid end time test
  * @tc.type: FUNC
- * @tc.require: AR000CUF6O
+ * @tc.require: issueI5RWXN
  */
 HWTEST_F(AccountPerfStatTest, AccountPerfInvalidEndTimeTest002, TestSize.Level0)
 {
@@ -165,4 +168,41 @@ HWTEST_F(AccountPerfStatTest, AccountPerfInvalidEndTimeTest002, TestSize.Level0)
     int64_t delStartTime = PerfStat::GetInstance().GetAccountDelStartTime();
     int64_t delEndTime = PerfStat::GetInstance().GetAccountDelEndTime();
     EXPECT_EQ(delEndTime, delStartTime);
+}
+
+/**
+ * @tc.name: AccountPerfInvalid001
+ * @tc.desc: invalid end time test
+ * @tc.type: FUNC
+ * @tc.require: issueI5RWXN
+ */
+HWTEST_F(AccountPerfStatTest, AccountPerfInvalid001, TestSize.Level1)
+{
+    PerfStat::GetInstance().SetInstanceStartTime(0);
+    EXPECT_EQ(PerfStat::GetInstance().serviceOnStart_, 0);
+    PerfStat::GetInstance().SetInstanceStopTime(0);
+    EXPECT_EQ(PerfStat::GetInstance().serviceOnStop_, 0);
+    PerfStat::GetInstance().SetInstanceInitTime(0);
+    EXPECT_EQ(PerfStat::GetInstance().serviceInit_, 0);
+
+    PerfStat::GetInstance().SetPerfStatEnabled(false);
+    EXPECT_EQ(false, PerfStat::GetInstance().GetPerfStatEnabled());
+
+    std::string result;
+    PerfStat::GetInstance().Dump(result); // cover !enableStat_
+    PerfStat::GetInstance().SetPerfStatEnabled(true);
+    PerfStat::GetInstance().Dump(result);
+
+    PerfStat::GetInstance().SetInstanceCreateTime(1);
+    PerfStat::GetInstance().SetInstanceInitTime(1);
+    PerfStat::GetInstance().SetInstanceStopTime(1);
+    PerfStat::GetInstance().SetInstanceInitTime(1);
+    PerfStat::GetInstance().accountBindEnd_ = 1;
+    PerfStat::GetInstance().accountBindBegin_ = 2; // 2 means it is larger than accountBindEnd_
+    PerfStat::GetInstance().Dump(result);
+
+    PerfStat::GetInstance().accountStateChangeRecords_["test"] = 1;
+    PerfStat::GetInstance().Dump(result);
+
+    EXPECT_NE(result.find("test"), std::string::npos);
 }

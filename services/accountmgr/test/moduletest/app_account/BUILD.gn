@@ -42,6 +42,34 @@ config("app_account_service_config_unittest") {
   ]
 }
 
+ohos_moduletest("app_account_check_labels_module_test") {
+  module_out_path = module_output_path
+  sources = [ "app_account_check_labels_module_test.cpp" ]
+
+  configs = [ ":app_account_service_config_unittest" ]
+
+  deps = [
+    "${app_account_innerkits_native_path}:app_account_innerkits",
+    "${app_account_services_path}:accountmgr",
+    "${app_account_services_path}/src/appaccount:app_account_service_core",
+    "//third_party/googletest:gmock_main",
+    "//third_party/googletest:gtest_main",
+  ]
+
+  external_deps = [
+    "ability_base:base",
+    "ability_base:want",
+    "ability_runtime:app_manager",
+    "bundle_framework:appexecfwk_base",
+    "bundle_framework:appexecfwk_core",
+    "c_utils:utils",
+    "hiviewdfx_hilog_native:libhilog",
+    "ipc:ipc_core",
+    "kv_store:distributeddata_inner",
+    "samgr:samgr_proxy",
+  ]
+}
+
 ohos_moduletest("account_permission_manager_module_test") {
   module_out_path = module_output_path
 
@@ -213,6 +241,41 @@ ohos_moduletest("app_account_control_manager_module_test") {
   ]
 }
 
+ohos_moduletest("app_account_authenticator_session_module_test") {
+  module_out_path = module_output_path
+  include_dirs = [ "${app_account_services_path}/test/mock/app_account" ]
+  sources = [
+    "${app_account_services_path}/test/mock/app_account/app_account_authenticator_manager.cpp",
+    "${app_account_services_path}/test/mock/app_account/mock_app_account_authenticator_stub.cpp",
+    "${app_account_services_path}/test/mock/common/ability_manager_adapter.cpp",
+    "app_account_authenticator_session_module_test.cpp",
+  ]
+
+  configs = [ ":app_account_service_config_unittest" ]
+
+  deps = [
+    "${app_account_innerkits_native_path}:app_account_innerkits",
+    "${app_account_services_path}:accountmgr",
+    "${app_account_services_path}/src/appaccount:app_account_service_core",
+    "${common_path}:libaccount_common",
+    "//third_party/googletest:gmock_main",
+    "//third_party/googletest:gtest_main",
+  ]
+
+  external_deps = [
+    "ability_base:base",
+    "ability_base:want",
+    "ability_runtime:app_manager",
+    "bundle_framework:appexecfwk_base",
+    "bundle_framework:appexecfwk_core",
+    "c_utils:utils",
+    "hiviewdfx_hilog_native:libhilog",
+    "ipc:ipc_core",
+    "kv_store:distributeddata_inner",
+    "samgr:samgr_proxy",
+  ]
+}
+
 ohos_moduletest("app_account_manager_service_module_test") {
   module_out_path = module_output_path
   cflags_cc = []
@@ -373,6 +436,40 @@ ohos_moduletest("app_account_manager_service_sync_module_test") {
   }
 }
 
+ohos_moduletest("app_account_authenticator_session_manager_module_test") {
+  module_out_path = module_output_path
+  include_dirs = [ "${app_account_services_path}/test/mock/app_account" ]
+  sources = [
+    "${app_account_services_path}/test/mock/app_account/app_account_authenticator_manager.cpp",
+    "${app_account_services_path}/test/mock/app_account/mock_app_account_authenticator_stub.cpp",
+    "${app_account_services_path}/test/mock/common/ability_manager_adapter.cpp",
+    "app_account_authenticator_session_manager_module_test.cpp",
+  ]
+
+  configs = [ ":app_account_service_config_unittest" ]
+
+  deps = [
+    "${app_account_innerkits_native_path}:app_account_innerkits",
+    "${app_account_services_path}:accountmgr",
+    "${app_account_services_path}/src/appaccount:app_account_service_core",
+    "//third_party/googletest:gmock_main",
+    "//third_party/googletest:gtest_main",
+  ]
+
+  external_deps = [
+    "ability_base:base",
+    "ability_base:want",
+    "ability_runtime:app_manager",
+    "bundle_framework:appexecfwk_base",
+    "bundle_framework:appexecfwk_core",
+    "c_utils:utils",
+    "hiviewdfx_hilog_native:libhilog",
+    "ipc:ipc_core",
+    "kv_store:distributeddata_inner",
+    "samgr:samgr_proxy",
+  ]
+}
+
 ohos_moduletest("app_account_manager_service_thread_module_test") {
   module_out_path = module_output_path
   cflags_cc = []
@@ -424,6 +521,9 @@ group("moduletest") {
     ":account_permission_manager_module_test",
     ":app_account_authenticate_test",
     ":app_account_authenticator_callback_test",
+    ":app_account_authenticator_session_manager_module_test",
+    ":app_account_authenticator_session_module_test",
+    ":app_account_check_labels_module_test",
     ":app_account_control_manager_module_test",
     ":app_account_event_module_test",
     ":app_account_manager_service_module_test",
