@@ -39,6 +39,7 @@ public:
 
     ErrCode EnableAppAccess(const std::string &name, const std::string &authorizedApp) override;
     ErrCode DisableAppAccess(const std::string &name, const std::string &authorizedApp) override;
+    ErrCode SetAppAccess(const std::string &name, const std::string &authorizedApp, bool isAccessible) override;
     ErrCode CheckAppAccess(const std::string &name, const std::string &authorizedApp, bool &isAccessible) override;
 
     ErrCode CheckAppAccountSyncEnable(const std::string &name, bool &syncEnable) override;
@@ -58,18 +59,28 @@ public:
         const AAFwk::Want &options, const sptr<IRemoteObject> &callback) override;
     ErrCode GetOAuthToken(
         const std::string &name, const std::string &owner, const std::string &authType, std::string &token) override;
+    ErrCode GetAuthToken(
+        const std::string &name, const std::string &owner, const std::string &authType, std::string &token) override;
     ErrCode SetOAuthToken(
         const std::string &name, const std::string &authType, const std::string &token) override;
     ErrCode DeleteOAuthToken(const std::string &name, const std::string &owner, const std::string &authType,
         const std::string &token) override;
+    ErrCode DeleteAuthToken(const std::string &name, const std::string &owner, const std::string &authType,
+        const std::string &token) override;
     ErrCode SetOAuthTokenVisibility(
         const std::string &name, const std::string &authType, const std::string &bundleName, bool isVisible) override;
+    ErrCode SetAuthTokenVisibility(
+        const std::string &name, const std::string &authType, const std::string &bundleName, bool isVisible) override;
     ErrCode CheckOAuthTokenVisibility(
+        const std::string &name, const std::string &authType, const std::string &bundleName, bool &isVisible) override;
+    ErrCode CheckAuthTokenVisibility(
         const std::string &name, const std::string &authType, const std::string &bundleName, bool &isVisible) override;
     ErrCode GetAuthenticatorInfo(const std::string &owner, AuthenticatorInfo &info) override;
     ErrCode GetAllOAuthTokens(
         const std::string &name, const std::string &owner, std::vector<OAuthTokenInfo> &tokenInfos) override;
     ErrCode GetOAuthList(
+        const std::string &name, const std::string &authType, std::set<std::string> &oauthList) override;
+    ErrCode GetAuthList(
         const std::string &name, const std::string &authType, std::set<std::string> &oauthList) override;
     ErrCode GetAuthenticatorCallback(const std::string &sessionId, sptr<IRemoteObject> &callback) override;
 
@@ -91,7 +102,14 @@ public:
 
 private:
     ErrCode SendRequest(IAppAccount::Message code, MessageParcel &data, MessageParcel &reply);
-
+    ErrCode WriteTokenVisibilityParam(
+        const std::string &name, const std::string &authType, const std::string &bundleName, MessageParcel &data);
+    ErrCode WriteGetAuthListParam(
+        const std::string &name, const std::string &authType, MessageParcel &data);
+    ErrCode WriteGetAuthTokenParam(
+        const std::string &name, const std::string &owner, const std::string &authType, MessageParcel &data);
+    ErrCode WriteDeleteAuthTokenParam(const std::string &name,
+        const std::string &owner, const std::string &authType, const std::string &token, MessageParcel &data);
     template<typename T>
     bool WriteParcelableVector(const std::vector<T> &parcelableVector, MessageParcel &data);
     template<typename T>
