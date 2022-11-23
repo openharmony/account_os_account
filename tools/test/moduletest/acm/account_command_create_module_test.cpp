@@ -53,7 +53,9 @@ void AccountCommandCreateModuleTest::TearDown()
  */
 HWTEST_F(AccountCommandCreateModuleTest, Acm_Command_Create_0100, TestSize.Level1)
 {
-    AccountCommandUtil::CreateOsAccount();
+    std::string commandResult = AccountCommandUtil::CreateOsAccount();
+    ASSERT_NE(commandResult.find(STRING_CREATE_OS_ACCOUNT_OK), std::string::npos);
 
-    AccountCommandUtil::DeleteLastOsAccount();
+    commandResult = AccountCommandUtil::DeleteLastOsAccount();
+    ASSERT_NE(commandResult.find(STRING_DELETE_OS_ACCOUNT_OK), std::string::npos);
 }

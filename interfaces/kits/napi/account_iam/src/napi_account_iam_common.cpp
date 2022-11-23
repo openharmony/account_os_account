@@ -50,7 +50,7 @@ static int32_t AccountIAMConvertOtherToJSErrCode(int32_t errCode)
         case ERR_IAM_INVALID_PARAMETERS:
             return ERR_JS_INVALID_PARAMETER;
         case ERR_ACCOUNT_IAM_KIT_INPUTER_ALREADY_REGISTERED:
-            return ERR_JS_PIN_INPUTER_ALREADY_EXIST;
+            return ERR_JS_CREDENTIAL_INPUTER_ALREADY_EXIST;
         default:
             return ERR_JS_SYSTEM_SERVICE_EXCEPTION;
     }

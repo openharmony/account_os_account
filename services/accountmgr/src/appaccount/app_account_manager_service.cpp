@@ -82,9 +82,6 @@ ErrCode AppAccountManagerService::CreateAccount(const std::string &name, const C
     if (ret != ERR_OK) {
         return ret;
     }
-    if (options.customData.size() > Constants::MAX_CUSTOM_DATA_SIZE) {
-        return ERR_APPACCOUNT_KIT_INVALID_PARAMETER;
-    }
     return innerManager_->CreateAccount(name, options, callingUid, bundleName, appIndex);
 }
 
@@ -268,13 +265,7 @@ ErrCode AppAccountManagerService::GetAssociatedData(
     const std::string &name, const std::string &key, std::string &value)
 {
     int32_t callingUid = IPCSkeleton::GetCallingUid();
-    uint32_t appIndex;
-    ErrCode result = GetCallingTokenInfoAndAppIndex(appIndex);
-    if (result != ERR_OK) {
-        ACCOUNT_LOGE("failed to get app index");
-        return result;
-    }
-    return innerManager_->GetAssociatedData(name, key, value, callingUid, appIndex);
+    return innerManager_->GetAssociatedData(name, key, value, callingUid);
 }
 
 ErrCode AppAccountManagerService::SetAssociatedData(
@@ -737,7 +728,6 @@ ErrCode AppAccountManagerService::GetCallingTokenInfoAndAppIndex(uint32_t &appIn
     appIndex = hapTokenInfo.instIndex;
     return ERR_OK;
 }
-
 
 ErrCode AppAccountManagerService::GetCallingInfo(int32_t &callingUid, std::string &bundleName, uint32_t &appIndex)
 {

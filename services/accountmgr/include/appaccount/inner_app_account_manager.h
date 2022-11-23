@@ -55,7 +55,7 @@ public:
         const uid_t &uid, const std::string &bundleName, const uint32_t &appIndex);
 
     ErrCode GetAssociatedData(const std::string &name, const std::string &key,
-        std::string &value, const uid_t &uid, const uint32_t &appIndex);
+        std::string &value, const uid_t &uid);
     ErrCode SetAssociatedData(const std::string &name, const std::string &key, const std::string &value,
         const AppAccountCallingInfo &appAccountCallingInfo);
 
