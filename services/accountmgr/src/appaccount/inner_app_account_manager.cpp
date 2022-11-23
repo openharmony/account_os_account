@@ -320,7 +320,13 @@ ErrCode InnerAppAccountManager::Authenticate(const AuthenticatorSessionRequest &
         return ERR_APPACCOUNT_SERVICE_CONTROL_MANAGER_PTR_IS_NULLPTR;
     }
     std::string token;
-    ErrCode ret = controlManagerPtr_->GetOAuthToken(request, token);
+    ErrCode ret = ERR_OK;
+    bool isApi9 = request.options.GetBoolParam(Constants::API_V9, false);
+    if (isApi9) {
+        ret = controlManagerPtr_->GetOAuthToken(request, token, Constants::API_VERSION9);
+    } else {
+        ret = controlManagerPtr_->GetOAuthToken(request, token);
+    }
     if (ret == ERR_OK) {
         if ((request.callback != nullptr) && (request.callback->AsObject() != nullptr)) {
             AAFwk::Want result;
@@ -335,20 +341,20 @@ ErrCode InnerAppAccountManager::Authenticate(const AuthenticatorSessionRequest &
         ACCOUNT_LOGE("sessionManagerPtr_ is nullptr");
         return ERR_APPACCOUNT_SERVICE_SESSION_MANAGER_PTR_IS_NULLPTR;
     }
-    bool isApi9 = request.options.GetBoolParam(Constants::API_V9, false);
     if (isApi9) {
         return sessionManagerPtr_->Auth(request);
     }
     return sessionManagerPtr_->Authenticate(request);
 }
 
-ErrCode InnerAppAccountManager::GetOAuthToken(const AuthenticatorSessionRequest &request, std::string &token)
+ErrCode InnerAppAccountManager::GetOAuthToken(
+    const AuthenticatorSessionRequest &request, std::string &token, const uint32_t apiVersion)
 {
     if (!controlManagerPtr_) {
         ACCOUNT_LOGE("controlManagerPtr_ is nullptr");
         return ERR_APPACCOUNT_SERVICE_CONTROL_MANAGER_PTR_IS_NULLPTR;
     }
-    return controlManagerPtr_->GetOAuthToken(request, token);
+    return controlManagerPtr_->GetOAuthToken(request, token, apiVersion);
 }
 
 ErrCode InnerAppAccountManager::SetOAuthToken(const AuthenticatorSessionRequest &request)
@@ -373,13 +379,13 @@ ErrCode InnerAppAccountManager::SetOAuthToken(const AuthenticatorSessionRequest 
     return ERR_OK;
 }
 
-ErrCode InnerAppAccountManager::DeleteOAuthToken(const AuthenticatorSessionRequest &request)
+ErrCode InnerAppAccountManager::DeleteOAuthToken(const AuthenticatorSessionRequest &request, const uint32_t apiVersion)
 {
     if (!controlManagerPtr_) {
         ACCOUNT_LOGE("controlManagerPtr_ is nullptr");
         return ERR_APPACCOUNT_SERVICE_CONTROL_MANAGER_PTR_IS_NULLPTR;
     }
-    return controlManagerPtr_->DeleteOAuthToken(request);
+    return controlManagerPtr_->DeleteOAuthToken(request, apiVersion);
 }
 
 ErrCode InnerAppAccountManager::SetOAuthTokenVisibility(const AuthenticatorSessionRequest &request)
@@ -422,13 +428,13 @@ ErrCode InnerAppAccountManager::GetAllOAuthTokens(
 }
 
 ErrCode InnerAppAccountManager::GetOAuthList(
-    const AuthenticatorSessionRequest &request, std::set<std::string> &oauthList)
+    const AuthenticatorSessionRequest &request, std::set<std::string> &oauthList, const uint32_t apiVersion)
 {
     if (!controlManagerPtr_) {
         ACCOUNT_LOGE("controlManagerPtr_ is nullptr");
         return ERR_APPACCOUNT_SERVICE_CONTROL_MANAGER_PTR_IS_NULLPTR;
     }
-    return controlManagerPtr_->GetOAuthList(request, oauthList);
+    return controlManagerPtr_->GetOAuthList(request, oauthList, apiVersion);
 }
 
 ErrCode InnerAppAccountManager::GetAuthenticatorCallback(

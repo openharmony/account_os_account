@@ -424,7 +424,8 @@ ErrCode AppAccountControlManager::SetAccountCredential(const std::string &name, 
     return ERR_OK;
 }
 
-ErrCode AppAccountControlManager::GetOAuthToken(const AuthenticatorSessionRequest &request, std::string &token)
+ErrCode AppAccountControlManager::GetOAuthToken(
+    const AuthenticatorSessionRequest &request, std::string &token, const uint32_t apiVersion)
 {
     AppAccountInfo appAccountInfo(request.name, request.owner);
     appAccountInfo.SetAppIndex(request.appIndex);
@@ -435,12 +436,13 @@ ErrCode AppAccountControlManager::GetOAuthToken(const AuthenticatorSessionReques
         return ERR_APPACCOUNT_SERVICE_ACCOUNT_NOT_EXIST;
     }
     bool isVisible = false;
-    result = appAccountInfo.CheckOAuthTokenVisibility(request.authType, request.callerBundleName, isVisible);
+    result = appAccountInfo.CheckOAuthTokenVisibility(
+        request.authType, request.callerBundleName, isVisible, apiVersion);
     if ((result != ERR_OK) || (!isVisible)) {
         ACCOUNT_LOGE("failed to get oauth token for permission denied, result %{public}d.", result);
         return ERR_APPACCOUNT_SERVICE_PERMISSION_DENIED;
     }
-    return appAccountInfo.GetOAuthToken(request.authType, token);
+    return appAccountInfo.GetOAuthToken(request.authType, token, apiVersion);
 }
 
 ErrCode AppAccountControlManager::SetOAuthToken(const AuthenticatorSessionRequest &request)
@@ -467,7 +469,8 @@ ErrCode AppAccountControlManager::SetOAuthToken(const AuthenticatorSessionReques
     return ERR_OK;
 }
 
-ErrCode AppAccountControlManager::DeleteOAuthToken(const AuthenticatorSessionRequest &request)
+ErrCode AppAccountControlManager::DeleteOAuthToken(
+    const AuthenticatorSessionRequest &request, const uint32_t apiVersion)
 {
     std::lock_guard<std::mutex> lock(mutex_);
     AppAccountInfo appAccountInfo(request.name, request.owner);
@@ -478,15 +481,26 @@ ErrCode AppAccountControlManager::DeleteOAuthToken(const AuthenticatorSessionReq
         ACCOUNT_LOGE("failed to get account info from data storage, result %{public}d.", ret);
         return ERR_APPACCOUNT_SERVICE_ACCOUNT_NOT_EXIST;
     }
+    bool isOwnerSelf = false;
+    if (request.owner == request.callerBundleName) {
+        isOwnerSelf = true;
+    }
     bool isVisible = false;
-    ret = appAccountInfo.CheckOAuthTokenVisibility(request.authType, request.callerBundleName, isVisible);
+    ret = appAccountInfo.CheckOAuthTokenVisibility(request.authType, request.callerBundleName, isVisible, apiVersion);
     if ((!isVisible) || (ret != ERR_OK)) {
         ACCOUNT_LOGE("failed to delete oauth token for permission denied, result %{public}d.", ret);
         return ERR_APPACCOUNT_SERVICE_PERMISSION_DENIED;
     }
-    ret = appAccountInfo.DeleteOAuthToken(request.authType, request.token);
-    if (ret == ERR_APPACCOUNT_SERVICE_OAUTH_TOKEN_NOT_EXIST) {
-        return ERR_OK;
+    if (apiVersion >= Constants::API_VERSION9) {
+        ret = appAccountInfo.DeleteAuthToken(request.authType, request.token, isOwnerSelf);
+        if (ret != ERR_OK) {
+            return ret;
+        }
+    } else {
+        ret = appAccountInfo.DeleteOAuthToken(request.authType, request.token);
+        if (ret == ERR_APPACCOUNT_SERVICE_OAUTH_TOKEN_NOT_EXIST) {
+            return ERR_OK;
+        }
     }
     ret = SaveAccountInfoIntoDataStorage(appAccountInfo, dataStoragePtr, request.callerUid);
     if (ret != ERR_OK) {
@@ -570,7 +584,7 @@ ErrCode AppAccountControlManager::GetAllOAuthTokens(
 }
 
 ErrCode AppAccountControlManager::GetOAuthList(
-    const AuthenticatorSessionRequest &request, std::set<std::string> &oauthList)
+    const AuthenticatorSessionRequest &request, std::set<std::string> &oauthList, const uint32_t apiVersion)
 {
     AppAccountInfo appAccountInfo(request.name, request.callerBundleName);
     appAccountInfo.SetAppIndex(request.appIndex);
@@ -580,7 +594,7 @@ ErrCode AppAccountControlManager::GetOAuthList(
         ACCOUNT_LOGE("failed to get account info from data storage, result %{public}d.", result);
         return ERR_APPACCOUNT_SERVICE_ACCOUNT_NOT_EXIST;
     }
-    return appAccountInfo.GetOAuthList(request.authType, oauthList);
+    return appAccountInfo.GetOAuthList(request.authType, oauthList, apiVersion);
 }
 
 ErrCode AppAccountControlManager::GetAllAccounts(const std::string &owner, std::vector<AppAccountInfo> &appAccounts,

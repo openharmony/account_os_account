@@ -74,13 +74,16 @@ public:
     ErrCode SetAccountCredential(const std::string &name, const std::string &credentialType,
         const std::string &credential, const AppAccountCallingInfo &appAccountCallingInfo, bool isDelete = false);
 
-    ErrCode GetOAuthToken(const AuthenticatorSessionRequest &request, std::string &token);
+    ErrCode GetOAuthToken(const AuthenticatorSessionRequest &request,
+        std::string &token, const uint32_t apiVersion = Constants::API_VERSION8);
     ErrCode SetOAuthToken(const AuthenticatorSessionRequest &request);
-    ErrCode DeleteOAuthToken(const AuthenticatorSessionRequest &request);
+    ErrCode DeleteOAuthToken(
+        const AuthenticatorSessionRequest &request, const uint32_t apiVersion = Constants::API_VERSION8);
     ErrCode SetOAuthTokenVisibility(const AuthenticatorSessionRequest &request);
     ErrCode CheckOAuthTokenVisibility(const AuthenticatorSessionRequest &request, bool &isVisible);
     ErrCode GetAllOAuthTokens(const AuthenticatorSessionRequest &request, std::vector<OAuthTokenInfo> &tokenInfos);
-    ErrCode GetOAuthList(const AuthenticatorSessionRequest &request, std::set<std::string> &oauthList);
+    ErrCode GetOAuthList(const AuthenticatorSessionRequest &request,
+        std::set<std::string> &oauthList, const uint32_t apiVersion = Constants::API_VERSION8);
 
     ErrCode GetAllAccounts(const std::string &owner, std::vector<AppAccountInfo> &appAccounts, const uid_t &uid,
         const std::string &bundleName, const uint32_t &appIndex);

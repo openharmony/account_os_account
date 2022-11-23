@@ -54,14 +54,14 @@ private:
     ErrCode ProcSetAccountCredential(MessageParcel &data, MessageParcel &reply);
     ErrCode ProcDeleteAccountCredential(MessageParcel &data, MessageParcel &reply);
     ErrCode ProcAuthenticate(MessageParcel &data, MessageParcel &reply);
-    ErrCode ProcGetOAuthToken(MessageParcel &data, MessageParcel &reply);
+    ErrCode ProcGetAuthToken(MessageParcel &data, MessageParcel &reply);
     ErrCode ProcSetOAuthToken(MessageParcel &data, MessageParcel &reply);
-    ErrCode ProcDeleteOAuthToken(MessageParcel &data, MessageParcel &reply);
+    ErrCode ProcDeleteAuthToken(MessageParcel &data, MessageParcel &reply);
     ErrCode ProcSetOAuthTokenVisibility(MessageParcel &data, MessageParcel &reply);
     ErrCode ProcCheckOAuthTokenVisibility(MessageParcel &data, MessageParcel &reply);
     ErrCode ProcGetAuthenticatorInfo(MessageParcel &data, MessageParcel &reply);
     ErrCode ProcGetAllOAuthTokens(MessageParcel &data, MessageParcel &reply);
-    ErrCode ProcGetOAuthList(MessageParcel &data, MessageParcel &reply);
+    ErrCode ProcGetAuthList(MessageParcel &data, MessageParcel &reply);
     ErrCode ProcGetAuthenticatorCallback(MessageParcel &data, MessageParcel &reply);
     ErrCode ProcGetAllAccounts(MessageParcel &data, MessageParcel &reply);
     ErrCode ProcGetAllAccessibleAccounts(MessageParcel &data, MessageParcel &reply);
