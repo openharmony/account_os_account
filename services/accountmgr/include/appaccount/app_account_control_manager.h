@@ -53,10 +53,12 @@ public:
     ErrCode SetAccountExtraInfo(const std::string &name, const std::string &extraInfo, const uid_t &uid,
         const std::string &bundleName, AppAccountInfo &appAccountInfo);
 
-    ErrCode EnableAppAccess(const std::string &name, const std::string &authorizedApp, const uid_t &uid,
-        const std::string &bundleName, AppAccountInfo &appAccountInfo);
-    ErrCode DisableAppAccess(const std::string &name, const std::string &authorizedApp, const uid_t &uid,
-        const std::string &bundleName, AppAccountInfo &appAccountInfo);
+    ErrCode EnableAppAccess(const std::string &name, const std::string &authorizedApp,
+        AppAccountCallingInfo &appAccountCallingInfo, AppAccountInfo &appAccountInfo,
+        const uint32_t apiVersion = Constants::API_VERSION7);
+    ErrCode DisableAppAccess(const std::string &name, const std::string &authorizedApp,
+        AppAccountCallingInfo &appAccountCallingInfo, AppAccountInfo &appAccountInfo,
+        const uint32_t apiVersion = Constants::API_VERSION7);
     ErrCode CheckAppAccess(const std::string &name, const std::string &authorizedApp, bool &isAccessible,
         const AppAccountCallingInfo &appAccountCallingInfo);
 
@@ -77,8 +79,10 @@ public:
     ErrCode GetOAuthToken(const AuthenticatorSessionRequest &request, std::string &token);
     ErrCode SetOAuthToken(const AuthenticatorSessionRequest &request);
     ErrCode DeleteOAuthToken(const AuthenticatorSessionRequest &request);
-    ErrCode SetOAuthTokenVisibility(const AuthenticatorSessionRequest &request);
-    ErrCode CheckOAuthTokenVisibility(const AuthenticatorSessionRequest &request, bool &isVisible);
+    ErrCode SetOAuthTokenVisibility(
+        const AuthenticatorSessionRequest &request, const uint32_t apiVersion = Constants::API_VERSION8);
+    ErrCode CheckOAuthTokenVisibility(const AuthenticatorSessionRequest &request,
+        bool &isVisible, const uint32_t apiVersion = Constants::API_VERSION8);
     ErrCode GetAllOAuthTokens(const AuthenticatorSessionRequest &request, std::vector<OAuthTokenInfo> &tokenInfos);
     ErrCode GetOAuthList(const AuthenticatorSessionRequest &request, std::set<std::string> &oauthList);
 

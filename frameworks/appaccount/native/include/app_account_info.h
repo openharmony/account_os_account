@@ -51,8 +51,8 @@ public:
     void GetExtraInfo(std::string &extraInfo) const;
     void SetExtraInfo(const std::string &extraInfo);
 
-    ErrCode EnableAppAccess(const std::string &authorizedApp);
-    ErrCode DisableAppAccess(const std::string &authorizedApp);
+    ErrCode EnableAppAccess(const std::string &authorizedApp, const uint32_t apiVersion = Constants::API_VERSION7);
+    ErrCode DisableAppAccess(const std::string &authorizedApp, const uint32_t apiVersion = Constants::API_VERSION7);
     ErrCode CheckAppAccess(const std::string &authorizedApp, bool &isAccessible);
 
     void GetAuthorizedApps(std::set<std::string> &apps) const;
@@ -73,9 +73,10 @@ public:
     ErrCode GetOAuthToken(const std::string &authType, std::string &token) const;
     ErrCode SetOAuthToken(const std::string &authType, const std::string &token);
     ErrCode DeleteOAuthToken(const std::string &authType, const std::string &token);
-    ErrCode SetOAuthTokenVisibility(const std::string &authType, const std::string &bundleName, bool isVisible);
-    ErrCode CheckOAuthTokenVisibility(
-        const std::string &authType, const std::string &bundleName, bool &isVisible) const;
+    ErrCode SetOAuthTokenVisibility(const std::string &authType,
+        const std::string &bundleName, bool isVisible, const uint32_t apiVersion = Constants::API_VERSION8);
+    ErrCode CheckOAuthTokenVisibility(const std::string &authType,
+        const std::string &bundleName, bool &isVisible, const uint32_t apiVersion = Constants::API_VERSION8) const;
     ErrCode GetAllOAuthTokens(std::vector<OAuthTokenInfo> &tokenInfos) const;
     ErrCode GetOAuthList(const std::string &authType, std::set<std::string> &oauthList) const;
 

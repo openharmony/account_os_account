@@ -85,11 +85,15 @@ const std::map<uint32_t, AppAccountStub::MessageProcFunction> AppAccountStub::me
     },
     {
         static_cast<uint32_t>(IAppAccount::Message::ENABLE_APP_ACCESS),
-        &AppAccountStub::ProcEnableAppAccess,
+        &AppAccountStub::ProcSetAppAccess,
     },
     {
         static_cast<uint32_t>(IAppAccount::Message::DISABLE_APP_ACCESS),
-        &AppAccountStub::ProcDisableAppAccess,
+        &AppAccountStub::ProcSetAppAccess,
+    },
+    {
+        static_cast<uint32_t>(IAppAccount::Message::SET_APP_ACCESS),
+        &AppAccountStub::ProcSetAppAccess,
     },
     {
         static_cast<uint32_t>(IAppAccount::Message::CHECK_APP_ACCESS),
@@ -141,11 +145,19 @@ const std::map<uint32_t, AppAccountStub::MessageProcFunction> AppAccountStub::me
     },
     {
         static_cast<uint32_t>(IAppAccount::Message::SET_OAUTH_TOKEN_VISIBILITY),
-        &AppAccountStub::ProcSetOAuthTokenVisibility,
+        &AppAccountStub::ProcSetAuthTokenVisibility,
+    },
+    {
+        static_cast<uint32_t>(IAppAccount::Message::SET_AUTH_TOKEN_VISIBILITY),
+        &AppAccountStub::ProcSetAuthTokenVisibility,
     },
     {
         static_cast<uint32_t>(IAppAccount::Message::CHECK_OAUTH_TOKEN_VISIBILITY),
-        &AppAccountStub::ProcCheckOAuthTokenVisibility,
+        &AppAccountStub::ProcCheckAuthTokenVisibility,
+    },
+    {
+        static_cast<uint32_t>(IAppAccount::Message::CHECK_AUTH_TOKEN_VISIBILITY),
+        &AppAccountStub::ProcCheckAuthTokenVisibility,
     },
     {
         static_cast<uint32_t>(IAppAccount::Message::GET_AUTHENTICATOR_CALLBACK),
@@ -219,7 +231,7 @@ int AppAccountStub::OnRemoteRequest(uint32_t code, MessageParcel &data, MessageP
     if (messageProc != messageProcMap_.end()) {
         auto messageProcFunction = messageProc->second;
         if (messageProcFunction != nullptr) {
-            int ret = (this->*messageProcFunction)(data, reply);
+            int ret = (this->*messageProcFunction)(code, data, reply);
 #ifdef HICOLLIE_ENABLE
             HiviewDFX::XCollie::GetInstance().CancelTimer(timerId);
 #endif // HICOLLIE_ENABLE
@@ -287,7 +299,7 @@ static ErrCode CheckSpecialCharacters(const std::string &str)
     return ERR_OK;
 }
 
-ErrCode AppAccountStub::ProcAddAccount(MessageParcel &data, MessageParcel &reply)
+ErrCode AppAccountStub::ProcAddAccount(uint32_t code, MessageParcel &data, MessageParcel &reply)
 {
     std::string name = data.ReadString();
     RETURN_IF_STRING_IS_EMPTY_OR_OVERSIZE(name, Constants::NAME_MAX_SIZE, "name is empty or oversize");
@@ -302,7 +314,7 @@ ErrCode AppAccountStub::ProcAddAccount(MessageParcel &data, MessageParcel &reply
     return ERR_NONE;
 }
 
-ErrCode AppAccountStub::ProcAddAccountImplicitly(MessageParcel &data, MessageParcel &reply)
+ErrCode AppAccountStub::ProcAddAccountImplicitly(uint32_t code, MessageParcel &data, MessageParcel &reply)
 {
     std::string owner = data.ReadString();
     RETURN_IF_STRING_IS_EMPTY_OR_OVERSIZE(owner, Constants::OWNER_MAX_SIZE, "owner is empty or oversize");
@@ -326,7 +338,7 @@ ErrCode AppAccountStub::ProcAddAccountImplicitly(MessageParcel &data, MessagePar
     return ERR_NONE;
 }
 
-ErrCode AppAccountStub::ProcCreateAccount(MessageParcel &data, MessageParcel &reply)
+ErrCode AppAccountStub::ProcCreateAccount(uint32_t code, MessageParcel &data, MessageParcel &reply)
 {
     std::string name = data.ReadString();
     RETURN_IF_STRING_IS_EMPTY_OR_OVERSIZE(name, Constants::NAME_MAX_SIZE, "name is empty or oversize");
@@ -351,7 +363,7 @@ ErrCode AppAccountStub::ProcCreateAccount(MessageParcel &data, MessageParcel &re
     return ERR_NONE;
 }
 
-ErrCode AppAccountStub::ProcCreateAccountImplicitly(MessageParcel &data, MessageParcel &reply)
+ErrCode AppAccountStub::ProcCreateAccountImplicitly(uint32_t code, MessageParcel &data, MessageParcel &reply)
 {
     std::string owner = data.ReadString();
     RETURN_IF_STRING_IS_EMPTY_OR_OVERSIZE(owner, Constants::OWNER_MAX_SIZE, "owner is empty or oversize");
@@ -376,7 +388,7 @@ ErrCode AppAccountStub::ProcCreateAccountImplicitly(MessageParcel &data, Message
     return ERR_NONE;
 }
 
-ErrCode AppAccountStub::ProcDeleteAccount(MessageParcel &data, MessageParcel &reply)
+ErrCode AppAccountStub::ProcDeleteAccount(uint32_t code, MessageParcel &data, MessageParcel &reply)
 {
     std::string name = data.ReadString();
     RETURN_IF_STRING_IS_EMPTY_OR_OVERSIZE(name, Constants::NAME_MAX_SIZE, "name is empty or oversize");
@@ -390,7 +402,7 @@ ErrCode AppAccountStub::ProcDeleteAccount(MessageParcel &data, MessageParcel &re
     return ERR_NONE;
 }
 
-ErrCode AppAccountStub::ProcGetAccountExtraInfo(MessageParcel &data, MessageParcel &reply)
+ErrCode AppAccountStub::ProcGetAccountExtraInfo(uint32_t code, MessageParcel &data, MessageParcel &reply)
 {
     std::string name = data.ReadString();
     RETURN_IF_STRING_IS_EMPTY_OR_OVERSIZE(name, Constants::NAME_MAX_SIZE, "name is empty or oversize");
@@ -408,7 +420,7 @@ ErrCode AppAccountStub::ProcGetAccountExtraInfo(MessageParcel &data, MessageParc
     return ERR_NONE;
 }
 
-ErrCode AppAccountStub::ProcSetAccountExtraInfo(MessageParcel &data, MessageParcel &reply)
+ErrCode AppAccountStub::ProcSetAccountExtraInfo(uint32_t code, MessageParcel &data, MessageParcel &reply)
 {
     std::string name = data.ReadString();
     RETURN_IF_STRING_IS_EMPTY_OR_OVERSIZE(name, Constants::NAME_MAX_SIZE, "name is empty or oversize");
@@ -423,15 +435,31 @@ ErrCode AppAccountStub::ProcSetAccountExtraInfo(MessageParcel &data, MessageParc
     return ERR_NONE;
 }
 
-ErrCode AppAccountStub::ProcEnableAppAccess(MessageParcel &data, MessageParcel &reply)
+ErrCode AppAccountStub::ProcSetAppAccess(uint32_t code, MessageParcel &data, MessageParcel &reply)
 {
     std::string name = data.ReadString();
     RETURN_IF_STRING_IS_EMPTY_OR_OVERSIZE(name, Constants::NAME_MAX_SIZE, "name is empty or oversize");
-    RETURN_IF_STRING_CONTAINS_SPECIAL_CHAR(name);
-    std::string bundleName = data.ReadString();
-    RETURN_IF_STRING_IS_EMPTY_OR_OVERSIZE(bundleName, Constants::BUNDLE_NAME_MAX_SIZE,
+    if (code != static_cast<uint32_t>(IAppAccount::Message::SET_APP_ACCESS)) {
+        RETURN_IF_STRING_CONTAINS_SPECIAL_CHAR(name);
+    }
+
+    std::string authorizedApp = data.ReadString();
+    RETURN_IF_STRING_IS_EMPTY_OR_OVERSIZE(authorizedApp, Constants::BUNDLE_NAME_MAX_SIZE,
         "bundleName is empty or oversize");
-    ErrCode result = EnableAppAccess(name, bundleName);
+
+    ErrCode result = ERR_OK;
+    if (code == static_cast<uint32_t>(IAppAccount::Message::ENABLE_APP_ACCESS)) {
+        result = EnableAppAccess(name, authorizedApp);
+    } else if (code == static_cast<uint32_t>(IAppAccount::Message::DISABLE_APP_ACCESS)) {
+        result = DisableAppAccess(name, authorizedApp);
+    } else if (code == static_cast<uint32_t>(IAppAccount::Message::SET_APP_ACCESS)) {
+        bool isAccessible = data.ReadBool();
+        result = SetAppAccess(name, authorizedApp, isAccessible);
+    } else {
+        ACCOUNT_LOGE("stub code is invalid");
+        return IPC_INVOKER_ERR;
+    }
+
     if (!reply.WriteInt32(result)) {
         ACCOUNT_LOGE("failed to write reply");
         return IPC_STUB_WRITE_PARCEL_ERR;
@@ -439,23 +467,7 @@ ErrCode AppAccountStub::ProcEnableAppAccess(MessageParcel &data, MessageParcel &
     return ERR_NONE;
 }
 
-ErrCode AppAccountStub::ProcDisableAppAccess(MessageParcel &data, MessageParcel &reply)
-{
-    std::string name = data.ReadString();
-    RETURN_IF_STRING_IS_EMPTY_OR_OVERSIZE(name, Constants::NAME_MAX_SIZE, "name is empty or oversize");
-    RETURN_IF_STRING_CONTAINS_SPECIAL_CHAR(name);
-    std::string bundleName = data.ReadString();
-    RETURN_IF_STRING_IS_EMPTY_OR_OVERSIZE(bundleName, Constants::BUNDLE_NAME_MAX_SIZE,
-        "bundleName is empty or oversize");
-    ErrCode result = DisableAppAccess(name, bundleName);
-    if (!reply.WriteInt32(result)) {
-        ACCOUNT_LOGE("failed to write reply");
-        return IPC_STUB_WRITE_PARCEL_ERR;
-    }
-    return ERR_NONE;
-}
-
-ErrCode AppAccountStub::ProcCheckAppAccountSyncEnable(MessageParcel &data, MessageParcel &reply)
+ErrCode AppAccountStub::ProcCheckAppAccountSyncEnable(uint32_t code, MessageParcel &data, MessageParcel &reply)
 {
     std::string name = data.ReadString();
     RETURN_IF_STRING_IS_EMPTY_OR_OVERSIZE(name, Constants::NAME_MAX_SIZE, "name is empty or oversize");
@@ -473,7 +485,7 @@ ErrCode AppAccountStub::ProcCheckAppAccountSyncEnable(MessageParcel &data, Messa
     return ERR_NONE;
 }
 
-ErrCode AppAccountStub::ProcSetAppAccountSyncEnable(MessageParcel &data, MessageParcel &reply)
+ErrCode AppAccountStub::ProcSetAppAccountSyncEnable(uint32_t code, MessageParcel &data, MessageParcel &reply)
 {
     std::string name = data.ReadString();
     RETURN_IF_STRING_IS_EMPTY_OR_OVERSIZE(name, Constants::NAME_MAX_SIZE, "name is empty or oversize");
@@ -487,7 +499,7 @@ ErrCode AppAccountStub::ProcSetAppAccountSyncEnable(MessageParcel &data, Message
     return ERR_NONE;
 }
 
-ErrCode AppAccountStub::ProcGetAssociatedData(MessageParcel &data, MessageParcel &reply)
+ErrCode AppAccountStub::ProcGetAssociatedData(uint32_t code, MessageParcel &data, MessageParcel &reply)
 {
     std::string name = data.ReadString();
     std::string key = data.ReadString();
@@ -504,7 +516,7 @@ ErrCode AppAccountStub::ProcGetAssociatedData(MessageParcel &data, MessageParcel
     return ERR_NONE;
 }
 
-ErrCode AppAccountStub::ProcSetAssociatedData(MessageParcel &data, MessageParcel &reply)
+ErrCode AppAccountStub::ProcSetAssociatedData(uint32_t code, MessageParcel &data, MessageParcel &reply)
 {
     std::string name = data.ReadString();
     RETURN_IF_STRING_IS_EMPTY_OR_OVERSIZE(name, Constants::NAME_MAX_SIZE, "name is empty or oversize");
@@ -521,7 +533,7 @@ ErrCode AppAccountStub::ProcSetAssociatedData(MessageParcel &data, MessageParcel
     return ERR_NONE;
 }
 
-ErrCode AppAccountStub::ProcGetAccountCredential(MessageParcel &data, MessageParcel &reply)
+ErrCode AppAccountStub::ProcGetAccountCredential(uint32_t code, MessageParcel &data, MessageParcel &reply)
 {
     std::string name = data.ReadString();
     RETURN_IF_STRING_IS_EMPTY_OR_OVERSIZE(name, Constants::NAME_MAX_SIZE, "name is empty or oversize");
@@ -542,7 +554,7 @@ ErrCode AppAccountStub::ProcGetAccountCredential(MessageParcel &data, MessagePar
     return ERR_NONE;
 }
 
-ErrCode AppAccountStub::ProcSetAccountCredential(MessageParcel &data, MessageParcel &reply)
+ErrCode AppAccountStub::ProcSetAccountCredential(uint32_t code, MessageParcel &data, MessageParcel &reply)
 {
     std::string name = data.ReadString();
     RETURN_IF_STRING_IS_EMPTY_OR_OVERSIZE(name, Constants::NAME_MAX_SIZE, "name is empty or oversize");
@@ -560,7 +572,7 @@ ErrCode AppAccountStub::ProcSetAccountCredential(MessageParcel &data, MessagePar
     return ERR_NONE;
 }
 
-ErrCode AppAccountStub::ProcAuthenticate(MessageParcel &data, MessageParcel &reply)
+ErrCode AppAccountStub::ProcAuthenticate(uint32_t code, MessageParcel &data, MessageParcel &reply)
 {
     std::string name = data.ReadString();
     RETURN_IF_STRING_IS_EMPTY_OR_OVERSIZE(name, Constants::NAME_MAX_SIZE, "name is empty or oversize");
@@ -587,7 +599,7 @@ ErrCode AppAccountStub::ProcAuthenticate(MessageParcel &data, MessageParcel &rep
     return ERR_NONE;
 }
 
-ErrCode AppAccountStub::ProcGetOAuthToken(MessageParcel &data, MessageParcel &reply)
+ErrCode AppAccountStub::ProcGetOAuthToken(uint32_t code, MessageParcel &data, MessageParcel &reply)
 {
     std::string name = data.ReadString();
     RETURN_IF_STRING_IS_EMPTY_OR_OVERSIZE(name, Constants::NAME_MAX_SIZE, "name is empty or oversize");
@@ -605,7 +617,7 @@ ErrCode AppAccountStub::ProcGetOAuthToken(MessageParcel &data, MessageParcel &re
     return ERR_NONE;
 }
 
-ErrCode AppAccountStub::ProcSetOAuthToken(MessageParcel &data, MessageParcel &reply)
+ErrCode AppAccountStub::ProcSetOAuthToken(uint32_t code, MessageParcel &data, MessageParcel &reply)
 {
     std::string name = data.ReadString();
     RETURN_IF_STRING_IS_EMPTY_OR_OVERSIZE(name, Constants::NAME_MAX_SIZE, "name is empty or oversize");
@@ -622,7 +634,7 @@ ErrCode AppAccountStub::ProcSetOAuthToken(MessageParcel &data, MessageParcel &re
     return ERR_NONE;
 }
 
-ErrCode AppAccountStub::ProcDeleteOAuthToken(MessageParcel &data, MessageParcel &reply)
+ErrCode AppAccountStub::ProcDeleteOAuthToken(uint32_t code, MessageParcel &data, MessageParcel &reply)
 {
     std::string name = data.ReadString();
     RETURN_IF_STRING_IS_EMPTY_OR_OVERSIZE(name, Constants::NAME_MAX_SIZE, "name is empty or oversize");
@@ -641,18 +653,27 @@ ErrCode AppAccountStub::ProcDeleteOAuthToken(MessageParcel &data, MessageParcel 
     return ERR_NONE;
 }
 
-ErrCode AppAccountStub::ProcSetOAuthTokenVisibility(MessageParcel &data, MessageParcel &reply)
+ErrCode AppAccountStub::ProcSetAuthTokenVisibility(uint32_t code, MessageParcel &data, MessageParcel &reply)
 {
     std::string name = data.ReadString();
     RETURN_IF_STRING_IS_EMPTY_OR_OVERSIZE(name, Constants::NAME_MAX_SIZE, "name is empty or oversize");
-    RETURN_IF_STRING_CONTAINS_SPECIAL_CHAR(name);
     std::string authType = data.ReadString();
     RETURN_IF_STRING_IS_OVERSIZE(authType, Constants::AUTH_TYPE_MAX_SIZE, "authType is oversize");
     std::string bundleName = data.ReadString();
     RETURN_IF_STRING_IS_EMPTY_OR_OVERSIZE(bundleName, Constants::BUNDLE_NAME_MAX_SIZE,
         "bundleName is empty or oversize");
     bool isVisible = data.ReadBool();
-    ErrCode result = SetOAuthTokenVisibility(name, authType, bundleName, isVisible);
+    ErrCode result = ERR_OK;
+    if (code == static_cast<uint32_t>(IAppAccount::Message::SET_OAUTH_TOKEN_VISIBILITY)) {
+        RETURN_IF_STRING_CONTAINS_SPECIAL_CHAR(name);
+        result = SetOAuthTokenVisibility(name, authType, bundleName, isVisible);
+    } else if (code == static_cast<uint32_t>(IAppAccount::Message::SET_AUTH_TOKEN_VISIBILITY)) {
+        result = SetAuthTokenVisibility(name, authType, bundleName, isVisible);
+    } else {
+        ACCOUNT_LOGE("stub code is invalid");
+        return IPC_INVOKER_ERR;
+    }
+
     if (!reply.WriteInt32(result)) {
         ACCOUNT_LOGE("failed to write reply");
         return IPC_STUB_WRITE_PARCEL_ERR;
@@ -660,18 +681,27 @@ ErrCode AppAccountStub::ProcSetOAuthTokenVisibility(MessageParcel &data, Message
     return ERR_NONE;
 }
 
-ErrCode AppAccountStub::ProcCheckOAuthTokenVisibility(MessageParcel &data, MessageParcel &reply)
+ErrCode AppAccountStub::ProcCheckAuthTokenVisibility(uint32_t code, MessageParcel &data, MessageParcel &reply)
 {
     std::string name = data.ReadString();
     RETURN_IF_STRING_IS_EMPTY_OR_OVERSIZE(name, Constants::NAME_MAX_SIZE, "name is empty or oversize");
-    RETURN_IF_STRING_CONTAINS_SPECIAL_CHAR(name);
     std::string authType = data.ReadString();
     RETURN_IF_STRING_IS_OVERSIZE(authType, Constants::AUTH_TYPE_MAX_SIZE, "authType is oversize");
     std::string bundleName = data.ReadString();
     RETURN_IF_STRING_IS_EMPTY_OR_OVERSIZE(bundleName, Constants::BUNDLE_NAME_MAX_SIZE,
         "bundleName is empty or oversize");
     bool isVisible = false;
-    ErrCode result = CheckOAuthTokenVisibility(name, authType, bundleName, isVisible);
+    ErrCode result = ERR_OK;
+    if (code == static_cast<uint32_t>(IAppAccount::Message::CHECK_OAUTH_TOKEN_VISIBILITY)) {
+        RETURN_IF_STRING_CONTAINS_SPECIAL_CHAR(name);
+        result = CheckOAuthTokenVisibility(name, authType, bundleName, isVisible);
+    } else if (code == static_cast<uint32_t>(IAppAccount::Message::CHECK_AUTH_TOKEN_VISIBILITY)) {
+        result = CheckAuthTokenVisibility(name, authType, bundleName, isVisible);
+    } else {
+        ACCOUNT_LOGE("stub code is invalid");
+        return IPC_INVOKER_ERR;
+    }
+     
     if ((!reply.WriteInt32(result)) || (!reply.WriteBool(isVisible))) {
         ACCOUNT_LOGE("failed to write reply");
         return IPC_STUB_WRITE_PARCEL_ERR;
@@ -679,7 +709,7 @@ ErrCode AppAccountStub::ProcCheckOAuthTokenVisibility(MessageParcel &data, Messa
     return ERR_NONE;
 }
 
-ErrCode AppAccountStub::ProcGetAuthenticatorInfo(MessageParcel &data, MessageParcel &reply)
+ErrCode AppAccountStub::ProcGetAuthenticatorInfo(uint32_t code, MessageParcel &data, MessageParcel &reply)
 {
     std::string owner = data.ReadString();
     RETURN_IF_STRING_IS_EMPTY_OR_OVERSIZE(owner, Constants::OWNER_MAX_SIZE, "owner is empty or oversize");
@@ -693,7 +723,7 @@ ErrCode AppAccountStub::ProcGetAuthenticatorInfo(MessageParcel &data, MessagePar
     return ERR_NONE;
 }
 
-ErrCode AppAccountStub::ProcGetAllOAuthTokens(MessageParcel &data, MessageParcel &reply)
+ErrCode AppAccountStub::ProcGetAllOAuthTokens(uint32_t code, MessageParcel &data, MessageParcel &reply)
 {
     std::string name = data.ReadString();
     RETURN_IF_STRING_IS_EMPTY_OR_OVERSIZE(name, Constants::NAME_MAX_SIZE, "name is empty or oversize");
@@ -715,7 +745,7 @@ ErrCode AppAccountStub::ProcGetAllOAuthTokens(MessageParcel &data, MessageParcel
     return ERR_NONE;
 }
 
-ErrCode AppAccountStub::ProcGetOAuthList(MessageParcel &data, MessageParcel &reply)
+ErrCode AppAccountStub::ProcGetOAuthList(uint32_t code, MessageParcel &data, MessageParcel &reply)
 {
     std::string name = data.ReadString();
     RETURN_IF_STRING_IS_EMPTY_OR_OVERSIZE(name, Constants::NAME_MAX_SIZE, "name is empty or oversize");
@@ -737,7 +767,7 @@ ErrCode AppAccountStub::ProcGetOAuthList(MessageParcel &data, MessageParcel &rep
     return ERR_NONE;
 }
 
-ErrCode AppAccountStub::ProcGetAuthenticatorCallback(MessageParcel &data, MessageParcel &reply)
+ErrCode AppAccountStub::ProcGetAuthenticatorCallback(uint32_t code, MessageParcel &data, MessageParcel &reply)
 {
     std::string sessionId = data.ReadString();
     RETURN_IF_STRING_IS_EMPTY_OR_OVERSIZE(sessionId, Constants::SESSION_ID_MAX_SIZE,
@@ -751,7 +781,7 @@ ErrCode AppAccountStub::ProcGetAuthenticatorCallback(MessageParcel &data, Messag
     return ERR_NONE;
 }
 
-ErrCode AppAccountStub::ProcGetAllAccounts(MessageParcel &data, MessageParcel &reply)
+ErrCode AppAccountStub::ProcGetAllAccounts(uint32_t code, MessageParcel &data, MessageParcel &reply)
 {
     std::string owner = data.ReadString();
     RETURN_IF_STRING_IS_EMPTY_OR_OVERSIZE(owner, Constants::OWNER_MAX_SIZE, "owner is empty or oversize");
@@ -768,7 +798,7 @@ ErrCode AppAccountStub::ProcGetAllAccounts(MessageParcel &data, MessageParcel &r
     return ERR_NONE;
 }
 
-ErrCode AppAccountStub::ProcGetAllAccessibleAccounts(MessageParcel &data, MessageParcel &reply)
+ErrCode AppAccountStub::ProcGetAllAccessibleAccounts(uint32_t code, MessageParcel &data, MessageParcel &reply)
 {
     std::vector<AppAccountInfo> appAccounts;
     ErrCode result = GetAllAccessibleAccounts(appAccounts);
@@ -783,7 +813,7 @@ ErrCode AppAccountStub::ProcGetAllAccessibleAccounts(MessageParcel &data, Messag
     return ERR_NONE;
 }
 
-ErrCode AppAccountStub::ProcCheckAppAccess(MessageParcel &data, MessageParcel &reply)
+ErrCode AppAccountStub::ProcCheckAppAccess(uint32_t code, MessageParcel &data, MessageParcel &reply)
 {
     std::string name = data.ReadString();
     RETURN_IF_STRING_IS_EMPTY_OR_OVERSIZE(name, Constants::NAME_MAX_SIZE, "name is empty or oversize");
@@ -799,7 +829,7 @@ ErrCode AppAccountStub::ProcCheckAppAccess(MessageParcel &data, MessageParcel &r
     return ERR_NONE;
 }
 
-ErrCode AppAccountStub::ProcDeleteAccountCredential(MessageParcel &data, MessageParcel &reply)
+ErrCode AppAccountStub::ProcDeleteAccountCredential(uint32_t code, MessageParcel &data, MessageParcel &reply)
 {
     std::string name = data.ReadString();
     RETURN_IF_STRING_IS_EMPTY_OR_OVERSIZE(name, Constants::NAME_MAX_SIZE, "name is empty or oversize");
@@ -814,7 +844,7 @@ ErrCode AppAccountStub::ProcDeleteAccountCredential(MessageParcel &data, Message
     return ERR_NONE;
 }
 
-ErrCode AppAccountStub::ProcSelectAccountsByOptions(MessageParcel &data, MessageParcel &reply)
+ErrCode AppAccountStub::ProcSelectAccountsByOptions(uint32_t code, MessageParcel &data, MessageParcel &reply)
 {
     std::shared_ptr<SelectAccountsOptions> options(data.ReadParcelable<SelectAccountsOptions>());
     sptr<IRemoteObject> callback = data.ReadRemoteObject();
@@ -838,7 +868,7 @@ ErrCode AppAccountStub::ProcSelectAccountsByOptions(MessageParcel &data, Message
     return ERR_NONE;
 }
 
-ErrCode AppAccountStub::ProcVerifyCredential(MessageParcel &data, MessageParcel &reply)
+ErrCode AppAccountStub::ProcVerifyCredential(uint32_t code, MessageParcel &data, MessageParcel &reply)
 {
     std::string name = data.ReadString();
     RETURN_IF_STRING_IS_EMPTY_OR_OVERSIZE(name, Constants::NAME_MAX_SIZE, "name is empty or oversize");
@@ -864,7 +894,7 @@ ErrCode AppAccountStub::ProcVerifyCredential(MessageParcel &data, MessageParcel 
     return ERR_NONE;
 }
 
-ErrCode AppAccountStub::ProcCheckAccountLabels(MessageParcel &data, MessageParcel &reply)
+ErrCode AppAccountStub::ProcCheckAccountLabels(uint32_t code, MessageParcel &data, MessageParcel &reply)
 {
     std::string name = data.ReadString();
     RETURN_IF_STRING_IS_EMPTY_OR_OVERSIZE(name, Constants::NAME_MAX_SIZE, "name is empty or oversize");
@@ -889,7 +919,7 @@ ErrCode AppAccountStub::ProcCheckAccountLabels(MessageParcel &data, MessageParce
     return ERR_NONE;
 }
 
-ErrCode AppAccountStub::ProcSetAuthenticatorProperties(MessageParcel &data, MessageParcel &reply)
+ErrCode AppAccountStub::ProcSetAuthenticatorProperties(uint32_t code, MessageParcel &data, MessageParcel &reply)
 {
     std::string owner = data.ReadString();
     RETURN_IF_STRING_IS_EMPTY_OR_OVERSIZE(owner, Constants::OWNER_MAX_SIZE,  "owner is empty or oversize");
@@ -909,7 +939,7 @@ ErrCode AppAccountStub::ProcSetAuthenticatorProperties(MessageParcel &data, Mess
     return ERR_NONE;
 }
 
-ErrCode AppAccountStub::ProcSubscribeAccount(MessageParcel &data, MessageParcel &reply)
+ErrCode AppAccountStub::ProcSubscribeAccount(uint32_t code, MessageParcel &data, MessageParcel &reply)
 {
     std::unique_ptr<AppAccountSubscribeInfo> subscribeInfo(data.ReadParcelable<AppAccountSubscribeInfo>());
     if (!subscribeInfo) {
@@ -929,7 +959,7 @@ ErrCode AppAccountStub::ProcSubscribeAccount(MessageParcel &data, MessageParcel 
     return ERR_NONE;
 }
 
-ErrCode AppAccountStub::ProcUnsubscribeAccount(MessageParcel &data, MessageParcel &reply)
+ErrCode AppAccountStub::ProcUnsubscribeAccount(uint32_t code, MessageParcel &data, MessageParcel &reply)
 {
     sptr<IRemoteObject> eventListener = data.ReadRemoteObject();
     if (eventListener == nullptr) {

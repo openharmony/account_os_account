@@ -42,6 +42,7 @@ public:
 
     virtual ErrCode EnableAppAccess(const std::string &name, const std::string &authorizedApp) = 0;
     virtual ErrCode DisableAppAccess(const std::string &name, const std::string &authorizedApp) = 0;
+    virtual ErrCode SetAppAccess(const std::string &name, const std::string &authorizedApp, bool isAccessible) = 0;
     virtual ErrCode CheckAppAccess(const std::string &name, const std::string &authorizedApp, bool &isAccessible) = 0;
 
     virtual ErrCode CheckAppAccountSyncEnable(const std::string &name, bool &syncEnable) = 0;
@@ -66,7 +67,11 @@ public:
         const std::string &name, const std::string &owner, const std::string &authType, const std::string &token) = 0;
     virtual ErrCode SetOAuthTokenVisibility(const std::string &name, const std::string &authType,
         const std::string &bundleName, bool isVisible) = 0;
+    virtual ErrCode SetAuthTokenVisibility(const std::string &name, const std::string &authType,
+        const std::string &bundleName, bool isVisible) = 0;
     virtual ErrCode CheckOAuthTokenVisibility(const std::string &name, const std::string &authType,
+        const std::string &bundleName, bool &isVisible) = 0;
+    virtual ErrCode CheckAuthTokenVisibility(const std::string &name, const std::string &authType,
         const std::string &bundleName, bool &isVisible) = 0;
     virtual ErrCode GetAuthenticatorInfo(const std::string &owner, AuthenticatorInfo &info) = 0;
     virtual ErrCode GetAllOAuthTokens(const std::string &name, const std::string &owner,
@@ -98,6 +103,7 @@ public:
         SET_ACCOUNT_EXTRA_INFO,
         ENABLE_APP_ACCESS,
         DISABLE_APP_ACCESS,
+        SET_APP_ACCESS,
         CHECK_APP_ACCOUNT_SYNC_ENABLE,
         SET_APP_ACCOUNT_SYNC_ENABLE,
         GET_ASSOCIATED_DATA,
@@ -109,7 +115,9 @@ public:
         SET_OAUTH_TOKEN,
         DELETE_OAUTH_TOKEN,
         SET_OAUTH_TOKEN_VISIBILITY,
+        SET_AUTH_TOKEN_VISIBILITY,
         CHECK_OAUTH_TOKEN_VISIBILITY,
+        CHECK_AUTH_TOKEN_VISIBILITY,
         GET_AUTHENTICATOR_INFO,
         GET_ALL_OAUTH_TOKENS,
         GET_OAUTH_LIST,
