@@ -242,6 +242,16 @@ ErrCode AppAccount::GetOAuthToken(
     return appAccountProxy_->GetOAuthToken(name, owner, authType, token);
 }
 
+ErrCode AppAccount::GetAuthToken(
+    const std::string &name, const std::string &owner, const std::string &authType, std::string &token)
+{
+    RETURN_IF_STRING_IS_EMPTY_OR_OVERSIZE(name, Constants::NAME_MAX_SIZE, "name is empty or oversize");
+    RETURN_IF_STRING_IS_EMPTY_OR_OVERSIZE(owner, Constants::OWNER_MAX_SIZE, "owner is empty or oversize");
+    RETURN_IF_STRING_IS_OVERSIZE(authType, Constants::AUTH_TYPE_MAX_SIZE, "authType is oversize");
+    RETURN_IF_PROXY_IS_NULLPTR();
+    return appAccountProxy_->GetAuthToken(name, owner, authType, token);
+}
+
 ErrCode AppAccount::SetOAuthToken(const std::string &name, const std::string &authType, const std::string &token)
 {
     RETURN_IF_STRING_IS_EMPTY_OR_OVERSIZE(name, Constants::NAME_MAX_SIZE, "name is empty or oversize");
@@ -262,6 +272,17 @@ ErrCode AppAccount::DeleteOAuthToken(
     RETURN_IF_STRING_IS_OVERSIZE(token, Constants::TOKEN_MAX_SIZE, "token is oversize");
     RETURN_IF_PROXY_IS_NULLPTR();
     return appAccountProxy_->DeleteOAuthToken(name, owner, authType, token);
+}
+
+ErrCode AppAccount::DeleteAuthToken(
+    const std::string &name, const std::string &owner, const std::string &authType, const std::string &token)
+{
+    RETURN_IF_STRING_IS_EMPTY_OR_OVERSIZE(name, Constants::NAME_MAX_SIZE, "name is empty or oversize");
+    RETURN_IF_STRING_IS_EMPTY_OR_OVERSIZE(owner, Constants::OWNER_MAX_SIZE, "owner is empty or oversize");
+    RETURN_IF_STRING_IS_OVERSIZE(authType, Constants::AUTH_TYPE_MAX_SIZE, "authType is oversize");
+    RETURN_IF_STRING_IS_OVERSIZE(token, Constants::TOKEN_MAX_SIZE, "token is oversize");
+    RETURN_IF_PROXY_IS_NULLPTR();
+    return appAccountProxy_->DeleteAuthToken(name, owner, authType, token);
 }
 
 ErrCode AppAccount::SetOAuthTokenVisibility(
@@ -313,6 +334,15 @@ ErrCode AppAccount::GetOAuthList(
     RETURN_IF_STRING_IS_OVERSIZE(authType, Constants::AUTH_TYPE_MAX_SIZE, "authType is oversize");
     RETURN_IF_PROXY_IS_NULLPTR();
     return appAccountProxy_->GetOAuthList(name, authType, oauthList);
+}
+
+ErrCode AppAccount::GetAuthList(
+    const std::string &name, const std::string &authType, std::set<std::string> &oauthList)
+{
+    RETURN_IF_STRING_IS_EMPTY_OR_OVERSIZE(name, Constants::NAME_MAX_SIZE, "name is empty or oversize");
+    RETURN_IF_STRING_IS_OVERSIZE(authType, Constants::AUTH_TYPE_MAX_SIZE, "authType is oversize");
+    RETURN_IF_PROXY_IS_NULLPTR();
+    return appAccountProxy_->GetAuthList(name, authType, oauthList);
 }
 
 ErrCode AppAccount::GetAuthenticatorCallback(const std::string &sessionId, sptr<IRemoteObject> &callback)
