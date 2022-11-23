@@ -69,6 +69,11 @@ ErrCode AppAccountManager::DisableAppAccess(const std::string &name, const std::
     return DelayedSingleton<AppAccount>::GetInstance()->DisableAppAccess(name, authorizedApp);
 }
 
+ErrCode AppAccountManager::SetAppAccess(const std::string &name, const std::string &authorizedApp, bool isAccessible)
+{
+    return DelayedSingleton<AppAccount>::GetInstance()->SetAppAccess(name, authorizedApp, isAccessible);
+}
+
 ErrCode AppAccountManager::CheckAppAccountSyncEnable(const std::string &name, bool &syncEnable)
 {
     return DelayedSingleton<AppAccount>::GetInstance()->CheckAppAccountSyncEnable(name, syncEnable);
@@ -144,10 +149,24 @@ ErrCode AppAccountManager::SetOAuthTokenVisibility(
         name, authType, bundleName, isVisible);
 }
 
+ErrCode AppAccountManager::SetAuthTokenVisibility(
+    const std::string &name, const std::string &authType, const std::string &bundleName, bool isVisible)
+{
+    return DelayedSingleton<AppAccount>::GetInstance()->SetAuthTokenVisibility(
+        name, authType, bundleName, isVisible);
+}
+
 ErrCode AppAccountManager::CheckOAuthTokenVisibility(
     const std::string &name, const std::string &authType, const std::string &bundleName, bool &isVisible)
 {
     return DelayedSingleton<AppAccount>::GetInstance()->CheckOAuthTokenVisibility(
+        name, authType, bundleName, isVisible);
+}
+
+ErrCode AppAccountManager::CheckAuthTokenVisibility(
+    const std::string &name, const std::string &authType, const std::string &bundleName, bool &isVisible)
+{
+    return DelayedSingleton<AppAccount>::GetInstance()->CheckAuthTokenVisibility(
         name, authType, bundleName, isVisible);
 }
 

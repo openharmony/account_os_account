@@ -39,6 +39,7 @@ public:
 
     ErrCode EnableAppAccess(const std::string &name, const std::string &authorizedApp) override;
     ErrCode DisableAppAccess(const std::string &name, const std::string &authorizedApp) override;
+    ErrCode SetAppAccess(const std::string &name, const std::string &authorizedApp, bool isAccessible) override;
     ErrCode CheckAppAccess(const std::string &name, const std::string &authorizedApp, bool &isAccessible) override;
 
     ErrCode CheckAppAccountSyncEnable(const std::string &name, bool &syncEnable) override;
@@ -68,7 +69,11 @@ public:
         const std::string &token) override;
     ErrCode SetOAuthTokenVisibility(
         const std::string &name, const std::string &authType, const std::string &bundleName, bool isVisible) override;
+    ErrCode SetAuthTokenVisibility(
+        const std::string &name, const std::string &authType, const std::string &bundleName, bool isVisible) override;
     ErrCode CheckOAuthTokenVisibility(
+        const std::string &name, const std::string &authType, const std::string &bundleName, bool &isVisible) override;
+    ErrCode CheckAuthTokenVisibility(
         const std::string &name, const std::string &authType, const std::string &bundleName, bool &isVisible) override;
     ErrCode GetAuthenticatorInfo(const std::string &owner, AuthenticatorInfo &info) override;
     ErrCode GetAllOAuthTokens(
@@ -103,6 +108,9 @@ private:
         const std::string &name, const std::string &owner, const std::string &authType, MessageParcel &data);
     ErrCode WriteDeleteAuthTokenParam(const std::string &name,
         const std::string &owner, const std::string &authType, const std::string &token, MessageParcel &data);
+    ErrCode WriteTokenVisibilityParam(
+        const std::string &name, const std::string &authType, const std::string &bundleName, MessageParcel &data);
+
     template<typename T>
     bool WriteParcelableVector(const std::vector<T> &parcelableVector, MessageParcel &data);
     template<typename T>

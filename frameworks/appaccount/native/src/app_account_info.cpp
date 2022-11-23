@@ -116,19 +116,19 @@ void AppAccountInfo::SetExtraInfo(const std::string &extraInfo)
     extraInfo_ = extraInfo;
 }
 
-ErrCode AppAccountInfo::EnableAppAccess(const std::string &authorizedApp)
+ErrCode AppAccountInfo::EnableAppAccess(const std::string &authorizedApp, const uint32_t apiVersion)
 {
     auto it = authorizedApps_.emplace(authorizedApp);
-    if (!it.second) {
+    if (!it.second && apiVersion < Constants::API_VERSION9) {
         return ERR_APPACCOUNT_SERVICE_ENABLE_APP_ACCESS_ALREADY_EXISTS;
     }
     return ERR_OK;
 }
 
-ErrCode AppAccountInfo::DisableAppAccess(const std::string &authorizedApp)
+ErrCode AppAccountInfo::DisableAppAccess(const std::string &authorizedApp, const uint32_t apiVersion)
 {
     auto result = authorizedApps_.erase(authorizedApp);
-    if (result == 0) {
+    if (result == 0 && apiVersion < Constants::API_VERSION9) {
         return ERR_APPACCOUNT_SERVICE_DISABLE_APP_ACCESS_NOT_EXISTED;
     }
     return ERR_OK;
@@ -340,13 +340,16 @@ ErrCode AppAccountInfo::DeleteAuthToken(const std::string &authType, const std::
 }
 
 ErrCode AppAccountInfo::SetOAuthTokenVisibility(
-    const std::string &authType, const std::string &bundleName, bool isVisible)
+    const std::string &authType, const std::string &bundleName, bool isVisible, const uint32_t apiVersion)
 {
     if (bundleName == owner_) {
         return ERR_OK;
     }
     auto it = oauthTokens_.find(authType);
     if (it == oauthTokens_.end()) {
+        if (apiVersion >= Constants::API_VERSION9) {
+            return ERR_APPACCOUNT_SERVICE_OAUTH_TYPE_NOT_EXIST;
+        }
         if (!isVisible) {
             return ERR_OK;
         }
@@ -374,7 +377,7 @@ ErrCode AppAccountInfo::SetOAuthTokenVisibility(
 }
 
 ErrCode AppAccountInfo::CheckOAuthTokenVisibility(
-    const std::string &authType, const std::string &bundleName, bool &isVisible) const
+    const std::string &authType, const std::string &bundleName, bool &isVisible, const uint32_t apiVersion) const
 {
     isVisible = false;
     if (bundleName == owner_) {
@@ -383,7 +386,11 @@ ErrCode AppAccountInfo::CheckOAuthTokenVisibility(
     }
     auto tokenInfoIt = oauthTokens_.find(authType);
     if (tokenInfoIt == oauthTokens_.end()) {
-        return ERR_OK;
+        if (apiVersion >= Constants::API_VERSION9) {
+            return ERR_APPACCOUNT_SERVICE_OAUTH_TYPE_NOT_EXIST;
+        } else {
+            return ERR_OK;
+        }
     }
     std::set<std::string> authList = tokenInfoIt->second.authList;
     auto it = authList.find(bundleName);

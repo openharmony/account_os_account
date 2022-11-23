@@ -137,20 +137,22 @@ ErrCode InnerAppAccountManager::SetAccountExtraInfo(const std::string &name, con
 }
 
 ErrCode InnerAppAccountManager::EnableAppAccess(const std::string &name, const std::string &authorizedApp,
-    const uid_t &uid, const std::string &bundleName, const uint32_t &appIndex)
+    AppAccountCallingInfo &appAccountCallingInfo, const uint32_t apiVersion)
 {
     if (!controlManagerPtr_) {
         ACCOUNT_LOGE("controlManagerPtr_ is nullptr");
         return ERR_APPACCOUNT_SERVICE_CONTROL_MANAGER_PTR_IS_NULLPTR;
     }
 
-    AppAccountInfo appAccountInfo(name, bundleName);
-    appAccountInfo.SetAppIndex(appIndex);
-    ErrCode result = controlManagerPtr_->EnableAppAccess(name, authorizedApp, uid, bundleName, appAccountInfo);
+    AppAccountInfo appAccountInfo(name, appAccountCallingInfo.bundleName);
+    appAccountInfo.SetAppIndex(appAccountCallingInfo.appIndex);
+    ErrCode result = controlManagerPtr_->EnableAppAccess(
+        name, authorizedApp, appAccountCallingInfo, appAccountInfo, apiVersion);
 
     if (!subscribeManagerPtr_) {
         ACCOUNT_LOGE("subscribeManagerPtr_ is nullptr");
-    } else if (subscribeManagerPtr_->PublishAccount(appAccountInfo, uid, bundleName) != true) {
+    } else if (subscribeManagerPtr_->PublishAccount(
+        appAccountInfo, appAccountCallingInfo.callingUid, appAccountCallingInfo.bundleName) != true) {
         ACCOUNT_LOGE("failed to publish account");
     }
 
@@ -158,20 +160,22 @@ ErrCode InnerAppAccountManager::EnableAppAccess(const std::string &name, const s
 }
 
 ErrCode InnerAppAccountManager::DisableAppAccess(const std::string &name, const std::string &authorizedApp,
-    const uid_t &uid, const std::string &bundleName, const uint32_t &appIndex)
+    AppAccountCallingInfo &appAccountCallingInfo, const uint32_t apiVersion)
 {
     if (!controlManagerPtr_) {
         ACCOUNT_LOGE("controlManagerPtr_ is nullptr");
         return ERR_APPACCOUNT_SERVICE_CONTROL_MANAGER_PTR_IS_NULLPTR;
     }
 
-    AppAccountInfo appAccountInfo(name, bundleName);
-    appAccountInfo.SetAppIndex(appIndex);
-    ErrCode result = controlManagerPtr_->DisableAppAccess(name, authorizedApp, uid, bundleName, appAccountInfo);
+    AppAccountInfo appAccountInfo(name, appAccountCallingInfo.bundleName);
+    appAccountInfo.SetAppIndex(appAccountCallingInfo.appIndex);
+    ErrCode result = controlManagerPtr_->DisableAppAccess(
+        name, authorizedApp, appAccountCallingInfo, appAccountInfo, apiVersion);
 
     if (!subscribeManagerPtr_) {
         ACCOUNT_LOGE("subscribeManagerPtr_ is nullptr");
-    } else if (subscribeManagerPtr_->PublishAccount(appAccountInfo, uid, bundleName) != true) {
+    } else if (!subscribeManagerPtr_->PublishAccount(
+        appAccountInfo, appAccountCallingInfo.callingUid, appAccountCallingInfo.bundleName)) {
         ACCOUNT_LOGE("failed to publish account");
     }
 
@@ -388,22 +392,24 @@ ErrCode InnerAppAccountManager::DeleteOAuthToken(const AuthenticatorSessionReque
     return controlManagerPtr_->DeleteOAuthToken(request, apiVersion);
 }
 
-ErrCode InnerAppAccountManager::SetOAuthTokenVisibility(const AuthenticatorSessionRequest &request)
+ErrCode InnerAppAccountManager::SetOAuthTokenVisibility(
+    const AuthenticatorSessionRequest &request, const uint32_t apiVersion)
 {
     if (!controlManagerPtr_) {
         ACCOUNT_LOGE("controlManagerPtr_ is nullptr");
         return ERR_APPACCOUNT_SERVICE_CONTROL_MANAGER_PTR_IS_NULLPTR;
     }
-    return controlManagerPtr_->SetOAuthTokenVisibility(request);
+    return controlManagerPtr_->SetOAuthTokenVisibility(request, apiVersion);
 }
 
-ErrCode InnerAppAccountManager::CheckOAuthTokenVisibility(const AuthenticatorSessionRequest &request, bool &isVisible)
+ErrCode InnerAppAccountManager::CheckOAuthTokenVisibility(
+    const AuthenticatorSessionRequest &request, bool &isVisible, const uint32_t apiVersion)
 {
     if (!controlManagerPtr_) {
         ACCOUNT_LOGE("controlManagerPtr_ is nullptr");
         return ERR_APPACCOUNT_SERVICE_CONTROL_MANAGER_PTR_IS_NULLPTR;
     }
-    return controlManagerPtr_->CheckOAuthTokenVisibility(request, isVisible);
+    return controlManagerPtr_->CheckOAuthTokenVisibility(request, isVisible, apiVersion);
 }
 
 ErrCode InnerAppAccountManager::GetAuthenticatorInfo(
