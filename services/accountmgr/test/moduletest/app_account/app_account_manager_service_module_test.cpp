@@ -68,6 +68,7 @@ const std::string STRING_CREDENTIAL_TWO = "2048";
 const std::string STRING_TOKEN = "1024";
 const std::string STRING_TOKEN_TWO = "2048";
 const std::string STRING_OWNER = "com.example.owner";
+const std::string INVALID_STRING_OWNER = "owner_not_exist";
 const std::string STRING_AUTH_TYPE = "read";
 const std::string STRING_AUTH_TYPE_TWO = "write";
 const std::string STRING_SESSION_ID = "100";
@@ -431,6 +432,30 @@ HWTEST_F(AppAccountManagerServiceModuleTest, seAppAccountManagerService_EnableAp
 }
 
 /**
+ * @tc.name: AppAccountManagerService_SetAppAccess_0100
+ * @tc.desc: Enable app access with valid data.
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(AppAccountManagerServiceModuleTest, AppAccountManagerService_SetAppAccess_0100, TestSize.Level1)
+{
+    ACCOUNT_LOGI("AppAccountManagerService_SetAppAccess_0100");
+
+    CreateAccountOptions option;
+    ErrCode result = g_accountManagerService->CreateAccount(STRING_NAME, option);
+    EXPECT_EQ(result, ERR_OK);
+
+    result = g_accountManagerService->SetAppAccess(STRING_NAME, STRING_BUNDLE_NAME, true);
+    EXPECT_EQ(result, ERR_OK);
+
+    result = g_accountManagerService->SetAppAccess(STRING_NAME, STRING_BUNDLE_NAME, false);
+    EXPECT_EQ(result, ERR_OK);
+
+    result = g_accountManagerService->DeleteAccount(STRING_NAME);
+    EXPECT_EQ(result, ERR_OK);
+}
+
+/**
  * @tc.name: seAppAccountManagerService_EnableAppAccess_0200
  * @tc.desc: Enable app access with invalid data.
  * @tc.type: FUNC
@@ -445,6 +470,27 @@ HWTEST_F(AppAccountManagerServiceModuleTest, seAppAccountManagerService_EnableAp
 
     result = g_accountManagerService->EnableAppAccess(STRING_NAME, STRING_OWNER);
     EXPECT_EQ(result, ERR_APPACCOUNT_SERVICE_BUNDLE_NAME_IS_THE_SAME);
+
+    result = g_accountManagerService->DeleteAccount(STRING_NAME);
+    EXPECT_EQ(result, ERR_OK);
+}
+
+/**
+ * @tc.name: seAppAccountManagerService_SetAppAccess_0200
+ * @tc.desc: Enable app access with invalid data.
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(AppAccountManagerServiceModuleTest, seAppAccountManagerService_SetAppAccess_0200, TestSize.Level1)
+{
+    ACCOUNT_LOGI("seAppAccountManagerService_SetAppAccess_0200");
+
+    CreateAccountOptions option;
+    ErrCode result = g_accountManagerService->CreateAccount(STRING_NAME, option);
+    EXPECT_EQ(result, ERR_OK);
+
+    result = g_accountManagerService->SetAppAccess(STRING_NAME, STRING_OWNER, true);
+    EXPECT_EQ(result, ERR_OK);
 
     result = g_accountManagerService->DeleteAccount(STRING_NAME);
     EXPECT_EQ(result, ERR_OK);
@@ -474,6 +520,30 @@ HWTEST_F(AppAccountManagerServiceModuleTest, seAppAccountManagerService_EnableAp
 }
 
 /**
+ * @tc.name: AppAccountManagerService_SetAppAccess_0300
+ * @tc.desc: Enable app access with valid data.
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(AppAccountManagerServiceModuleTest, AppAccountManagerService_SetAppAccess_0300, TestSize.Level1)
+{
+    ACCOUNT_LOGI("AppAccountManagerService_SetAppAccess_0300");
+
+    CreateAccountOptions option;
+    ErrCode result = g_accountManagerService->CreateAccount(STRING_NAME, option);
+    EXPECT_EQ(result, ERR_OK);
+
+    result = g_accountManagerService->SetAppAccess(STRING_NAME, STRING_BUNDLE_NAME, true);
+    EXPECT_EQ(result, ERR_OK);
+
+    result = g_accountManagerService->SetAppAccess(STRING_NAME, STRING_BUNDLE_NAME, true);
+    EXPECT_EQ(result, ERR_OK);
+
+    result = g_accountManagerService->DeleteAccount(STRING_NAME);
+    EXPECT_EQ(result, ERR_OK);
+}
+
+/**
  * @tc.name: seAppAccountManagerService_EnableAppAccess_0400
  * @tc.desc: Enable app access with invalid data.
  * @tc.type: FUNC
@@ -484,6 +554,20 @@ HWTEST_F(AppAccountManagerServiceModuleTest, seAppAccountManagerService_EnableAp
     ACCOUNT_LOGI("seAppAccountManagerService_EnableAppAccess_0400");
 
     ErrCode result = g_accountManagerService->EnableAppAccess(STRING_NAME, STRING_BUNDLE_NAME);
+    EXPECT_EQ(result, ERR_APPACCOUNT_SERVICE_GET_ACCOUNT_INFO_BY_ID);
+}
+
+/**
+ * @tc.name: AppAccountManagerService_SetAppAccess_0400
+ * @tc.desc: Enable app access with invalid data.
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(AppAccountManagerServiceModuleTest, AppAccountManagerService_SetAppAccess_0400, TestSize.Level1)
+{
+    ACCOUNT_LOGI("AppAccountManagerService_SetAppAccess_0400");
+
+    ErrCode result = g_accountManagerService->SetAppAccess(STRING_NAME, STRING_BUNDLE_NAME, true);
     EXPECT_EQ(result, ERR_APPACCOUNT_SERVICE_GET_ACCOUNT_INFO_BY_ID);
 }
 
@@ -508,6 +592,27 @@ HWTEST_F(AppAccountManagerServiceModuleTest, seAppAccountManagerService_DisableA
 }
 
 /**
+ * @tc.name: AppAccountManagerService_SetAppAccess_0500
+ * @tc.desc: Disable app access with invalid data.
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(AppAccountManagerServiceModuleTest, AppAccountManagerService_SetAppAccess_0500, TestSize.Level1)
+{
+    ACCOUNT_LOGI("AppAccountManagerService_SetAppAccess_0500");
+
+    CreateAccountOptions option;
+    ErrCode result = g_accountManagerService->CreateAccount(STRING_NAME, option);
+    EXPECT_EQ(result, ERR_OK);
+
+    result = g_accountManagerService->SetAppAccess(STRING_NAME, STRING_BUNDLE_NAME, false);
+    EXPECT_EQ(result, ERR_OK);
+
+    result = g_accountManagerService->DeleteAccount(STRING_NAME);
+    EXPECT_EQ(result, ERR_OK);
+}
+
+/**
  * @tc.name: seAppAccountManagerService_DisableAppAccess_0200
  * @tc.desc: Disable app access with invalid data.
  * @tc.type: FUNC
@@ -518,6 +623,20 @@ HWTEST_F(AppAccountManagerServiceModuleTest, seAppAccountManagerService_DisableA
     ACCOUNT_LOGI("seAppAccountManagerService_DisableAppAccess_0200");
 
     ErrCode result = g_accountManagerService->DisableAppAccess(STRING_NAME, STRING_BUNDLE_NAME);
+    EXPECT_EQ(result, ERR_APPACCOUNT_SERVICE_GET_ACCOUNT_INFO_BY_ID);
+}
+
+/**
+ * @tc.name: AppAccountManagerService_SetAppAccess_0600
+ * @tc.desc: Disable app access with invalid data.
+ * @tc.type: FUNC
+ * @tc.require: issueI5N90B
+ */
+HWTEST_F(AppAccountManagerServiceModuleTest, AppAccountManagerService_SetAppAccess_0600, TestSize.Level1)
+{
+    ACCOUNT_LOGI("AppAccountManagerService_SetAppAccess_0600");
+
+    ErrCode result = g_accountManagerService->SetAppAccess(STRING_NAME, STRING_BUNDLE_NAME, false);
     EXPECT_EQ(result, ERR_APPACCOUNT_SERVICE_GET_ACCOUNT_INFO_BY_ID);
 }
 
@@ -959,6 +1078,22 @@ HWTEST_F(AppAccountManagerServiceModuleTest, AppAccountManagerService_GetOAuthTo
 }
 
 /**
+ * @tc.name: AppAccountManagerService_GetAuthToken_0100
+ * @tc.desc: Get oauth token failed with non-existent account.
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(AppAccountManagerServiceModuleTest, AppAccountManagerService_GetAuthToken_0100, TestSize.Level0)
+{
+    ACCOUNT_LOGI("AppAccountManagerService_GetAuthToken_0100");
+
+    std::string token;
+    ErrCode result = g_accountManagerService->GetAuthToken(STRING_NAME, STRING_OWNER, STRING_AUTH_TYPE, token);
+    EXPECT_EQ(result, ERR_APPACCOUNT_SERVICE_ACCOUNT_NOT_EXIST);
+    EXPECT_EQ(token, STRING_EMPTY);
+}
+
+/**
  * @tc.name: AppAccountManagerService_GetOAuthToken_0200
  * @tc.desc: Get oauth token failed for non-existent oauth token.
  * @tc.type: FUNC
@@ -980,6 +1115,36 @@ HWTEST_F(AppAccountManagerServiceModuleTest, AppAccountManagerService_GetOAuthTo
 
     std::string token;
     result = g_accountManagerService->GetOAuthToken(STRING_NAME, owner, STRING_AUTH_TYPE, token);
+    EXPECT_EQ(result, ERR_APPACCOUNT_SERVICE_OAUTH_TOKEN_NOT_EXIST);
+    EXPECT_EQ(token, STRING_EMPTY);
+
+    result = g_accountManagerService->DeleteAccount(STRING_NAME);
+    EXPECT_EQ(result, ERR_OK);
+}
+
+/**
+ * @tc.name: AppAccountManagerService_GetAuthToken_0200
+ * @tc.desc: Get oauth token failed for non-existent oauth token.
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(AppAccountManagerServiceModuleTest, AppAccountManagerService_GetAuthToken_0200, TestSize.Level0)
+{
+    ACCOUNT_LOGI("AppAccountManagerService_GetAuthToken_0200");
+
+    CreateAccountOptions option;
+    ErrCode result = g_accountManagerService->CreateAccount(STRING_NAME, option);
+    EXPECT_EQ(result, ERR_OK);
+
+    std::vector<AppAccountInfo> appAccounts;
+    result = g_accountManagerService->GetAllAccessibleAccounts(appAccounts);
+    EXPECT_EQ(result, ERR_OK);
+    ASSERT_EQ(appAccounts.size(), SIZE_ONE);
+    std::string owner;
+    appAccounts[0].GetOwner(owner);
+
+    std::string token;
+    result = g_accountManagerService->GetAuthToken(STRING_NAME, owner, STRING_AUTH_TYPE, token);
     EXPECT_EQ(result, ERR_APPACCOUNT_SERVICE_OAUTH_TOKEN_NOT_EXIST);
     EXPECT_EQ(token, STRING_EMPTY);
 
@@ -1012,6 +1177,39 @@ HWTEST_F(AppAccountManagerServiceModuleTest, AppAccountManagerService_GetOAuthTo
 
     std::string token;
     result = g_accountManagerService->GetOAuthToken(STRING_NAME, owner, STRING_AUTH_TYPE, token);
+    EXPECT_EQ(result, ERR_OK);
+    EXPECT_EQ(token, STRING_TOKEN);
+
+    result = g_accountManagerService->DeleteAccount(STRING_NAME);
+    EXPECT_EQ(result, ERR_OK);
+}
+
+/**
+ * @tc.name: AppAccountManagerService_GetAuthToken_0300
+ * @tc.desc: Get oauth token successfully.
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(AppAccountManagerServiceModuleTest, AppAccountManagerService_GetAuthToken_0300, TestSize.Level1)
+{
+    ACCOUNT_LOGI("AppAccountManagerService_GetAuthToken_0300");
+
+    CreateAccountOptions option;
+    ErrCode result = g_accountManagerService->CreateAccount(STRING_NAME, option);
+    EXPECT_EQ(result, ERR_OK);
+
+    std::vector<AppAccountInfo> appAccounts;
+    result = g_accountManagerService->GetAllAccessibleAccounts(appAccounts);
+    EXPECT_EQ(result, ERR_OK);
+    ASSERT_EQ(appAccounts.size(), SIZE_ONE);
+    std::string owner;
+    appAccounts[0].GetOwner(owner);
+
+    result = g_accountManagerService->SetOAuthToken(STRING_NAME, STRING_AUTH_TYPE, STRING_TOKEN);
+    EXPECT_EQ(result, ERR_OK);
+
+    std::string token;
+    result = g_accountManagerService->GetAuthToken(STRING_NAME, owner, STRING_AUTH_TYPE, token);
     EXPECT_EQ(result, ERR_OK);
     EXPECT_EQ(token, STRING_TOKEN);
 
@@ -1084,6 +1282,21 @@ HWTEST_F(AppAccountManagerServiceModuleTest, AppAccountManagerService_DeleteOAut
 }
 
 /**
+ * @tc.name: AppAccountManagerService_DeleteAuthToken_0100
+ * @tc.desc: Delete oauth token failed with non-exist account.
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(AppAccountManagerServiceModuleTest, AppAccountManagerService_DeleteAuthToken_0100, TestSize.Level1)
+{
+    ACCOUNT_LOGI("AppAccountManagerService_DeleteAuthToken_0100");
+
+    ErrCode result = g_accountManagerService->DeleteAuthToken(STRING_NAME,
+        STRING_OWNER, STRING_AUTH_TYPE, STRING_TOKEN);
+    EXPECT_EQ(result, ERR_APPACCOUNT_SERVICE_ACCOUNT_NOT_EXIST);
+}
+
+/**
  * @tc.name: AppAccountManagerService_DeleteOAuthToken_0200
  * @tc.desc: Delete oauth token successfully with non-existent token.
  * @tc.type: FUNC
@@ -1108,6 +1321,39 @@ HWTEST_F(AppAccountManagerServiceModuleTest, AppAccountManagerService_DeleteOAut
 
     std::string token;
     result = g_accountManagerService->GetOAuthToken(STRING_NAME, owner, STRING_AUTH_TYPE, token);
+    EXPECT_EQ(result, ERR_APPACCOUNT_SERVICE_OAUTH_TOKEN_NOT_EXIST);
+    EXPECT_EQ(token, STRING_EMPTY);
+
+    result = g_accountManagerService->DeleteAccount(STRING_NAME);
+    EXPECT_EQ(result, ERR_OK);
+}
+
+/**
+ * @tc.name: AppAccountManagerService_DeleteAuthToken_0200
+ * @tc.desc: Delete oauth token successfully with non-existent token.
+ * @tc.type: FUNC
+ * @tc.require: issueI5N90B
+ */
+HWTEST_F(AppAccountManagerServiceModuleTest, AppAccountManagerService_DeleteAuthToken_0200, TestSize.Level1)
+{
+    ACCOUNT_LOGI("AppAccountManagerService_DeleteAuthToken_0200");
+
+    CreateAccountOptions option;
+    ErrCode result = g_accountManagerService->CreateAccount(STRING_NAME, option);
+    EXPECT_EQ(result, ERR_OK);
+
+    std::vector<AppAccountInfo> appAccounts;
+    result = g_accountManagerService->GetAllAccessibleAccounts(appAccounts);
+    EXPECT_EQ(result, ERR_OK);
+    ASSERT_EQ(appAccounts.size(), SIZE_ONE);
+    std::string owner;
+    appAccounts[0].GetOwner(owner);
+
+    result = g_accountManagerService->DeleteAuthToken(STRING_NAME, owner, STRING_AUTH_TYPE, STRING_TOKEN);
+    EXPECT_EQ(result, ERR_APPACCOUNT_SERVICE_OAUTH_TOKEN_NOT_EXIST);
+
+    std::string token;
+    result = g_accountManagerService->GetAuthToken(STRING_NAME, owner, STRING_AUTH_TYPE, token);
     EXPECT_EQ(result, ERR_APPACCOUNT_SERVICE_OAUTH_TOKEN_NOT_EXIST);
     EXPECT_EQ(token, STRING_EMPTY);
 
@@ -1143,6 +1389,47 @@ HWTEST_F(AppAccountManagerServiceModuleTest, AppAccountManagerService_DeleteOAut
 
     std::string token;
     result = g_accountManagerService->GetOAuthToken(STRING_NAME, owner, STRING_AUTH_TYPE, token);
+    EXPECT_EQ(result, ERR_APPACCOUNT_SERVICE_OAUTH_TOKEN_NOT_EXIST);
+    EXPECT_EQ(token, STRING_EMPTY);
+
+    result = g_accountManagerService->DeleteAccount(STRING_NAME);
+    EXPECT_EQ(result, ERR_OK);
+}
+
+/**
+ * @tc.name: AppAccountManagerService_DeleteAuthToken_0300
+ * @tc.desc: Delete oauth token successfully with non-existent token.
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(AppAccountManagerServiceModuleTest, AppAccountManagerService_DeleteAuthToken_0300, TestSize.Level1)
+{
+    ACCOUNT_LOGI("AppAccountManagerService_DeleteAuthToken_0300");
+
+    CreateAccountOptions option;
+    ErrCode result = g_accountManagerService->CreateAccount(STRING_NAME, option);
+    EXPECT_EQ(result, ERR_OK);
+
+    std::vector<AppAccountInfo> appAccounts;
+    result = g_accountManagerService->GetAllAccessibleAccounts(appAccounts);
+    EXPECT_EQ(result, ERR_OK);
+    ASSERT_EQ(appAccounts.size(), SIZE_ONE);
+    std::string owner;
+    appAccounts[0].GetOwner(owner);
+
+    result = g_accountManagerService->SetOAuthToken(STRING_NAME, STRING_AUTH_TYPE, STRING_TOKEN);
+    EXPECT_EQ(result, ERR_OK);
+
+    std::string token;
+    result = g_accountManagerService->GetAuthToken(STRING_NAME, owner, STRING_AUTH_TYPE, token);
+    EXPECT_EQ(result, ERR_OK);
+    EXPECT_EQ(token, STRING_TOKEN);
+
+    result = g_accountManagerService->DeleteAuthToken(STRING_NAME, owner, STRING_AUTH_TYPE, STRING_TOKEN);
+    EXPECT_EQ(result, ERR_OK);
+
+    token = "";
+    result = g_accountManagerService->GetAuthToken(STRING_NAME, owner, STRING_AUTH_TYPE, token);
     EXPECT_EQ(result, ERR_APPACCOUNT_SERVICE_OAUTH_TOKEN_NOT_EXIST);
     EXPECT_EQ(token, STRING_EMPTY);
 
@@ -1223,6 +1510,43 @@ HWTEST_F(AppAccountManagerServiceModuleTest, AppAccountManagerService_SetOAuthTo
 }
 
 /**
+ * @tc.name: AppAccountManagerService_SetAuthTokenVisibility_0100
+ * @tc.desc: Set oauth token failed with non-existent account.
+ * @tc.type: FUNC
+ * @tc.require: issueI5N90B
+ */
+HWTEST_F(AppAccountManagerServiceModuleTest, AppAccountManagerService_SetAuthTokenVisibility_0100, TestSize.Level1)
+{
+    ACCOUNT_LOGI("AppAccountManagerService_SetAuthTokenVisibility_0100");
+
+    ErrCode result = g_accountManagerService->SetAuthTokenVisibility(STRING_NAME,
+        STRING_AUTH_TYPE, STRING_BUNDLE_NAME, true);
+    EXPECT_EQ(result, ERR_APPACCOUNT_SERVICE_ACCOUNT_NOT_EXIST);
+}
+
+/**
+ * @tc.name: AppAccountManagerService_SetAuthTokenVisibility_0100
+ * @tc.desc: Set oauth token failed with non-existent owner.
+ * @tc.type: FUNC
+ * @tc.require: issueI5N90B
+ */
+HWTEST_F(AppAccountManagerServiceModuleTest, AppAccountManagerService_SetAuthTokenVisibility_01001, TestSize.Level1)
+{
+    ACCOUNT_LOGI("AppAccountManagerService_SetAuthTokenVisibility_01001");
+
+    CreateAccountOptions option;
+    ErrCode result = g_accountManagerService->CreateAccount(STRING_NAME, option);
+    EXPECT_EQ(result, ERR_OK);
+
+    result = g_accountManagerService->SetAuthTokenVisibility(STRING_NAME,
+        STRING_AUTH_TYPE, STRING_BUNDLE_NAME_NOT_INSTALLED, true);
+    EXPECT_EQ(result, ERR_APPACCOUNT_SERVICE_GET_BUNDLE_INFO);
+
+    result = g_accountManagerService->DeleteAccount(STRING_NAME);
+    EXPECT_EQ(result, ERR_OK);
+}
+
+/**
  * @tc.name: AppAccountManagerService_SetOAuthTokenVisibility_0200
  * @tc.desc: Set oauth token visibility with non-existent authType successfully.
  * @tc.type: FUNC
@@ -1250,6 +1574,34 @@ HWTEST_F(AppAccountManagerServiceModuleTest, AppAccountManagerService_SetOAuthTo
         STRING_AUTH_TYPE, STRING_BUNDLE_NAME, isVisible);
     EXPECT_EQ(result, ERR_OK);
     EXPECT_EQ(isVisible, true);
+
+    result = g_accountManagerService->DeleteAccount(STRING_NAME);
+    EXPECT_EQ(result, ERR_OK);
+}
+
+/**
+ * @tc.name: AppAccountManagerService_SetAuthTokenVisibility_0200
+ * @tc.desc: Set oauth token visibility with non-existent authType.
+ * @tc.type: FUNC
+ * @tc.require: issueI5N90B
+ */
+// STRING_OWNER valid owner
+HWTEST_F(AppAccountManagerServiceModuleTest, AppAccountManagerService_SetAuthTokenVisibility_0200, TestSize.Level1)
+{
+    ACCOUNT_LOGI("AppAccountManagerService_SetAuthTokenVisibility_0200");
+
+    CreateAccountOptions option;
+    ErrCode result = g_accountManagerService->CreateAccount(STRING_NAME, option);
+    EXPECT_EQ(result, ERR_OK);
+
+    bool isVisible = false;
+    result = g_accountManagerService->CheckAuthTokenVisibility(STRING_NAME,
+        STRING_AUTH_TYPE, STRING_BUNDLE_NAME, isVisible);
+    EXPECT_EQ(result, ERR_APPACCOUNT_SERVICE_OAUTH_TYPE_NOT_EXIST);
+
+    result = g_accountManagerService->SetAuthTokenVisibility(STRING_NAME,
+        STRING_AUTH_TYPE, STRING_BUNDLE_NAME, true);
+    EXPECT_EQ(result, ERR_APPACCOUNT_SERVICE_OAUTH_TYPE_NOT_EXIST);
 
     result = g_accountManagerService->DeleteAccount(STRING_NAME);
     EXPECT_EQ(result, ERR_OK);
@@ -1287,6 +1639,77 @@ HWTEST_F(AppAccountManagerServiceModuleTest, AppAccountManagerService_SetOAuthTo
         STRING_AUTH_TYPE, STRING_BUNDLE_NAME, isVisible);
     EXPECT_EQ(result, ERR_OK);
     EXPECT_EQ(isVisible, true);
+
+    result = g_accountManagerService->DeleteAccount(STRING_NAME);
+    EXPECT_EQ(result, ERR_OK);
+}
+
+/**
+ * @tc.name: AppAccountManagerService_SetAuthTokenVisibility_0300
+ * @tc.desc: Set oauth token visibility with existent authType successfully.
+ * @tc.type: FUNC
+ * @tc.require: issueI5N90B
+ */
+HWTEST_F(AppAccountManagerServiceModuleTest, AppAccountManagerService_SetAuthTokenVisibility_0300, TestSize.Level1)
+{
+    ACCOUNT_LOGI("AppAccountManagerService_SetAuthTokenVisibility_0300");
+
+    CreateAccountOptions option;
+    ErrCode result = g_accountManagerService->CreateAccount(STRING_NAME, option);
+    EXPECT_EQ(result, ERR_OK);
+
+    // check self
+    bool isVisible = false;
+    result = g_accountManagerService->CheckAuthTokenVisibility(STRING_NAME,
+        STRING_AUTH_TYPE, STRING_OWNER, isVisible);
+    EXPECT_EQ(result, ERR_OK);
+    EXPECT_EQ(isVisible, true);
+
+    result = g_accountManagerService->SetAuthTokenVisibility(STRING_NAME,
+        STRING_AUTH_TYPE, STRING_OWNER, false);
+    EXPECT_EQ(result, ERR_APPACCOUNT_SERVICE_BUNDLE_NAME_IS_THE_SAME);
+
+    result = g_accountManagerService->CheckAuthTokenVisibility(STRING_NAME,
+        STRING_AUTH_TYPE, STRING_OWNER, isVisible);
+    EXPECT_EQ(result, ERR_OK);
+    EXPECT_EQ(isVisible, true);
+
+    // check other owners
+    result = g_accountManagerService->SetOAuthToken(STRING_NAME, STRING_AUTH_TYPE, STRING_TOKEN);
+    EXPECT_EQ(result, ERR_OK);
+
+    result = g_accountManagerService->SetAuthTokenVisibility(STRING_NAME,
+        STRING_AUTH_TYPE, STRING_BUNDLE_NAME, true);
+    EXPECT_EQ(result, ERR_OK);
+
+    std::set<std::string> authList;
+    result = g_accountManagerService->GetOAuthList(STRING_NAME, STRING_AUTH_TYPE, authList);
+    EXPECT_EQ(result, ERR_OK);
+    ASSERT_EQ(authList.size(), SIZE_ONE);
+
+    result = g_accountManagerService->CheckAuthTokenVisibility(STRING_NAME,
+        STRING_AUTH_TYPE, INVALID_STRING_OWNER, isVisible);
+    EXPECT_EQ(result, ERR_OK);
+    EXPECT_EQ(isVisible, false);
+
+    result = g_accountManagerService->CheckAuthTokenVisibility(STRING_NAME,
+        STRING_AUTH_TYPE, STRING_BUNDLE_NAME, isVisible);
+    EXPECT_EQ(result, ERR_OK);
+    EXPECT_EQ(isVisible, true);
+
+    result = g_accountManagerService->SetAuthTokenVisibility(STRING_NAME,
+        STRING_AUTH_TYPE, STRING_BUNDLE_NAME, false);
+    EXPECT_EQ(result, ERR_OK);
+
+    result = g_accountManagerService->CheckAuthTokenVisibility(STRING_NAME,
+        STRING_AUTH_TYPE, STRING_BUNDLE_NAME, isVisible);
+    EXPECT_EQ(result, ERR_OK);
+    EXPECT_EQ(isVisible, false);
+
+    authList.clear();
+    result = g_accountManagerService->GetOAuthList(STRING_NAME, STRING_AUTH_TYPE, authList);
+    EXPECT_EQ(result, ERR_OK);
+    ASSERT_EQ(authList.size(), 0);
 
     result = g_accountManagerService->DeleteAccount(STRING_NAME);
     EXPECT_EQ(result, ERR_OK);
@@ -1351,6 +1774,23 @@ HWTEST_F(AppAccountManagerServiceModuleTest, AppAccountManagerService_CheckOAuth
 }
 
 /**
+ * @tc.name: AppAccountManagerService_CheckAuthTokenVisibility_0100
+ * @tc.desc: Check oauth token visibility with non_exist account.
+ * @tc.type: FUNC
+ * @tc.require: issueI5N90B
+ */
+HWTEST_F(AppAccountManagerServiceModuleTest, AppAccountManagerService_CheckAuthTokenVisibility_0100, TestSize.Level1)
+{
+    ACCOUNT_LOGI("AppAccountManagerService_CheckAuthTokenVisibility_0100");
+
+    bool isVisible = true;
+    ErrCode result = g_accountManagerService->CheckAuthTokenVisibility(
+        STRING_NAME, STRING_AUTH_TYPE, STRING_BUNDLE_NAME, isVisible);
+    EXPECT_EQ(result, ERR_APPACCOUNT_SERVICE_ACCOUNT_NOT_EXIST);
+    EXPECT_EQ(isVisible, false);
+}
+
+/**
  * @tc.name: AppAccountManagerService_GetOAuthList_0100
  * @tc.desc: Get oauth list failed with non-existent account.
  * @tc.type: FUNC
@@ -1362,6 +1802,21 @@ HWTEST_F(AppAccountManagerServiceModuleTest, AppAccountManagerService_GetOAuthLi
 
     std::set<std::string> authList;
     ErrCode result = g_accountManagerService->GetOAuthList(STRING_NAME, STRING_AUTH_TYPE, authList);
+    EXPECT_EQ(result, ERR_APPACCOUNT_SERVICE_ACCOUNT_NOT_EXIST);
+}
+
+/**
+ * @tc.name: AppAccountManagerService_GetAuthList_0100
+ * @tc.desc: Get oauth list failed with non-existent account.
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(AppAccountManagerServiceModuleTest, AppAccountManagerService_GetAuthList_0100, TestSize.Level1)
+{
+    ACCOUNT_LOGI("AppAccountManagerService_GetAuthList_0100");
+
+    std::set<std::string> authList;
+    ErrCode result = g_accountManagerService->GetAuthList(STRING_NAME, STRING_AUTH_TYPE, authList);
     EXPECT_EQ(result, ERR_APPACCOUNT_SERVICE_ACCOUNT_NOT_EXIST);
 }
 
@@ -1382,6 +1837,28 @@ HWTEST_F(AppAccountManagerServiceModuleTest, AppAccountManagerService_GetOAuthLi
     result = g_accountManagerService->GetOAuthList(STRING_NAME, STRING_AUTH_TYPE, authList);
     EXPECT_EQ(result, ERR_OK);
     ASSERT_EQ(authList.size(), SIZE_ZERO);
+
+    result = g_accountManagerService->DeleteAccount(STRING_NAME);
+    EXPECT_EQ(result, ERR_OK);
+}
+
+/**
+ * @tc.name: AppAccountManagerService_GetAuthList_0200
+ * @tc.desc: Get oauth list with non-existent authType successfully.
+ * @tc.type: FUNC
+ * @tc.require: issueI5N90B
+ */
+HWTEST_F(AppAccountManagerServiceModuleTest, AppAccountManagerService_GetAuthList_0200, TestSize.Level1)
+{
+    ACCOUNT_LOGI("AppAccountManagerService_GetAuthList_0200");
+
+    CreateAccountOptions option;
+    ErrCode result = g_accountManagerService->CreateAccount(STRING_NAME, option);
+    EXPECT_EQ(result, ERR_OK);
+
+    std::set<std::string> authList;
+    result = g_accountManagerService->GetAuthList(STRING_NAME, STRING_AUTH_TYPE, authList);
+    EXPECT_EQ(result, ERR_APPACCOUNT_SERVICE_OAUTH_TYPE_NOT_EXIST);
 
     result = g_accountManagerService->DeleteAccount(STRING_NAME);
     EXPECT_EQ(result, ERR_OK);
@@ -1417,6 +1894,41 @@ HWTEST_F(AppAccountManagerServiceModuleTest, AppAccountManagerService_GetOAuthLi
     EXPECT_NE(it, authList.end());
     it = authList.find(STRING_BUNDLE_NAME_NOT_INSTALLED);
     EXPECT_NE(it, authList.end());
+
+    result = g_accountManagerService->DeleteAccount(STRING_NAME);
+    EXPECT_EQ(result, ERR_OK);
+}
+
+/**
+ * @tc.name: AppAccountManagerService_GetAuthList_0400
+ * @tc.desc: Get oauth list with existent authType successfully.
+ * @tc.type: FUNC
+ * @tc.require: issueI5N90B
+ */
+HWTEST_F(AppAccountManagerServiceModuleTest, AppAccountManagerService_GetAuthList_0400, TestSize.Level1)
+{
+    ACCOUNT_LOGI("AppAccountManagerService_GetAuthList_0400");
+
+    CreateAccountOptions option;
+    ErrCode result = g_accountManagerService->CreateAccount(STRING_NAME, option);
+    EXPECT_EQ(result, ERR_OK);
+
+    result = g_accountManagerService->SetOAuthToken(STRING_NAME, STRING_AUTH_TYPE, STRING_TOKEN);
+    EXPECT_EQ(result, ERR_OK);
+
+    result = g_accountManagerService->SetAuthTokenVisibility(STRING_NAME,
+        STRING_AUTH_TYPE, STRING_BUNDLE_NAME, true);
+    EXPECT_EQ(result, ERR_OK);
+
+    std::set<std::string> authList;
+    result = g_accountManagerService->GetAuthList(STRING_NAME, STRING_AUTH_TYPE, authList);
+    EXPECT_EQ(result, ERR_OK);
+    ASSERT_EQ(authList.size(), SIZE_ONE);
+
+    auto it = authList.find(STRING_BUNDLE_NAME);
+    EXPECT_NE(it, authList.end());
+    it = authList.find(STRING_BUNDLE_NAME_NOT_INSTALLED);
+    EXPECT_EQ(it, authList.end());
 
     result = g_accountManagerService->DeleteAccount(STRING_NAME);
     EXPECT_EQ(result, ERR_OK);
