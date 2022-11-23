@@ -23,7 +23,7 @@ namespace OHOS {
 namespace AccountSA {
 class AppAccountStub : public IRemoteStub<IAppAccount> {
 public:
-    using MessageProcFunction = ErrCode (AppAccountStub::*)(MessageParcel &data, MessageParcel &reply);
+    using MessageProcFunction = ErrCode (AppAccountStub::*)(uint32_t code, MessageParcel &data, MessageParcel &reply);
 
     AppAccountStub();
     ~AppAccountStub() override;
@@ -36,41 +36,40 @@ private:
     template<typename T>
     bool ReadParcelableVector(std::vector<T> &parcelableInfos, MessageParcel &data);
 
-    ErrCode ProcAddAccount(MessageParcel &data, MessageParcel &reply);
-    ErrCode ProcAddAccountImplicitly(MessageParcel &data, MessageParcel &reply);
-    ErrCode ProcCreateAccount(MessageParcel &data, MessageParcel &reply);
-    ErrCode ProcCreateAccountImplicitly(MessageParcel &data, MessageParcel &reply);
-    ErrCode ProcDeleteAccount(MessageParcel &data, MessageParcel &reply);
-    ErrCode ProcGetAccountExtraInfo(MessageParcel &data, MessageParcel &reply);
-    ErrCode ProcSetAccountExtraInfo(MessageParcel &data, MessageParcel &reply);
-    ErrCode ProcEnableAppAccess(MessageParcel &data, MessageParcel &reply);
-    ErrCode ProcDisableAppAccess(MessageParcel &data, MessageParcel &reply);
-    ErrCode ProcCheckAppAccess(MessageParcel &data, MessageParcel &reply);
-    ErrCode ProcCheckAppAccountSyncEnable(MessageParcel &data, MessageParcel &reply);
-    ErrCode ProcSetAppAccountSyncEnable(MessageParcel &data, MessageParcel &reply);
-    ErrCode ProcGetAssociatedData(MessageParcel &data, MessageParcel &reply);
-    ErrCode ProcSetAssociatedData(MessageParcel &data, MessageParcel &reply);
-    ErrCode ProcGetAccountCredential(MessageParcel &data, MessageParcel &reply);
-    ErrCode ProcSetAccountCredential(MessageParcel &data, MessageParcel &reply);
-    ErrCode ProcDeleteAccountCredential(MessageParcel &data, MessageParcel &reply);
-    ErrCode ProcAuthenticate(MessageParcel &data, MessageParcel &reply);
-    ErrCode ProcGetAuthToken(MessageParcel &data, MessageParcel &reply);
-    ErrCode ProcSetOAuthToken(MessageParcel &data, MessageParcel &reply);
-    ErrCode ProcDeleteAuthToken(MessageParcel &data, MessageParcel &reply);
-    ErrCode ProcSetOAuthTokenVisibility(MessageParcel &data, MessageParcel &reply);
-    ErrCode ProcCheckOAuthTokenVisibility(MessageParcel &data, MessageParcel &reply);
-    ErrCode ProcGetAuthenticatorInfo(MessageParcel &data, MessageParcel &reply);
-    ErrCode ProcGetAllOAuthTokens(MessageParcel &data, MessageParcel &reply);
-    ErrCode ProcGetAuthList(MessageParcel &data, MessageParcel &reply);
-    ErrCode ProcGetAuthenticatorCallback(MessageParcel &data, MessageParcel &reply);
-    ErrCode ProcGetAllAccounts(MessageParcel &data, MessageParcel &reply);
-    ErrCode ProcGetAllAccessibleAccounts(MessageParcel &data, MessageParcel &reply);
-    ErrCode ProcSubscribeAccount(MessageParcel &data, MessageParcel &reply);
-    ErrCode ProcUnsubscribeAccount(MessageParcel &data, MessageParcel &reply);
-    ErrCode ProcSelectAccountsByOptions(MessageParcel &data, MessageParcel &reply);
-    ErrCode ProcVerifyCredential(MessageParcel &data, MessageParcel &reply);
-    ErrCode ProcCheckAccountLabels(MessageParcel &data, MessageParcel &reply);
-    ErrCode ProcSetAuthenticatorProperties(MessageParcel &data, MessageParcel &reply);
+    ErrCode ProcAddAccount(uint32_t code, MessageParcel &data, MessageParcel &reply);
+    ErrCode ProcAddAccountImplicitly(uint32_t code, MessageParcel &data, MessageParcel &reply);
+    ErrCode ProcCreateAccount(uint32_t code, MessageParcel &data, MessageParcel &reply);
+    ErrCode ProcCreateAccountImplicitly(uint32_t code, MessageParcel &data, MessageParcel &reply);
+    ErrCode ProcDeleteAccount(uint32_t code, MessageParcel &data, MessageParcel &reply);
+    ErrCode ProcGetAccountExtraInfo(uint32_t code, MessageParcel &data, MessageParcel &reply);
+    ErrCode ProcSetAccountExtraInfo(uint32_t code, MessageParcel &data, MessageParcel &reply);
+    ErrCode ProcSetAppAccess(uint32_t code, MessageParcel &data, MessageParcel &reply);
+    ErrCode ProcCheckAppAccess(uint32_t code, MessageParcel &data, MessageParcel &reply);
+    ErrCode ProcCheckAppAccountSyncEnable(uint32_t code, MessageParcel &data, MessageParcel &reply);
+    ErrCode ProcSetAppAccountSyncEnable(uint32_t code, MessageParcel &data, MessageParcel &reply);
+    ErrCode ProcGetAssociatedData(uint32_t code, MessageParcel &data, MessageParcel &reply);
+    ErrCode ProcSetAssociatedData(uint32_t code, MessageParcel &data, MessageParcel &reply);
+    ErrCode ProcGetAccountCredential(uint32_t code, MessageParcel &data, MessageParcel &reply);
+    ErrCode ProcSetAccountCredential(uint32_t code, MessageParcel &data, MessageParcel &reply);
+    ErrCode ProcDeleteAccountCredential(uint32_t code, MessageParcel &data, MessageParcel &reply);
+    ErrCode ProcAuthenticate(uint32_t code, MessageParcel &data, MessageParcel &reply);
+    ErrCode ProcGetAuthToken(uint32_t code, MessageParcel &data, MessageParcel &reply);
+    ErrCode ProcSetOAuthToken(uint32_t code, MessageParcel &data, MessageParcel &reply);
+    ErrCode ProcDeleteAuthToken(uint32_t code, MessageParcel &data, MessageParcel &reply);
+    ErrCode ProcSetAuthTokenVisibility(uint32_t code, MessageParcel &data, MessageParcel &reply);
+    ErrCode ProcCheckAuthTokenVisibility(uint32_t code, MessageParcel &data, MessageParcel &reply);
+    ErrCode ProcGetAuthenticatorInfo(uint32_t code, MessageParcel &data, MessageParcel &reply);
+    ErrCode ProcGetAllOAuthTokens(uint32_t code, MessageParcel &data, MessageParcel &reply);
+    ErrCode ProcGetAuthList(uint32_t code, MessageParcel &data, MessageParcel &reply);
+    ErrCode ProcGetAuthenticatorCallback(uint32_t code, MessageParcel &data, MessageParcel &reply);
+    ErrCode ProcGetAllAccounts(uint32_t code, MessageParcel &data, MessageParcel &reply);
+    ErrCode ProcGetAllAccessibleAccounts(uint32_t code, MessageParcel &data, MessageParcel &reply);
+    ErrCode ProcSubscribeAccount(uint32_t code, MessageParcel &data, MessageParcel &reply);
+    ErrCode ProcUnsubscribeAccount(uint32_t code, MessageParcel &data, MessageParcel &reply);
+    ErrCode ProcSelectAccountsByOptions(uint32_t code, MessageParcel &data, MessageParcel &reply);
+    ErrCode ProcVerifyCredential(uint32_t code, MessageParcel &data, MessageParcel &reply);
+    ErrCode ProcCheckAccountLabels(uint32_t code, MessageParcel &data, MessageParcel &reply);
+    ErrCode ProcSetAuthenticatorProperties(uint32_t code, MessageParcel &data, MessageParcel &reply);
 
 private:
     static const std::map<uint32_t, MessageProcFunction> messageProcMap_;

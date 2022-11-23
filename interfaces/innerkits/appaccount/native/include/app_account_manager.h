@@ -39,6 +39,7 @@ public:
 
     static ErrCode EnableAppAccess(const std::string &name, const std::string &authorizedApp);
     static ErrCode DisableAppAccess(const std::string &name, const std::string &authorizedApp);
+    static ErrCode SetAppAccess(const std::string &name, const std::string &authorizedApp, bool isAccessible);
 
     static ErrCode CheckAppAccountSyncEnable(const std::string &name, bool &syncEnable);
     static ErrCode SetAppAccountSyncEnable(const std::string &name, const bool &syncEnable);
@@ -65,7 +66,11 @@ public:
         const std::string &name, const std::string &owner, const std::string &authType, const std::string &token);
     static ErrCode SetOAuthTokenVisibility(const std::string &name, const std::string &authType,
         const std::string &bundleName, bool isVisible);
+    static ErrCode SetAuthTokenVisibility(const std::string &name, const std::string &authType,
+        const std::string &bundleName, bool isVisible);
     static ErrCode CheckOAuthTokenVisibility(const std::string &name, const std::string &authType,
+        const std::string &bundleName, bool &isVisible);
+    static ErrCode CheckAuthTokenVisibility(const std::string &name, const std::string &authType,
         const std::string &bundleName, bool &isVisible);
     static ErrCode GetAuthenticatorInfo(const std::string &owner, AuthenticatorInfo &info);
     static ErrCode GetAllOAuthTokens(const std::string &name, const std::string &owner,

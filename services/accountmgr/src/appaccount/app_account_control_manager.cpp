@@ -147,34 +147,29 @@ ErrCode AppAccountControlManager::SetAccountExtraInfo(const std::string &name, c
 }
 
 ErrCode AppAccountControlManager::EnableAppAccess(const std::string &name, const std::string &authorizedApp,
-    const uid_t &uid, const std::string &bundleName, AppAccountInfo &appAccountInfo)
+    AppAccountCallingInfo &appAccountCallingInfo, AppAccountInfo &appAccountInfo, const uint32_t apiVersion)
 {
-    if (authorizedApp == bundleName) {
-        ACCOUNT_LOGE("authorizedApp is the same to owner");
-        return ERR_APPACCOUNT_SERVICE_BUNDLE_NAME_IS_THE_SAME;
-    }
-
-    std::shared_ptr<AppAccountDataStorage> dataStoragePtr = GetDataStorage(uid);
+    std::shared_ptr<AppAccountDataStorage> dataStoragePtr = GetDataStorage(appAccountCallingInfo.callingUid);
     ErrCode result = GetAccountInfoFromDataStorage(appAccountInfo, dataStoragePtr);
     if (result != ERR_OK) {
         ACCOUNT_LOGE("failed to get account info from data storage, result %{public}d.", result);
         return result;
     }
 
-    result = appAccountInfo.EnableAppAccess(authorizedApp);
+    result = appAccountInfo.EnableAppAccess(authorizedApp, apiVersion);
     if (result != ERR_OK) {
         ACCOUNT_LOGE("failed to enable app access, result %{public}d.", result);
         return ERR_APPACCOUNT_SERVICE_ENABLE_APP_ACCESS_ALREADY_EXISTS;
     }
 
-    result = SaveAccountInfoIntoDataStorage(appAccountInfo, dataStoragePtr, uid);
+    result = SaveAccountInfoIntoDataStorage(appAccountInfo, dataStoragePtr, appAccountCallingInfo.callingUid);
     if (result != ERR_OK) {
         ACCOUNT_LOGE("failed to save account info into data storage, result %{public}d.", result);
         return result;
     }
 
     // save authorized account into data storage
-    result = SaveAuthorizedAccount(authorizedApp, appAccountInfo, dataStoragePtr, uid);
+    result = SaveAuthorizedAccount(authorizedApp, appAccountInfo, dataStoragePtr, appAccountCallingInfo.callingUid);
     if (result != ERR_OK) {
         ACCOUNT_LOGE("failed to save authorized account into data storage, result %{public}d.", result);
         return result;
@@ -184,29 +179,29 @@ ErrCode AppAccountControlManager::EnableAppAccess(const std::string &name, const
 }
 
 ErrCode AppAccountControlManager::DisableAppAccess(const std::string &name, const std::string &authorizedApp,
-    const uid_t &uid, const std::string &bundleName, AppAccountInfo &appAccountInfo)
+    AppAccountCallingInfo &appAccountCallingInfo, AppAccountInfo &appAccountInfo, const uint32_t apiVersion)
 {
-    std::shared_ptr<AppAccountDataStorage> dataStoragePtr = GetDataStorage(uid);
+    std::shared_ptr<AppAccountDataStorage> dataStoragePtr = GetDataStorage(appAccountCallingInfo.callingUid);
     ErrCode result = GetAccountInfoFromDataStorage(appAccountInfo, dataStoragePtr);
     if (result != ERR_OK) {
         ACCOUNT_LOGE("failed to get account info from data storage, result %{public}d.", result);
         return result;
     }
 
-    result = appAccountInfo.DisableAppAccess(authorizedApp);
+    result = appAccountInfo.DisableAppAccess(authorizedApp, apiVersion);
     if (result != ERR_OK) {
         ACCOUNT_LOGE("failed to disable app access, result %{public}d.", result);
         return ERR_APPACCOUNT_SERVICE_DISABLE_APP_ACCESS_NOT_EXISTED;
     }
 
-    result = SaveAccountInfoIntoDataStorage(appAccountInfo, dataStoragePtr, uid);
+    result = SaveAccountInfoIntoDataStorage(appAccountInfo, dataStoragePtr, appAccountCallingInfo.callingUid);
     if (result != ERR_OK) {
         ACCOUNT_LOGE("failed to save account info into data storage, result %{public}d.", result);
         return result;
     }
 
     // remove authorized account from data storage
-    result = RemoveAuthorizedAccount(authorizedApp, appAccountInfo, dataStoragePtr, uid);
+    result = RemoveAuthorizedAccount(authorizedApp, appAccountInfo, dataStoragePtr, appAccountCallingInfo.callingUid);
     if (result != ERR_OK) {
         ACCOUNT_LOGE("failed to save authorized account into data storage, result %{public}d.", result);
         return result;
@@ -510,7 +505,8 @@ ErrCode AppAccountControlManager::DeleteOAuthToken(
     return ERR_OK;
 }
 
-ErrCode AppAccountControlManager::SetOAuthTokenVisibility(const AuthenticatorSessionRequest &request)
+ErrCode AppAccountControlManager::SetOAuthTokenVisibility(
+    const AuthenticatorSessionRequest &request, const uint32_t apiVersion)
 {
     std::lock_guard<std::mutex> lock(mutex_);
     AppAccountInfo appAccountInfo(request.name, request.callerBundleName);
@@ -521,7 +517,8 @@ ErrCode AppAccountControlManager::SetOAuthTokenVisibility(const AuthenticatorSes
         ACCOUNT_LOGE("failed to get account info from data storage, result %{public}d.", ret);
         return ERR_APPACCOUNT_SERVICE_ACCOUNT_NOT_EXIST;
     }
-    ret = appAccountInfo.SetOAuthTokenVisibility(request.authType, request.bundleName, request.isTokenVisible);
+    ret = appAccountInfo.SetOAuthTokenVisibility(
+        request.authType, request.bundleName, request.isTokenVisible, apiVersion);
     if (ret != ERR_OK) {
         ACCOUNT_LOGE("failed to set oauth token visibility, result %{public}d.", ret);
         return ret;
@@ -534,7 +531,8 @@ ErrCode AppAccountControlManager::SetOAuthTokenVisibility(const AuthenticatorSes
     return ERR_OK;
 }
 
-ErrCode AppAccountControlManager::CheckOAuthTokenVisibility(const AuthenticatorSessionRequest &request, bool &isVisible)
+ErrCode AppAccountControlManager::CheckOAuthTokenVisibility(
+    const AuthenticatorSessionRequest &request, bool &isVisible, const uint32_t apiVersion)
 {
     isVisible = false;
     AppAccountInfo appAccountInfo(request.name, request.owner);
@@ -545,8 +543,9 @@ ErrCode AppAccountControlManager::CheckOAuthTokenVisibility(const AuthenticatorS
         ACCOUNT_LOGE("failed to get account info from data storage, result %{public}d.", result);
         return ERR_APPACCOUNT_SERVICE_ACCOUNT_NOT_EXIST;
     }
-    return appAccountInfo.CheckOAuthTokenVisibility(request.authType, request.bundleName, isVisible);
+    return appAccountInfo.CheckOAuthTokenVisibility(request.authType, request.bundleName, isVisible, apiVersion);
 }
+
 
 ErrCode AppAccountControlManager::GetAllOAuthTokens(
     const AuthenticatorSessionRequest &request, std::vector<OAuthTokenInfo> &tokenInfos)

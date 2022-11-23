@@ -156,6 +156,15 @@ ErrCode AppAccount::DisableAppAccess(const std::string &name, const std::string 
     return appAccountProxy_->DisableAppAccess(name, bundleName);
 }
 
+ErrCode AppAccount::SetAppAccess(const std::string &name, const std::string &authorizedApp, bool isAccessible)
+{
+    RETURN_IF_STRING_IS_EMPTY_OR_OVERSIZE(name, Constants::NAME_MAX_SIZE, "name is empty or oversize");
+    RETURN_IF_STRING_IS_EMPTY_OR_OVERSIZE(authorizedApp, Constants::BUNDLE_NAME_MAX_SIZE,
+        "authorizedApp name is empty or oversize");
+    RETURN_IF_PROXY_IS_NULLPTR();
+    return appAccountProxy_->SetAppAccess(name, authorizedApp, isAccessible);
+}
+
 ErrCode AppAccount::CheckAppAccountSyncEnable(const std::string &name, bool &syncEnable)
 {
     RETURN_IF_STRING_IS_EMPTY_OR_OVERSIZE(name, Constants::NAME_MAX_SIZE, "name is empty or oversize");
@@ -285,27 +294,56 @@ ErrCode AppAccount::DeleteAuthToken(
     return appAccountProxy_->DeleteAuthToken(name, owner, authType, token);
 }
 
-ErrCode AppAccount::SetOAuthTokenVisibility(
-    const std::string &name, const std::string &authType, const std::string &bundleName, bool isVisible)
+ErrCode AppAccount::CheckTokenVisibilityParam(
+    const std::string &name, const std::string &authType, const std::string &bundleName)
 {
     RETURN_IF_STRING_IS_EMPTY_OR_OVERSIZE(name, Constants::NAME_MAX_SIZE, "name is empty or oversize");
-    RETURN_IF_STRING_CONTAINS_SPECIAL_CHAR(name);
     RETURN_IF_STRING_IS_OVERSIZE(authType, Constants::AUTH_TYPE_MAX_SIZE, "authType is oversize");
     RETURN_IF_STRING_IS_EMPTY_OR_OVERSIZE(bundleName, Constants::BUNDLE_NAME_MAX_SIZE,
         "bundleName is empty or oversize");
     RETURN_IF_PROXY_IS_NULLPTR();
+    return ERR_OK;
+}
+
+ErrCode AppAccount::SetAuthTokenVisibility(
+    const std::string &name, const std::string &authType, const std::string &bundleName, bool isVisible)
+{
+    ErrCode ret = CheckTokenVisibilityParam(name, authType, bundleName);
+    if (ret != ERR_OK) {
+        return ret;
+    }
+    return appAccountProxy_->SetAuthTokenVisibility(name, authType, bundleName, isVisible);
+}
+
+ErrCode AppAccount::SetOAuthTokenVisibility(
+    const std::string &name, const std::string &authType, const std::string &bundleName, bool isVisible)
+{
+    RETURN_IF_STRING_CONTAINS_SPECIAL_CHAR(name);
+    ErrCode ret = CheckTokenVisibilityParam(name, authType, bundleName);
+    if (ret != ERR_OK) {
+        return ret;
+    }
     return appAccountProxy_->SetOAuthTokenVisibility(name, authType, bundleName, isVisible);
+}
+
+ErrCode AppAccount::CheckAuthTokenVisibility(
+    const std::string &name, const std::string &authType, const std::string &bundleName, bool &isVisible)
+{
+    ErrCode ret = CheckTokenVisibilityParam(name, authType, bundleName);
+    if (ret != ERR_OK) {
+        return ret;
+    }
+    return appAccountProxy_->CheckAuthTokenVisibility(name, authType, bundleName, isVisible);
 }
 
 ErrCode AppAccount::CheckOAuthTokenVisibility(
     const std::string &name, const std::string &authType, const std::string &bundleName, bool &isVisible)
 {
-    RETURN_IF_STRING_IS_EMPTY_OR_OVERSIZE(name, Constants::NAME_MAX_SIZE, "name is empty or oversize");
     RETURN_IF_STRING_CONTAINS_SPECIAL_CHAR(name);
-    RETURN_IF_STRING_IS_OVERSIZE(authType, Constants::AUTH_TYPE_MAX_SIZE, "authType is oversize");
-    RETURN_IF_STRING_IS_EMPTY_OR_OVERSIZE(bundleName, Constants::BUNDLE_NAME_MAX_SIZE,
-        "bundleName is empty or oversize");
-    RETURN_IF_PROXY_IS_NULLPTR();
+    ErrCode ret = CheckTokenVisibilityParam(name, authType, bundleName);
+    if (ret != ERR_OK) {
+        return ret;
+    }
     return appAccountProxy_->CheckOAuthTokenVisibility(name, authType, bundleName, isVisible);
 }
 

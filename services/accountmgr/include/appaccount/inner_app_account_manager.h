@@ -43,9 +43,9 @@ public:
         const uid_t &uid, const std::string &bundleName, const uint32_t &appIndex);
 
     ErrCode EnableAppAccess(const std::string &name, const std::string &authorizedApp,
-        const uid_t &uid, const std::string &bundleName, const uint32_t &appIndex);
+        AppAccountCallingInfo &appAccountCallingInfo, const uint32_t apiVersion = Constants::API_VERSION7);
     ErrCode DisableAppAccess(const std::string &name, const std::string &authorizedApp,
-        const uid_t &uid, const std::string &bundleName, const uint32_t &appIndex);
+        AppAccountCallingInfo &appAccountCallingInfo, const uint32_t apiVersion = Constants::API_VERSION7);
     ErrCode CheckAppAccess(const std::string &name, const std::string &authorizedApp, bool &isAccessible,
         const AppAccountCallingInfo &appAccountCallingInfo);
 
@@ -72,8 +72,10 @@ public:
     ErrCode SetOAuthToken(const AuthenticatorSessionRequest &request);
     ErrCode DeleteOAuthToken(
         const AuthenticatorSessionRequest &request, const uint32_t apiVersion = Constants::API_VERSION8);
-    ErrCode SetOAuthTokenVisibility(const AuthenticatorSessionRequest &request);
-    ErrCode CheckOAuthTokenVisibility(const AuthenticatorSessionRequest &request, bool &isVisible);
+    ErrCode SetOAuthTokenVisibility(const AuthenticatorSessionRequest &,
+        const uint32_t apiVersion = Constants::API_VERSION8);
+    ErrCode CheckOAuthTokenVisibility(const AuthenticatorSessionRequest &request,
+        bool &isVisible, const uint32_t apiVersion = Constants::API_VERSION8);
     ErrCode GetAllOAuthTokens(const AuthenticatorSessionRequest &request, std::vector<OAuthTokenInfo> &tokenInfos);
     ErrCode GetOAuthList(const AuthenticatorSessionRequest &request,
         std::set<std::string> &oauthList, const uint32_t apiVersion = Constants::API_VERSION8);

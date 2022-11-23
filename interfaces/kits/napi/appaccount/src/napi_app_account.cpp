@@ -455,11 +455,8 @@ napi_value NapiAppAccount::SetAppAccess(napi_env env, napi_callback_info cbInfo)
     napi_create_async_work(env, nullptr, resource,
         [](napi_env env, void *data) {
             AppAccountAsyncContext *context = reinterpret_cast<AppAccountAsyncContext *>(data);
-            if (context->isAccessible) {
-                context->errCode = AppAccountManager::EnableAppAccess(context->name, context->bundleName);
-            } else {
-                context->errCode = AppAccountManager::DisableAppAccess(context->name, context->bundleName);
-            }
+            context->errCode =
+                AppAccountManager::SetAppAccess(context->name, context->bundleName, context->isAccessible);
         },
         [](napi_env env, napi_status status, void *data) {
             AppAccountAsyncContext *context = reinterpret_cast<AppAccountAsyncContext *>(data);
@@ -1323,8 +1320,13 @@ napi_value NapiAppAccount::SetAuthTokenVisibilityInternal(napi_env env, napi_cal
             resource,
             [](napi_env env, void *data) {
                 OAuthAsyncContext *asyncContext = reinterpret_cast<OAuthAsyncContext *>(data);
-                asyncContext->errCode = AppAccountManager::SetOAuthTokenVisibility(
-                    asyncContext->name, asyncContext->authType, asyncContext->bundleName, asyncContext->isVisible);
+                if (asyncContext->throwErr) {
+                    asyncContext->errCode = AppAccountManager::SetAuthTokenVisibility(
+                        asyncContext->name, asyncContext->authType, asyncContext->bundleName, asyncContext->isVisible);
+                } else {
+                    asyncContext->errCode = AppAccountManager::SetOAuthTokenVisibility(
+                        asyncContext->name, asyncContext->authType, asyncContext->bundleName, asyncContext->isVisible);
+                }
             },
             [](napi_env env, napi_status status, void *data) {
                 OAuthAsyncContext *asyncContext = reinterpret_cast<OAuthAsyncContext *>(data);
@@ -1374,13 +1376,16 @@ napi_value NapiAppAccount::CheckAuthTokenVisibilityInternal(napi_env env, napi_c
     napi_value resource = nullptr;
     NAPI_CALL(env, napi_create_string_utf8(env, "CheckOAuthTokenVisibility", NAPI_AUTO_LENGTH, &resource));
     NAPI_CALL(env,
-        napi_create_async_work(env,
-            nullptr,
-            resource,
+        napi_create_async_work(env, nullptr, resource,
             [](napi_env env, void *data) {
                 OAuthAsyncContext *asyncContext = reinterpret_cast<OAuthAsyncContext *>(data);
-                asyncContext->errCode = AppAccountManager::CheckOAuthTokenVisibility(
-                    asyncContext->name, asyncContext->authType, asyncContext->bundleName, asyncContext->isVisible);
+                if (asyncContext->throwErr) {
+                    asyncContext->errCode = AppAccountManager::CheckAuthTokenVisibility(
+                        asyncContext->name, asyncContext->authType, asyncContext->bundleName, asyncContext->isVisible);
+                } else {
+                    asyncContext->errCode = AppAccountManager::CheckOAuthTokenVisibility(
+                        asyncContext->name, asyncContext->authType, asyncContext->bundleName, asyncContext->isVisible);
+                }
             },
             [](napi_env env, napi_status status, void *data) {
                 OAuthAsyncContext *asyncContext = reinterpret_cast<OAuthAsyncContext *>(data);

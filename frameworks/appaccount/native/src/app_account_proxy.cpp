@@ -286,6 +286,39 @@ ErrCode AppAccountProxy::DisableAppAccess(const std::string &name, const std::st
     return result;
 }
 
+ErrCode AppAccountProxy::SetAppAccess(const std::string &name, const std::string &authorizedApp, bool isAccessible)
+{
+    MessageParcel data;
+    MessageParcel reply;
+
+    if (!data.WriteInterfaceToken(GetDescriptor())) {
+        ACCOUNT_LOGE("failed to write descriptor!");
+        return ERR_APPACCOUNT_PROXY_WRITE_DATA;
+    }
+
+    if (!data.WriteString(name)) {
+        ACCOUNT_LOGE("failed to write string for name");
+        return ERR_APPACCOUNT_PROXY_WRITE_DATA;
+    }
+
+    if (!data.WriteString(authorizedApp)) {
+        ACCOUNT_LOGE("failed to write string for authorizedApp");
+        return ERR_APPACCOUNT_PROXY_WRITE_DATA;
+    }
+
+    if (!data.WriteBool(isAccessible)) {
+        ACCOUNT_LOGE("failed to write string for isVisible");
+        return ERR_APPACCOUNT_PROXY_WRITE_DATA;
+    }
+
+    ErrCode result = SendRequest(IAppAccount::Message::SET_APP_ACCESS, data, reply);
+    if (result != ERR_OK) {
+        return result;
+    }
+
+    return reply.ReadInt32();
+}
+
 ErrCode AppAccountProxy::CheckAppAccountSyncEnable(const std::string &name, bool &syncEnable)
 {
     MessageParcel data;
@@ -676,39 +709,93 @@ ErrCode AppAccountProxy::DeleteAuthToken(
     return reply.ReadInt32();
 }
 
+ErrCode AppAccountProxy::WriteTokenVisibilityParam(
+    const std::string &name, const std::string &authType, const std::string &bundleName, MessageParcel &data)
+{
+    if (!data.WriteInterfaceToken(GetDescriptor())) {
+        ACCOUNT_LOGE("failed to write descriptor!");
+        return ERR_APPACCOUNT_PROXY_WRITE_DATA;
+    }
+
+    if (!data.WriteString(name)) {
+        ACCOUNT_LOGE("failed to write string for name");
+        return ERR_APPACCOUNT_PROXY_WRITE_DATA;
+    }
+    if (!data.WriteString(authType)) {
+        ACCOUNT_LOGE("failed to write string for authType");
+        return ERR_APPACCOUNT_PROXY_WRITE_DATA;
+    }
+    if (!data.WriteString(bundleName)) {
+        ACCOUNT_LOGE("failed to write string for bundleName");
+        return ERR_APPACCOUNT_PROXY_WRITE_DATA;
+    }
+    return ERR_OK;
+}
+
+ErrCode AppAccountProxy::SetAuthTokenVisibility(
+    const std::string &name, const std::string &authType, const std::string &bundleName, bool isVisible)
+{
+    MessageParcel data;
+    MessageParcel reply;
+
+    ErrCode result = WriteTokenVisibilityParam(name, authType, bundleName, data);
+    if (result != ERR_OK) {
+        return result;
+    }
+
+    if (!data.WriteBool(isVisible)) {
+        ACCOUNT_LOGE("failed to write string for isVisible");
+        return ERR_APPACCOUNT_PROXY_WRITE_DATA;
+    }
+    result = SendRequest(IAppAccount::Message::SET_AUTH_TOKEN_VISIBILITY, data, reply);
+    if (result != ERR_OK) {
+        ACCOUNT_LOGE("failed to send request, errCode: %{public}d", result);
+        return result;
+    }
+    return reply.ReadInt32();
+}
+
 ErrCode AppAccountProxy::SetOAuthTokenVisibility(
     const std::string &name, const std::string &authType, const std::string &bundleName, bool isVisible)
 {
     MessageParcel data;
     MessageParcel reply;
 
-    if (!data.WriteInterfaceToken(GetDescriptor())) {
-        ACCOUNT_LOGE("failed to write descriptor!");
-        return ERR_ACCOUNT_COMMON_WRITE_DESCRIPTOR_ERROR;
+    ErrCode result = WriteTokenVisibilityParam(name, authType, bundleName, data);
+    if (result != ERR_OK) {
+        return result;
     }
 
-    if (!data.WriteString(name)) {
-        ACCOUNT_LOGE("failed to write string for name");
-        return ERR_APPACCOUNT_KIT_WRITE_STRING_NAME;
-    }
-    if (!data.WriteString(authType)) {
-        ACCOUNT_LOGE("failed to write string for authType");
-        return ERR_APPACCOUNT_KIT_WRITE_STRING_AUTH_TYPE;
-    }
-    if (!data.WriteString(bundleName)) {
-        ACCOUNT_LOGE("failed to write string for bundleName");
-        return ERR_APPACCOUNT_KIT_WRITE_STRING_BUNDLE_NAME;
-    }
     if (!data.WriteBool(isVisible)) {
         ACCOUNT_LOGE("failed to write string for isVisible");
-        return ERR_APPACCOUNT_KIT_WRITE_BOOL_VISIBILITY;
+        return ERR_APPACCOUNT_PROXY_WRITE_DATA;
     }
-    ErrCode result = SendRequest(IAppAccount::Message::SET_OAUTH_TOKEN_VISIBILITY, data, reply);
+    result = SendRequest(IAppAccount::Message::SET_OAUTH_TOKEN_VISIBILITY, data, reply);
+    if (result != ERR_OK) {
+        ACCOUNT_LOGE("failed to send request, errCode: %{public}d", result);
+        return result;
+    }
+    return reply.ReadInt32();
+}
+
+ErrCode AppAccountProxy::CheckAuthTokenVisibility(
+    const std::string &name, const std::string &authType, const std::string &bundleName, bool &isVisible)
+{
+    MessageParcel data;
+    MessageParcel reply;
+
+    ErrCode result = WriteTokenVisibilityParam(name, authType, bundleName, data);
+    if (result != ERR_OK) {
+        return result;
+    }
+
+    result = SendRequest(IAppAccount::Message::CHECK_AUTH_TOKEN_VISIBILITY, data, reply);
     if (result != ERR_OK) {
         ACCOUNT_LOGE("failed to send request, errCode: %{public}d", result);
         return result;
     }
     result = reply.ReadInt32();
+    isVisible = reply.ReadBool();
     return result;
 }
 
@@ -718,24 +805,12 @@ ErrCode AppAccountProxy::CheckOAuthTokenVisibility(
     MessageParcel data;
     MessageParcel reply;
 
-    if (!data.WriteInterfaceToken(GetDescriptor())) {
-        ACCOUNT_LOGE("failed to write descriptor!");
-        return ERR_ACCOUNT_COMMON_WRITE_DESCRIPTOR_ERROR;
+    ErrCode result = WriteTokenVisibilityParam(name, authType, bundleName, data);
+    if (result != ERR_OK) {
+        return result;
     }
 
-    if (!data.WriteString(name)) {
-        ACCOUNT_LOGE("failed to write string for token");
-        return ERR_APPACCOUNT_KIT_WRITE_STRING_NAME;
-    }
-    if (!data.WriteString(authType)) {
-        ACCOUNT_LOGE("failed to write string for authType");
-        return ERR_APPACCOUNT_KIT_WRITE_STRING_AUTH_TYPE;
-    }
-    if (!data.WriteString(bundleName)) {
-        ACCOUNT_LOGE("failed to write string for bundleName");
-        return ERR_APPACCOUNT_KIT_WRITE_STRING_BUNDLE_NAME;
-    }
-    ErrCode result = SendRequest(IAppAccount::Message::CHECK_OAUTH_TOKEN_VISIBILITY, data, reply);
+    result = SendRequest(IAppAccount::Message::CHECK_OAUTH_TOKEN_VISIBILITY, data, reply);
     if (result != ERR_OK) {
         ACCOUNT_LOGE("failed to send request, errCode: %{public}d", result);
         return result;
