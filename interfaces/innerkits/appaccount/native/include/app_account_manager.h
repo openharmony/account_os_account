@@ -56,9 +56,13 @@ public:
         const AAFwk::Want &options, const sptr<IAppAccountAuthenticatorCallback> &callback);
     static ErrCode GetOAuthToken(const std::string &name, const std::string &owner, const std::string &authType,
         std::string &token);
+    static ErrCode GetAuthToken(const std::string &name, const std::string &owner, const std::string &authType,
+        std::string &token);
     static ErrCode SetOAuthToken(
         const std::string &name, const std::string &authType, const std::string &token);
     static ErrCode DeleteOAuthToken(
+        const std::string &name, const std::string &owner, const std::string &authType, const std::string &token);
+    static ErrCode DeleteAuthToken(
         const std::string &name, const std::string &owner, const std::string &authType, const std::string &token);
     static ErrCode SetOAuthTokenVisibility(const std::string &name, const std::string &authType,
         const std::string &bundleName, bool isVisible);
@@ -72,6 +76,8 @@ public:
     static ErrCode GetAllOAuthTokens(const std::string &name, const std::string &owner,
         std::vector<OAuthTokenInfo> &tokenInfos);
     static ErrCode GetOAuthList(const std::string &name, const std::string &authType,
+        std::set<std::string> &oauthList);
+    static ErrCode GetAuthList(const std::string &name, const std::string &authType,
         std::set<std::string> &oauthList);
     static ErrCode GetAuthenticatorCallback(const std::string &sessionId, sptr<IRemoteObject> &callback);
 

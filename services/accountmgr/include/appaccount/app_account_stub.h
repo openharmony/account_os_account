@@ -53,14 +53,14 @@ private:
     ErrCode ProcSetAccountCredential(uint32_t code, MessageParcel &data, MessageParcel &reply);
     ErrCode ProcDeleteAccountCredential(uint32_t code, MessageParcel &data, MessageParcel &reply);
     ErrCode ProcAuthenticate(uint32_t code, MessageParcel &data, MessageParcel &reply);
-    ErrCode ProcGetOAuthToken(uint32_t code, MessageParcel &data, MessageParcel &reply);
+    ErrCode ProcGetAuthToken(uint32_t code, MessageParcel &data, MessageParcel &reply);
     ErrCode ProcSetOAuthToken(uint32_t code, MessageParcel &data, MessageParcel &reply);
-    ErrCode ProcDeleteOAuthToken(uint32_t code, MessageParcel &data, MessageParcel &reply);
+    ErrCode ProcDeleteAuthToken(uint32_t code, MessageParcel &data, MessageParcel &reply);
     ErrCode ProcSetAuthTokenVisibility(uint32_t code, MessageParcel &data, MessageParcel &reply);
     ErrCode ProcCheckAuthTokenVisibility(uint32_t code, MessageParcel &data, MessageParcel &reply);
     ErrCode ProcGetAuthenticatorInfo(uint32_t code, MessageParcel &data, MessageParcel &reply);
     ErrCode ProcGetAllOAuthTokens(uint32_t code, MessageParcel &data, MessageParcel &reply);
-    ErrCode ProcGetOAuthList(uint32_t code, MessageParcel &data, MessageParcel &reply);
+    ErrCode ProcGetAuthList(uint32_t code, MessageParcel &data, MessageParcel &reply);
     ErrCode ProcGetAuthenticatorCallback(uint32_t code, MessageParcel &data, MessageParcel &reply);
     ErrCode ProcGetAllAccounts(uint32_t code, MessageParcel &data, MessageParcel &reply);
     ErrCode ProcGetAllAccessibleAccounts(uint32_t code, MessageParcel &data, MessageParcel &reply);

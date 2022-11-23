@@ -118,6 +118,12 @@ ErrCode AppAccountManager::GetOAuthToken(
     return DelayedSingleton<AppAccount>::GetInstance()->GetOAuthToken(name, owner, authType, token);
 }
 
+ErrCode AppAccountManager::GetAuthToken(
+    const std::string &name, const std::string &owner, const std::string &authType, std::string &token)
+{
+    return DelayedSingleton<AppAccount>::GetInstance()->GetAuthToken(name, owner, authType, token);
+}
+
 ErrCode AppAccountManager::SetOAuthToken(
     const std::string &name, const std::string &authType, const std::string &token)
 {
@@ -128,6 +134,12 @@ ErrCode AppAccountManager::DeleteOAuthToken(
     const std::string &name, const std::string &owner, const std::string &authType, const std::string &token)
 {
     return DelayedSingleton<AppAccount>::GetInstance()->DeleteOAuthToken(name, owner, authType, token);
+}
+
+ErrCode AppAccountManager::DeleteAuthToken(
+    const std::string &name, const std::string &owner, const std::string &authType, const std::string &token)
+{
+    return DelayedSingleton<AppAccount>::GetInstance()->DeleteAuthToken(name, owner, authType, token);
 }
 
 ErrCode AppAccountManager::SetOAuthTokenVisibility(
@@ -173,6 +185,12 @@ ErrCode AppAccountManager::GetOAuthList(
     const std::string &name, const std::string &authType, std::set<std::string> &oauthList)
 {
     return DelayedSingleton<AppAccount>::GetInstance()->GetOAuthList(name, authType, oauthList);
+}
+
+ErrCode AppAccountManager::GetAuthList(
+    const std::string &name, const std::string &authType, std::set<std::string> &oauthList)
+{
+    return DelayedSingleton<AppAccount>::GetInstance()->GetAuthList(name, authType, oauthList);
 }
 
 ErrCode AppAccountManager::GetAuthenticatorCallback(const std::string &sessionId, sptr<IRemoteObject> &callback)

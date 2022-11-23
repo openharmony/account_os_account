@@ -133,7 +133,11 @@ const std::map<uint32_t, AppAccountStub::MessageProcFunction> AppAccountStub::me
     },
     {
         static_cast<uint32_t>(IAppAccount::Message::GET_OAUTH_TOKEN),
-        &AppAccountStub::ProcGetOAuthToken,
+        &AppAccountStub::ProcGetAuthToken,
+    },
+    {
+        static_cast<uint32_t>(IAppAccount::Message::GET_AUTH_TOKEN),
+        &AppAccountStub::ProcGetAuthToken,
     },
     {
         static_cast<uint32_t>(IAppAccount::Message::SET_OAUTH_TOKEN),
@@ -141,7 +145,11 @@ const std::map<uint32_t, AppAccountStub::MessageProcFunction> AppAccountStub::me
     },
     {
         static_cast<uint32_t>(IAppAccount::Message::DELETE_OAUTH_TOKEN),
-        &AppAccountStub::ProcDeleteOAuthToken,
+        &AppAccountStub::ProcDeleteAuthToken,
+    },
+    {
+        static_cast<uint32_t>(IAppAccount::Message::DELETE_AUTH_TOKEN),
+        &AppAccountStub::ProcDeleteAuthToken,
     },
     {
         static_cast<uint32_t>(IAppAccount::Message::SET_OAUTH_TOKEN_VISIBILITY),
@@ -173,7 +181,11 @@ const std::map<uint32_t, AppAccountStub::MessageProcFunction> AppAccountStub::me
     },
     {
         static_cast<uint32_t>(IAppAccount::Message::GET_OAUTH_LIST),
-        &AppAccountStub::ProcGetOAuthList,
+        &AppAccountStub::ProcGetAuthList,
+    },
+    {
+        static_cast<uint32_t>(IAppAccount::Message::GET_AUTH_LIST),
+        &AppAccountStub::ProcGetAuthList,
     },
     {
         static_cast<uint32_t>(IAppAccount::Message::GET_ALL_ACCOUNTS),
@@ -599,17 +611,25 @@ ErrCode AppAccountStub::ProcAuthenticate(uint32_t code, MessageParcel &data, Mes
     return ERR_NONE;
 }
 
-ErrCode AppAccountStub::ProcGetOAuthToken(uint32_t code, MessageParcel &data, MessageParcel &reply)
+ErrCode AppAccountStub::ProcGetAuthToken(uint32_t code, MessageParcel &data, MessageParcel &reply)
 {
     std::string name = data.ReadString();
     RETURN_IF_STRING_IS_EMPTY_OR_OVERSIZE(name, Constants::NAME_MAX_SIZE, "name is empty or oversize");
-    RETURN_IF_STRING_CONTAINS_SPECIAL_CHAR(name);
     std::string owner = data.ReadString();
     RETURN_IF_STRING_IS_EMPTY_OR_OVERSIZE(owner, Constants::OWNER_MAX_SIZE, "owner is empty or oversize");
     std::string authType = data.ReadString();
     RETURN_IF_STRING_IS_OVERSIZE(authType, Constants::AUTH_TYPE_MAX_SIZE, "authType is oversize");
     std::string token;
-    ErrCode result = GetOAuthToken(name, owner, authType, token);
+    ErrCode result = ERR_OK;
+    if (code == static_cast<uint32_t>(IAppAccount::Message::GET_OAUTH_TOKEN)) {
+        RETURN_IF_STRING_CONTAINS_SPECIAL_CHAR(name);
+        result = GetOAuthToken(name, owner, authType, token);
+    } else if (code == static_cast<uint32_t>(IAppAccount::Message::GET_AUTH_TOKEN)) {
+        result = GetAuthToken(name, owner, authType, token);
+    } else {
+        ACCOUNT_LOGE("stub code is invalid");
+        return IPC_INVOKER_ERR;
+    }
     if ((!reply.WriteInt32(result)) || (!reply.WriteString(token))) {
         ACCOUNT_LOGE("failed to write reply");
         return IPC_STUB_WRITE_PARCEL_ERR;
@@ -634,18 +654,28 @@ ErrCode AppAccountStub::ProcSetOAuthToken(uint32_t code, MessageParcel &data, Me
     return ERR_NONE;
 }
 
-ErrCode AppAccountStub::ProcDeleteOAuthToken(uint32_t code, MessageParcel &data, MessageParcel &reply)
+ErrCode AppAccountStub::ProcDeleteAuthToken(uint32_t code, MessageParcel &data, MessageParcel &reply)
 {
     std::string name = data.ReadString();
     RETURN_IF_STRING_IS_EMPTY_OR_OVERSIZE(name, Constants::NAME_MAX_SIZE, "name is empty or oversize");
-    RETURN_IF_STRING_CONTAINS_SPECIAL_CHAR(name);
     std::string owner = data.ReadString();
     RETURN_IF_STRING_IS_EMPTY_OR_OVERSIZE(owner, Constants::OWNER_MAX_SIZE, "owner is empty or oversize");
     std::string authType = data.ReadString();
     RETURN_IF_STRING_IS_OVERSIZE(authType, Constants::AUTH_TYPE_MAX_SIZE, "authType is oversize");
     std::string token = data.ReadString();
     RETURN_IF_STRING_IS_OVERSIZE(token, Constants::TOKEN_MAX_SIZE, "token is oversize");
-    ErrCode result = DeleteOAuthToken(name, owner, authType, token);
+
+    ErrCode result = ERR_OK;
+    if (code == static_cast<uint32_t>(IAppAccount::Message::DELETE_OAUTH_TOKEN)) {
+        RETURN_IF_STRING_CONTAINS_SPECIAL_CHAR(name);
+        result = DeleteOAuthToken(name, owner, authType, token);
+    } else if (code == static_cast<uint32_t>(IAppAccount::Message::DELETE_AUTH_TOKEN)) {
+        result = DeleteAuthToken(name, owner, authType, token);
+    } else {
+        ACCOUNT_LOGE("stub code is invalid");
+        return IPC_INVOKER_ERR;
+    }
+     
     if (!reply.WriteInt32(result)) {
         ACCOUNT_LOGE("failed to write reply");
         return IPC_STUB_WRITE_PARCEL_ERR;
@@ -745,15 +775,23 @@ ErrCode AppAccountStub::ProcGetAllOAuthTokens(uint32_t code, MessageParcel &data
     return ERR_NONE;
 }
 
-ErrCode AppAccountStub::ProcGetOAuthList(uint32_t code, MessageParcel &data, MessageParcel &reply)
+ErrCode AppAccountStub::ProcGetAuthList(uint32_t code, MessageParcel &data, MessageParcel &reply)
 {
     std::string name = data.ReadString();
     RETURN_IF_STRING_IS_EMPTY_OR_OVERSIZE(name, Constants::NAME_MAX_SIZE, "name is empty or oversize");
-    RETURN_IF_STRING_CONTAINS_SPECIAL_CHAR(name);
     std::string authType = data.ReadString();
     RETURN_IF_STRING_IS_OVERSIZE(authType, Constants::OWNER_MAX_SIZE, "authType is oversize");
     std::set<std::string> oauthList;
-    ErrCode result = GetOAuthList(name, authType, oauthList);
+    ErrCode result = ERR_OK;
+    if (code == static_cast<uint32_t>(IAppAccount::Message::GET_OAUTH_LIST)) {
+        RETURN_IF_STRING_CONTAINS_SPECIAL_CHAR(name);
+        result = GetOAuthList(name, authType, oauthList);
+    } else if (code == static_cast<uint32_t>(IAppAccount::Message::GET_AUTH_LIST)) {
+        result = GetAuthList(name, authType, oauthList);
+    } else {
+        ACCOUNT_LOGE("stub code is invalid");
+        return IPC_INVOKER_ERR;
+    }
     if ((!reply.WriteInt32(result)) || (!reply.WriteUint32(oauthList.size()))) {
         ACCOUNT_LOGE("failed to write reply");
         return IPC_STUB_WRITE_PARCEL_ERR;
