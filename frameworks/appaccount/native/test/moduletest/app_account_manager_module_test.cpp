@@ -201,6 +201,20 @@ HWTEST_F(AppAccountManagerModuleTest, AppAccountManager_EnableAppAccess_0100, Te
 }
 
 /**
+ * @tc.name: AppAccountManager_SetAppAccess_0100
+ * @tc.desc: Enable app access with valid data.
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(AppAccountManagerModuleTest, AppAccountManager_SetAppAccess_0100, TestSize.Level1)
+{
+    ACCOUNT_LOGI("AppAccountManager_SetAppAccess_0100");
+
+    ErrCode result = AppAccountManager::SetAppAccess(STRING_NAME, STRING_AUTHORIZED_APP, true);
+    EXPECT_EQ(result, ERR_APPACCOUNT_SERVICE_GET_BUNDLE_NAME);
+}
+
+/**
  * @tc.name: AppAccountManager_DisableAppAccess_0100
  * @tc.desc: Disable app access with valid data.
  * @tc.type: FUNC
@@ -211,6 +225,20 @@ HWTEST_F(AppAccountManagerModuleTest, AppAccountManager_DisableAppAccess_0100, T
     ACCOUNT_LOGI("AppAccountManager_DisableAppAccess_0100");
 
     ErrCode result = AppAccountManager::DisableAppAccess(STRING_NAME, STRING_AUTHORIZED_APP);
+    EXPECT_EQ(result, ERR_APPACCOUNT_SERVICE_GET_BUNDLE_NAME);
+}
+
+/**
+ * @tc.name: AppAccountManager_SetAppAccess_0200
+ * @tc.desc: Disable app access with valid data.
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(AppAccountManagerModuleTest, AppAccountManager_SetAppAccess_0200, TestSize.Level1)
+{
+    ACCOUNT_LOGI("AppAccountManager_SetAppAccess_0200");
+
+    ErrCode result = AppAccountManager::SetAppAccess(STRING_NAME, STRING_AUTHORIZED_APP, false);
     EXPECT_EQ(result, ERR_APPACCOUNT_SERVICE_GET_BUNDLE_NAME);
 }
 
