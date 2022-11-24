@@ -2119,8 +2119,10 @@ HWTEST_F(AppAccountManagerServiceModuleTest, AppAccountManagerService_GetAllAcco
         g_controlManagerPtr->AddAccount(STRING_NAME, STRING_EMPTY, UID, STRING_BUNDLE_NAME, appAccountInfo);
     EXPECT_EQ(result, ERR_OK);
 
-    result = g_controlManagerPtr->EnableAppAccess(STRING_NAME,
-        STRING_OWNER, UID, STRING_BUNDLE_NAME, appAccountInfo);
+    AppAccountCallingInfo appAccountCallingInfo;
+    appAccountCallingInfo.callingUid = UID;
+    appAccountCallingInfo.bundleName = STRING_BUNDLE_NAME;
+    result = g_controlManagerPtr->EnableAppAccess(STRING_NAME, STRING_OWNER, appAccountCallingInfo, appAccountInfo);
     EXPECT_EQ(result, ERR_OK);
 
     std::vector<AppAccountInfo> appAccounts;
@@ -2155,8 +2157,11 @@ HWTEST_F(AppAccountManagerServiceModuleTest, AppAccountManagerService_GetAllAcco
     result = g_controlManagerPtr->AddAccount(STRING_NAME, STRING_EMPTY, UID, STRING_OWNER, appAccountInfoTwo);
     EXPECT_EQ(result, ERR_OK);
 
+    AppAccountCallingInfo appAccountCallingInfo;
+    appAccountCallingInfo.callingUid = UID;
+    appAccountCallingInfo.bundleName = STRING_OWNER;
     result =
-        g_controlManagerPtr->EnableAppAccess(STRING_NAME, STRING_BUNDLE_NAME, UID, STRING_OWNER, appAccountInfoTwo);
+        g_controlManagerPtr->EnableAppAccess(STRING_NAME, STRING_BUNDLE_NAME, appAccountCallingInfo, appAccountInfoTwo);
     EXPECT_EQ(result, ERR_OK);
 
     std::vector<AppAccountInfo> appAccounts;
@@ -2251,7 +2256,10 @@ HWTEST_F(AppAccountManagerServiceModuleTest, AppAccountManagerService_GetAllAcce
         g_controlManagerPtr->AddAccount(STRING_NAME, STRING_EMPTY, UID, STRING_BUNDLE_NAME, appAccountInfo);
     EXPECT_EQ(result, ERR_OK);
 
-    result = g_controlManagerPtr->EnableAppAccess(STRING_NAME, STRING_OWNER, UID, STRING_BUNDLE_NAME, appAccountInfo);
+    AppAccountCallingInfo appAccountCallingInfo;
+    appAccountCallingInfo.callingUid = UID;
+    appAccountCallingInfo.bundleName = STRING_BUNDLE_NAME;
+    result = g_controlManagerPtr->EnableAppAccess(STRING_NAME, STRING_OWNER, appAccountCallingInfo, appAccountInfo);
     EXPECT_EQ(result, ERR_OK);
 
     std::vector<AppAccountInfo> appAccounts;
