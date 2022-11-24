@@ -293,22 +293,22 @@ ErrCode AppAccountProxy::SetAppAccess(const std::string &name, const std::string
 
     if (!data.WriteInterfaceToken(GetDescriptor())) {
         ACCOUNT_LOGE("failed to write descriptor!");
-        return ERR_APPACCOUNT_PROXY_WRITE_DATA;
+        return ERR_ACCOUNT_COMMON_WRITE_PARCEL_ERROR;
     }
 
     if (!data.WriteString(name)) {
         ACCOUNT_LOGE("failed to write string for name");
-        return ERR_APPACCOUNT_PROXY_WRITE_DATA;
+        return ERR_ACCOUNT_COMMON_WRITE_PARCEL_ERROR;
     }
 
     if (!data.WriteString(authorizedApp)) {
         ACCOUNT_LOGE("failed to write string for authorizedApp");
-        return ERR_APPACCOUNT_PROXY_WRITE_DATA;
+        return ERR_ACCOUNT_COMMON_WRITE_PARCEL_ERROR;
     }
 
     if (!data.WriteBool(isAccessible)) {
         ACCOUNT_LOGE("failed to write string for isVisible");
-        return ERR_APPACCOUNT_PROXY_WRITE_DATA;
+        return ERR_ACCOUNT_COMMON_WRITE_PARCEL_ERROR;
     }
 
     ErrCode result = SendRequest(IAppAccount::Message::SET_APP_ACCESS, data, reply);
@@ -554,19 +554,19 @@ ErrCode AppAccountProxy::WriteGetAuthTokenParam(
 {
     if (!data.WriteInterfaceToken(GetDescriptor())) {
         ACCOUNT_LOGE("failed to write descriptor!");
-        return ERR_APPACCOUNT_PROXY_WRITE_DATA;
+        return ERR_ACCOUNT_COMMON_WRITE_PARCEL_ERROR;
     }
     if (!data.WriteString(name)) {
         ACCOUNT_LOGE("failed to write string for name");
-        return ERR_APPACCOUNT_PROXY_WRITE_DATA;
+        return ERR_ACCOUNT_COMMON_WRITE_PARCEL_ERROR;
     }
     if (!data.WriteString(owner)) {
         ACCOUNT_LOGE("failed to write string for owner");
-        return ERR_APPACCOUNT_PROXY_WRITE_DATA;
+        return ERR_ACCOUNT_COMMON_WRITE_PARCEL_ERROR;
     }
     if (!data.WriteString(authType)) {
         ACCOUNT_LOGE("failed to write string for authType");
-        return ERR_APPACCOUNT_PROXY_WRITE_DATA;
+        return ERR_ACCOUNT_COMMON_WRITE_PARCEL_ERROR;
     }
     return ERR_OK;
 }
@@ -650,24 +650,24 @@ ErrCode AppAccountProxy::WriteDeleteAuthTokenParam(const std::string &name, cons
 {
     if (!data.WriteInterfaceToken(GetDescriptor())) {
         ACCOUNT_LOGE("failed to write descriptor!");
-        return ERR_APPACCOUNT_PROXY_WRITE_DATA;
+        return ERR_ACCOUNT_COMMON_WRITE_PARCEL_ERROR;
     }
 
     if (!data.WriteString(name)) {
         ACCOUNT_LOGE("failed to write string for token");
-        return ERR_APPACCOUNT_PROXY_WRITE_DATA;
+        return ERR_ACCOUNT_COMMON_WRITE_PARCEL_ERROR;
     }
     if (!data.WriteString(owner)) {
         ACCOUNT_LOGE("failed to write string for owner");
-        return ERR_APPACCOUNT_PROXY_WRITE_DATA;
+        return ERR_ACCOUNT_COMMON_WRITE_PARCEL_ERROR;
     }
     if (!data.WriteString(authType)) {
         ACCOUNT_LOGE("failed to write string for authType");
-        return ERR_APPACCOUNT_PROXY_WRITE_DATA;
+        return ERR_ACCOUNT_COMMON_WRITE_PARCEL_ERROR;
     }
     if (!data.WriteString(token)) {
         ACCOUNT_LOGE("failed to write string for token");
-        return ERR_APPACCOUNT_PROXY_WRITE_DATA;
+        return ERR_ACCOUNT_COMMON_WRITE_PARCEL_ERROR;
     }
     return ERR_OK;
 }
@@ -714,20 +714,20 @@ ErrCode AppAccountProxy::WriteTokenVisibilityParam(
 {
     if (!data.WriteInterfaceToken(GetDescriptor())) {
         ACCOUNT_LOGE("failed to write descriptor!");
-        return ERR_APPACCOUNT_PROXY_WRITE_DATA;
+        return ERR_ACCOUNT_COMMON_WRITE_PARCEL_ERROR;
     }
 
     if (!data.WriteString(name)) {
         ACCOUNT_LOGE("failed to write string for name");
-        return ERR_APPACCOUNT_PROXY_WRITE_DATA;
+        return ERR_ACCOUNT_COMMON_WRITE_PARCEL_ERROR;
     }
     if (!data.WriteString(authType)) {
         ACCOUNT_LOGE("failed to write string for authType");
-        return ERR_APPACCOUNT_PROXY_WRITE_DATA;
+        return ERR_ACCOUNT_COMMON_WRITE_PARCEL_ERROR;
     }
     if (!data.WriteString(bundleName)) {
         ACCOUNT_LOGE("failed to write string for bundleName");
-        return ERR_APPACCOUNT_PROXY_WRITE_DATA;
+        return ERR_ACCOUNT_COMMON_WRITE_PARCEL_ERROR;
     }
     return ERR_OK;
 }
@@ -745,7 +745,7 @@ ErrCode AppAccountProxy::SetAuthTokenVisibility(
 
     if (!data.WriteBool(isVisible)) {
         ACCOUNT_LOGE("failed to write string for isVisible");
-        return ERR_APPACCOUNT_PROXY_WRITE_DATA;
+        return ERR_ACCOUNT_COMMON_WRITE_PARCEL_ERROR;
     }
     result = SendRequest(IAppAccount::Message::SET_AUTH_TOKEN_VISIBILITY, data, reply);
     if (result != ERR_OK) {
@@ -768,7 +768,7 @@ ErrCode AppAccountProxy::SetOAuthTokenVisibility(
 
     if (!data.WriteBool(isVisible)) {
         ACCOUNT_LOGE("failed to write string for isVisible");
-        return ERR_APPACCOUNT_PROXY_WRITE_DATA;
+        return ERR_ACCOUNT_COMMON_WRITE_PARCEL_ERROR;
     }
     result = SendRequest(IAppAccount::Message::SET_OAUTH_TOKEN_VISIBILITY, data, reply);
     if (result != ERR_OK) {
@@ -887,16 +887,16 @@ ErrCode AppAccountProxy::WriteGetAuthListParam(
 {
     if (!data.WriteInterfaceToken(GetDescriptor())) {
         ACCOUNT_LOGE("failed to write descriptor!");
-        return ERR_APPACCOUNT_PROXY_WRITE_DATA;
+        return ERR_ACCOUNT_COMMON_WRITE_PARCEL_ERROR;
     }
 
     if (!data.WriteString(name)) {
         ACCOUNT_LOGE("failed to write string for name");
-        return ERR_APPACCOUNT_PROXY_WRITE_DATA;
+        return ERR_ACCOUNT_COMMON_WRITE_PARCEL_ERROR;
     }
     if (!data.WriteString(authType)) {
         ACCOUNT_LOGE("failed to write string for authType");
-        return ERR_APPACCOUNT_PROXY_WRITE_DATA;
+        return ERR_ACCOUNT_COMMON_WRITE_PARCEL_ERROR;
     }
     return ERR_OK;
 }
