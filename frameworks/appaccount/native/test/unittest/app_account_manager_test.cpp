@@ -566,7 +566,7 @@ HWTEST_F(AppAccountManagerTest, AppAccountManager_SetOAuthTokenVisibility_0200, 
  * @tc.name: AppAccountManager_SetAuthTokenVisibility_0100
  * @tc.desc: Fail to set oauth token visibility with invalid parameter.
  * @tc.type: FUNC
- * @tc.require: issueI4ITYY
+ * @tc.require:
  */
 HWTEST_F(AppAccountManagerTest, AppAccountManager_SetAuthTokenVisibility_0100, TestSize.Level1)
 {
@@ -594,7 +594,7 @@ HWTEST_F(AppAccountManagerTest, AppAccountManager_SetAuthTokenVisibility_0100, T
  * @tc.name: AppAccountManager_SetAuthTokenVisibility_0200
  * @tc.desc: Fail to set oauth token visibility from shell process.
  * @tc.type: FUNC
- * @tc.require: issueI4ITYY
+ * @tc.require:
  */
 HWTEST_F(AppAccountManagerTest, AppAccountManager_SetAuthTokenVisibility_0200, TestSize.Level1)
 {
@@ -658,7 +658,7 @@ HWTEST_F(AppAccountManagerTest, AppAccountManager_CheckOAuthTokenVisibility_0200
  * @tc.name: AppAccountManager_CheckAuthTokenVisibility_0100
  * @tc.desc: Fail to check oauth token visibility with invalid name.
  * @tc.type: FUNC
- * @tc.require: issueI4ITYY
+ * @tc.require:
  */
 HWTEST_F(AppAccountManagerTest, AppAccountManager_CheckAuthTokenVisibility_0100, TestSize.Level1)
 {
@@ -692,7 +692,7 @@ HWTEST_F(AppAccountManagerTest, AppAccountManager_CheckAuthTokenVisibility_0100,
  * @tc.name: AppAccountManager_CheckAuthTokenVisibility_0200
  * @tc.desc: Fail to check oauth token visibility from shell process.
  * @tc.type: FUNC
- * @tc.require: issueI4ITYY
+ * @tc.require:
  */
 HWTEST_F(AppAccountManagerTest, AppAccountManager_CheckAuthTokenVisibility_0200, TestSize.Level1)
 {

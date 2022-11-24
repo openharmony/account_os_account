@@ -387,7 +387,10 @@ HWTEST_F(AppAccountManagerServiceSubscribeModuleTest, AppAccountManagerServiceSu
     EXPECT_EQ(result, ERR_OK);
 
     // enable app access
-    result = controlManagerPtr_->EnableAppAccess(name, STRING_OWNER, UID, bundleName, appAccountInfo);
+    AppAccountCallingInfo appAccountCallingInfo;
+    appAccountCallingInfo.callingUid = UID;
+    appAccountCallingInfo.bundleName = bundleName;
+    result = controlManagerPtr_->EnableAppAccess(name, STRING_OWNER, appAccountCallingInfo, appAccountInfo);
     EXPECT_EQ(result, ERR_OK);
 
     // make owners
@@ -437,8 +440,11 @@ HWTEST_F(AppAccountManagerServiceSubscribeModuleTest, AppAccountManagerServiceSu
     EXPECT_EQ(result, ERR_OK);
 
     // enable app access
+    AppAccountCallingInfo appAccountCallingInfo;
+    appAccountCallingInfo.callingUid = UID;
+    appAccountCallingInfo.bundleName = STRING_BUNDLE_NAME;
     result = appAccountManagerServicePtr_->innerManager_->EnableAppAccess(STRING_NAME,
-        STRING_OWNER, UID, STRING_BUNDLE_NAME, 0);
+        STRING_OWNER, appAccountCallingInfo);
     EXPECT_EQ(result, ERR_OK);
 
     // make owners
@@ -466,8 +472,10 @@ HWTEST_F(AppAccountManagerServiceSubscribeModuleTest, AppAccountManagerServiceSu
     g_mtx.lock();
 
     // disable app access
+    appAccountCallingInfo.callingUid = UID;
+    appAccountCallingInfo.bundleName = STRING_BUNDLE_NAME;
     result = appAccountManagerServicePtr_->innerManager_->DisableAppAccess(STRING_NAME,
-        STRING_OWNER, UID, STRING_BUNDLE_NAME, 0);
+        STRING_OWNER, appAccountCallingInfo);
     EXPECT_EQ(result, ERR_OK);
 
     // set extra info
@@ -517,18 +525,17 @@ HWTEST_F(AppAccountManagerServiceSubscribeModuleTest, AppAccountManagerServiceSu
     TestSize.Level1)
 {
     ACCOUNT_LOGI("AppAccountManagerServiceSubscribe_SubscribeAppAccount_0600");
-
+    auto accountInnerManager = appAccountManagerServicePtr_->innerManager_;
     // add an account
-    ErrCode result = appAccountManagerServicePtr_->innerManager_->AddAccount(STRING_NAME,
-        STRING_EXTRA_INFO, UID, STRING_BUNDLE_NAME, 0);
+    ErrCode result = accountInnerManager->AddAccount(STRING_NAME, STRING_EXTRA_INFO, UID, STRING_BUNDLE_NAME, 0);
     EXPECT_EQ(result, ERR_OK);
-    result = appAccountManagerServicePtr_->innerManager_->AddAccount(STRING_NAME_TWO,
-        STRING_EXTRA_INFO, UID, STRING_BUNDLE_NAME, 0);
-    EXPECT_EQ(result, ERR_OK);
+    EXPECT_EQ(accountInnerManager->AddAccount(STRING_NAME_TWO, STRING_EXTRA_INFO, UID, STRING_BUNDLE_NAME, 0), ERR_OK);
 
     // enable app access
-    result = appAccountManagerServicePtr_->innerManager_->EnableAppAccess(STRING_NAME,
-        STRING_OWNER, UID, STRING_BUNDLE_NAME, 0);
+    AppAccountCallingInfo appAccountCallingInfo;
+    appAccountCallingInfo.callingUid = UID;
+    appAccountCallingInfo.bundleName = STRING_BUNDLE_NAME;
+    result = accountInnerManager->EnableAppAccess(STRING_NAME, STRING_OWNER, appAccountCallingInfo);
     EXPECT_EQ(result, ERR_OK);
 
     // make owners
@@ -556,12 +563,14 @@ HWTEST_F(AppAccountManagerServiceSubscribeModuleTest, AppAccountManagerServiceSu
     g_mtx.lock();
 
     // disable app access
-    result = appAccountManagerServicePtr_->innerManager_->DisableAppAccess(STRING_NAME,
-        STRING_OWNER, UID, STRING_BUNDLE_NAME, 0);
+    appAccountCallingInfo.callingUid = UID;
+    appAccountCallingInfo.bundleName = STRING_BUNDLE_NAME;
+    result = accountInnerManager->DisableAppAccess(STRING_NAME,
+        STRING_OWNER, appAccountCallingInfo);
     EXPECT_EQ(result, ERR_OK);
 
     // set extra info
-    result = appAccountManagerServicePtr_->innerManager_->SetAccountExtraInfo(STRING_NAME,
+    result = accountInnerManager->SetAccountExtraInfo(STRING_NAME,
         STRING_EXTRA_INFO, UID, STRING_BUNDLE_NAME, 0);
     EXPECT_EQ(result, ERR_OK);
 
@@ -590,10 +599,8 @@ HWTEST_F(AppAccountManagerServiceSubscribeModuleTest, AppAccountManagerServiceSu
     EXPECT_EQ(result, ERR_OK);
 
     // delete account
-    result = appAccountManagerServicePtr_->innerManager_->DeleteAccount(STRING_NAME, UID, STRING_BUNDLE_NAME, 0);
-    EXPECT_EQ(result, ERR_OK);
-    result = appAccountManagerServicePtr_->innerManager_->DeleteAccount(STRING_NAME_TWO, UID, STRING_BUNDLE_NAME, 0);
-    EXPECT_EQ(result, ERR_OK);
+    EXPECT_EQ(accountInnerManager->DeleteAccount(STRING_NAME, UID, STRING_BUNDLE_NAME, 0), ERR_OK);
+    EXPECT_EQ(accountInnerManager->DeleteAccount(STRING_NAME_TWO, UID, STRING_BUNDLE_NAME, 0), ERR_OK);
 
     // unlock the mutex
     g_mtx.unlock();
@@ -619,8 +626,11 @@ HWTEST_F(AppAccountManagerServiceSubscribeModuleTest, AppAccountManagerServiceSu
     EXPECT_EQ(result, ERR_OK);
 
     // enable app access
+    AppAccountCallingInfo appAccountCallingInfo;
+    appAccountCallingInfo.callingUid = UID;
+    appAccountCallingInfo.bundleName = STRING_BUNDLE_NAME;
     result = appAccountManagerServicePtr_->innerManager_->EnableAppAccess(STRING_NAME,
-        STRING_OWNER, UID, STRING_BUNDLE_NAME, 0);
+        STRING_OWNER, appAccountCallingInfo);
     EXPECT_EQ(result, ERR_OK);
 
     // make owners

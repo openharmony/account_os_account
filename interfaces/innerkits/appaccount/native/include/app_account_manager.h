@@ -39,6 +39,7 @@ public:
 
     static ErrCode EnableAppAccess(const std::string &name, const std::string &authorizedApp);
     static ErrCode DisableAppAccess(const std::string &name, const std::string &authorizedApp);
+    static ErrCode SetAppAccess(const std::string &name, const std::string &authorizedApp, bool isAccessible);
 
     static ErrCode CheckAppAccountSyncEnable(const std::string &name, bool &syncEnable);
     static ErrCode SetAppAccountSyncEnable(const std::string &name, const bool &syncEnable);
@@ -55,18 +56,28 @@ public:
         const AAFwk::Want &options, const sptr<IAppAccountAuthenticatorCallback> &callback);
     static ErrCode GetOAuthToken(const std::string &name, const std::string &owner, const std::string &authType,
         std::string &token);
+    static ErrCode GetAuthToken(const std::string &name, const std::string &owner, const std::string &authType,
+        std::string &token);
     static ErrCode SetOAuthToken(
         const std::string &name, const std::string &authType, const std::string &token);
     static ErrCode DeleteOAuthToken(
         const std::string &name, const std::string &owner, const std::string &authType, const std::string &token);
+    static ErrCode DeleteAuthToken(
+        const std::string &name, const std::string &owner, const std::string &authType, const std::string &token);
     static ErrCode SetOAuthTokenVisibility(const std::string &name, const std::string &authType,
         const std::string &bundleName, bool isVisible);
+    static ErrCode SetAuthTokenVisibility(const std::string &name, const std::string &authType,
+        const std::string &bundleName, bool isVisible);
     static ErrCode CheckOAuthTokenVisibility(const std::string &name, const std::string &authType,
+        const std::string &bundleName, bool &isVisible);
+    static ErrCode CheckAuthTokenVisibility(const std::string &name, const std::string &authType,
         const std::string &bundleName, bool &isVisible);
     static ErrCode GetAuthenticatorInfo(const std::string &owner, AuthenticatorInfo &info);
     static ErrCode GetAllOAuthTokens(const std::string &name, const std::string &owner,
         std::vector<OAuthTokenInfo> &tokenInfos);
     static ErrCode GetOAuthList(const std::string &name, const std::string &authType,
+        std::set<std::string> &oauthList);
+    static ErrCode GetAuthList(const std::string &name, const std::string &authType,
         std::set<std::string> &oauthList);
     static ErrCode GetAuthenticatorCallback(const std::string &sessionId, sptr<IRemoteObject> &callback);
 
