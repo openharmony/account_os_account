@@ -122,6 +122,13 @@ ErrCode MockAppAccountStub::DisableAppAccess(const std::string &name, const std:
     return ERR_OK;
 }
 
+ErrCode MockAppAccountStub::SetAppAccess(const std::string &name, const std::string &authorizedApp, bool isAccessible)
+{
+    ACCOUNT_LOGI("mock enter");
+
+    return ERR_OK;
+}
+
 ErrCode MockAppAccountStub::CheckAppAccountSyncEnable(const std::string &name, bool &syncEnable)
 {
     ACCOUNT_LOGI("mock enter");
@@ -183,6 +190,14 @@ ErrCode MockAppAccountStub::GetOAuthToken(
     return ERR_OK;
 }
 
+ErrCode MockAppAccountStub::GetAuthToken(
+    const std::string &name, const std::string &owner, const std::string &authType, std::string &token)
+{
+    ACCOUNT_LOGI("mock enter");
+
+    return ERR_OK;
+}
+
 ErrCode MockAppAccountStub::SetOAuthToken(
     const std::string &name, const std::string &authType, const std::string &token)
 {
@@ -199,6 +214,14 @@ ErrCode MockAppAccountStub::DeleteOAuthToken(const std::string &name, const std:
     return ERR_OK;
 }
 
+ErrCode MockAppAccountStub::DeleteAuthToken(const std::string &name, const std::string &owner,
+    const std::string &authType, const std::string &token)
+{
+    ACCOUNT_LOGI("mock enter");
+
+    return ERR_OK;
+}
+
 ErrCode MockAppAccountStub::SetOAuthTokenVisibility(const std::string &name, const std::string &authType,
     const std::string &bundleName, bool isVisible)
 {
@@ -207,7 +230,23 @@ ErrCode MockAppAccountStub::SetOAuthTokenVisibility(const std::string &name, con
     return ERR_OK;
 }
 
+ErrCode MockAppAccountStub::SetAuthTokenVisibility(const std::string &name, const std::string &authType,
+    const std::string &bundleName, bool isVisible)
+{
+    ACCOUNT_LOGI("mock enter");
+
+    return ERR_OK;
+}
+
 ErrCode MockAppAccountStub::CheckOAuthTokenVisibility(const std::string &name, const std::string &authType,
+    const std::string &bundleName, bool &isVisible)
+{
+    ACCOUNT_LOGI("mock enter");
+
+    return ERR_OK;
+}
+
+ErrCode MockAppAccountStub::CheckAuthTokenVisibility(const std::string &name, const std::string &authType,
     const std::string &bundleName, bool &isVisible)
 {
     ACCOUNT_LOGI("mock enter");
@@ -231,6 +270,14 @@ ErrCode MockAppAccountStub::GetAllOAuthTokens(const std::string &name, const std
 }
 
 ErrCode MockAppAccountStub::GetOAuthList(const std::string &name, const std::string &authType,
+    std::set<std::string> &oauthList)
+{
+    ACCOUNT_LOGI("mock enter");
+
+    return ERR_OK;
+}
+
+ErrCode MockAppAccountStub::GetAuthList(const std::string &name, const std::string &authType,
     std::set<std::string> &oauthList)
 {
     ACCOUNT_LOGI("mock enter");
