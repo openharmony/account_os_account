@@ -267,21 +267,17 @@ bool OhosAccountManager::LoginOhosAccount(const OhosAccountInfo &ohosAccountInfo
         ACCOUNT_LOGE("get current ohos account info failed, callingUserId %{public}d.", callingUserId);
         return false;
     }
-
-    // current local user cannot be bound again when it has already been bound to an ohos account
     std::string ohosAccountUid = GenerateOhosUdidWithSha256(ohosAccountInfo.name_, ohosAccountInfo.uid_);
-    if ((currAccountInfo.ohosAccountInfo_.status_ == ACCOUNT_STATE_LOGIN) &&
-        ((currAccountInfo.ohosAccountInfo_.uid_ != ohosAccountUid) ||
-        (currAccountInfo.ohosAccountInfo_.name_ != ohosAccountInfo.name_))) {
-        ACCOUNT_LOGE("current account has already been bounded. callingUserId %{public}d.", callingUserId);
-        return false;
-    }
-
-    if (!CheckOhosAccountCanBind(ohosAccountUid)) {
+    // current local user cannot be bound again when it has already been bound to an ohos account
+    if (!CheckOhosAccountCanBind(currAccountInfo, ohosAccountInfo, ohosAccountUid)) {
         ACCOUNT_LOGE("check can be bound failed, callingUserId %{public}d.", callingUserId);
         return false;
     }
 
+    bool pubEvent = false;
+    if (currAccountInfo.ohosAccountInfo_.status_ != ACCOUNT_STATE_LOGIN) {
+        pubEvent = true;
+    }
     // update account status
     if (!HandleEvent(currAccountInfo, eventStr)) {
         ACCOUNT_LOGE("HandleEvent %{public}s failed! callingUserId %{public}d.", eventStr.c_str(), callingUserId);
@@ -294,7 +290,7 @@ bool OhosAccountManager::LoginOhosAccount(const OhosAccountInfo &ohosAccountInfo
     currAccountInfo.ohosAccountInfo_.uid_ = ohosAccountUid;
     currAccountInfo.ohosAccountInfo_.status_ = ACCOUNT_STATE_LOGIN;
     currAccountInfo.bindTime_ = std::time(nullptr);
-    currAccountInfo.userId_ = callingUserId;
+
     if (!SaveOhosAccountInfo(currAccountInfo)) {
         ACCOUNT_LOGE("SaveOhosAccountInfo failed! callingUserId %{public}d.", callingUserId);
         return false;
@@ -302,13 +298,15 @@ bool OhosAccountManager::LoginOhosAccount(const OhosAccountInfo &ohosAccountInfo
 
     // publish event
 #ifdef HAS_CES_PART
-    bool ret = AccountEventProvider::EventPublish(
-        EventFwk::CommonEventSupport::COMMON_EVENT_HWID_LOGIN, callingUserId);
-    if (!ret) {
-        ACCOUNT_LOGE("publish ohos account login event failed! callingUserId %{public}d.", callingUserId);
-        ReportOhosAccountOperationFail(
-            currAccountInfo.userId_, EVENT_PUBLISH, ret, "publish COMMON_EVENT_HWID_LOGIN failed");
-        return false;
+    if (pubEvent) {
+        bool ret = AccountEventProvider::EventPublish(
+            EventFwk::CommonEventSupport::COMMON_EVENT_DISTRIBUTED_ACCOUNT_LOGIN, callingUserId);
+        if (!ret) {
+            ACCOUNT_LOGE("publish ohos account login event failed! callingUserId %{public}d.", callingUserId);
+            ReportOhosAccountOperationFail(
+                currAccountInfo.userId_, EVENT_PUBLISH, ret, "publish COMMON_EVENT_DISTRIBUTED_ACCOUNT_LOGIN failed");
+            return false;
+        }
     }
 #else // HAS_CES_PART
     ACCOUNT_LOGI("No common event part, publish nothing!");
@@ -526,10 +524,19 @@ void OhosAccountManager::HandleDevAccountSwitchEvent()
     }
 }
 
-bool OhosAccountManager::CheckOhosAccountCanBind(const std::string &newOhosUid) const
+bool OhosAccountManager::CheckOhosAccountCanBind(const AccountInfo &currAccountInfo,
+    const OhosAccountInfo &newOhosAccountInfo, const std::string &newOhosUid) const
 {
     if (newOhosUid.length() != OHOS_ACCOUNT_UDID_LENGTH) {
         ACCOUNT_LOGE("newOhosUid invalid length, %{public}s.", newOhosUid.c_str());
+        return false;
+    }
+
+    // check if current account has been bound or not
+    if ((currAccountInfo.ohosAccountInfo_.status_ == ACCOUNT_STATE_LOGIN) &&
+        ((currAccountInfo.ohosAccountInfo_.uid_ != newOhosUid) ||
+        (currAccountInfo.ohosAccountInfo_.name_ != newOhosAccountInfo.name_))) {
+            ACCOUNT_LOGE("current account has already been bounded. callingUserId %{public}d.", GetCallingUserID());
         return false;
     }
 
