@@ -225,6 +225,7 @@ ErrCode AppAccountManagerService::SetAppAccess(
 
     return innerManager_->DisableAppAccess(name, authorizedApp, appAccountCallingInfo, Constants::API_VERSION9);
 }
+
 ErrCode AppAccountManagerService::CheckAppAccountSyncEnable(const std::string &name, bool &syncEnable)
 {
     int32_t callingUid = -1;
@@ -441,12 +442,14 @@ ErrCode AppAccountManagerService::SetAuthTokenVisibility(
             return ERR_APPACCOUNT_SERVICE_BUNDLE_NAME_IS_THE_SAME;
         }
     }
-    AppExecFwk::BundleInfo bundleInfo;
-    int32_t userId = request.callerUid / UID_TRANSFORM_DIVISOR;
-    bool ret = BundleManagerAdapter::GetInstance()->GetBundleInfo(
-        bundleName, AppExecFwk::BundleFlag::GET_BUNDLE_DEFAULT, bundleInfo, userId);
-    if (!ret) {
-        return ERR_APPACCOUNT_SERVICE_GET_BUNDLE_INFO;
+    if (isVisible) {
+        AppExecFwk::BundleInfo bundleInfo;
+        int32_t userId = request.callerUid / UID_TRANSFORM_DIVISOR;
+        bool ret = BundleManagerAdapter::GetInstance()->GetBundleInfo(
+            bundleName, AppExecFwk::BundleFlag::GET_BUNDLE_DEFAULT, bundleInfo, userId);
+        if (!ret) {
+            return ERR_APPACCOUNT_SERVICE_GET_BUNDLE_INFO;
+        }
     }
     request.isTokenVisible = isVisible;
     return innerManager_->SetOAuthTokenVisibility(request, Constants::API_VERSION9);
@@ -473,7 +476,6 @@ ErrCode AppAccountManagerService::CheckAuthTokenVisibility(
     }
     return innerManager_->CheckOAuthTokenVisibility(request, isVisible, Constants::API_VERSION9);
 }
-
 
 ErrCode AppAccountManagerService::GetAuthenticatorInfo(const std::string &owner, AuthenticatorInfo &info)
 {

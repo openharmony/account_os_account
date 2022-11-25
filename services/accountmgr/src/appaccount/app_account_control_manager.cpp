@@ -546,7 +546,6 @@ ErrCode AppAccountControlManager::CheckOAuthTokenVisibility(
     return appAccountInfo.CheckOAuthTokenVisibility(request.authType, request.bundleName, isVisible, apiVersion);
 }
 
-
 ErrCode AppAccountControlManager::GetAllOAuthTokens(
     const AuthenticatorSessionRequest &request, std::vector<OAuthTokenInfo> &tokenInfos)
 {
