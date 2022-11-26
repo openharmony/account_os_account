@@ -421,7 +421,7 @@ ErrCode AppAccountManagerService::SetOAuthTokenVisibility(
     if (ret != ERR_OK) {
         return ret;
     }
-    request.isTokenVisible = isVisible; 
+    request.isTokenVisible = isVisible;
     return innerManager_->SetOAuthTokenVisibility(request);
 }
 
