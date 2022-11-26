@@ -263,6 +263,7 @@ bool OhosAccountManager::LoginOhosAccount(const OhosAccountInfo &ohosAccountInfo
         return false;
     }
 
+    // check whether need to publish event or not
     bool pubEvent = false;
     if (currAccountInfo.ohosAccountInfo_.status_ != ACCOUNT_STATE_LOGIN) {
         pubEvent = true;
@@ -285,17 +286,18 @@ bool OhosAccountManager::LoginOhosAccount(const OhosAccountInfo &ohosAccountInfo
         return false;
     }
 
-    // publish event
+    if (!pubEvent) {
+        ACCOUNT_LOGI("update distributed account information success, no event to publish");
+        return true;
+    }
 #ifdef HAS_CES_PART
-    if (pubEvent) {
-        bool ret = AccountEventProvider::EventPublish(
-            EventFwk::CommonEventSupport::COMMON_EVENT_DISTRIBUTED_ACCOUNT_LOGIN, callingUserId);
-        if (!ret) {
-            ACCOUNT_LOGE("publish ohos account login event failed! callingUserId %{public}d.", callingUserId);
-            ReportOhosAccountOperationFail(
-                currAccountInfo.userId_, EVENT_PUBLISH, ret, "publish COMMON_EVENT_DISTRIBUTED_ACCOUNT_LOGIN failed");
-            return false;
-        }
+    bool ret = AccountEventProvider::EventPublish(
+        EventFwk::CommonEventSupport::COMMON_EVENT_HWID_LOGIN, callingUserId);
+    if (!ret) {
+        ACCOUNT_LOGE("publish ohos account login event failed! callingUserId %{public}d.", callingUserId);
+        ReportOhosAccountOperationFail(
+            currAccountInfo.userId_, EVENT_PUBLISH, ret, "publish COMMON_EVENT_HWID_LOGIN failed");
+        return false;
     }
 #else // HAS_CES_PART
     ACCOUNT_LOGI("No common event part, publish nothing!");
