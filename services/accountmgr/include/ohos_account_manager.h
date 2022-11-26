@@ -184,8 +184,7 @@ private:
      * Check whether the ohos account can be bound to the current user or not
      * @return true if can.
      */
-    bool CheckOhosAccountCanBind(const AccountInfo &currAccountInfo,
-        const OhosAccountInfo &newOhosAccountInfo, const std::string &newOhosUid) const;
+    bool CheckOhosAccountCanBind(const std::string &newOhosUid) const;
 
     /**
      * Get current ohos account info and check whether input information match or not
