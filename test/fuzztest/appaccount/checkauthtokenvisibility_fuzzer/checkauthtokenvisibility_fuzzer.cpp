@@ -13,25 +13,26 @@
  * limitations under the License.
  */
 
-#include "setaccountextraninfo_fuzzer.h"
+#include "checkauthtokenvisibility_fuzzer.h"
 
+#include "account_log_wrapper.h"
+#include "app_account_manager.h"
 #include <string>
 #include <vector>
-#include "app_account_manager.h"
-#include "account_log_wrapper.h"
-#undef private
 
 using namespace std;
 using namespace OHOS::AccountSA;
 
 namespace OHOS {
-    bool SetAccountExtraInfoFuzzTest(const uint8_t* data, size_t size)
+    bool CheckAuthTokenVisibilityFuzzTest(const uint8_t* data, size_t size)
     {
         bool result = false;
         if (size > 0) {
             std::string testName(reinterpret_cast<const char*>(data), size);
-            std::string testExtraInfo(reinterpret_cast<const char*>(data), size);
-            result = AppAccountManager::SetAccountExtraInfo(testName, testExtraInfo);
+            std::string testAuthType(reinterpret_cast<const char*>(data), size);
+            std::string testBundleName(reinterpret_cast<const char*>(data), size);
+            bool isVisible = false;
+            result = AppAccountManager::CheckAuthTokenVisibility(testName, testAuthType, testBundleName, isVisible);
         }
         return result;
     }
@@ -41,7 +42,7 @@ namespace OHOS {
 extern "C" int LLVMFuzzerTestOneInput(const uint8_t* data, size_t size)
 {
     /* Run your code on data */
-    OHOS::SetAccountExtraInfoFuzzTest(data, size);
+    OHOS::CheckAuthTokenVisibilityFuzzTest(data, size);
     return 0;
 }
 
