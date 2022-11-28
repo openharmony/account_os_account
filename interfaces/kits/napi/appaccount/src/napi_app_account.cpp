@@ -1267,7 +1267,7 @@ napi_value NapiAppAccount::DeleteAuthTokenInternal(napi_env env, napi_callback_i
                     asyncContext->errCode = AppAccountManager::DeleteOAuthToken(
                         asyncContext->name, asyncContext->owner, asyncContext->authType, asyncContext->token);
                 }
-
+                
             },
             [](napi_env env, napi_status status, void *data) {
                 OAuthAsyncContext *asyncContext = reinterpret_cast<OAuthAsyncContext *>(data);
