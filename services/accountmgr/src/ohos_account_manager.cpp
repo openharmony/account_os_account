@@ -538,7 +538,7 @@ bool OhosAccountManager::CheckOhosAccountCanBind(const AccountInfo &currAccountI
     if ((currAccountInfo.ohosAccountInfo_.status_ == ACCOUNT_STATE_LOGIN) &&
         ((currAccountInfo.ohosAccountInfo_.uid_ != newOhosUid) ||
         (currAccountInfo.ohosAccountInfo_.name_ != newOhosAccountInfo.name_))) {
-            ACCOUNT_LOGE("current account has already been bounded. callingUserId %{public}d.", GetCallingUserID());
+        ACCOUNT_LOGE("current account has already been bounded. callingUserId %{public}d.", GetCallingUserID());
         return false;
     }
 
