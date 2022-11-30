@@ -24,6 +24,7 @@ group("account_build_unittest") {
     "//base/account/os_account/frameworks/osaccount/core/test:unittest",
     "//base/account/os_account/frameworks/osaccount/native/test/benchmarktest:benchmarktest",
     "//base/account/os_account/frameworks/osaccount/native/test/unittest:unittest",
+    "//base/account/os_account/frameworks/test/unittest:unittest",
     "//base/account/os_account/services/accountmgr/test:unittest",
     "//base/account/os_account/test/systemtest:systemtest",
     "//base/account/os_account/tools:unittest",

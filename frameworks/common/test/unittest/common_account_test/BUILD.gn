@@ -28,7 +28,7 @@ ohos_unittest("AccountCommonTest") {
   ]
 
   sources += [ "account_error_common_test.cpp" ]
-  sources += [ "account_file_operator.cpp" ]
+  sources += [ "account_file_operator_test.cpp" ]
   sources += [ "account_log_test.cpp" ]
   sources += [ "account_perf_stat_test.cpp" ]
 
