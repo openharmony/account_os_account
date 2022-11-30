@@ -26,6 +26,7 @@
 
 using namespace testing::ext;
 using namespace OHOS::AccountSA;
+using namespace OHOS;
 
 class AccountFileOperatorTest : public testing::Test {
 public:
@@ -47,7 +48,7 @@ void AccountFileOperatorTest::TearDown() {}
 
 /**
  * @tc.name: AccountFileOperator001
- * @tc.desc: Test inalid path
+ * @tc.desc: Test invalid path
  * @tc.type: FUNC
  * @tc.require: issueI5RWXN
  */
@@ -58,4 +59,6 @@ HWTEST_F(AccountFileOperatorTest, AccountFileOperator001, TestSize.Level0)
     EXPECT_EQ(accountFileOperator_->IsExistFile(""), false);
     EXPECT_EQ(accountFileOperator_->IsJsonFormat("../&*&"), false);
     EXPECT_EQ(accountFileOperator_->IsExistDir(""), false);
+    EXPECT_EQ(
+        accountFileOperator_->InputFileByPathAndContent("/test1", "test"), ERR_OSACCOUNT_SERVICE_FILE_FIND_DIR_ERROR);
 }
