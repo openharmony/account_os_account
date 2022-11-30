@@ -24,6 +24,7 @@ using namespace OHOS;
 using namespace OHOS::AccountSA;
 
 namespace {
+const std::string STRING_EMPTY = "";
 const std::string STRING_NAME = "name";
 const std::int32_t MAIN_ACCOUNT_ID = 100;
 const std::string PHOTO_IMG =
@@ -41,6 +42,9 @@ const std::vector<std::string> CONSTANTS_VECTOR {
 const std::string CONSTANT_PRINT = "constraint.print";
 std::shared_ptr<OsAccount> g_osAccount = nullptr;
 std::string storeID = "";
+const std::string STRING_DOMAIN_VALID = "TestDomainUT";
+const std::string STRING_DOMAIN_ACCOUNT_NAME_VALID = "TestDomainAccountNameUT";
+
 }  // namespace
 
 class OsAccountMockTest : public testing::Test {
@@ -66,6 +70,35 @@ void OsAccountMockTest::TearDown(void)
 {}
 
 /**
+ * @tc.name: CreateOsAccountMockTest001
+ * @tc.desc: Test CreateOsAccount getosaccountproxy faild
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(OsAccountMockTest, CreateOsAccountMockTest001, TestSize.Level1)
+{
+    OsAccountType type = NORMAL;
+    OsAccountInfo osAccountInfo;
+    EXPECT_EQ(ERR_OSACCOUNT_KIT_GET_SYSTEM_ABILITY_MANAGER_ERROR,
+        g_osAccount->CreateOsAccount(STRING_NAME, type, osAccountInfo));
+}
+
+/**
+ * @tc.name: CreateOsAccountForDomainMockTest001
+ * @tc.desc: Test CreateOsAccountForDomain getosaccountproxy faild
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(OsAccountMockTest, CreateOsAccountForDomainMockTest001, TestSize.Level1)
+{
+    OsAccountType type = NORMAL;
+    DomainAccountInfo domainInfo(STRING_DOMAIN_VALID, STRING_DOMAIN_ACCOUNT_NAME_VALID);
+    OsAccountInfo osAccountInfo;
+    EXPECT_EQ(ERR_OSACCOUNT_KIT_GET_SYSTEM_ABILITY_MANAGER_ERROR,
+        g_osAccount->CreateOsAccountForDomain(type, domainInfo, osAccountInfo));
+}
+
+/**
  * @tc.name: RemoveOsAccountMockTest001
  * @tc.desc: Test RemoveOsAccount getosaccountproxy faild
  * @tc.type: FUNC
@@ -78,12 +111,12 @@ HWTEST_F(OsAccountMockTest, RemoveOsAccountMockTest001, TestSize.Level1)
 }
 
 /**
- * @tc.name: IsOsAccountExistsTest001
+ * @tc.name: IsOsAccountExistsMockTest001
  * @tc.desc: Test IsOsAccountExists getosaccountproxy faild
  * @tc.type: FUNC
  * @tc.require:
  */
-HWTEST_F(OsAccountMockTest, IsOsAccountExistsTest001, TestSize.Level1)
+HWTEST_F(OsAccountMockTest, IsOsAccountExistsMockTest001, TestSize.Level1)
 {
     bool isOsAccountExists;
     EXPECT_EQ(ERR_OSACCOUNT_KIT_GET_SYSTEM_ABILITY_MANAGER_ERROR,
@@ -91,16 +124,68 @@ HWTEST_F(OsAccountMockTest, IsOsAccountExistsTest001, TestSize.Level1)
 }
 
 /**
- * @tc.name: IsOsAccountConstraintEnableTest001
+ * @tc.name: IsOsAccountActivedMockTest001
+ * @tc.desc: Test IsOsAccountActived getosaccountproxy faild
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(OsAccountMockTest, IsOsAccountActivedMockTest001, TestSize.Level1)
+{
+    bool isOsAccountActived;
+    EXPECT_EQ(ERR_OSACCOUNT_KIT_GET_SYSTEM_ABILITY_MANAGER_ERROR,
+        g_osAccount->IsOsAccountActived(MAIN_ACCOUNT_ID, isOsAccountActived));
+}
+
+/**
+ * @tc.name: IsOsAccountConstraintEnableMockTest001
  * @tc.desc: Test IsOsAccountConstraintEnable getosaccountproxy faild
  * @tc.type: FUNC
  * @tc.require:
  */
-HWTEST_F(OsAccountMockTest, IsOsAccountConstraintEnableTest001, TestSize.Level1)
+HWTEST_F(OsAccountMockTest, IsOsAccountConstraintEnableMockTest001, TestSize.Level1)
 {
     bool isConstraintEnable;
     EXPECT_EQ(ERR_OSACCOUNT_KIT_GET_SYSTEM_ABILITY_MANAGER_ERROR,
         g_osAccount->IsOsAccountConstraintEnable(MAIN_ACCOUNT_ID, CONSTANT_PRINT, isConstraintEnable));
+}
+
+/**
+ * @tc.name: IsOsAccountVerifiedMockTest001
+ * @tc.desc: Test IsOsAccountVerified getosaccountproxy faild
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(OsAccountMockTest, IsOsAccountVerifiedMockTest001, TestSize.Level1)
+{
+    bool isVerified;
+    EXPECT_EQ(ERR_OSACCOUNT_KIT_GET_SYSTEM_ABILITY_MANAGER_ERROR,
+        g_osAccount->IsOsAccountVerified(MAIN_ACCOUNT_ID, isVerified));
+}
+
+/**
+ * @tc.name: GetCreatedOsAccountsCountMockTest001
+ * @tc.desc: Test GetCreatedOsAccountsCount getosaccountproxy faild
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(OsAccountMockTest, GetCreatedOsAccountsCountMockTest001, TestSize.Level1)
+{
+    unsigned int osAccountsCount;
+    EXPECT_EQ(ERR_OSACCOUNT_KIT_GET_SYSTEM_ABILITY_MANAGER_ERROR,
+        g_osAccount->GetCreatedOsAccountsCount(osAccountsCount));
+}
+
+/**
+ * @tc.name: GetOsAccountLocalIdFromProcessMockTest001
+ * @tc.desc: Test GetOsAccountLocalIdFromProcess getosaccountproxy faild
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(OsAccountMockTest, GetOsAccountLocalIdFromProcessMockTest001, TestSize.Level1)
+{
+    int id;
+    EXPECT_EQ(ERR_OSACCOUNT_KIT_GET_SYSTEM_ABILITY_MANAGER_ERROR,
+        g_osAccount->GetOsAccountLocalIdFromProcess(id));
 }
 
 /**
@@ -117,12 +202,78 @@ HWTEST_F(OsAccountMockTest, IsMainOsAccountMockTest001, TestSize.Level1)
 }
 
 /**
- * @tc.name: QueryOsAccountByIdTest001
+ * @tc.name: GetOsAccountLocalIdFromDomainMockTest001
+ * @tc.desc: Test GetOsAccountLocalIdFromDomain getosaccountproxy faild
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(OsAccountMockTest, GetOsAccountLocalIdFromDomainMockTest001, TestSize.Level1)
+{
+    DomainAccountInfo domainInfo(STRING_DOMAIN_VALID, STRING_DOMAIN_ACCOUNT_NAME_VALID);
+    int id;
+    EXPECT_EQ(ERR_OSACCOUNT_KIT_GET_SYSTEM_ABILITY_MANAGER_ERROR,
+        g_osAccount->GetOsAccountLocalIdFromDomain(domainInfo, id));
+}
+
+/**
+ * @tc.name: QueryMaxOsAccountNumberMockTest001
+ * @tc.desc: Test QueryMaxOsAccountNumber getosaccountproxy faild
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(OsAccountMockTest, QueryMaxOsAccountNumberMockTest001, TestSize.Level1)
+{
+    int maxOsAccountNumber;
+    EXPECT_EQ(ERR_OSACCOUNT_KIT_GET_SYSTEM_ABILITY_MANAGER_ERROR,
+        g_osAccount->QueryMaxOsAccountNumber(maxOsAccountNumber));
+}
+
+/**
+ * @tc.name: GetOsAccountAllConstraintsMockTest001
+ * @tc.desc: Test GetOsAccountAllConstraints getosaccountproxy faild
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(OsAccountMockTest, GetOsAccountAllConstraintsMockTest001, TestSize.Level1)
+{
+    std::vector<std::string> constraints;
+    EXPECT_EQ(ERR_OSACCOUNT_KIT_GET_SYSTEM_ABILITY_MANAGER_ERROR,
+        g_osAccount->GetOsAccountAllConstraints(MAIN_ACCOUNT_ID, constraints));
+}
+
+/**
+ * @tc.name: QueryAllCreatedOsAccountsMockTest001
+ * @tc.desc: Test QueryAllCreatedOsAccounts getosaccountproxy faild
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(OsAccountMockTest, QueryAllCreatedOsAccountsMockTest001, TestSize.Level1)
+{
+    std::vector<OsAccountInfo> osAccountInfos;
+    EXPECT_EQ(ERR_OSACCOUNT_KIT_GET_SYSTEM_ABILITY_MANAGER_ERROR,
+        g_osAccount->QueryAllCreatedOsAccounts(osAccountInfos));
+}
+
+/**
+ * @tc.name: QueryCurrentOsAccountMockTest001
+ * @tc.desc: Test QueryCurrentOsAccount getosaccountproxy faild
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(OsAccountMockTest, QueryCurrentOsAccountMockTest001, TestSize.Level1)
+{
+    OsAccountInfo osAccountInfo;
+    EXPECT_EQ(ERR_OSACCOUNT_KIT_GET_SYSTEM_ABILITY_MANAGER_ERROR,
+        g_osAccount->QueryCurrentOsAccount(osAccountInfo));
+}
+
+/**
+ * @tc.name: QueryOsAccountByIdMockTest001
  * @tc.desc: Test QueryOsAccountById getosaccountproxy faild
  * @tc.type: FUNC
  * @tc.require:
  */
-HWTEST_F(OsAccountMockTest, QueryOsAccountByIdTest001, TestSize.Level1)
+HWTEST_F(OsAccountMockTest, QueryOsAccountByIdMockTest001, TestSize.Level1)
 {
     OsAccountInfo osAccountInfo;
     EXPECT_EQ(ERR_OSACCOUNT_KIT_GET_SYSTEM_ABILITY_MANAGER_ERROR,
@@ -130,12 +281,25 @@ HWTEST_F(OsAccountMockTest, QueryOsAccountByIdTest001, TestSize.Level1)
 }
 
 /**
- * @tc.name: GetOsAccountProfilePhotoTest001
+ * @tc.name: GetOsAccountTypeFromProcessMockTest001
+ * @tc.desc: Test GetOsAccountTypeFromProcess getosaccountproxy faild
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(OsAccountMockTest, GetOsAccountTypeFromProcessMockTest001, TestSize.Level1)
+{
+    OsAccountType type;
+    EXPECT_EQ(ERR_OSACCOUNT_KIT_GET_SYSTEM_ABILITY_MANAGER_ERROR,
+        g_osAccount->GetOsAccountTypeFromProcess(type));
+}
+
+/**
+ * @tc.name: GetOsAccountProfilePhotoMockTest001
  * @tc.desc: Test GetOsAccountProfilePhoto getosaccountproxy faild
  * @tc.type: FUNC
  * @tc.require:
  */
-HWTEST_F(OsAccountMockTest, GetOsAccountProfilePhotoTest001, TestSize.Level1)
+HWTEST_F(OsAccountMockTest, GetOsAccountProfilePhotoMockTest001, TestSize.Level1)
 {
     std::string photo;
     EXPECT_EQ(ERR_OSACCOUNT_KIT_GET_SYSTEM_ABILITY_MANAGER_ERROR,
@@ -143,36 +307,49 @@ HWTEST_F(OsAccountMockTest, GetOsAccountProfilePhotoTest001, TestSize.Level1)
 }
 
 /**
- * @tc.name: SetOsAccountNameTest001
+ * @tc.name: IsMultiOsAccountEnableMockTest001
+ * @tc.desc: Test IsMultiOsAccountEnable getosaccountproxy faild
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(OsAccountMockTest, IsMultiOsAccountEnableMockTest001, TestSize.Level1)
+{
+    bool isMultiOsAccountEnable;
+    EXPECT_EQ(ERR_OSACCOUNT_KIT_GET_SYSTEM_ABILITY_MANAGER_ERROR,
+        g_osAccount->IsMultiOsAccountEnable(isMultiOsAccountEnable));
+}
+
+/**
+ * @tc.name: SetOsAccountNameMockTest001
  * @tc.desc: Test SetOsAccountName getosaccountproxy faild
  * @tc.type: FUNC
  * @tc.require:
  */
-HWTEST_F(OsAccountMockTest, SetOsAccountNameTest001, TestSize.Level1)
+HWTEST_F(OsAccountMockTest, SetOsAccountNameMockTest001, TestSize.Level1)
 {
     EXPECT_EQ(ERR_OSACCOUNT_KIT_GET_SYSTEM_ABILITY_MANAGER_ERROR,
         g_osAccount->SetOsAccountName(MAIN_ACCOUNT_ID, STRING_NAME));
 }
 
 /**
- * @tc.name: SetOsAccountConstraintsTest001
+ * @tc.name: SetOsAccountConstraintsMockTest001
  * @tc.desc: Test SetOsAccountConstraints getosaccountproxy faild
  * @tc.type: FUNC
  * @tc.require:
  */
-HWTEST_F(OsAccountMockTest, SetOsAccountConstraintsTest001, TestSize.Level1)
+HWTEST_F(OsAccountMockTest, SetOsAccountConstraintsMockTest001, TestSize.Level1)
 {
     EXPECT_EQ(ERR_OSACCOUNT_KIT_GET_SYSTEM_ABILITY_MANAGER_ERROR,
         g_osAccount->SetOsAccountConstraints(MAIN_ACCOUNT_ID, CONSTANTS_VECTOR, true));
 }
 
 /**
- * @tc.name: SetOsAccountProfilePhotoTest001
+ * @tc.name: SetOsAccountProfilePhotoMockTest001
  * @tc.desc: Test SetOsAccountProfilePhoto getosaccountproxy faild
  * @tc.type: FUNC
  * @tc.require:
  */
-HWTEST_F(OsAccountMockTest, SetOsAccountProfilePhotoTest001, TestSize.Level1)
+HWTEST_F(OsAccountMockTest, SetOsAccountProfilePhotoMockTest001, TestSize.Level1)
 {
     EXPECT_EQ(ERR_OSACCOUNT_KIT_GET_SYSTEM_ABILITY_MANAGER_ERROR,
         g_osAccount->SetOsAccountProfilePhoto(MAIN_ACCOUNT_ID, PHOTO_IMG));
@@ -214,6 +391,32 @@ HWTEST_F(OsAccountMockTest, StopOsAccountMockTest001, TestSize.Level1)
         g_osAccount->StopOsAccount(MAIN_ACCOUNT_ID));
 }
 
+/**
+ * @tc.name: GetOsAccountLocalIdBySerialNumberMockTest001
+ * @tc.desc: Test GetOsAccountLocalIdBySerialNumber getosaccountproxy faild
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(OsAccountMockTest, GetOsAccountLocalIdBySerialNumberMockTest001, TestSize.Level1)
+{
+    int id;
+    EXPECT_EQ(ERR_OSACCOUNT_KIT_GET_SYSTEM_ABILITY_MANAGER_ERROR, g_osAccount->GetOsAccountLocalIdBySerialNumber(
+        Constants::CARRY_NUM * Constants::SERIAL_NUMBER_NUM_START_FOR_ADMIN + 1, id));
+}
+
+/**
+ * @tc.name: GetSerialNumberByOsAccountLocalIdMockTest001
+ * @tc.desc: Test GetSerialNumberByOsAccountLocalId getosaccountproxy faild
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(OsAccountMockTest, GetSerialNumberByOsAccountLocalIdMockTest001, TestSize.Level1)
+{
+    int64_t serialNumber;
+    EXPECT_EQ(ERR_OSACCOUNT_KIT_GET_SYSTEM_ABILITY_MANAGER_ERROR,
+        g_osAccount->GetSerialNumberByOsAccountLocalId(MAIN_ACCOUNT_ID, serialNumber));
+}
+
 class TestOsAccountSubscriber : public OsAccountSubscriber {
 public:
     void OnAccountsChanged(const int& id) {}
@@ -246,12 +449,23 @@ HWTEST_F(OsAccountMockTest, UnsubscribeOsAccountMockTest001, TestSize.Level1)
 }
 
 /**
- * @tc.name: DumpStateTest001
+ * @tc.name: GetOsAccountSwitchModMockTest001
+ * @tc.desc: Test GetOsAccountSwitchMod getosaccountproxy faild
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(OsAccountMockTest, GetOsAccountSwitchModMockTest001, TestSize.Level1)
+{
+    EXPECT_EQ(OS_ACCOUNT_SWITCH_MOD::ERROR_MOD, g_osAccount->GetOsAccountSwitchMod());
+}
+
+/**
+ * @tc.name: DumpStateMockTest001
  * @tc.desc: Test DumpState getosaccountproxy faild
  * @tc.type: FUNC
  * @tc.require:
  */
-HWTEST_F(OsAccountMockTest, DumpStateTest001, TestSize.Level1)
+HWTEST_F(OsAccountMockTest, DumpStateMockTest001, TestSize.Level1)
 {
     std::vector<std::string> state;
     EXPECT_EQ(ERR_OSACCOUNT_KIT_GET_SYSTEM_ABILITY_MANAGER_ERROR,
@@ -259,12 +473,25 @@ HWTEST_F(OsAccountMockTest, DumpStateTest001, TestSize.Level1)
 }
 
 /**
- * @tc.name: IsOsAccountCompletedTest001
+ * @tc.name: IsCurrentOsAccountVerifiedMockTest001
+ * @tc.desc: Test IsCurrentOsAccountVerified getosaccountproxy faild
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(OsAccountMockTest, IsCurrentOsAccountVerifiedMockTest001, TestSize.Level1)
+{
+    bool isVerified;
+    EXPECT_EQ(ERR_OSACCOUNT_KIT_GET_SYSTEM_ABILITY_MANAGER_ERROR,
+        g_osAccount->IsCurrentOsAccountVerified(isVerified));
+}
+
+/**
+ * @tc.name: IsOsAccountCompletedMockTest001
  * @tc.desc: Test IsOsAccountCompleted getosaccountproxy faild
  * @tc.type: FUNC
  * @tc.require:
  */
-HWTEST_F(OsAccountMockTest, IsOsAccountCompletedTest001, TestSize.Level1)
+HWTEST_F(OsAccountMockTest, IsOsAccountCompletedMockTest001, TestSize.Level1)
 {
     bool isOsAccountCompleted;
     EXPECT_EQ(ERR_OSACCOUNT_KIT_GET_SYSTEM_ABILITY_MANAGER_ERROR,
@@ -272,24 +499,75 @@ HWTEST_F(OsAccountMockTest, IsOsAccountCompletedTest001, TestSize.Level1)
 }
 
 /**
- * @tc.name: SetOsAccountIsVerifiedTest001
+ * @tc.name: SetCurrentOsAccountIsVerifiedMockTest001
+ * @tc.desc: Test SetCurrentOsAccountIsVerified getosaccountproxy faild
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(OsAccountMockTest, SetCurrentOsAccountIsVerifiedMockTest001, TestSize.Level1)
+{
+    EXPECT_EQ(ERR_OSACCOUNT_KIT_GET_SYSTEM_ABILITY_MANAGER_ERROR,
+        g_osAccount->SetCurrentOsAccountIsVerified(false));
+}
+
+/**
+ * @tc.name: SetOsAccountIsVerifiedMockTest001
  * @tc.desc: Test SetOsAccountIsVerified getosaccountproxy faild
  * @tc.type: FUNC
  * @tc.require:
  */
-HWTEST_F(OsAccountMockTest, SetOsAccountIsVerifiedTest001, TestSize.Level1)
+HWTEST_F(OsAccountMockTest, SetOsAccountIsVerifiedMockTest001, TestSize.Level1)
 {
     EXPECT_EQ(ERR_OSACCOUNT_KIT_GET_SYSTEM_ABILITY_MANAGER_ERROR,
         g_osAccount->SetOsAccountIsVerified(MAIN_ACCOUNT_ID, false));
 }
 
 /**
- * @tc.name: GetOsAccountFromDatabaseTest001
+ * @tc.name: GetCreatedOsAccountNumFromDatabaseMockTest001
+ * @tc.desc: Test GetCreatedOsAccountNumFromDatabase getosaccountproxy faild
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(OsAccountMockTest, GetCreatedOsAccountNumFromDatabaseMockTest001, TestSize.Level1)
+{
+    int createdOsAccountNum;
+    EXPECT_EQ(ERR_OSACCOUNT_KIT_GET_SYSTEM_ABILITY_MANAGER_ERROR,
+        g_osAccount->GetCreatedOsAccountNumFromDatabase(storeID, createdOsAccountNum));
+}
+
+/**
+ * @tc.name: GetSerialNumberFromDatabaseMockTest001
+ * @tc.desc: Test GetSerialNumberFromDatabase getosaccountproxy faild
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(OsAccountMockTest, GetSerialNumberFromDatabaseMockTest001, TestSize.Level1)
+{
+    int64_t serialNumber;
+    EXPECT_EQ(ERR_OSACCOUNT_KIT_GET_SYSTEM_ABILITY_MANAGER_ERROR,
+        g_osAccount->GetSerialNumberFromDatabase(storeID, serialNumber));
+}
+
+/**
+ * @tc.name: GetMaxAllowCreateIdFromDatabaseMockTest001
+ * @tc.desc: Test GetMaxAllowCreateIdFromDatabase getosaccountproxy faild
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(OsAccountMockTest, GetMaxAllowCreateIdFromDatabaseMockTest001, TestSize.Level1)
+{
+    int id;
+    EXPECT_EQ(ERR_OSACCOUNT_KIT_GET_SYSTEM_ABILITY_MANAGER_ERROR,
+        g_osAccount->GetMaxAllowCreateIdFromDatabase(storeID, id));
+}
+
+/**
+ * @tc.name: GetOsAccountFromDatabaseMockTest001
  * @tc.desc: Test GetOsAccountFromDatabase getosaccountproxy faild
  * @tc.type: FUNC
  * @tc.require:
  */
-HWTEST_F(OsAccountMockTest, GetOsAccountFromDatabaseTest001, TestSize.Level1)
+HWTEST_F(OsAccountMockTest, GetOsAccountFromDatabaseMockTest001, TestSize.Level1)
 {
     OsAccountInfo osAccountInfo;
     EXPECT_EQ(ERR_OSACCOUNT_KIT_GET_SYSTEM_ABILITY_MANAGER_ERROR,
@@ -297,12 +575,38 @@ HWTEST_F(OsAccountMockTest, GetOsAccountFromDatabaseTest001, TestSize.Level1)
 }
 
 /**
- * @tc.name: QueryOsAccountConstraintSourceTypesTest001
+ * @tc.name: GetOsAccountListFromDatabaseMockTest001
+ * @tc.desc: Test GetOsAccountListFromDatabase getosaccountproxy faild
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(OsAccountMockTest, GetOsAccountListFromDatabaseMockTest001, TestSize.Level1)
+{
+    std::vector<OsAccountInfo> osAccountList;
+    EXPECT_EQ(ERR_OSACCOUNT_KIT_GET_SYSTEM_ABILITY_MANAGER_ERROR,
+        g_osAccount->GetOsAccountListFromDatabase(storeID, osAccountList));
+}
+
+/**
+ * @tc.name: QueryActiveOsAccountIdsMockTest001
+ * @tc.desc: Test QueryActiveOsAccountIds getosaccountproxy faild
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(OsAccountMockTest, QueryActiveOsAccountIdsMockTest001, TestSize.Level1)
+{
+    std::vector<int32_t> ids;
+    EXPECT_EQ(ERR_OSACCOUNT_KIT_GET_SYSTEM_ABILITY_MANAGER_ERROR,
+        g_osAccount->QueryActiveOsAccountIds(ids));
+}
+
+/**
+ * @tc.name: QueryOsAccountConstraintSourceTypesMockTest001
  * @tc.desc: Test QueryOsAccountConstraintSourceTypes getosaccountproxy faild
  * @tc.type: FUNC
  * @tc.require:
  */
-HWTEST_F(OsAccountMockTest, QueryOsAccountConstraintSourceTypesTest001, TestSize.Level1)
+HWTEST_F(OsAccountMockTest, QueryOsAccountConstraintSourceTypesMockTest001, TestSize.Level1)
 {
     std::vector<ConstraintSourceTypeInfo> constraintSourceTypeInfos;
     EXPECT_EQ(ERR_OSACCOUNT_KIT_GET_SYSTEM_ABILITY_MANAGER_ERROR,
@@ -310,24 +614,24 @@ HWTEST_F(OsAccountMockTest, QueryOsAccountConstraintSourceTypesTest001, TestSize
 }
 
 /**
- * @tc.name: SetGlobalOsAccountConstraintsTest001
+ * @tc.name: SetGlobalOsAccountConstraintsMockTest001
  * @tc.desc: Test SetGlobalOsAccountConstraints getosaccountproxy faild
  * @tc.type: FUNC
  * @tc.require:
  */
-HWTEST_F(OsAccountMockTest, SetGlobalOsAccountConstraintsTest001, TestSize.Level1)
+HWTEST_F(OsAccountMockTest, SetGlobalOsAccountConstraintsMockTest001, TestSize.Level1)
 {
     EXPECT_EQ(ERR_OSACCOUNT_KIT_GET_SYSTEM_ABILITY_MANAGER_ERROR,
         g_osAccount->SetGlobalOsAccountConstraints(CONSTANTS_VECTOR, true, MAIN_ACCOUNT_ID, true));
 }
 
 /**
- * @tc.name: SetSpecificOsAccountConstraintsTest001
+ * @tc.name: SetSpecificOsAccountConstraintsMockTest001
  * @tc.desc: Test SetSpecificOsAccountConstraints getosaccountproxy faild
  * @tc.type: FUNC
  * @tc.require:
  */
-HWTEST_F(OsAccountMockTest, SetSpecificOsAccountConstraintsTest001, TestSize.Level1)
+HWTEST_F(OsAccountMockTest, SetSpecificOsAccountConstraintsMockTest001, TestSize.Level1)
 {
     EXPECT_EQ(ERR_OSACCOUNT_KIT_GET_SYSTEM_ABILITY_MANAGER_ERROR,
         g_osAccount->SetSpecificOsAccountConstraints(CONSTANTS_VECTOR, true, MAIN_ACCOUNT_ID, MAIN_ACCOUNT_ID, true));
