@@ -215,3 +215,47 @@ HWTEST_F(
         controlManagerPtr_->GetAllAccountsFromDataStorage(STRING_OWNER, appAccounts, BUNDLE_NAME, dataStoragePtr);
     ASSERT_EQ(result, ERR_APPACCOUNT_SERVICE_DATA_STORAGE_PTR_IS_NULLPTR);
 }
+
+/**
+ * @tc.name: AppAccountControlManager_GetAllOAuthTokens_0100
+ * @tc.desc: GetAllOAuthTokens abnormal branch.
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(AppAccountControlManagerModuleTest, AppAccountControlManager_GetAllOAuthTokens_0100, TestSize.Level1)
+{
+    ACCOUNT_LOGI("AppAccountControlManager_GetAllOAuthTokens_0100");
+
+    ASSERT_NE(controlManagerPtr_, nullptr);
+
+    AuthenticatorSessionRequest request;
+    request.name = STRING_NAME;
+    request.owner = STRING_OWNER;
+    request.callerBundleName = BUNDLE_NAME;
+    request.appIndex = 0;
+    request.callerUid = 0;
+    std::vector<OAuthTokenInfo> tokenInfos;
+    AppAccountInfo appAccountInfo(request.name, request.owner);
+    std::string authTypeOne = "test_authType1";
+    std::string authTokenOne = "test_authToken1";
+    std::string authTypeTwo = "test_authType2";
+    std::string authTokenTwo = "test_authToken2";
+    std::string authTypeThree = "test_authType3";
+    std::string authTokenThree = "";
+    appAccountInfo.SetOAuthToken(authTypeOne, authTokenOne);
+    appAccountInfo.SetOAuthToken(authTypeTwo, authTokenTwo);
+    appAccountInfo.SetOAuthToken(authTypeThree, authTokenThree);
+    appAccountInfo.SetOAuthTokenVisibility(authTypeOne, BUNDLE_NAME, true, Constants::API_VERSION8);
+    appAccountInfo.SetSyncEnable(true);
+    bool isSyncEnable = false;
+    appAccountInfo.GetSyncEnable(isSyncEnable);
+    ASSERT_NE(isSyncEnable, false);
+    auto dataStoragePtr = controlManagerPtr_->GetDataStorage(request.callerUid, false);
+    ASSERT_NE(dataStoragePtr, nullptr);
+    ErrCode result =
+        controlManagerPtr_->AddAccountInfoIntoDataStorage(appAccountInfo, dataStoragePtr, request.callerUid);
+    ASSERT_EQ(result, ERR_OK);
+    result = controlManagerPtr_->GetAllOAuthTokens(request, tokenInfos);
+    ASSERT_EQ(result, ERR_OK);
+    EXPECT_EQ(tokenInfos.size(), 1);
+}
