@@ -23,6 +23,7 @@
 #include "os_account_subscribe_death_recipient.h"
 #define private public
 #include "os_account_subscribe_manager.h"
+#include "ability_manager_adapter.h"
 #undef private
 #include "os_account_manager_service.h"
 #include "os_account_interface.h"
@@ -124,5 +125,22 @@ HWTEST_F(OsAccountCoverageTest, OnRemoteDiedTest_0300, TestSize.Level1)
     EXPECT_EQ(size, 0);
 }
 
+/*
+ * @tc.name: OnRemoteDiedTest_0400
+ * @tc.desc: test if AbilityMgrDeathRecipient's OnRemoteDied function executed as expected when
+ *           sptr param is nullptr.
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(OsAccountCoverageTest, OnRemoteDiedTest_0400, TestSize.Level1)
+{
+    std::shared_ptr<AAFwk::AbilityManagerAdapter::AbilityMgrDeathRecipient> recipient =
+        std::make_shared<AAFwk::AbilityManagerAdapter::AbilityMgrDeathRecipient>();
+    ASSERT_NE(nullptr, recipient);
+    const sptr<IRemoteObject> sptrDeath = nullptr;
+    wptr<IRemoteObject> wptrDeath = sptrDeath;
+    recipient->OnRemoteDied(wptrDeath);
+    EXPECT_EQ(DelayedSingleton<AAFwk::AbilityManagerAdapter>::GetInstance()->deathRecipient_, nullptr);
+}
 }  // namespace AccountSA
 }  // namespace OHOS
