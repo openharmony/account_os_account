@@ -47,6 +47,8 @@ ohos_unittest("account_proxy_mock_test") {
   sources = [
     "account_appaccount_proxy_mock_test.cpp",
     "account_iam_proxy_mock_test.cpp",
+    "account_ohosaccount_proxy_mock_test.cpp",
+    "account_osaccount_proxy_mock_test.cpp",
     "mock/iservice_registry.cpp",
   ]
 
@@ -56,6 +58,8 @@ ohos_unittest("account_proxy_mock_test") {
     "${account_iam_framework_path}:account_iam_innerkits",
     "${app_account_innerkits_native_path}:app_account_innerkits",
     "${common_path}:libaccount_common",
+    "${innerkits_native_path}:libaccountkits",
+    "${os_account_innerkits_native_path}:os_account_innerkits",
     "//third_party/googletest:gmock_main",
     "//third_party/googletest:gtest_main",
   ]
