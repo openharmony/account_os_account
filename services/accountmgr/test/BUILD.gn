@@ -37,6 +37,7 @@ group("unittest") {
   testonly = true
 
   deps = [
+    "unittest/ability_manager_adapter:unittest",
     "unittest/account_event_provider_test:unittest",
     "unittest/account_file_operator_test:unittest",
     "unittest/account_iam_callback_test:unittest",
