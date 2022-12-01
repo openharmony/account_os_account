@@ -457,3 +457,14 @@ HWTEST_F(OsAccountTest, OsAccountTest018, TestSize.Level1)
     EXPECT_EQ(ERR_OSACCOUNT_KIT_READ_IN_LOCAL_ID_ERROR, osAccountProxy_->SetSpecificOsAccountConstraints(
         CONSTANTS_VECTOR, false, MAIN_ACCOUNT_ID, ILLEGAL_LOCAL_ID, false));
 }
+
+/**
+ * @tc.name: OsAccountTest019
+ * @tc.desc: test ResetOsAccountProxy normal branch.
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(OsAccountTest, OsAccountTest019, TestSize.Level1)
+{
+    EXPECT_EQ(g_osAccount->ResetOsAccountProxy(), ERR_OK);
+}
