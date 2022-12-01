@@ -15,10 +15,6 @@
 
 #include <gtest/gtest.h>
 #include <gmock/gmock.h>
-#include <memory>
-#include <new>
-#include <set>
-#include <string>
 
 #include "account_log_wrapper.h"
 #include "app_mgr_constants.h"
