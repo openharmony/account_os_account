@@ -19,6 +19,9 @@
 #include "account_log_wrapper.h"
 #define private public
 #include "app_account.h"
+#include "app_account_authenticator_callback.h"
+#include "app_account_authenticator_callback_stub.h"
+#include "app_account_authenticator_stub.h"
 #include "app_account_constants.h"
 #undef private
 #include "mock_app_account_stub.h"
@@ -68,6 +71,7 @@ const std::string STRING_OWNER = "com.example.owner";
 
 constexpr std::size_t SUBSCRIBER_ZERO = 0;
 constexpr std::size_t SUBSCRIBER_ONE = 1;
+const uint32_t INVALID_IPC_CODE = 1000;
 }  // namespace
 
 class AppAccountTest : public testing::Test {
@@ -126,6 +130,26 @@ public:
     void OnAccountsChanged(const std::vector<AppAccountInfo> &accounts)
     {}
 };
+
+/**
+ * @tc.name: AppAccountAuthenticatorCallbackStub_OnRemoteRequest_0100
+ * @tc.desc: OnRemoteRequest with wrong message code.
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(AppAccountTest, AppAccountAuthenticatorCallbackStub_OnRemoteRequest_0100, TestSize.Level0)
+{
+    MessageParcel data;
+    MessageParcel reply;
+    MessageOption option = {MessageOption::TF_SYNC};
+    data.WriteInterfaceToken(AppAccountAuthenticatorCallbackStub::GetDescriptor());
+
+    std::string sessionId = "sessionId";
+    sptr<AppAccountAuthenticatorCallbackStub> stub = new (std::nothrow) AppAccountAuthenticatorCallback(sessionId);
+    ASSERT_NE(nullptr, stub);
+    int32_t ret = stub->OnRemoteRequest(INVALID_IPC_CODE, data, reply, option);
+    EXPECT_EQ(IPC_STUB_UNKNOW_TRANS_ERR, ret);
+}
 
 /**
  * @tc.name: AppAccount_AddAccount_0100
