@@ -80,7 +80,7 @@ void IDMCallbackProxy::OnAcquireInfo(int32_t module, uint32_t acquireInfo, const
         ACCOUNT_LOGE("write buffer fail");
         return;
     }
-    uint32_t code = static_cast<uint32_t>(IGetCredInfoCallback::Message::ON_CREDENTIAL_INFO);
+    uint32_t code = static_cast<uint32_t>(IIDMCallback::Message::ON_ACQUIRE_INFO);
     SendRequestFunc(Remote(), code, data, reply);
 }
 
