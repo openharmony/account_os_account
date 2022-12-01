@@ -436,6 +436,35 @@ ohos_moduletest("app_account_manager_service_sync_module_test") {
   }
 }
 
+ohos_moduletest("bundle_manager_adapter_module_test") {
+  module_out_path = module_output_path
+  include_dirs = [ "//base/account/os_account/services/accountmgr/include/bundle_manager_adapter" ]
+  sources = [
+    "//base/account/os_account/services/accountmgr/src/bundle_manager_adapter/bundle_manager_adapter_proxy.cpp",
+    "bundle_manager_adapter_module_test.cpp",
+  ]
+
+  configs = [ ":app_account_service_config_unittest" ]
+
+  deps = [
+    "${app_account_services_path}:accountmgr",
+    "${common_path}:libaccount_common",
+    "${innerkits_native_path}:libaccountkits",
+    "//third_party/googletest:gtest_main",
+  ]
+
+  external_deps = [
+    "ability_base:want",
+    "ability_runtime:app_manager",
+    "ability_runtime:wantagent_innerkits",
+    "bundle_framework:appexecfwk_base",
+    "c_utils:utils",
+    "hiviewdfx_hilog_native:libhilog",
+    "ipc:ipc_core",
+    "samgr:samgr_proxy",
+  ]
+}
+
 ohos_moduletest("app_account_authenticator_session_manager_module_test") {
   module_out_path = module_output_path
   include_dirs = [ "${app_account_services_path}/test/mock/app_account" ]
@@ -531,5 +560,6 @@ group("moduletest") {
     ":app_account_manager_service_sync_module_test",
     ":app_account_manager_service_thread_module_test",
     ":at_not_mock_app_account_manager_service_module_test",
+    ":bundle_manager_adapter_module_test",
   ]
 }

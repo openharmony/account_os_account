@@ -79,6 +79,8 @@ ohos_unittest("app_account_manager_subscribe_test") {
 
   deps = [
     "${app_account_innerkits_native_path}:app_account_innerkits",
+    "${app_account_services_path}:accountmgr",
+    "${app_account_services_path}/src/appaccount:app_account_service_core",
     "${common_path}:libaccount_common",
     "//third_party/googletest:gmock_main",
     "//third_party/googletest:gtest_main",
@@ -87,9 +89,12 @@ ohos_unittest("app_account_manager_subscribe_test") {
   external_deps = [
     "ability_base:want",
     "bundle_framework:appexecfwk_base",
-    "bundle_framework:appexecfwk_core",
+    "c_utils:utils",
+    "eventhandler:libeventhandler",
     "hiviewdfx_hilog_native:libhilog",
     "ipc:ipc_core",
+    "kv_store:distributeddata_inner",
+    "samgr:samgr_proxy",
   ]
 }
 
