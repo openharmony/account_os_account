@@ -28,6 +28,7 @@ bundle_manager_sources = [
 ohos_unittest("account_mgr_test") {
   module_out_path = module_output_path
   cflags_cc = []
+  include_dirs = [ "//base/account/os_account/interfaces/innerkits/account_iam/native/include" ]
 
   sources = [
     "account_dump_helper_test.cpp",
@@ -84,6 +85,10 @@ ohos_unittest("account_mgr_test") {
   if (has_hiviewdfx_hisysevent_part) {
     cflags_cc += [ "-DHAS_HISYSEVENT_PART" ]
     external_deps += [ "hisysevent_native:libhisysevent" ]
+  }
+
+  if (has_user_auth_part) {
+    cflags_cc += [ "-DHAS_USER_AUTH_PART" ]
   }
 
   external_deps += [ "hitrace_native:hitrace_meter" ]
