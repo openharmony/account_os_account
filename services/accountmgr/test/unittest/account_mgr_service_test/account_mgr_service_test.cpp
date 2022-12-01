@@ -370,6 +370,7 @@ HWTEST_F(AccountMgrServiceTest, AccountMgrServiceOnStart001, TestSize.Level2)
     bool result = g_accountMgrService->Init();
     ASSERT_EQ(result, false);
     g_accountMgrService->OnStart();
+    ASSERT_EQ(g_accountMgrService->state_, ServiceRunningState::STATE_RUNNING);
     g_accountMgrService->OnStop();
     ASSERT_EQ(g_accountMgrService->state_, STATE_NOT_START);
 }
