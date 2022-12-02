@@ -177,7 +177,10 @@ ohos_unittest("OsAccountInnerAccmgrCovTest") {
   resource_config_file =
       "${os_account_path}/test/resource/accountmgrservice/ohos_test.xml"
 
-  sources = [ "os_account_inner_account_mgr_cov.cpp" ]
+  sources = [
+    "os_account_inner_account_mgr_cov.cpp",
+    "os_account_service_test.cpp",
+  ]
   configs = [
     ":os_account_amgr_test_config",
     "${services_path}/accountmgr/test:accountmgr_test_config",
