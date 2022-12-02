@@ -610,12 +610,37 @@ HWTEST_F(OsAccountControlFileManagerTest, OsAccountControlFileManagerCovTest027,
 HWTEST_F(OsAccountControlFileManagerTest, OsAccountControlFileManagerCovTest028, TestSize.Level1)
 {
     std::vector<std::string> constants;
-    std::shared_ptr<OsAccountControlFileManager> osAccountControlManager =
-        std::make_shared<OsAccountControlFileManager>();
-    osAccountControlManager->Init();
-    ErrCode ret = osAccountControlManager->GetConstraintsByType(static_cast<OsAccountType>(INVALID_TYPE), constants);
+    osAccountControlManager_->Init();
+    ErrCode ret = osAccountControlManager_->GetConstraintsByType(static_cast<OsAccountType>(INVALID_TYPE), constants);
     EXPECT_EQ(ret, ERR_OSACCOUNT_SERVICE_CONTROL_GET_TYPE_ERROR);
 }
 
+/**
+ * @tc.name: OsAccountControlFileManagerCovTest029
+ * @tc.desc: coverage UpdateBaseOAConstraints isAdd false
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(OsAccountControlFileManagerTest, OsAccountControlFileManagerCovTest029, TestSize.Level1)
+{
+    std::string idStr = "";
+    std::vector<std::string> ConstraintStr = {};
+    ErrCode ret = osAccountControlManager_->UpdateBaseOAConstraints(idStr, ConstraintStr, false);
+    EXPECT_EQ(ret, ERR_OK);
+}
+
+/**
+ * @tc.name: OsAccountControlFileManagerCovTest030
+ * @tc.desc: coverage GetPhotoById with invalid id
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(OsAccountControlFileManagerTest, OsAccountControlFileManagerCovTest030, TestSize.Level1)
+{
+    int id = 0;
+    std::string photo;
+    ErrCode ret = osAccountControlManager_->GetPhotoById(id, photo);
+    EXPECT_EQ(ret, ERR_OSACCOUNT_SERVICE_FILE_FIND_FILE_ERROR);
+}
 }  // namespace AccountSA
 }  // namespace OHOS

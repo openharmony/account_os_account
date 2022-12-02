@@ -202,7 +202,8 @@ ohos_unittest("account_command_test") {
     "${tools_path}/acm:tools_acm_config",
   ]
 
-  cflags = []
+  cflags = [ "-DENABLE_MULTIPLE_ACTIVE_ACCOUNTS" ]
+
   if (target_cpu == "arm") {
     cflags += [ "-DBINDER_IPC_32BIT" ]
   }
