@@ -440,7 +440,8 @@ HWTEST_F(AccountIAMClientTest, IDMCallbackStub_ProcOnAcquireInfo_0100, TestSize.
 
     sptr<IDMCallbackStub> stub = new (std::nothrow) IDMCallbackService(TEST_USER_ID, nullptr);
     ASSERT_NE(nullptr, stub);
-    int32_t ret = stub->OnRemoteRequest(static_cast<uint32_t>(IIDMCallback::Message::ON_ACQUIRE_INFO), data, reply, option);
+    int32_t ret = stub->OnRemoteRequest(static_cast<uint32_t>(IIDMCallback::Message::ON_ACQUIRE_INFO), data, reply,
+        option);
     EXPECT_EQ(ERR_OK, ret);
 }
 
@@ -490,7 +491,8 @@ HWTEST_F(AccountIAMClientTest, GetCredInfoCallbackStub_ProcOnCredentialInfo_0100
 
     sptr<GetCredInfoCallbackStub> stub = new (std::nothrow) GetCredInfoCallbackService(nullptr);
     ASSERT_NE(nullptr, stub);
-    int32_t ret = stub->OnRemoteRequest(static_cast<uint32_t>(IGetCredInfoCallback::Message::ON_CREDENTIAL_INFO), data, reply, option);
+    int32_t ret = stub->OnRemoteRequest(static_cast<uint32_t>(IGetCredInfoCallback::Message::ON_CREDENTIAL_INFO), data,
+        reply, option);
     EXPECT_EQ(ERR_OK, ret);
 }
 
