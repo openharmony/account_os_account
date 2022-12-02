@@ -31,12 +31,41 @@ ohos_unittest("AbilityManagerAdapterTest") {
   module_out_path = module_output_path
   cflags_cc = []
 
-  sources = [
-    "${common_path}/log/src/account_log_wrapper.cpp",
-    "${services_path}/accountmgr/src/ability_manager_adapter/ability_manager_adapter.cpp",
-  ]
+  sources = [ "${services_path}/accountmgr/src/ability_manager_adapter/ability_manager_adapter.cpp" ]
 
   sources += [ "ability_manager_adapter_test.cpp" ]
+
+  configs = [
+    ":ability_manager_adapter_test_config",
+    "${services_path}/accountmgr/test:accountmgr_test_config",
+  ]
+
+  deps = [
+    "//third_party/googletest:gmock_main",
+    "//third_party/googletest:gtest_main",
+  ]
+  external_deps = [
+    "ability_base:want",
+    "ability_runtime:ability_manager",
+    "c_utils:utils",
+    "hiviewdfx_hilog_native:libhilog",
+    "ipc:ipc_core",
+    "samgr:samgr_proxy",
+  ]
+
+  part_name = "os_account"
+}
+
+ohos_unittest("AbilityManagerAdapterMockTest") {
+  module_out_path = module_output_path
+  cflags_cc = []
+
+  sources = [
+    "${services_path}/accountmgr/src/ability_manager_adapter/ability_manager_adapter.cpp",
+    "//base/account/os_account/services/accountmgr/test/mock/src/mock_service_registry.cpp",
+  ]
+
+  sources += [ "ability_manager_adapter_mock_test.cpp" ]
 
   configs = [
     ":ability_manager_adapter_test_config",
@@ -62,5 +91,8 @@ ohos_unittest("AbilityManagerAdapterTest") {
 group("unittest") {
   testonly = true
 
-  deps = [ ":AbilityManagerAdapterTest" ]
+  deps = [
+    ":AbilityManagerAdapterMockTest",
+    ":AbilityManagerAdapterTest",
+  ]
 }
