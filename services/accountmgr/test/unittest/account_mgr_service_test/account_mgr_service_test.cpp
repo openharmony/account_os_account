@@ -19,6 +19,9 @@
 #include "account_helper_data.h"
 #include "account_info.h"
 #include "account_log_wrapper.h"
+#define private public
+#include "account_mgr_service.h"
+#undef private
 #include "account_proxy.h"
 #include "iaccount.h"
 #include "if_system_ability_manager.h"
@@ -49,6 +52,8 @@ const std::string TEST_EXPECTED_UID = "15E2B0D3C33891EBB0F1EF609EC419420C20E320C
 const std::string TEST_DIFF_ACCOUNT_NAME = "TestDiffAccountName";
 const std::string TEST_DIFF_ACCOUNT_UID = "9876432";
 const std::string TEST_DIFF_EXPECTED_UID = "FB293C538C2CD118B0441AB3B2EC429A5EA629286A04F31E0CC2EFB96525ADCC";
+
+std::shared_ptr<AccountMgrService> g_accountMgrService = nullptr;
 
 sptr<IAccount> GetAccountMgr()
 {
@@ -98,6 +103,8 @@ void AccountMgrServiceTest::SetUpTestCase()
     g_eventTokenInvalid = GetAccountEventStr(accountEventMap, KEY_ACCOUNT_EVENT_TOKEN_INVALID,
         OHOS_ACCOUNT_EVENT_TOKEN_INVALID);
     g_eventLogoff = GetAccountEventStr(accountEventMap, KEY_ACCOUNT_EVENT_LOGOFF, OHOS_ACCOUNT_EVENT_LOGOFF);
+
+    g_accountMgrService = std::make_shared<AccountMgrService>();
 }
 
 void AccountMgrServiceTest::TearDownTestCase()
@@ -304,4 +311,86 @@ HWTEST_F(AccountMgrServiceTest, AccountMgrServiceOhosTokenInvalidTest001, TestSi
     EXPECT_EQ(true, ret);
     ret = (testInfo.second.status_ == ACCOUNT_STATE_UNBOUND);
     EXPECT_EQ(true, ret);
+}
+
+/**
+ * @tc.name: AccountMgrServiceGetAppAccountService001
+ * @tc.desc: Test GetAppAccountService appAccountManagerService is nullptr
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(AccountMgrServiceTest, AccountMgrServiceGetAppAccountService001, TestSize.Level2)
+{
+    ASSERT_NE(g_accountMgrService, nullptr);
+    g_accountMgrService->appAccountManagerService_ = nullptr;
+    auto servicePtr = g_accountMgrService->GetAppAccountService();
+    ASSERT_EQ(servicePtr, nullptr);
+}
+
+/**
+ * @tc.name: AccountMgrServiceGetOsAccountService001
+ * @tc.desc: Test GetOsAccountService osAccountManagerService is nullptr
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(AccountMgrServiceTest, AccountMgrServiceGetOsAccountServicee001, TestSize.Level2)
+{
+    ASSERT_NE(g_accountMgrService, nullptr);
+    g_accountMgrService->osAccountManagerService_ = nullptr;
+    auto servicePtr = g_accountMgrService->GetOsAccountService();
+    ASSERT_EQ(servicePtr, nullptr);
+}
+
+/**
+ * @tc.name: AccountMgrServiceGetAccountIAMService001
+ * @tc.desc: Test GetAccountIAMService accountIAMService is nullptr
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(AccountMgrServiceTest, AccountMgrServiceGetAccountIAMService001, TestSize.Level2)
+{
+    ASSERT_NE(g_accountMgrService, nullptr);
+    g_accountMgrService->state_ = ServiceRunningState::STATE_RUNNING;
+    g_accountMgrService->OnStart();
+    g_accountMgrService->accountIAMService_ = nullptr;
+    auto servicePtr = g_accountMgrService->GetAccountIAMService();
+    ASSERT_EQ(servicePtr, nullptr);
+}
+
+/**
+ * @tc.name: AccountMgrServiceOnStart001
+ * @tc.desc: Test GetAccountIAMService start and stop service
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(AccountMgrServiceTest, AccountMgrServiceOnStart001, TestSize.Level2)
+{
+    ASSERT_NE(g_accountMgrService, nullptr);
+    g_accountMgrService->state_ = ServiceRunningState::STATE_RUNNING;
+    bool result = g_accountMgrService->Init();
+    ASSERT_EQ(result, false);
+    g_accountMgrService->OnStart();
+    ASSERT_EQ(g_accountMgrService->state_, ServiceRunningState::STATE_RUNNING);
+    g_accountMgrService->OnStop();
+    ASSERT_EQ(g_accountMgrService->state_, STATE_NOT_START);
+}
+
+/**
+ * @tc.name: AccountMgrServiceDump001
+ * @tc.desc: Test Dump failed with invlaied fd and dumpHelper is nullptr.
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(AccountMgrServiceTest, AccountMgrServiceDump001, TestSize.Level2)
+{
+    ASSERT_NE(g_accountMgrService, nullptr);
+    int32_t invalidFd = -1;
+    std::vector<std::u16string> args;
+    int32_t result = g_accountMgrService->Dump(invalidFd, args);
+    ASSERT_EQ(result, ERR_ACCOUNT_MGR_DUMP_ERROR);
+
+    int32_t fd = 1;
+    g_accountMgrService->dumpHelper_ = nullptr;
+    result = g_accountMgrService->Dump(fd, args);
+    ASSERT_EQ(result, ERR_ACCOUNT_MGR_DUMP_ERROR);
 }
