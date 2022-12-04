@@ -72,7 +72,15 @@ sptr<IRemoteObject> MockAccountMgrService::GetAppAccountService()
 
     return nullptr;
 }
+
 sptr<IRemoteObject> MockAccountMgrService::GetOsAccountService()
+{
+    ACCOUNT_LOGI("enter");
+
+    return nullptr;
+}
+
+sptr<IRemoteObject> MockAccountMgrService::GetDomainAccountService()
 {
     ACCOUNT_LOGI("enter");
 

@@ -43,8 +43,6 @@ ohos_unittest("account_mgr_test") {
     "${services_path}/accountmgr/test:accountmgr_test_config",
   ]
   deps = [
-    "${app_account_innerkits_native_path}:app_account_innerkits",
-    "${app_account_services_path}/src/appaccount:app_account_service_core",
     "${common_path}:libaccount_common",
     "${innerkits_native_path}:libaccountkits",
     "${os_account_core_path}:os_account_core",
