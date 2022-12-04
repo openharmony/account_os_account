@@ -50,6 +50,7 @@ private:
     std::int32_t CmdGetAppAccountService(MessageParcel &data, MessageParcel &reply);
     std::int32_t CmdGetOsAccountService(MessageParcel &data, MessageParcel &reply);
     std::int32_t CmdGetAccountIAMService(MessageParcel &data, MessageParcel &reply);
+    std::int32_t CmdGetDomainAccountService(MessageParcel &data, MessageParcel &reply);
     bool HasAccountRequestPermission(const std::string &permissionName);
     bool CheckCallerForTrustList();
 

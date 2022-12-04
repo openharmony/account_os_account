@@ -145,9 +145,16 @@ sptr<IRemoteObject> AccountMgrService::GetOsAccountService()
 
 sptr<IRemoteObject> AccountMgrService::GetAccountIAMService()
 {
+#ifdef HAS_USER_AUTH_PART
     if (accountIAMService_ != nullptr) {
         return accountIAMService_->AsObject();
     }
+#endif
+    return nullptr;
+}
+
+sptr<IRemoteObject> AccountMgrService::GetDomainAccountService()
+{
     return nullptr;
 }
 

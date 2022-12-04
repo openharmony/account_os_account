@@ -15,7 +15,10 @@ import("//base/account/os_account/os_account.gni")
 import("//build/ohos.gni")
 
 config("public_account_config") {
-  include_dirs = [ "${innerkits_path}/include" ]
+  include_dirs = [
+    "${innerkits_path}/include",
+    "${innerkits_native_path}/include",
+  ]
 }
 
 config("accountkits_config") {
