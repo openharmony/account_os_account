@@ -18,12 +18,16 @@
 #include "account_helper_data.h"
 #include "account_info.h"
 using namespace testing::ext;
+using namespace OHOS;
 using namespace OHOS::AccountSA;
 
 namespace {
 const std::string KEY_ACCOUNT_EVENT_LOGIN = "LOGIN";
 const std::string KEY_ACCOUNT_EVENT_LOGOUT = "LOGOUT";
 const std::string KEY_ACCOUNT_EVENT_TOKEN_INVALID = "TOKEN_INVALID";
+const std::string TEST_UID = "TestUid";
+const std::string TEST_NAME = "TestName";
+const std::string TEST_EVENT_STR = "TesteventStr";
 std::string g_eventLogin = OHOS_ACCOUNT_EVENT_LOGIN;
 std::string g_eventLogout = OHOS_ACCOUNT_EVENT_LOGOUT;
 std::string g_eventTokenInvalid = OHOS_ACCOUNT_EVENT_TOKEN_INVALID;
@@ -61,57 +65,83 @@ void OhosAccountManagerTest::SetUp() {}
 void OhosAccountManagerTest::TearDown() {}
 
 /**
- * @tc.name: OhosAccountManagerTestTokenInvalid004
- * @tc.desc: Account manager handle token invalid event test
+ * @tc.name: OhosAccountManagerTest001
+ * @tc.desc: Account manager login OhosAccount faild
  * @tc.type: FUNC
- * @tc.require: AR000CUF5U AR000CUF5V SR000CUF5T
+ * @tc.require:
  */
-HWTEST_F(OhosAccountManagerTest, OhosAccountManagerTestTokenInvalid004, TestSize.Level0)
+HWTEST_F(OhosAccountManagerTest, OhosAccountManagerTest001, TestSize.Level0)
 {
-    /**
-     * @tc.steps: step1. init one account
-     * @tc.expected: step1. The current account state is AccountStateMachine::ACCOUNT_STATE_UNBOUND
-     */
     OhosAccountManager accountManager;
-    std::string uid("TestUid");
-    std::string invalidUid("NotExistUid");
-    std::string name("TestName");
+    OhosAccountInfo accountInfo;
+    accountInfo.name_ = TEST_NAME;
+    accountInfo.uid_ = TEST_UID;
     accountManager.OnInitialize();
-    auto ret = accountManager.LoginOhosAccount(name, uid, g_eventLogin);
-    EXPECT_EQ(true, ret);
-    /**
-    * @tc.steps: step2. trigger token_invalid event for a different uid
-    * @tc.expected: step2. process result is true AND state changes
-    */
-    ret = accountManager.HandleOhosAccountTokenInvalidEvent(name, invalidUid, g_eventTokenInvalid);
+    auto ret = accountManager.LoginOhosAccount(accountInfo, g_eventLogin);
     EXPECT_EQ(false, ret);
-    EXPECT_EQ(ACCOUNT_STATE_LOGIN, accountManager.GetCurrentOhosAccountState());
-    /**
-    * @tc.steps: step3. trigger token_invalid event with the same uid
-    * @tc.expected: step3. process result is true AND state changes
-    */
-    ret = accountManager.HandleOhosAccountTokenInvalidEvent(name, uid, g_eventTokenInvalid);
-    EXPECT_EQ(true, ret);
-    EXPECT_EQ(ACCOUNT_STATE_NOTLOGIN, accountManager.GetCurrentOhosAccountState());
-    /**
-    * @tc.steps: step4. logout the account
-    * @tc.expected: step4. The current account logout
-    */
-    ret = accountManager.LogoutOhosAccount(name, uid, g_eventLogout);
-    EXPECT_EQ(true, ret);
+
+    ret = accountManager.HandleOhosAccountTokenInvalidEvent(accountInfo, g_eventTokenInvalid);
+    EXPECT_EQ(false, ret);
+    EXPECT_EQ(ACCOUNT_STATE_UNBOUND, accountManager.GetCurrentOhosAccountState());
 }
 
 /**
- * @tc.name: OhosAccountManagerTestTokenInvalid004
+ * @tc.name: OhosAccountManagerTest002
  * @tc.desc: test GetOhosAccountInfoByUserId with invalid user id.
  * @tc.type: FUNC
- * @tc.require: issueI5RWXT
+ * @tc.require:
  */
-HWTEST_F(OhosAccountManagerTest, OhosAccountManagerTestUserIdInvalid001, TestSize.Level0)
+HWTEST_F(OhosAccountManagerTest, OhosAccountManagerTest002, TestSize.Level0)
 {
     OhosAccountManager accountManager;
     accountManager.OnInitialize();
     std::int32_t testUserId = 200; // 200 is test user id.
-    auto ret = accountManager.GetOhosAccountInfoByUserId(testUserId);
-    EXPECT_NE(true, ret);
+    AccountInfo info;
+    ErrCode ret = accountManager.GetAccountInfoByUserId(testUserId, info);
+    EXPECT_NE(ERR_OK, ret);
+}
+
+/**
+ * @tc.name: OhosAccountManagerTest003
+ * @tc.desc: test HandleEvent GetCallingUserID failed..
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(OhosAccountManagerTest, OhosAccountManagerTest003, TestSize.Level0)
+{
+    OhosAccountManager accountManager;
+    accountManager.OnInitialize();
+    AccountInfo curOhosAccount;
+    ErrCode ret = accountManager.HandleEvent(curOhosAccount, TEST_EVENT_STR);
+    EXPECT_EQ(false, ret);
+}
+
+/**
+ * @tc.name: OhosAccountManagerTest004
+ * @tc.desc: test LogoutOhosAccount GetCallingUserID failed.
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(OhosAccountManagerTest, OhosAccountManagerTest004, TestSize.Level0)
+{
+    OhosAccountManager accountManager;
+    accountManager.OnInitialize();
+    OhosAccountInfo curOhosAccount;
+    ErrCode ret = accountManager.LogoutOhosAccount(curOhosAccount, TEST_EVENT_STR);
+    EXPECT_EQ(false, ret);
+}
+
+/**
+ * @tc.name: OhosAccountManagerTest005
+ * @tc.desc: test LogoffOhosAccount GetCallingUserID failed.
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(OhosAccountManagerTest, OhosAccountManagerTest005, TestSize.Level0)
+{
+    OhosAccountManager accountManager;
+    accountManager.OnInitialize();
+    OhosAccountInfo curOhosAccount;
+    ErrCode ret = accountManager.LogoffOhosAccount(curOhosAccount, TEST_EVENT_STR);
+    EXPECT_EQ(false, ret);
 }
