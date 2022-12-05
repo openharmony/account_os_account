@@ -333,10 +333,11 @@ HWTEST_F(AccountIAMClientTest, AccountIAMClient_RegisterInputer_0100, TestSize.L
 {
     std::shared_ptr<IInputer> inputer = std::make_shared<TestIInputer>();
     EXPECT_NE(nullptr, inputer);
-    EXPECT_EQ(ERR_OK, AccountIAMClient::GetInstance().RegisterInputer(inputer));
-    EXPECT_EQ(ERR_ACCOUNT_IAM_KIT_INPUTER_ALREADY_REGISTERED, AccountIAMClient::GetInstance().RegisterInputer(inputer));
+    EXPECT_EQ(ERR_OK, AccountIAMClient::GetInstance().RegisterInputer(AuthType::PIN, inputer));
+    EXPECT_EQ(ERR_ACCOUNT_IAM_KIT_INPUTER_ALREADY_REGISTERED,
+        AccountIAMClient::GetInstance().RegisterInputer(AuthType::PIN, inputer));
 
-    AccountIAMClient::GetInstance().UnRegisterInputer();
+    AccountIAMClient::GetInstance().UnregisterInputer(AuthType::PIN);
 }
 
 /**

@@ -69,6 +69,7 @@ public:
         const std::vector<uint8_t> &token, const std::vector<uint8_t> &newSecret);
     ErrCode RemoveUserKey(int32_t userId, const std::vector<uint8_t> &token);
     ErrCode RestoreUserKey(int32_t userId, uint64_t credentialId, const std::vector<uint8_t> &token);
+    bool CheckDomainAuthAvailable(int32_t userId);
 
 private:
     ErrCode UpdateStorageKey(int32_t userId, const std::vector<uint8_t> &token,
