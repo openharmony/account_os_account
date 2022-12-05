@@ -23,6 +23,7 @@
 #include "os_account_subscribe_death_recipient.h"
 #define private public
 #include "os_account_subscribe_manager.h"
+#include "ability_manager_adapter.h"
 #undef private
 #include "os_account_manager_service.h"
 #include "os_account_interface.h"
@@ -124,5 +125,80 @@ HWTEST_F(OsAccountCoverageTest, OnRemoteDiedTest_0300, TestSize.Level1)
     EXPECT_EQ(size, 0);
 }
 
+/*
+ * @tc.name: OnRemoteDiedTest_0400
+ * @tc.desc: test if AbilityMgrDeathRecipient's OnRemoteDied function executed as expected when
+ *           sptr param is nullptr.
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(OsAccountCoverageTest, OnRemoteDiedTest_0400, TestSize.Level1)
+{
+    std::shared_ptr<AAFwk::AbilityManagerAdapter::AbilityMgrDeathRecipient> recipient =
+        std::make_shared<AAFwk::AbilityManagerAdapter::AbilityMgrDeathRecipient>();
+    ASSERT_NE(nullptr, recipient);
+    const sptr<IRemoteObject> sptrDeath = nullptr;
+    wptr<IRemoteObject> wptrDeath = sptrDeath;
+    recipient->OnRemoteDied(wptrDeath);
+    EXPECT_EQ(DelayedSingleton<AAFwk::AbilityManagerAdapter>::GetInstance()->deathRecipient_, nullptr);
+}
+
+/**
+ * @tc.name: SubscribeOsAccount_0001
+ * @tc.desc: Test SubscribeOsAccount with nullptr
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(OsAccountCoverageTest, SubscribeOsAccount_0001, TestSize.Level1)
+{
+    OsAccountSubscribeInfo subscribeInfo;
+    sptr<MockAccountMgrService> listener = new (std::nothrow) MockAccountMgrService();
+    ASSERT_NE(nullptr, listener);
+
+    auto subscribeInfoPtr = std::make_shared<OsAccountSubscribeInfo>(subscribeInfo);
+    ASSERT_NE(nullptr, subscribeInfoPtr);
+
+    ErrCode result = DelayedSingleton<OsAccountSubscribeManager>::GetInstance()->SubscribeOsAccount(nullptr, listener);
+    EXPECT_EQ(result, ERR_APPACCOUNT_SERVICE_SUBSCRIBE_INFO_PTR_IS_NULLPTR);
+
+    result = DelayedSingleton<OsAccountSubscribeManager>::GetInstance()->SubscribeOsAccount(subscribeInfoPtr, nullptr);
+    EXPECT_EQ(result, ERR_APPACCOUNT_SERVICE_EVENT_LISTENER_IS_NULLPTR);
+}
+
+/**
+ * @tc.name: UnsubscribeOsAccount_0001
+ * @tc.desc: Test UnsubscribeOsAccount with nullptr
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(OsAccountCoverageTest, UnsubscribeOsAccount_0001, TestSize.Level1)
+{
+    ErrCode result = DelayedSingleton<OsAccountSubscribeManager>::GetInstance()->UnsubscribeOsAccount(nullptr);
+    EXPECT_EQ(result, ERR_APPACCOUNT_SERVICE_EVENT_LISTENER_IS_NULLPTR);
+}
+
+/**
+ * @tc.name: InsertSubscribeRecord_0001
+ * @tc.desc: Test InsertSubscribeRecord with nullptr
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(OsAccountCoverageTest, InsertSubscribeRecord_0001, TestSize.Level1)
+{
+    ErrCode result = DelayedSingleton<OsAccountSubscribeManager>::GetInstance()->InsertSubscribeRecord(nullptr);
+    EXPECT_EQ(result, ERR_APPACCOUNT_SERVICE_SUBSCRIBE_RECORD_PTR_IS_NULLPTR);
+}
+
+/**
+ * @tc.name: RemoveSubscribeRecord_0001
+ * @tc.desc: Test RemoveSubscribeRecord with nullptr
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(OsAccountCoverageTest, RemoveSubscribeRecord_0001, TestSize.Level1)
+{
+    ErrCode result = DelayedSingleton<OsAccountSubscribeManager>::GetInstance()->RemoveSubscribeRecord(nullptr);
+    EXPECT_EQ(result, ERR_APPACCOUNT_SERVICE_EVENT_LISTENER_IS_NULLPTR);
+}
 }  // namespace AccountSA
 }  // namespace OHOS

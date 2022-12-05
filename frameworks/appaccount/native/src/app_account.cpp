@@ -485,6 +485,8 @@ ErrCode AppAccount::GetAllAccessibleAccounts(std::vector<AppAccountInfo> &appAcc
 
 ErrCode AppAccount::SubscribeAppAccount(const std::shared_ptr<AppAccountSubscriber> &subscriber)
 {
+    RETURN_IF_PROXY_IS_NULLPTR();
+
     if (subscriber == nullptr) {
         ACCOUNT_LOGE("subscriber is nullptr");
         return ERR_APPACCOUNT_KIT_SUBSCRIBER_IS_NULLPTR;
@@ -521,11 +523,6 @@ ErrCode AppAccount::SubscribeAppAccount(const std::shared_ptr<AppAccountSubscrib
         }
     }
 
-    if (GetAppAccountProxy() != ERR_OK) {
-        ACCOUNT_LOGE("app account proxy is nullptr");
-        return ERR_APPACCOUNT_KIT_APP_ACCOUNT_PROXY_IS_NULLPTR;
-    }
-
     sptr<IRemoteObject> appAccountEventListener = nullptr;
     ErrCode subscribeState = CreateAppAccountEventListener(subscriber, appAccountEventListener);
     if (subscribeState == INITIAL_SUBSCRIPTION) {
@@ -543,14 +540,10 @@ ErrCode AppAccount::SubscribeAppAccount(const std::shared_ptr<AppAccountSubscrib
 
 ErrCode AppAccount::UnsubscribeAppAccount(const std::shared_ptr<AppAccountSubscriber> &subscriber)
 {
+    RETURN_IF_PROXY_IS_NULLPTR();
     if (subscriber == nullptr) {
         ACCOUNT_LOGE("subscriber is nullptr");
         return ERR_APPACCOUNT_KIT_SUBSCRIBER_IS_NULLPTR;
-    }
-
-    if (GetAppAccountProxy() != ERR_OK) {
-        ACCOUNT_LOGE("app account proxy is nullptr");
-        return ERR_APPACCOUNT_KIT_APP_ACCOUNT_PROXY_IS_NULLPTR;
     }
 
     std::lock_guard<std::mutex> lock(eventListenersMutex_);
