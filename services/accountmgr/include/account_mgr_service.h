@@ -27,6 +27,7 @@
 #endif
 #include "account_stub.h"
 #include "app_account_manager_service.h"
+#include "domain_account_manager_service.h"
 #include "os_account_manager_service.h"
 #include "iaccount.h"
 #include "iremote_object.h"
@@ -75,6 +76,7 @@ private:
     void SelfClean();
     std::int32_t GetDeviceAccountIdFromCurrentProcess();
     bool CreateIAMService();
+    bool CreateDomainService();
 
     bool registerToService_ = false;
     ServiceRunningState state_ = ServiceRunningState::STATE_NOT_START;
@@ -86,6 +88,7 @@ private:
 #ifdef HAS_USER_AUTH_PART
     sptr<AccountIAMService> accountIAMService_ = nullptr;
 #endif
+    sptr<DomainAccountManagerService> domainAccountMgrService_ = nullptr;
 };
 }  // namespace AccountSA
 }  // namespace OHOS

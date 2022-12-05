@@ -17,6 +17,8 @@
 
 #include "account_iam_callback.h"
 #include "account_log_wrapper.h"
+#include "iinner_os_account_manager.h"
+#include "inner_domain_account_manager.h"
 #include "iservice_registry.h"
 #include "system_ability_definition.h"
 #include "user_auth_client.h"
@@ -135,7 +137,7 @@ void InnerAccountIAMManager::DelUser(
 void InnerAccountIAMManager::GetCredentialInfo(
     int32_t userId, AuthType authType, const sptr<IGetCredInfoCallback> &callback)
 {
-    auto getCallback = std::make_shared<GetCredInfoCallbackWrapper>(callback);
+    auto getCallback = std::make_shared<GetCredInfoCallbackWrapper>(userId, callback);
     UserIDMClient::GetInstance().GetCredentialInfo(userId, authType, getCallback);
 }
 
@@ -164,13 +166,45 @@ int32_t InnerAccountIAMManager::CancelAuth(uint64_t contextId)
 int32_t InnerAccountIAMManager::GetAvailableStatus(
     AuthType authType, AuthTrustLevel authTrustLevel, int32_t &status)
 {
-    status = UserAuthClientImpl::Instance().GetAvailableStatus(authType, authTrustLevel);
+    if (static_cast<int32_t>(authType) != static_cast<int32_t>(IAMAuthType::DOMAIN)) {
+        status = UserAuthClientImpl::Instance().GetAvailableStatus(authType, authTrustLevel);
+        return ERR_OK;
+    }
+    bool isPluginAvailable = InnerDomainAccountManager::GetInstance()->IsPluginAvailable();
+    if (isPluginAvailable) {
+        status = ERR_JS_SUCCESS;
+    } else {
+        status = ERR_JS_AUTH_TYPE_NOT_SUPPORTED;
+    }
     return ERR_OK;
+}
+
+bool InnerAccountIAMManager::CheckDomainAuthAvailable(int32_t userId)
+{
+    OsAccountInfo osAccountInfo;
+    if (IInnerOsAccountManager::GetInstance()->QueryOsAccountById(userId, osAccountInfo) != ERR_OK) {
+        ACCOUNT_LOGE("failed to get current os account info.");
+        return false;
+    }
+    DomainAccountInfo domainAccountInfo;
+    osAccountInfo.GetDomainInfo(domainAccountInfo);
+    bool isAvailable = InnerDomainAccountManager::GetInstance()->IsPluginAvailable();
+    return !domainAccountInfo.accountName_.empty() && isAvailable;
 }
 
 void InnerAccountIAMManager::GetProperty(
     int32_t userId, const GetPropertyRequest &request, const sptr<IGetSetPropCallback> &callback)
 {
+    if (static_cast<int32_t>(request.authType) == static_cast<int32_t>(IAMAuthType::DOMAIN)) {
+        Attributes result;
+        if (CheckDomainAuthAvailable(userId)) {
+            result.SetInt32Value(Attributes::ATTR_PIN_SUB_TYPE, static_cast<int32_t>(IAMAuthSubType::DOMAIN_MIXED));
+            callback->OnResult(ERR_OK, result);
+        } else {
+            callback->OnResult(ERR_ACCOUNT_IAM_UNSUPPORTED_AUTH_TYPE, result);
+        }
+        return;
+    }
     auto getCallback = std::make_shared<GetPropCallbackWrapper>(callback);
     UserAuthClient::GetInstance().GetProperty(userId, request, getCallback);
 }
@@ -178,6 +212,11 @@ void InnerAccountIAMManager::GetProperty(
 void InnerAccountIAMManager::SetProperty(
     int32_t userId, const SetPropertyRequest &request, const sptr<IGetSetPropCallback> &callback)
 {
+    if (static_cast<int32_t>(request.authType) == static_cast<int32_t>(IAMAuthType::DOMAIN)) {
+        Attributes result;
+        callback->OnResult(ERR_ACCOUNT_IAM_UNSUPPORTED_AUTH_TYPE, result);
+        return;
+    }
     auto setCallback = std::make_shared<SetPropCallbackWrapper>(callback);
     UserAuthClient::GetInstance().SetProperty(userId, request, setCallback);
 }

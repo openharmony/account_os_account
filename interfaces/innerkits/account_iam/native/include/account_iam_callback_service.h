@@ -19,6 +19,8 @@
 #include "account_iam_callback_stub.h"
 #include "account_iam_client_callback.h"
 #include "account_iam_info.h"
+#include "domain_account_common.h"
+#include "domain_auth_callback.h"
 
 namespace OHOS {
 namespace AccountSA {
@@ -54,6 +56,26 @@ private:
     DISALLOW_COPY_AND_MOVE(GetSetPropCallbackService);
 };
 
+class DomainAuthCallbackAdapter final : public DomainAuthCallback {
+public:
+    DomainAuthCallbackAdapter(const std::shared_ptr<IDMCallback> &callback);
+    void OnResult(int32_t resultCode, const DomainAuthResult &result);
+
+private:
+    std::shared_ptr<IDMCallback> callback_;
+};
+
+class DomainCredentialRecipient : public IInputerData {
+public:
+    DomainCredentialRecipient(int32_t userId, const std::shared_ptr<IDMCallback> &callback);
+    virtual ~DomainCredentialRecipient();
+    void OnSetData(int32_t authSubType, std::vector<uint8_t> data) override;
+
+private:
+    int32_t userId_;
+    std::shared_ptr<IDMCallback> idmCallback_;
+};
+
 class IAMInputerData : public IInputerData {
 public:
     IAMInputerData(int32_t userId, const std::shared_ptr<IInputerData> &inputerData);
@@ -72,7 +94,7 @@ public:
     IAMInputer(int32_t userId, const std::shared_ptr<IInputer> &inputer);
     virtual ~IAMInputer();
 
-    void OnGetData(int32_t authSubType, std::shared_ptr<IInputerData> inputerData);
+    void OnGetData(int32_t authSubType, std::shared_ptr<IInputerData> inputerData) override;
     void ResetInnerInputer(const std::shared_ptr<IInputer> &inputer);
 private:
     int32_t userId_;
