@@ -410,3 +410,17 @@ HWTEST_F(AppAccountSessionModuleTest, AppAccountSessionModuleTest_GetAuthenticat
     ASSERT_EQ(result, ERR_OK);
     ASSERT_EQ(callback, appAccountAuthenticatorSessionPtr->authenticatorCb_->AsObject());
 }
+
+/**
+ * @tc.name: AppAccountSessionModuleTest_GOnRemoteDied_0100
+ * @tc.desc: test session func OnRemoteDied.
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(AppAccountSessionModuleTest, AppAccountSessionModuleTest_OnRemoteDied_0100, TestSize.Level1)
+{
+    std::string sessionId = "sessionId";
+    SessionServerDeathRecipient testSessionServerDeathRecipient(sessionId);
+    testSessionServerDeathRecipient.OnRemoteDied(nullptr);
+    ASSERT_EQ(testSessionServerDeathRecipient.sessionId_, sessionId);
+}
