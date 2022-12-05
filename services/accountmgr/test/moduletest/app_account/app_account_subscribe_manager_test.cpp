@@ -17,7 +17,10 @@
 
 #include "account_log_wrapper.h"
 #include "app_account_common.h"
+#include "app_account_event_listener.h"
+#include "app_account_subscriber.h"
 #define private public
+#include "app_account_subscribe_death_recipient.h"
 #include "app_account_subscribe_manager.h"
 #undef private
 
