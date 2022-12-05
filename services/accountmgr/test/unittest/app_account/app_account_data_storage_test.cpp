@@ -18,7 +18,9 @@
 #include "account_error_no.h"
 #include "account_log_wrapper.h"
 #include "app_account_data_storage.h"
+#define private public
 #include "app_account_info.h"
+#undef private
 #include "app_account_control_manager.h"
 
 using namespace testing::ext;

@@ -18,6 +18,7 @@
 #include "account_log_wrapper.h"
 #include "app_account_common.h"
 #define private public
+#include "app_account_authenticator_callback.h"
 #include "app_account_authenticator_callback_stub.h"
 #include "app_account_authenticator_callback_proxy.h"
 #include "iapp_account_authenticator_callback.h"
@@ -66,10 +67,10 @@ void AppAccountAuthenticatorCallbackModuleTest::TearDown(void)
 {}
 
 /**
- * @tc.name: AppAccountAuthenticateTest_CreateAccountImplicitly_0100
- * @tc.desc: test authenticate proxy func CreateAccountImplicitly.
+ * @tc.name: AppAccountAuthenticatorCallbackTest_OnResult_0100
+ * @tc.desc: test authenticatecallback func OnResult.
  * @tc.type: FUNC
- * @tc.require: issueI5RWXN
+ * @tc.require:
  */
 HWTEST_F(AppAccountAuthenticatorCallbackModuleTest, AppAccountAuthenticatorCallbackTest_OnResult_0100, TestSize.Level1)
 {
@@ -94,4 +95,22 @@ HWTEST_F(AppAccountAuthenticatorCallbackModuleTest, AppAccountAuthenticatorCallb
     testCallbackProxy.OnRequestContinued();
     EXPECT_EQ(g_status, true);
     g_status = false;
+}
+
+/**
+ * @tc.name: AppAccountAuthenticatorCallbackTest_func_0200
+ * @tc.desc: test authenticatecallback func OnRequestRedirected and OnRequestContinued.
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(AppAccountAuthenticatorCallbackModuleTest, AppAccountAuthenticatorCallbackTest_func_0200, TestSize.Level1)
+{
+    const std::string sessionId = "testsessionid";
+    auto AppAccountAuthenticatorCallbackPtr = std::make_shared<AppAccountAuthenticatorCallback>(sessionId);
+    ASSERT_NE(nullptr, AppAccountAuthenticatorCallbackPtr);
+    AAFwk::Want reques;
+    AppAccountAuthenticatorCallbackPtr->OnRequestRedirected(reques);
+    ASSERT_EQ(AppAccountAuthenticatorCallbackPtr->sessionId_, sessionId);
+    AppAccountAuthenticatorCallbackPtr->OnRequestContinued();
+    ASSERT_EQ(AppAccountAuthenticatorCallbackPtr->sessionId_, sessionId);
 }
