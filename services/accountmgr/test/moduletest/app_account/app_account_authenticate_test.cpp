@@ -22,6 +22,7 @@
 #include "app_account_common.h"
 #define private public
 #include "app_account_authenticator_callback.h"
+#include "app_account_authenticator_manager.h"
 #include "app_account_authenticator_proxy.h"
 #include "app_account_authenticator_stub.h"
 #include "app_account_constants.h"
@@ -220,6 +221,7 @@ HWTEST_F(AppAccountAuthenticateModuleTest, AppAccountAuthenticateTest_Auth_0200,
     EXPECT_EQ(result, ERR_OK);
 }
 
+
 /**
  * @tc.name: AppAccountAuthenticateTest_AddAccountImplicitly_0100
  * @tc.desc: test authenticate proxy func AddAccountImplicitly.
@@ -363,4 +365,38 @@ HWTEST_F(AppAccountAuthenticateModuleTest, AppAccountAuthenticateTest_IsAccountR
     ASSERT_NE(callback, nullptr);
     result = authenticateProxyPtr_->IsAccountRemovable(STRING_NAME, callback);
     EXPECT_EQ(result, ERR_OK);
+}
+
+/**
+ * @tc.name: AppAccountAuthenticatorManagerTest_Init_0100
+ * @tc.desc: test Init with isInitialized is true.
+ * @tc.type: FUNC
+ * @tc.require
+ */
+HWTEST_F(AppAccountAuthenticateModuleTest, AppAccountAuthenticatorManagerTest_Init_0100, TestSize.Level1)
+{
+    auto appAccountAuthenticatorManagerPtr = std::make_shared<AppAccountAuthenticatorManager>();
+    ASSERT_NE(appAccountAuthenticatorManagerPtr, nullptr);
+    appAccountAuthenticatorManagerPtr->isInitialized_ = true;
+    appAccountAuthenticatorManagerPtr->Init();
+    ASSERT_EQ(appAccountAuthenticatorManagerPtr->isInitialized_, true);
+}
+
+/**
+ * @tc.name: AppAccountAuthenticatorManagerTest_GetAuthenticatorInfo_0100
+ * @tc.desc: test GetAuthenticatorInfo with not init.
+ * @tc.type: FUNC
+ * @tc.require
+ */
+HWTEST_F(AppAccountAuthenticateModuleTest, AppAccountAuthenticatorManagerTest_GetAuthenticatorInfo_0100, TestSize.Level1)
+{
+    auto appAccountAuthenticatorManagerPtr = std::make_shared<AppAccountAuthenticatorManager>();
+    ASSERT_NE(appAccountAuthenticatorManagerPtr, nullptr);
+    appAccountAuthenticatorManagerPtr->isInitialized_ = false;
+    std::string owner = "owner";
+    int32_t userId = 1;
+    AuthenticatorInfo info;
+    ErrCode result = appAccountAuthenticatorManagerPtr->GetAuthenticatorInfo(owner, userId, info);
+    ASSERT_NE(result, ERR_OK);
+    ASSERT_EQ(appAccountAuthenticatorManagerPtr->isInitialized_, true);
 }

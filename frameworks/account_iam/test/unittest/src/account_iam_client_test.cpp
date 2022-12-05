@@ -18,6 +18,8 @@
 #include "account_iam_client.h"
 #include "account_iam_client_test_callback.h"
 #include "account_log_wrapper.h"
+#include "account_iam_callback_stub.h"
+#include "account_iam_callback_service.h"
 #include "token_setproc.h"
 #include "iam_common_defines.h"
 
@@ -25,6 +27,7 @@ namespace OHOS {
 namespace AccountTest {
 namespace {
     const int32_t TEST_USER_ID = 200;
+    const uint32_t INVALID_IPC_CODE = 1000;
     const uint64_t TEST_CONTEXT_ID = 122;
     const std::vector<uint8_t> TEST_CHALLENGE = {1, 2, 3, 4};
 }
@@ -394,6 +397,122 @@ HWTEST_F(AccountIAMClientTest, AccountIAMClient_SetAuthSubType_0100, TestSize.Le
     EXPECT_EQ(type, AccountIAMClient::GetInstance().GetAuthSubType(userId));
 
     AccountIAMClient::GetInstance().ClearCredential(userId);
+}
+
+/**
+ * @tc.name: IDMCallbackStub_OnRemoteRequest_0100
+ * @tc.desc: OnRemoteRequest with wrong message code.
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(AccountIAMClientTest, IDMCallbackStub_OnRemoteRequest_0100, TestSize.Level0)
+{
+    MessageParcel data;
+    MessageParcel reply;
+    MessageOption option = {MessageOption::TF_SYNC};
+    data.WriteInterfaceToken(IDMCallbackStub::GetDescriptor());
+
+    sptr<IDMCallbackStub> stub = new (std::nothrow) IDMCallbackService(TEST_USER_ID, nullptr);
+    ASSERT_NE(nullptr, stub);
+    int32_t ret = stub->OnRemoteRequest(INVALID_IPC_CODE, data, reply, option);
+    EXPECT_EQ(IPC_STUB_UNKNOW_TRANS_ERR, ret);
+}
+
+/**
+ * @tc.name: IDMCallbackStub_ProcOnAcquireInfo_0100
+ * @tc.desc: ProcOnAcquireInfo.
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(AccountIAMClientTest, IDMCallbackStub_ProcOnAcquireInfo_0100, TestSize.Level0)
+{
+    MessageParcel data;
+    MessageParcel reply;
+    MessageOption option = {MessageOption::TF_SYNC};
+    
+    int32_t module = 0;
+    int32_t acquireInfo = 0;
+    std::vector<uint8_t> buffer;
+    data.WriteInterfaceToken(IDMCallbackStub::GetDescriptor());
+    data.WriteInt32(module);
+    data.WriteInt32(acquireInfo);
+    data.WriteUInt8Vector(buffer);
+
+    sptr<IDMCallbackStub> stub = new (std::nothrow) IDMCallbackService(TEST_USER_ID, nullptr);
+    ASSERT_NE(nullptr, stub);
+    int32_t ret = stub->OnRemoteRequest(static_cast<uint32_t>(IIDMCallback::Message::ON_ACQUIRE_INFO), data, reply,
+        option);
+    EXPECT_EQ(ERR_OK, ret);
+}
+
+/**
+ * @tc.name: GetCredInfoCallbackStub_OnRemoteRequest_0100
+ * @tc.desc: OnRemoteRequest with wrong message code.
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(AccountIAMClientTest, GetCredInfoCallbackStub_OnRemoteRequest_0100, TestSize.Level0)
+{
+    MessageParcel data;
+    MessageParcel reply;
+    MessageOption option = {MessageOption::TF_SYNC};
+    data.WriteInterfaceToken(GetCredInfoCallbackStub::GetDescriptor());
+
+    sptr<GetCredInfoCallbackStub> stub = new (std::nothrow) GetCredInfoCallbackService(nullptr);
+    ASSERT_NE(nullptr, stub);
+    int32_t ret = stub->OnRemoteRequest(INVALID_IPC_CODE, data, reply, option);
+    EXPECT_EQ(IPC_STUB_UNKNOW_TRANS_ERR, ret);
+}
+
+/**
+ * @tc.name: GetCredInfoCallbackStub_ProcOnCredentialInfo_0100
+ * @tc.desc: ProcOnCredentialInfo.
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(AccountIAMClientTest, GetCredInfoCallbackStub_ProcOnCredentialInfo_0100, TestSize.Level0)
+{
+    MessageParcel data;
+    MessageParcel reply;
+    MessageOption option = {MessageOption::TF_SYNC};
+    
+    uint32_t vectorSize = 1;
+    CredentialInfo info;
+    std::vector<CredentialInfo> infoList = {info};
+    data.WriteInterfaceToken(GetCredInfoCallbackStub::GetDescriptor());
+    data.WriteUint32(vectorSize);
+    for (const auto &info : infoList) {
+        data.WriteUint64(info.credentialId);
+        data.WriteInt32(info.authType);
+        PinSubType pinType = info.pinType.value_or(PinSubType::PIN_MAX);
+        data.WriteInt32(pinType);
+        data.WriteUint64(info.templateId);
+    }
+
+    sptr<GetCredInfoCallbackStub> stub = new (std::nothrow) GetCredInfoCallbackService(nullptr);
+    ASSERT_NE(nullptr, stub);
+    int32_t ret = stub->OnRemoteRequest(static_cast<uint32_t>(IGetCredInfoCallback::Message::ON_CREDENTIAL_INFO), data,
+        reply, option);
+    EXPECT_EQ(ERR_OK, ret);
+}
+
+/**
+ * @tc.name: GetSetPropCallbackStub_OnRemoteRequest_0100
+ * @tc.desc: OnRemoteRequest with wrong message code.
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(AccountIAMClientTest, GetSetPropCallbackStub_OnRemoteRequest_0100, TestSize.Level0)
+{
+    MessageParcel data;
+    MessageParcel reply;
+    MessageOption option = {MessageOption::TF_SYNC};
+    data.WriteInterfaceToken(GetSetPropCallbackStub::GetDescriptor());
+
+    sptr<GetSetPropCallbackStub> stub = new (std::nothrow) GetSetPropCallbackService(nullptr);
+    ASSERT_NE(nullptr, stub);
+    int32_t ret = stub->OnRemoteRequest(INVALID_IPC_CODE, data, reply, option);
+    EXPECT_EQ(IPC_STUB_UNKNOW_TRANS_ERR, ret);
 }
 }  // namespace AccountTest
 }  // namespace OHOS

@@ -72,6 +72,10 @@ const std::string STRING_NAME_OUT_OF_RANGE =
     "1234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890"
     "1234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890"
     "1234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890";
+const std::string STRING_CONSTRAINT_OUT_OF_RANGE =
+    "string_constraint_out_of_range"
+    "1234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890"
+    "1234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890";
 const std::string STRING_PHOTO_OUT_OF_RANGE =
     "extra_info_out_of_range_"
     "1234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890"
@@ -267,6 +271,9 @@ HWTEST_F(OsAccountManagerServiceModuleTest, OsAccountManagerServiceModuleTest005
     ErrCode errCode = osAccountManagerService_->CreateOsAccount(STRING_TEST_NAME, OsAccountType::ADMIN,
         osAccountInfoOne);
     EXPECT_EQ(errCode, ERR_OK);
+    errCode = osAccountManagerService_->CreateOsAccount(STRING_TEST_NAME, OsAccountType::END,
+        osAccountInfoOne);
+    EXPECT_EQ(errCode, ERR_OSACCOUNT_SERVICE_MANAGER_CREATE_INVALID_TYPE_ACCOUNT_ERROR);
     errCode = osAccountManagerService_->RemoveOsAccount(osAccountInfoOne.GetLocalId());
     EXPECT_EQ(errCode, ERR_OK);
 }
@@ -409,6 +416,10 @@ HWTEST_F(OsAccountManagerServiceModuleTest, OsAccountManagerServiceModuleTest014
         ERR_OK);
     EXPECT_EQ(isOsAccountActived, false);
     EXPECT_EQ(osAccountManagerService_->RemoveOsAccount(osAccountInfoOne.GetLocalId()), ERR_OK);
+
+    int localId = Constants::MAX_USER_ID + 1;
+    EXPECT_EQ(osAccountManagerService_->IsOsAccountActived(localId, isOsAccountActived),
+        ERR_OSACCOUNT_KIT_LOCAL_ID_INVALID_ERROR);
 }
 
 /**
@@ -457,6 +468,10 @@ HWTEST_F(OsAccountManagerServiceModuleTest, OsAccountManagerServiceModuleTest016
         GTEST_LOG_(INFO) << *it;
     }
     EXPECT_EQ(osAccountManagerService_->RemoveOsAccount(osAccountInfoOne.GetLocalId()), ERR_OK);
+
+    int localId = Constants::START_USER_ID - 1;
+    EXPECT_EQ(osAccountManagerService_->SetOsAccountConstraints(localId, CONSTANTS_VECTOR, enable),
+        ERR_OSACCOUNT_SERVICE_MANAGER_ID_ERROR);
 }
 
 /**
@@ -493,6 +508,10 @@ HWTEST_F(OsAccountManagerServiceModuleTest, OsAccountManagerServiceModuleTest018
         osAccountInfoOne.GetLocalId(), CONSTANTS_STRING_WIFI, isEnable), ERR_OK);
     EXPECT_EQ(isEnable, false);
     EXPECT_EQ(osAccountManagerService_->RemoveOsAccount(osAccountInfoOne.GetLocalId()), ERR_OK);
+
+    int localId = Constants::START_USER_ID - 1;
+    EXPECT_EQ(osAccountManagerService_->IsOsAccountConstraintEnable(localId, CONSTANTS_STRING_WIFI, isEnable),
+        ERR_OSACCOUNT_SERVICE_MANAGER_ID_ERROR);
 }
 
 /**
@@ -707,6 +726,10 @@ HWTEST_F(OsAccountManagerServiceModuleTest, OsAccountManagerServiceModuleTest034
     ASSERT_EQ(osAccountManagerService_->CreateOsAccount(STRING_TEST_NAME, INT_TEST_TYPE, osAccountInfoOne),
         ERR_OK);
     EXPECT_NE(osAccountManagerService_->SetOsAccountName(osAccountInfoOne.GetLocalId(), STRING_EMPTY), ERR_OK);
+
+    int localId = Constants::START_USER_ID - 1;
+    EXPECT_EQ(osAccountManagerService_->SetOsAccountName(localId, STRING_EMPTY),
+        ERR_OSACCOUNT_SERVICE_MANAGER_ID_ERROR);
     EXPECT_EQ(osAccountManagerService_->RemoveOsAccount(osAccountInfoOne.GetLocalId()), ERR_OK);
 }
 
@@ -805,6 +828,11 @@ HWTEST_F(OsAccountManagerServiceModuleTest, OsAccountManagerServiceModuleTest041
     ASSERT_EQ(osAccountManagerService_->CreateOsAccount(STRING_TEST_NAME, INT_TEST_TYPE, osAccountInfoOne), ERR_OK);
     EXPECT_NE(osAccountManagerService_->SetOsAccountProfilePhoto(
         osAccountInfoOne.GetLocalId(), STRING_PHOTO_OUT_OF_RANGE), ERR_OK);
+
+    int localId = Constants::START_USER_ID - 1;
+    EXPECT_EQ(
+        osAccountManagerService_->SetOsAccountProfilePhoto(localId, STRING_PHOTO_OUT_OF_RANGE),
+        ERR_OSACCOUNT_SERVICE_MANAGER_ID_ERROR);
     EXPECT_EQ(osAccountManagerService_->RemoveOsAccount(osAccountInfoOne.GetLocalId()), ERR_OK);
 }
 
@@ -949,6 +977,9 @@ HWTEST_F(OsAccountManagerServiceModuleTest, OsAccountManagerServiceModuleTest051
     std::this_thread::sleep_for(std::chrono::milliseconds(DELAY_FOR_OPERATION));
     EXPECT_EQ(osAccountManagerService_->ActivateOsAccount(Constants::START_USER_ID), ERR_OK);
     EXPECT_EQ(osAccountManagerService_->RemoveOsAccount(osAccountInfoOne.GetLocalId()), ERR_OK);
+
+    int localId = Constants::START_USER_ID - 1;
+    EXPECT_EQ(osAccountManagerService_->ActivateOsAccount(localId), ERR_OSACCOUNT_SERVICE_MANAGER_ID_ERROR);
 }
 
 /**
@@ -1127,6 +1158,10 @@ HWTEST_F(OsAccountManagerServiceModuleTest, OsAccountManagerServiceModuleTest059
     DomainAccountInfo domainAccountEmpty(STRING_DOMAIN_VALID, "");
     EXPECT_EQ(osAccountManagerService_->CreateOsAccountForDomain(type, domainAccountEmpty, osAccountInfo),
         ERR_OSACCOUNT_SERVICE_MANAGER_NAME_SIZE_EMPTY_ERROR);
+
+    DomainAccountInfo domainInfo(STRING_DOMAIN_VALID, STRING_DOMAIN_ACCOUNT_NAME_VALID);
+    EXPECT_EQ(osAccountManagerService_->CreateOsAccountForDomain(OsAccountType::END, domainInfo, osAccountInfo),
+        ERR_OSACCOUNT_SERVICE_MANAGER_CREATE_INVALID_TYPE_ACCOUNT_ERROR);
 }
 
 /**
@@ -1358,6 +1393,16 @@ HWTEST_F(OsAccountManagerServiceModuleTest, OsAccountManagerServiceModuleTest070
     EXPECT_EQ(osAccountManagerService_->QueryOsAccountConstraintSourceTypes(
         MAIN_ACCOUNT_ID, CONSTANT_WIFI, constraintSourceTypeInfos), ERR_OK);
     EXPECT_NE(constraintSourceTypeInfos.size(), 0);
+
+    EXPECT_EQ(osAccountManagerService_->QueryOsAccountConstraintSourceTypes(MAIN_ACCOUNT_ID, STRING_EMPTY,
+        constraintSourceTypeInfos), ERR_OSACCOUNT_SERVICE_INNER_DOMAIN_ACCOUNT_NAME_LEN_ERROR);
+    EXPECT_EQ(osAccountManagerService_->QueryOsAccountConstraintSourceTypes(MAIN_ACCOUNT_ID,
+        STRING_CONSTRAINT_OUT_OF_RANGE, constraintSourceTypeInfos),
+        ERR_OSACCOUNT_SERVICE_INNER_DOMAIN_ACCOUNT_NAME_LEN_ERROR);
+
+    int localId = Constants::START_USER_ID - 1;
+    EXPECT_EQ(osAccountManagerService_->QueryOsAccountConstraintSourceTypes(localId, CONSTANT_WIFI,
+        constraintSourceTypeInfos), ERR_OSACCOUNT_SERVICE_MANAGER_ID_ERROR);
 }
 
 /**
@@ -1528,6 +1573,10 @@ HWTEST_F(OsAccountManagerServiceModuleTest, OsAccountManagerServiceModuleTest082
     EXPECT_EQ(osAccountManagerService_->IsOsAccountConstraintEnable(
         MAIN_ACCOUNT_ID, CONSTANT_PRINT, isConstraintEnable), ERR_OK);
     EXPECT_EQ(isConstraintEnable, false);
+
+    int localId = Constants::START_USER_ID - 1;
+    EXPECT_EQ(osAccountManagerService_->SetGlobalOsAccountConstraints(
+        CONSTANTS_VECTOR, false, localId, true), ERR_OSACCOUNT_SERVICE_MANAGER_ID_ERROR);
 }
 
 /**
@@ -1585,6 +1634,12 @@ HWTEST_F(OsAccountManagerServiceModuleTest, OsAccountManagerServiceModuleTest084
     EXPECT_EQ(isConstraintEnable, false);
 
     EXPECT_EQ(osAccountManagerService_->RemoveOsAccount(osAccountInfo.GetLocalId()), ERR_OK);
+
+    int localId = Constants::START_USER_ID - 1;
+    EXPECT_EQ(osAccountManagerService_->SetSpecificOsAccountConstraints(
+        CONSTANTS_VECTOR, false, localId, MAIN_ACCOUNT_ID, false), ERR_OSACCOUNT_SERVICE_MANAGER_ID_ERROR);
+    EXPECT_EQ(osAccountManagerService_->SetSpecificOsAccountConstraints(
+        CONSTANTS_VECTOR, false, MAIN_ACCOUNT_ID, localId, false), ERR_OSACCOUNT_SERVICE_MANAGER_ID_ERROR);
 }
 
 /**
