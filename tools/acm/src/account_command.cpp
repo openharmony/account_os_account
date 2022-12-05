@@ -489,18 +489,6 @@ ErrCode AccountCommand::RunAsCreateCommandMissingOptionArgument(void)
             result = ERR_INVALID_VALUE;
             break;
         }
-        case 0: {
-            // 'acm create' with an unknown option: acm create --x
-            // 'acm create' with an unknown option: acm create --xxx
-            std::string unknownOption = "";
-            std::string unknownOptionMsg = GetUnknownOptionMsg(unknownOption);
-
-            ACCOUNT_LOGD("'acm create' with an unknown option.");
-
-            resultReceiver_.append(unknownOptionMsg);
-            result = ERR_INVALID_VALUE;
-            break;
-        }
         default: {
             // 'acm create' with an unknown option: acm create -x
             // 'acm create' with an unknown option: acm create -xxx
@@ -544,9 +532,6 @@ ErrCode AccountCommand::RunAsCreateCommandExistentOptionArgument(
             // 'acm create -t <type>'
             // 'acm create --type <type>'
             result = AnalyzeTypeArgument(type);
-            break;
-        }
-        case 0: {
             break;
         }
         default: {
@@ -600,18 +585,6 @@ ErrCode AccountCommand::RunAsDeleteCommandMissingOptionArgument(void)
             result = ERR_INVALID_VALUE;
             break;
         }
-        case 0: {
-            // 'acm delete' with an unknown option: acm delete --x
-            // 'acm delete' with an unknown option: acm delete --xxx
-            std::string unknownOption = "";
-            std::string unknownOptionMsg = GetUnknownOptionMsg(unknownOption);
-
-            ACCOUNT_LOGD("'acm delete' with an unknown option.");
-
-            resultReceiver_.append(unknownOptionMsg);
-            result = ERR_INVALID_VALUE;
-            break;
-        }
         default: {
             // 'acm delete' with an unknown option: acm delete -x
             // 'acm delete' with an unknown option: acm delete -xxx
@@ -646,9 +619,6 @@ ErrCode AccountCommand::RunAsDeleteCommandExistentOptionArgument(const int &opti
             // 'acm delete -i <id>'
             // 'acm delete --id <id>'
             result = AnalyzeLocalIdArgument(id);
-            break;
-        }
-        case 0: {
             break;
         }
         default: {
@@ -700,18 +670,6 @@ ErrCode AccountCommand::RunAsDumpCommandMissingOptionArgument(void)
             result = ERR_INVALID_VALUE;
             break;
         }
-        case 0: {
-            // 'acm dump' with an unknown option: acm dump --x
-            // 'acm dump' with an unknown option: acm dump --xxx
-            std::string unknownOption = "";
-            std::string unknownOptionMsg = GetUnknownOptionMsg(unknownOption);
-
-            ACCOUNT_LOGD("'acm dump' with an unknown option.");
-
-            resultReceiver_.append(unknownOptionMsg);
-            result = ERR_INVALID_VALUE;
-            break;
-        }
         default: {
             // 'acm dump' with an unknown option: acm dump -x
             // 'acm dump' with an unknown option: acm dump -xxx
@@ -751,9 +709,6 @@ ErrCode AccountCommand::RunAsDumpCommandExistentOptionArgument(const int &option
             // 'acm dump -i <id>'
             // 'acm dump --id <id>'
             result = AnalyzeLocalIdArgument(id);
-            break;
-        }
-        case 0: {
             break;
         }
         default: {
@@ -816,18 +771,6 @@ ErrCode AccountCommand::RunAsSetCommandMissingOptionArgument(void)
             result = ERR_INVALID_VALUE;
             break;
         }
-        case 0: {
-            // 'acm set' with an unknown option: acm set --x
-            // 'acm set' with an unknown option: acm set --xxx
-            std::string unknownOption = "";
-            std::string unknownOptionMsg = GetUnknownOptionMsg(unknownOption);
-
-            ACCOUNT_LOGD("'acm set' with an unknown option.");
-
-            resultReceiver_.append(unknownOptionMsg);
-            result = ERR_INVALID_VALUE;
-            break;
-        }
         default: {
             // 'acm set' with an unknown option: acm set -x
             // 'acm set' with an unknown option: acm set -xxx
@@ -875,9 +818,6 @@ ErrCode AccountCommand::RunAsSetCommandExistentOptionArgument(
             // 'acm set -e'
             // 'acm set --enable'
             enable = true;
-            break;
-        }
-        case 0: {
             break;
         }
         default: {
@@ -956,18 +896,6 @@ ErrCode AccountCommand::RunAsSwitchCommandMissingOptionArgument(void)
             result = ERR_INVALID_VALUE;
             break;
         }
-        case 0: {
-            // 'acm switch' with an unknown option: acm switch --x
-            // 'acm switch' with an unknown option: acm switch --xxx
-            std::string unknownOption = "";
-            std::string unknownOptionMsg = GetUnknownOptionMsg(unknownOption);
-
-            ACCOUNT_LOGD("'acm switch' with an unknown option.");
-
-            resultReceiver_.append(unknownOptionMsg);
-            result = ERR_INVALID_VALUE;
-            break;
-        }
         default: {
             // 'acm switch' with an unknown option: acm switch -x
             // 'acm switch' with an unknown option: acm switch -xxx
@@ -1035,9 +963,6 @@ ErrCode AccountCommand::RunAsSwitchCommandExistentOptionArgument(const int &opti
             // 'acm switch -i <id>'
             // 'acm switch --id <id>'
             result = AnalyzeLocalIdArgument(id);
-            break;
-        }
-        case 0: {
             break;
         }
         default: {

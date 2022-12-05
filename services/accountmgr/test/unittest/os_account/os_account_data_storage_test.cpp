@@ -59,7 +59,7 @@ void OsAccountDataStorageTest::TearDownTestCase(void)
 
 void OsAccountDataStorageTest::SetUp(void)
 {
-    osAccountDataStorage_ = std::make_shared<OsAccountDataStorage>("test", "test_case", false);
+    osAccountDataStorage_ = std::make_shared<OsAccountDataStorage>("account_test", "account_test_case", false);
     OsAccountInfo osAccountInfo(INT_ID, STRING_NAME, INT_TYPE, INT_SHERIAL);
     osAccountDataStorage_->AddAccountInfo(osAccountInfo);
 }
