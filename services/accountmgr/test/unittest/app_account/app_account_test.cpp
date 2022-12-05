@@ -33,6 +33,7 @@ using namespace OHOS;
 using namespace OHOS::AccountSA;
 
 namespace {
+const std::size_t MAX_CUSTOM_DATA_SIZE = 1300;
 const std::string STRING_EMPTY = "";
 const std::string STRING_NAME = "name";
 const std::string STRING_NAME_CONTAINS_SPECIAL_CHARACTERS = " name";
@@ -539,5 +540,25 @@ HWTEST_F(AppAccountTest, AppAccount_CreateAccount_002, TestSize.Level1)
 
     result = appAccount_->CreateAccount(STRING_NAME_OUT_OF_RANGE, option);
 
+    EXPECT_EQ(result, ERR_APPACCOUNT_KIT_INVALID_PARAMETER);
+}
+
+/**
+ * @tc.name: AppAccount_CreateAccount_003
+ * @tc.desc: Function CreateAccount customData is oversize.
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(AppAccountTest, AppAccount_CreateAccount_003, TestSize.Level1)
+{
+    ACCOUNT_LOGI("AppAccount_CreateAccount_002");
+
+    CreateAccountOptions option;
+    for (int i = 0; i <= MAX_CUSTOM_DATA_SIZE; i++) {
+        std::string key = std::to_string(i);
+        std::string value = key;
+        option.customData[key] = value;
+    }
+    ErrCode result = appAccount_->CreateAccount("test", option);
     EXPECT_EQ(result, ERR_APPACCOUNT_KIT_INVALID_PARAMETER);
 }
