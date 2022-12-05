@@ -360,6 +360,22 @@ HWTEST_F(
 }
 
 /**
+ * @tc.name: AppAccountAuthenticateTest_RegisterApplicationStateObserver_0200
+ * @tc.desc: test session manager func RegisterApplicationStateObserver appStateObserver is exist.
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(
+    AppAccountSessionManagerModuleTest, AppAccountSessionManagerModuleTest_OnSessionServerDied_0200, TestSize.Level1)
+{
+    ASSERT_NE(appAccountAuthenticatorSessionManagerPtr_, nullptr);
+
+    appAccountAuthenticatorSessionManagerPtr_->appStateObserver_ = new (std::nothrow) SessionAppStateObserver();
+    appAccountAuthenticatorSessionManagerPtr_->RegisterApplicationStateObserver();
+    ASSERT_NE(appAccountAuthenticatorSessionManagerPtr_->appStateObserver_, nullptr);
+}
+
+/**
  * @tc.name: AppAccountAuthenticateTest_OnSessionAbilityConnectDone_0100
  * @tc.desc: test session manager func OnSessionAbilityConnectDone.
  * @tc.type: FUNC
@@ -554,6 +570,22 @@ HWTEST_F(AppAccountSessionManagerModuleTest, AppAccountSessionManagerModuleTest_
     ASSERT_NE(request1.callback, nullptr);
     EXPECT_CALL(*testCallBack, OnRequestRedirected(_)).Times(Exactly(1));
     appAccountAuthenticatorSessionManagerPtr_->OnSessionRequestRedirected(sessionId, result);
+}
+
+/**
+ * @tc.name: AppAccountAuthenticateTest_OnSessionRequestRedirected_0400
+ * @tc.desc: test session manager func OnSessionRequestRedirected sessionid is invalid.
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(AppAccountSessionManagerModuleTest, AppAccountSessionManagerModuleTest_OnSessionRequestRedirected_0400,
+    TestSize.Level1)
+{
+    ASSERT_NE(appAccountAuthenticatorSessionManagerPtr_, nullptr);
+    AAFwk::Want result;
+    appAccountAuthenticatorSessionManagerPtr_->OnSessionRequestRedirected(SESSION_ID, result);
+    auto session = appAccountAuthenticatorSessionManagerPtr_->GetSession(SESSION_ID);
+    ASSERT_EQ(session, nullptr);
 }
 
 /**
