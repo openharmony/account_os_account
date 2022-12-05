@@ -168,5 +168,15 @@ std::int32_t OhosAccountKitsImpl::GetDeviceAccountIdByUID(std::int32_t& uid)
     std::int32_t accountID = uid / UID_TRANSFORM_DIVISOR;
     return accountID;
 }
+
+sptr<IRemoteObject> OhosAccountKitsImpl::GetDomainAccountService()
+{
+    auto accountProxy = GetService();
+    if (accountProxy == nullptr) {
+        ACCOUNT_LOGE("Get proxy failed");
+        return nullptr;
+    }
+    return accountProxy->GetDomainAccountService();
+}
 } // namespace AccountSA
 } // namespace OHOS
