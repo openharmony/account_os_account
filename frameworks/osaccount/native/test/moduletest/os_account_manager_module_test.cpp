@@ -1327,34 +1327,6 @@ HWTEST_F(OsAccountManagerModuleTest, OsAccountManagerModuleTest063, TestSize.Lev
     ret = OsAccountManager::GetOsAccountFromDatabase("", osAccountInfoOne.GetLocalId(), osAccountInfo);
     EXPECT_NE(ret, ERR_OK);
     EXPECT_NE(OsAccountManager::RemoveOsAccount(osAccountInfoOne.GetLocalId()), ERR_OK);
-    bool isOsAccountActived = false;
-    EXPECT_EQ(OsAccountManager::IsOsAccountActived(Constants::START_USER_ID, isOsAccountActived), ERR_OK);
-    EXPECT_EQ(isOsAccountActived, true);
-}
-
-/**
- * @tc.name: OsAccountManagerModuleTest064
- * @tc.desc: Test get os account info from database
- * @tc.type: FUNC
- * @tc.require: issueI4JBFI
- */
-HWTEST_F(OsAccountManagerModuleTest, OsAccountManagerModuleTest064, TestSize.Level1)
-{
-    ACCOUNT_LOGI("OsAccountManagerModuleTest064");
-    char udid[Constants::DEVICE_UUID_LENGTH] = {0};
-    int ret = GetDevUdid(udid, Constants::DEVICE_UUID_LENGTH);
-    if (ret != 0) {
-        std::cout << "Error: GetDevUdid failed! error code " << ret << std::endl;
-        return;
-    }
-
-    // create a new os account
-    OsAccountInfo osAccountInfoOne;
-    EXPECT_NE(OsAccountManager::CreateOsAccount("", OsAccountType::GUEST, osAccountInfoOne), ERR_OK);
-    EXPECT_NE(OsAccountManager::RemoveOsAccount(osAccountInfoOne.GetLocalId()), ERR_OK);
-    bool isOsAccountActived = false;
-    EXPECT_EQ(OsAccountManager::IsOsAccountActived(Constants::START_USER_ID, isOsAccountActived), ERR_OK);
-    EXPECT_EQ(isOsAccountActived, true);
 }
 
 /**
