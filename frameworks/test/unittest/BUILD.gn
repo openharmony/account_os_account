@@ -1,0 +1,90 @@
+# Copyright (c) 2022 Huawei Device Co., Ltd.
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#     http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
+import("//base/account/os_account/os_account.gni")
+import("//build/test.gni")
+
+module_output_path = "os_account/frameworks/test"
+
+config("account_proxy_mock_config_unittest") {
+  visibility = [ ":*" ]
+
+  include_dirs = [
+    "include",
+    "//base/useriam/user_auth_framework/interfaces/inner_api",
+    "//foundation/systemabilitymgr/safwk/interfaces/innerkits/safwk",
+    "//foundation/systemabilitymgr/samgr/interfaces/innerkits/common/include",
+    "//foundation/systemabilitymgr/samgr/interfaces/innerkits/samgr_proxy/include",
+    "//foundation/systemabilitymgr/samgr/services/samgr/native/include",
+    "//foundation/systemabilitymgr/samgr/services/samgr/dfx/include",
+    "//foundation/systemabilitymgr/samgr/services/samgr/lsamgr/include",
+  ]
+
+  cflags = []
+  if (target_cpu == "arm") {
+    cflags += [ "-DBINDER_IPC_32BIT" ]
+  }
+
+  defines = [
+    "ACCOUNT_LOG_TAG = \"AccountIAMUTestFwk\"",
+    "LOG_DOMAIN = 0xD001B00",
+  ]
+}
+
+ohos_unittest("account_proxy_mock_test") {
+  module_out_path = module_output_path
+
+  sources = [
+    "account_appaccount_proxy_mock_test.cpp",
+    "account_iam_proxy_mock_test.cpp",
+    "account_ohosaccount_proxy_mock_test.cpp",
+    "account_osaccount_proxy_mock_test.cpp",
+    "mock/iservice_registry.cpp",
+  ]
+
+  configs = [ ":account_proxy_mock_config_unittest" ]
+
+  deps = [
+    "${account_iam_framework_path}:account_iam_innerkits",
+    "${app_account_innerkits_native_path}:app_account_innerkits",
+    "${common_path}:libaccount_common",
+    "${innerkits_native_path}:libaccountkits",
+    "${os_account_innerkits_native_path}:os_account_innerkits",
+    "//third_party/googletest:gmock_main",
+    "//third_party/googletest:gtest_main",
+  ]
+
+  cflags_cc = []
+  if (has_pin_auth_part) {
+    cflags_cc += [ "-DHAS_PIN_AUTH_PART" ]
+    deps += [ "//base/useriam/pin_auth/frameworks:pinauth_framework" ]
+  }
+
+  if (has_user_auth_part) {
+    cflags_cc += [ "-DHAS_USER_AUTH_PART" ]
+    deps += [ "//base/useriam/user_auth_framework/frameworks/native/client:userauth_client" ]
+  }
+
+  external_deps = [
+    "ability_base:want",
+    "hiviewdfx_hilog_native:libhilog",
+    "ipc:ipc_core",
+    "ipc:libdbinder",
+  ]
+}
+
+group("unittest") {
+  testonly = true
+
+  deps = [ ":account_proxy_mock_test" ]
+}
