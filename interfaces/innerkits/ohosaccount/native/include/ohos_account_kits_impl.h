@@ -38,6 +38,8 @@ public:
     std::pair<bool, OhosAccountInfo> QueryOhosAccountInfoByUserId(std::int32_t userId) final;
     ErrCode QueryDeviceAccountId(std::int32_t& accountId) final;
     std::int32_t GetDeviceAccountIdByUID(std::int32_t& uid) final;
+    sptr<IRemoteObject> GetDomainAccountService();
+
 private:
     // For death event procession
     class DeathRecipient final : public IRemoteObject::DeathRecipient {
