@@ -68,7 +68,7 @@ HWTEST_F(AppAccountManagerServiceModuleTest, AppAccountManagerService_GetBundleN
     std::string bundleName;
     std::string permName = "";
     int result = g_accountManagerService->GetBundleNameAndCheckPerm(callingUid, bundleName, permName);
-    EXPECT_EQ(result, ERR_APPACCOUNT_SERVICE_PERMISSION_DENIED);
+    EXPECT_EQ(result, ERR_ACCOUNT_ZIDL_CHECK_PERMISSION_ERROR);
 }
 
 /**

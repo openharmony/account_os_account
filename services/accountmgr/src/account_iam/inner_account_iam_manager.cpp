@@ -137,7 +137,17 @@ void InnerAccountIAMManager::DelUser(
 void InnerAccountIAMManager::GetCredentialInfo(
     int32_t userId, AuthType authType, const sptr<IGetCredInfoCallback> &callback)
 {
-    auto getCallback = std::make_shared<GetCredInfoCallbackWrapper>(userId, callback);
+    if (static_cast<int32_t>(authType) == static_cast<int32_t>(IAMAuthType::DOMAIN)) {
+        std::vector<CredentialInfo> infoList;
+        if (CheckDomainAuthAvailable(userId)) {
+            CredentialInfo info;
+            info.authType = static_cast<AuthType>(IAMAuthType::DOMAIN);
+            info.pinType = static_cast<PinSubType>(IAMAuthSubType::DOMAIN_MIXED);
+            infoList.emplace_back(info);
+        }
+        return callback->OnCredentialInfo(infoList);
+    }
+    auto getCallback = std::make_shared<GetCredInfoCallbackWrapper>(userId, static_cast<int32_t>(authType), callback);
     UserIDMClient::GetInstance().GetCredentialInfo(userId, authType, getCallback);
 }
 
