@@ -21,9 +21,10 @@
 
 namespace OHOS {
 namespace AccountJsKit {
+
 enum AuthSubType {
     FACE_2D = 20000,
-    FACE_3D = 20001
+    FACE_3D = 20001,
 };
 
 enum AuthMethod {

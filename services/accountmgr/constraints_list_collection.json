@@ -62,6 +62,7 @@
         "constraint.ambient.display",
         "constraint.screen.timeout.set",
         "constraint.print",
-        "constraint.private.dns.set"
+        "constraint.private.dns.set",
+        "constraint.os.account.create.direct"
     ]
 }

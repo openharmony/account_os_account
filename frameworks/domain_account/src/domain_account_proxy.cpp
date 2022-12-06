@@ -53,7 +53,11 @@ ErrCode DomainAccountProxy::RegisterPlugin(const sptr<IDomainAccountPlugin> &plu
     if (result != ERR_OK) {
         return result;
     }
-    return reply.ReadInt32();
+    if (!reply.ReadInt32(result)) {
+        ACCOUNT_LOGE("fail to read result");
+        return ERR_ACCOUNT_COMMON_READ_PARCEL_ERROR;
+    }
+    return result;
 }
 
 ErrCode DomainAccountProxy::UnregisterPlugin()
@@ -68,7 +72,11 @@ ErrCode DomainAccountProxy::UnregisterPlugin()
     if (result != ERR_OK) {
         return result;
     }
-    return reply.ReadInt32();
+    if (!reply.ReadInt32(result)) {
+        ACCOUNT_LOGE("fail to read result");
+        return ERR_ACCOUNT_COMMON_READ_PARCEL_ERROR;
+    }
+    return result;
 }
 
 ErrCode DomainAccountProxy::Auth(const DomainAccountInfo &info, const std::vector<uint8_t> &password,
@@ -101,7 +109,11 @@ ErrCode DomainAccountProxy::Auth(const DomainAccountInfo &info, const std::vecto
         ACCOUNT_LOGE("fail to send request, error: %{public}d", result);
         return result;
     }
-    return reply.ReadInt32();
+    if (!reply.ReadInt32(result)) {
+        ACCOUNT_LOGE("fail to read result");
+        return ERR_ACCOUNT_COMMON_READ_PARCEL_ERROR;
+    }
+    return result;
 }
 
 ErrCode DomainAccountProxy::AuthUser(int32_t userId, const std::vector<uint8_t> &password,
@@ -130,7 +142,11 @@ ErrCode DomainAccountProxy::AuthUser(int32_t userId, const std::vector<uint8_t> 
         ACCOUNT_LOGE("fail to send request, error: %{public}d", result);
         return result;
     }
-    return reply.ReadInt32();
+    if (!reply.ReadInt32(result)) {
+        ACCOUNT_LOGE("fail to read result");
+        return ERR_ACCOUNT_COMMON_READ_PARCEL_ERROR;
+    }
+    return result;
 }
 }  // namespace AccountSA
 }  // namespace OHOS

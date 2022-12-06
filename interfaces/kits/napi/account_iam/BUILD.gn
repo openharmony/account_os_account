@@ -57,6 +57,7 @@ ohos_shared_library("account_iam_napi") {
     "${account_iam_kits_path}/src/napi_account_iam_common.cpp",
     "${account_iam_kits_path}/src/napi_account_iam_constant.cpp",
     "${account_iam_kits_path}/src/napi_account_iam_identity_manager.cpp",
+    "${account_iam_kits_path}/src/napi_account_iam_inputer_manager.cpp",
     "${account_iam_kits_path}/src/napi_account_iam_module.cpp",
     "${account_iam_kits_path}/src/napi_account_iam_pin_auth.cpp",
     "${account_iam_kits_path}/src/napi_account_iam_user_auth.cpp",

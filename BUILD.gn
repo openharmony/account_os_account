@@ -37,7 +37,6 @@ group("account_build_moduletest") {
   deps += [
     "//base/account/os_account/frameworks/appaccount/native/test:moduletest",
     "//base/account/os_account/frameworks/ohosaccount/test:moduletest",
-    "//base/account/os_account/frameworks/ohosaccount/test:moduletest",
     "//base/account/os_account/frameworks/osaccount/native/test/moduletest:moduletest",
     "//base/account/os_account/services/accountmgr/test/moduletest/app_account:moduletest",
     "//base/account/os_account/services/accountmgr/test/moduletest/os_account:moduletest",
