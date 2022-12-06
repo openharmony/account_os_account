@@ -15,10 +15,12 @@
 
 #include "account_iam_client.h"
 
+#include "accesstoken_kit.h"
 #include "account_error_no.h"
 #include "account_iam_callback_service.h"
 #include "account_log_wrapper.h"
 #include "account_proxy.h"
+#include "ipc_skeleton.h"
 #include "iservice_registry.h"
 #include "os_account_manager.h"
 #include "pinauth_register.h"
@@ -26,6 +28,10 @@
 
 namespace OHOS {
 namespace AccountSA {
+namespace {
+const std::string PERMISSION_USE_USER_IDM = "ohos.permission.USE_USER_IDM";
+const std::string PERMISSION_ACCESS_USER_AUTH_INTERNAL = "ohos.permission.ACCESS_USER_AUTH_INTERNAL";
+}
 AccountIAMClient::AccountIAMClient()
 {}
 
@@ -254,7 +260,7 @@ void AccountIAMClient::SetProperty(
     proxy_->SetProperty(userId, request, wrapper);
 }
 
-int32_t AccountIAMClient::RegisterPINInputer(const std::shared_ptr<IInputer> &inputer)
+ErrCode AccountIAMClient::RegisterPINInputer(const std::shared_ptr<IInputer> &inputer)
 {
     std::lock_guard<std::mutex> lock(pinMutex_);
     if (pinInputer_ != nullptr) {
@@ -277,8 +283,20 @@ int32_t AccountIAMClient::RegisterPINInputer(const std::shared_ptr<IInputer> &in
     return ERR_ACCOUNT_IAM_SERVICE_PERMISSION_DENIED;
 }
 
-int32_t AccountIAMClient::RegisterDomainInputer(const std::shared_ptr<IInputer> &inputer)
+bool AccountIAMClient::CheckSelfPermission(const std::string &permissionName)
 {
+    Security::AccessToken::AccessTokenID tokenId = IPCSkeleton::GetSelfTokenID();
+    ErrCode result = Security::AccessToken::AccessTokenKit::VerifyAccessToken(tokenId, permissionName);
+    return result == Security::AccessToken::TypePermissionState::PERMISSION_GRANTED;
+}
+
+ErrCode AccountIAMClient::RegisterDomainInputer(const std::shared_ptr<IInputer> &inputer)
+{
+    if ((!CheckSelfPermission(PERMISSION_ACCESS_USER_AUTH_INTERNAL)) &&
+        (!CheckSelfPermission(PERMISSION_USE_USER_IDM))) {
+        ACCOUNT_LOGE("failed to check permission");
+        return ERR_ACCOUNT_IAM_SERVICE_PERMISSION_DENIED;
+    }
     std::lock_guard<std::mutex> lock(domainMutex_);
     if (domainInputer_ != nullptr) {
         ACCOUNT_LOGE("inputer is already registered");
@@ -288,7 +306,7 @@ int32_t AccountIAMClient::RegisterDomainInputer(const std::shared_ptr<IInputer> 
     return ERR_OK;
 }
 
-int32_t AccountIAMClient::RegisterInputer(int32_t authType, const std::shared_ptr<IInputer> &inputer)
+ErrCode AccountIAMClient::RegisterInputer(int32_t authType, const std::shared_ptr<IInputer> &inputer)
 {
     if (inputer == nullptr) {
         ACCOUNT_LOGE("inputer is nullptr");
@@ -304,18 +322,18 @@ int32_t AccountIAMClient::RegisterInputer(int32_t authType, const std::shared_pt
     }
 }
 
-void AccountIAMClient::UnregisterInputer(int32_t authType)
+ErrCode AccountIAMClient::UnregisterInputer(int32_t authType)
 {
     switch (authType) {
         case AuthType::PIN:
             UnregisterPINInputer();
             break;
         case IAMAuthType::DOMAIN:
-            UnregisterDomainInputer();
-            break;
+            return UnregisterDomainInputer();
         default:
-            return;
+            return ERR_ACCOUNT_IAM_UNSUPPORTED_AUTH_TYPE;
     }
+    return ERR_OK;
 }
 
 void AccountIAMClient::UnregisterPINInputer()
@@ -325,10 +343,16 @@ void AccountIAMClient::UnregisterPINInputer()
     pinInputer_ = nullptr;
 }
 
-void AccountIAMClient::UnregisterDomainInputer()
+ErrCode AccountIAMClient::UnregisterDomainInputer()
 {
+    if ((!CheckSelfPermission(PERMISSION_ACCESS_USER_AUTH_INTERNAL)) &&
+        (!CheckSelfPermission(PERMISSION_USE_USER_IDM))) {
+        ACCOUNT_LOGE("failed to check permission");
+        return ERR_ACCOUNT_IAM_SERVICE_PERMISSION_DENIED;
+    }
     std::lock_guard<std::mutex> lock(domainMutex_);
     domainInputer_ = nullptr;
+    return ERR_OK;
 }
 
 IAMState AccountIAMClient::GetAccountState(int32_t userId)

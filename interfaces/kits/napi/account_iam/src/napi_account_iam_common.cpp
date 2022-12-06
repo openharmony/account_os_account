@@ -47,6 +47,7 @@ static int32_t AccountIAMConvertOtherToJSErrCode(int32_t errCode)
             return ERR_JS_CREDENTIAL_NOT_EXIST;
         case ERR_IAM_INVALID_CONTEXT_ID:
             return ERR_JS_INVALID_CONTEXT_ID;
+        case ERR_ACCOUNT_COMMON_INVALID_PARAMTER:
         case ERR_IAM_INVALID_PARAMETERS:
             return ERR_JS_INVALID_PARAMETER;
         case ERR_ACCOUNT_IAM_KIT_INPUTER_ALREADY_REGISTERED:
@@ -371,14 +372,20 @@ napi_value CreateAuthResult(napi_env env, const std::vector<uint8_t> &token, int
 {
     napi_value object = nullptr;
     NAPI_CALL(env, napi_create_object(env, &object));
-    napi_value napiRemainTimes = 0;
-    napi_create_uint32(env, remainTimes, &napiRemainTimes);
-    napi_set_named_property(env, object, "remainTimes", napiRemainTimes);
-    napi_value napiFreezingTimes = 0;
-    napi_create_uint32(env, freezingTime, &napiFreezingTimes);
-    napi_set_named_property(env, object, "freezingTime", napiFreezingTimes);
-    napi_value napiToken = CreateUint8Array(env, token.data(), token.size());
-    napi_set_named_property(env, object, "token", napiToken);
+    if (remainTimes >= 0) {
+        napi_value napiRemainTimes = 0;
+        napi_create_uint32(env, remainTimes, &napiRemainTimes);
+        napi_set_named_property(env, object, "remainTimes", napiRemainTimes);
+    }
+    if (remainTimes >= 0) {
+        napi_value napiFreezingTimes = 0;
+        napi_create_uint32(env, freezingTime, &napiFreezingTimes);
+        napi_set_named_property(env, object, "freezingTime", napiFreezingTimes);
+    }
+    if (token.size() > 0) {
+        napi_value napiToken = CreateUint8Array(env, token.data(), token.size());
+        napi_set_named_property(env, object, "token", napiToken);
+    }
     return object;
 }
 

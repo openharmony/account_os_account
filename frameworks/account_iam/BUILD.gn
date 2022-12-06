@@ -92,6 +92,7 @@ ohos_shared_library("account_iam_innerkits") {
   }
 
   external_deps = [
+    "access_token:libaccesstoken_sdk",
     "c_utils:utils",
     "hiviewdfx_hilog_native:libhilog",
     "ipc:ipc_core",
