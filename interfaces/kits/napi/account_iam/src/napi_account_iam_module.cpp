@@ -26,6 +26,7 @@
 #ifdef HAS_PIN_AUTH_PART
 #include "napi_account_iam_pin_auth.h"
 #endif
+#include "napi_account_iam_inputer_manager.h"
 
 namespace OHOS {
 namespace AccountJsKit {
@@ -43,6 +44,7 @@ napi_value AccountIAMInit(napi_env env, napi_value exports)
 #if defined(HAS_PIN_AUTH_PART) || defined(HAS_USER_AUTH_PART)
     NapiAccountIAMConstant::Init(env, exports);
 #endif
+    NapiAccountIAMInputerManager::Init(env, exports);
     return exports;
 }
 }  // namespace AccountJsKit

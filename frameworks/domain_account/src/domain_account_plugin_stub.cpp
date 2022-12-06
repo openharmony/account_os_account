@@ -21,6 +21,10 @@
 
 namespace OHOS {
 namespace AccountSA {
+namespace {
+const size_t MAX_PASSWORD_SIZE = 4096;
+}
+
 DomainAccountPluginStub::DomainAccountPluginStub()
 {}
 
@@ -67,14 +71,15 @@ ErrCode DomainAccountPluginStub::ProcAuth(MessageParcel &data, MessageParcel &re
         return ERR_ACCOUNT_COMMON_READ_PARCEL_ERROR;
     }
     sptr<IDomainAuthCallback> callbackProxy = iface_cast<IDomainAuthCallback>(data.ReadRemoteObject());
-    ErrCode result = ERR_OK;
-    if (callbackProxy == nullptr) {
+    size_t passwordSize = password.size();
+    ErrCode result = ERR_ACCOUNT_COMMON_INVALID_PARAMTER;
+    if (passwordSize > MAX_PASSWORD_SIZE) {
+        ACCOUNT_LOGE("password is too large");
+    } else if (callbackProxy == nullptr) {
         ACCOUNT_LOGE("invalid callback");
-        result = ERR_ACCOUNT_COMMON_INVALID_PARAMTER;
     } else {
         result = Auth(info, password, callbackProxy);
     }
-    size_t passwordSize = password.size();
     for (size_t i = 0; i < passwordSize; ++i) {
         password[i] = 0;
     }

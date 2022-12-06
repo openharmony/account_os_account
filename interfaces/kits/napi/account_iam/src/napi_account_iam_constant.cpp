@@ -27,11 +27,17 @@ napi_value AuthTypeConstructor(napi_env env)
     napi_value authType = nullptr;
     napi_value pin = nullptr;
     napi_value face = nullptr;
+    napi_value fingerPrint = nullptr;
+    napi_value domain = nullptr;
     NAPI_CALL(env, napi_create_object(env, &authType));
     NAPI_CALL(env, napi_create_int32(env, static_cast<int32_t>(AuthType::PIN), &pin));
     NAPI_CALL(env, napi_create_int32(env, static_cast<int32_t>(AuthType::FACE), &face));
+    NAPI_CALL(env, napi_create_int32(env, static_cast<int32_t>(AuthType::FINGERPRINT), &fingerPrint));
+    NAPI_CALL(env, napi_create_int32(env, static_cast<int32_t>(IAMAuthType::DOMAIN), &domain));
     NAPI_CALL(env, napi_set_named_property(env, authType, "PIN", pin));
     NAPI_CALL(env, napi_set_named_property(env, authType, "FACE", face));
+    NAPI_CALL(env, napi_set_named_property(env, authType, "FINGERPRINT", fingerPrint));
+    NAPI_CALL(env, napi_set_named_property(env, authType, "DOMAIN", domain));
     return authType;
 }
 
@@ -43,17 +49,20 @@ napi_value AuthSubTypeConstructor(napi_env env)
     napi_value pinMixed = nullptr;
     napi_value face2d = nullptr;
     napi_value face3d = nullptr;
+    napi_value domainMixed = nullptr;
     NAPI_CALL(env, napi_create_object(env, &authSubType));
     NAPI_CALL(env, napi_create_int32(env, static_cast<int32_t>(PinSubType::PIN_SIX), &pinSix));
     NAPI_CALL(env, napi_create_int32(env, static_cast<int32_t>(PinSubType::PIN_NUMBER), &pinNumber));
     NAPI_CALL(env, napi_create_int32(env, static_cast<int32_t>(PinSubType::PIN_MIXED), &pinMixed));
     NAPI_CALL(env, napi_create_int32(env, static_cast<int32_t>(FACE_2D), &face2d));
     NAPI_CALL(env, napi_create_int32(env, static_cast<int32_t>(FACE_3D), &face3d));
+    NAPI_CALL(env, napi_create_int32(env, static_cast<int32_t>(IAMAuthSubType::DOMAIN_MIXED), &domainMixed));
     NAPI_CALL(env, napi_set_named_property(env, authSubType, "PIN_SIX", pinSix));
     NAPI_CALL(env, napi_set_named_property(env, authSubType, "PIN_NUMBER", pinNumber));
     NAPI_CALL(env, napi_set_named_property(env, authSubType, "PIN_MIXED", pinMixed));
     NAPI_CALL(env, napi_set_named_property(env, authSubType, "FACE_2D", face2d));
     NAPI_CALL(env, napi_set_named_property(env, authSubType, "FACE_3D", face3d));
+    NAPI_CALL(env, napi_set_named_property(env, authSubType, "DOMAIN_MIXED", domainMixed));
     return authSubType;
 }
 

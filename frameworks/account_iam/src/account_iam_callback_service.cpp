@@ -18,6 +18,7 @@
 #include "account_error_no.h"
 #include "account_iam_client.h"
 #include "account_log_wrapper.h"
+#include "domain_account_client.h"
 
 namespace OHOS {
 namespace AccountSA {
@@ -68,6 +69,49 @@ void GetSetPropCallbackService::OnResult(int32_t result, const Attributes &extra
         return;
     }
     callback_->OnResult(result, extraInfo);
+}
+
+DomainAuthCallbackAdapter::DomainAuthCallbackAdapter(
+    const std::shared_ptr<IDMCallback> &callback) : callback_(callback)
+{}
+
+void DomainAuthCallbackAdapter::OnResult(int32_t resultCode, const DomainAuthResult &result)
+{
+    if (callback_ == nullptr) {
+        ACCOUNT_LOGE("callback is nullptr");
+        return;
+    }
+    Attributes attr;
+    attr.SetUint8ArrayValue(Attributes::AttributeKey::ATTR_SIGNATURE, result.token);
+    attr.SetInt32Value(Attributes::AttributeKey::ATTR_REMAIN_TIMES, result.remainingTimes);
+    attr.SetInt32Value(Attributes::AttributeKey::ATTR_FREEZING_TIME, result.freezingTime);
+    callback_->OnResult(resultCode, attr);
+}
+
+DomainCredentialRecipient::DomainCredentialRecipient(int32_t userId, const std::shared_ptr<IDMCallback> &callback)
+    : userId_(userId), idmCallback_(callback)
+{}
+
+DomainCredentialRecipient::~DomainCredentialRecipient()
+{}
+
+void DomainCredentialRecipient::OnSetData(int32_t authSubType, std::vector<uint8_t> data)
+{
+    auto callback = std::make_shared<DomainAuthCallbackAdapter>(idmCallback_);
+    if (callback == nullptr) {
+        ACCOUNT_LOGE("fail to create DomainAuthCallbackAdapter");
+        if (idmCallback_ != nullptr) {
+            ACCOUNT_LOGE("idmCallback is nullptr");
+            Attributes attr;
+            idmCallback_->OnResult(ERR_ACCOUNT_COMMON_INSUFFICIENT_MEMORY_ERROR, attr);
+        }
+        return;
+    }
+    ErrCode errCode = DomainAccountClient::GetInstance().AuthUser(userId_, data, callback);
+    if (errCode != ERR_OK) {
+        DomainAuthResult result;
+        callback->OnResult(errCode, result);
+    }
 }
 
 IAMInputerData::IAMInputerData(int32_t userId, const std::shared_ptr<IInputerData> &inputerData)

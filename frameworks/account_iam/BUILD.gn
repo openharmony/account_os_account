@@ -78,6 +78,7 @@ ohos_shared_library("account_iam_innerkits") {
   public_configs = [ ":account_iam_innerkits_public_config" ]
 
   deps = [
+    "${domain_account_framework_path}:domain_account_innerkits",
     "${innerkits_native_path}:libaccountkits",
     "${os_account_innerkits_native_path}:os_account_innerkits",
   ]
