@@ -58,5 +58,5 @@ HWTEST_F(AccountPermissionManagerModuleTest, AccountPermissionManager_VerifyPerm
     ASSERT_NE(permissionManagerPtr_, nullptr);
 
     ErrCode result = permissionManagerPtr_->VerifyPermission(AccountPermissionManager::DISTRIBUTED_DATASYNC);
-    EXPECT_EQ(result, ERR_APPACCOUNT_SERVICE_PERMISSION_DENIED);
+    EXPECT_EQ(result, ERR_ACCOUNT_ZIDL_CHECK_PERMISSION_ERROR);
 }

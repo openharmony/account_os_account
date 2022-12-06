@@ -116,7 +116,11 @@ napi_value NapiAccountIAMInputerManager::UnregisterInputer(napi_env env, napi_ca
         AccountNapiThrow(env, ERR_JS_PARAMETER_ERROR, errMsg, true);
         return nullptr;
     }
-    AccountIAMClient::GetInstance().UnregisterInputer(authType);
+    ErrCode errCode = AccountIAMClient::GetInstance().UnregisterInputer(authType);
+    if (errCode != ERR_OK) {
+        ACCOUNT_LOGE("Failed to unregister inputer, errCode=%{public}d", errCode);
+        AccountIAMNapiThrow(env, AccountIAMConvertToJSErrCode(errCode), true);
+    }
     return nullptr;
 }
 }  // namespace AccountJsKit

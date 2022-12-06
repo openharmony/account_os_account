@@ -104,13 +104,15 @@ private:
 
 class GetCredInfoCallbackWrapper : public GetCredentialInfoCallback {
 public:
-    explicit GetCredInfoCallbackWrapper(const int32_t &userId, const sptr<IGetCredInfoCallback> &callback);
+    explicit GetCredInfoCallbackWrapper(
+        int32_t userId, int32_t authType, const sptr<IGetCredInfoCallback> &callback);
     virtual ~GetCredInfoCallbackWrapper() = default;
 
     void OnCredentialInfo(const std::vector<CredentialInfo> &infoList) override;
 
 private:
     int32_t userId_;
+    int32_t authType_;
     sptr<IGetCredInfoCallback> innerCallback_ = nullptr;
 };
 
