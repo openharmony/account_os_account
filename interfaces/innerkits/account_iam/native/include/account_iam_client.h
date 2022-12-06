@@ -52,8 +52,8 @@ public:
         int32_t userId, const GetPropertyRequest &request, const std::shared_ptr<GetSetPropCallback> &callback);
     void SetProperty(
         int32_t userId, const SetPropertyRequest &request, const std::shared_ptr<GetSetPropCallback> &callback);
-    int32_t RegisterInputer(int32_t authType, const std::shared_ptr<IInputer> &inputer);
-    void UnregisterInputer(int32_t authType);
+    ErrCode RegisterInputer(int32_t authType, const std::shared_ptr<IInputer> &inputer);
+    ErrCode UnregisterInputer(int32_t authType);
     IAMState GetAccountState(int32_t userId);
     void SetAuthSubType(int32_t userId, int32_t authSubType);
     int32_t GetAuthSubType(int32_t userId);
@@ -75,10 +75,11 @@ private:
     void ResetAccountIAMProxy(const wptr<IRemoteObject>& remote);
     bool GetCurrentUserId(int32_t &userId);
     uint64_t StartDomainAuth(int32_t userId, const std::shared_ptr<IDMCallback> &callback);
-    int32_t RegisterPINInputer(const std::shared_ptr<IInputer> &inputer);
-    int32_t RegisterDomainInputer(const std::shared_ptr<IInputer> &inputer);
+    ErrCode RegisterPINInputer(const std::shared_ptr<IInputer> &inputer);
+    ErrCode RegisterDomainInputer(const std::shared_ptr<IInputer> &inputer);
     void UnregisterPINInputer();
-    void UnregisterDomainInputer();
+    ErrCode UnregisterDomainInputer();
+    bool CheckSelfPermission(const std::string &permissionName);
 
 private:
     std::mutex mutex_;

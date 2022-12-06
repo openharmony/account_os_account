@@ -239,8 +239,8 @@ void DelCredCallback::OnAcquireInfo(int32_t module, uint32_t acquireInfo, const 
 }
 
 GetCredInfoCallbackWrapper::GetCredInfoCallbackWrapper(
-    const int32_t &userId, const sptr<IGetCredInfoCallback> &callback)
-    : userId_(userId), innerCallback_(callback)
+    int32_t userId, int32_t authType, const sptr<IGetCredInfoCallback> &callback)
+    : userId_(userId), authType_(authType), innerCallback_(callback)
 {}
 
 void GetCredInfoCallbackWrapper::OnCredentialInfo(const std::vector<CredentialInfo> &infoList)
@@ -248,14 +248,16 @@ void GetCredInfoCallbackWrapper::OnCredentialInfo(const std::vector<CredentialIn
     if (innerCallback_ == nullptr) {
         return;
     }
-    bool isAvailable = InnerAccountIAMManager::GetInstance().CheckDomainAuthAvailable(userId_);
-    if (isAvailable) {
-        std::vector<CredentialInfo> newInfoList = infoList;
-        CredentialInfo info;
-        info.authType = static_cast<AuthType>(IAMAuthType::DOMAIN);
-        info.pinType = static_cast<PinSubType>(IAMAuthSubType::DOMAIN_MIXED);
-        newInfoList.emplace_back(info);
-        return innerCallback_->OnCredentialInfo(newInfoList);
+    if (authType_ == 0) {
+        bool isAvailable = InnerAccountIAMManager::GetInstance().CheckDomainAuthAvailable(userId_);
+        if (isAvailable) {
+            std::vector<CredentialInfo> newInfoList = infoList;
+            CredentialInfo info;
+            info.authType = static_cast<AuthType>(IAMAuthType::DOMAIN);
+            info.pinType = static_cast<PinSubType>(IAMAuthSubType::DOMAIN_MIXED);
+            newInfoList.emplace_back(info);
+            return innerCallback_->OnCredentialInfo(newInfoList);
+        }
     }
     return innerCallback_->OnCredentialInfo(infoList);
 }

@@ -90,12 +90,12 @@ struct IDMCallbackParam {
 
 struct AuthCallbackParam {
     napi_env env;
-    int32_t module;
+    int32_t module = 0;
     uint32_t acquireInfo;
     int32_t extraInfo;
-    int32_t resultCode;
-    int32_t remainTimes;
-    int32_t freezingTime;
+    int32_t resultCode = 0;
+    int32_t remainTimes = -1;
+    int32_t freezingTime = -1;
     std::vector<uint8_t> token;
     JsIAMCallback callback;
 };
