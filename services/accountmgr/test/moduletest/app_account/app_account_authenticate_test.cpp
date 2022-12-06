@@ -388,7 +388,8 @@ HWTEST_F(AppAccountAuthenticateModuleTest, AppAccountAuthenticatorManagerTest_In
  * @tc.type: FUNC
  * @tc.require
  */
-HWTEST_F(AppAccountAuthenticateModuleTest, AppAccountAuthenticatorManagerTest_GetAuthenticatorInfo_0100, TestSize.Level1)
+HWTEST_F(AppAccountAuthenticateModuleTest, AppAccountAuthenticatorManagerTest_GetAuthenticatorInfo_0100,
+    TestSize.Level1)
 {
     auto appAccountAuthenticatorManagerPtr = std::make_shared<AppAccountAuthenticatorManager>();
     ASSERT_NE(appAccountAuthenticatorManagerPtr, nullptr);
