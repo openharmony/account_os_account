@@ -70,6 +70,7 @@ ohos_shared_library("appaccount") {
   external_deps = [
     "ability_base:want",
     "ability_runtime:abilitykit_native",
+    "access_token:libtokenid_sdk",
     "c_utils:utils",
     "hiviewdfx_hilog_native:libhilog",
     "ipc:ipc_core",
