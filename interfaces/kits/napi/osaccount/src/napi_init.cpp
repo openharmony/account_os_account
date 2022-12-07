@@ -31,7 +31,9 @@ static napi_value Init(napi_env env, napi_value exports)
      * Propertise define
      */
     OsAccountInit(env, exports);
+#if defined(HAS_USER_AUTH_PART) && defined(HAS_PIN_AUTH_PART)
     AccountIAMInit(env, exports);
+#endif
     return exports;
 }
 EXTERN_C_END
