@@ -47,6 +47,7 @@ bool GetStringArrayProperty(napi_env env, napi_value obj, std::vector<std::strin
 bool GetStringPropertyByKey(napi_env env, napi_value obj, const std::string &propertyName, std::string &property);
 bool GetOptionalStringPropertyByKey(napi_env env, napi_value obj, const std::string &propertyName,
     std::string &property);
+bool IsSystemApp(napi_env env);
 napi_value CreateStringArray(napi_env env, const std::vector<std::string> &strVec);
 } // namespace AccountJsKit
 } // namespace OHOS

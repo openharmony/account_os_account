@@ -24,6 +24,7 @@ namespace OHOS {
 namespace AccountJsKit {
 static const std::unordered_map<uint32_t, std::string> g_errorStringMap = {
     {ERR_JS_ACCOUNT_NOT_FOUND, "Account not found, please check whether the account exists"},
+    {ERR_JS_IS_NOT_SYSTEM_APP, "The api is system api, Please use the system application to call this api"},
     {ERR_JS_ACCOUNT_ALREADY_EXIST, "Account already exists, please cancel or try other account"},
     {ERR_JS_ACCOUNT_ALREADY_ACTIVATED, "Account already activated, do not activate duplicately"},
     {ERR_JS_ACCOUNT_SERVICE_BUSY, "Account service is busy, please wait for a moment and try again"},

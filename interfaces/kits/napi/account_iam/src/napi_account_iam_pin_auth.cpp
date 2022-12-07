@@ -17,6 +17,7 @@
 
 #include "account_iam_client.h"
 #include "account_log_wrapper.h"
+#include "napi_account_common.h"
 #include "napi_account_error.h"
 #include "napi_account_iam_common.h"
 
@@ -39,6 +40,9 @@ napi_value NapiAccountIAMPINAuth::Init(napi_env env, napi_value exports)
 
 napi_value NapiAccountIAMPINAuth::JsConstructor(napi_env env, napi_callback_info info)
 {
+    if (!IsSystemApp(env)) {
+        return nullptr;
+    }
     napi_value thisVar = nullptr;
     NAPI_CALL(env, napi_get_cb_info(env, info, nullptr, nullptr, &thisVar, nullptr));
     return thisVar;
@@ -73,6 +77,9 @@ static bool ParseContextForRegisterInputer(napi_env env, napi_callback_info info
 
 napi_value NapiAccountIAMPINAuth::RegisterInputer(napi_env env, napi_callback_info info)
 {
+    if (!IsSystemApp(env)) {
+        return nullptr;
+    }
     napi_value result;
     NAPI_CALL(env, napi_get_boolean(env, false, &result));
     napi_ref callback = nullptr;
@@ -93,6 +100,9 @@ napi_value NapiAccountIAMPINAuth::RegisterInputer(napi_env env, napi_callback_in
 
 napi_value NapiAccountIAMPINAuth::UnregisterInputer(napi_env env, napi_callback_info info)
 {
+    if (!IsSystemApp(env)) {
+        return nullptr;
+    }
     AccountIAMClient::GetInstance().UnregisterInputer(AuthType::PIN);
     napi_value result = nullptr;
     NAPI_CALL(env, napi_get_null(env, &result));
