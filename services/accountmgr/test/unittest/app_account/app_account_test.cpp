@@ -33,7 +33,6 @@ using namespace OHOS;
 using namespace OHOS::AccountSA;
 
 namespace {
-const std::size_t MAX_CUSTOM_DATA_SIZE = 1300;
 const std::string STRING_EMPTY = "";
 const std::string STRING_NAME = "name";
 const std::string STRING_NAME_CONTAINS_SPECIAL_CHARACTERS = " name";
@@ -73,6 +72,7 @@ const std::string STRING_OWNER = "com.example.owner";
 constexpr std::size_t SUBSCRIBER_ZERO = 0;
 constexpr std::size_t SUBSCRIBER_ONE = 1;
 const uint32_t INVALID_IPC_CODE = 1000;
+const int32_t MAX_CUSTOM_DATA_SIZE = 1300;
 }  // namespace
 
 class AppAccountTest : public testing::Test {
