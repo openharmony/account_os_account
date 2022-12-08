@@ -57,7 +57,7 @@ public:
 
 void AccountIAMClientTest::SetUpTestCase(void)
 {
-    AccessTokenID tokenId = AccessTokenKit::GetHapTokenID(100, "com.ohos.settings", 0);
+    AccessTokenID tokenId = AccessTokenKit::GetNativeTokenId("accountmgr");
     SetSelfTokenID(tokenId);
 }
 
