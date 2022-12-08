@@ -22,7 +22,7 @@ using namespace testing::ext;
 using namespace OHOS;
 using namespace OHOS::AccountSA;
 
-constexpr uint32_t MAX_VEC_SIZE = 1030;
+constexpr int32_t MAX_VEC_SIZE = 1030;
 constexpr int32_t MAX_CUSTOM_DATA_SIZE = 1024;
 constexpr int32_t INVALID_ERR_CODE = -1;
 
