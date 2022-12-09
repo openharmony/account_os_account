@@ -164,6 +164,9 @@ void SetEnumProperty(napi_env env, napi_value dstObj, const int objValue, const 
 
 napi_value QueryOsAccountById(napi_env env, napi_callback_info cbInfo)
 {
+    if (!IsSystemApp(env)) {
+        return nullptr;
+    }
     QueryOAByIdAsyncContext *queryOAByIdCB = new (std::nothrow) QueryOAByIdAsyncContext();
     if (queryOAByIdCB == nullptr) {
         ACCOUNT_LOGE("insufficient memory for queryOAByIdCB!");
@@ -202,6 +205,9 @@ napi_value QueryOsAccountById(napi_env env, napi_callback_info cbInfo)
 
 napi_value RemoveOsAccount(napi_env env, napi_callback_info cbInfo)
 {
+    if (!IsSystemApp(env)) {
+        return nullptr;
+    }
     RemoveOAAsyncContext *removeOACB = new (std::nothrow) RemoveOAAsyncContext();
     if (removeOACB == nullptr) {
         ACCOUNT_LOGE("insufficient memory for removeOACB!");
@@ -235,6 +241,9 @@ napi_value RemoveOsAccount(napi_env env, napi_callback_info cbInfo)
 
 napi_value SetOsAccountName(napi_env env, napi_callback_info cbInfo)
 {
+    if (!IsSystemApp(env)) {
+        return nullptr;
+    }
     SetOANameAsyncContext *setOANameCB = new (std::nothrow) SetOANameAsyncContext();
     if (setOANameCB == nullptr) {
         ACCOUNT_LOGE("insufficient memory for setOANameCB!");
@@ -273,6 +282,9 @@ napi_value SetOsAccountName(napi_env env, napi_callback_info cbInfo)
 
 napi_value SetOsAccountConstraints(napi_env env, napi_callback_info cbInfo)
 {
+    if (!IsSystemApp(env)) {
+        return nullptr;
+    }
     SetOAConsAsyncContext *setOAConsCB = new (std::nothrow) SetOAConsAsyncContext();
     if (setOAConsCB == nullptr) {
         ACCOUNT_LOGE("insufficient memory for setOAConsCB!");
@@ -311,6 +323,9 @@ napi_value SetOsAccountConstraints(napi_env env, napi_callback_info cbInfo)
 
 napi_value ActivateOsAccount(napi_env env, napi_callback_info cbInfo)
 {
+    if (!IsSystemApp(env)) {
+        return nullptr;
+    }
     ActivateOAAsyncContext *activeOACB = new (std::nothrow) ActivateOAAsyncContext();
     if (activeOACB == nullptr) {
         ACCOUNT_LOGE("insufficient memory for activeOACB!");
@@ -349,6 +364,9 @@ napi_value ActivateOsAccount(napi_env env, napi_callback_info cbInfo)
 
 napi_value CreateOsAccount(napi_env env, napi_callback_info cbInfo)
 {
+    if (!IsSystemApp(env)) {
+        return nullptr;
+    }
     CreateOAAsyncContext *createOACB = new (std::nothrow) CreateOAAsyncContext();
     if (createOACB == nullptr) {
         ACCOUNT_LOGE("insufficient memory for createOACB!");
@@ -382,6 +400,9 @@ napi_value CreateOsAccount(napi_env env, napi_callback_info cbInfo)
 
 napi_value CreateOsAccountForDomain(napi_env env, napi_callback_info cbInfo)
 {
+    if (!IsSystemApp(env)) {
+        return nullptr;
+    }
     CreateOAForDomainAsyncContext *createOAForDomainCB = new (std::nothrow) CreateOAForDomainAsyncContext();
     if (createOAForDomainCB == nullptr) {
         ACCOUNT_LOGE("insufficient memory for createOAForDomainCB!");
@@ -607,6 +628,9 @@ napi_value GetOsAccountLocalIdFromProcessInner(napi_env env, napi_callback_info 
 
 napi_value QueryAllCreatedOsAccounts(napi_env env, napi_callback_info cbInfo)
 {
+    if (!IsSystemApp(env)) {
+        return nullptr;
+    }
     QueryCreateOAAsyncContext *queryAllOA = new (std::nothrow) QueryCreateOAAsyncContext();
     if (queryAllOA == nullptr) {
         ACCOUNT_LOGE("insufficient memory for queryAllOA!");
@@ -645,6 +669,9 @@ napi_value QueryAllCreatedOsAccounts(napi_env env, napi_callback_info cbInfo)
 
 napi_value QueryOsAccountConstraintSourceTypes(napi_env env, napi_callback_info cbInfo)
 {
+    if (!IsSystemApp(env)) {
+        return nullptr;
+    }
     QueryOAConstraintSrcTypeContext *queryConstraintSource = new (std::nothrow) QueryOAConstraintSrcTypeContext();
     if (queryConstraintSource == nullptr) {
         ACCOUNT_LOGE("queryConstraintSource == nullptr");
@@ -731,6 +758,9 @@ napi_value QueryActivatedOsAccountIdsInner(napi_env env, napi_callback_info cbIn
 
 napi_value GetOsAccountProfilePhoto(napi_env env, napi_callback_info cbInfo)
 {
+    if (!IsSystemApp(env)) {
+        return nullptr;
+    }
     GetOAPhotoAsyncContext *getPhoto = new (std::nothrow) GetOAPhotoAsyncContext();
     if (getPhoto == nullptr) {
         ACCOUNT_LOGE("insufficient memory for queryAllOA!");
@@ -855,6 +885,9 @@ napi_value GetOsAccountLocalIdFromUidInner(napi_env env, napi_callback_info cbIn
 
 napi_value GetBundleIdFromUid(napi_env env, napi_callback_info cbInfo)
 {
+    if (!IsSystemApp(env)) {
+        return nullptr;
+    }
     GetIdByUidAsyncContext *bundleIdByUid = new (std::nothrow) GetIdByUidAsyncContext();
     if (bundleIdByUid == nullptr) {
         ACCOUNT_LOGE("insufficient memory for bundleIdByUid!");
@@ -934,6 +967,9 @@ napi_value GetOsAccountLocalIdFromDomainInner(napi_env env, napi_callback_info c
 
 napi_value SetOsAccountProfilePhoto(napi_env env, napi_callback_info cbInfo)
 {
+    if (!IsSystemApp(env)) {
+        return nullptr;
+    }
     SetOAPhotoAsyncContext *setPhoto = new (std::nothrow) SetOAPhotoAsyncContext();
     if (setPhoto == nullptr) {
         ACCOUNT_LOGE("insufficient memory for setPhoto!");
@@ -967,6 +1003,9 @@ napi_value SetOsAccountProfilePhoto(napi_env env, napi_callback_info cbInfo)
 
 napi_value QueryMaxOsAccountNumber(napi_env env, napi_callback_info cbInfo)
 {
+    if (!IsSystemApp(env)) {
+        return nullptr;
+    }
     QueryMaxNumAsyncContext *maxNum = new (std::nothrow) QueryMaxNumAsyncContext();
     if (maxNum == nullptr) {
         ACCOUNT_LOGE("insufficient memory for maxNum!");
@@ -1366,6 +1405,9 @@ napi_value InnerIsTestOsAccount(napi_env env, napi_callback_info cbInfo, bool th
 
 napi_value IsMainOsAccount(napi_env env, napi_callback_info cbInfo)
 {
+    if (!IsSystemApp(env)) {
+        return nullptr;
+    }
     IsMainOAInfo *isMain = new (std::nothrow) IsMainOAInfo();
     if (isMain == nullptr) {
         ACCOUNT_LOGE("insufficient memory for isMain!");
@@ -1419,6 +1461,9 @@ napi_value IsMainOsAccount(napi_env env, napi_callback_info cbInfo)
 
 napi_value Subscribe(napi_env env, napi_callback_info cbInfo)
 {
+    if (!IsSystemApp(env)) {
+        return nullptr;
+    }
     SubscribeCBInfo *subscribeCBInfo = new (std::nothrow) SubscribeCBInfo();
     if (subscribeCBInfo == nullptr) {
         ACCOUNT_LOGE("insufficient memory for subscribeCBInfo!");
@@ -1549,6 +1594,9 @@ void SubscriberPtr::SetCallbackRef(const napi_ref &ref)
 
 napi_value Unsubscribe(napi_env env, napi_callback_info cbInfo)
 {
+    if (!IsSystemApp(env)) {
+        return nullptr;
+    }
     UnsubscribeCBInfo *unsubscribeCBInfo = new (std::nothrow) UnsubscribeCBInfo();
     if (unsubscribeCBInfo == nullptr) {
         ACCOUNT_LOGE("insufficient memory for unsubscribeCBInfo!");

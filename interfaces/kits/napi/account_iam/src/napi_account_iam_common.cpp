@@ -661,6 +661,9 @@ napi_value InputDataConstructor(napi_env env, napi_callback_info info)
 
 napi_value OnSetData(napi_env env, napi_callback_info info)
 {
+    if (!IsSystemApp(env)) {
+        return nullptr;
+    }
     size_t argc = ARG_SIZE_TWO;
     napi_value thisVar = nullptr;
     napi_value argv[ARG_SIZE_TWO] = {nullptr};
