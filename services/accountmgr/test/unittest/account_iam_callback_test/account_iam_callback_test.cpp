@@ -21,8 +21,12 @@
 #include "account_iam_callback_stub.h"
 #include "account_iam_client.h"
 #include "account_log_wrapper.h"
+#include "domain_account_client.h"
 #include "inner_account_iam_manager.h"
 #include "iremote_stub.h"
+#include "mock_domain_plugin.h"
+#include "os_account_info.h"
+#include "os_account_manager.h"
 #include "token_setproc.h"
 
 namespace OHOS {
@@ -37,6 +41,7 @@ const int32_t TEST_ACQUIRE_INFO = 10;
 using namespace testing;
 using namespace testing::ext;
 using namespace OHOS::AccountSA;
+using namespace OHOS::UserIam::UserAuth;
 using namespace OHOS::Security::AccessToken;
 
 class MockIInputer final : public IInputer {
@@ -68,6 +73,16 @@ public:
     uint32_t acquireInfo_ = 0;
 };
 
+class MockGetCredInfoCallbackService : public GetCredInfoCallbackStub {
+public:
+    void OnCredentialInfo(const std::vector<CredentialInfo> &infoList)override
+    {
+        infoList_ = infoList;
+        return;
+    }
+public:
+    std::vector<CredentialInfo> infoList_;
+};
 
 class AccountIamCallbackTest : public testing::Test {
 public:
@@ -543,6 +558,80 @@ HWTEST_F(AccountIamCallbackTest, GetPropCallbackWrapper_OnResult_0100, TestSize.
     auto getPropCallback = std::make_shared<GetPropCallbackWrapper>(nullptr);
     EXPECT_TRUE(getPropCallback->innerCallback_ == nullptr);
     getPropCallback->OnResult(0, extraInfo);
+}
+
+/**
+ * @tc.name: GetCredInfoCallbackWrapper_OnCredentialInfo_0200
+ * @tc.desc: OnCredentialInfo with domain auth plugin not available.
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(AccountIamCallbackTest, GetCredInfoCallbackWrapper_OnCredentialInfo_0200, TestSize.Level0)
+{
+    DomainAccountInfo domainInfo;
+    domainInfo.accountName_ = "zhangsan";
+    domainInfo.domain_ = "china.example.com";
+    OsAccountInfo accountInfo;
+    std::vector<CredentialInfo> infoList = {};
+    ErrCode errCode = OsAccountManager::CreateOsAccountForDomain(OsAccountType::NORMAL, domainInfo, accountInfo);
+    EXPECT_EQ(errCode, ERR_OK);
+    sptr<MockGetCredInfoCallbackService> service = new (std::nothrow) MockGetCredInfoCallbackService();
+    int32_t userId = accountInfo.GetLocalId();
+    auto authType = static_cast<int32_t>(IAMAuthType::DOMAIN);
+    auto callback = std::make_shared<GetCredInfoCallbackWrapper>(userId, authType, service);
+    EXPECT_TRUE(callback->innerCallback_ != nullptr);
+    UserIdmClient::GetInstance().GetCredentialInfo(userId, AuthType::ALL, callback);
+    callback->OnCredentialInfo(infoList);
+    EXPECT_EQ(infoList.size(), 0);
+    EXPECT_EQ(OsAccountManager::RemoveOsAccount(accountInfo.GetLocalId()), ERR_OK);
+}
+
+/**
+ * @tc.name: GetCredInfoCallbackWrapper_OnCredentialInfo_0300
+ * @tc.desc: OnCredentialInfo with domain auth plugin available.
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(AccountIamCallbackTest, GetCredInfoCallbackWrapper_OnCredentialInfo_0300, TestSize.Level0)
+{
+    DomainAccountInfo domainInfo;
+    domainInfo.accountName_ = "lisi";
+    domainInfo.domain_ = "china.example.com";
+    OsAccountInfo accountInfo;
+    std::vector<CredentialInfo> infoList = {static_cast<int32_t>(IAMAuthType::DOMAIN), 0, 0};
+    ErrCode errCode = OsAccountManager::CreateOsAccountForDomain(OsAccountType::NORMAL, domainInfo, accountInfo);
+    EXPECT_EQ(errCode, ERR_OK);
+    sptr<MockGetCredInfoCallbackService> service = new (std::nothrow) MockGetCredInfoCallbackService();
+    int32_t userId = accountInfo.GetLocalId();
+    auto authType = static_cast<int32_t>(IAMAuthType::DOMAIN);
+    auto callback = std::make_shared<GetCredInfoCallbackWrapper>(userId, authType, service);
+    EXPECT_TRUE(callback->innerCallback_ != nullptr);
+    std::shared_ptr<MockDomainPlugin> g_plugin = std::make_shared<MockDomainPlugin>();
+    ASSERT_EQ(DomainAccountClient::GetInstance().RegisterPlugin(g_plugin), ERR_OK);
+    UserIdmClient::GetInstance().GetCredentialInfo(userId, AuthType::ALL, callback);
+    callback->OnCredentialInfo(infoList);
+    EXPECT_EQ(infoList.size(), 1);
+    EXPECT_EQ(OsAccountManager::RemoveOsAccount(accountInfo.GetLocalId()), ERR_OK);
+}
+
+/**
+ * @tc.name: GetCredInfoCallbackWrapper_OnCredentialInfo_0400
+ * @tc.desc: OnCredentialInfo with not domain authtype.
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(AccountIamCallbackTest, GetCredInfoCallbackWrapper_OnCredentialInfo_0400, TestSize.Level0)
+{
+    OsAccountInfo accountInfo;
+    std::vector<CredentialInfo> infoList = {};
+    sptr<MockGetCredInfoCallbackService> service = new (std::nothrow) MockGetCredInfoCallbackService();
+    int32_t userId = accountInfo.GetLocalId();
+    auto authType = static_cast<int32_t>(AuthType::PIN);
+    auto callback = std::make_shared<GetCredInfoCallbackWrapper>(userId, authType, service);
+    EXPECT_TRUE(callback->innerCallback_ != nullptr);
+    UserIdmClient::GetInstance().GetCredentialInfo(userId, AuthType::PIN, callback);
+    callback->OnCredentialInfo(infoList);
+    EXPECT_EQ(infoList.size(), 0);
 }
 
 /**
