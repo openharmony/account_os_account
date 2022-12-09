@@ -47,6 +47,9 @@ napi_value NapiAccountIAMIdentityManager::Init(napi_env env, napi_value exports)
 
 napi_value NapiAccountIAMIdentityManager::JsConstructor(napi_env env, napi_callback_info info)
 {
+    if (!IsSystemApp(env)) {
+        return nullptr;
+    }
     napi_value thisVar = nullptr;
     NAPI_CALL(env, napi_get_cb_info(env, info, nullptr, nullptr, &thisVar, nullptr));
     return thisVar;
@@ -71,6 +74,9 @@ static bool ParseContextForOpenSession(
 
 napi_value NapiAccountIAMIdentityManager::OpenSession(napi_env env, napi_callback_info info)
 {
+    if (!IsSystemApp(env)) {
+        return nullptr;
+    }
     IDMContext *context = new (std::nothrow) IDMContext(env);
     if (context == nullptr) {
         ACCOUNT_LOGE("failed to create IDMContext for insufficient memory");
@@ -141,6 +147,9 @@ static bool ParseContextForUpdateCredential(napi_env env, napi_callback_info inf
 
 napi_value NapiAccountIAMIdentityManager::AddCredential(napi_env env, napi_callback_info info)
 {
+    if (!IsSystemApp(env)) {
+        return nullptr;
+    }
     IDMContext *context = new (std::nothrow) IDMContext(env);
     if (context == nullptr) {
         ACCOUNT_LOGE("failed to create IDMContext");
@@ -170,6 +179,9 @@ napi_value NapiAccountIAMIdentityManager::AddCredential(napi_env env, napi_callb
 
 napi_value NapiAccountIAMIdentityManager::UpdateCredential(napi_env env, napi_callback_info info)
 {
+    if (!IsSystemApp(env)) {
+        return nullptr;
+    }
     IDMContext *context = new (std::nothrow) IDMContext(env);
     if (context == nullptr) {
         ACCOUNT_LOGE("failed to create IDMContext");
@@ -199,6 +211,9 @@ napi_value NapiAccountIAMIdentityManager::UpdateCredential(napi_env env, napi_ca
 
 napi_value NapiAccountIAMIdentityManager::CloseSession(napi_env env, napi_callback_info info)
 {
+    if (!IsSystemApp(env)) {
+        return nullptr;
+    }
     AccountIAMClient::GetInstance().CloseSession(0);
     napi_value result = nullptr;
     napi_get_null(env, &result);
@@ -207,6 +222,9 @@ napi_value NapiAccountIAMIdentityManager::CloseSession(napi_env env, napi_callba
 
 napi_value NapiAccountIAMIdentityManager::Cancel(napi_env env, napi_callback_info info)
 {
+    if (!IsSystemApp(env)) {
+        return nullptr;
+    }
     size_t argc = ARG_SIZE_ONE;
     napi_value argv[ARG_SIZE_ONE] = {0};
     napi_get_cb_info(env, info, &argc, argv, nullptr, nullptr);
@@ -261,6 +279,9 @@ static napi_status ParseContextForDelUser(napi_env env, napi_callback_info info,
 
 napi_value NapiAccountIAMIdentityManager::DelUser(napi_env env, napi_callback_info info)
 {
+    if (!IsSystemApp(env)) {
+        return nullptr;
+    }
     IDMContext *context = new (std::nothrow) IDMContext(env);
     if (context == nullptr) {
         ACCOUNT_LOGE("failed to create IDMContext");
@@ -316,6 +337,9 @@ static napi_status ParseContextForDelCred(napi_env env, napi_callback_info info,
 
 napi_value NapiAccountIAMIdentityManager::DelCred(napi_env env, napi_callback_info info)
 {
+    if (!IsSystemApp(env)) {
+        return nullptr;
+    }
     IDMContext *context = new (std::nothrow) IDMContext(env);
     if (context == nullptr) {
         ACCOUNT_LOGE("failed to create IDMContext");
@@ -406,6 +430,9 @@ static napi_status ParseContextForGetAuthInfo(
 
 napi_value NapiAccountIAMIdentityManager::GetAuthInfo(napi_env env, napi_callback_info info)
 {
+    if (!IsSystemApp(env)) {
+        return nullptr;
+    }
     napi_value result = nullptr;
     GetAuthInfoContext *context = new (std::nothrow) GetAuthInfoContext(env);
     if (context == nullptr) {

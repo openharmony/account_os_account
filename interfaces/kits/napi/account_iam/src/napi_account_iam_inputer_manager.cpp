@@ -84,6 +84,9 @@ static bool ParseContextForRegisterInputer(
 
 napi_value NapiAccountIAMInputerManager::RegisterInputer(napi_env env, napi_callback_info info)
 {
+    if (!IsSystemApp(env)) {
+        return nullptr;
+    }
     int32_t authType = -1;
     napi_ref callback = nullptr;
     if (!ParseContextForRegisterInputer(env, info, authType, callback)) {
@@ -100,6 +103,9 @@ napi_value NapiAccountIAMInputerManager::RegisterInputer(napi_env env, napi_call
 
 napi_value NapiAccountIAMInputerManager::UnregisterInputer(napi_env env, napi_callback_info info)
 {
+    if (!IsSystemApp(env)) {
+        return nullptr;
+    }
     size_t argc = ARG_SIZE_ONE;
     napi_value argv[ARG_SIZE_ONE] = {nullptr};
     napi_get_cb_info(env, info, &argc, argv, nullptr, nullptr);

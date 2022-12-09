@@ -12,7 +12,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
+#include "ipc_skeleton.h"
 #include "napi_account_common.h"
 
 #include "js_native_api.h"
@@ -21,6 +21,7 @@
 #include "napi/native_api.h"
 #include "napi/native_common.h"
 #include "napi/native_node_api.h"
+#include "tokenid_kit.h"
 
 namespace OHOS {
 namespace AccountJsKit {
@@ -160,6 +161,18 @@ bool GetOptionalStringPropertyByKey(napi_env env, napi_value obj, const std::str
     }
 
     return GetStringPropertyByKey(env, obj, propertyName, property);
+}
+
+bool IsSystemApp(napi_env env)
+{
+    uint64_t tokenId = IPCSkeleton::GetSelfTokenID();
+    bool isSystemApp = Security::AccessToken::TokenIdKit::IsSystemAppByFullTokenID(tokenId);
+    if (!isSystemApp) {
+        std::string errMsg = ConvertToJsErrMsg(ERR_JS_IS_NOT_SYSTEM_APP);
+        AccountNapiThrow(env, ERR_JS_IS_NOT_SYSTEM_APP, errMsg, true);
+        return false;
+    }
+    return true;
 }
 
 napi_value CreateStringArray(napi_env env, const std::vector<std::string> &strVec)
