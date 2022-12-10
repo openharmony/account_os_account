@@ -87,7 +87,7 @@ napi_value NapiAccountIAMPINAuth::RegisterInputer(napi_env env, napi_callback_in
         return result;
     }
     auto inputer = std::make_shared<NapiGetDataCallback>(env, callback);
-    int32_t errCode = AccountIAMClient::GetInstance().RegisterInputer(AuthType::PIN, inputer);
+    int32_t errCode = AccountIAMClient::GetInstance().RegisterPINInputer(inputer);
     napi_value napiResult = nullptr;
     if (errCode == ERR_OK) {
         NAPI_CALL(env, napi_get_boolean(env, true, &napiResult));
@@ -103,7 +103,7 @@ napi_value NapiAccountIAMPINAuth::UnregisterInputer(napi_env env, napi_callback_
     if (!IsSystemApp(env)) {
         return nullptr;
     }
-    AccountIAMClient::GetInstance().UnregisterInputer(AuthType::PIN);
+    AccountIAMClient::GetInstance().UnregisterPINInputer();
     napi_value result = nullptr;
     NAPI_CALL(env, napi_get_null(env, &result));
     return result;

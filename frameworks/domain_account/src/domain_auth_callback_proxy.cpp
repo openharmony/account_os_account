@@ -54,11 +54,11 @@ void DomainAuthCallbackProxy::OnResult(int32_t resultCode, const DomainAuthResul
         ACCOUNT_LOGE("fail to write token");
         return;
     }
-    if (!data.WriteInt32(result.remainingTimes)) {
+    if (!data.WriteInt32(result.authProperty.remainingTimes)) {
         ACCOUNT_LOGE("fail to write remaining times");
         return;
     }
-    if (!data.WriteInt32(result.freezingTime)) {
+    if (!data.WriteInt32(result.authProperty.freezingTime)) {
         ACCOUNT_LOGE("fail to write freezing time");
         return;
     }

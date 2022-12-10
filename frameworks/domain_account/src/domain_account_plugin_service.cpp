@@ -42,5 +42,14 @@ ErrCode DomainAccountPluginService::Auth(const DomainAccountInfo &info, const st
     innerPlugin_->Auth(info, password, callbackClient);
     return ERR_OK;
 }
+
+ErrCode DomainAccountPluginService::GetAuthProperty(const DomainAccountInfo &info, DomainAuthProperty &property)
+{
+    if (innerPlugin_ == nullptr) {
+        ACCOUNT_LOGE("innerPlugin_ is nullptr");
+        return ERR_ACCOUNT_COMMON_NULL_PTR_ERROR;
+    }
+    return innerPlugin_->GetAuthProperty(info, property);
+}
 }  // namespace AccountSA
 }  // namespace OHOS
