@@ -20,10 +20,14 @@
 
 namespace OHOS {
 namespace AccountSA {
+struct DomainAuthProperty {
+    int32_t remainingTimes = -1;  // -1 indicates the invalid value
+    int32_t freezingTime = -1;  // -1 indicates the invalid value
+};
+
 struct DomainAuthResult {
     std::vector<uint8_t> token;
-    int32_t remainingTimes = -1;
-    int32_t freezingTime = -1;
+    DomainAuthProperty authProperty;
 };
 }  // namespace AccountSA
 }  // namespace OHOS

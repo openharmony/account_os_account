@@ -21,11 +21,11 @@ namespace AccountSA {
 namespace {
 const std::vector<uint8_t> DEFAULT_PASSWORD = {49, 50, 51, 52, 53};
 const int32_t DEFAULT_REMAINING_TIMES = 5;
-const int32_t DEFAULT_FREEZING_TIME = 0;
+const int32_t DEFAULT_FREEZING_TIME = 6000;
 const std::string VALID_DOMAIN = "china.example.com";
 const std::string VALID_ACCOUNT_NAME = "zhangsan";
 }
-MockDomainPlugin::MockDomainPlugin()
+MockDomainPlugin::MockDomainPlugin() : remainingTimes_(DEFAULT_REMAINING_TIMES), freezingTime_(0)
 {}
 
 MockDomainPlugin::~MockDomainPlugin()
@@ -34,32 +34,50 @@ MockDomainPlugin::~MockDomainPlugin()
 void MockDomainPlugin::Auth(const DomainAccountInfo &info, const std::vector<uint8_t> &password,
     const std::shared_ptr<DomainAuthCallback> &callback)
 {
+    ACCOUNT_LOGI("start, accountName: %{public}s, domain: %{public}s",
+        info.accountName_.c_str(), info.domain_.c_str());
     if (callback == nullptr) {
         ACCOUNT_LOGE("callback is nullptr");
         return;
     }
-    ACCOUNT_LOGI("start, accountName: %{public}s, domain: %{public}s",
-        info.accountName_.c_str(), info.domain_.c_str());
     DomainAuthResult result = {};
     if ((info.domain_ != VALID_DOMAIN) || (info.accountName_ != VALID_ACCOUNT_NAME)) {
         callback->OnResult(1, result);
         return;
     }
-    if (password.size() != DEFAULT_PASSWORD.size()) {
-        result.remainingTimes = DEFAULT_REMAINING_TIMES;
-        result.freezingTime = DEFAULT_FREEZING_TIME;
-        callback->OnResult(1, result);
-        return;
-    }
-    for (size_t i = 0; i < password.size(); ++i) {
-        if (password[i] != DEFAULT_PASSWORD[i]) {
-            result.remainingTimes = DEFAULT_REMAINING_TIMES;
-            result.freezingTime = DEFAULT_FREEZING_TIME;
-            callback->OnResult(1, result);
-            return;
+    bool isCorrect = true;
+    if (password.size() == DEFAULT_PASSWORD.size()) {
+        for (size_t i = 0; i < password.size(); ++i) {
+            if (password[i] != DEFAULT_PASSWORD[i]) {
+                isCorrect = false;
+                break;
+            }
         }
+    } else {
+        isCorrect = false;
     }
-    callback->OnResult(0, result);
+    if (isCorrect) {
+        remainingTimes_ = DEFAULT_REMAINING_TIMES;
+        freezingTime_ = 0;
+    } else {
+        remainingTimes_ = remainingTimes_ > 0 ? remainingTimes_ - 1 : 0;
+        freezingTime_ = remainingTimes_ > 0 ? 0 : DEFAULT_FREEZING_TIME;
+    }
+    result.authProperty.remainingTimes = remainingTimes_;
+    result.authProperty.freezingTime = freezingTime_;
+    callback->OnResult(!isCorrect, result);
+}
+
+int32_t MockDomainPlugin::GetAuthProperty(const DomainAccountInfo &info, DomainAuthProperty &property)
+{
+    if ((info.accountName_ == VALID_ACCOUNT_NAME) && (info.domain_ == VALID_DOMAIN)) {
+        property.remainingTimes = remainingTimes_;
+        property.freezingTime = freezingTime_;
+    } else {
+        property.remainingTimes = -1;
+        property.freezingTime = -1;
+    }
+    return 0;
 }
 }  // AccountSA
 }  // OHOS

@@ -33,6 +33,8 @@ public:
 
 private:
     ErrCode ProcAuth(MessageParcel &data, MessageParcel &reply);
+    ErrCode ProcGetAuthProperty(MessageParcel &data, MessageParcel &reply);
+
 private:
     static const std::map<uint32_t, MessageProcFunction> messageProcMap_;
 

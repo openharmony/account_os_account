@@ -61,11 +61,11 @@ ErrCode DomainAuthCallbackStub::ProcOnResult(MessageParcel &data, MessageParcel 
         ACCOUNT_LOGE("failed to read token");
         return ERR_ACCOUNT_COMMON_READ_PARCEL_ERROR;
     }
-    if (!data.ReadInt32(result.remainingTimes)) {
+    if (!data.ReadInt32(result.authProperty.remainingTimes)) {
         ACCOUNT_LOGE("failed to read remaining times");
         return ERR_ACCOUNT_COMMON_READ_PARCEL_ERROR;
     }
-    if (!data.ReadInt32(result.freezingTime)) {
+    if (!data.ReadInt32(result.authProperty.freezingTime)) {
         ACCOUNT_LOGE("failed to read freezing time");
         return ERR_ACCOUNT_COMMON_READ_PARCEL_ERROR;
     }

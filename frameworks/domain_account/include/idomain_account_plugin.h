@@ -28,10 +28,12 @@ public:
     DECLARE_INTERFACE_DESCRIPTOR(u"ohos.accountfwk.IDomainAccountPlugin");
     enum Message {
         DOMAIN_PLUGIN_AUTH = 0,
+        DOMAIN_PLUGIN_GET_AUTH_PROPERTY = 1,
     };
 
     virtual ErrCode Auth(const DomainAccountInfo &info, const std::vector<uint8_t> &password,
         const sptr<IDomainAuthCallback> &callback) = 0;
+    virtual ErrCode GetAuthProperty(const DomainAccountInfo &info, DomainAuthProperty &property) = 0;
 };
 }  // namespace AccountSA
 }  // namespace OHOS

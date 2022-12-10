@@ -23,8 +23,26 @@ namespace OHOS {
 namespace AccountSA {
 class DomainAccountPlugin {
 public:
+    /**
+     * Authenticates the specified domain account with the specified password,
+     * the authentication result should be returned from the callback.
+     *
+     * @param info Indicates the domain account information, including accountName and domain.
+     * @param password Indicates the password for authentication.
+     * @param callback Indicates the result callback.
+    */
     virtual void Auth(const DomainAccountInfo &info, const std::vector<uint8_t> &password,
         const std::shared_ptr<DomainAuthCallback> &callback) = 0;
+
+    /**
+     * Gets the authentication property of the specified domain account,
+     * which can be used to prevent brute-force attack.
+     *
+     * @param info Indicates the domain account information, including accountName and domain.
+     * @param[out] property Indicates the authentication property, including remaining times and freezing time.
+     * @return 0 indicates success, others indicate failure.
+    */
+    virtual int32_t GetAuthProperty(const DomainAccountInfo &info, DomainAuthProperty &property);
 };
 }  // namespace AccountSA
 }  // namespace OHOS

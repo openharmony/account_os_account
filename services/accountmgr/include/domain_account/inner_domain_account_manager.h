@@ -36,6 +36,7 @@ public:
         const sptr<IDomainAuthCallback> &callback);
     ErrCode AuthUser(int32_t userId, const std::vector<uint8_t> &password,
         const sptr<IDomainAuthCallback> &callback);
+    ErrCode GetAuthProperty(const DomainAccountInfo &info, DomainAuthProperty &property);
     bool IsPluginAvailable();
 
 private:

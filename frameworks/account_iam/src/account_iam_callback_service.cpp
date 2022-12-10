@@ -83,8 +83,8 @@ void DomainAuthCallbackAdapter::OnResult(int32_t resultCode, const DomainAuthRes
     }
     Attributes attr;
     attr.SetUint8ArrayValue(Attributes::AttributeKey::ATTR_SIGNATURE, result.token);
-    attr.SetInt32Value(Attributes::AttributeKey::ATTR_REMAIN_TIMES, result.remainingTimes);
-    attr.SetInt32Value(Attributes::AttributeKey::ATTR_FREEZING_TIME, result.freezingTime);
+    attr.SetInt32Value(Attributes::AttributeKey::ATTR_REMAIN_TIMES, result.authProperty.remainingTimes);
+    attr.SetInt32Value(Attributes::AttributeKey::ATTR_FREEZING_TIME, result.authProperty.freezingTime);
     callback_->OnResult(resultCode, attr);
 }
 

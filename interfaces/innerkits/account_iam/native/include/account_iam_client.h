@@ -52,6 +52,8 @@ public:
         int32_t userId, const GetPropertyRequest &request, const std::shared_ptr<GetSetPropCallback> &callback);
     void SetProperty(
         int32_t userId, const SetPropertyRequest &request, const std::shared_ptr<GetSetPropCallback> &callback);
+    ErrCode RegisterPINInputer(const std::shared_ptr<IInputer> &inputer);
+    void UnregisterPINInputer();
     ErrCode RegisterInputer(int32_t authType, const std::shared_ptr<IInputer> &inputer);
     ErrCode UnregisterInputer(int32_t authType);
     IAMState GetAccountState(int32_t userId);
@@ -75,9 +77,7 @@ private:
     void ResetAccountIAMProxy(const wptr<IRemoteObject>& remote);
     bool GetCurrentUserId(int32_t &userId);
     uint64_t StartDomainAuth(int32_t userId, const std::shared_ptr<IDMCallback> &callback);
-    ErrCode RegisterPINInputer(const std::shared_ptr<IInputer> &inputer);
     ErrCode RegisterDomainInputer(const std::shared_ptr<IInputer> &inputer);
-    void UnregisterPINInputer();
     ErrCode UnregisterDomainInputer();
     bool CheckSelfPermission(const std::string &permissionName);
 

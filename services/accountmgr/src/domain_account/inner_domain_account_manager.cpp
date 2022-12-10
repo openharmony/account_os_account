@@ -121,6 +121,16 @@ ErrCode InnerDomainAccountManager::AuthUser(int32_t userId, const std::vector<ui
     return ERR_OK;
 }
 
+ErrCode InnerDomainAccountManager::GetAuthProperty(const DomainAccountInfo &info, DomainAuthProperty &property)
+{
+    std::lock_guard<std::mutex> lock(mutex_);
+    if (plugin_ == nullptr) {
+        ACCOUNT_LOGE("plugin not exists");
+        return ERR_DOMAIN_ACCOUNT_SERVICE_PLUGIN_NOT_EXIST;
+    }
+    return plugin_->GetAuthProperty(info, property);
+}
+
 std::shared_ptr<AppExecFwk::EventHandler> InnerDomainAccountManager::GetEventHandler()
 {
     if (handler_ != nullptr) {
