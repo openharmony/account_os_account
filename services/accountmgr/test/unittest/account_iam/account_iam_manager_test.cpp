@@ -14,6 +14,7 @@
  */
 #include <gmock/gmock.h>
 #include <gtest/gtest.h>
+#include <unistd.h>
 
 #include "accesstoken_kit.h"
 #include "account_log_wrapper.h"
@@ -36,6 +37,7 @@ namespace {
     const int32_t TEST_USER_ID = 101;
     const std::vector<uint8_t> TEST_CHALLENGE = {1, 2, 3, 4};
     static bool g_fscryptEnable = false;
+    const uid_t ACCOUNT_UID = 3058;
 }
 
 class MockIIDMCallback : public IDMCallbackStub {
@@ -67,6 +69,7 @@ void AccountIamManagerTest::SetUpTestCase()
 {
     AccessTokenID tokenId = AccessTokenKit::GetNativeTokenId("accountmgr");
     SetSelfTokenID(tokenId);
+    setuid(ACCOUNT_UID);
     g_fscryptEnable = FscryptEnable();
 }
 
