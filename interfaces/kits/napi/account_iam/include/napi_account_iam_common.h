@@ -226,17 +226,17 @@ private:
 #endif  // HAS_PIN_AUTH_PART
 
 void CallbackAsyncOrPromise(napi_env env, IAMAsyncContext *context, napi_value errJs, napi_value dataJs);
-napi_value CreateUint8Array(napi_env env, const uint8_t *data, size_t length);
+napi_value CreateUint8Array(napi_env env, const uint8_t *srcData, size_t length);
 napi_value CreateErrorObject(napi_env env, int32_t code);
 napi_status ParseUint8TypedArray(napi_env env, napi_value value, uint8_t **data, size_t *length);
 napi_status ParseUint8TypedArrayToVector(napi_env env, napi_value value, std::vector<uint8_t> &vec);
 napi_status ParseUint8TypedArrayToUint64(napi_env env, napi_value value, uint64_t &result);
 napi_status ParseUInt32Array(napi_env env, napi_value value, std::vector<uint32_t> &data);
-napi_status ParseIAMCallback(napi_env env, napi_value value, JsIAMCallback &callback);
+napi_status ParseIAMCallback(napi_env env, napi_value object, JsIAMCallback &callback);
 #ifdef HAS_USER_AUTH_PART
-napi_status ParseAddCredInfo(napi_env env, napi_value value, AccountSA::CredentialParameters &info);
-napi_status ParseGetPropRequest(napi_env env, napi_value value, AccountSA::GetPropertyRequest &request);
-napi_status ParseSetPropRequest(napi_env env, napi_value value, AccountSA::SetPropertyRequest &request);
+napi_status ParseAddCredInfo(napi_env env, napi_value value, AccountSA::CredentialParameters &addCredInfo);
+napi_status ParseGetPropRequest(napi_env env, napi_value object, AccountSA::GetPropertyRequest &request);
+napi_status ParseSetPropRequest(napi_env env, napi_value object, AccountSA::SetPropertyRequest &request);
 napi_value CreateCredInfoArray(napi_env env, const std::vector<AccountSA::CredentialInfo> &info);
 napi_value CreateAuthResult(napi_env env, const std::vector<uint8_t> &token, int32_t remainTimes, int32_t freezingTime);
 #endif

@@ -26,7 +26,7 @@ public:
     explicit OsAccountEventProxy(const sptr<IRemoteObject> &object);
     ~OsAccountEventProxy() override;
 
-    void OnAccountsChanged(const int &id) override;
+    void OnAccountsChanged(const int &localId) override;
 
 private:
     template<typename T>
