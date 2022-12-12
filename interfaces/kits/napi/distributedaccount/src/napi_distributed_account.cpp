@@ -98,7 +98,7 @@ bool GetAccountInfo(napi_env env, napi_value object, DistributedAccountAsyncCont
         return false;
     }
     if (!GetOptionalStringPropertyByKey(env, object, PROPERTY_KEY_AVATAR, asyncContext->ohosAccountInfo.avatar_)) {
-        ACCOUNT_LOGE("Failed to get DistributedInfo's %{public}s property", PROPERTY_KEY_NICKNAME.c_str());
+        ACCOUNT_LOGE("Failed to get DistributedInfo's %{public}s property", PROPERTY_KEY_AVATAR.c_str());
         std::string errMsg = "The type of " + PROPERTY_KEY_AVATAR + " must be string";
         AccountNapiThrow(env, ERR_JS_PARAMETER_ERROR, errMsg, asyncContext->throwErr);
         return false;

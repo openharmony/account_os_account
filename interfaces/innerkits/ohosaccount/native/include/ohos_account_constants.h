@@ -21,8 +21,8 @@
 namespace OHOS {
 namespace AccountSA {
 namespace Constants {
-constexpr std::size_t NICKNAME_MAX_SIZE = 20;
-constexpr std::size_t AVATAR_MAX_SIZE = 3 * 1024 * 1024;
+constexpr std::size_t NICKNAME_MAX_SIZE = 1024;
+constexpr std::size_t AVATAR_MAX_SIZE = 10 * 1024 * 1024;
 constexpr std::size_t SCALABLEDATA_MAX_SIZE = 1024;
 };  // namespace Constants
 }  // namespace AccountSA
