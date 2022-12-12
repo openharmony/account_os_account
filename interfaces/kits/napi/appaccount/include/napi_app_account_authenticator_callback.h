@@ -31,10 +31,10 @@ public:
     static napi_value Init(napi_env env, napi_value exports);
 
 private:
-    static napi_value JsOnResult(napi_env env, napi_callback_info cbinfo);
-    static napi_value JsOnRequestRedirected(napi_env env, napi_callback_info cbinfo);
-    static napi_value JsOnRequestContinued(napi_env env, napi_callback_info cbinfo);
-    static napi_value JsConstructor(napi_env env, napi_callback_info cbinfo);
+    static napi_value JsOnResult(napi_env env, napi_callback_info cbInfo);
+    static napi_value JsOnRequestRedirected(napi_env env, napi_callback_info cbInfo);
+    static napi_value JsOnRequestContinued(napi_env env, napi_callback_info cbInfo);
+    static napi_value JsConstructor(napi_env env, napi_callback_info info);
 private:
     sptr<IRemoteObject> object_;
 };

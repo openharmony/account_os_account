@@ -553,7 +553,7 @@ enum JSErrorCode {
     ERR_JS_AUTHORIZATION_LIST_TOO_LARGE = 12400005
 };
 
-int32_t ConvertToJSErrCode(int32_t errCode);
+int32_t ConvertToJSErrCode(int32_t nativeErrCode);
 }  // namespace OHOS
 
 #endif  // OS_ACCOUNT_FRAMEWORKS_COMMON_ACCOUNT_ERROR_INCLUDE_ACCOUNT_ERROR_NO_H

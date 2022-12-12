@@ -77,7 +77,7 @@ public:
     void OnAbilityDisconnectDone(const AppExecFwk::ElementName &element, int resultCode);
     void OnServerDied();
     int32_t OnResult(int32_t resultCode, const AAFwk::Want &result) const;
-    int32_t OnRequestRedirected(AAFwk::Want &request) const;
+    int32_t OnRequestRedirected(AAFwk::Want &newRequest) const;
     int32_t OnRequestContinued() const;
     ErrCode GetAuthenticatorCallback(const AuthenticatorSessionRequest &request, sptr<IRemoteObject> &callback) const;
     ErrCode AddClientDeathRecipient();
