@@ -189,11 +189,28 @@ int32_t InnerAccountIAMManager::GetAvailableStatus(
     return ERR_OK;
 }
 
+ErrCode InnerAccountIAMManager::GetDomainAuthProperty(int32_t userId, DomainAuthProperty &property)
+{
+    OsAccountInfo osAccountInfo;
+    ErrCode result = IInnerOsAccountManager::GetInstance()->QueryOsAccountById(userId, osAccountInfo);
+    if (result != ERR_OK) {
+        ACCOUNT_LOGE("failed to get account info");
+        return result;
+    }
+    DomainAccountInfo domainAccountInfo;
+    osAccountInfo.GetDomainInfo(domainAccountInfo);
+    if (domainAccountInfo.accountName_.empty()) {
+        ACCOUNT_LOGE("the target user is not a domain account");
+        return ERR_ACCOUNT_IAM_UNSUPPORTED_AUTH_TYPE;
+    }
+    return InnerDomainAccountManager::GetInstance()->GetAuthProperty(domainAccountInfo, property);
+}
+
 bool InnerAccountIAMManager::CheckDomainAuthAvailable(int32_t userId)
 {
     OsAccountInfo osAccountInfo;
     if (IInnerOsAccountManager::GetInstance()->QueryOsAccountById(userId, osAccountInfo) != ERR_OK) {
-        ACCOUNT_LOGE("failed to get current os account info.");
+        ACCOUNT_LOGE("failed to get account info");
         return false;
     }
     DomainAccountInfo domainAccountInfo;
@@ -207,11 +224,15 @@ void InnerAccountIAMManager::GetProperty(
 {
     if (static_cast<int32_t>(request.authType) == static_cast<int32_t>(IAMAuthType::DOMAIN)) {
         Attributes result;
-        if (CheckDomainAuthAvailable(userId)) {
+        DomainAuthProperty property;
+        ErrCode errCode = GetDomainAuthProperty(userId, property);
+        if (errCode == ERR_OK) {
             result.SetInt32Value(Attributes::ATTR_PIN_SUB_TYPE, static_cast<int32_t>(IAMAuthSubType::DOMAIN_MIXED));
+            result.SetInt32Value(Attributes::ATTR_REMAIN_TIMES, property.remainingTimes);
+            result.SetInt32Value(Attributes::ATTR_FREEZING_TIME, property.freezingTime);
             callback->OnResult(ERR_OK, result);
         } else {
-            callback->OnResult(ERR_ACCOUNT_IAM_UNSUPPORTED_AUTH_TYPE, result);
+            callback->OnResult(errCode, result);
         }
         return;
     }

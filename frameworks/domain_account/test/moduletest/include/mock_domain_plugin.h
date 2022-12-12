@@ -26,6 +26,11 @@ public:
     virtual ~MockDomainPlugin();
     void Auth(const DomainAccountInfo &info, const std::vector<uint8_t> &password,
         const std::shared_ptr<DomainAuthCallback> &callback) override;
+    int32_t GetAuthProperty(const DomainAccountInfo &info, DomainAuthProperty &property) override;
+
+private:
+    int32_t remainingTimes_;
+    int32_t freezingTime_;
 };
 }  // AccountSA
 }  // OHOS

@@ -30,6 +30,7 @@ public:
     ~DomainAccountPluginService() override;
     ErrCode Auth(const DomainAccountInfo &info, const std::vector<uint8_t> &password,
         const sptr<IDomainAuthCallback> &callback) override;
+    ErrCode GetAuthProperty(const DomainAccountInfo &info, DomainAuthProperty &property) override;
 
 private:
     std::shared_ptr<DomainAccountPlugin> innerPlugin_;

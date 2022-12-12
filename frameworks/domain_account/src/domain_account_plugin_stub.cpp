@@ -35,6 +35,10 @@ const std::map<std::uint32_t, DomainAccountPluginStub::MessageProcFunction> Doma
     {
         IDomainAccountPlugin::Message::DOMAIN_PLUGIN_AUTH,
         &DomainAccountPluginStub::ProcAuth
+    },
+    {
+        IDomainAccountPlugin::Message::DOMAIN_PLUGIN_GET_AUTH_PROPERTY,
+        &DomainAccountPluginStub::ProcGetAuthProperty
     }
 };
 
@@ -86,6 +90,35 @@ ErrCode DomainAccountPluginStub::ProcAuth(MessageParcel &data, MessageParcel &re
     if (!reply.WriteInt32(result)) {
         ACCOUNT_LOGE("failed to write result");
         return IPC_STUB_WRITE_PARCEL_ERR;
+    }
+    return ERR_NONE;
+}
+
+
+ErrCode DomainAccountPluginStub::ProcGetAuthProperty(MessageParcel &data, MessageParcel &reply)
+{
+    DomainAccountInfo info;
+    if (!data.ReadString(info.accountName_)) {
+        ACCOUNT_LOGE("failed to read domain account name");
+        return ERR_ACCOUNT_COMMON_READ_PARCEL_ERROR;
+    }
+    if (!data.ReadString(info.domain_)) {
+        ACCOUNT_LOGE("failed to read domain");
+        return ERR_ACCOUNT_COMMON_READ_PARCEL_ERROR;
+    }
+    DomainAuthProperty prop;
+    ErrCode result = GetAuthProperty(info, prop);
+    if (!reply.WriteInt32(result)) {
+        ACCOUNT_LOGE("failed to write result");
+        return ERR_ACCOUNT_COMMON_WRITE_PARCEL_ERROR;
+    }
+    if (!reply.WriteInt32(prop.remainingTimes)) {
+        ACCOUNT_LOGE("failed to write remaining times");
+        return ERR_ACCOUNT_COMMON_WRITE_PARCEL_ERROR;
+    }
+    if (!reply.WriteInt32(prop.freezingTime)) {
+        ACCOUNT_LOGE("failed to write freezing time");
+        return ERR_ACCOUNT_COMMON_WRITE_PARCEL_ERROR;
     }
     return ERR_NONE;
 }

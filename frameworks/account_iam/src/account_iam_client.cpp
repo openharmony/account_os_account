@@ -29,7 +29,7 @@
 namespace OHOS {
 namespace AccountSA {
 namespace {
-const std::string PERMISSION_USE_USER_IDM = "ohos.permission.USE_USER_IDM";
+const std::string PERMISSION_MANAGE_USER_IDM = "ohos.permission.MANAGE_USER_IDM";
 const std::string PERMISSION_ACCESS_USER_AUTH_INTERNAL = "ohos.permission.ACCESS_USER_AUTH_INTERNAL";
 }
 AccountIAMClient::AccountIAMClient()
@@ -292,11 +292,6 @@ bool AccountIAMClient::CheckSelfPermission(const std::string &permissionName)
 
 ErrCode AccountIAMClient::RegisterDomainInputer(const std::shared_ptr<IInputer> &inputer)
 {
-    if ((!CheckSelfPermission(PERMISSION_ACCESS_USER_AUTH_INTERNAL)) &&
-        (!CheckSelfPermission(PERMISSION_USE_USER_IDM))) {
-        ACCOUNT_LOGE("failed to check permission");
-        return ERR_ACCOUNT_IAM_SERVICE_PERMISSION_DENIED;
-    }
     std::lock_guard<std::mutex> lock(domainMutex_);
     if (domainInputer_ != nullptr) {
         ACCOUNT_LOGE("inputer is already registered");
@@ -308,13 +303,16 @@ ErrCode AccountIAMClient::RegisterDomainInputer(const std::shared_ptr<IInputer> 
 
 ErrCode AccountIAMClient::RegisterInputer(int32_t authType, const std::shared_ptr<IInputer> &inputer)
 {
+    if ((!CheckSelfPermission(PERMISSION_ACCESS_USER_AUTH_INTERNAL)) &&
+        (!CheckSelfPermission(PERMISSION_MANAGE_USER_IDM))) {
+        ACCOUNT_LOGE("failed to check permission");
+        return ERR_ACCOUNT_IAM_SERVICE_PERMISSION_DENIED;
+    }
     if (inputer == nullptr) {
         ACCOUNT_LOGE("inputer is nullptr");
         return ERR_ACCOUNT_COMMON_INVALID_PARAMTER;
     }
     switch (authType) {
-        case AuthType::PIN:
-            return RegisterPINInputer(inputer);
         case IAMAuthType::DOMAIN:
             return RegisterDomainInputer(inputer);
         default:
@@ -324,10 +322,12 @@ ErrCode AccountIAMClient::RegisterInputer(int32_t authType, const std::shared_pt
 
 ErrCode AccountIAMClient::UnregisterInputer(int32_t authType)
 {
+    if ((!CheckSelfPermission(PERMISSION_ACCESS_USER_AUTH_INTERNAL)) &&
+        (!CheckSelfPermission(PERMISSION_MANAGE_USER_IDM))) {
+        ACCOUNT_LOGE("failed to check permission");
+        return ERR_ACCOUNT_IAM_SERVICE_PERMISSION_DENIED;
+    }
     switch (authType) {
-        case AuthType::PIN:
-            UnregisterPINInputer();
-            break;
         case IAMAuthType::DOMAIN:
             return UnregisterDomainInputer();
         default:
@@ -345,11 +345,6 @@ void AccountIAMClient::UnregisterPINInputer()
 
 ErrCode AccountIAMClient::UnregisterDomainInputer()
 {
-    if ((!CheckSelfPermission(PERMISSION_ACCESS_USER_AUTH_INTERNAL)) &&
-        (!CheckSelfPermission(PERMISSION_USE_USER_IDM))) {
-        ACCOUNT_LOGE("failed to check permission");
-        return ERR_ACCOUNT_IAM_SERVICE_PERMISSION_DENIED;
-    }
     std::lock_guard<std::mutex> lock(domainMutex_);
     domainInputer_ = nullptr;
     return ERR_OK;

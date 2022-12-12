@@ -36,14 +36,21 @@ ErrCode DomainAccountPluginProxy::SendRequest(
         return ERR_ACCOUNT_COMMON_NULL_PTR_ERROR;
     }
     MessageOption option(MessageOption::TF_SYNC);
-    return remote->SendRequest(static_cast<uint32_t>(code), data, reply, option);
+    ErrCode result = remote->SendRequest(static_cast<uint32_t>(code), data, reply, option);
+    if (result != ERR_OK) {
+        ACCOUNT_LOGE("failed to send request, result: %{public}d", result);
+        return result;
+    }
+    if (!reply.ReadInt32(result)) {
+        ACCOUNT_LOGE("failed to read result");
+        return ERR_ACCOUNT_COMMON_READ_PARCEL_ERROR;
+    }
+    return result;
 }
 
-ErrCode DomainAccountPluginProxy::Auth(const DomainAccountInfo &info, const std::vector<uint8_t> &password,
-    const sptr<IDomainAuthCallback> &callback)
+static ErrCode WriteCommonData(MessageParcel &data, const std::u16string &descriptor, const DomainAccountInfo &info)
 {
-    MessageParcel data;
-    if (!data.WriteInterfaceToken(GetDescriptor())) {
+    if (!data.WriteInterfaceToken(descriptor)) {
         ACCOUNT_LOGE("fail to write descriptor");
         return ERR_ACCOUNT_COMMON_WRITE_PARCEL_ERROR;
     }
@@ -55,6 +62,17 @@ ErrCode DomainAccountPluginProxy::Auth(const DomainAccountInfo &info, const std:
         ACCOUNT_LOGE("fail to write domain");
         return ERR_ACCOUNT_COMMON_WRITE_PARCEL_ERROR;
     }
+    return ERR_OK;
+}
+
+ErrCode DomainAccountPluginProxy::Auth(const DomainAccountInfo &info, const std::vector<uint8_t> &password,
+    const sptr<IDomainAuthCallback> &callback)
+{
+    MessageParcel data;
+    ErrCode result = WriteCommonData(data, GetDescriptor(), info);
+    if (result != ERR_OK) {
+        return result;
+    }
     if (!data.WriteUInt8Vector(password)) {
         ACCOUNT_LOGE("failed to write password");
         return ERR_ACCOUNT_COMMON_WRITE_PARCEL_ERROR;
@@ -64,13 +82,27 @@ ErrCode DomainAccountPluginProxy::Auth(const DomainAccountInfo &info, const std:
         return ERR_ACCOUNT_COMMON_WRITE_PARCEL_ERROR;
     }
     MessageParcel reply;
-    ErrCode result = SendRequest(IDomainAccountPlugin::Message::DOMAIN_PLUGIN_AUTH, data, reply);
+    return SendRequest(IDomainAccountPlugin::Message::DOMAIN_PLUGIN_AUTH, data, reply);
+}
+
+ErrCode DomainAccountPluginProxy::GetAuthProperty(const DomainAccountInfo &info, DomainAuthProperty &property)
+{
+    MessageParcel data;
+    ErrCode result = WriteCommonData(data, GetDescriptor(), info);
     if (result != ERR_OK) {
-        ACCOUNT_LOGE("failed to send request, result: %{public}d", result);
         return result;
     }
-    if (!reply.ReadInt32(result)) {
-        ACCOUNT_LOGE("failed to read result");
+    MessageParcel reply;
+    result = SendRequest(IDomainAccountPlugin::Message::DOMAIN_PLUGIN_GET_AUTH_PROPERTY, data, reply);
+    if (result != ERR_OK) {
+        return result;
+    }
+    if (!reply.ReadInt32(property.remainingTimes)) {
+        ACCOUNT_LOGE("fail to read remaining times");
+        return ERR_ACCOUNT_COMMON_READ_PARCEL_ERROR;
+    }
+    if (!reply.ReadInt32(property.freezingTime)) {
+        ACCOUNT_LOGE("fail to read freezing times");
         return ERR_ACCOUNT_COMMON_READ_PARCEL_ERROR;
     }
     return result;
