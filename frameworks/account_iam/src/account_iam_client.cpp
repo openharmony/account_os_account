@@ -221,7 +221,7 @@ int32_t AccountIAMClient::GetAvailableStatus(AuthType authType, AuthTrustLevel a
         ACCOUNT_LOGE("authTrustLevel is not in correct range");
         return ERR_ACCOUNT_IAM_KIT_PARAM_INVALID_ERROR;
     }
-    if (authType < UserIam::UserAuth::ALL || authType > UserIam::UserAuth::FINGERPRINT) {
+    if (authType < UserIam::UserAuth::ALL) {
         ACCOUNT_LOGE("authType is not in correct range");
         return ERR_ACCOUNT_IAM_KIT_PARAM_INVALID_ERROR;
     }
