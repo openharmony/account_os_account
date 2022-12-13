@@ -233,12 +233,8 @@ HWTEST_F(AccountIAMClientTest, AccountIAMClient_GetAvailableStatus_0100, TestSiz
 HWTEST_F(AccountIAMClientTest, AccountIAMClient_GetAvailableStatus_0200, TestSize.Level0)
 {
     int32_t status;
-    AuthType authType = static_cast<AuthType>(11);
-    int32_t ret = AccountIAMClient::GetInstance().GetAvailableStatus(authType, AuthTrustLevel::ATL1, status);
-    EXPECT_EQ(ERR_ACCOUNT_IAM_KIT_PARAM_INVALID_ERROR, ret);
-
     AuthTrustLevel level = static_cast<AuthTrustLevel>(0);
-    ret = AccountIAMClient::GetInstance().GetAvailableStatus(AuthType::FACE, level, status);
+    int32_t ret = AccountIAMClient::GetInstance().GetAvailableStatus(AuthType::FACE, level, status);
     EXPECT_EQ(ERR_ACCOUNT_IAM_KIT_PARAM_INVALID_ERROR, ret);
 }
 
@@ -350,7 +346,6 @@ HWTEST_F(AccountIAMClientTest, AccountIAMClient_RegisterInputer_0100, TestSize.L
 {
     std::shared_ptr<IInputer> inputer = std::make_shared<TestIInputer>();
     EXPECT_NE(nullptr, inputer);
-    EXPECT_EQ(ERR_OK, AccountIAMClient::GetInstance().RegisterInputer(AuthType::PIN, inputer));
     EXPECT_EQ(ERR_ACCOUNT_IAM_UNSUPPORTED_AUTH_TYPE,
         AccountIAMClient::GetInstance().RegisterInputer(AuthType::PIN, inputer));
     EXPECT_EQ(ERR_ACCOUNT_IAM_UNSUPPORTED_AUTH_TYPE, AccountIAMClient::GetInstance().UnregisterInputer(AuthType::PIN));
