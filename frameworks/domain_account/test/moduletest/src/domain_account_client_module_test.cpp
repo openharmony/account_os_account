@@ -210,6 +210,21 @@ HWTEST_F(DomainAccountClientModuleTest, DomainAccountClientModuleTest_Auth_003, 
 }
 
 /**
+ * @tc.name: DomainAccountClientModuleTest_Auth_004
+ * @tc.desc: Auth domain account failed with invalid callback.
+ * @tc.type: FUNC
+ * @tc.require: issueI64KAM
+ */
+HWTEST_F(DomainAccountClientModuleTest, DomainAccountClientModuleTest_Auth_004, TestSize.Level0)
+{
+    DomainAccountInfo info;
+    info.accountName_ = STRING_NAME;
+    info.domain_ = STRING_DOMAIN;
+    EXPECT_EQ(
+        DomainAccountClient::GetInstance().Auth(info, VALID_PASSWORD, nullptr), ERR_ACCOUNT_COMMON_INVALID_PARAMTER);
+}
+
+/**
  * @tc.name: DomainAccountClientModuleTest_AuthUser_001
  * @tc.desc: Auth user failed with invalid user id.
  * @tc.type: FUNC
@@ -304,4 +319,16 @@ HWTEST_F(DomainAccountClientModuleTest, DomainAccountClientModuleTest_AuthUser_0
     testCallback->SetOsAccountInfo(accountInfo);
     EXPECT_EQ(
         DomainAccountClient::GetInstance().AuthUser(accountInfo.GetLocalId(), VALID_PASSWORD, testCallback), ERR_OK);
+}
+
+/**
+ * @tc.name: DomainAccountClientModuleTest_AuthUser_006
+ * @tc.desc: Auth user failed with invalid callback.
+ * @tc.type: FUNC
+ * @tc.require: issueI64KAM
+ */
+HWTEST_F(DomainAccountClientModuleTest, DomainAccountClientModuleTest_AuthUser_006, TestSize.Level0)
+{
+    EXPECT_EQ(DomainAccountClient::GetInstance().AuthUser(DEFAULT_USER_ID, VALID_PASSWORD, nullptr),
+        ERR_ACCOUNT_COMMON_INVALID_PARAMTER);
 }
