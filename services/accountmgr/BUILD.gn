@@ -38,6 +38,7 @@ config("accountmgr_config") {
     "./include/ability_manager_adapter",
     "./include/appaccount",
     "./include/osaccount",
+    "${common_path}/utils/include",
     "${common_path}/log/include",
     "${common_path}/perf_stat/include",
     "${common_path}/account_error/include",
@@ -131,7 +132,6 @@ group("accountmgr_target") {
 
 ohos_shared_library("accountmgr") {
   visibility = [ "${os_account_path}/*" ]
-
   cflags = [ "-pipe" ]
   cflags_cc = [
     "-Wdate-time",
@@ -149,6 +149,7 @@ ohos_shared_library("accountmgr") {
     "${app_account_innerkits_native_path}/src/app_account_common.cpp",
     "${app_account_innerkits_native_path}/src/app_account_info.cpp",
     "${app_account_innerkits_native_path}/src/app_account_subscribe_info.cpp",
+    "${common_path}/utils/src/account_permission_manager.cpp",
     "${domain_account_framework_path}/src/domain_auth_callback_proxy.cpp",
     "${domain_account_framework_path}/src/domain_auth_callback_service.cpp",
     "${domain_account_framework_path}/src/domain_auth_callback_stub.cpp",
@@ -159,7 +160,6 @@ ohos_shared_library("accountmgr") {
     "src/account_event_provider.cpp",
     "src/account_helper_data.cpp",
     "src/account_mgr_service.cpp",
-    "src/account_permission_manager.cpp",
     "src/account_state_machine.cpp",
     "src/account_stub.cpp",
     "src/appaccount/app_account_app_state_observer.cpp",
@@ -197,6 +197,7 @@ ohos_shared_library("accountmgr") {
     "src/osaccount/os_account_manager_service.cpp",
     "src/osaccount/os_account_photo_operator.cpp",
     "src/osaccount/os_account_stop_user_callback.cpp",
+    "src/osaccount/os_account_stub.cpp",
     "src/osaccount/os_account_subscribe_death_recipient.cpp",
     "src/osaccount/os_account_subscribe_manager.cpp",
   ]
@@ -262,6 +263,7 @@ ohos_shared_library("accountmgr") {
     "ability_runtime:app_manager",
     "ability_runtime:wantagent_innerkits",
     "access_token:libaccesstoken_sdk",
+    "access_token:libtokenid_sdk",
     "bundle_framework:appexecfwk_base",
     "c_utils:utils",
     "eventhandler:libeventhandler",

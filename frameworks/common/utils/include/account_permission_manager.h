@@ -27,6 +27,7 @@ public:
     ~AccountPermissionManager();
 
     ErrCode VerifyPermission(const std::string &permissionName);
+    ErrCode CheckSystemApp(bool isCallStub = true);
 
     static const std::string DISTRIBUTED_DATASYNC;
     static const std::string GET_ALL_APP_ACCOUNTS;

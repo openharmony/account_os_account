@@ -23,6 +23,7 @@
 #include "account_iam_client_callback.h"
 #include "account_iam_info.h"
 #include "account_error_no.h"
+#include "account_permission_manager.h"
 #include "iaccount_iam.h"
 #include "singleton.h"
 
@@ -53,7 +54,7 @@ public:
     void SetProperty(
         int32_t userId, const SetPropertyRequest &request, const std::shared_ptr<GetSetPropCallback> &callback);
     ErrCode RegisterPINInputer(const std::shared_ptr<IInputer> &inputer);
-    void UnregisterPINInputer();
+    ErrCode UnregisterPINInputer();
     ErrCode RegisterInputer(int32_t authType, const std::shared_ptr<IInputer> &inputer);
     ErrCode UnregisterInputer(int32_t authType);
     IAMState GetAccountState(int32_t userId);
@@ -90,6 +91,7 @@ private:
     sptr<AccountIAMDeathRecipient> deathRecipient_ = nullptr;
     std::shared_ptr<IInputer> pinInputer_ = nullptr;
     std::shared_ptr<IInputer> domainInputer_ = nullptr;
+    std::shared_ptr<AccountPermissionManager> permissionManagerPtr_ = nullptr;
 };
 }  // namespace AccountSA
 }  // namespace OHOS

@@ -25,67 +25,110 @@
 namespace OHOS {
 namespace AccountSA {
 AccountIAMMgrStub::AccountIAMMgrStub()
-{}
+{
+    permissionManagerPtr_ = DelayedSingleton<AccountPermissionManager>::GetInstance();
+}
 
 AccountIAMMgrStub::~AccountIAMMgrStub()
 {}
 
-const std::map<uint32_t, AccountIAMMgrStub::MessageProcFunction> AccountIAMMgrStub::messageProcMap_ = {
+const std::map<uint32_t, AccountIAMMgrStub::AccountIAMMessageProc> AccountIAMMgrStub::messageProcMap_ = {
     {
         static_cast<uint32_t>(IAccountIAM::Message::OPEN_SESSION),
-        &AccountIAMMgrStub::ProcOpenSession
+        {
+            .messageProcFunction = &AccountIAMMgrStub::ProcOpenSession,
+            .isSyetemApi = true,
+        }
     },
     {
         static_cast<uint32_t>(IAccountIAM::Message::CLOSE_SESSION),
-        &AccountIAMMgrStub::ProcCloseSession
+        {
+            .messageProcFunction = &AccountIAMMgrStub::ProcCloseSession,
+            .isSyetemApi = true,
+        }
     },
     {
         static_cast<uint32_t>(IAccountIAM::Message::ADD_CREDENTIAL),
-        &AccountIAMMgrStub::ProcAddCredential
+        {
+            .messageProcFunction = &AccountIAMMgrStub::ProcAddCredential,
+            .isSyetemApi = true,
+        }
     },
     {
         static_cast<uint32_t>(IAccountIAM::Message::UPDATE_CREDENTIAL),
-        &AccountIAMMgrStub::ProcUpdateCredential
+        {
+            .messageProcFunction = &AccountIAMMgrStub::ProcUpdateCredential,
+            .isSyetemApi = true,
+        }
     },
     {
         static_cast<uint32_t>(IAccountIAM::Message::DEL_CRED),
-        &AccountIAMMgrStub::ProcDelCred
+        {
+            .messageProcFunction = &AccountIAMMgrStub::ProcDelCred,
+            .isSyetemApi = true,
+        }
     },
     {
         static_cast<uint32_t>(IAccountIAM::Message::DEL_USER),
-        &AccountIAMMgrStub::ProcDelUser
+        {
+            .messageProcFunction = &AccountIAMMgrStub::ProcDelUser,
+            .isSyetemApi = true,
+        }
     },
     {
         static_cast<uint32_t>(IAccountIAM::Message::CANCEL),
-        &AccountIAMMgrStub::ProcCancel
+        {
+            .messageProcFunction = &AccountIAMMgrStub::ProcCancel,
+            .isSyetemApi = true,
+        }
     },
     {
         static_cast<uint32_t>(IAccountIAM::Message::GET_CREDENTIAL_INFO),
-        &AccountIAMMgrStub::ProcGetCredentialInfo
+        {
+            .messageProcFunction = &AccountIAMMgrStub::ProcGetCredentialInfo,
+            .isSyetemApi = true,
+        }
     },
     {
         static_cast<uint32_t>(IAccountIAM::Message::AUTH_USER),
-        &AccountIAMMgrStub::ProcAuthUser
+        {
+            .messageProcFunction = &AccountIAMMgrStub::ProcAuthUser,
+            .isSyetemApi = true,
+        }
     },
     {
         static_cast<uint32_t>(IAccountIAM::Message::CANCEL_AUTH),
-        &AccountIAMMgrStub::ProcCancelAuth
+        {
+            .messageProcFunction = &AccountIAMMgrStub::ProcCancelAuth,
+            .isSyetemApi = true,
+        }
     },
     {
         static_cast<uint32_t>(IAccountIAM::Message::GET_AVAILABLE_STATUS),
-        &AccountIAMMgrStub::ProcGetAvailableStatus
+        {
+            .messageProcFunction = &AccountIAMMgrStub::ProcGetAvailableStatus,
+            .isSyetemApi = true,
+        }
     },
     {
         static_cast<uint32_t>(IAccountIAM::Message::GET_PROPERTY),
-        &AccountIAMMgrStub::ProcGetProperty
+        {
+            .messageProcFunction = &AccountIAMMgrStub::ProcGetProperty,
+            .isSyetemApi = true,
+        }
     },
     {
         static_cast<uint32_t>(IAccountIAM::Message::SET_PROPERTY),
-        &AccountIAMMgrStub::ProcSetProperty
+        {
+            .messageProcFunction = &AccountIAMMgrStub::ProcSetProperty,
+            .isSyetemApi = true,
+        }
     },
     {
         static_cast<uint32_t>(IAccountIAM::Message::GET_ACCOUNT_STATE),
-        &AccountIAMMgrStub::ProcGetAccountState
+        {
+            .messageProcFunction = &AccountIAMMgrStub::ProcGetAccountState,
+        }
     }
 };
 
@@ -102,7 +145,14 @@ std::int32_t AccountIAMMgrStub::OnRemoteRequest(
     }
     const auto &itFunc = messageProcMap_.find(code);
     if (itFunc != messageProcMap_.end()) {
-        return (this->*(itFunc->second))(data, reply);
+        if (itFunc->second.isSyetemApi) {
+            result = permissionManagerPtr_->CheckSystemApp();
+            if (result != ERR_OK) {
+                ACCOUNT_LOGE("is not system application, result = %{public}u.", result);
+                return result;
+            }
+        }
+        return (this->*(itFunc->second.messageProcFunction))(data, reply);
     }
     ACCOUNT_LOGW("remote request unhandled: %{public}d", code);
     return IPCObjectStub::OnRemoteRequest(code, data, reply, option);

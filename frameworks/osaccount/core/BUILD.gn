@@ -67,7 +67,6 @@ ohos_shared_library("os_account_core") {
     "${os_account_core_path}/src/os_account_event_proxy.cpp",
     "${os_account_core_path}/src/os_account_event_stub.cpp",
     "${os_account_core_path}/src/os_account_proxy.cpp",
-    "${os_account_core_path}/src/os_account_stub.cpp",
     "${os_account_innerkits_native_path}/src/os_account_info.cpp",
     "${os_account_innerkits_native_path}/src/os_account_subscribe_info.cpp",
     "${os_account_innerkits_native_path}/src/os_account_subscriber.cpp",
