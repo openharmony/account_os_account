@@ -17,7 +17,9 @@
 
 #include "accesstoken_kit.h"
 #include "account_log_wrapper.h"
+#include "account_constants.h"
 #include "ipc_skeleton.h"
+#include "tokenid_kit.h"
 
 using namespace OHOS::Security::AccessToken;
 
@@ -46,6 +48,22 @@ ErrCode AccountPermissionManager::VerifyPermission(const std::string &permission
     ErrCode result = AccessTokenKit::VerifyAccessToken(callingToken, permissionName);
     if (result == TypePermissionState::PERMISSION_DENIED) {
         return ERR_ACCOUNT_ZIDL_CHECK_PERMISSION_ERROR;
+    }
+    return ERR_OK;
+}
+
+ErrCode AccountPermissionManager::CheckSystemApp(bool isCallStub)
+{
+    uint64_t fullTokenId;
+    if (isCallStub) {
+        fullTokenId = IPCSkeleton::GetCallingFullTokenID();
+    } else {
+        fullTokenId = IPCSkeleton::GetSelfTokenID();
+    }
+    AccessTokenID tokenId = fullTokenId & TOKEN_ID_LOWMASK;
+    ATokenTypeEnum tokenType = AccessTokenKit::GetTokenType(tokenId);
+    if ((tokenType == ATokenTypeEnum::TOKEN_HAP) && (!TokenIdKit::IsSystemAppByFullTokenID(fullTokenId))) {
+        return ERR_ACCOUNT_COMMON_NOT_SYSTEM_APP_ERROR;
     }
     return ERR_OK;
 }

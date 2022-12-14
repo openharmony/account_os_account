@@ -20,6 +20,7 @@
 #include "account_iam_callback_service.h"
 #include "account_log_wrapper.h"
 #include "account_proxy.h"
+#include "account_permission_manager.h"
 #include "ipc_skeleton.h"
 #include "iservice_registry.h"
 #include "os_account_manager.h"
@@ -29,11 +30,14 @@
 namespace OHOS {
 namespace AccountSA {
 namespace {
+const std::string PERMISSION_ACCESS_PIN_AUTH = "ohos.permission.ACCESS_PIN_AUTH";
 const std::string PERMISSION_MANAGE_USER_IDM = "ohos.permission.MANAGE_USER_IDM";
 const std::string PERMISSION_ACCESS_USER_AUTH_INTERNAL = "ohos.permission.ACCESS_USER_AUTH_INTERNAL";
 }
 AccountIAMClient::AccountIAMClient()
-{}
+{
+    permissionManagerPtr_ = DelayedSingleton<AccountPermissionManager>::GetInstance();
+}
 
 int32_t AccountIAMClient::OpenSession(int32_t userId, std::vector<uint8_t> &challenge)
 {
@@ -263,6 +267,11 @@ void AccountIAMClient::SetProperty(
 ErrCode AccountIAMClient::RegisterPINInputer(const std::shared_ptr<IInputer> &inputer)
 {
     std::lock_guard<std::mutex> lock(pinMutex_);
+    ErrCode result = permissionManagerPtr_->CheckSystemApp(false);
+    if (result != ERR_OK) {
+        ACCOUNT_LOGE("is not system application, result = %{public}u.", result);
+        return result;
+    }
     if (pinInputer_ != nullptr) {
         ACCOUNT_LOGE("inputer is already registered");
         return ERR_ACCOUNT_IAM_KIT_INPUTER_ALREADY_REGISTERED;
@@ -303,6 +312,11 @@ ErrCode AccountIAMClient::RegisterDomainInputer(const std::shared_ptr<IInputer> 
 
 ErrCode AccountIAMClient::RegisterInputer(int32_t authType, const std::shared_ptr<IInputer> &inputer)
 {
+    ErrCode result = permissionManagerPtr_->CheckSystemApp(false);
+    if (result != ERR_OK) {
+        ACCOUNT_LOGE("is not system application, result = %{public}u.", result);
+        return result;
+    }
     if ((!CheckSelfPermission(PERMISSION_ACCESS_USER_AUTH_INTERNAL)) &&
         (!CheckSelfPermission(PERMISSION_MANAGE_USER_IDM))) {
         ACCOUNT_LOGE("failed to check permission");
@@ -322,6 +336,11 @@ ErrCode AccountIAMClient::RegisterInputer(int32_t authType, const std::shared_pt
 
 ErrCode AccountIAMClient::UnregisterInputer(int32_t authType)
 {
+    ErrCode result = permissionManagerPtr_->CheckSystemApp(false);
+    if (result != ERR_OK) {
+        ACCOUNT_LOGE("is not system application, result = %{public}u.", result);
+        return result;
+    }
     if ((!CheckSelfPermission(PERMISSION_ACCESS_USER_AUTH_INTERNAL)) &&
         (!CheckSelfPermission(PERMISSION_MANAGE_USER_IDM))) {
         ACCOUNT_LOGE("failed to check permission");
@@ -336,11 +355,21 @@ ErrCode AccountIAMClient::UnregisterInputer(int32_t authType)
     return ERR_OK;
 }
 
-void AccountIAMClient::UnregisterPINInputer()
+ErrCode AccountIAMClient::UnregisterPINInputer()
 {
+    ErrCode result = permissionManagerPtr_->CheckSystemApp(false);
+    if (result != ERR_OK) {
+        ACCOUNT_LOGE("is not system application, result = %{public}u.", result);
+        return result;
+    }
+    if (!CheckSelfPermission(PERMISSION_ACCESS_PIN_AUTH)) {
+        ACCOUNT_LOGE("failed to check permission");
+        return ERR_ACCOUNT_IAM_SERVICE_PERMISSION_DENIED;
+    }
     UserIam::PinAuth::PinAuthRegister::GetInstance().UnRegisterInputer();
     std::lock_guard<std::mutex> lock(pinMutex_);
     pinInputer_ = nullptr;
+    return ERR_OK;
 }
 
 ErrCode AccountIAMClient::UnregisterDomainInputer()

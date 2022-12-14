@@ -18,6 +18,7 @@ config("account_iam_innnerkits_config") {
   visibility = [ ":*" ]
 
   include_dirs = [
+    "${common_path}/utils/include",
     "${account_iam_interfaces_native_path}/include",
     "${innerkits_path}/include",
   ]
@@ -53,6 +54,7 @@ config("account_iam_innerkits_public_config") {
   visibility = [ ":*" ]
 
   include_dirs = [
+    "${common_path}/utils/include",
     "${account_iam_interfaces_native_path}/include",
     "${innerkits_native_path}/include",
     "//base/useriam/pin_auth/frameworks/ipc/common_defines",
@@ -78,6 +80,7 @@ ohos_shared_library("account_iam_innerkits") {
   public_configs = [ ":account_iam_innerkits_public_config" ]
 
   deps = [
+    "${common_path}:libaccount_common",
     "${domain_account_framework_path}:domain_account_innerkits",
     "${innerkits_native_path}:libaccountkits",
     "${os_account_innerkits_native_path}:os_account_innerkits",

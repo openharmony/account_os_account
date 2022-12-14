@@ -18,6 +18,7 @@
 #include "account_error_no.h"
 #include "account_log_wrapper.h"
 #include "app_account_constants.h"
+#include "account_constants.h"
 #ifdef HICOLLIE_ENABLE
 #include "xcollie/xcollie.h"
 #endif // HICOLLIE_ENABLE
@@ -235,8 +236,8 @@ int AppAccountStub::OnRemoteRequest(uint32_t code, MessageParcel &data, MessageP
     }
 
 #ifdef HICOLLIE_ENABLE
-    int timerId = HiviewDFX::XCollie::GetInstance().SetTimer(Constants::TIMER_NAME, Constants::TIMEOUT,
-        nullptr, nullptr, HiviewDFX::XCOLLIE_FLAG_LOG);
+    int timerId =
+        HiviewDFX::XCollie::GetInstance().SetTimer(TIMER_NAME, TIMEOUT, nullptr, nullptr, HiviewDFX::XCOLLIE_FLAG_LOG);
 #endif // HICOLLIE_ENABLE
 
     auto messageProc = messageProcMap_.find(code);
