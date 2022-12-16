@@ -42,7 +42,7 @@ public:
      * @param[out] property Indicates the authentication property, including remaining times and freezing time.
      * @return 0 indicates success, others indicate failure.
     */
-    virtual int32_t GetAuthProperty(const DomainAccountInfo &info, DomainAuthProperty &property);
+    virtual int32_t GetAuthProperty(const DomainAccountInfo &info, DomainAuthProperty &property) = 0;
 };
 }  // namespace AccountSA
 }  // namespace OHOS

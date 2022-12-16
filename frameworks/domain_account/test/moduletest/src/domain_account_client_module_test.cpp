@@ -132,7 +132,7 @@ HWTEST_F(DomainAccountClientModuleTest, DomainAccountClientModuleTest_Plugin_004
 HWTEST_F(DomainAccountClientModuleTest, DomainAccountClientModuleTest_Plugin_005, TestSize.Level0)
 {
     AccessTokenID selfTokenId = IPCSkeleton::GetSelfTokenID();
-    AccessTokenID tokenId = AccessTokenKit::GetHapTokenID(DEFAULT_USER_ID, "com.ohos.settings", 0);
+    AccessTokenID tokenId = AccessTokenKit::GetNativeTokenId("accountmgr");
     SetSelfTokenID(tokenId);
     ASSERT_EQ(DomainAccountClient::GetInstance().UnregisterPlugin(), ERR_OK);
     ASSERT_EQ(DomainAccountClient::GetInstance().RegisterPlugin(g_plugin), ERR_OK);
@@ -313,7 +313,6 @@ HWTEST_F(DomainAccountClientModuleTest, DomainAccountClientModuleTest_AuthUser_0
     ASSERT_EQ(newDomainInfo.domain_, domainInfo.domain_);
     auto callback = std::make_shared<MockDomainAuthCallback>();
     ASSERT_NE(callback, nullptr);
-    EXPECT_CALL(*callback, OnResult(0, _)).Times(Exactly(1));
     auto testCallback = std::make_shared<TestDomainAuthCallback>(callback);
     ASSERT_NE(testCallback, nullptr);
     testCallback->SetOsAccountInfo(accountInfo);
