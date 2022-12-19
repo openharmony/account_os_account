@@ -30,6 +30,7 @@
 #include "ipc_skeleton.h"
 #include "iservice_registry.h"
 #include "ohos_account_kits.h"
+#include "account_constants.h"
 #ifdef HICOLLIE_ENABLE
 #include "xcollie/xcollie.h"
 #endif // HICOLLIE_ENABLE
@@ -360,8 +361,8 @@ std::int32_t AccountStub::OnRemoteRequest(
     }
 
 #ifdef HICOLLIE_ENABLE
-    int timerId = HiviewDFX::XCollie::GetInstance().SetTimer(Constants::TIMER_NAME, Constants::TIMEOUT,
-        nullptr, nullptr, HiviewDFX::XCOLLIE_FLAG_LOG);
+    int timerId =
+        HiviewDFX::XCollie::GetInstance().SetTimer(TIMER_NAME, TIMEOUT, nullptr, nullptr, HiviewDFX::XCOLLIE_FLAG_LOG);
 #endif // HICOLLIE_ENABLE
 
     const auto &itFunc = stubFuncMap_.find(code);

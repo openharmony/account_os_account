@@ -17,6 +17,7 @@
 #define OS_ACCOUNT_FRAMEWORKS_OSACCOUNT_CORE_INCLUDE_OS_ACCOUNT_STUB_H
 
 #include "ios_account.h"
+#include "account_permission_manager.h"
 #include "iremote_stub.h"
 
 namespace OHOS {
@@ -24,6 +25,10 @@ namespace AccountSA {
 class OsAccountStub : public IRemoteStub<IOsAccount> {
 public:
     using MessageProcFunction = ErrCode (OsAccountStub::*)(MessageParcel &data, MessageParcel &reply);
+    typedef struct OsAccountMessageProc {
+        MessageProcFunction messageProcFunction;
+        bool isSyetemApi = false;
+    } OsAccountMessageProc;
     OsAccountStub();
     ~OsAccountStub() override;
     int OnRemoteRequest(
@@ -82,7 +87,8 @@ private:
     bool WriteParcelableVector(const std::vector<T> &parcelableVector, MessageParcel &data);
     template<typename T>
     bool ReadParcelableVector(std::vector<T> &parcelableInfos, MessageParcel &data);
-    static const std::map<uint32_t, MessageProcFunction> messageProcMap_;
+    static const std::map<uint32_t, OsAccountMessageProc> messageProcMap_;
+    std::shared_ptr<AccountPermissionManager> permissionManagerPtr_ = nullptr;
     DISALLOW_COPY_AND_MOVE(OsAccountStub);
 };
 }  // namespace AccountSA

@@ -143,6 +143,9 @@ int32_t ConvertToJSErrCode(int32_t nativeErrCode)
     if (nativeErrCode == ERR_OK) {
         return ERR_JS_SUCCESS;
     }
+    if (nativeErrCode == ERR_ACCOUNT_COMMON_NOT_SYSTEM_APP_ERROR) {
+        return ERR_JS_IS_NOT_SYSTEM_APP;
+    }
     if (IsAppAccountKitError(nativeErrCode) || IsAppAccountServiceError(nativeErrCode)) {
         return AppAccountConvertToJSErrCode(nativeErrCode);
     } else if (IsOsAccountKitError(nativeErrCode) || IsOsAccountServiceError(nativeErrCode)) {

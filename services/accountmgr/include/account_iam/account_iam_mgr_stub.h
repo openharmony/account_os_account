@@ -20,6 +20,7 @@
 
 #include <map>
 #include "account_error_no.h"
+#include "account_permission_manager.h"
 #include "iremote_stub.h"
 
 namespace OHOS {
@@ -27,6 +28,10 @@ namespace AccountSA {
 class AccountIAMMgrStub : public IRemoteStub<IAccountIAM> {
 public:
     using MessageProcFunction = ErrCode (AccountIAMMgrStub::*)(MessageParcel &data, MessageParcel &reply);
+    typedef struct AccountIAMMessageProc {
+        MessageProcFunction messageProcFunction;
+        bool isSyetemApi = false;
+    } AccountIAMMessageProc;
     AccountIAMMgrStub();
     ~AccountIAMMgrStub() override;
     int OnRemoteRequest(
@@ -52,7 +57,8 @@ private:
     bool CheckPermission(const std::string &permission);
 
 private:
-    static const std::map<uint32_t, MessageProcFunction> messageProcMap_;
+    static const std::map<uint32_t, AccountIAMMessageProc> messageProcMap_;
+    std::shared_ptr<AccountPermissionManager> permissionManagerPtr_ = nullptr;
     DISALLOW_COPY_AND_MOVE(AccountIAMMgrStub);
 };
 }  // namespace AccountSA
