@@ -190,7 +190,6 @@ void OsAccountControlFileManager::RecoverAccountListJsonFile()
 
 ErrCode OsAccountControlFileManager::GetOsAccountList(std::vector<OsAccountInfo> &osAccountList)
 {
-    ACCOUNT_LOGD("start");
     osAccountList.clear();
     Json accountListJson;
     if (GetAccountListFromFile(accountListJson) != ERR_OK) {
@@ -214,13 +213,11 @@ ErrCode OsAccountControlFileManager::GetOsAccountList(std::vector<OsAccountInfo>
             }
         }
     }
-    ACCOUNT_LOGD("end");
     return ERR_OK;
 }
 
 ErrCode OsAccountControlFileManager::GetOsAccountInfoById(const int id, OsAccountInfo &osAccountInfo)
 {
-    ACCOUNT_LOGD("start");
     std::string path = Constants::USER_INFO_BASE + Constants::PATH_SEPARATOR + std::to_string(id) +
                        Constants::PATH_SEPARATOR + Constants::USER_INFO_FILE_NAME;
     if (!accountFileOperator_->IsExistFile(path)) {
@@ -233,7 +230,6 @@ ErrCode OsAccountControlFileManager::GetOsAccountInfoById(const int id, OsAccoun
         return ERR_OSACCOUNT_SERVICE_CONTROL_SELECT_OS_ACCOUNT_ERROR;
     }
     osAccountInfo.FromJson(Json::parse(accountInfoStr, nullptr, false));
-    ACCOUNT_LOGD("end");
     return ERR_OK;
 }
 
