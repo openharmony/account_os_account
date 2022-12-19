@@ -22,6 +22,8 @@
 namespace OHOS {
 namespace AccountJsKit {
 using namespace OHOS::AccountSA;
+static const std::int32_t SUBSCRIBE_MAX_PARA = 3;
+static const std::int32_t UNSUBSCRIBE_MAX_PARA = 2;
 
 std::mutex g_lockForAppAccountSubscribers;
 std::map<AppAccountManager *, std::vector<AsyncContextForSubscribe *>> g_AppAccountSubscribers;

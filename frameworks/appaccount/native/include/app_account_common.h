@@ -47,7 +47,7 @@ struct SelectAccountsOptions : public Parcelable {
     std::vector<std::string> allowedOwners;
     std::vector<std::string> requiredLabels;
     bool ReadFromParcel(Parcel &parcel);
-    virtual bool Marshalling(Parcel &parcel) const override;
+    bool Marshalling(Parcel &parcel) const override;
     static SelectAccountsOptions *Unmarshalling(Parcel &parcel);
 };
 
@@ -56,7 +56,7 @@ struct VerifyCredentialOptions : public Parcelable {
     std::string credential;
     AAFwk::WantParams parameters;
     bool ReadFromParcel(Parcel &parcel);
-    virtual bool Marshalling(Parcel &parcel) const override;
+    bool Marshalling(Parcel &parcel) const override;
     static VerifyCredentialOptions *Unmarshalling(Parcel &parcel);
 };
 
@@ -64,7 +64,7 @@ struct SetPropertiesOptions : public Parcelable {
     AAFwk::WantParams properties;
     AAFwk::WantParams parameters;
     bool ReadFromParcel(Parcel &parcel);
-    virtual bool Marshalling(Parcel &parcel) const override;
+    bool Marshalling(Parcel &parcel) const override;
     static SetPropertiesOptions *Unmarshalling(Parcel &parcel);
 };
 

@@ -22,6 +22,9 @@ using namespace OHOS::AccountSA;
 namespace OHOS {
 namespace AccountJsKit {
 namespace {
+const std::string OS_ACCOUNT_CLASS_NAME = "AccountManager";
+static thread_local napi_ref osAccountRef_ = nullptr;
+
 const int OS_ACCOUNT_TYPE_ADMIN = 0;
 const int OS_ACCOUNT_TYPE_NORMAL = 1;
 const int OS_ACCOUNT_TYPE_GUEST = 2;

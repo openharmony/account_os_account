@@ -16,7 +16,7 @@
 #ifndef OS_ACCOUNT_FRAMEWORKS_COMMON_ACCOUNT_ERROR_INCLUDE_ACCOUNT_ERROR_NO_H
 #define OS_ACCOUNT_FRAMEWORKS_COMMON_ACCOUNT_ERROR_INCLUDE_ACCOUNT_ERROR_NO_H
 
-#include <stdint.h>
+#include <cstdint>
 #include "errors.h"
 
 namespace OHOS {

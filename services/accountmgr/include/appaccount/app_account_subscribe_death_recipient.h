@@ -23,9 +23,9 @@ namespace AccountSA {
 class AppAccountSubscribeDeathRecipient : public IRemoteObject::DeathRecipient {
 public:
     AppAccountSubscribeDeathRecipient() = default;
-    virtual ~AppAccountSubscribeDeathRecipient() = default;
+    ~AppAccountSubscribeDeathRecipient() override = default;
 
-    virtual void OnRemoteDied(const wptr<IRemoteObject> &remote);
+    void OnRemoteDied(const wptr<IRemoteObject> &remote) override;
 };
 }  // namespace AccountSA
 }  // namespace OHOS

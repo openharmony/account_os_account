@@ -57,7 +57,7 @@ SessionConnection::~SessionConnection()
 {}
 
 void SessionConnection::OnAbilityConnectDone(
-    const AppExecFwk::ElementName &element, const sptr<IRemoteObject> &remoteObject, int resultCode)
+    const AppExecFwk::ElementName &element, const sptr<IRemoteObject> &remoteObject, int32_t resultCode)
 {
     auto sessionMgr = AppAccountAuthenticatorSessionManager::GetInstance();
     if (sessionMgr != nullptr) {
@@ -179,14 +179,14 @@ ErrCode AppAccountAuthenticatorSession::AddClientDeathRecipient()
 }
 
 void AppAccountAuthenticatorSession::OnAbilityConnectDone(
-    const AppExecFwk::ElementName &element, const sptr<IRemoteObject> &remoteObject, int resultCode)
+    const AppExecFwk::ElementName &element, const sptr<IRemoteObject> &remoteObject, int32_t resultCode)
 {
     isConnected_ = true;
-    AAFwk::Want errResult_;
+    AAFwk::Want errResult;
     authenticatorProxy_ = iface_cast<IAppAccountAuthenticator>(remoteObject);
     if ((!authenticatorProxy_) || (!authenticatorProxy_->AsObject())) {
         ACCOUNT_LOGE("failed to cast app account authenticator proxy");
-        OnResult(ERR_JS_ACCOUNT_AUTHENTICATOR_SERVICE_EXCEPTION, errResult_);
+        OnResult(ERR_JS_ACCOUNT_AUTHENTICATOR_SERVICE_EXCEPTION, errResult);
         return;
     }
     authenticatorProxy_->AsObject()->AddDeathRecipient(serverDeathRecipient_);
@@ -223,11 +223,11 @@ void AppAccountAuthenticatorSession::OnAbilityConnectDone(
             break;
         default:
             ACCOUNT_LOGE("unsupported action: %{public}d", action_);
-            OnResult(ERR_JS_ACCOUNT_AUTHENTICATOR_SERVICE_EXCEPTION, errResult_);
+            OnResult(ERR_JS_ACCOUNT_AUTHENTICATOR_SERVICE_EXCEPTION, errResult);
             return;
     }
     if (resultCode != ERR_OK) {
-        OnResult(ERR_JS_ACCOUNT_AUTHENTICATOR_SERVICE_EXCEPTION, errResult_);
+        OnResult(ERR_JS_ACCOUNT_AUTHENTICATOR_SERVICE_EXCEPTION, errResult);
     }
 }
 
@@ -268,11 +268,11 @@ int32_t AppAccountAuthenticatorSession::OnResult(int32_t resultCode, const AAFwk
 
 int32_t AppAccountAuthenticatorSession::OnRequestRedirected(AAFwk::Want &newRequest) const
 {
-    AAFwk::Want errResult_;
+    AAFwk::Want errResult;
     AppExecFwk::ElementName element = newRequest.GetElement();
     if (element.GetBundleName() != request_.owner) {
         ACCOUNT_LOGD("invalid response");
-        OnResult(ERR_JS_ACCOUNT_AUTHENTICATOR_SERVICE_EXCEPTION, errResult_);
+        OnResult(ERR_JS_ACCOUNT_AUTHENTICATOR_SERVICE_EXCEPTION, errResult);
         return ERR_JS_SUCCESS;
     }
     if ((!request_.callback) || (!request_.callback->AsObject())) {

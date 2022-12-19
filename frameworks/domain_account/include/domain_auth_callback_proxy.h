@@ -23,7 +23,7 @@ namespace OHOS {
 namespace AccountSA {
 class DomainAuthCallbackProxy : public IRemoteProxy<IDomainAuthCallback> {
 public:
-    DomainAuthCallbackProxy(const sptr<IRemoteObject> &object);
+    explicit DomainAuthCallbackProxy(const sptr<IRemoteObject> &object);
     ~DomainAuthCallbackProxy();
     void OnResult(int32_t resultCode, const DomainAuthResult &result) override;
 

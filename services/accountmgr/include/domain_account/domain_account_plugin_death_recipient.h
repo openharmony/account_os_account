@@ -23,9 +23,9 @@ namespace AccountSA {
 class DomainAccountPluginDeathRecipient : public IRemoteObject::DeathRecipient {
 public:
     DomainAccountPluginDeathRecipient() = default;
-    virtual ~DomainAccountPluginDeathRecipient() = default;
+    ~DomainAccountPluginDeathRecipient() override = default;
 
-    virtual void OnRemoteDied(const wptr<IRemoteObject> &remote);
+    void OnRemoteDied(const wptr<IRemoteObject> &remote) override;
 };
 }  // namespace AccountSA
 }  // namespace OHOS

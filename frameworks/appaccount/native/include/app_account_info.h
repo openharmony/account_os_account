@@ -36,7 +36,7 @@ class AppAccountInfo : public IAccountInfo, public Parcelable {
 public:
     AppAccountInfo();
     explicit AppAccountInfo(const std::string &name, const std::string &owner);
-    virtual ~AppAccountInfo() = default;
+    ~AppAccountInfo() override = default;
 
     std::string GetOwner();
     void GetOwner(std::string &owner);
