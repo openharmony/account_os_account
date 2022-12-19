@@ -42,7 +42,7 @@ using namespace AAFwk;
 class BundleManagerAdapterProxy : public IRemoteProxy<IBundleMgr> {
 public:
     explicit BundleManagerAdapterProxy(const sptr<IRemoteObject> &impl);
-    virtual ~BundleManagerAdapterProxy() override;
+    ~BundleManagerAdapterProxy() override;
 
     /**
      * @brief Obtains the BundleInfo based on a given bundle name through the proxy object.
@@ -52,7 +52,7 @@ public:
      * @param userId Indicates the user ID.
      * @return Returns true if the BundleInfo is successfully obtained; returns false otherwise.
      */
-    virtual bool GetBundleInfo(const std::string &bundleName, BundleFlag flags,
+    bool GetBundleInfo(const std::string &bundleName, BundleFlag flags,
         BundleInfo &bundleInfo, int32_t userId = Constants::UNSPECIFIED_USERID) override;
 
     /**
@@ -61,20 +61,20 @@ public:
      * @param userId Indicates the user ID.
      * @return Returns the uid if successfully obtained; returns -1 otherwise.
      */
-    virtual int GetUidByBundleName(const std::string &bundleName, const int userId) override;
+    int GetUidByBundleName(const std::string &bundleName, const int userId) override;
 
     /** @brief Obtains the bundle name of a specified application based on the given UID through the proxy object.
      * @param uid Indicates the uid.
      * @param bundleName Indicates the obtained bundle name.
      * @return Returns true if the bundle name is successfully obtained; returns false otherwise.
      */
-    virtual bool GetBundleNameForUid(const int uid, std::string &bundleName) override;
+    bool GetBundleNameForUid(const int uid, std::string &bundleName) override;
 
     /**
      * @brief Obtains the interface used to create or delete user.
      * @return Returns a pointer to IBundleUserMgr class if exist; returns nullptr otherwise.
      */
-    virtual sptr<IBundleUserMgr> GetBundleUserMgr() override;
+    sptr<IBundleUserMgr> GetBundleUserMgr() override;
 
     /**
      * @brief Query extension info.
@@ -84,10 +84,10 @@ public:
      * @param extensionInfos Indicates the obtained extensions.
      * @return Returns true if this function is successfully called; returns false otherwise.
      */
-    virtual bool QueryExtensionAbilityInfos(const Want &want, const int32_t &flag, const int32_t &userId,
+    bool QueryExtensionAbilityInfos(const Want &want, const int32_t &flag, const int32_t &userId,
         std::vector<ExtensionAbilityInfo> &extensionInfos) override;
 
-    virtual bool QueryAbilityInfos(
+    bool QueryAbilityInfos(
         const Want &want, int32_t flags, int32_t userId, std::vector<AbilityInfo> &abilityInfos) override;
 
 private:

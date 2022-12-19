@@ -58,8 +58,8 @@ private:
 
 class DomainAuthCallbackAdapter final : public DomainAuthCallback {
 public:
-    DomainAuthCallbackAdapter(const std::shared_ptr<IDMCallback> &callback);
-    void OnResult(int32_t resultCode, const DomainAuthResult &result);
+    explicit DomainAuthCallbackAdapter(const std::shared_ptr<IDMCallback> &callback);
+    void OnResult(int32_t resultCode, const DomainAuthResult &result) override;
 
 private:
     std::shared_ptr<IDMCallback> callback_;
@@ -68,7 +68,7 @@ private:
 class DomainCredentialRecipient : public IInputerData {
 public:
     DomainCredentialRecipient(int32_t userId, const std::shared_ptr<IDMCallback> &callback);
-    virtual ~DomainCredentialRecipient();
+    ~DomainCredentialRecipient() override;
     void OnSetData(int32_t authSubType, std::vector<uint8_t> data) override;
 
 private:
@@ -79,7 +79,7 @@ private:
 class IAMInputerData : public IInputerData {
 public:
     IAMInputerData(int32_t userId, const std::shared_ptr<IInputerData> &inputerData);
-    virtual~IAMInputerData();
+    ~IAMInputerData() override;
     void OnSetData(int32_t authSubType, std::vector<uint8_t> data) override;
     void ResetInnerInputerData(const std::shared_ptr<IInputerData> &inputerData);
 

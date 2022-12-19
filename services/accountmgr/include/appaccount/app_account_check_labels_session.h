@@ -25,7 +25,7 @@ class AppAccountCheckLabelsSession : public AppAccountAuthenticatorSession {
 public:
     explicit AppAccountCheckLabelsSession(
         std::vector<AppAccountInfo> accounts, const AuthenticatorSessionRequest &request);
-    ~AppAccountCheckLabelsSession();
+    ~AppAccountCheckLabelsSession() override;
 
     ErrCode Open() override;
     ErrCode CheckLabels();

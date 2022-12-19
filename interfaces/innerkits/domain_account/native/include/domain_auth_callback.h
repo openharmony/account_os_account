@@ -16,7 +16,7 @@
 #ifndef OS_ACCOUNT_INTERFACES_INNERKITS_DOMAIN_ACCOUNT_INCLUDE_DOMAIN_AUTH_CALLBACK_H
 #define OS_ACCOUNT_INTERFACES_INNERKITS_DOMAIN_ACCOUNT_INCLUDE_DOMAIN_AUTH_CALLBACK_H
 
-#include <stdint.h>
+#include <cstdint>
 #include "domain_account_common.h"
 
 namespace OHOS {

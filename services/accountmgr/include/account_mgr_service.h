@@ -44,7 +44,7 @@ class AccountMgrService : public SystemAbility,
                           public OHOS::DelayedRefSingleton<AccountMgrService> {
 public:
     AccountMgrService();
-    ~AccountMgrService();
+    ~AccountMgrService() override;
     DISALLOW_COPY_AND_MOVE(AccountMgrService);
     DECLARE_SYSTEM_ABILITY(AccountMgrService);
     bool UpdateOhosAccountInfo(

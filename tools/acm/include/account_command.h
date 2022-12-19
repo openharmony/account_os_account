@@ -21,9 +21,7 @@
 
 namespace OHOS {
 namespace AccountSA {
-namespace {
 const std::string TOOL_NAME = "acm";
-
 const std::string HELP_MSG = "usage: acm <command> [<options>]\n"
                              "These are acm commands list:\n"
                              "  help                list available commands\n"
@@ -93,12 +91,11 @@ const std::string STRING_SWITCH_OS_ACCOUNT_OK = "switch the local account succes
 const std::string STRING_SWITCH_OS_ACCOUNT_NG = "error: failed to switch the local account.";
 const std::string STRING_STOP_OS_ACCOUNT_OK = "stop the local account successfully.";
 const std::string STRING_STOP_OS_ACCOUNT_NG = "error: failed to stop the local account.";
-}  // namespace
 
 class AccountCommand : public OHOS::AAFwk::ShellCommand {
 public:
     AccountCommand(int argc, char *argv[]);
-    ~AccountCommand() = default;
+    ~AccountCommand() override = default;
 
 private:
     ErrCode CreateCommandMap() override;
