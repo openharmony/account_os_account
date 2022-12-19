@@ -15,11 +15,13 @@
 #include "os_account_manager.h"
 #include "account_info.h"
 #include "account_log_wrapper.h"
+#include "account_permission_manager.h"
 #include "os_account.h"
 #include "singleton.h"
 
 namespace OHOS {
 namespace AccountSA {
+
 ErrCode OsAccountManager::CreateOsAccount(
     const std::string &name, const OsAccountType &type, OsAccountInfo &osAccountInfo)
 {
@@ -86,6 +88,11 @@ ErrCode OsAccountManager::GetOsAccountLocalIdFromUid(const int uid, int &id)
 
 ErrCode OsAccountManager::GetBundleIdFromUid(const int uid, int &bundleId)
 {
+    ErrCode result = DelayedSingleton<AccountPermissionManager>::GetInstance()->CheckSystemApp(false);
+    if (result != ERR_OK) {
+        ACCOUNT_LOGE("is not system application, result = %{public}u.", result);
+        return result;
+    }
     if (uid < 0) {
         ACCOUNT_LOGE("invalid uid %{public}d.", uid);
         return ERR_OSACCOUNT_SERVICE_MANAGER_BAD_UID_ERROR;

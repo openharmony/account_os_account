@@ -66,9 +66,6 @@ napi_value NapiAccountIAMUserAuth::GetVersion(napi_env env, napi_callback_info i
 
 napi_value NapiAccountIAMUserAuth::GetAvailableStatus(napi_env env, napi_callback_info info)
 {
-    if (!IsSystemApp(env)) {
-        return nullptr;
-    }
     size_t argc = ARG_SIZE_TWO;
     napi_value argv[ARG_SIZE_TWO] = {0};
     NAPI_CALL(env, napi_get_cb_info(env, info, &argc, argv, nullptr, nullptr));
@@ -154,9 +151,6 @@ static napi_status ParseContextForGetSetProperty(
 
 napi_value NapiAccountIAMUserAuth::GetProperty(napi_env env, napi_callback_info info)
 {
-    if (!IsSystemApp(env)) {
-        return nullptr;
-    }
     napi_value result = nullptr;
     GetPropertyContext *context = new (std::nothrow) GetPropertyContext(env);
     if (context == nullptr) {
@@ -188,9 +182,6 @@ napi_value NapiAccountIAMUserAuth::GetProperty(napi_env env, napi_callback_info 
 
 napi_value NapiAccountIAMUserAuth::SetProperty(napi_env env, napi_callback_info info)
 {
-    if (!IsSystemApp(env)) {
-        return nullptr;
-    }
     napi_value result = nullptr;
     SetPropertyContext *context = new (std::nothrow) SetPropertyContext(env);
     if (context == nullptr) {
@@ -277,9 +268,6 @@ static napi_status ParseContextForAuth(
 
 napi_value NapiAccountIAMUserAuth::Auth(napi_env env, napi_callback_info info)
 {
-    if (!IsSystemApp(env)) {
-        return nullptr;
-    }
     AuthContext context;
     NAPI_CALL(env, ParseContextForAuth(env, info, context));
     uint64_t contextId = AccountIAMClient::GetInstance().Auth(context.challenge,
@@ -289,9 +277,6 @@ napi_value NapiAccountIAMUserAuth::Auth(napi_env env, napi_callback_info info)
 
 napi_value NapiAccountIAMUserAuth::AuthUser(napi_env env, napi_callback_info info)
 {
-    if (!IsSystemApp(env)) {
-        return nullptr;
-    }
     AuthContext context;
     NAPI_CALL(env, ParseContextForAuth(env, info, context, true));
     uint64_t contextId;
@@ -302,9 +287,6 @@ napi_value NapiAccountIAMUserAuth::AuthUser(napi_env env, napi_callback_info inf
 
 napi_value NapiAccountIAMUserAuth::CancelAuth(napi_env env, napi_callback_info info)
 {
-    if (!IsSystemApp(env)) {
-        return nullptr;
-    }
     size_t argc = ARG_SIZE_ONE;
     napi_value argv[ARG_SIZE_ONE] = {0};
     napi_get_cb_info(env, info, &argc, argv, nullptr, nullptr);

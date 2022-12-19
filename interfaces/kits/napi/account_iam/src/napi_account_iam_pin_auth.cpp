@@ -77,9 +77,6 @@ static bool ParseContextForRegisterInputer(napi_env env, napi_callback_info info
 
 napi_value NapiAccountIAMPINAuth::RegisterInputer(napi_env env, napi_callback_info info)
 {
-    if (!IsSystemApp(env)) {
-        return nullptr;
-    }
     napi_value result;
     NAPI_CALL(env, napi_get_boolean(env, false, &result));
     napi_ref callback = nullptr;
@@ -100,13 +97,11 @@ napi_value NapiAccountIAMPINAuth::RegisterInputer(napi_env env, napi_callback_in
 
 napi_value NapiAccountIAMPINAuth::UnregisterInputer(napi_env env, napi_callback_info info)
 {
-    if (!IsSystemApp(env)) {
-        return nullptr;
+    ErrCode errCode = AccountIAMClient::GetInstance().UnregisterPINInputer();
+    if (errCode != ERR_OK) {
+        AccountIAMNapiThrow(env, AccountIAMConvertToJSErrCode(errCode), true);
     }
-    AccountIAMClient::GetInstance().UnregisterPINInputer();
-    napi_value result = nullptr;
-    NAPI_CALL(env, napi_get_null(env, &result));
-    return result;
+    return nullptr;
 }
 }  // namespace AccountJsKit
 }  // namespace OHOS

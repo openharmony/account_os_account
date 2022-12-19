@@ -17,6 +17,7 @@ import("//build/ohos.gni")
 config("osaccountinterface_config") {
   visibility = [ ":*" ]
   include_dirs = [
+    "${common_path}/utils/include",
     "${common_path}/account_error/include",
     "${common_path}/database/include",
     "${os_account_interfaces_native_path}/include",
@@ -50,7 +51,10 @@ ohos_shared_library("os_account_innerkits") {
   public_configs = [ ":osaccountinterface_config" ]
   use_exceptions = true
 
-  deps = [ "${os_account_core_path}:os_account_core" ]
+  deps = [
+    "${common_path}:libaccount_common",
+    "${os_account_core_path}:os_account_core",
+  ]
 
   external_deps = [
     "c_utils:utils",
