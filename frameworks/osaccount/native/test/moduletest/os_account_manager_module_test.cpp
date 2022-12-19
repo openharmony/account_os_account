@@ -17,10 +17,12 @@
 #include <gtest/gtest.h>
 #include <thread>
 #include <unistd.h>
+#include "accesstoken_kit.h"
 #include "account_info.h"
 #include "account_log_wrapper.h"
 #include "account_proxy.h"
 #include "if_system_ability_manager.h"
+#include "ipc_skeleton.h"
 #include "iservice_registry.h"
 #include "os_account_manager.h"
 #define private public
@@ -30,23 +32,30 @@
 #include "parameter.h"
 #include "system_ability.h"
 #include "system_ability_definition.h"
+#include "token_setproc.h"
 
 using namespace testing::ext;
 using namespace OHOS;
 using namespace OHOS::AccountSA;
+using namespace OHOS::Security::AccessToken;
 
+uint64_t g_selfTokenID;
 namespace {
 const std::string STRING_EMPTY = "";
 const std::string STRING_NAME = "name";
 const std::string STRING_TEST_NAME = "test_account_name";
 const std::string STRING_TEST_NAME_TWO = "test_account_name_2";
+const std::uint32_t INVALID_TOKEN_ID = 0;
+const std::uint32_t INVALID_BUNDLE_ID = -1;
 const std::int32_t ERROR_LOCAL_ID = -1;
+const std::int32_t LOCAL_ID = 105;
 const std::int32_t WAIT_FOR_EXIT = 1000;
 const std::int64_t INVALID_SERIAL_NUM = 123;
 const std::int32_t WAIT_A_MOMENT = 3000;
 const std::int32_t MAIN_ACCOUNT_ID = 100;
 const std::int32_t INVALID_ID = 200;
 const std::uint32_t MAX_WAIT_FOR_READY_CNT = 10;
+const std::int32_t DEFAULT_API_VERSION = 8;
 const uid_t ACCOUNT_UID = 3058;
 const gid_t ACCOUNT_GID = 3058;
 
@@ -165,6 +174,73 @@ const std::string TEST_ACCOUNT_NAME = "TestAccountNameOS";
 const std::string TEST_ACCOUNT_UID = "123456789os";
 const std::string TEST_EXPECTED_UID = "4E7FA9CA2E8760692F2ADBA7AE59B37E02E650670E5FA5F3D01232DCD52D3893";
 std::shared_ptr<AccountFileOperator> g_accountFileOperator = std::make_shared<AccountFileOperator>();
+
+static PermissionDef INFO_MANAGER_TEST_PERM_DEF1 = {
+    .permissionName = "open the door",
+    .bundleName = "osaccount_test",
+    .grantMode = 1,
+    .availableLevel = APL_NORMAL,
+    .provisionEnable = false,
+    .distributedSceneEnable = false,
+    .label = "label",
+    .labelId = 1,
+    .description = "open the door",
+    .descriptionId = 1
+};
+
+static PermissionDef INFO_MANAGER_TEST_PERM_DEF2 = {
+    .permissionName = "break the door",
+    .bundleName = "osaccount_test",
+    .grantMode = 1,
+    .availableLevel = APL_NORMAL,
+    .provisionEnable = false,
+    .distributedSceneEnable = false,
+    .label = "label",
+    .labelId = 1,
+    .description = "break the door",
+    .descriptionId = 1
+};
+
+static PermissionStateFull INFO_MANAGER_TEST_STATE1 = {
+    .permissionName = "open the door",
+    .isGeneral = true,
+    .resDeviceID = {"local"},
+    .grantStatus = {1},
+    .grantFlags = {1}
+};
+
+static PermissionStateFull INFO_MANAGER_TEST_STATE2 = {
+    .permissionName = "break the door",
+    .isGeneral = false,
+    .resDeviceID = {"device 1", "device 2"},
+    .grantStatus = {1, 3},
+    .grantFlags = {1, 2}
+};
+
+static HapPolicyParams INFO_MANAGER_TEST_POLICY_PRAMS = {
+    .apl = APL_NORMAL,
+    .domain = "test.domain",
+    .permList = {INFO_MANAGER_TEST_PERM_DEF1, INFO_MANAGER_TEST_PERM_DEF2},
+    .permStateList = {INFO_MANAGER_TEST_STATE1, INFO_MANAGER_TEST_STATE2}
+};
+
+HapInfoParams infoManagerTestNormalInfoParms = {
+    .userID = 1,
+    .bundleName = "osaccount_test",
+    .instIndex = 0,
+    .appIDDesc = "testtesttesttest",
+    .apiVersion = DEFAULT_API_VERSION,
+    .isSystemApp = false
+};
+
+HapInfoParams infoManagerTestSystemInfoParms = {
+    .userID = 1,
+    .bundleName = "osaccount_test",
+    .instIndex = 0,
+    .appIDDesc = "testtesttesttest",
+    .apiVersion = DEFAULT_API_VERSION,
+    .isSystemApp = true
+};
 }  // namespace
 
 class OsAccountManagerModuleTest : public testing::Test {
@@ -193,6 +269,7 @@ void OsAccountManagerModuleTest::SetUpTestCase(void)
         }
     }
     GTEST_LOG_(INFO) << "SetUpTestCase finished, waitCnt " << waitCnt;
+    g_selfTokenID = IPCSkeleton::GetSelfTokenID();
 }
 
 void OsAccountManagerModuleTest::TearDownTestCase(void)
@@ -2045,4 +2122,183 @@ HWTEST_F(OsAccountManagerModuleTest, OsAccountManagerModuleTest108, TestSize.Lev
 {
     EXPECT_EQ(OsAccountManager::SetOsAccountIsVerified(Constants::MAX_USER_ID + 1, false),
         ERR_OSACCOUNT_KIT_LOCAL_ID_INVALID_ERROR);
+}
+
+/**
+ * @tc.name: OsAccountManagerModuleTest109
+ * @tc.desc: Test osaccount call service interface not pass system applicaiton verify.
+ * @tc.type: FUNC
+ * @tc.require: issueI66BG5
+ */
+HWTEST_F(OsAccountManagerModuleTest, OsAccountManagerModuleTest109, TestSize.Level0)
+{
+    Security::AccessToken::AccessTokenIDEx tokenIdEx = {0};
+    tokenIdEx = AccessTokenKit::AllocHapToken(infoManagerTestNormalInfoParms, INFO_MANAGER_TEST_POLICY_PRAMS);
+    ASSERT_NE(INVALID_TOKEN_ID, tokenIdEx.tokenIDEx);
+    SetSelfTokenID(tokenIdEx.tokenIDEx);
+
+    int bundleId = INVALID_BUNDLE_ID;
+    ASSERT_EQ(OsAccountManager::GetBundleIdFromUid(ACCOUNT_UID, bundleId), ERR_ACCOUNT_COMMON_NOT_SYSTEM_APP_ERROR);
+
+    OsAccountInfo osAccountInfoOne;
+    ASSERT_EQ(OsAccountManager::CreateOsAccount(STRING_TEST_NAME, OsAccountType::GUEST, osAccountInfoOne),
+        ERR_ACCOUNT_COMMON_NOT_SYSTEM_APP_ERROR);
+
+    ASSERT_EQ(OsAccountManager::ActivateOsAccount(LOCAL_ID), ERR_ACCOUNT_COMMON_NOT_SYSTEM_APP_ERROR);
+
+    ASSERT_EQ(OsAccountManager::RemoveOsAccount(LOCAL_ID), ERR_ACCOUNT_COMMON_NOT_SYSTEM_APP_ERROR);
+
+    bool enable = false;
+    ASSERT_EQ(OsAccountManager::SetOsAccountConstraints(LOCAL_ID, CONSTANTS_VECTOR, enable),
+        ERR_ACCOUNT_COMMON_NOT_SYSTEM_APP_ERROR);
+
+    ASSERT_EQ(OsAccountManager::SetOsAccountName(LOCAL_ID, STRING_NAME), ERR_ACCOUNT_COMMON_NOT_SYSTEM_APP_ERROR);
+
+    int maxOsAccountNumber = 0;
+    ASSERT_EQ(OsAccountManager::QueryMaxOsAccountNumber(maxOsAccountNumber), ERR_ACCOUNT_COMMON_NOT_SYSTEM_APP_ERROR);
+
+    std::vector<OsAccountInfo> osAccountInfos;
+    ASSERT_EQ(OsAccountManager::QueryAllCreatedOsAccounts(osAccountInfos), ERR_ACCOUNT_COMMON_NOT_SYSTEM_APP_ERROR);
+
+    DomainAccountInfo domainInfo(STRING_DOMAIN_VALID, STRING_DOMAIN_ACCOUNT_NAME_VALID);
+    OsAccountType type = NORMAL;
+    OsAccountInfo osAccountInfo;
+    ASSERT_EQ(OsAccountManager::CreateOsAccountForDomain(type, domainInfo, osAccountInfo),
+        ERR_ACCOUNT_COMMON_NOT_SYSTEM_APP_ERROR);
+
+    AccessTokenID tokenID = AccessTokenKit::GetHapTokenID(infoManagerTestNormalInfoParms.userID,
+        infoManagerTestNormalInfoParms.bundleName, infoManagerTestNormalInfoParms.instIndex);
+    AccessTokenKit::DeleteToken(tokenID);
+    SetSelfTokenID(g_selfTokenID);
+}
+
+/**
+ * @tc.name: OsAccountManagerModuleTest110
+ * @tc.desc: Test osaccount call service interface not pass system applicaiton verify.
+ * @tc.type: FUNC
+ * @tc.require: issueI66BG5
+ */
+HWTEST_F(OsAccountManagerModuleTest, OsAccountManagerModuleTest110, TestSize.Level0)
+{
+    Security::AccessToken::AccessTokenIDEx tokenIdEx = {0};
+    tokenIdEx = AccessTokenKit::AllocHapToken(infoManagerTestNormalInfoParms, INFO_MANAGER_TEST_POLICY_PRAMS);
+    ASSERT_NE(INVALID_TOKEN_ID, tokenIdEx.tokenIDEx);
+    SetSelfTokenID(tokenIdEx.tokenIDEx);
+
+    OsAccountInfo osAccountInfoTwo;
+    ASSERT_EQ(
+        OsAccountManager::QueryOsAccountById(LOCAL_ID, osAccountInfoTwo), ERR_ACCOUNT_COMMON_NOT_SYSTEM_APP_ERROR);
+
+    std::string photo;
+    ASSERT_EQ(OsAccountManager::GetOsAccountProfilePhoto(LOCAL_ID, photo), ERR_ACCOUNT_COMMON_NOT_SYSTEM_APP_ERROR);
+
+    ASSERT_EQ(OsAccountManager::SetOsAccountProfilePhoto(LOCAL_ID, PHOTO_IMG), ERR_ACCOUNT_COMMON_NOT_SYSTEM_APP_ERROR);
+
+    auto subscriber = std::make_shared<TestOsAccountSubscriber>();
+    ASSERT_NE(nullptr, subscriber);
+    ASSERT_EQ(OsAccountManager::SubscribeOsAccount(subscriber), ERR_ACCOUNT_COMMON_NOT_SYSTEM_APP_ERROR);
+
+    bool isMainOsAccount = false;
+    ASSERT_EQ(OsAccountManager::IsMainOsAccount(isMainOsAccount), ERR_ACCOUNT_COMMON_NOT_SYSTEM_APP_ERROR);
+
+    std::vector<ConstraintSourceTypeInfo> constraintSourceTypeInfos;
+    ASSERT_EQ(OsAccountManager::QueryOsAccountConstraintSourceTypes(
+        MAIN_ACCOUNT_ID, CONSTANT_PRINT, constraintSourceTypeInfos), ERR_ACCOUNT_COMMON_NOT_SYSTEM_APP_ERROR);
+
+    AccessTokenID tokenID = AccessTokenKit::GetHapTokenID(infoManagerTestNormalInfoParms.userID,
+        infoManagerTestNormalInfoParms.bundleName, infoManagerTestNormalInfoParms.instIndex);
+    AccessTokenKit::DeleteToken(tokenID);
+    SetSelfTokenID(g_selfTokenID);
+}
+
+/**
+ * @tc.name: OsAccountManagerModuleTest111
+ * @tc.desc: Test osaccount call service interface pass system app verify.
+ * @tc.type: FUNC
+ * @tc.require: issueI66BG5
+ */
+HWTEST_F(OsAccountManagerModuleTest, OsAccountManagerModuleTest111, TestSize.Level0)
+{
+    Security::AccessToken::AccessTokenIDEx tokenIdEx = {0};
+    tokenIdEx = AccessTokenKit::AllocHapToken(infoManagerTestSystemInfoParms, INFO_MANAGER_TEST_POLICY_PRAMS);
+    ASSERT_NE(INVALID_TOKEN_ID, tokenIdEx.tokenIDEx);
+    SetSelfTokenID(tokenIdEx.tokenIDEx);
+    int bundleId = INVALID_BUNDLE_ID;
+    ASSERT_EQ(OsAccountManager::GetBundleIdFromUid(ACCOUNT_UID, bundleId), ERR_OK);
+    ASSERT_NE(bundleId, INVALID_BUNDLE_ID);
+
+    OsAccountInfo osAccountInfoOne;
+    ASSERT_NE(OsAccountManager::CreateOsAccount(STRING_TEST_NAME, OsAccountType::GUEST, osAccountInfoOne),
+        ERR_ACCOUNT_COMMON_NOT_SYSTEM_APP_ERROR);
+
+    ASSERT_NE(OsAccountManager::ActivateOsAccount(LOCAL_ID), ERR_ACCOUNT_COMMON_NOT_SYSTEM_APP_ERROR);
+
+    ASSERT_NE(OsAccountManager::RemoveOsAccount(LOCAL_ID), ERR_ACCOUNT_COMMON_NOT_SYSTEM_APP_ERROR);
+
+    bool enable = false;
+    ASSERT_NE(OsAccountManager::SetOsAccountConstraints(LOCAL_ID, CONSTANTS_VECTOR, enable),
+        ERR_ACCOUNT_COMMON_NOT_SYSTEM_APP_ERROR);
+
+    ASSERT_NE(OsAccountManager::SetOsAccountName(LOCAL_ID, STRING_NAME), ERR_ACCOUNT_COMMON_NOT_SYSTEM_APP_ERROR);
+
+    int maxOsAccountNumber = 0;
+    ASSERT_NE(OsAccountManager::QueryMaxOsAccountNumber(maxOsAccountNumber), ERR_ACCOUNT_COMMON_NOT_SYSTEM_APP_ERROR);
+
+    std::vector<OsAccountInfo> osAccountInfos;
+    ASSERT_NE(OsAccountManager::QueryAllCreatedOsAccounts(osAccountInfos), ERR_ACCOUNT_COMMON_NOT_SYSTEM_APP_ERROR);
+
+    DomainAccountInfo domainInfo(STRING_DOMAIN_VALID, STRING_DOMAIN_ACCOUNT_NAME_VALID);
+    OsAccountType type = NORMAL;
+    OsAccountInfo osAccountInfo;
+    ASSERT_NE(OsAccountManager::CreateOsAccountForDomain(type, domainInfo, osAccountInfo),
+        ERR_ACCOUNT_COMMON_NOT_SYSTEM_APP_ERROR);
+
+    AccessTokenID tokenID = AccessTokenKit::GetHapTokenID(infoManagerTestSystemInfoParms.userID,
+        infoManagerTestSystemInfoParms.bundleName, infoManagerTestSystemInfoParms.instIndex);
+    AccessTokenKit::DeleteToken(tokenID);
+    SetSelfTokenID(g_selfTokenID);
+}
+
+/**
+ * @tc.name: OsAccountManagerModuleTest112
+ * @tc.desc: Test osaccount call service interface pass system app verify.
+ * @tc.type: FUNC
+ * @tc.require: issueI66BG5
+ */
+HWTEST_F(OsAccountManagerModuleTest, OsAccountManagerModuleTest112, TestSize.Level0)
+{
+    Security::AccessToken::AccessTokenIDEx tokenIdEx = {0};
+    tokenIdEx = AccessTokenKit::AllocHapToken(infoManagerTestSystemInfoParms, INFO_MANAGER_TEST_POLICY_PRAMS);
+    ASSERT_NE(INVALID_TOKEN_ID, tokenIdEx.tokenIDEx);
+    SetSelfTokenID(tokenIdEx.tokenIDEx);
+
+    OsAccountInfo osAccountInfoTwo;
+    ASSERT_NE(
+        OsAccountManager::QueryOsAccountById(LOCAL_ID, osAccountInfoTwo), ERR_ACCOUNT_COMMON_NOT_SYSTEM_APP_ERROR);
+
+    std::string photo;
+    ASSERT_NE(OsAccountManager::GetOsAccountProfilePhoto(LOCAL_ID, photo), ERR_ACCOUNT_COMMON_NOT_SYSTEM_APP_ERROR);
+
+    ASSERT_NE(OsAccountManager::SetOsAccountProfilePhoto(LOCAL_ID, PHOTO_IMG), ERR_ACCOUNT_COMMON_NOT_SYSTEM_APP_ERROR);
+
+    auto subscriber = std::make_shared<TestOsAccountSubscriber>();
+    ASSERT_NE(nullptr, subscriber);
+    ASSERT_NE(OsAccountManager::SubscribeOsAccount(subscriber), ERR_ACCOUNT_COMMON_NOT_SYSTEM_APP_ERROR);
+
+    auto subscriberTwo = std::make_shared<TestOsAccountSubscriber>();
+    ASSERT_NE(nullptr, subscriberTwo);
+    ASSERT_EQ(ERR_OK, OsAccountManager::SubscribeOsAccount(subscriberTwo));
+    ASSERT_EQ(OsAccountManager::UnsubscribeOsAccount(subscriberTwo), ERR_OK);
+
+    bool isMainOsAccount = false;
+    ASSERT_NE(OsAccountManager::IsMainOsAccount(isMainOsAccount), ERR_ACCOUNT_COMMON_NOT_SYSTEM_APP_ERROR);
+
+    std::vector<ConstraintSourceTypeInfo> constraintSourceTypeInfos;
+    ASSERT_NE(OsAccountManager::QueryOsAccountConstraintSourceTypes(
+        MAIN_ACCOUNT_ID, CONSTANT_PRINT, constraintSourceTypeInfos), ERR_ACCOUNT_COMMON_NOT_SYSTEM_APP_ERROR);
+
+    AccessTokenID tokenID = AccessTokenKit::GetHapTokenID(infoManagerTestSystemInfoParms.userID,
+        infoManagerTestSystemInfoParms.bundleName, infoManagerTestSystemInfoParms.instIndex);
+    AccessTokenKit::DeleteToken(tokenID);
+    SetSelfTokenID(g_selfTokenID);
 }
