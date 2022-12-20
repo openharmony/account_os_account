@@ -13,6 +13,8 @@
  * limitations under the License.
  */
 #include "os_account_info.h"
+
+#include <ctime>
 #include "account_log_wrapper.h"
 #include "os_account_constants.h"
 
@@ -230,6 +232,7 @@ Json OsAccountInfo::ToJson() const
     };
     return jsonObject;
 }
+
 OsAccountInfo *OsAccountInfo::Unmarshalling(Parcel &parcel)
 {
     OsAccountInfo *osAccountInfo = new (std::nothrow) OsAccountInfo();
@@ -242,6 +245,7 @@ OsAccountInfo *OsAccountInfo::Unmarshalling(Parcel &parcel)
 
     return osAccountInfo;
 }
+
 void OsAccountInfo::FromJson(const Json &jsonObject)
 {
     const auto &jsonObjectEnd = jsonObject.end();

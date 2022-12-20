@@ -18,7 +18,7 @@
 
 #include <string>
 #include "account_error_no.h"
-#include "os_account_info.h"
+#include "domain_account_common.h"
 #include "domain_account_plugin.h"
 #include "domain_account_plugin_stub.h"
 
