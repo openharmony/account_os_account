@@ -1004,9 +1004,10 @@ HWTEST_F(OsAccountManagerServiceModuleTest, OsAccountManagerServiceModuleTest052
  */
 HWTEST_F(OsAccountManagerServiceModuleTest, OsAccountManagerServiceModuleTest053, TestSize.Level1)
 {
-    bool isOsAccountCompleted = false;
-    EXPECT_NE(osAccountManagerService_->IsOsAccountCompleted(
+    bool isOsAccountCompleted = true;
+    EXPECT_EQ(osAccountManagerService_->IsOsAccountCompleted(
         Constants::MAX_USER_ID + 1, isOsAccountCompleted), ERR_OK);
+    EXPECT_FALSE(isOsAccountCompleted);
 }
 
 /**
