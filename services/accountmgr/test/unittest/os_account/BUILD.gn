@@ -88,7 +88,6 @@ ohos_unittest("OsAccountDataStorageTest") {
 
   deps = [
     "${common_path}:libaccount_common",
-    "${os_account_core_path}:os_account_core",
     "${os_account_innerkits_native_path}:os_account_innerkits",
     "${services_path}/accountmgr:accountmgr",
     "//third_party/googletest:gmock_main",
@@ -137,7 +136,6 @@ ohos_unittest("OsAccountSubscribeDeathRecipientTest") {
 
   deps = [
     "${common_path}:libaccount_common",
-    "${os_account_core_path}:os_account_core",
     "${os_account_innerkits_native_path}:os_account_innerkits",
     "${services_path}/accountmgr:accountmgr",
     "//base/useriam/user_auth_framework/frameworks/native/client:userauth_client",
@@ -189,7 +187,6 @@ ohos_unittest("OsAccountInnerAccmgrCovTest") {
 
   deps = [
     "${common_path}:libaccount_common",
-    "${os_account_core_path}:os_account_core",
     "${os_account_innerkits_native_path}:os_account_innerkits",
     "${services_path}/accountmgr:accountmgr",
     "//base/useriam/user_auth_framework/frameworks/native/client:userauth_client",
@@ -242,7 +239,6 @@ ohos_unittest("OsAccountInnerAccmgrMockTest") {
 
   deps = [
     "${common_path}:libaccount_common",
-    "${os_account_core_path}:os_account_core",
     "${os_account_innerkits_native_path}:os_account_innerkits",
     "${services_path}/accountmgr:accountmgr",
     "//base/useriam/user_auth_framework/frameworks/native/client:userauth_client",

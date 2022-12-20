@@ -16,7 +16,7 @@
 #ifndef OS_ACCOUNT_INTERFACES_INNERKITS_DOMAIN_ACCOUNT_INCLUDE_DOMAIN_ACCOUNT_PLUGIN_H
 #define OS_ACCOUNT_INTERFACES_INNERKITS_DOMAIN_ACCOUNT_INCLUDE_DOMAIN_ACCOUNT_PLUGIN_H
 
-#include "os_account_info.h"
+#include "domain_account_common.h"
 #include "domain_auth_callback.h"
 
 namespace OHOS {

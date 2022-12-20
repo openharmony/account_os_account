@@ -44,7 +44,6 @@ ohos_moduletest("account_command_create_module_test") {
 
   deps = [
     "${common_path}:libaccount_common",
-    "${os_account_core_path}:os_account_core",
     "${os_account_innerkits_native_path}:os_account_innerkits",
     "//third_party/googletest:gtest_main",
   ]
@@ -54,6 +53,7 @@ ohos_moduletest("account_command_create_module_test") {
     "c_utils:utils",
     "hiviewdfx_hilog_native:libhilog",
     "ipc:ipc_core",
+    "os_account:os_account_innerkits",
   ]
 }
 
@@ -85,7 +85,6 @@ ohos_moduletest("account_command_delete_module_test") {
 
   deps = [
     "${common_path}:libaccount_common",
-    "${os_account_core_path}:os_account_core",
     "${os_account_innerkits_native_path}:os_account_innerkits",
     "//third_party/googletest:gtest_main",
   ]
@@ -95,6 +94,7 @@ ohos_moduletest("account_command_delete_module_test") {
     "c_utils:utils",
     "hiviewdfx_hilog_native:libhilog",
     "ipc:ipc_core",
+    "os_account:os_account_innerkits",
   ]
 }
 
@@ -126,7 +126,6 @@ ohos_moduletest("account_command_dump_module_test") {
 
   deps = [
     "${common_path}:libaccount_common",
-    "${os_account_core_path}:os_account_core",
     "${os_account_innerkits_native_path}:os_account_innerkits",
     "//third_party/googletest:gtest_main",
   ]
@@ -136,6 +135,7 @@ ohos_moduletest("account_command_dump_module_test") {
     "c_utils:utils",
     "hiviewdfx_hilog_native:libhilog",
     "ipc:ipc_core",
+    "os_account:os_account_innerkits",
   ]
 }
 
@@ -167,7 +167,6 @@ ohos_moduletest("account_command_set_module_test") {
 
   deps = [
     "${common_path}:libaccount_common",
-    "${os_account_core_path}:os_account_core",
     "${os_account_innerkits_native_path}:os_account_innerkits",
     "//third_party/googletest:gtest_main",
   ]
@@ -177,6 +176,7 @@ ohos_moduletest("account_command_set_module_test") {
     "c_utils:utils",
     "hiviewdfx_hilog_native:libhilog",
     "ipc:ipc_core",
+    "os_account:os_account_innerkits",
   ]
 }
 
@@ -208,7 +208,6 @@ ohos_moduletest("account_command_switch_module_test") {
 
   deps = [
     "${common_path}:libaccount_common",
-    "${os_account_core_path}:os_account_core",
     "${os_account_innerkits_native_path}:os_account_innerkits",
     "//third_party/googletest:gtest_main",
   ]
@@ -218,6 +217,7 @@ ohos_moduletest("account_command_switch_module_test") {
     "c_utils:utils",
     "hiviewdfx_hilog_native:libhilog",
     "ipc:ipc_core",
+    "os_account:os_account_innerkits",
   ]
 }
 
