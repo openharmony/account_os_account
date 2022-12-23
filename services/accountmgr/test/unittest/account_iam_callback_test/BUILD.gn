@@ -35,18 +35,29 @@ config("account_iam_native_config_unittest") {
 ohos_unittest("account_iam_callback_test") {
   module_out_path = module_output_path
 
-  sources = [ "account_iam_callback_test.cpp" ]
+  sources = [
+    "${domain_account_framework_path}/test/moduletest/src/mock_domain_plugin.cpp",
+    "account_iam_callback_test.cpp",
+  ]
 
   configs = [ ":account_iam_native_config_unittest" ]
 
   deps = [
     "${account_iam_framework_path}:account_iam_innerkits",
     "${common_path}:libaccount_common",
+    "${domain_account_framework_path}:domain_account_innerkits",
+    "${os_account_core_path}:os_account_core",
+    "${os_account_innerkits_native_path}:os_account_innerkits",
     "${services_path}/accountmgr:accountmgr",
     "//base/security/access_token/interfaces/innerkits/accesstoken:libaccesstoken_sdk",
     "//base/security/access_token/interfaces/innerkits/token_setproc:libtoken_setproc",
     "//third_party/googletest:gmock_main",
     "//third_party/googletest:gtest_main",
+  ]
+
+  include_dirs = [
+    "${os_account_path}/frameworks/domain_account/test/moduletest/include/",
+    "${os_account_interfaces_native_path}/include/",
   ]
 
   cflags_cc = []
@@ -97,6 +108,7 @@ ohos_unittest("account_iam_service_test") {
   external_deps = [
     "hiviewdfx_hilog_native:libhilog",
     "ipc:ipc_core",
+    "os_account:os_account_innerkits",
   ]
 }
 
