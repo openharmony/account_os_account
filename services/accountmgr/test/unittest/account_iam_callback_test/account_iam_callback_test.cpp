@@ -12,7 +12,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
+#include <gmock/gmock.h>
 #include <gtest/gtest.h>
 #include "accesstoken_kit.h"
 #define private public
@@ -35,8 +35,6 @@ using namespace testing::ext;
 using namespace OHOS::AccountSA;
 using namespace OHOS::UserIam::UserAuth;
 using namespace OHOS::Security::AccessToken;
-
-AccessTokenID g_selfTokenId;
 namespace OHOS {
 namespace AccountTest {
 namespace {
@@ -44,6 +42,9 @@ const int32_t DEFAULT_USER_ID = 100;
 const int32_t TEST_USER_ID = 200;
 const int32_t TEST_MODULE = 5;
 const int32_t TEST_ACQUIRE_INFO = 10;
+const int32_t INFO_LIST_SIZE_ONE = 1;
+const int32_t INFO_LIST_SIZE_ZERO = 0;
+const static AccessTokenID g_accountMgrTokenID = AccessTokenKit::GetNativeTokenId("accountmgr");
 } // namespace
 
 class MockIInputer final : public IInputer {
@@ -74,16 +75,14 @@ public:
     int32_t module_ = 0;
     uint32_t acquireInfo_ = 0;
 };
-
-class MockGetCredInfoCallbackService : public GetCredInfoCallbackStub {
+class MockGetCredInfoCallback final : public GetCredInfoCallback {
 public:
-    void OnCredentialInfo(const std::vector<CredentialInfo> &infoList)override
+    MOCK_METHOD1(OnResult, void(int32_t result));
+    void OnCredentialInfo(const std::vector<CredentialInfo> &infoList)
     {
-        infoList_ = infoList;
-        return;
+        int infoListSize = infoList.size();
+        OnResult(infoListSize);
     }
-public:
-    std::vector<CredentialInfo> infoList_;
 };
 
 class AccountIamCallbackTest : public testing::Test {
@@ -96,9 +95,7 @@ public:
 
 void AccountIamCallbackTest::SetUpTestCase(void)
 {
-    g_selfTokenId = IPCSkeleton::GetSelfTokenID();
-    AccessTokenID tokenId = AccessTokenKit::GetHapTokenID(DEFAULT_USER_ID, "com.ohos.settings", 0);
-    SetSelfTokenID(tokenId);
+    SetSelfTokenID(g_accountMgrTokenID);
 }
 
 void AccountIamCallbackTest::TearDownTestCase(void)
@@ -132,6 +129,8 @@ HWTEST_F(AccountIamCallbackTest, AuthCallback_OnResult_0100, TestSize.Level0)
  */
 HWTEST_F(AccountIamCallbackTest, AuthCallback_OnResult_0200, TestSize.Level0)
 {
+    AccessTokenID tokenId = AccessTokenKit::GetHapTokenID(DEFAULT_USER_ID, "com.ohos.settings", 0);
+    SetSelfTokenID(tokenId);
     sptr<MockIIDMCallback> callback = new (std::nothrow) MockIIDMCallback();
     auto userAuthCallback = std::make_shared<AuthCallback>(TEST_USER_ID, AuthType::PIN, callback);
     EXPECT_TRUE(userAuthCallback->innerCallback_ != nullptr);
@@ -142,6 +141,7 @@ HWTEST_F(AccountIamCallbackTest, AuthCallback_OnResult_0200, TestSize.Level0)
     errCode = 10; // result != 0
     userAuthCallback->OnResult(errCode, extraInfo);
     EXPECT_EQ(errCode, callback->result_);
+    SetSelfTokenID(g_accountMgrTokenID);
 }
 
 /**
@@ -567,11 +567,10 @@ HWTEST_F(AccountIamCallbackTest, GetPropCallbackWrapper_OnResult_0100, TestSize.
  * @tc.name: GetCredInfoCallbackWrapper_OnCredentialInfo_0200
  * @tc.desc: OnCredentialInfo with domain auth plugin not available.
  * @tc.type: FUNC
- * @tc.require:
+ * @tc.require: issuesI64KAM
  */
 HWTEST_F(AccountIamCallbackTest, GetCredInfoCallbackWrapper_OnCredentialInfo_0200, TestSize.Level0)
 {
-    SetSelfTokenID(g_selfTokenId);
     DomainAccountInfo domainInfo;
     domainInfo.accountName_ = "zhangsan";
     domainInfo.domain_ = "china.example.com";
@@ -579,14 +578,11 @@ HWTEST_F(AccountIamCallbackTest, GetCredInfoCallbackWrapper_OnCredentialInfo_020
     std::vector<CredentialInfo> infoList = {};
     ErrCode errCode = OsAccountManager::CreateOsAccountForDomain(OsAccountType::NORMAL, domainInfo, accountInfo);
     EXPECT_EQ(errCode, ERR_OK);
-    sptr<MockGetCredInfoCallbackService> service = new (std::nothrow) MockGetCredInfoCallbackService();
     int32_t userId = accountInfo.GetLocalId();
-    auto authType = static_cast<int32_t>(IAMAuthType::DOMAIN);
-    auto callback = std::make_shared<GetCredInfoCallbackWrapper>(userId, authType, service);
-    EXPECT_TRUE(callback->innerCallback_ != nullptr);
-    UserIdmClient::GetInstance().GetCredentialInfo(userId, AuthType::ALL, callback);
-    callback->OnCredentialInfo(infoList);
-    EXPECT_EQ(infoList.size(), 0);
+    std::shared_ptr<MockGetCredInfoCallback> callback = std::make_shared<MockGetCredInfoCallback>();
+    ASSERT_NE(callback, nullptr);
+    EXPECT_CALL(*callback, OnResult(INFO_LIST_SIZE_ZERO)).Times(1);
+    AccountIAMClient::GetInstance().GetCredentialInfo(userId, AuthType::ALL, callback);
     EXPECT_EQ(OsAccountManager::RemoveOsAccount(accountInfo.GetLocalId()), ERR_OK);
 }
 
@@ -594,49 +590,51 @@ HWTEST_F(AccountIamCallbackTest, GetCredInfoCallbackWrapper_OnCredentialInfo_020
  * @tc.name: GetCredInfoCallbackWrapper_OnCredentialInfo_0300
  * @tc.desc: OnCredentialInfo with domain auth plugin available.
  * @tc.type: FUNC
- * @tc.require:
+ * @tc.require: issuesI64KAM
  */
 HWTEST_F(AccountIamCallbackTest, GetCredInfoCallbackWrapper_OnCredentialInfo_0300, TestSize.Level0)
 {
-    SetSelfTokenID(g_selfTokenId);
     DomainAccountInfo domainInfo;
-    domainInfo.accountName_ = "lisi";
+    domainInfo.accountName_ = "lisi111";
     domainInfo.domain_ = "china.example.com";
     OsAccountInfo accountInfo;
-    std::vector<CredentialInfo> infoList = {};
     ErrCode errCode = OsAccountManager::CreateOsAccountForDomain(OsAccountType::NORMAL, domainInfo, accountInfo);
     EXPECT_EQ(errCode, ERR_OK);
-    sptr<MockGetCredInfoCallbackService> service = new (std::nothrow) MockGetCredInfoCallbackService();
     int32_t userId = accountInfo.GetLocalId();
-    auto authType = static_cast<int32_t>(IAMAuthType::DOMAIN);
-    auto callback = std::make_shared<GetCredInfoCallbackWrapper>(userId, authType, service);
-    EXPECT_TRUE(callback->innerCallback_ != nullptr);
     std::shared_ptr<MockDomainPlugin> g_plugin = std::make_shared<MockDomainPlugin>();
+    ASSERT_NE(g_plugin, nullptr);
     ASSERT_EQ(DomainAccountClient::GetInstance().RegisterPlugin(g_plugin), ERR_OK);
-    UserIdmClient::GetInstance().GetCredentialInfo(userId, AuthType::ALL, callback);
-    EXPECT_EQ(infoList.size(), 0);
+    std::shared_ptr<MockGetCredInfoCallback> callback = std::make_shared<MockGetCredInfoCallback>();
+    ASSERT_NE(callback, nullptr);
+    EXPECT_CALL(*callback, OnResult(INFO_LIST_SIZE_ONE)).Times(Exactly(1));
+    AccountIAMClient::GetInstance().GetCredentialInfo(userId, AuthType::ALL, callback);
     EXPECT_EQ(OsAccountManager::RemoveOsAccount(accountInfo.GetLocalId()), ERR_OK);
+    ASSERT_EQ(DomainAccountClient::GetInstance().UnregisterPlugin(), ERR_OK);
 }
 
 /**
  * @tc.name: GetCredInfoCallbackWrapper_OnCredentialInfo_0400
  * @tc.desc: OnCredentialInfo with not domain authtype.
  * @tc.type: FUNC
- * @tc.require:
+ * @tc.require: issuesI64KAM
  */
 HWTEST_F(AccountIamCallbackTest, GetCredInfoCallbackWrapper_OnCredentialInfo_0400, TestSize.Level0)
 {
-    SetSelfTokenID(g_selfTokenId);
+    DomainAccountInfo domainInfo;
+    domainInfo.accountName_ = "lisi11";
+    domainInfo.domain_ = "chin.example.com";
     OsAccountInfo accountInfo;
-    std::vector<CredentialInfo> infoList = {};
-    sptr<MockGetCredInfoCallbackService> service = new (std::nothrow) MockGetCredInfoCallbackService();
+    ErrCode errCode = OsAccountManager::CreateOsAccountForDomain(OsAccountType::NORMAL, domainInfo, accountInfo);
+    EXPECT_EQ(errCode, ERR_OK);
     int32_t userId = accountInfo.GetLocalId();
-    auto authType = static_cast<int32_t>(AuthType::PIN);
-    auto callback = std::make_shared<GetCredInfoCallbackWrapper>(userId, authType, service);
-    EXPECT_TRUE(callback->innerCallback_ != nullptr);
-    UserIdmClient::GetInstance().GetCredentialInfo(userId, AuthType::PIN, callback);
-    callback->OnCredentialInfo(infoList);
-    EXPECT_EQ(infoList.size(), 0);
+    std::shared_ptr<MockDomainPlugin> g_plugin = std::make_shared<MockDomainPlugin>();
+    ASSERT_EQ(DomainAccountClient::GetInstance().RegisterPlugin(g_plugin), ERR_OK);
+    std::shared_ptr<MockGetCredInfoCallback> callback = std::make_shared<MockGetCredInfoCallback>();
+    ASSERT_NE(callback, nullptr);
+    EXPECT_CALL(*callback, OnResult(INFO_LIST_SIZE_ZERO)).Times(Exactly(1));
+    AccountIAMClient::GetInstance().GetCredentialInfo(userId, AuthType::PIN, callback);
+    EXPECT_EQ(OsAccountManager::RemoveOsAccount(accountInfo.GetLocalId()), ERR_OK);
+    ASSERT_EQ(DomainAccountClient::GetInstance().UnregisterPlugin(), ERR_OK);
 }
 
 /**
