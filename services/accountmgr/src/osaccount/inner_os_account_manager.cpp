@@ -14,6 +14,9 @@
  */
 #include "iinner_os_account_manager.h"
 #include "account_log_wrapper.h"
+#ifdef HAS_CES_PART
+#include "common_event_support.h"
+#endif // HAS_CES_PART
 #include "hitrace_meter.h"
 #include "hisysevent_adapter.h"
 #include "ohos_account_kits.h"
@@ -962,12 +965,19 @@ ErrCode IInnerOsAccountManager::SetOsAccountName(const int id, const std::string
         return ERR_OSACCOUNT_SERVICE_INNER_ACCOUNT_TO_BE_REMOVED_ERROR;
     }
 
+    std::string localName = osAccountInfo.GetLocalName();
+    if (localName == name) {
+        return ERR_OK;
+    }
+
     osAccountInfo.SetLocalName(name);
     errCode = osAccountControl_->UpdateOsAccount(osAccountInfo);
     if (errCode != ERR_OK) {
         ACCOUNT_LOGE("update osaccount info error %{public}d, id: %{public}d", errCode, osAccountInfo.GetLocalId());
         return ERR_OSACCOUNT_SERVICE_INNER_UPDATE_ACCOUNT_ERROR;
     }
+    OsAccountInterface::PublishCommonEvent(
+        osAccountInfo, OHOS::EventFwk::CommonEventSupport::COMMON_EVENT_USER_INFO_UPDATED, Constants::OPERATION_UPDATE);
     return ERR_OK;
 }
 
