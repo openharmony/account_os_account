@@ -18,7 +18,7 @@
 
 #include <string>
 #include <iremote_broker.h>
-#include "os_account_info.h"
+#include "domain_account_common.h"
 #include "idomain_auth_callback.h"
 
 namespace OHOS {

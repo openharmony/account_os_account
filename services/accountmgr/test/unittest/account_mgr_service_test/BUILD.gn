@@ -49,7 +49,6 @@ ohos_unittest("account_mgr_test") {
   deps = [
     "${common_path}:libaccount_common",
     "${innerkits_native_path}:libaccountkits",
-    "${os_account_core_path}:os_account_core",
     "${os_account_innerkits_native_path}:os_account_innerkits",
     "${services_path}/accountmgr:accountmgr",
     "//third_party/googletest:gtest_main",

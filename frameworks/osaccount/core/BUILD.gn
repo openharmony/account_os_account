@@ -41,6 +41,7 @@ config("os_account_core_config") {
 
 config("os_account_core_public_config") {
   include_dirs = [
+    "${domain_account_interfaces_native_path}/include",
     "${os_account_core_path}/include",
     "${os_account_interfaces_native_path}/include",
     "${innerkits_path}/include",

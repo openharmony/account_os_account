@@ -16,10 +16,30 @@
 #ifndef OS_ACCOUNT_INTERFACES_INNERKITS_DOMAIN_ACCOUNT_INCLUDE_DOMAIN_ACCOUNT_COMMON_H
 #define OS_ACCOUNT_INTERFACES_INNERKITS_DOMAIN_ACCOUNT_INCLUDE_DOMAIN_ACCOUNT_COMMON_H
 
+#include <string>
 #include <vector>
 
 namespace OHOS {
 namespace AccountSA {
+class DomainAccountInfo {
+public:
+    DomainAccountInfo()
+        : domain_(""), accountName_("")
+    {}
+
+    DomainAccountInfo(const std::string &domain, const std::string &domainAccountName)
+        : domain_(domain), accountName_(domainAccountName)
+    {}
+
+    void Clear()
+    {
+        domain_.clear();
+        accountName_.clear();
+    }
+    std::string domain_;
+    std::string accountName_;
+};
+
 struct DomainAuthProperty {
     int32_t remainingTimes = -1;  // -1 indicates the invalid value
     int32_t freezingTime = -1;  // -1 indicates the invalid value

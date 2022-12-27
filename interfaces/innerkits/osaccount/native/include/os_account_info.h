@@ -15,8 +15,8 @@
 
 #ifndef OS_ACCOUNT_INTERFACES_INNERKITS_OS_ACCOUNT_INFO_H
 #define OS_ACCOUNT_INTERFACES_INNERKITS_OS_ACCOUNT_INFO_H
-#include <ctime>
 #include <vector>
+#include "domain_account_common.h"
 #include "iaccount_info.h"
 #include "parcel.h"
 namespace OHOS {
@@ -38,25 +38,6 @@ typedef enum {
 struct ConstraintSourceTypeInfo {
     int32_t localId;
     ConstraintSourceType typeInfo;
-};
-
-class DomainAccountInfo {
-public:
-    DomainAccountInfo()
-        : domain_(""), accountName_("")
-    {}
-
-    DomainAccountInfo(const std::string &domain, const std::string &domainAccountName)
-        : domain_(domain), accountName_(domainAccountName)
-    {}
-
-    void Clear()
-    {
-        domain_.clear();
-        accountName_.clear();
-    }
-    std::string domain_;
-    std::string accountName_;
 };
 
 class OsAccountInfo : public IAccountInfo, public Parcelable {
