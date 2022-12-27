@@ -26,7 +26,6 @@
 #include "napi/native_node_api.h"
 #include "node_api.h"
 #include "ohos_account_kits.h"
-#include "os_account_info.h"
 #include "napi_account_error.h"
 #include "napi_common.h"
 
