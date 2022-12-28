@@ -516,7 +516,7 @@ static void OnGetInfoWork(uv_work_t *work, int status)
     delete work;
 }
 
-void NapiGetInfoCallback::OnCredentialInfo(const std::vector<AccountSA::CredentialInfo> &infoList)
+void NapiGetInfoCallback::OnCredentialInfo(int32_t result, const std::vector<AccountSA::CredentialInfo> &infoList)
 {
     std::unique_ptr<uv_work_t> work = std::make_unique<uv_work_t>();
     std::unique_ptr<GetAuthInfoContext> context = std::make_unique<GetAuthInfoContext>(env_);
@@ -528,6 +528,7 @@ void NapiGetInfoCallback::OnCredentialInfo(const std::vector<AccountSA::Credenti
     }
     context->callbackRef = callbackRef_;
     context->deferred = deferred_;
+    context->errCode = result;
     context->credInfo = infoList;
     work->data = reinterpret_cast<void *>(context.get());
     NAPI_CALL_RETURN_VOID(env_, uv_queue_work(loop, work.get(), [] (uv_work_t *work) {}, OnGetInfoWork));

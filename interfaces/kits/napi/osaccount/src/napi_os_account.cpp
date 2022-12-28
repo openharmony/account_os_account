@@ -1425,7 +1425,6 @@ napi_value Subscribe(napi_env env, napi_callback_info cbInfo)
         return nullptr;
     }
     subscribeCBInfo->env = env;
-    subscribeCBInfo->callbackRef = nullptr;
     subscribeCBInfo->throwErr = true;
 
     napi_value thisVar = nullptr;
@@ -1444,23 +1443,15 @@ napi_value Subscribe(napi_env env, napi_callback_info cbInfo)
     OsAccountManager *objectInfo = nullptr;
     napi_unwrap(env, thisVar, reinterpret_cast<void **>(&objectInfo));
     subscribeCBInfo->osManager = objectInfo;
-
-    {
+    subscribeCBInfo->subscriber->SetEnv(env);
+    subscribeCBInfo->subscriber->SetCallbackRef(subscribeCBInfo->callbackRef);
+    ErrCode errCode = OsAccountManager::SubscribeOsAccount(subscribeCBInfo->subscriber);
+    if (errCode != ERR_OK) {
+        AccountNapiThrow(env, errCode, true);
+    } else {
         std::lock_guard<std::mutex> lock(g_lockForOsAccountSubscribers);
         g_osAccountSubscribers[objectInfo].emplace_back(subscribeCBInfo);
     }
-
-    napi_value resourceName = nullptr;
-    napi_create_string_latin1(env, "Subscribe", NAPI_AUTO_LENGTH, &resourceName);
-
-    napi_create_async_work(env,
-        nullptr,
-        resourceName,
-        SubscribeExecuteCB,
-        SubscribeCompletedCB,
-        reinterpret_cast<void *>(subscribeCBInfo),
-        &subscribeCBInfo->work);
-    napi_queue_async_work(env, subscribeCBInfo->work);
     return WrapVoidToJS(env);
 }
 

@@ -365,8 +365,8 @@ ErrCode AccountIAMMgrStub::ProcAuthUser(MessageParcel &data, MessageParcel &repl
         ACCOUNT_LOGE("failed to read userId");
         return ERR_ACCOUNT_IAM_SERVICE_READ_PARCEL_FAIL;
     }
-    std::vector<uint8_t> challenge;
-    if (!data.ReadUInt8Vector(&challenge)) {
+    AuthParam authParam;
+    if (!data.ReadUInt8Vector(&authParam.challenge)) {
         ACCOUNT_LOGE("failed to read challenge");
         return ERR_ACCOUNT_IAM_SERVICE_READ_PARCEL_FAIL;
     }
@@ -375,18 +375,24 @@ ErrCode AccountIAMMgrStub::ProcAuthUser(MessageParcel &data, MessageParcel &repl
         ACCOUNT_LOGE("failed to read authType for AuthUser");
         return ERR_ACCOUNT_IAM_SERVICE_READ_PARCEL_FAIL;
     }
+    authParam.authType = static_cast<AuthType>(authType);
     uint32_t authTrustLevel;
     if (!data.ReadUint32(authTrustLevel)) {
         ACCOUNT_LOGE("failed to read authTrustLevel for AuthUser");
         return ERR_ACCOUNT_IAM_SERVICE_READ_PARCEL_FAIL;
     }
+    authParam.authTrustLevel = static_cast<AuthTrustLevel>(authTrustLevel);
     sptr<IIDMCallback> callback = iface_cast<IIDMCallback>(data.ReadRemoteObject());
     if (callback == nullptr) {
         ACCOUNT_LOGE("UserAuthCallbackInterface is nullptr");
         return ERR_ACCOUNT_IAM_SERVICE_READ_PARCEL_FAIL;
     }
-    uint64_t contextId = AuthUser(userId, challenge, static_cast<AuthType>(authType),
-        static_cast<AuthTrustLevel>(authTrustLevel), callback);
+    uint64_t contextId = 0;
+    ErrCode result = AuthUser(userId, authParam, callback, contextId);
+    if (!reply.WriteInt32(result)) {
+        ACCOUNT_LOGE("failed to write result");
+        return ERR_ACCOUNT_IAM_SERVICE_WRITE_PARCEL_FAIL;
+    }
     if (!reply.WriteUint64(contextId)) {
         ACCOUNT_LOGE("failed to write contextId");
         return ERR_ACCOUNT_IAM_SERVICE_WRITE_PARCEL_FAIL;
