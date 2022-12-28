@@ -156,16 +156,17 @@ int32_t InnerAccountIAMManager::Cancel(int32_t userId)
     return UserIDMClient::GetInstance().Cancel(userId);
 }
 
-uint64_t InnerAccountIAMManager::AuthUser(int32_t userId, const std::vector<uint8_t> &challenge, AuthType authType,
-    AuthTrustLevel authTrustLevel, const sptr<IIDMCallback> &callback)
+int32_t InnerAccountIAMManager::AuthUser(
+    int32_t userId, const AuthParam &authParam, const sptr<IIDMCallback> &callback, uint64_t &contextId)
 {
     if (callback == nullptr) {
         ACCOUNT_LOGE("callback is nullptr");
         return ERR_ACCOUNT_COMMON_NULL_PTR_ERROR;
     }
-    auto userAuthCallback = std::make_shared<AuthCallback>(userId, authType, callback);
-    return UserAuthClient::GetInstance().BeginAuthentication(
-        userId, challenge, authType, authTrustLevel, userAuthCallback);
+    auto userAuthCallback = std::make_shared<AuthCallback>(userId, authParam.authType, callback);
+    contextId = UserAuthClient::GetInstance().BeginAuthentication(
+        userId, authParam.challenge, authParam.authType, authParam.authTrustLevel, userAuthCallback);
+    return ERR_OK;
 }
 
 int32_t InnerAccountIAMManager::CancelAuth(uint64_t contextId)
