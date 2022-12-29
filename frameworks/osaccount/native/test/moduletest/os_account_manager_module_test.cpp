@@ -2250,8 +2250,8 @@ HWTEST_F(OsAccountManagerModuleTest, OsAccountManagerModuleTest111, TestSize.Lev
     DomainAccountInfo domainInfo(STRING_DOMAIN_VALID, STRING_DOMAIN_ACCOUNT_NAME_VALID);
     OsAccountType type = NORMAL;
     OsAccountInfo osAccountInfo;
-    ASSERT_NE(OsAccountManager::CreateOsAccountForDomain(type, domainInfo, osAccountInfo),
-        ERR_ACCOUNT_COMMON_NOT_SYSTEM_APP_ERROR);
+    ASSERT_EQ(OsAccountManager::CreateOsAccountForDomain(type, domainInfo, osAccountInfo), ERR_OK);
+    ASSERT_EQ(OsAccountManager::RemoveOsAccount(osAccountInfo.GetLocalId()), ERR_OK);
 
     AccessTokenID tokenID = AccessTokenKit::GetHapTokenID(infoManagerTestSystemInfoParms.userID,
         infoManagerTestSystemInfoParms.bundleName, infoManagerTestSystemInfoParms.instIndex);
