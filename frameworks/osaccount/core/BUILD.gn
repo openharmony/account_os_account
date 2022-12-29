@@ -84,7 +84,10 @@ ohos_shared_library("os_account_core") {
 
   use_exceptions = true
 
-  deps = [ "${innerkits_native_path}:libaccountkits" ]
+  deps = [
+    "${common_path}:libaccount_common",
+    "${innerkits_native_path}:libaccountkits",
+  ]
 
   external_deps = [
     "ability_base:want",
