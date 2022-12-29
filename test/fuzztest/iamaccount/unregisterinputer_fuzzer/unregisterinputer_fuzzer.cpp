@@ -19,14 +19,14 @@
 #include <vector>
 #include "account_iam_client.h"
 
-
 using namespace std;
 using namespace OHOS::AccountSA;
 
 namespace OHOS {
     bool UnRegisterInputerFuzzTest(const uint8_t* data, size_t size)
     {
-        AccountIAMClient::GetInstance().UnRegisterInputer();
+        int32_t authType = static_cast<int32_t>(size);
+        AccountIAMClient::GetInstance().UnregisterInputer(authType);
         return false;
     }
 }

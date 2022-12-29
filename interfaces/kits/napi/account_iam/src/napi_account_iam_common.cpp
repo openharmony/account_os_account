@@ -47,10 +47,15 @@ static int32_t AccountIAMConvertOtherToJSErrCode(int32_t errCode)
             return ERR_JS_CREDENTIAL_NOT_EXIST;
         case ERR_IAM_INVALID_CONTEXT_ID:
             return ERR_JS_INVALID_CONTEXT_ID;
+        case ERR_ACCOUNT_COMMON_INVALID_PARAMTER:
         case ERR_IAM_INVALID_PARAMETERS:
             return ERR_JS_INVALID_PARAMETER;
         case ERR_ACCOUNT_IAM_KIT_INPUTER_ALREADY_REGISTERED:
             return ERR_JS_CREDENTIAL_INPUTER_ALREADY_EXIST;
+        case ERR_ACCOUNT_IAM_KIT_INPUTER_NOT_REGISTERED:
+            return ERR_JS_CREDENTIAL_INPUTER_NOT_EXIST;
+        case ERR_ACCOUNT_IAM_UNSUPPORTED_AUTH_TYPE:
+            return ERR_JS_AUTH_TYPE_NOT_SUPPORTED;
         default:
             return ERR_JS_SYSTEM_SERVICE_EXCEPTION;
     }
@@ -367,14 +372,20 @@ napi_value CreateAuthResult(napi_env env, const std::vector<uint8_t> &token, int
 {
     napi_value object = nullptr;
     NAPI_CALL(env, napi_create_object(env, &object));
-    napi_value napiRemainTimes = 0;
-    napi_create_uint32(env, remainTimes, &napiRemainTimes);
-    napi_set_named_property(env, object, "remainTimes", napiRemainTimes);
-    napi_value napiFreezingTimes = 0;
-    napi_create_uint32(env, freezingTime, &napiFreezingTimes);
-    napi_set_named_property(env, object, "freezingTime", napiFreezingTimes);
-    napi_value napiToken = CreateUint8Array(env, token.data(), token.size());
-    napi_set_named_property(env, object, "token", napiToken);
+    if (remainTimes >= 0) {
+        napi_value napiRemainTimes = 0;
+        napi_create_uint32(env, remainTimes, &napiRemainTimes);
+        napi_set_named_property(env, object, "remainTimes", napiRemainTimes);
+    }
+    if (remainTimes >= 0) {
+        napi_value napiFreezingTimes = 0;
+        napi_create_uint32(env, freezingTime, &napiFreezingTimes);
+        napi_set_named_property(env, object, "freezingTime", napiFreezingTimes);
+    }
+    if (token.size() > 0) {
+        napi_value napiToken = CreateUint8Array(env, token.data(), token.size());
+        napi_set_named_property(env, object, "token", napiToken);
+    }
     return object;
 }
 
@@ -804,75 +815,6 @@ napi_status ParseUInt32Array(napi_env env, napi_value value, std::vector<uint32_
         data.push_back(num);
     }
     return napi_ok;
-}
-
-napi_status ParseUint8TypedArray(napi_env env, napi_value value, uint8_t **data, size_t *length)
-{
-    *data = nullptr;
-    *length = 0;
-    bool isTypedArray = false;
-    napi_is_typedarray(env, value, &isTypedArray);
-    if (!isTypedArray) {
-        ACCOUNT_LOGE("invalid uint8 array");
-        return napi_ok;
-    }
-    napi_typedarray_type arrayType;
-    napi_value buffer = nullptr;
-    size_t offset = 0;
-    napi_get_typedarray_info(env, value, &arrayType, length, reinterpret_cast<void **>(data), &buffer, &offset);
-    if (arrayType != napi_uint8_array) {
-        ACCOUNT_LOGE("invalid uint8 array");
-        *data = nullptr;
-        *length = 0;
-    }
-    return napi_ok;
-}
-
-napi_status ParseUint8TypedArrayToVector(napi_env env, napi_value value, std::vector<uint8_t> &vec)
-{
-    uint8_t *data = nullptr;
-    size_t length = 0;
-    napi_status status = ParseUint8TypedArray(env, value, &data, &length);
-    if (status != napi_ok) {
-        ACCOUNT_LOGE("failed to ParseUint8TypedArray");
-        return status;
-    }
-    vec.assign(data, data + length);
-    return napi_ok;
-}
-
-napi_status ParseUint8TypedArrayToUint64(napi_env env, napi_value value, uint64_t &result)
-{
-    uint8_t *data = nullptr;
-    size_t length = 0;
-    napi_status status = ParseUint8TypedArray(env, value, &data, &length);
-    if (status != napi_ok) {
-        ACCOUNT_LOGE("failed to ParseUint8TypedArray");
-        return status;
-    }
-    if (data == nullptr) {
-        result = 0;
-        return napi_invalid_arg;
-    }
-    if (length != sizeof(uint64_t)) {
-        ACCOUNT_LOGE("failed to convert to uint64_t value");
-        return napi_invalid_arg;
-    }
-    result = *(reinterpret_cast<uint64_t *>(data));
-    return napi_ok;
-}
-
-napi_value CreateUint8Array(napi_env env, const uint8_t *srcData, size_t length)
-{
-    napi_value result = nullptr;
-    void* dstData = nullptr;
-    napi_value napiArr = nullptr;
-    NAPI_CALL(env, napi_create_arraybuffer(env, length, &dstData, &napiArr));
-    if ((length > 0) && (memcpy_s(dstData, length, srcData, length) != EOK)) {
-        return result;
-    }
-    NAPI_CALL(env, napi_create_typedarray(env, napi_uint8_array, length, napiArr, 0, &result));
-    return result;
 }
 
 napi_value CreateErrorObject(napi_env env, int32_t code)

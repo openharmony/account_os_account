@@ -233,12 +233,8 @@ HWTEST_F(AccountIAMClientTest, AccountIAMClient_GetAvailableStatus_0100, TestSiz
 HWTEST_F(AccountIAMClientTest, AccountIAMClient_GetAvailableStatus_0200, TestSize.Level0)
 {
     int32_t status;
-    AuthType authType = static_cast<AuthType>(11);
-    int32_t ret = AccountIAMClient::GetInstance().GetAvailableStatus(authType, AuthTrustLevel::ATL1, status);
-    EXPECT_EQ(ERR_ACCOUNT_IAM_KIT_PARAM_INVALID_ERROR, ret);
-
     AuthTrustLevel level = static_cast<AuthTrustLevel>(0);
-    ret = AccountIAMClient::GetInstance().GetAvailableStatus(AuthType::FACE, level, status);
+    int32_t ret = AccountIAMClient::GetInstance().GetAvailableStatus(AuthType::FACE, level, status);
     EXPECT_EQ(ERR_ACCOUNT_IAM_KIT_PARAM_INVALID_ERROR, ret);
 }
 
@@ -324,8 +320,25 @@ public:
 };
 
 /**
- * @tc.name: AccountIAMClient_RegisterInputer_0100
+ * @tc.name: AccountIAMClient_RegisterPINInputer_0100
  * @tc.desc: Register inputer.
+ * @tc.type: FUNC
+ * @tc.require: issueI5N90O
+ */
+HWTEST_F(AccountIAMClientTest, AccountIAMClient_RegisterPINInputer_0100, TestSize.Level0)
+{
+    std::shared_ptr<IInputer> inputer = std::make_shared<TestIInputer>();
+    EXPECT_NE(nullptr, inputer);
+    EXPECT_EQ(ERR_OK, AccountIAMClient::GetInstance().RegisterPINInputer(inputer));
+    EXPECT_EQ(ERR_ACCOUNT_IAM_KIT_INPUTER_ALREADY_REGISTERED,
+        AccountIAMClient::GetInstance().RegisterPINInputer(inputer));
+
+    AccountIAMClient::GetInstance().UnregisterPINInputer();
+}
+
+/**
+ * @tc.name: AccountIAMClient_RegisterInputer_0100
+ * @tc.desc: Unregister/Register inputer failed for unsupported auth type.
  * @tc.type: FUNC
  * @tc.require: issueI5N90O
  */
@@ -333,10 +346,9 @@ HWTEST_F(AccountIAMClientTest, AccountIAMClient_RegisterInputer_0100, TestSize.L
 {
     std::shared_ptr<IInputer> inputer = std::make_shared<TestIInputer>();
     EXPECT_NE(nullptr, inputer);
-    EXPECT_EQ(ERR_OK, AccountIAMClient::GetInstance().RegisterInputer(inputer));
-    EXPECT_EQ(ERR_ACCOUNT_IAM_KIT_INPUTER_ALREADY_REGISTERED, AccountIAMClient::GetInstance().RegisterInputer(inputer));
-
-    AccountIAMClient::GetInstance().UnRegisterInputer();
+    EXPECT_EQ(ERR_ACCOUNT_IAM_UNSUPPORTED_AUTH_TYPE,
+        AccountIAMClient::GetInstance().RegisterInputer(AuthType::PIN, inputer));
+    EXPECT_EQ(ERR_ACCOUNT_IAM_UNSUPPORTED_AUTH_TYPE, AccountIAMClient::GetInstance().UnregisterInputer(AuthType::PIN));
 }
 
 /**

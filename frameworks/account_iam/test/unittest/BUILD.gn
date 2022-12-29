@@ -48,6 +48,7 @@ ohos_unittest("account_iam_client_test") {
   deps = [
     "${account_iam_framework_path}:account_iam_innerkits",
     "${common_path}:libaccount_common",
+    "${domain_account_framework_path}:domain_account_innerkits",
     "//base/security/access_token/interfaces/innerkits/accesstoken:libaccesstoken_sdk",
     "//base/security/access_token/interfaces/innerkits/token_setproc:libtoken_setproc",
     "//third_party/googletest:gmock_main",
@@ -81,6 +82,7 @@ ohos_unittest("account_iam_client_no_permission_test") {
   deps = [
     "${account_iam_framework_path}:account_iam_innerkits",
     "${common_path}:libaccount_common",
+    "${domain_account_framework_path}:domain_account_innerkits",
     "//base/security/access_token/interfaces/innerkits/accesstoken:libaccesstoken_sdk",
     "//base/security/access_token/interfaces/innerkits/token_setproc:libtoken_setproc",
     "//third_party/googletest:gmock_main",

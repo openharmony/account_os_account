@@ -17,6 +17,7 @@
 #if defined(HAS_USER_AUTH_PART) && defined(HAS_PIN_AUTH_PART)
 #include "napi_account_iam_module.h"
 #endif
+#include "napi_domain_account_module.h"
 
 namespace OHOS {
 namespace AccountJsKit {
@@ -34,6 +35,7 @@ static napi_value Init(napi_env env, napi_value exports)
 #if defined(HAS_USER_AUTH_PART) && defined(HAS_PIN_AUTH_PART)
     AccountIAMInit(env, exports);
 #endif
+    DomainAccountInit(env, exports);
     return exports;
 }
 EXTERN_C_END

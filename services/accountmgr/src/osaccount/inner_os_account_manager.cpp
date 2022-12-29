@@ -23,6 +23,9 @@
 
 namespace OHOS {
 namespace AccountSA {
+namespace {
+const std::string CONSTRAINT_CREATE_ACCOUNT_DIRECTLY = "constraint.os.account.create.directly";
+}
 IInnerOsAccountManager::IInnerOsAccountManager() : subscribeManagerPtr_(OsAccountSubscribeManager::GetInstance())
 {
     counterForStandard_ = 0;
@@ -373,6 +376,19 @@ ErrCode IInnerOsAccountManager::CreateOsAccountForDomain(
     }
 
     std::string osAccountName = domainInfo.domain_ + "/" + domainInfo.accountName_;
+    bool isEnabled = false;
+    (void)IsOsAccountConstraintEnable(Constants::START_USER_ID, CONSTRAINT_CREATE_ACCOUNT_DIRECTLY, isEnabled);
+    if (isEnabled && (osAccountInfos.size() == 1) && (osAccountInfos[0].GetLocalId() == Constants::START_USER_ID)) {
+        DomainAccountInfo curDomainInfo;
+        osAccountInfos[0].GetDomainInfo(curDomainInfo);
+        if (curDomainInfo.domain_.empty()) {
+            osAccountInfos[0].SetLocalName(osAccountName);
+            osAccountInfos[0].SetDomainInfo(domainInfo);
+            osAccountInfo = osAccountInfos[0];
+            return osAccountControl_->UpdateOsAccount(osAccountInfos[0]);
+        }
+    }
+
     errCode = PrepareOsAccountInfo(osAccountName, type, domainInfo, osAccountInfo);
     if (errCode != ERR_OK) {
         return errCode;
@@ -537,6 +553,7 @@ ErrCode IInnerOsAccountManager::IsOsAccountActived(const int id, bool &isOsAccou
 ErrCode IInnerOsAccountManager::IsOsAccountConstraintEnable(
     const int id, const std::string &constraint, bool &isOsAccountConstraintEnable)
 {
+    isOsAccountConstraintEnable = false;
     OsAccountInfo osAccountInfo;
     ErrCode errCode = osAccountControl_->GetOsAccountInfoById(id, osAccountInfo);
     if (errCode != ERR_OK) {
@@ -563,7 +580,6 @@ ErrCode IInnerOsAccountManager::IsOsAccountConstraintEnable(
             return ERR_OK;
         }
     }
-    isOsAccountConstraintEnable = false;
     return ERR_OK;
 }
 
