@@ -72,6 +72,7 @@ ohos_shared_library("osaccount") {
   ]
 
   deps = [
+    "${domain_account_napi_path}:domain_account_napi",
     "${innerkits_native_path}:libaccountkits",
     "//foundation/arkui/napi/:ace_napi",
   ]

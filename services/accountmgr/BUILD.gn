@@ -67,6 +67,14 @@ config("account_iam_config") {
   ]
 }
 
+config("domain_account_config") {
+  include_dirs = [
+    "include/domain_account",
+    "${domain_account_framework_path}/include",
+    "${domain_account_interfaces_native_path}/include",
+  ]
+}
+
 config("ability_manager_config") {
   include_dirs = [
     "${ability_runtime_path}/interfaces/inner_api/ability_manager/include",
@@ -83,6 +91,7 @@ config("accountmgr_public_config") {
     "${services_path}/accountmgr/include",
     "${services_path}/accountmgr/include/appaccount",
     "${services_path}/accountmgr/include/osaccount",
+    "${services_path}/accountmgr/include/domain_account",
   ]
 
   if (has_user_auth_part) {
@@ -140,6 +149,9 @@ ohos_shared_library("accountmgr") {
     "${app_account_innerkits_native_path}/src/app_account_common.cpp",
     "${app_account_innerkits_native_path}/src/app_account_info.cpp",
     "${app_account_innerkits_native_path}/src/app_account_subscribe_info.cpp",
+    "${domain_account_framework_path}/src/domain_auth_callback_proxy.cpp",
+    "${domain_account_framework_path}/src/domain_auth_callback_service.cpp",
+    "${domain_account_framework_path}/src/domain_auth_callback_stub.cpp",
     "${innerkits_native_path}/src/account_info_parcel.cpp",
     "${os_account_dfx_path}/hidumper_adapter/account_dump_helper.cpp",
     "${os_account_dfx_path}/hisysevent_adapter/hisysevent_adapter.cpp",
@@ -168,6 +180,11 @@ ohos_shared_library("accountmgr") {
     "src/appaccount/app_account_subscribe_death_recipient.cpp",
     "src/appaccount/app_account_subscribe_manager.cpp",
     "src/appaccount/inner_app_account_manager.cpp",
+    "src/domain_account/domain_account_manager_service.cpp",
+    "src/domain_account/domain_account_plugin_death_recipient.cpp",
+    "src/domain_account/domain_account_plugin_proxy.cpp",
+    "src/domain_account/domain_account_stub.cpp",
+    "src/domain_account/inner_domain_account_manager.cpp",
     "src/ohos_account_data_deal.cpp",
     "src/ohos_account_manager.cpp",
     "src/osaccount/inner_os_account_manager.cpp",
@@ -206,6 +223,7 @@ ohos_shared_library("accountmgr") {
     ":accountmgr_config",
     ":ability_manager_config",
     ":bundle_manager_config",
+    ":domain_account_config",
     "${account_coverage_config_path}:coverage_flags",
   ]
 
@@ -213,7 +231,10 @@ ohos_shared_library("accountmgr") {
     configs += [ ":account_iam_config" ]
   }
 
-  public_configs = [ ":accountmgr_public_config" ]
+  public_configs = [
+    ":accountmgr_public_config",
+    ":domain_account_config",
+  ]
 
   use_exceptions = true
 
