@@ -15,6 +15,7 @@
 #include "os_account.h"
 #include "account_error_no.h"
 #include "account_log_wrapper.h"
+#include "account_permission_manager.h"
 #include "account_proxy.h"
 #include "iaccount.h"
 #include "iservice_registry.h"
@@ -502,6 +503,11 @@ ErrCode OsAccount::SubscribeOsAccount(const std::shared_ptr<OsAccountSubscriber>
 
 ErrCode OsAccount::UnsubscribeOsAccount(const std::shared_ptr<OsAccountSubscriber> &subscriber)
 {
+    ErrCode result = DelayedSingleton<AccountPermissionManager>::GetInstance()->CheckSystemApp(false);
+    if (result != ERR_OK) {
+        ACCOUNT_LOGE("is not system application, result = %{public}u.", result);
+        return result;
+    }
     if (subscriber == nullptr) {
         ACCOUNT_LOGE("subscriber is nullptr");
         return ERR_APPACCOUNT_KIT_SUBSCRIBER_IS_NULLPTR;
@@ -516,7 +522,7 @@ ErrCode OsAccount::UnsubscribeOsAccount(const std::shared_ptr<OsAccountSubscribe
 
     auto eventListener = eventListeners_.find(subscriber);
     if (eventListener != eventListeners_.end()) {
-        ErrCode result = osAccountProxy_->UnsubscribeOsAccount(eventListener->second->AsObject());
+        result = osAccountProxy_->UnsubscribeOsAccount(eventListener->second->AsObject());
         if (result == ERR_OK) {
             eventListener->second->Stop();
             eventListeners_.erase(eventListener);
