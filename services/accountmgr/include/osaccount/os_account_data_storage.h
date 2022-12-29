@@ -25,7 +25,7 @@ namespace AccountSA {
 class OsAccountDataStorage : public AccountDataStorage {
 public:
     OsAccountDataStorage(const std::string &appId, const std::string &storeId, const bool &autoSync);
-    virtual ~OsAccountDataStorage();
+    ~OsAccountDataStorage() override;
     void SaveEntries(std::vector<OHOS::DistributedKv::Entry> allEntries,
         std::map<std::string, std::shared_ptr<IAccountInfo>> &infos) override;
 };

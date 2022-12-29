@@ -72,7 +72,7 @@ public:
     ErrCode SetOAuthToken(const AuthenticatorSessionRequest &request);
     ErrCode DeleteOAuthToken(
         const AuthenticatorSessionRequest &request, const uint32_t apiVersion = Constants::API_VERSION8);
-    ErrCode SetOAuthTokenVisibility(const AuthenticatorSessionRequest &,
+    ErrCode SetOAuthTokenVisibility(const AuthenticatorSessionRequest &request,
         const uint32_t apiVersion = Constants::API_VERSION8);
     ErrCode CheckOAuthTokenVisibility(const AuthenticatorSessionRequest &request,
         bool &isVisible, const uint32_t apiVersion = Constants::API_VERSION8);

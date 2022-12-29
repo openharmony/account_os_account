@@ -16,8 +16,8 @@
 #ifndef BASE_ACCOUNT_IACCOUNT_H
 #define BASE_ACCOUNT_IACCOUNT_H
 
+#include <cstdint>
 #include <string>
-#include <stdint.h>
 #include <iremote_broker.h>
 #include "account_info.h"
 #include "device_account_info.h"

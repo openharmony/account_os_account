@@ -32,9 +32,9 @@ class AppAccountAuthenticatorSession;
 class SessionClientDeathRecipient : public IRemoteObject::DeathRecipient {
 public:
     explicit SessionClientDeathRecipient(const std::string &sessionId);
-    virtual ~SessionClientDeathRecipient() = default;
+    ~SessionClientDeathRecipient() override = default;
 
-    virtual void OnRemoteDied(const wptr<IRemoteObject> &remote);
+    void OnRemoteDied(const wptr<IRemoteObject> &remote) override;
 
 private:
     std::string sessionId_;
@@ -43,9 +43,9 @@ private:
 class SessionServerDeathRecipient : public IRemoteObject::DeathRecipient {
 public:
     explicit SessionServerDeathRecipient(const std::string &sessionId);
-    virtual ~SessionServerDeathRecipient() = default;
+    ~SessionServerDeathRecipient() override = default;
 
-    virtual void OnRemoteDied(const wptr<IRemoteObject> &remote);
+    void OnRemoteDied(const wptr<IRemoteObject> &remote) override;
 
 private:
     std::string sessionId_;
@@ -54,7 +54,7 @@ private:
 class SessionConnection : public AAFwk::AbilityConnectionStub {
 public:
     explicit SessionConnection(const std::string &sessionId);
-    virtual ~SessionConnection();
+    ~SessionConnection() override;
 
     void OnAbilityConnectDone(
         const AppExecFwk::ElementName &element, const sptr<IRemoteObject> &remoteObject, int32_t resultCode) override;

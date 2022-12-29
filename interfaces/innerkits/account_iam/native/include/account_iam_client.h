@@ -68,7 +68,7 @@ private:
     class AccountIAMDeathRecipient : public IRemoteObject::DeathRecipient {
     public:
         AccountIAMDeathRecipient() = default;
-        ~AccountIAMDeathRecipient() = default;
+        ~AccountIAMDeathRecipient() override = default;
         void OnRemoteDied(const wptr<IRemoteObject>& remote) override;
 
     private:

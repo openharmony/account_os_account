@@ -30,6 +30,10 @@
 using namespace OHOS::AccountSA;
 namespace OHOS {
 namespace AccountJsKit {
+const std::string APP_ACCOUNT_CLASS_NAME = "AppAccountManager";
+const std::string TYPE_CHANGE = "change";
+static thread_local napi_ref appAccountRef_ = nullptr;
+
 napi_value NapiAppAccount::Init(napi_env env, napi_value exports)
 {
     napi_property_descriptor descriptor[] = {

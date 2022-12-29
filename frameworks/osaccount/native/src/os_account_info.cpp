@@ -69,25 +69,6 @@ OsAccountInfo::OsAccountInfo(int localId, const std::string localName, OsAccount
     toBeRemoved_ = false;
 }
 
-OsAccountInfo::OsAccountInfo(int localId, std::string localName, OsAccountType type,
-    std::vector<std::string> constraints, bool isVerified, std::string photo, int64_t createTime, int64_t lastLoginTime,
-    int64_t serialNumber, bool isCreateCompleted)
-    : localId_(localId),
-      localName_(localName),
-      type_(type),
-      constraints_(constraints),
-      isVerified_(isVerified),
-      photo_(photo),
-      createTime_(createTime),
-      lastLoginTime_(lastLoginTime),
-      serialNumber_(serialNumber),
-      isCreateCompleted_(isCreateCompleted)
-{
-    isActived_ = false;
-    domainInfo_.Clear();
-    toBeRemoved_ = false;
-}
-
 int OsAccountInfo::GetLocalId() const
 {
     return localId_;

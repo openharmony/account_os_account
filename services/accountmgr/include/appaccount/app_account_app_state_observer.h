@@ -23,7 +23,7 @@ namespace AccountSA {
 class AppAccountAppStateObserver : public AppExecFwk::ApplicationStateObserverStub {
 public:
     AppAccountAppStateObserver();
-    virtual ~AppAccountAppStateObserver() = default;
+    ~AppAccountAppStateObserver() override = default;
 
     void OnAbilityStateChanged(const AppExecFwk::AbilityStateData &abilityStateData) override;
 };

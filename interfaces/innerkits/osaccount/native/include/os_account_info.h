@@ -46,10 +46,6 @@ public:
 
     OsAccountInfo(int localId, const std::string localName, OsAccountType type, int64_t serialNumber);
 
-    OsAccountInfo(int localId, std::string localName, OsAccountType type, std::vector<std::string> constraints,
-        bool isVerified, std::string photo, int64_t createTime, int64_t lastLoginTime, int64_t serialNumber,
-        bool isCreateCompleted);
-
     int GetLocalId() const;
 
     void SetLocalId(int localId);
