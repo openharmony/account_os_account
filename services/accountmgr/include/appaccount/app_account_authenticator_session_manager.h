@@ -35,7 +35,7 @@ class AppAccountAuthenticatorSessionManager;
 class SessionAppStateObserver : public AppExecFwk::ApplicationStateObserverStub {
 public:
     explicit SessionAppStateObserver();
-    virtual ~SessionAppStateObserver() = default;
+    ~SessionAppStateObserver() override = default;
 
     void OnAbilityStateChanged(const AppExecFwk::AbilityStateData &abilityStateData) override;
 };

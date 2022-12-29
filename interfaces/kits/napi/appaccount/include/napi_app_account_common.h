@@ -31,7 +31,6 @@ namespace OHOS {
 namespace AccountJsKit {
 using namespace OHOS::AccountSA;
 constexpr std::int32_t MAX_VALUE_LEN = 4096;
-constexpr const std::int32_t STR_MAX_SIZE = 256;
 constexpr std::int32_t ARGS_SIZE_ONE = 1;
 constexpr std::int32_t ARGS_SIZE_TWO = 2;
 constexpr std::int32_t ARGS_SIZE_THREE = 3;
@@ -45,11 +44,6 @@ constexpr int PARAMTWO = 2;
 constexpr int PARAMTHREE = 3;
 constexpr int PARAMFOUR = 4;
 constexpr int PARAMFIVE = 5;
-const std::string APP_ACCOUNT_CLASS_NAME = "AppAccountManager";
-const std::string TYPE_CHANGE = "change";
-
-static const std::int32_t SUBSCRIBE_MAX_PARA = 3;
-static const std::int32_t UNSUBSCRIBE_MAX_PARA = 2;
 
 class AppAccountManagerCallback;
 struct AsyncContextForSubscribe;
@@ -59,7 +53,7 @@ extern std::map<AppAccountManager *, std::vector<AsyncContextForSubscribe *>> g_
 class SubscriberPtr : public AppAccountSubscriber {
 public:
     explicit SubscriberPtr(const AppAccountSubscribeInfo &subscribeInfo);
-    ~SubscriberPtr();
+    ~SubscriberPtr() override;
 
     void OnAccountsChanged(const std::vector<AppAccountInfo> &accounts) override;
 

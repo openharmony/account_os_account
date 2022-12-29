@@ -32,13 +32,10 @@ namespace AccountJsKit {
 using namespace OHOS::AccountSA;
 struct SubscribeCBInfo;
 
-const std::string OS_ACCOUNT_CLASS_NAME = "AccountManager";
-static thread_local napi_ref osAccountRef_ = nullptr;
-
 class SubscriberPtr : public OsAccountSubscriber {
 public:
     explicit SubscriberPtr(const OsAccountSubscribeInfo &subscribeInfo);
-    ~SubscriberPtr();
+    ~SubscriberPtr() override;
 
     void OnAccountsChanged(const int &id) override;
 

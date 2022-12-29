@@ -44,6 +44,8 @@ const std::string PROPERTY_KEY_NICKNAME = "nickname";
 const std::string PROPERTY_KEY_AVATAR = "avatar";
 const std::string PROPERTY_KEY_SCALABLE = "scalableData";
 
+static thread_local napi_ref distributedAccountRef_ = nullptr;
+
 struct DistributedAccountAsyncContext {
     explicit DistributedAccountAsyncContext(napi_env napiEnv) : env(napiEnv) {}
     napi_env env = nullptr;

@@ -25,7 +25,7 @@ namespace OHOS {
 namespace AccountJsKit {
 struct CommonAsyncContext {
     CommonAsyncContext() {};
-    CommonAsyncContext(napi_env napiEnv) : env(napiEnv) {};
+    explicit CommonAsyncContext(napi_env napiEnv) : env(napiEnv) {};
     napi_env env = nullptr;
     napi_async_work work = nullptr;
     napi_deferred deferred = nullptr;
