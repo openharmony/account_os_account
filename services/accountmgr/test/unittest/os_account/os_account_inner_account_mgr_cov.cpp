@@ -13,10 +13,20 @@
  * limitations under the License.
  */
 
+#include <gmock/gmock.h>
 #include <gtest/gtest.h>
 #include <map>
+#include <thread>
 
+#include "accesstoken_kit.h"
 #include "account_error_no.h"
+#ifdef HAS_CES_PART
+#include "common_event_manager.h"
+#include "common_event_subscriber.h"
+#include "common_event_support.h"
+#include "common_event_subscribe_info.h"
+#include "matching_skills.h"
+#endif // HAS_CES_PART
 #include "os_account_constants.h"
 #include "os_account_manager_service.h"
 #include "os_account_interface.h"
@@ -26,6 +36,7 @@
 #include "iinner_os_account_manager.h"
 #undef private
 #include "os_account_subscribe_manager.h"
+#include "token_setproc.h"
 
 namespace OHOS {
 namespace AccountSA {
@@ -33,11 +44,17 @@ using namespace testing::ext;
 using namespace OHOS::AccountSA;
 using namespace OHOS;
 using namespace AccountSA;
+using namespace Security::AccessToken;
 
 const int TEST_USER_ID10 = 10;
 const int TEST_USER_ID55 = 55;
 const int TEST_USER_ID100 = 100;
 const int TEST_USER_ID555 = 555;
+const int ACCOUNT_UID = 3058;
+const int DELAY_FOR_OPERATION = 250;
+const std::string ACCOUNT_NAME = "TEST";
+const std::string ACCOUNT_SET_NAME = "TEST2";
+const AccessTokenID accountMgrTokenID = AccessTokenKit::GetNativeTokenId("accountmgr");
 
 class OsAccountInnerAccmgrCoverageTest : public testing::Test {
 public:
@@ -49,10 +66,32 @@ public:
     std::shared_ptr<IInnerOsAccountManager> innerMgrService_;
     std::shared_ptr<IOsAccountSubscribe> subscribeManagerPtr_;
 };
+class AccountCommonEventSubscriber final : public EventFwk::CommonEventSubscriber {
+public:
+    AccountCommonEventSubscriber(const EventFwk::CommonEventSubscribeInfo &subscribeInfo)
+        : CommonEventSubscriber(subscribeInfo)
+    {}
+    void OnReceiveEvent(const EventFwk::CommonEventData &data)
+    {
+        auto want = data.GetWant();
+        std::string action = want.GetAction();
+        if (action == EventFwk::CommonEventSupport::COMMON_EVENT_USER_INFO_UPDATED) {
+            status = true;
+        }
+    }
+    bool GetStatus()
+    {
+        return status;
+    }
 
+private:
+    bool status = false;
+};
 
 void OsAccountInnerAccmgrCoverageTest::SetUpTestCase(void)
-{}
+{
+    SetSelfTokenID(accountMgrTokenID);
+}
 
 void OsAccountInnerAccmgrCoverageTest::TearDownTestCase(void)
 {}
@@ -224,5 +263,39 @@ HWTEST_F(OsAccountInnerAccmgrCoverageTest, OsAccountInnerAccmgrCoverageTest007, 
     DelayedSingleton<IInnerOsAccountManager>::DestroyInstance();
 }
 
+/*
+ * @tc.name: OsAccountInnerAccmgrCoverageTest008
+ * @tc.desc: Test SetOsAccountName set local name publish common event.
+ * @tc.type: FUNC
+ * @tc.require: issuesI66BFB
+ */
+HWTEST_F(OsAccountInnerAccmgrCoverageTest, OsAccountInnerAccmgrCoverageTest008, TestSize.Level1)
+{
+    // create common event subscribe
+    setuid(ACCOUNT_UID);
+    innerMgrService_ = DelayedSingleton<IInnerOsAccountManager>::GetInstance();
+    ASSERT_NE(innerMgrService_, nullptr);
+    EventFwk::MatchingSkills matchingSkills;
+    matchingSkills.AddEvent(EventFwk::CommonEventSupport::COMMON_EVENT_USER_INFO_UPDATED);
+    EventFwk::CommonEventSubscribeInfo subscribeInfo(matchingSkills);
+    std::shared_ptr<AccountCommonEventSubscriber> subscriberPtr =
+        std::make_shared<AccountCommonEventSubscriber>(subscribeInfo);
+    ASSERT_NE(subscriberPtr, nullptr);
+    bool result = EventFwk::CommonEventManager::SubscribeCommonEvent(subscriberPtr);
+    ASSERT_EQ(result, true);
+
+    OsAccountInfo osAccountInfo;
+    int errCode = innerMgrService_->CreateOsAccount(ACCOUNT_NAME, OsAccountType::NORMAL, osAccountInfo);
+    ASSERT_EQ(errCode, ERR_OK);
+    int localID = osAccountInfo.GetLocalId();
+    errCode = innerMgrService_->SetOsAccountName(localID, ACCOUNT_SET_NAME);
+    ASSERT_EQ(errCode, ERR_OK);
+        std::this_thread::sleep_for(std::chrono::milliseconds(DELAY_FOR_OPERATION));
+    ASSERT_EQ(subscriberPtr->GetStatus(), true);
+    errCode = innerMgrService_->RemoveOsAccount(localID);
+    ASSERT_EQ(errCode, ERR_OK);
+    result = EventFwk::CommonEventManager::UnSubscribeCommonEvent(subscriberPtr);
+    ASSERT_EQ(result, true);
+}
 }  // namespace AccountSA
 }  // namespace OHOS
