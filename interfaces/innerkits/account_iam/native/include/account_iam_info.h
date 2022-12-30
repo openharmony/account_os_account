@@ -80,6 +80,12 @@ struct CredentialItem {
     std::vector<uint8_t> oldCredential;
     std::vector<uint8_t> credential;
 };
+
+struct AuthParam {
+    std::vector<uint8_t> challenge;
+    AuthType authType;
+    AuthTrustLevel authTrustLevel;
+};
 }  // namespace AccountSA
 }  // namespace OHOS
 #endif  // OS_ACCOUNT_INTERFACES_INNERKITS_ACCOUNT_IAM_NATIVE_INCLUDE_ACCOUNT_IAM_INFO_H

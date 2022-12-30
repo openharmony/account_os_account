@@ -200,12 +200,17 @@ HWTEST_F(AccountIamManagerTest, AuthUser001, TestSize.Level0)
     sptr<MockIIDMCallback> testCallback = new(std::nothrow) MockIIDMCallback();
     EXPECT_NE(testCallback, nullptr);
     EXPECT_CALL(*testCallback, OnResult(_, _)).Times(1);
-    uint64_t contextId = InnerAccountIAMManager::GetInstance().AuthUser(
-        TEST_USER_ID, TEST_CHALLENGE, AuthType::PIN, AuthTrustLevel::ATL1, nullptr);
-    EXPECT_EQ(ERR_ACCOUNT_COMMON_NULL_PTR_ERROR, contextId);
+    AuthParam authParam = {
+        .challenge = TEST_CHALLENGE,
+        .authType = AuthType::PIN,
+        .authTrustLevel = AuthTrustLevel::ATL1
+    };
+    uint64_t contextId = 0;
+    ErrCode errCode = InnerAccountIAMManager::GetInstance().AuthUser(TEST_USER_ID, authParam, nullptr, contextId);
+    EXPECT_EQ(ERR_ACCOUNT_COMMON_NULL_PTR_ERROR, errCode);
 
-    contextId = InnerAccountIAMManager::GetInstance().AuthUser(
-        TEST_USER_ID, TEST_CHALLENGE, AuthType::PIN, AuthTrustLevel::ATL1, testCallback);
+    errCode = InnerAccountIAMManager::GetInstance().AuthUser(TEST_USER_ID, authParam, testCallback, contextId);
+    EXPECT_EQ(ERR_OK, errCode);
     InnerAccountIAMManager::GetInstance().CancelAuth(contextId);
 }
 
@@ -237,8 +242,14 @@ HWTEST_F(AccountIamManagerTest, GetChallenge001, TestSize.Level2)
     sptr<MockIIDMCallback> testCallback = new(std::nothrow) MockIIDMCallback();
     EXPECT_NE(testCallback, nullptr);
     EXPECT_CALL(*testCallback, OnResult(_, _)).Times(1);
-    uint64_t contextId = InnerAccountIAMManager::GetInstance().AuthUser(
-        TEST_USER_ID, TEST_CHALLENGE, AuthType::PIN, AuthTrustLevel::ATL1, testCallback);
+    AuthParam authParam = {
+        .challenge = TEST_CHALLENGE,
+        .authType = AuthType::PIN,
+        .authTrustLevel = AuthTrustLevel::ATL1
+    };
+    uint64_t contextId = 0;
+    ErrCode errCode = InnerAccountIAMManager::GetInstance().AuthUser(TEST_USER_ID, authParam, testCallback, contextId);
+    EXPECT_EQ(errCode, ERR_OK);
 
     std::vector<uint8_t> outChallenge;
     InnerAccountIAMManager::GetInstance().GetChallenge(TEST_USER_ID, outChallenge);

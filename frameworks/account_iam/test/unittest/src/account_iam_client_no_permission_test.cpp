@@ -53,7 +53,7 @@ public:
 
 class MockGetCredInfoCallback final : public GetCredInfoCallback {
 public:
-    void OnCredentialInfo(const std::vector<CredentialInfo> &infoList)override
+    void OnCredentialInfo(int32_t result, const std::vector<CredentialInfo> &infoList)override
     {
         return;
     }

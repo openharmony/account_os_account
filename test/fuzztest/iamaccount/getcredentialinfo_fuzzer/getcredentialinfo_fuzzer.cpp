@@ -26,7 +26,7 @@ using namespace OHOS::AccountSA;
 class MockIDMCallback : public OHOS::AccountSA::GetCredInfoCallback {
 public:
     virtual ~MockIDMCallback() {}
-    void OnCredentialInfo(const std::vector<CredentialInfo> &infoList) override
+    void OnCredentialInfo(int32_t result, const std::vector<CredentialInfo> &infoList) override
     {
         return;
     }

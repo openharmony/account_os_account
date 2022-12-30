@@ -78,7 +78,7 @@ public:
 class MockGetCredInfoCallback final : public GetCredInfoCallback {
 public:
     MOCK_METHOD1(OnResult, void(int32_t result));
-    void OnCredentialInfo(const std::vector<CredentialInfo> &infoList)
+    void OnCredentialInfo(int32_t result, const std::vector<CredentialInfo> &infoList)
     {
         int infoListSize = infoList.size();
         OnResult(infoListSize);
