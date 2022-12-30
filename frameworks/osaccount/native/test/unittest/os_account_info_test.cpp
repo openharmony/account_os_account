@@ -114,28 +114,6 @@ HWTEST_F(OsAccountInfoTest, OsAccountInfo_OsAccountInfo_0200, TestSize.Level1)
 }
 
 /**
- * @tc.name: OsAccountInfo_OsAccountInfo_0300
- * @tc.desc: Create a OsAccountInfo object with eleven parameters.
- * @tc.type: FUNC
- * @tc.require: SR000GGVFG
- */
-HWTEST_F(OsAccountInfoTest, OsAccountInfo_OsAccountInfo_0300, TestSize.Level1)
-{
-    OsAccountInfo *osAccountInfo = new (std::nothrow) OsAccountInfo(INT_ID,
-        STRING_NAME,
-        INT_TYPE,
-        VECTOR_CONSTRAINTS,
-        BOOL_IS_OS_ACCOUNT_VERIFIED,
-        STRING_PHOTO,
-        INT_CREATE_TIME,
-        INT_LAST_LOGINGGED_IN_TIME,
-        STRING_SERIAL_NUMBER,
-        BOOL_IS_OS_ACCOUNT_COMPLETED);
-    EXPECT_NE(osAccountInfo, nullptr);
-    delete (osAccountInfo);
-}
-
-/**
  * @tc.name: OsAccountInfo_GetId_0100
  * @tc.desc: Get the id with valid data.
  * @tc.type: FUNC
@@ -420,29 +398,6 @@ HWTEST_F(OsAccountInfoTest, OsAccountInfo_SetSerialNumber_0100, TestSize.Level1)
 }
 
 /**
- * @tc.name: OsAccountInfo_ToJson_0100
- * @tc.desc: Get the Json with valid data.
- * @tc.type: FUNC
- * @tc.require: SR000GGVFG
- */
-HWTEST_F(OsAccountInfoTest, OsAccountInfo_ToJson_0100, TestSize.Level0)
-{
-    OsAccountInfo osAccountInfo(INT_ID,
-        STRING_NAME,
-        INT_TYPE,
-        VECTOR_CONSTRAINTS,
-        BOOL_IS_OS_ACCOUNT_VERIFIED,
-        STRING_PHOTO,
-        INT_CREATE_TIME,
-        INT_LAST_LOGINGGED_IN_TIME,
-        STRING_SERIAL_NUMBER,
-        BOOL_IS_OS_ACCOUNT_COMPLETED);
-    std::string jsonStr = osAccountInfo.ToJson().dump();
-    EXPECT_EQ(jsonStr, STRING_JSON);
-    GTEST_LOG_(INFO) << jsonStr;
-}
-
-/**
  * @tc.name: OsAccountInfo_FromJson_0100
  * @tc.desc: Set an object by Json.
  * @tc.type: FUNC
@@ -454,26 +409,4 @@ HWTEST_F(OsAccountInfoTest, OsAccountInfo_FromJson_0100, TestSize.Level1)
 
     osAccountInfo.FromJson(Json::parse(STRING_JSON, nullptr, false));
     EXPECT_EQ(osAccountInfo.GetLocalId(), INT_ID);
-}
-
-/**
- * @tc.name: OsAccountInfo_ToString_0100
- * @tc.desc: ToString
- * @tc.type: FUNC
- * @tc.require: SR000GGVFG
- */
-HWTEST_F(OsAccountInfoTest, OsAccountInfo_ToString_0100, TestSize.Level0)
-{
-    OsAccountInfo osAccountInfo(INT_ID,
-        STRING_NAME,
-        INT_TYPE,
-        VECTOR_CONSTRAINTS,
-        BOOL_IS_OS_ACCOUNT_VERIFIED,
-        STRING_PHOTO,
-        INT_CREATE_TIME,
-        INT_LAST_LOGINGGED_IN_TIME,
-        STRING_SERIAL_NUMBER,
-        BOOL_IS_OS_ACCOUNT_COMPLETED);
-    std::string stringStr = osAccountInfo.ToString();
-    EXPECT_EQ(stringStr, STRING_JSON);
 }

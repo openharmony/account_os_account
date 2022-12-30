@@ -31,7 +31,7 @@ class AppAccountCommonEventSubscriber : public CommonEventSubscriber {
 public:
     explicit AppAccountCommonEventSubscriber(
         const CommonEventSubscribeInfo &subscribeInfo, const std::function<void(const CommonEventData &)> &callback);
-    ~AppAccountCommonEventSubscriber() = default;
+    ~AppAccountCommonEventSubscriber() override = default;
 
     void OnReceiveEvent(const CommonEventData &data) override;
 

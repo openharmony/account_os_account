@@ -42,7 +42,7 @@ public:
         /**
           * exception event action Destructor.
           */
-        ~ExceptionAction() {}
+        ~ExceptionAction() override {}
     };
 
     /**
@@ -58,7 +58,7 @@ public:
         /**
           * unbound state action Destructor.
           */
-        ~UnboundAction() {}
+        ~UnboundAction() override {}
     };
 
     /**
@@ -74,7 +74,7 @@ public:
         /**
           * login state action Destructor.
           */
-        ~LoginAction() {}
+        ~LoginAction() override {}
     };
 
     /**
@@ -90,7 +90,7 @@ public:
         /**
           * logout state action Destructor.
           */
-        ~LogoutAction() {}
+        ~LogoutAction() override {}
     };
 
     /**
@@ -106,7 +106,7 @@ public:
         /**
           * logoff state action Destructor.
           */
-        ~LogoffAction() {}
+        ~LogoffAction() override {}
     };
 
     /**

@@ -968,13 +968,14 @@ ErrCode OsAccountProxy::IsOsAccountCompleted(const int id, bool &isOsAccountComp
         ACCOUNT_LOGE("SendRequest err, result %{public}d.", result);
         return result;
     }
-
-    result = reply.ReadInt32();
-    if (result != ERR_OK) {
-        ACCOUNT_LOGE("failed to read reply for is os account completed, result %{public}d.", result);
-        return result;
+    if (!reply.ReadInt32(result)) {
+        ACCOUNT_LOGE("failed to read result");
+        return ERR_ACCOUNT_COMMON_READ_PARCEL_ERROR;
     }
-    isOsAccountCompleted = reply.ReadBool();
+    if (!reply.ReadBool(isOsAccountCompleted)) {
+        ACCOUNT_LOGE("failed to read isOsAccountCompleted");
+        return ERR_ACCOUNT_COMMON_READ_PARCEL_ERROR;
+    }
     return ERR_OK;
 }
 

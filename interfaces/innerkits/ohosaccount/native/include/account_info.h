@@ -154,7 +154,7 @@ public:
         digest_ = "";
     }
 
-    AccountInfo(const OhosAccountInfo &ohosAccountInfo)
+    explicit AccountInfo(const OhosAccountInfo &ohosAccountInfo)
     {
         ohosAccountInfo_ = ohosAccountInfo;
         bindTime_ = 0;

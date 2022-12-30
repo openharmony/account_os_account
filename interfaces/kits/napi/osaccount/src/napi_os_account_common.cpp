@@ -1703,22 +1703,6 @@ bool ParseParaToSubscriber(const napi_env &env, napi_callback_info cbInfo, Subsc
     return true;
 }
 
-void SubscribeExecuteCB(napi_env env, void *data)
-{
-    SubscribeCBInfo *asyncContext = reinterpret_cast<SubscribeCBInfo *>(data);
-    asyncContext->subscriber->SetEnv(env);
-    asyncContext->subscriber->SetCallbackRef(asyncContext->callbackRef);
-    int errCode = OsAccountManager::SubscribeOsAccount(asyncContext->subscriber);
-    ACCOUNT_LOGD("error code is %{public}d", errCode);
-}
-
-void SubscribeCompletedCB(napi_env env, napi_status status, void *data)
-{
-    ACCOUNT_LOGD("napi_create_async_work complete.");
-    SubscribeCBInfo *asyncContext = reinterpret_cast<SubscribeCBInfo *>(data);
-    napi_delete_async_work(env, asyncContext->work);
-}
-
 bool ParseParaToUnsubscriber(const napi_env &env, napi_callback_info cbInfo, UnsubscribeCBInfo *asyncContext,
     napi_value *thisVar)
 {

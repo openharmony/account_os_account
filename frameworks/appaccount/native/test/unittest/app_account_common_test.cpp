@@ -22,6 +22,7 @@ using namespace testing::ext;
 using namespace OHOS;
 using namespace OHOS::AccountSA;
 
+constexpr int32_t MAX_VEC_SIZE = 1030;
 constexpr int32_t MAX_CUSTOM_DATA_SIZE = 1024;
 constexpr int32_t INVALID_ERR_CODE = -1;
 
@@ -176,9 +177,33 @@ HWTEST_F(AppAccountCommonTest, Marshalling006, TestSize.Level0)
     SetPropertiesOptions options;
     bool result = options.Marshalling(testParcel);
     ASSERT_EQ(result, true);
-    result = false;
     result = options.Unmarshalling(testParcel);
     ASSERT_EQ(result, true);
+}
+
+/**
+ * @tc.name: SelectAccountsOptions Marshalling test
+ * @tc.desc: Func Marshalling allowedAccounts is oversize.
+ * @tc.type: FUNC
+ * @tc.require issueI5RWXN
+ */
+HWTEST_F(AppAccountCommonTest, Marshalling007, TestSize.Level0)
+{
+    Parcel Parcel;
+    SelectAccountsOptions option1;
+    option1.hasAccounts = true;
+    option1.hasOwners = true;
+    option1.hasLabels = true;
+    for (int i = 0; i <= MAX_VEC_SIZE; i++) {
+        std::string key = std::to_string(i);
+        std::string value = "test" + std::to_string(i);
+        option1.allowedAccounts.emplace_back(std::pair<std::string, std::string>(key, value));
+    }
+    option1.requiredLabels.emplace_back("test2");
+
+    EXPECT_EQ(option1.Marshalling(Parcel), true);
+    SelectAccountsOptions *option2 = option1.Unmarshalling(Parcel);
+    EXPECT_EQ(option2, nullptr);
 }
 
 /**

@@ -30,6 +30,7 @@
 #include "ipc_skeleton.h"
 #include "iservice_registry.h"
 #include "ohos_account_kits.h"
+#include "account_constants.h"
 #ifdef HICOLLIE_ENABLE
 #include "xcollie/xcollie.h"
 #endif // HICOLLIE_ENABLE
@@ -64,6 +65,7 @@ const std::map<std::uint32_t, AccountStubFunc> AccountStub::stubFuncMap_{
     std::make_pair(GET_APP_ACCOUNT_SERVICE, &AccountStub::CmdGetAppAccountService),
     std::make_pair(GET_OS_ACCOUNT_SERVICE, &AccountStub::CmdGetOsAccountService),
     std::make_pair(GET_ACCOUNT_IAM_SERVICE, &AccountStub::CmdGetAccountIAMService),
+    std::make_pair(GET_DOMAIN_ACCOUNT_SERVICE, &AccountStub::CmdGetDomainAccountService),
 };
 
 std::int32_t AccountStub::InnerUpdateOhosAccountInfo(MessageParcel &data, MessageParcel &reply)
@@ -335,6 +337,16 @@ std::int32_t AccountStub::CmdGetAccountIAMService(MessageParcel &data, MessagePa
     return ERR_OK;
 }
 
+std::int32_t AccountStub::CmdGetDomainAccountService(MessageParcel &data, MessageParcel &reply)
+{
+    auto remoteObject = GetDomainAccountService();
+    if (!reply.WriteRemoteObject(remoteObject)) {
+        ACCOUNT_LOGE("failed to write remote object");
+        return ERR_ACCOUNT_ZIDL_WRITE_PARCEL_DATA_ERROR;
+    }
+    return ERR_OK;
+}
+
 std::int32_t AccountStub::OnRemoteRequest(
     std::uint32_t code, MessageParcel &data, MessageParcel &reply, MessageOption &option)
 {
@@ -349,8 +361,8 @@ std::int32_t AccountStub::OnRemoteRequest(
     }
 
 #ifdef HICOLLIE_ENABLE
-    int timerId = HiviewDFX::XCollie::GetInstance().SetTimer(Constants::TIMER_NAME, Constants::TIMEOUT,
-        nullptr, nullptr, HiviewDFX::XCOLLIE_FLAG_LOG);
+    int timerId =
+        HiviewDFX::XCollie::GetInstance().SetTimer(TIMER_NAME, TIMEOUT, nullptr, nullptr, HiviewDFX::XCOLLIE_FLAG_LOG);
 #endif // HICOLLIE_ENABLE
 
     const auto &itFunc = stubFuncMap_.find(code);

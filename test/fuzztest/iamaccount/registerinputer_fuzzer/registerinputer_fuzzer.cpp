@@ -34,8 +34,9 @@ public:
 namespace OHOS {
     bool RegisterInputerFuzzTest(const uint8_t* data, size_t size)
     {
+        int32_t authType = static_cast<int32_t>(size);
         std::shared_ptr<IInputer> inputer = make_shared<MockIInputer>();
-        int32_t result = AccountIAMClient::GetInstance().RegisterInputer(inputer);
+        int32_t result = AccountIAMClient::GetInstance().RegisterInputer(authType, inputer);
         return result == ERR_OK;
     }
 }

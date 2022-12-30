@@ -23,6 +23,7 @@
 #include "account_iam_client_callback.h"
 #include "account_iam_info.h"
 #include "account_error_no.h"
+#include "account_permission_manager.h"
 #include "iaccount_iam.h"
 #include "singleton.h"
 
@@ -52,8 +53,10 @@ public:
         int32_t userId, const GetPropertyRequest &request, const std::shared_ptr<GetSetPropCallback> &callback);
     void SetProperty(
         int32_t userId, const SetPropertyRequest &request, const std::shared_ptr<GetSetPropCallback> &callback);
-    int32_t RegisterInputer(const std::shared_ptr<IInputer> &inputer);
-    void UnRegisterInputer();
+    ErrCode RegisterPINInputer(const std::shared_ptr<IInputer> &inputer);
+    ErrCode UnregisterPINInputer();
+    ErrCode RegisterInputer(int32_t authType, const std::shared_ptr<IInputer> &inputer);
+    ErrCode UnregisterInputer(int32_t authType);
     IAMState GetAccountState(int32_t userId);
     void SetAuthSubType(int32_t userId, int32_t authSubType);
     int32_t GetAuthSubType(int32_t userId);
@@ -65,7 +68,7 @@ private:
     class AccountIAMDeathRecipient : public IRemoteObject::DeathRecipient {
     public:
         AccountIAMDeathRecipient() = default;
-        ~AccountIAMDeathRecipient() = default;
+        ~AccountIAMDeathRecipient() override = default;
         void OnRemoteDied(const wptr<IRemoteObject>& remote) override;
 
     private:
@@ -74,17 +77,21 @@ private:
     ErrCode GetAccountIAMProxy();
     void ResetAccountIAMProxy(const wptr<IRemoteObject>& remote);
     bool GetCurrentUserId(int32_t &userId);
-    bool IsInputerRegistered(int32_t userId);
-    void AddRegisteredInputer(int32_t userId);
-    void DelRegisteredInputer(int32_t userId);
+    uint64_t StartDomainAuth(int32_t userId, const std::shared_ptr<IDMCallback> &callback);
+    ErrCode RegisterDomainInputer(const std::shared_ptr<IInputer> &inputer);
+    ErrCode UnregisterDomainInputer();
+    bool CheckSelfPermission(const std::string &permissionName);
 
 private:
     std::mutex mutex_;
+    std::mutex pinMutex_;
+    std::mutex domainMutex_;
+    std::map<int32_t, CredentialItem> credentialMap_;
     sptr<IAccountIAM> proxy_ = nullptr;
     sptr<AccountIAMDeathRecipient> deathRecipient_ = nullptr;
-    std::map<int32_t, CredentialItem> credentialMap_;
-    std::mutex mutexRegUsers_;
-    std::set<int32_t> registeredUsers_;
+    std::shared_ptr<IInputer> pinInputer_ = nullptr;
+    std::shared_ptr<IInputer> domainInputer_ = nullptr;
+    std::shared_ptr<AccountPermissionManager> permissionManagerPtr_ = nullptr;
 };
 }  // namespace AccountSA
 }  // namespace OHOS

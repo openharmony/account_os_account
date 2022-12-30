@@ -82,9 +82,6 @@ ErrCode AppAccountManagerService::CreateAccount(const std::string &name, const C
     if (ret != ERR_OK) {
         return ret;
     }
-    if (options.customData.size() > Constants::MAX_CUSTOM_DATA_SIZE) {
-        return ERR_APPACCOUNT_KIT_INVALID_PARAMETER;
-    }
     return innerManager_->CreateAccount(name, options, callingUid, bundleName, appIndex);
 }
 
@@ -142,38 +139,43 @@ ErrCode AppAccountManagerService::SetAccountExtraInfo(const std::string &name, c
     return innerManager_->SetAccountExtraInfo(name, extraInfo, callingUid, bundleName, appIndex);
 }
 
-ErrCode AppAccountManagerService::EnableAppAccess(const std::string &name, const std::string &authorizedApp)
+ErrCode AppAccountManagerService::EnableAppAccess(
+    const std::string &name, const std::string &authorizedApp)
 {
-    int32_t callingUid = -1;
-    std::string bundleName;
-    uint32_t appIndex;
-    ErrCode result = GetCallingInfo(callingUid, bundleName, appIndex);
+    AppAccountCallingInfo appAccountCallingInfo;
+    ErrCode result = GetCallingInfo(
+        appAccountCallingInfo.callingUid, appAccountCallingInfo.bundleName, appAccountCallingInfo.appIndex);
     if (result != ERR_OK) {
         return result;
     }
     AppExecFwk::BundleInfo bundleInfo;
-    int32_t userId = callingUid / UID_TRANSFORM_DIVISOR;
+    int32_t userId = appAccountCallingInfo.callingUid / UID_TRANSFORM_DIVISOR;
     bool bundleRet = BundleManagerAdapter::GetInstance()->GetBundleInfo(
         authorizedApp, AppExecFwk::BundleFlag::GET_BUNDLE_DEFAULT, bundleInfo, userId);
     if (!bundleRet) {
         ACCOUNT_LOGE("failed to get bundle info");
         return ERR_APPACCOUNT_SERVICE_GET_BUNDLE_INFO;
     }
+    if (authorizedApp == appAccountCallingInfo.bundleName) {
+        ACCOUNT_LOGE("authorizedApp is the same to owner");
+        return ERR_APPACCOUNT_SERVICE_BUNDLE_NAME_IS_THE_SAME;
+    }
 
-    return innerManager_->EnableAppAccess(name, authorizedApp, callingUid, bundleName, appIndex);
+    return innerManager_->EnableAppAccess(name, authorizedApp, appAccountCallingInfo);
 }
 
-ErrCode AppAccountManagerService::DisableAppAccess(const std::string &name, const std::string &authorizedApp)
+ErrCode AppAccountManagerService::DisableAppAccess(
+    const std::string &name, const std::string &authorizedApp)
 {
-    int32_t callingUid = -1;
-    std::string bundleName;
-    uint32_t appIndex;
-    ErrCode ret = GetCallingInfo(callingUid, bundleName, appIndex);
+    AppAccountCallingInfo appAccountCallingInfo;
+    ErrCode ret = GetCallingInfo(
+        appAccountCallingInfo.callingUid, appAccountCallingInfo.bundleName, appAccountCallingInfo.appIndex);
     if (ret != ERR_OK) {
         return ret;
     }
     AppExecFwk::BundleInfo bundleInfo;
-    int32_t userId = callingUid / UID_TRANSFORM_DIVISOR;
+
+    int32_t userId = appAccountCallingInfo.callingUid / UID_TRANSFORM_DIVISOR;
     bool bundleRet = BundleManagerAdapter::GetInstance()->GetBundleInfo(
         authorizedApp, AppExecFwk::BundleFlag::GET_BUNDLE_DEFAULT, bundleInfo, userId);
     if (!bundleRet) {
@@ -181,7 +183,47 @@ ErrCode AppAccountManagerService::DisableAppAccess(const std::string &name, cons
         return ERR_APPACCOUNT_SERVICE_GET_BUNDLE_INFO;
     }
 
-    return innerManager_->DisableAppAccess(name, authorizedApp, callingUid, bundleName, appIndex);
+    if (authorizedApp == appAccountCallingInfo.bundleName) {
+        ACCOUNT_LOGE("authorizedApp is the same to owner");
+        return ERR_APPACCOUNT_SERVICE_BUNDLE_NAME_IS_THE_SAME;
+    }
+
+    return innerManager_->DisableAppAccess(name, authorizedApp, appAccountCallingInfo);
+}
+
+ErrCode AppAccountManagerService::SetAppAccess(
+    const std::string &name, const std::string &authorizedApp, bool isAccessible)
+{
+    AppAccountCallingInfo appAccountCallingInfo;
+    ErrCode ret = GetCallingInfo(
+        appAccountCallingInfo.callingUid, appAccountCallingInfo.bundleName, appAccountCallingInfo.appIndex);
+    if (ret != ERR_OK) {
+        return ret;
+    }
+
+    if (authorizedApp == appAccountCallingInfo.bundleName) {
+        if (isAccessible) {
+            ACCOUNT_LOGI("authorizedApp name is the self, invalid operate.");
+            return ERR_OK;
+        } else {
+            ACCOUNT_LOGE("authorizedApp is the same to owner");
+            return ERR_APPACCOUNT_SERVICE_BUNDLE_NAME_IS_THE_SAME;
+        }
+    }
+
+    if (isAccessible) {
+        AppExecFwk::BundleInfo bundleInfo;
+        int32_t userId = appAccountCallingInfo.callingUid / UID_TRANSFORM_DIVISOR;
+        bool bundleRet = BundleManagerAdapter::GetInstance()->GetBundleInfo(
+            authorizedApp, AppExecFwk::BundleFlag::GET_BUNDLE_DEFAULT, bundleInfo, userId);
+        if (!bundleRet) {
+            ACCOUNT_LOGE("failed to get bundle info");
+            return ERR_APPACCOUNT_SERVICE_GET_BUNDLE_INFO;
+        }
+        return innerManager_->EnableAppAccess(name, authorizedApp, appAccountCallingInfo, Constants::API_VERSION9);
+    }
+
+    return innerManager_->DisableAppAccess(name, authorizedApp, appAccountCallingInfo, Constants::API_VERSION9);
 }
 
 ErrCode AppAccountManagerService::CheckAppAccountSyncEnable(const std::string &name, bool &syncEnable)
@@ -224,13 +266,7 @@ ErrCode AppAccountManagerService::GetAssociatedData(
     const std::string &name, const std::string &key, std::string &value)
 {
     int32_t callingUid = IPCSkeleton::GetCallingUid();
-    uint32_t appIndex;
-    ErrCode result = GetCallingTokenInfoAndAppIndex(appIndex);
-    if (result != ERR_OK) {
-        ACCOUNT_LOGE("failed to get app index");
-        return result;
-    }
-    return innerManager_->GetAssociatedData(name, key, value, callingUid, appIndex);
+    return innerManager_->GetAssociatedData(name, key, value, callingUid);
 }
 
 ErrCode AppAccountManagerService::SetAssociatedData(
@@ -304,6 +340,20 @@ ErrCode AppAccountManagerService::GetOAuthToken(
     return innerManager_->GetOAuthToken(request, token);
 }
 
+ErrCode AppAccountManagerService::GetAuthToken(
+    const std::string &name, const std::string &owner, const std::string &authType, std::string &token)
+{
+    AuthenticatorSessionRequest request;
+    ErrCode result = GetCallingInfo(request.callerUid, request.callerBundleName, request.appIndex);
+    if (result != ERR_OK) {
+        return result;
+    }
+    request.name = name;
+    request.owner = owner;
+    request.authType = authType;
+    return innerManager_->GetOAuthToken(request, token, Constants::API_VERSION9);
+}
+
 ErrCode AppAccountManagerService::SetOAuthToken(
     const std::string &name, const std::string &authType, const std::string &token)
 {
@@ -334,8 +384,8 @@ ErrCode AppAccountManagerService::DeleteOAuthToken(
     return innerManager_->DeleteOAuthToken(request);
 }
 
-ErrCode AppAccountManagerService::SetOAuthTokenVisibility(
-    const std::string &name, const std::string &authType, const std::string &bundleName, bool isVisible)
+ErrCode AppAccountManagerService::DeleteAuthToken(
+    const std::string &name, const std::string &owner, const std::string &authType, const std::string &token)
 {
     AuthenticatorSessionRequest request;
     ErrCode result = GetCallingInfo(request.callerUid, request.callerBundleName, request.appIndex);
@@ -343,17 +393,15 @@ ErrCode AppAccountManagerService::SetOAuthTokenVisibility(
         return result;
     }
     request.name = name;
-    request.owner = request.callerBundleName;
+    request.owner = owner;
     request.authType = authType;
-    request.bundleName = bundleName;
-    request.isTokenVisible = isVisible;
-    return innerManager_->SetOAuthTokenVisibility(request);
+    request.token = token;
+    return innerManager_->DeleteOAuthToken(request, Constants::API_VERSION9);
 }
 
-ErrCode AppAccountManagerService::CheckOAuthTokenVisibility(
-    const std::string &name, const std::string &authType, const std::string &bundleName, bool &isVisible)
+ErrCode AppAccountManagerService::GetTokenVisibilityParam(const std::string &name,
+    const std::string &authType, const std::string &bundleName, AuthenticatorSessionRequest &request)
 {
-    AuthenticatorSessionRequest request;
     ErrCode ret = GetCallingInfo(request.callerUid, request.callerBundleName, request.appIndex);
     if (ret != ERR_OK) {
         return ret;
@@ -362,7 +410,71 @@ ErrCode AppAccountManagerService::CheckOAuthTokenVisibility(
     request.owner = request.callerBundleName;
     request.authType = authType;
     request.bundleName = bundleName;
+    return ret;
+}
+
+ErrCode AppAccountManagerService::SetOAuthTokenVisibility(
+    const std::string &name, const std::string &authType, const std::string &bundleName, bool isVisible)
+{
+    AuthenticatorSessionRequest request;
+    ErrCode ret = GetTokenVisibilityParam(name, authType, bundleName, request);
+    if (ret != ERR_OK) {
+        return ret;
+    }
+    request.isTokenVisible = isVisible;
+    return innerManager_->SetOAuthTokenVisibility(request);
+}
+
+ErrCode AppAccountManagerService::SetAuthTokenVisibility(
+    const std::string &name, const std::string &authType, const std::string &bundleName, bool isVisible)
+{
+    AuthenticatorSessionRequest request;
+    ErrCode result = GetTokenVisibilityParam(name, authType, bundleName, request);
+    if (result != ERR_OK) {
+        return result;
+    }
+    if (request.bundleName == request.owner) {
+        if (isVisible) {
+            ACCOUNT_LOGI("authorizedApp name is the self, invalid operate.");
+            return ERR_OK;
+        } else {
+            ACCOUNT_LOGE("authorizedApp is the same to owner.");
+            return ERR_APPACCOUNT_SERVICE_BUNDLE_NAME_IS_THE_SAME;
+        }
+    }
+    if (isVisible) {
+        AppExecFwk::BundleInfo bundleInfo;
+        int32_t userId = request.callerUid / UID_TRANSFORM_DIVISOR;
+        bool ret = BundleManagerAdapter::GetInstance()->GetBundleInfo(
+            bundleName, AppExecFwk::BundleFlag::GET_BUNDLE_DEFAULT, bundleInfo, userId);
+        if (!ret) {
+            return ERR_APPACCOUNT_SERVICE_GET_BUNDLE_INFO;
+        }
+    }
+    request.isTokenVisible = isVisible;
+    return innerManager_->SetOAuthTokenVisibility(request, Constants::API_VERSION9);
+}
+
+ErrCode AppAccountManagerService::CheckOAuthTokenVisibility(
+    const std::string &name, const std::string &authType, const std::string &bundleName, bool &isVisible)
+{
+    AuthenticatorSessionRequest request;
+    ErrCode ret = GetTokenVisibilityParam(name, authType, bundleName, request);
+    if (ret != ERR_OK) {
+        return ret;
+    }
     return innerManager_->CheckOAuthTokenVisibility(request, isVisible);
+}
+
+ErrCode AppAccountManagerService::CheckAuthTokenVisibility(
+    const std::string &name, const std::string &authType, const std::string &bundleName, bool &isVisible)
+{
+    AuthenticatorSessionRequest request;
+    ErrCode ret = GetTokenVisibilityParam(name, authType, bundleName, request);
+    if (ret != ERR_OK) {
+        return ret;
+    }
+    return innerManager_->CheckOAuthTokenVisibility(request, isVisible, Constants::API_VERSION9);
 }
 
 ErrCode AppAccountManagerService::GetAuthenticatorInfo(const std::string &owner, AuthenticatorInfo &info)
@@ -402,6 +514,19 @@ ErrCode AppAccountManagerService::GetOAuthList(
     request.name = name;
     request.authType = authType;
     return innerManager_->GetOAuthList(request, oauthList);
+}
+
+ErrCode AppAccountManagerService::GetAuthList(
+    const std::string &name, const std::string &authType, std::set<std::string> &oauthList)
+{
+    AuthenticatorSessionRequest request;
+    ErrCode ret = GetCallingInfo(request.callerUid, request.callerBundleName, request.appIndex);
+    if (ret != ERR_OK) {
+        return ret;
+    }
+    request.name = name;
+    request.authType = authType;
+    return innerManager_->GetOAuthList(request, oauthList, Constants::API_VERSION9);
 }
 
 ErrCode AppAccountManagerService::GetAuthenticatorCallback(
@@ -647,7 +772,6 @@ ErrCode AppAccountManagerService::GetCallingTokenInfoAndAppIndex(uint32_t &appIn
     appIndex = hapTokenInfo.instIndex;
     return ERR_OK;
 }
-
 
 ErrCode AppAccountManagerService::GetCallingInfo(int32_t &callingUid, std::string &bundleName, uint32_t &appIndex)
 {

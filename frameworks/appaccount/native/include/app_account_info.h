@@ -29,13 +29,14 @@ struct OAuthTokenInfo {
     std::string authType;
     std::string token;
     std::set<std::string> authList;
+    bool status = true;
 };
 
 class AppAccountInfo : public IAccountInfo, public Parcelable {
 public:
     AppAccountInfo();
     explicit AppAccountInfo(const std::string &name, const std::string &owner);
-    virtual ~AppAccountInfo() = default;
+    ~AppAccountInfo() override = default;
 
     std::string GetOwner();
     void GetOwner(std::string &owner);
@@ -51,8 +52,8 @@ public:
     void GetExtraInfo(std::string &extraInfo) const;
     void SetExtraInfo(const std::string &extraInfo);
 
-    ErrCode EnableAppAccess(const std::string &authorizedApp);
-    ErrCode DisableAppAccess(const std::string &authorizedApp);
+    ErrCode EnableAppAccess(const std::string &authorizedApp, const uint32_t apiVersion = Constants::API_VERSION7);
+    ErrCode DisableAppAccess(const std::string &authorizedApp, const uint32_t apiVersion = Constants::API_VERSION7);
     ErrCode CheckAppAccess(const std::string &authorizedApp, bool &isAccessible);
 
     void GetAuthorizedApps(std::set<std::string> &apps) const;
@@ -70,14 +71,18 @@ public:
     ErrCode SetAccountCredential(
         const std::string &credentialType, const std::string &credential, bool isDelete = false);
 
-    ErrCode GetOAuthToken(const std::string &authType, std::string &token) const;
+    ErrCode GetOAuthToken(
+        const std::string &authType, std::string &token, const uint32_t apiVersion = Constants::API_VERSION8) const;
     ErrCode SetOAuthToken(const std::string &authType, const std::string &token);
     ErrCode DeleteOAuthToken(const std::string &authType, const std::string &token);
-    ErrCode SetOAuthTokenVisibility(const std::string &authType, const std::string &bundleName, bool isVisible);
-    ErrCode CheckOAuthTokenVisibility(
-        const std::string &authType, const std::string &bundleName, bool &isVisible) const;
+    ErrCode DeleteAuthToken(const std::string &authType, const std::string &token, bool isOwnerSelf);
+    ErrCode SetOAuthTokenVisibility(const std::string &authType,
+        const std::string &bundleName, bool isVisible, const uint32_t apiVersion = Constants::API_VERSION8);
+    ErrCode CheckOAuthTokenVisibility(const std::string &authType,
+        const std::string &bundleName, bool &isVisible, const uint32_t apiVersion = Constants::API_VERSION8) const;
     ErrCode GetAllOAuthTokens(std::vector<OAuthTokenInfo> &tokenInfos) const;
-    ErrCode GetOAuthList(const std::string &authType, std::set<std::string> &oauthList) const;
+    ErrCode GetOAuthList(const std::string &authType,
+        std::set<std::string> &oauthList, const uint32_t apiVersion = Constants::API_VERSION8) const;
 
     bool Marshalling(Parcel &parcel) const override;
     static AppAccountInfo *Unmarshalling(Parcel &parcel);

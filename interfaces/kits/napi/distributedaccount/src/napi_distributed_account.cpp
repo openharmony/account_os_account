@@ -26,7 +26,6 @@
 #include "napi/native_node_api.h"
 #include "node_api.h"
 #include "ohos_account_kits.h"
-#include "os_account_info.h"
 #include "napi_account_error.h"
 #include "napi_common.h"
 
@@ -44,6 +43,8 @@ const std::string PROPERTY_KEY_EVENT = "event";
 const std::string PROPERTY_KEY_NICKNAME = "nickname";
 const std::string PROPERTY_KEY_AVATAR = "avatar";
 const std::string PROPERTY_KEY_SCALABLE = "scalableData";
+
+static thread_local napi_ref distributedAccountRef_ = nullptr;
 
 struct DistributedAccountAsyncContext {
     explicit DistributedAccountAsyncContext(napi_env napiEnv) : env(napiEnv) {}
@@ -98,7 +99,7 @@ bool GetAccountInfo(napi_env env, napi_value object, DistributedAccountAsyncCont
         return false;
     }
     if (!GetOptionalStringPropertyByKey(env, object, PROPERTY_KEY_AVATAR, asyncContext->ohosAccountInfo.avatar_)) {
-        ACCOUNT_LOGE("Failed to get DistributedInfo's %{public}s property", PROPERTY_KEY_NICKNAME.c_str());
+        ACCOUNT_LOGE("Failed to get DistributedInfo's %{public}s property", PROPERTY_KEY_AVATAR.c_str());
         std::string errMsg = "The type of " + PROPERTY_KEY_AVATAR + " must be string";
         AccountNapiThrow(env, ERR_JS_PARAMETER_ERROR, errMsg, asyncContext->throwErr);
         return false;

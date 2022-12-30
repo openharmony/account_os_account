@@ -20,6 +20,7 @@
 #include "app_account_info.h"
 #undef private
 
+using namespace testing;
 using namespace testing::ext;
 using namespace OHOS;
 using namespace OHOS::AccountSA;
@@ -583,6 +584,31 @@ HWTEST_F(AppAccountInfoTest, AppAccountInfo_ReadTokenInfos_0100, TestSize.Level1
 }
 
 /**
+ * @tc.name: AppAccountInfo_ReadTokenInfos_0200
+ * @tc.desc: ReadTokenInfos normal branch.
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(AppAccountInfoTest, AppAccountInfo_ReadTokenInfos_0200, TestSize.Level1)
+{
+    AppAccountInfo appAccountInfo;
+    std::map<std::string, OAuthTokenInfo> tokenInfos;
+    Parcel data;
+    std::set<std::string> authList;
+    authList.insert(STRING_NAME);
+    uint32_t size = 1;
+    ASSERT_EQ(data.WriteUint32(size), true);
+    ASSERT_EQ(data.WriteString(STRING_AUTH_TYPE), true);
+    ASSERT_EQ(data.WriteString(STRING_TOKEN), true);
+    ASSERT_EQ(appAccountInfo.WriteStringSet(authList, data), true);
+    bool result = appAccountInfo.ReadTokenInfos(tokenInfos, data);
+    ASSERT_EQ(result, true);
+    ASSERT_EQ(tokenInfos.empty(), false);
+    ASSERT_EQ(tokenInfos[STRING_AUTH_TYPE].authType, STRING_AUTH_TYPE);
+    ASSERT_EQ(tokenInfos[STRING_AUTH_TYPE].token, STRING_TOKEN);
+}
+
+/**
  * @tc.name: AppAccountInfo_SetOAuthTokenVisibility_0100
  * @tc.desc: Set oauth token visibility with non-existent auth type.
  * @tc.type: FUNC
@@ -648,6 +674,57 @@ HWTEST_F(AppAccountInfoTest, AppAccountInfo_SetOAuthTokenVisibility_0300, TestSi
 }
 
 /**
+ * @tc.name: AppAccountInfo_SetOAuthTokenVisibility_0400
+ * @tc.desc: Setoauthtokenvisibility success with bundlename is owner.
+ * @tc.type: FUNC
+ * @tc.require: issueI4M8FW
+ */
+HWTEST_F(AppAccountInfoTest, AppAccountInfo_SetOAuthTokenVisibility_0400, TestSize.Level1)
+{
+    AppAccountInfo appAccountInfo;
+    appAccountInfo.owner_ = STRING_OWNER;
+    bool isVisible = false;
+    ErrCode result = appAccountInfo.SetOAuthTokenVisibility(STRING_AUTH_TYPE, STRING_OWNER, isVisible);
+    ASSERT_EQ(result, ERR_OK);
+    appAccountInfo.CheckOAuthTokenVisibility(STRING_AUTH_TYPE, STRING_OWNER, isVisible);
+    EXPECT_TRUE(isVisible);
+}
+
+/**
+ * @tc.name: AppAccountInfo_SetOAuthTokenVisibility_0500
+ * @tc.desc: Setoauthtokenvisibility success with isVisible is false.
+ * @tc.type: FUNC
+ * @tc.require: issueI4M8FW
+ */
+HWTEST_F(AppAccountInfoTest, AppAccountInfo_SetOAuthTokenVisibility_0500, TestSize.Level1)
+{
+    AppAccountInfo appAccountInfo;
+    bool isVisible = false;
+    ErrCode result = appAccountInfo.SetOAuthTokenVisibility(STRING_AUTH_TYPE, STRING_BUNDLE_NAME, isVisible);
+    ASSERT_EQ(result, ERR_OK);
+    appAccountInfo.CheckOAuthTokenVisibility(STRING_AUTH_TYPE, STRING_BUNDLE_NAME, isVisible);
+    EXPECT_FALSE(isVisible);
+}
+
+/**
+ * @tc.name: AppAccountInfo_SetOAuthTokenVisibility_0600
+ * @tc.desc: Setoauthtokenvisibility failed with authType is not exist of func api9.
+ * @tc.type: FUNC
+ * @tc.require: issueI4M8FW
+ */
+HWTEST_F(AppAccountInfoTest, AppAccountInfo_SetOAuthTokenVisibility_0600, TestSize.Level1)
+{
+    AppAccountInfo appAccountInfo;
+    bool isVisible = false;
+    int32_t apiVersion = 9;
+    ErrCode result = appAccountInfo.SetOAuthTokenVisibility(
+        STRING_AUTH_TYPE, STRING_BUNDLE_NAME, isVisible, apiVersion);
+    EXPECT_EQ(result, ERR_APPACCOUNT_SERVICE_OAUTH_TYPE_NOT_EXIST);
+    result = appAccountInfo.CheckOAuthTokenVisibility(STRING_AUTH_TYPE, STRING_BUNDLE_NAME, isVisible, apiVersion);
+    EXPECT_EQ(result, ERR_APPACCOUNT_SERVICE_OAUTH_TYPE_NOT_EXIST);
+}
+
+/**
  * @tc.name: AppAccountInfo_OAuthToken_0100
  * @tc.desc: Get, set, delete oauth token.
  * @tc.type: FUNC
@@ -671,6 +748,157 @@ HWTEST_F(AppAccountInfoTest, AppAccountInfo_OAuthToken_0100, TestSize.Level1)
     EXPECT_EQ(result, ERR_OK);
     result = appAccountInfo.GetOAuthToken(STRING_AUTH_TYPE, token);
     EXPECT_EQ(result, ERR_APPACCOUNT_SERVICE_OAUTH_TOKEN_NOT_EXIST);
+}
+
+/**
+ * @tc.name: AppAccountInfo_OAuthToken_0200
+ * @tc.desc: Get, set, delete oauth token with api9 func, and test delete self token.
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(AppAccountInfoTest, AppAccountInfo_OAuthToken_0200, TestSize.Level1)
+{
+    ACCOUNT_LOGI("AppAccountInfo_OAuthToken_0200");
+    AppAccountInfo appAccountInfo;
+    std::string token;
+    int32_t apiVersion = 9;
+    ErrCode result = appAccountInfo.GetOAuthToken(STRING_AUTH_TYPE, token);
+    EXPECT_EQ(result, ERR_APPACCOUNT_SERVICE_OAUTH_TOKEN_NOT_EXIST);
+    token = STRING_TOKEN;
+    result = appAccountInfo.SetOAuthToken(STRING_AUTH_TYPE, token);
+    EXPECT_EQ(result, ERR_OK);
+    token = STRING_EMPTY;
+    result = appAccountInfo.GetOAuthToken(STRING_AUTH_TYPE, token, apiVersion);
+    EXPECT_EQ(result, ERR_OK);
+    EXPECT_EQ(token, STRING_TOKEN);
+    result = appAccountInfo.DeleteAuthToken(STRING_AUTH_TYPE, token, true);
+    EXPECT_EQ(result, ERR_OK);
+    result = appAccountInfo.GetOAuthToken(STRING_AUTH_TYPE, token, apiVersion);
+    EXPECT_EQ(result, ERR_APPACCOUNT_SERVICE_OAUTH_TOKEN_NOT_EXIST);
+}
+
+/**
+ * @tc.name: AppAccountInfo_OAuthToken_0300
+ * @tc.desc: Get, set, delete oauth token with api9 func, and test delete other token.
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(AppAccountInfoTest, AppAccountInfo_OAuthToken_0300, TestSize.Level1)
+{
+    ACCOUNT_LOGI("AppAccountInfo_OAuthToken_0300");
+    AppAccountInfo appAccountInfo;
+    std::string token;
+    int32_t apiVersion = 9;
+    ErrCode result = appAccountInfo.GetOAuthToken(STRING_AUTH_TYPE, token);
+    EXPECT_EQ(result, ERR_APPACCOUNT_SERVICE_OAUTH_TOKEN_NOT_EXIST);
+    token = STRING_TOKEN;
+    result = appAccountInfo.SetOAuthToken(STRING_AUTH_TYPE, token);
+    EXPECT_EQ(result, ERR_OK);
+    token = STRING_EMPTY;
+    result = appAccountInfo.GetOAuthToken(STRING_AUTH_TYPE, token, apiVersion);
+    EXPECT_EQ(result, ERR_OK);
+    EXPECT_EQ(token, STRING_TOKEN);
+    result = appAccountInfo.DeleteAuthToken(STRING_AUTH_TYPE, token, false);
+    EXPECT_EQ(result, ERR_OK);
+    result = appAccountInfo.GetOAuthToken(STRING_AUTH_TYPE, token, apiVersion);
+    EXPECT_EQ(result, ERR_APPACCOUNT_SERVICE_OAUTH_TOKEN_NOT_EXIST);
+}
+
+/**
+ * @tc.name: AppAccountInfo_OAuthToken_0400
+ * @tc.desc: Get, set, delete oauth token with api9 func, and test delete self invalid token.
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(AppAccountInfoTest, AppAccountInfo_OAuthToken_0400, TestSize.Level1)
+{
+    ACCOUNT_LOGI("AppAccountInfo_OAuthToken_0400");
+    AppAccountInfo appAccountInfo;
+    std::string token;
+    int32_t apiVersion = 9;
+    ErrCode result = appAccountInfo.GetOAuthToken(STRING_AUTH_TYPE, token);
+    EXPECT_EQ(result, ERR_APPACCOUNT_SERVICE_OAUTH_TOKEN_NOT_EXIST);
+    token = STRING_TOKEN;
+    result = appAccountInfo.SetOAuthToken(STRING_AUTH_TYPE, token);
+    EXPECT_EQ(result, ERR_OK);
+    std::string newToken = "test_new_token";
+    result = appAccountInfo.SetOAuthToken(STRING_AUTH_TYPE, newToken);
+    EXPECT_EQ(result, ERR_OK);
+    token = STRING_EMPTY;
+    result = appAccountInfo.GetOAuthToken(STRING_AUTH_TYPE, token, apiVersion);
+    EXPECT_EQ(result, ERR_OK);
+    EXPECT_EQ(token, newToken);
+    result = appAccountInfo.DeleteAuthToken(STRING_AUTH_TYPE, token, true);
+    EXPECT_EQ(result, ERR_OK);
+    result = appAccountInfo.GetOAuthToken(STRING_AUTH_TYPE, token, apiVersion);
+    EXPECT_EQ(result, ERR_APPACCOUNT_SERVICE_OAUTH_TOKEN_NOT_EXIST);
+}
+
+/**
+ * @tc.name: AppAccountInfo_OAuthToken_0500
+ * @tc.desc: Get, set, delete oauth token with api9 func, and test delete other invalid token.
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(AppAccountInfoTest, AppAccountInfo_OAuthToken_0500, TestSize.Level1)
+{
+    ACCOUNT_LOGI("AppAccountInfo_OAuthToken_0500");
+    AppAccountInfo appAccountInfo;
+    std::string token;
+    int32_t apiVersion = 9;
+    ErrCode result = appAccountInfo.GetOAuthToken(STRING_AUTH_TYPE, token);
+    EXPECT_EQ(result, ERR_APPACCOUNT_SERVICE_OAUTH_TOKEN_NOT_EXIST);
+    token = STRING_TOKEN;
+    result = appAccountInfo.SetOAuthToken(STRING_AUTH_TYPE, token);
+    EXPECT_EQ(result, ERR_OK);
+    std::string newToken = "test_new_token";
+    result = appAccountInfo.SetOAuthToken(STRING_AUTH_TYPE, newToken);
+    EXPECT_EQ(result, ERR_OK);
+    token = STRING_EMPTY;
+    result = appAccountInfo.GetOAuthToken(STRING_AUTH_TYPE, token, apiVersion);
+    EXPECT_EQ(result, ERR_OK);
+    EXPECT_EQ(token, newToken);
+    result = appAccountInfo.DeleteAuthToken(STRING_AUTH_TYPE, token, false);
+    EXPECT_EQ(result, ERR_OK);
+    result = appAccountInfo.GetOAuthToken(STRING_AUTH_TYPE, token, apiVersion);
+    EXPECT_EQ(result, ERR_APPACCOUNT_SERVICE_OAUTH_TOKEN_NOT_EXIST);
+}
+
+/**
+ * @tc.name: AppAccountInfo SetOAuthToken test
+ * @tc.desc: Func SetOAuthToken success with authType is in oauthTokens.
+ * @tc.type: FUNC
+ * @tc.require
+ */
+HWTEST_F(AppAccountInfoTest, SetOAuthToken002, TestSize.Level0)
+{
+    AppAccountInfo appAccountInfo;
+    OAuthTokenInfo oauthTokenInfo;
+    oauthTokenInfo.token = STRING_TOKEN;
+    std::string token = STRING_TOKEN;
+    appAccountInfo.oauthTokens_[STRING_AUTH_TYPE] = oauthTokenInfo;
+    ErrCode result = appAccountInfo.SetOAuthToken(STRING_AUTH_TYPE, token);
+    ASSERT_EQ(result, ERR_OK);
+    ASSERT_EQ(appAccountInfo.oauthTokens_[STRING_AUTH_TYPE].token, token);
+}
+
+/**
+ * @tc.name: AppAccountInfo SetOAuthToken test
+ * @tc.desc: Func SetOAuthToken falied with oauthTokens oversize.
+ * @tc.type: FUNC
+ * @tc.require
+ */
+HWTEST_F(AppAccountInfoTest, SetOAuthToken003, TestSize.Level0)
+{
+    AppAccountInfo appAccountInfo;
+    OAuthTokenInfo oauthTokenInfo;
+    for (int i = 0; i <= MAX_TOKEN_NUMBER; i++) {
+        std::string key = STRING_AUTH_TYPE + std::to_string(i);
+        appAccountInfo.oauthTokens_[key] = oauthTokenInfo;
+    }
+    std::string token;
+    ErrCode result = appAccountInfo.SetOAuthToken(STRING_AUTH_TYPE, token);
+    ASSERT_EQ(result, ERR_APPACCOUNT_SERVICE_OAUTH_TOKEN_MAX_SIZE);
 }
 
 /**

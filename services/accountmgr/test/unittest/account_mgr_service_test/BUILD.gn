@@ -28,11 +28,15 @@ bundle_manager_sources = [
 ohos_unittest("account_mgr_test") {
   module_out_path = module_output_path
   cflags_cc = []
+  include_dirs = [
+    "//base/account/os_account/interfaces/innerkits/account_iam/native/include",
+  ]
 
   sources = [
     "account_dump_helper_test.cpp",
     "account_mgr_service_test.cpp",
     "account_state_machine_test.cpp",
+    "ohos_account_manager_test.cpp",
   ]
 
   sources += bundle_manager_sources
@@ -43,11 +47,8 @@ ohos_unittest("account_mgr_test") {
     "${services_path}/accountmgr/test:accountmgr_test_config",
   ]
   deps = [
-    "${app_account_innerkits_native_path}:app_account_innerkits",
-    "${app_account_services_path}/src/appaccount:app_account_service_core",
     "${common_path}:libaccount_common",
     "${innerkits_native_path}:libaccountkits",
-    "${os_account_core_path}:os_account_core",
     "${os_account_innerkits_native_path}:os_account_innerkits",
     "${services_path}/accountmgr:accountmgr",
     "//third_party/googletest:gtest_main",
@@ -84,6 +85,10 @@ ohos_unittest("account_mgr_test") {
   if (has_hiviewdfx_hisysevent_part) {
     cflags_cc += [ "-DHAS_HISYSEVENT_PART" ]
     external_deps += [ "hisysevent_native:libhisysevent" ]
+  }
+
+  if (has_user_auth_part) {
+    cflags_cc += [ "-DHAS_USER_AUTH_PART" ]
   }
 
   external_deps += [ "hitrace_native:hitrace_meter" ]

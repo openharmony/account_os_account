@@ -15,8 +15,8 @@
 
 #ifndef OS_ACCOUNT_INTERFACES_INNERKITS_OS_ACCOUNT_INFO_H
 #define OS_ACCOUNT_INTERFACES_INNERKITS_OS_ACCOUNT_INFO_H
-#include <ctime>
 #include <vector>
+#include "domain_account_common.h"
 #include "iaccount_info.h"
 #include "parcel.h"
 namespace OHOS {
@@ -40,34 +40,11 @@ struct ConstraintSourceTypeInfo {
     ConstraintSourceType typeInfo;
 };
 
-class DomainAccountInfo {
-public:
-    DomainAccountInfo()
-        : domain_(""), accountName_("")
-    {}
-
-    DomainAccountInfo(const std::string &domain, const std::string &domainAccountName)
-        : domain_(domain), accountName_(domainAccountName)
-    {}
-
-    void Clear()
-    {
-        domain_.clear();
-        accountName_.clear();
-    }
-    std::string domain_;
-    std::string accountName_;
-};
-
 class OsAccountInfo : public IAccountInfo, public Parcelable {
 public:
     OsAccountInfo();
 
     OsAccountInfo(int localId, const std::string localName, OsAccountType type, int64_t serialNumber);
-
-    OsAccountInfo(int localId, std::string localName, OsAccountType type, std::vector<std::string> constraints,
-        bool isVerified, std::string photo, int64_t createTime, int64_t lastLoginTime, int64_t serialNumber,
-        bool isCreateCompleted);
 
     int GetLocalId() const;
 

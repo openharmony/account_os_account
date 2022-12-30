@@ -18,6 +18,7 @@
 #include <gtest/gtest.h>
 #include <iostream>
 #include "account_error_no.h"
+#include "account_log_wrapper.h"
 #include "os_account_constants.h"
 #define private public
 #include "os_account_control_file_manager.h"
@@ -36,6 +37,7 @@ const int INT_TEST_ERR_USER_ID = 1000000;
 const std::string STRING_TEST_USER_NAME = "testuser";
 const std::string STRING_TEST_USER_NAME_TWO = "testuser2";
 const int64_t STRING_TEST_USER_SHELLNUMBER = 1000;
+const int32_t INVALID_TYPE = 100000;
 const std::string STRING_PHOTO =
     "data:image/jpeg;base64,/9j/4AAQSkZJRgABAQEAYABgAAD//gAUU29mdHdhcmU6IFNuaXBhc3Rl/"
     "9sAQwADAgIDAgIDAwMDBAMDBAUIBQUEBAUKBwcGCAwKDAwLCgsLDQ4SEA0OEQ4LCxAWEBETFBUVFQwPFxgWFBgSFBUU/"
@@ -481,6 +483,164 @@ HWTEST_F(OsAccountControlFileManagerTest, OsAccountControlFileManagerTest021, Te
         std::cout << "Error: osAccountListByDefault.size() = " << osAccountListByDefault.size() << ", "
             << "osAccountList.size() = " << osAccountList.size() << std::endl;
     }
+}
+
+/**
+ * @tc.name: OsAccountControlFileManagerTest022
+ * @tc.desc: coverage GetValidAccountID
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(OsAccountControlFileManagerTest, OsAccountControlFileManagerCovTest022, TestSize.Level1)
+{
+    std::string dirName1;
+    std::int32_t accountID;
+    bool ret;
+    ret = GetValidAccountID(dirName1, accountID);
+    EXPECT_EQ(ret, false);
+    // name length > MAX_USER_ID_LENGTH
+    std::string dirName2(Constants::MAX_USER_ID_LENGTH + 1, 'a');
+    ret = GetValidAccountID(dirName2, accountID);
+    EXPECT_EQ(ret, false);
+
+
+    std::string dirName3(Constants::MAX_USER_ID_LENGTH - 1, 'a');
+    ret = GetValidAccountID(dirName3, accountID);
+    EXPECT_EQ(ret, false);
+
+    std::string dirName4(Constants::MAX_USER_ID_LENGTH - 1, '5');
+    ret = GetValidAccountID(dirName4, accountID);
+    EXPECT_EQ(ret, true);
+}
+
+/**
+ * @tc.name: OsAccountControlFileManagerCovTest023
+ * @tc.desc: coverage RecoverAccountListJsonFile
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(OsAccountControlFileManagerTest, OsAccountControlFileManagerCovTest023, TestSize.Level1)
+{
+    osAccountControlManager_->RecoverAccountListJsonFile();
+    bool ret = false;
+    ret = osAccountControlManager_->accountFileOperator_->IsJsonFileReady(Constants::ACCOUNT_LIST_FILE_JSON_PATH);
+    EXPECT_EQ(ret, true);
+}
+
+/**
+ * @tc.name: OsAccountControlFileManagerCovTest024
+ * @tc.desc: coverage BuildAndSaveBaseOAConstraintsJsonFile
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(OsAccountControlFileManagerTest, OsAccountControlFileManagerCovTest024, TestSize.Level1)
+{
+    osAccountControlManager_->BuildAndSaveBaseOAConstraintsJsonFile();
+    bool ret = false;
+    ret = osAccountControlManager_->accountFileOperator_
+        ->IsJsonFileReady(Constants::BASE_OSACCOUNT_CONSTRAINTS_JSON_PATH);
+    EXPECT_EQ(ret, true);
+}
+
+/**
+ * @tc.name: OsAccountControlFileManagerCovTest025
+ * @tc.desc: coverage BuildAndSaveGlobalOAConstraintsJsonFile
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(OsAccountControlFileManagerTest, OsAccountControlFileManagerCovTest025, TestSize.Level1)
+{
+    osAccountControlManager_->BuildAndSaveGlobalOAConstraintsJsonFile();
+    bool ret = false;
+    ret = osAccountControlManager_->accountFileOperator_
+        ->IsJsonFileReady(Constants::GLOBAL_OSACCOUNT_CONSTRAINTS_JSON_PATH);
+    EXPECT_EQ(ret, true);
+}
+
+/**
+ * @tc.name: OsAccountControlFileManagerCovTest026
+ * @tc.desc: coverage BuildAndSaveSpecificOAConstraintsJsonFile
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(OsAccountControlFileManagerTest, OsAccountControlFileManagerCovTest026, TestSize.Level1)
+{
+    osAccountControlManager_->BuildAndSaveSpecificOAConstraintsJsonFile();
+    bool ret = false;
+    ret = osAccountControlManager_->accountFileOperator_
+        ->IsJsonFileReady(Constants::SPECIFIC_OSACCOUNT_CONSTRAINTS_JSON_PATH);
+    EXPECT_EQ(ret, true);
+}
+
+/**
+ * @tc.name: OsAccountControlFileManagerCovTest027
+ * @tc.desc: coverage osAccountControlManager
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(OsAccountControlFileManagerTest, OsAccountControlFileManagerCovTest027, TestSize.Level1)
+{
+    std::vector<std::string> constants;
+    std::shared_ptr<OsAccountControlFileManager>  osAccountControlManager =
+        std::make_shared<OsAccountControlFileManager>();
+    ErrCode ret = osAccountControlManager->GetConstraintsByType(OsAccountType::ADMIN, constants);
+    EXPECT_EQ(ret, ERR_OSACCOUNT_SERVICE_OS_FILE_GET_CONFIG_ERROR);
+    bool isMultiAccount;
+    ret = osAccountControlManager->GetIsMultiOsAccountEnable(isMultiAccount);
+    EXPECT_EQ(ret, ERR_OSACCOUNT_SERVICE_OS_FILE_GET_CONFIG_ERROR);
+    bool isAllowedCreateAdmin;
+    ret = osAccountControlManager->IsAllowedCreateAdmin(isAllowedCreateAdmin);
+    EXPECT_EQ(ret, ERR_OSACCOUNT_SERVICE_OS_FILE_GET_CONFIG_ERROR);
+    std::vector<std::string> constraints;
+    bool isExists;
+    bool isOverSize;
+    ret = osAccountControlManager->CheckConstraintsList(constraints, isExists, isOverSize);
+    EXPECT_EQ(ret, ERR_OSACCOUNT_SERVICE_OS_FILE_GET_CONSTRAINTS_LITS_ERROR);
+    EXPECT_EQ(isExists, true);
+    EXPECT_EQ(isOverSize, false);
+
+}
+
+/**
+ * @tc.name: OsAccountControlFileManagerCovTest028
+ * @tc.desc: coverage GetConstraintsByType
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(OsAccountControlFileManagerTest, OsAccountControlFileManagerCovTest028, TestSize.Level1)
+{
+    std::vector<std::string> constants;
+    osAccountControlManager_->Init();
+    ErrCode ret = osAccountControlManager_->GetConstraintsByType(static_cast<OsAccountType>(INVALID_TYPE), constants);
+    EXPECT_EQ(ret, ERR_OSACCOUNT_SERVICE_CONTROL_GET_TYPE_ERROR);
+}
+
+/**
+ * @tc.name: OsAccountControlFileManagerCovTest029
+ * @tc.desc: coverage UpdateBaseOAConstraints isAdd false
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(OsAccountControlFileManagerTest, OsAccountControlFileManagerCovTest029, TestSize.Level1)
+{
+    std::string idStr = "";
+    std::vector<std::string> ConstraintStr = {};
+    ErrCode ret = osAccountControlManager_->UpdateBaseOAConstraints(idStr, ConstraintStr, false);
+    EXPECT_EQ(ret, ERR_OK);
+}
+
+/**
+ * @tc.name: OsAccountControlFileManagerCovTest030
+ * @tc.desc: coverage GetPhotoById with invalid id
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(OsAccountControlFileManagerTest, OsAccountControlFileManagerCovTest030, TestSize.Level1)
+{
+    int id = 0;
+    std::string photo;
+    ErrCode ret = osAccountControlManager_->GetPhotoById(id, photo);
+    EXPECT_EQ(ret, ERR_OSACCOUNT_SERVICE_FILE_FIND_FILE_ERROR);
 }
 }  // namespace AccountSA
 }  // namespace OHOS

@@ -217,8 +217,10 @@ HWTEST_F(InnerAppAccountManagerTest, AppAccount_SetAccountExtraInfo_001, TestSiz
 HWTEST_F(InnerAppAccountManagerTest, AppAccount_EnableAppAccess_001, TestSize.Level1)
 {
     MakeEmptyMockObjects();
-
-    ErrCode result = innerManagerPtr_->EnableAppAccess(STRING_NAME, AUTHORIZED_APP, UID, STRING_OWNER, 0);
+    AppAccountCallingInfo appAccountCallingInfo;
+    appAccountCallingInfo.callingUid = UID;
+    appAccountCallingInfo.bundleName = STRING_OWNER;
+    ErrCode result = innerManagerPtr_->EnableAppAccess(STRING_NAME, AUTHORIZED_APP, appAccountCallingInfo, false);
 
     EXPECT_EQ(result, ERR_APPACCOUNT_SERVICE_CONTROL_MANAGER_PTR_IS_NULLPTR);
 }
@@ -232,8 +234,10 @@ HWTEST_F(InnerAppAccountManagerTest, AppAccount_EnableAppAccess_001, TestSize.Le
 HWTEST_F(InnerAppAccountManagerTest, AppAccount_DisableAppAccess_001, TestSize.Level1)
 {
     MakeEmptyMockObjects();
-
-    ErrCode result = innerManagerPtr_->DisableAppAccess(STRING_NAME, AUTHORIZED_APP, UID, STRING_OWNER, 0);
+    AppAccountCallingInfo appAccountCallingInfo;
+    appAccountCallingInfo.callingUid = UID;
+    appAccountCallingInfo.bundleName = STRING_OWNER;
+    ErrCode result = innerManagerPtr_->DisableAppAccess(STRING_NAME, AUTHORIZED_APP, appAccountCallingInfo, false);
 
     EXPECT_EQ(result, ERR_APPACCOUNT_SERVICE_CONTROL_MANAGER_PTR_IS_NULLPTR);
 }
@@ -297,7 +301,7 @@ HWTEST_F(InnerAppAccountManagerTest, AppAccount_GetAssociatedData_001, TestSize.
 {
     MakeEmptyMockObjects();
     std::string value = "value";
-    ErrCode result = innerManagerPtr_->GetAssociatedData(STRING_NAME, KEY, value, UID, 0);
+    ErrCode result = innerManagerPtr_->GetAssociatedData(STRING_NAME, KEY, value, UID);
 
     EXPECT_EQ(result, ERR_APPACCOUNT_SERVICE_CONTROL_MANAGER_PTR_IS_NULLPTR);
 }

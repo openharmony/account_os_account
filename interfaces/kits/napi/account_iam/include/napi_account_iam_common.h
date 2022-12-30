@@ -90,12 +90,12 @@ struct IDMCallbackParam {
 
 struct AuthCallbackParam {
     napi_env env;
-    int32_t module;
+    int32_t module = 0;
     uint32_t acquireInfo;
     int32_t extraInfo;
-    int32_t resultCode;
-    int32_t remainTimes;
-    int32_t freezingTime;
+    int32_t resultCode = 0;
+    int32_t remainTimes = -1;
+    int32_t freezingTime = -1;
     std::vector<uint8_t> token;
     JsIAMCallback callback;
 };
@@ -159,7 +159,7 @@ public:
     explicit NapiGetInfoCallback(napi_env env, napi_ref callbackRef, napi_deferred deferred);
     virtual ~NapiGetInfoCallback();
 
-    void OnCredentialInfo(const std::vector<AccountSA::CredentialInfo> &infoList) override;
+    void OnCredentialInfo(int32_t result, const std::vector<AccountSA::CredentialInfo> &infoList) override;
 private:
     napi_env env_;
     napi_ref callbackRef_;

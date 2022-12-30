@@ -63,8 +63,10 @@ ohos_shared_library("distributedaccount") {
     "ability_base:want",
     "ability_runtime:abilitykit_native",
     "ability_runtime:wantagent_innerkits",
+    "access_token:libtokenid_sdk",
     "c_utils:utils",
     "hiviewdfx_hilog_native:libhilog",
+    "ipc:ipc_core",
     "os_account:libaccountkits",
   ]
   part_name = "os_account"

@@ -47,10 +47,15 @@ static int32_t AccountIAMConvertOtherToJSErrCode(int32_t errCode)
             return ERR_JS_CREDENTIAL_NOT_EXIST;
         case ERR_IAM_INVALID_CONTEXT_ID:
             return ERR_JS_INVALID_CONTEXT_ID;
+        case ERR_ACCOUNT_COMMON_INVALID_PARAMTER:
         case ERR_IAM_INVALID_PARAMETERS:
             return ERR_JS_INVALID_PARAMETER;
         case ERR_ACCOUNT_IAM_KIT_INPUTER_ALREADY_REGISTERED:
-            return ERR_JS_PIN_INPUTER_ALREADY_EXIST;
+            return ERR_JS_CREDENTIAL_INPUTER_ALREADY_EXIST;
+        case ERR_ACCOUNT_IAM_KIT_INPUTER_NOT_REGISTERED:
+            return ERR_JS_CREDENTIAL_INPUTER_NOT_EXIST;
+        case ERR_ACCOUNT_IAM_UNSUPPORTED_AUTH_TYPE:
+            return ERR_JS_AUTH_TYPE_NOT_SUPPORTED;
         default:
             return ERR_JS_SYSTEM_SERVICE_EXCEPTION;
     }
@@ -58,6 +63,9 @@ static int32_t AccountIAMConvertOtherToJSErrCode(int32_t errCode)
 
 int32_t AccountIAMConvertToJSErrCode(int32_t errCode)
 {
+    if (errCode == ERR_ACCOUNT_COMMON_NOT_SYSTEM_APP_ERROR) {
+        return ERR_JS_IS_NOT_SYSTEM_APP;
+    }
     if ((errCode >= ERR_ACCOUNT_IAM_KIT_SEND_REQUEST && errCode <= ERR_ACCOUNT_IAM_KIT_READ_PARCEL_FAIL) ||
         (errCode >= ERR_ACCOUNT_IAM_SERVICE_GET_STORAGE_SYSTEM_ABILITY &&
         errCode <= ERR_ACCOUNT_IAM_SERVICE_READ_PARCEL_FAIL)) {
@@ -367,14 +375,20 @@ napi_value CreateAuthResult(napi_env env, const std::vector<uint8_t> &token, int
 {
     napi_value object = nullptr;
     NAPI_CALL(env, napi_create_object(env, &object));
-    napi_value napiRemainTimes = 0;
-    napi_create_uint32(env, remainTimes, &napiRemainTimes);
-    napi_set_named_property(env, object, "remainTimes", napiRemainTimes);
-    napi_value napiFreezingTimes = 0;
-    napi_create_uint32(env, freezingTime, &napiFreezingTimes);
-    napi_set_named_property(env, object, "freezingTime", napiFreezingTimes);
-    napi_value napiToken = CreateUint8Array(env, token.data(), token.size());
-    napi_set_named_property(env, object, "token", napiToken);
+    if (remainTimes >= 0) {
+        napi_value napiRemainTimes = 0;
+        napi_create_uint32(env, remainTimes, &napiRemainTimes);
+        napi_set_named_property(env, object, "remainTimes", napiRemainTimes);
+    }
+    if (remainTimes >= 0) {
+        napi_value napiFreezingTimes = 0;
+        napi_create_uint32(env, freezingTime, &napiFreezingTimes);
+        napi_set_named_property(env, object, "freezingTime", napiFreezingTimes);
+    }
+    if (token.size() > 0) {
+        napi_value napiToken = CreateUint8Array(env, token.data(), token.size());
+        napi_set_named_property(env, object, "token", napiToken);
+    }
     return object;
 }
 
@@ -502,7 +516,7 @@ static void OnGetInfoWork(uv_work_t *work, int status)
     delete work;
 }
 
-void NapiGetInfoCallback::OnCredentialInfo(const std::vector<AccountSA::CredentialInfo> &infoList)
+void NapiGetInfoCallback::OnCredentialInfo(int32_t result, const std::vector<AccountSA::CredentialInfo> &infoList)
 {
     std::unique_ptr<uv_work_t> work = std::make_unique<uv_work_t>();
     std::unique_ptr<GetAuthInfoContext> context = std::make_unique<GetAuthInfoContext>(env_);
@@ -514,6 +528,7 @@ void NapiGetInfoCallback::OnCredentialInfo(const std::vector<AccountSA::Credenti
     }
     context->callbackRef = callbackRef_;
     context->deferred = deferred_;
+    context->errCode = result;
     context->credInfo = infoList;
     work->data = reinterpret_cast<void *>(context.get());
     NAPI_CALL_RETURN_VOID(env_, uv_queue_work(loop, work.get(), [] (uv_work_t *work) {}, OnGetInfoWork));
@@ -650,6 +665,9 @@ napi_value InputDataConstructor(napi_env env, napi_callback_info info)
 
 napi_value OnSetData(napi_env env, napi_callback_info info)
 {
+    if (!IsSystemApp(env)) {
+        return nullptr;
+    }
     size_t argc = ARG_SIZE_TWO;
     napi_value thisVar = nullptr;
     napi_value argv[ARG_SIZE_TWO] = {nullptr};

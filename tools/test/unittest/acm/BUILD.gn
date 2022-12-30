@@ -39,7 +39,6 @@ ohos_unittest("account_command_create_test") {
 
   deps = [
     "${common_path}:libaccount_common",
-    "${os_account_core_path}:os_account_core",
     "//third_party/googletest:gtest_main",
   ]
 
@@ -47,6 +46,7 @@ ohos_unittest("account_command_create_test") {
     "c_utils:utils",
     "hiviewdfx_hilog_native:libhilog",
     "ipc:ipc_core",
+    "os_account:os_account_innerkits",
   ]
 }
 
@@ -73,7 +73,6 @@ ohos_unittest("account_command_delete_test") {
 
   deps = [
     "${common_path}:libaccount_common",
-    "${os_account_core_path}:os_account_core",
     "//third_party/googletest:gtest_main",
   ]
 
@@ -81,6 +80,7 @@ ohos_unittest("account_command_delete_test") {
     "c_utils:utils",
     "hiviewdfx_hilog_native:libhilog",
     "ipc:ipc_core",
+    "os_account:os_account_innerkits",
   ]
 }
 
@@ -107,7 +107,6 @@ ohos_unittest("account_command_dump_test") {
 
   deps = [
     "${common_path}:libaccount_common",
-    "${os_account_core_path}:os_account_core",
     "//third_party/googletest:gtest_main",
   ]
 
@@ -115,6 +114,7 @@ ohos_unittest("account_command_dump_test") {
     "c_utils:utils",
     "hiviewdfx_hilog_native:libhilog",
     "ipc:ipc_core",
+    "os_account:os_account_innerkits",
   ]
 }
 
@@ -141,7 +141,6 @@ ohos_unittest("account_command_set_test") {
 
   deps = [
     "${common_path}:libaccount_common",
-    "${os_account_core_path}:os_account_core",
     "//third_party/googletest:gtest_main",
   ]
 
@@ -149,6 +148,7 @@ ohos_unittest("account_command_set_test") {
     "c_utils:utils",
     "hiviewdfx_hilog_native:libhilog",
     "ipc:ipc_core",
+    "os_account:os_account_innerkits",
   ]
 }
 
@@ -175,7 +175,6 @@ ohos_unittest("account_command_switch_test") {
 
   deps = [
     "${common_path}:libaccount_common",
-    "${os_account_core_path}:os_account_core",
     "//third_party/googletest:gtest_main",
   ]
 
@@ -183,6 +182,7 @@ ohos_unittest("account_command_switch_test") {
     "c_utils:utils",
     "hiviewdfx_hilog_native:libhilog",
     "ipc:ipc_core",
+    "os_account:os_account_innerkits",
   ]
 }
 
@@ -202,14 +202,14 @@ ohos_unittest("account_command_test") {
     "${tools_path}/acm:tools_acm_config",
   ]
 
-  cflags = []
+  cflags = [ "-DENABLE_MULTIPLE_ACTIVE_ACCOUNTS" ]
+
   if (target_cpu == "arm") {
     cflags += [ "-DBINDER_IPC_32BIT" ]
   }
 
   deps = [
     "${common_path}:libaccount_common",
-    "${os_account_core_path}:os_account_core",
     "//third_party/googletest:gtest_main",
   ]
 
@@ -217,6 +217,7 @@ ohos_unittest("account_command_test") {
     "c_utils:utils",
     "hiviewdfx_hilog_native:libhilog",
     "ipc:ipc_core",
+    "os_account:os_account_innerkits",
   ]
 }
 

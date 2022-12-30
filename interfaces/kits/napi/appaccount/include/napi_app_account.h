@@ -20,7 +20,6 @@
 
 namespace OHOS {
 namespace AccountJsKit {
-static thread_local napi_ref appAccountRef_ = nullptr;
 class NapiAppAccount {
 public:
     static napi_value Init(napi_env env, napi_value exports);

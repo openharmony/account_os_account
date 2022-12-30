@@ -51,6 +51,14 @@ typedef UserIam::UserAuth::CredentialInfo CredentialInfo;
 typedef UserIam::UserAuth::GetCredentialInfoCallback GetCredentialInfoCallback;
 #endif
 
+enum IAMAuthType {
+    DOMAIN = 1024
+};
+
+enum IAMAuthSubType {
+    DOMAIN_MIXED = 10240001
+};
+
 enum IAMState {
     IDLE = 0,
     AFTER_OPEN_SESSION,
@@ -71,6 +79,12 @@ struct CredentialItem {
     int32_t type = 0;
     std::vector<uint8_t> oldCredential;
     std::vector<uint8_t> credential;
+};
+
+struct AuthParam {
+    std::vector<uint8_t> challenge;
+    AuthType authType;
+    AuthTrustLevel authTrustLevel;
 };
 }  // namespace AccountSA
 }  // namespace OHOS

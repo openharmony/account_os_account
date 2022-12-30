@@ -288,3 +288,24 @@ HWTEST_F(AccountCommandDeleteTest, Acm_Command_Delete_1100, TestSize.Level1)
     AccountCommand cmd(argc, argv);
     EXPECT_EQ(cmd.ExecCommand(), STRING_DELETE_OS_ACCOUNT_OK + "\n");
 }
+
+/**
+ * @tc.name: Acm_Command_Delete_1200
+ * @tc.desc: Verify the "acm delete -i 0" command with valid userId.
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(AccountCommandDeleteTest, Acm_Command_Delete_1200, TestSize.Level1)
+{
+    char *argv[] = {
+        const_cast<char *>(TOOL_NAME.c_str()),
+        const_cast<char *>(cmd_.c_str()),
+        const_cast<char *>("-i"),
+        const_cast<char *>("0"),
+        const_cast<char *>(""),
+    };
+    int argc = sizeof(argv) / sizeof(argv[0]) - 1;
+
+    AccountCommand cmd(argc, argv);
+    EXPECT_EQ(cmd.ExecCommand(), STRING_DELETE_OS_ACCOUNT_NG + "\n");
+}

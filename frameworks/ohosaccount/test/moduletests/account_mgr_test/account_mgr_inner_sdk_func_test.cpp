@@ -26,6 +26,7 @@
 #include "iaccount.h"
 #include "if_system_ability_manager.h"
 #include "iservice_registry.h"
+#include "ohos_account_constants.h"
 #include "ohos_account_kits.h"
 #include "system_ability_definition.h"
 
@@ -54,7 +55,6 @@ const std::string TEST_DIFF_ACCOUNT_NAME = "TestDiffAccountName";
 const std::string TEST_DIFF_ACCOUNT_UID = "9876432";
 const std::string TEST_DIFF_EXPECTED_UID = "FB293C538C2CD118B0441AB3B2EC429A5EA629286A04F31E0CC2EFB96525ADCC";
 const std::string TEST_EMPTY_STRING = "";
-const std::size_t TESR_AVATAR_MAX_SIZE = 3 * 1024 * 1024;
 }
 
 class AccountMgrInnerSdkFuncTest : public testing::Test {
@@ -322,7 +322,7 @@ HWTEST_F(AccountMgrInnerSdkFuncTest, SetOhosAccountInfo004, TestSize.Level0)
 
 /**
  * @tc.name: SetOhosAccountInfo005
- * @tc.desc: Test ohos account nickname invalid
+ * @tc.desc: Test ohos account with invalid nickname
  * @tc.type: FUNC
  * @tc.require: issueI5RWXT
  */
@@ -333,9 +333,12 @@ HWTEST_F(AccountMgrInnerSdkFuncTest, SetOhosAccountInfo005, TestSize.Level0)
     accountInfo.name_ = TEST_ACCOUNT_NAME;
     accountInfo.status_ = ACCOUNT_STATE_UNBOUND;
     accountInfo.uid_ = TEST_ACCOUNT_UID;
-    accountInfo.nickname_ = "test_invalid_nickname_aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa";
     accountInfo.avatar_ = TEST_AVATAR;
     accountInfo.scalableData_.SetParam(KEY_ACCOUNT_INFO_SCALABLEDATA, 123);
+    accountInfo.nickname_ = "";
+    for (std::size_t i = 0; i < Constants::NICKNAME_MAX_SIZE + 1; i++) {
+        accountInfo.nickname_.push_back('a');
+    }
 
     auto ret = OhosAccountKits::GetInstance().SetOhosAccountInfo(accountInfo, g_eventLogin);
     EXPECT_EQ(ret, ERR_OHOSACCOUNT_KIT_INVALID_PARAMETER);
@@ -351,7 +354,7 @@ HWTEST_F(AccountMgrInnerSdkFuncTest, SetOhosAccountInfo005, TestSize.Level0)
 
 /**
  * @tc.name: SetOhosAccountInfo006
- * @tc.desc: Test ohos account avatar invalid
+ * @tc.desc: Test ohos account with invalid avatar
  * @tc.type: FUNC
  * @tc.require: issueI5RWXT
  */
@@ -365,9 +368,10 @@ HWTEST_F(AccountMgrInnerSdkFuncTest, SetOhosAccountInfo006, TestSize.Level0)
     accountInfo.nickname_ = TEST_NICKNAME;
     accountInfo.avatar_ = ""; // 10*1024*1024
     accountInfo.scalableData_.SetParam(KEY_ACCOUNT_INFO_SCALABLEDATA, 123);
-    for (std::size_t i = 0; i < TESR_AVATAR_MAX_SIZE + 1; i++) {
+    for (std::size_t i = 0; i < Constants::AVATAR_MAX_SIZE + 1; i++) {
         accountInfo.avatar_.push_back('a');
     }
+
 
     auto ret = OhosAccountKits::GetInstance().SetOhosAccountInfo(accountInfo, g_eventLogin);
     EXPECT_EQ(ret, ERR_OHOSACCOUNT_KIT_INVALID_PARAMETER);
@@ -408,7 +412,7 @@ HWTEST_F(AccountMgrInnerSdkFuncTest, SetOhosAccountInfo007, TestSize.Level0)
  * @tc.name: GetOhosAccountInfoByUserIdTest
  * @tc.desc: Test GetOhosAccountInfoByUserId with invalid userId.
  * @tc.type: FUNC
- * @tc.require: issueI603MF
+ * @tc.require: issueI5X50F
  */
 HWTEST_F(AccountMgrInnerSdkFuncTest, GetOhosAccountInfoByUserId, TestSize.Level0)
 {
@@ -422,7 +426,7 @@ HWTEST_F(AccountMgrInnerSdkFuncTest, GetOhosAccountInfoByUserId, TestSize.Level0
  * @tc.name: QueryOhosAccountInfoByUserIdTest
  * @tc.desc: Test QueryOhosAccountInfoByUserId with invalid userId.
  * @tc.type: FUNC
- * @tc.require: issueI603MF
+ * @tc.require: issueI5X50F
  */
 HWTEST_F(AccountMgrInnerSdkFuncTest, QueryOhosAccountInfoByUserId, TestSize.Level0)
 {

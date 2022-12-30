@@ -17,6 +17,7 @@
 
 #include "account_iam_client.h"
 #include "account_log_wrapper.h"
+#include "napi_account_common.h"
 #include "napi_account_error.h"
 #include "napi_account_iam_common.h"
 
@@ -39,6 +40,9 @@ napi_value NapiAccountIAMPINAuth::Init(napi_env env, napi_value exports)
 
 napi_value NapiAccountIAMPINAuth::JsConstructor(napi_env env, napi_callback_info info)
 {
+    if (!IsSystemApp(env)) {
+        return nullptr;
+    }
     napi_value thisVar = nullptr;
     NAPI_CALL(env, napi_get_cb_info(env, info, nullptr, nullptr, &thisVar, nullptr));
     return thisVar;
@@ -80,7 +84,7 @@ napi_value NapiAccountIAMPINAuth::RegisterInputer(napi_env env, napi_callback_in
         return result;
     }
     auto inputer = std::make_shared<NapiGetDataCallback>(env, callback);
-    int32_t errCode = AccountIAMClient::GetInstance().RegisterInputer(inputer);
+    int32_t errCode = AccountIAMClient::GetInstance().RegisterPINInputer(inputer);
     napi_value napiResult = nullptr;
     if (errCode == ERR_OK) {
         NAPI_CALL(env, napi_get_boolean(env, true, &napiResult));
@@ -93,10 +97,11 @@ napi_value NapiAccountIAMPINAuth::RegisterInputer(napi_env env, napi_callback_in
 
 napi_value NapiAccountIAMPINAuth::UnregisterInputer(napi_env env, napi_callback_info info)
 {
-    AccountIAMClient::GetInstance().UnRegisterInputer();
-    napi_value result = nullptr;
-    NAPI_CALL(env, napi_get_null(env, &result));
-    return result;
+    ErrCode errCode = AccountIAMClient::GetInstance().UnregisterPINInputer();
+    if (errCode != ERR_OK) {
+        AccountIAMNapiThrow(env, AccountIAMConvertToJSErrCode(errCode), true);
+    }
+    return nullptr;
 }
 }  // namespace AccountJsKit
 }  // namespace OHOS

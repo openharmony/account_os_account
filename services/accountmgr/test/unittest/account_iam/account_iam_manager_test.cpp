@@ -14,12 +14,14 @@
  */
 #include <gmock/gmock.h>
 #include <gtest/gtest.h>
+#include <unistd.h>
 
 #include "accesstoken_kit.h"
 #include "account_error_no.h"
 #include "account_iam_callback_stub.h"
 #include "inner_account_iam_manager.h"
 #include "iam_common_defines.h"
+#include "parameter.h"
 #include "token_setproc.h"
 
 using namespace testing;
@@ -33,6 +35,8 @@ namespace AccountTest {
 namespace {
     const int32_t TEST_USER_ID = 101;
     const std::vector<uint8_t> TEST_CHALLENGE = {1, 2, 3, 4};
+    static bool g_fscryptEnable = false;
+    const uid_t ACCOUNT_UID = 3058;
 }
 
 class MockIIDMCallback : public IDMCallbackStub {
@@ -49,10 +53,23 @@ public:
     void TearDown();
 };
 
+static bool FscryptEnable()
+{
+    const int bufferLen = 128;
+    char fscryptValue[bufferLen] = {0};
+    int ret = GetParameter("fscrypt.policy.config", "", fscryptValue, bufferLen - 1);
+    if (ret <= 0) {
+        return false;
+    }
+    return true;
+}
+
 void AccountIamManagerTest::SetUpTestCase()
 {
     AccessTokenID tokenId = AccessTokenKit::GetNativeTokenId("accountmgr");
     SetSelfTokenID(tokenId);
+    setuid(ACCOUNT_UID);
+    g_fscryptEnable = FscryptEnable();
 }
 
 void AccountIamManagerTest::TearDownTestCase()
@@ -183,12 +200,17 @@ HWTEST_F(AccountIamManagerTest, AuthUser001, TestSize.Level0)
     sptr<MockIIDMCallback> testCallback = new(std::nothrow) MockIIDMCallback();
     EXPECT_NE(testCallback, nullptr);
     EXPECT_CALL(*testCallback, OnResult(_, _)).Times(1);
-    uint64_t contextId = InnerAccountIAMManager::GetInstance().AuthUser(
-        TEST_USER_ID, TEST_CHALLENGE, AuthType::PIN, AuthTrustLevel::ATL1, nullptr);
-    EXPECT_EQ(ERR_ACCOUNT_COMMON_NULL_PTR_ERROR, contextId);
+    AuthParam authParam = {
+        .challenge = TEST_CHALLENGE,
+        .authType = AuthType::PIN,
+        .authTrustLevel = AuthTrustLevel::ATL1
+    };
+    uint64_t contextId = 0;
+    ErrCode errCode = InnerAccountIAMManager::GetInstance().AuthUser(TEST_USER_ID, authParam, nullptr, contextId);
+    EXPECT_EQ(ERR_ACCOUNT_COMMON_NULL_PTR_ERROR, errCode);
 
-    contextId = InnerAccountIAMManager::GetInstance().AuthUser(
-        TEST_USER_ID, TEST_CHALLENGE, AuthType::PIN, AuthTrustLevel::ATL1, testCallback);
+    errCode = InnerAccountIAMManager::GetInstance().AuthUser(TEST_USER_ID, authParam, testCallback, contextId);
+    EXPECT_EQ(ERR_OK, errCode);
     InnerAccountIAMManager::GetInstance().CancelAuth(contextId);
 }
 
@@ -220,8 +242,14 @@ HWTEST_F(AccountIamManagerTest, GetChallenge001, TestSize.Level2)
     sptr<MockIIDMCallback> testCallback = new(std::nothrow) MockIIDMCallback();
     EXPECT_NE(testCallback, nullptr);
     EXPECT_CALL(*testCallback, OnResult(_, _)).Times(1);
-    uint64_t contextId = InnerAccountIAMManager::GetInstance().AuthUser(
-        TEST_USER_ID, TEST_CHALLENGE, AuthType::PIN, AuthTrustLevel::ATL1, testCallback);
+    AuthParam authParam = {
+        .challenge = TEST_CHALLENGE,
+        .authType = AuthType::PIN,
+        .authTrustLevel = AuthTrustLevel::ATL1
+    };
+    uint64_t contextId = 0;
+    ErrCode errCode = InnerAccountIAMManager::GetInstance().AuthUser(TEST_USER_ID, authParam, testCallback, contextId);
+    EXPECT_EQ(errCode, ERR_OK);
 
     std::vector<uint8_t> outChallenge;
     InnerAccountIAMManager::GetInstance().GetChallenge(TEST_USER_ID, outChallenge);
@@ -267,9 +295,9 @@ HWTEST_F(AccountIamManagerTest, UpdateUserKey001, TestSize.Level2)
     std::vector<uint8_t> testAuthToken = {1, 2, 3, 4};
     std::vector<uint8_t> testSecret = {1, 2, 3, 4};
 
-    EXPECT_NE(ERR_OK,
-        InnerAccountIAMManager::GetInstance().UpdateUserKey(TEST_USER_ID, testCreId, testAuthToken, testSecret));
-
+    int32_t res =
+        InnerAccountIAMManager::GetInstance().UpdateUserKey(TEST_USER_ID, testCreId, testAuthToken, testSecret);
+    EXPECT_EQ(g_fscryptEnable ? -2 : 0, res);
     uint64_t testNewCreId = 222;
     std::vector<uint8_t> testNewSecret;
     EXPECT_EQ(ERR_OK,
@@ -289,7 +317,8 @@ HWTEST_F(AccountIamManagerTest, RemoveUserKey001, TestSize.Level2)
     int32_t userId = 2222;
     std::vector<uint8_t> testAuthToken = {1, 2, 3, 4};
 
-    EXPECT_EQ(ERR_OK, InnerAccountIAMManager::GetInstance().RemoveUserKey(TEST_USER_ID, testAuthToken));
+    int32_t res = InnerAccountIAMManager::GetInstance().RemoveUserKey(TEST_USER_ID, testAuthToken);
+    EXPECT_EQ(g_fscryptEnable ? -2 : 0, res);
     EXPECT_EQ(ERR_OK, InnerAccountIAMManager::GetInstance().RemoveUserKey(userId, testAuthToken));
 }
 
@@ -306,13 +335,15 @@ HWTEST_F(AccountIamManagerTest, RestoreUserKey001, TestSize.Level2)
     std::vector<uint8_t> testAuthToken = {1, 2, 3, 4};
     std::vector<uint8_t> testSecret = {1, 2, 3, 4};
 
-    EXPECT_NE(ERR_OK,
-        InnerAccountIAMManager::GetInstance().UpdateUserKey(TEST_USER_ID, testOldCreId, testAuthToken, testSecret));
+    int32_t res =
+        InnerAccountIAMManager::GetInstance().UpdateUserKey(TEST_USER_ID, testOldCreId, testAuthToken, testSecret);
+    EXPECT_EQ(g_fscryptEnable ? -2 : 0, res);
 
     uint64_t testNewCreId = 222;
     EXPECT_NE(ERR_OK, InnerAccountIAMManager::GetInstance().RestoreUserKey(userId, 0, testAuthToken));
     EXPECT_EQ(ERR_OK, InnerAccountIAMManager::GetInstance().RestoreUserKey(userId, testNewCreId, testAuthToken));
-    EXPECT_NE(ERR_OK, InnerAccountIAMManager::GetInstance().RestoreUserKey(TEST_USER_ID, 0, testAuthToken));
+    res = InnerAccountIAMManager::GetInstance().RestoreUserKey(TEST_USER_ID, 0, testAuthToken);
+    EXPECT_EQ(g_fscryptEnable ? -2 : 0, res);
     EXPECT_EQ(ERR_OK, InnerAccountIAMManager::GetInstance().RestoreUserKey(TEST_USER_ID, testNewCreId, testAuthToken));
     EXPECT_EQ(ERR_OK, InnerAccountIAMManager::GetInstance().RestoreUserKey(TEST_USER_ID, testOldCreId, testAuthToken));
 }

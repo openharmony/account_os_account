@@ -41,6 +41,7 @@ config("os_account_core_config") {
 
 config("os_account_core_public_config") {
   include_dirs = [
+    "${domain_account_interfaces_native_path}/include",
     "${os_account_core_path}/include",
     "${os_account_interfaces_native_path}/include",
     "${innerkits_path}/include",
@@ -67,7 +68,6 @@ ohos_shared_library("os_account_core") {
     "${os_account_core_path}/src/os_account_event_proxy.cpp",
     "${os_account_core_path}/src/os_account_event_stub.cpp",
     "${os_account_core_path}/src/os_account_proxy.cpp",
-    "${os_account_core_path}/src/os_account_stub.cpp",
     "${os_account_innerkits_native_path}/src/os_account_info.cpp",
     "${os_account_innerkits_native_path}/src/os_account_subscribe_info.cpp",
     "${os_account_innerkits_native_path}/src/os_account_subscriber.cpp",
@@ -84,7 +84,10 @@ ohos_shared_library("os_account_core") {
 
   use_exceptions = true
 
-  deps = [ "${innerkits_native_path}:libaccountkits" ]
+  deps = [
+    "${common_path}:libaccount_common",
+    "${innerkits_native_path}:libaccountkits",
+  ]
 
   external_deps = [
     "ability_base:want",

@@ -1,0 +1,53 @@
+# Copyright (c) 2021-2022 Huawei Device Co., Ltd.
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#     http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
+import("//base/account/os_account/os_account.gni")
+import("//build/ohos.gni")
+import("//build/test.gni")
+
+module_output_path = "os_account/frameworks/accountdfx"
+
+ohos_unittest("AccountCommonTest") {
+  module_out_path = module_output_path
+
+  sources = [
+    "${common_path}/account_error/src/account_error_no.cpp",
+    "${common_path}/file_operator/src/account_file_operator.cpp",
+    "${common_path}/log/src/account_log_wrapper.cpp",
+    "${common_path}/perf_stat/src/perf_stat.cpp",
+  ]
+
+  sources += [ "account_error_common_test.cpp" ]
+  sources += [ "account_file_operator_test.cpp" ]
+  sources += [ "account_log_test.cpp" ]
+  sources += [ "account_perf_stat_test.cpp" ]
+
+  configs = [
+    "${common_path}:account_common_config",
+    "${common_path}/test:common_test_config",
+  ]
+
+  deps = [
+    "${common_path}:libaccount_common",
+    "//third_party/googletest:gtest_main",
+  ]
+
+  external_deps = [ "hiviewdfx_hilog_native:libhilog" ]
+  part_name = "os_account"
+}
+
+group("unittest") {
+  testonly = true
+
+  deps = [ ":AccountCommonTest" ]
+}

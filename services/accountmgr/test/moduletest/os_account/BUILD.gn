@@ -48,7 +48,6 @@ ohos_moduletest("os_account_manager_service_module_test") {
   ]
   deps = [
     "${common_path}:libaccount_common",
-    "${os_account_core_path}:os_account_core",
     "${os_account_innerkits_native_path}:os_account_innerkits",
     "${services_path}/accountmgr:accountmgr",
     "//third_party/googletest:gmock_main",
@@ -94,7 +93,6 @@ ohos_moduletest("os_account_manager_service_create_os_account_test") {
   ]
   deps = [
     "${common_path}:libaccount_common",
-    "${os_account_core_path}:os_account_core",
     "${os_account_innerkits_native_path}:os_account_innerkits",
     "${services_path}/accountmgr:accountmgr",
     "//third_party/googletest:gmock_main",
@@ -141,7 +139,6 @@ ohos_moduletest("os_account_manager_service_subscribe_module_test") {
 
   deps = [
     "${common_path}:libaccount_common",
-    "${os_account_core_path}:os_account_core",
     "${os_account_innerkits_native_path}:os_account_innerkits",
     "${services_path}/accountmgr:accountmgr",
     "//third_party/googletest:gmock_main",

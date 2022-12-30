@@ -19,6 +19,11 @@
 #include "account_log_wrapper.h"
 #include "app_account_manager.h"
 #include "app_account_manager_test_callback.h"
+#include "app_account_subscribe_info.h"
+#define private public
+#include "app_account.h"
+#undef private
+#include "singleton.h"
 
 using namespace testing::ext;
 using namespace OHOS;
@@ -164,6 +169,9 @@ const std::string STRING_OUT_OF_RANGE =
 const std::string STRING_ABILITY_NAME = "MainAbility";
 const std::string STRING_SESSION_ID = "123456";
 constexpr int32_t MAX_CUSTOM_DATA_SIZE = 1024;
+constexpr int32_t ALLOWED_ARRAY_MAX_SIZE = 1024;
+constexpr int32_t CREDENTIAL_TYPE_MAX_SIZE = 1024;
+constexpr int32_t CREDENTIAL_MAX_SIZE = 1024;
 const bool SYNC_ENABLE_FALSE = false;
 
 constexpr std::size_t SIZE_ZERO = 0;
@@ -175,6 +183,23 @@ public:
     static void TearDownTestCase(void);
     void SetUp(void) override;
     void TearDown(void) override;
+};
+
+class AppAccountSubscriberTest : public AppAccountSubscriber {
+public:
+    explicit AppAccountSubscriberTest(const AppAccountSubscribeInfo &subscribeInfo)
+        : AppAccountSubscriber(subscribeInfo)
+    {
+        ACCOUNT_LOGI("enter");
+    }
+
+    ~AppAccountSubscriberTest()
+    {}
+
+    virtual void OnAccountsChanged(const std::vector<AppAccountInfo> &accounts)
+    {
+        ACCOUNT_LOGI("enter");
+    }
 };
 
 void AppAccountManagerTest::SetUpTestCase(void)
@@ -384,24 +409,36 @@ HWTEST_F(AppAccountManagerTest, AppAccountManager_CreateAccountImplicitly_0100, 
 {
     ACCOUNT_LOGI("AppAccountManager_CreateAccountImplicitly_0100");
     CreateAccountImplicitlyOptions options;
-    options.parameters.SetParam(Constants::KEY_CALLER_ABILITY_NAME, STRING_ABILITY_NAME);
-    ErrCode result = AppAccountManager::CreateAccountImplicitly(STRING_OWNER, options, nullptr);
-    EXPECT_EQ(result, ERR_APPACCOUNT_KIT_WRITE_PARCELABLE_CALLBACK);
-
-    result = AppAccountManager::CreateAccountImplicitly(
+    // check owner
+    ErrCode result = AppAccountManager::CreateAccountImplicitly(
         STRING_OWNER_OUT_OF_RANGE, options, nullptr);
     EXPECT_EQ(result, ERR_APPACCOUNT_KIT_INVALID_PARAMETER);
     result = AppAccountManager::CreateAccountImplicitly(STRING_EMPTY, options, nullptr);
     EXPECT_EQ(result, ERR_APPACCOUNT_KIT_INVALID_PARAMETER);
 
+    // check options.authType
     options.authType = STRING_OUT_OF_RANGE;
     result = AppAccountManager::CreateAccountImplicitly(STRING_OWNER, options, nullptr);
     EXPECT_EQ(result, ERR_APPACCOUNT_KIT_INVALID_PARAMETER);
-
+    options.authType = "";
     options.parameters.SetParam(Constants::KEY_CALLER_ABILITY_NAME, STRING_EMPTY);
     result = AppAccountManager::CreateAccountImplicitly(STRING_OWNER, options, nullptr);
     EXPECT_EQ(result, ERR_APPACCOUNT_KIT_INVALID_PARAMETER);
     options.parameters.SetParam(Constants::KEY_CALLER_ABILITY_NAME, STRING_OUT_OF_RANGE);
+    result = AppAccountManager::CreateAccountImplicitly(STRING_OWNER, options, nullptr);
+    EXPECT_EQ(result, ERR_APPACCOUNT_KIT_INVALID_PARAMETER);
+    // check callback nullptr
+    options.parameters.SetParam(Constants::KEY_CALLER_ABILITY_NAME, STRING_ABILITY_NAME);
+    result = AppAccountManager::CreateAccountImplicitly(STRING_OWNER, options, nullptr);
+    EXPECT_EQ(result, ERR_APPACCOUNT_KIT_WRITE_PARCELABLE_CALLBACK);
+    // check options.requiredLabels
+    for (int i = 0; i < ALLOWED_ARRAY_MAX_SIZE; i++) {
+        std::string testLabel = "test_label_" + std::to_string(i);
+        options.requiredLabels.emplace_back(testLabel);
+    }
+    result = AppAccountManager::CreateAccountImplicitly(STRING_OWNER, options, nullptr);
+    EXPECT_EQ(result, ERR_APPACCOUNT_KIT_WRITE_PARCELABLE_CALLBACK);
+    options.requiredLabels.emplace_back("test_label_oversize");
     result = AppAccountManager::CreateAccountImplicitly(STRING_OWNER, options, nullptr);
     EXPECT_EQ(result, ERR_APPACCOUNT_KIT_INVALID_PARAMETER);
 }
@@ -526,6 +563,48 @@ HWTEST_F(AppAccountManagerTest, AppAccountManager_SetOAuthTokenVisibility_0200, 
 }
 
 /**
+ * @tc.name: AppAccountManager_SetAuthTokenVisibility_0100
+ * @tc.desc: Fail to set oauth token visibility with invalid parameter.
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(AppAccountManagerTest, AppAccountManager_SetAuthTokenVisibility_0100, TestSize.Level1)
+{
+    ACCOUNT_LOGI("AppAccountManager_SetAuthTokenVisibility_0100");
+    ErrCode result = AppAccountManager::SetAuthTokenVisibility(
+        STRING_EMPTY, STRING_AUTH_TYPE, STRING_BUNDLE_NAME, true);
+    EXPECT_EQ(result, ERR_APPACCOUNT_KIT_INVALID_PARAMETER);
+    result = AppAccountManager::SetAuthTokenVisibility(
+        STRING_NAME_OUT_OF_RANGE, STRING_AUTH_TYPE, STRING_BUNDLE_NAME, true);
+    EXPECT_EQ(result, ERR_APPACCOUNT_KIT_INVALID_PARAMETER);
+
+    result = AppAccountManager::SetAuthTokenVisibility(
+        STRING_NAME, STRING_OUT_OF_RANGE, STRING_BUNDLE_NAME, true);
+    EXPECT_EQ(result, ERR_APPACCOUNT_KIT_INVALID_PARAMETER);
+
+    result = AppAccountManager::SetAuthTokenVisibility(
+        STRING_NAME, STRING_AUTH_TYPE, STRING_EMPTY, true);
+    EXPECT_EQ(result, ERR_APPACCOUNT_KIT_INVALID_PARAMETER);
+    result = AppAccountManager::SetAuthTokenVisibility(
+        STRING_NAME, STRING_AUTH_TYPE, STRING_OWNER_OUT_OF_RANGE, true);
+    EXPECT_EQ(result, ERR_APPACCOUNT_KIT_INVALID_PARAMETER);
+}
+
+/**
+ * @tc.name: AppAccountManager_SetAuthTokenVisibility_0200
+ * @tc.desc: Fail to set oauth token visibility from shell process.
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(AppAccountManagerTest, AppAccountManager_SetAuthTokenVisibility_0200, TestSize.Level1)
+{
+    ACCOUNT_LOGI("AppAccountManager_SetAuthTokenVisibility_0200");
+    ErrCode result = AppAccountManager::SetAuthTokenVisibility(
+        STRING_NAME, STRING_AUTH_TYPE, STRING_BUNDLE_NAME, true);
+    EXPECT_EQ(result, ERR_APPACCOUNT_SERVICE_GET_BUNDLE_NAME);
+}
+
+/**
  * @tc.name: AppAccountManager_CheckOAuthTokenVisibility_0100
  * @tc.desc: Fail to check oauth token visibility with invalid name.
  * @tc.type: FUNC
@@ -570,6 +649,56 @@ HWTEST_F(AppAccountManagerTest, AppAccountManager_CheckOAuthTokenVisibility_0200
     ACCOUNT_LOGI("AppAccountManager_CheckOAuthTokenVisibility_0200");
     bool isVisible = false;
     ErrCode result = AppAccountManager::CheckOAuthTokenVisibility(
+        STRING_NAME, STRING_AUTH_TYPE, STRING_BUNDLE_NAME, isVisible);
+    EXPECT_EQ(result, ERR_APPACCOUNT_SERVICE_GET_BUNDLE_NAME);
+    EXPECT_FALSE(isVisible);
+}
+
+/**
+ * @tc.name: AppAccountManager_CheckAuthTokenVisibility_0100
+ * @tc.desc: Fail to check oauth token visibility with invalid name.
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(AppAccountManagerTest, AppAccountManager_CheckAuthTokenVisibility_0100, TestSize.Level1)
+{
+    ACCOUNT_LOGI("AppAccountManager_CheckAuthTokenVisibility_0100");
+    bool isVisible = false;
+    ErrCode result = AppAccountManager::CheckAuthTokenVisibility(
+        STRING_EMPTY, STRING_AUTH_TYPE, STRING_BUNDLE_NAME, isVisible);
+    EXPECT_EQ(result, ERR_APPACCOUNT_KIT_INVALID_PARAMETER);
+    EXPECT_FALSE(isVisible);
+    result = AppAccountManager::CheckAuthTokenVisibility(
+        STRING_OUT_OF_RANGE, STRING_AUTH_TYPE, STRING_BUNDLE_NAME, isVisible);
+    EXPECT_EQ(result, ERR_APPACCOUNT_KIT_INVALID_PARAMETER);
+    EXPECT_FALSE(isVisible);
+
+    result = AppAccountManager::CheckAuthTokenVisibility(
+        STRING_NAME, STRING_OUT_OF_RANGE, STRING_BUNDLE_NAME, isVisible);
+    EXPECT_EQ(result, ERR_APPACCOUNT_KIT_INVALID_PARAMETER);
+    EXPECT_FALSE(isVisible);
+
+    result = AppAccountManager::CheckAuthTokenVisibility(
+        STRING_NAME, STRING_AUTH_TYPE, STRING_EMPTY, isVisible);
+    EXPECT_EQ(result, ERR_APPACCOUNT_KIT_INVALID_PARAMETER);
+    EXPECT_FALSE(isVisible);
+    result = AppAccountManager::CheckAuthTokenVisibility(
+        STRING_NAME, STRING_AUTH_TYPE, STRING_OUT_OF_RANGE, isVisible);
+    EXPECT_EQ(result, ERR_APPACCOUNT_KIT_INVALID_PARAMETER);
+    EXPECT_FALSE(isVisible);
+}
+
+/**
+ * @tc.name: AppAccountManager_CheckAuthTokenVisibility_0200
+ * @tc.desc: Fail to check oauth token visibility from shell process.
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(AppAccountManagerTest, AppAccountManager_CheckAuthTokenVisibility_0200, TestSize.Level1)
+{
+    ACCOUNT_LOGI("AppAccountManager_CheckAuthTokenVisibility_0200");
+    bool isVisible = false;
+    ErrCode result = AppAccountManager::CheckAuthTokenVisibility(
         STRING_NAME, STRING_AUTH_TYPE, STRING_BUNDLE_NAME, isVisible);
     EXPECT_EQ(result, ERR_APPACCOUNT_SERVICE_GET_BUNDLE_NAME);
     EXPECT_FALSE(isVisible);
@@ -855,6 +984,34 @@ HWTEST_F(AppAccountManagerTest, AppAccountManager_DisableAppAccess_0500, TestSiz
 {
     ACCOUNT_LOGI("AppAccountManager_DisableAppAccess_0500");
     ErrCode result = AppAccountManager::DisableAppAccess(STRING_NAME, STRING_BUNDLE_NAME);
+    EXPECT_EQ(result, ERR_APPACCOUNT_SERVICE_GET_BUNDLE_NAME);
+}
+
+/**
+ * @tc.name: AppAccountManager_SetAppAccess_0100
+ * @tc.desc: Fail to set app access from shell process.
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(AppAccountManagerTest, AppAccountManager_SetAppAccess_0100, TestSize.Level1)
+{
+    ACCOUNT_LOGI("AppAccountManager_SetAppAccess_0100");
+    ErrCode result = AppAccountManager::SetAppAccess(STRING_EMPTY, STRING_BUNDLE_NAME, true);
+    EXPECT_EQ(result, ERR_APPACCOUNT_KIT_INVALID_PARAMETER);
+
+    result = AppAccountManager::SetAppAccess(STRING_NAME_OUT_OF_RANGE, STRING_BUNDLE_NAME, true);
+    EXPECT_EQ(result, ERR_APPACCOUNT_KIT_INVALID_PARAMETER);
+
+    result = AppAccountManager::SetAppAccess(STRING_NAME, STRING_AUTHORIZED_APP_OUT_OF_RANGE, true);
+    EXPECT_EQ(result, ERR_APPACCOUNT_KIT_INVALID_PARAMETER);
+
+    result = AppAccountManager::SetAppAccess(STRING_NAME, STRING_EMPTY, true);
+    EXPECT_EQ(result, ERR_APPACCOUNT_KIT_INVALID_PARAMETER);
+
+    result = AppAccountManager::SetAppAccess(STRING_NAME, STRING_BUNDLE_NAME, true);
+    EXPECT_EQ(result, ERR_APPACCOUNT_SERVICE_GET_BUNDLE_NAME);
+
+    result = AppAccountManager::SetAppAccess(STRING_NAME, STRING_BUNDLE_NAME, false);
     EXPECT_EQ(result, ERR_APPACCOUNT_SERVICE_GET_BUNDLE_NAME);
 }
 
@@ -1333,6 +1490,63 @@ HWTEST_F(AppAccountManagerTest, AppAccountManager_GetOAuthToken_0300, TestSize.L
 }
 
 /**
+ * @tc.name: AppAccountManager_GetAuthToken_0100
+ * @tc.desc: Get oauth token with invalid data.
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(AppAccountManagerTest, AppAccountManager_GetAuthToken_0100, TestSize.Level1)
+{
+    ACCOUNT_LOGI("AppAccountManager_GetAuthToken_0100");
+    std::string token;
+    ErrCode result = AppAccountManager::GetAuthToken(STRING_EMPTY, STRING_OWNER, STRING_AUTH_TYPE, token);
+    EXPECT_EQ(result, ERR_APPACCOUNT_KIT_INVALID_PARAMETER);
+    EXPECT_EQ(token, STRING_EMPTY);
+
+    result = AppAccountManager::GetAuthToken(STRING_NAME, STRING_EMPTY, STRING_AUTH_TYPE, token);
+    EXPECT_EQ(result, ERR_APPACCOUNT_KIT_INVALID_PARAMETER);
+    EXPECT_EQ(token, STRING_EMPTY);
+}
+
+/**
+ * @tc.name: AppAccountManager_GetAuthToken_0200
+ * @tc.desc: Get oauth token with invalid data.
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(AppAccountManagerTest, AppAccountManager_GetAuthToken_0200, TestSize.Level1)
+{
+    ACCOUNT_LOGI("AppAccountManager_GetAuthToken_0200");
+    std::string token;
+    ErrCode result = AppAccountManager::GetAuthToken(STRING_NAME_OUT_OF_RANGE, STRING_OWNER, STRING_AUTH_TYPE, token);
+    EXPECT_EQ(result, ERR_APPACCOUNT_KIT_INVALID_PARAMETER);
+    EXPECT_EQ(token, STRING_EMPTY);
+
+    result = AppAccountManager::GetAuthToken(STRING_NAME, STRING_OWNER_OUT_OF_RANGE, STRING_AUTH_TYPE, token);
+    EXPECT_EQ(result, ERR_APPACCOUNT_KIT_INVALID_PARAMETER);
+    EXPECT_EQ(token, STRING_EMPTY);
+
+    result = AppAccountManager::GetAuthToken(STRING_NAME, STRING_OWNER, STRING_OUT_OF_RANGE, token);
+    EXPECT_EQ(result, ERR_APPACCOUNT_KIT_INVALID_PARAMETER);
+    EXPECT_EQ(token, STRING_EMPTY);
+}
+
+/**
+ * @tc.name: AppAccountManager_GetAuthToken_0300
+ * @tc.desc: Fail to get oauth token from shell process.
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(AppAccountManagerTest, AppAccountManager_GetAuthToken_0300, TestSize.Level1)
+{
+    ACCOUNT_LOGI("AppAccountManager_GetAuthToken_0300");
+    std::string token;
+    ErrCode result = AppAccountManager::GetAuthToken(STRING_NAME, STRING_OWNER, STRING_AUTH_TYPE, token);
+    EXPECT_EQ(result, ERR_APPACCOUNT_SERVICE_GET_BUNDLE_NAME);
+    EXPECT_EQ(token, STRING_EMPTY);
+}
+
+/**
  * @tc.name: AppAccountManager_SetOAuthToken_0100
  * @tc.desc: Set oauth token with invalid data.
  * @tc.type: FUNC
@@ -1429,6 +1643,61 @@ HWTEST_F(AppAccountManagerTest, AppAccountManager_DeleteOAuthToken_0300, TestSiz
 {
     ACCOUNT_LOGI("AppAccountManager_DeleteOAuthToken_0300");
     ErrCode result = AppAccountManager::DeleteOAuthToken(STRING_NAME, STRING_OWNER, STRING_AUTH_TYPE, STRING_TOKEN);
+    EXPECT_EQ(result, ERR_APPACCOUNT_SERVICE_GET_BUNDLE_NAME);
+}
+
+/**
+ * @tc.name: AppAccountManager_DeleteAuthToken_0100
+ * @tc.desc: Delete oauth token with invalid data.
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(AppAccountManagerTest, AppAccountManager_DeleteAuthToken_0100, TestSize.Level1)
+{
+    ACCOUNT_LOGI("AppAccountManager_DeleteAuthToken_0100");
+    ErrCode result = AppAccountManager::DeleteAuthToken(STRING_EMPTY, STRING_OWNER, STRING_AUTH_TYPE, STRING_TOKEN);
+    EXPECT_EQ(result, ERR_APPACCOUNT_KIT_INVALID_PARAMETER);
+
+    result = AppAccountManager::DeleteAuthToken(STRING_NAME, STRING_EMPTY, STRING_AUTH_TYPE, STRING_TOKEN);
+    EXPECT_EQ(result, ERR_APPACCOUNT_KIT_INVALID_PARAMETER);
+}
+
+/**
+ * @tc.name: AppAccountManager_DeleteAuthToken_0200
+ * @tc.desc: Delete oauth token with invalid data.
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(AppAccountManagerTest, AppAccountManager_DeleteAuthToken_0200, TestSize.Level1)
+{
+    ACCOUNT_LOGI("AppAccountManager_DeleteAuthToken_0200");
+    ErrCode result = AppAccountManager::DeleteAuthToken(
+            STRING_NAME_OUT_OF_RANGE, STRING_OWNER, STRING_AUTH_TYPE, STRING_TOKEN);
+    EXPECT_EQ(result, ERR_APPACCOUNT_KIT_INVALID_PARAMETER);
+
+    result = AppAccountManager::DeleteAuthToken(
+        STRING_NAME, STRING_OWNER_OUT_OF_RANGE, STRING_AUTH_TYPE, STRING_TOKEN);
+    EXPECT_EQ(result, ERR_APPACCOUNT_KIT_INVALID_PARAMETER);
+
+    result = AppAccountManager::DeleteAuthToken(
+        STRING_NAME, STRING_OWNER, STRING_OUT_OF_RANGE, STRING_TOKEN);
+    EXPECT_EQ(result, ERR_APPACCOUNT_KIT_INVALID_PARAMETER);
+
+    result = AppAccountManager::DeleteAuthToken(
+        STRING_NAME, STRING_OWNER, STRING_AUTH_TYPE, STRING_TOKEN_OUT_OF_RANGE);
+    EXPECT_EQ(result, ERR_APPACCOUNT_KIT_INVALID_PARAMETER);
+}
+
+/**
+ * @tc.name: AppAccountManager_DeleteAuthToken_0300
+ * @tc.desc: Delete oauth token with invalid data.
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(AppAccountManagerTest, AppAccountManager_DeleteAuthToken_0300, TestSize.Level1)
+{
+    ACCOUNT_LOGI("AppAccountManager_DeleteAuthToken_0300");
+    ErrCode result = AppAccountManager::DeleteAuthToken(STRING_NAME, STRING_OWNER, STRING_AUTH_TYPE, STRING_TOKEN);
     EXPECT_EQ(result, ERR_APPACCOUNT_SERVICE_GET_BUNDLE_NAME);
 }
 
@@ -1534,6 +1803,31 @@ HWTEST_F(AppAccountManagerTest, AppAccountManager_GetOAuthList_0100, TestSize.Le
 }
 
 /**
+ * @tc.name: AppAccountManager_GetAuthList_0100
+ * @tc.desc: Get all oauth tokens with invalid owner.
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(AppAccountManagerTest, AppAccountManager_GetAuthList_0100, TestSize.Level1)
+{
+    ACCOUNT_LOGI("AppAccountManager_GetAuthList_0100");
+    std::set<std::string> oauthList;
+    ErrCode result = AppAccountManager::GetAuthList(STRING_OUT_OF_RANGE, STRING_AUTH_TYPE, oauthList);
+    EXPECT_EQ(result, ERR_APPACCOUNT_KIT_INVALID_PARAMETER);
+    EXPECT_TRUE(oauthList.empty());
+    result = AppAccountManager::GetAuthList(STRING_EMPTY, STRING_AUTH_TYPE, oauthList);
+    EXPECT_EQ(result, ERR_APPACCOUNT_KIT_INVALID_PARAMETER);
+    EXPECT_TRUE(oauthList.empty());
+    result = AppAccountManager::GetAuthList(STRING_OWNER, STRING_OUT_OF_RANGE, oauthList);
+    EXPECT_EQ(result, ERR_APPACCOUNT_KIT_INVALID_PARAMETER);
+    EXPECT_TRUE(oauthList.empty());
+
+    result = AppAccountManager::GetAuthList(STRING_OWNER, STRING_AUTH_TYPE, oauthList);
+    EXPECT_EQ(result, ERR_APPACCOUNT_SERVICE_GET_BUNDLE_NAME);
+    EXPECT_TRUE(oauthList.empty());
+}
+
+/**
  * @tc.name: AppAccountManager_GetAuthenticatorCallback_0100
  * @tc.desc: Fail to get authenticator callback with invalid session id.
  * @tc.type: FUNC
@@ -1605,6 +1899,7 @@ HWTEST_F(AppAccountManagerTest, AppAccountManager_DeleteAccountCredential_0100, 
  */
 HWTEST_F(AppAccountManagerTest, AppAccountManager_SelectAccountsByOptions_0100, TestSize.Level1)
 {
+    // check callback
     ACCOUNT_LOGI("AppAccountManager_SelectAccountsByOptions_0100");
     SelectAccountsOptions options;
     ErrCode result = AppAccountManager::SelectAccountsByOptions(options, nullptr);
@@ -1614,6 +1909,43 @@ HWTEST_F(AppAccountManagerTest, AppAccountManager_SelectAccountsByOptions_0100, 
     EXPECT_NE(callback, nullptr);
     result = AppAccountManager::SelectAccountsByOptions(options, callback);
     EXPECT_EQ(result, ERR_APPACCOUNT_SERVICE_GET_BUNDLE_NAME);
+
+    // check options.allowedAccounts array size
+    options.allowedAccounts.clear();
+    for (int i = 0; i < ALLOWED_ARRAY_MAX_SIZE; i++) {
+        std::string testAccountName = "test_name_" + std::to_string(i);
+        std::string testAccountOwner = "test_owner_" + std::to_string(i);
+        options.allowedAccounts.emplace_back(testAccountOwner, testAccountName);
+    }
+    result = AppAccountManager::SelectAccountsByOptions(options, callback);
+    EXPECT_EQ(result, ERR_APPACCOUNT_SERVICE_GET_BUNDLE_NAME);
+    options.allowedAccounts.emplace_back("test_name_oversize", "test_owner_oversize");
+    result = AppAccountManager::SelectAccountsByOptions(options, callback);
+    EXPECT_EQ(result, ERR_APPACCOUNT_KIT_INVALID_PARAMETER);
+
+    // check options.allowedOwners array size
+    options.allowedAccounts.clear();
+    for (int i = 0; i < ALLOWED_ARRAY_MAX_SIZE; i++) {
+        std::string testOwner = "test_owner_" + std::to_string(i);
+        options.allowedOwners.emplace_back(testOwner);
+    }
+    result = AppAccountManager::SelectAccountsByOptions(options, callback);
+    EXPECT_EQ(result, ERR_APPACCOUNT_SERVICE_GET_BUNDLE_NAME);
+    options.allowedOwners.emplace_back("test_owner_oversize");
+    result = AppAccountManager::SelectAccountsByOptions(options, callback);
+    EXPECT_EQ(result, ERR_APPACCOUNT_KIT_INVALID_PARAMETER);
+
+    // check SelectAccountsOptions.requiredLabels array size
+    options.allowedOwners.clear();
+    for (int i = 0; i < ALLOWED_ARRAY_MAX_SIZE; i++) {
+        std::string testLabel= "test_label_" + std::to_string(i);
+        options.requiredLabels.emplace_back(testLabel);
+    }
+    result = AppAccountManager::SelectAccountsByOptions(options, callback);
+    EXPECT_EQ(result, ERR_APPACCOUNT_SERVICE_GET_BUNDLE_NAME);
+    options.requiredLabels.emplace_back("test_label_oversize");
+    result = AppAccountManager::SelectAccountsByOptions(options, callback);
+    EXPECT_EQ(result, ERR_APPACCOUNT_KIT_INVALID_PARAMETER);
 }
 
 /**
@@ -1626,14 +1958,17 @@ HWTEST_F(AppAccountManagerTest, AppAccountManager_VerifyCredential_0100, TestSiz
 {
     ACCOUNT_LOGI("AppAccountManager_SelectAccountsByOptions_0100");
     VerifyCredentialOptions options;
+    // check name
     ErrCode result = AppAccountManager::VerifyCredential(STRING_OUT_OF_RANGE, STRING_OWNER, options, nullptr);
     EXPECT_EQ(result, ERR_APPACCOUNT_KIT_INVALID_PARAMETER);
     result = AppAccountManager::VerifyCredential(STRING_EMPTY, STRING_OWNER, options, nullptr);
     EXPECT_EQ(result, ERR_APPACCOUNT_KIT_INVALID_PARAMETER);
+    // check owner
     result = AppAccountManager::VerifyCredential(STRING_NAME, STRING_OUT_OF_RANGE, options, nullptr);
     EXPECT_EQ(result, ERR_APPACCOUNT_KIT_INVALID_PARAMETER);
     result = AppAccountManager::VerifyCredential(STRING_NAME, STRING_EMPTY, options, nullptr);
     EXPECT_EQ(result, ERR_APPACCOUNT_KIT_INVALID_PARAMETER);
+    // check callback
     result = AppAccountManager::VerifyCredential(STRING_NAME, STRING_OWNER, options, nullptr);
     EXPECT_EQ(result, ERR_APPACCOUNT_KIT_INVALID_PARAMETER);
 
@@ -1641,6 +1976,25 @@ HWTEST_F(AppAccountManagerTest, AppAccountManager_VerifyCredential_0100, TestSiz
     EXPECT_NE(callback, nullptr);
     result = AppAccountManager::VerifyCredential(STRING_NAME, STRING_OWNER, options, callback);
     EXPECT_EQ(result, ERR_APPACCOUNT_SERVICE_GET_BUNDLE_NAME);
+    // check option.credentialType
+    std::string testCredentialType = "";
+    for (int i = 0; i < CREDENTIAL_TYPE_MAX_SIZE + 1; i++) {
+        testCredentialType += 'c';
+    }
+    options.credentialType = testCredentialType;
+    result = AppAccountManager::VerifyCredential(STRING_NAME, STRING_OWNER, options, callback);
+    EXPECT_EQ(result, ERR_APPACCOUNT_KIT_INVALID_PARAMETER);
+    options.credentialType = "";
+    result = AppAccountManager::VerifyCredential(STRING_NAME, STRING_OWNER, options, callback);
+    EXPECT_EQ(result, ERR_APPACCOUNT_SERVICE_GET_BUNDLE_NAME);
+    // check option.credential
+    std::string testCredential = "";
+    for (int i = 0; i < CREDENTIAL_MAX_SIZE + 1; i++) {
+        testCredential += 'c';
+    }
+    options.credential = testCredential;
+    result = AppAccountManager::VerifyCredential(STRING_NAME, STRING_OWNER, options, callback);
+    EXPECT_EQ(result, ERR_APPACCOUNT_KIT_INVALID_PARAMETER);
 }
 
 /**
@@ -1653,6 +2007,7 @@ HWTEST_F(AppAccountManagerTest, AppAccountManager_CheckAccountLabels_0100, TestS
 {
     ACCOUNT_LOGI("AppAccountManager_CheckAccountLabels_0100");
     std::vector<std::string> labels;
+    labels.clear();
     ErrCode result = AppAccountManager::CheckAccountLabels(STRING_OUT_OF_RANGE, STRING_OWNER, labels, nullptr);
     EXPECT_EQ(result, ERR_APPACCOUNT_KIT_INVALID_PARAMETER);
     result = AppAccountManager::CheckAccountLabels(STRING_EMPTY, STRING_OWNER, labels, nullptr);
@@ -1667,6 +2022,21 @@ HWTEST_F(AppAccountManagerTest, AppAccountManager_CheckAccountLabels_0100, TestS
     sptr<IAppAccountAuthenticatorCallback> callback = new (std::nothrow) MockAuthenticatorCallback();
     EXPECT_NE(callback, nullptr);
     result = AppAccountManager::CheckAccountLabels(STRING_NAME, STRING_OWNER, labels, callback);
+    EXPECT_EQ(result, ERR_APPACCOUNT_KIT_INVALID_PARAMETER);
+
+    for (int i = 0; i < ALLOWED_ARRAY_MAX_SIZE; i++) {
+        std::string testLabel = "test_label_" + std::to_string(i);
+        labels.emplace_back(testLabel);
+    }
+    result = AppAccountManager::CheckAccountLabels(STRING_NAME, STRING_OWNER, labels, callback);
+    EXPECT_EQ(result, ERR_APPACCOUNT_SERVICE_GET_BUNDLE_NAME);
+    labels.emplace_back("test_label_oversize");
+    result = AppAccountManager::CheckAccountLabels(STRING_NAME, STRING_OWNER, labels, callback);
+    EXPECT_EQ(result, ERR_APPACCOUNT_KIT_INVALID_PARAMETER);
+
+    labels.clear();
+    labels.emplace_back("test_label");
+    result = AppAccountManager::CheckAccountLabels(STRING_NAME, STRING_OWNER, labels, callback);
     EXPECT_EQ(result, ERR_APPACCOUNT_SERVICE_GET_BUNDLE_NAME);
 }
 
@@ -1680,10 +2050,12 @@ HWTEST_F(AppAccountManagerTest, AppAccountManager_SetAuthenticatorProperties_010
 {
     ACCOUNT_LOGI("AppAccountManager_SetAuthenticatorProperties_0100");
     SetPropertiesOptions options;
+    // check owner
     ErrCode result = AppAccountManager::SetAuthenticatorProperties(STRING_OUT_OF_RANGE, options, nullptr);
     EXPECT_EQ(result, ERR_APPACCOUNT_KIT_INVALID_PARAMETER);
     result = AppAccountManager::SetAuthenticatorProperties(STRING_EMPTY, options, nullptr);
     EXPECT_EQ(result, ERR_APPACCOUNT_KIT_INVALID_PARAMETER);
+    // check callback
     result = AppAccountManager::SetAuthenticatorProperties(STRING_OWNER, options, nullptr);
     EXPECT_EQ(result, ERR_APPACCOUNT_KIT_INVALID_PARAMETER);
 
@@ -1753,4 +2125,25 @@ HWTEST_F(AppAccountManagerTest, AppAccountManager_GetAllAccessibleAccounts_0100,
     ErrCode result = AppAccountManager::GetAllAccessibleAccounts(appAccounts);
     EXPECT_EQ(result, ERR_APPACCOUNT_SERVICE_GET_BUNDLE_NAME);
     EXPECT_TRUE(appAccounts.empty());
+}
+
+/**
+ * @tc.name: AppAccountManager_UnsubscribeAppAccount_0100
+ * @tc.desc: Test func success UnsubscribeAppAccount.
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(AppAccountManagerTest, AppAccountManager_UnsubscribeAppAccount_0100, TestSize.Level1)
+{
+    auto appAccountPtr = DelayedSingleton<AppAccount>::GetInstance();
+    ASSERT_NE(appAccountPtr, nullptr);
+    AppAccountSubscribeInfo subscribeInfo;
+    std::shared_ptr<AppAccountSubscriberTest> appAccountSubscriberPtr =
+        std::make_shared<AppAccountSubscriberTest>(subscribeInfo);
+    ASSERT_NE(appAccountSubscriberPtr, nullptr);
+    auto appAccountEventListenerSptr = new (std::nothrow) AppAccountEventListener(appAccountSubscriberPtr);
+    ASSERT_NE(appAccountEventListenerSptr, nullptr);
+    appAccountPtr->eventListeners_[appAccountSubscriberPtr] = appAccountEventListenerSptr;
+    ErrCode result = appAccountPtr->UnsubscribeAppAccount(appAccountSubscriberPtr);
+    ASSERT_EQ(result, ERR_OK);
 }
