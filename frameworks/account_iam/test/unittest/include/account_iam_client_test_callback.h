@@ -31,7 +31,7 @@ public:
 
 class MockGetCredInfoCallback final : public AccountSA::GetCredInfoCallback {
 public:
-    MOCK_METHOD1(OnCredentialInfo, void(const std::vector<AccountSA::CredentialInfo> &infoList));
+    MOCK_METHOD2(OnCredentialInfo, void(int32_t result, const std::vector<AccountSA::CredentialInfo> &infoList));
 };
 
 class MockGetSetPropCallback final : public AccountSA::GetSetPropCallback {

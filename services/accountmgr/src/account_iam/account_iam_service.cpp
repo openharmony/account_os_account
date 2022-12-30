@@ -109,14 +109,13 @@ int32_t AccountIAMService::GetCredentialInfo(
     return ERR_OK;
 }
 
-uint64_t AccountIAMService::AuthUser(int32_t userId, const std::vector<uint8_t> &challenge, AuthType authType,
-    AuthTrustLevel authTrustLevel, const sptr<IIDMCallback> &callback)
+int32_t AccountIAMService::AuthUser(
+    int32_t userId, const AuthParam &authParam, const sptr<IIDMCallback> &callback, uint64_t &contextId)
 {
     if ((userId == 0) && (!GetCurrentUserId(userId))) {
         return ERR_ACCOUNT_IAM_SERVICE_PARAM_INVALID_ERROR;
     }
-    return InnerAccountIAMManager::GetInstance().AuthUser(
-        userId, challenge, authType, authTrustLevel, callback);
+    return InnerAccountIAMManager::GetInstance().AuthUser(userId, authParam, callback, contextId);
 }
 
 int32_t AccountIAMService::CancelAuth(uint64_t contextId)

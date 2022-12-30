@@ -159,7 +159,7 @@ public:
     explicit NapiGetInfoCallback(napi_env env, napi_ref callbackRef, napi_deferred deferred);
     virtual ~NapiGetInfoCallback();
 
-    void OnCredentialInfo(const std::vector<AccountSA::CredentialInfo> &infoList) override;
+    void OnCredentialInfo(int32_t result, const std::vector<AccountSA::CredentialInfo> &infoList) override;
 private:
     napi_env env_;
     napi_ref callbackRef_;

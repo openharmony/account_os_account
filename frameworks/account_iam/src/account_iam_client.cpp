@@ -150,7 +150,12 @@ int32_t AccountIAMClient::GetCredentialInfo(
         return ERR_ACCOUNT_IAM_KIT_PROXY_ERROR;
     }
     sptr<IGetCredInfoCallback> wrapper = new (std::nothrow) GetCredInfoCallbackService(callback);
-    return proxy_->GetCredentialInfo(userId, authType, wrapper);
+    ErrCode result = proxy_->GetCredentialInfo(userId, authType, wrapper);
+    if ((result != ERR_OK) && (callback != nullptr)) {
+        std::vector<CredentialInfo> infoList;
+        callback->OnCredentialInfo(result, infoList);
+    }
+    return result;
 }
 
 int32_t AccountIAMClient::Cancel(int32_t userId)
@@ -205,7 +210,16 @@ uint64_t AccountIAMClient::AuthUser(
         return StartDomainAuth(userId, callback);
     }
     sptr<IIDMCallback> wrapper = new (std::nothrow) IDMCallbackService(userId, callback);
-    return proxy_->AuthUser(userId, challenge, authType, authTrustLevel, wrapper);
+    AuthParam authParam;
+    authParam.challenge = challenge;
+    authParam.authType = authType;
+    authParam.authTrustLevel = authTrustLevel;
+    ErrCode result = proxy_->AuthUser(userId, authParam, wrapper, contextId);
+    if (result != ERR_OK) {
+        Attributes emptyResult;
+        callback->OnResult(result, emptyResult);
+    }
+    return contextId;
 }
 
 int32_t AccountIAMClient::CancelAuth(uint64_t contextId)

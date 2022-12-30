@@ -271,42 +271,48 @@ int32_t AccountIAMMgrProxy::GetCredentialInfo(
     return result;
 }
 
-uint64_t AccountIAMMgrProxy::AuthUser(int32_t userId, const std::vector<uint8_t> &challenge, AuthType authType,
-    AuthTrustLevel authTrustLevel, const sptr<IIDMCallback> &callback)
+ErrCode AccountIAMMgrProxy::AuthUser(
+    int32_t userId, const AuthParam &authParam, const sptr<IIDMCallback> &callback, uint64_t &contextId)
 {
-    uint64_t contextId = 0;
     if (callback == nullptr) {
         ACCOUNT_LOGE("callback is nullptr");
-        return contextId;
+        return ERR_ACCOUNT_COMMON_INVALID_PARAMTER;
     }
     MessageParcel data;
     if (!WriteCommonData(data, userId)) {
-        return contextId;
+        return ERR_ACCOUNT_COMMON_WRITE_PARCEL_ERROR;
     }
-    if (!data.WriteUInt8Vector(challenge)) {
+    if (!data.WriteUInt8Vector(authParam.challenge)) {
         ACCOUNT_LOGE("failed to write challenge");
-        return contextId;
+        return ERR_ACCOUNT_COMMON_WRITE_PARCEL_ERROR;
     }
-    if (!data.WriteInt32(authType)) {
+    if (!data.WriteInt32(authParam.authType)) {
         ACCOUNT_LOGE("failed to write authType");
-        return contextId;
+        return ERR_ACCOUNT_COMMON_WRITE_PARCEL_ERROR;
     }
-    if (!data.WriteUint32(authTrustLevel)) {
+    if (!data.WriteUint32(authParam.authTrustLevel)) {
         ACCOUNT_LOGE("failed to write authTrustLevel");
-        return contextId;
+        return ERR_ACCOUNT_COMMON_WRITE_PARCEL_ERROR;
     }
     if (!data.WriteRemoteObject(callback->AsObject())) {
         ACCOUNT_LOGE("failed to write callback");
-        return contextId;
+        return ERR_ACCOUNT_COMMON_WRITE_PARCEL_ERROR;
     }
     MessageParcel reply;
-    if (SendRequest(IAccountIAM::Message::AUTH_USER, data, reply) != ERR_OK) {
-        return contextId;
+    ErrCode result = SendRequest(IAccountIAM::Message::AUTH_USER, data, reply);
+    if (result != ERR_OK) {
+        ACCOUNT_LOGE("failed to send request, result: %{public}d", result);
+        return result;
+    }
+    if (!reply.ReadInt32(result)) {
+        ACCOUNT_LOGE("failed to read result");
+        return ERR_ACCOUNT_COMMON_READ_PARCEL_ERROR;
     }
     if (!reply.ReadUint64(contextId)) {
         ACCOUNT_LOGE("failed to read contextId");
+        return ERR_ACCOUNT_COMMON_READ_PARCEL_ERROR;
     }
-    return contextId;
+    return result;
 }
 
 int32_t AccountIAMMgrProxy::CancelAuth(uint64_t contextId)
