@@ -77,7 +77,8 @@ HWTEST_F(AccountCommandSetModuleTest, Acm_Command_Set_0100, TestSize.Level1)
     std::string commandResult = ToolSystemTest::ExecuteCommand(command);
     ASSERT_EQ(commandResult, STRING_SET_OS_ACCOUNT_CONSTRAINTS_NG + "\n");
 
-    AccountCommandUtil::DeleteLastOsAccount();
+    commandResult = AccountCommandUtil::DeleteLastOsAccount();
+    ASSERT_NE(commandResult.find(STRING_DELETE_OS_ACCOUNT_OK), std::string::npos);
 }
 
 /**
@@ -109,5 +110,6 @@ HWTEST_F(AccountCommandSetModuleTest, Acm_Command_Set_0200, TestSize.Level1)
     commandResult = ToolSystemTest::ExecuteCommand(command);
     ASSERT_EQ(commandResult, STRING_SET_OS_ACCOUNT_CONSTRAINTS_OK + "\n");
 
-    AccountCommandUtil::DeleteLastOsAccount();
+    commandResult = AccountCommandUtil::DeleteLastOsAccount();
+    ASSERT_NE(commandResult.find(STRING_DELETE_OS_ACCOUNT_OK), std::string::npos);
 }

@@ -21,7 +21,9 @@
 #include "account_error_no.h"
 #include "account_info.h"
 #include "account_log_wrapper.h"
+#define private public
 #include "ohos_account_data_deal.h"
+#undef private
 
 using namespace testing::ext;
 using namespace OHOS;
@@ -120,6 +122,21 @@ HWTEST_F(OhosAccountDataDealTest, ValidOhosAccountJsonTest002, TestSize.Level0)
     accountInfo.ohosAccountInfo_.uid_ = "rewrite content";
     errCode = dataDeal.AccountInfoToJson(accountInfo);
     EXPECT_EQ(errCode, ERR_OK);
+}
+
+/**
+ * @tc.name: ValidOhosAccountJsonTest003
+ * @tc.desc: Test AccountInfoToJson init not OK
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(OhosAccountDataDealTest, ValidOhosAccountJsonTest003, TestSize.Level0)
+{
+    OhosAccountDataDeal dataDeal(RESOURCE_ROOT_PATH);
+    dataDeal.initOk_ = false;
+    AccountInfo accountInfo;
+    ErrCode result = dataDeal.AccountInfoToJson(accountInfo);
+    ASSERT_EQ(result, ERR_ACCOUNT_DATADEAL_NOT_READY);
 }
 
 /**

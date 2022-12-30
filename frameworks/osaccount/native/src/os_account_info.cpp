@@ -13,6 +13,8 @@
  * limitations under the License.
  */
 #include "os_account_info.h"
+
+#include <ctime>
 #include "account_log_wrapper.h"
 #include "os_account_constants.h"
 
@@ -63,25 +65,6 @@ OsAccountInfo::OsAccountInfo(int localId, const std::string localName, OsAccount
     lastLoginTime_ = 0;
     isActived_ = false;
     isCreateCompleted_ = false;
-    domainInfo_.Clear();
-    toBeRemoved_ = false;
-}
-
-OsAccountInfo::OsAccountInfo(int localId, std::string localName, OsAccountType type,
-    std::vector<std::string> constraints, bool isVerified, std::string photo, int64_t createTime, int64_t lastLoginTime,
-    int64_t serialNumber, bool isCreateCompleted)
-    : localId_(localId),
-      localName_(localName),
-      type_(type),
-      constraints_(constraints),
-      isVerified_(isVerified),
-      photo_(photo),
-      createTime_(createTime),
-      lastLoginTime_(lastLoginTime),
-      serialNumber_(serialNumber),
-      isCreateCompleted_(isCreateCompleted)
-{
-    isActived_ = false;
     domainInfo_.Clear();
     toBeRemoved_ = false;
 }
@@ -230,6 +213,7 @@ Json OsAccountInfo::ToJson() const
     };
     return jsonObject;
 }
+
 OsAccountInfo *OsAccountInfo::Unmarshalling(Parcel &parcel)
 {
     OsAccountInfo *osAccountInfo = new (std::nothrow) OsAccountInfo();
@@ -242,6 +226,7 @@ OsAccountInfo *OsAccountInfo::Unmarshalling(Parcel &parcel)
 
     return osAccountInfo;
 }
+
 void OsAccountInfo::FromJson(const Json &jsonObject)
 {
     const auto &jsonObjectEnd = jsonObject.end();

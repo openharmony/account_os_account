@@ -109,14 +109,13 @@ int32_t AccountIAMService::GetCredentialInfo(
     return ERR_OK;
 }
 
-uint64_t AccountIAMService::AuthUser(int32_t userId, const std::vector<uint8_t> &challenge, AuthType authType,
-    AuthTrustLevel authTrustLevel, const sptr<IIDMCallback> &callback)
+int32_t AccountIAMService::AuthUser(
+    int32_t userId, const AuthParam &authParam, const sptr<IIDMCallback> &callback, uint64_t &contextId)
 {
     if ((userId == 0) && (!GetCurrentUserId(userId))) {
         return ERR_ACCOUNT_IAM_SERVICE_PARAM_INVALID_ERROR;
     }
-    return InnerAccountIAMManager::GetInstance().AuthUser(
-        userId, challenge, authType, authTrustLevel, callback);
+    return InnerAccountIAMManager::GetInstance().AuthUser(userId, authParam, callback, contextId);
 }
 
 int32_t AccountIAMService::CancelAuth(uint64_t contextId)
@@ -130,7 +129,7 @@ int32_t AccountIAMService::GetAvailableStatus(AuthType authType, AuthTrustLevel 
         ACCOUNT_LOGE("authTrustLevel is not in correct range");
         return ERR_ACCOUNT_IAM_SERVICE_PARAM_INVALID_ERROR;
     }
-    if (authType < UserIam::UserAuth::ALL || authType > UserIam::UserAuth::FINGERPRINT) {
+    if (authType < UserIam::UserAuth::ALL) {
         ACCOUNT_LOGE("authType is not in correct range");
         return ERR_ACCOUNT_IAM_SERVICE_PARAM_INVALID_ERROR;
     }
@@ -167,8 +166,8 @@ IAMState AccountIAMService::GetAccountState(int32_t userId)
 bool AccountIAMService::GetCurrentUserId(int32_t &userId)
 {
     std::vector<int32_t> userIds;
-    ErrCode errCode = IInnerOsAccountManager::GetInstance()->QueryActiveOsAccountIds(userIds);
-    if ((errCode != ERR_OK) || userIds.empty()) {
+    (void)IInnerOsAccountManager::GetInstance()->QueryActiveOsAccountIds(userIds);
+    if (userIds.empty()) {
         ACCOUNT_LOGE("fail to get activated os account ids");
         return false;
     }

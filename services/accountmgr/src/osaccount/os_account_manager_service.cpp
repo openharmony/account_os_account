@@ -31,6 +31,7 @@ const std::map<OsAccountType, std::string> DUMP_TYPE_MAP = {
     {OsAccountType::GUEST, "guest"},
 };
 const std::string CONSTANT_CREATE = "constraint.os.account.create";
+const std::string CONSTANT_CREATE_DIRECTLY = "constraint.os.account.create.directly";
 const std::string CONSTANT_REMOVE = "constraint.os.account.remove";
 const std::string CONSTANT_START = "constraint.os.account.start";
 const std::string CONSTANT_SET_ICON = "constraint.os.account.set.icon";
@@ -84,7 +85,8 @@ ErrCode OsAccountManagerService::CreateOsAccount(
     }
 
     // permission check
-    if (!PermissionCheck(AccountPermissionManager::MANAGE_LOCAL_ACCOUNTS, CONSTANT_CREATE)) {
+    if ((!PermissionCheck(AccountPermissionManager::MANAGE_LOCAL_ACCOUNTS, CONSTANT_CREATE)) ||
+        (!PermissionCheck("", CONSTANT_CREATE_DIRECTLY))) {
         ACCOUNT_LOGE("account manager service, permission denied!");
         return ERR_OSACCOUNT_SERVICE_PERMISSION_DENIED;
     }
@@ -745,12 +747,6 @@ ErrCode OsAccountManagerService::SetGlobalOsAccountConstraints(const std::vector
         return ERR_OSACCOUNT_SERVICE_PERMISSION_DENIED;
     }
 
-    // parameters check
-    if (enforcerId < Constants::START_USER_ID) {
-        ACCOUNT_LOGE("invalid input account id %{public}d.", enforcerId);
-        return ERR_OSACCOUNT_SERVICE_MANAGER_ID_ERROR;
-    }
-
     return innerManager_->SetGlobalOsAccountConstraints(constraints, enable, enforcerId, isDeviceOwner);
 }
 
@@ -793,7 +789,7 @@ bool OsAccountManagerService::PermissionCheck(const std::string& permissionName,
     }
 
     // permission check
-    if (permissionManagerPtr_->VerifyPermission(permissionName) == ERR_OK) {
+    if ((permissionName.empty()) || (permissionManagerPtr_->VerifyPermission(permissionName) == ERR_OK)) {
         return true;
     }
 

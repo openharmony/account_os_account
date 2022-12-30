@@ -14,6 +14,9 @@
  */
 #include "iinner_os_account_manager.h"
 #include "account_log_wrapper.h"
+#ifdef HAS_CES_PART
+#include "common_event_support.h"
+#endif // HAS_CES_PART
 #include "hitrace_meter.h"
 #include "hisysevent_adapter.h"
 #include "ohos_account_kits.h"
@@ -23,6 +26,9 @@
 
 namespace OHOS {
 namespace AccountSA {
+namespace {
+const std::string CONSTRAINT_CREATE_ACCOUNT_DIRECTLY = "constraint.os.account.create.directly";
+}
 IInnerOsAccountManager::IInnerOsAccountManager() : subscribeManagerPtr_(OsAccountSubscribeManager::GetInstance())
 {
     counterForStandard_ = 0;
@@ -36,6 +42,11 @@ IInnerOsAccountManager::IInnerOsAccountManager() : subscribeManagerPtr_(OsAccoun
     osAccountControl_->Init();
     osAccountControl_->GetDeviceOwnerId(deviceOwnerId_);
     ACCOUNT_LOGD("OsAccountAccountMgr Init end");
+}
+
+void IInnerOsAccountManager::SetOsAccountControl(std::shared_ptr<IOsAccountControl> ptr)
+{
+    osAccountControl_ = ptr;
 }
 
 void IInnerOsAccountManager::CreateBaseAdminAccount()
@@ -368,6 +379,19 @@ ErrCode IInnerOsAccountManager::CreateOsAccountForDomain(
     }
 
     std::string osAccountName = domainInfo.domain_ + "/" + domainInfo.accountName_;
+    bool isEnabled = false;
+    (void)IsOsAccountConstraintEnable(Constants::START_USER_ID, CONSTRAINT_CREATE_ACCOUNT_DIRECTLY, isEnabled);
+    if (isEnabled && (osAccountInfos.size() == 1) && (osAccountInfos[0].GetLocalId() == Constants::START_USER_ID)) {
+        DomainAccountInfo curDomainInfo;
+        osAccountInfos[0].GetDomainInfo(curDomainInfo);
+        if (curDomainInfo.domain_.empty()) {
+            osAccountInfos[0].SetLocalName(osAccountName);
+            osAccountInfos[0].SetDomainInfo(domainInfo);
+            osAccountInfo = osAccountInfos[0];
+            return osAccountControl_->UpdateOsAccount(osAccountInfos[0]);
+        }
+    }
+
     errCode = PrepareOsAccountInfo(osAccountName, type, domainInfo, osAccountInfo);
     if (errCode != ERR_OK) {
         return errCode;
@@ -532,6 +556,7 @@ ErrCode IInnerOsAccountManager::IsOsAccountActived(const int id, bool &isOsAccou
 ErrCode IInnerOsAccountManager::IsOsAccountConstraintEnable(
     const int id, const std::string &constraint, bool &isOsAccountConstraintEnable)
 {
+    isOsAccountConstraintEnable = false;
     OsAccountInfo osAccountInfo;
     ErrCode errCode = osAccountControl_->GetOsAccountInfoById(id, osAccountInfo);
     if (errCode != ERR_OK) {
@@ -558,7 +583,6 @@ ErrCode IInnerOsAccountManager::IsOsAccountConstraintEnable(
             return ERR_OK;
         }
     }
-    isOsAccountConstraintEnable = false;
     return ERR_OK;
 }
 
@@ -941,12 +965,19 @@ ErrCode IInnerOsAccountManager::SetOsAccountName(const int id, const std::string
         return ERR_OSACCOUNT_SERVICE_INNER_ACCOUNT_TO_BE_REMOVED_ERROR;
     }
 
+    std::string localName = osAccountInfo.GetLocalName();
+    if (localName == name) {
+        return ERR_OK;
+    }
+
     osAccountInfo.SetLocalName(name);
     errCode = osAccountControl_->UpdateOsAccount(osAccountInfo);
     if (errCode != ERR_OK) {
         ACCOUNT_LOGE("update osaccount info error %{public}d, id: %{public}d", errCode, osAccountInfo.GetLocalId());
         return ERR_OSACCOUNT_SERVICE_INNER_UPDATE_ACCOUNT_ERROR;
     }
+    OsAccountInterface::PublishCommonEvent(
+        osAccountInfo, OHOS::EventFwk::CommonEventSupport::COMMON_EVENT_USER_INFO_UPDATED, Constants::OPERATION_UPDATE);
     return ERR_OK;
 }
 
@@ -1270,11 +1301,7 @@ OS_ACCOUNT_SWITCH_MOD IInnerOsAccountManager::GetOsAccountSwitchMod()
 ErrCode IInnerOsAccountManager::IsOsAccountCompleted(const int id, bool &isOsAccountCompleted)
 {
     OsAccountInfo osAccountInfo;
-    ErrCode errCode = osAccountControl_->GetOsAccountInfoById(id, osAccountInfo);
-    if (errCode != ERR_OK) {
-        ACCOUNT_LOGE("get osaccount info error, errCode %{public}d.", errCode);
-        return ERR_OSACCOUNT_SERVICE_INNER_SELECT_OSACCOUNT_BYID_ERROR;
-    }
+    (void)osAccountControl_->GetOsAccountInfoById(id, osAccountInfo);
     isOsAccountCompleted = osAccountInfo.GetIsCreateCompleted();
     return ERR_OK;
 }

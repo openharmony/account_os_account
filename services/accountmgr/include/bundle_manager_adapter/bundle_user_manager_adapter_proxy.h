@@ -24,7 +24,7 @@ namespace AccountSA {
 class BundleUserManagerAdapterProxy : public IRemoteProxy<AppExecFwk::IBundleUserMgr> {
 public:
     explicit BundleUserManagerAdapterProxy(const sptr<IRemoteObject> &object);
-    virtual ~BundleUserManagerAdapterProxy() override;
+    ~BundleUserManagerAdapterProxy() override;
 
     /**
      * @brief Create new user.

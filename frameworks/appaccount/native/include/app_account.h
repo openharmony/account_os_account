@@ -45,6 +45,7 @@ public:
 
     ErrCode EnableAppAccess(const std::string &name, const std::string &bundleName);
     ErrCode DisableAppAccess(const std::string &name, const std::string &bundleName);
+    ErrCode SetAppAccess(const std::string &name, const std::string &authorizedApp, bool isAccessible);
 
     ErrCode CheckAppAccountSyncEnable(const std::string &name, bool &syncEnable);
     ErrCode SetAppAccountSyncEnable(const std::string &name, const bool &syncEnable);
@@ -60,17 +61,27 @@ public:
         const AAFwk::Want &options, const sptr<IAppAccountAuthenticatorCallback> &callback);
     ErrCode GetOAuthToken(
         const std::string &name, const std::string &owner, const std::string &authType, std::string &token);
+    ErrCode GetAuthToken(
+        const std::string &name, const std::string &owner, const std::string &authType, std::string &token);
     ErrCode SetOAuthToken(const std::string &name, const std::string &authType, const std::string &token);
     ErrCode DeleteOAuthToken(
         const std::string &name, const std::string &owner, const std::string &authType, const std::string &token);
+    ErrCode DeleteAuthToken(
+        const std::string &name, const std::string &owner, const std::string &authType, const std::string &token);
     ErrCode SetOAuthTokenVisibility(
         const std::string &name, const std::string &authType, const std::string &bundleName, bool isVisible);
+    ErrCode SetAuthTokenVisibility(
+        const std::string &name, const std::string &authType, const std::string &bundleName, bool isVisible);
     ErrCode CheckOAuthTokenVisibility(
+        const std::string &name, const std::string &authType, const std::string &bundleName, bool &isVisible);
+    ErrCode CheckAuthTokenVisibility(
         const std::string &name, const std::string &authType, const std::string &bundleName, bool &isVisible);
     ErrCode GetAuthenticatorInfo(const std::string &owner, AuthenticatorInfo &info);
     ErrCode GetAllOAuthTokens(
         const std::string &name, const std::string &owner, std::vector<OAuthTokenInfo> &tokenInfos);
     ErrCode GetOAuthList(
+        const std::string &name, const std::string &authType, std::set<std::string> &oauthList);
+    ErrCode GetAuthList(
         const std::string &name, const std::string &authType, std::set<std::string> &oauthList);
     ErrCode GetAuthenticatorCallback(const std::string &sessionId, sptr<IRemoteObject> &callback);
 
@@ -95,6 +106,8 @@ public:
 private:
     ErrCode CheckParameters(const std::string &name, const std::string &extraInfo = "");
     ErrCode CheckSpecialCharacters(const std::string &name);
+    ErrCode CheckTokenVisibilityParam(
+        const std::string &name, const std::string &authType, const std::string &bundleName);
 
     ErrCode GetAppAccountProxy();
     ErrCode CreateAppAccountEventListener(

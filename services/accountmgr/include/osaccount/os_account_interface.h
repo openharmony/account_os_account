@@ -38,6 +38,8 @@ public:
     static ErrCode SendToStorageAccountRemove(OsAccountInfo &osAccountInfo);
     static ErrCode SendToStorageAccountStart(OsAccountInfo &osAccountInfo);
     static ErrCode SendToStorageAccountStop(OsAccountInfo &osAccountInfo);
+    static void PublishCommonEvent(
+        const OsAccountInfo &osAccountInfo, const std::string &commonEvent, const std::string &operation);
 };
 }  // namespace AccountSA
 }  // namespace OHOS

@@ -84,8 +84,10 @@ ohos_shared_library("osaccount") {
 
   external_deps = [
     "ability_base:want",
+    "access_token:libtokenid_sdk",
     "c_utils:utils",
     "hiviewdfx_hilog_native:libhilog",
+    "ipc:ipc_core",
     "os_account:os_account_innerkits",
   ]
 

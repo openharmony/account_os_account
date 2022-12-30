@@ -50,12 +50,6 @@ const std::string SPECIAL_CHARACTERS = " ";
 const std::string HYPHEN = "#";
 const std::string API_V9 = "apiV9";
 
-// for watchdog func
-#ifdef HICOLLIE_ENABLE
-const uint32_t TIMEOUT = 10; // 10s
-const std::string TIMER_NAME = "AccountMgrTimer";
-#endif // HICOLLIE_ENABLE
-
 constexpr std::size_t APP_ACCOUNT_SUBSCRIBER_MAX_SIZE = 200;
 constexpr std::size_t NAME_MAX_SIZE = 512;
 constexpr std::size_t EXTRA_INFO_MAX_SIZE = 1024;
@@ -69,7 +63,11 @@ constexpr std::size_t OWNER_MAX_SIZE = 1024;
 constexpr std::size_t AUTH_TYPE_MAX_SIZE = 1024;
 constexpr std::size_t ABILITY_NAME_MAX_SIZE = 512;
 constexpr std::size_t SESSION_ID_MAX_SIZE = 1024;
-constexpr uint32_t MAX_CUSTOM_DATA_SIZE = 1024;
+constexpr std::size_t MAX_ALLOWED_ARRAY_SIZE_INPUT = 1024;
+constexpr std::size_t MAX_CUSTOM_DATA_SIZE = 1024;
+constexpr uint32_t API_VERSION7 = 7;
+constexpr uint32_t API_VERSION8 = 8;
+constexpr uint32_t API_VERSION9 = 9;
 };  // namespace Constants
 }  // namespace AccountSA
 }  // namespace OHOS

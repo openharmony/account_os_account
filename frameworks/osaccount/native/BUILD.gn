@@ -17,11 +17,11 @@ import("//build/ohos.gni")
 config("osaccountinterface_config") {
   visibility = [ ":*" ]
   include_dirs = [
-    "${common_path}/account_error/include",
-    "${common_path}/database/include",
+    "${domain_account_interfaces_native_path}/include",
+    "${innerkits_native_path}/include",
+    "${innerkits_path}/include",
+    "${os_account_core_path}/include",
     "${os_account_interfaces_native_path}/include",
-    "//third_party/json/include",
-    "//commonlibrary/c_utils/base/include",
   ]
   cflags = []
   if (target_cpu == "arm") {
@@ -32,6 +32,11 @@ config("osaccountinterface_config") {
 
 ohos_shared_library("os_account_innerkits") {
   sources = [
+    "${os_account_core_path}/src/os_account.cpp",
+    "${os_account_core_path}/src/os_account_death_recipient.cpp",
+    "${os_account_core_path}/src/os_account_event_listener.cpp",
+    "${os_account_core_path}/src/os_account_event_stub.cpp",
+    "${os_account_core_path}/src/os_account_proxy.cpp",
     "src/os_account_info.cpp",
     "src/os_account_manager.cpp",
     "src/os_account_subscribe_info.cpp",
@@ -47,14 +52,23 @@ ohos_shared_library("os_account_innerkits") {
     ":osaccountinterface_config",
     "${account_coverage_config_path}:coverage_flags",
   ]
+
   public_configs = [ ":osaccountinterface_config" ]
+
   use_exceptions = true
 
-  deps = [ "${os_account_core_path}:os_account_core" ]
+  deps = [
+    "${common_path}:libaccount_common",
+    "${innerkits_native_path}:libaccountkits",
+  ]
 
   external_deps = [
+    "ability_base:want",
+    "ability_runtime:wantagent_innerkits",
     "c_utils:utils",
     "hiviewdfx_hilog_native:libhilog",
+    "ipc:ipc_single",
+    "samgr:samgr_proxy",
   ]
   subsystem_name = "account"
   part_name = "os_account"

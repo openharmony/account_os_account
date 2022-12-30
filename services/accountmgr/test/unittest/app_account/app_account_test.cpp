@@ -19,6 +19,9 @@
 #include "account_log_wrapper.h"
 #define private public
 #include "app_account.h"
+#include "app_account_authenticator_callback.h"
+#include "app_account_authenticator_callback_stub.h"
+#include "app_account_authenticator_stub.h"
 #include "app_account_constants.h"
 #undef private
 #include "mock_app_account_stub.h"
@@ -68,6 +71,8 @@ const std::string STRING_OWNER = "com.example.owner";
 
 constexpr std::size_t SUBSCRIBER_ZERO = 0;
 constexpr std::size_t SUBSCRIBER_ONE = 1;
+const uint32_t INVALID_IPC_CODE = 1000;
+const int32_t MAX_CUSTOM_DATA_SIZE = 1300;
 }  // namespace
 
 class AppAccountTest : public testing::Test {
@@ -126,6 +131,26 @@ public:
     void OnAccountsChanged(const std::vector<AppAccountInfo> &accounts)
     {}
 };
+
+/**
+ * @tc.name: AppAccountAuthenticatorCallbackStub_OnRemoteRequest_0100
+ * @tc.desc: OnRemoteRequest with wrong message code.
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(AppAccountTest, AppAccountAuthenticatorCallbackStub_OnRemoteRequest_0100, TestSize.Level0)
+{
+    MessageParcel data;
+    MessageParcel reply;
+    MessageOption option = {MessageOption::TF_SYNC};
+    data.WriteInterfaceToken(AppAccountAuthenticatorCallbackStub::GetDescriptor());
+
+    std::string sessionId = "sessionId";
+    sptr<AppAccountAuthenticatorCallbackStub> stub = new (std::nothrow) AppAccountAuthenticatorCallback(sessionId);
+    ASSERT_NE(nullptr, stub);
+    int32_t ret = stub->OnRemoteRequest(INVALID_IPC_CODE, data, reply, option);
+    EXPECT_EQ(IPC_STUB_UNKNOW_TRANS_ERR, ret);
+}
 
 /**
  * @tc.name: AppAccount_AddAccount_0100
@@ -515,5 +540,25 @@ HWTEST_F(AppAccountTest, AppAccount_CreateAccount_002, TestSize.Level1)
 
     result = appAccount_->CreateAccount(STRING_NAME_OUT_OF_RANGE, option);
 
+    EXPECT_EQ(result, ERR_APPACCOUNT_KIT_INVALID_PARAMETER);
+}
+
+/**
+ * @tc.name: AppAccount_CreateAccount_003
+ * @tc.desc: Function CreateAccount customData is oversize.
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(AppAccountTest, AppAccount_CreateAccount_003, TestSize.Level1)
+{
+    ACCOUNT_LOGI("AppAccount_CreateAccount_002");
+
+    CreateAccountOptions option;
+    for (int i = 0; i <= MAX_CUSTOM_DATA_SIZE; i++) {
+        std::string key = std::to_string(i);
+        std::string value = key;
+        option.customData[key] = value;
+    }
+    ErrCode result = appAccount_->CreateAccount("test", option);
     EXPECT_EQ(result, ERR_APPACCOUNT_KIT_INVALID_PARAMETER);
 }

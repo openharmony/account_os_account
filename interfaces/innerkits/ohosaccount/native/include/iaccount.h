@@ -16,8 +16,8 @@
 #ifndef BASE_ACCOUNT_IACCOUNT_H
 #define BASE_ACCOUNT_IACCOUNT_H
 
+#include <cstdint>
 #include <string>
-#include <stdint.h>
 #include <iremote_broker.h>
 #include "account_info.h"
 #include "device_account_info.h"
@@ -41,6 +41,7 @@ public:
         GET_APP_ACCOUNT_SERVICE = 105,
         GET_OS_ACCOUNT_SERVICE = 106,
         GET_ACCOUNT_IAM_SERVICE = 107,
+        GET_DOMAIN_ACCOUNT_SERVICE = 108,
     };
 
     virtual bool UpdateOhosAccountInfo(
@@ -55,6 +56,7 @@ public:
     virtual sptr<IRemoteObject> GetAppAccountService() = 0;
     virtual sptr<IRemoteObject> GetOsAccountService() = 0;
     virtual sptr<IRemoteObject> GetAccountIAMService() = 0;
+    virtual sptr<IRemoteObject> GetDomainAccountService() = 0;
 };
 }  // namespace AccountSA
 }  // namespace OHOS

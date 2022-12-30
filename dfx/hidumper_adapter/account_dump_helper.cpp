@@ -72,10 +72,10 @@ std::string AnonymizeUidStr(const std::string& uidStr)
 
 AccountDumpHelper::AccountDumpHelper(const std::shared_ptr<OhosAccountManager>& ohosAccountMgr,
     OsAccountManagerService *osAccountMgrService)
+    : innerMgrService_(DelayedSingleton<IInnerOsAccountManager>::GetInstance())
 {
     ohosAccountMgr_ = ohosAccountMgr;
     osAccountMgrService_ = osAccountMgrService;
-    innerMgrService_ = DelayedSingleton<IInnerOsAccountManager>::GetInstance();
 }
 
 void AccountDumpHelper::Dump(const std::vector<std::string>& args, std::string& result) const
@@ -199,7 +199,7 @@ void AccountDumpHelper::ProcessOneParameter(const std::string& arg, std::string&
 
 void AccountDumpHelper::SetLogLevel(const std::string& levelStr, std::string& result) const
 {
-    if (!regex_match(levelStr, std::regex("^\\d+$"))) {
+    if (!regex_match(levelStr, std::regex("^\\-?\\d+$"))) {
         ACCOUNT_LOGE("Invalid format of log level");
         result.append("Invalid format of log level\n");
         return;

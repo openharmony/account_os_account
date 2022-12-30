@@ -87,6 +87,8 @@ int32_t OsAccountConvertToJSErrCode(int32_t errCode)
         case ERR_OSACCOUNT_SERVICE_INNER_CANNOT_FIND_OSACCOUNT_ERROR:
         case ERR_OSACCOUNT_SERVICE_INNER_SELECT_OSACCOUNT_BYID_ERROR:
             return ERR_JS_ACCOUNT_NOT_FOUND;
+        case ERR_OSACCOUNT_SERVICE_INNER_DOMAIN_ALREADY_BIND_ERROR:
+            return ERR_JS_ACCOUNT_ALREADY_EXIST;
         case ERR_OSACCOUNT_SERVICE_INNER_ACCOUNT_ALREADY_ACTIVE_ERROR:
             return ERR_JS_ACCOUNT_ALREADY_ACTIVATED;
         case ERR_OSACCOUNT_SERVICE_CONTROL_MAX_CAN_CREATE_ERROR:
@@ -140,6 +142,9 @@ int32_t ConvertToJSErrCode(int32_t nativeErrCode)
 {
     if (nativeErrCode == ERR_OK) {
         return ERR_JS_SUCCESS;
+    }
+    if (nativeErrCode == ERR_ACCOUNT_COMMON_NOT_SYSTEM_APP_ERROR) {
+        return ERR_JS_IS_NOT_SYSTEM_APP;
     }
     if (IsAppAccountKitError(nativeErrCode) || IsAppAccountServiceError(nativeErrCode)) {
         return AppAccountConvertToJSErrCode(nativeErrCode);

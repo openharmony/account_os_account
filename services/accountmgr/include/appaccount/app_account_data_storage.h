@@ -25,7 +25,7 @@ class AppAccountDataStorage : public AccountDataStorage {
 public:
     AppAccountDataStorage() = delete;
     explicit AppAccountDataStorage(const std::string &storeId, const bool &autoSync = false);
-    virtual ~AppAccountDataStorage() = default;
+    ~AppAccountDataStorage() override = default;
 
     Json GetAccessibleAccountsFromAuthorizedAccounts(const std::string &authorizedAccounts,
         const std::string &authorizedApp, std::vector<std::string> &accessibleAccounts);
@@ -43,7 +43,7 @@ public:
 
 private:
     void SaveEntries(std::vector<OHOS::DistributedKv::Entry> allEntries,
-        std::map<std::string, std::shared_ptr<IAccountInfo>> &infos);
+        std::map<std::string, std::shared_ptr<IAccountInfo>> &infos) override;
 };
 }  // namespace AccountSA
 }  // namespace OHOS

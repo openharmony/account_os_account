@@ -45,6 +45,9 @@ napi_value NapiAccountIAMUserAuth::Init(napi_env env, napi_value exports)
 
 napi_value NapiAccountIAMUserAuth::JsConstructor(napi_env env, napi_callback_info info)
 {
+    if (!IsSystemApp(env)) {
+        return nullptr;
+    }
     napi_value thisVar = nullptr;
     NAPI_CALL(env, napi_get_cb_info(env, info, nullptr, nullptr, &thisVar, nullptr));
     return thisVar;
@@ -52,6 +55,9 @@ napi_value NapiAccountIAMUserAuth::JsConstructor(napi_env env, napi_callback_inf
 
 napi_value NapiAccountIAMUserAuth::GetVersion(napi_env env, napi_callback_info info)
 {
+    if (!IsSystemApp(env)) {
+        return nullptr;
+    }
     int32_t result = 0;
     napi_value version = 0;
     NAPI_CALL(env, napi_create_int32(env, result, &version));

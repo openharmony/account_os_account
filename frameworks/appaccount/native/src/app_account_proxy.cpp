@@ -286,6 +286,39 @@ ErrCode AppAccountProxy::DisableAppAccess(const std::string &name, const std::st
     return result;
 }
 
+ErrCode AppAccountProxy::SetAppAccess(const std::string &name, const std::string &authorizedApp, bool isAccessible)
+{
+    MessageParcel data;
+    MessageParcel reply;
+
+    if (!data.WriteInterfaceToken(GetDescriptor())) {
+        ACCOUNT_LOGE("failed to write descriptor!");
+        return ERR_ACCOUNT_COMMON_WRITE_PARCEL_ERROR;
+    }
+
+    if (!data.WriteString(name)) {
+        ACCOUNT_LOGE("failed to write string for name");
+        return ERR_ACCOUNT_COMMON_WRITE_PARCEL_ERROR;
+    }
+
+    if (!data.WriteString(authorizedApp)) {
+        ACCOUNT_LOGE("failed to write string for authorizedApp");
+        return ERR_ACCOUNT_COMMON_WRITE_PARCEL_ERROR;
+    }
+
+    if (!data.WriteBool(isAccessible)) {
+        ACCOUNT_LOGE("failed to write string for isVisible");
+        return ERR_ACCOUNT_COMMON_WRITE_PARCEL_ERROR;
+    }
+
+    ErrCode result = SendRequest(IAppAccount::Message::SET_APP_ACCESS, data, reply);
+    if (result != ERR_OK) {
+        return result;
+    }
+
+    return reply.ReadInt32();
+}
+
 ErrCode AppAccountProxy::CheckAppAccountSyncEnable(const std::string &name, bool &syncEnable)
 {
     MessageParcel data;
@@ -516,30 +549,61 @@ ErrCode AppAccountProxy::Authenticate(const std::string &name, const std::string
     return result;
 }
 
+ErrCode AppAccountProxy::WriteGetAuthTokenParam(
+    const std::string &name, const std::string &owner, const std::string &authType, MessageParcel &data)
+{
+    if (!data.WriteInterfaceToken(GetDescriptor())) {
+        ACCOUNT_LOGE("failed to write descriptor!");
+        return ERR_ACCOUNT_COMMON_WRITE_PARCEL_ERROR;
+    }
+    if (!data.WriteString(name)) {
+        ACCOUNT_LOGE("failed to write string for name");
+        return ERR_ACCOUNT_COMMON_WRITE_PARCEL_ERROR;
+    }
+    if (!data.WriteString(owner)) {
+        ACCOUNT_LOGE("failed to write string for owner");
+        return ERR_ACCOUNT_COMMON_WRITE_PARCEL_ERROR;
+    }
+    if (!data.WriteString(authType)) {
+        ACCOUNT_LOGE("failed to write string for authType");
+        return ERR_ACCOUNT_COMMON_WRITE_PARCEL_ERROR;
+    }
+    return ERR_OK;
+}
+
 ErrCode AppAccountProxy::GetOAuthToken(
     const std::string &name, const std::string &owner, const std::string &authType, std::string &token)
 {
     MessageParcel data;
     MessageParcel reply;
 
-    if (!data.WriteInterfaceToken(GetDescriptor())) {
-        ACCOUNT_LOGE("failed to write descriptor!");
-        return ERR_ACCOUNT_COMMON_WRITE_DESCRIPTOR_ERROR;
+    ErrCode result = WriteGetAuthTokenParam(name, owner, authType, data);
+    if (result != ERR_OK) {
+        return result;
     }
 
-    if (!data.WriteString(name)) {
-        ACCOUNT_LOGE("failed to write string for name");
-        return ERR_APPACCOUNT_KIT_WRITE_STRING_NAME;
+    result = SendRequest(IAppAccount::Message::GET_OAUTH_TOKEN, data, reply);
+    if (result != ERR_OK) {
+        ACCOUNT_LOGE("failed to send request, errCode: %{public}d", result);
+        return result;
     }
-    if (!data.WriteString(owner)) {
-        ACCOUNT_LOGE("failed to write string for owner");
-        return ERR_APPACCOUNT_KIT_WRITE_STRING_OWNER;
+    result = reply.ReadInt32();
+    token = reply.ReadString();
+    return result;
+}
+
+ErrCode AppAccountProxy::GetAuthToken(
+    const std::string &name, const std::string &owner, const std::string &authType, std::string &token)
+{
+    MessageParcel data;
+    MessageParcel reply;
+
+    ErrCode result = WriteGetAuthTokenParam(name, owner, authType, data);
+    if (result != ERR_OK) {
+        return result;
     }
-    if (!data.WriteString(authType)) {
-        ACCOUNT_LOGE("failed to write string for authType");
-        return ERR_APPACCOUNT_KIT_WRITE_STRING_AUTH_TYPE;
-    }
-    ErrCode result = SendRequest(IAppAccount::Message::GET_OAUTH_TOKEN, data, reply);
+
+    result = SendRequest(IAppAccount::Message::GET_AUTH_TOKEN, data, reply);
     if (result != ERR_OK) {
         ACCOUNT_LOGE("failed to send request, errCode: %{public}d", result);
         return result;
@@ -581,40 +645,114 @@ ErrCode AppAccountProxy::SetOAuthToken(
     return result;
 }
 
+ErrCode AppAccountProxy::WriteDeleteAuthTokenParam(const std::string &name, const std::string &owner,
+    const std::string &authType, const std::string &token, MessageParcel &data)
+{
+    if (!data.WriteInterfaceToken(GetDescriptor())) {
+        ACCOUNT_LOGE("failed to write descriptor!");
+        return ERR_ACCOUNT_COMMON_WRITE_PARCEL_ERROR;
+    }
+
+    if (!data.WriteString(name)) {
+        ACCOUNT_LOGE("failed to write string for token");
+        return ERR_ACCOUNT_COMMON_WRITE_PARCEL_ERROR;
+    }
+    if (!data.WriteString(owner)) {
+        ACCOUNT_LOGE("failed to write string for owner");
+        return ERR_ACCOUNT_COMMON_WRITE_PARCEL_ERROR;
+    }
+    if (!data.WriteString(authType)) {
+        ACCOUNT_LOGE("failed to write string for authType");
+        return ERR_ACCOUNT_COMMON_WRITE_PARCEL_ERROR;
+    }
+    if (!data.WriteString(token)) {
+        ACCOUNT_LOGE("failed to write string for token");
+        return ERR_ACCOUNT_COMMON_WRITE_PARCEL_ERROR;
+    }
+    return ERR_OK;
+}
+
 ErrCode AppAccountProxy::DeleteOAuthToken(
     const std::string &name, const std::string &owner, const std::string &authType, const std::string &token)
 {
     MessageParcel data;
     MessageParcel reply;
 
-    if (!data.WriteInterfaceToken(GetDescriptor())) {
-        ACCOUNT_LOGE("failed to write descriptor!");
-        return ERR_ACCOUNT_COMMON_WRITE_DESCRIPTOR_ERROR;
+    ErrCode result = WriteDeleteAuthTokenParam(name, owner, authType, token, data);
+    if (result != ERR_OK) {
+        return result;
     }
-
-    if (!data.WriteString(name)) {
-        ACCOUNT_LOGE("failed to write string for token");
-        return ERR_APPACCOUNT_KIT_WRITE_STRING_NAME;
-    }
-    if (!data.WriteString(owner)) {
-        ACCOUNT_LOGE("failed to write string for owner");
-        return ERR_APPACCOUNT_KIT_WRITE_STRING_OWNER;
-    }
-    if (!data.WriteString(authType)) {
-        ACCOUNT_LOGE("failed to write string for authType");
-        return ERR_APPACCOUNT_KIT_WRITE_STRING_AUTH_TYPE;
-    }
-    if (!data.WriteString(token)) {
-        ACCOUNT_LOGE("failed to write string for token");
-        return ERR_APPACCOUNT_KIT_WRITE_STRING_TOKEN;
-    }
-    ErrCode result = SendRequest(IAppAccount::Message::DELETE_OAUTH_TOKEN, data, reply);
+    
+    result = SendRequest(IAppAccount::Message::DELETE_OAUTH_TOKEN, data, reply);
     if (result != ERR_OK) {
         ACCOUNT_LOGE("failed to send request, errCode: %{public}d", result);
         return result;
     }
-    result = reply.ReadInt32();
-    return result;
+    return reply.ReadInt32();
+}
+
+ErrCode AppAccountProxy::DeleteAuthToken(
+    const std::string &name, const std::string &owner, const std::string &authType, const std::string &token)
+{
+    MessageParcel data;
+    MessageParcel reply;
+
+    ErrCode result = WriteDeleteAuthTokenParam(name, owner, authType, token, data);
+    if (result != ERR_OK) {
+        return result;
+    }
+    result = SendRequest(IAppAccount::Message::DELETE_AUTH_TOKEN, data, reply);
+    if (result != ERR_OK) {
+        ACCOUNT_LOGE("failed to send request, errCode: %{public}d", result);
+        return result;
+    }
+    return reply.ReadInt32();
+}
+
+ErrCode AppAccountProxy::WriteTokenVisibilityParam(
+    const std::string &name, const std::string &authType, const std::string &bundleName, MessageParcel &data)
+{
+    if (!data.WriteInterfaceToken(GetDescriptor())) {
+        ACCOUNT_LOGE("failed to write descriptor!");
+        return ERR_ACCOUNT_COMMON_WRITE_PARCEL_ERROR;
+    }
+
+    if (!data.WriteString(name)) {
+        ACCOUNT_LOGE("failed to write string for name");
+        return ERR_ACCOUNT_COMMON_WRITE_PARCEL_ERROR;
+    }
+    if (!data.WriteString(authType)) {
+        ACCOUNT_LOGE("failed to write string for authType");
+        return ERR_ACCOUNT_COMMON_WRITE_PARCEL_ERROR;
+    }
+    if (!data.WriteString(bundleName)) {
+        ACCOUNT_LOGE("failed to write string for bundleName");
+        return ERR_ACCOUNT_COMMON_WRITE_PARCEL_ERROR;
+    }
+    return ERR_OK;
+}
+
+ErrCode AppAccountProxy::SetAuthTokenVisibility(
+    const std::string &name, const std::string &authType, const std::string &bundleName, bool isVisible)
+{
+    MessageParcel data;
+    MessageParcel reply;
+
+    ErrCode result = WriteTokenVisibilityParam(name, authType, bundleName, data);
+    if (result != ERR_OK) {
+        return result;
+    }
+
+    if (!data.WriteBool(isVisible)) {
+        ACCOUNT_LOGE("failed to write string for isVisible");
+        return ERR_ACCOUNT_COMMON_WRITE_PARCEL_ERROR;
+    }
+    result = SendRequest(IAppAccount::Message::SET_AUTH_TOKEN_VISIBILITY, data, reply);
+    if (result != ERR_OK) {
+        ACCOUNT_LOGE("failed to send request, errCode: %{public}d", result);
+        return result;
+    }
+    return reply.ReadInt32();
 }
 
 ErrCode AppAccountProxy::SetOAuthTokenVisibility(
@@ -623,33 +761,41 @@ ErrCode AppAccountProxy::SetOAuthTokenVisibility(
     MessageParcel data;
     MessageParcel reply;
 
-    if (!data.WriteInterfaceToken(GetDescriptor())) {
-        ACCOUNT_LOGE("failed to write descriptor!");
-        return ERR_ACCOUNT_COMMON_WRITE_DESCRIPTOR_ERROR;
+    ErrCode result = WriteTokenVisibilityParam(name, authType, bundleName, data);
+    if (result != ERR_OK) {
+        return result;
     }
 
-    if (!data.WriteString(name)) {
-        ACCOUNT_LOGE("failed to write string for name");
-        return ERR_APPACCOUNT_KIT_WRITE_STRING_NAME;
-    }
-    if (!data.WriteString(authType)) {
-        ACCOUNT_LOGE("failed to write string for authType");
-        return ERR_APPACCOUNT_KIT_WRITE_STRING_AUTH_TYPE;
-    }
-    if (!data.WriteString(bundleName)) {
-        ACCOUNT_LOGE("failed to write string for bundleName");
-        return ERR_APPACCOUNT_KIT_WRITE_STRING_BUNDLE_NAME;
-    }
     if (!data.WriteBool(isVisible)) {
         ACCOUNT_LOGE("failed to write string for isVisible");
-        return ERR_APPACCOUNT_KIT_WRITE_BOOL_VISIBILITY;
+        return ERR_ACCOUNT_COMMON_WRITE_PARCEL_ERROR;
     }
-    ErrCode result = SendRequest(IAppAccount::Message::SET_OAUTH_TOKEN_VISIBILITY, data, reply);
+    result = SendRequest(IAppAccount::Message::SET_OAUTH_TOKEN_VISIBILITY, data, reply);
+    if (result != ERR_OK) {
+        ACCOUNT_LOGE("failed to send request, errCode: %{public}d", result);
+        return result;
+    }
+    return reply.ReadInt32();
+}
+
+ErrCode AppAccountProxy::CheckAuthTokenVisibility(
+    const std::string &name, const std::string &authType, const std::string &bundleName, bool &isVisible)
+{
+    MessageParcel data;
+    MessageParcel reply;
+
+    ErrCode result = WriteTokenVisibilityParam(name, authType, bundleName, data);
+    if (result != ERR_OK) {
+        return result;
+    }
+
+    result = SendRequest(IAppAccount::Message::CHECK_AUTH_TOKEN_VISIBILITY, data, reply);
     if (result != ERR_OK) {
         ACCOUNT_LOGE("failed to send request, errCode: %{public}d", result);
         return result;
     }
     result = reply.ReadInt32();
+    isVisible = reply.ReadBool();
     return result;
 }
 
@@ -659,24 +805,12 @@ ErrCode AppAccountProxy::CheckOAuthTokenVisibility(
     MessageParcel data;
     MessageParcel reply;
 
-    if (!data.WriteInterfaceToken(GetDescriptor())) {
-        ACCOUNT_LOGE("failed to write descriptor!");
-        return ERR_ACCOUNT_COMMON_WRITE_DESCRIPTOR_ERROR;
+    ErrCode result = WriteTokenVisibilityParam(name, authType, bundleName, data);
+    if (result != ERR_OK) {
+        return result;
     }
 
-    if (!data.WriteString(name)) {
-        ACCOUNT_LOGE("failed to write string for token");
-        return ERR_APPACCOUNT_KIT_WRITE_STRING_NAME;
-    }
-    if (!data.WriteString(authType)) {
-        ACCOUNT_LOGE("failed to write string for authType");
-        return ERR_APPACCOUNT_KIT_WRITE_STRING_AUTH_TYPE;
-    }
-    if (!data.WriteString(bundleName)) {
-        ACCOUNT_LOGE("failed to write string for bundleName");
-        return ERR_APPACCOUNT_KIT_WRITE_STRING_BUNDLE_NAME;
-    }
-    ErrCode result = SendRequest(IAppAccount::Message::CHECK_OAUTH_TOKEN_VISIBILITY, data, reply);
+    result = SendRequest(IAppAccount::Message::CHECK_OAUTH_TOKEN_VISIBILITY, data, reply);
     if (result != ERR_OK) {
         ACCOUNT_LOGE("failed to send request, errCode: %{public}d", result);
         return result;
@@ -748,26 +882,61 @@ ErrCode AppAccountProxy::GetAllOAuthTokens(
     return result;
 }
 
+ErrCode AppAccountProxy::WriteGetAuthListParam(
+    const std::string &name, const std::string &authType, MessageParcel &data)
+{
+    if (!data.WriteInterfaceToken(GetDescriptor())) {
+        ACCOUNT_LOGE("failed to write descriptor!");
+        return ERR_ACCOUNT_COMMON_WRITE_PARCEL_ERROR;
+    }
+
+    if (!data.WriteString(name)) {
+        ACCOUNT_LOGE("failed to write string for name");
+        return ERR_ACCOUNT_COMMON_WRITE_PARCEL_ERROR;
+    }
+    if (!data.WriteString(authType)) {
+        ACCOUNT_LOGE("failed to write string for authType");
+        return ERR_ACCOUNT_COMMON_WRITE_PARCEL_ERROR;
+    }
+    return ERR_OK;
+}
+
 ErrCode AppAccountProxy::GetOAuthList(
     const std::string &name, const std::string &authType, std::set<std::string> &oauthList)
 {
     MessageParcel data;
     MessageParcel reply;
 
-    if (!data.WriteInterfaceToken(GetDescriptor())) {
-        ACCOUNT_LOGE("failed to write descriptor!");
-        return ERR_ACCOUNT_COMMON_WRITE_DESCRIPTOR_ERROR;
+    ErrCode result = WriteGetAuthListParam(name, authType, data);
+    if (result != ERR_OK) {
+        return result;
+    }
+    
+    result = SendRequest(IAppAccount::Message::GET_OAUTH_LIST, data, reply);
+    if (result != ERR_OK) {
+        ACCOUNT_LOGE("failed to send request, errCode: %{public}d", result);
+        return result;
+    }
+    result = reply.ReadInt32();
+    uint32_t size = reply.ReadUint32();
+    for (uint32_t i = 0; i < size; ++i) {
+        oauthList.emplace(reply.ReadString());
+    }
+    return result;
+}
+
+ErrCode AppAccountProxy::GetAuthList(
+    const std::string &name, const std::string &authType, std::set<std::string> &oauthList)
+{
+    MessageParcel data;
+    MessageParcel reply;
+
+    ErrCode result = WriteGetAuthListParam(name, authType, data);
+    if (result != ERR_OK) {
+        return result;
     }
 
-    if (!data.WriteString(name)) {
-        ACCOUNT_LOGE("failed to write string for token");
-        return ERR_APPACCOUNT_KIT_WRITE_STRING_NAME;
-    }
-    if (!data.WriteString(authType)) {
-        ACCOUNT_LOGE("failed to write string for authType");
-        return ERR_APPACCOUNT_KIT_WRITE_STRING_AUTH_TYPE;
-    }
-    ErrCode result = SendRequest(IAppAccount::Message::GET_OAUTH_LIST, data, reply);
+    result = SendRequest(IAppAccount::Message::GET_AUTH_LIST, data, reply);
     if (result != ERR_OK) {
         ACCOUNT_LOGE("failed to send request, errCode: %{public}d", result);
         return result;

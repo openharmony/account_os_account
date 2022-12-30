@@ -15,10 +15,13 @@
 
 #include "account_iam_client.h"
 
+#include "accesstoken_kit.h"
 #include "account_error_no.h"
 #include "account_iam_callback_service.h"
 #include "account_log_wrapper.h"
 #include "account_proxy.h"
+#include "account_permission_manager.h"
+#include "ipc_skeleton.h"
 #include "iservice_registry.h"
 #include "os_account_manager.h"
 #include "pinauth_register.h"
@@ -26,8 +29,15 @@
 
 namespace OHOS {
 namespace AccountSA {
+namespace {
+const std::string PERMISSION_ACCESS_PIN_AUTH = "ohos.permission.ACCESS_PIN_AUTH";
+const std::string PERMISSION_MANAGE_USER_IDM = "ohos.permission.MANAGE_USER_IDM";
+const std::string PERMISSION_ACCESS_USER_AUTH_INTERNAL = "ohos.permission.ACCESS_USER_AUTH_INTERNAL";
+}
 AccountIAMClient::AccountIAMClient()
-{}
+{
+    permissionManagerPtr_ = DelayedSingleton<AccountPermissionManager>::GetInstance();
+}
 
 int32_t AccountIAMClient::OpenSession(int32_t userId, std::vector<uint8_t> &challenge)
 {
@@ -140,7 +150,12 @@ int32_t AccountIAMClient::GetCredentialInfo(
         return ERR_ACCOUNT_IAM_KIT_PROXY_ERROR;
     }
     sptr<IGetCredInfoCallback> wrapper = new (std::nothrow) GetCredInfoCallbackService(callback);
-    return proxy_->GetCredentialInfo(userId, authType, wrapper);
+    ErrCode result = proxy_->GetCredentialInfo(userId, authType, wrapper);
+    if ((result != ERR_OK) && (callback != nullptr)) {
+        std::vector<CredentialInfo> infoList;
+        callback->OnCredentialInfo(result, infoList);
+    }
+    return result;
 }
 
 int32_t AccountIAMClient::Cancel(int32_t userId)
@@ -149,6 +164,25 @@ int32_t AccountIAMClient::Cancel(int32_t userId)
         return ERR_ACCOUNT_IAM_KIT_PROXY_ERROR;
     }
     return proxy_->Cancel(userId);
+}
+
+uint64_t AccountIAMClient::StartDomainAuth(int32_t userId, const std::shared_ptr<IDMCallback> &callback)
+{
+    std::lock_guard<std::mutex> lock(domainMutex_);
+    Attributes emptyResult;
+    if (domainInputer_ == nullptr) {
+        ACCOUNT_LOGE("the registered inputer is not found or invalid");
+        callback->OnResult(ERR_ACCOUNT_IAM_KIT_INPUTER_NOT_REGISTERED, emptyResult);
+        return 0;
+    }
+    auto credentialRecipient = std::make_shared<DomainCredentialRecipient>(userId, callback);
+    if (credentialRecipient == nullptr) {
+        ACCOUNT_LOGE("failed to create DomainCredentialRecipient");
+        callback->OnResult(ERR_ACCOUNT_COMMON_INSUFFICIENT_MEMORY_ERROR, emptyResult);
+        return 0;
+    }
+    domainInputer_->OnGetData(IAMAuthType::DOMAIN, credentialRecipient);
+    return 0;
 }
 
 uint64_t AccountIAMClient::Auth(const std::vector<uint8_t> &challenge, AuthType authType,
@@ -162,14 +196,30 @@ uint64_t AccountIAMClient::AuthUser(
     AuthTrustLevel authTrustLevel, const std::shared_ptr<IDMCallback> &callback)
 {
     uint64_t contextId = 0;
+    if (callback == nullptr) {
+        ACCOUNT_LOGE("callback is nullptr");
+        return contextId;
+    }
     if (GetAccountIAMProxy() != ERR_OK) {
         return contextId;
     }
     if ((userId == 0) && (!GetCurrentUserId(userId))) {
         return contextId;
     }
+    if (static_cast<int32_t>(authType) == static_cast<int32_t>(IAMAuthType::DOMAIN)) {
+        return StartDomainAuth(userId, callback);
+    }
     sptr<IIDMCallback> wrapper = new (std::nothrow) IDMCallbackService(userId, callback);
-    return proxy_->AuthUser(userId, challenge, authType, authTrustLevel, wrapper);
+    AuthParam authParam;
+    authParam.challenge = challenge;
+    authParam.authType = authType;
+    authParam.authTrustLevel = authTrustLevel;
+    ErrCode result = proxy_->AuthUser(userId, authParam, wrapper, contextId);
+    if (result != ERR_OK) {
+        Attributes emptyResult;
+        callback->OnResult(result, emptyResult);
+    }
+    return contextId;
 }
 
 int32_t AccountIAMClient::CancelAuth(uint64_t contextId)
@@ -189,7 +239,7 @@ int32_t AccountIAMClient::GetAvailableStatus(AuthType authType, AuthTrustLevel a
         ACCOUNT_LOGE("authTrustLevel is not in correct range");
         return ERR_ACCOUNT_IAM_KIT_PARAM_INVALID_ERROR;
     }
-    if (authType < UserIam::UserAuth::ALL || authType > UserIam::UserAuth::FINGERPRINT) {
+    if (authType < UserIam::UserAuth::ALL) {
         ACCOUNT_LOGE("authType is not in correct range");
         return ERR_ACCOUNT_IAM_KIT_PARAM_INVALID_ERROR;
     }
@@ -228,49 +278,119 @@ void AccountIAMClient::SetProperty(
     proxy_->SetProperty(userId, request, wrapper);
 }
 
-bool AccountIAMClient::IsInputerRegistered(int32_t userId)
+ErrCode AccountIAMClient::RegisterPINInputer(const std::shared_ptr<IInputer> &inputer)
 {
-    std::lock_guard<std::mutex> lock(mutexRegUsers_);
-    return registeredUsers_.find(userId) != registeredUsers_.end();
-}
-
-void AccountIAMClient::AddRegisteredInputer(int32_t userId)
-{
-    std::lock_guard<std::mutex> lock(mutexRegUsers_);
-    registeredUsers_.emplace(userId);
-}
-
-void AccountIAMClient::DelRegisteredInputer(int32_t userId)
-{
-    std::lock_guard<std::mutex> lock(mutex_);
-    registeredUsers_.erase(userId);
-}
-
-int32_t AccountIAMClient::RegisterInputer(const std::shared_ptr<IInputer> &inputer)
-{
+    std::lock_guard<std::mutex> lock(pinMutex_);
+    ErrCode result = permissionManagerPtr_->CheckSystemApp(false);
+    if (result != ERR_OK) {
+        ACCOUNT_LOGE("is not system application, result = %{public}u.", result);
+        return result;
+    }
+    if (pinInputer_ != nullptr) {
+        ACCOUNT_LOGE("inputer is already registered");
+        return ERR_ACCOUNT_IAM_KIT_INPUTER_ALREADY_REGISTERED;
+    }
     int32_t userId = 0;
     if (!GetCurrentUserId(userId)) {
         return ERR_ACCOUNT_IAM_KIT_GET_USERID_FAIL;
     }
-    if (IsInputerRegistered(userId)) {
-        return ERR_ACCOUNT_IAM_KIT_INPUTER_ALREADY_REGISTERED;
-    }
     auto iamInputer = std::make_shared<IAMInputer>(userId, inputer);
+    if (iamInputer == nullptr) {
+        ACCOUNT_LOGE("failed to create IAMInputer");
+        return ERR_ACCOUNT_COMMON_INSUFFICIENT_MEMORY_ERROR;
+    }
     if (UserIam::PinAuth::PinAuthRegister::GetInstance().RegisterInputer(iamInputer)) {
-        AddRegisteredInputer(userId);
+        pinInputer_ = inputer;
         return ERR_OK;
     }
     return ERR_ACCOUNT_IAM_SERVICE_PERMISSION_DENIED;
 }
 
-void AccountIAMClient::UnRegisterInputer()
+bool AccountIAMClient::CheckSelfPermission(const std::string &permissionName)
 {
-    UserIam::PinAuth::PinAuthRegister::GetInstance().UnRegisterInputer();
-    int32_t userId = 0;
-    if (!GetCurrentUserId(userId)) {
-        return;
+    Security::AccessToken::AccessTokenID tokenId = IPCSkeleton::GetSelfTokenID();
+    ErrCode result = Security::AccessToken::AccessTokenKit::VerifyAccessToken(tokenId, permissionName);
+    return result == Security::AccessToken::TypePermissionState::PERMISSION_GRANTED;
+}
+
+ErrCode AccountIAMClient::RegisterDomainInputer(const std::shared_ptr<IInputer> &inputer)
+{
+    std::lock_guard<std::mutex> lock(domainMutex_);
+    if (domainInputer_ != nullptr) {
+        ACCOUNT_LOGE("inputer is already registered");
+        return ERR_ACCOUNT_IAM_KIT_INPUTER_ALREADY_REGISTERED;
     }
-    DelRegisteredInputer(userId);
+    domainInputer_ = inputer;
+    return ERR_OK;
+}
+
+ErrCode AccountIAMClient::RegisterInputer(int32_t authType, const std::shared_ptr<IInputer> &inputer)
+{
+    ErrCode result = permissionManagerPtr_->CheckSystemApp(false);
+    if (result != ERR_OK) {
+        ACCOUNT_LOGE("is not system application, result = %{public}u.", result);
+        return result;
+    }
+    if ((!CheckSelfPermission(PERMISSION_ACCESS_USER_AUTH_INTERNAL)) &&
+        (!CheckSelfPermission(PERMISSION_MANAGE_USER_IDM))) {
+        ACCOUNT_LOGE("failed to check permission");
+        return ERR_ACCOUNT_IAM_SERVICE_PERMISSION_DENIED;
+    }
+    if (inputer == nullptr) {
+        ACCOUNT_LOGE("inputer is nullptr");
+        return ERR_ACCOUNT_COMMON_INVALID_PARAMTER;
+    }
+    switch (authType) {
+        case IAMAuthType::DOMAIN:
+            return RegisterDomainInputer(inputer);
+        default:
+            return ERR_ACCOUNT_IAM_UNSUPPORTED_AUTH_TYPE;
+    }
+}
+
+ErrCode AccountIAMClient::UnregisterInputer(int32_t authType)
+{
+    ErrCode result = permissionManagerPtr_->CheckSystemApp(false);
+    if (result != ERR_OK) {
+        ACCOUNT_LOGE("is not system application, result = %{public}u.", result);
+        return result;
+    }
+    if ((!CheckSelfPermission(PERMISSION_ACCESS_USER_AUTH_INTERNAL)) &&
+        (!CheckSelfPermission(PERMISSION_MANAGE_USER_IDM))) {
+        ACCOUNT_LOGE("failed to check permission");
+        return ERR_ACCOUNT_IAM_SERVICE_PERMISSION_DENIED;
+    }
+    switch (authType) {
+        case IAMAuthType::DOMAIN:
+            return UnregisterDomainInputer();
+        default:
+            return ERR_ACCOUNT_IAM_UNSUPPORTED_AUTH_TYPE;
+    }
+    return ERR_OK;
+}
+
+ErrCode AccountIAMClient::UnregisterPINInputer()
+{
+    ErrCode result = permissionManagerPtr_->CheckSystemApp(false);
+    if (result != ERR_OK) {
+        ACCOUNT_LOGE("is not system application, result = %{public}u.", result);
+        return result;
+    }
+    if (!CheckSelfPermission(PERMISSION_ACCESS_PIN_AUTH)) {
+        ACCOUNT_LOGE("failed to check permission");
+        return ERR_ACCOUNT_IAM_SERVICE_PERMISSION_DENIED;
+    }
+    UserIam::PinAuth::PinAuthRegister::GetInstance().UnRegisterInputer();
+    std::lock_guard<std::mutex> lock(pinMutex_);
+    pinInputer_ = nullptr;
+    return ERR_OK;
+}
+
+ErrCode AccountIAMClient::UnregisterDomainInputer()
+{
+    std::lock_guard<std::mutex> lock(domainMutex_);
+    domainInputer_ = nullptr;
+    return ERR_OK;
 }
 
 IAMState AccountIAMClient::GetAccountState(int32_t userId)

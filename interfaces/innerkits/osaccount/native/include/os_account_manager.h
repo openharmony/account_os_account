@@ -76,7 +76,7 @@ public:
     static ErrCode QueryOsAccountConstraintSourceTypes(const int32_t id, const std::string constraint,
         std::vector<ConstraintSourceTypeInfo> &constraintSourceTypeInfos);
     static ErrCode SetGlobalOsAccountConstraints(const std::vector<std::string> &constraints,
-        const bool enable, const int32_t enforcerId, const bool isDeviceOwner);
+        const bool isEnabled, const int32_t enforcerId = 0, const bool isDeviceOwner = false);
     static ErrCode SetSpecificOsAccountConstraints(const std::vector<std::string> &constraints,
         const bool enable, const int32_t targetId, const int32_t enforcerId, const bool isDeviceOwner);
 };

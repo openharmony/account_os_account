@@ -40,6 +40,7 @@ public:
     sptr<IRemoteObject> GetAppAccountService() override;
     sptr<IRemoteObject> GetOsAccountService() override;
     sptr<IRemoteObject> GetAccountIAMService() override;
+    sptr<IRemoteObject> GetDomainAccountService() override;
 
 private:
     std::int32_t DeviceAccountRequest(std::uint32_t code, std::int32_t accountId);

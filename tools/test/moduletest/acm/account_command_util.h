@@ -16,15 +16,17 @@
 #ifndef OS_ACCOUNT_TOOLS_TEST_MODULETEST_ACM_ACCOUNT_COMMAND_UTIL_H
 #define OS_ACCOUNT_TOOLS_TEST_MODULETEST_ACM_ACCOUNT_COMMAND_UTIL_H
 
+#include <string>
+
 namespace OHOS {
 namespace AccountSA {
 class AccountCommandUtil {
 public:
-    static void CreateOsAccount();
-    static void DeleteLastOsAccount();
-    static void DumpLastOsAccount();
-    static void SwitchToFirstOsAccount();
-    static void SwitchToLastOsAccount();
+    static std::string CreateOsAccount();
+    static std::string DeleteLastOsAccount();
+    static std::string DumpLastOsAccount();
+    static std::string SwitchToFirstOsAccount();
+    static std::string SwitchToLastOsAccount();
 };
 }  // namespace AccountSA
 }  // namespace OHOS

@@ -47,6 +47,9 @@ napi_value NapiAccountIAMIdentityManager::Init(napi_env env, napi_value exports)
 
 napi_value NapiAccountIAMIdentityManager::JsConstructor(napi_env env, napi_callback_info info)
 {
+    if (!IsSystemApp(env)) {
+        return nullptr;
+    }
     napi_value thisVar = nullptr;
     NAPI_CALL(env, napi_get_cb_info(env, info, nullptr, nullptr, &thisVar, nullptr));
     return thisVar;
@@ -199,10 +202,11 @@ napi_value NapiAccountIAMIdentityManager::UpdateCredential(napi_env env, napi_ca
 
 napi_value NapiAccountIAMIdentityManager::CloseSession(napi_env env, napi_callback_info info)
 {
-    AccountIAMClient::GetInstance().CloseSession(0);
-    napi_value result = nullptr;
-    napi_get_null(env, &result);
-    return result;
+    ErrCode errCode = AccountIAMClient::GetInstance().CloseSession(0);
+    if (errCode != ERR_OK) {
+        AccountIAMNapiThrow(env, AccountIAMConvertToJSErrCode(errCode), true);
+    }
+    return nullptr;
 }
 
 napi_value NapiAccountIAMIdentityManager::Cancel(napi_env env, napi_callback_info info)

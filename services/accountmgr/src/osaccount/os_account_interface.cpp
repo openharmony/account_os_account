@@ -204,6 +204,29 @@ void OsAccountInterface::SendToCESAccountDelete(OsAccountInfo &osAccountInfo)
 #endif // HAS_CES_PART
 }
 
+void OsAccountInterface::PublishCommonEvent(
+    const OsAccountInfo &osAccountInfo, const std::string &commonEvent, const std::string &operation)
+{
+    int osAccountID = osAccountInfo.GetLocalId();
+#ifdef HAS_CES_PART
+    StartTrace(HITRACE_TAG_ACCOUNT_MANAGER, "PublishCommonEvent account");
+    OHOS::AAFwk::Want want;
+    want.SetAction(commonEvent);
+    OHOS::EventFwk::CommonEventData data;
+    data.SetCode(osAccountID);
+    data.SetWant(want);
+    if (!OHOS::EventFwk::CommonEventManager::PublishCommonEvent(data)) {
+        ACCOUNT_LOGE("PublishCommonEvent %{public}d failed!", osAccountID);
+        ReportOsAccountOperationFail(osAccountID, operation, -1, "PublishCommonEvent failed!");
+    } else {
+        ACCOUNT_LOGI("PublishCommonEvent %{public}d succeed!", osAccountID);
+    }
+    FinishTrace(HITRACE_TAG_ACCOUNT_MANAGER);
+#else  // HAS_CES_PART
+    ACCOUNT_LOGI("No common event part, do not publish for account %{public}d!", osAccountID);
+#endif // HAS_CES_PART
+}
+
 void OsAccountInterface::SendToCESAccountSwitched(OsAccountInfo &osAccountInfo)
 {
     int osAccountID = osAccountInfo.GetLocalId();
