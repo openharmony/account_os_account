@@ -27,7 +27,7 @@
 namespace OHOS {
 namespace AccountSA {
 namespace {
-const std::string CONSTRAINT_CREATE_ACCOUNT_DIRECT = "constraint.os.account.create.direct";
+const std::string CONSTRAINT_CREATE_ACCOUNT_DIRECTLY = "constraint.os.account.create.directly";
 }
 IInnerOsAccountManager::IInnerOsAccountManager() : subscribeManagerPtr_(OsAccountSubscribeManager::GetInstance())
 {
@@ -380,7 +380,7 @@ ErrCode IInnerOsAccountManager::CreateOsAccountForDomain(
 
     std::string osAccountName = domainInfo.domain_ + "/" + domainInfo.accountName_;
     bool isEnabled = false;
-    (void)IsOsAccountConstraintEnable(Constants::START_USER_ID, CONSTRAINT_CREATE_ACCOUNT_DIRECT, isEnabled);
+    (void)IsOsAccountConstraintEnable(Constants::START_USER_ID, CONSTRAINT_CREATE_ACCOUNT_DIRECTLY, isEnabled);
     if (isEnabled && (osAccountInfos.size() == 1) && (osAccountInfos[0].GetLocalId() == Constants::START_USER_ID)) {
         DomainAccountInfo curDomainInfo;
         osAccountInfos[0].GetDomainInfo(curDomainInfo);
