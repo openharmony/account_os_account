@@ -264,9 +264,9 @@ HWTEST_F(AccountIAMClientNoPermissionTest, AccountIAMClientNoPermission_SetPrope
 HWTEST_F(AccountIAMClientNoPermissionTest, AccountIAMClientNoPermission_RegisterInputer_0100, TestSize.Level0)
 {
     std::shared_ptr<MockIInputer> inputer = std::make_shared<MockIInputer>();
-    int32_t res = AccountIAMClient::GetInstance().RegisterInputer(inputer);
+    int32_t res = AccountIAMClient::GetInstance().RegisterInputer(AuthType::PIN, inputer);
     EXPECT_EQ(res, ERR_ACCOUNT_IAM_SERVICE_PERMISSION_DENIED);
-    AccountIAMClient::GetInstance().UnRegisterInputer();
+    AccountIAMClient::GetInstance().UnregisterInputer(AuthType::PIN);
 }
 
 /**

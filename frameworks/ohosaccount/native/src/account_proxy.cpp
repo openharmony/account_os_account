@@ -290,5 +290,22 @@ sptr<IRemoteObject> AccountProxy::GetAccountIAMService()
 
     return reply.ReadRemoteObject();
 }
+
+sptr<IRemoteObject> AccountProxy::GetDomainAccountService()
+{
+    MessageParcel data;
+    if (!data.WriteInterfaceToken(GetDescriptor())) {
+        ACCOUNT_LOGE("Write descriptor failed");
+        return nullptr;
+    }
+    MessageParcel reply;
+    MessageOption option;
+    auto ret = Remote()->SendRequest(GET_DOMAIN_ACCOUNT_SERVICE, data, reply, option);
+    if (ret != ERR_NONE) {
+        ACCOUNT_LOGE("SendRequest failed %d", ret);
+        return nullptr;
+    }
+    return reply.ReadRemoteObject();
+}
 }  // namespace AccountSA
 }  // namespace OHOS

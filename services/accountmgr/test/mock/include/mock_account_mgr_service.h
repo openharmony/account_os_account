@@ -38,6 +38,7 @@ public:
     std::pair<bool, OhosAccountInfo> QueryOhosAccountInfoByUserId(std::int32_t userId) override;
     sptr<IRemoteObject> GetAppAccountService() override;
     sptr<IRemoteObject> GetOsAccountService() override;
+    sptr<IRemoteObject> GetDomainAccountService() override;
     std::int32_t SetOhosAccountInfo(const OhosAccountInfo &ohosAccountInfo, const std::string &eventStr) override
     {
         return 0;

@@ -21,6 +21,7 @@
 #include "account_iam_callback.h"
 #include "account_iam_info.h"
 #include "account_error_no.h"
+#include "domain_account_common.h"
 #include "iaccount_iam.h"
 #include "singleton.h"
 #ifdef HAS_STORAGE_PART
@@ -69,11 +70,13 @@ public:
         const std::vector<uint8_t> &token, const std::vector<uint8_t> &newSecret);
     ErrCode RemoveUserKey(int32_t userId, const std::vector<uint8_t> &token);
     ErrCode RestoreUserKey(int32_t userId, uint64_t credentialId, const std::vector<uint8_t> &token);
+    bool CheckDomainAuthAvailable(int32_t userId);
 
 private:
     ErrCode UpdateStorageKey(int32_t userId, const std::vector<uint8_t> &token,
         const std::vector<uint8_t> &oldSecret, const std::vector<uint8_t> &newSecret);
     ErrCode GetStorageManagerProxy();
+    ErrCode GetDomainAuthProperty(int32_t userId, DomainAuthProperty &property);
 
 private:
     std::mutex mutex_;

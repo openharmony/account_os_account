@@ -145,8 +145,18 @@ sptr<IRemoteObject> AccountMgrService::GetOsAccountService()
 
 sptr<IRemoteObject> AccountMgrService::GetAccountIAMService()
 {
+#ifdef HAS_USER_AUTH_PART
     if (accountIAMService_ != nullptr) {
         return accountIAMService_->AsObject();
+    }
+#endif
+    return nullptr;
+}
+
+sptr<IRemoteObject> AccountMgrService::GetDomainAccountService()
+{
+    if (domainAccountMgrService_ != nullptr) {
+        return domainAccountMgrService_->AsObject();
     }
     return nullptr;
 }
@@ -199,10 +209,8 @@ bool AccountMgrService::Init()
 
     CreateDeviceDir();
 
-    bool ret = false;
     if (!registerToService_) {
-        ret = Publish(&DelayedRefSingleton<AccountMgrService>::GetInstance());
-        if (!ret) {
+        if (!Publish(&DelayedRefSingleton<AccountMgrService>::GetInstance())) {
             ReportServiceStartFail(ERR_ACCOUNT_MGR_ADD_TO_SA_ERROR, "Publish service failed!");
             ACCOUNT_LOGE("AccountMgrService::Init Publish failed!");
             return false;
@@ -211,11 +219,10 @@ bool AccountMgrService::Init()
     }
     PerfStat::GetInstance().SetInstanceInitTime(GetTickCount());
     ohosAccountMgr_ = std::make_shared<OhosAccountManager>();
-    ret = ohosAccountMgr_->OnInitialize();
-    if (!ret) {
+    if (!ohosAccountMgr_->OnInitialize()) {
         ACCOUNT_LOGE("Ohos account manager initialize failed");
         ReportServiceStartFail(ERR_ACCOUNT_MGR_OHOS_MGR_INIT_ERROR, "OnInitialize failed!");
-        return ret;
+        return false;
     }
 
     IAccountContext::SetInstance(this);
@@ -234,9 +241,12 @@ bool AccountMgrService::Init()
             "Insufficient memory to create os account manager service");
         return false;
     }
-    if (!CreateIAMService()) {
+    if ((!CreateIAMService()) || (!CreateDomainService())) {
         appAccountManagerService_ = nullptr;
         osAccountManagerService_ = nullptr;
+#ifdef HAS_USER_AUTH_PART
+        accountIAMService_ = nullptr;
+#endif
         return false;
     }
     dumpHelper_ = std::make_unique<AccountDumpHelper>(ohosAccountMgr_, osAccountManagerService_.GetRefPtr());
@@ -246,7 +256,7 @@ bool AccountMgrService::Init()
 
 bool AccountMgrService::CreateIAMService()
 {
-#if defined(HAS_USER_AUTH_PART)
+#ifdef HAS_USER_AUTH_PART
     accountIAMService_ = new (std::nothrow) AccountIAMService();
     if (accountIAMService_ == nullptr) {
         ACCOUNT_LOGE("memory alloc for AccountIAMService failed!");
@@ -255,6 +265,18 @@ bool AccountMgrService::CreateIAMService()
         return false;
     }
 #endif
+    return true;
+}
+
+bool AccountMgrService::CreateDomainService()
+{
+    domainAccountMgrService_ = new (std::nothrow) DomainAccountManagerService();
+    if (domainAccountMgrService_ == nullptr) {
+        ACCOUNT_LOGE("memory alloc for DomainAccountManagerService failed!");
+        ReportServiceStartFail(ERR_ACCOUNT_COMMON_INSUFFICIENT_MEMORY_ERROR,
+            "Insufficient memory to create domain account manager service");
+        return false;
+    }
     return true;
 }
 
