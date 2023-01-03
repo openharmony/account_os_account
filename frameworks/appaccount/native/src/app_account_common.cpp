@@ -243,6 +243,10 @@ int32_t ConvertOtherJSErrCodeV8(int32_t errCode)
             return ERR_JS_OAUTH_TOKEN_NOT_EXIST;
         case ERR_APPACCOUNT_SERVICE_OAUTH_TOKEN_MAX_SIZE:
             return ERR_JS_OAUTH_TOKEN_TOO_MANY;
+        case ERR_APPACCOUNT_SERVICE_PERMISSION_DENIED:
+        case ERR_APPACCOUNT_SERVICE_SUBSCRIBE_PERMISSION_DENIED:
+        case ERR_ACCOUNT_ZIDL_CHECK_PERMISSION_ERROR:
+            return ERR_JS_PERMISSION_DENIED_V8;
         default:
             return ERR_JS_APP_ACCOUNT_SERVICE_EXCEPTION;
     }
@@ -260,9 +264,6 @@ int32_t ConvertToJSErrCodeV8(int32_t errCode)
         (errCode == ERR_APPACCOUNT_SERVICE_OAUTH_INVALID_RESPONSE) ||
         (errCode == ERR_APPACCOUNT_SERVICE_OAUTH_AUTHENTICATOR_CALLBACK_NOT_EXIST)) {
         return ERR_JS_INVALID_RESPONSE;
-    } else if (errCode == ERR_APPACCOUNT_SERVICE_PERMISSION_DENIED ||
-        errCode == ERR_APPACCOUNT_SERVICE_SUBSCRIBE_PERMISSION_DENIED) {
-        return ERR_JS_PERMISSION_DENIED_V8;
     } else {
         return ConvertOtherJSErrCodeV8(errCode);
     }

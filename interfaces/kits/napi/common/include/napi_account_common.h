@@ -48,6 +48,10 @@ bool GetStringPropertyByKey(napi_env env, napi_value obj, const std::string &pro
 bool GetOptionalStringPropertyByKey(napi_env env, napi_value obj, const std::string &propertyName,
     std::string &property);
 napi_value CreateStringArray(napi_env env, const std::vector<std::string> &strVec);
+napi_value CreateUint8Array(napi_env env, const uint8_t *data, size_t length);
+napi_status ParseUint8TypedArray(napi_env env, napi_value value, uint8_t **data, size_t *length);
+napi_status ParseUint8TypedArrayToVector(napi_env env, napi_value value, std::vector<uint8_t> &vec);
+napi_status ParseUint8TypedArrayToUint64(napi_env env, napi_value value, uint64_t &result);
 } // namespace AccountJsKit
 } // namespace OHOS
 

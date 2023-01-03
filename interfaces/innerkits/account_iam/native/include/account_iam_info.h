@@ -51,6 +51,14 @@ typedef UserIam::UserAuth::CredentialInfo CredentialInfo;
 typedef UserIam::UserAuth::GetCredentialInfoCallback GetCredentialInfoCallback;
 #endif
 
+enum IAMAuthType {
+    DOMAIN = 1024
+};
+
+enum IAMAuthSubType {
+    DOMAIN_MIXED = 10240001
+};
+
 enum IAMState {
     IDLE = 0,
     AFTER_OPEN_SESSION,

@@ -90,12 +90,12 @@ struct IDMCallbackParam {
 
 struct AuthCallbackParam {
     napi_env env;
-    int32_t module;
+    int32_t module = 0;
     uint32_t acquireInfo;
     int32_t extraInfo;
-    int32_t resultCode;
-    int32_t remainTimes;
-    int32_t freezingTime;
+    int32_t resultCode = 0;
+    int32_t remainTimes = -1;
+    int32_t freezingTime = -1;
     std::vector<uint8_t> token;
     JsIAMCallback callback;
 };
@@ -226,11 +226,7 @@ private:
 #endif  // HAS_PIN_AUTH_PART
 
 void CallbackAsyncOrPromise(napi_env env, IAMAsyncContext *context, napi_value errJs, napi_value dataJs);
-napi_value CreateUint8Array(napi_env env, const uint8_t *data, size_t length);
 napi_value CreateErrorObject(napi_env env, int32_t code);
-napi_status ParseUint8TypedArray(napi_env env, napi_value value, uint8_t **data, size_t *length);
-napi_status ParseUint8TypedArrayToVector(napi_env env, napi_value value, std::vector<uint8_t> &vec);
-napi_status ParseUint8TypedArrayToUint64(napi_env env, napi_value value, uint64_t &result);
 napi_status ParseUInt32Array(napi_env env, napi_value value, std::vector<uint32_t> &data);
 napi_status ParseIAMCallback(napi_env env, napi_value value, JsIAMCallback &callback);
 #ifdef HAS_USER_AUTH_PART
