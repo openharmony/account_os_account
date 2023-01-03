@@ -1577,7 +1577,7 @@ HWTEST_F(OsAccountManagerServiceModuleTest, OsAccountManagerServiceModuleTest082
 
     int localId = Constants::START_USER_ID - 1;
     EXPECT_EQ(osAccountManagerService_->SetGlobalOsAccountConstraints(
-        CONSTANTS_VECTOR, false, localId, true), ERR_OSACCOUNT_SERVICE_MANAGER_ID_ERROR);
+        CONSTANTS_VECTOR, false, localId, true), ERR_OSACCOUNT_SERVICE_INNER_SELECT_OSACCOUNT_BYID_ERROR);
 }
 
 /**
