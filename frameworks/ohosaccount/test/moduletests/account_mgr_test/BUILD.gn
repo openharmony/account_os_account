@@ -47,6 +47,8 @@ ohos_moduletest("AccountInnerSdkModuleTest") {
 
   sources += [ "account_mgr_inner_sdk_func_test.cpp" ]
 
+  include_dirs = [ "//base/account/os_account/interfaces/innerkits/ohosaccount/native/include/" ]
+
   configs = [
     ":accountmgr_mst_test_config",
     "${services_path}/accountmgr/test:accountmgr_test_config",
