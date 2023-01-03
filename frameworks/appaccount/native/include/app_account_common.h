@@ -22,10 +22,6 @@
 
 namespace OHOS {
 namespace AccountSA {
-namespace {
-const std::string UNKONW_STRING_VALUE = "unknown";
-}
-
 struct AppAccountCallingInfo {
     int32_t callingUid = -1;
     std::string bundleName;
@@ -71,7 +67,7 @@ struct SetPropertiesOptions : public Parcelable {
 struct CreateAccountOptions : public Parcelable {
     std::map<std::string, std::string> customData;
     bool ReadFromParcel(Parcel &parcel);
-    virtual bool Marshalling(Parcel &parcel) const override;
+    bool Marshalling(Parcel &parcel) const override;
     static CreateAccountOptions *Unmarshalling(Parcel &parcel);
 };
 
@@ -82,20 +78,20 @@ struct CreateAccountImplicitlyOptions : public Parcelable {
     std::vector<std::string> requiredLabels;
     AAFwk::Want parameters;
     bool ReadFromParcel(Parcel &parcel);
-    virtual bool Marshalling(Parcel &parcel) const override;
+    bool Marshalling(Parcel &parcel) const override;
     static CreateAccountImplicitlyOptions *Unmarshalling(Parcel &parcel);
 };
 
 struct AuthenticatorSessionRequest {
     std::string action;
     std::string sessionId;
-    std::string name = UNKONW_STRING_VALUE;
-    std::string owner = UNKONW_STRING_VALUE;
+    std::string name;
+    std::string owner;
     std::string authType;
     std::string token;
-    std::string bundleName = UNKONW_STRING_VALUE;
+    std::string bundleName;
     std::string callerBundleName;
-    std::string callerAbilityName = UNKONW_STRING_VALUE;
+    std::string callerAbilityName;
     uint32_t appIndex;
     bool isTokenVisible = false;
     pid_t callerPid;

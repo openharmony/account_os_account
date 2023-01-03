@@ -28,13 +28,11 @@
 
 namespace OHOS {
 namespace AccountSA {
-namespace {
 struct AssociatedDataCacheItem {
     std::map<std::string, std::string> data;
     std::string name;
     int32_t freq;
 };
-}
 
 class AppAccountControlManager : public DelayedSingleton<AppAccountControlManager> {
 public:
