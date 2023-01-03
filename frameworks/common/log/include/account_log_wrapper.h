@@ -22,7 +22,7 @@
 namespace OHOS {
 namespace AccountSA {
 enum class AccountLogLevel { DEBUG = 0, INFO, WARN, ERROR, FATAL };
-static constexpr OHOS::HiviewDFX::HiLogLabel ACCOUNT_LABEL = {LOG_CORE, LOG_DOMAIN, ACCOUNT_LOG_TAG};
+constexpr OHOS::HiviewDFX::HiLogLabel ACCOUNT_LABEL = {LOG_CORE, LOG_DOMAIN, ACCOUNT_LOG_TAG};
 
 class AccountLogWrapper {
 public:

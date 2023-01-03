@@ -16,7 +16,7 @@
 #ifndef OS_ACCOUNT_INTERFACES_KITS_NAPI_COMMON_INCLUDE_NAPI_ACCOUNT_ERROR_H
 #define OS_ACCOUNT_INTERFACES_KITS_NAPI_COMMON_INCLUDE_NAPI_ACCOUNT_ERROR_H
 
-#include <stdint.h>
+#include <cstdint>
 #include <string>
 #include "napi/native_api.h"
 #include "napi/native_common.h"
