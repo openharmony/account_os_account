@@ -103,7 +103,7 @@ bool ReadOhosAccountInfo(MessageParcel &data, OhosAccountInfo &ohosAccountInfo)
     ohosAccountInfo.uid_ = Str16ToStr8(uid);
     ohosAccountInfo.status_ = status;
     ohosAccountInfo.nickname_ = Str16ToStr8(nickname);
-    ohosAccountInfo.avatar_ = avatar;
+    ohosAccountInfo.avatar_ = std::string(avatar, avatarSize - 1);
     ohosAccountInfo.scalableData_ = *want;
     ohosAccountInfo.SetRawUid(Str16ToStr8(rawUid));
     return true;
