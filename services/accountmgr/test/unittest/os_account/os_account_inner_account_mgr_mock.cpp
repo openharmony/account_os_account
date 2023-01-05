@@ -791,7 +791,7 @@ HWTEST_F(OsAccountInnerAccmgrCoverageTest, OsAccountInnerAccmgrCoverageTest023, 
     innerMgrService_->SetOsAccountControl(ptr);
 
     int id = TEST_USER_ID100;
-    std::string name = "";
+    std::string name = "test";
 
     EXPECT_CALL(*ptr, GetOsAccountInfoById(_, _))
         .WillRepeatedly(testing::Return(-1));
