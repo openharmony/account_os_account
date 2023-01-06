@@ -375,6 +375,7 @@ HWTEST_F(AppAccountSessionModuleTest, AppAccountSessionModuleTest_GetAuthenticat
     ASSERT_EQ(result, ERR_APPACCOUNT_SERVICE_PERMISSION_DENIED);
 
     appAccountAuthenticatorSessionPtr_->ownerUid_ = ownerUid;
+    request.callerBundleName = "test";
     result = appAccountAuthenticatorSessionPtr_->GetAuthenticatorCallback(request, callback);
     ASSERT_EQ(result, ERR_APPACCOUNT_SERVICE_PERMISSION_DENIED);
 }
