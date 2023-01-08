@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021-2022 Huawei Device Co., Ltd.
+ * Copyright (c) 2021-2023 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -91,7 +91,7 @@ private:
     void CreateBaseStandardAccount();
     void CreateBaseStandardAccountSendToOther();
     void StartBaseStandardAccount(void);
-    void ResetActiveStatus(void);
+    void ResetAccountStatus(void);
     void StartActivatedAccount(int32_t id);
     ErrCode DeActivateOsAccount(const int id);
     ErrCode GetEventHandler(void);
