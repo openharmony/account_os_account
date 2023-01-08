@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021-2022 Huawei Device Co., Ltd.
+ * Copyright (c) 2021-2023 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -29,6 +29,7 @@ namespace AccountSA {
 namespace {
 const std::string CONSTRAINT_CREATE_ACCOUNT_DIRECTLY = "constraint.os.account.create.directly";
 }
+
 IInnerOsAccountManager::IInnerOsAccountManager() : subscribeManagerPtr_(OsAccountSubscribeManager::GetInstance())
 {
     counterForStandard_ = 0;
@@ -104,9 +105,7 @@ void IInnerOsAccountManager::StartAccount()
             errCode);
         return;
     }
-#ifndef ENABLE_MULTIPLE_ACTIVE_ACCOUNTS
-    ResetActiveStatus();
-#endif // ENABLE_MULTIPLE_ACTIVE_ACCOUNTS
+    ResetAccountStatus();
     GetEventHandler();
     if (!osAccountInfo.GetIsCreateCompleted()) {
         ACCOUNT_LOGI("OsAccountAccountMgr send to storage and bm for start");
@@ -209,17 +208,17 @@ void IInnerOsAccountManager::CreateBaseStandardAccountSendToOther(void)
     }
 }
 
-void IInnerOsAccountManager::ResetActiveStatus(void)
+void IInnerOsAccountManager::ResetAccountStatus(void)
 {
     std::vector<OsAccountInfo> osAccountInfos;
     if (QueryAllCreatedOsAccounts(osAccountInfos) != ERR_OK) {
         return;
     }
     for (size_t i = 0; i < osAccountInfos.size(); ++i) {
-        if (osAccountInfos[i].GetLocalId() == Constants::START_USER_ID) {
-            continue;
-        }
+        osAccountInfos[i].SetIsVerified(false);
+#ifndef ENABLE_MULTIPLE_ACTIVE_ACCOUNTS
         osAccountInfos[i].SetIsActived(false);
+#endif // ENABLE_MULTIPLE_ACTIVE_ACCOUNTS
         osAccountControl_->UpdateOsAccount(osAccountInfos[i]);
     }
 }
@@ -1319,6 +1318,11 @@ ErrCode IInnerOsAccountManager::SetOsAccountIsVerified(const int id, const bool 
     if (osAccountInfo.GetToBeRemoved()) {
         ACCOUNT_LOGE("account %{public}d will be removed, cannot change verify state!", id);
         return ERR_OSACCOUNT_SERVICE_INNER_ACCOUNT_TO_BE_REMOVED_ERROR;
+    }
+
+    if (isVerified && !osAccountInfo.GetIsVerified()) {
+        OsAccountInterface::PublishCommonEvent(osAccountInfo,
+            OHOS::EventFwk::CommonEventSupport::COMMON_EVENT_USER_UNLOCKED, Constants::OPERATION_UNLOCK);
     }
 
     osAccountInfo.SetIsVerified(isVerified);
