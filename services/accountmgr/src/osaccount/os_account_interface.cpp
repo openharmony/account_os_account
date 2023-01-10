@@ -52,7 +52,7 @@ ErrCode OsAccountInterface::SendToAMSAccountStart(OsAccountInfo &osAccountInfo)
 {
     ACCOUNT_LOGI("start");
     StartTrace(HITRACE_TAG_ACCOUNT_MANAGER, "AbilityManagerAdapter StartUser");
-    ErrCode code = AAFwk::AbilityManagerAdapter::GetInstance()->StartUser(osAccountInfo.GetLocalId());
+    ErrCode code = AbilityManagerAdapter::GetInstance()->StartUser(osAccountInfo.GetLocalId());
     if (code != ERR_OK) {
         ACCOUNT_LOGE("AbilityManagerAdapter StartUser failed! errcode is %{public}d", code);
         ReportOsAccountOperationFail(osAccountInfo.GetLocalId(), Constants::OPERATION_ACTIVATE, code,
@@ -76,7 +76,7 @@ ErrCode OsAccountInterface::SendToAMSAccountStop(OsAccountInfo &osAccountInfo)
         return ERR_ACCOUNT_COMMON_INSUFFICIENT_MEMORY_ERROR;
     }
     StartTrace(HITRACE_TAG_ACCOUNT_MANAGER, "AbilityManagerAdapter StopUser");
-    ErrCode code = AAFwk::AbilityManagerAdapter::GetInstance()->StopUser(osAccountInfo.GetLocalId(),
+    ErrCode code = AbilityManagerAdapter::GetInstance()->StopUser(osAccountInfo.GetLocalId(),
         osAccountStopUserCallback);
     if (code != ERR_OK) {
         ACCOUNT_LOGE("failed to AbilityManagerAdapter stop errcode is %{public}d", code);
