@@ -228,6 +228,8 @@ HWTEST_F(BundleManagerModuleTest, BundleManagerAdapter_QueryAbilityInfos_0100, T
 HWTEST_F(BundleManagerModuleTest, BundleManagerAdapter_ResetProxy_0100, TestSize.Level1)
 {
     auto bundleManagerAdapterSptr = BundleManagerAdapter::GetInstance();
+    ErrCode result = bundleManagerAdapterSptr->Connect();
+    ASSERT_EQ(result, ERR_OK);
     ASSERT_NE(bundleManagerAdapterSptr->proxy_, nullptr);
     auto sptr = bundleManagerAdapterSptr->proxy_->AsObject();
     ASSERT_NE(nullptr, sptr);
