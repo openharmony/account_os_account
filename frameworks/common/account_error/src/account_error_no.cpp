@@ -115,6 +115,16 @@ int32_t OsAccountConvertToJSErrCode(int32_t errCode)
     }
 }
 
+static int32_t DomainAccountConvertToJSErrCode(int32_t errCode)
+{
+    switch (errCode) {
+        case ERR_DOMAIN_ACCOUNT_SERVICE_PLUGIN_ALREADY_EXIST:
+            return ERR_JS_DOMAIN_PLUGIN_ALREADY_REGISTERED;
+        default:
+            return ERR_JS_SYSTEM_SERVICE_EXCEPTION;
+    }
+}
+
 static bool IsAppAccountKitError(int32_t errCode)
 {
     return (errCode >= ERR_APPACCOUNT_KIT_GET_SYSTEM_ABILITY_MANAGER &&
@@ -138,6 +148,12 @@ static bool IsOsAccountServiceError(int32_t errCode)
         errCode <= ERR_OSACCOUNT_SERVICE_GET_DATA_FROM_SPECIFIC_CONSTRAINTS_FILE_EMPTY);
 }
 
+static bool IsDomainAccountServiceError(int32_t errCode)
+{
+    return (errCode >= ERR_DOMAIN_ACCOUNT_SERVICE_PLUGIN_ALREADY_EXIST) &&
+        (errCode <= ERR_DOMAIN_ACCOUNT_SERVICE_PLUGIN_NOT_EXIST);
+}
+
 int32_t ConvertToJSErrCode(int32_t nativeErrCode)
 {
     if (nativeErrCode == ERR_OK) {
@@ -147,6 +163,8 @@ int32_t ConvertToJSErrCode(int32_t nativeErrCode)
         return AppAccountConvertToJSErrCode(nativeErrCode);
     } else if (IsOsAccountKitError(nativeErrCode) || IsOsAccountServiceError(nativeErrCode)) {
         return OsAccountConvertToJSErrCode(nativeErrCode);
+    } else if (IsDomainAccountServiceError(nativeErrCode)) {
+        return DomainAccountConvertToJSErrCode(nativeErrCode);
     } else if (nativeErrCode == ERR_ACCOUNT_ZIDL_CHECK_PERMISSION_ERROR) {
         return ERR_JS_PERMISSION_DENIED;
     } else {

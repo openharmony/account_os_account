@@ -173,6 +173,7 @@ config("os_account_amgr_test_config") {
 }
 
 ohos_unittest("OsAccountInnerAccmgrCovTest") {
+  cflags_cc = []
   module_out_path = module_output_path
   resource_config_file =
       "${os_account_path}/test/resource/accountmgrservice/ohos_test.xml"
@@ -192,6 +193,7 @@ ohos_unittest("OsAccountInnerAccmgrCovTest") {
     "${os_account_core_path}:os_account_core",
     "${os_account_innerkits_native_path}:os_account_innerkits",
     "${services_path}/accountmgr:accountmgr",
+    "//base/security/access_token/interfaces/innerkits/token_setproc:libtoken_setproc",
     "//base/useriam/user_auth_framework/frameworks/native/client:userauth_client",
     "//third_party/googletest:gmock_main",
     "//third_party/googletest:gtest_main",
@@ -200,12 +202,19 @@ ohos_unittest("OsAccountInnerAccmgrCovTest") {
   external_deps = [
     "ability_base:want",
     "ability_runtime:wantagent_innerkits",
+    "access_token:libaccesstoken_sdk",
     "c_utils:utils",
     "hiviewdfx_hilog_native:libhilog",
     "ipc:ipc_core",
     "kv_store:distributeddata_inner",
     "samgr:samgr_proxy",
   ]
+
+  if (has_ces_part) {
+    cflags_cc += [ "-DHAS_CES_PART" ]
+    external_deps += [ "common_event_service:cesfwk_innerkits" ]
+  }
+
   part_name = "os_account"
 }
 
