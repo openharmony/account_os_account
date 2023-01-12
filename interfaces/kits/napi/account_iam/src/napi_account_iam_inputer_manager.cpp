@@ -28,6 +28,8 @@ using namespace OHOS::AccountSA;
 napi_value NapiAccountIAMInputerManager::Init(napi_env env, napi_value exports)
 {
     napi_property_descriptor clzDes[] = {
+        DECLARE_NAPI_STATIC_FUNCTION("registerInputer", RegisterInputer),
+        DECLARE_NAPI_STATIC_FUNCTION("unregisterInputer", UnregisterInputer),
         DECLARE_NAPI_FUNCTION("registerInputer", RegisterInputer),
         DECLARE_NAPI_FUNCTION("unregisterInputer", UnregisterInputer)
     };
