@@ -72,7 +72,11 @@ static napi_value CreateNapiDomainAuthCallback(
             delete (reinterpret_cast<NapiDomainAuthCallback *>(data));
         },
         nullptr, nullptr);
-    NAPI_ASSERT(env, status == napi_ok, "wrap js DomainAuthCallback and native callback failed");
+    if (status != napi_ok) {
+        ACCOUNT_LOGE("wrap js DomainAuthCallback and native callback failed");
+        delete domainAuthCallback;
+        return nullptr;
+    }
     return napiCallback;
 }
 
@@ -147,6 +151,8 @@ int32_t NapiDomainAccountPlugin::GetAuthProperty(const DomainAccountInfo &info, 
 napi_value NapiDomainAccountManager::Init(napi_env env, napi_value exports)
 {
     napi_property_descriptor properties[] = {
+        DECLARE_NAPI_STATIC_FUNCTION("registerPlugin", RegisterPlugin),
+        DECLARE_NAPI_STATIC_FUNCTION("unregisterPlugin", UnregisterPlugin),
         DECLARE_NAPI_FUNCTION("registerPlugin", RegisterPlugin),
         DECLARE_NAPI_FUNCTION("unregisterPlugin", UnregisterPlugin)
     };
