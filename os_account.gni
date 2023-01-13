@@ -1,4 +1,4 @@
-# Copyright (c) 2021-2022 Huawei Device Co., Ltd.
+# Copyright (c) 2021-2023 Huawei Device Co., Ltd.
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
 # You may obtain a copy of the License at
@@ -42,6 +42,8 @@ account_iam_interfaces_native_path =
     "${os_account_path}/interfaces/innerkits/account_iam/native"
 account_iam_framework_path = "${os_account_path}/frameworks/account_iam"
 
+domain_account_napi_path =
+    "${os_account_path}/interfaces/kits/napi/domain_account"
 domain_account_interfaces_native_path =
     "${os_account_path}/interfaces/innerkits/domain_account/native"
 domain_account_framework_path = "${os_account_path}/frameworks/domain_account"
