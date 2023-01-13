@@ -23,6 +23,7 @@
 namespace OHOS {
 namespace AccountSA {
 namespace Constants {
+const std::string SYSTEM_ACTION_APP_ACCOUNT_AUTH = "ohos.appAccount.action.auth";
 const std::string SYSTEM_ACTION_APP_ACCOUNT_OAUTH = "ohos.account.appAccount.action.oauth";
 const std::string OAUTH_ACTION_ADD_ACCOUNT_IMPLICITLY = "addAccountImplicitly";
 const std::string OAUTH_ACTION_AUTHENTICATE = "authenticate";

@@ -40,18 +40,13 @@ void AppAccountAuthenticatorManager::Init()
     isInitialized_ = true;
 }
 
-ErrCode AppAccountAuthenticatorManager::GetAuthenticatorInfo(
-    const std::string &owner, int32_t userId, AuthenticatorInfo &info)
+static ErrCode QueryAbilityInfos(const std::string &owner, int32_t userId,
+    std::vector<AppExecFwk::AbilityInfo> &abilityInfos,
+    std::vector<AppExecFwk::ExtensionAbilityInfo> &extensionInfos)
 {
-    if (!isInitialized_) {
-        Init();
-    }
-
     AAFwk::Want want;
     want.SetBundle(owner);
-    want.SetAction(Constants::SYSTEM_ACTION_APP_ACCOUNT_OAUTH);
-    std::vector<AppExecFwk::AbilityInfo> abilityInfos;
-    std::vector<AppExecFwk::ExtensionAbilityInfo> extensionInfos;
+    want.SetAction(Constants::SYSTEM_ACTION_APP_ACCOUNT_AUTH);
     bool result = BundleManagerAdapter::GetInstance()->QueryAbilityInfos(
         want, AppExecFwk::BundleFlag::GET_BUNDLE_WITH_ABILITIES, userId, abilityInfos);
     if (!result) {
@@ -59,8 +54,32 @@ ErrCode AppAccountAuthenticatorManager::GetAuthenticatorInfo(
             want, AppExecFwk::BundleFlag::GET_BUNDLE_WITH_ABILITIES, userId, extensionInfos);
     }
     if (!result) {
+        want.SetAction(Constants::SYSTEM_ACTION_APP_ACCOUNT_OAUTH);
+        result = BundleManagerAdapter::GetInstance()->QueryAbilityInfos(
+            want, AppExecFwk::BundleFlag::GET_BUNDLE_WITH_ABILITIES, userId, abilityInfos);
+    }
+    if (!result) {
+        result = BundleManagerAdapter::GetInstance()->QueryExtensionAbilityInfos(
+            want, AppExecFwk::BundleFlag::GET_BUNDLE_WITH_ABILITIES, userId, extensionInfos);
+    }
+    if (!result) {
         ACCOUNT_LOGE("failed to query ability info");
         return ERR_APPACCOUNT_SERVICE_OAUTH_AUTHENTICATOR_NOT_EXIST;
+    }
+    return ERR_OK;
+}
+
+ErrCode AppAccountAuthenticatorManager::GetAuthenticatorInfo(
+    const std::string &owner, int32_t userId, AuthenticatorInfo &info)
+{
+    if (!isInitialized_) {
+        Init();
+    }
+    std::vector<AppExecFwk::AbilityInfo> abilityInfos;
+    std::vector<AppExecFwk::ExtensionAbilityInfo> extensionInfos;
+    ErrCode ret = QueryAbilityInfos(owner, userId, abilityInfos, extensionInfos);
+    if (ret != ERR_OK) {
+        return ret;
     }
 
     auto iter = std::find_if(abilityInfos.begin(), abilityInfos.end(),
