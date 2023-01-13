@@ -42,7 +42,7 @@ struct CallbackParam {
     napi_env env;
     napi_async_work work = nullptr;
     std::shared_ptr<AccountSA::DomainAuthCallback> callback = nullptr;
-    int32_t resultCode;
+    int32_t resultCode = 0;
     AccountSA::DomainAuthResult authResult;
 };
 }  // namespace AccountJsKit

@@ -88,7 +88,7 @@ static void ParseDoaminAuthResult(napi_env env, napi_value value, DomainAuthResu
         napi_get_value_int32(env, napiRemainTimes, &(authResult.authProperty.remainingTimes));
     }
     napi_value napiFreezingTime = nullptr;
-    napi_get_named_property(env, value, "freezingTimes", &napiFreezingTime);
+    napi_get_named_property(env, value, "freezingTime", &napiFreezingTime);
     if (napiFreezingTime == nullptr) {
         authResult.authProperty.freezingTime = -1;
     } else {

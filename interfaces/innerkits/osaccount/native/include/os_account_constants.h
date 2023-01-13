@@ -43,6 +43,7 @@ const std::string OPERATION_CREATE = "create";
 const std::string OPERATION_DELETE = "delete";
 const std::string OPERATION_SWITCH = "switch";
 const std::string OPERATION_STOP = "stop";
+const std::string OPERATION_UPDATE = "update";
 
 // distributed database
 const std::string APP_ID = "os_account_mgr_service";
