@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2022 Huawei Device Co., Ltd.
+ * Copyright (c) 2022-2023 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -15,12 +15,15 @@
 #include "ipc_skeleton.h"
 #include "napi_account_common.h"
 
+#include "account_log_wrapper.h"
+#include "ipc_skeleton.h"
 #include "js_native_api.h"
 #include "js_native_api_types.h"
 #include "napi_account_error.h"
 #include "napi/native_api.h"
 #include "napi/native_common.h"
 #include "napi/native_node_api.h"
+#include "securec.h"
 #include "tokenid_kit.h"
 
 namespace OHOS {
@@ -28,6 +31,8 @@ namespace AccountJsKit {
 namespace {
 constexpr int32_t BUSINESS_ERROR_ARG_SIZE = 2;
 }
+
+using namespace AccountSA;
 
 void ProcessCallbackOrPromise(napi_env env, const CommonAsyncContext *asyncContext, napi_value err, napi_value data)
 {
@@ -185,6 +190,74 @@ napi_value CreateStringArray(napi_env env, const std::vector<std::string> &strVe
         napi_set_element(env, result, i, value);
     }
     return result;
+}
+napi_value CreateUint8Array(napi_env env, const uint8_t *srcData, size_t length)
+{
+    napi_value result = nullptr;
+    void* dstData = nullptr;
+    napi_value napiArr = nullptr;
+    NAPI_CALL(env, napi_create_arraybuffer(env, length, &dstData, &napiArr));
+    if ((length > 0) && (memcpy_s(dstData, length, srcData, length) != EOK)) {
+        return result;
+    }
+    NAPI_CALL(env, napi_create_typedarray(env, napi_uint8_array, length, napiArr, 0, &result));
+    return result;
+}
+
+napi_status ParseUint8TypedArray(napi_env env, napi_value value, uint8_t **data, size_t *length)
+{
+    *data = nullptr;
+    *length = 0;
+    bool isTypedArray = false;
+    napi_is_typedarray(env, value, &isTypedArray);
+    if (!isTypedArray) {
+        ACCOUNT_LOGE("invalid uint8 array");
+        return napi_ok;
+    }
+    napi_typedarray_type arrayType = static_cast<napi_typedarray_type>(-1);  // -1 indicates invalid type
+    napi_value buffer = nullptr;
+    size_t offset = 0;
+    napi_get_typedarray_info(env, value, &arrayType, length, reinterpret_cast<void **>(data), &buffer, &offset);
+    if (arrayType != napi_uint8_array) {
+        ACCOUNT_LOGE("invalid uint8 array");
+        *data = nullptr;
+        *length = 0;
+    }
+    return napi_ok;
+}
+
+napi_status ParseUint8TypedArrayToVector(napi_env env, napi_value value, std::vector<uint8_t> &vec)
+{
+    uint8_t *data = nullptr;
+    size_t length = 0;
+    napi_status status = ParseUint8TypedArray(env, value, &data, &length);
+    if (status != napi_ok) {
+        ACCOUNT_LOGE("failed to ParseUint8TypedArray");
+        return status;
+    }
+    vec.assign(data, data + length);
+    return napi_ok;
+}
+
+napi_status ParseUint8TypedArrayToUint64(napi_env env, napi_value value, uint64_t &result)
+{
+    uint8_t *data = nullptr;
+    size_t length = 0;
+    napi_status status = ParseUint8TypedArray(env, value, &data, &length);
+    if (status != napi_ok) {
+        ACCOUNT_LOGE("failed to ParseUint8TypedArray");
+        return status;
+    }
+    if (data == nullptr) {
+        result = 0;
+        return napi_invalid_arg;
+    }
+    if (length != sizeof(uint64_t)) {
+        ACCOUNT_LOGE("failed to convert to uint64_t value");
+        return napi_invalid_arg;
+    }
+    result = *(reinterpret_cast<uint64_t *>(data));
+    return napi_ok;
 }
 } // namespace AccountJsKit
 } // namespace OHOS
