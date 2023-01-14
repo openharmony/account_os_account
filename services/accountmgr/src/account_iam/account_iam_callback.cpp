@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2022 Huawei Device Co., Ltd.
+ * Copyright (c) 2022-2023 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -16,6 +16,7 @@
 #include "account_iam_callback.h"
 
 #include "account_log_wrapper.h"
+#include "iinner_os_account_manager.h"
 #include "inner_account_iam_manager.h"
 #include "user_auth_client.h"
 #include "user_idm_client.h"
@@ -58,6 +59,7 @@ void AuthCallback::OnResult(int32_t result, const Attributes &extraInfo)
         innerCallback_->OnResult(ResultCode::FAIL, errInfo);
     } else {
         innerCallback_->OnResult(result, extraInfo);
+        (void)IInnerOsAccountManager::GetInstance()->SetOsAccountIsVerified(userId_, true);
     }
 }
 

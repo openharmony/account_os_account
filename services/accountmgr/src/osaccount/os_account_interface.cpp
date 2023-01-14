@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021-2022 Huawei Device Co., Ltd.
+ * Copyright (c) 2021-2023 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -329,6 +329,7 @@ ErrCode OsAccountInterface::SendToStorageAccountRemove(OsAccountInfo &osAccountI
 ErrCode OsAccountInterface::SendToStorageAccountStart(OsAccountInfo &osAccountInfo)
 {
     ACCOUNT_LOGI("start");
+    bool isUserUnlocked = false;
 #ifdef HAS_STORAGE_PART
     auto systemAbilityManager = SystemAbilityManagerClient::GetInstance().GetSystemAbilityManager();
     if (!systemAbilityManager) {
@@ -342,8 +343,7 @@ ErrCode OsAccountInterface::SendToStorageAccountStart(OsAccountInfo &osAccountIn
     if (!remote) {
         ACCOUNT_LOGE("failed to get STORAGE_MANAGER_MANAGER_ID service.");
         ReportOsAccountOperationFail(osAccountInfo.GetLocalId(), Constants::OPERATION_ACTIVATE,
-            ERR_OSACCOUNT_SERVICE_INTERFACE_TO_STORAGE_ACCOUNT_START_ERROR,
-            "GetSystemAbility for storage failed!");
+            ERR_OSACCOUNT_SERVICE_INTERFACE_TO_STORAGE_ACCOUNT_START_ERROR, "GetSystemAbility for storage failed!");
         return ERR_OSACCOUNT_SERVICE_INTERFACE_TO_STORAGE_ACCOUNT_START_ERROR;
     }
     auto proxy = iface_cast<StorageManager::IStorageManager>(remote);
@@ -354,15 +354,27 @@ ErrCode OsAccountInterface::SendToStorageAccountStart(OsAccountInfo &osAccountIn
     StartTrace(HITRACE_TAG_ACCOUNT_MANAGER, "StorageManager PrepareStartUser");
     int localId = osAccountInfo.GetLocalId();
     std::vector<uint8_t> emptyData;
-    proxy->ActiveUserKey(localId, emptyData, emptyData);
-    int err = proxy->PrepareStartUser(localId);
+    int err = proxy->ActiveUserKey(localId, emptyData, emptyData);
+    if ((err == 0) && !osAccountInfo.GetIsVerified()) {
+        isUserUnlocked = true;
+    }
+    err = proxy->PrepareStartUser(localId);
     if (err != 0) {
         ReportOsAccountOperationFail(osAccountInfo.GetLocalId(), Constants::OPERATION_ACTIVATE,
             err, "Storage PrepareStartUser failed!");
     }
     ACCOUNT_LOGI("end, Storage PrepareStartUser ret %{public}d.", err);
     FinishTrace(HITRACE_TAG_ACCOUNT_MANAGER);
+#elif
+    if (!osAccountInfo.GetIsVerified()) {
+        isUserUnlocked = true;
+    }
 #endif
+    if (isUserUnlocked) {
+        osAccountInfo.SetIsVerified(true);
+        PublishCommonEvent(osAccountInfo, OHOS::EventFwk::CommonEventSupport::COMMON_EVENT_USER_UNLOCKED,
+            Constants::OPERATION_UNLOCK);
+    }
     return ERR_OK;
 }
 
