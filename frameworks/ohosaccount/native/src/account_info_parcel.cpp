@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2022 Huawei Device Co., Ltd.
+ * Copyright (c) 2022-2023 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -57,56 +57,70 @@ bool WriteOhosAccountInfo(MessageParcel &data, const OhosAccountInfo &ohosAccoun
     return true;
 }
 
-bool ReadOhosAccountInfo(MessageParcel &data, OhosAccountInfo &ohosAccountInfo)
+static ErrCode ReadAvatarData(MessageParcel &data, std::string &avatarStr)
 {
-    std::u16string name;
-    if (!data.ReadString16(name)) {
-        ACCOUNT_LOGE("read name failed");
-        return false;
-    }
-    std::u16string uid;
-    if (!data.ReadString16(uid)) {
-        ACCOUNT_LOGE("read uid failed");
-        return false;
-    }
-    std::u16string rawUid;
-    if (!data.ReadString16(rawUid)) {
-        ACCOUNT_LOGE("read rawUid failed");
-        return false;
-    }
-    int32_t status;
-    if (!data.ReadInt32(status)) {
-        ACCOUNT_LOGE("read status failed");
-        return false;
-    }
-    std::u16string nickname;
-    if (!data.ReadString16(nickname)) {
-        ACCOUNT_LOGE("read nickname failed");
-        return false;
-    }
     int32_t avatarSize;
     if (!data.ReadInt32(avatarSize)) {
         ACCOUNT_LOGE("read avatarSize failed");
-        return false;
+        return ERR_ACCOUNT_COMMON_READ_PARCEL_ERROR;
+    }
+    if (avatarSize - 1 > Constants::AVATAR_MAX_SIZE) {
+        ACCOUNT_LOGE("avatarSize is oversize");
+        return ERR_OHOSACCOUNT_KIT_INVALID_PARAMETER;
     }
     const char *avatar = reinterpret_cast<const char *>(data.ReadRawData(avatarSize));
     if (avatar == nullptr) {
         ACCOUNT_LOGE("read avatar failed");
-        return false;
+        return ERR_ACCOUNT_COMMON_READ_PARCEL_ERROR;
+    }
+    avatarStr = std::string(avatar, avatarSize - 1);
+    return ERR_OK;
+}
+
+ErrCode ReadOhosAccountInfo(MessageParcel &data, OhosAccountInfo &ohosAccountInfo)
+{
+    std::u16string name;
+    if (!data.ReadString16(name)) {
+        ACCOUNT_LOGE("read name failed");
+        return ERR_ACCOUNT_COMMON_READ_PARCEL_ERROR;
+    }
+    std::u16string uid;
+    if (!data.ReadString16(uid)) {
+        ACCOUNT_LOGE("read uid failed");
+        return ERR_ACCOUNT_COMMON_READ_PARCEL_ERROR;
+    }
+    std::u16string rawUid;
+    if (!data.ReadString16(rawUid)) {
+        ACCOUNT_LOGE("read rawUid failed");
+        return ERR_ACCOUNT_COMMON_READ_PARCEL_ERROR;
+    }
+    int32_t status;
+    if (!data.ReadInt32(status)) {
+        ACCOUNT_LOGE("read status failed");
+        return ERR_ACCOUNT_COMMON_READ_PARCEL_ERROR;
+    }
+    std::u16string nickname;
+    if (!data.ReadString16(nickname)) {
+        ACCOUNT_LOGE("read nickname failed");
+        return ERR_ACCOUNT_COMMON_READ_PARCEL_ERROR;
+    }
+
+    ErrCode ret = ReadAvatarData(data, ohosAccountInfo.avatar_);
+    if (ret != ERR_OK) {
+        return ret;
     }
     sptr<AAFwk::Want> want = data.ReadParcelable<AAFwk::Want>();
     if (want == nullptr) {
         ACCOUNT_LOGE("read want failed");
-        return false;
+        return ERR_ACCOUNT_COMMON_READ_PARCEL_ERROR;
     }
     ohosAccountInfo.name_ = Str16ToStr8(name);
     ohosAccountInfo.uid_ = Str16ToStr8(uid);
     ohosAccountInfo.status_ = status;
     ohosAccountInfo.nickname_ = Str16ToStr8(nickname);
-    ohosAccountInfo.avatar_ = std::string(avatar, avatarSize - 1);
     ohosAccountInfo.scalableData_ = *want;
     ohosAccountInfo.SetRawUid(Str16ToStr8(rawUid));
-    return true;
+    return ERR_OK;
 }
 }  // namespace AccountSA
 }  // namespace OHOS
