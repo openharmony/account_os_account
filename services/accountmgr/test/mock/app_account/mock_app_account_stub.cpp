@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021-2022 Huawei Device Co., Ltd.
+ * Copyright (c) 2021-2023 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -304,6 +304,13 @@ ErrCode MockAppAccountStub::GetAllAccessibleAccounts(std::vector<AppAccountInfo>
 {
     ACCOUNT_LOGI("mock enter");
 
+    return ERR_OK;
+}
+
+ErrCode MockAppAccountStub::QueryAllAccessibleAccounts(
+    const std::string &owner, std::vector<AppAccountInfo> &appAccounts)
+{
+    ACCOUNT_LOGI("mock enter");
     return ERR_OK;
 }
 
