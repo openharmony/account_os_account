@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021-2022 Huawei Device Co., Ltd.
+ * Copyright (c) 2021-2023 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -481,6 +481,14 @@ ErrCode AppAccount::GetAllAccessibleAccounts(std::vector<AppAccountInfo> &appAcc
 {
     RETURN_IF_PROXY_IS_NULLPTR();
     return appAccountProxy_->GetAllAccessibleAccounts(appAccounts);
+}
+
+ErrCode AppAccount::QueryAllAccessibleAccounts(
+    const std::string &owner, std::vector<AppAccountInfo> &appAccounts)
+{
+    RETURN_IF_PROXY_IS_NULLPTR();
+    RETURN_IF_STRING_IS_OVERSIZE(owner, Constants::OWNER_MAX_SIZE, "owner is oversize");
+    return appAccountProxy_->QueryAllAccessibleAccounts(owner, appAccounts);
 }
 
 ErrCode AppAccount::SubscribeAppAccount(const std::shared_ptr<AppAccountSubscriber> &subscriber)

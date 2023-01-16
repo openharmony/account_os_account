@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2022 Huawei Device Co., Ltd.
+ * Copyright (c) 2022-2023 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -476,6 +476,20 @@ HWTEST_F(AppAccountProxyMockTest, AppAccountManager_GetAllAccessibleAccounts_010
 {
     std::vector<AppAccountInfo> appAccounts;
     ErrCode result = AppAccountManager::GetAllAccessibleAccounts(appAccounts);
+    ASSERT_EQ(ERR_APPACCOUNT_KIT_GET_SYSTEM_ABILITY_MANAGER, result);
+}
+
+/**
+ * @tc.name: AppAccountManager_QueryAllAccessibleAccounts_0100
+ * @tc.desc: Test func with proxy is nullptr.
+ * @tc.type: FUNC
+ * @tc.require: issueI4MBQS
+ */
+HWTEST_F(AppAccountProxyMockTest, AppAccountManager_QueryAllAccessibleAccounts_0100, TestSize.Level1)
+{
+    std::vector<AppAccountInfo> appAccounts;
+    std::string owner = "";
+    ErrCode result = AppAccountManager::QueryAllAccessibleAccounts(owner, appAccounts);
     ASSERT_EQ(ERR_APPACCOUNT_KIT_GET_SYSTEM_ABILITY_MANAGER, result);
 }
 
