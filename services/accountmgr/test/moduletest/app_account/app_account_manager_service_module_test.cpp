@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021-2022 Huawei Device Co., Ltd.
+ * Copyright (c) 2021-2023 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -2216,6 +2216,21 @@ HWTEST_F(AppAccountManagerServiceModuleTest, AppAccountManagerService_GetAllAcce
 }
 
 /**
+ * @tc.name: AppAccountManagerService_QueryAllAccessibleAccounts_0100
+ * @tc.desc: Get all accessible accounts with valid data.
+ * @tc.type: FUNC
+ * @tc.require: issueI5N90B
+ */
+HWTEST_F(AppAccountManagerServiceModuleTest, AppAccountManagerService_QueryAllAccessibleAccounts_0100, TestSize.Level0)
+{
+    std::vector<AppAccountInfo> appAccounts;
+    std::string owner = "";
+    ErrCode result = g_accountManagerService->QueryAllAccessibleAccounts(owner, appAccounts);
+    EXPECT_EQ(result, ERR_OK);
+    EXPECT_EQ(appAccounts.size(), SIZE_ZERO);
+}
+
+/**
  * @tc.name: AppAccountManagerService_GetAllAccessibleAccounts_0200
  * @tc.desc: Get all accessible accounts with valid data.
  * @tc.type: FUNC
@@ -2242,6 +2257,31 @@ HWTEST_F(AppAccountManagerServiceModuleTest, AppAccountManagerService_GetAllAcce
 }
 
 /**
+ * @tc.name: AppAccountManagerService_QueryAllAccessibleAccounts_0200
+ * @tc.desc: Get all accessible accounts with valid data.
+ * @tc.type: FUNC
+ * @tc.require: issueI5N90B
+ */
+HWTEST_F(AppAccountManagerServiceModuleTest, AppAccountManagerService_QueryAllAccessibleAccounts_0200, TestSize.Level1)
+{
+    ErrCode result = g_accountManagerService->AddAccount(STRING_NAME, STRING_EXTRA_INFO);
+    EXPECT_EQ(result, ERR_OK);
+
+    std::vector<AppAccountInfo> appAccounts;
+    std::string owner = "";
+    result = g_accountManagerService->QueryAllAccessibleAccounts(owner, appAccounts);
+    EXPECT_EQ(result, ERR_OK);
+    ASSERT_EQ(appAccounts.size(), SIZE_ONE);
+
+    std::string name;
+    appAccounts.begin()->GetName(name);
+    EXPECT_EQ(name, STRING_NAME);
+
+    result = g_accountManagerService->DeleteAccount(STRING_NAME);
+    EXPECT_EQ(result, ERR_OK);
+}
+
+/**
  * @tc.name: AppAccountManagerService_GetAllAccessibleAccounts_0300
  * @tc.desc: Get all accessible accounts with valid data.
  * @tc.type: FUNC
@@ -2249,8 +2289,6 @@ HWTEST_F(AppAccountManagerServiceModuleTest, AppAccountManagerService_GetAllAcce
  */
 HWTEST_F(AppAccountManagerServiceModuleTest, AppAccountManagerService_GetAllAccessibleAccounts_0300, TestSize.Level1)
 {
-    ACCOUNT_LOGI("AppAccountManagerService_GetAllAccessibleAccounts_0300");
-
     AppAccountInfo appAccountInfo(STRING_NAME, STRING_BUNDLE_NAME);
     ErrCode result =
         g_controlManagerPtr->AddAccount(STRING_NAME, STRING_EMPTY, UID, STRING_BUNDLE_NAME, appAccountInfo);
@@ -2268,6 +2306,17 @@ HWTEST_F(AppAccountManagerServiceModuleTest, AppAccountManagerService_GetAllAcce
     ASSERT_EQ(appAccounts.size(), SIZE_ONE);
 
     std::string owner;
+    appAccounts.begin()->GetOwner(owner);
+    EXPECT_EQ(owner, STRING_BUNDLE_NAME);
+
+    // test api9 func
+    appAccounts.clear();
+    std::string queryOwner = "";
+    result = g_accountManagerService->QueryAllAccessibleAccounts(queryOwner, appAccounts);
+    EXPECT_EQ(result, ERR_OK);
+    ASSERT_EQ(appAccounts.size(), SIZE_ONE);
+
+    owner = "";
     appAccounts.begin()->GetOwner(owner);
     EXPECT_EQ(owner, STRING_BUNDLE_NAME);
 

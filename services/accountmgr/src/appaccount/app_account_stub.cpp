@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021-2022 Huawei Device Co., Ltd.
+ * Copyright (c) 2021-2023 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -194,6 +194,10 @@ const std::map<uint32_t, AppAccountStub::MessageProcFunction> AppAccountStub::me
     },
     {
         static_cast<uint32_t>(IAppAccount::Message::GET_ALL_ACCESSIBLE_ACCOUNTS),
+        &AppAccountStub::ProcGetAllAccessibleAccounts,
+    },
+    {
+        static_cast<uint32_t>(IAppAccount::Message::QUERY_ALL_ACCESSIBLE_ACCOUNTS),
         &AppAccountStub::ProcGetAllAccessibleAccounts,
     },
     {
@@ -843,7 +847,17 @@ ErrCode AppAccountStub::ProcGetAllAccounts(uint32_t code, MessageParcel &data, M
 ErrCode AppAccountStub::ProcGetAllAccessibleAccounts(uint32_t code, MessageParcel &data, MessageParcel &reply)
 {
     std::vector<AppAccountInfo> appAccounts;
-    ErrCode result = GetAllAccessibleAccounts(appAccounts);
+    ErrCode result = ERR_OK;
+    if (code == static_cast<uint32_t>(IAppAccount::Message::GET_ALL_ACCESSIBLE_ACCOUNTS)) {
+        result = GetAllAccessibleAccounts(appAccounts);
+    } else if (code == static_cast<uint32_t>(IAppAccount::Message::QUERY_ALL_ACCESSIBLE_ACCOUNTS)) {
+        std::string owner = data.ReadString();
+        RETURN_IF_STRING_IS_OVERSIZE(owner, Constants::OWNER_MAX_SIZE, "owner is or oversize", reply);
+        result = QueryAllAccessibleAccounts(owner, appAccounts);
+    } else {
+        ACCOUNT_LOGE("stub code is invalid");
+        return IPC_INVOKER_ERR;
+    }
     if (!reply.WriteInt32(result)) {
         ACCOUNT_LOGE("failed to write reply");
         return IPC_STUB_WRITE_PARCEL_ERR;
