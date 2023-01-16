@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021-2022 Huawei Device Co., Ltd.
+ * Copyright (c) 2021-2023 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -88,6 +88,7 @@ public:
 
     virtual ErrCode GetAllAccounts(const std::string &owner, std::vector<AppAccountInfo> &appAccounts) = 0;
     virtual ErrCode GetAllAccessibleAccounts(std::vector<AppAccountInfo> &appAccounts) = 0;
+    virtual ErrCode QueryAllAccessibleAccounts(const std::string &owner, std::vector<AppAccountInfo> &appAccounts) = 0;
     virtual ErrCode SelectAccountsByOptions(
         const SelectAccountsOptions &options, const sptr<IRemoteObject> &callback) = 0;
     virtual ErrCode VerifyCredential(const std::string &name, const std::string &owner,
@@ -134,6 +135,7 @@ public:
         CLEAR_OAUTH_TOKEN,
         GET_ALL_ACCOUNTS,
         GET_ALL_ACCESSIBLE_ACCOUNTS,
+        QUERY_ALL_ACCESSIBLE_ACCOUNTS,
         SUBSCRIBE_ACCOUNT,
         UNSUBSCRIBE_ACCOUNT,
         CHECK_APP_ACCESS,
