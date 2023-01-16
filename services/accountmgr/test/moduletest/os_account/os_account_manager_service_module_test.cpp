@@ -535,9 +535,9 @@ HWTEST_F(OsAccountManagerServiceModuleTest, OsAccountManagerServiceModuleTest019
  */
 HWTEST_F(OsAccountManagerServiceModuleTest, OsAccountManagerServiceModuleTest020, TestSize.Level1)
 {
-    bool isVerified = true;
+    bool isVerified = false;
     EXPECT_EQ(osAccountManagerService_->IsOsAccountVerified(Constants::START_USER_ID, isVerified), ERR_OK);
-    EXPECT_EQ(isVerified, false);
+    EXPECT_EQ(isVerified, true);
 }
 
 /**
