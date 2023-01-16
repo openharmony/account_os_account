@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021-2022 Huawei Device Co., Ltd.
+ * Copyright (c) 2021-2023 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -95,8 +95,9 @@ std::int32_t AccountStub::InnerUpdateOhosAccountInfo(MessageParcel &data, Messag
 std::int32_t AccountStub::InnerSetOhosAccountInfo(MessageParcel &data, MessageParcel &reply)
 {
     OhosAccountInfo info;
-    if (!ReadOhosAccountInfo(data, info)) {
-        return ERR_ACCOUNT_COMMON_READ_PARCEL_ERROR;
+    std::int32_t ret = ReadOhosAccountInfo(data, info);
+    if (ret != ERR_OK) {
+        return ret;
     }
     if (!info.IsValid()) {
         ACCOUNT_LOGE("Check OhosAccountInfo failed");
@@ -105,7 +106,7 @@ std::int32_t AccountStub::InnerSetOhosAccountInfo(MessageParcel &data, MessagePa
     // ignore the real account name
     const std::string eventStr = Str16ToStr8(data.ReadString16());
 
-    std::int32_t ret = SetOhosAccountInfo(info, eventStr);
+    ret = SetOhosAccountInfo(info, eventStr);
     if (ret != ERR_OK) {
         ACCOUNT_LOGE("Set ohos account info failed");
         ret = ERR_ACCOUNT_ZIDL_ACCOUNT_STUB_ERROR;
