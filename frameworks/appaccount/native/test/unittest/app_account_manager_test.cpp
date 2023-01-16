@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021-2022 Huawei Device Co., Ltd.
+ * Copyright (c) 2021-2023 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -2120,12 +2120,27 @@ HWTEST_F(AppAccountManagerTest, AppAccountManager_GetAllAccounts_0300, TestSize.
  */
 HWTEST_F(AppAccountManagerTest, AppAccountManager_GetAllAccessibleAccounts_0100, TestSize.Level1)
 {
-    ACCOUNT_LOGI("AppAccountManager_GetAllAccounts_0300");
     std::vector<AppAccountInfo> appAccounts;
     ErrCode result = AppAccountManager::GetAllAccessibleAccounts(appAccounts);
     EXPECT_EQ(result, ERR_APPACCOUNT_SERVICE_GET_BUNDLE_NAME);
     EXPECT_TRUE(appAccounts.empty());
 }
+
+/**
+ * @tc.name: AppAccountManager_QueryAllAccessibleAccounts_0100
+ * @tc.desc: Fail to query all accessible accounts from shell process.
+ * @tc.type: FUNC
+ * @tc.require: issueI4MBQS
+ */
+HWTEST_F(AppAccountManagerTest, AppAccountManager_QueryAllAccessibleAccounts_0100, TestSize.Level1)
+{
+    std::vector<AppAccountInfo> appAccounts;
+    std::string owner = "";
+    ErrCode result = AppAccountManager::QueryAllAccessibleAccounts(owner, appAccounts);
+    EXPECT_EQ(result, ERR_APPACCOUNT_SERVICE_GET_BUNDLE_NAME);
+    EXPECT_TRUE(appAccounts.empty());
+}
+
 
 /**
  * @tc.name: AppAccountManager_UnsubscribeAppAccount_0100

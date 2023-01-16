@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021-2022 Huawei Device Co., Ltd.
+ * Copyright (c) 2021-2023 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -586,6 +586,29 @@ ErrCode AppAccountManagerService::GetAllAccessibleAccounts(std::vector<AppAccoun
         return ret;
     }
     return innerManager_->GetAllAccessibleAccounts(appAccounts, callingUid, bundleName, appIndex);
+}
+
+ErrCode AppAccountManagerService::QueryAllAccessibleAccounts(
+    const std::string &owner, std::vector<AppAccountInfo> &appAccounts)
+{
+    int32_t callingUid = -1;
+    std::string bundleName;
+    uint32_t appIndex;
+    ErrCode result = GetCallingInfo(callingUid, bundleName, appIndex);
+    if (result != ERR_OK) {
+        return result;
+    }
+    if (owner.empty()) {
+        return innerManager_->GetAllAccessibleAccounts(appAccounts, callingUid, bundleName, appIndex);
+    }
+    AppExecFwk::BundleInfo bundleInfo;
+    int32_t userId = callingUid / UID_TRANSFORM_DIVISOR;
+    bool ret = BundleManagerAdapter::GetInstance()->GetBundleInfo(
+        owner, AppExecFwk::BundleFlag::GET_BUNDLE_DEFAULT, bundleInfo, userId);
+    if (!ret) {
+        return ERR_APPACCOUNT_SERVICE_GET_BUNDLE_INFO;
+    }
+    return innerManager_->GetAllAccounts(owner, appAccounts, callingUid, bundleName, appIndex);
 }
 
 ErrCode AppAccountManagerService::CheckAppAccess(

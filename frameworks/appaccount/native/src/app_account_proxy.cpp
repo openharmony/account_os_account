@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021-2022 Huawei Device Co., Ltd.
+ * Copyright (c) 2021-2023 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -1025,6 +1025,30 @@ ErrCode AppAccountProxy::GetAllAccessibleAccounts(std::vector<AppAccountInfo> &a
         return ERR_APPACCOUNT_KIT_READ_PARCELABLE_APP_ACCOUNT_INFO;
     }
 
+    return result;
+}
+
+ErrCode AppAccountProxy::QueryAllAccessibleAccounts(const std::string &owner, std::vector<AppAccountInfo> &appAccounts)
+{
+    MessageParcel data;
+    if (!data.WriteInterfaceToken(GetDescriptor())) {
+        ACCOUNT_LOGE("failed to write descriptor!");
+        return ERR_ACCOUNT_COMMON_WRITE_PARCEL_ERROR;
+    }
+    if (!data.WriteString(owner)) {
+        ACCOUNT_LOGE("failed to write string for owner");
+        return ERR_ACCOUNT_COMMON_WRITE_PARCEL_ERROR;
+    }
+    MessageParcel reply;
+    ErrCode result = SendRequest(IAppAccount::Message::QUERY_ALL_ACCESSIBLE_ACCOUNTS, data, reply);
+    if (result != ERR_OK) {
+        return result;
+    }
+    result = reply.ReadInt32();
+    if (!ReadParcelableVector(appAccounts, reply)) {
+        ACCOUNT_LOGE("failed to read parcelable for AppAccountInfo");
+        return ERR_APPACCOUNT_KIT_READ_PARCELABLE_APP_ACCOUNT_INFO;
+    }
     return result;
 }
 

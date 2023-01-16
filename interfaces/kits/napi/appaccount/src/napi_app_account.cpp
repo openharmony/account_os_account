@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021-2022 Huawei Device Co., Ltd.
+ * Copyright (c) 2021-2023 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -776,12 +776,16 @@ napi_value NapiAppAccount::GetAllAccessibleAccountsInternal(napi_env env, napi_c
     napi_value resource = nullptr;
     napi_create_string_utf8(env, "GetAllAccessibleAccounts", NAPI_AUTO_LENGTH, &resource);
 
-    napi_create_async_work(env,
-        nullptr,
-        resource,
+    napi_create_async_work(env, nullptr, resource,
         [](napi_env env, void *data) {
             GetAccountsAsyncContext *asyncContext = reinterpret_cast<GetAccountsAsyncContext *>(data);
-            asyncContext->errCode = AppAccountManager::GetAllAccessibleAccounts(asyncContext->appAccounts);
+            if (asyncContext->throwErr) {
+                asyncContext->errCode =
+                    AppAccountManager::QueryAllAccessibleAccounts(asyncContext->owner, asyncContext->appAccounts);
+            } else {
+                asyncContext->errCode =
+                    AppAccountManager::GetAllAccessibleAccounts(asyncContext->appAccounts);
+            }
         },
         [](napi_env env, napi_status status, void *data) {
             GetAccountsAsyncContext *asyncContext = reinterpret_cast<GetAccountsAsyncContext *>(data);
@@ -846,12 +850,20 @@ napi_value NapiAppAccount::GetAccountsByOwnerInternal(napi_env env, napi_callbac
     napi_value resource = nullptr;
     napi_create_string_utf8(env, "GetAllAccounts", NAPI_AUTO_LENGTH, &resource);
 
-    napi_create_async_work(env,
-        nullptr,
-        resource,
+    napi_create_async_work(env, nullptr, resource,
         [](napi_env env, void *data) {
             GetAccountsAsyncContext *asyncContext = reinterpret_cast<GetAccountsAsyncContext *>(data);
-            asyncContext->errCode = AppAccountManager::GetAllAccounts(asyncContext->owner, asyncContext->appAccounts);
+            if (!asyncContext->throwErr) {
+                asyncContext->errCode =
+                    AppAccountManager::GetAllAccounts(asyncContext->owner, asyncContext->appAccounts);
+                return;
+            }
+            if (!asyncContext->owner.empty()) {
+                asyncContext->errCode =
+                    AppAccountManager::QueryAllAccessibleAccounts(asyncContext->owner, asyncContext->appAccounts);
+                return;
+            }
+            asyncContext->errCode = ERR_APPACCOUNT_KIT_INVALID_PARAMETER;
         },
         [](napi_env env, napi_status status, void *data) {
             GetAccountsAsyncContext *asyncContext = reinterpret_cast<GetAccountsAsyncContext *>(data);
@@ -863,9 +875,7 @@ napi_value NapiAppAccount::GetAccountsByOwnerInternal(napi_env env, napi_callbac
             napi_delete_async_work(env, asyncContext->work);
             delete asyncContext;
             asyncContext = nullptr;
-        },
-        reinterpret_cast<void *>(asyncContext),
-        &asyncContext->work);
+        }, reinterpret_cast<void *>(asyncContext), &asyncContext->work);
     napi_queue_async_work(env, asyncContext->work);
     return result;
 }
