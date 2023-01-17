@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021-2022 Huawei Device Co., Ltd.
+ * Copyright (c) 2021-2023 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -17,6 +17,7 @@
 #if defined(HAS_USER_AUTH_PART) && defined(HAS_PIN_AUTH_PART)
 #include "napi_account_iam_module.h"
 #endif
+#include "napi_domain_account_module.h"
 
 namespace OHOS {
 namespace AccountJsKit {
@@ -34,6 +35,7 @@ static napi_value Init(napi_env env, napi_value exports)
 #if defined(HAS_USER_AUTH_PART) && defined(HAS_PIN_AUTH_PART)
     AccountIAMInit(env, exports);
 #endif
+    DomainAccountInit(env, exports);
     return exports;
 }
 EXTERN_C_END
