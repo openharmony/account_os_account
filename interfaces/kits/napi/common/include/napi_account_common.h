@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2022 Huawei Device Co., Ltd.
+ * Copyright (c) 2022-2023 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -49,6 +49,10 @@ bool GetOptionalStringPropertyByKey(napi_env env, napi_value obj, const std::str
     std::string &property);
 bool IsSystemApp(napi_env env);
 napi_value CreateStringArray(napi_env env, const std::vector<std::string> &strVec);
+napi_value CreateUint8Array(napi_env env, const uint8_t *data, size_t length);
+napi_status ParseUint8TypedArray(napi_env env, napi_value value, uint8_t **data, size_t *length);
+napi_status ParseUint8TypedArrayToVector(napi_env env, napi_value value, std::vector<uint8_t> &vec);
+napi_status ParseUint8TypedArrayToUint64(napi_env env, napi_value value, uint64_t &result);
 } // namespace AccountJsKit
 } // namespace OHOS
 

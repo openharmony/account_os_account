@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2022 Huawei Device Co., Ltd.
+ * Copyright (c) 2022-2023 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -226,11 +226,7 @@ private:
 #endif  // HAS_PIN_AUTH_PART
 
 void CallbackAsyncOrPromise(napi_env env, IAMAsyncContext *context, napi_value errJs, napi_value dataJs);
-napi_value CreateUint8Array(napi_env env, const uint8_t *srcData, size_t length);
 napi_value CreateErrorObject(napi_env env, int32_t code);
-napi_status ParseUint8TypedArray(napi_env env, napi_value value, uint8_t **data, size_t *length);
-napi_status ParseUint8TypedArrayToVector(napi_env env, napi_value value, std::vector<uint8_t> &vec);
-napi_status ParseUint8TypedArrayToUint64(napi_env env, napi_value value, uint64_t &result);
 napi_status ParseUInt32Array(napi_env env, napi_value value, std::vector<uint32_t> &data);
 napi_status ParseIAMCallback(napi_env env, napi_value object, JsIAMCallback &callback);
 #ifdef HAS_USER_AUTH_PART
