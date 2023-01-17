@@ -82,7 +82,7 @@ static bool ParseDoaminAuthResult(napi_env env, napi_value value, DomainAuthResu
     if (hasProp) {
         napi_value napiToken = nullptr;
         napi_get_named_property(env, value, "token", &napiToken);
-        if (!ParseUint8TypedArrayToVector(env, napiToken, authResult.token)) {
+        if (ParseUint8TypedArrayToVector(env, napiToken, authResult.token) != napi_ok) {
             ACCOUNT_LOGE("failed to parse token");
             return false;
         }

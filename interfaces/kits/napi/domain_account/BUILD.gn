@@ -49,6 +49,7 @@ ohos_shared_library("domain_account_napi") {
     "${os_account_path}/frameworks/common/account_error/src/account_error_no.cpp",
     "${os_account_path}/interfaces/kits/napi/common/src/napi_account_common.cpp",
     "${os_account_path}/interfaces/kits/napi/common/src/napi_account_error.cpp",
+    "src/napi_domain_account_manager.cpp",
     "src/napi_domain_account_module.cpp",
     "src/napi_domain_auth_callback.cpp",
   ]
