@@ -68,7 +68,7 @@ public:
 };
 class AccountCommonEventSubscriber final : public EventFwk::CommonEventSubscriber {
 public:
-    AccountCommonEventSubscriber(const EventFwk::CommonEventSubscribeInfo &subscribeInfo)
+    explicit AccountCommonEventSubscriber(const EventFwk::CommonEventSubscribeInfo &subscribeInfo)
         : CommonEventSubscriber(subscribeInfo)
     {}
     void OnReceiveEvent(const EventFwk::CommonEventData &data)
