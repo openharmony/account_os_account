@@ -218,6 +218,7 @@
         "vtable for OHOS::AccountSA::SessionServerDeathRecipient";
         "VTT for OHOS::AccountSA::OsAccountStopUserCallback";
         "VTT for OHOS::AccountSA::SessionAppStateObserver";
+        "OHOS::AccountSA::DelCredCallback::DelCredCallback(int, unsigned long, std::__h::vector<unsigned char, std::__h::allocator<unsigned char> > const&, OHOS::sptr<OHOS::AccountSA::IIDMCallback> const&)";
     };
   local:
     *;
