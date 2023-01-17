@@ -134,13 +134,13 @@ HWTEST_F(OsAccountCoverageTest, OnRemoteDiedTest_0300, TestSize.Level1)
  */
 HWTEST_F(OsAccountCoverageTest, OnRemoteDiedTest_0400, TestSize.Level1)
 {
-    std::shared_ptr<AAFwk::AbilityManagerAdapter::AbilityMgrDeathRecipient> recipient =
-        std::make_shared<AAFwk::AbilityManagerAdapter::AbilityMgrDeathRecipient>();
+    std::shared_ptr<AbilityManagerAdapter::AbilityMgrDeathRecipient> recipient =
+        std::make_shared<AbilityManagerAdapter::AbilityMgrDeathRecipient>();
     ASSERT_NE(nullptr, recipient);
     const sptr<IRemoteObject> sptrDeath = nullptr;
     wptr<IRemoteObject> wptrDeath = sptrDeath;
     recipient->OnRemoteDied(wptrDeath);
-    EXPECT_EQ(DelayedSingleton<AAFwk::AbilityManagerAdapter>::GetInstance()->deathRecipient_, nullptr);
+    EXPECT_EQ(DelayedSingleton<AbilityManagerAdapter>::GetInstance()->deathRecipient_, nullptr);
 }
 
 /**
