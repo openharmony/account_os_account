@@ -76,6 +76,8 @@ ohos_shared_library("app_account_innerkits") {
 
   use_exceptions = true
 
+  version_script = "libapp_account_innerkits.map"
+
   deps = [ "${innerkits_native_path}:libaccountkits" ]
 
   external_deps = [
