@@ -214,6 +214,7 @@
         "OHOS::AccountSA::UpdateCredCallback::UpdateCredCallback(unsigned int, OHOS::UserIam::UserAuth::CredentialParameters const&, OHOS::sptr<OHOS::AccountSA::IIDMCallback> const&)";
         "OHOS::AccountSA::IInnerOsAccountManager::ResetAccountStatus()";
         "vtable for OHOS::AccountSA::OsAccountStopUserCallback";
+        "vtable for OHOS::AccountSA::AccountStub";
         "vtable for OHOS::AccountSA::OsAccountSubscribeDeathRecipient";
         "vtable for OHOS::AccountSA::SessionServerDeathRecipient";
         "VTT for OHOS::AccountSA::OsAccountStopUserCallback";
