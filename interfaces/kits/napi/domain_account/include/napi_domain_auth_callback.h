@@ -30,8 +30,8 @@ public:
     static napi_value Init(napi_env env, napi_value exports);
 
 private:
-    static napi_value JsOnResult(napi_env env, napi_callback_info cbinfo);
-    static napi_value JsConstructor(napi_env env, napi_callback_info cbinfo);
+    static napi_value JsOnResult(napi_env env, napi_callback_info cbInfo);
+    static napi_value JsConstructor(napi_env env, napi_callback_info cbInfo);
 private:
     std::shared_ptr<AccountSA::DomainAuthCallback> callback_;
 };
