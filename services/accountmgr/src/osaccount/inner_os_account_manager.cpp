@@ -111,12 +111,12 @@ void IInnerOsAccountManager::StartAccount()
         ACCOUNT_LOGI("OsAccountAccountMgr send to storage and bm for start");
         OHOS::AppExecFwk::InnerEvent::Callback callbackStartStandard =
             std::bind(&IInnerOsAccountManager::CreateBaseStandardAccountSendToOther, this);
-        handler_->PostTask(callbackStartStandard, DELAY_FOR_FOUNDATION_SERVICE);
+        handler_->PostTask(callbackStartStandard);
     }
     ACCOUNT_LOGI("OsAccountAccountMgr send to storage and am for start");
     OHOS::AppExecFwk::InnerEvent::Callback callbackStartStandard =
         std::bind(&IInnerOsAccountManager::StartBaseStandardAccount, this);
-    handler_->PostTask(callbackStartStandard, DELAY_FOR_FOUNDATION_SERVICE);
+    handler_->PostTask(callbackStartStandard);
 }
 
 void IInnerOsAccountManager::RestartActiveAccount()

@@ -100,7 +100,7 @@ void AbilityManagerAdapter::Connect()
         ACCOUNT_LOGE("Fail to get system ability registry.");
         return;
     }
-    sptr<IRemoteObject> remoteObj = systemManager->GetSystemAbility(ABILITY_MGR_SERVICE_ID);
+    sptr<IRemoteObject> remoteObj = systemManager->CheckSystemAbility(ABILITY_MGR_SERVICE_ID);
     if (remoteObj == nullptr) {
         ACCOUNT_LOGE("Fail to connect ability manager service.");
         return;
