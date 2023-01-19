@@ -126,9 +126,9 @@ private:
     bool isSendToStorageCreate_;
     bool isSendToStorageStart_;
     std::shared_ptr<OHOS::AppExecFwk::EventHandler> handler_;
-    static constexpr std::int32_t DELAY_FOR_FOUNDATION_SERVICE = 2 * 1000;  // 2s
-    static constexpr std::int32_t DELAY_FOR_TIME_INTERVAL = 1 * 1000;       // 1s
-    static constexpr std::int32_t MAX_TRY_TIMES = 100;
+    static constexpr std::int32_t DELAY_FOR_FOUNDATION_SERVICE = 2 * 1000; // 2s
+    static constexpr std::int32_t DELAY_FOR_TIME_INTERVAL = 100;           // 0.1s
+    static constexpr std::int32_t MAX_TRY_TIMES = 1000;
     mutable std::mutex ativeMutex_;
     mutable std::mutex operatingMutex_;
 };
