@@ -114,17 +114,6 @@ napi_value NapiAppAccount::JsConstructor(napi_env env, napi_callback_info cbInfo
 {
     napi_value thisVar = nullptr;
     NAPI_CALL(env, napi_get_cb_info(env, cbInfo, nullptr, nullptr, &thisVar, nullptr));
-
-    AppAccountManager *objectInfo = new (std::nothrow) AppAccountManager();
-    if (objectInfo == nullptr) {
-        ACCOUNT_LOGE("objectInfo == nullptr");
-        return NapiGetNull(env);
-    }
-    napi_wrap(env, thisVar, objectInfo, [](napi_env env, void *data, void *hint) {
-        AppAccountManager *objInfo = reinterpret_cast<AppAccountManager *>(data);
-        delete objInfo;
-    }, nullptr, nullptr);
-
     return thisVar;
 }
 
@@ -140,6 +129,21 @@ napi_value NapiAppAccount::CreateAppAccountManager(napi_env env, napi_callback_i
         return nullptr;
     }
 
+    AppAccountManager *objectInfo = new (std::nothrow) AppAccountManager();
+    if (objectInfo == nullptr) {
+        ACCOUNT_LOGE("failed to create AppAccountManager for insufficient memory");
+        return nullptr;
+    }
+    napi_status status = napi_wrap(env, instance, objectInfo,
+        [](napi_env env, void *data, void *hint) {
+            ACCOUNT_LOGI("js AppAccountManager instance garbage collection");
+            delete reinterpret_cast<AppAccountManager *>(data);
+        }, nullptr, nullptr);
+    if (status != napi_ok) {
+        ACCOUNT_LOGE("failed to wrap js instance with native object");
+        delete objectInfo;
+        return nullptr;
+    }
     return instance;
 }
 
