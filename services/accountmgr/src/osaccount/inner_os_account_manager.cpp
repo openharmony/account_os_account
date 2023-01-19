@@ -1038,6 +1038,9 @@ ErrCode IInnerOsAccountManager::SetOsAccountProfilePhoto(const int id, const std
         return ERR_OSACCOUNT_SERVICE_INNER_ACCOUNT_TO_BE_REMOVED_ERROR;
     }
 
+    if (osAccountInfo.GetPhoto() == photo) {
+        return ERR_OK;
+    }
     errCode = osAccountControl_->SetPhotoById(id, photo);
     if (errCode != ERR_OK) {
         ACCOUNT_LOGE("set photo by id error, errCode %{public}d.", errCode);
@@ -1054,6 +1057,8 @@ ErrCode IInnerOsAccountManager::SetOsAccountProfilePhoto(const int id, const std
         ACCOUNT_LOGE("update osaccount info error %{public}d, id: %{public}d", errCode, osAccountInfo.GetLocalId());
         return ERR_OSACCOUNT_SERVICE_INNER_UPDATE_ACCOUNT_ERROR;
     }
+    OsAccountInterface::PublishCommonEvent(
+        osAccountInfo, OHOS::EventFwk::CommonEventSupport::COMMON_EVENT_USER_INFO_UPDATED, Constants::OPERATION_UPDATE);
     return ERR_OK;
 }
 
