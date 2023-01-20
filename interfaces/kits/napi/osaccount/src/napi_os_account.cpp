@@ -134,6 +134,21 @@ napi_value GetAccountManager(napi_env env, napi_callback_info cbInfo)
         return nullptr;
     }
 
+    OsAccountManager *objectInfo = new (std::nothrow) OsAccountManager();
+    if (objectInfo == nullptr) {
+        ACCOUNT_LOGE("failed to create OsAccountManager for insufficient memory");
+        return nullptr;
+    }
+    napi_status status = napi_wrap(env, instance, objectInfo,
+        [](napi_env env, void *data, void *hint) {
+            ACCOUNT_LOGI("js OsAccountManager instance garbage collection");
+            delete reinterpret_cast<OsAccountManager *>(data);
+        }, nullptr, nullptr);
+    if (status != napi_ok) {
+        ACCOUNT_LOGE("failed to wrap js instance with native object");
+        delete objectInfo;
+        return nullptr;
+    }
     return instance;
 }
 
@@ -141,17 +156,6 @@ napi_value OsAccountJsConstructor(napi_env env, napi_callback_info cbinfo)
 {
     napi_value thisVar = nullptr;
     NAPI_CALL(env, napi_get_cb_info(env, cbinfo, nullptr, nullptr, &thisVar, nullptr));
-
-    OsAccountManager *objectInfo = new (std::nothrow) OsAccountManager();
-    if (objectInfo == nullptr) {
-        ACCOUNT_LOGE("insufficient memory for objectInfo!");
-        return WrapVoidToJS(env);
-    }
-    napi_wrap(env, thisVar, objectInfo, [](napi_env env, void *data, void *hint) {
-            OsAccountManager *objInfo = reinterpret_cast<OsAccountManager *>(data);
-            delete objInfo;
-    }, nullptr, nullptr);
-
     return thisVar;
 }
 
