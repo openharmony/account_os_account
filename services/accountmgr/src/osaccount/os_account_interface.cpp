@@ -365,7 +365,7 @@ ErrCode OsAccountInterface::SendToStorageAccountStart(OsAccountInfo &osAccountIn
     }
     ACCOUNT_LOGI("end, Storage PrepareStartUser ret %{public}d.", err);
     FinishTrace(HITRACE_TAG_ACCOUNT_MANAGER);
-#elif
+#else
     if (!osAccountInfo.GetIsVerified()) {
         isUserUnlocked = true;
     }
