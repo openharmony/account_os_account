@@ -84,9 +84,9 @@ public:
 private:
     static napi_value JsConstructor(napi_env env, napi_callback_info info);
     static napi_value GetRemoteObject(napi_env env, napi_callback_info cbInfo);
+    static napi_value CreateAuthenticatorCallback(napi_env env, sptr<IRemoteObject> nativeCallback);
     static napi_status GetNamedFunction(napi_env env, napi_value value, const std::string &name, napi_ref *result);
     static void CallJsFunction(napi_env env, napi_ref funcRef, napi_value *argv, size_t argc);
-    static void CreateAuthenticatorCallback(napi_env env, sptr<IRemoteObject> nativeCallback, napi_value *jsCallback);
     static void CreateJsVerifyCredentialOptions(napi_env env, VerifyCredentialOptions &options, napi_value *jsOptions);
     static void CreateJsSetPropertiesOptions(napi_env env, SetPropertiesOptions &options, napi_value *jsOptions);
     static void AddAccountImplicitlyWork(uv_work_t *work, int status);

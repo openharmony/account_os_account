@@ -215,29 +215,7 @@ napi_value NapiAppAccountAuthenticatorCallback::JsOnRequestContinued(napi_env en
 napi_value NapiAppAccountAuthenticatorCallback::JsConstructor(napi_env env, napi_callback_info info)
 {
     napi_value thisVar = nullptr;
-    size_t argc = 1;
-    napi_value argv[1] = { 0 };
-    napi_status status = napi_get_cb_info(env, info, &argc, argv, &thisVar, nullptr);
-    NAPI_ASSERT(env, status == napi_ok, "napi get callback info failed");
-    sptr<IRemoteObject> remote = nullptr;
-    if (argv[0] != nullptr) {
-        int64_t tmp = 0;
-        napi_get_value_int64(env, argv[0], &tmp);
-        remote = reinterpret_cast<IRemoteObject *>(tmp);
-        NAPI_ASSERT(env, remote != nullptr, "remote is null");
-    }
-    auto callback = new (std::nothrow) NapiAppAccountAuthenticatorCallback(remote);
-    if (callback == nullptr) {
-        ACCOUNT_LOGE("failed to create NapiAppAccountAuthenticatorCallback");
-        return nullptr;
-    }
-    status = napi_wrap(
-        env, thisVar, callback,
-        [](napi_env env, void *data, void *hint) {
-            delete (reinterpret_cast<NapiAppAccountAuthenticatorCallback *>(data));
-        },
-        nullptr, nullptr);
-    NAPI_ASSERT(env, status == napi_ok, "wrap js AuthenticatorStub and native callback failed");
+    NAPI_CALL(env, napi_get_cb_info(env, info, nullptr, nullptr, &thisVar, nullptr));
     return thisVar;
 }
 }  // namespace AccountJsKit
