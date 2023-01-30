@@ -133,6 +133,7 @@ ohos_shared_library("accountmgr") {
   visibility = [ "${os_account_path}/*" ]
 
   cflags = [ "-pipe" ]
+  version_script = "libaccountmgr.map"
   cflags_cc = [
     "-Wdate-time",
     "-Wformat=2",

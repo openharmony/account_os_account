@@ -22,11 +22,11 @@
 #include "system_ability_definition.h"
 
 namespace OHOS {
-namespace AAFwk {
+namespace AccountSA {
 namespace {
 const std::u16string ABILITY_MGR_DESCRIPTOR = u"ohos.aafwk.AbilityManager";
 }
-using namespace AccountSA;
+using namespace AAFwk;
 std::shared_ptr<AbilityManagerAdapter> AbilityManagerAdapter::instance_ = nullptr;
 std::mutex AbilityManagerAdapter::instanceMutex_;
 

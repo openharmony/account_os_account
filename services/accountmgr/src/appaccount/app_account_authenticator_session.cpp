@@ -134,7 +134,7 @@ ErrCode AppAccountAuthenticatorSession::Open()
     }
     AAFwk::Want want;
     want.SetElementName(request_.owner, info.abilityName);
-    errCode = AAFwk::AbilityManagerAdapter::GetInstance()->ConnectAbility(want, conn_, nullptr, userId_);
+    errCode = AbilityManagerAdapter::GetInstance()->ConnectAbility(want, conn_, nullptr, userId_);
     if (errCode == ERR_OK) {
         isOpened_ = true;
     }
@@ -150,7 +150,7 @@ void AppAccountAuthenticatorSession::Close()
         request_.callback->AsObject()->RemoveDeathRecipient(clientDeathRecipient_);
     }
     if (isConnected_) {
-        AAFwk::AbilityManagerAdapter::GetInstance()->DisconnectAbility(conn_);
+        AbilityManagerAdapter::GetInstance()->DisconnectAbility(conn_);
     }
     isOpened_ = false;
 }
@@ -260,7 +260,7 @@ int32_t AppAccountAuthenticatorSession::OnResult(int32_t resultCode, const AAFwk
         request_.callback->OnResult(resultCode, result);
     }
     if (isConnected_) {
-        AAFwk::AbilityManagerAdapter::GetInstance()->DisconnectAbility(conn_);
+        AbilityManagerAdapter::GetInstance()->DisconnectAbility(conn_);
     }
     CloseSelf();
     return resultCode;
@@ -278,7 +278,7 @@ int32_t AppAccountAuthenticatorSession::OnRequestRedirected(AAFwk::Want &newRequ
     if ((!request_.callback) || (!request_.callback->AsObject())) {
         ACCOUNT_LOGD("app account callback is nullptr");
         if (isConnected_) {
-            AAFwk::AbilityManagerAdapter::GetInstance()->DisconnectAbility(conn_);
+            AbilityManagerAdapter::GetInstance()->DisconnectAbility(conn_);
         }
         CloseSelf();
         return ERR_JS_SUCCESS;
@@ -301,7 +301,7 @@ int32_t AppAccountAuthenticatorSession::OnRequestContinued() const
     if ((!request_.callback) || (!request_.callback->AsObject())) {
         ACCOUNT_LOGD("app account callback is nullptr");
         if (isConnected_) {
-            AAFwk::AbilityManagerAdapter::GetInstance()->DisconnectAbility(conn_);
+            AbilityManagerAdapter::GetInstance()->DisconnectAbility(conn_);
         }
         CloseSelf();
         return ERR_JS_SUCCESS;

@@ -23,7 +23,8 @@
 #include "want.h"
 
 namespace OHOS {
-namespace AAFwk {
+namespace AccountSA {
+using namespace AAFwk;
 /**
  * @class AbilityManagerAdapter
  * AbilityManagerAdapter is used to access ability manager services.
