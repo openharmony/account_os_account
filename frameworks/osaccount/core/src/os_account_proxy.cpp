@@ -54,8 +54,12 @@ ErrCode OsAccountProxy::CreateOsAccount(
         ACCOUNT_LOGE("failed to read reply for create os account.");
         return result;
     }
-    osAccountInfo = *(reply.ReadParcelable<OsAccountInfo>());
-
+    std::shared_ptr<OsAccountInfo> infoPtr(reply.ReadParcelable<OsAccountInfo>());
+    if (infoPtr == nullptr) {
+        ACCOUNT_LOGE("failed to read OsAccountInfo");
+        return ERR_ACCOUNT_COMMON_READ_PARCEL_ERROR;
+    }
+    osAccountInfo = *infoPtr;
     return ERR_OK;
 }
 
@@ -96,8 +100,12 @@ ErrCode OsAccountProxy::CreateOsAccountForDomain(
         ACCOUNT_LOGE("failed to read reply for create os account for domain, result %{public}d.", result);
         return result;
     }
-    osAccountInfo = *(reply.ReadParcelable<OsAccountInfo>());
-
+    std::shared_ptr<OsAccountInfo> infoPtr(reply.ReadParcelable<OsAccountInfo>());
+    if (infoPtr == nullptr) {
+        ACCOUNT_LOGE("failed to read OsAccountInfo");
+        return ERR_ACCOUNT_COMMON_READ_PARCEL_ERROR;
+    }
+    osAccountInfo = *infoPtr;
     return ERR_OK;
 }
 
@@ -465,8 +473,12 @@ ErrCode OsAccountProxy::QueryCurrentOsAccount(OsAccountInfo &osAccountInfo)
         ACCOUNT_LOGE("failed to read reply for query current os account, result %{public}d.", result);
         return result;
     }
-    osAccountInfo = *(reply.ReadParcelable<OsAccountInfo>());
-
+    std::shared_ptr<OsAccountInfo> infoPtr(reply.ReadParcelable<OsAccountInfo>());
+    if (infoPtr == nullptr) {
+        ACCOUNT_LOGE("failed to read OsAccountInfo");
+        return ERR_ACCOUNT_COMMON_READ_PARCEL_ERROR;
+    }
+    osAccountInfo = *infoPtr;
     return ERR_OK;
 }
 
@@ -494,8 +506,12 @@ ErrCode OsAccountProxy::QueryOsAccountById(const int id, OsAccountInfo &osAccoun
         ACCOUNT_LOGE("failed to read reply for query os account by id, result %{public}d.", result);
         return result;
     }
-    osAccountInfo = *(reply.ReadParcelable<OsAccountInfo>());
-
+    std::shared_ptr<OsAccountInfo> infoPtr(reply.ReadParcelable<OsAccountInfo>());
+    if (infoPtr == nullptr) {
+        ACCOUNT_LOGE("failed to read OsAccountInfo");
+        return ERR_ACCOUNT_COMMON_READ_PARCEL_ERROR;
+    }
+    osAccountInfo = *infoPtr;
     return ERR_OK;
 }
 
@@ -1198,7 +1214,12 @@ ErrCode OsAccountProxy::GetOsAccountFromDatabase(const std::string& storeID,
         ACCOUNT_LOGE("failed to read reply, result %{public}d.", result);
         return result;
     }
-    osAccountInfo = *(reply.ReadParcelable<OsAccountInfo>());
+    std::shared_ptr<OsAccountInfo> infoPtr(reply.ReadParcelable<OsAccountInfo>());
+    if (infoPtr == nullptr) {
+        ACCOUNT_LOGE("failed to read OsAccountInfo");
+        return ERR_ACCOUNT_COMMON_READ_PARCEL_ERROR;
+    }
+    osAccountInfo = *infoPtr;
     return ERR_OK;
 }
 
