@@ -926,6 +926,7 @@ HWTEST_F(OsAccountInnerAccmgrCoverageTest, OsAccountInnerAccmgrCoverageTest025, 
     EXPECT_CALL(*ptr, UpdateOsAccount(_))
         .WillRepeatedly(testing::Return(-1));
 
+    photo += "1";
     ret = innerMgrService_->SetOsAccountProfilePhoto(id, photo);
     EXPECT_EQ(ret, ERR_OSACCOUNT_SERVICE_INNER_UPDATE_ACCOUNT_ERROR);
 
