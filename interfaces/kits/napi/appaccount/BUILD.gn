@@ -46,7 +46,7 @@ ohos_shared_library("appaccount") {
     ":appaccount_kit_config",
     "${account_coverage_config_path}:coverage_flags",
   ]
-
+  version_script = "libappaccount.map"
   public_configs = [ ":appaccount_kit_config" ]
   sources = [
     "${os_account_path}/interfaces/kits/napi/common/src/napi_account_common.cpp",
