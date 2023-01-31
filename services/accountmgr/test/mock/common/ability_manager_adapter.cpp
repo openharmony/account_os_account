@@ -18,11 +18,11 @@
 #include "mock_app_account_authenticator_stub.h"
 
 namespace OHOS {
-namespace AAFwk {
+namespace AccountSA {
 namespace {
 const std::string STRING_BUNDLE = "com.example.name";
 } // namespace
-using namespace AccountSA;
+using namespace AAFwk;
 std::shared_ptr<AbilityManagerAdapter> AbilityManagerAdapter::instance_ = nullptr;
 std::mutex AbilityManagerAdapter::mockInstanceMutex_;
 
