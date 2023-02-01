@@ -255,7 +255,6 @@ ohos_shared_library("accountmgr") {
     deps += [
       "//base/security/access_token/interfaces/innerkits/token_setproc:libtoken_setproc",
       "//base/useriam/user_auth_framework/frameworks/native/client:userauth_client",
-      "//base/useriam/user_auth_framework/frameworks/native/ipc:userauth_client_ipc",
     ]
   }
 
