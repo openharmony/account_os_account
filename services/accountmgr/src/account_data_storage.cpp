@@ -56,7 +56,8 @@ OHOS::DistributedKv::Status AccountDataStorage::GetKvStore()
         .autoSync = autoSync_,
         .kvStoreType = OHOS::DistributedKv::KvStoreType::SINGLE_VERSION,
         .area = OHOS::DistributedKv::EL1,
-        .baseDir = KVSTORE_BASE_DIR + appId_.appId
+        .baseDir = KVSTORE_BASE_DIR + appId_.appId,
+        .syncable = autoSync_
     };
 
     OHOS::DistributedKv::Status status = dataManager_.GetSingleKvStore(options, appId_, storeId_, kvStorePtr_);
