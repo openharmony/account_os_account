@@ -48,6 +48,7 @@ ohos_unittest("AccountEventProviderTest") {
   ]
 
   deps = [
+    "${common_path}:libaccount_common",
     "//third_party/googletest:gmock_main",
     "//third_party/googletest:gtest_main",
   ]

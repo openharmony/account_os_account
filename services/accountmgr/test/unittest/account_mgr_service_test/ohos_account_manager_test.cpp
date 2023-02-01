@@ -13,10 +13,20 @@
  * limitations under the License.
  */
 #include <gtest/gtest.h>
+#include <thread>
 
 #include "ohos_account_manager.h"
+#include "accesstoken_kit.h"
 #include "account_helper_data.h"
 #include "account_info.h"
+#include "account_log_wrapper.h"
+#ifdef HAS_CES_PART
+#include "common_event_manager.h"
+#include "common_event_subscriber.h"
+#include "common_event_support.h"
+#include "common_event_subscribe_info.h"
+#include "matching_skills.h"
+#endif // HAS_CES_PART
 using namespace testing::ext;
 using namespace OHOS;
 using namespace OHOS::AccountSA;
@@ -31,6 +41,8 @@ const std::string TEST_EVENT_STR = "TesteventStr";
 std::string g_eventLogin = OHOS_ACCOUNT_EVENT_LOGIN;
 std::string g_eventLogout = OHOS_ACCOUNT_EVENT_LOGOUT;
 std::string g_eventTokenInvalid = OHOS_ACCOUNT_EVENT_TOKEN_INVALID;
+const int DELAY_FOR_OPERATION = 250;
+const int ACCOUNT_UID = 100;
 
 std::string GetAccountEventStr(const std::map<std::string, std::string> &accountEventMap,
     const std::string &eventKey, const std::string &defaultValue)
@@ -49,6 +61,36 @@ public:
     static void TearDownTestCase();
     void SetUp();
     void TearDown();
+};
+
+class AccountCommonEventSubscriber final : public EventFwk::CommonEventSubscriber {
+public:
+    explicit AccountCommonEventSubscriber(const EventFwk::CommonEventSubscribeInfo &subscribeInfo)
+        : CommonEventSubscriber(subscribeInfo)
+    {}
+    void OnReceiveEvent(const EventFwk::CommonEventData &data)
+    {
+        auto want = data.GetWant();
+        std::string action = want.GetAction();
+        if (action == EventFwk::CommonEventSupport::COMMON_EVENT_HWID_LOGIN) {
+            firstLoginStatus = true;
+        }
+        if (action == EventFwk::CommonEventSupport::COMMON_EVENT_USER_INFO_UPDATED) {
+            secondLoginStatus = true;
+        }
+    }
+    bool GetStatusLoginFirst()
+    {
+        return firstLoginStatus;
+    }
+    bool GetStatusLoginSecond()
+    {
+        return secondLoginStatus;
+    }
+
+private:
+    bool firstLoginStatus = false;
+    bool secondLoginStatus = false;
 };
 
 void OhosAccountManagerTest::SetUpTestCase()
@@ -144,4 +186,41 @@ HWTEST_F(OhosAccountManagerTest, OhosAccountManagerTest005, TestSize.Level0)
     OhosAccountInfo curOhosAccount;
     ErrCode ret = accountManager.LogoffOhosAccount(curOhosAccount, TEST_EVENT_STR);
     EXPECT_EQ(false, ret);
+}
+
+/**
+ * @tc.name: OhosAccountManagerTest006
+ * @tc.desc: test LoginOhosAccount first login and second login public different commonevent.
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(OhosAccountManagerTest, OhosAccountManagerTest006, TestSize.Level0)
+{
+    setuid(ACCOUNT_UID * UID_TRANSFORM_DIVISOR);
+    // create common event subscribe
+    EventFwk::MatchingSkills matchingSkills;
+    matchingSkills.AddEvent(EventFwk::CommonEventSupport::COMMON_EVENT_USER_INFO_UPDATED);
+    matchingSkills.AddEvent(EventFwk::CommonEventSupport::COMMON_EVENT_HWID_LOGIN);
+    EventFwk::CommonEventSubscribeInfo subscribeInfo(matchingSkills);
+    std::shared_ptr<AccountCommonEventSubscriber> subscriberPtr =
+        std::make_shared<AccountCommonEventSubscriber>(subscribeInfo);
+    ASSERT_NE(subscriberPtr, nullptr);
+    bool result = EventFwk::CommonEventManager::SubscribeCommonEvent(subscriberPtr);
+    ASSERT_EQ(result, true);
+
+    OhosAccountManager accountManager;
+    accountManager.OnInitialize();
+    AccountInfo curAccountInfo;
+    curAccountInfo.ohosAccountInfo_.name_ = "name";
+    curAccountInfo.ohosAccountInfo_.uid_ = "test";
+    bool ret = accountManager.LoginOhosAccount(curAccountInfo.ohosAccountInfo_, g_eventLogin);
+    ASSERT_EQ(ret, true);
+    std::this_thread::sleep_for(std::chrono::milliseconds(DELAY_FOR_OPERATION));
+    ASSERT_EQ(subscriberPtr->GetStatusLoginFirst(), true);
+    ret = accountManager.LoginOhosAccount(curAccountInfo.ohosAccountInfo_, g_eventLogin);
+    ASSERT_EQ(ret, true);
+    std::this_thread::sleep_for(std::chrono::milliseconds(DELAY_FOR_OPERATION));
+    ASSERT_EQ(subscriberPtr->GetStatusLoginSecond(), true);
+    ret = accountManager.LogoutOhosAccount(curAccountInfo.ohosAccountInfo_, g_eventLogout);
+    EXPECT_EQ(true, ret);
 }
