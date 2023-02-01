@@ -76,19 +76,16 @@ ohos_shared_library("account_iam_napi") {
     "//foundation/arkui/napi/:ace_napi",
   ]
 
-  if (has_user_auth_part) {
-    deps += [
-      "//base/useriam/user_auth_framework/frameworks/native/client:userauth_client",
-      "//base/useriam/user_auth_framework/frameworks/native/ipc:userauth_client_ipc",
-    ]
-  }
-
   external_deps = [
     "access_token:libtokenid_sdk",
     "c_utils:utils",
     "hiviewdfx_hilog_native:libhilog",
     "ipc:ipc_core",
   ]
+
+  if (has_user_auth_part) {
+    external_deps += [ "user_auth_framework:userauth_client" ]
+  }
 
   subsystem_name = "account"
   part_name = "os_account"
