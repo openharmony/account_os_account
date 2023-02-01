@@ -138,12 +138,14 @@ void AppAccountManagerServiceModuleTest::TearDownTestCase(void)
     ErrCode result = dataStoragePtr->DeleteKvStore();
     ASSERT_EQ(result, ERR_OK);
 
+#ifdef DISTRIBUTED_FEATURE_ENABLED
     dataStoragePtr = g_controlManagerPtr->GetDataStorage(UID, true);
     ASSERT_NE(dataStoragePtr, nullptr);
 
     result = dataStoragePtr->DeleteKvStore();
     ASSERT_EQ(result, ERR_OK);
     DelayedSingleton<AppAccountControlManager>::DestroyInstance();
+#endif // DISTRIBUTED_FEATURE_ENABLED
     GTEST_LOG_(INFO) << "TearDownTestCase exit";
 }
 
