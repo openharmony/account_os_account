@@ -144,6 +144,10 @@ ohos_shared_library("accountmgr") {
     cflags += [ "-DENABLE_MULTIPLE_ACTIVE_ACCOUNTS" ]
   }
 
+  if (os_account_distributed_feature) {
+    cflags += [ "-DDISTRIBUTED_FEATURE_ENABLED" ]
+  }
+
   sources = [
     "${app_account_innerkits_native_path}/src/app_account_authenticator_callback_proxy.cpp",
     "${app_account_innerkits_native_path}/src/app_account_authenticator_callback_stub.cpp",
@@ -275,7 +279,7 @@ ohos_shared_library("accountmgr") {
     "samgr:samgr_proxy",
   ]
 
-  if (has_storage_service_part) {
+  if (has_storage_service_part && os_account_storage_feature) {
     cflags += [ "-DHAS_STORAGE_PART" ]
     external_deps += [ "storage_service:storage_manager_sa_proxy" ]
   }
