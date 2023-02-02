@@ -275,9 +275,9 @@ bool OhosAccountManager::LoginOhosAccount(const OhosAccountInfo &ohosAccountInfo
     }
 
     // check whether need to publish event or not
-    bool pubEvent = false;
+    bool isPubLoginEvent = false;
     if (currAccountInfo.ohosAccountInfo_.status_ != ACCOUNT_STATE_LOGIN) {
-        pubEvent = true;
+        isPubLoginEvent = true;
     }
     // update account status
     if (!HandleEvent(currAccountInfo, eventStr)) {
@@ -297,21 +297,14 @@ bool OhosAccountManager::LoginOhosAccount(const OhosAccountInfo &ohosAccountInfo
         return false;
     }
 
-    if (!pubEvent) {
-        ACCOUNT_LOGI("update distributed account information success, no event to publish");
+#ifdef HAS_CES_PART
+    if (!isPubLoginEvent) {
+        AccountEventProvider::EventPublish(EventFwk::CommonEventSupport::COMMON_EVENT_USER_INFO_UPDATED, callingUserId);
         return true;
     }
-#ifdef HAS_CES_PART
-    bool ret = AccountEventProvider::EventPublish(
-        EventFwk::CommonEventSupport::COMMON_EVENT_HWID_LOGIN, callingUserId);
-    if (!ret) {
-        ACCOUNT_LOGE("publish ohos account login event failed! callingUserId %{public}d.", callingUserId);
-        ReportOhosAccountOperationFail(
-            currAccountInfo.userId_, EVENT_PUBLISH, ret, "publish COMMON_EVENT_HWID_LOGIN failed");
-        return false;
-    }
-#else // HAS_CES_PART
-    ACCOUNT_LOGI("No common event part, publish nothing!");
+    AccountEventProvider::EventPublish(EventFwk::CommonEventSupport::COMMON_EVENT_HWID_LOGIN, callingUserId);
+#else  // HAS_CES_PART
+        ACCOUNT_LOGI("No common event part, publish nothing!");
 #endif // HAS_CES_PART
     ACCOUNT_LOGI("LoginOhosAccount success! callingUserId %{public}d", callingUserId);
     return true;
@@ -349,14 +342,8 @@ bool OhosAccountManager::LogoutOhosAccount(const OhosAccountInfo &ohosAccountInf
     }
 
 #ifdef HAS_CES_PART
-    ret = AccountEventProvider::EventPublish(EventFwk::CommonEventSupport::COMMON_EVENT_HWID_LOGOUT, callingUserId);
-    if (!ret) {
-        ACCOUNT_LOGE("publish account logout event failed, callingUserId %{public}d.", callingUserId);
-        ReportOhosAccountOperationFail(
-            currentAccount.userId_, EVENT_PUBLISH, ret, "publish COMMON_EVENT_HWID_LOGOUT failed");
-        return false;
-    }
-#else // HAS_CES_PART
+    AccountEventProvider::EventPublish(EventFwk::CommonEventSupport::COMMON_EVENT_HWID_LOGOUT, callingUserId);
+#else  // HAS_CES_PART
     ACCOUNT_LOGI("No common event part! Publish nothing!");
 #endif // HAS_CES_PART
     ACCOUNT_LOGI("LogoutOhosAccount success, callingUserId %{public}d.", callingUserId);
@@ -393,15 +380,8 @@ bool OhosAccountManager::LogoffOhosAccount(const OhosAccountInfo &ohosAccountInf
         return false;
     }
 #ifdef HAS_CES_PART
-    bool errCode = AccountEventProvider::EventPublish(
-        EventFwk::CommonEventSupport::COMMON_EVENT_HWID_LOGOFF, callingUserId);
-    if (!errCode) {
-        ACCOUNT_LOGE("publish account logoff event failed, callingUserId %{public}d.", callingUserId);
-        ReportOhosAccountOperationFail(
-            currentAccount.userId_, EVENT_PUBLISH, errCode, "publish COMMON_EVENT_HWID_LOGOFF failed");
-        return false;
-    }
-#else // HAS_CES_PART
+    AccountEventProvider::EventPublish(EventFwk::CommonEventSupport::COMMON_EVENT_HWID_LOGOFF, callingUserId);
+#else  // HAS_CES_PART
     ACCOUNT_LOGI("No common event part, publish nothing for logoff!");
 #endif // HAS_CES_PART
     ACCOUNT_LOGI("LogoffOhosAccount success, callingUserId %{public}d.", callingUserId);
@@ -440,15 +420,8 @@ bool OhosAccountManager::HandleOhosAccountTokenInvalidEvent(
         ACCOUNT_LOGW("SaveOhosAccountInfo failed, callingUserId %{public}d.", callingUserId);
     }
 #ifdef HAS_CES_PART
-    bool errCode = AccountEventProvider::EventPublish(
-        EventFwk::CommonEventSupport::COMMON_EVENT_HWID_TOKEN_INVALID, callingUserId);
-    if (!errCode) {
-        ACCOUNT_LOGE("publish token invalid event failed, callingUserId %{public}d.", callingUserId);
-        ReportOhosAccountOperationFail(
-            currentOhosAccount.userId_, EVENT_PUBLISH, errCode, "publish COMMON_EVENT_HWID_TOKEN_INVALID failed");
-        return false;
-    }
-#else // HAS_CES_PART
+    AccountEventProvider::EventPublish(EventFwk::CommonEventSupport::COMMON_EVENT_HWID_TOKEN_INVALID, callingUserId);
+#else  // HAS_CES_PART
     ACCOUNT_LOGI("No common event part, publish nothing for token invalid event.");
 #endif // HAS_CES_PART
     ACCOUNT_LOGI("success, callingUserId %{public}d.", callingUserId);
