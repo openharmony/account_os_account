@@ -75,8 +75,10 @@ void AppAccountManagerServiceSyncModuleTest::SetUp(void)
     GTEST_LOG_(INFO) << "SetUp enter!";
     auto dataStoragePtr = controlManagerPtr_->GetDataStorage(UID);
     ClearDataStorage(dataStoragePtr);
+#ifdef DISTRIBUTED_FEATURE_ENABLED
     dataStoragePtr = controlManagerPtr_->GetDataStorage(UID, true);
     ClearDataStorage(dataStoragePtr);
+#endif // DISTRIBUTED_FEATURE_ENABLED
     GTEST_LOG_(INFO) << "SetUp exit!";
 }
 
@@ -166,6 +168,7 @@ HWTEST_F(AppAccountManagerServiceSyncModuleTest, AppAccountManagerServiceSync_Ad
         appAccountInfoPtr->GetName(name);
         EXPECT_EQ(name, STRING_NAME);
     }
+#ifdef DISTRIBUTED_FEATURE_ENABLED
     {
         auto dataStoragePtr = controlManagerPtr_->GetDataStorage(UID, true);
         ASSERT_NE(dataStoragePtr, nullptr);
@@ -183,6 +186,7 @@ HWTEST_F(AppAccountManagerServiceSyncModuleTest, AppAccountManagerServiceSync_Ad
         appAccountInfoPtr->GetName(name);
         EXPECT_EQ(name, STRING_NAME);
     }
+#endif // DISTRIBUTED_FEATURE_ENABLED
 
     result = appAccountManagerServicePtr_->DeleteAccount(STRING_NAME);
     EXPECT_EQ(result, ERR_OK);
@@ -218,6 +222,7 @@ HWTEST_F(AppAccountManagerServiceSyncModuleTest, AppAccountManagerServiceSync_De
         EXPECT_EQ(result, ERR_OK);
         EXPECT_EQ(accounts.size(), SIZE_ZERO);
     }
+#ifdef DISTRIBUTED_FEATURE_ENABLED
     {
         auto dataStoragePtr = controlManagerPtr_->GetDataStorage(UID, true);
         ASSERT_NE(dataStoragePtr, nullptr);
@@ -227,6 +232,7 @@ HWTEST_F(AppAccountManagerServiceSyncModuleTest, AppAccountManagerServiceSync_De
         EXPECT_EQ(result, ERR_OK);
         EXPECT_EQ(accounts.size(), SIZE_ZERO);
     }
+#endif // DISTRIBUTED_FEATURE_ENABLED
 }
 
 /**
@@ -308,6 +314,7 @@ HWTEST_F(
         appAccountInfoPtr->GetExtraInfo(extraInfo);
         EXPECT_EQ(extraInfo, STRING_EXTRA_INFO);
     }
+#ifdef DISTRIBUTED_FEATURE_ENABLED
     {
         auto dataStoragePtr = controlManagerPtr_->GetDataStorage(UID, true);
         ASSERT_NE(dataStoragePtr, nullptr);
@@ -329,6 +336,7 @@ HWTEST_F(
         appAccountInfoPtr->GetExtraInfo(extraInfo);
         EXPECT_EQ(extraInfo, STRING_EXTRA_INFO);
     }
+#endif // DISTRIBUTED_FEATURE_ENABLED
 
     result = appAccountManagerServicePtr_->DeleteAccount(STRING_NAME);
     EXPECT_EQ(result, ERR_OK);
@@ -388,6 +396,7 @@ HWTEST_F(
         appAccountInfoPtr->GetExtraInfo(extraInfo);
         EXPECT_EQ(extraInfo, STRING_EXTRA_INFO_TWO);
     }
+#ifdef DISTRIBUTED_FEATURE_ENABLED
     {
         auto dataStoragePtr = controlManagerPtr_->GetDataStorage(UID, true);
         ASSERT_NE(dataStoragePtr, nullptr);
@@ -409,6 +418,7 @@ HWTEST_F(
         appAccountInfoPtr->GetExtraInfo(extraInfo);
         EXPECT_EQ(extraInfo, STRING_EXTRA_INFO);
     }
+#endif // DISTRIBUTED_FEATURE_ENABLED
 
     result = appAccountManagerServicePtr_->DeleteAccount(STRING_NAME);
     EXPECT_EQ(result, ERR_OK);
@@ -469,6 +479,7 @@ HWTEST_F(
         appAccountInfoPtr->GetExtraInfo(extraInfo);
         EXPECT_EQ(extraInfo, STRING_EXTRA_INFO_TWO);
     }
+#ifdef DISTRIBUTED_FEATURE_ENABLED
     {
         auto dataStoragePtr = controlManagerPtr_->GetDataStorage(UID, true);
         ASSERT_NE(dataStoragePtr, nullptr);
@@ -489,6 +500,7 @@ HWTEST_F(
         appAccountInfoPtr->GetExtraInfo(extraInfo);
         EXPECT_EQ(extraInfo, STRING_EXTRA_INFO_TWO);
     }
+#endif // DISTRIBUTED_FEATURE_ENABLED
 
     result = appAccountManagerServicePtr_->DeleteAccount(STRING_NAME);
     EXPECT_EQ(result, ERR_OK);
@@ -534,6 +546,7 @@ HWTEST_F(AppAccountManagerServiceSyncModuleTest, AppAccountManagerServiceSync_En
 
         EXPECT_EQ(*accountPtr, STRING_OWNER + HYPHEN + APP_INDEX + HYPHEN + STRING_NAME);
     }
+#ifdef DISTRIBUTED_FEATURE_ENABLED
     {
         auto dataStoragePtr = controlManagerPtr_->GetDataStorage(UID, true);
         ASSERT_NE(dataStoragePtr, nullptr);
@@ -553,6 +566,7 @@ HWTEST_F(AppAccountManagerServiceSyncModuleTest, AppAccountManagerServiceSync_En
 
         EXPECT_EQ(*accountPtr, STRING_OWNER + HYPHEN + APP_INDEX + HYPHEN + STRING_NAME);
     }
+#endif // DISTRIBUTED_FEATURE_ENABLED
 
     result = appAccountManagerServicePtr_->DeleteAccount(STRING_NAME);
     EXPECT_EQ(result, ERR_OK);
@@ -602,6 +616,7 @@ HWTEST_F(AppAccountManagerServiceSyncModuleTest, AppAccountManagerServiceSync_En
 
         EXPECT_EQ(*accountPtr, STRING_OWNER + HYPHEN + APP_INDEX + HYPHEN + STRING_NAME);
     }
+#ifdef DISTRIBUTED_FEATURE_ENABLED
     {
         auto dataStoragePtr = controlManagerPtr_->GetDataStorage(UID, true);
         ASSERT_NE(dataStoragePtr, nullptr);
@@ -622,6 +637,7 @@ HWTEST_F(AppAccountManagerServiceSyncModuleTest, AppAccountManagerServiceSync_En
 
         EXPECT_EQ(*accountPtr, STRING_OWNER + HYPHEN + APP_INDEX + HYPHEN + STRING_NAME);
     }
+#endif // DISTRIBUTED_FEATURE_ENABLED
 
     result = appAccountManagerServicePtr_->DeleteAccount(STRING_NAME);
     EXPECT_EQ(result, ERR_OK);
@@ -666,6 +682,7 @@ HWTEST_F(AppAccountManagerServiceSyncModuleTest, AppAccountManagerServiceSync_Di
         auto accessibleAccounts = jsonObject[STRING_BUNDLE_NAME].get<std::vector<std::string>>();
         EXPECT_EQ(accessibleAccounts.size(), SIZE_ZERO);
     }
+#ifdef DISTRIBUTED_FEATURE_ENABLED
     {
         auto dataStoragePtr = controlManagerPtr_->GetDataStorage(UID, true);
         ASSERT_NE(dataStoragePtr, nullptr);
@@ -681,6 +698,7 @@ HWTEST_F(AppAccountManagerServiceSyncModuleTest, AppAccountManagerServiceSync_Di
         auto accessibleAccounts = jsonObject[STRING_BUNDLE_NAME].get<std::vector<std::string>>();
         EXPECT_EQ(accessibleAccounts.size(), SIZE_ZERO);
     }
+#endif // DISTRIBUTED_FEATURE_ENABLED
 
     result = appAccountManagerServicePtr_->DeleteAccount(STRING_NAME);
     EXPECT_EQ(result, ERR_OK);

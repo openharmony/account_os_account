@@ -99,5 +99,13 @@ declare_args() {
 }
 
 declare_args() {
+  os_account_distributed_feature = true
+}
+
+declare_args() {
+  os_account_storage_feature  = true
+}
+
+declare_args() {
   os_account_test_case_coverage_feature = false
 }

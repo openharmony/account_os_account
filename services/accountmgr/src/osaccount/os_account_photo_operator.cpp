@@ -84,7 +84,8 @@ std::string OsAccountPhotoOperator::DeCode(std::string const &baseStr)
 
     size_t i = 0;
     size_t in_ = 0;
-    unsigned char char_array_4[SIZET_FOUR], char_array_3[SIZET_THREE];
+    unsigned char char_array_4[SIZET_FOUR];
+    unsigned char char_array_3[SIZET_THREE];
 
     while (in_len-- && (baseStr[in_] != '=') && IsBase(baseStr[in_])) {
         char_array_4[i++] = baseStr[in_];
