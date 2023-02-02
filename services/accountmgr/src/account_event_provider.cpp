@@ -14,6 +14,7 @@
  */
 
 #include "account_event_provider.h"
+#include "account_info.h"
 #ifdef HAS_CES_PART
 #include <common_event_data.h>
 #include <common_event_support.h>
@@ -23,6 +24,7 @@
 #include "common_event_manager.h"
 #include "want.h"
 #endif // HAS_CES_PART
+#include "hisysevent_adapter.h"
 #include "hitrace_meter.h"
 
 #ifdef HAS_CES_PART
@@ -36,13 +38,19 @@ bool AccountEventProvider::EventPublish(const std::string& event, int32_t userId
 #ifdef HAS_CES_PART
     Want want;
     want.SetAction(event);
-    want.SetParam("userId", userId);
     CommonEventData data;
+    if (event != EventFwk::CommonEventSupport::COMMON_EVENT_USER_INFO_UPDATED) {
+        want.SetParam("userId", userId);
+    } else {
+        data.SetCode(userId);
+    }
     data.SetWant(want);
     StartTrace(HITRACE_TAG_ACCOUNT_MANAGER, "Ohos account event publish.");
     /* publish */
     if (!CommonEventManager::PublishCommonEvent(data)) {
-        ACCOUNT_LOGE("PublishCommonEvent failed! event %{public}s.", event.c_str());
+        ACCOUNT_LOGE("PublishCommonEvent failed! event %{public}s. userId is %{public}d", event.c_str(), userId);
+        ReportOhosAccountOperationFail(userId, EVENT_PUBLISH, false, "PublishCommonEvent failed");
+        return false;
     } else {
         ACCOUNT_LOGI("PublishCommonEvent succeed! event %{public}s.", event.c_str());
     }

@@ -33,6 +33,9 @@ ohos_unittest("account_mgr_test") {
   ]
 
   sources = [
+    "${services_path}/accountmgr/src/account_event_provider.cpp",
+    "${services_path}/accountmgr/src/ohos_account_data_deal.cpp",
+    "${services_path}/accountmgr/src/ohos_account_manager.cpp",
     "account_dump_helper_test.cpp",
     "account_mgr_service_test.cpp",
     "account_state_machine_test.cpp",
