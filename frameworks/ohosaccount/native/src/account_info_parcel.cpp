@@ -20,6 +20,9 @@
 
 namespace OHOS {
 namespace AccountSA {
+namespace {
+const int32_t AVATAR_MAX_SIZE = 10 * 1024 * 1024;
+}
 bool WriteOhosAccountInfo(MessageParcel &data, const OhosAccountInfo &ohosAccountInfo)
 {
     if (!data.WriteString16(Str8ToStr16(ohosAccountInfo.name_))) {
@@ -64,7 +67,7 @@ static ErrCode ReadAvatarData(MessageParcel &data, std::string &avatarStr)
         ACCOUNT_LOGE("read avatarSize failed");
         return ERR_ACCOUNT_COMMON_READ_PARCEL_ERROR;
     }
-    if (avatarSize - 1 > Constants::AVATAR_MAX_SIZE) {
+    if (avatarSize - 1 > AVATAR_MAX_SIZE) {
         ACCOUNT_LOGE("avatarSize is oversize");
         return ERR_OHOSACCOUNT_KIT_INVALID_PARAMETER;
     }
