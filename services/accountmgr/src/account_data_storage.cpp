@@ -54,8 +54,8 @@ OHOS::DistributedKv::Status AccountDataStorage::GetKvStore()
         .createIfMissing = true,
         .encrypt = false,
         .autoSync = autoSync_,
-        .kvStoreType = OHOS::DistributedKv::KvStoreType::SINGLE_VERSION,
         .area = OHOS::DistributedKv::EL1,
+        .kvStoreType = OHOS::DistributedKv::KvStoreType::SINGLE_VERSION,
         .baseDir = KVSTORE_BASE_DIR + appId_.appId,
         .syncable = autoSync_
     };
