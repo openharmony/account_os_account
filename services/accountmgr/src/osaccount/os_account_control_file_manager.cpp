@@ -662,10 +662,14 @@ ErrCode OsAccountControlFileManager::UpdateOsAccount(OsAccountInfo &osAccountInf
         return ERR_OSACCOUNT_SERVICE_CONTROL_UPDATE_FILE_ERROR;
     }
 
+#ifdef DISTRIBUTED_FEATURE_ENABLED
     // update in database
     if (osAccountInfo.GetLocalId() >= Constants::START_USER_ID) {
         osAccountDataBaseOperator_->UpdateOsAccountInDatabase(osAccountInfo);
     }
+#else  // DISTRIBUTED_FEATURE_ENABLED
+    ACCOUNT_LOGI("No distributed feature!");
+#endif // DISTRIBUTED_FEATURE_ENABLED
 
     ACCOUNT_LOGD("end");
     return ERR_OK;

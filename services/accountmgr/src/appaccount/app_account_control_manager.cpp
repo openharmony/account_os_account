@@ -744,13 +744,13 @@ ErrCode AppAccountControlManager::OnPackageRemoved(
         ACCOUNT_LOGE("dataStoragePtr is nullptr");
         return ERR_APPACCOUNT_SERVICE_DATA_STORAGE_PTR_IS_NULLPTR;
     }
-
+#ifdef DISTRIBUTED_FEATURE_ENABLED
     auto dataStorageSyncPtr = GetDataStorage(uid, true);
     if (dataStorageSyncPtr == nullptr) {
         ACCOUNT_LOGE("dataStorageSyncPtr is nullptr");
         return ERR_APPACCOUNT_SERVICE_DATA_STORAGE_PTR_IS_NULLPTR;
     }
-
+#endif // DISTRIBUTED_FEATURE_ENABLED
     std::map<std::string, std::shared_ptr<IAccountInfo>> accounts;
     std::string key = bundleName + Constants::HYPHEN + std::to_string(appIndex);
     ErrCode result = dataStoragePtr->LoadDataByLocalFuzzyQuery(key, accounts);
@@ -759,35 +759,29 @@ ErrCode AppAccountControlManager::OnPackageRemoved(
             result, bundleName.c_str());
         return ERR_APPACCOUNT_SERVICE_GET_ACCOUNT_INFO_BY_OWNER;
     }
-
     AppAccountInfo appAccountInfo;
     for (auto account : accounts) {
         appAccountInfo = *(std::static_pointer_cast<AppAccountInfo>(account.second));
-
         std::set<std::string> authorizedApps;
         appAccountInfo.GetAuthorizedApps(authorizedApps);
         appAccountInfo.SetAppIndex(appIndex);
         for (auto authorizedApp : authorizedApps) {
-            result = RemoveAuthorizedAccountFromDataStorage(authorizedApp, appAccountInfo, dataStoragePtr);
-            ACCOUNT_LOGD("remove authorized account from data storage, result = %{public}d.", result);
-
-            // for sync data storage
+            RemoveAuthorizedAccountFromDataStorage(authorizedApp, appAccountInfo, dataStoragePtr);
+#ifdef DISTRIBUTED_FEATURE_ENABLED
             if (NeedSyncDataStorage(appAccountInfo) == true) {
-                result = RemoveAuthorizedAccountFromDataStorage(authorizedApp, appAccountInfo, dataStorageSyncPtr);
-                ACCOUNT_LOGD("remove authorized account from data storage, result = %{public}d.", result);
+                RemoveAuthorizedAccountFromDataStorage(authorizedApp, appAccountInfo, dataStorageSyncPtr);
             }
+#endif // DISTRIBUTED_FEATURE_ENABLED
         }
-
-        result = dataStoragePtr->DeleteAccountInfoFromDataStorage(appAccountInfo);
-        ACCOUNT_LOGD("delete account info from data storage, result = %{public}d.", result);
-
-        // for sync data storage
+        dataStoragePtr->DeleteAccountInfoFromDataStorage(appAccountInfo);
+#ifdef DISTRIBUTED_FEATURE_ENABLED
         if (NeedSyncDataStorage(appAccountInfo) == true) {
-            result = dataStorageSyncPtr->DeleteAccountInfoFromDataStorage(appAccountInfo);
-            ACCOUNT_LOGD("delete account info from data storage, result = %{public}d.", result);
+            dataStorageSyncPtr->DeleteAccountInfoFromDataStorage(appAccountInfo);
         }
+#else  // DISTRIBUTED_FEATURE_ENABLED
+        ACCOUNT_LOGI("No distributed feature!");
+#endif // DISTRIBUTED_FEATURE_ENABLED
     }
-
     return ERR_OK;
 }
 
@@ -991,6 +985,7 @@ ErrCode AppAccountControlManager::AddAccountInfoIntoDataStorage(
     }
 
     // for sync data storage
+#ifdef DISTRIBUTED_FEATURE_ENABLED
     if (NeedSyncDataStorage(appAccountInfo) == true) {
         auto dataStorageSyncPtr = GetDataStorage(uid, true);
         if (dataStorageSyncPtr == nullptr) {
@@ -1004,6 +999,9 @@ ErrCode AppAccountControlManager::AddAccountInfoIntoDataStorage(
             return result;
         }
     }
+#else  // DISTRIBUTED_FEATURE_ENABLED
+    ACCOUNT_LOGI("No distributed feature!");
+#endif // DISTRIBUTED_FEATURE_ENABLED
 
     return ERR_OK;
 }
@@ -1023,6 +1021,7 @@ ErrCode AppAccountControlManager::SaveAccountInfoIntoDataStorage(
     }
 
     // for sync data storage
+#ifdef DISTRIBUTED_FEATURE_ENABLED
     if (NeedSyncDataStorage(appAccountInfo) == true) {
         auto dataStorageSyncPtr = GetDataStorage(uid, true);
         if (dataStorageSyncPtr == nullptr) {
@@ -1048,6 +1047,9 @@ ErrCode AppAccountControlManager::SaveAccountInfoIntoDataStorage(
             }
         }
     }
+#else  // DISTRIBUTED_FEATURE_ENABLED
+    ACCOUNT_LOGI("No distributed feature!");
+#endif // DISTRIBUTED_FEATURE_ENABLED
 
     return ERR_OK;
 }
@@ -1073,6 +1075,7 @@ ErrCode AppAccountControlManager::DeleteAccountInfoFromDataStorage(
     }
 
     // for sync data storage
+#ifdef DISTRIBUTED_FEATURE_ENABLED
     if (NeedSyncDataStorage(appAccountInfo) == true) {
         auto dataStorageSyncPtr = GetDataStorage(uid, true);
         if (dataStorageSyncPtr == nullptr) {
@@ -1085,7 +1088,9 @@ ErrCode AppAccountControlManager::DeleteAccountInfoFromDataStorage(
             ACCOUNT_LOGE("failed to delete account info from data storage, result %{public}d.", result);
         }
     }
-
+#else  // DISTRIBUTED_FEATURE_ENABLED
+    ACCOUNT_LOGI("No distributed feature!");
+#endif // DISTRIBUTED_FEATURE_ENABLED
     return ERR_OK;
 }
 
@@ -1104,6 +1109,7 @@ ErrCode AppAccountControlManager::SaveAuthorizedAccount(const std::string &bundl
     }
 
     // for sync data storage
+#ifdef DISTRIBUTED_FEATURE_ENABLED
     if (NeedSyncDataStorage(appAccountInfo) == true) {
         auto dataStorageSyncPtr = GetDataStorage(uid, true);
         if (dataStorageSyncPtr == nullptr) {
@@ -1117,6 +1123,9 @@ ErrCode AppAccountControlManager::SaveAuthorizedAccount(const std::string &bundl
             return result;
         }
     }
+#else  // DISTRIBUTED_FEATURE_ENABLED
+    ACCOUNT_LOGI("No distributed feature!");
+#endif // DISTRIBUTED_FEATURE_ENABLED
 
     return ERR_OK;
 }
@@ -1136,6 +1145,7 @@ ErrCode AppAccountControlManager::RemoveAuthorizedAccount(const std::string &bun
     }
 
     // for sync data storage
+#ifdef DISTRIBUTED_FEATURE_ENABLED
     if (NeedSyncDataStorage(appAccountInfo) == true) {
         auto dataStorageSyncPtr = GetDataStorage(uid, true);
         if (dataStorageSyncPtr == nullptr) {
@@ -1149,6 +1159,9 @@ ErrCode AppAccountControlManager::RemoveAuthorizedAccount(const std::string &bun
             return result;
         }
     }
+#else  // DISTRIBUTED_FEATURE_ENABLED
+    ACCOUNT_LOGI("No distributed feature!");
+#endif // DISTRIBUTED_FEATURE_ENABLED
 
     return ERR_OK;
 }
