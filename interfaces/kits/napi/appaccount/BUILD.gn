@@ -75,7 +75,7 @@ ohos_shared_library("appaccount") {
     "c_utils:utils",
     "hiviewdfx_hilog_native:libhilog",
     "ipc:ipc_core",
-    "ipc_js:rpc",
+    "ipc:ipc_napi_common",
     "os_account:app_account_innerkits",
   ]
 
