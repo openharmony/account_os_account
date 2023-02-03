@@ -1,0 +1,107 @@
+# Copyright (c) 2023 Huawei Device Co., Ltd.
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+# http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
+1.0 {
+  global:
+    extern "C++" {
+        "non-virtual thunk to OHOS::AccountSA::OsAccountStub::~OsAccountStub()";
+        "OHOS::AccountSA::OsAccount::ActivateOsAccount(int)";
+        "OHOS::AccountSA::OsAccount::CreateOsAccount(std::__1::basic_string<char, std::__1::char_traits<char>, std::__1::allocator<char> > const&, OHOS::AccountSA::OsAccountType const&, OHOS::AccountSA::OsAccountInfo&)";
+        "OHOS::AccountSA::OsAccount::CreateOsAccount(std::__h::basic_string<char, std::__h::char_traits<char>, std::__h::allocator<char> > const&, OHOS::AccountSA::OsAccountType const&, OHOS::AccountSA::OsAccountInfo&)";
+        "OHOS::AccountSA::OsAccount::CreateOsAccountEventListener(std::__1::shared_ptr<OHOS::AccountSA::OsAccountSubscriber> const&, OHOS::sptr<OHOS::IRemoteObject>&)";
+        "OHOS::AccountSA::OsAccount::CreateOsAccountEventListener(std::__h::shared_ptr<OHOS::AccountSA::OsAccountSubscriber> const&, OHOS::sptr<OHOS::IRemoteObject>&)";
+        "OHOS::AccountSA::OsAccount::CreateOsAccountForDomain(OHOS::AccountSA::OsAccountType const&, OHOS::AccountSA::DomainAccountInfo const&, OHOS::AccountSA::OsAccountInfo&)";
+        "OHOS::AccountSA::OsAccount::DumpState(int const&, std::__1::vector<std::__1::basic_string<char, std::__1::char_traits<char>, std::__1::allocator<char> >, std::__1::allocator<std::__1::basic_string<char, std::__1::char_traits<char>, std::__1::allocator<char> > > >&)";
+        "OHOS::AccountSA::OsAccount::DumpState(int const&, std::__h::vector<std::__h::basic_string<char, std::__h::char_traits<char>, std::__h::allocator<char> >, std::__h::allocator<std::__h::basic_string<char, std::__h::char_traits<char>, std::__h::allocator<char> > > >&)";
+        "OHOS::AccountSA::OsAccount::GetCreatedOsAccountNumFromDatabase(std::__1::basic_string<char, std::__1::char_traits<char>, std::__1::allocator<char> > const&, int&)";
+        "OHOS::AccountSA::OsAccount::GetCreatedOsAccountNumFromDatabase(std::__h::basic_string<char, std::__h::char_traits<char>, std::__h::allocator<char> > const&, int&)";
+        "OHOS::AccountSA::OsAccount::GetCreatedOsAccountsCount(unsigned int&)";
+        "OHOS::AccountSA::OsAccount::GetDistributedVirtualDeviceId(std::__1::basic_string<char, std::__1::char_traits<char>, std::__1::allocator<char> >&)";
+        "OHOS::AccountSA::OsAccount::GetDistributedVirtualDeviceId(std::__h::basic_string<char, std::__h::char_traits<char>, std::__h::allocator<char> >&)";
+        "OHOS::AccountSA::OsAccount::GetMaxAllowCreateIdFromDatabase(std::__1::basic_string<char, std::__1::char_traits<char>, std::__1::allocator<char> > const&, int&)";
+        "OHOS::AccountSA::OsAccount::GetMaxAllowCreateIdFromDatabase(std::__h::basic_string<char, std::__h::char_traits<char>, std::__h::allocator<char> > const&, int&)";
+        "OHOS::AccountSA::OsAccount::GetOsAccountAllConstraints(int, std::__1::vector<std::__1::basic_string<char, std::__1::char_traits<char>, std::__1::allocator<char> >, std::__1::allocator<std::__1::basic_string<char, std::__1::char_traits<char>, std::__1::allocator<char> > > >&)";
+        "OHOS::AccountSA::OsAccount::GetOsAccountAllConstraints(int, std::__h::vector<std::__h::basic_string<char, std::__h::char_traits<char>, std::__h::allocator<char> >, std::__h::allocator<std::__h::basic_string<char, std::__h::char_traits<char>, std::__h::allocator<char> > > >&)";
+        "OHOS::AccountSA::OsAccount::GetOsAccountFromDatabase(std::__1::basic_string<char, std::__1::char_traits<char>, std::__1::allocator<char> > const&, int, OHOS::AccountSA::OsAccountInfo&)";
+        "OHOS::AccountSA::OsAccount::GetOsAccountFromDatabase(std::__h::basic_string<char, std::__h::char_traits<char>, std::__h::allocator<char> > const&, int, OHOS::AccountSA::OsAccountInfo&)";
+        "OHOS::AccountSA::OsAccount::GetOsAccountListFromDatabase(std::__1::basic_string<char, std::__1::char_traits<char>, std::__1::allocator<char> > const&, std::__1::vector<OHOS::AccountSA::OsAccountInfo, std::__1::allocator<OHOS::AccountSA::OsAccountInfo> >&)";
+        "OHOS::AccountSA::OsAccount::GetOsAccountListFromDatabase(std::__h::basic_string<char, std::__h::char_traits<char>, std::__h::allocator<char> > const&, std::__h::vector<OHOS::AccountSA::OsAccountInfo, std::__h::allocator<OHOS::AccountSA::OsAccountInfo> >&)";
+        "OHOS::AccountSA::OsAccount::GetOsAccountLocalIdBySerialNumber(long long, int&)";
+        "OHOS::AccountSA::OsAccount::GetOsAccountLocalIdBySerialNumber(long, int&)";
+        "OHOS::AccountSA::OsAccount::GetOsAccountLocalIdFromDomain(OHOS::AccountSA::DomainAccountInfo const&, int&)";
+        "OHOS::AccountSA::OsAccount::GetOsAccountLocalIdFromProcess(int&)";
+        "OHOS::AccountSA::OsAccount::GetOsAccountProfilePhoto(int, std::__1::basic_string<char, std::__1::char_traits<char>, std::__1::allocator<char> >&)";
+        "OHOS::AccountSA::OsAccount::GetOsAccountProfilePhoto(int, std::__h::basic_string<char, std::__h::char_traits<char>, std::__h::allocator<char> >&)";
+        "OHOS::AccountSA::OsAccount::GetOsAccountSwitchMod()";
+        "OHOS::AccountSA::OsAccount::GetOsAccountTypeFromProcess(OHOS::AccountSA::OsAccountType&)";
+        "OHOS::AccountSA::OsAccount::GetSerialNumberByOsAccountLocalId(int const&, long long&)";
+        "OHOS::AccountSA::OsAccount::GetSerialNumberByOsAccountLocalId(int const&, long&)";
+        "OHOS::AccountSA::OsAccount::GetSerialNumberFromDatabase(std::__1::basic_string<char, std::__1::char_traits<char>, std::__1::allocator<char> > const&, long long&)";
+        "OHOS::AccountSA::OsAccount::GetSerialNumberFromDatabase(std::__1::basic_string<char, std::__1::char_traits<char>, std::__1::allocator<char> > const&, long& ... )";
+        "OHOS::AccountSA::OsAccount::GetSerialNumberFromDatabase(std::__1::basic_string<char, std::__1::char_traits<char>, std::__1::allocator<char> > const&, long&)";
+        "OHOS::AccountSA::OsAccount::GetSerialNumberFromDatabase(std::__h::basic_string<char, std::__h::char_traits<char>, std::__h::allocator<char> > const&, long long&)";
+        "OHOS::AccountSA::OsAccount::GetSerialNumberFromDatabase(std::__h::basic_string<char, std::__h::char_traits<char>, std::__h::allocator<char> > const&, long&)";
+        "OHOS::AccountSA::OsAccount::IsCurrentOsAccountVerified(bool&)";
+        "OHOS::AccountSA::OsAccount::IsMainOsAccount(bool&)";
+        "OHOS::AccountSA::OsAccount::IsMultiOsAccountEnable(bool&)";
+        "OHOS::AccountSA::OsAccount::IsOsAccountActived(int, bool&)";
+        "OHOS::AccountSA::OsAccount::IsOsAccountCompleted(int, bool&)";
+        "OHOS::AccountSA::OsAccount::IsOsAccountConstraintEnable(int, std::__1::basic_string<char, std::__1::char_traits<char>, std::__1::allocator<char> > const&, bool&)";
+        "OHOS::AccountSA::OsAccount::IsOsAccountConstraintEnable(int, std::__h::basic_string<char, std::__h::char_traits<char>, std::__h::allocator<char> > const&, bool&)";
+        "OHOS::AccountSA::OsAccount::IsOsAccountExists(int, bool&)";
+        "OHOS::AccountSA::OsAccount::IsOsAccountVerified(int, bool&)";
+        "OHOS::AccountSA::OsAccount::QueryActiveOsAccountIds(std::__1::vector<int, std::__1::allocator<int> >&)";
+        "OHOS::AccountSA::OsAccount::QueryActiveOsAccountIds(std::__h::vector<int, std::__h::allocator<int> >&)";
+        "OHOS::AccountSA::OsAccount::QueryAllCreatedOsAccounts(std::__1::vector<OHOS::AccountSA::OsAccountInfo, std::__1::allocator<OHOS::AccountSA::OsAccountInfo> >&)";
+        "OHOS::AccountSA::OsAccount::QueryAllCreatedOsAccounts(std::__h::vector<OHOS::AccountSA::OsAccountInfo, std::__h::allocator<OHOS::AccountSA::OsAccountInfo> >&)";
+        "OHOS::AccountSA::OsAccount::QueryCurrentOsAccount(OHOS::AccountSA::OsAccountInfo&)";
+        "OHOS::AccountSA::OsAccount::QueryMaxOsAccountNumber(int&)";
+        "OHOS::AccountSA::OsAccount::QueryOsAccountById(int, OHOS::AccountSA::OsAccountInfo&)";
+        "OHOS::AccountSA::OsAccount::QueryOsAccountConstraintSourceTypes(int, std::__1::basic_string<char, std::__1::char_traits<char>, std::__1::allocator<char> > const&, std::__1::vector<OHOS::AccountSA::ConstraintSourceTypeInfo, std::__1::allocator<OHOS::AccountSA::ConstraintSourceTypeInfo> >&)";
+        "OHOS::AccountSA::OsAccount::QueryOsAccountConstraintSourceTypes(int, std::__h::basic_string<char, std::__h::char_traits<char>, std::__h::allocator<char> > const&, std::__h::vector<OHOS::AccountSA::ConstraintSourceTypeInfo, std::__h::allocator<OHOS::AccountSA::ConstraintSourceTypeInfo> >&)";
+        "OHOS::AccountSA::OsAccount::RemoveOsAccount(int)";
+        "OHOS::AccountSA::OsAccount::ResetOsAccountProxy()";
+        "OHOS::AccountSA::OsAccount::SetCurrentOsAccountIsVerified(bool)";
+        "OHOS::AccountSA::OsAccount::SetGlobalOsAccountConstraints(std::__1::vector<std::__1::basic_string<char, std::__1::char_traits<char>, std::__1::allocator<char> >, std::__1::allocator<std::__1::basic_string<char, std::__1::char_traits<char>, std::__1::allocator<char> > > > const&, bool, int, bool)";
+        "OHOS::AccountSA::OsAccount::SetGlobalOsAccountConstraints(std::__h::vector<std::__h::basic_string<char, std::__h::char_traits<char>, std::__h::allocator<char> >, std::__h::allocator<std::__h::basic_string<char, std::__h::char_traits<char>, std::__h::allocator<char> > > > const&, bool, int, bool)";
+        "OHOS::AccountSA::OsAccount::SetOsAccountConstraints(int, std::__1::vector<std::__1::basic_string<char, std::__1::char_traits<char>, std::__1::allocator<char> >, std::__1::allocator<std::__1::basic_string<char, std::__1::char_traits<char>, std::__1::allocator<char> > > > const&, bool)";
+        "OHOS::AccountSA::OsAccount::SetOsAccountConstraints(int, std::__h::vector<std::__h::basic_string<char, std::__h::char_traits<char>, std::__h::allocator<char> >, std::__h::allocator<std::__h::basic_string<char, std::__h::char_traits<char>, std::__h::allocator<char> > > > const&, bool)";
+        "OHOS::AccountSA::OsAccount::SetOsAccountIsVerified(int, bool)";
+        "OHOS::AccountSA::OsAccount::SetOsAccountName(int, std::__1::basic_string<char, std::__1::char_traits<char>, std::__1::allocator<char> > const&)";
+        "OHOS::AccountSA::OsAccount::SetOsAccountName(int, std::__h::basic_string<char, std::__h::char_traits<char>, std::__h::allocator<char> > const&)";
+        "OHOS::AccountSA::OsAccount::SetOsAccountProfilePhoto(int, std::__1::basic_string<char, std::__1::char_traits<char>, std::__1::allocator<char> > const&)";
+        "OHOS::AccountSA::OsAccount::SetOsAccountProfilePhoto(int, std::__h::basic_string<char, std::__h::char_traits<char>, std::__h::allocator<char> > const&)";
+        "OHOS::AccountSA::OsAccount::SetSpecificOsAccountConstraints(std::__1::vector<std::__1::basic_string<char, std::__1::char_traits<char>, std::__1::allocator<char> >, std::__1::allocator<std::__1::basic_string<char, std::__1::char_traits<char>, std::__1::allocator<char> > > > const&, bool, int, int, bool)";
+        "OHOS::AccountSA::OsAccount::SetSpecificOsAccountConstraints(std::__h::vector<std::__h::basic_string<char, std::__h::char_traits<char>, std::__h::allocator<char> >, std::__h::allocator<std::__h::basic_string<char, std::__h::char_traits<char>, std::__h::allocator<char> > > > const&, bool, int, int, bool)";
+        "OHOS::AccountSA::OsAccount::StartOsAccount(int)";
+        "OHOS::AccountSA::OsAccount::StopOsAccount(int)";
+        "OHOS::AccountSA::OsAccount::SubscribeOsAccount(std::__1::shared_ptr<OHOS::AccountSA::OsAccountSubscriber> const&)";
+        "OHOS::AccountSA::OsAccount::SubscribeOsAccount(std::__h::shared_ptr<OHOS::AccountSA::OsAccountSubscriber> const&)";
+        "OHOS::AccountSA::OsAccount::UnsubscribeOsAccount(std::__1::shared_ptr<OHOS::AccountSA::OsAccountSubscriber> const&)";
+        "OHOS::AccountSA::OsAccount::UnsubscribeOsAccount(std::__h::shared_ptr<OHOS::AccountSA::OsAccountSubscriber> const&)";
+        "OHOS::AccountSA::OsAccountInfo::GetDomainInfo(OHOS::AccountSA::DomainAccountInfo&) const";
+        "OHOS::AccountSA::OsAccountInfo::GetLocalId() const";
+        "OHOS::AccountSA::OsAccountInfo::OsAccountInfo()";
+        "OHOS::AccountSA::OsAccountInfo::SetDomainInfo(OHOS::AccountSA::DomainAccountInfo const&)";
+        "OHOS::AccountSA::OsAccountProxy::OsAccountProxy(OHOS::sptr<OHOS::IRemoteObject> const&)";
+        "OHOS::AccountSA::OsAccountStub::OnRemoteRequest(unsigned int, OHOS::MessageParcel&, OHOS::MessageParcel&, OHOS::MessageOption&)";
+        "OHOS::AccountSA::OsAccountStub::OsAccountStub()";
+        "OHOS::AccountSA::OsAccountStub::~OsAccountStub()";
+        "OHOS::AccountSA::OsAccountSubscriber::OsAccountSubscriber()";
+        "OHOS::AccountSA::OsAccountSubscriber::~OsAccountSubscriber()";
+        "virtual thunk to OHOS::AccountSA::OsAccountStub::~OsAccountStub()";
+        "VTT for OHOS::AccountSA::OsAccountInfo";
+    };
+  local:
+    *;
+};
