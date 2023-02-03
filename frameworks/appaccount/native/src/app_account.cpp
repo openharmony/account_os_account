@@ -536,6 +536,7 @@ ErrCode AppAccount::SubscribeAppAccount(const std::shared_ptr<AppAccountSubscrib
     if (subscribeState == INITIAL_SUBSCRIPTION) {
         subscribeState = appAccountProxy_->SubscribeAppAccount(subscribeInfo, appAccountEventListener);
         if (subscribeState != ERR_OK) {
+            std::lock_guard<std::mutex> lock(eventListenersMutex_);
             eventListeners_.erase(subscriber);
         }
         return subscribeState;
