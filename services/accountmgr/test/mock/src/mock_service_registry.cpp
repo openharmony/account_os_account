@@ -105,6 +105,11 @@ int32_t SystemAbilityManagerProxy::LoadSystemAbility(int32_t systemAbilityId,
     return ERR_INVALID_VALUE;
 }
 
+int32_t SystemAbilityManagerProxy::UnloadSystemAbility(int32_t systemAbilityId)
+{
+    return ERR_INVALID_VALUE;
+}
+
 int32_t SystemAbilityManagerProxy::LoadSystemAbility(int32_t systemAbilityId, const std::string& deviceId,
     const sptr<ISystemAbilityLoadCallback>& callback)
 {
