@@ -275,10 +275,12 @@ bool OhosAccountManager::LoginOhosAccount(const OhosAccountInfo &ohosAccountInfo
     }
 
     // check whether need to publish event or not
+#ifdef HAS_CES_PART
     bool isPubLoginEvent = false;
     if (currAccountInfo.ohosAccountInfo_.status_ != ACCOUNT_STATE_LOGIN) {
         isPubLoginEvent = true;
     }
+#endif // HAS_CES_PART
     // update account status
     if (!HandleEvent(currAccountInfo, eventStr)) {
         ACCOUNT_LOGE("HandleEvent %{public}s failed! callingUserId %{public}d.", eventStr.c_str(), callingUserId);
