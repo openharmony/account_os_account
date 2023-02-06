@@ -306,7 +306,7 @@ bool OhosAccountManager::LoginOhosAccount(const OhosAccountInfo &ohosAccountInfo
     }
     AccountEventProvider::EventPublish(EventFwk::CommonEventSupport::COMMON_EVENT_HWID_LOGIN, callingUserId);
 #else  // HAS_CES_PART
-        ACCOUNT_LOGI("No common event part, publish nothing!");
+    ACCOUNT_LOGI("No common event part, publish nothing!");
 #endif // HAS_CES_PART
     ACCOUNT_LOGI("LoginOhosAccount success! callingUserId %{public}d", callingUserId);
     return true;
