@@ -46,7 +46,6 @@
         "hiviewdfx_hilog_native",
         "init",
         "ipc",
-        "ipc_js",
         "napi",
         "pin_auth",
         "safwk",
