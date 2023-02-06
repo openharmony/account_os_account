@@ -84,6 +84,8 @@ ohos_shared_library("os_account_core") {
 
   use_exceptions = true
 
+  version_script = "libos_account_core.map"
+
   deps = [ "${innerkits_native_path}:libaccountkits" ]
 
   external_deps = [
