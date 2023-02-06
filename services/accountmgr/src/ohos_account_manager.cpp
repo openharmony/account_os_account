@@ -274,8 +274,8 @@ bool OhosAccountManager::LoginOhosAccount(const OhosAccountInfo &ohosAccountInfo
         return false;
     }
 
-    // check whether need to publish event or not
 #ifdef HAS_CES_PART
+    // check whether need to publish event or not
     bool isPubLoginEvent = false;
     if (currAccountInfo.ohosAccountInfo_.status_ != ACCOUNT_STATE_LOGIN) {
         isPubLoginEvent = true;
