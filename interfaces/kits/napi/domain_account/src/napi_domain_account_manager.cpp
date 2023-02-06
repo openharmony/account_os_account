@@ -41,7 +41,7 @@ static napi_value CreateNapiDomainAccountInfo(napi_env env, const DomainAccountI
     napi_set_named_property(env, napiInfo, "accountName", napiName);
     napi_value napiDomain = nullptr;
     napi_create_string_utf8(env, domainAccountInfo.domain_.c_str(), NAPI_AUTO_LENGTH, &napiDomain);
-    napi_set_named_property(env, napiInfo, "domain", napiName);
+    napi_set_named_property(env, napiInfo, "domain", napiDomain);
     return napiInfo;
 }
 
