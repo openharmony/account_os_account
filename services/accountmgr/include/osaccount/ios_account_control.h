@@ -64,6 +64,8 @@ public:
         const std::string& targetIdStr, const std::vector<std::string>& ConstraintStr, bool isAdd) = 0;
     virtual ErrCode GetDeviceOwnerId(int32_t &deviceOwnerId) = 0;
     virtual ErrCode UpdateDeviceOwnerId(const int32_t deviceOwnerId) = 0;
+    virtual ErrCode SetDefaultActivatedOsAccount(const int32_t id) = 0;
+    virtual ErrCode GetDefaultActivatedOsAccount(int32_t &id) = 0;
 };
 }  // namespace AccountSA
 }  // namespace OHOS

@@ -83,6 +83,9 @@ public:
     ErrCode SetSpecificOsAccountConstraints(const std::vector<std::string> &constraints,
         const bool enable, const int32_t targetId, const int32_t enforcerId, const bool isDeviceOwner) override;
 
+    ErrCode SetDefaultActivatedOsAccount(const int32_t id) override;
+    ErrCode GetDefaultActivatedOsAccount(int32_t &id) override;
+
 private:
     void SetOsAccountControl(std::shared_ptr<IOsAccountControl> ptr);
     void StartAccount();
@@ -106,6 +109,7 @@ private:
     bool IsLocalIdInOperating(int32_t localId);
     void CleanGarbageAccounts();
     ErrCode DealWithDeviceOwnerId(const bool isDeviceOwner, const int32_t localId);
+    void CheckAndRefreshLocalIdRecord(const int id);
 
     // operations for active list
     void PushIdIntoActiveList(int32_t id);
@@ -123,6 +127,7 @@ private:
     std::int32_t counterForStandardCreate_;
     std::int32_t counterForAccountStart_;
     std::int32_t deviceOwnerId_;
+    std::int32_t defaultActivatedId_;
     bool isSendToStorageCreate_;
     bool isSendToStorageStart_;
     std::shared_ptr<OHOS::AppExecFwk::EventHandler> handler_;

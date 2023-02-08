@@ -799,5 +799,29 @@ ErrCode OsAccount::SetSpecificOsAccountConstraints(const std::vector<std::string
 
     return osAccountProxy_->SetSpecificOsAccountConstraints(constraints, enable, targetId, enforcerId, isDeviceOwner);
 }
+
+ErrCode OsAccount::SetDefaultActivatedOsAccount(const int32_t id)
+{
+    ErrCode result = CheckLocalId(id);
+    if (result != ERR_OK) {
+        return result;
+    }
+    result = GetOsAccountProxy();
+    if (result != ERR_OK) {
+        ACCOUNT_LOGE("failed to get osAccountProxy_, result %{public}d.", result);
+        return result;
+    }
+    return osAccountProxy_->SetDefaultActivatedOsAccount(id);
+}
+
+ErrCode OsAccount::GetDefaultActivatedOsAccount(int32_t &id)
+{
+    ErrCode result = GetOsAccountProxy();
+    if (result != ERR_OK) {
+        ACCOUNT_LOGE("failed to get osAccountProxy_, result %{public}d.", result);
+        return result;
+    }
+    return osAccountProxy_->GetDefaultActivatedOsAccount(id);
+}
 }  // namespace AccountSA
 }  // namespace OHOS
