@@ -768,6 +768,28 @@ ErrCode OsAccountManagerService::SetSpecificOsAccountConstraints(const std::vect
     return innerManager_->SetSpecificOsAccountConstraints(constraints, enable, targetId, enforcerId, isDeviceOwner);
 }
 
+ErrCode OsAccountManagerService::SetDefaultActivatedOsAccount(const int32_t id)
+{
+    // parameters check
+    ErrCode ret = CheckLocalId(id);
+    if (ret != ERR_OK) {
+        return ret;
+    }
+
+    // permission check
+    if (!PermissionCheck(AccountPermissionManager::MANAGE_LOCAL_ACCOUNTS, "")) {
+        ACCOUNT_LOGE("account manager service, permission denied!");
+        return ERR_OSACCOUNT_SERVICE_PERMISSION_DENIED;
+    }
+
+    return innerManager_->SetDefaultActivatedOsAccount(id);
+}
+
+ErrCode OsAccountManagerService::GetDefaultActivatedOsAccount(int32_t &id)
+{
+    return innerManager_->GetDefaultActivatedOsAccount(id);
+}
+
 bool OsAccountManagerService::PermissionCheck(const std::string& permissionName, const std::string& constraintName)
 {
     // constraints check

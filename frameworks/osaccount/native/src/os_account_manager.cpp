@@ -280,5 +280,15 @@ ErrCode OsAccountManager::SetSpecificOsAccountConstraints(const std::vector<std:
     return DelayedSingleton<OsAccount>::GetInstance()->
         SetSpecificOsAccountConstraints(constraints, enable, targetId, enforcerId, isDeviceOwner);
 }
+
+ErrCode OsAccountManager::SetDefaultActivatedOsAccount(const int32_t id)
+{
+    return DelayedSingleton<OsAccount>::GetInstance()->SetDefaultActivatedOsAccount(id);
+}
+
+ErrCode OsAccountManager::GetDefaultActivatedOsAccount(int32_t &id)
+{
+    return DelayedSingleton<OsAccount>::GetInstance()->GetDefaultActivatedOsAccount(id);
+}
 }  // namespace AccountSA
 }  // namespace OHOS

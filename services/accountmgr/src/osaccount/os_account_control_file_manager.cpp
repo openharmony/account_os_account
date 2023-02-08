@@ -25,6 +25,8 @@
 
 namespace OHOS {
 namespace AccountSA {
+const std::string DEFAULT_ACTIVATED_ACCOUNT_ID = "DefaultActivatedAccountID";
+
 bool GetValidAccountID(const std::string& dirName, std::int32_t& accountID)
 {
     // check length first
@@ -98,6 +100,7 @@ void OsAccountControlFileManager::BuildAndSaveAccountListJsonFile(const std::vec
     Json accountList = Json {
         {Constants::ACCOUNT_LIST, accounts},
         {Constants::COUNT_ACCOUNT_NUM, accounts.size()},
+        {DEFAULT_ACTIVATED_ACCOUNT_ID, Constants::START_USER_ID},
         {Constants::MAX_ALLOW_CREATE_ACCOUNT_ID, Constants::MAX_USER_ID},
         {Constants::SERIAL_NUMBER_NUM, Constants::SERIAL_NUMBER_NUM_START},
         {Constants::IS_SERIAL_NUMBER_FULL, Constants::IS_SERIAL_NUMBER_FULL_INIT_VALUE},
@@ -949,7 +952,6 @@ ErrCode OsAccountControlFileManager::IsFromSpecificOAConstraintsList(const int32
 
 ErrCode OsAccountControlFileManager::SaveAccountListToFile(const Json &accountListJson)
 {
-    ACCOUNT_LOGD("enter!");
     std::lock_guard<std::mutex> lock(accountListFileLock_);
     if (accountFileOperator_->InputFileByPathAndContent(Constants::ACCOUNT_LIST_FILE_JSON_PATH,
         accountListJson.dump()) != ERR_OK) {
@@ -1014,7 +1016,6 @@ ErrCode OsAccountControlFileManager::GetDeviceOwnerId(int &deviceOwnerId)
 
 ErrCode OsAccountControlFileManager::UpdateDeviceOwnerId(const int deviceOwnerId)
 {
-    ACCOUNT_LOGE("UpdateDeviceOwnerId enter");
     Json globalOAConstraintsJson;
     if (GetGlobalOAConstraintsFromFile(globalOAConstraintsJson) != ERR_OK) {
         ACCOUNT_LOGE("get global json data from file failed!");
@@ -1028,6 +1029,37 @@ ErrCode OsAccountControlFileManager::UpdateDeviceOwnerId(const int deviceOwnerId
     return ERR_OK;
 }
 
+ErrCode OsAccountControlFileManager::SetDefaultActivatedOsAccount(const int32_t id)
+{
+    Json accountListJson;
+    if (GetAccountListFromFile(accountListJson) != ERR_OK) {
+        ACCOUNT_LOGE("get account list failed!");
+        return ERR_OSACCOUNT_SERVICE_CONTROL_GET_OS_ACCOUNT_LIST_ERROR;
+    }
+
+    accountListJson[DEFAULT_ACTIVATED_ACCOUNT_ID] = id;
+
+    if (SaveAccountListToFileAndDataBase(accountListJson) != ERR_OK) {
+        ACCOUNT_LOGE("SaveAccountListToFileAndDataBase failed!");
+        return ERR_OSACCOUNT_SERVICE_CONTROL_INSERT_OS_ACCOUNT_LIST_ERROR;
+    }
+    return ERR_OK;
+}
+
+ErrCode OsAccountControlFileManager::GetDefaultActivatedOsAccount(int32_t &id)
+{
+    Json accountListJsonData;
+    if (GetAccountListFromFile(accountListJsonData) != ERR_OK) {
+        return ERR_OSACCOUNT_SERVICE_CONTROL_GET_OS_ACCOUNT_LIST_ERROR;
+    }
+    OHOS::AccountSA::GetDataByType<int>(accountListJsonData,
+        accountListJsonData.end(),
+        DEFAULT_ACTIVATED_ACCOUNT_ID,
+        id,
+        OHOS::AccountSA::JsonType::NUMBER);
+    return ERR_OK;
+}
+
 ErrCode OsAccountControlFileManager::SaveAccountListToFileAndDataBase(const Json &accountListJson)
 {
     osAccountDataBaseOperator_->UpdateOsAccountIDListInDatabase(accountListJson);
@@ -1036,7 +1068,6 @@ ErrCode OsAccountControlFileManager::SaveAccountListToFileAndDataBase(const Json
 
 ErrCode OsAccountControlFileManager::IsOsAccountExists(const int id, bool &isExists)
 {
-    ACCOUNT_LOGD("start");
     isExists = false;
     std::string path = Constants::USER_INFO_BASE + Constants::PATH_SEPARATOR + std::to_string(id) +
                        Constants::PATH_SEPARATOR + Constants::USER_INFO_FILE_NAME;
@@ -1053,7 +1084,6 @@ ErrCode OsAccountControlFileManager::IsOsAccountExists(const int id, bool &isExi
     }
 
     isExists = true;
-    ACCOUNT_LOGD("end");
     return ERR_OK;
 }
 

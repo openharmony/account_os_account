@@ -81,6 +81,8 @@ private:
     ErrCode ProcQueryOsAccountConstraintSourceTypes(MessageParcel &data, MessageParcel &reply);
     ErrCode ProcSetGlobalOsAccountConstraints(MessageParcel &data, MessageParcel &reply);
     ErrCode ProcSetSpecificOsAccountConstraints(MessageParcel &data, MessageParcel &reply);
+    ErrCode ProcSetDefaultActivatedOsAccount(MessageParcel &data, MessageParcel &reply);
+    ErrCode ProcGetDefaultActivatedOsAccount(MessageParcel &data, MessageParcel &reply);
 
 private:
     template<typename T>

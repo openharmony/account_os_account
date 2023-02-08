@@ -301,6 +301,18 @@ const std::map<uint32_t, OsAccountStub::OsAccountMessageProc> OsAccountStub::mes
             .messageProcFunction = &OsAccountStub::ProcSetSpecificOsAccountConstraints,
         }
     },
+    {
+        static_cast<uint32_t>(IOsAccount::Message::SET_DEFAULT_ACTIVATED_OS_ACCOUNT),
+        {
+            .messageProcFunction = &OsAccountStub::ProcSetDefaultActivatedOsAccount,
+        }
+    },
+    {
+        static_cast<uint32_t>(IOsAccount::Message::GET_DEFAULT_ACTIVATED_OS_ACCOUNT),
+        {
+            .messageProcFunction = &OsAccountStub::ProcGetDefaultActivatedOsAccount,
+        }
+    },
 };
 
 OsAccountStub::OsAccountStub()
@@ -1166,6 +1178,36 @@ ErrCode OsAccountStub::ProcSetGlobalOsAccountConstraints(MessageParcel &data, Me
     bool isDeviceOwner = data.ReadBool();
     ErrCode result = SetGlobalOsAccountConstraints(constraints, enable, enforcerId, isDeviceOwner);
     if (!reply.WriteInt32(result)) {
+        ACCOUNT_LOGE("failed to write reply");
+        return IPC_STUB_WRITE_PARCEL_ERR;
+    }
+    return ERR_NONE;
+}
+
+ErrCode OsAccountStub::ProcSetDefaultActivatedOsAccount(MessageParcel &data, MessageParcel &reply)
+{
+    int32_t localId;
+    if (!data.ReadInt32(localId)) {
+        ACCOUNT_LOGE("failed to read localId");
+        return ERR_ACCOUNT_COMMON_READ_PARCEL_ERROR;
+    }
+    ErrCode result = SetDefaultActivatedOsAccount(localId);
+    if (!reply.WriteInt32(result)) {
+        ACCOUNT_LOGE("failed to write reply, result %{public}d.", result);
+        return IPC_STUB_WRITE_PARCEL_ERR;
+    }
+    return ERR_NONE;
+}
+
+ErrCode OsAccountStub::ProcGetDefaultActivatedOsAccount(MessageParcel &data, MessageParcel &reply)
+{
+    int32_t localId = 0;
+    ErrCode result = GetDefaultActivatedOsAccount(localId);
+    if (!reply.WriteInt32(result)) {
+        ACCOUNT_LOGE("failed to write reply, result %{public}d.", result);
+        return IPC_STUB_WRITE_PARCEL_ERR;
+    }
+    if (!reply.WriteInt32(localId)) {
         ACCOUNT_LOGE("failed to write reply");
         return IPC_STUB_WRITE_PARCEL_ERR;
     }

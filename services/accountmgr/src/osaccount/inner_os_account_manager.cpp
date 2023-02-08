@@ -42,6 +42,7 @@ IInnerOsAccountManager::IInnerOsAccountManager() : subscribeManagerPtr_(OsAccoun
     osAccountControl_ = std::make_shared<OsAccountControlFileManager>();
     osAccountControl_->Init();
     osAccountControl_->GetDeviceOwnerId(deviceOwnerId_);
+    osAccountControl_->GetDefaultActivatedOsAccount(defaultActivatedId_);
     ACCOUNT_LOGD("OsAccountAccountMgr Init end");
 }
 
@@ -99,11 +100,21 @@ void IInnerOsAccountManager::CreateBaseStandardAccount()
 void IInnerOsAccountManager::StartAccount()
 {
     OsAccountInfo osAccountInfo;
-    ErrCode errCode = osAccountControl_->GetOsAccountInfoById(Constants::START_USER_ID, osAccountInfo);
+    ErrCode errCode = osAccountControl_->GetOsAccountInfoById(defaultActivatedId_, osAccountInfo);
     if (errCode != ERR_OK) {
-        ACCOUNT_LOGE("OsAccountAccountMgr init start base account failed. cannot find account, errCode %{public}d.",
-            errCode);
-        return;
+        if (defaultActivatedId_ == Constants::START_USER_ID) {
+            ACCOUNT_LOGE("Init start base account failed. cannot find account, errCode %{public}d.", errCode);
+            return;
+        }
+        ACCOUNT_LOGE("Init startup account %{public}d failed, errCode %{public}d. And restart base account.",
+            defaultActivatedId_, errCode);
+        errCode = osAccountControl_->GetOsAccountInfoById(Constants::START_USER_ID, osAccountInfo);
+        if (errCode != ERR_OK) {
+            ACCOUNT_LOGE("Restart base account failed. cannot find account, errCode %{public}d.", errCode);
+            return;
+        }
+        osAccountControl_->SetDefaultActivatedOsAccount(Constants::START_USER_ID);
+        defaultActivatedId_ = Constants::START_USER_ID;
     }
     ResetAccountStatus();
     GetEventHandler();
@@ -140,7 +151,7 @@ void IInnerOsAccountManager::RestartActiveAccount()
 void IInnerOsAccountManager::StartActivatedAccount(int32_t id)
 {
     OsAccountInfo osAccountInfo;
-    osAccountControl_->GetOsAccountInfoById(Constants::START_USER_ID, osAccountInfo);
+    osAccountControl_->GetOsAccountInfoById(id, osAccountInfo);
     if (!IsOsAccountIDInActiveList(id)) {
         ErrCode errCode = ActivateOsAccount(id);
         if (errCode != ERR_OK) {
@@ -162,7 +173,7 @@ void IInnerOsAccountManager::StartActivatedAccount(int32_t id)
     osAccountInfo.SetLastLoginTime(time);
     osAccountControl_->UpdateOsAccount(osAccountInfo);
     PushIdIntoActiveList(id);
-    subscribeManagerPtr_->PublishActivatedOsAccount(Constants::START_USER_ID);
+    subscribeManagerPtr_->PublishActivatedOsAccount(id);
     OsAccountInterface::SendToCESAccountSwitched(osAccountInfo);
     ACCOUNT_LOGI("restart account ok");
 }
@@ -171,7 +182,7 @@ void IInnerOsAccountManager::CreateBaseStandardAccountSendToOther(void)
 {
     OsAccountInfo osAccountInfo;
     if (!isSendToStorageCreate_) {
-        osAccountControl_->GetOsAccountInfoById(Constants::START_USER_ID, osAccountInfo);
+        osAccountControl_->GetOsAccountInfoById(defaultActivatedId_, osAccountInfo);
         ErrCode errCode = OsAccountInterface::SendToStorageAccountCreate(osAccountInfo);
         if (errCode != ERR_OK) {
             if (++counterForStandardCreate_ == MAX_TRY_TIMES) {
@@ -189,7 +200,7 @@ void IInnerOsAccountManager::CreateBaseStandardAccountSendToOther(void)
             isSendToStorageCreate_ = true;
         }
     }
-    osAccountControl_->GetOsAccountInfoById(Constants::START_USER_ID, osAccountInfo);
+    osAccountControl_->GetOsAccountInfoById(defaultActivatedId_, osAccountInfo);
     ErrCode errCodeForBM = OsAccountInterface::SendToBMSAccountCreate(osAccountInfo);
     if (errCodeForBM != ERR_OK) {
         if (++counterForStandardCreate_ == MAX_TRY_TIMES) {
@@ -226,7 +237,7 @@ void IInnerOsAccountManager::ResetAccountStatus(void)
 void IInnerOsAccountManager::StartBaseStandardAccount(void)
 {
     OsAccountInfo osAccountInfo;
-    osAccountControl_->GetOsAccountInfoById(Constants::START_USER_ID, osAccountInfo);
+    osAccountControl_->GetOsAccountInfoById(defaultActivatedId_, osAccountInfo);
     if (!osAccountInfo.GetIsCreateCompleted()) {
         ++counterForStandard_;
         GetEventHandler();
@@ -269,8 +280,8 @@ void IInnerOsAccountManager::StartBaseStandardAccount(void)
         std::chrono::system_clock::now().time_since_epoch()).count();
     osAccountInfo.SetLastLoginTime(time);
     osAccountControl_->UpdateOsAccount(osAccountInfo);
-    PushIdIntoActiveList(Constants::START_USER_ID);
-    subscribeManagerPtr_->PublishActivatedOsAccount(Constants::START_USER_ID);
+    PushIdIntoActiveList(defaultActivatedId_);
+    subscribeManagerPtr_->PublishActivatedOsAccount(defaultActivatedId_);
     OsAccountInterface::SendToCESAccountSwitched(osAccountInfo);
     ACCOUNT_LOGI("connect AM to start account ok");
 }
@@ -398,6 +409,19 @@ ErrCode IInnerOsAccountManager::CreateOsAccountForDomain(
     return SendMsgForAccountCreate(osAccountInfo);
 }
 
+void IInnerOsAccountManager::CheckAndRefreshLocalIdRecord(const int id)
+{
+    if (id == defaultActivatedId_) {
+        ACCOUNT_LOGI("remove default activated id %{public}d", id);
+        osAccountControl_->SetDefaultActivatedOsAccount(Constants::START_USER_ID);
+        defaultActivatedId_ = Constants::START_USER_ID;
+    }
+    if (id == deviceOwnerId_) {
+        osAccountControl_->UpdateDeviceOwnerId(-1);
+    }
+    return;
+}
+
 ErrCode IInnerOsAccountManager::RemoveOsAccount(const int id)
 {
     ACCOUNT_LOGI("RemoveOsAccount delete id is %{public}d", id);
@@ -449,10 +473,7 @@ ErrCode IInnerOsAccountManager::RemoveOsAccount(const int id)
         ACCOUNT_LOGE("RemoveOsAccount failed to remove os account constraints info");
         return errCode;
     }
-    if (id == deviceOwnerId_) {
-        osAccountControl_->UpdateDeviceOwnerId(-1);
-    }
-    ACCOUNT_LOGI("IInnerOsAccountManager RemoveOsAccount end");
+    CheckAndRefreshLocalIdRecord(id);
     return ERR_OK;
 }
 
@@ -1337,6 +1358,44 @@ ErrCode IInnerOsAccountManager::SetOsAccountIsVerified(const int id, const bool 
             errCode, osAccountInfo.GetLocalId());
         return ERR_OSACCOUNT_SERVICE_INNER_UPDATE_ACCOUNT_ERROR;
     }
+    return ERR_OK;
+}
+
+ErrCode IInnerOsAccountManager::SetDefaultActivatedOsAccount(const int32_t id)
+{
+    std::lock_guard<std::mutex> lock(operatingMutex_);
+    if (id == defaultActivatedId_) {
+        ACCOUNT_LOGW("no need to repeat set initial start id %{public}d", id);
+        return ERR_OK;
+    }
+    OsAccountInfo osAccountInfo;
+    ErrCode errCode = osAccountControl_->GetOsAccountInfoById(id, osAccountInfo);
+    if (errCode != ERR_OK) {
+        ACCOUNT_LOGE("get osaccount info error, errCode %{public}d.", errCode);
+        return ERR_OSACCOUNT_SERVICE_INNER_SELECT_OSACCOUNT_BYID_ERROR;
+    }
+    // to be removed, cannot change any thing
+    if (osAccountInfo.GetToBeRemoved()) {
+        ACCOUNT_LOGE("account %{public}d will be removed, cannot change verify state!", id);
+        return ERR_OSACCOUNT_SERVICE_INNER_ACCOUNT_TO_BE_REMOVED_ERROR;
+    }
+    if (!osAccountInfo.GetIsCreateCompleted()) {
+        ACCOUNT_LOGE("account %{public}d is not completed", id);
+        return ERR_OSACCOUNT_SERVICE_INNER_ACCOUNT_IS_UNVERIFIED_ERROR;
+    }
+    errCode = osAccountControl_->SetDefaultActivatedOsAccount(id);
+    if (errCode != ERR_OK) {
+        ACCOUNT_LOGE("set default activated account id error %{public}d, id: %{public}d", errCode, id);
+        return errCode;
+    }
+    defaultActivatedId_ = id;
+    return ERR_OK;
+}
+
+ErrCode IInnerOsAccountManager::GetDefaultActivatedOsAccount(int32_t &id)
+{
+    std::lock_guard<std::mutex> lock(operatingMutex_);
+    id = defaultActivatedId_;
     return ERR_OK;
 }
 

@@ -104,6 +104,9 @@ public:
     ErrCode SetSpecificOsAccountConstraints(const std::vector<std::string> &constraints,
         const bool enable, const int32_t targetId, const int32_t enforcerId, const bool isDeviceOwner) override;
 
+    ErrCode SetDefaultActivatedOsAccount(const int32_t id) override;
+    ErrCode GetDefaultActivatedOsAccount(int32_t &id) override;
+
 private:
     virtual ErrCode DumpStateByAccounts(
         const std::vector<OsAccountInfo> &osAccountInfos, std::vector<std::string> &state);
