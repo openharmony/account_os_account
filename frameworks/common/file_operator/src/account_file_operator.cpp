@@ -14,12 +14,14 @@
  */
 #include "account_file_operator.h"
 #include <cerrno>
+#include <cstdio>
 #include <fstream>
 #include <nlohmann/json.hpp>
 #include <sstream>
 #include <string>
 #include <sys/stat.h>
 #include <sys/types.h>
+#include <unistd.h>
 #ifdef WITH_SELINUX
 #include <policycoreutils.h>
 #endif // WITH_SELINUX
@@ -80,13 +82,28 @@ ErrCode AccountFileOperator::InputFileByPathAndContent(const std::string &path, 
             return ERR_OSACCOUNT_SERVICE_FILE_FIND_DIR_ERROR;
         }
     }
-    std::ofstream o(path);
-    if (!o.is_open()) {
+    FILE *fp = fopen(path.c_str(), "wb");
+    if (fp == nullptr) {
         ACCOUNT_LOGE("failed to open %{public}s, errno %{public}d.", path.c_str(), errno);
-        return ERR_OSACCOUNT_SERVICE_FILE_CREATE_FILE_FAILED_ERROR;
+        return ERR_ACCOUNT_COMMON_FILE_OPEN_FAILED;
     }
-    o << content;
-    o.close();
+    size_t num = fwrite(content.c_str(), sizeof(char), content.length(), fp);
+    if (num != content.length()) {
+        ACCOUNT_LOGE("failed to fwrite %{public}s, errno %{public}d.", path.c_str(), errno);
+        fclose(fp);
+        return ERR_ACCOUNT_COMMON_FILE_WRITE_FAILED;
+    }
+    if (fflush(fp) != 0) {
+        ACCOUNT_LOGE("failed to fflush %{public}s, errno %{public}d.", path.c_str(), errno);
+        fclose(fp);
+        return ERR_ACCOUNT_COMMON_FILE_WRITE_FAILED;
+    }
+    if (fsync(fileno(fp)) != 0) {
+        ACCOUNT_LOGE("failed to fsync %{public}s, errno %{public}d.", path.c_str(), errno);
+        fclose(fp);
+        return ERR_ACCOUNT_COMMON_FILE_WRITE_FAILED;
+    }
+    fclose(fp);
 #ifdef WITH_SELINUX
     Restorecon(path.c_str());
 #endif // WITH_SELINUX
@@ -108,7 +125,7 @@ ErrCode AccountFileOperator::GetFileContentByPath(const std::string &path, std::
     std::ifstream i(path);
     if (!i.is_open()) {
         ACCOUNT_LOGE("cannot open file %{public}s, errno %{public}d.", path.c_str(), errno);
-        return ERR_OSACCOUNT_SERVICE_FILE_CREATE_FILE_FAILED_ERROR;
+        return ERR_ACCOUNT_COMMON_FILE_OPEN_FAILED;
     }
     buffer << i.rdbuf();
     content = buffer.str();
