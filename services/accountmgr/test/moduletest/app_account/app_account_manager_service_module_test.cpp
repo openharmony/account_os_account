@@ -2156,14 +2156,14 @@ HWTEST_F(AppAccountManagerServiceModuleTest, AppAccountManagerService_GetAllAcco
     EXPECT_EQ(result, ERR_OK);
 
     AppAccountInfo appAccountInfoTwo(STRING_NAME_TWO, STRING_OWNER);
-    result = g_controlManagerPtr->AddAccount(STRING_NAME, STRING_EMPTY, UID, STRING_OWNER, appAccountInfoTwo);
+    result = g_controlManagerPtr->AddAccount(STRING_NAME_TWO, STRING_EMPTY, UID, STRING_OWNER, appAccountInfoTwo);
     EXPECT_EQ(result, ERR_OK);
 
     AppAccountCallingInfo appAccountCallingInfo;
     appAccountCallingInfo.callingUid = UID;
-    appAccountCallingInfo.bundleName = STRING_OWNER;
+    appAccountCallingInfo.bundleName = STRING_BUNDLE_NAME;
     result =
-        g_controlManagerPtr->EnableAppAccess(STRING_NAME, STRING_BUNDLE_NAME, appAccountCallingInfo, appAccountInfoTwo);
+        g_controlManagerPtr->EnableAppAccess(STRING_NAME, STRING_OWNER, appAccountCallingInfo, appAccountInfo);
     EXPECT_EQ(result, ERR_OK);
 
     std::vector<AppAccountInfo> appAccounts;
@@ -2182,7 +2182,7 @@ HWTEST_F(AppAccountManagerServiceModuleTest, AppAccountManagerService_GetAllAcco
     result = g_controlManagerPtr->DeleteAccount(STRING_NAME, UID, STRING_BUNDLE_NAME, appAccountInfo);
     EXPECT_EQ(result, ERR_OK);
 
-    result = g_controlManagerPtr->DeleteAccount(STRING_NAME, UID, STRING_OWNER, appAccountInfoTwo);
+    result = g_controlManagerPtr->DeleteAccount(STRING_NAME_TWO, UID, STRING_OWNER, appAccountInfoTwo);
     EXPECT_EQ(result, ERR_OK);
 }
 

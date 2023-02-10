@@ -605,13 +605,33 @@ ErrCode AppAccountControlManager::GetAllAccounts(const std::string &owner, std::
         ACCOUNT_LOGE("dataStoragePtr is nullptr");
         return ERR_APPACCOUNT_SERVICE_DATA_STORAGE_PTR_IS_NULLPTR;
     }
-    std::string key = owner + Constants::HYPHEN + std::to_string(appIndex);
-    ErrCode result = GetAllAccountsFromDataStorage(key, appAccounts, bundleName, dataStoragePtr);
-    if (result != ERR_OK) {
-        ACCOUNT_LOGE("failed to get all accounts from data storage, result = %{public}d", result);
-        return result;
+    if (bundleName == owner) {
+        std::string key = owner + Constants::HYPHEN + std::to_string(appIndex);
+        ErrCode result = GetAllAccountsFromDataStorage(key, appAccounts, bundleName, dataStoragePtr);
+        if (result != ERR_OK) {
+            ACCOUNT_LOGE("failed to get all accounts from data storage, result = %{public}d", result);
+            return result;
+        }
+        return ERR_OK;
     }
 
+    std::vector<std::string> accessibleAccounts;
+    ErrCode result = dataStoragePtr->GetAccessibleAccountsFromDataStorage(bundleName, accessibleAccounts);
+    if (result != ERR_OK) {
+        ACCOUNT_LOGE("failed to get accessible account from data storage, result %{public}d.", result);
+        return result;
+    }
+    for (auto account : accessibleAccounts) {
+        AppAccountInfo appAccountInfo;
+        result = dataStoragePtr->GetAccountInfoById(account, appAccountInfo);
+        if (result != ERR_OK) {
+            ACCOUNT_LOGE("failed to get account info by id, result %{public}d.", result);
+            return ERR_APPACCOUNT_SERVICE_GET_ACCOUNT_INFO_BY_ID;
+        }
+        if (appAccountInfo.GetOwner() == owner) {
+            appAccounts.emplace_back(appAccountInfo);
+        }
+    }
     return ERR_OK;
 }
 
