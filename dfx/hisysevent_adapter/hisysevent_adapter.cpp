@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2022 Huawei Device Co., Ltd.
+ * Copyright (c) 2022-2023 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -22,16 +22,15 @@ namespace OHOS {
 namespace AccountSA {
 namespace {
 #ifdef HAS_HISYSEVENT_PART
-using HiSysEventNameSpace = OHOS::HiviewDFX::HiSysEvent;
-const std::string DOMAIN_STR = std::string(HiSysEventNameSpace::Domain::ACCOUNT);
+using namespace OHOS::HiviewDFX;
 #endif // HAS_HISYSEVENT_PART
 }
 
 void ReportServiceStartFail(int32_t errCode, const std::string& errMsg)
 {
 #ifdef HAS_HISYSEVENT_PART
-    int ret = HiSysEventNameSpace::Write(DOMAIN_STR, "SERVICE_START_FAILED",
-        HiSysEventNameSpace::EventType::FAULT,
+    int ret = HiSysEventWrite(HiSysEvent::Domain::ACCOUNT, "SERVICE_START_FAILED",
+        HiSysEvent::EventType::FAULT,
         "ERROR_TYPE", errCode,
         "ERROR_MSG", errMsg);
     if (ret != 0) {
@@ -45,8 +44,8 @@ void ReportServiceStartFail(int32_t errCode, const std::string& errMsg)
 void ReportPermissionFail(int32_t callerUid, int32_t callerPid, const std::string& permName)
 {
 #ifdef HAS_HISYSEVENT_PART
-    int ret = HiSysEventNameSpace::Write(DOMAIN_STR, "PERMISSION_EXCEPTION",
-        HiSysEventNameSpace::EventType::SECURITY,
+    int ret = HiSysEventWrite(HiSysEvent::Domain::ACCOUNT, "PERMISSION_EXCEPTION",
+        HiSysEvent::EventType::SECURITY,
         "CALLER_UID", callerUid,
         "CALLER_PID", callerPid,
         "PERMISSION_NAME", permName);
@@ -65,8 +64,8 @@ void ReportOsAccountOperationFail(
     int32_t id, const std::string& operationStr, int32_t errCode, const std::string& errMsg)
 {
 #ifdef HAS_HISYSEVENT_PART
-    int ret = HiSysEventNameSpace::Write(DOMAIN_STR, "OS_ACCOUNT_FAILED",
-        HiSysEventNameSpace::EventType::FAULT,
+    int ret = HiSysEventWrite(HiSysEvent::Domain::ACCOUNT, "OS_ACCOUNT_FAILED",
+        HiSysEvent::EventType::FAULT,
         "ID", id,
         "OPERATE_TYPE", operationStr,
         "ERROR_TYPE", errCode,
@@ -87,8 +86,8 @@ void ReportOhosAccountOperationFail(
     int32_t userId, const std::string& operationStr, int32_t errCode, const std::string& errMsg)
 {
 #ifdef HAS_HISYSEVENT_PART
-    int ret = HiSysEventNameSpace::Write(DOMAIN_STR, "DISTRIBUTED_ACCOUNT_FAILED",
-        HiSysEventNameSpace::EventType::FAULT,
+    int ret = HiSysEventWrite(HiSysEvent::Domain::ACCOUNT, "DISTRIBUTED_ACCOUNT_FAILED",
+        HiSysEvent::EventType::FAULT,
         "USER_ID", userId,
         "OPERATE_TYPE", operationStr,
         "ERROR_TYPE", errCode,
@@ -109,8 +108,8 @@ void ReportAppAccountOperationFail(const std::string &name, const std::string &o
     int32_t errCode, const std::string& errMsg)
 {
 #ifdef HAS_HISYSEVENT_PART
-    int ret = HiSysEventNameSpace::Write(DOMAIN_STR, "APP_ACCOUNT_FAILED",
-        HiSysEventNameSpace::EventType::FAULT,
+    int ret = HiSysEventWrite(HiSysEvent::Domain::ACCOUNT, "APP_ACCOUNT_FAILED",
+        HiSysEvent::EventType::FAULT,
         "NAME", name,
         "OWNER", owner,
         "OPERATE_TYPE", operationStr,
@@ -134,8 +133,8 @@ void ReportAppAccountOperationFail(const std::string &name, const std::string &o
 void ReportOsAccountLifeCycle(int32_t id, const std::string& operationStr)
 {
 #ifdef HAS_HISYSEVENT_PART
-    int ret = HiSysEventNameSpace::Write(DOMAIN_STR, "OS_ACCOUNT_LIFE_CYCLE",
-        HiSysEventNameSpace::EventType::BEHAVIOR,
+    int ret = HiSysEventWrite(HiSysEvent::Domain::ACCOUNT, "OS_ACCOUNT_LIFE_CYCLE",
+        HiSysEvent::EventType::BEHAVIOR,
         "ACCOUNT_ID", id,
         "OPERATE_TYPE", operationStr);
     if (ret != 0) {
@@ -151,8 +150,8 @@ void ReportOsAccountLifeCycle(int32_t id, const std::string& operationStr)
 void ReportOsAccountSwitch(int32_t currentId, int32_t oldId)
 {
 #ifdef HAS_HISYSEVENT_PART
-    int ret = HiSysEventNameSpace::Write(DOMAIN_STR, "OS_ACCOUNT_SWITCH",
-        HiSysEventNameSpace::EventType::BEHAVIOR,
+    int ret = HiSysEventWrite(HiSysEvent::Domain::ACCOUNT, "OS_ACCOUNT_SWITCH",
+        HiSysEvent::EventType::BEHAVIOR,
         "CURRENT_ID", currentId,
         "OLD_ID", oldId);
     if (ret != 0) {
@@ -168,8 +167,8 @@ void ReportOsAccountSwitch(int32_t currentId, int32_t oldId)
 void ReportOhosAccountStateChange(int32_t userId, int32_t operateType, int32_t oldStat, int32_t newStat)
 {
 #ifdef HAS_HISYSEVENT_PART
-    int ret = HiSysEventNameSpace::Write(DOMAIN_STR, "DISTRIBUTED_ACCOUNT_CHANGE",
-        HiSysEventNameSpace::EventType::BEHAVIOR,
+    int ret = HiSysEventWrite(HiSysEvent::Domain::ACCOUNT, "DISTRIBUTED_ACCOUNT_CHANGE",
+        HiSysEvent::EventType::BEHAVIOR,
         "USER_ID", userId,
         "OPERATION_TYPE", operateType,
         "OLD_STATE", oldStat,
