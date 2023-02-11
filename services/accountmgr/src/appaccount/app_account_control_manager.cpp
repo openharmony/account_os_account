@@ -1221,7 +1221,7 @@ ErrCode AppAccountControlManager::SaveAuthorizedAccountIntoDataStorage(const std
         authorizedAccounts = jsonObject.dump();
     } catch (Json::type_error& err) {
         ACCOUNT_LOGE("failed to dump json object, reason: %{public}s", err.what());
-        return ERR_APPACCOUNT_SERVICE_DUMP_JSON;
+        return ERR_ACCOUNT_COMMON_DUMP_JSON_ERROR;
     }
 
     result = dataStoragePtr->PutValueToKvStore(AppAccountDataStorage::AUTHORIZED_ACCOUNTS, authorizedAccounts);
@@ -1266,7 +1266,7 @@ ErrCode AppAccountControlManager::RemoveAuthorizedAccountFromDataStorage(const s
         authorizedAccounts = jsonObject.dump();
     } catch (Json::type_error& err) {
         ACCOUNT_LOGE("failed to dump json object, reason: %{public}s", err.what());
-        return ERR_APPACCOUNT_SERVICE_DUMP_JSON;
+        return ERR_ACCOUNT_COMMON_DUMP_JSON_ERROR;
     }
 
     result = dataStoragePtr->PutValueToKvStore(AppAccountDataStorage::AUTHORIZED_ACCOUNTS, authorizedAccounts);
