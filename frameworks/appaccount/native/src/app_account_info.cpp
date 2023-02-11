@@ -171,7 +171,7 @@ ErrCode AppAccountInfo::InitCustomData(const std::map<std::string, std::string> 
         associatedData_ = jsonObject.dump();
     } catch (Json::type_error& err) {
         ACCOUNT_LOGE("failed to dump json object, reason: %{public}s", err.what());
-        return ERR_APPACCOUNT_SERVICE_DUMP_JSON;
+        return ERR_ACCOUNT_COMMON_DUMP_JSON_ERROR;
     }
     return ERR_OK;
 }
@@ -231,7 +231,7 @@ ErrCode AppAccountInfo::SetAssociatedData(const std::string &key, const std::str
         associatedData_ = jsonObject.dump();
     } catch (Json::type_error& err) {
         ACCOUNT_LOGE("failed to dump json object, reason: %{public}s", err.what());
-        return ERR_APPACCOUNT_SERVICE_DUMP_JSON;
+        return ERR_ACCOUNT_COMMON_DUMP_JSON_ERROR;
     }
     return ERR_OK;
 }
@@ -274,7 +274,7 @@ ErrCode AppAccountInfo::SetAccountCredential(
         accountCredential_ = jsonObject.dump();
     } catch (Json::type_error& err) {
         ACCOUNT_LOGE("failed to dump json object, reason: %{public}s", err.what());
-        return ERR_APPACCOUNT_SERVICE_DUMP_JSON;
+        return ERR_ACCOUNT_COMMON_DUMP_JSON_ERROR;
     }
     return ERR_OK;
 }
