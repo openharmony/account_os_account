@@ -112,10 +112,11 @@ void IInnerOsAccountManager::StartAccount()
         OHOS::AppExecFwk::InnerEvent::Callback callbackStartStandard =
             std::bind(&IInnerOsAccountManager::CreateBaseStandardAccountSendToOther, this);
         handler_->PostTask(callbackStartStandard);
+        return;
     }
     ACCOUNT_LOGI("OsAccountAccountMgr send to storage and am for start");
     OHOS::AppExecFwk::InnerEvent::Callback callbackStartStandard =
-        std::bind(&IInnerOsAccountManager::StartBaseStandardAccount, this);
+        std::bind(&IInnerOsAccountManager::StartBaseStandardAccount, this, osAccountInfo);
     handler_->PostTask(callbackStartStandard);
 }
 
@@ -201,11 +202,13 @@ void IInnerOsAccountManager::CreateBaseStandardAccountSendToOther(void)
             handler_->PostTask(callback, DELAY_FOR_TIME_INTERVAL);
         }
         return;
-    } else {
-        osAccountInfo.SetIsCreateCompleted(true);
-        osAccountControl_->UpdateOsAccount(osAccountInfo);
-        ACCOUNT_LOGI("connect BM to create account ok");
     }
+    osAccountInfo.SetIsCreateCompleted(true);
+    osAccountControl_->UpdateOsAccount(osAccountInfo);
+    ACCOUNT_LOGI("connect BM to create account ok");
+    OHOS::AppExecFwk::InnerEvent::Callback callbackStartStandard =
+        std::bind(&IInnerOsAccountManager::StartBaseStandardAccount, this, osAccountInfo);
+    handler_->PostTask(callbackStartStandard);
 }
 
 void IInnerOsAccountManager::ResetAccountStatus(void)
@@ -223,18 +226,8 @@ void IInnerOsAccountManager::ResetAccountStatus(void)
     }
 }
 
-void IInnerOsAccountManager::StartBaseStandardAccount(void)
+void IInnerOsAccountManager::StartBaseStandardAccount(OsAccountInfo &osAccountInfo)
 {
-    OsAccountInfo osAccountInfo;
-    osAccountControl_->GetOsAccountInfoById(Constants::START_USER_ID, osAccountInfo);
-    if (!osAccountInfo.GetIsCreateCompleted()) {
-        ++counterForStandard_;
-        GetEventHandler();
-        OHOS::AppExecFwk::InnerEvent::Callback callback =
-            std::bind(&IInnerOsAccountManager::StartBaseStandardAccount, this);
-        handler_->PostTask(callback, DELAY_FOR_TIME_INTERVAL);
-        return;
-    }
     if (!isSendToStorageStart_) {
         ErrCode errCode = OsAccountInterface::SendToStorageAccountStart(osAccountInfo);
         if (errCode != ERR_OK) {
@@ -243,7 +236,7 @@ void IInnerOsAccountManager::StartBaseStandardAccount(void)
             } else {
                 GetEventHandler();
                 OHOS::AppExecFwk::InnerEvent::Callback callback =
-                    std::bind(&IInnerOsAccountManager::StartBaseStandardAccount, this);
+                    std::bind(&IInnerOsAccountManager::StartBaseStandardAccount, this, osAccountInfo);
                 handler_->PostTask(callback, DELAY_FOR_TIME_INTERVAL);
             }
             return;
@@ -259,7 +252,7 @@ void IInnerOsAccountManager::StartBaseStandardAccount(void)
         } else {
             GetEventHandler();
             OHOS::AppExecFwk::InnerEvent::Callback callback =
-                std::bind(&IInnerOsAccountManager::StartBaseStandardAccount, this);
+                std::bind(&IInnerOsAccountManager::StartBaseStandardAccount, this, osAccountInfo);
             handler_->PostTask(callback, DELAY_FOR_TIME_INTERVAL);
         }
         return;
