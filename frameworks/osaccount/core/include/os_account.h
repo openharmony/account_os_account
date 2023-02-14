@@ -31,6 +31,7 @@ public:
     ErrCode IsOsAccountExists(const int id, bool &isOsAccountExists);
     ErrCode IsOsAccountActived(const int id, bool &isOsAccountActived);
     ErrCode IsOsAccountConstraintEnable(const int id, const std::string &constraint, bool &isConstraintEnable);
+    ErrCode CheckOsAccountConstraintEnabled(const int id, const std::string &constraint, bool &isEnabled);
     ErrCode IsOsAccountVerified(const int id, bool &isVerified);
     ErrCode GetCreatedOsAccountsCount(unsigned int &osAccountsCount);
     ErrCode GetOsAccountLocalIdFromProcess(int &id);
