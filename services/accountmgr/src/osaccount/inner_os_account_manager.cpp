@@ -98,15 +98,15 @@ void IInnerOsAccountManager::CreateBaseStandardAccount()
 
 void IInnerOsAccountManager::StartAccount()
 {
+    ResetAccountStatus();
+    GetEventHandler();
     OsAccountInfo osAccountInfo;
     ErrCode errCode = osAccountControl_->GetOsAccountInfoById(Constants::START_USER_ID, osAccountInfo);
     if (errCode != ERR_OK) {
-        ACCOUNT_LOGE("OsAccountAccountMgr init start base account failed. cannot find account, errCode %{public}d.",
-            errCode);
+        ACCOUNT_LOGE(
+            "OsAccountAccountMgr init start base account failed. cannot find account, errCode %{public}d.", errCode);
         return;
     }
-    ResetAccountStatus();
-    GetEventHandler();
     if (!osAccountInfo.GetIsCreateCompleted()) {
         ACCOUNT_LOGI("OsAccountAccountMgr send to storage and bm for start");
         OHOS::AppExecFwk::InnerEvent::Callback callbackStartStandard =
