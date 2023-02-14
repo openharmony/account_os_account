@@ -62,6 +62,12 @@ const std::map<uint32_t, OsAccountStub::OsAccountMessageProc> OsAccountStub::mes
         }
     },
     {
+        static_cast<uint32_t>(IOsAccount::Message::CHECK_OS_ACCOUNT_CONSTRAINT_ENABLED),
+        {
+            .messageProcFunction = &OsAccountStub::ProcCheckOsAccountConstraintEnabled,
+        }
+    },
+    {
         static_cast<uint32_t>(IOsAccount::Message::IS_OS_ACCOUNT_VERIFIED),
         {
             .messageProcFunction = &OsAccountStub::ProcIsOsAccountVerified,
@@ -764,7 +770,7 @@ ErrCode OsAccountStub::ProcIsOsAccountActived(MessageParcel &data, MessageParcel
     return ERR_NONE;
 }
 
-ErrCode OsAccountStub::ProcIsOsAccountConstraintEnable(MessageParcel &data, MessageParcel &reply)
+ErrCode OsAccountStub::ProcCheckOsAccountConstraintEnabled(uint32_t code, MessageParcel &data, MessageParcel &reply)
 {
     int32_t localId;
     if (!data.ReadInt32(localId)) {
@@ -778,17 +784,37 @@ ErrCode OsAccountStub::ProcIsOsAccountConstraintEnable(MessageParcel &data, Mess
         return ERR_NONE;
     }
 
-    bool isConstraintEnable = false;
-    ErrCode result = IsOsAccountConstraintEnable(localId, constraint, isConstraintEnable);
+    bool isEnabled = false;
+    ErrCode result = ERR_OK;
+    if (code == static_cast<uint32_t>(IOsAccount::Message::IS_OS_ACCOUNT_CONSTRAINT_ENABLE)) {
+        result = IsOsAccountConstraintEnable(localId, constraint, isEnabled);
+    } else if (code == static_cast<uint32_t>(IOsAccount::Message::CHECK_OS_ACCOUNT_CONSTRAINT_ENABLED)) {
+        result = CheckOsAccountConstraintEnabled(localId, constraint, isEnabled);
+    } else {
+        ACCOUNT_LOGE("stub code is invalid");
+        return IPC_INVOKER_ERR;
+    }
     if (!reply.WriteInt32(result)) {
         ACCOUNT_LOGE("failed to write reply, result %{public}d.", result);
         return IPC_STUB_WRITE_PARCEL_ERR;
     }
-    if (!reply.WriteBool(isConstraintEnable)) {
+    if (!reply.WriteBool(isEnabled)) {
         ACCOUNT_LOGE("failed to write reply");
         return IPC_STUB_WRITE_PARCEL_ERR;
     }
     return ERR_NONE;
+}
+
+ErrCode OsAccountStub::ProcIsOsAccountConstraintEnable(MessageParcel &data, MessageParcel &reply)
+{
+    return ProcCheckOsAccountConstraintEnabled(
+        static_cast<uint32_t>(IOsAccount::Message::IS_OS_ACCOUNT_CONSTRAINT_ENABLE), data, reply);
+}
+
+ErrCode OsAccountStub::ProcCheckOsAccountConstraintEnabled(MessageParcel &data, MessageParcel &reply)
+{
+    return ProcCheckOsAccountConstraintEnabled(
+        static_cast<uint32_t>(IOsAccount::Message::CHECK_OS_ACCOUNT_CONSTRAINT_ENABLED), data, reply);
 }
 
 ErrCode OsAccountStub::ProcIsMultiOsAccountEnable(MessageParcel &data, MessageParcel &reply)

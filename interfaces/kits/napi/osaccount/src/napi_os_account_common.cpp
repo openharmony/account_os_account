@@ -1363,8 +1363,14 @@ bool ParseParaIsEnable(napi_env env, napi_callback_info cbInfo, IsConEnableAsync
 void IsEnableExecuteCB(napi_env env, void *data)
 {
     IsConEnableAsyncContext *asyncContext = reinterpret_cast<IsConEnableAsyncContext *>(data);
-    asyncContext->errCode = OsAccountManager::IsOsAccountConstraintEnable(asyncContext->id, asyncContext->constraint,
-        asyncContext->isConsEnable);
+    if (asyncContext->throwErr) {
+        asyncContext->errCode = OsAccountManager::CheckOsAccountConstraintEnabled(asyncContext->id,
+            asyncContext->constraint, asyncContext->isConsEnable);
+    } else {
+        asyncContext->errCode = OsAccountManager::IsOsAccountConstraintEnable(asyncContext->id,
+            asyncContext->constraint, asyncContext->isConsEnable);
+    }
+
     // for compatibility
     if ((!asyncContext->throwErr) && (asyncContext->errCode == ERR_OSACCOUNT_SERVICE_PERMISSION_DENIED)) {
         asyncContext->errCode = ERR_OSACCOUNT_KIT_IS_OS_ACCOUNT_CONSTRAINT_ENABLE_ERROR;
