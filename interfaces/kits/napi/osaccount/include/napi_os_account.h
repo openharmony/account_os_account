@@ -165,7 +165,7 @@ struct IsMultiEnAsyncContext : public CommonAsyncContext {
 };
 
 struct IsVerifiedAsyncContext : public CommonAsyncContext {
-    int id = 0;
+    int id = -1;
     bool isTestOA = false;
 };
 
