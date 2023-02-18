@@ -217,6 +217,7 @@ void IInnerOsAccountManager::CreateBaseStandardAccountSendToOther(void)
     osAccountInfo.SetIsCreateCompleted(true);
     osAccountControl_->UpdateOsAccount(osAccountInfo);
     ACCOUNT_LOGI("connect BM to create account ok");
+    GetEventHandler();
     OHOS::AppExecFwk::InnerEvent::Callback callbackStartStandard =
         std::bind(&IInnerOsAccountManager::StartBaseStandardAccount, this, osAccountInfo);
     handler_->PostTask(callbackStartStandard);

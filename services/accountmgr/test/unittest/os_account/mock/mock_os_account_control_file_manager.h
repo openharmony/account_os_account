@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021-2022 Huawei Device Co., Ltd.
+ * Copyright (c) 2021-2023 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -54,6 +54,7 @@ public:
     MOCK_METHOD1(GetIsMultiOsAccountEnable, ErrCode(bool &isMultiOsAccountEnable));
     MOCK_METHOD2(SetPhotoById, ErrCode(const int id, const std::string &photo));
     MOCK_METHOD1(UpdateDeviceOwnerId, ErrCode(const int32_t deviceOwnerId));
+    MOCK_METHOD1(SetDefaultActivatedOsAccount, ErrCode(const int32_t initialStartupId));
     MOCK_METHOD3(UpdateGlobalOAConstraints, ErrCode(const std::string& idStr,
         const std::vector<std::string>& ConstraintStr, bool isAdd));
 };
