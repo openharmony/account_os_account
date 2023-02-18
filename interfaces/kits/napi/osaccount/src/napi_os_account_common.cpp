@@ -1543,7 +1543,11 @@ bool ParseParaIsVerified(napi_env env, napi_callback_info cbInfo, IsVerifiedAsyn
 void IsVerifiedExecuteCB(napi_env env, void *data)
 {
     IsVerifiedAsyncContext *asyncContext = reinterpret_cast<IsVerifiedAsyncContext *>(data);
-    asyncContext->errCode = OsAccountManager::IsOsAccountVerified(asyncContext->id, asyncContext->isTestOA);
+    if (asyncContext->id < 0) {
+        asyncContext->errCode = OsAccountManager::IsCurrentOsAccountVerified(asyncContext->isTestOA);
+    } else {
+        asyncContext->errCode = OsAccountManager::IsOsAccountVerified(asyncContext->id, asyncContext->isTestOA);
+    }
     // for compatibility
     if ((!asyncContext->throwErr) && (asyncContext->errCode == ERR_OSACCOUNT_SERVICE_PERMISSION_DENIED)) {
         asyncContext->errCode = ERR_OSACCOUNT_KIT_IS_OS_ACCOUNT_VERIFIED_ERROR;

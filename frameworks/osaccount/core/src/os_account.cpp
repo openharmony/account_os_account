@@ -369,6 +369,10 @@ ErrCode OsAccount::SetOsAccountConstraints(
 
 ErrCode OsAccount::SetOsAccountProfilePhoto(const int id, const std::string &photo)
 {
+    if (photo.empty()) {
+        ACCOUNT_LOGE("photo is empty");
+        return ERR_ACCOUNT_COMMON_INVALID_PARAMTER;
+    }
     ErrCode result = CheckLocalId(id);
     if (result != ERR_OK) {
         return result;

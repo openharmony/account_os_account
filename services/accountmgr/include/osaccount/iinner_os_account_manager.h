@@ -93,7 +93,7 @@ private:
     void CreateBaseAdminAccount();
     void CreateBaseStandardAccount();
     void CreateBaseStandardAccountSendToOther();
-    void StartBaseStandardAccount(void);
+    void StartBaseStandardAccount(OsAccountInfo &osAccountInfo);
     void ResetAccountStatus(void);
     void StartActivatedAccount(int32_t id);
     ErrCode DeActivateOsAccount(const int id);
