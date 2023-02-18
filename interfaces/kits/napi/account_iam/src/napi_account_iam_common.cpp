@@ -692,6 +692,7 @@ napi_value OnSetData(napi_env env, napi_callback_info info)
         return nullptr;
     }
     context->inputerData->OnSetData(authSubType, data);
+    context->inputerData = nullptr;
     return nullptr;
 }
 
