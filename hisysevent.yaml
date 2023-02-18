@@ -1,4 +1,4 @@
-# Copyright (c) 2021-2022 Huawei Device Co., Ltd.
+# Copyright (c) 2021-2023 Huawei Device Co., Ltd.
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
 # You may obtain a copy of the License at
@@ -14,32 +14,32 @@
 domain: ACCOUNT
 
 PERMISSION_EXCEPTION:
-  __BASE: {type: SECURITY, level: CRITICAL, tag: security, desc: permission verification errors}
+  __BASE: {type: SECURITY, level: CRITICAL, desc: permission verification errors}
   CALLER_UID: {type: INT32, desc: caller uid}
   CALLER_PID: {type: INT32, desc: caller pid}
   PERMISSION_NAME: {type: STRING, desc: permission name}
 
 SERVICE_START_FAILED:
-  __BASE: {type: FAULT, level: CRITICAL, tag: usability, desc: service start errors}
+  __BASE: {type: FAULT, level: CRITICAL, desc: service start errors}
   ERROR_TYPE: {type: INT32, desc: error code}
   ERROR_MSG: {type: STRING, desc: error message}
 
 OS_ACCOUNT_FAILED:
-  __BASE: {type: FAULT, level: CRITICAL, tag: usability, desc: osaccount operation errors}
+  __BASE: {type: FAULT, level: CRITICAL, desc: osaccount operation errors}
   ID: {type: INT32, desc: the id of an os account}
   OPERATE_TYPE: {type: STRING, desc: operation type on an os account}
   ERROR_TYPE: {type: INT32, desc: error code}
   ERROR_MSG: {type: STRING, desc: error message}
 
 DISTRIBUTED_ACCOUNT_FAILED:
-  __BASE: {type: FAULT, level: MINOR, tag: usability, desc: kvstore related errors}
+  __BASE: {type: FAULT, level: MINOR, desc: kvstore related errors}
   USER_ID: {type: INT32, desc: the user id bound to a distributed account}
   OPERATE_TYPE: {type: STRING, desc: operation type on a distributed account}
   ERROR_TYPE: {type: INT32, desc: error code}
   ERROR_MSG: {type: STRING, desc: error message}
 
 APP_ACCOUNT_FAILED:
-  __BASE: {type: SECURITY, level: CRITICAL, tag: security, desc: permission verification errors}
+  __BASE: {type: SECURITY, level: CRITICAL, desc: permission verification errors}
   NAME: {type: STRING, desc: the name of an app account}
   OWNER: {type: STRING, desc: the owner of an app account}
   OPERATE_TYPE: {type: STRING, desc: operation type on an app account}
@@ -47,12 +47,12 @@ APP_ACCOUNT_FAILED:
   ERROR_MSG: {type: STRING, desc: error message}
 
 OS_ACCOUNT_LIFE_CYCLE:
-  __BASE: {type: BEHAVIOR, level: MINOR, tag: usability, desc: osaccount create or delete event}
+  __BASE: {type: BEHAVIOR, level: MINOR, desc: osaccount create or delete event}
   ID: {type: INT32, desc: the id of os account which is created or deleted}
   OPERATE_TYPE: {type: STRING, desc: operation type on an os account create or delete}
 
 OS_ACCOUNT_SWITCH:
-  __BASE: {type: BEHAVIOR, level: MINOR, tag: usability, desc: osaccount switch event}
+  __BASE: {type: BEHAVIOR, level: MINOR, desc: osaccount switch event}
   CURRENT_ID: {type: INT32, desc: the id of os account after switch}
   OLD_ID: {type: INT32, desc: the id of os account before switch}
 
