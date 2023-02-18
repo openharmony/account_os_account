@@ -1414,6 +1414,54 @@ ErrCode OsAccountProxy::SetSpecificOsAccountConstraints(const std::vector<std::s
     return ERR_OK;
 }
 
+ErrCode OsAccountProxy::SetDefaultActivatedOsAccount(const int32_t id)
+{
+    MessageParcel data;
+    if (!data.WriteInterfaceToken(GetDescriptor())) {
+        ACCOUNT_LOGE("failed to write descriptor!");
+        return ERR_ACCOUNT_COMMON_WRITE_DESCRIPTOR_ERROR;
+    }
+    if (!data.WriteInt32(id)) {
+        ACCOUNT_LOGE("failed to write int for id");
+        return ERR_ACCOUNT_COMMON_WRITE_DESCRIPTOR_ERROR;
+    }
+    MessageParcel reply;
+    ErrCode result = SendRequest(IOsAccount::Message::SET_DEFAULT_ACTIVATED_OS_ACCOUNT, data, reply);
+    if (result != ERR_OK) {
+        ACCOUNT_LOGE("SendRequest err, result %{public}d.", result);
+        return result;
+    }
+    if (!reply.ReadInt32(result)) {
+        ACCOUNT_LOGE("failed to read result for set default activated os account.");
+        return ERR_ACCOUNT_COMMON_READ_PARCEL_ERROR;
+    }
+    return result;
+}
+
+ErrCode OsAccountProxy::GetDefaultActivatedOsAccount(int32_t &id)
+{
+    MessageParcel data;
+    if (!data.WriteInterfaceToken(GetDescriptor())) {
+        ACCOUNT_LOGE("failed to write descriptor!");
+        return ERR_ACCOUNT_COMMON_WRITE_DESCRIPTOR_ERROR;
+    }
+    MessageParcel reply;
+    ErrCode result = SendRequest(IOsAccount::Message::GET_DEFAULT_ACTIVATED_OS_ACCOUNT, data, reply);
+    if (result != ERR_OK) {
+        ACCOUNT_LOGE("SendRequest err, result %{public}d.", result);
+        return result;
+    }
+    if (!reply.ReadInt32(result)) {
+        ACCOUNT_LOGE("failed to read result for get default activated os account.");
+        return ERR_ACCOUNT_COMMON_READ_PARCEL_ERROR;
+    }
+    if (!reply.ReadInt32(id)) {
+        ACCOUNT_LOGE("failed to read local id");
+        return ERR_ACCOUNT_COMMON_READ_PARCEL_ERROR;
+    }
+    return ERR_OK;
+}
+
 template<typename T>
 bool OsAccountProxy::WriteParcelableVector(const std::vector<T> &parcelableVector, MessageParcel &data)
 {

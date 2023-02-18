@@ -76,6 +76,9 @@ public:
     ErrCode GetDeviceOwnerId(int32_t &deviceOwnerId) override;
     ErrCode UpdateDeviceOwnerId(const int32_t deviceOwnerId) override;
 
+    ErrCode SetDefaultActivatedOsAccount(const int32_t id) override;
+    ErrCode GetDefaultActivatedOsAccount(int32_t &id) override;
+
 private:
     ErrCode UpdateAccountList(const std::string& idStr, bool isAdd);
     ErrCode GetAccountListFromFile(Json& accountListJson);

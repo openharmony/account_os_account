@@ -79,6 +79,8 @@ public:
         const bool isEnabled, const int32_t enforcerId = 0, const bool isDeviceOwner = false);
     static ErrCode SetSpecificOsAccountConstraints(const std::vector<std::string> &constraints,
         const bool enable, const int32_t targetId, const int32_t enforcerId, const bool isDeviceOwner);
+    static ErrCode SetDefaultActivatedOsAccount(const int32_t id);
+    static ErrCode GetDefaultActivatedOsAccount(int32_t &id);
 };
 }  // namespace AccountSA
 }  // namespace OHOS

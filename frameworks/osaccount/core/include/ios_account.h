@@ -88,6 +88,9 @@ public:
     virtual ErrCode SetSpecificOsAccountConstraints(const std::vector<std::string> &constraints,
         const bool enable, const int32_t targetId, const int32_t enforcerId, const bool isDeviceOwner) = 0;
 
+    virtual ErrCode SetDefaultActivatedOsAccount(const int32_t id) = 0;
+    virtual ErrCode GetDefaultActivatedOsAccount(int32_t &id) = 0;
+
     enum class Message {
         CREATE_OS_ACCOUNT = 0,
         CREATE_OS_ACCOUNT_FOR_DOMAIN,
@@ -133,6 +136,8 @@ public:
         QUERY_OS_ACCOUNT_CONSTRAINT_SOURCE_TYPES,
         SET_GLOBAL_OS_ACCOUNT_CONSTRAINTS,
         SET_SPECIFIC_OS_ACCOUNT_CONSTRAINTS,
+        SET_DEFAULT_ACTIVATED_OS_ACCOUNT,
+        GET_DEFAULT_ACTIVATED_OS_ACCOUNT,
     };
 };
 }  // namespace AccountSA
