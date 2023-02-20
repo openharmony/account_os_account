@@ -2313,6 +2313,17 @@ HWTEST_F(OsAccountManagerModuleTest, OsAccountManagerModuleTest112, TestSize.Lev
 
 HWTEST_F(OsAccountManagerModuleTest, OsAccountManagerModuleTest113, TestSize.Level1)
 {
+    std::vector<OsAccountInfo> osAccountInfos;
+    EXPECT_EQ(OsAccountManager::QueryAllCreatedOsAccounts(osAccountInfos), ERR_OK);
+    const unsigned int size = 0;
+    EXPECT_NE(size, osAccountInfos.size());
+    for (unsigned int i = 0; i < osAccountInfos.size(); i++) {
+        if (osAccountInfos[i].GetLocalId() != MAIN_ACCOUNT_ID) {
+            EXPECT_EQ(OsAccountManager::RemoveOsAccount(osAccountInfos[i].GetLocalId()), ERR_OK);
+        }
+    }
+    EXPECT_EQ(OsAccountManager::QueryAllCreatedOsAccounts(osAccountInfos), ERR_OK);
+    EXPECT_EQ(osAccountInfos.size(), 1);
     OsAccountInfo osAccountInfoOne;
     int id;
     EXPECT_EQ(OsAccountManager::GetDefaultActivatedOsAccount(id), ERR_OK);
