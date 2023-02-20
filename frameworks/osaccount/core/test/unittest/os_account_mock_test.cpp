@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2022 Huawei Device Co., Ltd.
+ * Copyright (c) 2022-2023 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -635,4 +635,29 @@ HWTEST_F(OsAccountMockTest, SetSpecificOsAccountConstraintsMockTest001, TestSize
 {
     EXPECT_EQ(ERR_OSACCOUNT_KIT_GET_SYSTEM_ABILITY_MANAGER_ERROR,
         g_osAccount->SetSpecificOsAccountConstraints(CONSTANTS_VECTOR, true, MAIN_ACCOUNT_ID, MAIN_ACCOUNT_ID, true));
+}
+
+/**
+ * @tc.name: SetDefaultActivatedOsAccountMockTest001
+ * @tc.desc: Test SetDefaultActivatedOsAccount getosaccountproxy faild
+ * @tc.type: FUNC
+ * @tc.require: issueI6AQUQ
+ */
+HWTEST_F(OsAccountMockTest, SetDefaultActivatedOsAccountMockTest001, TestSize.Level1)
+{
+    EXPECT_EQ(ERR_OSACCOUNT_KIT_GET_SYSTEM_ABILITY_MANAGER_ERROR,
+        g_osAccount->SetDefaultActivatedOsAccount(MAIN_ACCOUNT_ID));
+}
+
+/**
+ * @tc.name: GetDefaultActivatedOsAccountMockTest001
+ * @tc.desc: Test GetDefaultActivatedOsAccount getosaccountproxy faild
+ * @tc.type: FUNC
+ * @tc.require: issueI6AQUQ
+ */
+HWTEST_F(OsAccountMockTest, GetDefaultActivatedOsAccountMockTest001, TestSize.Level1)
+{
+    int id;
+    EXPECT_EQ(ERR_OSACCOUNT_KIT_GET_SYSTEM_ABILITY_MANAGER_ERROR,
+        g_osAccount->GetDefaultActivatedOsAccount(id));
 }

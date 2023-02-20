@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021-2022 Huawei Device Co., Ltd.
+ * Copyright (c) 2021-2023 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -1040,7 +1040,7 @@ ErrCode OsAccountControlFileManager::SetDefaultActivatedOsAccount(const int32_t 
     accountListJson[DEFAULT_ACTIVATED_ACCOUNT_ID] = id;
 
     if (SaveAccountListToFileAndDataBase(accountListJson) != ERR_OK) {
-        ACCOUNT_LOGE("SaveAccountListToFileAndDataBase failed!");
+        ACCOUNT_LOGE("save account list to file and dataBase failed!");
         return ERR_OSACCOUNT_SERVICE_CONTROL_INSERT_OS_ACCOUNT_LIST_ERROR;
     }
     return ERR_OK;

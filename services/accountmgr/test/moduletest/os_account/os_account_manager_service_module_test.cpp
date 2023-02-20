@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021-2022 Huawei Device Co., Ltd.
+ * Copyright (c) 2021-2023 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -2074,6 +2074,34 @@ HWTEST_F(OsAccountManagerServiceModuleTest, OsAccountManagerServiceModuleTest114
     setuid(TEST_UID);
     EXPECT_EQ(ERR_OSACCOUNT_SERVICE_PERMISSION_DENIED, osAccountManagerService_->SetSpecificOsAccountConstraints(
         CONSTANTS_VECTOR, false, MAIN_ACCOUNT_ID, MAIN_ACCOUNT_ID, false));
+}
+
+/**
+ * @tc.name: OsAccountManagerServiceModuleTest115
+ * @tc.desc: Test SetDefaultActivatedOsAccount PermissionCheck failed.
+ * @tc.type: FUNC
+ * @tc.require: issueI6AQUQ
+ */
+HWTEST_F(OsAccountManagerServiceModuleTest, OsAccountManagerServiceModuleTest115, TestSize.Level1)
+{
+    setuid(TEST_UID);
+    EXPECT_EQ(ERR_OSACCOUNT_SERVICE_PERMISSION_DENIED,
+        osAccountManagerService_->SetDefaultActivatedOsAccount(MAIN_ACCOUNT_ID));
+}
+
+/**
+ * @tc.name: OsAccountManagerServiceModuleTest116
+ * @tc.desc: Test GetDefaultActivatedOsAccount PermissionCheck failed.
+ * @tc.type: FUNC
+ * @tc.require: issueI6AQUQ
+ */
+HWTEST_F(OsAccountManagerServiceModuleTest, OsAccountManagerServiceModuleTest116, TestSize.Level1)
+{
+    setuid(TEST_UID);
+    int id;
+    EXPECT_NE(ERR_OSACCOUNT_SERVICE_PERMISSION_DENIED,
+        osAccountManagerService_->GetDefaultActivatedOsAccount(id));
+    EXPECT_EQ(id, MAIN_ACCOUNT_ID);
 }
 }  // namespace AccountSA
 }  // namespace OHOS

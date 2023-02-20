@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021-2022 Huawei Device Co., Ltd.
+ * Copyright (c) 2021-2023 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -2257,6 +2257,7 @@ HWTEST_F(OsAccountManagerModuleTest, OsAccountManagerModuleTest111, TestSize.Lev
         infoManagerTestSystemInfoParms.bundleName, infoManagerTestSystemInfoParms.instIndex);
     AccessTokenKit::DeleteToken(tokenID);
     SetSelfTokenID(g_selfTokenID);
+    ASSERT_EQ(OsAccountManager::RemoveOsAccount(osAccountInfoOne.GetLocalId()), ERR_OK);
 }
 
 /**
@@ -2301,4 +2302,34 @@ HWTEST_F(OsAccountManagerModuleTest, OsAccountManagerModuleTest112, TestSize.Lev
         infoManagerTestSystemInfoParms.bundleName, infoManagerTestSystemInfoParms.instIndex);
     AccessTokenKit::DeleteToken(tokenID);
     SetSelfTokenID(g_selfTokenID);
+}
+
+/**
+ * @tc.name: OsAccountManagerModuleTest113
+ * @tc.desc: Test set/get default activated os account id.
+ * @tc.type: FUNC
+ * @tc.require: issueI6AQUQ
+ */
+
+HWTEST_F(OsAccountManagerModuleTest, OsAccountManagerModuleTest113, TestSize.Level1)
+{
+    OsAccountInfo osAccountInfoOne;
+    int id;
+    EXPECT_EQ(OsAccountManager::GetDefaultActivatedOsAccount(id), ERR_OK);
+    EXPECT_EQ(id, MAIN_ACCOUNT_ID);
+    EXPECT_NE(OsAccountManager::SetDefaultActivatedOsAccount(MAIN_ACCOUNT_ID + 1), ERR_OK);
+    EXPECT_NE(OsAccountManager::SetDefaultActivatedOsAccount(MAIN_ACCOUNT_ID - 1), ERR_OK);
+    EXPECT_NE(OsAccountManager::SetDefaultActivatedOsAccount(Constants::MAX_USER_ID + 1), ERR_OK);
+    EXPECT_EQ(OsAccountManager::CreateOsAccount(STRING_TEST_NAME, OsAccountType::NORMAL, osAccountInfoOne), ERR_OK);
+    EXPECT_EQ(OsAccountManager::SetDefaultActivatedOsAccount(osAccountInfoOne.GetLocalId()), ERR_OK);
+    EXPECT_EQ(OsAccountManager::GetDefaultActivatedOsAccount(id), ERR_OK);
+    EXPECT_EQ(id, osAccountInfoOne.GetLocalId());
+    EXPECT_EQ(OsAccountManager::SetDefaultActivatedOsAccount(osAccountInfoOne.GetLocalId()), ERR_OK);
+    EXPECT_EQ(OsAccountManager::RemoveOsAccount(osAccountInfoOne.GetLocalId()), ERR_OK);
+    EXPECT_EQ(OsAccountManager::GetDefaultActivatedOsAccount(id), ERR_OK);
+    EXPECT_NE(id, osAccountInfoOne.GetLocalId());
+    EXPECT_EQ(id, MAIN_ACCOUNT_ID);
+    EXPECT_EQ(OsAccountManager::SetDefaultActivatedOsAccount(MAIN_ACCOUNT_ID), ERR_OK);
+    EXPECT_EQ(OsAccountManager::GetDefaultActivatedOsAccount(id), ERR_OK);
+    EXPECT_EQ(id, MAIN_ACCOUNT_ID);
 }
