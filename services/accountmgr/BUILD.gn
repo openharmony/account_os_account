@@ -310,5 +310,6 @@ ohos_shared_library("accountmgr") {
 
   external_deps += [ "hitrace_native:hitrace_meter" ]
 
+  shlib_type = "sa"
   part_name = "os_account"
 }
