@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021-2022 Huawei Device Co., Ltd.
+ * Copyright (c) 2021-2023 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -1419,11 +1419,11 @@ ErrCode OsAccountProxy::SetDefaultActivatedOsAccount(const int32_t id)
     MessageParcel data;
     if (!data.WriteInterfaceToken(GetDescriptor())) {
         ACCOUNT_LOGE("failed to write descriptor!");
-        return ERR_ACCOUNT_COMMON_WRITE_DESCRIPTOR_ERROR;
+        return ERR_ACCOUNT_COMMON_WRITE_PARCEL_ERROR;
     }
     if (!data.WriteInt32(id)) {
         ACCOUNT_LOGE("failed to write int for id");
-        return ERR_ACCOUNT_COMMON_WRITE_DESCRIPTOR_ERROR;
+        return ERR_ACCOUNT_COMMON_WRITE_PARCEL_ERROR;
     }
     MessageParcel reply;
     ErrCode result = SendRequest(IOsAccount::Message::SET_DEFAULT_ACTIVATED_OS_ACCOUNT, data, reply);
@@ -1443,7 +1443,7 @@ ErrCode OsAccountProxy::GetDefaultActivatedOsAccount(int32_t &id)
     MessageParcel data;
     if (!data.WriteInterfaceToken(GetDescriptor())) {
         ACCOUNT_LOGE("failed to write descriptor!");
-        return ERR_ACCOUNT_COMMON_WRITE_DESCRIPTOR_ERROR;
+        return ERR_ACCOUNT_COMMON_WRITE_PARCEL_ERROR;
     }
     MessageParcel reply;
     ErrCode result = SendRequest(IOsAccount::Message::GET_DEFAULT_ACTIVATED_OS_ACCOUNT, data, reply);
