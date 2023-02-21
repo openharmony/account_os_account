@@ -154,6 +154,21 @@ ErrCode OsAccount::IsOsAccountConstraintEnable(const int id, const std::string &
     return osAccountProxy_->IsOsAccountConstraintEnable(id, constraint, isConstraintEnable);
 }
 
+ErrCode OsAccount::CheckOsAccountConstraintEnabled(const int id, const std::string &constraint, bool &isEnabled)
+{
+    isEnabled = false;
+    ErrCode ret = CheckLocalId(id);
+    if (ret != ERR_OK) {
+        return ret;
+    }
+    ret = GetOsAccountProxy();
+    if (ret != ERR_OK) {
+        ACCOUNT_LOGE("failed to get osAccountProxy_, result %{public}d.", ret);
+        return ret;
+    }
+    return osAccountProxy_->CheckOsAccountConstraintEnabled(id, constraint, isEnabled);
+}
+
 ErrCode OsAccount::IsOsAccountVerified(const int id, bool &isVerified)
 {
     isVerified = false;
