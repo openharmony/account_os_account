@@ -39,6 +39,8 @@ public:
 
     ErrCode IsOsAccountConstraintEnable(
         const int id, const std::string &constraint, bool &isConstraintEnable) override;
+    ErrCode CheckOsAccountConstraintEnabled(
+        const int id, const std::string &constraint, bool &isEnabled) override;
     ErrCode IsOsAccountVerified(const int id, bool &isVerified) override;
 
     ErrCode GetCreatedOsAccountsCount(unsigned int &osAccountsCount) override;

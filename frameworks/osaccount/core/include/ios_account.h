@@ -39,6 +39,8 @@ public:
     virtual ErrCode IsOsAccountActived(const int id, bool &isOsAccountActived) = 0;
     virtual ErrCode IsOsAccountConstraintEnable(
         const int id, const std::string &constraint, bool &isConstraintEnable) = 0;
+    virtual ErrCode CheckOsAccountConstraintEnabled(
+        const int id, const std::string &constraint, bool &isEnabled) = 0;
     virtual ErrCode IsOsAccountVerified(const int id, bool &isVerified) = 0;
     virtual ErrCode GetCreatedOsAccountsCount(unsigned int &osAccountsCount) = 0;
     virtual ErrCode GetOsAccountLocalIdFromProcess(int &id) = 0;
@@ -98,6 +100,7 @@ public:
         IS_OS_ACCOUNT_EXISTS,
         IS_OS_ACCOUNT_ACTIVED,
         IS_OS_ACCOUNT_CONSTRAINT_ENABLE,
+        CHECK_OS_ACCOUNT_CONSTRAINT_ENABLED,
         IS_OS_ACCOUNT_VERIFIED,
         GET_CREATED_OS_ACCOUNT_COUNT,
         GET_OS_ACCOUNT_LOCAL_ID_FROM_PROCESS,

@@ -488,6 +488,7 @@ napi_value NapiAppAccountAuthenticator::JsConstructor(napi_env env, napi_callbac
     GetNamedFunction(env, thisVar, "verifyCredential", &jsAuthenticator.verifyCredential);
     GetNamedFunction(env, thisVar, "checkAccountLabels", &jsAuthenticator.checkAccountLabels);
     GetNamedFunction(env, thisVar, "isAccountRemovable", &jsAuthenticator.isAccountRemovable);
+    GetNamedFunction(env, thisVar, "checkAccountRemovable", &jsAuthenticator.isAccountRemovable);
     GetNamedFunction(env, thisVar, "setProperties", &jsAuthenticator.setProperties);
     GetNamedFunction(env, thisVar, "createAccountImplicitly", &jsAuthenticator.createAccountImplicitly);
     GetNamedFunction(env, thisVar, "auth", &jsAuthenticator.auth);
