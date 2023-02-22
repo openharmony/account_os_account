@@ -54,6 +54,12 @@ const int ACCOUNT_UID = 3058;
 const int DELAY_FOR_OPERATION = 250;
 const std::string ACCOUNT_NAME = "TEST";
 const std::string ACCOUNT_SET_NAME = "TEST2";
+const std::string ACCOUNT_PHOTO =
+    "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAA0AAAAPCAYAAAA/"
+    "I0V3AAAAAXNSR0IArs4c6QAAAARnQU1BAACxjwv8YQUAAAAJcEhZcwAADsMAAA7DAcdvqGQAAACwSURBVDhPvZLBDYMwDEV/"
+    "ugsXRjAT0EHCOuFIBwkbdIRewi6unbiAyoGgSn1SFH85+Yq/"
+    "4ljARW62X+LHS8uIzjm4dXUYF+utzBikB52Jo5e5iEPKqpACk7R9NM2RvWm5tIkD2czLCUFNKLD6IjdMHFHDzws285MgGrT0xCtp3WOKHo+"
+    "7q0mP0DZW9pNmoEFUzrQjp5cCnaen2kSJXLFD8ghbXyZCMQf/8e8Ns1XVAG/XAgqKzVnJFAAAAABJRU5ErkJggg==";
 const AccessTokenID accountMgrTokenID = AccessTokenKit::GetNativeTokenId("accountmgr");
 
 class OsAccountInnerAccmgrCoverageTest : public testing::Test {
@@ -83,6 +89,10 @@ public:
     bool GetStatus()
     {
         return status;
+    }
+    void ResetStatus()
+    {
+        status = false;
     }
 
 private:
@@ -293,6 +303,49 @@ HWTEST_F(OsAccountInnerAccmgrCoverageTest, OsAccountInnerAccmgrCoverageTest008, 
     ASSERT_EQ(errCode, ERR_OK);
         std::this_thread::sleep_for(std::chrono::milliseconds(DELAY_FOR_OPERATION));
     ASSERT_EQ(subscriberPtr->GetStatus(), true);
+    subscriberPtr->ResetStatus();
+    errCode = innerMgrService_->SetOsAccountName(localID, ACCOUNT_SET_NAME);
+    ASSERT_EQ(errCode, ERR_OK);
+    ASSERT_EQ(subscriberPtr->GetStatus(), false);
+    errCode = innerMgrService_->RemoveOsAccount(localID);
+    ASSERT_EQ(errCode, ERR_OK);
+    result = EventFwk::CommonEventManager::UnSubscribeCommonEvent(subscriberPtr);
+    ASSERT_EQ(result, true);
+}
+
+/*
+ * @tc.name: OsAccountInnerAccmgrCoverageTest009
+ * @tc.desc: Test SetOsAccountProfilePhoto set photo publish common event.
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(OsAccountInnerAccmgrCoverageTest, OsAccountInnerAccmgrCoverageTest009, TestSize.Level1)
+{
+    // create common event subscribe
+    setuid(ACCOUNT_UID);
+    innerMgrService_ = DelayedSingleton<IInnerOsAccountManager>::GetInstance();
+    ASSERT_NE(innerMgrService_, nullptr);
+    EventFwk::MatchingSkills matchingSkills;
+    matchingSkills.AddEvent(EventFwk::CommonEventSupport::COMMON_EVENT_USER_INFO_UPDATED);
+    EventFwk::CommonEventSubscribeInfo subscribeInfo(matchingSkills);
+    std::shared_ptr<AccountCommonEventSubscriber> subscriberPtr =
+        std::make_shared<AccountCommonEventSubscriber>(subscribeInfo);
+    ASSERT_NE(subscriberPtr, nullptr);
+    bool result = EventFwk::CommonEventManager::SubscribeCommonEvent(subscriberPtr);
+    ASSERT_EQ(result, true);
+
+    OsAccountInfo osAccountInfo;
+    int errCode = innerMgrService_->CreateOsAccount(ACCOUNT_NAME, OsAccountType::NORMAL, osAccountInfo);
+    ASSERT_EQ(errCode, ERR_OK);
+    int localID = osAccountInfo.GetLocalId();
+    errCode = innerMgrService_->SetOsAccountProfilePhoto(localID, ACCOUNT_PHOTO);
+    ASSERT_EQ(errCode, ERR_OK);
+    std::this_thread::sleep_for(std::chrono::milliseconds(DELAY_FOR_OPERATION));
+    ASSERT_EQ(subscriberPtr->GetStatus(), true);
+    subscriberPtr->ResetStatus();
+    errCode = innerMgrService_->SetOsAccountProfilePhoto(localID, ACCOUNT_PHOTO);
+    ASSERT_EQ(errCode, ERR_OK);
+    ASSERT_EQ(subscriberPtr->GetStatus(), false);
     errCode = innerMgrService_->RemoveOsAccount(localID);
     ASSERT_EQ(errCode, ERR_OK);
     result = EventFwk::CommonEventManager::UnSubscribeCommonEvent(subscriberPtr);
