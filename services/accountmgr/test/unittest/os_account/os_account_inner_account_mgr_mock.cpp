@@ -1282,7 +1282,7 @@ HWTEST_F(OsAccountInnerAccmgrCoverageTest, OsAccountInnerAccmgrCoverageTest035, 
     EXPECT_CALL(*ptr, GetOsAccountInfoById(::testing::_, ::testing::_))
         .WillRepeatedly(DoAll(SetArgReferee<1>(account1), testing::Return(0)));
 
-    innerMgrService_->StartBaseStandardAccount();
+    innerMgrService_->StartBaseStandardAccount(account1);
     EXPECT_EQ((innerMgrService_->counterForStandard_ == 1), 1);
 
     DelayedSingleton<IInnerOsAccountManager>::DestroyInstance();
