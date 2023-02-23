@@ -224,6 +224,10 @@ ErrCode OsAccountProxy::CheckOsAccountConstraintEnabled(
         ACCOUNT_LOGE("failed to read result for check os account constraint enable.");
         return ERR_ACCOUNT_COMMON_READ_PARCEL_ERROR;
     }
+    if (ret != ERR_OK) {
+        ACCOUNT_LOGE("failed to check os account constraint enabled, result %{public}d.", ret);
+        return ret;
+    }
     if (!reply.ReadBool(isEnabled)) {
         ACCOUNT_LOGE("failed to read result for check os account constraint enable.");
         return ERR_ACCOUNT_COMMON_READ_PARCEL_ERROR;
@@ -1467,6 +1471,10 @@ ErrCode OsAccountProxy::GetDefaultActivatedOsAccount(int32_t &id)
     if (!reply.ReadInt32(result)) {
         ACCOUNT_LOGE("failed to read result for get default activated os account.");
         return ERR_ACCOUNT_COMMON_READ_PARCEL_ERROR;
+    }
+    if (result != ERR_OK) {
+        ACCOUNT_LOGE("failed to get default activated os account, result %{public}d.", result);
+        return result;
     }
     if (!reply.ReadInt32(id)) {
         ACCOUNT_LOGE("failed to read local id");
