@@ -198,38 +198,55 @@ ErrCode OsAccountProxy::IsOsAccountActived(const int id, bool &isOsAccountActive
     return ERR_OK;
 }
 
-ErrCode OsAccountProxy::IsOsAccountConstraintEnable(
-    const int id, const std::string &constraint, bool &isConstraintEnable)
+ErrCode OsAccountProxy::CheckOsAccountConstraintEnabled(
+    IOsAccount::Message code, const int id, const std::string &constraint, bool &isEnabled)
 {
     MessageParcel data;
-    MessageParcel reply;
-
     if (!data.WriteInterfaceToken(GetDescriptor())) {
         ACCOUNT_LOGE("failed to write descriptor!");
-        return ERR_ACCOUNT_COMMON_WRITE_DESCRIPTOR_ERROR;
+        return ERR_ACCOUNT_COMMON_WRITE_PARCEL_ERROR;
     }
-
     if (!data.WriteInt32(id)) {
         ACCOUNT_LOGE("failed to write int for id");
-        return ERR_OSACCOUNT_KIT_WRITE_INT_LOCAL_ID_ERROR;
+        return ERR_ACCOUNT_COMMON_WRITE_PARCEL_ERROR;
     }
     if (!data.WriteString(constraint)) {
         ACCOUNT_LOGE("failed to write string for constraint");
-        return ERR_OSACCOUNT_KIT_WRITE_STRING_CONSTRAINT_ERROR;
+        return ERR_ACCOUNT_COMMON_WRITE_PARCEL_ERROR;
     }
-    ErrCode result = SendRequest(IOsAccount::Message::IS_OS_ACCOUNT_CONSTRAINT_ENABLE, data, reply);
-    if (result != ERR_OK) {
-        ACCOUNT_LOGE("SendRequest err, result %{public}d.", result);
-        return result;
+    MessageParcel reply;
+    ErrCode ret = SendRequest(code, data, reply);
+    if (ret != ERR_OK) {
+        ACCOUNT_LOGE("SendRequest err, result %{public}d.", ret);
+        return ret;
     }
-    result = reply.ReadInt32();
-    if (result != ERR_OK) {
-        ACCOUNT_LOGE("failed to read reply for is os account constraint enable, result %{public}d.", result);
-        return result;
+    if (!reply.ReadInt32(ret)) {
+        ACCOUNT_LOGE("failed to read result for check os account constraint enable.");
+        return ERR_ACCOUNT_COMMON_READ_PARCEL_ERROR;
     }
-    isConstraintEnable = reply.ReadBool();
-
+    if (ret != ERR_OK) {
+        ACCOUNT_LOGE("check os account constraint enabled failed, result %{public}d.", ret);
+        return ret;
+    }
+    if (!reply.ReadBool(isEnabled)) {
+        ACCOUNT_LOGE("failed to read result for check os account constraint enable.");
+        return ERR_ACCOUNT_COMMON_READ_PARCEL_ERROR;
+    }
     return ERR_OK;
+}
+
+ErrCode OsAccountProxy::IsOsAccountConstraintEnable(
+    const int id, const std::string &constraint, bool &isConstraintEnable)
+{
+    return CheckOsAccountConstraintEnabled(
+        IOsAccount::Message::IS_OS_ACCOUNT_CONSTRAINT_ENABLE, id, constraint, isConstraintEnable);
+}
+
+ErrCode OsAccountProxy::CheckOsAccountConstraintEnabled(
+    const int id, const std::string &constraint, bool &isEnabled)
+{
+    return CheckOsAccountConstraintEnabled(
+        IOsAccount::Message::CHECK_OS_ACCOUNT_CONSTRAINT_ENABLED, id, constraint, isEnabled);
 }
 
 ErrCode OsAccountProxy::IsOsAccountVerified(const int id, bool &isVerified)
