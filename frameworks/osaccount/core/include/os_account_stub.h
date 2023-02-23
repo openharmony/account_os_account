@@ -53,6 +53,7 @@ private:
     ErrCode ProcGetSerialNumberByOsAccountLocalId(MessageParcel &data, MessageParcel &reply);
     ErrCode ProcIsOsAccountActived(MessageParcel &data, MessageParcel &reply);
     ErrCode ProcIsOsAccountConstraintEnable(MessageParcel &data, MessageParcel &reply);
+    ErrCode ProcCheckOsAccountConstraintEnabled(MessageParcel &data, MessageParcel &reply);
     ErrCode ProcIsMultiOsAccountEnable(MessageParcel &data, MessageParcel &reply);
     ErrCode ProcIsOsAccountVerified(MessageParcel &data, MessageParcel &reply);
     ErrCode ProcIsOsAccountExists(MessageParcel &data, MessageParcel &reply);
@@ -84,6 +85,7 @@ private:
     bool ReadParcelableVector(std::vector<T> &parcelableInfos, MessageParcel &data);
     static const std::map<uint32_t, MessageProcFunction> messageProcMap_;
     DISALLOW_COPY_AND_MOVE(OsAccountStub);
+    ErrCode ProcCheckOsAccountConstraintEnabled(uint32_t code, MessageParcel &data, MessageParcel &reply);
 };
 }  // namespace AccountSA
 }  // namespace OHOS
