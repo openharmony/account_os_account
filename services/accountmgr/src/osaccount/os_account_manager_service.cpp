@@ -223,6 +223,23 @@ ErrCode OsAccountManagerService::IsOsAccountConstraintEnable(
     return innerManager_->IsOsAccountConstraintEnable(id, constraint, isConstraintEnable);
 }
 
+ErrCode OsAccountManagerService::CheckOsAccountConstraintEnabled(
+    const int id, const std::string &constraint, bool &isEnabled)
+{
+    ErrCode res = CheckLocalId(id);
+    if (res != ERR_OK) {
+        return res;
+    }
+    // permission check
+    if (!PermissionCheck(AccountPermissionManager::MANAGE_LOCAL_ACCOUNTS, "") &&
+        !PermissionCheck(AccountPermissionManager::INTERACT_ACROSS_LOCAL_ACCOUNTS, "")) {
+        ACCOUNT_LOGE("account manager service, permission denied!");
+        return ERR_OSACCOUNT_SERVICE_PERMISSION_DENIED;
+    }
+
+    return innerManager_->IsOsAccountConstraintEnable(id, constraint, isEnabled);
+}
+
 ErrCode OsAccountManagerService::IsOsAccountVerified(const int id, bool &isVerified)
 {
     ErrCode res = CheckInvalidLocalId(id);
