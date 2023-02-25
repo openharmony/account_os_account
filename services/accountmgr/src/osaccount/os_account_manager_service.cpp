@@ -458,7 +458,10 @@ ErrCode OsAccountManagerService::SetOsAccountProfilePhoto(const int id, const st
         ACCOUNT_LOGE("photo out of allowed size");
         return ERR_OSACCOUNT_SERVICE_MANAGER_PHOTO_SIZE_OVERFLOW_ERROR;
     }
-
+    if (photo.empty()) {
+        ACCOUNT_LOGE("photo is empty");
+        return ERR_ACCOUNT_COMMON_INVALID_PARAMTER;
+    }
     // permission check
     if (!PermissionCheck(AccountPermissionManager::MANAGE_LOCAL_ACCOUNTS, CONSTANT_SET_ICON)) {
         ACCOUNT_LOGE("account manager service, permission denied!");

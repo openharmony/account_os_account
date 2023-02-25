@@ -98,24 +98,25 @@ void IInnerOsAccountManager::CreateBaseStandardAccount()
 
 void IInnerOsAccountManager::StartAccount()
 {
+    ResetAccountStatus();
+    GetEventHandler();
     OsAccountInfo osAccountInfo;
     ErrCode errCode = osAccountControl_->GetOsAccountInfoById(Constants::START_USER_ID, osAccountInfo);
     if (errCode != ERR_OK) {
-        ACCOUNT_LOGE("OsAccountAccountMgr init start base account failed. cannot find account, errCode %{public}d.",
-            errCode);
+        ACCOUNT_LOGE(
+            "OsAccountAccountMgr init start base account failed. cannot find account, errCode %{public}d.", errCode);
         return;
     }
-    ResetAccountStatus();
-    GetEventHandler();
     if (!osAccountInfo.GetIsCreateCompleted()) {
         ACCOUNT_LOGI("OsAccountAccountMgr send to storage and bm for start");
         OHOS::AppExecFwk::InnerEvent::Callback callbackStartStandard =
             std::bind(&IInnerOsAccountManager::CreateBaseStandardAccountSendToOther, this);
         handler_->PostTask(callbackStartStandard);
+        return;
     }
     ACCOUNT_LOGI("OsAccountAccountMgr send to storage and am for start");
     OHOS::AppExecFwk::InnerEvent::Callback callbackStartStandard =
-        std::bind(&IInnerOsAccountManager::StartBaseStandardAccount, this);
+        std::bind(&IInnerOsAccountManager::StartBaseStandardAccount, this, osAccountInfo);
     handler_->PostTask(callbackStartStandard);
 }
 
@@ -201,11 +202,13 @@ void IInnerOsAccountManager::CreateBaseStandardAccountSendToOther(void)
             handler_->PostTask(callback, DELAY_FOR_TIME_INTERVAL);
         }
         return;
-    } else {
-        osAccountInfo.SetIsCreateCompleted(true);
-        osAccountControl_->UpdateOsAccount(osAccountInfo);
-        ACCOUNT_LOGI("connect BM to create account ok");
     }
+    osAccountInfo.SetIsCreateCompleted(true);
+    osAccountControl_->UpdateOsAccount(osAccountInfo);
+    ACCOUNT_LOGI("connect BM to create account ok");
+    OHOS::AppExecFwk::InnerEvent::Callback callbackStartStandard =
+        std::bind(&IInnerOsAccountManager::StartBaseStandardAccount, this, osAccountInfo);
+    handler_->PostTask(callbackStartStandard);
 }
 
 void IInnerOsAccountManager::ResetAccountStatus(void)
@@ -223,18 +226,8 @@ void IInnerOsAccountManager::ResetAccountStatus(void)
     }
 }
 
-void IInnerOsAccountManager::StartBaseStandardAccount(void)
+void IInnerOsAccountManager::StartBaseStandardAccount(OsAccountInfo &osAccountInfo)
 {
-    OsAccountInfo osAccountInfo;
-    osAccountControl_->GetOsAccountInfoById(Constants::START_USER_ID, osAccountInfo);
-    if (!osAccountInfo.GetIsCreateCompleted()) {
-        ++counterForStandard_;
-        GetEventHandler();
-        OHOS::AppExecFwk::InnerEvent::Callback callback =
-            std::bind(&IInnerOsAccountManager::StartBaseStandardAccount, this);
-        handler_->PostTask(callback, DELAY_FOR_TIME_INTERVAL);
-        return;
-    }
     if (!isSendToStorageStart_) {
         ErrCode errCode = OsAccountInterface::SendToStorageAccountStart(osAccountInfo);
         if (errCode != ERR_OK) {
@@ -243,7 +236,7 @@ void IInnerOsAccountManager::StartBaseStandardAccount(void)
             } else {
                 GetEventHandler();
                 OHOS::AppExecFwk::InnerEvent::Callback callback =
-                    std::bind(&IInnerOsAccountManager::StartBaseStandardAccount, this);
+                    std::bind(&IInnerOsAccountManager::StartBaseStandardAccount, this, osAccountInfo);
                 handler_->PostTask(callback, DELAY_FOR_TIME_INTERVAL);
             }
             return;
@@ -259,7 +252,7 @@ void IInnerOsAccountManager::StartBaseStandardAccount(void)
         } else {
             GetEventHandler();
             OHOS::AppExecFwk::InnerEvent::Callback callback =
-                std::bind(&IInnerOsAccountManager::StartBaseStandardAccount, this);
+                std::bind(&IInnerOsAccountManager::StartBaseStandardAccount, this, osAccountInfo);
             handler_->PostTask(callback, DELAY_FOR_TIME_INTERVAL);
         }
         return;
@@ -1038,6 +1031,9 @@ ErrCode IInnerOsAccountManager::SetOsAccountProfilePhoto(const int id, const std
         return ERR_OSACCOUNT_SERVICE_INNER_ACCOUNT_TO_BE_REMOVED_ERROR;
     }
 
+    if (osAccountInfo.GetPhoto() == photo) {
+        return ERR_OK;
+    }
     errCode = osAccountControl_->SetPhotoById(id, photo);
     if (errCode != ERR_OK) {
         ACCOUNT_LOGE("set photo by id error, errCode %{public}d.", errCode);
@@ -1054,6 +1050,8 @@ ErrCode IInnerOsAccountManager::SetOsAccountProfilePhoto(const int id, const std
         ACCOUNT_LOGE("update osaccount info error %{public}d, id: %{public}d", errCode, osAccountInfo.GetLocalId());
         return ERR_OSACCOUNT_SERVICE_INNER_UPDATE_ACCOUNT_ERROR;
     }
+    OsAccountInterface::PublishCommonEvent(
+        osAccountInfo, OHOS::EventFwk::CommonEventSupport::COMMON_EVENT_USER_INFO_UPDATED, Constants::OPERATION_UPDATE);
     return ERR_OK;
 }
 
