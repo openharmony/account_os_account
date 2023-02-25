@@ -157,21 +157,3 @@ HWTEST_F(AppAccountEventModuleTest, AppAccountEventTest_ReadParcelableVector_030
     bool result = appAccountEventStubPtr->ReadParcelableVector(accounts, data);
     ASSERT_EQ(result, true);
 }
-
-/**
- * @tc.name: AppAccountEventTest_GetEventHandler_0100
- * @tc.desc: test AppAccountCommonEventObserver func GetEventHandler handler is exist.
- * @tc.type: FUNC
- * @tc.require:
- */
-HWTEST_F(AppAccountEventModuleTest, AppAccountEventTest_GetEventHandler_0100, TestSize.Level1)
-{
-    CommonEventCallback callback;
-    auto appAccountCommonEventObserverPtr = std::make_shared<AppAccountCommonEventObserver>(callback);
-    ASSERT_NE(appAccountCommonEventObserverPtr, nullptr);
-    appAccountCommonEventObserverPtr->handler_ =
-        std::make_shared<OHOS::AppExecFwk::EventHandler>(OHOS::AppExecFwk::EventRunner::Create());
-    ASSERT_NE(appAccountCommonEventObserverPtr->handler_, nullptr);
-    ErrCode result = appAccountCommonEventObserverPtr->GetEventHandler();
-    ASSERT_EQ(result, ERR_OK);
-}

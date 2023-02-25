@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2022 Huawei Device Co., Ltd.
+ * Copyright (c) 2022-2023 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -20,7 +20,6 @@
 #include "domain_account_plugin_death_recipient.h"
 #include "domain_account_plugin_proxy.h"
 #include "domain_auth_callback.h"
-#include "event_handler.h"
 #include "os_account_info.h"
 #include "singleton.h"
 
@@ -42,12 +41,10 @@ public:
 private:
     ErrCode StartAuth(const sptr<IDomainAccountPlugin> &plugin, const DomainAccountInfo &info,
         const std::vector<uint8_t> &password, const sptr<IDomainAuthCallback> &callback);
-    std::shared_ptr<AppExecFwk::EventHandler> GetEventHandler();
     sptr<IRemoteObject::DeathRecipient> GetDeathRecipient();
 
 private:
     std::mutex mutex_;
-    std::shared_ptr<AppExecFwk::EventHandler> handler_;
     sptr<IRemoteObject::DeathRecipient> deathRecipient_;
     sptr<IDomainAccountPlugin> plugin_;
 };

@@ -48,8 +48,6 @@ using namespace Security::AccessToken;
 
 const int TEST_USER_ID10 = 10;
 const int TEST_USER_ID55 = 55;
-const int TEST_USER_ID100 = 100;
-const int TEST_USER_ID555 = 555;
 const int ACCOUNT_UID = 3058;
 const int DELAY_FOR_OPERATION = 250;
 const std::string ACCOUNT_NAME = "TEST";
@@ -157,55 +155,6 @@ HWTEST_F(OsAccountInnerAccmgrCoverageTest, OsAccountInnerAccmgrCoverageTest002, 
 }
 
 /*
- * @tc.name: OsAccountInnerAccmgrCoverageTest003
- * @tc.desc: CreateBaseAdminAccount coverage test
- * @tc.type: FUNC
- * @tc.require:
- */
-HWTEST_F(OsAccountInnerAccmgrCoverageTest, OsAccountInnerAccmgrCoverageTest003, TestSize.Level1)
-{
-    innerMgrService_ = DelayedSingleton<IInnerOsAccountManager>::GetInstance();
-    bool ret;
-    innerMgrService_->StartActivatedAccount(0);
-    ret = innerMgrService_->IsOsAccountIDInActiveList(0);
-    EXPECT_EQ(false, ret);
-
-    innerMgrService_->StartActivatedAccount(TEST_USER_ID100);
-    ret = innerMgrService_->IsOsAccountIDInActiveList(TEST_USER_ID100);
-    EXPECT_EQ(false, ret);
-
-    innerMgrService_->StartActivatedAccount(TEST_USER_ID555);
-    ret = innerMgrService_->IsOsAccountIDInActiveList(TEST_USER_ID555);
-    EXPECT_EQ(false, ret);
-
-    innerMgrService_->RestartActiveAccount();
-    ret = innerMgrService_->IsOsAccountIDInActiveList(0);
-    EXPECT_EQ(false, ret);
-
-    DelayedSingleton<IInnerOsAccountManager>::DestroyInstance();
-}
-
-/*
- * @tc.name: OsAccountInnerAccmgrCoverageTest004
- * @tc.desc: CreateBaseAdminAccount coverage test
- * @tc.type: FUNC
- * @tc.require:
- */
-HWTEST_F(OsAccountInnerAccmgrCoverageTest, OsAccountInnerAccmgrCoverageTest004, TestSize.Level1)
-{
-    innerMgrService_ = DelayedSingleton<IInnerOsAccountManager>::GetInstance();
-
-    innerMgrService_->CreateBaseStandardAccountSendToOther();
-    EXPECT_EQ(innerMgrService_->isSendToStorageCreate_, true);
-
-    innerMgrService_->CreateBaseStandardAccountSendToOther();
-    EXPECT_EQ(innerMgrService_->isSendToStorageCreate_, true);
-
-    DelayedSingleton<IInnerOsAccountManager>::DestroyInstance();
-}
-
-
-/*
  * @tc.name: OsAccountInnerAccmgrCoverageTest005
  * @tc.desc: CreateBaseAdminAccount coverage test
  * @tc.type: FUNC
@@ -227,23 +176,6 @@ HWTEST_F(OsAccountInnerAccmgrCoverageTest, OsAccountInnerAccmgrCoverageTest005, 
     innerMgrService_->EraseIdFromActiveList(TEST_USER_ID55);
     ret = innerMgrService_->IsOsAccountIDInActiveList(TEST_USER_ID55);
     EXPECT_EQ(ret, false);
-
-    DelayedSingleton<IInnerOsAccountManager>::DestroyInstance();
-}
-
-/*
- * @tc.name: OsAccountInnerAccmgrCoverageTest006
- * @tc.desc: CreateBaseAdminAccount coverage test
- * @tc.type: FUNC
- * @tc.require:
- */
-HWTEST_F(OsAccountInnerAccmgrCoverageTest, OsAccountInnerAccmgrCoverageTest006, TestSize.Level1)
-{
-    innerMgrService_ = DelayedSingleton<IInnerOsAccountManager>::GetInstance();
-
-    innerMgrService_->GetEventHandler();
-
-    EXPECT_EQ(true, (innerMgrService_->handler_ != nullptr));
 
     DelayedSingleton<IInnerOsAccountManager>::DestroyInstance();
 }

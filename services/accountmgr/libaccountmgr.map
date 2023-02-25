@@ -71,7 +71,6 @@
         "OHOS::AccountSA::AppAccountCheckLabelsSession::AppAccountCheckLabelsSession(std::__h::vector<OHOS::AccountSA::AppAccountInfo, std::__h::allocator<OHOS::AccountSA::AppAccountInfo> >, OHOS::AccountSA::AuthenticatorSessionRequest const&)";
         "OHOS::AccountSA::AppAccountCheckLabelsSession::CheckLabels()";
         "OHOS::AccountSA::AppAccountCommonEventObserver::AppAccountCommonEventObserver(OHOS::AccountSA::CommonEventCallback const&)";
-        "OHOS::AccountSA::AppAccountCommonEventObserver::GetEventHandler()";
         "OHOS::AccountSA::AppAccountCommonEventObserver::~AppAccountCommonEventObserver()";
         "OHOS::AccountSA::AppAccountControlManager::AddAccount(std::__h::basic_string<char, std::__h::char_traits<char>, std::__h::allocator<char> > const&, std::__h::basic_string<char, std::__h::char_traits<char>, std::__h::allocator<char> > const&, unsigned int const&, std::__h::basic_string<char, std::__h::char_traits<char>, std::__h::allocator<char> > const&, OHOS::AccountSA::AppAccountInfo&)";
         "OHOS::AccountSA::AppAccountControlManager::AddAccountInfoIntoDataStorage(OHOS::AccountSA::AppAccountInfo&, std::__h::shared_ptr<OHOS::AccountSA::AppAccountDataStorage> const&, unsigned int const&)";
@@ -116,10 +115,8 @@
         "OHOS::AccountSA::IInnerOsAccountManager::CleanGarbageAccounts()";
         "OHOS::AccountSA::IInnerOsAccountManager::CreateBaseAdminAccount()";
         "OHOS::AccountSA::IInnerOsAccountManager::CreateBaseStandardAccount()";
-        "OHOS::AccountSA::IInnerOsAccountManager::CreateBaseStandardAccountSendToOther()";
         "OHOS::AccountSA::IInnerOsAccountManager::DeActivateOsAccount(int)";
         "OHOS::AccountSA::IInnerOsAccountManager::EraseIdFromActiveList(int)";
-        "OHOS::AccountSA::IInnerOsAccountManager::GetEventHandler()";
         "OHOS::AccountSA::IInnerOsAccountManager::IInnerOsAccountManager()";
         "OHOS::AccountSA::IInnerOsAccountManager::IsLocalIdInOperating(int)";
         "OHOS::AccountSA::IInnerOsAccountManager::IsOsAccountIDInActiveList(int)";
@@ -133,8 +130,6 @@
         "OHOS::AccountSA::IInnerOsAccountManager::SendMsgForAccountRemove(OHOS::AccountSA::OsAccountInfo&)";
         "OHOS::AccountSA::IInnerOsAccountManager::SetOsAccountControl(std::__h::shared_ptr<OHOS::AccountSA::IOsAccountControl>)";
         "OHOS::AccountSA::IInnerOsAccountManager::StartAccount()";
-        "OHOS::AccountSA::IInnerOsAccountManager::StartActivatedAccount(int)";
-        "OHOS::AccountSA::IInnerOsAccountManager::StartBaseStandardAccount()";
         "OHOS::AccountSA::InnerAppAccountManager::AddAccount(std::__h::basic_string<char, std::__h::char_traits<char>, std::__h::allocator<char> > const&, std::__h::basic_string<char, std::__h::char_traits<char>, std::__h::allocator<char> > const&, unsigned int const&, std::__h::basic_string<char, std::__h::char_traits<char>, std::__h::allocator<char> > const&, unsigned int const&)";
         "OHOS::AccountSA::InnerAppAccountManager::AddAccountImplicitly(OHOS::AccountSA::AuthenticatorSessionRequest const&)";
         "OHOS::AccountSA::InnerAppAccountManager::Authenticate(OHOS::AccountSA::AuthenticatorSessionRequest const&)";
