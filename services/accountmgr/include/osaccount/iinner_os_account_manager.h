@@ -92,12 +92,8 @@ private:
     void RestartActiveAccount();
     void CreateBaseAdminAccount();
     void CreateBaseStandardAccount();
-    void CreateBaseStandardAccountSendToOther();
-    void StartBaseStandardAccount(OsAccountInfo &osAccountInfo);
     void ResetAccountStatus(void);
-    void StartActivatedAccount(int32_t id);
     ErrCode DeActivateOsAccount(const int id);
-    ErrCode GetEventHandler(void);
     ErrCode PrepareOsAccountInfo(const std::string &name, const OsAccountType &type,
         const DomainAccountInfo &domainAccount, OsAccountInfo &osAccountInfo);
     ErrCode SendMsgForAccountCreate(OsAccountInfo &osAccountInfo);
@@ -123,17 +119,8 @@ private:
     std::vector<int32_t> activeAccountId_;
     std::vector<int32_t> operatingId_;
     std::shared_ptr<IOsAccountSubscribe> subscribeManagerPtr_;
-    std::int32_t counterForStandard_;
-    std::int32_t counterForStandardCreate_;
-    std::int32_t counterForAccountStart_;
     std::int32_t deviceOwnerId_;
     std::int32_t defaultActivatedId_;
-    bool isSendToStorageCreate_;
-    bool isSendToStorageStart_;
-    std::shared_ptr<OHOS::AppExecFwk::EventHandler> handler_;
-    static constexpr std::int32_t DELAY_FOR_FOUNDATION_SERVICE = 2 * 1000; // 2s
-    static constexpr std::int32_t DELAY_FOR_TIME_INTERVAL = 100;           // 0.1s
-    static constexpr std::int32_t MAX_TRY_TIMES = 1000;
     mutable std::mutex ativeMutex_;
     mutable std::mutex operatingMutex_;
 };

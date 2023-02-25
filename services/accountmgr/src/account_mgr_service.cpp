@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021-2022 Huawei Device Co., Ltd.
+ * Copyright (c) 2021-2023 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -185,9 +185,15 @@ void AccountMgrService::OnStart()
         return;
     }
     state_ = ServiceRunningState::STATE_RUNNING;
-
-    // create and start basic accounts
-    osAccountManagerService_->CreateBasicAccounts();
+    bool isAccountCompleted = false;
+    std::int32_t defaultActivatedId;
+    osAccountManagerService_->GetDefaultActivatedOsAccount(defaultActivatedId);
+    osAccountManagerService_->IsOsAccountCompleted(defaultActivatedId, isAccountCompleted);
+    if (!isAccountCompleted) {
+        AddSystemAbilityListener(BUNDLE_MGR_SERVICE_SYS_ABILITY_ID);
+    }
+    AddSystemAbilityListener(STORAGE_MANAGER_MANAGER_ID);
+    AddSystemAbilityListener(ABILITY_MGR_SERVICE_ID);
     ACCOUNT_LOGI("AccountMgrService::OnStart start service finished.");
     FinishTrace(HITRACE_TAG_ACCOUNT_MANAGER);
 }
@@ -198,6 +204,31 @@ void AccountMgrService::OnStop()
     ACCOUNT_LOGI("onstop is called");
     IAccountContext::SetInstance(nullptr);
     SelfClean();
+}
+
+void AccountMgrService::OnAddSystemAbility(int32_t systemAbilityId, const std::string &deviceId)
+{
+    ACCOUNT_LOGE("OnAddSystemAbility systemAbilityId %{public}d", systemAbilityId);
+    switch (systemAbilityId) {
+        case STORAGE_MANAGER_MANAGER_ID: {
+            isStorageReady_ = true;
+            break;
+        }
+        case ABILITY_MGR_SERVICE_ID: {
+            isAmsReady_ = true;
+            break;
+        }
+        case BUNDLE_MGR_SERVICE_SYS_ABILITY_ID: {
+            isBmsReady_ = true;
+            break;
+        }
+        default:
+            break;
+    }
+    if (isStorageReady_ && (isBmsReady_ || isAmsReady_)) {
+        // create and start basic accounts
+        osAccountManagerService_->CreateBasicAccounts();
+    }
 }
 
 bool AccountMgrService::Init()

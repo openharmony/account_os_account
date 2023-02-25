@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021-2022 Huawei Device Co., Ltd.
+ * Copyright (c) 2021-2023 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -14,7 +14,8 @@
  */
 
 #include "app_account_common_event_observer.h"
-
+#include <thread>
+#include <unistd.h>
 #include "account_log_wrapper.h"
 #include "bundle_constants.h"
 #ifdef HAS_CES_PART
@@ -42,49 +43,27 @@ AppAccountCommonEventObserver::AppAccountCommonEventObserver(const CommonEventCa
     subscriber_ = std::make_shared<AppAccountCommonEventSubscriber>(
         subscribeInfo, std::bind(&AppAccountCommonEventObserver::OnReceiveEvent, this, std::placeholders::_1));
 
-    if (GetEventHandler() != ERR_OK) {
-        ACCOUNT_LOGE("failed to get event handler");
-    } else {
-        Callback callbackTemp = std::bind(&AppAccountCommonEventObserver::SubscribeCommonEvent, this);
-        handler_->PostTask(callbackTemp, DELAY_FOR_COMMON_EVENT_SERVICE);
-    }
+    auto task = std::bind(&AppAccountCommonEventObserver::SubscribeCommonEvent, this);
+    std::thread thread(task);
+    thread.detach();
 }
 
 AppAccountCommonEventObserver::~AppAccountCommonEventObserver()
 {
-    if (handler_) {
-        handler_.reset();
-    }
-
     CommonEventManager::UnSubscribeCommonEvent(subscriber_);
-}
-
-ErrCode AppAccountCommonEventObserver::GetEventHandler(void)
-{
-    if (!handler_) {
-        handler_ = std::make_shared<EventHandler>(EventRunner::Create());
-        if (handler_ == nullptr) {
-            ACCOUNT_LOGE("failed to create event handler");
-            return ERR_APPACCOUNT_SERVICE_CREATE_EVENT_HANDLER;
-        }
-    }
-
-    return ERR_OK;
 }
 
 void AppAccountCommonEventObserver::SubscribeCommonEvent(void)
 {
-    bool result = CommonEventManager::SubscribeCommonEvent(subscriber_);
-    if (result) {
-        counter_ = 0;
-    } else {
-        counter_++;
-        if (counter_ == MAX_TRY_TIMES) {
-            ACCOUNT_LOGE("failed to subscribe common event and tried %{public}d times", counter_);
-        } else {
-            Callback callback = std::bind(&AppAccountCommonEventObserver::SubscribeCommonEvent, this);
-            handler_->PostTask(callback, DELAY_FOR_TIME_INTERVAL);
+    while (counter_ != MAX_TRY_TIMES) {
+        if (CommonEventManager::SubscribeCommonEvent(subscriber_)) {
+            counter_ = 0;
+            break;
         }
+        if (++counter_ == MAX_TRY_TIMES) {
+            ACCOUNT_LOGE("failed to subscribe common event and tried %{public}d times", counter_);
+        }
+        sleep(DELAY_FOR_TIME_INTERVAL / 1000); // 1000: 1s
     }
 }
 

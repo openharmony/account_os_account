@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021-2022 Huawei Device Co., Ltd.
+ * Copyright (c) 2021-2023 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -14,7 +14,7 @@
  */
 
 #include "os_account_subscribe_manager.h"
-
+#include <thread>
 #include "account_log_wrapper.h"
 #include "ios_account_event.h"
 #include "os_account_subscribe_death_recipient.h"
@@ -102,19 +102,6 @@ ErrCode OsAccountSubscribeManager::RemoveSubscribeRecord(const sptr<IRemoteObjec
     return ERR_OK;
 }
 
-ErrCode OsAccountSubscribeManager::GetEventHandler(void)
-{
-    if (!handler_) {
-        handler_ = std::make_shared<OHOS::AppExecFwk::EventHandler>(OHOS::AppExecFwk::EventRunner::Create());
-        if (handler_ == nullptr) {
-            ACCOUNT_LOGE("failed to create event handler");
-            return ERR_OSACCOUNT_SERVICE_CREATE_EVENT_HANDLER;
-        }
-    }
-
-    return ERR_OK;
-}
-
 ErrCode OsAccountSubscribeManager::PublishActivatedOsAccount(const int id)
 {
     uint32_t sendCnt = 0;
@@ -133,10 +120,6 @@ bool OsAccountSubscribeManager::OnAccountsChanged(const OsSubscribeRecordPtr &os
     auto osAccountEventProxy = iface_cast<IOsAccountEvent>(osSubscribeRecordPtr->eventListener_);
     if (osAccountEventProxy == nullptr) {
         ACCOUNT_LOGE("failed to get app account event proxy");
-        return false;
-    }
-    if (GetEventHandler() != ERR_OK) {
-        ACCOUNT_LOGE("failed to get event handler");
         return false;
     }
     osAccountEventProxy->OnAccountsChanged(id);
@@ -158,11 +141,6 @@ ErrCode OsAccountSubscribeManager::PublishActivatingOsAccount(const int id)
 
 ErrCode OsAccountSubscribeManager::Publish(const int id, OS_ACCOUNT_SUBSCRIBE_TYPE subscribeType, uint32_t& sendCnt)
 {
-    if (GetEventHandler() != ERR_OK) {
-        ACCOUNT_LOGE("failed to get event handler, id %{public}d, subscribeType %{public}d.", id, subscribeType);
-        return ERR_OSACCOUNT_SERVICE_SUBSCRIBE_GET_EVENT_HANDLE_ERROR;
-    }
-
     std::lock_guard<std::mutex> lock(subscribeRecordMutex_);
     for (auto it = subscribeRecords_.begin(); it != subscribeRecords_.end(); ++it) {
         if ((*it)->subscribeInfoPtr_ == nullptr) {
@@ -172,13 +150,9 @@ ErrCode OsAccountSubscribeManager::Publish(const int id, OS_ACCOUNT_SUBSCRIBE_TY
         OS_ACCOUNT_SUBSCRIBE_TYPE osAccountSubscribeType;
         (*it)->subscribeInfoPtr_->GetOsAccountSubscribeType(osAccountSubscribeType);
         if (osAccountSubscribeType == subscribeType) {
-            OHOS::AppExecFwk::InnerEvent::Callback callback =
-                std::bind(&OsAccountSubscribeManager::OnAccountsChanged, this, (*it), id);
-            if (handler_ == nullptr) {
-                ACCOUNT_LOGE("handler_ is null!");
-                continue;
-            }
-            handler_->PostTask(callback);
+            auto task = std::bind(&OsAccountSubscribeManager::OnAccountsChanged, this, (*it), id);
+            std::thread thread(task);
+            thread.detach();
             ++sendCnt;
         }
     }
