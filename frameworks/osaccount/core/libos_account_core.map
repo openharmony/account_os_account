@@ -58,6 +58,8 @@
         "OHOS::AccountSA::OsAccount::IsOsAccountCompleted(int, bool&)";
         "OHOS::AccountSA::OsAccount::IsOsAccountConstraintEnable(int, std::__1::basic_string<char, std::__1::char_traits<char>, std::__1::allocator<char> > const&, bool&)";
         "OHOS::AccountSA::OsAccount::IsOsAccountConstraintEnable(int, std::__h::basic_string<char, std::__h::char_traits<char>, std::__h::allocator<char> > const&, bool&)";
+        "OHOS::AccountSA::OsAccount::CheckOsAccountConstraintEnabled(int, std::__1::basic_string<char, std::__1::char_traits<char>, std::__1::allocator<char> > const&, bool&)";
+        "OHOS::AccountSA::OsAccount::CheckOsAccountConstraintEnabled(int, std::__h::basic_string<char, std::__h::char_traits<char>, std::__h::allocator<char> > const&, bool&)";
         "OHOS::AccountSA::OsAccount::IsOsAccountExists(int, bool&)";
         "OHOS::AccountSA::OsAccount::IsOsAccountVerified(int, bool&)";
         "OHOS::AccountSA::OsAccount::QueryActiveOsAccountIds(std::__1::vector<int, std::__1::allocator<int> >&)";

@@ -35,6 +35,8 @@ public:
     ErrCode IsOsAccountActived(const int id, bool &isOsAccountActived) override;
     ErrCode IsOsAccountConstraintEnable(
         const int id, const std::string &constraint, bool &isConstraintEnable) override;
+    ErrCode CheckOsAccountConstraintEnabled(
+        const int id, const std::string &constraint, bool &isEnabled) override;
     ErrCode IsOsAccountVerified(const int id, bool &isVerified) override;
     ErrCode GetCreatedOsAccountsCount(unsigned int &osAccountsCount) override;
     ErrCode GetOsAccountLocalIdFromProcess(int &id) override;
@@ -90,6 +92,8 @@ private:
     template<typename T>
     bool ReadParcelableVector(std::vector<T> &parcelableInfos, MessageParcel &data);
     ErrCode SendRequest(IOsAccount::Message code, MessageParcel &data, MessageParcel &reply);
+    ErrCode CheckOsAccountConstraintEnabled(
+        IOsAccount::Message code, const int id, const std::string &constraint, bool &isConstraintEnable);
 
 private:
     static inline BrokerDelegator<OsAccountProxy> delegator_;
