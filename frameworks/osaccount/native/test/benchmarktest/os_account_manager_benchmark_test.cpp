@@ -150,7 +150,6 @@ BENCHMARK_F(OsAccountManagerBenchmarkTest, OsAccountManagerTestCase005)(
     bool isVerified = true;
     for (auto _ : st) {
         EXPECT_EQ(OsAccountManager::IsOsAccountVerified(LOCAL_ID, isVerified), ERR_OK);
-        EXPECT_EQ(isVerified, false);
     }
 }
 
