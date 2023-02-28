@@ -16,6 +16,7 @@
 #ifndef OS_ACCOUNT_INTERFACES_KITS_COMMON_INCLUDE_NAPI_ACCOUNT_COMMON_H
 #define OS_ACCOUNT_INTERFACES_KITS_COMMON_INCLUDE_NAPI_ACCOUNT_COMMON_H
 
+#include <mutex>
 #include <string>
 
 #include "account_error_no.h"
@@ -23,6 +24,12 @@
 
 namespace OHOS {
 namespace AccountJsKit {
+struct ThreadLockInfo {
+    std::mutex mutex;
+    std::condition_variable condition;
+    int32_t count = 0;
+};
+
 struct CommonAsyncContext {
     CommonAsyncContext() {};
     explicit CommonAsyncContext(napi_env napiEnv) : env(napiEnv) {};
