@@ -18,26 +18,27 @@
 
 #include <string>
 #include <vector>
+#include "parcel.h"
 
 namespace OHOS {
 namespace AccountSA {
-class DomainAccountInfo {
+class DomainAccountInfo : public Parcelable {
 public:
-    DomainAccountInfo()
-        : domain_(""), accountName_("")
-    {}
+    DomainAccountInfo();
 
-    DomainAccountInfo(const std::string &domain, const std::string &domainAccountName)
-        : domain_(domain), accountName_(domainAccountName)
-    {}
+    DomainAccountInfo(const std::string &domain, const std::string &domainAccountName);
 
-    void Clear()
-    {
-        domain_.clear();
-        accountName_.clear();
-    }
+    DomainAccountInfo(const std::string &domain, const std::string &domainAccountName, const std::string &accountId);
+
+    void Clear();
+
+public:
     std::string domain_;
     std::string accountName_;
+    std::string accountId_;
+    bool ReadFromParcel(Parcel &parcel);
+    bool Marshalling(Parcel &parcel) const override;
+    static DomainAccountInfo *Unmarshalling(Parcel &parcel);
 };
 
 struct DomainAuthProperty {
