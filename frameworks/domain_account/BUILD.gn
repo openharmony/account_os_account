@@ -54,6 +54,10 @@ config("domain_account_innerkits_public_config") {
 
 ohos_shared_library("domain_account_innerkits") {
   sources = [
+    "src/domain_account_callback_client.cpp",
+    "src/domain_account_callback_proxy.cpp",
+    "src/domain_account_callback_service.cpp",
+    "src/domain_account_callback_stub.cpp",
     "src/domain_account_client.cpp",
     "src/domain_account_common.cpp",
     "src/domain_account_plugin_service.cpp",
