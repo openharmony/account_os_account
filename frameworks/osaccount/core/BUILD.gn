@@ -41,6 +41,7 @@ config("os_account_core_config") {
 
 config("os_account_core_public_config") {
   include_dirs = [
+    "${domain_account_framework_path}/include",
     "${domain_account_interfaces_native_path}/include",
     "${os_account_core_path}/include",
     "${os_account_interfaces_native_path}/include",
@@ -90,6 +91,8 @@ ohos_shared_library("os_account_core") {
     "${common_path}:libaccount_common",
     "${innerkits_native_path}:libaccountkits",
   ]
+
+  public_deps = [ "${domain_account_framework_path}:domain_account_innerkits" ]
 
   external_deps = [
     "ability_base:want",
