@@ -51,7 +51,7 @@ void DomainAccountCallbackProxy::OnResult(const int32_t errCode, Parcel &parcel)
         ACCOUNT_LOGE("failed to write errCode");
         return;
     }
-    size_t size = parcel.GetDataSize();
+    uint32_t size = parcel.GetDataSize();
     if (!data.WriteUint32(size)) {
         ACCOUNT_LOGE("failed to write size");
         return;
