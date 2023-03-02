@@ -132,4 +132,17 @@ int32_t SystemAbilityManagerProxy::AddSystemProcess(
 {
     return ERR_INVALID_VALUE;
 }
+
+int32_t SystemAbilityManagerProxy::GetRunningSystemProcess(std::list<SystemProcessInfo>& systemProcessInfos)
+{
+    return ERR_INVALID_VALUE;
+}
+int32_t SystemAbilityManagerProxy::SubscribeSystemProcess(const sptr<ISystemProcessStatusChange>& listener)
+{
+    return ERR_INVALID_VALUE;
+}
+int32_t SystemAbilityManagerProxy::UnSubscribeSystemProcess(const sptr<ISystemProcessStatusChange>& listener)
+{
+    return ERR_INVALID_VALUE;
+}
 }
