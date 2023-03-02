@@ -19,6 +19,7 @@
 #include "domain_account_plugin.h"
 #include "domain_auth_callback.h"
 #include "napi/native_api.h"
+#include "napi_account_common.h"
 #include "os_account_manager.h"
 
 namespace OHOS {
@@ -29,15 +30,17 @@ struct JsDomainPlugin {
 
 struct JsDomainPluginParam {
     napi_env env = nullptr;
+    napi_ref func = nullptr;
     AccountSA::DomainAccountInfo domainAccountInfo;
     std::vector<uint8_t> credential;
     std::shared_ptr<AccountSA::DomainAuthCallback> callback = nullptr;
-    JsDomainPlugin jsPlugin;
+    ThreadLockInfo *lockInfo;
 };
 
 class NapiDomainAccountPlugin final: public AccountSA::DomainAccountPlugin {
 public:
     NapiDomainAccountPlugin(napi_env env, const JsDomainPlugin &jsPlugin);
+    ~NapiDomainAccountPlugin();
     void Auth(const AccountSA::DomainAccountInfo &info, const std::vector<uint8_t> &credential,
         const std::shared_ptr<AccountSA::DomainAuthCallback> &callback) override;
     int32_t GetAuthProperty(
@@ -46,6 +49,7 @@ public:
 private:
     napi_env env_;
     JsDomainPlugin jsPlugin_;
+    ThreadLockInfo lockInfo_;
 };
 
 class NapiDomainAccountManager {

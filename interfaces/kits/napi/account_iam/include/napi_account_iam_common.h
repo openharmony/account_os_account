@@ -22,6 +22,7 @@
 #include "i_inputer.h"
 #include "napi/native_api.h"
 #include "napi/native_node_api.h"
+#include "napi_account_common.h"
 
 namespace OHOS {
 namespace AccountJsKit {
@@ -210,6 +211,7 @@ struct InputerContext {
     napi_ref callback = nullptr;
     int32_t authSubType = -1;
     std::shared_ptr<AccountSA::IInputerData> inputerData = nullptr;
+    ThreadLockInfo *lockInfo;
 };
 
 class NapiGetDataCallback : public AccountSA::IInputer {
@@ -222,6 +224,7 @@ public:
 private:
     napi_env env_;
     napi_ref callback_;
+    ThreadLockInfo lockInfo_;
 };
 #endif  // HAS_PIN_AUTH_PART
 
