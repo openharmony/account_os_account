@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2022 Huawei Device Co., Ltd.
+ * Copyright (c) 2022-2023 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -32,19 +32,19 @@ DomainAccountManagerService::~DomainAccountManagerService()
 
 ErrCode DomainAccountManagerService::RegisterPlugin(const sptr<IDomainAccountPlugin> &plugin)
 {
-    return InnerDomainAccountManager::GetInstance()->RegisterPlugin(plugin);
+    return InnerDomainAccountManager::GetInstance().RegisterPlugin(plugin);
 }
 
 ErrCode DomainAccountManagerService::UnregisterPlugin()
 {
-    InnerDomainAccountManager::GetInstance()->UnregisterPlugin();
+    InnerDomainAccountManager::GetInstance().UnregisterPlugin();
     return ERR_OK;
 }
 
 ErrCode DomainAccountManagerService::Auth(const DomainAccountInfo &info, const std::vector<uint8_t> &password,
     const sptr<IDomainAuthCallback> &callback)
 {
-    return InnerDomainAccountManager::GetInstance()->Auth(info, password, callback);
+    return InnerDomainAccountManager::GetInstance().Auth(info, password, callback);
 }
 
 ErrCode DomainAccountManagerService::AuthUser(int32_t userId, const std::vector<uint8_t> &password,
@@ -54,7 +54,7 @@ ErrCode DomainAccountManagerService::AuthUser(int32_t userId, const std::vector<
         ACCOUNT_LOGE("invalid userId");
         return ERR_ACCOUNT_COMMON_INVALID_PARAMTER;
     }
-    return InnerDomainAccountManager::GetInstance()->AuthUser(userId, password, callback);
+    return InnerDomainAccountManager::GetInstance().AuthUser(userId, password, callback);
 }
 }  // namespace AccountSA
 }  // namespace OHOS

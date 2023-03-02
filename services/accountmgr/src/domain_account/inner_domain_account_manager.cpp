@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2022 Huawei Device Co., Ltd.
+ * Copyright (c) 2022-2023 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -21,6 +21,12 @@
 
 namespace OHOS {
 namespace AccountSA {
+InnerDomainAccountManager &InnerDomainAccountManager::GetInstance()
+{
+    static InnerDomainAccountManager instance;
+    return instance;
+}
+
 ErrCode InnerDomainAccountManager::RegisterPlugin(const sptr<IDomainAccountPlugin> &plugin)
 {
     std::lock_guard<std::mutex> lock(mutex_);
@@ -121,14 +127,15 @@ ErrCode InnerDomainAccountManager::AuthUser(int32_t userId, const std::vector<ui
     return ERR_OK;
 }
 
-ErrCode InnerDomainAccountManager::GetAuthProperty(const DomainAccountInfo &info, DomainAuthProperty &property)
+ErrCode InnerDomainAccountManager::GetAuthStatusInfo(
+    const DomainAccountInfo &info, const sptr<IDomainAccountCallback> &callback)
 {
     std::lock_guard<std::mutex> lock(mutex_);
     if (plugin_ == nullptr) {
         ACCOUNT_LOGE("plugin not exists");
         return ERR_DOMAIN_ACCOUNT_SERVICE_PLUGIN_NOT_EXIST;
     }
-    return plugin_->GetAuthProperty(info, property);
+    return plugin_->GetAuthStatusInfo(info, callback);
 }
 
 std::shared_ptr<AppExecFwk::EventHandler> InnerDomainAccountManager::GetEventHandler()

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2022 Huawei Device Co., Ltd.
+ * Copyright (c) 2022-2023 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -16,6 +16,7 @@
 #include "domain_account_plugin_service.h"
 
 #include "account_log_wrapper.h"
+#include "domain_account_callback_client.h"
 #include "domain_auth_callback_client.h"
 
 namespace OHOS {
@@ -43,13 +44,20 @@ ErrCode DomainAccountPluginService::Auth(const DomainAccountInfo &info, const st
     return ERR_OK;
 }
 
-ErrCode DomainAccountPluginService::GetAuthProperty(const DomainAccountInfo &info, DomainAuthProperty &property)
+ErrCode DomainAccountPluginService::GetAuthStatusInfo(
+    const DomainAccountInfo &accountInfo, const sptr<IDomainAccountCallback> &callback)
 {
     if (innerPlugin_ == nullptr) {
         ACCOUNT_LOGE("innerPlugin_ is nullptr");
         return ERR_ACCOUNT_COMMON_NULL_PTR_ERROR;
     }
-    return innerPlugin_->GetAuthProperty(info, property);
+    auto callbackClient = std::make_shared<DomainAccountCallbackClient>(callback);
+    if (callbackClient == nullptr) {
+        ACCOUNT_LOGE("failed to create DomainAccountCallbackClient");
+        return ERR_ACCOUNT_COMMON_INSUFFICIENT_MEMORY_ERROR;
+    }
+    innerPlugin_->GetAuthStatusInfo(accountInfo, callbackClient);
+    return ERR_OK;
 }
 }  // namespace AccountSA
 }  // namespace OHOS
