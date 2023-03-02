@@ -51,7 +51,7 @@ int32_t DomainAccountCallbackStub::ProcOnResult(MessageParcel &data, MessageParc
         ACCOUNT_LOGE("failed to read result");
         return ERR_ACCOUNT_COMMON_READ_PARCEL_ERROR;
     }
-    size_t size;
+    uint32_t size;
     if (!data.ReadUint32(size)) {
         ACCOUNT_LOGE("failed to read size");
         return ERR_ACCOUNT_COMMON_READ_PARCEL_ERROR;

@@ -81,8 +81,13 @@ static napi_value CreateNapiDomainAuthCallback(
 
 static void AuthWork(uv_work_t *work, int status)
 {
-    if ((work == nullptr) || (work->data == nullptr)) {
-        ACCOUNT_LOGE("invalid parameter, work or data is nullptr");
+    if (work == nullptr) {
+        ACCOUNT_LOGE("work is nullptr");
+        return;
+    }
+    if (work->data == nullptr) {
+        ACCOUNT_LOGE("data is nullptr");
+        delete work;
         return;
     }
     JsDomainPluginParam *param = reinterpret_cast<JsDomainPluginParam *>(work->data);
@@ -93,19 +98,43 @@ static void AuthWork(uv_work_t *work, int status)
     napi_value undefined = nullptr;
     napi_get_undefined(param->env, &undefined);
     napi_value returnVal;
-    napi_value funcRef = nullptr;
-    napi_get_reference_value(param->env, param->jsPlugin.auth, &funcRef);
-    napi_call_function(param->env, undefined, funcRef, ARG_SIZE_THREE, argv, &returnVal);
+    napi_value funcVal = nullptr;
+    napi_status napiStatus = napi_get_reference_value(param->env, param->func, &funcVal);
+    if (napiStatus == napi_ok) {
+        napi_call_function(param->env, undefined, funcVal, ARG_SIZE_THREE, argv, &returnVal);
+    }
+    std::unique_lock<std::mutex> lock(param->lockInfo->mutex);
+    param->lockInfo->count--;
+    param->lockInfo->condition.notify_all();
+    delete param;
+    delete work;
 }
 
 NapiDomainAccountPlugin::NapiDomainAccountPlugin(napi_env env, const JsDomainPlugin &jsPlugin)
     : env_(env), jsPlugin_(jsPlugin)
 {}
 
+NapiDomainAccountPlugin::~NapiDomainAccountPlugin()
+{
+    std::unique_lock<std::mutex> lock(lockInfo_.mutex);
+    lockInfo_.condition.wait(lock, [this] { return this->lockInfo_.count == 0; });
+    lockInfo_.count--;
+    if ((env_ != nullptr) && (jsPlugin_.auth != nullptr)) {
+        napi_delete_reference(env_, jsPlugin_.auth);
+        jsPlugin_.auth = nullptr;
+    }
+}
+
 void NapiDomainAccountPlugin::Auth(const DomainAccountInfo &info, const std::vector<uint8_t> &credential,
     const std::shared_ptr<DomainAuthCallback> &callback)
 {
+    std::unique_lock<std::mutex> lock(lockInfo_.mutex);
+    if (lockInfo_.count < 0) {
+        ACCOUNT_LOGE("the plugin has been released");
+        return;
+    }
     if (jsPlugin_.auth == nullptr) {
+        ACCOUNT_LOGE("the auth function is undefined");
         return;
     }
     uv_loop_s *loop = nullptr;
@@ -126,10 +155,11 @@ void NapiDomainAccountPlugin::Auth(const DomainAccountInfo &info, const std::vec
         return;
     }
     param->env = env_;
+    param->func = jsPlugin_.auth;
     param->domainAccountInfo = info;
     param->credential = credential;
     param->callback = callback;
-    param->jsPlugin = jsPlugin_;
+    param->lockInfo = &lockInfo_;
     work->data = reinterpret_cast<void *>(param);
     int errCode = uv_queue_work(loop, work, [](uv_work_t *work) {}, AuthWork);
     if (errCode != 0) {
@@ -137,6 +167,7 @@ void NapiDomainAccountPlugin::Auth(const DomainAccountInfo &info, const std::vec
         delete work;
         delete param;
     }
+    lockInfo_.count++;
 }
 
 int32_t NapiDomainAccountPlugin::GetAuthProperty(const DomainAccountInfo &info, DomainAuthProperty &property)
