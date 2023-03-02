@@ -287,5 +287,28 @@ void SetPropCallbackWrapper::OnResult(int32_t result, const Attributes &extraInf
     }
     innerCallback_->OnResult(result, extraInfo);
 }
+
+GetDomainAuthStatusInfoCallback::GetDomainAuthStatusInfoCallback(
+    const GetPropertyRequest &request, const sptr<IGetSetPropCallback> &callback)
+    : request_(request), innerCallback_(callback)
+{}
+
+void GetDomainAuthStatusInfoCallback::OnResult(int32_t result, Parcel &parcel)
+{
+    if (innerCallback_ == nullptr) {
+        ACCOUNT_LOGE("inner callback is nullptr");
+        return;
+    }
+    Attributes attributes;
+    std::shared_ptr<AuthStatusInfo> infoPtr(AuthStatusInfo::Unmarshalling(parcel));
+    if (infoPtr == nullptr) {
+        innerCallback_->OnResult(result, attributes);
+        return;
+    }
+    attributes.SetInt32Value(Attributes::ATTR_PIN_SUB_TYPE, static_cast<int32_t>(IAMAuthSubType::DOMAIN_MIXED));
+    attributes.SetInt32Value(Attributes::ATTR_REMAIN_TIMES, infoPtr->remainingTimes);
+    attributes.SetInt32Value(Attributes::ATTR_FREEZING_TIME, infoPtr->freezingTime);
+    innerCallback_->OnResult(result, attributes);
+}
 }  // namespace AccountSA
 }  // namespace OHOS

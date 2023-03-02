@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2022 Huawei Device Co., Ltd.
+ * Copyright (c) 2022-2023 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -26,8 +26,9 @@
 
 namespace OHOS {
 namespace AccountSA {
-class InnerDomainAccountManager : public DelayedSingleton<InnerDomainAccountManager> {
+class InnerDomainAccountManager {
 public:
+    static InnerDomainAccountManager &GetInstance();
     ErrCode RegisterPlugin(const sptr<IDomainAccountPlugin> &plugin);
     void UnregisterPlugin();
     ErrCode Auth(const DomainAccountInfo &info, const std::vector<uint8_t> &password,
@@ -36,7 +37,7 @@ public:
         const sptr<IDomainAuthCallback> &callback);
     ErrCode AuthUser(int32_t userId, const std::vector<uint8_t> &password,
         const sptr<IDomainAuthCallback> &callback);
-    ErrCode GetAuthProperty(const DomainAccountInfo &info, DomainAuthProperty &property);
+    ErrCode GetAuthStatusInfo(const DomainAccountInfo &info, const sptr<IDomainAccountCallback> &callback);
     bool IsPluginAvailable();
 
 private:

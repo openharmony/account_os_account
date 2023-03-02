@@ -92,24 +92,24 @@ static bool ParseDoaminAuthResult(napi_env env, napi_value value, DomainAuthResu
     if (hasProp) {
         napi_value napiRemainTimes = nullptr;
         napi_get_named_property(env, value, "remainTimes", &napiRemainTimes);
-        if (!GetIntProperty(env, napiRemainTimes, authResult.authProperty.remainingTimes)) {
+        if (!GetIntProperty(env, napiRemainTimes, authResult.authStatusInfo.remainingTimes)) {
             ACCOUNT_LOGE("failed to parse remainTimes");
             return false;
         }
     } else {
-        authResult.authProperty.remainingTimes = -1;
+        authResult.authStatusInfo.remainingTimes = -1;
     }
     hasProp = false;
     napi_has_named_property(env, value, "freezingTime", &hasProp);
     if (hasProp) {
         napi_value napiFreezingTime = nullptr;
         napi_get_named_property(env, value, "freezingTime", &napiFreezingTime);
-        if (!GetIntProperty(env, napiFreezingTime, authResult.authProperty.freezingTime)) {
+        if (!GetIntProperty(env, napiFreezingTime, authResult.authStatusInfo.freezingTime)) {
             ACCOUNT_LOGE("failed to parse freezingTime");
             return false;
         }
     } else {
-        authResult.authProperty.freezingTime = -1;
+        authResult.authStatusInfo.freezingTime = -1;
     }
     return true;
 }

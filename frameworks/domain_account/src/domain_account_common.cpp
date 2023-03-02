@@ -90,5 +90,89 @@ DomainAccountInfo *DomainAccountInfo::Unmarshalling(Parcel &parcel)
 
     return domainAccountInfo;
 }
+
+bool AuthStatusInfo::ReadFromParcel(Parcel &parcel)
+{
+    if (!parcel.ReadInt32(remainingTimes)) {
+        ACCOUNT_LOGE("failed to read remainingTimes");
+        return false;
+    }
+    if (!parcel.ReadInt32(freezingTime)) {
+        ACCOUNT_LOGE("failed to read freezingTime");
+        return false;
+    }
+    return true;
+}
+
+bool AuthStatusInfo::Marshalling(Parcel &parcel) const
+{
+    if (!parcel.WriteInt32(remainingTimes)) {
+        ACCOUNT_LOGE("failed to read write remainingTimes");
+        return false;
+    }
+    if (!parcel.WriteInt32(freezingTime)) {
+        ACCOUNT_LOGE("failed to write freezingTime");
+        return false;
+    }
+    return true;
+}
+
+AuthStatusInfo *AuthStatusInfo::Unmarshalling(Parcel &parcel)
+{
+    AuthStatusInfo *info = new (std::nothrow) AuthStatusInfo();
+    if (info == nullptr) {
+        ACCOUNT_LOGE("failed to create AuthStatusInfo");
+        return nullptr;
+    }
+    if (!info->ReadFromParcel(parcel)) {
+        ACCOUNT_LOGE("failed to read from parcel");
+        delete info;
+        info = nullptr;
+    }
+    return info;
+}
+
+bool DomainAuthResult::ReadFromParcel(Parcel &parcel)
+{
+    if (!parcel.ReadUInt8Vector(&token)) {
+        ACCOUNT_LOGE("failed to read remainingTimes");
+        return false;
+    }
+    std::shared_ptr<AuthStatusInfo> infoPtr(parcel.ReadParcelable<AuthStatusInfo>());
+    if (infoPtr == nullptr) {
+        ACCOUNT_LOGE("failed to read authStatusInfo");
+        return false;
+    }
+    authStatusInfo = *infoPtr;
+    return true;
+}
+
+bool DomainAuthResult::Marshalling(Parcel &parcel) const
+{
+    if (!parcel.WriteUInt8Vector(token)) {
+        ACCOUNT_LOGE("failed to read write token");
+        return false;
+    }
+    if (!parcel.WriteParcelable(&authStatusInfo)) {
+        ACCOUNT_LOGE("failed to write authStatusInfo");
+        return false;
+    }
+    return true;
+}
+
+DomainAuthResult *DomainAuthResult::Unmarshalling(Parcel &parcel)
+{
+    DomainAuthResult *result = new (std::nothrow) DomainAuthResult();
+    if (result == nullptr) {
+        ACCOUNT_LOGE("failed to create DomainAuthResult");
+        return nullptr;
+    }
+    if (!result->ReadFromParcel(parcel)) {
+        ACCOUNT_LOGE("failed to read from parcel");
+        delete result;
+        result = nullptr;
+    }
+    return result;
+}
 }  // namespace AccountSA
 }  // namespace OHOS
