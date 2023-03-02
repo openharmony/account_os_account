@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2022 Huawei Device Co., Ltd.
+ * Copyright (c) 2022-2023 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -41,14 +41,22 @@ public:
     static DomainAccountInfo *Unmarshalling(Parcel &parcel);
 };
 
-struct DomainAuthProperty {
+struct AuthStatusInfo : public Parcelable {
     int32_t remainingTimes = -1;  // -1 indicates the invalid value
     int32_t freezingTime = -1;  // -1 indicates the invalid value
+
+    bool ReadFromParcel(Parcel &parcel);
+    bool Marshalling(Parcel &parcel) const override;
+    static AuthStatusInfo *Unmarshalling(Parcel &parcel);
 };
 
-struct DomainAuthResult {
+struct DomainAuthResult : public Parcelable {
     std::vector<uint8_t> token;
-    DomainAuthProperty authProperty;
+    AuthStatusInfo authStatusInfo;
+
+    bool ReadFromParcel(Parcel &parcel);
+    bool Marshalling(Parcel &parcel) const override;
+    static DomainAuthResult *Unmarshalling(Parcel &parcel);
 };
 }  // namespace AccountSA
 }  // namespace OHOS
