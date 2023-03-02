@@ -262,7 +262,6 @@ ohos_shared_library("accountmgr") {
     ]
     deps += [
       "//base/security/access_token/interfaces/innerkits/token_setproc:libtoken_setproc",
-      "//base/useriam/user_auth_framework/frameworks/native/client:userauth_client",
     ]
   }
 
@@ -281,6 +280,7 @@ ohos_shared_library("accountmgr") {
     "kv_store:distributeddata_inner",
     "safwk:system_ability_fwk",
     "samgr:samgr_proxy",
+    "user_auth_framework:userauth_client",
   ]
 
   if (has_storage_service_part && os_account_storage_feature) {

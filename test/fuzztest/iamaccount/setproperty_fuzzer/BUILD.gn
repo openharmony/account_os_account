@@ -55,7 +55,6 @@ ohos_fuzztest("SetPropertyFuzzTest") {
   deps = [
     "//base/account/os_account/frameworks/account_iam:account_iam_innerkits",
     "//base/account/os_account/frameworks/common:libaccount_common",
-    "//base/useriam/user_auth_framework/frameworks/native/client:userauth_client",
     "//base/useriam/user_auth_framework/frameworks/native/ipc:userauth_client_ipc",
   ]
 
@@ -63,6 +62,7 @@ ohos_fuzztest("SetPropertyFuzzTest") {
     "c_utils:utils",
     "hiviewdfx_hilog_native:libhilog",
     "ipc:ipc_core",
+    "user_auth_framework:userauth_client",
   ]
 
   defines = [

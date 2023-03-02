@@ -55,22 +55,22 @@ ohos_unittest("account_iam_client_test") {
     "//third_party/googletest:gtest_main",
   ]
 
-  cflags_cc = []
-  if (has_pin_auth_part) {
-    cflags_cc += [ "-DHAS_PIN_AUTH_PART" ]
-    deps += [ "//base/useriam/pin_auth/frameworks:pinauth_framework" ]
-  }
-
-  if (has_user_auth_part) {
-    cflags_cc += [ "-DHAS_USER_AUTH_PART" ]
-    deps += [ "//base/useriam/user_auth_framework/frameworks/native/client:userauth_client" ]
-  }
-
   external_deps = [
     "access_token:libaccesstoken_sdk",
     "hiviewdfx_hilog_native:libhilog",
     "ipc:ipc_core",
   ]
+
+  cflags_cc = []
+  if (has_pin_auth_part) {
+    cflags_cc += [ "-DHAS_PIN_AUTH_PART" ]
+    external_deps += ["pin_auth:pinauth_framework"]
+  }
+
+  if (has_user_auth_part) {
+    cflags_cc += [ "-DHAS_USER_AUTH_PART" ]
+    external_deps += ["user_auth_framework:userauth_client"]
+  }
 }
 
 ohos_unittest("account_iam_client_no_permission_test") {
@@ -90,21 +90,21 @@ ohos_unittest("account_iam_client_no_permission_test") {
     "//third_party/googletest:gtest_main",
   ]
 
-  cflags_cc = []
-  if (has_pin_auth_part) {
-    cflags_cc += [ "-DHAS_PIN_AUTH_PART" ]
-    deps += [ "//base/useriam/pin_auth/frameworks:pinauth_framework" ]
-  }
-
-  if (has_user_auth_part) {
-    cflags_cc += [ "-DHAS_USER_AUTH_PART" ]
-    deps += [ "//base/useriam/user_auth_framework/frameworks/native/client:userauth_client" ]
-  }
-
   external_deps = [
     "hiviewdfx_hilog_native:libhilog",
     "ipc:ipc_core",
   ]
+
+  cflags_cc = []
+  if (has_pin_auth_part) {
+    cflags_cc += [ "-DHAS_PIN_AUTH_PART" ]
+    external_deps += ["pin_auth:pinauth_framework"]
+  }
+
+  if (has_user_auth_part) {
+    cflags_cc += [ "-DHAS_USER_AUTH_PART" ]
+    external_deps += ["user_auth_framework:userauth_client"]
+  }
 }
 
 group("unittest") {

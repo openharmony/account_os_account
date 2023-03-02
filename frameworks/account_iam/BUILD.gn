@@ -86,14 +86,6 @@ ohos_shared_library("account_iam_innerkits") {
     "${os_account_innerkits_native_path}:os_account_innerkits",
   ]
 
-  if (has_pin_auth_part) {
-    deps += [ "//base/useriam/pin_auth/frameworks:pinauth_framework" ]
-  }
-
-  if (has_user_auth_part) {
-    deps += [ "//base/useriam/user_auth_framework/frameworks/native/client:userauth_client" ]
-  }
-
   external_deps = [
     "access_token:libaccesstoken_sdk",
     "c_utils:utils",
@@ -101,6 +93,14 @@ ohos_shared_library("account_iam_innerkits") {
     "ipc:ipc_core",
     "samgr:samgr_proxy",
   ]
+
+  if (has_pin_auth_part) {
+    external_deps += ["pin_auth:pinauth_framework"]
+  }
+
+  if (has_user_auth_part) {
+    external_deps += ["user_auth_framework:userauth_client"]
+  }
 
   subsystem_name = "account"
   part_name = "os_account"
