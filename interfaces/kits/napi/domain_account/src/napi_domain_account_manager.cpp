@@ -170,10 +170,9 @@ void NapiDomainAccountPlugin::Auth(const DomainAccountInfo &info, const std::vec
     lockInfo_.count++;
 }
 
-int32_t NapiDomainAccountPlugin::GetAuthProperty(const DomainAccountInfo &info, DomainAuthProperty &property)
-{
-    return 0;
-}
+void NapiDomainAccountPlugin::GetAuthStatusInfo(const DomainAccountInfo &info,
+    const std::shared_ptr<DomainAccountCallback> &callback)
+{}
 
 napi_value NapiDomainAccountManager::Init(napi_env env, napi_value exports)
 {

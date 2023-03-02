@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2022 Huawei Device Co., Ltd.
+ * Copyright (c) 2022-2023 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -54,12 +54,8 @@ static ErrCode WriteCommonData(MessageParcel &data, const std::u16string &descri
         ACCOUNT_LOGE("fail to write descriptor");
         return ERR_ACCOUNT_COMMON_WRITE_PARCEL_ERROR;
     }
-    if (!data.WriteString(info.accountName_)) {
+    if (!data.WriteParcelable(&info)) {
         ACCOUNT_LOGE("fail to write name");
-        return ERR_ACCOUNT_COMMON_WRITE_PARCEL_ERROR;
-    }
-    if (!data.WriteString(info.domain_)) {
-        ACCOUNT_LOGE("fail to write domain");
         return ERR_ACCOUNT_COMMON_WRITE_PARCEL_ERROR;
     }
     return ERR_OK;
@@ -85,27 +81,20 @@ ErrCode DomainAccountPluginProxy::Auth(const DomainAccountInfo &info, const std:
     return SendRequest(IDomainAccountPlugin::Message::DOMAIN_PLUGIN_AUTH, data, reply);
 }
 
-ErrCode DomainAccountPluginProxy::GetAuthProperty(const DomainAccountInfo &info, DomainAuthProperty &property)
+ErrCode DomainAccountPluginProxy::GetAuthStatusInfo(
+    const DomainAccountInfo &info, const sptr<IDomainAccountCallback> &callback)
 {
     MessageParcel data;
     ErrCode result = WriteCommonData(data, GetDescriptor(), info);
     if (result != ERR_OK) {
         return result;
     }
+    if ((callback == nullptr) || (!data.WriteRemoteObject(callback->AsObject()))) {
+        ACCOUNT_LOGE("failed to write callback");
+        return ERR_ACCOUNT_COMMON_WRITE_PARCEL_ERROR;
+    }
     MessageParcel reply;
-    result = SendRequest(IDomainAccountPlugin::Message::DOMAIN_PLUGIN_GET_AUTH_PROPERTY, data, reply);
-    if (result != ERR_OK) {
-        return result;
-    }
-    if (!reply.ReadInt32(property.remainingTimes)) {
-        ACCOUNT_LOGE("fail to read remaining times");
-        return ERR_ACCOUNT_COMMON_READ_PARCEL_ERROR;
-    }
-    if (!reply.ReadInt32(property.freezingTime)) {
-        ACCOUNT_LOGE("fail to read freezing times");
-        return ERR_ACCOUNT_COMMON_READ_PARCEL_ERROR;
-    }
-    return result;
+    return SendRequest(IDomainAccountPlugin::Message::DOMAIN_PLUGIN_GET_AUTH_STATUS_INFO, data, reply);
 }
 }  // namespace AccountSA
 }  // namespace OHOS

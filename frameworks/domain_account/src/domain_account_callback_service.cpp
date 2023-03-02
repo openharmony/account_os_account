@@ -29,6 +29,7 @@ DomainAccountCallbackService::~DomainAccountCallbackService()
 void DomainAccountCallbackService::OnResult(const int32_t errCode, Parcel &parcel)
 {
     if (innerCallback_ == nullptr) {
+        ACCOUNT_LOGE("innerCallback is nullptr");
         return;
     }
     return innerCallback_->OnResult(errCode, parcel);
