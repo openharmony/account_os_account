@@ -48,6 +48,10 @@ const std::map<uint32_t, DomainAccountStub::DomainAccountStubFunc> DomainAccount
     {
         IDomainAccount::Message::DOMAIN_AUTH_USER,
         &DomainAccountStub::ProcAuthUser
+    },
+    {
+        IDomainAccount::Message::DOMAIN_AUTH_WITH_POPUP,
+        &DomainAccountStub::ProcAuthWithPopup
     }
 };
 
@@ -154,6 +158,27 @@ ErrCode DomainAccountStub::ProcAuthUser(MessageParcel &data, MessageParcel &repl
     }
     for (size_t i = 0; i < passwordSize; ++i) {
         password[i] = 0;
+    }
+    if (!reply.WriteInt32(result)) {
+        ACCOUNT_LOGE("failed to write authUser result");
+        return IPC_STUB_WRITE_PARCEL_ERR;
+    }
+    return ERR_NONE;
+}
+
+ErrCode DomainAccountStub::ProcAuthWithPopup(MessageParcel &data, MessageParcel &reply)
+{
+    int32_t userId = 0;
+    if (!data.ReadInt32(userId)) {
+        ACCOUNT_LOGE("fail to read userId");
+        return ERR_ACCOUNT_COMMON_READ_PARCEL_ERROR;
+    }
+    auto callback = iface_cast<IDomainAuthCallback>(data.ReadRemoteObject());
+    ErrCode result = ERR_ACCOUNT_COMMON_INVALID_PARAMTER;
+    if (callback == nullptr) {
+        ACCOUNT_LOGE("callback is nullptr");
+    } else {
+        result = AuthWithPopup(userId, callback);
     }
     if (!reply.WriteInt32(result)) {
         ACCOUNT_LOGE("failed to write authUser result");

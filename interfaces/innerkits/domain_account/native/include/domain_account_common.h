@@ -22,6 +22,13 @@
 
 namespace OHOS {
 namespace AccountSA {
+typedef enum {
+    AUTH_WITH_CREDENTIAL_MODE = 0,
+    AUTH_WITH_POPUP_MODE,
+    AUTH_WITH_TOKEN_MODE,
+    AUTH_MODE_END, // the upper bound of AuthMode.
+} AuthMode;
+
 class DomainAccountInfo : public Parcelable {
 public:
     DomainAccountInfo();

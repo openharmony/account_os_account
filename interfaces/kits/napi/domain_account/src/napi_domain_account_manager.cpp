@@ -170,6 +170,18 @@ void NapiDomainAccountPlugin::Auth(const DomainAccountInfo &info, const std::vec
     lockInfo_.count++;
 }
 
+void NapiDomainAccountPlugin::AuthWithPopup(
+    const DomainAccountInfo &info, const std::shared_ptr<DomainAuthCallback> &callback)
+{
+    return;
+}
+
+void NapiDomainAccountPlugin::AuthWithToken(const DomainAccountInfo &info, const std::vector<uint8_t> &token,
+    const std::shared_ptr<DomainAuthCallback> &callback)
+{
+    return;
+}
+
 void NapiDomainAccountPlugin::GetAuthStatusInfo(const DomainAccountInfo &info,
     const std::shared_ptr<DomainAccountCallback> &callback)
 {}

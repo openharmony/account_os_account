@@ -43,6 +43,10 @@ public:
     ~NapiDomainAccountPlugin();
     void Auth(const AccountSA::DomainAccountInfo &info, const std::vector<uint8_t> &credential,
         const std::shared_ptr<AccountSA::DomainAuthCallback> &callback) override;
+    void AuthWithPopup(const AccountSA::DomainAccountInfo &info,
+        const std::shared_ptr<AccountSA::DomainAuthCallback> &callback) override;
+    void AuthWithToken(const AccountSA::DomainAccountInfo &info, const std::vector<uint8_t> &token,
+        const std::shared_ptr<AccountSA::DomainAuthCallback> &callback) override;
     void GetAuthStatusInfo(const AccountSA::DomainAccountInfo &info,
         const std::shared_ptr<AccountSA::DomainAccountCallback> &callback) override;
 

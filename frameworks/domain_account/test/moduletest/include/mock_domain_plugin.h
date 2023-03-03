@@ -26,6 +26,10 @@ public:
     virtual ~MockDomainPlugin();
     void Auth(const DomainAccountInfo &info, const std::vector<uint8_t> &password,
         const std::shared_ptr<DomainAuthCallback> &callback) override;
+    void AuthWithPopup(const AccountSA::DomainAccountInfo &info,
+        const std::shared_ptr<AccountSA::DomainAuthCallback> &callback) override;
+    void AuthWithToken(const AccountSA::DomainAccountInfo &info, const std::vector<uint8_t> &token,
+        const std::shared_ptr<AccountSA::DomainAuthCallback> &callback) override;
     void GetAuthStatusInfo(const DomainAccountInfo &info,
         const std::shared_ptr<DomainAccountCallback> &callback) override;
 

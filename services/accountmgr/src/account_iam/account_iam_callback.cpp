@@ -18,6 +18,7 @@
 #include "account_log_wrapper.h"
 #include "iinner_os_account_manager.h"
 #include "inner_account_iam_manager.h"
+#include "inner_domain_account_manager.h"
 #include "user_auth_client.h"
 #include "user_idm_client.h"
 
@@ -37,13 +38,20 @@ void AuthCallback::OnResult(int32_t result, const Attributes &extraInfo)
         ACCOUNT_LOGE("innerCallback_ is nullptr");
         return;
     }
-    if (result != 0 || authType_ != AuthType::PIN) {
+    if (result != 0) {
         innerCallback_->OnResult(result, extraInfo);
         return;
     }
     std::vector<uint8_t> token;
-    std::vector<uint8_t> secret;
     extraInfo.GetUint8ArrayValue(Attributes::ATTR_SIGNATURE, token);
+    if (authType_ != static_cast<AuthType>(IAMAuthType::DOMAIN)) {
+        InnerDomainAccountManager::GetInstance().AuthWithToken(userId_, token);
+    }
+    if (authType_ != AuthType::PIN) {
+        innerCallback_->OnResult(result, extraInfo);
+        return;
+    }
+    std::vector<uint8_t> secret;
     extraInfo.GetUint8ArrayValue(Attributes::ATTR_ROOT_SECRET, secret);
     int32_t activeResult =
         InnerAccountIAMManager::GetInstance().ActivateUserKey(userId_, token, secret);
