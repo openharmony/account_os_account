@@ -64,12 +64,12 @@ ohos_unittest("account_iam_client_test") {
   cflags_cc = []
   if (has_pin_auth_part) {
     cflags_cc += [ "-DHAS_PIN_AUTH_PART" ]
-    external_deps += ["pin_auth:pinauth_framework"]
+    external_deps += [ "pin_auth:pinauth_framework" ]
   }
 
   if (has_user_auth_part) {
     cflags_cc += [ "-DHAS_USER_AUTH_PART" ]
-    external_deps += ["user_auth_framework:userauth_client"]
+    external_deps += [ "user_auth_framework:userauth_client" ]
   }
 }
 
@@ -98,12 +98,12 @@ ohos_unittest("account_iam_client_no_permission_test") {
   cflags_cc = []
   if (has_pin_auth_part) {
     cflags_cc += [ "-DHAS_PIN_AUTH_PART" ]
-    external_deps += ["pin_auth:pinauth_framework"]
+    external_deps += [ "pin_auth:pinauth_framework" ]
   }
 
   if (has_user_auth_part) {
     cflags_cc += [ "-DHAS_USER_AUTH_PART" ]
-    external_deps += ["user_auth_framework:userauth_client"]
+    external_deps += [ "user_auth_framework:userauth_client" ]
   }
 }
 

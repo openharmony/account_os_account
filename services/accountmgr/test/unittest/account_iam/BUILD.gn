@@ -70,7 +70,7 @@ ohos_unittest("account_iam_manager_test") {
 
   if (has_pin_auth_part) {
     cflags_cc += [ "-DHAS_PIN_AUTH_PART" ]
-    external_deps += ["pin_auth:pinauth_framework"]
+    external_deps += [ "pin_auth:pinauth_framework" ]
   }
 }
 
