@@ -56,5 +56,14 @@ ErrCode DomainAccountManagerService::AuthUser(int32_t userId, const std::vector<
     }
     return InnerDomainAccountManager::GetInstance().AuthUser(userId, password, callback);
 }
+
+ErrCode DomainAccountManagerService::AuthWithPopup(int32_t userId, const sptr<IDomainAuthCallback> &callback)
+{
+    if (userId < 0) {
+        ACCOUNT_LOGE("invalid userId");
+        return ERR_ACCOUNT_COMMON_INVALID_PARAMTER;
+    }
+    return InnerDomainAccountManager::GetInstance().AuthWithPopup(userId, callback);
+}
 }  // namespace AccountSA
 }  // namespace OHOS

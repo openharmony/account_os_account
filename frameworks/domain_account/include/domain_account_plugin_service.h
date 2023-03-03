@@ -30,9 +30,14 @@ public:
     ~DomainAccountPluginService() override;
     ErrCode Auth(const DomainAccountInfo &info, const std::vector<uint8_t> &password,
         const sptr<IDomainAuthCallback> &callback) override;
+    ErrCode AuthWithPopup(const DomainAccountInfo &info, const sptr<IDomainAuthCallback> &callback) override;
+    ErrCode AuthWithToken(const DomainAccountInfo &info, const std::vector<uint8_t> &token,
+        const sptr<IDomainAuthCallback> &callback) override;
     ErrCode GetAuthStatusInfo(const DomainAccountInfo &info, const sptr<IDomainAccountCallback> &callback) override;
 
 private:
+    ErrCode AuthCommonInterface(const DomainAccountInfo &info, const std::vector<uint8_t> &authData,
+        const sptr<IDomainAuthCallback> &callback, AuthMode authMode);
     std::shared_ptr<DomainAccountPlugin> innerPlugin_;
     DISALLOW_COPY_AND_MOVE(DomainAccountPluginService);
 };

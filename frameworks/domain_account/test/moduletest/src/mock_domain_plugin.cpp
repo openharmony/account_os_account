@@ -68,6 +68,18 @@ void MockDomainPlugin::Auth(const DomainAccountInfo &info, const std::vector<uin
     callback->OnResult(!isCorrect, result);
 }
 
+void MockDomainPlugin::AuthWithPopup(
+    const DomainAccountInfo &info, const std::shared_ptr<DomainAuthCallback> &callback)
+{
+    return;
+}
+
+void MockDomainPlugin::AuthWithToken(const DomainAccountInfo &info, const std::vector<uint8_t> &token,
+    const std::shared_ptr<DomainAuthCallback> &callback)
+{
+    return;
+}
+
 void MockDomainPlugin::GetAuthStatusInfo(
     const DomainAccountInfo &info, const std::shared_ptr<DomainAccountCallback> &callback)
 {

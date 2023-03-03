@@ -34,7 +34,7 @@ DomainAccountPluginStub::~DomainAccountPluginStub()
 const std::map<std::uint32_t, DomainAccountPluginStub::MessageProcFunction> DomainAccountPluginStub::messageProcMap_ = {
     {
         IDomainAccountPlugin::Message::DOMAIN_PLUGIN_AUTH,
-        &DomainAccountPluginStub::ProcAuth
+        &DomainAccountPluginStub::ProcAuthCommonInterface
     },
     {
         IDomainAccountPlugin::Message::DOMAIN_PLUGIN_GET_AUTH_STATUS_INFO,
@@ -58,35 +58,49 @@ int DomainAccountPluginStub::OnRemoteRequest(
     return IPCObjectStub::OnRemoteRequest(code, data, reply, option);
 }
 
-ErrCode DomainAccountPluginStub::ProcAuth(MessageParcel &data, MessageParcel &reply)
+ErrCode DomainAccountPluginStub::ProcAuthCommonInterface(MessageParcel &data, MessageParcel &reply)
 {
-    DomainAccountInfo info;
-    if (!data.ReadString(info.accountName_)) {
-        ACCOUNT_LOGE("failed to read domain account name");
+    std::shared_ptr<DomainAccountInfo> info(data.ReadParcelable<DomainAccountInfo>());
+    if (info == nullptr) {
+        ACCOUNT_LOGE("failed to read domain account info");
         return ERR_ACCOUNT_COMMON_READ_PARCEL_ERROR;
     }
-    if (!data.ReadString(info.domain_)) {
-        ACCOUNT_LOGE("failed to read domain");
-        return ERR_ACCOUNT_COMMON_READ_PARCEL_ERROR;
-    }
-    std::vector<uint8_t> password;
-    if (!data.ReadUInt8Vector(&password)) {
+    std::vector<uint8_t> authData;
+    if (!data.ReadUInt8Vector(&authData)) {
         ACCOUNT_LOGE("failed to read password");
         return ERR_ACCOUNT_COMMON_READ_PARCEL_ERROR;
     }
     sptr<IDomainAuthCallback> callbackProxy = iface_cast<IDomainAuthCallback>(data.ReadRemoteObject());
-    size_t passwordSize = password.size();
+    int32_t mode = -1;
+    if (!data.ReadInt32(mode)) {
+        ACCOUNT_LOGE("failed to read authMode");
+        return ERR_ACCOUNT_COMMON_READ_PARCEL_ERROR;
+    }
+    AuthMode authMode = static_cast<AuthMode>(mode);
     ErrCode result = ERR_ACCOUNT_COMMON_INVALID_PARAMTER;
-    if (passwordSize > MAX_PASSWORD_SIZE) {
-        ACCOUNT_LOGE("password is too large");
-    } else if (callbackProxy == nullptr) {
+    if (callbackProxy == nullptr) {
         ACCOUNT_LOGE("invalid callback");
     } else {
-        result = Auth(info, password, callbackProxy);
+        switch (authMode) {
+            case AUTH_WITH_CREDENTIAL_MODE: {
+                result = Auth(*info, authData, callbackProxy);
+                break;
+            }
+            case AUTH_WITH_POPUP_MODE: {
+                result = AuthWithPopup(*info, callbackProxy);
+                break;
+            }
+            case AUTH_WITH_TOKEN_MODE: {
+                result = AuthWithToken(*info, authData, callbackProxy);
+                break;
+            }
+            default: {
+                ACCOUNT_LOGE("invalid case");
+                result = ERR_ACCOUNT_COMMON_READ_PARCEL_ERROR;
+            }
+        }
     }
-    for (size_t i = 0; i < passwordSize; ++i) {
-        password[i] = 0;
-    }
+    (void)memset_s(authData.data(), authData.size(), 0, authData.size());
     if (!reply.WriteInt32(result)) {
         ACCOUNT_LOGE("failed to write result");
         return IPC_STUB_WRITE_PARCEL_ERR;

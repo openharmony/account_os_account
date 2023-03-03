@@ -32,6 +32,7 @@ public:
         const sptr<IDomainAuthCallback> &callback) override;
     ErrCode AuthUser(int32_t userId, const std::vector<uint8_t> &password,
         const sptr<IDomainAuthCallback> &callback) override;
+    ErrCode AuthWithPopup(int32_t userId, const sptr<IDomainAuthCallback> &callback) override;
 
 private:
     std::mutex mutex_;

@@ -148,5 +148,33 @@ ErrCode DomainAccountProxy::AuthUser(int32_t userId, const std::vector<uint8_t> 
     }
     return result;
 }
+
+ErrCode DomainAccountProxy::AuthWithPopup(int32_t userId, const sptr<IDomainAuthCallback> &callback)
+{
+    MessageParcel data;
+    if (!data.WriteInterfaceToken(GetDescriptor())) {
+        ACCOUNT_LOGE("fail to write descriptor");
+        return ERR_ACCOUNT_COMMON_WRITE_PARCEL_ERROR;
+    }
+    if (!data.WriteInt32(userId)) {
+        ACCOUNT_LOGE("fail to write userId");
+        return ERR_ACCOUNT_COMMON_WRITE_PARCEL_ERROR;
+    }
+    if ((callback == nullptr) || (!data.WriteRemoteObject(callback->AsObject()))) {
+        ACCOUNT_LOGE("fail to write callback");
+        return ERR_ACCOUNT_COMMON_WRITE_PARCEL_ERROR;
+    }
+    MessageParcel reply;
+    ErrCode result = SendRequest(IDomainAccount::Message::DOMAIN_AUTH_WITH_POPUP, data, reply);
+    if (result != ERR_OK) {
+        ACCOUNT_LOGE("fail to send request, error: %{public}d", result);
+        return result;
+    }
+    if (!reply.ReadInt32(result)) {
+        ACCOUNT_LOGE("fail to read result");
+        return ERR_ACCOUNT_COMMON_READ_PARCEL_ERROR;
+    }
+    return result;
+}
 }  // namespace AccountSA
 }  // namespace OHOS
