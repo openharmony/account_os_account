@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2022 Huawei Device Co., Ltd.
+ * Copyright (c) 2022-2023 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -19,6 +19,7 @@
 #include <map>
 #include <vector>
 #include "account_iam_info.h"
+#include "domain_account_callback.h"
 #include "iaccount_iam_callback.h"
 
 namespace OHOS {
@@ -135,6 +136,18 @@ public:
     void OnResult(int32_t result, const Attributes &extraInfo) override;
 
 private:
+    sptr<IGetSetPropCallback> innerCallback_;
+};
+
+class GetDomainAuthStatusInfoCallback final : public DomainAccountCallback {
+public:
+    explicit GetDomainAuthStatusInfoCallback(
+        const GetPropertyRequest &request, const sptr<IGetSetPropCallback> &callback);
+
+    void OnResult(int32_t result, Parcel &parcel) override;
+
+private:
+    GetPropertyRequest request_;
     sptr<IGetSetPropCallback> innerCallback_;
 };
 }  // namespace AccountSA

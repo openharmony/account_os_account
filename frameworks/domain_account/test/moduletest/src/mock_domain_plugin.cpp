@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2022 Huawei Device Co., Ltd.
+ * Copyright (c) 2022-2023 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -63,21 +63,25 @@ void MockDomainPlugin::Auth(const DomainAccountInfo &info, const std::vector<uin
         remainingTimes_ = remainingTimes_ > 0 ? remainingTimes_ - 1 : 0;
         freezingTime_ = remainingTimes_ > 0 ? 0 : DEFAULT_FREEZING_TIME;
     }
-    result.authProperty.remainingTimes = remainingTimes_;
-    result.authProperty.freezingTime = freezingTime_;
+    result.authStatusInfo.remainingTimes = remainingTimes_;
+    result.authStatusInfo.freezingTime = freezingTime_;
     callback->OnResult(!isCorrect, result);
 }
 
-int32_t MockDomainPlugin::GetAuthProperty(const DomainAccountInfo &info, DomainAuthProperty &property)
+void MockDomainPlugin::GetAuthStatusInfo(
+    const DomainAccountInfo &info, const std::shared_ptr<DomainAccountCallback> &callback)
 {
+    AuthStatusInfo authStatusInfo;
     if ((info.accountName_ == VALID_ACCOUNT_NAME) && (info.domain_ == VALID_DOMAIN)) {
-        property.remainingTimes = remainingTimes_;
-        property.freezingTime = freezingTime_;
+        authStatusInfo.remainingTimes = remainingTimes_;
+        authStatusInfo.freezingTime = freezingTime_;
     } else {
-        property.remainingTimes = -1;
-        property.freezingTime = -1;
+        authStatusInfo.remainingTimes = -1;
+        authStatusInfo.freezingTime = -1;
     }
-    return 0;
+    Parcel parcel;
+    authStatusInfo.Marshalling(parcel);
+    callback->OnResult(0, parcel);
 }
 }  // AccountSA
 }  // OHOS

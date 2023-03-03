@@ -77,7 +77,7 @@ ohos_unittest("account_mgr_test") {
 
   if (has_user_idm_part) {
     cflags_cc += [ "-DHAS_USER_IDM_PART" ]
-    external_deps += ["user_auth_framework:userauth_client"]
+    external_deps += [ "user_auth_framework:userauth_client" ]
   }
 
   if (has_ces_part) {

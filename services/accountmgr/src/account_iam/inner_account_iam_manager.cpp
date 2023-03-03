@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2022 Huawei Device Co., Ltd.
+ * Copyright (c) 2022-2023 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -17,6 +17,7 @@
 
 #include "account_iam_callback.h"
 #include "account_log_wrapper.h"
+#include "domain_account_callback_service.h"
 #include "iinner_os_account_manager.h"
 #include "inner_domain_account_manager.h"
 #include "iservice_registry.h"
@@ -181,7 +182,7 @@ int32_t InnerAccountIAMManager::GetAvailableStatus(
         status = UserAuthClientImpl::Instance().GetAvailableStatus(authType, authTrustLevel);
         return ERR_OK;
     }
-    bool isPluginAvailable = InnerDomainAccountManager::GetInstance()->IsPluginAvailable();
+    bool isPluginAvailable = InnerDomainAccountManager::GetInstance().IsPluginAvailable();
     if (isPluginAvailable) {
         status = ERR_JS_SUCCESS;
     } else {
@@ -190,8 +191,13 @@ int32_t InnerAccountIAMManager::GetAvailableStatus(
     return ERR_OK;
 }
 
-ErrCode InnerAccountIAMManager::GetDomainAuthProperty(int32_t userId, DomainAuthProperty &property)
+ErrCode InnerAccountIAMManager::GetDomainAuthStatusInfo(
+    int32_t userId, const GetPropertyRequest &request, const sptr<IGetSetPropCallback> &callback)
 {
+    if (callback == nullptr) {
+        ACCOUNT_LOGE("the callback is nullptr");
+        return ERR_ACCOUNT_COMMON_NULL_PTR_ERROR;
+    }
     OsAccountInfo osAccountInfo;
     ErrCode result = IInnerOsAccountManager::GetInstance()->QueryOsAccountById(userId, osAccountInfo);
     if (result != ERR_OK) {
@@ -204,7 +210,22 @@ ErrCode InnerAccountIAMManager::GetDomainAuthProperty(int32_t userId, DomainAuth
         ACCOUNT_LOGE("the target user is not a domain account");
         return ERR_ACCOUNT_IAM_UNSUPPORTED_AUTH_TYPE;
     }
-    return InnerDomainAccountManager::GetInstance()->GetAuthProperty(domainAccountInfo, property);
+    Attributes attributes;
+    std::shared_ptr<DomainAccountCallback> statusCallback =
+        std::make_shared<GetDomainAuthStatusInfoCallback>(request, callback);
+    if (statusCallback == nullptr) {
+        ACCOUNT_LOGE("failed to create GetDomainAuthStatusInfoCallback");
+        callback->OnResult(ERR_ACCOUNT_COMMON_NULL_PTR_ERROR, attributes);
+        return ERR_ACCOUNT_COMMON_NULL_PTR_ERROR;
+    }
+    sptr<IDomainAccountCallback> statusCallbackService =
+        new (std::nothrow) DomainAccountCallbackService(statusCallback);
+    if (statusCallbackService == nullptr) {
+        ACCOUNT_LOGE("failed to create DomainAccountCallbackService");
+        callback->OnResult(ERR_ACCOUNT_COMMON_NULL_PTR_ERROR, attributes);
+        return ERR_ACCOUNT_COMMON_NULL_PTR_ERROR;
+    }
+    return InnerDomainAccountManager::GetInstance().GetAuthStatusInfo(domainAccountInfo, statusCallbackService);
 }
 
 bool InnerAccountIAMManager::CheckDomainAuthAvailable(int32_t userId)
@@ -216,7 +237,7 @@ bool InnerAccountIAMManager::CheckDomainAuthAvailable(int32_t userId)
     }
     DomainAccountInfo domainAccountInfo;
     osAccountInfo.GetDomainInfo(domainAccountInfo);
-    bool isAvailable = InnerDomainAccountManager::GetInstance()->IsPluginAvailable();
+    bool isAvailable = InnerDomainAccountManager::GetInstance().IsPluginAvailable();
     return !domainAccountInfo.accountName_.empty() && isAvailable;
 }
 
@@ -224,17 +245,7 @@ void InnerAccountIAMManager::GetProperty(
     int32_t userId, const GetPropertyRequest &request, const sptr<IGetSetPropCallback> &callback)
 {
     if (static_cast<int32_t>(request.authType) == static_cast<int32_t>(IAMAuthType::DOMAIN)) {
-        Attributes result;
-        DomainAuthProperty property;
-        ErrCode errCode = GetDomainAuthProperty(userId, property);
-        if (errCode == ERR_OK) {
-            result.SetInt32Value(Attributes::ATTR_PIN_SUB_TYPE, static_cast<int32_t>(IAMAuthSubType::DOMAIN_MIXED));
-            result.SetInt32Value(Attributes::ATTR_REMAIN_TIMES, property.remainingTimes);
-            result.SetInt32Value(Attributes::ATTR_FREEZING_TIME, property.freezingTime);
-            callback->OnResult(ERR_OK, result);
-        } else {
-            callback->OnResult(errCode, result);
-        }
+        (void)GetDomainAuthStatusInfo(userId, request, callback);
         return;
     }
     auto getCallback = std::make_shared<GetPropCallbackWrapper>(callback);

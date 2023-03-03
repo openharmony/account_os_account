@@ -95,11 +95,11 @@ ohos_shared_library("account_iam_innerkits") {
   ]
 
   if (has_pin_auth_part) {
-    external_deps += ["pin_auth:pinauth_framework"]
+    external_deps += [ "pin_auth:pinauth_framework" ]
   }
 
   if (has_user_auth_part) {
-    external_deps += ["user_auth_framework:userauth_client"]
+    external_deps += [ "user_auth_framework:userauth_client" ]
   }
 
   subsystem_name = "account"
