@@ -43,6 +43,11 @@ struct CommonAsyncContext {
     bool throwErr = false;
 };
 
+struct BusinessError {
+    int32_t code = 0;
+    std::string data;
+};
+
 void ProcessCallbackOrPromise(napi_env env, const CommonAsyncContext *asyncContext, napi_value err, napi_value data);
 
 bool GetCallbackProperty(napi_env env, napi_value obj, napi_ref &property, int argNum);
@@ -55,11 +60,13 @@ bool GetStringPropertyByKey(napi_env env, napi_value obj, const std::string &pro
 bool GetOptionalStringPropertyByKey(napi_env env, napi_value obj, const std::string &propertyName,
     std::string &property);
 bool IsSystemApp(napi_env env);
+bool ParseBusinessError(napi_env env, napi_value value, BusinessError &error);
 napi_value CreateStringArray(napi_env env, const std::vector<std::string> &strVec);
 napi_value CreateUint8Array(napi_env env, const uint8_t *data, size_t length);
 napi_status ParseUint8TypedArray(napi_env env, napi_value value, uint8_t **data, size_t *length);
 napi_status ParseUint8TypedArrayToVector(napi_env env, napi_value value, std::vector<uint8_t> &vec);
 napi_status ParseUint8TypedArrayToUint64(napi_env env, napi_value value, uint64_t &result);
+void NapiCallVoidFunction(napi_env env, napi_value *argv, size_t argc, napi_ref funcRef);
 } // namespace AccountJsKit
 } // namespace OHOS
 

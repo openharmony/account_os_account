@@ -15,16 +15,13 @@
 
 #include "domain_account_plugin_stub.h"
 
+#include <securec.h>
 #include "account_error_no.h"
 #include "account_log_wrapper.h"
 #include "ipc_skeleton.h"
 
 namespace OHOS {
 namespace AccountSA {
-namespace {
-const size_t MAX_PASSWORD_SIZE = 4096;
-}
-
 DomainAccountPluginStub::DomainAccountPluginStub()
 {}
 
@@ -60,13 +57,9 @@ int DomainAccountPluginStub::OnRemoteRequest(
 
 ErrCode DomainAccountPluginStub::ProcAuth(MessageParcel &data, MessageParcel &reply)
 {
-    DomainAccountInfo info;
-    if (!data.ReadString(info.accountName_)) {
-        ACCOUNT_LOGE("failed to read domain account name");
-        return ERR_ACCOUNT_COMMON_READ_PARCEL_ERROR;
-    }
-    if (!data.ReadString(info.domain_)) {
-        ACCOUNT_LOGE("failed to read domain");
+    std::shared_ptr<DomainAccountInfo> info(data.ReadParcelable<DomainAccountInfo>());
+    if (info == nullptr) {
+        ACCOUNT_LOGE("failed to read domain account info");
         return ERR_ACCOUNT_COMMON_READ_PARCEL_ERROR;
     }
     std::vector<uint8_t> password;
@@ -75,18 +68,13 @@ ErrCode DomainAccountPluginStub::ProcAuth(MessageParcel &data, MessageParcel &re
         return ERR_ACCOUNT_COMMON_READ_PARCEL_ERROR;
     }
     sptr<IDomainAuthCallback> callbackProxy = iface_cast<IDomainAuthCallback>(data.ReadRemoteObject());
-    size_t passwordSize = password.size();
     ErrCode result = ERR_ACCOUNT_COMMON_INVALID_PARAMTER;
-    if (passwordSize > MAX_PASSWORD_SIZE) {
-        ACCOUNT_LOGE("password is too large");
-    } else if (callbackProxy == nullptr) {
+    if (callbackProxy == nullptr) {
         ACCOUNT_LOGE("invalid callback");
     } else {
-        result = Auth(info, password, callbackProxy);
+        result = Auth(*info, password, callbackProxy);
     }
-    for (size_t i = 0; i < passwordSize; ++i) {
-        password[i] = 0;
-    }
+    (void)memset_s(password.data(), password.size(), 0, password.size());
     if (!reply.WriteInt32(result)) {
         ACCOUNT_LOGE("failed to write result");
         return IPC_STUB_WRITE_PARCEL_ERR;
