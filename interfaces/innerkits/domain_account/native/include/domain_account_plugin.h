@@ -36,6 +36,24 @@ public:
         const std::shared_ptr<DomainAuthCallback> &callback) = 0;
 
     /**
+     * Authenticates the specified domain account with a popup.
+     *
+     * @param info Indicates the domain account information, including accountName and domain.
+     * @param callback Indicates the result callback.
+    */
+    virtual void AuthWithPopup(const DomainAccountInfo &info, const std::shared_ptr<DomainAuthCallback> &callback) = 0;
+
+    /**
+     * Authenticates the specified domain account with an authorization token.
+     *
+     * @param info Indicates the domain account information, including accountName and domain.
+     * @param token Indicates the authorization token generated when PIN or biometric authentication is successful.
+     * @param callback Indicates the result callback.
+    */
+    virtual void AuthWithToken(const DomainAccountInfo &info, const std::vector<uint8_t> &token,
+        const std::shared_ptr<DomainAuthCallback> &callback) = 0;
+
+    /**
      * Gets the authentication property of the specified domain account,
      * which can be used to prevent brute-force attack.
      *

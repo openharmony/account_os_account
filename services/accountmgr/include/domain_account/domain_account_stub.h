@@ -37,6 +37,7 @@ private:
     ErrCode ProcUnregisterPlugin(MessageParcel &data, MessageParcel &reply);
     ErrCode ProcAuth(MessageParcel &data, MessageParcel &reply);
     ErrCode ProcAuthUser(MessageParcel &data, MessageParcel &reply);
+    ErrCode ProcAuthWithPopup(MessageParcel &data, MessageParcel &reply);
 
 private:
     static const std::map<uint32_t, DomainAccountStubFunc> stubFuncMap_;

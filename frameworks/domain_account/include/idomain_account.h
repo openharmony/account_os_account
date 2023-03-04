@@ -29,7 +29,8 @@ public:
         REGISTER_PLUGIN = 0,
         UNREGISTER_PLUGIN = 1,
         DOMAIN_AUTH = 2,
-        DOMAIN_AUTH_USER = 3
+        DOMAIN_AUTH_USER = 3,
+        DOMAIN_AUTH_WITH_POPUP
     };
 
     virtual ErrCode RegisterPlugin(const sptr<IDomainAccountPlugin> &plugin) = 0;
@@ -38,6 +39,7 @@ public:
         const sptr<IDomainAuthCallback> &callback) = 0;
     virtual ErrCode AuthUser(int32_t userId, const std::vector<uint8_t> &password,
         const sptr<IDomainAuthCallback> &callback) = 0;
+    virtual ErrCode AuthWithPopup(int32_t userId, const sptr<IDomainAuthCallback> &callback) = 0;
 };
 }  // namespace AccountSA
 }  // namespace OHOS
