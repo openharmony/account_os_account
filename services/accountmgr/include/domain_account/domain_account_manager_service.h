@@ -28,6 +28,8 @@ public:
     ~DomainAccountManagerService() override;
     ErrCode RegisterPlugin(const sptr<IDomainAccountPlugin> &plugin) override;
     ErrCode UnregisterPlugin() override;
+    ErrCode HasDomainAccount(
+        const DomainAccountInfo &info, const sptr<IDomainAccountCallback> &callback) override;
     ErrCode Auth(const DomainAccountInfo &info, const std::vector<uint8_t> &password,
         const sptr<IDomainAuthCallback> &callback) override;
     ErrCode AuthUser(int32_t userId, const std::vector<uint8_t> &password,

@@ -41,6 +41,12 @@ ErrCode DomainAccountManagerService::UnregisterPlugin()
     return ERR_OK;
 }
 
+ErrCode DomainAccountManagerService::HasDomainAccount(
+    const DomainAccountInfo &info, const sptr<IDomainAccountCallback> &callback)
+{
+    return InnerDomainAccountManager::GetInstance().HasDomainAccount(info, callback);
+}
+
 ErrCode DomainAccountManagerService::Auth(const DomainAccountInfo &info, const std::vector<uint8_t> &password,
     const sptr<IDomainAuthCallback> &callback)
 {

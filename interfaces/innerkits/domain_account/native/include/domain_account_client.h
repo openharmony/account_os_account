@@ -18,6 +18,7 @@
 
 #include <mutex>
 #include "account_error_no.h"
+#include "domain_account_callback.h"
 #include "domain_account_plugin.h"
 #include "domain_auth_callback_service.h"
 #include "idomain_account.h"
@@ -34,6 +35,7 @@ public:
     ErrCode AuthUser(int32_t userId, const std::vector<uint8_t> &password,
         const std::shared_ptr<DomainAuthCallback> &callback);
     ErrCode AuthWithPopup(int32_t userId, const std::shared_ptr<DomainAuthCallback> &callback);
+    ErrCode HasDomainAccount(const DomainAccountInfo &info, const std::shared_ptr<DomainAccountCallback> &callback);
 
 private:
     class DomainAccountDeathRecipient : public IRemoteObject::DeathRecipient {

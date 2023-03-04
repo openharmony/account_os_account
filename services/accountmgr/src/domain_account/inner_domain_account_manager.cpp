@@ -17,6 +17,9 @@
 #include "account_log_wrapper.h"
 #include "domain_account_plugin_death_recipient.h"
 #include "domain_auth_callback_proxy.h"
+#include "domain_account_callback_service.h"
+#include "domain_has_domain_info_callback.h"
+#include "idomain_account_callback.h"
 #include "iinner_os_account_manager.h"
 
 namespace OHOS {
@@ -256,6 +259,113 @@ bool InnerDomainAccountManager::IsPluginAvailable()
 {
     std::lock_guard<std::mutex> lock(mutex_);
     return plugin_ != nullptr;
+}
+
+static void ErrorOnResult(const ErrCode errCode, const sptr<IDomainAccountCallback> &callback)
+{
+    Parcel emptyParcel;
+    emptyParcel.WriteBool(false);
+    callback->OnResult(errCode, emptyParcel);
+}
+
+ErrCode InnerDomainAccountManager::StartHasDomainAccount(const sptr<IDomainAccountPlugin> &plugin,
+    const DomainAccountInfo &info, const sptr<IDomainAccountCallback> &callback)
+{
+    if (callback == nullptr) {
+        ACCOUNT_LOGE("invalid callback");
+        return ERR_ACCOUNT_COMMON_INVALID_PARAMTER;
+    }
+    if (plugin == nullptr) {
+        ACCOUNT_LOGE("plugin is nullptr");
+        ErrorOnResult(ERR_DOMAIN_ACCOUNT_SERVICE_PLUGIN_NOT_EXIST, callback);
+        return ERR_DOMAIN_ACCOUNT_SERVICE_PLUGIN_NOT_EXIST;
+    }
+    auto callbackWrapper = std::make_shared<DomainHasDomainInfoCallback>(callback, info.domain_, info.accountName_);
+    if (callbackWrapper == nullptr) {
+        ACCOUNT_LOGE("make shared DomainHasDomainInfoCallback failed");
+        ErrorOnResult(ERR_ACCOUNT_COMMON_INSUFFICIENT_MEMORY_ERROR, callback);
+        return ERR_ACCOUNT_COMMON_INSUFFICIENT_MEMORY_ERROR;
+    }
+    sptr<DomainAccountCallbackService> callbackService =
+        new (std::nothrow) DomainAccountCallbackService(callbackWrapper);
+    if (callbackService == nullptr) {
+        ACCOUNT_LOGE("make shared DomainAccountCallbackService failed");
+        ErrorOnResult(ERR_ACCOUNT_COMMON_INSUFFICIENT_MEMORY_ERROR, callback);
+        return ERR_ACCOUNT_COMMON_INSUFFICIENT_MEMORY_ERROR;
+    }
+    ErrCode result = plugin->GetDomainAccountInfo(info.domain_, info.accountName_, callbackService);
+    if (result != ERR_OK) {
+        ACCOUNT_LOGE("failed to get domain account, errCode: %{public}d", result);
+        ErrorOnResult(result, callback);
+        return result;
+    }
+    return ERR_OK;
+}
+
+ErrCode InnerDomainAccountManager::HasDomainAccount(
+    const DomainAccountInfo &info, const sptr<IDomainAccountCallback> &callback)
+{
+    AppExecFwk::InnerEvent::Callback task =
+        std::bind(&InnerDomainAccountManager::StartHasDomainAccount, this, plugin_, info, callback);
+    return PostTask(task);
+}
+
+ErrCode InnerDomainAccountManager::StartOnAccountBound(
+    const sptr<IDomainAccountPlugin> &plugin, const DomainAccountInfo &info, const int32_t localId)
+{
+    if (plugin_ == nullptr) {
+        ACCOUNT_LOGE("plugin not exists");
+        return ERR_DOMAIN_ACCOUNT_SERVICE_PLUGIN_NOT_EXIST;
+    }
+    return plugin->OnAccountBound(info, localId);
+}
+
+ErrCode InnerDomainAccountManager::OnAccountBound(const DomainAccountInfo &info, const int32_t localId)
+{
+    AppExecFwk::InnerEvent::Callback task =
+        std::bind(&InnerDomainAccountManager::StartOnAccountBound, this, plugin_, info, localId);
+    return PostTask(task);
+}
+
+ErrCode InnerDomainAccountManager::StartOnAccountUnBound(
+    const sptr<IDomainAccountPlugin> &plugin, const DomainAccountInfo &info)
+{
+    if (plugin_ == nullptr) {
+        ACCOUNT_LOGE("plugin not exists");
+        return ERR_DOMAIN_ACCOUNT_SERVICE_PLUGIN_NOT_EXIST;
+    }
+    return plugin->OnAccountUnBound(info);
+}
+
+ErrCode InnerDomainAccountManager::OnAccountUnBound(const DomainAccountInfo &info)
+{
+    AppExecFwk::InnerEvent::Callback task =
+        std::bind(&InnerDomainAccountManager::StartOnAccountUnBound, this, plugin_, info);
+    return PostTask(task);
+}
+
+ErrCode InnerDomainAccountManager::StartGetDomainAccountInfo(const sptr<IDomainAccountPlugin> &plugin,
+    const std::string &domain, const std::string &accountName, const sptr<IDomainAccountCallback> &callback)
+{
+    if (plugin_ == nullptr) {
+        ACCOUNT_LOGE("plugin not exists");
+        ErrorOnResult(ERR_DOMAIN_ACCOUNT_SERVICE_PLUGIN_NOT_EXIST, callback);
+        return ERR_DOMAIN_ACCOUNT_SERVICE_PLUGIN_NOT_EXIST;
+    }
+    ErrCode errCode = plugin->GetDomainAccountInfo(domain, accountName, callback);
+    if (errCode != ERR_OK) {
+        ACCOUNT_LOGE("failed to get domain account, errCode: %{public}d", errCode);
+        ErrorOnResult(errCode, callback);
+    }
+    return ERR_OK;
+}
+
+ErrCode InnerDomainAccountManager::GetDomainAccountInfo(
+    const std::string &domain, const std::string &accountName, const sptr<IDomainAccountCallback> &callback)
+{
+    AppExecFwk::InnerEvent::Callback task =
+        std::bind(&InnerDomainAccountManager::StartGetDomainAccountInfo, this, plugin_, domain, accountName, callback);
+    return PostTask(task);
 }
 }  // namespace AccountSA
 }  // namespace OHOS
