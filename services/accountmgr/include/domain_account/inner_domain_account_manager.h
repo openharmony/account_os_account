@@ -20,6 +20,7 @@
 #include "domain_account_plugin_death_recipient.h"
 #include "domain_account_plugin_proxy.h"
 #include "domain_auth_callback.h"
+#include "domain_auth_callback_stub.h"
 #include "event_handler.h"
 #include "os_account_info.h"
 #include "singleton.h"
@@ -37,20 +38,41 @@ public:
         const sptr<IDomainAuthCallback> &callback);
     ErrCode AuthUser(int32_t userId, const std::vector<uint8_t> &password,
         const sptr<IDomainAuthCallback> &callback);
+    ErrCode AuthWithPopup(int32_t userId, const sptr<IDomainAuthCallback> &callback);
+    ErrCode AuthWithToken(int32_t userId, const std::vector<uint8_t> &token);
     ErrCode GetAuthStatusInfo(const DomainAccountInfo &info, const sptr<IDomainAccountCallback> &callback);
     bool IsPluginAvailable();
+    void InsertTokenToMap(int32_t userId, const std::vector<uint8_t> &token);
+    std::vector<uint8_t> GetTokenFromMap(int32_t userId);
+    void RemoveTokenFromMap(int32_t userId);
 
 private:
     ErrCode StartAuth(const sptr<IDomainAccountPlugin> &plugin, const DomainAccountInfo &info,
-        const std::vector<uint8_t> &password, const sptr<IDomainAuthCallback> &callback);
+        const std::vector<uint8_t> &password, const sptr<IDomainAuthCallback> &callback, AuthMode authMode);
     std::shared_ptr<AppExecFwk::EventHandler> GetEventHandler();
     sptr<IRemoteObject::DeathRecipient> GetDeathRecipient();
+    ErrCode InnerAuth(int32_t userId, const std::vector<uint8_t> &authData,
+        const sptr<IDomainAuthCallback> &callback, AuthMode authMode);
+    ErrCode GetDomainAccountInfo(int32_t userId, DomainAccountInfo &domainInfo);
+    ErrCode PostTask(AppExecFwk::InnerEvent::Callback &task);
 
 private:
     std::mutex mutex_;
     std::shared_ptr<AppExecFwk::EventHandler> handler_;
     sptr<IRemoteObject::DeathRecipient> deathRecipient_;
     sptr<IDomainAccountPlugin> plugin_;
+    std::map<int32_t, std::vector<uint8_t>> userTokenMap_;
+};
+
+class InnerDomainAuthCallback final: public DomainAuthCallbackStub {
+public:
+    InnerDomainAuthCallback(int32_t userId, const sptr<IDomainAuthCallback> &callback);
+    virtual ~InnerDomainAuthCallback();
+    void OnResult(int32_t resultCode, const DomainAuthResult &result) override;
+
+private:
+    int32_t userId_;
+    sptr<IDomainAuthCallback> callback_;
 };
 }  // namespace AccountSA
 }  // namespace OHOS

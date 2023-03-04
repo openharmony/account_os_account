@@ -34,6 +34,9 @@ public:
 
     virtual ErrCode Auth(const DomainAccountInfo &info, const std::vector<uint8_t> &password,
         const sptr<IDomainAuthCallback> &callback) = 0;
+    virtual ErrCode AuthWithPopup(const DomainAccountInfo &info, const sptr<IDomainAuthCallback> &callback) = 0;
+    virtual ErrCode AuthWithToken(const DomainAccountInfo &info, const std::vector<uint8_t> &token,
+        const sptr<IDomainAuthCallback> &callback) = 0;
     virtual ErrCode GetAuthStatusInfo(const DomainAccountInfo &info,
         const sptr<IDomainAccountCallback> &callback) = 0;
 };

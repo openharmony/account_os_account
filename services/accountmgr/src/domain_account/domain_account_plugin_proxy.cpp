@@ -61,24 +61,46 @@ static ErrCode WriteCommonData(MessageParcel &data, const std::u16string &descri
     return ERR_OK;
 }
 
-ErrCode DomainAccountPluginProxy::Auth(const DomainAccountInfo &info, const std::vector<uint8_t> &password,
-    const sptr<IDomainAuthCallback> &callback)
+ErrCode DomainAccountPluginProxy::AuthCommonInterface(const DomainAccountInfo &info,
+    const std::vector<uint8_t> &authData, const sptr<IDomainAuthCallback> &callback, AuthMode authMode)
 {
     MessageParcel data;
     ErrCode result = WriteCommonData(data, GetDescriptor(), info);
     if (result != ERR_OK) {
         return result;
     }
-    if (!data.WriteUInt8Vector(password)) {
-        ACCOUNT_LOGE("failed to write password");
+    if (!data.WriteUInt8Vector(authData)) {
+        ACCOUNT_LOGE("failed to write authData");
         return ERR_ACCOUNT_COMMON_WRITE_PARCEL_ERROR;
     }
     if ((callback == nullptr) || (!data.WriteRemoteObject(callback->AsObject()))) {
         ACCOUNT_LOGE("failed to write callback");
         return ERR_ACCOUNT_COMMON_WRITE_PARCEL_ERROR;
     }
+    if (!data.WriteInt32(static_cast<int32_t>(authMode))) {
+        ACCOUNT_LOGE("failed to write authMode");
+        return ERR_ACCOUNT_COMMON_WRITE_PARCEL_ERROR;
+    }
     MessageParcel reply;
     return SendRequest(IDomainAccountPlugin::Message::DOMAIN_PLUGIN_AUTH, data, reply);
+}
+
+ErrCode DomainAccountPluginProxy::Auth(const DomainAccountInfo &info, const std::vector<uint8_t> &password,
+    const sptr<IDomainAuthCallback> &callback)
+{
+    return AuthCommonInterface(info, password, callback, AUTH_WITH_CREDENTIAL_MODE);
+}
+
+ErrCode DomainAccountPluginProxy::AuthWithPopup(
+    const DomainAccountInfo &info, const sptr<IDomainAuthCallback> &callback)
+{
+    return AuthCommonInterface(info, {}, callback, AUTH_WITH_POPUP_MODE);
+}
+
+ErrCode DomainAccountPluginProxy::AuthWithToken(const DomainAccountInfo &info, const std::vector<uint8_t> &token,
+    const sptr<IDomainAuthCallback> &callback)
+{
+    return AuthCommonInterface(info, token, callback, AUTH_WITH_TOKEN_MODE);
 }
 
 ErrCode DomainAccountPluginProxy::GetAuthStatusInfo(

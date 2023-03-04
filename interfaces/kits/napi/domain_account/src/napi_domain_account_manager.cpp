@@ -321,6 +321,18 @@ void NapiDomainAccountPlugin::GetAuthStatusInfo(
     lockInfo_.count++;
 }
 
+void NapiDomainAccountPlugin::AuthWithPopup(
+    const DomainAccountInfo &info, const std::shared_ptr<DomainAuthCallback> &callback)
+{
+    return;
+}
+
+void NapiDomainAccountPlugin::AuthWithToken(const DomainAccountInfo &info, const std::vector<uint8_t> &token,
+    const std::shared_ptr<DomainAuthCallback> &callback)
+{
+    return;
+}
+
 napi_value NapiDomainAccountManager::Init(napi_env env, napi_value exports)
 {
     napi_property_descriptor properties[] = {
