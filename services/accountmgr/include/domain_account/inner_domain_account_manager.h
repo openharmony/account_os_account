@@ -41,12 +41,24 @@ public:
     ErrCode AuthWithPopup(int32_t userId, const sptr<IDomainAuthCallback> &callback);
     ErrCode AuthWithToken(int32_t userId, const std::vector<uint8_t> &token);
     ErrCode GetAuthStatusInfo(const DomainAccountInfo &info, const sptr<IDomainAccountCallback> &callback);
+    ErrCode HasDomainAccount(const DomainAccountInfo &info, const sptr<IDomainAccountCallback> &callback);
+    ErrCode GetDomainAccountInfo(
+        const std::string &domain, const std::string &accountName, const sptr<IDomainAccountCallback> &callback);
+    ErrCode OnAccountBound(const DomainAccountInfo &info, const int32_t localId);
+    ErrCode OnAccountUnBound(const DomainAccountInfo &info);
     bool IsPluginAvailable();
     void InsertTokenToMap(int32_t userId, const std::vector<uint8_t> &token);
     std::vector<uint8_t> GetTokenFromMap(int32_t userId);
     void RemoveTokenFromMap(int32_t userId);
 
 private:
+    ErrCode StartGetDomainAccountInfo(const sptr<IDomainAccountPlugin> &plugin, const std::string &domain,
+        const std::string &accountName, const sptr<IDomainAccountCallback> &callback);
+    ErrCode StartOnAccountUnBound(const sptr<IDomainAccountPlugin> &plugin, const DomainAccountInfo &info);
+    ErrCode StartOnAccountBound(
+        const sptr<IDomainAccountPlugin> &plugin, const DomainAccountInfo &info, const int32_t localId);
+    ErrCode StartHasDomainAccount(const sptr<IDomainAccountPlugin> &plugin, const DomainAccountInfo &info,
+        const sptr<IDomainAccountCallback> &callback);
     ErrCode StartAuth(const sptr<IDomainAccountPlugin> &plugin, const DomainAccountInfo &info,
         const std::vector<uint8_t> &password, const sptr<IDomainAuthCallback> &callback, AuthMode authMode);
     std::shared_ptr<AppExecFwk::EventHandler> GetEventHandler();

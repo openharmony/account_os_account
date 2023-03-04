@@ -18,6 +18,7 @@
 #include "account_error_no.h"
 #include "account_log_wrapper.h"
 #include "account_proxy.h"
+#include "domain_account_callback_service.h"
 #include "domain_account_plugin_service.h"
 #include "domain_account_proxy.h"
 #include "domain_auth_callback_service.h"
@@ -72,6 +73,26 @@ ErrCode DomainAccountClient::AuthProxyInit(const std::shared_ptr<DomainAuthCallb
         return ERR_ACCOUNT_COMMON_GET_PROXY;
     }
     return ERR_OK;
+}
+
+ErrCode DomainAccountClient::HasDomainAccount(
+    const DomainAccountInfo &info, const std::shared_ptr<DomainAccountCallback> &callback)
+{
+    if (callback == nullptr) {
+        ACCOUNT_LOGE("callback is nullptr");
+        return ERR_ACCOUNT_COMMON_INVALID_PARAMTER;
+    }
+    sptr<DomainAccountCallbackService> callbackService = new (std::nothrow) DomainAccountCallbackService(callback);
+    if (callbackService == nullptr) {
+        ACCOUNT_LOGE("failed to check domain account callback service");
+        return ERR_ACCOUNT_COMMON_INSUFFICIENT_MEMORY_ERROR;
+    }
+    auto proxy = GetDomainAccountProxy();
+    if (proxy == nullptr) {
+        ACCOUNT_LOGE("failed to get domain account proxy");
+        return ERR_ACCOUNT_COMMON_GET_PROXY;
+    }
+    return proxy->HasDomainAccount(info, callbackService);
 }
 
 ErrCode DomainAccountClient::Auth(const DomainAccountInfo &info, const std::vector<uint8_t> &password,
