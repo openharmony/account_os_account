@@ -18,6 +18,7 @@
 #include <securec.h>
 #include "account_log_wrapper.h"
 #include "account_permission_manager.h"
+#include "domain_account_callback_proxy.h"
 #include "domain_auth_callback_proxy.h"
 #include "ipc_skeleton.h"
 
@@ -49,6 +50,10 @@ const std::map<uint32_t, DomainAccountStub::DomainAccountStubFunc> DomainAccount
     {
         IDomainAccount::Message::DOMAIN_AUTH_WITH_POPUP,
         &DomainAccountStub::ProcAuthWithPopup
+    },
+    {
+        IDomainAccount::Message::DOMAIN_HAS_DOMAIN_ACCOUNT,
+        &DomainAccountStub::ProcHasDomainAccount
     }
 };
 
@@ -72,6 +77,26 @@ int32_t DomainAccountStub::OnRemoteRequest(
     }
     ACCOUNT_LOGW("remote request unhandled: %{public}d", code);
     return IPCObjectStub::OnRemoteRequest(code, data, reply, option);
+}
+
+ErrCode DomainAccountStub::ProcHasDomainAccount(MessageParcel &data, MessageParcel &reply)
+{
+    std::shared_ptr<DomainAccountInfo> info(data.ReadParcelable<DomainAccountInfo>());
+    if (info == nullptr) {
+        ACCOUNT_LOGE("failed to read domain account info");
+        return ERR_ACCOUNT_COMMON_READ_PARCEL_ERROR;
+    }
+    auto callback = iface_cast<IDomainAccountCallback>(data.ReadRemoteObject());
+    if (callback == nullptr) {
+        ACCOUNT_LOGE("failed to read domain callback");
+        return ERR_ACCOUNT_COMMON_READ_PARCEL_ERROR;
+    }
+    ErrCode result = HasDomainAccount(*info, callback);
+    if (!reply.WriteInt32(result)) {
+        ACCOUNT_LOGE("failed to write reply, result %{public}d.", result);
+        return IPC_STUB_WRITE_PARCEL_ERR;
+    }
+    return ERR_NONE;
 }
 
 ErrCode DomainAccountStub::ProcRegisterPlugin(MessageParcel &data, MessageParcel &reply)
@@ -189,10 +214,12 @@ ErrCode DomainAccountStub::CheckPermission(uint32_t code, int32_t uid)
     switch (code) {
         case IDomainAccount::Message::REGISTER_PLUGIN:
         case IDomainAccount::Message::UNREGISTER_PLUGIN:
+        case IDomainAccount::Message::DOMAIN_HAS_DOMAIN_ACCOUNT:
             permissionName = AccountPermissionManager::MANAGE_LOCAL_ACCOUNTS;
             break;
         case IDomainAccount::Message::DOMAIN_AUTH:
         case IDomainAccount::Message::DOMAIN_AUTH_USER:
+        case IDomainAccount::Message::DOMAIN_AUTH_WITH_POPUP:
             permissionName = AccountPermissionManager::ACCESS_USER_AUTH_INTERNAL;
             break;
         default:
