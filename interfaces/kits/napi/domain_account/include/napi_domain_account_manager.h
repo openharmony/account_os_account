@@ -26,14 +26,17 @@ namespace OHOS {
 namespace AccountJsKit {
 struct JsDomainPlugin {
     napi_ref auth = nullptr;
+    napi_ref getAuthStatusInfo = nullptr;
 };
 
 struct JsDomainPluginParam {
+    JsDomainPluginParam(napi_env napiEnv) : env(napiEnv) {}
     napi_env env = nullptr;
     napi_ref func = nullptr;
     AccountSA::DomainAccountInfo domainAccountInfo;
     std::vector<uint8_t> credential;
-    std::shared_ptr<AccountSA::DomainAuthCallback> callback = nullptr;
+    std::shared_ptr<AccountSA::DomainAuthCallback> authCallback = nullptr;
+    std::shared_ptr<AccountSA::DomainAccountCallback> callback = nullptr;
     ThreadLockInfo *lockInfo;
 };
 

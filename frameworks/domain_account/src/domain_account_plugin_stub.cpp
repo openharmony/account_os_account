@@ -15,16 +15,13 @@
 
 #include "domain_account_plugin_stub.h"
 
+#include <securec.h>
 #include "account_error_no.h"
 #include "account_log_wrapper.h"
 #include "ipc_skeleton.h"
 
 namespace OHOS {
 namespace AccountSA {
-namespace {
-const size_t MAX_PASSWORD_SIZE = 4096;
-}
-
 DomainAccountPluginStub::DomainAccountPluginStub()
 {}
 
