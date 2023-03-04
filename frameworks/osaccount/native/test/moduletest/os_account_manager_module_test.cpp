@@ -46,7 +46,9 @@ const std::string STRING_NAME = "name";
 const std::string STRING_TEST_NAME = "test_account_name";
 const std::string STRING_TEST_NAME_TWO = "test_account_name_2";
 const std::uint32_t INVALID_TOKEN_ID = 0;
+#ifdef DOMAIN_ACCOUNT_TEST_CASE
 const std::uint32_t INVALID_BUNDLE_ID = -1;
+#endif
 const std::int32_t ERROR_LOCAL_ID = -1;
 const std::int32_t LOCAL_ID = 105;
 const std::int32_t WAIT_FOR_EXIT = 1000;
@@ -1062,6 +1064,7 @@ HWTEST_F(OsAccountManagerModuleTest, OsAccountManagerModuleTest052, TestSize.Lev
  * @tc.type: FUNC
  * @tc.require: issueI4IU3V
  */
+#ifdef DOMAIN_ACCOUNT_TEST_CASE
 HWTEST_F(OsAccountManagerModuleTest, OsAccountManagerModuleTest053, TestSize.Level1)
 {
     DomainAccountInfo domainInfo(STRING_DOMAIN_VALID, STRING_DOMAIN_ACCOUNT_NAME_VALID);
@@ -1256,6 +1259,7 @@ HWTEST_F(OsAccountManagerModuleTest, OsAccountManagerModuleTest059, TestSize.Lev
     ret = OsAccountManager::GetOsAccountLocalIdFromDomain(domainInfo, resID);
     EXPECT_NE(ret, ERR_OK);
 }
+#endif // DOMAIN_ACCOUNT_TEST_CASE
 
 /**
  * @tc.name: OsAccountManagerModuleTest060
@@ -1907,6 +1911,7 @@ HWTEST_F(OsAccountManagerModuleTest, OsAccountManagerModuleTest093, TestSize.Lev
  * @tc.type: FUNC
  * @tc.require: issueI4IU3V
  */
+#ifdef DOMAIN_ACCOUNT_TEST_CASE
 HWTEST_F(OsAccountManagerModuleTest, OsAccountManagerModuleTest094, TestSize.Level1)
 {
     // create
@@ -1932,6 +1937,7 @@ HWTEST_F(OsAccountManagerModuleTest, OsAccountManagerModuleTest094, TestSize.Lev
     ret = OsAccountManager::GetOsAccountLocalIdFromDomain(domainInfo, resID);
     EXPECT_NE(ret, ERR_OK);
 }
+#endif // DOMAIN_ACCOUNT_TEST_CASE
 
 class TestOsAccountSubscriber : public OsAccountSubscriber {
 public:
@@ -2130,6 +2136,7 @@ HWTEST_F(OsAccountManagerModuleTest, OsAccountManagerModuleTest108, TestSize.Lev
  * @tc.type: FUNC
  * @tc.require: issueI66BG5
  */
+#ifdef DOMAIN_ACCOUNT_TEST_CASE
 HWTEST_F(OsAccountManagerModuleTest, OsAccountManagerModuleTest109, TestSize.Level0)
 {
     Security::AccessToken::AccessTokenIDEx tokenIdEx = {0};
@@ -2171,6 +2178,7 @@ HWTEST_F(OsAccountManagerModuleTest, OsAccountManagerModuleTest109, TestSize.Lev
     AccessTokenKit::DeleteToken(tokenID);
     SetSelfTokenID(g_selfTokenID);
 }
+#endif // DOMAIN_ACCOUNT_TEST_CASE
 
 /**
  * @tc.name: OsAccountManagerModuleTest110
@@ -2217,6 +2225,7 @@ HWTEST_F(OsAccountManagerModuleTest, OsAccountManagerModuleTest110, TestSize.Lev
  * @tc.type: FUNC
  * @tc.require: issueI66BG5
  */
+#ifdef DOMAIN_ACCOUNT_TEST_CASE
 HWTEST_F(OsAccountManagerModuleTest, OsAccountManagerModuleTest111, TestSize.Level0)
 {
     Security::AccessToken::AccessTokenIDEx tokenIdEx = {0};
@@ -2259,6 +2268,7 @@ HWTEST_F(OsAccountManagerModuleTest, OsAccountManagerModuleTest111, TestSize.Lev
     SetSelfTokenID(g_selfTokenID);
     ASSERT_EQ(OsAccountManager::RemoveOsAccount(osAccountInfoOne.GetLocalId()), ERR_OK);
 }
+#endif // DOMAIN_ACCOUNT_TEST_CASE
 
 /**
  * @tc.name: OsAccountManagerModuleTest112

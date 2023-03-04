@@ -1058,6 +1058,7 @@ HWTEST_F(OsAccountManagerServiceModuleTest, OsAccountManagerServiceModuleTest056
  * @tc.type: FUNC
  * @tc.require: SR000GGVFL
  */
+#ifdef DOMAIN_ACCOUNT_TEST_CASE
 HWTEST_F(OsAccountManagerServiceModuleTest, OsAccountManagerServiceModuleTest057, TestSize.Level1)
 {
     OsAccountType type = NORMAL;
@@ -1264,6 +1265,7 @@ HWTEST_F(OsAccountManagerServiceModuleTest, OsAccountManagerServiceModuleTest063
     EXPECT_EQ(osAccountManagerService_->GetOsAccountLocalIdFromDomain(domainInfo, resID),
         ERR_OSACCOUNT_KIT_GET_OS_ACCOUNT_LOCAL_ID_FOR_DOMAIN_ERROR);
 }
+#endif // DOMAIN_ACCOUNT_TEST_CASE
 
 /**
  * @tc.name: OsAccountManagerServiceModuleTest064
@@ -1693,6 +1695,7 @@ HWTEST_F(OsAccountManagerServiceModuleTest, OsAccountManagerServiceModuleTest086
  * @tc.type: FUNC
  * @tc.require:
  */
+#ifdef DOMAIN_ACCOUNT_TEST_CASE
 HWTEST_F(OsAccountManagerServiceModuleTest, OsAccountManagerServiceModuleTest087, TestSize.Level1)
 {
     setuid(TEST_UID);
@@ -1702,6 +1705,7 @@ HWTEST_F(OsAccountManagerServiceModuleTest, OsAccountManagerServiceModuleTest087
     EXPECT_EQ(ERR_OSACCOUNT_SERVICE_PERMISSION_DENIED,
         osAccountManagerService_->CreateOsAccountForDomain(type, domainInfo, osAccountInfo));
 }
+#endif // DOMAIN_ACCOUNT_TEST_CASE
 
 /**
  * @tc.name: OsAccountManagerServiceModuleTest088
