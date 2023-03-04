@@ -95,5 +95,15 @@ void MockDomainPlugin::GetAuthStatusInfo(
     authStatusInfo.Marshalling(parcel);
     callback->OnResult(0, parcel);
 }
+
+void MockDomainPlugin::GetDomainAccountInfo(
+    const std::string &domain, const std::string &accountName, const std::shared_ptr<DomainAccountCallback> &callback)
+{}
+
+void MockDomainPlugin::OnAccountBound(const DomainAccountInfo &info, const int32_t localId)
+{}
+
+void MockDomainPlugin::OnAccountUnBound(const DomainAccountInfo &info)
+{}
 }  // AccountSA
 }  // OHOS

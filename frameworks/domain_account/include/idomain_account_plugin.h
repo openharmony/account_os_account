@@ -30,6 +30,9 @@ public:
     enum Message {
         DOMAIN_PLUGIN_AUTH = 0,
         DOMAIN_PLUGIN_GET_AUTH_STATUS_INFO = 1,
+        DOMAIN_PLUGIN_GET_DOMAIN_ACCOUNT_INFO = 2,
+        DOMAIN_PLUGIN_ON_ACCOUNT_BOUND = 3,
+        DOMAIN_PLUGIN_ON_ACCOUNT_UNBOUND = 4,
     };
 
     virtual ErrCode Auth(const DomainAccountInfo &info, const std::vector<uint8_t> &password,
@@ -39,6 +42,10 @@ public:
         const sptr<IDomainAuthCallback> &callback) = 0;
     virtual ErrCode GetAuthStatusInfo(const DomainAccountInfo &info,
         const sptr<IDomainAccountCallback> &callback) = 0;
+    virtual ErrCode GetDomainAccountInfo(
+        const std::string &domain, const std::string &accountName, const sptr<IDomainAccountCallback> &callback) = 0;
+    virtual ErrCode OnAccountBound(const DomainAccountInfo &info, const int32_t localId) = 0;
+    virtual ErrCode OnAccountUnBound(const DomainAccountInfo &info) = 0;
 };
 }  // namespace AccountSA
 }  // namespace OHOS

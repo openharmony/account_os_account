@@ -95,5 +95,41 @@ ErrCode DomainAccountPluginService::GetAuthStatusInfo(
     innerPlugin_->GetAuthStatusInfo(accountInfo, callbackClient);
     return ERR_OK;
 }
+
+ErrCode DomainAccountPluginService::GetDomainAccountInfo(
+    const std::string &domain, const std::string &accountName, const sptr<IDomainAccountCallback> &callback)
+{
+    if (innerPlugin_ == nullptr) {
+        ACCOUNT_LOGE("innerPlugin_ is nullptr");
+        return ERR_ACCOUNT_COMMON_NULL_PTR_ERROR;
+    }
+    auto callbackClient = std::make_shared<DomainAccountCallbackClient>(callback);
+    if (callbackClient == nullptr) {
+        ACCOUNT_LOGE("failed to create domain account callback client");
+        return ERR_ACCOUNT_COMMON_INSUFFICIENT_MEMORY_ERROR;
+    }
+    innerPlugin_->GetDomainAccountInfo(domain, accountName, callbackClient);
+    return ERR_OK;
+}
+
+ErrCode DomainAccountPluginService::OnAccountBound(const DomainAccountInfo &info, const int32_t localId)
+{
+    if (innerPlugin_ == nullptr) {
+        ACCOUNT_LOGE("innerPlugin_ is nullptr");
+        return ERR_ACCOUNT_COMMON_NULL_PTR_ERROR;
+    }
+    innerPlugin_->OnAccountBound(info, localId);
+    return ERR_OK;
+}
+
+ErrCode DomainAccountPluginService::OnAccountUnBound(const DomainAccountInfo &info)
+{
+    if (innerPlugin_ == nullptr) {
+        ACCOUNT_LOGE("innerPlugin_ is nullptr");
+        return ERR_ACCOUNT_COMMON_NULL_PTR_ERROR;
+    }
+    innerPlugin_->OnAccountUnBound(info);
+    return ERR_OK;
+}
 }  // namespace AccountSA
 }  // namespace OHOS
