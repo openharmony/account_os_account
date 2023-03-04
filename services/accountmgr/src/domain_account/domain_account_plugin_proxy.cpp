@@ -118,5 +118,55 @@ ErrCode DomainAccountPluginProxy::GetAuthStatusInfo(
     MessageParcel reply;
     return SendRequest(IDomainAccountPlugin::Message::DOMAIN_PLUGIN_GET_AUTH_STATUS_INFO, data, reply);
 }
+
+ErrCode DomainAccountPluginProxy::GetDomainAccountInfo(
+    const std::string &domain, const std::string &accountName, const sptr<IDomainAccountCallback> &callback)
+{
+    MessageParcel data;
+    if (!data.WriteInterfaceToken(GetDescriptor())) {
+        ACCOUNT_LOGE("fail to write descriptor");
+        return ERR_ACCOUNT_COMMON_WRITE_PARCEL_ERROR;
+    }
+    if (!data.WriteString(domain)) {
+        ACCOUNT_LOGE("fail to write name");
+        return ERR_ACCOUNT_COMMON_WRITE_PARCEL_ERROR;
+    }
+    if (!data.WriteString(accountName)) {
+        ACCOUNT_LOGE("fail to write accountName");
+        return ERR_ACCOUNT_COMMON_WRITE_PARCEL_ERROR;
+    }
+    if ((callback == nullptr) || (!data.WriteRemoteObject(callback->AsObject()))) {
+        ACCOUNT_LOGE("fail to write callback");
+        return ERR_ACCOUNT_COMMON_WRITE_PARCEL_ERROR;
+    }
+    MessageParcel reply;
+    return SendRequest(IDomainAccountPlugin::Message::DOMAIN_PLUGIN_GET_DOMAIN_ACCOUNT_INFO, data, reply);
+}
+
+ErrCode DomainAccountPluginProxy::OnAccountBound(const DomainAccountInfo &info, const int32_t localId)
+{
+    MessageParcel data;
+    ErrCode result = WriteCommonData(data, GetDescriptor(), info);
+    if (result != ERR_OK) {
+        return result;
+    }
+    if (!data.WriteInt32(localId)) {
+        ACCOUNT_LOGE("failed to write localId");
+        return ERR_ACCOUNT_COMMON_WRITE_PARCEL_ERROR;
+    }
+    MessageParcel reply;
+    return SendRequest(IDomainAccountPlugin::Message::DOMAIN_PLUGIN_ON_ACCOUNT_BOUND, data, reply);
+}
+
+ErrCode DomainAccountPluginProxy::OnAccountUnBound(const DomainAccountInfo &info)
+{
+    MessageParcel data;
+    ErrCode result = WriteCommonData(data, GetDescriptor(), info);
+    if (result != ERR_OK) {
+        return result;
+    }
+    MessageParcel reply;
+    return SendRequest(IDomainAccountPlugin::Message::DOMAIN_PLUGIN_ON_ACCOUNT_UNBOUND, data, reply);
+}
 }  // namespace AccountSA
 }  // namespace OHOS

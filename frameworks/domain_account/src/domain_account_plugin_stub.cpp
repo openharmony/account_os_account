@@ -36,6 +36,18 @@ const std::map<std::uint32_t, DomainAccountPluginStub::MessageProcFunction> Doma
     {
         IDomainAccountPlugin::Message::DOMAIN_PLUGIN_GET_AUTH_STATUS_INFO,
         &DomainAccountPluginStub::ProcGetAuthStatusInfo
+    },
+    {
+        IDomainAccountPlugin::Message::DOMAIN_PLUGIN_GET_DOMAIN_ACCOUNT_INFO,
+        &DomainAccountPluginStub::ProcGetDomainAccountInfo
+    },
+    {
+        IDomainAccountPlugin::Message::DOMAIN_PLUGIN_ON_ACCOUNT_BOUND,
+        &DomainAccountPluginStub::ProcOnAccountBound
+    },
+    {
+        IDomainAccountPlugin::Message::DOMAIN_PLUGIN_ON_ACCOUNT_UNBOUND,
+        &DomainAccountPluginStub::ProcOnAccountUnBound
     }
 };
 
@@ -118,6 +130,66 @@ ErrCode DomainAccountPluginStub::ProcGetAuthStatusInfo(MessageParcel &data, Mess
         return ERR_ACCOUNT_COMMON_READ_PARCEL_ERROR;
     }
     ErrCode result = GetAuthStatusInfo(*info, callback);
+    if (!reply.WriteInt32(result)) {
+        ACCOUNT_LOGE("failed to write result");
+        return ERR_ACCOUNT_COMMON_WRITE_PARCEL_ERROR;
+    }
+    return ERR_NONE;
+}
+
+ErrCode DomainAccountPluginStub::ProcGetDomainAccountInfo(MessageParcel &data, MessageParcel &reply)
+{
+    std::string domain;
+    if (!data.ReadString(domain)) {
+        ACCOUNT_LOGE("failed to read domain account name");
+        return ERR_ACCOUNT_COMMON_READ_PARCEL_ERROR;
+    }
+    std::string accountName;
+    if (!data.ReadString(accountName)) {
+        ACCOUNT_LOGE("failed to read domain");
+        return ERR_ACCOUNT_COMMON_READ_PARCEL_ERROR;
+    }
+    auto callback = iface_cast<IDomainAccountCallback>(data.ReadRemoteObject());
+    if (callback == nullptr) {
+        ACCOUNT_LOGE("failed to write callback");
+        return ERR_ACCOUNT_COMMON_WRITE_PARCEL_ERROR;
+    }
+    ErrCode result = GetDomainAccountInfo(domain, accountName, callback);
+    if (!reply.WriteInt32(result)) {
+        ACCOUNT_LOGE("failed to write result");
+        return ERR_ACCOUNT_COMMON_WRITE_PARCEL_ERROR;
+    }
+    return ERR_NONE;
+}
+
+ErrCode DomainAccountPluginStub::ProcOnAccountBound(MessageParcel &data, MessageParcel &reply)
+{
+    std::shared_ptr<DomainAccountInfo> info(data.ReadParcelable<DomainAccountInfo>());
+    if (info == nullptr) {
+        ACCOUNT_LOGE("failed to read domain account info");
+        return ERR_ACCOUNT_COMMON_READ_PARCEL_ERROR;
+    }
+    int32_t localId;
+    if (!data.ReadInt32(localId)) {
+        ACCOUNT_LOGE("fail to read localId");
+        return ERR_ACCOUNT_COMMON_READ_PARCEL_ERROR;
+    }
+    ErrCode result = OnAccountBound(*info, localId);
+    if (!reply.WriteInt32(result)) {
+        ACCOUNT_LOGE("failed to write result");
+        return ERR_ACCOUNT_COMMON_WRITE_PARCEL_ERROR;
+    }
+    return ERR_NONE;
+}
+
+ErrCode DomainAccountPluginStub::ProcOnAccountUnBound(MessageParcel &data, MessageParcel &reply)
+{
+    std::shared_ptr<DomainAccountInfo> info(data.ReadParcelable<DomainAccountInfo>());
+    if (info == nullptr) {
+        ACCOUNT_LOGE("failed to read domain account info");
+        return ERR_ACCOUNT_COMMON_READ_PARCEL_ERROR;
+    }
+    ErrCode result = OnAccountUnBound(*info);
     if (!reply.WriteInt32(result)) {
         ACCOUNT_LOGE("failed to write result");
         return ERR_ACCOUNT_COMMON_WRITE_PARCEL_ERROR;
