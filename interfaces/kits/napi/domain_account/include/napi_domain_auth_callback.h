@@ -18,6 +18,7 @@
 
 #include "domain_account_common.h"
 #include "domain_auth_callback.h"
+#include "napi_account_common.h"
 #include "napi/native_api.h"
 
 namespace OHOS {
@@ -44,6 +45,20 @@ struct CallbackParam {
     std::shared_ptr<AccountSA::DomainAuthCallback> callback = nullptr;
     int32_t resultCode = 0;
     AccountSA::DomainAuthResult authResult;
+    napi_ref callbackRef = nullptr;
+    ThreadLockInfo *lockInfo;
+};
+
+class NapiDomainAccountCallback final: public AccountSA::DomainAuthCallback {
+public:
+    NapiDomainAccountCallback(napi_env env, napi_ref callback);
+    ~NapiDomainAccountCallback();
+
+    void OnResult(int32_t resultCode, const AccountSA::DomainAuthResult &result) override;
+private:
+    napi_env env_;
+    napi_ref callbackRef_;
+    ThreadLockInfo lockInfo_;
 };
 }  // namespace AccountJsKit
 }  // namespace OHOS
