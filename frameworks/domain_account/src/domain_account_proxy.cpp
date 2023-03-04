@@ -37,6 +37,35 @@ ErrCode DomainAccountProxy::SendRequest(IDomainAccount::Message code, MessagePar
     return remote->SendRequest(static_cast<uint32_t>(code), data, reply, option);
 }
 
+ErrCode DomainAccountProxy::HasDomainAccount(
+    const DomainAccountInfo &info, const sptr<IDomainAccountCallback> &callback)
+{
+    MessageParcel data;
+    if (!data.WriteInterfaceToken(GetDescriptor())) {
+        ACCOUNT_LOGE("failed to write descriptor!");
+        return ERR_ACCOUNT_COMMON_WRITE_DESCRIPTOR_ERROR;
+    }
+    if (!data.WriteParcelable(&info)) {
+        ACCOUNT_LOGE("fail to write parcelable");
+        return ERR_ACCOUNT_COMMON_WRITE_PARCEL_ERROR;
+    }
+    if ((callback == nullptr) || (!data.WriteRemoteObject(callback->AsObject()))) {
+        ACCOUNT_LOGE("fail to write callback");
+        return ERR_ACCOUNT_COMMON_WRITE_PARCEL_ERROR;
+    }
+    MessageParcel reply;
+    ErrCode result = SendRequest(IDomainAccount::Message::DOMAIN_HAS_DOMAIN_ACCOUNT, data, reply);
+    if (result != ERR_OK) {
+        ACCOUNT_LOGE("SendRequest err, result %{public}d.", result);
+        return result;
+    }
+    if (!reply.ReadInt32(result)) {
+        ACCOUNT_LOGE("fail to read result");
+        return ERR_ACCOUNT_COMMON_READ_PARCEL_ERROR;
+    }
+    return result;
+}
+
 ErrCode DomainAccountProxy::RegisterPlugin(const sptr<IDomainAccountPlugin> &plugin)
 {
     MessageParcel data;

@@ -194,6 +194,7 @@ ohos_shared_library("accountmgr") {
     "src/domain_account/domain_account_plugin_death_recipient.cpp",
     "src/domain_account/domain_account_plugin_proxy.cpp",
     "src/domain_account/domain_account_stub.cpp",
+    "src/domain_account/domain_has_domain_info_callback.cpp",
     "src/domain_account/inner_domain_account_manager.cpp",
     "src/ohos_account_data_deal.cpp",
     "src/ohos_account_manager.cpp",

@@ -34,6 +34,7 @@ public:
     ErrCode AuthUser(int32_t userId, const std::vector<uint8_t> &password,
         const sptr<IDomainAuthCallback> &callback) override;
     ErrCode AuthWithPopup(int32_t userId, const sptr<IDomainAuthCallback> &callback) override;
+    ErrCode HasDomainAccount(const DomainAccountInfo &info, const sptr<IDomainAccountCallback> &callback) override;
 
 private:
     ErrCode SendRequest(IDomainAccount::Message code, MessageParcel &data, MessageParcel &reply);
