@@ -371,27 +371,6 @@ static void CreateExecutorProperty(napi_env env, GetPropertyContext &prop, napi_
     }
 }
 
-napi_value CreateAuthResult(napi_env env, const std::vector<uint8_t> &token, int32_t remainTimes, int32_t freezingTime)
-{
-    napi_value object = nullptr;
-    NAPI_CALL(env, napi_create_object(env, &object));
-    if (remainTimes >= 0) {
-        napi_value napiRemainTimes = 0;
-        napi_create_uint32(env, remainTimes, &napiRemainTimes);
-        napi_set_named_property(env, object, "remainTimes", napiRemainTimes);
-    }
-    if (remainTimes >= 0) {
-        napi_value napiFreezingTimes = 0;
-        napi_create_uint32(env, freezingTime, &napiFreezingTimes);
-        napi_set_named_property(env, object, "freezingTime", napiFreezingTimes);
-    }
-    if (token.size() > 0) {
-        napi_value napiToken = CreateUint8Array(env, token.data(), token.size());
-        napi_set_named_property(env, object, "token", napiToken);
-    }
-    return object;
-}
-
 static void OnUserAuthResultWork(uv_work_t *work, int status)
 {
     AuthCallbackParam *param = reinterpret_cast<AuthCallbackParam *>(work->data);
