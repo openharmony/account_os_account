@@ -36,6 +36,22 @@ const char BUSINESS_ERROR_DATA_NAME[] = "data";
 
 using namespace AccountSA;
 
+bool CreateExecEnv(napi_env env, uv_loop_s **loop, uv_work_t **work)
+{
+    *loop = nullptr;
+    napi_get_uv_event_loop(env, loop);
+    if (*loop == nullptr) {
+        ACCOUNT_LOGE("failed to get uv event loop");
+        return false;
+    }
+    *work = new (std::nothrow) uv_work_t;
+    if (*work == nullptr) {
+        ACCOUNT_LOGE("failed to create uv_work_t");
+        return false;
+    }
+    return true;
+}
+
 void ProcessCallbackOrPromise(napi_env env, const CommonAsyncContext *asyncContext, napi_value err, napi_value data)
 {
     napi_value args[BUSINESS_ERROR_ARG_SIZE] = {0};

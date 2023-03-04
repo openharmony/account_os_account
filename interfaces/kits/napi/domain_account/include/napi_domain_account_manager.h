@@ -16,6 +16,7 @@
 #ifndef OS_ACCOUNT_INTERFACES_KITS_NAPI_DOMAIN_ACCOUNT_INCLUDE_NAPI_DOMAIN_ACCOUNT_MANAGER_H
 #define OS_ACCOUNT_INTERFACES_KITS_NAPI_DOMAIN_ACCOUNT_INCLUDE_NAPI_DOMAIN_ACCOUNT_MANAGER_H
 
+#include "domain_account_callback.h"
 #include "domain_account_common.h"
 #include "domain_account_plugin.h"
 #include "domain_auth_callback.h"
@@ -34,6 +35,15 @@ struct JsDomainPlugin {
     napi_ref authWithPopup = nullptr;
     napi_ref authWithToken = nullptr;
     napi_ref getAuthStatusInfo = nullptr;
+    napi_ref getDomainAccountInfo = nullptr;
+    napi_ref onAccountBound = nullptr;
+    napi_ref onAccountUnbound = nullptr;
+};
+
+struct HasDomainAccountAsyncContext : public CommonAsyncContext {
+    AccountSA::DomainAccountInfo domainInfo;
+    bool isHasDomainAccount = false;
+    ThreadLockInfo *lockInfo;
 };
 
 struct JsDomainPluginParam {
@@ -79,6 +89,19 @@ private:
     ThreadLockInfo lockInfo_;
 };
 
+class NapiHasDomainInfoCallback final : public AccountSA::DomainAccountCallback {
+public:
+    NapiHasDomainInfoCallback(napi_env env, napi_ref callbackRef, napi_deferred deferred);
+    ~NapiHasDomainInfoCallback();
+    void OnResult(const int32_t errCode, Parcel &parcel) override;
+
+private:
+    AccountJsKit::ThreadLockInfo lockInfo_;
+    napi_env env_;
+    napi_ref callbackRef_ = nullptr;
+    napi_deferred deferred_ = nullptr;
+};
+
 class NapiDomainAccountManager {
 public:
     static napi_value Init(napi_env env, napi_value exports);
@@ -89,6 +112,7 @@ private:
     static napi_value UnregisterPlugin(napi_env env, napi_callback_info cbInfo);
     static napi_value Auth(napi_env env, napi_callback_info cbInfo);
     static napi_value AuthWithPopup(napi_env env, napi_callback_info cbInfo);
+    static napi_value HasDomainAccount(napi_env env, napi_callback_info cbInfo);
 };
 }  // namespace AccountJsKit
 }  // namespace OHOS
