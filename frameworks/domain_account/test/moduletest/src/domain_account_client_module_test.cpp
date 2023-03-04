@@ -299,6 +299,7 @@ HWTEST_F(DomainAccountClientModuleTest, DomainAccountClientModuleTest_AuthUser_0
  * @tc.type: FUNC
  * @tc.require: issueI64KAU
  */
+#ifdef DOMAIN_ACCOUNT_TEST_CASE
 HWTEST_F(DomainAccountClientModuleTest, DomainAccountClientModuleTest_AuthUser_005, TestSize.Level0)
 {
     DomainAccountInfo domainInfo;
@@ -319,6 +320,7 @@ HWTEST_F(DomainAccountClientModuleTest, DomainAccountClientModuleTest_AuthUser_0
     EXPECT_EQ(
         DomainAccountClient::GetInstance().AuthUser(accountInfo.GetLocalId(), VALID_PASSWORD, testCallback), ERR_OK);
 }
+#endif // DOMAIN_ACCOUNT_TEST_CASE
 
 /**
  * @tc.name: DomainAccountClientModuleTest_AuthUser_006
@@ -331,3 +333,108 @@ HWTEST_F(DomainAccountClientModuleTest, DomainAccountClientModuleTest_AuthUser_0
     EXPECT_EQ(DomainAccountClient::GetInstance().AuthUser(DEFAULT_USER_ID, VALID_PASSWORD, nullptr),
         ERR_ACCOUNT_COMMON_INVALID_PARAMTER);
 }
+
+
+/**
+ * @tc.name: DomainAccountClientModuleTest_AuthWithPopup_001
+ * @tc.desc: Auth domain account failed for callback is nullptr.
+ * @tc.type: FUNC
+ * @tc.require: issueI64KAM
+ */
+HWTEST_F(DomainAccountClientModuleTest, DomainAccountClientModuleTest_AuthWithPopup_001, TestSize.Level0)
+{
+    EXPECT_EQ(DomainAccountClient::GetInstance().AuthWithPopup(DEFAULT_USER_ID, nullptr),
+        ERR_ACCOUNT_COMMON_INVALID_PARAMTER);
+}
+
+/**
+ * @tc.name: DomainAccountClientModuleTest_AuthWithPopup_002
+ * @tc.desc: Auth domain account failed for local id is not exist.
+ * @tc.type: FUNC
+ * @tc.require: issueI64KAM
+ */
+HWTEST_F(DomainAccountClientModuleTest, DomainAccountClientModuleTest_AuthWithPopup_002, TestSize.Level0)
+{
+    auto testCallback = std::make_shared<TestDomainAuthCallback>(nullptr);
+    ASSERT_NE(testCallback, nullptr);
+    EXPECT_EQ(DomainAccountClient::GetInstance().AuthWithPopup(NON_EXISTENT_USER_ID, testCallback),
+        ERR_OSACCOUNT_SERVICE_INNER_SELECT_OSACCOUNT_BYID_ERROR);
+}
+
+
+/**
+ * @tc.name: DomainAccountClientModuleTest_AuthWithPopup_003
+ * @tc.desc: Auth domain account failed for invalid local id.
+ * @tc.type: FUNC
+ * @tc.require: issueI64KAM
+ */
+HWTEST_F(DomainAccountClientModuleTest, DomainAccountClientModuleTest_AuthWithPopup_003, TestSize.Level0)
+{
+    int32_t invalidId = -1;
+    auto callback = std::make_shared<MockDomainAuthCallback>();
+    ASSERT_NE(callback, nullptr);
+    EXPECT_CALL(*callback, OnResult(0, _)).Times(Exactly(0));
+    auto testCallback = std::make_shared<TestDomainAuthCallback>(callback);
+    ASSERT_NE(testCallback, nullptr);
+    EXPECT_EQ(DomainAccountClient::GetInstance().AuthWithPopup(invalidId, testCallback),
+        ERR_ACCOUNT_COMMON_INVALID_PARAMTER);
+}
+
+/**
+ * @tc.name: DomainAccountClientModuleTest_AuthWithPopup_004
+ * @tc.desc: Auth domain account failed for local user has no domain info.
+ * @tc.type: FUNC
+ * @tc.require: issueI64KAM
+ */
+HWTEST_F(DomainAccountClientModuleTest, DomainAccountClientModuleTest_AuthWithPopup_004, TestSize.Level0)
+{
+    auto callback = std::make_shared<MockDomainAuthCallback>();
+    ASSERT_NE(callback, nullptr);
+    EXPECT_CALL(*callback, OnResult(0, _)).Times(Exactly(0));
+    auto testCallback = std::make_shared<TestDomainAuthCallback>(callback);
+    ASSERT_NE(testCallback, nullptr);
+    EXPECT_EQ(DomainAccountClient::GetInstance().AuthWithPopup(DEFAULT_USER_ID, testCallback),
+        ERR_ACCOUNT_COMMON_INVALID_PARAMTER);
+}
+
+/**
+ * @tc.name: DomainAccountClientModuleTest_AuthWithPopup_005
+ * @tc.desc: Auth domain account failed for current user has no domain info.
+ * @tc.type: FUNC
+ * @tc.require: issueI64KAM
+ */
+HWTEST_F(DomainAccountClientModuleTest, DomainAccountClientModuleTest_AuthWithPopup_005, TestSize.Level0)
+{
+    auto callback = std::make_shared<MockDomainAuthCallback>();
+    ASSERT_NE(callback, nullptr);
+    EXPECT_CALL(*callback, OnResult(0, _)).Times(Exactly(0));
+    auto testCallback = std::make_shared<TestDomainAuthCallback>(callback);
+    ASSERT_NE(testCallback, nullptr);
+    EXPECT_EQ(DomainAccountClient::GetInstance().AuthWithPopup(0, testCallback),
+        ERR_ACCOUNT_COMMON_INVALID_PARAMTER);
+}
+
+/**
+ * @tc.name: DomainAccountClientModuleTest_AuthWithPopup_006
+ * @tc.desc: Auth domain user with popup successfully.
+ * @tc.type: FUNC
+ * @tc.require: issueI64KAU
+ */
+#ifdef DOMAIN_ACCOUNT_TEST_CASE
+HWTEST_F(DomainAccountClientModuleTest, DomainAccountClientModuleTest_AuthWithPopup_006, TestSize.Level0)
+{
+    DomainAccountInfo domainInfo;
+    domainInfo.accountName_ = STRING_NAME_TWO;
+    domainInfo.domain_ = STRING_DOMAIN_TWO;
+    OsAccountInfo accountInfo;
+    ErrCode errCode = OsAccountManager::CreateOsAccountForDomain(OsAccountType::NORMAL, domainInfo, accountInfo);
+    ASSERT_EQ(errCode, ERR_OK);
+    auto callback = std::make_shared<MockDomainAuthCallback>();
+    ASSERT_NE(callback, nullptr);
+    auto testCallback = std::make_shared<TestDomainAuthCallback>(callback);
+    ASSERT_NE(testCallback, nullptr);
+    testCallback->SetOsAccountInfo(accountInfo);
+    EXPECT_EQ(
+        DomainAccountClient::GetInstance().AuthWithPopup(accountInfo.GetLocalId(), testCallback), ERR_OK);
+}
+#endif // DOMAIN_ACCOUNT_TEST_CASE

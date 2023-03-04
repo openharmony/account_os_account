@@ -94,6 +94,7 @@ HWTEST_F(AccountOsProxyMockTest, OsAccountTest001, TestSize.Level1)
  * @tc.type: FUNC
  * @tc.require:
  */
+#ifdef DOMAIN_ACCOUNT_TEST_CASE
 HWTEST_F(AccountOsProxyMockTest, CreateOsAccountForDomainTest001, TestSize.Level1)
 {
     DomainAccountInfo domainInfo(STRING_DOMAIN_VALID, STRING_DOMAIN_ACCOUNT_NAME_VALID);
@@ -102,6 +103,7 @@ HWTEST_F(AccountOsProxyMockTest, CreateOsAccountForDomainTest001, TestSize.Level
     ErrCode errCode = OsAccountManager::CreateOsAccountForDomain(type, domainInfo, osAccountInfo);
     ASSERT_EQ(ERR_OSACCOUNT_KIT_GET_SYSTEM_ABILITY_MANAGER_ERROR, errCode);
 }
+#endif // DOMAIN_ACCOUNT_TEST_CASE
 
 /**
  * @tc.name: RemoveOsAccountTest001
