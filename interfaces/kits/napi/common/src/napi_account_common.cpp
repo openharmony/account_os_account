@@ -30,6 +30,8 @@ namespace OHOS {
 namespace AccountJsKit {
 namespace {
 constexpr int32_t BUSINESS_ERROR_ARG_SIZE = 2;
+const char BUSINESS_ERROR_CODE_NAME[] = "code";
+const char BUSINESS_ERROR_DATA_NAME[] = "data";
 }
 
 using namespace AccountSA;
@@ -258,6 +260,35 @@ napi_status ParseUint8TypedArrayToUint64(napi_env env, napi_value value, uint64_
     }
     result = *(reinterpret_cast<uint64_t *>(data));
     return napi_ok;
+}
+
+bool ParseBusinessError(napi_env env, napi_value value, BusinessError &error)
+{
+    napi_value napiCode = nullptr;
+    NAPI_CALL_BASE(env, napi_get_named_property(env, value, BUSINESS_ERROR_CODE_NAME, &napiCode), false);
+    if (napiCode == nullptr) {
+        ACCOUNT_LOGE("code is undefined");
+        return false;
+    }
+    NAPI_CALL_BASE(env, napi_get_value_int32(env, napiCode, &error.code), false);
+    bool hasData = false;
+    napi_has_named_property(env, value, BUSINESS_ERROR_DATA_NAME, &hasData);
+    if (hasData) {
+        napi_value napiData = nullptr;
+        napi_get_named_property(env, value, BUSINESS_ERROR_DATA_NAME, &napiData);
+        return GetStringProperty(env, napiData, error.data);
+    }
+    return true;
+}
+
+void NapiCallVoidFunction(napi_env env, napi_value *argv, size_t argc, napi_ref funcRef)
+{
+    napi_value undefined = nullptr;
+    NAPI_CALL_RETURN_VOID(env, napi_get_undefined(env, &undefined));
+    napi_value returnVal;
+    napi_value func = nullptr;
+    NAPI_CALL_RETURN_VOID(env, napi_get_reference_value(env, funcRef, &func));
+    napi_call_function(env, undefined, func, argc, argv, &returnVal);
 }
 } // namespace AccountJsKit
 } // namespace OHOS

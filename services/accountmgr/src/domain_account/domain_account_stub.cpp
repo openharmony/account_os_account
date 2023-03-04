@@ -15,6 +15,7 @@
 
 #include "domain_account_stub.h"
 
+#include <securec.h>
 #include "account_log_wrapper.h"
 #include "account_permission_manager.h"
 #include "domain_auth_callback_proxy.h"
@@ -22,10 +23,6 @@
 
 namespace OHOS {
 namespace AccountSA {
-namespace {
-const size_t MAX_PASSWORD_SIZE = 4096;
-}
-
 DomainAccountStub::DomainAccountStub()
 {}
 
@@ -115,18 +112,13 @@ ErrCode DomainAccountStub::ProcAuth(MessageParcel &data, MessageParcel &reply)
         return ERR_ACCOUNT_COMMON_READ_PARCEL_ERROR;
     }
     auto callback = iface_cast<IDomainAuthCallback>(data.ReadRemoteObject());
-    size_t passwordSize = password.size();
     ErrCode result = ERR_ACCOUNT_COMMON_INVALID_PARAMTER;
-    if (passwordSize > MAX_PASSWORD_SIZE) {
-        ACCOUNT_LOGE("password is too large");
-    } else if (callback == nullptr) {
+    if (callback == nullptr) {
         ACCOUNT_LOGE("callback is nullptr");
     } else {
         result = Auth(info, password, callback);
     }
-    for (size_t i = 0; i < passwordSize; ++i) {
-        password[i] = 0;
-    }
+    (void)memset_s(password.data(), password.size(), 0, password.size());
     if (!reply.WriteInt32(result)) {
         ACCOUNT_LOGE("failed to write auth result");
         return IPC_STUB_WRITE_PARCEL_ERR;
@@ -147,18 +139,13 @@ ErrCode DomainAccountStub::ProcAuthUser(MessageParcel &data, MessageParcel &repl
         return ERR_ACCOUNT_COMMON_READ_PARCEL_ERROR;
     }
     auto callback = iface_cast<IDomainAuthCallback>(data.ReadRemoteObject());
-    size_t passwordSize = password.size();
     ErrCode result = ERR_ACCOUNT_COMMON_INVALID_PARAMTER;
-    if (passwordSize > MAX_PASSWORD_SIZE) {
-        ACCOUNT_LOGE("password is too large");
-    } else if (callback == nullptr) {
+    if (callback == nullptr) {
         ACCOUNT_LOGE("callback is nullptr");
     } else {
         result = AuthUser(userId, password, callback);
     }
-    for (size_t i = 0; i < passwordSize; ++i) {
-        password[i] = 0;
-    }
+    (void)memset_s(password.data(), password.size(), 0, password.size());
     if (!reply.WriteInt32(result)) {
         ACCOUNT_LOGE("failed to write authUser result");
         return IPC_STUB_WRITE_PARCEL_ERR;
