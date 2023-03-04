@@ -368,6 +368,16 @@ void NapiDomainAccountPlugin::GetAuthStatusInfo(
     lockInfo_.count++;
 }
 
+void NapiDomainAccountPlugin::GetDomainAccountInfo(const std::string &domain, const std::string &accountName,
+    const std::shared_ptr<AccountSA::DomainAccountCallback> &callback)
+{}
+
+void NapiDomainAccountPlugin::OnAccountBound(const AccountSA::DomainAccountInfo &info, const int32_t localId)
+{}
+
+void NapiDomainAccountPlugin::OnAccountUnBound(const AccountSA::DomainAccountInfo &info)
+{}
+
 napi_value NapiDomainAccountManager::Init(napi_env env, napi_value exports)
 {
     napi_property_descriptor properties[] = {

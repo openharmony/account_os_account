@@ -32,6 +32,10 @@ public:
         const std::shared_ptr<AccountSA::DomainAuthCallback> &callback) override;
     void GetAuthStatusInfo(const DomainAccountInfo &info,
         const std::shared_ptr<DomainAccountCallback> &callback) override;
+    void GetDomainAccountInfo(const std::string &domain, const std::string &accountName,
+        const std::shared_ptr<DomainAccountCallback> &callback) override;
+    void OnAccountBound(const DomainAccountInfo &info, const int32_t localId) override;
+    void OnAccountUnBound(const DomainAccountInfo &info) override;
 
 private:
     int32_t remainingTimes_;

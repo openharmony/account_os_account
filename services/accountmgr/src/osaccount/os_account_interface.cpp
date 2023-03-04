@@ -362,13 +362,12 @@ ErrCode OsAccountInterface::SendToStorageAccountStart(OsAccountInfo &osAccountIn
     if (err != 0) {
         ReportOsAccountOperationFail(osAccountInfo.GetLocalId(), Constants::OPERATION_ACTIVATE,
             err, "Storage PrepareStartUser failed!");
+        return ERR_OSACCOUNT_SERVICE_STORAGE_PREPARE_START_USER_FAILED;
     }
     ACCOUNT_LOGI("end, Storage PrepareStartUser ret %{public}d.", err);
     FinishTrace(HITRACE_TAG_ACCOUNT_MANAGER);
 #else
-    if (!osAccountInfo.GetIsVerified()) {
-        isUserUnlocked = true;
-    }
+    isUserUnlocked = osAccountInfo.GetIsVerified() ? false : true;
 #endif
     if (isUserUnlocked) {
         osAccountInfo.SetIsVerified(true);
