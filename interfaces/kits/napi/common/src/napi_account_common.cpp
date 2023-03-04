@@ -281,6 +281,19 @@ bool ParseBusinessError(napi_env env, napi_value value, BusinessError &error)
     return true;
 }
 
+bool GetNamedJsFunction(napi_env env, napi_value object, const std::string &name, napi_ref &callback)
+{
+    napi_valuetype valueType = napi_undefined;
+    NAPI_CALL_BASE(env, napi_typeof(env, object, &valueType), false);
+    if (valueType != napi_object) {
+        ACCOUNT_LOGE("invalid object");
+        return false;
+    }
+    napi_value result = nullptr;
+    NAPI_CALL_BASE(env, napi_get_named_property(env, object, name.c_str(), &result), false);
+    return GetCallbackProperty(env, result, callback, 1);
+}
+
 void NapiCallVoidFunction(napi_env env, napi_value *argv, size_t argc, napi_ref funcRef)
 {
     napi_value undefined = nullptr;
@@ -289,6 +302,28 @@ void NapiCallVoidFunction(napi_env env, napi_value *argv, size_t argc, napi_ref 
     napi_value func = nullptr;
     NAPI_CALL_RETURN_VOID(env, napi_get_reference_value(env, funcRef, &func));
     napi_call_function(env, undefined, func, argc, argv, &returnVal);
+}
+
+napi_value CreateAuthResult(
+    napi_env env, const std::vector<uint8_t> &token, int32_t remainTimes, int32_t freezingTime)
+{
+    napi_value object = nullptr;
+    NAPI_CALL(env, napi_create_object(env, &object));
+    if (remainTimes >= 0) {
+        napi_value napiRemainTimes = 0;
+        NAPI_CALL(env, napi_create_uint32(env, remainTimes, &napiRemainTimes));
+        NAPI_CALL(env, napi_set_named_property(env, object, "remainTimes", napiRemainTimes));
+    }
+    if (freezingTime >= 0) {
+        napi_value napiFreezingTimes = 0;
+        NAPI_CALL(env, napi_create_uint32(env, freezingTime, &napiFreezingTimes));
+        NAPI_CALL(env, napi_set_named_property(env, object, "freezingTime", napiFreezingTimes));
+    }
+    if (token.size() > 0) {
+        napi_value napiToken = CreateUint8Array(env, token.data(), token.size());
+        NAPI_CALL(env, napi_set_named_property(env, object, "token", napiToken));
+    }
+    return object;
 }
 } // namespace AccountJsKit
 } // namespace OHOS
