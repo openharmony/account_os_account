@@ -16,6 +16,7 @@
 #ifndef OS_ACCOUNT_INTERFACES_KITS_NAPI_DOMAIN_ACCOUNT_INCLUDE_NAPI_DOMAIN_ACCOUNT_MANAGER_H
 #define OS_ACCOUNT_INTERFACES_KITS_NAPI_DOMAIN_ACCOUNT_INCLUDE_NAPI_DOMAIN_ACCOUNT_MANAGER_H
 
+#include "domain_account_common.h"
 #include "domain_account_plugin.h"
 #include "domain_auth_callback.h"
 #include "napi/native_api.h"
@@ -24,8 +25,14 @@
 
 namespace OHOS {
 namespace AccountJsKit {
+namespace {
+const int32_t INVALID_PARAMETER = -1;
+}
+
 struct JsDomainPlugin {
     napi_ref auth = nullptr;
+    napi_ref authWithPopup = nullptr;
+    napi_ref authWithToken = nullptr;
     napi_ref getAuthStatusInfo = nullptr;
 };
 
@@ -34,10 +41,15 @@ struct JsDomainPluginParam {
     napi_env env = nullptr;
     napi_ref func = nullptr;
     AccountSA::DomainAccountInfo domainAccountInfo;
-    std::vector<uint8_t> credential;
     std::shared_ptr<AccountSA::DomainAuthCallback> authCallback = nullptr;
     std::shared_ptr<AccountSA::DomainAccountCallback> callback = nullptr;
     ThreadLockInfo *lockInfo;
+    int32_t userId = 0;
+    AccountSA::AuthMode authMode;
+    std::vector<uint8_t> authData;
+    int32_t resultCode = 0;
+    int32_t remainingTimes = INVALID_PARAMETER;
+    int32_t freezingTime = INVALID_PARAMETER;
 };
 
 class NapiDomainAccountPlugin final: public AccountSA::DomainAccountPlugin {
@@ -54,6 +66,10 @@ public:
         const std::shared_ptr<AccountSA::DomainAccountCallback> &callback) override;
 
 private:
+    void AuthCommon(AccountSA::AuthMode authMode, const AccountSA::DomainAccountInfo &info,
+        const std::vector<uint8_t> &authData, const std::shared_ptr<AccountSA::DomainAuthCallback> &callback);
+
+private:
     napi_env env_;
     JsDomainPlugin jsPlugin_;
     ThreadLockInfo lockInfo_;
@@ -67,6 +83,8 @@ private:
     static napi_value JsConstructor(napi_env env, napi_callback_info cbInfo);
     static napi_value RegisterPlugin(napi_env env, napi_callback_info cbInfo);
     static napi_value UnregisterPlugin(napi_env env, napi_callback_info cbInfo);
+    static napi_value Auth(napi_env env, napi_callback_info cbInfo);
+    static napi_value AuthWithPopup(napi_env env, napi_callback_info cbInfo);
 };
 }  // namespace AccountJsKit
 }  // namespace OHOS
