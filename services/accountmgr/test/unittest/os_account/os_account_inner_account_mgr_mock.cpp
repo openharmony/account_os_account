@@ -443,6 +443,7 @@ HWTEST_F(OsAccountInnerAccmgrCoverageTest, OsAccountInnerAccmgrCoverageTest011, 
  * @tc.type: FUNC
  * @tc.require:
  */
+#ifdef DOMAIN_ACCOUNT_TEST_CASE
 HWTEST_F(OsAccountInnerAccmgrCoverageTest, OsAccountInnerAccmgrCoverageTest012, TestSize.Level1)
 {
     int ret;
@@ -488,6 +489,7 @@ HWTEST_F(OsAccountInnerAccmgrCoverageTest, OsAccountInnerAccmgrCoverageTest012, 
 
     DelayedSingleton<IInnerOsAccountManager>::DestroyInstance();
 }
+#endif // DOMAIN_ACCOUNT_TEST_CASE
 
 /*
  * @tc.name: OsAccountInnerAccmgrCoverageTest013
