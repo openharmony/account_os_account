@@ -42,8 +42,10 @@ const int32_t DEFAULT_USER_ID = 100;
 const int32_t TEST_USER_ID = 200;
 const int32_t TEST_MODULE = 5;
 const int32_t TEST_ACQUIRE_INFO = 10;
+#ifdef DOMAIN_ACCOUNT_TEST_CASE
 const int32_t INFO_LIST_SIZE_ONE = 1;
 const int32_t INFO_LIST_SIZE_ZERO = 0;
+#endif // DOMAIN_ACCOUNT_TEST_CASE
 const static AccessTokenID g_accountMgrTokenID = AccessTokenKit::GetNativeTokenId("accountmgr");
 } // namespace
 
@@ -569,6 +571,7 @@ HWTEST_F(AccountIamCallbackTest, GetPropCallbackWrapper_OnResult_0100, TestSize.
  * @tc.type: FUNC
  * @tc.require: issuesI64KAM
  */
+#ifdef DOMAIN_ACCOUNT_TEST_CASE
 HWTEST_F(AccountIamCallbackTest, GetCredInfoCallbackWrapper_OnCredentialInfo_0200, TestSize.Level0)
 {
     DomainAccountInfo domainInfo;
@@ -636,6 +639,7 @@ HWTEST_F(AccountIamCallbackTest, GetCredInfoCallbackWrapper_OnCredentialInfo_040
     EXPECT_EQ(OsAccountManager::RemoveOsAccount(accountInfo.GetLocalId()), ERR_OK);
     ASSERT_EQ(DomainAccountClient::GetInstance().UnregisterPlugin(), ERR_OK);
 }
+#endif // DOMAIN_ACCOUNT_TEST_CASE
 
 /**
  * @tc.name: SetPropCallbackWrapper_OnResult_0100

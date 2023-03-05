@@ -58,11 +58,6 @@ ohos_unittest("account_mgr_test") {
     "//third_party/mbedtls:mbedtls",
   ]
 
-  if (has_user_idm_part) {
-    cflags_cc += [ "-DHAS_USER_IDM_PART" ]
-    deps += [ "//base/useriam/user_auth_framework/frameworks/native/client:userauth_client" ]
-  }
-
   external_deps = [
     "ability_base:base",
     "ability_base:want",
@@ -79,6 +74,11 @@ ohos_unittest("account_mgr_test") {
     "samgr:samgr_proxy",
     "storage_service:storage_manager_sa_proxy",
   ]
+
+  if (has_user_idm_part) {
+    cflags_cc += [ "-DHAS_USER_IDM_PART" ]
+    external_deps += [ "user_auth_framework:userauth_client" ]
+  }
 
   if (has_ces_part) {
     cflags_cc += [ "-DHAS_CES_PART" ]

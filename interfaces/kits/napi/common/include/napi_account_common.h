@@ -16,13 +16,21 @@
 #ifndef OS_ACCOUNT_INTERFACES_KITS_COMMON_INCLUDE_NAPI_ACCOUNT_COMMON_H
 #define OS_ACCOUNT_INTERFACES_KITS_COMMON_INCLUDE_NAPI_ACCOUNT_COMMON_H
 
+#include <mutex>
 #include <string>
+#include <uv.h>
 
 #include "account_error_no.h"
 #include "napi/native_api.h"
 
 namespace OHOS {
 namespace AccountJsKit {
+struct ThreadLockInfo {
+    std::mutex mutex;
+    std::condition_variable condition;
+    int32_t count = 0;
+};
+
 struct CommonAsyncContext {
     CommonAsyncContext() {};
     explicit CommonAsyncContext(napi_env napiEnv) : env(napiEnv) {};
@@ -36,8 +44,13 @@ struct CommonAsyncContext {
     bool throwErr = false;
 };
 
-void ProcessCallbackOrPromise(napi_env env, const CommonAsyncContext *asyncContext, napi_value err, napi_value data);
+struct BusinessError {
+    int32_t code = 0;
+    std::string data;
+};
 
+void ProcessCallbackOrPromise(napi_env env, const CommonAsyncContext *asyncContext, napi_value err, napi_value data);
+bool CreateExecEnv(napi_env env, uv_loop_s **loop, uv_work_t **work);
 bool GetCallbackProperty(napi_env env, napi_value obj, napi_ref &property, int argNum);
 bool GetIntProperty(napi_env env, napi_value obj, int32_t &property);
 bool GetLongIntProperty(napi_env env, napi_value obj, int64_t &property);
@@ -48,11 +61,16 @@ bool GetStringPropertyByKey(napi_env env, napi_value obj, const std::string &pro
 bool GetOptionalStringPropertyByKey(napi_env env, napi_value obj, const std::string &propertyName,
     std::string &property);
 bool IsSystemApp(napi_env env);
+bool ParseBusinessError(napi_env env, napi_value value, BusinessError &error);
+bool GetNamedJsFunction(napi_env env, napi_value object, const std::string &name, napi_ref &callback);
 napi_value CreateStringArray(napi_env env, const std::vector<std::string> &strVec);
 napi_value CreateUint8Array(napi_env env, const uint8_t *data, size_t length);
 napi_status ParseUint8TypedArray(napi_env env, napi_value value, uint8_t **data, size_t *length);
 napi_status ParseUint8TypedArrayToVector(napi_env env, napi_value value, std::vector<uint8_t> &vec);
 napi_status ParseUint8TypedArrayToUint64(napi_env env, napi_value value, uint64_t &result);
+void NapiCallVoidFunction(napi_env env, napi_value *argv, size_t argc, napi_ref funcRef);
+napi_value CreateAuthResult(
+    napi_env env, const std::vector<uint8_t> &authData, int32_t remainTimes, int32_t freezingTime);
 } // namespace AccountJsKit
 } // namespace OHOS
 

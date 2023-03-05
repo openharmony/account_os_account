@@ -138,7 +138,6 @@ ohos_unittest("OsAccountSubscribeDeathRecipientTest") {
     "${common_path}:libaccount_common",
     "${os_account_innerkits_native_path}:os_account_innerkits",
     "${services_path}/accountmgr:accountmgr",
-    "//base/useriam/user_auth_framework/frameworks/native/client:userauth_client",
     "//third_party/googletest:gmock_main",
     "//third_party/googletest:gtest_main",
   ]
@@ -150,6 +149,7 @@ ohos_unittest("OsAccountSubscribeDeathRecipientTest") {
     "hiviewdfx_hilog_native:libhilog",
     "ipc:ipc_core",
     "samgr:samgr_proxy",
+    "user_auth_framework:userauth_client",
   ]
   part_name = "os_account"
 }
@@ -192,7 +192,6 @@ ohos_unittest("OsAccountInnerAccmgrCovTest") {
     "${os_account_innerkits_native_path}:os_account_innerkits",
     "${services_path}/accountmgr:accountmgr",
     "//base/security/access_token/interfaces/innerkits/token_setproc:libtoken_setproc",
-    "//base/useriam/user_auth_framework/frameworks/native/client:userauth_client",
     "//third_party/googletest:gmock_main",
     "//third_party/googletest:gtest_main",
   ]
@@ -206,6 +205,7 @@ ohos_unittest("OsAccountInnerAccmgrCovTest") {
     "ipc:ipc_core",
     "kv_store:distributeddata_inner",
     "samgr:samgr_proxy",
+    "user_auth_framework:userauth_client",
   ]
   if (has_ces_part) {
     cflags_cc += [ "-DHAS_CES_PART" ]
@@ -250,7 +250,6 @@ ohos_unittest("OsAccountInnerAccmgrMockTest") {
     "${os_account_core_path}:os_account_core",
     "${os_account_innerkits_native_path}:os_account_innerkits",
     "${services_path}/accountmgr:accountmgr",
-    "//base/useriam/user_auth_framework/frameworks/native/client:userauth_client",
     "//third_party/googletest:gmock_main",
     "//third_party/googletest:gtest_main",
   ]
@@ -263,6 +262,7 @@ ohos_unittest("OsAccountInnerAccmgrMockTest") {
     "ipc:ipc_core",
     "kv_store:distributeddata_inner",
     "samgr:samgr_proxy",
+    "user_auth_framework:userauth_client",
   ]
   part_name = "os_account"
 }

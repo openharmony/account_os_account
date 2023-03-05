@@ -131,9 +131,10 @@ HWTEST_F(AppAccountManagerServiceThreadModuleTest, AppAccountManagerServiceThrea
 {
     ACCOUNT_LOGI("AppAccountManagerServiceThread_AddAccount_0100");
 
-    Callback callbackAdd = std::bind(&AppAccountManagerServiceThreadModuleTest::AddAccount, this,
+    auto callbackAdd = std::bind(&AppAccountManagerServiceThreadModuleTest::AddAccount, this,
         appAccountManagerServicePtr_);
-    handler_->PostTask(callbackAdd);
+    std::thread thread1(callbackAdd);
+    thread1.detach();
 
     std::this_thread::sleep_for(std::chrono::milliseconds(DELAY_FOR_OPERATION));
 
@@ -142,9 +143,10 @@ HWTEST_F(AppAccountManagerServiceThreadModuleTest, AppAccountManagerServiceThrea
     EXPECT_EQ(result, ERR_OK);
     ASSERT_EQ(appAccounts.size(), SIZE_ONE);
 
-    Callback callbackDel = std::bind(&AppAccountManagerServiceThreadModuleTest::DeleteAccount, this,
+    auto callbackDel = std::bind(&AppAccountManagerServiceThreadModuleTest::DeleteAccount, this,
         appAccountManagerServicePtr_);
-    handler_->PostTask(callbackDel);
+    std::thread thread2(callbackDel);
+    thread2.detach();
 
     std::this_thread::sleep_for(std::chrono::milliseconds(DELAY_FOR_OPERATION));
 
@@ -166,9 +168,11 @@ HWTEST_F(AppAccountManagerServiceThreadModuleTest, AppAccountManagerServiceThrea
     ErrCode result = appAccountManagerServicePtr_->AddAccount(STRING_NAME, STRING_EXTRA_INFO);
     EXPECT_EQ(result, ERR_OK);
 
-    Callback callback = std::bind(&AppAccountManagerServiceThreadModuleTest::DeleteAccount, this,
+    auto callback = std::bind(&AppAccountManagerServiceThreadModuleTest::DeleteAccount, this,
         appAccountManagerServicePtr_);
-    handler_->PostTask(callback);
+    std::thread thread(callback);
+    thread.detach();
+
 
     std::this_thread::sleep_for(std::chrono::milliseconds(DELAY_FOR_OPERATION));
 
@@ -192,13 +196,15 @@ HWTEST_F(
     ErrCode result = appAccountManagerServicePtr_->AddAccount(STRING_NAME, STRING_EXTRA_INFO);
     EXPECT_EQ(result, ERR_OK);
 
-    Callback callbackSetAss = std::bind(&AppAccountManagerServiceThreadModuleTest::SetAssociatedData, this,
+    auto callbackSetAss = std::bind(&AppAccountManagerServiceThreadModuleTest::SetAssociatedData, this,
         appAccountManagerServicePtr_);
-    handler_->PostTask(callbackSetAss);
+    std::thread thread1(callbackSetAss);
+    thread1.detach();
 
     Callback callbackSetTwo = std::bind(&AppAccountManagerServiceThreadModuleTest::SetAssociatedDataTwo, this,
         appAccountManagerServicePtr_);
-    handler_->PostTask(callbackSetTwo);
+    std::thread thread2(callbackSetTwo);
+    thread2.detach();
 
     std::this_thread::sleep_for(std::chrono::milliseconds(DELAY_FOR_OPERATION));
 
@@ -213,7 +219,8 @@ HWTEST_F(
 
     Callback callbackDel = std::bind(&AppAccountManagerServiceThreadModuleTest::DeleteAccount, this,
         appAccountManagerServicePtr_);
-    handler_->PostTask(callbackDel);
+    std::thread thread3(callbackDel);
+    thread3.detach();
 
     std::this_thread::sleep_for(std::chrono::milliseconds(DELAY_FOR_OPERATION));
 

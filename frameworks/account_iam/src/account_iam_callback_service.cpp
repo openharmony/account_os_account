@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2022 Huawei Device Co., Ltd.
+ * Copyright (c) 2022-2023 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -83,8 +83,8 @@ void DomainAuthCallbackAdapter::OnResult(int32_t resultCode, const DomainAuthRes
     }
     Attributes attr;
     attr.SetUint8ArrayValue(Attributes::AttributeKey::ATTR_SIGNATURE, result.token);
-    attr.SetInt32Value(Attributes::AttributeKey::ATTR_REMAIN_TIMES, result.authProperty.remainingTimes);
-    attr.SetInt32Value(Attributes::AttributeKey::ATTR_FREEZING_TIME, result.authProperty.freezingTime);
+    attr.SetInt32Value(Attributes::AttributeKey::ATTR_REMAIN_TIMES, result.authStatusInfo.remainingTimes);
+    attr.SetInt32Value(Attributes::AttributeKey::ATTR_FREEZING_TIME, result.authStatusInfo.freezingTime);
     callback_->OnResult(resultCode, attr);
 }
 

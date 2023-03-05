@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2022 Huawei Device Co., Ltd.
+ * Copyright (c) 2022-2023 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -19,6 +19,7 @@
 #include <string>
 #include <iremote_broker.h>
 #include "domain_account_common.h"
+#include "idomain_account_callback.h"
 #include "idomain_auth_callback.h"
 
 namespace OHOS {
@@ -28,12 +29,23 @@ public:
     DECLARE_INTERFACE_DESCRIPTOR(u"ohos.accountfwk.IDomainAccountPlugin");
     enum Message {
         DOMAIN_PLUGIN_AUTH = 0,
-        DOMAIN_PLUGIN_GET_AUTH_PROPERTY = 1,
+        DOMAIN_PLUGIN_GET_AUTH_STATUS_INFO = 1,
+        DOMAIN_PLUGIN_GET_DOMAIN_ACCOUNT_INFO = 2,
+        DOMAIN_PLUGIN_ON_ACCOUNT_BOUND = 3,
+        DOMAIN_PLUGIN_ON_ACCOUNT_UNBOUND = 4,
     };
 
     virtual ErrCode Auth(const DomainAccountInfo &info, const std::vector<uint8_t> &password,
         const sptr<IDomainAuthCallback> &callback) = 0;
-    virtual ErrCode GetAuthProperty(const DomainAccountInfo &info, DomainAuthProperty &property) = 0;
+    virtual ErrCode AuthWithPopup(const DomainAccountInfo &info, const sptr<IDomainAuthCallback> &callback) = 0;
+    virtual ErrCode AuthWithToken(const DomainAccountInfo &info, const std::vector<uint8_t> &token,
+        const sptr<IDomainAuthCallback> &callback) = 0;
+    virtual ErrCode GetAuthStatusInfo(const DomainAccountInfo &info,
+        const sptr<IDomainAccountCallback> &callback) = 0;
+    virtual ErrCode GetDomainAccountInfo(
+        const std::string &domain, const std::string &accountName, const sptr<IDomainAccountCallback> &callback) = 0;
+    virtual ErrCode OnAccountBound(const DomainAccountInfo &info, const int32_t localId) = 0;
+    virtual ErrCode OnAccountUnBound(const DomainAccountInfo &info) = 0;
 };
 }  // namespace AccountSA
 }  // namespace OHOS

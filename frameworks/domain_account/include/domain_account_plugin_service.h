@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2022 Huawei Device Co., Ltd.
+ * Copyright (c) 2022-2023 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -30,9 +30,18 @@ public:
     ~DomainAccountPluginService() override;
     ErrCode Auth(const DomainAccountInfo &info, const std::vector<uint8_t> &password,
         const sptr<IDomainAuthCallback> &callback) override;
-    ErrCode GetAuthProperty(const DomainAccountInfo &info, DomainAuthProperty &property) override;
+    ErrCode AuthWithPopup(const DomainAccountInfo &info, const sptr<IDomainAuthCallback> &callback) override;
+    ErrCode AuthWithToken(const DomainAccountInfo &info, const std::vector<uint8_t> &token,
+        const sptr<IDomainAuthCallback> &callback) override;
+    ErrCode GetAuthStatusInfo(const DomainAccountInfo &info, const sptr<IDomainAccountCallback> &callback) override;
+    ErrCode GetDomainAccountInfo(const std::string &domain, const std::string &accountName,
+        const sptr<IDomainAccountCallback> &callback) override;
+    ErrCode OnAccountBound(const DomainAccountInfo &info, const int32_t localId) override;
+    ErrCode OnAccountUnBound(const DomainAccountInfo &info) override;
 
 private:
+    ErrCode AuthCommonInterface(const DomainAccountInfo &info, const std::vector<uint8_t> &authData,
+        const sptr<IDomainAuthCallback> &callback, AuthMode authMode);
     std::shared_ptr<DomainAccountPlugin> innerPlugin_;
     DISALLOW_COPY_AND_MOVE(DomainAccountPluginService);
 };

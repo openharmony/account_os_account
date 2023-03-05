@@ -19,7 +19,6 @@ group("fuzztest") {
     # deps file
     "activateosaccount_fuzzer:ActivateOsAccountFuzzTest",
     "createosaccount_fuzzer:CreateOsAccountFuzzTest",
-    "createosaccountfordomain_fuzzer:CreateOsAccountForDomainFuzzTest",
     "getbundleidfromuid_fuzzer:GetBundleIdFromUidFuzzTest",
     "getcreatedosaccountnumfromdatabase_fuzzer:GetCreatedOsAccountNumFromDatabaseFuzzTest",
     "getcreatedosaccountscount_fuzzer:GetCreatedOsAccountsCountFuzzTest",

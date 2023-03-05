@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2022 Huawei Device Co., Ltd.
+ * Copyright (c) 2022-2023 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -76,7 +76,8 @@ private:
     ErrCode UpdateStorageKey(int32_t userId, const std::vector<uint8_t> &token,
         const std::vector<uint8_t> &oldSecret, const std::vector<uint8_t> &newSecret);
     ErrCode GetStorageManagerProxy();
-    ErrCode GetDomainAuthProperty(int32_t userId, DomainAuthProperty &property);
+    ErrCode GetDomainAuthStatusInfo(
+        int32_t userId, const GetPropertyRequest &request, const sptr<IGetSetPropCallback> &callback);
 
 private:
     std::mutex mutex_;

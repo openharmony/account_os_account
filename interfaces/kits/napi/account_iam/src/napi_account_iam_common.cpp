@@ -371,27 +371,6 @@ static void CreateExecutorProperty(napi_env env, GetPropertyContext &prop, napi_
     }
 }
 
-napi_value CreateAuthResult(napi_env env, const std::vector<uint8_t> &token, int32_t remainTimes, int32_t freezingTime)
-{
-    napi_value object = nullptr;
-    NAPI_CALL(env, napi_create_object(env, &object));
-    if (remainTimes >= 0) {
-        napi_value napiRemainTimes = 0;
-        napi_create_uint32(env, remainTimes, &napiRemainTimes);
-        napi_set_named_property(env, object, "remainTimes", napiRemainTimes);
-    }
-    if (remainTimes >= 0) {
-        napi_value napiFreezingTimes = 0;
-        napi_create_uint32(env, freezingTime, &napiFreezingTimes);
-        napi_set_named_property(env, object, "freezingTime", napiFreezingTimes);
-    }
-    if (token.size() > 0) {
-        napi_value napiToken = CreateUint8Array(env, token.data(), token.size());
-        napi_set_named_property(env, object, "token", napiToken);
-    }
-    return object;
-}
-
 static void OnUserAuthResultWork(uv_work_t *work, int status)
 {
     AuthCallbackParam *param = reinterpret_cast<AuthCallbackParam *>(work->data);
@@ -737,32 +716,57 @@ static napi_status GetInputerInstance(InputerContext *context, napi_value *input
 
 static void OnGetDataWork(uv_work_t* work, int status)
 {
-    InputerContext *context = reinterpret_cast<InputerContext *>(work->data);
-    if (context == nullptr) {
-        ACCOUNT_LOGE("context is null");
+    if (work == nullptr) {
+        ACCOUNT_LOGE("work is nullptr");
+        return;
+    }
+    if (work->data == nullptr) {
+        ACCOUNT_LOGE("data is nullptr");
         delete work;
         return;
     }
-    std::unique_ptr<uv_work_t> workPtr(work);
-    std::unique_ptr<InputerContext> contextPtr(context);
+    InputerContext *context = reinterpret_cast<InputerContext *>(work->data);
     napi_value argv[ARG_SIZE_TWO] = {0};
     napi_value return_val;
     napi_value callback;
-    NAPI_CALL_RETURN_VOID(context->env, napi_create_int32(context->env, context->authSubType, &argv[PARAM_ZERO]));
-    NAPI_CALL_RETURN_VOID(context->env, GetInputerInstance(context, &argv[PARAM_ONE]));
-    NAPI_CALL_RETURN_VOID(context->env, napi_get_reference_value(context->env, context->callback, &callback));
-    NAPI_CALL_RETURN_VOID(context->env,
-        napi_call_function(context->env, nullptr, callback, ARG_SIZE_TWO, argv, &return_val));
+    napi_create_int32(context->env, context->authSubType, &argv[PARAM_ZERO]);
+    GetInputerInstance(context, &argv[PARAM_ONE]);
+    napi_status napiStatus = napi_get_reference_value(context->env, context->callback, &callback);
+    if (napiStatus == napi_ok) {
+        napi_call_function(context->env, nullptr, callback, ARG_SIZE_TWO, argv, &return_val);
+    }
+    std::unique_lock<std::mutex> lock(context->lockInfo->mutex);
+    context->lockInfo->count--;
+    context->lockInfo->condition.notify_all();
+    delete context;
+    delete work;
 }
 
 NapiGetDataCallback::NapiGetDataCallback(napi_env env, napi_ref callback) : env_(env), callback_(callback)
 {}
 
 NapiGetDataCallback::~NapiGetDataCallback()
-{}
+{
+    std::unique_lock<std::mutex> lock(lockInfo_.mutex);
+    lockInfo_.condition.wait(lock, [this] { return this->lockInfo_.count == 0; });
+    lockInfo_.count--;
+    if ((env_ != nullptr) && (callback_ != nullptr)) {
+        napi_delete_reference(env_, callback_);
+        callback_ = nullptr;
+    }
+}
 
 void NapiGetDataCallback::OnGetData(int32_t authSubType, const std::shared_ptr<AccountSA::IInputerData> inputerData)
 {
+    std::unique_lock<std::mutex> lock(lockInfo_.mutex);
+    if (lockInfo_.count < 0) {
+        ACCOUNT_LOGE("the inputer has been released");
+        return;
+    }
+    if (callback_ == nullptr) {
+        ACCOUNT_LOGE("the onGetData function is undefined");
+        return;
+    }
     std::unique_ptr<uv_work_t> work = std::make_unique<uv_work_t>();
     std::unique_ptr<InputerContext> context = std::make_unique<InputerContext>();
     uv_loop_s *loop = nullptr;
@@ -775,8 +779,14 @@ void NapiGetDataCallback::OnGetData(int32_t authSubType, const std::shared_ptr<A
     context->callback = callback_;
     context->authSubType = authSubType;
     context->inputerData = inputerData;
+    context->lockInfo = &lockInfo_;
     work->data = reinterpret_cast<void *>(context.get());
-    NAPI_CALL_RETURN_VOID(env_, uv_queue_work(loop, work.get(), [] (uv_work_t *work) {}, OnGetDataWork));
+    int errCode = uv_queue_work(loop, work.get(), [] (uv_work_t *work) {}, OnGetDataWork);
+    if (errCode != 0) {
+        ACCOUNT_LOGE("failed to uv_queue_work, errCode: %{public}d", errCode);
+        return;
+    }
+    lockInfo_.count++;
     work.release();
     context.release();
 }

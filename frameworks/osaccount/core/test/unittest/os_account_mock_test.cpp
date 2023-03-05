@@ -89,6 +89,7 @@ HWTEST_F(OsAccountMockTest, CreateOsAccountMockTest001, TestSize.Level1)
  * @tc.type: FUNC
  * @tc.require:
  */
+#ifdef DOMAIN_ACCOUNT_TEST_CASE
 HWTEST_F(OsAccountMockTest, CreateOsAccountForDomainMockTest001, TestSize.Level1)
 {
     OsAccountType type = NORMAL;
@@ -97,6 +98,7 @@ HWTEST_F(OsAccountMockTest, CreateOsAccountForDomainMockTest001, TestSize.Level1
     EXPECT_EQ(ERR_OSACCOUNT_KIT_GET_SYSTEM_ABILITY_MANAGER_ERROR,
         g_osAccount->CreateOsAccountForDomain(type, domainInfo, osAccountInfo));
 }
+#endif // DOMAIN_ACCOUNT_TEST_CASE
 
 /**
  * @tc.name: RemoveOsAccountMockTest001

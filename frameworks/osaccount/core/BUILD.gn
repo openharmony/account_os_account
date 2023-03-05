@@ -41,6 +41,7 @@ config("os_account_core_config") {
 
 config("os_account_core_public_config") {
   include_dirs = [
+    "${domain_account_framework_path}/include",
     "${domain_account_interfaces_native_path}/include",
     "${os_account_core_path}/include",
     "${os_account_interfaces_native_path}/include",
@@ -62,6 +63,7 @@ config("os_account_core_all_dependent_configs") {
 
 ohos_shared_library("os_account_core") {
   sources = [
+    "${domain_account_framework_path}/src/domain_account_callback_service.cpp",
     "${os_account_core_path}/src/os_account.cpp",
     "${os_account_core_path}/src/os_account_death_recipient.cpp",
     "${os_account_core_path}/src/os_account_event_listener.cpp",
@@ -71,6 +73,7 @@ ohos_shared_library("os_account_core") {
     "${os_account_innerkits_native_path}/src/os_account_info.cpp",
     "${os_account_innerkits_native_path}/src/os_account_subscribe_info.cpp",
     "${os_account_innerkits_native_path}/src/os_account_subscriber.cpp",
+    "${os_account_path}/frameworks/domain_account/src/domain_account_common.cpp",
   ]
 
   configs = [
@@ -90,6 +93,8 @@ ohos_shared_library("os_account_core") {
     "${common_path}:libaccount_common",
     "${innerkits_native_path}:libaccountkits",
   ]
+
+  public_deps = [ "${domain_account_framework_path}:domain_account_innerkits" ]
 
   external_deps = [
     "ability_base:want",

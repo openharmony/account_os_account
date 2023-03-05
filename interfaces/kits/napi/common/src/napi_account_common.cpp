@@ -30,9 +30,27 @@ namespace OHOS {
 namespace AccountJsKit {
 namespace {
 constexpr int32_t BUSINESS_ERROR_ARG_SIZE = 2;
+const char BUSINESS_ERROR_CODE_NAME[] = "code";
+const char BUSINESS_ERROR_DATA_NAME[] = "data";
 }
 
 using namespace AccountSA;
+
+bool CreateExecEnv(napi_env env, uv_loop_s **loop, uv_work_t **work)
+{
+    *loop = nullptr;
+    napi_get_uv_event_loop(env, loop);
+    if (*loop == nullptr) {
+        ACCOUNT_LOGE("failed to get uv event loop");
+        return false;
+    }
+    *work = new (std::nothrow) uv_work_t;
+    if (*work == nullptr) {
+        ACCOUNT_LOGE("failed to create uv_work_t");
+        return false;
+    }
+    return true;
+}
 
 void ProcessCallbackOrPromise(napi_env env, const CommonAsyncContext *asyncContext, napi_value err, napi_value data)
 {
@@ -258,6 +276,70 @@ napi_status ParseUint8TypedArrayToUint64(napi_env env, napi_value value, uint64_
     }
     result = *(reinterpret_cast<uint64_t *>(data));
     return napi_ok;
+}
+
+bool ParseBusinessError(napi_env env, napi_value value, BusinessError &error)
+{
+    napi_value napiCode = nullptr;
+    NAPI_CALL_BASE(env, napi_get_named_property(env, value, BUSINESS_ERROR_CODE_NAME, &napiCode), false);
+    if (napiCode == nullptr) {
+        ACCOUNT_LOGE("code is undefined");
+        return false;
+    }
+    NAPI_CALL_BASE(env, napi_get_value_int32(env, napiCode, &error.code), false);
+    bool hasData = false;
+    napi_has_named_property(env, value, BUSINESS_ERROR_DATA_NAME, &hasData);
+    if (hasData) {
+        napi_value napiData = nullptr;
+        napi_get_named_property(env, value, BUSINESS_ERROR_DATA_NAME, &napiData);
+        return GetStringProperty(env, napiData, error.data);
+    }
+    return true;
+}
+
+bool GetNamedJsFunction(napi_env env, napi_value object, const std::string &name, napi_ref &callback)
+{
+    napi_valuetype valueType = napi_undefined;
+    NAPI_CALL_BASE(env, napi_typeof(env, object, &valueType), false);
+    if (valueType != napi_object) {
+        ACCOUNT_LOGE("invalid object");
+        return false;
+    }
+    napi_value result = nullptr;
+    NAPI_CALL_BASE(env, napi_get_named_property(env, object, name.c_str(), &result), false);
+    return GetCallbackProperty(env, result, callback, 1);
+}
+
+void NapiCallVoidFunction(napi_env env, napi_value *argv, size_t argc, napi_ref funcRef)
+{
+    napi_value undefined = nullptr;
+    NAPI_CALL_RETURN_VOID(env, napi_get_undefined(env, &undefined));
+    napi_value returnVal;
+    napi_value func = nullptr;
+    NAPI_CALL_RETURN_VOID(env, napi_get_reference_value(env, funcRef, &func));
+    napi_call_function(env, undefined, func, argc, argv, &returnVal);
+}
+
+napi_value CreateAuthResult(
+    napi_env env, const std::vector<uint8_t> &token, int32_t remainTimes, int32_t freezingTime)
+{
+    napi_value object = nullptr;
+    NAPI_CALL(env, napi_create_object(env, &object));
+    if (remainTimes >= 0) {
+        napi_value napiRemainTimes = 0;
+        NAPI_CALL(env, napi_create_uint32(env, remainTimes, &napiRemainTimes));
+        NAPI_CALL(env, napi_set_named_property(env, object, "remainTimes", napiRemainTimes));
+    }
+    if (freezingTime >= 0) {
+        napi_value napiFreezingTimes = 0;
+        NAPI_CALL(env, napi_create_uint32(env, freezingTime, &napiFreezingTimes));
+        NAPI_CALL(env, napi_set_named_property(env, object, "freezingTime", napiFreezingTimes));
+    }
+    if (token.size() > 0) {
+        napi_value napiToken = CreateUint8Array(env, token.data(), token.size());
+        NAPI_CALL(env, napi_set_named_property(env, object, "token", napiToken));
+    }
+    return object;
 }
 } // namespace AccountJsKit
 } // namespace OHOS

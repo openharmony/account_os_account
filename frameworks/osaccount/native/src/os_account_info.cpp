@@ -35,6 +35,7 @@ const std::string IS_ACCOUNT_COMPLETED = "isCreateCompleted";
 const std::string DOMAIN_INFO = "domainInfo";
 const std::string DOMAIN_NAME = "domain";
 const std::string DOMAIN_ACCOUNT_NAME = "accountName";
+const std::string DOMAIN_ACCOUNT_ID = "accountId";
 const std::string TO_BE_REMOVED = "toBeRemoved";
 }  // namespace
 
@@ -141,6 +142,7 @@ bool OsAccountInfo::SetDomainInfo(const DomainAccountInfo &domainInfo)
     }
     domainInfo_.accountName_ = domainInfo.accountName_;
     domainInfo_.domain_ = domainInfo.domain_;
+    domainInfo_.accountId_ = domainInfo.accountId_;
     return true;
 }
 
@@ -148,6 +150,7 @@ void OsAccountInfo::GetDomainInfo(DomainAccountInfo &domainInfo) const
 {
     domainInfo.accountName_ = domainInfo_.accountName_;
     domainInfo.domain_ = domainInfo_.domain_;
+    domainInfo.accountId_ = domainInfo_.accountId_;
 }
 
 bool OsAccountInfo::GetIsActived() const
@@ -208,6 +211,7 @@ Json OsAccountInfo::ToJson() const
         {DOMAIN_INFO, {
             {DOMAIN_NAME, domainInfo_.domain_},
             {DOMAIN_ACCOUNT_NAME, domainInfo_.accountName_},
+            {DOMAIN_ACCOUNT_ID, domainInfo_.accountId_},
         },
         }
     };
@@ -262,6 +266,8 @@ void OsAccountInfo::FromJson(const Json &jsonObject)
         typeJson, typeJson.end(), DOMAIN_NAME, domainInfo_.domain_, OHOS::AccountSA::JsonType::STRING);
     OHOS::AccountSA::GetDataByType<std::string>(
         typeJson, typeJson.end(), DOMAIN_ACCOUNT_NAME, domainInfo_.accountName_, OHOS::AccountSA::JsonType::STRING);
+    OHOS::AccountSA::GetDataByType<std::string>(
+        typeJson, typeJson.end(), DOMAIN_ACCOUNT_ID, domainInfo_.accountId_, OHOS::AccountSA::JsonType::STRING);
 }
 
 bool OsAccountInfo::Marshalling(Parcel &parcel) const
