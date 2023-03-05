@@ -65,6 +65,7 @@ static const std::unordered_map<uint32_t, std::string> g_errorStringMap = {
      "Application account customized data not found, please use existed customized data and try again"},
     {ERR_JS_AUTH_TYPE_NOT_FOUND, "Application account auth type not found, please use existed auth type"},
     {ERR_JS_PERMISSION_DENIED, "Permission denied"},
+    {ERR_JS_PLUGIN_NETWORK_EXCEPTION, "Network exception"},
 };
 
 napi_value GenerateBusinessError(napi_env env, int32_t jsErrCode, const std::string &jsErrMsg)
@@ -122,7 +123,11 @@ napi_value GenerateBusinessError(napi_env env, int32_t nativeErrCode, bool throw
 
 napi_value GenerateBusinessError(napi_env env, int32_t nativeErrCode)
 {
-    int32_t jsErrCode = ConvertToJSErrCode(nativeErrCode);
+    int32_t jsErrCode = nativeErrCode;
+    auto iter = g_errorStringMap.find(jsErrCode);
+    if (iter == g_errorStringMap.end()) {
+        jsErrCode = ConvertToJSErrCode(nativeErrCode);
+    }
     std::string jsErrMsg = ConvertToJsErrMsg(jsErrCode);
 
     return GenerateBusinessError(env, jsErrCode, jsErrMsg);
