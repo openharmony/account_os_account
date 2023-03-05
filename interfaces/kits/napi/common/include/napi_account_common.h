@@ -18,7 +18,6 @@
 
 #include <mutex>
 #include <string>
-#include <uv.h>
 
 #include "account_error_no.h"
 #include "napi/native_api.h"
@@ -50,7 +49,7 @@ struct BusinessError {
 };
 
 void ProcessCallbackOrPromise(napi_env env, const CommonAsyncContext *asyncContext, napi_value err, napi_value data);
-bool CreateExecEnv(napi_env env, uv_loop_s **loop, uv_work_t **work);
+
 bool GetCallbackProperty(napi_env env, napi_value obj, napi_ref &property, int argNum);
 bool GetIntProperty(napi_env env, napi_value obj, int32_t &property);
 bool GetLongIntProperty(napi_env env, napi_value obj, int64_t &property);
