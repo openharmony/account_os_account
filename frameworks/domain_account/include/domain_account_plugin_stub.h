@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2022 Huawei Device Co., Ltd.
+ * Copyright (c) 2022-2023 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -32,8 +32,11 @@ public:
         uint32_t code, MessageParcel &data, MessageParcel &reply, MessageOption &option) override;
 
 private:
-    ErrCode ProcAuth(MessageParcel &data, MessageParcel &reply);
-    ErrCode ProcGetAuthProperty(MessageParcel &data, MessageParcel &reply);
+    ErrCode ProcGetAuthStatusInfo(MessageParcel &data, MessageParcel &reply);
+    ErrCode ProcAuthCommonInterface(MessageParcel &data, MessageParcel &reply);
+    ErrCode ProcGetDomainAccountInfo(MessageParcel &data, MessageParcel &reply);
+    ErrCode ProcOnAccountBound(MessageParcel &data, MessageParcel &reply);
+    ErrCode ProcOnAccountUnBound(MessageParcel &data, MessageParcel &reply);
 
 private:
     static const std::map<uint32_t, MessageProcFunction> messageProcMap_;

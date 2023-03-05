@@ -18,6 +18,7 @@
 #include "account_error_no.h"
 #include "account_log_wrapper.h"
 #include "account_proxy.h"
+#include "domain_account_callback_service.h"
 #include "domain_account_plugin_service.h"
 #include "domain_account_proxy.h"
 #include "domain_auth_callback_service.h"
@@ -54,22 +55,54 @@ ErrCode DomainAccountClient::UnregisterPlugin()
     return proxy->UnregisterPlugin();
 }
 
-ErrCode DomainAccountClient::Auth(const DomainAccountInfo &info, const std::vector<uint8_t> &password,
-    const std::shared_ptr<DomainAuthCallback> &callback)
+ErrCode DomainAccountClient::AuthProxyInit(const std::shared_ptr<DomainAuthCallback> &callback,
+    sptr<DomainAuthCallbackService> &callbackService, sptr<IDomainAccount> &proxy)
 {
     if (callback == nullptr) {
         ACCOUNT_LOGE("callback is nullptr");
         return ERR_ACCOUNT_COMMON_INVALID_PARAMTER;
     }
-    sptr<DomainAuthCallbackService> callbackService = new (std::nothrow) DomainAuthCallbackService(callback);
+    callbackService = new (std::nothrow) DomainAuthCallbackService(callback);
     if (callbackService == nullptr) {
         ACCOUNT_LOGE("failed to create DomainAuthCallbackService");
+        return ERR_ACCOUNT_COMMON_INSUFFICIENT_MEMORY_ERROR;
+    }
+    proxy = GetDomainAccountProxy();
+    if (proxy == nullptr) {
+        ACCOUNT_LOGE("failed to get domain account proxy");
+        return ERR_ACCOUNT_COMMON_GET_PROXY;
+    }
+    return ERR_OK;
+}
+
+ErrCode DomainAccountClient::HasDomainAccount(
+    const DomainAccountInfo &info, const std::shared_ptr<DomainAccountCallback> &callback)
+{
+    if (callback == nullptr) {
+        ACCOUNT_LOGE("callback is nullptr");
+        return ERR_ACCOUNT_COMMON_INVALID_PARAMTER;
+    }
+    sptr<DomainAccountCallbackService> callbackService = new (std::nothrow) DomainAccountCallbackService(callback);
+    if (callbackService == nullptr) {
+        ACCOUNT_LOGE("failed to check domain account callback service");
         return ERR_ACCOUNT_COMMON_INSUFFICIENT_MEMORY_ERROR;
     }
     auto proxy = GetDomainAccountProxy();
     if (proxy == nullptr) {
         ACCOUNT_LOGE("failed to get domain account proxy");
         return ERR_ACCOUNT_COMMON_GET_PROXY;
+    }
+    return proxy->HasDomainAccount(info, callbackService);
+}
+
+ErrCode DomainAccountClient::Auth(const DomainAccountInfo &info, const std::vector<uint8_t> &password,
+    const std::shared_ptr<DomainAuthCallback> &callback)
+{
+    sptr<DomainAuthCallbackService> callbackService = nullptr;
+    sptr<IDomainAccount> proxy = nullptr;
+    ErrCode result = AuthProxyInit(callback, callbackService, proxy);
+    if (result != ERR_OK) {
+        return result;
     }
     return proxy->Auth(info, password, callbackService);
 }
@@ -77,21 +110,24 @@ ErrCode DomainAccountClient::Auth(const DomainAccountInfo &info, const std::vect
 ErrCode DomainAccountClient::AuthUser(int32_t userId, const std::vector<uint8_t> &password,
     const std::shared_ptr<DomainAuthCallback> &callback)
 {
-    if (callback == nullptr) {
-        ACCOUNT_LOGE("callback is nullptr");
-        return ERR_ACCOUNT_COMMON_INVALID_PARAMTER;
-    }
-    sptr<DomainAuthCallbackService> callbackService = new (std::nothrow) DomainAuthCallbackService(callback);
-    if (callbackService == nullptr) {
-        ACCOUNT_LOGE("failed to create DomainAuthCallbackService");
-        return ERR_ACCOUNT_COMMON_INSUFFICIENT_MEMORY_ERROR;
-    }
-    auto proxy = GetDomainAccountProxy();
-    if (proxy == nullptr) {
-        ACCOUNT_LOGE("failed to get domain account proxy");
-        return ERR_ACCOUNT_COMMON_GET_PROXY;
+    sptr<DomainAuthCallbackService> callbackService = nullptr;
+    sptr<IDomainAccount> proxy = nullptr;
+    ErrCode result = AuthProxyInit(callback, callbackService, proxy);
+    if (result != ERR_OK) {
+        return result;
     }
     return proxy->AuthUser(userId, password, callbackService);
+}
+
+ErrCode DomainAccountClient::AuthWithPopup(int32_t userId, const std::shared_ptr<DomainAuthCallback> &callback)
+{
+    sptr<DomainAuthCallbackService> callbackService = nullptr;
+    sptr<IDomainAccount> proxy = nullptr;
+    ErrCode result = AuthProxyInit(callback, callbackService, proxy);
+    if (result != ERR_OK) {
+        return result;
+    }
+    return proxy->AuthWithPopup(userId, callbackService);
 }
 
 void DomainAccountClient::ResetDomainAccountProxy(const wptr<IRemoteObject>& remote)

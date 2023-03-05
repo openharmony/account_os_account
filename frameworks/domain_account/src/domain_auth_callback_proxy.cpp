@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2022 Huawei Device Co., Ltd.
+ * Copyright (c) 2022-2023 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -54,11 +54,11 @@ void DomainAuthCallbackProxy::OnResult(int32_t resultCode, const DomainAuthResul
         ACCOUNT_LOGE("fail to write token");
         return;
     }
-    if (!data.WriteInt32(result.authProperty.remainingTimes)) {
+    if (!data.WriteInt32(result.authStatusInfo.remainingTimes)) {
         ACCOUNT_LOGE("fail to write remaining times");
         return;
     }
-    if (!data.WriteInt32(result.authProperty.freezingTime)) {
+    if (!data.WriteInt32(result.authStatusInfo.freezingTime)) {
         ACCOUNT_LOGE("fail to write freezing time");
         return;
     }

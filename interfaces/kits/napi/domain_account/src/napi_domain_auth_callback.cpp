@@ -92,24 +92,24 @@ static bool ParseDoaminAuthResult(napi_env env, napi_value value, DomainAuthResu
     if (hasProp) {
         napi_value napiRemainTimes = nullptr;
         napi_get_named_property(env, value, "remainTimes", &napiRemainTimes);
-        if (!GetIntProperty(env, napiRemainTimes, authResult.authProperty.remainingTimes)) {
+        if (!GetIntProperty(env, napiRemainTimes, authResult.authStatusInfo.remainingTimes)) {
             ACCOUNT_LOGE("failed to parse remainTimes");
             return false;
         }
     } else {
-        authResult.authProperty.remainingTimes = -1;
+        authResult.authStatusInfo.remainingTimes = -1;
     }
     hasProp = false;
     napi_has_named_property(env, value, "freezingTime", &hasProp);
     if (hasProp) {
         napi_value napiFreezingTime = nullptr;
         napi_get_named_property(env, value, "freezingTime", &napiFreezingTime);
-        if (!GetIntProperty(env, napiFreezingTime, authResult.authProperty.freezingTime)) {
+        if (!GetIntProperty(env, napiFreezingTime, authResult.authStatusInfo.freezingTime)) {
             ACCOUNT_LOGE("failed to parse freezingTime");
             return false;
         }
     } else {
-        authResult.authProperty.freezingTime = -1;
+        authResult.authStatusInfo.freezingTime = -1;
     }
     return true;
 }
@@ -180,6 +180,74 @@ napi_value NapiDomainAuthCallback::JsConstructor(napi_env env, napi_callback_inf
     napi_status status = napi_get_cb_info(env, info, &argc, argv, &thisVar, nullptr);
     NAPI_ASSERT(env, status == napi_ok, "napi get callback info failed");
     return thisVar;
+}
+
+NapiDomainAccountCallback::NapiDomainAccountCallback(napi_env env, napi_ref callback)
+    : env_(env), callbackRef_(callback)
+{}
+
+NapiDomainAccountCallback::~NapiDomainAccountCallback()
+{
+    std::unique_lock<std::mutex> lock(lockInfo_.mutex);
+    lockInfo_.condition.wait(lock, [this] { return this->lockInfo_.count == 0; });
+    lockInfo_.count--;
+    if (env_ == nullptr) {
+        return;
+    }
+    if (callbackRef_ != nullptr) {
+        napi_delete_reference(env_, callbackRef_);
+        callbackRef_ = nullptr;
+    }
+}
+
+static void DomainAuthResultWork(uv_work_t *work, int status)
+{
+    if (work == nullptr) {
+        ACCOUNT_LOGE("work is nullptr");
+        return;
+    }
+    if (work->data == nullptr) {
+        ACCOUNT_LOGE("data is nullptr");
+        delete work;
+        return;
+    }
+    CallbackParam *param = reinterpret_cast<CallbackParam *>(work->data);
+    napi_value argv[ARGS_SIZE_TWO] = {nullptr};
+    napi_create_int32(param->env, param->resultCode, &argv[0]);
+    argv[1] = CreateAuthResult(param->env, param->authResult.token,
+        param->authResult.authStatusInfo.remainingTimes, param->authResult.authStatusInfo.freezingTime);
+    NapiCallVoidFunction(param->env, argv, ARGS_SIZE_TWO, param->callbackRef);
+    std::unique_lock<std::mutex> lock(param->lockInfo->mutex);
+    param->lockInfo->count--;
+    param->lockInfo->condition.notify_all();
+    delete param;
+    delete work;
+}
+
+void NapiDomainAccountCallback::OnResult(int32_t resultCode, const AccountSA::DomainAuthResult &result)
+{
+    std::unique_lock<std::mutex> lock(lockInfo_.mutex);
+    if (lockInfo_.count < 0) {
+        ACCOUNT_LOGE("the callback has been released");
+        return;
+    }
+    std::unique_ptr<uv_work_t> work = std::make_unique<uv_work_t>();
+    std::unique_ptr<CallbackParam> param = std::make_unique<CallbackParam>(env_);
+    uv_loop_s *loop = nullptr;
+    NAPI_CALL_RETURN_VOID(env_, napi_get_uv_event_loop(env_, &loop));
+    if (loop == nullptr || work == nullptr || param == nullptr) {
+        ACCOUNT_LOGE("fail for nullptr");
+        return;
+    }
+    param->lockInfo = &lockInfo_;
+    param->resultCode = resultCode;
+    param->authResult = result;
+    param->callbackRef = callbackRef_;
+    work->data = reinterpret_cast<void *>(param.get());
+    NAPI_CALL_RETURN_VOID(env_, uv_queue_work(loop, work.get(), [] (uv_work_t *work) {}, DomainAuthResultWork));
+    work.release();
+    param.release();
+    lockInfo_.count++;
 }
 }  // namespace AccountJsKit
 }  // namespace OHOS

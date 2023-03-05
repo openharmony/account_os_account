@@ -17,6 +17,7 @@ import("//build/ohos.gni")
 config("osaccountinterface_config") {
   visibility = [ ":*" ]
   include_dirs = [
+    "${domain_account_framework_path}/include",
     "${domain_account_interfaces_native_path}/include",
     "${innerkits_native_path}/include",
     "${innerkits_path}/include",
@@ -32,11 +33,14 @@ config("osaccountinterface_config") {
 
 ohos_shared_library("os_account_innerkits") {
   sources = [
+    "${domain_account_framework_path}/src/domain_account_callback_service.cpp",
+    "${domain_account_framework_path}/src/domain_account_callback_stub.cpp",
     "${os_account_core_path}/src/os_account.cpp",
     "${os_account_core_path}/src/os_account_death_recipient.cpp",
     "${os_account_core_path}/src/os_account_event_listener.cpp",
     "${os_account_core_path}/src/os_account_event_stub.cpp",
     "${os_account_core_path}/src/os_account_proxy.cpp",
+    "${os_account_path}/frameworks/domain_account/src/domain_account_common.cpp",
     "src/os_account_info.cpp",
     "src/os_account_manager.cpp",
     "src/os_account_subscribe_info.cpp",
@@ -61,6 +65,8 @@ ohos_shared_library("os_account_innerkits") {
     "${common_path}:libaccount_common",
     "${innerkits_native_path}:libaccountkits",
   ]
+
+  public_deps = [ "${domain_account_framework_path}:domain_account_innerkits" ]
 
   external_deps = [
     "ability_base:want",

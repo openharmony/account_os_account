@@ -52,17 +52,11 @@ ohos_unittest("account_iam_manager_test") {
     "${services_path}/accountmgr:accountmgr",
     "//base/security/access_token/interfaces/innerkits/accesstoken:libaccesstoken_sdk",
     "//base/security/access_token/interfaces/innerkits/token_setproc:libtoken_setproc",
-    "//base/useriam/user_auth_framework/frameworks/native/client:userauth_client",
     "//third_party/googletest:gmock_main",
     "//third_party/googletest:gtest_main",
   ]
 
   cflags_cc = []
-  if (has_pin_auth_part) {
-    cflags_cc += [ "-DHAS_PIN_AUTH_PART" ]
-    deps += [ "//base/useriam/pin_auth/frameworks:pinauth_framework" ]
-  }
-
   if (has_user_auth_part) {
     cflags_cc += [ "-DHAS_USER_AUTH_PART" ]
   }
@@ -71,7 +65,13 @@ ohos_unittest("account_iam_manager_test") {
     "hiviewdfx_hilog_native:libhilog",
     "init:libbegetutil",
     "ipc:ipc_core",
+    "user_auth_framework:userauth_client",
   ]
+
+  if (has_pin_auth_part) {
+    cflags_cc += [ "-DHAS_PIN_AUTH_PART" ]
+    external_deps += [ "pin_auth:pinauth_framework" ]
+  }
 }
 
 group("unittest") {

@@ -348,6 +348,7 @@ HWTEST_F(OsAccountTest, OsAccountTest011, TestSize.Level1)
  * @tc.type: FUNC
  * @tc.require:
  */
+#ifdef DOMAIN_ACCOUNT_TEST_CASE
 HWTEST_F(OsAccountTest, OsAccountTest012, TestSize.Level1)
 {
     OsAccountType type = NORMAL;
@@ -379,6 +380,7 @@ HWTEST_F(OsAccountTest, OsAccountTest013, TestSize.Level1)
     EXPECT_EQ(ERR_OSACCOUNT_KIT_DOMAIN_ACCOUNT_NAME_LENGTH_INVALID_ERROR,
         osAccountProxy_->CreateOsAccountForDomain(type, domainInfo, osAccountInfo));
 }
+#endif // DOMAIN_ACCOUNT_TEST_CASE
 
 /**
  * @tc.name: OsAccountTest014

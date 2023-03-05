@@ -29,6 +29,7 @@ config("tools_acm_config") {
 ohos_source_set("tools_acm_source_set") {
   sources = [
     "${ability_runtime_path}/tools/aa/src/shell_command.cpp",
+    "${os_account_path}/frameworks/domain_account/src/domain_account_common.cpp",
     "src/account_command.cpp",
     "src/main.cpp",
   ]

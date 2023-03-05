@@ -14,12 +14,6 @@
 1.0 {
   global:
     extern "C++" {
-        *OHOS::AppExecFwk::IBundleMgr*;
-        *OHOS::AccountSA::InnerAccountIAMManager*;
-        *OHOS::AccountSA::OsAccount*;
-        *OHOS::AccountSA::AbilityManagerAdapter*;
-        *OHOS::AccountSA::BundleManagerAdapter*;
-        *OHOS::AccountSA::OsAccountInterface*;
         "OHOS::AAFwk::StopUserCallbackStub::StopUserCallbackStub()";
         "OHOS::AccountSA::AccountDataStorage::AddAccountInfo(OHOS::AccountSA::IAccountInfo const&)";
         "OHOS::AccountSA::AccountDataStorage::CheckKvStore()";
@@ -105,6 +99,7 @@
         "OHOS::AccountSA::AppAccountSubscribeManager::SubscribeAppAccount(std::__h::shared_ptr<OHOS::AccountSA::AppAccountSubscribeInfo> const&, OHOS::sptr<OHOS::IRemoteObject> const&, unsigned int const&, std::__h::basic_string<char, std::__h::char_traits<char>, std::__h::allocator<char> > const&, unsigned int const&)";
         "OHOS::AccountSA::AuthCallback::AuthCallback(unsigned int, OHOS::UserIam::UserAuth::AuthType, OHOS::sptr<OHOS::AccountSA::IIDMCallback> const&)";
         "OHOS::AccountSA::DelCredCallback::DelCredCallback(int, unsigned long long, std::__h::vector<unsigned char, std::__h::allocator<unsigned char> > const&, OHOS::sptr<OHOS::AccountSA::IIDMCallback> const&)";
+        "OHOS::AccountSA::DelCredCallback::DelCredCallback(int, unsigned long, std::__h::vector<unsigned char, std::__h::allocator<unsigned char> > const&, OHOS::sptr<OHOS::AccountSA::IIDMCallback> const&)";
         "OHOS::AccountSA::GetCredInfoCallbackWrapper::GetCredInfoCallbackWrapper(int, int, OHOS::sptr<OHOS::AccountSA::IGetCredInfoCallback> const&)";
         "OHOS::AccountSA::GetPropCallbackWrapper::GetPropCallbackWrapper(OHOS::sptr<OHOS::AccountSA::IGetSetPropCallback> const&";
         "OHOS::AccountSA::GetPropCallbackWrapper::GetPropCallbackWrapper(OHOS::sptr<OHOS::AccountSA::IGetSetPropCallback> const&)";
@@ -123,12 +118,15 @@
         "OHOS::AccountSA::IInnerOsAccountManager::PrepareOsAccountInfo(std::__h::basic_string<char, std::__h::char_traits<char>, std::__h::allocator<char> > const&, OHOS::AccountSA::OsAccountType const&, OHOS::AccountSA::DomainAccountInfo const&, OHOS::AccountSA::OsAccountInfo&)";
         "OHOS::AccountSA::IInnerOsAccountManager::PushIdIntoActiveList(int)";
         "OHOS::AccountSA::IInnerOsAccountManager::RemoveLocalIdToOperating(int)";
+        "OHOS::AccountSA::IInnerOsAccountManager::ResetAccountStatus()";
         "OHOS::AccountSA::IInnerOsAccountManager::ResetActiveStatus()";
         "OHOS::AccountSA::IInnerOsAccountManager::RestartActiveAccount()";
         "OHOS::AccountSA::IInnerOsAccountManager::SendMsgForAccountActivate(OHOS::AccountSA::OsAccountInfo&)";
         "OHOS::AccountSA::IInnerOsAccountManager::SendMsgForAccountCreate(OHOS::AccountSA::OsAccountInfo&)";
+        "OHOS::AccountSA::DomainHasDomainInfoCallback::DomainHasDomainInfoCallback(OHOS::sptr<OHOS::AccountSA::IDomainGetDomainInfoCallback> const&)";
         "OHOS::AccountSA::IInnerOsAccountManager::SendMsgForAccountRemove(OHOS::AccountSA::OsAccountInfo&)";
         "OHOS::AccountSA::IInnerOsAccountManager::SetOsAccountControl(std::__h::shared_ptr<OHOS::AccountSA::IOsAccountControl>)";
+        "OHOS::AccountSA::IInnerOsAccountManager::SetOsAccountForDomain(std::__h::basic_string<char, std::__h::char_traits<char>, std::__h::allocator<char> >, OHOS::AccountSA::OsAccountType const&, OHOS::AccountSA::OsAccountInfo&, OHOS::AccountSA::DomainAccountInfo const&)";
         "OHOS::AccountSA::IInnerOsAccountManager::StartAccount()";
         "OHOS::AccountSA::InnerAppAccountManager::AddAccount(std::__h::basic_string<char, std::__h::char_traits<char>, std::__h::allocator<char> > const&, std::__h::basic_string<char, std::__h::char_traits<char>, std::__h::allocator<char> > const&, unsigned int const&, std::__h::basic_string<char, std::__h::char_traits<char>, std::__h::allocator<char> > const&, unsigned int const&)";
         "OHOS::AccountSA::InnerAppAccountManager::AddAccountImplicitly(OHOS::AccountSA::AuthenticatorSessionRequest const&)";
@@ -207,14 +205,18 @@
         "OHOS::AccountSA::SessionServerDeathRecipient::SessionServerDeathRecipient(std::__h::basic_string<char, std::__h::char_traits<char>, std::__h::allocator<char> > const&)";
         "OHOS::AccountSA::SetPropCallbackWrapper::SetPropCallbackWrapper(OHOS::sptr<OHOS::AccountSA::IGetSetPropCallback> const&)";
         "OHOS::AccountSA::UpdateCredCallback::UpdateCredCallback(unsigned int, OHOS::UserIam::UserAuth::CredentialParameters const&, OHOS::sptr<OHOS::AccountSA::IIDMCallback> const&)";
-        "OHOS::AccountSA::IInnerOsAccountManager::ResetAccountStatus()";
-        "vtable for OHOS::AccountSA::OsAccountStopUserCallback";
         "vtable for OHOS::AccountSA::AccountStub";
+        "vtable for OHOS::AccountSA::OsAccountStopUserCallback";
         "vtable for OHOS::AccountSA::OsAccountSubscribeDeathRecipient";
         "vtable for OHOS::AccountSA::SessionServerDeathRecipient";
         "VTT for OHOS::AccountSA::OsAccountStopUserCallback";
         "VTT for OHOS::AccountSA::SessionAppStateObserver";
-        "OHOS::AccountSA::DelCredCallback::DelCredCallback(int, unsigned long, std::__h::vector<unsigned char, std::__h::allocator<unsigned char> > const&, OHOS::sptr<OHOS::AccountSA::IIDMCallback> const&)";
+        *OHOS::AccountSA::AbilityManagerAdapter*;
+        *OHOS::AccountSA::BundleManagerAdapter*;
+        *OHOS::AccountSA::InnerAccountIAMManager*;
+        *OHOS::AccountSA::OsAccount*;
+        *OHOS::AccountSA::OsAccountInterface*;
+        *OHOS::AppExecFwk::IBundleMgr*;
     };
   local:
     *;

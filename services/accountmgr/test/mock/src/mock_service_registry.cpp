@@ -110,6 +110,11 @@ int32_t SystemAbilityManagerProxy::UnloadSystemAbility(int32_t systemAbilityId)
     return ERR_INVALID_VALUE;
 }
 
+int32_t SystemAbilityManagerProxy::CancelUnloadSystemAbility(int32_t systemAbilityId)
+{
+    return ERR_INVALID_VALUE;
+}
+
 int32_t SystemAbilityManagerProxy::LoadSystemAbility(int32_t systemAbilityId, const std::string& deviceId,
     const sptr<ISystemAbilityLoadCallback>& callback)
 {
@@ -129,6 +134,19 @@ int32_t SystemAbilityManagerProxy::AddSystemAbilityWrapper(int32_t code, Message
 
 int32_t SystemAbilityManagerProxy::AddSystemProcess(
     const std::u16string& procName, const sptr<IRemoteObject>& procObject)
+{
+    return ERR_INVALID_VALUE;
+}
+
+int32_t SystemAbilityManagerProxy::GetRunningSystemProcess(std::list<SystemProcessInfo>& systemProcessInfos)
+{
+    return ERR_INVALID_VALUE;
+}
+int32_t SystemAbilityManagerProxy::SubscribeSystemProcess(const sptr<ISystemProcessStatusChange>& listener)
+{
+    return ERR_INVALID_VALUE;
+}
+int32_t SystemAbilityManagerProxy::UnSubscribeSystemProcess(const sptr<ISystemProcessStatusChange>& listener)
 {
     return ERR_INVALID_VALUE;
 }

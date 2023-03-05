@@ -94,7 +94,6 @@ void IInnerOsAccountManager::CreateBaseStandardAccount()
 
 void IInnerOsAccountManager::StartAccount()
 {
-    ACCOUNT_LOGI("OsAccountAccountMgr send to storage and am for 111111111111111111");
     ResetAccountStatus();
     OsAccountInfo osAccountInfo;
     ErrCode errCode = osAccountControl_->GetOsAccountInfoById(defaultActivatedId_, osAccountInfo);
@@ -131,7 +130,6 @@ void IInnerOsAccountManager::StartAccount()
 
 void IInnerOsAccountManager::RestartActiveAccount()
 {
-    ACCOUNT_LOGI("RestartActiveAccount  111111111111111111");
     // query active account to restart and refresh into list
     std::vector<OsAccountInfo> osAccountInfos;
     if (QueryAllCreatedOsAccounts(osAccountInfos) != ERR_OK) {
@@ -139,7 +137,7 @@ void IInnerOsAccountManager::RestartActiveAccount()
     }
     for (size_t i = 0; i < osAccountInfos.size(); ++i) {
         OsAccountInfo osAccountInfo = osAccountInfos[i];
-        std::int32_t id = osAccountInfos[i].GetLocalId();
+        std::int32_t id = osAccountInfo.GetLocalId();
         if (osAccountInfo.GetIsActived() && id != Constants::START_USER_ID) {
             // reactivate account state
             if (ActivateOsAccount(id) != ERR_OK) {
@@ -155,7 +153,6 @@ void IInnerOsAccountManager::RestartActiveAccount()
             OsAccountInterface::SendToCESAccountSwitched(osAccountInfo);
         }
     }
-    ACCOUNT_LOGI("RestartActiveAccount  222222222222222");
 }
 
 void IInnerOsAccountManager::ResetAccountStatus(void)
@@ -1060,12 +1057,14 @@ ErrCode IInnerOsAccountManager::SendMsgForAccountActivate(OsAccountInfo &osAccou
             osAccountInfo.GetLocalId(), errCode);
         return ERR_OSACCOUNT_SERVICE_INTERFACE_TO_STORAGE_ACCOUNT_START_ERROR;
     }
+    ACCOUNT_LOGI("SendToStorageAccountStart ok");
     errCode = OsAccountInterface::SendToAMSAccountStart(osAccountInfo);
     if (errCode != ERR_OK) {
         ACCOUNT_LOGE("account %{public}d call ams active failed, errCode %{public}d.",
             osAccountInfo.GetLocalId(), errCode);
         return ERR_OSACCOUNT_SERVICE_INNER_SEND_AM_ACCOUNT_SWITCH_ERROR;
     }
+    ACCOUNT_LOGI("SendToAMSAccountStart ok");
     // update info
     osAccountInfo.SetIsActived(true);
     int64_t time =

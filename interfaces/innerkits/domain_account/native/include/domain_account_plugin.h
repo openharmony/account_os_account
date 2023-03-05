@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2022 Huawei Device Co., Ltd.
+ * Copyright (c) 2022-2023 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -17,6 +17,7 @@
 #define OS_ACCOUNT_INTERFACES_INNERKITS_DOMAIN_ACCOUNT_INCLUDE_DOMAIN_ACCOUNT_PLUGIN_H
 
 #include "domain_account_common.h"
+#include "domain_account_callback.h"
 #include "domain_auth_callback.h"
 
 namespace OHOS {
@@ -35,6 +36,24 @@ public:
         const std::shared_ptr<DomainAuthCallback> &callback) = 0;
 
     /**
+     * Authenticates the specified domain account with a popup.
+     *
+     * @param info Indicates the domain account information, including accountName and domain.
+     * @param callback Indicates the result callback.
+    */
+    virtual void AuthWithPopup(const DomainAccountInfo &info, const std::shared_ptr<DomainAuthCallback> &callback) = 0;
+
+    /**
+     * Authenticates the specified domain account with an authorization token.
+     *
+     * @param info Indicates the domain account information, including accountName and domain.
+     * @param token Indicates the authorization token generated when PIN or biometric authentication is successful.
+     * @param callback Indicates the result callback.
+    */
+    virtual void AuthWithToken(const DomainAccountInfo &info, const std::vector<uint8_t> &token,
+        const std::shared_ptr<DomainAuthCallback> &callback) = 0;
+
+    /**
      * Gets the authentication property of the specified domain account,
      * which can be used to prevent brute-force attack.
      *
@@ -42,7 +61,15 @@ public:
      * @param[out] property Indicates the authentication property, including remaining times and freezing time.
      * @return 0 indicates success, others indicate failure.
     */
-    virtual int32_t GetAuthProperty(const DomainAccountInfo &info, DomainAuthProperty &property) = 0;
+    virtual void GetAuthStatusInfo(const DomainAccountInfo &info,
+        const std::shared_ptr<DomainAccountCallback> &callback) = 0;
+
+    virtual void GetDomainAccountInfo(const std::string &domain, const std::string &accountName,
+        const std::shared_ptr<DomainAccountCallback> &callback) = 0;
+
+    virtual void OnAccountBound(const DomainAccountInfo &info, const int32_t localId) = 0;
+
+    virtual void OnAccountUnBound(const DomainAccountInfo &info) = 0;
 };
 }  // namespace AccountSA
 }  // namespace OHOS

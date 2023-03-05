@@ -15,17 +15,15 @@
 
 #include "domain_account_stub.h"
 
+#include <securec.h>
 #include "account_log_wrapper.h"
 #include "account_permission_manager.h"
+#include "domain_account_callback_proxy.h"
 #include "domain_auth_callback_proxy.h"
 #include "ipc_skeleton.h"
 
 namespace OHOS {
 namespace AccountSA {
-namespace {
-const size_t MAX_PASSWORD_SIZE = 4096;
-}
-
 DomainAccountStub::DomainAccountStub()
 {}
 
@@ -48,6 +46,14 @@ const std::map<uint32_t, DomainAccountStub::DomainAccountStubFunc> DomainAccount
     {
         IDomainAccount::Message::DOMAIN_AUTH_USER,
         &DomainAccountStub::ProcAuthUser
+    },
+    {
+        IDomainAccount::Message::DOMAIN_AUTH_WITH_POPUP,
+        &DomainAccountStub::ProcAuthWithPopup
+    },
+    {
+        IDomainAccount::Message::DOMAIN_HAS_DOMAIN_ACCOUNT,
+        &DomainAccountStub::ProcHasDomainAccount
     }
 };
 
@@ -71,6 +77,26 @@ int32_t DomainAccountStub::OnRemoteRequest(
     }
     ACCOUNT_LOGW("remote request unhandled: %{public}d", code);
     return IPCObjectStub::OnRemoteRequest(code, data, reply, option);
+}
+
+ErrCode DomainAccountStub::ProcHasDomainAccount(MessageParcel &data, MessageParcel &reply)
+{
+    std::shared_ptr<DomainAccountInfo> info(data.ReadParcelable<DomainAccountInfo>());
+    if (info == nullptr) {
+        ACCOUNT_LOGE("failed to read domain account info");
+        return ERR_ACCOUNT_COMMON_READ_PARCEL_ERROR;
+    }
+    auto callback = iface_cast<IDomainAccountCallback>(data.ReadRemoteObject());
+    if (callback == nullptr) {
+        ACCOUNT_LOGE("failed to read domain callback");
+        return ERR_ACCOUNT_COMMON_READ_PARCEL_ERROR;
+    }
+    ErrCode result = HasDomainAccount(*info, callback);
+    if (!reply.WriteInt32(result)) {
+        ACCOUNT_LOGE("failed to write reply, result %{public}d.", result);
+        return IPC_STUB_WRITE_PARCEL_ERR;
+    }
+    return ERR_NONE;
 }
 
 ErrCode DomainAccountStub::ProcRegisterPlugin(MessageParcel &data, MessageParcel &reply)
@@ -111,18 +137,13 @@ ErrCode DomainAccountStub::ProcAuth(MessageParcel &data, MessageParcel &reply)
         return ERR_ACCOUNT_COMMON_READ_PARCEL_ERROR;
     }
     auto callback = iface_cast<IDomainAuthCallback>(data.ReadRemoteObject());
-    size_t passwordSize = password.size();
     ErrCode result = ERR_ACCOUNT_COMMON_INVALID_PARAMTER;
-    if (passwordSize > MAX_PASSWORD_SIZE) {
-        ACCOUNT_LOGE("password is too large");
-    } else if (callback == nullptr) {
+    if (callback == nullptr) {
         ACCOUNT_LOGE("callback is nullptr");
     } else {
         result = Auth(info, password, callback);
     }
-    for (size_t i = 0; i < passwordSize; ++i) {
-        password[i] = 0;
-    }
+    (void)memset_s(password.data(), password.size(), 0, password.size());
     if (!reply.WriteInt32(result)) {
         ACCOUNT_LOGE("failed to write auth result");
         return IPC_STUB_WRITE_PARCEL_ERR;
@@ -143,17 +164,33 @@ ErrCode DomainAccountStub::ProcAuthUser(MessageParcel &data, MessageParcel &repl
         return ERR_ACCOUNT_COMMON_READ_PARCEL_ERROR;
     }
     auto callback = iface_cast<IDomainAuthCallback>(data.ReadRemoteObject());
-    size_t passwordSize = password.size();
     ErrCode result = ERR_ACCOUNT_COMMON_INVALID_PARAMTER;
-    if (passwordSize > MAX_PASSWORD_SIZE) {
-        ACCOUNT_LOGE("password is too large");
-    } else if (callback == nullptr) {
+    if (callback == nullptr) {
         ACCOUNT_LOGE("callback is nullptr");
     } else {
         result = AuthUser(userId, password, callback);
     }
-    for (size_t i = 0; i < passwordSize; ++i) {
-        password[i] = 0;
+    (void)memset_s(password.data(), password.size(), 0, password.size());
+    if (!reply.WriteInt32(result)) {
+        ACCOUNT_LOGE("failed to write authUser result");
+        return IPC_STUB_WRITE_PARCEL_ERR;
+    }
+    return ERR_NONE;
+}
+
+ErrCode DomainAccountStub::ProcAuthWithPopup(MessageParcel &data, MessageParcel &reply)
+{
+    int32_t userId = 0;
+    if (!data.ReadInt32(userId)) {
+        ACCOUNT_LOGE("fail to read userId");
+        return ERR_ACCOUNT_COMMON_READ_PARCEL_ERROR;
+    }
+    auto callback = iface_cast<IDomainAuthCallback>(data.ReadRemoteObject());
+    ErrCode result = ERR_ACCOUNT_COMMON_INVALID_PARAMTER;
+    if (callback == nullptr) {
+        ACCOUNT_LOGE("callback is nullptr");
+    } else {
+        result = AuthWithPopup(userId, callback);
     }
     if (!reply.WriteInt32(result)) {
         ACCOUNT_LOGE("failed to write authUser result");
@@ -177,10 +214,12 @@ ErrCode DomainAccountStub::CheckPermission(uint32_t code, int32_t uid)
     switch (code) {
         case IDomainAccount::Message::REGISTER_PLUGIN:
         case IDomainAccount::Message::UNREGISTER_PLUGIN:
+        case IDomainAccount::Message::DOMAIN_HAS_DOMAIN_ACCOUNT:
             permissionName = AccountPermissionManager::MANAGE_LOCAL_ACCOUNTS;
             break;
         case IDomainAccount::Message::DOMAIN_AUTH:
         case IDomainAccount::Message::DOMAIN_AUTH_USER:
+        case IDomainAccount::Message::DOMAIN_AUTH_WITH_POPUP:
             permissionName = AccountPermissionManager::ACCESS_USER_AUTH_INTERNAL;
             break;
         default:
