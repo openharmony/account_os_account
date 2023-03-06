@@ -31,7 +31,6 @@
 #include "distributed_bundle_info.h"
 #include "extension_ability_info.h"
 #include "iremote_proxy.h"
-#include "module_usage_record.h"
 #include "permission_define.h"
 #include "shortcut_info.h"
 
