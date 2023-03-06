@@ -253,7 +253,8 @@ HWTEST_F(DomainAccountClientModuleTest, DomainAccountClientModuleTest_AuthUser_0
     info.domain_ = STRING_DOMAIN;
     auto callback = std::make_shared<MockDomainAuthCallback>();
     ASSERT_NE(callback, nullptr);
-    EXPECT_CALL(*callback, OnResult(ERR_DOMAIN_ACCOUNT_SERVICE_PLUGIN_NOT_EXIST, _)).Times(Exactly(1));
+    EXPECT_CALL(*callback,
+        OnResult(ConvertToJSErrCode(ERR_DOMAIN_ACCOUNT_SERVICE_PLUGIN_NOT_EXIST), _)).Times(Exactly(1));
     auto testCallback = std::make_shared<TestDomainAuthCallback>(callback);
     ASSERT_NE(testCallback, nullptr);
     EXPECT_EQ(
@@ -288,7 +289,7 @@ HWTEST_F(DomainAccountClientModuleTest, DomainAccountClientModuleTest_AuthUser_0
     auto testCallback = std::make_shared<TestDomainAuthCallback>(nullptr);
     ASSERT_NE(testCallback, nullptr);
     EXPECT_EQ(DomainAccountClient::GetInstance().AuthUser(
-        accountInfo.GetLocalId(), VALID_PASSWORD, testCallback), ERR_ACCOUNT_COMMON_INVALID_PARAMTER);
+        accountInfo.GetLocalId(), VALID_PASSWORD, testCallback), ERR_APPACCOUNT_SERVICE_ACCOUNT_NOT_EXIST);
     errCode = OsAccountManager::RemoveOsAccount(accountInfo.GetLocalId());
     ASSERT_EQ(errCode, ERR_OK);
 }
@@ -394,7 +395,7 @@ HWTEST_F(DomainAccountClientModuleTest, DomainAccountClientModuleTest_AuthWithPo
     auto testCallback = std::make_shared<TestDomainAuthCallback>(callback);
     ASSERT_NE(testCallback, nullptr);
     EXPECT_EQ(DomainAccountClient::GetInstance().AuthWithPopup(DEFAULT_USER_ID, testCallback),
-        ERR_ACCOUNT_COMMON_INVALID_PARAMTER);
+        ERR_APPACCOUNT_SERVICE_ACCOUNT_NOT_EXIST);
 }
 
 /**
@@ -411,7 +412,7 @@ HWTEST_F(DomainAccountClientModuleTest, DomainAccountClientModuleTest_AuthWithPo
     auto testCallback = std::make_shared<TestDomainAuthCallback>(callback);
     ASSERT_NE(testCallback, nullptr);
     EXPECT_EQ(DomainAccountClient::GetInstance().AuthWithPopup(0, testCallback),
-        ERR_ACCOUNT_COMMON_INVALID_PARAMTER);
+        ERR_APPACCOUNT_SERVICE_ACCOUNT_NOT_EXIST);
 }
 
 /**

@@ -831,11 +831,15 @@ void AuthCompletedCallback(napi_env env, napi_status status, void *data)
 napi_value NapiDomainAccountManager::Auth(napi_env env, napi_callback_info cbInfo)
 {
     JsDomainPluginParam *authContext = new (std::nothrow) JsDomainPluginParam(env);
+    if (authContext == nullptr) {
+        ACCOUNT_LOGE("insufficient memory for authContext!");
+        return nullptr;
+    }
+    std::unique_ptr<JsDomainPluginParam> authContextPtr(authContext);
     if (!ParseContextForAuth(env, cbInfo, *authContext)) {
         AccountNapiThrow(env, ERR_JS_PARAMETER_ERROR, true);
         return nullptr;
     }
-    std::unique_ptr<JsDomainPluginParam> authContextPtr(authContext);
     napi_value resource = nullptr;
     NAPI_CALL(env, napi_create_string_utf8(env, "Auth", NAPI_AUTO_LENGTH, &resource));
     NAPI_CALL(env, napi_create_async_work(env, nullptr, resource,
@@ -884,11 +888,15 @@ static bool ParseContextForAuthWithPopup(
 napi_value NapiDomainAccountManager::AuthWithPopup(napi_env env, napi_callback_info cbInfo)
 {
     JsDomainPluginParam *authWithPopupContext = new (std::nothrow) JsDomainPluginParam(env);
+    if (authWithPopupContext == nullptr) {
+        ACCOUNT_LOGE("insufficient memory for authWithPopupContext!");
+        return nullptr;
+    }
+    std::unique_ptr<JsDomainPluginParam> authContextPtr(authWithPopupContext);
     if (!ParseContextForAuthWithPopup(env, cbInfo, *authWithPopupContext)) {
         AccountNapiThrow(env, ERR_JS_PARAMETER_ERROR, true);
         return nullptr;
     }
-    std::unique_ptr<JsDomainPluginParam> authContextPtr(authWithPopupContext);
     napi_value resource = nullptr;
     NAPI_CALL(env, napi_create_string_utf8(env, "AuthWithPopup", NAPI_AUTO_LENGTH, &resource));
     NAPI_CALL(env, napi_create_async_work(env, nullptr, resource,
