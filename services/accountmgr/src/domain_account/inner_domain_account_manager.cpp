@@ -140,7 +140,7 @@ ErrCode InnerDomainAccountManager::GetDomainAccountInfoByUserId(int32_t userId, 
     accountInfo.GetDomainInfo(domainInfo);
     if (domainInfo.accountName_.empty()) {
         ACCOUNT_LOGE("the target user is not a domain account");
-        return ERR_ACCOUNT_COMMON_INVALID_PARAMTER;
+        return ERR_APPACCOUNT_SERVICE_ACCOUNT_NOT_EXIST;
     }
     return ERR_OK;
 }
