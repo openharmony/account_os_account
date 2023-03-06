@@ -31,8 +31,8 @@ MockDomainPlugin::MockDomainPlugin() : remainingTimes_(DEFAULT_REMAINING_TIMES),
 MockDomainPlugin::~MockDomainPlugin()
 {}
 
-void MockDomainPlugin::Auth(const DomainAccountInfo &info, const std::vector<uint8_t> &password,
-    const std::shared_ptr<DomainAuthCallback> &callback)
+void MockDomainPlugin::AuthCommonInterface(const DomainAccountInfo &info, const std::vector<uint8_t> &authData,
+    const std::shared_ptr<DomainAuthCallback> &callback, AuthMode authMode)
 {
     ACCOUNT_LOGI("start, accountName: %{public}s, domain: %{public}s",
         info.accountName_.c_str(), info.domain_.c_str());
@@ -46,15 +46,18 @@ void MockDomainPlugin::Auth(const DomainAccountInfo &info, const std::vector<uin
         return;
     }
     bool isCorrect = true;
-    if (password.size() == DEFAULT_PASSWORD.size()) {
-        for (size_t i = 0; i < password.size(); ++i) {
-            if (password[i] != DEFAULT_PASSWORD[i]) {
+    if (authData.size() == DEFAULT_PASSWORD.size()) {
+        for (size_t i = 0; i < authData.size(); ++i) {
+            if (authData[i] != DEFAULT_PASSWORD[i]) {
                 isCorrect = false;
                 break;
             }
         }
     } else {
         isCorrect = false;
+    }
+    if (authMode == AUTH_WITH_POPUP_MODE) {
+        isCorrect = true;
     }
     if (isCorrect) {
         remainingTimes_ = DEFAULT_REMAINING_TIMES;
@@ -68,16 +71,22 @@ void MockDomainPlugin::Auth(const DomainAccountInfo &info, const std::vector<uin
     callback->OnResult(!isCorrect, result);
 }
 
+void MockDomainPlugin::Auth(const DomainAccountInfo &info, const std::vector<uint8_t> &password,
+    const std::shared_ptr<DomainAuthCallback> &callback)
+{
+    AuthCommonInterface(info, password, callback, AUTH_WITH_CREDENTIAL_MODE);
+}
+
 void MockDomainPlugin::AuthWithPopup(
     const DomainAccountInfo &info, const std::shared_ptr<DomainAuthCallback> &callback)
 {
-    return;
+    AuthCommonInterface(info, {}, callback, AUTH_WITH_POPUP_MODE);
 }
 
 void MockDomainPlugin::AuthWithToken(const DomainAccountInfo &info, const std::vector<uint8_t> &token,
     const std::shared_ptr<DomainAuthCallback> &callback)
 {
-    return;
+    AuthCommonInterface(info, token, callback, AUTH_WITH_TOKEN_MODE);
 }
 
 void MockDomainPlugin::GetAuthStatusInfo(
