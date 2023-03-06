@@ -151,8 +151,8 @@ ErrCode DomainAccountPluginStub::ProcGetDomainAccountInfo(MessageParcel &data, M
     }
     auto callback = iface_cast<IDomainAccountCallback>(data.ReadRemoteObject());
     if (callback == nullptr) {
-        ACCOUNT_LOGE("failed to write callback");
-        return ERR_ACCOUNT_COMMON_WRITE_PARCEL_ERROR;
+        ACCOUNT_LOGE("failed to read callback");
+        return ERR_ACCOUNT_COMMON_READ_PARCEL_ERROR;
     }
     ErrCode result = GetDomainAccountInfo(domain, accountName, callback);
     if (!reply.WriteInt32(result)) {
@@ -174,7 +174,12 @@ ErrCode DomainAccountPluginStub::ProcOnAccountBound(MessageParcel &data, Message
         ACCOUNT_LOGE("fail to read localId");
         return ERR_ACCOUNT_COMMON_READ_PARCEL_ERROR;
     }
-    ErrCode result = OnAccountBound(*info, localId);
+    auto callback = iface_cast<IDomainAccountCallback>(data.ReadRemoteObject());
+    if (callback == nullptr) {
+        ACCOUNT_LOGE("failed to read callback");
+        return ERR_ACCOUNT_COMMON_READ_PARCEL_ERROR;
+    }
+    ErrCode result = OnAccountBound(*info, localId, callback);
     if (!reply.WriteInt32(result)) {
         ACCOUNT_LOGE("failed to write result");
         return ERR_ACCOUNT_COMMON_WRITE_PARCEL_ERROR;
@@ -189,7 +194,12 @@ ErrCode DomainAccountPluginStub::ProcOnAccountUnBound(MessageParcel &data, Messa
         ACCOUNT_LOGE("failed to read domain account info");
         return ERR_ACCOUNT_COMMON_READ_PARCEL_ERROR;
     }
-    ErrCode result = OnAccountUnBound(*info);
+    auto callback = iface_cast<IDomainAccountCallback>(data.ReadRemoteObject());
+    if (callback == nullptr) {
+        ACCOUNT_LOGE("failed to read callback");
+        return ERR_ACCOUNT_COMMON_READ_PARCEL_ERROR;
+    }
+    ErrCode result = OnAccountUnBound(*info, callback);
     if (!reply.WriteInt32(result)) {
         ACCOUNT_LOGE("failed to write result");
         return ERR_ACCOUNT_COMMON_WRITE_PARCEL_ERROR;

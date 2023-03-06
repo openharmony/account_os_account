@@ -36,7 +36,7 @@ namespace OHOS {
             DomainAccountInfo domainInfo(accountName, domain);
             OsAccountType testType = static_cast<OsAccountType>(size % CONSTANTS_NUMBER_FIVE);
             OsAccountInfo osAccountInfo;
-            result = OsAccountManager::CreateOsAccountForDomain(testType, domainInfo, osAccountInfo);
+            result = OsAccountManager::CreateOsAccountForDomain(testType, domainInfo, nullptr);
             if (result == ERR_OK) {
                 ACCOUNT_LOGI("CreateOsAccountForDomainFuzzTest RemoveOsAccount");
                 OsAccountManager::RemoveOsAccount(osAccountInfo.GetLocalId());

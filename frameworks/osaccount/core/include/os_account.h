@@ -16,6 +16,7 @@
 #ifndef OS_ACCOUNT_FRAMEWORKS_OSACCOUNT_CORE_INCLUDE_OS_ACCOUNT_H
 #define OS_ACCOUNT_FRAMEWORKS_OSACCOUNT_CORE_INCLUDE_OS_ACCOUNT_H
 
+#include "domain_account_callback.h"
 #include "ios_account.h"
 #include "os_account_event_listener.h"
 
@@ -25,8 +26,8 @@ class OsAccount {
 public:
     enum SubscribeState { ALREADY_SUBSCRIBED = 0, INITIAL_SUBSCRIPTION, SUBSCRIBE_FAILED };
     ErrCode CreateOsAccount(const std::string &name, const OsAccountType &type, OsAccountInfo &osAccountInfo);
-    ErrCode CreateOsAccountForDomain(
-        const OsAccountType &type, const DomainAccountInfo &domainInfo, OsAccountInfo &osAccountInfo);
+    ErrCode CreateOsAccountForDomain(const OsAccountType &type, const DomainAccountInfo &domainInfo,
+        const std::shared_ptr<DomainAccountCallback> &callback);
     ErrCode RemoveOsAccount(const int id);
     ErrCode IsOsAccountExists(const int id, bool &isOsAccountExists);
     ErrCode IsOsAccountActived(const int id, bool &isOsAccountActived);

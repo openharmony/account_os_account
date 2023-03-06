@@ -16,6 +16,7 @@
 #include "account_log_wrapper.h"
 #include "account_permission_manager.h"
 #include "account_constants.h"
+#include "idomain_account_callback.h"
 #ifdef HICOLLIE_ENABLE
 #include "xcollie/xcollie.h"
 #endif // HICOLLIE_ENABLE
@@ -425,24 +426,31 @@ ErrCode OsAccountStub::ProcCreateOsAccount(MessageParcel &data, MessageParcel &r
 ErrCode OsAccountStub::ProcCreateOsAccountForDomain(MessageParcel &data, MessageParcel &reply)
 {
     OsAccountType type = static_cast<OsAccountType>(data.ReadInt32());
-    std::string domain = data.ReadString();
-    std::string domainAccountName = data.ReadString();
+    std::shared_ptr<DomainAccountInfo> info(data.ReadParcelable<DomainAccountInfo>());
+    if (info == nullptr) {
+        ACCOUNT_LOGE("failed to read domain account info");
+        return ERR_ACCOUNT_COMMON_READ_PARCEL_ERROR;
+    }
 
-    if (domain.empty() || domain.size() > Constants::DOMAIN_NAME_MAX_SIZE) {
-        ACCOUNT_LOGE("read invalid domain length %{public}zu.", domain.size());
+    if (info->domain_.empty() || info->domain_.size() > Constants::DOMAIN_NAME_MAX_SIZE) {
+        ACCOUNT_LOGE("read invalid domain length %{public}zu.", info->domain_.size());
         reply.WriteInt32(ERR_OSACCOUNT_KIT_DOMAIN_NAME_LENGTH_INVALID_ERROR);
         return ERR_NONE;
     }
 
-    if (domainAccountName.empty() || domainAccountName.size() > Constants::DOMAIN_ACCOUNT_NAME_MAX_SIZE) {
-        ACCOUNT_LOGE("read invalid domain account name length %{public}zu.", domainAccountName.size());
+    if (info->accountName_.empty() || info->accountName_.size() > Constants::DOMAIN_ACCOUNT_NAME_MAX_SIZE) {
+        ACCOUNT_LOGE("read invalid domain account name length %{public}zu.", info->accountName_.size());
         reply.WriteInt32(ERR_OSACCOUNT_KIT_DOMAIN_ACCOUNT_NAME_LENGTH_INVALID_ERROR);
         return ERR_NONE;
     }
 
     OsAccountInfo osAccountInfo;
-    DomainAccountInfo domainInfo(domain, domainAccountName);
-    ErrCode result = CreateOsAccountForDomain(type, domainInfo, osAccountInfo);
+    auto callback = iface_cast<IDomainAccountCallback>(data.ReadRemoteObject());
+    if (callback == nullptr) {
+        ACCOUNT_LOGE("failed to read parcel");
+        return ERR_ACCOUNT_COMMON_READ_PARCEL_ERROR;
+    }
+    ErrCode result = CreateOsAccountForDomain(type, *info, callback);
     if (!reply.WriteInt32(result)) {
         ACCOUNT_LOGE("failed to write reply, result %{public}d.", result);
         return IPC_STUB_WRITE_PARCEL_ERR;

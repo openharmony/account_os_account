@@ -17,6 +17,7 @@
 
 #include <string>
 #include <vector>
+#include "domain_account_callback.h"
 #include "os_account_info.h"
 #include "os_account_subscriber.h"
 #include "account_error_no.h"
@@ -25,8 +26,8 @@ namespace AccountSA {
 class OsAccountManager {
 public:
     static ErrCode CreateOsAccount(const std::string &name, const OsAccountType &type, OsAccountInfo &osAccountInfo);
-    static ErrCode CreateOsAccountForDomain(
-        const OsAccountType &type, const DomainAccountInfo &domainInfo, OsAccountInfo &osAccountInfo);
+    static ErrCode CreateOsAccountForDomain(const OsAccountType &type, const DomainAccountInfo &domainInfo,
+        const std::shared_ptr<DomainAccountCallback> &callback);
     static ErrCode RemoveOsAccount(const int id);
     static ErrCode IsOsAccountExists(const int id, bool &isOsAccountExists);
     static ErrCode IsOsAccountActived(const int id, bool &isOsAccountActived);

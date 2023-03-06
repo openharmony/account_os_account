@@ -21,6 +21,7 @@
 #include "iremote_object.h"
 #include "os_account_info.h"
 #include "account_error_no.h"
+#include "idomain_account_callback.h"
 #include "os_account_constants.h"
 #include "os_account_event_listener.h"
 
@@ -32,8 +33,8 @@ public:
 
     virtual ErrCode CreateOsAccount(
         const std::string &name, const OsAccountType &type, OsAccountInfo &osAccountInfo) = 0;
-    virtual ErrCode CreateOsAccountForDomain(
-        const OsAccountType &type, const DomainAccountInfo &domainInfo, OsAccountInfo &osAccountInfo) = 0;
+    virtual ErrCode CreateOsAccountForDomain(const OsAccountType &type, const DomainAccountInfo &domainInfo,
+        const sptr<IDomainAccountCallback> &callback) = 0;
     virtual ErrCode RemoveOsAccount(const int id) = 0;
     virtual ErrCode IsOsAccountExists(const int id, bool &isOsAccountExists) = 0;
     virtual ErrCode IsOsAccountActived(const int id, bool &isOsAccountActived) = 0;
