@@ -765,8 +765,9 @@ napi_value NapiDomainAccountManager::Auth(napi_env env, napi_callback_info cbInf
     int32_t errCode = DomainAccountClient::GetInstance().Auth(
         authContext.domainAccountInfo, authContext.authData, authContext.authCallback);
     if (errCode != ERR_OK) {
-        ACCOUNT_LOGE("failed to auth domain account, errCode=%{public}d", errCode);
-        AccountNapiThrow(env, ConvertToJSErrCode(errCode), true);
+        ACCOUNT_LOGE("failed to auth domain account, errCode = %{public}d", errCode);
+        AccountSA::DomainAuthResult emptyResult;
+        authContext.authCallback->OnResult(ConvertToJSErrCode(errCode), emptyResult);
     }
     return nullptr;
 }
@@ -811,7 +812,8 @@ napi_value NapiDomainAccountManager::AuthWithPopup(napi_env env, napi_callback_i
         authWithPopupContext.userId, authWithPopupContext.authCallback);
     if (errCode != ERR_OK) {
         ACCOUNT_LOGE("failed to auth domain account with popup, errCode = %{public}d", errCode);
-        AccountNapiThrow(env, ConvertToJSErrCode(errCode), true);
+        AccountSA::DomainAuthResult emptyResult;
+        authWithPopupContext.authCallback->OnResult(ConvertToJSErrCode(errCode), emptyResult);
     }
     return nullptr;
 }
