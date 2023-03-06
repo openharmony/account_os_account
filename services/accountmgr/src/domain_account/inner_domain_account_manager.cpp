@@ -83,13 +83,13 @@ ErrCode InnerDomainAccountManager::StartAuth(const sptr<IDomainAccountPlugin> &p
     const std::vector<uint8_t> &authData, const sptr<IDomainAuthCallback> &callback, AuthMode authMode)
 {
     if (callback == nullptr) {
-        ACCOUNT_LOGE("invalid callback");
+        ACCOUNT_LOGE("invalid callback, cannot return result to client");
         return ERR_ACCOUNT_COMMON_INVALID_PARAMTER;
     }
     DomainAuthResult emptyResult = {};
     if (plugin == nullptr) {
-        ACCOUNT_LOGE("plugin is nullptr");
-        callback->OnResult(ERR_DOMAIN_ACCOUNT_SERVICE_PLUGIN_NOT_EXIST, emptyResult);
+        ACCOUNT_LOGE("plugin is not exixt");
+        callback->OnResult(ConvertToJSErrCode(ERR_DOMAIN_ACCOUNT_SERVICE_PLUGIN_NOT_EXIST), emptyResult);
         return ERR_ACCOUNT_COMMON_INVALID_PARAMTER;
     }
     ErrCode errCode = ERR_ACCOUNT_COMMON_INVALID_PARAMTER;
@@ -108,7 +108,7 @@ ErrCode InnerDomainAccountManager::StartAuth(const sptr<IDomainAccountPlugin> &p
     }
     if (errCode != ERR_OK) {
         ACCOUNT_LOGE("failed to auth domain account, errCode: %{public}d", errCode);
-        callback->OnResult(errCode, emptyResult);
+        callback->OnResult(ConvertToJSErrCode(errCode), emptyResult);
         return errCode;
     }
     return ERR_OK;
