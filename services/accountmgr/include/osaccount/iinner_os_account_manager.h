@@ -18,6 +18,7 @@
 
 #include <memory>
 #include "iinner_os_account.h"
+#include "inner_domain_account_manager.h"
 #include "ios_account_control.h"
 #include "ios_account_subscribe.h"
 #include "os_account_interface.h"
@@ -32,8 +33,8 @@ public:
     void Init() override;
     ErrCode CreateOsAccount(
         const std::string &name, const OsAccountType &type, OsAccountInfo &osAccountInfo) override;
-    ErrCode CreateOsAccountForDomain(
-        const OsAccountType &type, const DomainAccountInfo &domainInfo, OsAccountInfo &osAccountInfo) override;
+    ErrCode CreateOsAccountForDomain(const OsAccountType &type, const DomainAccountInfo &domainInfo,
+        const sptr<IDomainAccountCallback> &callback) override;
     ErrCode RemoveOsAccount(const int id) override;
     ErrCode IsOsAccountExists(const int id, bool &isOsAccountExits) override;
     ErrCode IsOsAccountActived(const int id, bool &isOsAccountActived) override;
@@ -85,6 +86,9 @@ public:
 
     ErrCode SetDefaultActivatedOsAccount(const int32_t id) override;
     ErrCode GetDefaultActivatedOsAccount(int32_t &id) override;
+    ErrCode BindDomainAccount(const OsAccountType &type, const DomainAccountInfo &domainAccountInfo,
+        const sptr<IDomainAccountCallback> &callback);
+    ErrCode SendMsgForAccountCreate(OsAccountInfo &osAccountInfo);
 
 private:
     void SetOsAccountControl(std::shared_ptr<IOsAccountControl> ptr);
@@ -100,7 +104,6 @@ private:
     ErrCode GetEventHandler(void);
     ErrCode PrepareOsAccountInfo(const std::string &name, const OsAccountType &type,
         const DomainAccountInfo &domainAccount, OsAccountInfo &osAccountInfo);
-    ErrCode SendMsgForAccountCreate(OsAccountInfo &osAccountInfo);
     ErrCode SendMsgForAccountActivate(OsAccountInfo &osAccountInfo);
     ErrCode SendMsgForAccountStop(OsAccountInfo &osAccountInfo);
     ErrCode SendMsgForAccountRemove(OsAccountInfo &osAccountInfo);
@@ -117,6 +120,7 @@ private:
     bool IsOsAccountIDInActiveList(int32_t id);
     void CopyFromActiveList(std::vector<int32_t>& idList);
     void RefreshActiveList(int32_t newId);
+    bool CheckDomainAccountBound(const std::vector<OsAccountInfo> &osAccountInfos, const DomainAccountInfo &info);
 
 private:
     std::shared_ptr<IOsAccountControl> osAccountControl_;
