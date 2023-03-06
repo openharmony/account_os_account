@@ -22,6 +22,60 @@
 
 namespace OHOS {
 namespace AccountJsKit {
+NapiCreateDomainCallback::NapiCreateDomainCallback(napi_env env, napi_ref callbackRef, napi_deferred deferred)
+    : env_(env), callbackRef_(callbackRef), deferred_(deferred)
+{}
+
+NapiCreateDomainCallback::~NapiCreateDomainCallback()
+{
+    std::unique_lock<std::mutex> lock(lockInfo_.mutex);
+    if ((env_ != nullptr) && (callbackRef_ != nullptr)) {
+        napi_delete_reference(env_, callbackRef_);
+        callbackRef_ = nullptr;
+    }
+    deferred_ = nullptr;
+}
+
+void NapiCreateDomainCallback::OnResult(const int32_t errCode, Parcel &parcel)
+{
+    std::shared_ptr<OsAccountInfo> osAccountInfo(OsAccountInfo::Unmarshalling(parcel));
+    if (osAccountInfo == nullptr) {
+        ACCOUNT_LOGE("failed to unmarshalling OsAccountInfo");
+        return;
+    }
+    std::unique_lock<std::mutex> lock(lockInfo_.mutex);
+    if ((callbackRef_ == nullptr) && (deferred_ == nullptr)) {
+        ACCOUNT_LOGE("js callback is nullptr");
+        return;
+    }
+    uv_loop_s *loop = nullptr;
+    uv_work_t *work = nullptr;
+    if (!CreateExecEnv(env_, &loop, &work)) {
+        ACCOUNT_LOGE("failed to init domain plugin execution environment");
+        return;
+    }
+    auto *asyncContext = new (std::nothrow) CreateOAForDomainAsyncContext();
+    if (asyncContext == nullptr) {
+        delete work;
+        return;
+    }
+    asyncContext->osAccountInfos = *osAccountInfo;
+    asyncContext->errCode = errCode;
+    asyncContext->env = env_;
+    asyncContext->callbackRef = callbackRef_;
+    asyncContext->deferred = deferred_;
+    work->data = reinterpret_cast<void *>(asyncContext);
+    int resultCode = uv_queue_work(loop, work, [](uv_work_t *work) {}, CreateOAForDomainCallbackCompletedCB);
+    if (resultCode != 0) {
+        ACCOUNT_LOGE("failed to uv_queue_work, errCode: %{public}d", errCode);
+        delete asyncContext;
+        delete work;
+        return;
+    }
+    callbackRef_ = nullptr;
+    deferred_ = nullptr;
+}
+
 napi_value WrapVoidToJS(napi_env env)
 {
     napi_value result = nullptr;
@@ -104,6 +158,9 @@ void CreateJsDomainInfo(napi_env env, const DomainAccountInfo &info, napi_value 
     // domain accountName
     napi_create_string_utf8(env, info.accountName_.c_str(), info.accountName_.size(), &value);
     napi_set_named_property(env, result, "accountName", value);
+
+    napi_create_string_utf8(env, info.accountId_.c_str(), info.accountId_.size(), &value);
+    napi_set_named_property(env, result, "accountId", value);
 }
 
 void CreateJsDistributedInfo(napi_env env, const OhosAccountInfo &info, napi_value &result)
@@ -551,9 +608,21 @@ void CreateOAExecuteCB(napi_env env, void *data)
 void CreateOAForDomainExecuteCB(napi_env env, void *data)
 {
     CreateOAForDomainAsyncContext *asyncContext = reinterpret_cast<CreateOAForDomainAsyncContext *>(data);
-    asyncContext->errCode = OsAccountManager::CreateOsAccountForDomain(asyncContext->type,
-        asyncContext->domainInfo, nullptr);
-    asyncContext->status = (asyncContext->errCode == 0) ? napi_ok : napi_generic_failure;
+    auto callback = std::make_shared<NapiCreateDomainCallback>(env, asyncContext->callbackRef, asyncContext->deferred);
+    if (callback == nullptr) {
+        asyncContext->errCode = ERR_ACCOUNT_COMMON_INSUFFICIENT_MEMORY_ERROR;
+        ACCOUNT_LOGE("insufficient memory for HasDomainAccountCB!");
+        return;
+    }
+    asyncContext->errCode =
+        OsAccountManager::CreateOsAccountForDomain(asyncContext->type, asyncContext->domainInfo, callback);
+    if (asyncContext->errCode != ERR_OK) {
+        Parcel emptyParcel;
+        OsAccountInfo info;
+        info.Marshalling(emptyParcel);
+        callback->OnResult(asyncContext->errCode, emptyParcel);
+        asyncContext->errCode = ERR_OK;
+    }
 }
 
 void CreateOACallbackCompletedCB(napi_env env, napi_status status, void *data)
@@ -575,22 +644,28 @@ void CreateOACallbackCompletedCB(napi_env env, napi_status status, void *data)
     asyncContext = nullptr;
 }
 
-void CreateOAForDomainCallbackCompletedCB(napi_env env, napi_status status, void *data)
+void CreateOAForDomainCallbackCompletedCB(uv_work_t *work, int status)
 {
-    CreateOAForDomainAsyncContext *asyncContext = reinterpret_cast<CreateOAForDomainAsyncContext *>(data);
+    if (work == nullptr) {
+        ACCOUNT_LOGE("invalid parameter, work is nullptr");
+        return;
+    }
+    if (work->data == nullptr) {
+        ACCOUNT_LOGE("invalid parameter, data is nullptr");
+        delete work;
+        return;
+    }
+    CreateOAForDomainAsyncContext *asyncContext = reinterpret_cast<CreateOAForDomainAsyncContext *>(work->data);
     napi_value errJs = nullptr;
     napi_value dataJs = nullptr;
-    if (asyncContext->status == napi_ok) {
-        napi_get_null(env, &errJs);
-        GetOACBInfoToJs(env, asyncContext->osAccountInfos, dataJs);
+    if (asyncContext->errCode == ERR_OK) {
+        GetOACBInfoToJs(asyncContext->env, asyncContext->osAccountInfos, dataJs);
     } else {
-        errJs = GenerateBusinessError(env, asyncContext->errCode, asyncContext->throwErr);
-        napi_get_null(env, &dataJs);
+        errJs = GenerateBusinessError(asyncContext->env, asyncContext->errCode);
     }
-    ProcessCallbackOrPromise(env, asyncContext, errJs, dataJs);
-    napi_delete_async_work(env, asyncContext->work);
+    ProcessCallbackOrPromise(asyncContext->env, asyncContext, errJs, dataJs);
     delete asyncContext;
-    asyncContext = nullptr;
+    delete work;
 }
 
 bool ParseParaGetOACount(napi_env env, napi_callback_info cbInfo, GetOACountAsyncContext *asyncContext)
