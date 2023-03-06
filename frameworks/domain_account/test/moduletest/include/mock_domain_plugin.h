@@ -40,6 +40,10 @@ public:
         const std::shared_ptr<DomainAccountCallback> &callback) override;
 
 private:
+    void AuthCommonInterface(const DomainAccountInfo &info, const std::vector<uint8_t> &authData,
+        const std::shared_ptr<DomainAuthCallback> &callback, AuthMode authMode);
+
+private:
     int32_t remainingTimes_;
     int32_t freezingTime_;
 };
