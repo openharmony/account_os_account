@@ -63,8 +63,8 @@ ErrCode OsAccountProxy::CreateOsAccount(
     return ERR_OK;
 }
 
-ErrCode OsAccountProxy::CreateOsAccountForDomain(
-    const OsAccountType &type, const DomainAccountInfo &domainInfo, OsAccountInfo &osAccountInfo)
+ErrCode OsAccountProxy::CreateOsAccountForDomain(const OsAccountType &type, const DomainAccountInfo &domainInfo,
+    const sptr<IDomainAccountCallback> &callback)
 {
     MessageParcel data;
     MessageParcel reply;
@@ -79,14 +79,14 @@ ErrCode OsAccountProxy::CreateOsAccountForDomain(
         return ERR_OSACCOUNT_KIT_WRITE_OSACCOUNT_TYPE_ERROR;
     }
 
-    if (!data.WriteString(domainInfo.domain_)) {
-        ACCOUNT_LOGE("failed to write string for domain");
-        return ERR_OSACCOUNT_KIT_WRITE_DOMAIN_ERROR;
+    if (!data.WriteParcelable(&domainInfo)) {
+        ACCOUNT_LOGE("fail to write name");
+        return ERR_ACCOUNT_COMMON_WRITE_PARCEL_ERROR;
     }
 
-    if (!data.WriteString(domainInfo.accountName_)) {
-        ACCOUNT_LOGE("failed to write string for domain account name");
-        return ERR_OSACCOUNT_KIT_WRITE_DOMAIN_ACCOUNT_NAME_ERROR;
+    if ((callback == nullptr) || (!data.WriteRemoteObject(callback->AsObject()))) {
+        ACCOUNT_LOGE("fail to write callback");
+        return ERR_ACCOUNT_COMMON_WRITE_PARCEL_ERROR;
     }
 
     ErrCode result = SendRequest(IOsAccount::Message::CREATE_OS_ACCOUNT_FOR_DOMAIN, data, reply);
@@ -100,12 +100,6 @@ ErrCode OsAccountProxy::CreateOsAccountForDomain(
         ACCOUNT_LOGE("failed to read reply for create os account for domain, result %{public}d.", result);
         return result;
     }
-    std::shared_ptr<OsAccountInfo> infoPtr(reply.ReadParcelable<OsAccountInfo>());
-    if (infoPtr == nullptr) {
-        ACCOUNT_LOGE("failed to read OsAccountInfo");
-        return ERR_ACCOUNT_COMMON_READ_PARCEL_ERROR;
-    }
-    osAccountInfo = *infoPtr;
     return ERR_OK;
 }
 
