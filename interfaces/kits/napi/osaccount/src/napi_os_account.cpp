@@ -422,17 +422,8 @@ napi_value CreateOsAccountForDomain(napi_env env, napi_callback_info cbInfo)
     napi_value resource = nullptr;
     napi_create_string_utf8(env, "CreateOsAccountForDomain", NAPI_AUTO_LENGTH, &resource);
 
-    napi_create_async_work(
-        env, nullptr, resource, CreateOAForDomainExecuteCB,
-        [](napi_env env, napi_status status, void *data) {
-            auto *asyncContext = reinterpret_cast<CreateOAForDomainAsyncContext *>(data);
-            napi_delete_async_work(env, asyncContext->work);
-            if (asyncContext->errCode != ERR_OK) {
-                napi_delete_reference(env, asyncContext->callbackRef);
-                delete asyncContext;
-            }
-        },
-        createOAForDomainCB, &createOAForDomainCB->work);
+    napi_create_async_work(env, nullptr, resource, CreateOAForDomainExecuteCB, CreateOAForDomainCallbackCompletedCB,
+        reinterpret_cast<void *>(createOAForDomainCB), &createOAForDomainCB->work);
 
     napi_queue_async_work(env, createOAForDomainCB->work);
     return result;
