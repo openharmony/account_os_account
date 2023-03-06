@@ -50,11 +50,13 @@ struct JsDomainPluginParam {
     JsDomainPluginParam(napi_env napiEnv) : env(napiEnv) {}
     napi_env env = nullptr;
     napi_ref func = nullptr;
+    napi_async_work work = nullptr;
     AccountSA::DomainAccountInfo domainAccountInfo;
     std::shared_ptr<AccountSA::DomainAuthCallback> authCallback = nullptr;
     std::shared_ptr<AccountSA::DomainAccountCallback> callback = nullptr;
     ThreadLockInfo *lockInfo;
     int32_t userId = 0;
+    napi_ref callbackRef = nullptr;
     AccountSA::AuthMode authMode;
     std::vector<uint8_t> authData;
     int32_t resultCode = 0;
