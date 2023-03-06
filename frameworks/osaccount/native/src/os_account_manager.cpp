@@ -28,11 +28,11 @@ ErrCode OsAccountManager::CreateOsAccount(
     return DelayedSingleton<OsAccount>::GetInstance()->CreateOsAccount(name, type, osAccountInfo);
 }
 
-ErrCode OsAccountManager::CreateOsAccountForDomain(
-    const OsAccountType &type, const DomainAccountInfo &domainInfo, OsAccountInfo &osAccountInfo)
+ErrCode OsAccountManager::CreateOsAccountForDomain(const OsAccountType &type, const DomainAccountInfo &domainInfo,
+    const std::shared_ptr<DomainAccountCallback> &callback)
 {
     return DelayedSingleton<OsAccount>::GetInstance()->CreateOsAccountForDomain(
-        type, domainInfo, osAccountInfo);
+        type, domainInfo, callback);
 }
 
 ErrCode OsAccountManager::RemoveOsAccount(const int id)

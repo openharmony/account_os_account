@@ -44,8 +44,9 @@ public:
         const sptr<IDomainAccountCallback> &callback) = 0;
     virtual ErrCode GetDomainAccountInfo(
         const std::string &domain, const std::string &accountName, const sptr<IDomainAccountCallback> &callback) = 0;
-    virtual ErrCode OnAccountBound(const DomainAccountInfo &info, const int32_t localId) = 0;
-    virtual ErrCode OnAccountUnBound(const DomainAccountInfo &info) = 0;
+    virtual ErrCode OnAccountBound(const DomainAccountInfo &info, const int32_t localId,
+        const sptr<IDomainAccountCallback> &callback) = 0;
+    virtual ErrCode OnAccountUnBound(const DomainAccountInfo &info, const sptr<IDomainAccountCallback> &callback) = 0;
 };
 }  // namespace AccountSA
 }  // namespace OHOS

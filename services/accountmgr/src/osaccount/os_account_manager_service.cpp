@@ -118,8 +118,8 @@ ErrCode OsAccountManagerService::CreateOsAccount(
     return innerManager_->CreateOsAccount(name, type, osAccountInfo);
 }
 
-ErrCode OsAccountManagerService::CreateOsAccountForDomain(
-    const OsAccountType &type, const DomainAccountInfo &domainInfo, OsAccountInfo &osAccountInfo)
+ErrCode OsAccountManagerService::CreateOsAccountForDomain(const OsAccountType &type,
+    const DomainAccountInfo &domainInfo, const sptr<IDomainAccountCallback> &callback)
 {
     ACCOUNT_LOGI("start");
     bool isMultiOsAccountEnable = false;
@@ -155,7 +155,7 @@ ErrCode OsAccountManagerService::CreateOsAccountForDomain(
     if (!isAllowedCreateAdmin && type == OsAccountType::ADMIN) {
         return ERR_OSACCOUNT_SERVICE_MANAGER_CREATE_OSACCOUNT_TYPE_ERROR;
     }
-    return innerManager_->CreateOsAccountForDomain(type, domainInfo, osAccountInfo);
+    return innerManager_->CreateOsAccountForDomain(type, domainInfo, callback);
 }
 
 ErrCode OsAccountManagerService::RemoveOsAccount(const int id)

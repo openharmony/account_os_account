@@ -504,7 +504,8 @@ void NapiDomainAccountPlugin::GetAuthStatusInfo(
     lockInfo_.count++;
 }
 
-void NapiDomainAccountPlugin::OnAccountBound(const DomainAccountInfo &info, const int32_t localId)
+void NapiDomainAccountPlugin::OnAccountBound(const DomainAccountInfo &info, const int32_t localId,
+    const std::shared_ptr<AccountSA::DomainAccountCallback> &callback)
 {
     std::unique_lock<std::mutex> lock(lockInfo_.mutex);
     if (lockInfo_.count < 0) {
@@ -534,7 +535,8 @@ void NapiDomainAccountPlugin::OnAccountBound(const DomainAccountInfo &info, cons
     lockInfo_.count++;
 }
 
-void NapiDomainAccountPlugin::OnAccountUnBound(const DomainAccountInfo &info)
+void NapiDomainAccountPlugin::OnAccountUnBound(const DomainAccountInfo &info,
+    const std::shared_ptr<AccountSA::DomainAccountCallback> &callback)
 {
     std::unique_lock<std::mutex> lock(lockInfo_.mutex);
     if (lockInfo_.count < 0) {

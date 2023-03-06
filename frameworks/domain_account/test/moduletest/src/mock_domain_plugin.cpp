@@ -100,10 +100,12 @@ void MockDomainPlugin::GetDomainAccountInfo(
     const std::string &domain, const std::string &accountName, const std::shared_ptr<DomainAccountCallback> &callback)
 {}
 
-void MockDomainPlugin::OnAccountBound(const DomainAccountInfo &info, const int32_t localId)
+void MockDomainPlugin::OnAccountBound(const DomainAccountInfo &info, const int32_t localId,
+    const std::shared_ptr<DomainAccountCallback> &callback)
 {}
 
-void MockDomainPlugin::OnAccountUnBound(const DomainAccountInfo &info)
+void MockDomainPlugin::OnAccountUnBound(const DomainAccountInfo &info,
+    const std::shared_ptr<DomainAccountCallback> &callback)
 {}
 }  // AccountSA
 }  // OHOS

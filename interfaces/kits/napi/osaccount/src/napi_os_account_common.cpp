@@ -552,8 +552,7 @@ void CreateOAForDomainExecuteCB(napi_env env, void *data)
 {
     CreateOAForDomainAsyncContext *asyncContext = reinterpret_cast<CreateOAForDomainAsyncContext *>(data);
     asyncContext->errCode = OsAccountManager::CreateOsAccountForDomain(asyncContext->type,
-        asyncContext->domainInfo, asyncContext->osAccountInfos);
-    ACCOUNT_LOGD("error code is %{public}d", asyncContext->errCode);
+        asyncContext->domainInfo, nullptr);
     asyncContext->status = (asyncContext->errCode == 0) ? napi_ok : napi_generic_failure;
 }
 

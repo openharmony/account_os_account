@@ -143,7 +143,8 @@ ErrCode DomainAccountPluginProxy::GetDomainAccountInfo(
     return SendRequest(IDomainAccountPlugin::Message::DOMAIN_PLUGIN_GET_DOMAIN_ACCOUNT_INFO, data, reply);
 }
 
-ErrCode DomainAccountPluginProxy::OnAccountBound(const DomainAccountInfo &info, const int32_t localId)
+ErrCode DomainAccountPluginProxy::OnAccountBound(const DomainAccountInfo &info, const int32_t localId,
+    const sptr<IDomainAccountCallback> &callback)
 {
     MessageParcel data;
     ErrCode result = WriteCommonData(data, GetDescriptor(), info);
@@ -154,16 +155,25 @@ ErrCode DomainAccountPluginProxy::OnAccountBound(const DomainAccountInfo &info, 
         ACCOUNT_LOGE("failed to write localId");
         return ERR_ACCOUNT_COMMON_WRITE_PARCEL_ERROR;
     }
+    if ((callback == nullptr) || (!data.WriteRemoteObject(callback->AsObject()))) {
+        ACCOUNT_LOGE("fail to write callback");
+        return ERR_ACCOUNT_COMMON_WRITE_PARCEL_ERROR;
+    }
     MessageParcel reply;
     return SendRequest(IDomainAccountPlugin::Message::DOMAIN_PLUGIN_ON_ACCOUNT_BOUND, data, reply);
 }
 
-ErrCode DomainAccountPluginProxy::OnAccountUnBound(const DomainAccountInfo &info)
+ErrCode DomainAccountPluginProxy::OnAccountUnBound(const DomainAccountInfo &info,
+    const sptr<IDomainAccountCallback> &callback)
 {
     MessageParcel data;
     ErrCode result = WriteCommonData(data, GetDescriptor(), info);
     if (result != ERR_OK) {
         return result;
+    }
+    if ((callback == nullptr) || (!data.WriteRemoteObject(callback->AsObject()))) {
+        ACCOUNT_LOGE("fail to write callback");
+        return ERR_ACCOUNT_COMMON_WRITE_PARCEL_ERROR;
     }
     MessageParcel reply;
     return SendRequest(IDomainAccountPlugin::Message::DOMAIN_PLUGIN_ON_ACCOUNT_UNBOUND, data, reply);
