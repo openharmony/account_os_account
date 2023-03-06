@@ -31,24 +31,10 @@ constexpr int PARAMONE = 1;
 constexpr int PARAMTWO = 2;
 constexpr int PARAMTHREE = 3;
 constexpr int RESULT_COUNT = 2;
-constexpr int INVALID_LOCALID = -1;
 constexpr std::int32_t ARGS_SIZE_ONE = 1;
 constexpr std::int32_t ARGS_SIZE_TWO = 2;
 constexpr std::int32_t ARGS_SIZE_THREE = 3;
 constexpr std::int32_t ARGS_SIZE_FOUR = 4;
-
-class NapiCreateDomainCallback final : public DomainAccountCallback {
-public:
-    NapiCreateDomainCallback(napi_env env, napi_ref callbackRef, napi_deferred deferred);
-    ~NapiCreateDomainCallback();
-    void OnResult(const int32_t errCode, Parcel &parcel) override;
-
-private:
-    napi_env env_ = nullptr;
-    napi_ref callbackRef_ = nullptr;
-    napi_deferred deferred_ = nullptr;
-    AccountJsKit::ThreadLockInfo lockInfo_;
-};
 
 napi_value WrapVoidToJS(napi_env env);
 
@@ -97,7 +83,7 @@ void CreateOAForDomainExecuteCB(napi_env env, void *data);
 
 void CreateOACallbackCompletedCB(napi_env env, napi_status status, void *data);
 
-void CreateOAForDomainCallbackCompletedCB(uv_work_t *work, int status);
+void CreateOAForDomainCallbackCompletedCB(napi_env env, napi_status status, void *data);
 
 bool ParseParaGetOACount(napi_env env, napi_callback_info cbInfo, GetOACountAsyncContext *asyncContext);
 
