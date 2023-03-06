@@ -178,8 +178,10 @@ static bool ParseDomainAccountInfo(napi_env env, napi_value object, DomainAccoun
         ACCOUNT_LOGE("get domainInfo's accountName failed");
         return false;
     }
-    if (!GetStringPropertyByKey(env, object, "accountId", info.accountId_)) {
-        ACCOUNT_LOGE("get domainInfo's accountName failed");
+    bool hasProp = false;
+    napi_has_named_property(env, object, "accountId", &hasProp);
+    if (hasProp && !GetStringPropertyByKey(env, object, "accountId", info.accountId_)) {
+        ACCOUNT_LOGE("get domainInfo's accountId failed");
         return false;
     }
     return true;
