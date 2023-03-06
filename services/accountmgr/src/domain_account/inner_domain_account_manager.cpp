@@ -158,8 +158,8 @@ ErrCode InnerDomainAccountManager::Auth(const DomainAccountInfo &info, const std
             innerCallback = callback;
         }
     }
-    AppExecFwk::InnerEvent::Callback task =
-        std::bind(&InnerDomainAccountManager::StartAuth, this, plugin_, info, password, innerCallback, AUTH_WITH_CREDENTIAL_MODE);
+    AppExecFwk::InnerEvent::Callback task = std::bind(&InnerDomainAccountManager::StartAuth,
+        this, plugin_, info, password, innerCallback, AUTH_WITH_CREDENTIAL_MODE);
     return PostTask(task);
 }
 
