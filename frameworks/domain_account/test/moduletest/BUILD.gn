@@ -35,9 +35,15 @@ config("domain_account_frameworks_config_moduletest") {
 ohos_moduletest("domain_account_frameworks_module_test") {
   module_out_path = module_output_path
 
+  include_dirs = [
+    "${services_path}/accountmgr/include/domain_account",
+    "${services_path}/accountmgr/include/osaccount",
+  ]
   sources = [
     "src/domain_account_client_module_test.cpp",
     "src/mock_domain_auth_callback.cpp",
+    "src/mock_domain_create_domain_account_callback.cpp",
+    "src/mock_domain_has_domain_info_callback.cpp",
     "src/mock_domain_plugin.cpp",
   ]
   configs = [ ":domain_account_frameworks_config_moduletest" ]
