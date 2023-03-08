@@ -98,9 +98,8 @@ void FuzzTestManager::RegisterOsAccountManager()
     };
 
     callFunctionMap_["OsAccountManagerCreateOsAccountForDomain"] = []() {
-        OsAccountInfo osAccountInfo = GetParamOsAccountInfo();
         DomainAccountInfo domainAccountInfo = GetParamDomainAccountInfo();
-        OsAccountManager::CreateOsAccountForDomain(GetParamOsAccountType(), domainAccountInfo, osAccountInfo);
+        OsAccountManager::CreateOsAccountForDomain(GetParamOsAccountType(), domainAccountInfo, nullptr);
     };
 
     callFunctionMap_["OsAccountManagerRemoveOsAccount"] = []() { OsAccountManager::RemoveOsAccount(GetIntParam()); };

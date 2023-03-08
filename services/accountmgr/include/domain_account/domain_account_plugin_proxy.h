@@ -35,8 +35,10 @@ public:
     ErrCode GetAuthStatusInfo(const DomainAccountInfo &info, const sptr<IDomainAccountCallback> &callback) override;
     ErrCode GetDomainAccountInfo(const std::string &domain, const std::string &accountName,
         const sptr<IDomainAccountCallback> &callback) override;
-    ErrCode OnAccountBound(const DomainAccountInfo &info, const int32_t localId) override;
-    ErrCode OnAccountUnBound(const DomainAccountInfo &info) override;
+    ErrCode OnAccountBound(const DomainAccountInfo &info, const int32_t localId,
+        const sptr<IDomainAccountCallback> &callback) override;
+    ErrCode OnAccountUnBound(const DomainAccountInfo &info,
+        const sptr<IDomainAccountCallback> &callback) override;
 
 private:
     ErrCode SendRequest(IDomainAccountPlugin::Message code, MessageParcel &data, MessageParcel &reply);

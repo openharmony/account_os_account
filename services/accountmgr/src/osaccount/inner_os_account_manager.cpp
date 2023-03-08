@@ -17,12 +17,15 @@
 #ifdef HAS_CES_PART
 #include "common_event_support.h"
 #endif // HAS_CES_PART
+#include "domain_account_callback_service.h"
 #include "hitrace_meter.h"
 #include "hisysevent_adapter.h"
 #include "ohos_account_kits.h"
 #include "os_account_constants.h"
 #include "os_account_control_file_manager.h"
+#include "os_account_domain_account_callback.h"
 #include "os_account_subscribe_manager.h"
+#include "parcel.h"
 
 namespace OHOS {
 namespace AccountSA {
@@ -116,9 +119,6 @@ void IInnerOsAccountManager::StartAccount()
         if (SendMsgForAccountCreate(osAccountInfo) != ERR_OK) {
             return;
         }
-        osAccountInfo.SetIsCreateCompleted(true);
-        osAccountControl_->UpdateOsAccount(osAccountInfo);
-        ACCOUNT_LOGI("OsAccountAccountMgr send to storage and bm for start success");
     }
     // activate
     if (SendMsgForAccountActivate(osAccountInfo) != ERR_OK) {
@@ -144,13 +144,6 @@ void IInnerOsAccountManager::RestartActiveAccount()
                 ACCOUNT_LOGE("active base account failed");
                 return;
             }
-            int64_t time = std::chrono::duration_cast<std::chrono::seconds>(
-                std::chrono::system_clock::now().time_since_epoch()).count();
-            osAccountInfo.SetLastLoginTime(time);
-            osAccountControl_->UpdateOsAccount(osAccountInfos[i]);
-            PushIdIntoActiveList(id);
-            subscribeManagerPtr_->PublishActivatedOsAccount(id);
-            OsAccountInterface::SendToCESAccountSwitched(osAccountInfo);
         }
     }
 }
@@ -238,7 +231,7 @@ ErrCode IInnerOsAccountManager::SendMsgForAccountCreate(OsAccountInfo &osAccount
     }
     ReportOsAccountLifeCycle(osAccountInfo.GetLocalId(), Constants::OPERATION_CREATE);
     OsAccountInterface::SendToCESAccountCreate(osAccountInfo);
-
+    ACCOUNT_LOGI("OsAccountAccountMgr send to storage and bm for start success");
     return ERR_OK;
 }
 
@@ -253,44 +246,77 @@ ErrCode IInnerOsAccountManager::CreateOsAccount(
     return SendMsgForAccountCreate(osAccountInfo);
 }
 
-ErrCode IInnerOsAccountManager::CreateOsAccountForDomain(
-    const OsAccountType &type, const DomainAccountInfo &domainInfo, OsAccountInfo &osAccountInfo)
+bool IInnerOsAccountManager::CheckDomainAccountBound(
+    const std::vector<OsAccountInfo> &osAccountInfos, const DomainAccountInfo &info)
 {
-    // check whether if the target domain has already been bound to an os account or not
-    std::vector<OsAccountInfo> osAccountInfos;
-    ErrCode errCode = QueryAllCreatedOsAccounts(osAccountInfos);
-    if (errCode != ERR_OK) {
-        ACCOUNT_LOGE("cannot get current os account list, err %{public}d.", errCode);
-        return errCode;
-    }
     for (size_t i = 0; i < osAccountInfos.size(); ++i) {
-        DomainAccountInfo curDomainInfo;
-        osAccountInfos[i].GetDomainInfo(curDomainInfo);
-        if (curDomainInfo.accountName_ == domainInfo.accountName_ &&
-            curDomainInfo.domain_ == domainInfo.domain_) {
-            return ERR_OSACCOUNT_SERVICE_INNER_DOMAIN_ALREADY_BIND_ERROR;
+        DomainAccountInfo curInfo;
+        osAccountInfos[i].GetDomainInfo(curInfo);
+        if ((!info.accountId_.empty() && curInfo.accountId_ == info.accountId_) ||
+            ((curInfo.accountName_ == info.accountName_) && (curInfo.domain_ == info.domain_))) {
+            return true;
         }
     }
+    return false;
+}
 
-    std::string osAccountName = domainInfo.domain_ + "/" + domainInfo.accountName_;
+ErrCode IInnerOsAccountManager::BindDomainAccount(const OsAccountType &type, const DomainAccountInfo &domainAccountInfo,
+    const sptr<IDomainAccountCallback> &callback)
+{
+    std::vector<OsAccountInfo> osAccountInfos;
+    (void)QueryAllCreatedOsAccounts(osAccountInfos);
+    if (CheckDomainAccountBound(osAccountInfos, domainAccountInfo)) {
+        ACCOUNT_LOGE("the domain account is already bound");
+        return ERR_OSACCOUNT_SERVICE_INNER_DOMAIN_ALREADY_BIND_ERROR;
+    }
     bool isEnabled = false;
     (void)IsOsAccountConstraintEnable(Constants::START_USER_ID, CONSTRAINT_CREATE_ACCOUNT_DIRECTLY, isEnabled);
+    std::string osAccountName = domainAccountInfo.domain_ + "/" + domainAccountInfo.accountName_;
+    OsAccountInfo osAccountInfo;
     if (isEnabled && (osAccountInfos.size() == 1) && (osAccountInfos[0].GetLocalId() == Constants::START_USER_ID)) {
         DomainAccountInfo curDomainInfo;
         osAccountInfos[0].GetDomainInfo(curDomainInfo);
         if (curDomainInfo.domain_.empty()) {
             osAccountInfos[0].SetLocalName(osAccountName);
-            osAccountInfos[0].SetDomainInfo(domainInfo);
+            osAccountInfos[0].SetDomainInfo(domainAccountInfo);
             osAccountInfo = osAccountInfos[0];
-            return osAccountControl_->UpdateOsAccount(osAccountInfos[0]);
         }
     }
-
-    errCode = PrepareOsAccountInfo(osAccountName, type, domainInfo, osAccountInfo);
-    if (errCode != ERR_OK) {
-        return errCode;
+    if (osAccountInfo.GetLocalId() != Constants::START_USER_ID) {
+        ErrCode errCode = PrepareOsAccountInfo(osAccountName, type, domainAccountInfo, osAccountInfo);
+        if (errCode != ERR_OK) {
+            return errCode;
+        }
     }
-    return SendMsgForAccountCreate(osAccountInfo);
+    auto callbackWrapper = std::make_shared<BindDomainAccountCallback>(domainAccountInfo, osAccountInfo, callback);
+    if (callbackWrapper == nullptr) {
+        ACCOUNT_LOGE("create BindDomainAccountCallback failed");
+        return ERR_ACCOUNT_COMMON_INSUFFICIENT_MEMORY_ERROR;
+    }
+    return InnerDomainAccountManager::GetInstance().OnAccountBound(
+        domainAccountInfo, osAccountInfo.GetLocalId(), callbackWrapper);
+}
+
+ErrCode IInnerOsAccountManager::CreateOsAccountForDomain(
+    const OsAccountType &type, const DomainAccountInfo &domainInfo, const sptr<IDomainAccountCallback> &callback)
+{
+    std::vector<OsAccountInfo> osAccountInfos;
+    (void)QueryAllCreatedOsAccounts(osAccountInfos);
+    if (CheckDomainAccountBound(osAccountInfos, domainInfo)) {
+        ACCOUNT_LOGE("the domain account is already bound");
+        return ERR_OSACCOUNT_SERVICE_INNER_DOMAIN_ALREADY_BIND_ERROR;
+    }
+    if (!InnerDomainAccountManager::GetInstance().IsPluginAvailable()) {
+        ACCOUNT_LOGE("plugin is not available");
+        return ERR_DOMAIN_ACCOUNT_SERVICE_PLUGIN_NOT_EXIST;
+    }
+    auto callbackWrapper = std::make_shared<CheckAndCreateDomainAccountCallback>(type, domainInfo, callback);
+    if (callbackWrapper == nullptr) {
+        ACCOUNT_LOGE("new DomainCreateDomainCallback failed");
+        return ERR_ACCOUNT_COMMON_INSUFFICIENT_MEMORY_ERROR;
+    }
+    return InnerDomainAccountManager::GetInstance().GetDomainAccountInfo(
+        domainInfo.domain_, domainInfo.accountName_, callbackWrapper);
 }
 
 void IInnerOsAccountManager::CheckAndRefreshLocalIdRecord(const int id)
@@ -317,8 +343,7 @@ ErrCode IInnerOsAccountManager::RemoveOsAccount(const int id)
 #ifndef ENABLE_MULTIPLE_ACTIVE_ACCOUNTS
     if (IsOsAccountIDInActiveList(id)) {
         ACCOUNT_LOGI("RemoveOsAccount started account to inactive, account id : %{public}d.", id);
-        ErrCode activeErrCode = ActivateOsAccount(Constants::START_USER_ID);
-        if (activeErrCode != ERR_OK) {
+        if (ActivateOsAccount(Constants::START_USER_ID) != ERR_OK) {
             RemoveLocalIdToOperating(id);
             ACCOUNT_LOGE("RemoveOsAccount active base account failed");
             return ERR_OSACCOUNT_SERVICE_INNER_REMOVE_ACCOUNT_ACTIVED_ERROR;
@@ -332,7 +357,11 @@ ErrCode IInnerOsAccountManager::RemoveOsAccount(const int id)
         ACCOUNT_LOGE("RemoveOsAccount cannot find os account info, errCode %{public}d.", errCode);
         return ERR_OSACCOUNT_SERVICE_INNER_CANNOT_FIND_OSACCOUNT_ERROR;
     }
-
+    DomainAccountInfo curDomainInfo;
+    osAccountInfo.GetDomainInfo(curDomainInfo);
+    if (!curDomainInfo.accountId_.empty()) {
+        InnerDomainAccountManager::GetInstance().OnAccountUnBound(curDomainInfo, nullptr);
+    }
     // set remove flag first
     osAccountInfo.SetToBeRemoved(true);
     osAccountControl_->UpdateOsAccount(osAccountInfo);
@@ -1057,14 +1086,12 @@ ErrCode IInnerOsAccountManager::SendMsgForAccountActivate(OsAccountInfo &osAccou
             osAccountInfo.GetLocalId(), errCode);
         return ERR_OSACCOUNT_SERVICE_INTERFACE_TO_STORAGE_ACCOUNT_START_ERROR;
     }
-    ACCOUNT_LOGI("SendToStorageAccountStart ok");
     errCode = OsAccountInterface::SendToAMSAccountStart(osAccountInfo);
     if (errCode != ERR_OK) {
         ACCOUNT_LOGE("account %{public}d call ams active failed, errCode %{public}d.",
             osAccountInfo.GetLocalId(), errCode);
         return ERR_OSACCOUNT_SERVICE_INNER_SEND_AM_ACCOUNT_SWITCH_ERROR;
     }
-    ACCOUNT_LOGI("SendToAMSAccountStart ok");
     // update info
     osAccountInfo.SetIsActived(true);
     int64_t time =

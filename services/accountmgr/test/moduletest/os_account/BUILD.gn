@@ -58,6 +58,7 @@ ohos_moduletest("os_account_manager_service_module_test") {
     "ability_runtime:ability_manager",
     "c_utils:utils",
     "hiviewdfx_hilog_native:libhilog",
+    "ipc:ipc_core",
     "kv_store:distributeddata_inner",
   ]
   part_name = "os_account"
@@ -103,6 +104,7 @@ ohos_moduletest("os_account_manager_service_create_os_account_test") {
     "ability_runtime:ability_manager",
     "c_utils:utils",
     "hiviewdfx_hilog_native:libhilog",
+    "ipc:ipc_core",
     "kv_store:distributeddata_inner",
   ]
   part_name = "os_account"
@@ -148,6 +150,7 @@ ohos_moduletest("os_account_manager_service_subscribe_module_test") {
     "ability_runtime:ability_manager",
     "c_utils:utils",
     "hiviewdfx_hilog_native:libhilog",
+    "ipc:ipc_core",
     "kv_store:distributeddata_inner",
   ]
   part_name = "os_account"

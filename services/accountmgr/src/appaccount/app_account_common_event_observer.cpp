@@ -44,8 +44,8 @@ AppAccountCommonEventObserver::AppAccountCommonEventObserver(const CommonEventCa
         subscribeInfo, std::bind(&AppAccountCommonEventObserver::OnReceiveEvent, this, std::placeholders::_1));
 
     auto task = std::bind(&AppAccountCommonEventObserver::SubscribeCommonEvent, this);
-    std::thread thread(task);
-    thread.detach();
+    std::thread taskThread(task);
+    taskThread.detach();
 }
 
 AppAccountCommonEventObserver::~AppAccountCommonEventObserver()

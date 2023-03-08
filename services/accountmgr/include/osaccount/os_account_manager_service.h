@@ -19,6 +19,7 @@
 #include <memory>
 #include "account_permission_manager.h"
 #include "os_account_stub.h"
+#include "idomain_account_callback.h"
 #include "iinner_os_account.h"
 
 namespace OHOS {
@@ -30,8 +31,8 @@ public:
 
     ErrCode CreateOsAccount(
         const std::string &name, const OsAccountType &type, OsAccountInfo &osAccountInfo) override;
-    ErrCode CreateOsAccountForDomain(
-        const OsAccountType &type, const DomainAccountInfo &domainInfo, OsAccountInfo &osAccountInfo) override;
+    ErrCode CreateOsAccountForDomain(const OsAccountType &type, const DomainAccountInfo &domainInfo,
+        const sptr<IDomainAccountCallback> &callback) override;
     ErrCode RemoveOsAccount(const int id) override;
 
     ErrCode IsOsAccountExists(const int id, bool &isOsAccountExists) override;

@@ -17,6 +17,7 @@
 #include "account_log_wrapper.h"
 #include "account_permission_manager.h"
 #include "account_proxy.h"
+#include "domain_account_callback_service.h"
 #include "iaccount.h"
 #include "iservice_registry.h"
 #include "ohos_account_kits.h"
@@ -63,8 +64,8 @@ ErrCode OsAccount::CreateOsAccount(const std::string &name, const OsAccountType 
     return osAccountProxy_->CreateOsAccount(name, type, osAccountInfo);
 }
 
-ErrCode OsAccount::CreateOsAccountForDomain(
-    const OsAccountType &type, const DomainAccountInfo &domainInfo, OsAccountInfo &osAccountInfo)
+ErrCode OsAccount::CreateOsAccountForDomain(const OsAccountType &type, const DomainAccountInfo &domainInfo,
+    const std::shared_ptr<DomainAccountCallback> &callback)
 {
     if (domainInfo.domain_.empty() ||
         domainInfo.domain_.size() > Constants::DOMAIN_NAME_MAX_SIZE) {
@@ -83,8 +84,8 @@ ErrCode OsAccount::CreateOsAccountForDomain(
         ACCOUNT_LOGE("failed to get osAccountProxy_, result %{public}d.", result);
         return result;
     }
-
-    return osAccountProxy_->CreateOsAccountForDomain(type, domainInfo, osAccountInfo);
+    sptr<DomainAccountCallbackService> callbackService = new (std::nothrow) DomainAccountCallbackService(callback);
+    return osAccountProxy_->CreateOsAccountForDomain(type, domainInfo, callbackService);
 }
 
 ErrCode OsAccount::RemoveOsAccount(const int id)

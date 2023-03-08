@@ -203,6 +203,7 @@ ohos_shared_library("accountmgr") {
     "src/osaccount/os_account_data_storage.cpp",
     "src/osaccount/os_account_database_operator.cpp",
     "src/osaccount/os_account_delete_user_idm_callback.cpp",
+    "src/osaccount/os_account_domain_account_callback.cpp",
     "src/osaccount/os_account_file_operator.cpp",
     "src/osaccount/os_account_interface.cpp",
     "src/osaccount/os_account_manager_service.cpp",

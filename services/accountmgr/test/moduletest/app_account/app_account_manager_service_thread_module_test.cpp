@@ -170,8 +170,8 @@ HWTEST_F(AppAccountManagerServiceThreadModuleTest, AppAccountManagerServiceThrea
 
     auto callback = std::bind(&AppAccountManagerServiceThreadModuleTest::DeleteAccount, this,
         appAccountManagerServicePtr_);
-    std::thread thread(callback);
-    thread.detach();
+    std::thread taskThread(callback);
+    taskThread.detach();
 
 
     std::this_thread::sleep_for(std::chrono::milliseconds(DELAY_FOR_OPERATION));
