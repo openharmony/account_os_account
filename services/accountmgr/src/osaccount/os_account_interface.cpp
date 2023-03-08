@@ -279,6 +279,7 @@ ErrCode OsAccountInterface::SendToStorageAccountCreate(OsAccountInfo &osAccountI
     if (err != 0) {
         ReportOsAccountOperationFail(osAccountInfo.GetLocalId(), Constants::OPERATION_CREATE,
             err, "Storage PrepareAddUser failed!");
+        return ERR_OSACCOUNT_SERVICE_STORAGE_PREPARE_ADD_USER_FAILED;
     }
 
     FinishTrace(HITRACE_TAG_ACCOUNT_MANAGER);
@@ -362,7 +363,6 @@ ErrCode OsAccountInterface::SendToStorageAccountStart(OsAccountInfo &osAccountIn
     if (err != 0) {
         ReportOsAccountOperationFail(osAccountInfo.GetLocalId(), Constants::OPERATION_ACTIVATE,
             err, "Storage PrepareStartUser failed!");
-        return ERR_OSACCOUNT_SERVICE_STORAGE_PREPARE_START_USER_FAILED;
     }
     ACCOUNT_LOGI("end, Storage PrepareStartUser ret %{public}d.", err);
     FinishTrace(HITRACE_TAG_ACCOUNT_MANAGER);
