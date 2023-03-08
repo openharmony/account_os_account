@@ -148,7 +148,7 @@ static bool IsOsAccountKitError(int32_t errCode)
 static bool IsOsAccountServiceError(int32_t errCode)
 {
     return (errCode >= ERR_OSACCOUNT_SERVICE_MANAGER_BAD_UID_ERROR) &&
-        (errCode <= ERR_OSACCOUNT_SERVICE_GET_DATA_FROM_SPECIFIC_CONSTRAINTS_FILE_EMPTY);
+        (errCode <= ERR_OSACCOUNT_SERVICE_STORAGE_PREPARE_ADD_USER_FAILED);
 }
 
 static bool IsDomainAccountServiceError(int32_t errCode)
