@@ -13,9 +13,11 @@
  * limitations under the License.
  */
 #include <cerrno>
+#include <cstdio>
 #include <fstream>
 #include <iostream>
 #include <vector>
+#include <unistd.h>
 #ifdef WITH_SELINUX
 #include <policycoreutils.h>
 #endif // WITH_SELINUX
@@ -113,15 +115,34 @@ ErrCode OhosAccountDataDeal::SaveAccountInfo(const AccountInfo &accountInfo) con
         {DATADEAL_JSON_KEY_OHOSACCOUNT_AVATAR, accountInfo.ohosAccountInfo_.avatar_},
         {DATADEAL_JSON_KEY_OHOSACCOUNT_SCALABLEDATA, scalableDataStr}
     };
+    std::string accountInfoValue = jsonData.dump(-1, ' ', false, json::error_handler_t::ignore);
     std::string configFile = configFileDir_ + std::to_string(accountInfo.userId_) + ACCOUNT_CFG_FILE_NAME;
-    std::ofstream out(configFile);
-    if (!out) {
-        ACCOUNT_LOGE("Failed to open file %{public}s, errno %{public}d.", configFile.c_str(), errno);
+    FILE *fp = fopen(configFile.c_str(), "wb");
+    if (fp == nullptr) {
+        ACCOUNT_LOGE("failed to open %{public}s, errno %{public}d.", configFile.c_str(), errno);
         ReportOhosAccountOperationFail(accountInfo.userId_, OPERATION_OPEN_FILE_TO_WRITE, errno, configFile);
-        return ERR_ACCOUNT_DATADEAL_FILE_PARSE_FAILED;
+        return ERR_ACCOUNT_COMMON_FILE_OPEN_FAILED;
     }
-    out << jsonData;
-    out.close();
+    size_t num = fwrite(accountInfoValue.c_str(), sizeof(char), accountInfoValue.length(), fp);
+    if (num != accountInfoValue.length()) {
+        ACCOUNT_LOGE("failed to fwrite %{public}s, errno %{public}d.", configFile.c_str(), errno);
+        ReportOhosAccountOperationFail(accountInfo.userId_, OPERATION_OPEN_FILE_TO_WRITE, errno, configFile);
+        fclose(fp);
+        return ERR_ACCOUNT_COMMON_FILE_WRITE_FAILED;
+    }
+    if (fflush(fp) != 0) {
+        ACCOUNT_LOGE("failed to fflush %{public}s, errno %{public}d.", configFile.c_str(), errno);
+        ReportOhosAccountOperationFail(accountInfo.userId_, OPERATION_OPEN_FILE_TO_WRITE, errno, configFile);
+        fclose(fp);
+        return ERR_ACCOUNT_COMMON_FILE_WRITE_FAILED;
+    }
+    if (fsync(fileno(fp)) != 0) {
+        ACCOUNT_LOGE("failed to fsync %{public}s, errno %{public}d.", configFile.c_str(), errno);
+        ReportOhosAccountOperationFail(accountInfo.userId_, OPERATION_OPEN_FILE_TO_WRITE, errno, configFile);
+        fclose(fp);
+        return ERR_ACCOUNT_COMMON_FILE_WRITE_FAILED;
+    }
+    fclose(fp);
 
     // change mode
     if (!ChangeModeFile(configFile, S_IRUSR | S_IWUSR)) {
