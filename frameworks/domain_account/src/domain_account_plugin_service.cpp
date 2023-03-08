@@ -16,7 +16,6 @@
 #include "domain_account_plugin_service.h"
 
 #include "account_log_wrapper.h"
-#include "domain_account_callback_client.h"
 #include "domain_auth_callback_client.h"
 
 namespace OHOS {
@@ -27,6 +26,21 @@ DomainAccountPluginService::DomainAccountPluginService(const std::shared_ptr<Dom
 
 DomainAccountPluginService::~DomainAccountPluginService()
 {}
+
+ErrCode DomainAccountPluginService::CheckAndInitExecEnv(const sptr<IDomainAccountCallback> &callback,
+    DomainAccountCallbackClient **callbackClient)
+{
+    if (innerPlugin_ == nullptr) {
+        ACCOUNT_LOGE("innerPlugin_ is nullptr");
+        return ERR_ACCOUNT_COMMON_NULL_PTR_ERROR;
+    }
+    *callbackClient = new (std::nothrow) DomainAccountCallbackClient(callback);
+    if (*callbackClient == nullptr) {
+        ACCOUNT_LOGE("failed to create domain account callback client");
+        return ERR_ACCOUNT_COMMON_INSUFFICIENT_MEMORY_ERROR;
+    }
+    return ERR_OK;
+}
 
 ErrCode DomainAccountPluginService::AuthCommonInterface(const DomainAccountInfo &info,
     const std::vector<uint8_t> &authData, const sptr<IDomainAuthCallback> &callback, AuthMode authMode)
@@ -79,7 +93,6 @@ ErrCode DomainAccountPluginService::AuthWithToken(
     return AuthCommonInterface(info, token, callback, AUTH_WITH_TOKEN_MODE);
 }
 
-
 ErrCode DomainAccountPluginService::GetAuthStatusInfo(
     const DomainAccountInfo &accountInfo, const sptr<IDomainAccountCallback> &callback)
 {
@@ -99,36 +112,39 @@ ErrCode DomainAccountPluginService::GetAuthStatusInfo(
 ErrCode DomainAccountPluginService::GetDomainAccountInfo(
     const std::string &domain, const std::string &accountName, const sptr<IDomainAccountCallback> &callback)
 {
-    if (innerPlugin_ == nullptr) {
-        ACCOUNT_LOGE("innerPlugin_ is nullptr");
-        return ERR_ACCOUNT_COMMON_NULL_PTR_ERROR;
+    DomainAccountCallbackClient *callbackClient = nullptr;
+    ErrCode errCode = CheckAndInitExecEnv(callback, &callbackClient);
+    if (errCode != ERR_OK) {
+        return errCode;
     }
-    auto callbackClient = std::make_shared<DomainAccountCallbackClient>(callback);
-    if (callbackClient == nullptr) {
-        ACCOUNT_LOGE("failed to create domain account callback client");
-        return ERR_ACCOUNT_COMMON_INSUFFICIENT_MEMORY_ERROR;
-    }
-    innerPlugin_->GetDomainAccountInfo(domain, accountName, callbackClient);
+    std::shared_ptr<DomainAccountCallbackClient> callbackPtr(callbackClient);
+    innerPlugin_->GetDomainAccountInfo(domain, accountName, callbackPtr);
     return ERR_OK;
 }
 
-ErrCode DomainAccountPluginService::OnAccountBound(const DomainAccountInfo &info, const int32_t localId)
+ErrCode DomainAccountPluginService::OnAccountBound(const DomainAccountInfo &info, const int32_t localId,
+    const sptr<IDomainAccountCallback> &callback)
 {
-    if (innerPlugin_ == nullptr) {
-        ACCOUNT_LOGE("innerPlugin_ is nullptr");
-        return ERR_ACCOUNT_COMMON_NULL_PTR_ERROR;
+    DomainAccountCallbackClient *callbackClient = nullptr;
+    ErrCode errCode = CheckAndInitExecEnv(callback, &callbackClient);
+    if (errCode != ERR_OK) {
+        return errCode;
     }
-    innerPlugin_->OnAccountBound(info, localId);
+    std::shared_ptr<DomainAccountCallbackClient> callbackPtr(callbackClient);
+    innerPlugin_->OnAccountBound(info, localId, callbackPtr);
     return ERR_OK;
 }
 
-ErrCode DomainAccountPluginService::OnAccountUnBound(const DomainAccountInfo &info)
+ErrCode DomainAccountPluginService::OnAccountUnBound(const DomainAccountInfo &info,
+    const sptr<IDomainAccountCallback> &callback)
 {
-    if (innerPlugin_ == nullptr) {
-        ACCOUNT_LOGE("innerPlugin_ is nullptr");
-        return ERR_ACCOUNT_COMMON_NULL_PTR_ERROR;
+    DomainAccountCallbackClient *callbackClient = nullptr;
+    ErrCode errCode = CheckAndInitExecEnv(callback, &callbackClient);
+    if (errCode != ERR_OK) {
+        return errCode;
     }
-    innerPlugin_->OnAccountUnBound(info);
+    std::shared_ptr<DomainAccountCallbackClient> callbackPtr(callbackClient);
+    innerPlugin_->OnAccountUnBound(info, callbackPtr);
     return ERR_OK;
 }
 }  // namespace AccountSA

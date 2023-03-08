@@ -270,8 +270,8 @@ bool AppAccountSubscribeManager::PublishAccount(
 
     auto callback = std::bind(&AppAccountSubscribeManager::OnAccountsChanged, this, eventRecordPtr);
 
-    std::thread thread(callback);
-    thread.detach();
+    std::thread taskThread(callback);
+    taskThread.detach();
     return true;
 }
 

@@ -67,9 +67,11 @@ public:
     virtual void GetDomainAccountInfo(const std::string &domain, const std::string &accountName,
         const std::shared_ptr<DomainAccountCallback> &callback) = 0;
 
-    virtual void OnAccountBound(const DomainAccountInfo &info, const int32_t localId) = 0;
+    virtual void OnAccountBound(const DomainAccountInfo &info, const int32_t localId,
+        const std::shared_ptr<DomainAccountCallback> &callback) = 0;
 
-    virtual void OnAccountUnBound(const DomainAccountInfo &info) = 0;
+    virtual void OnAccountUnBound(const DomainAccountInfo &info,
+        const std::shared_ptr<DomainAccountCallback> &callback) = 0;
 };
 }  // namespace AccountSA
 }  // namespace OHOS

@@ -18,6 +18,7 @@
 
 #include <string>
 #include "account_error_no.h"
+#include "domain_account_callback_client.h"
 #include "domain_account_common.h"
 #include "domain_account_plugin.h"
 #include "domain_account_plugin_stub.h"
@@ -36,10 +37,13 @@ public:
     ErrCode GetAuthStatusInfo(const DomainAccountInfo &info, const sptr<IDomainAccountCallback> &callback) override;
     ErrCode GetDomainAccountInfo(const std::string &domain, const std::string &accountName,
         const sptr<IDomainAccountCallback> &callback) override;
-    ErrCode OnAccountBound(const DomainAccountInfo &info, const int32_t localId) override;
-    ErrCode OnAccountUnBound(const DomainAccountInfo &info) override;
+    ErrCode OnAccountBound(const DomainAccountInfo &info, const int32_t localId,
+        const sptr<IDomainAccountCallback> &callback) override;
+    ErrCode OnAccountUnBound(const DomainAccountInfo &info, const sptr<IDomainAccountCallback> &callback) override;
 
 private:
+    ErrCode CheckAndInitExecEnv(const sptr<IDomainAccountCallback> &callback,
+        DomainAccountCallbackClient **callbackClient);
     ErrCode AuthCommonInterface(const DomainAccountInfo &info, const std::vector<uint8_t> &authData,
         const sptr<IDomainAuthCallback> &callback, AuthMode authMode);
     std::shared_ptr<DomainAccountPlugin> innerPlugin_;

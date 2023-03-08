@@ -151,8 +151,8 @@ ErrCode OsAccountSubscribeManager::Publish(const int id, OS_ACCOUNT_SUBSCRIBE_TY
         (*it)->subscribeInfoPtr_->GetOsAccountSubscribeType(osAccountSubscribeType);
         if (osAccountSubscribeType == subscribeType) {
             auto task = std::bind(&OsAccountSubscribeManager::OnAccountsChanged, this, (*it), id);
-            std::thread thread(task);
-            thread.detach();
+            std::thread taskThread(task);
+            taskThread.detach();
             ++sendCnt;
         }
     }

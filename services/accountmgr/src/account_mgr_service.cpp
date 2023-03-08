@@ -208,7 +208,7 @@ void AccountMgrService::OnStop()
 
 void AccountMgrService::OnAddSystemAbility(int32_t systemAbilityId, const std::string &deviceId)
 {
-    ACCOUNT_LOGE("OnAddSystemAbility systemAbilityId %{public}d", systemAbilityId);
+    ACCOUNT_LOGI("OnAddSystemAbility systemAbilityId %{public}d", systemAbilityId);
     switch (systemAbilityId) {
         case STORAGE_MANAGER_MANAGER_ID: {
             isStorageReady_ = true;
