@@ -594,3 +594,64 @@ HWTEST_F(DomainAccountClientModuleTest, DomainAccountClientModuleTest_CreateOsAc
     errCode = OsAccountManager::SetOsAccountConstraints(TEST_UID, constraints, false);
     ASSERT_EQ(errCode, ERR_OK);
 }
+
+/**
+ * @tc.name: DomainAccountClientModuleTest_HasDomainAccount_001
+ * @tc.desc: HasDomainAccount falied with not get domain info.
+ * @tc.type: FUNC
+ * @tc.require: I6AQVM
+ */
+HWTEST_F(DomainAccountClientModuleTest, DomainAccountClientModuleTest_HasDomainAccount_001, TestSize.Level0)
+{
+    DomainAccountInfo info;
+    info.accountName_ = STRING_NAME_INVALID;
+    info.domain_ = STRING_DOMAIN;
+    info.accountId_ = STRING_ACCOUNTID;
+    auto callback = std::make_shared<MockDomainHasDomainInfoCallback>();
+    ASSERT_NE(callback, nullptr);
+    EXPECT_CALL(*callback, OnResult(INVALID_CODE, _)).Times(Exactly(1));
+    auto testCallback = std::make_shared<TestHasDomainInfoCallback>(callback);
+    ASSERT_NE(testCallback, nullptr);
+    EXPECT_EQ(DomainAccountClient::GetInstance().HasDomainAccount(info, testCallback), ERR_OK);
+}
+
+/**
+ * @tc.name: DomainAccountClientModuleTest_HasDomainAccount_002
+ * @tc.desc: HasDomainAccount successfully.
+ * @tc.type: FUNC
+ * @tc.require: I6AQVM
+ */
+HWTEST_F(DomainAccountClientModuleTest, DomainAccountClientModuleTest_HasDomainAccount_002, TestSize.Level0)
+{
+    DomainAccountInfo info;
+    info.accountName_ = STRING_NAME;
+    info.domain_ = STRING_DOMAIN;
+    info.accountId_ = STRING_ACCOUNTID;
+    auto callback = std::make_shared<MockDomainHasDomainInfoCallback>();
+    ASSERT_NE(callback, nullptr);
+    EXPECT_CALL(*callback, OnResult(ERR_OK, true)).Times(Exactly(1));
+    auto testCallback = std::make_shared<TestHasDomainInfoCallback>(callback);
+    ASSERT_NE(testCallback, nullptr);
+    EXPECT_EQ(DomainAccountClient::GetInstance().HasDomainAccount(info, testCallback), ERR_OK);
+}
+
+/**
+ * @tc.name: DomainAccountClientModuleTest_HasDomainAccount_003
+ * @tc.desc: HasDomainAccount falied with not register plugin.
+ * @tc.type: FUNC
+ * @tc.require: I6AQVM
+ */
+HWTEST_F(DomainAccountClientModuleTest, DomainAccountClientModuleTest_HasDomainAccount_003, TestSize.Level0)
+{
+    DomainAccountClient::GetInstance().UnregisterPlugin();
+    DomainAccountInfo info;
+    info.accountName_ = STRING_NAME;
+    info.domain_ = STRING_DOMAIN;
+    info.accountId_ = STRING_ACCOUNTID;
+    auto callback = std::make_shared<MockDomainHasDomainInfoCallback>();
+    ASSERT_NE(callback, nullptr);
+    auto testCallback = std::make_shared<TestHasDomainInfoCallback>(callback);
+    ASSERT_NE(testCallback, nullptr);
+    EXPECT_CALL(*callback, OnResult(ERR_DOMAIN_ACCOUNT_SERVICE_PLUGIN_NOT_EXIST, _)).Times(Exactly(1));
+    EXPECT_EQ(DomainAccountClient::GetInstance().HasDomainAccount(info, testCallback), ERR_OK);
+}
