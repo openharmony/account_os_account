@@ -1263,7 +1263,7 @@ HWTEST_F(OsAccountManagerServiceModuleTest, OsAccountManagerServiceModuleTest063
 
     // cannot query
     EXPECT_EQ(osAccountManagerService_->GetOsAccountLocalIdFromDomain(domainInfo, resID),
-        ERR_OSACCOUNT_KIT_GET_OS_ACCOUNT_LOCAL_ID_FOR_DOMAIN_ERROR);
+        ERR_ACCOUNT_COMMON_INVALID_PARAMTER);
 }
 #endif // DOMAIN_ACCOUNT_TEST_CASE
 
