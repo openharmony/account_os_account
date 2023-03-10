@@ -22,8 +22,13 @@ namespace {
 const std::vector<uint8_t> DEFAULT_PASSWORD = {49, 50, 51, 52, 53};
 const int32_t DEFAULT_REMAINING_TIMES = 5;
 const int32_t DEFAULT_FREEZING_TIME = 6000;
+const int32_t INVALID_CODE = -1;
 const std::string VALID_DOMAIN = "china.example.com";
 const std::string VALID_ACCOUNT_NAME = "zhangsan";
+const std::string STRING_NAME_NEW = "zhangsan555";
+const std::string STRING_NAME_INVALID = "zhangsan55";
+const std::string STRING_NAME_BIND_INVALID = "lisi";
+const std::string ACCOUNT_NAME = "zhangsan5";
 }
 MockDomainPlugin::MockDomainPlugin() : remainingTimes_(DEFAULT_REMAINING_TIMES), freezingTime_(0)
 {}
@@ -107,14 +112,67 @@ void MockDomainPlugin::GetAuthStatusInfo(
 
 void MockDomainPlugin::GetDomainAccountInfo(
     const std::string &domain, const std::string &accountName, const std::shared_ptr<DomainAccountCallback> &callback)
-{}
+{
+    DomainAccountInfo info;
+    Parcel parcel;
+    if (accountName == ACCOUNT_NAME) {
+        info.accountName_ = accountName;
+        info.domain_ = domain;
+        info.accountId_ = "222";
+        info.Marshalling(parcel);
+        callback->OnResult(0, parcel);
+    }
+    if (accountName == VALID_ACCOUNT_NAME) {
+        info.accountName_ = accountName;
+        info.domain_ = domain;
+        info.accountId_ = "3333";
+        info.Marshalling(parcel);
+        callback->OnResult(0, parcel);
+    }
+    if (accountName == STRING_NAME_BIND_INVALID) {
+        info.accountName_ = accountName;
+        info.domain_ = domain;
+        info.accountId_ = "666";
+        info.Marshalling(parcel);
+        callback->OnResult(0, parcel);
+    }
+    if (accountName == STRING_NAME_INVALID) {
+        info.accountName_ = accountName;
+        info.Marshalling(parcel);
+        callback->OnResult(INVALID_CODE, parcel);
+    }
+}
 
-void MockDomainPlugin::OnAccountBound(const DomainAccountInfo &info, const int32_t localId,
-    const std::shared_ptr<DomainAccountCallback> &callback)
-{}
+void MockDomainPlugin::OnAccountBound(
+    const DomainAccountInfo &info, const int32_t localId, const std::shared_ptr<DomainAccountCallback> &callback)
+{
+    DomainAccountInfo testInfo;
+    Parcel parcel;
+    if ((info.accountName_ == VALID_ACCOUNT_NAME) || (info.accountName_ == ACCOUNT_NAME)) {
+        testInfo = info;
+        testInfo.Marshalling(parcel);
+        callback->OnResult(0, parcel);
+    } else {
+        testInfo.accountName_ = info.accountName_;
+        testInfo.Marshalling(parcel);
+        callback->OnResult(INVALID_CODE, parcel);
+    }
+}
 
-void MockDomainPlugin::OnAccountUnBound(const DomainAccountInfo &info,
-    const std::shared_ptr<DomainAccountCallback> &callback)
-{}
+void MockDomainPlugin::OnAccountUnBound(
+    const DomainAccountInfo &info, const std::shared_ptr<DomainAccountCallback> &callback)
+{
+    DomainAccountInfo testInfo;
+    Parcel parcel;
+    if (info.accountName_ == VALID_ACCOUNT_NAME) {
+        testInfo = info;
+        testInfo.Marshalling(parcel);
+        callback->OnResult(0, parcel);
+    } else {
+        testInfo.accountName_ = info.accountName_;
+        testInfo.Marshalling(parcel);
+        callback->OnResult(INVALID_CODE, parcel);
+    }
+}
 }  // AccountSA
 }  // OHOS
