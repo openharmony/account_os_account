@@ -22,6 +22,8 @@
 #include "domain_account_client.h"
 #include "ipc_skeleton.h"
 #include "mock_domain_auth_callback.h"
+#include "mock_domain_create_domain_account_callback.h"
+#include "mock_domain_has_domain_info_callback.h"
 #include "mock_domain_plugin.h"
 #include "os_account_manager.h"
 #include "token_setproc.h"
@@ -34,13 +36,22 @@ using namespace OHOS::Security::AccessToken;
 
 namespace {
 const std::string STRING_NAME = "zhangsan";
+const std::string STRING_NAME_NEW = "zhangsan555";
+const std::string STRING_NAME_INVALID = "zhangsan55";
+const std::string STRING_NAME_BIND_INVALID = "lisi";
+const std::string ACCOUNT_NAME = "zhangsan5";
 const std::string INVALID_STRING_NAME = "lisi";
 const std::string STRING_DOMAIN = "china.example.com";
 const std::string INVALID_STRING_DOMAIN = "global.example.com";
+const std::string STRING_ACCOUNTID = "222";
+const std::string STRING_ACCOUNTID_NEW = "3333";
+const std::string CONSTRAINT_CREATE_ACCOUNT_DIRECTLY = "constraint.os.account.create.directly";
 const std::vector<uint8_t> VALID_PASSWORD = {49, 50, 51, 52, 53};
 const std::vector<uint8_t> INVALID_PASSWORD = {1, 2, 3, 4, 5};
 const int32_t DEFAULT_USER_ID = 100;
 const int32_t NON_EXISTENT_USER_ID = 1000;
+const int32_t SLEEP_TIME = 2000;
+const int32_t INVALID_CODE = -1;
 const uid_t TEST_UID = 100;
 const uid_t ROOT_UID = 0;
 std::shared_ptr<MockDomainPlugin> g_plugin = std::make_shared<MockDomainPlugin>();
@@ -435,7 +446,151 @@ HWTEST_F(DomainAccountClientModuleTest, DomainAccountClientModuleTest_AuthWithPo
     auto testCallback = std::make_shared<TestDomainAuthCallback>(callback);
     ASSERT_NE(testCallback, nullptr);
     testCallback->SetOsAccountInfo(accountInfo);
-    EXPECT_EQ(
-        DomainAccountClient::GetInstance().AuthWithPopup(accountInfo.GetLocalId(), testCallback), ERR_OK);
+    EXPECT_EQ(DomainAccountClient::GetInstance().AuthWithPopup(accountInfo.GetLocalId(), testCallback), ERR_OK);
 }
 #endif // DOMAIN_ACCOUNT_TEST_CASE
+
+/**
+ * @tc.name: DomainAccountClientModuleTest_CreateOsAccountForDomain_001
+ * @tc.desc: CreateOsAccountForDomain failed with invalid param.
+ * @tc.type: FUNC
+ * @tc.require: I6KNUZ
+ */
+HWTEST_F(DomainAccountClientModuleTest, DomainAccountClientModuleTest_CreateOsAccountForDomain_001, TestSize.Level0)
+{
+    DomainAccountInfo domainInfo;
+    domainInfo.accountName_ = STRING_NAME_INVALID;
+    domainInfo.domain_ = INVALID_STRING_DOMAIN;
+    domainInfo.accountId_ = STRING_ACCOUNTID_NEW;
+    auto callback = std::make_shared<MockDomainCreateDomainAccountCallback>();
+    ASSERT_NE(callback, nullptr);
+    auto testCallback = std::make_shared<TestCreateDomainAccountCallback>(callback);
+    EXPECT_CALL(*callback, OnResult(INVALID_CODE, _, _, _)).Times(Exactly(1));
+    ASSERT_NE(testCallback, nullptr);
+    ErrCode errCode = OsAccountManager::CreateOsAccountForDomain(OsAccountType::NORMAL, domainInfo, testCallback);
+    ASSERT_EQ(errCode, ERR_OK);
+    std::this_thread::sleep_for(std::chrono::milliseconds(SLEEP_TIME));
+}
+
+/**
+ * @tc.name: DomainAccountClientModuleTest_CreateOsAccountForDomain_002
+ * @tc.desc: CreateOsAccountForDomain successfully with 100 is not bind domain.
+ * @tc.type: FUNC
+ * @tc.require: I6KNUZ
+ */
+HWTEST_F(DomainAccountClientModuleTest, DomainAccountClientModuleTest_CreateOsAccountForDomain_002, TestSize.Level0)
+{
+    DomainAccountInfo domainInfo;
+    domainInfo.accountName_ = STRING_NAME;
+    domainInfo.domain_ = INVALID_STRING_DOMAIN;
+    domainInfo.accountId_ = STRING_ACCOUNTID_NEW;
+    auto callback = std::make_shared<MockDomainCreateDomainAccountCallback>();
+    ASSERT_NE(callback, nullptr);
+    auto testCallback = std::make_shared<TestCreateDomainAccountCallback>(callback);
+    EXPECT_CALL(*callback, OnResult(ERR_OK,
+        STRING_NAME, INVALID_STRING_DOMAIN, STRING_ACCOUNTID_NEW)).Times(Exactly(1));
+    ASSERT_NE(testCallback, nullptr);
+    ErrCode errCode = OsAccountManager::CreateOsAccountForDomain(OsAccountType::NORMAL, domainInfo, testCallback);
+    ASSERT_EQ(errCode, ERR_OK);
+    std::this_thread::sleep_for(std::chrono::milliseconds(SLEEP_TIME));
+}
+
+/**
+ * @tc.name: DomainAccountClientModuleTest_CreateOsAccountForDomain_003
+ * @tc.desc: CreateOsAccountForDomain failed with bound failed.
+ * @tc.type: FUNC
+ * @tc.require: I6KNUZ
+ */
+HWTEST_F(DomainAccountClientModuleTest, DomainAccountClientModuleTest_CreateOsAccountForDomain_003, TestSize.Level0)
+{
+    DomainAccountInfo domainInfo;
+    domainInfo.accountName_ = STRING_NAME_BIND_INVALID;
+    domainInfo.domain_ = INVALID_STRING_DOMAIN;
+    domainInfo.accountId_ = STRING_ACCOUNTID_NEW;
+    auto callback = std::make_shared<MockDomainCreateDomainAccountCallback>();
+    ASSERT_NE(callback, nullptr);
+    auto testCallback = std::make_shared<TestCreateDomainAccountCallback>(callback);
+    EXPECT_CALL(*callback, OnResult(INVALID_CODE, _, _, _)).Times(Exactly(1));
+    ASSERT_NE(testCallback, nullptr);
+    ErrCode errCode = OsAccountManager::CreateOsAccountForDomain(OsAccountType::NORMAL, domainInfo, testCallback);
+    ASSERT_EQ(errCode, ERR_OK);
+    std::this_thread::sleep_for(std::chrono::milliseconds(SLEEP_TIME));
+}
+
+/**
+ * @tc.name: DomainAccountClientModuleTest_CreateOsAccountForDomain_004
+ * @tc.desc: CreateOsAccountForDomain failed with not register plugin.
+ * @tc.type: FUNC
+ * @tc.require: I6KNUZ
+ */
+HWTEST_F(DomainAccountClientModuleTest, DomainAccountClientModuleTest_CreateOsAccountForDomain_004, TestSize.Level0)
+{
+    DomainAccountClient::GetInstance().UnregisterPlugin();
+    DomainAccountInfo domainInfo;
+    domainInfo.accountName_ = STRING_NAME_NEW;
+    domainInfo.domain_ = INVALID_STRING_DOMAIN;
+    domainInfo.accountId_ = STRING_ACCOUNTID_NEW;
+    auto callback = std::make_shared<MockDomainCreateDomainAccountCallback>();
+    ASSERT_NE(callback, nullptr);
+    auto testCallback = std::make_shared<TestCreateDomainAccountCallback>(callback);
+    ErrCode errCode = OsAccountManager::CreateOsAccountForDomain(OsAccountType::NORMAL, domainInfo, testCallback);
+    ASSERT_EQ(errCode, ERR_DOMAIN_ACCOUNT_SERVICE_PLUGIN_NOT_EXIST);
+    std::this_thread::sleep_for(std::chrono::milliseconds(SLEEP_TIME));
+}
+
+/*
+ * @tc.name: DomainAccountClientModuleTest_CreateOsAccountForDomain_005
+ * @tc.desc: CreateOsAccountForDomain successfully with 100 bind domain.
+ * @tc.type: FUNC
+ * @tc.require: I6KNUZ
+ */
+HWTEST_F(DomainAccountClientModuleTest, DomainAccountClientModuleTest_CreateOsAccountForDomain_005, TestSize.Level0)
+{
+    DomainAccountInfo domainInfo;
+    domainInfo.accountName_ = ACCOUNT_NAME;
+    domainInfo.domain_ = STRING_DOMAIN;
+    domainInfo.accountId_ = STRING_ACCOUNTID;
+    OsAccountInfo accountInfo;
+    std::vector<std::string> constraints;
+    constraints.emplace_back(CONSTRAINT_CREATE_ACCOUNT_DIRECTLY);
+    ErrCode errCode = OsAccountManager::SetOsAccountConstraints(TEST_UID, constraints, true);
+    ASSERT_EQ(errCode, ERR_OK);
+    auto callback = std::make_shared<MockDomainCreateDomainAccountCallback>();
+    ASSERT_NE(callback, nullptr);
+    auto testCallback = std::make_shared<TestCreateDomainAccountCallback>(callback);
+    EXPECT_CALL(*callback, OnResult(ERR_OK, ACCOUNT_NAME, STRING_DOMAIN, STRING_ACCOUNTID)).Times(Exactly(1));
+    ASSERT_NE(testCallback, nullptr);
+    errCode = OsAccountManager::CreateOsAccountForDomain(OsAccountType::NORMAL, domainInfo, testCallback);
+    ASSERT_EQ(errCode, ERR_OK);
+    std::this_thread::sleep_for(std::chrono::milliseconds(SLEEP_TIME));
+    errCode = OsAccountManager::SetOsAccountConstraints(TEST_UID, constraints, false);
+    ASSERT_EQ(errCode, ERR_OK);
+}
+
+/*
+ * @tc.name: DomainAccountClientModuleTest_CreateOsAccountForDomain_006
+ * @tc.desc: CreateOsAccountForDomain failed with domain info is already bind.
+ * @tc.type: FUNC
+ * @tc.require: I6KNUZ
+ */
+HWTEST_F(DomainAccountClientModuleTest, DomainAccountClientModuleTest_CreateOsAccountForDomain_006, TestSize.Level0)
+{
+    DomainAccountInfo domainInfo;
+    domainInfo.accountName_ = ACCOUNT_NAME;
+    domainInfo.domain_ = STRING_DOMAIN;
+    domainInfo.accountId_ = STRING_ACCOUNTID;
+    OsAccountInfo accountInfo;
+    std::vector<std::string> constraints;
+    constraints.emplace_back(CONSTRAINT_CREATE_ACCOUNT_DIRECTLY);
+    ErrCode errCode = OsAccountManager::SetOsAccountConstraints(TEST_UID, constraints, true);
+    ASSERT_EQ(errCode, ERR_OK);
+    auto callback = std::make_shared<MockDomainCreateDomainAccountCallback>();
+    ASSERT_NE(callback, nullptr);
+    auto testCallback = std::make_shared<TestCreateDomainAccountCallback>(callback);
+    ASSERT_NE(testCallback, nullptr);
+    errCode = OsAccountManager::CreateOsAccountForDomain(OsAccountType::NORMAL, domainInfo, testCallback);
+    ASSERT_EQ(errCode, ERR_OSACCOUNT_SERVICE_INNER_DOMAIN_ALREADY_BIND_ERROR);
+    std::this_thread::sleep_for(std::chrono::milliseconds(SLEEP_TIME));
+    errCode = OsAccountManager::SetOsAccountConstraints(TEST_UID, constraints, false);
+    ASSERT_EQ(errCode, ERR_OK);
+}
