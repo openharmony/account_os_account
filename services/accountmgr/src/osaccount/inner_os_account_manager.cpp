@@ -363,7 +363,11 @@ ErrCode IInnerOsAccountManager::CreateOsAccount(
     if (errCode != ERR_OK) {
         return errCode;
     }
-    return SendMsgForAccountCreate(osAccountInfo);
+    errCode = SendMsgForAccountCreate(osAccountInfo);
+    if (errCode != ERR_OK) {
+        (void)osAccountControl_->DelOsAccount(osAccountInfo.GetLocalId());
+    }
+    return errCode;
 }
 
 bool IInnerOsAccountManager::CheckDomainAccountBound(
