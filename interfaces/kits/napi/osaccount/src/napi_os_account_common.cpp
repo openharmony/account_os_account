@@ -185,27 +185,6 @@ void CreateJsDistributedInfo(napi_env env, const OhosAccountInfo &info, napi_val
     napi_set_named_property(env, result, "scalableData", scalable);
 }
 
-void CreateJsAccountType(napi_env env, int32_t type, napi_value &result)
-{
-    napi_create_object(env, &result);
-    napi_value valToJs = nullptr;
-    napi_create_int32(env, type, &valToJs);
-    switch (type) {
-        case PARAMZERO:
-            napi_set_named_property(env, result, "ADMIN", valToJs);
-            break;
-        case PARAMONE:
-            napi_set_named_property(env, result, "NORMAL", valToJs);
-            break;
-        case PARAMTWO:
-            napi_set_named_property(env, result, "GUEST", valToJs);
-            break;
-        default:
-            ACCOUNT_LOGE("cType %{public}d is an invalid value", type);
-            break;
-    }
-}
-
 void GetOACBInfoToJs(napi_env env, OsAccountInfo &info, napi_value &objOAInfo)
 {
     napi_create_object(env, &objOAInfo);
@@ -221,7 +200,7 @@ void GetOACBInfoToJs(napi_env env, OsAccountInfo &info, napi_value &objOAInfo)
 
     // type
     napi_value typeToJsObj = nullptr;
-    CreateJsAccountType(env, static_cast<int>(info.GetType()), typeToJsObj);
+    napi_create_int32(env, static_cast<int>(info.GetType()), &typeToJsObj);
     napi_set_named_property(env, objOAInfo, "type", typeToJsObj);
 
     // constraints
@@ -1488,29 +1467,6 @@ void GetTypeExecuteCB(napi_env env, void *data)
     asyncContext->status = (asyncContext->errCode == 0) ? napi_ok : napi_generic_failure;
 }
 
-static void CreateTypeJs(napi_env env, GetTypeAsyncContext* asyncContext, napi_value &value)
-{
-    napi_value jsType = nullptr;
-    int cType = static_cast<int>(asyncContext->type);
-    napi_create_object(env, &value);
-    napi_create_int32(env, cType, &jsType);
-
-    switch (cType) {
-        case PARAMZERO:
-            napi_set_named_property(env, value, "ADMIN", jsType);
-            break;
-        case PARAMONE:
-            napi_set_named_property(env, value, "NORMAL", jsType);
-            break;
-        case PARAMTWO:
-            napi_set_named_property(env, value, "GUEST", jsType);
-            break;
-        default:
-            ACCOUNT_LOGE("cType %{public}d is an invalid value", cType);
-            break;
-    }
-}
-
 void GetTypeCompletedCB(napi_env env, napi_status status, void *data)
 {
     GetTypeAsyncContext *asyncContext = reinterpret_cast<GetTypeAsyncContext *>(data);
@@ -1518,14 +1474,11 @@ void GetTypeCompletedCB(napi_env env, napi_status status, void *data)
     napi_value dataJs = nullptr;
     if (asyncContext->status == napi_ok) {
         errJs = GenerateBusinessSuccess(env, asyncContext->throwErr);
-        CreateTypeJs(env, asyncContext, dataJs);
+        int cType = static_cast<int>(asyncContext->type);
+        napi_create_int32(env, cType, &dataJs);
     } else {
         errJs = GenerateBusinessError(env, asyncContext->errCode, asyncContext->throwErr);
-        if (asyncContext->throwErr) {
-            napi_get_null(env, &dataJs);
-        } else {
-            CreateTypeJs(env, asyncContext, dataJs);
-        }
+        napi_get_null(env, &dataJs);
     }
     ProcessCallbackOrPromise(env, asyncContext, errJs, dataJs);
     napi_delete_async_work(env, asyncContext->work);
