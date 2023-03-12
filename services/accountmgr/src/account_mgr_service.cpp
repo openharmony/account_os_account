@@ -225,10 +225,24 @@ void AccountMgrService::OnAddSystemAbility(int32_t systemAbilityId, const std::s
         default:
             break;
     }
-    if (isStorageReady_ && (isBmsReady_ || isAmsReady_)) {
-        // create and start basic accounts
-        osAccountManagerService_->CreateBasicAccounts();
+
+    if (!isStorageReady_) {
+        return;
     }
+
+    bool isAccountCompleted = false;
+    std::int32_t defaultActivatedId;
+    osAccountManagerService_->GetDefaultActivatedOsAccount(defaultActivatedId);
+    osAccountManagerService_->IsOsAccountCompleted(defaultActivatedId, isAccountCompleted);
+    if (!isAccountCompleted && !isBmsReady_) {
+        return;
+    }
+
+    if (isAccountCompleted && !isAmsReady_) {
+        return;
+    }
+
+    osAccountManagerService_->CreateBasicAccounts();
 }
 
 bool AccountMgrService::Init()
