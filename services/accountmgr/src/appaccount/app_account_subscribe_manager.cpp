@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021 Huawei Device Co., Ltd.
+ * Copyright (c) 2021-2023 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -14,7 +14,7 @@
  */
 
 #include "app_account_subscribe_manager.h"
-
+#include <thread>
 #include "account_log_wrapper.h"
 #include "app_account_control_manager.h"
 #include "app_account_subscribe_death_recipient.h"
@@ -28,19 +28,6 @@ AppAccountSubscribeManager::AppAccountSubscribeManager()
     : subscribeDeathRecipient_(sptr<IRemoteObject::DeathRecipient>(
         new (std::nothrow) AppAccountSubscribeDeathRecipient()))
 {}
-
-ErrCode AppAccountSubscribeManager::GetEventHandler(void)
-{
-    if (!handler_) {
-        handler_ = std::make_shared<EventHandler>(EventRunner::Create());
-        if (handler_ == nullptr) {
-            ACCOUNT_LOGE("failed to create event handler");
-            return ERR_APPACCOUNT_SERVICE_CREATE_EVENT_HANDLER;
-        }
-    }
-
-    return ERR_OK;
-}
 
 ErrCode AppAccountSubscribeManager::SubscribeAppAccount(
     const std::shared_ptr<AppAccountSubscribeInfo> &subscribeInfoPtr, const sptr<IRemoteObject> &eventListener,
@@ -281,14 +268,11 @@ bool AppAccountSubscribeManager::PublishAccount(
     eventRecordPtr->bundleName = bundleName;
     eventRecordPtr->appIndex = appIndex;
 
-    if (GetEventHandler() != ERR_OK) {
-        ACCOUNT_LOGE("failed to get event handler");
-        return false;
-    }
+    auto callback = std::bind(&AppAccountSubscribeManager::OnAccountsChanged, this, eventRecordPtr);
 
-    Callback callback = std::bind(&AppAccountSubscribeManager::OnAccountsChanged, this, eventRecordPtr);
-
-    return handler_->PostTask(callback);
+    std::thread taskThread(callback);
+    taskThread.detach();
+    return true;
 }
 
 ErrCode AppAccountSubscribeManager::OnAccountsChanged(const std::shared_ptr<AppAccountEventRecord> &record)

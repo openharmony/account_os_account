@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021-2022 Huawei Device Co., Ltd.
+ * Copyright (c) 2021-2023 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -21,17 +21,12 @@
 
 #include "app_account_data_storage.h"
 #include "app_account_event_record.h"
-#include "event_handler.h"
 #include "singleton.h"
 
 namespace OHOS {
 namespace AccountSA {
 class AppAccountSubscribeManager : public DelayedSingleton<AppAccountSubscribeManager> {
 public:
-    using EventHandler = OHOS::AppExecFwk::EventHandler;
-    using EventRunner = OHOS::AppExecFwk::EventRunner;
-    using Callback = OHOS::AppExecFwk::InnerEvent::Callback;
-
     AppAccountSubscribeManager();
     virtual ~AppAccountSubscribeManager() = default;
 
@@ -45,7 +40,6 @@ public:
 private:
     std::shared_ptr<AppAccountDataStorage> GetDataStorage(const uid_t &uid, const bool &autoSync = false);
     ErrCode GetStoreId(const uid_t &uid, std::string &storeId);
-    ErrCode GetEventHandler(void);
 
     std::vector<AppAccountSubscribeRecordPtr> GetSubscribeRecords(const std::string &owner);
     ErrCode OnAccountsChanged(const std::shared_ptr<AppAccountEventRecord> &record);
@@ -60,7 +54,6 @@ private:
     ErrCode RemoveSubscribeRecord(const sptr<IRemoteObject> &eventListener);
 
 private:
-    std::shared_ptr<EventHandler> handler_ = nullptr;
     std::mutex mutex_;
     sptr<IRemoteObject::DeathRecipient> subscribeDeathRecipient_;
     std::mutex subscribeRecordMutex_;

@@ -374,6 +374,7 @@ ErrCode OsAccountInterface::SendToStorageAccountStart(OsAccountInfo &osAccountIn
         PublishCommonEvent(osAccountInfo, OHOS::EventFwk::CommonEventSupport::COMMON_EVENT_USER_UNLOCKED,
             Constants::OPERATION_UNLOCK);
     }
+    ACCOUNT_LOGI("end, succeed!");
     return ERR_OK;
 }
 
