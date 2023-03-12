@@ -35,11 +35,6 @@ const std::string CONSTRAINT_CREATE_ACCOUNT_DIRECTLY = "constraint.os.account.cr
 
 IInnerOsAccountManager::IInnerOsAccountManager() : subscribeManagerPtr_(OsAccountSubscribeManager::GetInstance())
 {
-    counterForStandard_ = 0;
-    counterForStandardCreate_ = 0;
-    counterForAccountStart_ = 0;
-    isSendToStorageCreate_ = false;
-    isSendToStorageStart_ = false;
     activeAccountId_.clear();
     operatingId_.clear();
     osAccountControl_ = std::make_shared<OsAccountControlFileManager>();
@@ -103,7 +98,6 @@ void IInnerOsAccountManager::CreateBaseStandardAccount()
 void IInnerOsAccountManager::StartAccount()
 {
     ResetAccountStatus();
-    GetEventHandler();
     OsAccountInfo osAccountInfo;
     ErrCode errCode = osAccountControl_->GetOsAccountInfoById(defaultActivatedId_, osAccountInfo);
     if (errCode != ERR_OK) {
@@ -122,16 +116,16 @@ void IInnerOsAccountManager::StartAccount()
         defaultActivatedId_ = Constants::START_USER_ID;
     }
     if (!osAccountInfo.GetIsCreateCompleted()) {
-        ACCOUNT_LOGI("OsAccountAccountMgr send to storage and bm for start");
-        OHOS::AppExecFwk::InnerEvent::Callback callbackStartStandard =
-            std::bind(&IInnerOsAccountManager::CreateBaseStandardAccountSendToOther, this);
-        handler_->PostTask(callbackStartStandard);
+        if (SendMsgForAccountCreate(osAccountInfo) != ERR_OK) {
+            return;
+        }
+    }
+    // activate
+    if (SendMsgForAccountActivate(osAccountInfo) != ERR_OK) {
         return;
     }
-    ACCOUNT_LOGI("OsAccountAccountMgr send to storage and am for start");
-    OHOS::AppExecFwk::InnerEvent::Callback callbackStartStandard =
-        std::bind(&IInnerOsAccountManager::StartBaseStandardAccount, this, osAccountInfo);
-    handler_->PostTask(callbackStartStandard);
+    subscribeManagerPtr_->PublishActivatedOsAccount(osAccountInfo.GetLocalId());
+    ACCOUNT_LOGI("OsAccountAccountMgr send to storage and am for start success");
 }
 
 void IInnerOsAccountManager::RestartActiveAccount()
@@ -142,88 +136,16 @@ void IInnerOsAccountManager::RestartActiveAccount()
         return;
     }
     for (size_t i = 0; i < osAccountInfos.size(); ++i) {
-        if (osAccountInfos[i].GetIsActived() && osAccountInfos[i].GetLocalId() != Constants::START_USER_ID) {
+        OsAccountInfo osAccountInfo = osAccountInfos[i];
+        std::int32_t id = osAccountInfo.GetLocalId();
+        if (osAccountInfo.GetIsActived() && id != Constants::START_USER_ID) {
             // reactivate account state
-            GetEventHandler();
-            OHOS::AppExecFwk::InnerEvent::Callback callbackForRestart =
-                std::bind(&IInnerOsAccountManager::StartActivatedAccount, this, osAccountInfos[i].GetLocalId());
-            handler_->PostTask(callbackForRestart, DELAY_FOR_FOUNDATION_SERVICE);
-        }
-    }
-}
-
-void IInnerOsAccountManager::StartActivatedAccount(int32_t id)
-{
-    OsAccountInfo osAccountInfo;
-    osAccountControl_->GetOsAccountInfoById(id, osAccountInfo);
-    if (!IsOsAccountIDInActiveList(id)) {
-        ErrCode errCode = ActivateOsAccount(id);
-        if (errCode != ERR_OK) {
-            if (++counterForAccountStart_ == MAX_TRY_TIMES) {
-                ACCOUNT_LOGE("failed to reactivate account, id = %{public}d", id);
-            } else {
-                GetEventHandler();
-                OHOS::AppExecFwk::InnerEvent::Callback callbackForRestart =
-                    std::bind(&IInnerOsAccountManager::StartActivatedAccount, this, id);
-                handler_->PostTask(callbackForRestart, DELAY_FOR_FOUNDATION_SERVICE);
+            if (ActivateOsAccount(id) != ERR_OK) {
+                ACCOUNT_LOGE("active base account failed");
+                return;
             }
-            return;
-        }
-        ACCOUNT_LOGI("reactive account ok");
-        counterForAccountStart_ = 0;
-    }
-    int64_t time = std::chrono::duration_cast<std::chrono::seconds>(
-        std::chrono::system_clock::now().time_since_epoch()).count();
-    osAccountInfo.SetLastLoginTime(time);
-    osAccountControl_->UpdateOsAccount(osAccountInfo);
-    PushIdIntoActiveList(id);
-    subscribeManagerPtr_->PublishActivatedOsAccount(id);
-    OsAccountInterface::SendToCESAccountSwitched(osAccountInfo);
-    ACCOUNT_LOGI("restart account ok");
-}
-
-void IInnerOsAccountManager::CreateBaseStandardAccountSendToOther(void)
-{
-    OsAccountInfo osAccountInfo;
-    if (!isSendToStorageCreate_) {
-        osAccountControl_->GetOsAccountInfoById(defaultActivatedId_, osAccountInfo);
-        ErrCode errCode = OsAccountInterface::SendToStorageAccountCreate(osAccountInfo);
-        if (errCode != ERR_OK) {
-            if (++counterForStandardCreate_ == MAX_TRY_TIMES) {
-                ACCOUNT_LOGE("failed connect storage to create account, errCode %{public}d.", errCode);
-            } else {
-                GetEventHandler();
-                OHOS::AppExecFwk::InnerEvent::Callback callback =
-                    std::bind(&IInnerOsAccountManager::CreateBaseStandardAccountSendToOther, this);
-                handler_->PostTask(callback, DELAY_FOR_TIME_INTERVAL);
-            }
-            return;
-        } else {
-            ACCOUNT_LOGI("connect storage to create account ok");
-            counterForStandardCreate_ = 0;
-            isSendToStorageCreate_ = true;
         }
     }
-    osAccountControl_->GetOsAccountInfoById(defaultActivatedId_, osAccountInfo);
-    ErrCode errCodeForBM = OsAccountInterface::SendToBMSAccountCreate(osAccountInfo);
-    if (errCodeForBM != ERR_OK) {
-        if (++counterForStandardCreate_ == MAX_TRY_TIMES) {
-            ACCOUNT_LOGE("failed connect BM to create account, errCodeForBM %{public}d.", errCodeForBM);
-        } else {
-            GetEventHandler();
-            OHOS::AppExecFwk::InnerEvent::Callback callback =
-                std::bind(&IInnerOsAccountManager::CreateBaseStandardAccountSendToOther, this);
-            handler_->PostTask(callback, DELAY_FOR_TIME_INTERVAL);
-        }
-        return;
-    }
-    osAccountInfo.SetIsCreateCompleted(true);
-    osAccountControl_->UpdateOsAccount(osAccountInfo);
-    ACCOUNT_LOGI("connect BM to create account ok");
-    GetEventHandler();
-    OHOS::AppExecFwk::InnerEvent::Callback callbackStartStandard =
-        std::bind(&IInnerOsAccountManager::StartBaseStandardAccount, this, osAccountInfo);
-    handler_->PostTask(callbackStartStandard);
 }
 
 void IInnerOsAccountManager::ResetAccountStatus(void)
@@ -239,48 +161,6 @@ void IInnerOsAccountManager::ResetAccountStatus(void)
 #endif // ENABLE_MULTIPLE_ACTIVE_ACCOUNTS
         osAccountControl_->UpdateOsAccount(osAccountInfos[i]);
     }
-}
-
-void IInnerOsAccountManager::StartBaseStandardAccount(OsAccountInfo &osAccountInfo)
-{
-    if (!isSendToStorageStart_) {
-        ErrCode errCode = OsAccountInterface::SendToStorageAccountStart(osAccountInfo);
-        if (errCode != ERR_OK) {
-            if (++counterForStandard_ == MAX_TRY_TIMES) {
-                ACCOUNT_LOGE("failed connect storage to start account, errCode %{public}d.", errCode);
-            } else {
-                GetEventHandler();
-                OHOS::AppExecFwk::InnerEvent::Callback callback =
-                    std::bind(&IInnerOsAccountManager::StartBaseStandardAccount, this, osAccountInfo);
-                handler_->PostTask(callback, DELAY_FOR_TIME_INTERVAL);
-            }
-            return;
-        }
-        ACCOUNT_LOGI("connect storage to start account ok");
-        counterForStandard_ = 0;
-        isSendToStorageStart_ = true;
-    }
-    ErrCode errCodeForAM = OsAccountInterface::SendToAMSAccountStart(osAccountInfo);
-    if (errCodeForAM != ERR_OK) {
-        if (++counterForStandard_ == MAX_TRY_TIMES) {
-            ACCOUNT_LOGE("failed connect AM to start account, errCodeForAM %{public}d.", errCodeForAM);
-        } else {
-            GetEventHandler();
-            OHOS::AppExecFwk::InnerEvent::Callback callback =
-                std::bind(&IInnerOsAccountManager::StartBaseStandardAccount, this, osAccountInfo);
-            handler_->PostTask(callback, DELAY_FOR_TIME_INTERVAL);
-        }
-        return;
-    }
-    osAccountInfo.SetIsActived(true);
-    int64_t time = std::chrono::duration_cast<std::chrono::seconds>(
-        std::chrono::system_clock::now().time_since_epoch()).count();
-    osAccountInfo.SetLastLoginTime(time);
-    osAccountControl_->UpdateOsAccount(osAccountInfo);
-    PushIdIntoActiveList(defaultActivatedId_);
-    subscribeManagerPtr_->PublishActivatedOsAccount(defaultActivatedId_);
-    OsAccountInterface::SendToCESAccountSwitched(osAccountInfo);
-    ACCOUNT_LOGI("connect AM to start account ok");
 }
 
 ErrCode IInnerOsAccountManager::PrepareOsAccountInfo(const std::string &name, const OsAccountType &type,
@@ -351,7 +231,7 @@ ErrCode IInnerOsAccountManager::SendMsgForAccountCreate(OsAccountInfo &osAccount
     }
     ReportOsAccountLifeCycle(osAccountInfo.GetLocalId(), Constants::OPERATION_CREATE);
     OsAccountInterface::SendToCESAccountCreate(osAccountInfo);
-
+    ACCOUNT_LOGI("OsAccountAccountMgr send to storage and bm for start success");
     return ERR_OK;
 }
 
@@ -535,8 +415,8 @@ ErrCode IInnerOsAccountManager::SendMsgForAccountStop(OsAccountInfo &osAccountIn
             osAccountInfo.GetLocalId(), errCode);
         return errCode;
     }
-    ACCOUNT_LOGI("SendMsgForAccountStop ok");
 #endif // ENABLE_MULTIPLE_ACTIVE_ACCOUNTS
+    ACCOUNT_LOGI("SendMsgForAccountStop ok");
     return errCode;
 }
 
@@ -1194,7 +1074,6 @@ ErrCode IInnerOsAccountManager::ActivateOsAccount(const int id)
     errCode = SendMsgForAccountActivate(osAccountInfo);
     if (errCode != ERR_OK) {
         RemoveLocalIdToOperating(id);
-        ACCOUNT_LOGE("update %{public}d account info failed, errCode %{public}d.", id, errCode);
         return errCode;
     }
     RemoveLocalIdToOperating(id);
@@ -1433,19 +1312,6 @@ ErrCode IInnerOsAccountManager::GetDefaultActivatedOsAccount(int32_t &id)
 {
     std::lock_guard<std::mutex> lock(operatingMutex_);
     id = defaultActivatedId_;
-    return ERR_OK;
-}
-
-ErrCode IInnerOsAccountManager::GetEventHandler(void)
-{
-    if (!handler_) {
-        handler_ = std::make_shared<OHOS::AppExecFwk::EventHandler>(OHOS::AppExecFwk::EventRunner::Create());
-        if (handler_ == nullptr) {
-            ACCOUNT_LOGE("failed to create event handler");
-            return ERR_OSACCOUNT_SERVICE_CREATE_EVENT_HANDLER;
-        }
-    }
-
     return ERR_OK;
 }
 

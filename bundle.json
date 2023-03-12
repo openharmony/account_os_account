@@ -40,7 +40,6 @@
         "bundle_framework",
         "common_event_service",
         "distributeddatamgr",
-        "eventhandler",
         "hisysevent_native",
         "hitrace_native",
         "hiviewdfx_hilog_native",

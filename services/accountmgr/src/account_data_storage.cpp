@@ -14,7 +14,6 @@
  */
 #include "account_data_storage.h"
 #include <memory>
-#include <thread>
 #include <unistd.h>
 #include "account_log_wrapper.h"
 #include "hisysevent_adapter.h"

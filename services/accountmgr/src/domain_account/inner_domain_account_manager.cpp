@@ -14,6 +14,7 @@
  */
 
 #include "inner_domain_account_manager.h"
+#include <thread>
 #include "account_log_wrapper.h"
 #include "domain_account_plugin_death_recipient.h"
 #include "domain_auth_callback_proxy.h"
@@ -114,21 +115,6 @@ ErrCode InnerDomainAccountManager::StartAuth(const sptr<IDomainAccountPlugin> &p
     return ERR_OK;
 }
 
-ErrCode InnerDomainAccountManager::PostTask(AppExecFwk::InnerEvent::Callback &task)
-{
-    std::lock_guard<std::mutex> lock(mutex_);
-    auto handler = GetEventHandler();
-    if (handler == nullptr) {
-        ACCOUNT_LOGE("failed to create EventHandler");
-        return ERR_ACCOUNT_COMMON_INSUFFICIENT_MEMORY_ERROR;
-    }
-        if (!handler->PostTask(task)) {
-        ACCOUNT_LOGE("failed to post task");
-        return ERR_ACCOUNT_COMMON_POST_TASK;
-    }
-    return ERR_OK;
-}
-
 ErrCode InnerDomainAccountManager::GetDomainAccountInfoByUserId(int32_t userId, DomainAccountInfo &domainInfo)
 {
     OsAccountInfo accountInfo;
@@ -158,9 +144,11 @@ ErrCode InnerDomainAccountManager::Auth(const DomainAccountInfo &info, const std
             innerCallback = callback;
         }
     }
-    AppExecFwk::InnerEvent::Callback task = std::bind(&InnerDomainAccountManager::StartAuth,
-        this, plugin_, info, password, innerCallback, AUTH_WITH_CREDENTIAL_MODE);
-    return PostTask(task);
+    auto task = std::bind(
+        &InnerDomainAccountManager::StartAuth, this, plugin_, info, password, innerCallback, AUTH_WITH_CREDENTIAL_MODE);
+    std::thread taskThread(task);
+    taskThread.detach();
+    return ERR_OK;
 }
 
 ErrCode InnerDomainAccountManager::InnerAuth(int32_t userId, const std::vector<uint8_t> &authData,
@@ -176,9 +164,11 @@ ErrCode InnerDomainAccountManager::InnerAuth(int32_t userId, const std::vector<u
         ACCOUNT_LOGE("failed to create innerCallback");
         return ERR_ACCOUNT_COMMON_INSUFFICIENT_MEMORY_ERROR;
     }
-    AppExecFwk::InnerEvent::Callback task =
+    auto task =
         std::bind(&InnerDomainAccountManager::StartAuth, this, plugin_, domainInfo, authData, innerCallback, authMode);
-    return PostTask(task);
+    std::thread taskThread(task);
+    taskThread.detach();
+    return ERR_OK;
 }
 
 ErrCode InnerDomainAccountManager::AuthUser(int32_t userId, const std::vector<uint8_t> &password,
@@ -235,15 +225,6 @@ ErrCode InnerDomainAccountManager::GetAuthStatusInfo(
         return ERR_DOMAIN_ACCOUNT_SERVICE_PLUGIN_NOT_EXIST;
     }
     return plugin_->GetAuthStatusInfo(info, callback);
-}
-
-std::shared_ptr<AppExecFwk::EventHandler> InnerDomainAccountManager::GetEventHandler()
-{
-    if (handler_ != nullptr) {
-        return handler_;
-    }
-    handler_ = std::make_shared<AppExecFwk::EventHandler>(AppExecFwk::EventRunner::Create());
-    return handler_;
 }
 
 sptr<IRemoteObject::DeathRecipient> InnerDomainAccountManager::GetDeathRecipient()
@@ -305,9 +286,11 @@ ErrCode InnerDomainAccountManager::StartHasDomainAccount(const sptr<IDomainAccou
 ErrCode InnerDomainAccountManager::HasDomainAccount(
     const DomainAccountInfo &info, const sptr<IDomainAccountCallback> &callback)
 {
-    AppExecFwk::InnerEvent::Callback task =
+    auto task =
         std::bind(&InnerDomainAccountManager::StartHasDomainAccount, this, plugin_, info, callback);
-    return PostTask(task);
+    std::thread taskThread(task);
+    taskThread.detach();
+    return ERR_OK;
 }
 
 void InnerDomainAccountManager::StartOnAccountBound(const sptr<IDomainAccountPlugin> &plugin,
@@ -328,9 +311,11 @@ ErrCode InnerDomainAccountManager::OnAccountBound(const DomainAccountInfo &info,
         ACCOUNT_LOGE("make shared DomainAccountCallbackService failed");
         return ERR_ACCOUNT_COMMON_INSUFFICIENT_MEMORY_ERROR;
     }
-    AppExecFwk::InnerEvent::Callback task =
+    auto task =
         std::bind(&InnerDomainAccountManager::StartOnAccountBound, this, plugin_, info, localId, callbackService);
-    return PostTask(task);
+    std::thread taskThread(task);
+    taskThread.detach();
+    return ERR_OK;
 }
 
 void InnerDomainAccountManager::StartOnAccountUnBound(const sptr<IDomainAccountPlugin> &plugin,
@@ -351,9 +336,11 @@ ErrCode InnerDomainAccountManager::OnAccountUnBound(const DomainAccountInfo &inf
         ACCOUNT_LOGE("make shared DomainAccountCallbackService failed");
         return ERR_ACCOUNT_COMMON_INSUFFICIENT_MEMORY_ERROR;
     }
-    AppExecFwk::InnerEvent::Callback task =
+    auto task =
         std::bind(&InnerDomainAccountManager::StartOnAccountUnBound, this, plugin_, info, callbackService);
-    return PostTask(task);
+    std::thread taskThread(task);
+    taskThread.detach();
+    return ERR_OK;
 }
 
 void InnerDomainAccountManager::StartGetDomainAccountInfo(const sptr<IDomainAccountPlugin> &plugin,
@@ -378,9 +365,11 @@ ErrCode InnerDomainAccountManager::GetDomainAccountInfo(
         ACCOUNT_LOGE("make shared DomainAccountCallbackService failed");
         return ERR_ACCOUNT_COMMON_INSUFFICIENT_MEMORY_ERROR;
     }
-    AppExecFwk::InnerEvent::Callback task = std::bind(&InnerDomainAccountManager::StartGetDomainAccountInfo, this,
-        plugin_, domain, accountName, callbackService);
-    return PostTask(task);
+    auto task = std::bind(
+        &InnerDomainAccountManager::StartGetDomainAccountInfo, this, plugin_, domain, accountName, callbackService);
+    std::thread taskThread(task);
+    taskThread.detach();
+    return ERR_OK;
 }
 }  // namespace AccountSA
 }  // namespace OHOS
