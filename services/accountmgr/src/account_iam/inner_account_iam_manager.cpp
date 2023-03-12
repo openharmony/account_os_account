@@ -194,10 +194,6 @@ int32_t InnerAccountIAMManager::GetAvailableStatus(
 ErrCode InnerAccountIAMManager::GetDomainAuthStatusInfo(
     int32_t userId, const GetPropertyRequest &request, const sptr<IGetSetPropCallback> &callback)
 {
-    if (callback == nullptr) {
-        ACCOUNT_LOGE("the callback is nullptr");
-        return ERR_ACCOUNT_COMMON_NULL_PTR_ERROR;
-    }
     OsAccountInfo osAccountInfo;
     ErrCode result = IInnerOsAccountManager::GetInstance()->QueryOsAccountById(userId, osAccountInfo);
     if (result != ERR_OK) {
@@ -210,22 +206,13 @@ ErrCode InnerAccountIAMManager::GetDomainAuthStatusInfo(
         ACCOUNT_LOGE("the target user is not a domain account");
         return ERR_ACCOUNT_IAM_UNSUPPORTED_AUTH_TYPE;
     }
-    Attributes attributes;
     std::shared_ptr<DomainAccountCallback> statusCallback =
         std::make_shared<GetDomainAuthStatusInfoCallback>(request, callback);
     if (statusCallback == nullptr) {
         ACCOUNT_LOGE("failed to create GetDomainAuthStatusInfoCallback");
-        callback->OnResult(ERR_ACCOUNT_COMMON_NULL_PTR_ERROR, attributes);
         return ERR_ACCOUNT_COMMON_NULL_PTR_ERROR;
     }
-    sptr<IDomainAccountCallback> statusCallbackService =
-        new (std::nothrow) DomainAccountCallbackService(statusCallback);
-    if (statusCallbackService == nullptr) {
-        ACCOUNT_LOGE("failed to create DomainAccountCallbackService");
-        callback->OnResult(ERR_ACCOUNT_COMMON_NULL_PTR_ERROR, attributes);
-        return ERR_ACCOUNT_COMMON_NULL_PTR_ERROR;
-    }
-    return InnerDomainAccountManager::GetInstance().GetAuthStatusInfo(domainAccountInfo, statusCallbackService);
+    return InnerDomainAccountManager::GetInstance().GetAuthStatusInfo(domainAccountInfo, statusCallback);
 }
 
 bool InnerAccountIAMManager::CheckDomainAuthAvailable(int32_t userId)
@@ -244,12 +231,20 @@ bool InnerAccountIAMManager::CheckDomainAuthAvailable(int32_t userId)
 void InnerAccountIAMManager::GetProperty(
     int32_t userId, const GetPropertyRequest &request, const sptr<IGetSetPropCallback> &callback)
 {
-    if (static_cast<int32_t>(request.authType) == static_cast<int32_t>(IAMAuthType::DOMAIN)) {
-        (void)GetDomainAuthStatusInfo(userId, request, callback);
+    if (callback == nullptr) {
+        ACCOUNT_LOGE("callback is nullptr");
         return;
     }
-    auto getCallback = std::make_shared<GetPropCallbackWrapper>(callback);
-    UserAuthClient::GetInstance().GetProperty(userId, request, getCallback);
+    if (static_cast<int32_t>(request.authType) != static_cast<int32_t>(IAMAuthType::DOMAIN)) {
+        auto getCallback = std::make_shared<GetPropCallbackWrapper>(callback);
+        UserAuthClient::GetInstance().GetProperty(userId, request, getCallback);
+        return;
+    }
+    ErrCode result = GetDomainAuthStatusInfo(userId, request, callback);
+    if (result != ERR_OK) {
+        Attributes attributes;
+        callback->OnResult(result, attributes);
+    }
 }
 
 void InnerAccountIAMManager::SetProperty(
