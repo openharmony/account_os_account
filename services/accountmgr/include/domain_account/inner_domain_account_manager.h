@@ -39,7 +39,7 @@ public:
         const sptr<IDomainAuthCallback> &callback);
     ErrCode AuthWithPopup(int32_t userId, const sptr<IDomainAuthCallback> &callback);
     ErrCode AuthWithToken(int32_t userId, const std::vector<uint8_t> &token);
-    ErrCode GetAuthStatusInfo(const DomainAccountInfo &info, const sptr<IDomainAccountCallback> &callback);
+    ErrCode GetAuthStatusInfo(const DomainAccountInfo &info, const std::shared_ptr<DomainAccountCallback> &callback);
     ErrCode HasDomainAccount(const DomainAccountInfo &info, const sptr<IDomainAccountCallback> &callback);
     ErrCode GetDomainAccountInfo(const std::string &domain, const std::string &accountName,
         const std::shared_ptr<DomainAccountCallback> &callback);
