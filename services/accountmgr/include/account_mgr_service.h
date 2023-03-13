@@ -89,6 +89,8 @@ private:
     sptr<AccountIAMService> accountIAMService_ = nullptr;
 #endif
     sptr<DomainAccountManagerService> domainAccountMgrService_ = nullptr;
+
+    std::mutex statusMutex_;
     bool isStorageReady_ = false;
     bool isAmsReady_ = false;
     bool isBmsReady_ = false;
