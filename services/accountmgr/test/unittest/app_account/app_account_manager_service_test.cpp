@@ -49,7 +49,6 @@ void AppAccountManagerServiceTest::SetUpTestCase(void)
 void AppAccountManagerServiceTest::TearDownTestCase(void)
 {
     GTEST_LOG_(INFO) << "TearDownTestCase!";
-    DelayedSingleton<AppAccountControlManager>::DestroyInstance();
 }
 
 void AppAccountManagerServiceTest::SetUp(void)

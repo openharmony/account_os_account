@@ -97,7 +97,7 @@ std::int32_t GetCallingUserID()
     std::int32_t userId = IPCSkeleton::GetCallingUid() / UID_TRANSFORM_DIVISOR;
     if (userId <= 0) {
         std::vector<int32_t> userIds;
-        (void)IInnerOsAccountManager::GetInstance()->QueryActiveOsAccountIds(userIds);
+        (void)IInnerOsAccountManager::GetInstance().QueryActiveOsAccountIds(userIds);
         if (userIds.empty()) {
             return -1;  // invalid user id
         }

@@ -19,15 +19,13 @@
 #include <mutex>
 #include "ipc_skeleton.h"
 #include "ohos_account_kits.h"
-#include "singleton.h"
 
 namespace OHOS {
 namespace AccountSA {
-class OhosAccountKitsImpl final : public OhosAccountKits, public DelayedRefSingleton<OhosAccountKitsImpl> {
-    DECLARE_DELAYED_REF_SINGLETON(OhosAccountKitsImpl);
-
+class OhosAccountKitsImpl final : public OhosAccountKits {
 public:
     DISALLOW_COPY_AND_MOVE(OhosAccountKitsImpl);
+    static OhosAccountKitsImpl &GetInstance();
     bool UpdateOhosAccountInfo(const std::string& accountName, const std::string& uid,
         const std::string& eventStr) final;
     std::int32_t SetOhosAccountInfo(const OhosAccountInfo &ohosAccountInfo,
@@ -41,6 +39,8 @@ public:
     sptr<IRemoteObject> GetDomainAccountService();
 
 private:
+    OhosAccountKitsImpl() = default;
+    ~OhosAccountKitsImpl() = default;
     // For death event procession
     class DeathRecipient final : public IRemoteObject::DeathRecipient {
     public:

@@ -25,13 +25,12 @@
 #include "account_error_no.h"
 #include "account_permission_manager.h"
 #include "iaccount_iam.h"
-#include "singleton.h"
 
 namespace OHOS {
 namespace AccountSA {
-class AccountIAMClient : public DelayedRefSingleton<AccountIAMClient> {
+class AccountIAMClient {
 public:
-    AccountIAMClient();
+    static AccountIAMClient &GetInstance();
     int32_t OpenSession(int32_t userId, std::vector<uint8_t> &challenge);
     int32_t CloseSession(int32_t userId);
     void AddCredential(
@@ -65,6 +64,8 @@ public:
     void ClearCredential(int32_t userId);
 
 private:
+    AccountIAMClient() = default;
+    ~AccountIAMClient() = default;
     class AccountIAMDeathRecipient : public IRemoteObject::DeathRecipient {
     public:
         AccountIAMDeathRecipient() = default;
@@ -91,7 +92,6 @@ private:
     sptr<AccountIAMDeathRecipient> deathRecipient_ = nullptr;
     std::shared_ptr<IInputer> pinInputer_ = nullptr;
     std::shared_ptr<IInputer> domainInputer_ = nullptr;
-    std::shared_ptr<AccountPermissionManager> permissionManagerPtr_ = nullptr;
 };
 }  // namespace AccountSA
 }  // namespace OHOS

@@ -33,7 +33,7 @@ void AppAccountSubscribeDeathRecipient::OnRemoteDied(const wptr<IRemoteObject> &
         return;
     }
 
-    DelayedSingleton<AppAccountSubscribeManager>::GetInstance()->UnsubscribeAppAccount(object);
+    AppAccountSubscribeManager::GetInstance().UnsubscribeAppAccount(object);
 }
 }  // namespace AccountSA
 }  // namespace OHOS

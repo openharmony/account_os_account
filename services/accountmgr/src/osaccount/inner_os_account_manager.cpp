@@ -33,7 +33,7 @@ namespace {
 const std::string CONSTRAINT_CREATE_ACCOUNT_DIRECTLY = "constraint.os.account.create.directly";
 }
 
-IInnerOsAccountManager::IInnerOsAccountManager() : subscribeManagerPtr_(OsAccountSubscribeManager::GetInstance())
+IInnerOsAccountManager::IInnerOsAccountManager() : subscribeManager_(OsAccountSubscribeManager::GetInstance())
 {
     activeAccountId_.clear();
     operatingId_.clear();
@@ -42,6 +42,12 @@ IInnerOsAccountManager::IInnerOsAccountManager() : subscribeManagerPtr_(OsAccoun
     osAccountControl_->GetDeviceOwnerId(deviceOwnerId_);
     osAccountControl_->GetDefaultActivatedOsAccount(defaultActivatedId_);
     ACCOUNT_LOGD("OsAccountAccountMgr Init end");
+}
+
+IInnerOsAccountManager &IInnerOsAccountManager::GetInstance()
+{
+    static IInnerOsAccountManager instance;
+    return instance;
 }
 
 void IInnerOsAccountManager::SetOsAccountControl(std::shared_ptr<IOsAccountControl> ptr)
@@ -124,7 +130,7 @@ void IInnerOsAccountManager::StartAccount()
     if (SendMsgForAccountActivate(osAccountInfo) != ERR_OK) {
         return;
     }
-    subscribeManagerPtr_->PublishActivatedOsAccount(osAccountInfo.GetLocalId());
+    subscribeManager_.PublishActivatedOsAccount(osAccountInfo.GetLocalId());
     ACCOUNT_LOGI("OsAccountAccountMgr send to storage and am for start success");
 }
 
@@ -1070,14 +1076,14 @@ ErrCode IInnerOsAccountManager::ActivateOsAccount(const int id)
     }
 
     // activate
-    subscribeManagerPtr_->PublishActivatingOsAccount(id);
+    subscribeManager_.PublishActivatingOsAccount(id);
     errCode = SendMsgForAccountActivate(osAccountInfo);
     if (errCode != ERR_OK) {
         RemoveLocalIdToOperating(id);
         return errCode;
     }
     RemoveLocalIdToOperating(id);
-    subscribeManagerPtr_->PublishActivatedOsAccount(id);
+    subscribeManager_.PublishActivatedOsAccount(id);
     ACCOUNT_LOGI("IInnerOsAccountManager ActivateOsAccount end");
     return ERR_OK;
 }
@@ -1213,25 +1219,16 @@ ErrCode IInnerOsAccountManager::GetSerialNumberByOsAccountLocalId(const int &id,
 ErrCode IInnerOsAccountManager::SubscribeOsAccount(
     const OsAccountSubscribeInfo &subscribeInfo, const sptr<IRemoteObject> &eventListener)
 {
-    if (!subscribeManagerPtr_) {
-        ACCOUNT_LOGE("subscribeManagerPtr_ is nullptr");
-        return ERR_OSACCOUNT_SERVICE_SUBSCRIBE_MANAGER_PTR_IS_NULLPTR;
-    }
-
     auto subscribeInfoPtr = std::make_shared<OsAccountSubscribeInfo>(subscribeInfo);
     if (subscribeInfoPtr == nullptr) {
         ACCOUNT_LOGE("subscribeInfoPtr is nullptr");
     }
-    return subscribeManagerPtr_->SubscribeOsAccount(subscribeInfoPtr, eventListener);
+    return subscribeManager_.SubscribeOsAccount(subscribeInfoPtr, eventListener);
 }
 
 ErrCode IInnerOsAccountManager::UnsubscribeOsAccount(const sptr<IRemoteObject> &eventListener)
 {
-    if (!subscribeManagerPtr_) {
-        ACCOUNT_LOGE("controlManagerPtr_ is nullptr");
-        return ERR_OSACCOUNT_SERVICE_SUBSCRIBE_MANAGER_PTR_IS_NULLPTR;
-    }
-    return subscribeManagerPtr_->UnsubscribeOsAccount(eventListener);
+    return subscribeManager_.UnsubscribeOsAccount(eventListener);
 }
 
 OS_ACCOUNT_SWITCH_MOD IInnerOsAccountManager::GetOsAccountSwitchMod()

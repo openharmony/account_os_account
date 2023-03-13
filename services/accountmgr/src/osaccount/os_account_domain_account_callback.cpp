@@ -51,7 +51,7 @@ void CheckAndCreateDomainAccountCallback::OnResult(int32_t errCode, Parcel &parc
         ACCOUNT_LOGE("domain account not found");
         return innerCallback_->OnResult(ERR_JS_ACCOUNT_NOT_FOUND, resultParcel);
     }
-    errCode = IInnerOsAccountManager::GetInstance()->BindDomainAccount(type_, *domainAccountInfo, innerCallback_);
+    errCode = IInnerOsAccountManager::GetInstance().BindDomainAccount(type_, *domainAccountInfo, innerCallback_);
     if (errCode != ERR_OK) {
         return innerCallback_->OnResult(errCode, resultParcel);
     }
@@ -83,7 +83,7 @@ void BindDomainAccountCallback::OnResult(int32_t errCode, Parcel &parcel)
     }
     Parcel resultParcel;
     if (osAccountInfo_.GetLocalId() != Constants::START_USER_ID) {
-        errCode = IInnerOsAccountManager::GetInstance()->SendMsgForAccountCreate(osAccountInfo_);
+        errCode = IInnerOsAccountManager::GetInstance().SendMsgForAccountCreate(osAccountInfo_);
         osAccountInfo_.Marshalling(resultParcel);
         return innerCallback_->OnResult(errCode, resultParcel);
     }

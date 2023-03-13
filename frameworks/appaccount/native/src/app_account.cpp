@@ -54,6 +54,12 @@ namespace AccountSA {
         }                                                   \
     } while (0)                                             \
 
+AppAccount &AppAccount::GetInstance()
+{
+    static AppAccount instance;
+    return instance;
+}
+
 ErrCode AppAccount::AddAccount(const std::string &name, const std::string &extraInfo)
 {
     RETURN_IF_STRING_IS_EMPTY_OR_OVERSIZE(name, Constants::NAME_MAX_SIZE, "name is empty or oversize");

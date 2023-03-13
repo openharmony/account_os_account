@@ -48,6 +48,7 @@
         "OHOS::AccountSA::AppAccountAuthenticatorSessionManager::AppAccountAuthenticatorSessionManager()";
         "OHOS::AccountSA::AppAccountAuthenticatorSessionManager::CloseSession(std::__h::basic_string<char, std::__h::char_traits<char>, std::__h::allocator<char> > const&)";
         "OHOS::AccountSA::AppAccountAuthenticatorSessionManager::GetAuthenticatorCallback(OHOS::AccountSA::AuthenticatorSessionRequest const&, OHOS::sptr<OHOS::IRemoteObject>&)";
+        "OHOS::AccountSA::AppAccountAuthenticatorSessionManager::GetInstance()";
         "OHOS::AccountSA::AppAccountAuthenticatorSessionManager::GetSession(std::__h::basic_string<char, std::__h::char_traits<char>, std::__h::allocator<char> > const&)";
         "OHOS::AccountSA::AppAccountAuthenticatorSessionManager::IsAccountRemovable(OHOS::AccountSA::AuthenticatorSessionRequest const&)";
         "OHOS::AccountSA::AppAccountAuthenticatorSessionManager::OnAbilityStateChanged(OHOS::AppExecFwk::AbilityStateData const&)";
@@ -91,9 +92,11 @@
         "OHOS::AccountSA::AppAccountManagerService::AppAccountManagerService()";
         "OHOS::AccountSA::AppAccountManagerService::GetBundleNameAndCheckPerm(int&, std::__h::basic_string<char, std::__h::char_traits<char>, std::__h::allocator<char> >&, std::__h::basic_string<char, std::__h::char_traits<char>, std::__h::allocator<char> > const&)";
         "OHOS::AccountSA::AppAccountManagerService::GetCallingInfo(int&, std::__h::basic_string<char, std::__h::char_traits<char>, std::__h::allocator<char> >&, unsigned int&)";
+        "OHOS::AccountSA::AppAccountControlManager::GetInstance()";
         "OHOS::AccountSA::AppAccountSubscribeManager::AppAccountSubscribeManager()";
         "OHOS::AccountSA::AppAccountSubscribeManager::CheckAppAccess(std::__h::shared_ptr<OHOS::AccountSA::AppAccountSubscribeInfo> const&, unsigned int const&, std::__h::basic_string<char, std::__h::char_traits<char>, std::__h::allocator<char> > const&, unsigned int const&)";
         "OHOS::AccountSA::AppAccountSubscribeManager::GetAccessibleAccountsBySubscribeInfo(std::__h::shared_ptr<OHOS::AccountSA::AppAccountSubscribeInfo> const&, std::__h::vector<OHOS::AccountSA::AppAccountInfo, std::__h::allocator<OHOS::AccountSA::AppAccountInfo> > const&, std::__h::vector<OHOS::AccountSA::AppAccountInfo, std::__h::allocator<OHOS::AccountSA::AppAccountInfo> >&)";
+        "OHOS::AccountSA::AppAccountSubscribeManager::GetInstance()";
         "OHOS::AccountSA::AppAccountSubscribeManager::InsertSubscribeRecord(std::__h::vector<std::__h::basic_string<char, std::__h::char_traits<char>, std::__h::allocator<char> >, std::__h::allocator<std::__h::basic_string<char, std::__h::char_traits<char>, std::__h::allocator<char> > > > const&, std::__h::shared_ptr<OHOS::AccountSA::AppAccountSubscribeRecord> const&)";
         "OHOS::AccountSA::AppAccountSubscribeManager::RemoveSubscribeRecord(OHOS::sptr<OHOS::IRemoteObject> const&)";
         "OHOS::AccountSA::AppAccountSubscribeManager::SubscribeAppAccount(std::__h::shared_ptr<OHOS::AccountSA::AppAccountSubscribeInfo> const&, OHOS::sptr<OHOS::IRemoteObject> const&, unsigned int const&, std::__h::basic_string<char, std::__h::char_traits<char>, std::__h::allocator<char> > const&, unsigned int const&)";
@@ -102,7 +105,6 @@
         "OHOS::AccountSA::DelCredCallback::DelCredCallback(int, unsigned long, std::__h::vector<unsigned char, std::__h::allocator<unsigned char> > const&, OHOS::sptr<OHOS::AccountSA::IIDMCallback> const&)";
         "OHOS::AccountSA::DomainAccountPluginProxy::DomainAccountPluginProxy(OHOS::sptr<OHOS::IRemoteObject> const&)";
         "OHOS::AccountSA::GetCredInfoCallbackWrapper::GetCredInfoCallbackWrapper(int, int, OHOS::sptr<OHOS::AccountSA::IGetCredInfoCallback> const&)";
-        "OHOS::AccountSA::GetPropCallbackWrapper::GetPropCallbackWrapper(OHOS::sptr<OHOS::AccountSA::IGetSetPropCallback> const&";
         "OHOS::AccountSA::GetPropCallbackWrapper::GetPropCallbackWrapper(OHOS::sptr<OHOS::AccountSA::IGetSetPropCallback> const&)";
         "OHOS::AccountSA::GetValidAccountID(std::__h::basic_string<char, std::__h::char_traits<char>, std::__h::allocator<char> > const&, int&)";
         "OHOS::AccountSA::IAccountContext::instance_";
@@ -113,6 +115,7 @@
         "OHOS::AccountSA::IInnerOsAccountManager::CreateBaseStandardAccount()";
         "OHOS::AccountSA::IInnerOsAccountManager::DeActivateOsAccount(int)";
         "OHOS::AccountSA::IInnerOsAccountManager::EraseIdFromActiveList(int)";
+        "OHOS::AccountSA::IInnerOsAccountManager::GetInstance()";
         "OHOS::AccountSA::IInnerOsAccountManager::IInnerOsAccountManager()";
         "OHOS::AccountSA::IInnerOsAccountManager::IsLocalIdInOperating(int)";
         "OHOS::AccountSA::IInnerOsAccountManager::IsOsAccountIDInActiveList(int)";

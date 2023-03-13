@@ -15,6 +15,7 @@
 
 #include "app_account_authenticator_session.h"
 
+#include <thread>
 #include "ability_manager_adapter.h"
 #include "account_info.h"
 #include "account_log_wrapper.h"
@@ -32,10 +33,7 @@ SessionClientDeathRecipient::SessionClientDeathRecipient(const std::string &sess
 void SessionClientDeathRecipient::OnRemoteDied(const wptr<IRemoteObject> &remote)
 {
     (void)remote;
-    auto sessionMgr = AppAccountAuthenticatorSessionManager::GetInstance();
-    if (sessionMgr != nullptr) {
-        sessionMgr->CloseSession(sessionId_);
-    }
+    AppAccountAuthenticatorSessionManager::GetInstance().CloseSession(sessionId_);
 }
 
 SessionServerDeathRecipient::SessionServerDeathRecipient(const std::string &sessionId) : sessionId_(sessionId)
@@ -44,10 +42,7 @@ SessionServerDeathRecipient::SessionServerDeathRecipient(const std::string &sess
 void SessionServerDeathRecipient::OnRemoteDied(const wptr<IRemoteObject> &remote)
 {
     (void)remote;
-    auto sessionMgr = AppAccountAuthenticatorSessionManager::GetInstance();
-    if (sessionMgr != nullptr) {
-        sessionMgr->OnSessionServerDied(sessionId_);
-    }
+    AppAccountAuthenticatorSessionManager::GetInstance().OnSessionServerDied(sessionId_);
 }
 
 SessionConnection::SessionConnection(const std::string &sessionId) : sessionId_(sessionId)
@@ -59,18 +54,14 @@ SessionConnection::~SessionConnection()
 void SessionConnection::OnAbilityConnectDone(
     const AppExecFwk::ElementName &element, const sptr<IRemoteObject> &remoteObject, int32_t resultCode)
 {
-    auto sessionMgr = AppAccountAuthenticatorSessionManager::GetInstance();
-    if (sessionMgr != nullptr) {
-        sessionMgr->OnSessionAbilityConnectDone(sessionId_, element, remoteObject, resultCode);
-    }
+    AppAccountAuthenticatorSessionManager::GetInstance().OnSessionAbilityConnectDone(
+        sessionId_, element, remoteObject, resultCode);
 }
 
 void SessionConnection::OnAbilityDisconnectDone(const AppExecFwk::ElementName &element, int resultCode)
 {
-    auto sessionMgr = AppAccountAuthenticatorSessionManager::GetInstance();
-    if (sessionMgr != nullptr) {
-        sessionMgr->OnSessionAbilityDisconnectDone(sessionId_, element, resultCode);
-    }
+    AppAccountAuthenticatorSessionManager::GetInstance().OnSessionAbilityDisconnectDone(
+        sessionId_, element, resultCode);
 }
 
 AppAccountAuthenticatorSession::AppAccountAuthenticatorSession(
@@ -99,11 +90,8 @@ void AppAccountAuthenticatorSession::Init()
     clientDeathRecipient_ = new (std::nothrow) SessionClientDeathRecipient(sessionId_);
     serverDeathRecipient_ = new (std::nothrow) SessionServerDeathRecipient(sessionId_);
     authenticatorCb_ = new (std::nothrow) AppAccountAuthenticatorCallback(sessionId_);
-    controlManager_ = AppAccountControlManager::GetInstance();
-    authenticatorMgr_ = AppAccountAuthenticatorManager::GetInstance();
     if ((conn_ == nullptr) || (clientDeathRecipient_ == nullptr)
-        || (serverDeathRecipient_ == nullptr) || (authenticatorCb_ == nullptr)
-        || (controlManager_ == nullptr) || (authenticatorMgr_ == nullptr)) {
+        || (serverDeathRecipient_ == nullptr) || (authenticatorCb_ == nullptr)) {
         conn_ = nullptr;
         clientDeathRecipient_ = nullptr;
         serverDeathRecipient_ = nullptr;
@@ -126,7 +114,7 @@ ErrCode AppAccountAuthenticatorSession::Open()
         return ERR_APPACCOUNT_SERVICE_OAUTH_SERVICE_EXCEPTION;
     }
     AuthenticatorInfo info;
-    ErrCode errCode = authenticatorMgr_->GetAuthenticatorInfo(request_.owner, userId_, info);
+    ErrCode errCode = AppAccountAuthenticatorManager::GetAuthenticatorInfo(request_.owner, userId_, info);
     if (errCode != ERR_OK) {
         ACCOUNT_LOGE("authenticator not exist, owner: %{public}s, errCode: %{public}d.",
             request_.owner.c_str(), errCode);
@@ -134,11 +122,12 @@ ErrCode AppAccountAuthenticatorSession::Open()
     }
     AAFwk::Want want;
     want.SetElementName(request_.owner, info.abilityName);
-    errCode = AbilityManagerAdapter::GetInstance()->ConnectAbility(want, conn_, nullptr, userId_);
-    if (errCode == ERR_OK) {
-        isOpened_ = true;
-    }
-    return errCode;
+    auto task = std::bind(&AbilityManagerAdapter::ConnectAbility,
+        AbilityManagerAdapter::GetInstance().get(), want, conn_, nullptr, userId_);
+    std::thread taskThread(task);
+    taskThread.detach();
+    isOpened_ = true;
+    return ERR_OK;
 }
 
 void AppAccountAuthenticatorSession::Close()
@@ -157,10 +146,7 @@ void AppAccountAuthenticatorSession::Close()
 
 void AppAccountAuthenticatorSession::CloseSelf() const
 {
-    auto sessionManager = AppAccountAuthenticatorSessionManager::GetInstance();
-    if (sessionManager != nullptr) {
-        sessionManager->CloseSession(sessionId_);
-    }
+    AppAccountAuthenticatorSessionManager::GetInstance().CloseSession(sessionId_);
 }
 
 ErrCode AppAccountAuthenticatorSession::AddClientDeathRecipient()
@@ -310,47 +296,13 @@ int32_t AppAccountAuthenticatorSession::OnRequestContinued() const
     return ERR_JS_SUCCESS;
 }
 
-int32_t AppAccountAuthenticatorSession::UpdateAuthInfo(const AAFwk::Want &result) const
-{
-    std::string name = result.GetStringParam(Constants::KEY_NAME);
-    std::string authType = result.GetStringParam(Constants::KEY_AUTH_TYPE);
-    std::string token = result.GetStringParam(Constants::KEY_TOKEN);
-    AppAccountInfo info(name, request_.owner);
-    info.SetAppIndex(request_.appIndex);
-    ErrCode errCode = ERR_OK;
-    controlManager_->AddAccount(name, "", ownerUid_, request_.owner, info);
-    if (!token.empty()) {
-        AuthenticatorSessionRequest request = {
-            .name = name,
-            .authType = authType,
-            .token = token,
-            .callerBundleName = request_.owner,
-            .callerUid = ownerUid_
-        };
-        errCode = controlManager_->SetOAuthToken(request);
-    }
-    if (authType == request_.authType) {
-        AuthenticatorSessionRequest request = {
-            .name = name,
-            .authType = authType,
-            .token = token,
-            .bundleName = request_.callerBundleName,
-            .callerBundleName = request_.owner,
-            .isTokenVisible = true,
-            .callerUid = ownerUid_
-        };
-        errCode = controlManager_->SetOAuthTokenVisibility(request);
-    }
-    return ConvertToJSErrCode(errCode);
-}
-
 int32_t AppAccountAuthenticatorSession::OnAuthenticateDone(const AAFwk::Want &result) const
 {
     std::string name = result.GetStringParam(Constants::KEY_NAME);
     if (name != request_.name) {
         return ERR_JS_ACCOUNT_AUTHENTICATOR_SERVICE_EXCEPTION;
     }
-    return UpdateAuthInfo(result);
+    return ERR_OK;
 }
 
 int32_t AppAccountAuthenticatorSession::OnAddAccountImplicitlyDone(const AAFwk::Want &result) const
@@ -359,7 +311,10 @@ int32_t AppAccountAuthenticatorSession::OnAddAccountImplicitlyDone(const AAFwk::
     if (name.empty()) {
         return ERR_JS_ACCOUNT_AUTHENTICATOR_SERVICE_EXCEPTION;
     }
-    return UpdateAuthInfo(result);
+    AppAccountInfo info(name, request_.owner);
+    info.SetAppIndex(request_.appIndex);
+    AppAccountControlManager::GetInstance().AddAccount(name, "", ownerUid_, request_.owner, info);
+    return ERR_OK;
 }
 
 void AppAccountAuthenticatorSession::GetRequest(AuthenticatorSessionRequest &request) const

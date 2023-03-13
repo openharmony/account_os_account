@@ -80,8 +80,7 @@ public:
     void SetUp();
     void TearDown();
 public:
-    std::shared_ptr<IInnerOsAccountManager> innerMgrService_;
-    std::shared_ptr<IOsAccountSubscribe> subscribeManagerPtr_;
+    IInnerOsAccountManager *innerMgrService_ = &IInnerOsAccountManager::GetInstance();
 };
 
 void OsAccountInnerAccmgrCoverageTest::SetUpTestCase(void)
@@ -104,8 +103,6 @@ void OsAccountInnerAccmgrCoverageTest::TearDown(void)
  */
 HWTEST_F(OsAccountInnerAccmgrCoverageTest, OsAccountInnerAccmgrCoverageTest001, TestSize.Level1)
 {
-    innerMgrService_ = DelayedSingleton<IInnerOsAccountManager>::GetInstance();
-
     innerMgrService_->CreateBaseAdminAccount();
 
     std::shared_ptr<IOsAccountControl> osAccountControl = innerMgrService_->osAccountControl_;
@@ -113,8 +110,6 @@ HWTEST_F(OsAccountInnerAccmgrCoverageTest, OsAccountInnerAccmgrCoverageTest001, 
 
     osAccountControl->IsOsAccountExists(Constants::ADMIN_LOCAL_ID, isExistsAccount);
     EXPECT_EQ(true, isExistsAccount);
-
-    DelayedSingleton<IInnerOsAccountManager>::DestroyInstance();
 }
 
 /*
@@ -125,8 +120,6 @@ HWTEST_F(OsAccountInnerAccmgrCoverageTest, OsAccountInnerAccmgrCoverageTest001, 
  */
 HWTEST_F(OsAccountInnerAccmgrCoverageTest, OsAccountInnerAccmgrCoverageTest002, TestSize.Level1)
 {
-    innerMgrService_ = DelayedSingleton<IInnerOsAccountManager>::GetInstance();
-
     innerMgrService_->CreateBaseStandardAccount();
 
     std::shared_ptr<IOsAccountControl> osAccountControl = innerMgrService_->osAccountControl_;
@@ -134,8 +127,6 @@ HWTEST_F(OsAccountInnerAccmgrCoverageTest, OsAccountInnerAccmgrCoverageTest002, 
 
     osAccountControl->IsOsAccountExists(Constants::START_USER_ID, isExistsAccount);
     EXPECT_EQ(true, isExistsAccount);
-
-    DelayedSingleton<IInnerOsAccountManager>::DestroyInstance();
 }
 
 /*
@@ -146,7 +137,6 @@ HWTEST_F(OsAccountInnerAccmgrCoverageTest, OsAccountInnerAccmgrCoverageTest002, 
  */
 HWTEST_F(OsAccountInnerAccmgrCoverageTest, OsAccountInnerAccmgrCoverageTest005, TestSize.Level1)
 {
-    innerMgrService_ = DelayedSingleton<IInnerOsAccountManager>::GetInstance();
     bool ret = false;
 
     innerMgrService_->PushIdIntoActiveList(TEST_USER_ID10);
@@ -160,8 +150,6 @@ HWTEST_F(OsAccountInnerAccmgrCoverageTest, OsAccountInnerAccmgrCoverageTest005, 
     innerMgrService_->EraseIdFromActiveList(TEST_USER_ID55);
     ret = innerMgrService_->IsOsAccountIDInActiveList(TEST_USER_ID55);
     EXPECT_EQ(ret, false);
-
-    DelayedSingleton<IInnerOsAccountManager>::DestroyInstance();
 }
 
 /*
@@ -172,7 +160,6 @@ HWTEST_F(OsAccountInnerAccmgrCoverageTest, OsAccountInnerAccmgrCoverageTest005, 
  */
 HWTEST_F(OsAccountInnerAccmgrCoverageTest, OsAccountInnerAccmgrCoverageTest007, TestSize.Level1)
 {
-    innerMgrService_ = DelayedSingleton<IInnerOsAccountManager>::GetInstance();
     bool ret = false;
     innerMgrService_->AddLocalIdToOperating(TEST_USER_ID10);
     ret = innerMgrService_->IsLocalIdInOperating(TEST_USER_ID10);
@@ -185,8 +172,6 @@ HWTEST_F(OsAccountInnerAccmgrCoverageTest, OsAccountInnerAccmgrCoverageTest007, 
     innerMgrService_->RemoveLocalIdToOperating(TEST_USER_ID10);
     ret = innerMgrService_->IsLocalIdInOperating(TEST_USER_ID10);
     EXPECT_EQ(ret, false);
-
-    DelayedSingleton<IInnerOsAccountManager>::DestroyInstance();
 }
 
 /*
@@ -202,11 +187,9 @@ HWTEST_F(OsAccountInnerAccmgrCoverageTest, OsAccountInnerAccmgrCoverageTest008, 
     EXPECT_CALL(*ptr, GetOsAccountList(::testing::_))
         .WillRepeatedly(testing::Return(-1));
 
-    innerMgrService_ = DelayedSingleton<IInnerOsAccountManager>::GetInstance();
     innerMgrService_->SetOsAccountControl(ptr);
     unsigned int count;
     int ret = innerMgrService_->GetCreatedOsAccountsCount(count);
-    DelayedSingleton<IInnerOsAccountManager>::DestroyInstance();
     EXPECT_EQ(ret, -1);
 }
 
@@ -226,7 +209,6 @@ HWTEST_F(OsAccountInnerAccmgrCoverageTest, OsAccountInnerAccmgrCoverageTest009, 
     EXPECT_CALL(*ptr, GetAllowCreateId(::testing::_))
         .WillRepeatedly(testing::Return(-1));
 
-    innerMgrService_ = DelayedSingleton<IInnerOsAccountManager>::GetInstance();
     innerMgrService_->SetOsAccountControl(ptr);
 
     std::string name;
@@ -272,8 +254,6 @@ HWTEST_F(OsAccountInnerAccmgrCoverageTest, OsAccountInnerAccmgrCoverageTest009, 
 
     ret = innerMgrService_->PrepareOsAccountInfo(name, type, domainInfo1, accountInfo);
     EXPECT_EQ(ret, 0);
-
-    DelayedSingleton<IInnerOsAccountManager>::DestroyInstance();
 }
 
 /*
@@ -286,7 +266,6 @@ HWTEST_F(OsAccountInnerAccmgrCoverageTest, OsAccountInnerAccmgrCoverageTest010, 
 {
     int ret;
     auto ptr = std::make_shared<MockOsAccountControlFileManager>();
-    innerMgrService_ = DelayedSingleton<IInnerOsAccountManager>::GetInstance();
     innerMgrService_->SetOsAccountControl(ptr);
 
     OsAccountInfo osAccountInfoOne;
@@ -323,8 +302,6 @@ HWTEST_F(OsAccountInnerAccmgrCoverageTest, OsAccountInnerAccmgrCoverageTest010, 
 
     (void)setuid(0);
     EXPECT_EQ(OsAccountManager::RemoveOsAccount(osAccountInfoOne.GetLocalId()), ERR_OK);
-
-    DelayedSingleton<IInnerOsAccountManager>::DestroyInstance();
 }
 
 /*
@@ -337,7 +314,6 @@ HWTEST_F(OsAccountInnerAccmgrCoverageTest, OsAccountInnerAccmgrCoverageTest011, 
 {
     int ret;
     auto ptr = std::make_shared<MockOsAccountControlFileManager>();
-    innerMgrService_ = DelayedSingleton<IInnerOsAccountManager>::GetInstance();
     innerMgrService_->SetOsAccountControl(ptr);
 
     OsAccountInfo osAccountInfoOne;
@@ -365,8 +341,6 @@ HWTEST_F(OsAccountInnerAccmgrCoverageTest, OsAccountInnerAccmgrCoverageTest011, 
 
     (void)setuid(0);
     EXPECT_EQ(OsAccountManager::RemoveOsAccount(osAccountInfoOne.GetLocalId()), ERR_OK);
-
-    DelayedSingleton<IInnerOsAccountManager>::DestroyInstance();
 }
 
 /*
@@ -380,7 +354,6 @@ HWTEST_F(OsAccountInnerAccmgrCoverageTest, OsAccountInnerAccmgrCoverageTest012, 
 {
     int ret;
     auto ptr = std::make_shared<MockOsAccountControlFileManager>();
-    innerMgrService_ = DelayedSingleton<IInnerOsAccountManager>::GetInstance();
     innerMgrService_->SetOsAccountControl(ptr);
 
     OsAccountInfo osAccountInfoOne;
@@ -417,9 +390,6 @@ HWTEST_F(OsAccountInnerAccmgrCoverageTest, OsAccountInnerAccmgrCoverageTest012, 
 
     ret = innerMgrService_->CreateOsAccountForDomain(type, domainInfo, osAccountInfoOne);
     EXPECT_EQ(ret, ERR_OSACCOUNT_SERVICE_INNER_GET_ACCOUNT_LIST_ERROR);
-    
-
-    DelayedSingleton<IInnerOsAccountManager>::DestroyInstance();
 }
 #endif // DOMAIN_ACCOUNT_TEST_CASE
 
@@ -433,7 +403,6 @@ HWTEST_F(OsAccountInnerAccmgrCoverageTest, OsAccountInnerAccmgrCoverageTest013, 
 {
     int ret;
     auto ptr = std::make_shared<MockOsAccountControlFileManager>();
-    innerMgrService_ = DelayedSingleton<IInnerOsAccountManager>::GetInstance();
     innerMgrService_->SetOsAccountControl(ptr);
 
     EXPECT_CALL(*ptr, GetOsAccountList(::testing::_))
@@ -488,8 +457,6 @@ HWTEST_F(OsAccountInnerAccmgrCoverageTest, OsAccountInnerAccmgrCoverageTest013, 
 
     ret = innerMgrService_->RemoveOsAccount(id);
     EXPECT_EQ(ret, 0);
-
-    DelayedSingleton<IInnerOsAccountManager>::DestroyInstance();
 }
 
 /*
@@ -501,7 +468,6 @@ HWTEST_F(OsAccountInnerAccmgrCoverageTest, OsAccountInnerAccmgrCoverageTest013, 
 HWTEST_F(OsAccountInnerAccmgrCoverageTest, OsAccountInnerAccmgrCoverageTest015, TestSize.Level1)
 {
     auto ptr = std::make_shared<MockOsAccountControlFileManager>();
-    innerMgrService_ = DelayedSingleton<IInnerOsAccountManager>::GetInstance();
 
     OsAccountInfo osAccountInfoOne;
     (void)setuid(ACCOUNT_UID);
@@ -511,7 +477,6 @@ HWTEST_F(OsAccountInnerAccmgrCoverageTest, OsAccountInnerAccmgrCoverageTest015, 
     EXPECT_EQ(ret, 0);
 
     (void)setuid(0);
-    DelayedSingleton<IInnerOsAccountManager>::DestroyInstance();
 }
 
 /*
@@ -523,7 +488,6 @@ HWTEST_F(OsAccountInnerAccmgrCoverageTest, OsAccountInnerAccmgrCoverageTest015, 
 HWTEST_F(OsAccountInnerAccmgrCoverageTest, OsAccountInnerAccmgrCoverageTest016, TestSize.Level1)
 {
     auto ptr = std::make_shared<MockOsAccountControlFileManager>();
-    innerMgrService_ = DelayedSingleton<IInnerOsAccountManager>::GetInstance();
     innerMgrService_->SetOsAccountControl(ptr);
 
     int id = 0;
@@ -540,8 +504,6 @@ HWTEST_F(OsAccountInnerAccmgrCoverageTest, OsAccountInnerAccmgrCoverageTest016, 
     int num = 0;
     ret = innerMgrService_->QueryMaxOsAccountNumber(num);
     EXPECT_EQ(ret, -1);
-
-    DelayedSingleton<IInnerOsAccountManager>::DestroyInstance();
 }
 
 /*
@@ -553,7 +515,6 @@ HWTEST_F(OsAccountInnerAccmgrCoverageTest, OsAccountInnerAccmgrCoverageTest016, 
 HWTEST_F(OsAccountInnerAccmgrCoverageTest, OsAccountInnerAccmgrCoverageTest017, TestSize.Level1)
 {
     auto ptr = std::make_shared<MockOsAccountControlFileManager>();
-    innerMgrService_ = DelayedSingleton<IInnerOsAccountManager>::GetInstance();
     innerMgrService_->SetOsAccountControl(ptr);
 
     int id = 0;
@@ -582,8 +543,6 @@ HWTEST_F(OsAccountInnerAccmgrCoverageTest, OsAccountInnerAccmgrCoverageTest017, 
 
     ret = innerMgrService_->GetOsAccountAllConstraints(id, constraints);
     EXPECT_EQ(ret, -1);
-
-    DelayedSingleton<IInnerOsAccountManager>::DestroyInstance();
 }
 
 /*
@@ -595,7 +554,6 @@ HWTEST_F(OsAccountInnerAccmgrCoverageTest, OsAccountInnerAccmgrCoverageTest017, 
 HWTEST_F(OsAccountInnerAccmgrCoverageTest, OsAccountInnerAccmgrCoverageTest018, TestSize.Level1)
 {
     auto ptr = std::make_shared<MockOsAccountControlFileManager>();
-    innerMgrService_ = DelayedSingleton<IInnerOsAccountManager>::GetInstance();
     innerMgrService_->SetOsAccountControl(ptr);
 
     std::vector<OsAccountInfo> accounts;
@@ -607,8 +565,6 @@ HWTEST_F(OsAccountInnerAccmgrCoverageTest, OsAccountInnerAccmgrCoverageTest018, 
 
     ErrCode ret = innerMgrService_->QueryAllCreatedOsAccounts(accounts);
     EXPECT_EQ(ret, ERR_OSACCOUNT_SERVICE_INNER_GET_ACCOUNT_LIST_ERROR);
-
-    DelayedSingleton<IInnerOsAccountManager>::DestroyInstance();
 }
 
 /*
@@ -620,7 +576,6 @@ HWTEST_F(OsAccountInnerAccmgrCoverageTest, OsAccountInnerAccmgrCoverageTest018, 
 HWTEST_F(OsAccountInnerAccmgrCoverageTest, OsAccountInnerAccmgrCoverageTest019, TestSize.Level1)
 {
     auto ptr = std::make_shared<MockOsAccountControlFileManager>();
-    innerMgrService_ = DelayedSingleton<IInnerOsAccountManager>::GetInstance();
     innerMgrService_->SetOsAccountControl(ptr);
 
     int id = TEST_USER_ID100;
@@ -642,8 +597,6 @@ HWTEST_F(OsAccountInnerAccmgrCoverageTest, OsAccountInnerAccmgrCoverageTest019, 
 
     ret = innerMgrService_->QueryOsAccountById(id, osAccountInfo);
     EXPECT_EQ(ret, -1);
-
-    DelayedSingleton<IInnerOsAccountManager>::DestroyInstance();
 }
 
 /*
@@ -655,7 +608,6 @@ HWTEST_F(OsAccountInnerAccmgrCoverageTest, OsAccountInnerAccmgrCoverageTest019, 
 HWTEST_F(OsAccountInnerAccmgrCoverageTest, OsAccountInnerAccmgrCoverageTest020, TestSize.Level1)
 {
     auto ptr = std::make_shared<MockOsAccountControlFileManager>();
-    innerMgrService_ = DelayedSingleton<IInnerOsAccountManager>::GetInstance();
     innerMgrService_->SetOsAccountControl(ptr);
 
     int id = TEST_USER_ID100;
@@ -666,8 +618,6 @@ HWTEST_F(OsAccountInnerAccmgrCoverageTest, OsAccountInnerAccmgrCoverageTest020, 
 
     ErrCode ret = innerMgrService_->GetOsAccountType(id, type);
     EXPECT_EQ(ret, ERR_OSACCOUNT_SERVICE_INNER_SELECT_OSACCOUNT_BYID_ERROR);
-
-    DelayedSingleton<IInnerOsAccountManager>::DestroyInstance();
 }
 
 /*
@@ -679,7 +629,6 @@ HWTEST_F(OsAccountInnerAccmgrCoverageTest, OsAccountInnerAccmgrCoverageTest020, 
 HWTEST_F(OsAccountInnerAccmgrCoverageTest, OsAccountInnerAccmgrCoverageTest021, TestSize.Level1)
 {
     auto ptr = std::make_shared<MockOsAccountControlFileManager>();
-    innerMgrService_ = DelayedSingleton<IInnerOsAccountManager>::GetInstance();
     innerMgrService_->SetOsAccountControl(ptr);
 
     int id = TEST_USER_ID100;
@@ -690,8 +639,6 @@ HWTEST_F(OsAccountInnerAccmgrCoverageTest, OsAccountInnerAccmgrCoverageTest021, 
 
     ErrCode ret = innerMgrService_->GetOsAccountProfilePhoto(id, photo);
     EXPECT_EQ(ret, ERR_OSACCOUNT_SERVICE_INNER_SELECT_OSACCOUNT_BYID_ERROR);
-
-    DelayedSingleton<IInnerOsAccountManager>::DestroyInstance();
 }
 
 /*
@@ -703,7 +650,6 @@ HWTEST_F(OsAccountInnerAccmgrCoverageTest, OsAccountInnerAccmgrCoverageTest021, 
 HWTEST_F(OsAccountInnerAccmgrCoverageTest, OsAccountInnerAccmgrCoverageTest022, TestSize.Level1)
 {
     auto ptr = std::make_shared<MockOsAccountControlFileManager>();
-    innerMgrService_ = DelayedSingleton<IInnerOsAccountManager>::GetInstance();
     innerMgrService_->SetOsAccountControl(ptr);
 
     bool isMultiOsAccountEnabled = false; ///
@@ -713,8 +659,6 @@ HWTEST_F(OsAccountInnerAccmgrCoverageTest, OsAccountInnerAccmgrCoverageTest022, 
 
     ErrCode ret = innerMgrService_->IsMultiOsAccountEnable(isMultiOsAccountEnabled);
     EXPECT_EQ(ret, -1);
-
-    DelayedSingleton<IInnerOsAccountManager>::DestroyInstance();
 }
 
 /*
@@ -726,7 +670,6 @@ HWTEST_F(OsAccountInnerAccmgrCoverageTest, OsAccountInnerAccmgrCoverageTest022, 
 HWTEST_F(OsAccountInnerAccmgrCoverageTest, OsAccountInnerAccmgrCoverageTest023, TestSize.Level1)
 {
     auto ptr = std::make_shared<MockOsAccountControlFileManager>();
-    innerMgrService_ = DelayedSingleton<IInnerOsAccountManager>::GetInstance();
     innerMgrService_->SetOsAccountControl(ptr);
 
     int id = TEST_USER_ID100;
@@ -755,8 +698,6 @@ HWTEST_F(OsAccountInnerAccmgrCoverageTest, OsAccountInnerAccmgrCoverageTest023, 
 
     ret = innerMgrService_->SetOsAccountName(id, name);
     EXPECT_EQ(ret, ERR_OSACCOUNT_SERVICE_INNER_UPDATE_ACCOUNT_ERROR);
-
-    DelayedSingleton<IInnerOsAccountManager>::DestroyInstance();
 }
 
 /*
@@ -768,7 +709,6 @@ HWTEST_F(OsAccountInnerAccmgrCoverageTest, OsAccountInnerAccmgrCoverageTest023, 
 HWTEST_F(OsAccountInnerAccmgrCoverageTest, OsAccountInnerAccmgrCoverageTest024, TestSize.Level1)
 {
     auto ptr = std::make_shared<MockOsAccountControlFileManager>();
-    innerMgrService_ = DelayedSingleton<IInnerOsAccountManager>::GetInstance();
     innerMgrService_->SetOsAccountControl(ptr);
 
     int id = TEST_USER_ID100;
@@ -822,8 +762,6 @@ HWTEST_F(OsAccountInnerAccmgrCoverageTest, OsAccountInnerAccmgrCoverageTest024, 
         .WillRepeatedly(testing::Return(-1));
     ret = innerMgrService_->SetBaseOsAccountConstraints(id, constraints, enable);
     EXPECT_EQ(ret, -1);
-
-    DelayedSingleton<IInnerOsAccountManager>::DestroyInstance();
 }
 
 /*
@@ -835,7 +773,6 @@ HWTEST_F(OsAccountInnerAccmgrCoverageTest, OsAccountInnerAccmgrCoverageTest024, 
 HWTEST_F(OsAccountInnerAccmgrCoverageTest, OsAccountInnerAccmgrCoverageTest025, TestSize.Level1)
 {
     auto ptr = std::make_shared<MockOsAccountControlFileManager>();
-    innerMgrService_ = DelayedSingleton<IInnerOsAccountManager>::GetInstance();
     innerMgrService_->SetOsAccountControl(ptr);
 
     int id = TEST_USER_ID100;
@@ -868,8 +805,6 @@ HWTEST_F(OsAccountInnerAccmgrCoverageTest, OsAccountInnerAccmgrCoverageTest025, 
     photo += "1";
     ret = innerMgrService_->SetOsAccountProfilePhoto(id, photo);
     EXPECT_EQ(ret, ERR_OSACCOUNT_SERVICE_INNER_UPDATE_ACCOUNT_ERROR);
-
-    DelayedSingleton<IInnerOsAccountManager>::DestroyInstance();
 }
 
 /*
@@ -881,7 +816,6 @@ HWTEST_F(OsAccountInnerAccmgrCoverageTest, OsAccountInnerAccmgrCoverageTest025, 
 HWTEST_F(OsAccountInnerAccmgrCoverageTest, OsAccountInnerAccmgrCoverageTest026, TestSize.Level1)
 {
     auto ptr = std::make_shared<MockOsAccountControlFileManager>();
-    innerMgrService_ = DelayedSingleton<IInnerOsAccountManager>::GetInstance();
     innerMgrService_->SetOsAccountControl(ptr);
 
     int id = TEST_USER_ID100;
@@ -918,8 +852,6 @@ HWTEST_F(OsAccountInnerAccmgrCoverageTest, OsAccountInnerAccmgrCoverageTest026, 
 
     ret = innerMgrService_->ActivateOsAccount(id);
     EXPECT_EQ(ret, ERR_OSACCOUNT_SERVICE_INNER_ACCOUNT_TO_BE_REMOVED_ERROR);
-
-    DelayedSingleton<IInnerOsAccountManager>::DestroyInstance();
 }
 
 /*
@@ -931,7 +863,6 @@ HWTEST_F(OsAccountInnerAccmgrCoverageTest, OsAccountInnerAccmgrCoverageTest026, 
 HWTEST_F(OsAccountInnerAccmgrCoverageTest, OsAccountInnerAccmgrCoverageTest027, TestSize.Level1)
 {
     auto ptr = std::make_shared<MockOsAccountControlFileManager>();
-    innerMgrService_ = DelayedSingleton<IInnerOsAccountManager>::GetInstance();
     innerMgrService_->SetOsAccountControl(ptr);
 
     int64_t serialNumber = Constants::CARRY_NUM * Constants::SERIAL_NUMBER_NUM_START_FOR_ADMIN
@@ -952,33 +883,6 @@ HWTEST_F(OsAccountInnerAccmgrCoverageTest, OsAccountInnerAccmgrCoverageTest027, 
 
     ret = innerMgrService_->GetSerialNumberByOsAccountLocalId(id, serialNumber);
     EXPECT_EQ(ret, ERR_OSACCOUNT_SERVICE_INNER_SELECT_OSACCOUNT_BYID_ERROR);
-
-    DelayedSingleton<IInnerOsAccountManager>::DestroyInstance();
-}
-
-/*
- * @tc.name: OsAccountInnerAccmgrCoverageTest028
- * @tc.desc: coverage test
- * @tc.type: FUNC
- * @tc.require:
- */
-HWTEST_F(OsAccountInnerAccmgrCoverageTest, OsAccountInnerAccmgrCoverageTest028, TestSize.Level1)
-{
-    auto ptr = std::make_shared<MockOsAccountControlFileManager>();
-    innerMgrService_ = DelayedSingleton<IInnerOsAccountManager>::GetInstance();
-    innerMgrService_->SetOsAccountControl(ptr);
-
-    OsAccountSubscribeInfo info;
-    sptr <IRemoteObject> eventListener;
-    auto tmp = innerMgrService_->subscribeManagerPtr_;
-    innerMgrService_->subscribeManagerPtr_ = nullptr;
-    ErrCode ret = innerMgrService_->SubscribeOsAccount(info, eventListener);
-    EXPECT_EQ(ret, ERR_OSACCOUNT_SERVICE_SUBSCRIBE_MANAGER_PTR_IS_NULLPTR);
-
-    ret = innerMgrService_->UnsubscribeOsAccount(eventListener);
-    EXPECT_EQ(ret, ERR_OSACCOUNT_SERVICE_SUBSCRIBE_MANAGER_PTR_IS_NULLPTR);
-
-    DelayedSingleton<IInnerOsAccountManager>::DestroyInstance();
 }
 
 /*
@@ -990,7 +894,6 @@ HWTEST_F(OsAccountInnerAccmgrCoverageTest, OsAccountInnerAccmgrCoverageTest028, 
 HWTEST_F(OsAccountInnerAccmgrCoverageTest, OsAccountInnerAccmgrCoverageTest029, TestSize.Level1)
 {
     auto ptr = std::make_shared<MockOsAccountControlFileManager>();
-    innerMgrService_ = DelayedSingleton<IInnerOsAccountManager>::GetInstance();
     innerMgrService_->SetOsAccountControl(ptr);
 
     int id = TEST_USER_ID100;
@@ -1018,8 +921,6 @@ HWTEST_F(OsAccountInnerAccmgrCoverageTest, OsAccountInnerAccmgrCoverageTest029, 
 
     ret = innerMgrService_->SetOsAccountIsVerified(id, isVerified);
     EXPECT_EQ(ret, ERR_OSACCOUNT_SERVICE_INNER_UPDATE_ACCOUNT_ERROR);
-
-    DelayedSingleton<IInnerOsAccountManager>::DestroyInstance();
 }
 
 /*
@@ -1031,7 +932,6 @@ HWTEST_F(OsAccountInnerAccmgrCoverageTest, OsAccountInnerAccmgrCoverageTest029, 
 HWTEST_F(OsAccountInnerAccmgrCoverageTest, OsAccountInnerAccmgrCoverageTest030, TestSize.Level1)
 {
     auto ptr = std::make_shared<MockOsAccountControlFileManager>();
-    innerMgrService_ = DelayedSingleton<IInnerOsAccountManager>::GetInstance();
     innerMgrService_->SetOsAccountControl(ptr);
 
     int id = TEST_USER_ID100;
@@ -1049,8 +949,6 @@ HWTEST_F(OsAccountInnerAccmgrCoverageTest, OsAccountInnerAccmgrCoverageTest030, 
         .WillRepeatedly(testing::Return(-1));
     ret = innerMgrService_->GetOsAccountLocalIdFromDomain(domainInfo1, id);
     EXPECT_EQ(ret, ERR_OSACCOUNT_SERVICE_INNER_GET_ACCOUNT_LIST_ERROR);
-
-    DelayedSingleton<IInnerOsAccountManager>::DestroyInstance();
 }
 
 /*
@@ -1062,7 +960,6 @@ HWTEST_F(OsAccountInnerAccmgrCoverageTest, OsAccountInnerAccmgrCoverageTest030, 
 HWTEST_F(OsAccountInnerAccmgrCoverageTest, OsAccountInnerAccmgrCoverageTest031, TestSize.Level1)
 {
     auto ptr = std::make_shared<MockOsAccountControlFileManager>();
-    innerMgrService_ = DelayedSingleton<IInnerOsAccountManager>::GetInstance();
     innerMgrService_->SetOsAccountControl(ptr);
 
     int id = TEST_USER_ID100;
@@ -1074,8 +971,6 @@ HWTEST_F(OsAccountInnerAccmgrCoverageTest, OsAccountInnerAccmgrCoverageTest031, 
     
     ErrCode ret = innerMgrService_->QueryOsAccountConstraintSourceTypes(id, constraint, constraintSourceTypeInfos);
     EXPECT_EQ(ret, ERR_OSACCOUNT_SERVICE_INNER_SELECT_OSACCOUNT_BYID_ERROR);
-
-    DelayedSingleton<IInnerOsAccountManager>::DestroyInstance();
 }
 
 /*
@@ -1087,7 +982,6 @@ HWTEST_F(OsAccountInnerAccmgrCoverageTest, OsAccountInnerAccmgrCoverageTest031, 
 HWTEST_F(OsAccountInnerAccmgrCoverageTest, OsAccountInnerAccmgrCoverageTest032, TestSize.Level1)
 {
     auto ptr = std::make_shared<MockOsAccountControlFileManager>();
-    innerMgrService_ = DelayedSingleton<IInnerOsAccountManager>::GetInstance();
     innerMgrService_->SetOsAccountControl(ptr);
 
     const std::string constraint;
@@ -1134,8 +1028,6 @@ HWTEST_F(OsAccountInnerAccmgrCoverageTest, OsAccountInnerAccmgrCoverageTest032, 
 
     ret = innerMgrService_->SetSpecificOsAccountConstraints(constraints, enable, targetId, enforcerId, isDeviceOwner);
     EXPECT_EQ(ret, -1);
-
-    DelayedSingleton<IInnerOsAccountManager>::DestroyInstance();
 }
 
 /*
@@ -1147,7 +1039,6 @@ HWTEST_F(OsAccountInnerAccmgrCoverageTest, OsAccountInnerAccmgrCoverageTest032, 
 HWTEST_F(OsAccountInnerAccmgrCoverageTest, OsAccountInnerAccmgrCoverageTest033, TestSize.Level1)
 {
     auto ptr = std::make_shared<MockOsAccountControlFileManager>();
-    innerMgrService_ = DelayedSingleton<IInnerOsAccountManager>::GetInstance();
     innerMgrService_->SetOsAccountControl(ptr);
 
     OsAccountInfo osAccountInfo;
@@ -1163,8 +1054,6 @@ HWTEST_F(OsAccountInnerAccmgrCoverageTest, OsAccountInnerAccmgrCoverageTest033, 
     EXPECT_CALL(*ptr, GetOsAccountInfoById(_, _))
         .WillRepeatedly(DoAll(testing::SetArgReferee<1>(osAccountInfo), testing::Return(0)));
     innerMgrService_->StartAccount();
-
-    DelayedSingleton<IInnerOsAccountManager>::DestroyInstance();
 }
 
 /*
@@ -1176,7 +1065,6 @@ HWTEST_F(OsAccountInnerAccmgrCoverageTest, OsAccountInnerAccmgrCoverageTest033, 
 HWTEST_F(OsAccountInnerAccmgrCoverageTest, OsAccountInnerAccmgrCoverageTest034, TestSize.Level1)
 {
     auto ptr = std::make_shared<MockOsAccountControlFileManager>();
-    innerMgrService_ = DelayedSingleton<IInnerOsAccountManager>::GetInstance();
     innerMgrService_->SetOsAccountControl(ptr);
 
     std::vector<OsAccountInfo> accounts;
@@ -1195,8 +1083,6 @@ HWTEST_F(OsAccountInnerAccmgrCoverageTest, OsAccountInnerAccmgrCoverageTest034, 
     EXPECT_CALL(*ptr, GetOsAccountList(_))
         .WillRepeatedly(DoAll(SetArgReferee<0>(accounts), testing::Return(0)));
     innerMgrService_->RestartActiveAccount();
-
-    DelayedSingleton<IInnerOsAccountManager>::DestroyInstance();
 }
 
 /*
@@ -1208,7 +1094,6 @@ HWTEST_F(OsAccountInnerAccmgrCoverageTest, OsAccountInnerAccmgrCoverageTest034, 
 HWTEST_F(OsAccountInnerAccmgrCoverageTest, OsAccountInnerAccmgrCoverageTest036, TestSize.Level1)
 {
     auto ptr = std::make_shared<MockOsAccountControlFileManager>();
-    innerMgrService_ = DelayedSingleton<IInnerOsAccountManager>::GetInstance();
     innerMgrService_->SetOsAccountControl(ptr);
 
     std::vector<OsAccountInfo> accounts;
@@ -1232,8 +1117,6 @@ HWTEST_F(OsAccountInnerAccmgrCoverageTest, OsAccountInnerAccmgrCoverageTest036, 
 
     innerMgrService_->ResetAccountStatus();
     EXPECT_EQ(account1.GetIsActived(), true); // this interface has nothing to judge.
-
-    DelayedSingleton<IInnerOsAccountManager>::DestroyInstance();
 }
 
 /*
@@ -1245,7 +1128,6 @@ HWTEST_F(OsAccountInnerAccmgrCoverageTest, OsAccountInnerAccmgrCoverageTest036, 
 HWTEST_F(OsAccountInnerAccmgrCoverageTest, OsAccountInnerAccmgrCoverageTest037, TestSize.Level1)
 {
     auto ptr = std::make_shared<MockOsAccountControlFileManager>();
-    innerMgrService_ = DelayedSingleton<IInnerOsAccountManager>::GetInstance();
     innerMgrService_->SetOsAccountControl(ptr);
 
     ErrCode ret = innerMgrService_->DeActivateOsAccount(Constants::ADMIN_LOCAL_ID);
@@ -1265,8 +1147,6 @@ HWTEST_F(OsAccountInnerAccmgrCoverageTest, OsAccountInnerAccmgrCoverageTest037, 
 
     ret = innerMgrService_->DeActivateOsAccount(TEST_USER_ID55);
     EXPECT_EQ(ret, ERR_OSACCOUNT_SERVICE_INNER_UPDATE_ACCOUNT_ERROR);
-
-    DelayedSingleton<IInnerOsAccountManager>::DestroyInstance();
 }
 
 /*
@@ -1278,7 +1158,6 @@ HWTEST_F(OsAccountInnerAccmgrCoverageTest, OsAccountInnerAccmgrCoverageTest037, 
 HWTEST_F(OsAccountInnerAccmgrCoverageTest, OsAccountInnerAccmgrCoverageTest038, TestSize.Level1)
 {
     auto ptr = std::make_shared<MockOsAccountControlFileManager>();
-    innerMgrService_ = DelayedSingleton<IInnerOsAccountManager>::GetInstance();
     innerMgrService_->SetOsAccountControl(ptr);
 
     std::vector<OsAccountInfo> accounts;
@@ -1302,8 +1181,6 @@ HWTEST_F(OsAccountInnerAccmgrCoverageTest, OsAccountInnerAccmgrCoverageTest038, 
 
     innerMgrService_->ResetAccountStatus();
     EXPECT_EQ(account1.GetIsActived(), true);// this interface has nothing to judge.
-
-    DelayedSingleton<IInnerOsAccountManager>::DestroyInstance();
 }
 
 /*
@@ -1315,7 +1192,6 @@ HWTEST_F(OsAccountInnerAccmgrCoverageTest, OsAccountInnerAccmgrCoverageTest038, 
 HWTEST_F(OsAccountInnerAccmgrCoverageTest, OsAccountInnerAccmgrCoverageTest039, TestSize.Level1)
 {
     auto ptr = std::make_shared<MockOsAccountControlFileManager>();
-    innerMgrService_ = DelayedSingleton<IInnerOsAccountManager>::GetInstance();
 
     OsAccountInfo osAccountInfoOne;
     (void)setuid(ACCOUNT_UID);
@@ -1364,7 +1240,6 @@ HWTEST_F(OsAccountInnerAccmgrCoverageTest, OsAccountInnerAccmgrCoverageTest039, 
     innerMgrService_->CleanGarbageAccounts();
 
     (void)setuid(0);
-    DelayedSingleton<IInnerOsAccountManager>::DestroyInstance();
 }
 
 /*
@@ -1376,7 +1251,6 @@ HWTEST_F(OsAccountInnerAccmgrCoverageTest, OsAccountInnerAccmgrCoverageTest039, 
 HWTEST_F(OsAccountInnerAccmgrCoverageTest, OsAccountInnerAccmgrCoverageTest040, TestSize.Level1)
 {
     auto ptr = std::make_shared<MockOsAccountControlFileManager>();
-    innerMgrService_ = DelayedSingleton<IInnerOsAccountManager>::GetInstance();
     innerMgrService_->SetOsAccountControl(ptr);
 
     OsAccountInfo account1;
@@ -1389,8 +1263,6 @@ HWTEST_F(OsAccountInnerAccmgrCoverageTest, OsAccountInnerAccmgrCoverageTest040, 
 
     int ret = innerMgrService_->SetDefaultActivatedOsAccount(TEST_USER_ID108);
     EXPECT_EQ(ret, ERR_OSACCOUNT_SERVICE_INNER_SELECT_OSACCOUNT_BYID_ERROR);
-
-    DelayedSingleton<IInnerOsAccountManager>::DestroyInstance();
 }
 
 /*
@@ -1402,7 +1274,6 @@ HWTEST_F(OsAccountInnerAccmgrCoverageTest, OsAccountInnerAccmgrCoverageTest040, 
 HWTEST_F(OsAccountInnerAccmgrCoverageTest, OsAccountInnerAccmgrCoverageTest041, TestSize.Level1)
 {
     auto ptr = std::make_shared<MockOsAccountControlFileManager>();
-    innerMgrService_ = DelayedSingleton<IInnerOsAccountManager>::GetInstance();
     innerMgrService_->SetOsAccountControl(ptr);
 
     OsAccountInfo account1;
@@ -1415,8 +1286,6 @@ HWTEST_F(OsAccountInnerAccmgrCoverageTest, OsAccountInnerAccmgrCoverageTest041, 
 
     int ret = innerMgrService_->SetDefaultActivatedOsAccount(TEST_USER_ID108);
     EXPECT_EQ(ret, ERR_OSACCOUNT_SERVICE_INNER_ACCOUNT_IS_UNVERIFIED_ERROR);
-
-    DelayedSingleton<IInnerOsAccountManager>::DestroyInstance();
 }
 
 /*
@@ -1428,7 +1297,6 @@ HWTEST_F(OsAccountInnerAccmgrCoverageTest, OsAccountInnerAccmgrCoverageTest041, 
 HWTEST_F(OsAccountInnerAccmgrCoverageTest, OsAccountInnerAccmgrCoverageTest042, TestSize.Level1)
 {
     auto ptr = std::make_shared<MockOsAccountControlFileManager>();
-    innerMgrService_ = DelayedSingleton<IInnerOsAccountManager>::GetInstance();
     innerMgrService_->SetOsAccountControl(ptr);
 
     OsAccountInfo account1;
@@ -1441,8 +1309,6 @@ HWTEST_F(OsAccountInnerAccmgrCoverageTest, OsAccountInnerAccmgrCoverageTest042, 
 
     int ret = innerMgrService_->SetDefaultActivatedOsAccount(TEST_USER_ID108);
     EXPECT_EQ(ret, ERR_OSACCOUNT_SERVICE_INNER_ACCOUNT_TO_BE_REMOVED_ERROR);
-
-    DelayedSingleton<IInnerOsAccountManager>::DestroyInstance();
 }
 
 /*
@@ -1454,7 +1320,6 @@ HWTEST_F(OsAccountInnerAccmgrCoverageTest, OsAccountInnerAccmgrCoverageTest042, 
 HWTEST_F(OsAccountInnerAccmgrCoverageTest, OsAccountInnerAccmgrCoverageTest043, TestSize.Level1)
 {
     auto ptr = std::make_shared<MockOsAccountControlFileManager>();
-    innerMgrService_ = DelayedSingleton<IInnerOsAccountManager>::GetInstance();
     innerMgrService_->SetOsAccountControl(ptr);
 
     OsAccountInfo account1;
@@ -1468,8 +1333,8 @@ HWTEST_F(OsAccountInnerAccmgrCoverageTest, OsAccountInnerAccmgrCoverageTest043, 
         .WillRepeatedly(testing::Return(0));
     int ret = innerMgrService_->SetDefaultActivatedOsAccount(TEST_USER_ID108);
     EXPECT_EQ(ret, ERR_OK);
-
-    DelayedSingleton<IInnerOsAccountManager>::DestroyInstance();
+    ret = innerMgrService_->SetDefaultActivatedOsAccount(Constants::START_USER_ID);
+    EXPECT_EQ(ret, ERR_OK);
 }
 
 /*
@@ -1481,7 +1346,6 @@ HWTEST_F(OsAccountInnerAccmgrCoverageTest, OsAccountInnerAccmgrCoverageTest043, 
 HWTEST_F(OsAccountInnerAccmgrCoverageTest, OsAccountInnerAccmgrCoverageTest044, TestSize.Level1)
 {
     auto ptr = std::make_shared<MockOsAccountControlFileManager>();
-    innerMgrService_ = DelayedSingleton<IInnerOsAccountManager>::GetInstance();
     innerMgrService_->SetOsAccountControl(ptr);
 
     OsAccountInfo account1;
@@ -1495,8 +1359,6 @@ HWTEST_F(OsAccountInnerAccmgrCoverageTest, OsAccountInnerAccmgrCoverageTest044, 
         .WillRepeatedly(testing::Return(-1));
     int ret = innerMgrService_->SetDefaultActivatedOsAccount(TEST_USER_ID108);
     EXPECT_EQ(ret, -1);
-
-    DelayedSingleton<IInnerOsAccountManager>::DestroyInstance();
 }
 }  // namespace AccountSA
 }  // namespace OHOS

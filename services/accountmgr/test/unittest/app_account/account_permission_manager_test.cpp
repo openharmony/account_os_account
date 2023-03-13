@@ -51,8 +51,6 @@ void AccountPermissionManagerTest::TearDown(void)
 HWTEST_F(AccountPermissionManagerTest, AccountPermissionManager_VerifyPermission_0100, TestSize.Level1)
 {
     ACCOUNT_LOGI("AccountPermissionManager_VerifyPermission_0100");
-
-    auto managerPtr = DelayedSingleton<AccountPermissionManager>::GetInstance();
-    ErrCode result = managerPtr->VerifyPermission(AccountPermissionManager::DISTRIBUTED_DATASYNC);
+    ErrCode result = AccountPermissionManager::VerifyPermission(AccountPermissionManager::DISTRIBUTED_DATASYNC);
     EXPECT_EQ(result, ERR_OK);
 }

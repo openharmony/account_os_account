@@ -27,7 +27,6 @@ namespace AccountSA {
 AppAccountManagerService::AppAccountManagerService()
 {
     innerManager_ = std::make_shared<InnerAppAccountManager>();
-    permissionManagerPtr_ = DelayedSingleton<AccountPermissionManager>::GetInstance();
 #ifdef HAS_CES_PART
     CommonEventCallback callback = {
         std::bind(&AppAccountManagerService::OnPackageRemoved,
@@ -552,7 +551,7 @@ ErrCode AppAccountManagerService::GetAllAccounts(const std::string &owner, std::
         return ret;
     }
     if ((owner != bundleName) &&
-        (permissionManagerPtr_->VerifyPermission(AccountPermissionManager::GET_ALL_APP_ACCOUNTS) != ERR_OK)) {
+        (AccountPermissionManager::VerifyPermission(AccountPermissionManager::GET_ALL_APP_ACCOUNTS) != ERR_OK)) {
         ACCOUNT_LOGE("failed to verify permission for %{public}s",
             AccountPermissionManager::GET_ALL_APP_ACCOUNTS.c_str());
         ReportPermissionFail(callingUid, IPCSkeleton::GetCallingPid(),
@@ -758,7 +757,7 @@ ErrCode AppAccountManagerService::GetBundleNameAndCheckPerm(int32_t &callingUid,
         return result;
     }
 
-    result = permissionManagerPtr_->VerifyPermission(permName);
+    result = AccountPermissionManager::VerifyPermission(permName);
     if (result != ERR_OK) {
         ACCOUNT_LOGE("failed to verify permission for %{public}s, result = %{public}d",
             permName.c_str(), result);

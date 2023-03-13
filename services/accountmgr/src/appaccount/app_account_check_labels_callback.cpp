@@ -42,32 +42,26 @@ void AppAccountCheckLabelsCallback::SendResult(int32_t resultCode)
         result.SetParam(Constants::KEY_ACCOUNT_NAMES, names);
         result.SetParam(Constants::KEY_ACCOUNT_OWNERS, owners);
     }
-    auto sessionManager = AppAccountAuthenticatorSessionManager::GetInstance();
-    if (sessionManager != nullptr) {
-        sessionManager->OnSessionResult(sessionId_, resultCode, result);
-    }
+    AppAccountAuthenticatorSessionManager::GetInstance().OnSessionResult(sessionId_, resultCode, result);
 }
 
 ErrCode AppAccountCheckLabelsCallback::CheckLabels()
 {
-    auto sessionManager = AppAccountAuthenticatorSessionManager::GetInstance();
-    if (sessionManager == nullptr) {
-        return ERR_APPACCOUNT_SERVICE_OAUTH_SERVICE_EXCEPTION;
-    }
+    auto &sessionManager = AppAccountAuthenticatorSessionManager::GetInstance();
     while (index_ < accounts_.size()) {
         AppAccountInfo account = accounts_[index_];
         AuthenticatorSessionRequest newRequest = request_;
         account.GetOwner(newRequest.owner);
         account.GetName(newRequest.name);
         newRequest.callback = this;
-        if (sessionManager->CheckAccountLabels(newRequest) == ERR_OK) {
+        if (sessionManager.CheckAccountLabels(newRequest) == ERR_OK) {
             break;
         }
         index_++;
     }
     if (index_ >= accounts_.size()) {
         SendResult(ERR_JS_SUCCESS);
-        sessionManager->CloseSession(sessionId_);
+        sessionManager.CloseSession(sessionId_);
         return ERR_OK;
     }
     return ERR_OK;

@@ -344,7 +344,7 @@ int OsAccountStub::OnRemoteRequest(uint32_t code, MessageParcel &data, MessagePa
     if (messageProc != messageProcMap_.end()) {
         auto messageProcFunction = messageProc->second;
         if (messageProcFunction.isSyetemApi) {
-            ErrCode result = permissionManagerPtr_->CheckSystemApp();
+            ErrCode result = AccountPermissionManager::CheckSystemApp();
             if (result != ERR_OK) {
                 ACCOUNT_LOGE("is not system application, result = %{public}u.", result);
                 return result;

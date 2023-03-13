@@ -36,12 +36,6 @@ const std::string AccountPermissionManager::ACCESS_USER_AUTH_INTERNAL = "ohos.pe
 const std::string AccountPermissionManager::MANAGE_USER_IDM = "ohos.permission.MANAGE_USER_IDM";
 const std::string AccountPermissionManager::USE_USER_IDM = "ohos.permission.USE_USER_IDM";
 
-AccountPermissionManager::AccountPermissionManager()
-{}
-
-AccountPermissionManager::~AccountPermissionManager()
-{}
-
 ErrCode AccountPermissionManager::VerifyPermission(const std::string &permissionName)
 {
     AccessTokenID callingToken = IPCSkeleton::GetCallingTokenID();

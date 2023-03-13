@@ -24,10 +24,9 @@
 namespace OHOS {
 namespace AccountSA {
 InnerAppAccountManager::InnerAppAccountManager()
-    : controlManagerPtr_(AppAccountControlManager::GetInstance()),
-      subscribeManagerPtr_(AppAccountSubscribeManager::GetInstance()),
-      sessionManagerPtr_(AppAccountAuthenticatorSessionManager::GetInstance()),
-      authenticatorManagerPtr_(AppAccountAuthenticatorManager::GetInstance())
+    : controlManager_(AppAccountControlManager::GetInstance()),
+      subscribeManager_(AppAccountSubscribeManager::GetInstance()),
+      sessionManager_(AppAccountAuthenticatorSessionManager::GetInstance())
 {}
 
 InnerAppAccountManager::~InnerAppAccountManager()
@@ -36,220 +35,123 @@ InnerAppAccountManager::~InnerAppAccountManager()
 ErrCode InnerAppAccountManager::AddAccount(const std::string &name, const std::string &extraInfo,
     const uid_t &uid, const std::string &bundleName, const uint32_t &appIndex)
 {
-    if (!controlManagerPtr_) {
-        ACCOUNT_LOGE("controlManagerPtr_ is nullptr");
-        return ERR_APPACCOUNT_SERVICE_CONTROL_MANAGER_PTR_IS_NULLPTR;
-    }
-
     AppAccountInfo appAccountInfo(name, bundleName);
     appAccountInfo.SetAppIndex(appIndex);
-    ErrCode result = controlManagerPtr_->AddAccount(name, extraInfo, uid, bundleName, appAccountInfo);
-
-    return result;
+    return controlManager_.AddAccount(name, extraInfo, uid, bundleName, appAccountInfo);
 }
 
 ErrCode InnerAppAccountManager::AddAccountImplicitly(const AuthenticatorSessionRequest &request)
 {
-    if (!sessionManagerPtr_) {
-        ACCOUNT_LOGE("sessionManagerPtr_ is nullptr");
-        return ERR_APPACCOUNT_SERVICE_SESSION_MANAGER_PTR_IS_NULLPTR;
-    }
-    return sessionManagerPtr_->AddAccountImplicitly(request);
+    return sessionManager_.AddAccountImplicitly(request);
 }
 
 ErrCode InnerAppAccountManager::CreateAccount(const std::string &name, const CreateAccountOptions &options,
     const uid_t &uid, const std::string &bundleName, const uint32_t &appIndex)
 {
-    if (!controlManagerPtr_) {
-        ACCOUNT_LOGE("controlManagerPtr_ is nullptr");
-        return ERR_APPACCOUNT_SERVICE_CONTROL_MANAGER_PTR_IS_NULLPTR;
-    }
-
     AppAccountInfo appAccountInfo(name, bundleName);
     appAccountInfo.SetAppIndex(appIndex);
-    ErrCode result = controlManagerPtr_->CreateAccount(name, options, uid, bundleName, appAccountInfo);
-
-    return result;
+    return controlManager_.CreateAccount(name, options, uid, bundleName, appAccountInfo);
 }
 
 ErrCode InnerAppAccountManager::CreateAccountImplicitly(const AuthenticatorSessionRequest &request)
 {
-    if (!sessionManagerPtr_) {
-        ACCOUNT_LOGE("sessionManagerPtr_ is nullptr");
-        return ERR_APPACCOUNT_SERVICE_SESSION_MANAGER_PTR_IS_NULLPTR;
-    }
-    return sessionManagerPtr_->CreateAccountImplicitly(request);
+    return sessionManager_.CreateAccountImplicitly(request);
 }
 
 ErrCode InnerAppAccountManager::DeleteAccount(
     const std::string &name, const uid_t &uid, const std::string &bundleName, const uint32_t &appIndex)
 {
-    if (!controlManagerPtr_) {
-        ACCOUNT_LOGE("controlManagerPtr_ is nullptr");
-        return ERR_APPACCOUNT_SERVICE_CONTROL_MANAGER_PTR_IS_NULLPTR;
-    }
-
     AppAccountInfo appAccountInfo(name, bundleName);
     appAccountInfo.SetAppIndex(appIndex);
-    ErrCode result = controlManagerPtr_->DeleteAccount(name, uid, bundleName, appAccountInfo);
-
-    if (!subscribeManagerPtr_) {
-        ACCOUNT_LOGE("subscribeManagerPtr_ is nullptr");
-    } else if (subscribeManagerPtr_->PublishAccount(appAccountInfo, uid, bundleName) != true) {
+    ErrCode result = controlManager_.DeleteAccount(name, uid, bundleName, appAccountInfo);
+    if ((result == ERR_OK) && (!subscribeManager_.PublishAccount(appAccountInfo, uid, bundleName))) {
         ACCOUNT_LOGE("failed to publish account");
     }
-
     return result;
 }
 
 ErrCode InnerAppAccountManager::GetAccountExtraInfo(const std::string &name, std::string &extraInfo,
     const uid_t &uid, const std::string &bundleName, const uint32_t &appIndex)
 {
-    if (!controlManagerPtr_) {
-        ACCOUNT_LOGE("controlManagerPtr_ is nullptr");
-        return ERR_APPACCOUNT_SERVICE_CONTROL_MANAGER_PTR_IS_NULLPTR;
-    }
-
-    ErrCode result = controlManagerPtr_->GetAccountExtraInfo(name, extraInfo, uid, bundleName, appIndex);
-
-    return result;
+    return controlManager_.GetAccountExtraInfo(name, extraInfo, uid, bundleName, appIndex);
 }
 
 ErrCode InnerAppAccountManager::SetAccountExtraInfo(const std::string &name, const std::string &extraInfo,
     const uid_t &uid, const std::string &bundleName, const uint32_t &appIndex)
 {
-    if (!controlManagerPtr_) {
-        ACCOUNT_LOGE("controlManagerPtr_ is nullptr");
-        return ERR_APPACCOUNT_SERVICE_CONTROL_MANAGER_PTR_IS_NULLPTR;
-    }
-
     AppAccountInfo appAccountInfo(name, bundleName);
     appAccountInfo.SetAppIndex(appIndex);
-    ErrCode result = controlManagerPtr_->SetAccountExtraInfo(name, extraInfo, uid, bundleName, appAccountInfo);
-
-    if (!subscribeManagerPtr_) {
-        ACCOUNT_LOGE("subscribeManagerPtr_ is nullptr");
-    } else if (subscribeManagerPtr_->PublishAccount(appAccountInfo, uid, bundleName) != true) {
+    ErrCode result = controlManager_.SetAccountExtraInfo(name, extraInfo, uid, bundleName, appAccountInfo);
+    if ((result == ERR_OK) && (!subscribeManager_.PublishAccount(appAccountInfo, uid, bundleName))) {
         ACCOUNT_LOGE("failed to publish account");
     }
-
     return result;
 }
 
 ErrCode InnerAppAccountManager::EnableAppAccess(const std::string &name, const std::string &authorizedApp,
     AppAccountCallingInfo &appAccountCallingInfo, const uint32_t apiVersion)
 {
-    if (!controlManagerPtr_) {
-        ACCOUNT_LOGE("controlManagerPtr_ is nullptr");
-        return ERR_APPACCOUNT_SERVICE_CONTROL_MANAGER_PTR_IS_NULLPTR;
-    }
-
     AppAccountInfo appAccountInfo(name, appAccountCallingInfo.bundleName);
     appAccountInfo.SetAppIndex(appAccountCallingInfo.appIndex);
-    ErrCode result = controlManagerPtr_->EnableAppAccess(
+    ErrCode result = controlManager_.EnableAppAccess(
         name, authorizedApp, appAccountCallingInfo, appAccountInfo, apiVersion);
-
-    if (!subscribeManagerPtr_) {
-        ACCOUNT_LOGE("subscribeManagerPtr_ is nullptr");
-    } else if (subscribeManagerPtr_->PublishAccount(
-        appAccountInfo, appAccountCallingInfo.callingUid, appAccountCallingInfo.bundleName) != true) {
+    if ((result == ERR_OK) && (!subscribeManager_.PublishAccount(
+        appAccountInfo, appAccountCallingInfo.callingUid, appAccountCallingInfo.bundleName))) {
         ACCOUNT_LOGE("failed to publish account");
     }
-
     return result;
 }
 
 ErrCode InnerAppAccountManager::DisableAppAccess(const std::string &name, const std::string &authorizedApp,
     AppAccountCallingInfo &appAccountCallingInfo, const uint32_t apiVersion)
 {
-    if (!controlManagerPtr_) {
-        ACCOUNT_LOGE("controlManagerPtr_ is nullptr");
-        return ERR_APPACCOUNT_SERVICE_CONTROL_MANAGER_PTR_IS_NULLPTR;
-    }
-
     AppAccountInfo appAccountInfo(name, appAccountCallingInfo.bundleName);
     appAccountInfo.SetAppIndex(appAccountCallingInfo.appIndex);
-    ErrCode result = controlManagerPtr_->DisableAppAccess(
+    ErrCode result = controlManager_.DisableAppAccess(
         name, authorizedApp, appAccountCallingInfo, appAccountInfo, apiVersion);
-
-    if (!subscribeManagerPtr_) {
-        ACCOUNT_LOGE("subscribeManagerPtr_ is nullptr");
-    } else if (!subscribeManagerPtr_->PublishAccount(
-        appAccountInfo, appAccountCallingInfo.callingUid, appAccountCallingInfo.bundleName)) {
+    if ((result == ERR_OK) && (!subscribeManager_.PublishAccount(
+        appAccountInfo, appAccountCallingInfo.callingUid, appAccountCallingInfo.bundleName))) {
         ACCOUNT_LOGE("failed to publish account");
     }
-
     return result;
 }
 
 ErrCode InnerAppAccountManager::CheckAppAccess(const std::string &name, const std::string &authorizedApp,
     bool &isAccessible, const AppAccountCallingInfo &appAccountCallingInfo)
 {
-    if (!controlManagerPtr_) {
-        ACCOUNT_LOGE("controlManagerPtr_ is nullptr");
-        return ERR_APPACCOUNT_SERVICE_CONTROL_MANAGER_PTR_IS_NULLPTR;
-    }
-    return controlManagerPtr_->CheckAppAccess(name, authorizedApp, isAccessible, appAccountCallingInfo);
+    return controlManager_.CheckAppAccess(name, authorizedApp, isAccessible, appAccountCallingInfo);
 }
 
 ErrCode InnerAppAccountManager::CheckAppAccountSyncEnable(const std::string &name, bool &syncEnable,
     const uid_t &uid, const std::string &bundleName, const uint32_t &appIndex)
 {
-    if (!controlManagerPtr_) {
-        ACCOUNT_LOGE("controlManagerPtr_ is nullptr");
-        return ERR_APPACCOUNT_SERVICE_CONTROL_MANAGER_PTR_IS_NULLPTR;
-    }
-
-    ErrCode result = controlManagerPtr_->CheckAppAccountSyncEnable(name, syncEnable, uid, bundleName, appIndex);
-
-    return result;
+    return controlManager_.CheckAppAccountSyncEnable(name, syncEnable, uid, bundleName, appIndex);
 }
 
 ErrCode InnerAppAccountManager::SetAppAccountSyncEnable(const std::string &name, const bool &syncEnable,
     const uid_t &uid, const std::string &bundleName, const uint32_t &appIndex)
 {
-    if (!controlManagerPtr_) {
-        ACCOUNT_LOGE("controlManagerPtr_ is nullptr");
-        return ERR_APPACCOUNT_SERVICE_CONTROL_MANAGER_PTR_IS_NULLPTR;
-    }
-
     AppAccountInfo appAccountInfo(name, bundleName);
     appAccountInfo.SetAppIndex(appIndex);
-    ErrCode result = controlManagerPtr_->SetAppAccountSyncEnable(name, syncEnable, uid, bundleName, appAccountInfo);
-
-    return result;
+    return controlManager_.SetAppAccountSyncEnable(name, syncEnable, uid, bundleName, appAccountInfo);
 }
 
 ErrCode InnerAppAccountManager::GetAssociatedData(const std::string &name, const std::string &key,
     std::string &value, const uid_t &uid)
 {
-    if (!controlManagerPtr_) {
-        ACCOUNT_LOGE("controlManagerPtr_ is nullptr");
-        return ERR_APPACCOUNT_SERVICE_CONTROL_MANAGER_PTR_IS_NULLPTR;
-    }
-
-    ErrCode result = controlManagerPtr_->GetAssociatedData(name, key, value, uid);
-
-    return result;
+    return controlManager_.GetAssociatedData(name, key, value, uid);
 }
 
 ErrCode InnerAppAccountManager::SetAssociatedData(const std::string &name, const std::string &key,
     const std::string &value, const AppAccountCallingInfo &appAccountCallingInfo)
 {
-    if (!controlManagerPtr_) {
-        ACCOUNT_LOGE("controlManagerPtr_ is nullptr");
-        return ERR_APPACCOUNT_SERVICE_CONTROL_MANAGER_PTR_IS_NULLPTR;
-    }
-
-    ErrCode result = controlManagerPtr_->SetAssociatedData(name, key, value, appAccountCallingInfo);
-
-    if (!subscribeManagerPtr_) {
-        ACCOUNT_LOGE("subscribeManagerPtr_ is nullptr");
+    ErrCode result = controlManager_.SetAssociatedData(name, key, value, appAccountCallingInfo);
+    if (result != ERR_OK) {
         return result;
     }
     AppAccountInfo appAccountInfo(name, appAccountCallingInfo.bundleName);
     appAccountInfo.SetAppIndex(appAccountCallingInfo.appIndex);
-    if (!subscribeManagerPtr_->PublishAccount(appAccountInfo,
+    if (!subscribeManager_.PublishAccount(appAccountInfo,
         appAccountCallingInfo.callingUid, appAccountCallingInfo.bundleName)) {
         ACCOUNT_LOGE("failed to publish account");
     }
@@ -259,35 +161,20 @@ ErrCode InnerAppAccountManager::SetAssociatedData(const std::string &name, const
 ErrCode InnerAppAccountManager::GetAccountCredential(const std::string &name, const std::string &credentialType,
     std::string &credential, const AppAccountCallingInfo &appAccountCallingInfo)
 {
-    if (!controlManagerPtr_) {
-        ACCOUNT_LOGE("controlManagerPtr_ is nullptr");
-        return ERR_APPACCOUNT_SERVICE_CONTROL_MANAGER_PTR_IS_NULLPTR;
-    }
-
-    ErrCode result = controlManagerPtr_->GetAccountCredential(name, credentialType, credential, appAccountCallingInfo);
-
-    return result;
+    return controlManager_.GetAccountCredential(name, credentialType, credential, appAccountCallingInfo);
 }
 
 ErrCode InnerAppAccountManager::SetAccountCredential(const std::string &name, const std::string &credentialType,
     const std::string &credential, const AppAccountCallingInfo &appAccountCallingInfo)
 {
-    if (!controlManagerPtr_) {
-        ACCOUNT_LOGE("controlManagerPtr_ is nullptr");
-        return ERR_APPACCOUNT_SERVICE_CONTROL_MANAGER_PTR_IS_NULLPTR;
-    }
-
-    ErrCode result =
-        controlManagerPtr_->SetAccountCredential(name, credentialType, credential, appAccountCallingInfo);
-
-    if (!subscribeManagerPtr_) {
-        ACCOUNT_LOGE("subscribeManagerPtr_ is nullptr");
+    ErrCode result = controlManager_.SetAccountCredential(name, credentialType, credential, appAccountCallingInfo);
+    if (result != ERR_OK) {
         return result;
     }
     AppAccountInfo appAccountInfo(name, appAccountCallingInfo.bundleName);
     appAccountInfo.SetAppIndex(appAccountCallingInfo.appIndex);
-    if (subscribeManagerPtr_->PublishAccount(appAccountInfo,
-        appAccountCallingInfo.callingUid, appAccountCallingInfo.bundleName) != true) {
+    if (!subscribeManager_.PublishAccount(appAccountInfo,
+        appAccountCallingInfo.callingUid, appAccountCallingInfo.bundleName)) {
         ACCOUNT_LOGE("failed to publish account");
     }
     return result;
@@ -296,22 +183,17 @@ ErrCode InnerAppAccountManager::SetAccountCredential(const std::string &name, co
 ErrCode InnerAppAccountManager::DeleteAccountCredential(const std::string &name, const std::string &credentialType,
     const uid_t &uid, const std::string &bundleName, const uint32_t &appIndex)
 {
-    if (!controlManagerPtr_) {
-        ACCOUNT_LOGE("controlManagerPtr_ is nullptr");
-        return ERR_APPACCOUNT_SERVICE_CONTROL_MANAGER_PTR_IS_NULLPTR;
-    }
     AppAccountCallingInfo appAccountCallingInfo;
     appAccountCallingInfo.callingUid = uid;
     appAccountCallingInfo.bundleName = bundleName;
     appAccountCallingInfo.appIndex = appIndex;
-    ErrCode result = controlManagerPtr_->SetAccountCredential(name, credentialType, "", appAccountCallingInfo, true);
-    if (!subscribeManagerPtr_) {
-        ACCOUNT_LOGE("subscribeManagerPtr_ is nullptr");
+    ErrCode result = controlManager_.SetAccountCredential(name, credentialType, "", appAccountCallingInfo, true);
+    if (result != ERR_OK) {
         return result;
     }
     AppAccountInfo appAccountInfo(name, bundleName);
     appAccountInfo.SetAppIndex(appIndex);
-    if (subscribeManagerPtr_->PublishAccount(appAccountInfo, uid, bundleName) != true) {
+    if (!subscribeManager_.PublishAccount(appAccountInfo, uid, bundleName)) {
         ACCOUNT_LOGE("failed to publish account");
     }
     return result;
@@ -319,17 +201,13 @@ ErrCode InnerAppAccountManager::DeleteAccountCredential(const std::string &name,
 
 ErrCode InnerAppAccountManager::Authenticate(const AuthenticatorSessionRequest &request)
 {
-    if (!controlManagerPtr_) {
-        ACCOUNT_LOGE("controlManagerPtr_ is nullptr");
-        return ERR_APPACCOUNT_SERVICE_CONTROL_MANAGER_PTR_IS_NULLPTR;
-    }
     std::string token;
     ErrCode ret = ERR_OK;
     bool isApi9 = request.options.GetBoolParam(Constants::API_V9, false);
     if (isApi9) {
-        ret = controlManagerPtr_->GetOAuthToken(request, token, Constants::API_VERSION9);
+        ret = controlManager_.GetOAuthToken(request, token, Constants::API_VERSION9);
     } else {
-        ret = controlManagerPtr_->GetOAuthToken(request, token);
+        ret = controlManager_.GetOAuthToken(request, token);
     }
     if (ret == ERR_OK) {
         if ((request.callback != nullptr) && (request.callback->AsObject() != nullptr)) {
@@ -341,43 +219,27 @@ ErrCode InnerAppAccountManager::Authenticate(const AuthenticatorSessionRequest &
         }
         return ERR_OK;
     }
-    if (!sessionManagerPtr_) {
-        ACCOUNT_LOGE("sessionManagerPtr_ is nullptr");
-        return ERR_APPACCOUNT_SERVICE_SESSION_MANAGER_PTR_IS_NULLPTR;
-    }
     if (isApi9) {
-        return sessionManagerPtr_->Auth(request);
+        return sessionManager_.Auth(request);
     }
-    return sessionManagerPtr_->Authenticate(request);
+    return sessionManager_.Authenticate(request);
 }
 
 ErrCode InnerAppAccountManager::GetOAuthToken(
     const AuthenticatorSessionRequest &request, std::string &token, const uint32_t apiVersion)
 {
-    if (!controlManagerPtr_) {
-        ACCOUNT_LOGE("controlManagerPtr_ is nullptr");
-        return ERR_APPACCOUNT_SERVICE_CONTROL_MANAGER_PTR_IS_NULLPTR;
-    }
-    return controlManagerPtr_->GetOAuthToken(request, token, apiVersion);
+    return controlManager_.GetOAuthToken(request, token, apiVersion);
 }
 
 ErrCode InnerAppAccountManager::SetOAuthToken(const AuthenticatorSessionRequest &request)
 {
-    if (!controlManagerPtr_) {
-        ACCOUNT_LOGE("controlManagerPtr_ is nullptr");
-        return ERR_APPACCOUNT_SERVICE_CONTROL_MANAGER_PTR_IS_NULLPTR;
-    }
-    ErrCode result = controlManagerPtr_->SetOAuthToken(request);
+    ErrCode result = controlManager_.SetOAuthToken(request);
     if (result != ERR_OK) {
         return result;
     }
     AppAccountInfo appAccountInfo(request.name, request.callerBundleName);
     appAccountInfo.SetAppIndex(request.appIndex);
-    if (!subscribeManagerPtr_) {
-        ACCOUNT_LOGI("subscribeManagerPtr_ is nullptr");
-        return ERR_OK;
-    }
-    if (!subscribeManagerPtr_->PublishAccount(appAccountInfo, request.callerUid, request.callerBundleName)) {
+    if (!subscribeManager_.PublishAccount(appAccountInfo, request.callerUid, request.callerBundleName)) {
         ACCOUNT_LOGE("failed to publish account");
     }
     return ERR_OK;
@@ -385,189 +247,103 @@ ErrCode InnerAppAccountManager::SetOAuthToken(const AuthenticatorSessionRequest 
 
 ErrCode InnerAppAccountManager::DeleteOAuthToken(const AuthenticatorSessionRequest &request, const uint32_t apiVersion)
 {
-    if (!controlManagerPtr_) {
-        ACCOUNT_LOGE("controlManagerPtr_ is nullptr");
-        return ERR_APPACCOUNT_SERVICE_CONTROL_MANAGER_PTR_IS_NULLPTR;
-    }
-    return controlManagerPtr_->DeleteOAuthToken(request, apiVersion);
+    return controlManager_.DeleteOAuthToken(request, apiVersion);
 }
 
 ErrCode InnerAppAccountManager::SetOAuthTokenVisibility(
     const AuthenticatorSessionRequest &request, const uint32_t apiVersion)
 {
-    if (!controlManagerPtr_) {
-        ACCOUNT_LOGE("controlManagerPtr_ is nullptr");
-        return ERR_APPACCOUNT_SERVICE_CONTROL_MANAGER_PTR_IS_NULLPTR;
-    }
-    return controlManagerPtr_->SetOAuthTokenVisibility(request, apiVersion);
+    return controlManager_.SetOAuthTokenVisibility(request, apiVersion);
 }
 
 ErrCode InnerAppAccountManager::CheckOAuthTokenVisibility(
     const AuthenticatorSessionRequest &request, bool &isVisible, const uint32_t apiVersion)
 {
-    if (!controlManagerPtr_) {
-        ACCOUNT_LOGE("controlManagerPtr_ is nullptr");
-        return ERR_APPACCOUNT_SERVICE_CONTROL_MANAGER_PTR_IS_NULLPTR;
-    }
-    return controlManagerPtr_->CheckOAuthTokenVisibility(request, isVisible, apiVersion);
+    return controlManager_.CheckOAuthTokenVisibility(request, isVisible, apiVersion);
 }
 
 ErrCode InnerAppAccountManager::GetAuthenticatorInfo(
     const AuthenticatorSessionRequest &request, AuthenticatorInfo &info)
 {
-    if (!authenticatorManagerPtr_) {
-        ACCOUNT_LOGE("authenticatorManagerPtr_ is nullptr");
-        return ERR_APPACCOUNT_SERVICE_AUTHENTICATOR_MANAGER_PTR_IS_NULLPTR;
-    }
-    int32_t userId = request.callerUid / UID_TRANSFORM_DIVISOR;
-    return authenticatorManagerPtr_->GetAuthenticatorInfo(request.owner, userId, info);
+    return AppAccountAuthenticatorManager::GetAuthenticatorInfo(
+        request.owner, request.callerUid / UID_TRANSFORM_DIVISOR, info);
 }
 
 ErrCode InnerAppAccountManager::GetAllOAuthTokens(
     const AuthenticatorSessionRequest &request, std::vector<OAuthTokenInfo> &tokenInfos)
 {
-    if (!controlManagerPtr_) {
-        ACCOUNT_LOGE("controlManagerPtr_ is nullptr");
-        return ERR_APPACCOUNT_SERVICE_CONTROL_MANAGER_PTR_IS_NULLPTR;
-    }
-    return controlManagerPtr_->GetAllOAuthTokens(request, tokenInfos);
+    return controlManager_.GetAllOAuthTokens(request, tokenInfos);
 }
 
 ErrCode InnerAppAccountManager::GetOAuthList(
     const AuthenticatorSessionRequest &request, std::set<std::string> &oauthList, const uint32_t apiVersion)
 {
-    if (!controlManagerPtr_) {
-        ACCOUNT_LOGE("controlManagerPtr_ is nullptr");
-        return ERR_APPACCOUNT_SERVICE_CONTROL_MANAGER_PTR_IS_NULLPTR;
-    }
-    return controlManagerPtr_->GetOAuthList(request, oauthList, apiVersion);
+    return controlManager_.GetOAuthList(request, oauthList, apiVersion);
 }
 
 ErrCode InnerAppAccountManager::GetAuthenticatorCallback(
     const AuthenticatorSessionRequest &request, sptr<IRemoteObject> &callback)
 {
     callback = nullptr;
-    if (!sessionManagerPtr_) {
-        ACCOUNT_LOGE("controlManagerPtr_ is nullptr");
-        return ERR_APPACCOUNT_SERVICE_CONTROL_MANAGER_PTR_IS_NULLPTR;
-    }
-    ErrCode result = sessionManagerPtr_->GetAuthenticatorCallback(request, callback);
-
-    return result;
+    return sessionManager_.GetAuthenticatorCallback(request, callback);
 }
 
 ErrCode InnerAppAccountManager::GetAllAccounts(const std::string &owner, std::vector<AppAccountInfo> &appAccounts,
     const uid_t &uid, const std::string &bundleName, const uint32_t &appIndex)
 {
-    if (!controlManagerPtr_) {
-        ACCOUNT_LOGE("controlManagerPtr_ is nullptr");
-        return ERR_APPACCOUNT_SERVICE_CONTROL_MANAGER_PTR_IS_NULLPTR;
-    }
-
-    ErrCode result = controlManagerPtr_->GetAllAccounts(owner, appAccounts, uid, bundleName, appIndex);
-
-    return result;
+    return controlManager_.GetAllAccounts(owner, appAccounts, uid, bundleName, appIndex);
 }
 
 ErrCode InnerAppAccountManager::GetAllAccessibleAccounts(std::vector<AppAccountInfo> &appAccounts,
     const uid_t &uid, const std::string &bundleName, const uint32_t &appIndex)
 {
-    if (!controlManagerPtr_) {
-        ACCOUNT_LOGE("controlManagerPtr_ is nullptr");
-        return ERR_APPACCOUNT_SERVICE_CONTROL_MANAGER_PTR_IS_NULLPTR;
-    }
-
-    ErrCode result = controlManagerPtr_->GetAllAccessibleAccounts(appAccounts, uid, bundleName, appIndex);
-
-    return result;
+    return controlManager_.GetAllAccessibleAccounts(appAccounts, uid, bundleName, appIndex);
 }
 
 ErrCode InnerAppAccountManager::SelectAccountsByOptions(
     const SelectAccountsOptions &options, const sptr<IAppAccountAuthenticatorCallback> &callback,
     const uid_t &uid, const std::string &bundleName, const uint32_t &appIndex)
 {
-    if (!controlManagerPtr_) {
-        ACCOUNT_LOGE("controlManagerPtr_ is nullptr");
-        return ERR_APPACCOUNT_SERVICE_CONTROL_MANAGER_PTR_IS_NULLPTR;
-    }
     AuthenticatorSessionRequest request;
-    ErrCode result = controlManagerPtr_->SelectAccountsByOptions(options, callback, uid, bundleName, appIndex);
-    return result;
+    return controlManager_.SelectAccountsByOptions(options, callback, uid, bundleName, appIndex);
 }
 
 ErrCode InnerAppAccountManager::VerifyCredential(const AuthenticatorSessionRequest &request)
 {
-    if (!sessionManagerPtr_) {
-        ACCOUNT_LOGE("sessionManagerPtr_ is nullptr");
-        return ERR_APPACCOUNT_SERVICE_SESSION_MANAGER_PTR_IS_NULLPTR;
-    }
-    return sessionManagerPtr_->VerifyCredential(request);
+    return sessionManager_.VerifyCredential(request);
 }
 
 ErrCode InnerAppAccountManager::CheckAccountLabels(const AuthenticatorSessionRequest &request)
 {
-    if (!sessionManagerPtr_) {
-        ACCOUNT_LOGE("sessionManagerPtr_ is nullptr");
-        return ERR_APPACCOUNT_SERVICE_SESSION_MANAGER_PTR_IS_NULLPTR;
-    }
-    return sessionManagerPtr_->CheckAccountLabels(request);
+    return sessionManager_.CheckAccountLabels(request);
 }
 
 ErrCode InnerAppAccountManager::SetAuthenticatorProperties(const AuthenticatorSessionRequest &request)
 {
-    if (!sessionManagerPtr_) {
-        ACCOUNT_LOGE("sessionManagerPtr_ is nullptr");
-        return ERR_APPACCOUNT_SERVICE_CONTROL_MANAGER_PTR_IS_NULLPTR;
-    }
-    return sessionManagerPtr_->SetAuthenticatorProperties(request);
+    return sessionManager_.SetAuthenticatorProperties(request);
 }
 
 ErrCode InnerAppAccountManager::SubscribeAppAccount(const AppAccountSubscribeInfo &subscribeInfo,
     const sptr<IRemoteObject> &eventListener, const uid_t &uid, const std::string &bundleName, const uint32_t &appIndex)
 {
-    if (!subscribeManagerPtr_) {
-        ACCOUNT_LOGE("subscribeManagerPtr_ is nullptr");
-        return ERR_APPACCOUNT_SERVICE_SUBSCRIBE_MANAGER_PTR_IS_NULLPTR;
-    }
-
     auto subscribeInfoPtr = std::make_shared<AppAccountSubscribeInfo>(subscribeInfo);
-    ErrCode result = subscribeManagerPtr_->
-        SubscribeAppAccount(subscribeInfoPtr, eventListener, uid, bundleName, appIndex);
-
-    return result;
+    return subscribeManager_.SubscribeAppAccount(subscribeInfoPtr, eventListener, uid, bundleName, appIndex);
 }
 
 ErrCode InnerAppAccountManager::UnsubscribeAppAccount(const sptr<IRemoteObject> &eventListener)
 {
-    if (!subscribeManagerPtr_) {
-        ACCOUNT_LOGE("subscribeManagerPtr_ is nullptr");
-        return ERR_APPACCOUNT_SERVICE_SUBSCRIBE_MANAGER_PTR_IS_NULLPTR;
-    }
-
-    ErrCode result = subscribeManagerPtr_->UnsubscribeAppAccount(eventListener);
-
-    return result;
+    return subscribeManager_.UnsubscribeAppAccount(eventListener);
 }
 
 ErrCode InnerAppAccountManager::OnPackageRemoved(
     const uid_t &uid, const std::string &bundleName, const uint32_t &appIndex)
 {
-    if (!controlManagerPtr_) {
-        ACCOUNT_LOGE("controlManagerPtr_ is nullptr");
-        return ERR_APPACCOUNT_SERVICE_CONTROL_MANAGER_PTR_IS_NULLPTR;
-    }
-
-    ErrCode result = controlManagerPtr_->OnPackageRemoved(uid, bundleName, appIndex);
-    return result;
+    return controlManager_.OnPackageRemoved(uid, bundleName, appIndex);
 }
 
 ErrCode InnerAppAccountManager::OnUserRemoved(int32_t userId)
 {
-    if (!controlManagerPtr_) {
-        ACCOUNT_LOGE("controlManagerPtr_ is nullptr");
-        return ERR_APPACCOUNT_SERVICE_CONTROL_MANAGER_PTR_IS_NULLPTR;
-    }
-    return controlManagerPtr_->OnUserRemoved(userId);
+    return controlManager_.OnUserRemoved(userId);
 }
 }  // namespace AccountSA
 }  // namespace OHOS

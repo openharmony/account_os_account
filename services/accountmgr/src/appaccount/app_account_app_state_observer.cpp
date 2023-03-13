@@ -23,10 +23,7 @@ AppAccountAppStateObserver::AppAccountAppStateObserver()
 
 void AppAccountAppStateObserver::OnAbilityStateChanged(const AppExecFwk::AbilityStateData &abilityStateData)
 {
-    auto controlManager = AppAccountControlManager::GetInstance();
-    if (controlManager != nullptr) {
-        controlManager->OnAbilityStateChanged(abilityStateData);
-    }
+    AppAccountControlManager::GetInstance().OnAbilityStateChanged(abilityStateData);
 }
 }  // namespace AccountSA
 }  // OHOS
