@@ -217,14 +217,20 @@ void InnerDomainAccountManager::RemoveTokenFromMap(int32_t userId)
 }
 
 ErrCode InnerDomainAccountManager::GetAuthStatusInfo(
-    const DomainAccountInfo &info, const sptr<IDomainAccountCallback> &callback)
+    const DomainAccountInfo &info, const std::shared_ptr<DomainAccountCallback> &callback)
 {
+    sptr<IDomainAccountCallback> callbackService =
+        new (std::nothrow) DomainAccountCallbackService(callback);
+    if (callbackService == nullptr) {
+        ACCOUNT_LOGE("failed to create DomainAccountCallbackService");
+        return ERR_ACCOUNT_COMMON_NULL_PTR_ERROR;
+    }
     std::lock_guard<std::mutex> lock(mutex_);
     if (plugin_ == nullptr) {
         ACCOUNT_LOGE("plugin not exists");
         return ERR_DOMAIN_ACCOUNT_SERVICE_PLUGIN_NOT_EXIST;
     }
-    return plugin_->GetAuthStatusInfo(info, callback);
+    return plugin_->GetAuthStatusInfo(info, callbackService);
 }
 
 sptr<IRemoteObject::DeathRecipient> InnerDomainAccountManager::GetDeathRecipient()
