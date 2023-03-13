@@ -186,7 +186,7 @@ void AccountMgrService::OnStart()
     }
     state_ = ServiceRunningState::STATE_RUNNING;
     bool isAccountCompleted = false;
-    std::int32_t defaultActivatedId;
+    std::int32_t defaultActivatedId = Constants::START_USER_ID;
     osAccountManagerService_->GetDefaultActivatedOsAccount(defaultActivatedId);
     osAccountManagerService_->IsOsAccountCompleted(defaultActivatedId, isAccountCompleted);
     if (!isAccountCompleted) {
@@ -209,6 +209,7 @@ void AccountMgrService::OnStop()
 void AccountMgrService::OnAddSystemAbility(int32_t systemAbilityId, const std::string &deviceId)
 {
     ACCOUNT_LOGI("OnAddSystemAbility systemAbilityId %{public}d", systemAbilityId);
+    std::lock_guard<std::mutex> lock(statusMutex_);
     switch (systemAbilityId) {
         case STORAGE_MANAGER_MANAGER_ID: {
             isStorageReady_ = true;
@@ -231,7 +232,7 @@ void AccountMgrService::OnAddSystemAbility(int32_t systemAbilityId, const std::s
     }
 
     bool isAccountCompleted = false;
-    std::int32_t defaultActivatedId;
+    std::int32_t defaultActivatedId = Constants::START_USER_ID;
     osAccountManagerService_->GetDefaultActivatedOsAccount(defaultActivatedId);
     osAccountManagerService_->IsOsAccountCompleted(defaultActivatedId, isAccountCompleted);
     if (!isAccountCompleted && !isBmsReady_) {
