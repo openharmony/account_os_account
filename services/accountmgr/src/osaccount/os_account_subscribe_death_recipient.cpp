@@ -34,7 +34,7 @@ void OsAccountSubscribeDeathRecipient::OnRemoteDied(const wptr<IRemoteObject> &r
         return;
     }
 
-    DelayedSingleton<OsAccountSubscribeManager>::GetInstance()->UnsubscribeOsAccount(object);
+    OsAccountSubscribeManager::GetInstance().UnsubscribeOsAccount(object);
 
     ACCOUNT_LOGI("end");
 }

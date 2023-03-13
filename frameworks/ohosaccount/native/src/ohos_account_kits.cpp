@@ -22,7 +22,7 @@ namespace OHOS {
 namespace AccountSA {
 OhosAccountKits& OhosAccountKits::GetInstance()
 {
-    return DelayedRefSingleton<OhosAccountKitsImpl>::GetInstance();
+    return OhosAccountKitsImpl::GetInstance();
 }
 } // namespace AccountSA
 } // namespace OHOS

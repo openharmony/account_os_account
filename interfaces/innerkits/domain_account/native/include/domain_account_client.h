@@ -22,12 +22,12 @@
 #include "domain_account_plugin.h"
 #include "domain_auth_callback_service.h"
 #include "idomain_account.h"
-#include "singleton.h"
 
 namespace OHOS {
 namespace AccountSA {
-class DomainAccountClient : public DelayedRefSingleton<DomainAccountClient> {
+class DomainAccountClient {
 public:
+    static DomainAccountClient &GetInstance();
     ErrCode RegisterPlugin(const std::shared_ptr<DomainAccountPlugin> &plugin);
     ErrCode UnregisterPlugin();
     ErrCode Auth(const DomainAccountInfo &info, const std::vector<uint8_t> &password,
@@ -38,6 +38,8 @@ public:
     ErrCode HasDomainAccount(const DomainAccountInfo &info, const std::shared_ptr<DomainAccountCallback> &callback);
 
 private:
+    DomainAccountClient() = default;
+    ~DomainAccountClient() = default;
     class DomainAccountDeathRecipient : public IRemoteObject::DeathRecipient {
     public:
         DomainAccountDeathRecipient() = default;

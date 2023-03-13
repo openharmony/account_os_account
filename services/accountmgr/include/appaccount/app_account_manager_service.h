@@ -116,7 +116,6 @@ private:
 
 private:
     std::shared_ptr<InnerAppAccountManager> innerManager_ = nullptr;
-    std::shared_ptr<AccountPermissionManager> permissionManagerPtr_ = nullptr;
 #ifdef HAS_CES_PART
     std::shared_ptr<AppAccountCommonEventObserver> observer_ = nullptr;
 #endif // HAS_CES_PART

@@ -68,7 +68,6 @@ void AppAccountManagerServiceThreadModuleTest::SetUpTestCase(void)
 void AppAccountManagerServiceThreadModuleTest::TearDownTestCase(void)
 {
     GTEST_LOG_(INFO) << "TearDownTestCase enter";
-    DelayedSingleton<AppAccountControlManager>::DestroyInstance();
     std::this_thread::sleep_for(std::chrono::milliseconds(WAIT_FOR_EXIT));
 }
 

@@ -18,12 +18,6 @@
 
 namespace OHOS {
 namespace AccountSA {
-AppAccountAuthenticatorManager::AppAccountAuthenticatorManager()
-{}
-
-AppAccountAuthenticatorManager::~AppAccountAuthenticatorManager()
-{}
-
 ErrCode AppAccountAuthenticatorManager::GetAuthenticatorInfo(
     const std::string &owner, int32_t userId, AuthenticatorInfo &info)
 {

@@ -23,7 +23,6 @@
 #include "app_account_data_storage.h"
 #include "iapp_account_authenticator_callback.h"
 #include "iremote_object.h"
-#include "singleton.h"
 #include "want_params.h"
 
 namespace OHOS {
@@ -34,11 +33,9 @@ struct AssociatedDataCacheItem {
     int32_t freq;
 };
 
-class AppAccountControlManager : public DelayedSingleton<AppAccountControlManager> {
+class AppAccountControlManager {
 public:
-    AppAccountControlManager();
-    virtual ~AppAccountControlManager() = default;
-
+    static AppAccountControlManager &GetInstance();
     ErrCode AddAccount(const std::string &name, const std::string &extraInfo, const uid_t &uid,
         const std::string &bundleName, AppAccountInfo &appAccountInfo);
     ErrCode CreateAccount(const std::string &name, const CreateAccountOptions &options, const uid_t &uid,
@@ -109,6 +106,8 @@ public:
     void OnAbilityStateChanged(const AppExecFwk::AbilityStateData &abilityStateData);
 
 private:
+    AppAccountControlManager() = default;
+    ~AppAccountControlManager() = default;
     bool RegisterApplicationStateObserver();
     void UnregisterApplicationStateObserver();
     void PopDataFromAssociatedDataCache();

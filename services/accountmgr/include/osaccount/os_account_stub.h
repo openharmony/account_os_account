@@ -91,7 +91,6 @@ private:
     template<typename T>
     bool ReadParcelableVector(std::vector<T> &parcelableInfos, MessageParcel &data);
     static const std::map<uint32_t, OsAccountMessageProc> messageProcMap_;
-    std::shared_ptr<AccountPermissionManager> permissionManagerPtr_ = nullptr;
     DISALLOW_COPY_AND_MOVE(OsAccountStub);
     ErrCode ProcCheckOsAccountConstraintEnabled(uint32_t code, MessageParcel &data, MessageParcel &reply);
 };

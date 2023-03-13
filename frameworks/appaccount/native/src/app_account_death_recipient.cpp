@@ -17,13 +17,12 @@
 
 #include "account_log_wrapper.h"
 #include "app_account.h"
-#include "singleton.h"
 
 namespace OHOS {
 namespace AccountSA {
 void AppAccountDeathRecipient::OnRemoteDied(const wptr<IRemoteObject> &remote)
 {
-    DelayedSingleton<AppAccount>::GetInstance()->ResetAppAccountProxy();
+    AppAccount::GetInstance().ResetAppAccountProxy();
 }
 }  // namespace AccountSA
 }  // namespace OHOS

@@ -24,11 +24,9 @@
 
 namespace OHOS {
 namespace AccountSA {
-class OsAccountSubscribeManager : public IOsAccountSubscribe, public DelayedSingleton<OsAccountSubscribeManager> {
+class OsAccountSubscribeManager : public IOsAccountSubscribe {
 public:
-    OsAccountSubscribeManager();
-    virtual ~OsAccountSubscribeManager();
-
+    static OsAccountSubscribeManager &GetInstance();
     ErrCode SubscribeOsAccount(const std::shared_ptr<OsAccountSubscribeInfo> &subscribeInfoPtr,
         const sptr<IRemoteObject> &eventListener) override;
     ErrCode UnsubscribeOsAccount(const sptr<IRemoteObject> &eventListener) override;
@@ -37,6 +35,8 @@ public:
     bool OnAccountsChanged(const OsSubscribeRecordPtr &osSubscribeRecordPtr, const int id);
 
 private:
+    OsAccountSubscribeManager();
+    ~OsAccountSubscribeManager() = default;
     ErrCode InsertSubscribeRecord(const OsSubscribeRecordPtr &subscribeRecordPtr);
     ErrCode RemoveSubscribeRecord(const sptr<IRemoteObject> &eventListener);
     ErrCode Publish(const int id, OS_ACCOUNT_SUBSCRIBE_TYPE subscribeType, uint32_t& sendCnt);

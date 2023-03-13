@@ -296,6 +296,5 @@ group("unittest") {
     ":app_account_manager_service_test",
     ":app_account_subscribe_info_test",
     ":app_account_test",
-    ":inner_app_account_manager_test",
   ]
 }

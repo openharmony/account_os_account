@@ -57,7 +57,6 @@ public:
     void ClearDataStorage(std::shared_ptr<AppAccountDataStorage> &dataStoragePtr);
     std::shared_ptr<AppAccountManagerService>
         appAccountManagerServicePtr_ = std::make_shared<AppAccountManagerService>();
-    std::shared_ptr<AppAccountControlManager> controlManagerPtr_ = AppAccountControlManager::GetInstance();
 };
 
 void AppAccountManagerServiceSyncModuleTest::SetUpTestCase(void)
@@ -66,17 +65,16 @@ void AppAccountManagerServiceSyncModuleTest::SetUpTestCase(void)
 void AppAccountManagerServiceSyncModuleTest::TearDownTestCase(void)
 {
     GTEST_LOG_(INFO) << "TearDownTestCase!";
-    DelayedSingleton<AppAccountControlManager>::DestroyInstance();
     std::this_thread::sleep_for(std::chrono::milliseconds(WAIT_FOR_EXIT));
 }
 
 void AppAccountManagerServiceSyncModuleTest::SetUp(void)
 {
     GTEST_LOG_(INFO) << "SetUp enter!";
-    auto dataStoragePtr = controlManagerPtr_->GetDataStorage(UID);
+    auto dataStoragePtr = AppAccountControlManager::GetInstance().GetDataStorage(UID);
     ClearDataStorage(dataStoragePtr);
 #ifdef DISTRIBUTED_FEATURE_ENABLED
-    dataStoragePtr = controlManagerPtr_->GetDataStorage(UID, true);
+    dataStoragePtr = AppAccountControlManager::GetInstance().GetDataStorage(UID, true);
     ClearDataStorage(dataStoragePtr);
 #endif // DISTRIBUTED_FEATURE_ENABLED
     GTEST_LOG_(INFO) << "SetUp exit!";
@@ -112,7 +110,7 @@ HWTEST_F(AppAccountManagerServiceSyncModuleTest, AppAccountManagerServiceSync_Ad
     ErrCode result = appAccountManagerServicePtr_->AddAccount(STRING_NAME, STRING_EXTRA_INFO);
     EXPECT_EQ(result, ERR_OK);
     std::this_thread::sleep_for(std::chrono::milliseconds(WAIT_FOR_KVSTORE));
-    auto dataStoragePtr = controlManagerPtr_->GetDataStorage(UID);
+    auto dataStoragePtr = AppAccountControlManager::GetInstance().GetDataStorage(UID);
     ASSERT_NE(dataStoragePtr, nullptr);
 
     std::map<std::string, std::shared_ptr<IAccountInfo>> accounts;
@@ -152,7 +150,7 @@ HWTEST_F(AppAccountManagerServiceSyncModuleTest, AppAccountManagerServiceSync_Ad
     std::this_thread::sleep_for(std::chrono::milliseconds(WAIT_FOR_KVSTORE));
 
     {
-        auto dataStoragePtr = controlManagerPtr_->GetDataStorage(UID);
+        auto dataStoragePtr = AppAccountControlManager::GetInstance().GetDataStorage(UID);
         ASSERT_NE(dataStoragePtr, nullptr);
 
         std::map<std::string, std::shared_ptr<IAccountInfo>> accounts;
@@ -170,7 +168,7 @@ HWTEST_F(AppAccountManagerServiceSyncModuleTest, AppAccountManagerServiceSync_Ad
     }
 #ifdef DISTRIBUTED_FEATURE_ENABLED
     {
-        auto dataStoragePtr = controlManagerPtr_->GetDataStorage(UID, true);
+        auto dataStoragePtr = AppAccountControlManager::GetInstance().GetDataStorage(UID, true);
         ASSERT_NE(dataStoragePtr, nullptr);
 
         std::map<std::string, std::shared_ptr<IAccountInfo>> accounts;
@@ -214,7 +212,7 @@ HWTEST_F(AppAccountManagerServiceSyncModuleTest, AppAccountManagerServiceSync_De
     EXPECT_EQ(result, ERR_OK);
 
     {
-        auto dataStoragePtr = controlManagerPtr_->GetDataStorage(UID);
+        auto dataStoragePtr = AppAccountControlManager::GetInstance().GetDataStorage(UID);
         ASSERT_NE(dataStoragePtr, nullptr);
 
         std::map<std::string, std::shared_ptr<IAccountInfo>> accounts;
@@ -224,7 +222,7 @@ HWTEST_F(AppAccountManagerServiceSyncModuleTest, AppAccountManagerServiceSync_De
     }
 #ifdef DISTRIBUTED_FEATURE_ENABLED
     {
-        auto dataStoragePtr = controlManagerPtr_->GetDataStorage(UID, true);
+        auto dataStoragePtr = AppAccountControlManager::GetInstance().GetDataStorage(UID, true);
         ASSERT_NE(dataStoragePtr, nullptr);
 
         std::map<std::string, std::shared_ptr<IAccountInfo>> accounts;
@@ -261,7 +259,7 @@ HWTEST_F(AppAccountManagerServiceSyncModuleTest, AppAccountManagerServiceSync_De
     result = appAccountManagerServicePtr_->DeleteAccount(STRING_NAME);
     EXPECT_EQ(result, ERR_OK);
     {
-        auto dataStoragePtr = controlManagerPtr_->GetDataStorage(UID);
+        auto dataStoragePtr = AppAccountControlManager::GetInstance().GetDataStorage(UID);
         ASSERT_NE(dataStoragePtr, nullptr);
 
         std::map<std::string, std::shared_ptr<IAccountInfo>> accounts;
@@ -294,7 +292,7 @@ HWTEST_F(
     EXPECT_EQ(result, ERR_OK);
 
     {
-        auto dataStoragePtr = controlManagerPtr_->GetDataStorage(UID);
+        auto dataStoragePtr = AppAccountControlManager::GetInstance().GetDataStorage(UID);
         ASSERT_NE(dataStoragePtr, nullptr);
 
         std::map<std::string, std::shared_ptr<IAccountInfo>> accounts;
@@ -316,7 +314,7 @@ HWTEST_F(
     }
 #ifdef DISTRIBUTED_FEATURE_ENABLED
     {
-        auto dataStoragePtr = controlManagerPtr_->GetDataStorage(UID, true);
+        auto dataStoragePtr = AppAccountControlManager::GetInstance().GetDataStorage(UID, true);
         ASSERT_NE(dataStoragePtr, nullptr);
 
         std::map<std::string, std::shared_ptr<IAccountInfo>> accounts;
@@ -373,7 +371,7 @@ HWTEST_F(
     EXPECT_EQ(result, ERR_OK);
 
     {
-        auto dataStoragePtr = controlManagerPtr_->GetDataStorage(UID);
+        auto dataStoragePtr = AppAccountControlManager::GetInstance().GetDataStorage(UID);
         ASSERT_NE(dataStoragePtr, nullptr);
 
         std::map<std::string, std::shared_ptr<IAccountInfo>> accounts;
@@ -398,7 +396,7 @@ HWTEST_F(
     }
 #ifdef DISTRIBUTED_FEATURE_ENABLED
     {
-        auto dataStoragePtr = controlManagerPtr_->GetDataStorage(UID, true);
+        auto dataStoragePtr = AppAccountControlManager::GetInstance().GetDataStorage(UID, true);
         ASSERT_NE(dataStoragePtr, nullptr);
 
         std::map<std::string, std::shared_ptr<IAccountInfo>> accounts;
@@ -460,7 +458,7 @@ HWTEST_F(
     std::this_thread::sleep_for(std::chrono::milliseconds(WAIT_FOR_KVSTORE));
 
     {
-        auto dataStoragePtr = controlManagerPtr_->GetDataStorage(UID);
+        auto dataStoragePtr = AppAccountControlManager::GetInstance().GetDataStorage(UID);
         ASSERT_NE(dataStoragePtr, nullptr);
 
         std::map<std::string, std::shared_ptr<IAccountInfo>> accounts;
@@ -481,7 +479,7 @@ HWTEST_F(
     }
 #ifdef DISTRIBUTED_FEATURE_ENABLED
     {
-        auto dataStoragePtr = controlManagerPtr_->GetDataStorage(UID, true);
+        auto dataStoragePtr = AppAccountControlManager::GetInstance().GetDataStorage(UID, true);
         ASSERT_NE(dataStoragePtr, nullptr);
 
         std::map<std::string, std::shared_ptr<IAccountInfo>> accounts;
@@ -528,7 +526,7 @@ HWTEST_F(AppAccountManagerServiceSyncModuleTest, AppAccountManagerServiceSync_En
     EXPECT_EQ(result, ERR_OK);
 
     {
-        auto dataStoragePtr = controlManagerPtr_->GetDataStorage(UID);
+        auto dataStoragePtr = AppAccountControlManager::GetInstance().GetDataStorage(UID);
         ASSERT_NE(dataStoragePtr, nullptr);
 
         std::string authorizedAccounts;
@@ -548,7 +546,7 @@ HWTEST_F(AppAccountManagerServiceSyncModuleTest, AppAccountManagerServiceSync_En
     }
 #ifdef DISTRIBUTED_FEATURE_ENABLED
     {
-        auto dataStoragePtr = controlManagerPtr_->GetDataStorage(UID, true);
+        auto dataStoragePtr = AppAccountControlManager::GetInstance().GetDataStorage(UID, true);
         ASSERT_NE(dataStoragePtr, nullptr);
 
         std::string authorizedAccounts;
@@ -597,7 +595,7 @@ HWTEST_F(AppAccountManagerServiceSyncModuleTest, AppAccountManagerServiceSync_En
     EXPECT_EQ(result, ERR_APPACCOUNT_SERVICE_ENABLE_APP_ACCESS_ALREADY_EXISTS);
 
     {
-        auto dataStoragePtr = controlManagerPtr_->GetDataStorage(UID);
+        auto dataStoragePtr = AppAccountControlManager::GetInstance().GetDataStorage(UID);
         ASSERT_NE(dataStoragePtr, nullptr);
 
         std::string authorizedAccounts;
@@ -618,7 +616,7 @@ HWTEST_F(AppAccountManagerServiceSyncModuleTest, AppAccountManagerServiceSync_En
     }
 #ifdef DISTRIBUTED_FEATURE_ENABLED
     {
-        auto dataStoragePtr = controlManagerPtr_->GetDataStorage(UID, true);
+        auto dataStoragePtr = AppAccountControlManager::GetInstance().GetDataStorage(UID, true);
         ASSERT_NE(dataStoragePtr, nullptr);
 
         std::string authorizedAccounts;
@@ -668,7 +666,7 @@ HWTEST_F(AppAccountManagerServiceSyncModuleTest, AppAccountManagerServiceSync_Di
     EXPECT_EQ(result, ERR_OK);
 
     {
-        auto dataStoragePtr = controlManagerPtr_->GetDataStorage(UID);
+        auto dataStoragePtr = AppAccountControlManager::GetInstance().GetDataStorage(UID);
         ASSERT_NE(dataStoragePtr, nullptr);
 
         std::string authorizedAccounts;
@@ -684,7 +682,7 @@ HWTEST_F(AppAccountManagerServiceSyncModuleTest, AppAccountManagerServiceSync_Di
     }
 #ifdef DISTRIBUTED_FEATURE_ENABLED
     {
-        auto dataStoragePtr = controlManagerPtr_->GetDataStorage(UID, true);
+        auto dataStoragePtr = AppAccountControlManager::GetInstance().GetDataStorage(UID, true);
         ASSERT_NE(dataStoragePtr, nullptr);
 
         std::string authorizedAccounts;

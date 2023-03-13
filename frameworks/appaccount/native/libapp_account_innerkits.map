@@ -17,6 +17,7 @@
         "non-virtual thunk to OHOS::AccountSA::AppAccountAuthenticatorCallbackStub::~AppAccountAuthenticatorCallbackStub()";
         "non-virtual thunk to OHOS::AccountSA::AppAccountAuthenticatorStub::~AppAccountAuthenticatorStub()";
         "non-virtual thunk to OHOS::AccountSA::AppAccountEventStub::~AppAccountEventStub()";
+        "OHOS::AccountSA::AppAccount::GetInstance()";
         "OHOS::AccountSA::AppAccount::UnsubscribeAppAccount(std::__h::shared_ptr<OHOS::AccountSA::AppAccountSubscriber> const&)";
         "OHOS::AccountSA::AppAccountAuthenticatorCallbackProxy::AppAccountAuthenticatorCallbackProxy(OHOS::sptr<OHOS::IRemoteObject> const&)";
         "OHOS::AccountSA::AppAccountAuthenticatorCallbackProxy::OnRequestContinued()";

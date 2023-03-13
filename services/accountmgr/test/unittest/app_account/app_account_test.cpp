@@ -83,8 +83,6 @@ public:
     void TearDown(void) override;
 
     sptr<IRemoteObject> MakeMockObjects(void) const;
-
-    std::shared_ptr<AppAccount> appAccount_;
 };
 
 sptr<IRemoteObject> AppAccountTest::MakeMockObjects(void) const
@@ -103,20 +101,16 @@ void AppAccountTest::TearDownTestCase(void)
 
 void AppAccountTest::SetUp(void)
 {
-    // get the singleton of AppAccount
-    appAccount_ = DelayedSingleton<AppAccount>::GetInstance();
-
     // mock a proxy
     auto mockProxy = iface_cast<IAppAccount>(MakeMockObjects());
 
     // add the mock proxy
-    appAccount_->appAccountProxy_ = mockProxy;
+    AppAccount::GetInstance().appAccountProxy_ = mockProxy;
 }
 
 void AppAccountTest::TearDown(void)
 {
-    // destroy the singleton
-    DelayedSingleton<AppAccount>::DestroyInstance();
+    AppAccount::GetInstance().eventListeners_.clear();
 }
 
 class AppAccountSubscriberTest : public AppAccountSubscriber {
@@ -162,7 +156,7 @@ HWTEST_F(AppAccountTest, AppAccount_AddAccount_0100, TestSize.Level0)
 {
     ACCOUNT_LOGI("AppAccount_AddAccount_0100");
 
-    ErrCode result = appAccount_->AddAccount(STRING_NAME, STRING_EXTRA_INFO);
+    ErrCode result = AppAccount::GetInstance().AddAccount(STRING_NAME, STRING_EXTRA_INFO);
 
     EXPECT_EQ(result, ERR_OK);
 }
@@ -177,7 +171,7 @@ HWTEST_F(AppAccountTest, AppAccount_AddAccount_0200, TestSize.Level1)
 {
     ACCOUNT_LOGI("AppAccount_AddAccount_0200");
 
-    ErrCode result = appAccount_->AddAccount(STRING_NAME_EMPTY, STRING_EXTRA_INFO);
+    ErrCode result = AppAccount::GetInstance().AddAccount(STRING_NAME_EMPTY, STRING_EXTRA_INFO);
 
     EXPECT_EQ(result, ERR_APPACCOUNT_KIT_INVALID_PARAMETER);
 }
@@ -192,7 +186,7 @@ HWTEST_F(AppAccountTest, AppAccount_AddAccount_0300, TestSize.Level1)
 {
     ACCOUNT_LOGI("AppAccount_AddAccount_0300");
 
-    ErrCode result = appAccount_->AddAccount(STRING_NAME, STRING_EXTRA_INFO_EMPTY);
+    ErrCode result = AppAccount::GetInstance().AddAccount(STRING_NAME, STRING_EXTRA_INFO_EMPTY);
 
     EXPECT_EQ(result, ERR_OK);
 }
@@ -207,7 +201,7 @@ HWTEST_F(AppAccountTest, AppAccount_AddAccount_0400, TestSize.Level1)
 {
     ACCOUNT_LOGI("AppAccount_AddAccount_0400");
 
-    ErrCode result = appAccount_->AddAccount(STRING_NAME_OUT_OF_RANGE, STRING_EXTRA_INFO);
+    ErrCode result = AppAccount::GetInstance().AddAccount(STRING_NAME_OUT_OF_RANGE, STRING_EXTRA_INFO);
 
     EXPECT_EQ(result, ERR_APPACCOUNT_KIT_INVALID_PARAMETER);
 }
@@ -222,7 +216,7 @@ HWTEST_F(AppAccountTest, AppAccount_AddAccount_0500, TestSize.Level1)
 {
     ACCOUNT_LOGI("AppAccount_AddAccount_0500");
 
-    ErrCode result = appAccount_->AddAccount(STRING_NAME_CONTAINS_SPECIAL_CHARACTERS, STRING_EXTRA_INFO);
+    ErrCode result = AppAccount::GetInstance().AddAccount(STRING_NAME_CONTAINS_SPECIAL_CHARACTERS, STRING_EXTRA_INFO);
 
     EXPECT_EQ(result, ERR_APPACCOUNT_KIT_INVALID_PARAMETER);
 }
@@ -237,8 +231,8 @@ HWTEST_F(AppAccountTest, AppAccount_AddAccount_0600, TestSize.Level1)
 {
     ACCOUNT_LOGI("AppAccount_AddAccount_0600");
 
-    ErrCode result = appAccount_->AddAccount(STRING_NAME_CONTAINS_SPECIAL_CHARACTERS_TWO, STRING_EXTRA_INFO);
-
+    ErrCode result = AppAccount::GetInstance().AddAccount(
+        STRING_NAME_CONTAINS_SPECIAL_CHARACTERS_TWO, STRING_EXTRA_INFO);
     EXPECT_EQ(result, ERR_APPACCOUNT_KIT_INVALID_PARAMETER);
 }
 
@@ -252,8 +246,8 @@ HWTEST_F(AppAccountTest, AppAccount_AddAccount_0700, TestSize.Level1)
 {
     ACCOUNT_LOGI("AppAccount_AddAccount_0700");
 
-    ErrCode result = appAccount_->AddAccount(STRING_NAME_CONTAINS_SPECIAL_CHARACTERS_THREE, STRING_EXTRA_INFO);
-
+    ErrCode result = AppAccount::GetInstance().AddAccount(
+        STRING_NAME_CONTAINS_SPECIAL_CHARACTERS_THREE, STRING_EXTRA_INFO);
     EXPECT_EQ(result, ERR_APPACCOUNT_KIT_INVALID_PARAMETER);
 }
 
@@ -267,7 +261,7 @@ HWTEST_F(AppAccountTest, AppAccount_AddAccount_0800, TestSize.Level1)
 {
     ACCOUNT_LOGI("AppAccount_AddAccount_0800");
 
-    ErrCode result = appAccount_->AddAccount(STRING_NAME, STRING_EXTRA_INFO_OUT_OF_RANGE);
+    ErrCode result = AppAccount::GetInstance().AddAccount(STRING_NAME, STRING_EXTRA_INFO_OUT_OF_RANGE);
 
     EXPECT_EQ(result, ERR_APPACCOUNT_KIT_INVALID_PARAMETER);
 }
@@ -282,7 +276,7 @@ HWTEST_F(AppAccountTest, AppAccount_DeleteAccount_0100, TestSize.Level1)
 {
     ACCOUNT_LOGI("AppAccount_DeleteAccount_0100");
 
-    ErrCode result = appAccount_->DeleteAccount(STRING_NAME);
+    ErrCode result = AppAccount::GetInstance().DeleteAccount(STRING_NAME);
 
     EXPECT_EQ(result, ERR_OK);
 }
@@ -297,7 +291,7 @@ HWTEST_F(AppAccountTest, AppAccount_DeleteAccount_0200, TestSize.Level1)
 {
     ACCOUNT_LOGI("AppAccount_DeleteAccount_0200");
 
-    ErrCode result = appAccount_->DeleteAccount(STRING_NAME_EMPTY);
+    ErrCode result = AppAccount::GetInstance().DeleteAccount(STRING_NAME_EMPTY);
 
     EXPECT_EQ(result, ERR_APPACCOUNT_KIT_INVALID_PARAMETER);
 }
@@ -312,7 +306,7 @@ HWTEST_F(AppAccountTest, AppAccount_DeleteAccount_0300, TestSize.Level1)
 {
     ACCOUNT_LOGI("AppAccount_DeleteAccount_0300");
 
-    ErrCode result = appAccount_->DeleteAccount(STRING_NAME_OUT_OF_RANGE);
+    ErrCode result = AppAccount::GetInstance().DeleteAccount(STRING_NAME_OUT_OF_RANGE);
 
     EXPECT_EQ(result, ERR_APPACCOUNT_KIT_INVALID_PARAMETER);
 }
@@ -338,7 +332,7 @@ HWTEST_F(AppAccountTest, AppAccount_SubscribeAppAccount_0100, TestSize.Level0)
     // make a subscriber
     auto subscriberTestPtr = std::make_shared<AppAccountSubscriberTest>(subscribeInfo);
     // subscribe app account
-    ErrCode result = appAccount_->SubscribeAppAccount(subscriberTestPtr);
+    ErrCode result = AppAccount::GetInstance().SubscribeAppAccount(subscriberTestPtr);
 
     EXPECT_EQ(result, ERR_OK);
 }
@@ -365,7 +359,7 @@ HWTEST_F(AppAccountTest, AppAccount_SubscribeAppAccount_0200, TestSize.Level1)
     // make a subscriber
     auto subscriberTestPtr = std::make_shared<AppAccountSubscriberTest>(subscribeInfo);
     // subscribe app account
-    ErrCode result = appAccount_->SubscribeAppAccount(subscriberTestPtr);
+    ErrCode result = AppAccount::GetInstance().SubscribeAppAccount(subscriberTestPtr);
 
     EXPECT_EQ(result, ERR_OK);
 }
@@ -381,7 +375,7 @@ HWTEST_F(AppAccountTest, AppAccount_SubscribeAppAccount_0300, TestSize.Level1)
     ACCOUNT_LOGI("AppAccount_SubscribeAppAccount_0300");
 
     // subscribe app account with nullptr
-    ErrCode result = appAccount_->SubscribeAppAccount(nullptr);
+    ErrCode result = AppAccount::GetInstance().SubscribeAppAccount(nullptr);
 
     EXPECT_EQ(result, ERR_APPACCOUNT_KIT_SUBSCRIBER_IS_NULLPTR);
 }
@@ -397,10 +391,10 @@ HWTEST_F(AppAccountTest, AppAccount_GetAppAccountProxy_0100, TestSize.Level1)
     ACCOUNT_LOGI("AppAccount_GetAppAccountProxy_0100");
 
     // get app account proxy
-    ErrCode result = appAccount_->GetAppAccountProxy();
+    ErrCode result = AppAccount::GetInstance().GetAppAccountProxy();
 
     EXPECT_EQ(result, ERR_OK);
-    EXPECT_NE(appAccount_->appAccountProxy_, nullptr);
+    EXPECT_NE(AppAccount::GetInstance().appAccountProxy_, nullptr);
 }
 
 /**
@@ -414,15 +408,15 @@ HWTEST_F(AppAccountTest, AppAccount_ResetAppAccountProxy_0100, TestSize.Level1)
     ACCOUNT_LOGI("AppAccount_ResetAppAccountProxy_0100");
 
     // get app account proxy
-    ErrCode result = appAccount_->GetAppAccountProxy();
+    ErrCode result = AppAccount::GetInstance().GetAppAccountProxy();
     EXPECT_EQ(result, ERR_OK);
-    EXPECT_NE(appAccount_->appAccountProxy_, nullptr);
+    EXPECT_NE(AppAccount::GetInstance().appAccountProxy_, nullptr);
 
     // reset app account proxy
-    result = appAccount_->ResetAppAccountProxy();
+    result = AppAccount::GetInstance().ResetAppAccountProxy();
 
     EXPECT_EQ(result, ERR_OK);
-    EXPECT_EQ(appAccount_->appAccountProxy_, nullptr);
+    EXPECT_EQ(AppAccount::GetInstance().appAccountProxy_, nullptr);
 }
 
 /**
@@ -451,17 +445,17 @@ HWTEST_F(AppAccountTest, AppAccount_CreateAppAccountEventListener_0100, TestSize
     auto subscriberTestPtr = std::make_shared<AppAccountSubscriberTest>(subscribeInfo);
     sptr<IRemoteObject> appAccountEventListener = nullptr;
 
-    EXPECT_EQ(appAccount_->eventListeners_.size(), SUBSCRIBER_ZERO);
+    EXPECT_EQ(AppAccount::GetInstance().eventListeners_.size(), SUBSCRIBER_ZERO);
 
     // initial subscription
-    result = appAccount_->CreateAppAccountEventListener(subscriberTestPtr, appAccountEventListener);
+    result = AppAccount::GetInstance().CreateAppAccountEventListener(subscriberTestPtr, appAccountEventListener);
     EXPECT_EQ(result, AppAccount::SubscribeState::INITIAL_SUBSCRIPTION);
-    EXPECT_EQ(appAccount_->eventListeners_.size(), SUBSCRIBER_ONE);
+    EXPECT_EQ(AppAccount::GetInstance().eventListeners_.size(), SUBSCRIBER_ONE);
 
     // already subscribed
-    result = appAccount_->CreateAppAccountEventListener(subscriberTestPtr, appAccountEventListener);
+    result = AppAccount::GetInstance().CreateAppAccountEventListener(subscriberTestPtr, appAccountEventListener);
     EXPECT_EQ(result, AppAccount::SubscribeState::ALREADY_SUBSCRIBED);
-    EXPECT_EQ(appAccount_->eventListeners_.size(), SUBSCRIBER_ONE);
+    EXPECT_EQ(AppAccount::GetInstance().eventListeners_.size(), SUBSCRIBER_ONE);
 }
 
 /**
@@ -486,20 +480,20 @@ HWTEST_F(AppAccountTest, AppAccount_CreateAppAccountEventListener_0200, TestSize
 
     EXPECT_EQ(result, ERR_OK);
 
-    EXPECT_EQ(appAccount_->eventListeners_.size(), SUBSCRIBER_ZERO);
+    EXPECT_EQ(AppAccount::GetInstance().eventListeners_.size(), SUBSCRIBER_ZERO);
 
     // make max subscribers
     for (std::size_t counter = 1; counter <= Constants::APP_ACCOUNT_SUBSCRIBER_MAX_SIZE + 1; counter += 1) {
         auto subscriberTestPtr = std::make_shared<AppAccountSubscriberTest>(subscribeInfo);
         sptr<IRemoteObject> appAccountEventListener = nullptr;
 
-        result = appAccount_->CreateAppAccountEventListener(subscriberTestPtr, appAccountEventListener);
+        result = AppAccount::GetInstance().CreateAppAccountEventListener(subscriberTestPtr, appAccountEventListener);
         if (counter <= Constants::APP_ACCOUNT_SUBSCRIBER_MAX_SIZE) {
             EXPECT_EQ(result, AppAccount::SubscribeState::INITIAL_SUBSCRIPTION);
-            EXPECT_EQ(appAccount_->eventListeners_.size(), counter);
+            EXPECT_EQ(AppAccount::GetInstance().eventListeners_.size(), counter);
         } else {
             EXPECT_EQ(result, AppAccount::SubscribeState::SUBSCRIBE_FAILED);
-            EXPECT_EQ(appAccount_->eventListeners_.size(), counter - 1);
+            EXPECT_EQ(AppAccount::GetInstance().eventListeners_.size(), counter - 1);
         }
     }
 }
@@ -515,10 +509,10 @@ HWTEST_F(AppAccountTest, AppAccount_CreateAccount_001, TestSize.Level1)
     ACCOUNT_LOGI("AppAccount_CreateAccount_001");
 
     CreateAccountOptions option;
-    ErrCode result = appAccount_->CreateAccount("test", option);
+    ErrCode result = AppAccount::GetInstance().CreateAccount("test", option);
     EXPECT_EQ(result, ERR_OK);
 
-    result = appAccount_->DeleteAccount("test");
+    result = AppAccount::GetInstance().DeleteAccount("test");
     EXPECT_EQ(result, ERR_OK);
 }
 
@@ -534,11 +528,11 @@ HWTEST_F(AppAccountTest, AppAccount_CreateAccount_002, TestSize.Level1)
 
     CreateAccountOptions option;
 
-    ErrCode result = appAccount_->CreateAccount("", option);
+    ErrCode result = AppAccount::GetInstance().CreateAccount("", option);
 
     EXPECT_EQ(result, ERR_APPACCOUNT_KIT_INVALID_PARAMETER);
 
-    result = appAccount_->CreateAccount(STRING_NAME_OUT_OF_RANGE, option);
+    result = AppAccount::GetInstance().CreateAccount(STRING_NAME_OUT_OF_RANGE, option);
 
     EXPECT_EQ(result, ERR_APPACCOUNT_KIT_INVALID_PARAMETER);
 }
@@ -559,6 +553,6 @@ HWTEST_F(AppAccountTest, AppAccount_CreateAccount_003, TestSize.Level1)
         std::string value = key;
         option.customData[key] = value;
     }
-    ErrCode result = appAccount_->CreateAccount("test", option);
+    ErrCode result = AppAccount::GetInstance().CreateAccount("test", option);
     EXPECT_EQ(result, ERR_APPACCOUNT_KIT_INVALID_PARAMETER);
 }

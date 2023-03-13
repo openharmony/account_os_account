@@ -72,7 +72,6 @@ std::string AnonymizeUidStr(const std::string& uidStr)
 
 AccountDumpHelper::AccountDumpHelper(const std::shared_ptr<OhosAccountManager>& ohosAccountMgr,
     OsAccountManagerService *osAccountMgrService)
-    : innerMgrService_(DelayedSingleton<IInnerOsAccountManager>::GetInstance())
 {
     ohosAccountMgr_ = ohosAccountMgr;
     osAccountMgrService_ = osAccountMgrService;
@@ -115,7 +114,7 @@ void AccountDumpHelper::ShowIllegalInformation(std::string& result) const
 void AccountDumpHelper::ShowOhosAccountInfo(std::string& result) const
 {
     auto lockPtr = ohosAccountMgr_.lock();
-    if (lockPtr == nullptr || innerMgrService_ == nullptr) {
+    if (lockPtr == nullptr) {
         result.append(SYSTEM_ERROR + "service ptr is null!\n");
         ACCOUNT_LOGE("service ptr is null!");
         return;
@@ -123,7 +122,7 @@ void AccountDumpHelper::ShowOhosAccountInfo(std::string& result) const
 
     // check os account list
     std::vector<OsAccountInfo> osAccountInfos;
-    ErrCode ret = innerMgrService_->QueryAllCreatedOsAccounts(osAccountInfos);
+    ErrCode ret = IInnerOsAccountManager::GetInstance().QueryAllCreatedOsAccounts(osAccountInfos);
     if (ret != ERR_OK) {
         result.append("Cannot query os account list, error code ");
         result.append(std::to_string(ret));

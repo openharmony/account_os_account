@@ -74,15 +74,15 @@ HWTEST_F(OsAccountCoverageTest, OnRemoteDiedTest_0100, TestSize.Level1)
 
     auto subscribeInfoPtr = std::make_shared<OsAccountSubscribeInfo>(subscribeInfo);
 
-    DelayedSingleton<OsAccountSubscribeManager>::GetInstance()->SubscribeOsAccount(subscribeInfoPtr, listener);
+    OsAccountSubscribeManager::GetInstance().SubscribeOsAccount(subscribeInfoPtr, listener);
     
-    int size = DelayedSingleton<OsAccountSubscribeManager>::GetInstance()->subscribeRecords_.size();
+    int size = OsAccountSubscribeManager::GetInstance().subscribeRecords_.size();
     EXPECT_EQ(size, 1);
 
     std::shared_ptr<OsAccountSubscribeDeathRecipient> recipient = std::make_shared<OsAccountSubscribeDeathRecipient>();
     ASSERT_NE(nullptr, recipient);
     recipient->OnRemoteDied(listener);
-    size = DelayedSingleton<OsAccountSubscribeManager>::GetInstance()->subscribeRecords_.size();
+    size = OsAccountSubscribeManager::GetInstance().subscribeRecords_.size();
     EXPECT_EQ(size, 0);
 }
 
@@ -101,7 +101,7 @@ HWTEST_F(OsAccountCoverageTest, OnRemoteDiedTest_0200, TestSize.Level1)
     ASSERT_NE(nullptr, recipient);
     wptr<IRemoteObject> wptrDeath = nullptr;
     recipient->OnRemoteDied(wptrDeath);
-    int size = DelayedSingleton<OsAccountSubscribeManager>::GetInstance()->subscribeRecords_.size();
+    int size = OsAccountSubscribeManager::GetInstance().subscribeRecords_.size();
     EXPECT_EQ(size, 0);
 }
 
@@ -121,7 +121,7 @@ HWTEST_F(OsAccountCoverageTest, OnRemoteDiedTest_0300, TestSize.Level1)
     const sptr<IRemoteObject> sptrDeath = nullptr;
     wptr<IRemoteObject> wptrDeath = sptrDeath;
     recipient->OnRemoteDied(wptrDeath);
-    int size = DelayedSingleton<OsAccountSubscribeManager>::GetInstance()->subscribeRecords_.size();
+    int size = OsAccountSubscribeManager::GetInstance().subscribeRecords_.size();
     EXPECT_EQ(size, 0);
 }
 
@@ -158,10 +158,10 @@ HWTEST_F(OsAccountCoverageTest, SubscribeOsAccount_0001, TestSize.Level1)
     auto subscribeInfoPtr = std::make_shared<OsAccountSubscribeInfo>(subscribeInfo);
     ASSERT_NE(nullptr, subscribeInfoPtr);
 
-    ErrCode result = DelayedSingleton<OsAccountSubscribeManager>::GetInstance()->SubscribeOsAccount(nullptr, listener);
+    ErrCode result = OsAccountSubscribeManager::GetInstance().SubscribeOsAccount(nullptr, listener);
     EXPECT_EQ(result, ERR_APPACCOUNT_SERVICE_SUBSCRIBE_INFO_PTR_IS_NULLPTR);
 
-    result = DelayedSingleton<OsAccountSubscribeManager>::GetInstance()->SubscribeOsAccount(subscribeInfoPtr, nullptr);
+    result = OsAccountSubscribeManager::GetInstance().SubscribeOsAccount(subscribeInfoPtr, nullptr);
     EXPECT_EQ(result, ERR_APPACCOUNT_SERVICE_EVENT_LISTENER_IS_NULLPTR);
 }
 
@@ -173,7 +173,7 @@ HWTEST_F(OsAccountCoverageTest, SubscribeOsAccount_0001, TestSize.Level1)
  */
 HWTEST_F(OsAccountCoverageTest, UnsubscribeOsAccount_0001, TestSize.Level1)
 {
-    ErrCode result = DelayedSingleton<OsAccountSubscribeManager>::GetInstance()->UnsubscribeOsAccount(nullptr);
+    ErrCode result = OsAccountSubscribeManager::GetInstance().UnsubscribeOsAccount(nullptr);
     EXPECT_EQ(result, ERR_APPACCOUNT_SERVICE_EVENT_LISTENER_IS_NULLPTR);
 }
 
@@ -185,7 +185,7 @@ HWTEST_F(OsAccountCoverageTest, UnsubscribeOsAccount_0001, TestSize.Level1)
  */
 HWTEST_F(OsAccountCoverageTest, InsertSubscribeRecord_0001, TestSize.Level1)
 {
-    ErrCode result = DelayedSingleton<OsAccountSubscribeManager>::GetInstance()->InsertSubscribeRecord(nullptr);
+    ErrCode result = OsAccountSubscribeManager::GetInstance().InsertSubscribeRecord(nullptr);
     EXPECT_EQ(result, ERR_APPACCOUNT_SERVICE_SUBSCRIBE_RECORD_PTR_IS_NULLPTR);
 }
 
@@ -197,7 +197,7 @@ HWTEST_F(OsAccountCoverageTest, InsertSubscribeRecord_0001, TestSize.Level1)
  */
 HWTEST_F(OsAccountCoverageTest, RemoveSubscribeRecord_0001, TestSize.Level1)
 {
-    ErrCode result = DelayedSingleton<OsAccountSubscribeManager>::GetInstance()->RemoveSubscribeRecord(nullptr);
+    ErrCode result = OsAccountSubscribeManager::GetInstance().RemoveSubscribeRecord(nullptr);
     EXPECT_EQ(result, ERR_APPACCOUNT_SERVICE_EVENT_LISTENER_IS_NULLPTR);
 }
 }  // namespace AccountSA

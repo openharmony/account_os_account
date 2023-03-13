@@ -37,7 +37,6 @@ public:
 };
 
 namespace {
-std::shared_ptr<AppAccountControlManager> g_controlManagerPtr = AppAccountControlManager::GetInstance();
 std::shared_ptr<AppAccountManagerService> g_accountManagerService = std::make_shared<AppAccountManagerService>();
 } // namespace
 

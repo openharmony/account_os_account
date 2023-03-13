@@ -67,7 +67,7 @@ void AuthCallback::OnResult(int32_t result, const Attributes &extraInfo)
         innerCallback_->OnResult(ResultCode::FAIL, errInfo);
     } else {
         innerCallback_->OnResult(result, extraInfo);
-        (void)IInnerOsAccountManager::GetInstance()->SetOsAccountIsVerified(userId_, true);
+        (void)IInnerOsAccountManager::GetInstance().SetOsAccountIsVerified(userId_, true);
     }
 }
 

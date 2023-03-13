@@ -28,18 +28,13 @@ public:
     static void TearDownTestCase(void);
     void SetUp(void) override;
     void TearDown(void) override;
-
-    std::shared_ptr<AccountPermissionManager>
-        permissionManagerPtr_ = DelayedSingleton<AccountPermissionManager>::GetInstance();
 };
 
 void AccountPermissionManagerModuleTest::SetUpTestCase(void)
 {}
 
 void AccountPermissionManagerModuleTest::TearDownTestCase(void)
-{
-    DelayedSingleton<AccountPermissionManager>::DestroyInstance();
-}
+{}
 
 void AccountPermissionManagerModuleTest::SetUp(void)
 {}
@@ -55,8 +50,6 @@ void AccountPermissionManagerModuleTest::TearDown(void)
  */
 HWTEST_F(AccountPermissionManagerModuleTest, AccountPermissionManager_VerifyPermission_0100, TestSize.Level0)
 {
-    ASSERT_NE(permissionManagerPtr_, nullptr);
-
-    ErrCode result = permissionManagerPtr_->VerifyPermission(AccountPermissionManager::DISTRIBUTED_DATASYNC);
+    ErrCode result = AccountPermissionManager::VerifyPermission(AccountPermissionManager::DISTRIBUTED_DATASYNC);
     EXPECT_EQ(result, ERR_ACCOUNT_ZIDL_CHECK_PERMISSION_ERROR);
 }

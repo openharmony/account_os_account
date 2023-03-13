@@ -47,7 +47,6 @@ public:
     static void TearDownTestCase(void);
     void SetUp(void) override;
     void TearDown(void) override;
-    std::shared_ptr<AppAccountControlManager> controlManagerPtr_ = AppAccountControlManager::GetInstance();
 };
 
 void AppAccountControlManagerModuleTest::SetUpTestCase(void)
@@ -56,7 +55,6 @@ void AppAccountControlManagerModuleTest::SetUpTestCase(void)
 void AppAccountControlManagerModuleTest::TearDownTestCase(void)
 {
     GTEST_LOG_(INFO) << "TearDownTestCase enter";
-    DelayedSingleton<AppAccountControlManager>::DestroyInstance();
 }
 
 void AppAccountControlManagerModuleTest::SetUp(void)
@@ -74,10 +72,7 @@ void AppAccountControlManagerModuleTest::TearDown(void)
 HWTEST_F(AppAccountControlManagerModuleTest, AppAccountControlManager_AccountMaxSize_0100, TestSize.Level1)
 {
     ACCOUNT_LOGI("AppAccountControlManager_AccountMaxSize_0100");
-
-    ASSERT_NE(controlManagerPtr_, nullptr);
-
-    EXPECT_EQ(controlManagerPtr_->ACCOUNT_MAX_SIZE, ACCOUNT_MAX_SIZE);
+    EXPECT_EQ(AppAccountControlManager::GetInstance().ACCOUNT_MAX_SIZE, ACCOUNT_MAX_SIZE);
 }
 
 /**
@@ -89,9 +84,6 @@ HWTEST_F(AppAccountControlManagerModuleTest, AppAccountControlManager_AccountMax
 HWTEST_F(AppAccountControlManagerModuleTest, AppAccountControlManager_AccountMaxSize_0200, TestSize.Level1)
 {
     ACCOUNT_LOGI("AppAccountControlManager_AccountMaxSize_0200");
-
-    ASSERT_NE(controlManagerPtr_, nullptr);
-
     ErrCode result;
     std::string name;
     for (std::size_t index = 0; index < ACCOUNT_MAX_SIZE; index++) {
@@ -100,14 +92,16 @@ HWTEST_F(AppAccountControlManagerModuleTest, AppAccountControlManager_AccountMax
         GTEST_LOG_(INFO) << "before AddAccount, index = " << index;
 
         AppAccountInfo appAccountInfo(name, STRING_OWNER);
-        result = controlManagerPtr_->AddAccount(name, STRING_EXTRA_INFO, UID, STRING_OWNER, appAccountInfo);
+        result = AppAccountControlManager::GetInstance().AddAccount(
+            name, STRING_EXTRA_INFO, UID, STRING_OWNER, appAccountInfo);
         ASSERT_EQ(result, ERR_OK);
 
         std::this_thread::sleep_for(std::chrono::milliseconds(DELAY_FOR_OPERATION));
     }
 
     AppAccountInfo appAccountInfo(STRING_NAME, STRING_OWNER);
-    result = controlManagerPtr_->AddAccount(STRING_NAME, STRING_EXTRA_INFO, UID, STRING_OWNER, appAccountInfo);
+    result = AppAccountControlManager::GetInstance().AddAccount(
+        STRING_NAME, STRING_EXTRA_INFO, UID, STRING_OWNER, appAccountInfo);
     EXPECT_EQ(result, ERR_APPACCOUNT_SERVICE_ACCOUNT_MAX_SIZE);
 
     for (std::size_t index = 0; index < ACCOUNT_MAX_SIZE; index++) {
@@ -116,7 +110,7 @@ HWTEST_F(AppAccountControlManagerModuleTest, AppAccountControlManager_AccountMax
         GTEST_LOG_(INFO) << "before DeleteAccount, index = " << index;
 
         AppAccountInfo appAccountInfo(name, STRING_OWNER);
-        result = controlManagerPtr_->DeleteAccount(name, UID, STRING_OWNER, appAccountInfo);
+        result = AppAccountControlManager::GetInstance().DeleteAccount(name, UID, STRING_OWNER, appAccountInfo);
         ASSERT_EQ(result, ERR_OK);
 
         std::this_thread::sleep_for(std::chrono::milliseconds(DELAY_FOR_OPERATION));
@@ -132,37 +126,43 @@ HWTEST_F(AppAccountControlManagerModuleTest, AppAccountControlManager_AccountMax
 HWTEST_F(AppAccountControlManagerModuleTest, AppAccountControlManager_dataStoragePtrIsNull_0100, TestSize.Level1)
 {
     ACCOUNT_LOGI("AppAccountControlManager_RemoveAuthorizedAccountFromDataStorage_0100");
-
-    ASSERT_NE(controlManagerPtr_, nullptr);
     std::shared_ptr<AppAccountDataStorage> dataStoragePtr = nullptr;
     AppAccountInfo appAccountInfo;
     ErrCode result =
-        controlManagerPtr_->RemoveAuthorizedAccountFromDataStorage(AUTHORIZED_APP, appAccountInfo, dataStoragePtr);
+        AppAccountControlManager::GetInstance().RemoveAuthorizedAccountFromDataStorage(
+            AUTHORIZED_APP, appAccountInfo, dataStoragePtr);
     ASSERT_EQ(result, ERR_APPACCOUNT_SERVICE_DATA_STORAGE_PTR_IS_NULLPTR);
 
-    result = controlManagerPtr_->SaveAuthorizedAccountIntoDataStorage(AUTHORIZED_APP, appAccountInfo, dataStoragePtr);
+    result = AppAccountControlManager::GetInstance().SaveAuthorizedAccountIntoDataStorage(
+        AUTHORIZED_APP, appAccountInfo, dataStoragePtr);
     ASSERT_EQ(result, ERR_APPACCOUNT_SERVICE_DATA_STORAGE_PTR_IS_NULLPTR);
 
-    result = controlManagerPtr_->RemoveAuthorizedAccount(BUNDLE_NAME, appAccountInfo, dataStoragePtr, UID);
+    result = AppAccountControlManager::GetInstance().RemoveAuthorizedAccount(
+        BUNDLE_NAME, appAccountInfo, dataStoragePtr, UID);
     ASSERT_EQ(result, ERR_APPACCOUNT_SERVICE_DATA_STORAGE_PTR_IS_NULLPTR);
 
-    result = controlManagerPtr_->SaveAuthorizedAccount(BUNDLE_NAME, appAccountInfo, dataStoragePtr, UID);
+    result = AppAccountControlManager::GetInstance().SaveAuthorizedAccount(
+        BUNDLE_NAME, appAccountInfo, dataStoragePtr, UID);
     ASSERT_EQ(result, ERR_APPACCOUNT_SERVICE_DATA_STORAGE_PTR_IS_NULLPTR);
 
-    result = controlManagerPtr_->DeleteAccountInfoFromDataStorage(appAccountInfo, dataStoragePtr, UID);
+    result = AppAccountControlManager::GetInstance().DeleteAccountInfoFromDataStorage(
+        appAccountInfo, dataStoragePtr, UID);
     ASSERT_EQ(result, ERR_APPACCOUNT_SERVICE_DATA_STORAGE_PTR_IS_NULLPTR);
 
-    result = controlManagerPtr_->SaveAccountInfoIntoDataStorage(appAccountInfo, dataStoragePtr, UID);
+    result = AppAccountControlManager::GetInstance().SaveAccountInfoIntoDataStorage(
+        appAccountInfo, dataStoragePtr, UID);
     ASSERT_EQ(result, ERR_APPACCOUNT_SERVICE_DATA_STORAGE_PTR_IS_NULLPTR);
 
-    result = controlManagerPtr_->AddAccountInfoIntoDataStorage(appAccountInfo, dataStoragePtr, UID);
+    result = AppAccountControlManager::GetInstance().AddAccountInfoIntoDataStorage(
+        appAccountInfo, dataStoragePtr, UID);
     ASSERT_EQ(result, ERR_APPACCOUNT_SERVICE_DATA_STORAGE_PTR_IS_NULLPTR);
 
-    result = controlManagerPtr_->GetAccountInfoFromDataStorage(appAccountInfo, dataStoragePtr);
+    result = AppAccountControlManager::GetInstance().GetAccountInfoFromDataStorage(appAccountInfo, dataStoragePtr);
     ASSERT_EQ(result, ERR_APPACCOUNT_SERVICE_DATA_STORAGE_PTR_IS_NULLPTR);
 
     std::vector<AppAccountInfo> appAccounts;
-    result = controlManagerPtr_->GetAllAccessibleAccountsFromDataStorage(appAccounts, BUNDLE_NAME, dataStoragePtr, 0);
+    result = AppAccountControlManager::GetInstance().GetAllAccessibleAccountsFromDataStorage(
+        appAccounts, BUNDLE_NAME, dataStoragePtr, 0);
     ASSERT_EQ(result, ERR_APPACCOUNT_SERVICE_DATA_STORAGE_PTR_IS_NULLPTR);
 }
 
@@ -175,16 +175,13 @@ HWTEST_F(AppAccountControlManagerModuleTest, AppAccountControlManager_dataStorag
 HWTEST_F(AppAccountControlManagerModuleTest, AppAccountControlManager_NeedSyncDataStorage_0100, TestSize.Level1)
 {
     ACCOUNT_LOGI("AppAccountControlManager_GNeedSyncDataStorage_0100");
-
-    ASSERT_NE(controlManagerPtr_, nullptr);
-
     AppAccountInfo appAccountInfo;
     bool syncEnable = false;
     appAccountInfo.SetSyncEnable(syncEnable);
     syncEnable = true;
     appAccountInfo.GetSyncEnable(syncEnable);
     ASSERT_EQ(syncEnable, false);
-    bool result = controlManagerPtr_->NeedSyncDataStorage(appAccountInfo);
+    bool result = AppAccountControlManager::GetInstance().NeedSyncDataStorage(appAccountInfo);
     ASSERT_EQ(result, false);
 }
 
@@ -198,21 +195,18 @@ HWTEST_F(
     AppAccountControlManagerModuleTest, AppAccountControlManager_GetAllAccountsFromDataStorage_0100, TestSize.Level1)
 {
     ACCOUNT_LOGI("AppAccountControlManager_GetAllAccountsFromDataStorage_0100");
-
-    ASSERT_NE(controlManagerPtr_, nullptr);
-
     AppExecFwk::AbilityStateData abilityStateData;
     abilityStateData.abilityState = static_cast<int32_t>(AppExecFwk::AbilityState::ABILITY_STATE_TERMINATED);
-    controlManagerPtr_->OnAbilityStateChanged(abilityStateData);
-    ASSERT_EQ(controlManagerPtr_->associatedDataCache_.empty(), true);
+    AppAccountControlManager::GetInstance().OnAbilityStateChanged(abilityStateData);
+    ASSERT_EQ(AppAccountControlManager::GetInstance().associatedDataCache_.empty(), true);
 
     abilityStateData.abilityState = static_cast<int32_t>(AppExecFwk::AbilityState::ABILITY_STATE_BACKGROUND);
-    controlManagerPtr_->OnAbilityStateChanged(abilityStateData);
+    AppAccountControlManager::GetInstance().OnAbilityStateChanged(abilityStateData);
     std::vector<AppAccountInfo> appAccounts;
 
     std::shared_ptr<AppAccountDataStorage> dataStoragePtr = nullptr;
-    ErrCode result =
-        controlManagerPtr_->GetAllAccountsFromDataStorage(STRING_OWNER, appAccounts, BUNDLE_NAME, dataStoragePtr);
+    ErrCode result = AppAccountControlManager::GetInstance().GetAllAccountsFromDataStorage(
+        STRING_OWNER, appAccounts, BUNDLE_NAME, dataStoragePtr);
     ASSERT_EQ(result, ERR_APPACCOUNT_SERVICE_DATA_STORAGE_PTR_IS_NULLPTR);
 }
 
@@ -225,9 +219,6 @@ HWTEST_F(
 HWTEST_F(AppAccountControlManagerModuleTest, AppAccountControlManager_GetAllOAuthTokens_0100, TestSize.Level1)
 {
     ACCOUNT_LOGI("AppAccountControlManager_GetAllOAuthTokens_0100");
-
-    ASSERT_NE(controlManagerPtr_, nullptr);
-
     AuthenticatorSessionRequest request;
     request.name = STRING_NAME;
     request.owner = STRING_OWNER;
@@ -250,12 +241,12 @@ HWTEST_F(AppAccountControlManagerModuleTest, AppAccountControlManager_GetAllOAut
     bool isSyncEnable = false;
     appAccountInfo.GetSyncEnable(isSyncEnable);
     ASSERT_NE(isSyncEnable, false);
-    auto dataStoragePtr = controlManagerPtr_->GetDataStorage(request.callerUid, false);
+    auto dataStoragePtr = AppAccountControlManager::GetInstance().GetDataStorage(request.callerUid, false);
     ASSERT_NE(dataStoragePtr, nullptr);
-    ErrCode result =
-        controlManagerPtr_->AddAccountInfoIntoDataStorage(appAccountInfo, dataStoragePtr, request.callerUid);
+    ErrCode result = AppAccountControlManager::GetInstance().AddAccountInfoIntoDataStorage(
+        appAccountInfo, dataStoragePtr, request.callerUid);
     ASSERT_EQ(result, ERR_OK);
-    result = controlManagerPtr_->GetAllOAuthTokens(request, tokenInfos);
+    result = AppAccountControlManager::GetInstance().GetAllOAuthTokens(request, tokenInfos);
     ASSERT_EQ(result, ERR_OK);
     EXPECT_EQ(tokenInfos.size(), 1);
 }

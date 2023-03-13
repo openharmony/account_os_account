@@ -91,7 +91,6 @@ constexpr std::int32_t DELAY_FOR_MESSAGE = 1000;
 constexpr std::int32_t WAIT_FOR_ONE_CASE = 1000;
 std::shared_ptr<AppAccountManagerService> g_accountManagerService =
     std::make_shared<AppAccountManagerService>();
-std::shared_ptr<AppAccountControlManager> g_controlManagerPtr = AppAccountControlManager::GetInstance();
 }  // namespace
 
 class MockAuthenticatorCallback final : public AppAccountAuthenticatorCallbackStub {
@@ -112,7 +111,7 @@ public:
 
 void AppAccountManagerServiceModuleTest::ClearDataStorage()
 {
-    auto dataStoragePtr = g_controlManagerPtr->GetDataStorage(UID);
+    auto dataStoragePtr = AppAccountControlManager::GetInstance().GetDataStorage(UID);
     std::map<std::string, std::shared_ptr<IAccountInfo>> accounts;
     dataStoragePtr->LoadAllData(accounts);
     if (!accounts.empty()) {
@@ -132,19 +131,18 @@ void AppAccountManagerServiceModuleTest::SetUpTestCase(void)
 void AppAccountManagerServiceModuleTest::TearDownTestCase(void)
 {
     GTEST_LOG_(INFO) << "TearDownTestCase enter";
-    auto dataStoragePtr = g_controlManagerPtr->GetDataStorage(UID);
+    auto dataStoragePtr = AppAccountControlManager::GetInstance().GetDataStorage(UID);
     ASSERT_NE(dataStoragePtr, nullptr);
 
     ErrCode result = dataStoragePtr->DeleteKvStore();
     ASSERT_EQ(result, ERR_OK);
 
 #ifdef DISTRIBUTED_FEATURE_ENABLED
-    dataStoragePtr = g_controlManagerPtr->GetDataStorage(UID, true);
+    dataStoragePtr = AppAccountControlManager::GetInstance().GetDataStorage(UID, true);
     ASSERT_NE(dataStoragePtr, nullptr);
 
     result = dataStoragePtr->DeleteKvStore();
     ASSERT_EQ(result, ERR_OK);
-    DelayedSingleton<AppAccountControlManager>::DestroyInstance();
 #endif // DISTRIBUTED_FEATURE_ENABLED
     GTEST_LOG_(INFO) << "TearDownTestCase exit";
 }
@@ -285,7 +283,7 @@ HWTEST_F(AppAccountManagerServiceModuleTest, AppAccountManagerService_DeleteAcco
     result = g_accountManagerService->DeleteAccount(STRING_NAME);
     EXPECT_EQ(result, ERR_OK);
 
-    auto dataStoragePtr = g_controlManagerPtr->GetDataStorage(UID);
+    auto dataStoragePtr = AppAccountControlManager::GetInstance().GetDataStorage(UID);
     ASSERT_NE(dataStoragePtr, nullptr);
 
     std::vector<std::string> accessibleAccounts;
@@ -2118,13 +2116,15 @@ HWTEST_F(AppAccountManagerServiceModuleTest, AppAccountManagerService_GetAllAcco
 
     AppAccountInfo appAccountInfo(STRING_NAME, STRING_BUNDLE_NAME);
     ErrCode result =
-        g_controlManagerPtr->AddAccount(STRING_NAME, STRING_EMPTY, UID, STRING_BUNDLE_NAME, appAccountInfo);
+        AppAccountControlManager::GetInstance().AddAccount(
+            STRING_NAME, STRING_EMPTY, UID, STRING_BUNDLE_NAME, appAccountInfo);
     EXPECT_EQ(result, ERR_OK);
 
     AppAccountCallingInfo appAccountCallingInfo;
     appAccountCallingInfo.callingUid = UID;
     appAccountCallingInfo.bundleName = STRING_BUNDLE_NAME;
-    result = g_controlManagerPtr->EnableAppAccess(STRING_NAME, STRING_OWNER, appAccountCallingInfo, appAccountInfo);
+    result = AppAccountControlManager::GetInstance().EnableAppAccess(
+        STRING_NAME, STRING_OWNER, appAccountCallingInfo, appAccountInfo);
     EXPECT_EQ(result, ERR_OK);
 
     std::vector<AppAccountInfo> appAccounts;
@@ -2136,7 +2136,8 @@ HWTEST_F(AppAccountManagerServiceModuleTest, AppAccountManagerService_GetAllAcco
     appAccounts.begin()->GetOwner(owner);
     EXPECT_EQ(owner, STRING_BUNDLE_NAME);
 
-    result = g_controlManagerPtr->DeleteAccount(STRING_NAME, UID, STRING_BUNDLE_NAME, appAccountInfo);
+    result = AppAccountControlManager::GetInstance().DeleteAccount(
+        STRING_NAME, UID, STRING_BUNDLE_NAME, appAccountInfo);
     EXPECT_EQ(result, ERR_OK);
 }
 
@@ -2151,19 +2152,20 @@ HWTEST_F(AppAccountManagerServiceModuleTest, AppAccountManagerService_GetAllAcco
     ACCOUNT_LOGI("AppAccountManagerService_GetAllAccounts_0500");
 
     AppAccountInfo appAccountInfo(STRING_NAME, STRING_BUNDLE_NAME);
-    ErrCode result =
-        g_controlManagerPtr->AddAccount(STRING_NAME, STRING_EMPTY, UID, STRING_BUNDLE_NAME, appAccountInfo);
+    ErrCode result = AppAccountControlManager::GetInstance().AddAccount(
+            STRING_NAME, STRING_EMPTY, UID, STRING_BUNDLE_NAME, appAccountInfo);
     EXPECT_EQ(result, ERR_OK);
 
     AppAccountInfo appAccountInfoTwo(STRING_NAME_TWO, STRING_OWNER);
-    result = g_controlManagerPtr->AddAccount(STRING_NAME_TWO, STRING_EMPTY, UID, STRING_OWNER, appAccountInfoTwo);
+    result = AppAccountControlManager::GetInstance().AddAccount(
+        STRING_NAME_TWO, STRING_EMPTY, UID, STRING_OWNER, appAccountInfoTwo);
     EXPECT_EQ(result, ERR_OK);
 
     AppAccountCallingInfo appAccountCallingInfo;
     appAccountCallingInfo.callingUid = UID;
     appAccountCallingInfo.bundleName = STRING_BUNDLE_NAME;
-    result =
-        g_controlManagerPtr->EnableAppAccess(STRING_NAME, STRING_OWNER, appAccountCallingInfo, appAccountInfo);
+    result = AppAccountControlManager::GetInstance().EnableAppAccess(
+            STRING_NAME, STRING_OWNER, appAccountCallingInfo, appAccountInfo);
     EXPECT_EQ(result, ERR_OK);
 
     std::vector<AppAccountInfo> appAccounts;
@@ -2179,10 +2181,12 @@ HWTEST_F(AppAccountManagerServiceModuleTest, AppAccountManagerService_GetAllAcco
     appAccounts.begin()->GetName(name);
     EXPECT_EQ(name, STRING_NAME);
 
-    result = g_controlManagerPtr->DeleteAccount(STRING_NAME, UID, STRING_BUNDLE_NAME, appAccountInfo);
+    result = AppAccountControlManager::GetInstance().DeleteAccount(
+        STRING_NAME, UID, STRING_BUNDLE_NAME, appAccountInfo);
     EXPECT_EQ(result, ERR_OK);
 
-    result = g_controlManagerPtr->DeleteAccount(STRING_NAME_TWO, UID, STRING_OWNER, appAccountInfoTwo);
+    result = AppAccountControlManager::GetInstance().DeleteAccount(
+        STRING_NAME_TWO, UID, STRING_OWNER, appAccountInfoTwo);
     EXPECT_EQ(result, ERR_OK);
 }
 
@@ -2292,14 +2296,15 @@ HWTEST_F(AppAccountManagerServiceModuleTest, AppAccountManagerService_QueryAllAc
 HWTEST_F(AppAccountManagerServiceModuleTest, AppAccountManagerService_GetAllAccessibleAccounts_0300, TestSize.Level1)
 {
     AppAccountInfo appAccountInfo(STRING_NAME, STRING_BUNDLE_NAME);
-    ErrCode result =
-        g_controlManagerPtr->AddAccount(STRING_NAME, STRING_EMPTY, UID, STRING_BUNDLE_NAME, appAccountInfo);
+    ErrCode result = AppAccountControlManager::GetInstance().AddAccount(
+        STRING_NAME, STRING_EMPTY, UID, STRING_BUNDLE_NAME, appAccountInfo);
     EXPECT_EQ(result, ERR_OK);
 
     AppAccountCallingInfo appAccountCallingInfo;
     appAccountCallingInfo.callingUid = UID;
     appAccountCallingInfo.bundleName = STRING_BUNDLE_NAME;
-    result = g_controlManagerPtr->EnableAppAccess(STRING_NAME, STRING_OWNER, appAccountCallingInfo, appAccountInfo);
+    result = AppAccountControlManager::GetInstance().EnableAppAccess(
+        STRING_NAME, STRING_OWNER, appAccountCallingInfo, appAccountInfo);
     EXPECT_EQ(result, ERR_OK);
 
     std::vector<AppAccountInfo> appAccounts;
@@ -2322,7 +2327,8 @@ HWTEST_F(AppAccountManagerServiceModuleTest, AppAccountManagerService_GetAllAcce
     appAccounts.begin()->GetOwner(owner);
     EXPECT_EQ(owner, STRING_BUNDLE_NAME);
 
-    result = g_controlManagerPtr->DeleteAccount(STRING_NAME, UID, STRING_BUNDLE_NAME, appAccountInfo);
+    result = AppAccountControlManager::GetInstance().DeleteAccount(
+        STRING_NAME, UID, STRING_BUNDLE_NAME, appAccountInfo);
     EXPECT_EQ(result, ERR_OK);
 }
 
@@ -2335,7 +2341,7 @@ HWTEST_F(AppAccountManagerServiceModuleTest, AppAccountManagerService_GetAllAcce
 HWTEST_F(AppAccountManagerServiceModuleTest, AppAccountManagerService_OnPackageRemoved_0100, TestSize.Level1)
 {
     ACCOUNT_LOGI("AppAccountManagerService_OnPackageRemoved_0100");
-    auto dataStoragePtr = g_controlManagerPtr->GetDataStorage(UID);
+    auto dataStoragePtr = AppAccountControlManager::GetInstance().GetDataStorage(UID);
     ASSERT_NE(dataStoragePtr, nullptr);
 
     AppAccountInfo appAccountInfo(STRING_NAME, STRING_BUNDLE_NAME);

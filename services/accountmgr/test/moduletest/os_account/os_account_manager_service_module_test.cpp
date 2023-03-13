@@ -185,7 +185,6 @@ void OsAccountManagerServiceModuleTest::SetUpTestCase(void)
 void OsAccountManagerServiceModuleTest::TearDownTestCase(void)
 {
     GTEST_LOG_(INFO) << "TearDownTestCase enter!";
-    DelayedSingleton<IInnerOsAccountManager>::DestroyInstance();
     std::this_thread::sleep_for(std::chrono::milliseconds(DELAY_FOR_OPERATION));
     GTEST_LOG_(INFO) << "TearDownTestCase exit!";
 }

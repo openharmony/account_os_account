@@ -26,6 +26,12 @@
 
 namespace OHOS {
 namespace AccountSA {
+DomainAccountClient &DomainAccountClient::GetInstance()
+{
+    static DomainAccountClient instance;
+    return instance;
+}
+
 ErrCode DomainAccountClient::RegisterPlugin(const std::shared_ptr<DomainAccountPlugin> &plugin)
 {
     if (plugin == nullptr) {
@@ -160,7 +166,7 @@ sptr<IDomainAccount> DomainAccountClient::GetDomainAccountProxy()
     if (proxy_ != nullptr) {
         return proxy_;
     }
-    sptr<IRemoteObject> object = DelayedRefSingleton<OhosAccountKitsImpl>::GetInstance().GetDomainAccountService();
+    sptr<IRemoteObject> object = OhosAccountKitsImpl::GetInstance().GetDomainAccountService();
     if (object == nullptr) {
         ACCOUNT_LOGE("failed to get domain account service");
         return nullptr;

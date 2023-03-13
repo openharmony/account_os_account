@@ -67,8 +67,7 @@ public:
     void SetUp();
     void TearDown();
 public:
-    std::shared_ptr<IInnerOsAccountManager> innerMgrService_;
-    std::shared_ptr<IOsAccountSubscribe> subscribeManagerPtr_;
+    IInnerOsAccountManager *innerMgrService_ = &IInnerOsAccountManager::GetInstance();
 };
 class AccountCommonEventSubscriber final : public EventFwk::CommonEventSubscriber {
 public:
@@ -119,8 +118,6 @@ void OsAccountInnerAccmgrCoverageTest::TearDown(void)
  */
 HWTEST_F(OsAccountInnerAccmgrCoverageTest, OsAccountInnerAccmgrCoverageTest001, TestSize.Level1)
 {
-    innerMgrService_ = DelayedSingleton<IInnerOsAccountManager>::GetInstance();
-
     innerMgrService_->CreateBaseAdminAccount();
 
     std::shared_ptr<IOsAccountControl> osAccountControl = innerMgrService_->osAccountControl_;
@@ -128,8 +125,6 @@ HWTEST_F(OsAccountInnerAccmgrCoverageTest, OsAccountInnerAccmgrCoverageTest001, 
 
     osAccountControl->IsOsAccountExists(Constants::ADMIN_LOCAL_ID, isExistsAccount);
     EXPECT_EQ(true, isExistsAccount);
-
-    DelayedSingleton<IInnerOsAccountManager>::DestroyInstance();
 }
 
 
@@ -141,8 +136,6 @@ HWTEST_F(OsAccountInnerAccmgrCoverageTest, OsAccountInnerAccmgrCoverageTest001, 
  */
 HWTEST_F(OsAccountInnerAccmgrCoverageTest, OsAccountInnerAccmgrCoverageTest002, TestSize.Level1)
 {
-    innerMgrService_ = DelayedSingleton<IInnerOsAccountManager>::GetInstance();
-
     innerMgrService_->CreateBaseStandardAccount();
 
     std::shared_ptr<IOsAccountControl> osAccountControl = innerMgrService_->osAccountControl_;
@@ -150,8 +143,6 @@ HWTEST_F(OsAccountInnerAccmgrCoverageTest, OsAccountInnerAccmgrCoverageTest002, 
 
     osAccountControl->IsOsAccountExists(Constants::START_USER_ID, isExistsAccount);
     EXPECT_EQ(true, isExistsAccount);
-
-    DelayedSingleton<IInnerOsAccountManager>::DestroyInstance();
 }
 
 /*
@@ -162,7 +153,6 @@ HWTEST_F(OsAccountInnerAccmgrCoverageTest, OsAccountInnerAccmgrCoverageTest002, 
  */
 HWTEST_F(OsAccountInnerAccmgrCoverageTest, OsAccountInnerAccmgrCoverageTest005, TestSize.Level1)
 {
-    innerMgrService_ = DelayedSingleton<IInnerOsAccountManager>::GetInstance();
     bool ret = false;
     innerMgrService_->PushIdIntoActiveList(TEST_USER_ID10);
     innerMgrService_->PushIdIntoActiveList(TEST_USER_ID10);
@@ -176,8 +166,6 @@ HWTEST_F(OsAccountInnerAccmgrCoverageTest, OsAccountInnerAccmgrCoverageTest005, 
     innerMgrService_->EraseIdFromActiveList(TEST_USER_ID55);
     ret = innerMgrService_->IsOsAccountIDInActiveList(TEST_USER_ID55);
     EXPECT_EQ(ret, false);
-
-    DelayedSingleton<IInnerOsAccountManager>::DestroyInstance();
 }
 
 /*
@@ -188,7 +176,6 @@ HWTEST_F(OsAccountInnerAccmgrCoverageTest, OsAccountInnerAccmgrCoverageTest005, 
  */
 HWTEST_F(OsAccountInnerAccmgrCoverageTest, OsAccountInnerAccmgrCoverageTest007, TestSize.Level1)
 {
-    innerMgrService_ = DelayedSingleton<IInnerOsAccountManager>::GetInstance();
     bool ret = false;
     innerMgrService_->AddLocalIdToOperating(TEST_USER_ID10);
     ret = innerMgrService_->IsLocalIdInOperating(TEST_USER_ID10);
@@ -201,8 +188,6 @@ HWTEST_F(OsAccountInnerAccmgrCoverageTest, OsAccountInnerAccmgrCoverageTest007, 
     innerMgrService_->RemoveLocalIdToOperating(TEST_USER_ID10);
     ret = innerMgrService_->IsLocalIdInOperating(TEST_USER_ID10);
     EXPECT_EQ(ret, false);
-
-    DelayedSingleton<IInnerOsAccountManager>::DestroyInstance();
 }
 
 /*
@@ -215,8 +200,6 @@ HWTEST_F(OsAccountInnerAccmgrCoverageTest, OsAccountInnerAccmgrCoverageTest008, 
 {
     // create common event subscribe
     setuid(ACCOUNT_UID);
-    innerMgrService_ = DelayedSingleton<IInnerOsAccountManager>::GetInstance();
-    ASSERT_NE(innerMgrService_, nullptr);
     EventFwk::MatchingSkills matchingSkills;
     matchingSkills.AddEvent(EventFwk::CommonEventSupport::COMMON_EVENT_USER_INFO_UPDATED);
     EventFwk::CommonEventSubscribeInfo subscribeInfo(matchingSkills);
@@ -254,8 +237,6 @@ HWTEST_F(OsAccountInnerAccmgrCoverageTest, OsAccountInnerAccmgrCoverageTest009, 
 {
     // create common event subscribe
     setuid(ACCOUNT_UID);
-    innerMgrService_ = DelayedSingleton<IInnerOsAccountManager>::GetInstance();
-    ASSERT_NE(innerMgrService_, nullptr);
     EventFwk::MatchingSkills matchingSkills;
     matchingSkills.AddEvent(EventFwk::CommonEventSupport::COMMON_EVENT_USER_INFO_UPDATED);
     EventFwk::CommonEventSubscribeInfo subscribeInfo(matchingSkills);

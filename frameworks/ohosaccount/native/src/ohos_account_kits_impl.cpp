@@ -23,8 +23,11 @@
 
 namespace OHOS {
 namespace AccountSA {
-OhosAccountKitsImpl::OhosAccountKitsImpl() {}
-OhosAccountKitsImpl::~OhosAccountKitsImpl() {}
+OhosAccountKitsImpl &OhosAccountKitsImpl::GetInstance()
+{
+    static OhosAccountKitsImpl instance;
+    return instance;
+}
 
 void OhosAccountKitsImpl::ResetService(const wptr<IRemoteObject>& remote)
 {
@@ -79,7 +82,7 @@ sptr<IAccount> OhosAccountKitsImpl::GetService()
 
 void OhosAccountKitsImpl::DeathRecipient::OnRemoteDied(const wptr<IRemoteObject>& remote)
 {
-    DelayedRefSingleton<OhosAccountKitsImpl>::GetInstance().ResetService(remote);
+    OhosAccountKitsImpl::GetInstance().ResetService(remote);
 }
 
 bool OhosAccountKitsImpl::UpdateOhosAccountInfo(const std::string& accountName, const std::string& uid,

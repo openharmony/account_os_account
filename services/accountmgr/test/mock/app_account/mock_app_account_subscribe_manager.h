@@ -23,9 +23,6 @@ namespace OHOS {
 namespace AccountSA {
 class MockAppAccountSubscribeManager : public AppAccountSubscribeManager {
 public:
-    MockAppAccountSubscribeManager();
-    virtual ~MockAppAccountSubscribeManager();
-
     ErrCode SubscribeAppAccount(const std::shared_ptr<AppAccountSubscribeInfo> &subscribeInfoPtr,
         const sptr<IRemoteObject> &eventListener, const std::string &bundleName, const uint32_t &appIndex);
     ErrCode UnsubscribeAppAccount(const sptr<IRemoteObject> &eventListener);

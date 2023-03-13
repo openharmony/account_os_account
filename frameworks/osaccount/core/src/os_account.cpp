@@ -45,6 +45,12 @@ static ErrCode CheckLocalId(int localId)
     return CheckInvalidLocalId(localId);
 }
 
+OsAccount &OsAccount::GetInstance()
+{
+    static OsAccount instance;
+    return instance;
+}
+
 ErrCode OsAccount::CreateOsAccount(const std::string &name, const OsAccountType &type, OsAccountInfo &osAccountInfo)
 {
     if (name.size() > Constants::LOCAL_NAME_MAX_SIZE) {
@@ -523,7 +529,7 @@ ErrCode OsAccount::SubscribeOsAccount(const std::shared_ptr<OsAccountSubscriber>
 
 ErrCode OsAccount::UnsubscribeOsAccount(const std::shared_ptr<OsAccountSubscriber> &subscriber)
 {
-    ErrCode result = DelayedSingleton<AccountPermissionManager>::GetInstance()->CheckSystemApp(false);
+    ErrCode result = AccountPermissionManager::CheckSystemApp(false);
     if (result != ERR_OK) {
         ACCOUNT_LOGE("is not system application, result = %{public}u.", result);
         return result;

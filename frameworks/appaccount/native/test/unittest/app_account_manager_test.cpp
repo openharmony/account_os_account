@@ -2150,15 +2150,13 @@ HWTEST_F(AppAccountManagerTest, AppAccountManager_QueryAllAccessibleAccounts_010
  */
 HWTEST_F(AppAccountManagerTest, AppAccountManager_UnsubscribeAppAccount_0100, TestSize.Level1)
 {
-    auto appAccountPtr = DelayedSingleton<AppAccount>::GetInstance();
-    ASSERT_NE(appAccountPtr, nullptr);
     AppAccountSubscribeInfo subscribeInfo;
     std::shared_ptr<AppAccountSubscriberTest> appAccountSubscriberPtr =
         std::make_shared<AppAccountSubscriberTest>(subscribeInfo);
     ASSERT_NE(appAccountSubscriberPtr, nullptr);
     auto appAccountEventListenerSptr = new (std::nothrow) AppAccountEventListener(appAccountSubscriberPtr);
     ASSERT_NE(appAccountEventListenerSptr, nullptr);
-    appAccountPtr->eventListeners_[appAccountSubscriberPtr] = appAccountEventListenerSptr;
-    ErrCode result = appAccountPtr->UnsubscribeAppAccount(appAccountSubscriberPtr);
+    AppAccount::GetInstance().eventListeners_[appAccountSubscriberPtr] = appAccountEventListenerSptr;
+    ErrCode result = AppAccount::GetInstance().UnsubscribeAppAccount(appAccountSubscriberPtr);
     ASSERT_EQ(result, ERR_OK);
 }

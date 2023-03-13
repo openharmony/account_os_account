@@ -116,8 +116,7 @@ private:
     bool PermissionCheck(const std::string& permissionName, const std::string& constraintName);
 
 private:
-    std::shared_ptr<IInnerOsAccount> innerManager_;
-    std::shared_ptr<AccountPermissionManager> permissionManagerPtr_;
+    IInnerOsAccount &innerManager_;
     DISALLOW_COPY_AND_MOVE(OsAccountManagerService);
 };
 }  // namespace AccountSA
