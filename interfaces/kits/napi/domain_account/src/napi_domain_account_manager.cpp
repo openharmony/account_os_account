@@ -189,29 +189,15 @@ static bool ParseDomainAccountInfo(napi_env env, napi_value object, DomainAccoun
 
 static napi_value GetDomainAccountInfoCallback(napi_env env, napi_callback_info cbInfo)
 {
-    size_t argc = ARG_SIZE_TWO;
-    napi_value argv[ARG_SIZE_TWO] = {nullptr};
-    void *data = nullptr;
-    NAPI_CALL(env, napi_get_cb_info(env, cbInfo, &argc, argv, nullptr, &data));
-    if (argc != ARG_SIZE_TWO) {
-        ACCOUNT_LOGE("the number of argument should be 2");
-        AccountNapiThrow(env, ERR_JS_INVALID_PARAMETER, true);
-        return nullptr;
-    }
-    JsDomainPluginParam *param = reinterpret_cast<JsDomainPluginParam *>(data);
-    if ((param == nullptr) || (param->callback == nullptr)) {
-        ACCOUNT_LOGE("native callback is nullptr");
-        AccountNapiThrow(env, ERR_JS_SYSTEM_SERVICE_EXCEPTION, true);
-        return nullptr;
-    }
+    JsDomainPluginParam *param = nullptr;
     BusinessError error;
-    if (!ParseBusinessError(env, argv[0], error)) {
-        ACCOUNT_LOGE("ParseBussinessError failed");
+    napi_value businessData = nullptr;
+    if (!GetPluginCallbackCommonParam(env, cbInfo, &param, error, &businessData)) {
         AccountNapiThrow(env, ERR_JS_INVALID_PARAMETER, true);
         return nullptr;
     }
     DomainAccountInfo info;
-    if (!ParseDomainAccountInfo(env, argv[1], info)) {
+    if ((error.code == 0) && (!ParseDomainAccountInfo(env, businessData, info))) {
         ACCOUNT_LOGE("ParseDomainAccountInfo failed");
         AccountNapiThrow(env, ERR_JS_INVALID_PARAMETER, true);
         return nullptr;
@@ -327,29 +313,15 @@ static void OnAccountUnBoundWork(uv_work_t *work, int status)
 
 static napi_value GetAuthStatusInfoCallback(napi_env env, napi_callback_info cbInfo)
 {
-    size_t argc = ARG_SIZE_TWO;
-    napi_value argv[ARG_SIZE_TWO] = {nullptr};
-    void* data = nullptr;
-    NAPI_CALL(env, napi_get_cb_info(env, cbInfo, &argc, argv, nullptr, &data));
-    if (argc != ARG_SIZE_TWO) {
-        ACCOUNT_LOGE("the number of argument should be 2");
-        AccountNapiThrow(env, ERR_JS_INVALID_PARAMETER, true);
-        return nullptr;
-    }
-    JsDomainPluginParam *param = reinterpret_cast<JsDomainPluginParam *>(data);
-    if ((param == nullptr) || (param->callback == nullptr)) {
-        ACCOUNT_LOGE("native callback is nullptr");
-        AccountNapiThrow(env, ERR_JS_SYSTEM_SERVICE_EXCEPTION, true);
-        return nullptr;
-    }
+    JsDomainPluginParam *param = nullptr;
     BusinessError error;
-    if (!ParseBusinessError(env, argv[0], error)) {
-        ACCOUNT_LOGE("failed to parse BusinessError");
+    napi_value businessData = nullptr;
+    if (!GetPluginCallbackCommonParam(env, cbInfo, &param, error, &businessData)) {
         AccountNapiThrow(env, ERR_JS_INVALID_PARAMETER, true);
         return nullptr;
     }
     AuthStatusInfo info;
-    if (!ParseAuthStatusInfo(env, argv[1], info)) {
+    if ((error.code == 0) && (!ParseAuthStatusInfo(env, businessData, info))) {
         ACCOUNT_LOGE("failed to parse AuthStatusInfo");
         AccountNapiThrow(env, ERR_JS_INVALID_PARAMETER, true);
         return nullptr;
