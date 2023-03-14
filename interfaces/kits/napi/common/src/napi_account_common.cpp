@@ -280,6 +280,12 @@ napi_status ParseUint8TypedArrayToUint64(napi_env env, napi_value value, uint64_
 
 bool ParseBusinessError(napi_env env, napi_value value, BusinessError &error)
 {
+    napi_valuetype valueType = napi_undefined;
+    NAPI_CALL_BASE(env, napi_typeof(env, value, &valueType), false);
+    if (valueType == napi_null) {
+        error.code = 0;
+        return true;
+    }
     napi_value napiCode = nullptr;
     NAPI_CALL_BASE(env, napi_get_named_property(env, value, BUSINESS_ERROR_CODE_NAME, &napiCode), false);
     if (napiCode == nullptr) {
