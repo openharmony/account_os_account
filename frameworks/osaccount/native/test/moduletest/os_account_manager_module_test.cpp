@@ -2066,7 +2066,7 @@ HWTEST_F(OsAccountManagerModuleTest, OsAccountManagerModuleTest102, TestSize.Lev
 
 /**
  * @tc.name: OsAccountManagerModuleTest103
- * @tc.desc: test IsOsAccountConstraintEnable with invalid data.
+ * @tc.desc: test IsOsAccountConstraintEnable/CheckOsAccountConstraintEnabled with invalid data.
  * @tc.type: FUNC
  * @tc.require:
  */
@@ -2074,6 +2074,9 @@ HWTEST_F(OsAccountManagerModuleTest, OsAccountManagerModuleTest103, TestSize.Lev
 {
     bool isConstraintEnable = true;
     EXPECT_EQ(ERR_OSACCOUNT_KIT_LOCAL_ID_INVALID_ERROR, OsAccountManager::IsOsAccountConstraintEnable(
+        Constants::MAX_USER_ID + 1, CONSTANT_PRINT, isConstraintEnable));
+    EXPECT_EQ(isConstraintEnable, false);
+    EXPECT_EQ(ERR_OSACCOUNT_KIT_LOCAL_ID_INVALID_ERROR, OsAccountManager::CheckOsAccountConstraintEnabled(
         Constants::MAX_USER_ID + 1, CONSTANT_PRINT, isConstraintEnable));
     EXPECT_EQ(isConstraintEnable, false);
 }

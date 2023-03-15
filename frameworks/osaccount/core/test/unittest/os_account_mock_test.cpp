@@ -140,7 +140,7 @@ HWTEST_F(OsAccountMockTest, IsOsAccountActivedMockTest001, TestSize.Level1)
 
 /**
  * @tc.name: IsOsAccountConstraintEnableMockTest001
- * @tc.desc: Test IsOsAccountConstraintEnable getosaccountproxy faild
+ * @tc.desc: Test IsOsAccountConstraintEnable/CheckOsAccountConstraintEnabled getosaccountproxy faild
  * @tc.type: FUNC
  * @tc.require:
  */
@@ -149,6 +149,9 @@ HWTEST_F(OsAccountMockTest, IsOsAccountConstraintEnableMockTest001, TestSize.Lev
     bool isConstraintEnable;
     EXPECT_EQ(ERR_OSACCOUNT_KIT_GET_SYSTEM_ABILITY_MANAGER_ERROR,
         g_osAccount->IsOsAccountConstraintEnable(MAIN_ACCOUNT_ID, CONSTANT_PRINT, isConstraintEnable));
+
+    EXPECT_EQ(ERR_OSACCOUNT_KIT_GET_SYSTEM_ABILITY_MANAGER_ERROR,
+        g_osAccount->CheckOsAccountConstraintEnabled(MAIN_ACCOUNT_ID, CONSTANT_PRINT, isConstraintEnable));
 }
 
 /**
