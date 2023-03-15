@@ -81,7 +81,7 @@ void AccountMgrInnerSdkFuncTest::TearDown(void)
  * @tc.name: GetDeviceAccountIdTest
  * @tc.desc: get device account info test
  * @tc.type: FUNC
- * @tc.require: AR000CUF64
+ * @tc.require:
 */
 HWTEST_F(AccountMgrInnerSdkFuncTest, GetDeviceAccountIdTest, TestSize.Level0)
 {
@@ -94,7 +94,7 @@ HWTEST_F(AccountMgrInnerSdkFuncTest, GetDeviceAccountIdTest, TestSize.Level0)
  * @tc.name: GetOhosAccountInfoTest
  * @tc.desc: get ohos account info test
  * @tc.type: FUNC
- * @tc.require: AR000CUF64
+ * @tc.require:
  */
 HWTEST_F(AccountMgrInnerSdkFuncTest, GetOhosAccountInfoTest, TestSize.Level0)
 {
@@ -106,7 +106,7 @@ HWTEST_F(AccountMgrInnerSdkFuncTest, GetOhosAccountInfoTest, TestSize.Level0)
  * @tc.name: GetDefaultOhosAccountInfoTest
  * @tc.desc: get default ohos account info test
  * @tc.type: FUNC
- * @tc.require: AR000DIJ27
+ * @tc.require:
  */
 HWTEST_F(AccountMgrInnerSdkFuncTest, GetDefaultOhosAccountInfoTest, TestSize.Level1)
 {
@@ -118,7 +118,7 @@ HWTEST_F(AccountMgrInnerSdkFuncTest, GetDefaultOhosAccountInfoTest, TestSize.Lev
  * @tc.name: UidTranslateTest
  * @tc.desc: translate uid to deviceAccountId
  * @tc.type: FUNC
- * @tc.require: AR000CUF64
+ * @tc.require:
  */
 HWTEST_F(AccountMgrInnerSdkFuncTest, UidTranslateTest, TestSize.Level0)
 {
