@@ -102,10 +102,9 @@ public:
     ErrCode OnUserRemoved(int32_t userId);
 
 private:
-    std::shared_ptr<AppAccountControlManager> controlManagerPtr_ = nullptr;
-    std::shared_ptr<AppAccountSubscribeManager> subscribeManagerPtr_ = nullptr;
-    std::shared_ptr<AppAccountAuthenticatorSessionManager> sessionManagerPtr_ = nullptr;
-    std::shared_ptr<AppAccountAuthenticatorManager> authenticatorManagerPtr_ = nullptr;
+    AppAccountControlManager &controlManager_;
+    AppAccountSubscribeManager &subscribeManager_;
+    AppAccountAuthenticatorSessionManager &sessionManager_;
 
     DISALLOW_COPY_AND_MOVE(InnerAppAccountManager);
 };

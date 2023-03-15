@@ -201,8 +201,7 @@ ErrCode DomainAccountStub::ProcAuthWithPopup(MessageParcel &data, MessageParcel 
 
 ErrCode DomainAccountStub::CheckPermission(uint32_t code, int32_t uid)
 {
-    std::shared_ptr<AccountPermissionManager> permManager = AccountPermissionManager::GetInstance();
-    ErrCode errCode = permManager->CheckSystemApp();
+    ErrCode errCode = AccountPermissionManager::CheckSystemApp();
     if (errCode != ERR_OK) {
         ACCOUNT_LOGE("the caller is not system application, errCode = %{public}d.", errCode);
         return errCode;
@@ -228,7 +227,7 @@ ErrCode DomainAccountStub::CheckPermission(uint32_t code, int32_t uid)
     if (permissionName.empty()) {
         return ERR_OK;
     }
-    return permManager->VerifyPermission(permissionName);
+    return AccountPermissionManager::VerifyPermission(permissionName);
 }
 }  // namespace AccountSA
 }  // namespace OHOS

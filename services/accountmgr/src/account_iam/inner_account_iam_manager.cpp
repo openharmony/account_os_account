@@ -42,6 +42,12 @@ InnerAccountIAMManager::InnerAccountIAMManager()
     userStateMap_[0] = IDLE;
 }
 
+InnerAccountIAMManager &InnerAccountIAMManager::GetInstance()
+{
+    static InnerAccountIAMManager instance;
+    return instance;
+}
+
 void InnerAccountIAMManager::OpenSession(int32_t userId, std::vector<uint8_t> &challenge)
 {
     challenge = UserIDMClient::GetInstance().OpenSession(userId);
@@ -195,7 +201,7 @@ ErrCode InnerAccountIAMManager::GetDomainAuthStatusInfo(
     int32_t userId, const GetPropertyRequest &request, const sptr<IGetSetPropCallback> &callback)
 {
     OsAccountInfo osAccountInfo;
-    ErrCode result = IInnerOsAccountManager::GetInstance()->QueryOsAccountById(userId, osAccountInfo);
+    ErrCode result = IInnerOsAccountManager::GetInstance().QueryOsAccountById(userId, osAccountInfo);
     if (result != ERR_OK) {
         ACCOUNT_LOGE("failed to get account info");
         return result;
@@ -218,7 +224,7 @@ ErrCode InnerAccountIAMManager::GetDomainAuthStatusInfo(
 bool InnerAccountIAMManager::CheckDomainAuthAvailable(int32_t userId)
 {
     OsAccountInfo osAccountInfo;
-    if (IInnerOsAccountManager::GetInstance()->QueryOsAccountById(userId, osAccountInfo) != ERR_OK) {
+    if (IInnerOsAccountManager::GetInstance().QueryOsAccountById(userId, osAccountInfo) != ERR_OK) {
         ACCOUNT_LOGE("failed to get account info");
         return false;
     }

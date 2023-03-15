@@ -33,20 +33,20 @@ SessionAppStateObserver::SessionAppStateObserver()
 
 void SessionAppStateObserver::OnAbilityStateChanged(const AppExecFwk::AbilityStateData &abilityStateData)
 {
-    auto sessionManager = AppAccountAuthenticatorSessionManager::GetInstance();
-    if (sessionManager != nullptr) {
-        sessionManager->OnAbilityStateChanged(abilityStateData);
-    }
+    AppAccountAuthenticatorSessionManager::GetInstance().OnAbilityStateChanged(abilityStateData);
 }
-
-AppAccountAuthenticatorSessionManager::AppAccountAuthenticatorSessionManager()
-{}
 
 AppAccountAuthenticatorSessionManager::~AppAccountAuthenticatorSessionManager()
 {
     UnregisterApplicationStateObserver();
     sessionMap_.clear();
     abilitySessions_.clear();
+}
+
+AppAccountAuthenticatorSessionManager &AppAccountAuthenticatorSessionManager::GetInstance()
+{
+    static AppAccountAuthenticatorSessionManager instance;
+    return instance;
 }
 
 void AppAccountAuthenticatorSessionManager::RegisterApplicationStateObserver()

@@ -32,6 +32,7 @@ public:
         SUBSCRIBE_FAILED,
     };
 
+    static AppAccount &GetInstance();
     ErrCode AddAccount(const std::string &name, const std::string &extraInfo);
     ErrCode AddAccountImplicitly(const std::string &owner, const std::string &authType,
         const AAFwk::Want &options, const sptr<IAppAccountAuthenticatorCallback> &callback);
@@ -105,6 +106,8 @@ public:
     ErrCode ResetAppAccountProxy();
 
 private:
+    AppAccount() = default;
+    ~AppAccount() = default;
     ErrCode CheckParameters(const std::string &name, const std::string &extraInfo = "");
     ErrCode CheckSpecialCharacters(const std::string &name);
     ErrCode CheckTokenVisibilityParam(

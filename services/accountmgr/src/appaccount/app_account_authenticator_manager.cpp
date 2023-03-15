@@ -24,22 +24,6 @@
 
 namespace OHOS {
 namespace AccountSA {
-AppAccountAuthenticatorManager::AppAccountAuthenticatorManager()
-{
-    Init();
-}
-
-AppAccountAuthenticatorManager::~AppAccountAuthenticatorManager()
-{}
-
-void AppAccountAuthenticatorManager::Init()
-{
-    if (isInitialized_) {
-        return;
-    }
-    isInitialized_ = true;
-}
-
 static ErrCode QueryAbilityInfos(const std::string &owner, int32_t userId,
     std::vector<AppExecFwk::AbilityInfo> &abilityInfos,
     std::vector<AppExecFwk::ExtensionAbilityInfo> &extensionInfos)
@@ -72,9 +56,6 @@ static ErrCode QueryAbilityInfos(const std::string &owner, int32_t userId,
 ErrCode AppAccountAuthenticatorManager::GetAuthenticatorInfo(
     const std::string &owner, int32_t userId, AuthenticatorInfo &info)
 {
-    if (!isInitialized_) {
-        Init();
-    }
     std::vector<AppExecFwk::AbilityInfo> abilityInfos;
     std::vector<AppExecFwk::ExtensionAbilityInfo> extensionInfos;
     ErrCode ret = QueryAbilityInfos(owner, userId, abilityInfos, extensionInfos);

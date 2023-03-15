@@ -35,7 +35,6 @@ using namespace OHOS::AccountSA;
 namespace {
 const std::string TEST_ACCOUNT_NAME = "TestAccountName";
 const std::string TEST_ACCOUNT_UID = "123456789";
-static std::shared_ptr<OsAccount> g_osAccountPtr = nullptr;
 }
 
 class AccountDumpHelperTest : public testing::Test {
@@ -55,17 +54,14 @@ public:
 AccountDumpHelperTest::AccountDumpHelperTest() {}
 
 void AccountDumpHelperTest::SetUpTestCase()
-{
-    g_osAccountPtr = DelayedSingleton<OsAccount>::GetInstance();
-    EXPECT_NE(g_osAccountPtr, nullptr);
-}
+{}
 
 void AccountDumpHelperTest::TearDownTestCase()
 {
     std::vector<OsAccountInfo> osAccountInfos;
-    g_osAccountPtr->QueryAllCreatedOsAccounts(osAccountInfos);
+    OsAccount::GetInstance().QueryAllCreatedOsAccounts(osAccountInfos);
     for (const auto &info : osAccountInfos) {
-        g_osAccountPtr->RemoveOsAccount(info.GetLocalId());
+        OsAccount::GetInstance().RemoveOsAccount(info.GetLocalId());
     }
 }
 
@@ -126,7 +122,7 @@ HWTEST_F(AccountDumpHelperTest, AccountDumpParameterTest001, TestSize.Level0)
 {
     OsAccountInfo osAccountInfo;
     // create an os account
-    EXPECT_EQ(ERR_OK, g_osAccountPtr->CreateOsAccount("test", OsAccountType::NORMAL, osAccountInfo));
+    EXPECT_EQ(ERR_OK, OsAccount::GetInstance().CreateOsAccount("test", OsAccountType::NORMAL, osAccountInfo));
 
     OhosAccountInfo accountInfo;
     accountInfo.name_ = TEST_ACCOUNT_NAME;
@@ -225,23 +221,6 @@ HWTEST_F(AccountDumpHelperTest, AccountDumpParameterTest005, TestSize.Level0)
     accountDumpHelper_ = nullptr;
     accountDumpHelper_ = std::make_unique<AccountDumpHelper>(nullptr, osAccount_);
     ASSERT_NE(accountDumpHelper_, nullptr);
-    std::string out;
-    vector<std::string> cmd = {"-ohos_account_infos"};
-    accountDumpHelper_->Dump(cmd, out);
-    auto pos = out.find("System error", 0);
-    EXPECT_NE(std::string::npos, pos);
-}
-
-/**
- * @tc.name: AccountDumpParameterTest006
- * @tc.desc: Test account info display
- * @tc.type: FUNC
- * @tc.require:
- */
-HWTEST_F(AccountDumpHelperTest, AccountDumpParameterTest006, TestSize.Level0)
-{
-    ASSERT_NE(accountDumpHelper_, nullptr);
-    accountDumpHelper_->innerMgrService_ = nullptr;
     std::string out;
     vector<std::string> cmd = {"-ohos_account_infos"};
     accountDumpHelper_->Dump(cmd, out);

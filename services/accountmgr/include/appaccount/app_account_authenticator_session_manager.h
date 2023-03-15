@@ -40,11 +40,9 @@ public:
     void OnAbilityStateChanged(const AppExecFwk::AbilityStateData &abilityStateData) override;
 };
 
-class AppAccountAuthenticatorSessionManager : public DelayedSingleton<AppAccountAuthenticatorSessionManager> {
+class AppAccountAuthenticatorSessionManager {
 public:
-    AppAccountAuthenticatorSessionManager();
-    virtual ~AppAccountAuthenticatorSessionManager();
-
+    static AppAccountAuthenticatorSessionManager &GetInstance();
     ErrCode AddAccountImplicitly(const AuthenticatorSessionRequest &request);
     ErrCode Authenticate(const AuthenticatorSessionRequest &request);
     ErrCode CreateAccountImplicitly(const AuthenticatorSessionRequest &request);
@@ -71,6 +69,8 @@ public:
     void OnSessionRequestContinued(const std::string &sessionId);
 
 private:
+    AppAccountAuthenticatorSessionManager() = default;
+    ~AppAccountAuthenticatorSessionManager();
     void RegisterApplicationStateObserver();
     void UnregisterApplicationStateObserver();
 

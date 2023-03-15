@@ -18,21 +18,12 @@
 
 #include "account_error_no.h"
 #include "app_account_common.h"
-#include "singleton.h"
 
 namespace OHOS {
 namespace AccountSA {
-class AppAccountAuthenticatorManager : public DelayedSingleton<AppAccountAuthenticatorManager> {
+class AppAccountAuthenticatorManager {
 public:
-    AppAccountAuthenticatorManager();
-    virtual ~AppAccountAuthenticatorManager();
-    ErrCode GetAuthenticatorInfo(const std::string &owner, int32_t userId, AuthenticatorInfo &info);
-
-private:
-    void Init();
-
-private:
-    bool isInitialized_ = false;
+    static ErrCode GetAuthenticatorInfo(const std::string &owner, int32_t userId, AuthenticatorInfo &info);
 };
 }  // namespace AccountSA
 }  // namespace OHOS

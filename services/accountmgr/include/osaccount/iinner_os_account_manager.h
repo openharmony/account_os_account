@@ -26,10 +26,9 @@
 
 namespace OHOS {
 namespace AccountSA {
-class IInnerOsAccountManager : public IInnerOsAccount, public DelayedSingleton<IInnerOsAccountManager> {
+class IInnerOsAccountManager : public IInnerOsAccount {
 public:
-    IInnerOsAccountManager();
-    virtual ~IInnerOsAccountManager() = default;
+    static IInnerOsAccountManager &GetInstance();
     void Init() override;
     ErrCode CreateOsAccount(
         const std::string &name, const OsAccountType &type, OsAccountInfo &osAccountInfo) override;
@@ -91,6 +90,8 @@ public:
     ErrCode SendMsgForAccountCreate(OsAccountInfo &osAccountInfo);
 
 private:
+    IInnerOsAccountManager();
+    ~IInnerOsAccountManager() = default;
     void SetOsAccountControl(std::shared_ptr<IOsAccountControl> ptr);
     void StartAccount();
     void RestartActiveAccount();
@@ -122,7 +123,7 @@ private:
     std::shared_ptr<IOsAccountControl> osAccountControl_;
     std::vector<int32_t> activeAccountId_;
     std::vector<int32_t> operatingId_;
-    std::shared_ptr<IOsAccountSubscribe> subscribeManagerPtr_;
+    IOsAccountSubscribe &subscribeManager_;
     std::int32_t deviceOwnerId_;
     std::int32_t defaultActivatedId_;
     mutable std::mutex ativeMutex_;

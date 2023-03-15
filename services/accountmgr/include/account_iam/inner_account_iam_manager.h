@@ -38,9 +38,9 @@ struct AccountCredentialInfo {
     std::vector<uint8_t> secret;
 };
 
-class InnerAccountIAMManager : public DelayedRefSingleton<InnerAccountIAMManager> {
+class InnerAccountIAMManager {
 public:
-    InnerAccountIAMManager();
+    static InnerAccountIAMManager &GetInstance();
     void OpenSession(int32_t userId, std::vector<uint8_t> &challenge);
     void CloseSession(int32_t userId);
     void AddCredential(
@@ -73,6 +73,8 @@ public:
     bool CheckDomainAuthAvailable(int32_t userId);
 
 private:
+    InnerAccountIAMManager();
+    ~InnerAccountIAMManager() = default;
     ErrCode UpdateStorageKey(int32_t userId, const std::vector<uint8_t> &token,
         const std::vector<uint8_t> &oldSecret, const std::vector<uint8_t> &newSecret);
     ErrCode GetStorageManagerProxy();

@@ -34,9 +34,11 @@ const std::string PERMISSION_ACCESS_PIN_AUTH = "ohos.permission.ACCESS_PIN_AUTH"
 const std::string PERMISSION_MANAGE_USER_IDM = "ohos.permission.MANAGE_USER_IDM";
 const std::string PERMISSION_ACCESS_USER_AUTH_INTERNAL = "ohos.permission.ACCESS_USER_AUTH_INTERNAL";
 }
-AccountIAMClient::AccountIAMClient()
+
+AccountIAMClient &AccountIAMClient::GetInstance()
 {
-    permissionManagerPtr_ = DelayedSingleton<AccountPermissionManager>::GetInstance();
+    static AccountIAMClient instance;
+    return instance;
 }
 
 int32_t AccountIAMClient::OpenSession(int32_t userId, std::vector<uint8_t> &challenge)
@@ -281,7 +283,7 @@ void AccountIAMClient::SetProperty(
 ErrCode AccountIAMClient::RegisterPINInputer(const std::shared_ptr<IInputer> &inputer)
 {
     std::lock_guard<std::mutex> lock(pinMutex_);
-    ErrCode result = permissionManagerPtr_->CheckSystemApp(false);
+    ErrCode result = AccountPermissionManager::CheckSystemApp(false);
     if (result != ERR_OK) {
         ACCOUNT_LOGE("is not system application, result = %{public}u.", result);
         return result;
@@ -326,7 +328,7 @@ ErrCode AccountIAMClient::RegisterDomainInputer(const std::shared_ptr<IInputer> 
 
 ErrCode AccountIAMClient::RegisterInputer(int32_t authType, const std::shared_ptr<IInputer> &inputer)
 {
-    ErrCode result = permissionManagerPtr_->CheckSystemApp(false);
+    ErrCode result = AccountPermissionManager::CheckSystemApp(false);
     if (result != ERR_OK) {
         ACCOUNT_LOGE("is not system application, result = %{public}u.", result);
         return result;
@@ -350,7 +352,7 @@ ErrCode AccountIAMClient::RegisterInputer(int32_t authType, const std::shared_pt
 
 ErrCode AccountIAMClient::UnregisterInputer(int32_t authType)
 {
-    ErrCode result = permissionManagerPtr_->CheckSystemApp(false);
+    ErrCode result = AccountPermissionManager::CheckSystemApp(false);
     if (result != ERR_OK) {
         ACCOUNT_LOGE("is not system application, result = %{public}u.", result);
         return result;
@@ -371,7 +373,7 @@ ErrCode AccountIAMClient::UnregisterInputer(int32_t authType)
 
 ErrCode AccountIAMClient::UnregisterPINInputer()
 {
-    ErrCode result = permissionManagerPtr_->CheckSystemApp(false);
+    ErrCode result = AccountPermissionManager::CheckSystemApp(false);
     if (result != ERR_OK) {
         ACCOUNT_LOGE("is not system application, result = %{public}u.", result);
         return result;

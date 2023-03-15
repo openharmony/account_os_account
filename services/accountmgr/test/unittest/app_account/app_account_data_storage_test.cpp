@@ -54,7 +54,6 @@ void AppAccountDataStorageTest::SetUpTestCase(void)
 void AppAccountDataStorageTest::TearDownTestCase(void)
 {
     GTEST_LOG_(INFO) << "TearDownTestCase!";
-    DelayedSingleton<AppAccountControlManager>::DestroyInstance();
 }
 
 void AppAccountDataStorageTest::SetUp(void)

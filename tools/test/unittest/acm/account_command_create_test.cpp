@@ -31,7 +31,6 @@ const std::string STRING_TYPE_NORMAL = "normal";
 const std::string STRING_TYPE_ADMIN = "admin";
 const std::string STRING_TYPE_GUEST = "guest";
 const std::string STRING_TYPE_INVALID = "type_invalid";
-static std::shared_ptr<OsAccount> g_osAccountPtr = nullptr;
 }  // namespace
 
 class AccountCommandCreateTest : public testing::Test {
@@ -45,10 +44,7 @@ public:
 };
 
 void AccountCommandCreateTest::SetUpTestCase()
-{
-    g_osAccountPtr = DelayedSingleton<OsAccount>::GetInstance();
-    EXPECT_NE(g_osAccountPtr, nullptr);
-}
+{}
 
 void AccountCommandCreateTest::TearDownTestCase()
 {}
@@ -59,9 +55,9 @@ void AccountCommandCreateTest::SetUp()
     optind = 0;
 
     std::vector<OsAccountInfo> osAccountInfos;
-    g_osAccountPtr->QueryAllCreatedOsAccounts(osAccountInfos);
+    OsAccount::GetInstance().QueryAllCreatedOsAccounts(osAccountInfos);
     for (const auto &info : osAccountInfos) {
-        g_osAccountPtr->RemoveOsAccount(info.GetLocalId());
+        OsAccount::GetInstance().RemoveOsAccount(info.GetLocalId());
     }
 }
 
