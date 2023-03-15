@@ -14,8 +14,8 @@
  */
 
 #include "accesstoken_kit.h"
-
 #include "account_log_wrapper.h"
+#include "tokenid_kit.h"
 
 using namespace OHOS::AccountSA;
 
@@ -28,11 +28,23 @@ int AccessTokenKit::VerifyAccessToken(unsigned int tokenID, const std::string &p
 
     return PERMISSION_GRANTED;
 }
+
 int AccessTokenKit::GetHapTokenInfo(AccessTokenID tokenID, HapTokenInfo& hapTokenInfoRes)
 {
     ACCOUNT_LOGI("mock GetHapTokenInfo enter");
     hapTokenInfoRes.instIndex = 0;
     return 0;
+}
+
+ATokenTypeEnum AccessTokenKit::GetTokenType(AccessTokenID tokenID)
+{
+    ACCOUNT_LOGI("mock GetHapTokenInfo enter");
+    return TOKEN_SHELL;
+}
+
+bool TokenIdKit::IsSystemAppByFullTokenID(uint64_t tokenId)
+{
+    return true;
 }
 }  // namespace AccessToken
 }  // namespace Security
