@@ -166,7 +166,7 @@ IAMState AccountIAMService::GetAccountState(int32_t userId)
 bool AccountIAMService::GetCurrentUserId(int32_t &userId)
 {
     std::vector<int32_t> userIds;
-    (void)IInnerOsAccountManager::GetInstance()->QueryActiveOsAccountIds(userIds);
+    (void)IInnerOsAccountManager::GetInstance().QueryActiveOsAccountIds(userIds);
     if (userIds.empty()) {
         ACCOUNT_LOGE("fail to get activated os account ids");
         return false;

@@ -118,7 +118,7 @@ ErrCode InnerDomainAccountManager::StartAuth(const sptr<IDomainAccountPlugin> &p
 ErrCode InnerDomainAccountManager::GetDomainAccountInfoByUserId(int32_t userId, DomainAccountInfo &domainInfo)
 {
     OsAccountInfo accountInfo;
-    ErrCode errCode = IInnerOsAccountManager::GetInstance()->QueryOsAccountById(userId, accountInfo);
+    ErrCode errCode = IInnerOsAccountManager::GetInstance().QueryOsAccountById(userId, accountInfo);
     if (errCode != ERR_OK) {
         ACCOUNT_LOGE("get os account info failed, errCode: %{public}d", errCode);
         return errCode;
@@ -136,7 +136,7 @@ ErrCode InnerDomainAccountManager::Auth(const DomainAccountInfo &info, const std
 {
     int32_t userId = 0;
     sptr<IDomainAuthCallback> innerCallback = callback;
-    IInnerOsAccountManager::GetInstance()->GetOsAccountLocalIdFromDomain(info, userId);
+    IInnerOsAccountManager::GetInstance().GetOsAccountLocalIdFromDomain(info, userId);
     if (userId != 0) {
         innerCallback = new (std::nothrow) InnerDomainAuthCallback(userId, callback);
         if (innerCallback == nullptr) {
@@ -181,7 +181,7 @@ ErrCode InnerDomainAccountManager::AuthWithPopup(int32_t userId, const sptr<IDom
 {
     if (userId == 0) {
         std::vector<int32_t> userIds;
-        (void)IInnerOsAccountManager::GetInstance()->QueryActiveOsAccountIds(userIds);
+        (void)IInnerOsAccountManager::GetInstance().QueryActiveOsAccountIds(userIds);
         if (userIds.empty()) {
             ACCOUNT_LOGE("fail to get activated os account ids");
             return ERR_OSACCOUNT_SERVICE_INNER_CANNOT_FIND_OSACCOUNT_ERROR;

@@ -16,18 +16,15 @@
 #ifndef OS_ACCOUNT_SERVICES_ACCOUNTMGR_INCLUDE_ACCOUNT_PERMISSION_MANAGER_H
 #define OS_ACCOUNT_SERVICES_ACCOUNTMGR_INCLUDE_ACCOUNT_PERMISSION_MANAGER_H
 
+#include <string>
 #include "account_error_no.h"
-#include "singleton.h"
 
 namespace OHOS {
 namespace AccountSA {
-class AccountPermissionManager : public DelayedSingleton<AccountPermissionManager> {
+class AccountPermissionManager {
 public:
-    AccountPermissionManager();
-    ~AccountPermissionManager();
-
-    ErrCode VerifyPermission(const std::string &permissionName);
-    ErrCode CheckSystemApp(bool isCallStub = true);
+    static ErrCode VerifyPermission(const std::string &permissionName);
+    static ErrCode CheckSystemApp(bool isCallStub = true);
 
     static const std::string DISTRIBUTED_DATASYNC;
     static const std::string GET_ALL_APP_ACCOUNTS;

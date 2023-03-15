@@ -55,7 +55,6 @@ public:
     void TearDown(void) override;
     std::shared_ptr<AppAccountManagerService>
         appAccountManagerServicePtr_ = std::make_shared<AppAccountManagerService>();
-    std::shared_ptr<AppAccountControlManager> controlManagerPtr_ = AppAccountControlManager::GetInstance();
 };
 
 void AppAccountManagerServiceSubscribeModuleTest::SetUpTestCase(void)
@@ -66,7 +65,6 @@ void AppAccountManagerServiceSubscribeModuleTest::SetUpTestCase(void)
 void AppAccountManagerServiceSubscribeModuleTest::TearDownTestCase(void)
 {
     GTEST_LOG_(INFO) << "TearDownTestCase";
-    DelayedSingleton<AppAccountControlManager>::DestroyInstance();
     std::this_thread::sleep_for(std::chrono::milliseconds(WAIT_FOR_EXIT));
 }
 
@@ -243,12 +241,12 @@ HWTEST_F(AppAccountManagerServiceSubscribeModuleTest, AppAccountManagerServiceSu
     // make an event listener
     sptr<IRemoteObject> appAccountEventListener = nullptr;
 
-    ErrCode subscribeState = DelayedSingleton<AppAccount>::GetInstance()->CreateAppAccountEventListener(
+    ErrCode subscribeState = AppAccount::GetInstance().CreateAppAccountEventListener(
         subscriberTestPtr, appAccountEventListener);
     EXPECT_EQ(subscribeState, AppAccount::INITIAL_SUBSCRIPTION);
 
     subscribeState =
-        DelayedSingleton<AppAccount>::GetInstance()->CreateAppAccountEventListener(nullptr, appAccountEventListener);
+        AppAccount::GetInstance().CreateAppAccountEventListener(nullptr, appAccountEventListener);
     EXPECT_EQ(subscribeState, AppAccount::SUBSCRIBE_FAILED);
 
     // subscribe app account
@@ -322,7 +320,7 @@ HWTEST_F(AppAccountManagerServiceSubscribeModuleTest, AppAccountManagerServiceSu
     // make an event listener
     sptr<IRemoteObject> appAccountEventListener = nullptr;
 
-    ErrCode subscribeState = DelayedSingleton<AppAccount>::GetInstance()->CreateAppAccountEventListener(
+    ErrCode subscribeState = AppAccount::GetInstance().CreateAppAccountEventListener(
         subscriberTestPtr, appAccountEventListener);
     EXPECT_EQ(subscribeState, AppAccount::INITIAL_SUBSCRIPTION);
 
@@ -359,7 +357,7 @@ HWTEST_F(AppAccountManagerServiceSubscribeModuleTest, AppAccountManagerServiceSu
     // make an event listener
     sptr<IRemoteObject> appAccountEventListener = nullptr;
 
-    ErrCode subscribeState = DelayedSingleton<AppAccount>::GetInstance()->CreateAppAccountEventListener(
+    ErrCode subscribeState = AppAccount::GetInstance().CreateAppAccountEventListener(
         subscriberTestPtr, appAccountEventListener);
     EXPECT_EQ(subscribeState, AppAccount::INITIAL_SUBSCRIPTION);
 
@@ -383,14 +381,16 @@ HWTEST_F(AppAccountManagerServiceSubscribeModuleTest, AppAccountManagerServiceSu
     std::string name = STRING_NAME;
     std::string bundleName = STRING_BUNDLE_NAME;
     AppAccountInfo appAccountInfo(name, bundleName);
-    ErrCode result = controlManagerPtr_->AddAccount(name, STRING_EXTRA_INFO, UID, bundleName, appAccountInfo);
+    ErrCode result = AppAccountControlManager::GetInstance().AddAccount(
+        name, STRING_EXTRA_INFO, UID, bundleName, appAccountInfo);
     EXPECT_EQ(result, ERR_OK);
 
     // enable app access
     AppAccountCallingInfo appAccountCallingInfo;
     appAccountCallingInfo.callingUid = UID;
     appAccountCallingInfo.bundleName = bundleName;
-    result = controlManagerPtr_->EnableAppAccess(name, STRING_OWNER, appAccountCallingInfo, appAccountInfo);
+    result = AppAccountControlManager::GetInstance().EnableAppAccess(
+        name, STRING_OWNER, appAccountCallingInfo, appAccountInfo);
     EXPECT_EQ(result, ERR_OK);
 
     // make owners
@@ -406,7 +406,7 @@ HWTEST_F(AppAccountManagerServiceSubscribeModuleTest, AppAccountManagerServiceSu
     // make an event listener
     sptr<IRemoteObject> appAccountEventListener = nullptr;
 
-    ErrCode subscribeState = DelayedSingleton<AppAccount>::GetInstance()->CreateAppAccountEventListener(
+    ErrCode subscribeState = AppAccount::GetInstance().CreateAppAccountEventListener(
         subscriberTestPtr, appAccountEventListener);
     EXPECT_EQ(subscribeState, AppAccount::INITIAL_SUBSCRIPTION);
 
@@ -419,7 +419,7 @@ HWTEST_F(AppAccountManagerServiceSubscribeModuleTest, AppAccountManagerServiceSu
     EXPECT_EQ(result, ERR_OK);
 
     // delete account
-    result = controlManagerPtr_->DeleteAccount(name, UID, bundleName, appAccountInfo);
+    result = AppAccountControlManager::GetInstance().DeleteAccount(name, UID, bundleName, appAccountInfo);
     EXPECT_EQ(result, ERR_OK);
 }
 
@@ -460,7 +460,7 @@ HWTEST_F(AppAccountManagerServiceSubscribeModuleTest, AppAccountManagerServiceSu
     // make an event listener
     sptr<IRemoteObject> appAccountEventListener = nullptr;
 
-    ErrCode subscribeState = DelayedSingleton<AppAccount>::GetInstance()->CreateAppAccountEventListener(
+    ErrCode subscribeState = AppAccount::GetInstance().CreateAppAccountEventListener(
         subscriberTestPtr, appAccountEventListener);
     EXPECT_EQ(subscribeState, AppAccount::INITIAL_SUBSCRIPTION);
 
@@ -551,7 +551,7 @@ HWTEST_F(AppAccountManagerServiceSubscribeModuleTest, AppAccountManagerServiceSu
     // make an event listener
     sptr<IRemoteObject> appAccountEventListener = nullptr;
 
-    ErrCode subscribeState = DelayedSingleton<AppAccount>::GetInstance()->CreateAppAccountEventListener(
+    ErrCode subscribeState = AppAccount::GetInstance().CreateAppAccountEventListener(
         subscriberTestPtr, appAccountEventListener);
     EXPECT_EQ(subscribeState, AppAccount::INITIAL_SUBSCRIPTION);
 
@@ -646,7 +646,7 @@ HWTEST_F(AppAccountManagerServiceSubscribeModuleTest, AppAccountManagerServiceSu
     // make an event listener
     sptr<IRemoteObject> appAccountEventListener = nullptr;
 
-    ErrCode subscribeState = DelayedSingleton<AppAccount>::GetInstance()->CreateAppAccountEventListener(
+    ErrCode subscribeState = AppAccount::GetInstance().CreateAppAccountEventListener(
         subscriberTestPtr, appAccountEventListener);
     EXPECT_EQ(subscribeState, AppAccount::INITIAL_SUBSCRIPTION);
 
@@ -724,7 +724,7 @@ HWTEST_F(AppAccountManagerServiceSubscribeModuleTest, AppAccountManagerServiceSu
     // make an event listener
     sptr<IRemoteObject> appAccountEventListener = nullptr;
 
-    ErrCode subscribeState = DelayedSingleton<AppAccount>::GetInstance()->CreateAppAccountEventListener(
+    ErrCode subscribeState = AppAccount::GetInstance().CreateAppAccountEventListener(
         subscriberTestPtr, appAccountEventListener);
     EXPECT_EQ(subscribeState, AppAccount::INITIAL_SUBSCRIPTION);
 
@@ -738,7 +738,7 @@ HWTEST_F(AppAccountManagerServiceSubscribeModuleTest, AppAccountManagerServiceSu
     // make an event listener
     sptr<IRemoteObject> appAccountEventListenerTwo = nullptr;
 
-    subscribeState = DelayedSingleton<AppAccount>::GetInstance()->CreateAppAccountEventListener(
+    subscribeState = AppAccount::GetInstance().CreateAppAccountEventListener(
         subscriberTestPtrTwo, appAccountEventListenerTwo);
     EXPECT_EQ(subscribeState, AppAccount::INITIAL_SUBSCRIPTION);
 

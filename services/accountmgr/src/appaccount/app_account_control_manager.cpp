@@ -31,8 +31,11 @@
 
 namespace OHOS {
 namespace AccountSA {
-AppAccountControlManager::AppAccountControlManager()
-{}
+AppAccountControlManager &AppAccountControlManager::GetInstance()
+{
+    static AppAccountControlManager instance;
+    return instance;
+}
 
 ErrCode AppAccountControlManager::AddAccount(const std::string &name, const std::string &extraInfo, const uid_t &uid,
     const std::string &bundleName, AppAccountInfo &appAccountInfo)
@@ -726,11 +729,7 @@ ErrCode AppAccountControlManager::SelectAccountsByOptions(
     request.callback = callback;
     request.callerUid = uid;
     request.labels = options.requiredLabels;
-    auto sessionManager = AppAccountAuthenticatorSessionManager::GetInstance();
-    if (sessionManager == nullptr) {
-        return ERR_APPACCOUNT_SERVICE_OAUTH_SERVICE_EXCEPTION;
-    }
-    return sessionManager->SelectAccountsByOptions(candidateAccounts, request);
+    return AppAccountAuthenticatorSessionManager::GetInstance().SelectAccountsByOptions(candidateAccounts, request);
 }
 
 void AppAccountControlManager::RemoveAssociatedDataCacheByUid(const uid_t &uid)

@@ -91,7 +91,6 @@ protected:
 private:
     void Init();
     void CloseSelf() const;
-    int32_t UpdateAuthInfo(const AAFwk::Want &result) const;
     int32_t OnAuthenticateDone(const AAFwk::Want &result) const;
     int32_t OnAddAccountImplicitlyDone(const AAFwk::Want &result) const;
 

@@ -66,11 +66,9 @@ ErrCode CheckLocalId(int localId)
 }
 }  // namespace
 
-OsAccountManagerService::OsAccountManagerService()
-{
-    innerManager_ = DelayedSingleton<IInnerOsAccountManager>::GetInstance();
-    permissionManagerPtr_ = DelayedSingleton<AccountPermissionManager>::GetInstance();
-}
+OsAccountManagerService::OsAccountManagerService() : innerManager_(IInnerOsAccountManager::GetInstance())
+{}
+
 OsAccountManagerService::~OsAccountManagerService()
 {}
 
@@ -78,7 +76,7 @@ ErrCode OsAccountManagerService::CreateOsAccount(
     const std::string &name, const OsAccountType &type, OsAccountInfo &osAccountInfo)
 {
     bool isMultiOsAccountEnable = false;
-    innerManager_->IsMultiOsAccountEnable(isMultiOsAccountEnable);
+    innerManager_.IsMultiOsAccountEnable(isMultiOsAccountEnable);
     if (!isMultiOsAccountEnable) {
         ACCOUNT_LOGE("system is not multi os account enable error");
         return ERR_OSACCOUNT_SERVICE_MANAGER_NOT_ENABLE_MULTI_ERROR;
@@ -106,7 +104,7 @@ ErrCode OsAccountManagerService::CreateOsAccount(
     }
 
     bool isAllowedCreateAdmin = false;
-    ErrCode errCode = innerManager_->IsAllowedCreateAdmin(isAllowedCreateAdmin);
+    ErrCode errCode = innerManager_.IsAllowedCreateAdmin(isAllowedCreateAdmin);
     if (errCode != ERR_OK) {
         ACCOUNT_LOGE("query allowed create admin error");
         return errCode;
@@ -115,7 +113,7 @@ ErrCode OsAccountManagerService::CreateOsAccount(
         ACCOUNT_LOGE("cannot create admin account error");
         return ERR_OSACCOUNT_SERVICE_MANAGER_CREATE_OSACCOUNT_TYPE_ERROR;
     }
-    return innerManager_->CreateOsAccount(name, type, osAccountInfo);
+    return innerManager_.CreateOsAccount(name, type, osAccountInfo);
 }
 
 ErrCode OsAccountManagerService::CreateOsAccountForDomain(const OsAccountType &type,
@@ -123,7 +121,7 @@ ErrCode OsAccountManagerService::CreateOsAccountForDomain(const OsAccountType &t
 {
     ACCOUNT_LOGI("start");
     bool isMultiOsAccountEnable = false;
-    innerManager_->IsMultiOsAccountEnable(isMultiOsAccountEnable);
+    innerManager_.IsMultiOsAccountEnable(isMultiOsAccountEnable);
     if (!isMultiOsAccountEnable) {
         return ERR_OSACCOUNT_SERVICE_MANAGER_NOT_ENABLE_MULTI_ERROR;
     }
@@ -148,14 +146,14 @@ ErrCode OsAccountManagerService::CreateOsAccountForDomain(const OsAccountType &t
     }
 
     bool isAllowedCreateAdmin = false;
-    ErrCode errCode = innerManager_->IsAllowedCreateAdmin(isAllowedCreateAdmin);
+    ErrCode errCode = innerManager_.IsAllowedCreateAdmin(isAllowedCreateAdmin);
     if (errCode != ERR_OK) {
         return errCode;
     }
     if (!isAllowedCreateAdmin && type == OsAccountType::ADMIN) {
         return ERR_OSACCOUNT_SERVICE_MANAGER_CREATE_OSACCOUNT_TYPE_ERROR;
     }
-    return innerManager_->CreateOsAccountForDomain(type, domainInfo, callback);
+    return innerManager_.CreateOsAccountForDomain(type, domainInfo, callback);
 }
 
 ErrCode OsAccountManagerService::RemoveOsAccount(const int id)
@@ -176,12 +174,12 @@ ErrCode OsAccountManagerService::RemoveOsAccount(const int id)
         return ERR_OSACCOUNT_SERVICE_PERMISSION_DENIED;
     }
 
-    return innerManager_->RemoveOsAccount(id);
+    return innerManager_.RemoveOsAccount(id);
 }
 
 ErrCode OsAccountManagerService::IsOsAccountExists(const int id, bool &isOsAccountExists)
 {
-    return innerManager_->IsOsAccountExists(id, isOsAccountExists);
+    return innerManager_.IsOsAccountExists(id, isOsAccountExists);
 }
 
 ErrCode OsAccountManagerService::IsOsAccountActived(const int id, bool &isOsAccountActived)
@@ -194,7 +192,7 @@ ErrCode OsAccountManagerService::IsOsAccountActived(const int id, bool &isOsAcco
     // check current account state
     int callerUserId = IPCSkeleton::GetCallingUid() / UID_TRANSFORM_DIVISOR;
     if (callerUserId == id) {
-        return innerManager_->IsOsAccountActived(id, isOsAccountActived);
+        return innerManager_.IsOsAccountActived(id, isOsAccountActived);
     }
 
     // check other account state, check permission first
@@ -204,7 +202,7 @@ ErrCode OsAccountManagerService::IsOsAccountActived(const int id, bool &isOsAcco
         return ERR_OSACCOUNT_SERVICE_PERMISSION_DENIED;
     }
 
-    return innerManager_->IsOsAccountActived(id, isOsAccountActived);
+    return innerManager_.IsOsAccountActived(id, isOsAccountActived);
 }
 
 ErrCode OsAccountManagerService::IsOsAccountConstraintEnable(
@@ -220,7 +218,7 @@ ErrCode OsAccountManagerService::IsOsAccountConstraintEnable(
         return ERR_OSACCOUNT_SERVICE_PERMISSION_DENIED;
     }
 
-    return innerManager_->IsOsAccountConstraintEnable(id, constraint, isConstraintEnable);
+    return innerManager_.IsOsAccountConstraintEnable(id, constraint, isConstraintEnable);
 }
 
 ErrCode OsAccountManagerService::CheckOsAccountConstraintEnabled(
@@ -237,7 +235,7 @@ ErrCode OsAccountManagerService::CheckOsAccountConstraintEnabled(
         return ERR_OSACCOUNT_SERVICE_PERMISSION_DENIED;
     }
 
-    return innerManager_->IsOsAccountConstraintEnable(id, constraint, isEnabled);
+    return innerManager_.IsOsAccountConstraintEnable(id, constraint, isEnabled);
 }
 
 ErrCode OsAccountManagerService::IsOsAccountVerified(const int id, bool &isVerified)
@@ -249,7 +247,7 @@ ErrCode OsAccountManagerService::IsOsAccountVerified(const int id, bool &isVerif
     // check current account state
     int callerUserId = IPCSkeleton::GetCallingUid() / UID_TRANSFORM_DIVISOR;
     if (callerUserId == id) {
-        return innerManager_->IsOsAccountVerified(id, isVerified);
+        return innerManager_.IsOsAccountVerified(id, isVerified);
     }
 
     // check other account state, check permission first
@@ -259,7 +257,7 @@ ErrCode OsAccountManagerService::IsOsAccountVerified(const int id, bool &isVerif
         return ERR_OSACCOUNT_SERVICE_PERMISSION_DENIED;
     }
 
-    return innerManager_->IsOsAccountVerified(id, isVerified);
+    return innerManager_.IsOsAccountVerified(id, isVerified);
 }
 
 ErrCode OsAccountManagerService::GetCreatedOsAccountsCount(unsigned int &osAccountsCount)
@@ -270,7 +268,7 @@ ErrCode OsAccountManagerService::GetCreatedOsAccountsCount(unsigned int &osAccou
         return ERR_OSACCOUNT_SERVICE_PERMISSION_DENIED;
     }
 
-    return innerManager_->GetCreatedOsAccountsCount(osAccountsCount);
+    return innerManager_.GetCreatedOsAccountsCount(osAccountsCount);
 }
 
 ErrCode OsAccountManagerService::GetOsAccountLocalIdFromProcess(int &id)
@@ -310,12 +308,12 @@ ErrCode OsAccountManagerService::GetOsAccountLocalIdFromDomain(const DomainAccou
         return ERR_OSACCOUNT_SERVICE_PERMISSION_DENIED;
     }
 
-    return innerManager_->GetOsAccountLocalIdFromDomain(domainInfo, id);
+    return innerManager_.GetOsAccountLocalIdFromDomain(domainInfo, id);
 }
 
 ErrCode OsAccountManagerService::QueryMaxOsAccountNumber(int &maxOsAccountNumber)
 {
-    return innerManager_->QueryMaxOsAccountNumber(maxOsAccountNumber);
+    return innerManager_.QueryMaxOsAccountNumber(maxOsAccountNumber);
 }
 
 ErrCode OsAccountManagerService::GetOsAccountAllConstraints(const int id, std::vector<std::string> &constraints)
@@ -330,7 +328,7 @@ ErrCode OsAccountManagerService::GetOsAccountAllConstraints(const int id, std::v
         return ERR_OSACCOUNT_SERVICE_PERMISSION_DENIED;
     }
 
-    return innerManager_->GetOsAccountAllConstraints(id, constraints);
+    return innerManager_.GetOsAccountAllConstraints(id, constraints);
 }
 
 ErrCode OsAccountManagerService::QueryAllCreatedOsAccounts(std::vector<OsAccountInfo> &osAccountInfos)
@@ -341,7 +339,7 @@ ErrCode OsAccountManagerService::QueryAllCreatedOsAccounts(std::vector<OsAccount
         return ERR_OSACCOUNT_SERVICE_PERMISSION_DENIED;
     }
 
-    return innerManager_->QueryAllCreatedOsAccounts(osAccountInfos);
+    return innerManager_.QueryAllCreatedOsAccounts(osAccountInfos);
 }
 
 ErrCode OsAccountManagerService::QueryCurrentOsAccount(OsAccountInfo &osAccountInfo)
@@ -353,7 +351,7 @@ ErrCode OsAccountManagerService::QueryCurrentOsAccount(OsAccountInfo &osAccountI
     }
 
     int id = IPCSkeleton::GetCallingUid() / UID_TRANSFORM_DIVISOR;
-    return innerManager_->QueryOsAccountById(id, osAccountInfo);
+    return innerManager_.QueryOsAccountById(id, osAccountInfo);
 }
 
 ErrCode OsAccountManagerService::QueryOsAccountById(const int id, OsAccountInfo &osAccountInfo)
@@ -370,13 +368,13 @@ ErrCode OsAccountManagerService::QueryOsAccountById(const int id, OsAccountInfo 
         return ERR_OSACCOUNT_SERVICE_PERMISSION_DENIED;
     }
 
-    return innerManager_->QueryOsAccountById(id, osAccountInfo);
+    return innerManager_.QueryOsAccountById(id, osAccountInfo);
 }
 
 ErrCode OsAccountManagerService::GetOsAccountTypeFromProcess(OsAccountType &type)
 {
     int id = IPCSkeleton::GetCallingUid() / UID_TRANSFORM_DIVISOR;
-    return innerManager_->GetOsAccountType(id, type);
+    return innerManager_.GetOsAccountType(id, type);
 }
 
 ErrCode OsAccountManagerService::GetOsAccountProfilePhoto(const int id, std::string &photo)
@@ -388,7 +386,7 @@ ErrCode OsAccountManagerService::GetOsAccountProfilePhoto(const int id, std::str
     // get current account photo
     int callerUserId = IPCSkeleton::GetCallingUid() / UID_TRANSFORM_DIVISOR;
     if (callerUserId == id) {
-        return innerManager_->GetOsAccountProfilePhoto(id, photo);
+        return innerManager_.GetOsAccountProfilePhoto(id, photo);
     }
 
     // get other account photo, check permission first
@@ -397,12 +395,12 @@ ErrCode OsAccountManagerService::GetOsAccountProfilePhoto(const int id, std::str
         return ERR_OSACCOUNT_SERVICE_PERMISSION_DENIED;
     }
 
-    return innerManager_->GetOsAccountProfilePhoto(id, photo);
+    return innerManager_.GetOsAccountProfilePhoto(id, photo);
 }
 
 ErrCode OsAccountManagerService::IsMultiOsAccountEnable(bool &isMultiOsAccountEnable)
 {
-    return innerManager_->IsMultiOsAccountEnable(isMultiOsAccountEnable);
+    return innerManager_.IsMultiOsAccountEnable(isMultiOsAccountEnable);
 }
 
 ErrCode OsAccountManagerService::SetOsAccountName(const int id, const std::string &name)
@@ -427,7 +425,7 @@ ErrCode OsAccountManagerService::SetOsAccountName(const int id, const std::strin
         return ERR_OSACCOUNT_SERVICE_PERMISSION_DENIED;
     }
 
-    return innerManager_->SetOsAccountName(id, name);
+    return innerManager_.SetOsAccountName(id, name);
 }
 
 ErrCode OsAccountManagerService::SetOsAccountConstraints(
@@ -444,7 +442,7 @@ ErrCode OsAccountManagerService::SetOsAccountConstraints(
         return ERR_OSACCOUNT_SERVICE_PERMISSION_DENIED;
     }
 
-    return innerManager_->SetBaseOsAccountConstraints(id, constraints, enable);
+    return innerManager_.SetBaseOsAccountConstraints(id, constraints, enable);
 }
 
 ErrCode OsAccountManagerService::SetOsAccountProfilePhoto(const int id, const std::string &photo)
@@ -468,7 +466,7 @@ ErrCode OsAccountManagerService::SetOsAccountProfilePhoto(const int id, const st
         return ERR_OSACCOUNT_SERVICE_PERMISSION_DENIED;
     }
 
-    return innerManager_->SetOsAccountProfilePhoto(id, photo);
+    return innerManager_.SetOsAccountProfilePhoto(id, photo);
 }
 
 ErrCode OsAccountManagerService::ActivateOsAccount(const int id)
@@ -485,17 +483,17 @@ ErrCode OsAccountManagerService::ActivateOsAccount(const int id)
         return ERR_OSACCOUNT_SERVICE_PERMISSION_DENIED;
     }
 
-    return innerManager_->ActivateOsAccount(id);
+    return innerManager_.ActivateOsAccount(id);
 }
 
 ErrCode OsAccountManagerService::StartOsAccount(const int id)
 {
-    return innerManager_->StartOsAccount(id);
+    return innerManager_.StartOsAccount(id);
 }
 
 ErrCode OsAccountManagerService::StopOsAccount(const int id)
 {
-    return innerManager_->StopOsAccount(id);
+    return innerManager_.StopOsAccount(id);
 }
 
 ErrCode OsAccountManagerService::SubscribeOsAccount(
@@ -507,7 +505,7 @@ ErrCode OsAccountManagerService::SubscribeOsAccount(
         return ERR_OSACCOUNT_SERVICE_PERMISSION_DENIED;
     }
 
-    return innerManager_->SubscribeOsAccount(subscribeInfo, eventListener);
+    return innerManager_.SubscribeOsAccount(subscribeInfo, eventListener);
 }
 
 ErrCode OsAccountManagerService::UnsubscribeOsAccount(const sptr<IRemoteObject> &eventListener)
@@ -518,12 +516,12 @@ ErrCode OsAccountManagerService::UnsubscribeOsAccount(const sptr<IRemoteObject> 
         return ERR_OSACCOUNT_SERVICE_PERMISSION_DENIED;
     }
 
-    return innerManager_->UnsubscribeOsAccount(eventListener);
+    return innerManager_.UnsubscribeOsAccount(eventListener);
 }
 
 ErrCode OsAccountManagerService::GetOsAccountLocalIdBySerialNumber(const int64_t serialNumber, int &id)
 {
-    return innerManager_->GetOsAccountLocalIdBySerialNumber(serialNumber, id);
+    return innerManager_.GetOsAccountLocalIdBySerialNumber(serialNumber, id);
 }
 
 ErrCode OsAccountManagerService::GetSerialNumberByOsAccountLocalId(const int &id, int64_t &serialNumber)
@@ -532,23 +530,23 @@ ErrCode OsAccountManagerService::GetSerialNumberByOsAccountLocalId(const int &id
     if (result != ERR_OK) {
         return result;
     }
-    return innerManager_->GetSerialNumberByOsAccountLocalId(id, serialNumber);
+    return innerManager_.GetSerialNumberByOsAccountLocalId(id, serialNumber);
 }
 
 OS_ACCOUNT_SWITCH_MOD OsAccountManagerService::GetOsAccountSwitchMod()
 {
-    return innerManager_->GetOsAccountSwitchMod();
+    return innerManager_.GetOsAccountSwitchMod();
 }
 
 ErrCode OsAccountManagerService::IsCurrentOsAccountVerified(bool &isVerified)
 {
     int id = IPCSkeleton::GetCallingUid() / UID_TRANSFORM_DIVISOR;
-    return innerManager_->IsOsAccountVerified(id, isVerified);
+    return innerManager_.IsOsAccountVerified(id, isVerified);
 }
 
 ErrCode OsAccountManagerService::IsOsAccountCompleted(const int id, bool &isOsAccountCompleted)
 {
-    return innerManager_->IsOsAccountCompleted(id, isOsAccountCompleted);
+    return innerManager_.IsOsAccountCompleted(id, isOsAccountCompleted);
 }
 
 ErrCode OsAccountManagerService::SetCurrentOsAccountIsVerified(const bool isVerified)
@@ -566,7 +564,7 @@ ErrCode OsAccountManagerService::SetCurrentOsAccountIsVerified(const bool isVeri
         return res;
     }
 
-    return innerManager_->SetOsAccountIsVerified(id, isVerified);
+    return innerManager_.SetOsAccountIsVerified(id, isVerified);
 }
 
 ErrCode OsAccountManagerService::SetOsAccountIsVerified(const int id, const bool isVerified)
@@ -583,7 +581,7 @@ ErrCode OsAccountManagerService::SetOsAccountIsVerified(const int id, const bool
         return ERR_OSACCOUNT_SERVICE_PERMISSION_DENIED;
     }
 
-    return innerManager_->SetOsAccountIsVerified(id, isVerified);
+    return innerManager_.SetOsAccountIsVerified(id, isVerified);
 }
 
 ErrCode OsAccountManagerService::DumpState(const int &id, std::vector<std::string> &state)
@@ -600,13 +598,13 @@ ErrCode OsAccountManagerService::DumpState(const int &id, std::vector<std::strin
     std::vector<OsAccountInfo> osAccountInfos;
 
     if (id == -1) {
-        result = innerManager_->QueryAllCreatedOsAccounts(osAccountInfos);
+        result = innerManager_.QueryAllCreatedOsAccounts(osAccountInfos);
         if (result != ERR_OK) {
             return result;
         }
     } else {
         OsAccountInfo osAccountInfo;
-        result = innerManager_->QueryOsAccountById(id, osAccountInfo);
+        result = innerManager_.QueryOsAccountById(id, osAccountInfo);
         if (result != ERR_OK) {
             return result;
         }
@@ -623,7 +621,7 @@ ErrCode OsAccountManagerService::DumpOsAccountInfo(std::vector<std::string> &sta
 
     ErrCode result = ERR_OK;
     std::vector<OsAccountInfo> osAccountInfos;
-    result = innerManager_->QueryAllCreatedOsAccounts(osAccountInfos);
+    result = innerManager_.QueryAllCreatedOsAccounts(osAccountInfos);
     if (result != ERR_OK) {
         return result;
     }
@@ -640,25 +638,25 @@ ErrCode OsAccountManagerService::GetCreatedOsAccountNumFromDatabase(const std::s
         return ERR_OSACCOUNT_SERVICE_PERMISSION_DENIED;
     }
 
-    return innerManager_->GetCreatedOsAccountNumFromDatabase(storeID, createdOsAccountNum);
+    return innerManager_.GetCreatedOsAccountNumFromDatabase(storeID, createdOsAccountNum);
 }
 
 void OsAccountManagerService::CreateBasicAccounts()
 {
     ACCOUNT_LOGI("enter!");
-    innerManager_->Init();
+    innerManager_.Init();
     ACCOUNT_LOGI("exit!");
 }
 
 ErrCode OsAccountManagerService::GetSerialNumberFromDatabase(const std::string& storeID,
     int64_t &serialNumber)
 {
-    return innerManager_->GetSerialNumberFromDatabase(storeID, serialNumber);
+    return innerManager_.GetSerialNumberFromDatabase(storeID, serialNumber);
 }
 
 ErrCode OsAccountManagerService::GetMaxAllowCreateIdFromDatabase(const std::string& storeID, int &id)
 {
-    return innerManager_->GetMaxAllowCreateIdFromDatabase(storeID, id);
+    return innerManager_.GetMaxAllowCreateIdFromDatabase(storeID, id);
 }
 
 ErrCode OsAccountManagerService::GetOsAccountFromDatabase(const std::string& storeID,
@@ -670,7 +668,7 @@ ErrCode OsAccountManagerService::GetOsAccountFromDatabase(const std::string& sto
         return ERR_OSACCOUNT_SERVICE_PERMISSION_DENIED;
     }
 
-    return innerManager_->GetOsAccountFromDatabase(storeID, id, osAccountInfo);
+    return innerManager_.GetOsAccountFromDatabase(storeID, id, osAccountInfo);
 }
 
 ErrCode OsAccountManagerService::GetOsAccountListFromDatabase(const std::string& storeID,
@@ -682,7 +680,7 @@ ErrCode OsAccountManagerService::GetOsAccountListFromDatabase(const std::string&
         return ERR_OSACCOUNT_SERVICE_PERMISSION_DENIED;
     }
 
-    return innerManager_->GetOsAccountListFromDatabase(storeID, osAccountList);
+    return innerManager_.GetOsAccountListFromDatabase(storeID, osAccountList);
 }
 
 ErrCode OsAccountManagerService::DumpStateByAccounts(
@@ -732,7 +730,7 @@ ErrCode OsAccountManagerService::DumpStateByAccounts(
 
 ErrCode OsAccountManagerService::QueryActiveOsAccountIds(std::vector<int32_t>& ids)
 {
-    return innerManager_->QueryActiveOsAccountIds(ids);
+    return innerManager_.QueryActiveOsAccountIds(ids);
 }
 
 ErrCode OsAccountManagerService::QueryOsAccountConstraintSourceTypes(const int32_t id,
@@ -755,7 +753,7 @@ ErrCode OsAccountManagerService::QueryOsAccountConstraintSourceTypes(const int32
         return ERR_OSACCOUNT_SERVICE_PERMISSION_DENIED;
     }
 
-    return innerManager_->QueryOsAccountConstraintSourceTypes(id, constraint, constraintSourceTypeInfos);
+    return innerManager_.QueryOsAccountConstraintSourceTypes(id, constraint, constraintSourceTypeInfos);
 }
 
 ErrCode OsAccountManagerService::SetGlobalOsAccountConstraints(const std::vector<std::string> &constraints,
@@ -767,7 +765,7 @@ ErrCode OsAccountManagerService::SetGlobalOsAccountConstraints(const std::vector
         return ERR_OSACCOUNT_SERVICE_PERMISSION_DENIED;
     }
 
-    return innerManager_->SetGlobalOsAccountConstraints(constraints, enable, enforcerId, isDeviceOwner);
+    return innerManager_.SetGlobalOsAccountConstraints(constraints, enable, enforcerId, isDeviceOwner);
 }
 
 ErrCode OsAccountManagerService::SetSpecificOsAccountConstraints(const std::vector<std::string> &constraints,
@@ -785,7 +783,7 @@ ErrCode OsAccountManagerService::SetSpecificOsAccountConstraints(const std::vect
         return ERR_OSACCOUNT_SERVICE_MANAGER_ID_ERROR;
     }
 
-    return innerManager_->SetSpecificOsAccountConstraints(constraints, enable, targetId, enforcerId, isDeviceOwner);
+    return innerManager_.SetSpecificOsAccountConstraints(constraints, enable, targetId, enforcerId, isDeviceOwner);
 }
 
 ErrCode OsAccountManagerService::SetDefaultActivatedOsAccount(const int32_t id)
@@ -802,12 +800,12 @@ ErrCode OsAccountManagerService::SetDefaultActivatedOsAccount(const int32_t id)
         return ERR_OSACCOUNT_SERVICE_PERMISSION_DENIED;
     }
 
-    return innerManager_->SetDefaultActivatedOsAccount(id);
+    return innerManager_.SetDefaultActivatedOsAccount(id);
 }
 
 ErrCode OsAccountManagerService::GetDefaultActivatedOsAccount(int32_t &id)
 {
-    return innerManager_->GetDefaultActivatedOsAccount(id);
+    return innerManager_.GetDefaultActivatedOsAccount(id);
 }
 
 bool OsAccountManagerService::PermissionCheck(const std::string& permissionName, const std::string& constraintName)
@@ -817,7 +815,7 @@ bool OsAccountManagerService::PermissionCheck(const std::string& permissionName,
     if (!constraintName.empty()) {
         int callerUserId = callerUid / UID_TRANSFORM_DIVISOR;
         bool isEnable = true;
-        innerManager_->IsOsAccountConstraintEnable(callerUserId, constraintName, isEnable);
+        innerManager_.IsOsAccountConstraintEnable(callerUserId, constraintName, isEnable);
         if (isEnable) {
             ACCOUNT_LOGE("constraint check %{public}s failed.", constraintName.c_str());
             ReportPermissionFail(callerUid, IPCSkeleton::GetCallingPid(), constraintName);
@@ -831,7 +829,7 @@ bool OsAccountManagerService::PermissionCheck(const std::string& permissionName,
     }
 
     // permission check
-    if ((permissionName.empty()) || (permissionManagerPtr_->VerifyPermission(permissionName) == ERR_OK)) {
+    if ((permissionName.empty()) || (AccountPermissionManager::VerifyPermission(permissionName) == ERR_OK)) {
         return true;
     }
 

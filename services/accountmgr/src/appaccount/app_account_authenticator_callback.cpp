@@ -29,26 +29,17 @@ AppAccountAuthenticatorCallback::~AppAccountAuthenticatorCallback()
 
 void AppAccountAuthenticatorCallback::OnResult(int32_t resultCode, const AAFwk::Want &result)
 {
-    auto sessionMgr = AppAccountAuthenticatorSessionManager::GetInstance();
-    if (sessionMgr != nullptr) {
-        sessionMgr->OnSessionResult(sessionId_, resultCode, result);
-    }
+    AppAccountAuthenticatorSessionManager::GetInstance().OnSessionResult(sessionId_, resultCode, result);
 }
 
 void AppAccountAuthenticatorCallback::OnRequestRedirected(AAFwk::Want &request)
 {
-    auto sessionMgr = AppAccountAuthenticatorSessionManager::GetInstance();
-    if (sessionMgr != nullptr) {
-        sessionMgr->OnSessionRequestRedirected(sessionId_, request);
-    }
+    AppAccountAuthenticatorSessionManager::GetInstance().OnSessionRequestRedirected(sessionId_, request);
 }
 
 void AppAccountAuthenticatorCallback::OnRequestContinued()
 {
-    auto sessionMgr = AppAccountAuthenticatorSessionManager::GetInstance();
-    if (sessionMgr != nullptr) {
-        sessionMgr->OnSessionRequestContinued(sessionId_);
-    }
+    AppAccountAuthenticatorSessionManager::GetInstance().OnSessionRequestContinued(sessionId_);
 }
 }  // namespace AccountSA
 }  // namespace OHOS

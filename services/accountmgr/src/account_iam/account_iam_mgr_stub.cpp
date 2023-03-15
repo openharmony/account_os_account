@@ -25,9 +25,7 @@
 namespace OHOS {
 namespace AccountSA {
 AccountIAMMgrStub::AccountIAMMgrStub()
-{
-    permissionManagerPtr_ = DelayedSingleton<AccountPermissionManager>::GetInstance();
-}
+{}
 
 AccountIAMMgrStub::~AccountIAMMgrStub()
 {}
@@ -146,7 +144,7 @@ std::int32_t AccountIAMMgrStub::OnRemoteRequest(
     const auto &itFunc = messageProcMap_.find(code);
     if (itFunc != messageProcMap_.end()) {
         if (itFunc->second.isSyetemApi) {
-            result = permissionManagerPtr_->CheckSystemApp();
+            result = AccountPermissionManager::CheckSystemApp();
             if (result != ERR_OK) {
                 ACCOUNT_LOGE("is not system application, result = %{public}u.", result);
                 return result;
@@ -523,7 +521,7 @@ ErrCode AccountIAMMgrStub::ProcGetAccountState(MessageParcel &data, MessageParce
 
 bool AccountIAMMgrStub::CheckPermission(const std::string &permission)
 {
-    if (AccountPermissionManager::GetInstance()->VerifyPermission(permission) != ERR_OK) {
+    if (AccountPermissionManager::VerifyPermission(permission) != ERR_OK) {
         ACCOUNT_LOGE("check permission failed, permission name: %{public}s", permission.c_str());
         return false;
     }

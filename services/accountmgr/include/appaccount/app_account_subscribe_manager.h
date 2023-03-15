@@ -25,11 +25,9 @@
 
 namespace OHOS {
 namespace AccountSA {
-class AppAccountSubscribeManager : public DelayedSingleton<AppAccountSubscribeManager> {
+class AppAccountSubscribeManager {
 public:
-    AppAccountSubscribeManager();
-    virtual ~AppAccountSubscribeManager() = default;
-
+    static AppAccountSubscribeManager &GetInstance();
     ErrCode SubscribeAppAccount(const std::shared_ptr<AppAccountSubscribeInfo> &subscribeInfoPtr,
         const sptr<IRemoteObject> &eventListener, const uid_t &uid,
         const std::string &bundleName, const uint32_t &appIndex);
@@ -38,6 +36,8 @@ public:
     bool PublishAccount(AppAccountInfo &appAccountInfo, const uid_t &uid, const std::string &bundleName);
 
 private:
+    AppAccountSubscribeManager();
+    ~AppAccountSubscribeManager() = default;
     std::shared_ptr<AppAccountDataStorage> GetDataStorage(const uid_t &uid, const bool &autoSync = false);
     ErrCode GetStoreId(const uid_t &uid, std::string &storeId);
 

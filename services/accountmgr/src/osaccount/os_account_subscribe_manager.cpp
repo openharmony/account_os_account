@@ -26,8 +26,11 @@ OsAccountSubscribeManager::OsAccountSubscribeManager()
         new (std::nothrow) OsAccountSubscribeDeathRecipient()))
 {}
 
-OsAccountSubscribeManager::~OsAccountSubscribeManager()
-{}
+OsAccountSubscribeManager &OsAccountSubscribeManager::GetInstance()
+{
+    static OsAccountSubscribeManager instance;
+    return instance;
+}
 
 ErrCode OsAccountSubscribeManager::SubscribeOsAccount(
     const std::shared_ptr<OsAccountSubscribeInfo> &subscribeInfoPtr, const sptr<IRemoteObject> &eventListener)

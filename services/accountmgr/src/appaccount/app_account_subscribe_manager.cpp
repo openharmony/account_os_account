@@ -29,6 +29,12 @@ AppAccountSubscribeManager::AppAccountSubscribeManager()
         new (std::nothrow) AppAccountSubscribeDeathRecipient()))
 {}
 
+AppAccountSubscribeManager &AppAccountSubscribeManager::GetInstance()
+{
+    static AppAccountSubscribeManager instance;
+    return instance;
+}
+
 ErrCode AppAccountSubscribeManager::SubscribeAppAccount(
     const std::shared_ptr<AppAccountSubscribeInfo> &subscribeInfoPtr, const sptr<IRemoteObject> &eventListener,
     const uid_t &uid, const std::string &bundleName, const uint32_t &appIndex)
@@ -140,14 +146,7 @@ ErrCode AppAccountSubscribeManager::CheckAppAccess(const std::shared_ptr<AppAcco
         ACCOUNT_LOGE("failed to get owners, result %{public}d.", result);
         return ERR_APPACCOUNT_SERVICE_GET_OWNERS;
     }
-
-    auto controlManagerPtr = AppAccountControlManager::GetInstance();
-    if (controlManagerPtr == nullptr) {
-        ACCOUNT_LOGE("controlManagerPtr is nullptr");
-        return ERR_APPACCOUNT_SERVICE_CONTROL_MANAGER_PTR_IS_NULLPTR;
-    }
-
-    auto dataStoragePtr = controlManagerPtr->GetDataStorage(uid);
+    auto dataStoragePtr = AppAccountControlManager::GetInstance().GetDataStorage(uid);
     if (dataStoragePtr == nullptr) {
         ACCOUNT_LOGE("dataStoragePtr is nullptr");
         return ERR_APPACCOUNT_SERVICE_DATA_STORAGE_PTR_IS_NULLPTR;
@@ -278,13 +277,8 @@ bool AppAccountSubscribeManager::PublishAccount(
 ErrCode AppAccountSubscribeManager::OnAccountsChanged(const std::shared_ptr<AppAccountEventRecord> &record)
 {
     auto uid = record->uid;
-    auto controlManagerPtr = AppAccountControlManager::GetInstance();
-    if (controlManagerPtr == nullptr) {
-        ACCOUNT_LOGE("controlManagerPtr is nullptr");
-        return ERR_APPACCOUNT_SERVICE_CONTROL_MANAGER_PTR_IS_NULLPTR;
-    }
-
-    auto dataStoragePtr = controlManagerPtr->GetDataStorage(uid);
+    auto &controlManagerPtr = AppAccountControlManager::GetInstance();
+    auto dataStoragePtr = controlManagerPtr.GetDataStorage(uid);
     if (dataStoragePtr == nullptr) {
         ACCOUNT_LOGE("dataStoragePtr is nullptr");
         return ERR_APPACCOUNT_SERVICE_DATA_STORAGE_PTR_IS_NULLPTR;
@@ -292,7 +286,7 @@ ErrCode AppAccountSubscribeManager::OnAccountsChanged(const std::shared_ptr<AppA
 
     for (auto receiver : record->receivers) {
         std::vector<AppAccountInfo> accessibleAccounts;
-        ErrCode result = controlManagerPtr->GetAllAccessibleAccountsFromDataStorage(
+        ErrCode result = controlManagerPtr.GetAllAccessibleAccountsFromDataStorage(
             accessibleAccounts, receiver->bundleName, dataStoragePtr, record->appIndex);
         if (result != ERR_OK) {
             ACCOUNT_LOGE("failed to get all accessible accounts from data storage, result = %{public}d", result);

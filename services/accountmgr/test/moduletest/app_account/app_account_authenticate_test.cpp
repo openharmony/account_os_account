@@ -368,21 +368,6 @@ HWTEST_F(AppAccountAuthenticateModuleTest, AppAccountAuthenticateTest_IsAccountR
 }
 
 /**
- * @tc.name: AppAccountAuthenticatorManagerTest_Init_0100
- * @tc.desc: test Init with isInitialized is true.
- * @tc.type: FUNC
- * @tc.require
- */
-HWTEST_F(AppAccountAuthenticateModuleTest, AppAccountAuthenticatorManagerTest_Init_0100, TestSize.Level1)
-{
-    auto appAccountAuthenticatorManagerPtr = std::make_shared<AppAccountAuthenticatorManager>();
-    ASSERT_NE(appAccountAuthenticatorManagerPtr, nullptr);
-    appAccountAuthenticatorManagerPtr->isInitialized_ = true;
-    appAccountAuthenticatorManagerPtr->Init();
-    ASSERT_EQ(appAccountAuthenticatorManagerPtr->isInitialized_, true);
-}
-
-/**
  * @tc.name: AppAccountAuthenticatorManagerTest_GetAuthenticatorInfo_0100
  * @tc.desc: test GetAuthenticatorInfo with not init.
  * @tc.type: FUNC
@@ -391,13 +376,9 @@ HWTEST_F(AppAccountAuthenticateModuleTest, AppAccountAuthenticatorManagerTest_In
 HWTEST_F(AppAccountAuthenticateModuleTest, AppAccountAuthenticatorManagerTest_GetAuthenticatorInfo_0100,
     TestSize.Level1)
 {
-    auto appAccountAuthenticatorManagerPtr = std::make_shared<AppAccountAuthenticatorManager>();
-    ASSERT_NE(appAccountAuthenticatorManagerPtr, nullptr);
-    appAccountAuthenticatorManagerPtr->isInitialized_ = false;
     std::string owner = "owner";
     int32_t userId = 1;
     AuthenticatorInfo info;
-    ErrCode result = appAccountAuthenticatorManagerPtr->GetAuthenticatorInfo(owner, userId, info);
+    ErrCode result = AppAccountAuthenticatorManager::GetAuthenticatorInfo(owner, userId, info);
     ASSERT_NE(result, ERR_OK);
-    ASSERT_EQ(appAccountAuthenticatorManagerPtr->isInitialized_, true);
 }

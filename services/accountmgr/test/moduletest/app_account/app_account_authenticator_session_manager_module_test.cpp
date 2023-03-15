@@ -74,7 +74,7 @@ public:
     static void TearDownTestCase(void);
     void SetUp(void) override;
     void TearDown(void) override;
-    std::shared_ptr<AppAccountAuthenticatorSessionManager> appAccountAuthenticatorSessionManagerPtr_;
+    AppAccountAuthenticatorSessionManager *appAccountAuthenticatorSessionManagerPtr_;
 };
 
 void AppAccountSessionManagerModuleTest::SetUpTestCase(void)
@@ -85,13 +85,15 @@ void AppAccountSessionManagerModuleTest::TearDownTestCase(void)
 
 void AppAccountSessionManagerModuleTest::SetUp(void)
 {
-    appAccountAuthenticatorSessionManagerPtr_ = std::make_shared<AppAccountAuthenticatorSessionManager>();
+    appAccountAuthenticatorSessionManagerPtr_ = &AppAccountAuthenticatorSessionManager::GetInstance();
 }
 
 void AppAccountSessionManagerModuleTest::TearDown(void)
 {
-    DelayedSingleton<AppAccountAuthenticatorSessionManager>::DestroyInstance();
     GTEST_LOG_(INFO) << "TearDownTestCase exit";
+    std::lock_guard<std::mutex> lock(appAccountAuthenticatorSessionManagerPtr_->mutex_);
+    appAccountAuthenticatorSessionManagerPtr_->sessionMap_.clear();
+    appAccountAuthenticatorSessionManagerPtr_->abilitySessions_.clear();
 }
 
 /**

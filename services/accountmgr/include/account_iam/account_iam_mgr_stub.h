@@ -58,7 +58,6 @@ private:
 
 private:
     static const std::map<uint32_t, AccountIAMMessageProc> messageProcMap_;
-    std::shared_ptr<AccountPermissionManager> permissionManagerPtr_ = nullptr;
     DISALLOW_COPY_AND_MOVE(AccountIAMMgrStub);
 };
 }  // namespace AccountSA
