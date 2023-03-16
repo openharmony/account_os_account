@@ -580,19 +580,13 @@ HWTEST_F(DomainAccountClientModuleTest, DomainAccountClientModuleTest_CreateOsAc
     domainInfo.domain_ = STRING_DOMAIN;
     domainInfo.accountId_ = STRING_ACCOUNTID;
     OsAccountInfo accountInfo;
-    std::vector<std::string> constraints;
-    constraints.emplace_back(CONSTRAINT_CREATE_ACCOUNT_DIRECTLY);
-    ErrCode errCode = OsAccountManager::SetOsAccountConstraints(TEST_UID, constraints, true);
-    ASSERT_EQ(errCode, ERR_OK);
     auto callback = std::make_shared<MockDomainCreateDomainAccountCallback>();
     ASSERT_NE(callback, nullptr);
     auto testCallback = std::make_shared<TestCreateDomainAccountCallback>(callback);
     ASSERT_NE(testCallback, nullptr);
-    errCode = OsAccountManager::CreateOsAccountForDomain(OsAccountType::NORMAL, domainInfo, testCallback);
+    ErrCode errCode = OsAccountManager::CreateOsAccountForDomain(OsAccountType::NORMAL, domainInfo, testCallback);
     ASSERT_EQ(errCode, ERR_OSACCOUNT_SERVICE_INNER_DOMAIN_ALREADY_BIND_ERROR);
     std::this_thread::sleep_for(std::chrono::milliseconds(SLEEP_TIME));
-    errCode = OsAccountManager::SetOsAccountConstraints(TEST_UID, constraints, false);
-    ASSERT_EQ(errCode, ERR_OK);
 }
 
 /**
