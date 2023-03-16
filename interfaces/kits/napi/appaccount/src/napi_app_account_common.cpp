@@ -1237,6 +1237,7 @@ void UnsubscribeCallbackCompletedCB(napi_env env, napi_status status, void *data
         if (subscribe != g_AppAccountSubscribers.end()) {
             for (auto offCBInfo : subscribe->second) {
                 napi_delete_reference(env, offCBInfo->callbackRef);
+                delete offCBInfo;
             }
             g_AppAccountSubscribers.erase(subscribe);
         }
