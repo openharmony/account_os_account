@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021-2022 Huawei Device Co., Ltd.
+ * Copyright (c) 2021-2023 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -182,7 +182,7 @@ void OsAccountTest::TearDown(void)
  * @tc.name: OsAccountTest001
  * @tc.desc: Test CreateOsAccount string name out of range
  * @tc.type: FUNC
- * @tc.require: SR000GGVFN
+ * @tc.require:
  */
 HWTEST_F(OsAccountTest, OsAccountTest001, TestSize.Level1)
 {
@@ -195,7 +195,7 @@ HWTEST_F(OsAccountTest, OsAccountTest001, TestSize.Level1)
  * @tc.name: OsAccountTest002
  * @tc.desc: Test CreateOsAccount string name is empty
  * @tc.type: FUNC
- * @tc.require: SR000GGVFN
+ * @tc.require:
  */
 HWTEST_F(OsAccountTest, OsAccountTest002, TestSize.Level1)
 {
@@ -208,7 +208,7 @@ HWTEST_F(OsAccountTest, OsAccountTest002, TestSize.Level1)
  * @tc.name: OsAccountTest003
  * @tc.desc: Test RemoveOsAccount Id error
  * @tc.type: FUNC
- * @tc.require: SR000GGVFN
+ * @tc.require:
  */
 HWTEST_F(OsAccountTest, OsAccountTest003, TestSize.Level1)
 {
@@ -224,7 +224,7 @@ HWTEST_F(OsAccountTest, OsAccountTest003, TestSize.Level1)
  * @tc.name: OsAccountTest004
  * @tc.desc: Test SetOsAccountName string name out of range
  * @tc.type: FUNC
- * @tc.require: SR000GGVFF
+ * @tc.require:
  */
 HWTEST_F(OsAccountTest, OsAccountTest004, TestSize.Level1)
 {
@@ -236,7 +236,7 @@ HWTEST_F(OsAccountTest, OsAccountTest004, TestSize.Level1)
  * @tc.name: OsAccountTest005
  * @tc.desc: Test SetOsAccountName name is empty
  * @tc.type: FUNC
- * @tc.require: SR000GGVFF
+ * @tc.require:
  */
 HWTEST_F(OsAccountTest, OsAccountTest005, TestSize.Level1)
 {
@@ -248,7 +248,7 @@ HWTEST_F(OsAccountTest, OsAccountTest005, TestSize.Level1)
  * @tc.name: OsAccountTest006
  * @tc.desc: Test SetOsAccountProfilePhoto string photo out of range
  * @tc.type: FUNC
- * @tc.require: SR000GGVFN
+ * @tc.require:
  */
 HWTEST_F(OsAccountTest, OsAccountTest006, TestSize.Level1)
 {
@@ -260,7 +260,7 @@ HWTEST_F(OsAccountTest, OsAccountTest006, TestSize.Level1)
  * @tc.name: OsAccountTest007
  * @tc.desc: Test SetDomainInfo with valid info
  * @tc.type: FUNC
- * @tc.require: SR000GGVFL
+ * @tc.require:
  */
 HWTEST_F(OsAccountTest, OsAccountTest007, TestSize.Level1)
 {
@@ -281,7 +281,7 @@ HWTEST_F(OsAccountTest, OsAccountTest007, TestSize.Level1)
  * @tc.name: OsAccountTest008
  * @tc.desc: Test SetDomainInfo with valid info
  * @tc.type: FUNC
- * @tc.require: SR000GGVFL
+ * @tc.require:
  */
 HWTEST_F(OsAccountTest, OsAccountTest008, TestSize.Level1)
 {
@@ -302,7 +302,7 @@ HWTEST_F(OsAccountTest, OsAccountTest008, TestSize.Level1)
  * @tc.name: OsAccountTest009
  * @tc.desc: Test SetDomainInfo with in valid info
  * @tc.type: FUNC
- * @tc.require: SR000GGVFL
+ * @tc.require:
  */
 HWTEST_F(OsAccountTest, OsAccountTest009, TestSize.Level1)
 {
@@ -420,7 +420,7 @@ HWTEST_F(OsAccountTest, OsAccountTest015, TestSize.Level1)
 
 /**
  * @tc.name: OsAccountTest016
- * @tc.desc: Test IsOsAccountConstraintEnable constraint is illegal.
+ * @tc.desc: Test IsOsAccountConstraintEnable/CheckOsAccountConstraintEnabled constraint is illegal.
  * @tc.type: FUNC
  * @tc.require:
  */
@@ -429,8 +429,12 @@ HWTEST_F(OsAccountTest, OsAccountTest016, TestSize.Level1)
     bool isConstraintEnable;
     EXPECT_EQ(ERR_OSACCOUNT_KIT_READ_CONSTRAINTS_ERROR,
         osAccountProxy_->IsOsAccountConstraintEnable(MAIN_ACCOUNT_ID, STRING_EMPTY, isConstraintEnable));
+    EXPECT_EQ(ERR_OSACCOUNT_KIT_READ_CONSTRAINTS_ERROR,
+        osAccountProxy_->CheckOsAccountConstraintEnabled(MAIN_ACCOUNT_ID, STRING_EMPTY, isConstraintEnable));
 
     EXPECT_EQ(ERR_OSACCOUNT_KIT_READ_CONSTRAINTS_ERROR, osAccountProxy_->IsOsAccountConstraintEnable(
+        MAIN_ACCOUNT_ID, STRING_CONSTRAINT_OUT_OF_RANGE, isConstraintEnable));
+    EXPECT_EQ(ERR_OSACCOUNT_KIT_READ_CONSTRAINTS_ERROR, osAccountProxy_->CheckOsAccountConstraintEnabled(
         MAIN_ACCOUNT_ID, STRING_CONSTRAINT_OUT_OF_RANGE, isConstraintEnable));
 }
 

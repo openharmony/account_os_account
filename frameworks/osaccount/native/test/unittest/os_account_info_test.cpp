@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021-2022 Huawei Device Co., Ltd.
+ * Copyright (c) 2021-2023 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -90,7 +90,7 @@ void OsAccountInfoTest::TearDown(void)
  * @tc.name: OsAccountInfo_OsAccountInfo_0100
  * @tc.desc: Create a OsAccountInfo object with no parameter.
  * @tc.type: FUNC
- * @tc.require: SR000GGVFG
+ * @tc.require:
  */
 HWTEST_F(OsAccountInfoTest, OsAccountInfo_OsAccountInfo_0100, TestSize.Level0)
 {
@@ -103,7 +103,7 @@ HWTEST_F(OsAccountInfoTest, OsAccountInfo_OsAccountInfo_0100, TestSize.Level0)
  * @tc.name: OsAccountInfo_OsAccountInfo_0200
  * @tc.desc: Create a OsAccountInfo object with four parameters.
  * @tc.type: FUNC
- * @tc.require: SR000GGVFG
+ * @tc.require:
  */
 HWTEST_F(OsAccountInfoTest, OsAccountInfo_OsAccountInfo_0200, TestSize.Level1)
 {
@@ -117,7 +117,7 @@ HWTEST_F(OsAccountInfoTest, OsAccountInfo_OsAccountInfo_0200, TestSize.Level1)
  * @tc.name: OsAccountInfo_GetId_0100
  * @tc.desc: Get the id with valid data.
  * @tc.type: FUNC
- * @tc.require: SR000GGVFG
+ * @tc.require:
  */
 HWTEST_F(OsAccountInfoTest, OsAccountInfo_GetId_0100, TestSize.Level1)
 {
@@ -131,7 +131,7 @@ HWTEST_F(OsAccountInfoTest, OsAccountInfo_GetId_0100, TestSize.Level1)
  * @tc.name: OsAccountInfo_SetLocalId_0100
  * @tc.desc: Set the id with valid data.
  * @tc.type: FUNC
- * @tc.require: SR000GGVFG
+ * @tc.require:
  */
 HWTEST_F(OsAccountInfoTest, OsAccountInfo_SetLocalId_0100, TestSize.Level1)
 {
@@ -144,7 +144,7 @@ HWTEST_F(OsAccountInfoTest, OsAccountInfo_SetLocalId_0100, TestSize.Level1)
  * @tc.name: OsAccountInfo_GetLocalName_0100
  * @tc.desc: Get the name with valid data.
  * @tc.type: FUNC
- * @tc.require: SR000GGVFG
+ * @tc.require:
  */
 HWTEST_F(OsAccountInfoTest, OsAccountInfo_GetLocalName_0100, TestSize.Level1)
 {
@@ -158,7 +158,7 @@ HWTEST_F(OsAccountInfoTest, OsAccountInfo_GetLocalName_0100, TestSize.Level1)
  * @tc.name: OsAccountInfo_SetLocalName_0100
  * @tc.desc: Set the name with valid data.
  * @tc.type: FUNC
- * @tc.require: SR000GGVFG
+ * @tc.require:
  */
 HWTEST_F(OsAccountInfoTest, OsAccountInfo_SetLocalName_0100, TestSize.Level1)
 {
@@ -171,7 +171,7 @@ HWTEST_F(OsAccountInfoTest, OsAccountInfo_SetLocalName_0100, TestSize.Level1)
  * @tc.name: OsAccountInfo_GetType_0100
  * @tc.desc: Get the type with valid data.
  * @tc.type: FUNC
- * @tc.require: SR000GGVFG
+ * @tc.require:
  */
 HWTEST_F(OsAccountInfoTest, OsAccountInfo_GetType_0100, TestSize.Level1)
 {
@@ -185,7 +185,7 @@ HWTEST_F(OsAccountInfoTest, OsAccountInfo_GetType_0100, TestSize.Level1)
  * @tc.name: OsAccountInfo_SetType_0100
  * @tc.desc: Set the type with valid data.
  * @tc.type: FUNC
- * @tc.require: SR000GGVFG
+ * @tc.require:
  */
 HWTEST_F(OsAccountInfoTest, OsAccountInfo_SetType_0100, TestSize.Level1)
 {
@@ -198,7 +198,7 @@ HWTEST_F(OsAccountInfoTest, OsAccountInfo_SetType_0100, TestSize.Level1)
  * @tc.name: OsAccountInfo_GetConstraints_0100
  * @tc.desc: Get the Constraints with valid data.
  * @tc.type: FUNC
- * @tc.require: SR000GGVFG
+ * @tc.require:
  */
 HWTEST_F(OsAccountInfoTest, OsAccountInfo_GetConstraints_0100, TestSize.Level1)
 {
@@ -212,7 +212,7 @@ HWTEST_F(OsAccountInfoTest, OsAccountInfo_GetConstraints_0100, TestSize.Level1)
  * @tc.name: OsAccountInfo_SetConstraints_0100
  * @tc.desc: Set the Constraints with valid data.
  * @tc.type: FUNC
- * @tc.require: SR000GGVFG
+ * @tc.require:
  */
 HWTEST_F(OsAccountInfoTest, OsAccountInfo_SetConstraints_0100, TestSize.Level1)
 {
@@ -225,7 +225,7 @@ HWTEST_F(OsAccountInfoTest, OsAccountInfo_SetConstraints_0100, TestSize.Level1)
  * @tc.name: OsAccountInfo_GetIsVerified_0100
  * @tc.desc: Get the isVerified with valid data.
  * @tc.type: FUNC
- * @tc.require: SR000GGVFG
+ * @tc.require:
  */
 HWTEST_F(OsAccountInfoTest, OsAccountInfo_GetIsVerified_0100, TestSize.Level1)
 {
@@ -239,7 +239,7 @@ HWTEST_F(OsAccountInfoTest, OsAccountInfo_GetIsVerified_0100, TestSize.Level1)
  * @tc.name: OsAccountInfo_SetIsVerified_0100
  * @tc.desc: Set the isVerified with valid data.
  * @tc.type: FUNC
- * @tc.require: SR000GGVFG
+ * @tc.require:
  */
 HWTEST_F(OsAccountInfoTest, OsAccountInfo_SetIsVerified_0100, TestSize.Level1)
 {
@@ -252,7 +252,7 @@ HWTEST_F(OsAccountInfoTest, OsAccountInfo_SetIsVerified_0100, TestSize.Level1)
  * @tc.name: OsAccountInfo_GetIsCreateCompleted_0100
  * @tc.desc: Get the isCreateCompleted with valid data.
  * @tc.type: FUNC
- * @tc.require: SR000GGVFG
+ * @tc.require:
  */
 HWTEST_F(OsAccountInfoTest, OsAccountInfo_GetIsCreateCompleted_0100, TestSize.Level1)
 {
@@ -266,7 +266,7 @@ HWTEST_F(OsAccountInfoTest, OsAccountInfo_GetIsCreateCompleted_0100, TestSize.Le
  * @tc.name: OsAccountInfo_SetIsCreateCompleted_0100
  * @tc.desc: Set the isCreateCompleted with valid data.
  * @tc.type: FUNC
- * @tc.require: SR000GGVFG
+ * @tc.require:
  */
 HWTEST_F(OsAccountInfoTest, OsAccountInfo_SetIsCreateCompleted_0100, TestSize.Level1)
 {
@@ -279,7 +279,7 @@ HWTEST_F(OsAccountInfoTest, OsAccountInfo_SetIsCreateCompleted_0100, TestSize.Le
  * @tc.name: OsAccountInfo_GetIsActived_0100
  * @tc.desc: Get the isActived with valid data.
  * @tc.type: FUNC
- * @tc.require: SR000GGVFG
+ * @tc.require:
  */
 HWTEST_F(OsAccountInfoTest, OsAccountInfo_GetIsActived_0100, TestSize.Level1)
 {
@@ -293,7 +293,7 @@ HWTEST_F(OsAccountInfoTest, OsAccountInfo_GetIsActived_0100, TestSize.Level1)
  * @tc.name: OsAccountInfo_SetIsActived_0100
  * @tc.desc: Set the isActived with valid data.
  * @tc.type: FUNC
- * @tc.require: SR000GGVFG
+ * @tc.require:
  */
 HWTEST_F(OsAccountInfoTest, OsAccountInfo_SetIsActived_0100, TestSize.Level1)
 {
@@ -306,7 +306,7 @@ HWTEST_F(OsAccountInfoTest, OsAccountInfo_SetIsActived_0100, TestSize.Level1)
  * @tc.name: OsAccountInfo_GetPhoto_0100
  * @tc.desc: Get the photo with valid data.
  * @tc.type: FUNC
- * @tc.require: SR000GGVFG
+ * @tc.require:
  */
 HWTEST_F(OsAccountInfoTest, OsAccountInfo_GetPhoto_0100, TestSize.Level1)
 {
@@ -320,7 +320,7 @@ HWTEST_F(OsAccountInfoTest, OsAccountInfo_GetPhoto_0100, TestSize.Level1)
  * @tc.name: OsAccountInfo_SetPhoto_0100
  * @tc.desc: Set the photo with valid data.
  * @tc.type: FUNC
- * @tc.require: SR000GGVFG
+ * @tc.require:
  */
 HWTEST_F(OsAccountInfoTest, OsAccountInfo_SetPhoto_0100, TestSize.Level1)
 {
@@ -333,7 +333,7 @@ HWTEST_F(OsAccountInfoTest, OsAccountInfo_SetPhoto_0100, TestSize.Level1)
  * @tc.name: OsAccountInfo_GetCreateTime_0100
  * @tc.desc: Get the createTime with valid data.
  * @tc.type: FUNC
- * @tc.require: SR000GGVFG
+ * @tc.require:
  */
 HWTEST_F(OsAccountInfoTest, OsAccountInfo_GetCreateTime_0100, TestSize.Level1)
 {
@@ -347,7 +347,7 @@ HWTEST_F(OsAccountInfoTest, OsAccountInfo_GetCreateTime_0100, TestSize.Level1)
  * @tc.name: OsAccountInfo_SetCreateTime_0100
  * @tc.desc: Set the createTime with valid data.
  * @tc.type: FUNC
- * @tc.require: SR000GGVFG
+ * @tc.require:
  */
 HWTEST_F(OsAccountInfoTest, OsAccountInfo_SetCreateTime_0100, TestSize.Level1)
 {
@@ -360,7 +360,7 @@ HWTEST_F(OsAccountInfoTest, OsAccountInfo_SetCreateTime_0100, TestSize.Level1)
  * @tc.name: OsAccountInfo_GetLastLoginTime_0100
  * @tc.desc: Get the lastLoginTime with valid data.
  * @tc.type: FUNC
- * @tc.require: SR000GGVFG
+ * @tc.require:
  */
 HWTEST_F(OsAccountInfoTest, OsAccountInfo_GetLastLoginTime_0100, TestSize.Level1)
 {
@@ -374,7 +374,7 @@ HWTEST_F(OsAccountInfoTest, OsAccountInfo_GetLastLoginTime_0100, TestSize.Level1
  * @tc.name: OsAccountInfo_GetSerialNumber_0100
  * @tc.desc: Get the serialNumber with valid data.
  * @tc.type: FUNC
- * @tc.require: SR000GGVFG
+ * @tc.require:
  */
 HWTEST_F(OsAccountInfoTest, OsAccountInfo_GetSerialNumber_0100, TestSize.Level1)
 {
@@ -388,7 +388,7 @@ HWTEST_F(OsAccountInfoTest, OsAccountInfo_GetSerialNumber_0100, TestSize.Level1)
  * @tc.name: OsAccountInfo_SetSerialNumber_0100
  * @tc.desc: Set the serialNumber with valid data.
  * @tc.type: FUNC
- * @tc.require: SR000GGVFG
+ * @tc.require:
  */
 HWTEST_F(OsAccountInfoTest, OsAccountInfo_SetSerialNumber_0100, TestSize.Level1)
 {
@@ -401,7 +401,7 @@ HWTEST_F(OsAccountInfoTest, OsAccountInfo_SetSerialNumber_0100, TestSize.Level1)
  * @tc.name: OsAccountInfo_FromJson_0100
  * @tc.desc: Set an object by Json.
  * @tc.type: FUNC
- * @tc.require: SR000GGVFG
+ * @tc.require:
  */
 HWTEST_F(OsAccountInfoTest, OsAccountInfo_FromJson_0100, TestSize.Level1)
 {
@@ -409,4 +409,23 @@ HWTEST_F(OsAccountInfoTest, OsAccountInfo_FromJson_0100, TestSize.Level1)
 
     osAccountInfo.FromJson(Json::parse(STRING_JSON, nullptr, false));
     EXPECT_EQ(osAccountInfo.GetLocalId(), INT_ID);
+}
+
+/**
+ * @tc.name: OsAccountInfo_ToString_0100
+ * @tc.desc: Convert os account info to string.
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(OsAccountInfoTest, OsAccountInfo_ToString_0100, TestSize.Level1)
+{
+    int id = INT_ID;
+    OsAccountInfo osAccountInfoSrc;
+    osAccountInfoSrc.localId_ = id;
+    std::string jsonString = osAccountInfoSrc.ToString();
+    nlohmann::json jsonObject = nlohmann::json::parse(jsonString, nullptr, false);
+
+    OsAccountInfo osAccountInfoTar;
+    osAccountInfoTar.FromJson(jsonObject);
+    EXPECT_EQ(osAccountInfoTar.GetLocalId(), INT_ID);
 }
