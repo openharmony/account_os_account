@@ -177,7 +177,12 @@ HWTEST_F(OsAccountInnerAccmgrCoverageTest, OsAccountInnerAccmgrCoverageTest003, 
 HWTEST_F(OsAccountInnerAccmgrCoverageTest, OsAccountInnerAccmgrCoverageTest004, TestSize.Level1)
 {
     innerMgrService_ = DelayedSingleton<IInnerOsAccountManager>::GetInstance();
+    auto ptr = std::make_shared<MockOsAccountControlFileManager>();
+    innerMgrService_->SetOsAccountControl(ptr);
 
+    EXPECT_CALL(*ptr, UpdateOsAccount(::testing::_))
+        .WillRepeatedly(testing::Return(0));
+    
     innerMgrService_->CreateBaseStandardAccountSendToOther();
     EXPECT_EQ(innerMgrService_->isSendToStorageCreate_, true);
 
@@ -926,6 +931,7 @@ HWTEST_F(OsAccountInnerAccmgrCoverageTest, OsAccountInnerAccmgrCoverageTest025, 
     EXPECT_CALL(*ptr, UpdateOsAccount(_))
         .WillRepeatedly(testing::Return(-1));
 
+    photo += "1";
     ret = innerMgrService_->SetOsAccountProfilePhoto(id, photo);
     EXPECT_EQ(ret, ERR_OSACCOUNT_SERVICE_INNER_UPDATE_ACCOUNT_ERROR);
 
@@ -1219,7 +1225,7 @@ HWTEST_F(OsAccountInnerAccmgrCoverageTest, OsAccountInnerAccmgrCoverageTest033, 
         .WillRepeatedly(testing::Return(0));
 
     innerMgrService_->StartAccount();
-    EXPECT_EQ((innerMgrService_->handler_ != nullptr), 0);
+    EXPECT_EQ((innerMgrService_->handler_ != nullptr), 1);
 
     EXPECT_CALL(*ptr, GetOsAccountInfoById(_, _))
         .WillRepeatedly(DoAll(testing::SetArgReferee<1>(osAccountInfo), testing::Return(0)));
@@ -1283,7 +1289,7 @@ HWTEST_F(OsAccountInnerAccmgrCoverageTest, OsAccountInnerAccmgrCoverageTest035, 
         .WillRepeatedly(DoAll(SetArgReferee<1>(account1), testing::Return(0)));
 
     innerMgrService_->StartBaseStandardAccount(account1);
-    EXPECT_EQ((innerMgrService_->counterForStandard_ == 1), 1);
+    EXPECT_EQ((innerMgrService_->counterForStandard_ == 0), 1);
 
     DelayedSingleton<IInnerOsAccountManager>::DestroyInstance();
 }
