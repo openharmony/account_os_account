@@ -14,6 +14,7 @@
  */
 #include "os_account_interface.h"
 
+#include<cerrno>
 #include<thread>
 
 #include "ability_manager_adapter.h"
@@ -277,9 +278,12 @@ ErrCode OsAccountInterface::SendToStorageAccountCreate(OsAccountInfo &osAccountI
     int err = proxy->PrepareAddUser(osAccountInfo.GetLocalId(),
         StorageManager::CRYPTO_FLAG_EL1 | StorageManager::CRYPTO_FLAG_EL2);
     if (err != 0) {
-        ReportOsAccountOperationFail(osAccountInfo.GetLocalId(), Constants::OPERATION_CREATE,
-            err, "Storage PrepareAddUser failed!");
-        return ERR_OSACCOUNT_SERVICE_STORAGE_PREPARE_ADD_USER_FAILED;
+        ReportOsAccountOperationFail(
+            osAccountInfo.GetLocalId(), Constants::OPERATION_CREATE, err, "Storage PrepareAddUser failed!");
+        if (err != -EEXIST) {
+            FinishTrace(HITRACE_TAG_ACCOUNT_MANAGER);
+            return ERR_OSACCOUNT_SERVICE_STORAGE_PREPARE_ADD_USER_FAILED;
+        }
     }
 
     FinishTrace(HITRACE_TAG_ACCOUNT_MANAGER);
