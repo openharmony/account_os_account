@@ -463,7 +463,6 @@ void NapiUserAuthCallback::OnAcquireInfo(int32_t module, uint32_t acquireInfo, c
     param.release();
 }
 
-
 NapiGetInfoCallback::NapiGetInfoCallback(napi_env env, napi_ref callbackRef, napi_deferred deferred)
     : env_(env), callbackRef_(callbackRef), deferred_(deferred)
 {}
@@ -750,10 +749,8 @@ NapiGetDataCallback::~NapiGetDataCallback()
     std::unique_lock<std::mutex> lock(lockInfo_.mutex);
     lockInfo_.condition.wait(lock, [this] { return this->lockInfo_.count == 0; });
     lockInfo_.count--;
-    if ((env_ != nullptr) && (callback_ != nullptr)) {
-        napi_delete_reference(env_, callback_);
-        callback_ = nullptr;
-    }
+    ReleaseNapiRefAsync(env_, callback_);
+    callback_ = nullptr;
 }
 
 void NapiGetDataCallback::OnGetData(int32_t authSubType, const std::shared_ptr<AccountSA::IInputerData> inputerData)

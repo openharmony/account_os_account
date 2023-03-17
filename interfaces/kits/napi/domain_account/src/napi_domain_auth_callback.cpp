@@ -191,13 +191,8 @@ NapiDomainAccountCallback::~NapiDomainAccountCallback()
     std::unique_lock<std::mutex> lock(lockInfo_.mutex);
     lockInfo_.condition.wait(lock, [this] { return this->lockInfo_.count == 0; });
     lockInfo_.count--;
-    if (env_ == nullptr) {
-        return;
-    }
-    if (callbackRef_ != nullptr) {
-        napi_delete_reference(env_, callbackRef_);
-        callbackRef_ = nullptr;
-    }
+    ReleaseNapiRefAsync(env_, callbackRef_);
+    callbackRef_ = nullptr;
 }
 
 static void DomainAuthResultWork(uv_work_t *work, int status)

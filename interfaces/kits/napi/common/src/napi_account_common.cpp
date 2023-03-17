@@ -69,10 +69,7 @@ void ProcessCallbackOrPromise(napi_env env, const CommonAsyncContext *asyncConte
             napi_reject_deferred(env, asyncContext->deferred, args[0]);
         }
     } else {
-        napi_value callback = nullptr;
-        napi_get_reference_value(env, asyncContext->callbackRef, &callback);
-        napi_value returnVal = nullptr;
-        napi_call_function(env, nullptr, callback, BUSINESS_ERROR_ARG_SIZE, &args[0], &returnVal);
+        NapiCallVoidFunction(env, args, BUSINESS_ERROR_ARG_SIZE, asyncContext->callbackRef);
         if (asyncContext->callbackRef != nullptr) {
             napi_delete_reference(env, asyncContext->callbackRef);
         }
@@ -346,6 +343,42 @@ napi_value CreateAuthResult(
         NAPI_CALL(env, napi_set_named_property(env, object, "token", napiToken));
     }
     return object;
+}
+
+void ReleaseNapiRefAsync(napi_env env, napi_ref napiRef)
+{
+    if ((env == nullptr) || (napiRef == nullptr)) {
+        ACCOUNT_LOGE("invalid env or napiRef");
+        return;
+    }
+    std::unique_ptr<uv_work_t> work = std::make_unique<uv_work_t>();
+    std::unique_ptr<CommonAsyncContext> context = std::make_unique<CommonAsyncContext>(env);
+    uv_loop_s *loop = nullptr;
+    napi_get_uv_event_loop(env, &loop);
+    if ((loop == nullptr) || (work == nullptr) || (context == nullptr)) {
+        ACCOUNT_LOGE("fail to init execution environment");
+        return;
+    }
+    context->callbackRef = napiRef;
+    work->data = reinterpret_cast<void *>(context.get());
+    NAPI_CALL_RETURN_VOID(env, uv_queue_work(loop, work.get(), [] (uv_work_t *work) {},
+        [] (uv_work_t *work, int status) {
+            if (work == nullptr) {
+                ACCOUNT_LOGE("work is nullptr");
+                return;
+            }
+            auto context = reinterpret_cast<CommonAsyncContext *>(work->data);
+            if (context == nullptr) {
+                ACCOUNT_LOGE("context is nullptr");
+                delete work;
+                return;
+            }
+            napi_delete_reference(context->env, context->callbackRef);
+            delete context;
+            delete work;
+        }));
+    context.release();
+    work.release();
 }
 } // namespace AccountJsKit
 } // namespace OHOS
