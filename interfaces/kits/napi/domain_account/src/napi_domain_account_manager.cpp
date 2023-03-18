@@ -373,34 +373,20 @@ NapiDomainAccountPlugin::~NapiDomainAccountPlugin()
     if (env_ == nullptr) {
         return;
     }
-    if (jsPlugin_.auth != nullptr) {
-        napi_delete_reference(env_, jsPlugin_.auth);
-        jsPlugin_.auth = nullptr;
-    }
-    if (jsPlugin_.authWithPopup != nullptr) {
-        napi_delete_reference(env_, jsPlugin_.authWithPopup);
-        jsPlugin_.authWithPopup = nullptr;
-    }
-    if (jsPlugin_.authWithToken != nullptr) {
-        napi_delete_reference(env_, jsPlugin_.authWithToken);
-        jsPlugin_.authWithToken = nullptr;
-    }
-    if (jsPlugin_.getAuthStatusInfo != nullptr) {
-        napi_delete_reference(env_, jsPlugin_.getAuthStatusInfo);
-        jsPlugin_.getAuthStatusInfo = nullptr;
-    }
-    if (jsPlugin_.getDomainAccountInfo != nullptr) {
-        napi_delete_reference(env_, jsPlugin_.getDomainAccountInfo);
-        jsPlugin_.getDomainAccountInfo = nullptr;
-    }
-    if (jsPlugin_.onAccountBound != nullptr) {
-        napi_delete_reference(env_, jsPlugin_.onAccountBound);
-        jsPlugin_.onAccountBound = nullptr;
-    }
-    if (jsPlugin_.onAccountUnbound != nullptr) {
-        napi_delete_reference(env_, jsPlugin_.onAccountUnbound);
-        jsPlugin_.onAccountUnbound = nullptr;
-    }
+    ReleaseNapiRefAsync(env_, jsPlugin_.auth);
+    jsPlugin_.auth = nullptr;
+    ReleaseNapiRefAsync(env_, jsPlugin_.authWithPopup);
+    jsPlugin_.authWithPopup = nullptr;
+    ReleaseNapiRefAsync(env_, jsPlugin_.authWithToken);
+    jsPlugin_.authWithToken = nullptr;
+    ReleaseNapiRefAsync(env_, jsPlugin_.getAuthStatusInfo);
+    jsPlugin_.getAuthStatusInfo = nullptr;
+    ReleaseNapiRefAsync(env_, jsPlugin_.getDomainAccountInfo);
+    jsPlugin_.getDomainAccountInfo = nullptr;
+    ReleaseNapiRefAsync(env_, jsPlugin_.onAccountBound);
+    jsPlugin_.onAccountBound = nullptr;
+    ReleaseNapiRefAsync(env_, jsPlugin_.onAccountUnbound);
+    jsPlugin_.onAccountUnbound = nullptr;
 }
 
 static void AuthCommonWork(uv_work_t *work, int status)
@@ -914,10 +900,8 @@ NapiHasDomainInfoCallback::NapiHasDomainInfoCallback(napi_env env, napi_ref call
 NapiHasDomainInfoCallback::~NapiHasDomainInfoCallback()
 {
     std::unique_lock<std::mutex> lock(lockInfo_.mutex);
-    if (callbackRef_ != nullptr) {
-        napi_delete_reference(env_, callbackRef_);
-        callbackRef_ = nullptr;
-    }
+    ReleaseNapiRefAsync(env_, callbackRef_);
+    callbackRef_ = nullptr;
     deferred_ = nullptr;
 }
 
