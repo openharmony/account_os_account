@@ -39,24 +39,22 @@ NapiAppAccountAuthenticator::NapiAppAccountAuthenticator(napi_env env, JsAuthent
 
 NapiAppAccountAuthenticator::~NapiAppAccountAuthenticator()
 {
-    if (jsAuthenticator_.addAccountImplicitly != nullptr) {
-        napi_delete_reference(env_, jsAuthenticator_.addAccountImplicitly);
-    }
-    if (jsAuthenticator_.authenticate != nullptr) {
-        napi_delete_reference(env_, jsAuthenticator_.authenticate);
-    }
-    if (jsAuthenticator_.verifyCredential != nullptr) {
-        napi_delete_reference(env_, jsAuthenticator_.verifyCredential);
-    }
-    if (jsAuthenticator_.checkAccountLabels != nullptr) {
-        napi_delete_reference(env_, jsAuthenticator_.checkAccountLabels);
-    }
-    if (jsAuthenticator_.setProperties != nullptr) {
-        napi_delete_reference(env_, jsAuthenticator_.setProperties);
-    }
-    if (jsAuthenticator_.isAccountRemovable != nullptr) {
-        napi_delete_reference(env_, jsAuthenticator_.isAccountRemovable);
-    }
+    ReleaseNapiRefAsync(env_, jsAuthenticator_.addAccountImplicitly);
+    jsAuthenticator_.addAccountImplicitly = nullptr;
+    ReleaseNapiRefAsync(env_, jsAuthenticator_.authenticate);
+    jsAuthenticator_.authenticate = nullptr;
+    ReleaseNapiRefAsync(env_, jsAuthenticator_.verifyCredential);
+    jsAuthenticator_.verifyCredential = nullptr;
+    ReleaseNapiRefAsync(env_, jsAuthenticator_.checkAccountLabels);
+    jsAuthenticator_.checkAccountLabels = nullptr;
+    ReleaseNapiRefAsync(env_, jsAuthenticator_.setProperties);
+    jsAuthenticator_.setProperties = nullptr;
+    ReleaseNapiRefAsync(env_, jsAuthenticator_.isAccountRemovable);
+    jsAuthenticator_.isAccountRemovable = nullptr;
+    ReleaseNapiRefAsync(env_, jsAuthenticator_.createAccountImplicitly);
+    jsAuthenticator_.createAccountImplicitly = nullptr;
+    ReleaseNapiRefAsync(env_, jsAuthenticator_.auth);
+    jsAuthenticator_.auth = nullptr;
 }
 
 bool NapiAppAccountAuthenticator::CheckObjectLegality() const
