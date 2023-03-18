@@ -71,6 +71,7 @@ napi_status ParseUint8TypedArrayToUint64(napi_env env, napi_value value, uint64_
 void NapiCallVoidFunction(napi_env env, napi_value *argv, size_t argc, napi_ref funcRef);
 napi_value CreateAuthResult(
     napi_env env, const std::vector<uint8_t> &authData, int32_t remainTimes, int32_t freezingTime);
+void ReleaseNapiRefAsync(napi_env env, napi_ref napiRef);
 } // namespace AccountJsKit
 } // namespace OHOS
 
