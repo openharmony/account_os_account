@@ -805,6 +805,9 @@ napi_value NapiDomainAccountManager::Auth(napi_env env, napi_callback_info cbInf
             JsDomainPluginParam *param = reinterpret_cast<JsDomainPluginParam *>(data);
             param->resultCode = DomainAccountClient::GetInstance().Auth(
                 param->domainAccountInfo, param->authData, param->authCallback);
+            if (param->resultCode == ERR_OK) {
+                param->authCallback = nullptr;
+            }
         },
         AuthCompletedCallback,
         reinterpret_cast<void *>(authContext), &authContext->work));
@@ -861,6 +864,9 @@ napi_value NapiDomainAccountManager::AuthWithPopup(napi_env env, napi_callback_i
         [](napi_env env, void *data) {
             JsDomainPluginParam *param = reinterpret_cast<JsDomainPluginParam *>(data);
             param->resultCode = DomainAccountClient::GetInstance().AuthWithPopup(param->userId, param->authCallback);
+            if (param->resultCode == ERR_OK) {
+                param->authCallback = nullptr;
+            }
         },
         AuthCompletedCallback,
         reinterpret_cast<void *>(authWithPopupContext), &authWithPopupContext->work));
