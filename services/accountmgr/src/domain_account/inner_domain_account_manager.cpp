@@ -126,7 +126,7 @@ ErrCode InnerDomainAccountManager::GetDomainAccountInfoByUserId(int32_t userId, 
     accountInfo.GetDomainInfo(domainInfo);
     if (domainInfo.accountName_.empty()) {
         ACCOUNT_LOGE("the target user is not a domain account");
-        return ERR_APPACCOUNT_SERVICE_ACCOUNT_NOT_EXIST;
+        return ERR_DOMAIN_ACCOUNT_SERVICE_NOT_DOMAIN_ACCOUNT;
     }
     return ERR_OK;
 }
