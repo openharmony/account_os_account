@@ -55,6 +55,7 @@ static int32_t AccountIAMConvertOtherToJSErrCode(int32_t errCode)
         case ERR_ACCOUNT_IAM_KIT_INPUTER_NOT_REGISTERED:
             return ERR_JS_CREDENTIAL_INPUTER_NOT_EXIST;
         case ERR_ACCOUNT_IAM_UNSUPPORTED_AUTH_TYPE:
+        case ERR_DOMAIN_ACCOUNT_SERVICE_NOT_DOMAIN_ACCOUNT:
             return ERR_JS_AUTH_TYPE_NOT_SUPPORTED;
         default:
             return ERR_JS_SYSTEM_SERVICE_EXCEPTION;

@@ -123,6 +123,8 @@ static int32_t DomainAccountConvertToJSErrCode(int32_t errCode)
     switch (errCode) {
         case ERR_DOMAIN_ACCOUNT_SERVICE_PLUGIN_ALREADY_EXIST:
             return ERR_JS_DOMAIN_PLUGIN_ALREADY_REGISTERED;
+        case ERR_DOMAIN_ACCOUNT_SERVICE_NOT_DOMAIN_ACCOUNT:
+            return ERR_JS_ACCOUNT_NOT_FOUND;
         default:
             return ERR_JS_SYSTEM_SERVICE_EXCEPTION;
     }
@@ -154,7 +156,7 @@ static bool IsOsAccountServiceError(int32_t errCode)
 static bool IsDomainAccountServiceError(int32_t errCode)
 {
     return (errCode >= ERR_DOMAIN_ACCOUNT_SERVICE_PLUGIN_ALREADY_EXIST) &&
-        (errCode <= ERR_DOMAIN_ACCOUNT_SERVICE_PLUGIN_NOT_EXIST);
+        (errCode <= ERR_DOMAIN_ACCOUNT_SERVICE_ERR_CODE_LIMIT);
 }
 
 int32_t ConvertToJSErrCode(int32_t nativeErrCode)
