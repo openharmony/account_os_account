@@ -56,7 +56,7 @@ int32_t DomainAccountCallbackStub::ProcOnResult(MessageParcel &data, MessageParc
         ACCOUNT_LOGE("failed to read size");
         return ERR_ACCOUNT_COMMON_READ_PARCEL_ERROR;
     }
-    if ((size < 0) || (size > DOMAIN_DATA_MAX_SIZE)) {
+    if (size > DOMAIN_DATA_MAX_SIZE) {
         return ERR_ACCOUNT_COMMON_INVALID_PARAMTER;
     }
     const uint8_t *buffer = data.ReadBuffer(size);
