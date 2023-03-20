@@ -347,19 +347,25 @@ napi_value CreateAuthResult(
 
 void ReleaseNapiRefAsync(napi_env env, napi_ref napiRef)
 {
-    if ((env == nullptr) || (napiRef == nullptr)) {
-        ACCOUNT_LOGE("invalid env or napiRef");
+    ReleaseNapiRefArray(env, {napiRef});
+}
+
+void ReleaseNapiRefArray(napi_env env, const std::vector<napi_ref> &napiRefVec)
+{
+    if (env == nullptr) {
+        ACCOUNT_LOGE("invalid env");
         return;
     }
     std::unique_ptr<uv_work_t> work = std::make_unique<uv_work_t>();
-    std::unique_ptr<CommonAsyncContext> context = std::make_unique<CommonAsyncContext>(env);
+    std::unique_ptr<NapiRefArrayContext> context = std::make_unique<NapiRefArrayContext>();
     uv_loop_s *loop = nullptr;
     napi_get_uv_event_loop(env, &loop);
     if ((loop == nullptr) || (work == nullptr) || (context == nullptr)) {
         ACCOUNT_LOGE("fail to init execution environment");
         return;
     }
-    context->callbackRef = napiRef;
+    context->env = env;
+    context->napiRefVec = napiRefVec;
     work->data = reinterpret_cast<void *>(context.get());
     NAPI_CALL_RETURN_VOID(env, uv_queue_work(loop, work.get(), [] (uv_work_t *work) {},
         [] (uv_work_t *work, int status) {
@@ -367,13 +373,17 @@ void ReleaseNapiRefAsync(napi_env env, napi_ref napiRef)
                 ACCOUNT_LOGE("work is nullptr");
                 return;
             }
-            auto context = reinterpret_cast<CommonAsyncContext *>(work->data);
+            auto context = reinterpret_cast<NapiRefArrayContext *>(work->data);
             if (context == nullptr) {
                 ACCOUNT_LOGE("context is nullptr");
                 delete work;
                 return;
             }
-            napi_delete_reference(context->env, context->callbackRef);
+            for (auto &napiRef : context->napiRefVec) {
+                if (napiRef != nullptr) {
+                    napi_delete_reference(context->env, napiRef);
+                }
+            }
             delete context;
             delete work;
         }));

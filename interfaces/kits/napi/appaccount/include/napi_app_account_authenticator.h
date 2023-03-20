@@ -60,6 +60,7 @@ public:
     ~NapiAppAccountAuthenticator() override;
     bool CheckObjectLegality() const override;
     int GetObjectType() const override;
+    void SetEnv(napi_env env);
     static napi_value Init(napi_env env, napi_value exports);
     ErrCode AddAccountImplicitly(const std::string &authType, const std::string &callerBundleName,
         const AAFwk::WantParams &options, const sptr<IRemoteObject> &callback) override;
