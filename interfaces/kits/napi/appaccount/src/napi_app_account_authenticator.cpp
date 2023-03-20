@@ -33,28 +33,42 @@ namespace OHOS {
 namespace AccountJsKit {
 using namespace OHOS::AccountSA;
 
+static void OnEnvCleanUp(void *data)
+{
+    if (data == nullptr) {
+        ACCOUNT_LOGE("data is nullptr");
+        return;
+    }
+    auto authenticator = reinterpret_cast<NapiAppAccountAuthenticator *>(data);
+    authenticator->SetEnv(nullptr);
+}
+
 NapiAppAccountAuthenticator::NapiAppAccountAuthenticator(napi_env env, JsAuthenticator &jsAuthenticator)
     : env_(env), jsAuthenticator_(jsAuthenticator)
 {}
 
 NapiAppAccountAuthenticator::~NapiAppAccountAuthenticator()
 {
-    ReleaseNapiRefAsync(env_, jsAuthenticator_.addAccountImplicitly);
+    std::vector<napi_ref> napiRefVec = {
+        jsAuthenticator_.addAccountImplicitly,
+        jsAuthenticator_.authenticate,
+        jsAuthenticator_.verifyCredential,
+        jsAuthenticator_.checkAccountLabels,
+        jsAuthenticator_.setProperties,
+        jsAuthenticator_.isAccountRemovable,
+        jsAuthenticator_.createAccountImplicitly,
+        jsAuthenticator_.auth
+    };
+    ReleaseNapiRefArray(env_, napiRefVec);
     jsAuthenticator_.addAccountImplicitly = nullptr;
-    ReleaseNapiRefAsync(env_, jsAuthenticator_.authenticate);
     jsAuthenticator_.authenticate = nullptr;
-    ReleaseNapiRefAsync(env_, jsAuthenticator_.verifyCredential);
     jsAuthenticator_.verifyCredential = nullptr;
-    ReleaseNapiRefAsync(env_, jsAuthenticator_.checkAccountLabels);
     jsAuthenticator_.checkAccountLabels = nullptr;
-    ReleaseNapiRefAsync(env_, jsAuthenticator_.setProperties);
     jsAuthenticator_.setProperties = nullptr;
-    ReleaseNapiRefAsync(env_, jsAuthenticator_.isAccountRemovable);
     jsAuthenticator_.isAccountRemovable = nullptr;
-    ReleaseNapiRefAsync(env_, jsAuthenticator_.createAccountImplicitly);
     jsAuthenticator_.createAccountImplicitly = nullptr;
-    ReleaseNapiRefAsync(env_, jsAuthenticator_.auth);
     jsAuthenticator_.auth = nullptr;
+    napi_remove_env_cleanup_hook(env_, OnEnvCleanUp, this);
 }
 
 bool NapiAppAccountAuthenticator::CheckObjectLegality() const
@@ -65,6 +79,11 @@ bool NapiAppAccountAuthenticator::CheckObjectLegality() const
 int NapiAppAccountAuthenticator::GetObjectType() const
 {
     return OBJECT_TYPE_JAVASCRIPT;
+}
+
+void NapiAppAccountAuthenticator::SetEnv(napi_env env)
+{
+    env_ = env;
 }
 
 ErrCode NapiAppAccountAuthenticator::InitWorkEnv(uv_loop_s **loop, uv_work_t **work, JsAuthenticatorParam **param)
@@ -505,6 +524,8 @@ napi_value NapiAppAccountAuthenticator::JsConstructor(napi_env env, napi_callbac
     NAPI_ASSERT(env, func != nullptr, "create function getRemoteObject failed");
     status = napi_set_named_property(env, napiRemoteObj, "getRemoteObject", func);
     NAPI_ASSERT(env, status == napi_ok, "set property getRemoteObject failed");
+    status = napi_add_env_cleanup_hook(env, OnEnvCleanUp, authenticator.GetRefPtr());
+    NAPI_ASSERT(env, status == napi_ok, "add cleanup hook failed");
     return napiRemoteObj;
 }
 }  // namespace AccountJsKit
