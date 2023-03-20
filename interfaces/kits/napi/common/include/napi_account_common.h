@@ -18,6 +18,7 @@
 
 #include <mutex>
 #include <string>
+#include <vector>
 #include <uv.h>
 
 #include "account_error_no.h"
@@ -49,6 +50,11 @@ struct BusinessError {
     std::string data;
 };
 
+struct NapiRefArrayContext {
+    napi_env env;
+    std::vector<napi_ref> napiRefVec;
+};
+
 void ProcessCallbackOrPromise(napi_env env, const CommonAsyncContext *asyncContext, napi_value err, napi_value data);
 bool CreateExecEnv(napi_env env, uv_loop_s **loop, uv_work_t **work);
 bool GetCallbackProperty(napi_env env, napi_value obj, napi_ref &property, int argNum);
@@ -72,6 +78,7 @@ void NapiCallVoidFunction(napi_env env, napi_value *argv, size_t argc, napi_ref 
 napi_value CreateAuthResult(
     napi_env env, const std::vector<uint8_t> &authData, int32_t remainTimes, int32_t freezingTime);
 void ReleaseNapiRefAsync(napi_env env, napi_ref napiRef);
+void ReleaseNapiRefArray(napi_env env, const std::vector<napi_ref> &napiRefVec);
 } // namespace AccountJsKit
 } // namespace OHOS
 
