@@ -43,7 +43,7 @@ struct JsDomainPlugin {
 struct HasDomainAccountAsyncContext : public CommonAsyncContext {
     AccountSA::DomainAccountInfo domainInfo;
     bool isHasDomainAccount = false;
-    ThreadLockInfo *lockInfo;
+    ThreadLockInfo *lockInfo = nullptr;
 };
 
 struct JsDomainPluginParam {
@@ -54,7 +54,7 @@ struct JsDomainPluginParam {
     AccountSA::DomainAccountInfo domainAccountInfo;
     std::shared_ptr<AccountSA::DomainAuthCallback> authCallback = nullptr;
     std::shared_ptr<AccountSA::DomainAccountCallback> callback = nullptr;
-    ThreadLockInfo *lockInfo;
+    ThreadLockInfo *lockInfo = nullptr;
     int32_t userId = 0;
     napi_ref callbackRef = nullptr;
     AccountSA::AuthMode authMode;
