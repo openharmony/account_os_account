@@ -300,7 +300,7 @@ HWTEST_F(DomainAccountClientModuleTest, DomainAccountClientModuleTest_AuthUser_0
     auto testCallback = std::make_shared<TestDomainAuthCallback>(nullptr);
     ASSERT_NE(testCallback, nullptr);
     EXPECT_EQ(DomainAccountClient::GetInstance().AuthUser(
-        accountInfo.GetLocalId(), VALID_PASSWORD, testCallback), ERR_APPACCOUNT_SERVICE_ACCOUNT_NOT_EXIST);
+        accountInfo.GetLocalId(), VALID_PASSWORD, testCallback), ERR_DOMAIN_ACCOUNT_SERVICE_NOT_DOMAIN_ACCOUNT);
     errCode = OsAccountManager::RemoveOsAccount(accountInfo.GetLocalId());
     ASSERT_EQ(errCode, ERR_OK);
 }
@@ -406,7 +406,7 @@ HWTEST_F(DomainAccountClientModuleTest, DomainAccountClientModuleTest_AuthWithPo
     auto testCallback = std::make_shared<TestDomainAuthCallback>(callback);
     ASSERT_NE(testCallback, nullptr);
     EXPECT_EQ(DomainAccountClient::GetInstance().AuthWithPopup(DEFAULT_USER_ID, testCallback),
-        ERR_APPACCOUNT_SERVICE_ACCOUNT_NOT_EXIST);
+        ERR_DOMAIN_ACCOUNT_SERVICE_NOT_DOMAIN_ACCOUNT);
 }
 
 /**
@@ -423,7 +423,7 @@ HWTEST_F(DomainAccountClientModuleTest, DomainAccountClientModuleTest_AuthWithPo
     auto testCallback = std::make_shared<TestDomainAuthCallback>(callback);
     ASSERT_NE(testCallback, nullptr);
     EXPECT_EQ(DomainAccountClient::GetInstance().AuthWithPopup(0, testCallback),
-        ERR_APPACCOUNT_SERVICE_ACCOUNT_NOT_EXIST);
+        ERR_DOMAIN_ACCOUNT_SERVICE_NOT_DOMAIN_ACCOUNT);
 }
 
 /**
