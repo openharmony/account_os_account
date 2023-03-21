@@ -224,6 +224,7 @@ ErrCode IInnerOsAccountManager::SendMsgForAccountCreate(OsAccountInfo &osAccount
     errCode = OsAccountInterface::SendToBMSAccountCreate(osAccountInfo);
     if (errCode != ERR_OK) {
         ACCOUNT_LOGE("create os account SendToBMSAccountCreate failed, errCode %{public}d.", errCode);
+        (void)OsAccountInterface::SendToStorageAccountRemove(osAccountInfo);
         return ERR_OSACCOUNT_SERVICE_INNER_SEND_BM_ACCOUNT_CREATE_ERROR;
     }
 
@@ -231,8 +232,9 @@ ErrCode IInnerOsAccountManager::SendMsgForAccountCreate(OsAccountInfo &osAccount
     errCode = osAccountControl_->UpdateOsAccount(osAccountInfo);
     if (errCode != ERR_OK) {
         ACCOUNT_LOGE("create os account when update isCreateCompleted");
-        ReportOsAccountOperationFail(osAccountInfo.GetLocalId(), Constants::OPERATION_CREATE,
-            errCode, "UpdateOsAccount failed!");
+        ReportOsAccountOperationFail(
+            osAccountInfo.GetLocalId(), Constants::OPERATION_CREATE, errCode, "UpdateOsAccount failed!");
+        (void)OsAccountInterface::SendToStorageAccountRemove(osAccountInfo);
         return ERR_OSACCOUNT_SERVICE_INNER_UPDATE_ACCOUNT_ERROR;
     }
     ReportOsAccountLifeCycle(osAccountInfo.GetLocalId(), Constants::OPERATION_CREATE);
