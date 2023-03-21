@@ -390,5 +390,24 @@ void ReleaseNapiRefArray(napi_env env, const std::vector<napi_ref> &napiRefVec)
     context.release();
     work.release();
 }
+
+bool InitUvWorkCallbackEnv(uv_work_t *work, napi_handle_scope &scope)
+{
+    if (work == nullptr) {
+        ACCOUNT_LOGE("work is nullptr");
+        return false;
+    }
+    if (work->data == nullptr) {
+        ACCOUNT_LOGE("data is nullptr");
+        return false;
+    }
+    CommonAsyncContext *data = reinterpret_cast<CommonAsyncContext *>(work->data);
+    napi_open_handle_scope(data->env, &scope);
+    if (scope == nullptr) {
+        ACCOUNT_LOGE("fail to open scope");
+        return false;
+    }
+    return true;
+}
 } // namespace AccountJsKit
 } // namespace OHOS
