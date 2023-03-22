@@ -63,14 +63,9 @@ enum IAMResultCode : int32_t {
 
 int32_t AccountIAMConvertToJSErrCode(int32_t errCode);
 
-struct IAMAsyncContext {
+struct IAMAsyncContext : public CommonAsyncContext {
     explicit IAMAsyncContext(napi_env napiEnv);
     virtual ~IAMAsyncContext();
-    napi_env env = nullptr;
-    napi_async_work work = nullptr;
-    napi_deferred deferred = nullptr;
-    napi_ref callbackRef = nullptr;
-    ErrCode errCode = ERR_OK;
     bool throwErr = true;
 };
 
@@ -80,8 +75,8 @@ struct JsIAMCallback {
 };
 
 #ifdef HAS_USER_AUTH_PART
-struct IDMCallbackParam {
-    napi_env env;
+struct IDMCallbackParam : public CommonAsyncContext {
+    explicit IDMCallbackParam(napi_env napiEnv) : CommonAsyncContext(napiEnv) {};
     JsIAMCallback callback;
     int32_t result;
     int32_t module;
@@ -89,8 +84,8 @@ struct IDMCallbackParam {
     uint64_t credentialId;
 };
 
-struct AuthCallbackParam {
-    napi_env env;
+struct AuthCallbackParam : public CommonAsyncContext {
+    explicit AuthCallbackParam(napi_env napiEnv) : CommonAsyncContext(napiEnv) {};
     int32_t module = 0;
     uint32_t acquireInfo;
     int32_t extraInfo;
@@ -119,14 +114,14 @@ struct IDMContext : public IAMAsyncContext {
     JsIAMCallback callback;
 };
 
-struct GetAuthInfoContext : public IAMAsyncContext {
-    explicit GetAuthInfoContext(napi_env napiEnv) : IAMAsyncContext(napiEnv) {};
+struct GetAuthInfoContext : public CommonAsyncContext {
+    explicit GetAuthInfoContext(napi_env napiEnv) : CommonAsyncContext(napiEnv) {};
     AccountSA::AuthType authType {0};
     std::vector<AccountSA::CredentialInfo> credInfo;
 };
 
-struct GetPropertyContext : public IAMAsyncContext {
-    explicit GetPropertyContext(napi_env napiEnv) : IAMAsyncContext(napiEnv) {};
+struct GetPropertyContext : public CommonAsyncContext {
+    explicit GetPropertyContext(napi_env napiEnv) : CommonAsyncContext(napiEnv) {};
     AccountSA::GetPropertyRequest request;
     int32_t result = 0;
     int32_t authSubType = 0;
@@ -134,8 +129,8 @@ struct GetPropertyContext : public IAMAsyncContext {
     int32_t freezingTime = 0;
 };
 
-struct SetPropertyContext : public IAMAsyncContext {
-    explicit SetPropertyContext(napi_env napiEnv) : IAMAsyncContext(napiEnv) {};
+struct SetPropertyContext : public CommonAsyncContext {
+    explicit SetPropertyContext(napi_env napiEnv) : CommonAsyncContext(napiEnv) {};
     AccountSA::SetPropertyRequest request;
     int32_t result = 0;
 };
@@ -149,8 +144,6 @@ public:
     void OnAcquireInfo(int32_t module, uint32_t acquireInfo, const AccountSA::Attributes &extraInfo) override;
 
 private:
-    std::mutex mutex_;
-    bool isCalled_ = false;
     napi_env env_;
     JsIAMCallback callback_;
 };
@@ -206,9 +199,7 @@ private:
 #endif  // HAS_USER_AUTH_PART
 
 #ifdef HAS_PIN_AUTH_PART
-struct InputerContext {
-    napi_env env = nullptr;
-    napi_ref callback = nullptr;
+struct InputerContext : public CommonAsyncContext {
     int32_t authSubType = -1;
     std::shared_ptr<AccountSA::IInputerData> inputerData = nullptr;
     ThreadLockInfo *lockInfo;
@@ -228,7 +219,7 @@ private:
 };
 #endif  // HAS_PIN_AUTH_PART
 
-void CallbackAsyncOrPromise(napi_env env, IAMAsyncContext *context, napi_value errJs, napi_value dataJs);
+void CallbackAsyncOrPromise(napi_env env, CommonAsyncContext *context, napi_value errJs, napi_value dataJs);
 napi_value CreateErrorObject(napi_env env, int32_t code);
 napi_status ParseUInt32Array(napi_env env, napi_value value, std::vector<uint32_t> &data);
 napi_status ParseIAMCallback(napi_env env, napi_value object, JsIAMCallback &callback);

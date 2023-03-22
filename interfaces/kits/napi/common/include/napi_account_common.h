@@ -79,6 +79,7 @@ napi_value CreateAuthResult(
     napi_env env, const std::vector<uint8_t> &authData, int32_t remainTimes, int32_t freezingTime);
 void ReleaseNapiRefAsync(napi_env env, napi_ref napiRef);
 void ReleaseNapiRefArray(napi_env env, const std::vector<napi_ref> &napiRefVec);
+bool InitUvWorkCallbackEnv(uv_work_t *work, napi_handle_scope &scope);
 } // namespace AccountJsKit
 } // namespace OHOS
 
