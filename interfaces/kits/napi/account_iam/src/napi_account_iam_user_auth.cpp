@@ -110,7 +110,7 @@ napi_value NapiAccountIAMUserAuth::GetAvailableStatus(napi_env env, napi_callbac
 }
 
 static napi_status ParseContextForGetSetProperty(
-    napi_env env, napi_callback_info info, IAMAsyncContext *context, napi_value *result, bool isGet = true)
+    napi_env env, napi_callback_info info, CommonAsyncContext *context, napi_value *result, bool isGet = true)
 {
     size_t argc = ARG_SIZE_TWO;
     napi_value argv[ARG_SIZE_TWO] = {0};
