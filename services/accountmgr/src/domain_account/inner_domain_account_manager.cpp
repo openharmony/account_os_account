@@ -134,10 +134,10 @@ ErrCode InnerDomainAccountManager::GetDomainAccountInfoByUserId(int32_t userId, 
 ErrCode InnerDomainAccountManager::Auth(const DomainAccountInfo &info, const std::vector<uint8_t> &password,
     const sptr<IDomainAuthCallback> &callback)
 {
-    int32_t userId = 0;
+    int32_t userId = -1;
     sptr<IDomainAuthCallback> innerCallback = callback;
     IInnerOsAccountManager::GetInstance().GetOsAccountLocalIdFromDomain(info, userId);
-    if (userId != 0) {
+    if (userId >= 0) {
         innerCallback = new (std::nothrow) InnerDomainAuthCallback(userId, callback);
         if (innerCallback == nullptr) {
             ACCOUNT_LOGE("failed to create innerCallback");
