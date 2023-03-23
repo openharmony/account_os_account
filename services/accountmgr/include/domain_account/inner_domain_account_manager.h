@@ -32,8 +32,6 @@ public:
     ErrCode RegisterPlugin(const sptr<IDomainAccountPlugin> &plugin);
     void UnregisterPlugin();
     ErrCode Auth(const DomainAccountInfo &info, const std::vector<uint8_t> &password,
-        const std::shared_ptr<DomainAuthCallback> &callback);
-    ErrCode Auth(const DomainAccountInfo &info, const std::vector<uint8_t> &password,
         const sptr<IDomainAuthCallback> &callback);
     ErrCode AuthUser(int32_t userId, const std::vector<uint8_t> &password,
         const sptr<IDomainAuthCallback> &callback);
