@@ -687,7 +687,6 @@ ErrCode OsAccountManagerService::DumpStateByAccounts(
     const std::vector<OsAccountInfo> &osAccountInfos, std::vector<std::string> &state)
 {
     ACCOUNT_LOGD("enter");
-
     for (auto osAccountInfo : osAccountInfos) {
         std::string info = "";
 
@@ -747,7 +746,6 @@ ErrCode OsAccountManagerService::QueryOsAccountConstraintSourceTypes(const int32
     }
 
     // permission check
-    ACCOUNT_LOGE("QueryOsAccountConstraintSourceTypes Enter");
     if (!PermissionCheck(AccountPermissionManager::MANAGE_LOCAL_ACCOUNTS, "")) {
         ACCOUNT_LOGE("account manager service, permission denied!");
         return ERR_OSACCOUNT_SERVICE_PERMISSION_DENIED;
