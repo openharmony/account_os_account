@@ -1942,6 +1942,28 @@ napi_value NapiAppAccount::SetAuthenticatorProperties(napi_env env, napi_callbac
     return NapiGetNull(env);
 }
 
+static bool IsExitSubscribe(napi_env env, AsyncContextForSubscribe *context)
+{
+    auto subscribe = g_AppAccountSubscribers.find(context->appAccountManager);
+    if (subscribe == g_AppAccountSubscribers.end()) {
+        return false;
+    }
+    for (size_t index = 0; index < subscribe->second.size(); index++) {
+        if (CompareOnAndOffRef(env, subscribe->second[index]->callbackRef, context->callbackRef)) {
+            return true;
+        }
+    }
+    return false;
+}
+
+static void DeleteSubscribeContext(napi_env env, AsyncContextForSubscribe *context)
+{
+    if (context->callbackRef != nullptr) {
+        napi_delete_reference(env, context->callbackRef);
+    }
+    delete context;
+}
+
 napi_value NapiAppAccount::Subscribe(napi_env env, napi_callback_info cbInfo)
 {
     AsyncContextForSubscribe *context = new (std::nothrow) AsyncContextForSubscribe(env);
@@ -1953,7 +1975,7 @@ napi_value NapiAppAccount::Subscribe(napi_env env, napi_callback_info cbInfo)
         if (context->type != TYPE_CHANGE) {
             napi_throw(env, GenerateBusinessError(env, context->errCode, context->errMsg));
         }
-        delete context;
+        DeleteSubscribeContext(env, context);
         return NapiGetNull(env);
     }
     if (context->appAccountManager == nullptr) {
@@ -1961,29 +1983,64 @@ napi_value NapiAppAccount::Subscribe(napi_env env, napi_callback_info cbInfo)
             napi_throw(env, GenerateBusinessError(env, ERR_JS_SYSTEM_SERVICE_EXCEPTION,
                 std::string("system service exception")));
         }
-        delete context;
+        DeleteSubscribeContext(env, context);
         return NapiGetNull(env);
     }
     AppAccountSubscribeInfo subscribeInfo(context->owners);
     context->subscriber = std::make_shared<SubscriberPtr>(subscribeInfo);
     if (context->subscriber == nullptr) {
         ACCOUNT_LOGE("fail to create subscriber");
-        delete context;
+        DeleteSubscribeContext(env, context);
         return NapiGetNull(env);
     }
     context->subscriber->SetEnv(env);
     context->subscriber->SetCallbackRef(context->callbackRef);
-
     {
         std::lock_guard<std::mutex> lock(g_lockForAppAccountSubscribers);
+        if (IsExitSubscribe(env, context)) {
+            DeleteSubscribeContext(env, context);
+            return NapiGetNull(env);
+        }
         g_AppAccountSubscribers[context->appAccountManager].emplace_back(context);
     }
-
     ErrCode errCode = AppAccountManager::SubscribeAppAccount(context->subscriber);
     if ((errCode != ERR_OK) && (context->type != TYPE_CHANGE)) {
+        DeleteSubscribeContext(env, context);
         napi_throw(env, GenerateBusinessError(env, errCode));
     }
     return NapiGetNull(env);
+}
+
+static void UnsubscribeSync(napi_env env, const AsyncContextForUnsubscribe *context)
+{
+    std::lock_guard<std::mutex> lock(g_lockForAppAccountSubscribers);
+    auto subscribe = g_AppAccountSubscribers.find(context->appAccountManager);
+    if (subscribe == g_AppAccountSubscribers.end()) {
+        return;
+    }
+    for (size_t index = 0; index < subscribe->second.size(); ++index) {
+        if ((context->callbackRef != nullptr) &&
+            (!CompareOnAndOffRef(env, subscribe->second[index]->callbackRef, context->callbackRef))) {
+            continue;
+        }
+        int errCode = AppAccountManager::UnsubscribeAppAccount(subscribe->second[index]->subscriber);
+        if (errCode != ERR_OK) {
+            napi_throw(env, GenerateBusinessError(env, errCode));
+            return;
+        }
+        napi_delete_reference(env, subscribe->second[index]->callbackRef);
+        delete subscribe->second[index];
+        if (context->callbackRef != nullptr) {
+            subscribe->second.erase(subscribe->second.begin() + index);
+            break;
+        }
+    }
+    if ((context->callbackRef == nullptr) || (subscribe->second.empty())) {
+        g_AppAccountSubscribers.erase(subscribe);
+    }
+    if (context->callbackRef != nullptr) {
+        napi_delete_reference(env, context->callbackRef);
+    }
 }
 
 napi_value NapiAppAccount::Unsubscribe(napi_env env, napi_callback_info cbInfo)
@@ -2000,26 +2057,26 @@ napi_value NapiAppAccount::Unsubscribe(napi_env env, napi_callback_info cbInfo)
         delete context;
         return NapiGetNull(env);
     };
-    bool isFind = false;
-    std::vector<std::shared_ptr<SubscriberPtr>> subscribers = {nullptr};
-    napi_value result = GetSubscriberByUnsubscribe(env, subscribers, context, isFind);
-    if (!result) {
-        ACCOUNT_LOGE("Unsubscribe failed. The current subscriber does not exist");
-        return NapiGetNull(env);
+    if (context->type == TYPE_CHANGE) {
+        bool isFind = false;
+        std::vector<std::shared_ptr<SubscriberPtr>> subscribers = {nullptr};
+        napi_value result = GetSubscriberByUnsubscribe(env, subscribers, context, isFind);
+        if (!result) {
+            ACCOUNT_LOGE("Unsubscribe failed. The current subscriber does not exist");
+            return NapiGetNull(env);
+        }
+        context->subscribers = subscribers;
+
+        napi_value resourceName = nullptr;
+        napi_create_string_latin1(env, "Unsubscribe", NAPI_AUTO_LENGTH, &resourceName);
+
+        napi_create_async_work(env, nullptr, resourceName, UnsubscribeExecuteCB, UnsubscribeCallbackCompletedCB,
+            reinterpret_cast<void *>(context), &context->work);
+        napi_queue_async_work(env, context->work);
+    } else {
+        UnsubscribeSync(env, context);
+        delete context;
     }
-    context->subscribers = subscribers;
-
-    napi_value resourceName = nullptr;
-    napi_create_string_latin1(env, "Unsubscribe", NAPI_AUTO_LENGTH, &resourceName);
-
-    napi_create_async_work(env,
-        nullptr,
-        resourceName,
-        UnsubscribeExecuteCB,
-        UnsubscribeCallbackCompletedCB,
-        reinterpret_cast<void *>(context),
-        &context->work);
-    napi_queue_async_work(env, context->work);
     return NapiGetNull(env);
 }
 }  // namespace AccountJsKit

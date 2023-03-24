@@ -550,7 +550,6 @@ HWTEST_F(DomainAccountClientModuleTest, DomainAccountClientModuleTest_CreateOsAc
     domainInfo.accountName_ = ACCOUNT_NAME;
     domainInfo.domain_ = STRING_DOMAIN;
     domainInfo.accountId_ = STRING_ACCOUNTID;
-    OsAccountInfo accountInfo;
     std::vector<std::string> constraints;
     constraints.emplace_back(CONSTRAINT_CREATE_ACCOUNT_DIRECTLY);
     ErrCode errCode = OsAccountManager::SetOsAccountConstraints(TEST_UID, constraints, true);
@@ -579,7 +578,6 @@ HWTEST_F(DomainAccountClientModuleTest, DomainAccountClientModuleTest_CreateOsAc
     domainInfo.accountName_ = ACCOUNT_NAME;
     domainInfo.domain_ = STRING_DOMAIN;
     domainInfo.accountId_ = STRING_ACCOUNTID;
-    OsAccountInfo accountInfo;
     auto callback = std::make_shared<MockDomainCreateDomainAccountCallback>();
     ASSERT_NE(callback, nullptr);
     auto testCallback = std::make_shared<TestCreateDomainAccountCallback>(callback);
