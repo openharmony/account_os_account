@@ -124,8 +124,8 @@ private:
     std::vector<int32_t> activeAccountId_;
     std::vector<int32_t> operatingId_;
     IOsAccountSubscribe &subscribeManager_;
-    std::int32_t deviceOwnerId_;
-    std::int32_t defaultActivatedId_;
+    std::int32_t deviceOwnerId_ = -1;
+    std::int32_t defaultActivatedId_ = -1;
     mutable std::mutex ativeMutex_;
     mutable std::mutex operatingMutex_;
 };
