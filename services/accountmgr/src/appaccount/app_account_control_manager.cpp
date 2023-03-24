@@ -283,7 +283,7 @@ ErrCode AppAccountControlManager::GetAssociatedDataFromStorage(const std::string
     std::string &value, const uid_t &uid, const uint32_t &appIndex)
 {
     std::string bundleName;
-    if (!BundleManagerAdapter::GetInstance()->GetBundleNameForUid(uid, bundleName)) {
+    if (BundleManagerAdapter::GetInstance()->GetNameForUid(uid, bundleName) != ERR_OK) {
         ACCOUNT_LOGE("failed to get bundle name");
         return ERR_APPACCOUNT_SERVICE_GET_BUNDLE_NAME;
     }

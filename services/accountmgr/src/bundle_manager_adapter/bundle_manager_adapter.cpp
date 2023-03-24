@@ -41,7 +41,7 @@ BundleManagerAdapter::BundleManagerAdapter()
 BundleManagerAdapter::~BundleManagerAdapter()
 {}
 
-bool BundleManagerAdapter::GetBundleNameForUid(const int uid, std::string &bundleName)
+ErrCode BundleManagerAdapter::GetNameForUid(const int uid, std::string &bundleName)
 {
     std::lock_guard<std::mutex> lock(proxyMutex_);
     ErrCode result = Connect();
@@ -49,10 +49,10 @@ bool BundleManagerAdapter::GetBundleNameForUid(const int uid, std::string &bundl
         ACCOUNT_LOGE("failed to connect bundle manager service.");
         return false;
     }
-    StartTrace(HITRACE_TAG_ACCOUNT_MANAGER, "Bundle manager service, GetBundleNameForUid");
-    auto ret = proxy_->GetBundleNameForUid(uid, bundleName);
+    StartTrace(HITRACE_TAG_ACCOUNT_MANAGER, "Bundle manager service, GetNameForUid");
+    result = proxy_->GetNameForUid(uid, bundleName);
     FinishTrace(HITRACE_TAG_ACCOUNT_MANAGER);
-    return ret;
+    return result;
 }
 
 int BundleManagerAdapter::GetUidByBundleName(const std::string &bundleName, const int userId)

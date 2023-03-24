@@ -770,8 +770,8 @@ ErrCode AppAccountManagerService::GetBundleNameAndCheckPerm(int32_t &callingUid,
 ErrCode AppAccountManagerService::GetBundleNameAndCallingUid(int32_t &callingUid, std::string &bundleName)
 {
     callingUid = IPCSkeleton::GetCallingUid();
-    bool bundleRet = BundleManagerAdapter::GetInstance()->GetBundleNameForUid(callingUid, bundleName);
-    if (!bundleRet) {
+    ErrCode bundleRet = BundleManagerAdapter::GetInstance()->GetNameForUid(callingUid, bundleName);
+    if (bundleRet != ERR_OK) {
         ACCOUNT_LOGE("failed to get bundle name");
         return ERR_APPACCOUNT_SERVICE_GET_BUNDLE_NAME;
     }
