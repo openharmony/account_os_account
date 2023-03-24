@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2022 Huawei Device Co., Ltd.
+ * Copyright (c) 2022-2023 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -156,4 +156,46 @@ HWTEST_F(AccountErrorCodeConvertTest, AccountErrorCodeConvertTest003, TestSize.L
     ACCOUNT_LOGI("AccountErrorCodeConvertTest003 other case errorCode convert test");
     EXPECT_EQ(ConvertToJSErrCode(ERR_ACCOUNT_ZIDL_CHECK_PERMISSION_ERROR), ERR_JS_PERMISSION_DENIED);
     EXPECT_EQ(ConvertToJSErrCode(ERR_ACCOUNT_ZIDL_READ_RESULT_ERROR), ERR_JS_SYSTEM_SERVICE_EXCEPTION);
+}
+
+/**
+ * @tc.name: AccountErrorCodeTest004
+ * @tc.desc: OsAccountConvertToJSErrCode test
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(AccountErrorCodeConvertTest, AccountErrorCodeConvertTest004, TestSize.Level0)
+{
+    EXPECT_EQ(ConvertToJSErrCode(ERR_ACCOUNT_COMMON_INVALID_PARAMTER),
+        ERR_JS_INVALID_PARAMETER);
+    EXPECT_EQ(ConvertToJSErrCode(ERR_OSACCOUNT_SERVICE_INNER_DOMAIN_ALREADY_BIND_ERROR),
+        ERR_JS_ACCOUNT_ALREADY_EXIST);
+}
+
+/**
+ * @tc.name: AccountErrorCodeTest005
+ * @tc.desc: OsAccountConvertToJSErrCode test
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(AccountErrorCodeConvertTest, AccountErrorCodeConvertTest005, TestSize.Level0)
+{
+    EXPECT_EQ(ConvertToJSErrCode(-1),
+        ERR_JS_SYSTEM_SERVICE_EXCEPTION);
+    EXPECT_EQ(ConvertToJSErrCode(ERR_DOMAIN_ACCOUNT_SERVICE_PLUGIN_ALREADY_EXIST),
+        ERR_JS_DOMAIN_PLUGIN_ALREADY_REGISTERED);
+}
+
+/**
+ * @tc.name: AccountErrorCodeTest006
+ * @tc.desc: OsAccountConvertToJSErrCode test
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(AccountErrorCodeConvertTest, AccountErrorCodeConvertTest006, TestSize.Level0)
+{
+    EXPECT_EQ(ConvertToJSErrCode(ERR_ACCOUNT_COMMON_NOT_SYSTEM_APP_ERROR),
+        ERR_JS_IS_NOT_SYSTEM_APP);
+    EXPECT_EQ(ConvertToJSErrCode(ERR_ACCOUNT_COMMON_INVALID_PARAMTER),
+        ERR_JS_INVALID_PARAMETER);
 }
