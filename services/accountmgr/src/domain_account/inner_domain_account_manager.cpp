@@ -302,7 +302,7 @@ ErrCode InnerDomainAccountManager::HasDomainAccount(
 void InnerDomainAccountManager::StartOnAccountBound(const sptr<IDomainAccountPlugin> &plugin,
     const DomainAccountInfo &info, const int32_t localId, const sptr<IDomainAccountCallback> &callback)
 {
-    if (plugin_ == nullptr) {
+    if (plugin == nullptr) {
         ACCOUNT_LOGE("plugin not exists");
         return ErrorOnResult(ERR_DOMAIN_ACCOUNT_SERVICE_PLUGIN_NOT_EXIST, callback);
     }
@@ -327,7 +327,7 @@ ErrCode InnerDomainAccountManager::OnAccountBound(const DomainAccountInfo &info,
 void InnerDomainAccountManager::StartOnAccountUnBound(const sptr<IDomainAccountPlugin> &plugin,
     const DomainAccountInfo &info, const sptr<IDomainAccountCallback> &callback)
 {
-    if (plugin_ == nullptr) {
+    if (plugin == nullptr) {
         ACCOUNT_LOGE("plugin not exists");
         return ErrorOnResult(ERR_DOMAIN_ACCOUNT_SERVICE_PLUGIN_NOT_EXIST, callback);
     }
@@ -352,7 +352,7 @@ ErrCode InnerDomainAccountManager::OnAccountUnBound(const DomainAccountInfo &inf
 void InnerDomainAccountManager::StartGetDomainAccountInfo(const sptr<IDomainAccountPlugin> &plugin,
     const std::string &domain, const std::string &accountName, const sptr<IDomainAccountCallback> &callback)
 {
-    if (plugin_ == nullptr) {
+    if (plugin == nullptr) {
         ACCOUNT_LOGE("plugin not exists");
         return ErrorOnResult(ERR_DOMAIN_ACCOUNT_SERVICE_PLUGIN_NOT_EXIST, callback);
     }
