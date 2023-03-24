@@ -411,7 +411,7 @@ bool AccountStub::CheckCallerForTrustList()
 {
     std::string bundleName;
     std::int32_t uid = IPCSkeleton::GetCallingUid();
-    if (!BundleManagerAdapter::GetInstance()->GetBundleNameForUid(uid, bundleName)) {
+    if (BundleManagerAdapter::GetInstance()->GetNameForUid(uid, bundleName) != ERR_OK) {
         return false;
     }
 
