@@ -66,6 +66,7 @@ bool GetStringArrayProperty(napi_env env, napi_value obj, std::vector<std::strin
 bool GetStringPropertyByKey(napi_env env, napi_value obj, const std::string &propertyName, std::string &property);
 bool GetOptionalStringPropertyByKey(napi_env env, napi_value obj, const std::string &propertyName,
     std::string &property);
+bool CompareOnAndOffRef(const napi_env env, napi_ref subscriberRef, napi_ref unsubscriberRef);
 bool IsSystemApp(napi_env env);
 bool ParseBusinessError(napi_env env, napi_value value, BusinessError &error);
 bool GetNamedJsFunction(napi_env env, napi_value object, const std::string &name, napi_ref &callback);
