@@ -44,12 +44,12 @@ BundleManagerAdapter::~BundleManagerAdapter()
     ACCOUNT_LOGI("destroy BundleManagerAdapter mock");
 }
 
-bool BundleManagerAdapter::GetBundleNameForUid(const int uid, std::string &bundleName)
+ErrCode BundleManagerAdapter::GetNameForUid(const int uid, std::string &bundleName)
 {
     ACCOUNT_LOGI("mock enter, uid = %{public}d", uid);
     bundleName = STRING_OWNER;
     ACCOUNT_LOGI("mock bundleName = %{public}s", bundleName.c_str());
-    return true;
+    return ERR_OK;
 }
 
 bool BundleManagerAdapter::GetBundleInfo(const std::string &bundleName, const AppExecFwk::BundleFlag flag,

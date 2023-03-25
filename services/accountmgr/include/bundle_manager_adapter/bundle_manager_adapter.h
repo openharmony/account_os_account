@@ -34,7 +34,7 @@ public:
     virtual ~BundleManagerAdapter();
     static std::shared_ptr<BundleManagerAdapter> GetInstance();
 
-    bool GetBundleNameForUid(const int uid, std::string &bundleName);
+    ErrCode GetNameForUid(const int uid, std::string &bundleName);
     bool GetBundleInfo(const std::string &bundleName, const AppExecFwk::BundleFlag flag,
         AppExecFwk::BundleInfo &bundleInfo, int32_t userId);
     ErrCode CreateNewUser(int32_t userId);

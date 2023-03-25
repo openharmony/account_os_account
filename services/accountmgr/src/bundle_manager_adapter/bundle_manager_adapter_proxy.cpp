@@ -157,29 +157,30 @@ int BundleManagerAdapterProxy::GetUidByBundleName(const std::string &bundleName,
     return uid;
 }
 
-bool BundleManagerAdapterProxy::GetBundleNameForUid(const int uid, std::string &bundleName)
+ErrCode BundleManagerAdapterProxy::GetNameForUid(const int uid, std::string &bundleName)
 {
     MessageParcel data;
     if (!data.WriteInterfaceToken(GetDescriptor())) {
-        ACCOUNT_LOGE("fail to GetBundleNameForUid due to write InterfaceToken fail");
-        return false;
+        ACCOUNT_LOGE("fail to GetNameForUid due to write InterfaceToken fail");
+        return ERR_ACCOUNT_COMMON_WRITE_PARCEL_ERROR;
     }
     if (!data.WriteInt32(uid)) {
-        ACCOUNT_LOGE("fail to GetBundleNameForUid due to write uid fail");
-        return false;
+        ACCOUNT_LOGE("fail to GetNameForUid due to write uid fail");
+        return ERR_ACCOUNT_COMMON_WRITE_PARCEL_ERROR;
     }
 
     MessageParcel reply;
-    if (!SendTransactCmd(IBundleMgr::Message::GET_BUNDLE_NAME_FOR_UID, data, reply)) {
-        ACCOUNT_LOGE("fail to GetBundleNameForUid from server");
-        return false;
+    if (!SendTransactCmd(IBundleMgr::Message::GET_NAME_FOR_UID, data, reply)) {
+        ACCOUNT_LOGE("fail to GetNameForUid from server");
+        return ERR_ACCOUNT_COMMON_WRITE_PARCEL_ERROR;
     }
-    if (!reply.ReadBool()) {
+    ErrCode result;
+    if (!reply.ReadInt32(result)) {
         ACCOUNT_LOGE("reply result false");
-        return false;
+        return ERR_ACCOUNT_COMMON_READ_PARCEL_ERROR;
     }
     bundleName = reply.ReadString();
-    return true;
+    return result;
 }
 
 bool BundleManagerAdapterProxy::QueryAbilityInfos(

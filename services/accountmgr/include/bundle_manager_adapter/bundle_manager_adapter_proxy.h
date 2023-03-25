@@ -67,7 +67,7 @@ public:
      * @param bundleName Indicates the obtained bundle name.
      * @return Returns true if the bundle name is successfully obtained; returns false otherwise.
      */
-    bool GetBundleNameForUid(const int uid, std::string &bundleName) override;
+    ErrCode GetNameForUid(const int uid, std::string &bundleName) override;
 
     /**
      * @brief Obtains the interface used to create or delete user.
