@@ -345,7 +345,8 @@ ErrCode OsAccountManagerService::QueryAllCreatedOsAccounts(std::vector<OsAccount
 ErrCode OsAccountManagerService::QueryCurrentOsAccount(OsAccountInfo &osAccountInfo)
 {
     // permission check
-    if (!PermissionCheck(AccountPermissionManager::MANAGE_LOCAL_ACCOUNTS, "")) {
+    if (!PermissionCheck(AccountPermissionManager::MANAGE_LOCAL_ACCOUNTS, "") &&
+        (!PermissionCheck(AccountPermissionManager::GET_LOCAL_ACCOUNTS, ""))) {
         ACCOUNT_LOGE("account manager service, permission denied!");
         return ERR_OSACCOUNT_SERVICE_PERMISSION_DENIED;
     }
