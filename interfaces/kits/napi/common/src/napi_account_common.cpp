@@ -183,6 +183,17 @@ bool GetOptionalStringPropertyByKey(napi_env env, napi_value obj, const std::str
     return GetStringPropertyByKey(env, obj, propertyName, property);
 }
 
+bool CompareOnAndOffRef(const napi_env env, napi_ref subscriberRef, napi_ref unsubscriberRef)
+{
+    napi_value subscriberCallback;
+    napi_get_reference_value(env, subscriberRef, &subscriberCallback);
+    napi_value unsubscriberCallback;
+    napi_get_reference_value(env, unsubscriberRef, &unsubscriberCallback);
+    bool result = false;
+    napi_strict_equals(env, subscriberCallback, unsubscriberCallback, &result);
+    return result;
+}
+
 bool IsSystemApp(napi_env env)
 {
     uint64_t tokenId = IPCSkeleton::GetSelfTokenID();
