@@ -110,7 +110,7 @@ void InnerAccountIAMManager::DelCred(
         return;
     }
     std::vector<uint8_t> secret;
-    ErrCode result = UpdateUserKey(userId, credentialId, authToken, secret);
+    ErrCode result = UpdateUserKey(userId, 0, credentialId, authToken, secret);
     if (result != ERR_OK) {
         callback->OnResult(result, emptyResult);
         return;
@@ -292,7 +292,8 @@ void InnerAccountIAMManager::GetChallenge(int32_t userId, std::vector<uint8_t> &
     }
 }
 
-ErrCode InnerAccountIAMManager::UpdateStorageKey(int32_t userId, const std::vector<uint8_t> &token,
+ErrCode InnerAccountIAMManager::UpdateStorageKey(
+    int32_t userId, uint64_t secureUid, const std::vector<uint8_t> &token,
     const std::vector<uint8_t> &oldSecret, const std::vector<uint8_t> &newSecret)
 {
 #ifdef HAS_STORAGE_PART
@@ -301,7 +302,7 @@ ErrCode InnerAccountIAMManager::UpdateStorageKey(int32_t userId, const std::vect
         ACCOUNT_LOGE("fail to get storage proxy");
         return result;
     }
-    result = storageMgrProxy_->UpdateUserAuth(userId, token, oldSecret, newSecret);
+    result = storageMgrProxy_->UpdateUserAuth(userId, secureUid, token, oldSecret, newSecret);
     if ((result != ERR_OK) && (result != ERROR_STORAGE_KEY_NOT_EXIST)) {
         ACCOUNT_LOGE("fail to update user auth");
         return result;
@@ -340,7 +341,7 @@ ErrCode InnerAccountIAMManager::ActivateUserKey(
     return ERR_OK;
 }
 
-ErrCode InnerAccountIAMManager::UpdateUserKey(int32_t userId, uint64_t credentialId,
+ErrCode InnerAccountIAMManager::UpdateUserKey(int32_t userId, uint64_t secureUid, uint64_t credentialId,
     const std::vector<uint8_t> &token, const std::vector<uint8_t> &newSecret)
 {
     ErrCode result = ERR_OK;
@@ -354,12 +355,14 @@ ErrCode InnerAccountIAMManager::UpdateUserKey(int32_t userId, uint64_t credentia
         ACCOUNT_LOGE("the key do not need to be removed");
         return ERR_OK;
     }
-    result = UpdateStorageKey(userId, token, oldCredInfo.secret, newSecret);
+    result = UpdateStorageKey(userId, secureUid, token, oldCredInfo.secret, newSecret);
     if (result != ERR_OK) {
         return result;
     }
     credInfoMap_[userId] = {
         .credentialId = credentialId,
+        .oldSecureUid = oldCredInfo.secureUid,
+        .secureUid = secureUid,
         .oldSecret = oldCredInfo.secret,
         .secret = newSecret
     };
@@ -376,11 +379,13 @@ ErrCode InnerAccountIAMManager::RemoveUserKey(int32_t userId, const std::vector<
     }
     AccountCredentialInfo oldCredInfo = it->second;
     std::vector<uint8_t> newSecret;
-    result = UpdateStorageKey(userId, token, oldCredInfo.secret, newSecret);
+    result = UpdateStorageKey(userId, 0, token, oldCredInfo.secret, newSecret);
     if (result != ERR_OK) {
         return result;
     }
     credInfoMap_[userId] = {
+        .oldSecureUid = oldCredInfo.secureUid,
+        .secureUid = 0,
         .oldSecret = oldCredInfo.secret,
         .secret = newSecret
     };
@@ -400,11 +405,12 @@ ErrCode InnerAccountIAMManager::RestoreUserKey(int32_t userId, uint64_t credenti
     if (credentialId != 0 && credInfo.credentialId != credentialId) {
         return ERR_OK;
     }
-    result = UpdateStorageKey(userId, token, credInfo.secret, credInfo.oldSecret);
+    result = UpdateStorageKey(userId, credInfo.oldSecureUid, token, credInfo.secret, credInfo.oldSecret);
     if (result != ERR_OK) {
         return result;
     }
     credInfoMap_[userId] = {
+        .secureUid = credInfo.oldSecureUid,
         .secret = credInfo.oldSecret
     };
     return result;
