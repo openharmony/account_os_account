@@ -368,21 +368,6 @@ HWTEST_F(AppAccountAuthenticateModuleTest, AppAccountAuthenticateTest_IsAccountR
 }
 
 /**
- * @tc.name: AppAccountAuthenticatorManagerTest_Init_0100
- * @tc.desc: test Init with isInitialized is true.
- * @tc.type: FUNC
- * @tc.require
- */
-HWTEST_F(AppAccountAuthenticateModuleTest, AppAccountAuthenticatorManagerTest_Init_0100, TestSize.Level1)
-{
-    auto appAccountAuthenticatorManagerPtr = std::make_shared<AppAccountAuthenticatorManager>();
-    ASSERT_NE(appAccountAuthenticatorManagerPtr, nullptr);
-    appAccountAuthenticatorManagerPtr->isInitialized_ = true;
-    appAccountAuthenticatorManagerPtr->Init();
-    ASSERT_EQ(appAccountAuthenticatorManagerPtr->isInitialized_, true);
-}
-
-/**
  * @tc.name: AppAccountAuthenticatorManagerTest_GetAuthenticatorInfo_0100
  * @tc.desc: test GetAuthenticatorInfo with not init.
  * @tc.type: FUNC

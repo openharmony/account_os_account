@@ -29,7 +29,6 @@ const std::string HELP_MSG_UNKNOWN_OPTION = "error: unknown option.";
 const std::string STRING_LOCAL_ACCOUNT_ID = "1024";
 const std::string STRING_CONSTRAINT = "constraint.bluetooth";
 const std::string STRING_CONSTRAINT1 = "constraint.bluetooth,constraint.bluetooth";
-static std::shared_ptr<OsAccount> g_osAccountPtr = nullptr;
 }  // namespace
 
 class AccountCommandSetTest : public testing::Test {
@@ -43,10 +42,7 @@ public:
 };
 
 void AccountCommandSetTest::SetUpTestCase()
-{
-    g_osAccountPtr = DelayedSingleton<OsAccount>::GetInstance();
-    EXPECT_NE(g_osAccountPtr, nullptr);
-}
+{}
 
 void AccountCommandSetTest::TearDownTestCase()
 {}
@@ -57,9 +53,9 @@ void AccountCommandSetTest::SetUp()
     optind = 0;
 
     std::vector<OsAccountInfo> osAccountInfos;
-    g_osAccountPtr->QueryAllCreatedOsAccounts(osAccountInfos);
+    OsAccount::GetInstance().QueryAllCreatedOsAccounts(osAccountInfos);
     for (const auto &info : osAccountInfos) {
-        g_osAccountPtr->RemoveOsAccount(info.GetLocalId());
+        OsAccount::GetInstance().RemoveOsAccount(info.GetLocalId());
     }
 }
 
@@ -361,7 +357,7 @@ HWTEST_F(AccountCommandSetTest, Acm_Command_Set_1500, TestSize.Level1)
 {
     OsAccountInfo osAccountInfo;
     // create an os account
-    EXPECT_EQ(ERR_OK, g_osAccountPtr->CreateOsAccount(TOOL_NAME, OsAccountType::NORMAL, osAccountInfo));
+    EXPECT_EQ(ERR_OK, OsAccount::GetInstance().CreateOsAccount(TOOL_NAME, OsAccountType::NORMAL, osAccountInfo));
 
     std::string userId = std::to_string(osAccountInfo.GetLocalId());
     char *argv[] = {

@@ -15,7 +15,6 @@
 
 #include "account_log_wrapper.h"
 #include "os_account.h"
-#include "singleton.h"
 
 #include "os_account_death_recipient.h"
 
@@ -23,7 +22,7 @@ namespace OHOS {
 namespace AccountSA {
 void OsAccountDeathRecipient::OnRemoteDied(const wptr<IRemoteObject> &remote)
 {
-    DelayedSingleton<OsAccount>::GetInstance()->ResetOsAccountProxy();
+    OsAccount::GetInstance().ResetOsAccountProxy();
 }
 }  // namespace AccountSA
 }  // namespace OHOS
