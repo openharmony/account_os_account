@@ -35,7 +35,6 @@ using namespace OHOS::AccountSA;
 namespace {
 const std::string TEST_ACCOUNT_NAME = "TestAccountName";
 const std::string TEST_ACCOUNT_UID = "123456789";
-static std::shared_ptr<OsAccount> g_osAccountPtr = nullptr;
 }
 
 class AccountDumpHelperTest : public testing::Test {
@@ -55,17 +54,14 @@ public:
 AccountDumpHelperTest::AccountDumpHelperTest() {}
 
 void AccountDumpHelperTest::SetUpTestCase()
-{
-    g_osAccountPtr = DelayedSingleton<OsAccount>::GetInstance();
-    EXPECT_NE(g_osAccountPtr, nullptr);
-}
+{}
 
 void AccountDumpHelperTest::TearDownTestCase()
 {
     std::vector<OsAccountInfo> osAccountInfos;
-    g_osAccountPtr->QueryAllCreatedOsAccounts(osAccountInfos);
+    OsAccount::GetInstance().QueryAllCreatedOsAccounts(osAccountInfos);
     for (const auto &info : osAccountInfos) {
-        g_osAccountPtr->RemoveOsAccount(info.GetLocalId());
+        OsAccount::GetInstance().RemoveOsAccount(info.GetLocalId());
     }
 }
 
@@ -126,7 +122,7 @@ HWTEST_F(AccountDumpHelperTest, AccountDumpParameterTest001, TestSize.Level0)
 {
     OsAccountInfo osAccountInfo;
     // create an os account
-    EXPECT_EQ(ERR_OK, g_osAccountPtr->CreateOsAccount("test", OsAccountType::NORMAL, osAccountInfo));
+    EXPECT_EQ(ERR_OK, OsAccount::GetInstance().CreateOsAccount("test", OsAccountType::NORMAL, osAccountInfo));
 
     OhosAccountInfo accountInfo;
     accountInfo.name_ = TEST_ACCOUNT_NAME;

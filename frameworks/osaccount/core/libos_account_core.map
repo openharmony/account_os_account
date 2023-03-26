@@ -28,6 +28,7 @@
         "OHOS::AccountSA::OsAccount::GetCreatedOsAccountsCount(unsigned int&)";
         "OHOS::AccountSA::OsAccount::GetDistributedVirtualDeviceId(std::__1::basic_string<char, std::__1::char_traits<char>, std::__1::allocator<char> >&)";
         "OHOS::AccountSA::OsAccount::GetDistributedVirtualDeviceId(std::__h::basic_string<char, std::__h::char_traits<char>, std::__h::allocator<char> >&)";
+        "OHOS::AccountSA::OsAccount::GetInstance()";
         "OHOS::AccountSA::OsAccount::GetMaxAllowCreateIdFromDatabase(std::__1::basic_string<char, std::__1::char_traits<char>, std::__1::allocator<char> > const&, int&)";
         "OHOS::AccountSA::OsAccount::GetMaxAllowCreateIdFromDatabase(std::__h::basic_string<char, std::__h::char_traits<char>, std::__h::allocator<char> > const&, int&)";
         "OHOS::AccountSA::OsAccount::GetOsAccountAllConstraints(int, std::__1::vector<std::__1::basic_string<char, std::__1::char_traits<char>, std::__1::allocator<char> >, std::__1::allocator<std::__1::basic_string<char, std::__1::char_traits<char>, std::__1::allocator<char> > > >&)";

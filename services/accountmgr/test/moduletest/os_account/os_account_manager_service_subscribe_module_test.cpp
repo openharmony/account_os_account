@@ -102,7 +102,7 @@ HWTEST_F(OsAccountManagerServiceSubscribeModuleTest, OsAccountManagerServiceSubs
     OsAccountInfo osAccountInfo;
     ErrCode result = osAccountManagerService_->CreateOsAccount("test", OsAccountType::GUEST, osAccountInfo);
     subscriberTestPtr->id_ = osAccountInfo.GetLocalId();
-    ErrCode subscribeState = DelayedSingleton<OsAccount>::GetInstance()->CreateOsAccountEventListener(
+    ErrCode subscribeState = OsAccount::GetInstance().CreateOsAccountEventListener(
         subscriberTestPtr, osAccountEventListener);
     EXPECT_EQ(subscribeState, OsAccount::INITIAL_SUBSCRIPTION);
 
@@ -154,7 +154,7 @@ HWTEST_F(OsAccountManagerServiceSubscribeModuleTest, OsAccountManagerServiceSubs
     OsAccountInfo osAccountInfo;
     ErrCode result = osAccountManagerService_->CreateOsAccount("test", OsAccountType::GUEST, osAccountInfo);
     subscriberTestPtr->id_ = osAccountInfo.GetLocalId();
-    ErrCode subscribeState = DelayedSingleton<OsAccount>::GetInstance()->CreateOsAccountEventListener(
+    ErrCode subscribeState = OsAccount::GetInstance().CreateOsAccountEventListener(
         subscriberTestPtr, osAccountEventListener);
     EXPECT_EQ(subscribeState, OsAccount::INITIAL_SUBSCRIPTION);
 

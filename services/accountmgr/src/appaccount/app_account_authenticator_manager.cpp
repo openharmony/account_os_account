@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2022 Huawei Device Co., Ltd.
+ * Copyright (c) 2022-2023 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -25,20 +25,10 @@
 namespace OHOS {
 namespace AccountSA {
 AppAccountAuthenticatorManager::AppAccountAuthenticatorManager()
-{
-    Init();
-}
+{}
 
 AppAccountAuthenticatorManager::~AppAccountAuthenticatorManager()
 {}
-
-void AppAccountAuthenticatorManager::Init()
-{
-    if (isInitialized_) {
-        return;
-    }
-    isInitialized_ = true;
-}
 
 static ErrCode QueryAbilityInfos(const std::string &owner, int32_t userId,
     std::vector<AppExecFwk::AbilityInfo> &abilityInfos,
@@ -72,9 +62,6 @@ static ErrCode QueryAbilityInfos(const std::string &owner, int32_t userId,
 ErrCode AppAccountAuthenticatorManager::GetAuthenticatorInfo(
     const std::string &owner, int32_t userId, AuthenticatorInfo &info)
 {
-    if (!isInitialized_) {
-        Init();
-    }
     std::vector<AppExecFwk::AbilityInfo> abilityInfos;
     std::vector<AppExecFwk::ExtensionAbilityInfo> extensionInfos;
     ErrCode ret = QueryAbilityInfos(owner, userId, abilityInfos, extensionInfos);
