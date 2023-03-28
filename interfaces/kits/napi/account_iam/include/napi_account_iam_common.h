@@ -78,17 +78,17 @@ struct JsIAMCallback {
 struct IDMCallbackParam : public CommonAsyncContext {
     explicit IDMCallbackParam(napi_env napiEnv) : CommonAsyncContext(napiEnv) {};
     JsIAMCallback callback;
-    int32_t result;
-    int32_t module;
-    uint32_t acquire;
-    uint64_t credentialId;
+    int32_t result = 0;
+    int32_t module = 0;
+    uint32_t acquire = 0;
+    uint64_t credentialId = 0;
 };
 
 struct AuthCallbackParam : public CommonAsyncContext {
     explicit AuthCallbackParam(napi_env napiEnv) : CommonAsyncContext(napiEnv) {};
     int32_t module = 0;
-    uint32_t acquireInfo;
-    int32_t extraInfo;
+    uint32_t acquireInfo = 0;
+    int32_t extraInfo = 0;
     int32_t resultCode = 0;
     int32_t remainTimes = -1;
     int32_t freezingTime = -1;
@@ -98,8 +98,8 @@ struct AuthCallbackParam : public CommonAsyncContext {
 
 struct AuthContext {
     int32_t userId = 0;
-    int32_t authType;
-    int32_t trustLevel;
+    int32_t authType = -1;
+    int32_t trustLevel = -1;
     bool throwErr = true;
     std::vector<uint8_t> challenge;
     std::shared_ptr<AccountSA::IDMCallback> callback;

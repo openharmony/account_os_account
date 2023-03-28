@@ -17,6 +17,7 @@
 
 #include "accesstoken_kit.h"
 #include "account_log_wrapper.h"
+#include "account_permission_manager.h"
 #include "app_account_app_state_observer.h"
 #include "app_account_check_labels_session.h"
 #include "app_account_data_storage.h"
@@ -608,9 +609,10 @@ ErrCode AppAccountControlManager::GetAllAccounts(const std::string &owner, std::
         ACCOUNT_LOGE("dataStoragePtr is nullptr");
         return ERR_APPACCOUNT_SERVICE_DATA_STORAGE_PTR_IS_NULLPTR;
     }
-    if (bundleName == owner) {
+    ErrCode result = AccountPermissionManager::VerifyPermission(AccountPermissionManager::GET_ALL_APP_ACCOUNTS);
+    if ((bundleName == owner) || (result == ERR_OK)) {
         std::string key = owner + Constants::HYPHEN + std::to_string(appIndex);
-        ErrCode result = GetAllAccountsFromDataStorage(key, appAccounts, bundleName, dataStoragePtr);
+        result = GetAllAccountsFromDataStorage(key, appAccounts, owner, dataStoragePtr);
         if (result != ERR_OK) {
             ACCOUNT_LOGE("failed to get all accounts from data storage, result = %{public}d", result);
             return result;
@@ -619,7 +621,7 @@ ErrCode AppAccountControlManager::GetAllAccounts(const std::string &owner, std::
     }
 
     std::vector<std::string> accessibleAccounts;
-    ErrCode result = dataStoragePtr->GetAccessibleAccountsFromDataStorage(bundleName, accessibleAccounts);
+    result = dataStoragePtr->GetAccessibleAccountsFromDataStorage(bundleName, accessibleAccounts);
     if (result != ERR_OK) {
         ACCOUNT_LOGE("failed to get accessible account from data storage, result %{public}d.", result);
         return result;
@@ -638,6 +640,22 @@ ErrCode AppAccountControlManager::GetAllAccounts(const std::string &owner, std::
     return ERR_OK;
 }
 
+static ErrCode LoadAllAppAccounts(const std::shared_ptr<OHOS::AccountSA::AppAccountDataStorage> &dataStoragePtr,
+    std::vector<AppAccountInfo> &appAccounts)
+{
+    std::map<std::string, std::shared_ptr<IAccountInfo>> infos;
+    ErrCode result = dataStoragePtr->LoadAllData(infos);
+    if (result != ERR_OK) {
+        ACCOUNT_LOGE("LoadAllData failed!");
+        return result;
+    }
+    for (auto it = infos.begin(); it != infos.end(); it++) {
+        AppAccountInfo curAppInfo = *(std::static_pointer_cast<AppAccountInfo>(it->second));
+        appAccounts.emplace_back(curAppInfo);
+    }
+    return ERR_OK;
+}
+
 ErrCode AppAccountControlManager::GetAllAccessibleAccounts(std::vector<AppAccountInfo> &appAccounts,
     const uid_t &uid, const std::string &bundleName, const uint32_t &appIndex)
 {
@@ -648,9 +666,12 @@ ErrCode AppAccountControlManager::GetAllAccessibleAccounts(std::vector<AppAccoun
         ACCOUNT_LOGE("dataStoragePtr is nullptr");
         return ERR_APPACCOUNT_SERVICE_DATA_STORAGE_PTR_IS_NULLPTR;
     }
-
+    ErrCode result = AccountPermissionManager::VerifyPermission(AccountPermissionManager::GET_ALL_APP_ACCOUNTS);
+    if (result == ERR_OK) {
+        return LoadAllAppAccounts(dataStoragePtr, appAccounts);
+    }
     std::vector<std::string> accessibleAccounts;
-    ErrCode result = dataStoragePtr->GetAccessibleAccountsFromDataStorage(bundleName, accessibleAccounts);
+    result = dataStoragePtr->GetAccessibleAccountsFromDataStorage(bundleName, accessibleAccounts);
     if (result != ERR_OK) {
         ACCOUNT_LOGE("failed to get accessible account from data storage, result %{public}d.", result);
         return result;
