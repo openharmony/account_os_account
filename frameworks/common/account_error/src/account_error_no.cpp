@@ -163,7 +163,7 @@ int32_t ConvertToJSErrCode(int32_t nativeErrCode)
         return ERR_JS_SUCCESS;
     }
     if (nativeErrCode == ERR_ACCOUNT_COMMON_INVALID_PARAMTER) {
-      return ERR_JS_INVALID_PARAMETER;
+        return ERR_JS_INVALID_PARAMETER;
     }
     if (IsAppAccountKitError(nativeErrCode) || IsAppAccountServiceError(nativeErrCode)) {
         return AppAccountConvertToJSErrCode(nativeErrCode);

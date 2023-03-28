@@ -1390,13 +1390,13 @@ HWTEST_F(OsAccountInnerAccmgrCoverageTest, OsAccountInnerAccmgrCoverageTest038, 
         .WillRepeatedly(DoAll(SetArgReferee<0>(accounts), testing::Return(0)));
 
     innerMgrService_->ResetAccountStatus();
-    EXPECT_EQ(account1.GetIsActived(), true);// this interface has nothing to judge.
+    EXPECT_EQ(account1.GetIsActived(), true); // this interface has nothing to judge.
 
     EXPECT_CALL(*ptr, GetOsAccountList(_))
         .WillRepeatedly(DoAll(SetArgReferee<0>(accounts), testing::Return(-1)));
 
     innerMgrService_->ResetAccountStatus();
-    EXPECT_EQ(account1.GetIsActived(), true);// this interface has nothing to judge.
+    EXPECT_EQ(account1.GetIsActived(), true); // this interface has nothing to judge.
 
     DelayedSingleton<IInnerOsAccountManager>::DestroyInstance();
 }
