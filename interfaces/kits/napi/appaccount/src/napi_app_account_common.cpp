@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021-2022 Huawei Device Co., Ltd.
+ * Copyright (c) 2021-2023 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -34,10 +34,12 @@ SubscriberPtr::~SubscriberPtr()
 
 void UvQueueWorkOnAppAccountsChanged(uv_work_t *work, int status)
 {
-    if (work == nullptr || work->data == nullptr) {
+    std::unique_ptr<uv_work_t> workPtr(work);
+    napi_handle_scope scope = nullptr;
+    if (!InitUvWorkCallbackEnv(work, scope)) {
         return;
     }
-    SubscriberAccountsWorker *data = reinterpret_cast<SubscriberAccountsWorker *>(work->data);
+    std::unique_ptr<SubscriberAccountsWorker> data(reinterpret_cast<SubscriberAccountsWorker *>(work->data));
     bool isFound = false;
     {
         std::lock_guard<std::mutex> lock(g_lockForAppAccountSubscribers);
@@ -54,18 +56,11 @@ void UvQueueWorkOnAppAccountsChanged(uv_work_t *work, int status)
         }
     }
     if (isFound) {
-        napi_value undefined = nullptr;
-        napi_get_undefined(data->env, &undefined);
-        napi_value callback = nullptr;
-        napi_get_reference_value(data->env, data->ref, &callback);
         napi_value results[ARGS_SIZE_ONE] = {nullptr};
         GetAppAccountInfoForResult(data->env, data->accounts, results[0]);
-        napi_value resultOut = nullptr;
-        napi_call_function(data->env, undefined, callback, ARGS_SIZE_ONE, &results[0], &resultOut);
+        NapiCallVoidFunction(data->env, results, ARGS_SIZE_ONE, data->ref);
     }
-    delete data;
-    data = nullptr;
-    delete work;
+    napi_close_handle_scope(data->env, scope);
 }
 
 void SubscriberPtr::OnAccountsChanged(const std::vector<AppAccountInfo> &accounts_)
@@ -82,7 +77,7 @@ void SubscriberPtr::OnAccountsChanged(const std::vector<AppAccountInfo> &account
         return;
     }
 
-    SubscriberAccountsWorker *subscriberAccountsWorker = new (std::nothrow) SubscriberAccountsWorker();
+    SubscriberAccountsWorker *subscriberAccountsWorker = new (std::nothrow) SubscriberAccountsWorker(env_);
 
     if (subscriberAccountsWorker == nullptr) {
         ACCOUNT_LOGE("SubscriberAccountsWorker is null");
@@ -91,7 +86,6 @@ void SubscriberPtr::OnAccountsChanged(const std::vector<AppAccountInfo> &account
     }
 
     subscriberAccountsWorker->accounts = accounts_;
-    subscriberAccountsWorker->env = env_;
     subscriberAccountsWorker->ref = ref_;
     subscriberAccountsWorker->subscriber = this;
 
@@ -112,24 +106,43 @@ void SubscriberPtr::SetCallbackRef(const napi_ref &ref)
 
 void CheckAccountLabelsOnResultWork(uv_work_t *work, int status)
 {
-    (void)status;
-    AuthenticatorCallbackParam *param = reinterpret_cast<AuthenticatorCallbackParam*>(work->data);
-    napi_value checkResult[RESULT_COUNT] = {NapiGetNull(param->context.env)};
-    if (param->context.errCode == ERR_JS_SUCCESS) {
-        bool hasLabels = param->result.GetBoolParam(Constants::KEY_BOOLEAN_RESULT, false);
-        napi_get_boolean(param->context.env, hasLabels, &checkResult[PARAMONE]);
-    } else {
-        checkResult[PARAMZERO] = GetErrorCodeValue(param->context.env, param->context.errCode);
+    std::unique_ptr<uv_work_t> workPtr(work);
+    napi_handle_scope scope = nullptr;
+    if (!InitUvWorkCallbackEnv(work, scope)) {
+        return;
     }
-    ProcessCallbackOrPromise(param->context.env, &(param->context), checkResult[PARAMZERO], checkResult[PARAMONE]);
-    delete param;
-    delete work;
+    std::unique_ptr<AuthenticatorCallbackParam> data(reinterpret_cast<AuthenticatorCallbackParam *>(work->data));
+    napi_value checkResult[RESULT_COUNT] = {NapiGetNull(data->context.env)};
+    if (data->context.errCode == ERR_JS_SUCCESS) {
+        bool hasLabels = data->result.GetBoolParam(Constants::KEY_BOOLEAN_RESULT, false);
+        napi_get_boolean(data->context.env, hasLabels, &checkResult[PARAMONE]);
+    } else {
+        checkResult[PARAMZERO] = GetErrorCodeValue(data->context.env, data->context.errCode);
+    }
+    ProcessCallbackOrPromise(data->context.env, &(data->context), checkResult[PARAMZERO], checkResult[PARAMONE]);
+    napi_close_handle_scope(data->context.env, scope);
+}
+
+static napi_value CreateJSAppAccountInfo(napi_env env, const std::string &name, const std::string &owner)
+{
+    napi_value object = nullptr;
+    NAPI_CALL(env, napi_create_object(env, &object));
+    napi_value value = nullptr;
+    NAPI_CALL(env, napi_create_string_utf8(env, name.c_str(), NAPI_AUTO_LENGTH, &value));
+    NAPI_CALL(env, napi_set_named_property(env, object, "name", value));
+    NAPI_CALL(env, napi_create_string_utf8(env, owner.c_str(), NAPI_AUTO_LENGTH, &value));
+    NAPI_CALL(env, napi_set_named_property(env, object, "owner", value));
+    return object;
 }
 
 void SelectAccountsOnResultWork(uv_work_t *work, int status)
 {
-    (void)status;
-    AuthenticatorCallbackParam *param = reinterpret_cast<AuthenticatorCallbackParam*>(work->data);
+    napi_handle_scope scope = nullptr;
+    std::unique_ptr<uv_work_t> workPtr(work);
+    if (!InitUvWorkCallbackEnv(work, scope)) {
+        return;
+    }
+    std::unique_ptr<AuthenticatorCallbackParam> param(reinterpret_cast<AuthenticatorCallbackParam *>(work->data));
     std::vector<std::string> names = param->result.GetStringArrayParam(Constants::KEY_ACCOUNT_NAMES);
     std::vector<std::string> owners = param->result.GetStringArrayParam(Constants::KEY_ACCOUNT_OWNERS);
     if (names.size() != owners.size()) {
@@ -140,21 +153,14 @@ void SelectAccountsOnResultWork(uv_work_t *work, int status)
     if (param->context.errCode == ERR_JS_SUCCESS) {
         napi_create_array(env, &selectResult[PARAMONE]);
         for (size_t i = 0; i < names.size(); ++i) {
-            napi_value object = nullptr;
-            napi_create_object(env, &object);
-            napi_value value = nullptr;
-            napi_create_string_utf8(env, names[i].c_str(), NAPI_AUTO_LENGTH, &value);
-            napi_set_named_property(env, object, "name", value);
-            napi_create_string_utf8(env, owners[i].c_str(), NAPI_AUTO_LENGTH, &value);
-            napi_set_named_property(env, object, "owner", value);
+            napi_value object = CreateJSAppAccountInfo(env, names[i], owners[i]);
             napi_set_element(env, selectResult[PARAMONE], i, object);
         }
     } else {
         selectResult[PARAMZERO] = GetErrorCodeValue(env, param->context.errCode);
     }
     ProcessCallbackOrPromise(env, &(param->context), selectResult[PARAMZERO], selectResult[PARAMONE]);
-    delete param;
-    delete work;
+    napi_close_handle_scope(env, scope);
 }
 
 AuthenticatorAsyncCallback::AuthenticatorAsyncCallback(
@@ -188,9 +194,7 @@ void AuthenticatorAsyncCallback::OnResult(int32_t resultCode, const AAFwk::Want 
     if (uv_queue_work(loop, work, [](uv_work_t *work) {}, workCb_) == ERR_OK) {
         return;
     }
-    if (context_.callbackRef != nullptr) {
-        napi_delete_reference(context_.env, context_.callbackRef);
-    }
+    ReleaseNapiRefAsync(context_.env, context_.callbackRef);
     delete param;
     delete work;
 }
@@ -210,55 +214,39 @@ AppAccountManagerCallback::~AppAccountManagerCallback()
 
 void UvQueueWorkOnResult(uv_work_t *work, int status)
 {
-    if ((work == nullptr) || (work->data == nullptr)) {
-        ACCOUNT_LOGE("work or data is nullptr");
+    std::unique_ptr<uv_work_t> workPtr(work);
+    napi_handle_scope scope = nullptr;
+    if (!InitUvWorkCallbackEnv(work, scope)) {
         return;
     }
-    AuthenticatorCallbackParam *data = reinterpret_cast<AuthenticatorCallbackParam *>(work->data);
+    std::unique_ptr<AuthenticatorCallbackParam> data(reinterpret_cast<AuthenticatorCallbackParam *>(work->data));
     ProcessOnResultCallback(data->env, data->callback, data->resultCode, data->result.GetParams());
-    delete data;
-    data = nullptr;
-    delete work;
+    napi_close_handle_scope(data->env, scope);
 }
 
 void UvQueueWorkOnRequestRedirected(uv_work_t *work, int status)
 {
-    if ((work == nullptr) || (work->data == nullptr)) {
-        ACCOUNT_LOGE("work or data is nullptr");
+    std::unique_ptr<uv_work_t> workPtr(work);
+    napi_handle_scope scope = nullptr;
+    if (!InitUvWorkCallbackEnv(work, scope)) {
         return;
     }
-    AuthenticatorCallbackParam *data = reinterpret_cast<AuthenticatorCallbackParam *>(work->data);
-    napi_value results[ARGS_SIZE_ONE] = {nullptr};
-    results[0] = AppExecFwk::WrapWant(data->env, data->request);
-    napi_value undefined = nullptr;
-    napi_get_undefined(data->env, &undefined);
-    napi_value callback = nullptr;
-    napi_value resultout = nullptr;
-    napi_get_reference_value(data->env, data->callback.onRequestRedirected, &callback);
-    napi_call_function(data->env, undefined, callback, ARGS_SIZE_ONE, results, &resultout);
-    delete data;
-    data = nullptr;
-    delete work;
+    std::unique_ptr<AuthenticatorCallbackParam> data(reinterpret_cast<AuthenticatorCallbackParam *>(work->data));
+    napi_value results[ARGS_SIZE_ONE] = {AppExecFwk::WrapWant(data->env, data->request)};
+    NapiCallVoidFunction(data->env, results, ARGS_SIZE_ONE, data->callback.onRequestRedirected);
+    napi_close_handle_scope(data->env, scope);
 }
 
 void UvQueueWorkOnRequestContinued(uv_work_t *work, int status)
 {
-    (void)status;
-    if ((work == nullptr) || (work->data == nullptr)) {
-        ACCOUNT_LOGE("work or data is nullptr");
+    std::unique_ptr<uv_work_t> workPtr(work);
+    napi_handle_scope scope = nullptr;
+    if (!InitUvWorkCallbackEnv(work, scope)) {
         return;
     }
-    AuthenticatorCallbackParam *data = reinterpret_cast<AuthenticatorCallbackParam *>(work->data);
-    napi_value callback = nullptr;
-    napi_get_reference_value(data->env, data->callback.onRequestContinued, &callback);
-    napi_value undefined = nullptr;
-    napi_get_undefined(data->env, &undefined);
-    napi_value results[0];
-    napi_value resultout = nullptr;
-    napi_call_function(data->env, undefined, callback, 0, results, &resultout);
-    delete data;
-    data = nullptr;
-    delete work;
+    std::unique_ptr<AuthenticatorCallbackParam> data(reinterpret_cast<AuthenticatorCallbackParam *>(work->data));
+    NapiCallVoidFunction(data->env, nullptr, 0, data->callback.onRequestContinued);
+    napi_close_handle_scope(data->env, scope);
 }
 
 void AppAccountManagerCallback::OnResult(int32_t resultCode, const AAFwk::Want &result)
@@ -319,7 +307,7 @@ bool InitAuthenticatorWorkEnv(napi_env env, uv_loop_s **loop, uv_work_t **work,
         ACCOUNT_LOGE("work is null");
         return false;
     }
-    *param = new (std::nothrow) AuthenticatorCallbackParam();
+    *param = new (std::nothrow) AuthenticatorCallbackParam(env);
     if (*param == nullptr) {
         ACCOUNT_LOGE("failed to create AuthenticatorCallbackParam");
         delete *work;
@@ -327,7 +315,6 @@ bool InitAuthenticatorWorkEnv(napi_env env, uv_loop_s **loop, uv_work_t **work,
         *loop = nullptr;
         return false;
     }
-    (*param)->env = env;
     return true;
 }
 
@@ -376,26 +363,15 @@ napi_value GetErrorCodeValue(napi_env env, int errCode)
 
 void GetAppAccountInfoForResult(napi_env env, const std::vector<AppAccountInfo> &info, napi_value &result)
 {
-    napi_create_array(env, &result);
+    NAPI_CALL_RETURN_VOID(env, napi_create_array(env, &result));
     uint32_t index = 0;
     for (auto item : info) {
-        napi_value objAppAccountInfo = nullptr;
-        napi_create_object(env, &objAppAccountInfo);
-
         std::string name;
         item.GetName(name);
-        napi_value nName = nullptr;
-        napi_create_string_utf8(env, name.c_str(), NAPI_AUTO_LENGTH, &nName);
-        napi_set_named_property(env, objAppAccountInfo, "name", nName);
-
         std::string owner;
         item.GetOwner(owner);
-        napi_value nOwner = nullptr;
-        napi_create_string_utf8(env, owner.c_str(), NAPI_AUTO_LENGTH, &nOwner);
-        napi_set_named_property(env, objAppAccountInfo, "owner", nOwner);
-
-        napi_set_element(env, result, index, objAppAccountInfo);
-        index++;
+        napi_value objAppAccountInfo = CreateJSAppAccountInfo(env, name, owner);
+        NAPI_CALL_RETURN_VOID(env, napi_set_element(env, result, index++, objAppAccountInfo));
     }
 }
 
@@ -1206,19 +1182,8 @@ void UnsubscribeCallbackCompletedCB(napi_env env, napi_status status, void *data
     if (asyncContextForOff->argc >= UNSUBSCRIBE_MAX_PARA) {
         napi_value result = nullptr;
         napi_get_null(env, &result);
-
-        napi_value undefined = nullptr;
-        napi_get_undefined(env, &undefined);
-
-        napi_value callback = nullptr;
-        napi_value resultout = nullptr;
-        napi_get_reference_value(env, asyncContextForOff->callbackRef, &callback);
-
-        napi_value results[ARGS_SIZE_TWO] = {nullptr};
-        results[PARAMZERO] = result;
-
-        NAPI_CALL_RETURN_VOID(
-            env, napi_call_function(env, undefined, callback, ARGS_SIZE_ONE, &results[0], &resultout));
+        napi_value results[ARGS_SIZE_ONE] = {result};
+        NapiCallVoidFunction(env, results, ARGS_SIZE_ONE, asyncContextForOff->callbackRef);
     }
 
     if (asyncContextForOff->callbackRef != nullptr) {
@@ -1235,6 +1200,7 @@ void UnsubscribeCallbackCompletedCB(napi_env env, napi_status status, void *data
         if (subscribe != g_AppAccountSubscribers.end()) {
             for (auto offCBInfo : subscribe->second) {
                 napi_delete_reference(env, offCBInfo->callbackRef);
+                delete offCBInfo;
             }
             g_AppAccountSubscribers.erase(subscribe);
         }
@@ -1545,12 +1511,7 @@ void ProcessOnResultCallback(
     napi_value results[ARGS_SIZE_TWO] = {nullptr};
     napi_create_int32(env, resultCode, &results[0]);
     results[ARGS_SIZE_ONE] = AppExecFwk::WrapWantParams(env, result);
-    napi_value undefined = nullptr;
-    napi_get_undefined(env, &undefined);
-    napi_value onResultFunc = nullptr;
-    napi_value resultout = nullptr;
-    napi_get_reference_value(env, callback.onResult, &onResultFunc);
-    napi_call_function(env, undefined, onResultFunc, ARGS_SIZE_TWO, results, &resultout);
+    NapiCallVoidFunction(env, results, ARGS_SIZE_TWO, callback.onResult);
     if (callback.onResult != nullptr) {
         napi_delete_reference(env, callback.onResult);
         callback.onResult = nullptr;

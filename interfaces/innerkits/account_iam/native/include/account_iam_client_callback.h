@@ -28,7 +28,7 @@ public:
 
 class GetCredInfoCallback {
 public:
-    virtual void OnCredentialInfo(const std::vector<CredentialInfo> &infoList) = 0;
+    virtual void OnCredentialInfo(int32_t result, const std::vector<CredentialInfo> &infoList) = 0;
 };
 
 class GetSetPropCallback {

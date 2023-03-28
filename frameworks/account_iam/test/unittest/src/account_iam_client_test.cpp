@@ -207,7 +207,7 @@ HWTEST_F(AccountIAMClientTest, AccountIAMClient_GetCredentialInfo_0100, TestSize
 {
     auto testCallback = std::make_shared<MockGetCredInfoCallback>();
     EXPECT_NE(testCallback, nullptr);
-    EXPECT_CALL(*testCallback, OnCredentialInfo(_)).Times(Exactly(1));
+    EXPECT_CALL(*testCallback, OnCredentialInfo(_, _)).Times(Exactly(1));
     AccountIAMClient::GetInstance().GetCredentialInfo(TEST_USER_ID, AuthType::PIN, testCallback);
 }
 
