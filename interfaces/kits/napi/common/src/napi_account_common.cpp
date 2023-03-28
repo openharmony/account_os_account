@@ -59,6 +59,81 @@ void ProcessCallbackOrPromise(napi_env env, const CommonAsyncContext *asyncConte
     }
 }
 
+void NapiCallVoidFunction(napi_env env, napi_value *argv, size_t argc, napi_ref funcRef)
+{
+    napi_value undefined = nullptr;
+    NAPI_CALL_RETURN_VOID(env, napi_get_undefined(env, &undefined));
+    napi_value returnVal;
+    napi_value func = nullptr;
+    NAPI_CALL_RETURN_VOID(env, napi_get_reference_value(env, funcRef, &func));
+    napi_call_function(env, undefined, func, argc, argv, &returnVal);
+}
+
+bool InitUvWorkCallbackEnv(uv_work_t *work, napi_handle_scope &scope)
+{
+    if (work == nullptr) {
+        ACCOUNT_LOGE("work is nullptr");
+        return false;
+    }
+    if (work->data == nullptr) {
+        ACCOUNT_LOGE("data is nullptr");
+        return false;
+    }
+    CommonAsyncContext *data = reinterpret_cast<CommonAsyncContext *>(work->data);
+    napi_open_handle_scope(data->env, &scope);
+    if (scope == nullptr) {
+        ACCOUNT_LOGE("fail to open scope");
+        return false;
+    }
+    return true;
+}
+
+void ReleaseNapiRefAsync(napi_env env, napi_ref napiRef)
+{
+    ReleaseNapiRefArray(env, {napiRef});
+}
+
+void ReleaseNapiRefArray(napi_env env, const std::vector<napi_ref> &napiRefVec)
+{
+    if (env == nullptr) {
+        ACCOUNT_LOGE("invalid env");
+        return;
+    }
+    std::unique_ptr<uv_work_t> work = std::make_unique<uv_work_t>();
+    std::unique_ptr<NapiRefArrayContext> context = std::make_unique<NapiRefArrayContext>();
+    uv_loop_s *loop = nullptr;
+    napi_get_uv_event_loop(env, &loop);
+    if ((loop == nullptr) || (work == nullptr) || (context == nullptr)) {
+        ACCOUNT_LOGE("fail to init execution environment");
+        return;
+    }
+    context->env = env;
+    context->napiRefVec = napiRefVec;
+    work->data = reinterpret_cast<void *>(context.get());
+    NAPI_CALL_RETURN_VOID(env, uv_queue_work(loop, work.get(), [] (uv_work_t *work) {},
+        [] (uv_work_t *work, int status) {
+            if (work == nullptr) {
+                ACCOUNT_LOGE("work is nullptr");
+                return;
+            }
+            auto context = reinterpret_cast<NapiRefArrayContext *>(work->data);
+            if (context == nullptr) {
+                ACCOUNT_LOGE("context is nullptr");
+                delete work;
+                return;
+            }
+            for (auto &napiRef : context->napiRefVec) {
+                if (napiRef != nullptr) {
+                    napi_delete_reference(context->env, napiRef);
+                }
+            }
+            delete context;
+            delete work;
+        }));
+    context.release();
+    work.release();
+}
+
 bool GetIntProperty(napi_env env, napi_value obj, int32_t &property)
 {
     napi_valuetype valueType = napi_undefined;

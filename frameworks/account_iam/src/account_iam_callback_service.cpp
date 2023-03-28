@@ -55,7 +55,7 @@ void GetCredInfoCallbackService::OnCredentialInfo(const std::vector<CredentialIn
         ACCOUNT_LOGE("callback is nullptr");
         return;
     }
-    callback_->OnCredentialInfo(infoList);
+    callback_->OnCredentialInfo(ERR_OK, infoList);
 }
 
 GetSetPropCallbackService::GetSetPropCallbackService(const std::shared_ptr<GetSetPropCallback> &callback)
