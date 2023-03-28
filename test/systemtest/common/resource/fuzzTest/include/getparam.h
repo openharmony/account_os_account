@@ -54,7 +54,6 @@ std::vector<int> GetIntVectorParam();
 std::vector<float> GetFloatVectorParam();
 std::vector<double> GetDoubleVectorParam();
 std::vector<char> GetCharVectorParam();
-std::vector<char32_t> GetChar32VectorParam();
 std::vector<std::string> GetStringVectorParam();
 template<class T>
 std::vector<T> GetUnsignVectorParam();

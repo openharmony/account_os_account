@@ -204,14 +204,6 @@ char GetCharParam()
     return param;
 }
 
-char32_t GetChar32Param()
-{
-    std::random_device rd;
-    static uniform_int_distribution<char32_t> u;
-    static default_random_engine e(rd());
-    return u(e);
-}
-
 string GetStringParam()
 {
     string param = "";
@@ -324,18 +316,6 @@ vector<char> GetCharVectorParam()
         param.push_back(t);
     }
     cout << "Char vector param length is: " << param.size() << endl;
-    return param;
-}
-
-vector<char32_t> GetChar32VectorParam()
-{
-    vector<char32_t> param;
-    size_t len = GenRandom(RANDOM_MIN, RANDOM_MAX);
-    while (len--) {
-        char32_t t = GetChar32Param();
-        param.push_back(t);
-    }
-    cout << "Char32_t vector param length is: " << param.size() << endl;
     return param;
 }
 
