@@ -54,6 +54,7 @@ private:
     Attributes reqResult_;
     sptr<IIDMCallback> idmCallback_ = nullptr;
     uint64_t credentialId_ = 0;
+    uint64_t secureUid_ = 0;
 };
 
 class AddCredCallback : public UserIdmClientCallback {

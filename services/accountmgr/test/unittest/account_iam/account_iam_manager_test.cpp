@@ -296,14 +296,15 @@ HWTEST_F(AccountIamManagerTest, UpdateUserKey001, TestSize.Level2)
     std::vector<uint8_t> testSecret = {1, 2, 3, 4};
 
     int32_t res =
-        InnerAccountIAMManager::GetInstance().UpdateUserKey(TEST_USER_ID, testCreId, testAuthToken, testSecret);
+        InnerAccountIAMManager::GetInstance().UpdateUserKey(TEST_USER_ID, 0, testCreId, testAuthToken, testSecret);
     EXPECT_EQ(g_fscryptEnable ? -2 : 0, res);
     uint64_t testNewCreId = 222;
     std::vector<uint8_t> testNewSecret;
     EXPECT_EQ(ERR_OK,
-        InnerAccountIAMManager::GetInstance().UpdateUserKey(TEST_USER_ID, testCreId, testAuthToken, testNewSecret));
+        InnerAccountIAMManager::GetInstance().UpdateUserKey(TEST_USER_ID, 0, testCreId, testAuthToken, testNewSecret));
     EXPECT_EQ(ERR_OK,
-        InnerAccountIAMManager::GetInstance().UpdateUserKey(TEST_USER_ID, testNewCreId, testAuthToken, testNewSecret));
+        InnerAccountIAMManager::GetInstance().UpdateUserKey(
+            TEST_USER_ID, 0, testNewCreId, testAuthToken, testNewSecret));
 }
 
 /**
@@ -336,7 +337,7 @@ HWTEST_F(AccountIamManagerTest, RestoreUserKey001, TestSize.Level2)
     std::vector<uint8_t> testSecret = {1, 2, 3, 4};
 
     int32_t res =
-        InnerAccountIAMManager::GetInstance().UpdateUserKey(TEST_USER_ID, testOldCreId, testAuthToken, testSecret);
+        InnerAccountIAMManager::GetInstance().UpdateUserKey(TEST_USER_ID, 0, testOldCreId, testAuthToken, testSecret);
     EXPECT_EQ(g_fscryptEnable ? -2 : 0, res);
 
     uint64_t testNewCreId = 222;

@@ -85,6 +85,7 @@ IDMAuthCallback::IDMAuthCallback(uint32_t userId, const CredentialParameters &cr
     : userId_(userId), credInfo_(credInfo), oldResult_(oldResult), idmCallback_(idmCallback)
 {
     reqResult.GetUint64Value(Attributes::AttributeKey::ATTR_CREDENTIAL_ID, credentialId_);
+    reqResult.GetUint64Value(Attributes::AttributeKey::ATTR_SEC_USER_ID, secureUid_);
     reqResult_.SetUint64Value(Attributes::AttributeKey::ATTR_CREDENTIAL_ID, credentialId_);
 }
 
@@ -104,7 +105,7 @@ void IDMAuthCallback::OnResult(int32_t result, const Attributes &extraInfo)
     extraInfo.GetUint8ArrayValue(Attributes::ATTR_SIGNATURE, token);
     extraInfo.GetUint8ArrayValue(Attributes::ATTR_ROOT_SECRET, secret);
     int32_t updateKeyResult = InnerAccountIAMManager::GetInstance().UpdateUserKey(
-        userId_, credentialId_, token, secret);
+        userId_, secureUid_, credentialId_, token, secret);
     if (updateKeyResult == 0) {
         InnerAccountIAMManager::GetInstance().SetState(userId_, AFTER_OPEN_SESSION);
         idmCallback_->OnResult(oldResult_, reqResult_);

@@ -34,6 +34,8 @@ namespace OHOS {
 namespace AccountSA {
 struct AccountCredentialInfo {
     uint64_t credentialId = 0;
+    uint64_t oldSecureUid = 0;
+    uint64_t secureUid = 0;
     std::vector<uint8_t> oldSecret;
     std::vector<uint8_t> secret;
 };
@@ -66,7 +68,7 @@ public:
     void SetState(int32_t userId, IAMState state);
     void GetChallenge(int32_t userId, std::vector<uint8_t> &challenge);
     ErrCode ActivateUserKey(int32_t userId, const std::vector<uint8_t> &token, const std::vector<uint8_t> &secret);
-    ErrCode UpdateUserKey(int32_t userId, uint64_t credentialId,
+    ErrCode UpdateUserKey(int32_t userId, uint64_t secureUid, uint64_t credentialId,
         const std::vector<uint8_t> &token, const std::vector<uint8_t> &newSecret);
     ErrCode RemoveUserKey(int32_t userId, const std::vector<uint8_t> &token);
     ErrCode RestoreUserKey(int32_t userId, uint64_t credentialId, const std::vector<uint8_t> &token);
@@ -75,7 +77,7 @@ public:
 private:
     InnerAccountIAMManager();
     ~InnerAccountIAMManager() = default;
-    ErrCode UpdateStorageKey(int32_t userId, const std::vector<uint8_t> &token,
+    ErrCode UpdateStorageKey(int32_t userId, uint64_t secureUid, const std::vector<uint8_t> &token,
         const std::vector<uint8_t> &oldSecret, const std::vector<uint8_t> &newSecret);
     ErrCode GetStorageManagerProxy();
     ErrCode GetDomainAuthStatusInfo(
