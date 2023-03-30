@@ -48,7 +48,6 @@ config("accountmgr_config") {
     "${app_account_innerkits_native_path}/include",
     "//third_party/json/include",
     "//third_party/mbedtls/include",
-    "//commonlibrary/c_utils/base/include",
     "//utils/system/safwk/native/include",
   ]
 
@@ -278,7 +277,7 @@ ohos_shared_library("accountmgr") {
     "c_utils:utils",
     "hiviewdfx_hilog_native:libhilog",
     "init:libbegetutil",
-    "ipc:ipc_core",
+    "ipc:ipc_single",
     "kv_store:distributeddata_inner",
     "safwk:system_ability_fwk",
     "samgr:samgr_proxy",

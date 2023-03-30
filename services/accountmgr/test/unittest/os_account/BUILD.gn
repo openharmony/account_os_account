@@ -26,7 +26,6 @@ config("os_account_control_file_manager_test_config") {
     "${common_path}/account_error/include",
     "${innerkits_path}/include",
     "//third_party/json/include",
-    "//commonlibrary/c_utils/base/include",
     "//utils/system/safwk/native/include",
   ]
 }
@@ -70,7 +69,6 @@ config("os_account_data_storage_test_config") {
     "${innerkits_path}/include",
     "//third_party/json/include",
     "${services_path}/accountmgr/test/unittest/os_account/mock",
-    "//commonlibrary/c_utils/base/include",
     "//utils/system/safwk/native/include",
   ]
 }
@@ -114,7 +112,6 @@ config("os_account_subscribe_death_recipient_test_config") {
     "${innerkits_path}/include",
     "//third_party/json/include",
     "${services_path}/accountmgr/test/unittest/os_account/mock",
-    "//commonlibrary/c_utils/base/include",
     "//utils/system/safwk/native/include",
   ]
 }
@@ -147,7 +144,7 @@ ohos_unittest("OsAccountSubscribeDeathRecipientTest") {
     "ability_runtime:wantagent_innerkits",
     "c_utils:utils",
     "hiviewdfx_hilog_native:libhilog",
-    "ipc:ipc_core",
+    "ipc:ipc_single",
     "samgr:samgr_proxy",
     "user_auth_framework:userauth_client",
   ]
@@ -165,7 +162,6 @@ config("os_account_amgr_test_config") {
     "${innerkits_path}/include",
     "//third_party/json/include",
     "${services_path}/accountmgr/test/unittest/os_account/mock",
-    "//commonlibrary/c_utils/base/include",
     "//utils/system/safwk/native/include",
   ]
 }
@@ -202,7 +198,7 @@ ohos_unittest("OsAccountInnerAccmgrCovTest") {
     "access_token:libaccesstoken_sdk",
     "c_utils:utils",
     "hiviewdfx_hilog_native:libhilog",
-    "ipc:ipc_core",
+    "ipc:ipc_single",
     "kv_store:distributeddata_inner",
     "samgr:samgr_proxy",
     "user_auth_framework:userauth_client",
@@ -225,7 +221,6 @@ config("os_account_amgr_mock_config") {
     "${common_path}/account_error/include",
     "${innerkits_path}/include",
     "//third_party/json/include",
-    "//commonlibrary/c_utils/base/include",
     "//utils/system/safwk/native/include",
   ]
 }
@@ -259,7 +254,7 @@ ohos_unittest("OsAccountInnerAccmgrMockTest") {
     "ability_runtime:wantagent_innerkits",
     "c_utils:utils",
     "hiviewdfx_hilog_native:libhilog",
-    "ipc:ipc_core",
+    "ipc:ipc_single",
     "kv_store:distributeddata_inner",
     "samgr:samgr_proxy",
     "user_auth_framework:userauth_client",

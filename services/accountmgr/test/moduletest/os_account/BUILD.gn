@@ -28,7 +28,6 @@ config("os_account_manager_service_test_config") {
     "${common_path}/account_error/include",
     "${innerkits_path}/include",
     "//third_party/json/include",
-    "//commonlibrary/c_utils/base/include",
     "//utils/system/safwk/native/include",
   ]
 }
@@ -58,7 +57,7 @@ ohos_moduletest("os_account_manager_service_module_test") {
     "ability_runtime:ability_manager",
     "c_utils:utils",
     "hiviewdfx_hilog_native:libhilog",
-    "ipc:ipc_core",
+    "ipc:ipc_single",
     "kv_store:distributeddata_inner",
   ]
   part_name = "os_account"
@@ -74,7 +73,6 @@ config("os_account_manager_service_create_os_account_test_config") {
     "${common_path}/account_error/include",
     "${innerkits_path}/include",
     "//third_party/json/include",
-    "//commonlibrary/c_utils/base/include",
     "//utils/system/safwk/native/include",
   ]
 }
@@ -104,7 +102,7 @@ ohos_moduletest("os_account_manager_service_create_os_account_test") {
     "ability_runtime:ability_manager",
     "c_utils:utils",
     "hiviewdfx_hilog_native:libhilog",
-    "ipc:ipc_core",
+    "ipc:ipc_single",
     "kv_store:distributeddata_inner",
   ]
   part_name = "os_account"
@@ -120,7 +118,6 @@ config("os_account_manager_service_subscribe_test_config") {
     "${common_path}/account_error/include",
     "${innerkits_path}/include",
     "//third_party/json/include",
-    "//commonlibrary/c_utils/base/include",
     "//utils/system/safwk/native/include",
   ]
 }
@@ -150,7 +147,7 @@ ohos_moduletest("os_account_manager_service_subscribe_module_test") {
     "ability_runtime:ability_manager",
     "c_utils:utils",
     "hiviewdfx_hilog_native:libhilog",
-    "ipc:ipc_core",
+    "ipc:ipc_single",
     "kv_store:distributeddata_inner",
   ]
   part_name = "os_account"

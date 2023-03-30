@@ -80,7 +80,7 @@ ohos_shared_library("account_iam_napi") {
     "access_token:libtokenid_sdk",
     "c_utils:utils",
     "hiviewdfx_hilog_native:libhilog",
-    "ipc:ipc_core",
+    "ipc:ipc_single",
   ]
 
   if (has_user_auth_part) {

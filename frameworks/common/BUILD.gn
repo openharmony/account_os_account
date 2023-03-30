@@ -23,7 +23,6 @@ config("account_common_config") {
     "file_operator/include",
     "log/include",
     "perf_stat/include",
-    "//commonlibrary/c_utils/base/include",
     "//third_party/json/include",
     "${os_account_dfx_path}/hisysevent_adapter",
   ]
@@ -75,7 +74,7 @@ ohos_shared_library("libaccount_common") {
     "access_token:libaccesstoken_sdk",
     "access_token:libtokenid_sdk",
     "hiviewdfx_hilog_native:libhilog",
-    "ipc:ipc_core",
+    "ipc:ipc_single",
   ]
 
   if (build_selinux) {

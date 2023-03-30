@@ -26,7 +26,6 @@ config("app_account_service_core_config") {
     "${innerkits_path}/include",
     "//foundation/arkui/napi/interfaces/kits",
     "//third_party/json/include",
-    "//commonlibrary/c_utils/base/include",
     "//utils/system/safwk/native/include",
   ]
 
@@ -73,7 +72,7 @@ ohos_shared_library("app_account_service_core") {
     "ability_base:want",
     "c_utils:utils",
     "hiviewdfx_hilog_native:libhilog",
-    "ipc:ipc_core",
+    "ipc:ipc_single",
   ]
 
   part_name = "os_account"
