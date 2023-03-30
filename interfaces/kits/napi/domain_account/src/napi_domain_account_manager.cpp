@@ -284,8 +284,10 @@ static void OnAccountBoundWork(uv_work_t *work, int status)
     std::unique_lock<std::mutex> lock(param->lockInfo->mutex);
     param->lockInfo->count--;
     param->lockInfo->condition.notify_all();
+    if (napiCallback == nullptr) {
+        delete param;
+    }
     delete work;
-    delete param;
 }
 
 static void OnAccountUnBoundWork(uv_work_t *work, int status)
@@ -307,8 +309,10 @@ static void OnAccountUnBoundWork(uv_work_t *work, int status)
     std::unique_lock<std::mutex> lock(param->lockInfo->mutex);
     param->lockInfo->count--;
     param->lockInfo->condition.notify_all();
+    if (napiCallback == nullptr) {
+        delete param;
+    }
     delete work;
-    delete param;
 }
 
 static napi_value GetAuthStatusInfoCallback(napi_env env, napi_callback_info cbInfo)
