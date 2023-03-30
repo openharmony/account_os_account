@@ -122,6 +122,7 @@ static void OnIDMResultWork(uv_work_t* work, int status)
     napi_value credentialId = CreateUint8Array(
         param->env, reinterpret_cast<uint8_t *>(&param->credentialId), sizeof(uint64_t));
     napi_set_named_property(param->env, argv[PARAM_ONE], "credentialId", credentialId);
+    ACCOUNT_LOGI("call js function");
     NapiCallVoidFunction(param->env, argv, ARG_SIZE_TWO, param->callback.onResult);
     napi_close_handle_scope(param->env, scope);
 }
@@ -141,6 +142,7 @@ void NapiIDMCallback::OnResult(int32_t result, const Attributes &extraInfo)
     param->callback = callback_;
     work->data = reinterpret_cast<void *>(param.get());
     NAPI_CALL_RETURN_VOID(env_, uv_queue_work(loop, work.get(), [] (uv_work_t *work) {}, OnIDMResultWork));
+    ACCOUNT_LOGI("create idm result work finish");
     work.release();
     param.release();
 }
@@ -161,6 +163,7 @@ static void OnAcquireInfoWork(uv_work_t* work, int status)
         env, reinterpret_cast<uint8_t *>(&param->credentialId), sizeof(uint64_t));
     napi_create_object(env, &argv[PARAM_TWO]);
     napi_set_named_property(env, argv[PARAM_TWO], "credentialId", credentialId);
+    ACCOUNT_LOGI("call js function");
     NapiCallVoidFunction(env, argv, ARG_SIZE_THREE, param->callback.onAcquireInfo);
     napi_close_handle_scope(env, scope);
 }
@@ -181,6 +184,7 @@ void NapiIDMCallback::OnAcquireInfo(int32_t module, uint32_t acquireInfo, const 
     extraInfo.GetUint64Value(Attributes::AttributeKey::ATTR_CREDENTIAL_ID, param->credentialId);
     work->data = reinterpret_cast<void *>(param.get());
     NAPI_CALL_RETURN_VOID(env_, uv_queue_work(loop, work.get(), [] (uv_work_t *work) { }, OnAcquireInfoWork));
+    ACCOUNT_LOGI("create acquire info work finish");
     work.release();
     param.release();
 }
@@ -357,6 +361,7 @@ static void OnUserAuthResultWork(uv_work_t *work, int status)
     napi_value argv[ARG_SIZE_TWO] = {nullptr};
     napi_create_int32(param->env, AccountIAMConvertToJSErrCode(param->resultCode), &argv[PARAM_ZERO]);
     argv[PARAM_ONE] = CreateAuthResult(param->env, param->token, param->remainTimes, param->freezingTime);
+    ACCOUNT_LOGI("call js function");
     NapiCallVoidFunction(param->env, argv, ARG_SIZE_TWO, param->callback.onResult);
     napi_close_handle_scope(param->env, scope);
 }
@@ -373,6 +378,7 @@ static void OnUserAuthAcquireInfoWork(uv_work_t *work, int status)
     napi_create_int32(param->env, param->module, &argv[PARAM_ZERO]);
     napi_create_uint32(param->env, param->acquireInfo, &argv[PARAM_ONE]);
     napi_create_int32(param->env, param->extraInfo, &argv[PARAM_TWO]);
+    ACCOUNT_LOGI("call js function");
     NapiCallVoidFunction(param->env, argv, ARG_SIZE_THREE, param->callback.onAcquireInfo);
     napi_close_handle_scope(param->env, scope);
 }
@@ -403,6 +409,7 @@ void NapiUserAuthCallback::OnResult(int32_t result, const Attributes &extraInfo)
     param->callback = callback_;
     work->data = reinterpret_cast<void *>(param.get());
     NAPI_CALL_RETURN_VOID(env_, uv_queue_work(loop, work.get(), [] (uv_work_t *work) {}, OnUserAuthResultWork));
+    ACCOUNT_LOGI("create user auth result work finish");
     work.release();
     param.release();
 }
@@ -423,6 +430,7 @@ void NapiUserAuthCallback::OnAcquireInfo(int32_t module, uint32_t acquireInfo, c
     param->callback = callback_;
     work->data = reinterpret_cast<void *>(param.get());
     NAPI_CALL_RETURN_VOID(env_, uv_queue_work(loop, work.get(), [] (uv_work_t *work) {}, OnUserAuthAcquireInfoWork));
+    ACCOUNT_LOGI("create user auth acquire info work finish");
     work.release();
     param.release();
 }
@@ -477,6 +485,7 @@ void NapiGetInfoCallback::OnCredentialInfo(int32_t result, const std::vector<Acc
         ReleaseNapiRefAsync(env_, callbackRef_);
         return;
     }
+    ACCOUNT_LOGI("create get credential info work finish");
     work.release();
     context.release();
 }
@@ -522,6 +531,7 @@ void NapiGetPropCallback::OnResult(int32_t result, const UserIam::UserAuth::Attr
     context->result = result;
     work->data = reinterpret_cast<void *>(context.get());
     ErrCode ret = uv_queue_work(loop, work.get(), [] (uv_work_t *work) {}, OnGetPropertyWork);
+    ACCOUNT_LOGI("create get property work finish");
     if (ret != ERR_OK) {
         ReleaseNapiRefAsync(env_, callbackRef_);
         return;
@@ -577,6 +587,7 @@ void NapiSetPropCallback::OnResult(int32_t result, const UserIam::UserAuth::Attr
     context->result = result;
     work->data = reinterpret_cast<void *>(context.get());
     ErrCode ret = uv_queue_work(loop, work.get(), [] (uv_work_t *work) {}, OnSetPropertyWork);
+    ACCOUNT_LOGI("create set property work finish");
     if (ret != ERR_OK) {
         ReleaseNapiRefAsync(env_, callbackRef_);
         return;
@@ -697,6 +708,7 @@ static void OnGetDataWork(uv_work_t* work, int status)
     napi_value argv[ARG_SIZE_TWO] = {0};
     napi_create_int32(context->env, context->authSubType, &argv[PARAM_ZERO]);
     GetInputerInstance(context.get(), &argv[PARAM_ONE]);
+    ACCOUNT_LOGI("call js function");
     NapiCallVoidFunction(context->env, argv, ARG_SIZE_TWO, context->callbackRef);
     std::unique_lock<std::mutex> lock(context->lockInfo->mutex);
     context->lockInfo->count--;
@@ -741,6 +753,7 @@ void NapiGetDataCallback::OnGetData(int32_t authSubType, const std::shared_ptr<A
     context->lockInfo = &lockInfo_;
     work->data = reinterpret_cast<void *>(context.get());
     int errCode = uv_queue_work(loop, work.get(), [] (uv_work_t *work) {}, OnGetDataWork);
+    ACCOUNT_LOGI("create get data work finish");
     if (errCode != 0) {
         ACCOUNT_LOGE("failed to uv_queue_work, errCode: %{public}d", errCode);
         return;
@@ -755,6 +768,7 @@ void CallbackAsyncOrPromise(napi_env env, CommonAsyncContext *context, napi_valu
 {
     if (context->callbackRef) {
         napi_value argv[ARG_SIZE_TWO] = {errJs, dataJs};
+        ACCOUNT_LOGI("call js function");
         NapiCallVoidFunction(env, argv, ARG_SIZE_TWO, context->callbackRef);
         napi_delete_reference(env, context->callbackRef);
         context->callbackRef = nullptr;
