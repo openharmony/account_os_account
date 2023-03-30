@@ -90,7 +90,7 @@ ohos_shared_library("account_iam_innerkits") {
     "access_token:libaccesstoken_sdk",
     "c_utils:utils",
     "hiviewdfx_hilog_native:libhilog",
-    "ipc:ipc_core",
+    "ipc:ipc_single",
     "samgr:samgr_proxy",
   ]
 
@@ -102,6 +102,7 @@ ohos_shared_library("account_iam_innerkits") {
     external_deps += [ "user_auth_framework:userauth_client" ]
   }
 
+  innerapi_tags = [ "platformsdk" ]
   subsystem_name = "account"
   part_name = "os_account"
 }

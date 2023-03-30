@@ -81,9 +81,10 @@ ohos_shared_library("domain_account_innerkits") {
   external_deps = [
     "c_utils:utils",
     "hiviewdfx_hilog_native:libhilog",
-    "ipc:ipc_core",
+    "ipc:ipc_single",
   ]
 
+  innerapi_tags = [ "platformsdk" ]
   subsystem_name = "account"
   part_name = "os_account"
 }
