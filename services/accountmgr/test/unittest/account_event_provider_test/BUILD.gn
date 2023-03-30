@@ -28,7 +28,6 @@ config("accountmgr_event_provider_test_config") {
     "${services_path}/accountmgr/include",
     "${innerkits_path}/include",
     "//third_party/json/include",
-    "//commonlibrary/c_utils/base/include",
     "//utils/system/safwk/native/include",
   ]
 }
@@ -61,7 +60,7 @@ ohos_unittest("AccountEventProviderTest") {
     "c_utils:utils",
     "hiviewdfx_hilog_native:libhilog",
     "init:libbegetutil",
-    "ipc:ipc_core",
+    "ipc:ipc_single",
     "safwk:system_ability_fwk",
     "samgr:samgr_proxy",
   ]

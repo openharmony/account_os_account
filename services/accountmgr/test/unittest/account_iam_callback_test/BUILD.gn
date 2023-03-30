@@ -62,7 +62,7 @@ ohos_unittest("account_iam_callback_test") {
 
   external_deps = [
     "hiviewdfx_hilog_native:libhilog",
-    "ipc:ipc_core",
+    "ipc:ipc_single",
   ]
 
   cflags_cc = []
@@ -96,7 +96,7 @@ ohos_unittest("account_iam_service_test") {
 
   external_deps = [
     "hiviewdfx_hilog_native:libhilog",
-    "ipc:ipc_core",
+    "ipc:ipc_single",
     "os_account:os_account_innerkits",
   ]
 

@@ -32,7 +32,6 @@ config("accountkits_config") {
     "${common_path}/perf_stat/include",
     "${common_path}/account_error/include",
     "${innerkits_path}/include",
-    "//commonlibrary/c_utils/base/include",
     "//utils/system/safwk/native/include",
   ]
 }
@@ -40,7 +39,6 @@ config("accountkits_config") {
 config("accountkits_all_dependent_configs") {
   include_dirs = [
     "${common_path}/log/include",
-    "//foundation/communication/ipc/interfaces/innerkits/ipc_core/include",
     "//third_party/json/include",
   ]
 }
@@ -75,8 +73,9 @@ ohos_shared_library("libaccountkits") {
   external_deps = [
     "ability_base:want",
     "hiviewdfx_hilog_native:libhilog",
-    "ipc:ipc_core",
+    "ipc:ipc_single",
     "samgr:samgr_proxy",
   ]
+  innerapi_tags = [ "platformsdk" ]
   part_name = "os_account"
 }

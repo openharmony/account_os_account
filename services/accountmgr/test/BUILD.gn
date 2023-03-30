@@ -16,10 +16,7 @@ import("//build/ohos.gni")
 import("//build/test.gni")
 
 config("accountmgr_test_config") {
-  include_dirs = [
-    "//commonlibrary/c_utils/base/include",
-    "mock/include",
-  ]
+  include_dirs = [ "mock/include" ]
 
   defines = [
     "ACCOUNT_LOG_TAG = \"AccountMgrServiceTest\"",

@@ -62,7 +62,7 @@ ohos_unittest("app_account_manager_test") {
   external_deps = [
     "ability_base:want",
     "hiviewdfx_hilog_native:libhilog",
-    "ipc:ipc_core",
+    "ipc:ipc_single",
   ]
 }
 
@@ -92,7 +92,7 @@ ohos_unittest("app_account_manager_subscribe_test") {
     "c_utils:utils",
     "eventhandler:libeventhandler",
     "hiviewdfx_hilog_native:libhilog",
-    "ipc:ipc_core",
+    "ipc:ipc_single",
     "kv_store:distributeddata_inner",
     "samgr:samgr_proxy",
   ]
@@ -121,7 +121,7 @@ ohos_unittest("app_account_common_test") {
     "bundle_framework:appexecfwk_base",
     "bundle_framework:appexecfwk_core",
     "hiviewdfx_hilog_native:libhilog",
-    "ipc:ipc_core",
+    "ipc:ipc_single",
   ]
 }
 

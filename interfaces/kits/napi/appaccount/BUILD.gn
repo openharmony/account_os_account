@@ -74,8 +74,8 @@ ohos_shared_library("appaccount") {
     "access_token:libtokenid_sdk",
     "c_utils:utils",
     "hiviewdfx_hilog_native:libhilog",
-    "ipc:ipc_core",
     "ipc:ipc_napi_common",
+    "ipc:ipc_single",
     "os_account:app_account_innerkits",
   ]
 
