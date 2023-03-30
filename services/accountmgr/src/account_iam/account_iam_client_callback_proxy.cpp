@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2022 Huawei Device Co., Ltd.
+ * Copyright (c) 2022-2023 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -22,6 +22,7 @@ namespace AccountSA {
 static ErrCode SendRequestFunc(
     const sptr<IRemoteObject> &remote, uint32_t code, MessageParcel &data, MessageParcel &reply)
 {
+    ACCOUNT_LOGI("send request, code = %{public}d", code);
     if (remote == nullptr) {
         ACCOUNT_LOGE("remote is nullptr, code = %{public}d", code);
         return ERR_ACCOUNT_COMMON_NULL_PTR_ERROR;

@@ -39,6 +39,7 @@ void AuthCallback::OnResult(int32_t result, const Attributes &extraInfo)
         return;
     }
     if (result != 0) {
+        ACCOUNT_LOGI("auth failed and return result");
         innerCallback_->OnResult(result, extraInfo);
         return;
     }
@@ -66,6 +67,7 @@ void AuthCallback::OnResult(int32_t result, const Attributes &extraInfo)
         errInfo.SetInt32Value(Attributes::AttributeKey::ATTR_FREEZING_TIME, freezingTime);
         innerCallback_->OnResult(ResultCode::FAIL, errInfo);
     } else {
+        ACCOUNT_LOGI("activate user key success");
         innerCallback_->OnResult(result, extraInfo);
         (void)IInnerOsAccountManager::GetInstance().SetOsAccountIsVerified(userId_, true);
     }
