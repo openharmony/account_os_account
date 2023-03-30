@@ -68,7 +68,7 @@ ohos_unittest("DomainAccountInnerServiceCovTest") {
     "access_token:libaccesstoken_sdk",
     "c_utils:utils",
     "hiviewdfx_hilog_native:libhilog",
-    "ipc:ipc_core",
+    "ipc:ipc_single",
     "kv_store:distributeddata_inner",
     "samgr:samgr_proxy",
   ]

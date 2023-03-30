@@ -61,7 +61,7 @@ ohos_fuzztest("SetPropertyFuzzTest") {
   external_deps = [
     "c_utils:utils",
     "hiviewdfx_hilog_native:libhilog",
-    "ipc:ipc_core",
+    "ipc:ipc_single",
     "user_auth_framework:userauth_client",
   ]
 

@@ -40,7 +40,7 @@ ohos_fuzztest("AuthenticateFuzzTest") {
     "ability_base:want",
     "c_utils:utils",
     "hiviewdfx_hilog_native:libhilog",
-    "ipc:ipc_core",
+    "ipc:ipc_single",
   ]
 
   defines = [

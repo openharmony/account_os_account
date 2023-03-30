@@ -62,7 +62,7 @@ ohos_moduletest("AccountInnerSdkModuleTest") {
     "c_utils:utils",
     "eventhandler:libeventhandler",
     "hiviewdfx_hilog_native:libhilog",
-    "ipc:ipc_core",
+    "ipc:ipc_single",
     "os_account:libaccountkits",
     "safwk:system_ability_fwk",
     "samgr:samgr_proxy",
@@ -83,7 +83,7 @@ ohos_moduletest("DeviceAccountInfoModuleTest") {
 
   external_deps = [
     "c_utils:utils",
-    "ipc:ipc_core",
+    "ipc:ipc_single",
     "os_account:libaccountkits",
     "samgr:samgr_proxy",
   ]

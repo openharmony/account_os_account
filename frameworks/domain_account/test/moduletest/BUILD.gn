@@ -60,7 +60,7 @@ ohos_moduletest("domain_account_frameworks_module_test") {
   external_deps = [
     "c_utils:utils",
     "hiviewdfx_hilog_native:libhilog",
-    "ipc:ipc_core",
+    "ipc:ipc_single",
     "os_account:os_account_innerkits",
   ]
 }

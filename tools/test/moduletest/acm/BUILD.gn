@@ -52,7 +52,7 @@ ohos_moduletest("account_command_create_module_test") {
     "ability_base:base",
     "c_utils:utils",
     "hiviewdfx_hilog_native:libhilog",
-    "ipc:ipc_core",
+    "ipc:ipc_single",
     "os_account:os_account_innerkits",
   ]
 }
@@ -93,7 +93,7 @@ ohos_moduletest("account_command_delete_module_test") {
     "ability_base:base",
     "c_utils:utils",
     "hiviewdfx_hilog_native:libhilog",
-    "ipc:ipc_core",
+    "ipc:ipc_single",
     "os_account:os_account_innerkits",
   ]
 }
@@ -134,7 +134,7 @@ ohos_moduletest("account_command_dump_module_test") {
     "ability_base:base",
     "c_utils:utils",
     "hiviewdfx_hilog_native:libhilog",
-    "ipc:ipc_core",
+    "ipc:ipc_single",
     "os_account:os_account_innerkits",
   ]
 }
@@ -175,7 +175,7 @@ ohos_moduletest("account_command_set_module_test") {
     "ability_base:base",
     "c_utils:utils",
     "hiviewdfx_hilog_native:libhilog",
-    "ipc:ipc_core",
+    "ipc:ipc_single",
     "os_account:os_account_innerkits",
   ]
 }
@@ -216,7 +216,7 @@ ohos_moduletest("account_command_switch_module_test") {
     "ability_base:base",
     "c_utils:utils",
     "hiviewdfx_hilog_native:libhilog",
-    "ipc:ipc_core",
+    "ipc:ipc_single",
     "os_account:os_account_innerkits",
   ]
 }

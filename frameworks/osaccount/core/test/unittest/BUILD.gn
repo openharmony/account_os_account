@@ -46,7 +46,7 @@ ohos_unittest("os_account_test") {
 
   external_deps = [
     "hiviewdfx_hilog_native:libhilog",
-    "ipc:ipc_core",
+    "ipc:ipc_single",
     "os_account:os_account_innerkits",
     "samgr:samgr_proxy",
   ]
@@ -66,7 +66,7 @@ ohos_unittest("os_account_mock_test") {
 
   external_deps = [
     "c_utils:utils",
-    "ipc:ipc_core",
+    "ipc:ipc_single",
     "os_account:os_account_innerkits",
   ]
 }

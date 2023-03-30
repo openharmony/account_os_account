@@ -17,9 +17,6 @@ import("//build/ohos.gni")
 config("os_account_core_config") {
   visibility = [ ":*" ]
 
-  include_dirs =
-      [ "//foundation/communication/ipc/interfaces/innerkits/ipc_core/include" ]
-
   cflags = []
   if (target_cpu == "arm") {
     cflags += [ "-DBINDER_IPC_32BIT" ]
@@ -49,15 +46,7 @@ config("os_account_core_public_config") {
     "${ability_runtime_path}/interfaces/inner_api/base/include/",
     "${ability_runtime_path}/interfaces/inner_api/want/include",
     "//utils/system/safwk/native/include",
-    "//foundation/communication/ipc/interfaces/innerkits/ipc_core/include",
     "${innerkits_native_path}/include",
-  ]
-}
-
-config("os_account_core_all_dependent_configs") {
-  include_dirs = [
-    "//foundation/communication/ipc/interfaces/innerkits/ipc_core/include",
-    "//commonlibrary/c_utils/base/include",
   ]
 }
 
@@ -83,8 +72,6 @@ ohos_shared_library("os_account_core") {
 
   public_configs = [ ":os_account_core_public_config" ]
 
-  all_dependent_configs = [ ":os_account_core_all_dependent_configs" ]
-
   use_exceptions = true
 
   version_script = "libos_account_core.map"
@@ -101,7 +88,7 @@ ohos_shared_library("os_account_core") {
     "ability_runtime:wantagent_innerkits",
     "c_utils:utils",
     "hiviewdfx_hilog_native:libhilog",
-    "ipc:ipc_core",
+    "ipc:ipc_single",
     "samgr:samgr_proxy",
   ]
 

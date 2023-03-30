@@ -53,7 +53,7 @@ ohos_unittest("os_account_info_test") {
     "bundle_framework:appexecfwk_core",
     "eventhandler:libeventhandler",
     "hiviewdfx_hilog_native:libhilog",
-    "ipc:ipc_core",
+    "ipc:ipc_single",
     "kv_store:distributeddata_inner",
   ]
 }
@@ -71,7 +71,7 @@ ohos_unittest("os_account_subscribe_info_test") {
     "//third_party/googletest:gtest_main",
   ]
 
-  external_deps = [ "ipc:ipc_core" ]
+  external_deps = [ "ipc:ipc_single" ]
 }
 
 group("unittest") {
