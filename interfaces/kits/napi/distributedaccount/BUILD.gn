@@ -65,6 +65,7 @@ ohos_shared_library("distributedaccount") {
     "ability_runtime:wantagent_innerkits",
     "access_token:libtokenid_sdk",
     "c_utils:utils",
+    "common_event_service:cesfwk_innerkits",
     "hiviewdfx_hilog_native:libhilog",
     "ipc:ipc_core",
     "os_account:libaccountkits",
