@@ -39,12 +39,15 @@ ohos_fuzztest("DelCredFuzzTest") {
     "-Wshadow",
   ]
 
+  external_deps = []
   if (has_pin_auth_part) {
     cflags_cc += [ "-DHAS_PIN_AUTH_PART" ]
+    external_deps += [ "pin_auth:pinauth_framework" ]
   }
 
   if (has_user_auth_part) {
     cflags_cc += [ "-DHAS_USER_AUTH_PART" ]
+    external_deps += [ "user_auth_framework:userauth_client" ]
   }
 
   sources = [ "delcred_fuzzer.cpp" ]
@@ -54,7 +57,7 @@ ohos_fuzztest("DelCredFuzzTest") {
     "//base/account/os_account/frameworks/common:libaccount_common",
   ]
 
-  external_deps = [
+  external_deps += [
     "c_utils:utils",
     "hiviewdfx_hilog_native:libhilog",
     "ipc:ipc_single",

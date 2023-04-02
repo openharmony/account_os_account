@@ -42,12 +42,15 @@ ohos_fuzztest("SetPropertyFuzzTest") {
     "-Wshadow",
   ]
 
+  external_deps = []
   if (has_pin_auth_part) {
     cflags_cc += [ "-DHAS_PIN_AUTH_PART" ]
+    external_deps += [ "pin_auth:pinauth_framework" ]
   }
 
   if (has_user_auth_part) {
     cflags_cc += [ "-DHAS_USER_AUTH_PART" ]
+    external_deps += [ "user_auth_framework:userauth_client" ]
   }
 
   sources = [ "setproperty_fuzzer.cpp" ]
@@ -55,14 +58,12 @@ ohos_fuzztest("SetPropertyFuzzTest") {
   deps = [
     "//base/account/os_account/frameworks/account_iam:account_iam_innerkits",
     "//base/account/os_account/frameworks/common:libaccount_common",
-    "//base/useriam/user_auth_framework/frameworks/native/ipc:userauth_client_ipc",
   ]
 
-  external_deps = [
+  external_deps += [
     "c_utils:utils",
     "hiviewdfx_hilog_native:libhilog",
     "ipc:ipc_single",
-    "user_auth_framework:userauth_client",
   ]
 
   defines = [

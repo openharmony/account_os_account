@@ -17,13 +17,8 @@ import("//build/ohos.gni")
 config("appaccount_kit_config") {
   include_dirs = [
     "${app_account_interfaces_native_path}/include",
-    "//third_party/libuv/include",
-    "//third_party/node/src",
-    "//foundation/arkui/napi/interfaces/kits",
     "${app_account_kits_path}/include",
-    "${ability_runtime_napi_path}/inner/napi_common",
     "${os_account_path}/interfaces/kits/napi/common/include",
-    "//foundation/ability/ability_runtime/frameworks/js/napi/aafwk/inner/napi_common",
     "include",
     "${app_account_innerkits_native_path}/include",
   ]
@@ -50,8 +45,6 @@ ohos_shared_library("appaccount") {
 
   public_configs = [ ":appaccount_kit_config" ]
   sources = [
-    "${os_account_path}/interfaces/kits/napi/common/src/napi_account_common.cpp",
-    "${os_account_path}/interfaces/kits/napi/common/src/napi_account_error.cpp",
     "src/napi_app_account.cpp",
     "src/napi_app_account_authenticator.cpp",
     "src/napi_app_account_authenticator_callback.cpp",
@@ -61,9 +54,8 @@ ohos_shared_library("appaccount") {
   ]
 
   deps = [
-    "${ability_runtime_napi_path}/inner/napi_common:napi_common",
+    "${account_napi_common_path}:account_napi_common",
     "${common_path}:libaccount_common",
-    "//foundation/arkui/napi/:ace_napi",
   ]
 
   relative_install_dir = "module/account"
@@ -71,11 +63,11 @@ ohos_shared_library("appaccount") {
   external_deps = [
     "ability_base:want",
     "ability_runtime:abilitykit_native",
-    "access_token:libtokenid_sdk",
     "c_utils:utils",
     "hiviewdfx_hilog_native:libhilog",
     "ipc:ipc_napi_common",
     "ipc:ipc_single",
+    "napi:ace_napi",
     "os_account:app_account_innerkits",
   ]
 

@@ -17,10 +17,6 @@ import("//build/ohos.gni")
 ohos_shared_library("distributedaccount") {
   include_dirs = [
     "include",
-    "//third_party/node/src",
-    "//foundation/arkui/napi/interfaces/kits",
-    "${os_account_path}/interfaces/kits/napi/common/include",
-    "//base/useriam/user_auth_framework/interfaces/inner_api",
     "${os_account_path}/interfaces/innerkits/ohosaccount/native/include",
     "${os_account_path}/interfaces/innerkits/osaccount/native/include",
   ]
@@ -39,12 +35,7 @@ ohos_shared_library("distributedaccount") {
 
   configs = [ "${account_coverage_config_path}:coverage_flags" ]
 
-  sources = [
-    "${os_account_path}/frameworks/common/account_error/src/account_error_no.cpp",
-    "${os_account_path}/interfaces/kits/napi/common/src/napi_account_common.cpp",
-    "${os_account_path}/interfaces/kits/napi/common/src/napi_account_error.cpp",
-    "src/napi_distributed_account.cpp",
-  ]
+  sources = [ "src/napi_distributed_account.cpp" ]
 
   defines = [
     "ACCOUNT_LOG_TAG = \"DistributedAccountJsKit\"",
@@ -53,7 +44,7 @@ ohos_shared_library("distributedaccount") {
 
   deps = [
     "${ability_runtime_napi_path}/inner/napi_common:napi_common",
-    "//foundation/arkui/napi/:ace_napi",
+    "${account_napi_common_path}:account_napi_common",
   ]
 
   relative_install_dir = "module/account"
@@ -63,10 +54,9 @@ ohos_shared_library("distributedaccount") {
     "ability_base:want",
     "ability_runtime:abilitykit_native",
     "ability_runtime:wantagent_innerkits",
-    "access_token:libtokenid_sdk",
     "c_utils:utils",
     "hiviewdfx_hilog_native:libhilog",
-    "ipc:ipc_single",
+    "napi:ace_napi",
     "os_account:libaccountkits",
   ]
   part_name = "os_account"
