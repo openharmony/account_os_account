@@ -14,6 +14,7 @@
  */
 
 #include "app_account_common_event_observer.h"
+#include <pthread.h>
 #include <thread>
 #include <unistd.h>
 #include "account_log_wrapper.h"
@@ -30,6 +31,10 @@ using namespace OHOS::EventFwk;
 namespace OHOS {
 namespace AccountSA {
 #ifdef HAS_CES_PART
+namespace {
+const char THREAD_COMMON_EVENT[] = "commonEvent";
+}
+
 AppAccountCommonEventObserver::AppAccountCommonEventObserver(const CommonEventCallback &callback)
     : callback_(callback)
 {
@@ -45,6 +50,7 @@ AppAccountCommonEventObserver::AppAccountCommonEventObserver(const CommonEventCa
 
     auto task = std::bind(&AppAccountCommonEventObserver::SubscribeCommonEvent, this);
     std::thread taskThread(task);
+    pthread_setname_np(taskThread.native_handle(), THREAD_COMMON_EVENT);
     taskThread.detach();
 }
 

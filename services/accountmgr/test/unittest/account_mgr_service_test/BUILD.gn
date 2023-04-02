@@ -65,14 +65,12 @@ ohos_unittest("account_mgr_test") {
     "access_token:libaccesstoken_sdk",
     "bundle_framework:appexecfwk_base",
     "c_utils:utils",
-    "eventhandler:libeventhandler",
     "hiviewdfx_hilog_native:libhilog",
     "init:libbegetutil",
     "ipc:ipc_single",
     "kv_store:distributeddata_inner",
     "safwk:system_ability_fwk",
     "samgr:samgr_proxy",
-    "storage_service:storage_manager_sa_proxy",
   ]
 
   if (has_user_idm_part) {
