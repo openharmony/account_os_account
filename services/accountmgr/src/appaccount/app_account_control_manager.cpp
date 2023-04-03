@@ -649,7 +649,10 @@ static ErrCode LoadAllAppAccounts(const std::shared_ptr<OHOS::AccountSA::AppAcco
         ACCOUNT_LOGE("LoadAllData failed!");
         return result;
     }
-    for (auto it = infos.begin(); it != infos.end(); it++) {
+    for (auto it = infos.begin(); it != infos.end(); ++it) {
+        if (it->first == AppAccountDataStorage::AUTHORIZED_ACCOUNTS) {
+            continue;
+        }
         AppAccountInfo curAppInfo = *(std::static_pointer_cast<AppAccountInfo>(it->second));
         appAccounts.emplace_back(curAppInfo);
     }
