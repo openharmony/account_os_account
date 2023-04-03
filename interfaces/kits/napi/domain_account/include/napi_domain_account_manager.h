@@ -22,6 +22,7 @@
 #include "domain_auth_callback.h"
 #include "napi/native_api.h"
 #include "napi_account_common.h"
+#include "os_account_manager.h"
 
 namespace OHOS {
 namespace AccountJsKit {

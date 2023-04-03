@@ -63,8 +63,12 @@ ohos_moduletest("app_account_manager_module_test") {
 
   external_deps = [
     "ability_base:want",
-    "c_utils:utils",
+    "ability_runtime:app_manager",
+    "bundle_framework:appexecfwk_base",
+    "bundle_framework:appexecfwk_core",
     "hiviewdfx_hilog_native:libhilog",
+    "ipc:ipc_single",
+    "kv_store:distributeddata_inner",
   ]
 }
 

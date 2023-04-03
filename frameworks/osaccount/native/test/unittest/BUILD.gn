@@ -47,9 +47,14 @@ ohos_unittest("os_account_info_test") {
   ]
 
   external_deps = [
+    "ability_base:base",
     "ability_base:want",
-    "c_utils:utils",
+    "bundle_framework:appexecfwk_base",
+    "bundle_framework:appexecfwk_core",
+    "eventhandler:libeventhandler",
     "hiviewdfx_hilog_native:libhilog",
+    "ipc:ipc_single",
+    "kv_store:distributeddata_inner",
   ]
 }
 
@@ -66,10 +71,7 @@ ohos_unittest("os_account_subscribe_info_test") {
     "//third_party/googletest:gtest_main",
   ]
 
-  external_deps = [
-    "c_utils:utils",
-    "ipc:ipc_single",
-  ]
+  external_deps = [ "ipc:ipc_single" ]
 }
 
 group("unittest") {

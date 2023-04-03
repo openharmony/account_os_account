@@ -14,6 +14,7 @@
  */
 
 #include "app_account_manager_service.h"
+#include "account_info.h"
 #include "accesstoken_kit.h"
 #include "account_log_wrapper.h"
 #include "bundle_manager_adapter.h"
@@ -23,10 +24,6 @@
 
 namespace OHOS {
 namespace AccountSA {
-namespace {
-constexpr int32_t UID_TRANSFORM_DIVISOR = 200000;  // local account id = uid / UID_TRANSFORM_DIVISOR
-}
-
 AppAccountManagerService::AppAccountManagerService()
 {
     innerManager_ = std::make_shared<InnerAppAccountManager>();

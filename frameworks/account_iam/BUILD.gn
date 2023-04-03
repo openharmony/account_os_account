@@ -17,6 +17,12 @@ import("//build/ohos.gni")
 config("account_iam_innnerkits_config") {
   visibility = [ ":*" ]
 
+  include_dirs = [
+    "${common_path}/utils/include",
+    "${account_iam_interfaces_native_path}/include",
+    "${innerkits_path}/include",
+  ]
+
   cflags = []
   if (target_cpu == "arm") {
     cflags += [ "-DBINDER_IPC_32BIT" ]
@@ -30,6 +36,14 @@ config("account_iam_innnerkits_config") {
     "-Wshadow",
   ]
 
+  if (has_pin_auth_part) {
+    cflags_cc += [ "-DHAS_PIN_AUTH_PART" ]
+  }
+
+  if (has_user_auth_part) {
+    cflags_cc += [ "-DHAS_USER_AUTH_PART" ]
+  }
+
   defines = [
     "ACCOUNT_LOG_TAG = \"AccountIAMFwk\"",
     "LOG_DOMAIN = 0xD001B00",
@@ -40,7 +54,12 @@ config("account_iam_innerkits_public_config") {
   visibility = [ ":*" ]
 
   include_dirs = [
+    "${common_path}/utils/include",
     "${account_iam_interfaces_native_path}/include",
+    "${innerkits_native_path}/include",
+    "//base/useriam/pin_auth/frameworks/ipc/common_defines",
+    "//base/useriam/pin_auth/frameworks/ipc/inc",
+    "//base/useriam/pin_auth/interfaces/inner_api",
     "//base/useriam/user_auth_framework/interfaces/inner_api",
   ]
 }
@@ -75,14 +94,11 @@ ohos_shared_library("account_iam_innerkits") {
     "samgr:samgr_proxy",
   ]
 
-  cflags_cc = []
   if (has_pin_auth_part) {
-    cflags_cc += [ "-DHAS_PIN_AUTH_PART" ]
     external_deps += [ "pin_auth:pinauth_framework" ]
   }
 
   if (has_user_auth_part) {
-    cflags_cc += [ "-DHAS_USER_AUTH_PART" ]
     external_deps += [ "user_auth_framework:userauth_client" ]
   }
 

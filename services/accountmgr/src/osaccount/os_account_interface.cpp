@@ -36,6 +36,7 @@
 #include "os_account_delete_user_idm_callback.h"
 #include "os_account_stop_user_callback.h"
 #ifdef HAS_STORAGE_PART
+#include "storage_manager.h"
 #include "storage_manager_proxy.h"
 #endif
 #include "system_ability_definition.h"
@@ -48,11 +49,6 @@
 
 namespace OHOS {
 namespace AccountSA {
-namespace {
-constexpr uint32_t CRYPTO_FLAG_EL1 = 1;
-constexpr uint32_t CRYPTO_FLAG_EL2 = 2;
-}
-
 ErrCode OsAccountInterface::SendToAMSAccountStart(OsAccountInfo &osAccountInfo)
 {
     ACCOUNT_LOGI("start");
@@ -280,7 +276,7 @@ ErrCode OsAccountInterface::SendToStorageAccountCreate(OsAccountInfo &osAccountI
     }
     StartTrace(HITRACE_TAG_ACCOUNT_MANAGER, "StorageManager PrepareAddUser");
     int err = proxy->PrepareAddUser(osAccountInfo.GetLocalId(),
-        CRYPTO_FLAG_EL1 | CRYPTO_FLAG_EL2);
+        StorageManager::CRYPTO_FLAG_EL1 | StorageManager::CRYPTO_FLAG_EL2);
     if (err != 0) {
         ReportOsAccountOperationFail(
             osAccountInfo.GetLocalId(), Constants::OPERATION_CREATE, err, "Storage PrepareAddUser failed!");
@@ -323,7 +319,7 @@ ErrCode OsAccountInterface::SendToStorageAccountRemove(OsAccountInfo &osAccountI
 
     StartTrace(HITRACE_TAG_ACCOUNT_MANAGER, "StorageManager RemoveUser");
     int err = proxy->RemoveUser(osAccountInfo.GetLocalId(),
-        CRYPTO_FLAG_EL1 | CRYPTO_FLAG_EL2);
+        StorageManager::CRYPTO_FLAG_EL1 | StorageManager::CRYPTO_FLAG_EL2);
     if (err != 0) {
         ReportOsAccountOperationFail(osAccountInfo.GetLocalId(), Constants::OPERATION_DELETE,
             err, "Storage RemoveUser failed!");

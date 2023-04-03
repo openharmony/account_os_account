@@ -28,6 +28,7 @@ config("accountmgr_event_provider_test_config") {
     "${services_path}/accountmgr/include",
     "${innerkits_path}/include",
     "//third_party/json/include",
+    "//utils/system/safwk/native/include",
   ]
 }
 
