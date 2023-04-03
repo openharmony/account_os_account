@@ -46,7 +46,7 @@ struct CallbackParam {
     int32_t resultCode = 0;
     AccountSA::DomainAuthResult authResult;
     napi_ref callbackRef = nullptr;
-    ThreadLockInfo *lockInfo;
+    ThreadLockInfo *lockInfo = nullptr;
 };
 
 class NapiDomainAccountCallback final: public AccountSA::DomainAuthCallback {
