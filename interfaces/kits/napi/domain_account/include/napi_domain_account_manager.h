@@ -56,7 +56,7 @@ struct JsDomainPluginParam {
     ThreadLockInfo *lockInfo = nullptr;
     int32_t userId = 0;
     napi_ref callbackRef = nullptr;
-    AccountSA::AuthMode authMode;
+    AccountSA::AuthMode authMode = AccountSA::AUTH_INVALID_MODE;
     std::vector<uint8_t> authData;
     int32_t resultCode = 0;
     int32_t remainingTimes = INVALID_PARAMETER;
