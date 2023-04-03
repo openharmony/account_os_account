@@ -1,4 +1,4 @@
-# Copyright (c) 2021-2022 Huawei Device Co., Ltd.
+# Copyright (c) 2021-2023 Huawei Device Co., Ltd.
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
 # You may obtain a copy of the License at
@@ -21,8 +21,6 @@ config("app_account_service_config_mock") {
     "//third_party/googletest/googlemock/include",
     "${app_account_services_path}/test/mock/app_account",
     "${app_account_services_path}/test/mock/common",
-    "${app_account_innerkits_native_path}/include",
-    "//base/security/access_token/interfaces/innerkits/accesstoken/include",
   ]
 }
 
@@ -57,25 +55,17 @@ ohos_unittest("account_permission_manager_test") {
   ]
 
   deps = [
-    "${app_account_innerkits_native_path}:app_account_innerkits",
-    "${app_account_services_path}:accountmgr",
-    "${app_account_services_path}/src/appaccount:app_account_service_core",
     "${common_path}:libaccount_common",
     "//third_party/googletest:gmock_main",
     "//third_party/googletest:gtest_main",
   ]
 
   external_deps = [
-    "ability_base:base",
-    "ability_base:want",
-    "ability_runtime:app_manager",
-    "bundle_framework:appexecfwk_base",
-    "bundle_framework:appexecfwk_core",
+    "access_token:libaccesstoken_sdk",
+    "access_token:libtoken_setproc",
     "c_utils:utils",
-    "eventhandler:libeventhandler",
     "hiviewdfx_hilog_native:libhilog",
     "ipc:ipc_single",
-    "kv_store:distributeddata_inner",
   ]
 }
 
@@ -103,12 +93,10 @@ ohos_unittest("app_account_data_storage_test") {
   ]
 
   external_deps = [
-    "ability_base:base",
-    "ability_base:want",
     "ability_runtime:app_manager",
-    "bundle_framework:appexecfwk_base",
-    "bundle_framework:appexecfwk_core",
-    "eventhandler:libeventhandler",
+    "access_token:libaccesstoken_sdk",
+    "access_token:libtoken_setproc",
+    "c_utils:utils",
     "hiviewdfx_hilog_native:libhilog",
     "ipc:ipc_single",
     "kv_store:distributeddata_inner",
@@ -124,23 +112,14 @@ ohos_unittest("app_account_info_test") {
 
   deps = [
     "${app_account_innerkits_native_path}:app_account_innerkits",
-    "${app_account_services_path}:accountmgr",
-    "${app_account_services_path}/src/appaccount:app_account_service_core",
     "${common_path}:libaccount_common",
     "//third_party/googletest:gmock_main",
     "//third_party/googletest:gtest_main",
   ]
 
   external_deps = [
-    "ability_base:base",
-    "ability_base:want",
-    "ability_runtime:app_manager",
-    "bundle_framework:appexecfwk_base",
-    "bundle_framework:appexecfwk_core",
-    "eventhandler:libeventhandler",
+    "c_utils:utils",
     "hiviewdfx_hilog_native:libhilog",
-    "ipc:ipc_single",
-    "kv_store:distributeddata_inner",
   ]
 }
 
@@ -173,6 +152,8 @@ ohos_unittest("app_account_manager_service_test") {
     "ability_base:base",
     "ability_base:want",
     "ability_runtime:app_manager",
+    "access_token:libaccesstoken_sdk",
+    "access_token:libtoken_setproc",
     "bundle_framework:appexecfwk_base",
     "bundle_framework:appexecfwk_core",
     "c_utils:utils",
@@ -197,23 +178,14 @@ ohos_unittest("app_account_subscribe_info_test") {
 
   deps = [
     "${app_account_innerkits_native_path}:app_account_innerkits",
-    "${app_account_services_path}:accountmgr",
-    "${app_account_services_path}/src/appaccount:app_account_service_core",
     "${common_path}:libaccount_common",
     "//third_party/googletest:gmock_main",
     "//third_party/googletest:gtest_main",
   ]
 
   external_deps = [
-    "ability_base:base",
-    "ability_base:want",
-    "ability_runtime:app_manager",
-    "bundle_framework:appexecfwk_base",
-    "bundle_framework:appexecfwk_core",
-    "eventhandler:libeventhandler",
+    "c_utils:utils",
     "hiviewdfx_hilog_native:libhilog",
-    "ipc:ipc_single",
-    "kv_store:distributeddata_inner",
   ]
 }
 
@@ -240,15 +212,10 @@ ohos_unittest("app_account_test") {
   ]
 
   external_deps = [
-    "ability_base:base",
     "ability_base:want",
-    "ability_runtime:app_manager",
-    "bundle_framework:appexecfwk_base",
-    "bundle_framework:appexecfwk_core",
-    "eventhandler:libeventhandler",
+    "c_utils:utils",
     "hiviewdfx_hilog_native:libhilog",
     "ipc:ipc_single",
-    "kv_store:distributeddata_inner",
   ]
 }
 

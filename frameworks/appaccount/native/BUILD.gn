@@ -17,8 +17,6 @@ import("//build/ohos.gni")
 config("app_account_innnerkits_config") {
   visibility = [ ":*" ]
 
-  include_dirs = [ "${os_account_path}/frameworks/ohosaccount/native/include" ]
-
   cflags = []
   if (target_cpu == "arm") {
     cflags += [ "-DBINDER_IPC_32BIT" ]
@@ -44,8 +42,6 @@ config("app_account_innerkits_public_config") {
   include_dirs = [
     "${app_account_core_path}/include",
     "${app_account_interfaces_native_path}/include",
-    "${innerkits_path}/include",
-    "${innerkits_native_path}/include",
     "include",
   ]
 }
@@ -78,7 +74,10 @@ ohos_shared_library("app_account_innerkits") {
 
   version_script = "libapp_account_innerkits.map"
 
-  deps = [ "${innerkits_native_path}:libaccountkits" ]
+  deps = [
+    "${common_path}:libaccount_common",
+    "${innerkits_native_path}:libaccountkits",
+  ]
 
   external_deps = [
     "ability_base:want",

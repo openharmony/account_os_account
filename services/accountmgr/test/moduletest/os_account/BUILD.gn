@@ -28,7 +28,6 @@ config("os_account_manager_service_test_config") {
     "${common_path}/account_error/include",
     "${innerkits_path}/include",
     "//third_party/json/include",
-    "//utils/system/safwk/native/include",
   ]
 }
 
@@ -73,7 +72,6 @@ config("os_account_manager_service_create_os_account_test_config") {
     "${common_path}/account_error/include",
     "${innerkits_path}/include",
     "//third_party/json/include",
-    "//utils/system/safwk/native/include",
   ]
 }
 
@@ -118,7 +116,6 @@ config("os_account_manager_service_subscribe_test_config") {
     "${common_path}/account_error/include",
     "${innerkits_path}/include",
     "//third_party/json/include",
-    "//utils/system/safwk/native/include",
   ]
 }
 

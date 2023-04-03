@@ -48,22 +48,18 @@ ohos_moduletest("os_account_frameworks_module_test") {
   deps = [
     "${common_path}:libaccount_common",
     "${os_account_innerkits_native_path}:os_account_innerkits",
-    "//base/security/access_token/interfaces/innerkits/token_setproc:libtoken_setproc",
     "//third_party/googletest:gmock_main",
     "//third_party/googletest:gtest_main",
   ]
 
   external_deps = [
-    "ability_base:base",
     "ability_base:want",
     "access_token:libaccesstoken_sdk",
-    "bundle_framework:appexecfwk_base",
-    "bundle_framework:appexecfwk_core",
-    "eventhandler:libeventhandler",
+    "access_token:libtoken_setproc",
+    "c_utils:utils",
     "hiviewdfx_hilog_native:libhilog",
     "init:libbegetutil",
     "ipc:ipc_single",
-    "kv_store:distributeddata_inner",
     "safwk:system_ability_fwk",
     "samgr:samgr_proxy",
   ]

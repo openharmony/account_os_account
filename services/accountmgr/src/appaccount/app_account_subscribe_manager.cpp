@@ -14,6 +14,7 @@
  */
 
 #include "app_account_subscribe_manager.h"
+#include <pthread.h>
 #include <thread>
 #include "account_log_wrapper.h"
 #include "app_account_control_manager.h"
@@ -24,6 +25,10 @@
 
 namespace OHOS {
 namespace AccountSA {
+namespace {
+const char THREAD_APP_ACCOUNT_EVENT[] = "appAccountEvent";
+}
+
 AppAccountSubscribeManager::AppAccountSubscribeManager()
     : subscribeDeathRecipient_(sptr<IRemoteObject::DeathRecipient>(
         new (std::nothrow) AppAccountSubscribeDeathRecipient()))
@@ -270,6 +275,7 @@ bool AppAccountSubscribeManager::PublishAccount(
     auto callback = std::bind(&AppAccountSubscribeManager::OnAccountsChanged, this, eventRecordPtr);
 
     std::thread taskThread(callback);
+    pthread_setname_np(taskThread.native_handle(), THREAD_APP_ACCOUNT_EVENT);
     taskThread.detach();
     return true;
 }
