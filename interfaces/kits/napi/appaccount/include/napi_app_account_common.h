@@ -179,7 +179,7 @@ struct AsyncContextForUnsubscribe : public CommonAsyncContext {
 
 struct AuthenticatorCallbackParam : public CommonAsyncContext {
     explicit AuthenticatorCallbackParam(napi_env napiEnv) : CommonAsyncContext(napiEnv) {};
-    int32_t resultCode;
+    int32_t resultCode = -1;
     AAFwk::Want result;
     AAFwk::Want request;
     JSAuthCallback callback;

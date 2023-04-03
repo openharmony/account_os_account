@@ -23,6 +23,7 @@
 namespace OHOS {
 namespace AccountSA {
 typedef enum {
+    AUTH_INVALID_MODE = -1,
     AUTH_WITH_CREDENTIAL_MODE = 0,
     AUTH_WITH_POPUP_MODE,
     AUTH_WITH_TOKEN_MODE,
