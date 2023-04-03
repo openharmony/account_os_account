@@ -14,7 +14,9 @@
  */
 
 #include "napi_os_account.h"
+#if defined(HAS_USER_AUTH_PART) && defined(HAS_PIN_AUTH_PART)
 #include "napi_account_iam_module.h"
+#endif
 #include "napi_domain_account_module.h"
 
 namespace OHOS {
@@ -30,7 +32,9 @@ static napi_value Init(napi_env env, napi_value exports)
      * Propertise define
      */
     OsAccountInit(env, exports);
+#if defined(HAS_USER_AUTH_PART) && defined(HAS_PIN_AUTH_PART)
     AccountIAMInit(env, exports);
+#endif
     DomainAccountInit(env, exports);
     return exports;
 }

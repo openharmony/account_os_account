@@ -26,6 +26,7 @@
 #undef private
 #include "mock_app_account_stub.h"
 #include "iremote_object.h"
+#include "singleton.h"
 
 using namespace testing::ext;
 using namespace OHOS;

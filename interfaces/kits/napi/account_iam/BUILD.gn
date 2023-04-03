@@ -15,7 +15,14 @@ import("//base/account/os_account/os_account.gni")
 import("//build/ohos.gni")
 
 config("account_iam_kit_config") {
-  include_dirs = [ "include" ]
+  include_dirs = [
+    "${account_iam_kits_path}/include",
+    "//foundation/ace/napi/interfaces/kits",
+    "//third_party/libuv/include",
+    "//third_party/node/src",
+    "${os_account_path}/interfaces/kits/napi/common/include",
+    "//base/useriam/user_auth_framework/interfaces/inner_api",
+  ]
 
   cflags = []
   if (target_cpu == "arm") {
@@ -29,9 +36,18 @@ config("account_iam_kit_config") {
     "-Wfloat-equal",
     "-Wshadow",
   ]
+
+  if (has_user_auth_part) {
+    cflags_cc += [ "-DHAS_USER_AUTH_PART" ]
+  }
+
+  if (has_pin_auth_part) {
+    cflags_cc += [ "-DHAS_PIN_AUTH_PART" ]
+  }
 }
 
 ohos_shared_library("account_iam_napi") {
+  include_dirs = []
   configs = [
     ":account_iam_kit_config",
     "${account_coverage_config_path}:coverage_flags",
@@ -45,6 +61,9 @@ ohos_shared_library("account_iam_napi") {
     "${account_iam_kits_path}/src/napi_account_iam_module.cpp",
     "${account_iam_kits_path}/src/napi_account_iam_pin_auth.cpp",
     "${account_iam_kits_path}/src/napi_account_iam_user_auth.cpp",
+    "${os_account_path}/frameworks/common/account_error/src/account_error_no.cpp",
+    "${os_account_path}/interfaces/kits/napi/common/src/napi_account_common.cpp",
+    "${os_account_path}/interfaces/kits/napi/common/src/napi_account_error.cpp",
   ]
 
   defines = [
@@ -54,22 +73,17 @@ ohos_shared_library("account_iam_napi") {
 
   deps = [
     "${account_iam_framework_path}:account_iam_innerkits",
-    "${account_napi_common_path}:account_napi_common",
+    "//foundation/arkui/napi/:ace_napi",
   ]
 
   external_deps = [
+    "access_token:libtokenid_sdk",
     "c_utils:utils",
     "hiviewdfx_hilog_native:libhilog",
-    "napi:ace_napi",
+    "ipc:ipc_single",
   ]
 
-  cflags_cc = []
-  if (has_pin_auth_part) {
-    cflags_cc += [ "-DHAS_PIN_AUTH_PART" ]
-    external_deps += [ "pin_auth:pinauth_framework" ]
-  }
   if (has_user_auth_part) {
-    cflags_cc += [ "-DHAS_USER_AUTH_PART" ]
     external_deps += [ "user_auth_framework:userauth_client" ]
   }
 

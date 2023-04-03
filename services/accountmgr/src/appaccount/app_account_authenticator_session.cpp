@@ -15,7 +15,6 @@
 
 #include "app_account_authenticator_session.h"
 
-#include <pthread.h>
 #include <thread>
 #include "ability_manager_adapter.h"
 #include "account_info.h"
@@ -28,10 +27,6 @@
 
 namespace OHOS {
 namespace AccountSA {
-namespace {
-const char THREAD_AUTH_SESSION[] = "authSession";
-}
-
 SessionClientDeathRecipient::SessionClientDeathRecipient(const std::string &sessionId) : sessionId_(sessionId)
 {}
 
@@ -130,7 +125,6 @@ ErrCode AppAccountAuthenticatorSession::Open()
     auto task = std::bind(&AbilityManagerAdapter::ConnectAbility,
         AbilityManagerAdapter::GetInstance().get(), want, conn_, nullptr, userId_);
     std::thread taskThread(task);
-    pthread_setname_np(taskThread.native_handle(), THREAD_AUTH_SESSION);
     taskThread.detach();
     isOpened_ = true;
     return ERR_OK;

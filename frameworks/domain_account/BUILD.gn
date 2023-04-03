@@ -17,6 +17,12 @@ import("//build/ohos.gni")
 config("domain_account_innnerkits_config") {
   visibility = [ ":*" ]
 
+  include_dirs = [
+    "include",
+    "${domain_account_interfaces_native_path}/include",
+    "${os_account_interfaces_native_path}/include",
+  ]
+
   cflags = []
   if (target_cpu == "arm") {
     cflags += [ "-DBINDER_IPC_32BIT" ]
@@ -40,8 +46,9 @@ config("domain_account_innerkits_public_config") {
   visibility = [ ":*" ]
 
   include_dirs = [
-    "include",
+    "${domain_account_framework_path}/include",
     "${domain_account_interfaces_native_path}/include",
+    "${os_account_interfaces_native_path}/include",
   ]
 }
 

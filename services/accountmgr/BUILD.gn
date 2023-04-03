@@ -38,16 +38,33 @@ config("accountmgr_config") {
     "./include/ability_manager_adapter",
     "./include/appaccount",
     "./include/osaccount",
+    "${common_path}/utils/include",
+    "${common_path}/log/include",
+    "${common_path}/perf_stat/include",
+    "${common_path}/account_error/include",
     "${innerkits_path}/include",
     "${os_account_dfx_path}/hidumper_adapter",
     "${os_account_dfx_path}/hisysevent_adapter",
     "${app_account_innerkits_native_path}/include",
     "//third_party/json/include",
+    "//third_party/mbedtls/include",
+    "//utils/system/safwk/native/include",
   ]
+
+  if (has_storage_service_part) {
+    include_dirs += [
+      "//foundation/storage/storage_manager/interfaces/innerkits/storage_manager/native",
+      "//foundation/filemanagement/storage_service/services/storage_manager/include/ipc",
+      "//foundation/storage/storage_manager/services/storage_manager/include/ipc",
+    ]
+  }
 }
 
 config("account_iam_config") {
-  include_dirs = [ "${account_iam_interfaces_native_path}/include" ]
+  include_dirs = [
+    "${account_iam_interfaces_native_path}/include",
+    "//base/useriam/user_auth_framework/interfaces/inner_api",
+  ]
 }
 
 config("domain_account_config") {
@@ -239,6 +256,17 @@ ohos_shared_library("accountmgr") {
     "//third_party/mbedtls:mbedtls",
   ]
 
+  if (has_user_auth_part) {
+    cflags_cc += [
+      "-DHAS_USER_AUTH_PART",
+      "-DHAS_USER_IDM_PART",
+    ]
+    deps += [
+      "//base/security/access_token/interfaces/innerkits/token_setproc:libtoken_setproc",
+      "//base/useriam/user_auth_framework/frameworks/native/client:userauth_client",
+    ]
+  }
+
   external_deps = [
     "ability_base:want",
     "ability_runtime:app_manager",
@@ -254,17 +282,6 @@ ohos_shared_library("accountmgr") {
     "safwk:system_ability_fwk",
     "samgr:samgr_proxy",
   ]
-
-  if (has_user_auth_part) {
-    cflags_cc += [
-      "-DHAS_USER_AUTH_PART",
-      "-DHAS_USER_IDM_PART",
-    ]
-    external_deps += [
-      "access_token:libtoken_setproc",
-      "user_auth_framework:userauth_client",
-    ]
-  }
 
   if (has_storage_service_part && os_account_storage_feature) {
     cflags += [ "-DHAS_STORAGE_PART" ]

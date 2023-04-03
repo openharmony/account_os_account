@@ -16,8 +16,8 @@ import("//build/ohos.gni")
 
 config("public_account_config") {
   include_dirs = [
-    "include",
     "${innerkits_path}/include",
+    "${innerkits_native_path}/include",
   ]
 }
 
@@ -25,6 +25,21 @@ config("accountkits_config") {
   defines = [
     "ACCOUNT_LOG_TAG = \"DistributedAccountFwk\"",
     "LOG_DOMAIN = 0xD001B00",
+  ]
+  include_dirs = [
+    "include",
+    "${innerkits_native_path}/include",
+    "${common_path}/perf_stat/include",
+    "${common_path}/account_error/include",
+    "${innerkits_path}/include",
+    "//utils/system/safwk/native/include",
+  ]
+}
+
+config("accountkits_all_dependent_configs") {
+  include_dirs = [
+    "${common_path}/log/include",
+    "//third_party/json/include",
   ]
 }
 
@@ -51,11 +66,12 @@ ohos_shared_library("libaccountkits") {
 
   public_configs = [ ":public_account_config" ]
 
+  all_dependent_configs = [ ":accountkits_all_dependent_configs" ]
+
   deps = [ "${common_path}:libaccount_common" ]
 
   external_deps = [
     "ability_base:want",
-    "c_utils:utils",
     "hiviewdfx_hilog_native:libhilog",
     "ipc:ipc_single",
     "samgr:samgr_proxy",

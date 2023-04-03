@@ -61,14 +61,18 @@ ohos_shared_library("libaccount_common") {
     "LOG_DOMAIN = 0xD001B00",
   ]
 
-  public_configs = [ ":account_common_config" ]
+  public_configs = [
+    ":account_common_config",
+    "//commonlibrary/c_utils/base:utils_config",
+  ]
 
   all_dependent_configs = [ ":account_common_all_dependent_configs" ]
+
+  public_deps = [ "//commonlibrary/c_utils/base:utils" ]
 
   external_deps = [
     "access_token:libaccesstoken_sdk",
     "access_token:libtokenid_sdk",
-    "c_utils:utils",
     "hiviewdfx_hilog_native:libhilog",
     "ipc:ipc_single",
   ]

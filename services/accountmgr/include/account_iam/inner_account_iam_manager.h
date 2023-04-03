@@ -26,6 +26,7 @@
 #include "singleton.h"
 #ifdef HAS_STORAGE_PART
 #include "istorage_manager.h"
+#include "storage_manager.h"
 #include "storage_manager_proxy.h"
 #endif
 

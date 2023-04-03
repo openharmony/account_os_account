@@ -15,7 +15,15 @@ import("//base/account/os_account/os_account.gni")
 import("//build/ohos.gni")
 
 config("osaccount_kit_config") {
-  include_dirs = [ "include" ]
+  include_dirs = [
+    "${os_account_interfaces_native_path}/include",
+    "//third_party/libuv/include",
+    "//third_party/node/src",
+    "//foundation/arkui/napi/interfaces/kits",
+    "${os_account_kits_path}/include",
+    "${os_account_path}/interfaces/kits/napi/common/include",
+    "//base/useriam/user_auth_framework/interfaces/inner_api",
+  ]
 
   cflags = []
   if (target_cpu == "arm") {
@@ -30,6 +38,14 @@ config("osaccount_kit_config") {
     "-Wshadow",
   ]
 
+  if (has_user_auth_part) {
+    cflags_cc += [ "-DHAS_USER_AUTH_PART" ]
+  }
+
+  if (has_pin_auth_part) {
+    cflags_cc += [ "-DHAS_PIN_AUTH_PART" ]
+  }
+
   defines = [
     "ACCOUNT_LOG_TAG = \"OsAccountJsKit\"",
     "LOG_DOMAIN = 0xD001B00",
@@ -37,30 +53,42 @@ config("osaccount_kit_config") {
 }
 
 ohos_shared_library("osaccount") {
+  include_dirs = []
   configs = [
     ":osaccount_kit_config",
     "${account_coverage_config_path}:coverage_flags",
+  ]
+  public_configs = [
+    ":osaccount_kit_config",
+    "${innerkits_native_path}:public_account_config",
   ]
   sources = [
     "${os_account_kits_path}/src/napi_init.cpp",
     "${os_account_kits_path}/src/napi_os_account.cpp",
     "${os_account_kits_path}/src/napi_os_account_common.cpp",
+    "${os_account_path}/frameworks/common/account_error/src/account_error_no.cpp",
+    "${os_account_path}/interfaces/kits/napi/common/src/napi_account_common.cpp",
+    "${os_account_path}/interfaces/kits/napi/common/src/napi_account_error.cpp",
   ]
 
   deps = [
-    "${account_iam_kits_path}:account_iam_napi",
-    "${account_napi_common_path}:account_napi_common",
     "${domain_account_napi_path}:domain_account_napi",
     "${innerkits_native_path}:libaccountkits",
+    "//foundation/arkui/napi/:ace_napi",
   ]
+
+  if (has_user_auth_part && has_pin_auth_part) {
+    deps += [ "${account_iam_kits_path}:account_iam_napi" ]
+  }
 
   relative_install_dir = "module/account"
 
   external_deps = [
     "ability_base:want",
+    "access_token:libtokenid_sdk",
     "c_utils:utils",
     "hiviewdfx_hilog_native:libhilog",
-    "napi:ace_napi",
+    "ipc:ipc_single",
     "os_account:os_account_innerkits",
   ]
 
