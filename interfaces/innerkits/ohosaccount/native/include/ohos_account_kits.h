@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021-2022 Huawei Device Co., Ltd.
+ * Copyright (c) 2021-2023 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -13,6 +13,26 @@
  * limitations under the License.
  */
 
+/**
+ * @addtogroup OhosAccount
+ * @{
+ *
+ * @brief Provides ohos account management.
+ *
+ * Provides the capability to manage ohos accounts.
+ *
+ * @since 7.0
+ * @version 7.0
+ */
+
+/**
+ * @file ohos_account_kits.h
+ *
+ * @brief Declares ohos account interfaces.
+ *
+ * @since 7.0
+ * @version 7.0
+ */
 #ifndef BASE_ACCOUNT_OHOS_ACCOUNT_KITS_H
 #define BASE_ACCOUNT_OHOS_ACCOUNT_KITS_H
 
@@ -84,7 +104,7 @@ public:
     /**
      * Update OHOS Account Info.
      *
-     * @param ohosAccountInfo Indicates the information of the disctributed account.
+     * @param ohosAccountInfo Indicates the information of the distributed account.
      * Update OHOS Account Info.
      * @param eventStr Indicates the event of the OS account used for a distributed system.
      * @return Returns {@code true} if the distributed information of the account is updated;
