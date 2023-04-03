@@ -14,6 +14,7 @@
  */
 
 #include "inner_domain_account_manager.h"
+#include <pthread.h>
 #include <thread>
 #include "account_log_wrapper.h"
 #include "domain_account_plugin_death_recipient.h"
@@ -25,6 +26,15 @@
 
 namespace OHOS {
 namespace AccountSA {
+namespace {
+const char THREAD_AUTH[] = "auth";
+const char THREAD_INNER_AUTH[] = "innerAuth";
+const char THREAD_HAS_ACCOUNT[] = "hasAccount";
+const char THREAD_GET_ACCOUNT[] = "getAccount";
+const char THREAD_BIND_ACCOUNT[] = "bindAccount";
+const char THREAD_UNBIND_ACCOUNT[] = "unbindAccount";
+}
+
 InnerDomainAccountManager &InnerDomainAccountManager::GetInstance()
 {
     static InnerDomainAccountManager instance;
@@ -147,6 +157,7 @@ ErrCode InnerDomainAccountManager::Auth(const DomainAccountInfo &info, const std
     auto task = std::bind(
         &InnerDomainAccountManager::StartAuth, this, plugin_, info, password, innerCallback, AUTH_WITH_CREDENTIAL_MODE);
     std::thread taskThread(task);
+    pthread_setname_np(taskThread.native_handle(), THREAD_AUTH);
     taskThread.detach();
     return ERR_OK;
 }
@@ -167,6 +178,7 @@ ErrCode InnerDomainAccountManager::InnerAuth(int32_t userId, const std::vector<u
     auto task =
         std::bind(&InnerDomainAccountManager::StartAuth, this, plugin_, domainInfo, authData, innerCallback, authMode);
     std::thread taskThread(task);
+    pthread_setname_np(taskThread.native_handle(), THREAD_INNER_AUTH);
     taskThread.detach();
     return ERR_OK;
 }
@@ -295,6 +307,7 @@ ErrCode InnerDomainAccountManager::HasDomainAccount(
     auto task =
         std::bind(&InnerDomainAccountManager::StartHasDomainAccount, this, plugin_, info, callback);
     std::thread taskThread(task);
+    pthread_setname_np(taskThread.native_handle(), THREAD_HAS_ACCOUNT);
     taskThread.detach();
     return ERR_OK;
 }
@@ -320,6 +333,7 @@ ErrCode InnerDomainAccountManager::OnAccountBound(const DomainAccountInfo &info,
     auto task =
         std::bind(&InnerDomainAccountManager::StartOnAccountBound, this, plugin_, info, localId, callbackService);
     std::thread taskThread(task);
+    pthread_setname_np(taskThread.native_handle(), THREAD_BIND_ACCOUNT);
     taskThread.detach();
     return ERR_OK;
 }
@@ -345,6 +359,7 @@ ErrCode InnerDomainAccountManager::OnAccountUnBound(const DomainAccountInfo &inf
     auto task =
         std::bind(&InnerDomainAccountManager::StartOnAccountUnBound, this, plugin_, info, callbackService);
     std::thread taskThread(task);
+    pthread_setname_np(taskThread.native_handle(), THREAD_UNBIND_ACCOUNT);
     taskThread.detach();
     return ERR_OK;
 }
@@ -374,6 +389,7 @@ ErrCode InnerDomainAccountManager::GetDomainAccountInfo(
     auto task = std::bind(
         &InnerDomainAccountManager::StartGetDomainAccountInfo, this, plugin_, domain, accountName, callbackService);
     std::thread taskThread(task);
+    pthread_setname_np(taskThread.native_handle(), THREAD_GET_ACCOUNT);
     taskThread.detach();
     return ERR_OK;
 }

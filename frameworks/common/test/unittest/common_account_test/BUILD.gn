@@ -42,7 +42,10 @@ ohos_unittest("AccountCommonTest") {
     "//third_party/googletest:gtest_main",
   ]
 
-  external_deps = [ "hiviewdfx_hilog_native:libhilog" ]
+  external_deps = [
+    "c_utils:utils",
+    "hiviewdfx_hilog_native:libhilog",
+  ]
   part_name = "os_account"
 }
 

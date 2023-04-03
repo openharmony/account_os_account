@@ -45,6 +45,8 @@ ohos_benchmarktest("os_account_manager_benchmark_test") {
     "//third_party/googletest:gmock_main",
     "//third_party/googletest:gtest_main",
   ]
+
+  external_deps = [ "c_utils:utils" ]
 }
 
 group("benchmarktest") {

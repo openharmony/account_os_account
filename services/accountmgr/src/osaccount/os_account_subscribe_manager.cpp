@@ -14,6 +14,7 @@
  */
 
 #include "os_account_subscribe_manager.h"
+#include <pthread.h>
 #include <thread>
 #include "account_log_wrapper.h"
 #include "ios_account_event.h"
@@ -21,6 +22,10 @@
 
 namespace OHOS {
 namespace AccountSA {
+namespace {
+const char THREAD_OS_ACCOUNT_EVENT[] = "osAccountEvent";
+}
+
 OsAccountSubscribeManager::OsAccountSubscribeManager()
     : subscribeDeathRecipient_(sptr<IRemoteObject::DeathRecipient>(
         new (std::nothrow) OsAccountSubscribeDeathRecipient()))
@@ -155,6 +160,7 @@ ErrCode OsAccountSubscribeManager::Publish(const int id, OS_ACCOUNT_SUBSCRIBE_TY
         if (osAccountSubscribeType == subscribeType) {
             auto task = std::bind(&OsAccountSubscribeManager::OnAccountsChanged, this, (*it), id);
             std::thread taskThread(task);
+            pthread_setname_np(taskThread.native_handle(), THREAD_OS_ACCOUNT_EVENT);
             taskThread.detach();
             ++sendCnt;
         }

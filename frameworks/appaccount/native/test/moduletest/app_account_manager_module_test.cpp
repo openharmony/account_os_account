@@ -16,9 +16,6 @@
 #include <gtest/gtest.h>
 
 #include "account_log_wrapper.h"
-#define private public
-#include "app_account_control_manager.h"
-#undef private
 #include "app_account_manager.h"
 #include "app_account_subscriber.h"
 
@@ -54,7 +51,6 @@ public:
     static void TearDownTestCase(void);
     void SetUp(void) override;
     void TearDown(void) override;
-    std::shared_ptr<AppAccountControlManager> controlManagerPtr_;
 };
 
 void AppAccountManagerModuleTest::SetUpTestCase(void)

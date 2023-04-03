@@ -43,9 +43,6 @@ config("os_account_core_public_config") {
     "${os_account_core_path}/include",
     "${os_account_interfaces_native_path}/include",
     "${innerkits_path}/include",
-    "${ability_runtime_path}/interfaces/inner_api/base/include/",
-    "${ability_runtime_path}/interfaces/inner_api/want/include",
-    "//utils/system/safwk/native/include",
     "${innerkits_native_path}/include",
   ]
 }

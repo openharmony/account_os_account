@@ -112,7 +112,6 @@ config("os_account_subscribe_death_recipient_test_config") {
     "${innerkits_path}/include",
     "//third_party/json/include",
     "${services_path}/accountmgr/test/unittest/os_account/mock",
-    "//utils/system/safwk/native/include",
   ]
 }
 
@@ -187,7 +186,6 @@ ohos_unittest("OsAccountInnerAccmgrCovTest") {
     "${os_account_core_path}:os_account_core",
     "${os_account_innerkits_native_path}:os_account_innerkits",
     "${services_path}/accountmgr:accountmgr",
-    "//base/security/access_token/interfaces/innerkits/token_setproc:libtoken_setproc",
     "//third_party/googletest:gmock_main",
     "//third_party/googletest:gtest_main",
   ]
@@ -196,6 +194,7 @@ ohos_unittest("OsAccountInnerAccmgrCovTest") {
     "ability_base:want",
     "ability_runtime:wantagent_innerkits",
     "access_token:libaccesstoken_sdk",
+    "access_token:libtoken_setproc",
     "c_utils:utils",
     "hiviewdfx_hilog_native:libhilog",
     "ipc:ipc_single",

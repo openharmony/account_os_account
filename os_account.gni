@@ -48,6 +48,8 @@ domain_account_interfaces_native_path =
     "${os_account_path}/interfaces/innerkits/domain_account/native"
 domain_account_framework_path = "${os_account_path}/frameworks/domain_account"
 
+account_napi_common_path = "${os_account_path}/interfaces/kits/napi/common"
+
 account_coverage_config_path = "${os_account_path}/config"
 
 if (!defined(global_parts_info) ||
