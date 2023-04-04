@@ -85,10 +85,55 @@ ErrCode DomainAccountPluginProxy::AuthCommonInterface(const DomainAccountInfo &i
     return SendRequest(IDomainAccountPlugin::Message::DOMAIN_PLUGIN_AUTH, data, reply);
 }
 
+ErrCode DomainAccountPluginProxy::IsAccountTokenValid(
+    const std::vector<uint8_t> &token, const sptr<IDomainAccountCallback> &callback)
+{
+    MessageParcel data;
+    if (!data.WriteInterfaceToken(GetDescriptor())) {
+        ACCOUNT_LOGE("fail to write descriptor");
+        return ERR_ACCOUNT_COMMON_WRITE_PARCEL_ERROR;
+    }
+    if (!data.WriteUInt8Vector(token)) {
+        ACCOUNT_LOGE("failed to write token");
+        return ERR_ACCOUNT_COMMON_WRITE_PARCEL_ERROR;
+    }
+    if ((callback == nullptr) || (!data.WriteRemoteObject(callback->AsObject()))) {
+        ACCOUNT_LOGE("fail to write callback");
+        return ERR_ACCOUNT_COMMON_WRITE_PARCEL_ERROR;
+    }
+    MessageParcel reply;
+    return SendRequest(IDomainAccountPlugin::Message::DOMAIN_PLUGIN_IS_ACCOUNT_TOKEN_VALID, data, reply);
+}
+
 ErrCode DomainAccountPluginProxy::Auth(const DomainAccountInfo &info, const std::vector<uint8_t> &password,
     const sptr<IDomainAuthCallback> &callback)
 {
     return AuthCommonInterface(info, password, callback, AUTH_WITH_CREDENTIAL_MODE);
+}
+
+ErrCode DomainAccountPluginProxy::GetAccessToken(const DomainAccountInfo &domainInfo,
+    const std::vector<uint8_t> &accountToken, const GetAccessTokenOptions &option,
+    const sptr<IDomainAccountCallback> &callback)
+{
+    MessageParcel data;
+    ErrCode result = WriteCommonData(data, GetDescriptor(), domainInfo);
+    if (result != ERR_OK) {
+        return result;
+    }
+    if (!data.WriteUInt8Vector(accountToken)) {
+        ACCOUNT_LOGE("failed to write accountToken");
+        return ERR_ACCOUNT_COMMON_WRITE_PARCEL_ERROR;
+    }
+    if (!data.WriteParcelable(&option)) {
+        ACCOUNT_LOGE("failed to write option");
+        return ERR_APPACCOUNT_KIT_WRITE_PARCELABLE_OPTIONS;
+    }
+    if ((callback == nullptr) || (!data.WriteRemoteObject(callback->AsObject()))) {
+        ACCOUNT_LOGE("fail to write callback");
+        return ERR_ACCOUNT_COMMON_WRITE_PARCEL_ERROR;
+    }
+    MessageParcel reply;
+    return SendRequest(IDomainAccountPlugin::Message::DOMAIN_PLUGIN_GET_ACCESS_TOKEN, data, reply);
 }
 
 ErrCode DomainAccountPluginProxy::AuthWithPopup(

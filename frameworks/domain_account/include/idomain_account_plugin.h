@@ -21,6 +21,7 @@
 #include "domain_account_common.h"
 #include "idomain_account_callback.h"
 #include "idomain_auth_callback.h"
+#include "want.h"
 
 namespace OHOS {
 namespace AccountSA {
@@ -33,6 +34,8 @@ public:
         DOMAIN_PLUGIN_GET_DOMAIN_ACCOUNT_INFO = 2,
         DOMAIN_PLUGIN_ON_ACCOUNT_BOUND = 3,
         DOMAIN_PLUGIN_ON_ACCOUNT_UNBOUND = 4,
+        DOMAIN_PLUGIN_IS_ACCOUNT_TOKEN_VALID = 5,
+        DOMAIN_PLUGIN_GET_ACCESS_TOKEN = 6,
     };
 
     virtual ErrCode Auth(const DomainAccountInfo &info, const std::vector<uint8_t> &password,
@@ -47,6 +50,10 @@ public:
     virtual ErrCode OnAccountBound(const DomainAccountInfo &info, const int32_t localId,
         const sptr<IDomainAccountCallback> &callback) = 0;
     virtual ErrCode OnAccountUnBound(const DomainAccountInfo &info, const sptr<IDomainAccountCallback> &callback) = 0;
+    virtual ErrCode IsAccountTokenValid(
+        const std::vector<uint8_t> &token, const sptr<IDomainAccountCallback> &callback) = 0;
+    virtual ErrCode GetAccessToken(const DomainAccountInfo &domainInfo, const std::vector<uint8_t> &accountToken,
+        const GetAccessTokenOptions &option, const sptr<IDomainAccountCallback> &callback) = 0;
 };
 }  // namespace AccountSA
 }  // namespace OHOS
