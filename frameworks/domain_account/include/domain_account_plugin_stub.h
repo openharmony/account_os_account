@@ -37,6 +37,8 @@ private:
     ErrCode ProcGetDomainAccountInfo(MessageParcel &data, MessageParcel &reply);
     ErrCode ProcOnAccountBound(MessageParcel &data, MessageParcel &reply);
     ErrCode ProcOnAccountUnBound(MessageParcel &data, MessageParcel &reply);
+    ErrCode ProcIsAccountTokenValid(MessageParcel &data, MessageParcel &reply);
+    ErrCode ProcGetAccessToken(MessageParcel &data, MessageParcel &reply);
 
 private:
     static const std::map<uint32_t, MessageProcFunction> messageProcMap_;

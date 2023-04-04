@@ -60,6 +60,7 @@ ohos_source_set("tools_acm_source_set") {
   ]
 
   external_deps = [
+    "ability_base:want",
     "c_utils:utils",
     "hiviewdfx_hilog_native:libhilog",
   ]

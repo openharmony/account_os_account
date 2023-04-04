@@ -174,5 +174,13 @@ void MockDomainPlugin::OnAccountUnBound(
         callback->OnResult(INVALID_CODE, parcel);
     }
 }
+
+void MockDomainPlugin::IsAccountTokenValid(
+    const std::vector<uint8_t> &token, const std::shared_ptr<DomainAccountCallback> &callback)
+{}
+
+void MockDomainPlugin::GetAccessToken(const DomainAccountInfo &domainInfo, const std::vector<uint8_t> &accountToken,
+    const GetAccessTokenOptions &option, const std::shared_ptr<DomainAccountCallback> &callback)
+{}
 }  // AccountSA
 }  // OHOS

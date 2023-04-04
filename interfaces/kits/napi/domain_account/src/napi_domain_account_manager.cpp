@@ -616,6 +616,15 @@ void NapiDomainAccountPlugin::GetDomainAccountInfo(const std::string &domain, co
     lockInfo_.count++;
 }
 
+void NapiDomainAccountPlugin::GetAccessToken(const AccountSA::DomainAccountInfo &domainInfo,
+    const std::vector<uint8_t> &accountToken, const AccountSA::GetAccessTokenOptions &option,
+    const std::shared_ptr<AccountSA::DomainAccountCallback> &callback)
+{}
+
+void NapiDomainAccountPlugin::IsAccountTokenValid(
+    const std::vector<uint8_t> &token, const std::shared_ptr<DomainAccountCallback> &callback)
+{}
+
 napi_value NapiDomainAccountManager::Init(napi_env env, napi_value exports)
 {
     napi_property_descriptor properties[] = {

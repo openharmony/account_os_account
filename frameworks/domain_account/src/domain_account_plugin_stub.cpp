@@ -19,6 +19,7 @@
 #include "account_error_no.h"
 #include "account_log_wrapper.h"
 #include "ipc_skeleton.h"
+#include "want.h"
 
 namespace OHOS {
 namespace AccountSA {
@@ -48,6 +49,14 @@ const std::map<std::uint32_t, DomainAccountPluginStub::MessageProcFunction> Doma
     {
         IDomainAccountPlugin::Message::DOMAIN_PLUGIN_ON_ACCOUNT_UNBOUND,
         &DomainAccountPluginStub::ProcOnAccountUnBound
+    },
+    {
+        IDomainAccountPlugin::Message::DOMAIN_PLUGIN_IS_ACCOUNT_TOKEN_VALID,
+        &DomainAccountPluginStub::ProcIsAccountTokenValid
+    },
+    {
+        IDomainAccountPlugin::Message::DOMAIN_PLUGIN_GET_ACCESS_TOKEN,
+        &DomainAccountPluginStub::ProcGetAccessToken
     }
 };
 
@@ -130,6 +139,56 @@ ErrCode DomainAccountPluginStub::ProcGetAuthStatusInfo(MessageParcel &data, Mess
         return ERR_ACCOUNT_COMMON_READ_PARCEL_ERROR;
     }
     ErrCode result = GetAuthStatusInfo(*info, callback);
+    if (!reply.WriteInt32(result)) {
+        ACCOUNT_LOGE("failed to write result");
+        return ERR_ACCOUNT_COMMON_WRITE_PARCEL_ERROR;
+    }
+    return ERR_NONE;
+}
+
+ErrCode DomainAccountPluginStub::ProcIsAccountTokenValid(MessageParcel &data, MessageParcel &reply)
+{
+    std::vector<uint8_t> token;
+    if (!data.ReadUInt8Vector(&token)) {
+        ACCOUNT_LOGE("failed to read token");
+        return ERR_ACCOUNT_COMMON_READ_PARCEL_ERROR;
+    }
+    auto callback = iface_cast<IDomainAccountCallback>(data.ReadRemoteObject());
+    if (callback == nullptr) {
+        ACCOUNT_LOGE("failed to read callback");
+        return ERR_ACCOUNT_COMMON_READ_PARCEL_ERROR;
+    }
+    ErrCode result = IsAccountTokenValid(token, callback);
+    if (!reply.WriteInt32(result)) {
+        ACCOUNT_LOGE("failed to write result");
+        return ERR_ACCOUNT_COMMON_WRITE_PARCEL_ERROR;
+    }
+    return ERR_NONE;
+}
+
+ErrCode DomainAccountPluginStub::ProcGetAccessToken(MessageParcel &data, MessageParcel &reply)
+{
+    std::shared_ptr<DomainAccountInfo> domainInfo(data.ReadParcelable<DomainAccountInfo>());
+    if (domainInfo == nullptr) {
+        ACCOUNT_LOGE("failed to read domain account info");
+        return ERR_ACCOUNT_COMMON_READ_PARCEL_ERROR;
+    }
+    std::vector<uint8_t> accountToken;
+    if (!data.ReadUInt8Vector(&accountToken)) {
+        ACCOUNT_LOGE("failed to read user token");
+        return ERR_ACCOUNT_COMMON_READ_PARCEL_ERROR;
+    }
+    std::shared_ptr<GetAccessTokenOptions> option(data.ReadParcelable<GetAccessTokenOptions>());
+    if (option == nullptr) {
+        ACCOUNT_LOGE("failed to read option");
+        return ERR_ACCOUNT_COMMON_READ_PARCEL_ERROR;
+    }
+    auto callback = iface_cast<IDomainAccountCallback>(data.ReadRemoteObject());
+    if (callback == nullptr) {
+        ACCOUNT_LOGE("failed to read callback");
+        return ERR_ACCOUNT_COMMON_READ_PARCEL_ERROR;
+    }
+    ErrCode result = GetAccessToken(*domainInfo, accountToken, *option, callback);
     if (!reply.WriteInt32(result)) {
         ACCOUNT_LOGE("failed to write result");
         return ERR_ACCOUNT_COMMON_WRITE_PARCEL_ERROR;

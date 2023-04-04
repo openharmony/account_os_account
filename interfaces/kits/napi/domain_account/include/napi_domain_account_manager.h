@@ -37,6 +37,8 @@ struct JsDomainPlugin {
     napi_ref getDomainAccountInfo = nullptr;
     napi_ref onAccountBound = nullptr;
     napi_ref onAccountUnbound = nullptr;
+    napi_ref isAccountTokenValid = nullptr;
+    napi_ref getAccessToken = nullptr;
 };
 
 struct HasDomainAccountAsyncContext : public CommonAsyncContext {
@@ -53,6 +55,7 @@ struct JsDomainPluginParam {
     AccountSA::DomainAccountInfo domainAccountInfo;
     std::shared_ptr<AccountSA::DomainAuthCallback> authCallback = nullptr;
     std::shared_ptr<AccountSA::DomainAccountCallback> callback = nullptr;
+    AccountSA::GetAccessTokenOptions option;
     ThreadLockInfo *lockInfo = nullptr;
     int32_t userId = 0;
     napi_ref callbackRef = nullptr;
@@ -80,6 +83,11 @@ public:
     void OnAccountBound(const AccountSA::DomainAccountInfo &info, const int32_t localId,
         const std::shared_ptr<AccountSA::DomainAccountCallback> &callback) override;
     void OnAccountUnBound(const AccountSA::DomainAccountInfo &info,
+        const std::shared_ptr<AccountSA::DomainAccountCallback> &callback) override;
+    void IsAccountTokenValid(
+        const std::vector<uint8_t> &token, const std::shared_ptr<AccountSA::DomainAccountCallback> &callback) override;
+    void GetAccessToken(const AccountSA::DomainAccountInfo &domainInfo, const std::vector<uint8_t> &accountToken,
+        const AccountSA::GetAccessTokenOptions &option,
         const std::shared_ptr<AccountSA::DomainAccountCallback> &callback) override;
 
 private:
