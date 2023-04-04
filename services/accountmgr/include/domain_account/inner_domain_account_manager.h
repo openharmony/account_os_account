@@ -23,6 +23,7 @@
 #include "domain_auth_callback.h"
 #include "domain_auth_callback_stub.h"
 #include "os_account_info.h"
+#include "want.h"
 
 namespace OHOS {
 namespace AccountSA {
@@ -39,10 +40,15 @@ public:
     ErrCode AuthWithToken(int32_t userId, const std::vector<uint8_t> &token);
     ErrCode GetAuthStatusInfo(const DomainAccountInfo &info, const std::shared_ptr<DomainAccountCallback> &callback);
     ErrCode HasDomainAccount(const DomainAccountInfo &info, const sptr<IDomainAccountCallback> &callback);
+    ErrCode UpdateAccountToken(const DomainAccountInfo &info, const std::vector<uint8_t> &token);
+    ErrCode GetAccessToken(const DomainAccountInfo &info, const AAFwk::WantParams &parameters,
+        const sptr<IDomainAccountCallback> &callback);
     ErrCode GetDomainAccountInfo(const std::string &domain, const std::string &accountName,
         const std::shared_ptr<DomainAccountCallback> &callback);
     ErrCode OnAccountBound(const DomainAccountInfo &info, const int32_t localId,
         const std::shared_ptr<DomainAccountCallback> &callback);
+    ErrCode IsAccountTokenValid(
+        const std::vector<uint8_t> &token, const std::shared_ptr<DomainAccountCallback> &callback);
     ErrCode OnAccountUnBound(const DomainAccountInfo &info, const std::shared_ptr<DomainAccountCallback> &callback);
     bool IsPluginAvailable();
     void InsertTokenToMap(int32_t userId, const std::vector<uint8_t> &token);
@@ -50,12 +56,17 @@ public:
     void RemoveTokenFromMap(int32_t userId);
 
 private:
+    void StartIsAccountTokenValid(const sptr<IDomainAccountPlugin> &plugin, const std::vector<uint8_t> &token,
+        const sptr<IDomainAccountCallback> &callback);
     void StartGetDomainAccountInfo(const sptr<IDomainAccountPlugin> &plugin, const std::string &domain,
         const std::string &accountName, const sptr<IDomainAccountCallback> &callback);
     void StartOnAccountUnBound(const sptr<IDomainAccountPlugin> &plugin, const DomainAccountInfo &info,
         const sptr<IDomainAccountCallback> &callback);
     void StartOnAccountBound(const sptr<IDomainAccountPlugin> &plugin, const DomainAccountInfo &info,
         const int32_t localId, const sptr<IDomainAccountCallback> &callback);
+    ErrCode StartGetAccessToken(const sptr<IDomainAccountPlugin> &plugin, const std::vector<uint8_t> &accountToken,
+        const DomainAccountInfo &info, const GetAccessTokenOptions &option,
+        const sptr<IDomainAccountCallback> &callback);
     ErrCode StartHasDomainAccount(const sptr<IDomainAccountPlugin> &plugin, const DomainAccountInfo &info,
         const sptr<IDomainAccountCallback> &callback);
     ErrCode StartAuth(const sptr<IDomainAccountPlugin> &plugin, const DomainAccountInfo &info,
@@ -66,6 +77,7 @@ private:
     ErrCode GetDomainAccountInfoByUserId(int32_t userId, DomainAccountInfo &domainInfo);
 
 private:
+    int32_t callingUid_ = -1;
     std::mutex mutex_;
     sptr<IRemoteObject::DeathRecipient> deathRecipient_;
     sptr<IDomainAccountPlugin> plugin_;

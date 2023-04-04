@@ -23,6 +23,7 @@
 #include "domain_has_domain_info_callback.h"
 #include "idomain_account_callback.h"
 #include "iinner_os_account_manager.h"
+#include "ipc_skeleton.h"
 
 namespace OHOS {
 namespace AccountSA {
@@ -33,6 +34,8 @@ const char THREAD_HAS_ACCOUNT[] = "hasAccount";
 const char THREAD_GET_ACCOUNT[] = "getAccount";
 const char THREAD_BIND_ACCOUNT[] = "bindAccount";
 const char THREAD_UNBIND_ACCOUNT[] = "unbindAccount";
+const char THREAD_GET_ACCESS_TOKEN[] = "getAccessToken";
+const char THREAD_IS_ACCOUNT_VALID[] = "isAccountTokenValid";
 }
 
 InnerDomainAccountManager &InnerDomainAccountManager::GetInstance()
@@ -77,6 +80,7 @@ ErrCode InnerDomainAccountManager::RegisterPlugin(const sptr<IDomainAccountPlugi
         return ERR_ACCOUNT_COMMON_ADD_DEATH_RECIPIENT;
     }
     plugin_ = plugin;
+    callingUid_ = IPCSkeleton::GetCallingUid();
     return ERR_OK;
 }
 
@@ -87,6 +91,7 @@ void InnerDomainAccountManager::UnregisterPlugin()
         plugin_->AsObject()->RemoveDeathRecipient(deathRecipient_);
     }
     plugin_ = nullptr;
+    callingUid_ = -1;
     deathRecipient_ = nullptr;
 }
 
@@ -226,6 +231,82 @@ void InnerDomainAccountManager::RemoveTokenFromMap(int32_t userId)
     std::lock_guard<std::mutex> lock(mutex_);
     userTokenMap_.erase(userId);
     return;
+}
+
+ErrCode InnerDomainAccountManager::UpdateAccountToken(const DomainAccountInfo &info, const std::vector<uint8_t> &token)
+{
+    if (plugin_ == nullptr) {
+        ACCOUNT_LOGE("plugin is not exit!");
+        return ERR_DOMAIN_ACCOUNT_SERVICE_PLUGIN_NOT_EXIT;
+    }
+    int32_t callingUid = IPCSkeleton::GetCallingUid();
+    if (callingUid != callingUid_) {
+        ACCOUNT_LOGE("callingUid and register callinguid is not same!");
+        return ERR_DOMAIN_ACCOUNT_SERVICE_INVALID_CALLING_UID;
+    }
+    int32_t userId = 0;
+    ErrCode result = IInnerOsAccountManager::GetInstance().GetOsAccountLocalIdFromDomain(info, userId);
+    if (result != ERR_OK) {
+        ACCOUNT_LOGE("get os account localId from domain failed, result: %{public}d", result);
+        return result;
+    }
+    if (token.empty()) {
+        RemoveTokenFromMap(userId);
+        return ERR_OK;
+    }
+    InsertTokenToMap(userId, token);
+    return ERR_OK;
+}
+
+static void OnResultForGetAccessToken(const ErrCode errCode, const sptr<IDomainAccountCallback> &callback)
+{
+    std::vector<uint8_t> token;
+    Parcel emptyParcel;
+    emptyParcel.WriteUInt8Vector(token);
+    callback->OnResult(errCode, emptyParcel);
+}
+
+ErrCode InnerDomainAccountManager::StartGetAccessToken(const sptr<IDomainAccountPlugin> &plugin,
+    const std::vector<uint8_t> &accountToken, const DomainAccountInfo &info, const GetAccessTokenOptions &option,
+    const sptr<IDomainAccountCallback> &callback)
+{
+    if (callback == nullptr) {
+        ACCOUNT_LOGE("invalid callback");
+        OnResultForGetAccessToken(ERR_ACCOUNT_COMMON_INVALID_PARAMTER, callback);
+        return ERR_ACCOUNT_COMMON_INVALID_PARAMTER;
+    }
+    if (plugin == nullptr) {
+        ACCOUNT_LOGE("plugin is nullptr");
+        OnResultForGetAccessToken(ERR_DOMAIN_ACCOUNT_SERVICE_PLUGIN_NOT_EXIST, callback);
+        return ERR_DOMAIN_ACCOUNT_SERVICE_PLUGIN_NOT_EXIST;
+    }
+    ErrCode result = plugin->GetAccessToken(info, accountToken, option, callback);
+    if (result != ERR_OK) {
+        ACCOUNT_LOGE("failed to get access token, errCode: %{public}d", result);
+        OnResultForGetAccessToken(result, callback);
+        return result;
+    }
+    return ERR_OK;
+}
+
+ErrCode InnerDomainAccountManager::GetAccessToken(
+    const DomainAccountInfo &info, const AAFwk::WantParams &parameters, const sptr<IDomainAccountCallback> &callback)
+{
+    int32_t userId = 0;
+    ErrCode result = IInnerOsAccountManager::GetInstance().GetOsAccountLocalIdFromDomain(info, userId);
+    if (result != ERR_OK) {
+        ACCOUNT_LOGE("get os account localId from domain failed, result: %{public}d", result);
+        return result;
+    }
+    std::vector<uint8_t> accountToken = GetTokenFromMap(userId);
+    int32_t callingUid = IPCSkeleton::GetCallingUid();
+    GetAccessTokenOptions option(callingUid, parameters);
+    auto task =
+        std::bind(&InnerDomainAccountManager::StartGetAccessToken, this, plugin_, accountToken, info, option, callback);
+    std::thread taskThread(task);
+    pthread_setname_np(taskThread.native_handle(), THREAD_GET_ACCESS_TOKEN);
+    taskThread.detach();
+    return ERR_OK;
 }
 
 ErrCode InnerDomainAccountManager::GetAuthStatusInfo(
@@ -390,6 +471,35 @@ ErrCode InnerDomainAccountManager::GetDomainAccountInfo(
         &InnerDomainAccountManager::StartGetDomainAccountInfo, this, plugin_, domain, accountName, callbackService);
     std::thread taskThread(task);
     pthread_setname_np(taskThread.native_handle(), THREAD_GET_ACCOUNT);
+    taskThread.detach();
+    return ERR_OK;
+}
+
+void InnerDomainAccountManager::StartIsAccountTokenValid(const sptr<IDomainAccountPlugin> &plugin,
+    const std::vector<uint8_t> &token, const sptr<IDomainAccountCallback> &callback)
+{
+    if (plugin == nullptr) {
+        ACCOUNT_LOGE("plugin not exists");
+        return ErrorOnResult(ERR_DOMAIN_ACCOUNT_SERVICE_PLUGIN_NOT_EXIST, callback);
+    }
+    ErrCode errCode = plugin->IsAccountTokenValid(token, callback);
+    if (errCode != ERR_OK) {
+        ACCOUNT_LOGE("failed to get domain account, errCode: %{public}d", errCode);
+        ErrorOnResult(errCode, callback);
+    }
+}
+
+ErrCode InnerDomainAccountManager::IsAccountTokenValid(
+    const std::vector<uint8_t> &token, const std::shared_ptr<DomainAccountCallback> &callback)
+{
+    sptr<DomainAccountCallbackService> callbackService = new (std::nothrow) DomainAccountCallbackService(callback);
+    if (callbackService == nullptr) {
+        ACCOUNT_LOGE("make shared DomainAccountCallbackService failed");
+        return ERR_ACCOUNT_COMMON_INSUFFICIENT_MEMORY_ERROR;
+    }
+    auto task = std::bind(&InnerDomainAccountManager::StartIsAccountTokenValid, this, plugin_, token, callbackService);
+    std::thread taskThread(task);
+    pthread_setname_np(taskThread.native_handle(), THREAD_IS_ACCOUNT_VALID);
     taskThread.detach();
     return ERR_OK;
 }

@@ -20,6 +20,7 @@
 #include <iremote_broker.h>
 #include "idomain_account_callback.h"
 #include "idomain_account_plugin.h"
+#include "want.h"
 
 namespace OHOS {
 namespace AccountSA {
@@ -32,7 +33,9 @@ public:
         DOMAIN_AUTH = 2,
         DOMAIN_AUTH_USER = 3,
         DOMAIN_AUTH_WITH_POPUP = 4,
-        DOMAIN_HAS_DOMAIN_ACCOUNT = 5
+        DOMAIN_HAS_DOMAIN_ACCOUNT = 5,
+        DOMAIN_UPDATE_ACCOUNT_TOKEN = 6,
+        DOMAIN_GET_ACCESS_TOKEN = 7
     };
 
     virtual ErrCode RegisterPlugin(const sptr<IDomainAccountPlugin> &plugin) = 0;
@@ -43,6 +46,9 @@ public:
         const sptr<IDomainAuthCallback> &callback) = 0;
     virtual ErrCode AuthWithPopup(int32_t userId, const sptr<IDomainAuthCallback> &callback) = 0;
     virtual ErrCode HasDomainAccount(const DomainAccountInfo &info, const sptr<IDomainAccountCallback> &callback) = 0;
+    virtual ErrCode UpdateAccountToken(const DomainAccountInfo &info, const std::vector<uint8_t> &token) = 0;
+    virtual ErrCode GetAccessToken(const DomainAccountInfo &info, const AAFwk::WantParams &parameters,
+        const sptr<IDomainAccountCallback> &callback) = 0;
 };
 }  // namespace AccountSA
 }  // namespace OHOS

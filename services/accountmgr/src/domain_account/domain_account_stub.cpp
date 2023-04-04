@@ -54,6 +54,14 @@ const std::map<uint32_t, DomainAccountStub::DomainAccountStubFunc> DomainAccount
     {
         IDomainAccount::Message::DOMAIN_HAS_DOMAIN_ACCOUNT,
         &DomainAccountStub::ProcHasDomainAccount
+    },
+    {
+        IDomainAccount::Message::DOMAIN_UPDATE_ACCOUNT_TOKEN,
+        &DomainAccountStub::ProcUpdateAccountToken
+    },
+    {
+        IDomainAccount::Message::DOMAIN_GET_ACCESS_TOKEN,
+        &DomainAccountStub::ProcGetDomainAccessToken
     }
 };
 
@@ -92,6 +100,26 @@ ErrCode DomainAccountStub::ProcHasDomainAccount(MessageParcel &data, MessageParc
         return ERR_ACCOUNT_COMMON_READ_PARCEL_ERROR;
     }
     ErrCode result = HasDomainAccount(*info, callback);
+    if (!reply.WriteInt32(result)) {
+        ACCOUNT_LOGE("failed to write reply, result %{public}d.", result);
+        return IPC_STUB_WRITE_PARCEL_ERR;
+    }
+    return ERR_NONE;
+}
+
+ErrCode DomainAccountStub::ProcUpdateAccountToken(MessageParcel &data, MessageParcel &reply)
+{
+    std::shared_ptr<DomainAccountInfo> info(data.ReadParcelable<DomainAccountInfo>());
+    if (info == nullptr) {
+        ACCOUNT_LOGE("failed to read domain account info");
+        return ERR_ACCOUNT_COMMON_READ_PARCEL_ERROR;
+    }
+    std::vector<uint8_t> token;
+    if (!data.ReadUInt8Vector(&token)) {
+        ACCOUNT_LOGE("fail to read token");
+        return ERR_ACCOUNT_COMMON_READ_PARCEL_ERROR;
+    }
+    ErrCode result = UpdateAccountToken(*info, token);
     if (!reply.WriteInt32(result)) {
         ACCOUNT_LOGE("failed to write reply, result %{public}d.", result);
         return IPC_STUB_WRITE_PARCEL_ERR;
@@ -199,6 +227,31 @@ ErrCode DomainAccountStub::ProcAuthWithPopup(MessageParcel &data, MessageParcel 
     return ERR_NONE;
 }
 
+ErrCode DomainAccountStub::ProcGetDomainAccessToken(MessageParcel &data, MessageParcel &reply)
+{
+    std::shared_ptr<DomainAccountInfo> info(data.ReadParcelable<DomainAccountInfo>());
+    if (info == nullptr) {
+        ACCOUNT_LOGE("failed to read domain account info");
+        return ERR_ACCOUNT_COMMON_READ_PARCEL_ERROR;
+    }
+    std::shared_ptr<AAFwk::WantParams> parameters(data.ReadParcelable<AAFwk::WantParams>());
+    if (parameters == nullptr) {
+        ACCOUNT_LOGE("failed to read domain parameters");
+        return ERR_ACCOUNT_COMMON_READ_PARCEL_ERROR;
+    }
+    auto callback = iface_cast<IDomainAccountCallback>(data.ReadRemoteObject());
+    if (callback == nullptr) {
+        ACCOUNT_LOGE("failed to read domain callback");
+        return ERR_ACCOUNT_COMMON_READ_PARCEL_ERROR;
+    }
+    ErrCode result = GetAccessToken(*info, *parameters, callback);
+    if (!reply.WriteInt32(result)) {
+        ACCOUNT_LOGE("failed to write reply, result %{public}d.", result);
+        return IPC_STUB_WRITE_PARCEL_ERR;
+    }
+    return ERR_NONE;
+}
+
 ErrCode DomainAccountStub::CheckPermission(uint32_t code, int32_t uid)
 {
     ErrCode errCode = AccountPermissionManager::CheckSystemApp();
@@ -214,6 +267,7 @@ ErrCode DomainAccountStub::CheckPermission(uint32_t code, int32_t uid)
         case IDomainAccount::Message::REGISTER_PLUGIN:
         case IDomainAccount::Message::UNREGISTER_PLUGIN:
         case IDomainAccount::Message::DOMAIN_HAS_DOMAIN_ACCOUNT:
+        case IDomainAccount::Message::DOMAIN_UPDATE_ACCOUNT_TOKEN:
             permissionName = AccountPermissionManager::MANAGE_LOCAL_ACCOUNTS;
             break;
         case IDomainAccount::Message::DOMAIN_AUTH:
@@ -223,6 +277,13 @@ ErrCode DomainAccountStub::CheckPermission(uint32_t code, int32_t uid)
             break;
         default:
             break;
+    }
+    if (code == IDomainAccount::Message::DOMAIN_GET_ACCESS_TOKEN) {
+        errCode = AccountPermissionManager::VerifyPermission(AccountPermissionManager::MANAGE_LOCAL_ACCOUNTS);
+        if (errCode != ERR_OK) {
+            return AccountPermissionManager::VerifyPermission(AccountPermissionManager::GET_LOCAL_ACCOUNTS);
+        }
+        return ERR_OK;
     }
     if (permissionName.empty()) {
         return ERR_OK;

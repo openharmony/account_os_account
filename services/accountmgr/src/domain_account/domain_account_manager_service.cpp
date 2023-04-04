@@ -47,6 +47,18 @@ ErrCode DomainAccountManagerService::HasDomainAccount(
     return InnerDomainAccountManager::GetInstance().HasDomainAccount(info, callback);
 }
 
+ErrCode DomainAccountManagerService::GetAccessToken(
+    const DomainAccountInfo &info, const AAFwk::WantParams &parameters, const sptr<IDomainAccountCallback> &callback)
+{
+    return InnerDomainAccountManager::GetInstance().GetAccessToken(info, parameters, callback);
+}
+
+ErrCode DomainAccountManagerService::UpdateAccountToken(
+    const DomainAccountInfo &info, const std::vector<uint8_t> &token)
+{
+    return InnerDomainAccountManager::GetInstance().UpdateAccountToken(info, token);
+}
+
 ErrCode DomainAccountManagerService::Auth(const DomainAccountInfo &info, const std::vector<uint8_t> &password,
     const sptr<IDomainAuthCallback> &callback)
 {
