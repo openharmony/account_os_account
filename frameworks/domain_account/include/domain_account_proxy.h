@@ -35,6 +35,9 @@ public:
         const sptr<IDomainAuthCallback> &callback) override;
     ErrCode AuthWithPopup(int32_t userId, const sptr<IDomainAuthCallback> &callback) override;
     ErrCode HasDomainAccount(const DomainAccountInfo &info, const sptr<IDomainAccountCallback> &callback) override;
+    ErrCode UpdateAccountToken(const DomainAccountInfo &info, const std::vector<uint8_t> &token) override;
+    ErrCode GetAccessToken(const DomainAccountInfo &info, const AAFwk::WantParams &parameters,
+        const sptr<IDomainAccountCallback> &callback) override;
 
 private:
     ErrCode SendRequest(IDomainAccount::Message code, MessageParcel &data, MessageParcel &reply);

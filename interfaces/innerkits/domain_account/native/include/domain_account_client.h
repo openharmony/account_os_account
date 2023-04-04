@@ -42,6 +42,7 @@
 #include "domain_account_plugin.h"
 #include "domain_auth_callback_service.h"
 #include "idomain_account.h"
+#include "want.h"
 
 namespace OHOS {
 namespace AccountSA {
@@ -108,6 +109,9 @@ public:
      * @return error code, see account_error_no.h
      */
     ErrCode HasDomainAccount(const DomainAccountInfo &info, const std::shared_ptr<DomainAccountCallback> &callback);
+    ErrCode UpdateAccountToken(const DomainAccountInfo &info, const std::vector<uint8_t> &token);
+    ErrCode GetAccessToken(const DomainAccountInfo &info, const AAFwk::WantParams &parameters,
+        const std::shared_ptr<DomainAccountCallback> &callback);
 
 private:
     DomainAccountClient() = default;

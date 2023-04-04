@@ -35,6 +35,9 @@ public:
     ErrCode AuthUser(int32_t userId, const std::vector<uint8_t> &password,
         const sptr<IDomainAuthCallback> &callback) override;
     ErrCode AuthWithPopup(int32_t userId, const sptr<IDomainAuthCallback> &callback) override;
+    ErrCode UpdateAccountToken(const DomainAccountInfo &info, const std::vector<uint8_t> &token) override;
+    ErrCode GetAccessToken(const DomainAccountInfo &info, const AAFwk::WantParams &parameters,
+        const sptr<IDomainAccountCallback> &callback) override;
 
 private:
     std::mutex mutex_;
