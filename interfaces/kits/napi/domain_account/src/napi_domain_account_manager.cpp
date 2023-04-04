@@ -104,16 +104,17 @@ static bool GetPluginCallbackCommonParam(napi_env env, napi_callback_info cbInfo
 static napi_value CreateNapiDomainAccountInfo(napi_env env, const DomainAccountInfo &domainAccountInfo)
 {
     napi_value napiInfo = nullptr;
-    napi_create_object(env, &napiInfo);
+    NAPI_CALL(env, napi_create_object(env, &napiInfo));
     napi_value napiName = nullptr;
-    napi_create_string_utf8(env, domainAccountInfo.accountName_.c_str(), NAPI_AUTO_LENGTH, &napiName);
-    napi_set_named_property(env, napiInfo, "accountName", napiName);
+    NAPI_CALL(env, napi_create_string_utf8(env, domainAccountInfo.accountName_.c_str(), NAPI_AUTO_LENGTH, &napiName));
+    NAPI_CALL(env, napi_set_named_property(env, napiInfo, "accountName", napiName));
     napi_value napiDomain = nullptr;
-    napi_create_string_utf8(env, domainAccountInfo.domain_.c_str(), NAPI_AUTO_LENGTH, &napiDomain);
-    napi_set_named_property(env, napiInfo, "domain", napiDomain);
+    NAPI_CALL(env, napi_create_string_utf8(env, domainAccountInfo.domain_.c_str(), NAPI_AUTO_LENGTH, &napiDomain));
+    NAPI_CALL(env, napi_set_named_property(env, napiInfo, "domain", napiDomain));
     napi_value napiAccountId = nullptr;
-    napi_create_string_utf8(env, domainAccountInfo.accountId_.c_str(), NAPI_AUTO_LENGTH, &napiAccountId);
-    napi_set_named_property(env, napiInfo, "accountId", napiAccountId);
+    NAPI_CALL(
+        env, napi_create_string_utf8(env, domainAccountInfo.accountId_.c_str(), NAPI_AUTO_LENGTH, &napiAccountId));
+    NAPI_CALL(env, napi_set_named_property(env, napiInfo, "accountId", napiAccountId));
     return napiInfo;
 }
 
@@ -286,13 +287,9 @@ static napi_value GetDomainAccountInfoCallback(napi_env env, napi_callback_info 
 
 static void GetDomainAccountInfoWork(uv_work_t *work, int status)
 {
-    if (work == nullptr) {
-        ACCOUNT_LOGE("invalid parameter, work is nullptr");
-        return;
-    }
-    if (work->data == nullptr) {
-        ACCOUNT_LOGE("invalid parameter, data is nullptr");
-        delete work;
+    std::unique_ptr<uv_work_t> workPtr(work);
+    napi_handle_scope scope = nullptr;
+    if (!InitUvWorkCallbackEnv(work, scope)) {
         return;
     }
     JsDomainPluginParam *param = reinterpret_cast<JsDomainPluginParam *>(work->data);
@@ -309,7 +306,7 @@ static void GetDomainAccountInfoWork(uv_work_t *work, int status)
     if (napiCallback == nullptr) {
         delete param;
     }
-    delete work;
+    napi_close_handle_scope(param->env, scope);
 }
 
 static napi_value OnAccountBoundCallback(napi_env env, napi_callback_info cbInfo)
@@ -337,13 +334,9 @@ static napi_value OnAccountBoundCallback(napi_env env, napi_callback_info cbInfo
 
 static void OnAccountBoundWork(uv_work_t *work, int status)
 {
-    if (work == nullptr) {
-        ACCOUNT_LOGE("invalid parameter, work is nullptr");
-        return;
-    }
-    if (work->data == nullptr) {
-        ACCOUNT_LOGE("invalid parameter, data is nullptr");
-        delete work;
+    std::unique_ptr<uv_work_t> workPtr(work);
+    napi_handle_scope scope = nullptr;
+    if (!InitUvWorkCallbackEnv(work, scope)) {
         return;
     }
     JsDomainPluginParam *param = reinterpret_cast<JsDomainPluginParam *>(work->data);
@@ -359,18 +352,14 @@ static void OnAccountBoundWork(uv_work_t *work, int status)
     if (napiCallback == nullptr) {
         delete param;
     }
-    delete work;
+    napi_close_handle_scope(param->env, scope);
 }
 
 static void OnAccountUnBoundWork(uv_work_t *work, int status)
 {
-    if (work == nullptr) {
-        ACCOUNT_LOGE("invalid parameter, work is nullptr");
-        return;
-    }
-    if (work->data == nullptr) {
-        ACCOUNT_LOGE("invalid parameter, data is nullptr");
-        delete work;
+    std::unique_ptr<uv_work_t> workPtr(work);
+    napi_handle_scope scope = nullptr;
+    if (!InitUvWorkCallbackEnv(work, scope)) {
         return;
     }
     JsDomainPluginParam *param = reinterpret_cast<JsDomainPluginParam *>(work->data);
@@ -384,7 +373,7 @@ static void OnAccountUnBoundWork(uv_work_t *work, int status)
     if (napiCallback == nullptr) {
         delete param;
     }
-    delete work;
+    napi_close_handle_scope(param->env, scope);
 }
 
 static napi_value GetAuthStatusInfoCallback(napi_env env, napi_callback_info cbInfo)
@@ -507,13 +496,9 @@ static void IsUserTokenValidWork(uv_work_t *work, int status)
 
 static void GetAuthStatusInfoWork(uv_work_t *work, int status)
 {
-    if (work == nullptr) {
-        ACCOUNT_LOGE("work is nullptr");
-        return;
-    }
-    if (work->data == nullptr) {
-        ACCOUNT_LOGE("data is nullptr");
-        delete work;
+    std::unique_ptr<uv_work_t> workPtr(work);
+    napi_handle_scope scope = nullptr;
+    if (!InitUvWorkCallbackEnv(work, scope)) {
         return;
     }
     JsDomainPluginParam *param = reinterpret_cast<JsDomainPluginParam *>(work->data);
@@ -527,7 +512,7 @@ static void GetAuthStatusInfoWork(uv_work_t *work, int status)
     if (napiCallback == nullptr) {
         delete param;
     }
-    delete work;
+    napi_close_handle_scope(param->env, scope);
 }
 
 NapiDomainAccountPlugin::NapiDomainAccountPlugin(napi_env env, const JsDomainPlugin &jsPlugin)
@@ -564,13 +549,9 @@ NapiDomainAccountPlugin::~NapiDomainAccountPlugin()
 
 static void AuthCommonWork(uv_work_t *work, int status)
 {
-    if (work == nullptr) {
-        ACCOUNT_LOGE("work is nullptr");
-        return;
-    }
-    if (work->data == nullptr) {
-        ACCOUNT_LOGE("data is nullptr");
-        delete work;
+    std::unique_ptr<uv_work_t> workPtr(work);
+    napi_handle_scope scope = nullptr;
+    if (!InitUvWorkCallbackEnv(work, scope)) {
         return;
     }
     JsDomainPluginParam *param = reinterpret_cast<JsDomainPluginParam *>(work->data);
@@ -585,8 +566,8 @@ static void AuthCommonWork(uv_work_t *work, int status)
     std::unique_lock<std::mutex> lock(param->lockInfo->mutex);
     param->lockInfo->count--;
     param->lockInfo->condition.notify_all();
+    napi_close_handle_scope(param->env, scope);
     delete param;
-    delete work;
 }
 
 void NapiDomainAccountPlugin::AuthCommon(AccountSA::AuthMode authMode, const AccountSA::DomainAccountInfo &info,
@@ -715,6 +696,7 @@ void NapiDomainAccountPlugin::OnAccountBound(const DomainAccountInfo &info, cons
         ACCOUNT_LOGE("failed to uv_queue_work, errCode: %{public}d", errCode);
         delete work;
         delete param;
+        return;
     }
     lockInfo_.count++;
 }
@@ -747,6 +729,7 @@ void NapiDomainAccountPlugin::OnAccountUnBound(const DomainAccountInfo &info,
         ACCOUNT_LOGE("failed to uv_queue_work, errCode: %{public}d", errCode);
         delete work;
         delete param;
+        return;
     }
     lockInfo_.count++;
 }
@@ -780,6 +763,7 @@ void NapiDomainAccountPlugin::GetDomainAccountInfo(const std::string &domain, co
         ACCOUNT_LOGE("failed to uv_queue_work, errCode: %{public}d", errCode);
         delete work;
         delete param;
+        return;
     }
     lockInfo_.count++;
 }
@@ -1169,15 +1153,11 @@ napi_value NapiDomainAccountManager::AuthWithPopup(napi_env env, napi_callback_i
     return nullptr;
 }
 
-static void HasDomainAccountCompletedCB(uv_work_t *work, int status)
+static void HasDomainAccountCompletedWork(uv_work_t *work, int status)
 {
-    if (work == nullptr) {
-        ACCOUNT_LOGE("invalid parameter, work is nullptr");
-        return;
-    }
-    if (work->data == nullptr) {
-        ACCOUNT_LOGE("invalid parameter, data is nullptr");
-        delete work;
+    std::unique_ptr<uv_work_t> workPtr(work);
+    napi_handle_scope scope = nullptr;
+    if (!InitUvWorkCallbackEnv(work, scope)) {
         return;
     }
     HasDomainAccountAsyncContext *asyncContext = reinterpret_cast<HasDomainAccountAsyncContext *>(work->data);
@@ -1189,8 +1169,8 @@ static void HasDomainAccountCompletedCB(uv_work_t *work, int status)
         errJs = GenerateBusinessError(asyncContext->env, asyncContext->errCode);
     }
     ProcessCallbackOrPromise(asyncContext->env, asyncContext, errJs, dataJs);
+    napi_close_handle_scope(asyncContext->env, scope);
     delete asyncContext;
-    delete work;
 }
 
 NapiHasDomainInfoCallback::NapiHasDomainInfoCallback(napi_env env, napi_ref callbackRef, napi_deferred deferred)
@@ -1232,15 +1212,13 @@ void NapiHasDomainInfoCallback::OnResult(const int32_t errCode, Parcel &parcel)
     asyncContext->deferred = deferred_;
     work->data = reinterpret_cast<void *>(asyncContext);
     int resultCode = uv_queue_work(
-        loop, work, [](uv_work_t *work) {}, HasDomainAccountCompletedCB);
+        loop, work, [](uv_work_t *work) {}, HasDomainAccountCompletedWork);
     if (resultCode != 0) {
         ACCOUNT_LOGE("failed to uv_queue_work, errCode: %{public}d", errCode);
         delete asyncContext;
         delete work;
         return;
     }
-    callbackRef_ = nullptr;
-    deferred_ = nullptr;
 }
 
 
@@ -1294,21 +1272,20 @@ void NapiGetAccessTokenCallback::OnResult(const int32_t errCode, Parcel &parcel)
     callbackRef_ = nullptr;
 }
 
+static void HasDomainAccountCompleteCB(napi_env env, napi_status status, void *data)
+{
+    auto *asyncContext = reinterpret_cast<HasDomainAccountAsyncContext *>(data);
+    napi_delete_async_work(env, asyncContext->work);
+}
+
 static void HasDomainAccountExecuteCB(napi_env env, void *data)
 {
     HasDomainAccountAsyncContext *asyncContext = reinterpret_cast<HasDomainAccountAsyncContext *>(data);
     auto callback = std::make_shared<NapiHasDomainInfoCallback>(env, asyncContext->callbackRef, asyncContext->deferred);
-    if (callback == nullptr) {
-        asyncContext->errCode = ERR_ACCOUNT_COMMON_INSUFFICIENT_MEMORY_ERROR;
-        ACCOUNT_LOGE("insufficient memory for HasDomainAccountCB!");
-        return;
-    }
     asyncContext->errCode = DomainAccountClient::GetInstance().HasDomainAccount(asyncContext->domainInfo, callback);
     if (asyncContext->errCode != ERR_OK) {
         Parcel emptyParcel;
-        emptyParcel.WriteBool(false);
         callback->OnResult(asyncContext->errCode, emptyParcel);
-        asyncContext->errCode = ERR_OK;
     }
 }
 
@@ -1415,15 +1392,13 @@ napi_value NapiDomainAccountManager::HasDomainAccount(napi_env env, napi_callbac
     }
     napi_value resource = nullptr;
     NAPI_CALL(env, napi_create_string_utf8(env, "hasDomainAccount", NAPI_AUTO_LENGTH, &resource));
-    NAPI_CALL(env, napi_create_async_work(env, nullptr, resource, HasDomainAccountExecuteCB,
-        [](napi_env env, napi_status status, void *data) {
-            auto *asyncContext = reinterpret_cast<HasDomainAccountAsyncContext *>(data);
-            napi_delete_async_work(env, asyncContext->work);
-            if (asyncContext->errCode != ERR_OK) {
-                napi_delete_reference(env, asyncContext->callbackRef);
-                delete asyncContext;
-            }
-        }, reinterpret_cast<void *>(hasDomainAccountCB), &hasDomainAccountCB->work));
+    NAPI_CALL(env, napi_create_async_work(env,
+        nullptr,
+        resource,
+        HasDomainAccountExecuteCB,
+        HasDomainAccountCompleteCB,
+        reinterpret_cast<void *>(hasDomainAccountCB),
+        &hasDomainAccountCB->work));
     NAPI_CALL(env, napi_queue_async_work(env, hasDomainAccountCB->work));
     contextPtr.release();
     return result;
