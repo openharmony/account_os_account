@@ -95,9 +95,11 @@ void CreateOAExecuteCB(napi_env env, void *data);
 
 void CreateOAForDomainExecuteCB(napi_env env, void *data);
 
+void CreateOAForDomainCompletedCB(napi_env env, napi_status status, void *data);
+
 void CreateOACallbackCompletedCB(napi_env env, napi_status status, void *data);
 
-void CreateOAForDomainCallbackCompletedCB(uv_work_t *work, int status);
+void CreateOAForDomainCallbackCompletedWork(uv_work_t *work, int status);
 
 bool ParseParaGetOACount(napi_env env, napi_callback_info cbInfo, GetOACountAsyncContext *asyncContext);
 

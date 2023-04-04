@@ -104,12 +104,13 @@ bool GetAccessTokenOptions::ReadFromParcel(Parcel &parcel)
         ACCOUNT_LOGE("failed to read callingUid");
         return false;
     }
-    std::shared_ptr<AAFwk::WantParams> param(parcel.ReadParcelable<AAFwk::WantParams>());
+    auto param = parcel.ReadParcelable<AAFwk::WantParams>();
     if (param == nullptr) {
         ACCOUNT_LOGE("failed to read wantParams");
         return false;
     }
     getTokenParams_ = (*param);
+    delete param;
     return true;
 }
 
