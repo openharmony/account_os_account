@@ -91,6 +91,57 @@ DomainAccountInfo *DomainAccountInfo::Unmarshalling(Parcel &parcel)
     return domainAccountInfo;
 }
 
+GetAccessTokenOptions::GetAccessTokenOptions(const int32_t &callingUid, const AAFwk::WantParams &getTokenParams)
+    : callingUid_(callingUid), getTokenParams_(getTokenParams)
+{}
+
+GetAccessTokenOptions::GetAccessTokenOptions()
+{}
+
+bool GetAccessTokenOptions::ReadFromParcel(Parcel &parcel)
+{
+    if (!parcel.ReadInt32(callingUid_)) {
+        ACCOUNT_LOGE("failed to read callingUid");
+        return false;
+    }
+    std::shared_ptr<AAFwk::WantParams> param(parcel.ReadParcelable<AAFwk::WantParams>());
+    if (param == nullptr) {
+        ACCOUNT_LOGE("failed to read wantParams");
+        return false;
+    }
+    getTokenParams_ = (*param);
+    return true;
+}
+
+bool GetAccessTokenOptions::Marshalling(Parcel &parcel) const
+{
+    if (!parcel.WriteInt32(callingUid_)) {
+        ACCOUNT_LOGE("failed to read write callingUid");
+        return false;
+    }
+    if (!parcel.WriteParcelable(&getTokenParams_)) {
+        ACCOUNT_LOGE("failed to write getTokenParams");
+        return false;
+    }
+    return true;
+}
+
+GetAccessTokenOptions *GetAccessTokenOptions::Unmarshalling(Parcel &parcel)
+{
+    GetAccessTokenOptions *getAccessTokenOptions = new (std::nothrow) GetAccessTokenOptions();
+    if (getAccessTokenOptions == nullptr) {
+        return nullptr;
+    }
+
+    if (!getAccessTokenOptions->ReadFromParcel(parcel)) {
+        ACCOUNT_LOGE("failed to read from parcel");
+        delete getAccessTokenOptions;
+        getAccessTokenOptions = nullptr;
+    }
+
+    return getAccessTokenOptions;
+}
+
 bool AuthStatusInfo::ReadFromParcel(Parcel &parcel)
 {
     if (!parcel.ReadInt32(remainingTimes)) {

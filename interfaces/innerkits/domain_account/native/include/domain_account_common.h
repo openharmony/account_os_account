@@ -19,6 +19,7 @@
 #include <string>
 #include <vector>
 #include "parcel.h"
+#include "want.h"
 
 namespace OHOS {
 namespace AccountSA {
@@ -47,6 +48,19 @@ public:
     bool ReadFromParcel(Parcel &parcel);
     bool Marshalling(Parcel &parcel) const override;
     static DomainAccountInfo *Unmarshalling(Parcel &parcel);
+};
+
+class GetAccessTokenOptions : public Parcelable {
+public:
+    GetAccessTokenOptions();
+    GetAccessTokenOptions(const int32_t &callingUid, const AAFwk::WantParams &getTokenParams);
+
+public:
+    int32_t callingUid_;
+    AAFwk::WantParams getTokenParams_;
+    bool ReadFromParcel(Parcel &parcel);
+    bool Marshalling(Parcel &parcel) const override;
+    static GetAccessTokenOptions *Unmarshalling(Parcel &parcel);
 };
 
 struct AuthStatusInfo : public Parcelable {
