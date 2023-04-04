@@ -205,5 +205,66 @@ ErrCode DomainAccountProxy::AuthWithPopup(int32_t userId, const sptr<IDomainAuth
     }
     return result;
 }
+
+ErrCode DomainAccountProxy::UpdateAccountToken(const DomainAccountInfo &info, const std::vector<uint8_t> &token)
+{
+    MessageParcel data;
+    if (!data.WriteInterfaceToken(GetDescriptor())) {
+        ACCOUNT_LOGE("fail to write descriptor");
+        return ERR_ACCOUNT_COMMON_WRITE_PARCEL_ERROR;
+    }
+    if (!data.WriteParcelable(&info)) {
+        ACCOUNT_LOGE("fail to write parcelable");
+        return ERR_ACCOUNT_COMMON_WRITE_PARCEL_ERROR;
+    }
+    if (!data.WriteUInt8Vector(token)) {
+        ACCOUNT_LOGE("fail to write token");
+        return ERR_ACCOUNT_COMMON_WRITE_PARCEL_ERROR;
+    }
+    MessageParcel reply;
+    ErrCode result = SendRequest(IDomainAccount::Message::DOMAIN_UPDATE_ACCOUNT_TOKEN, data, reply);
+    if (result != ERR_OK) {
+        ACCOUNT_LOGE("fail to send request, error: %{public}d", result);
+        return result;
+    }
+    if (!reply.ReadInt32(result)) {
+        ACCOUNT_LOGE("fail to read result");
+        return ERR_ACCOUNT_COMMON_READ_PARCEL_ERROR;
+    }
+    return result;
+}
+
+ErrCode DomainAccountProxy::GetAccessToken(
+    const DomainAccountInfo &info, const AAFwk::WantParams &parameters, const sptr<IDomainAccountCallback> &callback)
+{
+    MessageParcel data;
+    if (!data.WriteInterfaceToken(GetDescriptor())) {
+        ACCOUNT_LOGE("fail to write descriptor");
+        return ERR_ACCOUNT_COMMON_WRITE_PARCEL_ERROR;
+    }
+    if (!data.WriteParcelable(&info)) {
+        ACCOUNT_LOGE("fail to write info");
+        return ERR_ACCOUNT_COMMON_WRITE_PARCEL_ERROR;
+    }
+    if (!data.WriteParcelable(&parameters)) {
+        ACCOUNT_LOGE("failed to write write parameters");
+        return ERR_APPACCOUNT_KIT_WRITE_PARCELABLE_OPTIONS;
+    }
+    if ((callback == nullptr) || (!data.WriteRemoteObject(callback->AsObject()))) {
+        ACCOUNT_LOGE("fail to write callback");
+        return ERR_ACCOUNT_COMMON_WRITE_PARCEL_ERROR;
+    }
+    MessageParcel reply;
+    ErrCode result = SendRequest(IDomainAccount::Message::DOMAIN_GET_ACCESS_TOKEN, data, reply);
+    if (result != ERR_OK) {
+        ACCOUNT_LOGE("fail to send request, error: %{public}d", result);
+        return result;
+    }
+    if (!reply.ReadInt32(result)) {
+        ACCOUNT_LOGE("fail to read result");
+        return ERR_ACCOUNT_COMMON_READ_PARCEL_ERROR;
+    }
+    return result;
+}
 }  // namespace AccountSA
 }  // namespace OHOS

@@ -81,6 +81,26 @@ ErrCode DomainAccountClient::AuthProxyInit(const std::shared_ptr<DomainAuthCallb
     return ERR_OK;
 }
 
+ErrCode DomainAccountClient::GetAccessToken(const DomainAccountInfo &info, const AAFwk::WantParams &parameters,
+    const std::shared_ptr<DomainAccountCallback> &callback)
+{
+    if (callback == nullptr) {
+        ACCOUNT_LOGE("callback is nullptr");
+        return ERR_ACCOUNT_COMMON_INVALID_PARAMTER;
+    }
+    sptr<DomainAccountCallbackService> callbackService = new (std::nothrow) DomainAccountCallbackService(callback);
+    if (callbackService == nullptr) {
+        ACCOUNT_LOGE("failed to new callback service");
+        return ERR_ACCOUNT_COMMON_INSUFFICIENT_MEMORY_ERROR;
+    }
+    auto proxy = GetDomainAccountProxy();
+    if (proxy == nullptr) {
+        ACCOUNT_LOGE("failed to get domain account proxy");
+        return ERR_ACCOUNT_COMMON_GET_PROXY;
+    }
+    return proxy->GetAccessToken(info, parameters, callbackService);
+}
+
 ErrCode DomainAccountClient::HasDomainAccount(
     const DomainAccountInfo &info, const std::shared_ptr<DomainAccountCallback> &callback)
 {
@@ -134,6 +154,16 @@ ErrCode DomainAccountClient::AuthWithPopup(int32_t userId, const std::shared_ptr
         return result;
     }
     return proxy->AuthWithPopup(userId, callbackService);
+}
+
+ErrCode DomainAccountClient::UpdateAccountToken(const DomainAccountInfo &info, const std::vector<uint8_t> &token)
+{
+    auto proxy = GetDomainAccountProxy();
+    if (proxy == nullptr) {
+        ACCOUNT_LOGE("failed to get domain account proxy");
+        return ERR_ACCOUNT_COMMON_GET_PROXY;
+    }
+    return proxy->UpdateAccountToken(info, token);
 }
 
 void DomainAccountClient::ResetDomainAccountProxy(const wptr<IRemoteObject>& remote)

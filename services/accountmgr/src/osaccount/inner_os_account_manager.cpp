@@ -344,6 +344,24 @@ void IInnerOsAccountManager::CheckAndRefreshLocalIdRecord(const int id)
     return;
 }
 
+ErrCode IInnerOsAccountManager::RemoveOsAccountOperate(const int id, OsAccountInfo &osAccountInfo)
+{
+    ErrCode errCode = SendMsgForAccountRemove(osAccountInfo);
+    if (errCode != ERR_OK) {
+        RemoveLocalIdToOperating(id);
+        return errCode;
+    }
+    RemoveLocalIdToOperating(id);
+
+    errCode = osAccountControl_->RemoveOAConstraintsInfo(id);
+    if (errCode != ERR_OK) {
+        ACCOUNT_LOGE("RemoveOsAccount failed to remove os account constraints info");
+        return errCode;
+    }
+    CheckAndRefreshLocalIdRecord(id);
+    return errCode;
+}
+
 ErrCode IInnerOsAccountManager::RemoveOsAccount(const int id)
 {
     ACCOUNT_LOGI("RemoveOsAccount delete id is %{public}d", id);
@@ -373,6 +391,7 @@ ErrCode IInnerOsAccountManager::RemoveOsAccount(const int id)
     osAccountInfo.GetDomainInfo(curDomainInfo);
     if (!curDomainInfo.accountId_.empty()) {
         InnerDomainAccountManager::GetInstance().OnAccountUnBound(curDomainInfo, nullptr);
+        InnerDomainAccountManager::GetInstance().RemoveTokenFromMap(id);
     }
     // set remove flag first
     osAccountInfo.SetToBeRemoved(true);
@@ -386,20 +405,7 @@ ErrCode IInnerOsAccountManager::RemoveOsAccount(const int id)
     }
 
     // then remove account
-    errCode = SendMsgForAccountRemove(osAccountInfo);
-    if (errCode != ERR_OK) {
-        RemoveLocalIdToOperating(id);
-        return errCode;
-    }
-    RemoveLocalIdToOperating(id);
-
-    errCode = osAccountControl_->RemoveOAConstraintsInfo(id);
-    if (errCode != ERR_OK) {
-        ACCOUNT_LOGE("RemoveOsAccount failed to remove os account constraints info");
-        return errCode;
-    }
-    CheckAndRefreshLocalIdRecord(id);
-    return ERR_OK;
+    return RemoveOsAccountOperate(id, osAccountInfo);
 }
 
 ErrCode IInnerOsAccountManager::SendMsgForAccountStop(OsAccountInfo &osAccountInfo)
@@ -826,13 +832,14 @@ ErrCode IInnerOsAccountManager::GetOsAccountLocalIdFromDomain(const DomainAccoun
     for (auto osAccountInfosPtr = osAccountInfos.begin(); osAccountInfosPtr != osAccountInfos.end();
          ++osAccountInfosPtr) {
         osAccountInfosPtr->GetDomainInfo(curDomainInfo);
-        if (curDomainInfo.accountName_ == domainInfo.accountName_ &&
-            curDomainInfo.domain_ == domainInfo.domain_) {
+        if (((!domainInfo.accountId_.empty()) && (domainInfo.accountId_ == curDomainInfo.accountId_)) ||
+            ((curDomainInfo.accountName_ == domainInfo.accountName_) &&
+            (curDomainInfo.domain_ == domainInfo.domain_))) {
             id = osAccountInfosPtr->GetLocalId();
             return ERR_OK;
         }
     }
-    return ERR_ACCOUNT_COMMON_INVALID_PARAMTER;
+    return ERR_DOMAIN_ACCOUNT_SERVICE_NOT_DOMAIN_ACCOUNT;
 }
 
 ErrCode IInnerOsAccountManager::QueryOsAccountById(const int id, OsAccountInfo &osAccountInfo)

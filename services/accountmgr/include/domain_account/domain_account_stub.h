@@ -39,6 +39,8 @@ private:
     ErrCode ProcAuthUser(MessageParcel &data, MessageParcel &reply);
     ErrCode ProcAuthWithPopup(MessageParcel &data, MessageParcel &reply);
     ErrCode ProcHasDomainAccount(MessageParcel &data, MessageParcel &reply);
+    ErrCode ProcUpdateAccountToken(MessageParcel &data, MessageParcel &reply);
+    ErrCode ProcGetDomainAccessToken(MessageParcel &data, MessageParcel &reply);
 
 private:
     static const std::map<uint32_t, DomainAccountStubFunc> stubFuncMap_;
