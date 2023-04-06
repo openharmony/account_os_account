@@ -142,11 +142,30 @@ int32_t SystemAbilityManagerProxy::GetRunningSystemProcess(std::list<SystemProce
 {
     return ERR_INVALID_VALUE;
 }
+
 int32_t SystemAbilityManagerProxy::SubscribeSystemProcess(const sptr<ISystemProcessStatusChange>& listener)
 {
     return ERR_INVALID_VALUE;
 }
+
 int32_t SystemAbilityManagerProxy::UnSubscribeSystemProcess(const sptr<ISystemProcessStatusChange>& listener)
+{
+    return ERR_INVALID_VALUE;
+}
+
+int32_t SystemAbilityManagerProxy::GetOnDemandReasonExtraData(int64_t extraDataId, MessageParcel& extraDataParcel)
+{
+    return ERR_INVALID_VALUE;
+}
+
+int32_t SystemAbilityManagerProxy::GetOnDemandPolicy(int32_t systemAbilityId, OnDemandPolicyType type,
+    std::vector<SystemAbilityOnDemandEvent>& abilityOnDemandEvents)
+{
+    return ERR_INVALID_VALUE;
+}
+
+int32_t SystemAbilityManagerProxy::UpdateOnDemandPolicy(int32_t systemAbilityId, OnDemandPolicyType type,
+    const std::vector<SystemAbilityOnDemandEvent>& sabilityOnDemandEvents)
 {
     return ERR_INVALID_VALUE;
 }
