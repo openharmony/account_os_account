@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021-2022 Huawei Device Co., Ltd.
+ * Copyright (c) 2021-2023 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -159,8 +159,8 @@ struct CreateAccountImplicitlyContext : public CommonAsyncContext {
     sptr<IAppAccountAuthenticatorCallback> appAccountMgrCb = nullptr;
 };
 
-struct SubscriberAccountsWorker {
-    napi_env env = nullptr;
+struct SubscriberAccountsWorker : public CommonAsyncContext {
+    explicit SubscriberAccountsWorker(napi_env napiEnv) : CommonAsyncContext(napiEnv) {};
     napi_ref ref = nullptr;
     std::vector<AppAccountInfo> accounts;
     int code = 0;
@@ -183,8 +183,8 @@ struct AsyncContextForUnsubscribe : public CommonAsyncContext {
     size_t argc = 0;
 };
 
-struct AuthenticatorCallbackParam {
-    napi_env env = nullptr;
+struct AuthenticatorCallbackParam : public CommonAsyncContext {
+    explicit AuthenticatorCallbackParam(napi_env napiEnv) : CommonAsyncContext(napiEnv) {};
     int32_t resultCode;
     AAFwk::Want result;
     AAFwk::Want request;
