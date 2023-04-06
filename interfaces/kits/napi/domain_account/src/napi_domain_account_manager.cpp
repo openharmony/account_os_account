@@ -23,6 +23,7 @@
 #include "napi/native_node_api.h"
 #include "napi_account_common.h"
 #include "napi_account_error.h"
+#include "napi_common.h"
 #include "napi_domain_auth_callback.h"
 
 namespace OHOS {
@@ -31,6 +32,8 @@ namespace {
 const size_t ARG_SIZE_ONE = 1;
 const size_t ARG_SIZE_TWO = 2;
 const size_t ARG_SIZE_THREE = 3;
+const size_t ARG_SIZE_FOUR = 4;
+const size_t PARAM_ONE = 1;
 }
 
 using namespace OHOS::AccountSA;
@@ -115,6 +118,18 @@ static napi_value CreateNapiDomainAccountInfo(napi_env env, const DomainAccountI
     return napiInfo;
 }
 
+static napi_value CreateNapiOption(napi_env env, const GetAccessTokenOptions &option)
+{
+    napi_value napiOptions = nullptr;
+    NAPI_CALL(env, napi_create_object(env, &napiOptions));
+    napi_value napiParam = AppExecFwk::WrapWantParams(env, option.getTokenParams_);
+    NAPI_CALL(env, napi_set_named_property(env, napiOptions, "businessParams", napiParam));
+    napi_value napiUid = nullptr;
+    NAPI_CALL(env, napi_create_int32(env, option.callingUid_, &napiUid));
+    NAPI_CALL(env, napi_set_named_property(env, napiOptions, "callerUid", napiUid));
+    return napiOptions;
+}
+
 static napi_value CreateNapiDomainAuthCallback(
     napi_env env, const std::shared_ptr<DomainAuthCallback> &nativeCallback)
 {
@@ -182,6 +197,60 @@ static bool ParseDomainAccountInfo(napi_env env, napi_value object, DomainAccoun
     napi_has_named_property(env, object, "accountId", &hasProp);
     if (hasProp && !GetStringPropertyByKey(env, object, "accountId", info.accountId_)) {
         ACCOUNT_LOGE("get domainInfo's accountId failed");
+        return false;
+    }
+    return true;
+}
+
+static bool ParseParamForUpdateAccountToken(
+    napi_env env, napi_callback_info cbInfo, UpdateAccountTokenAsyncContext *asyncContext)
+{
+    size_t argc = ARG_SIZE_THREE;
+    napi_value argv[ARG_SIZE_THREE] = {0};
+    napi_get_cb_info(env, cbInfo, &argc, argv, nullptr, nullptr);
+    if (argc < ARG_SIZE_TWO) {
+        ACCOUNT_LOGE("the parameter of number should be at least two");
+        return false;
+    }
+    if (argc == ARG_SIZE_THREE) {
+        if (!GetCallbackProperty(env, argv[argc - 1], asyncContext->callbackRef, 1)) {
+            ACCOUNT_LOGE("Get callbackRef failed");
+            return false;
+        }
+    }
+    if (!ParseDomainAccountInfo(env, argv[0], asyncContext->domainInfo)) {
+        ACCOUNT_LOGE("get domainInfo failed");
+        return false;
+    }
+    if (ParseUint8TypedArrayToVector(env, argv[PARAM_ONE], asyncContext->token) != napi_ok) {
+        ACCOUNT_LOGE("get token failed");
+        return false;
+    }
+    return true;
+}
+
+static bool ParseParamForGetAccessToken(
+    napi_env env, napi_callback_info cbInfo, GetAccessTokenAsyncContext *asyncContext)
+{
+    size_t argc = ARG_SIZE_THREE;
+    napi_value argv[ARG_SIZE_THREE] = {0};
+    napi_get_cb_info(env, cbInfo, &argc, argv, nullptr, nullptr);
+    if (argc < ARG_SIZE_TWO) {
+        ACCOUNT_LOGE("the parameter of number should be at least two");
+        return false;
+    }
+    if (argc == ARG_SIZE_THREE) {
+        if (!GetCallbackProperty(env, argv[argc - 1], asyncContext->callbackRef, 1)) {
+            ACCOUNT_LOGE("Get callbackRef failed");
+            return false;
+        }
+    }
+    if (!ParseDomainAccountInfo(env, argv[0], asyncContext->domainInfo)) {
+        ACCOUNT_LOGE("get domainInfo failed");
+        return false;
+    }
+    if (!AppExecFwk::UnwrapWantParams(env, argv[PARAM_ONE], asyncContext->getTokenParams)) {
+        ACCOUNT_LOGE("unwrapWantParams failed");
         return false;
     }
     return true;
@@ -340,6 +409,100 @@ static napi_value GetAuthStatusInfoCallback(napi_env env, napi_callback_info cbI
     return nullptr;
 }
 
+static napi_value GetAccessTokenCallback(napi_env env, napi_callback_info cbInfo)
+{
+    JsDomainPluginParam *param = nullptr;
+    BusinessError error;
+    napi_value businessData = nullptr;
+    if (!GetPluginCallbackCommonParam(env, cbInfo, &param, error, &businessData)) {
+        AccountNapiThrow(env, ERR_JS_SYSTEM_SERVICE_EXCEPTION, true);
+        return nullptr;
+    }
+    std::vector<uint8_t> accessToken;
+    if ((error.code == 0) && (ParseUint8TypedArrayToVector(env, businessData, accessToken) != napi_ok)) {
+        ACCOUNT_LOGE("Parse access token failed");
+        AccountNapiThrow(env, ERR_JS_SYSTEM_SERVICE_EXCEPTION, true);
+        return nullptr;
+    }
+    Parcel parcel;
+    if (!parcel.WriteUInt8Vector(accessToken)) {
+        ACCOUNT_LOGE("failed to write accessToken");
+        AccountNapiThrow(env, ERR_JS_SYSTEM_SERVICE_EXCEPTION, true);
+        return nullptr;
+    }
+    param->callback->OnResult(error.code, parcel);
+    return nullptr;
+}
+
+static napi_value IsUserTokenValidCallback(napi_env env, napi_callback_info cbInfo)
+{
+    JsDomainPluginParam *param = nullptr;
+    BusinessError error;
+    napi_value businessData = nullptr;
+    if (!GetPluginCallbackCommonParam(env, cbInfo, &param, error, &businessData)) {
+        AccountNapiThrow(env, ERR_JS_SYSTEM_SERVICE_EXCEPTION, true);
+        return nullptr;
+    }
+    bool isTokenValid = false;
+    if ((error.code == 0) && (!GetBoolProperty(env, businessData, isTokenValid))) {
+        ACCOUNT_LOGE("Parse access token failed");
+        AccountNapiThrow(env, ERR_JS_SYSTEM_SERVICE_EXCEPTION, true);
+        return nullptr;
+    }
+    Parcel parcel;
+    if (!parcel.WriteBool(isTokenValid)) {
+        ACCOUNT_LOGE("failed to write accessToken");
+        AccountNapiThrow(env, ERR_JS_SYSTEM_SERVICE_EXCEPTION, true);
+        return nullptr;
+    }
+    param->callback->OnResult(error.code, parcel);
+    return nullptr;
+}
+
+static void GetAccessTokenWork(uv_work_t *work, int status)
+{
+    std::unique_ptr<uv_work_t> workPtr(work);
+    napi_handle_scope scope = nullptr;
+    if (!InitUvWorkCallbackEnv(work, scope)) {
+        return;
+    }
+    JsDomainPluginParam *param = reinterpret_cast<JsDomainPluginParam *>(work->data);
+    napi_value napiDomainAccountInfo = CreateNapiDomainAccountInfo(param->env, param->domainAccountInfo);
+    napi_value napiCallback = CreatePluginAsyncCallback(param->env, GetAccessTokenCallback, param);
+    napi_value napiAccountToken = CreateUint8Array(param->env, param->authData.data(), param->authData.size());
+    napi_value napiOptions = CreateNapiOption(param->env, param->option);
+    napi_value argv[] = {napiDomainAccountInfo, napiAccountToken, napiOptions, napiCallback};
+    NapiCallVoidFunction(param->env, argv, ARG_SIZE_FOUR, param->func);
+    std::unique_lock<std::mutex> lock(param->lockInfo->mutex);
+    param->lockInfo->count--;
+    param->lockInfo->condition.notify_all();
+    if (napiCallback == nullptr) {
+        delete param;
+    }
+    napi_close_handle_scope(param->env, scope);
+}
+
+static void IsUserTokenValidWork(uv_work_t *work, int status)
+{
+    std::unique_ptr<uv_work_t> workPtr(work);
+    napi_handle_scope scope = nullptr;
+    if (!InitUvWorkCallbackEnv(work, scope)) {
+        return;
+    }
+    JsDomainPluginParam *param = reinterpret_cast<JsDomainPluginParam *>(work->data);
+    napi_value napiCallback = CreatePluginAsyncCallback(param->env, IsUserTokenValidCallback, param);
+    napi_value napiUserToken = CreateUint8Array(param->env, param->authData.data(), param->authData.size());
+    napi_value argv[] = {napiUserToken, napiCallback};
+    NapiCallVoidFunction(param->env, argv, ARG_SIZE_TWO, param->func);
+    std::unique_lock<std::mutex> lock(param->lockInfo->mutex);
+    param->lockInfo->count--;
+    param->lockInfo->condition.notify_all();
+    if (napiCallback == nullptr) {
+        delete param;
+    }
+    napi_close_handle_scope(param->env, scope);
+}
+
 static void GetAuthStatusInfoWork(uv_work_t *work, int status)
 {
     if (work == nullptr) {
@@ -391,6 +554,10 @@ NapiDomainAccountPlugin::~NapiDomainAccountPlugin()
     jsPlugin_.onAccountBound = nullptr;
     ReleaseNapiRefAsync(env_, jsPlugin_.onAccountUnbound);
     jsPlugin_.onAccountUnbound = nullptr;
+    ReleaseNapiRefAsync(env_, jsPlugin_.isAccountTokenValid);
+    jsPlugin_.isAccountTokenValid = nullptr;
+    ReleaseNapiRefAsync(env_, jsPlugin_.getAccessToken);
+    jsPlugin_.getAccessToken = nullptr;
 }
 
 static void AuthCommonWork(uv_work_t *work, int status)
@@ -485,7 +652,6 @@ void NapiDomainAccountPlugin::AuthWithToken(const DomainAccountInfo &info, const
 {
     AuthCommon(AUTH_WITH_TOKEN_MODE, info, token, callback);
 }
-
 
 void NapiDomainAccountPlugin::GetAuthStatusInfo(
     const DomainAccountInfo &info, const std::shared_ptr<DomainAccountCallback> &callback)
@@ -616,14 +782,74 @@ void NapiDomainAccountPlugin::GetDomainAccountInfo(const std::string &domain, co
     lockInfo_.count++;
 }
 
+void NapiDomainAccountPlugin::IsAccountTokenValid(
+    const std::vector<uint8_t> &token, const std::shared_ptr<DomainAccountCallback> &callback)
+{
+    std::unique_lock<std::mutex> lock(lockInfo_.mutex);
+    if (lockInfo_.count < 0) {
+        ACCOUNT_LOGE("the plugin has been released");
+        return;
+    }
+    if (jsPlugin_.isAccountTokenValid == nullptr) {
+        ACCOUNT_LOGE("isUserTokenValid function of the js plugin is undefined");
+        return;
+    }
+    uv_loop_s *loop = nullptr;
+    uv_work_t *work = nullptr;
+    JsDomainPluginParam *param = nullptr;
+    if (!InitDomainPluginExecEnv(env_, &loop, &work, &param, &lockInfo_)) {
+        ACCOUNT_LOGE("failed to init domain plugin execution environment");
+        return;
+    }
+    param->callback = callback;
+    param->authData = token;
+    param->func = jsPlugin_.isAccountTokenValid;
+    int errCode = uv_queue_work(
+        loop, work, [](uv_work_t *work) {}, IsUserTokenValidWork);
+    if (errCode != 0) {
+        ACCOUNT_LOGE("failed to uv_queue_work, errCode: %{public}d", errCode);
+        delete work;
+        delete param;
+        return;
+    }
+    lockInfo_.count++;
+}
+
 void NapiDomainAccountPlugin::GetAccessToken(const AccountSA::DomainAccountInfo &domainInfo,
     const std::vector<uint8_t> &accountToken, const AccountSA::GetAccessTokenOptions &option,
     const std::shared_ptr<AccountSA::DomainAccountCallback> &callback)
-{}
-
-void NapiDomainAccountPlugin::IsAccountTokenValid(
-    const std::vector<uint8_t> &token, const std::shared_ptr<DomainAccountCallback> &callback)
-{}
+{
+    std::unique_lock<std::mutex> lock(lockInfo_.mutex);
+    if (lockInfo_.count < 0) {
+        ACCOUNT_LOGE("the plugin has been released");
+        return;
+    }
+    if (jsPlugin_.getAccessToken == nullptr) {
+        ACCOUNT_LOGE("getAccessToken function of the js plugin is undefined");
+        return;
+    }
+    uv_loop_s *loop = nullptr;
+    uv_work_t *work = nullptr;
+    JsDomainPluginParam *param = nullptr;
+    if (!InitDomainPluginExecEnv(env_, &loop, &work, &param, &lockInfo_)) {
+        ACCOUNT_LOGE("failed to init domain plugin execution environment");
+        return;
+    }
+    param->domainAccountInfo = domainInfo;
+    param->callback = callback;
+    param->authData = accountToken;
+    param->option = option;
+    param->func = jsPlugin_.getAccessToken;
+    int errCode = uv_queue_work(
+        loop, work, [](uv_work_t *work) {}, GetAccessTokenWork);
+    if (errCode != 0) {
+        ACCOUNT_LOGE("failed to uv_queue_work, errCode: %{public}d", errCode);
+        delete work;
+        delete param;
+        return;
+    }
+    lockInfo_.count++;
+}
 
 napi_value NapiDomainAccountManager::Init(napi_env env, napi_value exports)
 {
@@ -633,9 +859,13 @@ napi_value NapiDomainAccountManager::Init(napi_env env, napi_value exports)
         DECLARE_NAPI_STATIC_FUNCTION("auth", Auth),
         DECLARE_NAPI_STATIC_FUNCTION("authWithPopup", AuthWithPopup),
         DECLARE_NAPI_STATIC_FUNCTION("hasAccount", HasDomainAccount),
+        DECLARE_NAPI_STATIC_FUNCTION("updateAccountToken", UpdateAccountToken),
+        DECLARE_NAPI_STATIC_FUNCTION("getAccessToken", GetAccessToken),
         DECLARE_NAPI_FUNCTION("registerPlugin", RegisterPlugin),
         DECLARE_NAPI_FUNCTION("unregisterPlugin", UnregisterPlugin),
-        DECLARE_NAPI_FUNCTION("hasAccount", HasDomainAccount)
+        DECLARE_NAPI_FUNCTION("hasAccount", HasDomainAccount),
+        DECLARE_NAPI_FUNCTION("updateAccountToken", UpdateAccountToken),
+        DECLARE_NAPI_FUNCTION("getAccessToken", GetAccessToken)
     };
     std::string className = "DomainAccountManager";
     napi_value constructor = nullptr;
@@ -694,6 +924,14 @@ static bool ParseContextForRegisterPlugin(napi_env env, napi_callback_info cbInf
     }
     if (!GetNamedJsFunction(env, argv[0], "getAccountInfo", jsPlugin.getDomainAccountInfo)) {
         ACCOUNT_LOGE("fail to parse getDomainAccountInfo function");
+        return false;
+    }
+    if (!GetNamedJsFunction(env, argv[0], "isAccountTokenValid", jsPlugin.isAccountTokenValid)) {
+        ACCOUNT_LOGE("fail to parse isUserTokenValid function");
+        return false;
+    }
+    if (!GetNamedJsFunction(env, argv[0], "getAccessToken", jsPlugin.getAccessToken)) {
+        ACCOUNT_LOGE("fail to parse getAccessToken function");
         return false;
     }
     return true;
@@ -859,6 +1097,46 @@ static bool ParseContextForAuthWithPopup(
     return true;
 }
 
+static void GetAccessTokenExecuteCB(napi_env env, void *data)
+{
+    GetAccessTokenAsyncContext *asyncContext = reinterpret_cast<GetAccessTokenAsyncContext *>(data);
+    auto callback =
+        std::make_shared<NapiGetAccessTokenCallback>(env, asyncContext->callbackRef, asyncContext->deferred);
+    asyncContext->errCode = DomainAccountClient::GetInstance().GetAccessToken(
+        asyncContext->domainInfo, asyncContext->getTokenParams, callback);
+    if (asyncContext->errCode != ERR_OK) {
+        Parcel emptyParcel;
+        callback->OnResult(asyncContext->errCode, emptyParcel);
+    }
+}
+
+static void GetAccessTokenCompleteCB(napi_env env, napi_status status, void *data)
+{
+    auto *asyncContext = reinterpret_cast<GetAccessTokenAsyncContext *>(data);
+    napi_delete_async_work(env, asyncContext->work);
+}
+
+static void GetAccessTokenCompleteWork(uv_work_t *work, int status)
+{
+    std::unique_ptr<uv_work_t> workPtr(work);
+    napi_handle_scope scope = nullptr;
+    if (!InitUvWorkCallbackEnv(work, scope)) {
+        return;
+    }
+    GetAccessTokenAsyncContext *asyncContext = reinterpret_cast<GetAccessTokenAsyncContext *>(work->data);
+    napi_value errJs = nullptr;
+    napi_value dataJs = nullptr;
+    if (asyncContext->errCode == ERR_OK) {
+        dataJs =
+            CreateUint8Array(asyncContext->env, asyncContext->accessToken.data(), asyncContext->accessToken.size());
+    } else {
+        errJs = GenerateBusinessError(asyncContext->env, asyncContext->errCode);
+    }
+    ProcessCallbackOrPromise(asyncContext->env, asyncContext, errJs, dataJs);
+    napi_close_handle_scope(asyncContext->env, scope);
+    delete asyncContext;
+}
+
 napi_value NapiDomainAccountManager::AuthWithPopup(napi_env env, napi_callback_info cbInfo)
 {
     JsDomainPluginParam *authWithPopupContext = new (std::nothrow) JsDomainPluginParam(env);
@@ -962,6 +1240,57 @@ void NapiHasDomainInfoCallback::OnResult(const int32_t errCode, Parcel &parcel)
     deferred_ = nullptr;
 }
 
+
+NapiGetAccessTokenCallback::NapiGetAccessTokenCallback(napi_env env, napi_ref callbackRef, napi_deferred deferred)
+    : env_(env), callbackRef_(callbackRef), deferred_(deferred)
+{}
+
+NapiGetAccessTokenCallback::~NapiGetAccessTokenCallback()
+{
+    std::unique_lock<std::mutex> lock(lockInfo_.mutex);
+    if (callbackRef_ != nullptr) {
+        ReleaseNapiRefAsync(env_, callbackRef_);
+    }
+    deferred_ = nullptr;
+}
+
+void NapiGetAccessTokenCallback::OnResult(const int32_t errCode, Parcel &parcel)
+{
+    std::unique_lock<std::mutex> lock(lockInfo_.mutex);
+    if ((callbackRef_ == nullptr) && (deferred_ == nullptr)) {
+        ACCOUNT_LOGE("js callback is nullptr");
+        return;
+    }
+    uv_loop_s *loop = nullptr;
+    uv_work_t *work = nullptr;
+    if (!CreateExecEnv(env_, &loop, &work)) {
+        ACCOUNT_LOGE("failed to init domain plugin execution environment");
+        return;
+    }
+    auto *asyncContext = new (std::nothrow) GetAccessTokenAsyncContext();
+    if (asyncContext == nullptr) {
+        delete work;
+        return;
+    }
+    if (errCode == ERR_OK) {
+        parcel.ReadUInt8Vector(&(asyncContext->accessToken));
+    }
+    asyncContext->errCode = errCode;
+    asyncContext->env = env_;
+    asyncContext->callbackRef = callbackRef_;
+    asyncContext->deferred = deferred_;
+    work->data = reinterpret_cast<void *>(asyncContext);
+    int resultCode = uv_queue_work(
+        loop, work, [](uv_work_t *work) {}, GetAccessTokenCompleteWork);
+    if (resultCode != 0) {
+        ACCOUNT_LOGE("failed to uv_queue_work, errCode: %{public}d", errCode);
+        delete asyncContext;
+        delete work;
+        return;
+    }
+    callbackRef_ = nullptr;
+}
+
 static void HasDomainAccountExecuteCB(napi_env env, void *data)
 {
     HasDomainAccountAsyncContext *asyncContext = reinterpret_cast<HasDomainAccountAsyncContext *>(data);
@@ -978,6 +1307,90 @@ static void HasDomainAccountExecuteCB(napi_env env, void *data)
         callback->OnResult(asyncContext->errCode, emptyParcel);
         asyncContext->errCode = ERR_OK;
     }
+}
+
+static void UpdateAccountTokenExecuteCB(napi_env env, void *data)
+{
+    UpdateAccountTokenAsyncContext *asyncContext = reinterpret_cast<UpdateAccountTokenAsyncContext *>(data);
+    asyncContext->errCode =
+        DomainAccountClient::GetInstance().UpdateAccountToken(asyncContext->domainInfo, asyncContext->token);
+}
+
+static void UpdateAccountTokenCompletedCB(napi_env env, napi_status status, void *data)
+{
+    UpdateAccountTokenAsyncContext *asyncContext = reinterpret_cast<UpdateAccountTokenAsyncContext *>(data);
+    napi_value errJs = nullptr;
+    napi_value dataJs = nullptr;
+    if (asyncContext->errCode != ERR_OK) {
+        errJs = GenerateBusinessError(asyncContext->env, asyncContext->errCode);
+    } else {
+        napi_get_null(asyncContext->env, &dataJs);
+    }
+    ProcessCallbackOrPromise(env, asyncContext, errJs, dataJs);
+    napi_delete_async_work(env, asyncContext->work);
+    delete asyncContext;
+}
+
+napi_value NapiDomainAccountManager::UpdateAccountToken(napi_env env, napi_callback_info cbInfo)
+{
+    UpdateAccountTokenAsyncContext *updateAccountTokenCB = new (std::nothrow) UpdateAccountTokenAsyncContext();
+    if (updateAccountTokenCB == nullptr) {
+        ACCOUNT_LOGE("insufficient memory for HasDomainAccountCB!");
+        return nullptr;
+    }
+    std::unique_ptr<UpdateAccountTokenAsyncContext> contextPtr(updateAccountTokenCB);
+    updateAccountTokenCB->env = env;
+    if (!ParseParamForUpdateAccountToken(env, cbInfo, updateAccountTokenCB)) {
+        AccountNapiThrow(env, ERR_JS_PARAMETER_ERROR, true);
+        return nullptr;
+    }
+    napi_value result = nullptr;
+    if (updateAccountTokenCB->callbackRef == nullptr) {
+        NAPI_CALL(env, napi_create_promise(env, &updateAccountTokenCB->deferred, &result));
+    }
+    napi_value resource = nullptr;
+    NAPI_CALL(env, napi_create_string_utf8(env, "updateAccountToken", NAPI_AUTO_LENGTH, &resource));
+    NAPI_CALL(env, napi_create_async_work(env,
+        nullptr,
+        resource,
+        UpdateAccountTokenExecuteCB,
+        UpdateAccountTokenCompletedCB,
+        reinterpret_cast<void *>(updateAccountTokenCB),
+        &updateAccountTokenCB->work));
+    NAPI_CALL(env, napi_queue_async_work(env, updateAccountTokenCB->work));
+    contextPtr.release();
+    return result;
+}
+
+napi_value NapiDomainAccountManager::GetAccessToken(napi_env env, napi_callback_info cbInfo)
+{
+    GetAccessTokenAsyncContext *getAccessTokenCB = new (std::nothrow) GetAccessTokenAsyncContext();
+    if (getAccessTokenCB == nullptr) {
+        ACCOUNT_LOGE("insufficient memory for getAccessTokenCB!");
+        return nullptr;
+    }
+    std::unique_ptr<GetAccessTokenAsyncContext> contextPtr(getAccessTokenCB);
+    getAccessTokenCB->env = env;
+    if (!ParseParamForGetAccessToken(env, cbInfo, getAccessTokenCB)) {
+        AccountNapiThrow(env, ERR_JS_PARAMETER_ERROR, true);
+        return nullptr;
+    }
+    napi_value result = nullptr;
+    if (getAccessTokenCB->callbackRef == nullptr) {
+        NAPI_CALL(env, napi_create_promise(env, &getAccessTokenCB->deferred, &result));
+    }
+    napi_value resource = nullptr;
+    NAPI_CALL(env, napi_create_string_utf8(env, "getAccessToken", NAPI_AUTO_LENGTH, &resource));
+    NAPI_CALL(env, napi_create_async_work(env,
+        nullptr,
+        resource,
+        GetAccessTokenExecuteCB,
+        GetAccessTokenCompleteCB,
+        reinterpret_cast<void *>(getAccessTokenCB),
+        &getAccessTokenCB->work));
+    NAPI_CALL(env, napi_queue_async_work(env, getAccessTokenCB->work));
+    contextPtr.release();
+    return result;
 }
 
 napi_value NapiDomainAccountManager::HasDomainAccount(napi_env env, napi_callback_info cbInfo)

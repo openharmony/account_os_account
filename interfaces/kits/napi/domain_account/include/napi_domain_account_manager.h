@@ -47,6 +47,18 @@ struct HasDomainAccountAsyncContext : public CommonAsyncContext {
     ThreadLockInfo *lockInfo = nullptr;
 };
 
+struct UpdateAccountTokenAsyncContext : public CommonAsyncContext {
+    AccountSA::DomainAccountInfo domainInfo;
+    std::vector<uint8_t> token;
+};
+
+struct GetAccessTokenAsyncContext : public CommonAsyncContext {
+    AccountSA::DomainAccountInfo domainInfo;
+    AAFwk::WantParams getTokenParams;
+    std::vector<uint8_t> accessToken;
+    ThreadLockInfo *lockInfo = nullptr;
+};
+
 struct JsDomainPluginParam {
     JsDomainPluginParam(napi_env napiEnv) : env(napiEnv) {}
     napi_env env = nullptr;
@@ -113,6 +125,19 @@ private:
     napi_deferred deferred_ = nullptr;
 };
 
+class NapiGetAccessTokenCallback final : public AccountSA::DomainAccountCallback {
+public:
+    NapiGetAccessTokenCallback(napi_env env, napi_ref callbackRef, napi_deferred deferred);
+    ~NapiGetAccessTokenCallback();
+    void OnResult(const int32_t errCode, Parcel &parcel) override;
+
+private:
+    AccountJsKit::ThreadLockInfo lockInfo_;
+    napi_env env_ = nullptr;
+    napi_ref callbackRef_ = nullptr;
+    napi_deferred deferred_ = nullptr;
+};
+
 class NapiDomainAccountManager {
 public:
     static napi_value Init(napi_env env, napi_value exports);
@@ -124,6 +149,8 @@ private:
     static napi_value Auth(napi_env env, napi_callback_info cbInfo);
     static napi_value AuthWithPopup(napi_env env, napi_callback_info cbInfo);
     static napi_value HasDomainAccount(napi_env env, napi_callback_info cbInfo);
+    static napi_value UpdateAccountToken(napi_env env, napi_callback_info cbInfo);
+    static napi_value GetAccessToken(napi_env env, napi_callback_info cbInfo);
 };
 }  // namespace AccountJsKit
 }  // namespace OHOS
