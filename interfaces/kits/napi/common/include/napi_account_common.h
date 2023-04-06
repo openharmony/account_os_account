@@ -16,7 +16,10 @@
 #ifndef OS_ACCOUNT_INTERFACES_KITS_COMMON_INCLUDE_NAPI_ACCOUNT_COMMON_H
 #define OS_ACCOUNT_INTERFACES_KITS_COMMON_INCLUDE_NAPI_ACCOUNT_COMMON_H
 
+#include <mutex>
 #include <string>
+#include <vector>
+#include <uv.h>
 
 #include "account_error_no.h"
 #include "napi/native_api.h"
@@ -36,8 +39,21 @@ struct CommonAsyncContext {
     bool throwErr = false;
 };
 
-void ProcessCallbackOrPromise(napi_env env, const CommonAsyncContext *asyncContext, napi_value err, napi_value data);
+struct ThreadLockInfo {
+    std::mutex mutex;
+    std::condition_variable condition;
+    int32_t count = 0;
+};
 
+struct NapiRefArrayContext {
+    napi_env env;
+    std::vector<napi_ref> napiRefVec;
+};
+
+void ProcessCallbackOrPromise(napi_env env, const CommonAsyncContext *asyncContext, napi_value err, napi_value data);
+void ReleaseNapiRefAsync(napi_env env, napi_ref napiRef);
+void ReleaseNapiRefArray(napi_env env, const std::vector<napi_ref> &napiRefVec);
+void NapiCallVoidFunction(napi_env env, napi_value *argv, size_t argc, napi_ref funcRef);
 bool GetCallbackProperty(napi_env env, napi_value obj, napi_ref &property, int argNum);
 bool GetIntProperty(napi_env env, napi_value obj, int32_t &property);
 bool GetLongIntProperty(napi_env env, napi_value obj, int64_t &property);
@@ -45,6 +61,7 @@ bool GetBoolProperty(napi_env env, napi_value obj, bool &property);
 bool GetStringProperty(napi_env env, napi_value obj, std::string &property);
 bool GetStringArrayProperty(napi_env env, napi_value obj, std::vector<std::string> &property, bool allowEmpty);
 bool GetStringPropertyByKey(napi_env env, napi_value obj, const std::string &propertyName, std::string &property);
+bool InitUvWorkCallbackEnv(uv_work_t *work, napi_handle_scope &scope);
 bool GetOptionalStringPropertyByKey(napi_env env, napi_value obj, const std::string &propertyName,
     std::string &property);
 napi_value CreateStringArray(napi_env env, const std::vector<std::string> &strVec);
