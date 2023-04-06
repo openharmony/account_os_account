@@ -112,6 +112,28 @@
             ]
           },
           "name": "//base/account/os_account/frameworks/appaccount/native:app_account_innerkits"
+        },
+        {
+          "header": {
+            "header_base":"//base/account/os_account/interfaces/innerkits/domain_account/native/include",
+            "header_files": [
+              "domain_account_callback.h",
+              "domain_account_client.h",
+              "domain_account_common.h"
+            ]
+          },
+          "name": "//base/account/os_account/frameworks/domain_account:domain_account_innerkits"
+        },
+        {
+          "header": {
+            "header_base":"//base/account/os_account/interfaces/innerkits/account_iam/native/include",
+            "header_files": [
+              "account_iam_client.h",
+              "account_iam_client_callback.h",
+              "account_iam_info.h"
+            ]
+          },
+          "name": "//base/account/os_account/frameworks/account_iam:account_iam_innerkits"
         }
      ],
      "test": [
