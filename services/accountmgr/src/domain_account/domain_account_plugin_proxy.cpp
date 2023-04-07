@@ -86,7 +86,7 @@ ErrCode DomainAccountPluginProxy::AuthCommonInterface(const DomainAccountInfo &i
 }
 
 ErrCode DomainAccountPluginProxy::IsAccountTokenValid(
-    const std::vector<uint8_t> &token, const sptr<IDomainAccountCallback> &callback)
+    const std::vector<uint8_t> &token, const std::string &accountId, const sptr<IDomainAccountCallback> &callback)
 {
     MessageParcel data;
     if (!data.WriteInterfaceToken(GetDescriptor())) {
@@ -95,6 +95,10 @@ ErrCode DomainAccountPluginProxy::IsAccountTokenValid(
     }
     if (!data.WriteUInt8Vector(token)) {
         ACCOUNT_LOGE("failed to write token");
+        return ERR_ACCOUNT_COMMON_WRITE_PARCEL_ERROR;
+    }
+    if (!data.WriteString(accountId)) {
+        ACCOUNT_LOGE("failed to write accountId");
         return ERR_ACCOUNT_COMMON_WRITE_PARCEL_ERROR;
     }
     if ((callback == nullptr) || (!data.WriteRemoteObject(callback->AsObject()))) {

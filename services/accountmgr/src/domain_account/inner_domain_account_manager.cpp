@@ -476,28 +476,29 @@ ErrCode InnerDomainAccountManager::GetDomainAccountInfo(
 }
 
 void InnerDomainAccountManager::StartIsAccountTokenValid(const sptr<IDomainAccountPlugin> &plugin,
-    const std::vector<uint8_t> &token, const sptr<IDomainAccountCallback> &callback)
+    const std::vector<uint8_t> &token, const std::string &accountId, const sptr<IDomainAccountCallback> &callback)
 {
     if (plugin == nullptr) {
         ACCOUNT_LOGE("plugin not exists");
         return ErrorOnResult(ERR_DOMAIN_ACCOUNT_SERVICE_PLUGIN_NOT_EXIST, callback);
     }
-    ErrCode errCode = plugin->IsAccountTokenValid(token, callback);
+    ErrCode errCode = plugin->IsAccountTokenValid(token, accountId, callback);
     if (errCode != ERR_OK) {
         ACCOUNT_LOGE("failed to get domain account, errCode: %{public}d", errCode);
         ErrorOnResult(errCode, callback);
     }
 }
 
-ErrCode InnerDomainAccountManager::IsAccountTokenValid(
-    const std::vector<uint8_t> &token, const std::shared_ptr<DomainAccountCallback> &callback)
+ErrCode InnerDomainAccountManager::IsAccountTokenValid(const std::vector<uint8_t> &token, const std::string &accountId,
+    const std::shared_ptr<DomainAccountCallback> &callback)
 {
     sptr<DomainAccountCallbackService> callbackService = new (std::nothrow) DomainAccountCallbackService(callback);
     if (callbackService == nullptr) {
         ACCOUNT_LOGE("make shared DomainAccountCallbackService failed");
         return ERR_ACCOUNT_COMMON_INSUFFICIENT_MEMORY_ERROR;
     }
-    auto task = std::bind(&InnerDomainAccountManager::StartIsAccountTokenValid, this, plugin_, token, callbackService);
+    auto task = std::bind(
+        &InnerDomainAccountManager::StartIsAccountTokenValid, this, plugin_, token, accountId, callbackService);
     std::thread taskThread(task);
     pthread_setname_np(taskThread.native_handle(), THREAD_IS_ACCOUNT_VALID);
     taskThread.detach();

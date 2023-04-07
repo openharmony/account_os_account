@@ -73,6 +73,7 @@ struct JsDomainPluginParam {
     napi_ref callbackRef = nullptr;
     AccountSA::AuthMode authMode = AccountSA::AUTH_INVALID_MODE;
     std::vector<uint8_t> authData;
+    std::string accountId = "";
     int32_t resultCode = 0;
     int32_t remainingTimes = INVALID_PARAMETER;
     int32_t freezingTime = INVALID_PARAMETER;
@@ -96,8 +97,8 @@ public:
         const std::shared_ptr<AccountSA::DomainAccountCallback> &callback) override;
     void OnAccountUnBound(const AccountSA::DomainAccountInfo &info,
         const std::shared_ptr<AccountSA::DomainAccountCallback> &callback) override;
-    void IsAccountTokenValid(
-        const std::vector<uint8_t> &token, const std::shared_ptr<AccountSA::DomainAccountCallback> &callback) override;
+    void IsAccountTokenValid(const std::vector<uint8_t> &token, const std::string &accountId,
+        const std::shared_ptr<AccountSA::DomainAccountCallback> &callback) override;
     void GetAccessToken(const AccountSA::DomainAccountInfo &domainInfo, const std::vector<uint8_t> &accountToken,
         const AccountSA::GetAccessTokenOptions &option,
         const std::shared_ptr<AccountSA::DomainAccountCallback> &callback) override;
