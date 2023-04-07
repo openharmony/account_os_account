@@ -194,8 +194,8 @@ void MockDomainPlugin::OnAccountUnBound(
     }
 }
 
-void MockDomainPlugin::IsAccountTokenValid(
-    const std::vector<uint8_t> &token, const std::shared_ptr<DomainAccountCallback> &callback)
+void MockDomainPlugin::IsAccountTokenValid(const std::vector<uint8_t> &token, const std::string &accountId,
+    const std::shared_ptr<DomainAccountCallback> &callback)
 {
     Parcel parcel;
     parcel.WriteBool(true);
