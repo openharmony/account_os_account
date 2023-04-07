@@ -19,16 +19,19 @@
 namespace OHOS {
 namespace AccountSA {
 namespace {
+const std::vector<uint8_t> TOKEN = {1, 2, 3, 4, 5};
 const std::vector<uint8_t> DEFAULT_PASSWORD = {49, 50, 51, 52, 53};
 const int32_t DEFAULT_REMAINING_TIMES = 5;
 const int32_t DEFAULT_FREEZING_TIME = 6000;
 const int32_t INVALID_CODE = -1;
 const std::string VALID_DOMAIN = "china.example.com";
 const std::string VALID_ACCOUNT_NAME = "zhangsan";
-const std::string STRING_NAME_NEW = "zhangsan555";
+const std::string STRING_NAME_NEW = "zhangsan777";
 const std::string STRING_NAME_INVALID = "zhangsan55";
+const std::string STRING_NAME = "zhangsan666";
 const std::string STRING_NAME_BIND_INVALID = "lisi";
 const std::string ACCOUNT_NAME = "zhangsan5";
+const std::string BUNDLE_NAME = "osaccount_test";
 }
 MockDomainPlugin::MockDomainPlugin() : remainingTimes_(DEFAULT_REMAINING_TIMES), freezingTime_(0)
 {}
@@ -73,6 +76,7 @@ void MockDomainPlugin::AuthCommonInterface(const DomainAccountInfo &info, const 
     }
     result.authStatusInfo.remainingTimes = remainingTimes_;
     result.authStatusInfo.freezingTime = freezingTime_;
+    result.token = TOKEN;
     callback->OnResult(!isCorrect, result);
 }
 
@@ -122,6 +126,20 @@ void MockDomainPlugin::GetDomainAccountInfo(
         info.Marshalling(parcel);
         callback->OnResult(0, parcel);
     }
+    if (accountName == STRING_NAME) {
+        info.accountName_ = accountName;
+        info.domain_ = domain;
+        info.accountId_ = "555";
+        info.Marshalling(parcel);
+        callback->OnResult(0, parcel);
+    }
+    if (accountName == STRING_NAME_NEW) {
+        info.accountName_ = accountName;
+        info.domain_ = domain;
+        info.accountId_ = "444";
+        info.Marshalling(parcel);
+        callback->OnResult(0, parcel);
+    }
     if (accountName == VALID_ACCOUNT_NAME) {
         info.accountName_ = accountName;
         info.domain_ = domain;
@@ -148,7 +166,8 @@ void MockDomainPlugin::OnAccountBound(
 {
     DomainAccountInfo testInfo;
     Parcel parcel;
-    if ((info.accountName_ == VALID_ACCOUNT_NAME) || (info.accountName_ == ACCOUNT_NAME)) {
+    if ((info.accountName_ == VALID_ACCOUNT_NAME) || (info.accountName_ == ACCOUNT_NAME) ||
+        (info.accountName_ == STRING_NAME) || (info.accountName_ == STRING_NAME_NEW)) {
         testInfo = info;
         testInfo.Marshalling(parcel);
         callback->OnResult(0, parcel);
@@ -177,10 +196,25 @@ void MockDomainPlugin::OnAccountUnBound(
 
 void MockDomainPlugin::IsAccountTokenValid(
     const std::vector<uint8_t> &token, const std::shared_ptr<DomainAccountCallback> &callback)
-{}
+{
+    Parcel parcel;
+    parcel.WriteBool(true);
+    callback->OnResult(0, parcel);
+}
 
 void MockDomainPlugin::GetAccessToken(const DomainAccountInfo &domainInfo, const std::vector<uint8_t> &accountToken,
     const GetAccessTokenOptions &option, const std::shared_ptr<DomainAccountCallback> &callback)
-{}
+{
+    Parcel parcel;
+    if (domainInfo.accountName_ == STRING_NAME) {
+        parcel.WriteUInt8Vector(DEFAULT_PASSWORD);
+        callback->OnResult(0, parcel);
+    }
+    if (domainInfo.accountName_ == STRING_NAME_NEW) {
+        std::vector<uint8_t> token;
+        parcel.WriteUInt8Vector(token);
+        callback->OnResult(INVALID_CODE, parcel);
+    }
+}
 }  // AccountSA
 }  // OHOS
