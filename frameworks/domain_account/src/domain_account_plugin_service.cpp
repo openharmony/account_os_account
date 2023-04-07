@@ -94,7 +94,7 @@ ErrCode DomainAccountPluginService::AuthWithToken(
 }
 
 ErrCode DomainAccountPluginService::IsAccountTokenValid(
-    const std::vector<uint8_t> &token, const sptr<IDomainAccountCallback> &callback)
+    const std::vector<uint8_t> &token, const std::string &accountId, const sptr<IDomainAccountCallback> &callback)
 {
     DomainAccountCallbackClient *callbackClient = nullptr;
     ErrCode errCode = CheckAndInitExecEnv(callback, &callbackClient);
@@ -102,7 +102,7 @@ ErrCode DomainAccountPluginService::IsAccountTokenValid(
         return errCode;
     }
     std::shared_ptr<DomainAccountCallbackClient> callbackPtr(callbackClient);
-    innerPlugin_->IsAccountTokenValid(token, callbackPtr);
+    innerPlugin_->IsAccountTokenValid(token, accountId, callbackPtr);
     return ERR_OK;
 }
 
