@@ -429,3 +429,25 @@ HWTEST_F(OsAccountInfoTest, OsAccountInfo_ToString_0100, TestSize.Level1)
     osAccountInfoTar.FromJson(jsonObject);
     EXPECT_EQ(osAccountInfoTar.GetLocalId(), INT_ID);
 }
+
+/**
+ * @tc.name: OsAccountInfo_Marshalling_0100
+ * @tc.desc: Test Marshalling Unmarshalling with valid data.
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(OsAccountInfoTest, OsAccountInfo_Marshalling_0100, TestSize.Level1)
+{
+    // make info with an owner
+    int id = INT_ID;
+    OsAccountInfo osAccountInfoSrc;
+    osAccountInfoSrc.localId_ = id;
+    // marshalling
+    Parcel parcel;
+    EXPECT_EQ(osAccountInfoSrc.Marshalling(parcel), true);
+    // unmarshalling
+    auto infoPtr = OsAccountInfo::Unmarshalling(parcel);
+    ASSERT_NE(infoPtr, nullptr);
+    // check the data
+    EXPECT_EQ(INT_ID, infoPtr->localId_);
+}

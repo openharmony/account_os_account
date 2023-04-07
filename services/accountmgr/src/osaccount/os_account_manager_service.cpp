@@ -809,8 +809,13 @@ ErrCode OsAccountManagerService::GetDefaultActivatedOsAccount(int32_t &id)
 
 bool OsAccountManagerService::PermissionCheck(const std::string& permissionName, const std::string& constraintName)
 {
-    // constraints check
     int callerUid = IPCSkeleton::GetCallingUid();
+    // root check
+    if (callerUid == ROOT_UID) {
+        return true;
+    }
+
+    // constraints check
     if (!constraintName.empty()) {
         int callerUserId = callerUid / UID_TRANSFORM_DIVISOR;
         bool isEnable = true;
@@ -820,11 +825,6 @@ bool OsAccountManagerService::PermissionCheck(const std::string& permissionName,
             ReportPermissionFail(callerUid, IPCSkeleton::GetCallingPid(), constraintName);
             return false;
         }
-    }
-
-    // root check
-    if (callerUid == ROOT_UID) {
-        return true;
     }
 
     // permission check
