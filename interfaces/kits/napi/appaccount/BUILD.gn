@@ -64,6 +64,7 @@ ohos_shared_library("appaccount") {
     "ability_base:want",
     "ability_runtime:abilitykit_native",
     "c_utils:utils",
+    "common_event_service:cesfwk_innerkits",
     "hiviewdfx_hilog_native:libhilog",
     "ipc:ipc_napi_common",
     "ipc:ipc_single",
