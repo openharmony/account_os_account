@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2022 Huawei Device Co., Ltd.
+ * Copyright (c) 2022-2023 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -310,47 +310,13 @@ int32_t AppAccountAuthenticatorSession::OnRequestContinued() const
     return ERR_JS_SUCCESS;
 }
 
-int32_t AppAccountAuthenticatorSession::UpdateAuthInfo(const AAFwk::Want &result) const
-{
-    std::string name = result.GetStringParam(Constants::KEY_NAME);
-    std::string authType = result.GetStringParam(Constants::KEY_AUTH_TYPE);
-    std::string token = result.GetStringParam(Constants::KEY_TOKEN);
-    AppAccountInfo info(name, request_.owner);
-    info.SetAppIndex(request_.appIndex);
-    ErrCode errCode = ERR_OK;
-    controlManager_->AddAccount(name, "", ownerUid_, request_.owner, info);
-    if (!token.empty()) {
-        AuthenticatorSessionRequest request = {
-            .name = name,
-            .authType = authType,
-            .token = token,
-            .callerBundleName = request_.owner,
-            .callerUid = ownerUid_
-        };
-        errCode = controlManager_->SetOAuthToken(request);
-    }
-    if (authType == request_.authType) {
-        AuthenticatorSessionRequest request = {
-            .name = name,
-            .authType = authType,
-            .token = token,
-            .bundleName = request_.callerBundleName,
-            .callerBundleName = request_.owner,
-            .isTokenVisible = true,
-            .callerUid = ownerUid_
-        };
-        errCode = controlManager_->SetOAuthTokenVisibility(request);
-    }
-    return ConvertToJSErrCode(errCode);
-}
-
 int32_t AppAccountAuthenticatorSession::OnAuthenticateDone(const AAFwk::Want &result) const
 {
     std::string name = result.GetStringParam(Constants::KEY_NAME);
     if (name != request_.name) {
         return ERR_JS_ACCOUNT_AUTHENTICATOR_SERVICE_EXCEPTION;
     }
-    return UpdateAuthInfo(result);
+    return ERR_OK;
 }
 
 int32_t AppAccountAuthenticatorSession::OnAddAccountImplicitlyDone(const AAFwk::Want &result) const
@@ -359,7 +325,10 @@ int32_t AppAccountAuthenticatorSession::OnAddAccountImplicitlyDone(const AAFwk::
     if (name.empty()) {
         return ERR_JS_ACCOUNT_AUTHENTICATOR_SERVICE_EXCEPTION;
     }
-    return UpdateAuthInfo(result);
+    AppAccountInfo info(name, request_.owner);
+    info.SetAppIndex(request_.appIndex);
+    AppAccountControlManager::GetInstance()->AddAccount(name, "", ownerUid_, request_.owner, info);
+    return ERR_OK;
 }
 
 void AppAccountAuthenticatorSession::GetRequest(AuthenticatorSessionRequest &request) const

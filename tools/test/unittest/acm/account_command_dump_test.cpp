@@ -25,7 +25,6 @@ using namespace OHOS::AccountSA;
 
 namespace {
 const std::string HELP_MSG_UNKNOWN_OPTION = "error: unknown option.";
-static std::shared_ptr<OsAccount> g_osAccountPtr = nullptr;
 }  // namespace
 
 class AccountCommandDumpTest : public testing::Test {
@@ -39,10 +38,7 @@ public:
 };
 
 void AccountCommandDumpTest::SetUpTestCase()
-{
-    g_osAccountPtr = DelayedSingleton<OsAccount>::GetInstance();
-    EXPECT_NE(g_osAccountPtr, nullptr);
-}
+{}
 
 void AccountCommandDumpTest::TearDownTestCase()
 {}
@@ -53,9 +49,9 @@ void AccountCommandDumpTest::SetUp()
     optind = 0;
 
     std::vector<OsAccountInfo> osAccountInfos;
-    g_osAccountPtr->QueryAllCreatedOsAccounts(osAccountInfos);
+    OsAccount::GetInstance().QueryAllCreatedOsAccounts(osAccountInfos);
     for (const auto &info : osAccountInfos) {
-        g_osAccountPtr->RemoveOsAccount(info.GetLocalId());
+        OsAccount::GetInstance().RemoveOsAccount(info.GetLocalId());
     }
 }
 
@@ -271,7 +267,7 @@ HWTEST_F(AccountCommandDumpTest, Acm_Command_Dump_1100, TestSize.Level1)
 {
     OsAccountInfo osAccountInfo;
     // create an os account
-    EXPECT_EQ(ERR_OK, g_osAccountPtr->CreateOsAccount(TOOL_NAME, OsAccountType::NORMAL, osAccountInfo));
+    EXPECT_EQ(ERR_OK, OsAccount::GetInstance().CreateOsAccount(TOOL_NAME, OsAccountType::NORMAL, osAccountInfo));
 
     std::string userId = std::to_string(osAccountInfo.GetLocalId());
     char *argv[] = {

@@ -43,6 +43,12 @@ static ErrCode CheckLocalId(int localId)
     return CheckInvalidLocalId(localId);
 }
 
+OsAccount &OsAccount::GetInstance()
+{
+    static OsAccount instance;
+    return instance;
+}
+
 ErrCode OsAccount::CreateOsAccount(const std::string &name, const OsAccountType &type, OsAccountInfo &osAccountInfo)
 {
     if (name.size() > Constants::LOCAL_NAME_MAX_SIZE) {

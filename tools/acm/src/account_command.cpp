@@ -73,16 +73,7 @@ ErrCode AccountCommand::init()
 {
     ACCOUNT_LOGD("enter");
 
-    ErrCode result = ERR_OK;
-
-    if (!osAccountPtr_) {
-        osAccountPtr_ = DelayedSingleton<OsAccount>::GetInstance();
-        if (!osAccountPtr_) {
-            result = ERR_INVALID_VALUE;
-        }
-    }
-
-    return result;
+    return ERR_OK;
 }
 
 ErrCode AccountCommand::RunAsHelpCommand(void)
@@ -151,7 +142,7 @@ ErrCode AccountCommand::RunAsCreateCommand(void)
         OsAccountInfo osAccountInfo;
 
         // create an os account
-        result = osAccountPtr_->CreateOsAccount(name, osAccountType, osAccountInfo);
+        result = OsAccount::GetInstance().CreateOsAccount(name, osAccountType, osAccountInfo);
         if (result == ERR_OK) {
             resultReceiver_ = STRING_CREATE_OS_ACCOUNT_OK + "\n";
         } else {
@@ -201,7 +192,7 @@ ErrCode AccountCommand::RunAsDeleteCommand(void)
         /* delete */
 
         // delete an os account
-        result = osAccountPtr_->RemoveOsAccount(id);
+        result = OsAccount::GetInstance().RemoveOsAccount(id);
         if (result == ERR_OK) {
             resultReceiver_ = STRING_DELETE_OS_ACCOUNT_OK + "\n";
         } else {
@@ -252,7 +243,7 @@ ErrCode AccountCommand::RunAsDumpCommand(void)
 
         // dump state
         std::vector<std::string> state;
-        result = osAccountPtr_->DumpState(id, state);
+        result = OsAccount::GetInstance().DumpState(id, state);
         if (result == ERR_OK) {
             for (auto info : state) {
                 resultReceiver_ += info + "\n";
@@ -322,7 +313,7 @@ ErrCode AccountCommand::RunAsSetCommand(void)
         /* set */
 
         // set os account constraints
-        result = osAccountPtr_->SetOsAccountConstraints(id, constraints, enable);
+        result = OsAccount::GetInstance().SetOsAccountConstraints(id, constraints, enable);
         if (result == ERR_OK) {
             resultReceiver_ = STRING_SET_OS_ACCOUNT_CONSTRAINTS_OK + "\n";
         } else {
@@ -375,7 +366,7 @@ ErrCode AccountCommand::RunAsSwitchCommand(void)
         /* switch */
 
         // switch an os account
-        result = osAccountPtr_->ActivateOsAccount(id);
+        result = OsAccount::GetInstance().ActivateOsAccount(id);
         if (result == ERR_OK) {
             resultReceiver_ = STRING_SWITCH_OS_ACCOUNT_OK + "\n";
         } else {
@@ -425,7 +416,7 @@ ErrCode AccountCommand::RunAsStopCommand(void)
         /* stop */
 
         // stop an os account
-        result = osAccountPtr_->StopOsAccount(id);
+        result = OsAccount::GetInstance().StopOsAccount(id);
         if (result == ERR_OK) {
             resultReceiver_ = STRING_STOP_OS_ACCOUNT_OK + "\n";
         } else {
