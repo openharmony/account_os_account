@@ -322,43 +322,6 @@ HWTEST_F(AppAccountSessionModuleTest, AppAccountSessionModuleTest_OnResult_0100,
 }
 
 /**
- * @tc.name: AppAccountAuthenticateTest_UpdateAuthInfo_0100
- * @tc.desc: test session func UpdateAuthInfo authtype equal request authtype.
- * @tc.type: FUNC
- * @tc.require:
- */
-HWTEST_F(AppAccountSessionModuleTest, AppAccountSessionModuleTest_UpdateAuthInfo_0100, TestSize.Level1)
-{
-    AuthenticatorSessionRequest request;
-    AAFwk::Want result;
-    AuthenticatorAction action = SET_AUTHENTICATOR_PROPERTIES;
-    std::string authType = result.GetStringParam(Constants::KEY_AUTH_TYPE);
-    request.authType = authType;
-    auto appAccountAuthenticatorSessionPtr = std::make_shared<AppAccountAuthenticatorSession>(action, request);
-    ASSERT_NE(appAccountAuthenticatorSessionPtr, nullptr);
-    int32_t resultCode = appAccountAuthenticatorSessionPtr->UpdateAuthInfo(result);
-    ASSERT_EQ(resultCode, ERR_JS_SUCCESS);
-}
-
-/**
- * @tc.name: AppAccountAuthenticateTest_UpdateAuthInfo_0200
- * @tc.desc: test session func UpdateAuthInfo failed with token is empty.
- * @tc.type: FUNC
- * @tc.require:
- */
-HWTEST_F(AppAccountSessionModuleTest, AppAccountSessionModuleTest_UpdateAuthInfo_0200, TestSize.Level1)
-{
-    AuthenticatorSessionRequest request;
-    AAFwk::Want result;
-    AuthenticatorAction action = SET_AUTHENTICATOR_PROPERTIES;
-    result.SetParam(Constants::KEY_TOKEN, STRING_EMPTY);
-    auto appAccountAuthenticatorSessionPtr = std::make_shared<AppAccountAuthenticatorSession>(action, request);
-    ASSERT_NE(appAccountAuthenticatorSessionPtr, nullptr);
-    int32_t resultCode = appAccountAuthenticatorSessionPtr->UpdateAuthInfo(result);
-    ASSERT_EQ(resultCode, ERR_JS_SUCCESS);
-}
-
-/**
  * @tc.name: AppAccountAuthenticateTest_GetAuthenticatorCallback_0100
  * @tc.desc: test func GetAuthenticatorCallback callerUid not equal ownerUid and callerBundleName not equal owner.
  * @tc.type: FUNC

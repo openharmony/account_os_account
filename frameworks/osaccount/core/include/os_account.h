@@ -24,6 +24,7 @@ namespace AccountSA {
 class OsAccount {
 public:
     enum SubscribeState { ALREADY_SUBSCRIBED = 0, INITIAL_SUBSCRIPTION, SUBSCRIBE_FAILED };
+    static OsAccount &GetInstance();
     ErrCode CreateOsAccount(const std::string &name, const OsAccountType &type, OsAccountInfo &osAccountInfo);
     ErrCode CreateOsAccountForDomain(
         const OsAccountType &type, const DomainAccountInfo &domainInfo, OsAccountInfo &osAccountInfo);
@@ -80,6 +81,8 @@ public:
         const bool enable, const int32_t targetId, const int32_t enforcerId, const bool isDeviceOwner);
 
 private:
+    OsAccount() = default;
+    ~OsAccount() = default;
     ErrCode GetOsAccountProxy();
     ErrCode CreateOsAccountEventListener(
         const std::shared_ptr<OsAccountSubscriber> &subscriber, sptr<IRemoteObject> &osAccountEventListener);
