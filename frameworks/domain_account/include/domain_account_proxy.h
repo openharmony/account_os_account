@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2022 Huawei Device Co., Ltd.
+ * Copyright (c) 2022-2023 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -29,6 +29,11 @@ public:
     ~DomainAccountProxy() override;
     ErrCode RegisterPlugin(const sptr<IDomainAccountPlugin> &plugin) override;
     ErrCode UnregisterPlugin() override;
+    ErrCode GetAccountStatus(
+        const std::string &domain, const std::string &accountName, DomainAccountStatus &status) override;
+    ErrCode RegisterAccountStatusListener(
+        const DomainAccountInfo &info, const sptr<IDomainAccountCallback> &listener) override;
+    ErrCode UnregisterAccountStatusListener(const DomainAccountInfo &info) override;
     ErrCode Auth(const DomainAccountInfo &info, const std::vector<uint8_t> &password,
         const sptr<IDomainAuthCallback> &callback) override;
     ErrCode AuthUser(int32_t userId, const std::vector<uint8_t> &password,

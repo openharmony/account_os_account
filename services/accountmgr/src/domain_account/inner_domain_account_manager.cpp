@@ -24,6 +24,7 @@
 #include "idomain_account_callback.h"
 #include "iinner_os_account_manager.h"
 #include "ipc_skeleton.h"
+#include "status_listener_manager.h"
 
 namespace OHOS {
 namespace AccountSA {
@@ -55,6 +56,10 @@ void InnerDomainAuthCallback::OnResult(int32_t resultCode, const DomainAuthResul
 {
     if ((resultCode == ERR_OK) && (userId_ != 0)) {
         InnerDomainAccountManager::GetInstance().InsertTokenToMap(userId_, result.token);
+        DomainAccountInfo domainInfo;
+        InnerDomainAccountManager::GetInstance().GetDomainAccountInfoByUserId(userId_, domainInfo);
+        InnerDomainAccountManager::GetInstance().NotifyDomainAccountEvent(
+            userId_, DomainAccountEvent::LOG_IN, DomainAccountStatus::LOG_END, domainInfo);
     }
     if (callback_ == nullptr) {
         ACCOUNT_LOGI("callback_ is nullptr");
@@ -220,10 +225,10 @@ void InnerDomainAccountManager::InsertTokenToMap(int32_t userId, const std::vect
     return;
 }
 
-std::vector<uint8_t> InnerDomainAccountManager::GetTokenFromMap(int32_t userId)
+void InnerDomainAccountManager::GetTokenFromMap(int32_t userId, std::vector<uint8_t> &token)
 {
     std::lock_guard<std::mutex> lock(mutex_);
-    return userTokenMap_[userId];
+    token = userTokenMap_[userId];
 }
 
 void InnerDomainAccountManager::RemoveTokenFromMap(int32_t userId)
@@ -231,6 +236,23 @@ void InnerDomainAccountManager::RemoveTokenFromMap(int32_t userId)
     std::lock_guard<std::mutex> lock(mutex_);
     userTokenMap_.erase(userId);
     return;
+}
+
+void InnerDomainAccountManager::NotifyDomainAccountEvent(
+    int32_t userId, DomainAccountEvent event, DomainAccountStatus status, const DomainAccountInfo &info)
+{
+    if (status == DomainAccountStatus::LOG_END) {
+        bool isActivated = false;
+        (void)IInnerOsAccountManager::GetInstance().IsOsAccountActived(userId, isActivated);
+        status = isActivated ? DomainAccountStatus::LOGIN : DomainAccountStatus::LOGIN_BACKGROUND;
+    }
+
+    // There is not need to check userid.
+    DomainAccountEventData report;
+    report.domainAccountInfo = info;
+    report.event = event;
+    report.status = status;
+    StatusListenerManager::GetInstance().NotifyEventAsync(report);
 }
 
 ErrCode InnerDomainAccountManager::UpdateAccountToken(const DomainAccountInfo &info, const std::vector<uint8_t> &token)
@@ -250,11 +272,14 @@ ErrCode InnerDomainAccountManager::UpdateAccountToken(const DomainAccountInfo &i
         ACCOUNT_LOGE("get os account localId from domain failed, result: %{public}d", result);
         return result;
     }
+
     if (token.empty()) {
         RemoveTokenFromMap(userId);
+        NotifyDomainAccountEvent(userId, DomainAccountEvent::TOKEN_INVALID, DomainAccountStatus::LOGOUT, info);
         return ERR_OK;
     }
     InsertTokenToMap(userId, token);
+    NotifyDomainAccountEvent(userId, DomainAccountEvent::TOKEN_UPDATED, DomainAccountStatus::LOG_END, info);
     return ERR_OK;
 }
 
@@ -298,7 +323,8 @@ ErrCode InnerDomainAccountManager::GetAccessToken(
         ACCOUNT_LOGE("get os account localId from domain failed, result: %{public}d", result);
         return result;
     }
-    std::vector<uint8_t> accountToken = GetTokenFromMap(userId);
+    std::vector<uint8_t> accountToken;
+    GetTokenFromMap(userId, accountToken);
     int32_t callingUid = IPCSkeleton::GetCallingUid();
     GetAccessTokenOptions option(callingUid, parameters);
     auto task =
@@ -307,6 +333,128 @@ ErrCode InnerDomainAccountManager::GetAccessToken(
     pthread_setname_np(taskThread.native_handle(), THREAD_GET_ACCESS_TOKEN);
     taskThread.detach();
     return ERR_OK;
+}
+
+static void ErrorOnResult(const ErrCode errCode, const sptr<IDomainAccountCallback> &callback)
+{
+    Parcel emptyParcel;
+    emptyParcel.WriteBool(false);
+    callback->OnResult(errCode, emptyParcel);
+}
+
+void CheckUserTokenCallback::OnResult(int32_t result, Parcel &parcel)
+{
+    if (result == ERR_OK) {
+        isValid_ = parcel.ReadBool();
+    }
+    NotifyCallbackEnd();
+}
+
+bool CheckUserTokenCallback::GetValidity(void)
+{
+    return isValid_;
+}
+
+void CheckUserTokenCallback::WaitForCallbackResult()
+{
+    std::unique_lock<std::mutex> lock(lock_);
+    condition_.wait(lock, [this] {
+        return threadInSleep_ == false;
+    });
+    ACCOUNT_LOGI("WaitForCallbackResult.");
+}
+
+void CheckUserTokenCallback::NotifyCallbackEnd()
+{
+    std::unique_lock<std::mutex> lock(lock_);
+    if (threadInSleep_) {
+        ACCOUNT_LOGI("threadInSleep_ set false.");
+        threadInSleep_ = false;
+        condition_.notify_one();
+    }
+}
+
+ErrCode InnerDomainAccountManager::CheckUserToken(const std::vector<uint8_t> &token, bool &isValid, int32_t userId)
+{
+    std::shared_ptr<CheckUserTokenCallback> callback = std::make_shared<CheckUserTokenCallback>();
+    sptr<DomainAccountCallbackService> callbackService = new (std::nothrow) DomainAccountCallbackService(callback);
+    if (callbackService == nullptr) {
+        ACCOUNT_LOGE("make shared DomainAccountCallbackService failed");
+        return ERR_ACCOUNT_COMMON_INSUFFICIENT_MEMORY_ERROR;
+    }
+    std::lock_guard<std::mutex> lock(mutex_);
+    if (plugin_ == nullptr) {
+        ACCOUNT_LOGE("plugin not exists");
+        return ERR_DOMAIN_ACCOUNT_SERVICE_PLUGIN_NOT_EXIST;
+    }
+
+    std::string accountId;
+    OsAccountInfo osAccountInfo;
+    ErrCode errCode = IInnerOsAccountManager::GetInstance().GetOsAccountInfoById(userId, osAccountInfo);
+    if (errCode != ERR_OK) {
+        return errCode;
+    }
+    DomainAccountInfo info;
+    osAccountInfo.GetDomainInfo(info);
+    errCode = plugin_->IsAccountTokenValid(token, info.accountId_, callbackService);
+    callback->WaitForCallbackResult();
+    isValid = callback->GetValidity();
+    return errCode;
+}
+
+ErrCode InnerDomainAccountManager::GetAccountStatus(
+    const std::string &domain, const std::string &accountName, DomainAccountStatus &status)
+{
+    status = DomainAccountStatus::LOGOUT;
+
+    int32_t userId = 0;
+    DomainAccountInfo domainInfo;
+    domainInfo.accountName_ = accountName;
+    domainInfo.domain_ = domain;
+    ErrCode res = IInnerOsAccountManager::GetInstance().GetOsAccountLocalIdFromDomain(domainInfo, userId);
+    if (res != ERR_OK) {
+        return res;
+    }
+    std::vector<uint8_t> token;
+    GetTokenFromMap(userId, token);
+    if (token.empty()) {
+        ACCOUNT_LOGI("Token is empty.");
+        return ERR_OK;
+    }
+
+    bool isValid = false;
+    res = CheckUserToken(token, isValid, userId);
+    if (!isValid) {
+        ACCOUNT_LOGI("Token is invalid.");
+        return res;
+    }
+
+    bool isActivated = false;
+    res = IInnerOsAccountManager::GetInstance().IsOsAccountActived(userId, isActivated);
+    if (isActivated) {
+        status = DomainAccountStatus::LOGIN;
+    } else {
+        status = DomainAccountStatus::LOGIN_BACKGROUND;
+    }
+    return res;
+}
+
+ErrCode InnerDomainAccountManager::RegisterAccountStatusListener(
+    const DomainAccountInfo &info, const sptr<IDomainAccountCallback> &listener)
+{
+    int32_t userId = 0;
+    ErrCode res = IInnerOsAccountManager::GetInstance().GetOsAccountLocalIdFromDomain(info, userId);
+    if (res != ERR_OK) {
+        return res;
+    }
+    return StatusListenerManager::GetInstance().InsertListenerToMap(
+        info.domain_, info.accountName_, listener->AsObject());
+}
+
+ErrCode InnerDomainAccountManager::UnregisterAccountStatusListener(const DomainAccountInfo &info)
+{
+    // userid may be removed already.
+    return StatusListenerManager::GetInstance().RemoveListenerByStr(info.domain_, info.accountName_);
 }
 
 ErrCode InnerDomainAccountManager::GetAuthStatusInfo(
@@ -339,13 +487,6 @@ bool InnerDomainAccountManager::IsPluginAvailable()
 {
     std::lock_guard<std::mutex> lock(mutex_);
     return plugin_ != nullptr;
-}
-
-static void ErrorOnResult(const ErrCode errCode, const sptr<IDomainAccountCallback> &callback)
-{
-    Parcel emptyParcel;
-    emptyParcel.WriteBool(false);
-    callback->OnResult(errCode, emptyParcel);
 }
 
 ErrCode InnerDomainAccountManager::StartHasDomainAccount(const sptr<IDomainAccountPlugin> &plugin,

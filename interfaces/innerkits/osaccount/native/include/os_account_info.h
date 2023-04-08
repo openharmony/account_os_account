@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021-2022 Huawei Device Co., Ltd.
+ * Copyright (c) 2021-2023 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -98,7 +98,7 @@ public:
 
     bool GetIsActived() const;
 
-    void SetIsActived(const bool isActived);
+    void SetIsActived(const bool isActivated);
 
     bool GetIsCreateCompleted() const;
 
@@ -122,7 +122,7 @@ private:
     int64_t createTime_;
     int64_t lastLoginTime_;
     int64_t serialNumber_;
-    bool isActived_;
+    bool isActivated_;
     bool isCreateCompleted_;
     DomainAccountInfo domainInfo_;
     bool toBeRemoved_;

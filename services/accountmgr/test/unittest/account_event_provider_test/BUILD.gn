@@ -1,4 +1,4 @@
-# Copyright (c) 2021-2022 Huawei Device Co., Ltd.
+# Copyright (c) 2021-2023 Huawei Device Co., Ltd.
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
 # You may obtain a copy of the License at
@@ -25,6 +25,7 @@ config("accountmgr_event_provider_test_config") {
     "${common_path}/log/include",
     "${common_path}/perf_stat/include",
     "${common_path}/account_error/include",
+    "${domain_account_interfaces_native_path}/include",
     "${services_path}/accountmgr/include",
     "${innerkits_path}/include",
     "//third_party/json/include",

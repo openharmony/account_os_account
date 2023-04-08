@@ -34,8 +34,9 @@ public:
     TestCreateDomainAccountCallback(const std::shared_ptr<MockDomainCreateDomainAccountCallback> &callback);
     virtual ~TestCreateDomainAccountCallback();
     void OnResult(const int32_t errCode, Parcel &parcel) override;
-
+    int32_t GetLocalId();
 private:
+    int32_t localId_;
     std::shared_ptr<MockDomainCreateDomainAccountCallback> callback_;
 };
 }  // AccountSA
