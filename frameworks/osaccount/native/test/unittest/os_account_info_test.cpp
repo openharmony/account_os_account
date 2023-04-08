@@ -285,7 +285,7 @@ HWTEST_F(OsAccountInfoTest, OsAccountInfo_GetIsActived_0100, TestSize.Level1)
 {
     bool isActived = BOOL_IS_ACTIVED;
     OsAccountInfo osAccountInfo;
-    osAccountInfo.isActived_ = isActived;
+    osAccountInfo.isActivated_ = isActived;
     EXPECT_EQ(isActived, osAccountInfo.GetIsActived());
 }
 
@@ -299,7 +299,7 @@ HWTEST_F(OsAccountInfoTest, OsAccountInfo_SetIsActived_0100, TestSize.Level1)
 {
     OsAccountInfo osAccountInfo;
     osAccountInfo.SetIsActived(BOOL_IS_ACTIVED);
-    EXPECT_EQ(BOOL_IS_ACTIVED, osAccountInfo.isActived_);
+    EXPECT_EQ(BOOL_IS_ACTIVED, osAccountInfo.isActivated_);
 }
 
 /**

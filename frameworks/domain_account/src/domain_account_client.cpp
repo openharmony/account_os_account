@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2022 Huawei Device Co., Ltd.
+ * Copyright (c) 2022-2023 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -21,6 +21,8 @@
 #include "domain_account_callback_service.h"
 #include "domain_account_plugin_service.h"
 #include "domain_account_proxy.h"
+#include "domain_account_status_listener.h"
+#include "domain_account_status_listener_service.h"
 #include "domain_auth_callback_service.h"
 #include "ohos_account_kits_impl.h"
 
@@ -179,6 +181,51 @@ void DomainAccountClient::ResetDomainAccountProxy(const wptr<IRemoteObject>& rem
     }
     proxy_ = nullptr;
     deathRecipient_ = nullptr;
+}
+
+ErrCode DomainAccountClient::GetAccountStatus(const std::string &domain,
+    const std::string &accountName, DomainAccountStatus &status)
+{
+    auto proxy = GetDomainAccountProxy();
+    if (proxy == nullptr) {
+        ACCOUNT_LOGE("failed to get domain account proxy");
+        return ERR_ACCOUNT_COMMON_GET_PROXY;
+    }
+    return proxy->GetAccountStatus(domain, accountName, status);
+}
+
+ErrCode DomainAccountClient::RegisterAccountStatusListener(
+    const DomainAccountInfo &info, const std::shared_ptr<DomainAccountStatusListener> &listener)
+{
+    if (listener == nullptr) {
+        ACCOUNT_LOGE("callback is nullptr");
+        return ERR_ACCOUNT_COMMON_INVALID_PARAMTER;
+    }
+    std::shared_ptr<DomainAccountStatusListenerService> listenerService =
+        std::make_shared<DomainAccountStatusListenerService>(listener);
+
+    sptr<IDomainAccountCallback> callback =
+        new (std::nothrow) DomainAccountCallbackService(listenerService);
+    if (callback == nullptr) {
+        ACCOUNT_LOGE("failed to check domain account callback service");
+        return ERR_ACCOUNT_COMMON_INSUFFICIENT_MEMORY_ERROR;
+    }
+    auto proxy = GetDomainAccountProxy();
+    if (proxy == nullptr) {
+        ACCOUNT_LOGE("failed to get domain account proxy");
+        return ERR_ACCOUNT_COMMON_GET_PROXY;
+    }
+    return proxy->RegisterAccountStatusListener(info, callback);
+}
+
+ErrCode DomainAccountClient::UnregisterAccountStatusListener(const DomainAccountInfo &info)
+{
+    auto proxy = GetDomainAccountProxy();
+    if (proxy == nullptr) {
+        ACCOUNT_LOGE("failed to get domain account proxy");
+        return ERR_ACCOUNT_COMMON_GET_PROXY;
+    }
+    return proxy->UnregisterAccountStatusListener(info);
 }
 
 void DomainAccountClient::DomainAccountDeathRecipient::OnRemoteDied(const wptr<IRemoteObject> &remote)

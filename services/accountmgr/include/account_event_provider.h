@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021-2022 Huawei Device Co., Ltd.
+ * Copyright (c) 2021-2023 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -18,13 +18,14 @@
 
 #include <string>
 #include "account_error_no.h"
+#include "domain_account_common.h"
 #include "nocopyable.h"
 
 namespace OHOS {
 namespace AccountSA {
 class AccountEventProvider {
 public:
-    static bool EventPublish(const std::string& event, int32_t userId);
+    static bool EventPublish(const std::string& event, int32_t userId,  const DomainAccountEventData *report);
 };
 }  // namespace AccountSA
 }  // namespace OHOS

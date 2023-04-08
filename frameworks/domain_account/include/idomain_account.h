@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2022 Huawei Device Co., Ltd.
+ * Copyright (c) 2022-2023 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -35,11 +35,19 @@ public:
         DOMAIN_AUTH_WITH_POPUP = 4,
         DOMAIN_HAS_DOMAIN_ACCOUNT = 5,
         DOMAIN_UPDATE_ACCOUNT_TOKEN = 6,
-        DOMAIN_GET_ACCESS_TOKEN = 7
+        DOMAIN_GET_ACCESS_TOKEN = 7,
+        DOMAIN_ACCOUNT_STATUS_ENQUIRY = 8,
+        DOMAIN_ACCOUNT_STATUS_LISTENER_REGISTER = 9,
+        DOMAIN_ACCOUNT_STATUS_LISTENER_UNREGISTER = 10
     };
 
     virtual ErrCode RegisterPlugin(const sptr<IDomainAccountPlugin> &plugin) = 0;
     virtual ErrCode UnregisterPlugin() = 0;
+    virtual ErrCode GetAccountStatus(
+        const std::string &domain, const std::string &accountName, DomainAccountStatus &status) = 0;
+    virtual ErrCode RegisterAccountStatusListener(
+        const DomainAccountInfo &info, const sptr<IDomainAccountCallback> &listener) = 0;
+    virtual ErrCode UnregisterAccountStatusListener(const DomainAccountInfo &info) = 0;
     virtual ErrCode Auth(const DomainAccountInfo &info, const std::vector<uint8_t> &password,
         const sptr<IDomainAuthCallback> &callback) = 0;
     virtual ErrCode AuthUser(int32_t userId, const std::vector<uint8_t> &password,

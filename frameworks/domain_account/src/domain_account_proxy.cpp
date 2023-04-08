@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2022 Huawei Device Co., Ltd.
+ * Copyright (c) 2022-2023 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -99,6 +99,101 @@ ErrCode DomainAccountProxy::UnregisterPlugin()
     MessageParcel reply;
     ErrCode result = SendRequest(IDomainAccount::Message::UNREGISTER_PLUGIN, data, reply);
     if (result != ERR_OK) {
+        return result;
+    }
+    if (!reply.ReadInt32(result)) {
+        ACCOUNT_LOGE("fail to read result");
+        return ERR_ACCOUNT_COMMON_READ_PARCEL_ERROR;
+    }
+    return result;
+}
+
+ErrCode DomainAccountProxy::GetAccountStatus(
+    const std::string &domain, const std::string &accountName, DomainAccountStatus &status)
+{
+    MessageParcel data;
+    if (!data.WriteInterfaceToken(GetDescriptor())) {
+        ACCOUNT_LOGE("fail to write descriptor");
+        return ERR_ACCOUNT_COMMON_WRITE_PARCEL_ERROR;
+    }
+    if (!data.WriteString(domain)) {
+        ACCOUNT_LOGE("fail to write domain");
+        return ERR_ACCOUNT_COMMON_WRITE_PARCEL_ERROR;
+    }
+
+    if (!data.WriteString(accountName)) {
+        ACCOUNT_LOGE("fail to write accountName");
+        return ERR_ACCOUNT_COMMON_WRITE_PARCEL_ERROR;
+    }
+
+    MessageParcel reply;
+    ErrCode result = SendRequest(IDomainAccount::Message::DOMAIN_ACCOUNT_STATUS_ENQUIRY, data, reply);
+    if (result != ERR_OK) {
+        ACCOUNT_LOGE("fail to send request, error: %{public}d", result);
+        return result;
+    }
+    if (!reply.ReadInt32(result)) {
+        ACCOUNT_LOGE("fail to read result");
+        return ERR_ACCOUNT_COMMON_READ_PARCEL_ERROR;
+    }
+    if (result != ERR_OK) {
+        ACCOUNT_LOGE("fail to read result");
+        return result;
+    }
+    int replyStatus;
+    if (!reply.ReadInt32(replyStatus)) {
+        ACCOUNT_LOGE("fail to read result");
+        return ERR_ACCOUNT_COMMON_READ_PARCEL_ERROR;
+    }
+    status = static_cast<DomainAccountStatus>(replyStatus);
+    return ERR_OK;
+}
+
+ErrCode DomainAccountProxy::RegisterAccountStatusListener(
+    const DomainAccountInfo &info, const sptr<IDomainAccountCallback> &listener)
+{
+    MessageParcel data;
+    if (!data.WriteInterfaceToken(GetDescriptor())) {
+        ACCOUNT_LOGE("failed to write descriptor!");
+        return ERR_ACCOUNT_COMMON_WRITE_DESCRIPTOR_ERROR;
+    }
+    if (!data.WriteParcelable(&info)) {
+        ACCOUNT_LOGE("fail to write parcelable");
+        return ERR_ACCOUNT_COMMON_WRITE_PARCEL_ERROR;
+    }
+    if ((listener == nullptr) || (!data.WriteRemoteObject(listener->AsObject()))) {
+        ACCOUNT_LOGE("fail to write callback");
+        return ERR_ACCOUNT_COMMON_WRITE_PARCEL_ERROR;
+    }
+    MessageParcel reply;
+    ErrCode result = SendRequest(IDomainAccount::Message::DOMAIN_ACCOUNT_STATUS_LISTENER_REGISTER, data, reply);
+    if (result != ERR_OK) {
+        ACCOUNT_LOGE("SendRequest err, result %{public}d.", result);
+        return result;
+    }
+    if (!reply.ReadInt32(result)) {
+        ACCOUNT_LOGE("fail to read result");
+        return ERR_ACCOUNT_COMMON_READ_PARCEL_ERROR;
+    }
+    return result;
+}
+
+ErrCode DomainAccountProxy::UnregisterAccountStatusListener(const DomainAccountInfo &info)
+{
+    MessageParcel data;
+    if (!data.WriteInterfaceToken(GetDescriptor())) {
+        ACCOUNT_LOGE("failed to write descriptor!");
+        return ERR_ACCOUNT_COMMON_WRITE_DESCRIPTOR_ERROR;
+    }
+    if (!data.WriteParcelable(&info)) {
+        ACCOUNT_LOGE("fail to write parcelable");
+        return ERR_ACCOUNT_COMMON_WRITE_PARCEL_ERROR;
+    }
+
+    MessageParcel reply;
+    ErrCode result = SendRequest(IDomainAccount::Message::DOMAIN_ACCOUNT_STATUS_LISTENER_UNREGISTER, data, reply);
+    if (result != ERR_OK) {
+        ACCOUNT_LOGE("SendRequest err, result %{public}d.", result);
         return result;
     }
     if (!reply.ReadInt32(result)) {

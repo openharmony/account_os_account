@@ -88,6 +88,7 @@ public:
     ErrCode BindDomainAccount(const OsAccountType &type, const DomainAccountInfo &domainAccountInfo,
         const sptr<IDomainAccountCallback> &callback);
     ErrCode SendMsgForAccountCreate(OsAccountInfo &osAccountInfo);
+    ErrCode GetOsAccountInfoById(const int id, OsAccountInfo &osAccountInfo);
 
 private:
     IInnerOsAccountManager();
@@ -98,7 +99,8 @@ private:
     void CreateBaseAdminAccount();
     void CreateBaseStandardAccount();
     void ResetAccountStatus(void);
-    ErrCode RemoveOsAccountOperate(const int id, OsAccountInfo &osAccountInfo);
+    ErrCode RemoveOsAccountOperate(const int id, OsAccountInfo &osAccountInfo,
+        const DomainAccountInfo &domainAccountInfo);
     ErrCode DeActivateOsAccount(const int id);
     ErrCode PrepareOsAccountInfo(const std::string &name, const OsAccountType &type,
         const DomainAccountInfo &domainAccount, OsAccountInfo &osAccountInfo);

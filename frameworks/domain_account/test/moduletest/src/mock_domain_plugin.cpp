@@ -32,6 +32,7 @@ const std::string STRING_NAME = "zhangsan666";
 const std::string STRING_NAME_BIND_INVALID = "lisi";
 const std::string ACCOUNT_NAME = "zhangsan5";
 const std::string BUNDLE_NAME = "osaccount_test";
+const std::string STRING_DOMAIN_NEW = "test.example.com";
 }
 MockDomainPlugin::MockDomainPlugin() : remainingTimes_(DEFAULT_REMAINING_TIMES), freezingTime_(0)
 {}
@@ -49,6 +50,10 @@ void MockDomainPlugin::AuthCommonInterface(const DomainAccountInfo &info, const 
         return;
     }
     DomainAuthResult result = {};
+    if ((info.domain_ == STRING_DOMAIN_NEW)) {
+        callback->OnResult(0, result);
+        return;
+    }
     if ((info.domain_ != VALID_DOMAIN) || (info.accountName_ != VALID_ACCOUNT_NAME)) {
         callback->OnResult(1, result);
         return;
@@ -77,6 +82,7 @@ void MockDomainPlugin::AuthCommonInterface(const DomainAccountInfo &info, const 
     result.authStatusInfo.remainingTimes = remainingTimes_;
     result.authStatusInfo.freezingTime = freezingTime_;
     result.token = TOKEN;
+
     callback->OnResult(!isCorrect, result);
 }
 
@@ -197,6 +203,7 @@ void MockDomainPlugin::OnAccountUnBound(
 void MockDomainPlugin::IsAccountTokenValid(const std::vector<uint8_t> &token, const std::string &accountId,
     const std::shared_ptr<DomainAccountCallback> &callback)
 {
+    ACCOUNT_LOGI("mock IsAccountTokenValid called");
     Parcel parcel;
     parcel.WriteBool(true);
     callback->OnResult(0, parcel);
