@@ -15,6 +15,7 @@
 
 #include "account_iam_callback.h"
 
+#include "account_info_report.h"
 #include "account_log_wrapper.h"
 #include "iinner_os_account_manager.h"
 #include "inner_account_iam_manager.h"
@@ -41,6 +42,7 @@ void AuthCallback::OnResult(int32_t result, const Attributes &extraInfo)
     if (result != 0) {
         ACCOUNT_LOGI("auth failed and return result");
         innerCallback_->OnResult(result, extraInfo);
+        AccountInfoReport::ReportSecurityInfo("", userId_, ReportEvent::LOGIN, -1); // -1:fail
         return;
     }
     std::vector<uint8_t> token;
@@ -50,6 +52,7 @@ void AuthCallback::OnResult(int32_t result, const Attributes &extraInfo)
     }
     if (authType_ != AuthType::PIN) {
         innerCallback_->OnResult(result, extraInfo);
+        AccountInfoReport::ReportSecurityInfo("", userId_, ReportEvent::LOGIN, 0); // 0:success
         return;
     }
     std::vector<uint8_t> secret;
@@ -71,6 +74,7 @@ void AuthCallback::OnResult(int32_t result, const Attributes &extraInfo)
         innerCallback_->OnResult(result, extraInfo);
         (void)IInnerOsAccountManager::GetInstance().SetOsAccountIsVerified(userId_, true);
     }
+    AccountInfoReport::ReportSecurityInfo("", userId_, ReportEvent::LOGIN, 0); // 0:success
 }
 
 void AuthCallback::OnAcquireInfo(int32_t module, uint32_t acquireInfo, const Attributes &extraInfo)
@@ -153,6 +157,8 @@ void AddCredCallback::OnResult(int32_t result, const Attributes &extraInfo)
         InnerAccountIAMManager::GetInstance().SetState(userId_, AFTER_OPEN_SESSION);
         return;
     }
+
+    (void)IInnerOsAccountManager::GetInstance().SetOsAccountIsCreateSecret(userId_, true);
     InnerAccountIAMManager::GetInstance().SetState(userId_, AFTER_ADD_CRED);
     std::vector<uint8_t> challenge;
     InnerAccountIAMManager::GetInstance().GetChallenge(userId_, challenge);
@@ -239,6 +245,7 @@ void DelCredCallback::OnResult(int32_t result, const Attributes &extraInfo)
         InnerAccountIAMManager::GetInstance().RestoreUserKey(userId_, credentialId_, authToken_);
     }
     InnerAccountIAMManager::GetInstance().SetState(userId_, AFTER_OPEN_SESSION);
+    (void)IInnerOsAccountManager::GetInstance().SetOsAccountIsCreateSecret(userId_, false);
     innerCallback_->OnResult(result, extraInfo);
 }
 

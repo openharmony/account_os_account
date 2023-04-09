@@ -37,6 +37,7 @@ const std::string DOMAIN_NAME = "domain";
 const std::string DOMAIN_ACCOUNT_NAME = "accountName";
 const std::string DOMAIN_ACCOUNT_ID = "accountId";
 const std::string TO_BE_REMOVED = "toBeRemoved";
+const std::string IS_CREATE_SECRET = "isCreateSecret";
 }  // namespace
 
 OsAccountInfo::OsAccountInfo()
@@ -54,6 +55,7 @@ OsAccountInfo::OsAccountInfo()
     isCreateCompleted_ = false;
     domainInfo_.Clear();
     toBeRemoved_ = false;
+    isCreateSecret_ = false;
 }
 
 OsAccountInfo::OsAccountInfo(int localId, const std::string localName, OsAccountType type, int64_t serialNumber)
@@ -68,6 +70,7 @@ OsAccountInfo::OsAccountInfo(int localId, const std::string localName, OsAccount
     isCreateCompleted_ = false;
     domainInfo_.Clear();
     toBeRemoved_ = false;
+    isCreateSecret_ = false;
 }
 
 int OsAccountInfo::GetLocalId() const
@@ -128,6 +131,16 @@ bool OsAccountInfo::GetIsCreateCompleted() const
 void OsAccountInfo::SetIsCreateCompleted(const bool isCreateCompleted)
 {
     isCreateCompleted_ = isCreateCompleted;
+}
+
+bool OsAccountInfo::GetIsCreateSecret() const
+{
+    return isCreateSecret_;
+}
+
+void OsAccountInfo::SetIsCreateSecret(bool isCreateSecret)
+{
+    isCreateSecret_ = isCreateSecret;
 }
 
 bool OsAccountInfo::SetDomainInfo(const DomainAccountInfo &domainInfo)
@@ -208,6 +221,7 @@ Json OsAccountInfo::ToJson() const
         {IS_ACTIVED, isActived_},
         {IS_ACCOUNT_COMPLETED, isCreateCompleted_},
         {TO_BE_REMOVED, toBeRemoved_},
+        {IS_CREATE_SECRET, isCreateSecret_},
         {DOMAIN_INFO, {
             {DOMAIN_NAME, domainInfo_.domain_},
             {DOMAIN_ACCOUNT_NAME, domainInfo_.accountName_},
@@ -258,6 +272,8 @@ void OsAccountInfo::FromJson(const Json &jsonObject)
         jsonObject, jsonObjectEnd, IS_ACCOUNT_COMPLETED, isCreateCompleted_, OHOS::AccountSA::JsonType::BOOLEAN);
     OHOS::AccountSA::GetDataByType<bool>(
         jsonObject, jsonObjectEnd, TO_BE_REMOVED, toBeRemoved_, OHOS::AccountSA::JsonType::BOOLEAN);
+    OHOS::AccountSA::GetDataByType<bool>(
+        jsonObject, jsonObjectEnd, IS_CREATE_SECRET, isCreateSecret_, OHOS::AccountSA::JsonType::BOOLEAN);
 
     Json typeJson;
     OHOS::AccountSA::GetDataByType<Json>(

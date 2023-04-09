@@ -263,5 +263,37 @@ HWTEST_F(OsAccountInnerAccmgrCoverageTest, OsAccountInnerAccmgrCoverageTest009, 
     result = EventFwk::CommonEventManager::UnSubscribeCommonEvent(subscriberPtr);
     ASSERT_EQ(result, true);
 }
+
+/*
+ * @tc.name: SetOsAccountIsCreateSecret001
+ * @tc.desc: Test SetOsAccountIsCreateSecret with invalid userid.
+ * @tc.type: FUNC
+ * @tc.require: #I6JV5X
+ */
+HWTEST_F(OsAccountInnerAccmgrCoverageTest, SetOsAccountIsCreateSecret001, TestSize.Level1)
+{
+    int32_t invalidUserId = -1;
+    ErrCode errCode = innerMgrService_->SetOsAccountIsCreateSecret(invalidUserId, true);
+    ASSERT_NE(errCode, ERR_OK);
+}
+
+/*
+ * @tc.name: SetOsAccountIsCreateSecret002
+ * @tc.desc: Test SetOsAccountIsCreateSecret with invalid userid.
+ * @tc.type: FUNC
+ * @tc.require: #I6JV5X
+ */
+HWTEST_F(OsAccountInnerAccmgrCoverageTest, SetOsAccountIsCreateSecret002, TestSize.Level1)
+{
+    OsAccountInfo osAccountInfo;
+    ErrCode errCode = innerMgrService_->CreateOsAccount(ACCOUNT_NAME, OsAccountType::NORMAL, osAccountInfo);
+    ASSERT_EQ(errCode, ERR_OK);
+
+    int32_t localID = osAccountInfo.GetLocalId();
+
+    ASSERT_EQ(innerMgrService_->SetOsAccountIsCreateSecret(localID, true), ERR_OK);
+
+    ASSERT_EQ(innerMgrService_->RemoveOsAccount(localID), ERR_OK);
+}
 }  // namespace AccountSA
 }  // namespace OHOS

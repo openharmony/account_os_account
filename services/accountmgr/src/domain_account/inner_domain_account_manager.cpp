@@ -16,6 +16,7 @@
 #include "inner_domain_account_manager.h"
 #include <pthread.h>
 #include <thread>
+#include "account_info_report.h"
 #include "account_log_wrapper.h"
 #include "domain_account_plugin_death_recipient.h"
 #include "domain_auth_callback_proxy.h"
@@ -60,6 +61,7 @@ void InnerDomainAuthCallback::OnResult(int32_t resultCode, const DomainAuthResul
         ACCOUNT_LOGI("callback_ is nullptr");
         return;
     }
+    AccountInfoReport::ReportSecurityInfo("", userId_, ReportEvent::LOGIN, resultCode);
     return callback_->OnResult(resultCode, result);
 }
 
