@@ -151,6 +151,7 @@ ohos_shared_library("accountmgr") {
     "src/account_data_storage.cpp",
     "src/account_event_provider.cpp",
     "src/account_helper_data.cpp",
+    "src/account_info_report.cpp",
     "src/account_mgr_service.cpp",
     "src/account_state_machine.cpp",
     "src/account_stub.cpp",
@@ -293,6 +294,14 @@ ohos_shared_library("accountmgr") {
   if (hicollie_enable == true) {
     external_deps += [ "hicollie_native:libhicollie" ]
     cflags_cc += [ "-DHICOLLIE_ENABLE" ]
+  }
+
+  if (security_guard_enabled) {
+    external_deps += [
+      "security_guard:libsg_collect_sdk",
+      "time_service:time_client",
+    ]
+    cflags_cc += [ "-DSECURITY_GUARDE_ENABLE" ]
   }
 
   external_deps += [ "hitrace_native:hitrace_meter" ]

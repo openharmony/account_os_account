@@ -13,6 +13,7 @@
  * limitations under the License.
  */
 #include "iinner_os_account_manager.h"
+#include "account_info_report.h"
 #include "account_log_wrapper.h"
 #ifdef HAS_CES_PART
 #include "common_event_support.h"
@@ -1045,6 +1046,7 @@ ErrCode IInnerOsAccountManager::DeActivateOsAccount(const int id)
 #ifdef ENABLE_MULTIPLE_ACTIVE_ACCOUNTS
     EraseIdFromActiveList(osAccountInfo.GetLocalId());
 #endif // ENABLE_MULTIPLE_ACTIVE_ACCOUNTS
+    AccountInfoReport::ReportSecurityInfo(osAccountInfo.GetLocalName(), id, ReportEvent::LOGOUT, 0);
     return ERR_OK;
 }
 
@@ -1093,6 +1095,13 @@ ErrCode IInnerOsAccountManager::ActivateOsAccount(const int id)
     }
     RemoveLocalIdToOperating(id);
     subscribeManager_.PublishActivatedOsAccount(id);
+
+    DomainAccountInfo domainInfo;
+    osAccountInfo.GetDomainInfo(domainInfo);
+    if (domainInfo.accountId_.empty() && !osAccountInfo.GetIsCreateSecret()) {
+        AccountInfoReport::ReportSecurityInfo(
+            osAccountInfo.GetLocalName(), osAccountInfo.GetLocalId(), ReportEvent::LOGIN, 0);
+    }
     ACCOUNT_LOGI("IInnerOsAccountManager ActivateOsAccount end");
     return ERR_OK;
 }
@@ -1274,6 +1283,25 @@ ErrCode IInnerOsAccountManager::SetOsAccountIsVerified(const int id, const bool 
     }
 
     osAccountInfo.SetIsVerified(isVerified);
+    errCode = osAccountControl_->UpdateOsAccount(osAccountInfo);
+    if (errCode != ERR_OK) {
+        ACCOUNT_LOGE("update osaccount info error %{public}d, id: %{public}d",
+            errCode, osAccountInfo.GetLocalId());
+        return ERR_OSACCOUNT_SERVICE_INNER_UPDATE_ACCOUNT_ERROR;
+    }
+    return ERR_OK;
+}
+
+ErrCode IInnerOsAccountManager::SetOsAccountIsCreateSecret(const int id, const bool isCreateSecret)
+{
+    OsAccountInfo osAccountInfo;
+    ErrCode errCode = osAccountControl_->GetOsAccountInfoById(id, osAccountInfo);
+    if (errCode != ERR_OK) {
+        ACCOUNT_LOGE("get osaccount info error, errCode %{public}d.", errCode);
+        return ERR_OSACCOUNT_SERVICE_INNER_SELECT_OSACCOUNT_BYID_ERROR;
+    }
+
+    osAccountInfo.SetIsCreateSecret(isCreateSecret);
     errCode = osAccountControl_->UpdateOsAccount(osAccountInfo);
     if (errCode != ERR_OK) {
         ACCOUNT_LOGE("update osaccount info error %{public}d, id: %{public}d",
