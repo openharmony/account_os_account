@@ -63,6 +63,7 @@ public:
     OS_ACCOUNT_SWITCH_MOD GetOsAccountSwitchMod() override;
     ErrCode IsOsAccountCompleted(const int id, bool &isOsAccountCompleted) override;
     ErrCode SetOsAccountIsVerified(const int id, const bool isVerified) override;
+    ErrCode SetOsAccountIsCreateSecret(const int id, const bool isCreateSecret) override;
     ErrCode IsAllowedCreateAdmin(bool &isAllowedCreateAdmin) override;
     ErrCode GetOsAccountLocalIdFromDomain(const DomainAccountInfo &domainInfo, int &id) override;
     ErrCode GetCreatedOsAccountNumFromDatabase(const std::string& storeID,

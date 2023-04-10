@@ -921,6 +921,9 @@ HWTEST_F(OsAccountInnerAccmgrCoverageTest, OsAccountInnerAccmgrCoverageTest029, 
 
     ret = innerMgrService_->SetOsAccountIsVerified(id, isVerified);
     EXPECT_EQ(ret, ERR_OSACCOUNT_SERVICE_INNER_UPDATE_ACCOUNT_ERROR);
+
+    ret = innerMgrService_->SetOsAccountIsCreateSecret(id, true);
+    EXPECT_EQ(ret, ERR_OSACCOUNT_SERVICE_INNER_UPDATE_ACCOUNT_ERROR);
 }
 
 /*

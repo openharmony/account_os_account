@@ -112,6 +112,10 @@ public:
 
     void SetToBeRemoved(bool toBeRemoved);
 
+    bool GetIsCreateSecret() const;
+
+    void SetIsCreateSecret(bool isCreateSecret);
+
 private:
     int localId_;
     std::string localName_;
@@ -126,6 +130,7 @@ private:
     bool isCreateCompleted_;
     DomainAccountInfo domainInfo_;
     bool toBeRemoved_;
+    bool isCreateSecret_;
 };
 typedef enum {
     ERROR_MOD = 0,
