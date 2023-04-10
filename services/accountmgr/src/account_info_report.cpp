@@ -33,6 +33,7 @@ std::string TransformIntoJson(const std::string &user, int32_t id, ReportEvent e
         {"userName", user},
         {"userId", id},
     };
+    jsonResult["caller"] = userJson;
     jsonResult["bootTime"] = std::to_string(MiscServices::TimeServiceClient::GetInstance()->GetBootTimeNs());
     jsonResult["wallTime"] = std::to_string(MiscServices::TimeServiceClient::GetInstance()->GetWallTimeNs());
     jsonResult["outcome"] = (result == 0) ? "Success" : "Fail";
@@ -45,8 +46,6 @@ std::string TransformIntoJson(const std::string &user, int32_t id, ReportEvent e
 
 void AccountInfoReport::ReportSecurityInfo(const std::string &user, int32_t id, ReportEvent event, int32_t result)
 {
-    ACCOUNT_LOGI("==== userName: %{public}s, userId: %{public}d, type: %{public}d, status: %{public}d",
-        user.c_str(), id, event, result);
 #ifdef SECURITY_GUARDE_ENABLE
     using namespace Security::SecurityGuard;
     std::string userName = user;
@@ -55,9 +54,8 @@ void AccountInfoReport::ReportSecurityInfo(const std::string &user, int32_t id, 
         (void)IInnerOsAccountManager::GetInstance().QueryOsAccountById(id, osAccountInfo);
         userName = osAccountInfo.GetLocalName();
     }
-    int64_t eventId = 1011015001;
+    int64_t eventId = 1011015001; // 1011015001: report event id
     std::string content = TransformIntoJson(userName, id, event, result);
-    ACCOUNT_LOGI("==== reportInfo: %{public}s", content.c_str());
     std::shared_ptr<EventInfo> eventInfo = std::make_shared<EventInfo>(eventId, "1.0", content);
     NativeDataCollectKit::ReportSecurityInfo(eventInfo);
 #endif

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021 Huawei Device Co., Ltd.
+ * Copyright (c) 2021-2023 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -62,7 +62,7 @@ HWTEST_F(AccountEventProviderTest, AccountEventProviderTest001, TestSize.Level0)
 {
 #ifdef HAS_CES_PART
     bool ret = AccountEventProvider::EventPublish(
-        EventFwk::CommonEventSupport::COMMON_EVENT_HWID_LOGOFF, DEFAULT_USER_ID);
+        EventFwk::CommonEventSupport::COMMON_EVENT_HWID_LOGOFF, DEFAULT_USER_ID, nullptr);
     EXPECT_EQ(true, ret);
 #endif // HAS_CES_PART
 }

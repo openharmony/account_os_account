@@ -345,7 +345,8 @@ void IInnerOsAccountManager::CheckAndRefreshLocalIdRecord(const int id)
     return;
 }
 
-ErrCode IInnerOsAccountManager::RemoveOsAccountOperate(const int id, OsAccountInfo &osAccountInfo)
+ErrCode IInnerOsAccountManager::RemoveOsAccountOperate(const int id, OsAccountInfo &osAccountInfo,
+    const DomainAccountInfo &domainAccountInfo)
 {
     ErrCode errCode = SendMsgForAccountRemove(osAccountInfo);
     if (errCode != ERR_OK) {
@@ -360,6 +361,8 @@ ErrCode IInnerOsAccountManager::RemoveOsAccountOperate(const int id, OsAccountIn
         return errCode;
     }
     CheckAndRefreshLocalIdRecord(id);
+    InnerDomainAccountManager::GetInstance().NotifyDomainAccountEvent(
+        id, DomainAccountEvent::LOG_OUT, DomainAccountStatus::LOGOUT, domainAccountInfo);
     return errCode;
 }
 
@@ -406,7 +409,7 @@ ErrCode IInnerOsAccountManager::RemoveOsAccount(const int id)
     }
 
     // then remove account
-    return RemoveOsAccountOperate(id, osAccountInfo);
+    return RemoveOsAccountOperate(id, osAccountInfo, curDomainInfo);
 }
 
 ErrCode IInnerOsAccountManager::SendMsgForAccountStop(OsAccountInfo &osAccountInfo)
@@ -866,6 +869,16 @@ ErrCode IInnerOsAccountManager::QueryOsAccountById(const int id, OsAccountInfo &
         }
         osAccountInfo.SetPhoto(photo);
     }
+
+    DomainAccountInfo domainInfo;
+    osAccountInfo.GetDomainInfo(domainInfo);
+    errCode = InnerDomainAccountManager::GetInstance().GetAccountStatus(
+        domainInfo.domain_, domainInfo.accountName_, domainInfo.status_);
+    if (errCode != ERR_OK) {
+        ACCOUNT_LOGI("GetAccountStatus errCode %{public}d.", errCode);
+        domainInfo.status_ = DomainAccountStatus::LOGOUT;
+    }
+    (void)osAccountInfo.SetDomainInfo(domainInfo);
     return ERR_OK;
 }
 
@@ -1046,7 +1059,7 @@ ErrCode IInnerOsAccountManager::DeActivateOsAccount(const int id)
 #ifdef ENABLE_MULTIPLE_ACTIVE_ACCOUNTS
     EraseIdFromActiveList(osAccountInfo.GetLocalId());
 #endif // ENABLE_MULTIPLE_ACTIVE_ACCOUNTS
-    AccountInfoReport::ReportSecurityInfo(osAccountInfo.GetLocalName(), id, ReportEvent::LOGOUT, 0);
+    AccountInfoReport::ReportSecurityInfo(osAccountInfo.GetLocalName(), id, ReportEvent::EVENT_LOGOUT, 0);
     return ERR_OK;
 }
 
@@ -1100,7 +1113,7 @@ ErrCode IInnerOsAccountManager::ActivateOsAccount(const int id)
     osAccountInfo.GetDomainInfo(domainInfo);
     if (domainInfo.accountId_.empty() && !osAccountInfo.GetIsCreateSecret()) {
         AccountInfoReport::ReportSecurityInfo(
-            osAccountInfo.GetLocalName(), osAccountInfo.GetLocalId(), ReportEvent::LOGIN, 0);
+            osAccountInfo.GetLocalName(), osAccountInfo.GetLocalId(), ReportEvent::EVENT_LOGIN, 0);
     }
     ACCOUNT_LOGI("IInnerOsAccountManager ActivateOsAccount end");
     return ERR_OK;
@@ -1219,6 +1232,16 @@ ErrCode IInnerOsAccountManager::GetOsAccountLocalIdBySerialNumber(const int64_t 
     if (id == -1) {
         ACCOUNT_LOGE("cannot find id by serialNumber");
         return ERR_OSACCOUNT_SERVICE_INNER_SELECT_ERROR;
+    }
+    return ERR_OK;
+}
+
+ErrCode IInnerOsAccountManager::GetOsAccountInfoById(const int id, OsAccountInfo &osAccountInfo)
+{
+    ErrCode errCode = osAccountControl_->GetOsAccountInfoById(id, osAccountInfo);
+    if (errCode != ERR_OK) {
+        ACCOUNT_LOGE("get osaccount info error, errCode %{public}d.", errCode);
+        return ERR_OSACCOUNT_SERVICE_INNER_SELECT_OSACCOUNT_BYID_ERROR;
     }
     return ERR_OK;
 }

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021-2022 Huawei Device Co., Ltd.
+ * Copyright (c) 2021-2023 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -30,7 +30,7 @@ const std::string PHOTO = "photo";
 const std::string CREATE_TIME = "createTime";
 const std::string LAST_LOGGED_IN_TIME = "lastLoginTime";
 const std::string SERIAL_NUMBER = "serialNumber";
-const std::string IS_ACTIVED = "isActived";
+const std::string IS_ACTIVATED = "isActived";
 const std::string IS_ACCOUNT_COMPLETED = "isCreateCompleted";
 const std::string DOMAIN_INFO = "domainInfo";
 const std::string DOMAIN_NAME = "domain";
@@ -38,6 +38,7 @@ const std::string DOMAIN_ACCOUNT_NAME = "accountName";
 const std::string DOMAIN_ACCOUNT_ID = "accountId";
 const std::string TO_BE_REMOVED = "toBeRemoved";
 const std::string IS_CREATE_SECRET = "isCreateSecret";
+const std::string DOMAIN_ACCOUNT_STATUS = "domainAccountStatus";
 }  // namespace
 
 OsAccountInfo::OsAccountInfo()
@@ -51,7 +52,7 @@ OsAccountInfo::OsAccountInfo()
     createTime_ = 0;
     lastLoginTime_ = 0;
     serialNumber_ = 0;
-    isActived_ = false;
+    isActivated_ = false;
     isCreateCompleted_ = false;
     domainInfo_.Clear();
     toBeRemoved_ = false;
@@ -66,7 +67,7 @@ OsAccountInfo::OsAccountInfo(int localId, const std::string localName, OsAccount
     photo_.clear();
     createTime_ = 0;
     lastLoginTime_ = 0;
-    isActived_ = false;
+    isActivated_ = false;
     isCreateCompleted_ = false;
     domainInfo_.Clear();
     toBeRemoved_ = false;
@@ -168,12 +169,12 @@ void OsAccountInfo::GetDomainInfo(DomainAccountInfo &domainInfo) const
 
 bool OsAccountInfo::GetIsActived() const
 {
-    return isActived_;
+    return isActivated_;
 }
 
-void OsAccountInfo::SetIsActived(const bool isActived)
+void OsAccountInfo::SetIsActived(const bool isActivated)
 {
-    isActived_ = isActived;
+    isActivated_ = isActivated;
 }
 
 std::string OsAccountInfo::GetPhoto() const
@@ -218,7 +219,7 @@ Json OsAccountInfo::ToJson() const
         {CREATE_TIME, createTime_},
         {LAST_LOGGED_IN_TIME, lastLoginTime_},
         {SERIAL_NUMBER, serialNumber_},
-        {IS_ACTIVED, isActived_},
+        {IS_ACTIVATED, isActivated_},
         {IS_ACCOUNT_COMPLETED, isCreateCompleted_},
         {TO_BE_REMOVED, toBeRemoved_},
         {IS_CREATE_SECRET, isCreateSecret_},
@@ -226,6 +227,7 @@ Json OsAccountInfo::ToJson() const
             {DOMAIN_NAME, domainInfo_.domain_},
             {DOMAIN_ACCOUNT_NAME, domainInfo_.accountName_},
             {DOMAIN_ACCOUNT_ID, domainInfo_.accountId_},
+            {DOMAIN_ACCOUNT_STATUS, domainInfo_.status_},
         },
         }
     };
@@ -267,7 +269,7 @@ void OsAccountInfo::FromJson(const Json &jsonObject)
     OHOS::AccountSA::GetDataByType<int64_t>(
         jsonObject, jsonObjectEnd, SERIAL_NUMBER, serialNumber_, OHOS::AccountSA::JsonType::NUMBER);
     OHOS::AccountSA::GetDataByType<bool>(
-        jsonObject, jsonObjectEnd, IS_ACTIVED, isActived_, OHOS::AccountSA::JsonType::BOOLEAN);
+        jsonObject, jsonObjectEnd, IS_ACTIVATED, isActivated_, OHOS::AccountSA::JsonType::BOOLEAN);
     OHOS::AccountSA::GetDataByType<bool>(
         jsonObject, jsonObjectEnd, IS_ACCOUNT_COMPLETED, isCreateCompleted_, OHOS::AccountSA::JsonType::BOOLEAN);
     OHOS::AccountSA::GetDataByType<bool>(
@@ -284,6 +286,10 @@ void OsAccountInfo::FromJson(const Json &jsonObject)
         typeJson, typeJson.end(), DOMAIN_ACCOUNT_NAME, domainInfo_.accountName_, OHOS::AccountSA::JsonType::STRING);
     OHOS::AccountSA::GetDataByType<std::string>(
         typeJson, typeJson.end(), DOMAIN_ACCOUNT_ID, domainInfo_.accountId_, OHOS::AccountSA::JsonType::STRING);
+    int status;
+    OHOS::AccountSA::GetDataByType<int>(
+        typeJson, typeJson.end(), DOMAIN_ACCOUNT_STATUS, status, OHOS::AccountSA::JsonType::NUMBER);
+    domainInfo_.status_ = static_cast<DomainAccountStatus>(status);
 }
 
 bool OsAccountInfo::Marshalling(Parcel &parcel) const

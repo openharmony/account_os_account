@@ -42,12 +42,18 @@ void TestCreateDomainAccountCallback::OnResult(const int32_t errCode, Parcel &pa
     DomainAccountInfo newDomainInfo;
     osAccountInfo->GetDomainInfo(newDomainInfo);
     callback_->OnResult(errCode, newDomainInfo.accountName_, newDomainInfo.domain_, newDomainInfo.accountId_);
+    localId_ = osAccountInfo->GetLocalId();
     if ((newDomainInfo.accountName_ == "zhangsan") || (newDomainInfo.accountName_ == "zhangsan777") ||
         (newDomainInfo.accountName_ == "zhangsan666")) {
         return;
     }
     OsAccountManager::RemoveOsAccount(osAccountInfo->GetLocalId());
     return;
+}
+
+int32_t TestCreateDomainAccountCallback::GetLocalId(void)
+{
+    return localId_;
 }
 }  // AccountSA
 }  // OHOS

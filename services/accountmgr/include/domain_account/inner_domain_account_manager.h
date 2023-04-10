@@ -16,6 +16,7 @@
 #ifndef OS_ACCOUNT_SERVICES_DOMAIN_ACCOUNT_INCLUDE_INNER_DOMAIN_ACCOUNT_MANAGER_H
 #define OS_ACCOUNT_SERVICES_DOMAIN_ACCOUNT_INCLUDE_INNER_DOMAIN_ACCOUNT_MANAGER_H
 
+#include <condition_variable>
 #include <mutex>
 #include "domain_account_plugin_death_recipient.h"
 #include "domain_account_plugin_proxy.h"
@@ -52,8 +53,15 @@ public:
     ErrCode OnAccountUnBound(const DomainAccountInfo &info, const std::shared_ptr<DomainAccountCallback> &callback);
     bool IsPluginAvailable();
     void InsertTokenToMap(int32_t userId, const std::vector<uint8_t> &token);
-    std::vector<uint8_t> GetTokenFromMap(int32_t userId);
+    void GetTokenFromMap(int32_t userId, std::vector<uint8_t> &token);
     void RemoveTokenFromMap(int32_t userId);
+    ErrCode GetAccountStatus(const std::string &domain, const std::string &accountName, DomainAccountStatus &status);
+    ErrCode RegisterAccountStatusListener(
+        const DomainAccountInfo &info, const sptr<IDomainAccountCallback> &listener);
+    ErrCode UnregisterAccountStatusListener(const DomainAccountInfo &info);
+    void NotifyDomainAccountEvent(
+        int32_t userId, DomainAccountEvent event, DomainAccountStatus status, const DomainAccountInfo &info);
+    ErrCode GetDomainAccountInfoByUserId(int32_t userId, DomainAccountInfo &domainInfo);
 
 private:
     void StartIsAccountTokenValid(const sptr<IDomainAccountPlugin> &plugin, const std::vector<uint8_t> &token,
@@ -74,7 +82,7 @@ private:
     sptr<IRemoteObject::DeathRecipient> GetDeathRecipient();
     ErrCode InnerAuth(int32_t userId, const std::vector<uint8_t> &authData,
         const sptr<IDomainAuthCallback> &callback, AuthMode authMode);
-    ErrCode GetDomainAccountInfoByUserId(int32_t userId, DomainAccountInfo &domainInfo);
+    ErrCode CheckUserToken(const std::vector<uint8_t> &token, bool &isValid, int32_t userId);
 
 private:
     int32_t callingUid_ = -1;
@@ -82,6 +90,20 @@ private:
     sptr<IRemoteObject::DeathRecipient> deathRecipient_;
     sptr<IDomainAccountPlugin> plugin_;
     std::map<int32_t, std::vector<uint8_t>> userTokenMap_;
+};
+
+class CheckUserTokenCallback final : public DomainAccountCallback {
+public:
+    void OnResult(int32_t result, Parcel &parcel) override;
+    bool GetValidity();
+    void WaitForCallbackResult();
+    void NotifyCallbackEnd();
+
+private:
+    bool isValid_ = false;
+    mutable std::mutex lock_;
+    std::condition_variable condition_;
+    bool threadInSleep_ = true;
 };
 
 class InnerDomainAuthCallback final: public DomainAuthCallbackStub {

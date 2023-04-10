@@ -279,7 +279,7 @@ HWTEST_F(OsAccountInnerAccmgrCoverageTest, SetOsAccountIsCreateSecret001, TestSi
 
 /*
  * @tc.name: SetOsAccountIsCreateSecret002
- * @tc.desc: Test SetOsAccountIsCreateSecret with invalid userid.
+ * @tc.desc: Test SetOsAccountIsCreateSecret with valid userid.
  * @tc.type: FUNC
  * @tc.require: #I6JV5X
  */

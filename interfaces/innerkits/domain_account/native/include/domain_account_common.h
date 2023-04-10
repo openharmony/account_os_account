@@ -31,6 +31,20 @@ typedef enum {
     AUTH_MODE_END, // the upper bound of AuthMode.
 } AuthMode;
 
+typedef enum {
+    LOGOUT = 0,
+    LOGIN_BACKGROUND,
+    LOGIN,
+    LOG_END,
+} DomainAccountStatus;
+
+typedef enum {
+    LOG_IN,
+    TOKEN_UPDATED,
+    TOKEN_INVALID,
+    LOG_OUT,
+} DomainAccountEvent;
+
 class DomainAccountInfo : public Parcelable {
 public:
     DomainAccountInfo();
@@ -45,6 +59,7 @@ public:
     std::string domain_;
     std::string accountName_;
     std::string accountId_;
+    DomainAccountStatus status_;
     bool ReadFromParcel(Parcel &parcel);
     bool Marshalling(Parcel &parcel) const override;
     static DomainAccountInfo *Unmarshalling(Parcel &parcel);
@@ -80,6 +95,12 @@ struct DomainAuthResult : public Parcelable {
     bool Marshalling(Parcel &parcel) const override;
     static DomainAuthResult *Unmarshalling(Parcel &parcel);
 };
+
+typedef struct {
+    DomainAccountInfo domainAccountInfo;
+    DomainAccountEvent event;
+    DomainAccountStatus status;
+} DomainAccountEventData;
 }  // namespace AccountSA
 }  // namespace OHOS
 #endif  // OS_ACCOUNT_INTERFACES_INNERKITS_DOMAIN_ACCOUNT_INCLUDE_DOMAIN_ACCOUNT_COMMON_H

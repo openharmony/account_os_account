@@ -83,5 +83,22 @@ ErrCode DomainAccountManagerService::AuthWithPopup(int32_t userId, const sptr<ID
     }
     return InnerDomainAccountManager::GetInstance().AuthWithPopup(userId, callback);
 }
+
+ErrCode DomainAccountManagerService::GetAccountStatus(
+    const std::string &domain, const std::string &accountName, DomainAccountStatus &status)
+{
+    return InnerDomainAccountManager::GetInstance().GetAccountStatus(domain, accountName, status);
+}
+
+ErrCode DomainAccountManagerService::RegisterAccountStatusListener(
+    const DomainAccountInfo &info, const sptr<IDomainAccountCallback> &listener)
+{
+    return InnerDomainAccountManager::GetInstance().RegisterAccountStatusListener(info, listener);
+}
+
+ErrCode DomainAccountManagerService::UnregisterAccountStatusListener(const DomainAccountInfo &info)
+{
+    return InnerDomainAccountManager::GetInstance().UnregisterAccountStatusListener(info);
+}
 }  // namespace AccountSA
 }  // namespace OHOS
