@@ -41,7 +41,7 @@ public:
     ErrCode OnAccountBound(const DomainAccountInfo &info, const int32_t localId,
         const sptr<IDomainAccountCallback> &callback) override;
     ErrCode OnAccountUnBound(const DomainAccountInfo &info, const sptr<IDomainAccountCallback> &callback) override;
-    ErrCode IsAccountTokenValid(const std::vector<uint8_t> &token, const std::string &accountId,
+    ErrCode IsAccountTokenValid(const DomainAccountInfo &info, const std::vector<uint8_t> &token,
         const sptr<IDomainAccountCallback> &callback) override;
     ErrCode GetAccessToken(const DomainAccountInfo &domainInfo, const std::vector<uint8_t> &accountToken,
         const GetAccessTokenOptions &option, const sptr<IDomainAccountCallback> &callback) override;

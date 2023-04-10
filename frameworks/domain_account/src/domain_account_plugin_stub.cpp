@@ -148,14 +148,14 @@ ErrCode DomainAccountPluginStub::ProcGetAuthStatusInfo(MessageParcel &data, Mess
 
 ErrCode DomainAccountPluginStub::ProcIsAccountTokenValid(MessageParcel &data, MessageParcel &reply)
 {
+    std::shared_ptr<DomainAccountInfo> info(data.ReadParcelable<DomainAccountInfo>());
+    if (info == nullptr) {
+        ACCOUNT_LOGE("failed to read domain account info");
+        return ERR_ACCOUNT_COMMON_READ_PARCEL_ERROR;
+    }
     std::vector<uint8_t> token;
     if (!data.ReadUInt8Vector(&token)) {
         ACCOUNT_LOGE("failed to read token");
-        return ERR_ACCOUNT_COMMON_READ_PARCEL_ERROR;
-    }
-    std::string accountId = "";
-    if (!data.ReadString(accountId)) {
-        ACCOUNT_LOGE("failed to read accountId");
         return ERR_ACCOUNT_COMMON_READ_PARCEL_ERROR;
     }
     auto callback = iface_cast<IDomainAccountCallback>(data.ReadRemoteObject());
@@ -163,7 +163,7 @@ ErrCode DomainAccountPluginStub::ProcIsAccountTokenValid(MessageParcel &data, Me
         ACCOUNT_LOGE("failed to read callback");
         return ERR_ACCOUNT_COMMON_READ_PARCEL_ERROR;
     }
-    ErrCode result = IsAccountTokenValid(token, accountId, callback);
+    ErrCode result = IsAccountTokenValid(*info, token, callback);
     if (!reply.WriteInt32(result)) {
         ACCOUNT_LOGE("failed to write result");
         return ERR_ACCOUNT_COMMON_WRITE_PARCEL_ERROR;

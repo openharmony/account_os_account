@@ -492,9 +492,7 @@ static void IsUserTokenValidWork(uv_work_t *work, int status)
     }
     JsDomainPluginParam *param = reinterpret_cast<JsDomainPluginParam *>(work->data);
     napi_value napiCallback = CreatePluginAsyncCallback(param->env, IsUserTokenValidCallback, param);
-    DomainAccountInfo accountInfo;
-    accountInfo.accountId_ = param->accountId;
-    napi_value napiDomainAccountInfo = CreateNapiDomainAccountInfo(param->env, accountInfo);
+    napi_value napiDomainAccountInfo = CreateNapiDomainAccountInfo(param->env, param->domainAccountInfo);
     napi_value napiUserToken = CreateUint8Array(param->env, param->authData.data(), param->authData.size());
     napi_value argv[] = {napiDomainAccountInfo, napiUserToken, napiCallback};
     NapiCallVoidFunction(param->env, argv, ARG_SIZE_THREE, param->func);
@@ -786,7 +784,7 @@ void NapiDomainAccountPlugin::GetDomainAccountInfo(const std::string &domain, co
     lockInfo_.count++;
 }
 
-void NapiDomainAccountPlugin::IsAccountTokenValid(const std::vector<uint8_t> &token, const std::string &accountId,
+void NapiDomainAccountPlugin::IsAccountTokenValid(const DomainAccountInfo &info, const std::vector<uint8_t> &token,
     const std::shared_ptr<DomainAccountCallback> &callback)
 {
     std::unique_lock<std::mutex> lock(lockInfo_.mutex);
@@ -807,7 +805,7 @@ void NapiDomainAccountPlugin::IsAccountTokenValid(const std::vector<uint8_t> &to
     }
     param->callback = callback;
     param->authData = token;
-    param->accountId = accountId;
+    param->domainAccountInfo = info;
     param->func = jsPlugin_.isAccountTokenValid;
     int errCode = uv_queue_work(
         loop, work, [](uv_work_t *work) {}, IsUserTokenValidWork);

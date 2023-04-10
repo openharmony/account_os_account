@@ -97,7 +97,7 @@ public:
         const std::shared_ptr<AccountSA::DomainAccountCallback> &callback) override;
     void OnAccountUnBound(const AccountSA::DomainAccountInfo &info,
         const std::shared_ptr<AccountSA::DomainAccountCallback> &callback) override;
-    void IsAccountTokenValid(const std::vector<uint8_t> &token, const std::string &accountId,
+    void IsAccountTokenValid(const AccountSA::DomainAccountInfo &info, const std::vector<uint8_t> &token,
         const std::shared_ptr<AccountSA::DomainAccountCallback> &callback) override;
     void GetAccessToken(const AccountSA::DomainAccountInfo &domainInfo, const std::vector<uint8_t> &accountToken,
         const AccountSA::GetAccessTokenOptions &option,
