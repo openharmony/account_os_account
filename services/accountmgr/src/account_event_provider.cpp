@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021-2022 Huawei Device Co., Ltd.
+ * Copyright (c) 2021-2023 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -33,17 +33,27 @@ using namespace OHOS::EventFwk;
 
 namespace OHOS {
 namespace AccountSA {
-bool AccountEventProvider::EventPublish(const std::string& event, int32_t userId)
+bool AccountEventProvider::EventPublish(const std::string& event, int32_t userId, const DomainAccountEventData *report)
 {
 #ifdef HAS_CES_PART
     Want want;
     want.SetAction(event);
     CommonEventData data;
-    if (event != EventFwk::CommonEventSupport::COMMON_EVENT_USER_INFO_UPDATED) {
-        want.SetParam("userId", userId);
-    } else {
+    if (event == EventFwk::CommonEventSupport::COMMON_EVENT_USER_INFO_UPDATED) {
         data.SetCode(userId);
+    } else if (event == EventFwk::CommonEventSupport::COMMON_EVENT_DOMAIN_ACCOUNT_STATUS_CHANGED) {
+        if (report == nullptr) {
+            ACCOUNT_LOGE("Report is nullptr");
+            return false;
+        }
+        want.SetParam("domain", report->domainAccountInfo.domain_);
+        want.SetParam("accountName", report->domainAccountInfo.accountName_);
+        want.SetParam("event", report->event);
+        want.SetParam("status", report->status);
+    } else {
+        want.SetParam("userId", userId);
     }
+
     data.SetWant(want);
     StartTrace(HITRACE_TAG_ACCOUNT_MANAGER, "Ohos account event publish.");
     /* publish */

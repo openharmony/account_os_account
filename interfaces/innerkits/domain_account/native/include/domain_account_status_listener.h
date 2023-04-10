@@ -13,26 +13,18 @@
  * limitations under the License.
  */
 
-#include "domain_account_callback_service.h"
-#include "account_log_wrapper.h"
+#ifndef OS_ACCOUNT_INTERFACES_INNERKITS_DOMAIN_ACCOUNT_INCLUDE_DOMAIN_ACCOUNT_STATUS_LISTENER_H
+#define OS_ACCOUNT_INTERFACES_INNERKITS_DOMAIN_ACCOUNT_INCLUDE_DOMAIN_ACCOUNT_STATUS_LISTENER_H
+
+#include "domain_account_callback.h"
+#include "domain_account_common.h"
 
 namespace OHOS {
 namespace AccountSA {
-DomainAccountCallbackService::DomainAccountCallbackService(
-    const std::shared_ptr<DomainAccountCallback> &callback)
-    : innerCallback_(callback)
-{}
-
-DomainAccountCallbackService::~DomainAccountCallbackService()
-{}
-
-void DomainAccountCallbackService::OnResult(const int32_t errCode, Parcel &parcel)
-{
-    if (innerCallback_ == nullptr) {
-        ACCOUNT_LOGE("DomainAccountCallbackService innerCallback is nullptr");
-        return;
-    }
-    return innerCallback_->OnResult(errCode, parcel);
-}
+class DomainAccountStatusListener {
+public:
+    virtual void OnStatusChanged(const DomainAccountEventData &data) = 0;
+};
 }  // namespace AccountSA
 }  // namespace OHOS
+#endif  // OS_ACCOUNT_INTERFACES_INNERKITS_DOMAIN_ACCOUNT_INCLUDE_DOMAIN_ACCOUNT_STATUS_LISTENER_H

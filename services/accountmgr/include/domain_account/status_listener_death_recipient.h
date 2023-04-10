@@ -13,26 +13,21 @@
  * limitations under the License.
  */
 
-#include "domain_account_callback_service.h"
-#include "account_log_wrapper.h"
+#ifndef OS_ACCOUNT_INTERFACES_INNERKITS_DOMAIN_ACCOUNT_INCLUDE_DOMAIN_STATUS_LISTENER_DEATH_RECIPIENT_H
+#define OS_ACCOUNT_INTERFACES_INNERKITS_DOMAIN_ACCOUNT_INCLUDE_DOMAIN_STATUS_LISTENER_DEATH_RECIPIENT_H
+
+#include "iremote_object.h"
 
 namespace OHOS {
 namespace AccountSA {
-DomainAccountCallbackService::DomainAccountCallbackService(
-    const std::shared_ptr<DomainAccountCallback> &callback)
-    : innerCallback_(callback)
-{}
+class StatusListenerDeathRecipient : public IRemoteObject::DeathRecipient {
+public:
+    StatusListenerDeathRecipient() = default;
+    virtual ~StatusListenerDeathRecipient() override = default;
 
-DomainAccountCallbackService::~DomainAccountCallbackService()
-{}
-
-void DomainAccountCallbackService::OnResult(const int32_t errCode, Parcel &parcel)
-{
-    if (innerCallback_ == nullptr) {
-        ACCOUNT_LOGE("DomainAccountCallbackService innerCallback is nullptr");
-        return;
-    }
-    return innerCallback_->OnResult(errCode, parcel);
-}
+    virtual void OnRemoteDied(const wptr<IRemoteObject>& remote) override;
+};
 }  // namespace AccountSA
 }  // namespace OHOS
+
+#endif // OS_ACCOUNT_INTERFACES_INNERKITS_DOMAIN_ACCOUNT_INCLUDE_DOMAIN_STATUS_LISTENER_DEATH_RECIPIENT_H
