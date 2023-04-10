@@ -200,7 +200,7 @@ void MockDomainPlugin::OnAccountUnBound(
     }
 }
 
-void MockDomainPlugin::IsAccountTokenValid(const std::vector<uint8_t> &token, const std::string &accountId,
+void MockDomainPlugin::IsAccountTokenValid(const DomainAccountInfo &info, const std::vector<uint8_t> &token,
     const std::shared_ptr<DomainAccountCallback> &callback)
 {
     ACCOUNT_LOGI("mock IsAccountTokenValid called");
