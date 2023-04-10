@@ -74,7 +74,7 @@ public:
     virtual void OnAccountUnBound(const DomainAccountInfo &info,
         const std::shared_ptr<DomainAccountCallback> &callback) = 0;
 
-    virtual void IsAccountTokenValid(const std::vector<uint8_t> &token, const std::string &accountId,
+    virtual void IsAccountTokenValid(const DomainAccountInfo &info, const std::vector<uint8_t> &token,
         const std::shared_ptr<DomainAccountCallback> &callback) = 0;
 
     virtual void GetAccessToken(const DomainAccountInfo &domainInfo, const std::vector<uint8_t> &accountToken,

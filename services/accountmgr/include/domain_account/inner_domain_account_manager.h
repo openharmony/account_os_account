@@ -48,7 +48,7 @@ public:
         const std::shared_ptr<DomainAccountCallback> &callback);
     ErrCode OnAccountBound(const DomainAccountInfo &info, const int32_t localId,
         const std::shared_ptr<DomainAccountCallback> &callback);
-    ErrCode IsAccountTokenValid(const std::vector<uint8_t> &token, const std::string &accountId,
+    ErrCode IsAccountTokenValid(const AccountSA::DomainAccountInfo &info, const std::vector<uint8_t> &token,
         const std::shared_ptr<DomainAccountCallback> &callback);
     ErrCode OnAccountUnBound(const DomainAccountInfo &info, const std::shared_ptr<DomainAccountCallback> &callback);
     bool IsPluginAvailable();
@@ -64,8 +64,8 @@ public:
     ErrCode GetDomainAccountInfoByUserId(int32_t userId, DomainAccountInfo &domainInfo);
 
 private:
-    void StartIsAccountTokenValid(const sptr<IDomainAccountPlugin> &plugin, const std::vector<uint8_t> &token,
-        const std::string &accountId, const sptr<IDomainAccountCallback> &callback);
+    void StartIsAccountTokenValid(const sptr<IDomainAccountPlugin> &plugin, const AccountSA::DomainAccountInfo &info,
+        const std::vector<uint8_t> &token, const sptr<IDomainAccountCallback> &callback);
     void StartGetDomainAccountInfo(const sptr<IDomainAccountPlugin> &plugin, const std::string &domain,
         const std::string &accountName, const sptr<IDomainAccountCallback> &callback);
     void StartOnAccountUnBound(const sptr<IDomainAccountPlugin> &plugin, const DomainAccountInfo &info,
