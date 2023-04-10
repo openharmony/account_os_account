@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021-2022 Huawei Device Co., Ltd.
+ * Copyright (c) 2021-2023 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -301,10 +301,11 @@ bool OhosAccountManager::LoginOhosAccount(const OhosAccountInfo &ohosAccountInfo
 
 #ifdef HAS_CES_PART
     if (!isPubLoginEvent) {
-        AccountEventProvider::EventPublish(EventFwk::CommonEventSupport::COMMON_EVENT_USER_INFO_UPDATED, callingUserId);
+        AccountEventProvider::EventPublish(EventFwk::CommonEventSupport::COMMON_EVENT_USER_INFO_UPDATED,
+            callingUserId, nullptr);
         return true;
     }
-    AccountEventProvider::EventPublish(EventFwk::CommonEventSupport::COMMON_EVENT_HWID_LOGIN, callingUserId);
+    AccountEventProvider::EventPublish(EventFwk::CommonEventSupport::COMMON_EVENT_HWID_LOGIN, callingUserId, nullptr);
 #else  // HAS_CES_PART
     ACCOUNT_LOGI("No common event part, publish nothing!");
 #endif // HAS_CES_PART
@@ -344,7 +345,7 @@ bool OhosAccountManager::LogoutOhosAccount(const OhosAccountInfo &ohosAccountInf
     }
 
 #ifdef HAS_CES_PART
-    AccountEventProvider::EventPublish(EventFwk::CommonEventSupport::COMMON_EVENT_HWID_LOGOUT, callingUserId);
+    AccountEventProvider::EventPublish(EventFwk::CommonEventSupport::COMMON_EVENT_HWID_LOGOUT, callingUserId, nullptr);
 #else  // HAS_CES_PART
     ACCOUNT_LOGI("No common event part! Publish nothing!");
 #endif // HAS_CES_PART
@@ -382,7 +383,7 @@ bool OhosAccountManager::LogoffOhosAccount(const OhosAccountInfo &ohosAccountInf
         return false;
     }
 #ifdef HAS_CES_PART
-    AccountEventProvider::EventPublish(EventFwk::CommonEventSupport::COMMON_EVENT_HWID_LOGOFF, callingUserId);
+    AccountEventProvider::EventPublish(EventFwk::CommonEventSupport::COMMON_EVENT_HWID_LOGOFF, callingUserId, nullptr);
 #else  // HAS_CES_PART
     ACCOUNT_LOGI("No common event part, publish nothing for logoff!");
 #endif // HAS_CES_PART
@@ -422,7 +423,8 @@ bool OhosAccountManager::HandleOhosAccountTokenInvalidEvent(
         ACCOUNT_LOGW("SaveOhosAccountInfo failed, callingUserId %{public}d.", callingUserId);
     }
 #ifdef HAS_CES_PART
-    AccountEventProvider::EventPublish(EventFwk::CommonEventSupport::COMMON_EVENT_HWID_TOKEN_INVALID, callingUserId);
+    AccountEventProvider::EventPublish(EventFwk::CommonEventSupport::COMMON_EVENT_HWID_TOKEN_INVALID,
+        callingUserId, nullptr);
 #else  // HAS_CES_PART
     ACCOUNT_LOGI("No common event part, publish nothing for token invalid event.");
 #endif // HAS_CES_PART

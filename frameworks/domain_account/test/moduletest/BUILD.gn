@@ -1,4 +1,4 @@
-# Copyright (c) 2022 Huawei Device Co., Ltd.
+# Copyright (c) 2022-2023 Huawei Device Co., Ltd.
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
 # You may obtain a copy of the License at
@@ -45,6 +45,7 @@ ohos_moduletest("domain_account_frameworks_module_test") {
     "${services_path}/accountmgr/src/domain_account/inner_domain_account_manager.cpp",
     "src/domain_account_client_module_test.cpp",
     "src/mock_domain_auth_callback.cpp",
+    "src/mock_domain_auth_callback_for_listener.cpp",
     "src/mock_domain_create_domain_account_callback.cpp",
     "src/mock_domain_get_access_token_callback.cpp",
     "src/mock_domain_has_domain_info_callback.cpp",

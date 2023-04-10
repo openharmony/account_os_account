@@ -42,7 +42,7 @@ void AuthCallback::OnResult(int32_t result, const Attributes &extraInfo)
     if (result != 0) {
         ACCOUNT_LOGI("auth failed and return result");
         innerCallback_->OnResult(result, extraInfo);
-        AccountInfoReport::ReportSecurityInfo("", userId_, ReportEvent::LOGIN, -1); // -1:fail
+        AccountInfoReport::ReportSecurityInfo("", userId_, ReportEvent::EVENT_LOGIN, -1); // -1:fail
         return;
     }
     std::vector<uint8_t> token;
@@ -52,7 +52,7 @@ void AuthCallback::OnResult(int32_t result, const Attributes &extraInfo)
     }
     if (authType_ != AuthType::PIN) {
         innerCallback_->OnResult(result, extraInfo);
-        AccountInfoReport::ReportSecurityInfo("", userId_, ReportEvent::LOGIN, 0); // 0:success
+        AccountInfoReport::ReportSecurityInfo("", userId_, ReportEvent::EVENT_LOGIN, 0); // 0:success
         return;
     }
     std::vector<uint8_t> secret;
@@ -74,7 +74,7 @@ void AuthCallback::OnResult(int32_t result, const Attributes &extraInfo)
         innerCallback_->OnResult(result, extraInfo);
         (void)IInnerOsAccountManager::GetInstance().SetOsAccountIsVerified(userId_, true);
     }
-    AccountInfoReport::ReportSecurityInfo("", userId_, ReportEvent::LOGIN, 0); // 0:success
+    AccountInfoReport::ReportSecurityInfo("", userId_, ReportEvent::EVENT_LOGIN, 0); // 0:success
 }
 
 void AuthCallback::OnAcquireInfo(int32_t module, uint32_t acquireInfo, const Attributes &extraInfo)

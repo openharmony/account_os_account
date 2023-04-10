@@ -20,8 +20,8 @@
 namespace OHOS {
 namespace AccountSA {
 typedef enum {
-    LOGIN = 0,
-    LOGOUT = 1,
+    EVENT_LOGIN = 0,
+    EVENT_LOGOUT = 1,
 } ReportEvent;
 
 class AccountInfoReport {

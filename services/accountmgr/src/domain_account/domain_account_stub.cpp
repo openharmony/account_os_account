@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2022 Huawei Device Co., Ltd.
+ * Copyright (c) 2023 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -46,6 +46,18 @@ const std::map<uint32_t, DomainAccountStub::DomainAccountStubFunc> DomainAccount
     {
         IDomainAccount::Message::DOMAIN_AUTH_USER,
         &DomainAccountStub::ProcAuthUser
+    },
+    {
+        IDomainAccount::Message::DOMAIN_ACCOUNT_STATUS_ENQUIRY,
+        &DomainAccountStub::ProcGetAccountStatus
+    },
+    {
+        IDomainAccount::Message::DOMAIN_ACCOUNT_STATUS_LISTENER_REGISTER,
+        &DomainAccountStub::ProcRegisterAccountStatusListener
+    },
+    {
+        IDomainAccount::Message::DOMAIN_ACCOUNT_STATUS_LISTENER_UNREGISTER,
+        &DomainAccountStub::ProcUnregisterAccountStatusListener
     },
     {
         IDomainAccount::Message::DOMAIN_AUTH_WITH_POPUP,
@@ -179,6 +191,67 @@ ErrCode DomainAccountStub::ProcAuth(MessageParcel &data, MessageParcel &reply)
     return ERR_NONE;
 }
 
+ErrCode DomainAccountStub::ProcGetAccountStatus(MessageParcel &data, MessageParcel &reply)
+{
+    std::string domain;
+    if (!data.ReadString(domain)) {
+        ACCOUNT_LOGE("fail to read userId");
+        return ERR_ACCOUNT_COMMON_READ_PARCEL_ERROR;
+    }
+    std::string accountName;
+    if (!data.ReadString(accountName)) {
+        ACCOUNT_LOGE("fail to read accountName");
+        return ERR_ACCOUNT_COMMON_READ_PARCEL_ERROR;
+    }
+    DomainAccountStatus status;
+    ErrCode result = GetAccountStatus(domain, accountName, status);
+    if (!reply.WriteInt32(result)) {
+        ACCOUNT_LOGE("failed to write result");
+        return IPC_STUB_WRITE_PARCEL_ERR;
+    }
+    if (!reply.WriteInt32(status)) {
+        ACCOUNT_LOGE("failed to write status");
+        return IPC_STUB_WRITE_PARCEL_ERR;
+    }
+    return ERR_NONE;
+}
+
+ErrCode DomainAccountStub::ProcRegisterAccountStatusListener(MessageParcel &data, MessageParcel &reply)
+{
+    std::shared_ptr<DomainAccountInfo> info(data.ReadParcelable<DomainAccountInfo>());
+    if (info == nullptr) {
+        ACCOUNT_LOGE("failed to read domain account info");
+        return ERR_ACCOUNT_COMMON_READ_PARCEL_ERROR;
+    }
+    auto callback = iface_cast<IDomainAccountCallback>(data.ReadRemoteObject());
+    if (callback == nullptr) {
+        ACCOUNT_LOGE("failed to read domain callback");
+        return ERR_ACCOUNT_COMMON_READ_PARCEL_ERROR;
+    }
+    ErrCode result = RegisterAccountStatusListener(*info, callback);
+    if (!reply.WriteInt32(result)) {
+        ACCOUNT_LOGE("failed to write reply, result %{public}d.", result);
+        return IPC_STUB_WRITE_PARCEL_ERR;
+    }
+
+    return ERR_OK;
+}
+
+ErrCode DomainAccountStub::ProcUnregisterAccountStatusListener(MessageParcel &data, MessageParcel &reply)
+{
+    std::shared_ptr<DomainAccountInfo> info(data.ReadParcelable<DomainAccountInfo>());
+    if (info == nullptr) {
+        ACCOUNT_LOGE("failed to read domain account info");
+        return ERR_ACCOUNT_COMMON_READ_PARCEL_ERROR;
+    }
+    ErrCode result = UnregisterAccountStatusListener(*info);
+    if (!reply.WriteInt32(result)) {
+        ACCOUNT_LOGE("failed to write reply, result %{public}d.", result);
+        return IPC_STUB_WRITE_PARCEL_ERR;
+    }
+    return ERR_OK;
+}
+
 ErrCode DomainAccountStub::ProcAuthUser(MessageParcel &data, MessageParcel &reply)
 {
     int32_t userId = 0;
@@ -269,6 +342,11 @@ ErrCode DomainAccountStub::CheckPermission(uint32_t code, int32_t uid)
         case IDomainAccount::Message::DOMAIN_HAS_DOMAIN_ACCOUNT:
         case IDomainAccount::Message::DOMAIN_UPDATE_ACCOUNT_TOKEN:
             permissionName = AccountPermissionManager::MANAGE_LOCAL_ACCOUNTS;
+            break;
+        case IDomainAccount::Message::DOMAIN_ACCOUNT_STATUS_ENQUIRY:
+        case IDomainAccount::Message::DOMAIN_ACCOUNT_STATUS_LISTENER_REGISTER:
+        case IDomainAccount::Message::DOMAIN_ACCOUNT_STATUS_LISTENER_UNREGISTER:
+            permissionName = AccountPermissionManager::GET_LOCAL_ACCOUNTS;
             break;
         case IDomainAccount::Message::DOMAIN_AUTH:
         case IDomainAccount::Message::DOMAIN_AUTH_USER:
