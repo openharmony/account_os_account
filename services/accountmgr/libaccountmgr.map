@@ -215,6 +215,7 @@
         "vtable for OHOS::AccountSA::SessionServerDeathRecipient";
         "VTT for OHOS::AccountSA::OsAccountStopUserCallback";
         "VTT for OHOS::AccountSA::SessionAppStateObserver";
+        "OHOS::AccountSA::AccountInfoReport::ReportSecurityInfo(std::__h::basic_string<char, std::__h::char_traits<char>, std::__h::allocator<char>> const&, int, OHOS::AccountSA::ReportEvent, int)";
         *OHOS::AccountSA::AbilityManagerAdapter*;
         *OHOS::AccountSA::BundleManagerAdapter*;
         *OHOS::AccountSA::InnerAccountIAMManager*;

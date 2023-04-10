@@ -118,3 +118,10 @@ if (!defined(global_parts_info) ||
 } else {
   hicollie_enable = false
 }
+
+if (!defined(global_parts_info) ||
+    defined(global_parts_info.security_security_guard)) {
+  security_guard_enabled = true
+} else {
+  security_guard_enabled = false
+}

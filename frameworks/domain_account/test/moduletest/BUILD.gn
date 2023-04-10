@@ -36,6 +36,7 @@ ohos_moduletest("domain_account_frameworks_module_test") {
   module_out_path = module_output_path
 
   include_dirs = [
+    "${services_path}/accountmgr/include",
     "${services_path}/accountmgr/include/domain_account",
     "${services_path}/accountmgr/include/osaccount",
   ]
