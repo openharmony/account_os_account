@@ -71,7 +71,7 @@ public:
     GetAccessTokenOptions(const int32_t &callingUid, const AAFwk::WantParams &getTokenParams);
 
 public:
-    int32_t callingUid_;
+    int32_t callingUid_ = -1;
     AAFwk::WantParams getTokenParams_;
     bool ReadFromParcel(Parcel &parcel);
     bool Marshalling(Parcel &parcel) const override;
