@@ -13,26 +13,29 @@
  * limitations under the License.
  */
 
-#include "domain_account_callback_service.h"
+#include "status_listener_death_recipient.h"
+
 #include "account_log_wrapper.h"
+#include "status_listener_manager.h"
 
 namespace OHOS {
 namespace AccountSA {
-DomainAccountCallbackService::DomainAccountCallbackService(
-    const std::shared_ptr<DomainAccountCallback> &callback)
-    : innerCallback_(callback)
-{}
 
-DomainAccountCallbackService::~DomainAccountCallbackService()
-{}
-
-void DomainAccountCallbackService::OnResult(const int32_t errCode, Parcel &parcel)
+void StatusListenerDeathRecipient::OnRemoteDied(const wptr<IRemoteObject>& remote)
 {
-    if (innerCallback_ == nullptr) {
-        ACCOUNT_LOGE("DomainAccountCallbackService innerCallback is nullptr");
+    ACCOUNT_LOGI("OnRemoteDied enter.");
+    if (remote == nullptr) {
+        ACCOUNT_LOGE("remote is nullptr.");
         return;
     }
-    return innerCallback_->OnResult(errCode, parcel);
+
+    sptr<IRemoteObject> object = remote.promote();
+    if (object == nullptr) {
+        ACCOUNT_LOGE("object is nullptr.");
+        return;
+    }
+    StatusListenerManager::GetInstance().RemoveListenerByObject(object);
+    ACCOUNT_LOGI("end");
 }
-}  // namespace AccountSA
-}  // namespace OHOS
+} // namespace AccessToken
+} // namespace OHOS

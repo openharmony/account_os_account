@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2022-2023 Huawei Device Co., Ltd.
+ * Copyright (c) 2023 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -13,45 +13,32 @@
  * limitations under the License.
  */
 
-#include "mock_domain_auth_callback.h"
+#include "mock_domain_auth_callback_for_listener.h"
 
 #include "account_log_wrapper.h"
 #include "os_account_manager.h"
 
 namespace OHOS {
 namespace AccountSA {
-namespace {
-const int32_t START_USER_ID = 100;
-}
-
-TestDomainAuthCallback::TestDomainAuthCallback(const std::shared_ptr<MockDomainAuthCallback> &callback)
+TestDomainAuthCallbackForListener::TestDomainAuthCallbackForListener(
+    const std::shared_ptr<MockDomainAuthCallbackForListener> &callback)
     : callback_(callback)
 {}
 
-TestDomainAuthCallback::~TestDomainAuthCallback()
+TestDomainAuthCallbackForListener::~TestDomainAuthCallbackForListener()
 {}
 
-void TestDomainAuthCallback::OnResult(int32_t resultCode, const DomainAuthResult &result)
+void TestDomainAuthCallbackForListener::OnResult(int32_t resultCode, const DomainAuthResult &result)
 {
-    ACCOUNT_LOGI("TestDomainAuthCallback");
+    ACCOUNT_LOGI("TestDomainAuthCallbackForListener");
     if (callback_ == nullptr) {
         ACCOUNT_LOGE("callback is nullptr");
         return;
     }
-    int32_t localId = accountInfo_.GetLocalId();
-    if (localId > START_USER_ID) {
-        ErrCode errCode = OsAccountManager::RemoveOsAccount(localId);
-        if (errCode != ERR_OK) {
-            DomainAuthResult emptyResult = {};
-            callback_->OnResult(errCode, emptyResult);
-            return;
-        }
-        ACCOUNT_LOGI("removeOsAccount successfully, localId: %{public}d", localId);
-    }
     callback_->OnResult(resultCode, result);
 }
 
-void TestDomainAuthCallback::SetOsAccountInfo(const OsAccountInfo &accountInfo)
+void TestDomainAuthCallbackForListener::SetOsAccountInfo(const OsAccountInfo &accountInfo)
 {
     accountInfo_ = accountInfo;
 }
