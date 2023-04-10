@@ -32,7 +32,6 @@ namespace {
 const size_t ARG_SIZE_ONE = 1;
 const size_t ARG_SIZE_TWO = 2;
 const size_t ARG_SIZE_THREE = 3;
-const size_t ARG_SIZE_FOUR = 4;
 const size_t PARAM_ONE = 1;
 }
 
@@ -118,15 +117,19 @@ static napi_value CreateNapiDomainAccountInfo(napi_env env, const DomainAccountI
     return napiInfo;
 }
 
-static napi_value CreateNapiOption(napi_env env, const GetAccessTokenOptions &option)
+static napi_value CreateNapiGetAccessTokenOptions(const JsDomainPluginParam *param)
 {
     napi_value napiOptions = nullptr;
-    NAPI_CALL(env, napi_create_object(env, &napiOptions));
-    napi_value napiParam = AppExecFwk::WrapWantParams(env, option.getTokenParams_);
-    NAPI_CALL(env, napi_set_named_property(env, napiOptions, "businessParams", napiParam));
+    NAPI_CALL(param->env, napi_create_object(param->env, &napiOptions));
+    napi_value napiDomainAccountInfo = CreateNapiDomainAccountInfo(param->env, param->domainAccountInfo);
+    NAPI_CALL(param->env, napi_set_named_property(param->env, napiOptions, "domainAccountInfo", napiDomainAccountInfo));
+    napi_value napiAccountToken = CreateUint8Array(param->env, param->authData.data(), param->authData.size());
+    NAPI_CALL(param->env, napi_set_named_property(param->env, napiOptions, "domainAccountToken", napiAccountToken));
+    napi_value napiParam = AppExecFwk::WrapWantParams(param->env, param->option.getTokenParams_);
+    NAPI_CALL(param->env, napi_set_named_property(param->env, napiOptions, "businessParams", napiParam));
     napi_value napiUid = nullptr;
-    NAPI_CALL(env, napi_create_int32(env, option.callingUid_, &napiUid));
-    NAPI_CALL(env, napi_set_named_property(env, napiOptions, "callerUid", napiUid));
+    NAPI_CALL(param->env, napi_create_int32(param->env, param->option.callingUid_, &napiUid));
+    NAPI_CALL(param->env, napi_set_named_property(param->env, napiOptions, "callerUid", napiUid));
     return napiOptions;
 }
 
@@ -467,12 +470,10 @@ static void GetAccessTokenWork(uv_work_t *work, int status)
         return;
     }
     JsDomainPluginParam *param = reinterpret_cast<JsDomainPluginParam *>(work->data);
-    napi_value napiDomainAccountInfo = CreateNapiDomainAccountInfo(param->env, param->domainAccountInfo);
     napi_value napiCallback = CreatePluginAsyncCallback(param->env, GetAccessTokenCallback, param);
-    napi_value napiAccountToken = CreateUint8Array(param->env, param->authData.data(), param->authData.size());
-    napi_value napiOptions = CreateNapiOption(param->env, param->option);
-    napi_value argv[] = {napiDomainAccountInfo, napiAccountToken, napiOptions, napiCallback};
-    NapiCallVoidFunction(param->env, argv, ARG_SIZE_FOUR, param->func);
+    napi_value napiOptions = CreateNapiGetAccessTokenOptions(param);
+    napi_value argv[] = {napiOptions, napiCallback};
+    NapiCallVoidFunction(param->env, argv, ARG_SIZE_TWO, param->func);
     std::unique_lock<std::mutex> lock(param->lockInfo->mutex);
     param->lockInfo->count--;
     param->lockInfo->condition.notify_all();
@@ -491,10 +492,11 @@ static void IsUserTokenValidWork(uv_work_t *work, int status)
     }
     JsDomainPluginParam *param = reinterpret_cast<JsDomainPluginParam *>(work->data);
     napi_value napiCallback = CreatePluginAsyncCallback(param->env, IsUserTokenValidCallback, param);
+    DomainAccountInfo accountInfo;
+    accountInfo.accountId_ = param->accountId;
+    napi_value napiDomainAccountInfo = CreateNapiDomainAccountInfo(param->env, accountInfo);
     napi_value napiUserToken = CreateUint8Array(param->env, param->authData.data(), param->authData.size());
-    napi_value napiAccountId = nullptr;
-    napi_create_string_utf8(param->env, param->accountId.c_str(), NAPI_AUTO_LENGTH, &napiAccountId);
-    napi_value argv[] = {napiUserToken, napiAccountId, napiCallback};
+    napi_value argv[] = {napiDomainAccountInfo, napiUserToken, napiCallback};
     NapiCallVoidFunction(param->env, argv, ARG_SIZE_THREE, param->func);
     std::unique_lock<std::mutex> lock(param->lockInfo->mutex);
     param->lockInfo->count--;
