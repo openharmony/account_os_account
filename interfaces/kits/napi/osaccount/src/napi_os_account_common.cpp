@@ -65,7 +65,7 @@ void NapiCreateDomainCallback::OnResult(const int32_t errCode, Parcel &parcel)
     asyncContext->callbackRef = callbackRef_;
     asyncContext->deferred = deferred_;
     work->data = reinterpret_cast<void *>(asyncContext);
-    int resultCode = uv_queue_work(loop, work, [](uv_work_t *work) {}, CreateOAForDomainCallbackCompletedCB);
+    int resultCode = uv_queue_work(loop, work, [](uv_work_t *work) {}, CreateOAForDomainCallbackCompletedWork);
     if (resultCode != 0) {
         ACCOUNT_LOGE("failed to uv_queue_work, errCode: %{public}d", errCode);
         delete asyncContext;
@@ -584,23 +584,21 @@ void CreateOAExecuteCB(napi_env env, void *data)
     asyncContext->status = (asyncContext->errCode == 0) ? napi_ok : napi_generic_failure;
 }
 
+void CreateOAForDomainCompletedCB(napi_env env, napi_status status, void *data)
+{
+    auto *asyncContext = reinterpret_cast<CreateOAForDomainAsyncContext *>(data);
+    napi_delete_async_work(env, asyncContext->work);
+}
+
 void CreateOAForDomainExecuteCB(napi_env env, void *data)
 {
     CreateOAForDomainAsyncContext *asyncContext = reinterpret_cast<CreateOAForDomainAsyncContext *>(data);
     auto callback = std::make_shared<NapiCreateDomainCallback>(env, asyncContext->callbackRef, asyncContext->deferred);
-    if (callback == nullptr) {
-        asyncContext->errCode = ERR_ACCOUNT_COMMON_INSUFFICIENT_MEMORY_ERROR;
-        ACCOUNT_LOGE("insufficient memory for HasDomainAccountCB!");
-        return;
-    }
     asyncContext->errCode =
         OsAccountManager::CreateOsAccountForDomain(asyncContext->type, asyncContext->domainInfo, callback);
     if (asyncContext->errCode != ERR_OK) {
         Parcel emptyParcel;
-        OsAccountInfo info;
-        info.Marshalling(emptyParcel);
         callback->OnResult(asyncContext->errCode, emptyParcel);
-        asyncContext->errCode = ERR_OK;
     }
 }
 
@@ -623,7 +621,7 @@ void CreateOACallbackCompletedCB(napi_env env, napi_status status, void *data)
     asyncContext = nullptr;
 }
 
-void CreateOAForDomainCallbackCompletedCB(uv_work_t *work, int status)
+void CreateOAForDomainCallbackCompletedWork(uv_work_t *work, int status)
 {
     if (work == nullptr) {
         ACCOUNT_LOGE("invalid parameter, work is nullptr");
