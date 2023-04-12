@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021-2022 Huawei Device Co., Ltd.
+ * Copyright (c) 2021-2023 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -544,7 +544,7 @@ HWTEST_F(AppAccountManagerServiceSyncModuleTest, AppAccountManagerServiceSync_En
         auto accountPtr = accessibleAccounts.begin();
         ASSERT_NE(accountPtr, accessibleAccounts.end());
 
-        EXPECT_EQ(*accountPtr, STRING_OWNER + HYPHEN + APP_INDEX + HYPHEN + STRING_NAME);
+        EXPECT_EQ(*accountPtr, STRING_OWNER + HYPHEN + APP_INDEX + HYPHEN + STRING_NAME + HYPHEN);
     }
 #ifdef DISTRIBUTED_FEATURE_ENABLED
     {
@@ -564,7 +564,7 @@ HWTEST_F(AppAccountManagerServiceSyncModuleTest, AppAccountManagerServiceSync_En
         auto accountPtr = accessibleAccounts.begin();
         ASSERT_NE(accountPtr, accessibleAccounts.end());
 
-        EXPECT_EQ(*accountPtr, STRING_OWNER + HYPHEN + APP_INDEX + HYPHEN + STRING_NAME);
+        EXPECT_EQ(*accountPtr, STRING_OWNER + HYPHEN + APP_INDEX + HYPHEN + STRING_NAME + HYPHEN);
     }
 #endif // DISTRIBUTED_FEATURE_ENABLED
 
@@ -614,7 +614,7 @@ HWTEST_F(AppAccountManagerServiceSyncModuleTest, AppAccountManagerServiceSync_En
         auto accountPtr = accessibleAccounts.begin();
         ASSERT_NE(accountPtr, accessibleAccounts.end());
 
-        EXPECT_EQ(*accountPtr, STRING_OWNER + HYPHEN + APP_INDEX + HYPHEN + STRING_NAME);
+        EXPECT_EQ(*accountPtr, STRING_OWNER + HYPHEN + APP_INDEX + HYPHEN + STRING_NAME + HYPHEN);
     }
 #ifdef DISTRIBUTED_FEATURE_ENABLED
     {
@@ -635,7 +635,7 @@ HWTEST_F(AppAccountManagerServiceSyncModuleTest, AppAccountManagerServiceSync_En
         auto accountPtr = accessibleAccounts.begin();
         ASSERT_NE(accountPtr, accessibleAccounts.end());
 
-        EXPECT_EQ(*accountPtr, STRING_OWNER + HYPHEN + APP_INDEX + HYPHEN + STRING_NAME);
+        EXPECT_EQ(*accountPtr, STRING_OWNER + HYPHEN + APP_INDEX + HYPHEN + STRING_NAME + HYPHEN);
     }
 #endif // DISTRIBUTED_FEATURE_ENABLED
 

@@ -394,7 +394,6 @@ ErrCode AppAccountStub::ProcDeleteAccount(uint32_t code, MessageParcel &data, Me
 {
     std::string name = data.ReadString();
     RETURN_IF_STRING_IS_EMPTY_OR_OVERSIZE(name, Constants::NAME_MAX_SIZE, "name is empty or oversize");
-    RETURN_IF_STRING_CONTAINS_SPECIAL_CHAR(name);
     ErrCode result = DeleteAccount(name);
     if (!reply.WriteInt32(result)) {
         ACCOUNT_LOGE("failed to write reply");
@@ -473,7 +472,6 @@ ErrCode AppAccountStub::ProcCheckAppAccountSyncEnable(uint32_t code, MessageParc
 {
     std::string name = data.ReadString();
     RETURN_IF_STRING_IS_EMPTY_OR_OVERSIZE(name, Constants::NAME_MAX_SIZE, "name is empty or oversize");
-    RETURN_IF_STRING_CONTAINS_SPECIAL_CHAR(name);
     bool syncEnable = false;
     ErrCode result = CheckAppAccountSyncEnable(name, syncEnable);
     if (!reply.WriteInt32(result)) {
@@ -491,7 +489,6 @@ ErrCode AppAccountStub::ProcSetAppAccountSyncEnable(uint32_t code, MessageParcel
 {
     std::string name = data.ReadString();
     RETURN_IF_STRING_IS_EMPTY_OR_OVERSIZE(name, Constants::NAME_MAX_SIZE, "name is empty or oversize");
-    RETURN_IF_STRING_CONTAINS_SPECIAL_CHAR(name);
     bool syncEnable = data.ReadBool();
     ErrCode result = SetAppAccountSyncEnable(name, syncEnable);
     if (!reply.WriteInt32(result)) {
@@ -522,7 +519,6 @@ ErrCode AppAccountStub::ProcSetAssociatedData(uint32_t code, MessageParcel &data
 {
     std::string name = data.ReadString();
     RETURN_IF_STRING_IS_EMPTY_OR_OVERSIZE(name, Constants::NAME_MAX_SIZE, "name is empty or oversize");
-    RETURN_IF_STRING_CONTAINS_SPECIAL_CHAR(name);
     std::string key = data.ReadString();
     RETURN_IF_STRING_IS_EMPTY_OR_OVERSIZE(key, Constants::ASSOCIATED_KEY_MAX_SIZE, "key is empty or oversize");
     std::string value = data.ReadString();
@@ -539,7 +535,6 @@ ErrCode AppAccountStub::ProcGetAccountCredential(uint32_t code, MessageParcel &d
 {
     std::string name = data.ReadString();
     RETURN_IF_STRING_IS_EMPTY_OR_OVERSIZE(name, Constants::NAME_MAX_SIZE, "name is empty or oversize");
-    RETURN_IF_STRING_CONTAINS_SPECIAL_CHAR(name);
     std::string credentialType = data.ReadString();
     RETURN_IF_STRING_IS_EMPTY_OR_OVERSIZE(credentialType, Constants::CREDENTIAL_TYPE_MAX_SIZE,
         "credentialType is empty or oversize");
@@ -560,7 +555,6 @@ ErrCode AppAccountStub::ProcSetAccountCredential(uint32_t code, MessageParcel &d
 {
     std::string name = data.ReadString();
     RETURN_IF_STRING_IS_EMPTY_OR_OVERSIZE(name, Constants::NAME_MAX_SIZE, "name is empty or oversize");
-    RETURN_IF_STRING_CONTAINS_SPECIAL_CHAR(name);
     std::string credentialType = data.ReadString();
     RETURN_IF_STRING_IS_EMPTY_OR_OVERSIZE(credentialType, Constants::CREDENTIAL_TYPE_MAX_SIZE,
         "credentialType is empty or oversize");
@@ -578,7 +572,6 @@ ErrCode AppAccountStub::ProcAuthenticate(uint32_t code, MessageParcel &data, Mes
 {
     std::string name = data.ReadString();
     RETURN_IF_STRING_IS_EMPTY_OR_OVERSIZE(name, Constants::NAME_MAX_SIZE, "name is empty or oversize");
-    RETURN_IF_STRING_CONTAINS_SPECIAL_CHAR(name);
     std::string owner = data.ReadString();
     RETURN_IF_STRING_IS_EMPTY_OR_OVERSIZE(owner, Constants::OWNER_MAX_SIZE, "owner is empty or oversize");
     std::string authType = data.ReadString();
@@ -631,7 +624,6 @@ ErrCode AppAccountStub::ProcSetOAuthToken(uint32_t code, MessageParcel &data, Me
 {
     std::string name = data.ReadString();
     RETURN_IF_STRING_IS_EMPTY_OR_OVERSIZE(name, Constants::NAME_MAX_SIZE, "name is empty or oversize");
-    RETURN_IF_STRING_CONTAINS_SPECIAL_CHAR(name);
     std::string authType = data.ReadString();
     RETURN_IF_STRING_IS_OVERSIZE(authType, Constants::AUTH_TYPE_MAX_SIZE, "authType is oversize");
     std::string token = data.ReadString();
@@ -747,7 +739,6 @@ ErrCode AppAccountStub::ProcGetAllOAuthTokens(uint32_t code, MessageParcel &data
 {
     std::string name = data.ReadString();
     RETURN_IF_STRING_IS_EMPTY_OR_OVERSIZE(name, Constants::NAME_MAX_SIZE, "name is empty or oversize");
-    RETURN_IF_STRING_CONTAINS_SPECIAL_CHAR(name);
     std::string owner = data.ReadString();
     RETURN_IF_STRING_IS_EMPTY_OR_OVERSIZE(owner, Constants::OWNER_MAX_SIZE, "owner is empty or oversize");
     std::vector<OAuthTokenInfo> tokenInfos;
