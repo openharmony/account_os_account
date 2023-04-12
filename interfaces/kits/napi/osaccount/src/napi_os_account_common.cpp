@@ -623,16 +623,13 @@ void CreateOACallbackCompletedCB(napi_env env, napi_status status, void *data)
 
 void CreateOAForDomainCallbackCompletedWork(uv_work_t *work, int status)
 {
-    if (work == nullptr) {
-        ACCOUNT_LOGE("invalid parameter, work is nullptr");
+    std::unique_ptr<uv_work_t> workPtr(work);
+    napi_handle_scope scope = nullptr;
+    if (!InitUvWorkCallbackEnv(work, scope)) {
         return;
     }
-    if (work->data == nullptr) {
-        ACCOUNT_LOGE("invalid parameter, data is nullptr");
-        delete work;
-        return;
-    }
-    CreateOAForDomainAsyncContext *asyncContext = reinterpret_cast<CreateOAForDomainAsyncContext *>(work->data);
+    std::unique_ptr<CreateOAForDomainAsyncContext> asyncContext(
+        reinterpret_cast<CreateOAForDomainAsyncContext *>(work->data));
     napi_value errJs = nullptr;
     napi_value dataJs = nullptr;
     if (asyncContext->errCode == ERR_OK) {
@@ -640,9 +637,8 @@ void CreateOAForDomainCallbackCompletedWork(uv_work_t *work, int status)
     } else {
         errJs = GenerateBusinessError(asyncContext->env, asyncContext->errCode);
     }
-    ProcessCallbackOrPromise(asyncContext->env, asyncContext, errJs, dataJs);
-    delete asyncContext;
-    delete work;
+    ProcessCallbackOrPromise(asyncContext->env, asyncContext.get(), errJs, dataJs);
+    napi_close_handle_scope(asyncContext->env, scope);
 }
 
 bool ParseParaGetOACount(napi_env env, napi_callback_info cbInfo, GetOACountAsyncContext *asyncContext)
