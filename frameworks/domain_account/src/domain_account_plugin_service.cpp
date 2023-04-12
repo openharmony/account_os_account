@@ -69,7 +69,7 @@ ErrCode DomainAccountPluginService::AuthCommonInterface(const DomainAccountInfo 
         }
         default: {
             ACCOUNT_LOGE("authMode is invalid");
-            return ERR_ACCOUNT_COMMON_INVALID_PARAMTER;
+            return ERR_ACCOUNT_COMMON_INVALID_PARAMETER;
         }
     }
     return ERR_OK;

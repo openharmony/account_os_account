@@ -118,7 +118,7 @@ HWTEST_F(DomainAccountClientModuleTest, DomainAccountClientModuleTest_Plugin_001
 HWTEST_F(DomainAccountClientModuleTest, DomainAccountClientModuleTest_Plugin_002, TestSize.Level0)
 {
     ASSERT_EQ(DomainAccountClient::GetInstance().UnregisterPlugin(), ERR_OK);
-    ASSERT_EQ(DomainAccountClient::GetInstance().RegisterPlugin(nullptr), ERR_ACCOUNT_COMMON_INVALID_PARAMTER);
+    ASSERT_EQ(DomainAccountClient::GetInstance().RegisterPlugin(nullptr), ERR_ACCOUNT_COMMON_INVALID_PARAMETER);
 }
 
 /**
@@ -245,7 +245,7 @@ HWTEST_F(DomainAccountClientModuleTest, DomainAccountClientModuleTest_Auth_004, 
     info.accountName_ = STRING_NAME;
     info.domain_ = STRING_DOMAIN;
     EXPECT_EQ(
-        DomainAccountClient::GetInstance().Auth(info, VALID_PASSWORD, nullptr), ERR_ACCOUNT_COMMON_INVALID_PARAMTER);
+        DomainAccountClient::GetInstance().Auth(info, VALID_PASSWORD, nullptr), ERR_ACCOUNT_COMMON_INVALID_PARAMETER);
 }
 
 /**
@@ -260,7 +260,7 @@ HWTEST_F(DomainAccountClientModuleTest, DomainAccountClientModuleTest_AuthUser_0
     ASSERT_NE(testCallback, nullptr);
     EXPECT_EQ(
         DomainAccountClient::GetInstance().AuthUser(
-            0, VALID_PASSWORD, testCallback), ERR_ACCOUNT_COMMON_INVALID_PARAMTER);
+            0, VALID_PASSWORD, testCallback), ERR_ACCOUNT_COMMON_INVALID_PARAMETER);
 }
 
 /**
@@ -366,7 +366,7 @@ HWTEST_F(DomainAccountClientModuleTest, DomainAccountClientModuleTest_AuthUser_0
 HWTEST_F(DomainAccountClientModuleTest, DomainAccountClientModuleTest_AuthUser_006, TestSize.Level0)
 {
     EXPECT_EQ(DomainAccountClient::GetInstance().AuthUser(DEFAULT_USER_ID, VALID_PASSWORD, nullptr),
-        ERR_ACCOUNT_COMMON_INVALID_PARAMTER);
+        ERR_ACCOUNT_COMMON_INVALID_PARAMETER);
 }
 
 
@@ -379,7 +379,7 @@ HWTEST_F(DomainAccountClientModuleTest, DomainAccountClientModuleTest_AuthUser_0
 HWTEST_F(DomainAccountClientModuleTest, DomainAccountClientModuleTest_AuthWithPopup_001, TestSize.Level0)
 {
     EXPECT_EQ(DomainAccountClient::GetInstance().AuthWithPopup(DEFAULT_USER_ID, nullptr),
-        ERR_ACCOUNT_COMMON_INVALID_PARAMTER);
+        ERR_ACCOUNT_COMMON_INVALID_PARAMETER);
 }
 
 /**
@@ -412,7 +412,7 @@ HWTEST_F(DomainAccountClientModuleTest, DomainAccountClientModuleTest_AuthWithPo
     auto testCallback = std::make_shared<TestDomainAuthCallback>(callback);
     ASSERT_NE(testCallback, nullptr);
     EXPECT_EQ(DomainAccountClient::GetInstance().AuthWithPopup(invalidId, testCallback),
-        ERR_ACCOUNT_COMMON_INVALID_PARAMTER);
+        ERR_ACCOUNT_COMMON_INVALID_PARAMETER);
 }
 
 /**
@@ -749,7 +749,7 @@ HWTEST_F(DomainAccountClientModuleTest, DomainAccountClientModuleTest_GetAccessT
     DomainAccountInfo info;
     AAFwk::WantParams parameters;
     EXPECT_EQ(DomainAccountClient::GetInstance().GetAccessToken(info, parameters, nullptr),
-        ERR_ACCOUNT_COMMON_INVALID_PARAMTER);
+        ERR_ACCOUNT_COMMON_INVALID_PARAMETER);
 }
 
 /**

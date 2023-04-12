@@ -276,7 +276,7 @@ ErrCode AccountIAMMgrProxy::AuthUser(
 {
     if (callback == nullptr) {
         ACCOUNT_LOGE("callback is nullptr");
-        return ERR_ACCOUNT_COMMON_INVALID_PARAMTER;
+        return ERR_ACCOUNT_COMMON_INVALID_PARAMETER;
     }
     MessageParcel data;
     if (!WriteCommonData(data, userId)) {

@@ -393,7 +393,7 @@ ErrCode OsAccount::SetOsAccountProfilePhoto(const int id, const std::string &pho
 {
     if (photo.empty()) {
         ACCOUNT_LOGE("photo is empty");
-        return ERR_ACCOUNT_COMMON_INVALID_PARAMTER;
+        return ERR_ACCOUNT_COMMON_INVALID_PARAMETER;
     }
     ErrCode result = CheckLocalId(id);
     if (result != ERR_OK) {
