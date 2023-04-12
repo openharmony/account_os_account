@@ -82,7 +82,7 @@ int32_t OsAccountConvertToJSErrCode(int32_t errCode)
         errCode <= ERR_OSACCOUNT_SERVICE_MANAGER_DOMAIN_SIZE_OVERFLOW_ERROR)) {
         return ERR_JS_INVALID_PARAMETER;
     }
-    if (errCode == ERR_ACCOUNT_COMMON_INVALID_PARAMTER) {
+    if (errCode == ERR_ACCOUNT_COMMON_INVALID_PARAMETER) {
         return ERR_JS_INVALID_PARAMETER;
     }
     switch (errCode) {
@@ -167,7 +167,7 @@ int32_t ConvertToJSErrCode(int32_t nativeErrCode)
     if (nativeErrCode == ERR_ACCOUNT_COMMON_NOT_SYSTEM_APP_ERROR) {
         return ERR_JS_IS_NOT_SYSTEM_APP;
     }
-    if (nativeErrCode == ERR_ACCOUNT_COMMON_INVALID_PARAMTER) {
+    if (nativeErrCode == ERR_ACCOUNT_COMMON_INVALID_PARAMETER) {
         return ERR_JS_INVALID_PARAMETER;
     }
     if (IsAppAccountKitError(nativeErrCode) || IsAppAccountServiceError(nativeErrCode)) {

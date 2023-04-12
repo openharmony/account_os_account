@@ -177,7 +177,7 @@ ErrCode DomainAccountStub::ProcAuth(MessageParcel &data, MessageParcel &reply)
         return ERR_ACCOUNT_COMMON_READ_PARCEL_ERROR;
     }
     auto callback = iface_cast<IDomainAuthCallback>(data.ReadRemoteObject());
-    ErrCode result = ERR_ACCOUNT_COMMON_INVALID_PARAMTER;
+    ErrCode result = ERR_ACCOUNT_COMMON_INVALID_PARAMETER;
     if (callback == nullptr) {
         ACCOUNT_LOGE("callback is nullptr");
     } else {
@@ -265,7 +265,7 @@ ErrCode DomainAccountStub::ProcAuthUser(MessageParcel &data, MessageParcel &repl
         return ERR_ACCOUNT_COMMON_READ_PARCEL_ERROR;
     }
     auto callback = iface_cast<IDomainAuthCallback>(data.ReadRemoteObject());
-    ErrCode result = ERR_ACCOUNT_COMMON_INVALID_PARAMTER;
+    ErrCode result = ERR_ACCOUNT_COMMON_INVALID_PARAMETER;
     if (callback == nullptr) {
         ACCOUNT_LOGE("callback is nullptr");
     } else {
@@ -287,7 +287,7 @@ ErrCode DomainAccountStub::ProcAuthWithPopup(MessageParcel &data, MessageParcel 
         return ERR_ACCOUNT_COMMON_READ_PARCEL_ERROR;
     }
     auto callback = iface_cast<IDomainAuthCallback>(data.ReadRemoteObject());
-    ErrCode result = ERR_ACCOUNT_COMMON_INVALID_PARAMTER;
+    ErrCode result = ERR_ACCOUNT_COMMON_INVALID_PARAMETER;
     if (callback == nullptr) {
         ACCOUNT_LOGE("callback is nullptr");
     } else {
