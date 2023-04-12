@@ -1509,10 +1509,12 @@ void SubscriberPtr::OnAccountsChanged(const int &id)
 
 void UvQueueWorkOnAccountsChanged(uv_work_t *work, int status)
 {
-    if (work == nullptr || work->data == nullptr) {
+    std::unique_ptr<uv_work_t> workPtr(work);
+    napi_handle_scope scope = nullptr;
+    if (!InitUvWorkCallbackEnv(work, scope)) {
         return;
     }
-    SubscriberOAWorker *subscriberOAWorkerData = reinterpret_cast<SubscriberOAWorker *>(work->data);
+    std::unique_ptr<SubscriberOAWorker> subscriberOAWorkerData(reinterpret_cast<SubscriberOAWorker *>(work->data));
     bool isFound = false;
     {
         std::lock_guard<std::mutex> lock(g_lockForOsAccountSubscribers);
@@ -1539,9 +1541,7 @@ void UvQueueWorkOnAccountsChanged(uv_work_t *work, int status)
         napi_call_function(
             subscriberOAWorkerData->env, undefined, callback, ARGS_SIZE_ONE, &result[0], &resultOut);
     }
-    delete subscriberOAWorkerData;
-    subscriberOAWorkerData = nullptr;
-    delete work;
+    napi_close_handle_scope(subscriberOAWorkerData->env, scope);
 }
 
 void SubscriberPtr::SetEnv(const napi_env &env)
