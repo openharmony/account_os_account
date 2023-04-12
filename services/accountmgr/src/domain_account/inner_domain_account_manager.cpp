@@ -75,7 +75,7 @@ ErrCode InnerDomainAccountManager::RegisterPlugin(const sptr<IDomainAccountPlugi
     std::lock_guard<std::mutex> lock(mutex_);
     if (plugin == nullptr) {
         ACCOUNT_LOGE("the registered plugin is nullptr");
-        return ERR_ACCOUNT_COMMON_INVALID_PARAMTER;
+        return ERR_ACCOUNT_COMMON_INVALID_PARAMETER;
     }
     if (plugin_ != nullptr) {
         ACCOUNT_LOGE("plugin already exists");
@@ -107,15 +107,15 @@ ErrCode InnerDomainAccountManager::StartAuth(const sptr<IDomainAccountPlugin> &p
 {
     if (callback == nullptr) {
         ACCOUNT_LOGE("invalid callback, cannot return result to client");
-        return ERR_ACCOUNT_COMMON_INVALID_PARAMTER;
+        return ERR_ACCOUNT_COMMON_INVALID_PARAMETER;
     }
     DomainAuthResult emptyResult = {};
     if (plugin == nullptr) {
         ACCOUNT_LOGE("plugin is not exixt");
         callback->OnResult(ConvertToJSErrCode(ERR_DOMAIN_ACCOUNT_SERVICE_PLUGIN_NOT_EXIST), emptyResult);
-        return ERR_ACCOUNT_COMMON_INVALID_PARAMTER;
+        return ERR_ACCOUNT_COMMON_INVALID_PARAMETER;
     }
-    ErrCode errCode = ERR_ACCOUNT_COMMON_INVALID_PARAMTER;
+    ErrCode errCode = ERR_ACCOUNT_COMMON_INVALID_PARAMETER;
     switch (authMode) {
         case AUTH_WITH_CREDENTIAL_MODE:
             errCode = plugin->Auth(info, authData, callback);
@@ -299,8 +299,8 @@ ErrCode InnerDomainAccountManager::StartGetAccessToken(const sptr<IDomainAccount
 {
     if (callback == nullptr) {
         ACCOUNT_LOGE("invalid callback");
-        OnResultForGetAccessToken(ERR_ACCOUNT_COMMON_INVALID_PARAMTER, callback);
-        return ERR_ACCOUNT_COMMON_INVALID_PARAMTER;
+        OnResultForGetAccessToken(ERR_ACCOUNT_COMMON_INVALID_PARAMETER, callback);
+        return ERR_ACCOUNT_COMMON_INVALID_PARAMETER;
     }
     if (plugin == nullptr) {
         ACCOUNT_LOGE("plugin is nullptr");
@@ -496,7 +496,7 @@ ErrCode InnerDomainAccountManager::StartHasDomainAccount(const sptr<IDomainAccou
 {
     if (callback == nullptr) {
         ACCOUNT_LOGE("invalid callback");
-        return ERR_ACCOUNT_COMMON_INVALID_PARAMTER;
+        return ERR_ACCOUNT_COMMON_INVALID_PARAMETER;
     }
     if (plugin == nullptr) {
         ACCOUNT_LOGE("plugin is nullptr");

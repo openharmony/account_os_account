@@ -340,7 +340,7 @@ ErrCode AccountIAMClient::RegisterInputer(int32_t authType, const std::shared_pt
     }
     if (inputer == nullptr) {
         ACCOUNT_LOGE("inputer is nullptr");
-        return ERR_ACCOUNT_COMMON_INVALID_PARAMTER;
+        return ERR_ACCOUNT_COMMON_INVALID_PARAMETER;
     }
     switch (authType) {
         case IAMAuthType::DOMAIN:
