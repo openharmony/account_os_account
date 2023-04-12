@@ -459,7 +459,7 @@ ErrCode OsAccountManagerService::SetOsAccountProfilePhoto(const int id, const st
     }
     if (photo.empty()) {
         ACCOUNT_LOGE("photo is empty");
-        return ERR_ACCOUNT_COMMON_INVALID_PARAMTER;
+        return ERR_ACCOUNT_COMMON_INVALID_PARAMETER;
     }
     // permission check
     if (!PermissionCheck(AccountPermissionManager::MANAGE_LOCAL_ACCOUNTS, CONSTANT_SET_ICON)) {

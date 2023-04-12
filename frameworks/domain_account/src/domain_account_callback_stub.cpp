@@ -57,7 +57,7 @@ int32_t DomainAccountCallbackStub::ProcOnResult(MessageParcel &data, MessageParc
         return ERR_ACCOUNT_COMMON_READ_PARCEL_ERROR;
     }
     if (size > DOMAIN_DATA_MAX_SIZE) {
-        return ERR_ACCOUNT_COMMON_INVALID_PARAMTER;
+        return ERR_ACCOUNT_COMMON_INVALID_PARAMETER;
     }
     const uint8_t *buffer = data.ReadBuffer(size);
     if (buffer == nullptr) {

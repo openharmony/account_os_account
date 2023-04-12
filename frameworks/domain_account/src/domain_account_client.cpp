@@ -38,7 +38,7 @@ ErrCode DomainAccountClient::RegisterPlugin(const std::shared_ptr<DomainAccountP
 {
     if (plugin == nullptr) {
         ACCOUNT_LOGE("plugin is nullptr");
-        return ERR_ACCOUNT_COMMON_INVALID_PARAMTER;
+        return ERR_ACCOUNT_COMMON_INVALID_PARAMETER;
     }
     sptr<DomainAccountPluginService> pluginService = new (std::nothrow) DomainAccountPluginService(plugin);
     if (pluginService == nullptr) {
@@ -68,7 +68,7 @@ ErrCode DomainAccountClient::AuthProxyInit(const std::shared_ptr<DomainAuthCallb
 {
     if (callback == nullptr) {
         ACCOUNT_LOGE("callback is nullptr");
-        return ERR_ACCOUNT_COMMON_INVALID_PARAMTER;
+        return ERR_ACCOUNT_COMMON_INVALID_PARAMETER;
     }
     callbackService = new (std::nothrow) DomainAuthCallbackService(callback);
     if (callbackService == nullptr) {
@@ -88,7 +88,7 @@ ErrCode DomainAccountClient::GetAccessToken(const DomainAccountInfo &info, const
 {
     if (callback == nullptr) {
         ACCOUNT_LOGE("callback is nullptr");
-        return ERR_ACCOUNT_COMMON_INVALID_PARAMTER;
+        return ERR_ACCOUNT_COMMON_INVALID_PARAMETER;
     }
     sptr<DomainAccountCallbackService> callbackService = new (std::nothrow) DomainAccountCallbackService(callback);
     if (callbackService == nullptr) {
@@ -108,7 +108,7 @@ ErrCode DomainAccountClient::HasDomainAccount(
 {
     if (callback == nullptr) {
         ACCOUNT_LOGE("callback is nullptr");
-        return ERR_ACCOUNT_COMMON_INVALID_PARAMTER;
+        return ERR_ACCOUNT_COMMON_INVALID_PARAMETER;
     }
     sptr<DomainAccountCallbackService> callbackService = new (std::nothrow) DomainAccountCallbackService(callback);
     if (callbackService == nullptr) {
@@ -199,7 +199,7 @@ ErrCode DomainAccountClient::RegisterAccountStatusListener(
 {
     if (listener == nullptr) {
         ACCOUNT_LOGE("callback is nullptr");
-        return ERR_ACCOUNT_COMMON_INVALID_PARAMTER;
+        return ERR_ACCOUNT_COMMON_INVALID_PARAMETER;
     }
     std::shared_ptr<DomainAccountStatusListenerService> listenerService =
         std::make_shared<DomainAccountStatusListenerService>(listener);

@@ -134,7 +134,7 @@ HWTEST_F(DomainAccountManagerInnerServiceTest, DomainAccountManagerInnerServiceT
     domainInfo.domain_ = TEST_DOMAIN;
     domainInfo.accountId_ = TEST_ACCOUNT_ID;
     EXPECT_EQ(InnerDomainAccountManager::GetInstance().StartAuth(
-        nullptr, domainInfo, TEST_TOKEN, nullptr, AUTH_WITH_CREDENTIAL_MODE), ERR_ACCOUNT_COMMON_INVALID_PARAMTER);
+        nullptr, domainInfo, TEST_TOKEN, nullptr, AUTH_WITH_CREDENTIAL_MODE), ERR_ACCOUNT_COMMON_INVALID_PARAMETER);
 }
 
 /**
@@ -154,7 +154,7 @@ HWTEST_F(DomainAccountManagerInnerServiceTest, DomainAccountManagerInnerServiceT
     sptr<IDomainAuthCallback> innerCallback = new (std::nothrow) InnerDomainAuthCallback(MAIN_ACCOUNT_ID, nullptr);
     ASSERT_NE(innerCallback, nullptr);
     EXPECT_EQ(InnerDomainAccountManager::GetInstance().StartAuth(testPlugin,
-        domainInfo, TEST_TOKEN, innerCallback, AUTH_MODE_END), ERR_ACCOUNT_COMMON_INVALID_PARAMTER);
+        domainInfo, TEST_TOKEN, innerCallback, AUTH_MODE_END), ERR_ACCOUNT_COMMON_INVALID_PARAMETER);
 }
 
 /**
@@ -165,7 +165,7 @@ HWTEST_F(DomainAccountManagerInnerServiceTest, DomainAccountManagerInnerServiceT
  */
 HWTEST_F(DomainAccountManagerInnerServiceTest, DomainAccountManagerInnerServiceTest007, TestSize.Level1)
 {
-    EXPECT_EQ(InnerDomainAccountManager::GetInstance().RegisterPlugin(nullptr), ERR_ACCOUNT_COMMON_INVALID_PARAMTER);
+    EXPECT_EQ(InnerDomainAccountManager::GetInstance().RegisterPlugin(nullptr), ERR_ACCOUNT_COMMON_INVALID_PARAMETER);
 }
 
 /**
@@ -197,7 +197,7 @@ HWTEST_F(DomainAccountManagerInnerServiceTest, DomainAccountManagerInnerServiceT
     domainInfo.domain_ = TEST_DOMAIN;
     domainInfo.accountId_ = TEST_ACCOUNT_ID;
     EXPECT_EQ(InnerDomainAccountManager::GetInstance().StartHasDomainAccount(nullptr, domainInfo, nullptr),
-        ERR_ACCOUNT_COMMON_INVALID_PARAMTER);
+        ERR_ACCOUNT_COMMON_INVALID_PARAMETER);
 }
 
 /**

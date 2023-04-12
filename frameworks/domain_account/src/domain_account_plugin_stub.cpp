@@ -95,7 +95,7 @@ ErrCode DomainAccountPluginStub::ProcAuthCommonInterface(MessageParcel &data, Me
         return ERR_ACCOUNT_COMMON_READ_PARCEL_ERROR;
     }
     AuthMode authMode = static_cast<AuthMode>(mode);
-    ErrCode result = ERR_ACCOUNT_COMMON_INVALID_PARAMTER;
+    ErrCode result = ERR_ACCOUNT_COMMON_INVALID_PARAMETER;
     if (callbackProxy == nullptr) {
         ACCOUNT_LOGE("invalid callback");
     } else {

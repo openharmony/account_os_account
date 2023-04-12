@@ -47,7 +47,7 @@ static int32_t AccountIAMConvertOtherToJSErrCode(int32_t errCode)
             return ERR_JS_CREDENTIAL_NOT_EXIST;
         case ERR_IAM_INVALID_CONTEXT_ID:
             return ERR_JS_INVALID_CONTEXT_ID;
-        case ERR_ACCOUNT_COMMON_INVALID_PARAMTER:
+        case ERR_ACCOUNT_COMMON_INVALID_PARAMETER:
         case ERR_IAM_INVALID_PARAMETERS:
             return ERR_JS_INVALID_PARAMETER;
         case ERR_ACCOUNT_IAM_KIT_INPUTER_ALREADY_REGISTERED:
