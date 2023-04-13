@@ -299,7 +299,6 @@ ErrCode InnerDomainAccountManager::StartGetAccessToken(const sptr<IDomainAccount
 {
     if (callback == nullptr) {
         ACCOUNT_LOGE("invalid callback");
-        OnResultForGetAccessToken(ERR_ACCOUNT_COMMON_INVALID_PARAMETER, callback);
         return ERR_ACCOUNT_COMMON_INVALID_PARAMETER;
     }
     if (plugin == nullptr) {
@@ -319,6 +318,10 @@ ErrCode InnerDomainAccountManager::StartGetAccessToken(const sptr<IDomainAccount
 ErrCode InnerDomainAccountManager::GetAccessToken(
     const DomainAccountInfo &info, const AAFwk::WantParams &parameters, const sptr<IDomainAccountCallback> &callback)
 {
+    if (callback == nullptr) {
+        ACCOUNT_LOGE("invalid callback");
+        return ERR_ACCOUNT_COMMON_INVALID_PARAMETER;
+    }
     int32_t userId = 0;
     ErrCode result = IInnerOsAccountManager::GetInstance().GetOsAccountLocalIdFromDomain(info, userId);
     if (result != ERR_OK) {
@@ -390,7 +393,6 @@ ErrCode InnerDomainAccountManager::CheckUserToken(const std::vector<uint8_t> &to
         return ERR_DOMAIN_ACCOUNT_SERVICE_PLUGIN_NOT_EXIST;
     }
 
-    std::string accountId;
     OsAccountInfo osAccountInfo;
     ErrCode errCode = IInnerOsAccountManager::GetInstance().GetOsAccountInfoById(userId, osAccountInfo);
     if (errCode != ERR_OK) {
