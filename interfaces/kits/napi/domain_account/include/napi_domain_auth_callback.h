@@ -37,15 +37,12 @@ private:
     std::shared_ptr<AccountSA::DomainAuthCallback> callback_;
 };
 
-struct CallbackParam {
+struct CallbackParam : public CommonAsyncContext {
+    CallbackParam() {};
     CallbackParam(napi_env napiEnv);
     ~CallbackParam();
-    napi_env env;
-    napi_async_work work = nullptr;
     std::shared_ptr<AccountSA::DomainAuthCallback> callback = nullptr;
-    int32_t resultCode = 0;
     AccountSA::DomainAuthResult authResult;
-    napi_ref callbackRef = nullptr;
     ThreadLockInfo *lockInfo = nullptr;
 };
 
