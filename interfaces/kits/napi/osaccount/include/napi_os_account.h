@@ -192,9 +192,8 @@ struct SubscribeCBInfo : public CommonAsyncContext {
     std::shared_ptr<SubscriberPtr> subscriber = nullptr;
 };
 
-struct SubscriberOAWorker {
+struct SubscriberOAWorker : public CommonAsyncContext {
     int id = 0;
-    napi_env env = nullptr;
     napi_ref ref = nullptr;
     SubscriberPtr *subscriber = nullptr;
 };
