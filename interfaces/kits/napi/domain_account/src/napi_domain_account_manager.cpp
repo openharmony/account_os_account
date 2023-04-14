@@ -515,6 +515,11 @@ static void GetAuthStatusInfoWork(uv_work_t *work, int status)
     napi_close_handle_scope(param->env, scope);
 }
 
+JsDomainPluginParam::JsDomainPluginParam(napi_env napiEnv)
+{
+    env = napiEnv;
+}
+
 NapiDomainAccountPlugin::NapiDomainAccountPlugin(napi_env env, const JsDomainPlugin &jsPlugin)
     : env_(env), jsPlugin_(jsPlugin)
 {}
@@ -1013,9 +1018,9 @@ void AuthCompletedCallback(napi_env env, napi_status status, void *data)
 {
     JsDomainPluginParam *param = reinterpret_cast<JsDomainPluginParam *>(data);
     napi_delete_async_work(env, param->work);
-    if (param->resultCode != ERR_OK) {
+    if (param->errCode != ERR_OK) {
         napi_value argv[ARG_SIZE_TWO] = {nullptr};
-        napi_create_int32(param->env, ConvertToJSErrCode(param->resultCode), &argv[0]);
+        napi_create_int32(param->env, ConvertToJSErrCode(param->errCode), &argv[0]);
         AccountSA::DomainAuthResult emptyResult;
         argv[1] = CreateAuthResult(param->env, emptyResult.token,
             emptyResult.authStatusInfo.remainingTimes, emptyResult.authStatusInfo.freezingTime);
@@ -1041,9 +1046,9 @@ napi_value NapiDomainAccountManager::Auth(napi_env env, napi_callback_info cbInf
     NAPI_CALL(env, napi_create_async_work(env, nullptr, resource,
         [](napi_env env, void *data) {
             JsDomainPluginParam *param = reinterpret_cast<JsDomainPluginParam *>(data);
-            param->resultCode = DomainAccountClient::GetInstance().Auth(
+            param->errCode = DomainAccountClient::GetInstance().Auth(
                 param->domainAccountInfo, param->authData, param->authCallback);
-            if (param->resultCode == ERR_OK) {
+            if (param->errCode == ERR_OK) {
                 param->authCallback = nullptr;
             }
         },
@@ -1141,8 +1146,8 @@ napi_value NapiDomainAccountManager::AuthWithPopup(napi_env env, napi_callback_i
     NAPI_CALL(env, napi_create_async_work(env, nullptr, resource,
         [](napi_env env, void *data) {
             JsDomainPluginParam *param = reinterpret_cast<JsDomainPluginParam *>(data);
-            param->resultCode = DomainAccountClient::GetInstance().AuthWithPopup(param->userId, param->authCallback);
-            if (param->resultCode == ERR_OK) {
+            param->errCode = DomainAccountClient::GetInstance().AuthWithPopup(param->userId, param->authCallback);
+            if (param->errCode == ERR_OK) {
                 param->authCallback = nullptr;
             }
         },

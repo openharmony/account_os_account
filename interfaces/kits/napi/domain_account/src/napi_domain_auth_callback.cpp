@@ -30,8 +30,10 @@ const size_t ARGS_SIZE_TWO = 2;
 }
 using namespace AccountSA;
 
-CallbackParam::CallbackParam(napi_env napiEnv) : env(napiEnv)
-{}
+CallbackParam::CallbackParam(napi_env napiEnv)
+{
+    env = napiEnv;
+}
 
 CallbackParam::~CallbackParam()
 {
@@ -131,7 +133,7 @@ static bool ParseContextForOnResult(napi_env env, napi_callback_info cbInfo, Cal
         return false;
     }
     param->callback = napiCallback->GetDomainAuthCallback();
-    NAPI_CALL_BASE(env, napi_get_value_int32(env, argv[0], &(param->resultCode)), false);
+    NAPI_CALL_BASE(env, napi_get_value_int32(env, argv[0], &(param->errCode)), false);
     return ParseDoaminAuthResult(env, argv[1], param->authResult);
 }
 
@@ -161,7 +163,7 @@ napi_value NapiDomainAuthCallback::JsOnResult(napi_env env, napi_callback_info c
                 ACCOUNT_LOGE("callback is nullptr");
                 return;
             }
-            param->callback->OnResult(param->resultCode, param->authResult);
+            param->callback->OnResult(param->errCode, param->authResult);
         },
         [](napi_env env, napi_status status, void *data) {
             delete reinterpret_cast<CallbackParam *>(data);
@@ -197,26 +199,22 @@ NapiDomainAccountCallback::~NapiDomainAccountCallback()
 
 static void DomainAuthResultWork(uv_work_t *work, int status)
 {
-    if (work == nullptr) {
-        ACCOUNT_LOGE("work is nullptr");
-        return;
-    }
-    if (work->data == nullptr) {
-        ACCOUNT_LOGE("data is nullptr");
-        delete work;
+    std::unique_ptr<uv_work_t> workPtr(work);
+    napi_handle_scope scope = nullptr;
+    if (!InitUvWorkCallbackEnv(work, scope)) {
         return;
     }
     CallbackParam *param = reinterpret_cast<CallbackParam *>(work->data);
     napi_value argv[ARGS_SIZE_TWO] = {nullptr};
-    napi_create_int32(param->env, param->resultCode, &argv[0]);
+    napi_create_int32(param->env, param->errCode, &argv[0]);
     argv[1] = CreateAuthResult(param->env, param->authResult.token,
         param->authResult.authStatusInfo.remainingTimes, param->authResult.authStatusInfo.freezingTime);
     NapiCallVoidFunction(param->env, argv, ARGS_SIZE_TWO, param->callbackRef);
     std::unique_lock<std::mutex> lock(param->lockInfo->mutex);
     param->lockInfo->count--;
     param->lockInfo->condition.notify_all();
+    napi_close_handle_scope(param->env, scope);
     delete param;
-    delete work;
 }
 
 void NapiDomainAccountCallback::OnResult(int32_t resultCode, const AccountSA::DomainAuthResult &result)
@@ -235,7 +233,7 @@ void NapiDomainAccountCallback::OnResult(int32_t resultCode, const AccountSA::Do
         return;
     }
     param->lockInfo = &lockInfo_;
-    param->resultCode = resultCode;
+    param->errCode = resultCode;
     param->authResult = result;
     param->callbackRef = callbackRef_;
     work->data = reinterpret_cast<void *>(param.get());
