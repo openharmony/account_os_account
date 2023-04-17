@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021-2022 Huawei Device Co., Ltd.
+ * Copyright (c) 2021-2023 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -564,7 +564,7 @@ std::string AppAccountInfo::ToString() const
 
 std::string AppAccountInfo::GetPrimeKey() const
 {
-    return (owner_ + HYPHEN + std::to_string(appIndex_) + HYPHEN + name_);
+    return (owner_ + HYPHEN + std::to_string(appIndex_) + HYPHEN + name_ + HYPHEN);
 }
 
 bool AppAccountInfo::ReadFromParcel(Parcel &parcel)
