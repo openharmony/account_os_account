@@ -82,7 +82,6 @@ ErrCode AppAccount::CreateAccount(const std::string &name, const CreateAccountOp
 {
     RETURN_IF_STRING_IS_EMPTY_OR_OVERSIZE(name, Constants::NAME_MAX_SIZE, "name is empty or oversize");
     RETURN_IF_PROXY_IS_NULLPTR();
-    RETURN_IF_STRING_CONTAINS_SPECIAL_CHAR(name);
     if (options.customData.size() > Constants::MAX_CUSTOM_DATA_SIZE) {
         return ERR_APPACCOUNT_KIT_INVALID_PARAMETER;
     }
@@ -113,7 +112,6 @@ ErrCode AppAccount::CreateAccountImplicitly(const std::string &owner, const Crea
 ErrCode AppAccount::DeleteAccount(const std::string &name)
 {
     RETURN_IF_STRING_IS_EMPTY_OR_OVERSIZE(name, Constants::NAME_MAX_SIZE, "name is empty or oversize");
-    RETURN_IF_STRING_CONTAINS_SPECIAL_CHAR(name);
     RETURN_IF_PROXY_IS_NULLPTR();
     return appAccountProxy_->DeleteAccount(name);
 }
@@ -168,7 +166,6 @@ ErrCode AppAccount::SetAppAccess(const std::string &name, const std::string &aut
 ErrCode AppAccount::CheckAppAccountSyncEnable(const std::string &name, bool &syncEnable)
 {
     RETURN_IF_STRING_IS_EMPTY_OR_OVERSIZE(name, Constants::NAME_MAX_SIZE, "name is empty or oversize");
-    RETURN_IF_STRING_CONTAINS_SPECIAL_CHAR(name);
     RETURN_IF_PROXY_IS_NULLPTR();
     return appAccountProxy_->CheckAppAccountSyncEnable(name, syncEnable);
 }
@@ -176,7 +173,6 @@ ErrCode AppAccount::CheckAppAccountSyncEnable(const std::string &name, bool &syn
 ErrCode AppAccount::SetAppAccountSyncEnable(const std::string &name, const bool &syncEnable)
 {
     RETURN_IF_STRING_IS_EMPTY_OR_OVERSIZE(name, Constants::NAME_MAX_SIZE, "name is empty or oversize");
-    RETURN_IF_STRING_CONTAINS_SPECIAL_CHAR(name);
     RETURN_IF_PROXY_IS_NULLPTR();
     return appAccountProxy_->SetAppAccountSyncEnable(name, syncEnable);
 }
@@ -184,7 +180,6 @@ ErrCode AppAccount::SetAppAccountSyncEnable(const std::string &name, const bool 
 ErrCode AppAccount::GetAssociatedData(const std::string &name, const std::string &key, std::string &value)
 {
     RETURN_IF_STRING_IS_EMPTY_OR_OVERSIZE(name, Constants::NAME_MAX_SIZE, "name is empty or oversize");
-    RETURN_IF_STRING_CONTAINS_SPECIAL_CHAR(name);
     RETURN_IF_STRING_IS_EMPTY_OR_OVERSIZE(key, Constants::ASSOCIATED_KEY_MAX_SIZE, "key is empty or oversize");
     RETURN_IF_PROXY_IS_NULLPTR();
     return appAccountProxy_->GetAssociatedData(name, key, value);
@@ -193,7 +188,6 @@ ErrCode AppAccount::GetAssociatedData(const std::string &name, const std::string
 ErrCode AppAccount::SetAssociatedData(const std::string &name, const std::string &key, const std::string &value)
 {
     RETURN_IF_STRING_IS_EMPTY_OR_OVERSIZE(name, Constants::NAME_MAX_SIZE, "name is empty or oversize");
-    RETURN_IF_STRING_CONTAINS_SPECIAL_CHAR(name);
     RETURN_IF_STRING_IS_EMPTY_OR_OVERSIZE(key, Constants::ASSOCIATED_KEY_MAX_SIZE, "key is empty or oversize");
     RETURN_IF_STRING_IS_OVERSIZE(value, Constants::ASSOCIATED_VALUE_MAX_SIZE, "value is oversize");
     RETURN_IF_PROXY_IS_NULLPTR();
@@ -204,7 +198,6 @@ ErrCode AppAccount::GetAccountCredential(
     const std::string &name, const std::string &credentialType, std::string &credential)
 {
     RETURN_IF_STRING_IS_EMPTY_OR_OVERSIZE(name, Constants::NAME_MAX_SIZE, "name is empty or oversize");
-    RETURN_IF_STRING_CONTAINS_SPECIAL_CHAR(name);
     RETURN_IF_STRING_IS_EMPTY_OR_OVERSIZE(credentialType, Constants::CREDENTIAL_TYPE_MAX_SIZE,
         "credentialType is empty or oversize");
     RETURN_IF_PROXY_IS_NULLPTR();
@@ -215,7 +208,6 @@ ErrCode AppAccount::SetAccountCredential(
     const std::string &name, const std::string &credentialType, const std::string &credential)
 {
     RETURN_IF_STRING_IS_EMPTY_OR_OVERSIZE(name, Constants::NAME_MAX_SIZE, "name is empty or oversize");
-    RETURN_IF_STRING_CONTAINS_SPECIAL_CHAR(name);
     RETURN_IF_STRING_IS_EMPTY_OR_OVERSIZE(credentialType, Constants::CREDENTIAL_TYPE_MAX_SIZE,
         "credentialType is empty or oversize");
     RETURN_IF_STRING_IS_OVERSIZE(credential, Constants::CREDENTIAL_MAX_SIZE, "credential is empty or oversize");
@@ -231,7 +223,6 @@ ErrCode AppAccount::Authenticate(const std::string &name, const std::string &own
         callbackObj = callback->AsObject();
     }
     RETURN_IF_STRING_IS_EMPTY_OR_OVERSIZE(name, Constants::NAME_MAX_SIZE, "name is empty or oversize");
-    RETURN_IF_STRING_CONTAINS_SPECIAL_CHAR(name);
     RETURN_IF_STRING_IS_EMPTY_OR_OVERSIZE(owner, Constants::OWNER_MAX_SIZE, "owner is empty or oversize");
     RETURN_IF_STRING_IS_OVERSIZE(authType, Constants::AUTH_TYPE_MAX_SIZE, "authType is oversize");
     RETURN_IF_STRING_IS_EMPTY_OR_OVERSIZE(options.GetStringParam(Constants::KEY_CALLER_ABILITY_NAME),
@@ -264,7 +255,6 @@ ErrCode AppAccount::GetAuthToken(
 ErrCode AppAccount::SetOAuthToken(const std::string &name, const std::string &authType, const std::string &token)
 {
     RETURN_IF_STRING_IS_EMPTY_OR_OVERSIZE(name, Constants::NAME_MAX_SIZE, "name is empty or oversize");
-    RETURN_IF_STRING_CONTAINS_SPECIAL_CHAR(name);
     RETURN_IF_STRING_IS_OVERSIZE(authType, Constants::AUTH_TYPE_MAX_SIZE, "authType is oversize");
     RETURN_IF_STRING_IS_OVERSIZE(token, Constants::TOKEN_MAX_SIZE, "token is oversize");
     RETURN_IF_PROXY_IS_NULLPTR();
@@ -358,7 +348,6 @@ ErrCode AppAccount::GetAllOAuthTokens(
     const std::string &name, const std::string &owner, std::vector<OAuthTokenInfo> &tokenInfos)
 {
     RETURN_IF_STRING_IS_EMPTY_OR_OVERSIZE(name, Constants::NAME_MAX_SIZE, "name is empty or oversize");
-    RETURN_IF_STRING_CONTAINS_SPECIAL_CHAR(name);
     RETURN_IF_STRING_IS_EMPTY_OR_OVERSIZE(owner, Constants::OWNER_MAX_SIZE, "owner is empty or oversize");
     RETURN_IF_PROXY_IS_NULLPTR();
     return appAccountProxy_->GetAllOAuthTokens(name, owner, tokenInfos);
