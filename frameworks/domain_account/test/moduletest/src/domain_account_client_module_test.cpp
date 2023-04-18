@@ -1372,6 +1372,7 @@ HWTEST_F(DomainAccountClientModuleTest, RegisterAccountStatusListener_005, TestS
 
     auto listener = std::make_shared<ListenerLogIn>();
     EXPECT_EQ(DomainAccountClient::GetInstance().RegisterAccountStatusListener(domainInfo, listener), ERR_OK);
+    std::this_thread::sleep_for(std::chrono::milliseconds(SLEEP_TIME));
     int32_t userId;
     errCode = OsAccountManager::GetOsAccountLocalIdFromDomain(domainInfo, userId);
     EXPECT_EQ(errCode, ERR_OK);
@@ -1412,6 +1413,7 @@ HWTEST_F(DomainAccountClientModuleTest, RegisterAccountStatusListener_006, TestS
 
     auto listener = std::make_shared<ListenerLogUpdate>();
     EXPECT_EQ(DomainAccountClient::GetInstance().RegisterAccountStatusListener(domainInfo, listener), ERR_OK);
+    std::this_thread::sleep_for(std::chrono::milliseconds(SLEEP_TIME));
     int32_t userId = -1;
     errCode = OsAccountManager::GetOsAccountLocalIdFromDomain(domainInfo, userId);
     EXPECT_EQ(errCode, ERR_OK);
