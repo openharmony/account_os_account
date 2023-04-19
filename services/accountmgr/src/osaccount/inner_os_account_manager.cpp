@@ -236,6 +236,7 @@ ErrCode IInnerOsAccountManager::SendMsgForAccountCreate(OsAccountInfo &osAccount
         ReportOsAccountOperationFail(
             osAccountInfo.GetLocalId(), Constants::OPERATION_CREATE, errCode, "UpdateOsAccount failed!");
         (void)OsAccountInterface::SendToStorageAccountRemove(osAccountInfo);
+        (void)OsAccountInterface::SendToBMSAccountDelete(osAccountInfo);
         return ERR_OSACCOUNT_SERVICE_INNER_UPDATE_ACCOUNT_ERROR;
     }
     ReportOsAccountLifeCycle(osAccountInfo.GetLocalId(), Constants::OPERATION_CREATE);
