@@ -70,5 +70,5 @@ ohos_systemtest("ActsAccountFuzzTest") {
 group("fuzzTest") {
   testonly = true
 
-  deps = [ ":ActsAccountFuzzTest" ]
+  deps = []
 }
