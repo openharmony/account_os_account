@@ -16,7 +16,7 @@ import("//build/ohos.gni")
 import("//build/test.gni")
 
 config("accountfuzz_test_config") {
-  visibility = [ ":*" ]
+  visibility = [ "./*" ]
 }
 
 group("systemtest") {
