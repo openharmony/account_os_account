@@ -199,7 +199,7 @@ private:
 #endif  // HAS_USER_AUTH_PART
 
 #ifdef HAS_PIN_AUTH_PART
-struct InputerContext : public CommonAsyncContext{
+struct InputerContext : public CommonAsyncContext {
     int32_t authSubType = -1;
     std::shared_ptr<AccountSA::IInputerData> inputerData = nullptr;
     ThreadLockInfo *lockInfo = nullptr;
