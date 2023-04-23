@@ -61,6 +61,7 @@ ohos_shared_library("domain_account_napi") {
     "ability_runtime:abilitykit_native",
     "ability_runtime:wantagent_innerkits",
     "c_utils:utils",
+    "common_event_service:cesfwk_innerkits",
     "hiviewdfx_hilog_native:libhilog",
     "napi:ace_napi",
   ]
