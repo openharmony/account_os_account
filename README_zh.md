@@ -28,9 +28,9 @@
 │   ├── hisysevent_adapter   系统事件打点适配器代码          
 ├── figures                  README图片
 ├── frameworks               帐号子系统kit代码
-│   ├── account_iam          账号身份认证和访问管理内部API代码
-│   │   └── src              账号身份认证和访问管理内部API实现代码
-│   │   └── test             账号身份认证和访问管理测试代码           
+│   ├── account_iam          帐号身份认证和访问管理内部API代码
+│   │   └── src              帐号身份认证和访问管理内部API实现代码
+│   │   └── test             帐号身份认证和访问管理测试代码           
 │   ├── appaccount           应用帐号内部API代码
 │   │   └── native           应用帐号内部API实现代码
 │   ├── common               共通模块代码
@@ -40,10 +40,10 @@
 │   │   ├── log              打印日志代码
 │   │   ├── perf_stat        性能统计
 │   │   └── test             共通模块测试代码
-│   ├── domain_account       域账号内部API实现代码
-│   │   ├── include          域账号内部API头文件
-│   │   ├── src              域账号内部API实现代码
-│   │   └── test             域账号内部API测试代码
+│   ├── domain_account       域帐号内部API实现代码
+│   │   ├── include          域帐号内部API头文件
+│   │   ├── src              域帐号内部API实现代码
+│   │   └── test             域帐号内部API测试代码
 │   ├── ohosaccount          分布式帐号内部API代码
 │   │   ├── native           分布式帐号内部API实现代码
 │   │   └── test             分布式帐号内部API测试代码
@@ -52,9 +52,9 @@
 │       └── native           系统帐号内部API实现代码
 ├── interfaces               帐号子系统对外公开的API
 │   ├── innerkits            内部API头文件
-│   │   ├── account_iam      账号身份认证和访问管理
+│   │   ├── account_iam      帐号身份认证和访问管理
 │   │   ├── appaccount       应用帐号内部API头文件
-│   │   ├── domain_account   域账号内部API头文件
+│   │   ├── domain_account   域帐号内部API头文件
 │   │   ├── ohosaccount      分布式帐号内部API头文件
 │   │   └── osaccount        系统帐号内部API头文件
 │   └── kits                 对外API封装
@@ -114,12 +114,12 @@
 </thead>
 <tbody><tr id="row1432413213425"><td class="cellrowborder" valign="top" width="51.61%" headers="mcps1.2.3.1.1 "><p id="p1732472184212"><a name="p1732472184212"></a><a name="p1732472184212"></a>DistributedAccountAbility</p>
 </td>
-<td class="cellrowborder" valign="top" width="48.39%" headers="mcps1.2.3.1.2 "><p id="p1932432110421"><a name="p1932432110421"></a><a name="p1932432110421"></a>提供查询和更新分布式帐号登录状态方法。</p>
+<td class="cellrowborder" valign="top" width="48.39%" headers="mcps1.2.3.1.2 "><p id="p1932432110421"><a name="p1932432110421"></a><a name="p1932432110421"></a>提供查询和更新系统绑定的分布式帐号信息方法。</p>
 </td>
 </tr>
 <tr id="row12324162116427"><td class="cellrowborder" valign="top" width="51.61%" headers="mcps1.2.3.1.1 "><p id="p1232422184216"><a name="p1232422184216"></a><a name="p1232422184216"></a>DistributedInfo</p>
 </td>
-<td class="cellrowborder" valign="top" width="48.39%" headers="mcps1.2.3.1.2 "><p id="p1324821164215"><a name="p1324821164215"></a><a name="p1324821164215"></a>提供分布式帐号信息，主要包括帐号名、帐号UID和帐号登录状态，可能包含昵称、头像和自定义数据。</p>
+<td class="cellrowborder" valign="top" width="48.39%" headers="mcps1.2.3.1.2 "><p id="p1324821164215"><a name="p1324821164215"></a><a name="p1324821164215"></a>提供分布式帐号信息，包括分布式帐号ID、帐号名和登录状态，以及昵称、头像和自定义数据，可用于系统设备间认证、组网等场景。</p>
 </td>
 </tr>
 </tbody>
