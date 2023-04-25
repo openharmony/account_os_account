@@ -186,6 +186,8 @@ struct IsMainOAInfo : public CommonAsyncContext {
 };
 
 struct SubscribeCBInfo : public CommonAsyncContext {
+    SubscribeCBInfo(napi_env napiEnv) : CommonAsyncContext(napiEnv) {};
+    ~SubscribeCBInfo();
     OS_ACCOUNT_SUBSCRIBE_TYPE osSubscribeType;
     std::string name;
     OsAccountManager *osManager = nullptr;
@@ -199,6 +201,8 @@ struct SubscriberOAWorker : public CommonAsyncContext {
 };
 
 struct UnsubscribeCBInfo : public CommonAsyncContext {
+    UnsubscribeCBInfo(napi_env napiEnv) : CommonAsyncContext(napiEnv) {};
+    ~UnsubscribeCBInfo();
     OS_ACCOUNT_SUBSCRIBE_TYPE osSubscribeType;
     std::string name;
     OsAccountManager *osManager = nullptr;
@@ -337,12 +341,7 @@ napi_value Unsubscribe(napi_env env, napi_callback_info cbInfo);
 
 void UvQueueWorkOnAccountsChanged(uv_work_t *work, int status);
 
-void FindSubscriberInMap(
-    std::vector<std::shared_ptr<SubscriberPtr>> &subscribers, UnsubscribeCBInfo *unsubscribeCBInfo, bool &isFind);
-
-void UnsubscribeExecuteCB(napi_env env, void *data);
-
-void UnsubscribeCallbackCompletedCB(napi_env env, napi_status status, void *data);
+void UnsubscribeSync(napi_env env, UnsubscribeCBInfo *unsubscribeCBInfo);
 
 void SetEnumProperty(napi_env env, napi_value dstObj, const int objValue, const char *propName);
 }  // namespace AccountJsKit
