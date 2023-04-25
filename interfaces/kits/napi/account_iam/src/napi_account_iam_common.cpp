@@ -15,11 +15,14 @@
 
 #include "napi_account_iam_common.h"
 
+#include <map>
+
 #include <uv.h>
 #include "account_error_no.h"
 #include "account_log_wrapper.h"
 #include "napi_account_error.h"
 #include "napi_account_common.h"
+#include "napi_account_iam_constant.h"
 #include "securec.h"
 
 namespace OHOS {
@@ -270,6 +273,25 @@ napi_value CreateCredInfoArray(napi_env env, const std::vector<CredentialInfo> &
     return arr;
 }
 
+napi_status ConvertGetPropertyTypeToAttributeKey(GetPropertyType in,
+    Attributes::AttributeKey &out)
+{
+    static const std::map<GetPropertyType, Attributes::AttributeKey> type2Key = {
+        { AUTH_SUB_TYPE, Attributes::ATTR_PIN_SUB_TYPE },
+        { REMAIN_TIMES, Attributes::ATTR_REMAIN_TIMES },
+        { FREEZING_TIME, Attributes::ATTR_FREEZING_TIME }
+    };
+
+    auto iter = type2Key.find(in);
+    if (iter == type2Key.end()) {
+        ACCOUNT_LOGE("GetPropertyType %{public}d is invalid", in);
+        return napi_invalid_arg;
+    } else {
+        out = iter->second;
+    }
+    return napi_ok;
+}
+
 napi_status ParseGetPropRequest(napi_env env, napi_value object, GetPropertyRequest &request)
 {
     napi_valuetype valueType = napi_undefined;
@@ -288,7 +310,13 @@ napi_status ParseGetPropRequest(napi_env env, napi_value object, GetPropertyRequ
     std::vector<uint32_t> keys;
     ParseUInt32Array(env, napiKeys, keys);
     for (const auto &item : keys) {
-        request.keys.push_back(static_cast<Attributes::AttributeKey>(item));
+        Attributes::AttributeKey key;
+        napi_status status = ConvertGetPropertyTypeToAttributeKey(static_cast<GetPropertyType>(item), key);
+        if (status != napi_ok) {
+            ACCOUNT_LOGE("failed to convert get property type");
+            return status;
+        }
+        request.keys.push_back(key);
     }
     return napi_ok;
 }
