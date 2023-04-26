@@ -46,6 +46,20 @@ ohos_unittest("account_proxy_mock_test") {
   module_out_path = module_output_path
 
   sources = [
+    "${account_iam_framework_path}/src/account_iam_client.cpp",
+    "${app_account_innerkits_native_path}/src/app_account.cpp",
+    "${app_account_innerkits_native_path}/src/app_account_death_recipient.cpp",
+    "${app_account_innerkits_native_path}/src/app_account_event_listener.cpp",
+    "${app_account_innerkits_native_path}/src/app_account_manager.cpp",
+    "${app_account_innerkits_native_path}/src/app_account_subscriber.cpp",
+    "${innerkits_native_path}/src/ohos_account_kits.cpp",
+    "${innerkits_native_path}/src/ohos_account_kits_impl.cpp",
+    "${os_account_core_path}/src/os_account.cpp",
+    "${os_account_core_path}/src/os_account_death_recipient.cpp",
+    "${os_account_core_path}/src/os_account_event_listener.cpp",
+    "${os_account_core_path}/src/os_account_event_stub.cpp",
+    "${os_account_innerkits_native_path}/src/os_account_manager.cpp",
+    "${os_account_innerkits_native_path}/src/os_account_subscriber.cpp",
     "account_appaccount_proxy_mock_test.cpp",
     "account_iam_proxy_mock_test.cpp",
     "account_ohosaccount_proxy_mock_test.cpp",
@@ -67,6 +81,7 @@ ohos_unittest("account_proxy_mock_test") {
 
   external_deps = [
     "ability_base:want",
+    "access_token:libaccesstoken_sdk",
     "c_utils:utils",
     "hiviewdfx_hilog_native:libhilog",
     "ipc:ipc_single",
