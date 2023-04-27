@@ -42,6 +42,7 @@ struct JsDomainPlugin {
 };
 
 struct HasDomainAccountAsyncContext : public CommonAsyncContext {
+    ~HasDomainAccountAsyncContext();
     AccountSA::DomainAccountInfo domainInfo;
     bool isHasDomainAccount = false;
     ThreadLockInfo *lockInfo = nullptr;
@@ -53,6 +54,7 @@ struct UpdateAccountTokenAsyncContext : public CommonAsyncContext {
 };
 
 struct GetAccessTokenAsyncContext : public CommonAsyncContext {
+    ~GetAccessTokenAsyncContext();
     AccountSA::DomainAccountInfo domainInfo;
     AAFwk::WantParams getTokenParams;
     std::vector<uint8_t> accessToken;
@@ -113,7 +115,6 @@ private:
 class NapiHasDomainInfoCallback final : public AccountSA::DomainAccountCallback {
 public:
     NapiHasDomainInfoCallback(napi_env env, napi_ref callbackRef, napi_deferred deferred);
-    ~NapiHasDomainInfoCallback();
     void OnResult(const int32_t errCode, Parcel &parcel) override;
 
 private:
@@ -126,7 +127,6 @@ private:
 class NapiGetAccessTokenCallback final : public AccountSA::DomainAccountCallback {
 public:
     NapiGetAccessTokenCallback(napi_env env, napi_ref callbackRef, napi_deferred deferred);
-    ~NapiGetAccessTokenCallback();
     void OnResult(const int32_t errCode, Parcel &parcel) override;
 
 private:
