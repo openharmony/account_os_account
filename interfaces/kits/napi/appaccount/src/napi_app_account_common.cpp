@@ -26,6 +26,27 @@ using namespace OHOS::AccountSA;
 std::mutex g_lockForAppAccountSubscribers;
 std::map<AppAccountManager *, std::vector<AsyncContextForSubscribe *>> g_AppAccountSubscribers;
 
+static bool InitUvWorkCallbackEnv(uv_work_t *work, napi_handle_scope &scope)
+{
+    if (work == nullptr) {
+        ACCOUNT_LOGE("work is nullptr");
+        return false;
+    }
+    if (work->data == nullptr) {
+        ACCOUNT_LOGE("data is nullptr");
+        return false;
+    }
+    CommonAsyncContext *data = reinterpret_cast<CommonAsyncContext *>(work->data);
+    napi_open_handle_scope(data->env, &scope);
+    if (scope == nullptr) {
+        ACCOUNT_LOGE("fail to open scope");
+        delete data;
+        work->data = nullptr;
+        return false;
+    }
+    return true;
+}
+
 SubscriberPtr::SubscriberPtr(const AppAccountSubscribeInfo &subscribeInfo) : AppAccountSubscriber(subscribeInfo)
 {}
 
@@ -35,11 +56,13 @@ SubscriberPtr::~SubscriberPtr()
 void UvQueueWorkOnAppAccountsChanged(uv_work_t *work, int status)
 {
     ACCOUNT_LOGI("enter");
-
-    if (work == nullptr || work->data == nullptr) {
+    std::unique_ptr<uv_work_t> workPtr(work);
+    napi_handle_scope scope = nullptr;
+    if (!InitUvWorkCallbackEnv(work, scope)) {
         return;
     }
-    SubscriberAccountsWorker *subscriberAccountsWorkerData = (SubscriberAccountsWorker *)work->data;
+    std::unique_ptr<SubscriberAccountsWorker> 
+        subscriberAccountsWorkerData(reinterpret_cast<SubscriberAccountsWorker *>(work->data));
     uint32_t index = 0;
     napi_value results[ARGS_SIZE_ONE] = {nullptr};
     napi_create_array(subscriberAccountsWorkerData->env, &results[0]);
@@ -74,10 +97,7 @@ void UvQueueWorkOnAppAccountsChanged(uv_work_t *work, int status)
     NAPI_CALL_RETURN_VOID(subscriberAccountsWorkerData->env,
         napi_call_function(subscriberAccountsWorkerData->env, undefined, callback, ARGS_SIZE_ONE,
         &results[0], &resultout));
-
-    delete subscriberAccountsWorkerData;
-    subscriberAccountsWorkerData = nullptr;
-    delete work;
+    napi_close_handle_scope(subscriberAccountsWorkerData->env, scope);
 }
 
 void SubscriberPtr::OnAccountsChanged(const std::vector<AppAccountInfo> &accounts_)
@@ -96,7 +116,7 @@ void SubscriberPtr::OnAccountsChanged(const std::vector<AppAccountInfo> &account
         return;
     }
 
-    SubscriberAccountsWorker *subscriberAccountsWorker = new (std::nothrow) SubscriberAccountsWorker();
+    SubscriberAccountsWorker *subscriberAccountsWorker = new (std::nothrow) SubscriberAccountsWorker(env_);
 
     if (subscriberAccountsWorker == nullptr) {
         ACCOUNT_LOGI("SubscriberAccountsWorker is null");
@@ -138,11 +158,12 @@ AppAccountManagerCallback::~AppAccountManagerCallback()
 
 void UvQueueWorkOnResult(uv_work_t *work, int status)
 {
-    if ((work == nullptr) || (work->data == nullptr)) {
-        ACCOUNT_LOGE("work or data is nullptr");
+    napi_handle_scope scope = nullptr;
+    std::unique_ptr<uv_work_t> workPtr(work);
+    if (!InitUvWorkCallbackEnv(work, scope)) {
         return;
     }
-    AuthenticatorCallbackParam *data = (AuthenticatorCallbackParam *)work->data;
+    std::unique_ptr<AuthenticatorCallbackParam> data(reinterpret_cast<AuthenticatorCallbackParam *>(work->data));
     napi_value results[ARGS_SIZE_TWO] = {nullptr};
     results[0] = GetErrorCodeValue(data->env, data->resultCode);
     results[ARGS_SIZE_ONE] = AppExecFwk::WrapWantParams(data->env, data->result);
@@ -154,22 +175,23 @@ void UvQueueWorkOnResult(uv_work_t *work, int status)
     napi_call_function(data->env, undefined, callback, ARGS_SIZE_TWO, results, &resultout);
     if (data->resultRef != nullptr) {
         napi_delete_reference(data->env, data->resultRef);
+        data->resultRef = nullptr;
     }
     if (data->requestRedirectedRef != nullptr) {
         napi_delete_reference(data->env, data->requestRedirectedRef);
+        data->requestRedirectedRef = nullptr;
     }
-    delete data;
-    data = nullptr;
-    delete work;
+    napi_close_handle_scope(data->env, scope);
 }
 
 void UvQueueWorkOnRequestRedirected(uv_work_t *work, int status)
 {
-    if ((work == nullptr) || (work->data == nullptr)) {
-        ACCOUNT_LOGE("work or data is nullptr");
+    napi_handle_scope scope = nullptr;
+    std::unique_ptr<uv_work_t> workPtr(work);
+    if (!InitUvWorkCallbackEnv(work, scope)) {
         return;
     }
-    AuthenticatorCallbackParam *data = (AuthenticatorCallbackParam *)work->data;
+    std::unique_ptr<AuthenticatorCallbackParam> data(reinterpret_cast<AuthenticatorCallbackParam *>(work->data));
     napi_value results[ARGS_SIZE_ONE] = {nullptr};
     results[0] = AppExecFwk::WrapWant(data->env, data->request);
     napi_value undefined = nullptr;
@@ -178,9 +200,7 @@ void UvQueueWorkOnRequestRedirected(uv_work_t *work, int status)
     napi_value resultout = nullptr;
     napi_get_reference_value(data->env, data->requestRedirectedRef, &callback);
     napi_call_function(data->env, undefined, callback, ARGS_SIZE_ONE, results, &resultout);
-    delete data;
-    data = nullptr;
-    delete work;
+    napi_close_handle_scope(data->env, scope);
 }
 
 void AppAccountManagerCallback::OnResult(int32_t resultCode, const AAFwk::Want &result)
@@ -197,13 +217,11 @@ void AppAccountManagerCallback::OnResult(int32_t resultCode, const AAFwk::Want &
         ACCOUNT_LOGE("work is null");
         return;
     }
-    AuthenticatorCallbackParam *param = new AuthenticatorCallbackParam {
-        .env = env_,
-        .resultCode = resultCode,
-        .result = result.GetParams(),
-        .resultRef = resultRef_,
-        .requestRedirectedRef = requestRedirectedRef_,
-    };
+    AuthenticatorCallbackParam *param = new AuthenticatorCallbackParam(env_);
+    param->resultCode = resultCode;
+    param->result = result.GetParams();
+    param->resultRef = resultRef_;
+    param->requestRedirectedRef = requestRedirectedRef_;
     work->data = (void *)param;
     uv_queue_work(loop, work, [](uv_work_t *work) {}, UvQueueWorkOnResult);
 }
@@ -222,12 +240,10 @@ void AppAccountManagerCallback::OnRequestRedirected(AAFwk::Want &request)
         ACCOUNT_LOGI("work is null");
         return;
     }
-    AuthenticatorCallbackParam *param = new AuthenticatorCallbackParam {
-        .env = env_,
-        .request = request,
-        .resultRef = resultRef_,
-        .requestRedirectedRef = requestRedirectedRef_,
-    };
+    AuthenticatorCallbackParam *param = new AuthenticatorCallbackParam(env_);
+    param->request = request;
+    param->resultRef = resultRef_;
+    param->requestRedirectedRef = requestRedirectedRef_;
     work->data = (void *)param;
     uv_queue_work(loop, work, [](uv_work_t *work) {}, UvQueueWorkOnRequestRedirected);
 }
