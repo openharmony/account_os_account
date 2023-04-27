@@ -37,6 +37,7 @@ ohos_moduletest("domain_account_frameworks_module_test") {
 
   include_dirs = [
     "${services_path}/accountmgr/include",
+    "${services_path}/accountmgr/include/account_iam",
     "${services_path}/accountmgr/include/domain_account",
     "${services_path}/accountmgr/include/osaccount",
   ]
@@ -54,6 +55,7 @@ ohos_moduletest("domain_account_frameworks_module_test") {
   configs = [ ":domain_account_frameworks_config_moduletest" ]
 
   deps = [
+    "${account_iam_framework_path}:account_iam_innerkits",
     "${common_path}:libaccount_common",
     "${domain_account_framework_path}:domain_account_innerkits",
     "//third_party/googletest:gmock_main",
@@ -69,6 +71,13 @@ ohos_moduletest("domain_account_frameworks_module_test") {
     "ipc:ipc_single",
     "os_account:os_account_innerkits",
   ]
+
+  cflags_cc = []
+
+  if (has_user_auth_part) {
+    cflags_cc += [ "-DHAS_USER_AUTH_PART" ]
+    external_deps += [ "user_auth_framework:userauth_client" ]
+  }
 }
 
 group("moduletest") {
