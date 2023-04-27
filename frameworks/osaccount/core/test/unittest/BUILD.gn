@@ -11,8 +11,8 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-import("//base/account/os_account/os_account.gni")
 import("//build/test.gni")
+import("../../../../../os_account.gni")
 
 module_output_path = "os_account/frameworks/os_account"
 config("os_account_core_config_unittest") {
@@ -61,7 +61,7 @@ ohos_unittest("os_account_mock_test") {
     "${os_account_core_path}/src/os_account_death_recipient.cpp",
     "${os_account_core_path}/src/os_account_event_listener.cpp",
     "${os_account_core_path}/src/os_account_event_stub.cpp",
-    "//base/account/os_account/services/accountmgr/test/mock/src/mock_service_registry.cpp",
+    "${services_path}/accountmgr/test/mock/src/mock_service_registry.cpp",
     "os_account_mock_test.cpp",
   ]
 

@@ -11,24 +11,27 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-import("//base/account/os_account/os_account.gni")
 import("//build/ohos.gni")
+import("../../os_account.gni")
 
 ohos_prebuilt_etc("accountmgr.init") {
   source = "accountmgr.cfg"
   relative_install_dir = "init"
+  subsystem_name = "account"
   part_name = "os_account"
 }
 
 ohos_prebuilt_etc("osaccount_constraint") {
   source = "osaccount_constraints.json"
   relative_install_dir = "account"
+  subsystem_name = "account"
   part_name = "os_account"
 }
 
 ohos_prebuilt_etc("constraints_list_collection") {
   source = "constraints_list_collection.json"
   relative_install_dir = "account"
+  subsystem_name = "account"
   part_name = "os_account"
 }
 
@@ -309,5 +312,6 @@ ohos_shared_library("accountmgr") {
   external_deps += [ "hitrace_native:hitrace_meter" ]
 
   shlib_type = "sa"
+  subsystem_name = "account"
   part_name = "os_account"
 }

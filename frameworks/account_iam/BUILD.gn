@@ -11,8 +11,8 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-import("//base/account/os_account/os_account.gni")
 import("//build/ohos.gni")
+import("../../os_account.gni")
 
 config("account_iam_innnerkits_config") {
   visibility = [ ":*" ]
@@ -39,10 +39,7 @@ config("account_iam_innnerkits_config") {
 config("account_iam_innerkits_public_config") {
   visibility = [ ":*" ]
 
-  include_dirs = [
-    "${account_iam_interfaces_native_path}/include",
-    "//base/useriam/user_auth_framework/interfaces/inner_api",
-  ]
+  include_dirs = [ "${account_iam_interfaces_native_path}/include" ]
 }
 
 ohos_shared_library("account_iam_innerkits") {

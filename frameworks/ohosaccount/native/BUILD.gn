@@ -11,8 +11,8 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-import("//base/account/os_account/os_account.gni")
 import("//build/ohos.gni")
+import("../../../os_account.gni")
 
 config("public_account_config") {
   include_dirs = [
@@ -64,5 +64,6 @@ ohos_shared_library("libaccountkits") {
     "samgr:samgr_proxy",
   ]
   innerapi_tags = [ "platformsdk" ]
+  subsystem_name = "account"
   part_name = "os_account"
 }

@@ -11,8 +11,8 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-import("//base/account/os_account/os_account.gni")
 import("//build/test.gni")
+import("../../../os_account.gni")
 
 module_output_path = "os_account/frameworks/test"
 
@@ -21,7 +21,6 @@ config("account_proxy_mock_config_unittest") {
 
   include_dirs = [
     "include",
-    "//base/useriam/user_auth_framework/interfaces/inner_api",
     "//foundation/systemabilitymgr/safwk/interfaces/innerkits/safwk",
     "//foundation/systemabilitymgr/samgr/interfaces/innerkits/common/include",
     "//foundation/systemabilitymgr/samgr/interfaces/innerkits/samgr_proxy/include",
