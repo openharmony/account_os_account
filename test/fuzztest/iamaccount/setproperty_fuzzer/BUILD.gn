@@ -11,7 +11,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-import("//base/account/os_account/os_account.gni")
+import("../../../../os_account.gni")
 
 #####################hydra-fuzz###################
 import("//build/config/features.gni")
@@ -23,11 +23,8 @@ ohos_fuzztest("SetPropertyFuzzTest") {
   module_out_path = module_output_path
 
   fuzz_config_file =
-      "//base/account/os_account/test/fuzztest/iamaccount/setproperty_fuzzer"
-  include_dirs = [
-    "${account_iam_interfaces_native_path}/include",
-    "//base/useriam/user_auth_framework/interfaces/inner_api",
-  ]
+      "${os_account_path}/test/fuzztest/iamaccount/setproperty_fuzzer"
+  include_dirs = [ "${account_iam_interfaces_native_path}/include" ]
   cflags = [
     "-g",
     "-O0",
@@ -56,8 +53,8 @@ ohos_fuzztest("SetPropertyFuzzTest") {
   sources = [ "setproperty_fuzzer.cpp" ]
 
   deps = [
-    "//base/account/os_account/frameworks/account_iam:account_iam_innerkits",
-    "//base/account/os_account/frameworks/common:libaccount_common",
+    "${account_iam_framework_path}:account_iam_innerkits",
+    "${common_path}:libaccount_common",
   ]
 
   external_deps += [
