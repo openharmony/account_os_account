@@ -130,6 +130,10 @@ ohos_shared_library("accountmgr") {
     cflags += [ "-DDISTRIBUTED_FEATURE_ENABLED" ]
   }
 
+  if (!os_account_file_encryption_el1_feature) {
+    cflags += [ "-DFILE_ENCRYPTION_EL1_FEATURE" ]
+  }
+
   sources = [
     "${app_account_innerkits_native_path}/src/app_account_authenticator_callback_proxy.cpp",
     "${app_account_innerkits_native_path}/src/app_account_authenticator_callback_stub.cpp",
