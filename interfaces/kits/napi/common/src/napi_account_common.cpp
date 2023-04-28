@@ -76,6 +76,27 @@ void ProcessCallbackOrPromise(napi_env env, const CommonAsyncContext *asyncConte
     }
 }
 
+void ReturnCallbackOrPromise(napi_env env, const CommonAsyncContext *asyncContext, napi_value err, napi_value data)
+{
+    napi_value args[BUSINESS_ERROR_ARG_SIZE] = {err, data};
+    if (asyncContext->errCode == ERR_OK) {
+        NAPI_CALL_RETURN_VOID(env, napi_get_null(env, &args[0]));
+    } else {
+        NAPI_CALL_RETURN_VOID(env, napi_get_null(env, &args[1]));
+    }
+    if (asyncContext->deferred != nullptr) {
+        if (asyncContext->errCode == ERR_OK) {
+            NAPI_CALL_RETURN_VOID(env, napi_resolve_deferred(env, asyncContext->deferred, args[1]));
+        } else {
+            NAPI_CALL_RETURN_VOID(env, napi_reject_deferred(env, asyncContext->deferred, args[0]));
+        }
+        return;
+    }
+    if (asyncContext->callbackRef != nullptr) {
+        NapiCallVoidFunction(env, args, BUSINESS_ERROR_ARG_SIZE, asyncContext->callbackRef);
+    }
+}
+
 bool GetIntProperty(napi_env env, napi_value obj, int32_t &property)
 {
     napi_valuetype valueType = napi_undefined;
