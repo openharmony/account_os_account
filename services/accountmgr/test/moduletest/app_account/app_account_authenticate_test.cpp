@@ -378,11 +378,9 @@ HWTEST_F(AppAccountAuthenticateModuleTest, AppAccountAuthenticatorManagerTest_Ge
 {
     auto appAccountAuthenticatorManagerPtr = std::make_shared<AppAccountAuthenticatorManager>();
     ASSERT_NE(appAccountAuthenticatorManagerPtr, nullptr);
-    appAccountAuthenticatorManagerPtr->isInitialized_ = false;
     std::string owner = "owner";
     int32_t userId = 1;
     AuthenticatorInfo info;
     ErrCode result = appAccountAuthenticatorManagerPtr->GetAuthenticatorInfo(owner, userId, info);
     ASSERT_NE(result, ERR_OK);
-    ASSERT_EQ(appAccountAuthenticatorManagerPtr->isInitialized_, true);
 }
