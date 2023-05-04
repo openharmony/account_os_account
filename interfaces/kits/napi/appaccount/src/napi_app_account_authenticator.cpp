@@ -155,6 +155,7 @@ ErrCode NapiAppAccountAuthenticator::Authenticate(const std::string &name, const
     uv_queue_work(loop, work, [](uv_work_t *work) {}, AuthenticateWork);
     return ERR_OK;
 }
+
 ErrCode NapiAppAccountAuthenticator::CreateAccountImplicitly(
     const CreateAccountImplicitlyOptions &options, const sptr<IRemoteObject> &callback)
 {
@@ -348,7 +349,12 @@ void NapiAppAccountAuthenticator::CallJsFunction(
 
 void NapiAppAccountAuthenticator::AddAccountImplicitlyWork(uv_work_t *work, int status)
 {
-    JsAuthenticatorParam *param = reinterpret_cast<JsAuthenticatorParam *>(work->data);
+    std::unique_ptr<uv_work_t> workPtr(work);
+    napi_handle_scope scope = nullptr;
+    if (!InitUvWorkCallbackEnv(work, scope)) {
+        return;
+    }
+    std::unique_ptr<JsAuthenticatorParam> param(reinterpret_cast<JsAuthenticatorParam *>(work->data));
     napi_value jsAuthType;
     napi_create_string_utf8(param->env, param->authType.c_str(), NAPI_AUTO_LENGTH, &jsAuthType);
     napi_value jsCallerBundleName;
@@ -357,11 +363,17 @@ void NapiAppAccountAuthenticator::AddAccountImplicitlyWork(uv_work_t *work, int 
     napi_value jsCallback = CreateAuthenticatorCallback(param->env, param->callback);
     napi_value argv[] = { jsAuthType, jsCallerBundleName, jsOptions, jsCallback};
     CallJsFunction(param->env, param->jsAuthenticator.addAccountImplicitly, argv, ARGS_SIZE_FOUR);
+    napi_close_handle_scope(param->env, scope);
 }
 
 void NapiAppAccountAuthenticator::AuthenticateWork(uv_work_t *work, int status)
 {
-    JsAuthenticatorParam *param = reinterpret_cast<JsAuthenticatorParam *>(work->data);
+    std::unique_ptr<uv_work_t> workPtr(work);
+    napi_handle_scope scope = nullptr;
+    if (!InitUvWorkCallbackEnv(work, scope)) {
+        return;
+    }
+    std::unique_ptr<JsAuthenticatorParam> param(reinterpret_cast<JsAuthenticatorParam *>(work->data));
     napi_value jsName;
     napi_create_string_utf8(param->env, param->name.c_str(), NAPI_AUTO_LENGTH, &jsName);
     napi_value jsAuthType;
@@ -372,11 +384,17 @@ void NapiAppAccountAuthenticator::AuthenticateWork(uv_work_t *work, int status)
     napi_value jsCallback = CreateAuthenticatorCallback(param->env, param->callback);
     napi_value argv[] = { jsName, jsAuthType, jsCallerBundleName, jsOptions, jsCallback};
     CallJsFunction(param->env, param->jsAuthenticator.authenticate, argv, ARGS_SIZE_FIVE);
+    napi_close_handle_scope(param->env, scope);
 }
 
 void NapiAppAccountAuthenticator::CreateAccountImplicitlyWork(uv_work_t *work, int status)
 {
-    JsAuthenticatorParam *param = reinterpret_cast<JsAuthenticatorParam *>(work->data);
+    std::unique_ptr<uv_work_t> workPtr(work);
+    napi_handle_scope scope = nullptr;
+    if (!InitUvWorkCallbackEnv(work, scope)) {
+        return;
+    }
+    std::unique_ptr<JsAuthenticatorParam> param(reinterpret_cast<JsAuthenticatorParam *>(work->data));
     napi_value jsObject = nullptr;
     napi_create_object(param->env, &jsObject);
     if (param->createOptions.hasAuthType) {
@@ -393,11 +411,17 @@ void NapiAppAccountAuthenticator::CreateAccountImplicitlyWork(uv_work_t *work, i
     napi_value jsCallback = CreateAuthenticatorCallback(param->env, param->callback);
     napi_value argv[] = {jsObject, jsCallback};
     CallJsFunction(param->env, param->jsAuthenticator.createAccountImplicitly, argv, ARGS_SIZE_TWO);
+    napi_close_handle_scope(param->env, scope);
 }
 
 void NapiAppAccountAuthenticator::AuthWork(uv_work_t *work, int status)
 {
-    JsAuthenticatorParam *param = reinterpret_cast<JsAuthenticatorParam *>(work->data);
+    std::unique_ptr<uv_work_t> workPtr(work);
+    napi_handle_scope scope = nullptr;
+    if (!InitUvWorkCallbackEnv(work, scope)) {
+        return;
+    }
+    std::unique_ptr<JsAuthenticatorParam> param(reinterpret_cast<JsAuthenticatorParam *>(work->data));
     napi_value jsName;
     napi_create_string_utf8(param->env, param->name.c_str(), NAPI_AUTO_LENGTH, &jsName);
     napi_value jsAuthType;
@@ -406,11 +430,17 @@ void NapiAppAccountAuthenticator::AuthWork(uv_work_t *work, int status)
     napi_value jsCallback = CreateAuthenticatorCallback(param->env, param->callback);
     napi_value argv[] = { jsName, jsAuthType, jsOptions, jsCallback};
     CallJsFunction(param->env, param->jsAuthenticator.auth, argv, ARGS_SIZE_FOUR);
+    napi_close_handle_scope(param->env, scope);
 }
 
 void NapiAppAccountAuthenticator::VerifyCredentialWork(uv_work_t *work, int status)
 {
-    JsAuthenticatorParam *param = reinterpret_cast<JsAuthenticatorParam *>(work->data);
+    std::unique_ptr<uv_work_t> workPtr(work);
+    napi_handle_scope scope = nullptr;
+    if (!InitUvWorkCallbackEnv(work, scope)) {
+        return;
+    }
+    std::unique_ptr<JsAuthenticatorParam> param(reinterpret_cast<JsAuthenticatorParam *>(work->data));
     napi_value jsName;
     napi_create_string_utf8(param->env, param->name.c_str(), NAPI_AUTO_LENGTH, &jsName);
     napi_value jsOptions;
@@ -418,21 +448,33 @@ void NapiAppAccountAuthenticator::VerifyCredentialWork(uv_work_t *work, int stat
     napi_value jsCallback = CreateAuthenticatorCallback(param->env, param->callback);
     napi_value argv[] = { jsName, jsOptions, jsCallback};
     CallJsFunction(param->env, param->jsAuthenticator.verifyCredential, argv, ARGS_SIZE_THREE);
+    napi_close_handle_scope(param->env, scope);
 }
 
 void NapiAppAccountAuthenticator::SetPropertiesWork(uv_work_t *work, int status)
 {
-    JsAuthenticatorParam *param = reinterpret_cast<JsAuthenticatorParam *>(work->data);
+    std::unique_ptr<uv_work_t> workPtr(work);
+    napi_handle_scope scope = nullptr;
+    if (!InitUvWorkCallbackEnv(work, scope)) {
+        return;
+    }
+    std::unique_ptr<JsAuthenticatorParam> param(reinterpret_cast<JsAuthenticatorParam *>(work->data));
     napi_value jsOptions;
     CreateJsSetPropertiesOptions(param->env, param->setPropOptions, &jsOptions);
     napi_value jsCallback = CreateAuthenticatorCallback(param->env, param->callback);
     napi_value argv[] = {jsOptions, jsCallback};
     CallJsFunction(param->env, param->jsAuthenticator.setProperties, argv, ARGS_SIZE_TWO);
+    napi_close_handle_scope(param->env, scope);
 }
 
 void NapiAppAccountAuthenticator::CheckAccountLabelsWork(uv_work_t *work, int status)
 {
-    JsAuthenticatorParam *param = reinterpret_cast<JsAuthenticatorParam *>(work->data);
+    std::unique_ptr<uv_work_t> workPtr(work);
+    napi_handle_scope scope = nullptr;
+    if (!InitUvWorkCallbackEnv(work, scope)) {
+        return;
+    }
+    std::unique_ptr<JsAuthenticatorParam> param(reinterpret_cast<JsAuthenticatorParam *>(work->data));
     napi_value jsName;
     napi_create_string_utf8(param->env, param->name.c_str(), NAPI_AUTO_LENGTH, &jsName);
     napi_value jsLabels = nullptr;
@@ -445,16 +487,23 @@ void NapiAppAccountAuthenticator::CheckAccountLabelsWork(uv_work_t *work, int st
     napi_value jsCallback = CreateAuthenticatorCallback(param->env, param->callback);
     napi_value argv[] = {jsName, jsLabels, jsCallback};
     CallJsFunction(param->env, param->jsAuthenticator.checkAccountLabels, argv, ARGS_SIZE_THREE);
+    napi_close_handle_scope(param->env, scope);
 }
 
 void NapiAppAccountAuthenticator::IsAccountRemovableWork(uv_work_t *work, int status)
 {
-    JsAuthenticatorParam *param = reinterpret_cast<JsAuthenticatorParam *>(work->data);
+    std::unique_ptr<uv_work_t> workPtr(work);
+    napi_handle_scope scope = nullptr;
+    if (!InitUvWorkCallbackEnv(work, scope)) {
+        return;
+    }
+    std::unique_ptr<JsAuthenticatorParam> param(reinterpret_cast<JsAuthenticatorParam *>(work->data));
     napi_value jsName;
     napi_create_string_utf8(param->env, param->name.c_str(), NAPI_AUTO_LENGTH, &jsName);
     napi_value jsCallback = CreateAuthenticatorCallback(param->env, param->callback);
     napi_value argv[] = {jsName, jsCallback};
     CallJsFunction(param->env, param->jsAuthenticator.isAccountRemovable, argv, ARGS_SIZE_TWO);
+    napi_close_handle_scope(param->env, scope);
 }
 
 napi_value NapiAppAccountAuthenticator::GetJsRemoteObject()

@@ -437,6 +437,8 @@ bool InitUvWorkCallbackEnv(uv_work_t *work, napi_handle_scope &scope)
     napi_open_handle_scope(data->env, &scope);
     if (scope == nullptr) {
         ACCOUNT_LOGE("fail to open scope");
+        delete data;
+        work->data = nullptr;
         return false;
     }
     return true;
