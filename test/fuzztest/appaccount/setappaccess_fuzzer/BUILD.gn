@@ -11,6 +11,8 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+import("../../../../os_account.gni")
+
 #####################hydra-fuzz###################
 import("//build/config/features.gni")
 import("//build/test.gni")
@@ -21,7 +23,7 @@ ohos_fuzztest("SetAppAccessFuzzTest") {
   module_out_path = module_output_path
 
   fuzz_config_file =
-      "//base/account/os_account/test/fuzztest/appaccount/setappaccess_fuzzer"
+      "${os_account_path}/test/fuzztest/appaccount/setappaccess_fuzzer"
   include_dirs = []
   cflags = [
     "-g",
@@ -32,8 +34,8 @@ ohos_fuzztest("SetAppAccessFuzzTest") {
   sources = [ "setappaccess_fuzzer.cpp" ]
 
   deps = [
-    "//base/account/os_account/frameworks/appaccount/native:app_account_innerkits",
-    "//base/account/os_account/frameworks/common:libaccount_common",
+    "${app_account_innerkits_native_path}:app_account_innerkits",
+    "${common_path}:libaccount_common",
   ]
 
   external_deps = [

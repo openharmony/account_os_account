@@ -11,6 +11,8 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+import("../../../../os_account.gni")
+
 #####################hydra-fuzz###################
 import("//build/config/features.gni")
 import("//build/test.gni")
@@ -20,10 +22,11 @@ module_output_path = "os_account/ohosaccount"
 ohos_fuzztest("GetOhosAccountInfoFuzzTest") {
   module_out_path = module_output_path
 
-  fuzz_config_file = "//base/account/os_account/test/fuzztest/ohosaccount/getohosaccountinfo_fuzzer"
+  fuzz_config_file =
+      "${os_account_path}/test/fuzztest/ohosaccount/getohosaccountinfo_fuzzer"
   include_dirs = [
-    "//base/account/os_account/frameworks/ohosaccount/native/include",
-    "//base/account/os_account/interfaces/innerkits/ohosaccount/native/include",
+    "${innerkits_native_path}/include",
+    "${innerkits_path}/include",
   ]
   cflags = [
     "-g",
@@ -34,8 +37,8 @@ ohos_fuzztest("GetOhosAccountInfoFuzzTest") {
   sources = [ "getohosaccountinfo_fuzzer.cpp" ]
 
   deps = [
-    "//base/account/os_account/frameworks/common:libaccount_common",
-    "//base/account/os_account/frameworks/ohosaccount/native:libaccountkits",
+    "${common_path}:libaccount_common",
+    "${innerkits_native_path}:libaccountkits",
   ]
 
   external_deps = [

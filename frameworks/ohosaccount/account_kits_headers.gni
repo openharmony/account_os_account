@@ -11,6 +11,8 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+import("../../os_account.gni")
+
 account_sdk_headers = {
   header_files = [
     "account_info.h",
@@ -19,5 +21,5 @@ account_sdk_headers = {
     "ohos_account_kits.h",
   ]
 
-  header_base = "//base/account/os_account/interfaces/innerkits/ohosaccount/native/include"
+  header_base = "${innerkits_path}/include"
 }
