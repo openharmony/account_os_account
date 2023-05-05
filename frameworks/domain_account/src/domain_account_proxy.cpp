@@ -166,6 +166,30 @@ ErrCode DomainAccountProxy::RegisterAccountStatusListener(
         return ERR_ACCOUNT_COMMON_WRITE_PARCEL_ERROR;
     }
     MessageParcel reply;
+    ErrCode result = SendRequest(IDomainAccount::Message::DOMAIN_ACCOUNT_STATUS_LISTENER_REGISTER_BY_INFO, data, reply);
+    if (result != ERR_OK) {
+        ACCOUNT_LOGE("SendRequest err, result %{public}d.", result);
+        return result;
+    }
+    if (!reply.ReadInt32(result)) {
+        ACCOUNT_LOGE("fail to read result");
+        return ERR_ACCOUNT_COMMON_READ_PARCEL_ERROR;
+    }
+    return result;
+}
+
+ErrCode DomainAccountProxy::RegisterAccountStatusListener(const sptr<IDomainAccountCallback> &listener)
+{
+    MessageParcel data;
+    if (!data.WriteInterfaceToken(GetDescriptor())) {
+        ACCOUNT_LOGE("failed to write descriptor!");
+        return ERR_ACCOUNT_COMMON_WRITE_DESCRIPTOR_ERROR;
+    }
+    if ((listener == nullptr) || (!data.WriteRemoteObject(listener->AsObject()))) {
+        ACCOUNT_LOGE("fail to write callback");
+        return ERR_ACCOUNT_COMMON_WRITE_PARCEL_ERROR;
+    }
+    MessageParcel reply;
     ErrCode result = SendRequest(IDomainAccount::Message::DOMAIN_ACCOUNT_STATUS_LISTENER_REGISTER, data, reply);
     if (result != ERR_OK) {
         ACCOUNT_LOGE("SendRequest err, result %{public}d.", result);
@@ -178,15 +202,15 @@ ErrCode DomainAccountProxy::RegisterAccountStatusListener(
     return result;
 }
 
-ErrCode DomainAccountProxy::UnregisterAccountStatusListener(const DomainAccountInfo &info)
+ErrCode DomainAccountProxy::UnregisterAccountStatusListener(const sptr<IDomainAccountCallback> &listener)
 {
     MessageParcel data;
     if (!data.WriteInterfaceToken(GetDescriptor())) {
         ACCOUNT_LOGE("failed to write descriptor!");
         return ERR_ACCOUNT_COMMON_WRITE_DESCRIPTOR_ERROR;
     }
-    if (!data.WriteParcelable(&info)) {
-        ACCOUNT_LOGE("fail to write parcelable");
+    if ((listener == nullptr) || (!data.WriteRemoteObject(listener->AsObject()))) {
+        ACCOUNT_LOGE("fail to write callback");
         return ERR_ACCOUNT_COMMON_WRITE_PARCEL_ERROR;
     }
 
@@ -203,8 +227,39 @@ ErrCode DomainAccountProxy::UnregisterAccountStatusListener(const DomainAccountI
     return result;
 }
 
-ErrCode DomainAccountProxy::Auth(const DomainAccountInfo &info, const std::vector<uint8_t> &password,
-    const sptr<IDomainAuthCallback> &callback)
+ErrCode DomainAccountProxy::UnregisterAccountStatusListener(
+    const DomainAccountInfo &info, const sptr<IDomainAccountCallback> &listener)
+{
+    MessageParcel data;
+    if (!data.WriteInterfaceToken(GetDescriptor())) {
+        ACCOUNT_LOGE("failed to write descriptor!");
+        return ERR_ACCOUNT_COMMON_WRITE_DESCRIPTOR_ERROR;
+    }
+    if (!data.WriteParcelable(&info)) {
+        ACCOUNT_LOGE("fail to write parcelable");
+        return ERR_ACCOUNT_COMMON_WRITE_PARCEL_ERROR;
+    }
+    if ((listener == nullptr) || (!data.WriteRemoteObject(listener->AsObject()))) {
+        ACCOUNT_LOGE("fail to write callback");
+        return ERR_ACCOUNT_COMMON_WRITE_PARCEL_ERROR;
+    }
+
+    MessageParcel reply;
+    ErrCode result =
+        SendRequest(IDomainAccount::Message::DOMAIN_ACCOUNT_STATUS_LISTENER_UNREGISTER_BY_INFO, data, reply);
+    if (result != ERR_OK) {
+        ACCOUNT_LOGE("SendRequest err, result %{public}d.", result);
+        return result;
+    }
+    if (!reply.ReadInt32(result)) {
+        ACCOUNT_LOGE("fail to read result");
+        return ERR_ACCOUNT_COMMON_READ_PARCEL_ERROR;
+    }
+    return result;
+}
+
+ErrCode DomainAccountProxy::Auth(
+    const DomainAccountInfo &info, const std::vector<uint8_t> &password, const sptr<IDomainAuthCallback> &callback)
 {
     MessageParcel data;
     if (!data.WriteInterfaceToken(GetDescriptor())) {
@@ -240,8 +295,8 @@ ErrCode DomainAccountProxy::Auth(const DomainAccountInfo &info, const std::vecto
     return result;
 }
 
-ErrCode DomainAccountProxy::AuthUser(int32_t userId, const std::vector<uint8_t> &password,
-    const sptr<IDomainAuthCallback> &callback)
+ErrCode DomainAccountProxy::AuthUser(
+    int32_t userId, const std::vector<uint8_t> &password, const sptr<IDomainAuthCallback> &callback)
 {
     MessageParcel data;
     if (!data.WriteInterfaceToken(GetDescriptor())) {
@@ -361,5 +416,5 @@ ErrCode DomainAccountProxy::GetAccessToken(
     }
     return result;
 }
-}  // namespace AccountSA
-}  // namespace OHOS
+} // namespace AccountSA
+} // namespace OHOS

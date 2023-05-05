@@ -1126,7 +1126,6 @@ public:
         EXPECT_EQ(data.event, DomainAccountEvent::LOG_IN);
         EXPECT_EQ(data.status, DomainAccountStatus::LOGIN);
         visited = true;
-        EXPECT_EQ(DomainAccountClient::GetInstance().UnregisterAccountStatusListener(data.domainAccountInfo), ERR_OK);
     }
 
     bool visited = false;
@@ -1143,7 +1142,6 @@ public:
         EXPECT_EQ(data.event, DomainAccountEvent::LOG_IN);
         EXPECT_EQ(data.status, DomainAccountStatus::LOGIN_BACKGROUND);
         visited = true;
-        EXPECT_EQ(DomainAccountClient::GetInstance().UnregisterAccountStatusListener(data.domainAccountInfo), ERR_OK);
     }
 
     bool visited = false;
@@ -1160,7 +1158,6 @@ public:
         EXPECT_EQ(data.event, DomainAccountEvent::TOKEN_UPDATED);
         EXPECT_EQ(data.status, DomainAccountStatus::LOGIN);
         visited = true;
-        EXPECT_EQ(DomainAccountClient::GetInstance().UnregisterAccountStatusListener(data.domainAccountInfo), ERR_OK);
     }
 
     bool visited = false;
@@ -1177,7 +1174,6 @@ public:
         EXPECT_EQ(data.event, DomainAccountEvent::TOKEN_UPDATED);
         EXPECT_EQ(data.status, DomainAccountStatus::LOGIN_BACKGROUND);
         visited = true;
-        EXPECT_EQ(DomainAccountClient::GetInstance().UnregisterAccountStatusListener(data.domainAccountInfo), ERR_OK);
     }
 
     bool visited = false;
@@ -1194,7 +1190,6 @@ public:
         EXPECT_EQ(data.event, DomainAccountEvent::TOKEN_INVALID);
         EXPECT_EQ(data.status, DomainAccountStatus::LOGOUT);
         visited = true;
-        EXPECT_EQ(DomainAccountClient::GetInstance().UnregisterAccountStatusListener(data.domainAccountInfo), ERR_OK);
     }
 
     bool visited = false;
@@ -1211,9 +1206,6 @@ public:
         EXPECT_EQ(data.event, DomainAccountEvent::LOG_OUT);
         EXPECT_EQ(data.status, DomainAccountStatus::LOGOUT);
         visited = true;
-        EXPECT_EQ(DomainAccountClient::GetInstance().UnregisterAccountStatusListener(data.domainAccountInfo), ERR_OK);
-        EXPECT_EQ(DomainAccountClient::GetInstance().UnregisterAccountStatusListener(data.domainAccountInfo),
-            ERR_ACCOUNT_COMMON_LISTENER_NOT_EXIST_FAILED);
     }
 
     bool visited = false;
@@ -1250,8 +1242,8 @@ HWTEST_F(DomainAccountClientModuleTest, UnregisterAccountStatusListener_001, Tes
     domainInfo.accountName_ = STRING_NAME_NEW;
     domainInfo.domain_ = STRING_DOMAIN;
     domainInfo.accountId_ = STRING_ACCOUNTID;
-    EXPECT_EQ(DomainAccountClient::GetInstance().UnregisterAccountStatusListener(domainInfo),
-        ERR_ACCOUNT_COMMON_LISTENER_NOT_EXIST_FAILED);
+    auto listener = std::make_shared<ListenerLogIn>();
+    EXPECT_EQ(DomainAccountClient::GetInstance().UnregisterAccountStatusListener(listener), ERR_OK);
 }
 
 /**
@@ -1296,10 +1288,9 @@ HWTEST_F(DomainAccountClientModuleTest, RegisterAccountStatusListener_003, TestS
     auto listener = std::make_shared<ListenerLogIn>();
     EXPECT_EQ(DomainAccountClient::GetInstance().RegisterAccountStatusListener(domainInfo, listener), ERR_OK);
 
-    EXPECT_EQ(DomainAccountClient::GetInstance().RegisterAccountStatusListener(domainInfo, listener),
-        ERR_ACCOUNT_COMMON_LISTENER_EXIST_FAILED);
+    EXPECT_EQ(DomainAccountClient::GetInstance().RegisterAccountStatusListener(domainInfo, listener), ERR_OK);
 
-    EXPECT_EQ(DomainAccountClient::GetInstance().UnregisterAccountStatusListener(domainInfo), ERR_OK);
+    EXPECT_EQ(DomainAccountClient::GetInstance().UnregisterAccountStatusListener(listener), ERR_OK);
     int32_t userId = -1;
     errCode = OsAccountManager::GetOsAccountLocalIdFromDomain(domainInfo, userId);
     EXPECT_EQ(errCode, ERR_OK);
