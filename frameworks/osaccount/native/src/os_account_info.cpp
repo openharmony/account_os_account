@@ -227,7 +227,6 @@ Json OsAccountInfo::ToJson() const
             {DOMAIN_NAME, domainInfo_.domain_},
             {DOMAIN_ACCOUNT_NAME, domainInfo_.accountName_},
             {DOMAIN_ACCOUNT_ID, domainInfo_.accountId_},
-            {DOMAIN_ACCOUNT_STATUS, domainInfo_.status_},
         },
         }
     };
@@ -286,10 +285,6 @@ void OsAccountInfo::FromJson(const Json &jsonObject)
         typeJson, typeJson.end(), DOMAIN_ACCOUNT_NAME, domainInfo_.accountName_, OHOS::AccountSA::JsonType::STRING);
     OHOS::AccountSA::GetDataByType<std::string>(
         typeJson, typeJson.end(), DOMAIN_ACCOUNT_ID, domainInfo_.accountId_, OHOS::AccountSA::JsonType::STRING);
-    int status;
-    OHOS::AccountSA::GetDataByType<int>(
-        typeJson, typeJson.end(), DOMAIN_ACCOUNT_STATUS, status, OHOS::AccountSA::JsonType::NUMBER);
-    domainInfo_.status_ = static_cast<DomainAccountStatus>(status);
 }
 
 bool OsAccountInfo::Marshalling(Parcel &parcel) const

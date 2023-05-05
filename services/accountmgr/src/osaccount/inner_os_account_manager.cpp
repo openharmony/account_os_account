@@ -362,8 +362,10 @@ ErrCode IInnerOsAccountManager::RemoveOsAccountOperate(const int id, OsAccountIn
         return errCode;
     }
     CheckAndRefreshLocalIdRecord(id);
-    InnerDomainAccountManager::GetInstance().NotifyDomainAccountEvent(
-        id, DomainAccountEvent::LOG_OUT, DomainAccountStatus::LOGOUT, domainAccountInfo);
+    if (!domainAccountInfo.accountId_.empty()) {
+        InnerDomainAccountManager::GetInstance().NotifyDomainAccountEvent(
+            id, DomainAccountEvent::LOG_OUT, DomainAccountStatus::LOGOUT, domainAccountInfo);
+    }
     return errCode;
 }
 
@@ -814,14 +816,12 @@ void IInnerOsAccountManager::CleanGarbageAccounts()
 
 ErrCode IInnerOsAccountManager::GetOsAccountLocalIdFromDomain(const DomainAccountInfo &domainInfo, int &id)
 {
-    if (domainInfo.domain_.empty() ||
-        domainInfo.domain_.size() > Constants::DOMAIN_NAME_MAX_SIZE) {
+    if (domainInfo.domain_.size() > Constants::DOMAIN_NAME_MAX_SIZE) {
         ACCOUNT_LOGE("invalid domain name length %{public}zu.", domainInfo.domain_.size());
         return ERR_OSACCOUNT_SERVICE_INNER_DOMAIN_NAME_LEN_ERROR;
     }
 
-    if (domainInfo.accountName_.empty() ||
-        domainInfo.accountName_.size() > Constants::DOMAIN_ACCOUNT_NAME_MAX_SIZE) {
+    if (domainInfo.accountName_.size() > Constants::DOMAIN_ACCOUNT_NAME_MAX_SIZE) {
         ACCOUNT_LOGE("invalid domain account name length %{public}zu.", domainInfo.accountName_.size());
         return ERR_OSACCOUNT_SERVICE_INNER_DOMAIN_ACCOUNT_NAME_LEN_ERROR;
     }
@@ -838,8 +838,8 @@ ErrCode IInnerOsAccountManager::GetOsAccountLocalIdFromDomain(const DomainAccoun
          ++osAccountInfosPtr) {
         osAccountInfosPtr->GetDomainInfo(curDomainInfo);
         if (((!domainInfo.accountId_.empty()) && (domainInfo.accountId_ == curDomainInfo.accountId_)) ||
-            ((curDomainInfo.accountName_ == domainInfo.accountName_) &&
-            (curDomainInfo.domain_ == domainInfo.domain_))) {
+            ((!domainInfo.accountName_.empty()) && (curDomainInfo.accountName_ == domainInfo.accountName_) &&
+            (!domainInfo.domain_.empty()) && (curDomainInfo.domain_ == domainInfo.domain_))) {
             id = osAccountInfosPtr->GetLocalId();
             return ERR_OK;
         }
