@@ -24,6 +24,7 @@
 #include "iapp_account_authenticator_callback.h"
 #include "iremote_object.h"
 #include "napi/native_api.h"
+#include "napi_account_common.h"
 #include "napi_app_account_common.h"
 #include "refbase.h"
 
@@ -40,8 +41,7 @@ struct JsAuthenticator {
     napi_ref auth = nullptr;
 };
 
-struct JsAuthenticatorParam {
-    napi_env env;
+struct JsAuthenticatorParam : public CommonAsyncContext {
     JsAuthenticator jsAuthenticator;
     std::string name;
     std::string authType;
