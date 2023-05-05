@@ -18,6 +18,7 @@
 
 #include <map>
 #include <mutex>
+#include <set>
 #include <vector>
 
 #include "domain_account_common.h"
@@ -31,11 +32,12 @@ public:
     StatusListenerManager();
     static StatusListenerManager& GetInstance();
 
-    ErrCode InsertListenerToMap(
+    ErrCode InsertListenerToRecords(
         const std::string &domain, const std::string &accountName, const sptr<IRemoteObject> &listener);
-    ErrCode RemoveListenerByStr(const std::string &domain, const std::string &accountName);
-    ErrCode RemoveListenerByObject(const sptr<IRemoteObject> &listener);
-    sptr<IRemoteObject> GetListenerInMap(const std::string &domainAccountStr);
+    ErrCode InsertListenerToRecords(const sptr<IRemoteObject> &listener);
+    ErrCode RemoveListenerByListener(const sptr<IRemoteObject> &listener);
+    ErrCode RemoveListenerByInfoAndListener(
+        const std::string &domain, const std::string &accountName, const sptr<IRemoteObject> &listener);
     void NotifyEventAsync(const DomainAccountEventData &report);
     std::string GetDomainAccountStr(const std::string &domain, const std::string &accountName) const;
 
@@ -43,7 +45,9 @@ private:
     void DomainAccountEventParcel(const DomainAccountEventData &report, Parcel &parcel);
 
     std::mutex mutex_;
-    std::map<std::string, sptr<IRemoteObject>> statusListenerMap_;
+    std::set<sptr<IRemoteObject>> listenerAll_;
+    std::map<sptr<IRemoteObject>, std::set<std::string>> listenerToAccount_;
+    std::map<std::string, std::set<sptr<IRemoteObject>>> accountToListener_;
     sptr<IRemoteObject::DeathRecipient> listenerDeathRecipient_;
 };
 } // namespace AccountSA

@@ -54,6 +54,12 @@ void DomainAccountStatusListenerService::OnResult(const int32_t errCode, Parcel 
         return;
     }
     report.status = static_cast<DomainAccountStatus>(status);
+    int32_t userId;
+    if (!parcel.ReadInt32(userId)) {
+        ACCOUNT_LOGE("Read userId failed");
+        return;
+    }
+    report.userId = userId;
     listener_->OnStatusChanged(report);
     ACCOUNT_LOGI("OnStatusChanged end");
     return;
