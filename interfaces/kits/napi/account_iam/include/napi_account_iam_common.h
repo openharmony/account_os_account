@@ -127,6 +127,8 @@ struct GetPropertyContext : public CommonAsyncContext {
     int32_t authSubType = 0;
     int32_t remainTimes = 0;
     int32_t freezingTime = 0;
+    std::string enrollProgress;
+    std::string sensorInfo;
 };
 
 struct SetPropertyContext : public CommonAsyncContext {
@@ -174,14 +176,16 @@ private:
 
 class NapiGetPropCallback : public AccountSA::GetSetPropCallback {
 public:
-    explicit NapiGetPropCallback(napi_env env, napi_ref callbackRef, napi_deferred deferred);
+    explicit NapiGetPropCallback(
+        napi_env env, napi_ref callbackRef, napi_deferred deferred, const AccountSA::GetPropertyRequest &request);
     virtual ~NapiGetPropCallback();
-
+    void GetContextParams(const UserIam::UserAuth::Attributes &extraInfo, GetPropertyContext &context);
     void OnResult(int32_t result, const AccountSA::Attributes &extraInfo) override;
 private:
     napi_env env_;
     napi_ref callbackRef_;
     napi_deferred deferred_;
+    AccountSA::GetPropertyRequest request_;
 };
 
 class NapiSetPropCallback : public AccountSA::GetSetPropCallback {
