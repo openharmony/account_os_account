@@ -44,6 +44,8 @@ private:
     ErrCode ProcGetDomainAccessToken(MessageParcel &data, MessageParcel &reply);
     ErrCode ProcUnregisterAccountStatusListener(MessageParcel &data, MessageParcel &reply);
     ErrCode ProcRegisterAccountStatusListener(MessageParcel &data, MessageParcel &reply);
+    ErrCode ProcUnregisterAccountStatusListenerByInfo(MessageParcel &data, MessageParcel &reply);
+    ErrCode ProcRegisterAccountStatusListenerByInfo(MessageParcel &data, MessageParcel &reply);
 
 private:
     static const std::map<uint32_t, DomainAccountStubFunc> stubFuncMap_;

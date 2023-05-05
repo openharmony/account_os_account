@@ -213,7 +213,7 @@ void MockDomainPlugin::GetAccessToken(const DomainAccountInfo &domainInfo, const
     const GetAccessTokenOptions &option, const std::shared_ptr<DomainAccountCallback> &callback)
 {
     Parcel parcel;
-    if (domainInfo.accountName_ == STRING_NAME) {
+    if ((domainInfo.accountName_ == STRING_NAME) || (domainInfo.accountId_ == "555")) {
         parcel.WriteUInt8Vector(DEFAULT_PASSWORD);
         callback->OnResult(0, parcel);
     }

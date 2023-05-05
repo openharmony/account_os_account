@@ -33,7 +33,10 @@ public:
         const std::string &domain, const std::string &accountName, DomainAccountStatus &status) override;
     ErrCode RegisterAccountStatusListener(
         const DomainAccountInfo &info, const sptr<IDomainAccountCallback> &listener) override;
-    ErrCode UnregisterAccountStatusListener(const DomainAccountInfo &info) override;
+    ErrCode RegisterAccountStatusListener(const sptr<IDomainAccountCallback> &listener) override;
+    ErrCode UnregisterAccountStatusListener(
+        const DomainAccountInfo &info, const sptr<IDomainAccountCallback> &listener) override;
+    ErrCode UnregisterAccountStatusListener(const sptr<IDomainAccountCallback> &listener) override;
     ErrCode Auth(const DomainAccountInfo &info, const std::vector<uint8_t> &password,
         const sptr<IDomainAuthCallback> &callback) override;
     ErrCode AuthUser(int32_t userId, const std::vector<uint8_t> &password,

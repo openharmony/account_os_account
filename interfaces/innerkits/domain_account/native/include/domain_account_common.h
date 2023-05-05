@@ -96,11 +96,12 @@ struct DomainAuthResult : public Parcelable {
     static DomainAuthResult *Unmarshalling(Parcel &parcel);
 };
 
-typedef struct {
+struct DomainAccountEventData {
+    int32_t userId = -1;
     DomainAccountInfo domainAccountInfo;
     DomainAccountEvent event;
     DomainAccountStatus status;
-} DomainAccountEventData;
+};
 }  // namespace AccountSA
 }  // namespace OHOS
 #endif  // OS_ACCOUNT_INTERFACES_INNERKITS_DOMAIN_ACCOUNT_INCLUDE_DOMAIN_ACCOUNT_COMMON_H

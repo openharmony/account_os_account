@@ -74,6 +74,14 @@ const std::map<uint32_t, DomainAccountStub::DomainAccountStubFunc> DomainAccount
     {
         IDomainAccount::Message::DOMAIN_GET_ACCESS_TOKEN,
         &DomainAccountStub::ProcGetDomainAccessToken
+    },
+    {
+        IDomainAccount::Message::DOMAIN_ACCOUNT_STATUS_LISTENER_UNREGISTER_BY_INFO,
+        &DomainAccountStub::ProcUnregisterAccountStatusListenerByInfo
+    },
+    {
+        IDomainAccount::Message::DOMAIN_ACCOUNT_STATUS_LISTENER_REGISTER_BY_INFO,
+        &DomainAccountStub::ProcRegisterAccountStatusListenerByInfo
     }
 };
 
@@ -218,6 +226,22 @@ ErrCode DomainAccountStub::ProcGetAccountStatus(MessageParcel &data, MessageParc
 
 ErrCode DomainAccountStub::ProcRegisterAccountStatusListener(MessageParcel &data, MessageParcel &reply)
 {
+    auto callback = iface_cast<IDomainAccountCallback>(data.ReadRemoteObject());
+    if (callback == nullptr) {
+        ACCOUNT_LOGE("failed to read domain callback");
+        return ERR_ACCOUNT_COMMON_READ_PARCEL_ERROR;
+    }
+    ErrCode result = RegisterAccountStatusListener(callback);
+    if (!reply.WriteInt32(result)) {
+        ACCOUNT_LOGE("failed to write reply, result %{public}d.", result);
+        return IPC_STUB_WRITE_PARCEL_ERR;
+    }
+
+    return ERR_OK;
+}
+
+ErrCode DomainAccountStub::ProcRegisterAccountStatusListenerByInfo(MessageParcel &data, MessageParcel &reply)
+{
     std::shared_ptr<DomainAccountInfo> info(data.ReadParcelable<DomainAccountInfo>());
     if (info == nullptr) {
         ACCOUNT_LOGE("failed to read domain account info");
@@ -237,14 +261,34 @@ ErrCode DomainAccountStub::ProcRegisterAccountStatusListener(MessageParcel &data
     return ERR_OK;
 }
 
-ErrCode DomainAccountStub::ProcUnregisterAccountStatusListener(MessageParcel &data, MessageParcel &reply)
+ErrCode DomainAccountStub::ProcUnregisterAccountStatusListenerByInfo(MessageParcel &data, MessageParcel &reply)
 {
     std::shared_ptr<DomainAccountInfo> info(data.ReadParcelable<DomainAccountInfo>());
     if (info == nullptr) {
         ACCOUNT_LOGE("failed to read domain account info");
         return ERR_ACCOUNT_COMMON_READ_PARCEL_ERROR;
     }
-    ErrCode result = UnregisterAccountStatusListener(*info);
+    auto callback = iface_cast<IDomainAccountCallback>(data.ReadRemoteObject());
+    if (callback == nullptr) {
+        ACCOUNT_LOGE("failed to read domain callback");
+        return ERR_ACCOUNT_COMMON_READ_PARCEL_ERROR;
+    }
+    ErrCode result = UnregisterAccountStatusListener(*info, callback);
+    if (!reply.WriteInt32(result)) {
+        ACCOUNT_LOGE("failed to write reply, result %{public}d.", result);
+        return IPC_STUB_WRITE_PARCEL_ERR;
+    }
+    return ERR_OK;
+}
+
+ErrCode DomainAccountStub::ProcUnregisterAccountStatusListener(MessageParcel &data, MessageParcel &reply)
+{
+    auto callback = iface_cast<IDomainAccountCallback>(data.ReadRemoteObject());
+    if (callback == nullptr) {
+        ACCOUNT_LOGE("failed to read domain callback");
+        return ERR_ACCOUNT_COMMON_READ_PARCEL_ERROR;
+    }
+    ErrCode result = UnregisterAccountStatusListener(callback);
     if (!reply.WriteInt32(result)) {
         ACCOUNT_LOGE("failed to write reply, result %{public}d.", result);
         return IPC_STUB_WRITE_PARCEL_ERR;
@@ -346,6 +390,8 @@ ErrCode DomainAccountStub::CheckPermission(uint32_t code, int32_t uid)
         case IDomainAccount::Message::DOMAIN_ACCOUNT_STATUS_ENQUIRY:
         case IDomainAccount::Message::DOMAIN_ACCOUNT_STATUS_LISTENER_REGISTER:
         case IDomainAccount::Message::DOMAIN_ACCOUNT_STATUS_LISTENER_UNREGISTER:
+        case IDomainAccount::Message::DOMAIN_ACCOUNT_STATUS_LISTENER_UNREGISTER_BY_INFO:
+        case IDomainAccount::Message::DOMAIN_ACCOUNT_STATUS_LISTENER_REGISTER_BY_INFO:
             permissionName = AccountPermissionManager::GET_LOCAL_ACCOUNTS;
             break;
         case IDomainAccount::Message::DOMAIN_AUTH:
