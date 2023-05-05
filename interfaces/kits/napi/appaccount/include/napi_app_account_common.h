@@ -69,6 +69,8 @@ private:
 };
 
 struct CommonAsyncContext {
+    CommonAsyncContext() {};
+    explicit CommonAsyncContext(napi_env napiEnv) : env(napiEnv) {};
     napi_env env;
     napi_async_work work;
     napi_deferred deferred;
@@ -119,8 +121,8 @@ struct GetAccountsAsyncContext {
     std::vector<AppAccountInfo> appAccounts;
 };
 
-struct SubscriberAccountsWorker {
-    napi_env env = nullptr;
+struct SubscriberAccountsWorker : public CommonAsyncContext {
+    explicit SubscriberAccountsWorker(napi_env napiEnv) : CommonAsyncContext(napiEnv) {};
     napi_ref ref = nullptr;
     std::vector<AppAccountInfo> accounts;
     int code = 0;
@@ -149,9 +151,9 @@ struct ThreadLockInfo {
     bool ready = false;
 };
 
-struct AuthenticatorCallbackParam {
-    napi_env env = nullptr;
-    int32_t resultCode;
+struct AuthenticatorCallbackParam : public CommonAsyncContext {
+    explicit AuthenticatorCallbackParam(napi_env napiEnv) : CommonAsyncContext(napiEnv) {};
+    int32_t resultCode = -1;
     AAFwk::WantParams result;
     AAFwk::Want request;
     napi_ref resultRef;
