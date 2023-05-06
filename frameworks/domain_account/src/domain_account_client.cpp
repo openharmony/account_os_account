@@ -18,6 +18,7 @@
 #include "account_error_no.h"
 #include "account_log_wrapper.h"
 #include "account_proxy.h"
+#include "domain_account_callback_adapters.h"
 #include "domain_account_callback_service.h"
 #include "domain_account_plugin_service.h"
 #include "domain_account_proxy.h"
@@ -84,13 +85,14 @@ ErrCode DomainAccountClient::AuthProxyInit(const std::shared_ptr<DomainAuthCallb
 }
 
 ErrCode DomainAccountClient::GetAccessToken(const DomainAccountInfo &info, const AAFwk::WantParams &parameters,
-    const std::shared_ptr<DomainAccountCallback> &callback)
+    const std::shared_ptr<GetAccessTokenCallback> &callback)
 {
     if (callback == nullptr) {
         ACCOUNT_LOGE("callback is nullptr");
         return ERR_ACCOUNT_COMMON_INVALID_PARAMETER;
     }
-    sptr<DomainAccountCallbackService> callbackService = new (std::nothrow) DomainAccountCallbackService(callback);
+    auto callbackPtr = std::make_shared<GetAccessTokenCallbackAdapter>(callback);
+    sptr<DomainAccountCallbackService> callbackService = new (std::nothrow) DomainAccountCallbackService(callbackPtr);
     if (callbackService == nullptr) {
         ACCOUNT_LOGE("failed to new callback service");
         return ERR_ACCOUNT_COMMON_INSUFFICIENT_MEMORY_ERROR;

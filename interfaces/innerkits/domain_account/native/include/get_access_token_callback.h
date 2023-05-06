@@ -13,29 +13,15 @@
  * limitations under the License.
  */
 
-#include "mock_domain_get_access_token_callback.h"
-
-#include "account_log_wrapper.h"
-#include "os_account_manager.h"
-#include "parcel.h"
+#ifndef OS_ACCOUNT_INTERFACES_INNERKITS_DOMAIN_ACCOUNT_INCLUDE_GET_ACCESS_TOKEN_CALLBACK_H
+#define OS_ACCOUNT_INTERFACES_INNERKITS_DOMAIN_ACCOUNT_INCLUDE_GET_ACCESS_TOKEN_CALLBACK_H
 
 namespace OHOS {
 namespace AccountSA {
-TestGetAccessTokenCallback::TestGetAccessTokenCallback(
-    const std::shared_ptr<MockDomainGetAccessTokenCallback> &callback)
-    : callback_(callback)
-{}
-
-TestGetAccessTokenCallback::~TestGetAccessTokenCallback()
-{}
-
-void TestGetAccessTokenCallback::OnResult(const int32_t errCode, const std::vector<uint8_t> &accessToken)
-{
-    if (callback_ == nullptr) {
-        return;
-    }
-    callback_->OnResult(errCode, accessToken);
-    return;
-}
-}  // AccountSA
-}  // OHOS
+class GetAccessTokenCallback {
+public:
+    virtual void OnResult(const int32_t errCode, const std::vector<uint8_t> &accessToken) = 0;
+};
+}  // namespace AccountSA
+}  // namespace OHOS
+#endif  // OS_ACCOUNT_INTERFACES_INNERKITS_DOMAIN_ACCOUNT_INCLUDE_GET_ACCESS_TOKEN_CALLBACK_H
