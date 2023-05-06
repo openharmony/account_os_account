@@ -43,6 +43,7 @@
 #include "domain_account_plugin.h"
 #include "domain_account_status_listener.h"
 #include "domain_auth_callback_service.h"
+#include "get_access_token_callback.h"
 #include "idomain_account.h"
 #include "want.h"
 
@@ -113,7 +114,7 @@ public:
     ErrCode HasDomainAccount(const DomainAccountInfo &info, const std::shared_ptr<DomainAccountCallback> &callback);
     ErrCode UpdateAccountToken(const DomainAccountInfo &info, const std::vector<uint8_t> &token);
     ErrCode GetAccessToken(const DomainAccountInfo &info, const AAFwk::WantParams &parameters,
-        const std::shared_ptr<DomainAccountCallback> &callback);
+        const std::shared_ptr<GetAccessTokenCallback> &callback);
     ErrCode GetAccountStatus(const std::string &domain, const std::string &accountName, DomainAccountStatus &status);
     ErrCode RegisterAccountStatusListener(
         const DomainAccountInfo &info, const std::shared_ptr<DomainAccountStatusListener> &listener);
