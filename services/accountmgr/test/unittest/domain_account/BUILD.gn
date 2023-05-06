@@ -21,6 +21,7 @@ config("domain_account_amgr_mock_config") {
   include_dirs = [
     "${domain_account_framework_path}/include",
     "${domain_account_interfaces_native_path}/include",
+    "${os_account_dfx_path}/hitrace_adapter",
     "${services_path}/accountmgr/include",
     "${services_path}/accountmgr/include/domain_account",
     "${services_path}/accountmgr/include/ability_manager_adapter",
@@ -40,6 +41,7 @@ ohos_unittest("DomainAccountInnerServiceCovTest") {
       "${os_account_path}/test/resource/accountmgrservice/ohos_test.xml"
 
   sources = [
+    "${os_account_dfx_path}/hitrace_adapter/hitrace_adapter.cpp",
     "${services_path}/accountmgr/src/account_event_provider.cpp",
     "${services_path}/accountmgr/src/domain_account/domain_account_plugin_death_recipient.cpp",
     "${services_path}/accountmgr/src/domain_account/domain_has_domain_info_callback.cpp",
@@ -83,8 +85,10 @@ ohos_unittest("DomainAccountInnerServiceCovTest") {
     cflags_cc += [ "-DHAS_HISYSEVENT_PART" ]
     external_deps += [ "hisysevent_native:libhisysevent" ]
   }
-
-  external_deps += [ "hitrace_native:hitrace_meter" ]
+  if (has_hiviewdfx_hitrace_part) {
+    external_deps += [ "hitrace_native:hitrace_meter" ]
+    cflags_cc += [ "-DHAS_HITRACE_PART" ]
+  }
 
   part_name = "os_account"
 }
