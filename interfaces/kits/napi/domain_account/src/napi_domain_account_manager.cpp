@@ -1097,8 +1097,8 @@ static void GetAccessTokenExecuteCB(napi_env env, void *data)
     asyncContext->errCode = DomainAccountClient::GetInstance().GetAccessToken(
         asyncContext->domainInfo, asyncContext->getTokenParams, callback);
     if (asyncContext->errCode != ERR_OK) {
-        Parcel emptyParcel;
-        callback->OnResult(asyncContext->errCode, emptyParcel);
+        std::vector<uint8_t> accessToken;
+        callback->OnResult(asyncContext->errCode, accessToken);
     }
 }
 
@@ -1246,7 +1246,7 @@ NapiGetAccessTokenCallback::NapiGetAccessTokenCallback(napi_env env, napi_ref ca
     : env_(env), callbackRef_(callbackRef), deferred_(deferred)
 {}
 
-void NapiGetAccessTokenCallback::OnResult(const int32_t errCode, Parcel &parcel)
+void NapiGetAccessTokenCallback::OnResult(const int32_t errCode, const std::vector<uint8_t> &accessToken)
 {
     std::unique_lock<std::mutex> lock(lockInfo_.mutex);
     if ((callbackRef_ == nullptr) && (deferred_ == nullptr)) {
@@ -1264,11 +1264,9 @@ void NapiGetAccessTokenCallback::OnResult(const int32_t errCode, Parcel &parcel)
         delete work;
         return;
     }
-    if (errCode == ERR_OK) {
-        parcel.ReadUInt8Vector(&(asyncContext->accessToken));
-    }
     asyncContext->errCode = errCode;
     asyncContext->env = env_;
+    asyncContext->accessToken = accessToken;
     asyncContext->callbackRef = callbackRef_;
     asyncContext->deferred = deferred_;
     work->data = reinterpret_cast<void *>(asyncContext);
