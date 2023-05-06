@@ -630,16 +630,24 @@ HWTEST_F(DomainAccountClientModuleTest, DomainAccountClientModuleTest_CreateOsAc
 HWTEST_F(DomainAccountClientModuleTest, DomainAccountClientModuleTest_CreateOsAccountForDomain_006, TestSize.Level0)
 {
     DomainAccountInfo domainInfo;
-    domainInfo.accountName_ = ACCOUNT_NAME;
-    domainInfo.domain_ = STRING_DOMAIN;
-    domainInfo.accountId_ = STRING_ACCOUNTID;
+    domainInfo.accountName_ = STRING_NAME;
+    domainInfo.domain_ = INVALID_STRING_DOMAIN;
+    domainInfo.accountId_ = STRING_ACCOUNTID_NEW;
     auto callback = std::make_shared<MockDomainCreateDomainAccountCallback>();
     ASSERT_NE(callback, nullptr);
     auto testCallback = std::make_shared<TestCreateDomainAccountCallback>(callback);
+    EXPECT_CALL(*callback, OnResult(ERR_OK,
+        STRING_NAME, INVALID_STRING_DOMAIN, STRING_ACCOUNTID_NEW)).Times(Exactly(1));
     ASSERT_NE(testCallback, nullptr);
     ErrCode errCode = OsAccountManager::CreateOsAccountForDomain(OsAccountType::NORMAL, domainInfo, testCallback);
-    EXPECT_EQ(errCode, ERR_OSACCOUNT_SERVICE_INNER_DOMAIN_ALREADY_BIND_ERROR);
+    EXPECT_EQ(errCode, ERR_OK);
     std::this_thread::sleep_for(std::chrono::milliseconds(SLEEP_TIME));
+    errCode = OsAccountManager::CreateOsAccountForDomain(OsAccountType::NORMAL, domainInfo, testCallback);
+    EXPECT_EQ(errCode, ERR_OSACCOUNT_SERVICE_INNER_DOMAIN_ALREADY_BIND_ERROR);
+    int32_t userId = -1;
+    errCode = OsAccountManager::GetOsAccountLocalIdFromDomain(domainInfo, userId);
+    EXPECT_EQ(errCode, ERR_OK);
+    EXPECT_EQ(OsAccountManager::RemoveOsAccount(userId), ERR_OK);
 }
 
 /**

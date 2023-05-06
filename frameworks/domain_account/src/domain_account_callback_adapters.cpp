@@ -13,29 +13,30 @@
  * limitations under the License.
  */
 
-#include "mock_domain_get_access_token_callback.h"
+#include "domain_account_callback_adapters.h"
 
 #include "account_log_wrapper.h"
-#include "os_account_manager.h"
+#include "domain_account_common.h"
+#include "get_access_token_callback.h"
 #include "parcel.h"
 
 namespace OHOS {
 namespace AccountSA {
-TestGetAccessTokenCallback::TestGetAccessTokenCallback(
-    const std::shared_ptr<MockDomainGetAccessTokenCallback> &callback)
-    : callback_(callback)
+GetAccessTokenCallbackAdapter::GetAccessTokenCallbackAdapter(const std::shared_ptr<GetAccessTokenCallback> &callback)
+    : innerCallback_(callback)
 {}
 
-TestGetAccessTokenCallback::~TestGetAccessTokenCallback()
-{}
-
-void TestGetAccessTokenCallback::OnResult(const int32_t errCode, const std::vector<uint8_t> &accessToken)
+void GetAccessTokenCallbackAdapter::OnResult(const int32_t errCode, Parcel &parcel)
 {
-    if (callback_ == nullptr) {
+    if (innerCallback_ == nullptr) {
+        ACCOUNT_LOGE("innerCallback_ is nullptr");
         return;
     }
-    callback_->OnResult(errCode, accessToken);
-    return;
+    std::vector<uint8_t> accessToken;
+    if (errCode == ERR_OK) {
+        parcel.ReadUInt8Vector(&accessToken);
+    }
+    return innerCallback_->OnResult(errCode, accessToken);
 }
-}  // AccountSA
-}  // OHOS
+}  // namespace AccountSA
+}  // namespace OHOS
