@@ -19,16 +19,7 @@ module_output_path = "os_account/frameworks/test"
 config("account_proxy_mock_config_unittest") {
   visibility = [ ":*" ]
 
-  include_dirs = [
-    "include",
-    "//foundation/systemabilitymgr/safwk/interfaces/innerkits/safwk",
-    "//foundation/systemabilitymgr/samgr/interfaces/innerkits/common/include",
-    "//foundation/systemabilitymgr/samgr/interfaces/innerkits/samgr_proxy/include",
-    "//foundation/systemabilitymgr/samgr/services/samgr/native/include",
-    "//foundation/systemabilitymgr/samgr/services/samgr/native/include/collect",
-    "//foundation/systemabilitymgr/samgr/services/samgr/dfx/include",
-    "//foundation/systemabilitymgr/samgr/services/samgr/lsamgr/include",
-  ]
+  include_dirs = [ "include" ]
 
   cflags = []
   if (target_cpu == "arm") {
