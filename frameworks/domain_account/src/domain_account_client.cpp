@@ -185,15 +185,14 @@ void DomainAccountClient::ResetDomainAccountProxy(const wptr<IRemoteObject>& rem
     deathRecipient_ = nullptr;
 }
 
-ErrCode DomainAccountClient::GetAccountStatus(const std::string &domain,
-    const std::string &accountName, DomainAccountStatus &status)
+ErrCode DomainAccountClient::GetAccountStatus(const DomainAccountInfo &info, DomainAccountStatus &status)
 {
     auto proxy = GetDomainAccountProxy();
     if (proxy == nullptr) {
         ACCOUNT_LOGE("failed to get domain account proxy");
         return ERR_ACCOUNT_COMMON_GET_PROXY;
     }
-    return proxy->GetAccountStatus(domain, accountName, status);
+    return proxy->GetAccountStatus(info, status);
 }
 
 ErrCode DomainAccountClient::RegisterAccountStatusListener(
