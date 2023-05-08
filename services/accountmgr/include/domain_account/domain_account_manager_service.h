@@ -30,8 +30,7 @@ public:
     ErrCode UnregisterPlugin() override;
     ErrCode HasDomainAccount(
         const DomainAccountInfo &info, const sptr<IDomainAccountCallback> &callback) override;
-    ErrCode GetAccountStatus(
-        const std::string &domain, const std::string &accountName, DomainAccountStatus &status) override;
+    ErrCode GetAccountStatus(const DomainAccountInfo &info, DomainAccountStatus &status) override;
     ErrCode RegisterAccountStatusListener(
         const DomainAccountInfo &info, const sptr<IDomainAccountCallback> &listener) override;
     ErrCode RegisterAccountStatusListener(const sptr<IDomainAccountCallback> &listener) override;

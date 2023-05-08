@@ -108,21 +108,15 @@ ErrCode DomainAccountProxy::UnregisterPlugin()
     return result;
 }
 
-ErrCode DomainAccountProxy::GetAccountStatus(
-    const std::string &domain, const std::string &accountName, DomainAccountStatus &status)
+ErrCode DomainAccountProxy::GetAccountStatus(const DomainAccountInfo &info, DomainAccountStatus &status)
 {
     MessageParcel data;
     if (!data.WriteInterfaceToken(GetDescriptor())) {
         ACCOUNT_LOGE("fail to write descriptor");
         return ERR_ACCOUNT_COMMON_WRITE_PARCEL_ERROR;
     }
-    if (!data.WriteString(domain)) {
-        ACCOUNT_LOGE("fail to write domain");
-        return ERR_ACCOUNT_COMMON_WRITE_PARCEL_ERROR;
-    }
-
-    if (!data.WriteString(accountName)) {
-        ACCOUNT_LOGE("fail to write accountName");
+    if (!data.WriteParcelable(&info)) {
+        ACCOUNT_LOGE("fail to write parcelable");
         return ERR_ACCOUNT_COMMON_WRITE_PARCEL_ERROR;
     }
 

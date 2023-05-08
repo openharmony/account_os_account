@@ -201,18 +201,13 @@ ErrCode DomainAccountStub::ProcAuth(MessageParcel &data, MessageParcel &reply)
 
 ErrCode DomainAccountStub::ProcGetAccountStatus(MessageParcel &data, MessageParcel &reply)
 {
-    std::string domain;
-    if (!data.ReadString(domain)) {
-        ACCOUNT_LOGE("fail to read userId");
-        return ERR_ACCOUNT_COMMON_READ_PARCEL_ERROR;
-    }
-    std::string accountName;
-    if (!data.ReadString(accountName)) {
-        ACCOUNT_LOGE("fail to read accountName");
+    std::shared_ptr<DomainAccountInfo> info(data.ReadParcelable<DomainAccountInfo>());
+    if (info == nullptr) {
+        ACCOUNT_LOGE("failed to read domain account info");
         return ERR_ACCOUNT_COMMON_READ_PARCEL_ERROR;
     }
     DomainAccountStatus status;
-    ErrCode result = GetAccountStatus(domain, accountName, status);
+    ErrCode result = GetAccountStatus(*info, status);
     if (!reply.WriteInt32(result)) {
         ACCOUNT_LOGE("failed to write result");
         return IPC_STUB_WRITE_PARCEL_ERR;
