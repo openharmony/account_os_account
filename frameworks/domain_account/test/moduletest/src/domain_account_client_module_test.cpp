@@ -1004,7 +1004,8 @@ HWTEST_F(DomainAccountClientModuleTest, DomainAccountClientModuleTest_UpdateAcco
 HWTEST_F(DomainAccountClientModuleTest, DomainAccountClientModuleTest_GetAccountStatus_001, TestSize.Level0)
 {
     DomainAccountStatus status;
-    EXPECT_EQ(DomainAccountClient::GetInstance().GetAccountStatus("", "", status),
+    DomainAccountInfo domainInfo;
+    EXPECT_EQ(DomainAccountClient::GetInstance().GetAccountStatus(domainInfo, status),
         ERR_DOMAIN_ACCOUNT_SERVICE_NOT_DOMAIN_ACCOUNT);
 }
 
@@ -1018,7 +1019,8 @@ HWTEST_F(DomainAccountClientModuleTest, DomainAccountClientModuleTest_GetAccount
 {
     setuid(TEST_UID);
     DomainAccountStatus status;
-    EXPECT_EQ(DomainAccountClient::GetInstance().GetAccountStatus(STRING_DOMAIN, STRING_NAME, status),
+    DomainAccountInfo domainInfo(STRING_DOMAIN, STRING_NAME);
+    EXPECT_EQ(DomainAccountClient::GetInstance().GetAccountStatus(domainInfo, status),
         ERR_ACCOUNT_ZIDL_CHECK_PERMISSION_ERROR);
     setuid(ROOT_UID);
 }
@@ -1055,15 +1057,13 @@ HWTEST_F(DomainAccountClientModuleTest, DomainAccountClientModuleTest_GetAccount
     std::vector<uint8_t> nullToken;
     DomainAccountClient::GetInstance().UpdateAccountToken(domainInfo, nullToken);
     DomainAccountStatus status;
-    EXPECT_EQ(DomainAccountClient::GetInstance().GetAccountStatus(
-        domainInfo.domain_, domainInfo.accountName_, status), ERR_OK);
+    EXPECT_EQ(DomainAccountClient::GetInstance().GetAccountStatus(domainInfo, status), ERR_OK);
     EXPECT_EQ(status, DomainAccountStatus::LOGOUT);
 
     std::vector<uint8_t> invalidToken = {1, 2, 5, 8}; // {1, 2, 5, 8} means invalid token vector.
     DomainAccountClient::GetInstance().UpdateAccountToken(domainInfo, invalidToken);
 
-    EXPECT_EQ(DomainAccountClient::GetInstance().GetAccountStatus(
-        domainInfo.domain_, domainInfo.accountName_, status), ERR_OK);
+    EXPECT_EQ(DomainAccountClient::GetInstance().GetAccountStatus(domainInfo, status), ERR_OK);
     EXPECT_EQ(status, DomainAccountStatus::LOGIN_BACKGROUND);
 
     EXPECT_EQ(OsAccountManager::RemoveOsAccount(localId), ERR_OK);
@@ -1105,14 +1105,12 @@ HWTEST_F(DomainAccountClientModuleTest, DomainAccountClientModuleTest_GetAccount
     DomainAccountClient::GetInstance().UpdateAccountToken(domainInfo, DEFAULT_TOKEN);
 
     DomainAccountStatus status;
-    EXPECT_EQ(DomainAccountClient::GetInstance().GetAccountStatus(
-        domainInfo.domain_, domainInfo.accountName_, status), ERR_OK);
+    EXPECT_EQ(DomainAccountClient::GetInstance().GetAccountStatus(domainInfo, status), ERR_OK);
     EXPECT_EQ(status, DomainAccountStatus::LOGIN_BACKGROUND);
 
     EXPECT_EQ(OsAccountManager::ActivateOsAccount(userId), ERR_OK);
 
-    EXPECT_EQ(DomainAccountClient::GetInstance().GetAccountStatus(
-        domainInfo.domain_, domainInfo.accountName_, status), ERR_OK);
+    EXPECT_EQ(DomainAccountClient::GetInstance().GetAccountStatus(domainInfo, status), ERR_OK);
     EXPECT_EQ(status, DomainAccountStatus::LOGIN);
 
     EXPECT_EQ(OsAccountManager::RemoveOsAccount(userId), ERR_OK);
@@ -1153,9 +1151,58 @@ HWTEST_F(DomainAccountClientModuleTest, DomainAccountClientModuleTest_GetAccount
 
     DomainAccountClient::GetInstance().UnregisterPlugin();
     DomainAccountStatus status;
-    EXPECT_EQ(DomainAccountClient::GetInstance().GetAccountStatus(
-        domainInfo.domain_, domainInfo.accountName_, status), ERR_DOMAIN_ACCOUNT_SERVICE_PLUGIN_NOT_EXIST);
+    EXPECT_EQ(DomainAccountClient::GetInstance().GetAccountStatus(domainInfo, status),
+        ERR_DOMAIN_ACCOUNT_SERVICE_PLUGIN_NOT_EXIST);
     EXPECT_EQ(status, DomainAccountStatus::LOGOUT);
+
+    EXPECT_EQ(OsAccountManager::RemoveOsAccount(userId), ERR_OK);
+}
+
+/**
+ * @tc.name: DomainAccountClientModuleTest_GetAccountStatus_007
+ * @tc.desc: GetAccountStatus.
+ * @tc.type: FUNC
+ * @tc.require: issueI64KAM
+ */
+HWTEST_F(DomainAccountClientModuleTest, DomainAccountClientModuleTest_GetAccountStatus_007, TestSize.Level0)
+{
+    DomainAccountInfo domainInfo;
+    domainInfo.accountName_ = STRING_NAME_TWO;
+    domainInfo.domain_ = STRING_DOMAIN_NEW;
+    domainInfo.accountId_ = INVALID_STRING_ACCOUNTID;
+    auto callback = std::make_shared<MockDomainCreateDomainAccountCallback>();
+    ASSERT_NE(callback, nullptr);
+    auto testCallback = std::make_shared<TestCreateDomainAccountCallback>(callback);
+    EXPECT_CALL(*callback, OnResult(ERR_OK, domainInfo.accountName_, domainInfo.domain_, _)).Times(Exactly(1));
+    ASSERT_NE(testCallback, nullptr);
+    ErrCode errCode = OsAccountManager::CreateOsAccountForDomain(OsAccountType::NORMAL, domainInfo, testCallback);
+    ASSERT_EQ(errCode, ERR_OK);
+    std::this_thread::sleep_for(std::chrono::milliseconds(SLEEP_TIME));
+
+    auto authCallback = std::make_shared<MockDomainAuthCallback>();
+    ASSERT_NE(authCallback, nullptr);
+    EXPECT_CALL(*authCallback, OnResult(_, _)).Times(Exactly(1));
+    auto testAuthCallback = std::make_shared<TestDomainAuthCallback>(authCallback);
+    ASSERT_NE(testAuthCallback, nullptr);
+    int32_t userId = -1;
+    errCode = OsAccountManager::GetOsAccountLocalIdFromDomain(domainInfo, userId);
+    EXPECT_EQ(errCode, ERR_OK);
+    EXPECT_EQ(
+        DomainAccountClient::GetInstance().AuthUser(userId, DEFAULT_TOKEN, testAuthCallback), ERR_OK);
+    std::this_thread::sleep_for(std::chrono::milliseconds(SLEEP_TIME));
+
+    DomainAccountClient::GetInstance().UpdateAccountToken(domainInfo, DEFAULT_TOKEN);
+
+    DomainAccountStatus status;
+    DomainAccountInfo info2;
+    info2.accountId_ = "555";
+    EXPECT_EQ(DomainAccountClient::GetInstance().GetAccountStatus(info2, status), ERR_OK);
+    EXPECT_EQ(status, DomainAccountStatus::LOGIN_BACKGROUND);
+
+    EXPECT_EQ(OsAccountManager::ActivateOsAccount(userId), ERR_OK);
+
+    EXPECT_EQ(DomainAccountClient::GetInstance().GetAccountStatus(info2, status), ERR_OK);
+    EXPECT_EQ(status, DomainAccountStatus::LOGIN);
 
     EXPECT_EQ(OsAccountManager::RemoveOsAccount(userId), ERR_OK);
 }

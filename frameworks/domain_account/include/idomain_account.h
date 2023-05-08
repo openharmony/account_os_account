@@ -45,8 +45,7 @@ public:
 
     virtual ErrCode RegisterPlugin(const sptr<IDomainAccountPlugin> &plugin) = 0;
     virtual ErrCode UnregisterPlugin() = 0;
-    virtual ErrCode GetAccountStatus(
-        const std::string &domain, const std::string &accountName, DomainAccountStatus &status) = 0;
+    virtual ErrCode GetAccountStatus(const DomainAccountInfo &info, DomainAccountStatus &status) = 0;
     virtual ErrCode RegisterAccountStatusListener(
         const DomainAccountInfo &info, const sptr<IDomainAccountCallback> &listener) = 0;
     virtual ErrCode RegisterAccountStatusListener(const sptr<IDomainAccountCallback> &listener) = 0;

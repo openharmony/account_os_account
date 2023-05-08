@@ -407,16 +407,12 @@ ErrCode InnerDomainAccountManager::CheckUserToken(const std::vector<uint8_t> &to
     return errCode;
 }
 
-ErrCode InnerDomainAccountManager::GetAccountStatus(
-    const std::string &domain, const std::string &accountName, DomainAccountStatus &status)
+ErrCode InnerDomainAccountManager::GetAccountStatus(const DomainAccountInfo &info, DomainAccountStatus &status)
 {
     status = DomainAccountStatus::LOGOUT;
 
     int32_t userId = 0;
-    DomainAccountInfo domainInfo;
-    domainInfo.accountName_ = accountName;
-    domainInfo.domain_ = domain;
-    ErrCode res = IInnerOsAccountManager::GetInstance().GetOsAccountLocalIdFromDomain(domainInfo, userId);
+    ErrCode res = IInnerOsAccountManager::GetInstance().GetOsAccountLocalIdFromDomain(info, userId);
     if (res != ERR_OK) {
         return res;
     }
