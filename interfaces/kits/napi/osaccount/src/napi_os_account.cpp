@@ -1459,6 +1459,14 @@ SubscribeCBInfo::~SubscribeCBInfo()
     }
 }
 
+CreateOAForDomainAsyncContext::~CreateOAForDomainAsyncContext()
+{
+    if (callbackRef != nullptr) {
+        ReleaseNapiRefAsync(env, callbackRef);
+        callbackRef = nullptr;
+    }
+}
+
 napi_value Subscribe(napi_env env, napi_callback_info cbInfo)
 {
     SubscribeCBInfo *subscribeCBInfo = new (std::nothrow) SubscribeCBInfo(env);
