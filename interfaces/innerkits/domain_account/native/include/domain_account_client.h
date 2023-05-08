@@ -115,7 +115,7 @@ public:
     ErrCode UpdateAccountToken(const DomainAccountInfo &info, const std::vector<uint8_t> &token);
     ErrCode GetAccessToken(const DomainAccountInfo &info, const AAFwk::WantParams &parameters,
         const std::shared_ptr<GetAccessTokenCallback> &callback);
-    ErrCode GetAccountStatus(const std::string &domain, const std::string &accountName, DomainAccountStatus &status);
+    ErrCode GetAccountStatus(const DomainAccountInfo &info, DomainAccountStatus &status);
     ErrCode RegisterAccountStatusListener(
         const DomainAccountInfo &info, const std::shared_ptr<DomainAccountStatusListener> &listener);
     ErrCode RegisterAccountStatusListener(const std::shared_ptr<DomainAccountStatusListener> &listener);

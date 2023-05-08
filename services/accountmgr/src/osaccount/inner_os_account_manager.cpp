@@ -873,8 +873,7 @@ ErrCode IInnerOsAccountManager::QueryOsAccountById(const int id, OsAccountInfo &
 
     DomainAccountInfo domainInfo;
     osAccountInfo.GetDomainInfo(domainInfo);
-    errCode = InnerDomainAccountManager::GetInstance().GetAccountStatus(
-        domainInfo.domain_, domainInfo.accountName_, domainInfo.status_);
+    errCode = InnerDomainAccountManager::GetInstance().GetAccountStatus(domainInfo, domainInfo.status_);
     if (errCode != ERR_OK) {
         ACCOUNT_LOGI("GetAccountStatus errCode %{public}d.", errCode);
         domainInfo.status_ = DomainAccountStatus::LOGOUT;
