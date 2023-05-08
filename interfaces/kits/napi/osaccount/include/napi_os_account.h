@@ -78,6 +78,7 @@ struct CreateOAAsyncContext : public CommonAsyncContext {
 };
 
 struct CreateOAForDomainAsyncContext : public CommonAsyncContext {
+    ~CreateOAForDomainAsyncContext();
     OsAccountType type;
     DomainAccountInfo domainInfo;
     OsAccountInfo osAccountInfos;

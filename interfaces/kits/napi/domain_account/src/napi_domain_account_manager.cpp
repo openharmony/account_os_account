@@ -1174,9 +1174,6 @@ static void HasDomainAccountCompletedWork(uv_work_t *work, int status)
     std::unique_ptr<uv_work_t> workPtr(work);
     napi_handle_scope scope = nullptr;
     if (!InitUvWorkCallbackEnv(work, scope)) {
-        if ((work != nullptr) && (work->data != nullptr)) {
-            delete reinterpret_cast<HasDomainAccountAsyncContext *>(work->data);
-        }
         return;
     }
     HasDomainAccountAsyncContext *asyncContext = reinterpret_cast<HasDomainAccountAsyncContext *>(work->data);
