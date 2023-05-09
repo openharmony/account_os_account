@@ -19,7 +19,7 @@
 #include "common_event_support.h"
 #endif // HAS_CES_PART
 #include "domain_account_callback_service.h"
-#include "hitrace_meter.h"
+#include "hitrace_adapter.h"
 #include "hisysevent_adapter.h"
 #include "ohos_account_kits.h"
 #include "os_account_constants.h"
@@ -1438,7 +1438,7 @@ void IInnerOsAccountManager::PushIdIntoActiveList(int32_t id)
     std::lock_guard<std::mutex> lock(ativeMutex_);
     if (std::find(activeAccountId_.begin(), activeAccountId_.end(), id) == activeAccountId_.end()) {
         activeAccountId_.push_back(id);
-        CountTrace(HITRACE_TAG_ACCOUNT_MANAGER, "activeId", (int64_t)id);
+        CountTraceAdapter("activeId", (int64_t)id);
     }
     return;
 }
@@ -1453,7 +1453,7 @@ void IInnerOsAccountManager::EraseIdFromActiveList(int32_t id)
     } else {
         ACCOUNT_LOGI("os account is not in active list, no need to erase!");
     }
-    CountTrace(HITRACE_TAG_ACCOUNT_MANAGER, "deActiveId", (int64_t)id);
+    CountTraceAdapter("deActiveId", (int64_t)id);
 }
 
 bool IInnerOsAccountManager::IsOsAccountIDInActiveList(int32_t id)
