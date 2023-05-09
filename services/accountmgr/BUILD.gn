@@ -44,6 +44,7 @@ config("accountmgr_config") {
     "${innerkits_path}/include",
     "${os_account_dfx_path}/hidumper_adapter",
     "${os_account_dfx_path}/hisysevent_adapter",
+    "${os_account_dfx_path}/hitrace_adapter",
     "${app_account_innerkits_native_path}/include",
     "//third_party/json/include",
   ]
@@ -151,6 +152,7 @@ ohos_shared_library("accountmgr") {
     "${os_account_core_path}/src/os_account_event_proxy.cpp",
     "${os_account_dfx_path}/hidumper_adapter/account_dump_helper.cpp",
     "${os_account_dfx_path}/hisysevent_adapter/hisysevent_adapter.cpp",
+    "${os_account_dfx_path}/hitrace_adapter/hitrace_adapter.cpp",
     "src/account_data_storage.cpp",
     "src/account_event_provider.cpp",
     "src/account_helper_data.cpp",
@@ -309,7 +311,10 @@ ohos_shared_library("accountmgr") {
     cflags_cc += [ "-DSECURITY_GUARDE_ENABLE" ]
   }
 
-  external_deps += [ "hitrace_native:hitrace_meter" ]
+  if (has_hiviewdfx_hitrace_part) {
+    external_deps += [ "hitrace_native:hitrace_meter" ]
+    cflags_cc += [ "-DHAS_HITRACE_PART" ]
+  }
 
   shlib_type = "sa"
   subsystem_name = "account"

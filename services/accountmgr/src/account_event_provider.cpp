@@ -25,7 +25,7 @@
 #include "want.h"
 #endif // HAS_CES_PART
 #include "hisysevent_adapter.h"
-#include "hitrace_meter.h"
+#include "hitrace_adapter.h"
 
 #ifdef HAS_CES_PART
 using namespace OHOS::EventFwk;
@@ -55,7 +55,7 @@ bool AccountEventProvider::EventPublish(const std::string& event, int32_t userId
     }
 
     data.SetWant(want);
-    StartTrace(HITRACE_TAG_ACCOUNT_MANAGER, "Ohos account event publish.");
+    StartTraceAdapter("Ohos account event publish.");
     /* publish */
     if (!CommonEventManager::PublishCommonEvent(data)) {
         ACCOUNT_LOGE("PublishCommonEvent failed! event %{public}s. userId is %{public}d", event.c_str(), userId);
@@ -64,7 +64,7 @@ bool AccountEventProvider::EventPublish(const std::string& event, int32_t userId
     } else {
         ACCOUNT_LOGI("PublishCommonEvent succeed! event %{public}s.", event.c_str());
     }
-    FinishTrace(HITRACE_TAG_ACCOUNT_MANAGER);
+    FinishTraceAdapter();
 #else // HAS_CES_PART
     ACCOUNT_LOGI("No common event part, do not publish anything! event %{public}s.", event.c_str());
 #endif // HAS_CES_PART

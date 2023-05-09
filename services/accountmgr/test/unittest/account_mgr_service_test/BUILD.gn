@@ -18,7 +18,10 @@ import("../../../../../os_account.gni")
 module_output_path = "os_account/services/accountmgr"
 
 config("bundle_manager_config") {
-  include_dirs = [ "${app_account_services_path}/test/mock/common" ]
+  include_dirs = [
+    "${app_account_services_path}/test/mock/common",
+    "${os_account_dfx_path}/hitrace_adapter",
+  ]
 }
 
 bundle_manager_sources = [
@@ -31,6 +34,7 @@ ohos_unittest("account_mgr_test") {
   include_dirs = [ "${account_iam_interfaces_native_path}/include" ]
 
   sources = [
+    "${os_account_dfx_path}/hitrace_adapter/hitrace_adapter.cpp",
     "${services_path}/accountmgr/src/account_event_provider.cpp",
     "${services_path}/accountmgr/src/ohos_account_data_deal.cpp",
     "${services_path}/accountmgr/src/ohos_account_manager.cpp",
@@ -90,7 +94,10 @@ ohos_unittest("account_mgr_test") {
     cflags_cc += [ "-DHAS_USER_AUTH_PART" ]
   }
 
-  external_deps += [ "hitrace_native:hitrace_meter" ]
+  if (has_hiviewdfx_hitrace_part) {
+    external_deps += [ "hitrace_native:hitrace_meter" ]
+    cflags_cc += [ "-DHAS_HITRACE_PART" ]
+  }
 
   part_name = "os_account"
 }
