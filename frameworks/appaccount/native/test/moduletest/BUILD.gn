@@ -65,6 +65,7 @@ ohos_moduletest("app_account_manager_module_test") {
     "ability_base:want",
     "c_utils:utils",
     "hiviewdfx_hilog_native:libhilog",
+    "ipc:ipc_single",
   ]
 }
 
