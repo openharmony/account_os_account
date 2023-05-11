@@ -111,6 +111,21 @@ std::int32_t OhosAccountKitsImpl::SetOhosAccountInfo(
     return accountProxy->SetOhosAccountInfo(ohosAccountInfo, eventStr);
 }
 
+ErrCode OhosAccountKitsImpl::SetOhosAccountInfoByUserId(
+    const int32_t userId, const OhosAccountInfo& ohosAccountInfo, const std::string& eventStr)
+{
+    auto accountProxy = GetService();
+    if (accountProxy == nullptr) {
+        ACCOUNT_LOGE("Get proxy failed");
+        return ERR_ACCOUNT_COMMON_GET_PROXY;
+    }
+    if (!ohosAccountInfo.IsValid()) {
+        ACCOUNT_LOGE("OhosAccountInfo check failed");
+        return ERR_OHOSACCOUNT_KIT_INVALID_PARAMETER;
+    }
+    return accountProxy->SetOhosAccountInfoByUserId(userId, ohosAccountInfo, eventStr);
+}
+
 std::pair<bool, OhosAccountInfo> OhosAccountKitsImpl::QueryOhosAccountInfo()
 {
     auto accountProxy = GetService();

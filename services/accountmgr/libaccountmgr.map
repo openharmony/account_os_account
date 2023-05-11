@@ -31,6 +31,7 @@
         "OHOS::AccountSA::AccountStateMachine::Clean()";
         "OHOS::AccountSA::AccountStateMachine::OnInitialize()";
         "OHOS::AccountSA::AccountStateMachine::StateChangeProcess(int)";
+        "OHOS::AccountSA::DomainAccountManagerService::DomainAccountManagerService()";
         "OHOS::AccountSA::AccountStub::OnRemoteRequest(unsigned int, OHOS::MessageParcel&, OHOS::MessageParcel&, OHOS::MessageOption&)";
         "OHOS::AccountSA::AddCredCallback::AddCredCallback(unsigned int, OHOS::UserIam::UserAuth::CredentialParameters const&, OHOS::sptr<OHOS::AccountSA::IIDMCallback> const&)";
         "OHOS::AccountSA::AppAccountAuthenticatorCallback::AppAccountAuthenticatorCallback(std::__h::basic_string<char, std::__h::char_traits<char>, std::__h::allocator<char>> const&)";
