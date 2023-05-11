@@ -119,12 +119,12 @@ HWTEST_F(OhosAccountManagerTest, OhosAccountManagerTest001, TestSize.Level0)
     accountInfo.name_ = TEST_NAME;
     accountInfo.uid_ = TEST_UID;
     accountManager.OnInitialize();
-    auto ret = accountManager.LoginOhosAccount(-1, accountInfo, g_eventLogin);
+    auto ret = accountManager.LoginOhosAccount(accountInfo, g_eventLogin);
     EXPECT_EQ(false, ret);
 
-    ret = accountManager.HandleOhosAccountTokenInvalidEvent(-1, accountInfo, g_eventTokenInvalid);
+    ret = accountManager.HandleOhosAccountTokenInvalidEvent(accountInfo, g_eventTokenInvalid);
     EXPECT_EQ(false, ret);
-    EXPECT_EQ(ACCOUNT_STATE_NOT_LOGIN, accountManager.GetCurrentOhosAccountState());
+    EXPECT_EQ(ACCOUNT_STATE_UNBOUND, accountManager.GetCurrentOhosAccountState());
 }
 
 /**
@@ -169,7 +169,7 @@ HWTEST_F(OhosAccountManagerTest, OhosAccountManagerTest004, TestSize.Level0)
     OhosAccountManager accountManager;
     accountManager.OnInitialize();
     OhosAccountInfo curOhosAccount;
-    ErrCode ret = accountManager.LogoutOhosAccount(ACCOUNT_UID, curOhosAccount, TEST_EVENT_STR);
+    ErrCode ret = accountManager.LogoutOhosAccount(curOhosAccount, TEST_EVENT_STR);
     EXPECT_EQ(false, ret);
 }
 
@@ -184,7 +184,7 @@ HWTEST_F(OhosAccountManagerTest, OhosAccountManagerTest005, TestSize.Level0)
     OhosAccountManager accountManager;
     accountManager.OnInitialize();
     OhosAccountInfo curOhosAccount;
-    ErrCode ret = accountManager.LogoffOhosAccount(ACCOUNT_UID, curOhosAccount, TEST_EVENT_STR);
+    ErrCode ret = accountManager.LogoffOhosAccount(curOhosAccount, TEST_EVENT_STR);
     EXPECT_EQ(false, ret);
 }
 
@@ -213,14 +213,14 @@ HWTEST_F(OhosAccountManagerTest, OhosAccountManagerTest006, TestSize.Level0)
     AccountInfo curAccountInfo;
     curAccountInfo.ohosAccountInfo_.name_ = "name";
     curAccountInfo.ohosAccountInfo_.uid_ = "test";
-    bool ret = accountManager.LoginOhosAccount(ACCOUNT_UID, curAccountInfo.ohosAccountInfo_, g_eventLogin);
+    bool ret = accountManager.LoginOhosAccount(curAccountInfo.ohosAccountInfo_, g_eventLogin);
     ASSERT_EQ(ret, true);
     std::this_thread::sleep_for(std::chrono::milliseconds(DELAY_FOR_OPERATION));
     ASSERT_EQ(subscriberPtr->GetStatusLoginFirst(), true);
-    ret = accountManager.LoginOhosAccount(ACCOUNT_UID, curAccountInfo.ohosAccountInfo_, g_eventLogin);
+    ret = accountManager.LoginOhosAccount(curAccountInfo.ohosAccountInfo_, g_eventLogin);
     ASSERT_EQ(ret, true);
     std::this_thread::sleep_for(std::chrono::milliseconds(DELAY_FOR_OPERATION));
     ASSERT_EQ(subscriberPtr->GetStatusLoginSecond(), true);
-    ret = accountManager.LogoutOhosAccount(ACCOUNT_UID, curAccountInfo.ohosAccountInfo_, g_eventLogout);
+    ret = accountManager.LogoutOhosAccount(curAccountInfo.ohosAccountInfo_, g_eventLogout);
     EXPECT_EQ(true, ret);
 }

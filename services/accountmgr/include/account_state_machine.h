@@ -112,7 +112,7 @@ public:
     /**
       * Account state machine Constructor.
       */
-    AccountStateMachine() : currentState_(ACCOUNT_STATE_NOT_LOGIN)
+    AccountStateMachine() : currentState_(ACCOUNT_STATE_UNBOUND)
     {
         OnInitialize();
     }

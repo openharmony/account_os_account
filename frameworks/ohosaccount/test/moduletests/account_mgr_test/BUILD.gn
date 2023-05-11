@@ -52,10 +52,7 @@ ohos_moduletest("AccountInnerSdkModuleTest") {
     "${services_path}/accountmgr/test:accountmgr_test_config",
   ]
 
-  deps = [
-    "${os_account_innerkits_native_path}:os_account_innerkits",
-    "//third_party/googletest:gtest_main",
-  ]
+  deps = [ "//third_party/googletest:gtest_main" ]
 
   external_deps = [
     "ability_base:base",
