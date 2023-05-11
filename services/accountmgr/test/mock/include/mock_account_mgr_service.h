@@ -44,12 +44,6 @@ public:
         return 0;
     }
 
-    std::int32_t SetOhosAccountInfoByUserId(
-        const int32_t userId, const OhosAccountInfo &ohosAccountInfo, const std::string &eventStr) override
-    {
-        return 0;
-    }
-
     ErrCode GetOhosAccountInfo(OhosAccountInfo &accountInfo) override
     {
         return 0;

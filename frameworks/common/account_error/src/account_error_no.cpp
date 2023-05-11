@@ -170,9 +170,6 @@ int32_t ConvertToJSErrCode(int32_t nativeErrCode)
     if (nativeErrCode == ERR_ACCOUNT_COMMON_INVALID_PARAMETER) {
         return ERR_JS_INVALID_PARAMETER;
     }
-    if (nativeErrCode == ERR_ACCOUNT_COMMON_ACCOUNT_NOT_EXIST_ERROR) {
-        return ERR_JS_ACCOUNT_NOT_FOUND;
-    }
     if (IsAppAccountKitError(nativeErrCode) || IsAppAccountServiceError(nativeErrCode)) {
         return AppAccountConvertToJSErrCode(nativeErrCode);
     } else if (IsOsAccountKitError(nativeErrCode) || IsOsAccountServiceError(nativeErrCode)) {

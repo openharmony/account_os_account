@@ -35,9 +35,8 @@ public:
 private:
     std::int32_t InnerUpdateOhosAccountInfo(MessageParcel &data, MessageParcel &reply);
     std::int32_t CmdUpdateOhosAccountInfo(MessageParcel &data, MessageParcel &reply);
-    std::int32_t InnerSetOhosAccountInfo(int32_t userId, MessageParcel &data, MessageParcel &reply);
+    std::int32_t InnerSetOhosAccountInfo(MessageParcel &data, MessageParcel &reply);
     std::int32_t CmdSetOhosAccountInfo(MessageParcel &data, MessageParcel &reply);
-    std::int32_t CmdSetOhosAccountInfoByUserId(MessageParcel &data, MessageParcel &reply);
 
     std::int32_t InnerGetOhosAccountInfo(MessageParcel &data, MessageParcel &reply);
     std::int32_t CmdGetOhosAccountInfo(MessageParcel &data, MessageParcel &reply);

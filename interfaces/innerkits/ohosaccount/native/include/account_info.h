@@ -32,10 +32,14 @@ namespace AccountSA {
 typedef enum : std::int32_t {
     // invalid state
     ACCOUNT_STATE_INVALID = -1,
-    // account not login
-    ACCOUNT_STATE_NOT_LOGIN,
+    // no account bound
+    ACCOUNT_STATE_UNBOUND = 0,
     // account login
     ACCOUNT_STATE_LOGIN,
+    // account logout but not unbound
+    ACCOUNT_STATE_NOTLOGIN,
+    // account logoff, all the data of this account will be deleted in the network
+    ACCOUNT_STATE_LOGOFF,
 } OHOS_ACCOUNT_STATE;
 
 // event string
@@ -96,7 +100,7 @@ public:
         nickname_ = "";
         avatar_ = "";
         scalableData_ = {};
-        status_ = ACCOUNT_STATE_INVALID;
+        status_ = ACCOUNT_STATE_UNBOUND;
     }
 
     ~OhosAccountInfo() {};
@@ -163,7 +167,7 @@ public:
         return (ohosAccountInfo_.uid_ == info.ohosAccountInfo_.uid_);
     }
 
-    void clear(std::int32_t clrStatus = ACCOUNT_STATE_NOT_LOGIN)
+    void clear(std::int32_t clrStatus = ACCOUNT_STATE_UNBOUND)
     {
         ohosAccountInfo_.name_ = DEFAULT_OHOS_ACCOUNT_NAME;
         ohosAccountInfo_.uid_ = DEFAULT_OHOS_ACCOUNT_UID;

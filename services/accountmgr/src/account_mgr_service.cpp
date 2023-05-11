@@ -65,20 +65,6 @@ AccountMgrService::AccountMgrService() : SystemAbility(SUBSYS_ACCOUNT_SYS_ABILIT
 AccountMgrService::~AccountMgrService()
 {}
 
-std::int32_t AccountMgrService::GetCallingUserID()
-{
-    std::int32_t userId = IPCSkeleton::GetCallingUid() / UID_TRANSFORM_DIVISOR;
-    if (userId <= 0) {
-        std::vector<int32_t> userIds;
-        (void)IInnerOsAccountManager::GetInstance().QueryActiveOsAccountIds(userIds);
-        if (userIds.empty()) {
-            return -1;  // invalid user id
-        }
-        userId = userIds[0];
-    }
-    return userId;
-}
-
 bool AccountMgrService::UpdateOhosAccountInfo(
     const std::string &accountName, const std::string &uid, const std::string &eventStr)
 {
@@ -90,15 +76,10 @@ bool AccountMgrService::UpdateOhosAccountInfo(
     return true;
 }
 
-std::int32_t AccountMgrService::SetOhosAccountInfo(const OhosAccountInfo &ohosAccountInfo, const std::string &eventStr)
+std::int32_t AccountMgrService::SetOhosAccountInfo(const OhosAccountInfo &ohosAccountInfo,
+    const std::string &eventStr)
 {
-    return ERR_OK;
-}
-
-std::int32_t AccountMgrService::SetOhosAccountInfoByUserId(
-    const int32_t userId, const OhosAccountInfo &ohosAccountInfo, const std::string &eventStr)
-{
-    if (!ohosAccountMgr_->OhosAccountStateChange(userId, ohosAccountInfo, eventStr)) {
+    if (!ohosAccountMgr_->OhosAccountStateChange(ohosAccountInfo, eventStr)) {
         ACCOUNT_LOGE("Ohos account state change failed");
         return ERR_ACCOUNT_ZIDL_ACCOUNT_SERVICE_ERROR;
     }
