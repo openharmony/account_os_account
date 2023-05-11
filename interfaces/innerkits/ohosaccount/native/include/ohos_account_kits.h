@@ -114,6 +114,19 @@ public:
         const std::string &eventStr) = 0;
 
     /**
+     * Sets OHOS Account Info.
+     *
+     * @param userId target local account id.
+     * @param ohosAccountInfo Indicates the information of the distributed account.
+     * Update OHOS Account Info.
+     * @param eventStr Indicates the event of the OS account used for a distributed system.
+     * @return Returns {@code true} if the distributed information of the account is updated;
+     *     returns {@code false} otherwise.
+     */
+    virtual ErrCode SetOhosAccountInfoByUserId(
+        const int32_t userId, const OhosAccountInfo& ohosAccountInfo, const std::string& eventStr) = 0;
+
+    /**
      * Query Device Account Id.
      *
      * @param device account id.
