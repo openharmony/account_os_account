@@ -46,10 +46,10 @@ HWTEST_F(AccountStateMachineTest, AccountStateMachineTestInitState001, TestSize.
 {
     /**
      * @tc.steps: step1. AccountStateMachine init
-     * @tc.expected: step1. The current state is AccountStateMachine::ACCOUNT_STATE_UNBOUND
+     * @tc.expected: step1. The current state is AccountStateMachine::ACCOUNT_STATE_NOT_LOGIN
      */
     AccountStateMachine stateMachine;
-    EXPECT_EQ(ACCOUNT_STATE_UNBOUND, stateMachine.GetAccountState());
+    EXPECT_EQ(ACCOUNT_STATE_NOT_LOGIN, stateMachine.GetAccountState());
 }
 
 /**
@@ -62,10 +62,10 @@ HWTEST_F(AccountStateMachineTest, AccountStateMachineTestUnbound2LoginState002, 
 {
     /**
      * @tc.steps: step1. AccountStateMachine init
-     * @tc.expected: step1. The current state is AccountStateMachine::ACCOUNT_STATE_UNBOUND
+     * @tc.expected: step1. The current state is AccountStateMachine::ACCOUNT_STATE_NOT_LOGIN
      */
     AccountStateMachine stateMachine;
-    EXPECT_EQ(ACCOUNT_STATE_UNBOUND, stateMachine.GetAccountState());
+    EXPECT_EQ(ACCOUNT_STATE_NOT_LOGIN, stateMachine.GetAccountState());
 
     /**
      * @tc.steps: step2. Input the event ACCOUNT_BIND_SUCCESS_EVT
@@ -85,17 +85,17 @@ HWTEST_F(AccountStateMachineTest, AccountStateMachineTestUnboundBindAccountFaile
 {
     /**
      * @tc.steps: step1. AccountStateMachine init
-     * @tc.expected: step1. The current state is AccountStateMachine::ACCOUNT_STATE_UNBOUND
+     * @tc.expected: step1. The current state is AccountStateMachine::ACCOUNT_STATE_NOT_LOGIN
      */
     AccountStateMachine stateMachine;
-    EXPECT_EQ(ACCOUNT_STATE_UNBOUND, stateMachine.GetAccountState());
+    EXPECT_EQ(ACCOUNT_STATE_NOT_LOGIN, stateMachine.GetAccountState());
 
     /**
      * @tc.steps: step2. Input the event ACCOUNT_BIND_FAILED_EVT
-     * @tc.expected: step2. The current state is AccountStateMachine::ACCOUNT_STATE_UNBOUND
+     * @tc.expected: step2. The current state is AccountStateMachine::ACCOUNT_STATE_NOT_LOGIN
      */
     EXPECT_EQ(true, stateMachine.StateChangeProcess(ACCOUNT_BIND_FAILED_EVT));
-    EXPECT_EQ(ACCOUNT_STATE_UNBOUND, stateMachine.GetAccountState());
+    EXPECT_EQ(ACCOUNT_STATE_NOT_LOGIN, stateMachine.GetAccountState());
 }
 
 /**
@@ -108,17 +108,17 @@ HWTEST_F(AccountStateMachineTest, AccountStateMachineUnboundInputUntreatedEvent0
 {
     /**
      * @tc.steps: step1. AccountStateMachine init
-     * @tc.expected: step1. The current state is AccountStateMachine::ACCOUNT_STATE_UNBOUND
+     * @tc.expected: step1. The current state is AccountStateMachine::ACCOUNT_STATE_NOT_LOGIN
      */
     AccountStateMachine stateMachine;
-    EXPECT_EQ(ACCOUNT_STATE_UNBOUND, stateMachine.GetAccountState());
+    EXPECT_EQ(ACCOUNT_STATE_NOT_LOGIN, stateMachine.GetAccountState());
 
     /**
      * @tc.steps: step2. Input the event ACCOUNT_PASSWORD_CHANGED_EVT
-     * @tc.expected: step2. The current state is AccountStateMachine::ACCOUNT_STATE_UNBOUND
+     * @tc.expected: step2. The current state is AccountStateMachine::ACCOUNT_STATE_NOT_LOGIN
      */
     EXPECT_EQ(true, stateMachine.StateChangeProcess(ACCOUNT_PASSWORD_CHANGED_EVT));
-    EXPECT_EQ(ACCOUNT_STATE_UNBOUND, stateMachine.GetAccountState());
+    EXPECT_EQ(ACCOUNT_STATE_NOT_LOGIN, stateMachine.GetAccountState());
 }
 
 /**
@@ -131,10 +131,10 @@ HWTEST_F(AccountStateMachineTest, AccountStateMachineTestLoginTokenExpired005, T
 {
     /**
      * @tc.steps: step1. AccountStateMachine init
-     * @tc.expected: step1. The current state is AccountStateMachine::ACCOUNT_STATE_UNBOUND
+     * @tc.expected: step1. The current state is AccountStateMachine::ACCOUNT_STATE_NOT_LOGIN
      */
     AccountStateMachine stateMachine;
-    EXPECT_EQ(ACCOUNT_STATE_UNBOUND, stateMachine.GetAccountState());
+    EXPECT_EQ(ACCOUNT_STATE_NOT_LOGIN, stateMachine.GetAccountState());
 
     /**
      * @tc.steps: step2. Input the event ACCOUNT_BIND_SUCCESS_EVT
@@ -145,10 +145,10 @@ HWTEST_F(AccountStateMachineTest, AccountStateMachineTestLoginTokenExpired005, T
 
     /**
      * @tc.steps: step3. Input the event ACCOUNT_TOKEN_EXPIRED_EVT
-     * @tc.expected: step3. The current state is AccountStateMachine::ACCOUNT_STATE_NOTLOGIN
+     * @tc.expected: step3. The current state is AccountStateMachine::ACCOUNT_STATE_NOT_LOGIN
      */
     EXPECT_EQ(true, stateMachine.StateChangeProcess(ACCOUNT_TOKEN_EXPIRED_EVT));
-    EXPECT_EQ(ACCOUNT_STATE_NOTLOGIN, stateMachine.GetAccountState());
+    EXPECT_EQ(ACCOUNT_STATE_NOT_LOGIN, stateMachine.GetAccountState());
 }
 
 /**
@@ -161,10 +161,10 @@ HWTEST_F(AccountStateMachineTest, AccountStateMachineTestLoginPasswordChanged006
 {
     /**
      * @tc.steps: step1. AccountStateMachine init
-     * @tc.expected: step1. The current state is AccountStateMachine::ACCOUNT_STATE_UNBOUND
+     * @tc.expected: step1. The current state is AccountStateMachine::ACCOUNT_STATE_NOT_LOGIN
      */
     AccountStateMachine stateMachine;
-    EXPECT_EQ(ACCOUNT_STATE_UNBOUND, stateMachine.GetAccountState());
+    EXPECT_EQ(ACCOUNT_STATE_NOT_LOGIN, stateMachine.GetAccountState());
 
     /**
      * @tc.steps: step2. Input the event ACCOUNT_BIND_SUCCESS_EVT
@@ -175,10 +175,10 @@ HWTEST_F(AccountStateMachineTest, AccountStateMachineTestLoginPasswordChanged006
 
     /**
      * @tc.steps: step3. Input the event ACCOUNT_PASSWORD_CHANGED_EVT
-     * @tc.expected: step3. The current state is AccountStateMachine::ACCOUNT_STATE_NOTLOGIN
+     * @tc.expected: step3. The current state is AccountStateMachine::ACCOUNT_STATE_NOT_LOGIN
      */
     EXPECT_EQ(true, stateMachine.StateChangeProcess(ACCOUNT_PASSWORD_CHANGED_EVT));
-    EXPECT_EQ(ACCOUNT_STATE_NOTLOGIN, stateMachine.GetAccountState());
+    EXPECT_EQ(ACCOUNT_STATE_NOT_LOGIN, stateMachine.GetAccountState());
 }
 
 /**
@@ -191,10 +191,10 @@ HWTEST_F(AccountStateMachineTest, AccountStateMachineTestManualLogout007, TestSi
 {
     /**
      * @tc.steps: step1. AccountStateMachine init
-     * @tc.expected: step1. The current state is AccountStateMachine::ACCOUNT_STATE_UNBOUND
+     * @tc.expected: step1. The current state is AccountStateMachine::ACCOUNT_STATE_NOT_LOGIN
      */
     AccountStateMachine stateMachine;
-    EXPECT_EQ(ACCOUNT_STATE_UNBOUND, stateMachine.GetAccountState());
+    EXPECT_EQ(ACCOUNT_STATE_NOT_LOGIN, stateMachine.GetAccountState());
 
     /**
      * @tc.steps: step2. Input the event ACCOUNT_BIND_SUCCESS_EVT
@@ -205,10 +205,10 @@ HWTEST_F(AccountStateMachineTest, AccountStateMachineTestManualLogout007, TestSi
 
     /**
      * @tc.steps: step3. Input the event ACCOUNT_MANUAL_LOGOUT_EVT
-     * @tc.expected: step3. The current state is AccountStateMachine::ACCOUNT_STATE_NOTLOGIN
+     * @tc.expected: step3. The current state is AccountStateMachine::ACCOUNT_STATE_NOT_LOGIN
      */
     EXPECT_EQ(true, stateMachine.StateChangeProcess(ACCOUNT_MANUAL_LOGOUT_EVT));
-    EXPECT_EQ(ACCOUNT_STATE_NOTLOGIN, stateMachine.GetAccountState());
+    EXPECT_EQ(ACCOUNT_STATE_NOT_LOGIN, stateMachine.GetAccountState());
 }
 
 /**
@@ -221,10 +221,10 @@ HWTEST_F(AccountStateMachineTest, AccountStateMachineTestLoginManualUnbound008, 
 {
     /**
      * @tc.steps: step1. AccountStateMachine init
-     * @tc.expected: step1. The current state is AccountStateMachine::ACCOUNT_STATE_UNBOUND
+     * @tc.expected: step1. The current state is AccountStateMachine::ACCOUNT_STATE_NOT_LOGIN
      */
     AccountStateMachine stateMachine;
-    EXPECT_EQ(ACCOUNT_STATE_UNBOUND, stateMachine.GetAccountState());
+    EXPECT_EQ(ACCOUNT_STATE_NOT_LOGIN, stateMachine.GetAccountState());
 
     /**
      * @tc.steps: step2. Input the event ACCOUNT_BIND_SUCCESS_EVT
@@ -235,10 +235,10 @@ HWTEST_F(AccountStateMachineTest, AccountStateMachineTestLoginManualUnbound008, 
 
     /**
      * @tc.steps: step3. Input the event ACCOUNT_MANUAL_UNBOUND_EVT
-     * @tc.expected: step3. The current state is AccountStateMachine::ACCOUNT_STATE_UNBOUND
+     * @tc.expected: step3. The current state is AccountStateMachine::ACCOUNT_STATE_NOT_LOGIN
      */
     EXPECT_EQ(true, stateMachine.StateChangeProcess(ACCOUNT_MANUAL_UNBOUND_EVT));
-    EXPECT_EQ(ACCOUNT_STATE_UNBOUND, stateMachine.GetAccountState());
+    EXPECT_EQ(ACCOUNT_STATE_NOT_LOGIN, stateMachine.GetAccountState());
 }
 
 /**
@@ -251,10 +251,10 @@ HWTEST_F(AccountStateMachineTest, AccountStateMachineTestLoginInputUntreatedEven
 {
     /**
      * @tc.steps: step1. AccountStateMachine init
-     * @tc.expected: step1. The current state is AccountStateMachine::ACCOUNT_STATE_UNBOUND
+     * @tc.expected: step1. The current state is AccountStateMachine::ACCOUNT_STATE_NOT_LOGIN
      */
     AccountStateMachine stateMachine;
-    EXPECT_EQ(ACCOUNT_STATE_UNBOUND, stateMachine.GetAccountState());
+    EXPECT_EQ(ACCOUNT_STATE_NOT_LOGIN, stateMachine.GetAccountState());
 
     /**
      * @tc.steps: step2. Input the event ACCOUNT_BIND_SUCCESS_EVT
@@ -281,10 +281,10 @@ HWTEST_F(AccountStateMachineTest, AccountStateMachineTestLogoutAuthenticateSucce
 {
     /**
      * @tc.steps: step1. AccountStateMachine init
-     * @tc.expected: step1. The current state is AccountStateMachine::ACCOUNT_STATE_UNBOUND
+     * @tc.expected: step1. The current state is AccountStateMachine::ACCOUNT_STATE_NOT_LOGIN
      */
     AccountStateMachine stateMachine;
-    EXPECT_EQ(ACCOUNT_STATE_UNBOUND, stateMachine.GetAccountState());
+    EXPECT_EQ(ACCOUNT_STATE_NOT_LOGIN, stateMachine.GetAccountState());
 
     /**
      * @tc.steps: step2. Input the event ACCOUNT_BIND_SUCCESS_EVT
@@ -295,10 +295,10 @@ HWTEST_F(AccountStateMachineTest, AccountStateMachineTestLogoutAuthenticateSucce
 
     /**
      * @tc.steps: step3. Input the event ACCOUNT_MANUAL_LOGOUT_EVT
-     * @tc.expected: step3. The current state is AccountStateMachine::ACCOUNT_STATE_NOTLOGIN
+     * @tc.expected: step3. The current state is AccountStateMachine::ACCOUNT_STATE_NOT_LOGIN
      */
     EXPECT_EQ(true, stateMachine.StateChangeProcess(ACCOUNT_MANUAL_LOGOUT_EVT));
-    EXPECT_EQ(ACCOUNT_STATE_NOTLOGIN, stateMachine.GetAccountState());
+    EXPECT_EQ(ACCOUNT_STATE_NOT_LOGIN, stateMachine.GetAccountState());
 
     /**
      * @tc.steps: step4. Input the event ACCOUNT_AUTHENTICATE_SUCCESS_EVT
@@ -318,10 +318,10 @@ HWTEST_F(AccountStateMachineTest, AccountStateMachineTestLogoutAuthenticateFaile
 {
     /**
      * @tc.steps: step1. AccountStateMachine init
-     * @tc.expected: step1. The current state is AccountStateMachine::ACCOUNT_STATE_UNBOUND
+     * @tc.expected: step1. The current state is AccountStateMachine::ACCOUNT_STATE_NOT_LOGIN
      */
     AccountStateMachine stateMachine;
-    EXPECT_EQ(ACCOUNT_STATE_UNBOUND, stateMachine.GetAccountState());
+    EXPECT_EQ(ACCOUNT_STATE_NOT_LOGIN, stateMachine.GetAccountState());
 
     /**
      * @tc.steps: step2. Input the event ACCOUNT_BIND_SUCCESS_EVT
@@ -332,17 +332,17 @@ HWTEST_F(AccountStateMachineTest, AccountStateMachineTestLogoutAuthenticateFaile
 
     /**
      * @tc.steps: step3. Input the event ACCOUNT_MANUAL_LOGOUT_EVT
-     * @tc.expected: step3. The current state is AccountStateMachine::ACCOUNT_STATE_NOTLOGIN
+     * @tc.expected: step3. The current state is AccountStateMachine::ACCOUNT_STATE_NOT_LOGIN
      */
     EXPECT_EQ(true, stateMachine.StateChangeProcess(ACCOUNT_MANUAL_LOGOUT_EVT));
-    EXPECT_EQ(ACCOUNT_STATE_NOTLOGIN, stateMachine.GetAccountState());
+    EXPECT_EQ(ACCOUNT_STATE_NOT_LOGIN, stateMachine.GetAccountState());
 
     /**
      * @tc.steps: step4. Input the event ACCOUNT_AUTHENTICATE_FAILED_EVT
-     * @tc.expected: step4. The current state is AccountStateMachine::ACCOUNT_STATE_NOTLOGIN
+     * @tc.expected: step4. The current state is AccountStateMachine::ACCOUNT_STATE_NOT_LOGIN
      */
     EXPECT_EQ(true, stateMachine.StateChangeProcess(ACCOUNT_AUTHENTICATE_FAILED_EVT));
-    EXPECT_EQ(ACCOUNT_STATE_NOTLOGIN, stateMachine.GetAccountState());
+    EXPECT_EQ(ACCOUNT_STATE_NOT_LOGIN, stateMachine.GetAccountState());
 }
 
 /**
@@ -355,10 +355,10 @@ HWTEST_F(AccountStateMachineTest, AccountStateMachineTestLogoutInputUntreatedEve
 {
     /**
      * @tc.steps: step1. AccountStateMachine init
-     * @tc.expected: step1. The current state is AccountStateMachine::ACCOUNT_STATE_UNBOUND
+     * @tc.expected: step1. The current state is AccountStateMachine::ACCOUNT_STATE_NOT_LOGIN
      */
     AccountStateMachine stateMachine;
-    EXPECT_EQ(ACCOUNT_STATE_UNBOUND, stateMachine.GetAccountState());
+    EXPECT_EQ(ACCOUNT_STATE_NOT_LOGIN, stateMachine.GetAccountState());
 
     /**
      * @tc.steps: step2. Input the event ACCOUNT_BIND_SUCCESS_EVT
@@ -369,24 +369,24 @@ HWTEST_F(AccountStateMachineTest, AccountStateMachineTestLogoutInputUntreatedEve
 
     /**
      * @tc.steps: step3. Input the event ACCOUNT_MANUAL_LOGOUT_EVT
-     * @tc.expected: step3. The current state is AccountStateMachine::ACCOUNT_STATE_NOTLOGIN
+     * @tc.expected: step3. The current state is AccountStateMachine::ACCOUNT_STATE_NOT_LOGIN
      */
     EXPECT_EQ(true, stateMachine.StateChangeProcess(ACCOUNT_MANUAL_LOGOUT_EVT));
-    EXPECT_EQ(ACCOUNT_STATE_NOTLOGIN, stateMachine.GetAccountState());
+    EXPECT_EQ(ACCOUNT_STATE_NOT_LOGIN, stateMachine.GetAccountState());
 
     /**
      * @tc.steps: step4. Input the event ACCOUNT_AUTHENTICATE_FAILED_EVT
-     * @tc.expected: step4. The current state is AccountStateMachine::ACCOUNT_STATE_NOTLOGIN
+     * @tc.expected: step4. The current state is AccountStateMachine::ACCOUNT_STATE_NOT_LOGIN
      */
     EXPECT_EQ(true, stateMachine.StateChangeProcess(ACCOUNT_AUTHENTICATE_FAILED_EVT));
-    EXPECT_EQ(ACCOUNT_STATE_NOTLOGIN, stateMachine.GetAccountState());
+    EXPECT_EQ(ACCOUNT_STATE_NOT_LOGIN, stateMachine.GetAccountState());
 
     /**
      * @tc.steps: step3. Input the event ACCOUNT_BIND_FAILED_EVT
-     * @tc.expected: step3. The current state is AccountStateMachine::ACCOUNT_STATE_NOTLOGIN
+     * @tc.expected: step3. The current state is AccountStateMachine::ACCOUNT_STATE_NOT_LOGIN
      */
     EXPECT_EQ(true, stateMachine.StateChangeProcess(ACCOUNT_BIND_FAILED_EVT));
-    EXPECT_EQ(ACCOUNT_STATE_NOTLOGIN, stateMachine.GetAccountState());
+    EXPECT_EQ(ACCOUNT_STATE_NOT_LOGIN, stateMachine.GetAccountState());
 }
 
 /**
@@ -399,10 +399,10 @@ HWTEST_F(AccountStateMachineTest, AccountStateMachineTestLogoutManualUnbound013,
 {
     /**
      * @tc.steps: step1. AccountStateMachine init
-     * @tc.expected: step1. The current state is AccountStateMachine::ACCOUNT_STATE_UNBOUND
+     * @tc.expected: step1. The current state is AccountStateMachine::ACCOUNT_STATE_NOT_LOGIN
      */
     AccountStateMachine stateMachine;
-    EXPECT_EQ(ACCOUNT_STATE_UNBOUND, stateMachine.GetAccountState());
+    EXPECT_EQ(ACCOUNT_STATE_NOT_LOGIN, stateMachine.GetAccountState());
 
     /**
      * @tc.steps: step2. Input the event ACCOUNT_BIND_SUCCESS_EVT
@@ -413,17 +413,17 @@ HWTEST_F(AccountStateMachineTest, AccountStateMachineTestLogoutManualUnbound013,
 
     /**
      * @tc.steps: step3. Input the event ACCOUNT_MANUAL_LOGOUT_EVT
-     * @tc.expected: step3. The current state is AccountStateMachine::ACCOUNT_STATE_NOTLOGIN
+     * @tc.expected: step3. The current state is AccountStateMachine::ACCOUNT_STATE_NOT_LOGIN
      */
     EXPECT_EQ(true, stateMachine.StateChangeProcess(ACCOUNT_MANUAL_LOGOUT_EVT));
-    EXPECT_EQ(ACCOUNT_STATE_NOTLOGIN, stateMachine.GetAccountState());
+    EXPECT_EQ(ACCOUNT_STATE_NOT_LOGIN, stateMachine.GetAccountState());
 
     /**
      * @tc.steps: step4. Input the event ACCOUNT_MANUAL_UNBOUND_EVT
-     * @tc.expected: step4. The current state is AccountStateMachine::ACCOUNT_STATE_UNBOUND
+     * @tc.expected: step4. The current state is AccountStateMachine::ACCOUNT_STATE_NOT_LOGIN
      */
     EXPECT_EQ(true, stateMachine.StateChangeProcess(ACCOUNT_MANUAL_UNBOUND_EVT));
-    EXPECT_EQ(ACCOUNT_STATE_UNBOUND, stateMachine.GetAccountState());
+    EXPECT_EQ(ACCOUNT_STATE_NOT_LOGIN, stateMachine.GetAccountState());
 }
 
 /**
@@ -436,10 +436,10 @@ HWTEST_F(AccountStateMachineTest, AccountStateMachineTestLoginManualLogoff014, T
 {
     /**
      * @tc.steps: step1. AccountStateMachine init
-     * @tc.expected: step1. The current state is AccountStateMachine::ACCOUNT_STATE_UNBOUND
+     * @tc.expected: step1. The current state is AccountStateMachine::ACCOUNT_STATE_NOT_LOGIN
      */
     AccountStateMachine stateMachine;
-    EXPECT_EQ(ACCOUNT_STATE_UNBOUND, stateMachine.GetAccountState());
+    EXPECT_EQ(ACCOUNT_STATE_NOT_LOGIN, stateMachine.GetAccountState());
 
     /**
      * @tc.steps: step2. Input the event ACCOUNT_BIND_SUCCESS_EVT
@@ -450,10 +450,10 @@ HWTEST_F(AccountStateMachineTest, AccountStateMachineTestLoginManualLogoff014, T
 
     /**
      * @tc.steps: step3. Input the event ACCOUNT_MANUAL_LOGOFF_EVT
-     * @tc.expected: step3. The current state is AccountStateMachine::ACCOUNT_STATE_LOGOFF
+     * @tc.expected: step3. The current state is AccountStateMachine::ACCOUNT_STATE_NOT_LOGIN
      */
     EXPECT_EQ(true, stateMachine.StateChangeProcess(ACCOUNT_MANUAL_LOGOFF_EVT));
-    EXPECT_EQ(ACCOUNT_STATE_LOGOFF, stateMachine.GetAccountState());
+    EXPECT_EQ(ACCOUNT_STATE_NOT_LOGIN, stateMachine.GetAccountState());
 }
 
 /**
@@ -466,10 +466,10 @@ HWTEST_F(AccountStateMachineTest, AccountStateMachineTestLogoutManualLogoff015, 
 {
     /**
      * @tc.steps: step1. AccountStateMachine init
-     * @tc.expected: step1. The current state is AccountStateMachine::ACCOUNT_STATE_UNBOUND
+     * @tc.expected: step1. The current state is AccountStateMachine::ACCOUNT_STATE_NOT_LOGIN
      */
     AccountStateMachine stateMachine;
-    EXPECT_EQ(ACCOUNT_STATE_UNBOUND, stateMachine.GetAccountState());
+    EXPECT_EQ(ACCOUNT_STATE_NOT_LOGIN, stateMachine.GetAccountState());
 
     /**
      * @tc.steps: step2. Input the event ACCOUNT_BIND_SUCCESS_EVT
@@ -480,17 +480,17 @@ HWTEST_F(AccountStateMachineTest, AccountStateMachineTestLogoutManualLogoff015, 
 
     /**
      * @tc.steps: step3. Input the event ACCOUNT_MANUAL_LOGOUT_EVT
-     * @tc.expected: step3. The current state is AccountStateMachine::ACCOUNT_STATE_NOTLOGIN
+     * @tc.expected: step3. The current state is AccountStateMachine::ACCOUNT_STATE_NOT_LOGIN
      */
     EXPECT_EQ(true, stateMachine.StateChangeProcess(ACCOUNT_MANUAL_LOGOUT_EVT));
-    EXPECT_EQ(ACCOUNT_STATE_NOTLOGIN, stateMachine.GetAccountState());
+    EXPECT_EQ(ACCOUNT_STATE_NOT_LOGIN, stateMachine.GetAccountState());
 
     /**
      * @tc.steps: step4. Input the event ACCOUNT_MANUAL_LOGOFF_EVT
      * @tc.expected: step4. The current state is AccountStateMachine::ACCOUNT_STATE_LOGOFF
      */
     EXPECT_EQ(true, stateMachine.StateChangeProcess(ACCOUNT_MANUAL_LOGOFF_EVT));
-    EXPECT_EQ(ACCOUNT_STATE_LOGOFF, stateMachine.GetAccountState());
+    EXPECT_EQ(ACCOUNT_STATE_NOT_LOGIN, stateMachine.GetAccountState());
 }
 
 /**
@@ -503,10 +503,10 @@ HWTEST_F(AccountStateMachineTest, AccountStateMachineTestLogoutBindSuccess016, T
 {
     /**
      * @tc.steps: step1. AccountStateMachine init
-     * @tc.expected: step1. The current state is AccountStateMachine::ACCOUNT_STATE_UNBOUND
+     * @tc.expected: step1. The current state is AccountStateMachine::ACCOUNT_STATE_NOT_LOGIN
      */
     AccountStateMachine stateMachine;
-    EXPECT_EQ(ACCOUNT_STATE_UNBOUND, stateMachine.GetAccountState());
+    EXPECT_EQ(ACCOUNT_STATE_NOT_LOGIN, stateMachine.GetAccountState());
 
     /**
      * @tc.steps: step2. Input the event ACCOUNT_BIND_SUCCESS_EVT
@@ -517,10 +517,10 @@ HWTEST_F(AccountStateMachineTest, AccountStateMachineTestLogoutBindSuccess016, T
 
     /**
      * @tc.steps: step3. Input the event ACCOUNT_MANUAL_LOGOUT_EVT
-     * @tc.expected: step3. The current state is AccountStateMachine::ACCOUNT_STATE_NOTLOGIN
+     * @tc.expected: step3. The current state is AccountStateMachine::ACCOUNT_STATE_NOT_LOGIN
      */
     EXPECT_EQ(true, stateMachine.StateChangeProcess(ACCOUNT_MANUAL_LOGOUT_EVT));
-    EXPECT_EQ(ACCOUNT_STATE_NOTLOGIN, stateMachine.GetAccountState());
+    EXPECT_EQ(ACCOUNT_STATE_NOT_LOGIN, stateMachine.GetAccountState());
 
     /**
      * @tc.steps: step4. Input the event ACCOUNT_BIND_SUCCESS_EVT
@@ -540,10 +540,10 @@ HWTEST_F(AccountStateMachineTest, AccountStateMachineTestLogoffBindSuccess017, T
 {
     /**
      * @tc.steps: step1. AccountStateMachine init
-     * @tc.expected: step1. The current state is AccountStateMachine::ACCOUNT_STATE_UNBOUND
+     * @tc.expected: step1. The current state is AccountStateMachine::ACCOUNT_STATE_NOT_LOGIN
      */
     AccountStateMachine stateMachine;
-    EXPECT_EQ(ACCOUNT_STATE_UNBOUND, stateMachine.GetAccountState());
+    EXPECT_EQ(ACCOUNT_STATE_NOT_LOGIN, stateMachine.GetAccountState());
 
     /**
      * @tc.steps: step2. Input the event ACCOUNT_BIND_SUCCESS_EVT
@@ -557,7 +557,7 @@ HWTEST_F(AccountStateMachineTest, AccountStateMachineTestLogoffBindSuccess017, T
      * @tc.expected: step3. The current state is AccountStateMachine::ACCOUNT_STATE_LOGOFF
      */
     EXPECT_EQ(true, stateMachine.StateChangeProcess(ACCOUNT_MANUAL_LOGOFF_EVT));
-    EXPECT_EQ(ACCOUNT_STATE_LOGOFF, stateMachine.GetAccountState());
+    EXPECT_EQ(ACCOUNT_STATE_NOT_LOGIN, stateMachine.GetAccountState());
 
     /**
      * @tc.steps: step4. Input the event ACCOUNT_BIND_SUCCESS_EVT
@@ -577,10 +577,10 @@ HWTEST_F(AccountStateMachineTest, AccountStateMachineTestLogoffInputUntreatedEve
 {
     /**
      * @tc.steps: step1. AccountStateMachine init
-     * @tc.expected: step1. The current state is AccountStateMachine::ACCOUNT_STATE_UNBOUND
+     * @tc.expected: step1. The current state is AccountStateMachine::ACCOUNT_STATE_NOT_LOGIN
      */
     AccountStateMachine stateMachine;
-    EXPECT_EQ(ACCOUNT_STATE_UNBOUND, stateMachine.GetAccountState());
+    EXPECT_EQ(ACCOUNT_STATE_NOT_LOGIN, stateMachine.GetAccountState());
 
     /**
      * @tc.steps: step2. Input the event ACCOUNT_BIND_SUCCESS_EVT
@@ -594,19 +594,19 @@ HWTEST_F(AccountStateMachineTest, AccountStateMachineTestLogoffInputUntreatedEve
      * @tc.expected: step3. The current state is AccountStateMachine::ACCOUNT_STATE_LOGOFF
      */
     EXPECT_EQ(true, stateMachine.StateChangeProcess(ACCOUNT_MANUAL_LOGOFF_EVT));
-    EXPECT_EQ(ACCOUNT_STATE_LOGOFF, stateMachine.GetAccountState());
+    EXPECT_EQ(ACCOUNT_STATE_NOT_LOGIN, stateMachine.GetAccountState());
 
     /**
      * @tc.steps: step4. Input the event ACCOUNT_AUTHENTICATE_FAILED_EVT
      * @tc.expected: step4. The current state is AccountStateMachine::ACCOUNT_STATE_LOGOFF
      */
     EXPECT_EQ(true, stateMachine.StateChangeProcess(ACCOUNT_AUTHENTICATE_FAILED_EVT));
-    EXPECT_EQ(ACCOUNT_STATE_LOGOFF, stateMachine.GetAccountState());
+    EXPECT_EQ(ACCOUNT_STATE_NOT_LOGIN, stateMachine.GetAccountState());
 
     /**
      * @tc.steps: step3. Input the event ACCOUNT_BIND_FAILED_EVT
      * @tc.expected: step3. The current state is AccountStateMachine::ACCOUNT_STATE_LOGOFF
      */
     EXPECT_EQ(true, stateMachine.StateChangeProcess(ACCOUNT_BIND_FAILED_EVT));
-    EXPECT_EQ(ACCOUNT_STATE_LOGOFF, stateMachine.GetAccountState());
+    EXPECT_EQ(ACCOUNT_STATE_NOT_LOGIN, stateMachine.GetAccountState());
 }

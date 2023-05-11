@@ -37,6 +37,7 @@ public:
         SET_OHOS_ACCOUNT_INFO = 5,
         GET_OHOS_ACCOUNT_INFO = 6,
         GET_OHOS_ACCOUNT_INFO_BY_USER_ID = 7,
+        SET_OHOS_ACCOUNT_INFO_BY_USER_ID = 8,
         QUERY_DEVICE_ACCOUNT_ID = 104,
         GET_APP_ACCOUNT_SERVICE = 105,
         GET_OS_ACCOUNT_SERVICE = 106,
@@ -48,6 +49,8 @@ public:
         const std::string &accountName, const std::string &uid, const std::string &eventStr) = 0;
     virtual std::int32_t SetOhosAccountInfo(const OhosAccountInfo &ohosAccountInfo,
         const std::string &eventStr) = 0;
+    virtual std::int32_t SetOhosAccountInfoByUserId(
+        const int32_t userId, const OhosAccountInfo &ohosAccountInfo, const std::string &eventStr) = 0;
     virtual std::pair<bool, OhosAccountInfo> QueryOhosAccountInfo(void) = 0;
     virtual std::pair<bool, OhosAccountInfo> QueryOhosAccountInfoByUserId(std::int32_t userId) = 0;
     virtual ErrCode GetOhosAccountInfo(OhosAccountInfo &accountInfo) = 0;
