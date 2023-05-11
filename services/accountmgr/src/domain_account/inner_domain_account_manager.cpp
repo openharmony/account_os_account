@@ -24,6 +24,7 @@
 #include "domain_has_domain_info_callback.h"
 #include "idomain_account_callback.h"
 #include "iinner_os_account_manager.h"
+#include "inner_account_iam_manager.h"
 #include "ipc_skeleton.h"
 #include "status_listener_manager.h"
 
@@ -56,6 +57,18 @@ InnerDomainAuthCallback::~InnerDomainAuthCallback()
 void InnerDomainAuthCallback::OnResult(int32_t resultCode, const DomainAuthResult &result)
 {
     if ((resultCode == ERR_OK) && (userId_ != 0)) {
+#ifdef FILE_ENCRYPTION_EL1_FEATURE
+        int32_t errCode = InnerAccountIAMManager::GetInstance().ActivateUserKey(userId_, {}, {});
+        if (errCode != 0) {
+            ACCOUNT_LOGE("failed to activate user key");
+            DomainAuthResult errResult;
+            errResult.authStatusInfo = result.authStatusInfo;
+            return callback_->OnResult(ERR_JS_SYSTEM_SERVICE_EXCEPTION, errResult);
+        } else {
+            ACCOUNT_LOGI("activate user key success");
+            (void)IInnerOsAccountManager::GetInstance().SetOsAccountIsVerified(userId_, true);
+        }
+#endif // FILE_ENCRYPTION_EL1_FEATURE
         InnerDomainAccountManager::GetInstance().InsertTokenToMap(userId_, result.token);
         DomainAccountInfo domainInfo;
         InnerDomainAccountManager::GetInstance().GetDomainAccountInfoByUserId(userId_, domainInfo);

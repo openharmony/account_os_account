@@ -20,9 +20,10 @@
       "os_account_enable_app_account = true",
       "os_account_enable_os_account = true",
       "os_account_multiple_active_accounts = false",
-      "os_account_distributed_feature = true",
-      "os_account_storage_feature = true",
-      "os_account_test_case_coverage_feature = false"
+      "os_account_distributed_feature",
+      "os_account_storage_feature",
+      "os_account_test_case_coverage_feature = false",
+      "os_account_file_encryption_el1_feature"
     ],
     "hisysevent_config": [
       "//base/account/os_account/hisysevent.yaml"
