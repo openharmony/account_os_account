@@ -182,7 +182,6 @@ void StatusListenerManager::NotifyEventAsync(const DomainAccountEventData &repor
 
     std::string domainAccountStr =
         GetDomainAccountStr(report.domainAccountInfo.domain_, report.domainAccountInfo.accountName_);
-    std::vector<sptr<IRemoteObject>> listeners;
     std::lock_guard<std::mutex> lock(mutex_);
     for (auto record : listenerAll_) {
         auto callback = iface_cast<IDomainAccountCallback>(record);
