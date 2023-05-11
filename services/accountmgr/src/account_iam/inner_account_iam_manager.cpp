@@ -292,6 +292,25 @@ void InnerAccountIAMManager::GetChallenge(int32_t userId, std::vector<uint8_t> &
     }
 }
 
+#ifdef FILE_ENCRYPTION_EL1_FEATURE
+static bool IsDomainAccount(int32_t userId)
+{
+    OsAccountInfo accountInfo;
+    ErrCode errCode = IInnerOsAccountManager::GetInstance().QueryOsAccountById(userId, accountInfo);
+    if (errCode != ERR_OK) {
+        ACCOUNT_LOGE("get os account info failed, errCode: %{public}d", errCode);
+        return false;
+    }
+    DomainAccountInfo domainInfo;
+    accountInfo.GetDomainInfo(domainInfo);
+    if (domainInfo.accountName_.empty()) {
+        ACCOUNT_LOGE("the target user is not a domain account");
+        return false;
+    }
+    return true;
+}
+#endif // FILE_ENCRYPTION_EL1_FEATURE
+
 ErrCode InnerAccountIAMManager::UpdateStorageKey(
     int32_t userId, uint64_t secureUid, const std::vector<uint8_t> &token,
     const std::vector<uint8_t> &oldSecret, const std::vector<uint8_t> &newSecret)
@@ -302,7 +321,15 @@ ErrCode InnerAccountIAMManager::UpdateStorageKey(
         ACCOUNT_LOGE("fail to get storage proxy");
         return result;
     }
+#ifdef FILE_ENCRYPTION_EL1_FEATURE
+    if (IsDomainAccount(userId)) {
+        result = storageMgrProxy_->UpdateUserAuth(userId, secureUid, {}, {}, {});
+    } else {
+        result = storageMgrProxy_->UpdateUserAuth(userId, secureUid, token, oldSecret, newSecret);
+    }
+#else
     result = storageMgrProxy_->UpdateUserAuth(userId, secureUid, token, oldSecret, newSecret);
+#endif // FILE_ENCRYPTION_EL1_FEATURE
     if ((result != ERR_OK) && (result != ERROR_STORAGE_KEY_NOT_EXIST)) {
         ACCOUNT_LOGE("fail to update user auth");
         return result;
@@ -322,7 +349,15 @@ ErrCode InnerAccountIAMManager::ActivateUserKey(
         ACCOUNT_LOGE("fail to get storage proxy");
         return result;
     }
+#ifdef FILE_ENCRYPTION_EL1_FEATURE
+    if (IsDomainAccount(userId)) {
+        result = storageMgrProxy_->ActiveUserKey(userId, {}, {});
+    } else {
+        result = storageMgrProxy_->ActiveUserKey(userId, token, secret);
+    }
+#else
     result = storageMgrProxy_->ActiveUserKey(userId, token, secret);
+#endif // FILE_ENCRYPTION_EL1_FEATURE
     if (result != ERR_OK && result != ERROR_STORAGE_KEY_NOT_EXIST) {
         ACCOUNT_LOGE("fail to active user key, error code: %{public}d", result);
         return result;
