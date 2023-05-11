@@ -28,8 +28,8 @@ namespace AccountSA {
 const std::string ACCOUNT_CFG_DIR_ROOT_PATH = "/data/service/el1/public/account/";
 
 class OhosAccountManager;
-using OhosAccountEventFunc = bool (OhosAccountManager::*)(const OhosAccountInfo &ohosAccountInfo,
-    const std::string &eventStr);
+using OhosAccountEventFunc = bool (OhosAccountManager::*)(
+    const std::int32_t userId, const OhosAccountInfo &ohosAccountInfo, const std::string &eventStr);
 /**
  * Ohos account manager
  */
@@ -75,42 +75,43 @@ public:
     /**
      * login ohos (for distributed network) account.
      *
-     * @param name ohos account name
-     * @param uid ohos account uid
+     * @param userId target local account id.
+     * @param ohosAccountInfo ohos account information
      * @param eventStr ohos account state change event
      * @return true if the processing was completed, otherwise false
      */
-    bool LoginOhosAccount(const OhosAccountInfo &ohosAccountInfo, const std::string &eventStr);
+    bool LoginOhosAccount(const int32_t userId, const OhosAccountInfo &ohosAccountInfo, const std::string &eventStr);
 
     /**
      * logout ohos (for distributed network) account.
      *
-     * @param name ohos account name
-     * @param uid ohos account uid
+     * @param userId target local account id.
+     * @param ohosAccountInfo ohos account information
      * @param eventStr ohos account state change event
      * @return true if the processing was completed, otherwise false
      */
-    bool LogoutOhosAccount(const OhosAccountInfo &ohosAccountInfo, const std::string &eventStr);
+    bool LogoutOhosAccount(const int32_t userId, const OhosAccountInfo &ohosAccountInfo, const std::string &eventStr);
 
     /**
      * logoff ohos (for distributed network) account.
      *
-     * @param name ohos account name
-     * @param uid ohos account uid
+     * @param userId target local account id.
+     * @param ohosAccountInfo ohos account information
      * @param eventStr ohos account state change event
      * @return true if the processing was completed, otherwise false
      */
-    bool LogoffOhosAccount(const OhosAccountInfo &ohosAccountInfo, const std::string &eventStr);
+    bool LogoffOhosAccount(const int32_t userId, const OhosAccountInfo &ohosAccountInfo, const std::string &eventStr);
 
     /**
      * Handle token_invalid event of ohos (for distributed network) account .
      *
-     * @param name ohos account name
-     * @param uid ohos account uid
+     * @param userId target local account id.
+     * @param ohosAccountInfo ohos account information
      * @param eventStr ohos account state change event
      * @return true if the processing was completed, otherwise false
      */
-    bool HandleOhosAccountTokenInvalidEvent(const OhosAccountInfo &ohosAccountInfo, const std::string &eventStr);
+    bool HandleOhosAccountTokenInvalidEvent(
+        const int32_t userId, const OhosAccountInfo &ohosAccountInfo, const std::string &eventStr);
 
     /**
      * Handle device account switch event.
@@ -137,7 +138,8 @@ public:
      * @param eventStr ohos account state change event
      * @return true if the processing was completed, otherwise false
      */
-    bool OhosAccountStateChange(const OhosAccountInfo &ohosAccountInfo, const std::string &eventStr);
+    bool OhosAccountStateChange(
+        const int32_t userId, const OhosAccountInfo &ohosAccountInfo, const std::string &eventStr);
 
 private:
     /**
@@ -178,7 +180,7 @@ private:
      * @param curOhosAccountInfo current ohos account info.
      * @param clrStatus account status.
      */
-    bool ClearOhosAccount(AccountInfo &curOhosAccountInfo, std::int32_t clrStatus = ACCOUNT_STATE_UNBOUND) const;
+    bool ClearOhosAccount(AccountInfo &curOhosAccountInfo, std::int32_t clrStatus = ACCOUNT_STATE_NOT_LOGIN) const;
 
     /**
      * Check whether the ohos account can be bound to the current user or not
