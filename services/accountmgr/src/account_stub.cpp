@@ -44,9 +44,7 @@ const std::string PERMISSION_MANAGE_USERS = "ohos.permission.MANAGE_LOCAL_ACCOUN
 const std::string PERMISSION_MANAGE_DISTRIBUTED_ACCOUNTS = "ohos.permission.MANAGE_DISTRIBUTED_ACCOUNTS";
 const std::string PERMISSION_GET_DISTRIBUTED_ACCOUNTS = "ohos.permission.GET_DISTRIBUTED_ACCOUNTS";
 const std::string PERMISSION_DISTRIBUTED_DATASYNC = "ohos.permission.DISTRIBUTED_DATASYNC";
-const std::string INTERACT_ACROSS_LOCAL_ACCOUNTS = "ohos.permission.INTERACT_ACROSS_LOCAL_ACCOUNTS";
 constexpr std::int32_t ROOT_UID = 0;
-constexpr std::int32_t INVALID_USERID = -1;
 constexpr std::int32_t DLP_UID = 3019;
 constexpr std::int32_t DLP_CREDENTIAL_SA_UID = 3553;
 #ifdef USE_MUSL
@@ -58,7 +56,6 @@ constexpr std::int32_t DSOFTBUS_UID = 5533;
 const std::map<std::uint32_t, AccountStubFunc> AccountStub::stubFuncMap_{
     std::make_pair(UPDATE_OHOS_ACCOUNT_INFO, &AccountStub::CmdUpdateOhosAccountInfo),
     std::make_pair(SET_OHOS_ACCOUNT_INFO, &AccountStub::CmdSetOhosAccountInfo),
-    std::make_pair(SET_OHOS_ACCOUNT_INFO_BY_USER_ID, &AccountStub::CmdSetOhosAccountInfoByUserId),
     std::make_pair(QUERY_OHOS_ACCOUNT_INFO, &AccountStub::CmdQueryOhosAccountInfo),
     std::make_pair(GET_OHOS_ACCOUNT_INFO, &AccountStub::CmdGetOhosAccountInfo),
     std::make_pair(QUERY_OHOS_ACCOUNT_QUIT_TIPS, &AccountStub::CmdQueryOhosQuitTips),
@@ -99,7 +96,7 @@ std::int32_t AccountStub::InnerUpdateOhosAccountInfo(MessageParcel &data, Messag
     return ret;
 }
 
-std::int32_t AccountStub::InnerSetOhosAccountInfo(int32_t userId, MessageParcel &data, MessageParcel &reply)
+std::int32_t AccountStub::InnerSetOhosAccountInfo(MessageParcel &data, MessageParcel &reply)
 {
     OhosAccountInfo info;
     std::int32_t ret = ReadOhosAccountInfo(data, info);
@@ -113,10 +110,7 @@ std::int32_t AccountStub::InnerSetOhosAccountInfo(int32_t userId, MessageParcel 
     // ignore the real account name
     const std::string eventStr = Str16ToStr8(data.ReadString16());
 
-    if (userId == INVALID_USERID) {
-        userId = AccountMgrService::GetInstance().GetCallingUserID();
-    }
-    ret = SetOhosAccountInfoByUserId(userId, info, eventStr);
+    ret = SetOhosAccountInfo(info, eventStr);
     if (ret != ERR_OK) {
         ACCOUNT_LOGE("Set ohos account info failed");
         ret = ERR_ACCOUNT_ZIDL_ACCOUNT_STUB_ERROR;
@@ -145,42 +139,7 @@ std::int32_t AccountStub::CmdSetOhosAccountInfo(MessageParcel &data, MessageParc
         return ERR_ACCOUNT_ZIDL_CHECK_PERMISSION_ERROR;
     }
 
-    return InnerSetOhosAccountInfo(INVALID_USERID, data, reply);
-}
-
-static int32_t CheckUserIdValid(const int32_t userId)
-{
-    if ((userId >= 0) && (userId < Constants::START_USER_ID)) {
-        ACCOUNT_LOGE("userId %{public}d is system reserved", userId);
-        return ERR_OSACCOUNT_SERVICE_MANAGER_ID_ERROR;
-    }
-    bool isOsAccountExist = false;
-    IInnerOsAccountManager::GetInstance().IsOsAccountExists(userId, isOsAccountExist);
-    if (!isOsAccountExist) {
-        ACCOUNT_LOGE("os account is not exist");
-        return ERR_ACCOUNT_COMMON_ACCOUNT_NOT_EXIST_ERROR;
-    }
-    return ERR_OK;
-}
-
-std::int32_t AccountStub::CmdSetOhosAccountInfoByUserId(MessageParcel &data, MessageParcel &reply)
-{
-    std::int32_t ret = AccountPermissionManager::CheckSystemApp();
-    if (ret != ERR_OK) {
-        ACCOUNT_LOGE("the caller is not system application, ret = %{public}d.", ret);
-        return ret;
-    }
-    if (!HasAccountRequestPermission(PERMISSION_MANAGE_DISTRIBUTED_ACCOUNTS)) {
-        ACCOUNT_LOGE("Check permission failed");
-        return ERR_ACCOUNT_ZIDL_CHECK_PERMISSION_ERROR;
-    }
-    int32_t userId = data.ReadInt32();
-    ret = CheckUserIdValid(userId);
-    if (ret != ERR_OK) {
-        ACCOUNT_LOGE("CheckUserIdValid failed, ret = %{public}d", ret);
-        return ret;
-    }
-    return InnerSetOhosAccountInfo(userId, data, reply);
+    return InnerSetOhosAccountInfo(data, reply);
 }
 
 std::int32_t AccountStub::InnerQueryOhosAccountInfo(MessageParcel &data, MessageParcel &reply)
@@ -249,32 +208,18 @@ ErrCode AccountStub::CmdGetOhosAccountInfo(MessageParcel &data, MessageParcel &r
 
 ErrCode AccountStub::CmdGetOhosAccountInfoByUserId(MessageParcel &data, MessageParcel &reply)
 {
-    ErrCode errCode = AccountPermissionManager::CheckSystemApp();
-    if (errCode != ERR_OK) {
-        ACCOUNT_LOGE("the caller is not system application, errCode = %{public}d.", errCode);
-        return errCode;
-    }
     if (!HasAccountRequestPermission(PERMISSION_MANAGE_DISTRIBUTED_ACCOUNTS) &&
-        !HasAccountRequestPermission(INTERACT_ACROSS_LOCAL_ACCOUNTS)) {
+        !HasAccountRequestPermission(PERMISSION_DISTRIBUTED_DATASYNC) &&
+        !HasAccountRequestPermission(PERMISSION_GET_DISTRIBUTED_ACCOUNTS)) {
         ACCOUNT_LOGE("Check permission failed");
         return ERR_ACCOUNT_ZIDL_CHECK_PERMISSION_ERROR;
     }
-    int32_t userId = data.ReadInt32();
-    bool isOsAccountExits = false;
-    errCode = IInnerOsAccountManager::GetInstance().IsOsAccountExists(userId, isOsAccountExits);
-    if (errCode != ERR_OK) {
-        ACCOUNT_LOGE("IsOsAccountExists failed errCode is %{public}d", errCode);
-        return errCode;
-    }
-    if (!isOsAccountExits) {
-        ACCOUNT_LOGE("os account is not exit");
-        return ERR_ACCOUNT_COMMON_ACCOUNT_NOT_EXIST_ERROR;
-    }
+    std::int32_t userId = data.ReadInt32();
     OhosAccountInfo ohosAccountInfo;
-    errCode = GetOhosAccountInfoByUserId(userId, ohosAccountInfo);
-    if (errCode != ERR_OK) {
+    ErrCode ret = GetOhosAccountInfoByUserId(userId, ohosAccountInfo);
+    if (ret != ERR_OK) {
         ACCOUNT_LOGE("Get ohos account info failed");
-        return errCode;
+        return ret;
     }
     int32_t uid = IPCSkeleton::GetCallingUid();
     if ((uid != DLP_UID) && (uid != DLP_CREDENTIAL_SA_UID)) {

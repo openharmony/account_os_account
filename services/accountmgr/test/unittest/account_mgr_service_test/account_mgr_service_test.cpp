@@ -142,7 +142,7 @@ HWTEST_F(AccountMgrServiceTest, AccountMgrServiceOhosLoginTest001, TestSize.Leve
     EXPECT_EQ(true, ret);
 
     // logout
-    ret = accountMgr->UpdateOhosAccountInfo(TEST_ACCOUNT_NAME, TEST_ACCOUNT_UID, g_eventLogoff);
+    ret = accountMgr->UpdateOhosAccountInfo(TEST_ACCOUNT_NAME, TEST_ACCOUNT_UID, g_eventLogout);
     EXPECT_EQ(true, ret);
 
     // status check
@@ -152,7 +152,7 @@ HWTEST_F(AccountMgrServiceTest, AccountMgrServiceOhosLoginTest001, TestSize.Leve
     EXPECT_EQ(true, ret);
     ret = (testInfo.second.name_ == DEFAULT_OHOS_ACCOUNT_NAME);
     EXPECT_EQ(true, ret);
-    ret = (testInfo.second.status_ == ACCOUNT_STATE_NOT_LOGIN);
+    ret = (testInfo.second.status_ == ACCOUNT_STATE_UNBOUND);
     EXPECT_EQ(true, ret);
 }
 
@@ -190,7 +190,7 @@ HWTEST_F(AccountMgrServiceTest, AccountMgrServiceOhosLoginTest002, TestSize.Leve
     EXPECT_EQ(false, ret);
 
     // logout
-    ret = accountMgr->UpdateOhosAccountInfo(TEST_ACCOUNT_NAME, TEST_ACCOUNT_UID, g_eventLogoff);
+    ret = accountMgr->UpdateOhosAccountInfo(TEST_ACCOUNT_NAME, TEST_ACCOUNT_UID, g_eventLogout);
     EXPECT_EQ(true, ret);
 
     // status check
@@ -200,7 +200,7 @@ HWTEST_F(AccountMgrServiceTest, AccountMgrServiceOhosLoginTest002, TestSize.Leve
     EXPECT_EQ(true, ret);
     ret = (testInfo.second.name_ == DEFAULT_OHOS_ACCOUNT_NAME);
     EXPECT_EQ(true, ret);
-    ret = (testInfo.second.status_ == ACCOUNT_STATE_NOT_LOGIN);
+    ret = (testInfo.second.status_ == ACCOUNT_STATE_UNBOUND);
     EXPECT_EQ(true, ret);
 }
 
@@ -241,7 +241,7 @@ HWTEST_F(AccountMgrServiceTest, AccountMgrServiceOhosLogoffTest001, TestSize.Lev
     EXPECT_EQ(true, ret);
     ret = (testInfo.second.name_ == DEFAULT_OHOS_ACCOUNT_NAME);
     EXPECT_EQ(true, ret);
-    ret = (testInfo.second.status_ == ACCOUNT_STATE_NOT_LOGIN);
+    ret = (testInfo.second.status_ == ACCOUNT_STATE_LOGOFF);
     EXPECT_EQ(true, ret);
 }
 
@@ -281,7 +281,7 @@ HWTEST_F(AccountMgrServiceTest, AccountMgrServiceOhosTokenInvalidTest001, TestSi
     EXPECT_EQ(true, ret);
     ret = (testInfo.second.name_ == TEST_ACCOUNT_NAME);
     EXPECT_EQ(true, ret);
-    ret = (testInfo.second.status_ == ACCOUNT_STATE_NOT_LOGIN);
+    ret = (testInfo.second.status_ == ACCOUNT_STATE_NOTLOGIN);
     EXPECT_EQ(true, ret);
 
     // login again after token invalid
@@ -299,7 +299,7 @@ HWTEST_F(AccountMgrServiceTest, AccountMgrServiceOhosTokenInvalidTest001, TestSi
     EXPECT_EQ(true, ret);
 
     // logout
-    ret = accountMgr->UpdateOhosAccountInfo(TEST_ACCOUNT_NAME, TEST_ACCOUNT_UID, g_eventLogoff);
+    ret = accountMgr->UpdateOhosAccountInfo(TEST_ACCOUNT_NAME, TEST_ACCOUNT_UID, g_eventLogout);
     EXPECT_EQ(true, ret);
 
     // status check
@@ -309,7 +309,7 @@ HWTEST_F(AccountMgrServiceTest, AccountMgrServiceOhosTokenInvalidTest001, TestSi
     EXPECT_EQ(true, ret);
     ret = (testInfo.second.name_ == DEFAULT_OHOS_ACCOUNT_NAME);
     EXPECT_EQ(true, ret);
-    ret = (testInfo.second.status_ == ACCOUNT_STATE_NOT_LOGIN);
+    ret = (testInfo.second.status_ == ACCOUNT_STATE_UNBOUND);
     EXPECT_EQ(true, ret);
 }
 

@@ -91,6 +91,20 @@ std::string GenerateOhosUdidWithSha256(const std::string &name, const std::strin
     ss >> ohosUidStr;
     return ohosUidStr;
 }
+
+std::int32_t GetCallingUserID()
+{
+    std::int32_t userId = IPCSkeleton::GetCallingUid() / UID_TRANSFORM_DIVISOR;
+    if (userId <= 0) {
+        std::vector<int32_t> userIds;
+        (void)IInnerOsAccountManager::GetInstance().QueryActiveOsAccountIds(userIds);
+        if (userIds.empty()) {
+            return -1;  // invalid user id
+        }
+        userId = userIds[0];
+    }
+    return userId;
+}
 }
 
 /**
@@ -112,19 +126,25 @@ bool OhosAccountManager::OhosAccountStateChange(const std::string &name, const s
     OhosAccountInfo ohosAccountInfo;
     ohosAccountInfo.name_ = name;
     ohosAccountInfo.uid_ = uid;
-    std::int32_t userId = AccountMgrService::GetInstance().GetCallingUserID();
-    return (this->*(itFunc->second))(userId, ohosAccountInfo, eventStr);
+    return (this->*(itFunc->second))(ohosAccountInfo, eventStr);
 }
 
-bool OhosAccountManager::OhosAccountStateChange(
-    const int32_t userId, const OhosAccountInfo &ohosAccountInfo, const std::string &eventStr)
+/**
+ * Ohos account state change.
+ *
+ * @param name ohos account name
+ * @param uid ohos account uid
+ * @param eventStr ohos account state change event
+ * @return true if the processing was completed, otherwise false
+ */
+bool OhosAccountManager::OhosAccountStateChange(const OhosAccountInfo &ohosAccountInfo, const std::string &eventStr)
 {
     auto itFunc = eventFuncMap_.find(eventStr);
     if (itFunc == eventFuncMap_.end()) {
         ACCOUNT_LOGE("invalid event: %{public}s", eventStr.c_str());
         return false;
     }
-    return (this->*(itFunc->second))(userId, ohosAccountInfo, eventStr);
+    return (this->*(itFunc->second))(ohosAccountInfo, eventStr);
 }
 
 /**
@@ -167,7 +187,7 @@ AccountInfo OhosAccountManager::GetCurrentOhosAccountInfo()
     std::lock_guard<std::mutex> mutexLock(mgrMutex_);
 
     AccountInfo currOhosAccountInfo;
-    std::int32_t callingUserId = AccountMgrService::GetInstance().GetCallingUserID();
+    std::int32_t callingUserId = GetCallingUserID();
     if (dataDealer_->AccountInfoFromJson(currOhosAccountInfo, callingUserId) != ERR_OK) {
         ACCOUNT_LOGE("get current ohos account info failed, callingUserId %{public}d.", callingUserId);
         currOhosAccountInfo.clear();
@@ -178,7 +198,7 @@ AccountInfo OhosAccountManager::GetCurrentOhosAccountInfo()
 ErrCode OhosAccountManager::GetAccountInfoByUserId(std::int32_t userId, AccountInfo &info)
 {
     if (userId == 0) {
-        userId = AccountMgrService::GetInstance().GetCallingUserID();
+        userId = GetCallingUserID();
     }
     std::lock_guard<std::mutex> mutexLock(mgrMutex_);
 
@@ -233,25 +253,24 @@ bool OhosAccountManager::HandleEvent(AccountInfo &curOhosAccount, const std::str
 /**
  * login ohos (for distributed network) account.
  *
- * @param userId target local account id.
  * @param ohosAccountInfo ohos account information
  * @param eventStr ohos account state change event
  * @return true if the processing was completed, otherwise false
  */
-bool OhosAccountManager::LoginOhosAccount(
-    const int32_t userId, const OhosAccountInfo &ohosAccountInfo, const std::string &eventStr)
+bool OhosAccountManager::LoginOhosAccount(const OhosAccountInfo &ohosAccountInfo, const std::string &eventStr)
 {
     std::lock_guard<std::mutex> mutexLock(mgrMutex_);
 
+    std::int32_t callingUserId = GetCallingUserID();
     AccountInfo currAccountInfo;
-    if (dataDealer_->AccountInfoFromJson(currAccountInfo, userId) != ERR_OK) {
-        ACCOUNT_LOGE("get current ohos account info failed, userId %{public}d.", userId);
+    if (dataDealer_->AccountInfoFromJson(currAccountInfo, callingUserId) != ERR_OK) {
+        ACCOUNT_LOGE("get current ohos account info failed, callingUserId %{public}d.", callingUserId);
         return false;
     }
     std::string ohosAccountUid = GenerateOhosUdidWithSha256(ohosAccountInfo.name_, ohosAccountInfo.uid_);
     // current local user cannot be bound again when it has already been bound to an ohos account
     if (!CheckOhosAccountCanBind(currAccountInfo, ohosAccountInfo, ohosAccountUid)) {
-        ACCOUNT_LOGE("check can be bound failed, userId %{public}d.", userId);
+        ACCOUNT_LOGE("check can be bound failed, callingUserId %{public}d.", callingUserId);
         return false;
     }
 
@@ -264,7 +283,7 @@ bool OhosAccountManager::LoginOhosAccount(
 #endif // HAS_CES_PART
     // update account status
     if (!HandleEvent(currAccountInfo, eventStr)) {
-        ACCOUNT_LOGE("HandleEvent %{public}s failed! userId %{public}d.", eventStr.c_str(), userId);
+        ACCOUNT_LOGE("HandleEvent %{public}s failed! callingUserId %{public}d.", eventStr.c_str(), callingUserId);
         return false;
     }
 
@@ -276,142 +295,140 @@ bool OhosAccountManager::LoginOhosAccount(
     currAccountInfo.bindTime_ = std::time(nullptr);
 
     if (!SaveOhosAccountInfo(currAccountInfo)) {
-        ACCOUNT_LOGE("SaveOhosAccountInfo failed! userId %{public}d.", userId);
+        ACCOUNT_LOGE("SaveOhosAccountInfo failed! callingUserId %{public}d.", callingUserId);
         return false;
     }
 
 #ifdef HAS_CES_PART
     if (!isPubLoginEvent) {
         AccountEventProvider::EventPublish(EventFwk::CommonEventSupport::COMMON_EVENT_USER_INFO_UPDATED,
-            userId, nullptr);
+            callingUserId, nullptr);
         return true;
     }
-    AccountEventProvider::EventPublish(EventFwk::CommonEventSupport::COMMON_EVENT_HWID_LOGIN, userId, nullptr);
+    AccountEventProvider::EventPublish(EventFwk::CommonEventSupport::COMMON_EVENT_HWID_LOGIN, callingUserId, nullptr);
 #else  // HAS_CES_PART
     ACCOUNT_LOGI("No common event part, publish nothing!");
 #endif // HAS_CES_PART
-    ACCOUNT_LOGI("LoginOhosAccount success! userId %{public}d", userId);
+    ACCOUNT_LOGI("LoginOhosAccount success! callingUserId %{public}d", callingUserId);
     return true;
 }
 
 /**
  * logout ohos (for distributed network) account.
  *
- * @param userId target local account id.
  * @param ohosAccountInfo ohos account information
  * @param eventStr ohos account state change event
  * @return true if the processing was completed, otherwise false
  */
-bool OhosAccountManager::LogoutOhosAccount(
-    const int32_t userId, const OhosAccountInfo &ohosAccountInfo, const std::string &eventStr)
+bool OhosAccountManager::LogoutOhosAccount(const OhosAccountInfo &ohosAccountInfo, const std::string &eventStr)
 {
     std::lock_guard<std::mutex> mutexLock(mgrMutex_);
 
+    std::int32_t callingUserId = GetCallingUserID();
     AccountInfo currentAccount;
     if (!GetCurOhosAccountAndCheckMatch(currentAccount, ohosAccountInfo.name_,
-                                        ohosAccountInfo.uid_, userId)) {
-        ACCOUNT_LOGE("check match failed, userId %{public}d.", userId);
+                                        ohosAccountInfo.uid_, callingUserId)) {
+        ACCOUNT_LOGE("check match failed, callingUserId %{public}d.", callingUserId);
         return false;
     }
 
     bool ret = HandleEvent(currentAccount, eventStr); // update account status
     if (!ret) {
-        ACCOUNT_LOGE("HandleEvent %{public}s failed, userId %{public}d.", eventStr.c_str(), userId);
+        ACCOUNT_LOGE("HandleEvent %{public}s failed, callingUserId %{public}d.", eventStr.c_str(), callingUserId);
         return false;
     }
 
-    ret = ClearOhosAccount(currentAccount); // clear account info with ACCOUNT_STATE_NOT_LOGIN
+    ret = ClearOhosAccount(currentAccount); // clear account info with ACCOUNT_STATE_UNBOUND
     if (!ret) {
-        ACCOUNT_LOGE("ClearOhosAccount failed! userId %{public}d.", userId);
+        ACCOUNT_LOGE("ClearOhosAccount failed! callingUserId %{public}d.", callingUserId);
         return false;
     }
 
 #ifdef HAS_CES_PART
-    AccountEventProvider::EventPublish(EventFwk::CommonEventSupport::COMMON_EVENT_HWID_LOGOUT, userId, nullptr);
+    AccountEventProvider::EventPublish(EventFwk::CommonEventSupport::COMMON_EVENT_HWID_LOGOUT, callingUserId, nullptr);
 #else  // HAS_CES_PART
     ACCOUNT_LOGI("No common event part! Publish nothing!");
 #endif // HAS_CES_PART
-    ACCOUNT_LOGI("LogoutOhosAccount success, userId %{public}d.", userId);
+    ACCOUNT_LOGI("LogoutOhosAccount success, callingUserId %{public}d.", callingUserId);
     return true;
 }
 
 /**
  * logoff ohos (for distributed network) account.
  *
- * @param userId target local account id.
  * @param ohosAccountInfo ohos account information
  * @param eventStr ohos account state change event
  * @return true if the processing was completed, otherwise false
  */
-bool OhosAccountManager::LogoffOhosAccount(
-    const int32_t userId, const OhosAccountInfo &ohosAccountInfo, const std::string &eventStr)
+bool OhosAccountManager::LogoffOhosAccount(const OhosAccountInfo &ohosAccountInfo, const std::string &eventStr)
 {
     std::lock_guard<std::mutex> mutexLock(mgrMutex_);
 
+    std::int32_t callingUserId = GetCallingUserID();
     AccountInfo currentAccount;
-    if (!GetCurOhosAccountAndCheckMatch(currentAccount, ohosAccountInfo.name_, ohosAccountInfo.uid_, userId)) {
-        ACCOUNT_LOGE("check match failed, userId %{public}d.", userId);
+    if (!GetCurOhosAccountAndCheckMatch(currentAccount, ohosAccountInfo.name_, ohosAccountInfo.uid_, callingUserId)) {
+        ACCOUNT_LOGE("check match failed, callingUserId %{public}d.", callingUserId);
         return false;
     }
 
     bool ret = HandleEvent(currentAccount, eventStr); // update account status
     if (!ret) {
-        ACCOUNT_LOGE("HandleEvent %{public}s failed, userId %{public}d.", eventStr.c_str(), userId);
+        ACCOUNT_LOGE("HandleEvent %{public}s failed, callingUserId %{public}d.", eventStr.c_str(), callingUserId);
         return false;
     }
 
-    ret = ClearOhosAccount(currentAccount); // clear account info with ACCOUNT_STATE_NOT_LOGIN
+    ret = ClearOhosAccount(currentAccount, ACCOUNT_STATE_LOGOFF); // clear account info with ACCOUNT_STATE_LOGOFF
     if (!ret) {
-        ACCOUNT_LOGE("ClearOhosAccount failed, userId %{public}d.", userId);
+        ACCOUNT_LOGE("ClearOhosAccount failed, callingUserId %{public}d.", callingUserId);
         return false;
     }
 #ifdef HAS_CES_PART
-    AccountEventProvider::EventPublish(EventFwk::CommonEventSupport::COMMON_EVENT_HWID_LOGOFF, userId, nullptr);
+    AccountEventProvider::EventPublish(EventFwk::CommonEventSupport::COMMON_EVENT_HWID_LOGOFF, callingUserId, nullptr);
 #else  // HAS_CES_PART
     ACCOUNT_LOGI("No common event part, publish nothing for logoff!");
 #endif // HAS_CES_PART
-    ACCOUNT_LOGI("LogoffOhosAccount success, userId %{public}d.", userId);
+    ACCOUNT_LOGI("LogoffOhosAccount success, callingUserId %{public}d.", callingUserId);
     return true;
 }
 
 /**
  * Handle token_invalid event.
  *
- * @param userId target local account id.
  * @param ohosAccountInfo ohos account information
  * @param eventStr ohos account state change event
  * @return true if the processing was completed, otherwise false
  */
 bool OhosAccountManager::HandleOhosAccountTokenInvalidEvent(
-    const int32_t userId, const OhosAccountInfo &ohosAccountInfo, const std::string &eventStr)
+    const OhosAccountInfo &ohosAccountInfo, const std::string &eventStr)
 {
     std::lock_guard<std::mutex> mutexLock(mgrMutex_);
 
+    std::int32_t callingUserId = GetCallingUserID();
     AccountInfo currentOhosAccount;
     if (!GetCurOhosAccountAndCheckMatch(currentOhosAccount, ohosAccountInfo.name_,
-                                        ohosAccountInfo.uid_, userId)) {
-        ACCOUNT_LOGE("check match failed, userId %{public}d.", userId);
+                                        ohosAccountInfo.uid_, callingUserId)) {
+        ACCOUNT_LOGE("check match failed, callingUserId %{public}d.", callingUserId);
         return false;
     }
 
     bool ret = HandleEvent(currentOhosAccount, eventStr); // update account status
     if (!ret) {
-        ACCOUNT_LOGE("HandleEvent %{public}s failed, userId %{public}d.", eventStr.c_str(), userId);
+        ACCOUNT_LOGE("HandleEvent %{public}s failed, callingUserId %{public}d.", eventStr.c_str(), callingUserId);
         return false;
     }
 
     ret = SaveOhosAccountInfo(currentOhosAccount);
     if (!ret) {
         // moving on even if failed to update account info
-        ACCOUNT_LOGW("SaveOhosAccountInfo failed, userId %{public}d.", userId);
+        ACCOUNT_LOGW("SaveOhosAccountInfo failed, callingUserId %{public}d.", callingUserId);
     }
 #ifdef HAS_CES_PART
     AccountEventProvider::EventPublish(EventFwk::CommonEventSupport::COMMON_EVENT_HWID_TOKEN_INVALID,
-        userId, nullptr);
+        callingUserId, nullptr);
 #else  // HAS_CES_PART
     ACCOUNT_LOGI("No common event part, publish nothing for token invalid event.");
 #endif // HAS_CES_PART
-    ACCOUNT_LOGI("success, userId %{public}d.", userId);
+    ACCOUNT_LOGI("success, callingUserId %{public}d.", callingUserId);
     return true;
 }
 
@@ -498,8 +515,7 @@ bool OhosAccountManager::CheckOhosAccountCanBind(const AccountInfo &currAccountI
     if ((currAccountInfo.ohosAccountInfo_.status_ == ACCOUNT_STATE_LOGIN) &&
         ((currAccountInfo.ohosAccountInfo_.uid_ != newOhosUid) ||
         (currAccountInfo.ohosAccountInfo_.name_ != newOhosAccountInfo.name_))) {
-        ACCOUNT_LOGE("current account has already been bounded. callingUserId %{public}d.",
-            AccountMgrService::GetInstance().GetCallingUserID());
+            ACCOUNT_LOGE("current account has already been bounded. callingUserId %{public}d.", GetCallingUserID());
         return false;
     }
 
