@@ -30,6 +30,8 @@ public:
         const std::string& eventStr) final;
     std::int32_t SetOhosAccountInfo(const OhosAccountInfo &ohosAccountInfo,
         const std::string &eventStr) final;
+    ErrCode SetOhosAccountInfoByUserId(
+        const int32_t userId, const OhosAccountInfo& ohosAccountInfo, const std::string& eventStr) final;
     std::pair<bool, OhosAccountInfo> QueryOhosAccountInfo() final;
     ErrCode GetOhosAccountInfo(OhosAccountInfo &accountInfo) final;
     ErrCode GetOhosAccountInfoByUserId(int32_t userId, OhosAccountInfo &accountInfo) final;
