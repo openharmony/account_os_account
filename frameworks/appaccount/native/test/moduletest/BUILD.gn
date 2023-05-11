@@ -11,8 +11,8 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-import("//base/account/os_account/os_account.gni")
 import("//build/test.gni")
+import("../../../../../os_account.gni")
 
 module_output_path = "os_account/frameworks/app_account"
 
@@ -65,6 +65,7 @@ ohos_moduletest("app_account_manager_module_test") {
     "ability_base:want",
     "c_utils:utils",
     "hiviewdfx_hilog_native:libhilog",
+    "ipc:ipc_single",
   ]
 }
 

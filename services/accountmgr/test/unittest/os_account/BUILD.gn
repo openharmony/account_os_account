@@ -11,9 +11,9 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-import("//base/account/os_account/os_account.gni")
 import("//build/ohos.gni")
 import("//build/test.gni")
+import("../../../../../os_account.gni")
 
 module_output_path = "os_account/services/accountmgr"
 
@@ -26,7 +26,6 @@ config("os_account_control_file_manager_test_config") {
     "${common_path}/account_error/include",
     "${innerkits_path}/include",
     "//third_party/json/include",
-    "//utils/system/safwk/native/include",
   ]
 }
 
@@ -69,7 +68,6 @@ config("os_account_data_storage_test_config") {
     "${innerkits_path}/include",
     "//third_party/json/include",
     "${services_path}/accountmgr/test/unittest/os_account/mock",
-    "//utils/system/safwk/native/include",
   ]
 }
 
@@ -161,7 +159,6 @@ config("os_account_amgr_test_config") {
     "${innerkits_path}/include",
     "//third_party/json/include",
     "${services_path}/accountmgr/test/unittest/os_account/mock",
-    "//utils/system/safwk/native/include",
   ]
 }
 
@@ -220,7 +217,6 @@ config("os_account_amgr_mock_config") {
     "${common_path}/account_error/include",
     "${innerkits_path}/include",
     "//third_party/json/include",
-    "//utils/system/safwk/native/include",
   ]
 }
 

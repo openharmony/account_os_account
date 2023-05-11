@@ -55,71 +55,98 @@ std::string StatusListenerManager::GetDomainAccountStr(const std::string &domain
     return domain + "&" + accountName;
 }
 
-sptr<IRemoteObject> StatusListenerManager::GetListenerInMap(const std::string &domainAccountStr)
-{
-    std::lock_guard<std::mutex> lock(mutex_);
-    auto iter = statusListenerMap_.find(domainAccountStr);
-    if (iter != statusListenerMap_.end()) {
-        return iter->second;
-    }
-    return nullptr;
-}
-
-ErrCode StatusListenerManager::InsertListenerToMap(
-    const std::string &domain, const std::string &accountName, const sptr<IRemoteObject> &listener)
+ErrCode StatusListenerManager::InsertListenerToRecords(const sptr<IRemoteObject> &listener)
 {
     if (listener == nullptr) {
-        ACCOUNT_LOGE("input is nullptr");
+        ACCOUNT_LOGE("listener is nullptr");
         return ERR_ACCOUNT_COMMON_NULL_PTR_ERROR;
     }
-    std::string domainAccountStr = GetDomainAccountStr(domain, accountName);
-    if (GetListenerInMap(domainAccountStr) != nullptr) {
-        ACCOUNT_LOGE("listener has exist");
-        return ERR_ACCOUNT_COMMON_LISTENER_EXIST_FAILED;
-    }
     std::lock_guard<std::mutex> lock(mutex_);
+    if (listenerAll_.find(listener) != listenerAll_.end()) {
+        ACCOUNT_LOGI("listener is already exist");
+        return ERR_OK;
+    }
     if ((listenerDeathRecipient_ != nullptr) && (!listener->AddDeathRecipient(listenerDeathRecipient_))) {
         ACCOUNT_LOGE("AddDeathRecipient failed");
         return ERR_ACCOUNT_COMMON_ADD_DEATH_RECIPIENT;
     }
-
-    statusListenerMap_[domainAccountStr] = listener;
-    return 0;
+    listenerAll_.insert(listener);
+    return ERR_OK;
 }
 
-ErrCode StatusListenerManager::RemoveListenerByStr(const std::string &domain, const std::string &accountName)
+ErrCode StatusListenerManager::InsertListenerToRecords(
+    const std::string &domain, const std::string &accountName, const sptr<IRemoteObject> &listener)
 {
-    ACCOUNT_LOGI("RemoveListenerByStr enter.");
-    std::string domainAccountStr = GetDomainAccountStr(domain, accountName);
-    sptr<IRemoteObject> listener = GetListenerInMap(domainAccountStr);
     if (listener == nullptr) {
-        ACCOUNT_LOGE("listener does not exist.");
-        return ERR_ACCOUNT_COMMON_LISTENER_NOT_EXIST_FAILED;
+        ACCOUNT_LOGE("listener is nullptr");
+        return ERR_ACCOUNT_COMMON_NULL_PTR_ERROR;
     }
     std::lock_guard<std::mutex> lock(mutex_);
-    statusListenerMap_.erase(domainAccountStr);
+    std::string domainAccountStr = GetDomainAccountStr(domain, accountName);
+    auto listenerIt = listenerToAccount_.find(listener);
+    if (listenerIt != listenerToAccount_.end()) {
+        if (listenerIt->second.find(domainAccountStr) != listenerIt->second.end()) {
+            ACCOUNT_LOGI("listener is already exist");
+            return ERR_OK;
+        }
+        listenerIt->second.insert(domainAccountStr);
+        accountToListener_[domainAccountStr].insert(listener);
+    } else {
+        if ((listenerDeathRecipient_ != nullptr) && (!listener->AddDeathRecipient(listenerDeathRecipient_))) {
+            ACCOUNT_LOGE("AddDeathRecipient failed");
+            return ERR_ACCOUNT_COMMON_ADD_DEATH_RECIPIENT;
+        }
+        std::set<std::string> domainSet;
+        domainSet.insert(domainAccountStr);
+        listenerToAccount_.emplace(listener, domainSet);
+    }
+    auto accountToListenerIt = accountToListener_.find(domainAccountStr);
+    if (accountToListenerIt != accountToListener_.end()) {
+        accountToListener_[domainAccountStr].insert(listener);
+    } else {
+        std::set<sptr<IRemoteObject>> listenerSet;
+        listenerSet.insert(listener);
+        accountToListener_.emplace(domainAccountStr, listenerSet);
+    }
+    return ERR_OK;
+}
+
+ErrCode StatusListenerManager::RemoveListenerByListener(const sptr<IRemoteObject> &listener)
+{
+    std::lock_guard<std::mutex> lock(mutex_);
+    auto listenerToAccountIt = listenerToAccount_.find(listener);
+    if (listenerToAccountIt != listenerToAccount_.end()) {
+        for (auto domainAccount : listenerToAccountIt->second) {
+            accountToListener_[domainAccount].erase(listener);
+        }
+        listenerToAccount_.erase(listenerToAccountIt);
+    }
+    auto listenerToAllIt = listenerAll_.find(listener);
+    if (listenerToAllIt != listenerAll_.end()) {
+        listenerAll_.erase(listenerToAllIt);
+    }
     if (listenerDeathRecipient_ != nullptr) {
         listener->RemoveDeathRecipient(listenerDeathRecipient_);
     }
     return ERR_OK;
 }
 
-ErrCode StatusListenerManager::RemoveListenerByObject(const sptr<IRemoteObject> &listener)
+ErrCode StatusListenerManager::RemoveListenerByInfoAndListener(
+    const std::string &domain, const std::string &accountName, const sptr<IRemoteObject> &listener)
 {
     std::lock_guard<std::mutex> lock(mutex_);
-    auto iter = statusListenerMap_.begin();
-    while (iter != statusListenerMap_.end()) {
-        if (listener == iter->second) {
-            statusListenerMap_.erase(iter->first);
-            if (listenerDeathRecipient_ != nullptr) {
-                listener->RemoveDeathRecipient(listenerDeathRecipient_);
-            }
-            ACCOUNT_LOGI("listener erased");
-            return ERR_OK;
-        }
-        iter++;
+    auto listenerToAccountIt = listenerToAccount_.find(listener);
+    if (listenerToAccountIt == listenerToAccount_.end()) {
+        ACCOUNT_LOGE("listener is not exist");
+        return ERR_OK;
     }
-    return ERR_ACCOUNT_COMMON_LISTENER_NOT_EXIST_FAILED;
+    std::string domainAccountStr = GetDomainAccountStr(domain, accountName);
+    listenerToAccountIt->second.erase(domainAccountStr);
+    accountToListener_[domainAccountStr].erase(listener);
+    if (listenerDeathRecipient_ != nullptr) {
+        listener->RemoveDeathRecipient(listenerDeathRecipient_);
+    }
+    return ERR_OK;
 }
 
 void StatusListenerManager::DomainAccountEventParcel(const DomainAccountEventData &report, Parcel &parcel)
@@ -136,6 +163,10 @@ void StatusListenerManager::DomainAccountEventParcel(const DomainAccountEventDat
         ACCOUNT_LOGE("write status failed.");
         return;
     }
+    if (!parcel.WriteInt32(report.userId)) {
+        ACCOUNT_LOGE("write userId failed.");
+        return;
+    }
     return;
 }
 
@@ -149,24 +180,34 @@ void StatusListenerManager::NotifyEventAsync(const DomainAccountEventData &repor
     ACCOUNT_LOGI("No common event part! Publish nothing!");
 #endif // HAS_CES_PART
 
-    std::string domainAccountStr = GetDomainAccountStr(
-        report.domainAccountInfo.domain_, report.domainAccountInfo.accountName_);
-    auto listener = GetListenerInMap(domainAccountStr);
-    if (listener == nullptr) {
-        ACCOUNT_LOGE("userId listener does not exist.");
-        return;
-    }
-    auto callback = iface_cast<IDomainAccountCallback>(listener);
-    if (callback != nullptr) {
-        ACCOUNT_LOGI("callback execute");
+    std::string domainAccountStr =
+        GetDomainAccountStr(report.domainAccountInfo.domain_, report.domainAccountInfo.accountName_);
+    std::lock_guard<std::mutex> lock(mutex_);
+    for (auto record : listenerAll_) {
+        auto callback = iface_cast<IDomainAccountCallback>(record);
+        if (callback == nullptr) {
+            ACCOUNT_LOGE("callback is nullptr!");
+            continue;
+        }
         Parcel parcel;
         DomainAccountEventParcel(report, parcel);
         callback->OnResult(ERR_OK, parcel);
-        ACCOUNT_LOGI("The callback execution is complete");
+    }
+    auto domainSet = accountToListener_.find(domainAccountStr);
+    if (domainSet == accountToListener_.end()) {
+        ACCOUNT_LOGI("not exist listenter");
         return;
     }
-    ACCOUNT_LOGE("callback is null.");
-    return;
+    for (auto listener : domainSet->second) {
+        auto callback = iface_cast<IDomainAccountCallback>(listener);
+        if (callback == nullptr) {
+            ACCOUNT_LOGE("callback is nullptr!");
+            continue;
+        }
+        Parcel parcel;
+        DomainAccountEventParcel(report, parcel);
+        callback->OnResult(ERR_OK, parcel);
+    }
 }
 } // namespace AccountSA
 } // namespace OHOS

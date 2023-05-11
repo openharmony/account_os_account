@@ -267,6 +267,7 @@ void InnerDomainAccountManager::NotifyDomainAccountEvent(
     report.domainAccountInfo = info;
     report.event = event;
     report.status = status;
+    report.userId = userId;
     StatusListenerManager::GetInstance().NotifyEventAsync(report);
 }
 
@@ -419,16 +420,12 @@ ErrCode InnerDomainAccountManager::CheckUserToken(const std::vector<uint8_t> &to
     return errCode;
 }
 
-ErrCode InnerDomainAccountManager::GetAccountStatus(
-    const std::string &domain, const std::string &accountName, DomainAccountStatus &status)
+ErrCode InnerDomainAccountManager::GetAccountStatus(const DomainAccountInfo &info, DomainAccountStatus &status)
 {
     status = DomainAccountStatus::LOGOUT;
 
     int32_t userId = 0;
-    DomainAccountInfo domainInfo;
-    domainInfo.accountName_ = accountName;
-    domainInfo.domain_ = domain;
-    ErrCode res = IInnerOsAccountManager::GetInstance().GetOsAccountLocalIdFromDomain(domainInfo, userId);
+    ErrCode res = IInnerOsAccountManager::GetInstance().GetOsAccountLocalIdFromDomain(info, userId);
     if (res != ERR_OK) {
         return res;
     }
@@ -456,6 +453,11 @@ ErrCode InnerDomainAccountManager::GetAccountStatus(
     return res;
 }
 
+ErrCode InnerDomainAccountManager::RegisterAccountStatusListener(const sptr<IDomainAccountCallback> &listener)
+{
+    return StatusListenerManager::GetInstance().InsertListenerToRecords(listener->AsObject());
+}
+
 ErrCode InnerDomainAccountManager::RegisterAccountStatusListener(
     const DomainAccountInfo &info, const sptr<IDomainAccountCallback> &listener)
 {
@@ -464,14 +466,26 @@ ErrCode InnerDomainAccountManager::RegisterAccountStatusListener(
     if (res != ERR_OK) {
         return res;
     }
-    return StatusListenerManager::GetInstance().InsertListenerToMap(
+    return StatusListenerManager::GetInstance().InsertListenerToRecords(
         info.domain_, info.accountName_, listener->AsObject());
 }
 
-ErrCode InnerDomainAccountManager::UnregisterAccountStatusListener(const DomainAccountInfo &info)
+ErrCode InnerDomainAccountManager::UnregisterAccountStatusListener(
+    const DomainAccountInfo &info, const sptr<IDomainAccountCallback> &listener)
+{
+    int32_t userId = 0;
+    ErrCode res = IInnerOsAccountManager::GetInstance().GetOsAccountLocalIdFromDomain(info, userId);
+    if (res != ERR_OK) {
+        return res;
+    }
+    return StatusListenerManager::GetInstance().RemoveListenerByInfoAndListener(
+        info.domain_, info.accountName_, listener->AsObject());
+}
+
+ErrCode InnerDomainAccountManager::UnregisterAccountStatusListener(const sptr<IDomainAccountCallback> &listener)
 {
     // userid may be removed already.
-    return StatusListenerManager::GetInstance().RemoveListenerByStr(info.domain_, info.accountName_);
+    return StatusListenerManager::GetInstance().RemoveListenerByListener(listener->AsObject());
 }
 
 ErrCode InnerDomainAccountManager::GetAuthStatusInfo(

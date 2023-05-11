@@ -1433,14 +1433,47 @@ napi_value IsMainOsAccount(napi_env env, napi_callback_info cbInfo)
     return result;
 }
 
+static bool IsSubscribeInMap(napi_env env, SubscribeCBInfo *subscribeCBInfo)
+{
+    std::lock_guard<std::mutex> lock(g_lockForOsAccountSubscribers);
+    auto subscribe = g_osAccountSubscribers.find(subscribeCBInfo->osManager);
+    if (subscribe == g_osAccountSubscribers.end()) {
+        return false;
+    }
+    auto it = subscribe->second.begin();
+    while (it != subscribe->second.end()) {
+        if (((*it)->osSubscribeType == subscribeCBInfo->osSubscribeType) &&
+            (CompareOnAndOffRef(env, (*it)->callbackRef, subscribeCBInfo->callbackRef))) {
+            return true;
+        }
+        it++;
+    }
+    return false;
+}
+
+SubscribeCBInfo::~SubscribeCBInfo()
+{
+    if ((env != nullptr) && (callbackRef != nullptr)) {
+        napi_delete_reference(env, callbackRef);
+        callbackRef = nullptr;
+    }
+}
+
+CreateOAForDomainAsyncContext::~CreateOAForDomainAsyncContext()
+{
+    if (callbackRef != nullptr) {
+        ReleaseNapiRefAsync(env, callbackRef);
+        callbackRef = nullptr;
+    }
+}
+
 napi_value Subscribe(napi_env env, napi_callback_info cbInfo)
 {
-    SubscribeCBInfo *subscribeCBInfo = new (std::nothrow) SubscribeCBInfo();
+    SubscribeCBInfo *subscribeCBInfo = new (std::nothrow) SubscribeCBInfo(env);
     if (subscribeCBInfo == nullptr) {
         ACCOUNT_LOGE("insufficient memory for subscribeCBInfo!");
         return nullptr;
     }
-    subscribeCBInfo->env = env;
     subscribeCBInfo->throwErr = true;
 
     napi_value thisVar = nullptr;
@@ -1461,9 +1494,15 @@ napi_value Subscribe(napi_env env, napi_callback_info cbInfo)
     subscribeCBInfo->osManager = objectInfo;
     subscribeCBInfo->subscriber->SetEnv(env);
     subscribeCBInfo->subscriber->SetCallbackRef(subscribeCBInfo->callbackRef);
+    if (IsSubscribeInMap(env, subscribeCBInfo)) {
+        delete subscribeCBInfo;
+        return WrapVoidToJS(env);
+    }
     ErrCode errCode = OsAccountManager::SubscribeOsAccount(subscribeCBInfo->subscriber);
     if (errCode != ERR_OK) {
+        delete subscribeCBInfo;
         AccountNapiThrow(env, errCode, true);
+        return WrapVoidToJS(env);
     } else {
         std::lock_guard<std::mutex> lock(g_lockForOsAccountSubscribers);
         g_osAccountSubscribers[objectInfo].emplace_back(subscribeCBInfo);
@@ -1476,6 +1515,14 @@ SubscriberPtr::SubscriberPtr(const OsAccountSubscribeInfo &subscribeInfo) : OsAc
 
 SubscriberPtr::~SubscriberPtr()
 {}
+
+UnsubscribeCBInfo::~UnsubscribeCBInfo()
+{
+    if ((env != nullptr) && (callbackRef != nullptr)) {
+        napi_delete_reference(env, callbackRef);
+        callbackRef = nullptr;
+    }
+}
 
 void SubscriberPtr::OnAccountsChanged(const int &id)
 {
@@ -1556,12 +1603,11 @@ void SubscriberPtr::SetCallbackRef(const napi_ref &ref)
 
 napi_value Unsubscribe(napi_env env, napi_callback_info cbInfo)
 {
-    UnsubscribeCBInfo *unsubscribeCBInfo = new (std::nothrow) UnsubscribeCBInfo();
+    UnsubscribeCBInfo *unsubscribeCBInfo = new (std::nothrow) UnsubscribeCBInfo(env);
     if (unsubscribeCBInfo == nullptr) {
         ACCOUNT_LOGE("insufficient memory for unsubscribeCBInfo!");
         return WrapVoidToJS(env);
     }
-    unsubscribeCBInfo->env = env;
     unsubscribeCBInfo->callbackRef = nullptr;
     unsubscribeCBInfo->throwErr = true;
 
@@ -1577,119 +1623,46 @@ napi_value Unsubscribe(napi_env env, napi_callback_info cbInfo)
     napi_unwrap(env, thisVar, reinterpret_cast<void **>(&objectInfo));
     unsubscribeCBInfo->osManager = objectInfo;
 
-    bool isFind = false;
-    std::vector<std::shared_ptr<SubscriberPtr>> subscribers;
-    FindSubscriberInMap(subscribers, unsubscribeCBInfo, isFind);
-    if (!isFind) {
-        ACCOUNT_LOGE("Unsubscribe failed. The current subscriber does not exist");
-        return WrapVoidToJS(env);
-    }
-    unsubscribeCBInfo->subscribers = subscribers;
-
-    napi_value resourceName = nullptr;
-    napi_create_string_latin1(env, "Unsubscribe", NAPI_AUTO_LENGTH, &resourceName);
-
-    napi_create_async_work(env,
-        nullptr,
-        resourceName,
-        UnsubscribeExecuteCB,
-        UnsubscribeCallbackCompletedCB,
-        reinterpret_cast<void *>(unsubscribeCBInfo),
-        &unsubscribeCBInfo->work);
-    napi_queue_async_work(env, unsubscribeCBInfo->work);
+    UnsubscribeSync(env, unsubscribeCBInfo);
+    delete unsubscribeCBInfo;
     return WrapVoidToJS(env);
 }
 
-void FindSubscriberInMap(
-    std::vector<std::shared_ptr<SubscriberPtr>> &subscribers, UnsubscribeCBInfo *unsubscribeCBInfo, bool &isFind)
+void UnsubscribeSync(napi_env env, UnsubscribeCBInfo *unsubscribeCBInfo)
 {
     std::lock_guard<std::mutex> lock(g_lockForOsAccountSubscribers);
-
-    for (auto subscriberInstance : g_osAccountSubscribers) {
-        if (subscriberInstance.first == unsubscribeCBInfo->osManager) {
-            for (auto item : subscriberInstance.second) {
-                OsAccountSubscribeInfo subscribeInfo;
-                OS_ACCOUNT_SUBSCRIBE_TYPE osSubscribeType;
-                std::string name;
-                item->subscriber->GetSubscribeInfo(subscribeInfo);
-                subscribeInfo.GetOsAccountSubscribeType(osSubscribeType);
-                subscribeInfo.GetName(name);
-                if (unsubscribeCBInfo->osSubscribeType == osSubscribeType && unsubscribeCBInfo->name == name) {
-                    subscribers.emplace_back(item->subscriber);
-                }
-            }
-            if (subscribers.size() > 0) {
-                isFind = true;
-                break;
-            }
-        }
-    }
-}
-
-void UnsubscribeExecuteCB(napi_env env, void *data)
-{
-    UnsubscribeCBInfo *unsubscribeCBInfo = reinterpret_cast<UnsubscribeCBInfo *>(data);
-    ACCOUNT_LOGI("UnsubscribeExecuteCB Off size = %{public}zu", unsubscribeCBInfo->subscribers.size());
-    for (auto offSubscriber : unsubscribeCBInfo->subscribers) {
-        int errCode = OsAccountManager::UnsubscribeOsAccount(offSubscriber);
-        ACCOUNT_LOGD("error code is %{public}d", errCode);
-    }
-}
-
-void UnsubscribeCallbackCompletedCB(napi_env env, napi_status status, void *data)
-{
-    ACCOUNT_LOGD("napi_create_async_work complete.");
-    UnsubscribeCBInfo *unsubscribeCBInfo = reinterpret_cast<UnsubscribeCBInfo *>(data);
-    if (unsubscribeCBInfo == nullptr) {
+    auto subscribe = g_osAccountSubscribers.find(unsubscribeCBInfo->osManager);
+    if (subscribe == g_osAccountSubscribers.end()) {
         return;
     }
-
-    if (unsubscribeCBInfo->callbackRef != nullptr) {
-        napi_value result = nullptr;
-        napi_create_int32(env, 0, &result);
-
-        napi_value undefined = nullptr;
-        napi_get_undefined(env, &undefined);
-
-        napi_value callback = nullptr;
-        napi_value resultout = nullptr;
-        napi_get_reference_value(env, unsubscribeCBInfo->callbackRef, &callback);
-
-        napi_value results[ARGS_SIZE_ONE] = {nullptr};
-        results[PARAMZERO] = result;
-
-        NAPI_CALL_RETURN_VOID(
-            env, napi_call_function(env, undefined, callback, ARGS_SIZE_ONE, &results[0], &resultout));
-
-        napi_delete_reference(env, unsubscribeCBInfo->callbackRef);
-    }
-
-    napi_delete_async_work(env, unsubscribeCBInfo->work);
-
-    // erase the info from map
-    {
-        std::lock_guard<std::mutex> lock(g_lockForOsAccountSubscribers);
-        auto subscribe = g_osAccountSubscribers.find(unsubscribeCBInfo->osManager);
-        if (subscribe != g_osAccountSubscribers.end()) {
-            auto it = subscribe->second.begin();
-            while (it != subscribe->second.end()) {
-                if ((*it)->name == unsubscribeCBInfo->name &&
-                    (*it)->osSubscribeType == unsubscribeCBInfo->osSubscribeType) {
-                    napi_delete_reference(env, (*it)->callbackRef);
-                    it = subscribe->second.erase(it);
-                } else {
-                    ++it;
-                }
-            }
-
-            if (subscribe->second.size() == 0) {
-                g_osAccountSubscribers.erase(subscribe);
-            }
+    auto item = subscribe->second.begin();
+    while (item != subscribe->second.end()) {
+        OsAccountSubscribeInfo subscribeInfo;
+        OS_ACCOUNT_SUBSCRIBE_TYPE osSubscribeType;
+        std::string name;
+        (*item)->subscriber->GetSubscribeInfo(subscribeInfo);
+        subscribeInfo.GetOsAccountSubscribeType(osSubscribeType);
+        subscribeInfo.GetName(name);
+        if (((unsubscribeCBInfo->osSubscribeType != osSubscribeType) || (unsubscribeCBInfo->name != name)) ||
+            ((unsubscribeCBInfo->callbackRef != nullptr) &&
+            (!CompareOnAndOffRef(env, (*item)->callbackRef, unsubscribeCBInfo->callbackRef)))) {
+            item++;
+            continue;
+        }
+        int errCode = OsAccountManager::UnsubscribeOsAccount((*item)->subscriber);
+        if (errCode != ERR_OK) {
+            AccountNapiThrow(env, errCode, true);
+            return;
+        }
+        delete (*item);
+        item = subscribe->second.erase(item);
+        if (unsubscribeCBInfo->callbackRef != nullptr) {
+            break;
         }
     }
-
-    delete unsubscribeCBInfo;
-    unsubscribeCBInfo = nullptr;
+    if (subscribe->second.empty()) {
+        g_osAccountSubscribers.erase(subscribe->first);
+    }
 }
 }  // namespace AccountJsKit
 }  // namespace OHOS

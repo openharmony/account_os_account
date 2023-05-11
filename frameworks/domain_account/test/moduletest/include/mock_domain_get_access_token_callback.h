@@ -17,7 +17,7 @@
 #define OS_ACCOUNT_FRAMEWORKS_DOMAIN_ACCOUNT_TEST_INCLUDE_MOCK_DOMAIN_GET_ACCESS_TOKEN_CALLBACK_H
 
 #include <gmock/gmock.h>
-#include "domain_account_callback.h"
+#include "get_access_token_callback.h"
 #include "os_account_info.h"
 
 namespace OHOS {
@@ -27,15 +27,14 @@ public:
     MOCK_METHOD2(OnResult, void(const int32_t errCode, const std::vector<uint8_t> token));
 };
 
-class TestGetAccessTokenCallback : public DomainAccountCallback {
+class TestGetAccessTokenCallback : public GetAccessTokenCallback {
 public:
     TestGetAccessTokenCallback(const std::shared_ptr<MockDomainGetAccessTokenCallback> &callback);
     virtual ~TestGetAccessTokenCallback();
-    void OnResult(const int32_t errCode, Parcel &parcel) override;
+    void OnResult(const int32_t errCode, const std::vector<uint8_t> &accessToken) override;
 
 private:
     std::shared_ptr<MockDomainGetAccessTokenCallback> callback_;
-    std::vector<uint8_t> token_;
 };
 }  // AccountSA
 }  // OHOS

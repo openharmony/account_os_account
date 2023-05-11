@@ -11,8 +11,8 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-import("//base/account/os_account/os_account.gni")
 import("//build/ohos.gni")
+import("../../../os_account.gni")
 
 config("app_account_innnerkits_config") {
   visibility = [ ":*" ]

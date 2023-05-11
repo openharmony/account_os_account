@@ -26,16 +26,6 @@ NapiCreateDomainCallback::NapiCreateDomainCallback(napi_env env, napi_ref callba
     : env_(env), callbackRef_(callbackRef), deferred_(deferred)
 {}
 
-NapiCreateDomainCallback::~NapiCreateDomainCallback()
-{
-    std::unique_lock<std::mutex> lock(lockInfo_.mutex);
-    if ((env_ != nullptr) && (callbackRef_ != nullptr)) {
-        napi_delete_reference(env_, callbackRef_);
-        callbackRef_ = nullptr;
-    }
-    deferred_ = nullptr;
-}
-
 void NapiCreateDomainCallback::OnResult(const int32_t errCode, Parcel &parcel)
 {
     std::shared_ptr<OsAccountInfo> osAccountInfo(OsAccountInfo::Unmarshalling(parcel));
@@ -637,7 +627,11 @@ void CreateOAForDomainCallbackCompletedWork(uv_work_t *work, int status)
     } else {
         errJs = GenerateBusinessError(asyncContext->env, asyncContext->errCode);
     }
-    ProcessCallbackOrPromise(asyncContext->env, asyncContext.get(), errJs, dataJs);
+    ReturnCallbackOrPromise(asyncContext->env, asyncContext.get(), errJs, dataJs);
+    if (asyncContext->callbackRef != nullptr) {
+        napi_delete_reference(asyncContext->env, asyncContext->callbackRef);
+        asyncContext->callbackRef = nullptr;
+    }
     napi_close_handle_scope(asyncContext->env, scope);
 }
 

@@ -11,8 +11,8 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-import("//base/account/os_account/os_account.gni")
 import("//build/ohos.gni")
+import("../../os_account.gni")
 
 config("domain_account_innnerkits_config") {
   visibility = [ ":*" ]
@@ -47,6 +47,7 @@ config("domain_account_innerkits_public_config") {
 
 ohos_shared_library("domain_account_innerkits") {
   sources = [
+    "src/domain_account_callback_adapters.cpp",
     "src/domain_account_callback_client.cpp",
     "src/domain_account_callback_proxy.cpp",
     "src/domain_account_callback_service.cpp",

@@ -1097,8 +1097,8 @@ static void GetAccessTokenExecuteCB(napi_env env, void *data)
     asyncContext->errCode = DomainAccountClient::GetInstance().GetAccessToken(
         asyncContext->domainInfo, asyncContext->getTokenParams, callback);
     if (asyncContext->errCode != ERR_OK) {
-        Parcel emptyParcel;
-        callback->OnResult(asyncContext->errCode, emptyParcel);
+        std::vector<uint8_t> accessToken;
+        callback->OnResult(asyncContext->errCode, accessToken);
     }
 }
 
@@ -1113,6 +1113,9 @@ static void GetAccessTokenCompleteWork(uv_work_t *work, int status)
     std::unique_ptr<uv_work_t> workPtr(work);
     napi_handle_scope scope = nullptr;
     if (!InitUvWorkCallbackEnv(work, scope)) {
+        if ((work != nullptr) && (work->data != nullptr)) {
+            delete reinterpret_cast<GetAccessTokenAsyncContext *>(work->data);
+        }
         return;
     }
     GetAccessTokenAsyncContext *asyncContext = reinterpret_cast<GetAccessTokenAsyncContext *>(work->data);
@@ -1124,7 +1127,7 @@ static void GetAccessTokenCompleteWork(uv_work_t *work, int status)
     } else {
         errJs = GenerateBusinessError(asyncContext->env, asyncContext->errCode);
     }
-    ProcessCallbackOrPromise(asyncContext->env, asyncContext, errJs, dataJs);
+    ReturnCallbackOrPromise(asyncContext->env, asyncContext, errJs, dataJs);
     napi_close_handle_scope(asyncContext->env, scope);
     delete asyncContext;
 }
@@ -1158,6 +1161,14 @@ napi_value NapiDomainAccountManager::AuthWithPopup(napi_env env, napi_callback_i
     return nullptr;
 }
 
+HasDomainAccountAsyncContext::~HasDomainAccountAsyncContext()
+{
+    if (callbackRef != nullptr) {
+        NAPI_CALL_RETURN_VOID(env, napi_delete_reference(env, callbackRef));
+        callbackRef = nullptr;
+    }
+}
+
 static void HasDomainAccountCompletedWork(uv_work_t *work, int status)
 {
     std::unique_ptr<uv_work_t> workPtr(work);
@@ -1173,7 +1184,7 @@ static void HasDomainAccountCompletedWork(uv_work_t *work, int status)
     } else {
         errJs = GenerateBusinessError(asyncContext->env, asyncContext->errCode);
     }
-    ProcessCallbackOrPromise(asyncContext->env, asyncContext, errJs, dataJs);
+    ReturnCallbackOrPromise(asyncContext->env, asyncContext, errJs, dataJs);
     napi_close_handle_scope(asyncContext->env, scope);
     delete asyncContext;
 }
@@ -1181,14 +1192,6 @@ static void HasDomainAccountCompletedWork(uv_work_t *work, int status)
 NapiHasDomainInfoCallback::NapiHasDomainInfoCallback(napi_env env, napi_ref callbackRef, napi_deferred deferred)
     : env_(env), callbackRef_(callbackRef), deferred_(deferred)
 {}
-
-NapiHasDomainInfoCallback::~NapiHasDomainInfoCallback()
-{
-    std::unique_lock<std::mutex> lock(lockInfo_.mutex);
-    ReleaseNapiRefAsync(env_, callbackRef_);
-    callbackRef_ = nullptr;
-    deferred_ = nullptr;
-}
 
 void NapiHasDomainInfoCallback::OnResult(const int32_t errCode, Parcel &parcel)
 {
@@ -1224,23 +1227,23 @@ void NapiHasDomainInfoCallback::OnResult(const int32_t errCode, Parcel &parcel)
         delete work;
         return;
     }
+    callbackRef_ = nullptr;
+    deferred_ = nullptr;
 }
 
+GetAccessTokenAsyncContext::~GetAccessTokenAsyncContext()
+{
+    if (callbackRef != nullptr) {
+        NAPI_CALL_RETURN_VOID(env, napi_delete_reference(env, callbackRef));
+        callbackRef = nullptr;
+    }
+}
 
 NapiGetAccessTokenCallback::NapiGetAccessTokenCallback(napi_env env, napi_ref callbackRef, napi_deferred deferred)
     : env_(env), callbackRef_(callbackRef), deferred_(deferred)
 {}
 
-NapiGetAccessTokenCallback::~NapiGetAccessTokenCallback()
-{
-    std::unique_lock<std::mutex> lock(lockInfo_.mutex);
-    if (callbackRef_ != nullptr) {
-        ReleaseNapiRefAsync(env_, callbackRef_);
-    }
-    deferred_ = nullptr;
-}
-
-void NapiGetAccessTokenCallback::OnResult(const int32_t errCode, Parcel &parcel)
+void NapiGetAccessTokenCallback::OnResult(const int32_t errCode, const std::vector<uint8_t> &accessToken)
 {
     std::unique_lock<std::mutex> lock(lockInfo_.mutex);
     if ((callbackRef_ == nullptr) && (deferred_ == nullptr)) {
@@ -1258,11 +1261,9 @@ void NapiGetAccessTokenCallback::OnResult(const int32_t errCode, Parcel &parcel)
         delete work;
         return;
     }
-    if (errCode == ERR_OK) {
-        parcel.ReadUInt8Vector(&(asyncContext->accessToken));
-    }
     asyncContext->errCode = errCode;
     asyncContext->env = env_;
+    asyncContext->accessToken = accessToken;
     asyncContext->callbackRef = callbackRef_;
     asyncContext->deferred = deferred_;
     work->data = reinterpret_cast<void *>(asyncContext);
@@ -1275,6 +1276,7 @@ void NapiGetAccessTokenCallback::OnResult(const int32_t errCode, Parcel &parcel)
         return;
     }
     callbackRef_ = nullptr;
+    deferred_ = nullptr;
 }
 
 static void HasDomainAccountCompleteCB(napi_env env, napi_status status, void *data)

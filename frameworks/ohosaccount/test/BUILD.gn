@@ -11,7 +11,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-import("//base/account/os_account/os_account.gni")
+import("../../../os_account.gni")
 
 group("moduletest") {
   testonly = true

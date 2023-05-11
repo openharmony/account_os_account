@@ -55,10 +55,12 @@ public:
     void InsertTokenToMap(int32_t userId, const std::vector<uint8_t> &token);
     void GetTokenFromMap(int32_t userId, std::vector<uint8_t> &token);
     void RemoveTokenFromMap(int32_t userId);
-    ErrCode GetAccountStatus(const std::string &domain, const std::string &accountName, DomainAccountStatus &status);
-    ErrCode RegisterAccountStatusListener(
+    ErrCode GetAccountStatus(const DomainAccountInfo &info, DomainAccountStatus &status);
+    ErrCode RegisterAccountStatusListener(const DomainAccountInfo &info, const sptr<IDomainAccountCallback> &listener);
+    ErrCode RegisterAccountStatusListener(const sptr<IDomainAccountCallback> &listener);
+    ErrCode UnregisterAccountStatusListener(const sptr<IDomainAccountCallback> &listener);
+    ErrCode UnregisterAccountStatusListener(
         const DomainAccountInfo &info, const sptr<IDomainAccountCallback> &listener);
-    ErrCode UnregisterAccountStatusListener(const DomainAccountInfo &info);
     void NotifyDomainAccountEvent(
         int32_t userId, DomainAccountEvent event, DomainAccountStatus status, const DomainAccountInfo &info);
     ErrCode GetDomainAccountInfoByUserId(int32_t userId, DomainAccountInfo &domainInfo);
