@@ -237,7 +237,7 @@ void OhosAccountDataDeal::BuildJsonFileFromScratch(int32_t userId) const
     accountInfo.bindTime_ = 0;
     accountInfo.ohosAccountInfo_.uid_ = DEFAULT_OHOS_ACCOUNT_UID;
     accountInfo.ohosAccountInfo_.name_ = DEFAULT_OHOS_ACCOUNT_NAME;
-    accountInfo.ohosAccountInfo_.status_ = ACCOUNT_STATE_NOT_LOGIN;
+    accountInfo.ohosAccountInfo_.status_ = ACCOUNT_STATE_UNBOUND;
     accountInfo.digest_ = "";
     accountInfo.ohosAccountInfo_.SetRawUid(DEFAULT_OHOS_ACCOUNT_UID);
     SaveAccountInfo(accountInfo);

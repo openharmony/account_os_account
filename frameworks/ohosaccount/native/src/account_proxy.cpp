@@ -104,42 +104,6 @@ std::int32_t AccountProxy::SetOhosAccountInfo(const OhosAccountInfo &ohosAccount
     return result;
 }
 
-ErrCode AccountProxy::SetOhosAccountInfoByUserId(
-    const int32_t userId, const OhosAccountInfo &ohosAccountInfo, const std::string &eventStr)
-{
-    MessageParcel data;
-    if (!data.WriteInterfaceToken(GetDescriptor())) {
-        ACCOUNT_LOGE("Write descriptor failed!");
-        return ERR_ACCOUNT_COMMON_WRITE_DESCRIPTOR_ERROR;
-    }
-    if (!data.WriteInt32(userId)) {
-        ACCOUNT_LOGE("failed to write userId failed");
-        return ERR_ACCOUNT_COMMON_WRITE_PARCEL_ERROR;
-    }
-    if (!WriteOhosAccountInfo(data, ohosAccountInfo)) {
-        ACCOUNT_LOGE("Write ohosAccountInfo failed!");
-        return ERR_ACCOUNT_COMMON_WRITE_PARCEL_ERROR;
-    }
-    if (!data.WriteString16(Str8ToStr16(eventStr))) {
-        ACCOUNT_LOGE("Write eventStr failed!");
-        return ERR_ACCOUNT_COMMON_WRITE_PARCEL_ERROR;
-    }
-    MessageParcel reply;
-    MessageOption option;
-    auto ret = Remote()->SendRequest(SET_OHOS_ACCOUNT_INFO_BY_USER_ID, data, reply, option);
-    if (ret != ERR_NONE) {
-        ACCOUNT_LOGE("SendRequest failed %{public}d", ret);
-        return ret;
-    }
-
-    std::int32_t result = ERR_OK;
-    if (!reply.ReadInt32(result)) {
-        ACCOUNT_LOGE("reply ReadInt32 failed");
-        return ERR_ACCOUNT_COMMON_READ_PARCEL_ERROR;
-    }
-    return result;
-}
-
 std::pair<bool, OhosAccountInfo> AccountProxy::QueryOhosAccountInfo(void)
 {
     MessageParcel data;
