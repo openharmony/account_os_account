@@ -12,21 +12,22 @@
 # limitations under the License.
 
 import("//build/ohos.gni")
+import("os_account.gni")
 
 group("account_build_unittest") {
   testonly = true
   deps = []
   deps += [
-    "//base/account/os_account/frameworks/account_iam/test:unittest",
-    "//base/account/os_account/frameworks/appaccount/native/test:unittest",
-    "//base/account/os_account/frameworks/common/test:unittest",
-    "//base/account/os_account/frameworks/osaccount/core/test:unittest",
-    "//base/account/os_account/frameworks/osaccount/native/test/benchmarktest:benchmarktest",
-    "//base/account/os_account/frameworks/osaccount/native/test/unittest:unittest",
-    "//base/account/os_account/frameworks/test/unittest:unittest",
-    "//base/account/os_account/services/accountmgr/test:unittest",
-    "//base/account/os_account/test/systemtest:systemtest",
-    "//base/account/os_account/tools:unittest",
+    "${os_account_path}/frameworks/account_iam/test:unittest",
+    "${os_account_path}/frameworks/appaccount/native/test:unittest",
+    "${os_account_path}/frameworks/common/test:unittest",
+    "${os_account_path}/frameworks/osaccount/core/test:unittest",
+    "${os_account_path}/frameworks/osaccount/native/test/benchmarktest:benchmarktest",
+    "${os_account_path}/frameworks/osaccount/native/test/unittest:unittest",
+    "${os_account_path}/frameworks/test/unittest:unittest",
+    "${os_account_path}/services/accountmgr/test:unittest",
+    "${os_account_path}/test/systemtest:systemtest",
+    "${os_account_path}/tools:unittest",
   ]
 }
 
@@ -34,13 +35,13 @@ group("account_build_moduletest") {
   testonly = true
   deps = []
   deps += [
-    "//base/account/os_account/frameworks/appaccount/native/test:moduletest",
-    "//base/account/os_account/frameworks/domain_account/test/moduletest:moduletest",
-    "//base/account/os_account/frameworks/ohosaccount/test:moduletest",
-    "//base/account/os_account/frameworks/osaccount/native/test/moduletest:moduletest",
-    "//base/account/os_account/services/accountmgr/test/moduletest/app_account:moduletest",
-    "//base/account/os_account/services/accountmgr/test/moduletest/os_account:moduletest",
-    "//base/account/os_account/tools:moduletest",
+    "${os_account_path}/frameworks/appaccount/native/test:moduletest",
+    "${os_account_path}/frameworks/domain_account/test/moduletest:moduletest",
+    "${os_account_path}/frameworks/ohosaccount/test:moduletest",
+    "${os_account_path}/frameworks/osaccount/native/test/moduletest:moduletest",
+    "${os_account_path}/services/accountmgr/test/moduletest/app_account:moduletest",
+    "${os_account_path}/services/accountmgr/test/moduletest/os_account:moduletest",
+    "${os_account_path}/tools:moduletest",
   ]
 }
 
@@ -48,9 +49,9 @@ group("account_build_fuzztest") {
   testonly = true
   deps = []
   deps += [
-    "//base/account/os_account/test/fuzztest/appaccount:fuzztest",
-    "//base/account/os_account/test/fuzztest/iamaccount:fuzztest",
-    "//base/account/os_account/test/fuzztest/ohosaccount:fuzztest",
-    "//base/account/os_account/test/fuzztest/osaccount:fuzztest",
+    "${os_account_path}/test/fuzztest/appaccount:fuzztest",
+    "${os_account_path}/test/fuzztest/iamaccount:fuzztest",
+    "${os_account_path}/test/fuzztest/ohosaccount:fuzztest",
+    "${os_account_path}/test/fuzztest/osaccount:fuzztest",
   ]
 }

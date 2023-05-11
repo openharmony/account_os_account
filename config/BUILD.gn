@@ -11,8 +11,8 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-import("//base/account/os_account/os_account.gni")
 import("//build/ohos.gni")
+import("../os_account.gni")
 
 config("coverage_flags") {
   if (os_account_test_case_coverage_feature) {

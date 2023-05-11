@@ -19,7 +19,7 @@
 #include "common_event_support.h"
 #endif // HAS_CES_PART
 #include "domain_account_callback_service.h"
-#include "hitrace_meter.h"
+#include "hitrace_adapter.h"
 #include "hisysevent_adapter.h"
 #include "ohos_account_kits.h"
 #include "os_account_constants.h"
@@ -362,8 +362,10 @@ ErrCode IInnerOsAccountManager::RemoveOsAccountOperate(const int id, OsAccountIn
         return errCode;
     }
     CheckAndRefreshLocalIdRecord(id);
-    InnerDomainAccountManager::GetInstance().NotifyDomainAccountEvent(
-        id, DomainAccountEvent::LOG_OUT, DomainAccountStatus::LOGOUT, domainAccountInfo);
+    if (!domainAccountInfo.accountId_.empty()) {
+        InnerDomainAccountManager::GetInstance().NotifyDomainAccountEvent(
+            id, DomainAccountEvent::LOG_OUT, DomainAccountStatus::LOGOUT, domainAccountInfo);
+    }
     return errCode;
 }
 
@@ -814,14 +816,12 @@ void IInnerOsAccountManager::CleanGarbageAccounts()
 
 ErrCode IInnerOsAccountManager::GetOsAccountLocalIdFromDomain(const DomainAccountInfo &domainInfo, int &id)
 {
-    if (domainInfo.domain_.empty() ||
-        domainInfo.domain_.size() > Constants::DOMAIN_NAME_MAX_SIZE) {
+    if (domainInfo.domain_.size() > Constants::DOMAIN_NAME_MAX_SIZE) {
         ACCOUNT_LOGE("invalid domain name length %{public}zu.", domainInfo.domain_.size());
         return ERR_OSACCOUNT_SERVICE_INNER_DOMAIN_NAME_LEN_ERROR;
     }
 
-    if (domainInfo.accountName_.empty() ||
-        domainInfo.accountName_.size() > Constants::DOMAIN_ACCOUNT_NAME_MAX_SIZE) {
+    if (domainInfo.accountName_.size() > Constants::DOMAIN_ACCOUNT_NAME_MAX_SIZE) {
         ACCOUNT_LOGE("invalid domain account name length %{public}zu.", domainInfo.accountName_.size());
         return ERR_OSACCOUNT_SERVICE_INNER_DOMAIN_ACCOUNT_NAME_LEN_ERROR;
     }
@@ -838,8 +838,8 @@ ErrCode IInnerOsAccountManager::GetOsAccountLocalIdFromDomain(const DomainAccoun
          ++osAccountInfosPtr) {
         osAccountInfosPtr->GetDomainInfo(curDomainInfo);
         if (((!domainInfo.accountId_.empty()) && (domainInfo.accountId_ == curDomainInfo.accountId_)) ||
-            ((curDomainInfo.accountName_ == domainInfo.accountName_) &&
-            (curDomainInfo.domain_ == domainInfo.domain_))) {
+            ((!domainInfo.accountName_.empty()) && (curDomainInfo.accountName_ == domainInfo.accountName_) &&
+            (!domainInfo.domain_.empty()) && (curDomainInfo.domain_ == domainInfo.domain_))) {
             id = osAccountInfosPtr->GetLocalId();
             return ERR_OK;
         }
@@ -873,8 +873,7 @@ ErrCode IInnerOsAccountManager::QueryOsAccountById(const int id, OsAccountInfo &
 
     DomainAccountInfo domainInfo;
     osAccountInfo.GetDomainInfo(domainInfo);
-    errCode = InnerDomainAccountManager::GetInstance().GetAccountStatus(
-        domainInfo.domain_, domainInfo.accountName_, domainInfo.status_);
+    errCode = InnerDomainAccountManager::GetInstance().GetAccountStatus(domainInfo, domainInfo.status_);
     if (errCode != ERR_OK) {
         ACCOUNT_LOGI("GetAccountStatus errCode %{public}d.", errCode);
         domainInfo.status_ = DomainAccountStatus::LOGOUT;
@@ -1439,7 +1438,7 @@ void IInnerOsAccountManager::PushIdIntoActiveList(int32_t id)
     std::lock_guard<std::mutex> lock(ativeMutex_);
     if (std::find(activeAccountId_.begin(), activeAccountId_.end(), id) == activeAccountId_.end()) {
         activeAccountId_.push_back(id);
-        CountTrace(HITRACE_TAG_ACCOUNT_MANAGER, "activeId", (int64_t)id);
+        CountTraceAdapter("activeId", (int64_t)id);
     }
     return;
 }
@@ -1454,7 +1453,7 @@ void IInnerOsAccountManager::EraseIdFromActiveList(int32_t id)
     } else {
         ACCOUNT_LOGI("os account is not in active list, no need to erase!");
     }
-    CountTrace(HITRACE_TAG_ACCOUNT_MANAGER, "deActiveId", (int64_t)id);
+    CountTraceAdapter("deActiveId", (int64_t)id);
 }
 
 bool IInnerOsAccountManager::IsOsAccountIDInActiveList(int32_t id)

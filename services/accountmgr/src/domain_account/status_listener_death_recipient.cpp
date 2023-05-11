@@ -34,7 +34,7 @@ void StatusListenerDeathRecipient::OnRemoteDied(const wptr<IRemoteObject>& remot
         ACCOUNT_LOGE("object is nullptr.");
         return;
     }
-    StatusListenerManager::GetInstance().RemoveListenerByObject(object);
+    StatusListenerManager::GetInstance().RemoveListenerByListener(object);
     ACCOUNT_LOGI("end");
 }
 } // namespace AccessToken

@@ -84,10 +84,14 @@ ErrCode DomainAccountManagerService::AuthWithPopup(int32_t userId, const sptr<ID
     return InnerDomainAccountManager::GetInstance().AuthWithPopup(userId, callback);
 }
 
-ErrCode DomainAccountManagerService::GetAccountStatus(
-    const std::string &domain, const std::string &accountName, DomainAccountStatus &status)
+ErrCode DomainAccountManagerService::GetAccountStatus(const DomainAccountInfo &info, DomainAccountStatus &status)
 {
-    return InnerDomainAccountManager::GetInstance().GetAccountStatus(domain, accountName, status);
+    return InnerDomainAccountManager::GetInstance().GetAccountStatus(info, status);
+}
+
+ErrCode DomainAccountManagerService::RegisterAccountStatusListener(const sptr<IDomainAccountCallback> &listener)
+{
+    return InnerDomainAccountManager::GetInstance().RegisterAccountStatusListener(listener);
 }
 
 ErrCode DomainAccountManagerService::RegisterAccountStatusListener(
@@ -96,9 +100,15 @@ ErrCode DomainAccountManagerService::RegisterAccountStatusListener(
     return InnerDomainAccountManager::GetInstance().RegisterAccountStatusListener(info, listener);
 }
 
-ErrCode DomainAccountManagerService::UnregisterAccountStatusListener(const DomainAccountInfo &info)
+ErrCode DomainAccountManagerService::UnregisterAccountStatusListener(
+    const DomainAccountInfo &info, const sptr<IDomainAccountCallback> &listener)
 {
-    return InnerDomainAccountManager::GetInstance().UnregisterAccountStatusListener(info);
+    return InnerDomainAccountManager::GetInstance().UnregisterAccountStatusListener(info, listener);
+}
+
+ErrCode DomainAccountManagerService::UnregisterAccountStatusListener(const sptr<IDomainAccountCallback> &listener)
+{
+    return InnerDomainAccountManager::GetInstance().UnregisterAccountStatusListener(listener);
 }
 }  // namespace AccountSA
 }  // namespace OHOS

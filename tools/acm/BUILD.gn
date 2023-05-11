@@ -11,8 +11,8 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-import("//base/account/os_account/os_account.gni")
 import("//build/ohos.gni")
+import("../../os_account.gni")
 
 config("tools_acm_config") {
   include_dirs = [
@@ -64,6 +64,7 @@ ohos_source_set("tools_acm_source_set") {
     "c_utils:utils",
     "hiviewdfx_hilog_native:libhilog",
   ]
+  subsystem_name = "account"
   part_name = "os_account"
 }
 

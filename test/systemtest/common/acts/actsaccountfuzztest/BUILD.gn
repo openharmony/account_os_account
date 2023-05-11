@@ -11,8 +11,8 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-import("//base/account/os_account/os_account.gni")
 import("//build/test.gni")
+import("../../../../../os_account.gni")
 
 module_output_path = "account/systemtest"
 
@@ -21,8 +21,8 @@ ohos_systemtest("ActsAccountFuzzTest") {
   resource_config_file = "${os_account_path}/test/systemtest/common/resource/fuzzTest/ohos_test.xml"
 
   sources = [
-    "${os_account_path}//test/systemtest/common/resource/fuzzTest/src/fuzz_test_manager.cpp",
-    "${os_account_path}//test/systemtest/common/resource/fuzzTest/src/getparam.cpp",
+    "${os_account_path}/test/systemtest/common/resource/fuzzTest/src/fuzz_test_manager.cpp",
+    "${os_account_path}/test/systemtest/common/resource/fuzzTest/src/getparam.cpp",
     "acts_account_fuzz_test.cpp",
   ]
 
@@ -34,9 +34,8 @@ ohos_systemtest("ActsAccountFuzzTest") {
     "${app_account_interfaces_native_path}/include",
     "${os_account_interfaces_native_path}/include",
     "${common_path}/account_error/include",
-    "${os_account_path}//test/systemtest/common/resource/fuzzTest/include",
-    "//base/account/os_account/services/accountmgr/include/appaccount",
-    "//base/global/resource_management_lite/frameworks/resmgr_lite/include",
+    "${os_account_path}/test/systemtest/common/resource/fuzzTest/include",
+    "${services_path}/accountmgr/include/appaccount",
     "//third_party/json/include",
   ]
 
@@ -47,11 +46,11 @@ ohos_systemtest("ActsAccountFuzzTest") {
   }
 
   deps = [
+    "${app_account_innerkits_native_path}:app_account_innerkits",
     "${common_path}:libaccount_common",
     "${innerkits_native_path}:libaccountkits",
-    "//base/account/os_account/frameworks/appaccount/native:app_account_innerkits",
-    "//base/account/os_account/frameworks/osaccount/native:os_account_innerkits",
-    "//base/account/os_account/services/accountmgr/src/appaccount:app_account_service_core",
+    "${os_account_innerkits_native_path}:os_account_innerkits",
+    "${os_account_path}/services/accountmgr/src/appaccount:app_account_service_core",
     "//third_party/googletest:gtest_main",
   ]
 

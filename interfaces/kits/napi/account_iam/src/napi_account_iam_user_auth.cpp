@@ -167,7 +167,7 @@ napi_value NapiAccountIAMUserAuth::GetProperty(napi_env env, napi_callback_info 
         [](napi_env env, void *data) {
             GetPropertyContext *context = reinterpret_cast<GetPropertyContext *>(data);
             auto getPropCallback = std::make_shared<NapiGetPropCallback>(
-                context->env, context->callbackRef, context->deferred);
+                context->env, context->callbackRef, context->deferred, context->request);
             AccountIAMClient::GetInstance().GetProperty(0, context->request, getPropCallback);
             context->callbackRef = nullptr;
         },

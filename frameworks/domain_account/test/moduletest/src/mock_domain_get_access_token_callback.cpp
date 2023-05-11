@@ -29,13 +29,12 @@ TestGetAccessTokenCallback::TestGetAccessTokenCallback(
 TestGetAccessTokenCallback::~TestGetAccessTokenCallback()
 {}
 
-void TestGetAccessTokenCallback::OnResult(const int32_t errCode, Parcel &parcel)
+void TestGetAccessTokenCallback::OnResult(const int32_t errCode, const std::vector<uint8_t> &accessToken)
 {
     if (callback_ == nullptr) {
         return;
     }
-    parcel.ReadUInt8Vector(&token_);
-    callback_->OnResult(errCode, token_);
+    callback_->OnResult(errCode, accessToken);
     return;
 }
 }  // AccountSA

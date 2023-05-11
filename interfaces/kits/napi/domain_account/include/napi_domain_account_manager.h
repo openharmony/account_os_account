@@ -20,6 +20,7 @@
 #include "domain_account_common.h"
 #include "domain_account_plugin.h"
 #include "domain_auth_callback.h"
+#include "get_access_token_callback.h"
 #include "napi/native_api.h"
 #include "napi_account_common.h"
 
@@ -42,6 +43,7 @@ struct JsDomainPlugin {
 };
 
 struct HasDomainAccountAsyncContext : public CommonAsyncContext {
+    ~HasDomainAccountAsyncContext();
     AccountSA::DomainAccountInfo domainInfo;
     bool isHasDomainAccount = false;
     ThreadLockInfo *lockInfo = nullptr;
@@ -53,6 +55,7 @@ struct UpdateAccountTokenAsyncContext : public CommonAsyncContext {
 };
 
 struct GetAccessTokenAsyncContext : public CommonAsyncContext {
+    ~GetAccessTokenAsyncContext();
     AccountSA::DomainAccountInfo domainInfo;
     AAFwk::WantParams getTokenParams;
     std::vector<uint8_t> accessToken;
@@ -113,7 +116,6 @@ private:
 class NapiHasDomainInfoCallback final : public AccountSA::DomainAccountCallback {
 public:
     NapiHasDomainInfoCallback(napi_env env, napi_ref callbackRef, napi_deferred deferred);
-    ~NapiHasDomainInfoCallback();
     void OnResult(const int32_t errCode, Parcel &parcel) override;
 
 private:
@@ -123,11 +125,10 @@ private:
     napi_deferred deferred_ = nullptr;
 };
 
-class NapiGetAccessTokenCallback final : public AccountSA::DomainAccountCallback {
+class NapiGetAccessTokenCallback final : public AccountSA::GetAccessTokenCallback {
 public:
     NapiGetAccessTokenCallback(napi_env env, napi_ref callbackRef, napi_deferred deferred);
-    ~NapiGetAccessTokenCallback();
-    void OnResult(const int32_t errCode, Parcel &parcel) override;
+    void OnResult(const int32_t errCode, const std::vector<uint8_t> &accessToken) override;
 
 private:
     AccountJsKit::ThreadLockInfo lockInfo_;

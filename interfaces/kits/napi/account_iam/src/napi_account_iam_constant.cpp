@@ -49,6 +49,9 @@ napi_value AuthSubTypeConstructor(napi_env env)
     napi_value pinMixed = nullptr;
     napi_value face2d = nullptr;
     napi_value face3d = nullptr;
+    napi_value fingerprintCapacitive = nullptr;
+    napi_value fingerprintOptical = nullptr;
+    napi_value fingerprintUltrasonic = nullptr;
     napi_value domainMixed = nullptr;
     NAPI_CALL(env, napi_create_object(env, &authSubType));
     NAPI_CALL(env, napi_create_int32(env, static_cast<int32_t>(PinSubType::PIN_SIX), &pinSix));
@@ -56,12 +59,18 @@ napi_value AuthSubTypeConstructor(napi_env env)
     NAPI_CALL(env, napi_create_int32(env, static_cast<int32_t>(PinSubType::PIN_MIXED), &pinMixed));
     NAPI_CALL(env, napi_create_int32(env, static_cast<int32_t>(FACE_2D), &face2d));
     NAPI_CALL(env, napi_create_int32(env, static_cast<int32_t>(FACE_3D), &face3d));
+    NAPI_CALL(env, napi_create_int32(env, static_cast<int32_t>(FINGERPRINT_CAPACITIVE), &fingerprintCapacitive));
+    NAPI_CALL(env, napi_create_int32(env, static_cast<int32_t>(FINGERPRINT_OPTICAL), &fingerprintOptical));
+    NAPI_CALL(env, napi_create_int32(env, static_cast<int32_t>(FINGERPRINT_ULTRASONIC), &fingerprintUltrasonic));
     NAPI_CALL(env, napi_create_int32(env, static_cast<int32_t>(IAMAuthSubType::DOMAIN_MIXED), &domainMixed));
     NAPI_CALL(env, napi_set_named_property(env, authSubType, "PIN_SIX", pinSix));
     NAPI_CALL(env, napi_set_named_property(env, authSubType, "PIN_NUMBER", pinNumber));
     NAPI_CALL(env, napi_set_named_property(env, authSubType, "PIN_MIXED", pinMixed));
     NAPI_CALL(env, napi_set_named_property(env, authSubType, "FACE_2D", face2d));
     NAPI_CALL(env, napi_set_named_property(env, authSubType, "FACE_3D", face3d));
+    NAPI_CALL(env, napi_set_named_property(env, authSubType, "FINGERPRINT_CAPACITIVE", fingerprintCapacitive));
+    NAPI_CALL(env, napi_set_named_property(env, authSubType, "FINGERPRINT_OPTICAL", fingerprintOptical));
+    NAPI_CALL(env, napi_set_named_property(env, authSubType, "FINGERPRINT_ULTRASONIC", fingerprintUltrasonic));
     NAPI_CALL(env, napi_set_named_property(env, authSubType, "DOMAIN_MIXED", domainMixed));
     return authSubType;
 }
@@ -91,13 +100,19 @@ napi_value GetPropertyTypeConstructor(napi_env env)
     napi_value authSubType = nullptr;
     napi_value remainTimes = nullptr;
     napi_value freezingTime = nullptr;
+    napi_value enrollProgress = nullptr;
+    napi_value sensorInfo = nullptr;
     NAPI_CALL(env, napi_create_object(env, &getPropertyType));
     NAPI_CALL(env, napi_create_int32(env, static_cast<int32_t>(GetPropertyType::AUTH_SUB_TYPE), &authSubType));
     NAPI_CALL(env, napi_create_int32(env, static_cast<int32_t>(GetPropertyType::REMAIN_TIMES), &remainTimes));
     NAPI_CALL(env, napi_create_int32(env, static_cast<int32_t>(GetPropertyType::FREEZING_TIME), &freezingTime));
+    NAPI_CALL(env, napi_create_int32(env, static_cast<int32_t>(GetPropertyType::ENROLL_PROGRESS), &enrollProgress));
+    NAPI_CALL(env, napi_create_int32(env, static_cast<int32_t>(GetPropertyType::SENSOR_INFO), &sensorInfo));
     NAPI_CALL(env, napi_set_named_property(env, getPropertyType, "AUTH_SUB_TYPE", authSubType));
     NAPI_CALL(env, napi_set_named_property(env, getPropertyType, "REMAIN_TIMES", remainTimes));
     NAPI_CALL(env, napi_set_named_property(env, getPropertyType, "FREEZING_TIME", freezingTime));
+    NAPI_CALL(env, napi_set_named_property(env, getPropertyType, "ENROLL_PROGRESS", enrollProgress));
+    NAPI_CALL(env, napi_set_named_property(env, getPropertyType, "SENSOR_INFO", sensorInfo));
     return getPropertyType;
 }
 
@@ -224,6 +239,8 @@ napi_value FingerprintTipsConstructorForInnerkits(napi_env env)
     napi_value fingerprintTipPartial = nullptr;
     napi_value fingerprintTipTooFast = nullptr;
     napi_value fingerprintTipTooSlow = nullptr;
+    napi_value fingerprintTipFingerDown = nullptr;
+    napi_value fingerprintTipFingerUp = nullptr;
     NAPI_CALL(env, napi_create_object(env, &fingerprintTips));
     NAPI_CALL(env, napi_create_int32(env, FingerprintTips::FINGERPRINT_AUTH_TIP_GOOD, &fingerprintTipGood));
     NAPI_CALL(env, napi_create_int32(env, FingerprintTips::FINGERPRINT_AUTH_TIP_IMAGER_DIRTY,
@@ -233,17 +250,24 @@ napi_value FingerprintTipsConstructorForInnerkits(napi_env env)
     NAPI_CALL(env, napi_create_int32(env, FingerprintTips::FINGERPRINT_AUTH_TIP_PARTIAL, &fingerprintTipPartial));
     NAPI_CALL(env, napi_create_int32(env, FingerprintTips::FINGERPRINT_AUTH_TIP_TOO_FAST, &fingerprintTipTooFast));
     NAPI_CALL(env, napi_create_int32(env, FingerprintTips::FINGERPRINT_AUTH_TIP_TOO_SLOW, &fingerprintTipTooSlow));
-    NAPI_CALL(env, napi_set_named_property(env, fingerprintTips, "FINGERPRINT_TIP_GOOD", fingerprintTipGood));
-    NAPI_CALL(env, napi_set_named_property(env, fingerprintTips,
-        "FINGERPRINT_TIP_IMAGER_DIRTY", fingerprintTipImagerDirty));
-    NAPI_CALL(env, napi_set_named_property(env, fingerprintTips,
-        "FINGERPRINT_TIP_INSUFFICIENT", fingerprintTipInsufficient));
-    NAPI_CALL(env, napi_set_named_property(env, fingerprintTips,
-        "FINGERPRINT_TIP_PARTIAL", fingerprintTipPartial));
-    NAPI_CALL(env, napi_set_named_property(env, fingerprintTips,
-        "FINGERPRINT_TIP_TOO_FAST", fingerprintTipTooFast));
-    NAPI_CALL(env, napi_set_named_property(env, fingerprintTips,
-        "FINGERPRINT_TIP_TOO_SLOW", fingerprintTipTooSlow));
+    NAPI_CALL(env, napi_create_int32(env, FingerprintTips::FINGERPRINT_TIP_FINGER_DOWN, &fingerprintTipFingerDown));
+    NAPI_CALL(env, napi_create_int32(env, FingerprintTips::FINGERPRINT_TIP_FINGER_UP, &fingerprintTipFingerUp));
+    NAPI_CALL(env,
+        napi_set_named_property(env, fingerprintTips, "FINGERPRINT_TIP_GOOD", fingerprintTipGood));
+    NAPI_CALL(env,
+        napi_set_named_property(env, fingerprintTips, "FINGERPRINT_TIP_IMAGER_DIRTY", fingerprintTipImagerDirty));
+    NAPI_CALL(env,
+        napi_set_named_property(env, fingerprintTips, "FINGERPRINT_TIP_INSUFFICIENT", fingerprintTipInsufficient));
+    NAPI_CALL(env,
+        napi_set_named_property(env, fingerprintTips, "FINGERPRINT_TIP_PARTIAL", fingerprintTipPartial));
+    NAPI_CALL(env,
+        napi_set_named_property(env, fingerprintTips, "FINGERPRINT_TIP_TOO_FAST", fingerprintTipTooFast));
+    NAPI_CALL(env,
+        napi_set_named_property(env, fingerprintTips, "FINGERPRINT_TIP_TOO_SLOW", fingerprintTipTooSlow));
+    NAPI_CALL(env,
+        napi_set_named_property(env, fingerprintTips, "FINGERPRINT_TIP_FINGER_DOWN", fingerprintTipFingerDown));
+    NAPI_CALL(env,
+        napi_set_named_property(env, fingerprintTips, "FINGERPRINT_TIP_FINGER_UP", fingerprintTipFingerUp));
     return fingerprintTips;
 }
 

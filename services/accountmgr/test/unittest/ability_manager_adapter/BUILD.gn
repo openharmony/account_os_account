@@ -11,9 +11,9 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-import("//base/account/os_account/os_account.gni")
 import("//build/ohos.gni")
 import("//build/test.gni")
+import("../../../../../os_account.gni")
 
 module_output_path = "os_account/services/accountmgr"
 
@@ -63,7 +63,7 @@ ohos_unittest("AbilityManagerAdapterMockTest") {
 
   sources = [
     "${services_path}/accountmgr/src/ability_manager_adapter/ability_manager_adapter.cpp",
-    "//base/account/os_account/services/accountmgr/test/mock/src/mock_service_registry.cpp",
+    "${services_path}/accountmgr/test/mock/src/mock_service_registry.cpp",
   ]
 
   sources += [ "ability_manager_adapter_mock_test.cpp" ]

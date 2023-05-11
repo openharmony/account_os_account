@@ -34,6 +34,7 @@ struct ThreadLockInfo {
 
 struct CommonAsyncContext {
     CommonAsyncContext() {};
+    virtual ~CommonAsyncContext () {};
     explicit CommonAsyncContext(napi_env napiEnv) : env(napiEnv) {};
     napi_env env = nullptr;
     napi_async_work work = nullptr;
@@ -56,6 +57,7 @@ struct NapiRefArrayContext {
 };
 
 void ProcessCallbackOrPromise(napi_env env, const CommonAsyncContext *asyncContext, napi_value err, napi_value data);
+void ReturnCallbackOrPromise(napi_env env, const CommonAsyncContext *asyncContext, napi_value err, napi_value data);
 bool CreateExecEnv(napi_env env, uv_loop_s **loop, uv_work_t **work);
 bool GetCallbackProperty(napi_env env, napi_value obj, napi_ref &property, int argNum);
 bool GetIntProperty(napi_env env, napi_value obj, int32_t &property);

@@ -11,8 +11,8 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-import("//base/account/os_account/os_account.gni")
 import("//build/ohos.gni")
+import("../../../../os_account.gni")
 
 config("domain_account_napi_kit_config") {
   include_dirs = [ "include" ]
@@ -61,7 +61,6 @@ ohos_shared_library("domain_account_napi") {
     "ability_runtime:abilitykit_native",
     "ability_runtime:wantagent_innerkits",
     "c_utils:utils",
-    "common_event_service:cesfwk_innerkits",
     "hiviewdfx_hilog_native:libhilog",
     "napi:ace_napi",
   ]

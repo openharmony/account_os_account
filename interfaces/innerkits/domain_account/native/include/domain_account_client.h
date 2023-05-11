@@ -36,12 +36,14 @@
 #ifndef OS_ACCOUNT_INTERFACES_INNERKITS_DOMAIN_ACCOUNT_INCLUDE_DOMAIN_ACCOUNT_CLIENT_H
 #define OS_ACCOUNT_INTERFACES_INNERKITS_DOMAIN_ACCOUNT_INCLUDE_DOMAIN_ACCOUNT_CLIENT_H
 
+#include <map>
 #include <mutex>
 #include "account_error_no.h"
 #include "domain_account_callback.h"
 #include "domain_account_plugin.h"
 #include "domain_account_status_listener.h"
 #include "domain_auth_callback_service.h"
+#include "get_access_token_callback.h"
 #include "idomain_account.h"
 #include "want.h"
 
@@ -112,15 +114,30 @@ public:
     ErrCode HasDomainAccount(const DomainAccountInfo &info, const std::shared_ptr<DomainAccountCallback> &callback);
     ErrCode UpdateAccountToken(const DomainAccountInfo &info, const std::vector<uint8_t> &token);
     ErrCode GetAccessToken(const DomainAccountInfo &info, const AAFwk::WantParams &parameters,
-        const std::shared_ptr<DomainAccountCallback> &callback);
-    ErrCode GetAccountStatus(const std::string &domain, const std::string &accountName, DomainAccountStatus &status);
+        const std::shared_ptr<GetAccessTokenCallback> &callback);
+    ErrCode GetAccountStatus(const DomainAccountInfo &info, DomainAccountStatus &status);
     ErrCode RegisterAccountStatusListener(
         const DomainAccountInfo &info, const std::shared_ptr<DomainAccountStatusListener> &listener);
-    ErrCode UnregisterAccountStatusListener(const DomainAccountInfo &info);
+    ErrCode RegisterAccountStatusListener(const std::shared_ptr<DomainAccountStatusListener> &listener);
+    ErrCode UnregisterAccountStatusListener(const std::shared_ptr<DomainAccountStatusListener> &listener);
+    ErrCode UnregisterAccountStatusListener(
+        const DomainAccountInfo &info, const std::shared_ptr<DomainAccountStatusListener> &listener);
 
 private:
     DomainAccountClient() = default;
     ~DomainAccountClient() = default;
+
+public:
+    class DomainAccountListenerRecord {
+    public:
+        DomainAccountListenerRecord(const DomainAccountInfo &info, const sptr<IDomainAccountCallback> &callback)
+            : infos_({info}), callback_(callback){};
+        DomainAccountListenerRecord(const sptr<IDomainAccountCallback> &callback) : infos_({}), callback_(callback){};
+        std::vector<DomainAccountInfo> infos_;
+        sptr<IDomainAccountCallback> callback_;
+    };
+
+private:
     class DomainAccountDeathRecipient : public IRemoteObject::DeathRecipient {
     public:
         DomainAccountDeathRecipient() = default;
@@ -131,14 +148,17 @@ private:
         DISALLOW_COPY_AND_MOVE(DomainAccountDeathRecipient);
     };
     sptr<IDomainAccount> GetDomainAccountProxy();
-    void ResetDomainAccountProxy(const wptr<IRemoteObject>& remote);
+    void ResetDomainAccountProxy(const wptr<IRemoteObject> &remote);
     ErrCode AuthProxyInit(const std::shared_ptr<DomainAuthCallback> &callback,
         sptr<DomainAuthCallbackService> &callbackService, sptr<IDomainAccount> &proxy);
 
 private:
     std::mutex mutex_;
+    std::mutex recordMutex_;
     sptr<IDomainAccount> proxy_ = nullptr;
     sptr<DomainAccountDeathRecipient> deathRecipient_ = nullptr;
+    std::map<std::shared_ptr<DomainAccountStatusListener>, DomainAccountClient::DomainAccountListenerRecord>
+        listenerRecords_;
 };
 }  // namespace AccountSA
 }  // namespace OHOS

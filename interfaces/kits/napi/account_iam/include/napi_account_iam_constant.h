@@ -25,6 +25,9 @@ namespace AccountJsKit {
 enum AuthSubType {
     FACE_2D = 20000,
     FACE_3D = 20001,
+    FINGERPRINT_CAPACITIVE = 30000,
+    FINGERPRINT_OPTICAL = 30001,
+    FINGERPRINT_ULTRASONIC = 30002,
 };
 
 enum AuthMethod {
@@ -56,13 +59,17 @@ enum FingerprintTips {
     FINGERPRINT_AUTH_TIP_INSUFFICIENT = 2,
     FINGERPRINT_AUTH_TIP_PARTIAL = 3,
     FINGERPRINT_AUTH_TIP_TOO_FAST = 4,
-    FINGERPRINT_AUTH_TIP_TOO_SLOW = 5
+    FINGERPRINT_AUTH_TIP_TOO_SLOW = 5,
+    FINGERPRINT_TIP_FINGER_DOWN = 6,
+    FINGERPRINT_TIP_FINGER_UP = 7,
 };
 
 enum GetPropertyType : uint32_t {
     AUTH_SUB_TYPE = 1,
     REMAIN_TIMES = 2,
     FREEZING_TIME = 3,
+    ENROLL_PROGRESS = 4,
+    SENSOR_INFO = 5,
 };
 
 enum SetPropertyType : uint32_t {
