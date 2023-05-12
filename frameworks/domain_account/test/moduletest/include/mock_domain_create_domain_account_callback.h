@@ -16,8 +16,10 @@
 #ifndef OS_ACCOUNT_FRAMEWORKS_DOMAIN_ACCOUNT_TEST_INCLUDE_MOCK_DOMAIN_CREATE_DOMAIN_ACCOUNT_CALLBACK_H
 #define OS_ACCOUNT_FRAMEWORKS_DOMAIN_ACCOUNT_TEST_INCLUDE_MOCK_DOMAIN_CREATE_DOMAIN_ACCOUNT_CALLBACK_H
 
+#include <mutex>
 #include <gmock/gmock.h>
 #include <gtest/gtest.h>
+#include "condition_variable"
 #include "domain_account_callback.h"
 #include "os_account_info.h"
 
@@ -35,6 +37,9 @@ public:
     virtual ~TestCreateDomainAccountCallback();
     void OnResult(const int32_t errCode, Parcel &parcel) override;
     int32_t GetLocalId();
+    std::condition_variable cv;
+    bool isReady = false;
+    std::mutex mutex;
 private:
     int32_t localId_;
     std::shared_ptr<MockDomainCreateDomainAccountCallback> callback_;
