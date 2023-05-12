@@ -84,7 +84,7 @@ if (!defined(global_parts_info) ||
 
 if (!defined(global_parts_info) ||
     defined(global_parts_info.hiviewdfx_hitrace_native)) {
-  has_hiviewdfx_hitrace_part = false
+  has_hiviewdfx_hitrace_part = true
 } else {
   has_hiviewdfx_hitrace_part = false
 }
