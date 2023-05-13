@@ -21,15 +21,11 @@
 namespace OHOS {
 namespace AccountSA {
 OsAccountDataStorage::~OsAccountDataStorage()
-{
-    ACCOUNT_LOGD("enter");
-}
+{}
 
 OsAccountDataStorage::OsAccountDataStorage(const std::string &appId, const std::string &storeId, const bool &autoSync)
-    : AccountDataStorage(appId, storeId, autoSync)
-{
-    ACCOUNT_LOGD("enter");
-}
+    : AccountDataStorage(appId, storeId, { .autoSync = autoSync })
+{}
 
 void OsAccountDataStorage::SaveEntries(
     std::vector<OHOS::DistributedKv::Entry> allEntries, std::map<std::string, std::shared_ptr<IAccountInfo>> &infos)

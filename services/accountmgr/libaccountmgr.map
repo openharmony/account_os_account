@@ -78,7 +78,7 @@
         "OHOS::AccountSA::AppAccountControlManager::GetAllAccessibleAccountsFromDataStorage(std::__h::vector<OHOS::AccountSA::AppAccountInfo, std::__h::allocator<OHOS::AccountSA::AppAccountInfo>>&, std::__h::basic_string<char, std::__h::char_traits<char>, std::__h::allocator<char>> const&, std::__h::shared_ptr<OHOS::AccountSA::AppAccountDataStorage> const&, unsigned int const&)";
         "OHOS::AccountSA::AppAccountControlManager::GetAllAccountsFromDataStorage(std::__h::basic_string<char, std::__h::char_traits<char>, std::__h::allocator<char>> const&, std::__h::vector<OHOS::AccountSA::AppAccountInfo, std::__h::allocator<OHOS::AccountSA::AppAccountInfo>>&, std::__h::basic_string<char, std::__h::char_traits<char>, std::__h::allocator<char>> const&, std::__h::shared_ptr<OHOS::AccountSA::AppAccountDataStorage> const&)";
         "OHOS::AccountSA::AppAccountControlManager::GetAllOAuthTokens(OHOS::AccountSA::AuthenticatorSessionRequest const&, std::__h::vector<OHOS::AccountSA::OAuthTokenInfo, std::__h::allocator<OHOS::AccountSA::OAuthTokenInfo>>&)";
-        "OHOS::AccountSA::AppAccountControlManager::GetDataStorage(unsigned int const&, bool const&)";
+        "OHOS::AccountSA::AppAccountControlManager::GetDataStorage(unsigned int const&, bool const&, OHOS::DistributedKv::SecurityLevel)";
         "OHOS::AccountSA::AppAccountControlManager::NeedSyncDataStorage(OHOS::AccountSA::AppAccountInfo const&)";
         "OHOS::AccountSA::AppAccountControlManager::OnAbilityStateChanged(OHOS::AppExecFwk::AbilityStateData const&)";
         "OHOS::AccountSA::AppAccountControlManager::RemoveAuthorizedAccount(std::__h::basic_string<char, std::__h::char_traits<char>, std::__h::allocator<char>> const&, OHOS::AccountSA::AppAccountInfo&, std::__h::shared_ptr<OHOS::AccountSA::AppAccountDataStorage> const&, unsigned int const&)";
@@ -87,7 +87,7 @@
         "OHOS::AccountSA::AppAccountControlManager::SaveAuthorizedAccount(std::__h::basic_string<char, std::__h::char_traits<char>, std::__h::allocator<char>> const&, OHOS::AccountSA::AppAccountInfo&, std::__h::shared_ptr<OHOS::AccountSA::AppAccountDataStorage> const&, unsigned int const&)";
         "OHOS::AccountSA::AppAccountControlManager::SaveAuthorizedAccountIntoDataStorage(std::__h::basic_string<char, std::__h::char_traits<char>, std::__h::allocator<char>> const&, OHOS::AccountSA::AppAccountInfo&, std::__h::shared_ptr<OHOS::AccountSA::AppAccountDataStorage> const&)";
         "OHOS::AccountSA::AppAccountDataStorage::AddAccountInfoIntoDataStorage(OHOS::AccountSA::AppAccountInfo&)";
-        "OHOS::AccountSA::AppAccountDataStorage::AppAccountDataStorage(std::__h::basic_string<char, std::__h::char_traits<char>, std::__h::allocator<char>> const&, bool const&)";
+        "OHOS::AccountSA::AppAccountDataStorage::AppAccountDataStorage(std::__h::basic_string<char, std::__h::char_traits<char>, std::__h::allocator<char>> const&, OHOS::AccountSA::AccountDataStorageOptions const&)";
         "OHOS::AccountSA::AppAccountDataStorage::AUTHORIZED_ACCOUNTS";
         "OHOS::AccountSA::AppAccountDataStorage::GetAccessibleAccountsFromDataStorage(std::__h::basic_string<char, std::__h::char_traits<char>, std::__h::allocator<char>> const&, std::__h::vector<std::__h::basic_string<char, std::__h::char_traits<char>, std::__h::allocator<char>>, std::__h::allocator<std::__h::basic_string<char, std::__h::char_traits<char>, std::__h::allocator<char>>>>&)";
         "OHOS::AccountSA::AppAccountManagerService::AppAccountManagerService()";
