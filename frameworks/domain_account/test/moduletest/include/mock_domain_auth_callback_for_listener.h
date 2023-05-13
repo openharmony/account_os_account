@@ -16,7 +16,9 @@
 #ifndef OS_ACCOUNT_FRAMEWORKS_DOMAIN_ACCOUNT_TEST_INCLUDE_MOCK_DOMAIN_AUTH_CALLBACK_FOR_LISTENER_H
 #define OS_ACCOUNT_FRAMEWORKS_DOMAIN_ACCOUNT_TEST_INCLUDE_MOCK_DOMAIN_AUTH_CALLBACK_FOR_LISTENER_H
 
+#include <mutex>
 #include <gmock/gmock.h>
+#include "condition_variable"
 #include "domain_auth_callback.h"
 #include "os_account_info.h"
 
@@ -33,6 +35,9 @@ public:
     virtual ~TestDomainAuthCallbackForListener();
     void OnResult(int32_t resultCode, const DomainAuthResult &result) override;
     void SetOsAccountInfo(const OsAccountInfo &info);
+    std::condition_variable cv;
+    bool isReady = false;
+    std::mutex mutex;
 
 private:
     std::shared_ptr<MockDomainAuthCallbackForListener> callback_;

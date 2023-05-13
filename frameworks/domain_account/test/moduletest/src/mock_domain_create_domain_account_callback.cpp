@@ -17,6 +17,7 @@
 #include "mock_domain_plugin.h"
 
 #include "account_log_wrapper.h"
+#include "condition_variable"
 #include "os_account_manager.h"
 #include "parcel.h"
 
@@ -45,9 +46,15 @@ void TestCreateDomainAccountCallback::OnResult(const int32_t errCode, Parcel &pa
     localId_ = osAccountInfo->GetLocalId();
     if ((newDomainInfo.accountName_ == "zhangsan") || (newDomainInfo.accountName_ == "zhangsan777") ||
         (newDomainInfo.accountName_ == "zhangsan666")) {
+        std::unique_lock<std::mutex> lock(mutex);
+        isReady = true;
+        cv.notify_one();
         return;
     }
     OsAccountManager::RemoveOsAccount(osAccountInfo->GetLocalId());
+    std::unique_lock<std::mutex> lock(mutex);
+    isReady = true;
+    cv.notify_one();
     return;
 }
 
