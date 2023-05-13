@@ -255,7 +255,9 @@ ErrCode AccountStub::CmdGetOhosAccountInfoByUserId(MessageParcel &data, MessageP
         return errCode;
     }
     if (!HasAccountRequestPermission(PERMISSION_MANAGE_DISTRIBUTED_ACCOUNTS) &&
-        !HasAccountRequestPermission(INTERACT_ACROSS_LOCAL_ACCOUNTS)) {
+        !HasAccountRequestPermission(INTERACT_ACROSS_LOCAL_ACCOUNTS) &&
+        !HasAccountRequestPermission(PERMISSION_DISTRIBUTED_DATASYNC) &&
+        !HasAccountRequestPermission(PERMISSION_GET_DISTRIBUTED_ACCOUNTS)) {
         ACCOUNT_LOGE("Check permission failed");
         return ERR_ACCOUNT_ZIDL_CHECK_PERMISSION_ERROR;
     }
