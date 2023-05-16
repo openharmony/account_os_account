@@ -59,5 +59,6 @@ ohos_shared_library("account_napi_common") {
   ]
 
   subsystem_name = "account"
+  innerapi_tags = [ "platformsdk" ]
   part_name = "os_account"
 }
