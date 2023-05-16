@@ -109,6 +109,13 @@ private:
     bool GetParcelableInfo(IBundleMgr::Message code, MessageParcel &data, T &parcelableInfo);
 
     template <typename T>
+    bool GetParcelableFromAshmem(MessageParcel &reply, T &parcelableInfo);
+
+    template<typename T>
+    bool GetBigParcelableInfo(
+        IBundleMgr::Message code, MessageParcel &data, T &parcelableInfo);
+
+    template <typename T>
     ErrCode GetParcelableInfoWithErrCode(IBundleMgr::Message code, MessageParcel &data, T &parcelableInfo);
     /**
      * @brief Send a command message and then get a vector of parcelable information objects from the reply.
