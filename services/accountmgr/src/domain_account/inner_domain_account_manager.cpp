@@ -63,6 +63,10 @@ void InnerDomainAuthCallback::OnResult(int32_t resultCode, const DomainAuthResul
             ACCOUNT_LOGE("failed to activate user key");
             DomainAuthResult errResult;
             errResult.authStatusInfo = result.authStatusInfo;
+            if (callback_ == nullptr) {
+                ACCOUNT_LOGI("no callback needs to executed");
+                return;
+            }
             return callback_->OnResult(ERR_JS_SYSTEM_SERVICE_EXCEPTION, errResult);
         } else {
             ACCOUNT_LOGI("activate user key success");
@@ -76,7 +80,7 @@ void InnerDomainAuthCallback::OnResult(int32_t resultCode, const DomainAuthResul
             userId_, DomainAccountEvent::LOG_IN, DomainAccountStatus::LOG_END, domainInfo);
     }
     if (callback_ == nullptr) {
-        ACCOUNT_LOGI("callback_ is nullptr");
+        ACCOUNT_LOGI("no callback needs to executed");
         return;
     }
     AccountInfoReport::ReportSecurityInfo("", userId_, ReportEvent::EVENT_LOGIN, resultCode);
