@@ -68,7 +68,9 @@ ohos_shared_library("os_account_innerkits") {
 
   public_deps = [ "${domain_account_framework_path}:domain_account_innerkits" ]
 
-  version_script = "libos_account_innerkits.map"
+  if (!use_clang_coverage) {
+    version_script = "libos_account_innerkits.map"
+  }
 
   external_deps = [
     "ability_base:want",

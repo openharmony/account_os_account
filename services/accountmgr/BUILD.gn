@@ -119,7 +119,9 @@ group("accountmgr_target") {
 ohos_shared_library("accountmgr") {
   visibility = [ "${os_account_path}/*" ]
   cflags = [ "-pipe" ]
-  version_script = "libaccountmgr.map"
+  if (!use_clang_coverage) {
+    version_script = "libaccountmgr.map"
+  }
   cflags_cc = [
     "-Wdate-time",
     "-Wformat=2",
@@ -320,7 +322,9 @@ ohos_shared_library("accountmgr") {
     cflags_cc += [ "-DHAS_HITRACE_PART" ]
   }
 
-  shlib_type = "sa"
+  if (!use_clang_coverage) {
+    shlib_type = "sa"
+  }
   subsystem_name = "account"
   part_name = "os_account"
 }
