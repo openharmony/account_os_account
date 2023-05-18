@@ -52,7 +52,9 @@ ohos_shared_library("libaccountkits") {
 
   public_configs = [ ":public_account_config" ]
 
-  version_script = "libohos_account_innerkits.map"
+  if (!use_clang_coverage) {
+    version_script = "libohos_account_innerkits.map"
+  }
 
   deps = [ "${common_path}:libaccount_common" ]
 

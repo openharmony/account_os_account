@@ -37,7 +37,9 @@ config("appaccount_kit_config") {
 
 ohos_shared_library("appaccount") {
   include_dirs = []
-  version_script = "libappaccount.map"
+  if (!use_clang_coverage) {
+    version_script = "libappaccount.map"
+  }
   configs = [
     ":appaccount_kit_config",
     "${account_coverage_config_path}:coverage_flags",
