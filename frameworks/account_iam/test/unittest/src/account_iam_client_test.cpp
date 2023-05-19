@@ -15,7 +15,9 @@
 
 #include <gmock/gmock.h>
 #include "accesstoken_kit.h"
+#define private public
 #include "account_iam_client.h"
+#undef private
 #include "account_iam_client_test_callback.h"
 #include "account_log_wrapper.h"
 #include "account_iam_callback_stub.h"
@@ -333,6 +335,8 @@ HWTEST_F(AccountIAMClientTest, AccountIAMClient_GetAvailableStatus_0100, TestSiz
 {
     int32_t status;
     AccountIAMClient::GetInstance().GetAvailableStatus(AuthType::FACE, AuthTrustLevel::ATL1, status);
+    AccountIAMClient::AccountIAMDeathRecipient recipient;
+    recipient.OnRemoteDied(nullptr);
     EXPECT_NE(status, 0);
 }
 
