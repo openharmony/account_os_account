@@ -14,7 +14,7 @@
 on post-fs-data
     start accountmgr
 
-service accountmgr /system/bin/sa_main /system/profile/accountmgr.xml
+service accountmgr /system/bin/sa_main /system/profile/accountmgr.json
     class z_core
     user system
     group system shell

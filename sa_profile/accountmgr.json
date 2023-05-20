@@ -1,0 +1,12 @@
+{
+    "process": "accountmgr",
+    "systemability": [
+        {
+            "name": 200,
+            "libpath": "libaccountmgr.z.so",
+            "run-on-create": true,
+            "distributed": false,
+            "dump_level": 1
+        }
+    ]
+}
