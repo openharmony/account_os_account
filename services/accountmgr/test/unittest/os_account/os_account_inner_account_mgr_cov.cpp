@@ -79,7 +79,9 @@ public:
         auto want = data.GetWant();
         std::string action = want.GetAction();
         if (action == EventFwk::CommonEventSupport::COMMON_EVENT_USER_INFO_UPDATED) {
-            status = true;
+            if (data.GetCode() == localId_) {
+                status = true;
+            }
         }
     }
     bool GetStatus()
@@ -90,7 +92,8 @@ public:
     {
         status = false;
     }
-
+public:
+    int32_t localId_;
 private:
     bool status = false;
 };
@@ -211,6 +214,7 @@ HWTEST_F(OsAccountInnerAccmgrCoverageTest, OsAccountInnerAccmgrCoverageTest008, 
 
     OsAccountInfo osAccountInfo;
     int errCode = innerMgrService_->CreateOsAccount(ACCOUNT_NAME, OsAccountType::NORMAL, osAccountInfo);
+    subscriberPtr->localId_ = osAccountInfo.GetLocalId();
     ASSERT_EQ(errCode, ERR_OK);
     int localID = osAccountInfo.GetLocalId();
     errCode = innerMgrService_->SetOsAccountName(localID, ACCOUNT_SET_NAME);
@@ -248,6 +252,7 @@ HWTEST_F(OsAccountInnerAccmgrCoverageTest, OsAccountInnerAccmgrCoverageTest009, 
 
     OsAccountInfo osAccountInfo;
     int errCode = innerMgrService_->CreateOsAccount(ACCOUNT_NAME, OsAccountType::NORMAL, osAccountInfo);
+    subscriberPtr->localId_ = osAccountInfo.GetLocalId();
     ASSERT_EQ(errCode, ERR_OK);
     int localID = osAccountInfo.GetLocalId();
     errCode = innerMgrService_->SetOsAccountProfilePhoto(localID, ACCOUNT_PHOTO);
