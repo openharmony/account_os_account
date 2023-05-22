@@ -90,6 +90,11 @@ public:
         const Want &want, int32_t flags, int32_t userId, std::vector<AbilityInfo> &abilityInfos) override;
 
 private:
+    bool ParseStr(const char *buf, const int itemLen, int index, std::string &result);
+
+    template<typename T>
+    bool ParseInfo(std::string &infoStr, T &info);
+
     /**
      * @brief Send a command message from the proxy object.
      * @param code Indicates the message code to be sent.
