@@ -67,8 +67,8 @@ static ErrCode ReadAvatarData(MessageParcel &data, std::string &avatarStr)
         ACCOUNT_LOGE("read avatarSize failed");
         return ERR_ACCOUNT_COMMON_READ_PARCEL_ERROR;
     }
-    if (avatarSize - 1 > AVATAR_MAX_SIZE) {
-        ACCOUNT_LOGE("avatarSize is oversize");
+    if ((avatarSize - 1 > AVATAR_MAX_SIZE) || (avatarSize - 1 < 0)) {
+        ACCOUNT_LOGE("avatarSize is invalid");
         return ERR_OHOSACCOUNT_KIT_INVALID_PARAMETER;
     }
     const char *avatar = reinterpret_cast<const char *>(data.ReadRawData(avatarSize));
