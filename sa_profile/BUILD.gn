@@ -14,6 +14,6 @@
 import("//build/ohos/sa_profile/sa_profile.gni")
 
 ohos_sa_profile("account_sa_profile") {
-  sources = [ "200.xml" ]
+  sources = [ "accountmgr.json" ]
   part_name = "os_account"
 }
