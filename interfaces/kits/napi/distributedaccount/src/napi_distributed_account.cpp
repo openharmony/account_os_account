@@ -146,11 +146,17 @@ bool GetAccountInfo(napi_env env, napi_value object, DistributedAccountAsyncCont
     if (hasProp) {
         napi_value value = nullptr;
         napi_get_named_property(env, object, "scalableData", &value);
-        if (!AppExecFwk::UnwrapWantParams(env, value, params)) {
-            ACCOUNT_LOGE("Failed to get DistributedInfo's %{public}s property", PROPERTY_KEY_SCALABLE.c_str());
-            std::string errMsg = "The type of " + PROPERTY_KEY_SCALABLE + " must be object";
-            AccountNapiThrow(env, ERR_JS_PARAMETER_ERROR, errMsg, asyncContext->throwErr);
-            return false;
+        napi_valuetype valuetype = napi_undefined;
+        NAPI_CALL_BASE(env, napi_typeof(env, value, &valuetype), false);
+        if ((valuetype == napi_undefined) || (valuetype == napi_null)) {
+            ACCOUNT_LOGI("the scalableData is undefined or null");
+        } else {
+            if (!AppExecFwk::UnwrapWantParams(env, value, params)) {
+                ACCOUNT_LOGE("Failed to get DistributedInfo's %{public}s property", PROPERTY_KEY_SCALABLE.c_str());
+                std::string errMsg = "The type of " + PROPERTY_KEY_SCALABLE + " must be object";
+                AccountNapiThrow(env, ERR_JS_PARAMETER_ERROR, errMsg, asyncContext->throwErr);
+                return false;
+            }
         }
     }
     asyncContext->ohosAccountInfo.scalableData_.SetParams(params);
