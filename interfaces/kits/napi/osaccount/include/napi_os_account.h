@@ -189,7 +189,7 @@ struct IsMainOAInfo : public CommonAsyncContext {
 struct SubscribeCBInfo : public CommonAsyncContext {
     SubscribeCBInfo(napi_env napiEnv) : CommonAsyncContext(napiEnv) {};
     ~SubscribeCBInfo();
-    OS_ACCOUNT_SUBSCRIBE_TYPE osSubscribeType;
+    OS_ACCOUNT_SUBSCRIBE_TYPE osSubscribeType = OS_ACCOUNT_SUBSCRIBE_TYPE::INVALID_TYPE;
     std::string name;
     OsAccountManager *osManager = nullptr;
     std::shared_ptr<SubscriberPtr> subscriber = nullptr;
