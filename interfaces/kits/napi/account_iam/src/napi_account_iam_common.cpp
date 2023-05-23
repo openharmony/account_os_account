@@ -239,6 +239,8 @@ napi_status ParseIAMCallback(napi_env env, napi_value object, JsIAMCallback &cal
     napi_typeof(env, result, &valueType);
     if (valueType == napi_function) {
         NAPI_CALL_BASE(env, napi_create_reference(env, result, 1, &callback.onAcquireInfo), napi_generic_failure);
+    } else if ((valueType == napi_undefined) || (valueType == napi_null)) {
+        ACCOUNT_LOGI("onAcquireInfo is undefined or null");
     } else {
         ACCOUNT_LOGE("onAcquireInfo is not a function");
         return napi_invalid_arg;
