@@ -24,12 +24,13 @@ namespace OHOS {
 namespace AccountSA {
 namespace {
 const int32_t ASHMEM_LEN = 16;
-const std::string KEY_ABILITY_NAME = "name";
-const std::string KEY_BUNDLE_NAME = "bundleName";
-const std::string KEY_LABEL_ID = "labelId";
-const std::string KEY_ICON_ID = "iconId";
-const std::string KEY_TYPE = "type";
-const std::string KEY_VISIBLE = "visible";
+const std::string BUNDLE_INFO_NAME = "name";
+const std::string BUNDLE_INFO_LABEL = "label";
+const std::string BUNDLE_INFO_DESCRIPTION = "description";
+const std::string BUNDLE_INFO_SINGLETON = "singleton";
+const std::string BUNDLE_INFO_IS_NATIVE_APP = "isNativeApp";
+const std::string BUNDLE_INFO_APPID = "appId";
+const std::string BUNDLE_INFO_APP_INDEX = "appIndex";
 
 inline void ClearAshmem(sptr<Ashmem> &optMem)
 {
@@ -66,23 +67,31 @@ bool ParseInfo(std::string &infoStr, T &info)
         ACCOUNT_LOGE("failed due to data is discarded");
         return false;
     }
-    if ((jsonObject.find(KEY_BUNDLE_NAME) != jsonObject.end()) && jsonObject.at(KEY_BUNDLE_NAME).is_string()) {
-        info.bundleName = jsonObject.at(KEY_BUNDLE_NAME).get<std::string>();
+
+    if ((jsonObject.find(BUNDLE_INFO_NAME) != jsonObject.end()) && jsonObject.at(BUNDLE_INFO_NAME).is_string()) {
+        info.name = jsonObject.at(BUNDLE_INFO_NAME).get<std::string>();
     }
-    if ((jsonObject.find(KEY_ABILITY_NAME) != jsonObject.end()) && jsonObject.at(KEY_BUNDLE_NAME).is_string()) {
-        info.name = jsonObject.at(KEY_ABILITY_NAME).get<std::string>();
+    if ((jsonObject.find(BUNDLE_INFO_LABEL) != jsonObject.end()) && jsonObject.at(BUNDLE_INFO_LABEL).is_string()) {
+        info.label = jsonObject.at(BUNDLE_INFO_LABEL).get<std::string>();
     }
-    if ((jsonObject.find(KEY_TYPE) != jsonObject.end()) && jsonObject.at(KEY_TYPE).is_number()) {
-        info.type = AppExecFwk::AbilityType(jsonObject.at(KEY_TYPE).get<int32_t>());
+    if ((jsonObject.find(BUNDLE_INFO_DESCRIPTION) != jsonObject.end()) &&
+        jsonObject.at(BUNDLE_INFO_DESCRIPTION).is_string()) {
+        info.description = jsonObject.at(BUNDLE_INFO_DESCRIPTION).get<std::string>();
     }
-    if ((jsonObject.find(KEY_LABEL_ID) != jsonObject.end()) && jsonObject.at(KEY_LABEL_ID).is_number()) {
-        info.labelId = jsonObject.at(KEY_LABEL_ID).get<int32_t>();
+    if ((jsonObject.find(BUNDLE_INFO_SINGLETON) != jsonObject.end()) &&
+        jsonObject.at(BUNDLE_INFO_SINGLETON).is_boolean()) {
+        info.singleton = jsonObject.at(BUNDLE_INFO_SINGLETON).get<bool>();
     }
-    if ((jsonObject.find(KEY_ICON_ID) != jsonObject.end()) && jsonObject.at(KEY_ICON_ID).is_number()) {
-        info.iconId = jsonObject.at(KEY_ICON_ID).get<int32_t>();
+    if ((jsonObject.find(BUNDLE_INFO_IS_NATIVE_APP) != jsonObject.end()) &&
+        jsonObject.at(BUNDLE_INFO_IS_NATIVE_APP).is_boolean()) {
+        info.isNativeApp = jsonObject.at(BUNDLE_INFO_IS_NATIVE_APP).get<bool>();
     }
-    if ((jsonObject.find(KEY_VISIBLE) != jsonObject.end()) && jsonObject.at(KEY_VISIBLE).is_boolean()) {
-        info.visible = jsonObject.at(KEY_VISIBLE).get<bool>();
+    if ((jsonObject.find(BUNDLE_INFO_APPID) != jsonObject.end()) && jsonObject.at(BUNDLE_INFO_APPID).is_string()) {
+        info.appId = jsonObject.at(BUNDLE_INFO_APPID).get<std::string>();
+    }
+    if ((jsonObject.find(BUNDLE_INFO_APP_INDEX) != jsonObject.end()) &&
+        jsonObject.at(BUNDLE_INFO_APP_INDEX).is_boolean()) {
+        info.appIndex = jsonObject.at(BUNDLE_INFO_APP_INDEX).get<int32_t>();
     }
     return true;
 }
@@ -119,8 +128,7 @@ bool BundleManagerAdapterProxy::GetBundleInfo(
         ACCOUNT_LOGE("fail to GetBundleInfo due to write userId fail");
         return false;
     }
-
-    if (!GetParcelableInfo<BundleInfo>(IBundleMgr::Message::GET_BUNDLE_INFO, data, bundleInfo)) {
+    if (!GetBigParcelableInfo<BundleInfo>(IBundleMgr::Message::GET_BUNDLE_INFO, data, bundleInfo)) {
         ACCOUNT_LOGE("fail to GetBundleInfo from server");
         return false;
     }
@@ -285,6 +293,86 @@ bool BundleManagerAdapterProxy::GetParcelableInfo(IBundleMgr::Message code, Mess
     }
     parcelableInfo = *info;
 
+    return true;
+}
+
+template <typename T>
+bool BundleManagerAdapterProxy::GetBigParcelableInfo(IBundleMgr::Message code, MessageParcel &data, T &parcelableInfo)
+{
+    MessageParcel reply;
+    if (!SendTransactCmd(code, data, reply)) {
+        return false;
+    }
+
+    if (!reply.ReadBool()) {
+        ACCOUNT_LOGE("reply result false");
+        return false;
+    }
+
+    if (reply.ReadBool()) {
+        ACCOUNT_LOGI("big reply, reading data from ashmem");
+        return GetParcelableFromAshmem<T>(reply, parcelableInfo);
+    }
+
+    std::unique_ptr<T> info(reply.ReadParcelable<T>());
+    if (info == nullptr) {
+        ACCOUNT_LOGE("readParcelableInfo failed");
+        return false;
+    }
+    parcelableInfo = *info;
+    ACCOUNT_LOGD("get parcelable info success");
+    return true;
+}
+
+template <typename T>
+bool BundleManagerAdapterProxy::GetParcelableFromAshmem(MessageParcel &reply, T &parcelableInfo)
+{
+    sptr<Ashmem> ashmem = reply.ReadAshmem();
+    if (ashmem == nullptr) {
+        ACCOUNT_LOGE("Ashmem is nullptr");
+        return false;
+    }
+
+    bool ret = ashmem->MapReadOnlyAshmem();
+    if (!ret) {
+        ACCOUNT_LOGE("Map read only ashmem fail");
+        ClearAshmem(ashmem);
+        return false;
+    }
+
+    int32_t offset = 0;
+    const char* dataStr = static_cast<const char*>(
+        ashmem->ReadFromAshmem(ashmem->GetAshmemSize(), offset));
+    if (dataStr == nullptr) {
+        ACCOUNT_LOGE("Data is nullptr when read from ashmem");
+        ClearAshmem(ashmem);
+        return false;
+    }
+
+    std::string lenStr;
+    if (!ParseStr(dataStr, ASHMEM_LEN, offset, lenStr)) {
+        ACCOUNT_LOGE("Parse lenStr fail");
+        ClearAshmem(ashmem);
+        return false;
+    }
+
+    int strLen = atoi(lenStr.c_str());
+    offset += ASHMEM_LEN;
+    std::string infoStr;
+    if (!ParseStr(dataStr, strLen, offset, infoStr)) {
+        ACCOUNT_LOGE("Parse infoStr fail");
+        ClearAshmem(ashmem);
+        return false;
+    }
+
+    if (!ParseInfo(infoStr, parcelableInfo)) {
+        ACCOUNT_LOGE("Parse info from json fail");
+        ClearAshmem(ashmem);
+        return false;
+    }
+
+    ClearAshmem(ashmem);
+    ACCOUNT_LOGD("Get parcelable vector from ashmem success");
     return true;
 }
 
