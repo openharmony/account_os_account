@@ -19,8 +19,11 @@
 #include "accesstoken_kit.h"
 #include "account_error_no.h"
 #include "account_iam_callback_stub.h"
-#include "inner_account_iam_manager.h"
 #include "iam_common_defines.h"
+#define private public
+#include "inner_account_iam_manager.h"
+#undef private
+#include "istorage_manager.h"
 #include "parameter.h"
 #include "token_setproc.h"
 
@@ -29,14 +32,244 @@ using namespace testing::ext;
 using namespace OHOS;
 using namespace OHOS::AccountSA;
 using namespace Security::AccessToken;
+using namespace StorageManager;
 
 namespace OHOS {
 namespace AccountTest {
 namespace {
     const int32_t TEST_USER_ID = 101;
+    const int32_t TEST_OTHER_ID = 112;
+    const int32_t TEST_ID = 2222;
+    const int32_t ERROR_STORAGE_KEY_NOT_EXIST = -2;
     const std::vector<uint8_t> TEST_CHALLENGE = {1, 2, 3, 4};
     static bool g_fscryptEnable = false;
     const uid_t ACCOUNT_UID = 3058;
+}
+
+class MockStorageMgrProxy : public StorageManager::IStorageManager {
+public:
+    MockStorageMgrProxy()
+    {}
+    ~MockStorageMgrProxy()
+    {}
+    int32_t UpdateUserAuth(uint32_t userId, uint64_t secureUid,
+                            const std::vector<uint8_t> &token,
+                            const std::vector<uint8_t> &oldSecret,
+                            const std::vector<uint8_t> &newSecret);
+
+    int32_t PrepareAddUser(int32_t userId, uint32_t flags)
+    {
+        return 0;
+    }
+
+    int32_t RemoveUser(int32_t userId, uint32_t flags)
+    {
+        return 0;
+    }
+
+    int32_t PrepareStartUser(int32_t userId)
+    {
+        return 0;
+    }
+
+    int32_t StopUser(int32_t userId)
+    {
+        return 0;
+    }
+
+    int32_t GetFreeSizeOfVolume(std::string volumeUuid, int64_t &freeSize)
+    {
+        return 0;
+    }
+
+    int32_t GetTotalSizeOfVolume(std::string volumeUuid, int64_t &totalSize)
+    {
+        return 0;
+    }
+
+    int32_t GetBundleStats(std::string pkgName, BundleStats &bundleStats)
+    {
+        return 0;
+    }
+
+    int32_t GetSystemSize(int64_t &systemSize)
+    {
+        return 0;
+    }
+
+    int32_t GetTotalSize(int64_t &totalSize)
+    {
+        return 0;
+    }
+
+    int32_t GetFreeSize(int64_t &freeSize)
+    {
+        return 0;
+    }
+
+    int32_t GetUserStorageStats(StorageStats &storageStats)
+    {
+        return 0;
+    }
+
+    int32_t GetUserStorageStats(int32_t userId, StorageStats &storageStats)
+    {
+        return 0;
+    }
+
+    int32_t GetCurrentBundleStats(BundleStats &bundleStats)
+    {
+        return 0;
+    }
+
+    int32_t NotifyVolumeCreated(VolumeCore vc)
+    {
+        return 0;
+    }
+
+    int32_t NotifyVolumeMounted(std::string volumeId, int fsType, std::string fsUuid,
+                            std::string path, std::string description)
+    {
+        return 0;
+    }
+
+    int32_t NotifyVolumeDestroyed(std::string volumeId)
+    {
+        return 0;
+    }
+
+    int32_t Mount(std::string volumeId)
+    {
+        return 0;
+    }
+
+    int32_t Unmount(std::string volumeId)
+    {
+        return 0;
+    }
+
+    int32_t GetAllVolumes(std::vector<VolumeExternal> &vecOfVol)
+    {
+        return 0;
+    }
+
+    int32_t NotifyDiskCreated(Disk disk)
+    {
+        return 0;
+    }
+
+    int32_t NotifyDiskDestroyed(std::string diskId)
+    {
+        return 0;
+    }
+
+    int32_t Partition(std::string diskId, int32_t type)
+    {
+        return 0;
+    }
+
+    int32_t GetAllDisks(std::vector<Disk> &vecOfDisk)
+    {
+        return 0;
+    }
+
+    int32_t GetVolumeByUuid(std::string fsUuid, VolumeExternal &vc)
+    {
+        return 0;
+    }
+
+    int32_t GetVolumeById(std::string volumeId, VolumeExternal &vc)
+    {
+        return 0;
+    }
+
+    int32_t SetVolumeDescription(std::string fsUuid, std::string description)
+    {
+        return 0;
+    }
+
+    int32_t Format(std::string volumeId, std::string fsType)
+    {
+        return 0;
+    }
+
+    int32_t GetDiskById(std::string diskId, Disk &disk)
+    {
+        return 0;
+    }
+
+    int32_t GenerateUserKeys(uint32_t userId, uint32_t flags)
+    {
+        return 0;
+    }
+
+    int32_t DeleteUserKeys(uint32_t userId)
+    {
+        return 0;
+    }
+
+    int32_t ActiveUserKey(uint32_t userId, const std::vector<uint8_t> &token, const std::vector<uint8_t> &secret)
+    {
+        if (userId == TEST_USER_ID) {
+            return 0;
+        }
+        if (userId == TEST_OTHER_ID) {
+            return ERROR_STORAGE_KEY_NOT_EXIST;
+        }
+        return -1;
+    }
+
+    int32_t InactiveUserKey(uint32_t userId)
+    {
+        return 0;
+    }
+
+    int32_t UpdateKeyContext(uint32_t userId)
+    {
+        return ERROR_STORAGE_KEY_NOT_EXIST;
+    }
+
+    int32_t CreateShareFile(std::string uri, uint32_t tokenId, uint32_t flag)
+    {
+        return 0;
+    }
+
+    int32_t DeleteShareFile(uint32_t tokenId, std::vector<std::string>sharePathList)
+    {
+        return 0;
+    }
+
+    int32_t SetBundleQuota(const std::string &bundleName, int32_t uid, const std::string &bundleDataDirPath,
+        int32_t limitSizeMb)
+    {
+        return 0;
+    }
+
+    sptr<IRemoteObject> AsObject()
+    {
+        return nullptr;
+    }
+};
+
+int32_t MockStorageMgrProxy::UpdateUserAuth(uint32_t userId, uint64_t secureUid,
+                                            const std::vector<uint8_t> &token,
+                                            const std::vector<uint8_t> &oldSecret,
+                                            const std::vector<uint8_t> &newSecret)
+{
+    const uint32_t dataSize = 4;
+    if (!g_fscryptEnable) {
+        return 0;
+    }
+    if (newSecret.size() == dataSize || userId == TEST_OTHER_ID) {
+        return ERROR_STORAGE_KEY_NOT_EXIST;
+    }
+    if (userId == TEST_ID) {
+        if (token.size() != dataSize) {
+            return ERROR_STORAGE_KEY_NOT_EXIST;
+        }
+    }
+    std::cout << "mock UpdateUserAuth enter" << std::endl;
+    return 0;
 }
 
 class MockIIDMCallback : public IDMCallbackStub {
@@ -273,14 +506,20 @@ HWTEST_F(AccountIamManagerTest, ActivateUserKey001, TestSize.Level2)
     std::vector<uint8_t> testAuthToken = {1, 2, 3, 4};
     std::vector<uint8_t> testSecret = {1, 2, 3, 4};
 
-    EXPECT_EQ(ERR_OK, InnerAccountIAMManager::GetInstance().ActivateUserKey(TEST_USER_ID, testAuthToken, testSecret));
+    auto &innerIamMgr_ = InnerAccountIAMManager::GetInstance();
+    sptr<MockStorageMgrProxy> ptr = new (std::nothrow) MockStorageMgrProxy();
+    ASSERT_NE(ptr, nullptr);
+    innerIamMgr_.storageMgrProxy_ = ptr;
+
+    EXPECT_EQ(ERR_OK, innerIamMgr_.ActivateUserKey(TEST_USER_ID, testAuthToken, testSecret));
 
     int32_t userId = 112;
-    EXPECT_EQ(ERR_OK, InnerAccountIAMManager::GetInstance().ActivateUserKey(TEST_USER_ID, testAuthToken, testSecret));
+    EXPECT_EQ(ERR_OK, innerIamMgr_.ActivateUserKey(userId, testAuthToken, testSecret));
 
     // userid is out of range
     userId = 11112;
-    EXPECT_NE(ERR_OK, InnerAccountIAMManager::GetInstance().ActivateUserKey(userId, testAuthToken, testSecret));
+    EXPECT_NE(ERR_OK, innerIamMgr_.ActivateUserKey(userId, testAuthToken, testSecret));
+    innerIamMgr_.storageMgrProxy_ = nullptr;
 }
 
 /**
@@ -294,17 +533,22 @@ HWTEST_F(AccountIamManagerTest, UpdateUserKey001, TestSize.Level2)
     uint64_t testCreId = 111;
     std::vector<uint8_t> testAuthToken = {1, 2, 3, 4};
     std::vector<uint8_t> testSecret = {1, 2, 3, 4};
+    auto &innerIamMgr_ = InnerAccountIAMManager::GetInstance();
+    sptr<MockStorageMgrProxy> ptr = new (std::nothrow) MockStorageMgrProxy();
+    ASSERT_NE(ptr, nullptr);
+    innerIamMgr_.storageMgrProxy_ = ptr;
 
     int32_t res =
-        InnerAccountIAMManager::GetInstance().UpdateUserKey(TEST_USER_ID, 0, testCreId, testAuthToken, testSecret);
+        innerIamMgr_.UpdateUserKey(TEST_USER_ID, 0, testCreId, testAuthToken, testSecret);
     EXPECT_EQ(g_fscryptEnable ? -2 : 0, res);
     uint64_t testNewCreId = 222;
     std::vector<uint8_t> testNewSecret;
     EXPECT_EQ(ERR_OK,
-        InnerAccountIAMManager::GetInstance().UpdateUserKey(TEST_USER_ID, 0, testCreId, testAuthToken, testNewSecret));
+        innerIamMgr_.UpdateUserKey(TEST_USER_ID, 0, testCreId, testAuthToken, testNewSecret));
     EXPECT_EQ(ERR_OK,
-        InnerAccountIAMManager::GetInstance().UpdateUserKey(
+        innerIamMgr_.UpdateUserKey(
             TEST_USER_ID, 0, testNewCreId, testAuthToken, testNewSecret));
+    innerIamMgr_.storageMgrProxy_ = nullptr;
 }
 
 /**
@@ -317,10 +561,15 @@ HWTEST_F(AccountIamManagerTest, RemoveUserKey001, TestSize.Level2)
 {
     int32_t userId = 2222;
     std::vector<uint8_t> testAuthToken = {1, 2, 3, 4};
+    auto &innerIamMgr_ = InnerAccountIAMManager::GetInstance();
+    sptr<MockStorageMgrProxy> ptr = new (std::nothrow) MockStorageMgrProxy();
+    ASSERT_NE(ptr, nullptr);
+    innerIamMgr_.storageMgrProxy_ = ptr;
 
-    int32_t res = InnerAccountIAMManager::GetInstance().RemoveUserKey(TEST_USER_ID, testAuthToken);
+    int32_t res = innerIamMgr_.RemoveUserKey(TEST_OTHER_ID, testAuthToken);
     EXPECT_EQ(g_fscryptEnable ? -2 : 0, res);
-    EXPECT_EQ(ERR_OK, InnerAccountIAMManager::GetInstance().RemoveUserKey(userId, testAuthToken));
+    EXPECT_EQ(ERR_OK, innerIamMgr_.RemoveUserKey(userId, testAuthToken));
+    innerIamMgr_.storageMgrProxy_ = nullptr;
 }
 
 /**
@@ -335,18 +584,23 @@ HWTEST_F(AccountIamManagerTest, RestoreUserKey001, TestSize.Level2)
     uint64_t testOldCreId = 111;
     std::vector<uint8_t> testAuthToken = {1, 2, 3, 4};
     std::vector<uint8_t> testSecret = {1, 2, 3, 4};
+    auto &innerIamMgr_ = InnerAccountIAMManager::GetInstance();
+    sptr<MockStorageMgrProxy> ptr = new (std::nothrow) MockStorageMgrProxy();
+    ASSERT_NE(ptr, nullptr);
+    innerIamMgr_.storageMgrProxy_ = ptr;
 
     int32_t res =
-        InnerAccountIAMManager::GetInstance().UpdateUserKey(TEST_USER_ID, 0, testOldCreId, testAuthToken, testSecret);
+        innerIamMgr_.UpdateUserKey(TEST_USER_ID, 0, testOldCreId, testAuthToken, testSecret);
     EXPECT_EQ(g_fscryptEnable ? -2 : 0, res);
 
     uint64_t testNewCreId = 222;
-    EXPECT_NE(ERR_OK, InnerAccountIAMManager::GetInstance().RestoreUserKey(userId, 0, testAuthToken));
-    EXPECT_EQ(ERR_OK, InnerAccountIAMManager::GetInstance().RestoreUserKey(userId, testNewCreId, testAuthToken));
-    res = InnerAccountIAMManager::GetInstance().RestoreUserKey(TEST_USER_ID, 0, testAuthToken);
+    EXPECT_NE(ERR_OK, innerIamMgr_.RestoreUserKey(userId, 0, {}));
+    EXPECT_EQ(ERR_OK, innerIamMgr_.RestoreUserKey(userId, testNewCreId, testAuthToken));
+    res = innerIamMgr_.RestoreUserKey(TEST_OTHER_ID, 0, testAuthToken);
     EXPECT_EQ(g_fscryptEnable ? -2 : 0, res);
-    EXPECT_EQ(ERR_OK, InnerAccountIAMManager::GetInstance().RestoreUserKey(TEST_USER_ID, testNewCreId, testAuthToken));
-    EXPECT_EQ(ERR_OK, InnerAccountIAMManager::GetInstance().RestoreUserKey(TEST_USER_ID, testOldCreId, testAuthToken));
+    EXPECT_EQ(ERR_OK, innerIamMgr_.RestoreUserKey(TEST_USER_ID, testNewCreId, testAuthToken));
+    EXPECT_EQ(ERR_OK, innerIamMgr_.RestoreUserKey(TEST_USER_ID, testOldCreId, testAuthToken));
+    innerIamMgr_.storageMgrProxy_ = nullptr;
 }
 }  // namespace AccountTest
 }  // namespace OHOS
