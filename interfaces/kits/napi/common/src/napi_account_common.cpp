@@ -200,8 +200,15 @@ bool GetOptionalStringPropertyByKey(napi_env env, napi_value obj, const std::str
     if (!hasProp) {
         return true;
     }
-
-    return GetStringPropertyByKey(env, obj, propertyName, property);
+    napi_value value = nullptr;
+    NAPI_CALL_BASE(env, napi_get_named_property(env, obj, propertyName.c_str(), &value), false);
+    napi_valuetype valuetype = napi_undefined;
+    NAPI_CALL_BASE(env, napi_typeof(env, value, &valuetype), false);
+    if ((valuetype == napi_undefined) || (valuetype == napi_null)) {
+        ACCOUNT_LOGI("this key's value is undefined or null");
+        return true;
+    }
+    return GetStringProperty(env, value, property);
 }
 
 bool CompareOnAndOffRef(const napi_env env, napi_ref subscriberRef, napi_ref unsubscriberRef)

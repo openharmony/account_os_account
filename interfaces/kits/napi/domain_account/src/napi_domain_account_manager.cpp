@@ -199,9 +199,19 @@ static bool ParseDomainAccountInfo(napi_env env, napi_value object, DomainAccoun
     }
     bool hasProp = false;
     napi_has_named_property(env, object, "accountId", &hasProp);
-    if (hasProp && !GetStringPropertyByKey(env, object, "accountId", info.accountId_)) {
-        ACCOUNT_LOGE("get domainInfo's accountId failed");
-        return false;
+    if (hasProp) {
+        napi_value value = nullptr;
+        napi_get_named_property(env, object, "accountId", &value);
+        napi_valuetype valueType = napi_undefined;
+        napi_typeof(env, value, &valueType);
+        if ((valueType == napi_undefined) || (valueType == napi_null)) {
+            ACCOUNT_LOGI("the accountId is undefined or null");
+        } else {
+            if (!GetStringProperty(env, value, info.accountId_)) {
+                ACCOUNT_LOGE("get domainInfo's accountId failed");
+                return false;
+            }
+        }
     }
     return true;
 }
@@ -961,12 +971,8 @@ static bool ParseParamForHasDomainAccount(
             return false;
         }
     }
-    if (!GetStringPropertyByKey(env, argv[0], "domain", asyncContext->domainInfo.domain_)) {
-        ACCOUNT_LOGE("Get domainInfo's domain failed");
-        return false;
-    }
-    if (!GetStringPropertyByKey(env, argv[0], "accountName", asyncContext->domainInfo.accountName_)) {
-        ACCOUNT_LOGE("Get domainInfo's accountName failed");
+    if (!ParseDomainAccountInfo(env, argv[0], asyncContext->domainInfo)) {
+        ACCOUNT_LOGE("get domainInfo failed");
         return false;
     }
     return true;
@@ -1075,9 +1081,15 @@ static bool ParseContextForAuthWithPopup(
         return false;
     }
     if (argc == ARG_SIZE_TWO) {
-        if (!GetIntProperty(env, argv[0], authWithPopupContext.userId)) {
-            ACCOUNT_LOGE("get id failed");
-            return false;
+        napi_valuetype valueType = napi_undefined;
+        napi_typeof(env, argv[0], &valueType);
+        if ((valueType == napi_undefined) || (valueType == napi_null)) {
+            ACCOUNT_LOGI("the userId is undefined or null");
+        } else {
+            if (!GetIntProperty(env, argv[0], authWithPopupContext.userId)) {
+                ACCOUNT_LOGE("get id failed");
+                return false;
+            }
         }
     }
     authWithPopupContext.callbackRef = callbackRef;
