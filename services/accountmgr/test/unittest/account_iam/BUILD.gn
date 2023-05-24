@@ -68,6 +68,11 @@ ohos_unittest("account_iam_manager_test") {
     "user_auth_framework:userauth_client",
   ]
 
+  if (has_storage_service_part && os_account_storage_feature) {
+    cflags_cc += [ "-DHAS_STORAGE_PART" ]
+    external_deps += [ "storage_service:storage_manager_sa_proxy" ]
+  }
+
   if (has_pin_auth_part) {
     cflags_cc += [ "-DHAS_PIN_AUTH_PART" ]
     external_deps += [ "pin_auth:pinauth_framework" ]
