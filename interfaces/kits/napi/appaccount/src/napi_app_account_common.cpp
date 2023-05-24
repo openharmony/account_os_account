@@ -528,29 +528,36 @@ bool ParseContextForAuth(napi_env env, napi_callback_info cbInfo, OAuthAsyncCont
         context->errMsg = "the number of parameters should be at least 4";
         return false;
     }
-    size_t index = 0;
-    if (!GetStringProperty(env, argv[index++], context->name)) {
+    if (!GetStringProperty(env, argv[0], context->name)) {
         context->errMsg = "the name is not string";
         return false;
     }
-    if (!GetStringProperty(env, argv[index++], context->owner)) {
+    if (!GetStringProperty(env, argv[1], context->owner)) {
         context->errMsg = "the owner is not string";
         return false;
     }
-    if (!GetStringProperty(env, argv[index++], context->authType)) {
+    if (!GetStringProperty(env, argv[PARAMTWO], context->authType)) {
         context->errMsg = "the authType is not string";
         return false;
     }
     AAFwk::WantParams params;
-    if ((argc == ARGS_SIZE_FIVE) && (!AppExecFwk::UnwrapWantParams(env, argv[index++], params))) {
-        ACCOUNT_LOGE("UnwrapWantParams failed");
-        context->errMsg = "the type of options is incorrect";
-        return false;
+    if (argc == ARGS_SIZE_FIVE) {
+        napi_valuetype valueType = napi_undefined;
+        napi_typeof(env, argv[PARAMTHREE], &valueType);
+        if ((valueType == napi_undefined) || (valueType == napi_null)) {
+            ACCOUNT_LOGI("the options is undefined or null");
+        } else {
+            if (!AppExecFwk::UnwrapWantParams(env, argv[PARAMTHREE], params)) {
+                ACCOUNT_LOGE("UnwrapWantParams failed");
+                context->errMsg = "the type of options is incorrect";
+                return false;
+            }
+        }
     }
     context->options.SetParams(params);
     context->options.SetParam(Constants::KEY_CALLER_ABILITY_NAME, abilityName);
     JSAuthCallback callback;
-    if (!ParseJSAuthCallback(env, argv[index], callback)) {
+    if (!ParseJSAuthCallback(env, argv[argc - 1], callback)) {
         context->errMsg = "the type of authCallback is incorrect";
         return false;
     }
@@ -1216,33 +1223,35 @@ bool ParseVerifyCredentialOptions(napi_env env, napi_value object, VerifyCredent
 {
     napi_valuetype valueType = napi_undefined;
     napi_typeof(env, object, &valueType);
+    if ((valueType == napi_undefined) || (valueType == napi_null)) {
+        ACCOUNT_LOGI("the VerifyCredentialOptions is undefined or null");
+        return true;
+    }
     if (valueType != napi_object) {
         ACCOUNT_LOGE("the type of object is not napi_object");
         return false;
     }
+    if (!GetOptionalStringPropertyByKey(env, object, "credential", options.credential)) {
+        ACCOUNT_LOGE("failed to get options's credential property");
+        return false;
+    }
+    if (!GetOptionalStringPropertyByKey(env, object, "credentialType", options.credentialType)) {
+        ACCOUNT_LOGE("failed to get options's credentialType property");
+        return false;
+    }
     napi_value value = nullptr;
     bool hasProp = false;
-    napi_has_named_property(env, object, "credential", &hasProp);
-    if (hasProp) {
-        napi_get_named_property(env, object, "credential", &value);
-        if (!GetStringProperty(env, value, options.credential)) {
-            return false;
-        }
-    }
-    hasProp = false;
-    napi_has_named_property(env, object, "credentialType", &hasProp);
-    if (hasProp) {
-        napi_get_named_property(env, object, "credentialType", &value);
-        if (!GetStringProperty(env, value, options.credentialType)) {
-            return false;
-        }
-    }
-    hasProp = false;
     napi_has_named_property(env, object, "parameters", &hasProp);
     if (hasProp) {
         napi_get_named_property(env, object, "parameters", &value);
-        if (!AppExecFwk::UnwrapWantParams(env, value, options.parameters)) {
-            return false;
+        valueType = napi_undefined;
+        napi_typeof(env, value, &valueType);
+        if ((valueType == napi_undefined) || (valueType == napi_null)) {
+            ACCOUNT_LOGI("the parameters is undefined or null");
+        } else {
+            if (!AppExecFwk::UnwrapWantParams(env, value, options.parameters)) {
+                return false;
+            }
         }
     }
     return true;
@@ -1259,24 +1268,42 @@ bool ParseSelectAccountsOptions(napi_env env, napi_value object, SelectAccountsO
     napi_has_named_property(env, object, "allowedAccounts", &options.hasAccounts);
     if (options.hasAccounts) {
         napi_get_named_property(env, object, "allowedAccounts", &value);
-        if (!ParseAccountVector(env, value, options.allowedAccounts)) {
-            return false;
+        valueType = napi_undefined;
+        napi_typeof(env, value, &valueType);
+        if ((valueType == napi_undefined) || (valueType == napi_null)) {
+            ACCOUNT_LOGI("the allowedAccounts is undefined or null");
+        } else {
+            if (!ParseAccountVector(env, value, options.allowedAccounts)) {
+                return false;
+            }
         }
     }
     napi_has_named_property(env, object, "allowedOwners", &options.hasOwners);
     if (options.hasOwners) {
         value = nullptr;
         napi_get_named_property(env, object, "allowedOwners", &value);
-        if (!ParseStringVector(env, value, options.allowedOwners)) {
-            return false;
+        valueType = napi_undefined;
+        napi_typeof(env, value, &valueType);
+        if ((valueType == napi_undefined) || (valueType == napi_null)) {
+            ACCOUNT_LOGI("the allowedOwners is undefined or null");
+        } else {
+            if (!ParseStringVector(env, value, options.allowedOwners)) {
+                return false;
+            }
         }
     }
     napi_has_named_property(env, object, "requiredLabels", &options.hasLabels);
     if (options.hasLabels) {
         value = nullptr;
         napi_get_named_property(env, object, "requiredLabels", &value);
-        if (!ParseStringVector(env, value, options.requiredLabels)) {
-            return false;
+        valueType = napi_undefined;
+        napi_typeof(env, value, &valueType);
+        if ((valueType == napi_undefined) || (valueType == napi_null)) {
+            ACCOUNT_LOGI("the requiredLabels is undefined or null");
+        } else {
+            if (!ParseStringVector(env, value, options.requiredLabels)) {
+                return false;
+            }
         }
     }
     return true;
@@ -1286,6 +1313,10 @@ bool ParseSetPropertiesOptions(napi_env env, napi_value object, SetPropertiesOpt
 {
     napi_valuetype valueType = napi_undefined;
     napi_typeof(env, object, &valueType);
+    if ((valueType == napi_undefined) || (valueType == napi_null)) {
+        ACCOUNT_LOGI("the SetPropertiesOptions is undefined or null");
+        return true;
+    }
     if (valueType != napi_object) {
         return false;
     }
@@ -1294,16 +1325,28 @@ bool ParseSetPropertiesOptions(napi_env env, napi_value object, SetPropertiesOpt
     napi_has_named_property(env, object, "properties", &hasProp);
     if (hasProp) {
         napi_get_named_property(env, object, "properties", &value);
-        if (!AppExecFwk::UnwrapWantParams(env, value, options.properties)) {
-            return false;
+        valueType = napi_undefined;
+        napi_typeof(env, value, &valueType);
+        if ((valueType == napi_undefined) || (valueType == napi_null)) {
+            ACCOUNT_LOGI("the properties is undefined or null");
+        } else {
+            if (!AppExecFwk::UnwrapWantParams(env, value, options.properties)) {
+                return false;
+            }
         }
     }
     hasProp = false;
     napi_has_named_property(env, object, "parameters", &hasProp);
     if (hasProp) {
         napi_get_named_property(env, object, "parameters", &value);
-        if (!AppExecFwk::UnwrapWantParams(env, value, options.parameters)) {
-            return false;
+        valueType = napi_undefined;
+        napi_typeof(env, value, &valueType);
+        if ((valueType == napi_undefined) || (valueType == napi_null)) {
+            ACCOUNT_LOGI("the parameters is undefined or null");
+        } else {
+            if (!AppExecFwk::UnwrapWantParams(env, value, options.parameters)) {
+                return false;
+            }
         }
     }
     return true;
@@ -1321,12 +1364,24 @@ bool ParseJSAuthCallback(napi_env env, napi_value object, JSAuthCallback &callba
     napi_valuetype valueType = napi_undefined;
     napi_typeof(env, object, &valueType);
     if (valueType != napi_object) {
+        ACCOUNT_LOGE("the type of callback is invalid");
         return false;
     }
     bool hasProp = false;
     napi_has_named_property(env, object, "onRequestContinued", &hasProp);
-    if (hasProp && (!GetNamedFunction(env, object, "onRequestContinued", callback.onRequestContinued))) {
-        return false;
+    if (hasProp) {
+        napi_value value = nullptr;
+        napi_get_named_property(env, object, "onRequestContinued", &value);
+        valueType = napi_undefined;
+        napi_typeof(env, value, &valueType);
+        if ((valueType == napi_undefined) || (valueType == napi_null)) {
+            ACCOUNT_LOGI("the parameters is undefined or null");
+        } else {
+            if (!GetNamedFunction(env, object, "onRequestContinued", callback.onRequestContinued)) {
+                ACCOUNT_LOGE("the onRequestContinued is invalid");
+                return false;
+            }
+        }
     }
     return GetNamedFunction(env, object, "onResult", callback.onResult) ||
         GetNamedFunction(env, object, "onRequestRedirected", callback.onRequestRedirected);
@@ -1539,8 +1594,12 @@ bool ParseCreateAccountOptions(napi_env env, napi_value object, CreateAccountOpt
     napi_get_named_property(env, object, "customData", &customDataValue);
     napi_valuetype valueType = napi_undefined;
     napi_typeof(env, customDataValue, &valueType);
+    if ((valueType == napi_undefined) || (valueType == napi_null)) {
+        ACCOUNT_LOGI("the customData of CreateAccountOptions is undefined or null");
+        return true;
+    }
     if (valueType != napi_object) {
-        ACCOUNT_LOGE("not napi object");
+        ACCOUNT_LOGE("customData type is not object");
         return false;
     }
     napi_value keyArr = nullptr;
@@ -1571,6 +1630,10 @@ bool ParseCreateAccountImplicitlyOptions(napi_env env, napi_value object, Create
 {
     napi_valuetype valueType = napi_undefined;
     napi_typeof(env, object, &valueType);
+    if ((valueType == napi_undefined) || (valueType == napi_null)) {
+        ACCOUNT_LOGI("the CreateAccountImplicitlyOptions is undefined or null");
+        return true;
+    }
     if (valueType != napi_object) {
         return false;
     }
@@ -1578,24 +1641,33 @@ bool ParseCreateAccountImplicitlyOptions(napi_env env, napi_value object, Create
     napi_has_named_property(env, object, "requiredLabels", &options.hasRequiredLabels);
     if (options.hasRequiredLabels) {
         napi_get_named_property(env, object, "requiredLabels", &value);
-        if (!ParseStringVector(env, value, options.requiredLabels)) {
-            return false;
+        valueType = napi_undefined;
+        napi_typeof(env, value, &valueType);
+        if ((valueType == napi_undefined) || (valueType == napi_null)) {
+            ACCOUNT_LOGI("the requiredLabels is undefined or null");
+        } else {
+            if (!ParseStringVector(env, value, options.requiredLabels)) {
+                return false;
+            }
         }
     }
-    napi_has_named_property(env, object, "authType", &options.hasAuthType);
-    if (options.hasAuthType) {
-        napi_get_named_property(env, object, "authType", &value);
-        if (!GetStringProperty(env, value, options.authType)) {
-            return false;
-        }
+    if (!GetOptionalStringPropertyByKey(env, object, "authType", options.authType)) {
+        ACCOUNT_LOGE("failed to get options's authType property");
+        return false;
     }
     bool hasParam = false;
     napi_has_named_property(env, object, "parameters", &hasParam);
     AAFwk::WantParams params;
     if (hasParam) {
         napi_get_named_property(env, object, "parameters", &value);
-        if (!AppExecFwk::UnwrapWantParams(env, value, params)) {
-            return false;
+        valueType = napi_undefined;
+        napi_typeof(env, value, &valueType);
+        if ((valueType == napi_undefined) || (valueType == napi_null)) {
+            ACCOUNT_LOGI("the authType is undefined or null");
+        } else {
+            if (!AppExecFwk::UnwrapWantParams(env, value, params)) {
+                return false;
+            }
         }
     }
     options.parameters.SetParams(params);
@@ -1611,12 +1683,14 @@ bool ParseContextForCreateAccount(napi_env env, napi_callback_info cbInfo, Creat
         context->errMsg = "the number of parameters should be at least 1";
         return false;
     }
-    for (size_t i = 0; i < argc; i++) {
+    if (!GetStringProperty(env, argv[0], context->name)) {
+        context->errMsg = "the name is not a string";
+        return false;
+    }
+    for (size_t i = 1; i < argc; i++) {
         napi_valuetype valueType = napi_undefined;
         napi_typeof(env, argv[i], &valueType);
-        if (i == 0 && valueType == napi_string) {
-            GetStringProperty(env, argv[i], context->name);
-        } else if (i == 1 && valueType == napi_object) {
+        if (i == 1 && valueType == napi_object) {
             if (!ParseCreateAccountOptions(env, argv[i], context->options)) {
                 context->errMsg = "the type of options is not CreateAccountOptions";
                 return false;
@@ -1624,8 +1698,14 @@ bool ParseContextForCreateAccount(napi_env env, napi_callback_info cbInfo, Creat
         } else if (i == 1 && valueType == napi_function) {
             napi_create_reference(env, argv[i], 1, &context->callbackRef);
             break;
+        } else if ((i == 1) && ((valueType == napi_undefined) || (valueType == napi_null))) {
+            ACCOUNT_LOGI("the param'1 is undefined or null");
+            continue;
         } else if (i == PARAMTWO && valueType == napi_function) {
             napi_create_reference(env, argv[i], 1, &context->callbackRef);
+            break;
+        } else if ((i == PARAMTWO) && ((valueType == napi_undefined) || (valueType == napi_null))) {
+            ACCOUNT_LOGI("the param'2 is undefined or null");
             break;
         } else {
             ACCOUNT_LOGE("Type matching failed");
@@ -1646,16 +1726,23 @@ bool ParseContextForCreateAccountImplicitly(
         context->errMsg = "the number of parameters should be at least 2";
         return false;
     }
-    size_t index = 0;
-    if (!GetStringProperty(env, argv[index++], context->owner)) {
+    if (!GetStringProperty(env, argv[0], context->owner)) {
         context->errMsg = "the type of owner is not string";
         return false;
     }
-    if ((argc == ARGS_SIZE_THREE) && (!ParseCreateAccountImplicitlyOptions(env, argv[index++], context->options))) {
-        context->errMsg = "the type of options is not CreateAccountImplicitlyOptions";
-        return false;
+    if (argc == ARGS_SIZE_THREE) {
+        napi_valuetype valueType = napi_undefined;
+        napi_typeof(env, argv[1], &valueType);
+        if ((valueType == napi_undefined) || (valueType == napi_null)) {
+            ACCOUNT_LOGI("the authType is undefined or null");
+        } else {
+            if (!ParseCreateAccountImplicitlyOptions(env, argv[1], context->options)) {
+                context->errMsg = "the type of options is not CreateAccountImplicitlyOptions";
+                return false;
+            }
+        }
     }
-    if (!ParseJSAuthCallback(env, argv[index], context->callback)) {
+    if (!ParseJSAuthCallback(env, argv[argc - 1], context->callback)) {
         context->errMsg = "the type of callback is not AuthCallback";
         return false;
     }
