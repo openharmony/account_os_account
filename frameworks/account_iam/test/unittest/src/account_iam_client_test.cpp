@@ -30,7 +30,7 @@ using namespace OHOS::AccountSA;
 using namespace OHOS::Security::AccessToken;
 using namespace OHOS::UserIam::UserAuth;
 
-uint64_t g_selfTokenID;
+static uint64_t g_selfTokenID = -1;
 namespace OHOS {
 namespace AccountTest {
 namespace {
