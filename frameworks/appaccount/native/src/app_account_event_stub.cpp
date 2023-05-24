@@ -63,6 +63,10 @@ bool AppAccountEventStub::ReadParcelableVector(std::vector<T> &parcelableVector,
         return false;
     }
 
+    if (size > Constants::MAX_CUSTOM_DATA_SIZE) {
+        ACCOUNT_LOGE("ReadParcelableVector oversize");
+        return false;
+    }
     parcelableVector.clear();
     for (uint32_t index = 0; index < size; index += 1) {
         std::shared_ptr<T> parcelable(data.ReadParcelable<T>());
