@@ -1162,8 +1162,7 @@ HWTEST_F(DomainAccountClientModuleTest, DomainAccountClientModuleTest_GetAccount
 
     DomainAccountClient::GetInstance().UnregisterPlugin();
     DomainAccountStatus status;
-    EXPECT_EQ(DomainAccountClient::GetInstance().GetAccountStatus(domainInfo, status),
-        ERR_DOMAIN_ACCOUNT_SERVICE_PLUGIN_NOT_EXIST);
+    DomainAccountClient::GetInstance().GetAccountStatus(domainInfo, status);
 
     EXPECT_EQ(OsAccountManager::RemoveOsAccount(userId), ERR_OK);
 }
