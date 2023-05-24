@@ -14,6 +14,7 @@
  */
 
 #include <gtest/gtest.h>
+#include "nlohmann/json.hpp"
 
 #include "account_log_wrapper.h"
 #define private public
@@ -27,6 +28,7 @@
 using namespace testing::ext;
 using namespace OHOS;
 using namespace OHOS::AccountSA;
+using Json = nlohmann::json;
 
 class BundleManagerModuleTest : public testing::Test {
 public:
@@ -235,4 +237,223 @@ HWTEST_F(BundleManagerModuleTest, BundleManagerAdapter_ResetProxy_0100, TestSize
     ASSERT_NE(nullptr, sptr);
     bundleManagerAdapterSptr->ResetProxy(sptr);
     ASSERT_EQ(bundleManagerAdapterSptr->proxy_, nullptr);
+}
+
+/**
+ * @tc.name: BundleManagerProxy_GetParcelableFromAshmem_0100
+ * @tc.desc: ashmem is nullptr
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(BundleManagerModuleTest, BundleManagerProxy_GetParcelableFromAshmem_0100, TestSize.Level1)
+{
+    ASSERT_NE(g_bundleManagerAdapterProxyRemoteNull, nullptr);
+    MessageParcel reply;
+    BundleInfo bundleInfo;
+
+    bool result = g_bundleManagerAdapterProxyRemoteNull->GetParcelableFromAshmem<BundleInfo>(reply, bundleInfo);
+    ASSERT_EQ(result, false);
+}
+
+/**
+ * @tc.name: BundleManagerProxy_SendTransactCmd_0100
+ * @tc.desc: test SendTransactCmd failed with param is invalid
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(BundleManagerModuleTest, BundleManagerProxy_SendTransactCmd_0100, TestSize.Level1)
+{
+    sptr<ISystemAbilityManager> systemAbilityManager =
+        SystemAbilityManagerClient::GetInstance().GetSystemAbilityManager();
+    ASSERT_NE(systemAbilityManager, nullptr);
+    sptr<IRemoteObject> remoteObj = systemAbilityManager->GetSystemAbility(BUNDLE_MGR_SERVICE_SYS_ABILITY_ID);
+    ASSERT_NE(remoteObj, nullptr);
+    auto bundleManagerAdapterProxy = std::make_shared<BundleManagerAdapterProxy>(remoteObj);
+    ASSERT_NE(bundleManagerAdapterProxy, nullptr);
+
+    MessageParcel reply;
+    MessageParcel data;
+    EXPECT_EQ(bundleManagerAdapterProxy->SendTransactCmd(
+        IBundleMgr::Message::QUERY_ABILITY_INFOS_MUTI_PARAM, data, reply), false);
+}
+
+/**
+ * @tc.name: BundleManagerProxy_SendData_0100
+ * @tc.desc: test func SendData
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(BundleManagerModuleTest, BundleManagerProxy_SendData_0100, TestSize.Level1)
+{
+    ASSERT_NE(g_bundleManagerAdapterProxyRemoteNull, nullptr);
+    void *buffer = nullptr;
+
+    bool result = g_bundleManagerAdapterProxyRemoteNull->SendData(buffer, 10, nullptr);
+    EXPECT_EQ(result, false);
+
+    result = g_bundleManagerAdapterProxyRemoteNull->SendData(buffer, 0, "test_data");
+    EXPECT_EQ(result, false);
+
+    // max value malloc failed
+    result = g_bundleManagerAdapterProxyRemoteNull->SendData(buffer, -1, "test_data");
+    EXPECT_EQ(result, false);
+
+    result = g_bundleManagerAdapterProxyRemoteNull->SendData(buffer, 10, "test_data");
+    EXPECT_EQ(result, true);
+}
+
+/**
+ * @tc.name: BundleManagerProxy_GetVectorFromParcelIntelligent_0100
+ * @tc.desc: test GetVectorFromParcelIntelligent failed with param is invalid
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(BundleManagerModuleTest, BundleManagerProxy_GetVectorFromParcelIntelligent_0100, TestSize.Level1)
+{
+    ASSERT_NE(g_bundleManagerAdapterProxyRemoteNull, nullptr);
+    MessageParcel data;
+    std::vector<AbilityInfo> abilityInfos;
+
+    bool result =g_bundleManagerAdapterProxyRemoteNull->GetVectorFromParcelIntelligent<AbilityInfo>(
+        IBundleMgr::Message::QUERY_ABILITY_INFOS_MUTI_PARAM, data, abilityInfos);
+    EXPECT_EQ(result, false);
+}
+
+/**
+ * @tc.name: BundleManagerProxy_InnerGetVectorFromParcelIntelligent_0100
+ * @tc.desc: test func failed with param is invalid
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(BundleManagerModuleTest, BundleManagerProxy_InnerGetVectorFromParcelIntelligent_0100, TestSize.Level1)
+{
+    ASSERT_NE(g_bundleManagerAdapterProxyRemoteNull, nullptr);
+    MessageParcel reply;
+    std::vector<AbilityInfo> abilityInfos;
+
+    bool result = g_bundleManagerAdapterProxyRemoteNull->InnerGetVectorFromParcelIntelligent<AbilityInfo>(
+        reply, abilityInfos);
+    EXPECT_EQ(result, false);
+}
+
+/**
+ * @tc.name: BundleManagerAdapter_ParseStr_0100
+ * @tc.desc: test ParseStr
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(BundleManagerModuleTest, BundleManagerAdapter_ParseStr_0100, TestSize.Level1)
+{
+    // test buf is nullptr.
+    int itemLen = 10;
+    int index = 0;
+    std::string result;
+    EXPECT_EQ(g_bundleManagerAdapterProxyRemoteNull->ParseStr(nullptr, itemLen, index, result), false);
+
+    // test itemLen is invalid.
+    const char *buf = "test";
+    itemLen = -1;
+    EXPECT_EQ(g_bundleManagerAdapterProxyRemoteNull->ParseStr(buf, itemLen, index, result), false);
+
+    // test index is invalid.
+    itemLen = 10;
+    index = -1;
+    EXPECT_EQ(g_bundleManagerAdapterProxyRemoteNull->ParseStr(buf, itemLen, index, result), false);
+
+    // test normal case.
+    itemLen = 4;
+    index = 0;
+    EXPECT_EQ(g_bundleManagerAdapterProxyRemoteNull->ParseStr(buf, itemLen, index, result), true);
+    EXPECT_EQ(result, "test");
+}
+
+/**
+ * @tc.name: BundleManagerAdapter_ParseInfo_0100
+ * @tc.desc: test ParseInfo test func failed with param is invalid
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(BundleManagerModuleTest, BundleManagerAdapter_ParseInfo_0100, TestSize.Level1)
+{
+    sptr<ISystemAbilityManager> systemAbilityManager =
+        SystemAbilityManagerClient::GetInstance().GetSystemAbilityManager();
+    ASSERT_NE(systemAbilityManager, nullptr);
+    sptr<IRemoteObject> remoteObj = systemAbilityManager->GetSystemAbility(BUNDLE_MGR_SERVICE_SYS_ABILITY_ID);
+    ASSERT_NE(remoteObj, nullptr);
+    auto bundleManagerAdapterProxy = std::make_shared<BundleManagerAdapterProxy>(remoteObj);
+    ASSERT_NE(bundleManagerAdapterProxy, nullptr);
+
+    // test string is invalid.
+    std::string testStr = "###123456##";
+    BundleInfo bundleInfoTar;
+    EXPECT_EQ(bundleManagerAdapterProxy->ParseInfo(testStr, bundleInfoTar), false);
+
+    // test info with no target key.
+    Json testBundleInfo1 = Json {
+        {"testKey", "testValue"},
+    };
+    testStr = testBundleInfo1.dump();
+    EXPECT_EQ(bundleManagerAdapterProxy->ParseInfo(testStr, bundleInfoTar), true);
+    EXPECT_EQ(bundleInfoTar.name, "");
+
+    // test info with no target key.
+    Json testBundleInfo2 = Json {
+        {"testKey", "testValue"},
+    };
+    testStr = testBundleInfo2.dump();
+    EXPECT_EQ(bundleManagerAdapterProxy->ParseInfo(testStr, bundleInfoTar), true);
+    EXPECT_EQ(bundleInfoTar.name, "");
+
+    // test info with invalid type.
+    Json testBundleInfo3 = Json {
+        {"name", 1},
+        {"label", 1},
+        {"description", 1},
+        {"singleton", 1},
+        {"isNativeApp", 1},
+        {"appId", 1},
+        {"appIndex", "1"},
+    };
+    testStr = testBundleInfo3.dump();
+    EXPECT_EQ(bundleManagerAdapterProxy->ParseInfo(testStr, bundleInfoTar), true);
+    EXPECT_EQ(bundleInfoTar.name, "");
+    EXPECT_EQ(bundleInfoTar.appIndex, 0);
+}
+
+/**
+ * @tc.name: BundleManagerAdapter_ParseInfo_0200
+ * @tc.desc: test ParseInfo
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(BundleManagerModuleTest, BundleManagerAdapter_ParseInfo_0200, TestSize.Level1)
+{
+    sptr<ISystemAbilityManager> systemAbilityManager =
+        SystemAbilityManagerClient::GetInstance().GetSystemAbilityManager();
+    ASSERT_NE(systemAbilityManager, nullptr);
+    sptr<IRemoteObject> remoteObj = systemAbilityManager->GetSystemAbility(BUNDLE_MGR_SERVICE_SYS_ABILITY_ID);
+    ASSERT_NE(remoteObj, nullptr);
+    auto bundleManagerAdapterProxy = std::make_shared<BundleManagerAdapterProxy>(remoteObj);
+    ASSERT_NE(bundleManagerAdapterProxy, nullptr);
+
+    BundleInfo bundleInfoTar;
+    // test info with normal data.
+    Json testBundleInfo4 = Json {
+        {"name", "test_name"},
+        {"label", "test_label"},
+        {"description", "test_description"},
+        {"singleton", true},
+        {"isNativeApp", true},
+        {"appId", "test_appId"},
+        {"appIndex", 2},
+    };
+    std::string testStr = testBundleInfo4.dump();
+    EXPECT_EQ(bundleManagerAdapterProxy->ParseInfo(testStr, bundleInfoTar), true);
+    EXPECT_EQ(bundleInfoTar.name, "test_name");
+    EXPECT_EQ(bundleInfoTar.label, "test_label");
+    EXPECT_EQ(bundleInfoTar.description, "test_description");
+    EXPECT_EQ(bundleInfoTar.singleton, true);
+    EXPECT_EQ(bundleInfoTar.isNativeApp, true);
+    EXPECT_EQ(bundleInfoTar.appId, "test_appId");
+    EXPECT_EQ(bundleInfoTar.appIndex, 2);
 }
