@@ -52,7 +52,7 @@ public:
      * @permission ohos.permission.MANAGE_LOCAL_ACCOUNTS
      * @param localName - Indicates the local name of the OS account to create.
      * @param type - Indicates the type of the OS account to create.
-     * @param osAccountInfo - Indicates the information about the created OS account; returns {@code null} if the creation fails.
+     * @param osAccountInfo - Indicates the information about the created OS account.
      * @return error code, see account_error_no.h
      */
     static ErrCode CreateOsAccount(const std::string &name, const OsAccountType &type, OsAccountInfo &osAccountInfo);

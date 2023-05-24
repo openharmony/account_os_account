@@ -636,6 +636,10 @@ bool AppAccountInfo::ReadStringSet(std::set<std::string> &stringSet, Parcel &dat
         return false;
     }
 
+    if (size > Constants::MAX_CUSTOM_DATA_SIZE) {
+        ACCOUNT_LOGE("ReadStringSet oversize");
+        return false;
+    }
     stringSet.clear();
     for (uint32_t index = 0; index < size; index += 1) {
         std::string it = data.ReadString();
@@ -700,7 +704,10 @@ bool AppAccountInfo::ReadStringMap(std::map<std::string, std::string> &stringMap
         ACCOUNT_LOGE("failed to ReadInt32 for size");
         return false;
     }
-
+    if (size > Constants::MAX_CUSTOM_DATA_SIZE) {
+        ACCOUNT_LOGE("ReadStringMap oversize");
+        return false;
+    }
     stringMap.clear();
     for (int32_t index = 0; index < size; ++index) {
         std::string key;
