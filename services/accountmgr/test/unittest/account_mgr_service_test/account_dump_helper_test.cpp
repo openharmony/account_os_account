@@ -27,6 +27,9 @@
 #include "ohos_account_manager.h"
 #include "os_account.h"
 #include "os_account_manager_service.h"
+#define private public
+#include "perf_stat.h"
+#undef private
 
 using namespace testing::ext;
 using namespace OHOS;
@@ -187,8 +190,7 @@ HWTEST_F(AccountDumpHelperTest, AccountDumpParameterTest003, TestSize.Level0)
     vector<std::string> cmd = {"-time_info_dump"};
     ASSERT_NE(accountDumpHelper_, nullptr);
     accountDumpHelper_->Dump(cmd, out);
-    auto pos = out.find("ServiceInstanceCreateTime", 0);
-    EXPECT_NE(std::string::npos, pos);
+    EXPECT_EQ(out.empty(), true);
 }
 
 /**

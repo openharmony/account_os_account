@@ -22,6 +22,7 @@
 namespace OHOS {
 namespace AccountSA {
 typedef enum {
+    INVALID_TYPE = -1,
     ACTIVED = 0,
     ACTIVATING,
 } OS_ACCOUNT_SUBSCRIBE_TYPE;
