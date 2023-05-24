@@ -294,7 +294,7 @@ static napi_status ParseContextForDelCred(napi_env env, napi_callback_info info,
     size_t argc = ARG_SIZE_THREE;
     napi_value argv[ARG_SIZE_THREE] = {0};
     napi_get_cb_info(env, info, &argc, argv, nullptr, nullptr);
-    if (argc != ARG_SIZE_THREE) {
+    if (argc < ARG_SIZE_THREE) {
         ACCOUNT_LOGE("failed to parse parameters, expect three parameters, but got %zu", argc);
         std::string errMsg = "The arg number must be at least 3 characters";
         AccountNapiThrow(env, ERR_JS_PARAMETER_ERROR, errMsg, true);
@@ -364,6 +364,9 @@ static napi_status ParseOneParamForGetAuthInfo(napi_env env, GetAuthInfoContext 
             return napi_invalid_arg;
         }
         NAPI_CALL_BASE(env, napi_create_promise(env, &context->deferred, result), napi_generic_failure);
+    } else if ((valueType == napi_undefined) || (valueType == napi_null)) {
+        ACCOUNT_LOGI("the arg 1 is undefined or null");
+        NAPI_CALL_BASE(env, napi_create_promise(env, &context->deferred, result), napi_generic_failure);
     } else {
         ACCOUNT_LOGE("Get arg 1 failed");
         std::string errMsg = "The type of arg 1 must be number or function";
@@ -396,11 +399,17 @@ static napi_status ParseContextForGetAuthInfo(
             AccountNapiThrow(env, ERR_JS_PARAMETER_ERROR, errMsg, true);
             return napi_invalid_arg;
         }
-        if (!GetIntProperty(env, argv[PARAM_ZERO], authType)) {
-            ACCOUNT_LOGE("Get authType failed");
-            std::string errMsg = "The type of arg 1 must be number";
-            AccountNapiThrow(env, ERR_JS_PARAMETER_ERROR, errMsg, true);
-            return napi_invalid_arg;
+        napi_valuetype valueType = napi_undefined;
+        napi_typeof(env, argv[PARAM_ZERO], &valueType);
+        if ((valueType == napi_undefined) || (valueType == napi_null)) {
+            ACCOUNT_LOGI("the authType is undefined or null");
+        } else {
+            if (!GetIntProperty(env, argv[PARAM_ZERO], authType)) {
+                ACCOUNT_LOGE("Get authType failed");
+                std::string errMsg = "The type of arg 1 must be number";
+                AccountNapiThrow(env, ERR_JS_PARAMETER_ERROR, errMsg, true);
+                return napi_invalid_arg;
+            }
         }
     }
 
