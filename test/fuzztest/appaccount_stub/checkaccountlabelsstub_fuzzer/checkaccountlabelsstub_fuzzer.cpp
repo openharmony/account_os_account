@@ -13,7 +13,7 @@
  * limitations under the License.
  */
 
-#include "getoauthtokenstub_fuzzer.h"
+#include "checkaccountlabelsstub_fuzzer.h"
 #include <string>
 #include <vector>
 
@@ -23,33 +23,64 @@
 
 using namespace std;
 using namespace OHOS::AccountSA;
+
+class MockAuthenticatorCallback : public OHOS::AccountSA::IAppAccountAuthenticatorCallback {
+public:
+    void OnResult(int32_t resultCode, const OHOS::AAFwk::Want& result) override
+    {
+        return;
+    }
+    void OnRequestRedirected(OHOS::AAFwk::Want& request) override
+    {
+        return;
+    }
+    void OnRequestContinued() override
+    {
+        return;
+    }
+    OHOS::sptr<OHOS::IRemoteObject> AsObject() override
+    {
+        return nullptr;
+    }
+};
+
 const std::u16string APPACCOUNT_TOKEN = u"ohos.accountfwk.IAppAccount";
 namespace OHOS {
-    bool GetOAuthTokenStubFuzzTest(const uint8_t* data, size_t size)
+    bool CheckAccountLabelsStubFuzzTest(const uint8_t* data, size_t size)
     {
         if ((data == nullptr) || (size == 0)) {
             return false;
         }
+        std::string testName(reinterpret_cast<const char*>(data), size);
+        std::string testOwner(reinterpret_cast<const char*>(data), size);
+        std::string testValue(reinterpret_cast<const char*>(data), size);
+        std::vector<std::string> testLabels;
+            testLabels.emplace_back(testValue);
+        sptr<MockAuthenticatorCallback> callback = new (std::nothrow) MockAuthenticatorCallback();
+        
         MessageParcel dataTemp;
         if (!dataTemp.WriteInterfaceToken(APPACCOUNT_TOKEN)) {
             return false;
         }
-        std::string name(reinterpret_cast<const char*>(data), size);
-        if (!dataTemp.WriteString(name)) {
+
+        if (!dataTemp.WriteString(testName)) {
             return false;
         }
-        std::string owner(reinterpret_cast<const char*>(data), size);
-        if (!dataTemp.WriteString(owner)) {
+        if (!dataTemp.WriteString(testOwner)) {
             return false;
         }
-        std::string authType(reinterpret_cast<const char*>(data), size);
-        if (!dataTemp.WriteString(authType)) {
+        
+        if (!dataTemp.WriteStringVector(testLabels)) {
+            return false;
+        }
+        
+        if (!dataTemp.WriteRemoteObject(callback->AsObject())) {
             return false;
         }
         
         MessageParcel reply;
         MessageOption option;
-        uint32_t code = static_cast<uint32_t>(IAppAccount::Message::GET_OAUTH_TOKEN);
+        uint32_t code = static_cast<uint32_t>(IAppAccount::Message::CHECK_ACCOUNT_LABELS);
         auto appAccountManagerService = std::make_shared<AppAccountManagerService>();
         appAccountManagerService->OnRemoteRequest(code, dataTemp, reply, option);
         
@@ -61,7 +92,7 @@ namespace OHOS {
 extern "C" int LLVMFuzzerTestOneInput(const uint8_t* data, size_t size)
 {
     /* Run your code on data */
-    OHOS::GetOAuthTokenStubFuzzTest(data, size);
+    OHOS::CheckAccountLabelsStubFuzzTest(data, size);
     return 0;
 }
 
