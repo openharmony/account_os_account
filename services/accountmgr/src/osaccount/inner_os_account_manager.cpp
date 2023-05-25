@@ -26,12 +26,14 @@
 #include "os_account_control_file_manager.h"
 #include "os_account_domain_account_callback.h"
 #include "os_account_subscribe_manager.h"
+#include "parameter.h"
 #include "parcel.h"
 
 namespace OHOS {
 namespace AccountSA {
 namespace {
 const std::string CONSTRAINT_CREATE_ACCOUNT_DIRECTLY = "constraint.os.account.create.directly";
+const std::string ACCOUNT_READY_EVENT = "bootevent.account.ready";
 }
 
 IInnerOsAccountManager::IInnerOsAccountManager() : subscribeManager_(OsAccountSubscribeManager::GetInstance())
@@ -1145,6 +1147,7 @@ ErrCode IInnerOsAccountManager::SendMsgForAccountActivate(OsAccountInfo &osAccou
         return ERR_OSACCOUNT_SERVICE_INNER_UPDATE_ACCOUNT_ERROR;
     }
     RefreshActiveList(osAccountInfo.GetLocalId());
+    SetParameter(ACCOUNT_READY_EVENT.c_str(), "true");
     OsAccountInterface::SendToCESAccountSwitched(osAccountInfo);
     ACCOUNT_LOGI("SendMsgForAccountActivate ok");
     return errCode;
