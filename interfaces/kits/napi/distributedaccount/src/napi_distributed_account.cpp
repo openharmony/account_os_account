@@ -177,8 +177,12 @@ static bool ParseInfoAndEvent(napi_env env, napi_value argv, DistributedAccountA
 }
 
 static bool ParseUpdateOhosAccountInfoWithTwoArgs(
-    napi_env env, napi_value *argv, DistributedAccountAsyncContext *asyncContext)
+    napi_env env, napi_value *argv, DistributedAccountAsyncContext *asyncContext, const int32_t size)
 {
+    if (size != PARAM_TWO) {
+        ACCOUNT_LOGE("argv size is not two");
+        return false;
+    }
     napi_valuetype valueType = napi_undefined;
     napi_typeof(env, argv[PARAM_ONE], &valueType);
     if (valueType == napi_object) {
@@ -222,7 +226,7 @@ bool ParseUpdateOhosAccountInfoAsyncContext(
         return ParseInfoAndEvent(env, argv[PARAM_ONE], asyncContext);
     }
     if (argc == PARAM_TWO) {
-        return ParseUpdateOhosAccountInfoWithTwoArgs(env, argv, asyncContext);
+        return ParseUpdateOhosAccountInfoWithTwoArgs(env, argv, asyncContext, PARAM_TWO);
     }
     if (argc == PARAM_ONE) {
         return ParseInfoAndEvent(env, argv[PARAM_ZERO], asyncContext);
