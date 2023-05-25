@@ -22,8 +22,8 @@
 #include "account_log_wrapper.h"
 #include "account_permission_manager.h"
 #include "domain_account_callback_service.h"
-#include "domain_account_client.h"
 #define private public
+#include "domain_account_client.h"
 #include "inner_domain_account_manager.h"
 #undef private
 #include "ipc_skeleton.h"
@@ -712,6 +712,25 @@ HWTEST_F(DomainAccountClientModuleTest, DomainAccountClientModuleTest_HasDomainA
     ASSERT_NE(testCallback, nullptr);
     EXPECT_CALL(*callback, OnResult(ERR_DOMAIN_ACCOUNT_SERVICE_PLUGIN_NOT_EXIST, _)).Times(Exactly(1));
     EXPECT_EQ(DomainAccountClient::GetInstance().HasDomainAccount(info, testCallback), ERR_OK);
+}
+
+/**
+ * @tc.name: DomainAccountClientModuleTest_HasDomainAccount_004
+ * @tc.desc: HasDomainAccount callback is nullptr.
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(DomainAccountClientModuleTest, DomainAccountClientModuleTest_HasDomainAccount_004, TestSize.Level0)
+{
+    DomainAccountClient::GetInstance().UnregisterPlugin();
+    DomainAccountInfo info;
+    info.accountName_ = STRING_NAME;
+    info.domain_ = STRING_DOMAIN;
+    info.accountId_ = STRING_ACCOUNTID;
+    
+    std::shared_ptr<DomainAccountCallback> callback = nullptr;
+    EXPECT_EQ(DomainAccountClient::GetInstance().HasDomainAccount(info, callback),
+        ERR_ACCOUNT_COMMON_INVALID_PARAMETER);
 }
 
 /**
@@ -1969,4 +1988,87 @@ HWTEST_F(DomainAccountClientModuleTest, RegisterAccountStatusListener_014, TestS
     EXPECT_EQ(DomainAccountClient::GetInstance().UnregisterAccountStatusListener(listener1), ERR_OK);
     EXPECT_EQ(OsAccountManager::GetOsAccountLocalIdFromDomain(domainInfo1, userId), ERR_OK);
     EXPECT_EQ(OsAccountManager::RemoveOsAccount(userId), ERR_OK);
+}
+
+/**
+ * @tc.name: RegisterAccountStatusListener_015
+ * @tc.desc: GetAccountStatus callback is nullptr
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(DomainAccountClientModuleTest, RegisterAccountStatusListener_015, TestSize.Level0)
+{
+    std::shared_ptr<DomainAccountStatusListener> listener = nullptr;
+    EXPECT_EQ(DomainAccountClient::GetInstance().RegisterAccountStatusListener(listener),
+        ERR_ACCOUNT_COMMON_INVALID_PARAMETER);
+}
+
+/**
+ * @tc.name: UnregisterAccountStatusListener_002
+ * @tc.desc: RegisterAccountStatusListener callback is nullptr
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(DomainAccountClientModuleTest, UnregisterAccountStatusListener_002, TestSize.Level0)
+{
+    DomainAccountInfo domainInfo;
+    std::shared_ptr<DomainAccountStatusListener> listener = nullptr;
+    EXPECT_EQ(DomainAccountClient::GetInstance().UnregisterAccountStatusListener(listener),
+        ERR_ACCOUNT_COMMON_INVALID_PARAMETER);
+    EXPECT_EQ(DomainAccountClient::GetInstance().UnregisterAccountStatusListener(domainInfo, listener),
+        ERR_ACCOUNT_COMMON_INVALID_PARAMETER);
+}
+
+/**
+ * @tc.name: AuthProxyInit_001
+ * @tc.desc: AuthProxyInit callback is nullptr
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(DomainAccountClientModuleTest, AuthProxyInit_001, TestSize.Level0)
+{
+    std::shared_ptr<DomainAuthCallback> callback = nullptr;
+    sptr<DomainAuthCallbackService> callbackService;
+    sptr<IDomainAccount> proxy;
+
+    EXPECT_EQ(DomainAccountClient::GetInstance().AuthProxyInit(callback, callbackService, proxy),
+        ERR_ACCOUNT_COMMON_INVALID_PARAMETER);
+}
+
+/**
+ * @tc.name: AuthProxyInit_002
+ * @tc.desc: test AuthProxyInit.
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(DomainAccountClientModuleTest, AuthProxyInit_002, TestSize.Level0)
+{
+    auto callback = std::make_shared<MockDomainAuthCallback>();
+    ASSERT_NE(callback, nullptr);
+    EXPECT_CALL(*callback, OnResult(0, _)).Times(Exactly(0));
+    auto testCallback = std::make_shared<TestDomainAuthCallback>(callback);
+    ASSERT_NE(testCallback, nullptr);
+    sptr<DomainAuthCallbackService> callbackService = nullptr;
+    sptr<IDomainAccount> proxy = nullptr;
+
+    EXPECT_EQ(DomainAccountClient::GetInstance().AuthProxyInit(testCallback, callbackService, proxy), ERR_OK);
+    EXPECT_NE(callbackService, nullptr);
+    EXPECT_NE(proxy, nullptr);
+}
+
+/**
+ * @tc.name: ResetDomainAccountProxy_001
+ * @tc.desc: test ResetDomainAccountProxy.
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(DomainAccountClientModuleTest, ResetDomainAccountProxy_001, TestSize.Level0)
+{
+    wptr<IRemoteObject> remote;
+    ASSERT_NE(DomainAccountClient::GetInstance().GetDomainAccountProxy(), nullptr);
+    DomainAccountClient::GetInstance().ResetDomainAccountProxy(remote);
+    EXPECT_EQ(DomainAccountClient::GetInstance().proxy_, nullptr);
+
+    DomainAccountClient::GetInstance().ResetDomainAccountProxy(remote);
+    EXPECT_EQ(DomainAccountClient::GetInstance().proxy_, nullptr);
 }
