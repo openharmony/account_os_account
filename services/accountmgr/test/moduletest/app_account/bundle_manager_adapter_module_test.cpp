@@ -13,8 +13,10 @@
  * limitations under the License.
  */
 
+#include "ashmem.h"
 #include <gtest/gtest.h>
 #include "nlohmann/json.hpp"
+#include <sys/mman.h>
 
 #include "account_log_wrapper.h"
 #define private public
@@ -253,6 +255,103 @@ HWTEST_F(BundleManagerModuleTest, BundleManagerProxy_GetParcelableFromAshmem_010
 
     bool result = g_bundleManagerAdapterProxyRemoteNull->GetParcelableFromAshmem<BundleInfo>(reply, bundleInfo);
     ASSERT_EQ(result, false);
+}
+
+/**
+ * @tc.name: BundleManagerProxy_GetParcelableFromAshmem_0200
+ * @tc.desc: test GetParcelableFromAshmem
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(BundleManagerModuleTest, BundleManagerProxy_GetParcelableFromAshmem_0200, TestSize.Level1)
+{
+    sptr<ISystemAbilityManager> systemAbilityManager =
+        SystemAbilityManagerClient::GetInstance().GetSystemAbilityManager();
+    ASSERT_NE(systemAbilityManager, nullptr);
+    sptr<IRemoteObject> remoteObj = systemAbilityManager->GetSystemAbility(BUNDLE_MGR_SERVICE_SYS_ABILITY_ID);
+    ASSERT_NE(remoteObj, nullptr);
+    auto bundleManagerAdapterProxy = std::make_shared<BundleManagerAdapterProxy>(remoteObj);
+    ASSERT_NE(bundleManagerAdapterProxy, nullptr);
+
+    MessageParcel reply;
+    BundleInfo bundleInfo;
+    Json testBundleInfo1 = Json {
+        {"testKey", "testValue"},
+    };
+    std::string testStr = testBundleInfo1.dump();
+    sptr<Ashmem> ashmem = Ashmem::CreateAshmem("test", 1024);
+    ashmem->MapAshmem(PROT_READ | PROT_WRITE);
+    ashmem->WriteToAshmem("28", 2, 0);
+    ashmem->WriteToAshmem(testStr.c_str(), testStr.size(), 16);
+    reply.WriteAshmem(ashmem);
+
+    bool result = bundleManagerAdapterProxy->GetParcelableFromAshmem<BundleInfo>(reply, bundleInfo);
+    EXPECT_EQ(result, true);
+
+    ashmem->UnmapAshmem();
+    ashmem->CloseAshmem();
+}
+
+/**
+ * @tc.name: BundleManagerProxy_GetParcelableFromAshmem_0300
+ * @tc.desc: test parse infoStr fail
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(BundleManagerModuleTest, BundleManagerProxy_GetParcelableFromAshmem_0300, TestSize.Level1)
+{
+    sptr<ISystemAbilityManager> systemAbilityManager =
+        SystemAbilityManagerClient::GetInstance().GetSystemAbilityManager();
+    ASSERT_NE(systemAbilityManager, nullptr);
+    sptr<IRemoteObject> remoteObj = systemAbilityManager->GetSystemAbility(BUNDLE_MGR_SERVICE_SYS_ABILITY_ID);
+    ASSERT_NE(remoteObj, nullptr);
+    auto bundleManagerAdapterProxy = std::make_shared<BundleManagerAdapterProxy>(remoteObj);
+    ASSERT_NE(bundleManagerAdapterProxy, nullptr);
+
+    MessageParcel reply;
+    BundleInfo bundleInfo;
+    sptr<Ashmem> ashmem = Ashmem::CreateAshmem("test", 1024);
+    ashmem->MapAshmem(PROT_READ | PROT_WRITE);
+    ashmem->WriteToAshmem("test", 4, 0);
+    reply.WriteAshmem(ashmem);
+
+    bool result = bundleManagerAdapterProxy->GetParcelableFromAshmem<BundleInfo>(reply, bundleInfo);
+    EXPECT_EQ(result, false);
+
+    ashmem->UnmapAshmem();
+    ashmem->CloseAshmem();
+}
+
+/**
+ * @tc.name: BundleManagerProxy_GetParcelableFromAshmem_0400
+ * @tc.desc: test parse info from json fail
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(BundleManagerModuleTest, BundleManagerProxy_GetParcelableFromAshmem_0400, TestSize.Level1)
+{
+    sptr<ISystemAbilityManager> systemAbilityManager =
+        SystemAbilityManagerClient::GetInstance().GetSystemAbilityManager();
+    ASSERT_NE(systemAbilityManager, nullptr);
+    sptr<IRemoteObject> remoteObj = systemAbilityManager->GetSystemAbility(BUNDLE_MGR_SERVICE_SYS_ABILITY_ID);
+    ASSERT_NE(remoteObj, nullptr);
+    auto bundleManagerAdapterProxy = std::make_shared<BundleManagerAdapterProxy>(remoteObj);
+    ASSERT_NE(bundleManagerAdapterProxy, nullptr);
+
+    MessageParcel reply;
+    BundleInfo bundleInfo;
+    std::string testStr = "test_Parse_info_from_json_fail";
+    sptr<Ashmem> ashmem = Ashmem::CreateAshmem("test", 1024);
+    ashmem->MapAshmem(PROT_READ | PROT_WRITE);
+    ashmem->WriteToAshmem("12", 2, 0);
+    ashmem->WriteToAshmem(testStr.c_str(), testStr.size(), 16);
+    reply.WriteAshmem(ashmem);
+
+    bool result = bundleManagerAdapterProxy->GetParcelableFromAshmem<BundleInfo>(reply, bundleInfo);
+    EXPECT_EQ(result, false);
+
+    ashmem->UnmapAshmem();
+    ashmem->CloseAshmem();
 }
 
 /**
