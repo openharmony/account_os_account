@@ -38,6 +38,7 @@ constexpr uint32_t APP_INDEX = 0;
 constexpr uint32_t MAX_TOKEN_NUMBER = 128;
 constexpr uint32_t MAX_OAUTH_LIST_SIZE = 512;
 constexpr uint32_t MAX_ASSOCIATED_DATA_NUMBER = 1024;
+constexpr int32_t MAX_MAP_SZIE = 1024;
 }  // namespace
 
 AppAccountInfo::AppAccountInfo()
@@ -704,7 +705,7 @@ bool AppAccountInfo::ReadStringMap(std::map<std::string, std::string> &stringMap
         ACCOUNT_LOGE("failed to ReadInt32 for size");
         return false;
     }
-    if (size > Constants::MAX_CUSTOM_DATA_SIZE) {
+    if ((size < 0) || (size > MAX_MAP_SZIE)) {
         ACCOUNT_LOGE("ReadStringMap oversize");
         return false;
     }
