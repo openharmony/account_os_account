@@ -17,6 +17,7 @@
 #include <map>
 #include <string>
 #include <unistd.h>
+#include "account_info.h"
 #include "account_log_wrapper.h"
 #include "js_native_api.h"
 #include "js_native_api_types.h"
@@ -75,6 +76,19 @@ DistributedAccountAsyncContext::~DistributedAccountAsyncContext()
         NAPI_CALL_RETURN_VOID(env, napi_delete_reference(env, callbackRef));
         callbackRef = nullptr;
     }
+}
+
+napi_value DistributedAccountStatusConstructor(napi_env env)
+{
+    napi_value distributedAccountStatus = nullptr;
+    napi_value status1 = nullptr;
+    napi_value status2 = nullptr;
+    NAPI_CALL(env, napi_create_object(env, &distributedAccountStatus));
+    NAPI_CALL(env, napi_create_int32(env, static_cast<int32_t>(OHOS_ACCOUNT_STATE::ACCOUNT_STATE_UNBOUND), &status1));
+    NAPI_CALL(env, napi_create_int32(env, static_cast<int32_t>(OHOS_ACCOUNT_STATE::ACCOUNT_STATE_LOGIN), &status2));
+    NAPI_CALL(env, napi_set_named_property(env, distributedAccountStatus, "NOT_LOGGED_IN", status1));
+    NAPI_CALL(env, napi_set_named_property(env, distributedAccountStatus, "LOGGED_IN", status2));
+    return distributedAccountStatus;
 }
 
 bool ParseQueryOhosAccountInfoAsyncContext(
@@ -297,6 +311,7 @@ napi_value NapiDistributedAccount::Init(napi_env env, napi_value exports)
 {
     napi_property_descriptor descriptor[] = {
         DECLARE_NAPI_FUNCTION("getDistributedAccountAbility", GetDistributedAccountAbility),
+        DECLARE_NAPI_PROPERTY("DistributedAccountStatus", DistributedAccountStatusConstructor(env)),
     };
     napi_define_properties(env, exports, sizeof(descriptor) / sizeof(napi_property_descriptor), descriptor);
 
