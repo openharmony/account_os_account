@@ -13,7 +13,7 @@
  * limitations under the License.
  */
 
-#include "getaccountextrainfostub_fuzzer.h"
+#include "setauthenticatorpropertiesstub_fuzzer.h"
 
 #include "account_log_wrapper.h"
 #include "app_account_manager_service.h"
@@ -24,9 +24,29 @@
 using namespace std;
 using namespace OHOS::AccountSA;
 
+class MockAuthenticatorCallback : public OHOS::AccountSA::IAppAccountAuthenticatorCallback {
+public:
+    void OnResult(int32_t resultCode, const OHOS::AAFwk::Want& result) override
+    {
+        return;
+    }
+    void OnRequestRedirected(OHOS::AAFwk::Want& request) override
+    {
+        return;
+    }
+    void OnRequestContinued() override
+    {
+        return;
+    }
+    OHOS::sptr<OHOS::IRemoteObject> AsObject() override
+    {
+        return nullptr;
+    }
+};
+
 namespace OHOS {
 const std::u16string APPACCOUNT_TOKEN = u"ohos.accountfwk.IAppAccount";
-bool GetAccountExtraInfoStubFuzzTest(const uint8_t* data, size_t size)
+bool SetAuthenticatorPropertiesStubFuzzTest(const uint8_t* data, size_t size)
 {
     if ((data == nullptr) || (size == 0)) {
         return false;
@@ -35,14 +55,23 @@ bool GetAccountExtraInfoStubFuzzTest(const uint8_t* data, size_t size)
     if (!dataTemp.WriteInterfaceToken(APPACCOUNT_TOKEN)) {
         return false;
     }
-    std::string name(reinterpret_cast<const char*>(data), size);
-    if (!dataTemp.WriteString(name)) {
+
+    std::string owner(reinterpret_cast<const char*>(data), size);
+    if (!dataTemp.WriteString(owner)) {
+        return false;
+    }
+    sptr<MockAuthenticatorCallback> callback = new (std::nothrow) MockAuthenticatorCallback();
+    SetPropertiesOptions options;
+    if (!dataTemp.WriteParcelable(&options)) {
+        return false;
+    }
+    if (!dataTemp.WriteRemoteObject(callback->AsObject())) {
         return false;
     }
     
     MessageParcel reply;
     MessageOption option;
-    uint32_t code = static_cast<uint32_t>(IAppAccount::Message::GET_ACCOUNT_EXTRA_INFO);
+    uint32_t code = static_cast<uint32_t>(IAppAccount::Message::SET_AUTHENTICATOR_PROPERTIES);
     auto appAccountManagerService = std::make_shared<AppAccountManagerService>();
     appAccountManagerService->OnRemoteRequest(code, dataTemp, reply, option);
     
@@ -54,7 +83,7 @@ bool GetAccountExtraInfoStubFuzzTest(const uint8_t* data, size_t size)
 extern "C" int LLVMFuzzerTestOneInput(const uint8_t* data, size_t size)
 {
     /* Run your code on data */
-    OHOS::GetAccountExtraInfoStubFuzzTest(data, size);
+    OHOS::SetAuthenticatorPropertiesStubFuzzTest(data, size);
     return 0;
 }
 

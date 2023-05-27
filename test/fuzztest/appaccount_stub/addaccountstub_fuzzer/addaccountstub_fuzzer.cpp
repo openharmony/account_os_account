@@ -23,32 +23,31 @@
 
 using namespace std;
 using namespace OHOS::AccountSA;
-
-const std::u16string APPACCOUNT_TOKEN = u"ohos.accountfwk.IAppAccount";
 namespace OHOS {
-    bool AddAccountStubFuzzTest(const uint8_t* data, size_t size)
-    {
-        if (size > 0) {
-            MessageParcel dataTemp;
-            if (!dataTemp.WriteInterfaceToken(APPACCOUNT_TOKEN)) {
-                return false;
-            }
-            std::string testName(reinterpret_cast<const char*>(data), size);
-            if (!dataTemp.WriteString(testName)) {
-                return false;
-            }
-            std::string extraInfo(reinterpret_cast<const char*>(data), size);
-            if (!dataTemp.WriteString(extraInfo)) {
-                return false;
-            }
-            MessageParcel reply;
-            MessageOption option;
-            uint32_t code = static_cast<uint32_t>(IAppAccount::Message::ADD_ACCOUNT);
-            auto appAccountManagerService = std::make_shared<AppAccountManagerService>();
-            appAccountManagerService->OnRemoteRequest(code, dataTemp, reply, option);
+const std::u16string APPACCOUNT_TOKEN = u"ohos.accountfwk.IAppAccount";
+bool AddAccountStubFuzzTest(const uint8_t* data, size_t size)
+{
+    if (size > 0) {
+        MessageParcel dataTemp;
+        if (!dataTemp.WriteInterfaceToken(APPACCOUNT_TOKEN)) {
+            return false;
         }
-        return true;
+        std::string testName(reinterpret_cast<const char*>(data), size);
+        if (!dataTemp.WriteString(testName)) {
+            return false;
+        }
+        std::string extraInfo(reinterpret_cast<const char*>(data), size);
+        if (!dataTemp.WriteString(extraInfo)) {
+            return false;
+        }
+        MessageParcel reply;
+        MessageOption option;
+        uint32_t code = static_cast<uint32_t>(IAppAccount::Message::ADD_ACCOUNT);
+        auto appAccountManagerService = std::make_shared<AppAccountManagerService>();
+        appAccountManagerService->OnRemoteRequest(code, dataTemp, reply, option);
     }
+    return true;
+}
 }
 
 /* Fuzzer entry point */
