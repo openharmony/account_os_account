@@ -23,43 +23,42 @@
 
 using namespace std;
 using namespace OHOS::AccountSA;
-
-const std::u16string APPACCOUNT_TOKEN = u"ohos.accountfwk.IAppAccount";
 namespace OHOS {
-    bool AuthenticateStubFuzzTest(const uint8_t* data, size_t size)
-    {
-        if ((data == nullptr) || (size == 0)) {
-            return false;
-        }
-        MessageParcel dataTemp;
-        if (!dataTemp.WriteInterfaceToken(APPACCOUNT_TOKEN)) {
-            return false;
-        }
-        std::string name(reinterpret_cast<const char*>(data), size);
-        if (!dataTemp.WriteString(name)) {
-            return false;
-        }
-        std::string owner(reinterpret_cast<const char*>(data), size);
-        if (!dataTemp.WriteString(owner)) {
-            return false;
-        }
-        std::string authType(reinterpret_cast<const char*>(data), size);
-        if (!dataTemp.WriteString(authType)) {
-            return false;
-        }
-        AAFwk::Want options;
-        if (!dataTemp.WriteParcelable(&options)) {
-            return false;
-        }
-        
-        MessageParcel reply;
-        MessageOption option;
-        uint32_t code = static_cast<uint32_t>(IAppAccount::Message::AUTHENTICATE);
-        auto appAccountManagerService = std::make_shared<AppAccountManagerService>();
-        appAccountManagerService->OnRemoteRequest(code, dataTemp, reply, option);
-        
-        return true;
+const std::u16string APPACCOUNT_TOKEN = u"ohos.accountfwk.IAppAccount";
+bool AuthenticateStubFuzzTest(const uint8_t* data, size_t size)
+{
+    if ((data == nullptr) || (size == 0)) {
+        return false;
     }
+    MessageParcel dataTemp;
+    if (!dataTemp.WriteInterfaceToken(APPACCOUNT_TOKEN)) {
+        return false;
+    }
+    std::string name(reinterpret_cast<const char*>(data), size);
+    if (!dataTemp.WriteString(name)) {
+        return false;
+    }
+    std::string owner(reinterpret_cast<const char*>(data), size);
+    if (!dataTemp.WriteString(owner)) {
+        return false;
+    }
+    std::string authType(reinterpret_cast<const char*>(data), size);
+    if (!dataTemp.WriteString(authType)) {
+        return false;
+    }
+    AAFwk::Want options;
+    if (!dataTemp.WriteParcelable(&options)) {
+        return false;
+    }
+    
+    MessageParcel reply;
+    MessageOption option;
+    uint32_t code = static_cast<uint32_t>(IAppAccount::Message::AUTHENTICATE);
+    auto appAccountManagerService = std::make_shared<AppAccountManagerService>();
+    appAccountManagerService->OnRemoteRequest(code, dataTemp, reply, option);
+    
+    return true;
+}
 }
 
 /* Fuzzer entry point */

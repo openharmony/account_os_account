@@ -23,35 +23,34 @@
 
 using namespace std;
 using namespace OHOS::AccountSA;
-
-const std::u16string APPACCOUNT_TOKEN = u"ohos.accountfwk.IAppAccount";
 namespace OHOS {
-    bool SetAppAccountSyncEnableStubFuzzTest(const uint8_t* data, size_t size)
-    {
-        if ((data == nullptr) || (size == 0)) {
-            return false;
-        }
-        MessageParcel dataTemp;
-        if (!dataTemp.WriteInterfaceToken(APPACCOUNT_TOKEN)) {
-            return false;
-        }
-        std::string name(reinterpret_cast<const char*>(data), size);
-        if (!dataTemp.WriteString(name)) {
-            return false;
-        }
-        bool syncEnable = true;
-        if (!dataTemp.WriteBool(syncEnable)) {
-            return false;
-        }
-  
-        MessageParcel reply;
-        MessageOption option;
-        uint32_t code = static_cast<uint32_t>(IAppAccount::Message::SET_APP_ACCOUNT_SYNC_ENABLE);
-        auto appAccountManagerService = std::make_shared<AppAccountManagerService>();
-        appAccountManagerService->OnRemoteRequest(code, dataTemp, reply, option);
-        
-        return true;
+const std::u16string APPACCOUNT_TOKEN = u"ohos.accountfwk.IAppAccount";
+bool SetAppAccountSyncEnableStubFuzzTest(const uint8_t* data, size_t size)
+{
+    if ((data == nullptr) || (size == 0)) {
+        return false;
     }
+    MessageParcel dataTemp;
+    if (!dataTemp.WriteInterfaceToken(APPACCOUNT_TOKEN)) {
+        return false;
+    }
+    std::string name(reinterpret_cast<const char*>(data), size);
+    if (!dataTemp.WriteString(name)) {
+        return false;
+    }
+    bool syncEnable = true;
+    if (!dataTemp.WriteBool(syncEnable)) {
+        return false;
+    }
+
+    MessageParcel reply;
+    MessageOption option;
+    uint32_t code = static_cast<uint32_t>(IAppAccount::Message::SET_APP_ACCOUNT_SYNC_ENABLE);
+    auto appAccountManagerService = std::make_shared<AppAccountManagerService>();
+    appAccountManagerService->OnRemoteRequest(code, dataTemp, reply, option);
+    
+    return true;
+}
 }
 
 /* Fuzzer entry point */

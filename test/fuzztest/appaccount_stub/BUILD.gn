@@ -43,6 +43,7 @@ group("fuzztest") {
     "setappaccessstub_fuzzer:SetAppAccessStubFuzzTest",
     "setappaccountsyncenablestub_fuzzer:SetAppAccountSyncEnableStubFuzzTest",
     "setassociateddatastub_fuzzer:SetAssociatedDataStubFuzzTest",
+    "setauthenticatorpropertiesstub_fuzzer:SetAuthenticatorPropertiesStubFuzzTest",
     "setoauthtokenstub_fuzzer:SetOAuthTokenStubFuzzTest",
     "setoauthtokenvisibilitystub_fuzzer:SetOAuthTokenVisibilityStubFuzzTest",
     "subscribeappaccountstub_fuzzer:SubscribeAppAccountStubFuzzTest",
