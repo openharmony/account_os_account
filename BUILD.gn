@@ -54,5 +54,8 @@ group("account_build_fuzztest") {
     "${os_account_path}/test/fuzztest/ohosaccount:fuzztest",
     "${os_account_path}/test/fuzztest/osaccount:fuzztest",
   ]
-  deps += [ "${os_account_path}/test/fuzztest/appaccount_stub:fuzztest" ]
+  deps += [
+    "${os_account_path}/test/fuzztest/appaccount_stub:fuzztest",
+    "${os_account_path}/test/fuzztest/osaccount_stub:fuzztest",
+  ]
 }
