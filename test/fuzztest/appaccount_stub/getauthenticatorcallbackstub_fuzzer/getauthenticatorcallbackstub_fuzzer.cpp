@@ -22,30 +22,30 @@
 
 using namespace std;
 using namespace OHOS::AccountSA;
-const std::u16string APPACCOUNT_TOKEN = u"ohos.accountfwk.IAppAccount";
 namespace OHOS {
-    bool GetAuthenticatorCallbackStubFuzzTest(const uint8_t* data, size_t size)
-    {
-        if ((data == nullptr) || (size == 0)) {
-            return false;
-        }
-        MessageParcel dataTemp;
-        if (!dataTemp.WriteInterfaceToken(APPACCOUNT_TOKEN)) {
-            return false;
-        }
-        std::string sessionId(reinterpret_cast<const char*>(data), size);
-        if (!dataTemp.WriteString(sessionId)) {
-            return false;
-        }
-        
-        MessageParcel reply;
-        MessageOption option;
-        uint32_t code = static_cast<uint32_t>(IAppAccount::Message::GET_AUTHENTICATOR_CALLBACK);
-        auto appAccountManagerService = std::make_shared<AppAccountManagerService>();
-        appAccountManagerService->OnRemoteRequest(code, dataTemp, reply, option);
-        
-        return true;
+const std::u16string APPACCOUNT_TOKEN = u"ohos.accountfwk.IAppAccount";
+bool GetAuthenticatorCallbackStubFuzzTest(const uint8_t* data, size_t size)
+{
+    if ((data == nullptr) || (size == 0)) {
+        return false;
     }
+    MessageParcel dataTemp;
+    if (!dataTemp.WriteInterfaceToken(APPACCOUNT_TOKEN)) {
+        return false;
+    }
+    std::string sessionId(reinterpret_cast<const char*>(data), size);
+    if (!dataTemp.WriteString(sessionId)) {
+        return false;
+    }
+    
+    MessageParcel reply;
+    MessageOption option;
+    uint32_t code = static_cast<uint32_t>(IAppAccount::Message::GET_AUTHENTICATOR_CALLBACK);
+    auto appAccountManagerService = std::make_shared<AppAccountManagerService>();
+    appAccountManagerService->OnRemoteRequest(code, dataTemp, reply, option);
+    
+    return true;
+}
 }
 
 /* Fuzzer entry point */

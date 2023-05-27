@@ -24,38 +24,38 @@
 using namespace std;
 using namespace OHOS::AccountSA;
 
-const std::u16string APPACCOUNT_TOKEN = u"ohos.accountfwk.IAppAccount";
 namespace OHOS {
-    bool SetAssociatedDataStubFuzzTest(const uint8_t* data, size_t size)
-    {
-        if ((data == nullptr) || (size == 0)) {
-            return false;
-        }
-        MessageParcel dataTemp;
-        if (!dataTemp.WriteInterfaceToken(APPACCOUNT_TOKEN)) {
-            return false;
-        }
-        std::string name(reinterpret_cast<const char*>(data), size);
-        if (!dataTemp.WriteString(name)) {
-            return false;
-        }
-        std::string key(reinterpret_cast<const char*>(data), size);
-        if (!dataTemp.WriteString(key)) {
-            return false;
-        }
-        std::string value(reinterpret_cast<const char*>(data), size);
-        if (!dataTemp.WriteString(value)) {
-            return false;
-        }
-        
-        MessageParcel reply;
-        MessageOption option;
-        uint32_t code = static_cast<uint32_t>(IAppAccount::Message::SET_ASSOCIATED_DATA);
-        auto appAccountManagerService = std::make_shared<AppAccountManagerService>();
-        appAccountManagerService->OnRemoteRequest(code, dataTemp, reply, option);
-        
-        return true;
+const std::u16string APPACCOUNT_TOKEN = u"ohos.accountfwk.IAppAccount";
+bool SetAssociatedDataStubFuzzTest(const uint8_t* data, size_t size)
+{
+    if ((data == nullptr) || (size == 0)) {
+        return false;
     }
+    MessageParcel dataTemp;
+    if (!dataTemp.WriteInterfaceToken(APPACCOUNT_TOKEN)) {
+        return false;
+    }
+    std::string name(reinterpret_cast<const char*>(data), size);
+    if (!dataTemp.WriteString(name)) {
+        return false;
+    }
+    std::string key(reinterpret_cast<const char*>(data), size);
+    if (!dataTemp.WriteString(key)) {
+        return false;
+    }
+    std::string value(reinterpret_cast<const char*>(data), size);
+    if (!dataTemp.WriteString(value)) {
+        return false;
+    }
+    
+    MessageParcel reply;
+    MessageOption option;
+    uint32_t code = static_cast<uint32_t>(IAppAccount::Message::SET_ASSOCIATED_DATA);
+    auto appAccountManagerService = std::make_shared<AppAccountManagerService>();
+    appAccountManagerService->OnRemoteRequest(code, dataTemp, reply, option);
+    
+    return true;
+}
 }
 
 /* Fuzzer entry point */
