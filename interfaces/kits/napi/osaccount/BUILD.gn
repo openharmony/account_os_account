@@ -52,6 +52,7 @@ ohos_shared_library("osaccount") {
     "${account_napi_common_path}:account_napi_common",
     "${domain_account_napi_path}:domain_account_napi",
     "${innerkits_native_path}:libaccountkits",
+    "${os_account_innerkits_native_path}:os_account_innerkits",
   ]
 
   relative_install_dir = "module/account"
@@ -61,7 +62,6 @@ ohos_shared_library("osaccount") {
     "c_utils:utils",
     "hiviewdfx_hilog_native:libhilog",
     "napi:ace_napi",
-    "os_account:os_account_innerkits",
   ]
 
   subsystem_name = "account"
