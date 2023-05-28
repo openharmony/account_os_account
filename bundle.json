@@ -52,11 +52,15 @@
         "pin_auth",
         "safwk",
         "samgr",
+        "security_guard",
         "selinux",
         "storage_service",
+        "time_service",
         "user_auth_framework"
       ],
-      "third_party": []
+      "third_party": [
+        "mbedtls"
+      ]
     },
     "build": {
       "group_type": {
