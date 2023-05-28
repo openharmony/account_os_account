@@ -21,6 +21,9 @@
 
 namespace OHOS {
 namespace AccountSA {
+namespace {
+constexpr uint32_t MAX_VEC_SIZE = 1024;
+}
 const std::map<uint32_t, IDMCallbackStub::MessageProcFunction> IDMCallbackStub::messageProcMap_ = {
     {
         static_cast<uint32_t>(IIDMCallback::Message::ON_ACQUIRE_INFO),
@@ -120,6 +123,10 @@ ErrCode GetCredInfoCallbackStub::ProcOnCredentialInfo(MessageParcel &data, Messa
     if (!data.ReadUint32(vectorSize)) {
         ACCOUNT_LOGE("read size fail");
         return ERR_ACCOUNT_IAM_KIT_READ_PARCEL_FAIL;
+    }
+    if (vectorSize > MAX_VEC_SIZE) {
+        ACCOUNT_LOGE("credential info list is oversize, the limit is %{public}d", MAX_VEC_SIZE);
+        return ERR_ACCOUNT_IAM_KIT_PARAM_INVALID_ERROR;
     }
     for (uint32_t i = 0; i < vectorSize; ++i) {
         CredentialInfo info;
