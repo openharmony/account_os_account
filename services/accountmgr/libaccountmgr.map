@@ -227,7 +227,7 @@
         "OHOS::AccountSA::OhosAccountManager::OhosAccountStateChange(std::__h::basic_string<char, std::__h::char_traits<char>, std::__h::allocator<char>> const&, std::__h::basic_string<char, std::__h::char_traits<char>, std::__h::allocator<char>> const&, std::__h::basic_string<char, std::__h::char_traits<char>, std::__h::allocator<char>> const&)";
         "OHOS::AccountSA::UpdateTraceLabelAdapter()";
         "OHOS::AccountSA::StartTraceAdapter(std::__h::basic_string<char, std::__h::char_traits<char>, std::__h::allocator<char>> const&)";
-        "OHOS::AccountSA::CountTraceAdapter(std::__h::basic_string<char, std::__h::char_traits<char>, std::__h::allocator<char>> const&, long long)";
+        *OHOS::AccountSA::CountTraceAdapter*;
         "OHOS::AccountSA::FinishTraceAdapter()";
         "OHOS::AccountSA::DomainAccountStub::DomainAccountStub()";
         "OHOS::AccountSA::DomainAccountStub::~DomainAccountStub()";
