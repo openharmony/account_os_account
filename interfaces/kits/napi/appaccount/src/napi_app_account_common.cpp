@@ -1257,6 +1257,27 @@ bool ParseVerifyCredentialOptions(napi_env env, napi_value object, VerifyCredent
     return true;
 }
 
+static bool ParseOptionalStringVectorByKey(
+    napi_env env, napi_value object, const char* key, bool &result, std::vector<std::string> &array)
+{
+    napi_has_named_property(env, object, key, &result);
+    if (result) {
+        napi_value value = nullptr;
+        napi_get_named_property(env, object, key, &value);
+        napi_valuetype valueType = napi_undefined;
+        napi_typeof(env, value, &valueType);
+        if ((valueType == napi_undefined) || (valueType == napi_null)) {
+            result = false;
+            ACCOUNT_LOGI("the %{public}s is undefined or null", key);
+            return true;
+        }
+        if (!ParseStringVector(env, value, array)) {
+            return false;
+        }
+    }
+    return true;
+}
+
 bool ParseSelectAccountsOptions(napi_env env, napi_value object, SelectAccountsOptions &options)
 {
     napi_valuetype valueType = napi_undefined;
@@ -1271,6 +1292,7 @@ bool ParseSelectAccountsOptions(napi_env env, napi_value object, SelectAccountsO
         valueType = napi_undefined;
         napi_typeof(env, value, &valueType);
         if ((valueType == napi_undefined) || (valueType == napi_null)) {
+            options.hasAccounts = false;
             ACCOUNT_LOGI("the allowedAccounts is undefined or null");
         } else {
             if (!ParseAccountVector(env, value, options.allowedAccounts)) {
@@ -1278,33 +1300,11 @@ bool ParseSelectAccountsOptions(napi_env env, napi_value object, SelectAccountsO
             }
         }
     }
-    napi_has_named_property(env, object, "allowedOwners", &options.hasOwners);
-    if (options.hasOwners) {
-        value = nullptr;
-        napi_get_named_property(env, object, "allowedOwners", &value);
-        valueType = napi_undefined;
-        napi_typeof(env, value, &valueType);
-        if ((valueType == napi_undefined) || (valueType == napi_null)) {
-            ACCOUNT_LOGI("the allowedOwners is undefined or null");
-        } else {
-            if (!ParseStringVector(env, value, options.allowedOwners)) {
-                return false;
-            }
-        }
+    if (!ParseOptionalStringVectorByKey(env, object, "allowedOwners", options.hasOwners, options.allowedOwners)) {
+        return false;
     }
-    napi_has_named_property(env, object, "requiredLabels", &options.hasLabels);
-    if (options.hasLabels) {
-        value = nullptr;
-        napi_get_named_property(env, object, "requiredLabels", &value);
-        valueType = napi_undefined;
-        napi_typeof(env, value, &valueType);
-        if ((valueType == napi_undefined) || (valueType == napi_null)) {
-            ACCOUNT_LOGI("the requiredLabels is undefined or null");
-        } else {
-            if (!ParseStringVector(env, value, options.requiredLabels)) {
-                return false;
-            }
-        }
+    if (!ParseOptionalStringVectorByKey(env, object, "requiredLabels", options.hasLabels, options.requiredLabels)) {
+        return false;
     }
     return true;
 }
@@ -1644,6 +1644,7 @@ bool ParseCreateAccountImplicitlyOptions(napi_env env, napi_value object, Create
         valueType = napi_undefined;
         napi_typeof(env, value, &valueType);
         if ((valueType == napi_undefined) || (valueType == napi_null)) {
+            options.hasRequiredLabels = false;
             ACCOUNT_LOGI("the requiredLabels is undefined or null");
         } else {
             if (!ParseStringVector(env, value, options.requiredLabels)) {
