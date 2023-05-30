@@ -25,16 +25,32 @@ using namespace std;
 using namespace OHOS::AccountSA;
 
 namespace OHOS {
+class TestOsAccountSubscriber : public OsAccountSubscriber {
+public:
+    void OnAccountsChanged(const int& id) {}
+};
 const std::u16string IOS_ACCOUNT_DESCRIPTOR = u"ohos.accountfwk.IOsAccount";
 bool UnSubscribeOsAccountStubFuzzTest(const uint8_t *data, size_t size)
 {
-    if ((data == nullptr) || (size <= 0)) {
+    if ((data == nullptr) || (size == 0)) {
         return false;
     }
 
     MessageParcel datas;
 
     datas.WriteInterfaceToken(IOS_ACCOUNT_DESCRIPTOR);
+
+    std::shared_ptr<OsAccountSubscriber> subscriber = make_shared<TestOsAccountSubscriber>();
+
+    sptr<OsAccountEventListener> listener = new (std::nothrow) OsAccountEventListener(subscriber);
+    if (listener == nullptr) {
+        return false;
+    }
+    sptr<IRemoteObject> osAccountEventListener = listener->AsObject();
+
+    if (!datas.WriteRemoteObject(osAccountEventListener)) {
+        return false;
+    }
 
     uint32_t code = static_cast<uint32_t>(IOsAccount::Message::UNSUBSCRIBE_ACCOUNT);
 

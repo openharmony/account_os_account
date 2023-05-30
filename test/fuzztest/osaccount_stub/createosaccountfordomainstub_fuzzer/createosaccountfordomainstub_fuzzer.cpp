@@ -18,6 +18,7 @@
 #include <thread>
 #include <vector>
 
+#include "domain_account_callback_service.h"
 #include "ios_account.h"
 #include "os_account_manager_service.h"
 
@@ -29,7 +30,7 @@ const int CONSTANTS_NUMBER_FIVE = 5;
 const std::u16string IOS_ACCOUNT_DESCRIPTOR = u"ohos.accountfwk.IOsAccount";
 bool CreateOsAccountForDomainStubFuzzTest(const uint8_t *data, size_t size)
 {
-    if ((data == nullptr) || (size <= 0)) {
+    if ((data == nullptr) || (size == 0)) {
         return false;
     }
 
@@ -45,6 +46,11 @@ bool CreateOsAccountForDomainStubFuzzTest(const uint8_t *data, size_t size)
     }
 
     if (!datas.WriteParcelable(&domainInfo)) {
+        return false;
+    }
+
+    sptr<DomainAccountCallbackService> callbackService = new (std::nothrow) DomainAccountCallbackService(nullptr);
+    if ((callbackService == nullptr) || (!datas.WriteRemoteObject(callbackService->AsObject()))) {
         return false;
     }
 

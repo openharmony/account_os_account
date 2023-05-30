@@ -24,21 +24,37 @@
 using namespace std;
 using namespace OHOS::AccountSA;
 
+class TestOsAccountSubscriber : public OsAccountSubscriber {
+public:
+    void OnAccountsChanged(const int& id) {}
+};
+
 namespace OHOS {
 const std::u16string IOS_ACCOUNT_DESCRIPTOR = u"ohos.accountfwk.IOsAccount";
 bool SubscribeOsAccountStubFuzzTest(const uint8_t *data, size_t size)
 {
-    if ((data == nullptr) || (size <= 0)) {
+    if ((data == nullptr) || (size == 0)) {
         return false;
     }
 
     MessageParcel datas;
-
     datas.WriteInterfaceToken(IOS_ACCOUNT_DESCRIPTOR);
 
     OsAccountSubscribeInfo subscribeInfo;
 
     if (!datas.WriteParcelable(&subscribeInfo)) {
+        return false;
+    }
+
+    std::shared_ptr<OsAccountSubscriber> subscriber = make_shared<TestOsAccountSubscriber>();
+
+    sptr<OsAccountEventListener> listener = new (std::nothrow) OsAccountEventListener(subscriber);
+    if (listener == nullptr) {
+        return false;
+    }
+    sptr<IRemoteObject> osAccountEventListener = listener->AsObject();
+
+    if (!datas.WriteRemoteObject(osAccountEventListener)) {
         return false;
     }
 
