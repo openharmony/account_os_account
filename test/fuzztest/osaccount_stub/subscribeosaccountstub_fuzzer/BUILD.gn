@@ -46,6 +46,7 @@ ohos_fuzztest("SubscribeOsAccountStubFuzzTest") {
 
   deps = [
     "${os_account_path}/frameworks/common:libaccount_common",
+    "${os_account_path}/frameworks/osaccount/core:os_account_core",
     "${os_account_path}/frameworks/osaccount/native:os_account_innerkits",
     "${os_account_path}/services/accountmgr:accountmgr",
   ]

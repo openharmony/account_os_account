@@ -29,7 +29,7 @@ const int TEST_IS_VERIFIED_NUM = 2;
 const std::u16string IOS_ACCOUNT_DESCRIPTOR = u"ohos.accountfwk.IOsAccount";
 bool SetOsAccountIsVerifiedStubFuzzTest(const uint8_t *data, size_t size)
 {
-    if ((data == nullptr) || (size <= 0)) {
+    if ((data == nullptr) || (size == 0)) {
         return false;
     }
 

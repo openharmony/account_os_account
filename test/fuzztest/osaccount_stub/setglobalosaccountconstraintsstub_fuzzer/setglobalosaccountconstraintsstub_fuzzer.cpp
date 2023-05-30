@@ -31,7 +31,7 @@ const int CONSTANTS_NUMBER_THREE = 3;
 const std::u16string IOS_ACCOUNT_DESCRIPTOR = u"ohos.accountfwk.IOsAccount";
 bool SetGlobalOsAccountConstraintsStubFuzzTest(const uint8_t *data, size_t size)
 {
-    if ((data == nullptr) || (size <= 0)) {
+    if ((data == nullptr) || (size == 0)) {
         return false;
     }
 
