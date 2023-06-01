@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021-2022 Huawei Device Co., Ltd.
+ * Copyright (c) 2021-2023 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -20,7 +20,6 @@
 #include "os_account_constants.h"
 #define private public
 #include "os_account_file_operator.h"
-//#include "os_account_manager_service.h"
 #undef private
 
 namespace OHOS {
@@ -32,11 +31,7 @@ using namespace AccountSA;
 
 namespace {
 const std::string STRING_TEST_NAME = "name";
-const std::int32_t DELAY_FOR_OPERATION = 250;
 std::shared_ptr<OsAccountFileOperator> g_osAccountFileOperator = nullptr;
-const std::int32_t MAIN_ACCOUNT_ID = 100;
-const std::int32_t WAIT_A_MOMENT = 3000;
-const std::uint32_t MAX_WAIT_FOR_READY_CNT = 10;
 }  // namespace
 
 class OsAccountFileOperatorTest : public testing::Test {
@@ -65,19 +60,18 @@ void OsAccountFileOperatorTest::TearDown(void)
  * @tc.name: OsAccountFileOperator_CheckConstraintsList_0001
  * @tc.desc: Test CreateOsAccount when create max accounts.
  * @tc.type: FUNC
- * @tc.require: SR000GGVFN
+ * @tc.require:
  */
 HWTEST_F(OsAccountFileOperatorTest, CheckConstraintsList_0001, TestSize.Level1)
 {
-    ACCOUNT_LOGI(">>>>>>>>OsAccountFileOperator_CheckConstraintsList_0001");
+    ACCOUNT_LOGI("OsAccountFileOperator_CheckConstraintsList_0001");
 
     std::vector<std::string> constraints;
     bool isExists = true;
     bool isOverSize = true;
-    ErrCode ret = g_osAccountFileOperator -> CheckConstraintsList(constraints, isExists, isOverSize);
-    EXPECT_EQ(ret, ERR_OSACCOUNT_SERVICE_OS_FILE_GET_CONSTRAINTS_LITS_ERROR);   
+    ErrCode ret = g_osAccountFileOperator->CheckConstraintsList(constraints, isExists, isOverSize);
+    EXPECT_EQ(ret, ERR_OSACCOUNT_SERVICE_OS_FILE_GET_CONSTRAINTS_LITS_ERROR);
 }
-
 
 }  // namespace AccountSA
 }  // namespace OHOS

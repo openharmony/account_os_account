@@ -32,7 +32,7 @@ namespace {
 const uid_t TEST_UID  = 1;
 const std::string TEST_BUNDLE_NAME = "com.example.owner";
 const std::string STRING_OWNER = "com.example.owner";
-const std::string TEST_BUNDLE_NAME_ = "com.bundle.owner";
+const std::string TEST_OWNER_NAME = "com.bundle.owner";
 const uint32_t TEST_APP_INDEX = 0;
 }  // namespace
 
@@ -80,7 +80,6 @@ HWTEST_F(AppAccountSubscribeManagerTest, SubscribeAppAccount_0100, TestSize.Leve
         subscribeInfoPtr, nullptr, TEST_UID, TEST_BUNDLE_NAME, TEST_APP_INDEX);
     EXPECT_EQ(ret, ERR_APPACCOUNT_SERVICE_EVENT_LISTENER_IS_NULLPTR);
     ACCOUNT_LOGI("end AppAccountSubscribeManager_SubscribeAppAccount_0100");
-
 }
 
 /**
@@ -91,7 +90,7 @@ HWTEST_F(AppAccountSubscribeManagerTest, SubscribeAppAccount_0100, TestSize.Leve
  */
 HWTEST_F(AppAccountSubscribeManagerTest, UnsubscribeAppAccount_0100, TestSize.Level1)
 {
-    ACCOUNT_LOGI(">>>>>>>>AppAccountSubscribeManager_UnsubscribeAppAccount_0100");
+    ACCOUNT_LOGI("AppAccountSubscribeManager_UnsubscribeAppAccount_0100");
 
     ErrCode ret = AppAccountSubscribeManager::GetInstance().UnsubscribeAppAccount(nullptr);
     EXPECT_EQ(ret, ERR_APPACCOUNT_SERVICE_EVENT_LISTENER_IS_NULLPTR);
@@ -120,7 +119,7 @@ HWTEST_F(AppAccountSubscribeManagerTest, CheckAppAccess_0100, TestSize.Level1)
  */
 HWTEST_F(AppAccountSubscribeManagerTest, CheckAppAccess_0200, TestSize.Level1)
 {
-    ACCOUNT_LOGI(">>>>>>>>AppAccountSubscribeManager_CheckAppAccess_0200");
+    ACCOUNT_LOGI("AppAccountSubscribeManager_CheckAppAccess_0200");
 
     // check subscribeInfoPtr
     std::vector<std::string> owners;
@@ -141,7 +140,7 @@ HWTEST_F(AppAccountSubscribeManagerTest, CheckAppAccess_0200, TestSize.Level1)
  */
 HWTEST_F(AppAccountSubscribeManagerTest, CheckAppAccess_0300, TestSize.Level1)
 {
-    ACCOUNT_LOGI(">>>>>>>>AppAccountSubscribeManager_CheckAppAccess_0300");
+    ACCOUNT_LOGI("AppAccountSubscribeManager_CheckAppAccess_0300");
 
     // check subscribeInfoPtr
     std::vector<std::string> owners;
@@ -150,7 +149,7 @@ HWTEST_F(AppAccountSubscribeManagerTest, CheckAppAccess_0300, TestSize.Level1)
     auto subscribeInfoPtr = std::make_shared<AppAccountSubscribeInfo>(subscribeInfo);
 
     ErrCode ret = AppAccountSubscribeManager::GetInstance().CheckAppAccess(
-        subscribeInfoPtr, TEST_UID, TEST_BUNDLE_NAME_, TEST_APP_INDEX);
+        subscribeInfoPtr, TEST_UID, TEST_OWNER_NAME, TEST_APP_INDEX);
     EXPECT_EQ(ret, ERR_APPACCOUNT_SERVICE_SUBSCRIBE_PERMISSION_DENIED);
 }
 

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021-2022 Huawei Device Co., Ltd.
+ * Copyright (c) 2021-2023 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -31,11 +31,7 @@ using namespace AccountSA;
 
 namespace {
 const std::string STRING_TEST_NAME = "name";
-const std::int32_t DELAY_FOR_OPERATION = 250;
 std::shared_ptr<OsAccountDatabaseOperator> g_osAccountDatabaseOperator = nullptr;
-const std::int32_t MAIN_ACCOUNT_ID = 100;
-const std::int32_t WAIT_A_MOMENT = 3000;
-const std::uint32_t MAX_WAIT_FOR_READY_CNT = 10;
 }  // namespace
 
 class OsAccountDatabaseOperatorTest : public testing::Test {
@@ -64,44 +60,34 @@ void OsAccountDatabaseOperatorTest::TearDown(void)
  * @tc.name: OsAccountDatabaseOperatorTest_InsertOsAccountIntoDataBase_0001
  * @tc.desc: Test CreateOsAccount when create max accounts.
  * @tc.type: FUNC
- * @tc.require: SR000GGVFN
+ * @tc.require:
  */
 HWTEST_F(OsAccountDatabaseOperatorTest, InsertOsAccountIntoDataBase_0001, TestSize.Level1)
 {
-    ACCOUNT_LOGI(">>>>>>>>OsAccountDatabaseOperatorTest_InsertOsAccountIntoDataBase_0001");
+    ACCOUNT_LOGI("OsAccountDatabaseOperatorTest_InsertOsAccountIntoDataBase_0001");
 
     OsAccountInfo info;
-    info.SetLocalId(1);
-    g_osAccountDatabaseOperator ->InsertOsAccountIntoDataBase(info);  
+    int localId = 1;  // 1 is invalid test local id
+    info.SetLocalId(localId);
+    g_osAccountDatabaseOperator->InsertOsAccountIntoDataBase(info);
+    EXPECT_EQ(info.GetLocalId(), localId);
 }
 
 /**
  * @tc.name: OsAccountDatabaseOperatorTest_InsertOsAccountIntoDataBase_0002
  * @tc.desc: Test CreateOsAccount when create max accounts.
  * @tc.type: FUNC
- * @tc.require: SR000GGVFN
+ * @tc.require:
  */
 HWTEST_F(OsAccountDatabaseOperatorTest, InsertOsAccountIntoDataBase_0002, TestSize.Level1)
 {
-    ACCOUNT_LOGI(">>>>>>>>OsAccountDatabaseOperatorTest_InsertOsAccountIntoDataBase_0002");
+    ACCOUNT_LOGI("OsAccountDatabaseOperatorTest_InsertOsAccountIntoDataBase_0002");
 
     OsAccountInfo info;
-    info.SetLocalId(300);
-    g_osAccountDatabaseOperator ->InsertOsAccountIntoDataBase(info);  
-}
-
-/**
- * @tc.name: OsAccountDatabaseOperatorTest_UpdateOsAccountIDListInDatabase_0001
- * @tc.desc: Test CreateOsAccount when create max accounts.
- * @tc.type: FUNC
- * @tc.require: SR000GGVFN
- */
-HWTEST_F(OsAccountDatabaseOperatorTest, UpdateOsAccountIDListInDatabase_0001, TestSize.Level1)
-{
-    ACCOUNT_LOGI(">>>>>>>>OsAccountDatabaseOperatorTest_UpdateOsAccountIDListInDatabase_0001");
-
-    Json accountListJson;
-    g_osAccountDatabaseOperator ->UpdateOsAccountIDListInDatabase(accountListJson);  
+    int localId = 300;  // 300 is invalid test local id
+    info.SetLocalId(localId);
+    g_osAccountDatabaseOperator->InsertOsAccountIntoDataBase(info);
+    EXPECT_EQ(info.GetLocalId(), localId);
 }
 
 }  // namespace AccountSA

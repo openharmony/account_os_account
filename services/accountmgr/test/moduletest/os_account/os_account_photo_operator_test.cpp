@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021-2022 Huawei Device Co., Ltd.
+ * Copyright (c) 2021-2023 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -31,10 +31,6 @@ using namespace AccountSA;
 
 namespace {
 const std::string STRING_TEST_NAME = "name";
-const std::int32_t DELAY_FOR_OPERATION = 250;
-const std::int32_t MAIN_ACCOUNT_ID = 100;
-const std::int32_t WAIT_A_MOMENT = 3000;
-const std::uint32_t MAX_WAIT_FOR_READY_CNT = 10;
 }  // namespace
 
 class OsAccountPhotoOperatorTest : public testing::Test {
@@ -64,17 +60,15 @@ void OsAccountPhotoOperatorTest::TearDown(void)
  * @tc.name: OsAccountPhotoOperator_DeCode_0001
  * @tc.desc: Test DeCode when string.size() = 0.
  * @tc.type: FUNC
- * @tc.require: SR000GGVFN
+ * @tc.require:
  */
 HWTEST_F(OsAccountPhotoOperatorTest, DeCode_0001, TestSize.Level1)
 {
-    ACCOUNT_LOGI(">>>>>>>>OsAccountPhotoOperator_DeCode_0001");
+    ACCOUNT_LOGI("OsAccountPhotoOperator_DeCode_0001");
 
     std::string baseStr;
     std::string ret = osAccountPhotoOperator_->DeCode(baseStr);
-    EXPECT_EQ(ret, baseStr);   
+    EXPECT_EQ(ret, baseStr);
 }
-
-
 }  // namespace AccountSA
 }  // namespace OHOS
