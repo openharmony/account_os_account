@@ -30,6 +30,7 @@
 #include "ohos_account_kits.h"
 #include "os_account_manager.h"
 #include "system_ability_definition.h"
+#include "account_log_wrapper.h"
 
 using namespace testing::ext;
 using namespace OHOS;
@@ -692,4 +693,17 @@ HWTEST_F(AccountMgrInnerSdkFuncTest, QueryOhosAccountInfoByUserId, TestSize.Leve
     std::int32_t testUserId = 200; // 200 is test user id.
     auto ret = OhosAccountKits::GetInstance().QueryOhosAccountInfoByUserId(testUserId);
     EXPECT_NE(true, ret.first);
+}
+
+/**
+ * @tc.name: GetOhosAccountInfoTest
+ * @tc.desc: Test GetOhosAccountInfo with nullptr account.
+ * @tc.type: FUNC
+ * @tc.require: issueI5X50F
+ */
+HWTEST_F(AccountMgrInnerSdkFuncTest, GetOhosAccountInfo001, TestSize.Level0)
+{
+    OhosAccountInfo accountInfoget;
+    auto ret = OhosAccountKits::GetInstance().GetOhosAccountInfo(accountInfoget);
+    EXPECT_EQ(ret, ERR_ACCOUNT_ZIDL_ACCOUNT_PROXY_ERROR);
 }

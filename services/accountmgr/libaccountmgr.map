@@ -87,6 +87,9 @@
         "OHOS::AccountSA::AppAccountControlManager::SaveAccountInfoIntoDataStorage(OHOS::AccountSA::AppAccountInfo&, std::__h::shared_ptr<OHOS::AccountSA::AppAccountDataStorage> const&, unsigned int const&)";
         "OHOS::AccountSA::AppAccountControlManager::SaveAuthorizedAccount(std::__h::basic_string<char, std::__h::char_traits<char>, std::__h::allocator<char>> const&, OHOS::AccountSA::AppAccountInfo&, std::__h::shared_ptr<OHOS::AccountSA::AppAccountDataStorage> const&, unsigned int const&)";
         "OHOS::AccountSA::AppAccountControlManager::SaveAuthorizedAccountIntoDataStorage(std::__h::basic_string<char, std::__h::char_traits<char>, std::__h::allocator<char>> const&, OHOS::AccountSA::AppAccountInfo&, std::__h::shared_ptr<OHOS::AccountSA::AppAccountDataStorage> const&)";
+        "OHOS::AccountSA::AppAccountControlManager::GetAllAccounts(const std::string &owner, std::vector<AppAccountInfo> &appAccounts, const uid_t &uid, const std::string &bundleName, const uint32_t &appIndex)";
+        "OHOS::AccountSA::AppAccountControlManager::PopDataFromAssociatedDataCache()";
+        "OHOS::AccountSA::AppAccountControlManager::SelectAccountsByOptions(const SelectAccountsOptions &options, const sptr<IAppAccountAuthenticatorCallback> &callback, const uid_t &uid, const std::string &bundleName, const uint32_t &appIndex)";
         "OHOS::AccountSA::AppAccountDataStorage::AddAccountInfoIntoDataStorage(OHOS::AccountSA::AppAccountInfo&)";
         "OHOS::AccountSA::AppAccountDataStorage::AppAccountDataStorage(std::__h::basic_string<char, std::__h::char_traits<char>, std::__h::allocator<char>> const&, bool const&)";
         "OHOS::AccountSA::AppAccountDataStorage::AUTHORIZED_ACCOUNTS";
@@ -102,6 +105,7 @@
         "OHOS::AccountSA::AppAccountSubscribeManager::InsertSubscribeRecord(std::__h::vector<std::__h::basic_string<char, std::__h::char_traits<char>, std::__h::allocator<char>>, std::__h::allocator<std::__h::basic_string<char, std::__h::char_traits<char>, std::__h::allocator<char>>>> const&, std::__h::shared_ptr<OHOS::AccountSA::AppAccountSubscribeRecord> const&)";
         "OHOS::AccountSA::AppAccountSubscribeManager::RemoveSubscribeRecord(OHOS::sptr<OHOS::IRemoteObject> const&)";
         "OHOS::AccountSA::AppAccountSubscribeManager::SubscribeAppAccount(std::__h::shared_ptr<OHOS::AccountSA::AppAccountSubscribeInfo> const&, OHOS::sptr<OHOS::IRemoteObject> const&, unsigned int const&, std::__h::basic_string<char, std::__h::char_traits<char>, std::__h::allocator<char>> const&, unsigned int const&)";
+        "OHOS::AccountSA::AppAccountSubscribeManager::UnsubscribeAppAccount(const sptr<IRemoteObject> &eventListener)";
         "OHOS::AccountSA::AuthCallback::AuthCallback(unsigned int, OHOS::UserIam::UserAuth::AuthType, OHOS::sptr<OHOS::AccountSA::IIDMCallback> const&)";
         "OHOS::AccountSA::DelCredCallback::DelCredCallback(int, unsigned long long, std::__h::vector<unsigned char, std::__h::allocator<unsigned char>> const&, OHOS::sptr<OHOS::AccountSA::IIDMCallback> const&)";
         "OHOS::AccountSA::DelCredCallback::DelCredCallback(int, unsigned long, std::__h::vector<unsigned char, std::__h::allocator<unsigned char>> const&, OHOS::sptr<OHOS::AccountSA::IIDMCallback> const&)";
@@ -207,6 +211,10 @@
         "OHOS::AccountSA::OsAccountSubscribeManager::InsertSubscribeRecord(std::__h::shared_ptr<OHOS::AccountSA::OsSubscribeRecord> const&)";
         "OHOS::AccountSA::OsAccountSubscribeManager::OsAccountSubscribeManager()";
         "OHOS::AccountSA::OsAccountSubscribeManager::RemoveSubscribeRecord(OHOS::sptr<OHOS::IRemoteObject> const&)";
+        "OHOS::AccountSA::OsAccountSubscribeManager::OnAccountsChanged(const OsSubscribeRecordPtr &osSubscribeRecordPtr, const int id)";
+        "OHOS::AccountSA::IInnerOsAccountManager::IInnerOsAccountManager()";
+        "OHOS::AccountSA::IInnerOsAccountManager::SendMsgForAccountCreate(OsAccountInfo &osAccountInfo)";
+        "OHOS::AccountSA::IInnerOsAccountManager::SendMsgForAccountActivate(OsAccountInfo &osAccountInfo)";
         "OHOS::AccountSA::SessionAppStateObserver::OnAbilityStateChanged(OHOS::AppExecFwk::AbilityStateData const&)";
         "OHOS::AccountSA::SessionAppStateObserver::SessionAppStateObserver()";
         "OHOS::AccountSA::SessionConnection::SessionConnection(std::__h::basic_string<char, std::__h::char_traits<char>, std::__h::allocator<char>> const&)";

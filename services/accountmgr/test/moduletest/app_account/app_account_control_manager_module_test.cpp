@@ -250,3 +250,30 @@ HWTEST_F(AppAccountControlManagerModuleTest, AppAccountControlManager_GetAllOAut
     ASSERT_EQ(result, ERR_OK);
     EXPECT_EQ(tokenInfos.size(), 1);
 }
+
+/**
+ * @tc.name: AppAccountControlManager_PopDataFromAssociatedDataCache_0100
+ * @tc.desc: GetAllOAuthTokens abnormal branch.
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(AppAccountControlManagerModuleTest, AppAccountControlManager_PopDataFromAssociatedDataCache_0100, TestSize.Level1)
+{
+    ACCOUNT_LOGI(">>>>>>>>AppAccountControlManager_PopDataFromAssociatedDataCache_0100");
+    AppAccountControlManager::GetInstance().PopDataFromAssociatedDataCache();
+}
+
+/**
+ * @tc.name: AppAccountControlManager_SelectAccountsByOptions_0100
+ * @tc.desc: GetAllOAuthTokens abnormal branch.
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(AppAccountControlManagerModuleTest, AppAccountControlManager_SelectAccountsByOptions_0100, TestSize.Level1)
+{
+    ACCOUNT_LOGI(">>>>>>>>AppAccountControlManager_SelectAccountsByOptions_0100");
+    SelectAccountsOptions options;
+    options.hasAccounts = true;
+    AppAccountControlManager::GetInstance().SelectAccountsByOptions(options, nullptr, UID, BUNDLE_NAME, 0);
+    //ASSERT_EQ(result, ERR_APPACCOUNT_SERVICE_DATA_STORAGE_PTR_IS_NULLPTR);
+}
