@@ -83,7 +83,7 @@ ohos_shared_library("account_iam_innerkits") {
     external_deps += [ "user_auth_framework:userauth_client" ]
   }
 
-  innerapi_tags = [ "platformsdk" ]
+  innerapi_tags = [ "platformsdk_indirect" ]
   subsystem_name = "account"
   part_name = "os_account"
 }
