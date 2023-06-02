@@ -17,6 +17,7 @@
 #define OS_ACCOUNT_SERVICES_ACCOUNTMGR_INCLUDE_APPACCOUNT_APP_ACCOUNT_COMMON_H
 
 #include <string>
+#include "iapp_account_authentication_extension_callback.h"
 #include "iapp_account_authenticator_callback.h"
 #include "want.h"
 
@@ -113,6 +114,15 @@ enum AuthenticatorAction {
     IS_ACCOUNT_REMOVABLE,
     CREATE_ACCOUNT_IMPLICITLY,
     AUTH,
+};
+
+struct AuthenticationRequest {
+    AuthenticationRequest();
+    AuthenticationRequest(const int32_t &callingUid, const AAFwk::WantParams &parameters,
+        const sptr<IAppAccountAuthenticationExtensionCallback> &callback);
+    int32_t callerUid = -1;
+    AAFwk::WantParams parameters;
+    sptr<IAppAccountAuthenticationExtensionCallback> callback = nullptr;
 };
 
 enum JSResultCode {

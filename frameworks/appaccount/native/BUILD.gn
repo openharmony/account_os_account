@@ -41,14 +41,25 @@ config("app_account_innerkits_public_config") {
 
   include_dirs = [
     "${app_account_core_path}/include",
+    "${app_account_extension_path}/include",
     "${app_account_interfaces_native_path}/include",
+    "${os_account_path}/interfaces/innerkits/appaccount/native/include",
+    "${account_napi_common_path}/include",
+    "${app_account_kits_path}/include",
     "include",
   ]
 }
 
 ohos_shared_library("app_account_innerkits") {
   sources = [
+    "${app_account_kits_path}/src/napi_app_account_authentication_extension.cpp",
     "src/app_account.cpp",
+    "src/app_account_authentication_extension_callback_client.cpp",
+    "src/app_account_authentication_extension_callback_proxy.cpp",
+    "src/app_account_authentication_extension_callback_service.cpp",
+    "src/app_account_authentication_extension_callback_stub.cpp",
+    "src/app_account_authentication_extension_service.cpp",
+    "src/app_account_authentication_extension_stub.cpp",
     "src/app_account_authenticator_callback_proxy.cpp",
     "src/app_account_authenticator_callback_stub.cpp",
     "src/app_account_authenticator_stub.cpp",
@@ -77,15 +88,23 @@ ohos_shared_library("app_account_innerkits") {
   }
 
   deps = [
+    "${account_napi_common_path}:account_napi_common",
     "${common_path}:libaccount_common",
     "${innerkits_native_path}:libaccountkits",
   ]
 
   external_deps = [
     "ability_base:want",
+    "ability_runtime:ability_context_native",
+    "ability_runtime:ability_manager",
+    "ability_runtime:abilitykit_native",
+    "ability_runtime:app_context",
+    "ability_runtime:runtime",
+    "ace_engine:ace_uicontent",
     "c_utils:utils",
     "hiviewdfx_hilog_native:libhilog",
     "ipc:ipc_single",
+    "napi:ace_napi",
     "samgr:samgr_proxy",
   ]
 
