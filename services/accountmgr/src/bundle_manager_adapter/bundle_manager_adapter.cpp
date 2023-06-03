@@ -114,6 +114,22 @@ bool BundleManagerAdapter::QueryExtensionAbilityInfos(const AAFwk::Want &want, c
     return ret;
 }
 
+bool BundleManagerAdapter::QueryExtensionAbilityInfos(
+    const AAFwk::Want &want, const AppExecFwk::ExtensionAbilityType &extensionType,
+    const int32_t &flag, const int32_t &userId, std::vector<AppExecFwk::ExtensionAbilityInfo> &extensionInfos)
+{
+    std::lock_guard<std::mutex> lock(proxyMutex_);
+    ErrCode result = Connect();
+    if (result != ERR_OK) {
+        ACCOUNT_LOGE("failed to connect bundle manager service.");
+        return false;
+    }
+    StartTraceAdapter("Bundle manager service, QueryExtensionAbilityInfos");
+    auto ret = proxy_->QueryExtensionAbilityInfos(want, extensionType, flag, userId, extensionInfos);
+    FinishTraceAdapter();
+    return ret;
+}
+
 ErrCode BundleManagerAdapter::CreateNewUser(int32_t userId)
 {
     std::lock_guard<std::mutex> lock(proxyMutex_);

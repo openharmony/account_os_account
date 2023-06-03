@@ -172,6 +172,7 @@
         "OHOS::AccountSA::InnerAppAccountManager::UnsubscribeAppAccount(OHOS::sptr<OHOS::IRemoteObject> const&)";
         "OHOS::AccountSA::InnerAppAccountManager::VerifyCredential(OHOS::AccountSA::AuthenticatorSessionRequest const&)";
         "OHOS::AccountSA::InnerAppAccountManager::~InnerAppAccountManager()";
+        "OHOS::AccountSA::InnerAppAccountManager::ExecuteRequest(OHOS::AccountSA::AuthenticationRequest&, std::__h::basic_string<char, std::__h::char_traits<char>, std::__h::allocator<char>> const&, std::__h::basic_string<char, std::__h::char_traits<char>, std::__h::allocator<char>> const&)";
         "OHOS::AccountSA::OhosAccountManager::GetAccountInfoByUserId(int, OHOS::AccountSA::AccountInfo&)";
         "OHOS::AccountSA::OhosAccountManager::GetCurrentOhosAccountState()";
         "OHOS::AccountSA::OhosAccountManager::HandleEvent(OHOS::AccountSA::AccountInfo&, std::__h::basic_string<char, std::__h::char_traits<char>, std::__h::allocator<char>> const&)";

@@ -217,6 +217,10 @@ const std::map<uint32_t, AppAccountStub::MessageProcFunction> AppAccountStub::me
         &AppAccountStub::ProcSetAuthenticatorProperties,
     },
     {
+        static_cast<uint32_t>(IAppAccount::Message::EXECUTE_REQUEST),
+        &AppAccountStub::ProcExecuteRequest,
+    },
+    {
         static_cast<uint32_t>(IAppAccount::Message::SUBSCRIBE_ACCOUNT),
         &AppAccountStub::ProcSubscribeAccount,
     },
@@ -978,6 +982,24 @@ ErrCode AppAccountStub::ProcSetAuthenticatorProperties(uint32_t code, MessagePar
         result = ERR_APPACCOUNT_SERVICE_INVALID_PARAMETER;
     } else {
         result = SetAuthenticatorProperties(owner, *options, callback);
+    }
+    if (!reply.WriteInt32(result)) {
+        ACCOUNT_LOGE("failed to write reply");
+        return IPC_STUB_WRITE_PARCEL_ERR;
+    }
+    return ERR_NONE;
+}
+
+ErrCode AppAccountStub::ProcExecuteRequest(uint32_t code, MessageParcel &data, MessageParcel &reply)
+{
+    std::shared_ptr<AccountCapabilityRequest> request(data.ReadParcelable<AccountCapabilityRequest>());
+    sptr<IRemoteObject> callback = data.ReadRemoteObject();
+    ErrCode result = ERR_OK;
+    if ((request == nullptr) || (callback == nullptr)) {
+        ACCOUNT_LOGE("invalid parameters");
+        result = ERR_APPACCOUNT_SERVICE_INVALID_PARAMETER;
+    } else {
+        result = ExecuteRequest(*request, callback);
     }
     if (!reply.WriteInt32(result)) {
         ACCOUNT_LOGE("failed to write reply");

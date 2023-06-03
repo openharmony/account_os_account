@@ -96,7 +96,7 @@ public:
         const std::vector<std::string> &labels, const sptr<IRemoteObject> &callback) override;
     ErrCode SetAuthenticatorProperties(
         const std::string &owner, const SetPropertiesOptions &options, const sptr<IRemoteObject> &callback) override;
-
+    ErrCode ExecuteRequest(const AccountCapabilityRequest &request, const sptr<IRemoteObject> &callback) override;
     ErrCode SubscribeAppAccount(
         const AppAccountSubscribeInfo &subscribeInfo, const sptr<IRemoteObject> &eventListener) override;
     ErrCode UnsubscribeAppAccount(const sptr<IRemoteObject> &eventListener) override;

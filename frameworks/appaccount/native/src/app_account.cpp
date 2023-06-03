@@ -486,6 +486,17 @@ ErrCode AppAccount::QueryAllAccessibleAccounts(
     return appAccountProxy_->QueryAllAccessibleAccounts(owner, appAccounts);
 }
 
+ErrCode AppAccount::ExecuteRequest(
+    const AccountCapabilityRequest &request, const sptr<IAppAccountAuthenticationExtensionCallback> &callback)
+{
+    if (callback == nullptr) {
+        ACCOUNT_LOGE("callback is nullptr");
+        return ERR_APPACCOUNT_KIT_INVALID_PARAMETER;
+    }
+    RETURN_IF_PROXY_IS_NULLPTR();
+    return appAccountProxy_->ExecuteRequest(request, callback->AsObject());
+}
+
 ErrCode AppAccount::SubscribeAppAccount(const std::shared_ptr<AppAccountSubscriber> &subscriber)
 {
     RETURN_IF_PROXY_IS_NULLPTR();
