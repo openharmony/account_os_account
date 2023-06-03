@@ -1224,6 +1224,35 @@ ErrCode AppAccountProxy::SetAuthenticatorProperties(
     return reply.ReadInt32();
 }
 
+ErrCode AppAccountProxy::ExecuteRequest(
+    const AccountCapabilityRequest &request, const sptr<IRemoteObject> &callback)
+{
+    MessageParcel data;
+    if (!data.WriteInterfaceToken(GetDescriptor())) {
+        ACCOUNT_LOGE("failed to write descriptor!");
+        return ERR_ACCOUNT_COMMON_WRITE_DESCRIPTOR_ERROR;
+    }
+    if (!data.WriteParcelable(&request)) {
+        ACCOUNT_LOGE("failed to write string for request");
+        return ERR_APPACCOUNT_KIT_WRITE_PARCELABLE_OPTIONS;
+    }
+    if (!data.WriteRemoteObject(callback)) {
+        ACCOUNT_LOGE("failed to write remote object for callback");
+        return ERR_APPACCOUNT_KIT_WRITE_PARCELABLE_CALLBACK;
+    }
+    MessageParcel reply;
+    ErrCode result = SendRequest(IAppAccount::Message::EXECUTE_REQUEST, data, reply);
+    if (result != ERR_OK) {
+        ACCOUNT_LOGE("failed to send request, errCode: %{public}d", result);
+        return result;
+    }
+    if (!reply.ReadInt32(result)) {
+        ACCOUNT_LOGE("failed to read result for check os account constraint enable.");
+        return ERR_ACCOUNT_COMMON_READ_PARCEL_ERROR;
+    }
+    return result;
+}
+
 ErrCode AppAccountProxy::SubscribeAppAccount(
     const AppAccountSubscribeInfo &subscribeInfo, const sptr<IRemoteObject> &eventListener)
 {

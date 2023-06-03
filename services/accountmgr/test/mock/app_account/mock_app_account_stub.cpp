@@ -363,6 +363,14 @@ ErrCode MockAppAccountStub::SetAuthenticatorProperties(
     return ERR_OK;
 }
 
+ErrCode MockAppAccountStub::ExecuteRequest(
+    const AccountCapabilityRequest &request, const sptr<IRemoteObject> &callback)
+{
+    ACCOUNT_LOGD("mock enter");
+
+    return ERR_OK;
+}
+
 ErrCode MockAppAccountStub::SubscribeAppAccount(
     const AppAccountSubscribeInfo &subscribeInfo, const sptr<IRemoteObject> &eventListener)
 {

@@ -232,6 +232,35 @@ bool CreateAccountImplicitlyOptions::ReadFromParcel(Parcel &parcel)
     return true;
 }
 
+bool AccountCapabilityRequest::Marshalling(Parcel &parcel) const
+{
+    return parcel.WriteString(bundleName) && parcel.WriteString(abilityName) && parcel.WriteParcelable(&parameters);
+}
+
+AccountCapabilityRequest *AccountCapabilityRequest::Unmarshalling(Parcel &parcel)
+{
+    AccountCapabilityRequest *info = new (std::nothrow) AccountCapabilityRequest();
+    if ((info != nullptr) && (!info->ReadFromParcel(parcel))) {
+        ACCOUNT_LOGE("read from parcel failed");
+        delete info;
+        info = nullptr;
+    }
+    return info;
+}
+
+bool AccountCapabilityRequest::ReadFromParcel(Parcel &parcel)
+{
+    if ((!parcel.ReadString(bundleName)) || (!parcel.ReadString(abilityName))) {
+        return false;
+    }
+    sptr<AAFwk::WantParams> paramsPtr = parcel.ReadParcelable<AAFwk::WantParams>();
+    if (paramsPtr == nullptr) {
+        return false;
+    }
+    parameters = *paramsPtr;
+    return true;
+}
+
 int32_t ConvertOtherJSErrCodeV8(int32_t errCode)
 {
     switch (errCode) {
