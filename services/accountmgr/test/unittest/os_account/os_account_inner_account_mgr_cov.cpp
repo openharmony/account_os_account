@@ -47,6 +47,7 @@ using namespace AccountSA;
 using namespace Security::AccessToken;
 
 const int TEST_USER_ID10 = 10;
+const int INVALID_USERID = -1;
 const int TEST_USER_ID55 = 55;
 const int ACCOUNT_UID = 3058;
 const int DELAY_FOR_OPERATION = 250;
@@ -93,7 +94,7 @@ public:
         status = false;
     }
 public:
-    int32_t localId_;
+    int32_t localId_ = INVALID_USERID;
 private:
     bool status = false;
 };

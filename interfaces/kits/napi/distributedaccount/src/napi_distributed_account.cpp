@@ -17,6 +17,7 @@
 #include <map>
 #include <string>
 #include <unistd.h>
+#include "account_info.h"
 #include "account_log_wrapper.h"
 #include "js_native_api.h"
 #include "js_native_api_types.h"
@@ -75,6 +76,19 @@ DistributedAccountAsyncContext::~DistributedAccountAsyncContext()
         NAPI_CALL_RETURN_VOID(env, napi_delete_reference(env, callbackRef));
         callbackRef = nullptr;
     }
+}
+
+napi_value DistributedAccountStatusConstructor(napi_env env)
+{
+    napi_value distributedAccountStatus = nullptr;
+    napi_value status1 = nullptr;
+    napi_value status2 = nullptr;
+    NAPI_CALL(env, napi_create_object(env, &distributedAccountStatus));
+    NAPI_CALL(env, napi_create_int32(env, static_cast<int32_t>(OHOS_ACCOUNT_STATE::ACCOUNT_STATE_UNBOUND), &status1));
+    NAPI_CALL(env, napi_create_int32(env, static_cast<int32_t>(OHOS_ACCOUNT_STATE::ACCOUNT_STATE_LOGIN), &status2));
+    NAPI_CALL(env, napi_set_named_property(env, distributedAccountStatus, "NOT_LOGGED_IN", status1));
+    NAPI_CALL(env, napi_set_named_property(env, distributedAccountStatus, "LOGGED_IN", status2));
+    return distributedAccountStatus;
 }
 
 bool ParseQueryOhosAccountInfoAsyncContext(
@@ -146,11 +160,17 @@ bool GetAccountInfo(napi_env env, napi_value object, DistributedAccountAsyncCont
     if (hasProp) {
         napi_value value = nullptr;
         napi_get_named_property(env, object, "scalableData", &value);
-        if (!AppExecFwk::UnwrapWantParams(env, value, params)) {
-            ACCOUNT_LOGE("Failed to get DistributedInfo's %{public}s property", PROPERTY_KEY_SCALABLE.c_str());
-            std::string errMsg = "The type of " + PROPERTY_KEY_SCALABLE + " must be object";
-            AccountNapiThrow(env, ERR_JS_PARAMETER_ERROR, errMsg, asyncContext->throwErr);
-            return false;
+        napi_valuetype valuetype = napi_undefined;
+        NAPI_CALL_BASE(env, napi_typeof(env, value, &valuetype), false);
+        if ((valuetype == napi_undefined) || (valuetype == napi_null)) {
+            ACCOUNT_LOGI("the scalableData is undefined or null");
+        } else {
+            if (!AppExecFwk::UnwrapWantParams(env, value, params)) {
+                ACCOUNT_LOGE("Failed to get DistributedInfo's %{public}s property", PROPERTY_KEY_SCALABLE.c_str());
+                std::string errMsg = "The type of " + PROPERTY_KEY_SCALABLE + " must be object";
+                AccountNapiThrow(env, ERR_JS_PARAMETER_ERROR, errMsg, asyncContext->throwErr);
+                return false;
+            }
         }
     }
     asyncContext->ohosAccountInfo.scalableData_.SetParams(params);
@@ -171,8 +191,12 @@ static bool ParseInfoAndEvent(napi_env env, napi_value argv, DistributedAccountA
 }
 
 static bool ParseUpdateOhosAccountInfoWithTwoArgs(
-    napi_env env, napi_value *argv, DistributedAccountAsyncContext *asyncContext)
+    napi_env env, napi_value *argv, DistributedAccountAsyncContext *asyncContext, const int32_t size)
 {
+    if (size != PARAM_TWO) {
+        ACCOUNT_LOGE("argv size is not two");
+        return false;
+    }
     napi_valuetype valueType = napi_undefined;
     napi_typeof(env, argv[PARAM_ONE], &valueType);
     if (valueType == napi_object) {
@@ -216,7 +240,7 @@ bool ParseUpdateOhosAccountInfoAsyncContext(
         return ParseInfoAndEvent(env, argv[PARAM_ONE], asyncContext);
     }
     if (argc == PARAM_TWO) {
-        return ParseUpdateOhosAccountInfoWithTwoArgs(env, argv, asyncContext);
+        return ParseUpdateOhosAccountInfoWithTwoArgs(env, argv, asyncContext, PARAM_TWO);
     }
     if (argc == PARAM_ONE) {
         return ParseInfoAndEvent(env, argv[PARAM_ZERO], asyncContext);
@@ -291,6 +315,7 @@ napi_value NapiDistributedAccount::Init(napi_env env, napi_value exports)
 {
     napi_property_descriptor descriptor[] = {
         DECLARE_NAPI_FUNCTION("getDistributedAccountAbility", GetDistributedAccountAbility),
+        DECLARE_NAPI_PROPERTY("DistributedAccountStatus", DistributedAccountStatusConstructor(env)),
     };
     napi_define_properties(env, exports, sizeof(descriptor) / sizeof(napi_property_descriptor), descriptor);
 
