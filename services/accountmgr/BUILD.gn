@@ -141,6 +141,8 @@ ohos_shared_library("accountmgr") {
   }
 
   sources = [
+    "${app_account_innerkits_native_path}/src/app_account_authentication_extension_callback_proxy.cpp",
+    "${app_account_innerkits_native_path}/src/app_account_authentication_extension_callback_stub.cpp",
     "${app_account_innerkits_native_path}/src/app_account_authenticator_callback_proxy.cpp",
     "${app_account_innerkits_native_path}/src/app_account_authenticator_callback_stub.cpp",
     "${app_account_innerkits_native_path}/src/app_account_common.cpp",
@@ -167,6 +169,7 @@ ohos_shared_library("accountmgr") {
     "src/account_state_machine.cpp",
     "src/account_stub.cpp",
     "src/appaccount/app_account_app_state_observer.cpp",
+    "src/appaccount/app_account_authentication_extension_proxy.cpp",
     "src/appaccount/app_account_authenticator_callback.cpp",
     "src/appaccount/app_account_authenticator_manager.cpp",
     "src/appaccount/app_account_authenticator_proxy.cpp",

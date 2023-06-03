@@ -22,6 +22,8 @@ innerkits_path = "${os_account_path}/interfaces/innerkits/ohosaccount/native"
 innerkits_native_path = "${os_account_path}/frameworks/ohosaccount/native"
 
 app_account_core_path = "${os_account_path}/frameworks/appaccount/core"
+app_account_extension_path =
+    "${os_account_path}/frameworks/appaccount/extension"
 app_account_interfaces_native_path =
     "${os_account_path}/interfaces/innerkits/appaccount/native"
 app_account_innerkits_native_path =
