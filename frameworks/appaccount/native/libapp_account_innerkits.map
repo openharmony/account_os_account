@@ -36,6 +36,10 @@
         "OHOS::AccountSA::AppAccountEventStub::ReadParcelableVector<OHOS::AccountSA::AppAccountInfo>(std::__h::vector<OHOS::AccountSA::AppAccountInfo, std::__h::allocator<OHOS::AccountSA::AppAccountInfo>>&, OHOS::MessageParcel&)";
         "OHOS::AccountSA::AppAccountEventStub::~AppAccountEventStub()";
         "OHOS::AccountSA::AppAccountInfo::AppAccountInfo()";
+        "OHOS::AccountSA::AuthenticationRequest::AuthenticationRequest()";
+        "OHOS::AbilityRuntime::JsAuthenticationExtension::StartAuthenticationWork(uv_work_s*, int)";
+        "OHOS::AccountSA::AppAccountAuthenticationExtensionService::AppAccountAuthenticationExtensionService(std::__h::shared_ptr<OHOS::AccountJsKit::JsAuthenticationExtension> const&)";
+        "OHOS::AccountSA::AppAccountAuthenticationExtensionCallbackProxy::AppAccountAuthenticationExtensionCallbackProxy(OHOS::sptr<OHOS::IRemoteObject> const&)";
         "OHOS::AccountSA::AppAccountInfo::GetName(std::__h::basic_string<char, std::__h::char_traits<char>, std::__h::allocator<char>>&) const";
         "OHOS::AccountSA::AppAccountInfo::GetOwner(std::__h::basic_string<char, std::__h::char_traits<char>, std::__h::allocator<char>>&)";
         "OHOS::AccountSA::AppAccountManager::AddAccount(std::__h::basic_string<char, std::__h::char_traits<char>, std::__h::allocator<char>> const&, std::__h::basic_string<char, std::__h::char_traits<char>, std::__h::allocator<char>> const&)";
@@ -98,6 +102,8 @@
         "OHOS::AccountSA::SetPropertiesOptions::Unmarshalling(OHOS::Parcel&)";
         "OHOS::AccountSA::VerifyCredentialOptions::Marshalling(OHOS::Parcel&) const";
         "OHOS::AccountSA::VerifyCredentialOptions::Unmarshalling(OHOS::Parcel&)";
+        "OHOS::AccountSA::AccountCapabilityRequest::Marshalling(OHOS::Parcel&) const";
+        "OHOS::AccountSA::AccountCapabilityRequest::Unmarshalling(OHOS::Parcel&)";
         "OHOS::AccountSA::AppAccount::CreateAppAccountEventListener(std::__h::shared_ptr<OHOS::AccountSA::AppAccountSubscriber> const&, OHOS::sptr<OHOS::IRemoteObject>&)";
         "OHOS::AccountSA::AppAccountInfo::AppAccountInfo(std::__h::basic_string<char, std::__h::char_traits<char>, std::__h::allocator<char>> const&, std::__h::basic_string<char, std::__h::char_traits<char>, std::__h::allocator<char>> const&)";
         "OHOS::AccountSA::AppAccountInfo::GetExtraInfo(std::__h::basic_string<char, std::__h::char_traits<char>, std::__h::allocator<char>>&) const";

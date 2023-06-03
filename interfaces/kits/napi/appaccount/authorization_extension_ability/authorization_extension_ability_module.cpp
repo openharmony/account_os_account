@@ -25,7 +25,7 @@ extern "C" __attribute__((constructor)) void NAPI_account_appAccount_Authorizati
     auto moduleManager = NativeModuleManager::GetInstance();
     NativeModule newModuleInfo = {
         .name = "account.appAccount.AuthorizationExtensionAbility",
-        .fileName = "account/appAccount/libauthenticationextensionability_napi.so/authorization_extension_ability.js",
+        .fileName = "account/appAccount/libauthorizationextensionability_napi.so/authorization_extension_ability.js",
     };
 
     if (moduleManager != nullptr) {

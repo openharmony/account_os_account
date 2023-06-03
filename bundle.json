@@ -80,7 +80,10 @@
         ],
         "service_group": [
           "//base/account/os_account/services:services_target",
-          "//base/account/os_account/services/accountmgr/src/appaccount:app_account_service_core"
+          "//base/account/os_account/services/accountmgr/src/appaccount:app_account_service_core",
+          "//base/account/os_account/frameworks/appaccount/extension:authentication_extension",
+          "//base/account/os_account/frameworks/appaccount/extension:authentication_extension_module",
+          "//base/account/os_account/interfaces/kits/napi/appaccount/authorization_extension_ability:authorizationextensionability_napi"
         ]
       },
       "inner_kits": [
