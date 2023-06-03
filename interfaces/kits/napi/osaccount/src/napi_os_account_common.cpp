@@ -525,6 +525,35 @@ bool ParseParaCreateOA(napi_env env, napi_callback_info cbInfo, CreateOAAsyncCon
     return true;
 }
 
+static bool ParseDomainAccountInfo(napi_env env, napi_value object, DomainAccountInfo &info)
+{
+    if (!GetStringPropertyByKey(env, object, "domain", info.domain_)) {
+        ACCOUNT_LOGE("get domainInfo's domain failed");
+        return false;
+    }
+    if (!GetStringPropertyByKey(env, object, "accountName", info.accountName_)) {
+        ACCOUNT_LOGE("get domainInfo's accountName failed");
+        return false;
+    }
+    bool hasProp = false;
+    napi_has_named_property(env, object, "accountId", &hasProp);
+    if (hasProp) {
+        napi_value value = nullptr;
+        napi_get_named_property(env, object, "accountId", &value);
+        napi_valuetype valueType = napi_undefined;
+        napi_typeof(env, value, &valueType);
+        if ((valueType == napi_undefined) || (valueType == napi_null)) {
+            ACCOUNT_LOGI("the accountId is undefined or null");
+        } else {
+            if (!GetStringProperty(env, value, info.accountId_)) {
+                ACCOUNT_LOGE("get domainInfo's accountId failed");
+                return false;
+            }
+        }
+    }
+    return true;
+}
+
 bool ParseParaCreateOAForDomain(napi_env env, napi_callback_info cbInfo,
     CreateOAForDomainAsyncContext *asyncContext)
 {
@@ -550,15 +579,9 @@ bool ParseParaCreateOAForDomain(napi_env env, napi_callback_info cbInfo,
     }
     asyncContext->type = static_cast<OsAccountType>(id);
 
-    if (!GetStringPropertyByKey(env, argv[PARAMONE], "domain", asyncContext->domainInfo.domain_)) {
-        ACCOUNT_LOGE("Get domainInfo's domain failed");
-        std::string errMsg = "The type of arg 2's domain must be string";
-        AccountNapiThrow(env, ERR_JS_PARAMETER_ERROR, errMsg, asyncContext->throwErr);
-        return false;
-    }
-    if (!GetStringPropertyByKey(env, argv[PARAMONE], "accountName", asyncContext->domainInfo.accountName_)) {
-        ACCOUNT_LOGE("Get domainInfo's accountName failed");
-        std::string errMsg = "The type of arg 2's accountName must be string";
+    if (!ParseDomainAccountInfo(env, argv[PARAMONE], asyncContext->domainInfo)) {
+        ACCOUNT_LOGE("get domainInfo failed");
+        std::string errMsg = "DomainInfo parse failed";
         AccountNapiThrow(env, ERR_JS_PARAMETER_ERROR, errMsg, asyncContext->throwErr);
         return false;
     }
@@ -1119,19 +1142,12 @@ bool ParseParaGetIdByDomain(napi_env env, napi_callback_info cbInfo, GetIdByDoma
         }
     }
 
-    if (!GetStringPropertyByKey(env, argv[PARAMZERO], "domain", asyncContext->domainInfo.domain_)) {
-        ACCOUNT_LOGE("Get domainInfo's domain failed");
-        std::string errMsg = "The type of arg 1's domain must be string";
+    if (!ParseDomainAccountInfo(env, argv[PARAMZERO], asyncContext->domainInfo)) {
+        ACCOUNT_LOGE("get domainInfo failed");
+        std::string errMsg = "DomainInfo parse failed";
         AccountNapiThrow(env, ERR_JS_PARAMETER_ERROR, errMsg, asyncContext->throwErr);
         return false;
     }
-    if (!GetStringPropertyByKey(env, argv[PARAMZERO], "accountName", asyncContext->domainInfo.accountName_)) {
-        ACCOUNT_LOGE("Get domainInfo's accountName failed");
-        std::string errMsg = "The type of arg 1's accountName must be string";
-        AccountNapiThrow(env, ERR_JS_PARAMETER_ERROR, errMsg, asyncContext->throwErr);
-        return false;
-    }
-
     return true;
 }
 
@@ -1510,6 +1526,36 @@ void IsMultiEnCompletedCB(napi_env env, napi_status status, void *data)
     asyncContext = nullptr;
 }
 
+static bool ParseParaIsVerifiedWithOneParam(
+    napi_env env, napi_value value, IsVerifiedAsyncContext *asyncContext)
+{
+    napi_valuetype valueType = napi_undefined;
+    napi_typeof(env, value, &valueType);
+    if (valueType == napi_number) {
+        if (!GetIntProperty(env, value, asyncContext->id)) {
+            ACCOUNT_LOGE("Get id failed");
+            std::string errMsg = "The type of arg 1 must be number";
+            AccountNapiThrow(env, ERR_JS_PARAMETER_ERROR, errMsg, asyncContext->throwErr);
+            return false;
+        }
+    } else if (valueType == napi_function) {
+        if (!GetCallbackProperty(env, value, asyncContext->callbackRef, 1)) {
+            ACCOUNT_LOGE("Get callbackRef failed");
+            std::string errMsg = "The type of arg 1 must be function";
+            AccountNapiThrow(env, ERR_JS_PARAMETER_ERROR, errMsg, asyncContext->throwErr);
+            return false;
+        }
+    } else if ((valueType == napi_undefined) || (valueType == napi_null)) {
+        ACCOUNT_LOGI("id is undefined or null");
+    } else {
+        ACCOUNT_LOGE("Wrong arg type, expected number or function");
+        std::string errMsg = "The type of arg 1 must be number or function";
+        AccountNapiThrow(env, ERR_JS_PARAMETER_ERROR, errMsg, asyncContext->throwErr);
+        return false;
+    }
+    return true;
+}
+
 bool ParseParaIsVerified(napi_env env, napi_callback_info cbInfo, IsVerifiedAsyncContext *asyncContext)
 {
     size_t argc = ARGS_SIZE_TWO;
@@ -1520,29 +1566,7 @@ bool ParseParaIsVerified(napi_env env, napi_callback_info cbInfo, IsVerifiedAsyn
         return true;
     }
     if (argc == ARGS_SIZE_ONE) {
-        napi_valuetype valueType = napi_undefined;
-        napi_typeof(env, argv[PARAMZERO], &valueType);
-        if (valueType == napi_number) {
-            if (!GetIntProperty(env, argv[PARAMZERO], asyncContext->id)) {
-                ACCOUNT_LOGE("Get id failed");
-                std::string errMsg = "The type of arg 1 must be number";
-                AccountNapiThrow(env, ERR_JS_PARAMETER_ERROR, errMsg, asyncContext->throwErr);
-                return false;
-            }
-        } else if (valueType == napi_function) {
-            if (!GetCallbackProperty(env, argv[PARAMZERO], asyncContext->callbackRef, 1)) {
-                ACCOUNT_LOGE("Get callbackRef failed");
-                std::string errMsg = "The type of arg 1 must be function";
-                AccountNapiThrow(env, ERR_JS_PARAMETER_ERROR, errMsg, asyncContext->throwErr);
-                return false;
-            }
-        } else {
-            ACCOUNT_LOGE("Wrong arg type, expected number or function");
-            std::string errMsg = "The type of arg 1 must be number or function";
-            AccountNapiThrow(env, ERR_JS_PARAMETER_ERROR, errMsg, asyncContext->throwErr);
-            return false;
-        }
-        return true;
+        return ParseParaIsVerifiedWithOneParam(env, argv[PARAMZERO], asyncContext);
     }
     if (argc == ARGS_SIZE_TWO) {
         if (!GetCallbackProperty(env, argv[argc - 1], asyncContext->callbackRef, 1)) {
@@ -1551,11 +1575,17 @@ bool ParseParaIsVerified(napi_env env, napi_callback_info cbInfo, IsVerifiedAsyn
             AccountNapiThrow(env, ERR_JS_PARAMETER_ERROR, errMsg, asyncContext->throwErr);
             return false;
         }
-        if (!GetIntProperty(env, argv[PARAMZERO], asyncContext->id)) {
-            ACCOUNT_LOGE("Get id failed");
-            std::string errMsg = "The type of arg 1 must be number";
-            AccountNapiThrow(env, ERR_JS_PARAMETER_ERROR, errMsg, asyncContext->throwErr);
-            return false;
+        napi_valuetype valueType = napi_undefined;
+        napi_typeof(env, argv[PARAMZERO], &valueType);
+        if ((valueType == napi_undefined) || (valueType == napi_null)) {
+            ACCOUNT_LOGI("id is undefined or null");
+        } else {
+            if (!GetIntProperty(env, argv[PARAMZERO], asyncContext->id)) {
+                ACCOUNT_LOGE("Get id failed");
+                std::string errMsg = "The type of arg 1 must be number";
+                AccountNapiThrow(env, ERR_JS_PARAMETER_ERROR, errMsg, asyncContext->throwErr);
+                return false;
+            }
         }
     }
     return true;

@@ -57,6 +57,7 @@ ohos_shared_library("appaccount") {
 
   deps = [
     "${account_napi_common_path}:account_napi_common",
+    "${app_account_innerkits_native_path}:app_account_innerkits",
     "${common_path}:libaccount_common",
   ]
 
@@ -70,7 +71,6 @@ ohos_shared_library("appaccount") {
     "ipc:ipc_napi_common",
     "ipc:ipc_single",
     "napi:ace_napi",
-    "os_account:app_account_innerkits",
   ]
 
   subsystem_name = "account"

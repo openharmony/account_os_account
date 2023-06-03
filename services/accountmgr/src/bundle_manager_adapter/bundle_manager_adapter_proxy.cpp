@@ -39,8 +39,15 @@ inline void ClearAshmem(sptr<Ashmem> &optMem)
         optMem->CloseAshmem();
     }
 }
+}
 
-bool ParseStr(const char *buf, const int itemLen, int index, std::string &result)
+BundleManagerAdapterProxy::BundleManagerAdapterProxy(const sptr<IRemoteObject> &impl) : IRemoteProxy<IBundleMgr>(impl)
+{}
+
+BundleManagerAdapterProxy::~BundleManagerAdapterProxy()
+{}
+
+bool BundleManagerAdapterProxy::ParseStr(const char *buf, const int itemLen, int index, std::string &result)
 {
     ACCOUNT_LOGD("ParseStr itemLen:%{public}d index:%{public}d.", itemLen, index);
     if (buf == nullptr || itemLen <= 0 || index < 0) {
@@ -60,7 +67,7 @@ bool ParseStr(const char *buf, const int itemLen, int index, std::string &result
 }
 
 template<typename T>
-bool ParseInfo(std::string &infoStr, T &info)
+bool BundleManagerAdapterProxy::ParseInfo(std::string &infoStr, T &info)
 {
     nlohmann::json jsonObject = nlohmann::json::parse(infoStr.c_str(), nullptr, false);
     if (jsonObject.is_discarded()) {
@@ -90,18 +97,11 @@ bool ParseInfo(std::string &infoStr, T &info)
         info.appId = jsonObject.at(BUNDLE_INFO_APPID).get<std::string>();
     }
     if ((jsonObject.find(BUNDLE_INFO_APP_INDEX) != jsonObject.end()) &&
-        jsonObject.at(BUNDLE_INFO_APP_INDEX).is_boolean()) {
+        jsonObject.at(BUNDLE_INFO_APP_INDEX).is_number()) {
         info.appIndex = jsonObject.at(BUNDLE_INFO_APP_INDEX).get<int32_t>();
     }
     return true;
 }
-}
-
-BundleManagerAdapterProxy::BundleManagerAdapterProxy(const sptr<IRemoteObject> &impl) : IRemoteProxy<IBundleMgr>(impl)
-{}
-
-BundleManagerAdapterProxy::~BundleManagerAdapterProxy()
-{}
 
 bool BundleManagerAdapterProxy::GetBundleInfo(
     const std::string &bundleName, const BundleFlag flag, BundleInfo &bundleInfo, int32_t userId)

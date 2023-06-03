@@ -43,8 +43,8 @@ ohos_shared_library("distributedaccount") {
   ]
 
   deps = [
-    "${ability_runtime_napi_path}/inner/napi_common:napi_common",
     "${account_napi_common_path}:account_napi_common",
+    "${innerkits_native_path}:libaccountkits",
   ]
 
   relative_install_dir = "module/account"
@@ -52,11 +52,11 @@ ohos_shared_library("distributedaccount") {
   external_deps = [
     "ability_base:want",
     "ability_runtime:abilitykit_native",
+    "ability_runtime:napi_common",
     "ability_runtime:wantagent_innerkits",
     "c_utils:utils",
     "hiviewdfx_hilog_native:libhilog",
     "napi:ace_napi",
-    "os_account:libaccountkits",
   ]
 
   part_name = "os_account"

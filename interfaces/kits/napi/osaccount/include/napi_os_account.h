@@ -202,9 +202,9 @@ struct SubscriberOAWorker : public CommonAsyncContext {
 };
 
 struct UnsubscribeCBInfo : public CommonAsyncContext {
-    UnsubscribeCBInfo(napi_env napiEnv) : CommonAsyncContext(napiEnv) {};
+    UnsubscribeCBInfo(napi_env napiEnv) : CommonAsyncContext(napiEnv){};
     ~UnsubscribeCBInfo();
-    OS_ACCOUNT_SUBSCRIBE_TYPE osSubscribeType;
+    OS_ACCOUNT_SUBSCRIBE_TYPE osSubscribeType = OS_ACCOUNT_SUBSCRIBE_TYPE::INVALID_TYPE;
     std::string name;
     OsAccountManager *osManager = nullptr;
     std::vector<std::shared_ptr<SubscriberPtr>> subscribers;

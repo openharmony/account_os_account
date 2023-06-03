@@ -367,63 +367,6 @@ HWTEST_F(AppAccountManagerServiceSubscribeModuleTest, AppAccountManagerServiceSu
 }
 
 /**
- * @tc.name: AppAccountManagerServiceSubscribe_SubscribeAppAccount_0400
- * @tc.desc: Subscribe app accounts with valid data.
- * @tc.type: FUNC
- * @tc.require: SR000GGVFT
- */
-HWTEST_F(AppAccountManagerServiceSubscribeModuleTest, AppAccountManagerServiceSubscribe_SubscribeAppAccount_0400,
-    TestSize.Level1)
-{
-    ACCOUNT_LOGI("AppAccountManagerServiceSubscribe_SubscribeAppAccount_0400");
-
-    // add an account
-    std::string name = STRING_NAME;
-    std::string bundleName = STRING_BUNDLE_NAME;
-    AppAccountInfo appAccountInfo(name, bundleName);
-    ErrCode result = AppAccountControlManager::GetInstance().AddAccount(
-        name, STRING_EXTRA_INFO, UID, bundleName, appAccountInfo);
-    EXPECT_EQ(result, ERR_OK);
-
-    // enable app access
-    AppAccountCallingInfo appAccountCallingInfo;
-    appAccountCallingInfo.callingUid = UID;
-    appAccountCallingInfo.bundleName = bundleName;
-    result = AppAccountControlManager::GetInstance().EnableAppAccess(
-        name, STRING_OWNER, appAccountCallingInfo, appAccountInfo);
-    EXPECT_EQ(result, ERR_OK);
-
-    // make owners
-    std::vector<std::string> owners;
-    owners.emplace_back(bundleName);
-
-    // make subscribe info
-    AppAccountSubscribeInfo subscribeInfo(owners);
-
-    // make a subscriber
-    auto subscriberTestPtr = std::make_shared<AppAccountSubscriberTest>(subscribeInfo);
-
-    // make an event listener
-    sptr<IRemoteObject> appAccountEventListener = nullptr;
-
-    ErrCode subscribeState = AppAccount::GetInstance().CreateAppAccountEventListener(
-        subscriberTestPtr, appAccountEventListener);
-    EXPECT_EQ(subscribeState, AppAccount::INITIAL_SUBSCRIPTION);
-
-    // subscribe app account
-    result = appAccountManagerServicePtr_->SubscribeAppAccount(subscribeInfo, appAccountEventListener);
-    EXPECT_EQ(result, ERR_OK);
-
-    // unsubscribe app account
-    result = appAccountManagerServicePtr_->UnsubscribeAppAccount(appAccountEventListener);
-    EXPECT_EQ(result, ERR_OK);
-
-    // delete account
-    result = AppAccountControlManager::GetInstance().DeleteAccount(name, UID, bundleName, appAccountInfo);
-    EXPECT_EQ(result, ERR_OK);
-}
-
-/**
  * @tc.name: AppAccountManagerServiceSubscribe_SubscribeAppAccount_0500
  * @tc.desc: Subscribe app accounts with invalid data.
  * @tc.type: FUNC

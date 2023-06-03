@@ -23,6 +23,7 @@
         "OHOS::AccountSA::OsAccount::ActivateOsAccount(int)";
         "OHOS::AccountSA::OsAccount::StopOsAccount(int)";
         "VTT for OHOS::AccountSA::OsAccountInfo";
+        "OHOS::AccountSA::OsAccountEventListener::OsAccountEventListener(std::__h::shared_ptr<OHOS::AccountSA::OsAccountSubscriber> const&)";
     };
   local:
     *;
