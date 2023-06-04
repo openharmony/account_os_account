@@ -97,6 +97,7 @@ public:
         const std::vector<std::string> &labels, const sptr<IRemoteObject> &callback) = 0;
     virtual ErrCode SetAuthenticatorProperties(
         const std::string &owner, const SetPropertiesOptions &options, const sptr<IRemoteObject> &callback) = 0;
+    virtual ErrCode ExecuteRequest(const AccountCapabilityRequest &request, const sptr<IRemoteObject> &callback) = 0;
 
     virtual ErrCode SubscribeAppAccount(
         const AppAccountSubscribeInfo &subscribeInfo, const sptr<IRemoteObject> &eventListener) = 0;
@@ -145,7 +146,8 @@ public:
         CHECK_ACCOUNT_LABELS,
         SET_AUTHENTICATOR_PROPERTIES,
         CREATE_ACCOUNT,
-        CREATE_ACCOUNT_IMPLICITLY
+        CREATE_ACCOUNT_IMPLICITLY,
+        EXECUTE_REQUEST
     };
 };
 }  // namespace AccountSA

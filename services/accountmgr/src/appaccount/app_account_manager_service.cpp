@@ -700,6 +700,25 @@ ErrCode AppAccountManagerService::SetAuthenticatorProperties(
     return innerManager_->SetAuthenticatorProperties(request);
 }
 
+ErrCode AppAccountManagerService::ExecuteRequest(
+    const AccountCapabilityRequest &request, const sptr<IRemoteObject> &callback)
+{
+    AuthenticationRequest innerRequest;
+    std::string callerBundleName;
+    uint32_t appIndex;
+    ErrCode result = GetCallingInfo(innerRequest.callerUid, callerBundleName, appIndex);
+    if (result != ERR_OK) {
+        return result;
+    }
+
+    innerRequest.parameters = request.parameters;
+    innerRequest.callback = iface_cast<IAppAccountAuthenticationExtensionCallback>(callback);
+    if (innerRequest.callback == nullptr) {
+        return ERR_JS_SYSTEM_SERVICE_EXCEPTION;
+    }
+    return innerManager_->ExecuteRequest(innerRequest, request.bundleName, request.abilityName);
+}
+
 ErrCode AppAccountManagerService::SubscribeAppAccount(
     const AppAccountSubscribeInfo &subscribeInfo, const sptr<IRemoteObject> &eventListener)
 {

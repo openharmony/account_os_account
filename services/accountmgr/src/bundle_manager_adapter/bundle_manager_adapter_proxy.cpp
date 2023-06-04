@@ -31,6 +31,7 @@ const std::string BUNDLE_INFO_SINGLETON = "singleton";
 const std::string BUNDLE_INFO_IS_NATIVE_APP = "isNativeApp";
 const std::string BUNDLE_INFO_APPID = "appId";
 const std::string BUNDLE_INFO_APP_INDEX = "appIndex";
+const std::string BUNDLE_INFO_EXTENSION_ABILITY_INFOS = "extensionAbilityInfo";
 
 inline void ClearAshmem(sptr<Ashmem> &optMem)
 {
@@ -39,6 +40,45 @@ inline void ClearAshmem(sptr<Ashmem> &optMem)
         optMem->CloseAshmem();
     }
 }
+
+const std::string EXTENSION_NAME = "name";
+const std::string EXTENSION_LABEL = "label";
+const std::string EXTENSION_DESCRIPTION = "description";
+const std::string EXTENSION_TYPE = "type";
+const std::string EXTENSION_VISIBLE = "visible";
+const std::string EXTENSION_UID = "uid";
+}
+
+bool BundleManagerAdapterProxy::ParseExtensionInfo(std::string infoStr, ExtensionAbilityInfo &extensionInfo)
+{
+    nlohmann::json jsonObject = nlohmann::json::parse(infoStr.c_str(), nullptr, false);
+    if (jsonObject.is_discarded()) {
+        ACCOUNT_LOGE("failed due to data is discarded");
+        return false;
+    }
+    if ((jsonObject.find(EXTENSION_NAME) != jsonObject.end()) && jsonObject.at(EXTENSION_NAME).is_string()) {
+        extensionInfo.name = jsonObject.at(EXTENSION_NAME).get<std::string>();
+    }
+    if ((jsonObject.find(EXTENSION_LABEL) != jsonObject.end()) && jsonObject.at(EXTENSION_LABEL).is_string()) {
+        extensionInfo.label = jsonObject.at(EXTENSION_LABEL).get<std::string>();
+    }
+    if ((jsonObject.find(EXTENSION_DESCRIPTION) != jsonObject.end()) &&
+        jsonObject.at(EXTENSION_DESCRIPTION).is_string()) {
+        extensionInfo.description = jsonObject.at(EXTENSION_DESCRIPTION).get<std::string>();
+    }
+    if ((jsonObject.find(EXTENSION_TYPE) != jsonObject.end()) &&
+        jsonObject.at(EXTENSION_TYPE).is_number()) {
+        extensionInfo.type = static_cast<ExtensionAbilityType>(jsonObject.at(EXTENSION_TYPE).get<int32_t>());
+    }
+    if ((jsonObject.find(EXTENSION_VISIBLE) != jsonObject.end()) &&
+        jsonObject.at(EXTENSION_VISIBLE).is_boolean()) {
+        extensionInfo.visible = jsonObject.at(EXTENSION_VISIBLE).get<bool>();
+    }
+    if ((jsonObject.find(EXTENSION_UID) != jsonObject.end()) &&
+        jsonObject.at(EXTENSION_UID).is_number()) {
+        extensionInfo.uid = jsonObject.at(EXTENSION_UID).get<int32_t>();
+    }
+    return true;
 }
 
 BundleManagerAdapterProxy::BundleManagerAdapterProxy(const sptr<IRemoteObject> &impl) : IRemoteProxy<IBundleMgr>(impl)
@@ -63,6 +103,35 @@ bool BundleManagerAdapterProxy::ParseStr(const char *buf, const int itemLen, int
 
     std::string str(item, 0, itemLen);
     result = str;
+    return true;
+}
+
+bool BundleManagerAdapterProxy::ParseExtensionAbilityInfos(
+    nlohmann::json jsonObject, std::vector<ExtensionAbilityInfo> &extensionInfos)
+{
+    if ((jsonObject.find(BUNDLE_INFO_EXTENSION_ABILITY_INFOS) == jsonObject.end()) ||
+        (!jsonObject.at(BUNDLE_INFO_EXTENSION_ABILITY_INFOS).is_array())) {
+        return true;
+    }
+    auto arrays = jsonObject.at(BUNDLE_INFO_EXTENSION_ABILITY_INFOS);
+    if (arrays.empty()) {
+        return true;
+    }
+    if (arrays.size() > Constants::MAX_JSON_ARRAY_LENGTH) {
+        ACCOUNT_LOGE("array is oversize");
+        return false;
+    }
+    for (const auto &iter : arrays) {
+        if (!iter.is_object()) {
+            ACCOUNT_LOGE("array %{public}s exist error type info", BUNDLE_INFO_EXTENSION_ABILITY_INFOS.c_str());
+            continue;
+        }
+        ExtensionAbilityInfo abilityInfo;
+        if (!ParseExtensionInfo(iter.dump(), abilityInfo)) {
+            continue;
+        }
+        extensionInfos.emplace_back(abilityInfo);
+    }
     return true;
 }
 
@@ -99,6 +168,9 @@ bool BundleManagerAdapterProxy::ParseInfo(std::string &infoStr, T &info)
     if ((jsonObject.find(BUNDLE_INFO_APP_INDEX) != jsonObject.end()) &&
         jsonObject.at(BUNDLE_INFO_APP_INDEX).is_number()) {
         info.appIndex = jsonObject.at(BUNDLE_INFO_APP_INDEX).get<int32_t>();
+    }
+    if (!ParseExtensionAbilityInfos(jsonObject, info.extensionInfos)) {
+        return false;
     }
     return true;
 }
@@ -267,6 +339,38 @@ bool BundleManagerAdapterProxy::QueryExtensionAbilityInfos(const Want &want, con
     }
 
     if (!GetParcelableInfos(IBundleMgr::Message::QUERY_EXTENSION_INFO_WITHOUT_TYPE, data, extensionInfos)) {
+        ACCOUNT_LOGE("fail to obtain extensionInfos");
+        return false;
+    }
+    return true;
+}
+
+bool BundleManagerAdapterProxy::QueryExtensionAbilityInfos(const Want &want, const ExtensionAbilityType &extensionType,
+    const int32_t &flag, const int32_t &userId, std::vector<ExtensionAbilityInfo> &extensionInfos)
+{
+    MessageParcel data;
+    if (!data.WriteInterfaceToken(GetDescriptor())) {
+        ACCOUNT_LOGE("fail to QueryExtensionAbilityInfos due to write InterfaceToken fail");
+        return false;
+    }
+    if (!data.WriteParcelable(&want)) {
+        ACCOUNT_LOGE("fail to QueryExtensionAbilityInfos due to write want fail");
+        return false;
+    }
+    if (!data.WriteInt32(static_cast<int32_t>(extensionType))) {
+        ACCOUNT_LOGE("fail to QueryExtensionAbilityInfos due to write type fail");
+        return false;
+    }
+    if (!data.WriteInt32(flag)) {
+        ACCOUNT_LOGE("fail to QueryExtensionAbilityInfos due to write flag fail");
+        return false;
+    }
+    if (!data.WriteInt32(userId)) {
+        ACCOUNT_LOGE("fail to QueryExtensionAbilityInfos due to write userId fail");
+        return false;
+    }
+
+    if (!GetParcelableInfos(IBundleMgr::Message::QUERY_EXTENSION_INFO, data, extensionInfos)) {
         ACCOUNT_LOGE("fail to obtain extensionInfos");
         return false;
     }

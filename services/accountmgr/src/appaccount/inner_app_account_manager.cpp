@@ -15,11 +15,14 @@
 
 #include "inner_app_account_manager.h"
 
+#include "ability_manager_adapter.h"
 #include "account_info.h"
 #include "account_log_wrapper.h"
 #include "app_account_authenticator_session.h"
 #include "app_account_control_manager.h"
 #include "app_account_subscribe_manager.h"
+#include "app_account_authentication_extension_stub.h"
+#include "bundle_manager_adapter.h"
 
 namespace OHOS {
 namespace AccountSA {
@@ -223,6 +226,100 @@ ErrCode InnerAppAccountManager::Authenticate(const AuthenticatorSessionRequest &
         return sessionManager_.Auth(request);
     }
     return sessionManager_.Authenticate(request);
+}
+
+RequestConnection::RequestConnection(const int32_t &uid, const AuthenticationRequest &request)
+    :uid_(uid), request_(request)
+{}
+
+RequestConnection::~RequestConnection()
+{}
+
+void RequestConnection::OnAbilityConnectDone(
+    const AppExecFwk::ElementName &element, const sptr<IRemoteObject> &remoteObject, int32_t resultCode)
+{
+    AAFwk::WantParams errResult;
+    sptr<IAppAccountAuthenticationExtension>
+        authenticationProxy_ = iface_cast<IAppAccountAuthenticationExtension>(remoteObject);
+    if ((!authenticationProxy_) || (!authenticationProxy_->AsObject())) {
+        ACCOUNT_LOGE("failed to cast app account authenticator proxy, callerUid = %{public}d", uid_);
+        request_.callback->OnResult(ERR_JS_SYSTEM_SERVICE_EXCEPTION, errResult);
+        return;
+    }
+    resultCode = authenticationProxy_->StartAuthentication(request_);
+    if (resultCode != ERR_OK) {
+        request_.callback->OnResult(ERR_JS_SYSTEM_SERVICE_EXCEPTION, errResult);
+    }
+    return;
+}
+
+void RequestConnection::OnAbilityDisconnectDone(const AppExecFwk::ElementName &element, int resultCode)
+{}
+
+static bool QueryAbilityInfo(const std::string &bundleName, const std::string &abilityName, int32_t userId,
+    AppExecFwk::ExtensionAbilityInfo &extensionInfo)
+{
+    if (abilityName.size() != 0) {
+        AAFwk::Want want;
+        AppExecFwk::ElementName element;
+        element.SetBundleName(bundleName);
+        element.SetAbilityName(abilityName);
+        want.SetElement(element);
+        std::vector<AppExecFwk::ExtensionAbilityInfo> extensionInfos;
+        bool result = BundleManagerAdapter::GetInstance()->QueryExtensionAbilityInfos(want,
+            AppExecFwk::ExtensionAbilityType::APP_ACCOUNT_AUTHORIZATION,
+            AppExecFwk::ExtensionAbilityInfoFlag::GET_EXTENSION_INFO_DEFAULT, userId, extensionInfos);
+        if (!result) {
+            ACCOUNT_LOGE("failed to query ability info");
+            return false;
+        }
+        extensionInfo = extensionInfos[0];
+        return true;
+    }
+    AppExecFwk::BundleInfo bundleInfo;
+    bool bundleRet = BundleManagerAdapter::GetInstance()->GetBundleInfo(bundleName,
+        AppExecFwk::BundleFlag::GET_BUNDLE_WITH_EXTENSION_INFO, bundleInfo, userId);
+    if (!bundleRet || bundleInfo.extensionInfos.size() == 0) {
+        ACCOUNT_LOGE("failed to query bundle info");
+        return false;
+    }
+    uint32_t targetCount = 0;
+    for (auto iter : bundleInfo.extensionInfos) {
+        if (iter.type == AppExecFwk::ExtensionAbilityType::APP_ACCOUNT_AUTHORIZATION) {
+            targetCount++;
+            extensionInfo = iter;
+            if (targetCount > 1) {
+                ACCOUNT_LOGE("failed to get target ability info");
+                return false;
+            }
+        }
+    }
+    if (targetCount != 1) {
+        ACCOUNT_LOGE("failed to get target ability info");
+        return false;
+    }
+    return true;
+}
+
+ErrCode InnerAppAccountManager::ExecuteRequest(
+    AuthenticationRequest &request, const std::string &bundleName, const std::string &abilityName)
+{
+    AAFwk::WantParams Params;
+    AppExecFwk::ExtensionAbilityInfo extensionInfo;
+    int32_t userId = request.callerUid / UID_TRANSFORM_DIVISOR;
+    if (!QueryAbilityInfo(bundleName, abilityName, userId, extensionInfo)) {
+        return ERR_JS_INVALID_PARAMETER;
+    }
+
+    AAFwk::Want want;
+    want.SetElementName(bundleName, extensionInfo.name);
+    sptr<RequestConnection> conn_ = new (std::nothrow) RequestConnection(request.callerUid, request);
+    ErrCode errCode = AbilityManagerAdapter::GetInstance()->ConnectAbility(want, conn_, nullptr, userId);
+    if (errCode != ERR_OK) {
+        ACCOUNT_LOGE("failed to connect ability");
+        return ERR_JS_SYSTEM_SERVICE_EXCEPTION;
+    }
+    return ERR_OK;
 }
 
 ErrCode InnerAppAccountManager::GetOAuthToken(

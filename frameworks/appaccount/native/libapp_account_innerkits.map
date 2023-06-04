@@ -17,6 +17,8 @@
         "non-virtual thunk to OHOS::AccountSA::AppAccountAuthenticatorCallbackStub::~AppAccountAuthenticatorCallbackStub()";
         "non-virtual thunk to OHOS::AccountSA::AppAccountAuthenticatorStub::~AppAccountAuthenticatorStub()";
         "non-virtual thunk to OHOS::AccountSA::AppAccountEventStub::~AppAccountEventStub()";
+        "non-virtual thunk to OHOS::AccountSA::AppAccountAuthenticationExtensionCallbackStub::~AppAccountAuthenticationExtensionCallbackStub()";
+        "virtual thunk to OHOS::AccountSA::AppAccountAuthenticationExtensionCallbackStub::~AppAccountAuthenticationExtensionCallbackStub()";
         "OHOS::AccountSA::AppAccount::GetInstance()";
         "OHOS::AccountSA::AppAccount::UnsubscribeAppAccount(std::__h::shared_ptr<OHOS::AccountSA::AppAccountSubscriber> const&)";
         "OHOS::AccountSA::AppAccountAuthenticatorCallbackProxy::AppAccountAuthenticatorCallbackProxy(OHOS::sptr<OHOS::IRemoteObject> const&)";
@@ -126,6 +128,7 @@
         "vtable for OHOS::AccountSA::SelectAccountsOptions";
         "vtable for OHOS::AccountSA::SetPropertiesOptions";
         "vtable for OHOS::AccountSA::VerifyCredentialOptions";
+        "vtable for OHOS::AccountSA::AccountCapabilityRequest";
         "VTT for OHOS::AccountSA::AppAccountInfo";
         "VTT for OHOS::AccountSA::AppAccountSubscribeInfo";
         "VTT for OHOS::AccountSA::CreateAccountImplicitlyOptions";
@@ -134,6 +137,7 @@
         "VTT for OHOS::AccountSA::SetPropertiesOptions";
         "VTT for OHOS::AccountSA::VerifyCredentialOptions";
         "vtable for OHOS::AccountSA::AppAccountSubscribeInfo";
+        "VTT for OHOS::AccountSA::AccountCapabilityRequest";
         "OHOS::AccountSA::AppAccount::AddAccount(std::__h::basic_string<char, std::__h::char_traits<char>, std::__h::allocator<char>> const&, std::__h::basic_string<char, std::__h::char_traits<char>, std::__h::allocator<char>> const&)";
         "OHOS::AccountSA::AppAccount::DeleteAccount(std::__h::basic_string<char, std::__h::char_traits<char>, std::__h::allocator<char>> const&)";
         "OHOS::AccountSA::AppAccount::SubscribeAppAccount(std::__h::shared_ptr<OHOS::AccountSA::AppAccountSubscriber> const&)";
@@ -164,6 +168,10 @@
         "OHOS::AccountSA::AppAccountInfo::GetOwner()";
         "OHOS::AccountSA::AppAccountInfo::WriteStringMap(std::__h::map<std::__h::basic_string<char, std::__h::char_traits<char>, std::__h::allocator<char>>, std::__h::basic_string<char, std::__h::char_traits<char>, std::__h::allocator<char>>, std::__h::less<std::__h::basic_string<char, std::__h::char_traits<char>, std::__h::allocator<char>>>, std::__h::allocator<std::__h::pair<std::__h::basic_string<char, std::__h::char_traits<char>, std::__h::allocator<char>> const, std::__h::basic_string<char, std::__h::char_traits<char>, std::__h::allocator<char>>>>> const&, OHOS::Parcel&) const";
         "OHOS::AccountSA::AppAccountInfo::ReadStringMap(std::__h::map<std::__h::basic_string<char, std::__h::char_traits<char>, std::__h::allocator<char>>, std::__h::basic_string<char, std::__h::char_traits<char>, std::__h::allocator<char>>, std::__h::less<std::__h::basic_string<char, std::__h::char_traits<char>, std::__h::allocator<char>>>, std::__h::allocator<std::__h::pair<std::__h::basic_string<char, std::__h::char_traits<char>, std::__h::allocator<char>> const, std::__h::basic_string<char, std::__h::char_traits<char>, std::__h::allocator<char>>>>>&, OHOS::Parcel&)";
+        "OHOS::AccountSA::AppAccountAuthenticationExtensionCallbackStub::AppAccountAuthenticationExtensionCallbackStub()";
+        "OHOS::AccountSA::AppAccountAuthenticationExtensionCallbackStub::~AppAccountAuthenticationExtensionCallbackStub()";
+        "OHOS::AccountSA::AppAccountAuthenticationExtensionCallbackStub::OnRemoteRequest(unsigned int, OHOS::MessageParcel&, OHOS::MessageParcel&, OHOS::MessageOption&)";
+        "OHOS::AccountSA::AppAccountManager::ExecuteRequest(OHOS::AccountSA::AccountCapabilityRequest const&, OHOS::sptr<OHOS::AccountSA::IAppAccountAuthenticationExtensionCallback> const&)";
     };
   local:
     *;
