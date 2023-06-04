@@ -125,6 +125,21 @@ struct AuthenticationRequest {
     sptr<IAppAccountAuthenticationExtensionCallback> callback = nullptr;
 };
 
+struct AccountCapabilityRequest : public Parcelable {
+    std::string bundleName;
+    std::string abilityName;
+    AAFwk::WantParams parameters;
+    bool ReadFromParcel(Parcel &parcel);
+    bool Marshalling(Parcel &parcel) const override;
+    static AccountCapabilityRequest *Unmarshalling(Parcel &parcel);
+};
+
+enum AccountCapabilityType {
+    CAPABILITY_TYPE_START = 0,
+    AUTHORIZATION = 1,
+    CAPABILITY_TYPE_END,
+};
+
 enum JSResultCode {
     ERR_JS_SUCCESS_V8 = 0,
     ERR_JS_ACCOUNT_NOT_EXIST = 10001,

@@ -44,6 +44,8 @@ public:
         std::vector<AppExecFwk::AbilityInfo> &abilityInfos);
     bool QueryExtensionAbilityInfos(const AAFwk::Want &want, const int32_t &flag, const int32_t &userId,
         std::vector<AppExecFwk::ExtensionAbilityInfo> &extensionInfos);
+    bool QueryExtensionAbilityInfos(const AAFwk::Want &want, const AppExecFwk::ExtensionAbilityType &extensionType,
+        const int32_t &flag, const int32_t &userId, std::vector<AppExecFwk::ExtensionAbilityInfo> &extensionInfos);
 
 private:
     ErrCode Connect();

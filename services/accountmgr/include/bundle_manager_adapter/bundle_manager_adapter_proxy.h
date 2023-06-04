@@ -86,12 +86,21 @@ public:
     bool QueryExtensionAbilityInfos(const Want &want, const int32_t &flag, const int32_t &userId,
         std::vector<ExtensionAbilityInfo> &extensionInfos) override;
 
+    bool QueryExtensionAbilityInfos(const Want &want, const ExtensionAbilityType &extensionType,
+        const int32_t &flag, const int32_t &userId, std::vector<ExtensionAbilityInfo> &extensionInfos) override;
+
+    template<typename T>
+    ErrCode GetParcelableInfosWithErrCode(IBundleMgr::Message code, MessageParcel &data,
+        std::vector<T> &parcelableInfos);
+
     bool QueryAbilityInfos(
         const Want &want, int32_t flags, int32_t userId, std::vector<AbilityInfo> &abilityInfos) override;
 
 private:
     bool ParseStr(const char *buf, const int itemLen, int index, std::string &result);
-
+    bool ParseExtensionInfo(std::string infoStr, ExtensionAbilityInfo &extensionInfo);
+    bool ParseExtensionAbilityInfos(
+        nlohmann::json jsonObject, std::vector<ExtensionAbilityInfo> &extensionInfos);
     template<typename T>
     bool ParseInfo(std::string &infoStr, T &info);
 
