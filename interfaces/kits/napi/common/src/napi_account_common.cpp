@@ -318,7 +318,7 @@ bool ParseBusinessError(napi_env env, napi_value value, BusinessError &error)
 {
     napi_valuetype valueType = napi_undefined;
     NAPI_CALL_BASE(env, napi_typeof(env, value, &valueType), false);
-    if (valueType == napi_null) {
+    if (valueType == napi_null || (valueType == napi_undefined)) {
         error.code = 0;
         return true;
     }
