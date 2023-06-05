@@ -52,6 +52,7 @@ config("app_account_innerkits_public_config") {
 
 ohos_shared_library("app_account_innerkits") {
   sources = [
+    "${app_account_extension_path}/src/authentication_extension.cpp",
     "${app_account_kits_path}/src/napi_app_account_authentication_extension.cpp",
     "src/app_account.cpp",
     "src/app_account_authentication_extension_callback_client.cpp",
