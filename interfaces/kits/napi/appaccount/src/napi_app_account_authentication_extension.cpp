@@ -119,7 +119,10 @@ static napi_value OnResultCallback(napi_env env, napi_callback_info cbInfo)
         return nullptr;
     }
     AAFwk::WantParams parameters;
-    if (!AppExecFwk::UnwrapWantParams(env, businessData, parameters)) {
+    napi_valuetype valueType = napi_undefined;
+    napi_typeof(env, businessData, &valueType);
+    if ((valueType != napi_null) && (valueType != napi_undefined) &&
+        (!AppExecFwk::UnwrapWantParams(env, businessData, parameters))) {
         ACCOUNT_LOGE("parse request WantParams failed");
         AccountNapiThrow(env, ERR_JS_INVALID_PARAMETER, true);
         return nullptr;
@@ -250,7 +253,7 @@ void JsAuthenticationExtension::StartAuthentication(const AccountSA::Authenticat
     JsAppAAuthenticationExtensionParam *param = nullptr;
     NativeEngine *nativeEngine = &jsRuntime_.GetNativeEngine();
     if (!InitAuthenticationExtensionExecEnv(
-            reinterpret_cast<napi_env>(nativeEngine), &loop, &work, &param, &lockInfo_)) {
+        reinterpret_cast<napi_env>(nativeEngine), &loop, &work, &param, &lockInfo_)) {
         ACCOUNT_LOGE("failed to init authentication extension execution environment");
         return;
     }

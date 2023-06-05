@@ -172,6 +172,15 @@
         "OHOS::AccountSA::AppAccountAuthenticationExtensionCallbackStub::~AppAccountAuthenticationExtensionCallbackStub()";
         "OHOS::AccountSA::AppAccountAuthenticationExtensionCallbackStub::OnRemoteRequest(unsigned int, OHOS::MessageParcel&, OHOS::MessageParcel&, OHOS::MessageOption&)";
         "OHOS::AccountSA::AppAccountManager::ExecuteRequest(OHOS::AccountSA::AccountCapabilityRequest const&, OHOS::sptr<OHOS::AccountSA::IAppAccountAuthenticationExtensionCallback> const&)";
+        "OHOS::AccountSA::AppAccountAuthenticationExtensionCallbackService::AppAccountAuthenticationExtensionCallbackService(std::__h::shared_ptr<OHOS::AccountSA::AppAccountAuthenticationExtensionCallback> const&)";
+        "OHOS::AccountSA::AppAccountAuthenticationExtensionStub::AppAccountAuthenticationExtensionStub()";
+        "OHOS::AccountSA::AppAccountAuthenticationExtensionStub::~AppAccountAuthenticationExtensionStub()";
+        "OHOS::AccountSA::AppAccountAuthenticationExtensionCallbackClient::AppAccountAuthenticationExtensionCallbackClient(OHOS::sptr<OHOS::AccountSA::IAppAccountAuthenticationExtensionCallback> const&)";
+        "OHOS::AccountSA::AppAccountAuthenticationExtensionStub::OnRemoteRequest(unsigned int, OHOS::MessageParcel&, OHOS::MessageParcel&, OHOS::MessageOption&)";
+        "OHOS::AccountSA::AppAccountAuthenticationExtensionStub::~AppAccountAuthenticationExtensionStub()";
+        "OHOS::AccountSA::AppAccountAuthenticationExtensionStub::~AppAccountAuthenticationExtensionStub()";
+        "non-virtual thunk to OHOS::AccountSA::AppAccountAuthenticationExtensionStub::~AppAccountAuthenticationExtensionStub()";
+        "virtual thunk to OHOS::AccountSA::AppAccountAuthenticationExtensionStub::~AppAccountAuthenticationExtensionStub()";
     };
   local:
     *;
