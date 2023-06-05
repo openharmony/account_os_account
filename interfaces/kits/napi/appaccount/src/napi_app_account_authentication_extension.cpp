@@ -20,6 +20,7 @@
 #include "ability_info.h"
 #include "account_error_no.h"
 #include "account_log_wrapper.h"
+#include "account_permission_manager.h"
 #include "app_account_authentication_extension_service.h"
 #include "napi/native_api.h"
 #include "napi/native_node_api.h"
@@ -271,6 +272,11 @@ void JsAuthenticationExtension::StartAuthentication(const AccountSA::Authenticat
 
 sptr<IRemoteObject> JsAuthenticationExtension::OnConnect(const OHOS::AAFwk::Want& want)
 {
+    ErrCode errCode = AccountPermissionManager::CheckSystemApp();
+    if (errCode != ERR_OK) {
+        ACCOUNT_LOGE("the caller is not system application, errCode = %{public}d.", errCode);
+        return nullptr;
+    }
     Extension::OnConnect(want);
     if (providerRemoteObject_ == nullptr) {
         std::shared_ptr<JsAuthenticationExtension> authenticationExtension =
