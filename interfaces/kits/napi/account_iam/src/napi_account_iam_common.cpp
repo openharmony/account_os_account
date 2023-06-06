@@ -282,7 +282,7 @@ napi_status ConvertGetPropertyTypeToAttributeKey(GetPropertyType in,
         { AUTH_SUB_TYPE, Attributes::AttributeKey::ATTR_PIN_SUB_TYPE },
         { REMAIN_TIMES, Attributes::AttributeKey::ATTR_REMAIN_TIMES },
         { FREEZING_TIME, Attributes::AttributeKey::ATTR_FREEZING_TIME },
-        { ENROLL_PROGRESS, Attributes::AttributeKey::ATTR_ENROLL_PROGRESS },
+        { ENROLLMENT_PROGRESS, Attributes::AttributeKey::ATTR_ENROLL_PROGRESS },
         { SENSOR_INFO, Attributes::AttributeKey::ATTR_SENSOR_INFO },
     };
 
@@ -378,10 +378,11 @@ static void GeneratePropertyJs(napi_env env, const GetPropertyContext &prop, nap
                 break;
             }
             case Attributes::AttributeKey::ATTR_ENROLL_PROGRESS: {
-                napi_value napiEnrollProgress = nullptr;
-                NAPI_CALL_RETURN_VOID(env,
-                    napi_create_string_utf8(env, prop.enrollProgress.c_str(), NAPI_AUTO_LENGTH, &napiEnrollProgress));
-                NAPI_CALL_RETURN_VOID(env, napi_set_named_property(env, dataJs, "enrollProgress", napiEnrollProgress));
+                napi_value napiEnrollmentProgress = nullptr;
+                NAPI_CALL_RETURN_VOID(env, napi_create_string_utf8(
+                    env, prop.enrollmentProgress.c_str(), NAPI_AUTO_LENGTH, &napiEnrollmentProgress));
+                NAPI_CALL_RETURN_VOID(
+                    env, napi_set_named_property(env, dataJs, "enrollmentProgress", napiEnrollmentProgress));
                 break;
             }
             case Attributes::AttributeKey::ATTR_SENSOR_INFO: {
@@ -598,8 +599,9 @@ void NapiGetPropCallback::GetContextParams(
                 break;
             }
             case Attributes::AttributeKey::ATTR_ENROLL_PROGRESS: {
-                if (!extraInfo.GetStringValue(Attributes::AttributeKey::ATTR_ENROLL_PROGRESS, context.enrollProgress)) {
-                    ACCOUNT_LOGE("get enrollProgress failed");
+                if (!extraInfo.GetStringValue(
+                    Attributes::AttributeKey::ATTR_ENROLL_PROGRESS, context.enrollmentProgress)) {
+                    ACCOUNT_LOGE("get enrollmentProgress failed");
                 }
                 break;
             }
