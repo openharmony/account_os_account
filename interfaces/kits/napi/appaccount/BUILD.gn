@@ -47,6 +47,7 @@ ohos_shared_library("appaccount") {
 
   public_configs = [ ":appaccount_kit_config" ]
   sources = [
+    "${app_account_extension_path}/src/authentication_extension.cpp",
     "src/napi_account_capability_scheduler.cpp",
     "src/napi_app_account.cpp",
     "src/napi_app_account_authentication_extension.cpp",
@@ -67,8 +68,12 @@ ohos_shared_library("appaccount") {
 
   external_deps = [
     "ability_base:want",
+    "ability_runtime:ability_context_native",
     "ability_runtime:ability_manager",
     "ability_runtime:abilitykit_native",
+    "ability_runtime:app_context",
+    "ability_runtime:extensionkit_native",
+    "ability_runtime:runtime",
     "c_utils:utils",
     "hiviewdfx_hilog_native:libhilog",
     "ipc:ipc_napi_common",

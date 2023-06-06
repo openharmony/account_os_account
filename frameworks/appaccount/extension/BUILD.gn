@@ -43,7 +43,10 @@ ohos_shared_library("authentication_extension") {
     "${app_account_kits_path}/src/napi_app_account_authentication_extension.cpp",
     "src/authentication_extension.cpp",
   ]
-  configs = [ ":authentication_extension_config" ]
+  configs = [
+    ":authentication_extension_config",
+    "${account_coverage_config_path}:coverage_flags",
+  ]
   public_configs = [ ":authentication_extension_public_config" ]
 
   deps = [
@@ -76,7 +79,10 @@ ohos_shared_library("authentication_extension_module") {
 
   sources = [ "src/authentication_extension_module_loader.cpp" ]
 
-  configs = [ ":authentication_extension_config" ]
+  configs = [
+    ":authentication_extension_config",
+    "${account_coverage_config_path}:coverage_flags",
+  ]
   public_configs = [ ":authentication_extension_public_config" ]
 
   deps = [
