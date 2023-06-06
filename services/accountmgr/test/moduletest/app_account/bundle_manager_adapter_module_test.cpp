@@ -49,6 +49,8 @@ const std::string INVALID_BUNDLE_NAME = "testbundlename";
 const std::string BUNDLE_NAME = "com.ohos.launcher";
 const int32_t FLAGS = 1;
 const int32_t USER_ID = 1;
+// Adding 2 causes the array to exceed its maximum value.
+const int32_t ARRAY_OVERSIZE = Constants::MAX_JSON_ARRAY_LENGTH + 2;
 } // namespace
 
 void BundleManagerModuleTest::SetUpTestCase(void)
@@ -556,3 +558,106 @@ HWTEST_F(BundleManagerModuleTest, BundleManagerAdapter_ParseInfo_0200, TestSize.
     EXPECT_EQ(bundleInfoTar.appId, "test_appId");
     EXPECT_EQ(bundleInfoTar.appIndex, 2);
 }
+
+/**
+ * @tc.name: BundleManagerAdapter_ParseInfo_0300
+ * @tc.desc: test array is oversize
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(BundleManagerModuleTest, BundleManagerAdapter_ParseInfo_0300, TestSize.Level1)
+{
+    ASSERT_NE(g_bundleManagerAdapterProxyRemoteNull, nullptr);
+    BundleInfo bundleInfoTar;
+    int arrays[ARRAY_OVERSIZE];
+    for (int i = 0; i < ARRAY_OVERSIZE; i++) {
+        arrays[i] = 0;
+    }
+
+    Json testBundleInfo = Json {
+        {"extensionAbilityInfo", arrays},
+    };
+    std::string testStr = testBundleInfo.dump();
+    EXPECT_EQ(g_bundleManagerAdapterProxyRemoteNull->ParseInfo(testStr, bundleInfoTar), false);
+}
+
+/**
+ * @tc.name: BundleManagerAdapter_ParseExtensionAbilityInfos_0100
+ * @tc.desc: test ParseExtensionAbilityInfos
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(BundleManagerModuleTest, BundleManagerAdapter_ParseExtensionAbilityInfos_0100, TestSize.Level1)
+{
+    ASSERT_NE(g_bundleManagerAdapterProxyRemoteNull, nullptr);
+
+    std::vector<ExtensionAbilityInfo> extensionInfos;
+    // test info with normal data.
+    Json testBundleInfo = Json {
+        {"name", "test_name"},
+        {"label", "test_label"},
+        {"description", "test_description"},
+        {"type", 0},
+        {"visible", true},
+        {"uid", 123},
+    };
+    Json arrays[] = {
+        testBundleInfo,
+    };
+    Json testBundleInfo1 = Json {
+        {"extensionAbilityInfo", arrays},
+    };
+    EXPECT_EQ(g_bundleManagerAdapterProxyRemoteNull->ParseExtensionAbilityInfos(testBundleInfo1, extensionInfos), true);
+}
+
+/**
+ * @tc.name: BundleManagerAdapter_ParseExtensionAbilityInfos_0200
+ * @tc.desc: test invalid parameter
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(BundleManagerModuleTest, BundleManagerAdapter_ParseExtensionAbilityInfos_0200, TestSize.Level1)
+{
+    ASSERT_NE(g_bundleManagerAdapterProxyRemoteNull, nullptr);
+
+    std::vector<ExtensionAbilityInfo> extensionInfos;
+    // invalid value
+    Json testBundleInfo = Json {
+        {"name", 1},
+        {"label", 1},
+        {"description", 1},
+        {"type", "testtest"},
+        {"visible", "test"},
+        {"uid", "123"},
+    };
+    Json arrays1[] = {
+        testBundleInfo,
+    };
+    // invalid JSON
+    Json arrays2[] = {
+        "invalidjsonobject",
+    };
+    Json testBundleInfo1 = Json {
+        {"extensionAbilityInfo", arrays1},
+    };
+    Json testBundleInfo2 = Json {
+        {"extensionAbilityInfo", arrays2},
+    };
+    EXPECT_EQ(g_bundleManagerAdapterProxyRemoteNull->ParseExtensionAbilityInfos(testBundleInfo1, extensionInfos), true);
+    EXPECT_EQ(g_bundleManagerAdapterProxyRemoteNull->ParseExtensionAbilityInfos(testBundleInfo2, extensionInfos), true);
+}
+
+/**
+ * @tc.name: BundleManagerAdapter_ParseExtensionInfo_0100
+ * @tc.desc: an invalid json string
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(BundleManagerModuleTest, BundleManagerAdapter_ParseExtensionInfo_0100, TestSize.Level1)
+{
+    ASSERT_NE(g_bundleManagerAdapterProxyRemoteNull, nullptr);
+    ExtensionAbilityInfo extensionInfo;
+
+    EXPECT_EQ(g_bundleManagerAdapterProxyRemoteNull->ParseExtensionInfo("invalidjsonobject", extensionInfo), false);
+}
+
