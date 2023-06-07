@@ -655,7 +655,7 @@ HWTEST_F(DomainAccountClientModuleTest, DomainAccountClientModuleTest_CreateOsAc
 
 /**
  * @tc.name: DomainAccountClientModuleTest_HasDomainAccount_001
- * @tc.desc: HasDomainAccount falied with not get domain info.
+ * @tc.desc: HasAccount falied with not get domain info.
  * @tc.type: FUNC
  * @tc.require: I6AQVM
  */
@@ -670,12 +670,12 @@ HWTEST_F(DomainAccountClientModuleTest, DomainAccountClientModuleTest_HasDomainA
     EXPECT_CALL(*callback, OnResult(INVALID_CODE, _)).Times(Exactly(1));
     auto testCallback = std::make_shared<TestHasDomainInfoCallback>(callback);
     ASSERT_NE(testCallback, nullptr);
-    EXPECT_EQ(DomainAccountClient::GetInstance().HasDomainAccount(info, testCallback), ERR_OK);
+    EXPECT_EQ(DomainAccountClient::GetInstance().HasAccount(info, testCallback), ERR_OK);
 }
 
 /**
  * @tc.name: DomainAccountClientModuleTest_HasDomainAccount_002
- * @tc.desc: HasDomainAccount successfully.
+ * @tc.desc: HasAccount successfully.
  * @tc.type: FUNC
  * @tc.require: I6AQVM
  */
@@ -690,12 +690,12 @@ HWTEST_F(DomainAccountClientModuleTest, DomainAccountClientModuleTest_HasDomainA
     EXPECT_CALL(*callback, OnResult(ERR_OK, true)).Times(Exactly(1));
     auto testCallback = std::make_shared<TestHasDomainInfoCallback>(callback);
     ASSERT_NE(testCallback, nullptr);
-    EXPECT_EQ(DomainAccountClient::GetInstance().HasDomainAccount(info, testCallback), ERR_OK);
+    EXPECT_EQ(DomainAccountClient::GetInstance().HasAccount(info, testCallback), ERR_OK);
 }
 
 /**
  * @tc.name: DomainAccountClientModuleTest_HasDomainAccount_003
- * @tc.desc: HasDomainAccount falied with not register plugin.
+ * @tc.desc: HasAccount falied with not register plugin.
  * @tc.type: FUNC
  * @tc.require: I6AQVM
  */
@@ -711,12 +711,12 @@ HWTEST_F(DomainAccountClientModuleTest, DomainAccountClientModuleTest_HasDomainA
     auto testCallback = std::make_shared<TestHasDomainInfoCallback>(callback);
     ASSERT_NE(testCallback, nullptr);
     EXPECT_CALL(*callback, OnResult(ERR_DOMAIN_ACCOUNT_SERVICE_PLUGIN_NOT_EXIST, _)).Times(Exactly(1));
-    EXPECT_EQ(DomainAccountClient::GetInstance().HasDomainAccount(info, testCallback), ERR_OK);
+    EXPECT_EQ(DomainAccountClient::GetInstance().HasAccount(info, testCallback), ERR_OK);
 }
 
 /**
  * @tc.name: DomainAccountClientModuleTest_HasDomainAccount_004
- * @tc.desc: HasDomainAccount callback is nullptr.
+ * @tc.desc: HasAccount callback is nullptr.
  * @tc.type: FUNC
  * @tc.require:
  */
@@ -729,7 +729,7 @@ HWTEST_F(DomainAccountClientModuleTest, DomainAccountClientModuleTest_HasDomainA
     info.accountId_ = STRING_ACCOUNTID;
     
     std::shared_ptr<DomainAccountCallback> callback = nullptr;
-    EXPECT_EQ(DomainAccountClient::GetInstance().HasDomainAccount(info, callback),
+    EXPECT_EQ(DomainAccountClient::GetInstance().HasAccount(info, callback),
         ERR_ACCOUNT_COMMON_INVALID_PARAMETER);
 }
 

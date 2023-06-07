@@ -111,7 +111,7 @@ public:
      * @param callback - Indicates the callback for checking whether the specified domain account exists.
      * @return error code, see account_error_no.h
      */
-    ErrCode HasDomainAccount(const DomainAccountInfo &info, const std::shared_ptr<DomainAccountCallback> &callback);
+    ErrCode HasAccount(const DomainAccountInfo &info, const std::shared_ptr<DomainAccountCallback> &callback);
     ErrCode UpdateAccountToken(const DomainAccountInfo &info, const std::vector<uint8_t> &token);
     ErrCode GetAccessToken(const DomainAccountInfo &info, const AAFwk::WantParams &parameters,
         const std::shared_ptr<GetAccessTokenCallback> &callback);
