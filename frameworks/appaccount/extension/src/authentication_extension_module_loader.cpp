@@ -19,7 +19,9 @@
 #include "authentication_extension.h"
 
 using namespace OHOS::AccountSA;
+namespace {
 const std::map<std::string, std::string> g_params = {{"type", "19"}, {"name", "AppAccountAuthorizationExtension"}};
+}
 namespace OHOS::AbilityRuntime {
 AuthenticationExtensionModuleLoader::AuthenticationExtensionModuleLoader() = default;
 AuthenticationExtensionModuleLoader::~AuthenticationExtensionModuleLoader() = default;
