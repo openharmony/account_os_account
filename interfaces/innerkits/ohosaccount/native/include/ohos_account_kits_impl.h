@@ -17,6 +17,7 @@
 #define BASE_ACCOUNT_OHOS_ACCOUNT_KITS_IMPL_H
 
 #include <mutex>
+#include "iaccount.h"
 #include "ipc_skeleton.h"
 #include "ohos_account_kits.h"
 
