@@ -79,5 +79,6 @@ ohos_shared_library("libaccount_common") {
   }
 
   subsystem_name = "account"
+  innerapi_tags = [ "platformsdk" ]
   part_name = "os_account"
 }
