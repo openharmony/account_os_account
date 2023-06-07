@@ -233,7 +233,7 @@ static void StartAuthenticationWork(uv_work_t *work, int status)
     }
     NativeValue *nativeAuthenticationCallback = reinterpret_cast<NativeValue *>(napiAuthenticationCallback);
     NativeValue *argv[] = {nativeRequest, nativeAuthenticationCallback};
-    param->authenticationExtension->CallObjectMethod("onStartAuthentication", argv, ARGC_TWO);
+    param->authenticationExtension->CallObjectMethod("onStartAuthorization", argv, ARGC_TWO);
     std::unique_lock<std::mutex> lock(param->lockInfo->mutex);
     param->lockInfo->count--;
     param->lockInfo->condition.notify_all();
