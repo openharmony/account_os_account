@@ -68,7 +68,7 @@ enum GetPropertyType : uint32_t {
     AUTH_SUB_TYPE = 1,
     REMAIN_TIMES = 2,
     FREEZING_TIME = 3,
-    ENROLL_PROGRESS = 4,
+    ENROLLMENT_PROGRESS = 4,
     SENSOR_INFO = 5,
 };
 
