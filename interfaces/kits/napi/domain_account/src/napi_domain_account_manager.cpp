@@ -860,12 +860,12 @@ napi_value NapiDomainAccountManager::Init(napi_env env, napi_value exports)
         DECLARE_NAPI_STATIC_FUNCTION("unregisterPlugin", UnregisterPlugin),
         DECLARE_NAPI_STATIC_FUNCTION("auth", Auth),
         DECLARE_NAPI_STATIC_FUNCTION("authWithPopup", AuthWithPopup),
-        DECLARE_NAPI_STATIC_FUNCTION("hasAccount", HasDomainAccount),
+        DECLARE_NAPI_STATIC_FUNCTION("hasAccount", HasAccount),
         DECLARE_NAPI_STATIC_FUNCTION("updateAccountToken", UpdateAccountToken),
         DECLARE_NAPI_STATIC_FUNCTION("getAccessToken", GetAccessToken),
         DECLARE_NAPI_FUNCTION("registerPlugin", RegisterPlugin),
         DECLARE_NAPI_FUNCTION("unregisterPlugin", UnregisterPlugin),
-        DECLARE_NAPI_FUNCTION("hasAccount", HasDomainAccount),
+        DECLARE_NAPI_FUNCTION("hasAccount", HasAccount),
         DECLARE_NAPI_FUNCTION("updateAccountToken", UpdateAccountToken),
         DECLARE_NAPI_FUNCTION("getAccessToken", GetAccessToken)
     };
@@ -1301,7 +1301,7 @@ static void HasDomainAccountExecuteCB(napi_env env, void *data)
 {
     HasDomainAccountAsyncContext *asyncContext = reinterpret_cast<HasDomainAccountAsyncContext *>(data);
     auto callback = std::make_shared<NapiHasDomainInfoCallback>(env, asyncContext->callbackRef, asyncContext->deferred);
-    asyncContext->errCode = DomainAccountClient::GetInstance().HasDomainAccount(asyncContext->domainInfo, callback);
+    asyncContext->errCode = DomainAccountClient::GetInstance().HasAccount(asyncContext->domainInfo, callback);
     if (asyncContext->errCode != ERR_OK) {
         Parcel emptyParcel;
         callback->OnResult(asyncContext->errCode, emptyParcel);
@@ -1392,7 +1392,7 @@ napi_value NapiDomainAccountManager::GetAccessToken(napi_env env, napi_callback_
     return result;
 }
 
-napi_value NapiDomainAccountManager::HasDomainAccount(napi_env env, napi_callback_info cbInfo)
+napi_value NapiDomainAccountManager::HasAccount(napi_env env, napi_callback_info cbInfo)
 {
     HasDomainAccountAsyncContext *hasDomainAccountCB = new (std::nothrow) HasDomainAccountAsyncContext();
     if (hasDomainAccountCB == nullptr) {
@@ -1410,7 +1410,7 @@ napi_value NapiDomainAccountManager::HasDomainAccount(napi_env env, napi_callbac
         NAPI_CALL(env, napi_create_promise(env, &hasDomainAccountCB->deferred, &result));
     }
     napi_value resource = nullptr;
-    NAPI_CALL(env, napi_create_string_utf8(env, "hasDomainAccount", NAPI_AUTO_LENGTH, &resource));
+    NAPI_CALL(env, napi_create_string_utf8(env, "hasAccount", NAPI_AUTO_LENGTH, &resource));
     NAPI_CALL(env, napi_create_async_work(env,
         nullptr,
         resource,
