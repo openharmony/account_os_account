@@ -162,6 +162,12 @@ napi_value NapiAppAccountCapability::RequestConstructor(napi_env env, napi_callb
         } else {
             RETURN_IF_NEED_THROW_ERROR(
                 env, GetIntProperty(env, argv[1], objectInfo->requestType_), "the type of requestType is invalid");
+            // set readonly requestType property
+            napi_property_descriptor descriptors[] = {
+                {"requestType", nullptr, 0, 0, 0, argv[1], napi_enumerable, 0},
+            };
+            status = napi_define_properties(env, thisVar, sizeof(descriptors) / sizeof(descriptors[0]), descriptors);
+            NAPI_ASSERT(env, status == napi_ok, "failed to set requestType property");
         }
     }
 
@@ -169,13 +175,6 @@ napi_value NapiAppAccountCapability::RequestConstructor(napi_env env, napi_callb
             delete reinterpret_cast<NapiAccountCapabilityRequest *>(data);
         }, nullptr, nullptr);
     NAPI_ASSERT(env, status == napi_ok, "failed to wrap js instance with native object");
-
-    // set readonly requestType property
-    napi_property_descriptor descriptors[] = {
-        { "requestType", nullptr, 0, 0, 0, argv[1], napi_enumerable, 0 },
-    };
-    status = napi_define_properties(env, thisVar, sizeof(descriptors) / sizeof(descriptors[0]), descriptors);
-    NAPI_ASSERT(env, status == napi_ok, "failed to set requestType property");
 
     objectInfoPtr.release();
     return thisVar;
