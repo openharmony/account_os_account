@@ -100,18 +100,19 @@ napi_value GetPropertyTypeConstructor(napi_env env)
     napi_value authSubType = nullptr;
     napi_value remainTimes = nullptr;
     napi_value freezingTime = nullptr;
-    napi_value enrollProgress = nullptr;
+    napi_value enrollmentProgress = nullptr;
     napi_value sensorInfo = nullptr;
     NAPI_CALL(env, napi_create_object(env, &getPropertyType));
     NAPI_CALL(env, napi_create_int32(env, static_cast<int32_t>(GetPropertyType::AUTH_SUB_TYPE), &authSubType));
     NAPI_CALL(env, napi_create_int32(env, static_cast<int32_t>(GetPropertyType::REMAIN_TIMES), &remainTimes));
     NAPI_CALL(env, napi_create_int32(env, static_cast<int32_t>(GetPropertyType::FREEZING_TIME), &freezingTime));
-    NAPI_CALL(env, napi_create_int32(env, static_cast<int32_t>(GetPropertyType::ENROLL_PROGRESS), &enrollProgress));
+    NAPI_CALL(env,
+        napi_create_int32(env, static_cast<int32_t>(GetPropertyType::ENROLLMENT_PROGRESS), &enrollmentProgress));
     NAPI_CALL(env, napi_create_int32(env, static_cast<int32_t>(GetPropertyType::SENSOR_INFO), &sensorInfo));
     NAPI_CALL(env, napi_set_named_property(env, getPropertyType, "AUTH_SUB_TYPE", authSubType));
     NAPI_CALL(env, napi_set_named_property(env, getPropertyType, "REMAIN_TIMES", remainTimes));
     NAPI_CALL(env, napi_set_named_property(env, getPropertyType, "FREEZING_TIME", freezingTime));
-    NAPI_CALL(env, napi_set_named_property(env, getPropertyType, "ENROLL_PROGRESS", enrollProgress));
+    NAPI_CALL(env, napi_set_named_property(env, getPropertyType, "ENROLLMENT_PROGRESS", enrollmentProgress));
     NAPI_CALL(env, napi_set_named_property(env, getPropertyType, "SENSOR_INFO", sensorInfo));
     return getPropertyType;
 }
