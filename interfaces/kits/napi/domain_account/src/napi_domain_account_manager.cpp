@@ -692,7 +692,7 @@ void NapiDomainAccountPlugin::OnAccountBound(const DomainAccountInfo &info, cons
         return;
     }
     if (jsPlugin_.onAccountBound == nullptr) {
-        ACCOUNT_LOGE("auth function of the js plugin is undefined");
+        ACCOUNT_LOGE("OnAccountBound function of the js plugin is undefined");
         return;
     }
     uv_loop_s *loop = nullptr;
@@ -725,7 +725,7 @@ void NapiDomainAccountPlugin::OnAccountUnBound(const DomainAccountInfo &info,
         return;
     }
     if (jsPlugin_.onAccountUnbound == nullptr) {
-        ACCOUNT_LOGE("auth function of the js plugin is undefined");
+        ACCOUNT_LOGE("OnAccountUnBound function of the js plugin is undefined");
         return;
     }
     uv_loop_s *loop = nullptr;
@@ -758,7 +758,7 @@ void NapiDomainAccountPlugin::GetDomainAccountInfo(const std::string &domain, co
         return;
     }
     if (jsPlugin_.getDomainAccountInfo == nullptr) {
-        ACCOUNT_LOGE("auth function of the js plugin is undefined");
+        ACCOUNT_LOGE("GetDomainAccountInfo function of the js plugin is undefined");
         return;
     }
     uv_loop_s *loop = nullptr;
