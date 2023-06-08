@@ -38,7 +38,6 @@
 
 #include "account_info.h"
 #include "nocopyable.h"
-#include "iaccount.h"
 
 namespace OHOS {
 namespace AccountSA {
