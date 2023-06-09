@@ -127,7 +127,7 @@ struct GetPropertyContext : public CommonAsyncContext {
     int32_t authSubType = 0;
     int32_t remainTimes = 0;
     int32_t freezingTime = 0;
-    std::string enrollProgress;
+    std::string enrollmentProgress;
     std::string sensorInfo;
 };
 
