@@ -59,15 +59,15 @@ ErrCode IDMCallbackStub::ProcOnAcquireInfo(MessageParcel &data, MessageParcel &r
     std::vector<uint8_t> buffer;
     if (!data.ReadInt32(module)) {
         ACCOUNT_LOGE("failed to read module");
-        return ERR_ACCOUNT_IAM_KIT_READ_PARCEL_FAIL;
+        return ERR_ACCOUNT_COMMON_READ_PARCEL_ERROR;
     }
     if (!data.ReadInt32(acquireInfo)) {
         ACCOUNT_LOGE("failed to read acquireInfo");
-        return ERR_ACCOUNT_IAM_KIT_READ_PARCEL_FAIL;
+        return ERR_ACCOUNT_COMMON_READ_PARCEL_ERROR;
     }
     if (!data.ReadUInt8Vector(&buffer)) {
         ACCOUNT_LOGE("failed to read buffer");
-        return ERR_ACCOUNT_IAM_KIT_READ_PARCEL_FAIL;
+        return ERR_ACCOUNT_COMMON_READ_PARCEL_ERROR;
     }
     Attributes extraInfo(buffer);
     OnAcquireInfo(module, acquireInfo, extraInfo);
@@ -79,12 +79,12 @@ ErrCode IDMCallbackStub::ProcOnResult(MessageParcel &data, MessageParcel &reply)
     int32_t result;
     if (!data.ReadInt32(result)) {
         ACCOUNT_LOGE("failed to read result for IDMCallback OnResult");
-        return ERR_ACCOUNT_IAM_KIT_READ_PARCEL_FAIL;
+        return ERR_ACCOUNT_COMMON_READ_PARCEL_ERROR;
     }
     std::vector<uint8_t> buffer;
     if (!data.ReadUInt8Vector(&buffer)) {
         ACCOUNT_LOGE("failed to read result for IDMCallback OnResult");
-        return ERR_ACCOUNT_IAM_KIT_READ_PARCEL_FAIL;
+        return ERR_ACCOUNT_COMMON_READ_PARCEL_ERROR;
     }
     Attributes extraInfo(buffer);
     OnResult(result, extraInfo);
@@ -122,11 +122,11 @@ ErrCode GetCredInfoCallbackStub::ProcOnCredentialInfo(MessageParcel &data, Messa
     std::vector<CredentialInfo> infoList;
     if (!data.ReadUint32(vectorSize)) {
         ACCOUNT_LOGE("read size fail");
-        return ERR_ACCOUNT_IAM_KIT_READ_PARCEL_FAIL;
+        return ERR_ACCOUNT_COMMON_READ_PARCEL_ERROR;
     }
     if (vectorSize > MAX_VEC_SIZE) {
         ACCOUNT_LOGE("credential info list is oversize, the limit is %{public}d", MAX_VEC_SIZE);
-        return ERR_ACCOUNT_IAM_KIT_PARAM_INVALID_ERROR;
+        return ERR_ACCOUNT_COMMON_INVALID_PARAMETER;
     }
     for (uint32_t i = 0; i < vectorSize; ++i) {
         CredentialInfo info;
@@ -134,19 +134,19 @@ ErrCode GetCredInfoCallbackStub::ProcOnCredentialInfo(MessageParcel &data, Messa
         int32_t pinType = 0;
         if (!data.ReadUint64(info.credentialId)) {
             ACCOUNT_LOGE("failed to read credentialId");
-            return ERR_ACCOUNT_IAM_KIT_READ_PARCEL_FAIL;
+            return ERR_ACCOUNT_COMMON_READ_PARCEL_ERROR;
         }
         if (!data.ReadInt32(authType)) {
             ACCOUNT_LOGE("failed to read authType");
-            return ERR_ACCOUNT_IAM_KIT_READ_PARCEL_FAIL;
+            return ERR_ACCOUNT_COMMON_READ_PARCEL_ERROR;
         }
         if (!data.ReadInt32(pinType)) {
             ACCOUNT_LOGE("failed to read pinSubType");
-            return ERR_ACCOUNT_IAM_KIT_READ_PARCEL_FAIL;
+            return ERR_ACCOUNT_COMMON_READ_PARCEL_ERROR;
         }
         if (!data.ReadUint64(info.templateId)) {
             ACCOUNT_LOGE("failed to read templateId");
-            return ERR_ACCOUNT_IAM_KIT_READ_PARCEL_FAIL;
+            return ERR_ACCOUNT_COMMON_READ_PARCEL_ERROR;
         }
         info.authType = static_cast<AuthType>(authType);
         info.pinType = static_cast<PinSubType>(pinType);
@@ -185,12 +185,12 @@ ErrCode GetSetPropCallbackStub::ProcOnResult(MessageParcel &data, MessageParcel 
     int32_t result;
     if (!data.ReadInt32(result)) {
         ACCOUNT_LOGE("failed to read result for GetSetPropCallback OnResult");
-        return ERR_ACCOUNT_IAM_KIT_READ_PARCEL_FAIL;
+        return ERR_ACCOUNT_COMMON_READ_PARCEL_ERROR;
     }
     std::vector<uint8_t> buffer;
     if (!data.ReadUInt8Vector(&buffer)) {
         ACCOUNT_LOGE("failed to read result for GetSetPropCallback OnResult");
-        return ERR_ACCOUNT_IAM_KIT_READ_PARCEL_FAIL;
+        return ERR_ACCOUNT_COMMON_READ_PARCEL_ERROR;
     }
     Attributes extraInfo(buffer);
     OnResult(result, extraInfo);

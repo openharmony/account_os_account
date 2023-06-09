@@ -460,7 +460,7 @@ ErrCode InnerAccountIAMManager::GetStorageManagerProxy()
     auto systemAbilityManager = SystemAbilityManagerClient::GetInstance().GetSystemAbilityManager();
     if (systemAbilityManager == nullptr) {
         ACCOUNT_LOGE("failed to get system ability mgr");
-        return ERR_ACCOUNT_IAM_SERVICE_GET_STORAGE_SYSTEM_ABILITY;
+        return ERR_ACCOUNT_COMMON_GET_SYSTEM_ABILITY_MANAGER;
     }
     auto remote = systemAbilityManager->GetSystemAbility(STORAGE_MANAGER_MANAGER_ID);
     if (remote == nullptr) {

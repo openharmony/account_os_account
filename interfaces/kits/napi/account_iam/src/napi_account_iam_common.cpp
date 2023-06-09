@@ -69,15 +69,9 @@ int32_t AccountIAMConvertToJSErrCode(int32_t errCode)
 {
     if (errCode == ERR_ACCOUNT_COMMON_NOT_SYSTEM_APP_ERROR) {
         return ERR_JS_IS_NOT_SYSTEM_APP;
-    }
-    if ((errCode >= ERR_ACCOUNT_IAM_KIT_SEND_REQUEST && errCode <= ERR_ACCOUNT_IAM_KIT_READ_PARCEL_FAIL) ||
-        (errCode >= ERR_ACCOUNT_IAM_SERVICE_GET_STORAGE_SYSTEM_ABILITY &&
-        errCode <= ERR_ACCOUNT_IAM_SERVICE_READ_PARCEL_FAIL)) {
-        return ERR_JS_SYSTEM_SERVICE_EXCEPTION;
     } else if (errCode == ERR_ACCOUNT_IAM_SERVICE_PERMISSION_DENIED || errCode == ERR_IAM_CHECK_PERMISSION_FAILED) {
         return ERR_JS_PERMISSION_DENIED;
-    } else if (errCode == ERR_ACCOUNT_IAM_SERVICE_PARAM_INVALID_ERROR ||
-        errCode == ERR_ACCOUNT_IAM_KIT_PARAM_INVALID_ERROR) {
+    } else if (errCode == ERR_ACCOUNT_COMMON_INVALID_PARAMETER) {
         return ERR_JS_INVALID_PARAMETER;
     }
     return AccountIAMConvertOtherToJSErrCode(errCode);
