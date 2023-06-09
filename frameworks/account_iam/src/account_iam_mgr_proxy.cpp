@@ -59,7 +59,7 @@ int32_t AccountIAMMgrProxy::OpenSession(int32_t userId, std::vector<uint8_t> &ch
     challenge.clear();
     MessageParcel data;
     if (!WriteCommonData(data, userId)) {
-        return ERR_ACCOUNT_IAM_KIT_WRITE_PARCEL_FAIL;
+        return ERR_ACCOUNT_COMMON_WRITE_PARCEL_ERROR;
     }
     MessageParcel reply;
     int32_t result = SendRequest(IAccountIAM::Message::OPEN_SESSION, data, reply);
@@ -68,7 +68,7 @@ int32_t AccountIAMMgrProxy::OpenSession(int32_t userId, std::vector<uint8_t> &ch
     }
     if (!reply.ReadInt32(result)) {
         ACCOUNT_LOGE("failed to read result");
-        return ERR_ACCOUNT_IAM_KIT_READ_PARCEL_FAIL;
+        return ERR_ACCOUNT_COMMON_READ_PARCEL_ERROR;
     }
     if (result != ERR_OK) {
         ACCOUNT_LOGE("failed to open session, result: %{public}d", result);
@@ -76,7 +76,7 @@ int32_t AccountIAMMgrProxy::OpenSession(int32_t userId, std::vector<uint8_t> &ch
     }
     if (!reply.ReadUInt8Vector(&challenge)) {
         ACCOUNT_LOGE("failed to read challenge!");
-        return ERR_ACCOUNT_IAM_KIT_READ_PARCEL_FAIL;
+        return ERR_ACCOUNT_COMMON_READ_PARCEL_ERROR;
     }
     return ERR_OK;
 }
@@ -85,7 +85,7 @@ int32_t AccountIAMMgrProxy::CloseSession(int32_t userId)
 {
     MessageParcel data;
     if (!WriteCommonData(data, userId)) {
-        return ERR_ACCOUNT_IAM_KIT_WRITE_PARCEL_FAIL;
+        return ERR_ACCOUNT_COMMON_WRITE_PARCEL_ERROR;
     }
     MessageParcel reply;
     int32_t result = SendRequest(IAccountIAM::Message::CLOSE_SESSION, data, reply);
@@ -94,7 +94,7 @@ int32_t AccountIAMMgrProxy::CloseSession(int32_t userId)
     }
     if (!reply.ReadInt32(result)) {
         ACCOUNT_LOGE("failed to read result");
-        return ERR_ACCOUNT_IAM_KIT_READ_PARCEL_FAIL;
+        return ERR_ACCOUNT_COMMON_READ_PARCEL_ERROR;
     }
     return result;
 }
@@ -109,28 +109,28 @@ void AccountIAMMgrProxy::AddOrUpdateCredential(
     Attributes emptyResult;
     MessageParcel data;
     if (!WriteCommonData(data, userId)) {
-        callback->OnResult(ERR_ACCOUNT_IAM_KIT_WRITE_PARCEL_FAIL, emptyResult);
+        callback->OnResult(ERR_ACCOUNT_COMMON_WRITE_PARCEL_ERROR, emptyResult);
         return;
     }
     if (!data.WriteInt32(credInfo.authType)) {
         ACCOUNT_LOGE("failed to write authType");
-        callback->OnResult(ERR_ACCOUNT_IAM_KIT_WRITE_PARCEL_FAIL, emptyResult);
+        callback->OnResult(ERR_ACCOUNT_COMMON_WRITE_PARCEL_ERROR, emptyResult);
         return;
     }
     PinSubType pinType = credInfo.pinType.value_or(PinSubType::PIN_MAX);
     if (!data.WriteInt32(pinType)) {
         ACCOUNT_LOGE("failed to write pinType");
-        callback->OnResult(ERR_ACCOUNT_IAM_KIT_WRITE_PARCEL_FAIL, emptyResult);
+        callback->OnResult(ERR_ACCOUNT_COMMON_WRITE_PARCEL_ERROR, emptyResult);
         return;
     }
     if (!data.WriteUInt8Vector(credInfo.token)) {
         ACCOUNT_LOGE("failed to write token");
-        callback->OnResult(ERR_ACCOUNT_IAM_KIT_WRITE_PARCEL_FAIL, emptyResult);
+        callback->OnResult(ERR_ACCOUNT_COMMON_WRITE_PARCEL_ERROR, emptyResult);
         return;
     }
     if (!data.WriteRemoteObject(callback->AsObject())) {
         ACCOUNT_LOGE("failed to write callback");
-        callback->OnResult(ERR_ACCOUNT_IAM_KIT_WRITE_PARCEL_FAIL, emptyResult);
+        callback->OnResult(ERR_ACCOUNT_COMMON_WRITE_PARCEL_ERROR, emptyResult);
         return;
     }
     MessageParcel reply;
@@ -161,7 +161,7 @@ int32_t AccountIAMMgrProxy::Cancel(int32_t userId)
 {
     MessageParcel data;
     if (!WriteCommonData(data, userId)) {
-        return ERR_ACCOUNT_IAM_KIT_WRITE_PARCEL_FAIL;
+        return ERR_ACCOUNT_COMMON_WRITE_PARCEL_ERROR;
     }
     MessageParcel reply;
     int32_t result = SendRequest(IAccountIAM::Message::CANCEL, data, reply);
@@ -170,7 +170,7 @@ int32_t AccountIAMMgrProxy::Cancel(int32_t userId)
     }
     if (!reply.ReadInt32(result)) {
         ACCOUNT_LOGE("failed to read result");
-        return ERR_ACCOUNT_IAM_KIT_READ_PARCEL_FAIL;
+        return ERR_ACCOUNT_COMMON_READ_PARCEL_ERROR;
     }
     return result;
 }
@@ -185,22 +185,22 @@ void AccountIAMMgrProxy::DelCred(
     Attributes emptyResult;
     MessageParcel data;
     if (!WriteCommonData(data, userId)) {
-        callback->OnResult(ERR_ACCOUNT_IAM_KIT_WRITE_PARCEL_FAIL, emptyResult);
+        callback->OnResult(ERR_ACCOUNT_COMMON_WRITE_PARCEL_ERROR, emptyResult);
         return;
     }
     if (!data.WriteUint64(credentialId)) {
         ACCOUNT_LOGE("failed to write userId");
-        callback->OnResult(ERR_ACCOUNT_IAM_KIT_WRITE_PARCEL_FAIL, emptyResult);
+        callback->OnResult(ERR_ACCOUNT_COMMON_WRITE_PARCEL_ERROR, emptyResult);
         return;
     }
     if (!data.WriteUInt8Vector(authToken)) {
         ACCOUNT_LOGE("failed to write token for DelCred");
-        callback->OnResult(ERR_ACCOUNT_IAM_KIT_WRITE_PARCEL_FAIL, emptyResult);
+        callback->OnResult(ERR_ACCOUNT_COMMON_WRITE_PARCEL_ERROR, emptyResult);
         return;
     }
     if (!data.WriteRemoteObject(callback->AsObject())) {
         ACCOUNT_LOGE("failed to write callback for DelCred");
-        callback->OnResult(ERR_ACCOUNT_IAM_KIT_WRITE_PARCEL_FAIL, emptyResult);
+        callback->OnResult(ERR_ACCOUNT_COMMON_WRITE_PARCEL_ERROR, emptyResult);
         return;
     }
     MessageParcel reply;
@@ -220,17 +220,17 @@ void AccountIAMMgrProxy::DelUser(
     Attributes emptyResult;
     MessageParcel data;
     if (!WriteCommonData(data, userId)) {
-        callback->OnResult(ERR_ACCOUNT_IAM_KIT_WRITE_PARCEL_FAIL, emptyResult);
+        callback->OnResult(ERR_ACCOUNT_COMMON_WRITE_PARCEL_ERROR, emptyResult);
         return;
     }
     if (!data.WriteUInt8Vector(authToken)) {
         ACCOUNT_LOGE("failed to write token for DelUser");
-        callback->OnResult(ERR_ACCOUNT_IAM_KIT_WRITE_PARCEL_FAIL, emptyResult);
+        callback->OnResult(ERR_ACCOUNT_COMMON_WRITE_PARCEL_ERROR, emptyResult);
         return;
     }
     if (!data.WriteRemoteObject(callback->AsObject())) {
         ACCOUNT_LOGE("failed to write callback for DelUser");
-        callback->OnResult(ERR_ACCOUNT_IAM_KIT_WRITE_PARCEL_FAIL, emptyResult);
+        callback->OnResult(ERR_ACCOUNT_COMMON_WRITE_PARCEL_ERROR, emptyResult);
         return;
     }
     MessageParcel reply;
@@ -249,15 +249,15 @@ int32_t AccountIAMMgrProxy::GetCredentialInfo(
     }
     MessageParcel data;
     if (!WriteCommonData(data, userId)) {
-        return ERR_ACCOUNT_IAM_KIT_WRITE_PARCEL_FAIL;
+        return ERR_ACCOUNT_COMMON_WRITE_PARCEL_ERROR;
     }
     if (!data.WriteInt32(authType)) {
         ACCOUNT_LOGE("failed to write authType");
-        return ERR_ACCOUNT_IAM_KIT_WRITE_PARCEL_FAIL;
+        return ERR_ACCOUNT_COMMON_WRITE_PARCEL_ERROR;
     }
     if (!data.WriteRemoteObject(callback->AsObject())) {
         ACCOUNT_LOGE("failed to write callback");
-        return ERR_ACCOUNT_IAM_KIT_WRITE_PARCEL_FAIL;
+        return ERR_ACCOUNT_COMMON_WRITE_PARCEL_ERROR;
     }
     MessageParcel reply;
     int32_t result = SendRequest(IAccountIAM::Message::GET_CREDENTIAL_INFO, data, reply);
@@ -266,7 +266,7 @@ int32_t AccountIAMMgrProxy::GetCredentialInfo(
     }
     if (!reply.ReadInt32(result)) {
         ACCOUNT_LOGE("failed to read result");
-        return ERR_ACCOUNT_IAM_KIT_READ_PARCEL_FAIL;
+        return ERR_ACCOUNT_COMMON_READ_PARCEL_ERROR;
     }
     return result;
 }
@@ -320,11 +320,11 @@ int32_t AccountIAMMgrProxy::CancelAuth(uint64_t contextId)
     MessageParcel data;
     if (!data.WriteInterfaceToken(GetDescriptor())) {
         ACCOUNT_LOGE("failed to write descriptor");
-        return ERR_ACCOUNT_IAM_KIT_WRITE_PARCEL_FAIL;
+        return ERR_ACCOUNT_COMMON_WRITE_PARCEL_ERROR;
     }
     if (!data.WriteUint64(contextId)) {
         ACCOUNT_LOGE("failed to write contextId");
-        return ERR_ACCOUNT_IAM_KIT_WRITE_PARCEL_FAIL;
+        return ERR_ACCOUNT_COMMON_WRITE_PARCEL_ERROR;
     }
     MessageParcel reply;
     int32_t result = SendRequest(IAccountIAM::Message::CANCEL_AUTH, data, reply);
@@ -333,7 +333,7 @@ int32_t AccountIAMMgrProxy::CancelAuth(uint64_t contextId)
     }
     if (!reply.ReadInt32(result)) {
         ACCOUNT_LOGE("failed to read result");
-        return ERR_ACCOUNT_IAM_KIT_READ_PARCEL_FAIL;
+        return ERR_ACCOUNT_COMMON_READ_PARCEL_ERROR;
     }
     return result;
 }
@@ -344,15 +344,15 @@ int32_t AccountIAMMgrProxy::GetAvailableStatus(const AuthType authType, const Au
     MessageParcel data;
     if (!data.WriteInterfaceToken(GetDescriptor())) {
         ACCOUNT_LOGE("failed to write descriptor");
-        return ERR_ACCOUNT_IAM_KIT_WRITE_PARCEL_FAIL;
+        return ERR_ACCOUNT_COMMON_WRITE_PARCEL_ERROR;
     }
     if (!data.WriteInt32(authType)) {
         ACCOUNT_LOGE("failed to write authType");
-        return ERR_ACCOUNT_IAM_KIT_WRITE_PARCEL_FAIL;
+        return ERR_ACCOUNT_COMMON_WRITE_PARCEL_ERROR;
     }
     if (!data.WriteUint32(authTrustLevel)) {
         ACCOUNT_LOGE("failed to write authTrustLevel");
-        return ERR_ACCOUNT_IAM_KIT_WRITE_PARCEL_FAIL;
+        return ERR_ACCOUNT_COMMON_WRITE_PARCEL_ERROR;
     }
     MessageParcel reply;
     int32_t res = SendRequest(IAccountIAM::Message::GET_AVAILABLE_STATUS, data, reply);
@@ -361,7 +361,7 @@ int32_t AccountIAMMgrProxy::GetAvailableStatus(const AuthType authType, const Au
     }
     if (!reply.ReadInt32(res)) {
         ACCOUNT_LOGE("failed to read result");
-        return ERR_ACCOUNT_IAM_KIT_READ_PARCEL_FAIL;
+        return ERR_ACCOUNT_COMMON_READ_PARCEL_ERROR;
     }
     if (res != ERR_OK) {
         ACCOUNT_LOGE("failed to get available status, result: %{public}d", res);
@@ -369,7 +369,7 @@ int32_t AccountIAMMgrProxy::GetAvailableStatus(const AuthType authType, const Au
     }
     if (!reply.ReadInt32(status)) {
         ACCOUNT_LOGE("failed to read status");
-        return ERR_ACCOUNT_IAM_KIT_READ_PARCEL_FAIL;
+        return ERR_ACCOUNT_COMMON_READ_PARCEL_ERROR;
     }
     return ERR_OK;
 }
@@ -384,12 +384,12 @@ void AccountIAMMgrProxy::GetProperty(
     Attributes emptyResult;
     MessageParcel data;
     if (!WriteCommonData(data, userId)) {
-        callback->OnResult(ERR_ACCOUNT_IAM_KIT_WRITE_PARCEL_FAIL, emptyResult);
+        callback->OnResult(ERR_ACCOUNT_COMMON_WRITE_PARCEL_ERROR, emptyResult);
         return;
     }
     if (!data.WriteInt32(request.authType)) {
         ACCOUNT_LOGE("failed to write authType for GetProperty");
-        callback->OnResult(ERR_ACCOUNT_IAM_KIT_WRITE_PARCEL_FAIL, emptyResult);
+        callback->OnResult(ERR_ACCOUNT_COMMON_WRITE_PARCEL_ERROR, emptyResult);
         return;
     }
     std::vector<uint32_t> attrKeys;
@@ -398,12 +398,12 @@ void AccountIAMMgrProxy::GetProperty(
 
     if (!data.WriteUInt32Vector(attrKeys)) {
         ACCOUNT_LOGE("failed to write keys");
-        callback->OnResult(ERR_ACCOUNT_IAM_KIT_WRITE_PARCEL_FAIL, emptyResult);
+        callback->OnResult(ERR_ACCOUNT_COMMON_WRITE_PARCEL_ERROR, emptyResult);
         return;
     }
     if (!data.WriteRemoteObject(callback->AsObject())) {
         ACCOUNT_LOGE("failed to write callback");
-        callback->OnResult(ERR_ACCOUNT_IAM_KIT_WRITE_PARCEL_FAIL, emptyResult);
+        callback->OnResult(ERR_ACCOUNT_COMMON_WRITE_PARCEL_ERROR, emptyResult);
         return;
     }
     MessageParcel reply;
@@ -423,23 +423,23 @@ void AccountIAMMgrProxy::SetProperty(
     Attributes emptyResult;
     MessageParcel data;
     if (!WriteCommonData(data, userId)) {
-        callback->OnResult(ERR_ACCOUNT_IAM_KIT_WRITE_PARCEL_FAIL, emptyResult);
+        callback->OnResult(ERR_ACCOUNT_COMMON_WRITE_PARCEL_ERROR, emptyResult);
         return;
     }
     if (!data.WriteInt32(request.authType)) {
         ACCOUNT_LOGE("failed to write authType for SetProperty");
-        callback->OnResult(ERR_ACCOUNT_IAM_KIT_WRITE_PARCEL_FAIL, emptyResult);
+        callback->OnResult(ERR_ACCOUNT_COMMON_WRITE_PARCEL_ERROR, emptyResult);
         return;
     }
     auto buffer = request.attrs.Serialize();
     if (!data.WriteUInt8Vector(buffer)) {
         ACCOUNT_LOGE("failed to write attributes");
-        callback->OnResult(ERR_ACCOUNT_IAM_KIT_WRITE_PARCEL_FAIL, emptyResult);
+        callback->OnResult(ERR_ACCOUNT_COMMON_WRITE_PARCEL_ERROR, emptyResult);
         return;
     }
     if (!data.WriteRemoteObject(callback->AsObject())) {
         ACCOUNT_LOGE("failed to write callback");
-        callback->OnResult(ERR_ACCOUNT_IAM_KIT_WRITE_PARCEL_FAIL, emptyResult);
+        callback->OnResult(ERR_ACCOUNT_COMMON_WRITE_PARCEL_ERROR, emptyResult);
         return;
     }
     MessageParcel reply;

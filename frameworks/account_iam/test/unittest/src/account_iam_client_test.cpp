@@ -351,7 +351,7 @@ HWTEST_F(AccountIAMClientTest, AccountIAMClient_GetAvailableStatus_0200, TestSiz
     int32_t status;
     AuthTrustLevel level = static_cast<AuthTrustLevel>(0);
     int32_t ret = AccountIAMClient::GetInstance().GetAvailableStatus(AuthType::FACE, level, status);
-    EXPECT_EQ(ERR_ACCOUNT_IAM_KIT_PARAM_INVALID_ERROR, ret);
+    EXPECT_EQ(ERR_ACCOUNT_COMMON_INVALID_PARAMETER, ret);
 }
 
 /**

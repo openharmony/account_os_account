@@ -71,7 +71,7 @@ void AccountIAMClient::AddCredential(
     }
     if ((userId == 0) && (!GetCurrentUserId(userId))) {
         ACCOUNT_LOGE("fail to add credential for invalid userId");
-        callback->OnResult(ERR_ACCOUNT_IAM_KIT_PARAM_INVALID_ERROR, emptyResult);
+        callback->OnResult(ERR_ACCOUNT_COMMON_INVALID_PARAMETER, emptyResult);
         return;
     }
     if (credInfo.authType == AuthType::PIN) {
@@ -95,7 +95,7 @@ void AccountIAMClient::UpdateCredential(
     }
     if ((userId == 0) && (!GetCurrentUserId(userId))) {
         ACCOUNT_LOGE("fail to update credential for invalid userId");
-        callback->OnResult(ERR_ACCOUNT_IAM_KIT_PARAM_INVALID_ERROR, emptyResult);
+        callback->OnResult(ERR_ACCOUNT_COMMON_INVALID_PARAMETER, emptyResult);
         return;
     }
     if (credInfo.authType == AuthType::PIN) {
@@ -118,7 +118,7 @@ void AccountIAMClient::DelCred(int32_t userId, uint64_t credentialId, const std:
         return;
     }
     if ((userId == 0) && (!GetCurrentUserId(userId))) {
-        callback->OnResult(ERR_ACCOUNT_IAM_KIT_PARAM_INVALID_ERROR, emptyResult);
+        callback->OnResult(ERR_ACCOUNT_COMMON_INVALID_PARAMETER, emptyResult);
         return;
     }
     sptr<IIDMCallback> wrapper = new (std::nothrow) IDMCallbackService(userId, callback);
@@ -138,7 +138,7 @@ void AccountIAMClient::DelUser(
         return;
     }
     if ((userId == 0) && (!GetCurrentUserId(userId))) {
-        callback->OnResult(ERR_ACCOUNT_IAM_KIT_PARAM_INVALID_ERROR, emptyResult);
+        callback->OnResult(ERR_ACCOUNT_COMMON_INVALID_PARAMETER, emptyResult);
         return;
     }
     sptr<IIDMCallback> wrapper = new (std::nothrow) IDMCallbackService(userId, callback);
@@ -239,11 +239,11 @@ int32_t AccountIAMClient::GetAvailableStatus(AuthType authType, AuthTrustLevel a
     }
     if (authTrustLevel < UserIam::UserAuth::ATL1 || authTrustLevel > UserIam::UserAuth::ATL4) {
         ACCOUNT_LOGE("authTrustLevel is not in correct range");
-        return ERR_ACCOUNT_IAM_KIT_PARAM_INVALID_ERROR;
+        return ERR_ACCOUNT_COMMON_INVALID_PARAMETER;
     }
     if (authType < UserIam::UserAuth::ALL) {
         ACCOUNT_LOGE("authType is not in correct range");
-        return ERR_ACCOUNT_IAM_KIT_PARAM_INVALID_ERROR;
+        return ERR_ACCOUNT_COMMON_INVALID_PARAMETER;
     }
     return proxy_->GetAvailableStatus(authType, authTrustLevel, status);
 }
