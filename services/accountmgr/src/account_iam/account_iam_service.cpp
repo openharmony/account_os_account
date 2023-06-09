@@ -32,7 +32,7 @@ AccountIAMService::~AccountIAMService()
 int32_t AccountIAMService::OpenSession(int32_t userId, std::vector<uint8_t> &challenge)
 {
     if ((userId == 0) && (!GetCurrentUserId(userId))) {
-        return ERR_ACCOUNT_IAM_SERVICE_PARAM_INVALID_ERROR;
+        return ERR_ACCOUNT_COMMON_INVALID_PARAMETER;
     }
     InnerAccountIAMManager::GetInstance().OpenSession(userId, challenge);
     return ERR_OK;
@@ -41,7 +41,7 @@ int32_t AccountIAMService::OpenSession(int32_t userId, std::vector<uint8_t> &cha
 int32_t AccountIAMService::CloseSession(int32_t userId)
 {
     if ((userId == 0) && (!GetCurrentUserId(userId))) {
-        return ERR_ACCOUNT_IAM_SERVICE_PARAM_INVALID_ERROR;
+        return ERR_ACCOUNT_COMMON_INVALID_PARAMETER;
     }
     InnerAccountIAMManager::GetInstance().CloseSession(userId);
     return ERR_OK;
@@ -52,7 +52,7 @@ void AccountIAMService::AddCredential(
 {
     Attributes emptyResult;
     if ((userId == 0) && (!GetCurrentUserId(userId))) {
-        callback->OnResult(ERR_ACCOUNT_IAM_SERVICE_PARAM_INVALID_ERROR, emptyResult);
+        callback->OnResult(ERR_ACCOUNT_COMMON_INVALID_PARAMETER, emptyResult);
         return;
     }
     InnerAccountIAMManager::GetInstance().AddCredential(userId, credInfo, callback);
@@ -63,7 +63,7 @@ void AccountIAMService::UpdateCredential(int32_t userId, const CredentialParamet
 {
     Attributes emptyResult;
     if ((userId == 0) && (!GetCurrentUserId(userId))) {
-        callback->OnResult(ERR_ACCOUNT_IAM_SERVICE_PARAM_INVALID_ERROR, emptyResult);
+        callback->OnResult(ERR_ACCOUNT_COMMON_INVALID_PARAMETER, emptyResult);
         return;
     }
     InnerAccountIAMManager::GetInstance().UpdateCredential(userId, credInfo, callback);
@@ -72,7 +72,7 @@ void AccountIAMService::UpdateCredential(int32_t userId, const CredentialParamet
 int32_t AccountIAMService::Cancel(int32_t userId)
 {
     if ((userId == 0) && (!GetCurrentUserId(userId))) {
-        return ERR_ACCOUNT_IAM_SERVICE_PARAM_INVALID_ERROR;
+        return ERR_ACCOUNT_COMMON_INVALID_PARAMETER;
     }
     return InnerAccountIAMManager::GetInstance().Cancel(userId);
 }
@@ -82,7 +82,7 @@ void AccountIAMService::DelCred(
 {
     Attributes emptyResult;
     if ((userId == 0) && (!GetCurrentUserId(userId))) {
-        callback->OnResult(ERR_ACCOUNT_IAM_SERVICE_PARAM_INVALID_ERROR, emptyResult);
+        callback->OnResult(ERR_ACCOUNT_COMMON_INVALID_PARAMETER, emptyResult);
         return;
     }
     InnerAccountIAMManager::GetInstance().DelCred(userId, credentialId, authToken, callback);
@@ -93,7 +93,7 @@ void AccountIAMService::DelUser(
 {
     Attributes emptyResult;
     if ((userId == 0) && (!GetCurrentUserId(userId))) {
-        callback->OnResult(ERR_ACCOUNT_IAM_SERVICE_PARAM_INVALID_ERROR, emptyResult);
+        callback->OnResult(ERR_ACCOUNT_COMMON_INVALID_PARAMETER, emptyResult);
         return;
     }
     InnerAccountIAMManager::GetInstance().DelUser(userId, authToken, callback);
@@ -103,7 +103,7 @@ int32_t AccountIAMService::GetCredentialInfo(
     int32_t userId, AuthType authType, const sptr<IGetCredInfoCallback> &callback)
 {
     if ((userId == 0) && (!GetCurrentUserId(userId))) {
-        return ERR_ACCOUNT_IAM_SERVICE_PARAM_INVALID_ERROR;
+        return ERR_ACCOUNT_COMMON_INVALID_PARAMETER;
     }
     InnerAccountIAMManager::GetInstance().GetCredentialInfo(userId, authType, callback);
     return ERR_OK;
@@ -113,7 +113,7 @@ int32_t AccountIAMService::AuthUser(
     int32_t userId, const AuthParam &authParam, const sptr<IIDMCallback> &callback, uint64_t &contextId)
 {
     if ((userId == 0) && (!GetCurrentUserId(userId))) {
-        return ERR_ACCOUNT_IAM_SERVICE_PARAM_INVALID_ERROR;
+        return ERR_ACCOUNT_COMMON_INVALID_PARAMETER;
     }
     return InnerAccountIAMManager::GetInstance().AuthUser(userId, authParam, callback, contextId);
 }
@@ -127,11 +127,11 @@ int32_t AccountIAMService::GetAvailableStatus(AuthType authType, AuthTrustLevel 
 {
     if (authTrustLevel < UserIam::UserAuth::ATL1 || authTrustLevel > UserIam::UserAuth::ATL4) {
         ACCOUNT_LOGE("authTrustLevel is not in correct range");
-        return ERR_ACCOUNT_IAM_SERVICE_PARAM_INVALID_ERROR;
+        return ERR_ACCOUNT_COMMON_INVALID_PARAMETER;
     }
     if (authType < UserIam::UserAuth::ALL) {
         ACCOUNT_LOGE("authType is not in correct range");
-        return ERR_ACCOUNT_IAM_SERVICE_PARAM_INVALID_ERROR;
+        return ERR_ACCOUNT_COMMON_INVALID_PARAMETER;
     }
     return InnerAccountIAMManager::GetInstance().GetAvailableStatus(authType, authTrustLevel, status);
 }
@@ -141,7 +141,7 @@ void AccountIAMService::GetProperty(
 {
     Attributes emptyResult;
     if ((userId == 0) && (!GetCurrentUserId(userId))) {
-        callback->OnResult(ERR_ACCOUNT_IAM_SERVICE_PARAM_INVALID_ERROR, emptyResult);
+        callback->OnResult(ERR_ACCOUNT_COMMON_INVALID_PARAMETER, emptyResult);
         return;
     }
     return InnerAccountIAMManager::GetInstance().GetProperty(userId, request, callback);
@@ -152,7 +152,7 @@ void AccountIAMService::SetProperty(
 {
     Attributes emptyResult;
     if ((userId == 0) && (!GetCurrentUserId(userId))) {
-        callback->OnResult(ERR_ACCOUNT_IAM_SERVICE_PARAM_INVALID_ERROR, emptyResult);
+        callback->OnResult(ERR_ACCOUNT_COMMON_INVALID_PARAMETER, emptyResult);
         return;
     }
     InnerAccountIAMManager::GetInstance().SetProperty(userId, request, callback);
