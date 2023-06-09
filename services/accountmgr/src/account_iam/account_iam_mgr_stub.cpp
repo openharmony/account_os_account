@@ -164,18 +164,18 @@ ErrCode AccountIAMMgrStub::ProcOpenSession(MessageParcel &data, MessageParcel &r
     int32_t userId;
     if (!data.ReadInt32(userId)) {
         ACCOUNT_LOGE("failed to read userId");
-        return ERR_ACCOUNT_IAM_SERVICE_READ_PARCEL_FAIL;
+        return ERR_ACCOUNT_COMMON_READ_PARCEL_ERROR;
     }
     std::vector<uint8_t> challenge;
     int32_t result = OpenSession(userId, challenge);
     if (!reply.WriteInt32(result)) {
         ACCOUNT_LOGE("failed to write result");
-        return ERR_ACCOUNT_IAM_SERVICE_WRITE_PARCEL_FAIL;
+        return ERR_ACCOUNT_COMMON_WRITE_PARCEL_ERROR;
     }
     if (result == ERR_OK) {
         if (!reply.WriteUInt8Vector(challenge)) {
             ACCOUNT_LOGE("failed to write challenge");
-            return ERR_ACCOUNT_IAM_SERVICE_WRITE_PARCEL_FAIL;
+            return ERR_ACCOUNT_COMMON_WRITE_PARCEL_ERROR;
         }
     }
     return ERR_NONE;
@@ -189,12 +189,12 @@ ErrCode AccountIAMMgrStub::ProcCloseSession(MessageParcel &data, MessageParcel &
     int32_t userId;
     if (!data.ReadInt32(userId)) {
         ACCOUNT_LOGE("failed to read userId");
-        return ERR_ACCOUNT_IAM_SERVICE_READ_PARCEL_FAIL;
+        return ERR_ACCOUNT_COMMON_READ_PARCEL_ERROR;
     }
     int32_t result = CloseSession(userId);
     if (!reply.WriteInt32(result)) {
         ACCOUNT_LOGE("failed to write result");
-        return ERR_ACCOUNT_IAM_SERVICE_WRITE_PARCEL_FAIL;
+        return ERR_ACCOUNT_COMMON_WRITE_PARCEL_ERROR;
     }
     return ERR_NONE;
 }
@@ -203,11 +203,11 @@ ErrCode AccountIAMMgrStub::ReadUserIdAndAuthType(MessageParcel &data, int32_t &u
 {
     if (!data.ReadInt32(userId)) {
         ACCOUNT_LOGE("failed to read userId");
-        return ERR_ACCOUNT_IAM_SERVICE_READ_PARCEL_FAIL;
+        return ERR_ACCOUNT_COMMON_READ_PARCEL_ERROR;
     }
     if (!data.ReadInt32(authType)) {
         ACCOUNT_LOGE("failed to read authType");
-        return ERR_ACCOUNT_IAM_SERVICE_READ_PARCEL_FAIL;
+        return ERR_ACCOUNT_COMMON_READ_PARCEL_ERROR;
     }
     return ERR_OK;
 }
@@ -226,17 +226,17 @@ ErrCode AccountIAMMgrStub::AddOrUpdateCredential(MessageParcel &data, MessagePar
     int32_t authSubType;
     if (!data.ReadInt32(authSubType)) {
         ACCOUNT_LOGE("failed to read authSubType");
-        return ERR_ACCOUNT_IAM_SERVICE_READ_PARCEL_FAIL;
+        return ERR_ACCOUNT_COMMON_READ_PARCEL_ERROR;
     }
     CredentialParameters credParams;
     if (!data.ReadUInt8Vector(&credParams.token)) {
         ACCOUNT_LOGE("failed to read token");
-        return ERR_ACCOUNT_IAM_SERVICE_READ_PARCEL_FAIL;
+        return ERR_ACCOUNT_COMMON_READ_PARCEL_ERROR;
     }
     sptr<IIDMCallback> callback = iface_cast<IIDMCallback>(data.ReadRemoteObject());
     if (callback == nullptr) {
         ACCOUNT_LOGE("callback is nullptr");
-        return ERR_ACCOUNT_IAM_SERVICE_READ_PARCEL_FAIL;
+        return ERR_ACCOUNT_COMMON_READ_PARCEL_ERROR;
     }
     credParams.authType = static_cast<AuthType>(authType);
     credParams.pinType = static_cast<PinSubType>(authSubType);
@@ -266,22 +266,22 @@ ErrCode AccountIAMMgrStub::ProcDelCred(MessageParcel &data, MessageParcel &reply
     int32_t userId;
     if (!data.ReadInt32(userId)) {
         ACCOUNT_LOGE("failed to read userId");
-        return ERR_ACCOUNT_IAM_SERVICE_READ_PARCEL_FAIL;
+        return ERR_ACCOUNT_COMMON_READ_PARCEL_ERROR;
     }
     uint64_t credentialId;
     if (!data.ReadUint64(credentialId)) {
         ACCOUNT_LOGE("failed to read credentialId");
-        return ERR_ACCOUNT_IAM_SERVICE_READ_PARCEL_FAIL;
+        return ERR_ACCOUNT_COMMON_READ_PARCEL_ERROR;
     }
     std::vector<uint8_t> authToken;
     if (!data.ReadUInt8Vector(&authToken)) {
         ACCOUNT_LOGE("failed to read authToken for delCred");
-        return ERR_ACCOUNT_IAM_SERVICE_READ_PARCEL_FAIL;
+        return ERR_ACCOUNT_COMMON_READ_PARCEL_ERROR;
     }
     sptr<IIDMCallback> callback = iface_cast<IIDMCallback>(data.ReadRemoteObject());
     if (callback == nullptr) {
         ACCOUNT_LOGE("callback is nullptr");
-        return ERR_ACCOUNT_IAM_SERVICE_READ_PARCEL_FAIL;
+        return ERR_ACCOUNT_COMMON_READ_PARCEL_ERROR;
     }
     DelCred(userId, credentialId, authToken, callback);
     return ERR_NONE;
@@ -295,17 +295,17 @@ ErrCode AccountIAMMgrStub::ProcDelUser(MessageParcel &data, MessageParcel &reply
     int32_t userId;
     if (!data.ReadInt32(userId)) {
         ACCOUNT_LOGE("failed to read userId");
-        return ERR_ACCOUNT_IAM_SERVICE_READ_PARCEL_FAIL;
+        return ERR_ACCOUNT_COMMON_READ_PARCEL_ERROR;
     }
     std::vector<uint8_t> authToken;
     if (!data.ReadUInt8Vector(&authToken)) {
         ACCOUNT_LOGE("failed to read authToken for delUser");
-        return ERR_ACCOUNT_IAM_SERVICE_READ_PARCEL_FAIL;
+        return ERR_ACCOUNT_COMMON_READ_PARCEL_ERROR;
     }
     sptr<IIDMCallback> callback = iface_cast<IIDMCallback>(data.ReadRemoteObject());
     if (callback == nullptr) {
         ACCOUNT_LOGE("callback is nullptr");
-        return ERR_ACCOUNT_IAM_SERVICE_READ_PARCEL_FAIL;
+        return ERR_ACCOUNT_COMMON_READ_PARCEL_ERROR;
     }
     DelUser(userId, authToken, callback);
     return ERR_NONE;
@@ -319,12 +319,12 @@ ErrCode AccountIAMMgrStub::ProcCancel(MessageParcel &data, MessageParcel &reply)
     int32_t userId;
     if (!data.ReadInt32(userId)) {
         ACCOUNT_LOGE("failed to read userId");
-        return ERR_ACCOUNT_IAM_SERVICE_READ_PARCEL_FAIL;
+        return ERR_ACCOUNT_COMMON_READ_PARCEL_ERROR;
     }
     int32_t result = Cancel(userId);
     if (!reply.WriteInt32(result)) {
         ACCOUNT_LOGE("failed to write result");
-        return ERR_ACCOUNT_IAM_SERVICE_WRITE_PARCEL_FAIL;
+        return ERR_ACCOUNT_COMMON_WRITE_PARCEL_ERROR;
     }
     return ERR_NONE;
 }
@@ -343,12 +343,12 @@ ErrCode AccountIAMMgrStub::ProcGetCredentialInfo(MessageParcel &data, MessagePar
     sptr<IGetCredInfoCallback> callback = iface_cast<IGetCredInfoCallback>(data.ReadRemoteObject());
     if (callback == nullptr) {
         ACCOUNT_LOGE("callback is nullptr");
-        return ERR_ACCOUNT_IAM_SERVICE_READ_PARCEL_FAIL;
+        return ERR_ACCOUNT_COMMON_READ_PARCEL_ERROR;
     }
     int result = GetCredentialInfo(userId, static_cast<AuthType>(authType), callback);
     if (!reply.WriteInt32(result)) {
         ACCOUNT_LOGE("failed to write result");
-        return ERR_ACCOUNT_IAM_SERVICE_WRITE_PARCEL_FAIL;
+        return ERR_ACCOUNT_COMMON_WRITE_PARCEL_ERROR;
     }
     return ERR_NONE;
 }
@@ -361,39 +361,39 @@ ErrCode AccountIAMMgrStub::ProcAuthUser(MessageParcel &data, MessageParcel &repl
     int32_t userId;
     if (!data.ReadInt32(userId)) {
         ACCOUNT_LOGE("failed to read userId");
-        return ERR_ACCOUNT_IAM_SERVICE_READ_PARCEL_FAIL;
+        return ERR_ACCOUNT_COMMON_READ_PARCEL_ERROR;
     }
     AuthParam authParam;
     if (!data.ReadUInt8Vector(&authParam.challenge)) {
         ACCOUNT_LOGE("failed to read challenge");
-        return ERR_ACCOUNT_IAM_SERVICE_READ_PARCEL_FAIL;
+        return ERR_ACCOUNT_COMMON_READ_PARCEL_ERROR;
     }
     int32_t authType;
     if (!data.ReadInt32(authType)) {
         ACCOUNT_LOGE("failed to read authType for AuthUser");
-        return ERR_ACCOUNT_IAM_SERVICE_READ_PARCEL_FAIL;
+        return ERR_ACCOUNT_COMMON_READ_PARCEL_ERROR;
     }
     authParam.authType = static_cast<AuthType>(authType);
     uint32_t authTrustLevel;
     if (!data.ReadUint32(authTrustLevel)) {
         ACCOUNT_LOGE("failed to read authTrustLevel for AuthUser");
-        return ERR_ACCOUNT_IAM_SERVICE_READ_PARCEL_FAIL;
+        return ERR_ACCOUNT_COMMON_READ_PARCEL_ERROR;
     }
     authParam.authTrustLevel = static_cast<AuthTrustLevel>(authTrustLevel);
     sptr<IIDMCallback> callback = iface_cast<IIDMCallback>(data.ReadRemoteObject());
     if (callback == nullptr) {
         ACCOUNT_LOGE("UserAuthCallbackInterface is nullptr");
-        return ERR_ACCOUNT_IAM_SERVICE_READ_PARCEL_FAIL;
+        return ERR_ACCOUNT_COMMON_READ_PARCEL_ERROR;
     }
     uint64_t contextId = 0;
     ErrCode result = AuthUser(userId, authParam, callback, contextId);
     if (!reply.WriteInt32(result)) {
         ACCOUNT_LOGE("failed to write result");
-        return ERR_ACCOUNT_IAM_SERVICE_WRITE_PARCEL_FAIL;
+        return ERR_ACCOUNT_COMMON_WRITE_PARCEL_ERROR;
     }
     if (!reply.WriteUint64(contextId)) {
         ACCOUNT_LOGE("failed to write contextId");
-        return ERR_ACCOUNT_IAM_SERVICE_WRITE_PARCEL_FAIL;
+        return ERR_ACCOUNT_COMMON_WRITE_PARCEL_ERROR;
     }
     return ERR_NONE;
 }
@@ -406,12 +406,12 @@ ErrCode AccountIAMMgrStub::ProcCancelAuth(MessageParcel &data, MessageParcel &re
     uint64_t contextId;
     if (!data.ReadUint64(contextId)) {
         ACCOUNT_LOGE("failed to read contextId");
-        return ERR_ACCOUNT_IAM_SERVICE_READ_PARCEL_FAIL;
+        return ERR_ACCOUNT_COMMON_READ_PARCEL_ERROR;
     }
     int32_t result = CancelAuth(contextId);
     if (!reply.WriteInt32(result)) {
         ACCOUNT_LOGE("failed to write result");
-        return ERR_ACCOUNT_IAM_SERVICE_WRITE_PARCEL_FAIL;
+        return ERR_ACCOUNT_COMMON_WRITE_PARCEL_ERROR;
     }
     return ERR_NONE;
 }
@@ -424,24 +424,24 @@ ErrCode AccountIAMMgrStub::ProcGetAvailableStatus(MessageParcel &data, MessagePa
     int32_t authType;
     if (!data.ReadInt32(authType)) {
         ACCOUNT_LOGE("failed to read authType for GetAvailableStatus");
-        return ERR_ACCOUNT_IAM_SERVICE_READ_PARCEL_FAIL;
+        return ERR_ACCOUNT_COMMON_READ_PARCEL_ERROR;
     }
     uint32_t authTrustLevel;
     if (!data.ReadUint32(authTrustLevel)) {
         ACCOUNT_LOGE("failed to read authTrustLevel for GetAvailableStatus");
-        return ERR_ACCOUNT_IAM_SERVICE_READ_PARCEL_FAIL;
+        return ERR_ACCOUNT_COMMON_READ_PARCEL_ERROR;
     }
     int32_t status;
     int32_t result =
         GetAvailableStatus(static_cast<AuthType>(authType), static_cast<AuthTrustLevel>(authTrustLevel), status);
     if (!reply.WriteInt32(result)) {
         ACCOUNT_LOGE("failed to write result");
-        return ERR_ACCOUNT_IAM_SERVICE_WRITE_PARCEL_FAIL;
+        return ERR_ACCOUNT_COMMON_WRITE_PARCEL_ERROR;
     }
     if (result == ERR_OK) {
         if (!reply.WriteInt32(status)) {
             ACCOUNT_LOGE("failed to write status");
-            return ERR_ACCOUNT_IAM_SERVICE_WRITE_PARCEL_FAIL;
+            return ERR_ACCOUNT_COMMON_WRITE_PARCEL_ERROR;
         }
     }
     return ERR_NONE;
@@ -455,17 +455,17 @@ ErrCode AccountIAMMgrStub::ProcGetProperty(MessageParcel &data, MessageParcel &r
     int32_t userId;
     int32_t authType;
     if (ReadUserIdAndAuthType(data, userId, authType) != ERR_OK) {
-        return ERR_ACCOUNT_IAM_SERVICE_READ_PARCEL_FAIL;
+        return ERR_ACCOUNT_COMMON_READ_PARCEL_ERROR;
     }
     std::vector<uint32_t> keys;
     if (!data.ReadUInt32Vector(&keys)) {
         ACCOUNT_LOGE("failed to read attribute keys");
-        return ERR_ACCOUNT_IAM_SERVICE_READ_PARCEL_FAIL;
+        return ERR_ACCOUNT_COMMON_READ_PARCEL_ERROR;
     }
     sptr<IGetSetPropCallback> callback = iface_cast<IGetSetPropCallback>(data.ReadRemoteObject());
     if (callback == nullptr) {
         ACCOUNT_LOGE("IGetSetPropCallback is nullptr");
-        return ERR_ACCOUNT_IAM_SERVICE_READ_PARCEL_FAIL;
+        return ERR_ACCOUNT_COMMON_READ_PARCEL_ERROR;
     }
     GetPropertyRequest request;
     request.authType = static_cast<AuthType>(authType);
@@ -484,17 +484,17 @@ ErrCode AccountIAMMgrStub::ProcSetProperty(MessageParcel &data, MessageParcel &r
     int32_t userId;
     int32_t authType;
     if (ReadUserIdAndAuthType(data, userId, authType) != ERR_OK) {
-        return ERR_ACCOUNT_IAM_SERVICE_READ_PARCEL_FAIL;
+        return ERR_ACCOUNT_COMMON_READ_PARCEL_ERROR;
     }
     std::vector<uint8_t> attr;
     if (!data.ReadUInt8Vector(&attr)) {
         ACCOUNT_LOGE("failed to read attributes");
-        return ERR_ACCOUNT_IAM_SERVICE_READ_PARCEL_FAIL;
+        return ERR_ACCOUNT_COMMON_READ_PARCEL_ERROR;
     }
     sptr<IGetSetPropCallback> callback = iface_cast<IGetSetPropCallback>(data.ReadRemoteObject());
     if (callback == nullptr) {
         ACCOUNT_LOGE("SetExecutorPropertyCallbackInterface is nullptr");
-        return ERR_ACCOUNT_IAM_SERVICE_READ_PARCEL_FAIL;
+        return ERR_ACCOUNT_COMMON_READ_PARCEL_ERROR;
     }
     SetPropertyRequest request = {
         .authType = static_cast<AuthType>(authType),
@@ -509,12 +509,12 @@ ErrCode AccountIAMMgrStub::ProcGetAccountState(MessageParcel &data, MessageParce
     int32_t userId;
     if (!data.ReadInt32(userId)) {
         ACCOUNT_LOGE("failed to read userId");
-        return ERR_ACCOUNT_IAM_SERVICE_READ_PARCEL_FAIL;
+        return ERR_ACCOUNT_COMMON_READ_PARCEL_ERROR;
     }
     IAMState state = GetAccountState(userId);
     if (!reply.WriteInt32(state)) {
         ACCOUNT_LOGE("failed to write state");
-        return ERR_ACCOUNT_IAM_SERVICE_WRITE_PARCEL_FAIL;
+        return ERR_ACCOUNT_COMMON_WRITE_PARCEL_ERROR;
     }
     return ERR_NONE;
 }
