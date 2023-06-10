@@ -200,7 +200,7 @@ bool BundleManagerAdapterProxy::GetBundleInfo(
         ACCOUNT_LOGE("fail to GetBundleInfo due to write userId fail");
         return false;
     }
-    if (!GetBigParcelableInfo<BundleInfo>(IBundleMgr::Message::GET_BUNDLE_INFO, data, bundleInfo)) {
+    if (!GetBigParcelableInfo<BundleInfo>(BundleMgrInterfaceCode::GET_BUNDLE_INFO, data, bundleInfo)) {
         ACCOUNT_LOGE("fail to GetBundleInfo from server");
         return false;
     }
@@ -229,7 +229,7 @@ int BundleManagerAdapterProxy::GetUidByBundleName(const std::string &bundleName,
     }
 
     MessageParcel reply;
-    if (!SendTransactCmd(IBundleMgr::Message::GET_UID_BY_BUNDLE_NAME, data, reply)) {
+    if (!SendTransactCmd(BundleMgrInterfaceCode::GET_UID_BY_BUNDLE_NAME, data, reply)) {
         ACCOUNT_LOGE("failed to GetUidByBundleName from server");
         return AppExecFwk::Constants::INVALID_UID;
     }
@@ -250,7 +250,7 @@ ErrCode BundleManagerAdapterProxy::GetNameForUid(const int uid, std::string &bun
     }
 
     MessageParcel reply;
-    if (!SendTransactCmd(IBundleMgr::Message::GET_NAME_FOR_UID, data, reply)) {
+    if (!SendTransactCmd(BundleMgrInterfaceCode::GET_NAME_FOR_UID, data, reply)) {
         ACCOUNT_LOGE("fail to GetNameForUid from server");
         return ERR_ACCOUNT_COMMON_WRITE_PARCEL_ERROR;
     }
@@ -284,7 +284,7 @@ bool BundleManagerAdapterProxy::QueryAbilityInfos(
         return false;
     }
 
-    if (!GetVectorFromParcelIntelligent<AbilityInfo>(IBundleMgr::Message::QUERY_ABILITY_INFOS_MUTI_PARAM,
+    if (!GetVectorFromParcelIntelligent<AbilityInfo>(BundleMgrInterfaceCode::QUERY_ABILITY_INFOS_MUTI_PARAM,
         data, abilityInfos)) {
         ACCOUNT_LOGE("fail to QueryAbilityInfos from server");
         return false;
@@ -300,7 +300,7 @@ sptr<IBundleUserMgr> BundleManagerAdapterProxy::GetBundleUserMgr()
         ACCOUNT_LOGE("fail to get bundle user mgr due to write InterfaceToken fail");
         return nullptr;
     }
-    if (!SendTransactCmd(IBundleMgr::Message::GET_BUNDLE_USER_MGR, data, reply)) {
+    if (!SendTransactCmd(BundleMgrInterfaceCode::GET_BUNDLE_USER_MGR, data, reply)) {
         return nullptr;
     }
 
@@ -338,7 +338,7 @@ bool BundleManagerAdapterProxy::QueryExtensionAbilityInfos(const Want &want, con
         return false;
     }
 
-    if (!GetParcelableInfos(IBundleMgr::Message::QUERY_EXTENSION_INFO_WITHOUT_TYPE, data, extensionInfos)) {
+    if (!GetParcelableInfos(BundleMgrInterfaceCode::QUERY_EXTENSION_INFO_WITHOUT_TYPE, data, extensionInfos)) {
         ACCOUNT_LOGE("fail to obtain extensionInfos");
         return false;
     }
@@ -370,7 +370,7 @@ bool BundleManagerAdapterProxy::QueryExtensionAbilityInfos(const Want &want, con
         return false;
     }
 
-    if (!GetParcelableInfos(IBundleMgr::Message::QUERY_EXTENSION_INFO, data, extensionInfos)) {
+    if (!GetParcelableInfos(BundleMgrInterfaceCode::QUERY_EXTENSION_INFO, data, extensionInfos)) {
         ACCOUNT_LOGE("fail to obtain extensionInfos");
         return false;
     }
@@ -378,7 +378,7 @@ bool BundleManagerAdapterProxy::QueryExtensionAbilityInfos(const Want &want, con
 }
 
 template<typename T>
-bool BundleManagerAdapterProxy::GetParcelableInfo(IBundleMgr::Message code, MessageParcel &data, T &parcelableInfo)
+bool BundleManagerAdapterProxy::GetParcelableInfo(BundleMgrInterfaceCode code, MessageParcel &data, T &parcelableInfo)
 {
     MessageParcel reply;
     if (!SendTransactCmd(code, data, reply)) {
@@ -401,7 +401,8 @@ bool BundleManagerAdapterProxy::GetParcelableInfo(IBundleMgr::Message code, Mess
 }
 
 template <typename T>
-bool BundleManagerAdapterProxy::GetBigParcelableInfo(IBundleMgr::Message code, MessageParcel &data, T &parcelableInfo)
+bool BundleManagerAdapterProxy::GetBigParcelableInfo(
+    BundleMgrInterfaceCode code, MessageParcel &data, T &parcelableInfo)
 {
     MessageParcel reply;
     if (!SendTransactCmd(code, data, reply)) {
@@ -481,7 +482,7 @@ bool BundleManagerAdapterProxy::GetParcelableFromAshmem(MessageParcel &reply, T 
 }
 
 template <typename T>
-ErrCode BundleManagerAdapterProxy::GetParcelableInfoWithErrCode(IBundleMgr::Message code, MessageParcel &data,
+ErrCode BundleManagerAdapterProxy::GetParcelableInfoWithErrCode(BundleMgrInterfaceCode code, MessageParcel &data,
     T &parcelableInfo)
 {
     ACCOUNT_LOGE("not support interface!");
@@ -489,7 +490,7 @@ ErrCode BundleManagerAdapterProxy::GetParcelableInfoWithErrCode(IBundleMgr::Mess
 }
 
 template<typename T>
-bool BundleManagerAdapterProxy::GetParcelableInfos(IBundleMgr::Message code, MessageParcel &data,
+bool BundleManagerAdapterProxy::GetParcelableInfos(BundleMgrInterfaceCode code, MessageParcel &data,
     std::vector<T> &parcelableInfos)
 {
     MessageParcel reply;
@@ -517,7 +518,7 @@ bool BundleManagerAdapterProxy::GetParcelableInfos(IBundleMgr::Message code, Mes
 
 template<typename T>
 bool BundleManagerAdapterProxy::GetVectorFromParcelIntelligent(
-    IBundleMgr::Message code, MessageParcel &data, std::vector<T> &parcelableInfos)
+    BundleMgrInterfaceCode code, MessageParcel &data, std::vector<T> &parcelableInfos)
 {
     MessageParcel reply;
     if (!SendTransactCmd(code, data, reply)) {
@@ -574,7 +575,7 @@ ErrCode BundleManagerAdapterProxy::InnerGetVectorFromParcelIntelligent(
 
 template <typename T>
 bool BundleManagerAdapterProxy::GetParcelableInfosFromAshmem(
-    IBundleMgr::Message code, MessageParcel &data, std::vector<T> &parcelableInfos)
+    BundleMgrInterfaceCode code, MessageParcel &data, std::vector<T> &parcelableInfos)
 {
     MessageParcel reply;
     if (!SendTransactCmd(code, data, reply)) {
@@ -655,7 +656,8 @@ bool BundleManagerAdapterProxy::SendData(void *&buffer, size_t size, const void 
     return true;
 }
 
-bool BundleManagerAdapterProxy::SendTransactCmd(IBundleMgr::Message code, MessageParcel &data, MessageParcel &reply)
+bool BundleManagerAdapterProxy::SendTransactCmd(
+    BundleMgrInterfaceCode code, MessageParcel &data, MessageParcel &reply)
 {
     MessageOption option(MessageOption::TF_SYNC);
 
@@ -664,7 +666,7 @@ bool BundleManagerAdapterProxy::SendTransactCmd(IBundleMgr::Message code, Messag
         ACCOUNT_LOGE("fail to send transact cmd %{public}d due to remote object", code);
         return false;
     }
-    int32_t result = remote->SendRequest(code, data, reply, option);
+    int32_t result = remote->SendRequest(static_cast<uint32_t>(code), data, reply, option);
     if (result != NO_ERROR) {
         ACCOUNT_LOGE("receive error transact code %{public}d in transact cmd %{public}d", result, code);
         return false;
