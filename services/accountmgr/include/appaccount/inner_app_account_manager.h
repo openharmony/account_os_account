@@ -103,7 +103,7 @@ public:
     ErrCode OnUserRemoved(int32_t userId);
 
     ErrCode ExecuteRequest(
-        AuthenticationRequest &request, const std::string &bundleName, const std::string &abilityName);
+        AuthorizationRequest &request, const std::string &bundleName, const std::string &abilityName);
 private:
     AppAccountControlManager &controlManager_;
     AppAccountSubscribeManager &subscribeManager_;
@@ -114,7 +114,7 @@ private:
 
 class RequestConnection : public AAFwk::AbilityConnectionStub {
 public:
-    RequestConnection(const int32_t &uid, const AuthenticationRequest &request);
+    RequestConnection(const int32_t &uid, const AuthorizationRequest &request);
     ~RequestConnection() override;
 
     void OnAbilityConnectDone(
@@ -123,7 +123,7 @@ public:
 
 private:
     int32_t uid_;
-    AuthenticationRequest request_;
+    AuthorizationRequest request_;
 };
 }  // namespace AccountSA
 }  // namespace OHOS

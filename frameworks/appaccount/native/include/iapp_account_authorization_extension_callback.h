@@ -13,18 +13,23 @@
  * limitations under the License.
  */
 
-#ifndef APP_ACCOUNT_INTERFACES_INNERKITS_APPACCOUNT_NATIVE_INCLUDE_APP_ACCOUNT_AUTHENTICATION_EXTENSION_CALLBACK_H
-#define APP_ACCOUNT_INTERFACES_INNERKITS_APPACCOUNT_NATIVE_INCLUDE_APP_ACCOUNT_AUTHENTICATION_EXTENSION_CALLBACK_H
+#ifndef OS_ACCOUNT_SERVICES_ACCOUNTMGR_INCLUDE_APPACCOUNT_IAPP_ACCOUNT_AUTHORIZATION_EXTENSION_CALLBACK_H
+#define OS_ACCOUNT_SERVICES_ACCOUNTMGR_INCLUDE_APPACCOUNT_IAPP_ACCOUNT_AUTHORIZATION_EXTENSION_CALLBACK_H
 
-#include <cstdint>
+#include <iremote_broker.h>
 #include "want.h"
 
 namespace OHOS {
 namespace AccountSA {
-class AppAccountAuthenticationExtensionCallback {
+class IAppAccountAuthorizationExtensionCallback : public IRemoteBroker {
 public:
+    DECLARE_INTERFACE_DESCRIPTOR(u"ohos.accountfwk.IAppAccountAuthorizationExtensionCallback");
+    enum Message {
+        APP_ACCOUNT_AUTHORIZATION_EXTENSION_CALLBACK_ON_RESULT = 0,
+    };
+
     virtual void OnResult(const int32_t errCode, const AAFwk::WantParams& parameters) = 0;
 };
-} // namespace AccountSA
-} // namespace OHOS
-#endif // APP_ACCOUNT_INTERFACES_INNERKITS_APPACCOUNT_NATIVE_INCLUDE_APP_ACCOUNT_AUTHENTICATION_EXTENSION_CALLBACK_H
+}  // namespace AccountSA
+}  // namespace OHOS
+#endif  // OS_ACCOUNT_SERVICES_ACCOUNTMGR_INCLUDE_APPACCOUNT_IAPP_ACCOUNT_AUTHORIZATION_EXTENSION_CALLBACK_H

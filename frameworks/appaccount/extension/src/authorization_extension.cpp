@@ -13,13 +13,13 @@
  * limitations under the License.
  */
 
-#include "authentication_extension.h"
+#include "authorization_extension.h"
 
 #include "ability_loader.h"
 #include "account_log_wrapper.h"
-#include "authentication_extension_context.h"
+#include "authorization_extension_context.h"
 #include "connection_manager.h"
-#include "napi_app_account_authentication_extension.h"
+#include "napi_app_account_authorization_extension.h"
 #include "runtime.h"
 
 using namespace OHOS::AccountSA;
@@ -27,32 +27,32 @@ using namespace OHOS::AccountSA;
 namespace OHOS {
 namespace AbilityRuntime {
 using namespace OHOS::AppExecFwk;
-AuthenticationExtension *AuthenticationExtension::Create(const std::unique_ptr<Runtime> &runtime)
+AuthorizationExtension *AuthorizationExtension::Create(const std::unique_ptr<Runtime> &runtime)
 {
     if (runtime == nullptr) {
-        return new AuthenticationExtension();
+        return new AuthorizationExtension();
     }
     switch (runtime->GetLanguage()) {
         case Runtime::Language::JS:
-            return AccountJsKit::JsAuthenticationExtension::Create(runtime);
+            return AccountJsKit::JsAuthorizationExtension::Create(runtime);
         default:
-            return new AuthenticationExtension();
+            return new AuthorizationExtension();
     }
 }
 
-void AuthenticationExtension::Init(const std::shared_ptr<AbilityLocalRecord> &record,
+void AuthorizationExtension::Init(const std::shared_ptr<AbilityLocalRecord> &record,
     const std::shared_ptr<OHOSApplication> &application, std::shared_ptr<AbilityHandler> &handler,
     const sptr<IRemoteObject> &token)
 {
-    ExtensionBase<AuthenticationExtensionContext>::Init(record, application, handler, token);
+    ExtensionBase<AuthorizationExtensionContext>::Init(record, application, handler, token);
 }
 
-std::shared_ptr<AuthenticationExtensionContext> AuthenticationExtension::CreateAndInitContext(
+std::shared_ptr<AuthorizationExtensionContext> AuthorizationExtension::CreateAndInitContext(
     const std::shared_ptr<AbilityLocalRecord> &record, const std::shared_ptr<OHOSApplication> &application,
     std::shared_ptr<AbilityHandler> &handler, const sptr<IRemoteObject> &token)
 {
-    std::shared_ptr<AuthenticationExtensionContext> context =
-        ExtensionBase<AuthenticationExtensionContext>::CreateAndInitContext(record, application, handler, token);
+    std::shared_ptr<AuthorizationExtensionContext> context =
+        ExtensionBase<AuthorizationExtensionContext>::CreateAndInitContext(record, application, handler, token);
     return context;
 }
 } // namespace AbilityRuntime

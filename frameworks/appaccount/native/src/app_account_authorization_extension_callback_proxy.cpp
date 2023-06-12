@@ -13,7 +13,7 @@
  * limitations under the License.
  */
 
-#include "app_account_authentication_extension_callback_proxy.h"
+#include "app_account_authorization_extension_callback_proxy.h"
 
 #include <securec.h>
 #include "account_error_no.h"
@@ -22,16 +22,16 @@
 
 namespace OHOS {
 namespace AccountSA {
-AppAccountAuthenticationExtensionCallbackProxy::AppAccountAuthenticationExtensionCallbackProxy(
+AppAccountAuthorizationExtensionCallbackProxy::AppAccountAuthorizationExtensionCallbackProxy(
     const sptr<IRemoteObject> &object)
-    : IRemoteProxy<IAppAccountAuthenticationExtensionCallback>(object)
+    : IRemoteProxy<IAppAccountAuthorizationExtensionCallback>(object)
 {}
 
-AppAccountAuthenticationExtensionCallbackProxy::~AppAccountAuthenticationExtensionCallbackProxy()
+AppAccountAuthorizationExtensionCallbackProxy::~AppAccountAuthorizationExtensionCallbackProxy()
 {}
 
-ErrCode AppAccountAuthenticationExtensionCallbackProxy::SendRequest(
-    IAppAccountAuthenticationExtensionCallback::Message code, MessageParcel &data)
+ErrCode AppAccountAuthorizationExtensionCallbackProxy::SendRequest(
+    IAppAccountAuthorizationExtensionCallback::Message code, MessageParcel &data)
 {
     sptr<IRemoteObject> remote = Remote();
     if (remote == nullptr) {
@@ -43,7 +43,7 @@ ErrCode AppAccountAuthenticationExtensionCallbackProxy::SendRequest(
     return remote->SendRequest(static_cast<uint32_t>(code), data, reply, option);
 }
 
-void AppAccountAuthenticationExtensionCallbackProxy::OnResult(
+void AppAccountAuthorizationExtensionCallbackProxy::OnResult(
     const int32_t errCode, const AAFwk::WantParams &parameters)
 {
     MessageParcel data;
@@ -60,7 +60,7 @@ void AppAccountAuthenticationExtensionCallbackProxy::OnResult(
         return;
     }
     ErrCode result = SendRequest(
-        IAppAccountAuthenticationExtensionCallback::Message::APP_ACCOUNT_AUTHENTICATION_EXTENSION_CALLBACK_ON_RESULT,
+        IAppAccountAuthorizationExtensionCallback::Message::APP_ACCOUNT_AUTHORIZATION_EXTENSION_CALLBACK_ON_RESULT,
         data);
     if (result != ERR_OK) {
         ACCOUNT_LOGE("failed to send request, error code: %{public}d", result);
