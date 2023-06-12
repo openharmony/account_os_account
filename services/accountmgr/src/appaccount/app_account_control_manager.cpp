@@ -606,7 +606,8 @@ ErrCode AppAccountControlManager::GetAllAccounts(const std::string &owner, std::
         ACCOUNT_LOGE("dataStoragePtr is nullptr");
         return ERR_APPACCOUNT_SERVICE_DATA_STORAGE_PTR_IS_NULLPTR;
     }
-    ErrCode result = AccountPermissionManager::GetInstance()->VerifyPermission(AccountPermissionManager::GET_ALL_APP_ACCOUNTS);
+    ErrCode result = AccountPermissionManager::GetInstance()->VerifyPermission(
+        AccountPermissionManager::GET_ALL_APP_ACCOUNTS);
     if ((bundleName == owner) || (result == ERR_OK)) {
         std::string key = owner + Constants::HYPHEN + std::to_string(appIndex);
         result = GetAllAccountsFromDataStorage(key, appAccounts, owner, dataStoragePtr);
@@ -666,7 +667,8 @@ ErrCode AppAccountControlManager::GetAllAccessibleAccounts(std::vector<AppAccoun
         ACCOUNT_LOGE("dataStoragePtr is nullptr");
         return ERR_APPACCOUNT_SERVICE_DATA_STORAGE_PTR_IS_NULLPTR;
     }
-    ErrCode result = AccountPermissionManager::GetInstance()->VerifyPermission(AccountPermissionManager::GET_ALL_APP_ACCOUNTS);
+    ErrCode result = AccountPermissionManager::GetInstance()->VerifyPermission(
+        AccountPermissionManager::GET_ALL_APP_ACCOUNTS);
     if (result == ERR_OK) {
         return LoadAllAppAccounts(dataStoragePtr, appAccounts);
     }
