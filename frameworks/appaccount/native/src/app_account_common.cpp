@@ -77,12 +77,12 @@ bool SelectAccountsOptions::ReadFromParcel(Parcel &parcel)
     return parcel.ReadStringVector(&allowedOwners) && parcel.ReadStringVector(&requiredLabels);
 }
 
-AuthenticationRequest::AuthenticationRequest(const int32_t &callingUid, const AAFwk::WantParams &parameters,
-    const sptr<IAppAccountAuthenticationExtensionCallback> &callback)
+AuthorizationRequest::AuthorizationRequest(const int32_t &callingUid, const AAFwk::WantParams &parameters,
+    const sptr<IAppAccountAuthorizationExtensionCallback> &callback)
     : callerUid(callingUid), parameters(parameters), callback(callback)
 {}
 
-AuthenticationRequest::AuthenticationRequest()
+AuthorizationRequest::AuthorizationRequest()
 {}
 
 bool VerifyCredentialOptions::Marshalling(Parcel &parcel) const

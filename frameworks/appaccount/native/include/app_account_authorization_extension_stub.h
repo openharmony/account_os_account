@@ -13,33 +13,33 @@
  * limitations under the License.
  */
 
-#ifndef OS_ACCOUNT_SERVICES_ACCOUNTMGR_INCLUDE_APPACCOUNT_APP_ACCOUNT_AUTHENTICATION_EXTENSION_STUB_H
-#define OS_ACCOUNT_SERVICES_ACCOUNTMGR_INCLUDE_APPACCOUNT_APP_ACCOUNT_AUTHENTICATION_EXTENSION_STUB_H
+#ifndef OS_ACCOUNT_SERVICES_ACCOUNTMGR_INCLUDE_APPACCOUNT_APP_ACCOUNT_AUTHORIZATION_EXTENSION_STUB_H
+#define OS_ACCOUNT_SERVICES_ACCOUNTMGR_INCLUDE_APPACCOUNT_APP_ACCOUNT_AUTHORIZATION_EXTENSION_STUB_H
 
 #include <map>
-#include "iapp_account_authentication_extension.h"
+#include "iapp_account_authorization_extension.h"
 #include "iremote_stub.h"
 
 namespace OHOS {
 namespace AccountSA {
-class AppAccountAuthenticationExtensionStub : public IRemoteStub<IAppAccountAuthenticationExtension> {
+class AppAccountAuthorizationExtensionStub : public IRemoteStub<IAppAccountAuthorizationExtension> {
 public:
-    using MessageProcFunction = ErrCode (AppAccountAuthenticationExtensionStub::*)(
+    using MessageProcFunction = ErrCode (AppAccountAuthorizationExtensionStub::*)(
         MessageParcel &data, MessageParcel &reply);
 
-    AppAccountAuthenticationExtensionStub();
-    ~AppAccountAuthenticationExtensionStub() override;
+    AppAccountAuthorizationExtensionStub();
+    ~AppAccountAuthorizationExtensionStub() override;
     int OnRemoteRequest(
         uint32_t code, MessageParcel &data, MessageParcel &reply, MessageOption &option) override;
 
 private:
-    ErrCode ProcStartAuthentication(MessageParcel &data, MessageParcel &reply);
+    ErrCode ProcStartAuthorization(MessageParcel &data, MessageParcel &reply);
 
 private:
     static const std::map<uint32_t, MessageProcFunction> messageProcMap_;
 
-    DISALLOW_COPY_AND_MOVE(AppAccountAuthenticationExtensionStub);
+    DISALLOW_COPY_AND_MOVE(AppAccountAuthorizationExtensionStub);
 };
 }  // namespace AccountSA
 }  // namespace OHOS
-#endif  // OS_ACCOUNT_SERVICES_ACCOUNTMGR_INCLUDE_APPACCOUNT_APP_ACCOUNT_AUTHENTICATION_EXTENSION_STUB_H
+#endif  // OS_ACCOUNT_SERVICES_ACCOUNTMGR_INCLUDE_APPACCOUNT_APP_ACCOUNT_AUTHORIZATION_EXTENSION_STUB_H

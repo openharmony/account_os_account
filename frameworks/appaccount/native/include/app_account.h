@@ -100,7 +100,7 @@ public:
     ErrCode SetAuthenticatorProperties(const std::string &owner,
         const SetPropertiesOptions &options, const sptr<IAppAccountAuthenticatorCallback> &callback);
     ErrCode ExecuteRequest(
-        const AccountCapabilityRequest &request, const sptr<IAppAccountAuthenticationExtensionCallback> &callback);
+        const AccountCapabilityRequest &request, const sptr<IAppAccountAuthorizationExtensionCallback> &callback);
 
     ErrCode SubscribeAppAccount(const std::shared_ptr<AppAccountSubscriber> &subscriber);
     ErrCode UnsubscribeAppAccount(const std::shared_ptr<AppAccountSubscriber> &subscriber);

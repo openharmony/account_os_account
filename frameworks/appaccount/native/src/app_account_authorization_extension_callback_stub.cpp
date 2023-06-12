@@ -13,7 +13,7 @@
  * limitations under the License.
  */
 
-#include "app_account_authentication_extension_callback_stub.h"
+#include "app_account_authorization_extension_callback_stub.h"
 
 #include <securec.h>
 #include "account_log_wrapper.h"
@@ -23,13 +23,13 @@
 namespace OHOS {
 namespace AccountSA {
 
-AppAccountAuthenticationExtensionCallbackStub::AppAccountAuthenticationExtensionCallbackStub()
+AppAccountAuthorizationExtensionCallbackStub::AppAccountAuthorizationExtensionCallbackStub()
 {}
 
-AppAccountAuthenticationExtensionCallbackStub::~AppAccountAuthenticationExtensionCallbackStub()
+AppAccountAuthorizationExtensionCallbackStub::~AppAccountAuthorizationExtensionCallbackStub()
 {}
 
-int32_t AppAccountAuthenticationExtensionCallbackStub::OnRemoteRequest(
+int32_t AppAccountAuthorizationExtensionCallbackStub::OnRemoteRequest(
     std::uint32_t code, MessageParcel &data, MessageParcel &reply, MessageOption &option)
 {
     if (data.ReadInterfaceToken() != GetDescriptor()) {
@@ -39,7 +39,7 @@ int32_t AppAccountAuthenticationExtensionCallbackStub::OnRemoteRequest(
     return ProcOnResult(data, reply);
 }
 
-int32_t AppAccountAuthenticationExtensionCallbackStub::ProcOnResult(MessageParcel &data, MessageParcel &reply)
+int32_t AppAccountAuthorizationExtensionCallbackStub::ProcOnResult(MessageParcel &data, MessageParcel &reply)
 {
     int32_t result;
     if (!data.ReadInt32(result)) {

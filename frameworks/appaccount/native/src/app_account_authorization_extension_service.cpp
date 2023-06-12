@@ -13,46 +13,46 @@
  * limitations under the License.
  */
 
-#include "app_account_authentication_extension_service.h"
+#include "app_account_authorization_extension_service.h"
 
 #include "account_log_wrapper.h"
-#include "app_account_authentication_extension_callback_client.h"
+#include "app_account_authorization_extension_callback_client.h"
 
 namespace OHOS {
 namespace AccountSA {
-AppAccountAuthenticationExtensionService::AppAccountAuthenticationExtensionService(
-    const std::shared_ptr<AccountJsKit::JsAuthenticationExtension> &extension)
+AppAccountAuthorizationExtensionService::AppAccountAuthorizationExtensionService(
+    const std::shared_ptr<AccountJsKit::JsAuthorizationExtension> &extension)
     : innerExtension_(extension)
 {}
 
-AppAccountAuthenticationExtensionService::~AppAccountAuthenticationExtensionService()
+AppAccountAuthorizationExtensionService::~AppAccountAuthorizationExtensionService()
 {}
 
-ErrCode AppAccountAuthenticationExtensionService::CheckAndInitExecEnv(
-    const sptr<IAppAccountAuthenticationExtensionCallback> &callback,
-    AppAccountAuthenticationExtensionCallbackClient **callbackClient)
+ErrCode AppAccountAuthorizationExtensionService::CheckAndInitExecEnv(
+    const sptr<IAppAccountAuthorizationExtensionCallback> &callback,
+    AppAccountAuthorizationExtensionCallbackClient **callbackClient)
 {
     if (innerExtension_ == nullptr) {
         ACCOUNT_LOGE("innerExtension_ is nullptr");
         return ERR_ACCOUNT_COMMON_NULL_PTR_ERROR;
     }
-    *callbackClient = new (std::nothrow) AppAccountAuthenticationExtensionCallbackClient(callback);
+    *callbackClient = new (std::nothrow) AppAccountAuthorizationExtensionCallbackClient(callback);
     if (*callbackClient == nullptr) {
-        ACCOUNT_LOGE("failed to create app account authentication extension callback client");
+        ACCOUNT_LOGE("failed to create app account authorization extension callback client");
         return ERR_ACCOUNT_COMMON_INSUFFICIENT_MEMORY_ERROR;
     }
     return ERR_OK;
 }
 
-ErrCode AppAccountAuthenticationExtensionService::StartAuthentication(const AuthenticationRequest &request)
+ErrCode AppAccountAuthorizationExtensionService::StartAuthorization(const AuthorizationRequest &request)
 {
-    AppAccountAuthenticationExtensionCallbackClient *callbackClient = nullptr;
+    AppAccountAuthorizationExtensionCallbackClient *callbackClient = nullptr;
     ErrCode errCode = CheckAndInitExecEnv(request.callback, &callbackClient);
     if (errCode != ERR_OK) {
         return errCode;
     }
-    std::shared_ptr<AppAccountAuthenticationExtensionCallbackClient> callbackPtr(callbackClient);
-    innerExtension_->StartAuthentication(request, callbackPtr, innerExtension_);
+    std::shared_ptr<AppAccountAuthorizationExtensionCallbackClient> callbackPtr(callbackClient);
+    innerExtension_->StartAuthorization(request, callbackPtr, innerExtension_);
     return ERR_OK;
 }
 }  // namespace AccountSA

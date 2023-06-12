@@ -13,15 +13,15 @@
  * limitations under the License.
  */
 
-#ifndef OHOS_ABILITY_RUNTIME_AUTHENTICATION_EXTENSION_MODULE_LOADER_H
-#define OHOS_ABILITY_RUNTIME_AUTHENTICATION_EXTENSION_MODULE_LOADER_H
+#ifndef OHOS_ABILITY_RUNTIME_AUTHORIZATION_EXTENSION_MODULE_LOADER_H
+#define OHOS_ABILITY_RUNTIME_AUTHORIZATION_EXTENSION_MODULE_LOADER_H
 
 #include "extension_module_loader.h"
 
 namespace OHOS::AbilityRuntime {
-class AuthenticationExtensionModuleLoader : public ExtensionModuleLoader,
-                                            public Singleton<AuthenticationExtensionModuleLoader> {
-    DECLARE_SINGLETON(AuthenticationExtensionModuleLoader);
+class AuthorizationExtensionModuleLoader : public ExtensionModuleLoader,
+                                            public Singleton<AuthorizationExtensionModuleLoader> {
+    DECLARE_SINGLETON(AuthorizationExtensionModuleLoader);
 
 public:
     /**
@@ -35,4 +35,4 @@ public:
     virtual std::map<std::string, std::string> GetParams() override;
 };
 } // namespace OHOS::AbilityRuntime
-#endif // OHOS_ABILITY_RUNTIME_AUTHENTICATION_EXTENSION_MODULE_LOADER_H
+#endif // OHOS_ABILITY_RUNTIME_AUTHORIZATION_EXTENSION_MODULE_LOADER_H

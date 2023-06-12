@@ -703,7 +703,7 @@ ErrCode AppAccountManagerService::SetAuthenticatorProperties(
 ErrCode AppAccountManagerService::ExecuteRequest(
     const AccountCapabilityRequest &request, const sptr<IRemoteObject> &callback)
 {
-    AuthenticationRequest innerRequest;
+    AuthorizationRequest innerRequest;
     std::string callerBundleName;
     uint32_t appIndex;
     ErrCode result = GetCallingInfo(innerRequest.callerUid, callerBundleName, appIndex);
@@ -712,7 +712,7 @@ ErrCode AppAccountManagerService::ExecuteRequest(
     }
 
     innerRequest.parameters = request.parameters;
-    innerRequest.callback = iface_cast<IAppAccountAuthenticationExtensionCallback>(callback);
+    innerRequest.callback = iface_cast<IAppAccountAuthorizationExtensionCallback>(callback);
     if (innerRequest.callback == nullptr) {
         return ERR_JS_SYSTEM_SERVICE_EXCEPTION;
     }

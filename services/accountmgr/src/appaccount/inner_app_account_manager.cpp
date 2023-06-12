@@ -21,7 +21,7 @@
 #include "app_account_authenticator_session.h"
 #include "app_account_control_manager.h"
 #include "app_account_subscribe_manager.h"
-#include "app_account_authentication_extension_stub.h"
+#include "app_account_authorization_extension_stub.h"
 #include "bundle_manager_adapter.h"
 
 namespace OHOS {
@@ -228,7 +228,7 @@ ErrCode InnerAppAccountManager::Authenticate(const AuthenticatorSessionRequest &
     return sessionManager_.Authenticate(request);
 }
 
-RequestConnection::RequestConnection(const int32_t &uid, const AuthenticationRequest &request)
+RequestConnection::RequestConnection(const int32_t &uid, const AuthorizationRequest &request)
     :uid_(uid), request_(request)
 {}
 
@@ -239,14 +239,14 @@ void RequestConnection::OnAbilityConnectDone(
     const AppExecFwk::ElementName &element, const sptr<IRemoteObject> &remoteObject, int32_t resultCode)
 {
     AAFwk::WantParams errResult;
-    sptr<IAppAccountAuthenticationExtension>
-        authenticationProxy_ = iface_cast<IAppAccountAuthenticationExtension>(remoteObject);
+    sptr<IAppAccountAuthorizationExtension>
+        authenticationProxy_ = iface_cast<IAppAccountAuthorizationExtension>(remoteObject);
     if ((!authenticationProxy_) || (!authenticationProxy_->AsObject())) {
         ACCOUNT_LOGE("failed to cast app account authenticator proxy, callerUid = %{public}d", uid_);
         request_.callback->OnResult(ERR_JS_SYSTEM_SERVICE_EXCEPTION, errResult);
         return;
     }
-    resultCode = authenticationProxy_->StartAuthentication(request_);
+    resultCode = authenticationProxy_->StartAuthorization(request_);
     if (resultCode != ERR_OK) {
         request_.callback->OnResult(ERR_JS_SYSTEM_SERVICE_EXCEPTION, errResult);
     }
@@ -302,7 +302,7 @@ static bool QueryAbilityInfo(const std::string &bundleName, const std::string &a
 }
 
 ErrCode InnerAppAccountManager::ExecuteRequest(
-    AuthenticationRequest &request, const std::string &bundleName, const std::string &abilityName)
+    AuthorizationRequest &request, const std::string &bundleName, const std::string &abilityName)
 {
     AAFwk::WantParams Params;
     AppExecFwk::ExtensionAbilityInfo extensionInfo;

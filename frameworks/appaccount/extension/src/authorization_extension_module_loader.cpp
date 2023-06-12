@@ -13,31 +13,31 @@
  * limitations under the License.
  */
 
-#include "authentication_extension_module_loader.h"
+#include "authorization_extension_module_loader.h"
 
 #include "account_log_wrapper.h"
-#include "authentication_extension.h"
+#include "authorization_extension.h"
 
 using namespace OHOS::AccountSA;
 namespace {
 const std::map<std::string, std::string> g_params = {{"type", "19"}, {"name", "AppAccountAuthorizationExtension"}};
 }
 namespace OHOS::AbilityRuntime {
-AuthenticationExtensionModuleLoader::AuthenticationExtensionModuleLoader() = default;
-AuthenticationExtensionModuleLoader::~AuthenticationExtensionModuleLoader() = default;
+AuthorizationExtensionModuleLoader::AuthorizationExtensionModuleLoader() = default;
+AuthorizationExtensionModuleLoader::~AuthorizationExtensionModuleLoader() = default;
 
-Extension *AuthenticationExtensionModuleLoader::Create(const std::unique_ptr<Runtime> &runtime) const
+Extension *AuthorizationExtensionModuleLoader::Create(const std::unique_ptr<Runtime> &runtime) const
 {
-    return AuthenticationExtension::Create(runtime);
+    return AuthorizationExtension::Create(runtime);
 }
 
-std::map<std::string, std::string> AuthenticationExtensionModuleLoader::GetParams()
+std::map<std::string, std::string> AuthorizationExtensionModuleLoader::GetParams()
 {
     return g_params;
 }
 
 extern "C" __attribute__((visibility("default"))) void *OHOS_EXTENSION_GetExtensionModule()
 {
-    return &AuthenticationExtensionModuleLoader::GetInstance();
+    return &AuthorizationExtensionModuleLoader::GetInstance();
 }
 } // namespace OHOS::AbilityRuntime

@@ -13,28 +13,27 @@
  * limitations under the License.
  */
 
-#include "app_account_authentication_extension_callback_client.h"
-
-#include "account_error_no.h"
+#include "app_account_authorization_extension_callback_service.h"
 #include "account_log_wrapper.h"
-#include "app_account_authentication_extension_callback_proxy.h"
 
 namespace OHOS {
 namespace AccountSA {
-AppAccountAuthenticationExtensionCallbackClient::AppAccountAuthenticationExtensionCallbackClient(
-    const sptr<IAppAccountAuthenticationExtensionCallback>& proxy)
-    : proxy_(proxy)
+AppAccountAuthorizationExtensionCallbackService::AppAccountAuthorizationExtensionCallbackService(
+    const std::shared_ptr<AppAccountAuthorizationExtensionCallback>& callback)
+    : innerCallback_(callback)
 {}
 
-AppAccountAuthenticationExtensionCallbackClient::~AppAccountAuthenticationExtensionCallbackClient()
+AppAccountAuthorizationExtensionCallbackService::~AppAccountAuthorizationExtensionCallbackService()
 {}
 
-void AppAccountAuthenticationExtensionCallbackClient::OnResult(
+void AppAccountAuthorizationExtensionCallbackService::OnResult(
     const int32_t errCode, const AAFwk::WantParams& parameters)
 {
-    if (proxy_ != nullptr) {
-        proxy_->OnResult(errCode, parameters);
+    if (innerCallback_ == nullptr) {
+        ACCOUNT_LOGE("innerCallback is nullptr");
+        return;
     }
+    return innerCallback_->OnResult(errCode, parameters);
 }
 } // namespace AccountSA
 } // namespace OHOS

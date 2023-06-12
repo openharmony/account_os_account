@@ -13,7 +13,7 @@
  * limitations under the License.
  */
 
-#include "napi_app_account_authentication_extension.h"
+#include "napi_app_account_authorization_extension.h"
 
 #include <memory>
 #include <uv.h>
@@ -21,7 +21,7 @@
 #include "account_error_no.h"
 #include "account_log_wrapper.h"
 #include "account_permission_manager.h"
-#include "app_account_authentication_extension_service.h"
+#include "app_account_authorization_extension_service.h"
 #include "napi/native_api.h"
 #include "napi/native_node_api.h"
 #include "napi_account_common.h"
@@ -45,7 +45,7 @@ using namespace OHOS::AbilityRuntime;
 using namespace OHOS::AccountSA;
 
 static bool GetExtentionCallbackCommonParam(napi_env env, napi_callback_info cbInfo,
-    JsAppAAuthenticationExtensionParam **param, BusinessError &error, napi_value *businessData)
+    JsAppAuthorizationExtensionParam **param, BusinessError &error, napi_value *businessData)
 {
     size_t argc = ARGC_TWO;
     napi_value argv[ARGC_TWO] = {nullptr};
@@ -55,7 +55,7 @@ static bool GetExtentionCallbackCommonParam(napi_env env, napi_callback_info cbI
         ACCOUNT_LOGE("the number of argument should be at least 1");
         return false;
     }
-    *param = reinterpret_cast<JsAppAAuthenticationExtensionParam *>(data);
+    *param = reinterpret_cast<JsAppAuthorizationExtensionParam *>(data);
     if ((*param == nullptr) || ((*param)->callback == nullptr)) {
         ACCOUNT_LOGE("native callback is nullptr");
         return false;
@@ -70,15 +70,15 @@ static bool GetExtentionCallbackCommonParam(napi_env env, napi_callback_info cbI
     return true;
 }
 
-static bool InitAuthenticationExtensionExecEnv(napi_env env, uv_loop_s **loop, uv_work_t **work,
-    JsAppAAuthenticationExtensionParam **param, ThreadLockInfo *lockInfo)
+static bool InitAuthorizationExtensionExecEnv(napi_env env, uv_loop_s **loop, uv_work_t **work,
+    JsAppAuthorizationExtensionParam **param, ThreadLockInfo *lockInfo)
 {
     if (!CreateExecEnv(env, loop, work)) {
         return false;
     }
-    *param = new (std::nothrow) JsAppAAuthenticationExtensionParam(env);
+    *param = new (std::nothrow) JsAppAuthorizationExtensionParam(env);
     if (*param == nullptr) {
-        ACCOUNT_LOGE("failed to create JsAppAAuthenticationExtensionParam");
+        ACCOUNT_LOGE("failed to create JsAppAuthorizationExtensionParam");
         delete *work;
         *work = nullptr;
         return false;
@@ -89,7 +89,7 @@ static bool InitAuthenticationExtensionExecEnv(napi_env env, uv_loop_s **loop, u
 }
 
 static napi_value CreateExtensionAsyncCallback(
-    napi_env env, napi_callback callback, JsAppAAuthenticationExtensionParam *param)
+    napi_env env, napi_callback callback, JsAppAuthorizationExtensionParam *param)
 {
     napi_value napiCallback = nullptr;
     napi_status status = napi_create_function(env, "callback", NAPI_AUTO_LENGTH, callback, param, &napiCallback);
@@ -100,11 +100,11 @@ static napi_value CreateExtensionAsyncCallback(
     status = napi_wrap(
         env, napiCallback, param,
         [](napi_env env, void *data, void *hint) {
-            delete reinterpret_cast<JsAppAAuthenticationExtensionParam *>(data);
+            delete reinterpret_cast<JsAppAuthorizationExtensionParam *>(data);
         },
         nullptr, nullptr);
     if (status != napi_ok) {
-        ACCOUNT_LOGE("failed to wrap callback with JsAppAAuthenticationExtensionParam");
+        ACCOUNT_LOGE("failed to wrap callback with JsAppAuthorizationExtensionParam");
         return nullptr;
     }
     return napiCallback;
@@ -112,7 +112,7 @@ static napi_value CreateExtensionAsyncCallback(
 
 static napi_value OnResultCallback(napi_env env, napi_callback_info cbInfo)
 {
-    JsAppAAuthenticationExtensionParam *param = nullptr;
+    JsAppAuthorizationExtensionParam *param = nullptr;
     BusinessError error;
     napi_value businessData = nullptr;
     if (!GetExtentionCallbackCommonParam(env, cbInfo, &param, error, &businessData)) {
@@ -133,12 +133,12 @@ static napi_value OnResultCallback(napi_env env, napi_callback_info cbInfo)
     return nullptr;
 }
 
-JsAppAAuthenticationExtensionParam::JsAppAAuthenticationExtensionParam(napi_env napiEnv)
+JsAppAuthorizationExtensionParam::JsAppAuthorizationExtensionParam(napi_env napiEnv)
 {
     env = napiEnv;
 }
 
-static napi_value CreateNapiRequest(napi_env env, JsAppAAuthenticationExtensionParam *param)
+static napi_value CreateNapiRequest(napi_env env, JsAppAuthorizationExtensionParam *param)
 {
     napi_value napiRequest = nullptr;
     NAPI_CALL(env, napi_create_object(env, &napiRequest));
@@ -150,23 +150,23 @@ static napi_value CreateNapiRequest(napi_env env, JsAppAAuthenticationExtensionP
     return napiRequest;
 }
 
-static napi_value CreateAuthenticationCallback(napi_env env, JsAppAAuthenticationExtensionParam *param)
+static napi_value CreateAuthorizationCallback(napi_env env, JsAppAuthorizationExtensionParam *param)
 {
-    napi_value authenticationCallback = nullptr;
-    NAPI_CALL(env, napi_create_object(env, &authenticationCallback));
+    napi_value authorizationCallback = nullptr;
+    NAPI_CALL(env, napi_create_object(env, &authorizationCallback));
     napi_value napiCallback = CreateExtensionAsyncCallback(env, OnResultCallback, param);
-    NAPI_CALL(env, napi_set_named_property(env, authenticationCallback, "onResult", napiCallback));
-    return authenticationCallback;
+    NAPI_CALL(env, napi_set_named_property(env, authorizationCallback, "onResult", napiCallback));
+    return authorizationCallback;
 }
 
-JsAuthenticationExtension* JsAuthenticationExtension::Create(const std::unique_ptr<Runtime>& runtime)
+JsAuthorizationExtension* JsAuthorizationExtension::Create(const std::unique_ptr<Runtime>& runtime)
 {
-    return new JsAuthenticationExtension(static_cast<JsRuntime&>(*runtime));
+    return new JsAuthorizationExtension(static_cast<JsRuntime&>(*runtime));
 }
 
-JsAuthenticationExtension::JsAuthenticationExtension(JsRuntime& jsRuntime) : jsRuntime_(jsRuntime) {}
+JsAuthorizationExtension::JsAuthorizationExtension(JsRuntime& jsRuntime) : jsRuntime_(jsRuntime) {}
 
-JsAuthenticationExtension::~JsAuthenticationExtension()
+JsAuthorizationExtension::~JsAuthorizationExtension()
 {
     std::unique_lock<std::mutex> lock(lockInfo_.mutex);
     lockInfo_.condition.wait(lock, [this] { return this->lockInfo_.count == 0; });
@@ -174,11 +174,11 @@ JsAuthenticationExtension::~JsAuthenticationExtension()
     jsRuntime_.FreeNativeReference(std::move(jsObj_));
 }
 
-void JsAuthenticationExtension::Init(const std::shared_ptr<AbilityLocalRecord> &record,
+void JsAuthorizationExtension::Init(const std::shared_ptr<AbilityLocalRecord> &record,
     const std::shared_ptr<OHOSApplication> &application, std::shared_ptr<AbilityHandler> &handler,
     const sptr<IRemoteObject> &token)
 {
-    AuthenticationExtension::Init(record, application, handler, token);
+    AuthorizationExtension::Init(record, application, handler, token);
     std::string srcPath = "";
     GetSrcPath(srcPath);
     if (srcPath.empty()) {
@@ -198,12 +198,12 @@ void JsAuthenticationExtension::Init(const std::shared_ptr<AbilityLocalRecord> &
     }
 }
 
-void JsAuthenticationExtension::OnStart(const AAFwk::Want &want)
+void JsAuthorizationExtension::OnStart(const AAFwk::Want &want)
 {
     Extension::OnStart(want);
 }
 
-static void DeleteParamLocked(JsAppAAuthenticationExtensionParam *param, napi_handle_scope &scope)
+static void DeleteParamLocked(JsAppAuthorizationExtensionParam *param, napi_handle_scope &scope)
 {
     std::unique_lock<std::mutex> lock(param->lockInfo->mutex);
     param->lockInfo->count--;
@@ -212,37 +212,37 @@ static void DeleteParamLocked(JsAppAAuthenticationExtensionParam *param, napi_ha
     napi_close_handle_scope(param->env, scope);
 }
 
-static void StartAuthenticationWork(uv_work_t *work, int status)
+static void StartAuthorizationWork(uv_work_t *work, int status)
 {
     std::unique_ptr<uv_work_t> workPtr(work);
     napi_handle_scope scope = nullptr;
     if (!InitUvWorkCallbackEnv(work, scope)) {
         return;
     }
-    JsAppAAuthenticationExtensionParam *param = reinterpret_cast<JsAppAAuthenticationExtensionParam *>(work->data);
-    if (param->authenticationExtension == nullptr) {
+    JsAppAuthorizationExtensionParam *param = reinterpret_cast<JsAppAuthorizationExtensionParam *>(work->data);
+    if (param->authorizationExtension == nullptr) {
         DeleteParamLocked(param, scope);
         return;
     }
     napi_value napiRequest = CreateNapiRequest(param->env, param);
     NativeValue *nativeRequest = reinterpret_cast<NativeValue *>(napiRequest);
-    napi_value napiAuthenticationCallback = CreateAuthenticationCallback(param->env, param);
-    if (napiAuthenticationCallback == nullptr) {
+    napi_value napiAuthorizationCallback = CreateAuthorizationCallback(param->env, param);
+    if (napiAuthorizationCallback == nullptr) {
         DeleteParamLocked(param, scope);
         return;
     }
-    NativeValue *nativeAuthenticationCallback = reinterpret_cast<NativeValue *>(napiAuthenticationCallback);
-    NativeValue *argv[] = {nativeRequest, nativeAuthenticationCallback};
-    param->authenticationExtension->CallObjectMethod("onStartAuthorization", argv, ARGC_TWO);
+    NativeValue *nativeAuthorizationCallback = reinterpret_cast<NativeValue *>(napiAuthorizationCallback);
+    NativeValue *argv[] = {nativeRequest, nativeAuthorizationCallback};
+    param->authorizationExtension->CallObjectMethod("onStartAuthorization", argv, ARGC_TWO);
     std::unique_lock<std::mutex> lock(param->lockInfo->mutex);
     param->lockInfo->count--;
     param->lockInfo->condition.notify_all();
     napi_close_handle_scope(param->env, scope);
 }
 
-void JsAuthenticationExtension::StartAuthentication(const AccountSA::AuthenticationRequest &request,
-    const std::shared_ptr<AccountSA::AppAccountAuthenticationExtensionCallbackClient> &callbackPtr,
-    const std::shared_ptr<JsAuthenticationExtension> &extension)
+void JsAuthorizationExtension::StartAuthorization(const AccountSA::AuthorizationRequest &request,
+    const std::shared_ptr<AccountSA::AppAccountAuthorizationExtensionCallbackClient> &callbackPtr,
+    const std::shared_ptr<JsAuthorizationExtension> &extension)
 {
     std::unique_lock<std::mutex> lock(lockInfo_.mutex);
     if (lockInfo_.count < 0) {
@@ -251,19 +251,19 @@ void JsAuthenticationExtension::StartAuthentication(const AccountSA::Authenticat
     }
     uv_loop_s *loop = nullptr;
     uv_work_t *work = nullptr;
-    JsAppAAuthenticationExtensionParam *param = nullptr;
+    JsAppAuthorizationExtensionParam *param = nullptr;
     NativeEngine *nativeEngine = &jsRuntime_.GetNativeEngine();
-    if (!InitAuthenticationExtensionExecEnv(
+    if (!InitAuthorizationExtensionExecEnv(
         reinterpret_cast<napi_env>(nativeEngine), &loop, &work, &param, &lockInfo_)) {
-        ACCOUNT_LOGE("failed to init authentication extension execution environment");
+        ACCOUNT_LOGE("failed to init authorization extension execution environment");
         return;
     }
     param->request = request;
     param->callback = callbackPtr;
-    param->authenticationExtension = extension;
+    param->authorizationExtension = extension;
 
     int errCode = uv_queue_work(
-        loop, work, [](uv_work_t *work) {}, StartAuthenticationWork);
+        loop, work, [](uv_work_t *work) {}, StartAuthorizationWork);
     if (errCode != 0) {
         ACCOUNT_LOGE("failed to uv_queue_work, errCode: %{public}d", errCode);
         delete work;
@@ -273,7 +273,7 @@ void JsAuthenticationExtension::StartAuthentication(const AccountSA::Authenticat
     lockInfo_.count++;
 }
 
-sptr<IRemoteObject> JsAuthenticationExtension::OnConnect(const OHOS::AAFwk::Want& want)
+sptr<IRemoteObject> JsAuthorizationExtension::OnConnect(const OHOS::AAFwk::Want& want)
 {
     ErrCode errCode = AccountPermissionManager::CheckSystemApp();
     if (errCode != ERR_OK) {
@@ -282,10 +282,10 @@ sptr<IRemoteObject> JsAuthenticationExtension::OnConnect(const OHOS::AAFwk::Want
     }
     Extension::OnConnect(want);
     if (providerRemoteObject_ == nullptr) {
-        std::shared_ptr<JsAuthenticationExtension> authenticationExtension =
-            std::static_pointer_cast<JsAuthenticationExtension>(shared_from_this());
-        sptr<AppAccountAuthenticationExtensionService> providerService =
-            new (std::nothrow) AppAccountAuthenticationExtensionService(authenticationExtension);
+        std::shared_ptr<JsAuthorizationExtension> authorizationExtension =
+            std::static_pointer_cast<JsAuthorizationExtension>(shared_from_this());
+        sptr<AppAccountAuthorizationExtensionService> providerService =
+            new (std::nothrow) AppAccountAuthorizationExtensionService(authorizationExtension);
         if (providerService == nullptr) {
             ACCOUNT_LOGE("providerService is nullptr");
             return nullptr;
@@ -295,10 +295,10 @@ sptr<IRemoteObject> JsAuthenticationExtension::OnConnect(const OHOS::AAFwk::Want
     return providerRemoteObject_;
 }
 
-NativeValue *JsAuthenticationExtension::CallObjectMethod(const std::string &name, NativeValue *const *argv, size_t argc)
+NativeValue *JsAuthorizationExtension::CallObjectMethod(const std::string &name, NativeValue *const *argv, size_t argc)
 {
     if (!jsObj_) {
-        ACCOUNT_LOGE("not found AuthenticationExtension.js");
+        ACCOUNT_LOGE("not found AuthorizationExtension.js");
         return nullptr;
     }
 
@@ -308,19 +308,19 @@ NativeValue *JsAuthenticationExtension::CallObjectMethod(const std::string &name
     NativeValue *value = jsObj_->Get();
     NativeObject *obj = ConvertNativeValueTo<NativeObject>(value);
     if (obj == nullptr) {
-        ACCOUNT_LOGE("Failed to get AuthenticationExtension object");
+        ACCOUNT_LOGE("Failed to get AuthorizationExtension object");
         return nullptr;
     }
 
     NativeValue *method = obj->GetProperty(name.c_str());
     if ((method == nullptr) || (method->TypeOf() != NATIVE_FUNCTION)) {
-        ACCOUNT_LOGE("Failed to get '%{public}s' from AuthenticationExtension object", name.c_str());
+        ACCOUNT_LOGE("Failed to get '%{public}s' from AuthorizationExtension object", name.c_str());
         return nullptr;
     }
     return nativeEngine.CallFunction(value, method, argv, argc);
 }
 
-void JsAuthenticationExtension::GetSrcPath(std::string &srcPath)
+void JsAuthorizationExtension::GetSrcPath(std::string &srcPath)
 {
     if (!Extension::abilityInfo_->isModuleJson) {
         /* temporary compatibility api8 + config.json */
