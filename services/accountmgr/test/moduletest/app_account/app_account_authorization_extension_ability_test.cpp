@@ -91,7 +91,7 @@ private:
     std::shared_ptr<MockJsAuthorizationExtension> innerExtension_ = nullptr;
 };
 
-void InitRequestCallback(
+static void InitRequestCallback(
     const std::shared_ptr<TestAppAccountAuthorizationExtensionCallback> &callback, AuthorizationRequest &request)
 {
     request.callback = new (std::nothrow) AppAccountAuthorizationExtensionCallbackService(callback);
