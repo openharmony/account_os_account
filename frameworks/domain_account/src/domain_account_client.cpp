@@ -105,7 +105,7 @@ ErrCode DomainAccountClient::GetAccessToken(const DomainAccountInfo &info, const
     return proxy->GetAccessToken(info, parameters, callbackService);
 }
 
-ErrCode DomainAccountClient::HasDomainAccount(
+ErrCode DomainAccountClient::HasAccount(
     const DomainAccountInfo &info, const std::shared_ptr<DomainAccountCallback> &callback)
 {
     if (callback == nullptr) {

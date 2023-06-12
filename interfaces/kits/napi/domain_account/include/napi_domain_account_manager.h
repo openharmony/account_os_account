@@ -147,7 +147,7 @@ private:
     static napi_value UnregisterPlugin(napi_env env, napi_callback_info cbInfo);
     static napi_value Auth(napi_env env, napi_callback_info cbInfo);
     static napi_value AuthWithPopup(napi_env env, napi_callback_info cbInfo);
-    static napi_value HasDomainAccount(napi_env env, napi_callback_info cbInfo);
+    static napi_value HasAccount(napi_env env, napi_callback_info cbInfo);
     static napi_value UpdateAccountToken(napi_env env, napi_callback_info cbInfo);
     static napi_value GetAccessToken(napi_env env, napi_callback_info cbInfo);
 };
