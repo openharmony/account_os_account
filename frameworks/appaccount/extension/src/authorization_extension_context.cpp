@@ -22,11 +22,11 @@
 using namespace OHOS::AccountSA;
 namespace OHOS {
 namespace AbilityRuntime {
-const size_t AuthenticationExtensionContext::CONTEXT_TYPE_ID(
-    std::hash<const char *>{}("AuthenticationExtensionContext"));
-int AuthenticationExtensionContext::ILLEGAL_REQUEST_CODE(-1);
+const size_t AuthorizationExtensionContext::CONTEXT_TYPE_ID(
+    std::hash<const char *>{}("AuthorizationExtensionContext"));
+int AuthorizationExtensionContext::ILLEGAL_REQUEST_CODE(-1);
 
-ErrCode AuthenticationExtensionContext::StartModalDialogForResult(const AAFwk::Want &want) const
+ErrCode AuthorizationExtensionContext::StartModalDialogForResult(const AAFwk::Want &want) const
 {
     return ERR_OK;
 }

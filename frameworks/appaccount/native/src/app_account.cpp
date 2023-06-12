@@ -487,7 +487,7 @@ ErrCode AppAccount::QueryAllAccessibleAccounts(
 }
 
 ErrCode AppAccount::ExecuteRequest(
-    const AccountCapabilityRequest &request, const sptr<IAppAccountAuthenticationExtensionCallback> &callback)
+    const AccountCapabilityRequest &request, const sptr<IAppAccountAuthorizationExtensionCallback> &callback)
 {
     if (callback == nullptr) {
         ACCOUNT_LOGE("callback is nullptr");

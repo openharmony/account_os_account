@@ -22,7 +22,7 @@
 #include <uv.h>
 
 #include "account_error_no.h"
-#include "app_account_authentication_extension_callback_stub.h"
+#include "app_account_authorization_extension_callback_stub.h"
 #include "app_account_common.h"
 #include "iremote_object.h"
 #include "napi/native_api.h"
@@ -105,7 +105,7 @@ private:
     static napi_value ExecuteRequest(napi_env env, napi_callback_info cbInfo);
 };
 
-class NapiExecuteRequestCallback : public AppAccountAuthenticationExtensionCallbackStub {
+class NapiExecuteRequestCallback : public AppAccountAuthorizationExtensionCallbackStub {
 public:
     NapiExecuteRequestCallback(napi_env env, napi_ref callbackRef, napi_deferred deferred, napi_ref requestRef);
     ~NapiExecuteRequestCallback();

@@ -47,12 +47,12 @@ ohos_shared_library("appaccount") {
 
   public_configs = [ ":appaccount_kit_config" ]
   sources = [
-    "${app_account_extension_path}/src/authentication_extension.cpp",
+    "${app_account_extension_path}/src/authorization_extension.cpp",
     "src/napi_account_capability_scheduler.cpp",
     "src/napi_app_account.cpp",
-    "src/napi_app_account_authentication_extension.cpp",
     "src/napi_app_account_authenticator.cpp",
     "src/napi_app_account_authenticator_callback.cpp",
+    "src/napi_app_account_authorization_extension.cpp",
     "src/napi_app_account_common.cpp",
     "src/napi_app_account_constant.cpp",
     "src/napi_app_account_module.cpp",

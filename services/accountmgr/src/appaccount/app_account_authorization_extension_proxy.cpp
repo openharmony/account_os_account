@@ -13,22 +13,22 @@
  * limitations under the License.
  */
 
-#include "app_account_authentication_extension_proxy.h"
+#include "app_account_authorization_extension_proxy.h"
 
 #include "account_error_no.h"
 #include "account_log_wrapper.h"
 
 namespace OHOS {
 namespace AccountSA {
-AppAccountAuthenticationExtensionProxy::AppAccountAuthenticationExtensionProxy(const sptr<IRemoteObject> &object)
-    : IRemoteProxy<IAppAccountAuthenticationExtension>(object)
+AppAccountAuthorizationExtensionProxy::AppAccountAuthorizationExtensionProxy(const sptr<IRemoteObject> &object)
+    : IRemoteProxy<IAppAccountAuthorizationExtension>(object)
 {}
 
-AppAccountAuthenticationExtensionProxy::~AppAccountAuthenticationExtensionProxy()
+AppAccountAuthorizationExtensionProxy::~AppAccountAuthorizationExtensionProxy()
 {}
 
-ErrCode AppAccountAuthenticationExtensionProxy::SendRequest(
-    IAppAccountAuthenticationExtension::Message code, MessageParcel &data, MessageParcel &reply)
+ErrCode AppAccountAuthorizationExtensionProxy::SendRequest(
+    IAppAccountAuthorizationExtension::Message code, MessageParcel &data, MessageParcel &reply)
 {
     sptr<IRemoteObject> remote = Remote();
     if (remote == nullptr) {
@@ -48,7 +48,7 @@ ErrCode AppAccountAuthenticationExtensionProxy::SendRequest(
     return result;
 }
 
-static ErrCode WriteRequest(MessageParcel &data, const AuthenticationRequest &request)
+static ErrCode WriteRequest(MessageParcel &data, const AuthorizationRequest &request)
 {
     if (!data.WriteInt32(request.callerUid)) {
         ACCOUNT_LOGE("failed to write request callerUid");
@@ -65,7 +65,7 @@ static ErrCode WriteRequest(MessageParcel &data, const AuthenticationRequest &re
     return ERR_OK;
 }
 
-ErrCode AppAccountAuthenticationExtensionProxy::StartAuthentication(const AuthenticationRequest &request)
+ErrCode AppAccountAuthorizationExtensionProxy::StartAuthorization(const AuthorizationRequest &request)
 {
     MessageParcel data;
     if (!data.WriteInterfaceToken(GetDescriptor())) {
@@ -78,7 +78,7 @@ ErrCode AppAccountAuthenticationExtensionProxy::StartAuthentication(const Authen
     }
     MessageParcel reply;
     return SendRequest(
-        IAppAccountAuthenticationExtension::Message::APP_AUTHENTICATE_EXTENSION_START_AUTHENTICATION, data, reply);
+        IAppAccountAuthorizationExtension::Message::APP_AUTHORIZATION_EXTENSION_START_AUTHENTICATION, data, reply);
 }
 }  // namespace AccountSA
 }  // namespace OHOS

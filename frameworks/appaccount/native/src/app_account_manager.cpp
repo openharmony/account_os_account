@@ -248,7 +248,7 @@ ErrCode AppAccountManager::SetAuthenticatorProperties(const std::string &owner,
 }
 
 ErrCode AppAccountManager::ExecuteRequest(
-    const AccountCapabilityRequest &request, const sptr<IAppAccountAuthenticationExtensionCallback> &callback)
+    const AccountCapabilityRequest &request, const sptr<IAppAccountAuthorizationExtensionCallback> &callback)
 {
     return AppAccount::GetInstance().ExecuteRequest(request, callback);
 }

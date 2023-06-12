@@ -13,8 +13,8 @@
  * limitations under the License.
  */
 
-#ifndef OS_ACCOUNT_SERVICES_ACCOUNTMGR_INCLUDE_APPACCOUNT_IAPP_ACCOUNT_AUTHENTICATION_EXTENSION_H
-#define OS_ACCOUNT_SERVICES_ACCOUNTMGR_INCLUDE_APPACCOUNT_IAPP_ACCOUNT_AUTHENTICATION_EXTENSION_H
+#ifndef OS_ACCOUNT_SERVICES_ACCOUNTMGR_INCLUDE_APPACCOUNT_IAPP_ACCOUNT_AUTHORIZATION_EXTENSION_H
+#define OS_ACCOUNT_SERVICES_ACCOUNTMGR_INCLUDE_APPACCOUNT_IAPP_ACCOUNT_AUTHORIZATION_EXTENSION_H
 
 #include <string>
 #include <iremote_broker.h>
@@ -23,14 +23,14 @@
 
 namespace OHOS {
 namespace AccountSA {
-class IAppAccountAuthenticationExtension : public IRemoteBroker {
+class IAppAccountAuthorizationExtension : public IRemoteBroker {
 public:
-    DECLARE_INTERFACE_DESCRIPTOR(u"ohos.accountfwk.IAppAccountAuthenticationExtension");
+    DECLARE_INTERFACE_DESCRIPTOR(u"ohos.accountfwk.IAppAccountAuthorizationExtension");
     enum Message {
-        APP_AUTHENTICATE_EXTENSION_START_AUTHENTICATION = 0,
+        APP_AUTHORIZATION_EXTENSION_START_AUTHENTICATION = 0,
     };
-    virtual ErrCode StartAuthentication(const AuthenticationRequest &request) = 0;
+    virtual ErrCode StartAuthorization(const AuthorizationRequest &request) = 0;
 };
 } // namespace AccountSA
 } // namespace OHOS
-#endif // OS_ACCOUNT_SERVICES_ACCOUNTMGR_INCLUDE_APPACCOUNT_IAPP_ACCOUNT_AUTHENTICATION_EXTENSION_H
+#endif // OS_ACCOUNT_SERVICES_ACCOUNTMGR_INCLUDE_APPACCOUNT_IAPP_ACCOUNT_AUTHORIZATION_EXTENSION_H

@@ -13,10 +13,10 @@
  * limitations under the License.
  */
 
-#ifndef OS_ACCOUNT_OHOS_AUTHENTICATION_EXTENSION_H
-#define OS_ACCOUNT_OHOS_AUTHENTICATION_EXTENSION_H
+#ifndef OS_ACCOUNT_OHOS_AUTHORIZATION_EXTENSION_H
+#define OS_ACCOUNT_OHOS_AUTHORIZATION_EXTENSION_H
 
-#include "authentication_extension_context.h"
+#include "authorization_extension_context.h"
 #include "extension_base.h"
 #include "runtime.h"
 
@@ -25,10 +25,10 @@ namespace AbilityRuntime {
 /**
  * @brief Basic authentication components.
  */
-class AuthenticationExtension : public ExtensionBase<AuthenticationExtensionContext> {
+class AuthorizationExtension : public ExtensionBase<AuthorizationExtensionContext> {
 public:
-    AuthenticationExtension() = default;
-    virtual ~AuthenticationExtension() = default;
+    AuthorizationExtension() = default;
+    virtual ~AuthorizationExtension() = default;
 
     /**
      * @brief Create and init context.
@@ -39,7 +39,7 @@ public:
      * @param token the remote token.
      * @return The created context.
      */
-    virtual std::shared_ptr<AuthenticationExtensionContext> CreateAndInitContext(
+    virtual std::shared_ptr<AuthorizationExtensionContext> CreateAndInitContext(
         const std::shared_ptr<AbilityLocalRecord> &record, const std::shared_ptr<OHOSApplication> &application,
         std::shared_ptr<AbilityHandler> &handler, const sptr<IRemoteObject> &token) override;
 
@@ -61,7 +61,7 @@ public:
      * @param runtime The runtime.
      * @return The InputMethodExtension instance.
      */
-    static AuthenticationExtension *Create(const std::unique_ptr<Runtime> &runtime);
+    static AuthorizationExtension *Create(const std::unique_ptr<Runtime> &runtime);
 };
 } // namespace AbilityRuntime
 } // namespace OHOS

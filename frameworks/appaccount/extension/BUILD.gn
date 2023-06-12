@@ -14,7 +14,7 @@
 import("//build/ohos.gni")
 import("../../../os_account.gni")
 
-config("authentication_extension_config") {
+config("authorization_extension_config") {
   visibility = [ ":*" ]
 
   cflags = []
@@ -27,12 +27,12 @@ config("authentication_extension_config") {
   ]
 }
 
-config("authentication_extension_public_config") {
+config("authorization_extension_public_config") {
   visibility = [ ":*" ]
   include_dirs = [ "include" ]
 }
 
-ohos_shared_library("authentication_extension") {
+ohos_shared_library("authorization_extension") {
   include_dirs = [
     "${os_account_path}/interfaces/innerkits/appaccount/native/include",
     "${os_account_path}/frameworks/appaccount/native/include",
@@ -40,14 +40,14 @@ ohos_shared_library("authentication_extension") {
     "${app_account_kits_path}/include",
   ]
   sources = [
-    "${app_account_kits_path}/src/napi_app_account_authentication_extension.cpp",
-    "src/authentication_extension.cpp",
+    "${app_account_kits_path}/src/napi_app_account_authorization_extension.cpp",
+    "src/authorization_extension.cpp",
   ]
   configs = [
-    ":authentication_extension_config",
+    ":authorization_extension_config",
     "${account_coverage_config_path}:coverage_flags",
   ]
-  public_configs = [ ":authentication_extension_public_config" ]
+  public_configs = [ ":authorization_extension_public_config" ]
 
   deps = [
     "${account_napi_common_path}:account_napi_common",
@@ -74,19 +74,19 @@ ohos_shared_library("authentication_extension") {
   part_name = "os_account"
 }
 
-ohos_shared_library("authentication_extension_module") {
+ohos_shared_library("authorization_extension_module") {
   include_dirs = [ "include" ]
 
-  sources = [ "src/authentication_extension_module_loader.cpp" ]
+  sources = [ "src/authorization_extension_module_loader.cpp" ]
 
   configs = [
-    ":authentication_extension_config",
+    ":authorization_extension_config",
     "${account_coverage_config_path}:coverage_flags",
   ]
-  public_configs = [ ":authentication_extension_public_config" ]
+  public_configs = [ ":authorization_extension_public_config" ]
 
   deps = [
-    ":authentication_extension",
+    ":authorization_extension",
     "${common_path}:libaccount_common",
   ]
 
