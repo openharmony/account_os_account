@@ -13,8 +13,8 @@
  * limitations under the License.
  */
 
-#ifndef OHOS_ABILITY_RUNTIME_AUTHENTICATION_EXTENSION_CONTEXT_H
-#define OHOS_ABILITY_RUNTIME_AUTHENTICATION_EXTENSION_CONTEXT_H
+#ifndef OHOS_ABILITY_RUNTIME_AUTHORIZATION_EXTENSION_CONTEXT_H
+#define OHOS_ABILITY_RUNTIME_AUTHORIZATION_EXTENSION_CONTEXT_H
 
 #include "ability_connect_callback.h"
 #include "connection_manager.h"
@@ -29,14 +29,14 @@ namespace AbilityRuntime {
  * @brief context supply for service
  *
  */
-class AuthenticationExtensionContext : public ExtensionContext {
+class AuthorizationExtensionContext : public ExtensionContext {
 public:
-    AuthenticationExtensionContext() = default;
-    virtual ~AuthenticationExtensionContext() = default;
+    AuthorizationExtensionContext() = default;
+    virtual ~AuthorizationExtensionContext() = default;
 
     ErrCode StartModalDialogForResult(const AAFwk::Want &want) const;
 
-    using SelfType = AuthenticationExtensionContext;
+    using SelfType = AuthorizationExtensionContext;
     static const size_t CONTEXT_TYPE_ID;
 
 private:
@@ -51,4 +51,4 @@ private:
 };
 }  // namespace AbilityRuntime
 }  // namespace OHOS
-#endif  // OHOS_ABILITY_RUNTIME_AUTHENTICATION_EXTENSION_CONTEXT_H
+#endif  // OHOS_ABILITY_RUNTIME_AUTHORIZATION_EXTENSION_CONTEXT_H

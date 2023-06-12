@@ -13,7 +13,7 @@
  * limitations under the License.
  */
 
-#include "app_account_authentication_extension_stub.h"
+#include "app_account_authorization_extension_stub.h"
 
 #include <securec.h>
 #include "account_error_no.h"
@@ -24,21 +24,21 @@
 
 namespace OHOS {
 namespace AccountSA {
-AppAccountAuthenticationExtensionStub::AppAccountAuthenticationExtensionStub()
+AppAccountAuthorizationExtensionStub::AppAccountAuthorizationExtensionStub()
 {}
 
-AppAccountAuthenticationExtensionStub::~AppAccountAuthenticationExtensionStub()
+AppAccountAuthorizationExtensionStub::~AppAccountAuthorizationExtensionStub()
 {}
 
-const std::map<std::uint32_t, AppAccountAuthenticationExtensionStub::MessageProcFunction>
-    AppAccountAuthenticationExtensionStub::messageProcMap_ = {
+const std::map<std::uint32_t, AppAccountAuthorizationExtensionStub::MessageProcFunction>
+    AppAccountAuthorizationExtensionStub::messageProcMap_ = {
     {
-        IAppAccountAuthenticationExtension::Message::APP_AUTHENTICATE_EXTENSION_START_AUTHENTICATION,
-        &AppAccountAuthenticationExtensionStub::ProcStartAuthentication
+        IAppAccountAuthorizationExtension::Message::APP_AUTHORIZATION_EXTENSION_START_AUTHENTICATION,
+        &AppAccountAuthorizationExtensionStub::ProcStartAuthorization
     }
 };
 
-int AppAccountAuthenticationExtensionStub::OnRemoteRequest(
+int AppAccountAuthorizationExtensionStub::OnRemoteRequest(
     uint32_t code, MessageParcel &data, MessageParcel &reply, MessageOption &option)
 {
     ACCOUNT_LOGD("Received stub message: %{public}d, callingUid: %{public}d", code, IPCSkeleton::GetCallingUid());
@@ -54,7 +54,7 @@ int AppAccountAuthenticationExtensionStub::OnRemoteRequest(
     return IPCObjectStub::OnRemoteRequest(code, data, reply, option);
 }
 
-static ErrCode ReadRequest(MessageParcel &data, AuthenticationRequest &request)
+static ErrCode ReadRequest(MessageParcel &data, AuthorizationRequest &request)
 {
     if (!data.ReadInt32(request.callerUid)) {
         ACCOUNT_LOGE("failed to write request callerUid");
@@ -66,7 +66,7 @@ static ErrCode ReadRequest(MessageParcel &data, AuthenticationRequest &request)
         return ERR_ACCOUNT_COMMON_READ_PARCEL_ERROR;
     }
     request.parameters = (*parameters);
-    auto callback = iface_cast<IAppAccountAuthenticationExtensionCallback>(data.ReadRemoteObject());
+    auto callback = iface_cast<IAppAccountAuthorizationExtensionCallback>(data.ReadRemoteObject());
     if (callback == nullptr) {
         ACCOUNT_LOGE("failed to read domain callback");
         return ERR_ACCOUNT_COMMON_READ_PARCEL_ERROR;
@@ -75,14 +75,14 @@ static ErrCode ReadRequest(MessageParcel &data, AuthenticationRequest &request)
     return ERR_OK;
 }
 
-ErrCode AppAccountAuthenticationExtensionStub::ProcStartAuthentication(MessageParcel &data, MessageParcel &reply)
+ErrCode AppAccountAuthorizationExtensionStub::ProcStartAuthorization(MessageParcel &data, MessageParcel &reply)
 {
-    AuthenticationRequest request;
+    AuthorizationRequest request;
     ErrCode result = ReadRequest(data, request);
     if (result != ERR_OK) {
         return result;
     }
-    result = StartAuthentication(request);
+    result = StartAuthorization(request);
     if (!reply.WriteInt32(result)) {
         ACCOUNT_LOGE("failed to write result");
         return ERR_ACCOUNT_COMMON_WRITE_PARCEL_ERROR;

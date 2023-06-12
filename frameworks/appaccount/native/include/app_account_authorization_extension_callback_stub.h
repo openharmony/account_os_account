@@ -13,20 +13,20 @@
  * limitations under the License.
  */
 
-#ifndef OS_ACCOUNT_SERVICES_ACCOUNTMGR_INCLUDE_APPACCOUNT_APP_ACCOUNT_AUTHENTICATION_EXTENSION_CALLBACK_STUB_H
-#define OS_ACCOUNT_SERVICES_ACCOUNTMGR_INCLUDE_APPACCOUNT_APP_ACCOUNT_AUTHENTICATION_EXTENSION_CALLBACK_STUB_H
+#ifndef OS_ACCOUNT_SERVICES_ACCOUNTMGR_INCLUDE_APPACCOUNT_APP_ACCOUNT_AUTHORIZATION_EXTENSION_CALLBACK_STUB_H
+#define OS_ACCOUNT_SERVICES_ACCOUNTMGR_INCLUDE_APPACCOUNT_APP_ACCOUNT_AUTHORIZATION_EXTENSION_CALLBACK_STUB_H
 
 #include <map>
 #include "account_error_no.h"
-#include "iapp_account_authentication_extension_callback.h"
+#include "iapp_account_authorization_extension_callback.h"
 #include "iremote_stub.h"
 
 namespace OHOS {
 namespace AccountSA {
-class AppAccountAuthenticationExtensionCallbackStub : public IRemoteStub<IAppAccountAuthenticationExtensionCallback> {
+class AppAccountAuthorizationExtensionCallbackStub : public IRemoteStub<IAppAccountAuthorizationExtensionCallback> {
 public:
-    AppAccountAuthenticationExtensionCallbackStub();
-    ~AppAccountAuthenticationExtensionCallbackStub();
+    AppAccountAuthorizationExtensionCallbackStub();
+    ~AppAccountAuthorizationExtensionCallbackStub();
     int32_t OnRemoteRequest(uint32_t code, MessageParcel &data, MessageParcel &reply, MessageOption &option) override;
 
 private:
@@ -35,4 +35,4 @@ private:
 } // namespace AccountSA
 } // namespace OHOS
 
-#endif // OS_ACCOUNT_SERVICES_ACCOUNTMGR_INCLUDE_APPACCOUNT_APP_ACCOUNT_AUTHENTICATION_EXTENSION_CALLBACK_STUB_H
+#endif // OS_ACCOUNT_SERVICES_ACCOUNTMGR_INCLUDE_APPACCOUNT_APP_ACCOUNT_AUTHORIZATION_EXTENSION_CALLBACK_STUB_H

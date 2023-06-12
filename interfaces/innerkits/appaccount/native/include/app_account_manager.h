@@ -507,7 +507,7 @@ public:
         const SetPropertiesOptions &options, const sptr<IAppAccountAuthenticatorCallback> &callback);
 
     static ErrCode ExecuteRequest(
-        const AccountCapabilityRequest &request, const sptr<IAppAccountAuthenticationExtensionCallback> &callback);
+        const AccountCapabilityRequest &request, const sptr<IAppAccountAuthorizationExtensionCallback> &callback);
     /**
      * @brief Subscribes to the change events of accounts of the specified owners.
      * <p>
