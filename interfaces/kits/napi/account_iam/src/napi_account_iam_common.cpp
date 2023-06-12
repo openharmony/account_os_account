@@ -492,8 +492,8 @@ void NapiGetInfoCallback::OnCredentialInfo(int32_t result, const std::vector<Acc
     work->data = reinterpret_cast<void *>(context.get());
     ErrCode ret = uv_queue_work(loop, work.get(), [](uv_work_t *work) {}, OnGetInfoWork);
     if (ret != ERR_OK) {
-        ReleaseNapiRefAsync(env_, callbackRef_);
-        return;
+      ReleaseNapiRefAsync(env_, callbackRef_);
+      return;
     }
     work.release();
     context.release();
