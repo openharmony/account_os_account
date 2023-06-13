@@ -113,22 +113,15 @@ private:
     ErrCode RunAsCreateCommandError(void);
     ErrCode RunAsCreateCommandMissingOptionArgument(void);
     ErrCode RunAsCreateCommandExistentOptionArgument(const int &option, std::string &name, OsAccountType &type);
-    ErrCode RunAsDeleteCommandError(void);
-    ErrCode RunAsDeleteCommandMissingOptionArgument(void);
-    ErrCode RunAsDeleteCommandExistentOptionArgument(const int &option, int &id);
-    ErrCode RunAsDumpCommandError(void);
-    ErrCode RunAsDumpCommandMissingOptionArgument(void);
-    ErrCode RunAsDumpCommandExistentOptionArgument(const int &option, int &id);
     ErrCode RunAsSetCommandError(void);
     ErrCode RunAsSetCommandMissingOptionArgument(void);
     ErrCode RunAsSetCommandExistentOptionArgument(
         const int &option, int &id, std::vector<std::string> &constraints, bool &enable);
-    ErrCode RunAsSwitchCommandError(void);
-    ErrCode RunAsSwitchCommandMissingOptionArgument(void);
-    ErrCode RunAsSwitchCommandExistentOptionArgument(const int &option, int &id);
-    ErrCode RunAsStopCommandError(void);
-    ErrCode RunAsStopCommandMissingOptionArgument(void);
-    ErrCode RunAsStopCommandExistentOptionArgument(const int &option, int &id);
+    ErrCode RunAsCommonCommandExistentOptionArgument(const int &option, int &id);
+    ErrCode RunAsCommonCommandMissingOptionArgument(const std::string &command);
+    ErrCode RunAsCommonCommandError(const std::string &command);
+
+    void ParseCommandOpt(const std::string &command, ErrCode &result, int &id);
 
     ErrCode AnalyzeTypeArgument(OsAccountType &type);
     ErrCode AnalyzeLocalIdArgument(int &id);
