@@ -143,8 +143,8 @@ static bool IsAppAccountServiceError(int32_t errCode)
 
 static bool IsOsAccountKitError(int32_t errCode)
 {
-    return (errCode >= ERR_OSACCOUNT_KIT_WRITE_LOCALNAME_ERROR &&
-        errCode <= ERR_OSACCOUNT_KIT_QUERY_ACTIVE_OS_ACCOUNT_IDS_ERROR);
+    return (errCode >= ERR_OSACCOUNT_KIT_CREATE_OS_ACCOUNT_FOR_DOMAIN_ERROR &&
+        errCode <= ERR_OSACCOUNT_KIT_NO_SPECIFIED_SUBSCRIBER_HAS_BEEN_REGISTERED);
 }
 
 static bool IsOsAccountServiceError(int32_t errCode)

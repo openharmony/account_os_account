@@ -36,12 +36,12 @@ ErrCode OsAccountProxy::CreateOsAccount(
 
     if (!data.WriteString(name)) {
         ACCOUNT_LOGE("failed to write string for name");
-        return ERR_OSACCOUNT_KIT_WRITE_LOCALNAME_ERROR;
+        return ERR_ACCOUNT_COMMON_WRITE_PARCEL_ERROR;
     }
 
     if (!data.WriteInt32(type)) {
         ACCOUNT_LOGE("failed to write account type.");
-        return ERR_OSACCOUNT_KIT_WRITE_OSACCOUNT_TYPE_ERROR;
+        return ERR_ACCOUNT_COMMON_WRITE_PARCEL_ERROR;
     }
     ErrCode result = SendRequest(IOsAccount::Message::CREATE_OS_ACCOUNT, data, reply);
     if (result != ERR_OK) {
@@ -76,7 +76,7 @@ ErrCode OsAccountProxy::CreateOsAccountForDomain(const OsAccountType &type, cons
 
     if (!data.WriteInt32(type)) {
         ACCOUNT_LOGE("failed to write type ");
-        return ERR_OSACCOUNT_KIT_WRITE_OSACCOUNT_TYPE_ERROR;
+        return ERR_ACCOUNT_COMMON_WRITE_PARCEL_ERROR;
     }
 
     if (!data.WriteParcelable(&domainInfo)) {
@@ -115,7 +115,7 @@ ErrCode OsAccountProxy::RemoveOsAccount(const int id)
 
     if (!data.WriteInt32(id)) {
         ACCOUNT_LOGE("failed to write int for id");
-        return ERR_OSACCOUNT_KIT_WRITE_INT_LOCAL_ID_ERROR;
+        return ERR_ACCOUNT_COMMON_WRITE_PARCEL_ERROR;
     }
 
     ErrCode result = SendRequest(IOsAccount::Message::REMOVE_OS_ACCOUNT, data, reply);
@@ -145,7 +145,7 @@ ErrCode OsAccountProxy::IsOsAccountExists(const int id, bool &isOsAccountExists)
 
     if (!data.WriteInt32(id)) {
         ACCOUNT_LOGE("failed to write int for id");
-        return ERR_OSACCOUNT_KIT_WRITE_INT_LOCAL_ID_ERROR;
+        return ERR_ACCOUNT_COMMON_WRITE_PARCEL_ERROR;
     }
 
     ErrCode result = SendRequest(IOsAccount::Message::IS_OS_ACCOUNT_EXISTS, data, reply);
@@ -175,7 +175,7 @@ ErrCode OsAccountProxy::IsOsAccountActived(const int id, bool &isOsAccountActive
 
     if (!data.WriteInt32(id)) {
         ACCOUNT_LOGE("failed to write int for id");
-        return ERR_OSACCOUNT_KIT_WRITE_INT_LOCAL_ID_ERROR;
+        return ERR_ACCOUNT_COMMON_WRITE_PARCEL_ERROR;
     }
     ErrCode result = SendRequest(IOsAccount::Message::IS_OS_ACCOUNT_ACTIVED, data, reply);
     if (result != ERR_OK) {
@@ -255,7 +255,7 @@ ErrCode OsAccountProxy::IsOsAccountVerified(const int id, bool &isVerified)
 
     if (!data.WriteInt32(id)) {
         ACCOUNT_LOGE("failed to write int for id");
-        return ERR_OSACCOUNT_KIT_WRITE_INT_LOCAL_ID_ERROR;
+        return ERR_ACCOUNT_COMMON_WRITE_PARCEL_ERROR;
     }
     ErrCode result = SendRequest(IOsAccount::Message::IS_OS_ACCOUNT_VERIFIED, data, reply);
     if (result != ERR_OK) {
@@ -360,11 +360,11 @@ ErrCode OsAccountProxy::GetOsAccountLocalIdFromDomain(const DomainAccountInfo &d
 
     if (!data.WriteString(domainInfo.domain_)) {
         ACCOUNT_LOGE("failed to write int for domain.");
-        return ERR_OSACCOUNT_KIT_WRITE_DOMAIN_ERROR;
+        return ERR_ACCOUNT_COMMON_WRITE_PARCEL_ERROR;
     }
     if (!data.WriteString(domainInfo.accountName_)) {
         ACCOUNT_LOGE("failed to write int for domain account name.");
-        return ERR_OSACCOUNT_KIT_WRITE_DOMAIN_ACCOUNT_NAME_ERROR;
+        return ERR_ACCOUNT_COMMON_WRITE_PARCEL_ERROR;
     }
     ErrCode result = SendRequest(IOsAccount::Message::GET_OS_ACCOUNT_LOCAL_ID_FROM_DOMAIN, data, reply);
     if (result != ERR_OK) {
@@ -418,7 +418,7 @@ ErrCode OsAccountProxy::GetOsAccountAllConstraints(const int id, std::vector<std
 
     if (!data.WriteInt32(id)) {
         ACCOUNT_LOGE("failed to write int for id");
-        return ERR_OSACCOUNT_KIT_WRITE_INT_LOCAL_ID_ERROR;
+        return ERR_ACCOUNT_COMMON_WRITE_PARCEL_ERROR;
     }
     ErrCode result = SendRequest(IOsAccount::Message::GET_OS_ACCOUNT_ALL_CONSTRAINTS, data, reply);
     if (result != ERR_OK) {
@@ -433,7 +433,7 @@ ErrCode OsAccountProxy::GetOsAccountAllConstraints(const int id, std::vector<std
     bool readFlag = reply.ReadStringVector(&constraints);
     if (!readFlag) {
         ACCOUNT_LOGE("ReadStringVector failed, result %{public}d.", result);
-        return ERR_OSACCOUNT_KIT_READ_CONSTRAINTS_ERROR;
+        return ERR_ACCOUNT_COMMON_READ_PARCEL_ERROR;
     }
 
     return ERR_OK;
@@ -505,7 +505,7 @@ ErrCode OsAccountProxy::QueryOsAccountById(const int id, OsAccountInfo &osAccoun
 
     if (!data.WriteInt32(id)) {
         ACCOUNT_LOGE("failed to write int for id");
-        return ERR_OSACCOUNT_KIT_WRITE_INT_LOCAL_ID_ERROR;
+        return ERR_ACCOUNT_COMMON_WRITE_PARCEL_ERROR;
     }
     ErrCode result = SendRequest(IOsAccount::Message::QUERY_OS_ACCOUNT_BY_ID, data, reply);
     if (result != ERR_OK) {
@@ -563,7 +563,7 @@ ErrCode OsAccountProxy::GetOsAccountProfilePhoto(const int id, std::string &phot
 
     if (!data.WriteInt32(id)) {
         ACCOUNT_LOGE("failed to write int for id");
-        return ERR_OSACCOUNT_KIT_WRITE_INT_LOCAL_ID_ERROR;
+        return ERR_ACCOUNT_COMMON_WRITE_PARCEL_ERROR;
     }
     ErrCode result = SendRequest(IOsAccount::Message::GET_OS_ACCOUNT_PROFILE_PHOTO, data, reply);
     if (result != ERR_OK) {
@@ -617,11 +617,11 @@ ErrCode OsAccountProxy::SetOsAccountName(const int id, const std::string &name)
 
     if (!data.WriteInt32(id)) {
         ACCOUNT_LOGE("failed to write int for id %{public}d.", id);
-        return ERR_OSACCOUNT_KIT_WRITE_INT_LOCAL_ID_ERROR;
+        return ERR_ACCOUNT_COMMON_WRITE_PARCEL_ERROR;
     }
     if (!data.WriteString(name)) {
         ACCOUNT_LOGE("failed to write string for name");
-        return ERR_OSACCOUNT_KIT_WRITE_STRING_LOCAL_NAME_ERROR;
+        return ERR_ACCOUNT_COMMON_WRITE_PARCEL_ERROR;
     }
     ErrCode result = SendRequest(IOsAccount::Message::SET_OS_ACCOUNT_NAME, data, reply);
     if (result != ERR_OK) {
@@ -650,15 +650,15 @@ ErrCode OsAccountProxy::SetOsAccountConstraints(
 
     if (!data.WriteInt32(id)) {
         ACCOUNT_LOGE("failed to write int for id");
-        return ERR_OSACCOUNT_KIT_WRITE_INT_LOCAL_ID_ERROR;
+        return ERR_ACCOUNT_COMMON_WRITE_PARCEL_ERROR;
     }
     if (!data.WriteStringVector(constraints)) {
         ACCOUNT_LOGE("failed to write stringVector for constraints");
-        return ERR_OSACCOUNT_KIT_WRITE_STRING_VECTOR_CONSTRAINTS_ERROR;
+        return ERR_ACCOUNT_COMMON_WRITE_PARCEL_ERROR;
     }
     if (!data.WriteBool(enable)) {
         ACCOUNT_LOGE("failed to write bool for enable");
-        return ERR_OSACCOUNT_KIT_WRITE_BOOL_ENABLE_ERROR;
+        return ERR_ACCOUNT_COMMON_WRITE_PARCEL_ERROR;
     }
     ErrCode result = SendRequest(IOsAccount::Message::SET_OS_ACCOUNT_CONSTRAINTS, data, reply);
     if (result != ERR_OK) {
@@ -686,11 +686,11 @@ ErrCode OsAccountProxy::SetOsAccountProfilePhoto(const int id, const std::string
 
     if (!data.WriteInt32(id)) {
         ACCOUNT_LOGE("failed to write int for id");
-        return ERR_OSACCOUNT_KIT_WRITE_INT_LOCAL_ID_ERROR;
+        return ERR_ACCOUNT_COMMON_WRITE_PARCEL_ERROR;
     }
     if (!data.WriteString(photo)) {
         ACCOUNT_LOGE("failed to write string for photo");
-        return ERR_OSACCOUNT_KIT_WRITE_STRING_PHOTO_ERROR;
+        return ERR_ACCOUNT_COMMON_WRITE_PARCEL_ERROR;
     }
     ErrCode result = SendRequest(IOsAccount::Message::SET_OS_ACCOUNT_PROFILE_PHOTO, data, reply);
     if (result != ERR_OK) {
@@ -718,7 +718,7 @@ ErrCode OsAccountProxy::ActivateOsAccount(const int id)
 
     if (!data.WriteInt32(id)) {
         ACCOUNT_LOGE("failed to write int for id");
-        return ERR_OSACCOUNT_KIT_WRITE_INT_LOCAL_ID_ERROR;
+        return ERR_ACCOUNT_COMMON_WRITE_PARCEL_ERROR;
     }
     ErrCode result = SendRequest(IOsAccount::Message::ACTIVATE_OS_ACCOUNT, data, reply);
     if (result != ERR_OK) {
@@ -746,7 +746,7 @@ ErrCode OsAccountProxy::StartOsAccount(const int id)
 
     if (!data.WriteInt32(id)) {
         ACCOUNT_LOGE("failed to write int for id");
-        return ERR_OSACCOUNT_KIT_WRITE_INT_LOCAL_ID_ERROR;
+        return ERR_ACCOUNT_COMMON_WRITE_PARCEL_ERROR;
     }
     ErrCode result = SendRequest(IOsAccount::Message::START_OS_ACCOUNT, data, reply);
     if (result != ERR_OK) {
@@ -774,7 +774,7 @@ ErrCode OsAccountProxy::StopOsAccount(const int id)
 
     if (!data.WriteInt32(id)) {
         ACCOUNT_LOGE("failed to write int for id");
-        return ERR_OSACCOUNT_KIT_WRITE_INT_LOCAL_ID_ERROR;
+        return ERR_ACCOUNT_COMMON_WRITE_PARCEL_ERROR;
     }
     ErrCode result = SendRequest(IOsAccount::Message::STOP_OS_ACCOUNT, data, reply);
     if (result != ERR_OK) {
@@ -802,7 +802,7 @@ ErrCode OsAccountProxy::GetOsAccountLocalIdBySerialNumber(const int64_t serialNu
 
     if (!data.WriteInt64(serialNumber)) {
         ACCOUNT_LOGE("failed to write int for serialNumber");
-        return ERR_OSACCOUNT_KIT_WRITE_INT_LOCAL_ID_ERROR;
+        return ERR_ACCOUNT_COMMON_WRITE_PARCEL_ERROR;
     }
     ErrCode result = SendRequest(IOsAccount::Message::GET_OS_ACCOUNT_LOCAL_ID_FOR_SERIAL_NUMBER, data, reply);
     if (result != ERR_OK) {
@@ -831,7 +831,7 @@ ErrCode OsAccountProxy::GetSerialNumberByOsAccountLocalId(const int &id, int64_t
 
     if (!data.WriteInt32(id)) {
         ACCOUNT_LOGE("failed to write int for id");
-        return ERR_OSACCOUNT_KIT_WRITE_INT_LOCAL_ID_ERROR;
+        return ERR_ACCOUNT_COMMON_WRITE_PARCEL_ERROR;
     }
     ErrCode result = SendRequest(IOsAccount::Message::GET_SERIAL_NUMBER_FOR_OS_ACCOUNT, data, reply);
     if (result != ERR_OK) {
@@ -861,12 +861,12 @@ ErrCode OsAccountProxy::SubscribeOsAccount(
 
     if (!data.WriteParcelable(&subscribeInfo)) {
         ACCOUNT_LOGE("failed to write parcelable for subscribeInfo");
-        return ERR_OSACCOUNT_KIT_WRITE_PARCELABLE_SUBSCRIBE_INFO_ERROR;
+        return ERR_ACCOUNT_COMMON_WRITE_PARCEL_ERROR;
     }
 
     if (!data.WriteRemoteObject(eventListener)) {
         ACCOUNT_LOGE("failed to write remote object for eventListener");
-        return ERR_OSACCOUNT_KIT_WRITE_PARCELABLE_EVENT_LISTENER_ERROR;
+        return ERR_ACCOUNT_COMMON_WRITE_PARCEL_ERROR;
     }
 
     ErrCode result = SendRequest(IOsAccount::Message::SUBSCRIBE_ACCOUNT, data, reply);
@@ -896,7 +896,7 @@ ErrCode OsAccountProxy::UnsubscribeOsAccount(const sptr<IRemoteObject> &eventLis
 
     if (!data.WriteRemoteObject(eventListener)) {
         ACCOUNT_LOGE("failed to write remote object for eventListener");
-        return ERR_OSACCOUNT_KIT_WRITE_PARCELABLE_EVENT_LISTENER_ERROR;
+        return ERR_ACCOUNT_COMMON_WRITE_PARCEL_ERROR;
     }
 
     ErrCode result = SendRequest(IOsAccount::Message::UNSUBSCRIBE_ACCOUNT, data, reply);
@@ -988,7 +988,7 @@ ErrCode OsAccountProxy::IsOsAccountCompleted(const int id, bool &isOsAccountComp
 
     if (!data.WriteInt32(id)) {
         ACCOUNT_LOGE("failed to write int for id");
-        return ERR_OSACCOUNT_KIT_WRITE_INT_LOCAL_ID_ERROR;
+        return ERR_ACCOUNT_COMMON_WRITE_PARCEL_ERROR;
     }
     ErrCode result = SendRequest(IOsAccount::Message::IS_OS_ACCOUNT_COMPLETED, data, reply);
     if (result != ERR_OK) {
@@ -1018,7 +1018,7 @@ ErrCode OsAccountProxy::SetCurrentOsAccountIsVerified(const bool isVerified)
 
     if (!data.WriteBool(isVerified)) {
         ACCOUNT_LOGE("failed to write bool for isVerified");
-        return ERR_OSACCOUNT_KIT_WRITE_BOOL_IS_OSACCOUNT_VERIFIED_ERROR;
+        return ERR_ACCOUNT_COMMON_WRITE_PARCEL_ERROR;
     }
     ErrCode result = SendRequest(IOsAccount::Message::SET_CURRENT_OS_ACCOUNT_IS_VERIFIED, data, reply);
     if (result != ERR_OK) {
@@ -1046,11 +1046,11 @@ ErrCode OsAccountProxy::SetOsAccountIsVerified(const int id, const bool isVerifi
 
     if (!data.WriteInt32(id)) {
         ACCOUNT_LOGE("failed to write int for id");
-        return ERR_OSACCOUNT_KIT_WRITE_INT_LOCAL_ID_ERROR;
+        return ERR_ACCOUNT_COMMON_WRITE_PARCEL_ERROR;
     }
     if (!data.WriteBool(isVerified)) {
         ACCOUNT_LOGE("failed to write bool for isVerified");
-        return ERR_OSACCOUNT_KIT_WRITE_BOOL_IS_OSACCOUNT_VERIFIED_ERROR;
+        return ERR_ACCOUNT_COMMON_WRITE_PARCEL_ERROR;
     }
 
     ErrCode result = SendRequest(IOsAccount::Message::SET_OS_ACCOUNT_IS_VERIFIED, data, reply);
@@ -1079,7 +1079,7 @@ ErrCode OsAccountProxy::DumpState(const int &id, std::vector<std::string> &state
 
     if (!data.WriteInt32(id)) {
         ACCOUNT_LOGE("failed to write int for id");
-        return ERR_OSACCOUNT_KIT_WRITE_INT_LOCAL_ID_ERROR;
+        return ERR_ACCOUNT_COMMON_WRITE_PARCEL_ERROR;
     }
 
     ErrCode result = SendRequest(IOsAccount::Message::DUMP_STATE, data, reply);
@@ -1120,7 +1120,7 @@ ErrCode OsAccountProxy::GetCreatedOsAccountNumFromDatabase(const std::string& st
 
     if (!data.WriteString(storeID)) {
         ACCOUNT_LOGE("failed to write string for storeID");
-        return ERR_OSACCOUNT_KIT_WRITE_STRING_STOREID_ERROR;
+        return ERR_ACCOUNT_COMMON_WRITE_PARCEL_ERROR;
     }
     ErrCode result = SendRequest(IOsAccount::Message::GET_CREATED_OS_ACCOUNT_NUM_FROM_DATABASE, data, reply);
     if (result != ERR_OK) {
@@ -1149,7 +1149,7 @@ ErrCode OsAccountProxy::GetSerialNumberFromDatabase(const std::string& storeID, 
 
     if (!data.WriteString(storeID)) {
         ACCOUNT_LOGE("failed to write string for storeID");
-        return ERR_OSACCOUNT_KIT_WRITE_STRING_STOREID_ERROR;
+        return ERR_ACCOUNT_COMMON_WRITE_PARCEL_ERROR;
     }
     ErrCode result = SendRequest(IOsAccount::Message::GET_SERIAL_NUM_FROM_DATABASE, data, reply);
     if (result != ERR_OK) {
@@ -1178,7 +1178,7 @@ ErrCode OsAccountProxy::GetMaxAllowCreateIdFromDatabase(const std::string& store
 
     if (!data.WriteString(storeID)) {
         ACCOUNT_LOGE("failed to write string for isVerified");
-        return ERR_OSACCOUNT_KIT_WRITE_STRING_STOREID_ERROR;
+        return ERR_ACCOUNT_COMMON_WRITE_PARCEL_ERROR;
     }
     ErrCode result = SendRequest(IOsAccount::Message::GET_MAX_ALLOW_CREATE_ID_FROM_DATABASE, data, reply);
     if (result != ERR_OK) {
@@ -1208,11 +1208,11 @@ ErrCode OsAccountProxy::GetOsAccountFromDatabase(const std::string& storeID,
 
     if (!data.WriteString(storeID)) {
         ACCOUNT_LOGE("failed to write string for storeID");
-        return ERR_OSACCOUNT_KIT_WRITE_STRING_STOREID_ERROR;
+        return ERR_ACCOUNT_COMMON_WRITE_PARCEL_ERROR;
     }
     if (!data.WriteInt32(id)) {
         ACCOUNT_LOGE("failed to write int for id");
-        return ERR_OSACCOUNT_KIT_WRITE_INT_LOCAL_ID_ERROR;
+        return ERR_ACCOUNT_COMMON_WRITE_PARCEL_ERROR;
     }
 
     ErrCode result = SendRequest(IOsAccount::Message::GET_OS_ACCOUNT_FROM_DATABASE, data, reply);
@@ -1248,7 +1248,7 @@ ErrCode OsAccountProxy::GetOsAccountListFromDatabase(const std::string& storeID,
 
     if (!data.WriteString(storeID)) {
         ACCOUNT_LOGE("failed to write string for storeID");
-        return ERR_OSACCOUNT_KIT_WRITE_STRING_STOREID_ERROR;
+        return ERR_ACCOUNT_COMMON_WRITE_PARCEL_ERROR;
     }
     ErrCode result = SendRequest(IOsAccount::Message::GET_OS_ACCOUNT_LIST_FROM_DATABASE, data, reply);
     if (result != ERR_OK) {
@@ -1290,7 +1290,7 @@ ErrCode OsAccountProxy::QueryActiveOsAccountIds(std::vector<int32_t>& ids)
     bool readFlag = reply.ReadInt32Vector(&ids);
     if (!readFlag) {
         ACCOUNT_LOGE("failed to read vector for active ids.");
-        return ERR_OSACCOUNT_KIT_QUERY_ACTIVE_OS_ACCOUNT_IDS_ERROR;
+        return ERR_ACCOUNT_COMMON_READ_PARCEL_ERROR;
     }
     return ERR_OK;
 }
@@ -1309,12 +1309,12 @@ ErrCode OsAccountProxy::QueryOsAccountConstraintSourceTypes(const int32_t id,
 
     if (!data.WriteInt32(id)) {
         ACCOUNT_LOGE("failed to write int for id");
-        return ERR_OSACCOUNT_KIT_WRITE_INT_LOCAL_ID_ERROR;
+        return ERR_ACCOUNT_COMMON_WRITE_PARCEL_ERROR;
     }
 
     if (!data.WriteString(constraint)) {
         ACCOUNT_LOGE("failed to write string for constraint");
-        return ERR_OSACCOUNT_KIT_WRITE_STRING_STOREID_ERROR;
+        return ERR_ACCOUNT_COMMON_WRITE_PARCEL_ERROR;
     }
 
     ErrCode result = SendRequest(IOsAccount::Message::QUERY_OS_ACCOUNT_CONSTRAINT_SOURCE_TYPES, data, reply);
@@ -1348,22 +1348,22 @@ ErrCode OsAccountProxy::SetGlobalOsAccountConstraints(const std::vector<std::str
     }
     if (!data.WriteStringVector(constraints)) {
         ACCOUNT_LOGE("failed to write stringVector for constraints");
-        return ERR_OSACCOUNT_KIT_WRITE_STRING_VECTOR_CONSTRAINTS_ERROR;
+        return ERR_ACCOUNT_COMMON_WRITE_PARCEL_ERROR;
     }
 
     if (!data.WriteBool(enable)) {
         ACCOUNT_LOGE("failed to write bool for enable");
-        return ERR_OSACCOUNT_KIT_WRITE_BOOL_ENABLE_ERROR;
+        return ERR_ACCOUNT_COMMON_WRITE_PARCEL_ERROR;
     }
 
     if (!data.WriteInt32(enforcerId)) {
         ACCOUNT_LOGE("failed to write int for enforcerId");
-        return ERR_OSACCOUNT_KIT_WRITE_INT_LOCAL_ID_ERROR;
+        return ERR_ACCOUNT_COMMON_WRITE_PARCEL_ERROR;
     }
 
     if (!data.WriteBool(isDeviceOwner)) {
         ACCOUNT_LOGE("failed to write bool for isDeviceOwner");
-        return ERR_OSACCOUNT_KIT_WRITE_BOOL_ENABLE_ERROR;
+        return ERR_ACCOUNT_COMMON_WRITE_PARCEL_ERROR;
     }
     ErrCode result = SendRequest(IOsAccount::Message::SET_GLOBAL_OS_ACCOUNT_CONSTRAINTS, data, reply);
     if (result != ERR_OK) {
@@ -1390,27 +1390,27 @@ ErrCode OsAccountProxy::SetSpecificOsAccountConstraints(const std::vector<std::s
     }
     if (!data.WriteStringVector(constraints)) {
         ACCOUNT_LOGE("failed to write stringVector for constraints");
-        return ERR_OSACCOUNT_KIT_WRITE_STRING_VECTOR_CONSTRAINTS_ERROR;
+        return ERR_ACCOUNT_COMMON_WRITE_PARCEL_ERROR;
     }
 
     if (!data.WriteBool(enable)) {
         ACCOUNT_LOGE("failed to write bool for enable");
-        return ERR_OSACCOUNT_KIT_WRITE_BOOL_ENABLE_ERROR;
+        return ERR_ACCOUNT_COMMON_WRITE_PARCEL_ERROR;
     }
 
     if (!data.WriteInt32(targetId)) {
         ACCOUNT_LOGE("failed to write int for targetId");
-        return ERR_OSACCOUNT_KIT_WRITE_INT_LOCAL_ID_ERROR;
+        return ERR_ACCOUNT_COMMON_WRITE_PARCEL_ERROR;
     }
 
     if (!data.WriteInt32(enforcerId)) {
         ACCOUNT_LOGE("failed to write int for enforcerId");
-        return ERR_OSACCOUNT_KIT_WRITE_INT_LOCAL_ID_ERROR;
+        return ERR_ACCOUNT_COMMON_WRITE_PARCEL_ERROR;
     }
 
     if (!data.WriteBool(isDeviceOwner)) {
         ACCOUNT_LOGE("failed to write bool for isDeviceOwner");
-        return ERR_OSACCOUNT_KIT_WRITE_BOOL_ENABLE_ERROR;
+        return ERR_ACCOUNT_COMMON_WRITE_PARCEL_ERROR;
     }
     ErrCode result = SendRequest(IOsAccount::Message::SET_SPECIFIC_OS_ACCOUNT_CONSTRAINTS, data, reply);
     if (result != ERR_OK) {
