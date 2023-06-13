@@ -130,7 +130,7 @@ ErrCode DomainAccountPluginProxy::GetAccessToken(const DomainAccountInfo &domain
     }
     if (!data.WriteParcelable(&option)) {
         ACCOUNT_LOGE("failed to write option");
-        return ERR_APPACCOUNT_KIT_WRITE_PARCELABLE_OPTIONS;
+        return ERR_ACCOUNT_COMMON_WRITE_PARCEL_ERROR;
     }
     if ((callback == nullptr) || (!data.WriteRemoteObject(callback->AsObject()))) {
         ACCOUNT_LOGE("fail to write callback");

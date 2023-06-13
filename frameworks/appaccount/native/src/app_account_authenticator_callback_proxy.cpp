@@ -83,7 +83,7 @@ ErrCode AppAccountAuthenticatorCallbackProxy::SendRequest(
     sptr<IRemoteObject> remoteCallback = Remote();
     if (remoteCallback == nullptr) {
         ACCOUNT_LOGE("remote is nullptr, code = %{public}d", code);
-        return ERR_APPACCOUNT_KIT_REMOTE_IS_NULLPTR;
+        return ERR_ACCOUNT_COMMON_NULL_PTR_ERROR;
     }
     MessageOption option(MessageOption::TF_SYNC);
     int32_t result = remoteCallback->SendRequest(static_cast<uint32_t>(code), data, reply, option);

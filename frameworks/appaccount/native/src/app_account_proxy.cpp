@@ -38,12 +38,12 @@ ErrCode AppAccountProxy::AddAccount(const std::string &name, const std::string &
 
     if (!data.WriteString(name)) {
         ACCOUNT_LOGE("failed to write string for name");
-        return ERR_APPACCOUNT_KIT_WRITE_STRING_NAME;
+        return ERR_ACCOUNT_COMMON_WRITE_PARCEL_ERROR;
     }
 
     if (!data.WriteString(extraInfo)) {
         ACCOUNT_LOGE("failed to write string for extraInfo");
-        return ERR_APPACCOUNT_KIT_WRITE_STRING_EXTRA_INFO;
+        return ERR_ACCOUNT_COMMON_WRITE_PARCEL_ERROR;
     }
 
     ErrCode result = SendRequest(IAppAccount::Message::ADD_ACCOUNT, data, reply);
@@ -69,19 +69,19 @@ ErrCode AppAccountProxy::AddAccountImplicitly(const std::string &owner, const st
 
     if (!data.WriteString(owner)) {
         ACCOUNT_LOGE("failed to write string for name");
-        return ERR_APPACCOUNT_KIT_WRITE_STRING_NAME;
+        return ERR_ACCOUNT_COMMON_WRITE_PARCEL_ERROR;
     }
     if (!data.WriteString(authType)) {
         ACCOUNT_LOGE("failed to write string for authType");
-        return ERR_APPACCOUNT_KIT_WRITE_STRING_AUTH_TYPE;
+        return ERR_ACCOUNT_COMMON_WRITE_PARCEL_ERROR;
     }
     if (!data.WriteParcelable(&options)) {
         ACCOUNT_LOGE("failed to write parcelable for options");
-        return ERR_APPACCOUNT_KIT_WRITE_PARCELABLE_OPTIONS;
+        return ERR_ACCOUNT_COMMON_WRITE_PARCEL_ERROR;
     }
     if (!data.WriteRemoteObject(callback)) {
         ACCOUNT_LOGE("failed to write remote object for callback");
-        return ERR_APPACCOUNT_KIT_WRITE_PARCELABLE_CALLBACK;
+        return ERR_ACCOUNT_COMMON_WRITE_PARCEL_ERROR;
     }
     ErrCode result = SendRequest(IAppAccount::Message::ADD_ACCOUNT_IMPLICITLY, data, reply);
     if (result != ERR_OK) {
@@ -102,11 +102,11 @@ ErrCode AppAccountProxy::CreateAccount(const std::string &name, const CreateAcco
     }
     if (!data.WriteString(name)) {
         ACCOUNT_LOGE("failed to write name");
-        return ERR_APPACCOUNT_KIT_WRITE_STRING_NAME;
+        return ERR_ACCOUNT_COMMON_WRITE_PARCEL_ERROR;
     }
     if (!data.WriteParcelable(&options)) {
         ACCOUNT_LOGE("failed to write options");
-        return ERR_APPACCOUNT_KIT_WRITE_PARCELABLE_OPTIONS;
+        return ERR_ACCOUNT_COMMON_WRITE_PARCEL_ERROR;
     }
     MessageParcel reply;
     ErrCode result = SendRequest(IAppAccount::Message::CREATE_ACCOUNT, data, reply);
@@ -126,15 +126,15 @@ ErrCode AppAccountProxy::CreateAccountImplicitly(
     }
     if (!data.WriteString(owner)) {
         ACCOUNT_LOGE("failed to write owner");
-        return ERR_APPACCOUNT_KIT_WRITE_STRING_OWNER;
+        return ERR_ACCOUNT_COMMON_WRITE_PARCEL_ERROR;
     }
     if (!data.WriteParcelable(&options)) {
         ACCOUNT_LOGE("failed to write options");
-        return ERR_APPACCOUNT_KIT_WRITE_PARCELABLE_OPTIONS;
+        return ERR_ACCOUNT_COMMON_WRITE_PARCEL_ERROR;
     }
     if (!data.WriteRemoteObject(callback)) {
         ACCOUNT_LOGE("failed to write remote object for callback");
-        return ERR_APPACCOUNT_KIT_WRITE_PARCELABLE_CALLBACK;
+        return ERR_ACCOUNT_COMMON_WRITE_PARCEL_ERROR;
     }
     MessageParcel reply;
     ErrCode result = SendRequest(IAppAccount::Message::CREATE_ACCOUNT_IMPLICITLY, data, reply);
@@ -157,7 +157,7 @@ ErrCode AppAccountProxy::DeleteAccount(const std::string &name)
 
     if (!data.WriteString(name)) {
         ACCOUNT_LOGE("failed to write string for name");
-        return ERR_APPACCOUNT_KIT_WRITE_STRING_NAME;
+        return ERR_ACCOUNT_COMMON_WRITE_PARCEL_ERROR;
     }
 
     ErrCode result = SendRequest(IAppAccount::Message::DELETE_ACCOUNT, data, reply);
@@ -182,7 +182,7 @@ ErrCode AppAccountProxy::GetAccountExtraInfo(const std::string &name, std::strin
 
     if (!data.WriteString(name)) {
         ACCOUNT_LOGE("failed to write string for name");
-        return ERR_APPACCOUNT_KIT_WRITE_STRING_NAME;
+        return ERR_ACCOUNT_COMMON_WRITE_PARCEL_ERROR;
     }
 
     ErrCode result = SendRequest(IAppAccount::Message::GET_ACCOUNT_EXTRA_INFO, data, reply);
@@ -208,12 +208,12 @@ ErrCode AppAccountProxy::SetAccountExtraInfo(const std::string &name, const std:
 
     if (!data.WriteString(name)) {
         ACCOUNT_LOGE("failed to write string for name");
-        return ERR_APPACCOUNT_KIT_WRITE_STRING_NAME;
+        return ERR_ACCOUNT_COMMON_WRITE_PARCEL_ERROR;
     }
 
     if (!data.WriteString(extraInfo)) {
         ACCOUNT_LOGE("failed to write string for extraInfo");
-        return ERR_APPACCOUNT_KIT_WRITE_STRING_EXTRA_INFO;
+        return ERR_ACCOUNT_COMMON_WRITE_PARCEL_ERROR;
     }
 
     ErrCode result = SendRequest(IAppAccount::Message::SET_ACCOUNT_EXTRA_INFO, data, reply);
@@ -238,12 +238,12 @@ ErrCode AppAccountProxy::EnableAppAccess(const std::string &name, const std::str
 
     if (!data.WriteString(name)) {
         ACCOUNT_LOGE("failed to write string for name");
-        return ERR_APPACCOUNT_KIT_WRITE_STRING_NAME;
+        return ERR_ACCOUNT_COMMON_WRITE_PARCEL_ERROR;
     }
 
     if (!data.WriteString(authorizedApp)) {
         ACCOUNT_LOGE("failed to write string for authorizedApp");
-        return ERR_APPACCOUNT_KIT_WRITE_STRING_AUTHORIZED_APP;
+        return ERR_ACCOUNT_COMMON_WRITE_PARCEL_ERROR;
     }
 
     ErrCode result = SendRequest(IAppAccount::Message::ENABLE_APP_ACCESS, data, reply);
@@ -268,12 +268,12 @@ ErrCode AppAccountProxy::DisableAppAccess(const std::string &name, const std::st
 
     if (!data.WriteString(name)) {
         ACCOUNT_LOGE("failed to write string for name");
-        return ERR_APPACCOUNT_KIT_WRITE_STRING_NAME;
+        return ERR_ACCOUNT_COMMON_WRITE_PARCEL_ERROR;
     }
 
     if (!data.WriteString(authorizedApp)) {
         ACCOUNT_LOGE("failed to write string for authorizedApp");
-        return ERR_APPACCOUNT_KIT_WRITE_STRING_AUTHORIZED_APP;
+        return ERR_ACCOUNT_COMMON_WRITE_PARCEL_ERROR;
     }
 
     ErrCode result = SendRequest(IAppAccount::Message::DISABLE_APP_ACCESS, data, reply);
@@ -331,7 +331,7 @@ ErrCode AppAccountProxy::CheckAppAccountSyncEnable(const std::string &name, bool
 
     if (!data.WriteString(name)) {
         ACCOUNT_LOGE("failed to write string for name");
-        return ERR_APPACCOUNT_KIT_WRITE_STRING_NAME;
+        return ERR_ACCOUNT_COMMON_WRITE_PARCEL_ERROR;
     }
 
     ErrCode result = SendRequest(IAppAccount::Message::CHECK_APP_ACCOUNT_SYNC_ENABLE, data, reply);
@@ -357,12 +357,12 @@ ErrCode AppAccountProxy::SetAppAccountSyncEnable(const std::string &name, const 
 
     if (!data.WriteString(name)) {
         ACCOUNT_LOGE("failed to write string for name");
-        return ERR_APPACCOUNT_KIT_WRITE_STRING_NAME;
+        return ERR_ACCOUNT_COMMON_WRITE_PARCEL_ERROR;
     }
 
     if (!data.WriteBool(syncEnable)) {
         ACCOUNT_LOGE("failed to write bool for syncEnable");
-        return ERR_APPACCOUNT_KIT_WRITE_BOOL_SYNC_ENABLE;
+        return ERR_ACCOUNT_COMMON_WRITE_PARCEL_ERROR;
     }
 
     ErrCode result = SendRequest(IAppAccount::Message::SET_APP_ACCOUNT_SYNC_ENABLE, data, reply);
@@ -387,12 +387,12 @@ ErrCode AppAccountProxy::GetAssociatedData(const std::string &name, const std::s
 
     if (!data.WriteString(name)) {
         ACCOUNT_LOGE("failed to write string for name");
-        return ERR_APPACCOUNT_KIT_WRITE_STRING_NAME;
+        return ERR_ACCOUNT_COMMON_WRITE_PARCEL_ERROR;
     }
 
     if (!data.WriteString(key)) {
         ACCOUNT_LOGE("failed to write string for key");
-        return ERR_APPACCOUNT_KIT_WRITE_STRING_ASSOCIATED_KEY;
+        return ERR_ACCOUNT_COMMON_WRITE_PARCEL_ERROR;
     }
 
     ErrCode result = SendRequest(IAppAccount::Message::GET_ASSOCIATED_DATA, data, reply);
@@ -418,17 +418,17 @@ ErrCode AppAccountProxy::SetAssociatedData(const std::string &name, const std::s
 
     if (!data.WriteString(name)) {
         ACCOUNT_LOGE("failed to write string for name");
-        return ERR_APPACCOUNT_KIT_WRITE_STRING_NAME;
+        return ERR_ACCOUNT_COMMON_WRITE_PARCEL_ERROR;
     }
 
     if (!data.WriteString(key)) {
         ACCOUNT_LOGE("failed to write string for key");
-        return ERR_APPACCOUNT_KIT_WRITE_STRING_KEY;
+        return ERR_ACCOUNT_COMMON_WRITE_PARCEL_ERROR;
     }
 
     if (!data.WriteString(value)) {
         ACCOUNT_LOGE("failed to write string for value");
-        return ERR_APPACCOUNT_KIT_WRITE_STRING_VALUE;
+        return ERR_ACCOUNT_COMMON_WRITE_PARCEL_ERROR;
     }
 
     ErrCode result = SendRequest(IAppAccount::Message::SET_ASSOCIATED_DATA, data, reply);
@@ -454,12 +454,12 @@ ErrCode AppAccountProxy::GetAccountCredential(
 
     if (!data.WriteString(name)) {
         ACCOUNT_LOGE("failed to write string for name");
-        return ERR_APPACCOUNT_KIT_WRITE_STRING_NAME;
+        return ERR_ACCOUNT_COMMON_WRITE_PARCEL_ERROR;
     }
 
     if (!data.WriteString(credentialType)) {
         ACCOUNT_LOGE("failed to write string for credentialType");
-        return ERR_APPACCOUNT_KIT_WRITE_STRING_CREDENTIAL_TYPE;
+        return ERR_ACCOUNT_COMMON_WRITE_PARCEL_ERROR;
     }
 
     ErrCode result = SendRequest(IAppAccount::Message::GET_ACCOUNT_CREDENTIAL, data, reply);
@@ -486,17 +486,17 @@ ErrCode AppAccountProxy::SetAccountCredential(
 
     if (!data.WriteString(name)) {
         ACCOUNT_LOGE("failed to write string for name");
-        return ERR_APPACCOUNT_KIT_WRITE_STRING_NAME;
+        return ERR_ACCOUNT_COMMON_WRITE_PARCEL_ERROR;
     }
 
     if (!data.WriteString(credentialType)) {
         ACCOUNT_LOGE("failed to write string for credentialType");
-        return ERR_APPACCOUNT_KIT_WRITE_STRING_CREDENTIAL_TYPE;
+        return ERR_ACCOUNT_COMMON_WRITE_PARCEL_ERROR;
     }
 
     if (!data.WriteString(credential)) {
         ACCOUNT_LOGE("failed to write string for credential");
-        return ERR_APPACCOUNT_KIT_WRITE_STRING_CREDENTIAL;
+        return ERR_ACCOUNT_COMMON_WRITE_PARCEL_ERROR;
     }
 
     ErrCode result = SendRequest(IAppAccount::Message::SET_ACCOUNT_CREDENTIAL, data, reply);
@@ -522,23 +522,23 @@ ErrCode AppAccountProxy::Authenticate(const std::string &name, const std::string
 
     if (!data.WriteString(name)) {
         ACCOUNT_LOGE("failed to write string for name");
-        return ERR_APPACCOUNT_KIT_WRITE_STRING_NAME;
+        return ERR_ACCOUNT_COMMON_WRITE_PARCEL_ERROR;
     }
     if (!data.WriteString(owner)) {
         ACCOUNT_LOGE("failed to write string for owner");
-        return ERR_APPACCOUNT_KIT_WRITE_STRING_OWNER;
+        return ERR_ACCOUNT_COMMON_WRITE_PARCEL_ERROR;
     }
     if (!data.WriteString(authType)) {
         ACCOUNT_LOGE("failed to write string for authType");
-        return ERR_APPACCOUNT_KIT_WRITE_STRING_AUTH_TYPE;
+        return ERR_ACCOUNT_COMMON_WRITE_PARCEL_ERROR;
     }
     if (!data.WriteParcelable(&options)) {
         ACCOUNT_LOGE("failed to write parcelable for options");
-        return ERR_APPACCOUNT_KIT_WRITE_PARCELABLE_OPTIONS;
+        return ERR_ACCOUNT_COMMON_WRITE_PARCEL_ERROR;
     }
     if (!data.WriteRemoteObject(callback)) {
         ACCOUNT_LOGE("failed to write remote object for callback");
-        return ERR_APPACCOUNT_KIT_WRITE_PARCELABLE_CALLBACK;
+        return ERR_ACCOUNT_COMMON_WRITE_PARCEL_ERROR;
     }
     ErrCode result = SendRequest(IAppAccount::Message::AUTHENTICATE, data, reply);
     if (result != ERR_OK) {
@@ -626,15 +626,15 @@ ErrCode AppAccountProxy::SetOAuthToken(
 
     if (!data.WriteString(name)) {
         ACCOUNT_LOGE("failed to write string for name");
-        return ERR_APPACCOUNT_KIT_WRITE_STRING_NAME;
+        return ERR_ACCOUNT_COMMON_WRITE_PARCEL_ERROR;
     }
     if (!data.WriteString(authType)) {
         ACCOUNT_LOGE("failed to write string for authType");
-        return ERR_APPACCOUNT_KIT_WRITE_STRING_AUTH_TYPE;
+        return ERR_ACCOUNT_COMMON_WRITE_PARCEL_ERROR;
     }
     if (!data.WriteString(token)) {
         ACCOUNT_LOGE("failed to write string for token");
-        return ERR_APPACCOUNT_KIT_WRITE_STRING_TOKEN;
+        return ERR_ACCOUNT_COMMON_WRITE_PARCEL_ERROR;
     }
     ErrCode result = SendRequest(IAppAccount::Message::SET_OAUTH_TOKEN, data, reply);
     if (result != ERR_OK) {
@@ -832,7 +832,7 @@ ErrCode AppAccountProxy::GetAuthenticatorInfo(const std::string &owner, Authenti
 
     if (!data.WriteString(owner)) {
         ACCOUNT_LOGE("failed to write string for owner");
-        return ERR_APPACCOUNT_KIT_WRITE_STRING_OWNER;
+        return ERR_ACCOUNT_COMMON_WRITE_PARCEL_ERROR;
     }
     ErrCode result = SendRequest(IAppAccount::Message::GET_AUTHENTICATOR_INFO, data, reply);
     if (result != ERR_OK) {
@@ -860,11 +860,11 @@ ErrCode AppAccountProxy::GetAllOAuthTokens(
 
     if (!data.WriteString(name)) {
         ACCOUNT_LOGE("failed to write string for name");
-        return ERR_APPACCOUNT_KIT_WRITE_STRING_NAME;
+        return ERR_ACCOUNT_COMMON_WRITE_PARCEL_ERROR;
     }
     if (!data.WriteString(owner)) {
         ACCOUNT_LOGE("failed to write string for owner");
-        return ERR_APPACCOUNT_KIT_WRITE_STRING_OWNER;
+        return ERR_ACCOUNT_COMMON_WRITE_PARCEL_ERROR;
     }
     ErrCode result = SendRequest(IAppAccount::Message::GET_ALL_OAUTH_TOKENS, data, reply);
     if (result != ERR_OK) {
@@ -961,7 +961,7 @@ ErrCode AppAccountProxy::GetAuthenticatorCallback(const std::string &sessionId, 
 
     if (!data.WriteString(sessionId)) {
         ACCOUNT_LOGE("failed to write string for sessionId");
-        return ERR_APPACCOUNT_KIT_WRITE_STRING_SESSION_ID;
+        return ERR_ACCOUNT_COMMON_READ_PARCEL_ERROR;
     }
     ErrCode result = SendRequest(IAppAccount::Message::GET_AUTHENTICATOR_CALLBACK, data, reply);
     if (result != ERR_OK) {
@@ -985,7 +985,7 @@ ErrCode AppAccountProxy::GetAllAccounts(const std::string &owner, std::vector<Ap
 
     if (!data.WriteString(owner)) {
         ACCOUNT_LOGE("failed to write string for owner");
-        return ERR_APPACCOUNT_KIT_WRITE_STRING_OWNER;
+        return ERR_ACCOUNT_COMMON_WRITE_PARCEL_ERROR;
     }
 
     ErrCode result = SendRequest(IAppAccount::Message::GET_ALL_ACCOUNTS, data, reply);
@@ -1063,11 +1063,11 @@ ErrCode AppAccountProxy::CheckAppAccess(
     }
     if (!data.WriteString(name)) {
         ACCOUNT_LOGE("failed to write string for name");
-        return ERR_APPACCOUNT_KIT_WRITE_STRING_NAME;
+        return ERR_ACCOUNT_COMMON_WRITE_PARCEL_ERROR;
     }
     if (!data.WriteString(authorizedApp)) {
         ACCOUNT_LOGE("failed to write string for authorizedApp");
-        return ERR_APPACCOUNT_KIT_WRITE_STRING_AUTHORIZED_APP;
+        return ERR_ACCOUNT_COMMON_WRITE_PARCEL_ERROR;
     }
     ErrCode result = SendRequest(IAppAccount::Message::CHECK_APP_ACCESS, data, reply);
     if (result != ERR_OK) {
@@ -1090,11 +1090,11 @@ ErrCode AppAccountProxy::DeleteAccountCredential(
     }
     if (!data.WriteString(name)) {
         ACCOUNT_LOGE("failed to write string for name");
-        return ERR_APPACCOUNT_KIT_WRITE_STRING_NAME;
+        return ERR_ACCOUNT_COMMON_WRITE_PARCEL_ERROR;
     }
     if (!data.WriteString(credentialType)) {
         ACCOUNT_LOGE("failed to write string for credentialType");
-        return ERR_APPACCOUNT_KIT_WRITE_STRING_CREDENTIAL_TYPE;
+        return ERR_ACCOUNT_COMMON_WRITE_PARCEL_ERROR;
     }
     ErrCode result = SendRequest(IAppAccount::Message::DELETE_ACCOUNT_CREDENTIAL, data, reply);
     if (result != ERR_OK) {
@@ -1115,11 +1115,11 @@ ErrCode AppAccountProxy::SelectAccountsByOptions(
     }
     if (!data.WriteParcelable(&options)) {
         ACCOUNT_LOGE("failed to write parcelable for options");
-        return ERR_APPACCOUNT_KIT_WRITE_PARCELABLE_OPTIONS;
+        return ERR_ACCOUNT_COMMON_WRITE_PARCEL_ERROR;
     }
     if (!data.WriteRemoteObject(callback)) {
         ACCOUNT_LOGE("failed to write remote object for callback");
-        return ERR_APPACCOUNT_KIT_WRITE_PARCELABLE_CALLBACK;
+        return ERR_ACCOUNT_COMMON_WRITE_PARCEL_ERROR;
     }
     ErrCode result = SendRequest(IAppAccount::Message::SELECT_ACCOUNTS_BY_OPTIONS, data, reply);
     if (result != ERR_OK) {
@@ -1140,19 +1140,19 @@ ErrCode AppAccountProxy::VerifyCredential(const std::string &name, const std::st
     }
     if (!data.WriteString(name)) {
         ACCOUNT_LOGE("failed to write string for name");
-        return ERR_APPACCOUNT_KIT_WRITE_STRING_NAME;
+        return ERR_ACCOUNT_COMMON_WRITE_PARCEL_ERROR;
     }
     if (!data.WriteString(owner)) {
         ACCOUNT_LOGE("failed to write string for owner");
-        return ERR_APPACCOUNT_KIT_WRITE_STRING_OWNER;
+        return ERR_ACCOUNT_COMMON_WRITE_PARCEL_ERROR;
     }
     if (!data.WriteParcelable(&options)) {
         ACCOUNT_LOGE("failed to write string for options");
-        return ERR_APPACCOUNT_KIT_WRITE_PARCELABLE_OPTIONS;
+        return ERR_ACCOUNT_COMMON_WRITE_PARCEL_ERROR;
     }
     if (!data.WriteRemoteObject(callback)) {
         ACCOUNT_LOGE("failed to write string for callback");
-        return ERR_APPACCOUNT_KIT_WRITE_PARCELABLE_CALLBACK;
+        return ERR_ACCOUNT_COMMON_WRITE_PARCEL_ERROR;
     }
     ErrCode result = SendRequest(IAppAccount::Message::VERIFY_CREDENTIAL, data, reply);
     if (result != ERR_OK) {
@@ -1173,11 +1173,11 @@ ErrCode AppAccountProxy::CheckAccountLabels(const std::string &name, const std::
     }
     if (!data.WriteString(name)) {
         ACCOUNT_LOGE("failed to write string for name");
-        return ERR_APPACCOUNT_KIT_WRITE_STRING_NAME;
+        return ERR_ACCOUNT_COMMON_WRITE_PARCEL_ERROR;
     }
     if (!data.WriteString(owner)) {
         ACCOUNT_LOGE("failed to write string for owner");
-        return ERR_APPACCOUNT_KIT_WRITE_STRING_OWNER;
+        return ERR_ACCOUNT_COMMON_WRITE_PARCEL_ERROR;
     }
     if (!data.WriteStringVector(labels)) {
         ACCOUNT_LOGE("failed to write string vector for labels");
@@ -1185,7 +1185,7 @@ ErrCode AppAccountProxy::CheckAccountLabels(const std::string &name, const std::
     }
     if (!data.WriteRemoteObject(callback)) {
         ACCOUNT_LOGE("failed to write string for callback");
-        return ERR_APPACCOUNT_KIT_WRITE_PARCELABLE_CALLBACK;
+        return ERR_ACCOUNT_COMMON_WRITE_PARCEL_ERROR;
     }
     ErrCode result = SendRequest(IAppAccount::Message::CHECK_ACCOUNT_LABELS, data, reply);
     if (result != ERR_OK) {
@@ -1206,15 +1206,15 @@ ErrCode AppAccountProxy::SetAuthenticatorProperties(
     }
     if (!data.WriteString(owner)) {
         ACCOUNT_LOGE("failed to write string for owner");
-        return ERR_APPACCOUNT_KIT_WRITE_STRING_OWNER;
+        return ERR_ACCOUNT_COMMON_WRITE_PARCEL_ERROR;
     }
     if (!data.WriteParcelable(&options)) {
         ACCOUNT_LOGE("failed to write string for options");
-        return ERR_APPACCOUNT_KIT_WRITE_PARCELABLE_OPTIONS;
+        return ERR_ACCOUNT_COMMON_WRITE_PARCEL_ERROR;
     }
     if (!data.WriteRemoteObject(callback)) {
         ACCOUNT_LOGE("failed to write remote object for callback");
-        return ERR_APPACCOUNT_KIT_WRITE_PARCELABLE_CALLBACK;
+        return ERR_ACCOUNT_COMMON_WRITE_PARCEL_ERROR;
     }
     ErrCode result = SendRequest(IAppAccount::Message::SET_AUTHENTICATOR_PROPERTIES, data, reply);
     if (result != ERR_OK) {
@@ -1234,11 +1234,11 @@ ErrCode AppAccountProxy::ExecuteRequest(
     }
     if (!data.WriteParcelable(&request)) {
         ACCOUNT_LOGE("failed to write string for request");
-        return ERR_APPACCOUNT_KIT_WRITE_PARCELABLE_OPTIONS;
+        return ERR_ACCOUNT_COMMON_WRITE_PARCEL_ERROR;
     }
     if (!data.WriteRemoteObject(callback)) {
         ACCOUNT_LOGE("failed to write remote object for callback");
-        return ERR_APPACCOUNT_KIT_WRITE_PARCELABLE_CALLBACK;
+        return ERR_ACCOUNT_COMMON_WRITE_PARCEL_ERROR;
     }
     MessageParcel reply;
     ErrCode result = SendRequest(IAppAccount::Message::EXECUTE_REQUEST, data, reply);
@@ -1266,12 +1266,12 @@ ErrCode AppAccountProxy::SubscribeAppAccount(
 
     if (!data.WriteParcelable(&subscribeInfo)) {
         ACCOUNT_LOGE("failed to write parcelable for subscribeInfo");
-        return ERR_APPACCOUNT_KIT_WRITE_PARCELABLE_SUBSCRIBE_INFO;
+        return ERR_ACCOUNT_COMMON_WRITE_PARCEL_ERROR;
     }
 
     if (!data.WriteRemoteObject(eventListener)) {
         ACCOUNT_LOGE("failed to write remote object for eventListener");
-        return ERR_APPACCOUNT_KIT_WRITE_PARCELABLE_EVENT_LISTENER;
+        return ERR_ACCOUNT_COMMON_WRITE_PARCEL_ERROR;
     }
 
     ErrCode result = SendRequest(IAppAccount::Message::SUBSCRIBE_ACCOUNT, data, reply);
@@ -1296,7 +1296,7 @@ ErrCode AppAccountProxy::UnsubscribeAppAccount(const sptr<IRemoteObject> &eventL
 
     if (!data.WriteRemoteObject(eventListener)) {
         ACCOUNT_LOGE("failed to write remote object for eventListener");
-        return ERR_APPACCOUNT_KIT_WRITE_PARCELABLE_EVENT_LISTENER;
+        return ERR_ACCOUNT_COMMON_WRITE_PARCEL_ERROR;
     }
 
     ErrCode result = SendRequest(IAppAccount::Message::UNSUBSCRIBE_ACCOUNT, data, reply);
@@ -1314,7 +1314,7 @@ ErrCode AppAccountProxy::SendRequest(IAppAccount::Message code, MessageParcel &d
     sptr<IRemoteObject> remote = Remote();
     if (remote == nullptr) {
         ACCOUNT_LOGE("remote is nullptr, code = %{public}d", code);
-        return ERR_APPACCOUNT_KIT_REMOTE_IS_NULLPTR;
+        return ERR_ACCOUNT_COMMON_NULL_PTR_ERROR;
     }
 
     MessageOption option(MessageOption::TF_SYNC);
