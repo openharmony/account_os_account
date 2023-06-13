@@ -56,7 +56,7 @@ static ErrCode WriteRequest(MessageParcel &data, const AuthorizationRequest &req
     }
     if (!data.WriteParcelable(&request.parameters)) {
         ACCOUNT_LOGE("fail to write write request parameters");
-        return ERR_APPACCOUNT_KIT_WRITE_PARCELABLE_OPTIONS;
+        return ERR_ACCOUNT_COMMON_WRITE_PARCEL_ERROR;
     }
     if ((request.callback == nullptr) || (!data.WriteRemoteObject(request.callback->AsObject()))) {
         ACCOUNT_LOGE("fail to write request callback");

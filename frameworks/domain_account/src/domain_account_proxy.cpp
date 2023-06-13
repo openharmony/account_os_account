@@ -392,7 +392,7 @@ ErrCode DomainAccountProxy::GetAccessToken(
     }
     if (!data.WriteParcelable(&parameters)) {
         ACCOUNT_LOGE("failed to write write parameters");
-        return ERR_APPACCOUNT_KIT_WRITE_PARCELABLE_OPTIONS;
+        return ERR_ACCOUNT_COMMON_WRITE_PARCEL_ERROR;
     }
     if ((callback == nullptr) || (!data.WriteRemoteObject(callback->AsObject()))) {
         ACCOUNT_LOGE("fail to write callback");
