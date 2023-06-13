@@ -13,6 +13,7 @@
  * limitations under the License.
  */
 
+#include "bundle_framework_core_ipc_interface_code.h"
 #include "bundle_user_manager_adapter_proxy.h"
 #include "account_log_wrapper.h"
 
@@ -36,7 +37,7 @@ void BundleUserManagerAdapterProxy::CreateNewUser(int32_t userId)
     }
 
     data.WriteInt32(static_cast<int32_t>(userId));
-    SendRequest(static_cast<int32_t>(AppExecFwk::IBundleUserMgr::Message::CREATE_USER), data, reply, option);
+    SendRequest(static_cast<int32_t>(AppExecFwk::BundleUserMgrInterfaceCode::CREATE_USER), data, reply, option);
 }
 
 void BundleUserManagerAdapterProxy::RemoveUser(int32_t userId)
@@ -50,7 +51,7 @@ void BundleUserManagerAdapterProxy::RemoveUser(int32_t userId)
     }
 
     data.WriteInt32(static_cast<int32_t>(userId));
-    SendRequest(static_cast<int32_t>(AppExecFwk::IBundleUserMgr::Message::REMOVE_USER), data, reply, option);
+    SendRequest(static_cast<int32_t>(AppExecFwk::BundleUserMgrInterfaceCode::REMOVE_USER), data, reply, option);
 }
 
 bool BundleUserManagerAdapterProxy::SendRequest(const int32_t& code, MessageParcel& data, MessageParcel& reply,
