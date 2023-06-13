@@ -155,7 +155,6 @@ HWTEST_F(AccountErrorCodeConvertTest, AccountErrorCodeConvertTest003, TestSize.L
     // other case
     ACCOUNT_LOGI("AccountErrorCodeConvertTest003 other case errorCode convert test");
     EXPECT_EQ(ConvertToJSErrCode(ERR_ACCOUNT_ZIDL_CHECK_PERMISSION_ERROR), ERR_JS_PERMISSION_DENIED);
-    EXPECT_EQ(ConvertToJSErrCode(ERR_ACCOUNT_ZIDL_READ_RESULT_ERROR), ERR_JS_SYSTEM_SERVICE_EXCEPTION);
 }
 
 /**

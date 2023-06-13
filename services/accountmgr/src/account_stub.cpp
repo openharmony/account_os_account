@@ -400,7 +400,7 @@ std::int32_t AccountStub::CmdGetDomainAccountService(MessageParcel &data, Messag
     auto remoteObject = GetDomainAccountService();
     if (!reply.WriteRemoteObject(remoteObject)) {
         ACCOUNT_LOGE("failed to write remote object");
-        return ERR_ACCOUNT_ZIDL_WRITE_PARCEL_DATA_ERROR;
+        return ERR_ACCOUNT_COMMON_WRITE_PARCEL_ERROR;
     }
     return ERR_OK;
 }
