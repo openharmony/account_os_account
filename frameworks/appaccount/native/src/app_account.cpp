@@ -616,7 +616,7 @@ ErrCode AppAccount::GetAppAccountProxy()
         sptr<IRemoteObject> remoteObject = systemAbilityManager->GetSystemAbility(SUBSYS_ACCOUNT_SYS_ABILITY_ID_BEGIN);
         if (!remoteObject) {
             ACCOUNT_LOGE("failed to get account system ability");
-            return ERR_APPACCOUNT_KIT_GET_ACCOUNT_SYSTEM_ABILITY;
+            return ERR_ACCOUNT_COMMON_GET_SYSTEM_ABILITY;
         }
 
         sptr<IAccount> accountProxy = iface_cast<AccountProxy>(remoteObject);

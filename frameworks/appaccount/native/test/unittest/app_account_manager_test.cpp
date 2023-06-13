@@ -363,7 +363,7 @@ HWTEST_F(AppAccountManagerTest, AppAccountManager_AddAccountImplicitly_0100, Tes
     AAFwk::Want options;
     options.SetParam(Constants::KEY_CALLER_ABILITY_NAME, STRING_ABILITY_NAME);
     ErrCode result = AppAccountManager::AddAccountImplicitly(STRING_OWNER, STRING_AUTH_TYPE, options, nullptr);
-    EXPECT_EQ(result, ERR_APPACCOUNT_KIT_WRITE_PARCELABLE_CALLBACK);
+    EXPECT_EQ(result, ERR_ACCOUNT_COMMON_WRITE_PARCEL_ERROR);
 
     result = AppAccountManager::AddAccountImplicitly(
         STRING_OWNER_OUT_OF_RANGE, STRING_AUTH_TYPE, options, nullptr);
@@ -430,14 +430,14 @@ HWTEST_F(AppAccountManagerTest, AppAccountManager_CreateAccountImplicitly_0100, 
     // check callback nullptr
     options.parameters.SetParam(Constants::KEY_CALLER_ABILITY_NAME, STRING_ABILITY_NAME);
     result = AppAccountManager::CreateAccountImplicitly(STRING_OWNER, options, nullptr);
-    EXPECT_EQ(result, ERR_APPACCOUNT_KIT_WRITE_PARCELABLE_CALLBACK);
+    EXPECT_EQ(result, ERR_ACCOUNT_COMMON_WRITE_PARCEL_ERROR);
     // check options.requiredLabels
     for (int i = 0; i < ALLOWED_ARRAY_MAX_SIZE; i++) {
         std::string testLabel = "test_label_" + std::to_string(i);
         options.requiredLabels.emplace_back(testLabel);
     }
     result = AppAccountManager::CreateAccountImplicitly(STRING_OWNER, options, nullptr);
-    EXPECT_EQ(result, ERR_APPACCOUNT_KIT_WRITE_PARCELABLE_CALLBACK);
+    EXPECT_EQ(result, ERR_ACCOUNT_COMMON_WRITE_PARCEL_ERROR);
     options.requiredLabels.emplace_back("test_label_oversize");
     result = AppAccountManager::CreateAccountImplicitly(STRING_OWNER, options, nullptr);
     EXPECT_EQ(result, ERR_APPACCOUNT_KIT_INVALID_PARAMETER);
@@ -473,7 +473,7 @@ HWTEST_F(AppAccountManagerTest, AppAccountManager_Authenticate_0100, TestSize.Le
     options.SetParam(Constants::KEY_CALLER_ABILITY_NAME, STRING_ABILITY_NAME);
     ErrCode result = AppAccountManager::Authenticate(
         STRING_NAME, STRING_OWNER, STRING_AUTH_TYPE, options, nullptr);
-    EXPECT_EQ(result, ERR_APPACCOUNT_KIT_WRITE_PARCELABLE_CALLBACK);
+    EXPECT_EQ(result, ERR_ACCOUNT_COMMON_WRITE_PARCEL_ERROR);
 
     result = AppAccountManager::Authenticate(
         STRING_NAME_OUT_OF_RANGE, STRING_OWNER, STRING_AUTH_TYPE, options, nullptr);
