@@ -163,34 +163,10 @@ ErrCode AccountCommand::RunAsCreateCommand(void)
 
 ErrCode AccountCommand::RunAsDeleteCommand(void)
 {
-    ACCOUNT_LOGD("enter");
-
     ErrCode result = ERR_OK;
-
-    int counter = 0;
-
     int id = -1;
 
-    while (true) {
-        counter++;
-
-        int option = getopt_long(argc_, argv_, SHORT_OPTIONS.c_str(), LONG_OPTIONS, nullptr);
-        ACCOUNT_LOGD("option: %{public}d, optopt: %{public}d, optind: %{public}d", option, optopt, optind);
-
-        if (option == -1) {
-            if (counter == 1) {
-                result = RunAsCommonCommandError(DELETE_COMMAND);
-            }
-            break;
-        }
-
-        if (option == '?') {
-            result = RunAsCommonCommandMissingOptionArgument(DELETE_COMMAND);
-            break;
-        }
-
-        result = RunAsCommonCommandExistentOptionArgument(option, id);
-    }
+    ParseCommandOpt(DELETE_COMMAND, result, id);
 
     if (result != ERR_OK) {
         resultReceiver_.append(HELP_MSG_DELETE);
@@ -213,34 +189,10 @@ ErrCode AccountCommand::RunAsDeleteCommand(void)
 
 ErrCode AccountCommand::RunAsDumpCommand(void)
 {
-    ACCOUNT_LOGD("enter");
-
     ErrCode result = ERR_OK;
-
-    int counter = 0;
-
     int id = -1;
 
-    while (true) {
-        counter++;
-
-        int option = getopt_long(argc_, argv_, SHORT_OPTIONS.c_str(), LONG_OPTIONS, nullptr);
-        ACCOUNT_LOGD("option: %{public}d, optopt: %{public}d, optind: %{public}d", option, optopt, optind);
-
-        if (option == -1) {
-            if (counter == 1) {
-                result = RunAsCommonCommandError(DUMP_COMMAND);
-            }
-            break;
-        }
-
-        if (option == '?') {
-            result = RunAsCommonCommandMissingOptionArgument(DUMP_COMMAND);
-            break;
-        }
-
-        result = RunAsCommonCommandExistentOptionArgument(option, id);
-    }
+    ParseCommandOpt(DUMP_COMMAND, result, id);
 
     if (result != ERR_OK) {
         resultReceiver_.append(HELP_MSG_DUMP);
@@ -335,16 +287,9 @@ ErrCode AccountCommand::RunAsSetCommand(void)
     return result;
 }
 
-ErrCode AccountCommand::RunAsSwitchCommand(void)
+void AccountCommand::ParseCommandOpt(const std::string &command, ErrCode &result, int &id)
 {
-    ACCOUNT_LOGD("enter");
-
-    ErrCode result = ERR_OK;
-
     int counter = 0;
-
-    int id = -1;
-
     while (true) {
         counter++;
 
@@ -353,18 +298,26 @@ ErrCode AccountCommand::RunAsSwitchCommand(void)
 
         if (option == -1) {
             if (counter == 1) {
-                result = RunAsCommonCommandError(SWITCH_COMMAND);
+                result = RunAsCommonCommandError(command);
             }
             break;
         }
 
         if (option == '?') {
-            result = RunAsCommonCommandMissingOptionArgument(SWITCH_COMMAND);
+            result = RunAsCommonCommandMissingOptionArgument(command);
             break;
         }
 
         result = RunAsCommonCommandExistentOptionArgument(option, id);
     }
+}
+
+ErrCode AccountCommand::RunAsSwitchCommand(void)
+{
+    ErrCode result = ERR_OK;
+
+    int id = -1;
+    ParseCommandOpt(SWITCH_COMMAND, result, id);
 
     if (result != ERR_OK) {
         resultReceiver_.append(HELP_MSG_SWITCH);
@@ -387,34 +340,10 @@ ErrCode AccountCommand::RunAsSwitchCommand(void)
 
 ErrCode AccountCommand::RunAsStopCommand(void)
 {
-    ACCOUNT_LOGD("enter");
-
     ErrCode result = ERR_OK;
-
-    int counter = 0;
-
     int id = -1;
 
-    while (true) {
-        counter++;
-
-        int option = getopt_long(argc_, argv_, SHORT_OPTIONS.c_str(), LONG_OPTIONS, nullptr);
-        ACCOUNT_LOGD("option: %{public}d, optopt: %{public}d, optind: %{public}d", option, optopt, optind);
-
-        if (option == -1) {
-            if (counter == 1) {
-                result = RunAsCommonCommandError(STOP_COMMAND);
-            }
-            break;
-        }
-
-        if (option == '?') {
-            result = RunAsCommonCommandMissingOptionArgument(STOP_COMMAND);
-            break;
-        }
-
-        result = RunAsCommonCommandExistentOptionArgument(option, id);
-    }
+    ParseCommandOpt(STOP_COMMAND, result, id);
 
     if (result != ERR_OK) {
         resultReceiver_.append(HELP_MSG_STOP);
