@@ -121,6 +121,8 @@ private:
     ErrCode RunAsCommonCommandMissingOptionArgument(const std::string &command);
     ErrCode RunAsCommonCommandError(const std::string &command);
 
+    void ParseCommandOpt(const std::string &command, ErrCode &result, int &id);
+
     ErrCode AnalyzeTypeArgument(OsAccountType &type);
     ErrCode AnalyzeLocalIdArgument(int &id);
     ErrCode AnalyzeConstraintArgument(std::vector<std::string> &constraints);
