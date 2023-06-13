@@ -19,7 +19,9 @@
 #include <memory>
 #include <mutex>
 #include "ios_account_control.h"
+#ifdef HAS_KV_STORE_PART
 #include "os_account_database_operator.h"
+#endif
 #include "os_account_file_operator.h"
 #include "os_account_photo_operator.h"
 namespace OHOS {
@@ -107,7 +109,9 @@ private:
 
 private:
     std::shared_ptr<AccountFileOperator> accountFileOperator_;
+#ifdef HAS_KV_STORE_PART
     std::shared_ptr<OsAccountDatabaseOperator> osAccountDataBaseOperator_;
+#endif
     std::shared_ptr<OsAccountFileOperator> osAccountFileOperator_;
     std::shared_ptr<OsAccountPhotoOperator> osAccountPhotoOperator_;
     std::mutex accountListFileLock_;

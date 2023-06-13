@@ -131,3 +131,12 @@ if (!defined(global_parts_info) ||
 } else {
   security_guard_enabled = false
 }
+
+if (!defined(global_parts_info) ||
+    defined(global_parts_info.distributeddatamgr_kv_store)) {
+  has_kv_store_part = true
+  has_app_account_part = true
+} else {
+  has_kv_store_part = false
+  has_app_account_part = false
+}

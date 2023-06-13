@@ -94,7 +94,6 @@ ohos_unittest("app_account_manager_subscribe_test") {
     "eventhandler:libeventhandler",
     "hiviewdfx_hilog_native:libhilog",
     "ipc:ipc_single",
-    "kv_store:distributeddata_inner",
     "samgr:samgr_proxy",
   ]
 }
