@@ -53,7 +53,7 @@ ErrCode AppAccountEventProxy::SendRequest(IAppAccountEvent::Message code, Messag
     sptr<IRemoteObject> remoteEvent = Remote();
     if (remoteEvent == nullptr) {
         ACCOUNT_LOGE("remote is nullptr, code = %{public}d", code);
-        return ERR_APPACCOUNT_KIT_REMOTE_IS_NULLPTR;
+        return ERR_ACCOUNT_COMMON_NULL_PTR_ERROR;
     }
 
     MessageOption option(MessageOption::TF_SYNC);
