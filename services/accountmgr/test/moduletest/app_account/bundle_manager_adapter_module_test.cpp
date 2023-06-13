@@ -375,7 +375,7 @@ HWTEST_F(BundleManagerModuleTest, BundleManagerProxy_SendTransactCmd_0100, TestS
     MessageParcel reply;
     MessageParcel data;
     EXPECT_EQ(bundleManagerAdapterProxy->SendTransactCmd(
-        IBundleMgr::Message::QUERY_ABILITY_INFOS_MUTI_PARAM, data, reply), false);
+        BundleMgrInterfaceCode::QUERY_ABILITY_INFOS_MUTI_PARAM, data, reply), false);
 }
 
 /**
@@ -416,7 +416,7 @@ HWTEST_F(BundleManagerModuleTest, BundleManagerProxy_GetVectorFromParcelIntellig
     std::vector<AbilityInfo> abilityInfos;
 
     bool result =g_bundleManagerAdapterProxyRemoteNull->GetVectorFromParcelIntelligent<AbilityInfo>(
-        IBundleMgr::Message::QUERY_ABILITY_INFOS_MUTI_PARAM, data, abilityInfos);
+        BundleMgrInterfaceCode::QUERY_ABILITY_INFOS_MUTI_PARAM, data, abilityInfos);
     EXPECT_EQ(result, false);
 }
 

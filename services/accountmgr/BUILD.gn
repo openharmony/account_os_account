@@ -96,7 +96,7 @@ config("bundle_manager_config") {
   include_dirs = [
     "${services_path}/accountmgr/include/bundle_manager_adapter",
     "${bundle_framework_path}/common/log/include",
-    "${bundle_framework_path}/interfaces/inner_api/appexecfwk_core/include/bundlemgr",
+    "${bundle_framework_path}/interfaces/inner_api/appexecfwk_core/include",
   ]
 }
 
