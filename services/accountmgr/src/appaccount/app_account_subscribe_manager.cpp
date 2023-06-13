@@ -18,6 +18,7 @@
 #include <thread>
 #include "account_log_wrapper.h"
 #include "app_account_control_manager.h"
+#include "app_account_data_storage.h"
 #include "app_account_subscribe_death_recipient.h"
 #include "iapp_account_event.h"
 #include "ipc_skeleton.h"

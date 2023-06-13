@@ -52,7 +52,9 @@ bool GetValidAccountID(const std::string& dirName, std::int32_t& accountID)
 OsAccountControlFileManager::OsAccountControlFileManager()
 {
     accountFileOperator_ = std::make_shared<AccountFileOperator>();
+#ifdef HAS_KV_STORE_PART
     osAccountDataBaseOperator_ = std::make_shared<OsAccountDatabaseOperator>();
+#endif
     osAccountFileOperator_ = std::make_shared<OsAccountFileOperator>();
     osAccountPhotoOperator_ = std::make_shared<OsAccountPhotoOperator>();
 }
@@ -61,7 +63,9 @@ OsAccountControlFileManager::~OsAccountControlFileManager()
 void OsAccountControlFileManager::Init()
 {
     ACCOUNT_LOGI("OsAccountControlFileManager Init start");
+#ifdef HAS_KV_STORE_PART
     osAccountDataBaseOperator_->Init();
+#endif
     osAccountFileOperator_->Init();
     if (!accountFileOperator_->IsJsonFileReady(Constants::ACCOUNT_LIST_FILE_JSON_PATH)) {
         ACCOUNT_LOGI("OsAccountControlFileManager there is not have valid account list, create!");
@@ -615,7 +619,9 @@ ErrCode OsAccountControlFileManager::InsertOsAccount(OsAccountInfo &osAccountInf
         ACCOUNT_LOGE("InputFileByPathAndContent failed! path %{public}s.", path.c_str());
         return ERR_OSACCOUNT_SERVICE_CONTROL_INSERT_OS_ACCOUNT_FILE_ERROR;
     }
+#ifdef HAS_KV_STORE_PART
     osAccountDataBaseOperator_->InsertOsAccountIntoDataBase(osAccountInfo);
+#endif
 
     if (osAccountInfo.GetLocalId() >= Constants::START_USER_ID) {
         return UpdateAccountList(osAccountInfo.GetPrimeKey(), true);
@@ -637,7 +643,9 @@ ErrCode OsAccountControlFileManager::DelOsAccount(const int id)
         ACCOUNT_LOGE("DeleteDirOrFile failed! path %{public}s.", path.c_str());
         return ERR_OSACCOUNT_SERVICE_CONTROL_DEL_OS_ACCOUNT_INFO_ERROR;
     }
+#ifdef HAS_KV_STORE_PART
     osAccountDataBaseOperator_->DelOsAccountFromDatabase(id);
+#endif
     return UpdateAccountList(std::to_string(id), false);
 }
 
@@ -661,7 +669,7 @@ ErrCode OsAccountControlFileManager::UpdateOsAccount(OsAccountInfo &osAccountInf
         return ERR_OSACCOUNT_SERVICE_CONTROL_UPDATE_FILE_ERROR;
     }
 
-#ifdef DISTRIBUTED_FEATURE_ENABLED
+#if defined(HAS_KV_STORE_PART) && defined(DISTRIBUTED_FEATURE_ENABLED)
     // update in database
     if (osAccountInfo.GetLocalId() >= Constants::START_USER_ID) {
         osAccountDataBaseOperator_->UpdateOsAccountInDatabase(osAccountInfo);
@@ -1062,7 +1070,9 @@ ErrCode OsAccountControlFileManager::GetDefaultActivatedOsAccount(int32_t &id)
 
 ErrCode OsAccountControlFileManager::SaveAccountListToFileAndDataBase(const Json &accountListJson)
 {
+#ifdef HAS_KV_STORE_PART
     osAccountDataBaseOperator_->UpdateOsAccountIDListInDatabase(accountListJson);
+#endif
     return SaveAccountListToFile(accountListJson);
 }
 
@@ -1164,31 +1174,51 @@ ErrCode OsAccountControlFileManager::IsAllowedCreateAdmin(bool &isAllowedCreateA
 ErrCode OsAccountControlFileManager::GetCreatedOsAccountNumFromDatabase(const std::string& storeID,
     int &createdOsAccountNum)
 {
+#ifdef HAS_KV_STORE_PART
     return osAccountDataBaseOperator_->GetCreatedOsAccountNumFromDatabase(storeID, createdOsAccountNum);
+#else
+    return ERR_ACCOUNT_COMMON_INTERFACE_NOT_SUPPORT_ERROR;
+#endif
 }
 
 ErrCode OsAccountControlFileManager::GetSerialNumberFromDatabase(const std::string& storeID,
     int64_t &serialNumber)
 {
+#ifdef HAS_KV_STORE_PART
     return osAccountDataBaseOperator_->GetSerialNumberFromDatabase(storeID, serialNumber);
+#else
+    return ERR_ACCOUNT_COMMON_INTERFACE_NOT_SUPPORT_ERROR;
+#endif
 }
 
 ErrCode OsAccountControlFileManager::GetMaxAllowCreateIdFromDatabase(const std::string& storeID,
     int &id)
 {
+#ifdef HAS_KV_STORE_PART
     return osAccountDataBaseOperator_->GetMaxAllowCreateIdFromDatabase(storeID, id);
+#else
+    return ERR_ACCOUNT_COMMON_INTERFACE_NOT_SUPPORT_ERROR;
+#endif
 }
 
 ErrCode OsAccountControlFileManager::GetOsAccountFromDatabase(const std::string& storeID,
     const int id, OsAccountInfo &osAccountInfo)
 {
+#ifdef HAS_KV_STORE_PART
     return osAccountDataBaseOperator_->GetOsAccountFromDatabase(storeID, id, osAccountInfo);
+#else
+    return ERR_ACCOUNT_COMMON_INTERFACE_NOT_SUPPORT_ERROR;
+#endif
 }
 
 ErrCode OsAccountControlFileManager::GetOsAccountListFromDatabase(const std::string& storeID,
     std::vector<OsAccountInfo> &osAccountList)
 {
+#ifdef HAS_KV_STORE_PART
     return osAccountDataBaseOperator_->GetOsAccountListFromDatabase(storeID, osAccountList);
+#else
+    return ERR_ACCOUNT_COMMON_INTERFACE_NOT_SUPPORT_ERROR;
+#endif
 }
 }  // namespace AccountSA
 }  // namespace OHOS

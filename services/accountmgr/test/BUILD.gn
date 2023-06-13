@@ -39,12 +39,14 @@ group("unittest") {
     "unittest/account_file_operator_test:unittest",
     "unittest/account_iam_callback_test:unittest",
     "unittest/account_mgr_service_test:unittest",
-    "unittest/app_account:unittest",
     "unittest/domain_account:unittest",
     "unittest/ohos_account_data_deal_test:unittest",
     "unittest/os_account:unittest",
   ]
   if (has_user_auth_part) {
     deps += [ "unittest/account_iam:unittest" ]
+  }
+  if (has_app_account_part) {
+    deps += [ "unittest/app_account:unittest" ]
   }
 }
