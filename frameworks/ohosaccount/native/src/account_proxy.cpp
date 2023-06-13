@@ -75,15 +75,15 @@ std::int32_t AccountProxy::SetOhosAccountInfo(const OhosAccountInfo &ohosAccount
 
     if (!data.WriteInterfaceToken(GetDescriptor())) {
         ACCOUNT_LOGE("Write descriptor failed!");
-        return ERR_ACCOUNT_ZIDL_WRITE_PARCEL_DATA_ERROR;
+        return ERR_ACCOUNT_COMMON_WRITE_DESCRIPTOR_ERROR;
     }
     if (!WriteOhosAccountInfo(data, ohosAccountInfo)) {
         ACCOUNT_LOGE("Write ohosAccountInfo failed!");
-        return ERR_ACCOUNT_ZIDL_WRITE_PARCEL_DATA_ERROR;
+        return ERR_ACCOUNT_COMMON_WRITE_DESCRIPTOR_ERROR;
     }
     if (!data.WriteString16(Str8ToStr16(eventStr))) {
         ACCOUNT_LOGE("Write eventStr failed!");
-        return ERR_ACCOUNT_ZIDL_WRITE_PARCEL_DATA_ERROR;
+        return ERR_ACCOUNT_COMMON_WRITE_DESCRIPTOR_ERROR;
     }
     auto ret = Remote()->SendRequest(SET_OHOS_ACCOUNT_INFO, data, reply, option);
     if (ret != ERR_NONE) {
@@ -94,7 +94,7 @@ std::int32_t AccountProxy::SetOhosAccountInfo(const OhosAccountInfo &ohosAccount
     std::int32_t result = ERR_OK;
     if (!reply.ReadInt32(result)) {
         ACCOUNT_LOGE("reply ReadInt32 failed");
-        return ERR_ACCOUNT_ZIDL_READ_RESULT_ERROR;
+        return ERR_ACCOUNT_COMMON_READ_PARCEL_ERROR;
     }
 
     if (result != ERR_OK) {
@@ -172,7 +172,7 @@ ErrCode AccountProxy::GetOhosAccountInfo(OhosAccountInfo &ohosAccountInfo)
 
     if (!data.WriteInterfaceToken(GetDescriptor())) {
         ACCOUNT_LOGE("Write descriptor failed");
-        return ERR_ACCOUNT_ZIDL_WRITE_DESCRIPTOR_ERROR;
+        return ERR_ACCOUNT_COMMON_WRITE_DESCRIPTOR_ERROR;
     }
 
     auto ret = Remote()->SendRequest(GET_OHOS_ACCOUNT_INFO, data, reply, option);
@@ -194,11 +194,11 @@ ErrCode AccountProxy::GetOhosAccountInfoByUserId(int32_t userId, OhosAccountInfo
     MessageParcel data;
     if (!data.WriteInterfaceToken(GetDescriptor())) {
         ACCOUNT_LOGE("Write descriptor failed");
-        return ERR_ACCOUNT_ZIDL_WRITE_PARCEL_DATA_ERROR;
+        return ERR_ACCOUNT_COMMON_WRITE_DESCRIPTOR_ERROR;
     }
     if (!data.WriteInt32(userId)) {
         ACCOUNT_LOGE("failed to write int for userId %{public}d.", userId);
-        return ERR_ACCOUNT_ZIDL_WRITE_PARCEL_DATA_ERROR;
+        return ERR_ACCOUNT_COMMON_WRITE_PARCEL_ERROR;
     }
     MessageParcel reply;
     MessageOption option;
@@ -254,7 +254,7 @@ std::int32_t AccountProxy::QueryDeviceAccountId(std::int32_t &accountId)
 
     if (!data.WriteInterfaceToken(GetDescriptor())) {
         ACCOUNT_LOGE("Write descriptor failed");
-        return ERR_ACCOUNT_ZIDL_WRITE_DESCRIPTOR_ERROR;
+        return ERR_ACCOUNT_COMMON_WRITE_DESCRIPTOR_ERROR;
     }
 
     auto ret = Remote()->SendRequest(QUERY_DEVICE_ACCOUNT_ID, data, reply, option);
