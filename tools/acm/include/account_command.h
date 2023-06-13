@@ -119,7 +119,7 @@ private:
         const int &option, int &id, std::vector<std::string> &constraints, bool &enable);
     ErrCode RunAsCommonCommandExistentOptionArgument(const int &option, int &id);
     ErrCode RunAsCommonCommandMissingOptionArgument(const std::string &command);
-    ErrCode RunAsCommonCommandError(const std::string &command);
+    ErrCode RunCommandError(const std::string &command);
 
     void ParseCommandOpt(const std::string &command, ErrCode &result, int &id);
 
