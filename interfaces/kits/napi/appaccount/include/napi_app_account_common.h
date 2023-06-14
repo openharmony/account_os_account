@@ -37,6 +37,7 @@ constexpr std::int32_t ARGS_SIZE_THREE = 3;
 constexpr std::int32_t ARGS_SIZE_FOUR = 4;
 constexpr std::int32_t ARGS_SIZE_FIVE = 5;
 constexpr std::int32_t ARGS_SIZE_SIX = 6;
+constexpr std::int32_t ARGS_SIZE_MAX = 10;
 constexpr int RESULT_COUNT = 2;
 constexpr int PARAMZERO = 0;
 constexpr int PARAMONE = 1;
@@ -118,6 +119,16 @@ struct SetPropertiesContext : public CommonAsyncContext {
     sptr<IAppAccountAuthenticatorCallback> appAccountMgrCb = nullptr;
     JSAuthCallback callback;
 };
+
+typedef enum PropertyType {
+    NAME = 0,
+    OWNER,
+    AUTH_TYPE,
+    BUNDLE_NAME,
+    SESSION_ID,
+    IS_VISIBLE,
+    TOKEN,
+} PropertyType;
 
 struct SelectAccountsContext : public CommonAsyncContext {
     SelectAccountsOptions options;
@@ -274,6 +285,9 @@ bool ParseContextForSetOAuthToken(napi_env env, napi_callback_info cbInfo, OAuth
 bool ParseContextWithBdName(napi_env env, napi_callback_info cbInfo, AppAccountAsyncContext *asyncContext);
 
 bool ParseContextForSetAppAccess(napi_env env, napi_callback_info cbInfo, AppAccountAsyncContext *asyncContext);
+
+bool ParseContextForOAuth(napi_env env, napi_callback_info cbInfo,
+    OAuthAsyncContext *asyncContext, const std::vector<PropertyType> &propertyList, size_t argcSize);
 
 bool ParseContextWithIsEnable(napi_env env, napi_callback_info cbInfo, AppAccountAsyncContext *asyncContext);
 
