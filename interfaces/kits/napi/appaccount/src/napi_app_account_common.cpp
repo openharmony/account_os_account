@@ -25,6 +25,16 @@ using namespace OHOS::AccountSA;
 static const std::int32_t SUBSCRIBE_MAX_PARA = 3;
 static const std::int32_t UNSUBSCRIBE_MAX_PARA = 2;
 
+static const std::string ErrMsgList[] = {
+    "the name is not a string", // index equals to PropertyType::NAME value
+    "the owner is not a string", // index equals to PropertyType::OWNER value
+    "the authType is not a string", // index equals to PropertyType::AUTH_TYPE value
+    "the bundleName is not a string", // index equals to PropertyType::BUNDLE_NAME value
+    "the sessionId is not a string", // index equals to PropertyType::SESSION_ID value
+    "the isVisible is not a bool value", // index equals to PropertyType::IS_VISIBLE value
+    "the token is not a string", // index equals to PropertyType::TOKEN value
+};
+
 std::mutex g_lockForAppAccountSubscribers;
 std::map<AppAccountManager *, std::vector<AsyncContextForSubscribe *>> g_AppAccountSubscribers;
 
@@ -80,7 +90,6 @@ void SubscriberPtr::OnAccountsChanged(const std::vector<AppAccountInfo> &account
     }
 
     SubscriberAccountsWorker *subscriberAccountsWorker = new (std::nothrow) SubscriberAccountsWorker(env_);
-
     if (subscriberAccountsWorker == nullptr) {
         ACCOUNT_LOGE("SubscriberAccountsWorker is null");
         delete work;
@@ -594,242 +603,6 @@ void ParseContextForAuthenticate(napi_env env, napi_callback_info cbInfo, OAuthA
     asyncContext->appAccountMgrCb = new (std::nothrow) AppAccountManagerCallback(env, callback);
 }
 
-bool ParseContextForGetOAuthToken(napi_env env, napi_callback_info cbInfo, OAuthAsyncContext *asyncContext)
-{
-    size_t argc = ARGS_SIZE_FOUR;
-    napi_value argv[ARGS_SIZE_FOUR] = {0};
-    napi_get_cb_info(env, cbInfo, &argc, argv, nullptr, nullptr);
-    if (argc < ARGS_SIZE_THREE) {
-        asyncContext->errMsg = "the number of parameter should be at least 3";
-        return false;
-    }
-    if ((argc == ARGS_SIZE_FOUR) && (!GetCallbackProperty(env, argv[PARAMTHREE], asyncContext->callbackRef, 1))) {
-        asyncContext->errMsg = "the callback is not a function";
-        return false;
-    }
-    if (!GetStringProperty(env, argv[0], asyncContext->name)) {
-        asyncContext->errMsg = "the name is not a string";
-        return false;
-    }
-    if (!GetStringProperty(env, argv[1], asyncContext->owner)) {
-        asyncContext->errMsg = "the owner is not a string";
-        return false;
-    }
-    if (!GetStringProperty(env, argv[PARAMTWO], asyncContext->authType)) {
-        asyncContext->errMsg = "the authType is not a string";
-        return false;
-    }
-    return true;
-}
-
-bool ParseContextForSetOAuthToken(napi_env env, napi_callback_info cbInfo, OAuthAsyncContext *asyncContext)
-{
-    size_t argc = ARGS_SIZE_FOUR;
-    napi_value argv[ARGS_SIZE_FOUR] = {0};
-    napi_get_cb_info(env, cbInfo, &argc, argv, nullptr, nullptr);
-    if (argc < ARGS_SIZE_THREE) {
-        asyncContext->errMsg = "the number of parameter should be at least 3";
-        return false;
-    }
-    if ((argc == ARGS_SIZE_FOUR) && (!GetCallbackProperty(env, argv[PARAMTHREE], asyncContext->callbackRef, 1))) {
-        asyncContext->errMsg = "the callback is not a function";
-        return false;
-    }
-    if (!GetStringProperty(env, argv[0], asyncContext->name)) {
-        asyncContext->errMsg = "the name is not a string";
-        return false;
-    }
-    if (!GetStringProperty(env, argv[1], asyncContext->authType)) {
-        asyncContext->errMsg = "the authType is not a string";
-        return false;
-    }
-    if (!GetStringProperty(env, argv[PARAMTWO], asyncContext->token)) {
-        asyncContext->errMsg = "the token is not a string";
-        return false;
-    }
-    return true;
-}
-
-bool ParseContextForDeleteOAuthToken(napi_env env, napi_callback_info cbInfo, OAuthAsyncContext *asyncContext)
-{
-    size_t argc = ARGS_SIZE_FIVE;
-    napi_value argv[ARGS_SIZE_FIVE] = {0};
-    napi_get_cb_info(env, cbInfo, &argc, argv, nullptr, nullptr);
-    if (argc < ARGS_SIZE_FOUR) {
-        asyncContext->errMsg = "the number of parameter should be at least 4";
-        return false;
-    }
-    if ((argc == ARGS_SIZE_FIVE) && (!GetCallbackProperty(env, argv[PARAMFOUR], asyncContext->callbackRef, 1))) {
-        asyncContext->errMsg = "the callback is not a function";
-        return false;
-    }
-    if (!GetStringProperty(env, argv[0], asyncContext->name)) {
-        asyncContext->errMsg = "the name is not a string";
-        return false;
-    }
-    if (!GetStringProperty(env, argv[1], asyncContext->owner)) {
-        asyncContext->errMsg = "the owner is not a string";
-        return false;
-    }
-    if (!GetStringProperty(env, argv[PARAMTWO], asyncContext->authType)) {
-        asyncContext->errMsg = "the authType is not a string";
-        return false;
-    }
-    if (!GetStringProperty(env, argv[PARAMTHREE], asyncContext->token)) {
-        asyncContext->errMsg = "the token is not a string";
-        return false;
-    }
-    return true;
-}
-
-bool ParseContextForSetOAuthTokenVisibility(napi_env env, napi_callback_info cbInfo, OAuthAsyncContext *asyncContext)
-{
-    size_t argc = ARGS_SIZE_FIVE;
-    napi_value argv[ARGS_SIZE_FIVE] = {0};
-    napi_get_cb_info(env, cbInfo, &argc, argv, nullptr, nullptr);
-    if (argc < ARGS_SIZE_FOUR) {
-        asyncContext->errMsg = "the number of parameter should be at least 4";
-        return false;
-    }
-    if ((argc == ARGS_SIZE_FIVE) && (!GetCallbackProperty(env, argv[PARAMFOUR], asyncContext->callbackRef, 1))) {
-        asyncContext->errMsg = "the callback is not a function";
-        return false;
-    }
-    if (!GetStringProperty(env, argv[0], asyncContext->name)) {
-        asyncContext->errMsg = "the name is not a string";
-        return false;
-    }
-    if (!GetStringProperty(env, argv[1], asyncContext->authType)) {
-        asyncContext->errMsg = "the authType is not a string";
-        return false;
-    }
-    if (!GetStringProperty(env, argv[PARAMTWO], asyncContext->bundleName)) {
-        asyncContext->errMsg = "the bundleName is not a string";
-        return false;
-    }
-    if (napi_get_value_bool(env, argv[PARAMTHREE], &asyncContext->isVisible) != napi_ok) {
-        asyncContext->errMsg = "the isVisible is not a bool value";
-        return false;
-    }
-    return true;
-}
-
-bool ParseContextForCheckOAuthTokenVisibility(napi_env env, napi_callback_info cbInfo, OAuthAsyncContext *asyncContext)
-{
-    size_t argc = ARGS_SIZE_FOUR;
-    napi_value argv[ARGS_SIZE_FOUR] = {0};
-    napi_get_cb_info(env, cbInfo, &argc, argv, nullptr, nullptr);
-    if (argc < ARGS_SIZE_THREE) {
-        asyncContext->errMsg = "the number of parameter should be at least 3";
-        return false;
-    }
-    if ((argc == ARGS_SIZE_FOUR) && (!GetCallbackProperty(env, argv[PARAMTHREE], asyncContext->callbackRef, 1))) {
-        asyncContext->errMsg = "the callback is not a function";
-        return false;
-    }
-    if (!GetStringProperty(env, argv[0], asyncContext->name)) {
-        asyncContext->errMsg = "the name is not a string";
-        return false;
-    }
-    if (!GetStringProperty(env, argv[1], asyncContext->authType)) {
-        asyncContext->errMsg = "the authType is not a string";
-        return false;
-    }
-    if (!GetStringProperty(env, argv[PARAMTWO], asyncContext->bundleName)) {
-        asyncContext->errMsg = "the bundleName is not a string";
-        return false;
-    }
-    return true;
-}
-
-bool ParseContextForGetAuthenticatorInfo(napi_env env, napi_callback_info cbInfo, OAuthAsyncContext *asyncContext)
-{
-    size_t argc = ARGS_SIZE_TWO;
-    napi_value argv[ARGS_SIZE_TWO] = {0};
-    napi_get_cb_info(env, cbInfo, &argc, argv, nullptr, nullptr);
-    if (argc < ARGS_SIZE_ONE) {
-        asyncContext->errMsg = "the number of parameter should be at least 1";
-        return false;
-    }
-    if ((argc == ARGS_SIZE_TWO) && (!GetCallbackProperty(env, argv[1], asyncContext->callbackRef, 1))) {
-        asyncContext->errMsg = "the callback is not a function";
-        return false;
-    }
-    if (!GetStringProperty(env, argv[0], asyncContext->owner)) {
-        asyncContext->errMsg = "the owner is not a string";
-        return false;
-    }
-    return true;
-}
-
-bool ParseContextForGetAllOAuthTokens(napi_env env, napi_callback_info cbInfo, OAuthAsyncContext *asyncContext)
-{
-    size_t argc = ARGS_SIZE_THREE;
-    napi_value argv[ARGS_SIZE_THREE] = {0};
-    napi_get_cb_info(env, cbInfo, &argc, argv, nullptr, nullptr);
-    if (argc < ARGS_SIZE_TWO) {
-        asyncContext->errMsg = "the number of parameter should be at least 2";
-        return false;
-    }
-    if ((argc == ARGS_SIZE_THREE) && (!GetCallbackProperty(env, argv[PARAMTWO], asyncContext->callbackRef, 1))) {
-        asyncContext->errMsg = "the callback is not a function";
-        return false;
-    }
-    if (!GetStringProperty(env, argv[0], asyncContext->name)) {
-        asyncContext->errMsg = "the name is not a string";
-        return false;
-    }
-    if (!GetStringProperty(env, argv[1], asyncContext->owner)) {
-        asyncContext->errMsg = "the owner is not a string";
-        return false;
-    }
-    return true;
-}
-
-bool ParseContextForGetOAuthList(napi_env env, napi_callback_info cbInfo, OAuthAsyncContext *asyncContext)
-{
-    size_t argc = ARGS_SIZE_THREE;
-    napi_value argv[ARGS_SIZE_THREE] = {0};
-    napi_get_cb_info(env, cbInfo, &argc, argv, nullptr, nullptr);
-    if (argc < ARGS_SIZE_TWO) {
-        asyncContext->errMsg = "the number of parameter should be at least 2";
-        return false;
-    }
-    if ((argc == ARGS_SIZE_THREE) && (!GetCallbackProperty(env, argv[PARAMTWO], asyncContext->callbackRef, 1))) {
-        asyncContext->errMsg = "the callback is not a function";
-        return false;
-    }
-    if (!GetStringProperty(env, argv[0], asyncContext->name)) {
-        asyncContext->errMsg = "the name is not a string";
-        return false;
-    }
-    if (!GetStringProperty(env, argv[1], asyncContext->authType)) {
-        asyncContext->errMsg = "the authType is not a string";
-        return false;
-    }
-    return true;
-}
-
-bool ParseContextForGetAuthenticatorCallback(napi_env env, napi_callback_info cbInfo, OAuthAsyncContext *asyncContext)
-{
-    size_t argc = ARGS_SIZE_TWO;
-    napi_value argv[ARGS_SIZE_TWO] = {0};
-    napi_get_cb_info(env, cbInfo, &argc, argv, nullptr, nullptr);
-    if (argc < ARGS_SIZE_ONE) {
-        asyncContext->errMsg = "the number of parameters should be at least 1";
-        return false;
-    }
-    if ((argc == ARGS_SIZE_TWO) && (!GetCallbackProperty(env, argv[1], asyncContext->callbackRef, 1))) {
-        asyncContext->errMsg = "the callback is not a function";
-        return false;
-    }
-    if (!GetStringProperty(env, argv[0], asyncContext->sessionId)) {
-        asyncContext->errMsg = "the sessionId is not a string";
-        return false;
-    }
-    return true;
-}
-
 bool ParseContextWithBdName(napi_env env, napi_callback_info cbInfo, AppAccountAsyncContext *asyncContext)
 {
     size_t argc = ARGS_SIZE_THREE;
@@ -982,13 +755,74 @@ bool ParseContextForAssociatedData(napi_env env, napi_callback_info cbInfo, AppA
     return true;
 }
 
+bool ParseContextOAuthProperty(napi_env env, napi_value &argv, PropertyType type, OAuthAsyncContext *asyncContext)
+{
+    bool result = false;
+    switch (type) {
+        case PropertyType::NAME :
+            result = GetStringProperty(env, argv, asyncContext->name);
+            break;
+        case PropertyType::OWNER :
+            result = GetStringProperty(env, argv, asyncContext->owner);
+            break;
+        case PropertyType::AUTH_TYPE :
+            result = GetStringProperty(env, argv, asyncContext->authType);
+            break;
+        case PropertyType::BUNDLE_NAME :
+            result = GetStringProperty(env, argv, asyncContext->bundleName);
+            break;
+        case PropertyType::SESSION_ID :
+            result = GetStringProperty(env, argv, asyncContext->sessionId);
+            break;
+        case PropertyType::IS_VISIBLE : {
+            if (napi_get_value_bool(env, argv, &asyncContext->isVisible) == napi_ok) {
+                result = true;
+            }
+            break;
+        }
+        case PropertyType::TOKEN :
+            result = GetStringProperty(env, argv, asyncContext->token);
+            break;
+        // when new PropertyType is added, new error message need to be added in ErrMsgList.
+        default:
+            break;
+    }
+    if (!result) {
+        asyncContext->errMsg = ErrMsgList[type];
+    }
+    return result;
+}
+
+bool ParseContextForOAuth(napi_env env, napi_callback_info cbInfo,
+    OAuthAsyncContext *asyncContext, const std::vector<PropertyType> &propertyList, size_t argcSize)
+{
+    // the inner caller promise posInfo.argcSize to be at least 1
+    size_t argc = argcSize;
+    napi_value argv[ARGS_SIZE_MAX] = {0};
+    napi_get_cb_info(env, cbInfo, &argc, argv, nullptr, nullptr);
+    if (argc < argcSize - 1) {
+        asyncContext->errMsg = "the number of parameter should be at least " + std::to_string(argcSize - 1);
+        return false;
+    }
+    if ((argc == argcSize) && (!GetCallbackProperty(env, argv[argcSize - 1], asyncContext->callbackRef, 1))) {
+        asyncContext->errMsg = "the callback is not a function";
+        return false;
+    }
+    for (uint32_t i = 0; i < propertyList.size(); i++) {
+        if (!ParseContextOAuthProperty(env, argv[i], propertyList[i], asyncContext)) {
+            return false;
+        }
+    }
+    return true;
+}
+
 bool ParseContextToGetData(napi_env env, napi_callback_info cbInfo, AppAccountAsyncContext *asyncContext)
 {
     size_t argc = ARGS_SIZE_THREE;
     napi_value argv[ARGS_SIZE_THREE] = {0};
     napi_get_cb_info(env, cbInfo, &argc, argv, nullptr, nullptr);
     if (argc < ARGS_SIZE_TWO) {
-        asyncContext->errMsg = "the number of parameter shoulde be 3";
+        asyncContext->errMsg = "the number of parameter should be 3";
         return false;
     }
     if ((argc == ARGS_SIZE_THREE) && (!GetCallbackProperty(env, argv[PARAMTWO], asyncContext->callbackRef, 1))) {

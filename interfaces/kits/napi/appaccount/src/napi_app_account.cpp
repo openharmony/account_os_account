@@ -1170,7 +1170,8 @@ napi_value NapiAppAccount::GetAuthTokenInternal(napi_env env, napi_callback_info
     }
     asyncContext->env = env;
     asyncContext->throwErr = isThrowable;
-    if ((!ParseContextForGetOAuthToken(env, cbInfo, asyncContext)) && isThrowable) {
+    std::vector<PropertyType> propertyList = { PropertyType::NAME, PropertyType::OWNER, PropertyType::AUTH_TYPE };
+    if ((!ParseContextForOAuth(env, cbInfo, asyncContext, propertyList, ARGS_SIZE_FOUR)) && isThrowable) {
         napi_throw(env, GenerateBusinessError(env, ERR_JS_PARAMETER_ERROR, asyncContext->errMsg));
         delete asyncContext;
         return NapiGetNull(env);
@@ -1230,7 +1231,8 @@ napi_value NapiAppAccount::SetAuthTokenInternal(napi_env env, napi_callback_info
     }
     asyncContext->env = env;
     asyncContext->throwErr = isThrowable;
-    if ((!ParseContextForSetOAuthToken(env, cbInfo, asyncContext)) && isThrowable) {
+    std::vector<PropertyType> propertyList = { PropertyType::NAME, PropertyType::AUTH_TYPE, PropertyType::TOKEN };
+    if ((!ParseContextForOAuth(env, cbInfo, asyncContext, propertyList, ARGS_SIZE_FOUR)) && isThrowable) {
         napi_throw(env, GenerateBusinessError(env, ERR_JS_PARAMETER_ERROR, asyncContext->errMsg));
         delete asyncContext;
         return NapiGetNull(env);
@@ -1287,7 +1289,9 @@ napi_value NapiAppAccount::DeleteAuthTokenInternal(napi_env env, napi_callback_i
     }
     asyncContext->env = env;
     asyncContext->throwErr = isThrowable;
-    if ((!ParseContextForDeleteOAuthToken(env, cbInfo, asyncContext)) && isThrowable) {
+    std::vector<PropertyType> propertyList = {
+        PropertyType::NAME, PropertyType::OWNER, PropertyType::AUTH_TYPE, PropertyType::TOKEN };
+    if ((!ParseContextForOAuth(env, cbInfo, asyncContext, propertyList, ARGS_SIZE_FIVE)) && isThrowable) {
         napi_throw(env, GenerateBusinessError(env, ERR_JS_PARAMETER_ERROR, asyncContext->errMsg));
         delete asyncContext;
         return NapiGetNull(env);
@@ -1346,7 +1350,9 @@ napi_value NapiAppAccount::SetAuthTokenVisibilityInternal(napi_env env, napi_cal
     }
     asyncContext->env = env;
     asyncContext->throwErr = isThrowable;
-    if ((!ParseContextForSetOAuthTokenVisibility(env, cbInfo, asyncContext)) && isThrowable) {
+    std::vector<PropertyType> propertyList = {
+        PropertyType::NAME, PropertyType::AUTH_TYPE, PropertyType::BUNDLE_NAME, PropertyType::IS_VISIBLE };
+    if ((!ParseContextForOAuth(env, cbInfo, asyncContext, propertyList, ARGS_SIZE_FIVE)) && isThrowable) {
         napi_throw(env, GenerateBusinessError(env, ERR_JS_PARAMETER_ERROR, asyncContext->errMsg));
         delete asyncContext;
         return NapiGetNull(env);
@@ -1407,7 +1413,9 @@ napi_value NapiAppAccount::CheckAuthTokenVisibilityInternal(napi_env env, napi_c
     }
     asyncContext->env = env;
     asyncContext->throwErr = isThrowable;
-    if ((!ParseContextForCheckOAuthTokenVisibility(env, cbInfo, asyncContext)) && isThrowable) {
+    std::vector<PropertyType> propertyList = {
+        PropertyType::NAME, PropertyType::AUTH_TYPE, PropertyType::BUNDLE_NAME };
+    if ((!ParseContextForOAuth(env, cbInfo, asyncContext, propertyList, ARGS_SIZE_FOUR)) && isThrowable) {
         napi_throw(env, GenerateBusinessError(env, ERR_JS_PARAMETER_ERROR, asyncContext->errMsg));
         delete asyncContext;
         return NapiGetNull(env);
@@ -1468,7 +1476,8 @@ napi_value NapiAppAccount::QueryAuthenticatorInfoInternal(napi_env env, napi_cal
     }
     asyncContext->env = env;
     asyncContext->throwErr = isThrowable;
-    if ((!ParseContextForGetAuthenticatorInfo(env, cbInfo, asyncContext)) && isThrowable) {
+    std::vector<PropertyType> propertyList = { PropertyType::OWNER };
+    if ((!ParseContextForOAuth(env, cbInfo, asyncContext, propertyList, ARGS_SIZE_TWO)) && isThrowable) {
         napi_throw(env, GenerateBusinessError(env, ERR_JS_PARAMETER_ERROR, asyncContext->errMsg));
         delete asyncContext;
         return NapiGetNull(env);
@@ -1527,7 +1536,8 @@ napi_value NapiAppAccount::GetAllAuthTokensInternal(napi_env env, napi_callback_
     }
     asyncContext->env = env;
     asyncContext->throwErr = isThrowable;
-    if ((!ParseContextForGetAllOAuthTokens(env, cbInfo, asyncContext)) && isThrowable) {
+    std::vector<PropertyType> propertyList = { PropertyType::NAME, PropertyType::OWNER };
+    if ((!ParseContextForOAuth(env, cbInfo, asyncContext, propertyList, ARGS_SIZE_THREE)) && isThrowable) {
         napi_throw(env, GenerateBusinessError(env, ERR_JS_PARAMETER_ERROR, asyncContext->errMsg));
         delete asyncContext;
         return NapiGetNull(env);
@@ -1586,7 +1596,8 @@ napi_value NapiAppAccount::GetAuthListInternal(napi_env env, napi_callback_info 
     }
     asyncContext->env = env;
     asyncContext->throwErr = isThrowable;
-    if ((!ParseContextForGetOAuthList(env, cbInfo, asyncContext)) && isThrowable) {
+    std::vector<PropertyType> propertyList = { PropertyType::NAME, PropertyType::AUTH_TYPE };
+    if ((!ParseContextForOAuth(env, cbInfo, asyncContext, propertyList, ARGS_SIZE_THREE)) && isThrowable) {
         napi_throw(env, GenerateBusinessError(env, ERR_JS_PARAMETER_ERROR, asyncContext->errMsg));
         delete asyncContext;
         return NapiGetNull(env);
@@ -1648,7 +1659,8 @@ napi_value NapiAppAccount::GetAuthCallbackInternal(napi_env env, napi_callback_i
     }
     asyncContext->env = env;
     asyncContext->throwErr = isThrowable;
-    if ((!ParseContextForGetAuthenticatorCallback(env, cbInfo, asyncContext)) && isThrowable) {
+    std::vector<PropertyType> propertyList = { PropertyType::SESSION_ID };
+    if ((!ParseContextForOAuth(env, cbInfo, asyncContext, propertyList, ARGS_SIZE_TWO)) && isThrowable) {
         napi_throw(env, GenerateBusinessError(env, ERR_JS_PARAMETER_ERROR, asyncContext->errMsg));
         delete asyncContext;
         return NapiGetNull(env);
