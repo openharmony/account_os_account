@@ -77,23 +77,41 @@ int32_t AccountIAMConvertToJSErrCode(int32_t errCode)
     return AccountIAMConvertOtherToJSErrCode(errCode);
 }
 
-IAMAsyncContext::IAMAsyncContext(napi_env napiEnv)
-    : CommonAsyncContext(napiEnv)
-{}
-
-IAMAsyncContext::~IAMAsyncContext()
+static void ReleaseWorkAndCallback(napi_env env, napi_async_work work, napi_ref callbackRef)
 {
     if (env == nullptr) {
         return;
     }
     if (work != nullptr) {
         napi_delete_async_work(env, work);
-        work = nullptr;
     }
     if (callbackRef != nullptr) {
         napi_delete_reference(env, callbackRef);
-        callbackRef = nullptr;
     }
+}
+
+IAMAsyncContext::IAMAsyncContext(napi_env napiEnv) : CommonAsyncContext(napiEnv)
+{}
+
+IAMAsyncContext::~IAMAsyncContext()
+{
+    ReleaseWorkAndCallback(env, work, callbackRef);
+    work = nullptr;
+    callbackRef = nullptr;
+}
+
+GetPropertyContext::~GetPropertyContext()
+{
+    ReleaseWorkAndCallback(env, work, callbackRef);
+    work = nullptr;
+    callbackRef = nullptr;
+}
+
+SetPropertyContext::~SetPropertyContext()
+{
+    ReleaseWorkAndCallback(env, work, callbackRef);
+    work = nullptr;
+    callbackRef = nullptr;
 }
 
 #ifdef HAS_USER_AUTH_PART
@@ -552,7 +570,13 @@ NapiGetPropCallback::NapiGetPropCallback(
 {}
 
 NapiGetPropCallback::~NapiGetPropCallback()
-{}
+{
+    if (callbackRef_ != nullptr) {
+        ReleaseNapiRefAsync(env_, callbackRef_);
+        callbackRef_ = nullptr;
+    }
+    deferred_ = nullptr;
+}
 
 static void OnGetPropertyWork(uv_work_t* work, int status)
 {
@@ -615,6 +639,10 @@ void NapiGetPropCallback::GetContextParams(
 
 void NapiGetPropCallback::OnResult(int32_t result, const UserIam::UserAuth::Attributes &extraInfo)
 {
+    std::lock_guard<std::mutex> lock(mutex_);
+    if ((callbackRef_ == nullptr) && (deferred_ == nullptr)) {
+        return;
+    }
     std::unique_ptr<uv_work_t> work = std::make_unique<uv_work_t>();
     std::unique_ptr<GetPropertyContext> context = std::make_unique<GetPropertyContext>(env_);
     uv_loop_s *loop = nullptr;
@@ -634,9 +662,11 @@ void NapiGetPropCallback::OnResult(int32_t result, const UserIam::UserAuth::Attr
     ErrCode ret = uv_queue_work(loop, work.get(), [] (uv_work_t *work) {}, OnGetPropertyWork);
     ACCOUNT_LOGI("create get property work finish");
     if (ret != ERR_OK) {
-        ReleaseNapiRefAsync(env_, callbackRef_);
+        context->callbackRef = nullptr;
         return;
     }
+    callbackRef_ = nullptr;
+    deferred_ = nullptr;
     work.release();
     context.release();
 }
@@ -646,7 +676,13 @@ NapiSetPropCallback::NapiSetPropCallback(napi_env env, napi_ref callbackRef, nap
 {}
 
 NapiSetPropCallback::~NapiSetPropCallback()
-{}
+{
+    if (callbackRef_ != nullptr) {
+        ReleaseNapiRefAsync(env_, callbackRef_);
+        callbackRef_ = nullptr;
+    }
+    deferred_ = nullptr;
+}
 
 static void OnSetPropertyWork(uv_work_t* work, int status)
 {
@@ -674,6 +710,10 @@ static void OnSetPropertyWork(uv_work_t* work, int status)
 
 void NapiSetPropCallback::OnResult(int32_t result, const UserIam::UserAuth::Attributes &extraInfo)
 {
+    std::lock_guard<std::mutex> lock(mutex_);
+    if ((callbackRef_ == nullptr) && (deferred_ == nullptr)) {
+        return;
+    }
     std::unique_ptr<uv_work_t> work = std::make_unique<uv_work_t>();
     std::unique_ptr<SetPropertyContext> context = std::make_unique<SetPropertyContext>(env_);
     uv_loop_s *loop = nullptr;
@@ -690,9 +730,11 @@ void NapiSetPropCallback::OnResult(int32_t result, const UserIam::UserAuth::Attr
     ErrCode ret = uv_queue_work(loop, work.get(), [] (uv_work_t *work) {}, OnSetPropertyWork);
     ACCOUNT_LOGI("create set property work finish");
     if (ret != ERR_OK) {
-        ReleaseNapiRefAsync(env_, callbackRef_);
+        context->callbackRef = nullptr;
         return;
     }
+    callbackRef_ = nullptr;
+    deferred_ = nullptr;
     work.release();
     context.release();
 }

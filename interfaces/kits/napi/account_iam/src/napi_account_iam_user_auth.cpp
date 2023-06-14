@@ -168,8 +168,8 @@ napi_value NapiAccountIAMUserAuth::GetProperty(napi_env env, napi_callback_info 
             GetPropertyContext *context = reinterpret_cast<GetPropertyContext *>(data);
             auto getPropCallback = std::make_shared<NapiGetPropCallback>(
                 context->env, context->callbackRef, context->deferred, context->request);
-            AccountIAMClient::GetInstance().GetProperty(0, context->request, getPropCallback);
             context->callbackRef = nullptr;
+            AccountIAMClient::GetInstance().GetProperty(0, context->request, getPropCallback);
         },
         [](napi_env env, napi_status status, void *data) {
             delete reinterpret_cast<GetPropertyContext *>(data);
@@ -199,8 +199,8 @@ napi_value NapiAccountIAMUserAuth::SetProperty(napi_env env, napi_callback_info 
             SetPropertyContext *context = reinterpret_cast<SetPropertyContext *>(data);
             auto setPropCallback = std::make_shared<NapiSetPropCallback>(
                 context->env, context->callbackRef, context->deferred);
-            AccountIAMClient::GetInstance().SetProperty(0, context->request, setPropCallback);
             context->callbackRef = nullptr;
+            AccountIAMClient::GetInstance().SetProperty(0, context->request, setPropCallback);
         },
         [](napi_env env, napi_status status, void *data) {
             delete reinterpret_cast<SetPropertyContext *>(data);

@@ -122,6 +122,7 @@ struct GetAuthInfoContext : public CommonAsyncContext {
 
 struct GetPropertyContext : public CommonAsyncContext {
     explicit GetPropertyContext(napi_env napiEnv) : CommonAsyncContext(napiEnv) {};
+    virtual ~GetPropertyContext();
     AccountSA::GetPropertyRequest request;
     int32_t result = 0;
     int32_t authSubType = 0;
@@ -133,6 +134,7 @@ struct GetPropertyContext : public CommonAsyncContext {
 
 struct SetPropertyContext : public CommonAsyncContext {
     explicit SetPropertyContext(napi_env napiEnv) : CommonAsyncContext(napiEnv) {};
+    virtual ~SetPropertyContext();
     AccountSA::SetPropertyRequest request;
     int32_t result = 0;
 };
@@ -182,10 +184,11 @@ public:
     void GetContextParams(const UserIam::UserAuth::Attributes &extraInfo, GetPropertyContext &context);
     void OnResult(int32_t result, const AccountSA::Attributes &extraInfo) override;
 private:
-    napi_env env_;
-    napi_ref callbackRef_;
-    napi_deferred deferred_;
+    napi_env env_ = nullptr;
+    napi_ref callbackRef_ = nullptr;
+    napi_deferred deferred_ = nullptr;
     AccountSA::GetPropertyRequest request_;
+    std::mutex mutex_;
 };
 
 class NapiSetPropCallback : public AccountSA::GetSetPropCallback {
@@ -196,9 +199,10 @@ public:
     void OnResult(int32_t result, const AccountSA::Attributes &extraInfo) override;
 
 private:
-    napi_env env_;
-    napi_ref callbackRef_;
-    napi_deferred deferred_;
+    napi_env env_ = nullptr;
+    napi_ref callbackRef_ = nullptr;
+    napi_deferred deferred_ = nullptr;
+    std::mutex mutex_;
 };
 #endif  // HAS_USER_AUTH_PART
 
