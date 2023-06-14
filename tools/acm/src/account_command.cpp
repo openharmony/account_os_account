@@ -37,13 +37,14 @@ static const std::string STOP_COMMAND = "stop";
 static const std::string DELETE_COMMAND = "delete";
 static const std::string SWITCH_COMMAND = "switch";
 static const std::string DUMP_COMMAND = "dump";
+static const std::string SET_COMMAND = "set";
+static const std::string CREATE_COMMAND = "create";
 
 }  // namespace
 
 AccountCommand::AccountCommand(int argc, char *argv[]) : ShellCommand(argc, argv, TOOL_NAME)
 {
     ACCOUNT_LOGD("enter");
-
     for (int i = 0; i < argc_; i++) {
         ACCOUNT_LOGD("argv_[%{public}d]: %{public}s", i, argv_[i]);
     }
@@ -70,35 +71,26 @@ ErrCode AccountCommand::CreateCommandMap()
 
 ErrCode AccountCommand::CreateMessageMap()
 {
-    ACCOUNT_LOGD("enter");
-
     return ERR_OK;
 }
 
 ErrCode AccountCommand::init()
 {
-    ACCOUNT_LOGD("enter");
-
     return ERR_OK;
 }
 
 ErrCode AccountCommand::RunAsHelpCommand(void)
 {
     ACCOUNT_LOGD("enter");
-
     resultReceiver_.append(HELP_MSG);
-
     return ERR_OK;
 }
 
 ErrCode AccountCommand::RunAsCreateCommand(void)
 {
     ACCOUNT_LOGD("enter");
-
     ErrCode result = ERR_OK;
-
     int counter = 0;
-
     std::string name = "";
     OsAccountType osAccountType = static_cast<OsAccountType>(-1);
 
@@ -110,7 +102,7 @@ ErrCode AccountCommand::RunAsCreateCommand(void)
 
         if (option == -1) {
             if (counter == 1) {
-                result = RunAsCreateCommandError();
+                result = RunCommandError(CREATE_COMMAND);
             }
             break;
         }
@@ -157,7 +149,6 @@ ErrCode AccountCommand::RunAsCreateCommand(void)
     }
 
     ACCOUNT_LOGD("result = %{public}d, name = %{public}s, type = %{public}d", result, name.c_str(), osAccountType);
-
     return result;
 }
 
@@ -183,7 +174,6 @@ ErrCode AccountCommand::RunAsDeleteCommand(void)
     }
 
     ACCOUNT_LOGD("result = %{public}d, id = %{public}d", result, id);
-
     return result;
 }
 
@@ -212,18 +202,13 @@ ErrCode AccountCommand::RunAsDumpCommand(void)
     }
 
     ACCOUNT_LOGD("result = %{public}d, id = %{public}d", result, id);
-
     return result;
 }
 
 ErrCode AccountCommand::RunAsSetCommand(void)
 {
-    ACCOUNT_LOGD("enter");
-
     ErrCode result = ERR_OK;
-
     int counter = 0;
-
     int id = -1;
     std::vector<std::string> constraints;
     bool enable = false;
@@ -236,7 +221,7 @@ ErrCode AccountCommand::RunAsSetCommand(void)
 
         if (option == -1) {
             if (counter == 1) {
-                result = RunAsSetCommandError();
+                result = RunCommandError(SET_COMMAND);
             }
             break;
         }
@@ -298,7 +283,7 @@ void AccountCommand::ParseCommandOpt(const std::string &command, ErrCode &result
 
         if (option == -1) {
             if (counter == 1) {
-                result = RunAsCommonCommandError(command);
+                result = RunCommandError(command);
             }
             break;
         }
@@ -315,7 +300,6 @@ void AccountCommand::ParseCommandOpt(const std::string &command, ErrCode &result
 ErrCode AccountCommand::RunAsSwitchCommand(void)
 {
     ErrCode result = ERR_OK;
-
     int id = -1;
     ParseCommandOpt(SWITCH_COMMAND, result, id);
 
@@ -334,7 +318,6 @@ ErrCode AccountCommand::RunAsSwitchCommand(void)
     }
 
     ACCOUNT_LOGD("result = %{public}d, id = %{public}d", result, id);
-
     return result;
 }
 
@@ -364,35 +347,8 @@ ErrCode AccountCommand::RunAsStopCommand(void)
     return result;
 }
 
-ErrCode AccountCommand::RunAsCreateCommandError(void)
-{
-    ACCOUNT_LOGD("enter");
-
-    ErrCode result = ERR_OK;
-
-    if (optind < 0 || optind >= argc_) {
-        return ERR_INVALID_VALUE;
-    }
-
-    // When scanning the first argument
-    if (strcmp(argv_[optind], cmd_.c_str()) == 0) {
-        // 'acm create' with no option: acm create
-        // 'acm create' with a wrong argument: acm create xxx
-        ACCOUNT_LOGD("'acm create' with no option.");
-
-        resultReceiver_.append(HELP_MSG_NO_OPTION + "\n");
-        result = ERR_INVALID_VALUE;
-    }
-
-    ACCOUNT_LOGD("end, result = %{public}d", result);
-
-    return result;
-}
-
 ErrCode AccountCommand::RunAsCreateCommandMissingOptionArgument(void)
 {
-    ACCOUNT_LOGD("enter");
-
     ErrCode result = ERR_OK;
 
     switch (optopt) {
@@ -430,15 +386,12 @@ ErrCode AccountCommand::RunAsCreateCommandMissingOptionArgument(void)
     }
 
     ACCOUNT_LOGD("end, result = %{public}d", result);
-
     return result;
 }
 
 ErrCode AccountCommand::RunAsCreateCommandExistentOptionArgument(
     const int &option, std::string &name, OsAccountType &type)
 {
-    ACCOUNT_LOGD("enter");
-
     ErrCode result = ERR_OK;
 
     switch (option) {
@@ -466,14 +419,11 @@ ErrCode AccountCommand::RunAsCreateCommandExistentOptionArgument(
     }
 
     ACCOUNT_LOGD("end, result = %{public}d", result);
-
     return result;
 }
 
 ErrCode AccountCommand::RunAsCommonCommandMissingOptionArgument(const std::string &command)
 {
-    ACCOUNT_LOGD("enter");
-
     ErrCode result = ERR_OK;
 
     switch (optopt) {
@@ -499,17 +449,16 @@ ErrCode AccountCommand::RunAsCommonCommandMissingOptionArgument(const std::strin
             break;
         }
     }
-
+    ACCOUNT_LOGD("end, result = %{public}d", result);
     return result;
 }
 
-ErrCode AccountCommand::RunAsCommonCommandError(const std::string &command)
+ErrCode AccountCommand::RunCommandError(const std::string &command)
 {
-    ACCOUNT_LOGD("enter");
-
     ErrCode result = ERR_OK;
 
     if (optind < 0 || optind >= argc_) {
+        ACCOUNT_LOGD("optind %{public}d invalid", optind);
         return ERR_INVALID_VALUE;
     }
 
@@ -528,35 +477,8 @@ ErrCode AccountCommand::RunAsCommonCommandError(const std::string &command)
     return result;
 }
 
-ErrCode AccountCommand::RunAsSetCommandError(void)
-{
-    ACCOUNT_LOGD("enter");
-
-    ErrCode result = ERR_OK;
-
-    if (optind < 0 || optind >= argc_) {
-        return ERR_INVALID_VALUE;
-    }
-
-    // When scanning the first argument
-    if (strcmp(argv_[optind], cmd_.c_str()) == 0) {
-        // 'acm set' with no option: acm set
-        // 'acm set' with a wrong argument: acm set xxx
-        ACCOUNT_LOGD("'acm set' with no option.");
-
-        resultReceiver_.append(HELP_MSG_NO_OPTION + "\n");
-        result = ERR_INVALID_VALUE;
-    }
-
-    ACCOUNT_LOGD("end, result = %{public}d", result);
-
-    return result;
-}
-
 ErrCode AccountCommand::RunAsSetCommandMissingOptionArgument(void)
 {
-    ACCOUNT_LOGD("enter");
-
     ErrCode result = ERR_OK;
 
     switch (optopt) {
@@ -591,15 +513,13 @@ ErrCode AccountCommand::RunAsSetCommandMissingOptionArgument(void)
             break;
         }
     }
-
+    ACCOUNT_LOGD("end, result = %{public}d", result);
     return result;
 }
 
 ErrCode AccountCommand::RunAsSetCommandExistentOptionArgument(
     const int &option, int &id, std::vector<std::string> &constraints, bool &enable)
 {
-    ACCOUNT_LOGD("enter");
-
     ErrCode result = ERR_OK;
 
     switch (option) {
@@ -633,7 +553,6 @@ ErrCode AccountCommand::RunAsSetCommandExistentOptionArgument(
     }
 
     ACCOUNT_LOGD("end, result = %{public}d, id = %{public}d", result, id);
-
     return result;
 }
 
@@ -667,7 +586,6 @@ ErrCode AccountCommand::RunAsCommonCommandExistentOptionArgument(const int &opti
 ErrCode AccountCommand::AnalyzeTypeArgument(OsAccountType &type)
 {
     ErrCode result = ERR_OK;
-
     std::string typeByUser = optarg;
 
     if (typeByUser == "admin") {
@@ -704,17 +622,15 @@ ErrCode AccountCommand::AnalyzeLocalIdArgument(int &id)
 
 ErrCode AccountCommand::AnalyzeConstraintArgument(std::vector<std::string> &constraints)
 {
-    ACCOUNT_LOGD("enter");
-
     std::string constraintsByUser = optarg;
     ACCOUNT_LOGD("constraintsByUser = %{public}s", constraintsByUser.c_str());
 
     constraints.clear();
     std::string constraint = "";
     std::string delimiter = ",";
-
     size_t last = 0;
     size_t next = 0;
+
     while ((next = constraintsByUser.find(delimiter, last)) != std::string::npos) {
         constraint = constraintsByUser.substr(last, next - last);
         ACCOUNT_LOGD("constraint = %{public}s", constraint.c_str());
