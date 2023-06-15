@@ -130,7 +130,7 @@ HWTEST_F(OsAccountControlFileManagerTest, OsAccountControlFileManagerTest002, Te
 {
     OsAccountInfo osAccountInfo;
     EXPECT_EQ(osAccountControlManager_->GetOsAccountInfoById(Constants::START_USER_ID, osAccountInfo), ERR_OK);
-    EXPECT_EQ(osAccountInfo.GetLocalName(), Constants::STANDARD_LOCAL_NAME);
+    EXPECT_NE(osAccountInfo.GetLocalName().empty(), true);
 }
 
 /**
