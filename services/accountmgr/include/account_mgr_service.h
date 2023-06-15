@@ -21,12 +21,7 @@
 #include "account_dump_helper.h"
 #include "account_event_provider.h"
 #include "account_info.h"
-#ifdef HAS_USER_AUTH_PART
-#include "account_iam_service.h"
-#endif
 #include "account_stub.h"
-#include "app_account_manager_service.h"
-#include "domain_account_manager_service.h"
 #include "os_account_manager_service.h"
 #include "iaccount.h"
 #include "iremote_object.h"
@@ -78,6 +73,8 @@ private:
     bool Init();
     void SelfClean();
     std::int32_t GetDeviceAccountIdFromCurrentProcess();
+    bool CreateOsAccountService();
+    bool CreateAppAccountService();
     bool CreateIAMService();
     bool CreateDomainService();
 
@@ -86,12 +83,10 @@ private:
     std::unique_ptr<AccountDumpHelper> dumpHelper_{};
     std::shared_ptr<OhosAccountManager> ohosAccountMgr_{};
 
-    sptr<AppAccountManagerService> appAccountManagerService_ = nullptr;
+    sptr<IRemoteObject> appAccountManagerService_ = nullptr;
     sptr<OsAccountManagerService> osAccountManagerService_ = nullptr;
-#ifdef HAS_USER_AUTH_PART
-    sptr<AccountIAMService> accountIAMService_ = nullptr;
-#endif
-    sptr<DomainAccountManagerService> domainAccountMgrService_ = nullptr;
+    sptr<IRemoteObject> accountIAMService_ = nullptr;
+    sptr<IRemoteObject> domainAccountMgrService_ = nullptr;
 
     std::mutex statusMutex_;
     bool isStorageReady_ = false;

@@ -17,10 +17,13 @@
 #include <cerrno>
 #include "account_dump_helper.h"
 #include "account_log_wrapper.h"
+#ifdef HAS_APP_ACCOUNT_PART
 #include "app_account_manager_service.h"
+#endif
 #include "datetime_ex.h"
 #include "device_account_info.h"
 #include "directory_ex.h"
+#include "domain_account_manager_service.h"
 #include "file_ex.h"
 #include "hisysevent_adapter.h"
 #include "hitrace_adapter.h"
@@ -31,6 +34,9 @@
 #include "string_ex.h"
 #include "system_ability_definition.h"
 #include "account_info.h"
+#ifdef HAS_USER_AUTH_PART
+#include "account_iam_service.h"
+#endif
 
 namespace OHOS {
 namespace AccountSA {
@@ -148,10 +154,7 @@ std::int32_t AccountMgrService::QueryDeviceAccountId(std::int32_t &accountId)
 
 sptr<IRemoteObject> AccountMgrService::GetAppAccountService()
 {
-    if (appAccountManagerService_ != nullptr) {
-        return appAccountManagerService_->AsObject();
-    }
-    return nullptr;
+    return appAccountManagerService_;
 }
 
 sptr<IRemoteObject> AccountMgrService::GetOsAccountService()
@@ -164,20 +167,12 @@ sptr<IRemoteObject> AccountMgrService::GetOsAccountService()
 
 sptr<IRemoteObject> AccountMgrService::GetAccountIAMService()
 {
-#ifdef HAS_USER_AUTH_PART
-    if (accountIAMService_ != nullptr) {
-        return accountIAMService_->AsObject();
-    }
-#endif
-    return nullptr;
+    return accountIAMService_;
 }
 
 sptr<IRemoteObject> AccountMgrService::GetDomainAccountService()
 {
-    if (domainAccountMgrService_ != nullptr) {
-        return domainAccountMgrService_->AsObject();
-    }
-    return nullptr;
+    return domainAccountMgrService_;
 }
 
 bool AccountMgrService::IsServiceStarted(void) const
@@ -278,8 +273,8 @@ bool AccountMgrService::Init()
 
     if (!registerToService_) {
         if (!Publish(&DelayedRefSingleton<AccountMgrService>::GetInstance())) {
-            ReportServiceStartFail(ERR_ACCOUNT_MGR_ADD_TO_SA_ERROR, "Publish service failed!");
             ACCOUNT_LOGE("AccountMgrService::Init Publish failed!");
+            ReportServiceStartFail(ERR_ACCOUNT_MGR_ADD_TO_SA_ERROR, "Publish service failed!");
             return false;
         }
         registerToService_ = true;
@@ -293,31 +288,43 @@ bool AccountMgrService::Init()
     }
 
     IAccountContext::SetInstance(this);
-    appAccountManagerService_ = new (std::nothrow) AppAccountManagerService();
-    if (appAccountManagerService_ == nullptr) {
-        ReportServiceStartFail(ERR_ACCOUNT_COMMON_INSUFFICIENT_MEMORY_ERROR,
-            "Insufficient memory to create app account manager service");
-        ACCOUNT_LOGE("memory alloc failed for appAccountManagerService!");
-        return false;
-    }
-    osAccountManagerService_ = new (std::nothrow) OsAccountManagerService();
-    if (osAccountManagerService_ == nullptr) {
-        ACCOUNT_LOGE("memory alloc failed for osAccountManagerService_!");
-        appAccountManagerService_ = nullptr;
-        ReportServiceStartFail(ERR_ACCOUNT_COMMON_INSUFFICIENT_MEMORY_ERROR,
-            "Insufficient memory to create os account manager service");
-        return false;
-    }
-    if ((!CreateIAMService()) || (!CreateDomainService())) {
+
+    if ((!CreateOsAccountService()) || (!CreateAppAccountService())
+        || (!CreateIAMService()) || (!CreateDomainService())) {
         appAccountManagerService_ = nullptr;
         osAccountManagerService_ = nullptr;
-#ifdef HAS_USER_AUTH_PART
         accountIAMService_ = nullptr;
-#endif
+        domainAccountMgrService_ = nullptr;
         return false;
     }
     dumpHelper_ = std::make_unique<AccountDumpHelper>(ohosAccountMgr_, osAccountManagerService_.GetRefPtr());
     ACCOUNT_LOGI("init end success");
+    return true;
+}
+
+bool AccountMgrService::CreateOsAccountService()
+{
+    osAccountManagerService_ = new (std::nothrow) OsAccountManagerService();
+    if (osAccountManagerService_ == nullptr) {
+        ACCOUNT_LOGE("memory alloc failed for osAccountManagerService_!");
+        ReportServiceStartFail(ERR_ACCOUNT_COMMON_INSUFFICIENT_MEMORY_ERROR,
+            "Insufficient memory to create os account manager service");
+        return false;
+    }
+    return true;
+}
+
+bool AccountMgrService::CreateAppAccountService()
+{
+#ifdef HAS_APP_ACCOUNT_PART
+    appAccountManagerService_ = new (std::nothrow) AppAccountManagerService();
+    if (appAccountManagerService_ == nullptr) {
+        ACCOUNT_LOGE("memory alloc failed for appAccountManagerService!");
+        ReportServiceStartFail(ERR_ACCOUNT_COMMON_INSUFFICIENT_MEMORY_ERROR,
+            "Insufficient memory to create app account manager service");
+        return false;
+    }
+#endif
     return true;
 }
 

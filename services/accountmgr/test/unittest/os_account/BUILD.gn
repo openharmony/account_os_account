@@ -262,9 +262,12 @@ group("unittest") {
 
   deps = [
     ":OsAccountControlFileManagerTest",
-    ":OsAccountDataStorageTest",
     ":OsAccountInnerAccmgrCovTest",
     ":OsAccountInnerAccmgrMockTest",
     ":OsAccountSubscribeDeathRecipientTest",
   ]
+
+  if (has_kv_store_part) {
+    deps += [ ":OsAccountDataStorageTest" ]
+  }
 }
