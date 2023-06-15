@@ -86,17 +86,58 @@ config("accountmgr_public_config") {
   }
 }
 
+config("bundle_manager_config") {
+  include_dirs = [
+    "${services_path}/accountmgr/include/bundle_manager_adapter",
+    "${bundle_framework_path}/common/log/include",
+    "${bundle_framework_path}/interfaces/inner_api/appexecfwk_core/include",
+  ]
+}
+
 ability_manager_sources = [
   "${ability_runtime_path}/services/abilitymgr/src/ability_connect_callback_stub.cpp",
   "${ability_runtime_path}/services/abilitymgr/src/stop_user_callback_stub.cpp",
   "src/ability_manager_adapter/ability_manager_adapter.cpp",
 ]
 
-config("bundle_manager_config") {
-  include_dirs = [
-    "${services_path}/accountmgr/include/bundle_manager_adapter",
-    "${bundle_framework_path}/common/log/include",
-    "${bundle_framework_path}/interfaces/inner_api/appexecfwk_core/include",
+if (has_kv_store_part) {
+  app_account_sources = [
+    "${app_account_innerkits_native_path}/src/app_account_authenticator_callback_proxy.cpp",
+    "${app_account_innerkits_native_path}/src/app_account_authenticator_callback_stub.cpp",
+    "${app_account_innerkits_native_path}/src/app_account_authorization_extension_callback_proxy.cpp",
+    "${app_account_innerkits_native_path}/src/app_account_authorization_extension_callback_stub.cpp",
+    "${app_account_innerkits_native_path}/src/app_account_common.cpp",
+    "${app_account_innerkits_native_path}/src/app_account_info.cpp",
+    "${app_account_innerkits_native_path}/src/app_account_subscribe_info.cpp",
+    "src/appaccount/app_account_app_state_observer.cpp",
+    "src/appaccount/app_account_authenticator_callback.cpp",
+    "src/appaccount/app_account_authenticator_manager.cpp",
+    "src/appaccount/app_account_authenticator_proxy.cpp",
+    "src/appaccount/app_account_authenticator_session.cpp",
+    "src/appaccount/app_account_authenticator_session_manager.cpp",
+    "src/appaccount/app_account_authorization_extension_proxy.cpp",
+    "src/appaccount/app_account_check_labels_callback.cpp",
+    "src/appaccount/app_account_check_labels_session.cpp",
+    "src/appaccount/app_account_common_event_observer.cpp",
+    "src/appaccount/app_account_common_event_subscriber.cpp",
+    "src/appaccount/app_account_control_manager.cpp",
+    "src/appaccount/app_account_data_storage.cpp",
+    "src/appaccount/app_account_event_proxy.cpp",
+    "src/appaccount/app_account_manager_service.cpp",
+    "src/appaccount/app_account_stub.cpp",
+    "src/appaccount/app_account_subscribe_death_recipient.cpp",
+    "src/appaccount/app_account_subscribe_manager.cpp",
+    "src/appaccount/inner_app_account_manager.cpp",
+  ]
+}
+
+if (has_user_auth_part) {
+  account_iam_sources = [
+    "src/account_iam/account_iam_callback.cpp",
+    "src/account_iam/account_iam_client_callback_proxy.cpp",
+    "src/account_iam/account_iam_mgr_stub.cpp",
+    "src/account_iam/account_iam_service.cpp",
+    "src/account_iam/inner_account_iam_manager.cpp",
   ]
 }
 
@@ -106,15 +147,6 @@ bundle_manager_sources = [
   "src/bundle_manager_adapter/bundle_manager_adapter_proxy.cpp",
   "src/bundle_manager_adapter/bundle_user_manager_adapter_proxy.cpp",
 ]
-
-group("accountmgr_target") {
-  deps = [
-    ":accountmgr",
-    ":accountmgr.init",
-    ":constraints_list_collection",
-    ":osaccount_constraint",
-  ]
-}
 
 ohos_shared_library("accountmgr") {
   visibility = [ "${os_account_path}/*" ]
@@ -141,13 +173,6 @@ ohos_shared_library("accountmgr") {
   }
 
   sources = [
-    "${app_account_innerkits_native_path}/src/app_account_authenticator_callback_proxy.cpp",
-    "${app_account_innerkits_native_path}/src/app_account_authenticator_callback_stub.cpp",
-    "${app_account_innerkits_native_path}/src/app_account_authorization_extension_callback_proxy.cpp",
-    "${app_account_innerkits_native_path}/src/app_account_authorization_extension_callback_stub.cpp",
-    "${app_account_innerkits_native_path}/src/app_account_common.cpp",
-    "${app_account_innerkits_native_path}/src/app_account_info.cpp",
-    "${app_account_innerkits_native_path}/src/app_account_subscribe_info.cpp",
     "${common_path}/utils/src/account_permission_manager.cpp",
     "${domain_account_framework_path}/src/domain_account_callback_proxy.cpp",
     "${domain_account_framework_path}/src/domain_account_callback_service.cpp",
@@ -161,32 +186,12 @@ ohos_shared_library("accountmgr") {
     "${os_account_dfx_path}/hidumper_adapter/account_dump_helper.cpp",
     "${os_account_dfx_path}/hisysevent_adapter/hisysevent_adapter.cpp",
     "${os_account_dfx_path}/hitrace_adapter/hitrace_adapter.cpp",
-    "src/account_data_storage.cpp",
     "src/account_event_provider.cpp",
     "src/account_helper_data.cpp",
     "src/account_info_report.cpp",
     "src/account_mgr_service.cpp",
     "src/account_state_machine.cpp",
     "src/account_stub.cpp",
-    "src/appaccount/app_account_app_state_observer.cpp",
-    "src/appaccount/app_account_authenticator_callback.cpp",
-    "src/appaccount/app_account_authenticator_manager.cpp",
-    "src/appaccount/app_account_authenticator_proxy.cpp",
-    "src/appaccount/app_account_authenticator_session.cpp",
-    "src/appaccount/app_account_authenticator_session_manager.cpp",
-    "src/appaccount/app_account_authorization_extension_proxy.cpp",
-    "src/appaccount/app_account_check_labels_callback.cpp",
-    "src/appaccount/app_account_check_labels_session.cpp",
-    "src/appaccount/app_account_common_event_observer.cpp",
-    "src/appaccount/app_account_common_event_subscriber.cpp",
-    "src/appaccount/app_account_control_manager.cpp",
-    "src/appaccount/app_account_data_storage.cpp",
-    "src/appaccount/app_account_event_proxy.cpp",
-    "src/appaccount/app_account_manager_service.cpp",
-    "src/appaccount/app_account_stub.cpp",
-    "src/appaccount/app_account_subscribe_death_recipient.cpp",
-    "src/appaccount/app_account_subscribe_manager.cpp",
-    "src/appaccount/inner_app_account_manager.cpp",
     "src/domain_account/domain_account_manager_service.cpp",
     "src/domain_account/domain_account_plugin_death_recipient.cpp",
     "src/domain_account/domain_account_plugin_proxy.cpp",
@@ -199,8 +204,6 @@ ohos_shared_library("accountmgr") {
     "src/ohos_account_manager.cpp",
     "src/osaccount/inner_os_account_manager.cpp",
     "src/osaccount/os_account_control_file_manager.cpp",
-    "src/osaccount/os_account_data_storage.cpp",
-    "src/osaccount/os_account_database_operator.cpp",
     "src/osaccount/os_account_delete_user_idm_callback.cpp",
     "src/osaccount/os_account_domain_account_callback.cpp",
     "src/osaccount/os_account_file_operator.cpp",
@@ -216,16 +219,6 @@ ohos_shared_library("accountmgr") {
   sources += ability_manager_sources
   sources += bundle_manager_sources
 
-  if (has_user_auth_part) {
-    sources += [
-      "src/account_iam/account_iam_callback.cpp",
-      "src/account_iam/account_iam_client_callback_proxy.cpp",
-      "src/account_iam/account_iam_mgr_stub.cpp",
-      "src/account_iam/account_iam_service.cpp",
-      "src/account_iam/inner_account_iam_manager.cpp",
-    ]
-  }
-
   defines = [
     "ACCOUNT_LOG_TAG = \"AccountMgrService\"",
     "LOG_DOMAIN = 0xD001B00",
@@ -238,10 +231,6 @@ ohos_shared_library("accountmgr") {
     ":domain_account_config",
     "${account_coverage_config_path}:coverage_flags",
   ]
-
-  if (has_user_auth_part) {
-    configs += [ ":account_iam_config" ]
-  }
 
   public_configs = [
     ":accountmgr_public_config",
@@ -267,7 +256,6 @@ ohos_shared_library("accountmgr") {
     "hiviewdfx_hilog_native:libhilog",
     "init:libbegetutil",
     "ipc:ipc_single",
-    "kv_store:distributeddata_inner",
     "safwk:system_ability_fwk",
     "samgr:samgr_proxy",
   ]
@@ -277,10 +265,26 @@ ohos_shared_library("accountmgr") {
       "-DHAS_USER_AUTH_PART",
       "-DHAS_USER_IDM_PART",
     ]
+    configs += [ ":account_iam_config" ]
+    sources += account_iam_sources
     external_deps += [
       "access_token:libtoken_setproc",
       "user_auth_framework:userauth_client",
     ]
+  }
+
+  if (has_kv_store_part) {
+    cflags_cc += [
+      "-DHAS_APP_ACCOUNT_PART",
+      "-DHAS_KV_STORE_PART",
+    ]
+    sources += app_account_sources
+    sources += [
+      "src/account_data_storage.cpp",
+      "src/osaccount/os_account_data_storage.cpp",
+      "src/osaccount/os_account_database_operator.cpp",
+    ]
+    external_deps += [ "kv_store:distributeddata_inner" ]
   }
 
   if (has_storage_service_part && os_account_storage_feature) {
@@ -330,4 +334,13 @@ ohos_shared_library("accountmgr") {
   }
   subsystem_name = "account"
   part_name = "os_account"
+}
+
+group("accountmgr_target") {
+  deps = [
+    ":accountmgr",
+    ":accountmgr.init",
+    ":constraints_list_collection",
+    ":osaccount_constraint",
+  ]
 }

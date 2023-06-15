@@ -19,7 +19,6 @@
 #include <map>
 #include <set>
 
-#include "app_account_data_storage.h"
 #include "app_account_event_record.h"
 #include "singleton.h"
 
@@ -38,7 +37,6 @@ public:
 private:
     AppAccountSubscribeManager();
     ~AppAccountSubscribeManager() = default;
-    std::shared_ptr<AppAccountDataStorage> GetDataStorage(const uid_t &uid, const bool &autoSync = false);
     ErrCode GetStoreId(const uid_t &uid, std::string &storeId);
 
     std::vector<AppAccountSubscribeRecordPtr> GetSubscribeRecords(const std::string &owner);
