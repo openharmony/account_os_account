@@ -604,7 +604,7 @@ ErrCode AppAccountStub::ProcAuthenticate(uint32_t code, MessageParcel &data, Mes
         ACCOUNT_LOGE("invalid options");
         result = ERR_APPACCOUNT_SERVICE_INVALID_PARAMETER;
     } else {
-        RETURN_IF_STRING_IS_EMPTY_OR_OVERSIZE(options->GetStringParam(Constants::KEY_CALLER_ABILITY_NAME),
+        RETURN_IF_STRING_IS_OVERSIZE(options->GetStringParam(Constants::KEY_CALLER_ABILITY_NAME),
             Constants::ABILITY_NAME_MAX_SIZE, "abilityName is empty or oversize", reply);
         sptr<IRemoteObject> callback = data.ReadRemoteObject();
         result = Authenticate(name, owner, authType, *options, callback);
