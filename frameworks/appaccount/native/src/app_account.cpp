@@ -231,7 +231,7 @@ ErrCode AppAccount::Authenticate(const std::string &name, const std::string &own
     RETURN_IF_STRING_IS_EMPTY_OR_OVERSIZE(name, Constants::NAME_MAX_SIZE, "name is empty or oversize");
     RETURN_IF_STRING_IS_EMPTY_OR_OVERSIZE(owner, Constants::OWNER_MAX_SIZE, "owner is empty or oversize");
     RETURN_IF_STRING_IS_OVERSIZE(authType, Constants::AUTH_TYPE_MAX_SIZE, "authType is oversize");
-    RETURN_IF_STRING_IS_EMPTY_OR_OVERSIZE(options.GetStringParam(Constants::KEY_CALLER_ABILITY_NAME),
+    RETURN_IF_STRING_IS_OVERSIZE(options.GetStringParam(Constants::KEY_CALLER_ABILITY_NAME),
         Constants::ABILITY_NAME_MAX_SIZE, "abilityName is empty or oversize");
     RETURN_IF_PROXY_IS_NULLPTR();
     return appAccountProxy_->Authenticate(name, owner, authType, options, callbackObj);
