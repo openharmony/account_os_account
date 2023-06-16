@@ -75,8 +75,6 @@ struct AppAccountAsyncContext : public CommonAsyncContext {
     std::string credential;
     std::string key;
     std::string value;
-    std::string subscribeType;
-    std::string unSubscribeType;
     bool isAccessible = false;
     bool isEnable = false;
     bool result = false;
@@ -120,6 +118,7 @@ struct SetPropertiesContext : public CommonAsyncContext {
     JSAuthCallback callback;
 };
 
+// when new PropertyType is added, new error message need to be added in ErrMsgList.
 typedef enum PropertyType {
     NAME = 0,
     OWNER,
@@ -128,6 +127,13 @@ typedef enum PropertyType {
     SESSION_ID,
     IS_VISIBLE,
     TOKEN,
+    EXTRA_INFO,
+    CREDENTIAL_TYPE,
+    CREDENTIAL,
+    KEY,
+    VALUE,
+    IS_ACCESSIBLE,
+    IS_ENABLE,
 } PropertyType;
 
 struct SelectAccountsContext : public CommonAsyncContext {
@@ -258,50 +264,17 @@ void GetAuthenticatorCallbackForResult(napi_env env, sptr<IRemoteObject> callbac
 
 bool ParseContextWithExInfo(napi_env env, napi_callback_info cbInfo, AppAccountAsyncContext *asyncContext);
 
-bool ParseContextForSetExInfo(napi_env env, napi_callback_info cbInfo, AppAccountAsyncContext *asyncContext);
-
 bool ParseContextForAuth(napi_env env, napi_callback_info cbInfo, OAuthAsyncContext *asyncContext);
 
 void ParseContextForAuthenticate(napi_env env, napi_callback_info cbInfo, OAuthAsyncContext *asyncContext, size_t argc);
 
-bool ParseContextForDeleteOAuthToken(napi_env env, napi_callback_info cbInfo, OAuthAsyncContext *asyncContext);
-
-bool ParseContextForGetOAuthToken(napi_env env, napi_callback_info cbInfo, OAuthAsyncContext *asyncContext);
-
-bool ParseContextForSetOAuthTokenVisibility(napi_env env, napi_callback_info cbInfo, OAuthAsyncContext *asyncContext);
-
-bool ParseContextForCheckOAuthTokenVisibility(napi_env env, napi_callback_info cbInfo, OAuthAsyncContext *asyncContext);
-
-bool ParseContextForGetAuthenticatorInfo(napi_env env, napi_callback_info cbInfo, OAuthAsyncContext *asyncContext);
-
-bool ParseContextForGetAllOAuthTokens(napi_env env, napi_callback_info cbInfo, OAuthAsyncContext *asyncContext);
-
-bool ParseContextForGetOAuthList(napi_env env, napi_callback_info cbInfo, OAuthAsyncContext *asyncContext);
-
-bool ParseContextForGetAuthenticatorCallback(napi_env env, napi_callback_info cbInfo, OAuthAsyncContext *asyncContext);
-
-bool ParseContextForSetOAuthToken(napi_env env, napi_callback_info cbInfo, OAuthAsyncContext *asyncContext);
-
-bool ParseContextWithBdName(napi_env env, napi_callback_info cbInfo, AppAccountAsyncContext *asyncContext);
-
-bool ParseContextForSetAppAccess(napi_env env, napi_callback_info cbInfo, AppAccountAsyncContext *asyncContext);
-
 bool ParseContextForOAuth(napi_env env, napi_callback_info cbInfo,
-    OAuthAsyncContext *asyncContext, const std::vector<PropertyType> &propertyList, size_t argcSize);
+    OAuthAsyncContext *asyncContext, const std::vector<PropertyType> &propertyList, napi_value *result);
 
-bool ParseContextWithIsEnable(napi_env env, napi_callback_info cbInfo, AppAccountAsyncContext *asyncContext);
-
-bool ParseContextWithTwoPara(napi_env env, napi_callback_info cbInfo, AppAccountAsyncContext *asyncContext);
-
-bool ParseContextToSetCredential(napi_env env, napi_callback_info cbInfo, AppAccountAsyncContext *asyncContext);
-
-bool ParseContextForAssociatedData(napi_env env, napi_callback_info cbInfo, AppAccountAsyncContext *asyncContext);
-
-bool ParseContextToGetData(napi_env env, napi_callback_info cbInfo, AppAccountAsyncContext *asyncContext);
+bool ParseContextForAppAccount(napi_env env, napi_callback_info cbInfo,
+    AppAccountAsyncContext *asyncContext, const std::vector<PropertyType> &propertyList, napi_value *result);
 
 bool ParseContextCBArray(napi_env env, napi_callback_info cbInfo, GetAccountsAsyncContext *asyncContext);
-
-bool ParseContextWithCredentialType(napi_env env, napi_callback_info cbInfo, AppAccountAsyncContext *asyncContext);
 
 bool ParseContextWithStrCBArray(napi_env env, napi_callback_info cbInfo, GetAccountsAsyncContext *asyncContext);
 
