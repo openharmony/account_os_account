@@ -256,5 +256,144 @@ HWTEST_F(DomainAccountManagerInnerServiceTest, DomainAccountManagerInnerServiceT
     InnerDomainAccountManager::GetInstance().StartGetDomainAccountInfo(
         nullptr, TEST_DOMAIN, TEST_DOMAIN_ACCOUNT_NAME, testCallback);
 }
+
+/**
+ * @tc.name: DomainAccountManagerInnerServiceTest013
+ * @tc.desc: Test GetAccessToken callback is nullptr.
+ * @tc.type: FUNC
+ * @tc.require: issueI64KAM
+ */
+HWTEST_F(DomainAccountManagerInnerServiceTest, DomainAccountManagerInnerServiceTest013, TestSize.Level1)
+{
+    DomainAccountInfo info;
+    AAFwk::WantParams parameters;
+    ASSERT_EQ(InnerDomainAccountManager::GetInstance().GetAccessToken(info, parameters, nullptr),
+        ERR_ACCOUNT_COMMON_INVALID_PARAMETER);
+}
+
+/**
+ * @tc.name: DomainAccountManagerInnerServiceTest014
+ * @tc.desc: Test StartGetAccessToken callback is nullptr.
+ * @tc.type: FUNC
+ * @tc.require: issueI64KAM
+ */
+HWTEST_F(DomainAccountManagerInnerServiceTest, DomainAccountManagerInnerServiceTest014, TestSize.Level1)
+{
+    DomainAccountInfo info;
+    AAFwk::WantParams parameters;
+    std::vector<uint8_t> accountToken;
+    GetAccessTokenOptions option;
+    ASSERT_EQ(
+        InnerDomainAccountManager::GetInstance().StartGetAccessToken(nullptr, accountToken, info, option, nullptr),
+        ERR_ACCOUNT_COMMON_INVALID_PARAMETER);
+}
+
+/**
+ * @tc.name: DomainAccountManagerInnerServiceTest015
+ * @tc.desc: Test StartGetAccessToken plugin is nullptr.
+ * @tc.type: FUNC
+ * @tc.require: issueI64KAM
+ */
+HWTEST_F(DomainAccountManagerInnerServiceTest, DomainAccountManagerInnerServiceTest015, TestSize.Level1)
+{
+    std::vector<uint8_t> accountToken;
+    int32_t userId = -1;
+    bool isValid = false;
+    InnerDomainAccountManager::GetInstance().plugin_ = nullptr;
+    ASSERT_EQ(InnerDomainAccountManager::GetInstance().CheckUserToken(accountToken, isValid, userId),
+        ERR_DOMAIN_ACCOUNT_SERVICE_PLUGIN_NOT_EXIST);
+}
+
+/**
+ * @tc.name: DomainAccountManagerInnerServiceTest016
+ * @tc.desc: Test GetAuthStatusInfo callback is nullptr.
+ * @tc.type: FUNC
+ * @tc.require: issueI64KAM
+ */
+HWTEST_F(DomainAccountManagerInnerServiceTest, DomainAccountManagerInnerServiceTest016, TestSize.Level1)
+{
+    DomainAccountInfo info;
+    ASSERT_EQ(InnerDomainAccountManager::GetInstance().GetAuthStatusInfo(info, nullptr),
+        ERR_DOMAIN_ACCOUNT_SERVICE_PLUGIN_NOT_EXIST);
+}
+
+/**
+ * @tc.name: DomainAccountManagerInnerServiceTest017
+ * @tc.desc: Test GetAuthStatusInfo success.
+ * @tc.type: FUNC
+ * @tc.require: issueI64KAM
+ */
+HWTEST_F(DomainAccountManagerInnerServiceTest, DomainAccountManagerInnerServiceTest017, TestSize.Level1)
+{
+    DomainAccountInfo info;
+    ASSERT_EQ(InnerDomainAccountManager::GetInstance().GetAuthStatusInfo(info, nullptr),
+        ERR_DOMAIN_ACCOUNT_SERVICE_PLUGIN_NOT_EXIST);
+}
+
+/**
+ * @tc.name: DomainAccountManagerInnerServiceTest018
+ * @tc.desc: Test GetAuthStatusInfo success.
+ * @tc.type: FUNC
+ * @tc.require: issueI64KAM
+ */
+HWTEST_F(DomainAccountManagerInnerServiceTest, DomainAccountManagerInnerServiceTest018, TestSize.Level1)
+{
+    DomainAccountInfo info;
+    ASSERT_EQ(InnerDomainAccountManager::GetInstance().StartHasDomainAccount(nullptr, info, nullptr),
+        ERR_ACCOUNT_COMMON_INVALID_PARAMETER);
+}
+
+/**
+ * @tc.name: DomainAccountManagerInnerServiceTest019
+ * @tc.desc: Test StartOnAccountBound plugin is nullptr.
+ * @tc.type: FUNC
+ * @tc.require: issueI64KAM
+ */
+HWTEST_F(DomainAccountManagerInnerServiceTest, DomainAccountManagerInnerServiceTest019, TestSize.Level1)
+{
+    DomainAccountInfo info;
+    int32_t localId = 1;
+    auto callback = std::make_shared<MockDomainAccountCallback>();
+    ASSERT_NE(callback, nullptr);
+    EXPECT_CALL(*callback, OnResult(ERR_DOMAIN_ACCOUNT_SERVICE_PLUGIN_NOT_EXIST, _)).Times(Exactly(1));
+    sptr<MockDomainAccountCallbackStub> testCallback = new (std::nothrow) MockDomainAccountCallbackStub(callback);
+    ASSERT_NE(testCallback, nullptr);
+    InnerDomainAccountManager::GetInstance().StartOnAccountBound(nullptr, info, localId, testCallback);
+}
+
+/**
+ * @tc.name: DomainAccountManagerInnerServiceTest020
+ * @tc.desc: Test StartGetDomainAccountInfo plugin is nullptr.
+ * @tc.type: FUNC
+ * @tc.require: issueI64KAM
+ */
+HWTEST_F(DomainAccountManagerInnerServiceTest, DomainAccountManagerInnerServiceTest020, TestSize.Level1)
+{
+    std::string domain = "test";
+    std::string accountName = "test";
+    auto callback = std::make_shared<MockDomainAccountCallback>();
+    ASSERT_NE(callback, nullptr);
+    EXPECT_CALL(*callback, OnResult(ERR_DOMAIN_ACCOUNT_SERVICE_PLUGIN_NOT_EXIST, _)).Times(Exactly(1));
+    sptr<MockDomainAccountCallbackStub> testCallback = new (std::nothrow) MockDomainAccountCallbackStub(callback);
+    ASSERT_NE(testCallback, nullptr);
+    InnerDomainAccountManager::GetInstance().StartGetDomainAccountInfo(nullptr, domain, accountName, testCallback);
+}
+
+/**
+ * @tc.name: DomainAccountManagerInnerServiceTest021
+ * @tc.desc: Test IsAccountTokenValid success.
+ * @tc.type: FUNC
+ * @tc.require: issueI64KAM
+ */
+HWTEST_F(DomainAccountManagerInnerServiceTest, DomainAccountManagerInnerServiceTest021, TestSize.Level1)
+{
+    DomainAccountInfo info;
+    std::vector<uint8_t> token;
+    auto callback = std::make_shared<MockDomainAccountCallback>();
+    ASSERT_NE(callback, nullptr);
+    sptr<MockDomainAccountCallbackStub> testCallback = new (std::nothrow) MockDomainAccountCallbackStub(callback);
+    ASSERT_NE(testCallback, nullptr);
+    ASSERT_EQ(InnerDomainAccountManager::GetInstance().IsAccountTokenValid(info, token, nullptr), ERR_OK);
+}
 }  // namespace AccountSA
 }  // namespace OHOS
