@@ -42,7 +42,7 @@ struct ExecuteRequestAsyncContext : public CommonAsyncContext {
     ~ExecuteRequestAsyncContext();
     AccountCapabilityRequest accountRequest;
     AAFwk::WantParams parameters;
-    napi_ref requestRef;
+    napi_ref requestRef = nullptr;
 };
 
 class NapiAccountCapabilityProvider {
