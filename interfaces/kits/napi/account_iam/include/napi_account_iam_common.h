@@ -82,6 +82,7 @@ struct IDMCallbackParam : public CommonAsyncContext {
     int32_t module = 0;
     uint32_t acquire = 0;
     uint64_t credentialId = 0;
+    std::vector<uint8_t> extraInfo;
 };
 
 struct AuthCallbackParam : public CommonAsyncContext {
