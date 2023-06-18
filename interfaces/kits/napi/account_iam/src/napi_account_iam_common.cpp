@@ -178,6 +178,8 @@ static void OnAcquireInfoWork(uv_work_t* work, int status)
         env, reinterpret_cast<uint8_t *>(&param->credentialId), sizeof(uint64_t));
     napi_create_object(env, &argv[PARAM_TWO]);
     napi_set_named_property(env, argv[PARAM_TWO], "credentialId", credentialId);
+    napi_value napiExtraInfo = CreateUint8Array(env, param->extraInfo.data(), param->extraInfo.size());
+    napi_set_named_property(env, argv[PARAM_TWO], "extraInfo", napiExtraInfo);
     ACCOUNT_LOGI("call js function");
     NapiCallVoidFunction(env, argv, ARG_SIZE_THREE, param->callback.onAcquireInfo);
     napi_close_handle_scope(env, scope);
@@ -197,6 +199,7 @@ void NapiIDMCallback::OnAcquireInfo(int32_t module, uint32_t acquireInfo, const 
     param->module = module;
     param->acquire = acquireInfo;
     extraInfo.GetUint64Value(Attributes::AttributeKey::ATTR_CREDENTIAL_ID, param->credentialId);
+    extraInfo.GetUint8ArrayValue(Attributes::AttributeKey::ATTR_EXTRA_INFO, param->extraInfo);
     work->data = reinterpret_cast<void *>(param.get());
     NAPI_CALL_RETURN_VOID(env_, uv_queue_work(loop, work.get(), [] (uv_work_t *work) { }, OnAcquireInfoWork));
     ACCOUNT_LOGI("create acquire info work finish");
