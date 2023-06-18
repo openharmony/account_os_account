@@ -26,7 +26,6 @@ class OsAccountDatabaseOperator {
 public:
     OsAccountDatabaseOperator();
     virtual ~OsAccountDatabaseOperator();
-    void Init();
 
     // update infos to database
     void UpdateOsAccountIDListInDatabase(const Json &accountListJson);
@@ -46,8 +45,7 @@ private:
     bool InnerInit();
 
 private:
-    std::shared_ptr<AccountDataStorage> accountDataStorage_;
-    std::string storeID_;
+    std::shared_ptr<AccountDataStorage> accountDataStorage_ = nullptr;
 };
 }  // namespace AccountSA
 }  // namespace OHOS

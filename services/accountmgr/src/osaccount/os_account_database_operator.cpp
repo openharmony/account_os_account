@@ -20,28 +20,22 @@
 
 namespace OHOS {
 namespace AccountSA {
+namespace {
+const std::string OS_ACCOUNT_STORE_ID = "os_account_info";
+}
+
 OsAccountDatabaseOperator::OsAccountDatabaseOperator()
-    : accountDataStorage_(nullptr), storeID_("")
 {}
+
 OsAccountDatabaseOperator::~OsAccountDatabaseOperator()
 {}
-void OsAccountDatabaseOperator::Init()
-{
-    char udid[Constants::DEVICE_UUID_LENGTH] = {0};
-    int ret = GetDevUdid(udid, Constants::DEVICE_UUID_LENGTH);
-    if (ret != 0) {
-        ACCOUNT_LOGE("GetDevUdid failed! ret = %{public}d.", ret);
-        return;
-    }
-    storeID_ = std::string(udid);
-}
 
 bool OsAccountDatabaseOperator::InnerInit()
 {
     if (accountDataStorage_ == nullptr) {
         ACCOUNT_LOGI("database operator inner init, enter!");
         accountDataStorage_ = std::make_shared<OsAccountDataStorage>(
-            Constants::APP_ID, storeID_, Constants::SYNC_OS_ACCOUNT_DATABASE);
+            Constants::APP_ID, OS_ACCOUNT_STORE_ID, Constants::SYNC_OS_ACCOUNT_DATABASE);
         if (accountDataStorage_ == nullptr) {
             ACCOUNT_LOGE("accountDataStorage_ is still nullptr.");
             return false;

@@ -63,9 +63,6 @@ OsAccountControlFileManager::~OsAccountControlFileManager()
 void OsAccountControlFileManager::Init()
 {
     ACCOUNT_LOGI("OsAccountControlFileManager Init start");
-#ifdef HAS_KV_STORE_PART
-    osAccountDataBaseOperator_->Init();
-#endif
     osAccountFileOperator_->Init();
     if (!accountFileOperator_->IsJsonFileReady(Constants::ACCOUNT_LIST_FILE_JSON_PATH)) {
         ACCOUNT_LOGI("OsAccountControlFileManager there is not have valid account list, create!");
