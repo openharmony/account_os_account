@@ -75,7 +75,7 @@ ohos_shared_library("appaccount") {
     "ability_runtime:extensionkit_native",
     "ability_runtime:runtime",
     "c_utils:utils",
-    "hiviewdfx_hilog_native:libhilog",
+    "hilog:libhilog",
     "ipc:ipc_napi_common",
     "ipc:ipc_single",
     "napi:ace_napi",

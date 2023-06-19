@@ -49,7 +49,7 @@ ohos_unittest("OsAccountControlFileManagerTest") {
 
   external_deps = [
     "c_utils:utils",
-    "hiviewdfx_hilog_native:libhilog",
+    "hilog:libhilog",
     "init:libbegetutil",
     "kv_store:distributeddata_inner",
   ]
@@ -92,7 +92,7 @@ ohos_unittest("OsAccountDataStorageTest") {
 
   external_deps = [
     "c_utils:utils",
-    "hiviewdfx_hilog_native:libhilog",
+    "hilog:libhilog",
     "kv_store:distributeddata_inner",
   ]
   part_name = "os_account"
@@ -140,7 +140,7 @@ ohos_unittest("OsAccountSubscribeDeathRecipientTest") {
     "ability_base:want",
     "ability_runtime:wantagent_innerkits",
     "c_utils:utils",
-    "hiviewdfx_hilog_native:libhilog",
+    "hilog:libhilog",
     "ipc:ipc_single",
     "samgr:samgr_proxy",
     "user_auth_framework:userauth_client",
@@ -193,7 +193,7 @@ ohos_unittest("OsAccountInnerAccmgrCovTest") {
     "access_token:libaccesstoken_sdk",
     "access_token:libtoken_setproc",
     "c_utils:utils",
-    "hiviewdfx_hilog_native:libhilog",
+    "hilog:libhilog",
     "ipc:ipc_single",
     "kv_store:distributeddata_inner",
     "samgr:samgr_proxy",
@@ -248,7 +248,7 @@ ohos_unittest("OsAccountInnerAccmgrMockTest") {
     "ability_base:want",
     "ability_runtime:wantagent_innerkits",
     "c_utils:utils",
-    "hiviewdfx_hilog_native:libhilog",
+    "hilog:libhilog",
     "ipc:ipc_single",
     "kv_store:distributeddata_inner",
     "samgr:samgr_proxy",
