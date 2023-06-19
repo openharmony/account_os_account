@@ -105,91 +105,28 @@ ErrCode OsAccountProxy::CreateOsAccountForDomain(const OsAccountType &type, cons
 
 ErrCode OsAccountProxy::RemoveOsAccount(const int id)
 {
-    MessageParcel data;
     MessageParcel reply;
-
-    if (!data.WriteInterfaceToken(GetDescriptor())) {
-        ACCOUNT_LOGE("failed to write descriptor!");
-        return ERR_ACCOUNT_COMMON_WRITE_DESCRIPTOR_ERROR;
-    }
-
-    if (!data.WriteInt32(id)) {
-        ACCOUNT_LOGE("failed to write int for id");
-        return ERR_ACCOUNT_COMMON_WRITE_PARCEL_ERROR;
-    }
-
-    ErrCode result = SendRequest(IOsAccount::Message::REMOVE_OS_ACCOUNT, data, reply);
-    if (result != ERR_OK) {
-        ACCOUNT_LOGE("SendRequest err, result %{public}d.", result);
-        return result;
-    }
-
-    result = reply.ReadInt32();
-    if (result != ERR_OK) {
-        ACCOUNT_LOGE("failed to read reply for remove os account info, result %{public}d.", result);
-        return result;
-    }
-
-    return ERR_OK;
+    return SendRequestWithAccountId(IOsAccount::Message::REMOVE_OS_ACCOUNT, reply, id);
 }
 
 ErrCode OsAccountProxy::IsOsAccountExists(const int id, bool &isOsAccountExists)
 {
-    MessageParcel data;
     MessageParcel reply;
-
-    if (!data.WriteInterfaceToken(GetDescriptor())) {
-        ACCOUNT_LOGE("failed to write descriptor!");
-        return ERR_ACCOUNT_COMMON_WRITE_DESCRIPTOR_ERROR;
+    ErrCode result = SendRequestWithAccountId(IOsAccount::Message::IS_OS_ACCOUNT_EXISTS, reply, id);
+    if (result == ERR_OK) {
+        isOsAccountExists = reply.ReadBool();
     }
-
-    if (!data.WriteInt32(id)) {
-        ACCOUNT_LOGE("failed to write int for id");
-        return ERR_ACCOUNT_COMMON_WRITE_PARCEL_ERROR;
-    }
-
-    ErrCode result = SendRequest(IOsAccount::Message::IS_OS_ACCOUNT_EXISTS, data, reply);
-    if (result != ERR_OK) {
-        ACCOUNT_LOGE("SendRequest err, result %{public}d.", result);
-        return result;
-    }
-    result = reply.ReadInt32();
-    if (result != ERR_OK) {
-        ACCOUNT_LOGE("failed to read reply for is os account exists, result %{public}d.", result);
-        return result;
-    }
-    isOsAccountExists = reply.ReadBool();
-
-    return ERR_OK;
+    return result;
 }
 
 ErrCode OsAccountProxy::IsOsAccountActived(const int id, bool &isOsAccountActived)
 {
-    MessageParcel data;
     MessageParcel reply;
-
-    if (!data.WriteInterfaceToken(GetDescriptor())) {
-        ACCOUNT_LOGE("failed to write descriptor!");
-        return ERR_ACCOUNT_COMMON_WRITE_DESCRIPTOR_ERROR;
+    ErrCode result = SendRequestWithAccountId(IOsAccount::Message::IS_OS_ACCOUNT_ACTIVED, reply, id);
+    if (result == ERR_OK) {
+        isOsAccountActived = reply.ReadBool();
     }
-
-    if (!data.WriteInt32(id)) {
-        ACCOUNT_LOGE("failed to write int for id");
-        return ERR_ACCOUNT_COMMON_WRITE_PARCEL_ERROR;
-    }
-    ErrCode result = SendRequest(IOsAccount::Message::IS_OS_ACCOUNT_ACTIVED, data, reply);
-    if (result != ERR_OK) {
-        ACCOUNT_LOGE("SendRequest err, result %{public}d.", result);
-        return result;
-    }
-    result = reply.ReadInt32();
-    if (result != ERR_OK) {
-        ACCOUNT_LOGE("failed to read reply for is os account activated, result %{public}d.", result);
-        return result;
-    }
-    isOsAccountActived = reply.ReadBool();
-
-    return ERR_OK;
+    return result;
 }
 
 ErrCode OsAccountProxy::CheckOsAccountConstraintEnabled(
@@ -245,31 +182,12 @@ ErrCode OsAccountProxy::CheckOsAccountConstraintEnabled(
 
 ErrCode OsAccountProxy::IsOsAccountVerified(const int id, bool &isVerified)
 {
-    MessageParcel data;
     MessageParcel reply;
-
-    if (!data.WriteInterfaceToken(GetDescriptor())) {
-        ACCOUNT_LOGE("failed to write descriptor!");
-        return ERR_ACCOUNT_COMMON_WRITE_DESCRIPTOR_ERROR;
+    ErrCode result = SendRequestWithAccountId(IOsAccount::Message::IS_OS_ACCOUNT_VERIFIED, reply, id);
+    if (result == ERR_OK) {
+        isVerified = reply.ReadBool();
     }
-
-    if (!data.WriteInt32(id)) {
-        ACCOUNT_LOGE("failed to write int for id");
-        return ERR_ACCOUNT_COMMON_WRITE_PARCEL_ERROR;
-    }
-    ErrCode result = SendRequest(IOsAccount::Message::IS_OS_ACCOUNT_VERIFIED, data, reply);
-    if (result != ERR_OK) {
-        ACCOUNT_LOGE("SendRequest err, result %{public}d.", result);
-        return result;
-    }
-    result = reply.ReadInt32();
-    if (result != ERR_OK) {
-        ACCOUNT_LOGE("failed to read reply for is os account verified, result %{public}d.", result);
-        return result;
-    }
-    isVerified = reply.ReadBool();
-
-    return ERR_OK;
+    return result;
 }
 
 ErrCode OsAccountProxy::GetCreatedOsAccountsCount(unsigned int &osAccountsCount)
@@ -408,26 +326,9 @@ ErrCode OsAccountProxy::QueryMaxOsAccountNumber(int &maxOsAccountNumber)
 
 ErrCode OsAccountProxy::GetOsAccountAllConstraints(const int id, std::vector<std::string> &constraints)
 {
-    MessageParcel data;
     MessageParcel reply;
-
-    if (!data.WriteInterfaceToken(GetDescriptor())) {
-        ACCOUNT_LOGE("failed to write descriptor!");
-        return ERR_ACCOUNT_COMMON_WRITE_DESCRIPTOR_ERROR;
-    }
-
-    if (!data.WriteInt32(id)) {
-        ACCOUNT_LOGE("failed to write int for id");
-        return ERR_ACCOUNT_COMMON_WRITE_PARCEL_ERROR;
-    }
-    ErrCode result = SendRequest(IOsAccount::Message::GET_OS_ACCOUNT_ALL_CONSTRAINTS, data, reply);
+    ErrCode result = SendRequestWithAccountId(IOsAccount::Message::GET_OS_ACCOUNT_ALL_CONSTRAINTS, reply, id);
     if (result != ERR_OK) {
-        ACCOUNT_LOGE("SendRequest err, result %{public}d.", result);
-        return result;
-    }
-    result = reply.ReadInt32();
-    if (result != ERR_OK) {
-        ACCOUNT_LOGE("failed to read reply, result %{public}d.", result);
         return result;
     }
     bool readFlag = reply.ReadStringVector(&constraints);
@@ -435,7 +336,6 @@ ErrCode OsAccountProxy::GetOsAccountAllConstraints(const int id, std::vector<std
         ACCOUNT_LOGE("ReadStringVector failed, result %{public}d.", result);
         return ERR_ACCOUNT_COMMON_READ_PARCEL_ERROR;
     }
-
     return ERR_OK;
 }
 
@@ -495,26 +395,9 @@ ErrCode OsAccountProxy::QueryCurrentOsAccount(OsAccountInfo &osAccountInfo)
 
 ErrCode OsAccountProxy::QueryOsAccountById(const int id, OsAccountInfo &osAccountInfo)
 {
-    MessageParcel data;
     MessageParcel reply;
-
-    if (!data.WriteInterfaceToken(GetDescriptor())) {
-        ACCOUNT_LOGE("failed to write descriptor!");
-        return ERR_ACCOUNT_COMMON_WRITE_DESCRIPTOR_ERROR;
-    }
-
-    if (!data.WriteInt32(id)) {
-        ACCOUNT_LOGE("failed to write int for id");
-        return ERR_ACCOUNT_COMMON_WRITE_PARCEL_ERROR;
-    }
-    ErrCode result = SendRequest(IOsAccount::Message::QUERY_OS_ACCOUNT_BY_ID, data, reply);
+    ErrCode result = SendRequestWithAccountId(IOsAccount::Message::QUERY_OS_ACCOUNT_BY_ID, reply, id);
     if (result != ERR_OK) {
-        ACCOUNT_LOGE("SendRequest err, result %{public}d.", result);
-        return result;
-    }
-    result = reply.ReadInt32();
-    if (result != ERR_OK) {
-        ACCOUNT_LOGE("failed to read reply for query os account by id, result %{public}d.", result);
         return result;
     }
     std::shared_ptr<OsAccountInfo> infoPtr(reply.ReadParcelable<OsAccountInfo>());
@@ -553,26 +436,9 @@ ErrCode OsAccountProxy::GetOsAccountTypeFromProcess(OsAccountType &type)
 
 ErrCode OsAccountProxy::GetOsAccountProfilePhoto(const int id, std::string &photo)
 {
-    MessageParcel data;
     MessageParcel reply;
-
-    if (!data.WriteInterfaceToken(GetDescriptor())) {
-        ACCOUNT_LOGE("failed to write descriptor!");
-        return ERR_ACCOUNT_COMMON_WRITE_DESCRIPTOR_ERROR;
-    }
-
-    if (!data.WriteInt32(id)) {
-        ACCOUNT_LOGE("failed to write int for id");
-        return ERR_ACCOUNT_COMMON_WRITE_PARCEL_ERROR;
-    }
-    ErrCode result = SendRequest(IOsAccount::Message::GET_OS_ACCOUNT_PROFILE_PHOTO, data, reply);
+    ErrCode result = SendRequestWithAccountId(IOsAccount::Message::GET_OS_ACCOUNT_PROFILE_PHOTO, reply, id);
     if (result != ERR_OK) {
-        ACCOUNT_LOGE("SendRequest err, result %{public}d.", result);
-        return result;
-    }
-    result = reply.ReadInt32();
-    if (result != ERR_OK) {
-        ACCOUNT_LOGE("failed to read reply for get os account profile photo, result %{public}d.", result);
         return result;
     }
     photo = reply.ReadString();
@@ -608,13 +474,10 @@ ErrCode OsAccountProxy::IsMultiOsAccountEnable(bool &isMultiOsAccountEnable)
 ErrCode OsAccountProxy::SetOsAccountName(const int id, const std::string &name)
 {
     MessageParcel data;
-    MessageParcel reply;
-
     if (!data.WriteInterfaceToken(GetDescriptor())) {
         ACCOUNT_LOGE("failed to write descriptor!");
         return ERR_ACCOUNT_COMMON_WRITE_DESCRIPTOR_ERROR;
     }
-
     if (!data.WriteInt32(id)) {
         ACCOUNT_LOGE("failed to write int for id %{public}d.", id);
         return ERR_ACCOUNT_COMMON_WRITE_PARCEL_ERROR;
@@ -623,6 +486,8 @@ ErrCode OsAccountProxy::SetOsAccountName(const int id, const std::string &name)
         ACCOUNT_LOGE("failed to write string for name");
         return ERR_ACCOUNT_COMMON_WRITE_PARCEL_ERROR;
     }
+
+    MessageParcel reply;
     ErrCode result = SendRequest(IOsAccount::Message::SET_OS_ACCOUNT_NAME, data, reply);
     if (result != ERR_OK) {
         ACCOUNT_LOGE("SendRequest err, result %{public}d.", result);
@@ -641,13 +506,10 @@ ErrCode OsAccountProxy::SetOsAccountConstraints(
     const int id, const std::vector<std::string> &constraints, const bool enable)
 {
     MessageParcel data;
-    MessageParcel reply;
-
     if (!data.WriteInterfaceToken(GetDescriptor())) {
         ACCOUNT_LOGE("failed to write descriptor!");
         return ERR_ACCOUNT_COMMON_WRITE_DESCRIPTOR_ERROR;
     }
-
     if (!data.WriteInt32(id)) {
         ACCOUNT_LOGE("failed to write int for id");
         return ERR_ACCOUNT_COMMON_WRITE_PARCEL_ERROR;
@@ -660,6 +522,8 @@ ErrCode OsAccountProxy::SetOsAccountConstraints(
         ACCOUNT_LOGE("failed to write bool for enable");
         return ERR_ACCOUNT_COMMON_WRITE_PARCEL_ERROR;
     }
+
+    MessageParcel reply;
     ErrCode result = SendRequest(IOsAccount::Message::SET_OS_ACCOUNT_CONSTRAINTS, data, reply);
     if (result != ERR_OK) {
         ACCOUNT_LOGE("SendRequest err, result %{public}d.", result);
@@ -677,13 +541,10 @@ ErrCode OsAccountProxy::SetOsAccountConstraints(
 ErrCode OsAccountProxy::SetOsAccountProfilePhoto(const int id, const std::string &photo)
 {
     MessageParcel data;
-    MessageParcel reply;
-
     if (!data.WriteInterfaceToken(GetDescriptor())) {
         ACCOUNT_LOGE("failed to write descriptor!");
         return ERR_ACCOUNT_COMMON_WRITE_DESCRIPTOR_ERROR;
     }
-
     if (!data.WriteInt32(id)) {
         ACCOUNT_LOGE("failed to write int for id");
         return ERR_ACCOUNT_COMMON_WRITE_PARCEL_ERROR;
@@ -692,6 +553,8 @@ ErrCode OsAccountProxy::SetOsAccountProfilePhoto(const int id, const std::string
         ACCOUNT_LOGE("failed to write string for photo");
         return ERR_ACCOUNT_COMMON_WRITE_PARCEL_ERROR;
     }
+
+    MessageParcel reply;
     ErrCode result = SendRequest(IOsAccount::Message::SET_OS_ACCOUNT_PROFILE_PHOTO, data, reply);
     if (result != ERR_OK) {
         ACCOUNT_LOGE("SendRequest err, result %{public}d.", result);
@@ -708,86 +571,20 @@ ErrCode OsAccountProxy::SetOsAccountProfilePhoto(const int id, const std::string
 
 ErrCode OsAccountProxy::ActivateOsAccount(const int id)
 {
-    MessageParcel data;
     MessageParcel reply;
-
-    if (!data.WriteInterfaceToken(GetDescriptor())) {
-        ACCOUNT_LOGE("failed to write descriptor!");
-        return ERR_ACCOUNT_COMMON_WRITE_DESCRIPTOR_ERROR;
-    }
-
-    if (!data.WriteInt32(id)) {
-        ACCOUNT_LOGE("failed to write int for id");
-        return ERR_ACCOUNT_COMMON_WRITE_PARCEL_ERROR;
-    }
-    ErrCode result = SendRequest(IOsAccount::Message::ACTIVATE_OS_ACCOUNT, data, reply);
-    if (result != ERR_OK) {
-        ACCOUNT_LOGE("SendRequest err, result %{public}d.", result);
-        return result;
-    }
-    result = reply.ReadInt32();
-    if (result != ERR_OK) {
-        ACCOUNT_LOGE("failed to read reply for activate os account, result %{public}d.", result);
-        return result;
-    }
-
-    return ERR_OK;
+    return SendRequestWithAccountId(IOsAccount::Message::ACTIVATE_OS_ACCOUNT, reply, id);
 }
 
 ErrCode OsAccountProxy::StartOsAccount(const int id)
 {
-    MessageParcel data;
     MessageParcel reply;
-
-    if (!data.WriteInterfaceToken(GetDescriptor())) {
-        ACCOUNT_LOGE("failed to write descriptor!");
-        return ERR_ACCOUNT_COMMON_WRITE_DESCRIPTOR_ERROR;
-    }
-
-    if (!data.WriteInt32(id)) {
-        ACCOUNT_LOGE("failed to write int for id");
-        return ERR_ACCOUNT_COMMON_WRITE_PARCEL_ERROR;
-    }
-    ErrCode result = SendRequest(IOsAccount::Message::START_OS_ACCOUNT, data, reply);
-    if (result != ERR_OK) {
-        ACCOUNT_LOGE("SendRequest err, result %{public}d.", result);
-        return result;
-    }
-    result = reply.ReadInt32();
-    if (result != ERR_OK) {
-        ACCOUNT_LOGE("failed to read reply for start os account, result %{public}d.", result);
-        return result;
-    }
-
-    return ERR_OK;
+    return SendRequestWithAccountId(IOsAccount::Message::START_OS_ACCOUNT, reply, id);
 }
 
 ErrCode OsAccountProxy::StopOsAccount(const int id)
 {
-    MessageParcel data;
     MessageParcel reply;
-
-    if (!data.WriteInterfaceToken(GetDescriptor())) {
-        ACCOUNT_LOGE("failed to write descriptor!");
-        return ERR_ACCOUNT_COMMON_WRITE_DESCRIPTOR_ERROR;
-    }
-
-    if (!data.WriteInt32(id)) {
-        ACCOUNT_LOGE("failed to write int for id");
-        return ERR_ACCOUNT_COMMON_WRITE_PARCEL_ERROR;
-    }
-    ErrCode result = SendRequest(IOsAccount::Message::STOP_OS_ACCOUNT, data, reply);
-    if (result != ERR_OK) {
-        ACCOUNT_LOGE("SendRequest err, result %{public}d.", result);
-        return result;
-    }
-    result = reply.ReadInt32();
-    if (result != ERR_OK) {
-        ACCOUNT_LOGE("failed to read reply for stop os account, result %{public}d.", result);
-        return result;
-    }
-
-    return ERR_OK;
+    return SendRequestWithAccountId(IOsAccount::Message::STOP_OS_ACCOUNT, reply, id);
 }
 
 ErrCode OsAccountProxy::GetOsAccountLocalIdBySerialNumber(const int64_t serialNumber, int &id)
@@ -821,31 +618,12 @@ ErrCode OsAccountProxy::GetOsAccountLocalIdBySerialNumber(const int64_t serialNu
 
 ErrCode OsAccountProxy::GetSerialNumberByOsAccountLocalId(const int &id, int64_t &serialNumber)
 {
-    MessageParcel data;
     MessageParcel reply;
-
-    if (!data.WriteInterfaceToken(GetDescriptor())) {
-        ACCOUNT_LOGE("failed to write descriptor!");
-        return ERR_ACCOUNT_COMMON_WRITE_DESCRIPTOR_ERROR;
+    ErrCode result = SendRequestWithAccountId(IOsAccount::Message::GET_SERIAL_NUMBER_FOR_OS_ACCOUNT, reply, id);
+    if (result == ERR_OK) {
+        serialNumber = reply.ReadInt64();
     }
-
-    if (!data.WriteInt32(id)) {
-        ACCOUNT_LOGE("failed to write int for id");
-        return ERR_ACCOUNT_COMMON_WRITE_PARCEL_ERROR;
-    }
-    ErrCode result = SendRequest(IOsAccount::Message::GET_SERIAL_NUMBER_FOR_OS_ACCOUNT, data, reply);
-    if (result != ERR_OK) {
-        ACCOUNT_LOGE("SendRequest err, result %{public}d.", result);
-        return result;
-    }
-    result = reply.ReadInt32();
-    if (result != ERR_OK) {
-        ACCOUNT_LOGE("failed to read reply for get serial number by os account id, result %{public}d.", result);
-        return result;
-    }
-    serialNumber = reply.ReadInt64();
-
-    return ERR_OK;
+    return result;
 }
 
 ErrCode OsAccountProxy::SubscribeOsAccount(
@@ -933,6 +711,34 @@ OS_ACCOUNT_SWITCH_MOD OsAccountProxy::GetOsAccountSwitchMod()
     return osAccountSwitchMod;
 }
 
+ErrCode OsAccountProxy::SendRequestWithAccountId(IOsAccount::Message code, MessageParcel &reply, int id)
+{
+    MessageParcel data;
+    if (!data.WriteInterfaceToken(GetDescriptor())) {
+        ACCOUNT_LOGE("failed to write descriptor!");
+        return ERR_ACCOUNT_COMMON_WRITE_DESCRIPTOR_ERROR;
+    }
+
+    if (!data.WriteInt32(id)) {
+        ACCOUNT_LOGE("failed to write int for id");
+        return ERR_ACCOUNT_COMMON_WRITE_PARCEL_ERROR;
+    }
+
+    ErrCode result = SendRequest(code, data, reply);
+    if (result != ERR_OK) {
+        ACCOUNT_LOGE("SendRequest err, result %{public}d.", result);
+        return result;
+    }
+    if (!reply.ReadInt32(result)) {
+        ACCOUNT_LOGE("failed to read result for Message code %{public}d.", code);
+        return ERR_ACCOUNT_COMMON_READ_PARCEL_ERROR;
+    }
+    if (result != ERR_OK) {
+        ACCOUNT_LOGE("failed to read reply for code %{public}d, result %{public}d.", code, result);
+    }
+    return result;
+}
+
 ErrCode OsAccountProxy::SendRequest(IOsAccount::Message code, MessageParcel &data, MessageParcel &reply)
 {
     sptr<IRemoteObject> remote = Remote();
@@ -978,26 +784,10 @@ ErrCode OsAccountProxy::IsCurrentOsAccountVerified(bool &isVerified)
 
 ErrCode OsAccountProxy::IsOsAccountCompleted(const int id, bool &isOsAccountCompleted)
 {
-    MessageParcel data;
     MessageParcel reply;
-
-    if (!data.WriteInterfaceToken(GetDescriptor())) {
-        ACCOUNT_LOGE("failed to write descriptor!");
-        return ERR_ACCOUNT_COMMON_WRITE_DESCRIPTOR_ERROR;
-    }
-
-    if (!data.WriteInt32(id)) {
-        ACCOUNT_LOGE("failed to write int for id");
-        return ERR_ACCOUNT_COMMON_WRITE_PARCEL_ERROR;
-    }
-    ErrCode result = SendRequest(IOsAccount::Message::IS_OS_ACCOUNT_COMPLETED, data, reply);
+    ErrCode result = SendRequestWithAccountId(IOsAccount::Message::IS_OS_ACCOUNT_COMPLETED, reply, id);
     if (result != ERR_OK) {
-        ACCOUNT_LOGE("SendRequest err, result %{public}d.", result);
         return result;
-    }
-    if (!reply.ReadInt32(result)) {
-        ACCOUNT_LOGE("failed to read result");
-        return ERR_ACCOUNT_COMMON_READ_PARCEL_ERROR;
     }
     if (!reply.ReadBool(isOsAccountCompleted)) {
         ACCOUNT_LOGE("failed to read isOsAccountCompleted");
@@ -1037,13 +827,10 @@ ErrCode OsAccountProxy::SetCurrentOsAccountIsVerified(const bool isVerified)
 ErrCode OsAccountProxy::SetOsAccountIsVerified(const int id, const bool isVerified)
 {
     MessageParcel data;
-    MessageParcel reply;
-
     if (!data.WriteInterfaceToken(GetDescriptor())) {
         ACCOUNT_LOGE("failed to write descriptor!");
         return ERR_ACCOUNT_COMMON_WRITE_DESCRIPTOR_ERROR;
     }
-
     if (!data.WriteInt32(id)) {
         ACCOUNT_LOGE("failed to write int for id");
         return ERR_ACCOUNT_COMMON_WRITE_PARCEL_ERROR;
@@ -1053,6 +840,7 @@ ErrCode OsAccountProxy::SetOsAccountIsVerified(const int id, const bool isVerifi
         return ERR_ACCOUNT_COMMON_WRITE_PARCEL_ERROR;
     }
 
+    MessageParcel reply;
     ErrCode result = SendRequest(IOsAccount::Message::SET_OS_ACCOUNT_IS_VERIFIED, data, reply);
     if (result != ERR_OK) {
         ACCOUNT_LOGE("SendRequest err, result %{public}d.", result);
@@ -1069,28 +857,9 @@ ErrCode OsAccountProxy::SetOsAccountIsVerified(const int id, const bool isVerifi
 
 ErrCode OsAccountProxy::DumpState(const int &id, std::vector<std::string> &state)
 {
-    MessageParcel data;
     MessageParcel reply;
-
-    if (!data.WriteInterfaceToken(GetDescriptor())) {
-        ACCOUNT_LOGE("failed to write descriptor!");
-        return ERR_ACCOUNT_COMMON_WRITE_DESCRIPTOR_ERROR;
-    }
-
-    if (!data.WriteInt32(id)) {
-        ACCOUNT_LOGE("failed to write int for id");
-        return ERR_ACCOUNT_COMMON_WRITE_PARCEL_ERROR;
-    }
-
-    ErrCode result = SendRequest(IOsAccount::Message::DUMP_STATE, data, reply);
+    ErrCode result = SendRequestWithAccountId(IOsAccount::Message::DUMP_STATE, reply, id);
     if (result != ERR_OK) {
-        ACCOUNT_LOGE("SendRequest err, result %{public}d.", result);
-        return result;
-    }
-
-    result = reply.ReadInt32();
-    if (result != ERR_OK) {
-        ACCOUNT_LOGE("failed to read reply for dump state, result %{public}d.", result);
         return result;
     }
 
@@ -1300,23 +1069,20 @@ ErrCode OsAccountProxy::QueryOsAccountConstraintSourceTypes(const int32_t id,
 {
     constraintSourceTypeInfos.clear();
     MessageParcel data;
-    MessageParcel reply;
-
     if (!data.WriteInterfaceToken(GetDescriptor())) {
         ACCOUNT_LOGE("failed to write descriptor!");
         return ERR_ACCOUNT_COMMON_WRITE_DESCRIPTOR_ERROR;
     }
-
     if (!data.WriteInt32(id)) {
         ACCOUNT_LOGE("failed to write int for id");
         return ERR_ACCOUNT_COMMON_WRITE_PARCEL_ERROR;
     }
-
     if (!data.WriteString(constraint)) {
         ACCOUNT_LOGE("failed to write string for constraint");
         return ERR_ACCOUNT_COMMON_WRITE_PARCEL_ERROR;
     }
 
+    MessageParcel reply;
     ErrCode result = SendRequest(IOsAccount::Message::QUERY_OS_ACCOUNT_CONSTRAINT_SOURCE_TYPES, data, reply);
     if (result != ERR_OK) {
         ACCOUNT_LOGE("SendRequest err, result %{public}d.", result);
