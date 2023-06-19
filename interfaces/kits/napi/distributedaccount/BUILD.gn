@@ -55,7 +55,7 @@ ohos_shared_library("distributedaccount") {
     "ability_runtime:napi_common",
     "ability_runtime:wantagent_innerkits",
     "c_utils:utils",
-    "hiviewdfx_hilog_native:libhilog",
+    "hilog:libhilog",
     "napi:ace_napi",
   ]
 
