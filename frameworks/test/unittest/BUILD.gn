@@ -73,7 +73,7 @@ ohos_unittest("account_proxy_mock_test") {
     "ability_base:want",
     "access_token:libaccesstoken_sdk",
     "c_utils:utils",
-    "hiviewdfx_hilog_native:libhilog",
+    "hilog:libhilog",
     "ipc:ipc_single",
     "ipc:libdbinder",
   ]

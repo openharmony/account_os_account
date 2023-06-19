@@ -51,7 +51,7 @@ ohos_unittest("AccountFileOperatorTest") {
 
   external_deps = [
     "c_utils:utils",
-    "hiviewdfx_hilog_native:libhilog",
+    "hilog:libhilog",
     "kv_store:distributeddata_inner",
   ]
   part_name = "os_account"

@@ -58,11 +58,11 @@ ohos_unittest("AccountSADataDealTest") {
   external_deps = [
     "ability_base:want",
     "c_utils:utils",
-    "hiviewdfx_hilog_native:libhilog",
+    "hilog:libhilog",
   ]
   if (has_hiviewdfx_hisysevent_part) {
     cflags_cc += [ "-DHAS_HISYSEVENT_PART" ]
-    external_deps += [ "hisysevent_native:libhisysevent" ]
+    external_deps += [ "hisysevent:libhisysevent" ]
   }
   part_name = "os_account"
 }
