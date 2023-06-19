@@ -336,19 +336,13 @@ napi_value NapiAppAccount::RemoveAccountInternal(napi_env env, napi_callback_inf
     }
     asyncContext->env = env;
     asyncContext->throwErr = isThrowable;
-    if ((!ParseContextWithTwoPara(env, cbInfo, asyncContext)) && isThrowable) {
+    std::vector<PropertyType> propertyList = { PropertyType::NAME };
+    napi_value result = nullptr;
+    if ((!ParseContextForAppAccount(env, cbInfo, asyncContext, propertyList, &result)) && isThrowable) {
         napi_throw(env, GenerateBusinessError(env, ERR_JS_PARAMETER_ERROR, asyncContext->errMsg));
         delete asyncContext;
         return NapiGetNull(env);
     }
-
-    napi_value result = nullptr;
-    if (asyncContext->callbackRef == nullptr) {
-        napi_create_promise(env, &asyncContext->deferred, &result);
-    } else {
-        napi_get_undefined(env, &result);
-    }
-
     napi_value resource = nullptr;
     napi_create_string_utf8(env, "DeleteAccount", NAPI_AUTO_LENGTH, &resource);
 
@@ -382,13 +376,10 @@ napi_value NapiAppAccount::DisableAppAccess(napi_env env, napi_callback_info cbI
         return NapiGetNull(env);
     }
     asyncContext->env = env;
-    ParseContextWithBdName(env, cbInfo, asyncContext);
+    std::vector<PropertyType> propertyList = {PropertyType::NAME, PropertyType::BUNDLE_NAME};
     napi_value result = nullptr;
-    if (asyncContext->callbackRef == nullptr) {
-        napi_create_promise(env, &asyncContext->deferred, &result);
-    } else {
-        napi_get_undefined(env, &result);
-    }
+    ParseContextForAppAccount(env, cbInfo, asyncContext, propertyList, &result);
+
     napi_value resource = nullptr;
     napi_create_string_utf8(env, "DisableAppAccess", NAPI_AUTO_LENGTH, &resource);
     napi_create_async_work(env,
@@ -420,13 +411,10 @@ napi_value NapiAppAccount::EnableAppAccess(napi_env env, napi_callback_info cbIn
         return NapiGetNull(env);
     }
     asyncContext->env = env;
-    ParseContextWithBdName(env, cbInfo, asyncContext);
+    std::vector<PropertyType> propertyList = {PropertyType::NAME, PropertyType::BUNDLE_NAME};
     napi_value result = nullptr;
-    if (asyncContext->callbackRef == nullptr) {
-        napi_create_promise(env, &asyncContext->deferred, &result);
-    } else {
-        napi_get_undefined(env, &result);
-    }
+    ParseContextForAppAccount(env, cbInfo, asyncContext, propertyList, &result);
+
     napi_value resource = nullptr;
     napi_create_string_utf8(env, "EnableAppAccess", NAPI_AUTO_LENGTH, &resource);
     napi_create_async_work(env,
@@ -458,18 +446,16 @@ napi_value NapiAppAccount::SetAppAccess(napi_env env, napi_callback_info cbInfo)
         ACCOUNT_LOGE("insufficient memory for asyncContext!");
         return NapiGetNull(env);
     }
-    if (!ParseContextForSetAppAccess(env, cbInfo, context)) {
+    context->env = env;
+    std::vector<PropertyType> propertyList = {
+        PropertyType::NAME, PropertyType::BUNDLE_NAME, PropertyType::IS_ACCESSIBLE};
+    napi_value result = nullptr;
+    if (!ParseContextForAppAccount(env, cbInfo, context, propertyList, &result)) {
         napi_throw(env, GenerateBusinessError(env, ERR_JS_PARAMETER_ERROR, context->errMsg));
         delete context;
         return NapiGetNull(env);
     }
-    context->env = env;
-    napi_value result = nullptr;
-    if (context->callbackRef == nullptr) {
-        napi_create_promise(env, &context->deferred, &result);
-    } else {
-        napi_get_undefined(env, &result);
-    }
+
     napi_value resource = nullptr;
     napi_create_string_utf8(env, "SetAppAccess", NAPI_AUTO_LENGTH, &resource);
     napi_create_async_work(env, nullptr, resource,
@@ -509,17 +495,12 @@ napi_value NapiAppAccount::CheckDataSyncEnabledInternal(napi_env env, napi_callb
     }
     asyncContext->env = env;
     asyncContext->throwErr = isThrowable;
-    if ((!ParseContextWithTwoPara(env, cbInfo, asyncContext)) && isThrowable) {
+    std::vector<PropertyType> propertyList = { PropertyType::NAME };
+    napi_value result = nullptr;
+    if ((!ParseContextForAppAccount(env, cbInfo, asyncContext, propertyList, &result)) && isThrowable) {
         napi_throw(env, GenerateBusinessError(env, ERR_JS_PARAMETER_ERROR, asyncContext->errMsg));
         delete asyncContext;
         return NapiGetNull(env);
-    }
-
-    napi_value result = nullptr;
-    if (asyncContext->callbackRef == nullptr) {
-        napi_create_promise(env, &asyncContext->deferred, &result);
-    } else {
-        napi_get_undefined(env, &result);
     }
 
     napi_value resource = nullptr;
@@ -569,17 +550,13 @@ napi_value NapiAppAccount::SetCredentialInternal(napi_env env, napi_callback_inf
     }
     asyncContext->env = env;
     asyncContext->throwErr = isThrowable;
-    if ((!ParseContextToSetCredential(env, cbInfo, asyncContext)) && isThrowable) {
+    std::vector<PropertyType> propertyList = {
+        PropertyType::NAME, PropertyType::CREDENTIAL_TYPE, PropertyType::CREDENTIAL };
+    napi_value result = nullptr;
+    if ((!ParseContextForAppAccount(env, cbInfo, asyncContext, propertyList, &result)) && isThrowable) {
         napi_throw(env, GenerateBusinessError(env, ERR_JS_PARAMETER_ERROR, asyncContext->errMsg));
         delete asyncContext;
         return NapiGetNull(env);
-    }
-
-    napi_value result = nullptr;
-    if (asyncContext->callbackRef == nullptr) {
-        napi_create_promise(env, &asyncContext->deferred, &result);
-    } else {
-        napi_get_undefined(env, &result);
     }
 
     napi_value resource = nullptr;
@@ -618,14 +595,9 @@ napi_value NapiAppAccount::SetAccountExtraInfo(napi_env env, napi_callback_info 
         return NapiGetNull(env);
     }
     asyncContext->env = env;
-    ParseContextForSetExInfo(env, cbInfo, asyncContext);
-
+    std::vector<PropertyType> propertyList = { PropertyType::NAME, PropertyType::EXTRA_INFO };
     napi_value result = nullptr;
-    if (asyncContext->callbackRef == nullptr) {
-        napi_create_promise(env, &asyncContext->deferred, &result);
-    } else {
-        napi_get_undefined(env, &result);
-    }
+    ParseContextForAppAccount(env, cbInfo, asyncContext, propertyList, &result);
 
     napi_value resource = nullptr;
     napi_create_string_utf8(env, "SetAccountExtraInfo", NAPI_AUTO_LENGTH, &resource);
@@ -671,17 +643,12 @@ napi_value NapiAppAccount::SetDataSyncEnabledInternal(napi_env env, napi_callbac
     }
     asyncContext->env = env;
     asyncContext->throwErr = isThrowable;
-    if ((!ParseContextWithIsEnable(env, cbInfo, asyncContext)) && isThrowable) {
+    std::vector<PropertyType> propertyList = { PropertyType::NAME, PropertyType::IS_ENABLE };
+    napi_value result = nullptr;
+    if ((!ParseContextForAppAccount(env, cbInfo, asyncContext, propertyList, &result)) && isThrowable) {
         napi_throw(env, GenerateBusinessError(env, ERR_JS_PARAMETER_ERROR, asyncContext->errMsg));
         delete asyncContext;
         return NapiGetNull(env);
-    }
-
-    napi_value result = nullptr;
-    if (asyncContext->callbackRef == nullptr) {
-        napi_create_promise(env, &asyncContext->deferred, &result);
-    } else {
-        napi_get_undefined(env, &result);
     }
 
     napi_value resource = nullptr;
@@ -731,17 +698,12 @@ napi_value NapiAppAccount::SetCustomDataInternal(napi_env env, napi_callback_inf
     }
     asyncContext->env = env;
     asyncContext->throwErr = isThrowable;
-    if ((!ParseContextForAssociatedData(env, cbInfo, asyncContext)) && isThrowable) {
+    std::vector<PropertyType> propertyList = { PropertyType::NAME, PropertyType::KEY, PropertyType::VALUE };
+    napi_value result = nullptr;
+    if ((!ParseContextForAppAccount(env, cbInfo, asyncContext, propertyList, &result)) && isThrowable) {
         napi_throw(env, GenerateBusinessError(env, ERR_JS_PARAMETER_ERROR, asyncContext->errMsg));
         delete asyncContext;
         return NapiGetNull(env);
-    }
-
-    napi_value result = nullptr;
-    if (asyncContext->callbackRef == nullptr) {
-        napi_create_promise(env, &asyncContext->deferred, &result);
-    } else {
-        napi_get_undefined(env, &result);
     }
 
     napi_value resource = nullptr;
@@ -923,16 +885,12 @@ napi_value NapiAppAccount::GetCredentialInternal(napi_env env, napi_callback_inf
     }
     asyncContext->env = env;
     asyncContext->throwErr = isThrowable;
-    if ((!ParseContextWithCredentialType(env, cbInfo, asyncContext)) && isThrowable) {
+    std::vector<PropertyType> propertyList = { PropertyType::NAME, PropertyType::CREDENTIAL_TYPE };
+    napi_value result = nullptr;
+    if ((!ParseContextForAppAccount(env, cbInfo, asyncContext, propertyList, &result)) && isThrowable) {
         napi_throw(env, GenerateBusinessError(env, ERR_JS_PARAMETER_ERROR, asyncContext->errMsg));
         delete asyncContext;
         return NapiGetNull(env);
-    }
-    napi_value result = nullptr;
-    if (asyncContext->callbackRef == nullptr) {
-        napi_create_promise(env, &asyncContext->deferred, &result);
-    } else {
-        napi_get_undefined(env, &result);
     }
 
     napi_value resource = nullptr;
@@ -971,13 +929,9 @@ napi_value NapiAppAccount::GetAccountExtraInfo(napi_env env, napi_callback_info 
         return NapiGetNull(env);
     }
     asyncContext->env = env;
-    ParseContextWithTwoPara(env, cbInfo, asyncContext);
+    std::vector<PropertyType> propertyList = { PropertyType::NAME };
     napi_value result = nullptr;
-    if (asyncContext->callbackRef == nullptr) {
-        napi_create_promise(env, &asyncContext->deferred, &result);
-    } else {
-        napi_get_undefined(env, &result);
-    }
+    ParseContextForAppAccount(env, cbInfo, asyncContext, propertyList, &result);
 
     napi_value resource = nullptr;
     napi_create_string_utf8(env, "GetAccountExtraInfo", NAPI_AUTO_LENGTH, &resource);
@@ -1025,17 +979,14 @@ napi_value NapiAppAccount::GetCustomDataInternal(napi_env env, napi_callback_inf
     }
     asyncContext->env = env;
     asyncContext->throwErr = isThrowable;
-    if ((!ParseContextToGetData(env, cbInfo, asyncContext)) && isThrowable) {
+    std::vector<PropertyType> propertyList = { PropertyType::NAME, PropertyType::KEY };
+    napi_value result = nullptr;
+    if ((!ParseContextForAppAccount(env, cbInfo, asyncContext, propertyList, &result)) && isThrowable) {
         napi_throw(env, GenerateBusinessError(env, ERR_JS_PARAMETER_ERROR, asyncContext->errMsg));
         delete asyncContext;
         return NapiGetNull(env);
     }
-    napi_value result = nullptr;
-    if (asyncContext->callbackRef == nullptr) {
-        napi_create_promise(env, &asyncContext->deferred, &result);
-    } else {
-        napi_get_undefined(env, &result);
-    }
+
     napi_value resource = nullptr;
     napi_create_string_utf8(env, "GetAssociatedData", NAPI_AUTO_LENGTH, &resource);
     napi_create_async_work(env,
@@ -1066,7 +1017,9 @@ napi_value NapiAppAccount::GetCustomDataInternal(napi_env env, napi_callback_inf
 napi_value NapiAppAccount::GetAssociatedDataSync(napi_env env, napi_callback_info cbInfo)
 {
     AppAccountAsyncContext asyncContext;
-    if (!ParseContextToGetData(env, cbInfo, &asyncContext)) {
+    std::vector<PropertyType> propertyList = { PropertyType::NAME, PropertyType::KEY };
+    napi_value res = nullptr;
+    if (!ParseContextForAppAccount(env, cbInfo, &asyncContext, propertyList, &res)) {
         napi_throw(env, GenerateBusinessError(env, ERR_JS_PARAMETER_ERROR, asyncContext.errMsg));
         return NapiGetNull(env);
     }
@@ -1170,17 +1123,14 @@ napi_value NapiAppAccount::GetAuthTokenInternal(napi_env env, napi_callback_info
     }
     asyncContext->env = env;
     asyncContext->throwErr = isThrowable;
-    if ((!ParseContextForGetOAuthToken(env, cbInfo, asyncContext)) && isThrowable) {
+    std::vector<PropertyType> propertyList = { PropertyType::NAME, PropertyType::OWNER, PropertyType::AUTH_TYPE };
+    napi_value result = nullptr;
+    if ((!ParseContextForOAuth(env, cbInfo, asyncContext, propertyList, &result)) && isThrowable) {
         napi_throw(env, GenerateBusinessError(env, ERR_JS_PARAMETER_ERROR, asyncContext->errMsg));
         delete asyncContext;
         return NapiGetNull(env);
     }
-    napi_value result = nullptr;
-    if (asyncContext->callbackRef == nullptr) {
-        napi_create_promise(env, &asyncContext->deferred, &result);
-    } else {
-        napi_get_undefined(env, &result);
-    }
+
     napi_value resource = nullptr;
     napi_create_string_utf8(env, "GetOAuthToken", NAPI_AUTO_LENGTH, &resource);
     napi_create_async_work(env, nullptr, resource,
@@ -1230,16 +1180,12 @@ napi_value NapiAppAccount::SetAuthTokenInternal(napi_env env, napi_callback_info
     }
     asyncContext->env = env;
     asyncContext->throwErr = isThrowable;
-    if ((!ParseContextForSetOAuthToken(env, cbInfo, asyncContext)) && isThrowable) {
+    std::vector<PropertyType> propertyList = { PropertyType::NAME, PropertyType::AUTH_TYPE, PropertyType::TOKEN };
+    napi_value result = nullptr;
+    if ((!ParseContextForOAuth(env, cbInfo, asyncContext, propertyList, &result)) && isThrowable) {
         napi_throw(env, GenerateBusinessError(env, ERR_JS_PARAMETER_ERROR, asyncContext->errMsg));
         delete asyncContext;
         return NapiGetNull(env);
-    }
-    napi_value result = nullptr;
-    if (asyncContext->callbackRef == nullptr) {
-        napi_create_promise(env, &asyncContext->deferred, &result);
-    } else {
-        napi_get_undefined(env, &result);
     }
     napi_value resource = nullptr;
     napi_create_string_utf8(env, "SetOAuthToken", NAPI_AUTO_LENGTH, &resource);
@@ -1287,16 +1233,13 @@ napi_value NapiAppAccount::DeleteAuthTokenInternal(napi_env env, napi_callback_i
     }
     asyncContext->env = env;
     asyncContext->throwErr = isThrowable;
-    if ((!ParseContextForDeleteOAuthToken(env, cbInfo, asyncContext)) && isThrowable) {
+    std::vector<PropertyType> propertyList = {
+        PropertyType::NAME, PropertyType::OWNER, PropertyType::AUTH_TYPE, PropertyType::TOKEN };
+    napi_value result = nullptr;
+    if ((!ParseContextForOAuth(env, cbInfo, asyncContext, propertyList, &result)) && isThrowable) {
         napi_throw(env, GenerateBusinessError(env, ERR_JS_PARAMETER_ERROR, asyncContext->errMsg));
         delete asyncContext;
         return NapiGetNull(env);
-    }
-    napi_value result = nullptr;
-    if (asyncContext->callbackRef == nullptr) {
-        NAPI_CALL(env, napi_create_promise(env, &asyncContext->deferred, &result));
-    } else {
-        NAPI_CALL(env, napi_get_undefined(env, &result));
     }
     napi_value resource = nullptr;
     NAPI_CALL(env, napi_create_string_utf8(env, "DeleteOAuthToken", NAPI_AUTO_LENGTH, &resource));
@@ -1346,16 +1289,13 @@ napi_value NapiAppAccount::SetAuthTokenVisibilityInternal(napi_env env, napi_cal
     }
     asyncContext->env = env;
     asyncContext->throwErr = isThrowable;
-    if ((!ParseContextForSetOAuthTokenVisibility(env, cbInfo, asyncContext)) && isThrowable) {
+    std::vector<PropertyType> propertyList = {
+        PropertyType::NAME, PropertyType::AUTH_TYPE, PropertyType::BUNDLE_NAME, PropertyType::IS_VISIBLE };
+    napi_value result = nullptr;
+    if ((!ParseContextForOAuth(env, cbInfo, asyncContext, propertyList, &result)) && isThrowable) {
         napi_throw(env, GenerateBusinessError(env, ERR_JS_PARAMETER_ERROR, asyncContext->errMsg));
         delete asyncContext;
         return NapiGetNull(env);
-    }
-    napi_value result = nullptr;
-    if (asyncContext->callbackRef == nullptr) {
-        NAPI_CALL(env, napi_create_promise(env, &asyncContext->deferred, &result));
-    } else {
-        NAPI_CALL(env, napi_get_undefined(env, &result));
     }
     napi_value resource = nullptr;
     NAPI_CALL(env, napi_create_string_utf8(env, "SetOAuthTokenVisibility", NAPI_AUTO_LENGTH, &resource));
@@ -1407,16 +1347,13 @@ napi_value NapiAppAccount::CheckAuthTokenVisibilityInternal(napi_env env, napi_c
     }
     asyncContext->env = env;
     asyncContext->throwErr = isThrowable;
-    if ((!ParseContextForCheckOAuthTokenVisibility(env, cbInfo, asyncContext)) && isThrowable) {
+    std::vector<PropertyType> propertyList = {
+        PropertyType::NAME, PropertyType::AUTH_TYPE, PropertyType::BUNDLE_NAME };
+    napi_value result = nullptr;
+    if ((!ParseContextForOAuth(env, cbInfo, asyncContext, propertyList, &result)) && isThrowable) {
         napi_throw(env, GenerateBusinessError(env, ERR_JS_PARAMETER_ERROR, asyncContext->errMsg));
         delete asyncContext;
         return NapiGetNull(env);
-    }
-    napi_value result = nullptr;
-    if (asyncContext->callbackRef == nullptr) {
-        NAPI_CALL(env, napi_create_promise(env, &asyncContext->deferred, &result));
-    } else {
-        NAPI_CALL(env, napi_get_undefined(env, &result));
     }
     napi_value resource = nullptr;
     NAPI_CALL(env, napi_create_string_utf8(env, "CheckOAuthTokenVisibility", NAPI_AUTO_LENGTH, &resource));
@@ -1468,17 +1405,14 @@ napi_value NapiAppAccount::QueryAuthenticatorInfoInternal(napi_env env, napi_cal
     }
     asyncContext->env = env;
     asyncContext->throwErr = isThrowable;
-    if ((!ParseContextForGetAuthenticatorInfo(env, cbInfo, asyncContext)) && isThrowable) {
+    std::vector<PropertyType> propertyList = { PropertyType::OWNER };
+    napi_value result = nullptr;
+    if ((!ParseContextForOAuth(env, cbInfo, asyncContext, propertyList, &result)) && isThrowable) {
         napi_throw(env, GenerateBusinessError(env, ERR_JS_PARAMETER_ERROR, asyncContext->errMsg));
         delete asyncContext;
         return NapiGetNull(env);
     }
-    napi_value result = nullptr;
-    if (asyncContext->callbackRef == nullptr) {
-        NAPI_CALL(env, napi_create_promise(env, &asyncContext->deferred, &result));
-    } else {
-        NAPI_CALL(env, napi_get_undefined(env, &result));
-    }
+
     napi_value resource = nullptr;
     NAPI_CALL(env, napi_create_string_utf8(env, "GetAuthenticatorInfo", NAPI_AUTO_LENGTH, &resource));
     NAPI_CALL(env,
@@ -1527,17 +1461,14 @@ napi_value NapiAppAccount::GetAllAuthTokensInternal(napi_env env, napi_callback_
     }
     asyncContext->env = env;
     asyncContext->throwErr = isThrowable;
-    if ((!ParseContextForGetAllOAuthTokens(env, cbInfo, asyncContext)) && isThrowable) {
+    std::vector<PropertyType> propertyList = { PropertyType::NAME, PropertyType::OWNER };
+    napi_value result = nullptr;
+    if ((!ParseContextForOAuth(env, cbInfo, asyncContext, propertyList, &result)) && isThrowable) {
         napi_throw(env, GenerateBusinessError(env, ERR_JS_PARAMETER_ERROR, asyncContext->errMsg));
         delete asyncContext;
         return NapiGetNull(env);
     }
-    napi_value result = nullptr;
-    if (asyncContext->callbackRef == nullptr) {
-        NAPI_CALL(env, napi_create_promise(env, &asyncContext->deferred, &result));
-    } else {
-        NAPI_CALL(env, napi_get_undefined(env, &result));
-    }
+
     napi_value resource = nullptr;
     NAPI_CALL(env, napi_create_string_utf8(env, "GetAllOAuthTokens", NAPI_AUTO_LENGTH, &resource));
     NAPI_CALL(env,
@@ -1586,17 +1517,14 @@ napi_value NapiAppAccount::GetAuthListInternal(napi_env env, napi_callback_info 
     }
     asyncContext->env = env;
     asyncContext->throwErr = isThrowable;
-    if ((!ParseContextForGetOAuthList(env, cbInfo, asyncContext)) && isThrowable) {
+    std::vector<PropertyType> propertyList = { PropertyType::NAME, PropertyType::AUTH_TYPE };
+    napi_value result = nullptr;
+    if ((!ParseContextForOAuth(env, cbInfo, asyncContext, propertyList, &result)) && isThrowable) {
         napi_throw(env, GenerateBusinessError(env, ERR_JS_PARAMETER_ERROR, asyncContext->errMsg));
         delete asyncContext;
         return NapiGetNull(env);
     }
-    napi_value result = nullptr;
-    if (asyncContext->callbackRef == nullptr) {
-        NAPI_CALL(env, napi_create_promise(env, &asyncContext->deferred, &result));
-    } else {
-        NAPI_CALL(env, napi_get_undefined(env, &result));
-    }
+
     napi_value resource = nullptr;
     NAPI_CALL(env, napi_create_string_utf8(env, "GetOAuthList", NAPI_AUTO_LENGTH, &resource));
     NAPI_CALL(env,
@@ -1648,17 +1576,14 @@ napi_value NapiAppAccount::GetAuthCallbackInternal(napi_env env, napi_callback_i
     }
     asyncContext->env = env;
     asyncContext->throwErr = isThrowable;
-    if ((!ParseContextForGetAuthenticatorCallback(env, cbInfo, asyncContext)) && isThrowable) {
+    std::vector<PropertyType> propertyList = { PropertyType::SESSION_ID };
+    napi_value result = nullptr;
+    if ((!ParseContextForOAuth(env, cbInfo, asyncContext, propertyList, &result)) && isThrowable) {
         napi_throw(env, GenerateBusinessError(env, ERR_JS_PARAMETER_ERROR, asyncContext->errMsg));
         delete asyncContext;
         return NapiGetNull(env);
     }
-    napi_value result = nullptr;
-    if (asyncContext->callbackRef == nullptr) {
-        NAPI_CALL(env, napi_create_promise(env, &asyncContext->deferred, &result));
-    } else {
-        NAPI_CALL(env, napi_get_undefined(env, &result));
-    }
+
     napi_value resource = nullptr;
     NAPI_CALL(env, napi_create_string_utf8(env, "GetAuthenticatorCallback", NAPI_AUTO_LENGTH, &resource));
     NAPI_CALL(env,
@@ -1695,17 +1620,14 @@ napi_value NapiAppAccount::CheckAppAccess(napi_env env, napi_callback_info cbInf
         return NapiGetNull(env);
     }
     context->env = env;
-    if (!ParseContextWithBdName(env, cbInfo, context)) {
+    std::vector<PropertyType> propertyList = { PropertyType::NAME, PropertyType::BUNDLE_NAME };
+    napi_value result = nullptr;
+    if (!ParseContextForAppAccount(env, cbInfo, context, propertyList, &result)) {
         napi_throw(env, GenerateBusinessError(env, ERR_JS_PARAMETER_ERROR, context->errMsg));
         delete context;
         return NapiGetNull(env);
     }
-    napi_value result = nullptr;
-    if (context->callbackRef == nullptr) {
-        NAPI_CALL(env, napi_create_promise(env, &context->deferred, &result));
-    } else {
-        NAPI_CALL(env, napi_get_undefined(env, &result));
-    }
+
     napi_value resource = nullptr;
     NAPI_CALL(env, napi_create_string_utf8(env, "CheckAppAccess", NAPI_AUTO_LENGTH, &resource));
     NAPI_CALL(env, napi_create_async_work(env,
@@ -1751,14 +1673,13 @@ napi_value NapiAppAccount::DeleteCredentialInternal(napi_env env, napi_callback_
     }
     context->env = env;
     context->throwErr = isThrowable;
-    if (!ParseContextWithCredentialType(env, cbInfo, context) && isThrowable) {
+    std::vector<PropertyType> propertyList = { PropertyType::NAME, PropertyType::CREDENTIAL_TYPE };
+    if ((!ParseContextForAppAccount(env, cbInfo, context, propertyList, &result)) && isThrowable) {
         napi_throw(env, GenerateBusinessError(env, ERR_JS_PARAMETER_ERROR, context->errMsg));
         delete context;
         return result;
     }
-    if (context->callbackRef == nullptr) {
-        napi_create_promise(env, &context->deferred, &result);
-    }
+
     napi_value resource = nullptr;
     napi_create_string_utf8(env, "DeleteAccountCredential", NAPI_AUTO_LENGTH, &resource);
     napi_create_async_work(env, nullptr, resource,
