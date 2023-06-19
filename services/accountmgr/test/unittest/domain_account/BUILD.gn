@@ -74,7 +74,7 @@ ohos_unittest("DomainAccountInnerServiceCovTest") {
     "ability_runtime:wantagent_innerkits",
     "access_token:libaccesstoken_sdk",
     "c_utils:utils",
-    "hiviewdfx_hilog_native:libhilog",
+    "hilog:libhilog",
     "ipc:ipc_single",
     "kv_store:distributeddata_inner",
     "samgr:samgr_proxy",
@@ -85,14 +85,14 @@ ohos_unittest("DomainAccountInnerServiceCovTest") {
   }
   if (has_hiviewdfx_hisysevent_part) {
     cflags_cc += [ "-DHAS_HISYSEVENT_PART" ]
-    external_deps += [ "hisysevent_native:libhisysevent" ]
+    external_deps += [ "hisysevent:libhisysevent" ]
   }
   if (has_user_auth_part) {
     cflags_cc += [ "-DHAS_USER_AUTH_PART" ]
     external_deps += [ "user_auth_framework:userauth_client" ]
   }
   if (has_hiviewdfx_hitrace_part) {
-    external_deps += [ "hitrace_native:hitrace_meter" ]
+    external_deps += [ "hitrace:hitrace_meter" ]
     cflags_cc += [ "-DHAS_HITRACE_PART" ]
   }
 

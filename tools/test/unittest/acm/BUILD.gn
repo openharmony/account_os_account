@@ -44,7 +44,7 @@ ohos_unittest("account_command_create_test") {
 
   external_deps = [
     "c_utils:utils",
-    "hiviewdfx_hilog_native:libhilog",
+    "hilog:libhilog",
     "ipc:ipc_single",
     "os_account:os_account_innerkits",
   ]
@@ -78,7 +78,7 @@ ohos_unittest("account_command_delete_test") {
 
   external_deps = [
     "c_utils:utils",
-    "hiviewdfx_hilog_native:libhilog",
+    "hilog:libhilog",
     "ipc:ipc_single",
     "os_account:os_account_innerkits",
   ]
@@ -112,7 +112,7 @@ ohos_unittest("account_command_dump_test") {
 
   external_deps = [
     "c_utils:utils",
-    "hiviewdfx_hilog_native:libhilog",
+    "hilog:libhilog",
     "ipc:ipc_single",
     "os_account:os_account_innerkits",
   ]
@@ -146,7 +146,7 @@ ohos_unittest("account_command_set_test") {
 
   external_deps = [
     "c_utils:utils",
-    "hiviewdfx_hilog_native:libhilog",
+    "hilog:libhilog",
     "ipc:ipc_single",
     "os_account:os_account_innerkits",
   ]
@@ -180,7 +180,7 @@ ohos_unittest("account_command_switch_test") {
 
   external_deps = [
     "c_utils:utils",
-    "hiviewdfx_hilog_native:libhilog",
+    "hilog:libhilog",
     "ipc:ipc_single",
     "os_account:os_account_innerkits",
   ]
@@ -215,7 +215,7 @@ ohos_unittest("account_command_test") {
 
   external_deps = [
     "c_utils:utils",
-    "hiviewdfx_hilog_native:libhilog",
+    "hilog:libhilog",
     "ipc:ipc_single",
     "os_account:os_account_innerkits",
   ]

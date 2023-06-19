@@ -53,7 +53,7 @@ ohos_shared_library("account_napi_common") {
   external_deps = [
     "access_token:libtokenid_sdk",
     "c_utils:utils",
-    "hiviewdfx_hilog_native:libhilog",
+    "hilog:libhilog",
     "ipc:ipc_single",
     "napi:ace_napi",
   ]

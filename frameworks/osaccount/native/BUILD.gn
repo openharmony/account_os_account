@@ -76,7 +76,7 @@ ohos_shared_library("os_account_innerkits") {
     "ability_base:want",
     "ability_runtime:wantagent_innerkits",
     "c_utils:utils",
-    "hiviewdfx_hilog_native:libhilog",
+    "hilog:libhilog",
     "ipc:ipc_single",
     "samgr:samgr_proxy",
   ]

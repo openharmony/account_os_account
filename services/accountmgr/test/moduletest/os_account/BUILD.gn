@@ -55,7 +55,7 @@ ohos_moduletest("os_account_manager_service_module_test") {
   external_deps = [
     "ability_runtime:ability_manager",
     "c_utils:utils",
-    "hiviewdfx_hilog_native:libhilog",
+    "hilog:libhilog",
     "ipc:ipc_single",
     "kv_store:distributeddata_inner",
   ]
@@ -99,7 +99,7 @@ ohos_moduletest("os_account_manager_service_create_os_account_test") {
   external_deps = [
     "ability_runtime:ability_manager",
     "c_utils:utils",
-    "hiviewdfx_hilog_native:libhilog",
+    "hilog:libhilog",
     "ipc:ipc_single",
     "kv_store:distributeddata_inner",
   ]
@@ -143,7 +143,7 @@ ohos_moduletest("os_account_manager_service_subscribe_module_test") {
   external_deps = [
     "ability_runtime:ability_manager",
     "c_utils:utils",
-    "hiviewdfx_hilog_native:libhilog",
+    "hilog:libhilog",
     "ipc:ipc_single",
     "kv_store:distributeddata_inner",
   ]
