@@ -174,12 +174,7 @@ static void OnAcquireInfoWork(uv_work_t* work, int status)
     napi_env env = param->env;
     napi_create_int32(env, param->module, &argv[PARAM_ZERO]);
     napi_create_int32(env, param->acquire, &argv[PARAM_ONE]);
-    napi_value credentialId = CreateUint8Array(
-        env, reinterpret_cast<uint8_t *>(&param->credentialId), sizeof(uint64_t));
-    napi_create_object(env, &argv[PARAM_TWO]);
-    napi_set_named_property(env, argv[PARAM_TWO], "credentialId", credentialId);
-    napi_value napiExtraInfo = CreateUint8Array(env, param->extraInfo.data(), param->extraInfo.size());
-    napi_set_named_property(env, argv[PARAM_TWO], "extraInfo", napiExtraInfo);
+    argv[PARAM_TWO] = CreateUint8Array(env, param->extraInfo.data(), param->extraInfo.size());
     ACCOUNT_LOGI("call js function");
     NapiCallVoidFunction(env, argv, ARG_SIZE_THREE, param->callback.onAcquireInfo);
     napi_close_handle_scope(env, scope);
@@ -198,7 +193,6 @@ void NapiIDMCallback::OnAcquireInfo(int32_t module, uint32_t acquireInfo, const 
     param->callback = callback_;
     param->module = module;
     param->acquire = acquireInfo;
-    extraInfo.GetUint64Value(Attributes::AttributeKey::ATTR_CREDENTIAL_ID, param->credentialId);
     extraInfo.GetUint8ArrayValue(Attributes::AttributeKey::ATTR_EXTRA_INFO, param->extraInfo);
     work->data = reinterpret_cast<void *>(param.get());
     NAPI_CALL_RETURN_VOID(env_, uv_queue_work(loop, work.get(), [] (uv_work_t *work) { }, OnAcquireInfoWork));
@@ -454,7 +448,7 @@ static void OnUserAuthAcquireInfoWork(uv_work_t *work, int status)
     napi_value argv[ARG_SIZE_THREE] = {nullptr};
     napi_create_int32(param->env, param->module, &argv[PARAM_ZERO]);
     napi_create_uint32(param->env, param->acquireInfo, &argv[PARAM_ONE]);
-    napi_create_int32(param->env, param->extraInfo, &argv[PARAM_TWO]);
+    argv[PARAM_TWO] = CreateUint8Array(param->env, param->extraInfo.data(), param->extraInfo.size());
     ACCOUNT_LOGI("call js function");
     NapiCallVoidFunction(param->env, argv, ARG_SIZE_THREE, param->callback.onAcquireInfo);
     napi_close_handle_scope(param->env, scope);
@@ -503,7 +497,7 @@ void NapiUserAuthCallback::OnAcquireInfo(int32_t module, uint32_t acquireInfo, c
     }
     param->module = module;
     param->acquireInfo = acquireInfo;
-    param->extraInfo = 0;
+    extraInfo.GetUint8ArrayValue(Attributes::AttributeKey::ATTR_EXTRA_INFO, param->extraInfo);
     param->callback = callback_;
     work->data = reinterpret_cast<void *>(param.get());
     NAPI_CALL_RETURN_VOID(env_, uv_queue_work(loop, work.get(), [] (uv_work_t *work) {}, OnUserAuthAcquireInfoWork));
