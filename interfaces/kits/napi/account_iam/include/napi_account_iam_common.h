@@ -89,7 +89,7 @@ struct AuthCallbackParam : public CommonAsyncContext {
     explicit AuthCallbackParam(napi_env napiEnv) : CommonAsyncContext(napiEnv) {};
     int32_t module = 0;
     uint32_t acquireInfo = 0;
-    int32_t extraInfo = 0;
+    std::vector<uint8_t> extraInfo;
     int32_t resultCode = 0;
     int32_t remainTimes = -1;
     int32_t freezingTime = -1;
