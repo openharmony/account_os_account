@@ -95,6 +95,7 @@ private:
 
 void OhosAccountManagerTest::SetUpTestCase()
 {
+    OhosAccountManager::GetInstance().OnInitialize();
     const std::map<std::string, std::string> accountEventMap = AccountHelperData::GetAccountEventMap();
     g_eventLogin = GetAccountEventStr(accountEventMap, KEY_ACCOUNT_EVENT_LOGIN, OHOS_ACCOUNT_EVENT_LOGIN);
     g_eventLogout = GetAccountEventStr(accountEventMap, KEY_ACCOUNT_EVENT_LOGOUT, OHOS_ACCOUNT_EVENT_LOGOUT);
@@ -114,17 +115,15 @@ void OhosAccountManagerTest::TearDown() {}
  */
 HWTEST_F(OhosAccountManagerTest, OhosAccountManagerTest001, TestSize.Level0)
 {
-    OhosAccountManager accountManager;
     OhosAccountInfo accountInfo;
     accountInfo.name_ = TEST_NAME;
     accountInfo.uid_ = TEST_UID;
-    accountManager.OnInitialize();
-    auto ret = accountManager.LoginOhosAccount(-1, accountInfo, g_eventLogin);
+    auto ret = OhosAccountManager::GetInstance().LoginOhosAccount(-1, accountInfo, g_eventLogin);
     EXPECT_EQ(false, ret);
 
-    ret = accountManager.HandleOhosAccountTokenInvalidEvent(-1, accountInfo, g_eventTokenInvalid);
+    ret = OhosAccountManager::GetInstance().HandleOhosAccountTokenInvalidEvent(-1, accountInfo, g_eventTokenInvalid);
     EXPECT_EQ(false, ret);
-    EXPECT_EQ(ACCOUNT_STATE_UNBOUND, accountManager.GetCurrentOhosAccountState());
+    EXPECT_EQ(ACCOUNT_STATE_UNBOUND, OhosAccountManager::GetInstance().GetCurrentOhosAccountState());
 }
 
 /**
@@ -135,11 +134,9 @@ HWTEST_F(OhosAccountManagerTest, OhosAccountManagerTest001, TestSize.Level0)
  */
 HWTEST_F(OhosAccountManagerTest, OhosAccountManagerTest002, TestSize.Level0)
 {
-    OhosAccountManager accountManager;
-    accountManager.OnInitialize();
     std::int32_t testUserId = 200; // 200 is test user id.
     AccountInfo info;
-    ErrCode ret = accountManager.GetAccountInfoByUserId(testUserId, info);
+    ErrCode ret = OhosAccountManager::GetInstance().GetAccountInfoByUserId(testUserId, info);
     EXPECT_NE(ERR_OK, ret);
 }
 
@@ -151,10 +148,8 @@ HWTEST_F(OhosAccountManagerTest, OhosAccountManagerTest002, TestSize.Level0)
  */
 HWTEST_F(OhosAccountManagerTest, OhosAccountManagerTest003, TestSize.Level0)
 {
-    OhosAccountManager accountManager;
-    accountManager.OnInitialize();
     AccountInfo curOhosAccount;
-    ErrCode ret = accountManager.HandleEvent(curOhosAccount, TEST_EVENT_STR);
+    ErrCode ret = OhosAccountManager::GetInstance().HandleEvent(curOhosAccount, TEST_EVENT_STR);
     EXPECT_EQ(false, ret);
 }
 
@@ -166,10 +161,8 @@ HWTEST_F(OhosAccountManagerTest, OhosAccountManagerTest003, TestSize.Level0)
  */
 HWTEST_F(OhosAccountManagerTest, OhosAccountManagerTest004, TestSize.Level0)
 {
-    OhosAccountManager accountManager;
-    accountManager.OnInitialize();
     OhosAccountInfo curOhosAccount;
-    ErrCode ret = accountManager.LogoutOhosAccount(ACCOUNT_UID, curOhosAccount, TEST_EVENT_STR);
+    ErrCode ret = OhosAccountManager::GetInstance().LogoutOhosAccount(ACCOUNT_UID, curOhosAccount, TEST_EVENT_STR);
     EXPECT_EQ(false, ret);
 }
 
@@ -181,10 +174,8 @@ HWTEST_F(OhosAccountManagerTest, OhosAccountManagerTest004, TestSize.Level0)
  */
 HWTEST_F(OhosAccountManagerTest, OhosAccountManagerTest005, TestSize.Level0)
 {
-    OhosAccountManager accountManager;
-    accountManager.OnInitialize();
     OhosAccountInfo curOhosAccount;
-    ErrCode ret = accountManager.LogoffOhosAccount(ACCOUNT_UID, curOhosAccount, TEST_EVENT_STR);
+    ErrCode ret = OhosAccountManager::GetInstance().LogoffOhosAccount(ACCOUNT_UID, curOhosAccount, TEST_EVENT_STR);
     EXPECT_EQ(false, ret);
 }
 
@@ -208,19 +199,20 @@ HWTEST_F(OhosAccountManagerTest, OhosAccountManagerTest006, TestSize.Level0)
     bool result = EventFwk::CommonEventManager::SubscribeCommonEvent(subscriberPtr);
     ASSERT_EQ(result, true);
 
-    OhosAccountManager accountManager;
-    accountManager.OnInitialize();
     AccountInfo curAccountInfo;
     curAccountInfo.ohosAccountInfo_.name_ = "name";
     curAccountInfo.ohosAccountInfo_.uid_ = "test";
-    bool ret = accountManager.LoginOhosAccount(ACCOUNT_UID, curAccountInfo.ohosAccountInfo_, g_eventLogin);
+    bool ret =
+        OhosAccountManager::GetInstance().LoginOhosAccount(ACCOUNT_UID, curAccountInfo.ohosAccountInfo_, g_eventLogin);
     ASSERT_EQ(ret, true);
     std::this_thread::sleep_for(std::chrono::milliseconds(DELAY_FOR_OPERATION));
     ASSERT_EQ(subscriberPtr->GetStatusLoginFirst(), true);
-    ret = accountManager.LoginOhosAccount(ACCOUNT_UID, curAccountInfo.ohosAccountInfo_, g_eventLogin);
+    ret =
+        OhosAccountManager::GetInstance().LoginOhosAccount(ACCOUNT_UID, curAccountInfo.ohosAccountInfo_, g_eventLogin);
     ASSERT_EQ(ret, true);
     std::this_thread::sleep_for(std::chrono::milliseconds(DELAY_FOR_OPERATION));
     ASSERT_EQ(subscriberPtr->GetStatusLoginSecond(), true);
-    ret = accountManager.LogoutOhosAccount(ACCOUNT_UID, curAccountInfo.ohosAccountInfo_, g_eventLogout);
+    ret = OhosAccountManager::GetInstance().LogoutOhosAccount(
+        ACCOUNT_UID, curAccountInfo.ohosAccountInfo_, g_eventLogout);
     EXPECT_EQ(true, ret);
 }

@@ -29,6 +29,7 @@
         "OHOS::AccountSA::AccountMgrService::AccountMgrService()";
         "OHOS::AccountSA::AccountMgrService::Init()";
         "OHOS::AccountSA::AccountStateMachine::Clean()";
+        "OHOS::AccountSA::OhosAccountManager::GetInstance()";
         "OHOS::AccountSA::AccountStateMachine::OnInitialize()";
         "OHOS::AccountSA::AccountStateMachine::StateChangeProcess(int)";
         "OHOS::AccountSA::DomainAccountManagerService::DomainAccountManagerService()";
