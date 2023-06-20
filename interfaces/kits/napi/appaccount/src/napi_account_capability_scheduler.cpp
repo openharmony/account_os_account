@@ -48,14 +48,6 @@ static thread_local napi_value g_responsePrototype = nullptr;
 static bool g_initCompleted = false;
 }
 
-ExecuteRequestAsyncContext::~ExecuteRequestAsyncContext()
-{
-    if (requestRef != nullptr) {
-        napi_delete_reference(env, requestRef);
-        requestRef = nullptr;
-    }
-}
-
 NapiAccountCapabilityProvider::NapiAccountCapabilityProvider(napi_env env, AccountCapabilityType type)
     : env_(env), type_(type)
 {}
@@ -381,6 +373,18 @@ napi_value NapiAppAccountCapability::Init(napi_env env, napi_value exports)
     return exports;
 }
 
+ExecuteRequestAsyncContext::~ExecuteRequestAsyncContext()
+{
+    if (requestRef != nullptr) {
+        napi_delete_reference(env, requestRef);
+        requestRef = nullptr;
+    }
+    if (callbackRef != nullptr) {
+        napi_delete_reference(env, callbackRef);
+        callbackRef = nullptr;
+    }
+}
+
 static void ExecuteRequestCompletedWork(uv_work_t *work, int status)
 {
     std::unique_ptr<uv_work_t> workPtr(work);
@@ -462,14 +466,15 @@ void NapiExecuteRequestCallback::OnResult(const int32_t errCode, const AAFwk::Wa
         delete work;
         return;
     }
-    if (errCode == ERR_OK) {
-        asyncContext->requestRef = requestRef_;
-        asyncContext->parameters = parameters;
-    }
     asyncContext->errCode = errCode;
+    asyncContext->parameters = parameters;
+    asyncContext->requestRef = requestRef_;
     asyncContext->callbackRef = callbackRef_;
     asyncContext->deferred = deferred_;
     work->data = reinterpret_cast<void *>(asyncContext);
+    callbackRef_ = nullptr;
+    requestRef_ = nullptr;
+    deferred_ = nullptr;
     int resultCode = uv_queue_work(
         loop, work, [](uv_work_t *work) {}, ExecuteRequestCompletedWork);
     if (resultCode != 0) {
@@ -478,9 +483,6 @@ void NapiExecuteRequestCallback::OnResult(const int32_t errCode, const AAFwk::Wa
         delete work;
         return;
     }
-    callbackRef_ = nullptr;
-    requestRef_ = nullptr;
-    deferred_ = nullptr;
 }
 
 napi_value NapiAccountCapabilityScheduler::Init(napi_env env, napi_value exports)
@@ -529,11 +531,18 @@ static bool ParseRequestObject(
         ACCOUNT_LOGE("napi_unwrap native request failed");
         return false;
     }
-
     switch (requesrObject->baseProvider_->type_) {
         case AccountCapabilityType::AUTHORIZATION: {
             napi_value providerObject = nullptr;
             napi_get_reference_value(env, requesrObject->providerRef_, &providerObject);
+            constructor = nullptr;
+            napi_get_reference_value(env, g_authorizationProviderConstructor, &constructor);
+            isInstance = false;
+            napi_instanceof(env, providerObject, constructor, &isInstance);
+            if (!isInstance) {
+                ACCOUNT_LOGE("the authProvider object is invalid");
+                return false;
+            }
             NapiAuthorizationProvider *napiProvider = nullptr;
             status = napi_unwrap(env, providerObject, reinterpret_cast<void **>(&napiProvider));
             if ((status != napi_ok) || (napiProvider == nullptr)) {
@@ -549,7 +558,6 @@ static bool ParseRequestObject(
             return false;
         }
     }
-
     if (!AppExecFwk::UnwrapWantParams(env, object, request.parameters)) {
         ACCOUNT_LOGE("UnwrapWantParams failed");
         return false;
@@ -589,13 +597,13 @@ static void ExecuteRequestCB(napi_env env, void *data)
     sptr<NapiExecuteRequestCallback> callback = new (std::nothrow)
         NapiExecuteRequestCallback(env, asyncContext->callbackRef, asyncContext->deferred, asyncContext->requestRef);
     NAPI_ASSERT_RETURN_VOID(env, callback != nullptr, "failed to create napi callback");
+    asyncContext->requestRef = nullptr;
+    asyncContext->callbackRef = nullptr;
     asyncContext->errCode = AppAccountManager::ExecuteRequest(asyncContext->accountRequest, callback);
     if (asyncContext->errCode != ERR_OK) {
         AAFwk::WantParams parameters;
         callback->OnResult(asyncContext->errCode, parameters);
-        return;
     }
-    asyncContext->requestRef = nullptr;
 }
 
 static void ExecuteRequestCompletedCB(napi_env env, napi_status status, void *data)
