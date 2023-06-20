@@ -42,7 +42,7 @@
         "common_event_service",
         "c_utils",
         "kv_store",
-        "hicollie_native",
+        "hicollie",
         "hilog",
         "hisysevent",
         "hitrace",
