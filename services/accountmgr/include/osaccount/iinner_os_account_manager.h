@@ -21,6 +21,7 @@
 #include "inner_domain_account_manager.h"
 #include "ios_account_control.h"
 #include "ios_account_subscribe.h"
+#include "ohos_account_manager.h"
 #include "os_account_interface.h"
 #include "singleton.h"
 
@@ -100,8 +101,8 @@ private:
     void CreateBaseAdminAccount();
     void CreateBaseStandardAccount();
     void ResetAccountStatus(void);
-    ErrCode RemoveOsAccountOperate(const int id, OsAccountInfo &osAccountInfo,
-        const DomainAccountInfo &domainAccountInfo);
+    ErrCode RemoveOsAccountOperate(
+        const int id, OsAccountInfo &osAccountInfo, const DomainAccountInfo &domainAccountInfo);
     ErrCode DeActivateOsAccount(const int id);
     ErrCode PrepareOsAccountInfo(const std::string &name, const OsAccountType &type,
         const DomainAccountInfo &domainAccount, OsAccountInfo &osAccountInfo);

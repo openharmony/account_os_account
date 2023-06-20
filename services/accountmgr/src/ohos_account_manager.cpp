@@ -438,12 +438,22 @@ void OhosAccountManager::BuildEventsMapper()
     eventFuncMap_.insert(std::make_pair(eventTokenInvalid, &OhosAccountManager::HandleOhosAccountTokenInvalidEvent));
 }
 
+OhosAccountManager &OhosAccountManager::GetInstance()
+{
+    static OhosAccountManager instance;
+    return instance;
+}
+
 /**
  * Init ohos account manager.
  *
  */
 bool OhosAccountManager::OnInitialize()
 {
+    std::lock_guard<std::mutex> mutexLock(mgrMutex_);
+    if (isInit_) {
+        return true;
+    }
     accountState_ = std::make_unique<AccountStateMachine>();
     BuildEventsMapper();
 
@@ -465,6 +475,7 @@ bool OhosAccountManager::OnInitialize()
             return false;
         }
     }
+    isInit_ = true;
     return true;
 }
 

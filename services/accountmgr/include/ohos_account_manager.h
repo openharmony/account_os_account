@@ -35,6 +35,7 @@ using OhosAccountEventFunc = bool (OhosAccountManager::*)(
  */
 class OhosAccountManager {
 public:
+    static OhosAccountManager &GetInstance();
     /**
      * Get current ohos account information.
      *
@@ -142,6 +143,8 @@ public:
         const int32_t userId, const OhosAccountInfo &ohosAccountInfo, const std::string &eventStr);
 
 private:
+    bool isInit_ = false;
+    OhosAccountManager() = default;
     /**
      * Account state machine.
      */
@@ -161,6 +164,7 @@ private:
      * mutex lock for synchronization.
      */
     std::mutex mgrMutex_;
+    std::mutex initMutex_;
 
     /**
      * build event mapper.
