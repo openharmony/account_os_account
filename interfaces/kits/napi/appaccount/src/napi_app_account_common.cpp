@@ -253,6 +253,13 @@ void UvQueueWorkOnRequestContinued(uv_work_t *work, int status)
 
 void AppAccountManagerCallback::OnResult(int32_t resultCode, const AAFwk::Want &result)
 {
+    {
+        std::lock_guard<std::mutex> lock(mutex_);
+        if (isDone) {
+            return;
+        }
+        isDone = true;
+    }
     uv_loop_s *loop = nullptr;
     uv_work_t *work = nullptr;
     AuthenticatorCallbackParam *param = nullptr;
