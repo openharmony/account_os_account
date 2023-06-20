@@ -96,7 +96,7 @@ private:
     ErrCode SendRequest(IOsAccount::Message code, MessageParcel &data, MessageParcel &reply);
     ErrCode CheckOsAccountConstraintEnabled(
         IOsAccount::Message code, const int id, const std::string &constraint, bool &isConstraintEnable);
-
+    ErrCode SendRequestWithAccountId(IOsAccount::Message code, MessageParcel &reply, int id);
 private:
     static inline BrokerDelegator<OsAccountProxy> delegator_;
 };
