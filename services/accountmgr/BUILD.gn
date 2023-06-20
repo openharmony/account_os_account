@@ -312,7 +312,7 @@ ohos_shared_library("accountmgr") {
   }
 
   if (hicollie_enable == true) {
-    external_deps += [ "hicollie_native:libhicollie" ]
+    external_deps += [ "hicollie:libhicollie" ]
     cflags_cc += [ "-DHICOLLIE_ENABLE" ]
   }
 
