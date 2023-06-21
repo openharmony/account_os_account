@@ -41,9 +41,8 @@ class TestAppAccountAuthorizationExtensionCallback : public AppAccountAuthorizat
 public:
     explicit TestAppAccountAuthorizationExtensionCallback(
         const std::shared_ptr<MockAppAccountAuthorizationExtensionCallback> &callback)
-    {
-        callback_ = callback;
-    }
+        : callback_(callback)
+    {}
     virtual ~TestAppAccountAuthorizationExtensionCallback();
     void OnResult(const int32_t errCode, const AAFwk::WantParams &parameters) override;
 

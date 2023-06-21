@@ -81,7 +81,6 @@ private:
     bool registerToService_ = false;
     ServiceRunningState state_ = ServiceRunningState::STATE_NOT_START;
     std::unique_ptr<AccountDumpHelper> dumpHelper_{};
-    std::shared_ptr<OhosAccountManager> ohosAccountMgr_{};
 
     sptr<IRemoteObject> appAccountManagerService_ = nullptr;
     sptr<OsAccountManagerService> osAccountManagerService_ = nullptr;

@@ -49,7 +49,6 @@ public:
     static void TearDownTestCase();
     void SetUp();
     void TearDown();
-    std::shared_ptr<OhosAccountManager> ohosAccount_ {};
     OsAccountManagerService* osAccount_ {};
     std::unique_ptr<AccountDumpHelper> accountDumpHelper_ {};
 };
@@ -57,7 +56,9 @@ public:
 AccountDumpHelperTest::AccountDumpHelperTest() {}
 
 void AccountDumpHelperTest::SetUpTestCase()
-{}
+{
+    OhosAccountManager::GetInstance().OnInitialize();
+}
 
 void AccountDumpHelperTest::TearDownTestCase()
 {
@@ -70,15 +71,11 @@ void AccountDumpHelperTest::TearDownTestCase()
 
 void AccountDumpHelperTest::SetUp()
 {
-    ohosAccount_ = std::make_shared<OhosAccountManager>();
     osAccount_ = new (std::nothrow) OsAccountManagerService();
-    if (ohosAccount_ == nullptr || !ohosAccount_->OnInitialize()) {
-        std::cout << "AccountDumpHelperTest, error! ohos account manager init failed!" << std::endl;
-    }
     if (osAccount_ == nullptr) {
         std::cout << "AccountDumpHelperTest, error! osAccount_ is nullptr!" << std::endl;
     }
-    accountDumpHelper_ = std::make_unique<AccountDumpHelper>(ohosAccount_, osAccount_);
+    accountDumpHelper_ = std::make_unique<AccountDumpHelper>(osAccount_);
     if (accountDumpHelper_ == nullptr) {
         std::cout << "AccountDumpHelperTest, error! accountDumpHelper_ is nullptr!" << std::endl;
     }
@@ -221,7 +218,7 @@ HWTEST_F(AccountDumpHelperTest, AccountDumpParameterTest004, TestSize.Level0)
 HWTEST_F(AccountDumpHelperTest, AccountDumpParameterTest005, TestSize.Level0)
 {
     accountDumpHelper_ = nullptr;
-    accountDumpHelper_ = std::make_unique<AccountDumpHelper>(nullptr, osAccount_);
+    accountDumpHelper_ = std::make_unique<AccountDumpHelper>(osAccount_);
     ASSERT_NE(accountDumpHelper_, nullptr);
     std::string out;
     vector<std::string> cmd = {"-ohos_account_infos"};
@@ -239,7 +236,7 @@ HWTEST_F(AccountDumpHelperTest, AccountDumpParameterTest005, TestSize.Level0)
 HWTEST_F(AccountDumpHelperTest, AccountDumpParameterTest007, TestSize.Level0)
 {
     accountDumpHelper_ = nullptr;
-    accountDumpHelper_ = std::make_unique<AccountDumpHelper>(ohosAccount_, nullptr);
+    accountDumpHelper_ = std::make_unique<AccountDumpHelper>(nullptr);
     ASSERT_NE(accountDumpHelper_, nullptr);
     std::string out;
     vector<std::string> cmd = {"-os_account_infos"};
