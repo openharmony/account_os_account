@@ -425,6 +425,9 @@ std::int32_t AccountStub::OnRemoteRequest(
 
     const auto &itFunc = stubFuncMap_.find(code);
     if (itFunc != stubFuncMap_.end()) {
+        if (code <= SET_OHOS_ACCOUNT_INFO_BY_USER_ID) {
+            (void)OhosAccountManager::GetInstance().OnInitialize();
+        }
         int ret = (this->*(itFunc->second))(data, reply);
 #ifdef HICOLLIE_ENABLE
         HiviewDFX::XCollie::GetInstance().CancelTimer(timerId);
