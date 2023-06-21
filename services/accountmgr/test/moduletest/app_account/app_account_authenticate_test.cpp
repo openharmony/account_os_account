@@ -31,12 +31,13 @@
 using namespace testing::ext;
 using namespace OHOS;
 using namespace OHOS::AccountSA;
-
+DECLARE_INTERFACE_DESCRIPTOR(u"ohos.accountfwk.IAppAccountAuthenticator");
 namespace {
 const std::string STRING_NAME = "name";
 const std::string STRING_AUTH_TYPE = "test.authType";
 const std::string STRING_ABILITY_NAME = "test.mainAbility";
 const std::string CALLER_BUNDLE_NAME = "test.callerbundlename";
+const uint32_t SET_PROPERTIES = 4;
 }  // namespace
 
 class MockAuthenticatorCallback final : public AppAccountAuthenticatorCallbackStub {
@@ -128,7 +129,9 @@ public:
     static void TearDownTestCase(void);
     void SetUp(void) override;
     void TearDown(void) override;
-    sptr<AppAccountAuthenticatorProxy> authenticateProxyPtr_;
+    sptr<AppAccountAuthenticatorProxy> authenticateProxyPtr_ = nullptr;
+    sptr<MockAppAccountAuthenticator> mockServicePtr_ = nullptr;
+    sptr<IRemoteObject> authenticorService_ = nullptr;
 };
 
 void AppAccountAuthenticateModuleTest::SetUpTestCase(void)
@@ -141,9 +144,10 @@ void AppAccountAuthenticateModuleTest::TearDownTestCase(void)
 
 void AppAccountAuthenticateModuleTest::SetUp(void)
 {
-    sptr<MockAppAccountAuthenticator> mockServicePtr_ =  new (std::nothrow) MockAppAccountAuthenticator();
+    mockServicePtr_ =  new (std::nothrow) MockAppAccountAuthenticator();
+    ASSERT_NE(mockServicePtr_, nullptr);
 
-    sptr<IRemoteObject> authenticorService_ = mockServicePtr_->AsObject();
+    authenticorService_ = mockServicePtr_->AsObject();
     authenticateProxyPtr_ = new (std::nothrow) AppAccountAuthenticatorProxy(authenticorService_);
 }
 
@@ -381,4 +385,401 @@ HWTEST_F(AppAccountAuthenticateModuleTest, AppAccountAuthenticatorManagerTest_Ge
     AuthenticatorInfo info;
     ErrCode result = AppAccountAuthenticatorManager::GetAuthenticatorInfo(owner, userId, info);
     ASSERT_NE(result, ERR_OK);
+}
+
+/**
+ * @tc.name: AppAccountAuthenticatorManagerTest_AppAccountAuthenticatorStub_0100
+ * @tc.desc: test AppAccountAuthenticatorStub.
+ * @tc.type: FUNC
+ * @tc.require
+ */
+HWTEST_F(AppAccountAuthenticateModuleTest, AppAccountAuthenticatorManagerTest_AppAccountAuthenticatorStub_0100,
+    TestSize.Level1)
+{
+    EXPECT_NE(mockServicePtr_, nullptr);
+    MessageParcel data;
+    MessageParcel reply;
+    MessageOption option;
+    EXPECT_EQ(mockServicePtr_->OnRemoteRequest(-1, data, reply, option), ERR_ACCOUNT_COMMON_CHECK_DESCRIPTOR_ERROR);
+}
+
+/**
+ * @tc.name: AppAccountAuthenticatorManagerTest_AppAccountAuthenticatorStub_0200
+ * @tc.desc: test AppAccountAuthenticatorStub.
+ * @tc.type: FUNC
+ * @tc.require
+ */
+HWTEST_F(AppAccountAuthenticateModuleTest, AppAccountAuthenticatorManagerTest_AppAccountAuthenticatorStub_0200,
+    TestSize.Level1)
+{
+    EXPECT_NE(mockServicePtr_, nullptr);
+    MessageParcel data;
+    MessageParcel reply;
+    MessageOption option;
+    EXPECT_EQ(data.WriteInterfaceToken(GetDescriptor()), true);
+    EXPECT_NE(mockServicePtr_->OnRemoteRequest(-1, data, reply, option), ERR_NONE);
+}
+
+/**
+ * @tc.name: AppAccountAuthenticatorManagerTest_AppAccountAuthenticatorStub_0300
+ * @tc.desc: test AppAccountAuthenticatorStub.
+ * @tc.type: FUNC
+ * @tc.require
+ */
+HWTEST_F(AppAccountAuthenticateModuleTest, AppAccountAuthenticatorManagerTest_AppAccountAuthenticatorStub_0300,
+    TestSize.Level1)
+{
+    EXPECT_NE(mockServicePtr_, nullptr);
+    MessageParcel data;
+    MessageParcel reply;
+    MessageOption option;
+    EXPECT_EQ(data.WriteInterfaceToken(GetDescriptor()), true);
+    EXPECT_EQ(mockServicePtr_->OnRemoteRequest(ADD_ACCOUNT_IMPLICITLY, data, reply, option), ERR_NONE);
+    int result = 0;
+    reply.ReadInt32(result);
+    EXPECT_EQ(result, ERR_APPACCOUNT_SERVICE_INVALID_PARAMETER);
+}
+
+/**
+ * @tc.name: AppAccountAuthenticatorManagerTest_AppAccountAuthenticatorStub_0400
+ * @tc.desc: test AppAccountAuthenticatorStub.
+ * @tc.type: FUNC
+ * @tc.require
+ */
+HWTEST_F(AppAccountAuthenticateModuleTest, AppAccountAuthenticatorManagerTest_AppAccountAuthenticatorStub_0400,
+    TestSize.Level1)
+{
+    EXPECT_NE(mockServicePtr_, nullptr);
+    MessageParcel data;
+    MessageParcel reply;
+    MessageOption option;
+    EXPECT_EQ(data.WriteInterfaceToken(GetDescriptor()), true);
+    EXPECT_EQ(mockServicePtr_->OnRemoteRequest(AUTHENTICATE, data, reply, option), ERR_NONE);
+    int result = 0;
+    reply.ReadInt32(result);
+    EXPECT_EQ(result, ERR_APPACCOUNT_SERVICE_INVALID_PARAMETER);
+}
+
+/**
+ * @tc.name: AppAccountAuthenticatorManagerTest_AppAccountAuthenticatorStub_0500
+ * @tc.desc: test AppAccountAuthenticatorStub.
+ * @tc.type: FUNC
+ * @tc.require
+ */
+HWTEST_F(AppAccountAuthenticateModuleTest, AppAccountAuthenticatorManagerTest_AppAccountAuthenticatorStub_0500,
+    TestSize.Level1)
+{
+    ASSERT_NE(mockServicePtr_, nullptr);
+    MessageParcel data;
+    MessageParcel reply;
+    MessageOption option;
+    int result = 0;
+    EXPECT_EQ(data.WriteInterfaceToken(GetDescriptor()), true);
+    EXPECT_EQ(mockServicePtr_->OnRemoteRequest(VERIFY_CREDENTIAL, data, reply, option), ERR_NONE);
+    reply.ReadInt32(result);
+    EXPECT_EQ(result, ERR_APPACCOUNT_SERVICE_INVALID_PARAMETER);
+}
+
+/**
+ * @tc.name: AppAccountAuthenticatorManagerTest_AppAccountAuthenticatorStub_0600
+ * @tc.desc: test AppAccountAuthenticatorStub.
+ * @tc.type: FUNC
+ * @tc.require
+ */
+HWTEST_F(AppAccountAuthenticateModuleTest, AppAccountAuthenticatorManagerTest_AppAccountAuthenticatorStub_0600,
+    TestSize.Level1)
+{
+    ASSERT_NE(mockServicePtr_, nullptr);
+    MessageParcel data;
+    MessageParcel reply;
+    MessageOption option;
+    int result = 0;
+    EXPECT_EQ(data.WriteInterfaceToken(GetDescriptor()), true);
+    EXPECT_EQ(mockServicePtr_->OnRemoteRequest(CHECK_ACCOUNT_LABELS, data, reply, option), ERR_NONE);
+    reply.ReadInt32(result);
+    EXPECT_EQ(result, ERR_APPACCOUNT_SERVICE_INVALID_PARAMETER);
+}
+
+/**
+ * @tc.name: AppAccountAuthenticatorManagerTest_AppAccountAuthenticatorStub_0700
+ * @tc.desc: test AppAccountAuthenticatorStub.
+ * @tc.type: FUNC
+ * @tc.require
+ */
+HWTEST_F(AppAccountAuthenticateModuleTest, AppAccountAuthenticatorManagerTest_AppAccountAuthenticatorStub_0700,
+    TestSize.Level1)
+{
+    ASSERT_NE(mockServicePtr_, nullptr);
+    MessageParcel data;
+    MessageParcel reply;
+    MessageOption option;
+    int result = 0;
+    EXPECT_EQ(data.WriteInterfaceToken(GetDescriptor()), true);
+    EXPECT_EQ(mockServicePtr_->OnRemoteRequest(SET_PROPERTIES, data, reply, option),
+        ERR_NONE);
+    reply.ReadInt32(result);
+    EXPECT_EQ(result, ERR_APPACCOUNT_SERVICE_INVALID_PARAMETER);
+}
+
+/**
+ * @tc.name: AppAccountAuthenticatorManagerTest_AppAccountAuthenticatorStub_0800
+ * @tc.desc: test AppAccountAuthenticatorStub.
+ * @tc.type: FUNC
+ * @tc.require
+ */
+HWTEST_F(AppAccountAuthenticateModuleTest, AppAccountAuthenticatorManagerTest_AppAccountAuthenticatorStub_0800,
+    TestSize.Level1)
+{
+    ASSERT_NE(mockServicePtr_, nullptr);
+    MessageParcel data;
+    MessageParcel reply;
+    MessageOption option;
+    int result = 0;
+    EXPECT_EQ(data.WriteInterfaceToken(GetDescriptor()), true);
+    EXPECT_EQ(mockServicePtr_->OnRemoteRequest(IS_ACCOUNT_REMOVABLE, data, reply, option), ERR_NONE);
+    reply.ReadInt32(result);
+    EXPECT_EQ(result, ERR_APPACCOUNT_SERVICE_INVALID_PARAMETER);
+}
+
+/**
+ * @tc.name: AppAccountAuthenticatorManagerTest_AppAccountAuthenticatorStub_0900
+ * @tc.desc: test AppAccountAuthenticatorStub.
+ * @tc.type: FUNC
+ * @tc.require
+ */
+HWTEST_F(AppAccountAuthenticateModuleTest, AppAccountAuthenticatorManagerTest_AppAccountAuthenticatorStub_0900,
+    TestSize.Level1)
+{
+    ASSERT_NE(mockServicePtr_, nullptr);
+    MessageParcel data;
+    MessageParcel reply;
+    MessageOption option;
+    int result = 0;
+    EXPECT_EQ(data.WriteInterfaceToken(GetDescriptor()), true);
+    EXPECT_EQ(mockServicePtr_->OnRemoteRequest(CREATE_ACCOUNT_IMPLICITLY, data, reply, option), ERR_NONE);
+    reply.ReadInt32(result);
+    EXPECT_EQ(result, ERR_APPACCOUNT_SERVICE_INVALID_PARAMETER);
+}
+
+/**
+ * @tc.name: AppAccountAuthenticatorManagerTest_AppAccountAuthenticatorStub_100
+ * @tc.desc: test AppAccountAuthenticatorStub.
+ * @tc.type: FUNC
+ * @tc.require
+ */
+HWTEST_F(AppAccountAuthenticateModuleTest, AppAccountAuthenticatorManagerTest_AppAccountAuthenticatorStub_100,
+    TestSize.Level1)
+{
+    ASSERT_NE(mockServicePtr_, nullptr);
+    MessageParcel data;
+    MessageParcel reply;
+    MessageOption option;
+    int result = 0;
+    EXPECT_EQ(data.WriteInterfaceToken(GetDescriptor()), true);
+    EXPECT_EQ(mockServicePtr_->OnRemoteRequest(AUTH, data, reply, option), ERR_NONE);
+    reply.ReadInt32(result);
+    EXPECT_EQ(result, ERR_APPACCOUNT_SERVICE_INVALID_PARAMETER);
+}
+
+/**
+ * @tc.name: AppAccountAuthenticatorManagerTest_AppAccountAuthenticatorStub_0300
+ * @tc.desc: test AppAccountAuthenticatorStub.
+ * @tc.type: FUNC
+ * @tc.require
+ */
+HWTEST_F(AppAccountAuthenticateModuleTest, AppAccountAuthenticatorManagerTest_AppAccountAuthenticatorStub_1100,
+    TestSize.Level1)
+{
+    EXPECT_NE(mockServicePtr_, nullptr);
+    MessageParcel data;
+    MessageParcel reply;
+    MessageOption option;
+    AAFwk::WantParams options;
+    std::string authType;
+    std::string callerBundleName;
+    EXPECT_EQ(data.WriteInterfaceToken(GetDescriptor()), true);
+    EXPECT_EQ(data.WriteString(authType), true);
+    EXPECT_EQ(data.WriteString(callerBundleName), true);
+    EXPECT_EQ(data.WriteParcelable(&options), true);
+    EXPECT_EQ(data.WriteRemoteObject(authenticorService_), true);
+    EXPECT_EQ(mockServicePtr_->OnRemoteRequest(ADD_ACCOUNT_IMPLICITLY, data, reply, option), ERR_NONE);
+    int result = 0;
+    reply.ReadInt32(result);
+    EXPECT_EQ(result, ERR_OK);
+}
+
+/**
+ * @tc.name: AppAccountAuthenticatorManagerTest_AppAccountAuthenticatorStub_0400
+ * @tc.desc: test AppAccountAuthenticatorStub.
+ * @tc.type: FUNC
+ * @tc.require
+ */
+HWTEST_F(AppAccountAuthenticateModuleTest, AppAccountAuthenticatorManagerTest_AppAccountAuthenticatorStub_1200,
+    TestSize.Level1)
+{
+    EXPECT_NE(mockServicePtr_, nullptr);
+    MessageParcel data;
+    MessageParcel reply;
+    MessageOption option;
+    AAFwk::WantParams options;
+    std::string name;
+    std::string authType;
+    std::string callerBundleName;
+    EXPECT_EQ(data.WriteInterfaceToken(GetDescriptor()), true);
+    EXPECT_EQ(data.WriteString(name), true);
+    EXPECT_EQ(data.WriteString(authType), true);
+    EXPECT_EQ(data.WriteString(callerBundleName), true);
+    EXPECT_EQ(data.WriteParcelable(&options), true);
+    EXPECT_EQ(data.WriteRemoteObject(authenticorService_), true);
+    EXPECT_EQ(mockServicePtr_->OnRemoteRequest(AUTHENTICATE, data, reply, option), ERR_NONE);
+    int result = 0;
+    reply.ReadInt32(result);
+    EXPECT_EQ(result, ERR_OK);
+}
+
+/**
+ * @tc.name: AppAccountAuthenticatorManagerTest_AppAccountAuthenticatorStub_0500
+ * @tc.desc: test AppAccountAuthenticatorStub.
+ * @tc.type: FUNC
+ * @tc.require
+ */
+HWTEST_F(AppAccountAuthenticateModuleTest, AppAccountAuthenticatorManagerTest_AppAccountAuthenticatorStub_1300,
+    TestSize.Level1)
+{
+    ASSERT_NE(mockServicePtr_, nullptr);
+    MessageParcel data;
+    MessageParcel reply;
+    MessageOption option;
+    int result = 0;
+    VerifyCredentialOptions options;
+    std::string name;
+    EXPECT_EQ(data.WriteInterfaceToken(GetDescriptor()), true);
+    EXPECT_EQ(data.WriteString(name), true);
+    EXPECT_EQ(data.WriteParcelable(&options), true);
+    EXPECT_EQ(data.WriteRemoteObject(authenticorService_), true);
+    EXPECT_EQ(mockServicePtr_->OnRemoteRequest(VERIFY_CREDENTIAL, data, reply, option), ERR_NONE);
+    reply.ReadInt32(result);
+    EXPECT_EQ(result, ERR_OK);
+}
+
+/**
+ * @tc.name: AppAccountAuthenticatorManagerTest_AppAccountAuthenticatorStub_0600
+ * @tc.desc: test AppAccountAuthenticatorStub.
+ * @tc.type: FUNC
+ * @tc.require
+ */
+HWTEST_F(AppAccountAuthenticateModuleTest, AppAccountAuthenticatorManagerTest_AppAccountAuthenticatorStub_1400,
+    TestSize.Level1)
+{
+    ASSERT_NE(mockServicePtr_, nullptr);
+    MessageParcel data;
+    MessageParcel reply;
+    MessageOption option;
+    std::vector<std::string> labels;
+    std::string name;
+    int result = 0;
+    EXPECT_EQ(data.WriteInterfaceToken(GetDescriptor()), true);
+    EXPECT_EQ(data.WriteString(name), true);
+    EXPECT_EQ(data.WriteStringVector(labels), true);
+    EXPECT_EQ(data.WriteRemoteObject(authenticorService_), true);
+    EXPECT_EQ(mockServicePtr_->OnRemoteRequest(CHECK_ACCOUNT_LABELS, data, reply, option), ERR_NONE);
+    reply.ReadInt32(result);
+    EXPECT_EQ(result, ERR_OK);
+}
+
+/**
+ * @tc.name: AppAccountAuthenticatorManagerTest_AppAccountAuthenticatorStub_0700
+ * @tc.desc: test AppAccountAuthenticatorStub.
+ * @tc.type: FUNC
+ * @tc.require
+ */
+HWTEST_F(AppAccountAuthenticateModuleTest, AppAccountAuthenticatorManagerTest_AppAccountAuthenticatorStub_1500,
+    TestSize.Level1)
+{
+    ASSERT_NE(mockServicePtr_, nullptr);
+    MessageParcel data;
+    MessageParcel reply;
+    MessageOption option;
+    SetPropertiesOptions options;
+    int result = 0;
+    EXPECT_EQ(data.WriteInterfaceToken(GetDescriptor()), true);
+    EXPECT_EQ(data.WriteParcelable(&options), true);
+    EXPECT_EQ(data.WriteRemoteObject(authenticorService_), true);
+    EXPECT_EQ(mockServicePtr_->OnRemoteRequest(SET_PROPERTIES, data, reply, option),
+        ERR_NONE);
+    reply.ReadInt32(result);
+    EXPECT_EQ(result, ERR_OK);
+}
+
+/**
+ * @tc.name: AppAccountAuthenticatorManagerTest_AppAccountAuthenticatorStub_0800
+ * @tc.desc: test AppAccountAuthenticatorStub.
+ * @tc.type: FUNC
+ * @tc.require
+ */
+HWTEST_F(AppAccountAuthenticateModuleTest, AppAccountAuthenticatorManagerTest_AppAccountAuthenticatorStub_1600,
+    TestSize.Level1)
+{
+    ASSERT_NE(mockServicePtr_, nullptr);
+    MessageParcel data;
+    MessageParcel reply;
+    MessageOption option;
+    std::string name;
+    int result = 0;
+    EXPECT_EQ(data.WriteInterfaceToken(GetDescriptor()), true);
+    EXPECT_EQ(data.WriteString(name), true);
+    EXPECT_EQ(data.WriteRemoteObject(authenticorService_), true);
+    EXPECT_EQ(mockServicePtr_->OnRemoteRequest(IS_ACCOUNT_REMOVABLE, data, reply, option), ERR_NONE);
+    reply.ReadInt32(result);
+    EXPECT_EQ(result, ERR_OK);
+}
+
+/**
+ * @tc.name: AppAccountAuthenticatorManagerTest_AppAccountAuthenticatorStub_0900
+ * @tc.desc: test AppAccountAuthenticatorStub.
+ * @tc.type: FUNC
+ * @tc.require
+ */
+HWTEST_F(AppAccountAuthenticateModuleTest, AppAccountAuthenticatorManagerTest_AppAccountAuthenticatorStub_1700,
+    TestSize.Level1)
+{
+    ASSERT_NE(mockServicePtr_, nullptr);
+    MessageParcel data;
+    MessageParcel reply;
+    MessageOption option;
+    CreateAccountImplicitlyOptions options;
+    int result = 0;
+    EXPECT_EQ(data.WriteInterfaceToken(GetDescriptor()), true);
+    EXPECT_EQ(data.WriteParcelable(&options), true);
+    EXPECT_EQ(data.WriteRemoteObject(authenticorService_), true);
+    EXPECT_EQ(mockServicePtr_->OnRemoteRequest(CREATE_ACCOUNT_IMPLICITLY, data, reply, option), ERR_NONE);
+    reply.ReadInt32(result);
+    EXPECT_EQ(result, ERR_OK);
+}
+
+/**
+ * @tc.name: AppAccountAuthenticatorManagerTest_AppAccountAuthenticatorStub_100
+ * @tc.desc: test AppAccountAuthenticatorStub.
+ * @tc.type: FUNC
+ * @tc.require
+ */
+HWTEST_F(AppAccountAuthenticateModuleTest, AppAccountAuthenticatorManagerTest_AppAccountAuthenticatorStub_1800,
+    TestSize.Level1)
+{
+    ASSERT_NE(mockServicePtr_, nullptr);
+    MessageParcel data;
+    MessageParcel reply;
+    MessageOption option;
+    std::string name;
+    std::string authType;
+    AAFwk::WantParams options;
+    int result = 0;
+    EXPECT_EQ(data.WriteInterfaceToken(GetDescriptor()), true);
+    EXPECT_EQ(data.WriteString(name), true);
+    EXPECT_EQ(data.WriteString(authType), true);
+    EXPECT_EQ(data.WriteParcelable(&options), true);
+    EXPECT_EQ(data.WriteRemoteObject(authenticorService_), true);
+    EXPECT_EQ(mockServicePtr_->OnRemoteRequest(AUTH, data, reply, option), ERR_NONE);
+    reply.ReadInt32(result);
+    EXPECT_EQ(result, ERR_OK);
 }
