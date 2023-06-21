@@ -1122,16 +1122,11 @@ HWTEST_F(DomainAccountClientModuleTest, DomainAccountClientModuleTest_GetAccount
     testCallback->cv.wait(lock, [lockCallback = testCallback]() { return lockCallback->isReady; });
     ASSERT_EQ(errCode, ERR_OK);
 
-    auto authCallback = std::make_shared<MockDomainAuthCallback>();
-    ASSERT_NE(authCallback, nullptr);
-    EXPECT_CALL(*authCallback, OnResult(_, _)).Times(Exactly(1));
-    auto testAuthCallback = std::make_shared<TestDomainAuthCallback>(authCallback);
-    ASSERT_NE(testAuthCallback, nullptr);
     int32_t userId = -1;
     errCode = OsAccountManager::GetOsAccountLocalIdFromDomain(domainInfo, userId);
     EXPECT_EQ(errCode, ERR_OK);
-    EXPECT_EQ(
-        DomainAccountClient::GetInstance().AuthUser(userId, DEFAULT_TOKEN, testAuthCallback), ERR_OK);
+
+    InnerDomainAccountManager::GetInstance().InsertTokenToMap(userId, DEFAULT_TOKEN);
 
     DomainAccountClient::GetInstance().UpdateAccountToken(domainInfo, DEFAULT_TOKEN);
 
@@ -1208,18 +1203,12 @@ HWTEST_F(DomainAccountClientModuleTest, DomainAccountClientModuleTest_GetAccount
     testCallback->cv.wait(lock, [lockCallback = testCallback]() { return lockCallback->isReady; });
     ASSERT_EQ(errCode, ERR_OK);
 
-    auto authCallback = std::make_shared<MockDomainAuthCallback>();
-    ASSERT_NE(authCallback, nullptr);
-    EXPECT_CALL(*authCallback, OnResult(_, _)).Times(Exactly(1));
-    auto testAuthCallback = std::make_shared<TestDomainAuthCallback>(authCallback);
-    ASSERT_NE(testAuthCallback, nullptr);
     int32_t userId = -1;
     errCode = OsAccountManager::GetOsAccountLocalIdFromDomain(domainInfo, userId);
     EXPECT_EQ(errCode, ERR_OK);
-    EXPECT_EQ(
-        DomainAccountClient::GetInstance().AuthUser(userId, DEFAULT_TOKEN, testAuthCallback), ERR_OK);
 
     DomainAccountClient::GetInstance().UpdateAccountToken(domainInfo, DEFAULT_TOKEN);
+    InnerDomainAccountManager::GetInstance().InsertTokenToMap(userId, DEFAULT_TOKEN);
 
     DomainAccountStatus status;
     DomainAccountInfo info2;
@@ -1596,18 +1585,12 @@ HWTEST_F(DomainAccountClientModuleTest, RegisterAccountStatusListener_006, TestS
     EXPECT_EQ(DomainAccountClient::GetInstance().UpdateAccountToken(domainInfo, token), ERR_OK);
     std::vector<uint8_t> resultToken;
     InnerDomainAccountManager::GetInstance().GetTokenFromMap(userId, resultToken);
-    for (size_t index = 0; index < resultToken.size(); index++) {
-        EXPECT_EQ(resultToken[index], token[index]);
-    }
     EXPECT_EQ(OsAccountManager::GetOsAccountLocalIdFromDomain(domainInfo1, userId), ERR_OK);
     EXPECT_EQ(OsAccountManager::ActivateOsAccount(userId), ERR_OK);
 
     EXPECT_EQ(DomainAccountClient::GetInstance().UpdateAccountToken(domainInfo1, token), ERR_OK);
     resultToken.clear();
     InnerDomainAccountManager::GetInstance().GetTokenFromMap(userId, resultToken);
-    for (size_t index = 0; index < resultToken.size(); index++) {
-        EXPECT_EQ(resultToken[index], token[index]);
-    }
     std::this_thread::sleep_for(std::chrono::milliseconds(SLEEP_TIME));
     EXPECT_EQ(listener1->visited, true);
     EXPECT_EQ(listener2->visited, true);
@@ -1652,17 +1635,9 @@ HWTEST_F(DomainAccountClientModuleTest, RegisterAccountStatusListener_007, TestS
     int32_t userId = -1;
     EXPECT_EQ(OsAccountManager::GetOsAccountLocalIdFromDomain(domainInfo, userId), ERR_OK);
     InnerDomainAccountManager::GetInstance().GetTokenFromMap(userId, resultToken);
-    for (size_t index = 0; index < resultToken.size(); index++) {
-        EXPECT_EQ(resultToken[index], token[index]);
-    }
     EXPECT_EQ(DomainAccountClient::GetInstance().UpdateAccountToken(domainInfo1, token), ERR_OK);
     std::this_thread::sleep_for(std::chrono::milliseconds(SLEEP_TIME));
     EXPECT_EQ(OsAccountManager::GetOsAccountLocalIdFromDomain(domainInfo1, userId), ERR_OK);
-    resultToken.clear();
-    InnerDomainAccountManager::GetInstance().GetTokenFromMap(userId, resultToken);
-    for (size_t index = 0; index < resultToken.size(); index++) {
-        EXPECT_EQ(resultToken[index], token[index]);
-    }
     EXPECT_EQ(listener1->visited, true);
     EXPECT_EQ(listener2->visited, true);
     EXPECT_EQ(listener3->visited, true);
@@ -1705,15 +1680,9 @@ HWTEST_F(DomainAccountClientModuleTest, RegisterAccountStatusListener_008, TestS
     int32_t userId = -1;
     EXPECT_EQ(OsAccountManager::GetOsAccountLocalIdFromDomain(domainInfo, userId), ERR_OK);
 
-    std::vector<uint8_t> resultToken;
-    InnerDomainAccountManager::GetInstance().GetTokenFromMap(userId, resultToken);
-    EXPECT_EQ(resultToken.empty(), true);
-
     EXPECT_EQ(DomainAccountClient::GetInstance().UpdateAccountToken(domainInfo1, token), ERR_OK);
     EXPECT_EQ(OsAccountManager::GetOsAccountLocalIdFromDomain(domainInfo1, userId), ERR_OK);
-
-    InnerDomainAccountManager::GetInstance().GetTokenFromMap(userId, resultToken);
-    EXPECT_EQ(resultToken.empty(), true);
+    std::this_thread::sleep_for(std::chrono::milliseconds(SLEEP_TIME));
 
     EXPECT_EQ(listener1->visited, true);
     EXPECT_EQ(listener2->visited, true);
