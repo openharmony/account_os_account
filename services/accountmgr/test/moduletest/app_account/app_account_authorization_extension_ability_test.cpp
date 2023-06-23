@@ -17,15 +17,18 @@
 #include <gmock/gmock.h>
 
 #include "account_log_wrapper.h"
+#define private public
 #include "app_account_authorization_extension_callback.h"
 #include "app_account_authorization_extension_callback_service.h"
 #include "app_account_authorization_extension_proxy.h"
 #include "app_account_authorization_extension_service.h"
 #include "app_account_authorization_extension_stub.h"
+#undef private
 #include "app_account_common.h"
 #include "authorization_extension.h"
 #include "napi_app_account_authorization_extension.h"
 #include "js_runtime.h"
+#include "want.h"
 
 using namespace testing::ext;
 using namespace testing;
@@ -103,6 +106,9 @@ public:
     static void TearDownTestCase(void);
     void SetUp(void) override;
     void TearDown(void) override;
+    sptr<AppAccountAuthorizationExtensionCallbackProxy> callbackProxyPtr_ = nullptr;
+    sptr<AppAccountAuthorizationExtensionCallbackService> callbackServicePtr_ = nullptr;
+    sptr<IRemoteObject> MockService_ = nullptr;
 };
 
 void AppAccountExtensionModuleTest::SetUpTestCase(void)
@@ -114,7 +120,12 @@ void AppAccountExtensionModuleTest::TearDownTestCase(void)
 }
 
 void AppAccountExtensionModuleTest::SetUp(void)
-{}
+{
+    callbackServicePtr_ = new (std::nothrow) AppAccountAuthorizationExtensionCallbackService(nullptr);
+    ASSERT_NE(callbackServicePtr_, nullptr);
+    MockService_ = callbackServicePtr_->AsObject();
+    callbackProxyPtr_ = new (std::nothrow) AppAccountAuthorizationExtensionCallbackProxy(MockService_);
+}
 
 void AppAccountExtensionModuleTest::TearDown(void)
 {}
@@ -198,4 +209,35 @@ HWTEST_F(AppAccountExtensionModuleTest, StartAuthorization_0400, TestSize.Level1
     EXPECT_NE(authorizationProxy, nullptr);
     AuthorizationRequest request;
     EXPECT_EQ(authorizationProxy->StartAuthorization(request), ERR_ACCOUNT_COMMON_WRITE_PARCEL_ERROR);
+}
+
+/**
+ * @tc.name: AppAccountAuthorizationExtensionCallbackProxy_001
+ * @tc.desc: test AppAccountAuthorizationExtensionCallbackProxy OnResult.
+ * @tc.type: FUNC
+ * @tc.require: issuesI7AVZ5
+ */
+HWTEST_F(AppAccountExtensionModuleTest, AppAccountAuthorizationExtensionCallbackProxy_001, TestSize.Level1)
+{
+    AAFwk::WantParams parameters;
+    int32_t errCode = 0;
+    ASSERT_NE(callbackProxyPtr_, nullptr);
+    callbackProxyPtr_->OnResult(errCode, parameters);
+    EXPECT_EQ(errCode, 0);
+}
+
+/**
+ * @tc.name: AppAccountAuthorizationExtensionCallbackStub_001
+ * @tc.desc: test AppAccountAuthorizationExtensionCallbackStub OnRemoteRequest abnormal branch.
+ * @tc.type: FUNC
+ * @tc.require: issuesI7AVZ5
+ */
+HWTEST_F(AppAccountExtensionModuleTest, AppAccountAuthorizationExtensionCallbackStub_001, TestSize.Level1)
+{
+    AAFwk::WantParams parameters;
+    EXPECT_NE(callbackServicePtr_, nullptr);
+    MessageParcel data;
+    MessageParcel reply;
+    MessageOption option;
+    EXPECT_EQ(callbackServicePtr_->OnRemoteRequest(0, data, reply, option), ERR_ACCOUNT_COMMON_CHECK_DESCRIPTOR_ERROR);
 }
