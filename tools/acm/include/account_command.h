@@ -122,6 +122,7 @@ private:
     ErrCode RunCommandError(const std::string &command);
 
     void ParseCommandOpt(const std::string &command, ErrCode &result, int &id);
+    void RunCommand(int &counter, ErrCode &result, bool &enable, int &id, std::vector<std::string> &constraints);
 
     ErrCode AnalyzeTypeArgument(OsAccountType &type);
     ErrCode AnalyzeLocalIdArgument(int &id);
