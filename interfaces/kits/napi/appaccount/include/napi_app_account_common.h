@@ -229,6 +229,8 @@ public:
     void OnRequestContinued() override;
 
 private:
+    std::mutex mutex_;
+    bool isDone = false;
     napi_env env_ = nullptr;
     JSAuthCallback callback_;
 };
