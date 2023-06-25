@@ -60,7 +60,7 @@ ohos_unittest("AccountEventProviderTest") {
     "bundle_framework:appexecfwk_base",
     "bundle_framework:appexecfwk_core",
     "c_utils:utils",
-    "hiviewdfx_hilog_native:libhilog",
+    "hilog:libhilog",
     "init:libbegetutil",
     "ipc:ipc_single",
     "safwk:system_ability_fwk",
@@ -74,11 +74,11 @@ ohos_unittest("AccountEventProviderTest") {
 
   if (has_hiviewdfx_hisysevent_part) {
     cflags_cc += [ "-DHAS_HISYSEVENT_PART" ]
-    external_deps += [ "hisysevent_native:libhisysevent" ]
+    external_deps += [ "hisysevent:libhisysevent" ]
   }
 
   if (has_hiviewdfx_hitrace_part) {
-    external_deps += [ "hitrace_native:hitrace_meter" ]
+    external_deps += [ "hitrace:hitrace_meter" ]
     cflags_cc += [ "-DHAS_HITRACE_PART" ]
   }
 

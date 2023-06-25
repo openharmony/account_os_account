@@ -70,10 +70,8 @@ std::string AnonymizeUidStr(const std::string& uidStr)
 }
 } // namespace
 
-AccountDumpHelper::AccountDumpHelper(const std::shared_ptr<OhosAccountManager>& ohosAccountMgr,
-    OsAccountManagerService *osAccountMgrService)
+AccountDumpHelper::AccountDumpHelper(OsAccountManagerService* osAccountMgrService)
 {
-    ohosAccountMgr_ = ohosAccountMgr;
     osAccountMgrService_ = osAccountMgrService;
 }
 
@@ -113,13 +111,6 @@ void AccountDumpHelper::ShowIllegalInformation(std::string& result) const
 
 void AccountDumpHelper::ShowOhosAccountInfo(std::string& result) const
 {
-    auto lockPtr = ohosAccountMgr_.lock();
-    if (lockPtr == nullptr) {
-        result.append(SYSTEM_ERROR + "service ptr is null!\n");
-        ACCOUNT_LOGE("service ptr is null!");
-        return;
-    }
-
     // check os account list
     std::vector<OsAccountInfo> osAccountInfos;
     ErrCode ret = IInnerOsAccountManager::GetInstance().QueryAllCreatedOsAccounts(osAccountInfos);
@@ -137,7 +128,7 @@ void AccountDumpHelper::ShowOhosAccountInfo(std::string& result) const
     result.append("OhosAccount info:\n");
     for (size_t i = 0; i < osAccountInfos.size(); ++i) {
         AccountInfo accountInfo;
-        lockPtr->GetAccountInfoByUserId(osAccountInfos[i].GetLocalId(), accountInfo);
+        (void)OhosAccountManager::GetInstance().GetAccountInfoByUserId(osAccountInfos[i].GetLocalId(), accountInfo);
         result.append("     Bind local user id: ");
         result.append(std::to_string(accountInfo.userId_) + "\n");
         result.append("          OhosAccount name     : ");

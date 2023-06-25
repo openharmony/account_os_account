@@ -13,6 +13,8 @@
  * limitations under the License.
  */
 #include "iinner_os_account_manager.h"
+#include "account_event_provider.h"
+#include "account_info.h"
 #include "account_info_report.h"
 #include "account_log_wrapper.h"
 #ifdef HAS_CES_PART
@@ -349,6 +351,8 @@ void IInnerOsAccountManager::CheckAndRefreshLocalIdRecord(const int id)
 ErrCode IInnerOsAccountManager::RemoveOsAccountOperate(const int id, OsAccountInfo &osAccountInfo,
     const DomainAccountInfo &domainAccountInfo)
 {
+    AccountInfo ohosInfo;
+    (void)OhosAccountManager::GetInstance().GetAccountInfoByUserId(id, ohosInfo);
     ErrCode errCode = SendMsgForAccountRemove(osAccountInfo);
     if (errCode != ERR_OK) {
         RemoveLocalIdToOperating(id);
@@ -365,6 +369,13 @@ ErrCode IInnerOsAccountManager::RemoveOsAccountOperate(const int id, OsAccountIn
     if (!domainAccountInfo.accountId_.empty()) {
         InnerDomainAccountManager::GetInstance().NotifyDomainAccountEvent(
             id, DomainAccountEvent::LOG_OUT, DomainAccountStatus::LOGOUT, domainAccountInfo);
+    }
+    if (ohosInfo.ohosAccountInfo_.name_ != DEFAULT_OHOS_ACCOUNT_NAME) {
+#ifdef HAS_CES_PART
+        AccountEventProvider::EventPublish(EventFwk::CommonEventSupport::COMMON_EVENT_HWID_LOGOUT, id, nullptr);
+#else  // HAS_CES_PART
+        ACCOUNT_LOGI("No common event part! Publish nothing!");
+#endif // HAS_CES_PART
     }
     return errCode;
 }

@@ -67,7 +67,7 @@ ohos_moduletest("domain_account_frameworks_module_test") {
     "access_token:libaccesstoken_sdk",
     "access_token:libtoken_setproc",
     "c_utils:utils",
-    "hiviewdfx_hilog_native:libhilog",
+    "hilog:libhilog",
     "ipc:ipc_single",
     "os_account:os_account_innerkits",
   ]
@@ -97,7 +97,56 @@ ohos_moduletest("domain_account_common_module_test") {
   external_deps = [
     "ability_base:want",
     "c_utils:utils",
-    "hiviewdfx_hilog_native:libhilog",
+    "hilog:libhilog",
+    "ipc:ipc_single",
+    "os_account:os_account_innerkits",
+  ]
+}
+
+ohos_moduletest("domain_account_plugin_service_test") {
+  module_out_path = module_output_path
+
+  include_dirs = [ "${domain_account_interfaces_native_path}/include" ]
+  sources = [
+    "src/domain_account_plugin_service_test.cpp",
+    "src/mock_domain_plugin.cpp",
+  ]
+  configs = [ ":domain_account_frameworks_config_moduletest" ]
+
+  deps = [
+    "${common_path}:libaccount_common",
+    "${domain_account_framework_path}:domain_account_innerkits",
+    "//third_party/googletest:gmock_main",
+    "//third_party/googletest:gtest_main",
+  ]
+
+  external_deps = [
+    "ability_base:want",
+    "c_utils:utils",
+    "hilog:libhilog",
+    "ipc:ipc_single",
+    "os_account:os_account_innerkits",
+  ]
+}
+
+ohos_moduletest("domain_account_plugin_stub_test") {
+  module_out_path = module_output_path
+
+  include_dirs = [ "${domain_account_interfaces_native_path}/include" ]
+  sources = [ "src/domain_account_plugin_stub_test.cpp" ]
+  configs = [ ":domain_account_frameworks_config_moduletest" ]
+
+  deps = [
+    "${common_path}:libaccount_common",
+    "${domain_account_framework_path}:domain_account_innerkits",
+    "//third_party/googletest:gmock_main",
+    "//third_party/googletest:gtest_main",
+  ]
+
+  external_deps = [
+    "ability_base:want",
+    "c_utils:utils",
+    "hilog:libhilog",
     "ipc:ipc_single",
     "os_account:os_account_innerkits",
   ]
@@ -109,5 +158,7 @@ group("moduletest") {
   deps = [
     ":domain_account_common_module_test",
     ":domain_account_frameworks_module_test",
+    ":domain_account_plugin_service_test",
+    ":domain_account_plugin_stub_test",
   ]
 }

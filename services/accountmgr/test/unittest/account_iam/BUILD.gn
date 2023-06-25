@@ -62,7 +62,7 @@ ohos_unittest("account_iam_manager_test") {
     "access_token:libaccesstoken_sdk",
     "access_token:libtoken_setproc",
     "c_utils:utils",
-    "hiviewdfx_hilog_native:libhilog",
+    "hilog:libhilog",
     "init:libbegetutil",
     "ipc:ipc_single",
     "user_auth_framework:userauth_client",

@@ -17,6 +17,22 @@ import("../../../../../os_account.gni")
 
 module_output_path = "os_account/services/accountmgr"
 
+config("domain_account_service_config_unittest") {
+  visibility = [ ":*" ]
+
+  include_dirs = []
+
+  cflags = []
+  if (target_cpu == "arm") {
+    cflags += [ "-DBINDER_IPC_32BIT" ]
+  }
+
+  defines = [
+    "ACCOUNT_LOG_TAG = \"DomainAccountFwk\"",
+    "LOG_DOMAIN = 0xD001B00",
+  ]
+}
+
 config("domain_account_amgr_mock_config") {
   include_dirs = [
     "${domain_account_framework_path}/include",
@@ -74,7 +90,7 @@ ohos_unittest("DomainAccountInnerServiceCovTest") {
     "ability_runtime:wantagent_innerkits",
     "access_token:libaccesstoken_sdk",
     "c_utils:utils",
-    "hiviewdfx_hilog_native:libhilog",
+    "hilog:libhilog",
     "ipc:ipc_single",
     "kv_store:distributeddata_inner",
     "samgr:samgr_proxy",
@@ -85,22 +101,53 @@ ohos_unittest("DomainAccountInnerServiceCovTest") {
   }
   if (has_hiviewdfx_hisysevent_part) {
     cflags_cc += [ "-DHAS_HISYSEVENT_PART" ]
-    external_deps += [ "hisysevent_native:libhisysevent" ]
+    external_deps += [ "hisysevent:libhisysevent" ]
   }
   if (has_user_auth_part) {
     cflags_cc += [ "-DHAS_USER_AUTH_PART" ]
     external_deps += [ "user_auth_framework:userauth_client" ]
   }
   if (has_hiviewdfx_hitrace_part) {
-    external_deps += [ "hitrace_native:hitrace_meter" ]
+    external_deps += [ "hitrace:hitrace_meter" ]
     cflags_cc += [ "-DHAS_HITRACE_PART" ]
   }
 
   part_name = "os_account"
 }
 
+ohos_unittest("domain_account_plugin_proxy_test") {
+  module_out_path = module_output_path
+
+  include_dirs = [ "${domain_account_interfaces_native_path}/include" ]
+  sources = [
+    "${services_path}/accountmgr/src/domain_account/domain_account_plugin_proxy.cpp",
+    "${services_path}/accountmgr/src/domain_account/domain_has_domain_info_callback.cpp",
+    "domain_account_plugin_proxy_test.cpp",
+  ]
+  configs = [ ":domain_account_service_config_unittest" ]
+
+  deps = [
+    "${common_path}:libaccount_common",
+    "${domain_account_framework_path}:domain_account_innerkits",
+    "${services_path}/accountmgr:accountmgr",
+    "//third_party/googletest:gmock_main",
+    "//third_party/googletest:gtest_main",
+  ]
+
+  external_deps = [
+    "ability_base:want",
+    "c_utils:utils",
+    "hilog:libhilog",
+    "ipc:ipc_single",
+    "os_account:os_account_innerkits",
+  ]
+}
+
 group("unittest") {
   testonly = true
 
-  deps = [ ":DomainAccountInnerServiceCovTest" ]
+  deps = [
+    ":DomainAccountInnerServiceCovTest",
+    ":domain_account_plugin_proxy_test",
+  ]
 }
