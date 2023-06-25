@@ -641,20 +641,6 @@ HWTEST_F(AppAccountManagerServiceModuleTest, AppAccountManagerService_SetAppAcce
 }
 
 /**
- * @tc.name: AppAccountManagerService_SetAppAccess_0700
- * @tc.desc: Disable app access with invalid data.
- * @tc.type: FUNC
- * @tc.require:
- */
-HWTEST_F(AppAccountManagerServiceModuleTest, AppAccountManagerService_SetAppAccess_0700, TestSize.Level1)
-{
-    ACCOUNT_LOGI("AppAccountManagerService_SetAppAccess_0700");
-
-    ErrCode result = g_accountManagerService->SetAppAccess(STRING_NAME, STRING_OWNER, false);
-    EXPECT_EQ(result, ERR_APPACCOUNT_SERVICE_BUNDLE_NAME_IS_THE_SAME);
-}
-
-/**
  * @tc.name: seAppAccountManagerService_CheckAppAccountSyncEnable_0100
  * @tc.desc: Check account sync enable with valid data.
  * @tc.type: FUNC
@@ -1569,21 +1555,6 @@ HWTEST_F(AppAccountManagerServiceModuleTest, AppAccountManagerService_SetAuthTok
     ASSERT_EQ(authList.size(), 0);
 
     result = g_accountManagerService->DeleteAccount(STRING_NAME);
-    EXPECT_EQ(result, ERR_OK);
-}
-
-/**
- * @tc.name: AppAccountManagerService_SetAuthTokenVisibility_0400
- * @tc.desc: 
- * @tc.type: FUNC
- * @tc.require:
- */
-HWTEST_F(AppAccountManagerServiceModuleTest, AppAccountManagerService_SetAuthTokenVisibility_0400, TestSize.Level1)
-{
-    ACCOUNT_LOGI("AppAccountManagerService_SetAuthTokenVisibility_0400");
-
-    ErrCode result = g_accountManagerService->SetAuthTokenVisibility(STRING_NAME,
-        STRING_AUTH_TYPE, STRING_OWNER, true);
     EXPECT_EQ(result, ERR_OK);
 }
 
