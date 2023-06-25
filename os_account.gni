@@ -119,7 +119,7 @@ declare_args() {
 }
 
 if (!defined(global_parts_info) ||
-    defined(global_parts_info.hiviewdfx_hicollie_native)) {
+    defined(global_parts_info.hiviewdfx_hicollie)) {
   hicollie_enable = true
 } else {
   hicollie_enable = false
