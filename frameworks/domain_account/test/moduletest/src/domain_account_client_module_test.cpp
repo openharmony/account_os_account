@@ -1092,6 +1092,7 @@ HWTEST_F(DomainAccountClientModuleTest, DomainAccountClientModuleTest_GetAccount
     EXPECT_EQ(status, DomainAccountStatus::LOGOUT);
 
     std::vector<uint8_t> invalidToken = {1, 2, 5, 8}; // {1, 2, 5, 8} means invalid token vector.
+    InnerDomainAccountManager::GetInstance().InsertTokenToMap(localId, invalidToken);
     DomainAccountClient::GetInstance().UpdateAccountToken(domainInfo, invalidToken);
 
     EXPECT_EQ(DomainAccountClient::GetInstance().GetAccountStatus(domainInfo, status), ERR_OK);
