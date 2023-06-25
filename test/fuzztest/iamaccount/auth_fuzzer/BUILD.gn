@@ -58,7 +58,7 @@ ohos_fuzztest("AuthFuzzTest") {
 
   external_deps += [
     "c_utils:utils",
-    "hiviewdfx_hilog_native:libhilog",
+    "hilog:libhilog",
     "ipc:ipc_single",
   ]
 

@@ -279,8 +279,7 @@ napi_value NapiAccountIAMUserAuth::AuthUser(napi_env env, napi_callback_info inf
 {
     AuthContext context;
     NAPI_CALL(env, ParseContextForAuth(env, info, context, true));
-    uint64_t contextId;
-    AccountIAMClient::GetInstance().AuthUser(context.userId, context.challenge,
+    uint64_t contextId = AccountIAMClient::GetInstance().AuthUser(context.userId, context.challenge,
         static_cast<AuthType>(context.authType), static_cast<AuthTrustLevel>(context.trustLevel), context.callback);
     return CreateUint8Array(env, reinterpret_cast<uint8_t *>(&contextId), sizeof(uint64_t));
 }

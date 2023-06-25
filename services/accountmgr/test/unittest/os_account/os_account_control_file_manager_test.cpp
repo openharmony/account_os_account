@@ -79,7 +79,7 @@ public:
 
 public:
     std::shared_ptr<OsAccountControlFileManager> osAccountControlManager_;
-    std::string storeID_;
+    std::string storeID_ = "os_account_info";
 };
 
 void OsAccountControlFileManagerTest::SetUpTestCase(void)
@@ -92,15 +92,6 @@ void OsAccountControlFileManagerTest::SetUp(void)
 {
     osAccountControlManager_ = std::make_shared<OsAccountControlFileManager>();
     osAccountControlManager_->Init();
-
-    char udid[Constants::DEVICE_UUID_LENGTH] = {0};
-    int ret = GetDevUdid(udid, Constants::DEVICE_UUID_LENGTH);
-    if (ret != 0) {
-        std::cout << "Error: GetDevUdid failed! errcode " << ret << std::endl;
-    } else {
-        storeID_ = std::string(udid);
-        std::cout << "Info : GetDevUdid succeed! storeID_ " << storeID_ << std::endl;
-    }
 }
 
 void OsAccountControlFileManagerTest::TearDown(void)

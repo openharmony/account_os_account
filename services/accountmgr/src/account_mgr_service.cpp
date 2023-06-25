@@ -88,7 +88,7 @@ std::int32_t AccountMgrService::GetCallingUserID()
 bool AccountMgrService::UpdateOhosAccountInfo(
     const std::string &accountName, const std::string &uid, const std::string &eventStr)
 {
-    if (!ohosAccountMgr_->OhosAccountStateChange(accountName, uid, eventStr)) {
+    if (!OhosAccountManager::GetInstance().OhosAccountStateChange(accountName, uid, eventStr)) {
         ACCOUNT_LOGE("Ohos account state change failed");
         return false;
     }
@@ -104,7 +104,7 @@ std::int32_t AccountMgrService::SetOhosAccountInfo(const OhosAccountInfo &ohosAc
 std::int32_t AccountMgrService::SetOhosAccountInfoByUserId(
     const int32_t userId, const OhosAccountInfo &ohosAccountInfo, const std::string &eventStr)
 {
-    if (!ohosAccountMgr_->OhosAccountStateChange(userId, ohosAccountInfo, eventStr)) {
+    if (!OhosAccountManager::GetInstance().OhosAccountStateChange(userId, ohosAccountInfo, eventStr)) {
         ACCOUNT_LOGE("Ohos account state change failed");
         return ERR_ACCOUNT_ZIDL_ACCOUNT_SERVICE_ERROR;
     }
@@ -125,7 +125,7 @@ ErrCode AccountMgrService::GetOhosAccountInfo(OhosAccountInfo &info)
 ErrCode AccountMgrService::GetOhosAccountInfoByUserId(int32_t userId, OhosAccountInfo &info)
 {
     AccountInfo accountInfo;
-    ErrCode ret = ohosAccountMgr_->GetAccountInfoByUserId(userId, accountInfo);
+    ErrCode ret = OhosAccountManager::GetInstance().GetAccountInfoByUserId(userId, accountInfo);
     if (ret != ERR_OK) {
         return ret;
     }
@@ -136,7 +136,7 @@ ErrCode AccountMgrService::GetOhosAccountInfoByUserId(int32_t userId, OhosAccoun
 std::pair<bool, OhosAccountInfo> AccountMgrService::QueryOhosAccountInfoByUserId(std::int32_t userId)
 {
     AccountInfo accountInfo;
-    ErrCode ret = ohosAccountMgr_->GetAccountInfoByUserId(userId, accountInfo);
+    ErrCode ret = OhosAccountManager::GetInstance().GetAccountInfoByUserId(userId, accountInfo);
     bool flag = true;
     if (ret != ERR_OK) {
         flag = false;
@@ -198,7 +198,6 @@ void AccountMgrService::OnStart()
         FinishTraceAdapter();
         return;
     }
-    state_ = ServiceRunningState::STATE_RUNNING;
     bool isAccountCompleted = false;
     std::int32_t defaultActivatedId = Constants::START_USER_ID;
     osAccountManagerService_->GetDefaultActivatedOsAccount(defaultActivatedId);
@@ -270,7 +269,16 @@ bool AccountMgrService::Init()
     }
 
     CreateDeviceDir();
-
+    IAccountContext::SetInstance(this);
+    if ((!CreateOsAccountService()) || (!CreateAppAccountService()) || (!CreateIAMService()) ||
+        (!CreateDomainService())) {
+        appAccountManagerService_ = nullptr;
+        osAccountManagerService_ = nullptr;
+        accountIAMService_ = nullptr;
+        domainAccountMgrService_ = nullptr;
+        return false;
+    }
+    state_ = ServiceRunningState::STATE_RUNNING;
     if (!registerToService_) {
         if (!Publish(&DelayedRefSingleton<AccountMgrService>::GetInstance())) {
             ACCOUNT_LOGE("AccountMgrService::Init Publish failed!");
@@ -280,24 +288,12 @@ bool AccountMgrService::Init()
         registerToService_ = true;
     }
     PerfStat::GetInstance().SetInstanceInitTime(GetTickCount());
-    ohosAccountMgr_ = std::make_shared<OhosAccountManager>();
-    if (!ohosAccountMgr_->OnInitialize()) {
+    if (!OhosAccountManager::GetInstance().OnInitialize()) {
         ACCOUNT_LOGE("Ohos account manager initialize failed");
         ReportServiceStartFail(ERR_ACCOUNT_MGR_OHOS_MGR_INIT_ERROR, "OnInitialize failed!");
         return false;
     }
-
-    IAccountContext::SetInstance(this);
-
-    if ((!CreateOsAccountService()) || (!CreateAppAccountService())
-        || (!CreateIAMService()) || (!CreateDomainService())) {
-        appAccountManagerService_ = nullptr;
-        osAccountManagerService_ = nullptr;
-        accountIAMService_ = nullptr;
-        domainAccountMgrService_ = nullptr;
-        return false;
-    }
-    dumpHelper_ = std::make_unique<AccountDumpHelper>(ohosAccountMgr_, osAccountManagerService_.GetRefPtr());
+    dumpHelper_ = std::make_unique<AccountDumpHelper>(osAccountManagerService_.GetRefPtr());
     ACCOUNT_LOGI("init end success");
     return true;
 }

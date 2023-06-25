@@ -103,7 +103,7 @@ ohos_shared_library("app_account_innerkits") {
     "ability_runtime:runtime",
     "ace_engine:ace_uicontent",
     "c_utils:utils",
-    "hiviewdfx_hilog_native:libhilog",
+    "hilog:libhilog",
     "ipc:ipc_single",
     "napi:ace_napi",
     "samgr:samgr_proxy",

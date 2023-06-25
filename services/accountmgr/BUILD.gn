@@ -253,7 +253,7 @@ ohos_shared_library("accountmgr") {
     "access_token:libtokenid_sdk",
     "bundle_framework:appexecfwk_base",
     "c_utils:utils",
-    "hiviewdfx_hilog_native:libhilog",
+    "hilog:libhilog",
     "init:libbegetutil",
     "ipc:ipc_single",
     "safwk:system_ability_fwk",
@@ -304,7 +304,7 @@ ohos_shared_library("accountmgr") {
 
   if (has_hiviewdfx_hisysevent_part) {
     cflags_cc += [ "-DHAS_HISYSEVENT_PART" ]
-    external_deps += [ "hisysevent_native:libhisysevent" ]
+    external_deps += [ "hisysevent:libhisysevent" ]
   }
 
   if (use_musl) {
@@ -312,7 +312,7 @@ ohos_shared_library("accountmgr") {
   }
 
   if (hicollie_enable == true) {
-    external_deps += [ "hicollie_native:libhicollie" ]
+    external_deps += [ "hicollie:libhicollie" ]
     cflags_cc += [ "-DHICOLLIE_ENABLE" ]
   }
 
@@ -325,7 +325,7 @@ ohos_shared_library("accountmgr") {
   }
 
   if (has_hiviewdfx_hitrace_part) {
-    external_deps += [ "hitrace_native:hitrace_meter" ]
+    external_deps += [ "hitrace:hitrace_meter" ]
     cflags_cc += [ "-DHAS_HITRACE_PART" ]
   }
 

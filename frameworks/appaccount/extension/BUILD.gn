@@ -63,7 +63,7 @@ ohos_shared_library("authorization_extension") {
     "ability_runtime:app_context",
     "ability_runtime:runtime",
     "c_utils:utils",
-    "hiviewdfx_hilog_native:libhilog",
+    "hilog:libhilog",
     "i18n:intl_util",
     "ipc:ipc_core",
     "ipc:ipc_napi_common",
@@ -98,7 +98,7 @@ ohos_shared_library("authorization_extension_module") {
     "ability_runtime:abilitykit_native",
     "ability_runtime:runtime",
     "c_utils:utils",
-    "hiviewdfx_hilog_native:libhilog",
+    "hilog:libhilog",
     "ipc:ipc_core",
   ]
 
