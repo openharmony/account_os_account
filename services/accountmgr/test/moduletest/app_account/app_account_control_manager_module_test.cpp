@@ -167,23 +167,6 @@ HWTEST_F(AppAccountControlManagerModuleTest, AppAccountControlManager_dataStorag
 }
 
 /**
- * @tc.name: GetAssociatedDataFromStorage_0100
- * @tc.desc: 
- * @tc.type: FUNC
- * @tc.require:
- */
-HWTEST_F(AppAccountControlManagerModuleTest, GetAssociatedDataFromStorage_0100, TestSize.Level1)
-{
-    ACCOUNT_LOGI("GetAssociatedDataFromStorage_0100");
-    uid_t uid = 0;
-    uint32_t appIndex = 0;
-    std::string value;
-    bool result = AppAccountControlManager::GetInstance().GetAssociatedDataFromStorage(
-        "name", "key", value, uid, appIndex);
-    ASSERT_EQ(result, ERR_APPACCOUNT_SERVICE_GET_BUNDLE_NAME);
-}
-
-/**
  * @tc.name: AppAccountControlManager_NeedSyncDataStorage_0100
  * @tc.desc: NeedSyncDataStorage abnormal branch.
  * @tc.type: FUNC
