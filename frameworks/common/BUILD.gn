@@ -74,7 +74,7 @@ ohos_shared_library("libaccount_common") {
   ]
 
   if (build_selinux) {
-    external_deps += [ "selinux:librestorecon" ]
+    external_deps += [ "selinux_adapter:librestorecon" ]
     cflags += [ "-DWITH_SELINUX" ]
   }
 
