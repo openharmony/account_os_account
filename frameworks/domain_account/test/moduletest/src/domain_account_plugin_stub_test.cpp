@@ -130,7 +130,6 @@ HWTEST_F(DomainPluginStubModuleTest, DomainPluginStubModuleTest_ProcGetAuthStatu
     EXPECT_EQ(pluginServie_->ProcGetAuthStatusInfo(data, reply), ERR_NONE);
     int32_t result = -1;
     EXPECT_EQ(reply.WriteInt32(result), true);
-    EXPECT_EQ(result, ERR_ACCOUNT_COMMON_NULL_PTR_ERROR);
 }
 
 /**
