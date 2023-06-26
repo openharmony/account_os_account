@@ -87,6 +87,7 @@ struct JSAuthCallback {
 };
 
 struct OAuthAsyncContext : public CommonAsyncContext {
+    OAuthAsyncContext(napi_env env, bool throwAble = false) : CommonAsyncContext(env, throwAble) {};
     std::string name;
     std::string owner;
     std::string sessionId;
