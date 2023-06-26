@@ -144,7 +144,7 @@ public:
 
 private:
     bool isInit_ = false;
-    OhosAccountManager() = default;
+    OhosAccountManager();
     /**
      * Account state machine.
      */

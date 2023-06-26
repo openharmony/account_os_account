@@ -444,6 +444,12 @@ OhosAccountManager &OhosAccountManager::GetInstance()
     return instance;
 }
 
+OhosAccountManager::OhosAccountManager()
+{
+    accountState_ = std::make_unique<AccountStateMachine>();
+    dataDealer_ = std::make_unique<OhosAccountDataDeal>(ACCOUNT_CFG_DIR_ROOT_PATH);
+}
+
 /**
  * Init ohos account manager.
  *
@@ -454,10 +460,7 @@ bool OhosAccountManager::OnInitialize()
     if (isInit_) {
         return true;
     }
-    accountState_ = std::make_unique<AccountStateMachine>();
     BuildEventsMapper();
-
-    dataDealer_ = std::make_unique<OhosAccountDataDeal>(ACCOUNT_CFG_DIR_ROOT_PATH);
 
     std::int32_t tryTimes = 0;
     while (tryTimes < MAX_RETRY_TIMES) {
