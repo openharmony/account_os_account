@@ -126,14 +126,14 @@ static napi_status ParseContextForGetSetProperty(
         NAPI_CALL_BASE(env, napi_create_promise(env, &context->deferred, result), napi_generic_failure);
     }
     if (isGet) {
-        if (ParseGetPropRequest(env, argv[PARAM_ZERO], reinterpret_cast<GetPropertyContext *>(context)->request) !=
+        if (ParseGetPropRequest(env, argv[PARAM_ZERO], static_cast<GetPropertyContext *>(context)->request) !=
             napi_ok) {
             std::string errMsg = "Arg 1 must be a valid GetPropertyRequest";
             AccountNapiThrow(env, ERR_JS_PARAMETER_ERROR, errMsg, true);
             return napi_generic_failure;
         }
     } else {
-        if (ParseSetPropRequest(env, argv[PARAM_ZERO], reinterpret_cast<SetPropertyContext *>(context)->request) !=
+        if (ParseSetPropRequest(env, argv[PARAM_ZERO], static_cast<SetPropertyContext *>(context)->request) !=
             napi_ok) {
             std::string errMsg = "Arg 1 must be a valid SetPropertyRequest";
             AccountNapiThrow(env, ERR_JS_PARAMETER_ERROR, errMsg, true);
