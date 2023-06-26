@@ -89,26 +89,32 @@ static bool ParseOneParaContext(napi_env env, napi_callback_info cbInfo, CommonA
     return true;
 }
 
-bool ParseParaQueryOAByIdCB(napi_env env, napi_callback_info cbInfo, QueryOAByIdAsyncContext *asyncContext)
+bool ParseCallbackAndId(napi_env env, napi_callback_info cbInfo, napi_ref &callbackRef, int &id, bool throwErr)
 {
     size_t argc = ARGS_SIZE_TWO;
     napi_value argv[ARGS_SIZE_TWO] = {0};
     napi_get_cb_info(env, cbInfo, &argc, argv, nullptr, nullptr);
+
     if (argc == ARGS_SIZE_TWO) {
-        if (!GetCallbackProperty(env, argv[argc - 1], asyncContext->callbackRef, 1)) {
+        if (!GetCallbackProperty(env, argv[argc - 1], callbackRef, 1)) {
             ACCOUNT_LOGE("Get callbackRef failed");
             std::string errMsg = "The type of arg " + std::to_string(argc) + " must be function";
-            AccountNapiThrow(env, ERR_JS_PARAMETER_ERROR, errMsg, asyncContext->throwErr);
+            AccountNapiThrow(env, ERR_JS_PARAMETER_ERROR, errMsg, throwErr);
             return false;
         }
     }
-    if (!GetIntProperty(env, argv[PARAMZERO], asyncContext->id)) {
+    if (!GetIntProperty(env, argv[PARAMZERO], id)) {
         ACCOUNT_LOGE("Get id failed");
         std::string errMsg = "The type of arg 1 must be number";
-        AccountNapiThrow(env, ERR_JS_PARAMETER_ERROR, errMsg, asyncContext->throwErr);
+        AccountNapiThrow(env, ERR_JS_PARAMETER_ERROR, errMsg, throwErr);
         return false;
     }
     return true;
+}
+
+bool ParseParaQueryOAByIdCB(napi_env env, napi_callback_info cbInfo, QueryOAByIdAsyncContext *asyncContext)
+{
+    return ParseCallbackAndId(env, cbInfo, asyncContext->callbackRef, asyncContext->id, asyncContext->throwErr);
 }
 
 void QueryOAByIdExecuteCB(napi_env env, void *data)
@@ -263,26 +269,7 @@ void MakeArrayToJs(napi_env env, const std::vector<std::string> &constraints, na
 
 bool ParseParaRemoveOACB(napi_env env, napi_callback_info cbInfo, RemoveOAAsyncContext *asyncContext)
 {
-    size_t argc = ARGS_SIZE_TWO;
-    napi_value argv[ARGS_SIZE_TWO] = {0};
-    napi_get_cb_info(env, cbInfo, &argc, argv, nullptr, nullptr);
-
-    if (argc == ARGS_SIZE_TWO) {
-        if (!GetCallbackProperty(env, argv[argc - 1], asyncContext->callbackRef, 1)) {
-            ACCOUNT_LOGE("Get callbackRef failed");
-            std::string errMsg = "The type of arg " + std::to_string(argc) + " must be function";
-            AccountNapiThrow(env, ERR_JS_PARAMETER_ERROR, errMsg, asyncContext->throwErr);
-            return false;
-        }
-    }
-
-    if (!GetIntProperty(env, argv[PARAMZERO], asyncContext->id)) {
-        ACCOUNT_LOGE("Get id failed");
-        std::string errMsg = "The type of arg 1 must be number";
-        AccountNapiThrow(env, ERR_JS_PARAMETER_ERROR, errMsg, asyncContext->throwErr);
-        return false;
-    }
-    return true;
+    return ParseCallbackAndId(env, cbInfo, asyncContext->callbackRef, asyncContext->id, asyncContext->throwErr);
 }
 
 void RemoveOAExecuteCB(napi_env env, void *data)
@@ -443,27 +430,7 @@ void SetOAConsCallbackCompletedCB(napi_env env, napi_status status, void *data)
 
 bool ParseParaActiveOA(napi_env env, napi_callback_info cbInfo, ActivateOAAsyncContext *asyncContext)
 {
-    size_t argc = ARGS_SIZE_TWO;
-    napi_value argv[ARGS_SIZE_TWO] = {0};
-    napi_get_cb_info(env, cbInfo, &argc, argv, nullptr, nullptr);
-
-    if (argc == ARGS_SIZE_TWO) {
-        if (!GetCallbackProperty(env, argv[argc - 1], asyncContext->callbackRef, 1)) {
-            ACCOUNT_LOGE("Get callbackRef failed");
-            std::string errMsg = "The type of arg " + std::to_string(argc) + " must be function";
-            AccountNapiThrow(env, ERR_JS_PARAMETER_ERROR, errMsg, asyncContext->throwErr);
-            return false;
-        }
-    }
-
-    if (!GetIntProperty(env, argv[PARAMZERO], asyncContext->id)) {
-        ACCOUNT_LOGE("Get id failed");
-        std::string errMsg = "The type of arg 1 must be number";
-        AccountNapiThrow(env, ERR_JS_PARAMETER_ERROR, errMsg, asyncContext->throwErr);
-        return false;
-    }
-
-    return true;
+    return ParseCallbackAndId(env, cbInfo, asyncContext->callbackRef, asyncContext->id, asyncContext->throwErr);
 }
 
 void ActivateOAExecuteCB(napi_env env, void *data)
@@ -735,27 +702,7 @@ void DbDeviceIdCallbackCompletedCB(napi_env env, napi_status status, void *data)
 
 bool ParseParaGetAllCons(napi_env env, napi_callback_info cbInfo, GetAllConsAsyncContext *asyncContext)
 {
-    size_t argc = ARGS_SIZE_TWO;
-    napi_value argv[ARGS_SIZE_TWO] = {0};
-    napi_get_cb_info(env, cbInfo, &argc, argv, nullptr, nullptr);
-
-    if (argc == ARGS_SIZE_TWO) {
-        if (!GetCallbackProperty(env, argv[argc - 1], asyncContext->callbackRef, 1)) {
-            ACCOUNT_LOGE("Get callbackRef failed");
-            std::string errMsg = "The type of arg " + std::to_string(argc) + " must be function";
-            AccountNapiThrow(env, ERR_JS_PARAMETER_ERROR, errMsg, asyncContext->throwErr);
-            return false;
-        }
-    }
-
-    if (!GetIntProperty(env, argv[PARAMZERO], asyncContext->id)) {
-        ACCOUNT_LOGE("Get id failed");
-        std::string errMsg = "The type of arg 1 must be number";
-        AccountNapiThrow(env, ERR_JS_PARAMETER_ERROR, errMsg, asyncContext->throwErr);
-        return false;
-    }
-
-    return true;
+    return ParseCallbackAndId(env, cbInfo, asyncContext->callbackRef, asyncContext->id, asyncContext->throwErr);
 }
 
 void GetAllConsExecuteCB(napi_env env, void *data)
@@ -1019,25 +966,7 @@ void QueryOAInfoForResult(napi_env env, const std::vector<OsAccountInfo> &info, 
 
 bool ParseParaGetPhoto(napi_env env, napi_callback_info cbInfo, GetOAPhotoAsyncContext *asyncContext)
 {
-    size_t argc = ARGS_SIZE_TWO;
-    napi_value argv[ARGS_SIZE_TWO] = {0};
-    napi_get_cb_info(env, cbInfo, &argc, argv, nullptr, nullptr);
-    if (argc == ARGS_SIZE_TWO) {
-        if (!GetCallbackProperty(env, argv[argc - 1], asyncContext->callbackRef, 1)) {
-            ACCOUNT_LOGE("Get callbackRef failed");
-            std::string errMsg = "The type of arg " + std::to_string(argc) + " must be function";
-            AccountNapiThrow(env, ERR_JS_PARAMETER_ERROR, errMsg, asyncContext->throwErr);
-            return false;
-        }
-    }
-
-    if (!GetIntProperty(env, argv[PARAMZERO], asyncContext->id)) {
-        ACCOUNT_LOGE("Get id failed");
-        std::string errMsg = "The type of arg 1 must be number";
-        AccountNapiThrow(env, ERR_JS_PARAMETER_ERROR, errMsg, asyncContext->throwErr);
-        return false;
-    }
-    return true;
+    return ParseCallbackAndId(env, cbInfo, asyncContext->callbackRef, asyncContext->id, asyncContext->throwErr);
 }
 
 void GetOAPhotoExecuteCB(napi_env env, void *data)
@@ -1332,26 +1261,7 @@ void QueryMaxNumCompletedCB(napi_env env, napi_status status, void *data)
 
 bool ParseParaIsActived(napi_env env, napi_callback_info cbInfo, IsActivedAsyncContext *asyncContext)
 {
-    size_t argc = ARGS_SIZE_TWO;
-    napi_value argv[ARGS_SIZE_TWO] = {0};
-    napi_get_cb_info(env, cbInfo, &argc, argv, nullptr, nullptr);
-    if (argc == ARGS_SIZE_TWO) {
-        if (!GetCallbackProperty(env, argv[argc - 1], asyncContext->callbackRef, 1)) {
-            ACCOUNT_LOGE("Get callbackRef failed");
-            std::string errMsg = "The type of arg " + std::to_string(argc) + " must be function";
-            AccountNapiThrow(env, ERR_JS_PARAMETER_ERROR, errMsg, asyncContext->throwErr);
-            return false;
-        }
-    }
-
-    if (!GetIntProperty(env, argv[PARAMZERO], asyncContext->id)) {
-        ACCOUNT_LOGE("Get id failed");
-        std::string errMsg = "The type of arg 1 must be number";
-        AccountNapiThrow(env, ERR_JS_PARAMETER_ERROR, errMsg, asyncContext->throwErr);
-        return false;
-    }
-
-    return true;
+    return ParseCallbackAndId(env, cbInfo, asyncContext->callbackRef, asyncContext->id, asyncContext->throwErr);
 }
 
 void IsActivedExecuteCB(napi_env env, void *data)
@@ -1684,25 +1594,7 @@ void SerialNumIdCompletedCB(napi_env env, napi_status status, void *data)
 
 bool ParseParaGetSerialNum(napi_env env, napi_callback_info cbInfo, GetSerialNumForOAInfo *asyncContext)
 {
-    size_t argc = ARGS_SIZE_TWO;
-    napi_value argv[ARGS_SIZE_TWO] = {0};
-    napi_get_cb_info(env, cbInfo, &argc, argv, nullptr, nullptr);
-    if (argc == ARGS_SIZE_TWO) {
-        if (!GetCallbackProperty(env, argv[argc - 1], asyncContext->callbackRef, 1)) {
-            ACCOUNT_LOGE("Get callbackRef failed");
-            std::string errMsg = "The type of arg " + std::to_string(argc) + " must be function";
-            AccountNapiThrow(env, ERR_JS_PARAMETER_ERROR, errMsg, asyncContext->throwErr);
-            return false;
-        }
-    }
-
-    if (!GetIntProperty(env, argv[PARAMZERO], asyncContext->id)) {
-        ACCOUNT_LOGE("Get id failed");
-        std::string errMsg = "The type of arg 1 must be number";
-        AccountNapiThrow(env, ERR_JS_PARAMETER_ERROR, errMsg, asyncContext->throwErr);
-        return false;
-    }
-    return true;
+    return ParseCallbackAndId(env, cbInfo, asyncContext->callbackRef, asyncContext->id, asyncContext->throwErr);
 }
 
 void GetSerialNumExecuteCB(napi_env env, void *data)
