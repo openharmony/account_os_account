@@ -22,32 +22,35 @@
 
 namespace OHOS {
 namespace AccountJsKit {
+static void ResultCodeInit(napi_env env, napi_value *resultCode)
+{
+    SetNamedProperty(env, (*resultCode), ERR_JS_SUCCESS_V8, "SUCCESS");
+    SetNamedProperty(env, (*resultCode), ERR_JS_ACCOUNT_NOT_EXIST, "ERROR_ACCOUNT_NOT_EXIST");
+    SetNamedProperty(env, (*resultCode), ERR_JS_APP_ACCOUNT_SERVICE_EXCEPTION, "ERROR_APP_ACCOUNT_SERVICE_EXCEPTION");
+    SetNamedProperty(env, (*resultCode), ERR_JS_INVALID_PASSWORD, "ERROR_INVALID_PASSWORD");
+    SetNamedProperty(env, (*resultCode), ERR_JS_INVALID_REQUEST, "ERROR_INVALID_REQUEST");
+    SetNamedProperty(env, (*resultCode), ERR_JS_INVALID_RESPONSE, "ERROR_INVALID_RESPONSE");
+    SetNamedProperty(env, (*resultCode), ERR_JS_NETWORK_EXCEPTION, "ERROR_NETWORK_EXCEPTION");
+    SetNamedProperty(env, (*resultCode), ERR_JS_OAUTH_AUTHENTICATOR_NOT_EXIST, "ERROR_OAUTH_AUTHENTICATOR_NOT_EXIST");
+    SetNamedProperty(env, (*resultCode), ERR_JS_OAUTH_CANCELED, "ERROR_OAUTH_CANCELED");
+    SetNamedProperty(env, (*resultCode), ERR_JS_OAUTH_LIST_TOO_LARGE, "ERROR_OAUTH_LIST_TOO_LARGE");
+    SetNamedProperty(env, (*resultCode), ERR_JS_OAUTH_SERVICE_EXCEPTION, "ERROR_OAUTH_SERVICE_EXCEPTION");
+    SetNamedProperty(env, (*resultCode), ERR_JS_OAUTH_SESSION_NOT_EXIST, "ERROR_OAUTH_SESSION_NOT_EXIST");
+    SetNamedProperty(env, (*resultCode), ERR_JS_OAUTH_TIMEOUT, "ERROR_OAUTH_TIMEOUT");
+    SetNamedProperty(env, (*resultCode), ERR_JS_OAUTH_TOKEN_NOT_EXIST, "ERROR_OAUTH_TOKEN_NOT_EXIST");
+    SetNamedProperty(env, (*resultCode), ERR_JS_OAUTH_TOKEN_TOO_MANY, "ERROR_OAUTH_TOKEN_TOO_MANY");
+    SetNamedProperty(env, (*resultCode), ERR_JS_OAUTH_SERVICE_BUSY, "ERROR_OAUTH_SERVICE_BUSY");
+    SetNamedProperty(env, (*resultCode), ERR_JS_OAUTH_UNSUPPORT_ACTION, "ERROR_OAUTH_UNSUPPORT_ACTION");
+    SetNamedProperty(env, (*resultCode), ERR_JS_OAUTH_UNSUPPORT_AUTH_TYPE, "ERROR_OAUTH_UNSUPPORT_AUTH_TYPE");
+    SetNamedProperty(env, (*resultCode), ERR_JS_PERMISSION_DENIED_V8, "ERROR_PERMISSION_DENIED");
+}
 napi_value NapiAppAccountConstant::Init(napi_env env, napi_value exports)
 {
     napi_value resultCode = nullptr;
     napi_value constants = nullptr;
     napi_create_object(env, &resultCode);
     napi_create_object(env, &constants);
-
-    SetNamedProperty(env, resultCode, ERR_JS_SUCCESS_V8, "SUCCESS");
-    SetNamedProperty(env, resultCode, ERR_JS_ACCOUNT_NOT_EXIST, "ERROR_ACCOUNT_NOT_EXIST");
-    SetNamedProperty(env, resultCode, ERR_JS_APP_ACCOUNT_SERVICE_EXCEPTION, "ERROR_APP_ACCOUNT_SERVICE_EXCEPTION");
-    SetNamedProperty(env, resultCode, ERR_JS_INVALID_PASSWORD, "ERROR_INVALID_PASSWORD");
-    SetNamedProperty(env, resultCode, ERR_JS_INVALID_REQUEST, "ERROR_INVALID_REQUEST");
-    SetNamedProperty(env, resultCode, ERR_JS_INVALID_RESPONSE, "ERROR_INVALID_RESPONSE");
-    SetNamedProperty(env, resultCode, ERR_JS_NETWORK_EXCEPTION, "ERROR_NETWORK_EXCEPTION");
-    SetNamedProperty(env, resultCode, ERR_JS_OAUTH_AUTHENTICATOR_NOT_EXIST, "ERROR_OAUTH_AUTHENTICATOR_NOT_EXIST");
-    SetNamedProperty(env, resultCode, ERR_JS_OAUTH_CANCELED, "ERROR_OAUTH_CANCELED");
-    SetNamedProperty(env, resultCode, ERR_JS_OAUTH_LIST_TOO_LARGE, "ERROR_OAUTH_LIST_TOO_LARGE");
-    SetNamedProperty(env, resultCode, ERR_JS_OAUTH_SERVICE_EXCEPTION, "ERROR_OAUTH_SERVICE_EXCEPTION");
-    SetNamedProperty(env, resultCode, ERR_JS_OAUTH_SESSION_NOT_EXIST, "ERROR_OAUTH_SESSION_NOT_EXIST");
-    SetNamedProperty(env, resultCode, ERR_JS_OAUTH_TIMEOUT, "ERROR_OAUTH_TIMEOUT");
-    SetNamedProperty(env, resultCode, ERR_JS_OAUTH_TOKEN_NOT_EXIST, "ERROR_OAUTH_TOKEN_NOT_EXIST");
-    SetNamedProperty(env, resultCode, ERR_JS_OAUTH_TOKEN_TOO_MANY, "ERROR_OAUTH_TOKEN_TOO_MANY");
-    SetNamedProperty(env, resultCode, ERR_JS_OAUTH_SERVICE_BUSY, "ERROR_OAUTH_SERVICE_BUSY");
-    SetNamedProperty(env, resultCode, ERR_JS_OAUTH_UNSUPPORT_ACTION, "ERROR_OAUTH_UNSUPPORT_ACTION");
-    SetNamedProperty(env, resultCode, ERR_JS_OAUTH_UNSUPPORT_AUTH_TYPE, "ERROR_OAUTH_UNSUPPORT_AUTH_TYPE");
-    SetNamedProperty(env, resultCode, ERR_JS_PERMISSION_DENIED_V8, "ERROR_PERMISSION_DENIED");
+    ResultCodeInit(env, &resultCode);
 
     SetNamedProperty(env, constants, Constants::OAUTH_ACTION_ADD_ACCOUNT_IMPLICITLY.c_str(),
         "ACTION_ADD_ACCOUNT_IMPLICITLY");

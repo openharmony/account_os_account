@@ -205,14 +205,9 @@ ErrCode AccountCommand::RunAsDumpCommand(void)
     return result;
 }
 
-ErrCode AccountCommand::RunAsSetCommand(void)
+void AccountCommand::RunCommand(
+    int &counter, ErrCode &result, bool &enable, int &id, std::vector<std::string> &constraints)
 {
-    ErrCode result = ERR_OK;
-    int counter = 0;
-    int id = -1;
-    std::vector<std::string> constraints;
-    bool enable = false;
-
     while (true) {
         counter++;
 
@@ -233,6 +228,17 @@ ErrCode AccountCommand::RunAsSetCommand(void)
 
         result = RunAsSetCommandExistentOptionArgument(option, id, constraints, enable);
     }
+}
+
+ErrCode AccountCommand::RunAsSetCommand(void)
+{
+    ErrCode result = ERR_OK;
+    int counter = 0;
+    int id = -1;
+    std::vector<std::string> constraints;
+    bool enable = false;
+
+    RunCommand(counter, result, enable, id, constraints);
 
     if (result == ERR_OK) {
         if (id == -1 || constraints.size() == 0) {

@@ -44,6 +44,7 @@ config("domain_account_amgr_mock_config") {
     "${services_path}/accountmgr/include/ability_manager_adapter",
     "${services_path}/accountmgr/test/unittest/domain_account/mock",
     "${common_path}/log/include",
+    "${domain_account_framework_path}/test/moduletest/include",
     "${common_path}/perf_stat/include",
     "${common_path}/account_error/include",
     "${innerkits_path}/include",
@@ -58,6 +59,7 @@ ohos_unittest("DomainAccountInnerServiceCovTest") {
       "${os_account_path}/test/resource/accountmgrservice/ohos_test.xml"
 
   sources = [
+    "${domain_account_framework_path}/test/moduletest/src/mock_domain_plugin.cpp",
     "${os_account_dfx_path}/hitrace_adapter/hitrace_adapter.cpp",
     "${services_path}/accountmgr/src/account_event_provider.cpp",
     "${services_path}/accountmgr/src/domain_account/domain_account_plugin_death_recipient.cpp",
