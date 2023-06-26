@@ -21,10 +21,12 @@
 #include "domain_account_plugin_death_recipient.h"
 #include "domain_account_plugin_service.h"
 #include "domain_auth_callback_proxy.h"
+#include "domain_auth_callback_service.h"
 #include "domain_has_domain_info_callback.h"
 #include "inner_domain_account_manager.h"
 #undef private
 #include "mock_domain_account_callback_stub.h"
+#include "mock_domain_plugin.h"
 #include "mock_inner_os_account_manager.h"
 
 namespace OHOS {
@@ -44,6 +46,7 @@ const std::string TEST_ACCOUNT_ID = "test_account_id";
 const std::int32_t MAIN_ACCOUNT_ID = 100;
 const std::vector<uint8_t> TEST_TOKEN = {0};
 const std::vector<uint8_t> TEST_PASSWORD = {0};
+std::shared_ptr<MockDomainPlugin> g_plugin = std::make_shared<MockDomainPlugin>();
 }  // namespace
 
 class DomainAccountManagerInnerServiceTest : public testing::Test {
@@ -394,6 +397,70 @@ HWTEST_F(DomainAccountManagerInnerServiceTest, DomainAccountManagerInnerServiceT
     sptr<MockDomainAccountCallbackStub> testCallback = new (std::nothrow) MockDomainAccountCallbackStub(callback);
     ASSERT_NE(testCallback, nullptr);
     ASSERT_EQ(InnerDomainAccountManager::GetInstance().IsAccountTokenValid(info, token, nullptr), ERR_OK);
+}
+
+/**
+ * @tc.name: DomainAccountManagerInnerServiceTest022
+ * @tc.desc: Test StartIsAccountTokenValid with plugin is not nullptr.
+ * @tc.type: FUNC
+ * @tc.require: issueI64KAM
+ */
+HWTEST_F(DomainAccountManagerInnerServiceTest, DomainAccountManagerInnerServiceTest022, TestSize.Level1)
+{
+    DomainAccountInfo domainInfo;
+    domainInfo.accountName_ = TEST_DOMAIN_ACCOUNT_NAME;
+    domainInfo.domain_ = TEST_DOMAIN;
+    domainInfo.accountId_ = TEST_ACCOUNT_ID;
+    auto callback = std::make_shared<MockDomainAccountCallback>();
+    ASSERT_NE(callback, nullptr);
+    EXPECT_CALL(*callback, OnResult(_, _)).Times(Exactly(1));
+    sptr<MockDomainAccountCallbackStub> testCallback = new (std::nothrow) MockDomainAccountCallbackStub(callback);
+    ASSERT_NE(testCallback, nullptr);
+    std::vector<uint8_t> token;
+    sptr<DomainAccountPluginService> pluginService = new (std::nothrow) DomainAccountPluginService(g_plugin);
+    ASSERT_NE(pluginService, nullptr);
+    InnerDomainAccountManager::GetInstance().StartIsAccountTokenValid(pluginService, domainInfo, token, testCallback);
+}
+
+/**
+ * @tc.name: DomainAccountManagerInnerServiceTest023
+ * @tc.desc: Test GetAuthStatusInfo with plugin is not nullptr.
+ * @tc.type: FUNC
+ * @tc.require: issueI64KAM
+ */
+HWTEST_F(DomainAccountManagerInnerServiceTest, DomainAccountManagerInnerServiceTest023, TestSize.Level1)
+{
+    DomainAccountInfo domainInfo;
+    domainInfo.accountName_ = TEST_DOMAIN_ACCOUNT_NAME;
+    domainInfo.domain_ = TEST_DOMAIN;
+    domainInfo.accountId_ = TEST_ACCOUNT_ID;
+    sptr<DomainAccountPluginService> pluginService = new (std::nothrow) DomainAccountPluginService(g_plugin);
+    ASSERT_NE(pluginService, nullptr);
+    InnerDomainAccountManager::GetInstance().plugin_ = pluginService;
+    EXPECT_EQ(InnerDomainAccountManager::GetInstance().GetAuthStatusInfo(domainInfo, nullptr), ERR_OK);
+}
+
+/**
+ * @tc.name: DomainAccountManagerInnerServiceTest024
+ * @tc.desc: Test StartAuth with plugin is not nullptr.
+ * @tc.type: FUNC
+ * @tc.require: issueI64KAM
+ */
+HWTEST_F(DomainAccountManagerInnerServiceTest, DomainAccountManagerInnerServiceTest024, TestSize.Level1)
+{
+    DomainAccountInfo domainInfo;
+    domainInfo.accountName_ = TEST_DOMAIN_ACCOUNT_NAME;
+    domainInfo.domain_ = TEST_DOMAIN;
+    domainInfo.accountId_ = TEST_ACCOUNT_ID;
+    std::vector<uint8_t> authData;
+    sptr<DomainAuthCallbackService> callbackService = new (std::nothrow) DomainAuthCallbackService(nullptr);
+    ASSERT_NE(callbackService, nullptr);
+    sptr<DomainAccountPluginService> pluginService = new (std::nothrow) DomainAccountPluginService(g_plugin);
+    ASSERT_NE(pluginService, nullptr);
+    EXPECT_EQ(InnerDomainAccountManager::GetInstance().StartAuth(
+        pluginService, domainInfo, authData, callbackService, AUTH_WITH_TOKEN_MODE), ERR_OK);
+    EXPECT_EQ(InnerDomainAccountManager::GetInstance().StartAuth(
+        pluginService, domainInfo, authData, callbackService, AUTH_MODE_END), ERR_ACCOUNT_COMMON_INVALID_PARAMETER);
 }
 }  // namespace AccountSA
 }  // namespace OHOS
