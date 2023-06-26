@@ -2111,5 +2111,30 @@ HWTEST_F(OsAccountManagerServiceModuleTest, OsAccountManagerServiceModuleTest116
         osAccountManagerService_->GetDefaultActivatedOsAccount(id));
     EXPECT_EQ(id, MAIN_ACCOUNT_ID);
 }
+
+/**
+ * @tc.name: OsAccountManagerServiceModuleTest117
+ * @tc.desc: test SetOsAccountProfilePhoto
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(OsAccountManagerServiceModuleTest, OsAccountManagerServiceModuleTest117, TestSize.Level1)
+{
+    std::string photo = "";
+    EXPECT_EQ(osAccountManagerService_->SetOsAccountProfilePhoto(Constants::START_USER_ID + 1, photo),
+        ERR_ACCOUNT_COMMON_INVALID_PARAMETER);
+}
+
+/**
+ * @tc.name: OsAccountManagerServiceModuleTest118
+ * @tc.desc: test SetOsAccountProfilePhoto
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(OsAccountManagerServiceModuleTest, OsAccountManagerServiceModuleTest118, TestSize.Level1)
+{
+    EXPECT_EQ(osAccountManagerService_->SetDefaultActivatedOsAccount(Constants::MAX_USER_ID + 1),
+        ERR_OSACCOUNT_KIT_LOCAL_ID_INVALID_ERROR);
+}
 }  // namespace AccountSA
 }  // namespace OHOS

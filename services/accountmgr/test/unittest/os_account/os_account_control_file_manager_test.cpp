@@ -15,13 +15,19 @@
 
 #include <algorithm>
 #include <ctime>
+#include <dirent.h>
+#include <fstream>
 #include <gtest/gtest.h>
 #include <iostream>
+#include <sys/stat.h>
+#include <unistd.h>
+#include <vector>
 #include "account_error_no.h"
 #include "account_log_wrapper.h"
 #include "os_account_constants.h"
 #define private public
 #include "os_account_control_file_manager.h"
+#include "os_account_file_operator.h"
 #undef private
 #include "parameter.h"
 
@@ -96,6 +102,11 @@ void OsAccountControlFileManagerTest::SetUp(void)
 
 void OsAccountControlFileManagerTest::TearDown(void)
 {}
+
+static int RenameFile(const std::string &src, const std::string &des)
+{
+    return rename(src.c_str(), des.c_str());
+}
 
 /**
  * @tc.name: OsAccountControlFileManagerTest001
@@ -502,6 +513,111 @@ HWTEST_F(OsAccountControlFileManagerTest, OsAccountControlFileManagerCovTest022,
     std::string dirName4(Constants::MAX_USER_ID_LENGTH - 1, '5');
     ret = GetValidAccountID(dirName4, accountID);
     EXPECT_EQ(ret, true);
+}
+
+/**
+ * @tc.name: IsFromBaseOAConstraintsList_001
+ * @tc.desc: coverage IsFromBaseOAConstraintsList
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(OsAccountControlFileManagerTest, IsFromBaseOAConstraintsList_001, TestSize.Level1)
+{
+    bool isExist;
+    RenameFile(Constants::BASE_OSACCOUNT_CONSTRAINTS_JSON_PATH,
+        Constants::BASE_OSACCOUNT_CONSTRAINTS_JSON_PATH + "_blk");
+    ErrCode ret = osAccountControlManager_->IsFromBaseOAConstraintsList(
+        INT_TEST_ERR_USER_ID, "invalid_constraint", isExist);
+    EXPECT_NE(ret, ERR_OK);
+    RenameFile(Constants::BASE_OSACCOUNT_CONSTRAINTS_JSON_PATH + "_blk",
+        Constants::BASE_OSACCOUNT_CONSTRAINTS_JSON_PATH);
+}
+
+/**
+ * @tc.name: IsFromBaseOAConstraintsList_002
+ * @tc.desc: coverage IsFromBaseOAConstraintsList
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(OsAccountControlFileManagerTest, IsFromBaseOAConstraintsList_002, TestSize.Level1)
+{
+    bool isExist;
+    ErrCode ret = osAccountControlManager_->IsFromBaseOAConstraintsList(
+        100, "constraint.wifi", isExist);
+    EXPECT_EQ(ret, ERR_OK);
+    EXPECT_EQ(isExist, true);
+}
+
+/**
+ * @tc.name: IsFromBaseOAConstraintsList_003
+ * @tc.desc: coverage IsFromBaseOAConstraintsList
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(OsAccountControlFileManagerTest, IsFromBaseOAConstraintsList_003, TestSize.Level1)
+{
+    bool isExist;
+    RenameFile(Constants::BASE_OSACCOUNT_CONSTRAINTS_JSON_PATH,
+        Constants::BASE_OSACCOUNT_CONSTRAINTS_JSON_PATH + "_blk");
+    osAccountControlManager_->BuildAndSaveBaseOAConstraintsJsonFile();
+    ErrCode ret = osAccountControlManager_->IsFromBaseOAConstraintsList(
+        100, "constraint.wifi", isExist);
+    EXPECT_EQ(ret, ERR_OK);
+    EXPECT_EQ(isExist, true);
+    RenameFile(Constants::BASE_OSACCOUNT_CONSTRAINTS_JSON_PATH + "_blk",
+        Constants::BASE_OSACCOUNT_CONSTRAINTS_JSON_PATH);
+}
+
+/**
+ * @tc.name: RemoveOAConstraintsInfo_001
+ * @tc.desc: coverage RemoveOAConstraintsInfo
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(OsAccountControlFileManagerTest, RemoveOAConstraintsInfo_001, TestSize.Level1)
+{
+    RenameFile(Constants::BASE_OSACCOUNT_CONSTRAINTS_JSON_PATH,
+        Constants::BASE_OSACCOUNT_CONSTRAINTS_JSON_PATH + "_blk");
+    ErrCode ret = osAccountControlManager_->RemoveOAConstraintsInfo(INT_TEST_ERR_USER_ID);
+    EXPECT_NE(ret, ERR_OK);
+    RenameFile(Constants::BASE_OSACCOUNT_CONSTRAINTS_JSON_PATH + "_blk",
+        Constants::BASE_OSACCOUNT_CONSTRAINTS_JSON_PATH);
+}
+
+/**
+ * @tc.name: IsFromGlobalOAConstraintsList_001
+ * @tc.desc: coverage IsFromGlobalOAConstraintsList
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(OsAccountControlFileManagerTest, IsFromGlobalOAConstraintsList_001, TestSize.Level1)
+{
+    std::vector<ConstraintSourceTypeInfo> globalSourceList;
+    RenameFile(Constants::GLOBAL_OSACCOUNT_CONSTRAINTS_JSON_PATH,
+        Constants::GLOBAL_OSACCOUNT_CONSTRAINTS_JSON_PATH + "_blk");
+    ErrCode ret = osAccountControlManager_->IsFromGlobalOAConstraintsList(
+        INT_TEST_ERR_USER_ID, 0, "invalid_constraint", globalSourceList);
+    EXPECT_NE(ret, ERR_OK);
+    RenameFile(Constants::GLOBAL_OSACCOUNT_CONSTRAINTS_JSON_PATH + "_blk",
+        Constants::GLOBAL_OSACCOUNT_CONSTRAINTS_JSON_PATH);
+}
+
+/**
+ * @tc.name: IsFromSpecificOAConstraintsList_001
+ * @tc.desc: coverage IsFromSpecificOAConstraintsList
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(OsAccountControlFileManagerTest, IsFromSpecificOAConstraintsList_001, TestSize.Level1)
+{
+    std::vector<ConstraintSourceTypeInfo> specificSourceList;
+    RenameFile(Constants::SPECIFIC_OSACCOUNT_CONSTRAINTS_JSON_PATH,
+        Constants::SPECIFIC_OSACCOUNT_CONSTRAINTS_JSON_PATH + "_blk");
+    ErrCode ret = osAccountControlManager_->IsFromSpecificOAConstraintsList(
+        INT_TEST_ERR_USER_ID, 0, "invalid_constraint", specificSourceList);
+    EXPECT_NE(ret, ERR_OK);
+    RenameFile(Constants::SPECIFIC_OSACCOUNT_CONSTRAINTS_JSON_PATH + "_blk",
+        Constants::SPECIFIC_OSACCOUNT_CONSTRAINTS_JSON_PATH);
 }
 
 /**
