@@ -493,6 +493,10 @@ ErrCode AppAccount::ExecuteRequest(
         ACCOUNT_LOGE("callback is nullptr");
         return ERR_APPACCOUNT_KIT_INVALID_PARAMETER;
     }
+    if (request.bundleName.size() == 0) {
+        ACCOUNT_LOGE("bundleName is empty");
+        return ERR_APPACCOUNT_KIT_INVALID_PARAMETER;
+    }
     RETURN_IF_PROXY_IS_NULLPTR();
     return appAccountProxy_->ExecuteRequest(request, callback->AsObject());
 }

@@ -700,6 +700,51 @@ ErrCode AppAccountManagerService::SetAuthenticatorProperties(
     return innerManager_->SetAuthenticatorProperties(request);
 }
 
+static bool QueryAbilityInfo(const std::string &bundleName, const std::string &abilityName, int32_t userId,
+    AppExecFwk::ExtensionAbilityInfo &extensionInfo)
+{
+    if (abilityName.size() != 0) {
+        AAFwk::Want want;
+        AppExecFwk::ElementName element;
+        element.SetBundleName(bundleName);
+        element.SetAbilityName(abilityName);
+        want.SetElement(element);
+        std::vector<AppExecFwk::ExtensionAbilityInfo> extensionInfos;
+        bool result = BundleManagerAdapter::GetInstance()->QueryExtensionAbilityInfos(want,
+            AppExecFwk::ExtensionAbilityType::APP_ACCOUNT_AUTHORIZATION,
+            AppExecFwk::ExtensionAbilityInfoFlag::GET_EXTENSION_INFO_DEFAULT, userId, extensionInfos);
+        if ((!result) || (extensionInfos.size() == 0)) {
+            ACCOUNT_LOGE("failed to query ability info");
+            return false;
+        }
+        extensionInfo = extensionInfos[0];
+        return true;
+    }
+    AppExecFwk::BundleInfo bundleInfo;
+    bool bundleRet = BundleManagerAdapter::GetInstance()->GetBundleInfo(bundleName,
+        AppExecFwk::BundleFlag::GET_BUNDLE_WITH_EXTENSION_INFO, bundleInfo, userId);
+    if ((!bundleRet) || (bundleInfo.extensionInfos.size() == 0)) {
+        ACCOUNT_LOGE("failed to query bundle info");
+        return false;
+    }
+    uint32_t targetCount = 0;
+    for (auto iter : bundleInfo.extensionInfos) {
+        if (iter.type == AppExecFwk::ExtensionAbilityType::APP_ACCOUNT_AUTHORIZATION) {
+            targetCount++;
+            extensionInfo = iter;
+            if (targetCount > 1) {
+                ACCOUNT_LOGE("failed to get target ability info");
+                return false;
+            }
+        }
+    }
+    if (targetCount != 1) {
+        ACCOUNT_LOGE("failed to get target ability info");
+        return false;
+    }
+    return true;
+}
+
 ErrCode AppAccountManagerService::ExecuteRequest(
     const AccountCapabilityRequest &request, const sptr<IRemoteObject> &callback)
 {
@@ -710,13 +755,19 @@ ErrCode AppAccountManagerService::ExecuteRequest(
     if (result != ERR_OK) {
         return result;
     }
-
     innerRequest.parameters = request.parameters;
     innerRequest.callback = iface_cast<IAppAccountAuthorizationExtensionCallback>(callback);
     if (innerRequest.callback == nullptr) {
         return ERR_JS_SYSTEM_SERVICE_EXCEPTION;
     }
-    return innerManager_->ExecuteRequest(innerRequest, request.bundleName, request.abilityName);
+
+    AAFwk::WantParams Params;
+    AppExecFwk::ExtensionAbilityInfo extensionInfo;
+    int32_t userId = innerRequest.callerUid / UID_TRANSFORM_DIVISOR;
+    if (!QueryAbilityInfo(request.bundleName, request.abilityName, userId, extensionInfo)) {
+        return ERR_JS_INVALID_PARAMETER;
+    }
+    return innerManager_->ExecuteRequest(innerRequest, request.bundleName, request.abilityName, extensionInfo);
 }
 
 ErrCode AppAccountManagerService::SubscribeAppAccount(

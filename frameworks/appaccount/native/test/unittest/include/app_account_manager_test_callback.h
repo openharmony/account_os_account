@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2022 Huawei Device Co., Ltd.
+ * Copyright (c) 2022-2023 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -17,6 +17,7 @@
 #define APP_ACCOUNT_MANAGER_TEST_CALLBACK_H
 
 #include <gmock/gmock.h>
+#include "app_account_authorization_extension_callback_stub.h"
 #include "app_account_authenticator_callback_stub.h"
 
 namespace OHOS {
@@ -26,6 +27,12 @@ public:
     MOCK_METHOD2(OnResult, void(int32_t resultCode, const AAFwk::Want &result));
     MOCK_METHOD1(OnRequestRedirected, void(AAFwk::Want &request));
     MOCK_METHOD0(OnRequestContinued, void());
+};
+
+class MockAppAccountAuthorizationExtensionCallbackStub final
+    : public AccountSA::AppAccountAuthorizationExtensionCallbackStub {
+public:
+    MOCK_METHOD2(OnResult, void(const int32_t errCode, const AAFwk::WantParams& parameters));
 };
 }  // namespace AccountTest
 }  // OHOS
