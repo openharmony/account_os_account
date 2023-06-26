@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2022 Huawei Device Co., Ltd.
+ * Copyright (c) 2022-2023 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -245,4 +245,23 @@ HWTEST_F(AppAccountCommonTest, ConvertToJSErrCodeV8001, TestSize.Level0)
         ConvertToJSErrCodeV8(ERR_APPACCOUNT_SERVICE_OAUTH_AUTHENTICATOR_CALLBACK_NOT_EXIST), ERR_JS_INVALID_RESPONSE);
     EXPECT_EQ(ConvertToJSErrCodeV8(ERR_APPACCOUNT_SERVICE_PERMISSION_DENIED), ERR_JS_PERMISSION_DENIED_V8);
     EXPECT_EQ(ConvertToJSErrCodeV8(ERR_APPACCOUNT_SERVICE_SUBSCRIBE_PERMISSION_DENIED), ERR_JS_PERMISSION_DENIED_V8);
+}
+
+/**
+ * @tc.name: AccountCapabilityRequest test
+ * @tc.desc: Func AccountCapabilityRequest.
+ * @tc.type: FUNC
+ * @tc.require issueI7AVZ5
+ */
+HWTEST_F(AppAccountCommonTest, AccountCapabilityRequest001, TestSize.Level0)
+{
+    AccountCapabilityRequest testRequest;
+    testRequest.bundleName = "testBundleName";
+    testRequest.abilityName = "testAbilityName";
+    Parcel parcel;
+    EXPECT_EQ(testRequest.Marshalling(parcel), true);
+    AccountCapabilityRequest *retRequest = testRequest.Unmarshalling(parcel);
+    ASSERT_NE(retRequest, nullptr);
+    EXPECT_EQ(retRequest->bundleName, "testBundleName");
+    EXPECT_EQ(retRequest->abilityName, "testAbilityName");
 }
