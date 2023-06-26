@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2022 Huawei Device Co., Ltd.
+ * Copyright (c) 2022-2023 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -211,65 +211,57 @@ napi_value NapiAccountIAMUserAuth::SetProperty(napi_env env, napi_callback_info 
     return result;
 }
 
-static napi_status ParseContextForAuth(
-    napi_env env, napi_callback_info info, AuthContext &context, bool needUser = false)
+static napi_status ParseContextForAuth(napi_env env, napi_value *argv, size_t argc, AuthContext &context)
 {
-    size_t expectedSize = needUser ? ARG_SIZE_FIVE : ARG_SIZE_FOUR;
-    size_t argc = ARG_SIZE_FIVE;
-    napi_value argv[ARG_SIZE_FIVE] = {0};
-    napi_get_cb_info(env, info, &argc, argv, nullptr, nullptr);
-    if (argc != expectedSize) {
-        ACCOUNT_LOGE("failed to parse parameters, expect %{public}zu parameters, but got %{public}zu",
-            expectedSize, argc);
-        std::string errMsg = "The arg number must be at least " + std::to_string(expectedSize) + " characters";
-        AccountNapiThrow(env, ERR_JS_PARAMETER_ERROR, errMsg, context.throwErr);
+    if (argc != ARG_SIZE_FOUR) {
+        ACCOUNT_LOGE("the number of parameter is incorrect, expect 4, but got %{public}zu", argc);
         return napi_invalid_arg;
     }
-    int32_t index = 0;
-    if (needUser && !GetIntProperty(env, argv[index++], context.userId)) {
-        ACCOUNT_LOGE("Get userId failed");
-        std::string errMsg = "The type of arg " + std::to_string(index) + " must be number";
-        AccountNapiThrow(env, ERR_JS_PARAMETER_ERROR, errMsg, context.throwErr);
-        return napi_invalid_arg;
-    }
+    size_t index = 0;
     if (ParseUint8TypedArrayToVector(env, argv[index++], context.challenge) != napi_ok) {
-        ACCOUNT_LOGE("Get challenge failed");
-        std::string errMsg = "The type of arg " + std::to_string(index) + " must be valid int array";
-        AccountNapiThrow(env, ERR_JS_PARAMETER_ERROR, errMsg, context.throwErr);
+        ACCOUNT_LOGE("fail to parse challenge");
         return napi_invalid_arg;
     }
     if (!GetIntProperty(env, argv[index++], context.authType)) {
-        ACCOUNT_LOGE("Get authType failed");
-        std::string errMsg = "The type of arg " + std::to_string(index) + " must be number";
-        AccountNapiThrow(env, ERR_JS_PARAMETER_ERROR, errMsg, context.throwErr);
+        ACCOUNT_LOGE("fail to parse authType");
         return napi_invalid_arg;
     }
     if (!GetIntProperty(env, argv[index++], context.trustLevel)) {
-        ACCOUNT_LOGE("Get trustLevel failed");
-        std::string errMsg = "The type of arg " + std::to_string(index) + " must be number";
-        AccountNapiThrow(env, ERR_JS_PARAMETER_ERROR, errMsg, context.throwErr);
+        ACCOUNT_LOGE("fail to parse trustLevel");
         return napi_invalid_arg;
     }
     JsIAMCallback jsCallback;
     if (ParseIAMCallback(env, argv[index++], jsCallback) != napi_ok) {
-        ACCOUNT_LOGE("Get callback failed");
-        std::string errMsg = "The type of arg " + std::to_string(index) + " must be function";
-        AccountNapiThrow(env, ERR_JS_PARAMETER_ERROR, errMsg, context.throwErr);
+        ACCOUNT_LOGE("fail to parse callback");
         return napi_invalid_arg;
     }
-    NapiUserAuthCallback *object = new (std::nothrow) NapiUserAuthCallback(env, jsCallback);
-    if (object == nullptr) {
-        ACCOUNT_LOGE("failed to create NapiUserAuthCallback");
-        return napi_generic_failure;
-    }
-    context.callback.reset(object);
+    context.callback = std::make_shared<NapiUserAuthCallback>(env, jsCallback);
     return napi_ok;
+}
+
+static napi_status ParseContextForAuthUser(napi_env env, napi_value *argv, size_t argc, AuthContext &context)
+{
+    if (argc != ARG_SIZE_FIVE) {
+        ACCOUNT_LOGE("the number of parameter is incorrect, expect 5, but got %{public}zu", argc);
+        return napi_invalid_arg;
+    }
+    if (!GetIntProperty(env, argv[0], context.userId)) {
+        ACCOUNT_LOGE("Get userId failed");
+        return napi_invalid_arg;
+    }
+    return ParseContextForAuth(env, &argv[1], ARG_SIZE_FOUR, context);
 }
 
 napi_value NapiAccountIAMUserAuth::Auth(napi_env env, napi_callback_info info)
 {
+    size_t argc = ARG_SIZE_FOUR;
+    napi_value argv[ARG_SIZE_FOUR] = {0};
+    napi_get_cb_info(env, info, &argc, argv, nullptr, nullptr);
     AuthContext context;
-    NAPI_CALL(env, ParseContextForAuth(env, info, context));
+    if (ParseContextForAuth(env, argv, argc, context) == napi_invalid_arg) {
+        AccountNapiThrow(env, ERR_JS_PARAMETER_ERROR);
+        return nullptr;
+    }
     uint64_t contextId = AccountIAMClient::GetInstance().Auth(context.challenge,
         static_cast<AuthType>(context.authType), static_cast<AuthTrustLevel>(context.trustLevel), context.callback);
     return CreateUint8Array(env, reinterpret_cast<uint8_t *>(&contextId), sizeof(uint64_t));
@@ -277,8 +269,14 @@ napi_value NapiAccountIAMUserAuth::Auth(napi_env env, napi_callback_info info)
 
 napi_value NapiAccountIAMUserAuth::AuthUser(napi_env env, napi_callback_info info)
 {
+    size_t argc = ARG_SIZE_FIVE;
+    napi_value argv[ARG_SIZE_FIVE] = {0};
+    napi_get_cb_info(env, info, &argc, argv, nullptr, nullptr);
     AuthContext context;
-    NAPI_CALL(env, ParseContextForAuth(env, info, context, true));
+    if (ParseContextForAuthUser(env, argv, argc, context) == napi_invalid_arg) {
+        AccountNapiThrow(env, ERR_JS_PARAMETER_ERROR);
+        return nullptr;
+    }
     uint64_t contextId = AccountIAMClient::GetInstance().AuthUser(context.userId, context.challenge,
         static_cast<AuthType>(context.authType), static_cast<AuthTrustLevel>(context.trustLevel), context.callback);
     return CreateUint8Array(env, reinterpret_cast<uint8_t *>(&contextId), sizeof(uint64_t));
