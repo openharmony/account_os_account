@@ -16,7 +16,11 @@
 #include "os_account_domain_account_callback.h"
 
 #include "account_error_no.h"
+#include "account_event_provider.h"
 #include "account_log_wrapper.h"
+#ifdef HAS_CES_PART
+#include "common_event_support.h"
+#endif // HAS_CES_PART
 #include "iinner_os_account_manager.h"
 #include "os_account_constants.h"
 #include "os_account_control_file_manager.h"
@@ -88,6 +92,14 @@ void BindDomainAccountCallback::OnResult(int32_t errCode, Parcel &parcel)
         return innerCallback_->OnResult(errCode, resultParcel);
     }
     errCode = osAccountControl->UpdateOsAccount(osAccountInfo_);
+    if ((osAccountInfo_.GetLocalId() == Constants::START_USER_ID) && (errCode == ERR_OK)) {
+#ifdef HAS_CES_PART
+        AccountEventProvider::EventPublish(
+            EventFwk::CommonEventSupport::COMMON_EVENT_USER_INFO_UPDATED, Constants::START_USER_ID, nullptr);
+#else  // HAS_CES_PART
+        ACCOUNT_LOGI("No common event part! Publish nothing!");
+#endif // HAS_CES_PART
+    }
     osAccountInfo_.Marshalling(resultParcel);
     innerCallback_->OnResult(errCode, resultParcel);
 }
