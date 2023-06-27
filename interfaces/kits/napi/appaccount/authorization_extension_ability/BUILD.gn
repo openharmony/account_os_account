@@ -11,10 +11,10 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-import("//arkcompiler/ets_frontend/ts2panda/ts2abc_config.gni")
+import("//arkcompiler/ets_frontend/es2panda/es2abc_config.gni")
 import("//build/ohos.gni")
 
-ts2abc_gen_abc("gen_authorization_extension_ability_abc") {
+es2abc_gen_abc("gen_authorization_extension_ability_abc") {
   src_js = rebase_path("authorization_extension_ability.js")
   dst_file =
       rebase_path(target_out_dir + "/authorization_extension_ability.abc")
