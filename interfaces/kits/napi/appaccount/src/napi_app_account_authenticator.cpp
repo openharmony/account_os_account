@@ -78,7 +78,7 @@ bool NapiAppAccountAuthenticator::CheckObjectLegality() const
 
 int NapiAppAccountAuthenticator::GetObjectType() const
 {
-    return OBJECT_TYPE_JAVASCRIPT;
+    return OBJECT_TYPE_NATIVE;
 }
 
 void NapiAppAccountAuthenticator::SetEnv(napi_env env)
