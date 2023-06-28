@@ -38,6 +38,7 @@ ohos_unittest("account_iam_client_test") {
   sources = [
     "src/account_iam_callback_service_test.cpp",
     "src/account_iam_client_test.cpp",
+    "src/test_common.cpp",
   ]
 
   configs = [ ":account_iam_native_config_unittest" ]
@@ -105,11 +106,49 @@ ohos_unittest("account_iam_client_no_permission_test") {
   }
 }
 
+ohos_unittest("account_iam_mgr_proxy_test") {
+  module_out_path = module_output_path
+
+  sources = [
+    "src/account_iam_mgr_proxy_test.cpp",
+    "src/test_common.cpp",
+  ]
+
+  configs = [ ":account_iam_native_config_unittest" ]
+
+  deps = [
+    "${account_iam_framework_path}:account_iam_innerkits",
+    "${common_path}:libaccount_common",
+    "${domain_account_framework_path}:domain_account_innerkits",
+    "//third_party/googletest:gmock_main",
+    "//third_party/googletest:gtest_main",
+  ]
+
+  external_deps = [
+    "access_token:libaccesstoken_sdk",
+    "c_utils:utils",
+    "hilog:libhilog",
+    "ipc:ipc_single",
+  ]
+
+  cflags_cc = []
+  if (has_pin_auth_part) {
+    cflags_cc += [ "-DHAS_PIN_AUTH_PART" ]
+    external_deps += [ "pin_auth:pinauth_framework" ]
+  }
+
+  if (has_user_auth_part) {
+    cflags_cc += [ "-DHAS_USER_AUTH_PART" ]
+    external_deps += [ "user_auth_framework:userauth_client" ]
+  }
+}
+
 group("unittest") {
   testonly = true
 
   deps = [
     ":account_iam_client_no_permission_test",
     ":account_iam_client_test",
+    ":account_iam_mgr_proxy_test",
   ]
 }

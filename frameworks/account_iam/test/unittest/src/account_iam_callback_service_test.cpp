@@ -20,6 +20,7 @@
 #include "account_iam_client.h"
 #include "account_iam_client_test_callback.h"
 #include "account_log_wrapper.h"
+#include "test_common.h"
 #include "token_setproc.h"
 
 namespace OHOS {
@@ -171,6 +172,70 @@ HWTEST_F(AccountIAMCallbackServiceTest, IAMInputer_OnGetData_0200, TestSize.Leve
     auto iamInputerData = std::make_shared<IAMInputerData>(TEST_USER_ID, nullptr);
     EXPECT_TRUE(iamInputerData != nullptr);
     iamInputer->OnGetData(authSubType, iamInputerData);
+}
+
+/**
+ * @tc.name: IAMInputer_OnGetData_0300
+ * @tc.desc: test OnGetData.
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(AccountIAMCallbackServiceTest, IAMInputer_OnGetData_0300, TestSize.Level0)
+{
+    std::shared_ptr<MockIInputer> inputer = std::make_shared<MockIInputer>();
+    auto iamInputer = std::make_shared<IAMInputer>(TEST_USER_ID, inputer);
+    ASSERT_TRUE(iamInputer != nullptr);
+    int32_t authSubType = 0;
+    iamInputer->OnGetData(authSubType, nullptr);
+    std::string cmd = "hilog -x | grep 'AccountIAMFwk'";
+    std::string cmdRes = RunCommand(cmd);
+    ASSERT_TRUE(cmdRes.find("inputerData is nullptr") != std::string::npos);
+}
+
+/**
+ * @tc.name: DomainAuthCallbackAdapter_OnResult_0100
+ * @tc.desc: test OnResult.
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(AccountIAMCallbackServiceTest, DomainAuthCallbackAdapter_OnResult_0100, TestSize.Level0)
+{
+    std::shared_ptr<DomainAuthCallbackAdapter> domainAuthCallbackAdapter =
+        std::make_shared<DomainAuthCallbackAdapter>(nullptr);
+    DomainAuthResult result;
+    domainAuthCallbackAdapter->OnResult(0, result);
+    std::string cmd = "hilog -x | grep 'AccountIAMFwk'";
+    std::string cmdRes = RunCommand(cmd);
+    ASSERT_TRUE(cmdRes.find("callback is nullptr") != std::string::npos);
+}
+
+/**
+ * @tc.name: DomainCredentialRecipient_OnSetData_0100
+ * @tc.desc: test OnSetData.
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(AccountIAMCallbackServiceTest, DomainCredentialRecipient_OnSetData_0100, TestSize.Level0)
+{
+    auto domainCredentialRecipient = new (std::nothrow) DomainCredentialRecipient(100, nullptr);
+    std::vector<uint8_t> data = {1, 2, 3, 4};
+    domainCredentialRecipient->OnSetData(0, data);
+    EXPECT_EQ(domainCredentialRecipient->idmCallback_, nullptr);
+}
+
+/**
+ * @tc.name: IAMInputerData_OnSetData_0100
+ * @tc.desc: test OnSetData.
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(AccountIAMCallbackServiceTest, IAMInputerData_OnSetData_0100, TestSize.Level0)
+{
+    auto iamInputerData = new (std::nothrow) IAMInputerData(100, nullptr);
+    std::vector<uint8_t> data = {1, 2, 3, 4};
+    iamInputerData->ResetInnerInputerData(nullptr);
+    iamInputerData->OnSetData(0, data);
+    EXPECT_EQ(iamInputerData->innerInputerData_, nullptr);
 }
 }  // namespace AccountTest
 }  // namespace OHOS
