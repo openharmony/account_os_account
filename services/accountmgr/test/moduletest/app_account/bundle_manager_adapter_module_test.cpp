@@ -661,3 +661,72 @@ HWTEST_F(BundleManagerModuleTest, BundleManagerAdapter_ParseExtensionInfo_0100, 
     EXPECT_EQ(g_bundleManagerAdapterProxyRemoteNull->ParseExtensionInfo("invalidjsonobject", extensionInfo), false);
 }
 
+/**
+ * @tc.name: BundleManagerAdapter_ParseExtensionInfo_0200
+ * @tc.desc: an invalid json string
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(BundleManagerModuleTest, BundleManagerAdapter_ParseExtensionInfo_0200, TestSize.Level1)
+{
+    ASSERT_NE(g_bundleManagerAdapterProxyRemoteNull, nullptr);
+    ExtensionAbilityInfo extensionInfo;
+
+    Json testBundleInfo = Json {
+        {"invalid_name", 1},
+        {"invalid_label", 1},
+        {"invalid_description", 1},
+        {"invalid_type", "testtest"},
+        {"invalid_visible", "test"},
+        {"invalid_uid", "123"},
+    };
+    std::string testStr = testBundleInfo.dump();
+    EXPECT_EQ(g_bundleManagerAdapterProxyRemoteNull->ParseExtensionInfo(testStr, extensionInfo), true);
+}
+
+/**
+ * @tc.name: BundleManagerAdapter_QueryExtensionAbilityInfos_0100
+ * @tc.desc: QueryExtensionAbilityInfos
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(BundleManagerModuleTest, BundleManagerAdapter_QueryExtensionAbilityInfos_0100, TestSize.Level1)
+{
+    ASSERT_NE(g_bundleManagerAdapterProxyRemoteNull, nullptr);
+    Want want;
+    int32_t flag = 1;
+    std::vector<ExtensionAbilityInfo> extensionInfos;
+    EXPECT_EQ(g_bundleManagerAdapterProxyRemoteNull->QueryExtensionAbilityInfos(
+        want, flag, USER_ID, extensionInfos), false);
+}
+
+/**
+ * @tc.name: BundleManagerAdapter_QueryExtensionAbilityInfos_0200
+ * @tc.desc: QueryExtensionAbilityInfos
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(BundleManagerModuleTest, BundleManagerAdapter_QueryExtensionAbilityInfos_0200, TestSize.Level1)
+{
+    ASSERT_NE(g_bundleManagerAdapterProxyRemoteNull, nullptr);
+    Want want;
+    int32_t flag = 1;
+    std::vector<ExtensionAbilityInfo> extensionInfos;
+    EXPECT_EQ(g_bundleManagerAdapterProxyRemoteNull->QueryExtensionAbilityInfos(
+        want, ExtensionAbilityType::BACKUP, flag, USER_ID, extensionInfos), false);
+}
+
+/**
+ * @tc.name: BundleManagerAdapter_GetBigParcelableInfo_0100
+ * @tc.desc: GetBigParcelableInfo
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(BundleManagerModuleTest, BundleManagerAdapter_GetBigParcelableInfo_0100, TestSize.Level1)
+{
+    ASSERT_NE(g_bundleManagerAdapterProxyRemoteNull, nullptr);
+    MessageParcel data;
+    BundleInfo bundleInfo;
+    EXPECT_EQ(g_bundleManagerAdapterProxyRemoteNull->GetBigParcelableInfo<BundleInfo>(
+        BundleMgrInterfaceCode::GET_BUNDLE_INFO, data, bundleInfo), false);
+}
