@@ -110,6 +110,8 @@
         "OHOS::AccountSA::GetPropCallbackWrapper::GetPropCallbackWrapper(OHOS::sptr<OHOS::AccountSA::IGetSetPropCallback> const&)";
         "OHOS::AccountSA::GetValidAccountID(std::__h::basic_string<char, std::__h::char_traits<char>, std::__h::allocator<char>> const&, int&)";
         "OHOS::AccountSA::IAccountContext::instance_";
+        "OHOS::AccountSA::AccountMgrService::GetCallingUserID()";
+        "OHOS::AccountSA::AccountHelperData::GetBundleNameTrustList()";
         "OHOS::AccountSA::IDMAuthCallback::IDMAuthCallback(unsigned int, OHOS::UserIam::UserAuth::CredentialParameters const&, int, OHOS::UserIam::UserAuth::Attributes const&, OHOS::sptr<OHOS::AccountSA::IIDMCallback> const&)";
         "OHOS::AccountSA::IInnerOsAccountManager::AddLocalIdToOperating(int)";
         "OHOS::AccountSA::IInnerOsAccountManager::CleanGarbageAccounts()";

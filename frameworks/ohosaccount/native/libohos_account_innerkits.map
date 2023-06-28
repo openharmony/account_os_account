@@ -22,6 +22,8 @@
         "OHOS::AccountSA::OhosAccountKitsImpl::GetAppAccountService()";
         "OHOS::AccountSA::OhosAccountKitsImpl::GetOsAccountService()";
         "OHOS::AccountSA::OhosAccountKitsImpl::GetAccountIAMService()";
+        "OHOS::AccountSA::WriteOhosAccountInfo(OHOS::MessageParcel&, OHOS::AccountSA::OhosAccountInfo const&)";
+        "OHOS::AccountSA::ReadOhosAccountInfo(OHOS::MessageParcel&, OHOS::AccountSA::OhosAccountInfo&)";
     };
   local:
     *;
