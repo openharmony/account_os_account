@@ -998,6 +998,8 @@ ErrCode AppAccountStub::ProcExecuteRequest(uint32_t code, MessageParcel &data, M
     if ((request == nullptr) || (callback == nullptr)) {
         ACCOUNT_LOGE("invalid parameters");
         result = ERR_APPACCOUNT_SERVICE_INVALID_PARAMETER;
+    } else if (request->bundleName.size() == 0) {
+        result = ERR_APPACCOUNT_SERVICE_INVALID_PARAMETER;
     } else {
         result = ExecuteRequest(*request, callback);
     }

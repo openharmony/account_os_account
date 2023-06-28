@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2022 Huawei Device Co., Ltd.
+ * Copyright (c) 2022-2023 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -20,6 +20,15 @@ namespace AccountSA {
 namespace {
 const std::string STRING_BUNDLE_NAME_NOT_INSTALLED = "com.example.not_installed";
 const std::string STRING_OWNER = "com.example.owner";
+const std::string STRING_NORMAL_BUNDLENAME = "com.example.normal.bundle";
+const std::string STRING_BUNDLEINFO_WITH_NO_VALID_EXTENSION = "com.bundleInfo.noExtension";
+const std::string STRING_BUNDLEINFO_WITH_NO_VALID_TYPE_EXTENSION = "com.bundleInfo.noValidTypeExtension";
+const std::string STRING_BUNDLEINFO_WITH_MULTIPLE_VALID_EXTENSION = "com.bundleInfo.noExtension";
+const std::string STRING_ABILITY_NAME = "com.example.owner.MainAbility";
+const std::string STRING_ABILITY_NAME_TWO = "com.example.owner.MainAbility2";
+const std::string STRING_ABILITY_NAME_WITH_NO_INFO = "com.example.owner.MainAbilityWithNoInfo";
+const std::string STRING_ABILITY_NAME_WITH_CONNECT_FAILED = "com.example.MainAbilityWithConnectFailed";
+const std::string STRING_ABILITY_NAME_WITH_NO_PROXY = "com.example.MainAbilityWithNoProxy";
 }  // namespace
 
 std::shared_ptr<BundleManagerAdapter> BundleManagerAdapter::instance_ = nullptr;
@@ -59,6 +68,33 @@ bool BundleManagerAdapter::GetBundleInfo(const std::string &bundleName, const Ap
     if (bundleName == STRING_BUNDLE_NAME_NOT_INSTALLED) {
         return false;
     }
+    if (bundleName == STRING_NORMAL_BUNDLENAME) {
+        AppExecFwk::ExtensionAbilityInfo extensionInfo;
+        extensionInfo.name = STRING_ABILITY_NAME;
+        extensionInfo.type = AppExecFwk::ExtensionAbilityType::APP_ACCOUNT_AUTHORIZATION;
+        bundleInfo.extensionInfos.emplace_back(extensionInfo);
+        return true;
+    }
+    if (bundleName == STRING_BUNDLEINFO_WITH_NO_VALID_EXTENSION) {
+        return true;
+    }
+    if (bundleName == STRING_BUNDLEINFO_WITH_NO_VALID_TYPE_EXTENSION) {
+        AppExecFwk::ExtensionAbilityInfo extensionInfo;
+        extensionInfo.name = STRING_ABILITY_NAME;
+        bundleInfo.extensionInfos.emplace_back(extensionInfo);
+        return true;
+    }
+    if (bundleName == STRING_BUNDLEINFO_WITH_MULTIPLE_VALID_EXTENSION) {
+        AppExecFwk::ExtensionAbilityInfo extensionInfo1;
+        extensionInfo1.name = STRING_ABILITY_NAME;
+        extensionInfo1.type = AppExecFwk::ExtensionAbilityType::APP_ACCOUNT_AUTHORIZATION;
+        bundleInfo.extensionInfos.emplace_back(extensionInfo1);
+        AppExecFwk::ExtensionAbilityInfo extensionInfo2;
+        extensionInfo2.name = STRING_ABILITY_NAME_TWO;
+        extensionInfo2.type = AppExecFwk::ExtensionAbilityType::APP_ACCOUNT_AUTHORIZATION;
+        bundleInfo.extensionInfos.emplace_back(extensionInfo2);
+        return true;
+    }
     return true;
 }
 
@@ -73,6 +109,29 @@ bool BundleManagerAdapter::QueryExtensionAbilityInfos(const AAFwk::Want &want, c
     const int32_t &userId, std::vector<AppExecFwk::ExtensionAbilityInfo> &extensionInfos)
 {
     ACCOUNT_LOGI("mock enter, userId = %{public}d", userId);
+    return false;
+}
+
+bool BundleManagerAdapter::QueryExtensionAbilityInfos(
+    const AAFwk::Want &want, const AppExecFwk::ExtensionAbilityType &extensionType,
+    const int32_t &flag, const int32_t &userId, std::vector<AppExecFwk::ExtensionAbilityInfo> &extensionInfos)
+{
+    ACCOUNT_LOGI("mock enter, userId = %{public}d", userId);
+    AppExecFwk::ElementName element = want.GetElement();
+    std::string abilityName = element.GetAbilityName();
+    ACCOUNT_LOGI("mock enter, abilityName = %{public}s", abilityName.c_str());
+    if ((abilityName == STRING_ABILITY_NAME) || (abilityName == STRING_ABILITY_NAME_WITH_CONNECT_FAILED) ||
+        (abilityName == STRING_ABILITY_NAME_WITH_NO_PROXY)) {
+        AppExecFwk::ExtensionAbilityInfo extensionInfo;
+        extensionInfo.name = abilityName;
+        extensionInfo.type = AppExecFwk::ExtensionAbilityType::APP_ACCOUNT_AUTHORIZATION;
+        extensionInfos.emplace_back(extensionInfo);
+        ACCOUNT_LOGI("mock enter, extensionInfos.size = %{public}d", extensionInfos.size());
+        return true;
+    }
+    if (abilityName == STRING_ABILITY_NAME_WITH_NO_INFO) {
+        return true;
+    }
     return false;
 }
 
