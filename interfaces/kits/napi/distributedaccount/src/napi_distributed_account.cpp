@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021-2022 Huawei Device Co., Ltd.
+ * Copyright (c) 2021-2023 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -17,7 +17,6 @@
 #include <map>
 #include <string>
 #include <unistd.h>
-#include "account_info.h"
 #include "account_log_wrapper.h"
 #include "js_native_api.h"
 #include "js_native_api_types.h"
@@ -34,7 +33,6 @@ using namespace OHOS::AccountSA;
 
 namespace OHOS {
 namespace AccountJsKit {
-constexpr std::int32_t INVALID_LOCAL_ID = -1;
 constexpr std::int32_t PARAM_ZERO = 0;
 constexpr std::int32_t PARAM_ONE = 1;
 constexpr std::int32_t PARAM_TWO = 2;
@@ -51,24 +49,8 @@ const std::string PROPERTY_KEY_STATUS = "status";
 
 static thread_local napi_ref distributedAccountRef_ = nullptr;
 
-struct DistributedAccountAsyncContext {
-    explicit DistributedAccountAsyncContext(napi_env napiEnv) : env(napiEnv) {}
-    ~DistributedAccountAsyncContext();
-    napi_env env = nullptr;
-    napi_async_work work = nullptr;
-
-    bool throwErr = false;
-    bool withLocalId = false;
-    int32_t errCode = 0;
-    int32_t localId = INVALID_LOCAL_ID;
-
-    std::string event;
-    AccountSA::OhosAccountInfo ohosAccountInfo;
-
-    napi_deferred deferred = nullptr;
-    napi_ref callbackRef = nullptr;
-    napi_status status = napi_generic_failure;
-};
+DistributedAccountAsyncContext::DistributedAccountAsyncContext(napi_env napiEnv) : env(napiEnv)
+{}
 
 DistributedAccountAsyncContext::~DistributedAccountAsyncContext()
 {
@@ -227,25 +209,22 @@ bool ParseUpdateOhosAccountInfoAsyncContext(
         ACCOUNT_LOGE("paramter should be at least one");
         return false;
     }
-    if (argc == PARAM_THREE) {
-        if (!GetCallbackProperty(env, argv[PARAM_TWO], asyncContext->callbackRef, PARAM_ONE)) {
-            ACCOUNT_LOGE("Failed to get callback property");
-            return false;
-        }
-        if (!GetIntProperty(env, argv[PARAM_ZERO], asyncContext->localId)) {
-            ACCOUNT_LOGE("Get localId failed");
-            return false;
-        }
-        asyncContext->withLocalId = true;
-        return ParseInfoAndEvent(env, argv[PARAM_ONE], asyncContext);
+    if (argc == PARAM_ONE) {
+        return ParseInfoAndEvent(env, argv[PARAM_ZERO], asyncContext);
     }
     if (argc == PARAM_TWO) {
         return ParseUpdateOhosAccountInfoWithTwoArgs(env, argv, asyncContext, PARAM_TWO);
     }
-    if (argc == PARAM_ONE) {
-        return ParseInfoAndEvent(env, argv[PARAM_ZERO], asyncContext);
+    if (!GetCallbackProperty(env, argv[PARAM_TWO], asyncContext->callbackRef, PARAM_ONE)) {
+        ACCOUNT_LOGE("Failed to get callback property");
+        return false;
     }
-    return false;
+    if (!GetIntProperty(env, argv[PARAM_ZERO], asyncContext->localId)) {
+        ACCOUNT_LOGE("Get localId failed");
+        return false;
+    }
+    asyncContext->withLocalId = true;
+    return ParseInfoAndEvent(env, argv[PARAM_ONE], asyncContext);
 }
 
 void ProcessCallbackOrPromise(

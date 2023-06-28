@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021-2022 Huawei Device Co., Ltd.
+ * Copyright (c) 2021-2023 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -16,10 +16,31 @@
 #ifndef OS_ACCOUNT_INTERFACES_KITS_NAPI_DISTRIBUTEDACCOUNT_INCLUDE_NAPI_DISTRIBUTED_ACCOUNT_H
 #define OS_ACCOUNT_INTERFACES_KITS_NAPI_DISTRIBUTEDACCOUNT_INCLUDE_NAPI_DISTRIBUTED_ACCOUNT_H
 
+#include <string>
+#include "account_info.h"
 #include "napi/native_api.h"
 
 namespace OHOS {
 namespace AccountJsKit {
+struct DistributedAccountAsyncContext {
+    DistributedAccountAsyncContext(napi_env napiEnv);
+    ~DistributedAccountAsyncContext();
+    napi_env env = nullptr;
+    napi_async_work work = nullptr;
+
+    bool throwErr = false;
+    bool withLocalId = false;
+    int32_t errCode = 0;
+    int32_t localId = -1;  // invalid local id
+
+    std::string event;
+    AccountSA::OhosAccountInfo ohosAccountInfo;
+
+    napi_deferred deferred = nullptr;
+    napi_ref callbackRef = nullptr;
+    napi_status status = napi_generic_failure;
+};
+
 class NapiDistributedAccount {
 public:
     static napi_value Init(napi_env env, napi_value exports);

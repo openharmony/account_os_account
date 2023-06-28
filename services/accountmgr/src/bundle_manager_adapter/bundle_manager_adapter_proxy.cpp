@@ -24,6 +24,7 @@ namespace OHOS {
 namespace AccountSA {
 namespace {
 const int32_t ASHMEM_LEN = 16;
+const int32_t MAX_INFO_SIZE = 1048576; // 1024 x 1024
 const std::string BUNDLE_INFO_NAME = "name";
 const std::string BUNDLE_INFO_LABEL = "label";
 const std::string BUNDLE_INFO_DESCRIPTION = "description";
@@ -574,6 +575,35 @@ ErrCode BundleManagerAdapterProxy::InnerGetVectorFromParcelIntelligent(
 }
 
 template <typename T>
+bool BundleManagerAdapterProxy::ParseAshmem(
+    int32_t infoSize, const char* dataStr, int32_t offset, std::vector<T> &parcelableInfos)
+{
+    if (dataStr == nullptr) {
+        return false;
+    }
+    while (infoSize > 0) {
+        std::string lenStr;
+        if (!ParseStr(dataStr, ASHMEM_LEN, offset, lenStr)) {
+            return false;
+        }
+        int strLen = atoi(lenStr.c_str());
+        offset += ASHMEM_LEN;
+        std::string infoStr;
+        if (!ParseStr(dataStr, strLen, offset, infoStr)) {
+            return false;
+        }
+        T info;
+        if (!ParseInfo(infoStr, info)) {
+            return false;
+        }
+        parcelableInfos.emplace_back(info);
+        infoSize--;
+        offset += strLen;
+    }
+    return true;
+}
+
+template <typename T>
 bool BundleManagerAdapterProxy::GetParcelableInfosFromAshmem(
     BundleMgrInterfaceCode code, MessageParcel &data, std::vector<T> &parcelableInfos)
 {
@@ -585,13 +615,16 @@ bool BundleManagerAdapterProxy::GetParcelableInfosFromAshmem(
         return false;
     }
     int32_t infoSize = reply.ReadInt32();
+    if (infoSize > MAX_INFO_SIZE) {
+        ACCOUNT_LOGE("info size is too large");
+        return false;
+    }
     sptr<Ashmem> ashmem = reply.ReadAshmem();
     if (ashmem == nullptr) {
         ACCOUNT_LOGE("Ashmem is nullptr");
         return false;
     }
-    bool ret = ashmem->MapReadOnlyAshmem();
-    if (!ret) {
+    if (!ashmem->MapReadOnlyAshmem()) {
         ACCOUNT_LOGE("Map read only ashmem fail");
         ClearAshmem(ashmem);
         return false;
@@ -599,34 +632,9 @@ bool BundleManagerAdapterProxy::GetParcelableInfosFromAshmem(
     int32_t offset = 0;
     const char* dataStr = static_cast<const char*>(
         ashmem->ReadFromAshmem(ashmem->GetAshmemSize(), offset));
-    if (dataStr == nullptr) {
-        ClearAshmem(ashmem);
-        return false;
-    }
-    while (infoSize > 0) {
-        std::string lenStr;
-        if (!ParseStr(dataStr, ASHMEM_LEN, offset, lenStr)) {
-            ClearAshmem(ashmem);
-            return false;
-        }
-        int strLen = atoi(lenStr.c_str());
-        offset += ASHMEM_LEN;
-        std::string infoStr;
-        if (!ParseStr(dataStr, strLen, offset, infoStr)) {
-            ClearAshmem(ashmem);
-            return false;
-        }
-        T info;
-        if (!ParseInfo(infoStr, info)) {
-            ClearAshmem(ashmem);
-            return false;
-        }
-        parcelableInfos.emplace_back(info);
-        infoSize--;
-        offset += strLen;
-    }
+    bool result = ParseAshmem(infoSize, dataStr, offset, parcelableInfos);
     ClearAshmem(ashmem);
-    return true;
+    return result;
 }
 
 bool BundleManagerAdapterProxy::SendData(void *&buffer, size_t size, const void *data)
