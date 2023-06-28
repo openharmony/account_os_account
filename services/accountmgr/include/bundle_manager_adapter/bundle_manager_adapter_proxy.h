@@ -141,6 +141,8 @@ private:
      */
     template <typename T>
     bool GetParcelableInfos(BundleMgrInterfaceCode code, MessageParcel &data, std::vector<T> &parcelableInfos);
+    template <typename T>
+    bool ParseAshmem(int32_t infoSize, const char* dataStr, int32_t offset, std::vector<T> &parcelableInfos);
     /**
      * @brief Send a command message and then get a vector of parcelable information objects from the reply Ashmem.
      * @param code Indicates the message code to be sent.
