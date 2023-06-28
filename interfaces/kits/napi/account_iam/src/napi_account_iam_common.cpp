@@ -35,6 +35,8 @@ static int32_t AccountIAMConvertOtherToJSErrCode(int32_t errCode)
         case ERR_IAM_SUCCESS:
             return ERR_JS_SUCCESS;
         case ERR_IAM_FAIL:
+        case ERR_IAM_TOKEN_TIMEOUT:
+        case ERR_IAM_TOKEN_AUTH_FAILED:
             return ERR_JS_AUTH_CREDENTIAL_WRONG_ERROR;
         case ERR_IAM_TRUST_LEVEL_NOT_SUPPORT:
             return ERR_JS_TRUST_LEVEL_NOT_SUPPORTED;
@@ -42,6 +44,8 @@ static int32_t AccountIAMConvertOtherToJSErrCode(int32_t errCode)
             return ERR_JS_AUTH_TYPE_NOT_SUPPORTED;
         case ERR_IAM_TIMEOUT:
             return ERR_JS_AUTH_TIMEOUT;
+        case ERR_IAM_CANCELED:
+            return ERR_JS_AUTH_CANCELLED;
         case ERR_IAM_BUSY:
             return ERR_JS_AUTH_SERVICE_BUSY;
         case ERR_IAM_LOCKED:
@@ -60,6 +64,10 @@ static int32_t AccountIAMConvertOtherToJSErrCode(int32_t errCode)
         case ERR_ACCOUNT_IAM_UNSUPPORTED_AUTH_TYPE:
         case ERR_DOMAIN_ACCOUNT_SERVICE_NOT_DOMAIN_ACCOUNT:
             return ERR_JS_AUTH_TYPE_NOT_SUPPORTED;
+        case ERR_IAM_CREDENTIAL_NUMBER_REACH_LIMIT:
+            return ERR_JS_CREDENTIAL_NUMBER_REACH_LIMIT;
+        case ERR_IAM_SESSION_TIMEOUT:
+            return ERR_JS_SESSION_TIMEOUT;
         default:
             return ERR_JS_SYSTEM_SERVICE_EXCEPTION;
     }
