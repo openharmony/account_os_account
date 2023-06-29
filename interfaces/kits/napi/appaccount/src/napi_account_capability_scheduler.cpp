@@ -602,7 +602,7 @@ static void ExecuteRequestCB(napi_env env, void *data)
     asyncContext->errCode = AppAccountManager::ExecuteRequest(asyncContext->accountRequest, callback);
     if (asyncContext->errCode != ERR_OK) {
         AAFwk::WantParams parameters;
-        callback->OnResult(asyncContext->errCode, parameters);
+        callback->OnResult(ConvertToJSErrCode(asyncContext->errCode), parameters);
     }
 }
 
