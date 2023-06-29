@@ -245,7 +245,7 @@ int32_t AccountIAMMgrProxy::GetCredentialInfo(
 {
     if (callback == nullptr) {
         ACCOUNT_LOGE("callback is nullptr");
-        return ERR_APPACCOUNT_KIT_INVALID_PARAMETER;
+        return ERR_ACCOUNT_COMMON_INVALID_PARAMETER;
     }
     MessageParcel data;
     if (!WriteCommonData(data, userId)) {

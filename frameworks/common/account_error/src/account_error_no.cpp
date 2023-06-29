@@ -57,10 +57,7 @@ int32_t AppAccountConvertOtherJSErrCode(int32_t errCode)
 
 int32_t AppAccountConvertToJSErrCode(int32_t errCode)
 {
-    if ((errCode >= ERR_APPACCOUNT_KIT_NAME_IS_EMPTY && errCode <= ERR_APPACCOUNT_KIT_INVALID_PARAMETER) ||
-        (errCode >= ERR_APPACCOUNT_SERVICE_NAME_IS_EMPTY && errCode <= ERR_APPACCOUNT_SERVICE_INVALID_PARAMETER)) {
-        return ERR_JS_INVALID_PARAMETER;
-    } else if (errCode == ERR_APPACCOUNT_SERVICE_PERMISSION_DENIED ||
+    if (errCode == ERR_APPACCOUNT_SERVICE_PERMISSION_DENIED ||
         errCode == ERR_APPACCOUNT_SERVICE_SUBSCRIBE_PERMISSION_DENIED) {
         return ERR_JS_PERMISSION_DENIED;
     } else if (errCode == ERR_APPACCOUNT_SERVICE_GET_BUNDLE_NAME ||
@@ -138,7 +135,7 @@ static bool IsAppAccountKitError(int32_t errCode)
 
 static bool IsAppAccountServiceError(int32_t errCode)
 {
-    return (errCode >= ERR_APPACCOUNT_SERVICE_NAME_IS_EMPTY && errCode <= ERR_APPACCOUNT_SERVICE_OTHER);
+    return (errCode >= ERR_APPACCOUNT_SERVICE_ACCOUNT_NOT_EXIST && errCode <= ERR_APPACCOUNT_SERVICE_OTHER);
 }
 
 static bool IsOsAccountKitError(int32_t errCode)

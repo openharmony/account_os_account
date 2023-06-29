@@ -160,7 +160,7 @@ ErrCode AppAccountManagerService::EnableAppAccess(
     }
     if (authorizedApp == appAccountCallingInfo.bundleName) {
         ACCOUNT_LOGE("authorizedApp is the same to owner");
-        return ERR_APPACCOUNT_SERVICE_BUNDLE_NAME_IS_THE_SAME;
+        return ERR_ACCOUNT_COMMON_INVALID_PARAMETER;
     }
 
     return innerManager_->EnableAppAccess(name, authorizedApp, appAccountCallingInfo);
@@ -187,7 +187,7 @@ ErrCode AppAccountManagerService::DisableAppAccess(
 
     if (authorizedApp == appAccountCallingInfo.bundleName) {
         ACCOUNT_LOGE("authorizedApp is the same to owner");
-        return ERR_APPACCOUNT_SERVICE_BUNDLE_NAME_IS_THE_SAME;
+        return ERR_ACCOUNT_COMMON_INVALID_PARAMETER;
     }
 
     return innerManager_->DisableAppAccess(name, authorizedApp, appAccountCallingInfo);
@@ -209,7 +209,7 @@ ErrCode AppAccountManagerService::SetAppAccess(
             return ERR_OK;
         } else {
             ACCOUNT_LOGE("authorizedApp is the same to owner");
-            return ERR_APPACCOUNT_SERVICE_BUNDLE_NAME_IS_THE_SAME;
+            return ERR_ACCOUNT_COMMON_INVALID_PARAMETER;
         }
     }
 
@@ -441,7 +441,7 @@ ErrCode AppAccountManagerService::SetAuthTokenVisibility(
             return ERR_OK;
         } else {
             ACCOUNT_LOGE("authorizedApp is the same to owner.");
-            return ERR_APPACCOUNT_SERVICE_BUNDLE_NAME_IS_THE_SAME;
+            return ERR_ACCOUNT_COMMON_INVALID_PARAMETER;
         }
     }
     if (isVisible) {
