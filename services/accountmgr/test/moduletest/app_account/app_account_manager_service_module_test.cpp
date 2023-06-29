@@ -469,7 +469,7 @@ HWTEST_F(AppAccountManagerServiceModuleTest, seAppAccountManagerService_EnableAp
     EXPECT_EQ(result, ERR_OK);
 
     result = g_accountManagerService->EnableAppAccess(STRING_NAME, STRING_OWNER);
-    EXPECT_EQ(result, ERR_APPACCOUNT_SERVICE_BUNDLE_NAME_IS_THE_SAME);
+    EXPECT_EQ(result, ERR_ACCOUNT_COMMON_INVALID_PARAMETER);
 
     result = g_accountManagerService->DeleteAccount(STRING_NAME);
     EXPECT_EQ(result, ERR_OK);
@@ -1510,7 +1510,7 @@ HWTEST_F(AppAccountManagerServiceModuleTest, AppAccountManagerService_SetAuthTok
 
     result = g_accountManagerService->SetAuthTokenVisibility(STRING_NAME,
         STRING_AUTH_TYPE, STRING_OWNER, false);
-    EXPECT_EQ(result, ERR_APPACCOUNT_SERVICE_BUNDLE_NAME_IS_THE_SAME);
+    EXPECT_EQ(result, ERR_ACCOUNT_COMMON_INVALID_PARAMETER);
 
     result = g_accountManagerService->CheckAuthTokenVisibility(STRING_NAME,
         STRING_AUTH_TYPE, STRING_OWNER, isVisible);

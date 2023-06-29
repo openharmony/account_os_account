@@ -437,7 +437,7 @@ HWTEST_F(AppAccountAuthenticateModuleTest, AppAccountAuthenticatorManagerTest_Ap
     EXPECT_EQ(mockServicePtr_->OnRemoteRequest(ADD_ACCOUNT_IMPLICITLY, data, reply, option), ERR_NONE);
     int result = 0;
     reply.ReadInt32(result);
-    EXPECT_EQ(result, ERR_APPACCOUNT_SERVICE_INVALID_PARAMETER);
+    EXPECT_EQ(result, ERR_ACCOUNT_COMMON_INVALID_PARAMETER);
 }
 
 /**
@@ -457,7 +457,7 @@ HWTEST_F(AppAccountAuthenticateModuleTest, AppAccountAuthenticatorManagerTest_Ap
     EXPECT_EQ(mockServicePtr_->OnRemoteRequest(AUTHENTICATE, data, reply, option), ERR_NONE);
     int result = 0;
     reply.ReadInt32(result);
-    EXPECT_EQ(result, ERR_APPACCOUNT_SERVICE_INVALID_PARAMETER);
+    EXPECT_EQ(result, ERR_ACCOUNT_COMMON_INVALID_PARAMETER);
 }
 
 /**
@@ -477,7 +477,7 @@ HWTEST_F(AppAccountAuthenticateModuleTest, AppAccountAuthenticatorManagerTest_Ap
     EXPECT_EQ(data.WriteInterfaceToken(GetDescriptor()), true);
     EXPECT_EQ(mockServicePtr_->OnRemoteRequest(VERIFY_CREDENTIAL, data, reply, option), ERR_NONE);
     reply.ReadInt32(result);
-    EXPECT_EQ(result, ERR_APPACCOUNT_SERVICE_INVALID_PARAMETER);
+    EXPECT_EQ(result, ERR_ACCOUNT_COMMON_INVALID_PARAMETER);
 }
 
 /**
@@ -497,7 +497,7 @@ HWTEST_F(AppAccountAuthenticateModuleTest, AppAccountAuthenticatorManagerTest_Ap
     EXPECT_EQ(data.WriteInterfaceToken(GetDescriptor()), true);
     EXPECT_EQ(mockServicePtr_->OnRemoteRequest(CHECK_ACCOUNT_LABELS, data, reply, option), ERR_NONE);
     reply.ReadInt32(result);
-    EXPECT_EQ(result, ERR_APPACCOUNT_SERVICE_INVALID_PARAMETER);
+    EXPECT_EQ(result, ERR_ACCOUNT_COMMON_INVALID_PARAMETER);
 }
 
 /**
@@ -518,7 +518,7 @@ HWTEST_F(AppAccountAuthenticateModuleTest, AppAccountAuthenticatorManagerTest_Ap
     EXPECT_EQ(mockServicePtr_->OnRemoteRequest(SET_PROPERTIES, data, reply, option),
         ERR_NONE);
     reply.ReadInt32(result);
-    EXPECT_EQ(result, ERR_APPACCOUNT_SERVICE_INVALID_PARAMETER);
+    EXPECT_EQ(result, ERR_ACCOUNT_COMMON_INVALID_PARAMETER);
 }
 
 /**
@@ -538,7 +538,7 @@ HWTEST_F(AppAccountAuthenticateModuleTest, AppAccountAuthenticatorManagerTest_Ap
     EXPECT_EQ(data.WriteInterfaceToken(GetDescriptor()), true);
     EXPECT_EQ(mockServicePtr_->OnRemoteRequest(IS_ACCOUNT_REMOVABLE, data, reply, option), ERR_NONE);
     reply.ReadInt32(result);
-    EXPECT_EQ(result, ERR_APPACCOUNT_SERVICE_INVALID_PARAMETER);
+    EXPECT_EQ(result, ERR_ACCOUNT_COMMON_INVALID_PARAMETER);
 }
 
 /**
@@ -558,7 +558,7 @@ HWTEST_F(AppAccountAuthenticateModuleTest, AppAccountAuthenticatorManagerTest_Ap
     EXPECT_EQ(data.WriteInterfaceToken(GetDescriptor()), true);
     EXPECT_EQ(mockServicePtr_->OnRemoteRequest(CREATE_ACCOUNT_IMPLICITLY, data, reply, option), ERR_NONE);
     reply.ReadInt32(result);
-    EXPECT_EQ(result, ERR_APPACCOUNT_SERVICE_INVALID_PARAMETER);
+    EXPECT_EQ(result, ERR_ACCOUNT_COMMON_INVALID_PARAMETER);
 }
 
 /**
@@ -578,7 +578,7 @@ HWTEST_F(AppAccountAuthenticateModuleTest, AppAccountAuthenticatorManagerTest_Ap
     EXPECT_EQ(data.WriteInterfaceToken(GetDescriptor()), true);
     EXPECT_EQ(mockServicePtr_->OnRemoteRequest(AUTH, data, reply, option), ERR_NONE);
     reply.ReadInt32(result);
-    EXPECT_EQ(result, ERR_APPACCOUNT_SERVICE_INVALID_PARAMETER);
+    EXPECT_EQ(result, ERR_ACCOUNT_COMMON_INVALID_PARAMETER);
 }
 
 /**
