@@ -2136,5 +2136,84 @@ HWTEST_F(OsAccountManagerServiceModuleTest, OsAccountManagerServiceModuleTest118
     EXPECT_EQ(osAccountManagerService_->SetDefaultActivatedOsAccount(Constants::MAX_USER_ID + 1),
         ERR_OSACCOUNT_KIT_LOCAL_ID_INVALID_ERROR);
 }
+
+/**
+ * @tc.name: OsAccountManagerServiceModuleTest119
+ * @tc.desc: test CreateOsAccountForDomain permission error
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(OsAccountManagerServiceModuleTest, OsAccountManagerServiceModuleTest119, TestSize.Level1)
+{
+    setuid(ACCOUNT_UID);
+    DomainAccountInfo domainInfo;
+    EXPECT_EQ(osAccountManagerService_->CreateOsAccountForDomain(OsAccountType::NORMAL, domainInfo, nullptr),
+        ERR_OSACCOUNT_SERVICE_PERMISSION_DENIED);
+    setuid(ROOT_UID);
+}
+
+/**
+ * @tc.name: OsAccountManagerServiceModuleTest120
+ * @tc.desc: test CreateOsAccountForDomain type is invalid
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(OsAccountManagerServiceModuleTest, OsAccountManagerServiceModuleTest120, TestSize.Level1)
+{
+    DomainAccountInfo domainInfo;
+    EXPECT_EQ(osAccountManagerService_->CreateOsAccountForDomain(OsAccountType::END, domainInfo, nullptr),
+        ERR_OSACCOUNT_SERVICE_MANAGER_CREATE_INVALID_TYPE_ACCOUNT_ERROR);
+}
+
+/**
+ * @tc.name: OsAccountManagerServiceModuleTest121
+ * @tc.desc: test CreateOsAccountForDomain invalid paramter
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(OsAccountManagerServiceModuleTest, OsAccountManagerServiceModuleTest121, TestSize.Level1)
+{
+    DomainAccountInfo domainInfo("test", "");
+    EXPECT_EQ(osAccountManagerService_->CreateOsAccountForDomain(OsAccountType::NORMAL, domainInfo, nullptr),
+        ERR_OSACCOUNT_SERVICE_MANAGER_NAME_SIZE_EMPTY_ERROR);
+}
+
+/**
+ * @tc.name: OsAccountManagerServiceModuleTest122
+ * @tc.desc: test CreateOsAccountForDomain invalid paramter
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(OsAccountManagerServiceModuleTest, OsAccountManagerServiceModuleTest122, TestSize.Level1)
+{
+    DomainAccountInfo domainInfo("", "test");
+    EXPECT_EQ(osAccountManagerService_->CreateOsAccountForDomain(OsAccountType::NORMAL, domainInfo, nullptr),
+        ERR_OSACCOUNT_SERVICE_MANAGER_NAME_SIZE_EMPTY_ERROR);
+}
+
+/**
+ * @tc.name: OsAccountManagerServiceModuleTest123
+ * @tc.desc: test CreateOsAccountForDomain invalid paramter
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(OsAccountManagerServiceModuleTest, OsAccountManagerServiceModuleTest123, TestSize.Level1)
+{
+    DomainAccountInfo domainInfo("test", STRING_PHOTO_OUT_OF_RANGE);
+    EXPECT_EQ(osAccountManagerService_->CreateOsAccountForDomain(OsAccountType::NORMAL, domainInfo, nullptr),
+        ERR_OSACCOUNT_SERVICE_MANAGER_NAME_SIZE_OVERFLOW_ERROR);
+}
+
+/**
+ * @tc.name: OsAccountManagerServiceModuleTest124
+ * @tc.desc: test SetOsAccountProfilePhoto invalid paramter
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(OsAccountManagerServiceModuleTest, OsAccountManagerServiceModuleTest124, TestSize.Level1)
+{
+    EXPECT_EQ(
+        osAccountManagerService_->SetOsAccountProfilePhoto(MAIN_ACCOUNT_ID, ""), ERR_ACCOUNT_COMMON_INVALID_PARAMETER);
+}
 }  // namespace AccountSA
 }  // namespace OHOS
