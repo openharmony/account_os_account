@@ -15,7 +15,9 @@
 #include <gtest/gtest.h>
 #include <thread>
 
+#define private public
 #include "ohos_account_manager.h"
+#undef private
 #include "accesstoken_kit.h"
 #include "account_helper_data.h"
 #include "account_info.h"
@@ -38,11 +40,16 @@ const std::string KEY_ACCOUNT_EVENT_TOKEN_INVALID = "TOKEN_INVALID";
 const std::string TEST_UID = "TestUid";
 const std::string TEST_NAME = "TestName";
 const std::string TEST_EVENT_STR = "TesteventStr";
+const std::string OVERSIZE_NAME =
+    "TestTestTestTestTestTestTestTestTestTestTestTestTestTestTestTestTestTestTestTestTestTestTestTestTestTestTestTestT"
+    "stTestTestTestTestTestTestTestTestTestTestTestTestTestTestTestTestTestTestTestTestTestTestTestTestTestTestTestTes"
+    "TestTestTestTestTestTestTestTestTestTestTestTestTestTesttest";
 std::string g_eventLogin = OHOS_ACCOUNT_EVENT_LOGIN;
 std::string g_eventLogout = OHOS_ACCOUNT_EVENT_LOGOUT;
 std::string g_eventTokenInvalid = OHOS_ACCOUNT_EVENT_TOKEN_INVALID;
 const int DELAY_FOR_OPERATION = 250;
 const int ACCOUNT_UID = 100;
+const int ROOT_UID = 100;
 
 std::string GetAccountEventStr(const std::map<std::string, std::string> &accountEventMap,
     const std::string &eventKey, const std::string &defaultValue)
@@ -215,4 +222,79 @@ HWTEST_F(OhosAccountManagerTest, OhosAccountManagerTest006, TestSize.Level0)
     ret = OhosAccountManager::GetInstance().LogoutOhosAccount(
         ACCOUNT_UID, curAccountInfo.ohosAccountInfo_, g_eventLogout);
     EXPECT_EQ(true, ret);
+    setuid(ROOT_UID);
+}
+
+/**
+ * @tc.name: OhosAccountManagerTest07
+ * @tc.desc: test OhosAccountStateChange event is invalid .
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(OhosAccountManagerTest, OhosAccountManagerTest07, TestSize.Level0)
+{
+    EXPECT_EQ(OhosAccountManager::GetInstance().OhosAccountStateChange("test", "testuid", "testevent"), false);
+}
+
+/**
+ * @tc.name: OhosAccountManagerTest010
+ * @tc.desc: test LoginOhosAccount CheckOhosAccountCanBind not ok.
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(OhosAccountManagerTest, OhosAccountManagerTest008, TestSize.Level0)
+{
+    OhosAccountInfo curOhosAccountInfo;
+    EXPECT_EQ(OhosAccountManager::GetInstance().LoginOhosAccount(0, curOhosAccountInfo, "test"), false);
+}
+
+/**
+ * @tc.name: OhosAccountManagerTest011
+ * @tc.desc: test LogoutOhosAccount CheckOhosAccountCanBind not ok.
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(OhosAccountManagerTest, OhosAccountManagerTest009, TestSize.Level0)
+{
+    OhosAccountInfo curOhosAccountInfo;
+    EXPECT_EQ(OhosAccountManager::GetInstance().LogoutOhosAccount(0, curOhosAccountInfo, "test"), false);
+}
+
+/**
+ * @tc.name: OhosAccountManagerTest012
+ * @tc.desc: test LogoffOhosAccount CheckOhosAccountCanBind not ok.
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(OhosAccountManagerTest, OhosAccountManagerTest010, TestSize.Level0)
+{
+    OhosAccountInfo curOhosAccountInfo;
+    EXPECT_EQ(OhosAccountManager::GetInstance().LogoffOhosAccount(0, curOhosAccountInfo, "test"), false);
+}
+
+/**
+ * @tc.name: OhosAccountManagerTest013
+ * @tc.desc: test HandleOhosAccountTokenInvalidEvent CheckOhosAccountCanBind not ok.
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(OhosAccountManagerTest, OhosAccountManagerTest011, TestSize.Level0)
+{
+    OhosAccountInfo curOhosAccountInfo;
+    EXPECT_EQ(
+        OhosAccountManager::GetInstance().HandleOhosAccountTokenInvalidEvent(0, curOhosAccountInfo, "test"), false);
+}
+
+/**
+ * @tc.name: OhosAccountManagerTest015
+ * @tc.desc: test CheckOhosAccountCanBind newOhosUid is invalid.
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(OhosAccountManagerTest, OhosAccountManagerTest012, TestSize.Level0)
+{
+    AccountInfo curOhosAccountInfo;
+    OhosAccountInfo newOhosAccountInfo;
+    EXPECT_EQ(OhosAccountManager::GetInstance().CheckOhosAccountCanBind(curOhosAccountInfo, newOhosAccountInfo, "test"),
+        false);
 }
