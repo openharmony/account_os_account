@@ -126,7 +126,6 @@ bool BundleManagerAdapter::QueryExtensionAbilityInfos(
         extensionInfo.name = abilityName;
         extensionInfo.type = AppExecFwk::ExtensionAbilityType::APP_ACCOUNT_AUTHORIZATION;
         extensionInfos.emplace_back(extensionInfo);
-        ACCOUNT_LOGI("mock enter, extensionInfos.size = %{public}d", extensionInfos.size());
         return true;
     }
     if (abilityName == STRING_ABILITY_NAME_WITH_NO_INFO) {
