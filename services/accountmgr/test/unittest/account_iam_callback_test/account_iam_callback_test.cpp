@@ -409,6 +409,28 @@ HWTEST_F(AccountIamCallbackTest, UpdateCredCallback_OnResult_0300, TestSize.Leve
 }
 
 /**
+ * @tc.name: UpdateCredCallback_OnResult_0400
+ * @tc.desc: OnResult roll back credential failed.
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(AccountIamCallbackTest, UpdateCredCallback_OnResult_0400, TestSize.Level0)
+{
+    sptr<MockIIDMCallback> callback = new (std::nothrow) MockIIDMCallback();
+    CredentialParameters credInfo = {};
+    credInfo.authType = AuthType::FACE;
+    Attributes extraInfo;
+    auto updateCredCallback = std::make_shared<UpdateCredCallback>(TEST_USER_ID, credInfo, callback);
+    EXPECT_TRUE(updateCredCallback->innerCallback_ != nullptr);
+    IAMState state = InnerAccountIAMManager::GetInstance().GetState(TEST_USER_ID);
+    InnerAccountIAMManager::GetInstance().SetState(TEST_USER_ID, ROLL_BACK_UPDATE_CRED);
+    int32_t errCode = 10;
+    updateCredCallback->OnResult(errCode, extraInfo);
+    EXPECT_EQ(ResultCode::FAIL, callback->result_);
+    InnerAccountIAMManager::GetInstance().SetState(TEST_USER_ID, state);
+}
+
+/**
  * @tc.name: UpdateCredCallback_OnAcquireInfo_0100
  * @tc.desc: OnAcquireInfo with nullptr.
  * @tc.type: FUNC
@@ -501,6 +523,27 @@ HWTEST_F(AccountIamCallbackTest, DelCredCallback_OnResult_0300, TestSize.Level0)
     errCode = 10;
     delCredCallback->OnResult(errCode, extraInfo);
     EXPECT_EQ(errCode, callback->result_);
+    InnerAccountIAMManager::GetInstance().SetState(TEST_USER_ID, state);
+}
+
+/**
+ * @tc.name: DelCredCallback_OnResult_0400
+ * @tc.desc: OnResult roll back credential failed.
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(AccountIamCallbackTest, DelCredCallback_OnResult_0400, TestSize.Level0)
+{
+    sptr<MockIIDMCallback> callback = new (std::nothrow) MockIIDMCallback();
+    Attributes extraInfo;
+    std::vector<uint8_t> authToken;
+    auto delCredCallback = std::make_shared<DelCredCallback>(TEST_USER_ID, 0, authToken, callback);
+    EXPECT_TRUE(delCredCallback->innerCallback_ != nullptr);
+    IAMState state = InnerAccountIAMManager::GetInstance().GetState(TEST_USER_ID);
+    InnerAccountIAMManager::GetInstance().SetState(TEST_USER_ID, ROLL_BACK_ADD_CRED);
+    int32_t errCode = 10;
+    delCredCallback->OnResult(errCode, extraInfo);
+    EXPECT_EQ(ResultCode::FAIL, callback->result_);
     InnerAccountIAMManager::GetInstance().SetState(TEST_USER_ID, state);
 }
 
