@@ -16,6 +16,7 @@
 #ifndef OS_ACCOUNT_INTERFACES_INNERKITS_ACCOUNT_IAM_NATIVE_INCLUDE_IACCOUNT_IAM_H
 #define OS_ACCOUNT_INTERFACES_INNERKITS_ACCOUNT_IAM_NATIVE_INCLUDE_IACCOUNT_IAM_H
 
+#include "accountmgr_service_ipc_interface_code.h"
 #include "account_iam_info.h"
 #include "iaccount_iam_callback.h"
 #include "iremote_broker.h"
@@ -49,23 +50,6 @@ public:
     virtual void SetProperty(
         int32_t userId, const SetPropertyRequest &request, const sptr<IGetSetPropCallback> &callback) = 0;
     virtual IAMState GetAccountState(int32_t userId) = 0;
-
-    enum class Message {
-        OPEN_SESSION,
-        CLOSE_SESSION,
-        ADD_CREDENTIAL,
-        UPDATE_CREDENTIAL,
-        CANCEL,
-        DEL_CRED,
-        DEL_USER,
-        GET_CREDENTIAL_INFO,
-        AUTH_USER,
-        CANCEL_AUTH,
-        GET_AVAILABLE_STATUS,
-        GET_PROPERTY,
-        SET_PROPERTY,
-        GET_ACCOUNT_STATE
-    };
 };
 }  // namespace AccountSA
 }  // namespace OHOS

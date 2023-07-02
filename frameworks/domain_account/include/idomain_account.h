@@ -18,6 +18,7 @@
 
 #include <string>
 #include <iremote_broker.h>
+#include "accountmgr_service_ipc_interface_code.h"
 #include "idomain_account_callback.h"
 #include "idomain_account_plugin.h"
 #include "want.h"
@@ -27,21 +28,6 @@ namespace AccountSA {
 class IDomainAccount : public IRemoteBroker {
 public:
     DECLARE_INTERFACE_DESCRIPTOR(u"ohos.accountfwk.IDomainAccount");
-    enum Message {
-        REGISTER_PLUGIN = 0,
-        UNREGISTER_PLUGIN = 1,
-        DOMAIN_AUTH = 2,
-        DOMAIN_AUTH_USER = 3,
-        DOMAIN_AUTH_WITH_POPUP = 4,
-        DOMAIN_HAS_DOMAIN_ACCOUNT = 5,
-        DOMAIN_UPDATE_ACCOUNT_TOKEN = 6,
-        DOMAIN_GET_ACCESS_TOKEN = 7,
-        DOMAIN_ACCOUNT_STATUS_ENQUIRY = 8,
-        DOMAIN_ACCOUNT_STATUS_LISTENER_REGISTER = 9,
-        DOMAIN_ACCOUNT_STATUS_LISTENER_UNREGISTER = 10,
-        DOMAIN_ACCOUNT_STATUS_LISTENER_REGISTER_BY_INFO = 11,
-        DOMAIN_ACCOUNT_STATUS_LISTENER_UNREGISTER_BY_INFO = 12,
-    };
 
     virtual ErrCode RegisterPlugin(const sptr<IDomainAccountPlugin> &plugin) = 0;
     virtual ErrCode UnregisterPlugin() = 0;

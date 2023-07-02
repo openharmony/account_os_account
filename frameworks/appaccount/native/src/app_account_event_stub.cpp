@@ -34,7 +34,7 @@ int AppAccountEventStub::OnRemoteRequest(
     }
 
     switch (code) {
-        case static_cast<uint32_t>(IAppAccountEvent::Message::ACCOUNT_CHANGED): {
+        case static_cast<uint32_t>(AppAccountEventInterfaceCode::ACCOUNT_CHANGED): {
             std::vector<AppAccountInfo> accounts;
             if (!ReadParcelableVector(accounts, data)) {
                 ACCOUNT_LOGE("failed to read parcelable vector for account info");

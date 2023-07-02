@@ -20,6 +20,7 @@
 #include "iremote_broker.h"
 #include "iremote_object.h"
 #include "os_account_info.h"
+#include "accountmgr_service_ipc_interface_code.h"
 #include "account_error_no.h"
 #include "idomain_account_callback.h"
 #include "os_account_constants.h"
@@ -93,56 +94,6 @@ public:
 
     virtual ErrCode SetDefaultActivatedOsAccount(const int32_t id) = 0;
     virtual ErrCode GetDefaultActivatedOsAccount(int32_t &id) = 0;
-
-    enum class Message {
-        CREATE_OS_ACCOUNT = 0,
-        CREATE_OS_ACCOUNT_FOR_DOMAIN,
-        REMOVE_OS_ACCOUNT,
-        IS_OS_ACCOUNT_EXISTS,
-        IS_OS_ACCOUNT_ACTIVED,
-        IS_OS_ACCOUNT_CONSTRAINT_ENABLE,
-        CHECK_OS_ACCOUNT_CONSTRAINT_ENABLED,
-        IS_OS_ACCOUNT_VERIFIED,
-        GET_CREATED_OS_ACCOUNT_COUNT,
-        GET_OS_ACCOUNT_LOCAL_ID_FROM_PROCESS,
-        IS_MAIN_OS_ACCOUNT,
-        GET_OS_ACCOUNT_LOCAL_ID_FROM_DOMAIN,
-        QUERY_MAX_OS_ACCOUNT_NUMBER,
-        GET_OS_ACCOUNT_ALL_CONSTRAINTS,
-        QUERY_ALL_CREATED_OS_ACCOUNTS,
-        QUERY_CURRENT_OS_ACCOUNT,
-        QUERY_OS_ACCOUNT_BY_ID,
-        GET_OS_ACCOUNT_TYPE_FROM_PROCESS,
-        GET_OS_ACCOUNT_PROFILE_PHOTO,
-        IS_MULTI_OS_ACCOUNT_ENABLE,
-        SET_OS_ACCOUNT_NAME,
-        SET_OS_ACCOUNT_CONSTRAINTS,
-        SET_OS_ACCOUNT_PROFILE_PHOTO,
-        ACTIVATE_OS_ACCOUNT,
-        START_OS_ACCOUNT,
-        STOP_OS_ACCOUNT,
-        SUBSCRIBE_ACCOUNT,
-        UNSUBSCRIBE_ACCOUNT,
-        GET_OS_ACCOUNT_LOCAL_ID_FOR_SERIAL_NUMBER,
-        GET_SERIAL_NUMBER_FOR_OS_ACCOUNT,
-        GET_OS_ACCOUNT_SWITCH_MOD,
-        IS_CURRENT_OS_ACCOUNT_VERIFIED,
-        IS_OS_ACCOUNT_COMPLETED,
-        SET_CURRENT_OS_ACCOUNT_IS_VERIFIED,
-        SET_OS_ACCOUNT_IS_VERIFIED,
-        DUMP_STATE,
-        GET_CREATED_OS_ACCOUNT_NUM_FROM_DATABASE,
-        GET_SERIAL_NUM_FROM_DATABASE,
-        GET_MAX_ALLOW_CREATE_ID_FROM_DATABASE,
-        GET_OS_ACCOUNT_FROM_DATABASE,
-        GET_OS_ACCOUNT_LIST_FROM_DATABASE,
-        QUERY_ACTIVE_OS_ACCOUNT_IDS,
-        QUERY_OS_ACCOUNT_CONSTRAINT_SOURCE_TYPES,
-        SET_GLOBAL_OS_ACCOUNT_CONSTRAINTS,
-        SET_SPECIFIC_OS_ACCOUNT_CONSTRAINTS,
-        SET_DEFAULT_ACTIVATED_OS_ACCOUNT,
-        GET_DEFAULT_ACTIVATED_OS_ACCOUNT,
-    };
 };
 }  // namespace AccountSA
 }  // namespace OHOS

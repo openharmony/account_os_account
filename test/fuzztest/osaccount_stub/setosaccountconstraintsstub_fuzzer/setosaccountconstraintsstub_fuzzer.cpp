@@ -59,7 +59,7 @@ bool SetOsAccountConstraintsStubFuzzTest(const uint8_t *data, size_t size)
         return false;
     }
 
-    uint32_t code = static_cast<uint32_t>(IOsAccount::Message::SET_OS_ACCOUNT_CONSTRAINTS);
+    uint32_t code = static_cast<uint32_t>(OsAccountInterfaceCode::SET_OS_ACCOUNT_CONSTRAINTS);
 
     MessageParcel reply;
     MessageOption option;

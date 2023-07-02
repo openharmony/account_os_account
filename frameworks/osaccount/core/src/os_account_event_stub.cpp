@@ -33,7 +33,7 @@ int OsAccountEventStub::OnRemoteRequest(uint32_t code, MessageParcel &data, Mess
     }
 
     switch (code) {
-        case static_cast<uint32_t>(IOsAccountEvent::Message::ACCOUNT_CHANGED): {
+        case static_cast<uint32_t>(OsAccountEventInterfaceCode::ACCOUNT_CHANGED): {
             int id;
             if (!data.ReadInt32(id)) {
                 ACCOUNT_LOGE("failed to read localId");

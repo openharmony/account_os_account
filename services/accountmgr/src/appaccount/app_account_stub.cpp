@@ -57,175 +57,175 @@ namespace AccountSA {
 
 const std::map<uint32_t, AppAccountStub::MessageProcFunction> AppAccountStub::messageProcMap_ = {
     {
-        static_cast<uint32_t>(IAppAccount::Message::ADD_ACCOUNT),
+        static_cast<uint32_t>(AppAccountInterfaceCode::ADD_ACCOUNT),
         &AppAccountStub::ProcAddAccount,
     },
     {
-        static_cast<uint32_t>(IAppAccount::Message::ADD_ACCOUNT_IMPLICITLY),
+        static_cast<uint32_t>(AppAccountInterfaceCode::ADD_ACCOUNT_IMPLICITLY),
         &AppAccountStub::ProcAddAccountImplicitly,
     },
     {
-        static_cast<uint32_t>(IAppAccount::Message::CREATE_ACCOUNT),
+        static_cast<uint32_t>(AppAccountInterfaceCode::CREATE_ACCOUNT),
         &AppAccountStub::ProcCreateAccount,
     },
     {
-        static_cast<uint32_t>(IAppAccount::Message::CREATE_ACCOUNT_IMPLICITLY),
+        static_cast<uint32_t>(AppAccountInterfaceCode::CREATE_ACCOUNT_IMPLICITLY),
         &AppAccountStub::ProcCreateAccountImplicitly,
     },
     {
-        static_cast<uint32_t>(IAppAccount::Message::DELETE_ACCOUNT),
+        static_cast<uint32_t>(AppAccountInterfaceCode::DELETE_ACCOUNT),
         &AppAccountStub::ProcDeleteAccount,
     },
     {
-        static_cast<uint32_t>(IAppAccount::Message::GET_ACCOUNT_EXTRA_INFO),
+        static_cast<uint32_t>(AppAccountInterfaceCode::GET_ACCOUNT_EXTRA_INFO),
         &AppAccountStub::ProcGetAccountExtraInfo,
     },
     {
-        static_cast<uint32_t>(IAppAccount::Message::SET_ACCOUNT_EXTRA_INFO),
+        static_cast<uint32_t>(AppAccountInterfaceCode::SET_ACCOUNT_EXTRA_INFO),
         &AppAccountStub::ProcSetAccountExtraInfo,
     },
     {
-        static_cast<uint32_t>(IAppAccount::Message::ENABLE_APP_ACCESS),
+        static_cast<uint32_t>(AppAccountInterfaceCode::ENABLE_APP_ACCESS),
         &AppAccountStub::ProcSetAppAccess,
     },
     {
-        static_cast<uint32_t>(IAppAccount::Message::DISABLE_APP_ACCESS),
+        static_cast<uint32_t>(AppAccountInterfaceCode::DISABLE_APP_ACCESS),
         &AppAccountStub::ProcSetAppAccess,
     },
     {
-        static_cast<uint32_t>(IAppAccount::Message::SET_APP_ACCESS),
+        static_cast<uint32_t>(AppAccountInterfaceCode::SET_APP_ACCESS),
         &AppAccountStub::ProcSetAppAccess,
     },
     {
-        static_cast<uint32_t>(IAppAccount::Message::CHECK_APP_ACCESS),
+        static_cast<uint32_t>(AppAccountInterfaceCode::CHECK_APP_ACCESS),
         &AppAccountStub::ProcCheckAppAccess,
     },
     {
-        static_cast<uint32_t>(IAppAccount::Message::CHECK_APP_ACCOUNT_SYNC_ENABLE),
+        static_cast<uint32_t>(AppAccountInterfaceCode::CHECK_APP_ACCOUNT_SYNC_ENABLE),
         &AppAccountStub::ProcCheckAppAccountSyncEnable,
     },
     {
-        static_cast<uint32_t>(IAppAccount::Message::SET_APP_ACCOUNT_SYNC_ENABLE),
+        static_cast<uint32_t>(AppAccountInterfaceCode::SET_APP_ACCOUNT_SYNC_ENABLE),
         &AppAccountStub::ProcSetAppAccountSyncEnable,
     },
     {
-        static_cast<uint32_t>(IAppAccount::Message::GET_ASSOCIATED_DATA),
+        static_cast<uint32_t>(AppAccountInterfaceCode::GET_ASSOCIATED_DATA),
         &AppAccountStub::ProcGetAssociatedData,
     },
     {
-        static_cast<uint32_t>(IAppAccount::Message::SET_ASSOCIATED_DATA),
+        static_cast<uint32_t>(AppAccountInterfaceCode::SET_ASSOCIATED_DATA),
         &AppAccountStub::ProcSetAssociatedData,
     },
     {
-        static_cast<uint32_t>(IAppAccount::Message::GET_ACCOUNT_CREDENTIAL),
+        static_cast<uint32_t>(AppAccountInterfaceCode::GET_ACCOUNT_CREDENTIAL),
         &AppAccountStub::ProcGetAccountCredential,
     },
     {
-        static_cast<uint32_t>(IAppAccount::Message::SET_ACCOUNT_CREDENTIAL),
+        static_cast<uint32_t>(AppAccountInterfaceCode::SET_ACCOUNT_CREDENTIAL),
         &AppAccountStub::ProcSetAccountCredential,
     },
     {
-        static_cast<uint32_t>(IAppAccount::Message::DELETE_ACCOUNT_CREDENTIAL),
+        static_cast<uint32_t>(AppAccountInterfaceCode::DELETE_ACCOUNT_CREDENTIAL),
         &AppAccountStub::ProcDeleteAccountCredential,
     },
     {
-        static_cast<uint32_t>(IAppAccount::Message::AUTHENTICATE),
+        static_cast<uint32_t>(AppAccountInterfaceCode::AUTHENTICATE),
         &AppAccountStub::ProcAuthenticate,
     },
     {
-        static_cast<uint32_t>(IAppAccount::Message::GET_OAUTH_TOKEN),
+        static_cast<uint32_t>(AppAccountInterfaceCode::GET_OAUTH_TOKEN),
         &AppAccountStub::ProcGetAuthToken,
     },
     {
-        static_cast<uint32_t>(IAppAccount::Message::GET_AUTH_TOKEN),
+        static_cast<uint32_t>(AppAccountInterfaceCode::GET_AUTH_TOKEN),
         &AppAccountStub::ProcGetAuthToken,
     },
     {
-        static_cast<uint32_t>(IAppAccount::Message::SET_OAUTH_TOKEN),
+        static_cast<uint32_t>(AppAccountInterfaceCode::SET_OAUTH_TOKEN),
         &AppAccountStub::ProcSetOAuthToken,
     },
     {
-        static_cast<uint32_t>(IAppAccount::Message::DELETE_OAUTH_TOKEN),
+        static_cast<uint32_t>(AppAccountInterfaceCode::DELETE_OAUTH_TOKEN),
         &AppAccountStub::ProcDeleteAuthToken,
     },
     {
-        static_cast<uint32_t>(IAppAccount::Message::DELETE_AUTH_TOKEN),
+        static_cast<uint32_t>(AppAccountInterfaceCode::DELETE_AUTH_TOKEN),
         &AppAccountStub::ProcDeleteAuthToken,
     },
     {
-        static_cast<uint32_t>(IAppAccount::Message::SET_OAUTH_TOKEN_VISIBILITY),
+        static_cast<uint32_t>(AppAccountInterfaceCode::SET_OAUTH_TOKEN_VISIBILITY),
         &AppAccountStub::ProcSetAuthTokenVisibility,
     },
     {
-        static_cast<uint32_t>(IAppAccount::Message::SET_AUTH_TOKEN_VISIBILITY),
+        static_cast<uint32_t>(AppAccountInterfaceCode::SET_AUTH_TOKEN_VISIBILITY),
         &AppAccountStub::ProcSetAuthTokenVisibility,
     },
     {
-        static_cast<uint32_t>(IAppAccount::Message::CHECK_OAUTH_TOKEN_VISIBILITY),
+        static_cast<uint32_t>(AppAccountInterfaceCode::CHECK_OAUTH_TOKEN_VISIBILITY),
         &AppAccountStub::ProcCheckAuthTokenVisibility,
     },
     {
-        static_cast<uint32_t>(IAppAccount::Message::CHECK_AUTH_TOKEN_VISIBILITY),
+        static_cast<uint32_t>(AppAccountInterfaceCode::CHECK_AUTH_TOKEN_VISIBILITY),
         &AppAccountStub::ProcCheckAuthTokenVisibility,
     },
     {
-        static_cast<uint32_t>(IAppAccount::Message::GET_AUTHENTICATOR_CALLBACK),
+        static_cast<uint32_t>(AppAccountInterfaceCode::GET_AUTHENTICATOR_CALLBACK),
         &AppAccountStub::ProcGetAuthenticatorCallback,
     },
     {
-        static_cast<uint32_t>(IAppAccount::Message::GET_AUTHENTICATOR_INFO),
+        static_cast<uint32_t>(AppAccountInterfaceCode::GET_AUTHENTICATOR_INFO),
         &AppAccountStub::ProcGetAuthenticatorInfo,
     },
     {
-        static_cast<uint32_t>(IAppAccount::Message::GET_ALL_OAUTH_TOKENS),
+        static_cast<uint32_t>(AppAccountInterfaceCode::GET_ALL_OAUTH_TOKENS),
         &AppAccountStub::ProcGetAllOAuthTokens,
     },
     {
-        static_cast<uint32_t>(IAppAccount::Message::GET_OAUTH_LIST),
+        static_cast<uint32_t>(AppAccountInterfaceCode::GET_OAUTH_LIST),
         &AppAccountStub::ProcGetAuthList,
     },
     {
-        static_cast<uint32_t>(IAppAccount::Message::GET_AUTH_LIST),
+        static_cast<uint32_t>(AppAccountInterfaceCode::GET_AUTH_LIST),
         &AppAccountStub::ProcGetAuthList,
     },
     {
-        static_cast<uint32_t>(IAppAccount::Message::GET_ALL_ACCOUNTS),
+        static_cast<uint32_t>(AppAccountInterfaceCode::GET_ALL_ACCOUNTS),
         &AppAccountStub::ProcGetAllAccounts,
     },
     {
-        static_cast<uint32_t>(IAppAccount::Message::GET_ALL_ACCESSIBLE_ACCOUNTS),
+        static_cast<uint32_t>(AppAccountInterfaceCode::GET_ALL_ACCESSIBLE_ACCOUNTS),
         &AppAccountStub::ProcGetAllAccessibleAccounts,
     },
     {
-        static_cast<uint32_t>(IAppAccount::Message::QUERY_ALL_ACCESSIBLE_ACCOUNTS),
+        static_cast<uint32_t>(AppAccountInterfaceCode::QUERY_ALL_ACCESSIBLE_ACCOUNTS),
         &AppAccountStub::ProcGetAllAccessibleAccounts,
     },
     {
-        static_cast<uint32_t>(IAppAccount::Message::SELECT_ACCOUNTS_BY_OPTIONS),
+        static_cast<uint32_t>(AppAccountInterfaceCode::SELECT_ACCOUNTS_BY_OPTIONS),
         &AppAccountStub::ProcSelectAccountsByOptions,
     },
     {
-        static_cast<uint32_t>(IAppAccount::Message::VERIFY_CREDENTIAL),
+        static_cast<uint32_t>(AppAccountInterfaceCode::VERIFY_CREDENTIAL),
         &AppAccountStub::ProcVerifyCredential,
     },
     {
-        static_cast<uint32_t>(IAppAccount::Message::CHECK_ACCOUNT_LABELS),
+        static_cast<uint32_t>(AppAccountInterfaceCode::CHECK_ACCOUNT_LABELS),
         &AppAccountStub::ProcCheckAccountLabels,
     },
     {
-        static_cast<uint32_t>(IAppAccount::Message::SET_AUTHENTICATOR_PROPERTIES),
+        static_cast<uint32_t>(AppAccountInterfaceCode::SET_AUTHENTICATOR_PROPERTIES),
         &AppAccountStub::ProcSetAuthenticatorProperties,
     },
     {
-        static_cast<uint32_t>(IAppAccount::Message::EXECUTE_REQUEST),
+        static_cast<uint32_t>(AppAccountInterfaceCode::EXECUTE_REQUEST),
         &AppAccountStub::ProcExecuteRequest,
     },
     {
-        static_cast<uint32_t>(IAppAccount::Message::SUBSCRIBE_ACCOUNT),
+        static_cast<uint32_t>(AppAccountInterfaceCode::SUBSCRIBE_ACCOUNT),
         &AppAccountStub::ProcSubscribeAccount,
     },
     {
-        static_cast<uint32_t>(IAppAccount::Message::UNSUBSCRIBE_ACCOUNT),
+        static_cast<uint32_t>(AppAccountInterfaceCode::UNSUBSCRIBE_ACCOUNT),
         &AppAccountStub::ProcUnsubscribeAccount,
     },
 };
@@ -462,7 +462,7 @@ ErrCode AppAccountStub::ProcSetAppAccess(uint32_t code, MessageParcel &data, Mes
 {
     std::string name = data.ReadString();
     RETURN_IF_STRING_IS_EMPTY_OR_OVERSIZE(name, Constants::NAME_MAX_SIZE, "name is empty or oversize", reply);
-    if (code != static_cast<uint32_t>(IAppAccount::Message::SET_APP_ACCESS)) {
+    if (code != static_cast<uint32_t>(AppAccountInterfaceCode::SET_APP_ACCESS)) {
         RETURN_IF_STRING_CONTAINS_SPECIAL_CHAR(name, reply);
     }
 
@@ -471,11 +471,11 @@ ErrCode AppAccountStub::ProcSetAppAccess(uint32_t code, MessageParcel &data, Mes
         "bundleName is empty or oversize", reply);
 
     ErrCode result = ERR_OK;
-    if (code == static_cast<uint32_t>(IAppAccount::Message::ENABLE_APP_ACCESS)) {
+    if (code == static_cast<uint32_t>(AppAccountInterfaceCode::ENABLE_APP_ACCESS)) {
         result = EnableAppAccess(name, authorizedApp);
-    } else if (code == static_cast<uint32_t>(IAppAccount::Message::DISABLE_APP_ACCESS)) {
+    } else if (code == static_cast<uint32_t>(AppAccountInterfaceCode::DISABLE_APP_ACCESS)) {
         result = DisableAppAccess(name, authorizedApp);
-    } else if (code == static_cast<uint32_t>(IAppAccount::Message::SET_APP_ACCESS)) {
+    } else if (code == static_cast<uint32_t>(AppAccountInterfaceCode::SET_APP_ACCESS)) {
         bool isAccessible = data.ReadBool();
         result = SetAppAccess(name, authorizedApp, isAccessible);
     } else {
@@ -626,10 +626,10 @@ ErrCode AppAccountStub::ProcGetAuthToken(uint32_t code, MessageParcel &data, Mes
     RETURN_IF_STRING_IS_OVERSIZE(authType, Constants::AUTH_TYPE_MAX_SIZE, "authType is oversize", reply);
     std::string token;
     ErrCode result = ERR_OK;
-    if (code == static_cast<uint32_t>(IAppAccount::Message::GET_OAUTH_TOKEN)) {
+    if (code == static_cast<uint32_t>(AppAccountInterfaceCode::GET_OAUTH_TOKEN)) {
         RETURN_IF_STRING_CONTAINS_SPECIAL_CHAR(name, reply);
         result = GetOAuthToken(name, owner, authType, token);
-    } else if (code == static_cast<uint32_t>(IAppAccount::Message::GET_AUTH_TOKEN)) {
+    } else if (code == static_cast<uint32_t>(AppAccountInterfaceCode::GET_AUTH_TOKEN)) {
         result = GetAuthToken(name, owner, authType, token);
     } else {
         ACCOUNT_LOGE("stub code is invalid");
@@ -670,10 +670,10 @@ ErrCode AppAccountStub::ProcDeleteAuthToken(uint32_t code, MessageParcel &data, 
     RETURN_IF_STRING_IS_OVERSIZE(token, Constants::TOKEN_MAX_SIZE, "token is oversize", reply);
 
     ErrCode result = ERR_OK;
-    if (code == static_cast<uint32_t>(IAppAccount::Message::DELETE_OAUTH_TOKEN)) {
+    if (code == static_cast<uint32_t>(AppAccountInterfaceCode::DELETE_OAUTH_TOKEN)) {
         RETURN_IF_STRING_CONTAINS_SPECIAL_CHAR(name, reply);
         result = DeleteOAuthToken(name, owner, authType, token);
-    } else if (code == static_cast<uint32_t>(IAppAccount::Message::DELETE_AUTH_TOKEN)) {
+    } else if (code == static_cast<uint32_t>(AppAccountInterfaceCode::DELETE_AUTH_TOKEN)) {
         result = DeleteAuthToken(name, owner, authType, token);
     } else {
         ACCOUNT_LOGE("stub code is invalid");
@@ -698,10 +698,10 @@ ErrCode AppAccountStub::ProcSetAuthTokenVisibility(uint32_t code, MessageParcel 
         "bundleName is empty or oversize", reply);
     bool isVisible = data.ReadBool();
     ErrCode result = ERR_OK;
-    if (code == static_cast<uint32_t>(IAppAccount::Message::SET_OAUTH_TOKEN_VISIBILITY)) {
+    if (code == static_cast<uint32_t>(AppAccountInterfaceCode::SET_OAUTH_TOKEN_VISIBILITY)) {
         RETURN_IF_STRING_CONTAINS_SPECIAL_CHAR(name, reply);
         result = SetOAuthTokenVisibility(name, authType, bundleName, isVisible);
-    } else if (code == static_cast<uint32_t>(IAppAccount::Message::SET_AUTH_TOKEN_VISIBILITY)) {
+    } else if (code == static_cast<uint32_t>(AppAccountInterfaceCode::SET_AUTH_TOKEN_VISIBILITY)) {
         result = SetAuthTokenVisibility(name, authType, bundleName, isVisible);
     } else {
         ACCOUNT_LOGE("stub code is invalid");
@@ -726,10 +726,10 @@ ErrCode AppAccountStub::ProcCheckAuthTokenVisibility(uint32_t code, MessageParce
         "bundleName is empty or oversize", reply);
     bool isVisible = false;
     ErrCode result = ERR_OK;
-    if (code == static_cast<uint32_t>(IAppAccount::Message::CHECK_OAUTH_TOKEN_VISIBILITY)) {
+    if (code == static_cast<uint32_t>(AppAccountInterfaceCode::CHECK_OAUTH_TOKEN_VISIBILITY)) {
         RETURN_IF_STRING_CONTAINS_SPECIAL_CHAR(name, reply);
         result = CheckOAuthTokenVisibility(name, authType, bundleName, isVisible);
-    } else if (code == static_cast<uint32_t>(IAppAccount::Message::CHECK_AUTH_TOKEN_VISIBILITY)) {
+    } else if (code == static_cast<uint32_t>(AppAccountInterfaceCode::CHECK_AUTH_TOKEN_VISIBILITY)) {
         result = CheckAuthTokenVisibility(name, authType, bundleName, isVisible);
     } else {
         ACCOUNT_LOGE("stub code is invalid");
@@ -786,10 +786,10 @@ ErrCode AppAccountStub::ProcGetAuthList(uint32_t code, MessageParcel &data, Mess
     RETURN_IF_STRING_IS_OVERSIZE(authType, Constants::OWNER_MAX_SIZE, "authType is oversize", reply);
     std::set<std::string> oauthList;
     ErrCode result = ERR_OK;
-    if (code == static_cast<uint32_t>(IAppAccount::Message::GET_OAUTH_LIST)) {
+    if (code == static_cast<uint32_t>(AppAccountInterfaceCode::GET_OAUTH_LIST)) {
         RETURN_IF_STRING_CONTAINS_SPECIAL_CHAR(name, reply);
         result = GetOAuthList(name, authType, oauthList);
-    } else if (code == static_cast<uint32_t>(IAppAccount::Message::GET_AUTH_LIST)) {
+    } else if (code == static_cast<uint32_t>(AppAccountInterfaceCode::GET_AUTH_LIST)) {
         result = GetAuthList(name, authType, oauthList);
     } else {
         ACCOUNT_LOGE("stub code is invalid");
@@ -843,9 +843,9 @@ ErrCode AppAccountStub::ProcGetAllAccessibleAccounts(uint32_t code, MessageParce
 {
     std::vector<AppAccountInfo> appAccounts;
     ErrCode result = ERR_OK;
-    if (code == static_cast<uint32_t>(IAppAccount::Message::GET_ALL_ACCESSIBLE_ACCOUNTS)) {
+    if (code == static_cast<uint32_t>(AppAccountInterfaceCode::GET_ALL_ACCESSIBLE_ACCOUNTS)) {
         result = GetAllAccessibleAccounts(appAccounts);
-    } else if (code == static_cast<uint32_t>(IAppAccount::Message::QUERY_ALL_ACCESSIBLE_ACCOUNTS)) {
+    } else if (code == static_cast<uint32_t>(AppAccountInterfaceCode::QUERY_ALL_ACCESSIBLE_ACCOUNTS)) {
         std::string owner = data.ReadString();
         RETURN_IF_STRING_IS_OVERSIZE(owner, Constants::OWNER_MAX_SIZE, "owner is or oversize", reply);
         result = QueryAllAccessibleAccounts(owner, appAccounts);

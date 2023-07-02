@@ -16,7 +16,8 @@
 #ifndef OS_ACCOUNT_SERVICES_ACCOUNTMGR_INCLUDE_APPACCOUNT_IAPP_ACCOUNT_AUTHORIZATION_EXTENSION_CALLBACK_H
 #define OS_ACCOUNT_SERVICES_ACCOUNTMGR_INCLUDE_APPACCOUNT_IAPP_ACCOUNT_AUTHORIZATION_EXTENSION_CALLBACK_H
 
-#include <iremote_broker.h>
+#include "accountmgr_service_ipc_interface_code.h"
+#include "iremote_broker.h"
 #include "want.h"
 
 namespace OHOS {
@@ -24,9 +25,6 @@ namespace AccountSA {
 class IAppAccountAuthorizationExtensionCallback : public IRemoteBroker {
 public:
     DECLARE_INTERFACE_DESCRIPTOR(u"ohos.accountfwk.IAppAccountAuthorizationExtensionCallback");
-    enum Message {
-        APP_ACCOUNT_AUTHORIZATION_EXTENSION_CALLBACK_ON_RESULT = 0,
-    };
 
     virtual void OnResult(const int32_t errCode, const AAFwk::WantParams& parameters) = 0;
 };

@@ -16,6 +16,7 @@
 #ifndef OS_ACCOUNT_FRAMEWORKS_OSACCOUNT_CORE_INCLUDE_IOS_ACCOUNT_EVENT_H
 #define OS_ACCOUNT_FRAMEWORKS_OSACCOUNT_CORE_INCLUDE_IOS_ACCOUNT_EVENT_H
 
+#include "accountmgr_service_ipc_interface_code.h"
 #include "iremote_broker.h"
 #include "account_error_no.h"
 
@@ -26,10 +27,6 @@ public:
     DECLARE_INTERFACE_DESCRIPTOR(u"ohos.accountfwk.IOsAccountEvent");
 
     virtual void OnAccountsChanged(const int &id) = 0;
-
-    enum class Message {
-        ACCOUNT_CHANGED = 0,
-    };
 };
 }  // namespace AccountSA
 }  // namespace OHOS

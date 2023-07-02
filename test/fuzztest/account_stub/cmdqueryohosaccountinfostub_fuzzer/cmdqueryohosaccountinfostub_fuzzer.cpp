@@ -39,7 +39,7 @@ const std::u16string ACCOUNT_TOKEN = u"ohos.accountfwk.IAccount";
         }
         MessageParcel reply;
         MessageOption option;
-        uint32_t code = static_cast<uint32_t>(IAccount::QUERY_OHOS_ACCOUNT_INFO);
+        uint32_t code = static_cast<uint32_t>(AccountMgrInterfaceCode::QUERY_OHOS_ACCOUNT_INFO);
         DelayedRefSingleton<AccountMgrService>::GetInstance().OnRemoteRequest(code, dataTemp, reply, option);
 
         return true;

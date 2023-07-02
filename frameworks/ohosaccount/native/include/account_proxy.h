@@ -45,6 +45,7 @@ public:
     sptr<IRemoteObject> GetDomainAccountService() override;
 
 private:
+    ErrCode SendRequest(AccountMgrInterfaceCode code, MessageParcel &data, MessageParcel &reply);
     std::int32_t DeviceAccountRequest(std::uint32_t code, std::int32_t accountId);
     static inline BrokerDelegator<AccountProxy> delegator_;
 };

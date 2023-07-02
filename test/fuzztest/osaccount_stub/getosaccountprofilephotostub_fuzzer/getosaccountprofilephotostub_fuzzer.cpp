@@ -41,7 +41,7 @@ bool GetOsAccountProfilePhotoStubFuzzTest(const uint8_t *data, size_t size)
         return false;
     }
 
-    uint32_t code = static_cast<uint32_t>(IOsAccount::Message::GET_OS_ACCOUNT_PROFILE_PHOTO);
+    uint32_t code = static_cast<uint32_t>(OsAccountInterfaceCode::GET_OS_ACCOUNT_PROFILE_PHOTO);
 
     MessageParcel reply;
     MessageOption option;

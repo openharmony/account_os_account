@@ -40,7 +40,7 @@ bool StopOsAccountStubFuzzTest(const uint8_t *data, size_t size)
         return false;
     }
 
-    uint32_t code = static_cast<uint32_t>(IOsAccount::Message::STOP_OS_ACCOUNT);
+    uint32_t code = static_cast<uint32_t>(OsAccountInterfaceCode::STOP_OS_ACCOUNT);
 
     MessageParcel reply;
     MessageOption option;

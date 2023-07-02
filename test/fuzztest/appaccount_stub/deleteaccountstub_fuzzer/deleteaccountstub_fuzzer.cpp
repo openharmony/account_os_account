@@ -41,7 +41,7 @@ bool DeleteAccountStubFuzzTest(const uint8_t* data, size_t size)
     
     MessageParcel reply;
     MessageOption option;
-    uint32_t code = static_cast<uint32_t>(IAppAccount::Message::DELETE_ACCOUNT);
+    uint32_t code = static_cast<uint32_t>(AppAccountInterfaceCode::DELETE_ACCOUNT);
     auto appAccountManagerService = std::make_shared<AppAccountManagerService>();
     appAccountManagerService->OnRemoteRequest(code, dataTemp, reply, option);
     

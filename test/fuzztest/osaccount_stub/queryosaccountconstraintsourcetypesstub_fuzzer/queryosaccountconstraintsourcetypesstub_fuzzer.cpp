@@ -45,7 +45,7 @@ bool QueryOsAccountConstraintSourceTypesStubFuzzTest(const uint8_t *data, size_t
         return false;
     }
 
-    uint32_t code = static_cast<uint32_t>(IOsAccount::Message::QUERY_OS_ACCOUNT_CONSTRAINT_SOURCE_TYPES);
+    uint32_t code = static_cast<uint32_t>(OsAccountInterfaceCode::QUERY_OS_ACCOUNT_CONSTRAINT_SOURCE_TYPES);
 
     MessageParcel reply;
     MessageOption option;

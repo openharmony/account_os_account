@@ -48,7 +48,7 @@ bool AddAccountImplicitlyStubFuzzTest(const uint8_t* data, size_t size)
     }
     MessageParcel reply;
     MessageOption option;
-    uint32_t code = static_cast<uint32_t>(IAppAccount::Message::ADD_ACCOUNT_IMPLICITLY);
+    uint32_t code = static_cast<uint32_t>(AppAccountInterfaceCode::ADD_ACCOUNT_IMPLICITLY);
     auto appAccountManagerService = std::make_shared<AppAccountManagerService>();
     appAccountManagerService->OnRemoteRequest(code, dataTemp, reply, option);
     

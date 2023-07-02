@@ -40,7 +40,7 @@ bool GetOsAccountLocalIdBySerialNumberStubFuzzTest(const uint8_t *data, size_t s
         return false;
     }
 
-    uint32_t code = static_cast<uint32_t>(IOsAccount::Message::GET_OS_ACCOUNT_LOCAL_ID_FOR_SERIAL_NUMBER);
+    uint32_t code = static_cast<uint32_t>(OsAccountInterfaceCode::GET_OS_ACCOUNT_LOCAL_ID_FOR_SERIAL_NUMBER);
 
     MessageParcel reply;
     MessageOption option;

@@ -31,7 +31,7 @@ public:
 private:
     template<typename T>
     bool WriteParcelableVector(const std::vector<T> &parcelableVector, Parcel &data);
-    ErrCode SendRequest(IOsAccountEvent::Message code, MessageParcel &data, MessageParcel &reply);
+    ErrCode SendRequest(OsAccountEventInterfaceCode code, MessageParcel &data, MessageParcel &reply);
 
 private:
     static inline BrokerDelegator<OsAccountEventProxy> delegator_;
