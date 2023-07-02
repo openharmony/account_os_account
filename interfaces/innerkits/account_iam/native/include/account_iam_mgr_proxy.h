@@ -51,7 +51,7 @@ public:
     IAMState GetAccountState(int32_t userId) override;
 
 private:
-    ErrCode SendRequest(IAccountIAM::Message code, MessageParcel &data, MessageParcel &reply);
+    ErrCode SendRequest(AccountIAMInterfaceCode code, MessageParcel &data, MessageParcel &reply);
     void AddOrUpdateCredential(int32_t userId, const CredentialParameters &credInfo,
         const sptr<IIDMCallback> &callback, bool isAdd);
     bool WriteCommonData(MessageParcel &data, int32_t userId);

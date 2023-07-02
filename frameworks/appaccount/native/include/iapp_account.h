@@ -16,6 +16,7 @@
 #ifndef OS_ACCOUNT_SERVICES_ACCOUNTMGR_INCLUDE_APPACCOUNT_IAPP_ACCOUNT_H
 #define OS_ACCOUNT_SERVICES_ACCOUNTMGR_INCLUDE_APPACCOUNT_IAPP_ACCOUNT_H
 
+#include "accountmgr_service_ipc_interface_code.h"
 #include "app_account_common.h"
 #include "app_account_info.h"
 #include "app_account_subscribe_info.h"
@@ -102,53 +103,6 @@ public:
     virtual ErrCode SubscribeAppAccount(
         const AppAccountSubscribeInfo &subscribeInfo, const sptr<IRemoteObject> &eventListener) = 0;
     virtual ErrCode UnsubscribeAppAccount(const sptr<IRemoteObject> &eventListener) = 0;
-
-    enum class Message {
-        ADD_ACCOUNT = 0,
-        ADD_ACCOUNT_IMPLICITLY,
-        DELETE_ACCOUNT,
-        GET_ACCOUNT_EXTRA_INFO,
-        SET_ACCOUNT_EXTRA_INFO,
-        ENABLE_APP_ACCESS,
-        DISABLE_APP_ACCESS,
-        SET_APP_ACCESS,
-        CHECK_APP_ACCOUNT_SYNC_ENABLE,
-        SET_APP_ACCOUNT_SYNC_ENABLE,
-        GET_ASSOCIATED_DATA,
-        SET_ASSOCIATED_DATA,
-        GET_ACCOUNT_CREDENTIAL,
-        SET_ACCOUNT_CREDENTIAL,
-        AUTHENTICATE,
-        GET_OAUTH_TOKEN,
-        GET_AUTH_TOKEN,
-        SET_OAUTH_TOKEN,
-        DELETE_OAUTH_TOKEN,
-        DELETE_AUTH_TOKEN,
-        SET_OAUTH_TOKEN_VISIBILITY,
-        SET_AUTH_TOKEN_VISIBILITY,
-        CHECK_OAUTH_TOKEN_VISIBILITY,
-        CHECK_AUTH_TOKEN_VISIBILITY,
-        GET_AUTHENTICATOR_INFO,
-        GET_ALL_OAUTH_TOKENS,
-        GET_OAUTH_LIST,
-        GET_AUTH_LIST,
-        GET_AUTHENTICATOR_CALLBACK,
-        CLEAR_OAUTH_TOKEN,
-        GET_ALL_ACCOUNTS,
-        GET_ALL_ACCESSIBLE_ACCOUNTS,
-        QUERY_ALL_ACCESSIBLE_ACCOUNTS,
-        SUBSCRIBE_ACCOUNT,
-        UNSUBSCRIBE_ACCOUNT,
-        CHECK_APP_ACCESS,
-        DELETE_ACCOUNT_CREDENTIAL,
-        SELECT_ACCOUNTS_BY_OPTIONS,
-        VERIFY_CREDENTIAL,
-        CHECK_ACCOUNT_LABELS,
-        SET_AUTHENTICATOR_PROPERTIES,
-        CREATE_ACCOUNT,
-        CREATE_ACCOUNT_IMPLICITLY,
-        EXECUTE_REQUEST
-    };
 };
 }  // namespace AccountSA
 }  // namespace OHOS

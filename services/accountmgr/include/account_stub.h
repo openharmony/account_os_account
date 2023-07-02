@@ -56,7 +56,7 @@ private:
     bool CheckCallerForTrustList();
 
 private:
-    static const std::map<std::uint32_t, AccountStubFunc> stubFuncMap_;
+    static const std::map<AccountMgrInterfaceCode, AccountStubFunc> stubFuncMap_;
 };
 }  // namespace AccountSA
 }  // namespace OHOS

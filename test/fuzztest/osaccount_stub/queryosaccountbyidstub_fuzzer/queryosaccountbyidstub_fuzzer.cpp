@@ -40,7 +40,7 @@ bool QueryOsAccountByIdStubFuzzTest(const uint8_t *data, size_t size)
         return false;
     }
 
-    uint32_t code = static_cast<uint32_t>(IOsAccount::Message::QUERY_OS_ACCOUNT_BY_ID);
+    uint32_t code = static_cast<uint32_t>(OsAccountInterfaceCode::QUERY_OS_ACCOUNT_BY_ID);
 
     MessageParcel reply;
     MessageOption option;

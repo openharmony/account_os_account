@@ -29,7 +29,7 @@ public:
     void OnAccountsChanged(const std::vector<AppAccountInfo> &accounts) override;
 
 private:
-    ErrCode SendRequest(IAppAccountEvent::Message code, MessageParcel &data, MessageParcel &reply);
+    ErrCode SendRequest(AppAccountEventInterfaceCode code, MessageParcel &data, MessageParcel &reply);
 
     template<typename T>
     bool WriteParcelableVector(const std::vector<T> &parcelableVector, Parcel &data);

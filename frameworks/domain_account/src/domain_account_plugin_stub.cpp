@@ -29,33 +29,34 @@ DomainAccountPluginStub::DomainAccountPluginStub()
 DomainAccountPluginStub::~DomainAccountPluginStub()
 {}
 
-const std::map<std::uint32_t, DomainAccountPluginStub::MessageProcFunction> DomainAccountPluginStub::messageProcMap_ = {
+const std::map<DomainAccountPluginInterfaceCode, DomainAccountPluginStub::MessageProcFunction>
+    DomainAccountPluginStub::messageProcMap_ = {
     {
-        IDomainAccountPlugin::Message::DOMAIN_PLUGIN_AUTH,
+        DomainAccountPluginInterfaceCode::DOMAIN_PLUGIN_AUTH,
         &DomainAccountPluginStub::ProcAuthCommonInterface
     },
     {
-        IDomainAccountPlugin::Message::DOMAIN_PLUGIN_GET_AUTH_STATUS_INFO,
+        DomainAccountPluginInterfaceCode::DOMAIN_PLUGIN_GET_AUTH_STATUS_INFO,
         &DomainAccountPluginStub::ProcGetAuthStatusInfo
     },
     {
-        IDomainAccountPlugin::Message::DOMAIN_PLUGIN_GET_DOMAIN_ACCOUNT_INFO,
+        DomainAccountPluginInterfaceCode::DOMAIN_PLUGIN_GET_DOMAIN_ACCOUNT_INFO,
         &DomainAccountPluginStub::ProcGetDomainAccountInfo
     },
     {
-        IDomainAccountPlugin::Message::DOMAIN_PLUGIN_ON_ACCOUNT_BOUND,
+        DomainAccountPluginInterfaceCode::DOMAIN_PLUGIN_ON_ACCOUNT_BOUND,
         &DomainAccountPluginStub::ProcOnAccountBound
     },
     {
-        IDomainAccountPlugin::Message::DOMAIN_PLUGIN_ON_ACCOUNT_UNBOUND,
+        DomainAccountPluginInterfaceCode::DOMAIN_PLUGIN_ON_ACCOUNT_UNBOUND,
         &DomainAccountPluginStub::ProcOnAccountUnBound
     },
     {
-        IDomainAccountPlugin::Message::DOMAIN_PLUGIN_IS_ACCOUNT_TOKEN_VALID,
+        DomainAccountPluginInterfaceCode::DOMAIN_PLUGIN_IS_ACCOUNT_TOKEN_VALID,
         &DomainAccountPluginStub::ProcIsAccountTokenValid
     },
     {
-        IDomainAccountPlugin::Message::DOMAIN_PLUGIN_GET_ACCESS_TOKEN,
+        DomainAccountPluginInterfaceCode::DOMAIN_PLUGIN_GET_ACCESS_TOKEN,
         &DomainAccountPluginStub::ProcGetAccessToken
     }
 };
@@ -68,7 +69,7 @@ int DomainAccountPluginStub::OnRemoteRequest(
         ACCOUNT_LOGE("check descriptor failed! code %{public}u.", code);
         return ERR_ACCOUNT_COMMON_CHECK_DESCRIPTOR_ERROR;
     }
-    const auto &itFunc = messageProcMap_.find(code);
+    const auto &itFunc = messageProcMap_.find(static_cast<DomainAccountPluginInterfaceCode>(code));
     if (itFunc != messageProcMap_.end()) {
         return (this->*(itFunc->second))(data, reply);
     }

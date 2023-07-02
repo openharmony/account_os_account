@@ -17,6 +17,7 @@
 #define OS_ACCOUNT_INTERFACES_INNERKITS_DOMAIN_ACCOUNT_INCLUDE_IDOMAIN_ACCOUNT_CALLBACK_H
 
 #include <iremote_broker.h>
+#include "accountmgr_service_ipc_interface_code.h"
 #include "domain_account_common.h"
 #include "parcel.h"
 
@@ -25,9 +26,6 @@ namespace AccountSA {
 class IDomainAccountCallback : public IRemoteBroker {
 public:
     DECLARE_INTERFACE_DESCRIPTOR(u"ohos.accountfwk.IDomainAccountCallback");
-    enum Message {
-        DOMAIN_ACCOUNT_CALLBACK_ON_RESULT = 0,
-    };
 
     virtual void OnResult(const int32_t errCode, Parcel &parcel) = 0;
 };

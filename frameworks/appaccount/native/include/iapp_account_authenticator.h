@@ -16,6 +16,7 @@
 #ifndef OS_ACCOUNT_SERVICES_ACCOUNTMGR_INCLUDE_APPACCOUNT_IAPP_ACCOUNT_AUTHENTICATOR_H
 #define OS_ACCOUNT_SERVICES_ACCOUNTMGR_INCLUDE_APPACCOUNT_IAPP_ACCOUNT_AUTHENTICATOR_H
 
+#include "accountmgr_service_ipc_interface_code.h"
 #include "app_account_common.h"
 #include "iremote_broker.h"
 #include "want_params.h"
@@ -41,17 +42,6 @@ public:
         const CreateAccountImplicitlyOptions &options, const sptr<IRemoteObject> &callback) = 0;
     virtual ErrCode Auth(const std::string &name, const std::string &authType,
         const AAFwk::WantParams &options, const sptr<IRemoteObject> &callback) = 0;
-
-    enum class Message {
-        ADD_ACCOUNT_IMPLICITLY = 0,
-        AUTHENTICATE,
-        VERIFY_CREDENTIAL,
-        CHECK_ACCOUNT_LABELS,
-        SET_PROPERTIES,
-        IS_ACCOUNT_REMOVABLE,
-        CREATE_ACCOUNT_IMPLICITLY,
-        AUTH
-    };
 };
 }  // namespace AccountSA
 }  // namespace OHOS

@@ -28,7 +28,7 @@ DomainAccountPluginProxy::~DomainAccountPluginProxy()
 {}
 
 ErrCode DomainAccountPluginProxy::SendRequest(
-    IDomainAccountPlugin::Message code, MessageParcel &data, MessageParcel &reply)
+    DomainAccountPluginInterfaceCode code, MessageParcel &data, MessageParcel &reply)
 {
     sptr<IRemoteObject> remote = Remote();
     if (remote == nullptr) {
@@ -82,7 +82,7 @@ ErrCode DomainAccountPluginProxy::AuthCommonInterface(const DomainAccountInfo &i
         return ERR_ACCOUNT_COMMON_WRITE_PARCEL_ERROR;
     }
     MessageParcel reply;
-    return SendRequest(IDomainAccountPlugin::Message::DOMAIN_PLUGIN_AUTH, data, reply);
+    return SendRequest(DomainAccountPluginInterfaceCode::DOMAIN_PLUGIN_AUTH, data, reply);
 }
 
 ErrCode DomainAccountPluginProxy::IsAccountTokenValid(
@@ -106,7 +106,7 @@ ErrCode DomainAccountPluginProxy::IsAccountTokenValid(
         return ERR_ACCOUNT_COMMON_WRITE_PARCEL_ERROR;
     }
     MessageParcel reply;
-    return SendRequest(IDomainAccountPlugin::Message::DOMAIN_PLUGIN_IS_ACCOUNT_TOKEN_VALID, data, reply);
+    return SendRequest(DomainAccountPluginInterfaceCode::DOMAIN_PLUGIN_IS_ACCOUNT_TOKEN_VALID, data, reply);
 }
 
 ErrCode DomainAccountPluginProxy::Auth(const DomainAccountInfo &info, const std::vector<uint8_t> &password,
@@ -137,7 +137,7 @@ ErrCode DomainAccountPluginProxy::GetAccessToken(const DomainAccountInfo &domain
         return ERR_ACCOUNT_COMMON_WRITE_PARCEL_ERROR;
     }
     MessageParcel reply;
-    return SendRequest(IDomainAccountPlugin::Message::DOMAIN_PLUGIN_GET_ACCESS_TOKEN, data, reply);
+    return SendRequest(DomainAccountPluginInterfaceCode::DOMAIN_PLUGIN_GET_ACCESS_TOKEN, data, reply);
 }
 
 ErrCode DomainAccountPluginProxy::AuthWithPopup(
@@ -165,7 +165,7 @@ ErrCode DomainAccountPluginProxy::GetAuthStatusInfo(
         return ERR_ACCOUNT_COMMON_WRITE_PARCEL_ERROR;
     }
     MessageParcel reply;
-    return SendRequest(IDomainAccountPlugin::Message::DOMAIN_PLUGIN_GET_AUTH_STATUS_INFO, data, reply);
+    return SendRequest(DomainAccountPluginInterfaceCode::DOMAIN_PLUGIN_GET_AUTH_STATUS_INFO, data, reply);
 }
 
 ErrCode DomainAccountPluginProxy::GetDomainAccountInfo(
@@ -189,7 +189,7 @@ ErrCode DomainAccountPluginProxy::GetDomainAccountInfo(
         return ERR_ACCOUNT_COMMON_WRITE_PARCEL_ERROR;
     }
     MessageParcel reply;
-    return SendRequest(IDomainAccountPlugin::Message::DOMAIN_PLUGIN_GET_DOMAIN_ACCOUNT_INFO, data, reply);
+    return SendRequest(DomainAccountPluginInterfaceCode::DOMAIN_PLUGIN_GET_DOMAIN_ACCOUNT_INFO, data, reply);
 }
 
 ErrCode DomainAccountPluginProxy::OnAccountBound(const DomainAccountInfo &info, const int32_t localId,
@@ -209,7 +209,7 @@ ErrCode DomainAccountPluginProxy::OnAccountBound(const DomainAccountInfo &info, 
         return ERR_ACCOUNT_COMMON_WRITE_PARCEL_ERROR;
     }
     MessageParcel reply;
-    return SendRequest(IDomainAccountPlugin::Message::DOMAIN_PLUGIN_ON_ACCOUNT_BOUND, data, reply);
+    return SendRequest(DomainAccountPluginInterfaceCode::DOMAIN_PLUGIN_ON_ACCOUNT_BOUND, data, reply);
 }
 
 ErrCode DomainAccountPluginProxy::OnAccountUnBound(const DomainAccountInfo &info,
@@ -225,7 +225,7 @@ ErrCode DomainAccountPluginProxy::OnAccountUnBound(const DomainAccountInfo &info
         return ERR_ACCOUNT_COMMON_WRITE_PARCEL_ERROR;
     }
     MessageParcel reply;
-    return SendRequest(IDomainAccountPlugin::Message::DOMAIN_PLUGIN_ON_ACCOUNT_UNBOUND, data, reply);
+    return SendRequest(DomainAccountPluginInterfaceCode::DOMAIN_PLUGIN_ON_ACCOUNT_UNBOUND, data, reply);
 }
 }  // namespace AccountSA
 }  // namespace OHOS

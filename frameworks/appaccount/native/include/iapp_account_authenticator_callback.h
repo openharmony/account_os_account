@@ -16,6 +16,7 @@
 #ifndef OS_ACCOUNT_SERVICES_ACCOUNTMGR_INCLUDE_APPACCOUNT_IAPP_ACCOUNT_AUTHENTICATOR_CALLBACK_H
 #define OS_ACCOUNT_SERVICES_ACCOUNTMGR_INCLUDE_APPACCOUNT_IAPP_ACCOUNT_AUTHENTICATOR_CALLBACK_H
 
+#include "accountmgr_service_ipc_interface_code.h"
 #include "iremote_broker.h"
 #include "want.h"
 
@@ -28,12 +29,6 @@ public:
     virtual void OnResult(int32_t resultCode, const AAFwk::Want &result) = 0;
     virtual void OnRequestRedirected(AAFwk::Want &request) = 0;
     virtual void OnRequestContinued() = 0;
-
-    enum class Message {
-        ACCOUNT_RESULT = 0,
-        ACCOUNT_REQUEST_REDIRECTED,
-        ACCOUNT_REQUEST_CONTINUED,
-    };
 };
 }  // namespace AccountSA
 }  // namespace OHOS

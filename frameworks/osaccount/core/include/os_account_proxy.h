@@ -93,10 +93,10 @@ private:
     bool WriteParcelableVector(const std::vector<T> &parcelableVector, MessageParcel &data);
     template<typename T>
     bool ReadParcelableVector(std::vector<T> &parcelableInfos, MessageParcel &data);
-    ErrCode SendRequest(IOsAccount::Message code, MessageParcel &data, MessageParcel &reply);
+    ErrCode SendRequest(OsAccountInterfaceCode code, MessageParcel &data, MessageParcel &reply);
     ErrCode CheckOsAccountConstraintEnabled(
-        IOsAccount::Message code, const int id, const std::string &constraint, bool &isConstraintEnable);
-    ErrCode SendRequestWithAccountId(IOsAccount::Message code, MessageParcel &reply, int id);
+        OsAccountInterfaceCode code, const int id, const std::string &constraint, bool &isConstraintEnable);
+    ErrCode SendRequestWithAccountId(OsAccountInterfaceCode code, MessageParcel &reply, int id);
 private:
     static inline BrokerDelegator<OsAccountProxy> delegator_;
 };

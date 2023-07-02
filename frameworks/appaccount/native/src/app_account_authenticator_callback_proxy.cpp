@@ -45,7 +45,7 @@ void AppAccountAuthenticatorCallbackProxy::OnResult(int32_t resultCode, const AA
         ACCOUNT_LOGE("failed to write result");
         return;
     }
-    SendRequest(IAppAccountAuthenticatorCallback::Message::ACCOUNT_RESULT, data, reply);
+    SendRequest(AppAccountAuthenticatorCallbackInterfaceCode::ACCOUNT_RESULT, data, reply);
 }
 
 void AppAccountAuthenticatorCallbackProxy::OnRequestRedirected(AAFwk::Want &request)
@@ -62,7 +62,7 @@ void AppAccountAuthenticatorCallbackProxy::OnRequestRedirected(AAFwk::Want &requ
         ACCOUNT_LOGE("failed to write request");
         return;
     }
-    SendRequest(IAppAccountAuthenticatorCallback::Message::ACCOUNT_REQUEST_REDIRECTED, data, reply);
+    SendRequest(AppAccountAuthenticatorCallbackInterfaceCode::ACCOUNT_REQUEST_REDIRECTED, data, reply);
 }
 
 void AppAccountAuthenticatorCallbackProxy::OnRequestContinued()
@@ -74,11 +74,11 @@ void AppAccountAuthenticatorCallbackProxy::OnRequestContinued()
         ACCOUNT_LOGE("failed to write descriptor!");
         return;
     }
-    SendRequest(IAppAccountAuthenticatorCallback::Message::ACCOUNT_REQUEST_CONTINUED, data, reply);
+    SendRequest(AppAccountAuthenticatorCallbackInterfaceCode::ACCOUNT_REQUEST_CONTINUED, data, reply);
 }
 
 ErrCode AppAccountAuthenticatorCallbackProxy::SendRequest(
-    IAppAccountAuthenticatorCallback::Message code, MessageParcel &data, MessageParcel &reply)
+    AppAccountAuthenticatorCallbackInterfaceCode code, MessageParcel &data, MessageParcel &reply)
 {
     sptr<IRemoteObject> remoteCallback = Remote();
     if (remoteCallback == nullptr) {

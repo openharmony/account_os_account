@@ -31,7 +31,7 @@ public:
     void OnRequestContinued() override;
 
 private:
-    ErrCode SendRequest(IAppAccountAuthenticatorCallback::Message code, MessageParcel &data, MessageParcel &reply);
+    ErrCode SendRequest(AppAccountAuthenticatorCallbackInterfaceCode code, MessageParcel &data, MessageParcel &reply);
 
 private:
     static inline BrokerDelegator<AppAccountAuthenticatorCallbackProxy> delegator_;

@@ -54,7 +54,7 @@ bool CreateOsAccountForDomainStubFuzzTest(const uint8_t *data, size_t size)
         return false;
     }
 
-    uint32_t code = static_cast<uint32_t>(IOsAccount::Message::CREATE_OS_ACCOUNT_FOR_DOMAIN);
+    uint32_t code = static_cast<uint32_t>(OsAccountInterfaceCode::CREATE_OS_ACCOUNT_FOR_DOMAIN);
 
     MessageParcel reply;
     MessageOption option;

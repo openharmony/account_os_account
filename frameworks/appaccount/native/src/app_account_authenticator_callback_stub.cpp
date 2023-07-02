@@ -37,7 +37,7 @@ int AppAccountAuthenticatorCallbackStub::OnRemoteRequest(
 
     ErrCode errCode = ERR_OK;
     switch (code) {
-        case static_cast<uint32_t>(IAppAccountAuthenticatorCallback::Message::ACCOUNT_RESULT): {
+        case static_cast<uint32_t>(AppAccountAuthenticatorCallbackInterfaceCode::ACCOUNT_RESULT): {
             int32_t resultCode = data.ReadInt32();
             std::shared_ptr<AAFwk::Want> resultPtr(data.ReadParcelable<AAFwk::Want>());
             if (resultPtr == nullptr) {
@@ -53,7 +53,7 @@ int AppAccountAuthenticatorCallbackStub::OnRemoteRequest(
             }
             break;
         }
-        case static_cast<uint32_t>(IAppAccountAuthenticatorCallback::Message::ACCOUNT_REQUEST_REDIRECTED): {
+        case static_cast<uint32_t>(AppAccountAuthenticatorCallbackInterfaceCode::ACCOUNT_REQUEST_REDIRECTED): {
             std::shared_ptr<AAFwk::Want> requestPtr(data.ReadParcelable<AAFwk::Want>());
             if (requestPtr == nullptr) {
                 AAFwk::Want request;
@@ -68,7 +68,7 @@ int AppAccountAuthenticatorCallbackStub::OnRemoteRequest(
             }
             break;
         }
-        case static_cast<uint32_t>(IAppAccountAuthenticatorCallback::Message::ACCOUNT_REQUEST_CONTINUED): {
+        case static_cast<uint32_t>(AppAccountAuthenticatorCallbackInterfaceCode::ACCOUNT_REQUEST_CONTINUED): {
             OnRequestContinued();
             break;
         }

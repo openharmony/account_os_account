@@ -48,7 +48,7 @@ public:
         const sptr<IDomainAccountCallback> &callback) override;
 
 private:
-    ErrCode SendRequest(IDomainAccount::Message code, MessageParcel &data, MessageParcel &reply);
+    ErrCode SendRequest(DomainAccountInterfaceCode code, MessageParcel &data, MessageParcel &reply);
 
 private:
     static inline BrokerDelegator<DomainAccountProxy> delegator_;

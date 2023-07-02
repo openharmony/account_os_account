@@ -26,7 +26,7 @@ AccountIAMMgrProxy::AccountIAMMgrProxy(const sptr<IRemoteObject> &object) : IRem
 AccountIAMMgrProxy::~AccountIAMMgrProxy()
 {}
 
-ErrCode AccountIAMMgrProxy::SendRequest(IAccountIAM::Message code, MessageParcel &data, MessageParcel &reply)
+ErrCode AccountIAMMgrProxy::SendRequest(AccountIAMInterfaceCode code, MessageParcel &data, MessageParcel &reply)
 {
     sptr<IRemoteObject> remote = Remote();
     if (remote == nullptr) {
@@ -62,7 +62,7 @@ int32_t AccountIAMMgrProxy::OpenSession(int32_t userId, std::vector<uint8_t> &ch
         return ERR_ACCOUNT_COMMON_WRITE_PARCEL_ERROR;
     }
     MessageParcel reply;
-    int32_t result = SendRequest(IAccountIAM::Message::OPEN_SESSION, data, reply);
+    int32_t result = SendRequest(AccountIAMInterfaceCode::OPEN_SESSION, data, reply);
     if (result != ERR_OK) {
         return result;
     }
@@ -88,7 +88,7 @@ int32_t AccountIAMMgrProxy::CloseSession(int32_t userId)
         return ERR_ACCOUNT_COMMON_WRITE_PARCEL_ERROR;
     }
     MessageParcel reply;
-    int32_t result = SendRequest(IAccountIAM::Message::CLOSE_SESSION, data, reply);
+    int32_t result = SendRequest(AccountIAMInterfaceCode::CLOSE_SESSION, data, reply);
     if (result != ERR_OK) {
         return result;
     }
@@ -136,9 +136,9 @@ void AccountIAMMgrProxy::AddOrUpdateCredential(
     MessageParcel reply;
     int32_t result;
     if (isAdd) {
-        result = SendRequest(IAccountIAM::Message::ADD_CREDENTIAL, data, reply);
+        result = SendRequest(AccountIAMInterfaceCode::ADD_CREDENTIAL, data, reply);
     } else {
-        result = SendRequest(IAccountIAM::Message::UPDATE_CREDENTIAL, data, reply);
+        result = SendRequest(AccountIAMInterfaceCode::UPDATE_CREDENTIAL, data, reply);
     }
     if (result != ERR_OK) {
         callback->OnResult(result, emptyResult);
@@ -164,7 +164,7 @@ int32_t AccountIAMMgrProxy::Cancel(int32_t userId)
         return ERR_ACCOUNT_COMMON_WRITE_PARCEL_ERROR;
     }
     MessageParcel reply;
-    int32_t result = SendRequest(IAccountIAM::Message::CANCEL, data, reply);
+    int32_t result = SendRequest(AccountIAMInterfaceCode::CANCEL, data, reply);
     if (result != ERR_OK) {
         return result;
     }
@@ -204,7 +204,7 @@ void AccountIAMMgrProxy::DelCred(
         return;
     }
     MessageParcel reply;
-    int32_t result = SendRequest(IAccountIAM::Message::DEL_CRED, data, reply);
+    int32_t result = SendRequest(AccountIAMInterfaceCode::DEL_CRED, data, reply);
     if (result != ERR_OK) {
         callback->OnResult(result, emptyResult);
     }
@@ -234,7 +234,7 @@ void AccountIAMMgrProxy::DelUser(
         return;
     }
     MessageParcel reply;
-    int32_t result = SendRequest(IAccountIAM::Message::DEL_USER, data, reply);
+    int32_t result = SendRequest(AccountIAMInterfaceCode::DEL_USER, data, reply);
     if (result != ERR_OK) {
         callback->OnResult(result, emptyResult);
     }
@@ -260,7 +260,7 @@ int32_t AccountIAMMgrProxy::GetCredentialInfo(
         return ERR_ACCOUNT_COMMON_WRITE_PARCEL_ERROR;
     }
     MessageParcel reply;
-    int32_t result = SendRequest(IAccountIAM::Message::GET_CREDENTIAL_INFO, data, reply);
+    int32_t result = SendRequest(AccountIAMInterfaceCode::GET_CREDENTIAL_INFO, data, reply);
     if (result != ERR_OK) {
         return result;
     }
@@ -299,7 +299,7 @@ ErrCode AccountIAMMgrProxy::AuthUser(
         return ERR_ACCOUNT_COMMON_WRITE_PARCEL_ERROR;
     }
     MessageParcel reply;
-    ErrCode result = SendRequest(IAccountIAM::Message::AUTH_USER, data, reply);
+    ErrCode result = SendRequest(AccountIAMInterfaceCode::AUTH_USER, data, reply);
     if (result != ERR_OK) {
         ACCOUNT_LOGE("failed to send request, result: %{public}d", result);
         return result;
@@ -327,7 +327,7 @@ int32_t AccountIAMMgrProxy::CancelAuth(uint64_t contextId)
         return ERR_ACCOUNT_COMMON_WRITE_PARCEL_ERROR;
     }
     MessageParcel reply;
-    int32_t result = SendRequest(IAccountIAM::Message::CANCEL_AUTH, data, reply);
+    int32_t result = SendRequest(AccountIAMInterfaceCode::CANCEL_AUTH, data, reply);
     if (result != ERR_OK) {
         return result;
     }
@@ -355,7 +355,7 @@ int32_t AccountIAMMgrProxy::GetAvailableStatus(const AuthType authType, const Au
         return ERR_ACCOUNT_COMMON_WRITE_PARCEL_ERROR;
     }
     MessageParcel reply;
-    int32_t res = SendRequest(IAccountIAM::Message::GET_AVAILABLE_STATUS, data, reply);
+    int32_t res = SendRequest(AccountIAMInterfaceCode::GET_AVAILABLE_STATUS, data, reply);
     if (res != ERR_OK) {
         return res;
     }
@@ -407,7 +407,7 @@ void AccountIAMMgrProxy::GetProperty(
         return;
     }
     MessageParcel reply;
-    int32_t result = SendRequest(IAccountIAM::Message::GET_PROPERTY, data, reply);
+    int32_t result = SendRequest(AccountIAMInterfaceCode::GET_PROPERTY, data, reply);
     if (result != ERR_OK) {
         callback->OnResult(result, emptyResult);
     }
@@ -443,7 +443,7 @@ void AccountIAMMgrProxy::SetProperty(
         return;
     }
     MessageParcel reply;
-    int32_t result = SendRequest(IAccountIAM::Message::SET_PROPERTY, data, reply);
+    int32_t result = SendRequest(AccountIAMInterfaceCode::SET_PROPERTY, data, reply);
     if (result != ERR_OK) {
         callback->OnResult(result, emptyResult);
     }
@@ -457,7 +457,7 @@ IAMState AccountIAMMgrProxy::GetAccountState(int32_t userId)
         return defaultState;
     }
     MessageParcel reply;
-    SendRequest(IAccountIAM::Message::GET_ACCOUNT_STATE, data, reply);
+    SendRequest(AccountIAMInterfaceCode::GET_ACCOUNT_STATE, data, reply);
     int32_t state = defaultState;
     if (!reply.ReadInt32(state)) {
         ACCOUNT_LOGE("failed to read state");

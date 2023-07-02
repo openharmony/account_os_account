@@ -41,7 +41,7 @@ private:
     ErrCode ProcGetAccessToken(MessageParcel &data, MessageParcel &reply);
 
 private:
-    static const std::map<uint32_t, MessageProcFunction> messageProcMap_;
+    static const std::map<DomainAccountPluginInterfaceCode, MessageProcFunction> messageProcMap_;
 
     DISALLOW_COPY_AND_MOVE(DomainAccountPluginStub);
 };

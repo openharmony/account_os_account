@@ -22,13 +22,26 @@
 
 namespace OHOS {
 namespace AccountSA {
+ErrCode AccountProxy::SendRequest(AccountMgrInterfaceCode code, MessageParcel &data, MessageParcel &reply)
+{
+    sptr<IRemoteObject> remote = Remote();
+    if (remote == nullptr) {
+        ACCOUNT_LOGE("remote is nullptr, code = %{public}d", code);
+        return ERR_ACCOUNT_COMMON_NULL_PTR_ERROR;
+    }
+    MessageOption option(MessageOption::TF_SYNC);
+    int32_t result = remote->SendRequest(static_cast<uint32_t>(code), data, reply, option);
+    if (result != ERR_OK) {
+        ACCOUNT_LOGE("failed to SendRequest, code = %{public}d, result = %{public}d", code, result);
+        return ERR_APPACCOUNT_KIT_SEND_REQUEST;
+    }
+    return ERR_OK;
+}
+
 bool AccountProxy::UpdateOhosAccountInfo(
     const std::string &accountName, const std::string &uid, const std::string &eventStr)
 {
     MessageParcel data;
-    MessageParcel reply;
-    MessageOption option;
-
     if (!data.WriteInterfaceToken(GetDescriptor())) {
         ACCOUNT_LOGE("Write descriptor failed!");
         return false;
@@ -45,10 +58,9 @@ bool AccountProxy::UpdateOhosAccountInfo(
         ACCOUNT_LOGE("Write eventStr failed!");
         return false;
     }
-
-    auto ret = Remote()->SendRequest(UPDATE_OHOS_ACCOUNT_INFO, data, reply, option);
+    MessageParcel reply;
+    auto ret = SendRequest(AccountMgrInterfaceCode::UPDATE_OHOS_ACCOUNT_INFO, data, reply);
     if (ret != ERR_NONE) {
-        ACCOUNT_LOGE("SendRequest failed %{public}d", ret);
         return false;
     }
 
@@ -70,9 +82,6 @@ bool AccountProxy::UpdateOhosAccountInfo(
 std::int32_t AccountProxy::SetOhosAccountInfo(const OhosAccountInfo &ohosAccountInfo, const std::string &eventStr)
 {
     MessageParcel data;
-    MessageParcel reply;
-    MessageOption option;
-
     if (!data.WriteInterfaceToken(GetDescriptor())) {
         ACCOUNT_LOGE("Write descriptor failed!");
         return ERR_ACCOUNT_COMMON_WRITE_DESCRIPTOR_ERROR;
@@ -85,9 +94,9 @@ std::int32_t AccountProxy::SetOhosAccountInfo(const OhosAccountInfo &ohosAccount
         ACCOUNT_LOGE("Write eventStr failed!");
         return ERR_ACCOUNT_COMMON_WRITE_DESCRIPTOR_ERROR;
     }
-    auto ret = Remote()->SendRequest(SET_OHOS_ACCOUNT_INFO, data, reply, option);
+    MessageParcel reply;
+    auto ret = SendRequest(AccountMgrInterfaceCode::SET_OHOS_ACCOUNT_INFO, data, reply);
     if (ret != ERR_NONE) {
-        ACCOUNT_LOGE("SendRequest failed %{public}d", ret);
         return ret;
     }
 
@@ -125,10 +134,8 @@ ErrCode AccountProxy::SetOhosAccountInfoByUserId(
         return ERR_ACCOUNT_COMMON_WRITE_PARCEL_ERROR;
     }
     MessageParcel reply;
-    MessageOption option;
-    auto ret = Remote()->SendRequest(SET_OHOS_ACCOUNT_INFO_BY_USER_ID, data, reply, option);
+    auto ret = SendRequest(AccountMgrInterfaceCode::SET_OHOS_ACCOUNT_INFO_BY_USER_ID, data, reply);
     if (ret != ERR_NONE) {
-        ACCOUNT_LOGE("SendRequest failed %{public}d", ret);
         return ret;
     }
 
@@ -143,17 +150,13 @@ ErrCode AccountProxy::SetOhosAccountInfoByUserId(
 std::pair<bool, OhosAccountInfo> AccountProxy::QueryOhosAccountInfo(void)
 {
     MessageParcel data;
-    MessageParcel reply;
-    MessageOption option;
-
     if (!data.WriteInterfaceToken(GetDescriptor())) {
         ACCOUNT_LOGE("Write descriptor failed");
         return std::make_pair(false, OhosAccountInfo());
     }
-
-    auto ret = Remote()->SendRequest(QUERY_OHOS_ACCOUNT_INFO, data, reply, option);
+    MessageParcel reply;
+    auto ret = SendRequest(AccountMgrInterfaceCode::QUERY_OHOS_ACCOUNT_INFO, data, reply);
     if (ret != ERR_NONE) {
-        ACCOUNT_LOGE("SendRequest failed %{public}d", ret);
         return std::make_pair(false, OhosAccountInfo());
     }
 
@@ -167,17 +170,13 @@ std::pair<bool, OhosAccountInfo> AccountProxy::QueryOhosAccountInfo(void)
 ErrCode AccountProxy::GetOhosAccountInfo(OhosAccountInfo &ohosAccountInfo)
 {
     MessageParcel data;
-    MessageParcel reply;
-    MessageOption option;
-
     if (!data.WriteInterfaceToken(GetDescriptor())) {
         ACCOUNT_LOGE("Write descriptor failed");
         return ERR_ACCOUNT_COMMON_WRITE_DESCRIPTOR_ERROR;
     }
-
-    auto ret = Remote()->SendRequest(GET_OHOS_ACCOUNT_INFO, data, reply, option);
+    MessageParcel reply;
+    auto ret = SendRequest(AccountMgrInterfaceCode::GET_OHOS_ACCOUNT_INFO, data, reply);
     if (ret != ERR_NONE) {
-        ACCOUNT_LOGE("SendRequest failed %{public}d", ret);
         return ret;
     }
     ret = ReadOhosAccountInfo(reply, ohosAccountInfo);
@@ -201,10 +200,8 @@ ErrCode AccountProxy::GetOhosAccountInfoByUserId(int32_t userId, OhosAccountInfo
         return ERR_ACCOUNT_COMMON_WRITE_PARCEL_ERROR;
     }
     MessageParcel reply;
-    MessageOption option;
-    auto ret = Remote()->SendRequest(GET_OHOS_ACCOUNT_INFO_BY_USER_ID, data, reply, option);
+    auto ret = SendRequest(AccountMgrInterfaceCode::GET_OHOS_ACCOUNT_INFO_BY_USER_ID, data, reply);
     if (ret != ERR_NONE) {
-        ACCOUNT_LOGE("SendRequest failed %{public}d", ret);
         return ret;
     }
     ret = ReadOhosAccountInfo(reply, ohosAccountInfo);
@@ -217,9 +214,6 @@ ErrCode AccountProxy::GetOhosAccountInfoByUserId(int32_t userId, OhosAccountInfo
 std::pair<bool, OhosAccountInfo> AccountProxy::QueryOhosAccountInfoByUserId(std::int32_t userId)
 {
     MessageParcel data;
-    MessageParcel reply;
-    MessageOption option;
-
     if (!data.WriteInterfaceToken(GetDescriptor())) {
         ACCOUNT_LOGE("Write descriptor failed");
         return std::make_pair(false, OhosAccountInfo());
@@ -229,10 +223,9 @@ std::pair<bool, OhosAccountInfo> AccountProxy::QueryOhosAccountInfoByUserId(std:
         ACCOUNT_LOGE("failed to write int for userId %{public}d.", userId);
         return std::make_pair(false, OhosAccountInfo());
     }
-
-    auto ret = Remote()->SendRequest(QUERY_OHOS_ACCOUNT_INFO_BY_USER_ID, data, reply, option);
+    MessageParcel reply;
+    auto ret = SendRequest(AccountMgrInterfaceCode::QUERY_OHOS_ACCOUNT_INFO_BY_USER_ID, data, reply);
     if (ret != ERR_NONE) {
-        ACCOUNT_LOGE("SendRequest failed %{public}d", ret);
         return std::make_pair(false, OhosAccountInfo());
     }
 
@@ -249,59 +242,44 @@ std::pair<bool, OhosAccountInfo> AccountProxy::QueryOhosAccountInfoByUserId(std:
 std::int32_t AccountProxy::QueryDeviceAccountId(std::int32_t &accountId)
 {
     MessageParcel data;
-    MessageParcel reply;
-    MessageOption option;
-
     if (!data.WriteInterfaceToken(GetDescriptor())) {
         ACCOUNT_LOGE("Write descriptor failed");
         return ERR_ACCOUNT_COMMON_WRITE_DESCRIPTOR_ERROR;
     }
-
-    auto ret = Remote()->SendRequest(QUERY_DEVICE_ACCOUNT_ID, data, reply, option);
+    MessageParcel reply;
+    auto ret = SendRequest(AccountMgrInterfaceCode::QUERY_DEVICE_ACCOUNT_ID, data, reply);
     if (ret != ERR_NONE) {
-        ACCOUNT_LOGE("SendRequest failed %{public}d", ret);
         return ERR_ACCOUNT_ZIDL_ACCOUNT_SEND_REQUEST_ERROR;
     }
-
     accountId = reply.ReadInt32();
-
     return ERR_OK;
 }
 
 sptr<IRemoteObject> AccountProxy::GetAppAccountService()
 {
     MessageParcel data;
-    MessageParcel reply;
-    MessageOption option;
-
     if (!data.WriteInterfaceToken(GetDescriptor())) {
         ACCOUNT_LOGE("Write descriptor failed");
         return nullptr;
     }
-
-    auto ret = Remote()->SendRequest(GET_APP_ACCOUNT_SERVICE, data, reply, option);
+    MessageParcel reply;
+    auto ret = SendRequest(AccountMgrInterfaceCode::GET_APP_ACCOUNT_SERVICE, data, reply);
     if (ret != ERR_NONE) {
-        ACCOUNT_LOGE("SendRequest failed %{public}d", ret);
         return nullptr;
     }
-
     return reply.ReadRemoteObject();
 }
 
 sptr<IRemoteObject> AccountProxy::GetOsAccountService()
 {
     MessageParcel data;
-    MessageParcel reply;
-    MessageOption option;
-
     if (!data.WriteInterfaceToken(GetDescriptor())) {
         ACCOUNT_LOGE("Write descriptor failed");
         return nullptr;
     }
-
-    auto ret = Remote()->SendRequest(GET_OS_ACCOUNT_SERVICE, data, reply, option);
+    MessageParcel reply;
+    auto ret = SendRequest(AccountMgrInterfaceCode::GET_OS_ACCOUNT_SERVICE, data, reply);
     if (ret != ERR_NONE) {
-        ACCOUNT_LOGE("SendRequest failed %{public}d", ret);
         return nullptr;
     }
 
@@ -311,17 +289,13 @@ sptr<IRemoteObject> AccountProxy::GetOsAccountService()
 sptr<IRemoteObject> AccountProxy::GetAccountIAMService()
 {
     MessageParcel data;
-    MessageParcel reply;
-    MessageOption option;
-
     if (!data.WriteInterfaceToken(GetDescriptor())) {
         ACCOUNT_LOGE("Write descriptor failed");
         return nullptr;
     }
-
-    auto ret = Remote()->SendRequest(GET_ACCOUNT_IAM_SERVICE, data, reply, option);
+    MessageParcel reply;
+    auto ret = SendRequest(AccountMgrInterfaceCode::GET_ACCOUNT_IAM_SERVICE, data, reply);
     if (ret != ERR_NONE) {
-        ACCOUNT_LOGE("SendRequest failed %d", ret);
         return nullptr;
     }
 
@@ -336,10 +310,8 @@ sptr<IRemoteObject> AccountProxy::GetDomainAccountService()
         return nullptr;
     }
     MessageParcel reply;
-    MessageOption option;
-    auto ret = Remote()->SendRequest(GET_DOMAIN_ACCOUNT_SERVICE, data, reply, option);
+    auto ret = SendRequest(AccountMgrInterfaceCode::GET_DOMAIN_ACCOUNT_SERVICE, data, reply);
     if (ret != ERR_NONE) {
-        ACCOUNT_LOGE("SendRequest failed %d", ret);
         return nullptr;
     }
     return reply.ReadRemoteObject();

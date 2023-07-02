@@ -32,7 +32,7 @@ public:
         uint32_t code, MessageParcel &data, MessageParcel &reply, MessageOption &option) override;
 
 private:
-    ErrCode CheckPermission(uint32_t code, int32_t uid);
+    ErrCode CheckPermission(DomainAccountInterfaceCode code, int32_t uid);
     ErrCode ProcRegisterPlugin(MessageParcel &data, MessageParcel &reply);
     ErrCode ProcUnregisterPlugin(MessageParcel &data, MessageParcel &reply);
     ErrCode ProcAuth(MessageParcel &data, MessageParcel &reply);
@@ -48,7 +48,7 @@ private:
     ErrCode ProcRegisterAccountStatusListenerByInfo(MessageParcel &data, MessageParcel &reply);
 
 private:
-    static const std::map<uint32_t, DomainAccountStubFunc> stubFuncMap_;
+    static const std::map<DomainAccountInterfaceCode, DomainAccountStubFunc> stubFuncMap_;
 };
 }  // namespace AccountSA
 }  // namespace OHOS

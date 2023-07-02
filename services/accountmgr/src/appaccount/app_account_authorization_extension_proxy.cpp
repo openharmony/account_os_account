@@ -28,7 +28,7 @@ AppAccountAuthorizationExtensionProxy::~AppAccountAuthorizationExtensionProxy()
 {}
 
 ErrCode AppAccountAuthorizationExtensionProxy::SendRequest(
-    IAppAccountAuthorizationExtension::Message code, MessageParcel &data, MessageParcel &reply)
+    AppAccountAuthorizationExtensionInterfaceCode code, MessageParcel &data, MessageParcel &reply)
 {
     sptr<IRemoteObject> remote = Remote();
     if (remote == nullptr) {
@@ -78,7 +78,7 @@ ErrCode AppAccountAuthorizationExtensionProxy::StartAuthorization(const Authoriz
     }
     MessageParcel reply;
     return SendRequest(
-        IAppAccountAuthorizationExtension::Message::APP_AUTHORIZATION_EXTENSION_START_AUTHENTICATION, data, reply);
+        AppAccountAuthorizationExtensionInterfaceCode::APP_AUTHORIZATION_EXTENSION_START_AUTHENTICATION, data, reply);
 }
 }  // namespace AccountSA
 }  // namespace OHOS

@@ -16,6 +16,7 @@
 #ifndef OS_ACCOUNT_INTERFACES_INNERKITS_ACCOUNT_IAM_NATIVE_INCLUDE_ACCOUNT_IAM_CALLBACK_H
 #define OS_ACCOUNT_INTERFACES_INNERKITS_ACCOUNT_IAM_NATIVE_INCLUDE_ACCOUNT_IAM_CALLBACK_H
 
+#include "accountmgr_service_ipc_interface_code.h"
 #include "account_iam_info.h"
 #include "iremote_broker.h"
 #include "iremote_object.h"
@@ -27,31 +28,18 @@ public:
     DECLARE_INTERFACE_DESCRIPTOR(u"ohos.accountfwk.IIDMCallback");
     virtual void OnAcquireInfo(int32_t module, uint32_t acquireInfo, const Attributes &extraInfo) = 0;
     virtual void OnResult(int32_t result, const Attributes &extraInfo) = 0;
-
-    enum class Message {
-        ON_ACQUIRE_INFO,
-        ON_RESULT
-    };
 };
 
 class IGetCredInfoCallback : public IRemoteBroker {
 public:
     DECLARE_INTERFACE_DESCRIPTOR(u"ohos.accountfwk.IGetCredInfoCallback");
     virtual void OnCredentialInfo(const std::vector<CredentialInfo> &infoList) = 0;
-
-    enum class Message {
-        ON_CREDENTIAL_INFO
-    };
 };
 
 class IGetSetPropCallback : public IRemoteBroker {
 public:
     DECLARE_INTERFACE_DESCRIPTOR(u"ohos.accountfwk.IGetSetPropCallback");
     virtual void OnResult(int32_t result, const Attributes &extraInfo) = 0;
-
-    enum class Message {
-        ON_RESULT
-    };
 };
 }  // namespace AccountSA
 }  // OHOS
