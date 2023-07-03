@@ -59,9 +59,8 @@ class MockAppAccountAuthorizationExtensionCallbackStub final
 public:
     explicit MockAppAccountAuthorizationExtensionCallbackStub(
         const std::shared_ptr<MockAppAccountAuthorizationExtensionCallback> &callback)
-    {
-        callback_ = callback;
-    }
+        : callback_(callback)
+    {}
     virtual ~MockAppAccountAuthorizationExtensionCallbackStub();
     void OnResult(const int32_t errCode, const AAFwk::WantParams &parameters) override;
     
