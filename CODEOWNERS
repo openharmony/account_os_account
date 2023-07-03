@@ -14,5 +14,5 @@
  */
 
  # any change to frameworks/common/include/accountmgr_service_ipc_interface_code.h
- # needs to be reviewed by @libing23
-frameworks/common/include/accountmgr_service_ipc_interface_code.h @libing23
+ # needs to be reviewed by @leonchan5
+frameworks/common/include/accountmgr_service_ipc_interface_code.h @leonchan5
