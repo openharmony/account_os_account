@@ -55,7 +55,7 @@
         "safwk",
         "samgr",
         "security_guard",
-        "selinux",
+        "selinux_adapter",
         "storage_service",
         "time_service",
         "user_auth_framework"
