@@ -46,7 +46,7 @@ bool IsOsAccountConstraintEnableStubFuzzTest(const uint8_t *data, size_t size)
         return false;
     }
 
-    uint32_t code = static_cast<uint32_t>(IOsAccount::Message::IS_OS_ACCOUNT_CONSTRAINT_ENABLE);
+    uint32_t code = static_cast<uint32_t>(OsAccountInterfaceCode::IS_OS_ACCOUNT_CONSTRAINT_ENABLE);
 
     MessageParcel reply;
     MessageOption option;

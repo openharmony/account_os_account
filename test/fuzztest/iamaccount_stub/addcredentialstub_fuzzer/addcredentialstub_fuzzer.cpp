@@ -81,7 +81,7 @@ bool AddCredentialStubFuzzTest(const uint8_t *data, size_t size)
 
     MessageParcel reply;
     MessageOption option;
-    uint32_t code = static_cast<uint32_t>(IAccountIAM::Message::ADD_CREDENTIAL);
+    uint32_t code = static_cast<uint32_t>(AccountIAMInterfaceCode::ADD_CREDENTIAL);
     auto iamAccountManagerService = std::make_shared<AccountIAMService>();
     iamAccountManagerService->OnRemoteRequest(code, dataTemp, reply, option);
 

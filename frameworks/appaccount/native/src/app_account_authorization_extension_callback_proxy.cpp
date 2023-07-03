@@ -31,7 +31,7 @@ AppAccountAuthorizationExtensionCallbackProxy::~AppAccountAuthorizationExtension
 {}
 
 ErrCode AppAccountAuthorizationExtensionCallbackProxy::SendRequest(
-    IAppAccountAuthorizationExtensionCallback::Message code, MessageParcel &data)
+    AppAccountAuthorizationExtensionCallbackInterfaceCode code, MessageParcel &data)
 {
     sptr<IRemoteObject> remote = Remote();
     if (remote == nullptr) {
@@ -60,7 +60,7 @@ void AppAccountAuthorizationExtensionCallbackProxy::OnResult(
         return;
     }
     ErrCode result = SendRequest(
-        IAppAccountAuthorizationExtensionCallback::Message::APP_ACCOUNT_AUTHORIZATION_EXTENSION_CALLBACK_ON_RESULT,
+        AppAccountAuthorizationExtensionCallbackInterfaceCode::APP_ACCOUNT_AUTHORIZATION_EXTENSION_CALLBACK_ON_RESULT,
         data);
     if (result != ERR_OK) {
         ACCOUNT_LOGE("failed to send request, error code: %{public}d", result);

@@ -30,7 +30,7 @@ public:
     void OnResult(int32_t result, const Attributes &extraInfo) override;
 
 private:
-    ErrCode SendRequest(IIDMCallback::Message code, MessageParcel &data, MessageParcel &reply);
+    ErrCode SendRequest(IDMCallbackInterfaceCode code, MessageParcel &data, MessageParcel &reply);
 
 private:
     static inline BrokerDelegator<IDMCallbackProxy> delegator_;
@@ -42,7 +42,7 @@ public:
     void OnCredentialInfo(const std::vector<CredentialInfo> &infoList) override;
 
 private:
-    ErrCode SendRequest(IGetCredInfoCallback::Message code, MessageParcel &data, MessageParcel &reply);
+    ErrCode SendRequest(GetCredInfoCallbackInterfaceCode code, MessageParcel &data, MessageParcel &reply);
 
 private:
     static inline BrokerDelegator<GetCredInfoCallbackProxy> delegator_;
@@ -54,7 +54,7 @@ public:
     void OnResult(int32_t result, const Attributes &extraInfo) override;
 
 private:
-    ErrCode SendRequest(IGetSetPropCallback::Message code, MessageParcel &data, MessageParcel &reply);
+    ErrCode SendRequest(GetSetPropCallbackInterfaceCode code, MessageParcel &data, MessageParcel &reply);
 
 private:
     static inline BrokerDelegator<GetSetPropCallbackProxy> delegator_;

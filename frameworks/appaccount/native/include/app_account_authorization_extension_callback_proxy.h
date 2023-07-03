@@ -28,7 +28,7 @@ public:
     void OnResult(const int32_t errCode, const AAFwk::WantParams &parameters) override;
 
 private:
-    ErrCode SendRequest(IAppAccountAuthorizationExtensionCallback::Message code, MessageParcel &data);
+    ErrCode SendRequest(AppAccountAuthorizationExtensionCallbackInterfaceCode code, MessageParcel &data);
 
 private:
     static inline BrokerDelegator<AppAccountAuthorizationExtensionCallbackProxy> delegator_;

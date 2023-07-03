@@ -55,7 +55,7 @@ const std::u16string ACCOUNT_TOKEN = u"ohos.accountfwk.IDomainAccount";
 
         MessageParcel reply;
         MessageOption option;
-        uint32_t code = static_cast<uint32_t>(IDomainAccount::Message::DOMAIN_HAS_DOMAIN_ACCOUNT);
+        uint32_t code = static_cast<uint32_t>(DomainAccountInterfaceCode::DOMAIN_HAS_DOMAIN_ACCOUNT);
         auto domainAccountService = std::make_shared<DomainAccountManagerService>();
         domainAccountService->OnRemoteRequest(code, dataTemp, reply, option);
 

@@ -41,7 +41,7 @@ bool GetOsAccountAllConstraintsStubFuzzTest(const uint8_t *data, size_t size)
         return false;
     }
 
-    uint32_t code = static_cast<uint32_t>(IOsAccount::Message::GET_OS_ACCOUNT_ALL_CONSTRAINTS);
+    uint32_t code = static_cast<uint32_t>(OsAccountInterfaceCode::GET_OS_ACCOUNT_ALL_CONSTRAINTS);
 
     MessageParcel reply;
     MessageOption option;

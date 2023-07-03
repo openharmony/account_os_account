@@ -65,7 +65,7 @@ public:
         MessageParcel reply;
         MessageOption option;
 
-        uint32_t code = static_cast<uint32_t>(IDomainAccount::Message::DOMAIN_AUTH_WITH_POPUP);
+        uint32_t code = static_cast<uint32_t>(DomainAccountInterfaceCode::DOMAIN_AUTH_WITH_POPUP);
         auto domainAccountService = std::make_shared<DomainAccountManagerService>();
         domainAccountService->OnRemoteRequest(code, dataTemp, reply, option);
 

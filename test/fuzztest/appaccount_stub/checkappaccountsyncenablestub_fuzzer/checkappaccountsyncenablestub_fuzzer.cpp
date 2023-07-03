@@ -41,7 +41,7 @@ bool CheckAppAccountSyncEnableStubFuzzTest(const uint8_t* data, size_t size)
 
     MessageParcel reply;
     MessageOption option;
-    uint32_t code = static_cast<uint32_t>(IAppAccount::Message::CHECK_APP_ACCOUNT_SYNC_ENABLE);
+    uint32_t code = static_cast<uint32_t>(AppAccountInterfaceCode::CHECK_APP_ACCOUNT_SYNC_ENABLE);
     auto appAccountManagerService = std::make_shared<AppAccountManagerService>();
     appAccountManagerService->OnRemoteRequest(code, dataTemp, reply, option);
     

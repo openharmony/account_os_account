@@ -20,6 +20,7 @@ group("common_target") {
 
 config("account_common_config") {
   include_dirs = [
+    "include",
     "file_operator/include",
     "log/include",
     "perf_stat/include",

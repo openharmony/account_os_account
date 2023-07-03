@@ -73,7 +73,7 @@ bool DelCredStubFuzzTest(const uint8_t *data, size_t size)
 
     MessageParcel reply;
     MessageOption option;
-    uint32_t code = static_cast<uint32_t>(IAccountIAM::Message::DEL_CRED);
+    uint32_t code = static_cast<uint32_t>(AccountIAMInterfaceCode::DEL_CRED);
     auto iamAccountManagerService = std::make_shared<AccountIAMService>();
     iamAccountManagerService->OnRemoteRequest(code, dataTemp, reply, option);
 

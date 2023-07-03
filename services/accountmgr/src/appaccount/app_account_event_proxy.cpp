@@ -41,14 +41,14 @@ void AppAccountEventProxy::OnAccountsChanged(const std::vector<AppAccountInfo> &
         return;
     }
 
-    ErrCode result = SendRequest(IAppAccountEvent::Message::ACCOUNT_CHANGED, data, reply);
+    ErrCode result = SendRequest(AppAccountEventInterfaceCode::ACCOUNT_CHANGED, data, reply);
     if (result != ERR_OK) {
         ACCOUNT_LOGE("SendRequest failed! error code %{public}d.", result);
         return;
     }
 }
 
-ErrCode AppAccountEventProxy::SendRequest(IAppAccountEvent::Message code, MessageParcel &data, MessageParcel &reply)
+ErrCode AppAccountEventProxy::SendRequest(AppAccountEventInterfaceCode code, MessageParcel &data, MessageParcel &reply)
 {
     sptr<IRemoteObject> remoteEvent = Remote();
     if (remoteEvent == nullptr) {

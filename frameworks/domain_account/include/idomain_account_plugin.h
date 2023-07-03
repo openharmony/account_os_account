@@ -18,6 +18,7 @@
 
 #include <string>
 #include <iremote_broker.h>
+#include "accountmgr_service_ipc_interface_code.h"
 #include "domain_account_common.h"
 #include "idomain_account_callback.h"
 #include "idomain_auth_callback.h"
@@ -28,15 +29,6 @@ namespace AccountSA {
 class IDomainAccountPlugin : public IRemoteBroker {
 public:
     DECLARE_INTERFACE_DESCRIPTOR(u"ohos.accountfwk.IDomainAccountPlugin");
-    enum Message {
-        DOMAIN_PLUGIN_AUTH = 0,
-        DOMAIN_PLUGIN_GET_AUTH_STATUS_INFO = 1,
-        DOMAIN_PLUGIN_GET_DOMAIN_ACCOUNT_INFO = 2,
-        DOMAIN_PLUGIN_ON_ACCOUNT_BOUND = 3,
-        DOMAIN_PLUGIN_ON_ACCOUNT_UNBOUND = 4,
-        DOMAIN_PLUGIN_IS_ACCOUNT_TOKEN_VALID = 5,
-        DOMAIN_PLUGIN_GET_ACCESS_TOKEN = 6,
-    };
 
     virtual ErrCode Auth(const DomainAccountInfo &info, const std::vector<uint8_t> &password,
         const sptr<IDomainAuthCallback> &callback) = 0;

@@ -81,13 +81,13 @@ void IDMCallbackProxy::OnAcquireInfo(int32_t module, uint32_t acquireInfo, const
         ACCOUNT_LOGE("write buffer fail");
         return;
     }
-    uint32_t code = static_cast<uint32_t>(IIDMCallback::Message::ON_ACQUIRE_INFO);
+    uint32_t code = static_cast<uint32_t>(IDMCallbackInterfaceCode::ON_ACQUIRE_INFO);
     SendRequestFunc(Remote(), code, data, reply);
 }
 
 void IDMCallbackProxy::OnResult(int32_t result, const Attributes &extraInfo)
 {
-    uint32_t code = static_cast<uint32_t>(IIDMCallback::Message::ON_RESULT);
+    uint32_t code = static_cast<uint32_t>(IDMCallbackInterfaceCode::ON_RESULT);
     OnResultFunc(Remote(), code, GetDescriptor(), result, extraInfo);
 }
 
@@ -126,7 +126,7 @@ void GetCredInfoCallbackProxy::OnCredentialInfo(const std::vector<CredentialInfo
             return;
         }
     }
-    uint32_t code = static_cast<uint32_t>(IGetCredInfoCallback::Message::ON_CREDENTIAL_INFO);
+    uint32_t code = static_cast<uint32_t>(GetCredInfoCallbackInterfaceCode::ON_CREDENTIAL_INFO);
     SendRequestFunc(Remote(), code, data, reply);
 }
 
@@ -136,7 +136,7 @@ GetSetPropCallbackProxy::GetSetPropCallbackProxy(const sptr<IRemoteObject> &obje
 
 void GetSetPropCallbackProxy::OnResult(int32_t result, const Attributes &extraInfo)
 {
-    uint32_t code = static_cast<uint32_t>(IGetSetPropCallback::Message::ON_RESULT);
+    uint32_t code = static_cast<uint32_t>(GetSetPropCallbackInterfaceCode::ON_RESULT);
     OnResultFunc(Remote(), code, GetDescriptor(), result, extraInfo);
 }
 }  // namespace AccountSA

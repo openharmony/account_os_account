@@ -40,7 +40,7 @@ bool DumpStateStubFuzzTest(const uint8_t *data, size_t size)
         return false;
     }
 
-    uint32_t code = static_cast<uint32_t>(IOsAccount::Message::DUMP_STATE);
+    uint32_t code = static_cast<uint32_t>(OsAccountInterfaceCode::DUMP_STATE);
 
     MessageParcel reply;
     MessageOption option;

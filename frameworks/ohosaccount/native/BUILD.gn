@@ -17,6 +17,7 @@ import("../../../os_account.gni")
 config("public_account_config") {
   include_dirs = [
     "include",
+    "${common_path}/include",
     "${innerkits_path}/include",
     "//third_party/json/include",
   ]

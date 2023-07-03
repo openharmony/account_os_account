@@ -41,6 +41,7 @@ config("domain_account_innerkits_public_config") {
 
   include_dirs = [
     "include",
+    "${common_path}/include",
     "${domain_account_interfaces_native_path}/include",
   ]
 }

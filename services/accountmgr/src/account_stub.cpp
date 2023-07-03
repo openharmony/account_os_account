@@ -55,20 +55,23 @@ constexpr std::int32_t DSOFTBUS_UID = 1024;
 constexpr std::int32_t DSOFTBUS_UID = 5533;
 #endif
 }  // namespace
-const std::map<std::uint32_t, AccountStubFunc> AccountStub::stubFuncMap_{
-    std::make_pair(UPDATE_OHOS_ACCOUNT_INFO, &AccountStub::CmdUpdateOhosAccountInfo),
-    std::make_pair(SET_OHOS_ACCOUNT_INFO, &AccountStub::CmdSetOhosAccountInfo),
-    std::make_pair(SET_OHOS_ACCOUNT_INFO_BY_USER_ID, &AccountStub::CmdSetOhosAccountInfoByUserId),
-    std::make_pair(QUERY_OHOS_ACCOUNT_INFO, &AccountStub::CmdQueryOhosAccountInfo),
-    std::make_pair(GET_OHOS_ACCOUNT_INFO, &AccountStub::CmdGetOhosAccountInfo),
-    std::make_pair(QUERY_OHOS_ACCOUNT_QUIT_TIPS, &AccountStub::CmdQueryOhosQuitTips),
-    std::make_pair(QUERY_OHOS_ACCOUNT_INFO_BY_USER_ID, &AccountStub::CmdQueryOhosAccountInfoByUserId),
-    std::make_pair(GET_OHOS_ACCOUNT_INFO_BY_USER_ID, &AccountStub::CmdGetOhosAccountInfoByUserId),
-    std::make_pair(QUERY_DEVICE_ACCOUNT_ID, &AccountStub::CmdQueryDeviceAccountId),
-    std::make_pair(GET_APP_ACCOUNT_SERVICE, &AccountStub::CmdGetAppAccountService),
-    std::make_pair(GET_OS_ACCOUNT_SERVICE, &AccountStub::CmdGetOsAccountService),
-    std::make_pair(GET_ACCOUNT_IAM_SERVICE, &AccountStub::CmdGetAccountIAMService),
-    std::make_pair(GET_DOMAIN_ACCOUNT_SERVICE, &AccountStub::CmdGetDomainAccountService),
+const std::map<AccountMgrInterfaceCode, AccountStubFunc> AccountStub::stubFuncMap_{
+    std::make_pair(AccountMgrInterfaceCode::UPDATE_OHOS_ACCOUNT_INFO, &AccountStub::CmdUpdateOhosAccountInfo),
+    std::make_pair(AccountMgrInterfaceCode::SET_OHOS_ACCOUNT_INFO, &AccountStub::CmdSetOhosAccountInfo),
+    std::make_pair(AccountMgrInterfaceCode::SET_OHOS_ACCOUNT_INFO_BY_USER_ID,
+        &AccountStub::CmdSetOhosAccountInfoByUserId),
+    std::make_pair(AccountMgrInterfaceCode::QUERY_OHOS_ACCOUNT_INFO, &AccountStub::CmdQueryOhosAccountInfo),
+    std::make_pair(AccountMgrInterfaceCode::GET_OHOS_ACCOUNT_INFO, &AccountStub::CmdGetOhosAccountInfo),
+    std::make_pair(AccountMgrInterfaceCode::QUERY_OHOS_ACCOUNT_QUIT_TIPS, &AccountStub::CmdQueryOhosQuitTips),
+    std::make_pair(AccountMgrInterfaceCode::QUERY_OHOS_ACCOUNT_INFO_BY_USER_ID,
+        &AccountStub::CmdQueryOhosAccountInfoByUserId),
+    std::make_pair(AccountMgrInterfaceCode::GET_OHOS_ACCOUNT_INFO_BY_USER_ID,
+        &AccountStub::CmdGetOhosAccountInfoByUserId),
+    std::make_pair(AccountMgrInterfaceCode::QUERY_DEVICE_ACCOUNT_ID, &AccountStub::CmdQueryDeviceAccountId),
+    std::make_pair(AccountMgrInterfaceCode::GET_APP_ACCOUNT_SERVICE, &AccountStub::CmdGetAppAccountService),
+    std::make_pair(AccountMgrInterfaceCode::GET_OS_ACCOUNT_SERVICE, &AccountStub::CmdGetOsAccountService),
+    std::make_pair(AccountMgrInterfaceCode::GET_ACCOUNT_IAM_SERVICE, &AccountStub::CmdGetAccountIAMService),
+    std::make_pair(AccountMgrInterfaceCode::GET_DOMAIN_ACCOUNT_SERVICE, &AccountStub::CmdGetDomainAccountService),
 };
 
 std::int32_t AccountStub::InnerUpdateOhosAccountInfo(MessageParcel &data, MessageParcel &reply)
@@ -423,24 +426,23 @@ std::int32_t AccountStub::OnRemoteRequest(
         HiviewDFX::XCollie::GetInstance().SetTimer(TIMER_NAME, TIMEOUT, nullptr, nullptr, HiviewDFX::XCOLLIE_FLAG_LOG);
 #endif // HICOLLIE_ENABLE
 
-    const auto &itFunc = stubFuncMap_.find(code);
-    if (itFunc != stubFuncMap_.end()) {
-        if (code <= SET_OHOS_ACCOUNT_INFO_BY_USER_ID) {
-            (void)OhosAccountManager::GetInstance().OnInitialize();
-        }
-        int ret = (this->*(itFunc->second))(data, reply);
-#ifdef HICOLLIE_ENABLE
-        HiviewDFX::XCollie::GetInstance().CancelTimer(timerId);
-#endif // HICOLLIE_ENABLE
-        return ret;
-    }
-
+    AccountMgrInterfaceCode interfaceCode = static_cast<AccountMgrInterfaceCode>(code);
+    const auto &itFunc = stubFuncMap_.find(interfaceCode);
+    if (itFunc == stubFuncMap_.end()) {
 #ifdef HICOLLIE_ENABLE
     HiviewDFX::XCollie::GetInstance().CancelTimer(timerId);
 #endif // HICOLLIE_ENABLE
-
     ACCOUNT_LOGW("remote request unhandled: %{public}d", code);
     return IPCObjectStub::OnRemoteRequest(code, data, reply, option);
+    }
+    if (interfaceCode <= AccountMgrInterfaceCode::SET_OHOS_ACCOUNT_INFO_BY_USER_ID) {
+        (void)OhosAccountManager::GetInstance().OnInitialize();
+    }
+    int32_t ret = (this->*(itFunc->second))(data, reply);
+#ifdef HICOLLIE_ENABLE
+    HiviewDFX::XCollie::GetInstance().CancelTimer(timerId);
+#endif // HICOLLIE_ENABLE
+    return ret;
 }
 
 bool AccountStub::HasAccountRequestPermission(const std::string &permissionName)

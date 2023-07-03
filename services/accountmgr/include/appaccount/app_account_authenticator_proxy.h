@@ -42,7 +42,7 @@ public:
     ErrCode Auth(const std::string &name, const std::string &authType,
         const AAFwk::WantParams &options, const sptr<IRemoteObject> &callback) override;
 private:
-    ErrCode SendRequest(IAppAccountAuthenticator::Message code, MessageParcel &data, MessageParcel &reply);
+    ErrCode SendRequest(AppAccountAuthenticatorInterfaceCode code, MessageParcel &data, MessageParcel &reply);
 
 private:
     static inline BrokerDelegator<AppAccountAuthenticatorProxy> delegator_;

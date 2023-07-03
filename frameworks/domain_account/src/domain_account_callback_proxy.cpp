@@ -28,7 +28,7 @@ DomainAccountCallbackProxy::DomainAccountCallbackProxy(const sptr<IRemoteObject>
 DomainAccountCallbackProxy::~DomainAccountCallbackProxy()
 {}
 
-ErrCode DomainAccountCallbackProxy::SendRequest(IDomainAccountCallback::Message code, MessageParcel &data)
+ErrCode DomainAccountCallbackProxy::SendRequest(DomainAccountCallbackInterfaceCode code, MessageParcel &data)
 {
     sptr<IRemoteObject> remote = Remote();
     if (remote == nullptr) {
@@ -60,7 +60,7 @@ void DomainAccountCallbackProxy::OnResult(const int32_t errCode, Parcel &parcel)
         ACCOUNT_LOGE("failed to write buffer");
         return;
     }
-    ErrCode result = SendRequest(IDomainAccountCallback::Message::DOMAIN_ACCOUNT_CALLBACK_ON_RESULT, data);
+    ErrCode result = SendRequest(DomainAccountCallbackInterfaceCode::DOMAIN_ACCOUNT_CALLBACK_ON_RESULT, data);
     if (result != ERR_OK) {
         ACCOUNT_LOGE("fail to send request, error code: %{public}d", result);
     }
