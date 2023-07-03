@@ -153,7 +153,7 @@ HWTEST_F(AppAccountManagerServiceModuleTest, AppAccountManagerService_ExecuteReq
     request.bundleName = STRING_OWNER;
     request.abilityName = STRING_ABILITY_INVALID_NAME;
     ErrCode result = g_accountManagerService->ExecuteRequest(request, callback);
-    EXPECT_EQ(result, ERR_JS_INVALID_PARAMETER);
+    EXPECT_EQ(result, ERR_ACCOUNT_COMMON_INVALID_PARAMETER);
 }
 
 /**
@@ -171,7 +171,7 @@ HWTEST_F(AppAccountManagerServiceModuleTest, AppAccountManagerService_ExecuteReq
     request.bundleName = STRING_OWNER;
     request.abilityName = STRING_ABILITY_NAME_WITH_NO_INFO;
     ErrCode result = g_accountManagerService->ExecuteRequest(request, callback);
-    EXPECT_EQ(result, ERR_JS_INVALID_PARAMETER);
+    EXPECT_EQ(result, ERR_ACCOUNT_COMMON_INVALID_PARAMETER);
 }
 
 /**
@@ -189,7 +189,7 @@ HWTEST_F(AppAccountManagerServiceModuleTest, AppAccountManagerService_ExecuteReq
     request.bundleName = STRING_BUNDLE_NAME_NOT_INSTALLED;
     request.abilityName = "";
     ErrCode result = g_accountManagerService->ExecuteRequest(request, callback);
-    EXPECT_EQ(result, ERR_JS_INVALID_PARAMETER);
+    EXPECT_EQ(result, ERR_ACCOUNT_COMMON_INVALID_PARAMETER);
 }
 
 /**
@@ -207,7 +207,7 @@ HWTEST_F(AppAccountManagerServiceModuleTest, AppAccountManagerService_ExecuteReq
     request.bundleName = STRING_BUNDLEINFO_WITH_NO_VALID_EXTENSION;
     request.abilityName = "";
     ErrCode result = g_accountManagerService->ExecuteRequest(request, callback);
-    EXPECT_EQ(result, ERR_JS_INVALID_PARAMETER);
+    EXPECT_EQ(result, ERR_ACCOUNT_COMMON_INVALID_PARAMETER);
 }
 
 /**
@@ -225,7 +225,7 @@ HWTEST_F(AppAccountManagerServiceModuleTest, AppAccountManagerService_ExecuteReq
     request.bundleName = STRING_BUNDLEINFO_WITH_NO_VALID_TYPE_EXTENSION;
     request.abilityName = "";
     ErrCode result = g_accountManagerService->ExecuteRequest(request, callback);
-    EXPECT_EQ(result, ERR_JS_INVALID_PARAMETER);
+    EXPECT_EQ(result, ERR_ACCOUNT_COMMON_INVALID_PARAMETER);
 }
 
 /**
@@ -243,7 +243,7 @@ HWTEST_F(AppAccountManagerServiceModuleTest, AppAccountManagerService_ExecuteReq
     request.bundleName = STRING_BUNDLEINFO_WITH_MULTIPLE_VALID_EXTENSION;
     request.abilityName = "";
     ErrCode result = g_accountManagerService->ExecuteRequest(request, callback);
-    EXPECT_EQ(result, ERR_JS_INVALID_PARAMETER);
+    EXPECT_EQ(result, ERR_ACCOUNT_COMMON_INVALID_PARAMETER);
 }
 
 /**

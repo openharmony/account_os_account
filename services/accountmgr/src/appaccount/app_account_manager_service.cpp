@@ -765,7 +765,7 @@ ErrCode AppAccountManagerService::ExecuteRequest(
     AppExecFwk::ExtensionAbilityInfo extensionInfo;
     int32_t userId = innerRequest.callerUid / UID_TRANSFORM_DIVISOR;
     if (!QueryAbilityInfo(request.bundleName, request.abilityName, userId, extensionInfo)) {
-        return ERR_JS_INVALID_PARAMETER;
+        return ERR_ACCOUNT_COMMON_INVALID_PARAMETER;
     }
     return innerManager_->ExecuteRequest(innerRequest, request.bundleName, request.abilityName, extensionInfo);
 }
