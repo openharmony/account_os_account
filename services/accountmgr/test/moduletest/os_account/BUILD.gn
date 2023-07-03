@@ -192,12 +192,151 @@ ohos_moduletest("os_account_manager_service_subscribe_module_test") {
   part_name = "os_account"
 }
 
+ohos_moduletest("os_account_control_file_manager_test") {
+  module_out_path = module_output_path
+
+  sources = [ "os_account_control_file_manager_test.cpp" ]
+  sources += [
+    "${services_path}/accountmgr/test/mock/os_account/os_account_interface.cpp",
+    "${services_path}/accountmgr/test/mock/os_account/permission_kit.cpp",
+  ]
+  configs = [
+    ":os_account_manager_service_subscribe_test_config",
+    "${services_path}/accountmgr/test:accountmgr_test_config",
+  ]
+
+  deps = [
+    "${common_path}:libaccount_common",
+    "${os_account_innerkits_native_path}:os_account_innerkits",
+    "${services_path}/accountmgr:accountmgr",
+    "//third_party/googletest:gmock_main",
+    "//third_party/googletest:gtest_main",
+  ]
+  external_deps = [
+    "ability_runtime:ability_manager",
+    "c_utils:utils",
+    "hiviewdfx_hilog_native:libhilog",
+    "ipc:ipc_single",
+    "kv_store:distributeddata_inner",
+  ]
+  part_name = "os_account"
+}
+
+ohos_moduletest("os_account_database_operator_test") {
+  module_out_path = module_output_path
+
+  sources = [ "os_account_database_operator_test.cpp" ]
+  sources += [
+    "${services_path}/accountmgr/test/mock/os_account/os_account_interface.cpp",
+    "${services_path}/accountmgr/test/mock/os_account/permission_kit.cpp",
+  ]
+  configs = [
+    ":os_account_manager_service_subscribe_test_config",
+    "${services_path}/accountmgr/test:accountmgr_test_config",
+  ]
+
+  deps = [
+    "${common_path}:libaccount_common",
+    "${os_account_innerkits_native_path}:os_account_innerkits",
+    "${services_path}/accountmgr:accountmgr",
+    "//third_party/googletest:gmock_main",
+    "//third_party/googletest:gtest_main",
+  ]
+  external_deps = [
+    "ability_runtime:ability_manager",
+    "c_utils:utils",
+    "hiviewdfx_hilog_native:libhilog",
+    "ipc:ipc_single",
+    "kv_store:distributeddata_inner",
+  ]
+  part_name = "os_account"
+}
+
+ohos_moduletest("os_account_file_operator_test") {
+  module_out_path = module_output_path
+
+  sources = [ "os_account_file_operator_test.cpp" ]
+  sources += [
+    "${services_path}/accountmgr/test/mock/os_account/os_account_interface.cpp",
+    "${services_path}/accountmgr/test/mock/os_account/permission_kit.cpp",
+  ]
+  configs = [
+    ":os_account_manager_service_subscribe_test_config",
+    "${services_path}/accountmgr/test:accountmgr_test_config",
+  ]
+
+  deps = [
+    "${common_path}:libaccount_common",
+    "${os_account_innerkits_native_path}:os_account_innerkits",
+    "${services_path}/accountmgr:accountmgr",
+    "//third_party/googletest:gmock_main",
+    "//third_party/googletest:gtest_main",
+  ]
+  external_deps = [
+    "ability_runtime:ability_manager",
+    "c_utils:utils",
+    "hiviewdfx_hilog_native:libhilog",
+    "ipc:ipc_single",
+    "kv_store:distributeddata_inner",
+  ]
+  part_name = "os_account"
+}
+
+config("os_account_photo_operator_test_config") {
+  include_dirs = [
+    "${services_path}/accountmgr/test/mock/common",
+    "${services_path}/accountmgr/test/mock/os_account",
+    "${services_path}/accountmgr/include",
+    "${services_path}/accountmgr/include/osaccount",
+    "${common_path}/log/include",
+    "${common_path}/perf_stat/include",
+    "${common_path}/account_error/include",
+    "${innerkits_path}/include",
+    "//third_party/json/include",
+  ]
+}
+
+ohos_moduletest("os_account_photo_operator_test") {
+  module_out_path = module_output_path
+
+  sources = [ "os_account_photo_operator_test.cpp" ]
+  sources += [
+    "${services_path}/accountmgr/src/osaccount/os_account_photo_operator.cpp",
+    "${services_path}/accountmgr/test/mock/os_account/os_account_interface.cpp",
+    "${services_path}/accountmgr/test/mock/os_account/permission_kit.cpp",
+  ]
+  configs = [
+    ":os_account_photo_operator_test_config",
+    "${services_path}/accountmgr/test:accountmgr_test_config",
+  ]
+  deps = [
+    "${common_path}:libaccount_common",
+    "${os_account_innerkits_native_path}:os_account_innerkits",
+    "${services_path}/accountmgr:accountmgr",
+    "//third_party/googletest:gmock_main",
+    "//third_party/googletest:gtest_main",
+  ]
+
+  external_deps = [
+    "ability_runtime:ability_manager",
+    "c_utils:utils",
+    "hiviewdfx_hilog_native:libhilog",
+    "ipc:ipc_single",
+    "kv_store:distributeddata_inner",
+  ]
+  part_name = "os_account"
+}
+
 group("moduletest") {
   testonly = true
 
   deps = [
     ":inner_os_account_manager_test",
+    ":os_account_control_file_manager_test",
+    ":os_account_database_operator_test",
+    ":os_account_file_operator_test",
     ":os_account_manager_service_module_test",
     ":os_account_manager_service_subscribe_module_test",
+    ":os_account_photo_operator_test",
   ]
 }
