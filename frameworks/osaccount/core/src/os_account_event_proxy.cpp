@@ -40,7 +40,7 @@ void OsAccountEventProxy::OnAccountsChanged(const int &localId)
         return;
     }
 
-    ErrCode result = SendRequest(IOsAccountEvent::Message::ACCOUNT_CHANGED, data, reply);
+    ErrCode result = SendRequest(OsAccountEventInterfaceCode::ACCOUNT_CHANGED, data, reply);
     if (result != ERR_OK) {
         ACCOUNT_LOGE("SendRequest for account changed failed! result %{public}d, localId %{public}d.",
             result, localId);
@@ -48,7 +48,7 @@ void OsAccountEventProxy::OnAccountsChanged(const int &localId)
     }
 }
 
-ErrCode OsAccountEventProxy::SendRequest(IOsAccountEvent::Message code, MessageParcel &data, MessageParcel &reply)
+ErrCode OsAccountEventProxy::SendRequest(OsAccountEventInterfaceCode code, MessageParcel &data, MessageParcel &reply)
 {
     sptr<IRemoteObject> remote = Remote();
     if (remote == nullptr) {

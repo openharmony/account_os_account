@@ -26,11 +26,11 @@ constexpr uint32_t MAX_VEC_SIZE = 1024;
 }
 const std::map<uint32_t, IDMCallbackStub::MessageProcFunction> IDMCallbackStub::messageProcMap_ = {
     {
-        static_cast<uint32_t>(IIDMCallback::Message::ON_ACQUIRE_INFO),
+        static_cast<uint32_t>(IDMCallbackInterfaceCode::ON_ACQUIRE_INFO),
         &IDMCallbackStub::ProcOnAcquireInfo
     },
     {
-        static_cast<uint32_t>(IIDMCallback::Message::ON_RESULT),
+        static_cast<uint32_t>(IDMCallbackInterfaceCode::ON_RESULT),
         &IDMCallbackStub::ProcOnResult
     }
 };
@@ -94,7 +94,7 @@ ErrCode IDMCallbackStub::ProcOnResult(MessageParcel &data, MessageParcel &reply)
 const std::map<uint32_t, GetCredInfoCallbackStub::MessageProcFunction>
     GetCredInfoCallbackStub::messageProcMap_ = {
     {
-        static_cast<uint32_t>(IGetCredInfoCallback::Message::ON_CREDENTIAL_INFO),
+        static_cast<uint32_t>(GetCredInfoCallbackInterfaceCode::ON_CREDENTIAL_INFO),
         &GetCredInfoCallbackStub::ProcOnCredentialInfo
     }
 };
@@ -158,7 +158,7 @@ ErrCode GetCredInfoCallbackStub::ProcOnCredentialInfo(MessageParcel &data, Messa
 
 const std::map<uint32_t, GetSetPropCallbackStub::MessageProcFunction> GetSetPropCallbackStub::messageProcMap_ = {
     {
-        static_cast<uint32_t>(IGetSetPropCallback::Message::ON_RESULT),
+        static_cast<uint32_t>(GetSetPropCallbackInterfaceCode::ON_RESULT),
         &GetSetPropCallbackStub::ProcOnResult
     }
 };

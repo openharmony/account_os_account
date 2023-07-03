@@ -31,7 +31,7 @@ public:
     ErrCode StartAuthorization(const AuthorizationRequest &request) override;
 
 private:
-    ErrCode SendRequest(IAppAccountAuthorizationExtension::Message code, MessageParcel &data, MessageParcel &reply);
+    ErrCode SendRequest(AppAccountAuthorizationExtensionInterfaceCode code, MessageParcel &data, MessageParcel &reply);
 
 private:
     static inline BrokerDelegator<AppAccountAuthorizationExtensionProxy> delegator_;

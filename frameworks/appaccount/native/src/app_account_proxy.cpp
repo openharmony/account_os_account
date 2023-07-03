@@ -46,7 +46,7 @@ ErrCode AppAccountProxy::AddAccount(const std::string &name, const std::string &
         return ERR_ACCOUNT_COMMON_WRITE_PARCEL_ERROR;
     }
 
-    ErrCode result = SendRequest(IAppAccount::Message::ADD_ACCOUNT, data, reply);
+    ErrCode result = SendRequest(AppAccountInterfaceCode::ADD_ACCOUNT, data, reply);
     if (result != ERR_OK) {
         return result;
     }
@@ -83,7 +83,7 @@ ErrCode AppAccountProxy::AddAccountImplicitly(const std::string &owner, const st
         ACCOUNT_LOGE("failed to write remote object for callback");
         return ERR_ACCOUNT_COMMON_WRITE_PARCEL_ERROR;
     }
-    ErrCode result = SendRequest(IAppAccount::Message::ADD_ACCOUNT_IMPLICITLY, data, reply);
+    ErrCode result = SendRequest(AppAccountInterfaceCode::ADD_ACCOUNT_IMPLICITLY, data, reply);
     if (result != ERR_OK) {
         ACCOUNT_LOGE("failed to send request, errCode: %{public}d", result);
         return result;
@@ -109,7 +109,7 @@ ErrCode AppAccountProxy::CreateAccount(const std::string &name, const CreateAcco
         return ERR_ACCOUNT_COMMON_WRITE_PARCEL_ERROR;
     }
     MessageParcel reply;
-    ErrCode result = SendRequest(IAppAccount::Message::CREATE_ACCOUNT, data, reply);
+    ErrCode result = SendRequest(AppAccountInterfaceCode::CREATE_ACCOUNT, data, reply);
     if (result != ERR_OK) {
         return result;
     }
@@ -137,7 +137,7 @@ ErrCode AppAccountProxy::CreateAccountImplicitly(
         return ERR_ACCOUNT_COMMON_WRITE_PARCEL_ERROR;
     }
     MessageParcel reply;
-    ErrCode result = SendRequest(IAppAccount::Message::CREATE_ACCOUNT_IMPLICITLY, data, reply);
+    ErrCode result = SendRequest(AppAccountInterfaceCode::CREATE_ACCOUNT_IMPLICITLY, data, reply);
     if (result != ERR_OK) {
         ACCOUNT_LOGE("failed to send request, errCode: %{public}d", result);
         return result;
@@ -160,7 +160,7 @@ ErrCode AppAccountProxy::DeleteAccount(const std::string &name)
         return ERR_ACCOUNT_COMMON_WRITE_PARCEL_ERROR;
     }
 
-    ErrCode result = SendRequest(IAppAccount::Message::DELETE_ACCOUNT, data, reply);
+    ErrCode result = SendRequest(AppAccountInterfaceCode::DELETE_ACCOUNT, data, reply);
     if (result != ERR_OK) {
         return result;
     }
@@ -185,7 +185,7 @@ ErrCode AppAccountProxy::GetAccountExtraInfo(const std::string &name, std::strin
         return ERR_ACCOUNT_COMMON_WRITE_PARCEL_ERROR;
     }
 
-    ErrCode result = SendRequest(IAppAccount::Message::GET_ACCOUNT_EXTRA_INFO, data, reply);
+    ErrCode result = SendRequest(AppAccountInterfaceCode::GET_ACCOUNT_EXTRA_INFO, data, reply);
     if (result != ERR_OK) {
         return result;
     }
@@ -216,7 +216,7 @@ ErrCode AppAccountProxy::SetAccountExtraInfo(const std::string &name, const std:
         return ERR_ACCOUNT_COMMON_WRITE_PARCEL_ERROR;
     }
 
-    ErrCode result = SendRequest(IAppAccount::Message::SET_ACCOUNT_EXTRA_INFO, data, reply);
+    ErrCode result = SendRequest(AppAccountInterfaceCode::SET_ACCOUNT_EXTRA_INFO, data, reply);
     if (result != ERR_OK) {
         return result;
     }
@@ -246,7 +246,7 @@ ErrCode AppAccountProxy::EnableAppAccess(const std::string &name, const std::str
         return ERR_ACCOUNT_COMMON_WRITE_PARCEL_ERROR;
     }
 
-    ErrCode result = SendRequest(IAppAccount::Message::ENABLE_APP_ACCESS, data, reply);
+    ErrCode result = SendRequest(AppAccountInterfaceCode::ENABLE_APP_ACCESS, data, reply);
     if (result != ERR_OK) {
         return result;
     }
@@ -276,7 +276,7 @@ ErrCode AppAccountProxy::DisableAppAccess(const std::string &name, const std::st
         return ERR_ACCOUNT_COMMON_WRITE_PARCEL_ERROR;
     }
 
-    ErrCode result = SendRequest(IAppAccount::Message::DISABLE_APP_ACCESS, data, reply);
+    ErrCode result = SendRequest(AppAccountInterfaceCode::DISABLE_APP_ACCESS, data, reply);
     if (result != ERR_OK) {
         return result;
     }
@@ -311,7 +311,7 @@ ErrCode AppAccountProxy::SetAppAccess(const std::string &name, const std::string
         return ERR_ACCOUNT_COMMON_WRITE_PARCEL_ERROR;
     }
 
-    ErrCode result = SendRequest(IAppAccount::Message::SET_APP_ACCESS, data, reply);
+    ErrCode result = SendRequest(AppAccountInterfaceCode::SET_APP_ACCESS, data, reply);
     if (result != ERR_OK) {
         return result;
     }
@@ -334,7 +334,7 @@ ErrCode AppAccountProxy::CheckAppAccountSyncEnable(const std::string &name, bool
         return ERR_ACCOUNT_COMMON_WRITE_PARCEL_ERROR;
     }
 
-    ErrCode result = SendRequest(IAppAccount::Message::CHECK_APP_ACCOUNT_SYNC_ENABLE, data, reply);
+    ErrCode result = SendRequest(AppAccountInterfaceCode::CHECK_APP_ACCOUNT_SYNC_ENABLE, data, reply);
     if (result != ERR_OK) {
         return result;
     }
@@ -365,7 +365,7 @@ ErrCode AppAccountProxy::SetAppAccountSyncEnable(const std::string &name, const 
         return ERR_ACCOUNT_COMMON_WRITE_PARCEL_ERROR;
     }
 
-    ErrCode result = SendRequest(IAppAccount::Message::SET_APP_ACCOUNT_SYNC_ENABLE, data, reply);
+    ErrCode result = SendRequest(AppAccountInterfaceCode::SET_APP_ACCOUNT_SYNC_ENABLE, data, reply);
     if (result != ERR_OK) {
         return result;
     }
@@ -395,7 +395,7 @@ ErrCode AppAccountProxy::GetAssociatedData(const std::string &name, const std::s
         return ERR_ACCOUNT_COMMON_WRITE_PARCEL_ERROR;
     }
 
-    ErrCode result = SendRequest(IAppAccount::Message::GET_ASSOCIATED_DATA, data, reply);
+    ErrCode result = SendRequest(AppAccountInterfaceCode::GET_ASSOCIATED_DATA, data, reply);
     if (result != ERR_OK) {
         return result;
     }
@@ -431,7 +431,7 @@ ErrCode AppAccountProxy::SetAssociatedData(const std::string &name, const std::s
         return ERR_ACCOUNT_COMMON_WRITE_PARCEL_ERROR;
     }
 
-    ErrCode result = SendRequest(IAppAccount::Message::SET_ASSOCIATED_DATA, data, reply);
+    ErrCode result = SendRequest(AppAccountInterfaceCode::SET_ASSOCIATED_DATA, data, reply);
     if (result != ERR_OK) {
         return result;
     }
@@ -462,7 +462,7 @@ ErrCode AppAccountProxy::GetAccountCredential(
         return ERR_ACCOUNT_COMMON_WRITE_PARCEL_ERROR;
     }
 
-    ErrCode result = SendRequest(IAppAccount::Message::GET_ACCOUNT_CREDENTIAL, data, reply);
+    ErrCode result = SendRequest(AppAccountInterfaceCode::GET_ACCOUNT_CREDENTIAL, data, reply);
     if (result != ERR_OK) {
         return result;
     }
@@ -499,7 +499,7 @@ ErrCode AppAccountProxy::SetAccountCredential(
         return ERR_ACCOUNT_COMMON_WRITE_PARCEL_ERROR;
     }
 
-    ErrCode result = SendRequest(IAppAccount::Message::SET_ACCOUNT_CREDENTIAL, data, reply);
+    ErrCode result = SendRequest(AppAccountInterfaceCode::SET_ACCOUNT_CREDENTIAL, data, reply);
     if (result != ERR_OK) {
         return result;
     }
@@ -540,7 +540,7 @@ ErrCode AppAccountProxy::Authenticate(const std::string &name, const std::string
         ACCOUNT_LOGE("failed to write remote object for callback");
         return ERR_ACCOUNT_COMMON_WRITE_PARCEL_ERROR;
     }
-    ErrCode result = SendRequest(IAppAccount::Message::AUTHENTICATE, data, reply);
+    ErrCode result = SendRequest(AppAccountInterfaceCode::AUTHENTICATE, data, reply);
     if (result != ERR_OK) {
         ACCOUNT_LOGE("failed to send request, errCode: %{public}d", result);
         return result;
@@ -582,7 +582,7 @@ ErrCode AppAccountProxy::GetOAuthToken(
         return result;
     }
 
-    result = SendRequest(IAppAccount::Message::GET_OAUTH_TOKEN, data, reply);
+    result = SendRequest(AppAccountInterfaceCode::GET_OAUTH_TOKEN, data, reply);
     if (result != ERR_OK) {
         ACCOUNT_LOGE("failed to send request, errCode: %{public}d", result);
         return result;
@@ -603,7 +603,7 @@ ErrCode AppAccountProxy::GetAuthToken(
         return result;
     }
 
-    result = SendRequest(IAppAccount::Message::GET_AUTH_TOKEN, data, reply);
+    result = SendRequest(AppAccountInterfaceCode::GET_AUTH_TOKEN, data, reply);
     if (result != ERR_OK) {
         ACCOUNT_LOGE("failed to send request, errCode: %{public}d", result);
         return result;
@@ -636,7 +636,7 @@ ErrCode AppAccountProxy::SetOAuthToken(
         ACCOUNT_LOGE("failed to write string for token");
         return ERR_ACCOUNT_COMMON_WRITE_PARCEL_ERROR;
     }
-    ErrCode result = SendRequest(IAppAccount::Message::SET_OAUTH_TOKEN, data, reply);
+    ErrCode result = SendRequest(AppAccountInterfaceCode::SET_OAUTH_TOKEN, data, reply);
     if (result != ERR_OK) {
         ACCOUNT_LOGE("failed to send request, errCode: %{public}d", result);
         return result;
@@ -683,7 +683,7 @@ ErrCode AppAccountProxy::DeleteOAuthToken(
         return result;
     }
     
-    result = SendRequest(IAppAccount::Message::DELETE_OAUTH_TOKEN, data, reply);
+    result = SendRequest(AppAccountInterfaceCode::DELETE_OAUTH_TOKEN, data, reply);
     if (result != ERR_OK) {
         ACCOUNT_LOGE("failed to send request, errCode: %{public}d", result);
         return result;
@@ -701,7 +701,7 @@ ErrCode AppAccountProxy::DeleteAuthToken(
     if (result != ERR_OK) {
         return result;
     }
-    result = SendRequest(IAppAccount::Message::DELETE_AUTH_TOKEN, data, reply);
+    result = SendRequest(AppAccountInterfaceCode::DELETE_AUTH_TOKEN, data, reply);
     if (result != ERR_OK) {
         ACCOUNT_LOGE("failed to send request, errCode: %{public}d", result);
         return result;
@@ -747,7 +747,7 @@ ErrCode AppAccountProxy::SetAuthTokenVisibility(
         ACCOUNT_LOGE("failed to write string for isVisible");
         return ERR_ACCOUNT_COMMON_WRITE_PARCEL_ERROR;
     }
-    result = SendRequest(IAppAccount::Message::SET_AUTH_TOKEN_VISIBILITY, data, reply);
+    result = SendRequest(AppAccountInterfaceCode::SET_AUTH_TOKEN_VISIBILITY, data, reply);
     if (result != ERR_OK) {
         ACCOUNT_LOGE("failed to send request, errCode: %{public}d", result);
         return result;
@@ -770,7 +770,7 @@ ErrCode AppAccountProxy::SetOAuthTokenVisibility(
         ACCOUNT_LOGE("failed to write string for isVisible");
         return ERR_ACCOUNT_COMMON_WRITE_PARCEL_ERROR;
     }
-    result = SendRequest(IAppAccount::Message::SET_OAUTH_TOKEN_VISIBILITY, data, reply);
+    result = SendRequest(AppAccountInterfaceCode::SET_OAUTH_TOKEN_VISIBILITY, data, reply);
     if (result != ERR_OK) {
         ACCOUNT_LOGE("failed to send request, errCode: %{public}d", result);
         return result;
@@ -789,7 +789,7 @@ ErrCode AppAccountProxy::CheckAuthTokenVisibility(
         return result;
     }
 
-    result = SendRequest(IAppAccount::Message::CHECK_AUTH_TOKEN_VISIBILITY, data, reply);
+    result = SendRequest(AppAccountInterfaceCode::CHECK_AUTH_TOKEN_VISIBILITY, data, reply);
     if (result != ERR_OK) {
         ACCOUNT_LOGE("failed to send request, errCode: %{public}d", result);
         return result;
@@ -810,7 +810,7 @@ ErrCode AppAccountProxy::CheckOAuthTokenVisibility(
         return result;
     }
 
-    result = SendRequest(IAppAccount::Message::CHECK_OAUTH_TOKEN_VISIBILITY, data, reply);
+    result = SendRequest(AppAccountInterfaceCode::CHECK_OAUTH_TOKEN_VISIBILITY, data, reply);
     if (result != ERR_OK) {
         ACCOUNT_LOGE("failed to send request, errCode: %{public}d", result);
         return result;
@@ -834,7 +834,7 @@ ErrCode AppAccountProxy::GetAuthenticatorInfo(const std::string &owner, Authenti
         ACCOUNT_LOGE("failed to write string for owner");
         return ERR_ACCOUNT_COMMON_WRITE_PARCEL_ERROR;
     }
-    ErrCode result = SendRequest(IAppAccount::Message::GET_AUTHENTICATOR_INFO, data, reply);
+    ErrCode result = SendRequest(AppAccountInterfaceCode::GET_AUTHENTICATOR_INFO, data, reply);
     if (result != ERR_OK) {
         ACCOUNT_LOGE("failed to send request, errCode: %{public}d", result);
         return result;
@@ -866,7 +866,7 @@ ErrCode AppAccountProxy::GetAllOAuthTokens(
         ACCOUNT_LOGE("failed to write string for owner");
         return ERR_ACCOUNT_COMMON_WRITE_PARCEL_ERROR;
     }
-    ErrCode result = SendRequest(IAppAccount::Message::GET_ALL_OAUTH_TOKENS, data, reply);
+    ErrCode result = SendRequest(AppAccountInterfaceCode::GET_ALL_OAUTH_TOKENS, data, reply);
     if (result != ERR_OK) {
         ACCOUNT_LOGE("failed to send request, errCode: %{public}d", result);
         return result;
@@ -912,7 +912,7 @@ ErrCode AppAccountProxy::GetOAuthList(
         return result;
     }
     
-    result = SendRequest(IAppAccount::Message::GET_OAUTH_LIST, data, reply);
+    result = SendRequest(AppAccountInterfaceCode::GET_OAUTH_LIST, data, reply);
     if (result != ERR_OK) {
         ACCOUNT_LOGE("failed to send request, errCode: %{public}d", result);
         return result;
@@ -936,7 +936,7 @@ ErrCode AppAccountProxy::GetAuthList(
         return result;
     }
 
-    result = SendRequest(IAppAccount::Message::GET_AUTH_LIST, data, reply);
+    result = SendRequest(AppAccountInterfaceCode::GET_AUTH_LIST, data, reply);
     if (result != ERR_OK) {
         ACCOUNT_LOGE("failed to send request, errCode: %{public}d", result);
         return result;
@@ -963,7 +963,7 @@ ErrCode AppAccountProxy::GetAuthenticatorCallback(const std::string &sessionId, 
         ACCOUNT_LOGE("failed to write string for sessionId");
         return ERR_ACCOUNT_COMMON_READ_PARCEL_ERROR;
     }
-    ErrCode result = SendRequest(IAppAccount::Message::GET_AUTHENTICATOR_CALLBACK, data, reply);
+    ErrCode result = SendRequest(AppAccountInterfaceCode::GET_AUTHENTICATOR_CALLBACK, data, reply);
     if (result != ERR_OK) {
         ACCOUNT_LOGE("failed to send request, errCode: %{public}d", result);
         return result;
@@ -988,7 +988,7 @@ ErrCode AppAccountProxy::GetAllAccounts(const std::string &owner, std::vector<Ap
         return ERR_ACCOUNT_COMMON_WRITE_PARCEL_ERROR;
     }
 
-    ErrCode result = SendRequest(IAppAccount::Message::GET_ALL_ACCOUNTS, data, reply);
+    ErrCode result = SendRequest(AppAccountInterfaceCode::GET_ALL_ACCOUNTS, data, reply);
     if (result != ERR_OK) {
         return result;
     }
@@ -1013,7 +1013,7 @@ ErrCode AppAccountProxy::GetAllAccessibleAccounts(std::vector<AppAccountInfo> &a
         return ERR_ACCOUNT_COMMON_WRITE_DESCRIPTOR_ERROR;
     }
 
-    ErrCode result = SendRequest(IAppAccount::Message::GET_ALL_ACCESSIBLE_ACCOUNTS, data, reply);
+    ErrCode result = SendRequest(AppAccountInterfaceCode::GET_ALL_ACCESSIBLE_ACCOUNTS, data, reply);
     if (result != ERR_OK) {
         return result;
     }
@@ -1040,7 +1040,7 @@ ErrCode AppAccountProxy::QueryAllAccessibleAccounts(const std::string &owner, st
         return ERR_ACCOUNT_COMMON_WRITE_PARCEL_ERROR;
     }
     MessageParcel reply;
-    ErrCode result = SendRequest(IAppAccount::Message::QUERY_ALL_ACCESSIBLE_ACCOUNTS, data, reply);
+    ErrCode result = SendRequest(AppAccountInterfaceCode::QUERY_ALL_ACCESSIBLE_ACCOUNTS, data, reply);
     if (result != ERR_OK) {
         return result;
     }
@@ -1069,7 +1069,7 @@ ErrCode AppAccountProxy::CheckAppAccess(
         ACCOUNT_LOGE("failed to write string for authorizedApp");
         return ERR_ACCOUNT_COMMON_WRITE_PARCEL_ERROR;
     }
-    ErrCode result = SendRequest(IAppAccount::Message::CHECK_APP_ACCESS, data, reply);
+    ErrCode result = SendRequest(AppAccountInterfaceCode::CHECK_APP_ACCESS, data, reply);
     if (result != ERR_OK) {
         ACCOUNT_LOGE("failed to send request, errCode: %{public}d", result);
         return result;
@@ -1096,7 +1096,7 @@ ErrCode AppAccountProxy::DeleteAccountCredential(
         ACCOUNT_LOGE("failed to write string for credentialType");
         return ERR_ACCOUNT_COMMON_WRITE_PARCEL_ERROR;
     }
-    ErrCode result = SendRequest(IAppAccount::Message::DELETE_ACCOUNT_CREDENTIAL, data, reply);
+    ErrCode result = SendRequest(AppAccountInterfaceCode::DELETE_ACCOUNT_CREDENTIAL, data, reply);
     if (result != ERR_OK) {
         ACCOUNT_LOGE("failed to send request, errCode: %{public}d", result);
         return result;
@@ -1121,7 +1121,7 @@ ErrCode AppAccountProxy::SelectAccountsByOptions(
         ACCOUNT_LOGE("failed to write remote object for callback");
         return ERR_ACCOUNT_COMMON_WRITE_PARCEL_ERROR;
     }
-    ErrCode result = SendRequest(IAppAccount::Message::SELECT_ACCOUNTS_BY_OPTIONS, data, reply);
+    ErrCode result = SendRequest(AppAccountInterfaceCode::SELECT_ACCOUNTS_BY_OPTIONS, data, reply);
     if (result != ERR_OK) {
         ACCOUNT_LOGE("failed to send request, errCode: %{public}d", result);
         return result;
@@ -1154,7 +1154,7 @@ ErrCode AppAccountProxy::VerifyCredential(const std::string &name, const std::st
         ACCOUNT_LOGE("failed to write string for callback");
         return ERR_ACCOUNT_COMMON_WRITE_PARCEL_ERROR;
     }
-    ErrCode result = SendRequest(IAppAccount::Message::VERIFY_CREDENTIAL, data, reply);
+    ErrCode result = SendRequest(AppAccountInterfaceCode::VERIFY_CREDENTIAL, data, reply);
     if (result != ERR_OK) {
         ACCOUNT_LOGE("failed to send request, errCode: %{public}d", result);
         return result;
@@ -1187,7 +1187,7 @@ ErrCode AppAccountProxy::CheckAccountLabels(const std::string &name, const std::
         ACCOUNT_LOGE("failed to write string for callback");
         return ERR_ACCOUNT_COMMON_WRITE_PARCEL_ERROR;
     }
-    ErrCode result = SendRequest(IAppAccount::Message::CHECK_ACCOUNT_LABELS, data, reply);
+    ErrCode result = SendRequest(AppAccountInterfaceCode::CHECK_ACCOUNT_LABELS, data, reply);
     if (result != ERR_OK) {
         ACCOUNT_LOGE("failed to send request, errCode: %{public}d", result);
         return result;
@@ -1216,7 +1216,7 @@ ErrCode AppAccountProxy::SetAuthenticatorProperties(
         ACCOUNT_LOGE("failed to write remote object for callback");
         return ERR_ACCOUNT_COMMON_WRITE_PARCEL_ERROR;
     }
-    ErrCode result = SendRequest(IAppAccount::Message::SET_AUTHENTICATOR_PROPERTIES, data, reply);
+    ErrCode result = SendRequest(AppAccountInterfaceCode::SET_AUTHENTICATOR_PROPERTIES, data, reply);
     if (result != ERR_OK) {
         ACCOUNT_LOGE("failed to send request, errCode: %{public}d", result);
         return result;
@@ -1241,7 +1241,7 @@ ErrCode AppAccountProxy::ExecuteRequest(
         return ERR_ACCOUNT_COMMON_WRITE_PARCEL_ERROR;
     }
     MessageParcel reply;
-    ErrCode result = SendRequest(IAppAccount::Message::EXECUTE_REQUEST, data, reply);
+    ErrCode result = SendRequest(AppAccountInterfaceCode::EXECUTE_REQUEST, data, reply);
     if (result != ERR_OK) {
         ACCOUNT_LOGE("failed to send request, errCode: %{public}d", result);
         return result;
@@ -1274,7 +1274,7 @@ ErrCode AppAccountProxy::SubscribeAppAccount(
         return ERR_ACCOUNT_COMMON_WRITE_PARCEL_ERROR;
     }
 
-    ErrCode result = SendRequest(IAppAccount::Message::SUBSCRIBE_ACCOUNT, data, reply);
+    ErrCode result = SendRequest(AppAccountInterfaceCode::SUBSCRIBE_ACCOUNT, data, reply);
     if (result != ERR_OK) {
         return result;
     }
@@ -1299,7 +1299,7 @@ ErrCode AppAccountProxy::UnsubscribeAppAccount(const sptr<IRemoteObject> &eventL
         return ERR_ACCOUNT_COMMON_WRITE_PARCEL_ERROR;
     }
 
-    ErrCode result = SendRequest(IAppAccount::Message::UNSUBSCRIBE_ACCOUNT, data, reply);
+    ErrCode result = SendRequest(AppAccountInterfaceCode::UNSUBSCRIBE_ACCOUNT, data, reply);
     if (result != ERR_OK) {
         return result;
     }
@@ -1309,7 +1309,7 @@ ErrCode AppAccountProxy::UnsubscribeAppAccount(const sptr<IRemoteObject> &eventL
     return result;
 }
 
-ErrCode AppAccountProxy::SendRequest(IAppAccount::Message code, MessageParcel &data, MessageParcel &reply)
+ErrCode AppAccountProxy::SendRequest(AppAccountInterfaceCode code, MessageParcel &data, MessageParcel &reply)
 {
     sptr<IRemoteObject> remote = Remote();
     if (remote == nullptr) {

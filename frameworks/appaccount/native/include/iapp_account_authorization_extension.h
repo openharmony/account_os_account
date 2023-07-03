@@ -18,6 +18,7 @@
 
 #include <string>
 #include <iremote_broker.h>
+#include "accountmgr_service_ipc_interface_code.h"
 #include "app_account_common.h"
 #include "want.h"
 
@@ -26,9 +27,6 @@ namespace AccountSA {
 class IAppAccountAuthorizationExtension : public IRemoteBroker {
 public:
     DECLARE_INTERFACE_DESCRIPTOR(u"ohos.accountfwk.IAppAccountAuthorizationExtension");
-    enum Message {
-        APP_AUTHORIZATION_EXTENSION_START_AUTHENTICATION = 0,
-    };
     virtual ErrCode StartAuthorization(const AuthorizationRequest &request) = 0;
 };
 } // namespace AccountSA

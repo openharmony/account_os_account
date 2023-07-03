@@ -17,6 +17,7 @@ import("../../../os_account.gni")
 config("osaccountinterface_config") {
   visibility = [ ":*" ]
   include_dirs = [
+    "${common_path}/include",
     "${domain_account_framework_path}/include",
     "${domain_account_interfaces_native_path}/include",
     "${innerkits_native_path}/include",

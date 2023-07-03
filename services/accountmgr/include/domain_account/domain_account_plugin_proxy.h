@@ -46,7 +46,7 @@ public:
         const GetAccessTokenOptions &option, const sptr<IDomainAccountCallback> &callback) override;
 
 private:
-    ErrCode SendRequest(IDomainAccountPlugin::Message code, MessageParcel &data, MessageParcel &reply);
+    ErrCode SendRequest(DomainAccountPluginInterfaceCode code, MessageParcel &data, MessageParcel &reply);
     ErrCode AuthCommonInterface(const DomainAccountInfo &info, const std::vector<uint8_t> &password,
         const sptr<IDomainAuthCallback> &callback, AuthMode authMode);
 

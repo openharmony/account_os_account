@@ -19,6 +19,7 @@
 #include <cstdint>
 #include <string>
 #include <iremote_broker.h>
+#include "accountmgr_service_ipc_interface_code.h"
 #include "account_info.h"
 #include "device_account_info.h"
 
@@ -29,21 +30,6 @@ const std::string ACCOUNT_SERVICE_NAME = "AccountService";
 class IAccount : public IRemoteBroker {
 public:
     DECLARE_INTERFACE_DESCRIPTOR(u"ohos.accountfwk.IAccount");
-    enum {
-        UPDATE_OHOS_ACCOUNT_INFO = 1,
-        QUERY_OHOS_ACCOUNT_INFO = 2,
-        QUERY_OHOS_ACCOUNT_QUIT_TIPS = 3,
-        QUERY_OHOS_ACCOUNT_INFO_BY_USER_ID = 4,
-        SET_OHOS_ACCOUNT_INFO = 5,
-        GET_OHOS_ACCOUNT_INFO = 6,
-        GET_OHOS_ACCOUNT_INFO_BY_USER_ID = 7,
-        SET_OHOS_ACCOUNT_INFO_BY_USER_ID = 8,
-        QUERY_DEVICE_ACCOUNT_ID = 104,
-        GET_APP_ACCOUNT_SERVICE = 105,
-        GET_OS_ACCOUNT_SERVICE = 106,
-        GET_ACCOUNT_IAM_SERVICE = 107,
-        GET_DOMAIN_ACCOUNT_SERVICE = 108,
-    };
 
     virtual bool UpdateOhosAccountInfo(
         const std::string &accountName, const std::string &uid, const std::string &eventStr) = 0;

@@ -32,98 +32,98 @@ AccountIAMMgrStub::~AccountIAMMgrStub()
 
 const std::map<uint32_t, AccountIAMMgrStub::AccountIAMMessageProc> AccountIAMMgrStub::messageProcMap_ = {
     {
-        static_cast<uint32_t>(IAccountIAM::Message::OPEN_SESSION),
+        static_cast<uint32_t>(AccountIAMInterfaceCode::OPEN_SESSION),
         {
             .messageProcFunction = &AccountIAMMgrStub::ProcOpenSession,
             .isSyetemApi = true,
         }
     },
     {
-        static_cast<uint32_t>(IAccountIAM::Message::CLOSE_SESSION),
+        static_cast<uint32_t>(AccountIAMInterfaceCode::CLOSE_SESSION),
         {
             .messageProcFunction = &AccountIAMMgrStub::ProcCloseSession,
             .isSyetemApi = true,
         }
     },
     {
-        static_cast<uint32_t>(IAccountIAM::Message::ADD_CREDENTIAL),
+        static_cast<uint32_t>(AccountIAMInterfaceCode::ADD_CREDENTIAL),
         {
             .messageProcFunction = &AccountIAMMgrStub::ProcAddCredential,
             .isSyetemApi = true,
         }
     },
     {
-        static_cast<uint32_t>(IAccountIAM::Message::UPDATE_CREDENTIAL),
+        static_cast<uint32_t>(AccountIAMInterfaceCode::UPDATE_CREDENTIAL),
         {
             .messageProcFunction = &AccountIAMMgrStub::ProcUpdateCredential,
             .isSyetemApi = true,
         }
     },
     {
-        static_cast<uint32_t>(IAccountIAM::Message::DEL_CRED),
+        static_cast<uint32_t>(AccountIAMInterfaceCode::DEL_CRED),
         {
             .messageProcFunction = &AccountIAMMgrStub::ProcDelCred,
             .isSyetemApi = true,
         }
     },
     {
-        static_cast<uint32_t>(IAccountIAM::Message::DEL_USER),
+        static_cast<uint32_t>(AccountIAMInterfaceCode::DEL_USER),
         {
             .messageProcFunction = &AccountIAMMgrStub::ProcDelUser,
             .isSyetemApi = true,
         }
     },
     {
-        static_cast<uint32_t>(IAccountIAM::Message::CANCEL),
+        static_cast<uint32_t>(AccountIAMInterfaceCode::CANCEL),
         {
             .messageProcFunction = &AccountIAMMgrStub::ProcCancel,
             .isSyetemApi = true,
         }
     },
     {
-        static_cast<uint32_t>(IAccountIAM::Message::GET_CREDENTIAL_INFO),
+        static_cast<uint32_t>(AccountIAMInterfaceCode::GET_CREDENTIAL_INFO),
         {
             .messageProcFunction = &AccountIAMMgrStub::ProcGetCredentialInfo,
             .isSyetemApi = true,
         }
     },
     {
-        static_cast<uint32_t>(IAccountIAM::Message::AUTH_USER),
+        static_cast<uint32_t>(AccountIAMInterfaceCode::AUTH_USER),
         {
             .messageProcFunction = &AccountIAMMgrStub::ProcAuthUser,
             .isSyetemApi = true,
         }
     },
     {
-        static_cast<uint32_t>(IAccountIAM::Message::CANCEL_AUTH),
+        static_cast<uint32_t>(AccountIAMInterfaceCode::CANCEL_AUTH),
         {
             .messageProcFunction = &AccountIAMMgrStub::ProcCancelAuth,
             .isSyetemApi = true,
         }
     },
     {
-        static_cast<uint32_t>(IAccountIAM::Message::GET_AVAILABLE_STATUS),
+        static_cast<uint32_t>(AccountIAMInterfaceCode::GET_AVAILABLE_STATUS),
         {
             .messageProcFunction = &AccountIAMMgrStub::ProcGetAvailableStatus,
             .isSyetemApi = true,
         }
     },
     {
-        static_cast<uint32_t>(IAccountIAM::Message::GET_PROPERTY),
+        static_cast<uint32_t>(AccountIAMInterfaceCode::GET_PROPERTY),
         {
             .messageProcFunction = &AccountIAMMgrStub::ProcGetProperty,
             .isSyetemApi = true,
         }
     },
     {
-        static_cast<uint32_t>(IAccountIAM::Message::SET_PROPERTY),
+        static_cast<uint32_t>(AccountIAMInterfaceCode::SET_PROPERTY),
         {
             .messageProcFunction = &AccountIAMMgrStub::ProcSetProperty,
             .isSyetemApi = true,
         }
     },
     {
-        static_cast<uint32_t>(IAccountIAM::Message::GET_ACCOUNT_STATE),
+        static_cast<uint32_t>(AccountIAMInterfaceCode::GET_ACCOUNT_STATE),
         {
             .messageProcFunction = &AccountIAMMgrStub::ProcGetAccountState,
         }

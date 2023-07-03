@@ -33,7 +33,8 @@ AppAccountAuthorizationExtensionStub::~AppAccountAuthorizationExtensionStub()
 const std::map<std::uint32_t, AppAccountAuthorizationExtensionStub::MessageProcFunction>
     AppAccountAuthorizationExtensionStub::messageProcMap_ = {
     {
-        IAppAccountAuthorizationExtension::Message::APP_AUTHORIZATION_EXTENSION_START_AUTHENTICATION,
+        static_cast<uint32_t>(
+            AppAccountAuthorizationExtensionInterfaceCode::APP_AUTHORIZATION_EXTENSION_START_AUTHENTICATION),
         &AppAccountAuthorizationExtensionStub::ProcStartAuthorization
     }
 };

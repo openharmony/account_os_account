@@ -28,35 +28,35 @@ AppAccountAuthenticatorStub::~AppAccountAuthenticatorStub()
 
 const std::map<uint32_t, AppAccountAuthenticatorStub::MessageProcFunction> AppAccountAuthenticatorStub::funcMap_ = {
     {
-        static_cast<uint32_t>(IAppAccountAuthenticator::Message::ADD_ACCOUNT_IMPLICITLY),
+        static_cast<uint32_t>(AppAccountAuthenticatorInterfaceCode::ADD_ACCOUNT_IMPLICITLY),
         &AppAccountAuthenticatorStub::ProcAddAccountImplicitly,
     },
     {
-        static_cast<uint32_t>(IAppAccountAuthenticator::Message::AUTHENTICATE),
+        static_cast<uint32_t>(AppAccountAuthenticatorInterfaceCode::AUTHENTICATE),
         &AppAccountAuthenticatorStub::ProcAuthenticate,
     },
     {
-        static_cast<uint32_t>(IAppAccountAuthenticator::Message::VERIFY_CREDENTIAL),
+        static_cast<uint32_t>(AppAccountAuthenticatorInterfaceCode::VERIFY_CREDENTIAL),
         &AppAccountAuthenticatorStub::ProcVerifyCredential,
     },
     {
-        static_cast<uint32_t>(IAppAccountAuthenticator::Message::CHECK_ACCOUNT_LABELS),
+        static_cast<uint32_t>(AppAccountAuthenticatorInterfaceCode::CHECK_ACCOUNT_LABELS),
         &AppAccountAuthenticatorStub::ProcCheckAccountLabels,
     },
     {
-        static_cast<uint32_t>(IAppAccountAuthenticator::Message::SET_PROPERTIES),
+        static_cast<uint32_t>(AppAccountAuthenticatorInterfaceCode::SET_PROPERTIES),
         &AppAccountAuthenticatorStub::ProcSetProperties,
     },
     {
-        static_cast<uint32_t>(IAppAccountAuthenticator::Message::IS_ACCOUNT_REMOVABLE),
+        static_cast<uint32_t>(AppAccountAuthenticatorInterfaceCode::IS_ACCOUNT_REMOVABLE),
         &AppAccountAuthenticatorStub::ProcIsAccountRemovable,
     },
     {
-        static_cast<uint32_t>(IAppAccountAuthenticator::Message::CREATE_ACCOUNT_IMPLICITLY),
+        static_cast<uint32_t>(AppAccountAuthenticatorInterfaceCode::CREATE_ACCOUNT_IMPLICITLY),
         &AppAccountAuthenticatorStub::ProcCreateAccountImplicitly,
     },
     {
-        static_cast<uint32_t>(IAppAccountAuthenticator::Message::AUTH),
+        static_cast<uint32_t>(AppAccountAuthenticatorInterfaceCode::AUTH),
         &AppAccountAuthenticatorStub::ProcAuth,
     }
 };

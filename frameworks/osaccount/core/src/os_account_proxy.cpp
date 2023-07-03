@@ -43,7 +43,7 @@ ErrCode OsAccountProxy::CreateOsAccount(
         ACCOUNT_LOGE("failed to write account type.");
         return ERR_ACCOUNT_COMMON_WRITE_PARCEL_ERROR;
     }
-    ErrCode result = SendRequest(IOsAccount::Message::CREATE_OS_ACCOUNT, data, reply);
+    ErrCode result = SendRequest(OsAccountInterfaceCode::CREATE_OS_ACCOUNT, data, reply);
     if (result != ERR_OK) {
         ACCOUNT_LOGE("SendRequest err, result %{public}d.", result);
         return result;
@@ -89,7 +89,7 @@ ErrCode OsAccountProxy::CreateOsAccountForDomain(const OsAccountType &type, cons
         return ERR_ACCOUNT_COMMON_WRITE_PARCEL_ERROR;
     }
 
-    ErrCode result = SendRequest(IOsAccount::Message::CREATE_OS_ACCOUNT_FOR_DOMAIN, data, reply);
+    ErrCode result = SendRequest(OsAccountInterfaceCode::CREATE_OS_ACCOUNT_FOR_DOMAIN, data, reply);
     if (result != ERR_OK) {
         ACCOUNT_LOGE("failed to send request, result %{public}d.", result);
         return result;
@@ -106,13 +106,13 @@ ErrCode OsAccountProxy::CreateOsAccountForDomain(const OsAccountType &type, cons
 ErrCode OsAccountProxy::RemoveOsAccount(const int id)
 {
     MessageParcel reply;
-    return SendRequestWithAccountId(IOsAccount::Message::REMOVE_OS_ACCOUNT, reply, id);
+    return SendRequestWithAccountId(OsAccountInterfaceCode::REMOVE_OS_ACCOUNT, reply, id);
 }
 
 ErrCode OsAccountProxy::IsOsAccountExists(const int id, bool &isOsAccountExists)
 {
     MessageParcel reply;
-    ErrCode result = SendRequestWithAccountId(IOsAccount::Message::IS_OS_ACCOUNT_EXISTS, reply, id);
+    ErrCode result = SendRequestWithAccountId(OsAccountInterfaceCode::IS_OS_ACCOUNT_EXISTS, reply, id);
     if (result == ERR_OK) {
         isOsAccountExists = reply.ReadBool();
     }
@@ -122,7 +122,7 @@ ErrCode OsAccountProxy::IsOsAccountExists(const int id, bool &isOsAccountExists)
 ErrCode OsAccountProxy::IsOsAccountActived(const int id, bool &isOsAccountActived)
 {
     MessageParcel reply;
-    ErrCode result = SendRequestWithAccountId(IOsAccount::Message::IS_OS_ACCOUNT_ACTIVED, reply, id);
+    ErrCode result = SendRequestWithAccountId(OsAccountInterfaceCode::IS_OS_ACCOUNT_ACTIVED, reply, id);
     if (result == ERR_OK) {
         isOsAccountActived = reply.ReadBool();
     }
@@ -130,7 +130,7 @@ ErrCode OsAccountProxy::IsOsAccountActived(const int id, bool &isOsAccountActive
 }
 
 ErrCode OsAccountProxy::CheckOsAccountConstraintEnabled(
-    IOsAccount::Message code, const int id, const std::string &constraint, bool &isEnabled)
+    OsAccountInterfaceCode code, const int id, const std::string &constraint, bool &isEnabled)
 {
     MessageParcel data;
     if (!data.WriteInterfaceToken(GetDescriptor())) {
@@ -170,20 +170,20 @@ ErrCode OsAccountProxy::IsOsAccountConstraintEnable(
     const int id, const std::string &constraint, bool &isConstraintEnable)
 {
     return CheckOsAccountConstraintEnabled(
-        IOsAccount::Message::IS_OS_ACCOUNT_CONSTRAINT_ENABLE, id, constraint, isConstraintEnable);
+        OsAccountInterfaceCode::IS_OS_ACCOUNT_CONSTRAINT_ENABLE, id, constraint, isConstraintEnable);
 }
 
 ErrCode OsAccountProxy::CheckOsAccountConstraintEnabled(
     const int id, const std::string &constraint, bool &isEnabled)
 {
     return CheckOsAccountConstraintEnabled(
-        IOsAccount::Message::CHECK_OS_ACCOUNT_CONSTRAINT_ENABLED, id, constraint, isEnabled);
+        OsAccountInterfaceCode::CHECK_OS_ACCOUNT_CONSTRAINT_ENABLED, id, constraint, isEnabled);
 }
 
 ErrCode OsAccountProxy::IsOsAccountVerified(const int id, bool &isVerified)
 {
     MessageParcel reply;
-    ErrCode result = SendRequestWithAccountId(IOsAccount::Message::IS_OS_ACCOUNT_VERIFIED, reply, id);
+    ErrCode result = SendRequestWithAccountId(OsAccountInterfaceCode::IS_OS_ACCOUNT_VERIFIED, reply, id);
     if (result == ERR_OK) {
         isVerified = reply.ReadBool();
     }
@@ -201,7 +201,7 @@ ErrCode OsAccountProxy::GetCreatedOsAccountsCount(unsigned int &osAccountsCount)
         return ERR_ACCOUNT_COMMON_WRITE_DESCRIPTOR_ERROR;
     }
 
-    ErrCode result = SendRequest(IOsAccount::Message::GET_CREATED_OS_ACCOUNT_COUNT, data, reply);
+    ErrCode result = SendRequest(OsAccountInterfaceCode::GET_CREATED_OS_ACCOUNT_COUNT, data, reply);
     if (result != ERR_OK) {
         ACCOUNT_LOGE("SendRequest err, result %{public}d.", result);
         return result;
@@ -226,7 +226,7 @@ ErrCode OsAccountProxy::GetOsAccountLocalIdFromProcess(int &id)
         return ERR_ACCOUNT_COMMON_WRITE_DESCRIPTOR_ERROR;
     }
 
-    ErrCode result = SendRequest(IOsAccount::Message::GET_OS_ACCOUNT_LOCAL_ID_FROM_PROCESS, data, reply);
+    ErrCode result = SendRequest(OsAccountInterfaceCode::GET_OS_ACCOUNT_LOCAL_ID_FROM_PROCESS, data, reply);
     if (result != ERR_OK) {
         ACCOUNT_LOGE("SendRequest err, result %{public}d.", result);
         return result;
@@ -251,7 +251,7 @@ ErrCode OsAccountProxy::IsMainOsAccount(bool &isMainOsAccount)
         return ERR_ACCOUNT_COMMON_WRITE_DESCRIPTOR_ERROR;
     }
 
-    ErrCode result = SendRequest(IOsAccount::Message::IS_MAIN_OS_ACCOUNT, data, reply);
+    ErrCode result = SendRequest(OsAccountInterfaceCode::IS_MAIN_OS_ACCOUNT, data, reply);
     if (result != ERR_OK) {
         ACCOUNT_LOGE("SendRequest err, result %{public}d.", result);
         return result;
@@ -284,7 +284,7 @@ ErrCode OsAccountProxy::GetOsAccountLocalIdFromDomain(const DomainAccountInfo &d
         ACCOUNT_LOGE("failed to write int for domain account name.");
         return ERR_ACCOUNT_COMMON_WRITE_PARCEL_ERROR;
     }
-    ErrCode result = SendRequest(IOsAccount::Message::GET_OS_ACCOUNT_LOCAL_ID_FROM_DOMAIN, data, reply);
+    ErrCode result = SendRequest(OsAccountInterfaceCode::GET_OS_ACCOUNT_LOCAL_ID_FROM_DOMAIN, data, reply);
     if (result != ERR_OK) {
         ACCOUNT_LOGE("SendRequest err, result %{public}d.", result);
         return result;
@@ -309,7 +309,7 @@ ErrCode OsAccountProxy::QueryMaxOsAccountNumber(int &maxOsAccountNumber)
         return ERR_ACCOUNT_COMMON_WRITE_DESCRIPTOR_ERROR;
     }
 
-    ErrCode result = SendRequest(IOsAccount::Message::QUERY_MAX_OS_ACCOUNT_NUMBER, data, reply);
+    ErrCode result = SendRequest(OsAccountInterfaceCode::QUERY_MAX_OS_ACCOUNT_NUMBER, data, reply);
     if (result != ERR_OK) {
         ACCOUNT_LOGE("SendRequest err, result %{public}d.", result);
         return result;
@@ -327,7 +327,7 @@ ErrCode OsAccountProxy::QueryMaxOsAccountNumber(int &maxOsAccountNumber)
 ErrCode OsAccountProxy::GetOsAccountAllConstraints(const int id, std::vector<std::string> &constraints)
 {
     MessageParcel reply;
-    ErrCode result = SendRequestWithAccountId(IOsAccount::Message::GET_OS_ACCOUNT_ALL_CONSTRAINTS, reply, id);
+    ErrCode result = SendRequestWithAccountId(OsAccountInterfaceCode::GET_OS_ACCOUNT_ALL_CONSTRAINTS, reply, id);
     if (result != ERR_OK) {
         return result;
     }
@@ -349,7 +349,7 @@ ErrCode OsAccountProxy::QueryAllCreatedOsAccounts(std::vector<OsAccountInfo> &os
         return ERR_ACCOUNT_COMMON_WRITE_DESCRIPTOR_ERROR;
     }
 
-    ErrCode result = SendRequest(IOsAccount::Message::QUERY_ALL_CREATED_OS_ACCOUNTS, data, reply);
+    ErrCode result = SendRequest(OsAccountInterfaceCode::QUERY_ALL_CREATED_OS_ACCOUNTS, data, reply);
     if (result != ERR_OK) {
         ACCOUNT_LOGE("SendRequest err, result %{public}d.", result);
         return result;
@@ -374,7 +374,7 @@ ErrCode OsAccountProxy::QueryCurrentOsAccount(OsAccountInfo &osAccountInfo)
         return ERR_ACCOUNT_COMMON_WRITE_DESCRIPTOR_ERROR;
     }
 
-    ErrCode result = SendRequest(IOsAccount::Message::QUERY_CURRENT_OS_ACCOUNT, data, reply);
+    ErrCode result = SendRequest(OsAccountInterfaceCode::QUERY_CURRENT_OS_ACCOUNT, data, reply);
     if (result != ERR_OK) {
         ACCOUNT_LOGE("SendRequest err, result %{public}d.", result);
         return result;
@@ -396,7 +396,7 @@ ErrCode OsAccountProxy::QueryCurrentOsAccount(OsAccountInfo &osAccountInfo)
 ErrCode OsAccountProxy::QueryOsAccountById(const int id, OsAccountInfo &osAccountInfo)
 {
     MessageParcel reply;
-    ErrCode result = SendRequestWithAccountId(IOsAccount::Message::QUERY_OS_ACCOUNT_BY_ID, reply, id);
+    ErrCode result = SendRequestWithAccountId(OsAccountInterfaceCode::QUERY_OS_ACCOUNT_BY_ID, reply, id);
     if (result != ERR_OK) {
         return result;
     }
@@ -419,7 +419,7 @@ ErrCode OsAccountProxy::GetOsAccountTypeFromProcess(OsAccountType &type)
         return ERR_ACCOUNT_COMMON_WRITE_DESCRIPTOR_ERROR;
     }
 
-    ErrCode result = SendRequest(IOsAccount::Message::GET_OS_ACCOUNT_TYPE_FROM_PROCESS, data, reply);
+    ErrCode result = SendRequest(OsAccountInterfaceCode::GET_OS_ACCOUNT_TYPE_FROM_PROCESS, data, reply);
     if (result != ERR_OK) {
         ACCOUNT_LOGE("SendRequest err, result %{public}d.", result);
         return result;
@@ -437,7 +437,7 @@ ErrCode OsAccountProxy::GetOsAccountTypeFromProcess(OsAccountType &type)
 ErrCode OsAccountProxy::GetOsAccountProfilePhoto(const int id, std::string &photo)
 {
     MessageParcel reply;
-    ErrCode result = SendRequestWithAccountId(IOsAccount::Message::GET_OS_ACCOUNT_PROFILE_PHOTO, reply, id);
+    ErrCode result = SendRequestWithAccountId(OsAccountInterfaceCode::GET_OS_ACCOUNT_PROFILE_PHOTO, reply, id);
     if (result != ERR_OK) {
         return result;
     }
@@ -456,7 +456,7 @@ ErrCode OsAccountProxy::IsMultiOsAccountEnable(bool &isMultiOsAccountEnable)
         return ERR_ACCOUNT_COMMON_WRITE_DESCRIPTOR_ERROR;
     }
 
-    ErrCode result = SendRequest(IOsAccount::Message::IS_MULTI_OS_ACCOUNT_ENABLE, data, reply);
+    ErrCode result = SendRequest(OsAccountInterfaceCode::IS_MULTI_OS_ACCOUNT_ENABLE, data, reply);
     if (result != ERR_OK) {
         ACCOUNT_LOGE("SendRequest err, result %{public}d.", result);
         return result;
@@ -488,7 +488,7 @@ ErrCode OsAccountProxy::SetOsAccountName(const int id, const std::string &name)
     }
 
     MessageParcel reply;
-    ErrCode result = SendRequest(IOsAccount::Message::SET_OS_ACCOUNT_NAME, data, reply);
+    ErrCode result = SendRequest(OsAccountInterfaceCode::SET_OS_ACCOUNT_NAME, data, reply);
     if (result != ERR_OK) {
         ACCOUNT_LOGE("SendRequest err, result %{public}d.", result);
         return result;
@@ -524,7 +524,7 @@ ErrCode OsAccountProxy::SetOsAccountConstraints(
     }
 
     MessageParcel reply;
-    ErrCode result = SendRequest(IOsAccount::Message::SET_OS_ACCOUNT_CONSTRAINTS, data, reply);
+    ErrCode result = SendRequest(OsAccountInterfaceCode::SET_OS_ACCOUNT_CONSTRAINTS, data, reply);
     if (result != ERR_OK) {
         ACCOUNT_LOGE("SendRequest err, result %{public}d.", result);
         return result;
@@ -555,7 +555,7 @@ ErrCode OsAccountProxy::SetOsAccountProfilePhoto(const int id, const std::string
     }
 
     MessageParcel reply;
-    ErrCode result = SendRequest(IOsAccount::Message::SET_OS_ACCOUNT_PROFILE_PHOTO, data, reply);
+    ErrCode result = SendRequest(OsAccountInterfaceCode::SET_OS_ACCOUNT_PROFILE_PHOTO, data, reply);
     if (result != ERR_OK) {
         ACCOUNT_LOGE("SendRequest err, result %{public}d.", result);
         return result;
@@ -572,19 +572,19 @@ ErrCode OsAccountProxy::SetOsAccountProfilePhoto(const int id, const std::string
 ErrCode OsAccountProxy::ActivateOsAccount(const int id)
 {
     MessageParcel reply;
-    return SendRequestWithAccountId(IOsAccount::Message::ACTIVATE_OS_ACCOUNT, reply, id);
+    return SendRequestWithAccountId(OsAccountInterfaceCode::ACTIVATE_OS_ACCOUNT, reply, id);
 }
 
 ErrCode OsAccountProxy::StartOsAccount(const int id)
 {
     MessageParcel reply;
-    return SendRequestWithAccountId(IOsAccount::Message::START_OS_ACCOUNT, reply, id);
+    return SendRequestWithAccountId(OsAccountInterfaceCode::START_OS_ACCOUNT, reply, id);
 }
 
 ErrCode OsAccountProxy::StopOsAccount(const int id)
 {
     MessageParcel reply;
-    return SendRequestWithAccountId(IOsAccount::Message::STOP_OS_ACCOUNT, reply, id);
+    return SendRequestWithAccountId(OsAccountInterfaceCode::STOP_OS_ACCOUNT, reply, id);
 }
 
 ErrCode OsAccountProxy::GetOsAccountLocalIdBySerialNumber(const int64_t serialNumber, int &id)
@@ -601,7 +601,7 @@ ErrCode OsAccountProxy::GetOsAccountLocalIdBySerialNumber(const int64_t serialNu
         ACCOUNT_LOGE("failed to write int for serialNumber");
         return ERR_ACCOUNT_COMMON_WRITE_PARCEL_ERROR;
     }
-    ErrCode result = SendRequest(IOsAccount::Message::GET_OS_ACCOUNT_LOCAL_ID_FOR_SERIAL_NUMBER, data, reply);
+    ErrCode result = SendRequest(OsAccountInterfaceCode::GET_OS_ACCOUNT_LOCAL_ID_FOR_SERIAL_NUMBER, data, reply);
     if (result != ERR_OK) {
         ACCOUNT_LOGE("SendRequest err, result %{public}d.", result);
         return result;
@@ -619,7 +619,7 @@ ErrCode OsAccountProxy::GetOsAccountLocalIdBySerialNumber(const int64_t serialNu
 ErrCode OsAccountProxy::GetSerialNumberByOsAccountLocalId(const int &id, int64_t &serialNumber)
 {
     MessageParcel reply;
-    ErrCode result = SendRequestWithAccountId(IOsAccount::Message::GET_SERIAL_NUMBER_FOR_OS_ACCOUNT, reply, id);
+    ErrCode result = SendRequestWithAccountId(OsAccountInterfaceCode::GET_SERIAL_NUMBER_FOR_OS_ACCOUNT, reply, id);
     if (result == ERR_OK) {
         serialNumber = reply.ReadInt64();
     }
@@ -647,7 +647,7 @@ ErrCode OsAccountProxy::SubscribeOsAccount(
         return ERR_ACCOUNT_COMMON_WRITE_PARCEL_ERROR;
     }
 
-    ErrCode result = SendRequest(IOsAccount::Message::SUBSCRIBE_ACCOUNT, data, reply);
+    ErrCode result = SendRequest(OsAccountInterfaceCode::SUBSCRIBE_OS_ACCOUNT, data, reply);
     if (result != ERR_OK) {
         ACCOUNT_LOGE("SendRequest err, result %{public}d.", result);
         return result;
@@ -677,7 +677,7 @@ ErrCode OsAccountProxy::UnsubscribeOsAccount(const sptr<IRemoteObject> &eventLis
         return ERR_ACCOUNT_COMMON_WRITE_PARCEL_ERROR;
     }
 
-    ErrCode result = SendRequest(IOsAccount::Message::UNSUBSCRIBE_ACCOUNT, data, reply);
+    ErrCode result = SendRequest(OsAccountInterfaceCode::UNSUBSCRIBE_OS_ACCOUNT, data, reply);
     if (result != ERR_OK) {
         ACCOUNT_LOGE("SendRequest err, result %{public}d.", result);
         return result;
@@ -700,7 +700,7 @@ OS_ACCOUNT_SWITCH_MOD OsAccountProxy::GetOsAccountSwitchMod()
         return OS_ACCOUNT_SWITCH_MOD::ERROR_MOD;
     }
 
-    ErrCode result = SendRequest(IOsAccount::Message::GET_OS_ACCOUNT_SWITCH_MOD, data, reply);
+    ErrCode result = SendRequest(OsAccountInterfaceCode::GET_OS_ACCOUNT_SWITCH_MOD, data, reply);
     if (result != ERR_OK) {
         ACCOUNT_LOGE("SendRequest err, result %{public}d.", result);
         return OS_ACCOUNT_SWITCH_MOD::ERROR_MOD;
@@ -711,7 +711,7 @@ OS_ACCOUNT_SWITCH_MOD OsAccountProxy::GetOsAccountSwitchMod()
     return osAccountSwitchMod;
 }
 
-ErrCode OsAccountProxy::SendRequestWithAccountId(IOsAccount::Message code, MessageParcel &reply, int id)
+ErrCode OsAccountProxy::SendRequestWithAccountId(OsAccountInterfaceCode code, MessageParcel &reply, int id)
 {
     MessageParcel data;
     if (!data.WriteInterfaceToken(GetDescriptor())) {
@@ -739,7 +739,7 @@ ErrCode OsAccountProxy::SendRequestWithAccountId(IOsAccount::Message code, Messa
     return result;
 }
 
-ErrCode OsAccountProxy::SendRequest(IOsAccount::Message code, MessageParcel &data, MessageParcel &reply)
+ErrCode OsAccountProxy::SendRequest(OsAccountInterfaceCode code, MessageParcel &data, MessageParcel &reply)
 {
     sptr<IRemoteObject> remote = Remote();
     if (remote == nullptr) {
@@ -766,7 +766,7 @@ ErrCode OsAccountProxy::IsCurrentOsAccountVerified(bool &isVerified)
         return ERR_ACCOUNT_COMMON_WRITE_DESCRIPTOR_ERROR;
     }
 
-    ErrCode result = SendRequest(IOsAccount::Message::IS_CURRENT_OS_ACCOUNT_VERIFIED, data, reply);
+    ErrCode result = SendRequest(OsAccountInterfaceCode::IS_CURRENT_OS_ACCOUNT_VERIFIED, data, reply);
     if (result != ERR_OK) {
         ACCOUNT_LOGE("SendRequest err, result %{public}d.", result);
         return result;
@@ -785,7 +785,7 @@ ErrCode OsAccountProxy::IsCurrentOsAccountVerified(bool &isVerified)
 ErrCode OsAccountProxy::IsOsAccountCompleted(const int id, bool &isOsAccountCompleted)
 {
     MessageParcel reply;
-    ErrCode result = SendRequestWithAccountId(IOsAccount::Message::IS_OS_ACCOUNT_COMPLETED, reply, id);
+    ErrCode result = SendRequestWithAccountId(OsAccountInterfaceCode::IS_OS_ACCOUNT_COMPLETED, reply, id);
     if (result != ERR_OK) {
         return result;
     }
@@ -810,7 +810,7 @@ ErrCode OsAccountProxy::SetCurrentOsAccountIsVerified(const bool isVerified)
         ACCOUNT_LOGE("failed to write bool for isVerified");
         return ERR_ACCOUNT_COMMON_WRITE_PARCEL_ERROR;
     }
-    ErrCode result = SendRequest(IOsAccount::Message::SET_CURRENT_OS_ACCOUNT_IS_VERIFIED, data, reply);
+    ErrCode result = SendRequest(OsAccountInterfaceCode::SET_CURRENT_OS_ACCOUNT_IS_VERIFIED, data, reply);
     if (result != ERR_OK) {
         ACCOUNT_LOGE("SendRequest err, result %{public}d.", result);
         return result;
@@ -841,7 +841,7 @@ ErrCode OsAccountProxy::SetOsAccountIsVerified(const int id, const bool isVerifi
     }
 
     MessageParcel reply;
-    ErrCode result = SendRequest(IOsAccount::Message::SET_OS_ACCOUNT_IS_VERIFIED, data, reply);
+    ErrCode result = SendRequest(OsAccountInterfaceCode::SET_OS_ACCOUNT_IS_VERIFIED, data, reply);
     if (result != ERR_OK) {
         ACCOUNT_LOGE("SendRequest err, result %{public}d.", result);
         return result;
@@ -858,7 +858,7 @@ ErrCode OsAccountProxy::SetOsAccountIsVerified(const int id, const bool isVerifi
 ErrCode OsAccountProxy::DumpState(const int &id, std::vector<std::string> &state)
 {
     MessageParcel reply;
-    ErrCode result = SendRequestWithAccountId(IOsAccount::Message::DUMP_STATE, reply, id);
+    ErrCode result = SendRequestWithAccountId(OsAccountInterfaceCode::DUMP_STATE, reply, id);
     if (result != ERR_OK) {
         return result;
     }
@@ -891,7 +891,7 @@ ErrCode OsAccountProxy::GetCreatedOsAccountNumFromDatabase(const std::string& st
         ACCOUNT_LOGE("failed to write string for storeID");
         return ERR_ACCOUNT_COMMON_WRITE_PARCEL_ERROR;
     }
-    ErrCode result = SendRequest(IOsAccount::Message::GET_CREATED_OS_ACCOUNT_NUM_FROM_DATABASE, data, reply);
+    ErrCode result = SendRequest(OsAccountInterfaceCode::GET_CREATED_OS_ACCOUNT_NUM_FROM_DATABASE, data, reply);
     if (result != ERR_OK) {
         ACCOUNT_LOGE("SendRequest err, result %{public}d.", result);
         return result;
@@ -920,7 +920,7 @@ ErrCode OsAccountProxy::GetSerialNumberFromDatabase(const std::string& storeID, 
         ACCOUNT_LOGE("failed to write string for storeID");
         return ERR_ACCOUNT_COMMON_WRITE_PARCEL_ERROR;
     }
-    ErrCode result = SendRequest(IOsAccount::Message::GET_SERIAL_NUM_FROM_DATABASE, data, reply);
+    ErrCode result = SendRequest(OsAccountInterfaceCode::GET_SERIAL_NUM_FROM_DATABASE, data, reply);
     if (result != ERR_OK) {
         ACCOUNT_LOGE("SendRequest failed, result %{public}d.", result);
         return result;
@@ -949,7 +949,7 @@ ErrCode OsAccountProxy::GetMaxAllowCreateIdFromDatabase(const std::string& store
         ACCOUNT_LOGE("failed to write string for isVerified");
         return ERR_ACCOUNT_COMMON_WRITE_PARCEL_ERROR;
     }
-    ErrCode result = SendRequest(IOsAccount::Message::GET_MAX_ALLOW_CREATE_ID_FROM_DATABASE, data, reply);
+    ErrCode result = SendRequest(OsAccountInterfaceCode::GET_MAX_ALLOW_CREATE_ID_FROM_DATABASE, data, reply);
     if (result != ERR_OK) {
         ACCOUNT_LOGE("SendRequest failed, result %{public}d.", result);
         return result;
@@ -984,7 +984,7 @@ ErrCode OsAccountProxy::GetOsAccountFromDatabase(const std::string& storeID,
         return ERR_ACCOUNT_COMMON_WRITE_PARCEL_ERROR;
     }
 
-    ErrCode result = SendRequest(IOsAccount::Message::GET_OS_ACCOUNT_FROM_DATABASE, data, reply);
+    ErrCode result = SendRequest(OsAccountInterfaceCode::GET_OS_ACCOUNT_FROM_DATABASE, data, reply);
     if (result != ERR_OK) {
         ACCOUNT_LOGE("SendRequest failed, result %{public}d.", result);
         return result;
@@ -1019,7 +1019,7 @@ ErrCode OsAccountProxy::GetOsAccountListFromDatabase(const std::string& storeID,
         ACCOUNT_LOGE("failed to write string for storeID");
         return ERR_ACCOUNT_COMMON_WRITE_PARCEL_ERROR;
     }
-    ErrCode result = SendRequest(IOsAccount::Message::GET_OS_ACCOUNT_LIST_FROM_DATABASE, data, reply);
+    ErrCode result = SendRequest(OsAccountInterfaceCode::GET_OS_ACCOUNT_LIST_FROM_DATABASE, data, reply);
     if (result != ERR_OK) {
         ACCOUNT_LOGE("SendRequest failed, result %{public}d.", result);
         return result;
@@ -1044,7 +1044,7 @@ ErrCode OsAccountProxy::QueryActiveOsAccountIds(std::vector<int32_t>& ids)
         return ERR_ACCOUNT_COMMON_WRITE_DESCRIPTOR_ERROR;
     }
 
-    ErrCode result = SendRequest(IOsAccount::Message::QUERY_ACTIVE_OS_ACCOUNT_IDS, data, reply);
+    ErrCode result = SendRequest(OsAccountInterfaceCode::QUERY_ACTIVE_OS_ACCOUNT_IDS, data, reply);
     if (result != ERR_OK) {
         ACCOUNT_LOGE("SendRequest err, result %{public}d.", result);
         return result;
@@ -1083,7 +1083,7 @@ ErrCode OsAccountProxy::QueryOsAccountConstraintSourceTypes(const int32_t id,
     }
 
     MessageParcel reply;
-    ErrCode result = SendRequest(IOsAccount::Message::QUERY_OS_ACCOUNT_CONSTRAINT_SOURCE_TYPES, data, reply);
+    ErrCode result = SendRequest(OsAccountInterfaceCode::QUERY_OS_ACCOUNT_CONSTRAINT_SOURCE_TYPES, data, reply);
     if (result != ERR_OK) {
         ACCOUNT_LOGE("SendRequest err, result %{public}d.", result);
         return result;
@@ -1131,7 +1131,7 @@ ErrCode OsAccountProxy::SetGlobalOsAccountConstraints(const std::vector<std::str
         ACCOUNT_LOGE("failed to write bool for isDeviceOwner");
         return ERR_ACCOUNT_COMMON_WRITE_PARCEL_ERROR;
     }
-    ErrCode result = SendRequest(IOsAccount::Message::SET_GLOBAL_OS_ACCOUNT_CONSTRAINTS, data, reply);
+    ErrCode result = SendRequest(OsAccountInterfaceCode::SET_GLOBAL_OS_ACCOUNT_CONSTRAINTS, data, reply);
     if (result != ERR_OK) {
         ACCOUNT_LOGE("SendRequest err, result %{public}d.", result);
         return result;
@@ -1178,7 +1178,7 @@ ErrCode OsAccountProxy::SetSpecificOsAccountConstraints(const std::vector<std::s
         ACCOUNT_LOGE("failed to write bool for isDeviceOwner");
         return ERR_ACCOUNT_COMMON_WRITE_PARCEL_ERROR;
     }
-    ErrCode result = SendRequest(IOsAccount::Message::SET_SPECIFIC_OS_ACCOUNT_CONSTRAINTS, data, reply);
+    ErrCode result = SendRequest(OsAccountInterfaceCode::SET_SPECIFIC_OS_ACCOUNT_CONSTRAINTS, data, reply);
     if (result != ERR_OK) {
         ACCOUNT_LOGE("SendRequest err, result %{public}d.", result);
         return result;
@@ -1203,7 +1203,7 @@ ErrCode OsAccountProxy::SetDefaultActivatedOsAccount(const int32_t id)
         return ERR_ACCOUNT_COMMON_WRITE_PARCEL_ERROR;
     }
     MessageParcel reply;
-    ErrCode result = SendRequest(IOsAccount::Message::SET_DEFAULT_ACTIVATED_OS_ACCOUNT, data, reply);
+    ErrCode result = SendRequest(OsAccountInterfaceCode::SET_DEFAULT_ACTIVATED_OS_ACCOUNT, data, reply);
     if (result != ERR_OK) {
         ACCOUNT_LOGE("SendRequest err, result %{public}d.", result);
         return result;
@@ -1223,7 +1223,7 @@ ErrCode OsAccountProxy::GetDefaultActivatedOsAccount(int32_t &id)
         return ERR_ACCOUNT_COMMON_WRITE_PARCEL_ERROR;
     }
     MessageParcel reply;
-    ErrCode result = SendRequest(IOsAccount::Message::GET_DEFAULT_ACTIVATED_OS_ACCOUNT, data, reply);
+    ErrCode result = SendRequest(OsAccountInterfaceCode::GET_DEFAULT_ACTIVATED_OS_ACCOUNT, data, reply);
     if (result != ERR_OK) {
         ACCOUNT_LOGE("SendRequest err, result %{public}d.", result);
         return result;

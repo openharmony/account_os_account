@@ -102,7 +102,7 @@ public:
     ErrCode UnsubscribeAppAccount(const sptr<IRemoteObject> &eventListener) override;
 
 private:
-    ErrCode SendRequest(IAppAccount::Message code, MessageParcel &data, MessageParcel &reply);
+    ErrCode SendRequest(AppAccountInterfaceCode code, MessageParcel &data, MessageParcel &reply);
     ErrCode WriteGetAuthListParam(
         const std::string &name, const std::string &authType, MessageParcel &data);
     ErrCode WriteGetAuthTokenParam(

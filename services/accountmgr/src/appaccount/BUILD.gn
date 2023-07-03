@@ -15,18 +15,6 @@ import("//build/ohos.gni")
 import("../../../../os_account.gni")
 
 config("app_account_service_core_config") {
-  include_dirs = [
-    "./include",
-    "./include/appaccount",
-    "${app_account_innerkits_native_path}/include",
-    "${app_account_kits_path}/include",
-    "${common_path}/log/include",
-    "${common_path}/perf_stat/include",
-    "${common_path}/account_error/include",
-    "${innerkits_path}/include",
-    "//third_party/json/include",
-  ]
-
   cflags = [ "-pipe" ]
   cflags_cc = [
     "-Wdate-time",
@@ -40,7 +28,6 @@ config("app_account_service_core_public_config") {
   visibility = [ ":*" ]
 
   include_dirs = [
-    "${common_path}/utils/include",
     "${services_path}/accountmgr/include",
     "${services_path}/accountmgr/include/appaccount",
   ]
@@ -64,7 +51,10 @@ ohos_shared_library("app_account_service_core") {
 
   public_configs = [ ":app_account_service_core_public_config" ]
 
-  deps = [ "${app_account_innerkits_native_path}:app_account_innerkits" ]
+  deps = [
+    "${app_account_innerkits_native_path}:app_account_innerkits",
+    "${common_path}:libaccount_common",
+  ]
 
   external_deps = [
     "ability_base:want",

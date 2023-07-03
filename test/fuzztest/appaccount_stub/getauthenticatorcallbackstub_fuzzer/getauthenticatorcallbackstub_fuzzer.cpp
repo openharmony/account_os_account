@@ -40,7 +40,7 @@ bool GetAuthenticatorCallbackStubFuzzTest(const uint8_t* data, size_t size)
     
     MessageParcel reply;
     MessageOption option;
-    uint32_t code = static_cast<uint32_t>(IAppAccount::Message::GET_AUTHENTICATOR_CALLBACK);
+    uint32_t code = static_cast<uint32_t>(AppAccountInterfaceCode::GET_AUTHENTICATOR_CALLBACK);
     auto appAccountManagerService = std::make_shared<AppAccountManagerService>();
     appAccountManagerService->OnRemoteRequest(code, dataTemp, reply, option);
     

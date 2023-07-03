@@ -54,7 +54,7 @@ ErrCode AppAccountAuthenticatorProxy::AddAccountImplicitly(const std::string &au
         ACCOUNT_LOGE("failed to write WriteString callback");
         return ERR_ACCOUNT_COMMON_WRITE_PARCEL_ERROR;
     }
-    ErrCode result = SendRequest(IAppAccountAuthenticator::Message::ADD_ACCOUNT_IMPLICITLY, data, reply);
+    ErrCode result = SendRequest(AppAccountAuthenticatorInterfaceCode::ADD_ACCOUNT_IMPLICITLY, data, reply);
     if (result != ERR_OK) {
         return result;
     }
@@ -92,7 +92,7 @@ ErrCode AppAccountAuthenticatorProxy::Authenticate(const std::string &name, cons
         ACCOUNT_LOGE("failed to write WriteString callback");
         return ERR_ACCOUNT_COMMON_WRITE_PARCEL_ERROR;
     }
-    ErrCode result = SendRequest(IAppAccountAuthenticator::Message::AUTHENTICATE, data, reply);
+    ErrCode result = SendRequest(AppAccountAuthenticatorInterfaceCode::AUTHENTICATE, data, reply);
     if (result != ERR_OK) {
         return result;
     }
@@ -116,7 +116,7 @@ ErrCode AppAccountAuthenticatorProxy::CreateAccountImplicitly(
         return ERR_ACCOUNT_COMMON_WRITE_PARCEL_ERROR;
     }
     MessageParcel reply;
-    ErrCode result = SendRequest(IAppAccountAuthenticator::Message::CREATE_ACCOUNT_IMPLICITLY, data, reply);
+    ErrCode result = SendRequest(AppAccountAuthenticatorInterfaceCode::CREATE_ACCOUNT_IMPLICITLY, data, reply);
     if (result != ERR_OK) {
         return result;
     }
@@ -148,7 +148,7 @@ ErrCode AppAccountAuthenticatorProxy::Auth(const std::string &name, const std::s
         return ERR_ACCOUNT_COMMON_WRITE_PARCEL_ERROR;
     }
     MessageParcel reply;
-    ErrCode result = SendRequest(IAppAccountAuthenticator::Message::AUTH, data, reply);
+    ErrCode result = SendRequest(AppAccountAuthenticatorInterfaceCode::AUTH, data, reply);
     if (result != ERR_OK) {
         return result;
     }
@@ -177,7 +177,7 @@ ErrCode AppAccountAuthenticatorProxy::VerifyCredential(
         ACCOUNT_LOGE("failed to write WriteString callback");
         return ERR_ACCOUNT_COMMON_WRITE_PARCEL_ERROR;
     }
-    ErrCode result = SendRequest(IAppAccountAuthenticator::Message::VERIFY_CREDENTIAL, data, reply);
+    ErrCode result = SendRequest(AppAccountAuthenticatorInterfaceCode::VERIFY_CREDENTIAL, data, reply);
     if (result != ERR_OK) {
         return result;
     }
@@ -206,7 +206,7 @@ ErrCode AppAccountAuthenticatorProxy::CheckAccountLabels(
         ACCOUNT_LOGE("failed to write WriteRemoteObject callback");
         return ERR_ACCOUNT_COMMON_WRITE_PARCEL_ERROR;
     }
-    ErrCode result = SendRequest(IAppAccountAuthenticator::Message::CHECK_ACCOUNT_LABELS, data, reply);
+    ErrCode result = SendRequest(AppAccountAuthenticatorInterfaceCode::CHECK_ACCOUNT_LABELS, data, reply);
     if (result != ERR_OK) {
         return result;
     }
@@ -231,7 +231,7 @@ ErrCode AppAccountAuthenticatorProxy::SetProperties(
         ACCOUNT_LOGE("failed to write WriteString callback");
         return ERR_ACCOUNT_COMMON_WRITE_PARCEL_ERROR;
     }
-    ErrCode result = SendRequest(IAppAccountAuthenticator::Message::SET_PROPERTIES, data, reply);
+    ErrCode result = SendRequest(AppAccountAuthenticatorInterfaceCode::SET_PROPERTIES, data, reply);
     if (result != ERR_OK) {
         return result;
     }
@@ -255,7 +255,7 @@ ErrCode AppAccountAuthenticatorProxy::IsAccountRemovable(const std::string &name
         ACCOUNT_LOGE("failed to write WriteRemoteObject callback");
         return ERR_ACCOUNT_COMMON_WRITE_PARCEL_ERROR;
     }
-    ErrCode result = SendRequest(IAppAccountAuthenticator::Message::IS_ACCOUNT_REMOVABLE, data, reply);
+    ErrCode result = SendRequest(AppAccountAuthenticatorInterfaceCode::IS_ACCOUNT_REMOVABLE, data, reply);
     if (result != ERR_OK) {
         return result;
     }
@@ -263,7 +263,7 @@ ErrCode AppAccountAuthenticatorProxy::IsAccountRemovable(const std::string &name
 }
 
 ErrCode AppAccountAuthenticatorProxy::SendRequest(
-    IAppAccountAuthenticator::Message code, MessageParcel &data, MessageParcel &reply)
+    AppAccountAuthenticatorInterfaceCode code, MessageParcel &data, MessageParcel &reply)
 {
     sptr<IRemoteObject> remoteAuthenticator = Remote();
     if (remoteAuthenticator == nullptr) {

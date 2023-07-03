@@ -43,7 +43,7 @@ bool GetAuthListStubFuzzTest(const uint8_t* data, size_t size)
     }
     MessageParcel reply;
     MessageOption option;
-    uint32_t code = static_cast<uint32_t>(IAppAccount::Message::GET_AUTH_LIST);
+    uint32_t code = static_cast<uint32_t>(AppAccountInterfaceCode::GET_AUTH_LIST);
     auto appAccountManagerService = std::make_shared<AppAccountManagerService>();
     appAccountManagerService->OnRemoteRequest(code, dataTemp, reply, option);
     

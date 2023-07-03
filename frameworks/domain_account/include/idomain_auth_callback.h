@@ -17,6 +17,7 @@
 #define OS_ACCOUNT_INTERFACES_INNERKITS_DOMAIN_ACCOUNT_INCLUDE_IDOMAIN_AUTH_CALLBACK_H
 
 #include <iremote_broker.h>
+#include "accountmgr_service_ipc_interface_code.h"
 #include "domain_account_common.h"
 
 namespace OHOS {

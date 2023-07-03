@@ -26,7 +26,7 @@ DomainAccountProxy::DomainAccountProxy(const sptr<IRemoteObject> &object) : IRem
 DomainAccountProxy::~DomainAccountProxy()
 {}
 
-ErrCode DomainAccountProxy::SendRequest(IDomainAccount::Message code, MessageParcel &data, MessageParcel &reply)
+ErrCode DomainAccountProxy::SendRequest(DomainAccountInterfaceCode code, MessageParcel &data, MessageParcel &reply)
 {
     sptr<IRemoteObject> remote = Remote();
     if (remote == nullptr) {
@@ -54,7 +54,7 @@ ErrCode DomainAccountProxy::HasDomainAccount(
         return ERR_ACCOUNT_COMMON_WRITE_PARCEL_ERROR;
     }
     MessageParcel reply;
-    ErrCode result = SendRequest(IDomainAccount::Message::DOMAIN_HAS_DOMAIN_ACCOUNT, data, reply);
+    ErrCode result = SendRequest(DomainAccountInterfaceCode::DOMAIN_HAS_DOMAIN_ACCOUNT, data, reply);
     if (result != ERR_OK) {
         ACCOUNT_LOGE("SendRequest err, result %{public}d.", result);
         return result;
@@ -78,7 +78,7 @@ ErrCode DomainAccountProxy::RegisterPlugin(const sptr<IDomainAccountPlugin> &plu
         return ERR_ACCOUNT_COMMON_WRITE_PARCEL_ERROR;
     }
     MessageParcel reply;
-    ErrCode result = SendRequest(IDomainAccount::Message::REGISTER_PLUGIN, data, reply);
+    ErrCode result = SendRequest(DomainAccountInterfaceCode::REGISTER_PLUGIN, data, reply);
     if (result != ERR_OK) {
         return result;
     }
@@ -97,7 +97,7 @@ ErrCode DomainAccountProxy::UnregisterPlugin()
         return ERR_ACCOUNT_COMMON_WRITE_PARCEL_ERROR;
     }
     MessageParcel reply;
-    ErrCode result = SendRequest(IDomainAccount::Message::UNREGISTER_PLUGIN, data, reply);
+    ErrCode result = SendRequest(DomainAccountInterfaceCode::UNREGISTER_PLUGIN, data, reply);
     if (result != ERR_OK) {
         return result;
     }
@@ -121,7 +121,7 @@ ErrCode DomainAccountProxy::GetAccountStatus(const DomainAccountInfo &info, Doma
     }
 
     MessageParcel reply;
-    ErrCode result = SendRequest(IDomainAccount::Message::DOMAIN_ACCOUNT_STATUS_ENQUIRY, data, reply);
+    ErrCode result = SendRequest(DomainAccountInterfaceCode::DOMAIN_ACCOUNT_STATUS_ENQUIRY, data, reply);
     if (result != ERR_OK) {
         ACCOUNT_LOGE("fail to send request, error: %{public}d", result);
         return result;
@@ -160,7 +160,8 @@ ErrCode DomainAccountProxy::RegisterAccountStatusListener(
         return ERR_ACCOUNT_COMMON_WRITE_PARCEL_ERROR;
     }
     MessageParcel reply;
-    ErrCode result = SendRequest(IDomainAccount::Message::DOMAIN_ACCOUNT_STATUS_LISTENER_REGISTER_BY_INFO, data, reply);
+    ErrCode result =
+        SendRequest(DomainAccountInterfaceCode::DOMAIN_ACCOUNT_STATUS_LISTENER_REGISTER_BY_INFO, data, reply);
     if (result != ERR_OK) {
         ACCOUNT_LOGE("SendRequest err, result %{public}d.", result);
         return result;
@@ -184,7 +185,7 @@ ErrCode DomainAccountProxy::RegisterAccountStatusListener(const sptr<IDomainAcco
         return ERR_ACCOUNT_COMMON_WRITE_PARCEL_ERROR;
     }
     MessageParcel reply;
-    ErrCode result = SendRequest(IDomainAccount::Message::DOMAIN_ACCOUNT_STATUS_LISTENER_REGISTER, data, reply);
+    ErrCode result = SendRequest(DomainAccountInterfaceCode::DOMAIN_ACCOUNT_STATUS_LISTENER_REGISTER, data, reply);
     if (result != ERR_OK) {
         ACCOUNT_LOGE("SendRequest err, result %{public}d.", result);
         return result;
@@ -209,7 +210,7 @@ ErrCode DomainAccountProxy::UnregisterAccountStatusListener(const sptr<IDomainAc
     }
 
     MessageParcel reply;
-    ErrCode result = SendRequest(IDomainAccount::Message::DOMAIN_ACCOUNT_STATUS_LISTENER_UNREGISTER, data, reply);
+    ErrCode result = SendRequest(DomainAccountInterfaceCode::DOMAIN_ACCOUNT_STATUS_LISTENER_UNREGISTER, data, reply);
     if (result != ERR_OK) {
         ACCOUNT_LOGE("SendRequest err, result %{public}d.", result);
         return result;
@@ -240,7 +241,7 @@ ErrCode DomainAccountProxy::UnregisterAccountStatusListener(
 
     MessageParcel reply;
     ErrCode result =
-        SendRequest(IDomainAccount::Message::DOMAIN_ACCOUNT_STATUS_LISTENER_UNREGISTER_BY_INFO, data, reply);
+        SendRequest(DomainAccountInterfaceCode::DOMAIN_ACCOUNT_STATUS_LISTENER_UNREGISTER_BY_INFO, data, reply);
     if (result != ERR_OK) {
         ACCOUNT_LOGE("SendRequest err, result %{public}d.", result);
         return result;
@@ -277,7 +278,7 @@ ErrCode DomainAccountProxy::Auth(
         return ERR_ACCOUNT_COMMON_WRITE_PARCEL_ERROR;
     }
     MessageParcel reply;
-    ErrCode result = SendRequest(IDomainAccount::Message::DOMAIN_AUTH, data, reply);
+    ErrCode result = SendRequest(DomainAccountInterfaceCode::DOMAIN_AUTH, data, reply);
     if (result != ERR_OK) {
         ACCOUNT_LOGE("fail to send request, error: %{public}d", result);
         return result;
@@ -310,7 +311,7 @@ ErrCode DomainAccountProxy::AuthUser(
         return ERR_ACCOUNT_COMMON_WRITE_PARCEL_ERROR;
     }
     MessageParcel reply;
-    ErrCode result = SendRequest(IDomainAccount::Message::DOMAIN_AUTH_USER, data, reply);
+    ErrCode result = SendRequest(DomainAccountInterfaceCode::DOMAIN_AUTH_USER, data, reply);
     if (result != ERR_OK) {
         ACCOUNT_LOGE("fail to send request, error: %{public}d", result);
         return result;
@@ -338,7 +339,7 @@ ErrCode DomainAccountProxy::AuthWithPopup(int32_t userId, const sptr<IDomainAuth
         return ERR_ACCOUNT_COMMON_WRITE_PARCEL_ERROR;
     }
     MessageParcel reply;
-    ErrCode result = SendRequest(IDomainAccount::Message::DOMAIN_AUTH_WITH_POPUP, data, reply);
+    ErrCode result = SendRequest(DomainAccountInterfaceCode::DOMAIN_AUTH_WITH_POPUP, data, reply);
     if (result != ERR_OK) {
         ACCOUNT_LOGE("fail to send request, error: %{public}d", result);
         return result;
@@ -366,7 +367,7 @@ ErrCode DomainAccountProxy::UpdateAccountToken(const DomainAccountInfo &info, co
         return ERR_ACCOUNT_COMMON_WRITE_PARCEL_ERROR;
     }
     MessageParcel reply;
-    ErrCode result = SendRequest(IDomainAccount::Message::DOMAIN_UPDATE_ACCOUNT_TOKEN, data, reply);
+    ErrCode result = SendRequest(DomainAccountInterfaceCode::DOMAIN_UPDATE_ACCOUNT_TOKEN, data, reply);
     if (result != ERR_OK) {
         ACCOUNT_LOGE("fail to send request, error: %{public}d", result);
         return result;
@@ -399,7 +400,7 @@ ErrCode DomainAccountProxy::GetAccessToken(
         return ERR_ACCOUNT_COMMON_WRITE_PARCEL_ERROR;
     }
     MessageParcel reply;
-    ErrCode result = SendRequest(IDomainAccount::Message::DOMAIN_GET_ACCESS_TOKEN, data, reply);
+    ErrCode result = SendRequest(DomainAccountInterfaceCode::DOMAIN_GET_ACCESS_TOKEN, data, reply);
     if (result != ERR_OK) {
         ACCOUNT_LOGE("fail to send request, error: %{public}d", result);
         return result;

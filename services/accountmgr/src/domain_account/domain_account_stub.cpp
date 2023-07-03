@@ -30,57 +30,57 @@ DomainAccountStub::DomainAccountStub()
 DomainAccountStub::~DomainAccountStub()
 {}
 
-const std::map<uint32_t, DomainAccountStub::DomainAccountStubFunc> DomainAccountStub::stubFuncMap_ = {
+const std::map<DomainAccountInterfaceCode, DomainAccountStub::DomainAccountStubFunc> DomainAccountStub::stubFuncMap_ = {
     {
-        IDomainAccount::Message::REGISTER_PLUGIN,
+        DomainAccountInterfaceCode::REGISTER_PLUGIN,
         &DomainAccountStub::ProcRegisterPlugin
     },
     {
-        IDomainAccount::Message::UNREGISTER_PLUGIN,
+        DomainAccountInterfaceCode::UNREGISTER_PLUGIN,
         &DomainAccountStub::ProcUnregisterPlugin
     },
     {
-        IDomainAccount::Message::DOMAIN_AUTH,
+        DomainAccountInterfaceCode::DOMAIN_AUTH,
         &DomainAccountStub::ProcAuth
     },
     {
-        IDomainAccount::Message::DOMAIN_AUTH_USER,
+        DomainAccountInterfaceCode::DOMAIN_AUTH_USER,
         &DomainAccountStub::ProcAuthUser
     },
     {
-        IDomainAccount::Message::DOMAIN_ACCOUNT_STATUS_ENQUIRY,
+        DomainAccountInterfaceCode::DOMAIN_ACCOUNT_STATUS_ENQUIRY,
         &DomainAccountStub::ProcGetAccountStatus
     },
     {
-        IDomainAccount::Message::DOMAIN_ACCOUNT_STATUS_LISTENER_REGISTER,
+        DomainAccountInterfaceCode::DOMAIN_ACCOUNT_STATUS_LISTENER_REGISTER,
         &DomainAccountStub::ProcRegisterAccountStatusListener
     },
     {
-        IDomainAccount::Message::DOMAIN_ACCOUNT_STATUS_LISTENER_UNREGISTER,
+        DomainAccountInterfaceCode::DOMAIN_ACCOUNT_STATUS_LISTENER_UNREGISTER,
         &DomainAccountStub::ProcUnregisterAccountStatusListener
     },
     {
-        IDomainAccount::Message::DOMAIN_AUTH_WITH_POPUP,
+        DomainAccountInterfaceCode::DOMAIN_AUTH_WITH_POPUP,
         &DomainAccountStub::ProcAuthWithPopup
     },
     {
-        IDomainAccount::Message::DOMAIN_HAS_DOMAIN_ACCOUNT,
+        DomainAccountInterfaceCode::DOMAIN_HAS_DOMAIN_ACCOUNT,
         &DomainAccountStub::ProcHasDomainAccount
     },
     {
-        IDomainAccount::Message::DOMAIN_UPDATE_ACCOUNT_TOKEN,
+        DomainAccountInterfaceCode::DOMAIN_UPDATE_ACCOUNT_TOKEN,
         &DomainAccountStub::ProcUpdateAccountToken
     },
     {
-        IDomainAccount::Message::DOMAIN_GET_ACCESS_TOKEN,
+        DomainAccountInterfaceCode::DOMAIN_GET_ACCESS_TOKEN,
         &DomainAccountStub::ProcGetDomainAccessToken
     },
     {
-        IDomainAccount::Message::DOMAIN_ACCOUNT_STATUS_LISTENER_UNREGISTER_BY_INFO,
+        DomainAccountInterfaceCode::DOMAIN_ACCOUNT_STATUS_LISTENER_UNREGISTER_BY_INFO,
         &DomainAccountStub::ProcUnregisterAccountStatusListenerByInfo
     },
     {
-        IDomainAccount::Message::DOMAIN_ACCOUNT_STATUS_LISTENER_REGISTER_BY_INFO,
+        DomainAccountInterfaceCode::DOMAIN_ACCOUNT_STATUS_LISTENER_REGISTER_BY_INFO,
         &DomainAccountStub::ProcRegisterAccountStatusListenerByInfo
     }
 };
@@ -90,7 +90,7 @@ int32_t DomainAccountStub::OnRemoteRequest(
 {
     int32_t uid = IPCSkeleton::GetCallingUid();
     ACCOUNT_LOGD("Received stub message: %{public}d, callingUid: %{public}d", code, uid);
-    ErrCode errCode = CheckPermission(code, uid);
+    ErrCode errCode = CheckPermission(static_cast<DomainAccountInterfaceCode>(code), uid);
     if (errCode != ERR_OK) {
         ACCOUNT_LOGE("check permission failed");
         return errCode;
@@ -99,7 +99,7 @@ int32_t DomainAccountStub::OnRemoteRequest(
         ACCOUNT_LOGE("check descriptor failed! code %{public}u.", code);
         return ERR_ACCOUNT_COMMON_CHECK_DESCRIPTOR_ERROR;
     }
-    const auto &itFunc = stubFuncMap_.find(code);
+    const auto &itFunc = stubFuncMap_.find(static_cast<DomainAccountInterfaceCode>(code));
     if (itFunc != stubFuncMap_.end()) {
         return (this->*(itFunc->second))(data, reply);
     }
@@ -364,7 +364,7 @@ ErrCode DomainAccountStub::ProcGetDomainAccessToken(MessageParcel &data, Message
     return ERR_NONE;
 }
 
-ErrCode DomainAccountStub::CheckPermission(uint32_t code, int32_t uid)
+ErrCode DomainAccountStub::CheckPermission(DomainAccountInterfaceCode code, int32_t uid)
 {
     ErrCode errCode = AccountPermissionManager::CheckSystemApp();
     if (errCode != ERR_OK) {
@@ -376,28 +376,28 @@ ErrCode DomainAccountStub::CheckPermission(uint32_t code, int32_t uid)
     }
     std::string permissionName;
     switch (code) {
-        case IDomainAccount::Message::REGISTER_PLUGIN:
-        case IDomainAccount::Message::UNREGISTER_PLUGIN:
-        case IDomainAccount::Message::DOMAIN_HAS_DOMAIN_ACCOUNT:
-        case IDomainAccount::Message::DOMAIN_UPDATE_ACCOUNT_TOKEN:
+        case DomainAccountInterfaceCode::REGISTER_PLUGIN:
+        case DomainAccountInterfaceCode::UNREGISTER_PLUGIN:
+        case DomainAccountInterfaceCode::DOMAIN_HAS_DOMAIN_ACCOUNT:
+        case DomainAccountInterfaceCode::DOMAIN_UPDATE_ACCOUNT_TOKEN:
             permissionName = AccountPermissionManager::MANAGE_LOCAL_ACCOUNTS;
             break;
-        case IDomainAccount::Message::DOMAIN_ACCOUNT_STATUS_ENQUIRY:
-        case IDomainAccount::Message::DOMAIN_ACCOUNT_STATUS_LISTENER_REGISTER:
-        case IDomainAccount::Message::DOMAIN_ACCOUNT_STATUS_LISTENER_UNREGISTER:
-        case IDomainAccount::Message::DOMAIN_ACCOUNT_STATUS_LISTENER_UNREGISTER_BY_INFO:
-        case IDomainAccount::Message::DOMAIN_ACCOUNT_STATUS_LISTENER_REGISTER_BY_INFO:
+        case DomainAccountInterfaceCode::DOMAIN_ACCOUNT_STATUS_ENQUIRY:
+        case DomainAccountInterfaceCode::DOMAIN_ACCOUNT_STATUS_LISTENER_REGISTER:
+        case DomainAccountInterfaceCode::DOMAIN_ACCOUNT_STATUS_LISTENER_UNREGISTER:
+        case DomainAccountInterfaceCode::DOMAIN_ACCOUNT_STATUS_LISTENER_UNREGISTER_BY_INFO:
+        case DomainAccountInterfaceCode::DOMAIN_ACCOUNT_STATUS_LISTENER_REGISTER_BY_INFO:
             permissionName = AccountPermissionManager::GET_LOCAL_ACCOUNTS;
             break;
-        case IDomainAccount::Message::DOMAIN_AUTH:
-        case IDomainAccount::Message::DOMAIN_AUTH_USER:
-        case IDomainAccount::Message::DOMAIN_AUTH_WITH_POPUP:
+        case DomainAccountInterfaceCode::DOMAIN_AUTH:
+        case DomainAccountInterfaceCode::DOMAIN_AUTH_USER:
+        case DomainAccountInterfaceCode::DOMAIN_AUTH_WITH_POPUP:
             permissionName = AccountPermissionManager::ACCESS_USER_AUTH_INTERNAL;
             break;
         default:
             break;
     }
-    if (code == IDomainAccount::Message::DOMAIN_GET_ACCESS_TOKEN) {
+    if (code == DomainAccountInterfaceCode::DOMAIN_GET_ACCESS_TOKEN) {
         errCode = AccountPermissionManager::VerifyPermission(AccountPermissionManager::MANAGE_LOCAL_ACCOUNTS);
         if (errCode != ERR_OK) {
             return AccountPermissionManager::VerifyPermission(AccountPermissionManager::GET_LOCAL_ACCOUNTS);

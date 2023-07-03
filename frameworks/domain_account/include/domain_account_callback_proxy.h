@@ -28,7 +28,7 @@ public:
     void OnResult(const int32_t errCode, Parcel &parcel) override;
 
 private:
-    ErrCode SendRequest(IDomainAccountCallback::Message code, MessageParcel &data);
+    ErrCode SendRequest(DomainAccountCallbackInterfaceCode code, MessageParcel &data);
 
 private:
     static inline BrokerDelegator<DomainAccountCallbackProxy> delegator_;

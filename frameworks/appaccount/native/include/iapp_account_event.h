@@ -16,6 +16,7 @@
 #ifndef OS_ACCOUNT_SERVICES_ACCOUNTMGR_INCLUDE_APPACCOUNT_IAPP_ACCOUNT_EVENT_H
 #define OS_ACCOUNT_SERVICES_ACCOUNTMGR_INCLUDE_APPACCOUNT_IAPP_ACCOUNT_EVENT_H
 
+#include "accountmgr_service_ipc_interface_code.h"
 #include "app_account_info.h"
 #include "iremote_broker.h"
 #include "want.h"
@@ -27,10 +28,6 @@ public:
     DECLARE_INTERFACE_DESCRIPTOR(u"ohos.accountfwk.IAppAccountEvent");
 
     virtual void OnAccountsChanged(const std::vector<AppAccountInfo> &accounts) = 0;
-
-    enum class Message {
-        ACCOUNT_CHANGED = 0,
-    };
 };
 }  // namespace AccountSA
 }  // namespace OHOS

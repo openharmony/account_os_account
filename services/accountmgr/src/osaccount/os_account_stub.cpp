@@ -24,298 +24,298 @@ namespace OHOS {
 namespace AccountSA {
 const std::map<uint32_t, OsAccountStub::OsAccountMessageProc> OsAccountStub::messageProcMap_ = {
     {
-        static_cast<uint32_t>(IOsAccount::Message::CREATE_OS_ACCOUNT),
+        static_cast<uint32_t>(OsAccountInterfaceCode::CREATE_OS_ACCOUNT),
         {
             .messageProcFunction = &OsAccountStub::ProcCreateOsAccount,
             .isSyetemApi = true,
         }
     },
     {
-        static_cast<uint32_t>(IOsAccount::Message::CREATE_OS_ACCOUNT_FOR_DOMAIN),
+        static_cast<uint32_t>(OsAccountInterfaceCode::CREATE_OS_ACCOUNT_FOR_DOMAIN),
         {
             .messageProcFunction = &OsAccountStub::ProcCreateOsAccountForDomain,
             .isSyetemApi = true,
         }
     },
     {
-        static_cast<uint32_t>(IOsAccount::Message::REMOVE_OS_ACCOUNT),
+        static_cast<uint32_t>(OsAccountInterfaceCode::REMOVE_OS_ACCOUNT),
         {
             .messageProcFunction = &OsAccountStub::ProcRemoveOsAccount,
             .isSyetemApi = true,
         }
     },
     {
-        static_cast<uint32_t>(IOsAccount::Message::IS_OS_ACCOUNT_EXISTS),
+        static_cast<uint32_t>(OsAccountInterfaceCode::IS_OS_ACCOUNT_EXISTS),
         {
             .messageProcFunction = &OsAccountStub::ProcIsOsAccountExists,
         }
     },
     {
-        static_cast<uint32_t>(IOsAccount::Message::IS_OS_ACCOUNT_ACTIVED),
+        static_cast<uint32_t>(OsAccountInterfaceCode::IS_OS_ACCOUNT_ACTIVED),
         {
             .messageProcFunction = &OsAccountStub::ProcIsOsAccountActived,
         }
     },
     {
-        static_cast<uint32_t>(IOsAccount::Message::IS_OS_ACCOUNT_CONSTRAINT_ENABLE),
+        static_cast<uint32_t>(OsAccountInterfaceCode::IS_OS_ACCOUNT_CONSTRAINT_ENABLE),
         {
             .messageProcFunction = &OsAccountStub::ProcIsOsAccountConstraintEnable,
         }
     },
     {
-        static_cast<uint32_t>(IOsAccount::Message::CHECK_OS_ACCOUNT_CONSTRAINT_ENABLED),
+        static_cast<uint32_t>(OsAccountInterfaceCode::CHECK_OS_ACCOUNT_CONSTRAINT_ENABLED),
         {
             .messageProcFunction = &OsAccountStub::ProcCheckOsAccountConstraintEnabled,
         }
     },
     {
-        static_cast<uint32_t>(IOsAccount::Message::IS_OS_ACCOUNT_VERIFIED),
+        static_cast<uint32_t>(OsAccountInterfaceCode::IS_OS_ACCOUNT_VERIFIED),
         {
             .messageProcFunction = &OsAccountStub::ProcIsOsAccountVerified,
         }
     },
     {
-        static_cast<uint32_t>(IOsAccount::Message::GET_CREATED_OS_ACCOUNT_COUNT),
+        static_cast<uint32_t>(OsAccountInterfaceCode::GET_CREATED_OS_ACCOUNT_COUNT),
         {
             .messageProcFunction = &OsAccountStub::ProcGetCreatedOsAccountsCount,
         }
     },
     {
-        static_cast<uint32_t>(IOsAccount::Message::GET_OS_ACCOUNT_LOCAL_ID_FROM_PROCESS),
+        static_cast<uint32_t>(OsAccountInterfaceCode::GET_OS_ACCOUNT_LOCAL_ID_FROM_PROCESS),
         {
             .messageProcFunction = &OsAccountStub::ProcGetOsAccountLocalIdFromProcess,
         }
     },
     {
-        static_cast<uint32_t>(IOsAccount::Message::IS_MAIN_OS_ACCOUNT),
+        static_cast<uint32_t>(OsAccountInterfaceCode::IS_MAIN_OS_ACCOUNT),
         {
             .messageProcFunction = &OsAccountStub::ProcIsMainOsAccount,
             .isSyetemApi = true,
         }
     },
     {
-        static_cast<uint32_t>(IOsAccount::Message::GET_OS_ACCOUNT_LOCAL_ID_FROM_DOMAIN),
+        static_cast<uint32_t>(OsAccountInterfaceCode::GET_OS_ACCOUNT_LOCAL_ID_FROM_DOMAIN),
         {
             .messageProcFunction = &OsAccountStub::ProcGetOsAccountLocalIdFromDomain,
         }
     },
     {
-        static_cast<uint32_t>(IOsAccount::Message::QUERY_MAX_OS_ACCOUNT_NUMBER),
+        static_cast<uint32_t>(OsAccountInterfaceCode::QUERY_MAX_OS_ACCOUNT_NUMBER),
         {
             .messageProcFunction = &OsAccountStub::ProcQueryMaxOsAccountNumber,
             .isSyetemApi = true,
         }
     },
     {
-        static_cast<uint32_t>(IOsAccount::Message::GET_OS_ACCOUNT_ALL_CONSTRAINTS),
+        static_cast<uint32_t>(OsAccountInterfaceCode::GET_OS_ACCOUNT_ALL_CONSTRAINTS),
         {
             .messageProcFunction = &OsAccountStub::ProcGetOsAccountAllConstraints,
         }
     },
     {
-        static_cast<uint32_t>(IOsAccount::Message::QUERY_ALL_CREATED_OS_ACCOUNTS),
+        static_cast<uint32_t>(OsAccountInterfaceCode::QUERY_ALL_CREATED_OS_ACCOUNTS),
         {
             .messageProcFunction = &OsAccountStub::ProcQueryAllCreatedOsAccounts,
             .isSyetemApi = true,
         }
     },
     {
-        static_cast<uint32_t>(IOsAccount::Message::QUERY_CURRENT_OS_ACCOUNT),
+        static_cast<uint32_t>(OsAccountInterfaceCode::QUERY_CURRENT_OS_ACCOUNT),
         {
             .messageProcFunction = &OsAccountStub::ProcQueryCurrentOsAccount,
         }
     },
     {
-        static_cast<uint32_t>(IOsAccount::Message::QUERY_OS_ACCOUNT_BY_ID),
+        static_cast<uint32_t>(OsAccountInterfaceCode::QUERY_OS_ACCOUNT_BY_ID),
         {
             .messageProcFunction = &OsAccountStub::ProcQueryOsAccountById,
             .isSyetemApi = true,
         }
     },
     {
-        static_cast<uint32_t>(IOsAccount::Message::GET_OS_ACCOUNT_TYPE_FROM_PROCESS),
+        static_cast<uint32_t>(OsAccountInterfaceCode::GET_OS_ACCOUNT_TYPE_FROM_PROCESS),
         {
             .messageProcFunction = &OsAccountStub::ProcGetOsAccountTypeFromProcess,
         }
     },
     {
-        static_cast<uint32_t>(IOsAccount::Message::GET_OS_ACCOUNT_PROFILE_PHOTO),
+        static_cast<uint32_t>(OsAccountInterfaceCode::GET_OS_ACCOUNT_PROFILE_PHOTO),
         {
             .messageProcFunction = &OsAccountStub::ProcGetOsAccountProfilePhoto,
             .isSyetemApi = true,
         }
     },
     {
-        static_cast<uint32_t>(IOsAccount::Message::IS_MULTI_OS_ACCOUNT_ENABLE),
+        static_cast<uint32_t>(OsAccountInterfaceCode::IS_MULTI_OS_ACCOUNT_ENABLE),
         {
             .messageProcFunction = &OsAccountStub::ProcIsMultiOsAccountEnable,
         }
     },
     {
-        static_cast<uint32_t>(IOsAccount::Message::SET_OS_ACCOUNT_NAME),
+        static_cast<uint32_t>(OsAccountInterfaceCode::SET_OS_ACCOUNT_NAME),
         {
             .messageProcFunction = &OsAccountStub::ProcSetOsAccountName,
             .isSyetemApi = true,
         }
     },
     {
-        static_cast<uint32_t>(IOsAccount::Message::SET_OS_ACCOUNT_CONSTRAINTS),
+        static_cast<uint32_t>(OsAccountInterfaceCode::SET_OS_ACCOUNT_CONSTRAINTS),
         {
             .messageProcFunction = &OsAccountStub::ProcSetOsAccountConstraints,
             .isSyetemApi = true,
         }
     },
     {
-        static_cast<uint32_t>(IOsAccount::Message::SET_OS_ACCOUNT_PROFILE_PHOTO),
+        static_cast<uint32_t>(OsAccountInterfaceCode::SET_OS_ACCOUNT_PROFILE_PHOTO),
         {
             .messageProcFunction = &OsAccountStub::ProcSetOsAccountProfilePhoto,
             .isSyetemApi = true,
         }
     },
     {
-        static_cast<uint32_t>(IOsAccount::Message::ACTIVATE_OS_ACCOUNT),
+        static_cast<uint32_t>(OsAccountInterfaceCode::ACTIVATE_OS_ACCOUNT),
         {
             .messageProcFunction = &OsAccountStub::ProcActivateOsAccount,
             .isSyetemApi = true,
         }
     },
     {
-        static_cast<uint32_t>(IOsAccount::Message::START_OS_ACCOUNT),
+        static_cast<uint32_t>(OsAccountInterfaceCode::START_OS_ACCOUNT),
         {
             .messageProcFunction = &OsAccountStub::ProcStartOsAccount,
         }
     },
     {
-        static_cast<uint32_t>(IOsAccount::Message::STOP_OS_ACCOUNT),
+        static_cast<uint32_t>(OsAccountInterfaceCode::STOP_OS_ACCOUNT),
         {
             .messageProcFunction = &OsAccountStub::ProcStopOsAccount,
         }
     },
     {
-        static_cast<uint32_t>(IOsAccount::Message::SUBSCRIBE_ACCOUNT),
+        static_cast<uint32_t>(OsAccountInterfaceCode::SUBSCRIBE_OS_ACCOUNT),
         {
             .messageProcFunction = &OsAccountStub::ProcSubscribeOsAccount,
             .isSyetemApi = true,
         }
     },
     {
-        static_cast<uint32_t>(IOsAccount::Message::UNSUBSCRIBE_ACCOUNT),
+        static_cast<uint32_t>(OsAccountInterfaceCode::UNSUBSCRIBE_OS_ACCOUNT),
         {
             .messageProcFunction = &OsAccountStub::ProcUnsubscribeOsAccount,
             .isSyetemApi = true,
         }
     },
     {
-        static_cast<uint32_t>(IOsAccount::Message::GET_OS_ACCOUNT_LOCAL_ID_FOR_SERIAL_NUMBER),
+        static_cast<uint32_t>(OsAccountInterfaceCode::GET_OS_ACCOUNT_LOCAL_ID_FOR_SERIAL_NUMBER),
         {
             .messageProcFunction = &OsAccountStub::ProcGetOsAccountLocalIdBySerialNumber,
         }
     },
     {
-        static_cast<uint32_t>(IOsAccount::Message::GET_SERIAL_NUMBER_FOR_OS_ACCOUNT),
+        static_cast<uint32_t>(OsAccountInterfaceCode::GET_SERIAL_NUMBER_FOR_OS_ACCOUNT),
         {
             .messageProcFunction = &OsAccountStub::ProcGetSerialNumberByOsAccountLocalId,
         }
     },
     {
-        static_cast<uint32_t>(IOsAccount::Message::GET_OS_ACCOUNT_SWITCH_MOD),
+        static_cast<uint32_t>(OsAccountInterfaceCode::GET_OS_ACCOUNT_SWITCH_MOD),
         {
             .messageProcFunction = &OsAccountStub::ProcGetOsAccountSwitchMod,
         }
     },
     {
-        static_cast<uint32_t>(IOsAccount::Message::IS_CURRENT_OS_ACCOUNT_VERIFIED),
+        static_cast<uint32_t>(OsAccountInterfaceCode::IS_CURRENT_OS_ACCOUNT_VERIFIED),
         {
             .messageProcFunction = &OsAccountStub::ProcIsCurrentOsAccountVerified,
         }
     },
     {
-        static_cast<uint32_t>(IOsAccount::Message::IS_OS_ACCOUNT_COMPLETED),
+        static_cast<uint32_t>(OsAccountInterfaceCode::IS_OS_ACCOUNT_COMPLETED),
         {
             .messageProcFunction = &OsAccountStub::ProcIsOsAccountCompleted,
         }
     },
     {
-        static_cast<uint32_t>(IOsAccount::Message::SET_CURRENT_OS_ACCOUNT_IS_VERIFIED),
+        static_cast<uint32_t>(OsAccountInterfaceCode::SET_CURRENT_OS_ACCOUNT_IS_VERIFIED),
         {
             .messageProcFunction = &OsAccountStub::ProcSetCurrentOsAccountIsVerified,
         }
     },
     {
-        static_cast<uint32_t>(IOsAccount::Message::SET_OS_ACCOUNT_IS_VERIFIED),
+        static_cast<uint32_t>(OsAccountInterfaceCode::SET_OS_ACCOUNT_IS_VERIFIED),
         {
             .messageProcFunction = &OsAccountStub::ProcSetOsAccountIsVerified,
         }
     },
     {
-        static_cast<uint32_t>(IOsAccount::Message::DUMP_STATE),
+        static_cast<uint32_t>(OsAccountInterfaceCode::DUMP_STATE),
         {
             .messageProcFunction = &OsAccountStub::ProcDumpState,
         }
     },
     {
-        static_cast<uint32_t>(IOsAccount::Message::GET_CREATED_OS_ACCOUNT_NUM_FROM_DATABASE),
+        static_cast<uint32_t>(OsAccountInterfaceCode::GET_CREATED_OS_ACCOUNT_NUM_FROM_DATABASE),
         {
             .messageProcFunction = &OsAccountStub::ProcGetCreatedOsAccountNumFromDatabase,
         }
     },
     {
-        static_cast<uint32_t>(IOsAccount::Message::GET_SERIAL_NUM_FROM_DATABASE),
+        static_cast<uint32_t>(OsAccountInterfaceCode::GET_SERIAL_NUM_FROM_DATABASE),
         {
             .messageProcFunction = &OsAccountStub::ProcGetSerialNumberFromDatabase,
         }
     },
     {
-        static_cast<uint32_t>(IOsAccount::Message::GET_MAX_ALLOW_CREATE_ID_FROM_DATABASE),
+        static_cast<uint32_t>(OsAccountInterfaceCode::GET_MAX_ALLOW_CREATE_ID_FROM_DATABASE),
         {
             .messageProcFunction = &OsAccountStub::ProcGetMaxAllowCreateIdFromDatabase,
         }
     },
     {
-        static_cast<uint32_t>(IOsAccount::Message::GET_OS_ACCOUNT_FROM_DATABASE),
+        static_cast<uint32_t>(OsAccountInterfaceCode::GET_OS_ACCOUNT_FROM_DATABASE),
         {
             .messageProcFunction = &OsAccountStub::ProcGetOsAccountFromDatabase,
         }
     },
     {
-        static_cast<uint32_t>(IOsAccount::Message::GET_OS_ACCOUNT_LIST_FROM_DATABASE),
+        static_cast<uint32_t>(OsAccountInterfaceCode::GET_OS_ACCOUNT_LIST_FROM_DATABASE),
         {
             .messageProcFunction = &OsAccountStub::ProcGetOsAccountListFromDatabase,
         }
     },
     {
-        static_cast<uint32_t>(IOsAccount::Message::QUERY_ACTIVE_OS_ACCOUNT_IDS),
+        static_cast<uint32_t>(OsAccountInterfaceCode::QUERY_ACTIVE_OS_ACCOUNT_IDS),
         {
             .messageProcFunction = &OsAccountStub::ProcQueryActiveOsAccountIds,
         }
     },
     {
-        static_cast<uint32_t>(IOsAccount::Message::QUERY_OS_ACCOUNT_CONSTRAINT_SOURCE_TYPES),
+        static_cast<uint32_t>(OsAccountInterfaceCode::QUERY_OS_ACCOUNT_CONSTRAINT_SOURCE_TYPES),
         {
             .messageProcFunction = &OsAccountStub::ProcQueryOsAccountConstraintSourceTypes,
             .isSyetemApi = true,
         }
     },
     {
-        static_cast<uint32_t>(IOsAccount::Message::SET_GLOBAL_OS_ACCOUNT_CONSTRAINTS),
+        static_cast<uint32_t>(OsAccountInterfaceCode::SET_GLOBAL_OS_ACCOUNT_CONSTRAINTS),
         {
             .messageProcFunction = &OsAccountStub::ProcSetGlobalOsAccountConstraints,
         }
     },
     {
-        static_cast<uint32_t>(IOsAccount::Message::SET_SPECIFIC_OS_ACCOUNT_CONSTRAINTS),
+        static_cast<uint32_t>(OsAccountInterfaceCode::SET_SPECIFIC_OS_ACCOUNT_CONSTRAINTS),
         {
             .messageProcFunction = &OsAccountStub::ProcSetSpecificOsAccountConstraints,
         }
     },
     {
-        static_cast<uint32_t>(IOsAccount::Message::SET_DEFAULT_ACTIVATED_OS_ACCOUNT),
+        static_cast<uint32_t>(OsAccountInterfaceCode::SET_DEFAULT_ACTIVATED_OS_ACCOUNT),
         {
             .messageProcFunction = &OsAccountStub::ProcSetDefaultActivatedOsAccount,
         }
     },
     {
-        static_cast<uint32_t>(IOsAccount::Message::GET_DEFAULT_ACTIVATED_OS_ACCOUNT),
+        static_cast<uint32_t>(OsAccountInterfaceCode::GET_DEFAULT_ACTIVATED_OS_ACCOUNT),
         {
             .messageProcFunction = &OsAccountStub::ProcGetDefaultActivatedOsAccount,
         }
@@ -809,9 +809,9 @@ ErrCode OsAccountStub::ProcCheckOsAccountConstraintEnabled(uint32_t code, Messag
 
     bool isEnabled = false;
     ErrCode result = ERR_OK;
-    if (code == static_cast<uint32_t>(IOsAccount::Message::IS_OS_ACCOUNT_CONSTRAINT_ENABLE)) {
+    if (code == static_cast<uint32_t>(OsAccountInterfaceCode::IS_OS_ACCOUNT_CONSTRAINT_ENABLE)) {
         result = IsOsAccountConstraintEnable(localId, constraint, isEnabled);
-    } else if (code == static_cast<uint32_t>(IOsAccount::Message::CHECK_OS_ACCOUNT_CONSTRAINT_ENABLED)) {
+    } else if (code == static_cast<uint32_t>(OsAccountInterfaceCode::CHECK_OS_ACCOUNT_CONSTRAINT_ENABLED)) {
         result = CheckOsAccountConstraintEnabled(localId, constraint, isEnabled);
     } else {
         ACCOUNT_LOGE("stub code is invalid");
@@ -831,13 +831,13 @@ ErrCode OsAccountStub::ProcCheckOsAccountConstraintEnabled(uint32_t code, Messag
 ErrCode OsAccountStub::ProcIsOsAccountConstraintEnable(MessageParcel &data, MessageParcel &reply)
 {
     return ProcCheckOsAccountConstraintEnabled(
-        static_cast<uint32_t>(IOsAccount::Message::IS_OS_ACCOUNT_CONSTRAINT_ENABLE), data, reply);
+        static_cast<uint32_t>(OsAccountInterfaceCode::IS_OS_ACCOUNT_CONSTRAINT_ENABLE), data, reply);
 }
 
 ErrCode OsAccountStub::ProcCheckOsAccountConstraintEnabled(MessageParcel &data, MessageParcel &reply)
 {
     return ProcCheckOsAccountConstraintEnabled(
-        static_cast<uint32_t>(IOsAccount::Message::CHECK_OS_ACCOUNT_CONSTRAINT_ENABLED), data, reply);
+        static_cast<uint32_t>(OsAccountInterfaceCode::CHECK_OS_ACCOUNT_CONSTRAINT_ENABLED), data, reply);
 }
 
 ErrCode OsAccountStub::ProcIsMultiOsAccountEnable(MessageParcel &data, MessageParcel &reply)

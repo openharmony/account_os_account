@@ -75,7 +75,7 @@ bool SelectAccountsByOptionsStubFuzzTest(const uint8_t* data, size_t size)
     
     MessageParcel reply;
     MessageOption option;
-    uint32_t code = static_cast<uint32_t>(IAppAccount::Message::SELECT_ACCOUNTS_BY_OPTIONS);
+    uint32_t code = static_cast<uint32_t>(AppAccountInterfaceCode::SELECT_ACCOUNTS_BY_OPTIONS);
     auto appAccountManagerService = std::make_shared<AppAccountManagerService>();
     appAccountManagerService->OnRemoteRequest(code, dataTemp, reply, option);
     

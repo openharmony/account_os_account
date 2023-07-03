@@ -58,7 +58,7 @@ bool SubscribeOsAccountStubFuzzTest(const uint8_t *data, size_t size)
         return false;
     }
 
-    uint32_t code = static_cast<uint32_t>(IOsAccount::Message::SUBSCRIBE_ACCOUNT);
+    uint32_t code = static_cast<uint32_t>(OsAccountInterfaceCode::SUBSCRIBE_OS_ACCOUNT);
 
     MessageParcel reply;
     MessageOption option;
