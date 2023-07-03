@@ -293,7 +293,7 @@ ohos_shared_library("accountmgr") {
   }
 
   if (build_selinux) {
-    external_deps += [ "selinux:librestorecon" ]
+    external_deps += [ "selinux_adapter:librestorecon" ]
     cflags += [ "-DWITH_SELINUX" ]
   }
 
