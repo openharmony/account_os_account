@@ -32,6 +32,7 @@ namespace {
 const uid_t TEST_UID  = 1;
 const std::string TEST_BUNDLE_NAME = "com.example.owner";
 const std::string STRING_OWNER = "com.example.owner";
+const std::string TEST_OWNER_NAME = "com.bundle.owner";
 const uint32_t TEST_APP_INDEX = 0;
 }  // namespace
 
@@ -78,6 +79,21 @@ HWTEST_F(AppAccountSubscribeManagerTest, SubscribeAppAccount_0100, TestSize.Leve
     ret = AppAccountSubscribeManager::GetInstance().SubscribeAppAccount(
         subscribeInfoPtr, nullptr, TEST_UID, TEST_BUNDLE_NAME, TEST_APP_INDEX);
     EXPECT_EQ(ret, ERR_APPACCOUNT_SERVICE_EVENT_LISTENER_IS_NULLPTR);
+    ACCOUNT_LOGI("end AppAccountSubscribeManager_SubscribeAppAccount_0100");
+}
+
+/**
+ * @tc.name: AppAccountSubscribeManager_UnsubscribeAppAccount_0100
+ * @tc.desc: SubscribeAppAccount with nullptr param.
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(AppAccountSubscribeManagerTest, UnsubscribeAppAccount_0100, TestSize.Level1)
+{
+    ACCOUNT_LOGI("AppAccountSubscribeManager_UnsubscribeAppAccount_0100");
+
+    ErrCode ret = AppAccountSubscribeManager::GetInstance().UnsubscribeAppAccount(nullptr);
+    EXPECT_EQ(ret, ERR_APPACCOUNT_SERVICE_EVENT_LISTENER_IS_NULLPTR);
 }
 
 /**
@@ -93,6 +109,48 @@ HWTEST_F(AppAccountSubscribeManagerTest, CheckAppAccess_0100, TestSize.Level1)
     ErrCode ret = AppAccountSubscribeManager::GetInstance().CheckAppAccess(
         nullptr, TEST_UID, TEST_BUNDLE_NAME, TEST_APP_INDEX);
     EXPECT_EQ(ret, ERR_APPACCOUNT_SERVICE_SUBSCRIBE_INFO_PTR_IS_NULLPTR);
+}
+
+/**
+ * @tc.name: AppAccountSubscribeManager_CheckAppAccess_0200
+ * @tc.desc: CheckAppAccess with nullptr param.
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(AppAccountSubscribeManagerTest, CheckAppAccess_0200, TestSize.Level1)
+{
+    ACCOUNT_LOGI("AppAccountSubscribeManager_CheckAppAccess_0200");
+
+    // check subscribeInfoPtr
+    std::vector<std::string> owners;
+    owners.emplace_back(STRING_OWNER);
+    AppAccountSubscribeInfo subscribeInfo(owners);
+    auto subscribeInfoPtr = std::make_shared<AppAccountSubscribeInfo>(subscribeInfo);
+
+    ErrCode ret = AppAccountSubscribeManager::GetInstance().CheckAppAccess(
+        subscribeInfoPtr, TEST_UID, TEST_BUNDLE_NAME, TEST_APP_INDEX);
+    EXPECT_EQ(ret, ERR_OK);
+}
+
+/**
+ * @tc.name: AppAccountSubscribeManager_CheckAppAccess_0300
+ * @tc.desc: CheckAppAccess with nullptr param.
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(AppAccountSubscribeManagerTest, CheckAppAccess_0300, TestSize.Level1)
+{
+    ACCOUNT_LOGI("AppAccountSubscribeManager_CheckAppAccess_0300");
+
+    // check subscribeInfoPtr
+    std::vector<std::string> owners;
+    owners.emplace_back(STRING_OWNER);
+    AppAccountSubscribeInfo subscribeInfo(owners);
+    auto subscribeInfoPtr = std::make_shared<AppAccountSubscribeInfo>(subscribeInfo);
+
+    ErrCode ret = AppAccountSubscribeManager::GetInstance().CheckAppAccess(
+        subscribeInfoPtr, TEST_UID, TEST_OWNER_NAME, TEST_APP_INDEX);
+    EXPECT_EQ(ret, ERR_APPACCOUNT_SERVICE_SUBSCRIBE_PERMISSION_DENIED);
 }
 
 /**
