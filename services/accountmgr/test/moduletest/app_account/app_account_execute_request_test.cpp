@@ -54,16 +54,15 @@ public:
     MOCK_METHOD2(OnResult, void(const int32_t errCode, const AAFwk::WantParams &parameters));
 };
 
-class MockAppAccountAuthorizationExtensionCallbackStub final
-    : public AppAccountAuthorizationExtensionCallbackStub {
+class MockAppAccountAuthorizationExtensionCallbackStub final : public AppAccountAuthorizationExtensionCallbackStub {
 public:
     explicit MockAppAccountAuthorizationExtensionCallbackStub(
         const std::shared_ptr<MockAppAccountAuthorizationExtensionCallback> &callback)
         : callback_(callback)
     {}
     virtual ~MockAppAccountAuthorizationExtensionCallbackStub();
-    void OnResult(const int32_t errCode, const AAFwk::WantParams &parameters) override;
-    
+    void OnResult(const AsyncCallbackError &businessError, const AAFwk::WantParams &parameters) override;
+
 private:
     std::shared_ptr<MockAppAccountAuthorizationExtensionCallback> callback_;
 };
@@ -72,10 +71,10 @@ MockAppAccountAuthorizationExtensionCallbackStub::~MockAppAccountAuthorizationEx
 {}
 
 void MockAppAccountAuthorizationExtensionCallbackStub::OnResult(
-    const int32_t errCode, const AAFwk::WantParams& parameters)
+    const AsyncCallbackError &businessError, const AAFwk::WantParams &parameters)
 {
     ACCOUNT_LOGI("mock AppAccountAuthorizationExtensionCallbackStub OnResult enter");
-    callback_->OnResult(errCode, parameters);
+    callback_->OnResult(businessError.code, parameters);
     return;
 }
 

@@ -243,12 +243,16 @@ void RequestConnection::OnAbilityConnectDone(
         authenticationProxy_ = iface_cast<IAppAccountAuthorizationExtension>(remoteObject);
     if ((!authenticationProxy_) || (!authenticationProxy_->AsObject())) {
         ACCOUNT_LOGE("failed to cast app account authenticator proxy, callerUid = %{public}d", uid_);
-        request_.callback->OnResult(ERR_JS_SYSTEM_SERVICE_EXCEPTION, errResult);
+        AsyncCallbackError businessError;
+        businessError.code = ERR_JS_SYSTEM_SERVICE_EXCEPTION;
+        request_.callback->OnResult(businessError, errResult);
         return;
     }
     resultCode = authenticationProxy_->StartAuthorization(request_);
     if (resultCode != ERR_OK) {
-        request_.callback->OnResult(ERR_JS_SYSTEM_SERVICE_EXCEPTION, errResult);
+        AsyncCallbackError businessError;
+        businessError.code = ERR_JS_SYSTEM_SERVICE_EXCEPTION;
+        request_.callback->OnResult(businessError, errResult);
     }
     return;
 }
