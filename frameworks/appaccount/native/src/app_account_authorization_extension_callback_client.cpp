@@ -30,10 +30,10 @@ AppAccountAuthorizationExtensionCallbackClient::~AppAccountAuthorizationExtensio
 {}
 
 void AppAccountAuthorizationExtensionCallbackClient::OnResult(
-    const int32_t errCode, const AAFwk::WantParams& parameters)
+    const AsyncCallbackError &businessError, const AAFwk::WantParams &parameters)
 {
     if (proxy_ != nullptr) {
-        proxy_->OnResult(errCode, parameters);
+        proxy_->OnResult(businessError, parameters);
     }
 }
 } // namespace AccountSA

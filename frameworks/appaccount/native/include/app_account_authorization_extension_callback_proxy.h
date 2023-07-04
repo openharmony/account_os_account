@@ -25,7 +25,7 @@ class AppAccountAuthorizationExtensionCallbackProxy : public IRemoteProxy<IAppAc
 public:
     explicit AppAccountAuthorizationExtensionCallbackProxy(const sptr<IRemoteObject> &object);
     ~AppAccountAuthorizationExtensionCallbackProxy();
-    void OnResult(const int32_t errCode, const AAFwk::WantParams &parameters) override;
+    void OnResult(const AsyncCallbackError &businessError, const AAFwk::WantParams &parameters) override;
 
 private:
     ErrCode SendRequest(AppAccountAuthorizationExtensionCallbackInterfaceCode code, MessageParcel &data);

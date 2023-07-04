@@ -26,7 +26,7 @@ public:
     explicit AppAccountAuthorizationExtensionCallbackClient(
         const sptr<IAppAccountAuthorizationExtensionCallback> &proxy);
     virtual ~AppAccountAuthorizationExtensionCallbackClient();
-    void OnResult(const int32_t errCode, const AAFwk::WantParams &parameters) override;
+    void OnResult(const AsyncCallbackError &businessError, const AAFwk::WantParams &parameters) override;
 
 private:
     sptr<IAppAccountAuthorizationExtensionCallback> proxy_;

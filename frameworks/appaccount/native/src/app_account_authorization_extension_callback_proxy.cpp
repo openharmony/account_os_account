@@ -44,19 +44,27 @@ ErrCode AppAccountAuthorizationExtensionCallbackProxy::SendRequest(
 }
 
 void AppAccountAuthorizationExtensionCallbackProxy::OnResult(
-    const int32_t errCode, const AAFwk::WantParams &parameters)
+    const AsyncCallbackError &businessError, const AAFwk::WantParams &parameters)
 {
     MessageParcel data;
     if (!data.WriteInterfaceToken(GetDescriptor())) {
         ACCOUNT_LOGE("failed to write descriptor");
         return;
     }
-    if (!data.WriteInt32(errCode)) {
-        ACCOUNT_LOGE("failed to write errCode");
+    if (!data.WriteInt32(businessError.code)) {
+        ACCOUNT_LOGE("failed to write error code");
+        return;
+    }
+    if (!data.WriteString(businessError.message)) {
+        ACCOUNT_LOGE("failed to write error message");
+        return;
+    }
+    if (!data.WriteParcelable(&businessError.data)) {
+        ACCOUNT_LOGE("failed to write error data");
         return;
     }
     if (!data.WriteParcelable(&parameters)) {
-        ACCOUNT_LOGE("failed to write write request parameters");
+        ACCOUNT_LOGE("failed to write request parameters");
         return;
     }
     ErrCode result = SendRequest(

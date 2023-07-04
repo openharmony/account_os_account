@@ -45,7 +45,8 @@ public:
             return ERR_JS_SYSTEM_SERVICE_EXCEPTION;
         }
         AAFwk::WantParams errResult;
-        request.callback->OnResult(ERR_OK, errResult);
+        AsyncCallbackError businessError;
+        request.callback->OnResult(businessError, errResult);
         return ERR_OK;
     }
 };
