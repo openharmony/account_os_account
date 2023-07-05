@@ -215,7 +215,7 @@ ohos_moduletest("os_account_control_file_manager_test") {
   external_deps = [
     "ability_runtime:ability_manager",
     "c_utils:utils",
-    "hiviewdfx_hilog_native:libhilog",
+    "hilog:libhilog",
     "ipc:ipc_single",
     "kv_store:distributeddata_inner",
   ]
@@ -245,7 +245,7 @@ ohos_moduletest("os_account_database_operator_test") {
   external_deps = [
     "ability_runtime:ability_manager",
     "c_utils:utils",
-    "hiviewdfx_hilog_native:libhilog",
+    "hilog:libhilog",
     "ipc:ipc_single",
     "kv_store:distributeddata_inner",
   ]
@@ -275,7 +275,7 @@ ohos_moduletest("os_account_file_operator_test") {
   external_deps = [
     "ability_runtime:ability_manager",
     "c_utils:utils",
-    "hiviewdfx_hilog_native:libhilog",
+    "hilog:libhilog",
     "ipc:ipc_single",
     "kv_store:distributeddata_inner",
   ]
@@ -320,7 +320,7 @@ ohos_moduletest("os_account_photo_operator_test") {
   external_deps = [
     "ability_runtime:ability_manager",
     "c_utils:utils",
-    "hiviewdfx_hilog_native:libhilog",
+    "hilog:libhilog",
     "ipc:ipc_single",
     "kv_store:distributeddata_inner",
   ]
