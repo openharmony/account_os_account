@@ -111,6 +111,8 @@ private:
         const std::string &owner, const std::string &authType, const std::string &token, MessageParcel &data);
     ErrCode WriteTokenVisibilityParam(
         const std::string &name, const std::string &authType, const std::string &bundleName, MessageParcel &data);
+    ErrCode SendRequestWithTwoStr(MessageParcel &reply, AppAccountInterfaceCode code,
+        const std::string &str1, const std::string &str2);
 
     template<typename T>
     bool WriteParcelableVector(const std::vector<T> &parcelableVector, MessageParcel &data);
