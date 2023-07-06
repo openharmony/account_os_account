@@ -16,6 +16,7 @@
 #ifndef APP_ACCOUNT_INTERFACES_INNERKITS_APPACCOUNT_NATIVE_INCLUDE_APP_ACCOUNT_AUTHENTICATION_EXTENSION_CALLBACK_H
 #define APP_ACCOUNT_INTERFACES_INNERKITS_APPACCOUNT_NATIVE_INCLUDE_APP_ACCOUNT_AUTHENTICATION_EXTENSION_CALLBACK_H
 
+#include "app_account_common.h"
 #include <cstdint>
 #include "want.h"
 
@@ -23,7 +24,7 @@ namespace OHOS {
 namespace AccountSA {
 class AppAccountAuthorizationExtensionCallback {
 public:
-    virtual void OnResult(const int32_t errCode, const AAFwk::WantParams& parameters) = 0;
+    virtual void OnResult(const AsyncCallbackError &businessData, const AAFwk::WantParams &parameters) = 0;
 };
 } // namespace AccountSA
 } // namespace OHOS

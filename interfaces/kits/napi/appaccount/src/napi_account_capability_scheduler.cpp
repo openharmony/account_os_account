@@ -385,6 +385,21 @@ ExecuteRequestAsyncContext::~ExecuteRequestAsyncContext()
     }
 }
 
+static napi_value CreateNapiErrData(napi_env env, const AsyncCallbackError &businessError)
+{
+    napi_value napiErrData = nullptr;
+    NAPI_CALL(env, napi_create_object(env, &napiErrData));
+    napi_value napiCode = nullptr;
+    NAPI_CALL(env, napi_create_int32(env, businessError.code, &napiCode));
+    NAPI_CALL(env, napi_set_named_property(env, napiErrData, "code", napiCode));
+    napi_value napiMessage = nullptr;
+    NAPI_CALL(env, napi_create_string_utf8(env, businessError.message.c_str(), NAPI_AUTO_LENGTH, &napiMessage));
+    NAPI_CALL(env, napi_set_named_property(env, napiErrData, "message", napiMessage));
+    napi_value napiErrParam = AppExecFwk::WrapWantParams(env, businessError.data);
+    NAPI_CALL(env, napi_set_named_property(env, napiErrData, "data", napiErrParam));
+    return napiErrData;
+}
+
 static void ExecuteRequestCompletedWork(uv_work_t *work, int status)
 {
     std::unique_ptr<uv_work_t> workPtr(work);
@@ -395,7 +410,7 @@ static void ExecuteRequestCompletedWork(uv_work_t *work, int status)
     ExecuteRequestAsyncContext *asyncContext = reinterpret_cast<ExecuteRequestAsyncContext *>(work->data);
     napi_value errJs = nullptr;
     napi_value dataJs = nullptr;
-    if (asyncContext->errCode == ERR_OK) {
+    if (asyncContext->businessError.code == ERR_OK) {
         dataJs = AppExecFwk::WrapWantParams(asyncContext->env, asyncContext->parameters);
         napi_value requestRef = nullptr;
         napi_get_reference_value(asyncContext->env, asyncContext->requestRef, &requestRef);
@@ -424,7 +439,10 @@ static void ExecuteRequestCompletedWork(uv_work_t *work, int status)
             ACCOUNT_LOGE("failed to set __proto__ property");
         }
     } else {
-        napi_create_uint32(asyncContext->env, asyncContext->errCode, &errJs);
+        errJs = CreateNapiErrData(asyncContext->env, asyncContext->businessError);
+    }
+    if (asyncContext->businessError.code != ERR_OK) {
+        asyncContext->errCode = asyncContext->businessError.code;
     }
     ReturnCallbackOrPromise(asyncContext->env, asyncContext, errJs, dataJs);
     napi_close_handle_scope(asyncContext->env, scope);
@@ -448,7 +466,7 @@ NapiExecuteRequestCallback::~NapiExecuteRequestCallback()
     }
 }
 
-void NapiExecuteRequestCallback::OnResult(const int32_t errCode, const AAFwk::WantParams& parameters)
+void NapiExecuteRequestCallback::OnResult(const AsyncCallbackError &businessError, const AAFwk::WantParams &parameters)
 {
     std::unique_lock<std::mutex> lock(lockInfo_.mutex);
     if ((callbackRef_ == nullptr) && (deferred_ == nullptr)) {
@@ -466,7 +484,7 @@ void NapiExecuteRequestCallback::OnResult(const int32_t errCode, const AAFwk::Wa
         delete work;
         return;
     }
-    asyncContext->errCode = errCode;
+    asyncContext->businessError = businessError;
     asyncContext->parameters = parameters;
     asyncContext->requestRef = requestRef_;
     asyncContext->callbackRef = callbackRef_;
@@ -478,7 +496,7 @@ void NapiExecuteRequestCallback::OnResult(const int32_t errCode, const AAFwk::Wa
     int resultCode = uv_queue_work(
         loop, work, [](uv_work_t *work) {}, ExecuteRequestCompletedWork);
     if (resultCode != 0) {
-        ACCOUNT_LOGE("failed to uv_queue_work, errCode: %{public}d", errCode);
+        ACCOUNT_LOGE("failed to uv_queue_work, errCode: %{public}d", resultCode);
         delete asyncContext;
         delete work;
         return;
@@ -602,7 +620,9 @@ static void ExecuteRequestCB(napi_env env, void *data)
     asyncContext->errCode = AppAccountManager::ExecuteRequest(asyncContext->accountRequest, callback);
     if (asyncContext->errCode != ERR_OK) {
         AAFwk::WantParams parameters;
-        callback->OnResult(ConvertToJSErrCode(asyncContext->errCode), parameters);
+        AsyncCallbackError businessError;
+        businessError.code = ConvertToJSErrCode(asyncContext->errCode);
+        callback->OnResult(businessError, parameters);
     }
 }
 

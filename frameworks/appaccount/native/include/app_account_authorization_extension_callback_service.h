@@ -26,7 +26,7 @@ public:
     AppAccountAuthorizationExtensionCallbackService(
         const std::shared_ptr<AppAccountAuthorizationExtensionCallback>& callback);
     ~AppAccountAuthorizationExtensionCallbackService() override;
-    void OnResult(const int32_t errCode, const AAFwk::WantParams& parameters) override;
+    void OnResult(const AsyncCallbackError &businessError, const AAFwk::WantParams &parameters) override;
 
 private:
     std::shared_ptr<AppAccountAuthorizationExtensionCallback> innerCallback_;

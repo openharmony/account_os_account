@@ -22,11 +22,16 @@
 
 namespace OHOS {
 namespace AccountSA {
+struct AsyncCallbackError {
+    int32_t code = 0;
+    std::string message = "";
+    AAFwk::WantParams data;
+};
 class IAppAccountAuthorizationExtensionCallback : public IRemoteBroker {
 public:
     DECLARE_INTERFACE_DESCRIPTOR(u"ohos.accountfwk.IAppAccountAuthorizationExtensionCallback");
 
-    virtual void OnResult(const int32_t errCode, const AAFwk::WantParams& parameters) = 0;
+    virtual void OnResult(const AsyncCallbackError &businessError, const AAFwk::WantParams &parameters) = 0;
 };
 }  // namespace AccountSA
 }  // namespace OHOS

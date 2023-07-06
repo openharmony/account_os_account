@@ -17,6 +17,7 @@
 
 #include <securec.h>
 #include "account_log_wrapper.h"
+#include "app_account_common.h"
 #include "ipc_skeleton.h"
 #include "want.h"
 
@@ -41,17 +42,27 @@ int32_t AppAccountAuthorizationExtensionCallbackStub::OnRemoteRequest(
 
 int32_t AppAccountAuthorizationExtensionCallbackStub::ProcOnResult(MessageParcel &data, MessageParcel &reply)
 {
-    int32_t result;
-    if (!data.ReadInt32(result)) {
-        ACCOUNT_LOGE("failed to read result");
+    AsyncCallbackError businessError;
+    if (!data.ReadInt32(businessError.code)) {
+        ACCOUNT_LOGE("failed to read code");
         return ERR_ACCOUNT_COMMON_READ_PARCEL_ERROR;
     }
+    if (!data.ReadString(businessError.message)) {
+        ACCOUNT_LOGE("failed to read message");
+        return ERR_ACCOUNT_COMMON_READ_PARCEL_ERROR;
+    }
+    std::shared_ptr<AAFwk::WantParams> errParameters(data.ReadParcelable<AAFwk::WantParams>());
+    if (errParameters == nullptr) {
+        ACCOUNT_LOGE("failed to read errParameters");
+        return ERR_ACCOUNT_COMMON_READ_PARCEL_ERROR;
+    }
+    businessError.data = *(errParameters);
     std::shared_ptr<AAFwk::WantParams> parameters(data.ReadParcelable<AAFwk::WantParams>());
     if (parameters == nullptr) {
         ACCOUNT_LOGE("failed to read extension parameters");
         return ERR_ACCOUNT_COMMON_READ_PARCEL_ERROR;
     }
-    OnResult(result, (*parameters));
+    OnResult(businessError, (*parameters));
     return ERR_NONE;
 }
 }  // namespace AccountSA

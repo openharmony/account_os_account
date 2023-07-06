@@ -27,13 +27,13 @@ AppAccountAuthorizationExtensionCallbackService::~AppAccountAuthorizationExtensi
 {}
 
 void AppAccountAuthorizationExtensionCallbackService::OnResult(
-    const int32_t errCode, const AAFwk::WantParams& parameters)
+    const AsyncCallbackError &businessError, const AAFwk::WantParams &parameters)
 {
     if (innerCallback_ == nullptr) {
         ACCOUNT_LOGE("innerCallback is nullptr");
         return;
     }
-    return innerCallback_->OnResult(errCode, parameters);
+    return innerCallback_->OnResult(businessError, parameters);
 }
 } // namespace AccountSA
 } // namespace OHOS
