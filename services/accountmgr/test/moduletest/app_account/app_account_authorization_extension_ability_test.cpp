@@ -47,7 +47,7 @@ public:
         : callback_(callback)
     {}
     virtual ~TestAppAccountAuthorizationExtensionCallback();
-    void OnResult(const int32_t errCode, const AAFwk::WantParams &parameters) override;
+    void OnResult(const AsyncCallbackError &businessError, const AAFwk::WantParams &parameters) override;
 
 private:
     std::shared_ptr<MockAppAccountAuthorizationExtensionCallback> callback_;
@@ -56,9 +56,10 @@ private:
 TestAppAccountAuthorizationExtensionCallback::~TestAppAccountAuthorizationExtensionCallback()
 {}
 
-void TestAppAccountAuthorizationExtensionCallback::OnResult(const int32_t errCode, const AAFwk::WantParams &parameters)
+void TestAppAccountAuthorizationExtensionCallback::OnResult(
+    const AsyncCallbackError &businessError, const AAFwk::WantParams &parameters)
 {
-    callback_->OnResult(errCode, parameters);
+    callback_->OnResult(businessError.code, parameters);
 }
 
 class MockJsAuthorizationExtension final : public OHOS::AbilityRuntime::AuthorizationExtension {
@@ -68,7 +69,8 @@ public:
     {
         AAFwk::WantParams parameters;
         EXPECT_NE(callbackPtr, nullptr);
-        callbackPtr->OnResult(0, parameters);
+        AsyncCallbackError businessError;
+        callbackPtr->OnResult(businessError, parameters);
         return;
     }
 };
@@ -220,10 +222,10 @@ HWTEST_F(AppAccountExtensionModuleTest, StartAuthorization_0400, TestSize.Level1
 HWTEST_F(AppAccountExtensionModuleTest, AppAccountAuthorizationExtensionCallbackProxy_001, TestSize.Level1)
 {
     AAFwk::WantParams parameters;
-    int32_t errCode = 0;
+    AsyncCallbackError businessError;
     ASSERT_NE(callbackProxyPtr_, nullptr);
-    callbackProxyPtr_->OnResult(errCode, parameters);
-    EXPECT_EQ(errCode, 0);
+    callbackProxyPtr_->OnResult(businessError, parameters);
+    EXPECT_EQ(businessError.code, 0);
 }
 
 /**

@@ -22,6 +22,7 @@
 #include "account_log_wrapper.h"
 #include "account_permission_manager.h"
 #include "app_account_authorization_extension_service.h"
+#include "app_account_common.h"
 #include "napi/native_api.h"
 #include "napi/native_node_api.h"
 #include "napi_account_common.h"
@@ -38,14 +39,61 @@ namespace AccountJsKit {
 namespace {
 constexpr size_t ARGC_ONE = 1;
 constexpr size_t ARGC_TWO = 2;
+const char BUSINESS_ERROR_CODE_NAME[] = "code";
+const char BUSINESS_ERROR_MESSAGE_NAME[] = "message";
+const char BUSINESS_ERROR_DATA_NAME[] = "data";
 }
 
 using namespace OHOS::AppExecFwk;
 using namespace OHOS::AbilityRuntime;
 using namespace OHOS::AccountSA;
 
+static bool ParseAsyncCallbackError(napi_env env, napi_value value, AsyncCallbackError &error)
+{
+    napi_valuetype valueType = napi_undefined;
+    NAPI_CALL_BASE(env, napi_typeof(env, value, &valueType), false);
+    if (valueType == napi_null || (valueType == napi_undefined)) {
+        error.code = 0;
+        return true;
+    }
+    napi_value napiCode = nullptr;
+    NAPI_CALL_BASE(env, napi_get_named_property(env, value, BUSINESS_ERROR_CODE_NAME, &napiCode), false);
+    if (napiCode == nullptr) {
+        ACCOUNT_LOGE("code is undefined");
+        return false;
+    }
+    NAPI_CALL_BASE(env, napi_get_value_int32(env, napiCode, &error.code), false);
+    bool hasData = false;
+    NAPI_CALL_BASE(env, napi_has_named_property(env, value, BUSINESS_ERROR_MESSAGE_NAME, &hasData), false);
+    if (hasData) {
+        napi_value asyncCallbackMessage = nullptr;
+        NAPI_CALL_BASE(
+            env, napi_get_named_property(env, value, BUSINESS_ERROR_MESSAGE_NAME, &asyncCallbackMessage), false);
+        valueType = napi_undefined;
+        NAPI_CALL_BASE(env, napi_typeof(env, asyncCallbackMessage, &valueType), false);
+        if ((valueType != napi_null) && (valueType != napi_undefined) &&
+            (!GetStringPropertyByKey(env, value, BUSINESS_ERROR_MESSAGE_NAME, error.message))) {
+            ACCOUNT_LOGE("parse request business message failed");
+            return false;
+        }
+    }
+    NAPI_CALL_BASE(env, napi_has_named_property(env, value, BUSINESS_ERROR_DATA_NAME, &hasData), false);
+    if (hasData) {
+        napi_value asyncCallbackErrorData = nullptr;
+        NAPI_CALL_BASE(env, napi_get_named_property(env, value, BUSINESS_ERROR_DATA_NAME, &asyncCallbackErrorData), false);
+        valueType = napi_undefined;
+        NAPI_CALL_BASE(env, napi_typeof(env, asyncCallbackErrorData, &valueType), false);
+        if ((valueType != napi_null) && (valueType != napi_undefined) &&
+            (!AppExecFwk::UnwrapWantParams(env, asyncCallbackErrorData, error.data))) {
+            ACCOUNT_LOGE("parse request businessError data failed");
+            return false;
+        }
+    }
+    return true;
+}
+
 static bool GetExtentionCallbackCommonParam(napi_env env, napi_callback_info cbInfo,
-    JsAppAuthorizationExtensionParam **param, BusinessError &error, napi_value *businessData)
+    JsAppAuthorizationExtensionParam **param, AsyncCallbackError &error, napi_value *businessData)
 {
     size_t argc = ARGC_TWO;
     napi_value argv[ARGC_TWO] = {nullptr};
@@ -60,7 +108,7 @@ static bool GetExtentionCallbackCommonParam(napi_env env, napi_callback_info cbI
         ACCOUNT_LOGE("native callback is nullptr");
         return false;
     }
-    if (!ParseBusinessError(env, argv[0], error)) {
+    if (!ParseAsyncCallbackError(env, argv[0], error)) {
         ACCOUNT_LOGE("parseBussinessError failed");
         return false;
     }
@@ -113,7 +161,7 @@ static napi_value CreateExtensionAsyncCallback(
 static napi_value OnResultCallback(napi_env env, napi_callback_info cbInfo)
 {
     JsAppAuthorizationExtensionParam *param = nullptr;
-    BusinessError error;
+    AsyncCallbackError error;
     napi_value businessData = nullptr;
     if (!GetExtentionCallbackCommonParam(env, cbInfo, &param, error, &businessData)) {
         AccountNapiThrow(env, ERR_JS_INVALID_PARAMETER, true);
@@ -129,7 +177,7 @@ static napi_value OnResultCallback(napi_env env, napi_callback_info cbInfo)
         return nullptr;
     }
 
-    param->callback->OnResult(error.code, parameters);
+    param->callback->OnResult(error, parameters);
     return nullptr;
 }
 

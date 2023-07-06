@@ -41,6 +41,7 @@ struct ExecuteRequestAsyncContext : public CommonAsyncContext {
     explicit ExecuteRequestAsyncContext(napi_env env) : CommonAsyncContext(env) {};
     ~ExecuteRequestAsyncContext();
     AccountCapabilityRequest accountRequest;
+    AsyncCallbackError businessError;
     AAFwk::WantParams parameters;
     napi_ref requestRef = nullptr;
 };
@@ -109,7 +110,7 @@ class NapiExecuteRequestCallback : public AppAccountAuthorizationExtensionCallba
 public:
     NapiExecuteRequestCallback(napi_env env, napi_ref callbackRef, napi_deferred deferred, napi_ref requestRef);
     ~NapiExecuteRequestCallback();
-    void OnResult(const int32_t errCode, const AAFwk::WantParams& parameters) override;
+    void OnResult(const AsyncCallbackError &businessError, const AAFwk::WantParams &parameters) override;
 
 private:
     AccountJsKit::ThreadLockInfo lockInfo_;
