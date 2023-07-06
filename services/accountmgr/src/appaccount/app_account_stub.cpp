@@ -28,7 +28,7 @@ namespace AccountSA {
 #define RETURN_IF_STRING_CONTAINS_SPECIAL_CHAR(str, reply)                        \
     if (CheckSpecialCharacters(str) != ERR_OK) {                           \
         ACCOUNT_LOGE("fail to check special characters");                  \
-        if (!(reply).WriteInt32(ERR_APPACCOUNT_SERVICE_INVALID_PARAMETER)) { \
+        if (!(reply).WriteInt32(ERR_ACCOUNT_COMMON_INVALID_PARAMETER)) { \
             ACCOUNT_LOGE("failed to write reply");                         \
             return IPC_STUB_WRITE_PARCEL_ERR;                              \
         }                                                                  \
@@ -38,7 +38,7 @@ namespace AccountSA {
 #define RETURN_IF_STRING_IS_OVERSIZE(str, maxSize, msg, reply)                                                         \
     if ((str).size() > (maxSize)) {                                                                             \
         ACCOUNT_LOGE("%{public}s, input size: %{public}zu, max size: %{public}zu", msg, (str).size(), maxSize); \
-        if (!(reply).WriteInt32(ERR_APPACCOUNT_SERVICE_INVALID_PARAMETER)) {                                      \
+        if (!(reply).WriteInt32(ERR_ACCOUNT_COMMON_INVALID_PARAMETER)) {                                      \
             ACCOUNT_LOGE("failed to write reply");                                                              \
             return IPC_STUB_WRITE_PARCEL_ERR;                                                                   \
         }                                                                                                       \
@@ -48,7 +48,7 @@ namespace AccountSA {
 #define RETURN_IF_STRING_IS_EMPTY_OR_OVERSIZE(str, maxSize, msg, reply)                                                \
     if ((str).empty() || ((str).size() > (maxSize))) {                                                          \
         ACCOUNT_LOGE("%{public}s, input size: %{public}zu, max size: %{public}zu", msg, (str).size(), maxSize); \
-        if (!(reply).WriteInt32(ERR_APPACCOUNT_SERVICE_INVALID_PARAMETER)) {                                      \
+        if (!(reply).WriteInt32(ERR_ACCOUNT_COMMON_INVALID_PARAMETER)) {                                      \
             ACCOUNT_LOGE("failed to write reply");                                                              \
             return IPC_STUB_WRITE_PARCEL_ERR;                                                                   \
         }                                                                                                       \
@@ -314,7 +314,7 @@ static ErrCode CheckSpecialCharacters(const std::string &str)
         std::size_t found = str.find(specialCharacter);
         if (found != std::string::npos) {
             ACCOUNT_LOGE("found a special character, specialCharacter = %{public}c", specialCharacter);
-            return ERR_APPACCOUNT_SERVICE_INVALID_PARAMETER;
+            return ERR_ACCOUNT_COMMON_INVALID_PARAMETER;
         }
     }
     return ERR_OK;
@@ -345,7 +345,7 @@ ErrCode AppAccountStub::ProcAddAccountImplicitly(uint32_t code, MessageParcel &d
     ErrCode result = ERR_OK;
     if (options == nullptr) {
         ACCOUNT_LOGE("invalid options");
-        result = ERR_APPACCOUNT_SERVICE_INVALID_PARAMETER;
+        result = ERR_ACCOUNT_COMMON_INVALID_PARAMETER;
     } else {
         RETURN_IF_STRING_IS_EMPTY_OR_OVERSIZE(options->GetStringParam(Constants::KEY_CALLER_ABILITY_NAME),
             Constants::ABILITY_NAME_MAX_SIZE, "abilityName is empty or oversize", reply);
@@ -367,7 +367,7 @@ ErrCode AppAccountStub::ProcCreateAccount(uint32_t code, MessageParcel &data, Me
     ErrCode result = ERR_OK;
     if (options == nullptr) {
         ACCOUNT_LOGE("invalid options");
-        result = ERR_APPACCOUNT_SERVICE_INVALID_PARAMETER;
+        result = ERR_ACCOUNT_COMMON_INVALID_PARAMETER;
     } else {
         RETURN_IF_STRING_IS_OVERSIZE(
             options->customData, Constants::MAX_CUSTOM_DATA_SIZE, "customData is oversize", reply);
@@ -394,7 +394,7 @@ ErrCode AppAccountStub::ProcCreateAccountImplicitly(uint32_t code, MessageParcel
     ErrCode result = ERR_OK;
     if (options == nullptr) {
         ACCOUNT_LOGE("invalid options");
-        result = ERR_APPACCOUNT_SERVICE_INVALID_PARAMETER;
+        result = ERR_ACCOUNT_COMMON_INVALID_PARAMETER;
     } else {
         RETURN_IF_STRING_IS_OVERSIZE(
             options->authType, Constants::AUTH_TYPE_MAX_SIZE, "authType is empty or oversize", reply);
@@ -602,7 +602,7 @@ ErrCode AppAccountStub::ProcAuthenticate(uint32_t code, MessageParcel &data, Mes
     ErrCode result = ERR_OK;
     if (options == nullptr) {
         ACCOUNT_LOGE("invalid options");
-        result = ERR_APPACCOUNT_SERVICE_INVALID_PARAMETER;
+        result = ERR_ACCOUNT_COMMON_INVALID_PARAMETER;
     } else {
         RETURN_IF_STRING_IS_OVERSIZE(options->GetStringParam(Constants::KEY_CALLER_ABILITY_NAME),
             Constants::ABILITY_NAME_MAX_SIZE, "abilityName is empty or oversize", reply);
@@ -902,7 +902,7 @@ ErrCode AppAccountStub::ProcSelectAccountsByOptions(uint32_t code, MessageParcel
     ErrCode result = ERR_OK;
     if ((options == nullptr) || (callback == nullptr)) {
         ACCOUNT_LOGE("invalid parameters");
-        result = ERR_APPACCOUNT_SERVICE_INVALID_PARAMETER;
+        result = ERR_ACCOUNT_COMMON_INVALID_PARAMETER;
     } else {
         RETURN_IF_STRING_IS_OVERSIZE(options->allowedAccounts,
             Constants::MAX_ALLOWED_ARRAY_SIZE_INPUT, "allowedAccounts array is oversize", reply);
@@ -930,7 +930,7 @@ ErrCode AppAccountStub::ProcVerifyCredential(uint32_t code, MessageParcel &data,
     ErrCode result = ERR_OK;
     if ((options == nullptr) || (callback == nullptr)) {
         ACCOUNT_LOGE("invalid parameters");
-        result = ERR_APPACCOUNT_SERVICE_INVALID_PARAMETER;
+        result = ERR_ACCOUNT_COMMON_INVALID_PARAMETER;
     } else {
         RETURN_IF_STRING_IS_OVERSIZE(
             options->credentialType, Constants::CREDENTIAL_TYPE_MAX_SIZE, "the credential type is oversize", reply);
@@ -959,7 +959,7 @@ ErrCode AppAccountStub::ProcCheckAccountLabels(uint32_t code, MessageParcel &dat
     ErrCode result = ERR_OK;
     if (callback == nullptr) {
         ACCOUNT_LOGE("invalid options");
-        result = ERR_APPACCOUNT_SERVICE_INVALID_PARAMETER;
+        result = ERR_ACCOUNT_COMMON_INVALID_PARAMETER;
     } else {
         result = CheckAccountLabels(name, owner, labels, callback);
     }
@@ -979,7 +979,7 @@ ErrCode AppAccountStub::ProcSetAuthenticatorProperties(uint32_t code, MessagePar
     ErrCode result = ERR_OK;
     if ((options == nullptr) || (callback == nullptr)) {
         ACCOUNT_LOGE("invalid parameters");
-        result = ERR_APPACCOUNT_SERVICE_INVALID_PARAMETER;
+        result = ERR_ACCOUNT_COMMON_INVALID_PARAMETER;
     } else {
         result = SetAuthenticatorProperties(owner, *options, callback);
     }
@@ -995,11 +995,9 @@ ErrCode AppAccountStub::ProcExecuteRequest(uint32_t code, MessageParcel &data, M
     std::shared_ptr<AccountCapabilityRequest> request(data.ReadParcelable<AccountCapabilityRequest>());
     sptr<IRemoteObject> callback = data.ReadRemoteObject();
     ErrCode result = ERR_OK;
-    if ((request == nullptr) || (callback == nullptr)) {
+    if ((request == nullptr) || (request->bundleName.size() == 0) || (callback == nullptr)) {
         ACCOUNT_LOGE("invalid parameters");
-        result = ERR_APPACCOUNT_SERVICE_INVALID_PARAMETER;
-    } else if (request->bundleName.size() == 0) {
-        result = ERR_APPACCOUNT_SERVICE_INVALID_PARAMETER;
+        result = ERR_ACCOUNT_COMMON_INVALID_PARAMETER;
     } else {
         result = ExecuteRequest(*request, callback);
     }

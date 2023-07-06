@@ -89,7 +89,7 @@ ErrCode AppAccountAuthenticatorStub::ProcAddAccountImplicitly(MessageParcel &dat
     ErrCode result = ERR_OK;
     if ((options == nullptr) || (callback == nullptr)) {
         ACCOUNT_LOGE("invalid request parameters");
-        result = ERR_APPACCOUNT_SERVICE_INVALID_PARAMETER;
+        result = ERR_ACCOUNT_COMMON_INVALID_PARAMETER;
     } else {
         result = AddAccountImplicitly(authType, callerBundleName, *options, callback);
     }
@@ -110,7 +110,7 @@ ErrCode AppAccountAuthenticatorStub::ProcAuthenticate(MessageParcel &data, Messa
     ErrCode result = ERR_OK;
     if ((options == nullptr) || (callback == nullptr)) {
         ACCOUNT_LOGE("invalid request parameters");
-        result = ERR_APPACCOUNT_SERVICE_INVALID_PARAMETER;
+        result = ERR_ACCOUNT_COMMON_INVALID_PARAMETER;
     } else {
         result = Authenticate(name, authType, callerBundleName, *options, callback);
     }
@@ -128,7 +128,7 @@ ErrCode AppAccountAuthenticatorStub::ProcCreateAccountImplicitly(MessageParcel &
     ErrCode result = ERR_OK;
     if ((options == nullptr) || (callback == nullptr)) {
         ACCOUNT_LOGE("invalid request parameters");
-        result = ERR_APPACCOUNT_SERVICE_INVALID_PARAMETER;
+        result = ERR_ACCOUNT_COMMON_INVALID_PARAMETER;
     } else {
         result = CreateAccountImplicitly(*options, callback);
     }
@@ -148,7 +148,7 @@ ErrCode AppAccountAuthenticatorStub::ProcAuth(MessageParcel &data, MessageParcel
     ErrCode result = ERR_OK;
     if ((options == nullptr) || (callback == nullptr)) {
         ACCOUNT_LOGE("invalid request parameters");
-        result = ERR_APPACCOUNT_SERVICE_INVALID_PARAMETER;
+        result = ERR_ACCOUNT_COMMON_INVALID_PARAMETER;
     } else {
         result = Auth(name, authType, *options, callback);
     }
@@ -167,7 +167,7 @@ ErrCode AppAccountAuthenticatorStub::ProcVerifyCredential(MessageParcel &data, M
     ErrCode result = ERR_OK;
     if ((options == nullptr) || (callback == nullptr)) {
         ACCOUNT_LOGE("invalid request parameters");
-        result = ERR_APPACCOUNT_SERVICE_INVALID_PARAMETER;
+        result = ERR_ACCOUNT_COMMON_INVALID_PARAMETER;
     } else {
         result = VerifyCredential(name, *options, callback);
     }
@@ -187,7 +187,7 @@ ErrCode AppAccountAuthenticatorStub::ProcCheckAccountLabels(MessageParcel &data,
     ErrCode result = ERR_OK;
     if (callback == nullptr) {
         ACCOUNT_LOGE("invalid request parameters");
-        result = ERR_APPACCOUNT_SERVICE_INVALID_PARAMETER;
+        result = ERR_ACCOUNT_COMMON_INVALID_PARAMETER;
     } else {
         result = CheckAccountLabels(name, labels, callback);
     }
@@ -205,7 +205,7 @@ ErrCode AppAccountAuthenticatorStub::ProcSetProperties(MessageParcel &data, Mess
     ErrCode result = ERR_OK;
     if ((options == nullptr) || (callback == nullptr)) {
         ACCOUNT_LOGE("invalid request parameters");
-        result = ERR_APPACCOUNT_SERVICE_INVALID_PARAMETER;
+        result = ERR_ACCOUNT_COMMON_INVALID_PARAMETER;
     } else {
         result = SetProperties(*options, callback);
     }
@@ -223,7 +223,7 @@ ErrCode AppAccountAuthenticatorStub::ProcIsAccountRemovable(MessageParcel &data,
     ErrCode result = ERR_OK;
     if (callback == nullptr) {
         ACCOUNT_LOGE("invalid request parameters");
-        result = ERR_APPACCOUNT_SERVICE_INVALID_PARAMETER;
+        result = ERR_ACCOUNT_COMMON_INVALID_PARAMETER;
     } else {
         result = IsAccountRemovable(name, callback);
     }

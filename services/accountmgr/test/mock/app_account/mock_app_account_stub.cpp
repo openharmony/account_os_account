@@ -40,17 +40,17 @@ ErrCode MockAppAccountStub::AddAccount(const std::string &name, const std::strin
 
     if (name.size() == 0) {
         ACCOUNT_LOGE("mock name is empty");
-        return ERR_APPACCOUNT_SERVICE_NAME_IS_EMPTY;
+        return ERR_ACCOUNT_COMMON_INVALID_PARAMETER;
     }
 
     if (name.size() > NAME_MAX_SIZE) {
         ACCOUNT_LOGE("mock name is out of range, name.size() = %{public}zu", name.size());
-        return ERR_APPACCOUNT_SERVICE_NAME_OUT_OF_RANGE;
+        return ERR_ACCOUNT_COMMON_INVALID_PARAMETER;
     }
 
     if (extraInfo.size() > EXTRA_INFO_MAX_SIZE) {
         ACCOUNT_LOGE("mock extra info is out of range, extraInfo.size() = %{public}zu", extraInfo.size());
-        return ERR_APPACCOUNT_SERVICE_EXTRA_INFO_OUT_OF_RANGE;
+        return ERR_ACCOUNT_COMMON_INVALID_PARAMETER;
     }
 
     return ERR_OK;
@@ -83,12 +83,12 @@ ErrCode MockAppAccountStub::DeleteAccount(const std::string &name)
 
     if (name.size() == 0) {
         ACCOUNT_LOGE("mock name is empty");
-        return ERR_APPACCOUNT_SERVICE_NAME_IS_EMPTY;
+        return ERR_ACCOUNT_COMMON_INVALID_PARAMETER;
     }
 
     if (name.size() > NAME_MAX_SIZE) {
         ACCOUNT_LOGE("mock name is out of range, name.size() = %{public}zu", name.size());
-        return ERR_APPACCOUNT_SERVICE_NAME_OUT_OF_RANGE;
+        return ERR_ACCOUNT_COMMON_INVALID_PARAMETER;
     }
 
     return ERR_OK;
@@ -388,7 +388,7 @@ ErrCode MockAppAccountStub::SubscribeAppAccount(
     ACCOUNT_LOGI("mock owners.size() = %{public}zu", owners.size());
     if (owners.size() == 0) {
         ACCOUNT_LOGE("mock owners are empty");
-        return ERR_APPACCOUNT_SERVICE_OWNERS_ARE_EMPTY;
+        return ERR_ACCOUNT_COMMON_INVALID_PARAMETER;
     }
 
     return ERR_OK;

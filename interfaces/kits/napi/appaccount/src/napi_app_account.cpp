@@ -566,7 +566,7 @@ napi_value NapiAppAccount::SetCredentialInternal(napi_env env, napi_callback_inf
         [](napi_env env, void *data) {
             AppAccountAsyncContext *asyncContext = reinterpret_cast<AppAccountAsyncContext *>(data);
             if ((!asyncContext->throwErr) && (!CheckSpecialCharacters(asyncContext->name))) {
-                asyncContext->errCode = ERR_APPACCOUNT_KIT_INVALID_PARAMETER;
+                asyncContext->errCode = ERR_ACCOUNT_COMMON_INVALID_PARAMETER;
                 return;
             }
             asyncContext->errCode = AppAccountManager::SetAccountCredential(
@@ -658,7 +658,7 @@ napi_value NapiAppAccount::SetDataSyncEnabledInternal(napi_env env, napi_callbac
         [](napi_env env, void *data) {
             AppAccountAsyncContext *asyncContext = reinterpret_cast<AppAccountAsyncContext *>(data);
             if ((!asyncContext->throwErr) && (!CheckSpecialCharacters(asyncContext->name))) {
-                asyncContext->errCode = ERR_APPACCOUNT_KIT_INVALID_PARAMETER;
+                asyncContext->errCode = ERR_ACCOUNT_COMMON_INVALID_PARAMETER;
                 return;
             }
             asyncContext->errCode =
@@ -713,7 +713,7 @@ napi_value NapiAppAccount::SetCustomDataInternal(napi_env env, napi_callback_inf
         [](napi_env env, void *data) {
             AppAccountAsyncContext *asyncContext = reinterpret_cast<AppAccountAsyncContext *>(data);
             if ((!asyncContext->throwErr) && (!CheckSpecialCharacters(asyncContext->name))) {
-                asyncContext->errCode = ERR_APPACCOUNT_KIT_INVALID_PARAMETER;
+                asyncContext->errCode = ERR_ACCOUNT_COMMON_INVALID_PARAMETER;
                 return;
             }
             asyncContext->errCode =
@@ -849,7 +849,7 @@ napi_value NapiAppAccount::GetAccountsByOwnerInternal(napi_env env, napi_callbac
                     AppAccountManager::QueryAllAccessibleAccounts(asyncContext->owner, asyncContext->appAccounts);
                 return;
             }
-            asyncContext->errCode = ERR_APPACCOUNT_KIT_INVALID_PARAMETER;
+            asyncContext->errCode = ERR_ACCOUNT_COMMON_INVALID_PARAMETER;
         },
         [](napi_env env, napi_status status, void *data) {
             GetAccountsAsyncContext *asyncContext = reinterpret_cast<GetAccountsAsyncContext *>(data);
@@ -1047,7 +1047,7 @@ void AuthInternalExecuteCB(napi_env env, void *data)
 {
     auto asyncContext = reinterpret_cast<OAuthAsyncContext *>(data);
     if ((!asyncContext->throwErr) && (!CheckSpecialCharacters(asyncContext->name))) {
-        asyncContext->errCode = ConvertToJSErrCodeV8(ERR_APPACCOUNT_KIT_INVALID_PARAMETER);
+        asyncContext->errCode = ConvertToJSErrCodeV8(ERR_ACCOUNT_COMMON_INVALID_PARAMETER);
         return;
     }
     ErrCode errCode = AppAccountManager::Authenticate(asyncContext->name, asyncContext->owner,
@@ -1187,7 +1187,7 @@ napi_value NapiAppAccount::SetAuthTokenInternal(napi_env env, napi_callback_info
         [](napi_env env, void *data) {
             OAuthAsyncContext *asyncContext = reinterpret_cast<OAuthAsyncContext *>(data);
             if ((!asyncContext->throwErr) && (!CheckSpecialCharacters(asyncContext->name))) {
-                asyncContext->errCode = ERR_APPACCOUNT_KIT_INVALID_PARAMETER;
+                asyncContext->errCode = ERR_ACCOUNT_COMMON_INVALID_PARAMETER;
                 return;
             }
             asyncContext->errCode = AppAccountManager::SetOAuthToken(

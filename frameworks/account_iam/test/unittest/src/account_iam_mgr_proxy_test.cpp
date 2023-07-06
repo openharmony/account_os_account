@@ -94,7 +94,7 @@ HWTEST_F(AccountIAMMgrProxyTest, AccountIAMMgrProxy001, TestSize.Level0)
     ASSERT_TRUE(cmdRes.find("set property callback is nullptr") != std::string::npos);
 
     int32_t ret = accountIAMMgrProxy->GetCredentialInfo(TEST_USER_ID, AuthType::ALL, nullptr);
-    EXPECT_EQ(ERR_APPACCOUNT_KIT_INVALID_PARAMETER, ret);
+    EXPECT_EQ(ERR_ACCOUNT_COMMON_INVALID_PARAMETER, ret);
     ret = accountIAMMgrProxy->AuthUser(TEST_USER_ID, authParam, nullptr, contextId);
     EXPECT_EQ(ERR_ACCOUNT_COMMON_INVALID_PARAMETER, ret);
 }
