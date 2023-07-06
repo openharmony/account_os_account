@@ -132,7 +132,7 @@ HWTEST_F(AppAccountManagerSubscribeTest, AppAccountManagerSubscribe_SubscribeApp
 
     // unsubscribe app account
     ErrCode result = AppAccountManager::SubscribeAppAccount(subscriberTestPtr);
-    EXPECT_EQ(result, ERR_APPACCOUNT_KIT_SUBSCRIBER_HAS_NO_OWNER);
+    EXPECT_EQ(result, ERR_ACCOUNT_COMMON_INVALID_PARAMETER);
 }
 
 /**
@@ -158,7 +158,7 @@ HWTEST_F(AppAccountManagerSubscribeTest, AppAccountManagerSubscribe_SubscribeApp
 
     // unsubscribe app account
     ErrCode result = AppAccountManager::SubscribeAppAccount(subscriberTestPtr);
-    EXPECT_EQ(result, ERR_APPACCOUNT_KIT_OWNER_OUT_OF_RANGE);
+    EXPECT_EQ(result, ERR_ACCOUNT_COMMON_INVALID_PARAMETER);
 }
 
 /**

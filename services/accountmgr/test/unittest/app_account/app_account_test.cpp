@@ -172,7 +172,7 @@ HWTEST_F(AppAccountTest, AppAccount_AddAccount_0200, TestSize.Level1)
 
     ErrCode result = AppAccount::GetInstance().AddAccount(STRING_NAME_EMPTY, STRING_EXTRA_INFO);
 
-    EXPECT_EQ(result, ERR_APPACCOUNT_KIT_INVALID_PARAMETER);
+    EXPECT_EQ(result, ERR_ACCOUNT_COMMON_INVALID_PARAMETER);
 }
 
 /**
@@ -202,7 +202,7 @@ HWTEST_F(AppAccountTest, AppAccount_AddAccount_0400, TestSize.Level1)
 
     ErrCode result = AppAccount::GetInstance().AddAccount(STRING_NAME_OUT_OF_RANGE, STRING_EXTRA_INFO);
 
-    EXPECT_EQ(result, ERR_APPACCOUNT_KIT_INVALID_PARAMETER);
+    EXPECT_EQ(result, ERR_ACCOUNT_COMMON_INVALID_PARAMETER);
 }
 
 /**
@@ -217,7 +217,7 @@ HWTEST_F(AppAccountTest, AppAccount_AddAccount_0500, TestSize.Level1)
 
     ErrCode result = AppAccount::GetInstance().AddAccount(STRING_NAME_CONTAINS_SPECIAL_CHARACTERS, STRING_EXTRA_INFO);
 
-    EXPECT_EQ(result, ERR_APPACCOUNT_KIT_INVALID_PARAMETER);
+    EXPECT_EQ(result, ERR_ACCOUNT_COMMON_INVALID_PARAMETER);
 }
 
 /**
@@ -232,7 +232,7 @@ HWTEST_F(AppAccountTest, AppAccount_AddAccount_0600, TestSize.Level1)
 
     ErrCode result = AppAccount::GetInstance().AddAccount(
         STRING_NAME_CONTAINS_SPECIAL_CHARACTERS_TWO, STRING_EXTRA_INFO);
-    EXPECT_EQ(result, ERR_APPACCOUNT_KIT_INVALID_PARAMETER);
+    EXPECT_EQ(result, ERR_ACCOUNT_COMMON_INVALID_PARAMETER);
 }
 
 /**
@@ -247,7 +247,7 @@ HWTEST_F(AppAccountTest, AppAccount_AddAccount_0700, TestSize.Level1)
 
     ErrCode result = AppAccount::GetInstance().AddAccount(
         STRING_NAME_CONTAINS_SPECIAL_CHARACTERS_THREE, STRING_EXTRA_INFO);
-    EXPECT_EQ(result, ERR_APPACCOUNT_KIT_INVALID_PARAMETER);
+    EXPECT_EQ(result, ERR_ACCOUNT_COMMON_INVALID_PARAMETER);
 }
 
 /**
@@ -262,7 +262,7 @@ HWTEST_F(AppAccountTest, AppAccount_AddAccount_0800, TestSize.Level1)
 
     ErrCode result = AppAccount::GetInstance().AddAccount(STRING_NAME, STRING_EXTRA_INFO_OUT_OF_RANGE);
 
-    EXPECT_EQ(result, ERR_APPACCOUNT_KIT_INVALID_PARAMETER);
+    EXPECT_EQ(result, ERR_ACCOUNT_COMMON_INVALID_PARAMETER);
 }
 
 /**
@@ -292,7 +292,7 @@ HWTEST_F(AppAccountTest, AppAccount_DeleteAccount_0200, TestSize.Level1)
 
     ErrCode result = AppAccount::GetInstance().DeleteAccount(STRING_NAME_EMPTY);
 
-    EXPECT_EQ(result, ERR_APPACCOUNT_KIT_INVALID_PARAMETER);
+    EXPECT_EQ(result, ERR_ACCOUNT_COMMON_INVALID_PARAMETER);
 }
 
 /**
@@ -307,7 +307,7 @@ HWTEST_F(AppAccountTest, AppAccount_DeleteAccount_0300, TestSize.Level1)
 
     ErrCode result = AppAccount::GetInstance().DeleteAccount(STRING_NAME_OUT_OF_RANGE);
 
-    EXPECT_EQ(result, ERR_APPACCOUNT_KIT_INVALID_PARAMETER);
+    EXPECT_EQ(result, ERR_ACCOUNT_COMMON_INVALID_PARAMETER);
 }
 
 /**
@@ -529,11 +529,11 @@ HWTEST_F(AppAccountTest, AppAccount_CreateAccount_002, TestSize.Level1)
 
     ErrCode result = AppAccount::GetInstance().CreateAccount("", option);
 
-    EXPECT_EQ(result, ERR_APPACCOUNT_KIT_INVALID_PARAMETER);
+    EXPECT_EQ(result, ERR_ACCOUNT_COMMON_INVALID_PARAMETER);
 
     result = AppAccount::GetInstance().CreateAccount(STRING_NAME_OUT_OF_RANGE, option);
 
-    EXPECT_EQ(result, ERR_APPACCOUNT_KIT_INVALID_PARAMETER);
+    EXPECT_EQ(result, ERR_ACCOUNT_COMMON_INVALID_PARAMETER);
 }
 
 /**
@@ -553,5 +553,5 @@ HWTEST_F(AppAccountTest, AppAccount_CreateAccount_003, TestSize.Level1)
         option.customData[key] = value;
     }
     ErrCode result = AppAccount::GetInstance().CreateAccount("test", option);
-    EXPECT_EQ(result, ERR_APPACCOUNT_KIT_INVALID_PARAMETER);
+    EXPECT_EQ(result, ERR_ACCOUNT_COMMON_INVALID_PARAMETER);
 }

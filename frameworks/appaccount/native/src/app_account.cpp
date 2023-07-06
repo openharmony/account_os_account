@@ -30,19 +30,19 @@ namespace AccountSA {
 #define RETURN_IF_STRING_CONTAINS_SPECIAL_CHAR(str)         \
     if (CheckSpecialCharacters(str) != ERR_OK) {            \
         ACCOUNT_LOGE("failed to check special characters"); \
-        return ERR_APPACCOUNT_KIT_INVALID_PARAMETER;        \
+        return ERR_ACCOUNT_COMMON_INVALID_PARAMETER;        \
     }                                                       \
 
 #define RETURN_IF_STRING_IS_EMPTY_OR_OVERSIZE(str, maxSize, msg)                                                \
     if ((str).empty() || ((str).size() > (maxSize))) {                                                            \
         ACCOUNT_LOGE("%{public}s, input size: %{public}zu, max size: %{public}zu", msg, (str).size(), maxSize); \
-        return ERR_APPACCOUNT_KIT_INVALID_PARAMETER;                                                            \
+        return ERR_ACCOUNT_COMMON_INVALID_PARAMETER;                                                            \
     }
 
 #define RETURN_IF_STRING_IS_OVERSIZE(str, maxSize, msg)                                                         \
     if ((str).size() > (maxSize)) {                                                                             \
         ACCOUNT_LOGE("%{public}s, input size: %{public}zu, max size: %{public}zu", msg, (str).size(), maxSize); \
-        return ERR_APPACCOUNT_KIT_INVALID_PARAMETER;                                                            \
+        return ERR_ACCOUNT_COMMON_INVALID_PARAMETER;                                                            \
     }                                                                                                           \
 
 #define RETURN_IF_PROXY_IS_NULLPTR()                        \
@@ -89,7 +89,7 @@ ErrCode AppAccount::CreateAccount(const std::string &name, const CreateAccountOp
     RETURN_IF_STRING_IS_EMPTY_OR_OVERSIZE(name, Constants::NAME_MAX_SIZE, "name is empty or oversize");
     RETURN_IF_PROXY_IS_NULLPTR();
     if (options.customData.size() > Constants::MAX_CUSTOM_DATA_SIZE) {
-        return ERR_APPACCOUNT_KIT_INVALID_PARAMETER;
+        return ERR_ACCOUNT_COMMON_INVALID_PARAMETER;
     }
     for (auto it : options.customData) {
         RETURN_IF_STRING_IS_OVERSIZE(it.first, Constants::ASSOCIATED_KEY_MAX_SIZE, "customData key is oversize");
@@ -423,7 +423,7 @@ ErrCode AppAccount::SelectAccountsByOptions(
         options.requiredLabels, Constants::MAX_ALLOWED_ARRAY_SIZE_INPUT, "requiredLabels array is oversize");
     if (callback == nullptr) {
         ACCOUNT_LOGE("callback is nullptr");
-        return ERR_APPACCOUNT_KIT_INVALID_PARAMETER;
+        return ERR_ACCOUNT_COMMON_INVALID_PARAMETER;
     }
     RETURN_IF_PROXY_IS_NULLPTR();
     return appAccountProxy_->SelectAccountsByOptions(options, callback->AsObject());
@@ -434,7 +434,7 @@ ErrCode AppAccount::VerifyCredential(const std::string &name, const std::string 
 {
     if (callback == nullptr) {
         ACCOUNT_LOGE("callback is nullptr");
-        return ERR_APPACCOUNT_KIT_INVALID_PARAMETER;
+        return ERR_ACCOUNT_COMMON_INVALID_PARAMETER;
     }
     RETURN_IF_STRING_IS_EMPTY_OR_OVERSIZE(name, Constants::NAME_MAX_SIZE, "name is empty or oversize");
     RETURN_IF_STRING_IS_EMPTY_OR_OVERSIZE(owner, Constants::OWNER_MAX_SIZE, "owner is empty or oversize");
@@ -450,7 +450,7 @@ ErrCode AppAccount::CheckAccountLabels(const std::string &name, const std::strin
 {
     if (callback == nullptr) {
         ACCOUNT_LOGE("callback is nullptr");
-        return ERR_APPACCOUNT_KIT_INVALID_PARAMETER;
+        return ERR_ACCOUNT_COMMON_INVALID_PARAMETER;
     }
     RETURN_IF_STRING_IS_EMPTY_OR_OVERSIZE(name, Constants::NAME_MAX_SIZE, "name is empty or oversize");
     RETURN_IF_STRING_IS_EMPTY_OR_OVERSIZE(owner, Constants::OWNER_MAX_SIZE, "owner is empty or oversize");
@@ -465,7 +465,7 @@ ErrCode AppAccount::SetAuthenticatorProperties(const std::string &owner,
 {
     if (callback == nullptr) {
         ACCOUNT_LOGE("callback is nullptr");
-        return ERR_APPACCOUNT_KIT_INVALID_PARAMETER;
+        return ERR_ACCOUNT_COMMON_INVALID_PARAMETER;
     }
     RETURN_IF_STRING_IS_EMPTY_OR_OVERSIZE(owner, Constants::OWNER_MAX_SIZE, "owner is empty or oversize");
     RETURN_IF_PROXY_IS_NULLPTR();
@@ -491,11 +491,11 @@ ErrCode AppAccount::ExecuteRequest(
 {
     if (callback == nullptr) {
         ACCOUNT_LOGE("callback is nullptr");
-        return ERR_APPACCOUNT_KIT_INVALID_PARAMETER;
+        return ERR_ACCOUNT_COMMON_INVALID_PARAMETER;
     }
     if (request.bundleName.size() == 0) {
         ACCOUNT_LOGE("bundleName is empty");
-        return ERR_APPACCOUNT_KIT_INVALID_PARAMETER;
+        return ERR_ACCOUNT_COMMON_INVALID_PARAMETER;
     }
     RETURN_IF_PROXY_IS_NULLPTR();
     return appAccountProxy_->ExecuteRequest(request, callback->AsObject());
@@ -523,7 +523,7 @@ ErrCode AppAccount::SubscribeAppAccount(const std::shared_ptr<AppAccountSubscrib
     }
 
     if (owners.size() == 0) {
-        return ERR_APPACCOUNT_KIT_SUBSCRIBER_HAS_NO_OWNER;
+        return ERR_ACCOUNT_COMMON_INVALID_PARAMETER;
     }
 
     // remove duplicate ones
@@ -537,7 +537,7 @@ ErrCode AppAccount::SubscribeAppAccount(const std::shared_ptr<AppAccountSubscrib
     for (auto owner : owners) {
         if (owner.size() > Constants::OWNER_MAX_SIZE) {
             ACCOUNT_LOGE("owner is out of range, owner.size() = %{public}zu", owner.size());
-            return ERR_APPACCOUNT_KIT_OWNER_OUT_OF_RANGE;
+            return ERR_ACCOUNT_COMMON_INVALID_PARAMETER;
         }
     }
 
@@ -599,7 +599,7 @@ ErrCode AppAccount::CheckSpecialCharacters(const std::string &name)
         std::size_t found = name.find(specialCharacter);
         if (found != std::string::npos) {
             ACCOUNT_LOGE("found a special character, specialCharacter = %{public}c", specialCharacter);
-            return ERR_APPACCOUNT_KIT_INVALID_PARAMETER;
+            return ERR_ACCOUNT_COMMON_INVALID_PARAMETER;
         }
     }
 
