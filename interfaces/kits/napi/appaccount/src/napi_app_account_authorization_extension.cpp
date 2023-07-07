@@ -80,8 +80,9 @@ static bool ParseAsyncCallbackError(napi_env env, napi_value value, AsyncCallbac
     NAPI_CALL_BASE(env, napi_has_named_property(env, value, BUSINESS_ERROR_DATA_NAME, &hasData), false);
     if (hasData) {
         napi_value asyncCallbackErrorData = nullptr;
-        NAPI_CALL_BASE(env, napi_get_named_property(env, value, BUSINESS_ERROR_DATA_NAME, &asyncCallbackErrorData), false);
-        valueType = napi_undefined;
+        NAPI_CALL_BASE(
+            env, napi_get_named_property(env, value, BUSINESS_ERROR_DATA_NAME, &asyncCallbackErrorData), false);
+        valueType = napi_undefined; 
         NAPI_CALL_BASE(env, napi_typeof(env, asyncCallbackErrorData, &valueType), false);
         if ((valueType != napi_null) && (valueType != napi_undefined) &&
             (!AppExecFwk::UnwrapWantParams(env, asyncCallbackErrorData, error.data))) {
@@ -164,7 +165,7 @@ static napi_value OnResultCallback(napi_env env, napi_callback_info cbInfo)
     AsyncCallbackError error;
     napi_value businessData = nullptr;
     if (!GetExtentionCallbackCommonParam(env, cbInfo, &param, error, &businessData)) {
-        AccountNapiThrow(env, ERR_JS_INVALID_PARAMETER, true);
+        AccountNapiThrow(env, ERR_JS_PARAMETER_ERROR, true);
         return nullptr;
     }
     AAFwk::WantParams parameters;
@@ -173,7 +174,7 @@ static napi_value OnResultCallback(napi_env env, napi_callback_info cbInfo)
     if ((valueType != napi_null) && (valueType != napi_undefined) &&
         (!AppExecFwk::UnwrapWantParams(env, businessData, parameters))) {
         ACCOUNT_LOGE("parse request WantParams failed");
-        AccountNapiThrow(env, ERR_JS_INVALID_PARAMETER, true);
+        AccountNapiThrow(env, ERR_JS_PARAMETER_ERROR, true);
         return nullptr;
     }
 

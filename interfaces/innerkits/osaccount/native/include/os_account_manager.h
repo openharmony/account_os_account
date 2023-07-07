@@ -331,7 +331,7 @@ public:
     static ErrCode GetSerialNumberByOsAccountLocalId(const int &id, int64_t &serialNumber);
 
     /**
-     * @brief Unsubscribes the event of an OS account by the subscriber.
+     * @brief Subscribes the event of an OS account by the subscriber.
      * @param subscriber subscriber information
      * @return error code, see account_error_no.h
      */
