@@ -108,7 +108,8 @@ void AppAccountManagerServiceModuleTest::TearDown(void)
 HWTEST_F(AppAccountManagerServiceModuleTest, AppAccountManagerService_ExecuteRequest_0100, TestSize.Level1)
 {
     auto testCallback = std::make_shared<MockAppAccountAuthorizationExtensionCallback>();
-    sptr<IRemoteObject> callback = new (std::nothrow)MockAppAccountAuthorizationExtensionCallbackStub(testCallback);
+    sptr<IAppAccountAuthorizationExtensionCallback> callback =
+        new (std::nothrow)MockAppAccountAuthorizationExtensionCallbackStub(testCallback);
     ASSERT_NE(callback, nullptr);
     AccountCapabilityRequest request;
     request.bundleName = STRING_NORMAL_BUNDLENAME;
@@ -127,7 +128,8 @@ HWTEST_F(AppAccountManagerServiceModuleTest, AppAccountManagerService_ExecuteReq
 HWTEST_F(AppAccountManagerServiceModuleTest, AppAccountManagerService_ExecuteRequest_0200, TestSize.Level1)
 {
     auto testCallback = std::make_shared<MockAppAccountAuthorizationExtensionCallback>();
-    sptr<IRemoteObject> callback = new (std::nothrow)MockAppAccountAuthorizationExtensionCallbackStub(testCallback);
+    sptr<IAppAccountAuthorizationExtensionCallback> callback =
+        new (std::nothrow)MockAppAccountAuthorizationExtensionCallbackStub(testCallback);
     ASSERT_NE(callback, nullptr);
     AccountCapabilityRequest request;
     request.bundleName = STRING_NORMAL_BUNDLENAME;
@@ -146,7 +148,8 @@ HWTEST_F(AppAccountManagerServiceModuleTest, AppAccountManagerService_ExecuteReq
 HWTEST_F(AppAccountManagerServiceModuleTest, AppAccountManagerService_ExecuteRequest_0300, TestSize.Level1)
 {
     auto testCallback = std::make_shared<MockAppAccountAuthorizationExtensionCallback>();
-    sptr<IRemoteObject> callback = new (std::nothrow)MockAppAccountAuthorizationExtensionCallbackStub(testCallback);
+    sptr<IAppAccountAuthorizationExtensionCallback> callback =
+        new (std::nothrow)MockAppAccountAuthorizationExtensionCallbackStub(testCallback);
     ASSERT_NE(callback, nullptr);
     AccountCapabilityRequest request;
     request.bundleName = STRING_OWNER;
@@ -164,7 +167,8 @@ HWTEST_F(AppAccountManagerServiceModuleTest, AppAccountManagerService_ExecuteReq
 HWTEST_F(AppAccountManagerServiceModuleTest, AppAccountManagerService_ExecuteRequest_0400, TestSize.Level1)
 {
     auto testCallback = std::make_shared<MockAppAccountAuthorizationExtensionCallback>();
-    sptr<IRemoteObject> callback = new (std::nothrow)MockAppAccountAuthorizationExtensionCallbackStub(testCallback);
+    sptr<IAppAccountAuthorizationExtensionCallback> callback =
+        new (std::nothrow)MockAppAccountAuthorizationExtensionCallbackStub(testCallback);
     ASSERT_NE(callback, nullptr);
     AccountCapabilityRequest request;
     request.bundleName = STRING_OWNER;
@@ -182,7 +186,8 @@ HWTEST_F(AppAccountManagerServiceModuleTest, AppAccountManagerService_ExecuteReq
 HWTEST_F(AppAccountManagerServiceModuleTest, AppAccountManagerService_ExecuteRequest_0500, TestSize.Level1)
 {
     auto testCallback = std::make_shared<MockAppAccountAuthorizationExtensionCallback>();
-    sptr<IRemoteObject> callback = new (std::nothrow)MockAppAccountAuthorizationExtensionCallbackStub(testCallback);
+    sptr<IAppAccountAuthorizationExtensionCallback> callback =
+        new (std::nothrow)MockAppAccountAuthorizationExtensionCallbackStub(testCallback);
     ASSERT_NE(callback, nullptr);
     AccountCapabilityRequest request;
     request.bundleName = STRING_BUNDLE_NAME_NOT_INSTALLED;
@@ -200,7 +205,8 @@ HWTEST_F(AppAccountManagerServiceModuleTest, AppAccountManagerService_ExecuteReq
 HWTEST_F(AppAccountManagerServiceModuleTest, AppAccountManagerService_ExecuteRequest_0600, TestSize.Level1)
 {
     auto testCallback = std::make_shared<MockAppAccountAuthorizationExtensionCallback>();
-    sptr<IRemoteObject> callback = new (std::nothrow)MockAppAccountAuthorizationExtensionCallbackStub(testCallback);
+    sptr<IAppAccountAuthorizationExtensionCallback> callback =
+        new (std::nothrow)MockAppAccountAuthorizationExtensionCallbackStub(testCallback);
     ASSERT_NE(callback, nullptr);
     AccountCapabilityRequest request;
     request.bundleName = STRING_BUNDLEINFO_WITH_NO_VALID_EXTENSION;
@@ -218,7 +224,8 @@ HWTEST_F(AppAccountManagerServiceModuleTest, AppAccountManagerService_ExecuteReq
 HWTEST_F(AppAccountManagerServiceModuleTest, AppAccountManagerService_ExecuteRequest_0700, TestSize.Level1)
 {
     auto testCallback = std::make_shared<MockAppAccountAuthorizationExtensionCallback>();
-    sptr<IRemoteObject> callback = new (std::nothrow)MockAppAccountAuthorizationExtensionCallbackStub(testCallback);
+    sptr<IAppAccountAuthorizationExtensionCallback> callback =
+        new (std::nothrow)MockAppAccountAuthorizationExtensionCallbackStub(testCallback);
     ASSERT_NE(callback, nullptr);
     AccountCapabilityRequest request;
     request.bundleName = STRING_BUNDLEINFO_WITH_NO_VALID_TYPE_EXTENSION;
@@ -236,7 +243,8 @@ HWTEST_F(AppAccountManagerServiceModuleTest, AppAccountManagerService_ExecuteReq
 HWTEST_F(AppAccountManagerServiceModuleTest, AppAccountManagerService_ExecuteRequest_0800, TestSize.Level1)
 {
     auto testCallback = std::make_shared<MockAppAccountAuthorizationExtensionCallback>();
-    sptr<IRemoteObject> callback = new (std::nothrow)MockAppAccountAuthorizationExtensionCallbackStub(testCallback);
+    sptr<IAppAccountAuthorizationExtensionCallback> callback =
+        new (std::nothrow)MockAppAccountAuthorizationExtensionCallbackStub(testCallback);
     ASSERT_NE(callback, nullptr);
     AccountCapabilityRequest request;
     request.bundleName = STRING_BUNDLEINFO_WITH_MULTIPLE_VALID_EXTENSION;
@@ -254,7 +262,8 @@ HWTEST_F(AppAccountManagerServiceModuleTest, AppAccountManagerService_ExecuteReq
 HWTEST_F(AppAccountManagerServiceModuleTest, AppAccountManagerService_ExecuteRequest_0900, TestSize.Level1)
 {
     auto testCallback = std::make_shared<MockAppAccountAuthorizationExtensionCallback>();
-    sptr<IRemoteObject> callback = new (std::nothrow)MockAppAccountAuthorizationExtensionCallbackStub(testCallback);
+    sptr<IAppAccountAuthorizationExtensionCallback> callback =
+        new (std::nothrow)MockAppAccountAuthorizationExtensionCallbackStub(testCallback);
     ASSERT_NE(callback, nullptr);
     AccountCapabilityRequest request;
     request.bundleName = STRING_NORMAL_BUNDLENAME;
@@ -272,7 +281,8 @@ HWTEST_F(AppAccountManagerServiceModuleTest, AppAccountManagerService_ExecuteReq
 HWTEST_F(AppAccountManagerServiceModuleTest, AppAccountManagerService_ExecuteRequest_1000, TestSize.Level1)
 {
     auto testCallback = std::make_shared<MockAppAccountAuthorizationExtensionCallback>();
-    sptr<IRemoteObject> callback = new (std::nothrow)MockAppAccountAuthorizationExtensionCallbackStub(testCallback);
+    sptr<IAppAccountAuthorizationExtensionCallback> callback =
+        new (std::nothrow)MockAppAccountAuthorizationExtensionCallbackStub(testCallback);
     ASSERT_NE(callback, nullptr);
     AccountCapabilityRequest request;
     request.bundleName = STRING_NORMAL_BUNDLENAME;
@@ -291,7 +301,8 @@ HWTEST_F(AppAccountManagerServiceModuleTest, AppAccountManagerService_ExecuteReq
 HWTEST_F(AppAccountManagerServiceModuleTest, AppAccountManagerService_ExecuteRequest_1100, TestSize.Level1)
 {
     auto testCallback = std::make_shared<MockAppAccountAuthorizationExtensionCallback>();
-    sptr<IRemoteObject> callback = new (std::nothrow)MockAppAccountAuthorizationExtensionCallbackStub(testCallback);
+    sptr<IAppAccountAuthorizationExtensionCallback> callback =
+        new (std::nothrow)MockAppAccountAuthorizationExtensionCallbackStub(testCallback);
     ASSERT_NE(callback, nullptr);
     AccountCapabilityRequest request;
     request.bundleName = STRING_NORMAL_BUNDLENAME;

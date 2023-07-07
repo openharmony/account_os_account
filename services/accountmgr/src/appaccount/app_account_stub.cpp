@@ -342,14 +342,14 @@ ErrCode AppAccountStub::ProcAddAccountImplicitly(uint32_t code, MessageParcel &d
     std::string authType = data.ReadString();
     RETURN_IF_STRING_IS_OVERSIZE(authType, Constants::AUTH_TYPE_MAX_SIZE, "authType is oversize", reply);
     std::shared_ptr<AAFwk::Want> options(data.ReadParcelable<AAFwk::Want>());
+    auto callback = iface_cast<IAppAccountAuthenticatorCallback>(data.ReadRemoteObject());
     ErrCode result = ERR_OK;
-    if (options == nullptr) {
+    if ((options == nullptr) || (callback == nullptr)) {
         ACCOUNT_LOGE("invalid options");
         result = ERR_ACCOUNT_COMMON_INVALID_PARAMETER;
     } else {
         RETURN_IF_STRING_IS_EMPTY_OR_OVERSIZE(options->GetStringParam(Constants::KEY_CALLER_ABILITY_NAME),
             Constants::ABILITY_NAME_MAX_SIZE, "abilityName is empty or oversize", reply);
-        sptr<IRemoteObject> callback = data.ReadRemoteObject();
         result = AddAccountImplicitly(owner, authType, *options, callback);
     }
     if (!reply.WriteInt32(result)) {
@@ -391,8 +391,9 @@ ErrCode AppAccountStub::ProcCreateAccountImplicitly(uint32_t code, MessageParcel
     std::string owner = data.ReadString();
     RETURN_IF_STRING_IS_EMPTY_OR_OVERSIZE(owner, Constants::OWNER_MAX_SIZE, "owner is empty or oversize", reply);
     sptr<CreateAccountImplicitlyOptions> options = data.ReadParcelable<CreateAccountImplicitlyOptions>();
+    auto callback = iface_cast<IAppAccountAuthenticatorCallback>(data.ReadRemoteObject());
     ErrCode result = ERR_OK;
-    if (options == nullptr) {
+    if ((options == nullptr) || (callback == nullptr)) {
         ACCOUNT_LOGE("invalid options");
         result = ERR_ACCOUNT_COMMON_INVALID_PARAMETER;
     } else {
@@ -402,7 +403,6 @@ ErrCode AppAccountStub::ProcCreateAccountImplicitly(uint32_t code, MessageParcel
             Constants::ABILITY_NAME_MAX_SIZE, "abilityName is empty or oversize", reply);
         RETURN_IF_STRING_IS_OVERSIZE(options->requiredLabels,
             Constants::MAX_ALLOWED_ARRAY_SIZE_INPUT, "requiredLabels array is oversize", reply);
-        sptr<IRemoteObject> callback = data.ReadRemoteObject();
         result = CreateAccountImplicitly(owner, *options, callback);
     }
     if (!reply.WriteInt32(result)) {
@@ -599,14 +599,14 @@ ErrCode AppAccountStub::ProcAuthenticate(uint32_t code, MessageParcel &data, Mes
     std::string authType = data.ReadString();
     RETURN_IF_STRING_IS_OVERSIZE(authType, Constants::AUTH_TYPE_MAX_SIZE, "authType is oversize", reply);
     std::shared_ptr<AAFwk::Want> options(data.ReadParcelable<AAFwk::Want>());
+    auto callback = iface_cast<IAppAccountAuthenticatorCallback>(data.ReadRemoteObject());
     ErrCode result = ERR_OK;
-    if (options == nullptr) {
+    if ((options == nullptr) || (callback == nullptr)) {
         ACCOUNT_LOGE("invalid options");
         result = ERR_ACCOUNT_COMMON_INVALID_PARAMETER;
     } else {
         RETURN_IF_STRING_IS_OVERSIZE(options->GetStringParam(Constants::KEY_CALLER_ABILITY_NAME),
             Constants::ABILITY_NAME_MAX_SIZE, "abilityName is empty or oversize", reply);
-        sptr<IRemoteObject> callback = data.ReadRemoteObject();
         result = Authenticate(name, owner, authType, *options, callback);
     }
     if (!reply.WriteInt32(result)) {
@@ -898,7 +898,7 @@ ErrCode AppAccountStub::ProcDeleteAccountCredential(uint32_t code, MessageParcel
 ErrCode AppAccountStub::ProcSelectAccountsByOptions(uint32_t code, MessageParcel &data, MessageParcel &reply)
 {
     std::shared_ptr<SelectAccountsOptions> options(data.ReadParcelable<SelectAccountsOptions>());
-    sptr<IRemoteObject> callback = data.ReadRemoteObject();
+    auto callback = iface_cast<IAppAccountAuthenticatorCallback>(data.ReadRemoteObject());
     ErrCode result = ERR_OK;
     if ((options == nullptr) || (callback == nullptr)) {
         ACCOUNT_LOGE("invalid parameters");
@@ -926,7 +926,7 @@ ErrCode AppAccountStub::ProcVerifyCredential(uint32_t code, MessageParcel &data,
     std::string owner = data.ReadString();
     RETURN_IF_STRING_IS_EMPTY_OR_OVERSIZE(owner, Constants::OWNER_MAX_SIZE, "owner is empty or oversize", reply);
     std::shared_ptr<VerifyCredentialOptions> options(data.ReadParcelable<VerifyCredentialOptions>());
-    sptr<IRemoteObject> callback = data.ReadRemoteObject();
+    auto callback = iface_cast<IAppAccountAuthenticatorCallback>(data.ReadRemoteObject());
     ErrCode result = ERR_OK;
     if ((options == nullptr) || (callback == nullptr)) {
         ACCOUNT_LOGE("invalid parameters");
@@ -955,7 +955,7 @@ ErrCode AppAccountStub::ProcCheckAccountLabels(uint32_t code, MessageParcel &dat
     data.ReadStringVector(&labels);
     RETURN_IF_STRING_IS_EMPTY_OR_OVERSIZE(
         labels, Constants::MAX_ALLOWED_ARRAY_SIZE_INPUT, "labels array is empty or oversize", reply);
-    sptr<IRemoteObject> callback = data.ReadRemoteObject();
+    auto callback = iface_cast<IAppAccountAuthenticatorCallback>(data.ReadRemoteObject());
     ErrCode result = ERR_OK;
     if (callback == nullptr) {
         ACCOUNT_LOGE("invalid options");
@@ -975,7 +975,7 @@ ErrCode AppAccountStub::ProcSetAuthenticatorProperties(uint32_t code, MessagePar
     std::string owner = data.ReadString();
     RETURN_IF_STRING_IS_EMPTY_OR_OVERSIZE(owner, Constants::OWNER_MAX_SIZE,  "owner is empty or oversize", reply);
     std::shared_ptr<SetPropertiesOptions> options(data.ReadParcelable<SetPropertiesOptions>());
-    sptr<IRemoteObject> callback = data.ReadRemoteObject();
+    auto callback = iface_cast<IAppAccountAuthenticatorCallback>(data.ReadRemoteObject());
     ErrCode result = ERR_OK;
     if ((options == nullptr) || (callback == nullptr)) {
         ACCOUNT_LOGE("invalid parameters");
@@ -993,7 +993,7 @@ ErrCode AppAccountStub::ProcSetAuthenticatorProperties(uint32_t code, MessagePar
 ErrCode AppAccountStub::ProcExecuteRequest(uint32_t code, MessageParcel &data, MessageParcel &reply)
 {
     std::shared_ptr<AccountCapabilityRequest> request(data.ReadParcelable<AccountCapabilityRequest>());
-    sptr<IRemoteObject> callback = data.ReadRemoteObject();
+    auto callback = iface_cast<IAppAccountAuthorizationExtensionCallback>(data.ReadRemoteObject());
     ErrCode result = ERR_OK;
     if ((request == nullptr) || (request->bundleName.size() == 0) || (callback == nullptr)) {
         ACCOUNT_LOGE("invalid parameters");

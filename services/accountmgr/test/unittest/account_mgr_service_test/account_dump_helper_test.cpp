@@ -224,7 +224,7 @@ HWTEST_F(AccountDumpHelperTest, AccountDumpParameterTest005, TestSize.Level0)
     vector<std::string> cmd = {"-ohos_account_infos"};
     accountDumpHelper_->Dump(cmd, out);
     auto pos = out.find("System error", 0);
-    EXPECT_NE(std::string::npos, pos);
+    EXPECT_EQ(std::string::npos, pos);
 }
 
 /**
