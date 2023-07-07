@@ -32,7 +32,8 @@ public:
 class MockAppAccountAuthorizationExtensionCallbackStub final
     : public AccountSA::AppAccountAuthorizationExtensionCallbackStub {
 public:
-    MOCK_METHOD2(OnResult, void(const AccountSA::AsyncCallbackError &businessError, const AAFwk::WantParams &parameters));
+    MOCK_METHOD2(
+        OnResult, void(const AccountSA::AsyncCallbackError &businessError, const AAFwk::WantParams &parameters));
 };
 }  // namespace AccountTest
 }  // OHOS
