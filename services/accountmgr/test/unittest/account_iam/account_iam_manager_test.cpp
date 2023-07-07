@@ -133,7 +133,7 @@ public:
         return 0;
     }
 
-    int32_t NotifyVolumeDestroyed(std::string volumeId)
+    int32_t NotifyVolumeStateChanged(std::string volumeId, VolumeState state)
     {
         return 0;
     }
