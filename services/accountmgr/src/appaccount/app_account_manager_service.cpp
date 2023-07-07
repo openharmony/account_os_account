@@ -56,7 +56,7 @@ ErrCode AppAccountManagerService::AddAccount(const std::string &name, const std:
 }
 
 ErrCode AppAccountManagerService::AddAccountImplicitly(const std::string &owner, const std::string &authType,
-    const AAFwk::Want &options, const sptr<IRemoteObject> &callback)
+    const AAFwk::Want &options, const sptr<IAppAccountAuthenticatorCallback> &callback)
 {
     AuthenticatorSessionRequest request;
     request.callerPid = IPCSkeleton::GetCallingPid();
@@ -68,7 +68,7 @@ ErrCode AppAccountManagerService::AddAccountImplicitly(const std::string &owner,
     request.authType = authType;
     request.options = options;
     request.callerAbilityName = options.GetStringParam(Constants::KEY_CALLER_ABILITY_NAME);
-    request.callback = iface_cast<IAppAccountAuthenticatorCallback>(callback);
+    request.callback = callback;
     request.options.RemoveParam(Constants::KEY_CALLER_ABILITY_NAME);
     request.options.SetParam(Constants::KEY_CALLER_PID, request.callerPid);
     request.options.SetParam(Constants::KEY_CALLER_UID, request.callerUid);
@@ -88,7 +88,7 @@ ErrCode AppAccountManagerService::CreateAccount(const std::string &name, const C
 }
 
 ErrCode AppAccountManagerService::CreateAccountImplicitly(const std::string &owner,
-    const CreateAccountImplicitlyOptions &options, const sptr<IRemoteObject> &callback)
+    const CreateAccountImplicitlyOptions &options, const sptr<IAppAccountAuthenticatorCallback> &callback)
 {
     AuthenticatorSessionRequest request;
     request.callerPid = IPCSkeleton::GetCallingPid();
@@ -98,7 +98,7 @@ ErrCode AppAccountManagerService::CreateAccountImplicitly(const std::string &own
     }
     request.owner = owner;
     request.callerAbilityName = options.parameters.GetStringParam(Constants::KEY_CALLER_ABILITY_NAME);
-    request.callback = iface_cast<IAppAccountAuthenticatorCallback>(callback);
+    request.callback = callback;
     request.createOptions = options;
     request.createOptions.parameters.RemoveParam(Constants::KEY_CALLER_ABILITY_NAME);
     request.createOptions.parameters.SetParam(Constants::KEY_CALLER_BUNDLE_NAME, request.callerBundleName);
@@ -308,7 +308,7 @@ ErrCode AppAccountManagerService::SetAccountCredential(
 }
 
 ErrCode AppAccountManagerService::Authenticate(const std::string &name, const std::string &owner,
-    const std::string &authType, const AAFwk::Want &options, const sptr<IRemoteObject> &callback)
+    const std::string &authType, const AAFwk::Want &options, const sptr<IAppAccountAuthenticatorCallback> &callback)
 {
     AuthenticatorSessionRequest request;
     request.callerPid = IPCSkeleton::GetCallingPid();
@@ -321,7 +321,7 @@ ErrCode AppAccountManagerService::Authenticate(const std::string &name, const st
     request.authType = authType;
     request.options = options;
     request.callerAbilityName = options.GetStringParam(Constants::KEY_CALLER_ABILITY_NAME);
-    request.callback = iface_cast<IAppAccountAuthenticatorCallback>(callback);
+    request.callback = callback;
     request.options.RemoveParam(Constants::KEY_CALLER_ABILITY_NAME);
     request.options.SetParam(Constants::KEY_CALLER_BUNDLE_NAME, request.callerBundleName);
     request.options.SetParam(Constants::KEY_CALLER_UID, request.callerUid);
@@ -643,7 +643,7 @@ ErrCode AppAccountManagerService::DeleteAccountCredential(
 }
 
 ErrCode AppAccountManagerService::SelectAccountsByOptions(
-    const SelectAccountsOptions &options, const sptr<IRemoteObject> &callback)
+    const SelectAccountsOptions &options, const sptr<IAppAccountAuthenticatorCallback> &callback)
 {
     int32_t callingUid = -1;
     std::string bundleName;
@@ -652,12 +652,11 @@ ErrCode AppAccountManagerService::SelectAccountsByOptions(
     if (ret != ERR_OK) {
         return ret;
     }
-    auto authenticatorCallback = iface_cast<IAppAccountAuthenticatorCallback>(callback);
-    return innerManager_->SelectAccountsByOptions(options, authenticatorCallback, callingUid, bundleName, appIndex);
+    return innerManager_->SelectAccountsByOptions(options, callback, callingUid, bundleName, appIndex);
 }
 
 ErrCode AppAccountManagerService::VerifyCredential(const std::string &name, const std::string &owner,
-    const VerifyCredentialOptions &options, const sptr<IRemoteObject> &callback)
+    const VerifyCredentialOptions &options, const sptr<IAppAccountAuthenticatorCallback> &callback)
 {
     AuthenticatorSessionRequest request;
     ErrCode result = GetCallingInfo(request.callerUid, request.callerBundleName, request.appIndex);
@@ -667,12 +666,12 @@ ErrCode AppAccountManagerService::VerifyCredential(const std::string &name, cons
     request.name = name;
     request.owner = owner;
     request.verifyCredOptions = options;
-    request.callback = iface_cast<IAppAccountAuthenticatorCallback>(callback);
+    request.callback = callback;
     return innerManager_->VerifyCredential(request);
 }
 
 ErrCode AppAccountManagerService::CheckAccountLabels(const std::string &name, const std::string &owner,
-    const std::vector<std::string> &labels, const sptr<IRemoteObject> &callback)
+    const std::vector<std::string> &labels, const sptr<IAppAccountAuthenticatorCallback> &callback)
 {
     AuthenticatorSessionRequest request;
     ErrCode result = GetCallingInfo(request.callerUid, request.callerBundleName, request.appIndex);
@@ -680,14 +679,14 @@ ErrCode AppAccountManagerService::CheckAccountLabels(const std::string &name, co
         return result;
     }
     request.labels = labels;
-    request.callback = iface_cast<IAppAccountAuthenticatorCallback>(callback);
+    request.callback = callback;
     request.name = name;
     request.owner = owner;
     return innerManager_->CheckAccountLabels(request);
 }
 
-ErrCode AppAccountManagerService::SetAuthenticatorProperties(
-    const std::string &owner, const SetPropertiesOptions &options, const sptr<IRemoteObject> &callback)
+ErrCode AppAccountManagerService::SetAuthenticatorProperties(const std::string &owner,
+    const SetPropertiesOptions &options, const sptr<IAppAccountAuthenticatorCallback> &callback)
 {
     AuthenticatorSessionRequest request;
     ErrCode result = GetCallingInfo(request.callerUid, request.callerBundleName, request.appIndex);
@@ -696,7 +695,7 @@ ErrCode AppAccountManagerService::SetAuthenticatorProperties(
     }
     request.owner = owner;
     request.setPropOptions = options;
-    request.callback = iface_cast<IAppAccountAuthenticatorCallback>(callback);
+    request.callback = callback;
     return innerManager_->SetAuthenticatorProperties(request);
 }
 
@@ -746,7 +745,7 @@ static bool QueryAbilityInfo(const std::string &bundleName, const std::string &a
 }
 
 ErrCode AppAccountManagerService::ExecuteRequest(
-    const AccountCapabilityRequest &request, const sptr<IRemoteObject> &callback)
+    const AccountCapabilityRequest &request, const sptr<IAppAccountAuthorizationExtensionCallback> &callback)
 {
     AuthorizationRequest innerRequest;
     std::string callerBundleName;
@@ -756,7 +755,7 @@ ErrCode AppAccountManagerService::ExecuteRequest(
         return result;
     }
     innerRequest.parameters = request.parameters;
-    innerRequest.callback = iface_cast<IAppAccountAuthorizationExtensionCallback>(callback);
+    innerRequest.callback = callback;
     if (innerRequest.callback == nullptr) {
         return ERR_JS_SYSTEM_SERVICE_EXCEPTION;
     }

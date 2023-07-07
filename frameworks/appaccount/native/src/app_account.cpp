@@ -72,16 +72,12 @@ ErrCode AppAccount::AddAccount(const std::string &name, const std::string &extra
 ErrCode AppAccount::AddAccountImplicitly(const std::string &owner, const std::string &authType,
     const AAFwk::Want &options, const sptr<IAppAccountAuthenticatorCallback> &callback)
 {
-    sptr<IRemoteObject> callbackObj = nullptr;
-    if (callback != nullptr) {
-        callbackObj = callback->AsObject();
-    }
     RETURN_IF_STRING_IS_EMPTY_OR_OVERSIZE(owner, Constants::OWNER_MAX_SIZE, "owner is empty or oversize");
     RETURN_IF_STRING_IS_OVERSIZE(authType, Constants::AUTH_TYPE_MAX_SIZE, "authType is oversize");
     RETURN_IF_STRING_IS_EMPTY_OR_OVERSIZE(options.GetStringParam(Constants::KEY_CALLER_ABILITY_NAME),
         Constants::ABILITY_NAME_MAX_SIZE, "abilityName is empty or oversize");
     RETURN_IF_PROXY_IS_NULLPTR();
-    return appAccountProxy_->AddAccountImplicitly(owner, authType, options, callbackObj);
+    return appAccountProxy_->AddAccountImplicitly(owner, authType, options, callback);
 }
 
 ErrCode AppAccount::CreateAccount(const std::string &name, const CreateAccountOptions &options)
@@ -101,10 +97,6 @@ ErrCode AppAccount::CreateAccount(const std::string &name, const CreateAccountOp
 ErrCode AppAccount::CreateAccountImplicitly(const std::string &owner, const CreateAccountImplicitlyOptions &options,
     const sptr<IAppAccountAuthenticatorCallback> &callback)
 {
-    sptr<IRemoteObject> callbackObj = nullptr;
-    if (callback != nullptr) {
-        callbackObj = callback->AsObject();
-    }
     RETURN_IF_STRING_IS_EMPTY_OR_OVERSIZE(owner, Constants::OWNER_MAX_SIZE, "owner is empty or oversize");
     RETURN_IF_STRING_IS_OVERSIZE(options.authType, Constants::AUTH_TYPE_MAX_SIZE, "authType is empty or oversize");
     RETURN_IF_STRING_IS_EMPTY_OR_OVERSIZE(options.parameters.GetStringParam(Constants::KEY_CALLER_ABILITY_NAME),
@@ -112,7 +104,7 @@ ErrCode AppAccount::CreateAccountImplicitly(const std::string &owner, const Crea
     RETURN_IF_STRING_IS_OVERSIZE(
         options.requiredLabels, Constants::MAX_ALLOWED_ARRAY_SIZE_INPUT, "requiredLabels array is oversize");
     RETURN_IF_PROXY_IS_NULLPTR();
-    return appAccountProxy_->CreateAccountImplicitly(owner, options, callbackObj);
+    return appAccountProxy_->CreateAccountImplicitly(owner, options, callback);
 }
 
 ErrCode AppAccount::DeleteAccount(const std::string &name)
@@ -224,17 +216,13 @@ ErrCode AppAccount::SetAccountCredential(
 ErrCode AppAccount::Authenticate(const std::string &name, const std::string &owner, const std::string &authType,
     const AAFwk::Want &options, const sptr<IAppAccountAuthenticatorCallback> &callback)
 {
-    sptr<IRemoteObject> callbackObj = nullptr;
-    if (callback != nullptr) {
-        callbackObj = callback->AsObject();
-    }
     RETURN_IF_STRING_IS_EMPTY_OR_OVERSIZE(name, Constants::NAME_MAX_SIZE, "name is empty or oversize");
     RETURN_IF_STRING_IS_EMPTY_OR_OVERSIZE(owner, Constants::OWNER_MAX_SIZE, "owner is empty or oversize");
     RETURN_IF_STRING_IS_OVERSIZE(authType, Constants::AUTH_TYPE_MAX_SIZE, "authType is oversize");
     RETURN_IF_STRING_IS_OVERSIZE(options.GetStringParam(Constants::KEY_CALLER_ABILITY_NAME),
         Constants::ABILITY_NAME_MAX_SIZE, "abilityName is empty or oversize");
     RETURN_IF_PROXY_IS_NULLPTR();
-    return appAccountProxy_->Authenticate(name, owner, authType, options, callbackObj);
+    return appAccountProxy_->Authenticate(name, owner, authType, options, callback);
 }
 
 ErrCode AppAccount::GetOAuthToken(
@@ -421,55 +409,39 @@ ErrCode AppAccount::SelectAccountsByOptions(
         options.allowedOwners, Constants::MAX_ALLOWED_ARRAY_SIZE_INPUT, "allowedOwners array is oversize");
     RETURN_IF_STRING_IS_OVERSIZE(
         options.requiredLabels, Constants::MAX_ALLOWED_ARRAY_SIZE_INPUT, "requiredLabels array is oversize");
-    if (callback == nullptr) {
-        ACCOUNT_LOGE("callback is nullptr");
-        return ERR_ACCOUNT_COMMON_INVALID_PARAMETER;
-    }
     RETURN_IF_PROXY_IS_NULLPTR();
-    return appAccountProxy_->SelectAccountsByOptions(options, callback->AsObject());
+    return appAccountProxy_->SelectAccountsByOptions(options, callback);
 }
 
 ErrCode AppAccount::VerifyCredential(const std::string &name, const std::string &owner,
     const VerifyCredentialOptions &options, const sptr<IAppAccountAuthenticatorCallback> &callback)
 {
-    if (callback == nullptr) {
-        ACCOUNT_LOGE("callback is nullptr");
-        return ERR_ACCOUNT_COMMON_INVALID_PARAMETER;
-    }
     RETURN_IF_STRING_IS_EMPTY_OR_OVERSIZE(name, Constants::NAME_MAX_SIZE, "name is empty or oversize");
     RETURN_IF_STRING_IS_EMPTY_OR_OVERSIZE(owner, Constants::OWNER_MAX_SIZE, "owner is empty or oversize");
     RETURN_IF_STRING_IS_OVERSIZE(
         options.credentialType, Constants::CREDENTIAL_TYPE_MAX_SIZE, "the credential type is oversize");
     RETURN_IF_STRING_IS_OVERSIZE(options.credential, Constants::CREDENTIAL_MAX_SIZE, "the credential is oversize");
     RETURN_IF_PROXY_IS_NULLPTR();
-    return appAccountProxy_->VerifyCredential(name, owner, options, callback->AsObject());
+    return appAccountProxy_->VerifyCredential(name, owner, options, callback);
 }
 
 ErrCode AppAccount::CheckAccountLabels(const std::string &name, const std::string &owner,
     const std::vector<std::string> &labels, const sptr<IAppAccountAuthenticatorCallback> &callback)
 {
-    if (callback == nullptr) {
-        ACCOUNT_LOGE("callback is nullptr");
-        return ERR_ACCOUNT_COMMON_INVALID_PARAMETER;
-    }
     RETURN_IF_STRING_IS_EMPTY_OR_OVERSIZE(name, Constants::NAME_MAX_SIZE, "name is empty or oversize");
     RETURN_IF_STRING_IS_EMPTY_OR_OVERSIZE(owner, Constants::OWNER_MAX_SIZE, "owner is empty or oversize");
     RETURN_IF_STRING_IS_EMPTY_OR_OVERSIZE(
         labels, Constants::MAX_ALLOWED_ARRAY_SIZE_INPUT, "labels array is empty or oversize");
     RETURN_IF_PROXY_IS_NULLPTR();
-    return appAccountProxy_->CheckAccountLabels(name, owner, labels, callback->AsObject());
+    return appAccountProxy_->CheckAccountLabels(name, owner, labels, callback);
 }
 
 ErrCode AppAccount::SetAuthenticatorProperties(const std::string &owner,
     const SetPropertiesOptions &options, const sptr<IAppAccountAuthenticatorCallback> &callback)
 {
-    if (callback == nullptr) {
-        ACCOUNT_LOGE("callback is nullptr");
-        return ERR_ACCOUNT_COMMON_INVALID_PARAMETER;
-    }
     RETURN_IF_STRING_IS_EMPTY_OR_OVERSIZE(owner, Constants::OWNER_MAX_SIZE, "owner is empty or oversize");
     RETURN_IF_PROXY_IS_NULLPTR();
-    return appAccountProxy_->SetAuthenticatorProperties(owner, options, callback->AsObject());
+    return appAccountProxy_->SetAuthenticatorProperties(owner, options, callback);
 }
 
 ErrCode AppAccount::GetAllAccessibleAccounts(std::vector<AppAccountInfo> &appAccounts)
@@ -489,16 +461,12 @@ ErrCode AppAccount::QueryAllAccessibleAccounts(
 ErrCode AppAccount::ExecuteRequest(
     const AccountCapabilityRequest &request, const sptr<IAppAccountAuthorizationExtensionCallback> &callback)
 {
-    if (callback == nullptr) {
-        ACCOUNT_LOGE("callback is nullptr");
-        return ERR_ACCOUNT_COMMON_INVALID_PARAMETER;
-    }
     if (request.bundleName.size() == 0) {
         ACCOUNT_LOGE("bundleName is empty");
         return ERR_ACCOUNT_COMMON_INVALID_PARAMETER;
     }
     RETURN_IF_PROXY_IS_NULLPTR();
-    return appAccountProxy_->ExecuteRequest(request, callback->AsObject());
+    return appAccountProxy_->ExecuteRequest(request, callback);
 }
 
 ErrCode AppAccount::SubscribeAppAccount(const std::shared_ptr<AppAccountSubscriber> &subscriber)

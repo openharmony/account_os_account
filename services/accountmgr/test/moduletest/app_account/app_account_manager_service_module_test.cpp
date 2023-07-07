@@ -1819,7 +1819,7 @@ HWTEST_F(AppAccountManagerServiceModuleTest, AppAccountManagerService_AddAccount
 
     AAFwk::Want options;
     options.SetParam(AccountSA::Constants::KEY_CALLER_ABILITY_NAME, STRING_ABILITY_NAME);
-    sptr<IRemoteObject> callback = nullptr;
+    sptr<IAppAccountAuthenticatorCallback> callback = nullptr;
     ErrCode result = g_accountManagerService->AddAccountImplicitly(
         STRING_OWNER, STRING_AUTH_TYPE, options, callback);
     EXPECT_EQ(result, ERR_APPACCOUNT_SERVICE_OAUTH_AUTHENTICATOR_NOT_EXIST);
@@ -1837,7 +1837,7 @@ HWTEST_F(AppAccountManagerServiceModuleTest, AppAccountManagerService_CreateAcco
 
     CreateAccountImplicitlyOptions options;
     options.parameters.SetParam(AccountSA::Constants::KEY_CALLER_ABILITY_NAME, STRING_ABILITY_NAME);
-    sptr<IRemoteObject> callback = nullptr;
+    sptr<IAppAccountAuthenticatorCallback> callback = nullptr;
     ErrCode result = g_accountManagerService->CreateAccountImplicitly(
         STRING_OWNER, options, callback);
     EXPECT_EQ(result, ERR_APPACCOUNT_SERVICE_OAUTH_AUTHENTICATOR_NOT_EXIST);
@@ -1855,7 +1855,7 @@ HWTEST_F(AppAccountManagerServiceModuleTest, AppAccountManagerService_Authentica
 
     AAFwk::Want options;
     options.SetParam(AccountSA::Constants::KEY_CALLER_ABILITY_NAME, STRING_ABILITY_NAME);
-    sptr<IRemoteObject> callback = nullptr;
+    sptr<IAppAccountAuthenticatorCallback> callback = nullptr;
     ErrCode result = g_accountManagerService->Authenticate(STRING_NAME,
         STRING_OWNER, STRING_AUTH_TYPE, options, callback);
     EXPECT_EQ(result, ERR_APPACCOUNT_SERVICE_OAUTH_AUTHENTICATOR_NOT_EXIST);
@@ -1874,7 +1874,7 @@ HWTEST_F(AppAccountManagerServiceModuleTest, AppAccountManagerService_Authentica
     AAFwk::Want options;
     options.SetParam(AccountSA::Constants::KEY_CALLER_ABILITY_NAME, STRING_ABILITY_NAME);
     options.SetParam(AccountSA::Constants::API_V9, true);
-    sptr<IRemoteObject> callback = nullptr;
+    sptr<IAppAccountAuthenticatorCallback> callback = nullptr;
     ErrCode result = g_accountManagerService->Authenticate(STRING_NAME,
         STRING_OWNER, STRING_AUTH_TYPE, options, callback);
     EXPECT_EQ(result, ERR_APPACCOUNT_SERVICE_OAUTH_AUTHENTICATOR_NOT_EXIST);
@@ -2417,7 +2417,7 @@ HWTEST_F(AppAccountManagerServiceModuleTest, AppAccountManagerService_SelectAcco
     options.allowedAccounts.emplace_back("test_key", "value");
     options.allowedOwners = TEST_LABELS;
     options.requiredLabels = TEST_LABELS;
-    sptr<IRemoteObject> callback = new (std::nothrow)MockAuthenticatorCallback();
+    sptr<IAppAccountAuthenticatorCallback> callback = new (std::nothrow)MockAuthenticatorCallback();
     ASSERT_NE(callback, nullptr);
     ErrCode result = g_accountManagerService->SelectAccountsByOptions(options, callback);
     EXPECT_EQ(result, ERR_OK);
@@ -2438,7 +2438,7 @@ HWTEST_F(AppAccountManagerServiceModuleTest, AppAccountManagerService_VerifyCred
     options.credential = STRING_CREDENTIAL;
     AAFwk::WantParams want;
     options.parameters = want;
-    sptr<IRemoteObject> callback = new (std::nothrow)MockAuthenticatorCallback();
+    sptr<IAppAccountAuthenticatorCallback> callback = new (std::nothrow)MockAuthenticatorCallback();
     ASSERT_NE(callback, nullptr);
     ErrCode result = g_accountManagerService->VerifyCredential(STRING_NAME, STRING_OWNER, options, callback);
     EXPECT_NE(result, ERR_OK);
@@ -2459,7 +2459,7 @@ HWTEST_F(AppAccountManagerServiceModuleTest, AppAccountManagerService_VerifyCred
     options.credential = STRING_CREDENTIAL;
     AAFwk::WantParams want;
     options.parameters = want;
-    sptr<IRemoteObject> callback = new (std::nothrow)MockAuthenticatorCallback();
+    sptr<IAppAccountAuthenticatorCallback> callback = new (std::nothrow)MockAuthenticatorCallback();
     ASSERT_NE(callback, nullptr);
     ErrCode result = g_accountManagerService->AddAccount(STRING_NAME, STRING_EXTRA_INFO);
     EXPECT_EQ(result, ERR_OK);
@@ -2479,7 +2479,7 @@ HWTEST_F(AppAccountManagerServiceModuleTest, AppAccountManagerService_VerifyCred
 HWTEST_F(AppAccountManagerServiceModuleTest, AppAccountManagerService_CheckAccountLabels_0100, TestSize.Level1)
 {
     ACCOUNT_LOGI("AppAccountManagerService_CheckAccountLabels_0100");
-    sptr<IRemoteObject> callback = new (std::nothrow)MockAuthenticatorCallback();
+    sptr<IAppAccountAuthenticatorCallback> callback = new (std::nothrow)MockAuthenticatorCallback();
     ASSERT_NE(callback, nullptr);
     ErrCode result = g_accountManagerService->AddAccount(STRING_NAME, STRING_EXTRA_INFO);
     EXPECT_EQ(result, ERR_OK);
@@ -2499,7 +2499,7 @@ HWTEST_F(AppAccountManagerServiceModuleTest, AppAccountManagerService_CheckAccou
 HWTEST_F(AppAccountManagerServiceModuleTest, AppAccountManagerService_CheckAccountLabels_0200, TestSize.Level1)
 {
     ACCOUNT_LOGI("AppAccountManagerService_CheckAccountLabels_0200");
-    sptr<IRemoteObject> callback = new (std::nothrow)MockAuthenticatorCallback();
+    sptr<IAppAccountAuthenticatorCallback> callback = new (std::nothrow)MockAuthenticatorCallback();
     ASSERT_NE(callback, nullptr);
     ErrCode result = g_accountManagerService->CheckAccountLabels(STRING_NAME, STRING_OWNER, TEST_LABELS, callback);
     EXPECT_NE(result, ERR_OK);
@@ -2516,7 +2516,7 @@ HWTEST_F(AppAccountManagerServiceModuleTest, AppAccountManagerService_SetAuthent
 {
     ACCOUNT_LOGI("AppAccountManagerService_SetAuthenticatorProperties_0100");
     SetPropertiesOptions options;
-    sptr<IRemoteObject> callback = new (std::nothrow)MockAuthenticatorCallback();
+    sptr<IAppAccountAuthenticatorCallback> callback = new (std::nothrow)MockAuthenticatorCallback();
     ASSERT_NE(callback, nullptr);
     ErrCode result = g_accountManagerService->SetAuthenticatorProperties(STRING_OWNER, options, callback);
     EXPECT_NE(result, ERR_OK);
@@ -2535,7 +2535,7 @@ HWTEST_F(AppAccountManagerServiceModuleTest, AppAccountManagerService_SetAuthent
     SetPropertiesOptions options;
     AAFwk::WantParams want;
     options.properties = want;
-    sptr<IRemoteObject> callback = new (std::nothrow)MockAuthenticatorCallback();
+    sptr<IAppAccountAuthenticatorCallback> callback = new (std::nothrow)MockAuthenticatorCallback();
     ASSERT_NE(callback, nullptr);
     ErrCode result = g_accountManagerService->SetAuthenticatorProperties(STRING_OWNER, options, callback);
     EXPECT_NE(result, ERR_OK);

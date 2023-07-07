@@ -32,10 +32,10 @@ public:
 
     virtual ErrCode AddAccount(const std::string &name, const std::string &extraInfo) = 0;
     virtual ErrCode AddAccountImplicitly(const std::string &owner, const std::string &authType,
-        const AAFwk::Want &options, const sptr<IRemoteObject> &callback) = 0;
+        const AAFwk::Want &options, const sptr<IAppAccountAuthenticatorCallback> &callback) = 0;
     virtual ErrCode CreateAccount(const std::string &name, const CreateAccountOptions &options) = 0;
     virtual ErrCode CreateAccountImplicitly(const std::string &owner, const CreateAccountImplicitlyOptions &options,
-        const sptr<IRemoteObject> &callback) = 0;
+        const sptr<IAppAccountAuthenticatorCallback> &callback) = 0;
     virtual ErrCode DeleteAccount(const std::string &name) = 0;
 
     virtual ErrCode GetAccountExtraInfo(const std::string &name, std::string &extraInfo) = 0;
@@ -59,7 +59,7 @@ public:
     virtual ErrCode DeleteAccountCredential(const std::string &name, const std::string &credentialType) = 0;
 
     virtual ErrCode Authenticate(const std::string &name, const std::string &owner, const std::string &authType,
-        const AAFwk::Want &options, const sptr<IRemoteObject> &callback) = 0;
+        const AAFwk::Want &options, const sptr<IAppAccountAuthenticatorCallback> &callback) = 0;
     virtual ErrCode GetOAuthToken(
         const std::string &name, const std::string &owner, const std::string &authType, std::string &token) = 0;
     virtual ErrCode GetAuthToken(
@@ -91,14 +91,15 @@ public:
     virtual ErrCode GetAllAccessibleAccounts(std::vector<AppAccountInfo> &appAccounts) = 0;
     virtual ErrCode QueryAllAccessibleAccounts(const std::string &owner, std::vector<AppAccountInfo> &appAccounts) = 0;
     virtual ErrCode SelectAccountsByOptions(
-        const SelectAccountsOptions &options, const sptr<IRemoteObject> &callback) = 0;
+        const SelectAccountsOptions &options, const sptr<IAppAccountAuthenticatorCallback> &callback) = 0;
     virtual ErrCode VerifyCredential(const std::string &name, const std::string &owner,
-        const VerifyCredentialOptions &options, const sptr<IRemoteObject> &callback) = 0;
+        const VerifyCredentialOptions &options, const sptr<IAppAccountAuthenticatorCallback> &callback) = 0;
     virtual ErrCode CheckAccountLabels(const std::string &name, const std::string &owner,
-        const std::vector<std::string> &labels, const sptr<IRemoteObject> &callback) = 0;
-    virtual ErrCode SetAuthenticatorProperties(
-        const std::string &owner, const SetPropertiesOptions &options, const sptr<IRemoteObject> &callback) = 0;
-    virtual ErrCode ExecuteRequest(const AccountCapabilityRequest &request, const sptr<IRemoteObject> &callback) = 0;
+        const std::vector<std::string> &labels, const sptr<IAppAccountAuthenticatorCallback> &callback) = 0;
+    virtual ErrCode SetAuthenticatorProperties(const std::string &owner, const SetPropertiesOptions &options,
+        const sptr<IAppAccountAuthenticatorCallback> &callback) = 0;
+    virtual ErrCode ExecuteRequest(
+        const AccountCapabilityRequest &request, const sptr<IAppAccountAuthorizationExtensionCallback> &callback) = 0;
 
     virtual ErrCode SubscribeAppAccount(
         const AppAccountSubscribeInfo &subscribeInfo, const sptr<IRemoteObject> &eventListener) = 0;

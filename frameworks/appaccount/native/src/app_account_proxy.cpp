@@ -66,7 +66,7 @@ ErrCode AppAccountProxy::AddAccount(const std::string &name, const std::string &
 }
 
 ErrCode AppAccountProxy::AddAccountImplicitly(const std::string &owner, const std::string &authType,
-    const AAFwk::Want &options, const sptr<IRemoteObject> &callback)
+    const AAFwk::Want &options, const sptr<IAppAccountAuthenticatorCallback> &callback)
 {
     MessageParcel data;
     MessageParcel reply;
@@ -88,7 +88,7 @@ ErrCode AppAccountProxy::AddAccountImplicitly(const std::string &owner, const st
         ACCOUNT_LOGE("failed to write parcelable for options");
         return ERR_ACCOUNT_COMMON_WRITE_PARCEL_ERROR;
     }
-    if (!data.WriteRemoteObject(callback)) {
+    if ((callback != nullptr) && (!data.WriteRemoteObject(callback->AsObject()))) {
         ACCOUNT_LOGE("failed to write remote object for callback");
         return ERR_ACCOUNT_COMMON_WRITE_PARCEL_ERROR;
     }
@@ -125,8 +125,8 @@ ErrCode AppAccountProxy::CreateAccount(const std::string &name, const CreateAcco
     return reply.ReadInt32();
 }
 
-ErrCode AppAccountProxy::CreateAccountImplicitly(
-    const std::string &owner, const CreateAccountImplicitlyOptions &options, const sptr<IRemoteObject> &callback)
+ErrCode AppAccountProxy::CreateAccountImplicitly(const std::string &owner,
+    const CreateAccountImplicitlyOptions &options, const sptr<IAppAccountAuthenticatorCallback> &callback)
 {
     MessageParcel data;
     if (!data.WriteInterfaceToken(GetDescriptor())) {
@@ -141,7 +141,7 @@ ErrCode AppAccountProxy::CreateAccountImplicitly(
         ACCOUNT_LOGE("failed to write options");
         return ERR_ACCOUNT_COMMON_WRITE_PARCEL_ERROR;
     }
-    if (!data.WriteRemoteObject(callback)) {
+    if ((callback != nullptr) && (!data.WriteRemoteObject(callback->AsObject()))) {
         ACCOUNT_LOGE("failed to write remote object for callback");
         return ERR_ACCOUNT_COMMON_WRITE_PARCEL_ERROR;
     }
@@ -407,7 +407,7 @@ ErrCode AppAccountProxy::SetAccountCredential(
 }
 
 ErrCode AppAccountProxy::Authenticate(const std::string &name, const std::string &owner, const std::string &authType,
-    const AAFwk::Want &options, const sptr<IRemoteObject> &callback)
+    const AAFwk::Want &options, const sptr<IAppAccountAuthenticatorCallback> &callback)
 {
     MessageParcel data;
     MessageParcel reply;
@@ -433,7 +433,7 @@ ErrCode AppAccountProxy::Authenticate(const std::string &name, const std::string
         ACCOUNT_LOGE("failed to write parcelable for options");
         return ERR_ACCOUNT_COMMON_WRITE_PARCEL_ERROR;
     }
-    if (!data.WriteRemoteObject(callback)) {
+    if ((callback != nullptr) && (!data.WriteRemoteObject(callback->AsObject()))) {
         ACCOUNT_LOGE("failed to write remote object for callback");
         return ERR_ACCOUNT_COMMON_WRITE_PARCEL_ERROR;
     }
@@ -951,10 +951,9 @@ ErrCode AppAccountProxy::DeleteAccountCredential(
 }
 
 ErrCode AppAccountProxy::SelectAccountsByOptions(
-    const SelectAccountsOptions &options, const sptr<IRemoteObject> &callback)
+    const SelectAccountsOptions &options, const sptr<IAppAccountAuthenticatorCallback> &callback)
 {
     MessageParcel data;
-    MessageParcel reply;
     if (!data.WriteInterfaceToken(GetDescriptor())) {
         ACCOUNT_LOGE("failed to write descriptor!");
         return ERR_ACCOUNT_COMMON_WRITE_DESCRIPTOR_ERROR;
@@ -963,10 +962,11 @@ ErrCode AppAccountProxy::SelectAccountsByOptions(
         ACCOUNT_LOGE("failed to write parcelable for options");
         return ERR_ACCOUNT_COMMON_WRITE_PARCEL_ERROR;
     }
-    if (!data.WriteRemoteObject(callback)) {
+    if ((callback != nullptr) && (!data.WriteRemoteObject(callback->AsObject()))) {
         ACCOUNT_LOGE("failed to write remote object for callback");
         return ERR_ACCOUNT_COMMON_WRITE_PARCEL_ERROR;
     }
+    MessageParcel reply;
     ErrCode result = SendRequest(AppAccountInterfaceCode::SELECT_ACCOUNTS_BY_OPTIONS, data, reply);
     if (result != ERR_OK) {
         ACCOUNT_LOGE("failed to send request, errCode: %{public}d", result);
@@ -976,10 +976,9 @@ ErrCode AppAccountProxy::SelectAccountsByOptions(
 }
 
 ErrCode AppAccountProxy::VerifyCredential(const std::string &name, const std::string &owner,
-    const VerifyCredentialOptions &options, const sptr<IRemoteObject> &callback)
+    const VerifyCredentialOptions &options, const sptr<IAppAccountAuthenticatorCallback> &callback)
 {
     MessageParcel data;
-    MessageParcel reply;
     if (!data.WriteInterfaceToken(GetDescriptor())) {
         ACCOUNT_LOGE("failed to write descriptor!");
         return ERR_ACCOUNT_COMMON_WRITE_DESCRIPTOR_ERROR;
@@ -996,10 +995,11 @@ ErrCode AppAccountProxy::VerifyCredential(const std::string &name, const std::st
         ACCOUNT_LOGE("failed to write string for options");
         return ERR_ACCOUNT_COMMON_WRITE_PARCEL_ERROR;
     }
-    if (!data.WriteRemoteObject(callback)) {
+    if ((callback != nullptr) && (!data.WriteRemoteObject(callback->AsObject()))) {
         ACCOUNT_LOGE("failed to write string for callback");
         return ERR_ACCOUNT_COMMON_WRITE_PARCEL_ERROR;
     }
+    MessageParcel reply;
     ErrCode result = SendRequest(AppAccountInterfaceCode::VERIFY_CREDENTIAL, data, reply);
     if (result != ERR_OK) {
         ACCOUNT_LOGE("failed to send request, errCode: %{public}d", result);
@@ -1009,10 +1009,9 @@ ErrCode AppAccountProxy::VerifyCredential(const std::string &name, const std::st
 }
 
 ErrCode AppAccountProxy::CheckAccountLabels(const std::string &name, const std::string &owner,
-    const std::vector<std::string> &labels, const sptr<IRemoteObject> &callback)
+    const std::vector<std::string> &labels, const sptr<IAppAccountAuthenticatorCallback> &callback)
 {
     MessageParcel data;
-    MessageParcel reply;
     if (!data.WriteInterfaceToken(GetDescriptor())) {
         ACCOUNT_LOGE("failed to write descriptor!");
         return ERR_ACCOUNT_COMMON_WRITE_DESCRIPTOR_ERROR;
@@ -1029,10 +1028,11 @@ ErrCode AppAccountProxy::CheckAccountLabels(const std::string &name, const std::
         ACCOUNT_LOGE("failed to write string vector for labels");
         return ERR_APPACCOUNT_KIT_WRITE_STRING_VECTOR;
     }
-    if (!data.WriteRemoteObject(callback)) {
+    if ((callback != nullptr) && (!data.WriteRemoteObject(callback->AsObject()))) {
         ACCOUNT_LOGE("failed to write string for callback");
         return ERR_ACCOUNT_COMMON_WRITE_PARCEL_ERROR;
     }
+    MessageParcel reply;
     ErrCode result = SendRequest(AppAccountInterfaceCode::CHECK_ACCOUNT_LABELS, data, reply);
     if (result != ERR_OK) {
         ACCOUNT_LOGE("failed to send request, errCode: %{public}d", result);
@@ -1041,11 +1041,10 @@ ErrCode AppAccountProxy::CheckAccountLabels(const std::string &name, const std::
     return reply.ReadInt32();
 }
 
-ErrCode AppAccountProxy::SetAuthenticatorProperties(
-    const std::string &owner, const SetPropertiesOptions &options, const sptr<IRemoteObject> &callback)
+ErrCode AppAccountProxy::SetAuthenticatorProperties(const std::string &owner,
+    const SetPropertiesOptions &options, const sptr<IAppAccountAuthenticatorCallback> &callback)
 {
     MessageParcel data;
-    MessageParcel reply;
     if (!data.WriteInterfaceToken(GetDescriptor())) {
         ACCOUNT_LOGE("failed to write descriptor!");
         return ERR_ACCOUNT_COMMON_WRITE_DESCRIPTOR_ERROR;
@@ -1058,10 +1057,11 @@ ErrCode AppAccountProxy::SetAuthenticatorProperties(
         ACCOUNT_LOGE("failed to write string for options");
         return ERR_ACCOUNT_COMMON_WRITE_PARCEL_ERROR;
     }
-    if (!data.WriteRemoteObject(callback)) {
+    if ((callback != nullptr) && (!data.WriteRemoteObject(callback->AsObject()))) {
         ACCOUNT_LOGE("failed to write remote object for callback");
         return ERR_ACCOUNT_COMMON_WRITE_PARCEL_ERROR;
     }
+    MessageParcel reply;
     ErrCode result = SendRequest(AppAccountInterfaceCode::SET_AUTHENTICATOR_PROPERTIES, data, reply);
     if (result != ERR_OK) {
         ACCOUNT_LOGE("failed to send request, errCode: %{public}d", result);
@@ -1071,7 +1071,7 @@ ErrCode AppAccountProxy::SetAuthenticatorProperties(
 }
 
 ErrCode AppAccountProxy::ExecuteRequest(
-    const AccountCapabilityRequest &request, const sptr<IRemoteObject> &callback)
+    const AccountCapabilityRequest &request, const sptr<IAppAccountAuthorizationExtensionCallback> &callback)
 {
     MessageParcel data;
     if (!data.WriteInterfaceToken(GetDescriptor())) {
@@ -1082,7 +1082,7 @@ ErrCode AppAccountProxy::ExecuteRequest(
         ACCOUNT_LOGE("failed to write string for request");
         return ERR_ACCOUNT_COMMON_WRITE_PARCEL_ERROR;
     }
-    if (!data.WriteRemoteObject(callback)) {
+    if ((callback != nullptr) && (!data.WriteRemoteObject(callback->AsObject()))) {
         ACCOUNT_LOGE("failed to write remote object for callback");
         return ERR_ACCOUNT_COMMON_WRITE_PARCEL_ERROR;
     }

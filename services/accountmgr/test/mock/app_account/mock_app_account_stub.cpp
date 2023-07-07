@@ -57,7 +57,7 @@ ErrCode MockAppAccountStub::AddAccount(const std::string &name, const std::strin
 }
 
 ErrCode MockAppAccountStub::AddAccountImplicitly(const std::string &owner, const std::string &authType,
-    const AAFwk::Want &options, const sptr<IRemoteObject> &callback)
+    const AAFwk::Want &options, const sptr<IAppAccountAuthenticatorCallback> &callback)
 {
     ACCOUNT_LOGI("mock enter");
     return ERR_OK;
@@ -69,8 +69,8 @@ ErrCode MockAppAccountStub::CreateAccount(const std::string &name, const CreateA
     return ERR_OK;
 }
 
-ErrCode MockAppAccountStub::CreateAccountImplicitly(
-    const std::string &owner, const CreateAccountImplicitlyOptions &options, const sptr<IRemoteObject> &callback)
+ErrCode MockAppAccountStub::CreateAccountImplicitly(const std::string &owner,
+    const CreateAccountImplicitlyOptions &options, const sptr<IAppAccountAuthenticatorCallback> &callback)
 {
     ACCOUNT_LOGI("mock enter");
     return ERR_OK;
@@ -175,7 +175,7 @@ ErrCode MockAppAccountStub::SetAccountCredential(
 }
 
 ErrCode MockAppAccountStub::Authenticate(const std::string &name, const std::string &owner,
-    const std::string &authType, const AAFwk::Want &options, const sptr<IRemoteObject> &callback)
+    const std::string &authType, const AAFwk::Want &options, const sptr<IAppAccountAuthenticatorCallback> &callback)
 {
     ACCOUNT_LOGI("mock enter");
 
@@ -332,7 +332,7 @@ ErrCode MockAppAccountStub::DeleteAccountCredential(const std::string &name, con
 }
 
 ErrCode MockAppAccountStub::SelectAccountsByOptions(
-    const SelectAccountsOptions &options, const sptr<IRemoteObject> &callback)
+    const SelectAccountsOptions &options, const sptr<IAppAccountAuthenticatorCallback> &callback)
 {
     ACCOUNT_LOGD("mock enter");
 
@@ -340,7 +340,7 @@ ErrCode MockAppAccountStub::SelectAccountsByOptions(
 }
 
 ErrCode MockAppAccountStub::VerifyCredential(const std::string &name, const std::string &owner,
-    const VerifyCredentialOptions &options, const sptr<IRemoteObject> &callback)
+    const VerifyCredentialOptions &options, const sptr<IAppAccountAuthenticatorCallback> &callback)
 {
     ACCOUNT_LOGD("mock enter");
 
@@ -348,15 +348,15 @@ ErrCode MockAppAccountStub::VerifyCredential(const std::string &name, const std:
 }
 
 ErrCode MockAppAccountStub::CheckAccountLabels(const std::string &name, const std::string &owner,
-    const std::vector<std::string> &labels, const sptr<IRemoteObject> &callback)
+    const std::vector<std::string> &labels, const sptr<IAppAccountAuthenticatorCallback> &callback)
 {
     ACCOUNT_LOGD("mock enter");
 
     return ERR_OK;
 }
 
-ErrCode MockAppAccountStub::SetAuthenticatorProperties(
-    const std::string &owner, const SetPropertiesOptions &options, const sptr<IRemoteObject> &callback)
+ErrCode MockAppAccountStub::SetAuthenticatorProperties(const std::string &owner,
+    const SetPropertiesOptions &options, const sptr<IAppAccountAuthenticatorCallback> &callback)
 {
     ACCOUNT_LOGD("mock enter");
 
@@ -364,7 +364,7 @@ ErrCode MockAppAccountStub::SetAuthenticatorProperties(
 }
 
 ErrCode MockAppAccountStub::ExecuteRequest(
-    const AccountCapabilityRequest &request, const sptr<IRemoteObject> &callback)
+    const AccountCapabilityRequest &request, const sptr<IAppAccountAuthorizationExtensionCallback> &callback)
 {
     ACCOUNT_LOGD("mock enter");
 
