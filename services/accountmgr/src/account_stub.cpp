@@ -135,7 +135,7 @@ std::int32_t AccountStub::CmdUpdateOhosAccountInfo(MessageParcel &data, MessageP
 {
     if (!HasAccountRequestPermission(PERMISSION_MANAGE_USERS)) {
         ACCOUNT_LOGE("Check permission failed");
-        return ERR_ACCOUNT_ZIDL_CHECK_PERMISSION_ERROR;
+        return ERR_ACCOUNT_COMMON_PERMISSION_DENIED;
     }
 
     return InnerUpdateOhosAccountInfo(data, reply);
@@ -145,7 +145,7 @@ std::int32_t AccountStub::CmdSetOhosAccountInfo(MessageParcel &data, MessageParc
 {
     if (!HasAccountRequestPermission(PERMISSION_MANAGE_DISTRIBUTED_ACCOUNTS)) {
         ACCOUNT_LOGE("Check permission failed");
-        return ERR_ACCOUNT_ZIDL_CHECK_PERMISSION_ERROR;
+        return ERR_ACCOUNT_COMMON_PERMISSION_DENIED;
     }
 
     return InnerSetOhosAccountInfo(INVALID_USERID, data, reply);
@@ -175,7 +175,7 @@ std::int32_t AccountStub::CmdSetOhosAccountInfoByUserId(MessageParcel &data, Mes
     }
     if (!HasAccountRequestPermission(PERMISSION_MANAGE_DISTRIBUTED_ACCOUNTS)) {
         ACCOUNT_LOGE("Check permission failed");
-        return ERR_ACCOUNT_ZIDL_CHECK_PERMISSION_ERROR;
+        return ERR_ACCOUNT_COMMON_PERMISSION_DENIED;
     }
     int32_t userId = data.ReadInt32();
     ret = CheckUserIdValid(userId);
@@ -232,7 +232,7 @@ std::int32_t AccountStub::CmdQueryOhosAccountInfo(MessageParcel &data, MessagePa
     if (!HasAccountRequestPermission(PERMISSION_MANAGE_USERS) &&
         !HasAccountRequestPermission(PERMISSION_DISTRIBUTED_DATASYNC)) {
         ACCOUNT_LOGE("Check permission failed");
-        return ERR_ACCOUNT_ZIDL_CHECK_PERMISSION_ERROR;
+        return ERR_ACCOUNT_COMMON_PERMISSION_DENIED;
     }
 
     return InnerQueryOhosAccountInfo(data, reply);
@@ -244,7 +244,7 @@ ErrCode AccountStub::CmdGetOhosAccountInfo(MessageParcel &data, MessageParcel &r
         !HasAccountRequestPermission(PERMISSION_DISTRIBUTED_DATASYNC) &&
         !HasAccountRequestPermission(PERMISSION_GET_DISTRIBUTED_ACCOUNTS)) {
         ACCOUNT_LOGE("Check permission failed");
-        return ERR_ACCOUNT_ZIDL_CHECK_PERMISSION_ERROR;
+        return ERR_ACCOUNT_COMMON_PERMISSION_DENIED;
     }
 
     return InnerGetOhosAccountInfo(data, reply);
@@ -262,7 +262,7 @@ ErrCode AccountStub::CmdGetOhosAccountInfoByUserId(MessageParcel &data, MessageP
         !HasAccountRequestPermission(PERMISSION_DISTRIBUTED_DATASYNC) &&
         !HasAccountRequestPermission(PERMISSION_GET_DISTRIBUTED_ACCOUNTS)) {
         ACCOUNT_LOGE("Check permission failed");
-        return ERR_ACCOUNT_ZIDL_CHECK_PERMISSION_ERROR;
+        return ERR_ACCOUNT_COMMON_PERMISSION_DENIED;
     }
     int32_t userId = data.ReadInt32();
     bool isOsAccountExits = false;
@@ -298,7 +298,7 @@ std::int32_t AccountStub::CmdQueryOhosAccountInfoByUserId(MessageParcel &data, M
         (!HasAccountRequestPermission(PERMISSION_DISTRIBUTED_DATASYNC)) &&
         (IPCSkeleton::GetCallingUid() != DSOFTBUS_UID)) {
         ACCOUNT_LOGE("Check permission failed");
-        return ERR_ACCOUNT_ZIDL_CHECK_PERMISSION_ERROR;
+        return ERR_ACCOUNT_COMMON_PERMISSION_DENIED;
     }
 
     std::int32_t userId = data.ReadInt32();
@@ -335,7 +335,7 @@ std::int32_t AccountStub::CmdQueryOhosQuitTips(MessageParcel &data, MessageParce
     if (!HasAccountRequestPermission(PERMISSION_MANAGE_USERS) &&
         !HasAccountRequestPermission(PERMISSION_DISTRIBUTED_DATASYNC)) {
         ACCOUNT_LOGE("Check permission failed");
-        return ERR_ACCOUNT_ZIDL_CHECK_PERMISSION_ERROR;
+        return ERR_ACCOUNT_COMMON_PERMISSION_DENIED;
     }
 
     if (!reply.WriteString16(Str8ToStr16(OHOS_ACCOUNT_QUIT_TIPS_TITLE))) {

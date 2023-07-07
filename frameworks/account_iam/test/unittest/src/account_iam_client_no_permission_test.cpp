@@ -110,7 +110,7 @@ HWTEST_F(AccountIAMClientNoPermissionTest, AccountIAMClientNoPermission_OpenSess
 {
     std::vector<uint8_t> challenge;
     int32_t res = AccountIAMClient::GetInstance().OpenSession(0, challenge);
-    EXPECT_TRUE(res == ERR_ACCOUNT_IAM_SERVICE_PERMISSION_DENIED);
+    EXPECT_TRUE(res == ERR_ACCOUNT_COMMON_PERMISSION_DENIED);
     AccountIAMClient::GetInstance().CloseSession(0);
 }
 
@@ -124,7 +124,7 @@ HWTEST_F(AccountIAMClientNoPermissionTest, AccountIAMClientNoPermission_CloseSes
 {
     std::vector<uint8_t> challenge;
     int32_t res = AccountIAMClient::GetInstance().CloseSession(0);
-    EXPECT_TRUE(res == ERR_ACCOUNT_IAM_SERVICE_PERMISSION_DENIED);
+    EXPECT_TRUE(res == ERR_ACCOUNT_COMMON_PERMISSION_DENIED);
 }
 
 /**
@@ -139,7 +139,7 @@ HWTEST_F(AccountIAMClientNoPermissionTest, AccountIAMClientNoPermission_AddCrede
     auto callback = std::make_shared<MockIDMCallback>();
     ASSERT_NE(callback, nullptr);
     AccountIAMClient::GetInstance().AddCredential(TEST_USER_ID, testPara, callback);
-    EXPECT_EQ(callback->result_, ERR_ACCOUNT_IAM_SERVICE_PERMISSION_DENIED);
+    EXPECT_EQ(callback->result_, ERR_ACCOUNT_COMMON_PERMISSION_DENIED);
 }
 
 /**
@@ -154,7 +154,7 @@ HWTEST_F(AccountIAMClientNoPermissionTest, AccountIAMClientNoPermission_UpdateCr
     auto callback = std::make_shared<MockIDMCallback>();
     ASSERT_NE(callback, nullptr);
     AccountIAMClient::GetInstance().UpdateCredential(TEST_USER_ID, testPara, callback);
-    EXPECT_EQ(callback->result_, ERR_ACCOUNT_IAM_SERVICE_PERMISSION_DENIED);
+    EXPECT_EQ(callback->result_, ERR_ACCOUNT_COMMON_PERMISSION_DENIED);
 }
 
 /**
@@ -166,7 +166,7 @@ HWTEST_F(AccountIAMClientNoPermissionTest, AccountIAMClientNoPermission_UpdateCr
 HWTEST_F(AccountIAMClientNoPermissionTest, AccountIAMClientNoPermission_Cancel_0100, TestSize.Level0)
 {
     int32_t res = AccountIAMClient::GetInstance().Cancel(TEST_USER_ID);
-    EXPECT_EQ(res, ERR_ACCOUNT_IAM_SERVICE_PERMISSION_DENIED);
+    EXPECT_EQ(res, ERR_ACCOUNT_COMMON_PERMISSION_DENIED);
 }
 
 /**
@@ -182,7 +182,7 @@ HWTEST_F(AccountIAMClientNoPermissionTest, AccountIAMClientNoPermission_DelCred_
     auto callback = std::make_shared<MockIDMCallback>();
     ASSERT_NE(callback, nullptr);
     AccountIAMClient::GetInstance().DelCred(TEST_USER_ID, testCredentialId, testAuthToken, callback);
-    EXPECT_EQ(callback->result_, ERR_ACCOUNT_IAM_SERVICE_PERMISSION_DENIED);
+    EXPECT_EQ(callback->result_, ERR_ACCOUNT_COMMON_PERMISSION_DENIED);
 }
 
 /**
@@ -197,7 +197,7 @@ HWTEST_F(AccountIAMClientNoPermissionTest, AccountIAMClientNoPermission_DelUser_
     auto callback = std::make_shared<MockIDMCallback>();
     ASSERT_NE(callback, nullptr);
     AccountIAMClient::GetInstance().DelUser(TEST_USER_ID, testAuthToken, callback);
-    EXPECT_EQ(callback->result_, ERR_ACCOUNT_IAM_SERVICE_PERMISSION_DENIED);
+    EXPECT_EQ(callback->result_, ERR_ACCOUNT_COMMON_PERMISSION_DENIED);
 }
 
 /**
@@ -211,7 +211,7 @@ HWTEST_F(AccountIAMClientNoPermissionTest, AccountIAMClientNoPermission_GetCrede
     auto callback = std::make_shared<MockGetCredInfoCallback>();
     ASSERT_NE(callback, nullptr);
     int32_t res = AccountIAMClient::GetInstance().GetCredentialInfo(TEST_USER_ID, AuthType::PIN, callback);
-    EXPECT_EQ(res, ERR_ACCOUNT_IAM_SERVICE_PERMISSION_DENIED);
+    EXPECT_EQ(res, ERR_ACCOUNT_COMMON_PERMISSION_DENIED);
 }
 
 /**
@@ -224,7 +224,7 @@ HWTEST_F(AccountIAMClientNoPermissionTest, AccountIAMClientNoPermission_GetAvail
 {
     int32_t status;
     int32_t res = AccountIAMClient::GetInstance().GetAvailableStatus(AuthType::FACE, AuthTrustLevel::ATL1, status);
-    EXPECT_EQ(res, ERR_ACCOUNT_IAM_SERVICE_PERMISSION_DENIED);
+    EXPECT_EQ(res, ERR_ACCOUNT_COMMON_PERMISSION_DENIED);
 }
 
 /**
@@ -265,7 +265,7 @@ HWTEST_F(AccountIAMClientNoPermissionTest, AccountIAMClientNoPermission_Register
 {
     std::shared_ptr<MockIInputer> inputer = std::make_shared<MockIInputer>();
     int32_t res = AccountIAMClient::GetInstance().RegisterInputer(AuthType::PIN, inputer);
-    EXPECT_EQ(res, ERR_ACCOUNT_IAM_SERVICE_PERMISSION_DENIED);
+    EXPECT_EQ(res, ERR_ACCOUNT_COMMON_PERMISSION_DENIED);
     AccountIAMClient::GetInstance().UnregisterInputer(AuthType::PIN);
 }
 
@@ -309,7 +309,7 @@ HWTEST_F(AccountIAMClientNoPermissionTest, AccountIAMClientNoPermission_Auth_010
 HWTEST_F(AccountIAMClientNoPermissionTest, AccountIAMClientNoPermission_CancelAuth_0100, TestSize.Level0)
 {
     int32_t res = AccountIAMClient::GetInstance().CancelAuth(TEST_CONTEXT_ID);
-    EXPECT_EQ(res, ERR_ACCOUNT_IAM_SERVICE_PERMISSION_DENIED);
+    EXPECT_EQ(res, ERR_ACCOUNT_COMMON_PERMISSION_DENIED);
 }
 }  // namespace AccountTest
 }  // namespace OHOS

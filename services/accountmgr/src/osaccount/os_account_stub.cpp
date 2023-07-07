@@ -437,13 +437,13 @@ ErrCode OsAccountStub::ProcCreateOsAccountForDomain(MessageParcel &data, Message
 
     if (info->domain_.empty() || info->domain_.size() > Constants::DOMAIN_NAME_MAX_SIZE) {
         ACCOUNT_LOGE("read invalid domain length %{public}zu.", info->domain_.size());
-        reply.WriteInt32(ERR_OSACCOUNT_KIT_DOMAIN_NAME_LENGTH_INVALID_ERROR);
+        reply.WriteInt32(ERR_ACCOUNT_COMMON_INVALID_PARAMETER);
         return ERR_NONE;
     }
 
     if (info->accountName_.empty() || info->accountName_.size() > Constants::DOMAIN_ACCOUNT_NAME_MAX_SIZE) {
         ACCOUNT_LOGE("read invalid domain account name length %{public}zu.", info->accountName_.size());
-        reply.WriteInt32(ERR_OSACCOUNT_KIT_DOMAIN_ACCOUNT_NAME_LENGTH_INVALID_ERROR);
+        reply.WriteInt32(ERR_ACCOUNT_COMMON_INVALID_PARAMETER);
         return ERR_NONE;
     }
 
@@ -692,13 +692,13 @@ ErrCode OsAccountStub::ProcGetOsAccountLocalIdFromDomain(MessageParcel &data, Me
     std::string domainAccountName = data.ReadString();
     if (domain.empty() || domain.size() > Constants::DOMAIN_NAME_MAX_SIZE) {
         ACCOUNT_LOGE("failed to read string for domain name. length %{public}zu.", domain.size());
-        reply.WriteInt32(ERR_OSACCOUNT_KIT_DOMAIN_NAME_LENGTH_INVALID_ERROR);
+        reply.WriteInt32(ERR_ACCOUNT_COMMON_INVALID_PARAMETER);
         return ERR_NONE;
     }
 
     if (domainAccountName.empty() || domainAccountName.size() > Constants::DOMAIN_ACCOUNT_NAME_MAX_SIZE) {
         ACCOUNT_LOGE("failed to read string for domainAccountName. length %{public}zu.", domainAccountName.size());
-        reply.WriteInt32(ERR_OSACCOUNT_KIT_DOMAIN_ACCOUNT_NAME_LENGTH_INVALID_ERROR);
+        reply.WriteInt32(ERR_ACCOUNT_COMMON_INVALID_PARAMETER);
         return ERR_NONE;
     }
 

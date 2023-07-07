@@ -363,7 +363,7 @@ HWTEST_F(AppAccountManagerServiceSubscribeModuleTest, AppAccountManagerServiceSu
 
     // subscribe app account
     ErrCode result = appAccountManagerServicePtr_->SubscribeAppAccount(subscribeInfo, appAccountEventListener);
-    EXPECT_EQ(result, ERR_APPACCOUNT_SERVICE_SUBSCRIBE_PERMISSION_DENIED);
+    EXPECT_EQ(result, ERR_ACCOUNT_COMMON_PERMISSION_DENIED);
 }
 
 /**

@@ -559,7 +559,7 @@ ErrCode AppAccountManagerService::GetAllAccounts(const std::string &owner, std::
             AccountPermissionManager::GET_ALL_APP_ACCOUNTS.c_str());
         ReportPermissionFail(callingUid, IPCSkeleton::GetCallingPid(),
             AccountPermissionManager::GET_ALL_APP_ACCOUNTS);
-        return ERR_APPACCOUNT_SERVICE_PERMISSION_DENIED;
+        return ERR_ACCOUNT_COMMON_PERMISSION_DENIED;
     }
 
     AppExecFwk::BundleInfo bundleInfo;

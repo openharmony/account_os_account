@@ -79,7 +79,7 @@ HWTEST_F(OsAccountMockTest, CreateOsAccountMockTest001, TestSize.Level1)
 {
     OsAccountType type = NORMAL;
     OsAccountInfo osAccountInfo;
-    EXPECT_EQ(ERR_OSACCOUNT_KIT_GET_SYSTEM_ABILITY_MANAGER_ERROR,
+    EXPECT_EQ(ERR_ACCOUNT_COMMON_GET_SYSTEM_ABILITY_MANAGER,
         g_osAccount->CreateOsAccount(STRING_NAME, type, osAccountInfo));
 }
 
@@ -95,7 +95,7 @@ HWTEST_F(OsAccountMockTest, CreateOsAccountForDomainMockTest001, TestSize.Level1
     OsAccountType type = NORMAL;
     DomainAccountInfo domainInfo(STRING_DOMAIN_VALID, STRING_DOMAIN_ACCOUNT_NAME_VALID);
     OsAccountInfo osAccountInfo;
-    EXPECT_EQ(ERR_OSACCOUNT_KIT_GET_SYSTEM_ABILITY_MANAGER_ERROR,
+    EXPECT_EQ(ERR_ACCOUNT_COMMON_GET_SYSTEM_ABILITY_MANAGER,
         g_osAccount->CreateOsAccountForDomain(type, domainInfo, osAccountInfo));
 }
 #endif // DOMAIN_ACCOUNT_TEST_CASE
@@ -108,7 +108,7 @@ HWTEST_F(OsAccountMockTest, CreateOsAccountForDomainMockTest001, TestSize.Level1
  */
 HWTEST_F(OsAccountMockTest, RemoveOsAccountMockTest001, TestSize.Level1)
 {
-    EXPECT_EQ(ERR_OSACCOUNT_KIT_GET_SYSTEM_ABILITY_MANAGER_ERROR,
+    EXPECT_EQ(ERR_ACCOUNT_COMMON_GET_SYSTEM_ABILITY_MANAGER,
         g_osAccount->RemoveOsAccount(MAIN_ACCOUNT_ID+1));
 }
 
@@ -121,7 +121,7 @@ HWTEST_F(OsAccountMockTest, RemoveOsAccountMockTest001, TestSize.Level1)
 HWTEST_F(OsAccountMockTest, IsOsAccountExistsMockTest001, TestSize.Level1)
 {
     bool isOsAccountExists;
-    EXPECT_EQ(ERR_OSACCOUNT_KIT_GET_SYSTEM_ABILITY_MANAGER_ERROR,
+    EXPECT_EQ(ERR_ACCOUNT_COMMON_GET_SYSTEM_ABILITY_MANAGER,
         g_osAccount->IsOsAccountExists(MAIN_ACCOUNT_ID, isOsAccountExists));
 }
 
@@ -134,7 +134,7 @@ HWTEST_F(OsAccountMockTest, IsOsAccountExistsMockTest001, TestSize.Level1)
 HWTEST_F(OsAccountMockTest, IsOsAccountActivedMockTest001, TestSize.Level1)
 {
     bool isOsAccountActived;
-    EXPECT_EQ(ERR_OSACCOUNT_KIT_GET_SYSTEM_ABILITY_MANAGER_ERROR,
+    EXPECT_EQ(ERR_ACCOUNT_COMMON_GET_SYSTEM_ABILITY_MANAGER,
         g_osAccount->IsOsAccountActived(MAIN_ACCOUNT_ID, isOsAccountActived));
 }
 
@@ -147,10 +147,10 @@ HWTEST_F(OsAccountMockTest, IsOsAccountActivedMockTest001, TestSize.Level1)
 HWTEST_F(OsAccountMockTest, IsOsAccountConstraintEnableMockTest001, TestSize.Level1)
 {
     bool isConstraintEnable;
-    EXPECT_EQ(ERR_OSACCOUNT_KIT_GET_SYSTEM_ABILITY_MANAGER_ERROR,
+    EXPECT_EQ(ERR_ACCOUNT_COMMON_GET_SYSTEM_ABILITY_MANAGER,
         g_osAccount->IsOsAccountConstraintEnable(MAIN_ACCOUNT_ID, CONSTANT_PRINT, isConstraintEnable));
 
-    EXPECT_EQ(ERR_OSACCOUNT_KIT_GET_SYSTEM_ABILITY_MANAGER_ERROR,
+    EXPECT_EQ(ERR_ACCOUNT_COMMON_GET_SYSTEM_ABILITY_MANAGER,
         g_osAccount->CheckOsAccountConstraintEnabled(MAIN_ACCOUNT_ID, CONSTANT_PRINT, isConstraintEnable));
 }
 
@@ -163,7 +163,7 @@ HWTEST_F(OsAccountMockTest, IsOsAccountConstraintEnableMockTest001, TestSize.Lev
 HWTEST_F(OsAccountMockTest, IsOsAccountVerifiedMockTest001, TestSize.Level1)
 {
     bool isVerified;
-    EXPECT_EQ(ERR_OSACCOUNT_KIT_GET_SYSTEM_ABILITY_MANAGER_ERROR,
+    EXPECT_EQ(ERR_ACCOUNT_COMMON_GET_SYSTEM_ABILITY_MANAGER,
         g_osAccount->IsOsAccountVerified(MAIN_ACCOUNT_ID, isVerified));
 }
 
@@ -176,7 +176,7 @@ HWTEST_F(OsAccountMockTest, IsOsAccountVerifiedMockTest001, TestSize.Level1)
 HWTEST_F(OsAccountMockTest, GetCreatedOsAccountsCountMockTest001, TestSize.Level1)
 {
     unsigned int osAccountsCount;
-    EXPECT_EQ(ERR_OSACCOUNT_KIT_GET_SYSTEM_ABILITY_MANAGER_ERROR,
+    EXPECT_EQ(ERR_ACCOUNT_COMMON_GET_SYSTEM_ABILITY_MANAGER,
         g_osAccount->GetCreatedOsAccountsCount(osAccountsCount));
 }
 
@@ -189,7 +189,7 @@ HWTEST_F(OsAccountMockTest, GetCreatedOsAccountsCountMockTest001, TestSize.Level
 HWTEST_F(OsAccountMockTest, GetOsAccountLocalIdFromProcessMockTest001, TestSize.Level1)
 {
     int id;
-    EXPECT_EQ(ERR_OSACCOUNT_KIT_GET_SYSTEM_ABILITY_MANAGER_ERROR,
+    EXPECT_EQ(ERR_ACCOUNT_COMMON_GET_SYSTEM_ABILITY_MANAGER,
         g_osAccount->GetOsAccountLocalIdFromProcess(id));
 }
 
@@ -202,7 +202,7 @@ HWTEST_F(OsAccountMockTest, GetOsAccountLocalIdFromProcessMockTest001, TestSize.
 HWTEST_F(OsAccountMockTest, IsMainOsAccountMockTest001, TestSize.Level1)
 {
     bool isMainOsAccount;
-    EXPECT_EQ(ERR_OSACCOUNT_KIT_GET_SYSTEM_ABILITY_MANAGER_ERROR,
+    EXPECT_EQ(ERR_ACCOUNT_COMMON_GET_SYSTEM_ABILITY_MANAGER,
         g_osAccount->IsMainOsAccount(isMainOsAccount));
 }
 
@@ -216,7 +216,7 @@ HWTEST_F(OsAccountMockTest, GetOsAccountLocalIdFromDomainMockTest001, TestSize.L
 {
     DomainAccountInfo domainInfo(STRING_DOMAIN_VALID, STRING_DOMAIN_ACCOUNT_NAME_VALID);
     int id;
-    EXPECT_EQ(ERR_OSACCOUNT_KIT_GET_SYSTEM_ABILITY_MANAGER_ERROR,
+    EXPECT_EQ(ERR_ACCOUNT_COMMON_GET_SYSTEM_ABILITY_MANAGER,
         g_osAccount->GetOsAccountLocalIdFromDomain(domainInfo, id));
 }
 
@@ -229,7 +229,7 @@ HWTEST_F(OsAccountMockTest, GetOsAccountLocalIdFromDomainMockTest001, TestSize.L
 HWTEST_F(OsAccountMockTest, QueryMaxOsAccountNumberMockTest001, TestSize.Level1)
 {
     int maxOsAccountNumber;
-    EXPECT_EQ(ERR_OSACCOUNT_KIT_GET_SYSTEM_ABILITY_MANAGER_ERROR,
+    EXPECT_EQ(ERR_ACCOUNT_COMMON_GET_SYSTEM_ABILITY_MANAGER,
         g_osAccount->QueryMaxOsAccountNumber(maxOsAccountNumber));
 }
 
@@ -242,7 +242,7 @@ HWTEST_F(OsAccountMockTest, QueryMaxOsAccountNumberMockTest001, TestSize.Level1)
 HWTEST_F(OsAccountMockTest, GetOsAccountAllConstraintsMockTest001, TestSize.Level1)
 {
     std::vector<std::string> constraints;
-    EXPECT_EQ(ERR_OSACCOUNT_KIT_GET_SYSTEM_ABILITY_MANAGER_ERROR,
+    EXPECT_EQ(ERR_ACCOUNT_COMMON_GET_SYSTEM_ABILITY_MANAGER,
         g_osAccount->GetOsAccountAllConstraints(MAIN_ACCOUNT_ID, constraints));
 }
 
@@ -255,7 +255,7 @@ HWTEST_F(OsAccountMockTest, GetOsAccountAllConstraintsMockTest001, TestSize.Leve
 HWTEST_F(OsAccountMockTest, QueryAllCreatedOsAccountsMockTest001, TestSize.Level1)
 {
     std::vector<OsAccountInfo> osAccountInfos;
-    EXPECT_EQ(ERR_OSACCOUNT_KIT_GET_SYSTEM_ABILITY_MANAGER_ERROR,
+    EXPECT_EQ(ERR_ACCOUNT_COMMON_GET_SYSTEM_ABILITY_MANAGER,
         g_osAccount->QueryAllCreatedOsAccounts(osAccountInfos));
 }
 
@@ -268,7 +268,7 @@ HWTEST_F(OsAccountMockTest, QueryAllCreatedOsAccountsMockTest001, TestSize.Level
 HWTEST_F(OsAccountMockTest, QueryCurrentOsAccountMockTest001, TestSize.Level1)
 {
     OsAccountInfo osAccountInfo;
-    EXPECT_EQ(ERR_OSACCOUNT_KIT_GET_SYSTEM_ABILITY_MANAGER_ERROR,
+    EXPECT_EQ(ERR_ACCOUNT_COMMON_GET_SYSTEM_ABILITY_MANAGER,
         g_osAccount->QueryCurrentOsAccount(osAccountInfo));
 }
 
@@ -281,7 +281,7 @@ HWTEST_F(OsAccountMockTest, QueryCurrentOsAccountMockTest001, TestSize.Level1)
 HWTEST_F(OsAccountMockTest, QueryOsAccountByIdMockTest001, TestSize.Level1)
 {
     OsAccountInfo osAccountInfo;
-    EXPECT_EQ(ERR_OSACCOUNT_KIT_GET_SYSTEM_ABILITY_MANAGER_ERROR,
+    EXPECT_EQ(ERR_ACCOUNT_COMMON_GET_SYSTEM_ABILITY_MANAGER,
         g_osAccount->QueryOsAccountById(MAIN_ACCOUNT_ID, osAccountInfo));
 }
 
@@ -294,7 +294,7 @@ HWTEST_F(OsAccountMockTest, QueryOsAccountByIdMockTest001, TestSize.Level1)
 HWTEST_F(OsAccountMockTest, GetOsAccountTypeFromProcessMockTest001, TestSize.Level1)
 {
     OsAccountType type;
-    EXPECT_EQ(ERR_OSACCOUNT_KIT_GET_SYSTEM_ABILITY_MANAGER_ERROR,
+    EXPECT_EQ(ERR_ACCOUNT_COMMON_GET_SYSTEM_ABILITY_MANAGER,
         g_osAccount->GetOsAccountTypeFromProcess(type));
 }
 
@@ -307,7 +307,7 @@ HWTEST_F(OsAccountMockTest, GetOsAccountTypeFromProcessMockTest001, TestSize.Lev
 HWTEST_F(OsAccountMockTest, GetOsAccountProfilePhotoMockTest001, TestSize.Level1)
 {
     std::string photo;
-    EXPECT_EQ(ERR_OSACCOUNT_KIT_GET_SYSTEM_ABILITY_MANAGER_ERROR,
+    EXPECT_EQ(ERR_ACCOUNT_COMMON_GET_SYSTEM_ABILITY_MANAGER,
         g_osAccount->GetOsAccountProfilePhoto(MAIN_ACCOUNT_ID, photo));
 }
 
@@ -320,7 +320,7 @@ HWTEST_F(OsAccountMockTest, GetOsAccountProfilePhotoMockTest001, TestSize.Level1
 HWTEST_F(OsAccountMockTest, IsMultiOsAccountEnableMockTest001, TestSize.Level1)
 {
     bool isMultiOsAccountEnable;
-    EXPECT_EQ(ERR_OSACCOUNT_KIT_GET_SYSTEM_ABILITY_MANAGER_ERROR,
+    EXPECT_EQ(ERR_ACCOUNT_COMMON_GET_SYSTEM_ABILITY_MANAGER,
         g_osAccount->IsMultiOsAccountEnable(isMultiOsAccountEnable));
 }
 
@@ -332,7 +332,7 @@ HWTEST_F(OsAccountMockTest, IsMultiOsAccountEnableMockTest001, TestSize.Level1)
  */
 HWTEST_F(OsAccountMockTest, SetOsAccountNameMockTest001, TestSize.Level1)
 {
-    EXPECT_EQ(ERR_OSACCOUNT_KIT_GET_SYSTEM_ABILITY_MANAGER_ERROR,
+    EXPECT_EQ(ERR_ACCOUNT_COMMON_GET_SYSTEM_ABILITY_MANAGER,
         g_osAccount->SetOsAccountName(MAIN_ACCOUNT_ID, STRING_NAME));
 }
 
@@ -344,7 +344,7 @@ HWTEST_F(OsAccountMockTest, SetOsAccountNameMockTest001, TestSize.Level1)
  */
 HWTEST_F(OsAccountMockTest, SetOsAccountConstraintsMockTest001, TestSize.Level1)
 {
-    EXPECT_EQ(ERR_OSACCOUNT_KIT_GET_SYSTEM_ABILITY_MANAGER_ERROR,
+    EXPECT_EQ(ERR_ACCOUNT_COMMON_GET_SYSTEM_ABILITY_MANAGER,
         g_osAccount->SetOsAccountConstraints(MAIN_ACCOUNT_ID, CONSTANTS_VECTOR, true));
 }
 
@@ -356,7 +356,7 @@ HWTEST_F(OsAccountMockTest, SetOsAccountConstraintsMockTest001, TestSize.Level1)
  */
 HWTEST_F(OsAccountMockTest, SetOsAccountProfilePhotoMockTest001, TestSize.Level1)
 {
-    EXPECT_EQ(ERR_OSACCOUNT_KIT_GET_SYSTEM_ABILITY_MANAGER_ERROR,
+    EXPECT_EQ(ERR_ACCOUNT_COMMON_GET_SYSTEM_ABILITY_MANAGER,
         g_osAccount->SetOsAccountProfilePhoto(MAIN_ACCOUNT_ID, PHOTO_IMG));
 }
 
@@ -368,7 +368,7 @@ HWTEST_F(OsAccountMockTest, SetOsAccountProfilePhotoMockTest001, TestSize.Level1
  */
 HWTEST_F(OsAccountMockTest, ActivateOsAccountMockTest001, TestSize.Level1)
 {
-    EXPECT_EQ(ERR_OSACCOUNT_KIT_GET_SYSTEM_ABILITY_MANAGER_ERROR,
+    EXPECT_EQ(ERR_ACCOUNT_COMMON_GET_SYSTEM_ABILITY_MANAGER,
         g_osAccount->ActivateOsAccount(MAIN_ACCOUNT_ID));
 }
 
@@ -380,7 +380,7 @@ HWTEST_F(OsAccountMockTest, ActivateOsAccountMockTest001, TestSize.Level1)
  */
 HWTEST_F(OsAccountMockTest, StartOsAccountMockTest001, TestSize.Level1)
 {
-    EXPECT_EQ(ERR_OSACCOUNT_KIT_GET_SYSTEM_ABILITY_MANAGER_ERROR,
+    EXPECT_EQ(ERR_ACCOUNT_COMMON_GET_SYSTEM_ABILITY_MANAGER,
         g_osAccount->StartOsAccount(MAIN_ACCOUNT_ID));
 }
 
@@ -392,7 +392,7 @@ HWTEST_F(OsAccountMockTest, StartOsAccountMockTest001, TestSize.Level1)
  */
 HWTEST_F(OsAccountMockTest, StopOsAccountMockTest001, TestSize.Level1)
 {
-    EXPECT_EQ(ERR_OSACCOUNT_KIT_GET_SYSTEM_ABILITY_MANAGER_ERROR,
+    EXPECT_EQ(ERR_ACCOUNT_COMMON_GET_SYSTEM_ABILITY_MANAGER,
         g_osAccount->StopOsAccount(MAIN_ACCOUNT_ID));
 }
 
@@ -405,7 +405,7 @@ HWTEST_F(OsAccountMockTest, StopOsAccountMockTest001, TestSize.Level1)
 HWTEST_F(OsAccountMockTest, GetOsAccountLocalIdBySerialNumberMockTest001, TestSize.Level1)
 {
     int id;
-    EXPECT_EQ(ERR_OSACCOUNT_KIT_GET_SYSTEM_ABILITY_MANAGER_ERROR, g_osAccount->GetOsAccountLocalIdBySerialNumber(
+    EXPECT_EQ(ERR_ACCOUNT_COMMON_GET_SYSTEM_ABILITY_MANAGER, g_osAccount->GetOsAccountLocalIdBySerialNumber(
         Constants::CARRY_NUM * Constants::SERIAL_NUMBER_NUM_START_FOR_ADMIN + 1, id));
 }
 
@@ -418,7 +418,7 @@ HWTEST_F(OsAccountMockTest, GetOsAccountLocalIdBySerialNumberMockTest001, TestSi
 HWTEST_F(OsAccountMockTest, GetSerialNumberByOsAccountLocalIdMockTest001, TestSize.Level1)
 {
     int64_t serialNumber;
-    EXPECT_EQ(ERR_OSACCOUNT_KIT_GET_SYSTEM_ABILITY_MANAGER_ERROR,
+    EXPECT_EQ(ERR_ACCOUNT_COMMON_GET_SYSTEM_ABILITY_MANAGER,
         g_osAccount->GetSerialNumberByOsAccountLocalId(MAIN_ACCOUNT_ID, serialNumber));
 }
 
@@ -436,7 +436,7 @@ public:
 HWTEST_F(OsAccountMockTest, SubscribeOsAccountMockTest001, TestSize.Level1)
 {
     std::shared_ptr<TestOsAccountSubscriber> subscriber = std::make_shared<TestOsAccountSubscriber>();
-    EXPECT_EQ(ERR_APPACCOUNT_KIT_APP_ACCOUNT_PROXY_IS_NULLPTR,
+    EXPECT_EQ(ERR_ACCOUNT_COMMON_GET_PROXY,
         g_osAccount->SubscribeOsAccount(subscriber));
 }
 
@@ -449,7 +449,7 @@ HWTEST_F(OsAccountMockTest, SubscribeOsAccountMockTest001, TestSize.Level1)
 HWTEST_F(OsAccountMockTest, UnsubscribeOsAccountMockTest001, TestSize.Level1)
 {
     std::shared_ptr<TestOsAccountSubscriber> subscriber = std::make_shared<TestOsAccountSubscriber>();
-    EXPECT_EQ(ERR_APPACCOUNT_KIT_APP_ACCOUNT_PROXY_IS_NULLPTR,
+    EXPECT_EQ(ERR_ACCOUNT_COMMON_GET_PROXY,
         g_osAccount->UnsubscribeOsAccount(subscriber));
 }
 
@@ -473,7 +473,7 @@ HWTEST_F(OsAccountMockTest, GetOsAccountSwitchModMockTest001, TestSize.Level1)
 HWTEST_F(OsAccountMockTest, DumpStateMockTest001, TestSize.Level1)
 {
     std::vector<std::string> state;
-    EXPECT_EQ(ERR_OSACCOUNT_KIT_GET_SYSTEM_ABILITY_MANAGER_ERROR,
+    EXPECT_EQ(ERR_ACCOUNT_COMMON_GET_SYSTEM_ABILITY_MANAGER,
         g_osAccount->DumpState(MAIN_ACCOUNT_ID, state));
 }
 
@@ -486,7 +486,7 @@ HWTEST_F(OsAccountMockTest, DumpStateMockTest001, TestSize.Level1)
 HWTEST_F(OsAccountMockTest, IsCurrentOsAccountVerifiedMockTest001, TestSize.Level1)
 {
     bool isVerified;
-    EXPECT_EQ(ERR_OSACCOUNT_KIT_GET_SYSTEM_ABILITY_MANAGER_ERROR,
+    EXPECT_EQ(ERR_ACCOUNT_COMMON_GET_SYSTEM_ABILITY_MANAGER,
         g_osAccount->IsCurrentOsAccountVerified(isVerified));
 }
 
@@ -499,7 +499,7 @@ HWTEST_F(OsAccountMockTest, IsCurrentOsAccountVerifiedMockTest001, TestSize.Leve
 HWTEST_F(OsAccountMockTest, IsOsAccountCompletedMockTest001, TestSize.Level1)
 {
     bool isOsAccountCompleted;
-    EXPECT_EQ(ERR_OSACCOUNT_KIT_GET_SYSTEM_ABILITY_MANAGER_ERROR,
+    EXPECT_EQ(ERR_ACCOUNT_COMMON_GET_SYSTEM_ABILITY_MANAGER,
         g_osAccount->IsOsAccountCompleted(MAIN_ACCOUNT_ID, isOsAccountCompleted));
 }
 
@@ -511,7 +511,7 @@ HWTEST_F(OsAccountMockTest, IsOsAccountCompletedMockTest001, TestSize.Level1)
  */
 HWTEST_F(OsAccountMockTest, SetCurrentOsAccountIsVerifiedMockTest001, TestSize.Level1)
 {
-    EXPECT_EQ(ERR_OSACCOUNT_KIT_GET_SYSTEM_ABILITY_MANAGER_ERROR,
+    EXPECT_EQ(ERR_ACCOUNT_COMMON_GET_SYSTEM_ABILITY_MANAGER,
         g_osAccount->SetCurrentOsAccountIsVerified(false));
 }
 
@@ -523,7 +523,7 @@ HWTEST_F(OsAccountMockTest, SetCurrentOsAccountIsVerifiedMockTest001, TestSize.L
  */
 HWTEST_F(OsAccountMockTest, SetOsAccountIsVerifiedMockTest001, TestSize.Level1)
 {
-    EXPECT_EQ(ERR_OSACCOUNT_KIT_GET_SYSTEM_ABILITY_MANAGER_ERROR,
+    EXPECT_EQ(ERR_ACCOUNT_COMMON_GET_SYSTEM_ABILITY_MANAGER,
         g_osAccount->SetOsAccountIsVerified(MAIN_ACCOUNT_ID, false));
 }
 
@@ -536,7 +536,7 @@ HWTEST_F(OsAccountMockTest, SetOsAccountIsVerifiedMockTest001, TestSize.Level1)
 HWTEST_F(OsAccountMockTest, GetCreatedOsAccountNumFromDatabaseMockTest001, TestSize.Level1)
 {
     int createdOsAccountNum;
-    EXPECT_EQ(ERR_OSACCOUNT_KIT_GET_SYSTEM_ABILITY_MANAGER_ERROR,
+    EXPECT_EQ(ERR_ACCOUNT_COMMON_GET_SYSTEM_ABILITY_MANAGER,
         g_osAccount->GetCreatedOsAccountNumFromDatabase(storeID, createdOsAccountNum));
 }
 
@@ -549,7 +549,7 @@ HWTEST_F(OsAccountMockTest, GetCreatedOsAccountNumFromDatabaseMockTest001, TestS
 HWTEST_F(OsAccountMockTest, GetSerialNumberFromDatabaseMockTest001, TestSize.Level1)
 {
     int64_t serialNumber;
-    EXPECT_EQ(ERR_OSACCOUNT_KIT_GET_SYSTEM_ABILITY_MANAGER_ERROR,
+    EXPECT_EQ(ERR_ACCOUNT_COMMON_GET_SYSTEM_ABILITY_MANAGER,
         g_osAccount->GetSerialNumberFromDatabase(storeID, serialNumber));
 }
 
@@ -562,7 +562,7 @@ HWTEST_F(OsAccountMockTest, GetSerialNumberFromDatabaseMockTest001, TestSize.Lev
 HWTEST_F(OsAccountMockTest, GetMaxAllowCreateIdFromDatabaseMockTest001, TestSize.Level1)
 {
     int id;
-    EXPECT_EQ(ERR_OSACCOUNT_KIT_GET_SYSTEM_ABILITY_MANAGER_ERROR,
+    EXPECT_EQ(ERR_ACCOUNT_COMMON_GET_SYSTEM_ABILITY_MANAGER,
         g_osAccount->GetMaxAllowCreateIdFromDatabase(storeID, id));
 }
 
@@ -575,7 +575,7 @@ HWTEST_F(OsAccountMockTest, GetMaxAllowCreateIdFromDatabaseMockTest001, TestSize
 HWTEST_F(OsAccountMockTest, GetOsAccountFromDatabaseMockTest001, TestSize.Level1)
 {
     OsAccountInfo osAccountInfo;
-    EXPECT_EQ(ERR_OSACCOUNT_KIT_GET_SYSTEM_ABILITY_MANAGER_ERROR,
+    EXPECT_EQ(ERR_ACCOUNT_COMMON_GET_SYSTEM_ABILITY_MANAGER,
         g_osAccount->GetOsAccountFromDatabase(storeID, MAIN_ACCOUNT_ID, osAccountInfo));
 }
 
@@ -588,7 +588,7 @@ HWTEST_F(OsAccountMockTest, GetOsAccountFromDatabaseMockTest001, TestSize.Level1
 HWTEST_F(OsAccountMockTest, GetOsAccountListFromDatabaseMockTest001, TestSize.Level1)
 {
     std::vector<OsAccountInfo> osAccountList;
-    EXPECT_EQ(ERR_OSACCOUNT_KIT_GET_SYSTEM_ABILITY_MANAGER_ERROR,
+    EXPECT_EQ(ERR_ACCOUNT_COMMON_GET_SYSTEM_ABILITY_MANAGER,
         g_osAccount->GetOsAccountListFromDatabase(storeID, osAccountList));
 }
 
@@ -601,7 +601,7 @@ HWTEST_F(OsAccountMockTest, GetOsAccountListFromDatabaseMockTest001, TestSize.Le
 HWTEST_F(OsAccountMockTest, QueryActiveOsAccountIdsMockTest001, TestSize.Level1)
 {
     std::vector<int32_t> ids;
-    EXPECT_EQ(ERR_OSACCOUNT_KIT_GET_SYSTEM_ABILITY_MANAGER_ERROR,
+    EXPECT_EQ(ERR_ACCOUNT_COMMON_GET_SYSTEM_ABILITY_MANAGER,
         g_osAccount->QueryActiveOsAccountIds(ids));
 }
 
@@ -614,7 +614,7 @@ HWTEST_F(OsAccountMockTest, QueryActiveOsAccountIdsMockTest001, TestSize.Level1)
 HWTEST_F(OsAccountMockTest, QueryOsAccountConstraintSourceTypesMockTest001, TestSize.Level1)
 {
     std::vector<ConstraintSourceTypeInfo> constraintSourceTypeInfos;
-    EXPECT_EQ(ERR_OSACCOUNT_KIT_GET_SYSTEM_ABILITY_MANAGER_ERROR,
+    EXPECT_EQ(ERR_ACCOUNT_COMMON_GET_SYSTEM_ABILITY_MANAGER,
         g_osAccount->QueryOsAccountConstraintSourceTypes(MAIN_ACCOUNT_ID, CONSTANT_PRINT, constraintSourceTypeInfos));
 }
 
@@ -626,7 +626,7 @@ HWTEST_F(OsAccountMockTest, QueryOsAccountConstraintSourceTypesMockTest001, Test
  */
 HWTEST_F(OsAccountMockTest, SetGlobalOsAccountConstraintsMockTest001, TestSize.Level1)
 {
-    EXPECT_EQ(ERR_OSACCOUNT_KIT_GET_SYSTEM_ABILITY_MANAGER_ERROR,
+    EXPECT_EQ(ERR_ACCOUNT_COMMON_GET_SYSTEM_ABILITY_MANAGER,
         g_osAccount->SetGlobalOsAccountConstraints(CONSTANTS_VECTOR, true, MAIN_ACCOUNT_ID, true));
 }
 
@@ -638,7 +638,7 @@ HWTEST_F(OsAccountMockTest, SetGlobalOsAccountConstraintsMockTest001, TestSize.L
  */
 HWTEST_F(OsAccountMockTest, SetSpecificOsAccountConstraintsMockTest001, TestSize.Level1)
 {
-    EXPECT_EQ(ERR_OSACCOUNT_KIT_GET_SYSTEM_ABILITY_MANAGER_ERROR,
+    EXPECT_EQ(ERR_ACCOUNT_COMMON_GET_SYSTEM_ABILITY_MANAGER,
         g_osAccount->SetSpecificOsAccountConstraints(CONSTANTS_VECTOR, true, MAIN_ACCOUNT_ID, MAIN_ACCOUNT_ID, true));
 }
 
@@ -650,7 +650,7 @@ HWTEST_F(OsAccountMockTest, SetSpecificOsAccountConstraintsMockTest001, TestSize
  */
 HWTEST_F(OsAccountMockTest, SetDefaultActivatedOsAccountMockTest001, TestSize.Level1)
 {
-    EXPECT_EQ(ERR_OSACCOUNT_KIT_GET_SYSTEM_ABILITY_MANAGER_ERROR,
+    EXPECT_EQ(ERR_ACCOUNT_COMMON_GET_SYSTEM_ABILITY_MANAGER,
         g_osAccount->SetDefaultActivatedOsAccount(MAIN_ACCOUNT_ID));
 }
 
@@ -663,6 +663,6 @@ HWTEST_F(OsAccountMockTest, SetDefaultActivatedOsAccountMockTest001, TestSize.Le
 HWTEST_F(OsAccountMockTest, GetDefaultActivatedOsAccountMockTest001, TestSize.Level1)
 {
     int id;
-    EXPECT_EQ(ERR_OSACCOUNT_KIT_GET_SYSTEM_ABILITY_MANAGER_ERROR,
+    EXPECT_EQ(ERR_ACCOUNT_COMMON_GET_SYSTEM_ABILITY_MANAGER,
         g_osAccount->GetDefaultActivatedOsAccount(id));
 }
