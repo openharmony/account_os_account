@@ -334,7 +334,7 @@ ErrCode AppAccountAuthenticatorSession::GetAuthenticatorCallback(
     callback = nullptr;
     if ((request.callerUid != ownerUid_) || (request.callerBundleName != request_.owner)) {
         ACCOUNT_LOGE("fail to get authenticator callback for permission denied");
-        return ERR_APPACCOUNT_SERVICE_PERMISSION_DENIED;
+        return ERR_ACCOUNT_COMMON_PERMISSION_DENIED;
     }
     if (!authenticatorCb_) {
         ACCOUNT_LOGE("session has not been initialized");

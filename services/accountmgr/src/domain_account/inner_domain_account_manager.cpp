@@ -225,7 +225,7 @@ ErrCode InnerDomainAccountManager::AuthWithPopup(int32_t userId, const sptr<IDom
         (void)IInnerOsAccountManager::GetInstance().QueryActiveOsAccountIds(userIds);
         if (userIds.empty()) {
             ACCOUNT_LOGE("fail to get activated os account ids");
-            return ERR_OSACCOUNT_SERVICE_INNER_CANNOT_FIND_OSACCOUNT_ERROR;
+            return ERR_ACCOUNT_COMMON_ACCOUNT_NOT_EXIST_ERROR;
         }
         userId = userIds[0];
     }

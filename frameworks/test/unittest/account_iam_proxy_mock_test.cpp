@@ -77,7 +77,7 @@ public:
 HWTEST_F(AccountIAMProxyMockTest, AccountIAMClient_OpenSession_0100, TestSize.Level0)
 {
     std::vector<uint8_t> challenge;
-    ASSERT_EQ(ERR_ACCOUNT_IAM_KIT_PROXY_ERROR, AccountIAMClient::GetInstance().OpenSession(TEST_USER_ID, challenge));
+    ASSERT_EQ(ERR_ACCOUNT_COMMON_GET_PROXY, AccountIAMClient::GetInstance().OpenSession(TEST_USER_ID, challenge));
 }
 
 /**
@@ -88,7 +88,7 @@ HWTEST_F(AccountIAMProxyMockTest, AccountIAMClient_OpenSession_0100, TestSize.Le
  */
 HWTEST_F(AccountIAMProxyMockTest, AccountIAMClient_CloseSession_0100, TestSize.Level0)
 {
-    ASSERT_EQ(ERR_ACCOUNT_IAM_KIT_PROXY_ERROR, AccountIAMClient::GetInstance().CloseSession(TEST_USER_ID));
+    ASSERT_EQ(ERR_ACCOUNT_COMMON_GET_PROXY, AccountIAMClient::GetInstance().CloseSession(TEST_USER_ID));
 }
 
 /**
@@ -103,7 +103,7 @@ HWTEST_F(AccountIAMProxyMockTest, AccountIAMClient_AddCredential_0100, TestSize.
     auto testCallback = std::make_shared<IDMCallbackMockTest>();
     ASSERT_NE(testCallback, nullptr);
     AccountIAMClient::GetInstance().AddCredential(TEST_USER_ID, testPara, testCallback);
-    ASSERT_EQ(ERR_ACCOUNT_IAM_KIT_PROXY_ERROR, testCallback->result_);
+    ASSERT_EQ(ERR_ACCOUNT_COMMON_GET_PROXY, testCallback->result_);
 }
 
 /**
@@ -118,7 +118,7 @@ HWTEST_F(AccountIAMProxyMockTest, AccountIAMClient_UpdateCredential_0100, TestSi
     auto testCallback = std::make_shared<IDMCallbackMockTest>();
     ASSERT_NE(testCallback, nullptr);
     AccountIAMClient::GetInstance().UpdateCredential(TEST_USER_ID, testPara, testCallback);
-    ASSERT_EQ(ERR_ACCOUNT_IAM_KIT_PROXY_ERROR, testCallback->result_);
+    ASSERT_EQ(ERR_ACCOUNT_COMMON_GET_PROXY, testCallback->result_);
 }
 
 /**
@@ -129,7 +129,7 @@ HWTEST_F(AccountIAMProxyMockTest, AccountIAMClient_UpdateCredential_0100, TestSi
  */
 HWTEST_F(AccountIAMProxyMockTest, AccountIAMClient_Cancel_0100, TestSize.Level0)
 {
-    ASSERT_EQ(ERR_ACCOUNT_IAM_KIT_PROXY_ERROR, AccountIAMClient::GetInstance().Cancel(TEST_USER_ID));
+    ASSERT_EQ(ERR_ACCOUNT_COMMON_GET_PROXY, AccountIAMClient::GetInstance().Cancel(TEST_USER_ID));
 }
 
 /**
@@ -145,7 +145,7 @@ HWTEST_F(AccountIAMProxyMockTest, AccountIAMClient_DelCred_0100, TestSize.Level0
     auto testCallback = std::make_shared<IDMCallbackMockTest>();
     ASSERT_NE(testCallback, nullptr);
     AccountIAMClient::GetInstance().DelCred(TEST_USER_ID, testCredentialId, testAuthToken, testCallback);
-    ASSERT_EQ(ERR_ACCOUNT_IAM_KIT_PROXY_ERROR, testCallback->result_);
+    ASSERT_EQ(ERR_ACCOUNT_COMMON_GET_PROXY, testCallback->result_);
 }
 
 /**
@@ -160,7 +160,7 @@ HWTEST_F(AccountIAMProxyMockTest, AccountIAMClient_DelUser_0100, TestSize.Level0
     auto testCallback = std::make_shared<IDMCallbackMockTest>();
     ASSERT_NE(testCallback, nullptr);
     AccountIAMClient::GetInstance().DelUser(TEST_USER_ID, testAuthToken, testCallback);
-    ASSERT_EQ(ERR_ACCOUNT_IAM_KIT_PROXY_ERROR, testCallback->result_);
+    ASSERT_EQ(ERR_ACCOUNT_COMMON_GET_PROXY, testCallback->result_);
 }
 
 /**
@@ -171,7 +171,7 @@ HWTEST_F(AccountIAMProxyMockTest, AccountIAMClient_DelUser_0100, TestSize.Level0
  */
 HWTEST_F(AccountIAMProxyMockTest, AccountIAMClient_GetCredentialInfo_0100, TestSize.Level0)
 {
-    ASSERT_EQ(ERR_ACCOUNT_IAM_KIT_PROXY_ERROR,
+    ASSERT_EQ(ERR_ACCOUNT_COMMON_GET_PROXY,
         AccountIAMClient::GetInstance().GetCredentialInfo(TEST_USER_ID, AuthType::PIN, nullptr));
 }
 
@@ -198,7 +198,7 @@ HWTEST_F(AccountIAMProxyMockTest, AccountIAMClient_AuthUser_0100, TestSize.Level
  */
 HWTEST_F(AccountIAMProxyMockTest, AccountIAMClient_CancelAuth_0100, TestSize.Level0)
 {
-    ASSERT_EQ(ERR_ACCOUNT_IAM_KIT_PROXY_ERROR, AccountIAMClient::GetInstance().CancelAuth(TEST_CONTEXT_ID));
+    ASSERT_EQ(ERR_ACCOUNT_COMMON_GET_PROXY, AccountIAMClient::GetInstance().CancelAuth(TEST_CONTEXT_ID));
 }
 
 /**
@@ -211,7 +211,7 @@ HWTEST_F(AccountIAMProxyMockTest, AccountIAMClient_GetAvailableStatus_0100, Test
 {
     int32_t status;
     int32_t ret = AccountIAMClient::GetInstance().GetAvailableStatus(AuthType::FACE, AuthTrustLevel::ATL1, status);
-    ASSERT_EQ(ERR_ACCOUNT_IAM_KIT_PROXY_ERROR, ret);
+    ASSERT_EQ(ERR_ACCOUNT_COMMON_GET_PROXY, ret);
 }
 
 /**
@@ -226,7 +226,7 @@ HWTEST_F(AccountIAMProxyMockTest, AccountIAMClient_GetProperty_0100, TestSize.Le
     auto testCallback = std::make_shared<GetSetPropCallbackMockTest>();
     ASSERT_NE(testCallback, nullptr);
     AccountIAMClient::GetInstance().GetProperty(TEST_USER_ID, testRequest, testCallback);
-    ASSERT_EQ(ERR_ACCOUNT_IAM_KIT_PROXY_ERROR, testCallback->result_);
+    ASSERT_EQ(ERR_ACCOUNT_COMMON_GET_PROXY, testCallback->result_);
 }
 
 /**
@@ -241,7 +241,7 @@ HWTEST_F(AccountIAMProxyMockTest, AccountIAMClient_SetProperty_0100, TestSize.Le
     auto testCallback = std::make_shared<GetSetPropCallbackMockTest>();
     ASSERT_NE(testCallback, nullptr);
     AccountIAMClient::GetInstance().SetProperty(TEST_USER_ID, testRequest, testCallback);
-    ASSERT_EQ(ERR_ACCOUNT_IAM_KIT_PROXY_ERROR, testCallback->result_);
+    ASSERT_EQ(ERR_ACCOUNT_COMMON_GET_PROXY, testCallback->result_);
 }
 
 /**

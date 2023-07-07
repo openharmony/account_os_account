@@ -85,7 +85,7 @@ HWTEST_F(AccountOsProxyMockTest, OsAccountTest001, TestSize.Level1)
 {
     OsAccountInfo osAccountInfo;
     ErrCode errCode = OsAccountManager::CreateOsAccount(STRING_TEST_NAME, OsAccountType::ADMIN, osAccountInfo);
-    ASSERT_EQ(ERR_OSACCOUNT_KIT_GET_SYSTEM_ABILITY_MANAGER_ERROR, errCode);
+    ASSERT_EQ(ERR_ACCOUNT_COMMON_GET_SYSTEM_ABILITY_MANAGER, errCode);
 }
 
 /**
@@ -101,7 +101,7 @@ HWTEST_F(AccountOsProxyMockTest, CreateOsAccountForDomainTest001, TestSize.Level
     OsAccountType type = NORMAL;
     OsAccountInfo osAccountInfo;
     ErrCode errCode = OsAccountManager::CreateOsAccountForDomain(type, domainInfo, osAccountInfo);
-    ASSERT_EQ(ERR_OSACCOUNT_KIT_GET_SYSTEM_ABILITY_MANAGER_ERROR, errCode);
+    ASSERT_EQ(ERR_ACCOUNT_COMMON_GET_SYSTEM_ABILITY_MANAGER, errCode);
 }
 #endif // DOMAIN_ACCOUNT_TEST_CASE
 
@@ -114,7 +114,7 @@ HWTEST_F(AccountOsProxyMockTest, CreateOsAccountForDomainTest001, TestSize.Level
 HWTEST_F(AccountOsProxyMockTest, RemoveOsAccountTest001, TestSize.Level1)
 {
     ErrCode errCode = OsAccountManager::OsAccountManager::RemoveOsAccount(TEST_USER_ID);
-    ASSERT_EQ(ERR_OSACCOUNT_KIT_GET_SYSTEM_ABILITY_MANAGER_ERROR, errCode);
+    ASSERT_EQ(ERR_ACCOUNT_COMMON_GET_SYSTEM_ABILITY_MANAGER, errCode);
 }
 
 /**
@@ -127,7 +127,7 @@ HWTEST_F(AccountOsProxyMockTest, IsOsAccountExistsTest001, TestSize.Level1)
 {
     bool isOsAccountExists = false;
     ErrCode errCode = OsAccountManager::IsOsAccountExists(TEST_USER_ID, isOsAccountExists);
-    ASSERT_EQ(ERR_OSACCOUNT_KIT_GET_SYSTEM_ABILITY_MANAGER_ERROR, errCode);
+    ASSERT_EQ(ERR_ACCOUNT_COMMON_GET_SYSTEM_ABILITY_MANAGER, errCode);
     ASSERT_EQ(isOsAccountExists, false);
 }
 
@@ -141,7 +141,7 @@ HWTEST_F(AccountOsProxyMockTest, IsOsAccountActivedTest001, TestSize.Level1)
 {
     bool isOsAccountActived = false;
     ErrCode errCode = OsAccountManager::IsOsAccountActived(TEST_USER_ID, isOsAccountActived);
-    ASSERT_EQ(ERR_OSACCOUNT_KIT_GET_SYSTEM_ABILITY_MANAGER_ERROR, errCode);
+    ASSERT_EQ(ERR_ACCOUNT_COMMON_GET_SYSTEM_ABILITY_MANAGER, errCode);
     ASSERT_EQ(isOsAccountActived, false);
 }
 
@@ -156,7 +156,7 @@ HWTEST_F(AccountOsProxyMockTest, IsOsAccountConstraintEnableTest001, TestSize.Le
     bool isEnable = true;
     ErrCode errCode =
         OsAccountManager::IsOsAccountConstraintEnable(TEST_USER_ID, CONSTANT_PRINT, isEnable);
-    ASSERT_EQ(ERR_OSACCOUNT_KIT_GET_SYSTEM_ABILITY_MANAGER_ERROR, errCode);
+    ASSERT_EQ(ERR_ACCOUNT_COMMON_GET_SYSTEM_ABILITY_MANAGER, errCode);
     ASSERT_EQ(isEnable, false);
 }
 
@@ -170,7 +170,7 @@ HWTEST_F(AccountOsProxyMockTest, IsOsAccountVerifiedTest001, TestSize.Level1)
 {
     bool isVerified = true;
     ErrCode errCode = OsAccountManager::IsOsAccountVerified(TEST_USER_ID, isVerified);
-    ASSERT_EQ(ERR_OSACCOUNT_KIT_GET_SYSTEM_ABILITY_MANAGER_ERROR, errCode);
+    ASSERT_EQ(ERR_ACCOUNT_COMMON_GET_SYSTEM_ABILITY_MANAGER, errCode);
     ASSERT_EQ(isVerified, false);
 }
 
@@ -184,7 +184,7 @@ HWTEST_F(AccountOsProxyMockTest, GetCreatedOsAccountsCountTest001, TestSize.Leve
 {
     uint32_t osAccountsCount = 0;
     ErrCode errCode = OsAccountManager::GetCreatedOsAccountsCount(osAccountsCount);
-    ASSERT_EQ(ERR_OSACCOUNT_KIT_GET_SYSTEM_ABILITY_MANAGER_ERROR, errCode);
+    ASSERT_EQ(ERR_ACCOUNT_COMMON_GET_SYSTEM_ABILITY_MANAGER, errCode);
 }
 
 /**
@@ -197,7 +197,7 @@ HWTEST_F(AccountOsProxyMockTest, GetOsAccountLocalIdFromProcessTest001, TestSize
 {
     int32_t id = -1;
     ErrCode errCode = OsAccountManager::GetOsAccountLocalIdFromProcess(id);
-    ASSERT_EQ(ERR_OSACCOUNT_KIT_GET_SYSTEM_ABILITY_MANAGER_ERROR, errCode);
+    ASSERT_EQ(ERR_ACCOUNT_COMMON_GET_SYSTEM_ABILITY_MANAGER, errCode);
 }
 
 /**
@@ -210,7 +210,7 @@ HWTEST_F(AccountOsProxyMockTest, IsMainOsAccountTest001, TestSize.Level1)
 {
     bool isMainOsAccount = false;
     ErrCode errCode = OsAccountManager::IsMainOsAccount(isMainOsAccount);
-    ASSERT_EQ(ERR_OSACCOUNT_KIT_GET_SYSTEM_ABILITY_MANAGER_ERROR, errCode);
+    ASSERT_EQ(ERR_ACCOUNT_COMMON_GET_SYSTEM_ABILITY_MANAGER, errCode);
 }
 
 /**
@@ -226,7 +226,7 @@ HWTEST_F(AccountOsProxyMockTest, GetOsAccountLocalIdFromDomainTest001, TestSize.
     DomainAccountInfo domainInfo(testDomainName, testDomain);
     int32_t resID = -1;
     ErrCode errCode = OsAccountManager::GetOsAccountLocalIdFromDomain(domainInfo, resID);
-    ASSERT_EQ(ERR_OSACCOUNT_KIT_GET_SYSTEM_ABILITY_MANAGER_ERROR, errCode);
+    ASSERT_EQ(ERR_ACCOUNT_COMMON_GET_SYSTEM_ABILITY_MANAGER, errCode);
 }
 
 /**
@@ -239,7 +239,7 @@ HWTEST_F(AccountOsProxyMockTest, QueryMaxOsAccountNumberTest001, TestSize.Level1
 {
     int32_t maxOsAccountNumber = 0;
     ErrCode errCode = OsAccountManager::QueryMaxOsAccountNumber(maxOsAccountNumber);
-    ASSERT_EQ(ERR_OSACCOUNT_KIT_GET_SYSTEM_ABILITY_MANAGER_ERROR, errCode);
+    ASSERT_EQ(ERR_ACCOUNT_COMMON_GET_SYSTEM_ABILITY_MANAGER, errCode);
 }
 
 /**
@@ -252,7 +252,7 @@ HWTEST_F(AccountOsProxyMockTest, GetOsAccountAllConstraintsTest001, TestSize.Lev
 {
     std::vector<std::string> constraints;
     ErrCode errCode = OsAccountManager::GetOsAccountAllConstraints(TEST_USER_ID, constraints);
-    ASSERT_EQ(ERR_OSACCOUNT_KIT_GET_SYSTEM_ABILITY_MANAGER_ERROR, errCode);
+    ASSERT_EQ(ERR_ACCOUNT_COMMON_GET_SYSTEM_ABILITY_MANAGER, errCode);
 }
 
 /**
@@ -265,7 +265,7 @@ HWTEST_F(AccountOsProxyMockTest, QueryAllCreatedOsAccountsTest001, TestSize.Leve
 {
     std::vector<std::string> constraints;
     ErrCode errCode = OsAccountManager::GetOsAccountAllConstraints(TEST_USER_ID, constraints);
-    ASSERT_EQ(ERR_OSACCOUNT_KIT_GET_SYSTEM_ABILITY_MANAGER_ERROR, errCode);
+    ASSERT_EQ(ERR_ACCOUNT_COMMON_GET_SYSTEM_ABILITY_MANAGER, errCode);
 }
 
 /**
@@ -278,7 +278,7 @@ HWTEST_F(AccountOsProxyMockTest, QueryCurrentOsAccountTest001, TestSize.Level1)
 {
     OsAccountInfo osAccountInfo;
     ErrCode errCode = OsAccountManager::QueryCurrentOsAccount(osAccountInfo);
-    ASSERT_EQ(ERR_OSACCOUNT_KIT_GET_SYSTEM_ABILITY_MANAGER_ERROR, errCode);
+    ASSERT_EQ(ERR_ACCOUNT_COMMON_GET_SYSTEM_ABILITY_MANAGER, errCode);
 }
 
 /**
@@ -291,7 +291,7 @@ HWTEST_F(AccountOsProxyMockTest, QueryOsAccountByIdTest001, TestSize.Level1)
 {
     OsAccountInfo osAccountInfo;
     ErrCode errCode = OsAccountManager::QueryOsAccountById(TEST_USER_ID, osAccountInfo);
-    ASSERT_EQ(ERR_OSACCOUNT_KIT_GET_SYSTEM_ABILITY_MANAGER_ERROR, errCode);
+    ASSERT_EQ(ERR_ACCOUNT_COMMON_GET_SYSTEM_ABILITY_MANAGER, errCode);
 }
 
 /**
@@ -304,7 +304,7 @@ HWTEST_F(AccountOsProxyMockTest, GetOsAccountTypeFromProcessTest001, TestSize.Le
 {
     OsAccountType type = OsAccountType::ADMIN;
     ErrCode errCode = OsAccountManager::GetOsAccountTypeFromProcess(type);
-    ASSERT_EQ(ERR_OSACCOUNT_KIT_GET_SYSTEM_ABILITY_MANAGER_ERROR, errCode);
+    ASSERT_EQ(ERR_ACCOUNT_COMMON_GET_SYSTEM_ABILITY_MANAGER, errCode);
 }
 
 /**
@@ -317,7 +317,7 @@ HWTEST_F(AccountOsProxyMockTest, GetOsAccountProfilePhotoTest001, TestSize.Level
 {
     std::string photo;
     ErrCode errCode = OsAccountManager::GetOsAccountProfilePhoto(TEST_USER_ID, photo);
-    ASSERT_EQ(ERR_OSACCOUNT_KIT_GET_SYSTEM_ABILITY_MANAGER_ERROR, errCode);
+    ASSERT_EQ(ERR_ACCOUNT_COMMON_GET_SYSTEM_ABILITY_MANAGER, errCode);
 }
 
 /**
@@ -330,7 +330,7 @@ HWTEST_F(AccountOsProxyMockTest, IsMultiOsAccountEnableTest001, TestSize.Level1)
 {
     bool isMultiOsAccountEnable = false;
     ErrCode errCode = OsAccountManager::IsMultiOsAccountEnable(isMultiOsAccountEnable);
-    ASSERT_EQ(ERR_OSACCOUNT_KIT_GET_SYSTEM_ABILITY_MANAGER_ERROR, errCode);
+    ASSERT_EQ(ERR_ACCOUNT_COMMON_GET_SYSTEM_ABILITY_MANAGER, errCode);
 }
 
 /**
@@ -342,7 +342,7 @@ HWTEST_F(AccountOsProxyMockTest, IsMultiOsAccountEnableTest001, TestSize.Level1)
 HWTEST_F(AccountOsProxyMockTest, SetOsAccountNameTest001, TestSize.Level1)
 {
     ErrCode errCode = OsAccountManager::SetOsAccountName(TEST_USER_ID, STRING_NAME);
-    ASSERT_EQ(ERR_OSACCOUNT_KIT_GET_SYSTEM_ABILITY_MANAGER_ERROR, errCode);
+    ASSERT_EQ(ERR_ACCOUNT_COMMON_GET_SYSTEM_ABILITY_MANAGER, errCode);
 }
 
 /**
@@ -355,7 +355,7 @@ HWTEST_F(AccountOsProxyMockTest, SetOsAccountConstraintsTest001, TestSize.Level1
 {
     bool enable = false;
     ErrCode errCode = OsAccountManager::SetOsAccountConstraints(TEST_USER_ID, CONSTANTS_VECTOR, enable);
-    ASSERT_EQ(ERR_OSACCOUNT_KIT_GET_SYSTEM_ABILITY_MANAGER_ERROR, errCode);
+    ASSERT_EQ(ERR_ACCOUNT_COMMON_GET_SYSTEM_ABILITY_MANAGER, errCode);
 }
 
 /**
@@ -367,7 +367,7 @@ HWTEST_F(AccountOsProxyMockTest, SetOsAccountConstraintsTest001, TestSize.Level1
 HWTEST_F(AccountOsProxyMockTest, SetOsAccountProfilePhotoTest001, TestSize.Level1)
 {
     ErrCode errCode = OsAccountManager::SetOsAccountProfilePhoto(TEST_USER_ID, PHOTO_IMG);
-    ASSERT_EQ(ERR_OSACCOUNT_KIT_GET_SYSTEM_ABILITY_MANAGER_ERROR, errCode);
+    ASSERT_EQ(ERR_ACCOUNT_COMMON_GET_SYSTEM_ABILITY_MANAGER, errCode);
 }
 
 /**
@@ -392,7 +392,7 @@ HWTEST_F(AccountOsProxyMockTest, GetDistributedVirtualDeviceIdTest001, TestSize.
 HWTEST_F(AccountOsProxyMockTest, ActivateOsAccountTest001, TestSize.Level1)
 {
     ErrCode errCode = OsAccountManager::ActivateOsAccount(TEST_USER_ID);
-    ASSERT_EQ(ERR_OSACCOUNT_KIT_GET_SYSTEM_ABILITY_MANAGER_ERROR, errCode);
+    ASSERT_EQ(ERR_ACCOUNT_COMMON_GET_SYSTEM_ABILITY_MANAGER, errCode);
 }
 
 /**
@@ -404,7 +404,7 @@ HWTEST_F(AccountOsProxyMockTest, ActivateOsAccountTest001, TestSize.Level1)
 HWTEST_F(AccountOsProxyMockTest, StartOsAccountTest001, TestSize.Level1)
 {
     ErrCode errCode = OsAccountManager::StartOsAccount(TEST_USER_ID);
-    ASSERT_EQ(ERR_OSACCOUNT_KIT_GET_SYSTEM_ABILITY_MANAGER_ERROR, errCode);
+    ASSERT_EQ(ERR_ACCOUNT_COMMON_GET_SYSTEM_ABILITY_MANAGER, errCode);
 }
 
 /**
@@ -416,7 +416,7 @@ HWTEST_F(AccountOsProxyMockTest, StartOsAccountTest001, TestSize.Level1)
 HWTEST_F(AccountOsProxyMockTest, StopOsAccountTest001, TestSize.Level1)
 {
     ErrCode errCode = OsAccountManager::StopOsAccount(TEST_USER_ID);
-    ASSERT_EQ(ERR_OSACCOUNT_KIT_GET_SYSTEM_ABILITY_MANAGER_ERROR, errCode);
+    ASSERT_EQ(ERR_ACCOUNT_COMMON_GET_SYSTEM_ABILITY_MANAGER, errCode);
 }
 
 /**
@@ -430,7 +430,7 @@ HWTEST_F(AccountOsProxyMockTest, GetOsAccountLocalIdBySerialNumberTest001, TestS
     int32_t id = 0;
     ErrCode errCode = OsAccountManager::GetOsAccountLocalIdBySerialNumber(
         Constants::CARRY_NUM * Constants::SERIAL_NUMBER_NUM_START_FOR_ADMIN + 1, id);
-    ASSERT_EQ(ERR_OSACCOUNT_KIT_GET_SYSTEM_ABILITY_MANAGER_ERROR, errCode);
+    ASSERT_EQ(ERR_ACCOUNT_COMMON_GET_SYSTEM_ABILITY_MANAGER, errCode);
 }
 
 /**
@@ -443,7 +443,7 @@ HWTEST_F(AccountOsProxyMockTest, GetSerialNumberByOsAccountLocalIdTest001, TestS
 {
     int64_t serialNumber;
     ErrCode errCode = OsAccountManager::GetSerialNumberByOsAccountLocalId(TEST_USER_ID, serialNumber);
-    ASSERT_EQ(ERR_OSACCOUNT_KIT_GET_SYSTEM_ABILITY_MANAGER_ERROR, errCode);
+    ASSERT_EQ(ERR_ACCOUNT_COMMON_GET_SYSTEM_ABILITY_MANAGER, errCode);
 }
 
 /**
@@ -457,7 +457,7 @@ HWTEST_F(AccountOsProxyMockTest, SubscribeOsAccountTest001, TestSize.Level1)
     auto subscriber = std::make_shared<TestOsAccountSubscriber>();
     ASSERT_NE(nullptr, subscriber);
     ErrCode errCode = OsAccountManager::SubscribeOsAccount(subscriber);
-    ASSERT_EQ(ERR_APPACCOUNT_KIT_APP_ACCOUNT_PROXY_IS_NULLPTR, errCode);
+    ASSERT_EQ(ERR_ACCOUNT_COMMON_GET_PROXY, errCode);
 }
 
 /**
@@ -471,7 +471,7 @@ HWTEST_F(AccountOsProxyMockTest, UnsubscribeOsAccountTest001, TestSize.Level1)
     auto subscriber = std::make_shared<TestOsAccountSubscriber>();
     ASSERT_NE(nullptr, subscriber);
     ErrCode errCode = OsAccountManager::UnsubscribeOsAccount(subscriber);
-    ASSERT_EQ(ERR_APPACCOUNT_KIT_APP_ACCOUNT_PROXY_IS_NULLPTR, errCode);
+    ASSERT_EQ(ERR_ACCOUNT_COMMON_GET_PROXY, errCode);
 }
 
 /**
@@ -495,7 +495,7 @@ HWTEST_F(AccountOsProxyMockTest, IsCurrentOsAccountVerifiedTest001, TestSize.Lev
 {
     bool isVerified = true;
     ErrCode errCode = OsAccountManager::IsCurrentOsAccountVerified(isVerified);
-    ASSERT_EQ(ERR_OSACCOUNT_KIT_GET_SYSTEM_ABILITY_MANAGER_ERROR, errCode);
+    ASSERT_EQ(ERR_ACCOUNT_COMMON_GET_SYSTEM_ABILITY_MANAGER, errCode);
 }
 
 /**
@@ -508,7 +508,7 @@ HWTEST_F(AccountOsProxyMockTest, IsOsAccountCompletedTest001, TestSize.Level1)
 {
     bool isOsAccountCompleted = true;
     ErrCode errCode = OsAccountManager::IsOsAccountCompleted(MAIN_ACCOUNT_ID, isOsAccountCompleted);
-    ASSERT_EQ(ERR_OSACCOUNT_KIT_GET_SYSTEM_ABILITY_MANAGER_ERROR, errCode);
+    ASSERT_EQ(ERR_ACCOUNT_COMMON_GET_SYSTEM_ABILITY_MANAGER, errCode);
 }
 
 /**
@@ -520,7 +520,7 @@ HWTEST_F(AccountOsProxyMockTest, IsOsAccountCompletedTest001, TestSize.Level1)
 HWTEST_F(AccountOsProxyMockTest, SetCurrentOsAccountIsVerifiedTest001, TestSize.Level1)
 {
     ErrCode errCode = OsAccountManager::SetCurrentOsAccountIsVerified(false);
-    ASSERT_EQ(ERR_OSACCOUNT_KIT_GET_SYSTEM_ABILITY_MANAGER_ERROR, errCode);
+    ASSERT_EQ(ERR_ACCOUNT_COMMON_GET_SYSTEM_ABILITY_MANAGER, errCode);
 }
 
 /**
@@ -532,7 +532,7 @@ HWTEST_F(AccountOsProxyMockTest, SetCurrentOsAccountIsVerifiedTest001, TestSize.
 HWTEST_F(AccountOsProxyMockTest, SetOsAccountIsVerifiedTest001, TestSize.Level1)
 {
     ErrCode errCode = OsAccountManager::SetOsAccountIsVerified(TEST_USER_ID, true);
-    ASSERT_EQ(ERR_OSACCOUNT_KIT_GET_SYSTEM_ABILITY_MANAGER_ERROR, errCode);
+    ASSERT_EQ(ERR_ACCOUNT_COMMON_GET_SYSTEM_ABILITY_MANAGER, errCode);
 }
 
 /**
@@ -545,7 +545,7 @@ HWTEST_F(AccountOsProxyMockTest, GetCreatedOsAccountNumFromDatabaseTest001, Test
 {
     int32_t createdOsAccountNum = -1;
     ErrCode errCode = OsAccountManager::GetCreatedOsAccountNumFromDatabase("", createdOsAccountNum);
-    ASSERT_EQ(ERR_OSACCOUNT_KIT_GET_SYSTEM_ABILITY_MANAGER_ERROR, errCode);
+    ASSERT_EQ(ERR_ACCOUNT_COMMON_GET_SYSTEM_ABILITY_MANAGER, errCode);
 }
 
 /**
@@ -558,7 +558,7 @@ HWTEST_F(AccountOsProxyMockTest, GetSerialNumberFromDatabaseTest001, TestSize.Le
 {
     int64_t serialNumber = -1;
     ErrCode errCode = OsAccountManager::GetSerialNumberFromDatabase("", serialNumber);
-    ASSERT_EQ(ERR_OSACCOUNT_KIT_GET_SYSTEM_ABILITY_MANAGER_ERROR, errCode);
+    ASSERT_EQ(ERR_ACCOUNT_COMMON_GET_SYSTEM_ABILITY_MANAGER, errCode);
 }
 
 /**
@@ -571,7 +571,7 @@ HWTEST_F(AccountOsProxyMockTest, GetMaxAllowCreateIdFromDatabaseTest001, TestSiz
 {
     int32_t maxAllowCreateId = -1;
     ErrCode errCode = OsAccountManager::GetMaxAllowCreateIdFromDatabase("", maxAllowCreateId);
-    ASSERT_EQ(ERR_OSACCOUNT_KIT_GET_SYSTEM_ABILITY_MANAGER_ERROR, errCode);
+    ASSERT_EQ(ERR_ACCOUNT_COMMON_GET_SYSTEM_ABILITY_MANAGER, errCode);
 }
 
 /**
@@ -584,7 +584,7 @@ HWTEST_F(AccountOsProxyMockTest, GetOsAccountFromDatabaseTest001, TestSize.Level
 {
     OsAccountInfo osAccountInfo;
     ErrCode errCode = OsAccountManager::GetOsAccountFromDatabase("", MAIN_ACCOUNT_ID, osAccountInfo);
-    ASSERT_EQ(ERR_OSACCOUNT_KIT_GET_SYSTEM_ABILITY_MANAGER_ERROR, errCode);
+    ASSERT_EQ(ERR_ACCOUNT_COMMON_GET_SYSTEM_ABILITY_MANAGER, errCode);
 }
 
 /**
@@ -597,7 +597,7 @@ HWTEST_F(AccountOsProxyMockTest, GetOsAccountListFromDatabaseTest001, TestSize.L
 {
     std::vector<OsAccountInfo> osAccountList;
     ErrCode errCode = OsAccountManager::GetOsAccountListFromDatabase("", osAccountList);
-    ASSERT_EQ(ERR_OSACCOUNT_KIT_GET_SYSTEM_ABILITY_MANAGER_ERROR, errCode);
+    ASSERT_EQ(ERR_ACCOUNT_COMMON_GET_SYSTEM_ABILITY_MANAGER, errCode);
 }
 
 /**
@@ -610,7 +610,7 @@ HWTEST_F(AccountOsProxyMockTest, QueryActiveOsAccountIdsTest001, TestSize.Level1
 {
     std::vector<int32_t> ids;
     ErrCode errCode = OsAccountManager::QueryActiveOsAccountIds(ids);
-    ASSERT_EQ(ERR_OSACCOUNT_KIT_GET_SYSTEM_ABILITY_MANAGER_ERROR, errCode);
+    ASSERT_EQ(ERR_ACCOUNT_COMMON_GET_SYSTEM_ABILITY_MANAGER, errCode);
 }
 
 /**
@@ -624,7 +624,7 @@ HWTEST_F(AccountOsProxyMockTest, QueryOsAccountConstraintSourceTypesTest001, Tes
     std::vector<ConstraintSourceTypeInfo> constraintSourceTypeInfos;
     ErrCode errCode = OsAccountManager::QueryOsAccountConstraintSourceTypes(
         MAIN_ACCOUNT_ID, CONSTANT_PRINT, constraintSourceTypeInfos);
-    ASSERT_EQ(ERR_OSACCOUNT_KIT_GET_SYSTEM_ABILITY_MANAGER_ERROR, errCode);
+    ASSERT_EQ(ERR_ACCOUNT_COMMON_GET_SYSTEM_ABILITY_MANAGER, errCode);
 }
 
 /**
@@ -637,7 +637,7 @@ HWTEST_F(AccountOsProxyMockTest, SetGlobalOsAccountConstraintsTest001, TestSize.
 {
     ErrCode errCode = OsAccountManager::SetGlobalOsAccountConstraints(
         CONSTANTS_VECTOR_TEST, true, TEST_USER_ID, true);
-    ASSERT_EQ(ERR_OSACCOUNT_KIT_GET_SYSTEM_ABILITY_MANAGER_ERROR, errCode);
+    ASSERT_EQ(ERR_ACCOUNT_COMMON_GET_SYSTEM_ABILITY_MANAGER, errCode);
 }
 
 /**
@@ -650,7 +650,7 @@ HWTEST_F(AccountOsProxyMockTest, SetSpecificOsAccountConstraintsTest001, TestSiz
 {
     ErrCode errCode = OsAccountManager::SetSpecificOsAccountConstraints(
         CONSTANTS_VECTOR, true, MAIN_ACCOUNT_ID, TEST_USER_ID, true);
-    ASSERT_EQ(ERR_OSACCOUNT_KIT_GET_SYSTEM_ABILITY_MANAGER_ERROR, errCode);
+    ASSERT_EQ(ERR_ACCOUNT_COMMON_GET_SYSTEM_ABILITY_MANAGER, errCode);
 }
 }  // namespace AccountTest
 }  // namespace OHOS

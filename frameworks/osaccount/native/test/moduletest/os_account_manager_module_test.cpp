@@ -454,7 +454,7 @@ HWTEST_F(OsAccountManagerModuleTest, OsAccountManagerModuleTest011, TestSize.Lev
 {
     bool isOsAccountExists = true;
     EXPECT_EQ(OsAccountManager::IsOsAccountExists(Constants::MAX_USER_ID + 1, isOsAccountExists),
-        ERR_OSACCOUNT_KIT_LOCAL_ID_INVALID_ERROR);
+        ERR_ACCOUNT_COMMON_INVALID_PARAMETER);
     EXPECT_EQ(isOsAccountExists, false);
 }
 
@@ -1005,7 +1005,7 @@ HWTEST_F(OsAccountManagerModuleTest, OsAccountManagerModuleTest047, TestSize.Lev
  */
 HWTEST_F(OsAccountManagerModuleTest, OsAccountManagerModuleTest048, TestSize.Level1)
 {
-    EXPECT_EQ(OsAccountManager::StartOsAccount(Constants::MAX_USER_ID + 1), ERR_OSACCOUNT_KIT_LOCAL_ID_INVALID_ERROR);
+    EXPECT_EQ(OsAccountManager::StartOsAccount(Constants::MAX_USER_ID + 1), ERR_ACCOUNT_COMMON_INVALID_PARAMETER);
 }
 
 /**
@@ -1043,7 +1043,7 @@ HWTEST_F(OsAccountManagerModuleTest, OsAccountManagerModuleTest050, TestSize.Lev
  */
 HWTEST_F(OsAccountManagerModuleTest, OsAccountManagerModuleTest051, TestSize.Level1)
 {
-    EXPECT_EQ(OsAccountManager::StopOsAccount(Constants::MAX_USER_ID + 1), ERR_OSACCOUNT_KIT_LOCAL_ID_INVALID_ERROR);
+    EXPECT_EQ(OsAccountManager::StopOsAccount(Constants::MAX_USER_ID + 1), ERR_ACCOUNT_COMMON_INVALID_PARAMETER);
 }
 
 /**
@@ -1149,19 +1149,19 @@ HWTEST_F(OsAccountManagerModuleTest, OsAccountManagerModuleTest055, TestSize.Lev
     OsAccountType type = NORMAL;
     OsAccountInfo osAccountInfo;
     ErrCode ret = OsAccountManager::CreateOsAccountForDomain(type, domainNameInvalid, osAccountInfo);
-    EXPECT_EQ(ret, ERR_OSACCOUNT_KIT_DOMAIN_NAME_LENGTH_INVALID_ERROR);
+    EXPECT_EQ(ret, ERR_ACCOUNT_COMMON_INVALID_PARAMETER);
 
     DomainAccountInfo domainAccountNameInvalid(STRING_DOMAIN_VALID, STRING_DOMAIN_ACCOUNT_NAME_OUT_OF_RANGE);
     ret = OsAccountManager::CreateOsAccountForDomain(type, domainAccountNameInvalid, osAccountInfo);
-    EXPECT_EQ(ret, ERR_OSACCOUNT_KIT_DOMAIN_ACCOUNT_NAME_LENGTH_INVALID_ERROR);
+    EXPECT_EQ(ret, ERR_ACCOUNT_COMMON_INVALID_PARAMETER);
 
     DomainAccountInfo domainEmpty("", STRING_DOMAIN_ACCOUNT_NAME_VALID);
     ret = OsAccountManager::CreateOsAccountForDomain(type, domainEmpty, osAccountInfo);
-    EXPECT_EQ(ret, ERR_OSACCOUNT_KIT_DOMAIN_NAME_LENGTH_INVALID_ERROR);
+    EXPECT_EQ(ret, ERR_ACCOUNT_COMMON_INVALID_PARAMETER);
 
     DomainAccountInfo domainAccountEmpty(STRING_DOMAIN_VALID, "");
     ret = OsAccountManager::CreateOsAccountForDomain(type, domainAccountEmpty, osAccountInfo);
-    EXPECT_EQ(ret, ERR_OSACCOUNT_KIT_DOMAIN_ACCOUNT_NAME_LENGTH_INVALID_ERROR);
+    EXPECT_EQ(ret, ERR_ACCOUNT_COMMON_INVALID_PARAMETER);
 }
 
 /**
@@ -1272,27 +1272,27 @@ HWTEST_F(OsAccountManagerModuleTest, OsAccountManagerModuleTest060, TestSize.Lev
     DomainAccountInfo domainAllEmpty("", "");
     int resID = -1;
     ErrCode ret = OsAccountManager::GetOsAccountLocalIdFromDomain(domainAllEmpty, resID);
-    EXPECT_EQ(ret, ERR_OSACCOUNT_KIT_DOMAIN_NAME_LENGTH_INVALID_ERROR);
+    EXPECT_EQ(ret, ERR_ACCOUNT_COMMON_INVALID_PARAMETER);
 
     DomainAccountInfo domainNameEmpty("", STRING_DOMAIN_ACCOUNT_NAME_VALID);
     ret = OsAccountManager::GetOsAccountLocalIdFromDomain(domainNameEmpty, resID);
-    EXPECT_EQ(ret, ERR_OSACCOUNT_KIT_DOMAIN_NAME_LENGTH_INVALID_ERROR);
+    EXPECT_EQ(ret, ERR_ACCOUNT_COMMON_INVALID_PARAMETER);
 
     DomainAccountInfo domainAccountEmpty(STRING_DOMAIN_VALID, "");
     ret = OsAccountManager::GetOsAccountLocalIdFromDomain(domainAccountEmpty, resID);
-    EXPECT_EQ(ret, ERR_OSACCOUNT_KIT_DOMAIN_ACCOUNT_NAME_LENGTH_INVALID_ERROR);
+    EXPECT_EQ(ret, ERR_ACCOUNT_COMMON_INVALID_PARAMETER);
 
     DomainAccountInfo domainAllTooLong(STRING_DOMAIN_NAME_OUT_OF_RANGE, STRING_DOMAIN_ACCOUNT_NAME_OUT_OF_RANGE);
     ret = OsAccountManager::GetOsAccountLocalIdFromDomain(domainAllTooLong, resID);
-    EXPECT_EQ(ret, ERR_OSACCOUNT_KIT_DOMAIN_NAME_LENGTH_INVALID_ERROR);
+    EXPECT_EQ(ret, ERR_ACCOUNT_COMMON_INVALID_PARAMETER);
 
     DomainAccountInfo domainNameTooLong(STRING_DOMAIN_NAME_OUT_OF_RANGE, STRING_DOMAIN_ACCOUNT_NAME_VALID);
     ret = OsAccountManager::GetOsAccountLocalIdFromDomain(domainNameTooLong, resID);
-    EXPECT_EQ(ret, ERR_OSACCOUNT_KIT_DOMAIN_NAME_LENGTH_INVALID_ERROR);
+    EXPECT_EQ(ret, ERR_ACCOUNT_COMMON_INVALID_PARAMETER);
 
     DomainAccountInfo domainAccountTooLong(STRING_DOMAIN_VALID, STRING_DOMAIN_ACCOUNT_NAME_OUT_OF_RANGE);
     ret = OsAccountManager::GetOsAccountLocalIdFromDomain(domainAccountTooLong, resID);
-    EXPECT_EQ(ret, ERR_OSACCOUNT_KIT_DOMAIN_ACCOUNT_NAME_LENGTH_INVALID_ERROR);
+    EXPECT_EQ(ret, ERR_ACCOUNT_COMMON_INVALID_PARAMETER);
 }
 
 /**
@@ -2034,7 +2034,7 @@ HWTEST_F(OsAccountManagerModuleTest, OsAccountManagerModuleTest100, TestSize.Lev
 {
     int uid = -1;
     int id;
-    EXPECT_EQ(ERR_OSACCOUNT_SERVICE_MANAGER_BAD_UID_ERROR, OsAccountManager::GetOsAccountLocalIdFromUid(uid, id));
+    EXPECT_EQ(ERR_ACCOUNT_COMMON_INVALID_PARAMETER, OsAccountManager::GetOsAccountLocalIdFromUid(uid, id));
 }
 
 /**
@@ -2047,7 +2047,7 @@ HWTEST_F(OsAccountManagerModuleTest, OsAccountManagerModuleTest101, TestSize.Lev
 {
     int uid = -1;
     int bundleId;
-    EXPECT_EQ(ERR_OSACCOUNT_SERVICE_MANAGER_BAD_UID_ERROR, OsAccountManager::GetBundleIdFromUid(uid, bundleId));
+    EXPECT_EQ(ERR_ACCOUNT_COMMON_INVALID_PARAMETER, OsAccountManager::GetBundleIdFromUid(uid, bundleId));
 }
 
 /**
@@ -2060,7 +2060,7 @@ HWTEST_F(OsAccountManagerModuleTest, OsAccountManagerModuleTest102, TestSize.Lev
 {
     bool isOsAccountActived = true;
     EXPECT_EQ(OsAccountManager::IsOsAccountActived(Constants::MAX_USER_ID + 1, isOsAccountActived),
-        ERR_OSACCOUNT_KIT_LOCAL_ID_INVALID_ERROR);
+        ERR_ACCOUNT_COMMON_INVALID_PARAMETER);
     EXPECT_EQ(isOsAccountActived, false);
 }
 
@@ -2073,10 +2073,10 @@ HWTEST_F(OsAccountManagerModuleTest, OsAccountManagerModuleTest102, TestSize.Lev
 HWTEST_F(OsAccountManagerModuleTest, OsAccountManagerModuleTest103, TestSize.Level1)
 {
     bool isConstraintEnable = true;
-    EXPECT_EQ(ERR_OSACCOUNT_KIT_LOCAL_ID_INVALID_ERROR, OsAccountManager::IsOsAccountConstraintEnable(
+    EXPECT_EQ(ERR_ACCOUNT_COMMON_INVALID_PARAMETER, OsAccountManager::IsOsAccountConstraintEnable(
         Constants::MAX_USER_ID + 1, CONSTANT_PRINT, isConstraintEnable));
     EXPECT_EQ(isConstraintEnable, false);
-    EXPECT_EQ(ERR_OSACCOUNT_KIT_LOCAL_ID_INVALID_ERROR, OsAccountManager::CheckOsAccountConstraintEnabled(
+    EXPECT_EQ(ERR_ACCOUNT_COMMON_INVALID_PARAMETER, OsAccountManager::CheckOsAccountConstraintEnabled(
         Constants::MAX_USER_ID + 1, CONSTANT_PRINT, isConstraintEnable));
     EXPECT_EQ(isConstraintEnable, false);
 }
@@ -2091,7 +2091,7 @@ HWTEST_F(OsAccountManagerModuleTest, OsAccountManagerModuleTest104, TestSize.Lev
 {
     const std::string localName = "testname";
     EXPECT_EQ(OsAccountManager::SetOsAccountName(Constants::MAX_USER_ID + 1, localName),
-        ERR_OSACCOUNT_KIT_LOCAL_ID_INVALID_ERROR);
+        ERR_ACCOUNT_COMMON_INVALID_PARAMETER);
     EXPECT_EQ(localName, "testname");
 }
 
@@ -2105,7 +2105,7 @@ HWTEST_F(OsAccountManagerModuleTest, OsAccountManagerModuleTest105, TestSize.Lev
 {
     bool enable = true;
     EXPECT_EQ(OsAccountManager::SetOsAccountConstraints(Constants::MAX_USER_ID + 1, CONSTANTS_VECTOR, enable),
-        ERR_OSACCOUNT_KIT_LOCAL_ID_INVALID_ERROR);
+        ERR_ACCOUNT_COMMON_INVALID_PARAMETER);
     EXPECT_EQ(enable, true);
 }
 
@@ -2118,7 +2118,7 @@ HWTEST_F(OsAccountManagerModuleTest, OsAccountManagerModuleTest105, TestSize.Lev
 HWTEST_F(OsAccountManagerModuleTest, OsAccountManagerModuleTest106, TestSize.Level1)
 {
     EXPECT_EQ(OsAccountManager::SetOsAccountProfilePhoto(Constants::MAX_USER_ID + 1, PHOTO_IMG),
-        ERR_OSACCOUNT_KIT_LOCAL_ID_INVALID_ERROR);
+        ERR_ACCOUNT_COMMON_INVALID_PARAMETER);
 }
 
 /**
@@ -2130,7 +2130,7 @@ HWTEST_F(OsAccountManagerModuleTest, OsAccountManagerModuleTest106, TestSize.Lev
 HWTEST_F(OsAccountManagerModuleTest, OsAccountManagerModuleTest108, TestSize.Level1)
 {
     EXPECT_EQ(OsAccountManager::SetOsAccountIsVerified(Constants::MAX_USER_ID + 1, false),
-        ERR_OSACCOUNT_KIT_LOCAL_ID_INVALID_ERROR);
+        ERR_ACCOUNT_COMMON_INVALID_PARAMETER);
 }
 
 /**
