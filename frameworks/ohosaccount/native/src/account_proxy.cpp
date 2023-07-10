@@ -33,7 +33,7 @@ ErrCode AccountProxy::SendRequest(AccountMgrInterfaceCode code, MessageParcel &d
     int32_t result = remote->SendRequest(static_cast<uint32_t>(code), data, reply, option);
     if (result != ERR_OK) {
         ACCOUNT_LOGE("failed to SendRequest, code = %{public}d, result = %{public}d", code, result);
-        return ERR_APPACCOUNT_KIT_SEND_REQUEST;
+        return result;
     }
     return ERR_OK;
 }
