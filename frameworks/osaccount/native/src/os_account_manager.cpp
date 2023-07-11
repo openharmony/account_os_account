@@ -84,7 +84,7 @@ ErrCode OsAccountManager::GetOsAccountLocalIdFromUid(const int uid, int &id)
 {
     if (uid < 0) {
         ACCOUNT_LOGE("invalid uid %{public}d.", uid);
-        return ERR_OSACCOUNT_SERVICE_MANAGER_BAD_UID_ERROR;
+        return ERR_ACCOUNT_COMMON_INVALID_PARAMETER;
     }
     id = uid / UID_TRANSFORM_DIVISOR;
     return ERR_OK;
@@ -99,7 +99,7 @@ ErrCode OsAccountManager::GetBundleIdFromUid(const int uid, int &bundleId)
     }
     if (uid < 0) {
         ACCOUNT_LOGE("invalid uid %{public}d.", uid);
-        return ERR_OSACCOUNT_SERVICE_MANAGER_BAD_UID_ERROR;
+        return ERR_ACCOUNT_COMMON_INVALID_PARAMETER;
     }
     bundleId = uid % UID_TRANSFORM_DIVISOR;
     return ERR_OK;

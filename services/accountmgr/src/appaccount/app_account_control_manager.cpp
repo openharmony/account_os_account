@@ -439,7 +439,7 @@ ErrCode AppAccountControlManager::GetOAuthToken(
         request.authType, request.callerBundleName, isVisible, apiVersion);
     if ((result != ERR_OK) || (!isVisible)) {
         ACCOUNT_LOGE("failed to get oauth token for permission denied, result %{public}d.", result);
-        return ERR_APPACCOUNT_SERVICE_PERMISSION_DENIED;
+        return ERR_ACCOUNT_COMMON_PERMISSION_DENIED;
     }
     return appAccountInfo.GetOAuthToken(request.authType, token, apiVersion);
 }
@@ -488,7 +488,7 @@ ErrCode AppAccountControlManager::DeleteOAuthToken(
     ret = appAccountInfo.CheckOAuthTokenVisibility(request.authType, request.callerBundleName, isVisible, apiVersion);
     if ((!isVisible) || (ret != ERR_OK)) {
         ACCOUNT_LOGE("failed to delete oauth token for permission denied, result %{public}d.", ret);
-        return ERR_APPACCOUNT_SERVICE_PERMISSION_DENIED;
+        return ERR_ACCOUNT_COMMON_PERMISSION_DENIED;
     }
     if (apiVersion >= Constants::API_VERSION9) {
         ret = appAccountInfo.DeleteAuthToken(request.authType, request.token, isOwnerSelf);

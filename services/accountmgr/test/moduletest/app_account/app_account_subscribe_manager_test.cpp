@@ -150,7 +150,7 @@ HWTEST_F(AppAccountSubscribeManagerTest, CheckAppAccess_0300, TestSize.Level1)
 
     ErrCode ret = AppAccountSubscribeManager::GetInstance().CheckAppAccess(
         subscribeInfoPtr, TEST_UID, TEST_OWNER_NAME, TEST_APP_INDEX);
-    EXPECT_EQ(ret, ERR_APPACCOUNT_SERVICE_SUBSCRIBE_PERMISSION_DENIED);
+    EXPECT_EQ(ret, ERR_ACCOUNT_COMMON_PERMISSION_DENIED);
 }
 
 /**

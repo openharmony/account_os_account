@@ -70,7 +70,7 @@ HWTEST_F(AccountOhosProxyMockTest, GetOhosAccountInfoByUserIdTest, TestSize.Leve
     OhosAccountInfo accountInfo;
     std::int32_t testUserId = 200; // 200 is test user id.
     ErrCode ret = OhosAccountKits::GetInstance().GetOhosAccountInfoByUserId(testUserId, accountInfo);
-    ASSERT_EQ(ERR_ACCOUNT_ZIDL_ACCOUNT_PROXY_ERROR, ret);
+    ASSERT_EQ(ERR_ACCOUNT_COMMON_GET_PROXY, ret);
 }
 
 /**
@@ -110,7 +110,7 @@ HWTEST_F(AccountOhosProxyMockTest, SetOhosAccountInfoTest, TestSize.Level0)
     OhosAccountInfo accountInfo;
     accountInfo.name_ = "TestAccountName";
     ErrCode ret = OhosAccountKits::GetInstance().SetOhosAccountInfo(accountInfo, OHOS_ACCOUNT_EVENT_LOGIN);
-    ASSERT_EQ(ERR_ACCOUNT_ZIDL_ACCOUNT_PROXY_ERROR, ret);
+    ASSERT_EQ(ERR_ACCOUNT_COMMON_GET_PROXY, ret);
 }
 
 /**
@@ -123,7 +123,7 @@ HWTEST_F(AccountOhosProxyMockTest, QueryDeviceAccountIdTest, TestSize.Level0)
 {
     std::int32_t id;
     ErrCode ret = OhosAccountKits::GetInstance().QueryDeviceAccountId(id);
-    ASSERT_EQ(ERR_ACCOUNT_ZIDL_ACCOUNT_PROXY_ERROR, ret);
+    ASSERT_EQ(ERR_ACCOUNT_COMMON_GET_PROXY, ret);
 }
 }  // namespace AccountTest
 }  // namespace OHOS

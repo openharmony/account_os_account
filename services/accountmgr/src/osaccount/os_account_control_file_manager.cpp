@@ -226,12 +226,12 @@ ErrCode OsAccountControlFileManager::GetOsAccountInfoById(const int id, OsAccoun
                        Constants::PATH_SEPARATOR + Constants::USER_INFO_FILE_NAME;
     if (!accountFileOperator_->IsExistFile(path)) {
         ACCOUNT_LOGE("file %{public}s does not exist err", path.c_str());
-        return ERR_OSACCOUNT_SERVICE_CONTROL_SELECT_OS_ACCOUNT_ERROR;
+        return ERR_ACCOUNT_COMMON_ACCOUNT_NOT_EXIST_ERROR;
     }
     std::string accountInfoStr;
     if (accountFileOperator_->GetFileContentByPath(path, accountInfoStr) != ERR_OK) {
         ACCOUNT_LOGE("get content from file %{public}s failed!", path.c_str());
-        return ERR_OSACCOUNT_SERVICE_CONTROL_SELECT_OS_ACCOUNT_ERROR;
+        return ERR_ACCOUNT_COMMON_ACCOUNT_NOT_EXIST_ERROR;
     }
     osAccountInfo.FromJson(Json::parse(accountInfoStr, nullptr, false));
     return ERR_OK;
@@ -1132,7 +1132,7 @@ ErrCode OsAccountControlFileManager::SetPhotoById(const int id, const std::strin
         subPhoto = photo.substr(Constants::USER_PHOTO_BASE_PNG_HEAD.size());
     } else {
         ACCOUNT_LOGE("SetPhotoById photo str error");
-        return ERR_OSACCOUNT_SERVICE_CONTROL_PHOTO_STR_ERROR;
+        return ERR_ACCOUNT_COMMON_INVALID_PARAMETER;
     }
     std::string bytePhoto = osAccountPhotoOperator_->DeCode(subPhoto);
     ErrCode errCode = accountFileOperator_->InputFileByPathAndContent(path, bytePhoto);

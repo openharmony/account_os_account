@@ -614,7 +614,7 @@ ErrCode AppAccount::GetAppAccountProxy()
             SystemAbilityManagerClient::GetInstance().GetSystemAbilityManager();
         if (!systemAbilityManager) {
             ACCOUNT_LOGE("failed to get system ability manager");
-            return ERR_APPACCOUNT_KIT_GET_SYSTEM_ABILITY_MANAGER;
+            return ERR_ACCOUNT_COMMON_GET_SYSTEM_ABILITY_MANAGER;
         }
 
         sptr<IRemoteObject> remoteObject = systemAbilityManager->GetSystemAbility(SUBSYS_ACCOUNT_SYS_ABILITY_ID_BEGIN);
@@ -626,7 +626,7 @@ ErrCode AppAccount::GetAppAccountProxy()
         sptr<IAccount> accountProxy = iface_cast<AccountProxy>(remoteObject);
         if ((!accountProxy) || (!accountProxy->AsObject())) {
             ACCOUNT_LOGE("failed to cast account proxy");
-            return ERR_APPACCOUNT_KIT_CAST_ACCOUNT_PROXY;
+            return ERR_ACCOUNT_COMMON_GET_PROXY;
         }
 
         auto appAccountRemoteObject = accountProxy->GetAppAccountService();
@@ -639,7 +639,7 @@ ErrCode AppAccount::GetAppAccountProxy()
         if ((!appAccountProxy_) || (!appAccountProxy_->AsObject())) {
             ACCOUNT_LOGE("failed to cast app account proxy");
             appAccountProxy_ = nullptr;
-            return ERR_APPACCOUNT_KIT_GET_APP_ACCOUNT_PROXY;
+            return ERR_ACCOUNT_COMMON_GET_PROXY;
         }
 
         deathRecipient_ = new (std::nothrow) AppAccountDeathRecipient();

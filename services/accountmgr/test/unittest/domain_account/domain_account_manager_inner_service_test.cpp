@@ -110,7 +110,7 @@ HWTEST_F(DomainAccountManagerInnerServiceTest, DomainAccountManagerInnerServiceT
 HWTEST_F(DomainAccountManagerInnerServiceTest, DomainAccountManagerInnerServiceTest003, TestSize.Level1)
 {
     EXPECT_EQ(InnerDomainAccountManager::GetInstance().AuthWithPopup(0, nullptr),
-        ERR_OSACCOUNT_SERVICE_INNER_CANNOT_FIND_OSACCOUNT_ERROR);
+        ERR_ACCOUNT_COMMON_ACCOUNT_NOT_EXIST_ERROR);
 }
 
 /**

@@ -67,7 +67,7 @@ HWTEST_F(AccountStubModuleTest, AccountStubModuleTest_CmdUpdateOhosAccountInfo_0
     setuid(TEST_UID);
     MessageParcel data;
     MessageParcel reply;
-    EXPECT_EQ(accountServie_->CmdUpdateOhosAccountInfo(data, reply), ERR_ACCOUNT_ZIDL_CHECK_PERMISSION_ERROR);
+    EXPECT_EQ(accountServie_->CmdUpdateOhosAccountInfo(data, reply), ERR_ACCOUNT_COMMON_PERMISSION_DENIED);
     setuid(ROOT_UID);
 }
 
@@ -82,7 +82,7 @@ HWTEST_F(AccountStubModuleTest, AccountStubModuleTest_CmdSetOhosAccountInfo_001,
     setuid(TEST_UID);
     MessageParcel data;
     MessageParcel reply;
-    EXPECT_EQ(accountServie_->CmdSetOhosAccountInfo(data, reply), ERR_ACCOUNT_ZIDL_CHECK_PERMISSION_ERROR);
+    EXPECT_EQ(accountServie_->CmdSetOhosAccountInfo(data, reply), ERR_ACCOUNT_COMMON_PERMISSION_DENIED);
     setuid(ROOT_UID);
 }
 
@@ -112,7 +112,7 @@ HWTEST_F(AccountStubModuleTest, AccountStubModuleTest_CmdQueryOhosAccountInfo_00
     setuid(TEST_UID);
     MessageParcel data;
     MessageParcel reply;
-    EXPECT_EQ(accountServie_->CmdQueryOhosAccountInfo(data, reply), ERR_ACCOUNT_ZIDL_CHECK_PERMISSION_ERROR);
+    EXPECT_EQ(accountServie_->CmdQueryOhosAccountInfo(data, reply), ERR_ACCOUNT_COMMON_PERMISSION_DENIED);
     setuid(ROOT_UID);
 }
 
@@ -127,7 +127,7 @@ HWTEST_F(AccountStubModuleTest, AccountStubModuleTest_CmdGetOhosAccountInfo_001,
     setuid(TEST_UID);
     MessageParcel data;
     MessageParcel reply;
-    EXPECT_EQ(accountServie_->CmdGetOhosAccountInfo(data, reply), ERR_ACCOUNT_ZIDL_CHECK_PERMISSION_ERROR);
+    EXPECT_EQ(accountServie_->CmdGetOhosAccountInfo(data, reply), ERR_ACCOUNT_COMMON_PERMISSION_DENIED);
     setuid(ROOT_UID);
 }
 
@@ -157,7 +157,7 @@ HWTEST_F(AccountStubModuleTest, AccountStubModuleTest_CmdQueryOhosAccountInfoByU
     setuid(TEST_UID);
     MessageParcel data;
     MessageParcel reply;
-    EXPECT_EQ(accountServie_->CmdGetOhosAccountInfoByUserId(data, reply), ERR_ACCOUNT_ZIDL_CHECK_PERMISSION_ERROR);
+    EXPECT_EQ(accountServie_->CmdGetOhosAccountInfoByUserId(data, reply), ERR_ACCOUNT_COMMON_PERMISSION_DENIED);
     setuid(ROOT_UID);
 }
 
@@ -172,6 +172,6 @@ HWTEST_F(AccountStubModuleTest, AccountStubModuleTest_CmdQueryOhosQuitTips_001, 
     setuid(TEST_UID);
     MessageParcel data;
     MessageParcel reply;
-    EXPECT_EQ(accountServie_->CmdQueryOhosQuitTips(data, reply), ERR_ACCOUNT_ZIDL_CHECK_PERMISSION_ERROR);
+    EXPECT_EQ(accountServie_->CmdQueryOhosQuitTips(data, reply), ERR_ACCOUNT_COMMON_PERMISSION_DENIED);
     setuid(ROOT_UID);
 }

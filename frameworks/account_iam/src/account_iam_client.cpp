@@ -44,7 +44,7 @@ AccountIAMClient &AccountIAMClient::GetInstance()
 int32_t AccountIAMClient::OpenSession(int32_t userId, std::vector<uint8_t> &challenge)
 {
     if (GetAccountIAMProxy() != ERR_OK) {
-        return ERR_ACCOUNT_IAM_KIT_PROXY_ERROR;
+        return ERR_ACCOUNT_COMMON_GET_PROXY;
     }
     return proxy_->OpenSession(userId, challenge);
 }
@@ -52,7 +52,7 @@ int32_t AccountIAMClient::OpenSession(int32_t userId, std::vector<uint8_t> &chal
 int32_t AccountIAMClient::CloseSession(int32_t userId)
 {
     if (GetAccountIAMProxy() != ERR_OK) {
-        return ERR_ACCOUNT_IAM_KIT_PROXY_ERROR;
+        return ERR_ACCOUNT_COMMON_GET_PROXY;
     }
     return proxy_->CloseSession(userId);
 }
@@ -66,7 +66,7 @@ void AccountIAMClient::AddCredential(
     }
     Attributes emptyResult;
     if (GetAccountIAMProxy() != ERR_OK) {
-        callback->OnResult(ERR_ACCOUNT_IAM_KIT_PROXY_ERROR, emptyResult);
+        callback->OnResult(ERR_ACCOUNT_COMMON_GET_PROXY, emptyResult);
         return;
     }
     if ((userId == 0) && (!GetCurrentUserId(userId))) {
@@ -90,7 +90,7 @@ void AccountIAMClient::UpdateCredential(
     }
     Attributes emptyResult;
     if (GetAccountIAMProxy() != ERR_OK) {
-        callback->OnResult(ERR_ACCOUNT_IAM_KIT_PROXY_ERROR, emptyResult);
+        callback->OnResult(ERR_ACCOUNT_COMMON_GET_PROXY, emptyResult);
         return;
     }
     if ((userId == 0) && (!GetCurrentUserId(userId))) {
@@ -114,7 +114,7 @@ void AccountIAMClient::DelCred(int32_t userId, uint64_t credentialId, const std:
     }
     Attributes emptyResult;
     if (GetAccountIAMProxy() != ERR_OK) {
-        callback->OnResult(ERR_ACCOUNT_IAM_KIT_PROXY_ERROR, emptyResult);
+        callback->OnResult(ERR_ACCOUNT_COMMON_GET_PROXY, emptyResult);
         return;
     }
     if ((userId == 0) && (!GetCurrentUserId(userId))) {
@@ -134,7 +134,7 @@ void AccountIAMClient::DelUser(
     }
     Attributes emptyResult;
     if (GetAccountIAMProxy() != ERR_OK) {
-        callback->OnResult(ERR_ACCOUNT_IAM_KIT_PROXY_ERROR, emptyResult);
+        callback->OnResult(ERR_ACCOUNT_COMMON_GET_PROXY, emptyResult);
         return;
     }
     if ((userId == 0) && (!GetCurrentUserId(userId))) {
@@ -149,7 +149,7 @@ int32_t AccountIAMClient::GetCredentialInfo(
     int32_t userId, AuthType authType, const std::shared_ptr<GetCredInfoCallback> &callback)
 {
     if (GetAccountIAMProxy() != ERR_OK) {
-        return ERR_ACCOUNT_IAM_KIT_PROXY_ERROR;
+        return ERR_ACCOUNT_COMMON_GET_PROXY;
     }
     sptr<IGetCredInfoCallback> wrapper = new (std::nothrow) GetCredInfoCallbackService(callback);
     ErrCode result = proxy_->GetCredentialInfo(userId, authType, wrapper);
@@ -163,7 +163,7 @@ int32_t AccountIAMClient::GetCredentialInfo(
 int32_t AccountIAMClient::Cancel(int32_t userId)
 {
     if (GetAccountIAMProxy() != ERR_OK) {
-        return ERR_ACCOUNT_IAM_KIT_PROXY_ERROR;
+        return ERR_ACCOUNT_COMMON_GET_PROXY;
     }
     return proxy_->Cancel(userId);
 }
@@ -227,7 +227,7 @@ uint64_t AccountIAMClient::AuthUser(
 int32_t AccountIAMClient::CancelAuth(uint64_t contextId)
 {
     if (GetAccountIAMProxy() != ERR_OK) {
-        return ERR_ACCOUNT_IAM_KIT_PROXY_ERROR;
+        return ERR_ACCOUNT_COMMON_GET_PROXY;
     }
     return proxy_->CancelAuth(contextId);
 }
@@ -235,7 +235,7 @@ int32_t AccountIAMClient::CancelAuth(uint64_t contextId)
 int32_t AccountIAMClient::GetAvailableStatus(AuthType authType, AuthTrustLevel authTrustLevel, int32_t &status)
 {
     if (GetAccountIAMProxy() != ERR_OK) {
-        return ERR_ACCOUNT_IAM_KIT_PROXY_ERROR;
+        return ERR_ACCOUNT_COMMON_GET_PROXY;
     }
     if (authTrustLevel < UserIam::UserAuth::ATL1 || authTrustLevel > UserIam::UserAuth::ATL4) {
         ACCOUNT_LOGE("authTrustLevel is not in correct range");
@@ -257,7 +257,7 @@ void AccountIAMClient::GetProperty(
     }
     Attributes emptyResult;
     if (GetAccountIAMProxy() != ERR_OK) {
-        callback->OnResult(ERR_ACCOUNT_IAM_KIT_PROXY_ERROR, emptyResult);
+        callback->OnResult(ERR_ACCOUNT_COMMON_GET_PROXY, emptyResult);
         return;
     }
     sptr<IGetSetPropCallback> wrapper = new (std::nothrow) GetSetPropCallbackService(callback);
@@ -273,7 +273,7 @@ void AccountIAMClient::SetProperty(
     }
     Attributes emptyResult;
     if (GetAccountIAMProxy() != ERR_OK) {
-        callback->OnResult(ERR_ACCOUNT_IAM_KIT_PROXY_ERROR, emptyResult);
+        callback->OnResult(ERR_ACCOUNT_COMMON_GET_PROXY, emptyResult);
         return;
     }
     sptr<IGetSetPropCallback> wrapper = new (std::nothrow) GetSetPropCallbackService(callback);
@@ -305,7 +305,7 @@ ErrCode AccountIAMClient::RegisterPINInputer(const std::shared_ptr<IInputer> &in
         pinInputer_ = inputer;
         return ERR_OK;
     }
-    return ERR_ACCOUNT_IAM_SERVICE_PERMISSION_DENIED;
+    return ERR_ACCOUNT_COMMON_PERMISSION_DENIED;
 }
 
 bool AccountIAMClient::CheckSelfPermission(const std::string &permissionName)
@@ -336,7 +336,7 @@ ErrCode AccountIAMClient::RegisterInputer(int32_t authType, const std::shared_pt
     if ((!CheckSelfPermission(PERMISSION_ACCESS_USER_AUTH_INTERNAL)) &&
         (!CheckSelfPermission(PERMISSION_MANAGE_USER_IDM))) {
         ACCOUNT_LOGE("failed to check permission");
-        return ERR_ACCOUNT_IAM_SERVICE_PERMISSION_DENIED;
+        return ERR_ACCOUNT_COMMON_PERMISSION_DENIED;
     }
     if (inputer == nullptr) {
         ACCOUNT_LOGE("inputer is nullptr");
@@ -360,7 +360,7 @@ ErrCode AccountIAMClient::UnregisterInputer(int32_t authType)
     if ((!CheckSelfPermission(PERMISSION_ACCESS_USER_AUTH_INTERNAL)) &&
         (!CheckSelfPermission(PERMISSION_MANAGE_USER_IDM))) {
         ACCOUNT_LOGE("failed to check permission");
-        return ERR_ACCOUNT_IAM_SERVICE_PERMISSION_DENIED;
+        return ERR_ACCOUNT_COMMON_PERMISSION_DENIED;
     }
     switch (authType) {
         case IAMAuthType::DOMAIN:
@@ -380,7 +380,7 @@ ErrCode AccountIAMClient::UnregisterPINInputer()
     }
     if (!CheckSelfPermission(PERMISSION_ACCESS_PIN_AUTH)) {
         ACCOUNT_LOGE("failed to check permission");
-        return ERR_ACCOUNT_IAM_SERVICE_PERMISSION_DENIED;
+        return ERR_ACCOUNT_COMMON_PERMISSION_DENIED;
     }
     UserIam::PinAuth::PinAuthRegister::GetInstance().UnRegisterInputer();
     std::lock_guard<std::mutex> lock(pinMutex_);

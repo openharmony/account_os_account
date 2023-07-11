@@ -333,12 +333,12 @@ HWTEST_F(AppAccountSessionModuleTest, AppAccountSessionModuleTest_GetAuthenticat
     request.callerUid = ownerUid;
     sptr<IRemoteObject> callback = nullptr;
     ErrCode result = appAccountAuthenticatorSessionPtr_->GetAuthenticatorCallback(request, callback);
-    ASSERT_EQ(result, ERR_APPACCOUNT_SERVICE_PERMISSION_DENIED);
+    ASSERT_EQ(result, ERR_ACCOUNT_COMMON_PERMISSION_DENIED);
 
     appAccountAuthenticatorSessionPtr_->ownerUid_ = ownerUid;
     request.callerBundleName = "test";
     result = appAccountAuthenticatorSessionPtr_->GetAuthenticatorCallback(request, callback);
-    ASSERT_EQ(result, ERR_APPACCOUNT_SERVICE_PERMISSION_DENIED);
+    ASSERT_EQ(result, ERR_ACCOUNT_COMMON_PERMISSION_DENIED);
 }
 
 /**

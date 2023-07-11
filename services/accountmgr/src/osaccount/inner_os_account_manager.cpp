@@ -222,7 +222,7 @@ ErrCode IInnerOsAccountManager::SendMsgForAccountCreate(OsAccountInfo &osAccount
     ErrCode errCode = OsAccountInterface::SendToStorageAccountCreate(osAccountInfo);
     if (errCode != ERR_OK) {
         ACCOUNT_LOGE("create os account SendToStorageAccountCreate failed, errCode %{public}d.", errCode);
-        return ERR_OSACCOUNT_SERVICE_INTERFACE_TO_STORAGE_ACCOUNT_CREATE_ERROR;
+        return ERR_ACCOUNT_COMMON_GET_SYSTEM_ABILITY_MANAGER;
     }
     errCode = OsAccountInterface::SendToBMSAccountCreate(osAccountInfo);
     if (errCode != ERR_OK) {
@@ -403,7 +403,7 @@ ErrCode IInnerOsAccountManager::RemoveOsAccount(const int id)
     if (errCode != ERR_OK) {
         RemoveLocalIdToOperating(id);
         ACCOUNT_LOGE("RemoveOsAccount cannot find os account info, errCode %{public}d.", errCode);
-        return ERR_OSACCOUNT_SERVICE_INNER_CANNOT_FIND_OSACCOUNT_ERROR;
+        return ERR_ACCOUNT_COMMON_ACCOUNT_NOT_EXIST_ERROR;
     }
     DomainAccountInfo curDomainInfo;
     osAccountInfo.GetDomainInfo(curDomainInfo);
@@ -438,7 +438,7 @@ ErrCode IInnerOsAccountManager::SendMsgForAccountStop(OsAccountInfo &osAccountIn
     if (errCode != ERR_OK) {
         ACCOUNT_LOGE("SendToStorageAccountStop failed, id %{public}d, errCode %{public}d",
             osAccountInfo.GetLocalId(), errCode);
-        return ERR_OSACCOUNT_SERVICE_INTERFACE_TO_STORAGE_ACCOUNT_STOP_ERROR;
+        return ERR_ACCOUNT_COMMON_GET_SYSTEM_ABILITY_MANAGER;
     }
 #ifdef ENABLE_MULTIPLE_ACTIVE_ACCOUNTS
     errCode = DeActivateOsAccount(osAccountInfo.GetLocalId());
@@ -464,7 +464,7 @@ ErrCode IInnerOsAccountManager::SendMsgForAccountRemove(OsAccountInfo &osAccount
     if (errCode != ERR_OK) {
         ACCOUNT_LOGE("SendToStorageAccountRemove failed, id %{public}d, errCode %{public}d",
             osAccountInfo.GetLocalId(), errCode);
-        return ERR_OSACCOUNT_SERVICE_INTERFACE_TO_STORAGE_ACCOUNT_REMOVE_ERROR;
+        return ERR_ACCOUNT_COMMON_GET_SYSTEM_ABILITY_MANAGER;
     }
 #ifdef HAS_USER_IDM_PART
     errCode = OsAccountInterface::SendToIDMAccountDelete(osAccountInfo);
@@ -512,7 +512,7 @@ ErrCode IInnerOsAccountManager::IsOsAccountActived(const int id, bool &isOsAccou
     ErrCode errCode = osAccountControl_->GetOsAccountInfoById(id, osAccountInfo);
     if (errCode != ERR_OK) {
         ACCOUNT_LOGE("get osaccount info error, errCode %{public}d.", errCode);
-        return ERR_OSACCOUNT_SERVICE_INNER_SELECT_OSACCOUNT_BYID_ERROR;
+        return ERR_ACCOUNT_COMMON_ACCOUNT_NOT_EXIST_ERROR;
     }
     if (id == Constants::ADMIN_LOCAL_ID) {
         isOsAccountActived = true;
@@ -530,7 +530,7 @@ ErrCode IInnerOsAccountManager::IsOsAccountConstraintEnable(
     ErrCode errCode = osAccountControl_->GetOsAccountInfoById(id, osAccountInfo);
     if (errCode != ERR_OK) {
         ACCOUNT_LOGE("get osaccount info error, errCode %{public}d.", errCode);
-        return ERR_OSACCOUNT_SERVICE_INNER_SELECT_OSACCOUNT_BYID_ERROR;
+        return ERR_ACCOUNT_COMMON_ACCOUNT_NOT_EXIST_ERROR;
     }
     std::vector<std::string> constraints;
     constraints = osAccountInfo.GetConstraints();
@@ -561,7 +561,7 @@ ErrCode IInnerOsAccountManager::IsOsAccountVerified(const int id, bool &isVerifi
     ErrCode errCode = osAccountControl_->GetOsAccountInfoById(id, osAccountInfo);
     if (errCode != ERR_OK) {
         ACCOUNT_LOGE("get osaccount info error, errCode %{public}d.", errCode);
-        return ERR_OSACCOUNT_SERVICE_INNER_SELECT_OSACCOUNT_BYID_ERROR;
+        return ERR_ACCOUNT_COMMON_ACCOUNT_NOT_EXIST_ERROR;
     }
     isVerified = osAccountInfo.GetIsVerified();
     return ERR_OK;
@@ -595,7 +595,7 @@ ErrCode IInnerOsAccountManager::GetOsAccountAllConstraints(const int id, std::ve
     ErrCode errCode = osAccountControl_->GetOsAccountInfoById(id, osAccountInfo);
     if (errCode != ERR_OK) {
         ACCOUNT_LOGE("get osaccount info error, errCode %{public}d.", errCode);
-        return ERR_OSACCOUNT_SERVICE_INNER_SELECT_OSACCOUNT_BYID_ERROR;
+        return ERR_ACCOUNT_COMMON_ACCOUNT_NOT_EXIST_ERROR;
     }
     constraints = osAccountInfo.GetConstraints();
     std::vector<std::string> globalConstraints;
@@ -693,7 +693,7 @@ ErrCode IInnerOsAccountManager::SetGlobalOsAccountConstraints(const std::vector<
     ErrCode errCode = osAccountControl_->GetOsAccountInfoById(enforcerId, osAccountInfo);
     if (errCode != ERR_OK) {
         ACCOUNT_LOGE("get osaccount info error %{public}d", enforcerId);
-        return ERR_OSACCOUNT_SERVICE_INNER_SELECT_OSACCOUNT_BYID_ERROR;
+        return ERR_ACCOUNT_COMMON_ACCOUNT_NOT_EXIST_ERROR;
     }
     if (osAccountInfo.GetToBeRemoved()) {
         ACCOUNT_LOGE("account %{public}d will be removed, cannot change constraints!", enforcerId);
@@ -705,7 +705,7 @@ ErrCode IInnerOsAccountManager::SetGlobalOsAccountConstraints(const std::vector<
     errCode = osAccountControl_->CheckConstraintsList(constraints, isExists, isOverSize);
     if (errCode != ERR_OK || !isExists || isOverSize) {
         ACCOUNT_LOGE("input constraints not in constraints list or is oversize!");
-        return ERR_OSACCOUNT_SERVICE_INNER_SER_CONSTRAINTS_ERROR;
+        return ERR_ACCOUNT_COMMON_INVALID_PARAMETER;
     }
 
     osAccountControl_->UpdateGlobalOAConstraints(std::to_string(enforcerId), constraints, enable);
@@ -725,14 +725,14 @@ ErrCode IInnerOsAccountManager::SetSpecificOsAccountConstraints(const std::vecto
     ErrCode errCode = osAccountControl_->GetOsAccountInfoById(enforcerId, enforcerOsAccountInfo);
     if (errCode != ERR_OK) {
         ACCOUNT_LOGE("get osaccount info error");
-        return ERR_OSACCOUNT_SERVICE_INNER_SELECT_OSACCOUNT_BYID_ERROR;
+        return ERR_ACCOUNT_COMMON_ACCOUNT_NOT_EXIST_ERROR;
     }
 
     OsAccountInfo targetOsAccountInfo;
     errCode = osAccountControl_->GetOsAccountInfoById(targetId, targetOsAccountInfo);
     if (errCode != ERR_OK) {
         ACCOUNT_LOGE("get osaccount info error");
-        return ERR_OSACCOUNT_SERVICE_INNER_SELECT_OSACCOUNT_BYID_ERROR;
+        return ERR_ACCOUNT_COMMON_ACCOUNT_NOT_EXIST_ERROR;
     }
     if (targetOsAccountInfo.GetToBeRemoved() || enforcerOsAccountInfo.GetToBeRemoved()) {
         ACCOUNT_LOGE("account %{public}d or %{public}d will be removed, cannot change constraints!",
@@ -745,7 +745,7 @@ ErrCode IInnerOsAccountManager::SetSpecificOsAccountConstraints(const std::vecto
     errCode = osAccountControl_->CheckConstraintsList(constraints, isExists, isOverSize);
     if (errCode != ERR_OK || !isExists || isOverSize) {
         ACCOUNT_LOGE("input constraints not in constraints list or is oversize!");
-        return ERR_OSACCOUNT_SERVICE_INNER_SER_CONSTRAINTS_ERROR;
+        return ERR_ACCOUNT_COMMON_INVALID_PARAMETER;
     }
 
     osAccountControl_->UpdateSpecificOAConstraints(
@@ -829,12 +829,12 @@ ErrCode IInnerOsAccountManager::GetOsAccountLocalIdFromDomain(const DomainAccoun
 {
     if (domainInfo.domain_.size() > Constants::DOMAIN_NAME_MAX_SIZE) {
         ACCOUNT_LOGE("invalid domain name length %{public}zu.", domainInfo.domain_.size());
-        return ERR_OSACCOUNT_SERVICE_INNER_DOMAIN_NAME_LEN_ERROR;
+        return ERR_ACCOUNT_COMMON_INVALID_PARAMETER;
     }
 
     if (domainInfo.accountName_.size() > Constants::DOMAIN_ACCOUNT_NAME_MAX_SIZE) {
         ACCOUNT_LOGE("invalid domain account name length %{public}zu.", domainInfo.accountName_.size());
-        return ERR_OSACCOUNT_SERVICE_INNER_DOMAIN_ACCOUNT_NAME_LEN_ERROR;
+        return ERR_ACCOUNT_COMMON_INVALID_PARAMETER;
     }
 
     id = -1;
@@ -863,7 +863,7 @@ ErrCode IInnerOsAccountManager::QueryOsAccountById(const int id, OsAccountInfo &
     ErrCode errCode = osAccountControl_->GetOsAccountInfoById(id, osAccountInfo);
     if (errCode != ERR_OK) {
         ACCOUNT_LOGE("get osaccount info error, errCode %{public}d.", errCode);
-        return ERR_OSACCOUNT_SERVICE_INNER_SELECT_OSACCOUNT_BYID_ERROR;
+        return ERR_ACCOUNT_COMMON_ACCOUNT_NOT_EXIST_ERROR;
     }
 
     if (IsOsAccountIDInActiveList(id)) {
@@ -899,7 +899,7 @@ ErrCode IInnerOsAccountManager::GetOsAccountType(const int id, OsAccountType &ty
     ErrCode errCode = osAccountControl_->GetOsAccountInfoById(id, osAccountInfo);
     if (errCode != ERR_OK) {
         ACCOUNT_LOGE("get osaccount info error, errCode %{public}d.", errCode);
-        return ERR_OSACCOUNT_SERVICE_INNER_SELECT_OSACCOUNT_BYID_ERROR;
+        return ERR_ACCOUNT_COMMON_ACCOUNT_NOT_EXIST_ERROR;
     }
     type = osAccountInfo.GetType();
     return ERR_OK;
@@ -911,7 +911,7 @@ ErrCode IInnerOsAccountManager::GetOsAccountProfilePhoto(const int id, std::stri
     ErrCode errCode = QueryOsAccountById(id, osAccountInfo);
     if (errCode != ERR_OK) {
         ACCOUNT_LOGE("QueryOsAccountById return error, errCode %{public}d.", errCode);
-        return ERR_OSACCOUNT_SERVICE_INNER_SELECT_OSACCOUNT_BYID_ERROR;
+        return ERR_ACCOUNT_COMMON_ACCOUNT_NOT_EXIST_ERROR;
     }
     photo = osAccountInfo.GetPhoto();
     return ERR_OK;
@@ -933,7 +933,7 @@ ErrCode IInnerOsAccountManager::SetOsAccountName(const int id, const std::string
     ErrCode errCode = osAccountControl_->GetOsAccountInfoById(id, osAccountInfo);
     if (errCode != ERR_OK) {
         ACCOUNT_LOGE("get osaccount info error, errCode %{public}d.", errCode);
-        return ERR_OSACCOUNT_SERVICE_INNER_SELECT_OSACCOUNT_BYID_ERROR;
+        return ERR_ACCOUNT_COMMON_ACCOUNT_NOT_EXIST_ERROR;
     }
 
     // to be removed, cannot change any thing
@@ -965,7 +965,7 @@ ErrCode IInnerOsAccountManager::SetOsAccountConstraints(
     ErrCode errCode = osAccountControl_->GetOsAccountInfoById(id, osAccountInfo);
     if (errCode != ERR_OK) {
         ACCOUNT_LOGE("get osaccount info error, errCode %{public}d.", errCode);
-        return ERR_OSACCOUNT_SERVICE_INNER_SELECT_OSACCOUNT_BYID_ERROR;
+        return ERR_ACCOUNT_COMMON_ACCOUNT_NOT_EXIST_ERROR;
     }
 
     // to be removed, cannot change any thing
@@ -979,7 +979,7 @@ ErrCode IInnerOsAccountManager::SetOsAccountConstraints(
     errCode = osAccountControl_->CheckConstraintsList(constraints, isExists, isOverSize);
     if (errCode != ERR_OK || !isExists || isOverSize) {
         ACCOUNT_LOGE("input constraints not in constraints list or is oversize!");
-        return ERR_OSACCOUNT_SERVICE_INNER_SER_CONSTRAINTS_ERROR;
+        return ERR_ACCOUNT_COMMON_INVALID_PARAMETER;
     }
     std::vector<std::string> oldConstraints = osAccountInfo.GetConstraints();
     for (auto it = constraints.begin(); it != constraints.end(); it++) {
@@ -1007,7 +1007,7 @@ ErrCode IInnerOsAccountManager::SetOsAccountProfilePhoto(const int id, const std
     ErrCode errCode = osAccountControl_->GetOsAccountInfoById(id, osAccountInfo);
     if (errCode != ERR_OK) {
         ACCOUNT_LOGE("get osaccount info error, errCode %{public}d.", errCode);
-        return ERR_OSACCOUNT_SERVICE_INNER_SELECT_OSACCOUNT_BYID_ERROR;
+        return ERR_ACCOUNT_COMMON_ACCOUNT_NOT_EXIST_ERROR;
     }
 
     // to be removed, cannot change any thing
@@ -1058,7 +1058,7 @@ ErrCode IInnerOsAccountManager::DeActivateOsAccount(const int id)
     if (errCode != ERR_OK) {
         ACCOUNT_LOGE("DeActivateOsAccount cannot get os account %{public}d info. error %{public}d.",
             id, errCode);
-        return ERR_OSACCOUNT_SERVICE_INNER_CANNOT_FIND_OSACCOUNT_ERROR;
+        return ERR_ACCOUNT_COMMON_ACCOUNT_NOT_EXIST_ERROR;
     }
     osAccountInfo.SetIsActived(false);
     errCode = osAccountControl_->UpdateOsAccount(osAccountInfo);
@@ -1093,7 +1093,7 @@ ErrCode IInnerOsAccountManager::ActivateOsAccount(const int id)
     if (errCode != ERR_OK) {
         RemoveLocalIdToOperating(id);
         ACCOUNT_LOGE("cannot find os account info by id:%{public}d, errCode %{public}d.", id, errCode);
-        return ERR_OSACCOUNT_SERVICE_INNER_SELECT_OSACCOUNT_BYID_ERROR;
+        return ERR_ACCOUNT_COMMON_ACCOUNT_NOT_EXIST_ERROR;
     }
 
     // check complete
@@ -1136,7 +1136,7 @@ ErrCode IInnerOsAccountManager::SendMsgForAccountActivate(OsAccountInfo &osAccou
     if (errCode != ERR_OK) {
         ACCOUNT_LOGE("account %{public}d call storage active failed, errCode %{public}d.",
             osAccountInfo.GetLocalId(), errCode);
-        return ERR_OSACCOUNT_SERVICE_INTERFACE_TO_STORAGE_ACCOUNT_START_ERROR;
+        return ERR_ACCOUNT_COMMON_GET_SYSTEM_ABILITY_MANAGER;
     }
     errCode = OsAccountInterface::SendToAMSAccountStart(osAccountInfo);
     if (errCode != ERR_OK) {
@@ -1190,7 +1190,7 @@ ErrCode IInnerOsAccountManager::StopOsAccount(const int id)
     if (errCode != ERR_OK) {
         RemoveLocalIdToOperating(id);
         ACCOUNT_LOGW("cannot find os account info by id:%{public}d, errCode %{public}d.", id, errCode);
-        return ERR_OSACCOUNT_SERVICE_INNER_SELECT_OSACCOUNT_BYID_ERROR;
+        return ERR_ACCOUNT_COMMON_ACCOUNT_NOT_EXIST_ERROR;
     }
 
      // check complete
@@ -1252,7 +1252,7 @@ ErrCode IInnerOsAccountManager::GetOsAccountInfoById(const int id, OsAccountInfo
     ErrCode errCode = osAccountControl_->GetOsAccountInfoById(id, osAccountInfo);
     if (errCode != ERR_OK) {
         ACCOUNT_LOGE("get osaccount info error, errCode %{public}d.", errCode);
-        return ERR_OSACCOUNT_SERVICE_INNER_SELECT_OSACCOUNT_BYID_ERROR;
+        return ERR_ACCOUNT_COMMON_ACCOUNT_NOT_EXIST_ERROR;
     }
     return ERR_OK;
 }
@@ -1262,7 +1262,7 @@ ErrCode IInnerOsAccountManager::GetSerialNumberByOsAccountLocalId(const int &id,
     OsAccountInfo osAccountInfo;
     ErrCode errCode = osAccountControl_->GetOsAccountInfoById(id, osAccountInfo);
     if (errCode != ERR_OK) {
-        return ERR_OSACCOUNT_SERVICE_INNER_SELECT_OSACCOUNT_BYID_ERROR;
+        return ERR_ACCOUNT_COMMON_ACCOUNT_NOT_EXIST_ERROR;
     }
     serialNumber = osAccountInfo.GetSerialNumber();
     return ERR_OK;
@@ -1302,7 +1302,7 @@ ErrCode IInnerOsAccountManager::SetOsAccountIsVerified(const int id, const bool 
     ErrCode errCode = osAccountControl_->GetOsAccountInfoById(id, osAccountInfo);
     if (errCode != ERR_OK) {
         ACCOUNT_LOGE("get osaccount info error, errCode %{public}d.", errCode);
-        return ERR_OSACCOUNT_SERVICE_INNER_SELECT_OSACCOUNT_BYID_ERROR;
+        return ERR_ACCOUNT_COMMON_ACCOUNT_NOT_EXIST_ERROR;
     }
 
     // to be removed, cannot change any thing
@@ -1332,7 +1332,7 @@ ErrCode IInnerOsAccountManager::SetOsAccountIsCreateSecret(const int id, const b
     ErrCode errCode = osAccountControl_->GetOsAccountInfoById(id, osAccountInfo);
     if (errCode != ERR_OK) {
         ACCOUNT_LOGE("get osaccount info error, errCode %{public}d.", errCode);
-        return ERR_OSACCOUNT_SERVICE_INNER_SELECT_OSACCOUNT_BYID_ERROR;
+        return ERR_ACCOUNT_COMMON_ACCOUNT_NOT_EXIST_ERROR;
     }
 
     osAccountInfo.SetIsCreateSecret(isCreateSecret);
@@ -1356,7 +1356,7 @@ ErrCode IInnerOsAccountManager::SetDefaultActivatedOsAccount(const int32_t id)
     ErrCode errCode = osAccountControl_->GetOsAccountInfoById(id, osAccountInfo);
     if (errCode != ERR_OK) {
         ACCOUNT_LOGE("get osaccount info error, errCode %{public}d.", errCode);
-        return ERR_OSACCOUNT_SERVICE_INNER_SELECT_OSACCOUNT_BYID_ERROR;
+        return ERR_ACCOUNT_COMMON_ACCOUNT_NOT_EXIST_ERROR;
     }
     // to be removed, cannot change any thing
     if (osAccountInfo.GetToBeRemoved()) {
