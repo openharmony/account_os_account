@@ -830,6 +830,7 @@ HWTEST_F(OsAccountManagerModuleTest, OsAccountManagerModuleTest036, TestSize.Lev
     sptr<IRemoteObject> accountObj = systemMgr->GetSystemAbility(SUBSYS_ACCOUNT_SYS_ABILITY_ID_BEGIN);
     ASSERT_NE(accountObj, nullptr);
     sptr<IAccount> ohosMgr = iface_cast<AccountProxy>(accountObj);
+    EXPECT_NE(ohosMgr, nullptr);
     ohosMgr->UpdateOhosAccountInfo(TEST_ACCOUNT_NAME, TEST_ACCOUNT_UID, OHOS_ACCOUNT_EVENT_LOGIN);
 
     // after ohos account login
