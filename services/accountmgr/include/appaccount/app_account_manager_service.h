@@ -31,10 +31,10 @@ public:
     ErrCode AddAccount(const std::string &name, const std::string &extraInfo) override;
     ErrCode AddAccountImplicitly(
         const std::string &owner, const std::string &authType, const AAFwk::Want &options,
-        const sptr<IRemoteObject> &callback) override;
+        const sptr<IAppAccountAuthenticatorCallback> &callback) override;
     ErrCode CreateAccount(const std::string &name, const CreateAccountOptions &options) override;
     ErrCode CreateAccountImplicitly(const std::string &owner, const CreateAccountImplicitlyOptions &options,
-        const sptr<IRemoteObject> &callback) override;
+        const sptr<IAppAccountAuthenticatorCallback> &callback) override;
     ErrCode DeleteAccount(const std::string &name) override;
 
     ErrCode GetAccountExtraInfo(const std::string &name, std::string &extraInfo) override;
@@ -59,7 +59,7 @@ public:
     ErrCode DeleteAccountCredential(const std::string &name, const std::string &credentialType) override;
 
     ErrCode Authenticate(const std::string &name, const std::string &owner, const std::string &authType,
-        const AAFwk::Want &options, const sptr<IRemoteObject> &callback) override;
+        const AAFwk::Want &options, const sptr<IAppAccountAuthenticatorCallback> &callback) override;
     ErrCode GetOAuthToken(
         const std::string &name, const std::string &owner, const std::string &authType, std::string &token) override;
     ErrCode GetAuthToken(
@@ -91,15 +91,15 @@ public:
     ErrCode GetAllAccessibleAccounts(std::vector<AppAccountInfo> &appAccounts) override;
     ErrCode QueryAllAccessibleAccounts(const std::string &owner, std::vector<AppAccountInfo> &appAccounts) override;
     ErrCode SelectAccountsByOptions(
-        const SelectAccountsOptions &options, const sptr<IRemoteObject> &callback) override;
+        const SelectAccountsOptions &options, const sptr<IAppAccountAuthenticatorCallback> &callback) override;
     ErrCode VerifyCredential(const std::string &name, const std::string &owner,
-        const VerifyCredentialOptions &options, const sptr<IRemoteObject> &callback) override;
+        const VerifyCredentialOptions &options, const sptr<IAppAccountAuthenticatorCallback> &callback) override;
     ErrCode CheckAccountLabels(const std::string &name, const std::string &owner,
-        const std::vector<std::string> &labels, const sptr<IRemoteObject> &callback) override;
-    ErrCode SetAuthenticatorProperties(
-        const std::string &owner, const SetPropertiesOptions &options, const sptr<IRemoteObject> &callback) override;
-    ErrCode ExecuteRequest(
-        const AccountCapabilityRequest &request, const sptr<IRemoteObject> &callback) override;
+        const std::vector<std::string> &labels, const sptr<IAppAccountAuthenticatorCallback> &callback) override;
+    ErrCode SetAuthenticatorProperties(const std::string &owner, const SetPropertiesOptions &options,
+        const sptr<IAppAccountAuthenticatorCallback> &callback) override;
+    ErrCode ExecuteRequest(const AccountCapabilityRequest &request,
+        const sptr<IAppAccountAuthorizationExtensionCallback> &callback) override;
 
     ErrCode SubscribeAppAccount(
         const AppAccountSubscribeInfo &subscribeInfo, const sptr<IRemoteObject> &eventListener) override;
