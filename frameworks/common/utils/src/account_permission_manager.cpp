@@ -42,7 +42,7 @@ ErrCode AccountPermissionManager::VerifyPermission(const std::string &permission
     AccessTokenID callingToken = IPCSkeleton::GetCallingTokenID();
     ErrCode result = AccessTokenKit::VerifyAccessToken(callingToken, permissionName);
     if (result == TypePermissionState::PERMISSION_DENIED) {
-        return ERR_ACCOUNT_ZIDL_CHECK_PERMISSION_ERROR;
+        return ERR_ACCOUNT_COMMON_PERMISSION_DENIED;
     }
     return ERR_OK;
 }

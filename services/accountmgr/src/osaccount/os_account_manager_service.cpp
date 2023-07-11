@@ -51,7 +51,7 @@ ErrCode CheckInvalidLocalId(int localId)
 {
     if (localId > Constants::MAX_USER_ID) {
         ACCOUNT_LOGE("id %{public}d is out of range", localId);
-        return ERR_OSACCOUNT_KIT_LOCAL_ID_INVALID_ERROR;
+        return ERR_ACCOUNT_COMMON_INVALID_PARAMETER;
     }
     return ERR_OK;
 }
@@ -92,15 +92,15 @@ ErrCode OsAccountManagerService::CreateOsAccount(
     // parameters check
     if (name.size() > Constants::LOCAL_NAME_MAX_SIZE) {
         ACCOUNT_LOGE("os account name out of max allowed size");
-        return ERR_OSACCOUNT_SERVICE_MANAGER_NAME_SIZE_OVERFLOW_ERROR;
+        return ERR_ACCOUNT_COMMON_INVALID_PARAMETER;
     }
     if (name.size() <= 0) {
         ACCOUNT_LOGE("os account name is empty");
-        return ERR_OSACCOUNT_SERVICE_MANAGER_NAME_SIZE_EMPTY_ERROR;
+        return ERR_ACCOUNT_COMMON_INVALID_PARAMETER;
     }
     if ((type < OsAccountType::ADMIN) || (type >= OsAccountType::END)) {
         ACCOUNT_LOGE("os account type is invalid");
-        return ERR_OSACCOUNT_SERVICE_MANAGER_CREATE_INVALID_TYPE_ACCOUNT_ERROR;
+        return ERR_ACCOUNT_COMMON_INVALID_PARAMETER;
     }
 
     bool isAllowedCreateAdmin = false;
@@ -135,14 +135,14 @@ ErrCode OsAccountManagerService::CreateOsAccountForDomain(const OsAccountType &t
     // parameters check
     if ((type < OsAccountType::ADMIN) || (type >= OsAccountType::END)) {
         ACCOUNT_LOGE("os account type is invalid");
-        return ERR_OSACCOUNT_SERVICE_MANAGER_CREATE_INVALID_TYPE_ACCOUNT_ERROR;
+        return ERR_ACCOUNT_COMMON_INVALID_PARAMETER;
     }
     if (domainInfo.accountName_.empty() || domainInfo.domain_.empty()) {
-        return ERR_OSACCOUNT_SERVICE_MANAGER_NAME_SIZE_EMPTY_ERROR;
+        return ERR_ACCOUNT_COMMON_INVALID_PARAMETER;
     }
     if (domainInfo.accountName_.size() > Constants::DOMAIN_ACCOUNT_NAME_MAX_SIZE ||
         domainInfo.domain_.size() > Constants::DOMAIN_NAME_MAX_SIZE) {
-        return ERR_OSACCOUNT_SERVICE_MANAGER_NAME_SIZE_OVERFLOW_ERROR;
+        return ERR_ACCOUNT_COMMON_INVALID_PARAMETER;
     }
 
     bool isAllowedCreateAdmin = false;
@@ -165,7 +165,7 @@ ErrCode OsAccountManagerService::RemoveOsAccount(const int id)
     }
     if (id > Constants::MAX_USER_ID) {
         ACCOUNT_LOGE("localId %{public}d is out of range", id);
-        return ERR_OSACCOUNT_KIT_LOCAL_ID_INVALID_ERROR;
+        return ERR_ACCOUNT_COMMON_INVALID_PARAMETER;
     }
 
     // permission check
@@ -295,12 +295,12 @@ ErrCode OsAccountManagerService::GetOsAccountLocalIdFromDomain(const DomainAccou
 {
     if (domainInfo.domain_.empty() || domainInfo.domain_.size() > Constants::DOMAIN_NAME_MAX_SIZE) {
         ACCOUNT_LOGE("domain name length invalid. length %{public}zu.", domainInfo.domain_.size());
-        return ERR_OSACCOUNT_SERVICE_INNER_DOMAIN_NAME_LEN_ERROR;
+        return ERR_ACCOUNT_COMMON_INVALID_PARAMETER;
     }
 
     if (domainInfo.accountName_.empty() || domainInfo.accountName_.size() > Constants::DOMAIN_ACCOUNT_NAME_MAX_SIZE) {
         ACCOUNT_LOGE("accountName length invalid. length %{public}zu.", domainInfo.accountName_.size());
-        return ERR_OSACCOUNT_SERVICE_INNER_DOMAIN_ACCOUNT_NAME_LEN_ERROR;
+        return ERR_ACCOUNT_COMMON_INVALID_PARAMETER;
     }
     // permission check
     if (!PermissionCheck(AccountPermissionManager::MANAGE_LOCAL_ACCOUNTS, "")) {
@@ -413,11 +413,11 @@ ErrCode OsAccountManagerService::SetOsAccountName(const int id, const std::strin
     }
     if (name.size() > Constants::LOCAL_NAME_MAX_SIZE) {
         ACCOUNT_LOGE("set os account name is out of allowed size");
-        return ERR_OSACCOUNT_SERVICE_MANAGER_NAME_SIZE_OVERFLOW_ERROR;
+        return ERR_ACCOUNT_COMMON_INVALID_PARAMETER;
     }
     if (name.size() <= 0) {
         ACCOUNT_LOGE("os account name is empty");
-        return ERR_OSACCOUNT_SERVICE_MANAGER_NAME_SIZE_EMPTY_ERROR;
+        return ERR_ACCOUNT_COMMON_INVALID_PARAMETER;
     }
 
     // permission check
@@ -455,7 +455,7 @@ ErrCode OsAccountManagerService::SetOsAccountProfilePhoto(const int id, const st
     }
     if (photo.size() > Constants::LOCAL_PHOTO_MAX_SIZE) {
         ACCOUNT_LOGE("photo out of allowed size");
-        return ERR_OSACCOUNT_SERVICE_MANAGER_PHOTO_SIZE_OVERFLOW_ERROR;
+        return ERR_ACCOUNT_COMMON_INVALID_PARAMETER;
     }
     if (photo.empty()) {
         ACCOUNT_LOGE("photo is empty");
@@ -743,7 +743,7 @@ ErrCode OsAccountManagerService::QueryOsAccountConstraintSourceTypes(const int32
     }
     if (constraint.empty() || constraint.size() > Constants::CONSTRAINT_MAX_SIZE) {
         ACCOUNT_LOGE("constraint length is invalid. length %{public}zu.", constraint.size());
-        return ERR_OSACCOUNT_SERVICE_INNER_DOMAIN_ACCOUNT_NAME_LEN_ERROR;
+        return ERR_ACCOUNT_COMMON_INVALID_PARAMETER;
     }
 
     // permission check

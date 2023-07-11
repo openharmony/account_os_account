@@ -74,7 +74,7 @@ void AppAccountProxyMockTest::TearDown(void)
 HWTEST_F(AppAccountProxyMockTest, AppAccountManager_AddAccount_0100, TestSize.Level0)
 {
     ErrCode result = AppAccountManager::AddAccount(STRING_NAME, STRING_EXTRA_INFO);
-    ASSERT_EQ(ERR_APPACCOUNT_KIT_GET_SYSTEM_ABILITY_MANAGER, result);
+    ASSERT_EQ(ERR_ACCOUNT_COMMON_GET_SYSTEM_ABILITY_MANAGER, result);
 }
 
 /**
@@ -87,7 +87,7 @@ HWTEST_F(AppAccountProxyMockTest, AppAccountManager_CreateAccount_0100, TestSize
 {
     CreateAccountOptions option;
     ErrCode result = AppAccountManager::CreateAccount("test", option);
-    ASSERT_EQ(ERR_APPACCOUNT_KIT_GET_SYSTEM_ABILITY_MANAGER, result);
+    ASSERT_EQ(ERR_ACCOUNT_COMMON_GET_SYSTEM_ABILITY_MANAGER, result);
 }
 
 /**
@@ -103,7 +103,7 @@ HWTEST_F(AppAccountProxyMockTest, AppAccountManager_AddAccountImplicitly_0100, T
     sptr<IAppAccountAuthenticatorCallback> callback = new (std::nothrow) AuthenticatorCallbackMockTest();
     ASSERT_NE(callback, nullptr);
     ErrCode result = AppAccountManager::AddAccountImplicitly(STRING_OWNER, STRING_AUTH_TYPE, options, callback);
-    ASSERT_EQ(ERR_APPACCOUNT_KIT_GET_SYSTEM_ABILITY_MANAGER, result);
+    ASSERT_EQ(ERR_ACCOUNT_COMMON_GET_SYSTEM_ABILITY_MANAGER, result);
 }
 
 /**
@@ -119,7 +119,7 @@ HWTEST_F(AppAccountProxyMockTest, AppAccountManager_CreateAccountImplicitly_0100
     sptr<IAppAccountAuthenticatorCallback> callback = new (std::nothrow) AuthenticatorCallbackMockTest();
     ASSERT_NE(callback, nullptr);
     ErrCode result = AppAccountManager::CreateAccountImplicitly(STRING_OWNER, options, callback);
-    ASSERT_EQ(ERR_APPACCOUNT_KIT_GET_SYSTEM_ABILITY_MANAGER, result);
+    ASSERT_EQ(ERR_ACCOUNT_COMMON_GET_SYSTEM_ABILITY_MANAGER, result);
 }
 
 /**
@@ -131,7 +131,7 @@ HWTEST_F(AppAccountProxyMockTest, AppAccountManager_CreateAccountImplicitly_0100
 HWTEST_F(AppAccountProxyMockTest, AppAccountManager_DeleteAccount_0100, TestSize.Level1)
 {
     ErrCode result = AppAccountManager::DeleteAccount(STRING_NAME);
-    ASSERT_EQ(ERR_APPACCOUNT_KIT_GET_SYSTEM_ABILITY_MANAGER, result);
+    ASSERT_EQ(ERR_ACCOUNT_COMMON_GET_SYSTEM_ABILITY_MANAGER, result);
 }
 
 /**
@@ -144,7 +144,7 @@ HWTEST_F(AppAccountProxyMockTest, AppAccountManager_GetAccountExtraInfo_0100, Te
 {
     std::string extraInfo;
     ErrCode result = AppAccountManager::GetAccountExtraInfo(STRING_NAME, extraInfo);
-    ASSERT_EQ(ERR_APPACCOUNT_KIT_GET_SYSTEM_ABILITY_MANAGER, result);
+    ASSERT_EQ(ERR_ACCOUNT_COMMON_GET_SYSTEM_ABILITY_MANAGER, result);
 }
 
 /**
@@ -156,7 +156,7 @@ HWTEST_F(AppAccountProxyMockTest, AppAccountManager_GetAccountExtraInfo_0100, Te
 HWTEST_F(AppAccountProxyMockTest, AppAccountManager_SetAccountExtraInfo_0100, TestSize.Level1)
 {
     ErrCode result = AppAccountManager::SetAccountExtraInfo(STRING_NAME, STRING_EXTRA_INFO);
-    ASSERT_EQ(ERR_APPACCOUNT_KIT_GET_SYSTEM_ABILITY_MANAGER, result);
+    ASSERT_EQ(ERR_ACCOUNT_COMMON_GET_SYSTEM_ABILITY_MANAGER, result);
 }
 
 
@@ -169,7 +169,7 @@ HWTEST_F(AppAccountProxyMockTest, AppAccountManager_SetAccountExtraInfo_0100, Te
 HWTEST_F(AppAccountProxyMockTest, AppAccountManager_EnableAppAccess_0100, TestSize.Level1)
 {
     ErrCode result = AppAccountManager::EnableAppAccess(STRING_NAME, STRING_BUNDLE_NAME);
-    ASSERT_EQ(ERR_APPACCOUNT_KIT_GET_SYSTEM_ABILITY_MANAGER, result);
+    ASSERT_EQ(ERR_ACCOUNT_COMMON_GET_SYSTEM_ABILITY_MANAGER, result);
 }
 
 /**
@@ -181,7 +181,7 @@ HWTEST_F(AppAccountProxyMockTest, AppAccountManager_EnableAppAccess_0100, TestSi
 HWTEST_F(AppAccountProxyMockTest, AppAccountManager_DisableAppAccess_0100, TestSize.Level1)
 {
     ErrCode result = AppAccountManager::DisableAppAccess(STRING_NAME, STRING_BUNDLE_NAME);
-    ASSERT_EQ(ERR_APPACCOUNT_KIT_GET_SYSTEM_ABILITY_MANAGER, result);
+    ASSERT_EQ(ERR_ACCOUNT_COMMON_GET_SYSTEM_ABILITY_MANAGER, result);
 }
 
 /**
@@ -193,7 +193,7 @@ HWTEST_F(AppAccountProxyMockTest, AppAccountManager_DisableAppAccess_0100, TestS
 HWTEST_F(AppAccountProxyMockTest, AppAccountManager_SetAppAccess_0100, TestSize.Level1)
 {
     ErrCode result = AppAccountManager::SetAppAccess(STRING_NAME, STRING_BUNDLE_NAME, false);
-    ASSERT_EQ(ERR_APPACCOUNT_KIT_GET_SYSTEM_ABILITY_MANAGER, result);
+    ASSERT_EQ(ERR_ACCOUNT_COMMON_GET_SYSTEM_ABILITY_MANAGER, result);
 }
 
 /**
@@ -206,7 +206,7 @@ HWTEST_F(AppAccountProxyMockTest, AppAccountManager_CheckAppAccountSyncEnable_01
 {
     bool syncEnable = SYNC_ENABLE_FALSE;
     ErrCode result = AppAccountManager::CheckAppAccountSyncEnable(STRING_NAME, syncEnable);
-    ASSERT_EQ(ERR_APPACCOUNT_KIT_GET_SYSTEM_ABILITY_MANAGER, result);
+    ASSERT_EQ(ERR_ACCOUNT_COMMON_GET_SYSTEM_ABILITY_MANAGER, result);
 }
 
 /**
@@ -218,7 +218,7 @@ HWTEST_F(AppAccountProxyMockTest, AppAccountManager_CheckAppAccountSyncEnable_01
 HWTEST_F(AppAccountProxyMockTest, AppAccountManager_SetAppAccountSyncEnable_0100, TestSize.Level1)
 {
     ErrCode result = AppAccountManager::SetAppAccountSyncEnable(STRING_NAME, SYNC_ENABLE_FALSE);
-    ASSERT_EQ(ERR_APPACCOUNT_KIT_GET_SYSTEM_ABILITY_MANAGER, result);
+    ASSERT_EQ(ERR_ACCOUNT_COMMON_GET_SYSTEM_ABILITY_MANAGER, result);
 }
 
 /**
@@ -231,7 +231,7 @@ HWTEST_F(AppAccountProxyMockTest, AppAccountManager_GetAssociatedData_0100, Test
 {
     std::string value;
     ErrCode result = AppAccountManager::GetAssociatedData(STRING_NAME, STRING_KEY, value);
-    ASSERT_EQ(ERR_APPACCOUNT_KIT_GET_SYSTEM_ABILITY_MANAGER, result);
+    ASSERT_EQ(ERR_ACCOUNT_COMMON_GET_SYSTEM_ABILITY_MANAGER, result);
 }
 
 /**
@@ -243,7 +243,7 @@ HWTEST_F(AppAccountProxyMockTest, AppAccountManager_GetAssociatedData_0100, Test
 HWTEST_F(AppAccountProxyMockTest, AppAccountManager_SetAssociatedData_0600, TestSize.Level1)
 {
     ErrCode result = AppAccountManager::SetAssociatedData(STRING_NAME, STRING_KEY, STRING_VALUE);
-    ASSERT_EQ(ERR_APPACCOUNT_KIT_GET_SYSTEM_ABILITY_MANAGER, result);
+    ASSERT_EQ(ERR_ACCOUNT_COMMON_GET_SYSTEM_ABILITY_MANAGER, result);
 }
 
 /**
@@ -256,7 +256,7 @@ HWTEST_F(AppAccountProxyMockTest, AppAccountManager_GetAccountCredential_0100, T
 {
     std::string credential;
     ErrCode result = AppAccountManager::GetAccountCredential(STRING_NAME, STRING_CREDENTIAL_TYPE, credential);
-    ASSERT_EQ(ERR_APPACCOUNT_KIT_GET_SYSTEM_ABILITY_MANAGER, result);
+    ASSERT_EQ(ERR_ACCOUNT_COMMON_GET_SYSTEM_ABILITY_MANAGER, result);
 }
 
 /**
@@ -268,7 +268,7 @@ HWTEST_F(AppAccountProxyMockTest, AppAccountManager_GetAccountCredential_0100, T
 HWTEST_F(AppAccountProxyMockTest, AppAccountManager_SetAccountCredential_0100, TestSize.Level1)
 {
     ErrCode result = AppAccountManager::SetAccountCredential(STRING_NAME, STRING_CREDENTIAL_TYPE, STRING_CREDENTIAL);
-    ASSERT_EQ(ERR_APPACCOUNT_KIT_GET_SYSTEM_ABILITY_MANAGER, result);
+    ASSERT_EQ(ERR_ACCOUNT_COMMON_GET_SYSTEM_ABILITY_MANAGER, result);
 }
 
 /**
@@ -281,7 +281,7 @@ HWTEST_F(AppAccountProxyMockTest, AppAccountManager_GetOAuthToken_0100, TestSize
 {
     std::string token;
     ErrCode result = AppAccountManager::GetOAuthToken(STRING_NAME, STRING_OWNER, STRING_AUTH_TYPE, token);
-    ASSERT_EQ(ERR_APPACCOUNT_KIT_GET_SYSTEM_ABILITY_MANAGER, result);
+    ASSERT_EQ(ERR_ACCOUNT_COMMON_GET_SYSTEM_ABILITY_MANAGER, result);
 }
 
 /**
@@ -294,7 +294,7 @@ HWTEST_F(AppAccountProxyMockTest, AppAccountManager_GetAuthToken_0100, TestSize.
 {
     std::string token;
     ErrCode result = AppAccountManager::GetAuthToken(STRING_NAME, STRING_OWNER, STRING_AUTH_TYPE, token);
-    ASSERT_EQ(ERR_APPACCOUNT_KIT_GET_SYSTEM_ABILITY_MANAGER, result);
+    ASSERT_EQ(ERR_ACCOUNT_COMMON_GET_SYSTEM_ABILITY_MANAGER, result);
 }
 
 /**
@@ -306,7 +306,7 @@ HWTEST_F(AppAccountProxyMockTest, AppAccountManager_GetAuthToken_0100, TestSize.
 HWTEST_F(AppAccountProxyMockTest, AppAccountManager_SetOAuthToken_0100, TestSize.Level1)
 {
     ErrCode result = AppAccountManager::SetOAuthToken(STRING_NAME, STRING_AUTH_TYPE, STRING_TOKEN);
-    ASSERT_EQ(ERR_APPACCOUNT_KIT_GET_SYSTEM_ABILITY_MANAGER, result);
+    ASSERT_EQ(ERR_ACCOUNT_COMMON_GET_SYSTEM_ABILITY_MANAGER, result);
 }
 
 /**
@@ -318,7 +318,7 @@ HWTEST_F(AppAccountProxyMockTest, AppAccountManager_SetOAuthToken_0100, TestSize
 HWTEST_F(AppAccountProxyMockTest, AppAccountManager_DeleteOAuthToken_0100, TestSize.Level1)
 {
     ErrCode result = AppAccountManager::DeleteOAuthToken(STRING_NAME, STRING_OWNER, STRING_AUTH_TYPE, STRING_TOKEN);
-    ASSERT_EQ(ERR_APPACCOUNT_KIT_GET_SYSTEM_ABILITY_MANAGER, result);
+    ASSERT_EQ(ERR_ACCOUNT_COMMON_GET_SYSTEM_ABILITY_MANAGER, result);
 }
 
 /**
@@ -330,7 +330,7 @@ HWTEST_F(AppAccountProxyMockTest, AppAccountManager_DeleteOAuthToken_0100, TestS
 HWTEST_F(AppAccountProxyMockTest, AppAccountManager_DeleteAuthToken_0100, TestSize.Level1)
 {
     ErrCode result = AppAccountManager::DeleteAuthToken(STRING_NAME, STRING_OWNER, STRING_AUTH_TYPE, STRING_TOKEN);
-    ASSERT_EQ(ERR_APPACCOUNT_KIT_GET_SYSTEM_ABILITY_MANAGER, result);
+    ASSERT_EQ(ERR_ACCOUNT_COMMON_GET_SYSTEM_ABILITY_MANAGER, result);
 }
 
 /**
@@ -343,7 +343,7 @@ HWTEST_F(AppAccountProxyMockTest, AppAccountManager_SetOAuthTokenVisibility_0100
 {
     ErrCode result = AppAccountManager::SetOAuthTokenVisibility(
         STRING_NAME, STRING_AUTH_TYPE, STRING_BUNDLE_NAME, true);
-    ASSERT_EQ(ERR_APPACCOUNT_KIT_GET_SYSTEM_ABILITY_MANAGER, result);
+    ASSERT_EQ(ERR_ACCOUNT_COMMON_GET_SYSTEM_ABILITY_MANAGER, result);
 }
 
 /**
@@ -356,7 +356,7 @@ HWTEST_F(AppAccountProxyMockTest, AppAccountManager_SetAuthTokenVisibility_0100,
 {
     ErrCode result = AppAccountManager::SetAuthTokenVisibility(
         STRING_NAME, STRING_AUTH_TYPE, STRING_BUNDLE_NAME, true);
-    ASSERT_EQ(ERR_APPACCOUNT_KIT_GET_SYSTEM_ABILITY_MANAGER, result);
+    ASSERT_EQ(ERR_ACCOUNT_COMMON_GET_SYSTEM_ABILITY_MANAGER, result);
 }
 
 /**
@@ -370,7 +370,7 @@ HWTEST_F(AppAccountProxyMockTest, AppAccountManager_CheckOAuthTokenVisibility_01
     bool isVisible = false;
     ErrCode result = AppAccountManager::CheckOAuthTokenVisibility(
         STRING_NAME, STRING_AUTH_TYPE, STRING_BUNDLE_NAME, isVisible);
-    ASSERT_EQ(ERR_APPACCOUNT_KIT_GET_SYSTEM_ABILITY_MANAGER, result);
+    ASSERT_EQ(ERR_ACCOUNT_COMMON_GET_SYSTEM_ABILITY_MANAGER, result);
 }
 
 /**
@@ -384,7 +384,7 @@ HWTEST_F(AppAccountProxyMockTest, AppAccountManager_CheckAuthTokenVisibility_010
     bool isVisible = false;
     ErrCode result = AppAccountManager::CheckAuthTokenVisibility(
         STRING_NAME, STRING_AUTH_TYPE, STRING_BUNDLE_NAME, isVisible);
-    ASSERT_EQ(ERR_APPACCOUNT_KIT_GET_SYSTEM_ABILITY_MANAGER, result);
+    ASSERT_EQ(ERR_ACCOUNT_COMMON_GET_SYSTEM_ABILITY_MANAGER, result);
 }
 
 
@@ -398,7 +398,7 @@ HWTEST_F(AppAccountProxyMockTest, AppAccountManager_GetAuthenticatorInfo_0100, T
 {
     AuthenticatorInfo info;
     ErrCode result = AppAccountManager::GetAuthenticatorInfo(STRING_SESSION_ID, info);
-    ASSERT_EQ(ERR_APPACCOUNT_KIT_GET_SYSTEM_ABILITY_MANAGER, result);
+    ASSERT_EQ(ERR_ACCOUNT_COMMON_GET_SYSTEM_ABILITY_MANAGER, result);
 }
 
 /**
@@ -411,7 +411,7 @@ HWTEST_F(AppAccountProxyMockTest, AppAccountManager_GetAllOAuthTokens_0100, Test
 {
     std::vector<OAuthTokenInfo> tokenInfos;
     ErrCode result = AppAccountManager::GetAllOAuthTokens(STRING_NAME, STRING_OWNER, tokenInfos);
-    ASSERT_EQ(ERR_APPACCOUNT_KIT_GET_SYSTEM_ABILITY_MANAGER, result);
+    ASSERT_EQ(ERR_ACCOUNT_COMMON_GET_SYSTEM_ABILITY_MANAGER, result);
 }
 
 /**
@@ -424,7 +424,7 @@ HWTEST_F(AppAccountProxyMockTest, AppAccountManager_GetOAuthList_0100, TestSize.
 {
     std::set<std::string> oauthList;
     ErrCode result = AppAccountManager::GetOAuthList(STRING_OWNER, STRING_AUTH_TYPE, oauthList);
-    ASSERT_EQ(ERR_APPACCOUNT_KIT_GET_SYSTEM_ABILITY_MANAGER, result);
+    ASSERT_EQ(ERR_ACCOUNT_COMMON_GET_SYSTEM_ABILITY_MANAGER, result);
 }
 
 /**
@@ -437,7 +437,7 @@ HWTEST_F(AppAccountProxyMockTest, AppAccountManager_GetAuthList_0100, TestSize.L
 {
     std::set<std::string> oauthList;
     ErrCode result = AppAccountManager::GetAuthList(STRING_OWNER, STRING_AUTH_TYPE, oauthList);
-    ASSERT_EQ(ERR_APPACCOUNT_KIT_GET_SYSTEM_ABILITY_MANAGER, result);
+    ASSERT_EQ(ERR_ACCOUNT_COMMON_GET_SYSTEM_ABILITY_MANAGER, result);
 }
 
 /**
@@ -450,7 +450,7 @@ HWTEST_F(AppAccountProxyMockTest, AppAccountManager_GetAuthenticatorCallback_010
 {
     sptr<IRemoteObject> callback;
     ErrCode result = AppAccountManager::GetAuthenticatorCallback(STRING_SESSION_ID, callback);
-    ASSERT_EQ(ERR_APPACCOUNT_KIT_GET_SYSTEM_ABILITY_MANAGER, result);
+    ASSERT_EQ(ERR_ACCOUNT_COMMON_GET_SYSTEM_ABILITY_MANAGER, result);
 }
 
 /**
@@ -463,7 +463,7 @@ HWTEST_F(AppAccountProxyMockTest, AppAccountManager_GetAllAccounts_0300, TestSiz
 {
     std::vector<AppAccountInfo> appAccounts;
     ErrCode result = AppAccountManager::GetAllAccounts(STRING_OWNER, appAccounts);
-    ASSERT_EQ(ERR_APPACCOUNT_KIT_GET_SYSTEM_ABILITY_MANAGER, result);
+    ASSERT_EQ(ERR_ACCOUNT_COMMON_GET_SYSTEM_ABILITY_MANAGER, result);
 }
 
 /**
@@ -476,7 +476,7 @@ HWTEST_F(AppAccountProxyMockTest, AppAccountManager_GetAllAccessibleAccounts_010
 {
     std::vector<AppAccountInfo> appAccounts;
     ErrCode result = AppAccountManager::GetAllAccessibleAccounts(appAccounts);
-    ASSERT_EQ(ERR_APPACCOUNT_KIT_GET_SYSTEM_ABILITY_MANAGER, result);
+    ASSERT_EQ(ERR_ACCOUNT_COMMON_GET_SYSTEM_ABILITY_MANAGER, result);
 }
 
 /**
@@ -490,7 +490,7 @@ HWTEST_F(AppAccountProxyMockTest, AppAccountManager_QueryAllAccessibleAccounts_0
     std::vector<AppAccountInfo> appAccounts;
     std::string owner = "";
     ErrCode result = AppAccountManager::QueryAllAccessibleAccounts(owner, appAccounts);
-    ASSERT_EQ(ERR_APPACCOUNT_KIT_GET_SYSTEM_ABILITY_MANAGER, result);
+    ASSERT_EQ(ERR_ACCOUNT_COMMON_GET_SYSTEM_ABILITY_MANAGER, result);
 }
 
 /**
@@ -503,7 +503,7 @@ HWTEST_F(AppAccountProxyMockTest, AppAccountManager_CheckAppAccess_0100, TestSiz
 {
     bool isAccess = false;
     ErrCode result = AppAccountManager::CheckAppAccess(STRING_NAME, STRING_BUNDLE_NAME, isAccess);
-    ASSERT_EQ(ERR_APPACCOUNT_KIT_GET_SYSTEM_ABILITY_MANAGER, result);
+    ASSERT_EQ(ERR_ACCOUNT_COMMON_GET_SYSTEM_ABILITY_MANAGER, result);
 }
 
 /**
@@ -515,7 +515,7 @@ HWTEST_F(AppAccountProxyMockTest, AppAccountManager_CheckAppAccess_0100, TestSiz
 HWTEST_F(AppAccountProxyMockTest, AppAccountManager_DeleteAccountCredential_0100, TestSize.Level1)
 {
     ErrCode result = AppAccountManager::DeleteAccountCredential(STRING_NAME, STRING_CREDENTIAL);
-    ASSERT_EQ(ERR_APPACCOUNT_KIT_GET_SYSTEM_ABILITY_MANAGER, result);
+    ASSERT_EQ(ERR_ACCOUNT_COMMON_GET_SYSTEM_ABILITY_MANAGER, result);
 }
 
 /**
@@ -530,7 +530,7 @@ HWTEST_F(AppAccountProxyMockTest, AppAccountManager_SelectAccountsByOptions_0100
     sptr<IAppAccountAuthenticatorCallback> callback = new (std::nothrow) AuthenticatorCallbackMockTest();
     ASSERT_NE(callback, nullptr);
     ErrCode result = AppAccountManager::SelectAccountsByOptions(options, callback);
-    ASSERT_EQ(ERR_APPACCOUNT_KIT_GET_SYSTEM_ABILITY_MANAGER, result);
+    ASSERT_EQ(ERR_ACCOUNT_COMMON_GET_SYSTEM_ABILITY_MANAGER, result);
 }
 
 /**
@@ -545,7 +545,7 @@ HWTEST_F(AppAccountProxyMockTest, AppAccountManager_VerifyCredential_0100, TestS
     sptr<IAppAccountAuthenticatorCallback> callback = new (std::nothrow) AuthenticatorCallbackMockTest();
     ASSERT_NE(callback, nullptr);
     ErrCode result = AppAccountManager::VerifyCredential(STRING_NAME, STRING_OWNER, options, callback);
-    ASSERT_EQ(ERR_APPACCOUNT_KIT_GET_SYSTEM_ABILITY_MANAGER, result);
+    ASSERT_EQ(ERR_ACCOUNT_COMMON_GET_SYSTEM_ABILITY_MANAGER, result);
 }
 
 /**
@@ -561,7 +561,7 @@ HWTEST_F(AppAccountProxyMockTest, AppAccountManager_CheckAccountLabels_0100, Tes
     ASSERT_NE(callback, nullptr);
     labels.emplace_back("test");
     ErrCode result = AppAccountManager::CheckAccountLabels(STRING_NAME, STRING_OWNER, labels, callback);
-    ASSERT_EQ(ERR_APPACCOUNT_KIT_GET_SYSTEM_ABILITY_MANAGER, result);
+    ASSERT_EQ(ERR_ACCOUNT_COMMON_GET_SYSTEM_ABILITY_MANAGER, result);
 }
 
 /**
@@ -576,7 +576,7 @@ HWTEST_F(AppAccountProxyMockTest, AppAccountManager_SetAuthenticatorProperties_0
     sptr<IAppAccountAuthenticatorCallback> callback = new (std::nothrow) AuthenticatorCallbackMockTest();
     ASSERT_NE(callback, nullptr);
     ErrCode result = AppAccountManager::SetAuthenticatorProperties(STRING_OWNER, options, callback);
-    ASSERT_EQ(ERR_APPACCOUNT_KIT_GET_SYSTEM_ABILITY_MANAGER, result);
+    ASSERT_EQ(ERR_ACCOUNT_COMMON_GET_SYSTEM_ABILITY_MANAGER, result);
 }
 
 /**
@@ -588,7 +588,7 @@ HWTEST_F(AppAccountProxyMockTest, AppAccountManager_SetAuthenticatorProperties_0
 HWTEST_F(AppAccountProxyMockTest, AppAccountManager_SubscribeAppAccount_0100, TestSize.Level1)
 {
     ErrCode result = AppAccountManager::SubscribeAppAccount(nullptr);
-    ASSERT_EQ(ERR_APPACCOUNT_KIT_GET_SYSTEM_ABILITY_MANAGER, result);
+    ASSERT_EQ(ERR_ACCOUNT_COMMON_GET_SYSTEM_ABILITY_MANAGER, result);
 }
 
 /**
@@ -600,7 +600,7 @@ HWTEST_F(AppAccountProxyMockTest, AppAccountManager_SubscribeAppAccount_0100, Te
 HWTEST_F(AppAccountProxyMockTest, AppAccountManager_UnsubscribeAppAccount_0100, TestSize.Level1)
 {
     ErrCode result = AppAccountManager::UnsubscribeAppAccount(nullptr);
-    ASSERT_EQ(ERR_APPACCOUNT_KIT_GET_SYSTEM_ABILITY_MANAGER, result);
+    ASSERT_EQ(ERR_ACCOUNT_COMMON_GET_SYSTEM_ABILITY_MANAGER, result);
 }
 }  // namespace AccountTest
 }  // namespace OHOS

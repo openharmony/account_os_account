@@ -102,7 +102,7 @@ std::int32_t OhosAccountKitsImpl::SetOhosAccountInfo(
     auto accountProxy = GetService();
     if (accountProxy == nullptr) {
         ACCOUNT_LOGE("Get proxy failed");
-        return ERR_ACCOUNT_ZIDL_ACCOUNT_PROXY_ERROR;
+        return ERR_ACCOUNT_COMMON_GET_PROXY;
     }
     if (!ohosAccountInfo.IsValid()) {
         ACCOUNT_LOGE("OhosAccountInfo check failed");
@@ -142,7 +142,7 @@ ErrCode OhosAccountKitsImpl::GetOhosAccountInfo(OhosAccountInfo &accountInfo)
     auto accountProxy = GetService();
     if (accountProxy == nullptr) {
         ACCOUNT_LOGE("Get proxy failed");
-        return ERR_ACCOUNT_ZIDL_ACCOUNT_PROXY_ERROR;
+        return ERR_ACCOUNT_COMMON_GET_PROXY;
     }
 
     return accountProxy->GetOhosAccountInfo(accountInfo);
@@ -153,7 +153,7 @@ ErrCode OhosAccountKitsImpl::GetOhosAccountInfoByUserId(int32_t userId, OhosAcco
     auto accountProxy = GetService();
     if (accountProxy == nullptr) {
         ACCOUNT_LOGE("Get proxy failed");
-        return ERR_ACCOUNT_ZIDL_ACCOUNT_PROXY_ERROR;
+        return ERR_ACCOUNT_COMMON_GET_PROXY;
     }
 
     return accountProxy->GetOhosAccountInfoByUserId(userId, accountInfo);
@@ -175,7 +175,7 @@ ErrCode OhosAccountKitsImpl::QueryDeviceAccountId(std::int32_t& accountId)
     auto accountProxy = GetService();
     if (accountProxy == nullptr) {
         ACCOUNT_LOGE("Get proxy failed");
-        return ERR_ACCOUNT_ZIDL_ACCOUNT_PROXY_ERROR;
+        return ERR_ACCOUNT_COMMON_GET_PROXY;
     }
 
     return accountProxy->QueryDeviceAccountId(accountId);

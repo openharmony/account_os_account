@@ -181,7 +181,7 @@ ErrCode AppAccountSubscribeManager::CheckAppAccess(const std::shared_ptr<AppAcco
             });
         if (it == accessibleAccounts.end()) {
             ACCOUNT_LOGE("failed to find accessible account");
-            return ERR_APPACCOUNT_SERVICE_SUBSCRIBE_PERMISSION_DENIED;
+            return ERR_ACCOUNT_COMMON_PERMISSION_DENIED;
         }
     }
 

@@ -144,8 +144,8 @@ HWTEST_F(DomainAccountClientModuleTest, DomainAccountClientModuleTest_Plugin_003
 HWTEST_F(DomainAccountClientModuleTest, DomainAccountClientModuleTest_Plugin_004, TestSize.Level0)
 {
     setuid(TEST_UID);
-    ASSERT_EQ(DomainAccountClient::GetInstance().UnregisterPlugin(), ERR_ACCOUNT_ZIDL_CHECK_PERMISSION_ERROR);
-    ASSERT_EQ(DomainAccountClient::GetInstance().RegisterPlugin(g_plugin), ERR_ACCOUNT_ZIDL_CHECK_PERMISSION_ERROR);
+    ASSERT_EQ(DomainAccountClient::GetInstance().UnregisterPlugin(), ERR_ACCOUNT_COMMON_PERMISSION_DENIED);
+    ASSERT_EQ(DomainAccountClient::GetInstance().RegisterPlugin(g_plugin), ERR_ACCOUNT_COMMON_PERMISSION_DENIED);
     setuid(ROOT_UID);
 }
 
@@ -298,7 +298,7 @@ HWTEST_F(DomainAccountClientModuleTest, DomainAccountClientModuleTest_AuthUser_0
     auto testCallback = std::make_shared<TestDomainAuthCallback>(nullptr);
     ASSERT_NE(testCallback, nullptr);
     EXPECT_EQ(DomainAccountClient::GetInstance().AuthUser(NON_EXISTENT_USER_ID, VALID_PASSWORD, testCallback),
-        ERR_OSACCOUNT_SERVICE_INNER_SELECT_OSACCOUNT_BYID_ERROR);
+        ERR_ACCOUNT_COMMON_ACCOUNT_NOT_EXIST_ERROR);
 }
 
 /**
@@ -395,7 +395,7 @@ HWTEST_F(DomainAccountClientModuleTest, DomainAccountClientModuleTest_AuthWithPo
     auto testCallback = std::make_shared<TestDomainAuthCallback>(nullptr);
     ASSERT_NE(testCallback, nullptr);
     EXPECT_EQ(DomainAccountClient::GetInstance().AuthWithPopup(NON_EXISTENT_USER_ID, testCallback),
-        ERR_OSACCOUNT_SERVICE_INNER_SELECT_OSACCOUNT_BYID_ERROR);
+        ERR_ACCOUNT_COMMON_ACCOUNT_NOT_EXIST_ERROR);
 }
 
 /**
@@ -1062,7 +1062,7 @@ HWTEST_F(DomainAccountClientModuleTest, DomainAccountClientModuleTest_GetAccount
     DomainAccountStatus status;
     DomainAccountInfo domainInfo(STRING_DOMAIN, STRING_NAME);
     EXPECT_EQ(DomainAccountClient::GetInstance().GetAccountStatus(domainInfo, status),
-        ERR_ACCOUNT_ZIDL_CHECK_PERMISSION_ERROR);
+        ERR_ACCOUNT_COMMON_PERMISSION_DENIED);
     setuid(ROOT_UID);
 }
 
@@ -1380,7 +1380,7 @@ HWTEST_F(DomainAccountClientModuleTest, RegisterAccountStatusListener_001, TestS
     domainInfo.accountId_ = STRING_ACCOUNTID;
     auto listener = std::make_shared<ListenerLogIn>();
     EXPECT_EQ(DomainAccountClient::GetInstance().RegisterAccountStatusListener(domainInfo, listener),
-        ERR_ACCOUNT_ZIDL_CHECK_PERMISSION_ERROR);
+        ERR_ACCOUNT_COMMON_PERMISSION_DENIED);
     setuid(ROOT_UID);
 }
 

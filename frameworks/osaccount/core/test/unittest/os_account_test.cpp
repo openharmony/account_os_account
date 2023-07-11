@@ -188,7 +188,7 @@ HWTEST_F(OsAccountTest, OsAccountTest001, TestSize.Level1)
 {
     OsAccountInfo osAccountInfo;
     ErrCode errCode = g_osAccount->CreateOsAccount(STRING_NAME_OUT_OF_RANGE, OsAccountType::GUEST, osAccountInfo);
-    EXPECT_EQ(errCode, ERR_OSACCOUNT_KIT_LOCAL_NAME_OUTFLOW_ERROR);
+    EXPECT_EQ(errCode, ERR_ACCOUNT_COMMON_INVALID_PARAMETER);
 }
 
 /**
@@ -201,7 +201,7 @@ HWTEST_F(OsAccountTest, OsAccountTest002, TestSize.Level1)
 {
     OsAccountInfo osAccountInfo;
     ErrCode errCode = g_osAccount->CreateOsAccount(STRING_EMPTY, OsAccountType::GUEST, osAccountInfo);
-    EXPECT_EQ(errCode, ERR_OSACCOUNT_KIT_LOCAL_NAME_EMPTY_ERROR);
+    EXPECT_EQ(errCode, ERR_ACCOUNT_COMMON_INVALID_PARAMETER);
 }
 
 /**
@@ -217,7 +217,7 @@ HWTEST_F(OsAccountTest, OsAccountTest003, TestSize.Level1)
     errCode = g_osAccount->RemoveOsAccount(100);
     EXPECT_EQ(errCode, ERR_OSACCOUNT_SERVICE_MANAGER_ID_ERROR);
     errCode = g_osAccount->RemoveOsAccount(1100);
-    EXPECT_EQ(errCode, ERR_OSACCOUNT_KIT_LOCAL_ID_INVALID_ERROR);
+    EXPECT_EQ(errCode, ERR_ACCOUNT_COMMON_INVALID_PARAMETER);
 }
 
 /**
@@ -229,7 +229,7 @@ HWTEST_F(OsAccountTest, OsAccountTest003, TestSize.Level1)
 HWTEST_F(OsAccountTest, OsAccountTest004, TestSize.Level1)
 {
     ErrCode errCode = g_osAccount->SetOsAccountName(100, STRING_NAME_OUT_OF_RANGE);
-    EXPECT_EQ(errCode, ERR_OSACCOUNT_KIT_LOCAL_NAME_OUTFLOW_ERROR);
+    EXPECT_EQ(errCode, ERR_ACCOUNT_COMMON_INVALID_PARAMETER);
 }
 
 /**
@@ -241,7 +241,7 @@ HWTEST_F(OsAccountTest, OsAccountTest004, TestSize.Level1)
 HWTEST_F(OsAccountTest, OsAccountTest005, TestSize.Level1)
 {
     ErrCode errCode = g_osAccount->SetOsAccountName(100, STRING_EMPTY);
-    EXPECT_EQ(errCode, ERR_OSACCOUNT_KIT_LOCAL_NAME_EMPTY_ERROR);
+    EXPECT_EQ(errCode, ERR_ACCOUNT_COMMON_INVALID_PARAMETER);
 }
 
 /**
@@ -253,7 +253,7 @@ HWTEST_F(OsAccountTest, OsAccountTest005, TestSize.Level1)
 HWTEST_F(OsAccountTest, OsAccountTest006, TestSize.Level1)
 {
     ErrCode errCode = g_osAccount->SetOsAccountProfilePhoto(100, STRING_PHOTO_OUT_OF_RANGE);
-    EXPECT_EQ(errCode, ERR_OSACCOUNT_KIT_PHOTO_OUTFLOW_ERROR);
+    EXPECT_EQ(errCode, ERR_ACCOUNT_COMMON_INVALID_PARAMETER);
 }
 
 /**
@@ -354,11 +354,11 @@ HWTEST_F(OsAccountTest, OsAccountTest012, TestSize.Level1)
     OsAccountType type = NORMAL;
     DomainAccountInfo domainInfo(STRING_EMPTY, STRING_DOMAIN_ACCOUNT_NAME_VALID);
     OsAccountInfo osAccountInfo;
-    EXPECT_EQ(ERR_OSACCOUNT_KIT_DOMAIN_NAME_LENGTH_INVALID_ERROR,
+    EXPECT_EQ(ERR_ACCOUNT_COMMON_INVALID_PARAMETER,
         osAccountProxy_->CreateOsAccountForDomain(type, domainInfo, osAccountInfo));
     
     domainInfo.domain_ = STRING_DOMAIN_NAME_OUT_OF_RANGE;
-    EXPECT_EQ(ERR_OSACCOUNT_KIT_DOMAIN_NAME_LENGTH_INVALID_ERROR,
+    EXPECT_EQ(ERR_ACCOUNT_COMMON_INVALID_PARAMETER,
         osAccountProxy_->CreateOsAccountForDomain(type, domainInfo, osAccountInfo));
 }
 
@@ -373,11 +373,11 @@ HWTEST_F(OsAccountTest, OsAccountTest013, TestSize.Level1)
     OsAccountType type = NORMAL;
     DomainAccountInfo domainInfo(STRING_DOMAIN_VALID, STRING_EMPTY);
     OsAccountInfo osAccountInfo;
-    EXPECT_EQ(ERR_OSACCOUNT_KIT_DOMAIN_ACCOUNT_NAME_LENGTH_INVALID_ERROR,
+    EXPECT_EQ(ERR_ACCOUNT_COMMON_INVALID_PARAMETER,
         osAccountProxy_->CreateOsAccountForDomain(type, domainInfo, osAccountInfo));
 
     domainInfo.accountName_ = STRING_DOMAIN_ACCOUNT_NAME_OUT_OF_RANGE;
-    EXPECT_EQ(ERR_OSACCOUNT_KIT_DOMAIN_ACCOUNT_NAME_LENGTH_INVALID_ERROR,
+    EXPECT_EQ(ERR_ACCOUNT_COMMON_INVALID_PARAMETER,
         osAccountProxy_->CreateOsAccountForDomain(type, domainInfo, osAccountInfo));
 }
 #endif // DOMAIN_ACCOUNT_TEST_CASE
@@ -392,11 +392,11 @@ HWTEST_F(OsAccountTest, OsAccountTest014, TestSize.Level1)
 {
     DomainAccountInfo domainInfo(STRING_EMPTY, STRING_DOMAIN_ACCOUNT_NAME_VALID);
     int id;
-    EXPECT_EQ(ERR_OSACCOUNT_KIT_DOMAIN_NAME_LENGTH_INVALID_ERROR,
+    EXPECT_EQ(ERR_ACCOUNT_COMMON_INVALID_PARAMETER,
         osAccountProxy_->GetOsAccountLocalIdFromDomain(domainInfo, id));
 
     domainInfo.domain_ = STRING_DOMAIN_NAME_OUT_OF_RANGE;
-    EXPECT_EQ(ERR_OSACCOUNT_KIT_DOMAIN_NAME_LENGTH_INVALID_ERROR,
+    EXPECT_EQ(ERR_ACCOUNT_COMMON_INVALID_PARAMETER,
         osAccountProxy_->GetOsAccountLocalIdFromDomain(domainInfo, id));
 }
 
@@ -410,11 +410,11 @@ HWTEST_F(OsAccountTest, OsAccountTest015, TestSize.Level1)
 {
         DomainAccountInfo domainInfo(STRING_DOMAIN_VALID, STRING_EMPTY);
     int id;
-    EXPECT_EQ(ERR_OSACCOUNT_KIT_DOMAIN_ACCOUNT_NAME_LENGTH_INVALID_ERROR,
+    EXPECT_EQ(ERR_ACCOUNT_COMMON_INVALID_PARAMETER,
         osAccountProxy_->GetOsAccountLocalIdFromDomain(domainInfo, id));
     domainInfo.accountName_ = STRING_DOMAIN_ACCOUNT_NAME_OUT_OF_RANGE;
 
-    EXPECT_EQ(ERR_OSACCOUNT_KIT_DOMAIN_ACCOUNT_NAME_LENGTH_INVALID_ERROR,
+    EXPECT_EQ(ERR_ACCOUNT_COMMON_INVALID_PARAMETER,
         osAccountProxy_->GetOsAccountLocalIdFromDomain(domainInfo, id));
 }
 

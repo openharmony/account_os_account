@@ -31,7 +31,7 @@ static ErrCode CheckInvalidLocalId(int localId)
 {
     if (localId > Constants::MAX_USER_ID) {
         ACCOUNT_LOGE("id %{public}d is out of range", localId);
-        return ERR_OSACCOUNT_KIT_LOCAL_ID_INVALID_ERROR;
+        return ERR_ACCOUNT_COMMON_INVALID_PARAMETER;
     }
     return ERR_OK;
 }
@@ -55,11 +55,11 @@ ErrCode OsAccount::CreateOsAccount(const std::string &name, const OsAccountType 
 {
     if (name.size() > Constants::LOCAL_NAME_MAX_SIZE) {
         ACCOUNT_LOGE("name length %{public}zu is too long!", name.size());
-        return ERR_OSACCOUNT_KIT_LOCAL_NAME_OUTFLOW_ERROR;
+        return ERR_ACCOUNT_COMMON_INVALID_PARAMETER;
     }
     if (name.empty()) {
         ACCOUNT_LOGE("name is empty!");
-        return ERR_OSACCOUNT_KIT_LOCAL_NAME_EMPTY_ERROR;
+        return ERR_ACCOUNT_COMMON_INVALID_PARAMETER;
     }
     ErrCode result = GetOsAccountProxy();
     if (result != ERR_OK) {
@@ -76,13 +76,13 @@ ErrCode OsAccount::CreateOsAccountForDomain(const OsAccountType &type, const Dom
     if (domainInfo.domain_.empty() ||
         domainInfo.domain_.size() > Constants::DOMAIN_NAME_MAX_SIZE) {
         ACCOUNT_LOGE("domain is empty or too long, len %{public}zu.", domainInfo.domain_.size());
-        return ERR_OSACCOUNT_KIT_DOMAIN_NAME_LENGTH_INVALID_ERROR;
+        return ERR_ACCOUNT_COMMON_INVALID_PARAMETER;
     }
 
     if (domainInfo.accountName_.empty() ||
         domainInfo.accountName_.size() > Constants::DOMAIN_ACCOUNT_NAME_MAX_SIZE) {
         ACCOUNT_LOGE("account name is empty or too long, len %{public}zu.", domainInfo.accountName_.size());
-        return ERR_OSACCOUNT_KIT_DOMAIN_ACCOUNT_NAME_LENGTH_INVALID_ERROR;
+        return ERR_ACCOUNT_COMMON_INVALID_PARAMETER;
     }
 
     ErrCode result = GetOsAccountProxy();
@@ -102,7 +102,7 @@ ErrCode OsAccount::RemoveOsAccount(const int id)
     }
     if (id > Constants::MAX_USER_ID) {
         ACCOUNT_LOGE("localId %{public}d is out of range", id);
-        return ERR_OSACCOUNT_KIT_LOCAL_ID_INVALID_ERROR;
+        return ERR_ACCOUNT_COMMON_INVALID_PARAMETER;
     }
     ErrCode result = GetOsAccountProxy();
     if (result != ERR_OK) {
@@ -231,13 +231,13 @@ ErrCode OsAccount::GetOsAccountLocalIdFromDomain(const DomainAccountInfo &domain
     if (domainInfo.domain_.empty() ||
         domainInfo.domain_.size() > Constants::DOMAIN_NAME_MAX_SIZE) {
         ACCOUNT_LOGE("invalid domain name length %{public}zu.", domainInfo.domain_.size());
-        return ERR_OSACCOUNT_KIT_DOMAIN_NAME_LENGTH_INVALID_ERROR;
+        return ERR_ACCOUNT_COMMON_INVALID_PARAMETER;
     }
 
     if (domainInfo.accountName_.empty() ||
         domainInfo.accountName_.size() > Constants::DOMAIN_ACCOUNT_NAME_MAX_SIZE) {
         ACCOUNT_LOGE("invalid domain account name length %{public}zu.", domainInfo.accountName_.size());
-        return ERR_OSACCOUNT_KIT_DOMAIN_ACCOUNT_NAME_LENGTH_INVALID_ERROR;
+        return ERR_ACCOUNT_COMMON_INVALID_PARAMETER;
     }
 
     ErrCode result = GetOsAccountProxy();
@@ -358,11 +358,11 @@ ErrCode OsAccount::SetOsAccountName(const int id, const std::string &localName)
     }
     if (localName.size() > Constants::LOCAL_NAME_MAX_SIZE) {
         ACCOUNT_LOGE("name length %{public}zu too long!", localName.size());
-        return ERR_OSACCOUNT_KIT_LOCAL_NAME_OUTFLOW_ERROR;
+        return ERR_ACCOUNT_COMMON_INVALID_PARAMETER;
     }
     if (localName.empty()) {
         ACCOUNT_LOGE("name is empty!");
-        return ERR_OSACCOUNT_KIT_LOCAL_NAME_EMPTY_ERROR;
+        return ERR_ACCOUNT_COMMON_INVALID_PARAMETER;
     }
     result = GetOsAccountProxy();
     if (result != ERR_OK) {
@@ -401,7 +401,7 @@ ErrCode OsAccount::SetOsAccountProfilePhoto(const int id, const std::string &pho
     }
     if (photo.size() > Constants::LOCAL_PHOTO_MAX_SIZE) {
         ACCOUNT_LOGE("photo size %{public}zu too long!", photo.size());
-        return ERR_OSACCOUNT_KIT_PHOTO_OUTFLOW_ERROR;
+        return ERR_ACCOUNT_COMMON_INVALID_PARAMETER;
     }
     result = GetOsAccountProxy();
     if (result != ERR_OK) {
@@ -509,7 +509,7 @@ ErrCode OsAccount::SubscribeOsAccount(const std::shared_ptr<OsAccountSubscriber>
 
     if (GetOsAccountProxy() != ERR_OK) {
         ACCOUNT_LOGE("os account proxy is nullptr");
-        return ERR_APPACCOUNT_KIT_APP_ACCOUNT_PROXY_IS_NULLPTR;
+        return ERR_ACCOUNT_COMMON_GET_PROXY;
     }
 
     sptr<IRemoteObject> osAccountEventListener = nullptr;
@@ -541,7 +541,7 @@ ErrCode OsAccount::UnsubscribeOsAccount(const std::shared_ptr<OsAccountSubscribe
 
     if (GetOsAccountProxy() != ERR_OK) {
         ACCOUNT_LOGE("os account proxy is nullptr");
-        return ERR_APPACCOUNT_KIT_APP_ACCOUNT_PROXY_IS_NULLPTR;
+        return ERR_ACCOUNT_COMMON_GET_PROXY;
     }
 
     std::lock_guard<std::mutex> lock(eventListenersMutex_);
@@ -650,7 +650,7 @@ ErrCode OsAccount::GetOsAccountProxy()
                 SystemAbilityManagerClient::GetInstance().GetSystemAbilityManager();
             if (!systemAbilityManager) {
                 ACCOUNT_LOGE("failed to get system ability manager");
-                return ERR_OSACCOUNT_KIT_GET_SYSTEM_ABILITY_MANAGER_ERROR;
+                return ERR_ACCOUNT_COMMON_GET_SYSTEM_ABILITY_MANAGER;
             }
 
             sptr<IRemoteObject> remoteObject =
@@ -663,7 +663,7 @@ ErrCode OsAccount::GetOsAccountProxy()
             sptr<IAccount> accountProxy = iface_cast<AccountProxy>(remoteObject);
             if ((!accountProxy) || (!accountProxy->AsObject())) {
                 ACCOUNT_LOGE("failed to cast account proxy");
-                return ERR_OSACCOUNT_KIT_CAST_ACCOUNT_PROXY_ERROR;
+                return ERR_ACCOUNT_COMMON_GET_PROXY;
             }
 
             auto osAccountRemoteObject = accountProxy->GetOsAccountService();
@@ -676,7 +676,7 @@ ErrCode OsAccount::GetOsAccountProxy()
             if ((!osAccountProxy_) || (!osAccountProxy_->AsObject())) {
                 ACCOUNT_LOGE("failed to cast os account proxy");
                 osAccountProxy_ = nullptr;
-                return ERR_OSACCOUNT_KIT_GET_APP_ACCOUNT_PROXY_ERROR;
+                return ERR_ACCOUNT_COMMON_GET_PROXY;
             }
 
             deathRecipient_ = new (std::nothrow) OsAccountDeathRecipient();

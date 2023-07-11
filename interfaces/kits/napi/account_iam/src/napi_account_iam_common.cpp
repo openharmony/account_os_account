@@ -77,7 +77,7 @@ int32_t AccountIAMConvertToJSErrCode(int32_t errCode)
 {
     if (errCode == ERR_ACCOUNT_COMMON_NOT_SYSTEM_APP_ERROR) {
         return ERR_JS_IS_NOT_SYSTEM_APP;
-    } else if (errCode == ERR_ACCOUNT_IAM_SERVICE_PERMISSION_DENIED || errCode == ERR_IAM_CHECK_PERMISSION_FAILED) {
+    } else if (errCode == ERR_ACCOUNT_COMMON_PERMISSION_DENIED || errCode == ERR_IAM_CHECK_PERMISSION_FAILED) {
         return ERR_JS_PERMISSION_DENIED;
     } else if (errCode == ERR_ACCOUNT_COMMON_INVALID_PARAMETER) {
         return ERR_JS_INVALID_PARAMETER;

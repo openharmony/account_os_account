@@ -229,7 +229,7 @@ HWTEST_F(OsAccountManagerServiceModuleTest, OsAccountManagerServiceModuleTest002
     OsAccountInfo osAccountInfoOne;
     ErrCode errCode =
         osAccountManagerService_->CreateOsAccount(STRING_NAME_OUT_OF_RANGE, INT_TEST_TYPE, osAccountInfoOne);
-    EXPECT_EQ(errCode, ERR_OSACCOUNT_SERVICE_MANAGER_NAME_SIZE_OVERFLOW_ERROR);
+    EXPECT_EQ(errCode, ERR_ACCOUNT_COMMON_INVALID_PARAMETER);
 }
 
 /**
@@ -242,7 +242,7 @@ HWTEST_F(OsAccountManagerServiceModuleTest, OsAccountManagerServiceModuleTest003
 {
     OsAccountInfo osAccountInfoOne;
     ErrCode errCode = osAccountManagerService_->CreateOsAccount(STRING_EMPTY, INT_TEST_TYPE, osAccountInfoOne);
-    EXPECT_EQ(errCode, ERR_OSACCOUNT_SERVICE_MANAGER_NAME_SIZE_EMPTY_ERROR);
+    EXPECT_EQ(errCode, ERR_ACCOUNT_COMMON_INVALID_PARAMETER);
 }
 
 /**
@@ -272,7 +272,7 @@ HWTEST_F(OsAccountManagerServiceModuleTest, OsAccountManagerServiceModuleTest005
     EXPECT_EQ(errCode, ERR_OK);
     errCode = osAccountManagerService_->CreateOsAccount(STRING_TEST_NAME, OsAccountType::END,
         osAccountInfoOne);
-    EXPECT_EQ(errCode, ERR_OSACCOUNT_SERVICE_MANAGER_CREATE_INVALID_TYPE_ACCOUNT_ERROR);
+    EXPECT_EQ(errCode, ERR_ACCOUNT_COMMON_INVALID_PARAMETER);
     errCode = osAccountManagerService_->RemoveOsAccount(osAccountInfoOne.GetLocalId());
     EXPECT_EQ(errCode, ERR_OK);
 }
@@ -357,7 +357,7 @@ HWTEST_F(OsAccountManagerServiceModuleTest, OsAccountManagerServiceModuleTest009
 HWTEST_F(OsAccountManagerServiceModuleTest, OsAccountManagerServiceModuleTest010, TestSize.Level1)
 {
     EXPECT_EQ(osAccountManagerService_->RemoveOsAccount(Constants::MAX_USER_ID + 1),
-        ERR_OSACCOUNT_KIT_LOCAL_ID_INVALID_ERROR);
+        ERR_ACCOUNT_COMMON_INVALID_PARAMETER);
 }
 
 /**
@@ -418,7 +418,7 @@ HWTEST_F(OsAccountManagerServiceModuleTest, OsAccountManagerServiceModuleTest014
 
     int localId = Constants::MAX_USER_ID + 1;
     EXPECT_EQ(osAccountManagerService_->IsOsAccountActived(localId, isOsAccountActived),
-        ERR_OSACCOUNT_KIT_LOCAL_ID_INVALID_ERROR);
+        ERR_ACCOUNT_COMMON_INVALID_PARAMETER);
 }
 
 /**
@@ -554,7 +554,7 @@ HWTEST_F(OsAccountManagerServiceModuleTest, OsAccountManagerServiceModuleTest021
 {
     bool isVerified = true;
     EXPECT_EQ(osAccountManagerService_->IsOsAccountVerified(Constants::MAX_USER_ID + 1, isVerified),
-        ERR_OSACCOUNT_KIT_LOCAL_ID_INVALID_ERROR);
+        ERR_ACCOUNT_COMMON_INVALID_PARAMETER);
 }
 
 /**
@@ -567,7 +567,7 @@ HWTEST_F(OsAccountManagerServiceModuleTest, OsAccountManagerServiceModuleTest022
 {
     bool isVerified = true;
     EXPECT_EQ(osAccountManagerService_->IsOsAccountVerified(Constants::MAX_USER_ID + 1, isVerified),
-        ERR_OSACCOUNT_KIT_LOCAL_ID_INVALID_ERROR);
+        ERR_ACCOUNT_COMMON_INVALID_PARAMETER);
 }
 
 /**
@@ -632,7 +632,7 @@ HWTEST_F(OsAccountManagerServiceModuleTest, OsAccountManagerServiceModuleTest027
 {
     std::vector<std::string> constraints;
     EXPECT_EQ(osAccountManagerService_->GetOsAccountAllConstraints(Constants::MAX_USER_ID + 1, constraints),
-        ERR_OSACCOUNT_KIT_LOCAL_ID_INVALID_ERROR);
+        ERR_ACCOUNT_COMMON_INVALID_PARAMETER);
 }
 
 /**
@@ -684,7 +684,7 @@ HWTEST_F(OsAccountManagerServiceModuleTest, OsAccountManagerServiceModuleTest031
 {
     OsAccountInfo osAccountInfo;
     EXPECT_EQ(osAccountManagerService_->QueryOsAccountById(Constants::MAX_USER_ID + 1, osAccountInfo),
-        ERR_OSACCOUNT_KIT_LOCAL_ID_INVALID_ERROR);
+        ERR_ACCOUNT_COMMON_INVALID_PARAMETER);
 }
 
 /**
@@ -897,7 +897,7 @@ HWTEST_F(OsAccountManagerServiceModuleTest, OsAccountManagerServiceModuleTest045
 {
     std::string photo;
     EXPECT_EQ(osAccountManagerService_->GetOsAccountProfilePhoto(Constants::MAX_USER_ID + 1, photo),
-        ERR_OSACCOUNT_KIT_LOCAL_ID_INVALID_ERROR);
+        ERR_ACCOUNT_COMMON_INVALID_PARAMETER);
 }
 
 /**
@@ -1151,23 +1151,23 @@ HWTEST_F(OsAccountManagerServiceModuleTest, OsAccountManagerServiceModuleTest059
     OsAccountType type = NORMAL;
     OsAccountInfo osAccountInfo;
     ASSERT_EQ(osAccountManagerService_->CreateOsAccountForDomain(type, domainNameInvalid, osAccountInfo),
-        ERR_OSACCOUNT_SERVICE_MANAGER_NAME_SIZE_OVERFLOW_ERROR);
+        ERR_ACCOUNT_COMMON_INVALID_PARAMETER);
 
     DomainAccountInfo domainAccountNameInvalid(STRING_DOMAIN_VALID, STRING_DOMAIN_ACCOUNT_NAME_OUT_OF_RANGE);
     EXPECT_EQ(osAccountManagerService_->CreateOsAccountForDomain(type, domainAccountNameInvalid, osAccountInfo),
-        ERR_OSACCOUNT_SERVICE_MANAGER_NAME_SIZE_OVERFLOW_ERROR);
+        ERR_ACCOUNT_COMMON_INVALID_PARAMETER);
 
     DomainAccountInfo domainEmpty("", STRING_DOMAIN_ACCOUNT_NAME_VALID);
     EXPECT_EQ(osAccountManagerService_->CreateOsAccountForDomain(type, domainEmpty, osAccountInfo),
-        ERR_OSACCOUNT_SERVICE_MANAGER_NAME_SIZE_EMPTY_ERROR);
+        ERR_ACCOUNT_COMMON_INVALID_PARAMETER);
 
     DomainAccountInfo domainAccountEmpty(STRING_DOMAIN_VALID, "");
     EXPECT_EQ(osAccountManagerService_->CreateOsAccountForDomain(type, domainAccountEmpty, osAccountInfo),
-        ERR_OSACCOUNT_SERVICE_MANAGER_NAME_SIZE_EMPTY_ERROR);
+        ERR_ACCOUNT_COMMON_INVALID_PARAMETER);
 
     DomainAccountInfo domainInfo(STRING_DOMAIN_VALID, STRING_DOMAIN_ACCOUNT_NAME_VALID);
     EXPECT_EQ(osAccountManagerService_->CreateOsAccountForDomain(OsAccountType::END, domainInfo, osAccountInfo),
-        ERR_OSACCOUNT_SERVICE_MANAGER_CREATE_INVALID_TYPE_ACCOUNT_ERROR);
+        ERR_ACCOUNT_COMMON_INVALID_PARAMETER);
 }
 
 /**
@@ -1282,27 +1282,27 @@ HWTEST_F(OsAccountManagerServiceModuleTest, OsAccountManagerServiceModuleTest064
     DomainAccountInfo domainAllEmpty("", "");
     int resLocalId = -1;
     ErrCode ret = osAccountManagerService_->GetOsAccountLocalIdFromDomain(domainAllEmpty, resLocalId);
-    EXPECT_EQ(ret, ERR_OSACCOUNT_SERVICE_INNER_DOMAIN_NAME_LEN_ERROR);
+    EXPECT_EQ(ret, ERR_ACCOUNT_COMMON_INVALID_PARAMETER);
 
     DomainAccountInfo domainNameEmpty("", STRING_DOMAIN_ACCOUNT_NAME_VALID);
     ret = osAccountManagerService_->GetOsAccountLocalIdFromDomain(domainNameEmpty, resLocalId);
-    EXPECT_EQ(ret, ERR_OSACCOUNT_SERVICE_INNER_DOMAIN_NAME_LEN_ERROR);
+    EXPECT_EQ(ret, ERR_ACCOUNT_COMMON_INVALID_PARAMETER);
 
     DomainAccountInfo domainAccountEmpty(STRING_DOMAIN_VALID, "");
     ret = osAccountManagerService_->GetOsAccountLocalIdFromDomain(domainAccountEmpty, resLocalId);
-    EXPECT_EQ(ret, ERR_OSACCOUNT_SERVICE_INNER_DOMAIN_ACCOUNT_NAME_LEN_ERROR);
+    EXPECT_EQ(ret, ERR_ACCOUNT_COMMON_INVALID_PARAMETER);
 
     DomainAccountInfo domainAllTooLong(STRING_DOMAIN_NAME_OUT_OF_RANGE, STRING_DOMAIN_ACCOUNT_NAME_OUT_OF_RANGE);
     ret = osAccountManagerService_->GetOsAccountLocalIdFromDomain(domainAllTooLong, resLocalId);
-    EXPECT_EQ(ret, ERR_OSACCOUNT_SERVICE_INNER_DOMAIN_NAME_LEN_ERROR);
+    EXPECT_EQ(ret, ERR_ACCOUNT_COMMON_INVALID_PARAMETER);
 
     DomainAccountInfo domainNameTooLong(STRING_DOMAIN_NAME_OUT_OF_RANGE, STRING_DOMAIN_ACCOUNT_NAME_VALID);
     ret = osAccountManagerService_->GetOsAccountLocalIdFromDomain(domainNameTooLong, resLocalId);
-    EXPECT_EQ(ret, ERR_OSACCOUNT_SERVICE_INNER_DOMAIN_NAME_LEN_ERROR);
+    EXPECT_EQ(ret, ERR_ACCOUNT_COMMON_INVALID_PARAMETER);
 
     DomainAccountInfo domainAccountTooLong(STRING_DOMAIN_VALID, STRING_DOMAIN_ACCOUNT_NAME_OUT_OF_RANGE);
     ret = osAccountManagerService_->GetOsAccountLocalIdFromDomain(domainAccountTooLong, resLocalId);
-    EXPECT_EQ(ret, ERR_OSACCOUNT_SERVICE_INNER_DOMAIN_ACCOUNT_NAME_LEN_ERROR);
+    EXPECT_EQ(ret, ERR_ACCOUNT_COMMON_INVALID_PARAMETER);
 }
 
 /**
@@ -1402,10 +1402,10 @@ HWTEST_F(OsAccountManagerServiceModuleTest, OsAccountManagerServiceModuleTest070
     EXPECT_NE(constraintSourceTypeInfos.size(), 0);
 
     EXPECT_EQ(osAccountManagerService_->QueryOsAccountConstraintSourceTypes(MAIN_ACCOUNT_ID, STRING_EMPTY,
-        constraintSourceTypeInfos), ERR_OSACCOUNT_SERVICE_INNER_DOMAIN_ACCOUNT_NAME_LEN_ERROR);
+        constraintSourceTypeInfos), ERR_ACCOUNT_COMMON_INVALID_PARAMETER);
     EXPECT_EQ(osAccountManagerService_->QueryOsAccountConstraintSourceTypes(MAIN_ACCOUNT_ID,
         STRING_CONSTRAINT_OUT_OF_RANGE, constraintSourceTypeInfos),
-        ERR_OSACCOUNT_SERVICE_INNER_DOMAIN_ACCOUNT_NAME_LEN_ERROR);
+        ERR_ACCOUNT_COMMON_INVALID_PARAMETER);
 
     int localId = Constants::START_USER_ID - 1;
     EXPECT_EQ(osAccountManagerService_->QueryOsAccountConstraintSourceTypes(localId, CONSTANT_WIFI,
@@ -1583,7 +1583,7 @@ HWTEST_F(OsAccountManagerServiceModuleTest, OsAccountManagerServiceModuleTest082
 
     int localId = Constants::START_USER_ID - 1;
     EXPECT_EQ(osAccountManagerService_->SetGlobalOsAccountConstraints(
-        CONSTANTS_VECTOR, false, localId, true), ERR_OSACCOUNT_SERVICE_INNER_SELECT_OSACCOUNT_BYID_ERROR);
+        CONSTANTS_VECTOR, false, localId, true), ERR_ACCOUNT_COMMON_ACCOUNT_NOT_EXIST_ERROR);
 }
 
 /**
@@ -2134,7 +2134,7 @@ HWTEST_F(OsAccountManagerServiceModuleTest, OsAccountManagerServiceModuleTest117
 HWTEST_F(OsAccountManagerServiceModuleTest, OsAccountManagerServiceModuleTest118, TestSize.Level1)
 {
     EXPECT_EQ(osAccountManagerService_->SetDefaultActivatedOsAccount(Constants::MAX_USER_ID + 1),
-        ERR_OSACCOUNT_KIT_LOCAL_ID_INVALID_ERROR);
+        ERR_ACCOUNT_COMMON_INVALID_PARAMETER);
 }
 
 /**
@@ -2162,7 +2162,7 @@ HWTEST_F(OsAccountManagerServiceModuleTest, OsAccountManagerServiceModuleTest120
 {
     DomainAccountInfo domainInfo;
     EXPECT_EQ(osAccountManagerService_->CreateOsAccountForDomain(OsAccountType::END, domainInfo, nullptr),
-        ERR_OSACCOUNT_SERVICE_MANAGER_CREATE_INVALID_TYPE_ACCOUNT_ERROR);
+        ERR_ACCOUNT_COMMON_INVALID_PARAMETER);
 }
 
 /**
@@ -2175,7 +2175,7 @@ HWTEST_F(OsAccountManagerServiceModuleTest, OsAccountManagerServiceModuleTest121
 {
     DomainAccountInfo domainInfo("test", "");
     EXPECT_EQ(osAccountManagerService_->CreateOsAccountForDomain(OsAccountType::NORMAL, domainInfo, nullptr),
-        ERR_OSACCOUNT_SERVICE_MANAGER_NAME_SIZE_EMPTY_ERROR);
+        ERR_ACCOUNT_COMMON_INVALID_PARAMETER);
 }
 
 /**
@@ -2188,7 +2188,7 @@ HWTEST_F(OsAccountManagerServiceModuleTest, OsAccountManagerServiceModuleTest122
 {
     DomainAccountInfo domainInfo("", "test");
     EXPECT_EQ(osAccountManagerService_->CreateOsAccountForDomain(OsAccountType::NORMAL, domainInfo, nullptr),
-        ERR_OSACCOUNT_SERVICE_MANAGER_NAME_SIZE_EMPTY_ERROR);
+        ERR_ACCOUNT_COMMON_INVALID_PARAMETER);
 }
 
 /**
@@ -2201,7 +2201,7 @@ HWTEST_F(OsAccountManagerServiceModuleTest, OsAccountManagerServiceModuleTest123
 {
     DomainAccountInfo domainInfo("test", STRING_PHOTO_OUT_OF_RANGE);
     EXPECT_EQ(osAccountManagerService_->CreateOsAccountForDomain(OsAccountType::NORMAL, domainInfo, nullptr),
-        ERR_OSACCOUNT_SERVICE_MANAGER_NAME_SIZE_OVERFLOW_ERROR);
+        ERR_ACCOUNT_COMMON_INVALID_PARAMETER);
 }
 
 /**

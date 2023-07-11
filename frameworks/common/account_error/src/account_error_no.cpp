@@ -57,8 +57,7 @@ int32_t AppAccountConvertOtherJSErrCode(int32_t errCode)
 
 int32_t AppAccountConvertToJSErrCode(int32_t errCode)
 {
-    if (errCode == ERR_APPACCOUNT_SERVICE_PERMISSION_DENIED ||
-        errCode == ERR_APPACCOUNT_SERVICE_SUBSCRIBE_PERMISSION_DENIED) {
+    if (errCode == ERR_ACCOUNT_COMMON_PERMISSION_DENIED) {
         return ERR_JS_PERMISSION_DENIED;
     } else if (errCode == ERR_APPACCOUNT_SERVICE_GET_BUNDLE_NAME ||
         errCode == ERR_APPACCOUNT_SERVICE_GET_BUNDLE_INFO ||
@@ -74,18 +73,11 @@ int32_t AppAccountConvertToJSErrCode(int32_t errCode)
 
 int32_t OsAccountConvertToJSErrCode(int32_t errCode)
 {
-    if ((errCode >= ERR_OSACCOUNT_KIT_LOCAL_NAME_OUTFLOW_ERROR && errCode <= ERR_OSACCOUNT_KIT_TYPE_ERROR) ||
-        (errCode >= ERR_OSACCOUNT_SERVICE_MANAGER_NAME_SIZE_EMPTY_ERROR &&
-        errCode <= ERR_OSACCOUNT_SERVICE_MANAGER_DOMAIN_SIZE_OVERFLOW_ERROR)) {
-        return ERR_JS_INVALID_PARAMETER;
-    }
     if (errCode == ERR_ACCOUNT_COMMON_INVALID_PARAMETER) {
         return ERR_JS_INVALID_PARAMETER;
     }
     switch (errCode) {
-        case ERR_OSACCOUNT_SERVICE_CONTROL_SELECT_OS_ACCOUNT_ERROR:
-        case ERR_OSACCOUNT_SERVICE_INNER_CANNOT_FIND_OSACCOUNT_ERROR:
-        case ERR_OSACCOUNT_SERVICE_INNER_SELECT_OSACCOUNT_BYID_ERROR:
+        case ERR_ACCOUNT_COMMON_ACCOUNT_NOT_EXIST_ERROR:
             return ERR_JS_ACCOUNT_NOT_FOUND;
         case ERR_OSACCOUNT_SERVICE_INNER_DOMAIN_ALREADY_BIND_ERROR:
             return ERR_JS_ACCOUNT_ALREADY_EXIST;
@@ -101,11 +93,6 @@ int32_t OsAccountConvertToJSErrCode(int32_t errCode)
         case ERR_OSACCOUNT_SERVICE_CONTROL_CANNOT_DELETE_ID_ERROR:
         case ERR_OSACCOUNT_SERVICE_CONTROL_ID_CANNOT_CREATE_ERROR:
             return ERR_JS_ACCOUNT_RESTRICTED;
-        case ERR_OSACCOUNT_SERVICE_MANAGER_PHOTO_SIZE_OVERFLOW_ERROR:
-        case ERR_OSACCOUNT_KIT_PHOTO_OUTFLOW_ERROR:
-        case ERR_OSACCOUNT_SERVICE_CONTROL_PHOTO_STR_ERROR:
-        case ERR_OSACCOUNT_SERVICE_MANAGER_BAD_UID_ERROR:
-            return ERR_JS_INVALID_PARAMETER;
         case ERR_OSACCOUNT_KIT_NO_SPECIFIED_SUBSCRIBER_HAS_BEEN_REGISTERED:
             return ERR_JS_LISTENER_NOT_REGISTERED;
         case ERR_OSACCOUNT_SERVICE_PERMISSION_DENIED:
@@ -146,8 +133,8 @@ static bool IsOsAccountKitError(int32_t errCode)
 
 static bool IsOsAccountServiceError(int32_t errCode)
 {
-    return (errCode >= ERR_OSACCOUNT_SERVICE_MANAGER_BAD_UID_ERROR) &&
-        (errCode <= ERR_OSACCOUNT_SERVICE_STORAGE_PREPARE_ADD_USER_FAILED);
+    return (errCode >= ERR_OSACCOUNT_SERVICE_MANAGER_QUERY_DISTRIBUTE_DATA_ERROR) &&
+           (errCode <= ERR_OSACCOUNT_SERVICE_STORAGE_PREPARE_ADD_USER_FAILED);
 }
 
 static bool IsDomainAccountServiceError(int32_t errCode)
@@ -176,7 +163,7 @@ int32_t ConvertToJSErrCode(int32_t nativeErrCode)
         return OsAccountConvertToJSErrCode(nativeErrCode);
     } else if (IsDomainAccountServiceError(nativeErrCode)) {
         return DomainAccountConvertToJSErrCode(nativeErrCode);
-    } else if (nativeErrCode == ERR_ACCOUNT_ZIDL_CHECK_PERMISSION_ERROR) {
+    } else if (nativeErrCode == ERR_ACCOUNT_COMMON_PERMISSION_DENIED) {
         return ERR_JS_PERMISSION_DENIED;
     } else {
         return ERR_JS_SYSTEM_SERVICE_EXCEPTION;
