@@ -361,6 +361,7 @@ ohos_moduletest("app_account_authenticator_session_module_test") {
     "hilog:libhilog",
     "ipc:ipc_single",
     "kv_store:distributeddata_inner",
+    "napi:ace_napi",
     "samgr:samgr_proxy",
   ]
 }
@@ -467,6 +468,7 @@ ohos_moduletest("app_account_execute_request_test") {
     "hilog:libhilog",
     "ipc:ipc_single",
     "kv_store:distributeddata_inner",
+    "napi:ace_napi",
     "safwk:system_ability_fwk",
     "samgr:samgr_proxy",
   ]
@@ -681,6 +683,7 @@ ohos_moduletest("app_account_authenticator_session_manager_module_test") {
     "hilog:libhilog",
     "ipc:ipc_single",
     "kv_store:distributeddata_inner",
+    "napi:ace_napi",
     "samgr:samgr_proxy",
   ]
 }
