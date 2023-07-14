@@ -82,7 +82,7 @@ static bool ParseAsyncCallbackError(napi_env env, napi_value value, AsyncCallbac
         napi_value asyncCallbackErrorData = nullptr;
         NAPI_CALL_BASE(
             env, napi_get_named_property(env, value, BUSINESS_ERROR_DATA_NAME, &asyncCallbackErrorData), false);
-        valueType = napi_undefined; 
+        valueType = napi_undefined;
         NAPI_CALL_BASE(env, napi_typeof(env, asyncCallbackErrorData, &valueType), false);
         if ((valueType != napi_null) && (valueType != napi_undefined) &&
             (!AppExecFwk::UnwrapWantParams(env, asyncCallbackErrorData, error.data))) {
