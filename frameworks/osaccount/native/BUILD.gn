@@ -81,7 +81,10 @@ ohos_shared_library("os_account_innerkits") {
     "ipc:ipc_single",
     "samgr:samgr_proxy",
   ]
-  innerapi_tags = [ "platformsdk" ]
+  innerapi_tags = [
+    "platformsdk",
+    "sasdk",
+  ]
   subsystem_name = "account"
   part_name = "os_account"
 }
