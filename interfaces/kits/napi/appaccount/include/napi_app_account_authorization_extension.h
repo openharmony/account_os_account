@@ -73,6 +73,7 @@ public:
 private:
 
     void GetSrcPath(std::string &srcPath);
+    void BindContext(NativeEngine &engine, NativeObject *obj);
 
     JsRuntime &jsRuntime_;
     std::unique_ptr<NativeReference> jsObj_ = nullptr;
