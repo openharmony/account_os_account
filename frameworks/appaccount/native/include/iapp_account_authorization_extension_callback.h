@@ -32,6 +32,7 @@ public:
     DECLARE_INTERFACE_DESCRIPTOR(u"ohos.accountfwk.IAppAccountAuthorizationExtensionCallback");
 
     virtual void OnResult(const AsyncCallbackError &businessError, const AAFwk::WantParams &parameters) = 0;
+    virtual void OnRequestRedirected(const AAFwk::Want& request) = 0;
 };
 }  // namespace AccountSA
 }  // namespace OHOS

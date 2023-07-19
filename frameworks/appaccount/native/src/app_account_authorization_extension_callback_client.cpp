@@ -36,5 +36,12 @@ void AppAccountAuthorizationExtensionCallbackClient::OnResult(
         proxy_->OnResult(businessError, parameters);
     }
 }
+
+void AppAccountAuthorizationExtensionCallbackClient::OnRequestRedirected(const AAFwk::Want& request)
+{
+    if (proxy_ != nullptr) {
+        proxy_->OnRequestRedirected(request);
+    }
+}
 } // namespace AccountSA
 } // namespace OHOS

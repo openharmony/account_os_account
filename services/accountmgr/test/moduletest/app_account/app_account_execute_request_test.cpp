@@ -62,6 +62,7 @@ public:
     {}
     virtual ~MockAppAccountAuthorizationExtensionCallbackStub();
     void OnResult(const AsyncCallbackError &businessError, const AAFwk::WantParams &parameters) override;
+    void OnRequestRedirected(const AAFwk::Want &request) override;
 
 private:
     std::shared_ptr<MockAppAccountAuthorizationExtensionCallback> callback_;
@@ -77,6 +78,9 @@ void MockAppAccountAuthorizationExtensionCallbackStub::OnResult(
     callback_->OnResult(businessError.code, parameters);
     return;
 }
+
+void MockAppAccountAuthorizationExtensionCallbackStub::OnRequestRedirected(const AAFwk::Want &reques)
+{}
 
 class AppAccountManagerServiceModuleTest : public testing::Test {
 public:
