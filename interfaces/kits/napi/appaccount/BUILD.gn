@@ -53,6 +53,7 @@ ohos_shared_library("appaccount") {
     "src/napi_app_account_authenticator.cpp",
     "src/napi_app_account_authenticator_callback.cpp",
     "src/napi_app_account_authorization_extension.cpp",
+    "src/napi_app_account_authorization_extension_context.cpp",
     "src/napi_app_account_common.cpp",
     "src/napi_app_account_constant.cpp",
     "src/napi_app_account_module.cpp",
