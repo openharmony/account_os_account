@@ -15,17 +15,24 @@
 
 #include "napi_account_capability_scheduler.h"
 
+#include "ability.h"
+#include "ability_context.h"
+#include "ability_manager_client.h"
 #include "account_log_wrapper.h"
 #include "app_account_manager.h"
 #include "napi/native_api.h"
 #include "napi/native_node_api.h"
 #include "napi_account_error.h"
+#include "napi_base_context.h"
 #include "napi_common.h"
+#include "ui_content.h"
 #include "want.h"
 
 namespace OHOS {
 namespace AccountJsKit {
 using namespace OHOS::AccountSA;
+using OHOS::AppExecFwk::Ability;
+using OHOS::AppExecFwk::AbilityContext;
 
 #define RETURN_IF_NEED_THROW_ERROR(env, condition, message)                               \
     if (!(condition)) {                                                                   \
@@ -449,9 +456,10 @@ static void ExecuteRequestCompletedWork(uv_work_t *work, int status)
     delete asyncContext;
 }
 
-NapiExecuteRequestCallback::NapiExecuteRequestCallback(
-    napi_env env, napi_ref callbackRef, napi_deferred deferred, napi_ref requestRef)
-    : env_(env), callbackRef_(callbackRef), deferred_(deferred), requestRef_(requestRef)
+NapiExecuteRequestCallback::NapiExecuteRequestCallback(napi_env env, napi_ref callbackRef, napi_deferred deferred,
+    napi_ref requestRef, std::shared_ptr<AbilityRuntime::AbilityContext> abilityContext)
+    : env_(env), callbackRef_(callbackRef), deferred_(deferred), requestRef_(requestRef),
+    abilityContext_(abilityContext)
 {}
 
 NapiExecuteRequestCallback::~NapiExecuteRequestCallback()
@@ -503,10 +511,83 @@ void NapiExecuteRequestCallback::OnResult(const AsyncCallbackError &businessErro
     }
 }
 
+JsAbilityResult::JsAbilityResult(napi_env napiEnv)
+{
+    env = napiEnv;
+}
+
+static void OnRequestRedirectedWork(uv_work_t *work, int status)
+{
+    std::unique_ptr<uv_work_t> workPtr(work);
+    napi_handle_scope scope = nullptr;
+    if (!InitUvWorkCallbackEnv(work, scope)) {
+        return;
+    }
+    JsAbilityResult *asyncContext = reinterpret_cast<JsAbilityResult *>(work->data);
+    napi_value errJs = nullptr;
+    napi_value dataJs = nullptr;
+    asyncContext->errCode = asyncContext->resultCode;
+    WantParams params = asyncContext->want.GetParams();
+    params.Remove("moduleName");
+    if (asyncContext->resultCode != 0) {
+        errJs = AppExecFwk::WrapWantParams(asyncContext->env, params);
+    } else {
+        dataJs = AppExecFwk::WrapWantParams(asyncContext->env, params);
+    }
+    ReturnCallbackOrPromise(asyncContext->env, asyncContext, errJs, dataJs);
+    napi_close_handle_scope(asyncContext->env, scope);
+    delete asyncContext;
+}
+
+AccountCapabilityScheduler::AccountCapabilityScheduler(napi_env env) : env_(env)
+{}
+
+void NapiExecuteRequestCallback::OnRequestRedirected(const AAFwk::Want &request)
+{
+    if (abilityContext_ == nullptr) {
+        ACCOUNT_LOGE("abilityContext_ is nullptr");
+        return;
+    }
+    AbilityRuntime::RuntimeTask task = [this](int resultCode, const AAFwk::Want &want, bool isInner) {
+        uv_loop_s *loop = nullptr;
+        uv_work_t *work = nullptr;
+        if (!CreateExecEnv(this->env_, &loop, &work)) {
+            return;
+        }
+        auto *asyncContext = new (std::nothrow) JsAbilityResult(this->env_);
+        if (asyncContext == nullptr) {
+            delete work;
+            return;
+        }
+        asyncContext->resultCode = resultCode;
+        asyncContext->want = want;
+        asyncContext->isInner = isInner;
+        asyncContext->callbackRef = callbackRef_;
+        asyncContext->deferred = deferred_;
+        work->data = reinterpret_cast<void *>(asyncContext);
+        int errCode = uv_queue_work(
+            loop, work, [](uv_work_t *work) {}, OnRequestRedirectedWork);
+        if (errCode != 0) {
+            ACCOUNT_LOGE("failed to uv_queue_work, errCode: %{public}d", errCode);
+            delete work;
+            delete asyncContext;
+            return;
+        }
+    };
+    ErrCode err = abilityContext_->StartAbilityForResult(request, 0, std::move(task));
+    if ((err != ERR_OK) && (err != AAFwk::START_ABILITY_WAITING)) {
+        ACCOUNT_LOGE("StartAbilityForResult. ret=%{public}d", err);
+        AAFwk::Want want;
+        task(ERR_JS_SYSTEM_SERVICE_EXCEPTION, want, true);
+        return;
+    }
+}
+
 napi_value NapiAccountCapabilityScheduler::Init(napi_env env, napi_value exports)
 {
     napi_property_descriptor properties[] = {
-        DECLARE_NAPI_FUNCTION("executeRequest", ExecuteRequest)
+        DECLARE_NAPI_FUNCTION("executeRequest", ExecuteRequest),
+        DECLARE_NAPI_FUNCTION("setPresentationContext", SetPresentationContext),
     };
     std::string className = "AccountCapabilityScheduler";
     napi_value constructor = nullptr;
@@ -528,6 +609,19 @@ napi_value NapiAccountCapabilityScheduler::JsConstructor(napi_env env, napi_call
 {
     napi_value thisVar = nullptr;
     NAPI_CALL(env, napi_get_cb_info(env, cbInfo, nullptr, nullptr, &thisVar, nullptr));
+    AccountCapabilityScheduler *nativeObject = new (std::nothrow) AccountCapabilityScheduler(env);
+    NAPI_ASSERT(env, nativeObject != nullptr,
+        "failed to create AccountCapabilityScheduler for insufficient memory");
+    napi_status status = napi_wrap(env, thisVar, nativeObject,
+        [](napi_env env, void *data, void *hint) {
+            ACCOUNT_LOGI("js NapiAccountCapabilityScheduler instance garbage collection");
+            delete reinterpret_cast<AccountCapabilityScheduler *>(data);
+        }, nullptr, nullptr);
+    if (status != napi_ok) {
+        ACCOUNT_LOGE("failed to wrap js instance with native object");
+        delete nativeObject;
+        NAPI_ASSERT(env, false, "failed to wrap native object for js NapiAccountCapabilityScheduler instance");
+    }
     return thisVar;
 }
 
@@ -588,7 +682,7 @@ static bool ParseParamForExecuteRequest(
 {
     size_t argc = ARG_SIZE_TWO;
     napi_value argv[ARG_SIZE_TWO] = {0};
-    napi_get_cb_info(env, cbInfo, &argc, argv, nullptr, nullptr);
+    napi_get_cb_info(env, cbInfo, &argc, argv, &(asyncContext->thisVar), nullptr);
     if (argc < ARG_SIZE_ONE) {
         ACCOUNT_LOGE("the parameter of number should be at least one");
         return false;
@@ -599,6 +693,14 @@ static bool ParseParamForExecuteRequest(
             return false;
         }
     }
+    AccountCapabilityScheduler *nativeObject = nullptr;
+    napi_status status = napi_unwrap(env, asyncContext->thisVar, reinterpret_cast<void **>(&nativeObject));
+    if ((status != napi_ok) || (nativeObject == nullptr)) {
+        ACCOUNT_LOGE("napi_unwrap asyncContext failed");
+        return false;
+    }
+    asyncContext->abilityContext = nativeObject->abilityContext_;
+
     if (!ParseRequestObject(env, argv[0], asyncContext->accountRequest)) {
         ACCOUNT_LOGE("get request failed");
         return false;
@@ -612,8 +714,8 @@ static bool ParseParamForExecuteRequest(
 static void ExecuteRequestCB(napi_env env, void *data)
 {
     ExecuteRequestAsyncContext *asyncContext = reinterpret_cast<ExecuteRequestAsyncContext *>(data);
-    sptr<NapiExecuteRequestCallback> callback = new (std::nothrow)
-        NapiExecuteRequestCallback(env, asyncContext->callbackRef, asyncContext->deferred, asyncContext->requestRef);
+    sptr<NapiExecuteRequestCallback> callback = new (std::nothrow) NapiExecuteRequestCallback(
+        env, asyncContext->callbackRef, asyncContext->deferred, asyncContext->requestRef, asyncContext->abilityContext);
     NAPI_ASSERT_RETURN_VOID(env, callback != nullptr, "failed to create napi callback");
     asyncContext->requestRef = nullptr;
     asyncContext->callbackRef = nullptr;
@@ -658,6 +760,64 @@ napi_value NapiAccountCapabilityScheduler::ExecuteRequest(napi_env env, napi_cal
         &executeRequestCB->work));
     NAPI_CALL(env, napi_queue_async_work(env, executeRequestCB->work));
     contextPtr.release();
+    return result;
+}
+
+static bool GetAbilityContext(const napi_env &env, const napi_value &value,
+    std::shared_ptr<AbilityRuntime::AbilityContext> &abilityContext)
+{
+    bool stageMode = false;
+    napi_status status = OHOS::AbilityRuntime::IsStageContext(env, value, stageMode);
+    if (status != napi_ok || !stageMode) {
+        ACCOUNT_LOGE("it is not a stage mode");
+        return false;
+    }
+    auto context = AbilityRuntime::GetStageModeContext(env, value);
+    if (context == nullptr) {
+        ACCOUNT_LOGE("get context failed");
+        return false;
+    }
+    abilityContext = AbilityRuntime::Context::ConvertTo<AbilityRuntime::AbilityContext>(context);
+    if (abilityContext == nullptr) {
+        ACCOUNT_LOGE("get stage model ability context failed");
+        return false;
+    }
+    return true;
+}
+
+static bool ParseParamForSetUIContext(napi_env env, napi_callback_info cbInfo)
+{
+    size_t argc = ARG_SIZE_ONE;
+    napi_value argv[ARG_SIZE_ONE] = {0};
+    napi_value thisVar = nullptr;
+    if (napi_get_cb_info(env, cbInfo, &argc, argv, &thisVar, nullptr) != napi_ok) {
+        ACCOUNT_LOGE("napi_get_cb_info failed");
+        return false;
+    }
+    if (argc < ARG_SIZE_ONE) {
+        ACCOUNT_LOGE("the parameter of number should be at least one");
+        return false;
+    }
+    std::shared_ptr<AbilityRuntime::AbilityContext> abilityContext;
+    if (!GetAbilityContext(env, argv[0], abilityContext)) {
+        ACCOUNT_LOGE("GetAbilityContext failed");
+        return false;
+    }
+    AccountCapabilityScheduler *nativeObject = nullptr;
+    napi_status status = napi_unwrap(env, thisVar, reinterpret_cast<void **>(&nativeObject));
+    if ((status != napi_ok) || (nativeObject == nullptr)) {
+        ACCOUNT_LOGE("napi_unwrap native request failed");
+        return false;
+    }
+    nativeObject->abilityContext_ = abilityContext;
+    return true;
+}
+
+napi_value NapiAccountCapabilityScheduler::SetPresentationContext(napi_env env, napi_callback_info cbInfo)
+{
+    RETURN_IF_NEED_THROW_ERROR(env, ParseParamForSetUIContext(env, cbInfo), "parse params failed");
+    napi_value result = nullptr;
+    NAPI_CALL(env, napi_get_null(env, &result));
     return result;
 }
 }  // namespace AccountJsKit

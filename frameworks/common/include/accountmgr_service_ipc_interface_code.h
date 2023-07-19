@@ -187,6 +187,7 @@ enum class OsAccountEventInterfaceCode : uint32_t {
 
 enum class AppAccountAuthorizationExtensionCallbackInterfaceCode : uint32_t {
     APP_ACCOUNT_AUTHORIZATION_EXTENSION_CALLBACK_ON_RESULT = 0,
+    APP_ACCOUNT_AUTHORIZATION_EXTENSION_CALLBACK_ON_REQUEST_REDIRECTED,
 };
 
 enum class AppAccountAuthenticatorCallbackInterfaceCode : uint32_t {

@@ -33,21 +33,20 @@ class AuthorizationExtensionContext : public ExtensionContext {
 public:
     AuthorizationExtensionContext() = default;
     virtual ~AuthorizationExtensionContext() = default;
-
-    ErrCode StartModalDialogForResult(const AAFwk::Want &want) const;
+    ErrCode ConnectAbility(const AAFwk::Want &want, const sptr<AbilityConnectCallback> &connectCallback) const;
+    ErrCode DisconnectAbility(const AAFwk::Want &want, const sptr<AbilityConnectCallback> &connectCallback) const;
 
     using SelfType = AuthorizationExtensionContext;
     static const size_t CONTEXT_TYPE_ID;
 
 private:
-    static int ILLEGAL_REQUEST_CODE;
-
     /**
      * @brief Get Current Ability Type
      *
      * @return Current Ability Type
      */
     OHOS::AppExecFwk::AbilityType GetAbilityInfoType() const;
+    std::map<int, RuntimeTask> resultCallbacks_;
 };
 }  // namespace AbilityRuntime
 }  // namespace OHOS

@@ -48,6 +48,7 @@ public:
     {}
     virtual ~TestAppAccountAuthorizationExtensionCallback();
     void OnResult(const AsyncCallbackError &businessError, const AAFwk::WantParams &parameters) override;
+    void OnRequestRedirected(const AAFwk::Want &request) override;
 
 private:
     std::shared_ptr<MockAppAccountAuthorizationExtensionCallback> callback_;
@@ -61,6 +62,9 @@ void TestAppAccountAuthorizationExtensionCallback::OnResult(
 {
     callback_->OnResult(businessError.code, parameters);
 }
+
+void TestAppAccountAuthorizationExtensionCallback::OnRequestRedirected(const AAFwk::Want &request)
+{}
 
 class MockJsAuthorizationExtension final : public OHOS::AbilityRuntime::AuthorizationExtension {
 public:

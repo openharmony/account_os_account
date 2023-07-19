@@ -25,12 +25,19 @@ namespace OHOS {
 namespace AccountSA {
 class AppAccountAuthorizationExtensionCallbackStub : public IRemoteStub<IAppAccountAuthorizationExtensionCallback> {
 public:
+    using AuthorizationExtensionCallbackStubFunc = int32_t (AppAccountAuthorizationExtensionCallbackStub::*)(
+        MessageParcel &data, MessageParcel &reply);
     AppAccountAuthorizationExtensionCallbackStub();
     ~AppAccountAuthorizationExtensionCallbackStub();
     int32_t OnRemoteRequest(uint32_t code, MessageParcel &data, MessageParcel &reply, MessageOption &option) override;
 
 private:
     ErrCode ProcOnResult(MessageParcel &data, MessageParcel &reply);
+    ErrCode ProcOnRequestRedirected(MessageParcel &data, MessageParcel &reply);
+
+private:
+    static const std::map<AppAccountAuthorizationExtensionCallbackInterfaceCode, AuthorizationExtensionCallbackStubFunc>
+        stubFuncMap_;
 };
 } // namespace AccountSA
 } // namespace OHOS

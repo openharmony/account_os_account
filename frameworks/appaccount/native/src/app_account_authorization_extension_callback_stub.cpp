@@ -30,6 +30,21 @@ AppAccountAuthorizationExtensionCallbackStub::AppAccountAuthorizationExtensionCa
 AppAccountAuthorizationExtensionCallbackStub::~AppAccountAuthorizationExtensionCallbackStub()
 {}
 
+const std::map<AppAccountAuthorizationExtensionCallbackInterfaceCode,
+    AppAccountAuthorizationExtensionCallbackStub::AuthorizationExtensionCallbackStubFunc>
+    AppAccountAuthorizationExtensionCallbackStub::stubFuncMap_ = {
+        {
+            AppAccountAuthorizationExtensionCallbackInterfaceCode::
+                APP_ACCOUNT_AUTHORIZATION_EXTENSION_CALLBACK_ON_RESULT,
+            &AppAccountAuthorizationExtensionCallbackStub::ProcOnResult,
+        },
+        {
+            AppAccountAuthorizationExtensionCallbackInterfaceCode::
+                APP_ACCOUNT_AUTHORIZATION_EXTENSION_CALLBACK_ON_REQUEST_REDIRECTED,
+            &AppAccountAuthorizationExtensionCallbackStub::ProcOnRequestRedirected,
+        }
+    };
+
 int32_t AppAccountAuthorizationExtensionCallbackStub::OnRemoteRequest(
     std::uint32_t code, MessageParcel &data, MessageParcel &reply, MessageOption &option)
 {
@@ -37,7 +52,12 @@ int32_t AppAccountAuthorizationExtensionCallbackStub::OnRemoteRequest(
         ACCOUNT_LOGE("check descriptor failed!");
         return ERR_ACCOUNT_COMMON_CHECK_DESCRIPTOR_ERROR;
     }
-    return ProcOnResult(data, reply);
+    const auto &itFunc = stubFuncMap_.find(static_cast<AppAccountAuthorizationExtensionCallbackInterfaceCode>(code));
+    if (itFunc != stubFuncMap_.end()) {
+        return (this->*(itFunc->second))(data, reply);
+    }
+    ACCOUNT_LOGW("remote request unhandled: %{public}d", code);
+    return IPCObjectStub::OnRemoteRequest(code, data, reply, option);
 }
 
 int32_t AppAccountAuthorizationExtensionCallbackStub::ProcOnResult(MessageParcel &data, MessageParcel &reply)
@@ -63,6 +83,17 @@ int32_t AppAccountAuthorizationExtensionCallbackStub::ProcOnResult(MessageParcel
         return ERR_ACCOUNT_COMMON_READ_PARCEL_ERROR;
     }
     OnResult(businessError, (*parameters));
+    return ERR_NONE;
+}
+
+int32_t AppAccountAuthorizationExtensionCallbackStub::ProcOnRequestRedirected(MessageParcel &data, MessageParcel &reply)
+{
+    std::shared_ptr<AAFwk::Want> requestPtr(data.ReadParcelable<AAFwk::Want>());
+    if (requestPtr == nullptr) {
+        ACCOUNT_LOGE("failed to read extension requestPtr");
+        return ERR_ACCOUNT_COMMON_READ_PARCEL_ERROR;
+    }
+    OnRequestRedirected(*requestPtr);
     return ERR_NONE;
 }
 }  // namespace AccountSA
