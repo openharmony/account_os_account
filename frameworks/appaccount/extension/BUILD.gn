@@ -40,8 +40,11 @@ ohos_shared_library("authorization_extension") {
     "${app_account_kits_path}/include",
   ]
   sources = [
+    "${ability_runtime_path}/frameworks/native/ability/native/ability_business_error/ability_business_error.cpp",
     "${app_account_kits_path}/src/napi_app_account_authorization_extension.cpp",
+    "${app_account_kits_path}/src/napi_app_account_authorization_extension_context.cpp",
     "src/authorization_extension.cpp",
+    "src/authorization_extension_context.cpp",
   ]
   configs = [
     ":authorization_extension_config",
@@ -62,7 +65,10 @@ ohos_shared_library("authorization_extension") {
     "ability_runtime:abilitykit_native",
     "ability_runtime:app_context",
     "ability_runtime:runtime",
+    "ability_runtime:service_extension",
+    "ability_runtime:ui_extension",
     "c_utils:utils",
+    "eventhandler:libeventhandler",
     "hilog:libhilog",
     "i18n:intl_util",
     "ipc:ipc_core",
