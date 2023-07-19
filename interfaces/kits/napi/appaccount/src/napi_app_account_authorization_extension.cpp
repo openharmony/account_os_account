@@ -265,8 +265,13 @@ static napi_value CreateAuthorizationCallback(napi_env env, JsAppAuthorizationEx
     napi_value authorizationCallback = nullptr;
     NAPI_CALL(env, napi_create_object(env, &authorizationCallback));
     napi_value napiCallback = CreateExtensionAsyncCallback(env, OnResultCallback, param);
-    napi_value napiOnRequestRedirected = CreateExtensionRequestRedirected(env, OnRequestRedirected, param);
     NAPI_CALL(env, napi_set_named_property(env, authorizationCallback, "onResult", napiCallback));
+    napi_value napiOnRequestRedirected = nullptr;
+    if (param->isEnableContext) {
+        napiOnRequestRedirected = CreateExtensionRequestRedirected(env, OnRequestRedirected, param);
+    } else {
+        napi_get_undefined(env, &napiOnRequestRedirected);
+    }
     NAPI_CALL(env, napi_set_named_property(env, authorizationCallback, "onRequestRedirected", napiOnRequestRedirected));
     return authorizationCallback;
 }
@@ -439,6 +444,7 @@ void JsAuthorizationExtension::StartAuthorization(const AccountSA::Authorization
     param->request = request;
     param->callback = callbackPtr;
     param->authorizationExtension = extension;
+    param->isEnableContext = request.isEnableContext;
 
     int errCode = uv_queue_work(
         loop, work, [](uv_work_t *work) {}, StartAuthorizationWork);

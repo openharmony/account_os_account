@@ -88,6 +88,7 @@ struct JsAppAuthorizationExtensionParam : public AccountJsKit::CommonAsyncContex
     AccountSA::AuthorizationRequest request;
     std::shared_ptr<JsAuthorizationExtension> authorizationExtension = nullptr;
     ThreadLockInfo *lockInfo = nullptr;
+    bool isEnableContext = false;
 };
 } // namespace AccountJsKit
 } // namespace OHOS

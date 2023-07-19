@@ -744,8 +744,8 @@ static bool QueryAbilityInfo(const std::string &bundleName, const std::string &a
     return true;
 }
 
-ErrCode AppAccountManagerService::ExecuteRequest(
-    const AccountCapabilityRequest &request, const sptr<IAppAccountAuthorizationExtensionCallback> &callback)
+ErrCode AppAccountManagerService::ExecuteRequest(const bool &isEnableContext, const AccountCapabilityRequest &request,
+    const sptr<IAppAccountAuthorizationExtensionCallback> &callback)
 {
     AuthorizationRequest innerRequest;
     std::string callerBundleName;
@@ -755,6 +755,7 @@ ErrCode AppAccountManagerService::ExecuteRequest(
         return result;
     }
     innerRequest.parameters = request.parameters;
+    innerRequest.isEnableContext = isEnableContext;
     innerRequest.callback = callback;
     if (innerRequest.callback == nullptr) {
         return ERR_JS_SYSTEM_SERVICE_EXCEPTION;

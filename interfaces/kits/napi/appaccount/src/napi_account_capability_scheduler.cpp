@@ -719,7 +719,11 @@ static void ExecuteRequestCB(napi_env env, void *data)
     NAPI_ASSERT_RETURN_VOID(env, callback != nullptr, "failed to create napi callback");
     asyncContext->requestRef = nullptr;
     asyncContext->callbackRef = nullptr;
-    asyncContext->errCode = AppAccountManager::ExecuteRequest(asyncContext->accountRequest, callback);
+    bool isEnableContext = false;
+    if (asyncContext->abilityContext != nullptr) {
+        isEnableContext = true;
+    }
+    asyncContext->errCode = AppAccountManager::ExecuteRequest(isEnableContext, asyncContext->accountRequest, callback);
     if (asyncContext->errCode != ERR_OK) {
         AAFwk::WantParams parameters;
         AsyncCallbackError businessError;
