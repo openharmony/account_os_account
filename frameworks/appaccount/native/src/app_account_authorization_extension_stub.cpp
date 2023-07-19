@@ -57,6 +57,10 @@ int AppAccountAuthorizationExtensionStub::OnRemoteRequest(
 
 static ErrCode ReadRequest(MessageParcel &data, AuthorizationRequest &request)
 {
+    if (!data.ReadBool(request.isEnableContext)) {
+        ACCOUNT_LOGE("failed to write request isEnableContext");
+        return ERR_ACCOUNT_COMMON_WRITE_PARCEL_ERROR;
+    }
     if (!data.ReadInt32(request.callerUid)) {
         ACCOUNT_LOGE("failed to write request callerUid");
         return ERR_ACCOUNT_COMMON_WRITE_PARCEL_ERROR;

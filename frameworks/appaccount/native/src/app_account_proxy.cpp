@@ -1070,13 +1070,17 @@ ErrCode AppAccountProxy::SetAuthenticatorProperties(const std::string &owner,
     return reply.ReadInt32();
 }
 
-ErrCode AppAccountProxy::ExecuteRequest(
+ErrCode AppAccountProxy::ExecuteRequest(const bool &isEnableContext,
     const AccountCapabilityRequest &request, const sptr<IAppAccountAuthorizationExtensionCallback> &callback)
 {
     MessageParcel data;
     if (!data.WriteInterfaceToken(GetDescriptor())) {
         ACCOUNT_LOGE("failed to write descriptor!");
         return ERR_ACCOUNT_COMMON_WRITE_DESCRIPTOR_ERROR;
+    }
+    if (!data.WriteBool(isEnableContext)) {
+        ACCOUNT_LOGE("failed to write bool for isEnableContext");
+        return ERR_ACCOUNT_COMMON_WRITE_PARCEL_ERROR;
     }
     if (!data.WriteParcelable(&request)) {
         ACCOUNT_LOGE("failed to write string for request");

@@ -99,8 +99,8 @@ public:
         const std::vector<std::string> &labels, const sptr<IAppAccountAuthenticatorCallback> &callback);
     ErrCode SetAuthenticatorProperties(const std::string &owner,
         const SetPropertiesOptions &options, const sptr<IAppAccountAuthenticatorCallback> &callback);
-    ErrCode ExecuteRequest(
-        const AccountCapabilityRequest &request, const sptr<IAppAccountAuthorizationExtensionCallback> &callback);
+    ErrCode ExecuteRequest(const bool &isEnableContext, const AccountCapabilityRequest &request,
+        const sptr<IAppAccountAuthorizationExtensionCallback> &callback);
 
     ErrCode SubscribeAppAccount(const std::shared_ptr<AppAccountSubscriber> &subscriber);
     ErrCode UnsubscribeAppAccount(const std::shared_ptr<AppAccountSubscriber> &subscriber);
