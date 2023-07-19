@@ -43,28 +43,26 @@ struct JsDomainPlugin {
 };
 
 struct HasDomainAccountAsyncContext : public CommonAsyncContext {
-    ~HasDomainAccountAsyncContext();
+    HasDomainAccountAsyncContext(napi_env napiEnv) : CommonAsyncContext(napiEnv) {};
     AccountSA::DomainAccountInfo domainInfo;
     bool isHasDomainAccount = false;
-    ThreadLockInfo *lockInfo = nullptr;
 };
 
 struct UpdateAccountTokenAsyncContext : public CommonAsyncContext {
+    UpdateAccountTokenAsyncContext(napi_env napiEnv) : CommonAsyncContext(napiEnv) {};
     AccountSA::DomainAccountInfo domainInfo;
     std::vector<uint8_t> token;
 };
 
 struct GetAccessTokenAsyncContext : public CommonAsyncContext {
-    ~GetAccessTokenAsyncContext();
+    GetAccessTokenAsyncContext(napi_env napiEnv) : CommonAsyncContext(napiEnv) {};
     AccountSA::DomainAccountInfo domainInfo;
     AAFwk::WantParams getTokenParams;
     std::vector<uint8_t> accessToken;
-    ThreadLockInfo *lockInfo = nullptr;
 };
 
 struct JsDomainPluginParam : public CommonAsyncContext {
-    JsDomainPluginParam() {};
-    JsDomainPluginParam(napi_env napiEnv);
+    JsDomainPluginParam(napi_env napiEnv) : CommonAsyncContext(napiEnv) {};
     napi_ref func = nullptr;
     AccountSA::DomainAccountInfo domainAccountInfo;
     std::shared_ptr<AccountSA::DomainAuthCallback> authCallback = nullptr;

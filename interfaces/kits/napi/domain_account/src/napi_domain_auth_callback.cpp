@@ -30,21 +30,6 @@ const size_t ARGS_SIZE_TWO = 2;
 }
 using namespace AccountSA;
 
-CallbackParam::CallbackParam(napi_env napiEnv)
-{
-    env = napiEnv;
-}
-
-CallbackParam::~CallbackParam()
-{
-    if (env == nullptr) {
-        return;
-    }
-    if (work != nullptr) {
-        napi_delete_async_work(env, work);
-    }
-}
-
 NapiDomainAuthCallback::NapiDomainAuthCallback(const std::shared_ptr<DomainAuthCallback> &callback)
     : callback_(callback)
 {}
@@ -210,6 +195,7 @@ static void DomainAuthResultWork(uv_work_t *work, int status)
     argv[1] = CreateAuthResult(param->env, param->authResult.token,
         param->authResult.authStatusInfo.remainingTimes, param->authResult.authStatusInfo.freezingTime);
     NapiCallVoidFunction(param->env, argv, ARGS_SIZE_TWO, param->callbackRef);
+    param->callbackRef = nullptr;
     std::unique_lock<std::mutex> lock(param->lockInfo->mutex);
     param->lockInfo->count--;
     param->lockInfo->condition.notify_all();
@@ -237,7 +223,12 @@ void NapiDomainAccountCallback::OnResult(int32_t resultCode, const AccountSA::Do
     param->authResult = result;
     param->callbackRef = callbackRef_;
     work->data = reinterpret_cast<void *>(param.get());
-    NAPI_CALL_RETURN_VOID(env_, uv_queue_work(loop, work.get(), [] (uv_work_t *work) {}, DomainAuthResultWork));
+    ErrCode ret = uv_queue_work(loop, work.get(), [] (uv_work_t *work) {}, DomainAuthResultWork);
+    if (ret != ERR_OK) {
+        ACCOUNT_LOGE("fail to queue work");
+        param->callbackRef = nullptr;
+        return;
+    }
     work.release();
     param.release();
     lockInfo_.count++;

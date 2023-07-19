@@ -36,6 +36,19 @@ const char BUSINESS_ERROR_DATA_NAME[] = "data";
 
 using namespace AccountSA;
 
+CommonAsyncContext::~CommonAsyncContext()
+{
+    if (env == nullptr) {
+        return;
+    }
+    if (callbackRef != nullptr) {
+        napi_delete_reference(env, callbackRef);
+    }
+    if (work != nullptr) {
+        napi_delete_async_work(env, work);
+    }
+}
+
 bool CreateExecEnv(napi_env env, uv_loop_s **loop, uv_work_t **work)
 {
     *loop = nullptr;
@@ -70,9 +83,6 @@ void ProcessCallbackOrPromise(napi_env env, const CommonAsyncContext *asyncConte
         }
     } else {
         NapiCallVoidFunction(env, args, BUSINESS_ERROR_ARG_SIZE, asyncContext->callbackRef);
-        if (asyncContext->callbackRef != nullptr) {
-            napi_delete_reference(env, asyncContext->callbackRef);
-        }
     }
 }
 

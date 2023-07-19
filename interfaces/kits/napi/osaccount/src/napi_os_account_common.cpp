@@ -138,9 +138,7 @@ void QueryOAByIdCallbackCompletedCB(napi_env env, napi_status status, void *data
         napi_get_null(env, &dataJs);
     }
     ProcessCallbackOrPromise(env, asyncContext, errJs, dataJs);
-    napi_delete_async_work(env, asyncContext->work);
     delete asyncContext;
-    asyncContext = nullptr;
 }
 
 void CreateJsDomainInfo(napi_env env, const DomainAccountInfo &info, napi_value &result)
@@ -294,9 +292,7 @@ void RemoveOACallbackCompletedCB(napi_env env, napi_status status, void *data)
         napi_get_null(env, &dataJs);
     }
     ProcessCallbackOrPromise(env, asyncContext, errJs, dataJs);
-    napi_delete_async_work(env, asyncContext->work);
     delete asyncContext;
-    asyncContext = nullptr;
 }
 
 bool ParseParaSetOAName(napi_env env, napi_callback_info cbInfo, SetOANameAsyncContext *asyncContext)
@@ -352,9 +348,7 @@ void SetOANameCallbackCompletedCB(napi_env env, napi_status status, void *data)
         napi_get_null(env, &dataJs);
     }
     ProcessCallbackOrPromise(env, asyncContext, errJs, dataJs);
-    napi_delete_async_work(env, asyncContext->work);
     delete asyncContext;
-    asyncContext = nullptr;
 }
 
 bool ParseParaSetOAConstraints(napi_env env, napi_callback_info cbInfo, SetOAConsAsyncContext *asyncContext)
@@ -423,9 +417,7 @@ void SetOAConsCallbackCompletedCB(napi_env env, napi_status status, void *data)
         napi_get_null(env, &dataJs);
     }
     ProcessCallbackOrPromise(env, asyncContext, errJs, dataJs);
-    napi_delete_async_work(env, asyncContext->work);
     delete asyncContext;
-    asyncContext = nullptr;
 }
 
 bool ParseParaActiveOA(napi_env env, napi_callback_info cbInfo, ActivateOAAsyncContext *asyncContext)
@@ -455,9 +447,7 @@ void ActivateOACallbackCompletedCB(napi_env env, napi_status status, void *data)
         napi_get_null(env, &dataJs);
     }
     ProcessCallbackOrPromise(env, asyncContext, errJs, dataJs);
-    napi_delete_async_work(env, asyncContext->work);
     delete asyncContext;
-    asyncContext = nullptr;
 }
 
 bool ParseParaCreateOA(napi_env env, napi_callback_info cbInfo, CreateOAAsyncContext *asyncContext)
@@ -566,8 +556,7 @@ void CreateOAExecuteCB(napi_env env, void *data)
 
 void CreateOAForDomainCompletedCB(napi_env env, napi_status status, void *data)
 {
-    auto *asyncContext = reinterpret_cast<CreateOAForDomainAsyncContext *>(data);
-    napi_delete_async_work(env, asyncContext->work);
+    delete reinterpret_cast<CreateOAForDomainAsyncContext *>(data);
 }
 
 void CreateOAForDomainExecuteCB(napi_env env, void *data)
@@ -580,6 +569,8 @@ void CreateOAForDomainExecuteCB(napi_env env, void *data)
         Parcel emptyParcel;
         callback->OnResult(asyncContext->errCode, emptyParcel);
     }
+    asyncContext->callbackRef = nullptr;
+    asyncContext->deferred = nullptr;
 }
 
 void CreateOACallbackCompletedCB(napi_env env, napi_status status, void *data)
@@ -596,9 +587,7 @@ void CreateOACallbackCompletedCB(napi_env env, napi_status status, void *data)
         napi_get_null(env, &dataJs);
     }
     ProcessCallbackOrPromise(env, asyncContext, errJs, dataJs);
-    napi_delete_async_work(env, asyncContext->work);
     delete asyncContext;
-    asyncContext = nullptr;
 }
 
 void CreateOAForDomainCallbackCompletedWork(uv_work_t *work, int status)
@@ -618,10 +607,6 @@ void CreateOAForDomainCallbackCompletedWork(uv_work_t *work, int status)
         errJs = GenerateBusinessError(asyncContext->env, asyncContext->errCode);
     }
     ReturnCallbackOrPromise(asyncContext->env, asyncContext.get(), errJs, dataJs);
-    if (asyncContext->callbackRef != nullptr) {
-        napi_delete_reference(asyncContext->env, asyncContext->callbackRef);
-        asyncContext->callbackRef = nullptr;
-    }
     napi_close_handle_scope(asyncContext->env, scope);
 }
 
@@ -659,9 +644,7 @@ void GetOACountCallbackCompletedCB(napi_env env, napi_status status, void *data)
         }
     }
     ProcessCallbackOrPromise(env, asyncContext, errJs, dataJs);
-    napi_delete_async_work(env, asyncContext->work);
     delete asyncContext;
-    asyncContext = nullptr;
 }
 
 bool ParseParaDbDeviceId(napi_env env, napi_callback_info cbInfo, DbDeviceIdAsyncContext *asyncContext)
@@ -695,9 +678,7 @@ void DbDeviceIdCallbackCompletedCB(napi_env env, napi_status status, void *data)
         }
     }
     ProcessCallbackOrPromise(env, asyncContext, errJs, dataJs);
-    napi_delete_async_work(env, asyncContext->work);
     delete asyncContext;
-    asyncContext = nullptr;
 }
 
 bool ParseParaGetAllCons(napi_env env, napi_callback_info cbInfo, GetAllConsAsyncContext *asyncContext)
@@ -734,9 +715,7 @@ void GetAllConsCallbackCompletedCB(napi_env env, napi_status status, void *data)
         }
     }
     ProcessCallbackOrPromise(env, asyncContext, errJs, dataJs);
-    napi_delete_async_work(env, asyncContext->work);
     delete asyncContext;
-    asyncContext = nullptr;
 }
 
 void GetAllAccountCons(napi_env env, const std::vector<std::string> &info, napi_value &result)
@@ -796,9 +775,7 @@ void GetProcessIdCallbackCompletedCB(napi_env env, napi_status status, void *dat
         }
     }
     ProcessCallbackOrPromise(env, asyncContext, errJs, dataJs);
-    napi_delete_async_work(env, asyncContext->work);
     delete asyncContext;
-    asyncContext = nullptr;
 }
 
 bool ParseQueryAllCreateOA(napi_env env, napi_callback_info cbInfo, QueryCreateOAAsyncContext *asyncContext)
@@ -860,9 +837,7 @@ void QueryOAContSrcTypeCallbackCompletedCB(napi_env env, napi_status status, voi
         napi_get_null(env, &dataJs);
     }
     ProcessCallbackOrPromise(env, asyncContext, errJs, dataJs);
-    napi_delete_async_work(env, asyncContext->work);
     delete asyncContext;
-    asyncContext = nullptr;
 }
 
 void QueryOAContSrcTypeForResult(napi_env env, const std::vector<ConstraintSourceTypeInfo> &infos, napi_value &result)
@@ -922,9 +897,7 @@ void QueryCreateOACallbackCompletedCB(napi_env env, napi_status status, void *da
         napi_get_null(env, &dataJs);
     }
     ProcessCallbackOrPromise(env, asyncContext, errJs, dataJs);
-    napi_delete_async_work(env, asyncContext->work);
     delete asyncContext;
-    asyncContext = nullptr;
 }
 
 void QueryActiveIdsCallbackCompletedCB(napi_env env, napi_status status, void *data)
@@ -945,9 +918,7 @@ void QueryActiveIdsCallbackCompletedCB(napi_env env, napi_status status, void *d
         }
     }
     ProcessCallbackOrPromise(env, asyncContext, errJs, dataJs);
-    napi_delete_async_work(env, asyncContext->work);
     delete asyncContext;
-    asyncContext = nullptr;
 }
 
 void QueryOAInfoForResult(napi_env env, const std::vector<OsAccountInfo> &info, napi_value &result)
@@ -991,9 +962,7 @@ void GetOAPhotoCallbackCompletedCB(napi_env env, napi_status status, void *data)
         napi_get_null(env, &dataJs);
     }
     ProcessCallbackOrPromise(env, asyncContext, errJs, dataJs);
-    napi_delete_async_work(env, asyncContext->work);
     delete asyncContext;
-    asyncContext = nullptr;
 }
 
 bool ParseParaCurrentOA(napi_env env, napi_callback_info cbInfo, CurrentOAAsyncContext *asyncContext)
@@ -1029,9 +998,7 @@ void QueryCurrentOACallbackCompletedCB(napi_env env, napi_status status, void *d
         }
     }
     ProcessCallbackOrPromise(env, asyncContext, errJs, dataJs);
-    napi_delete_async_work(env, asyncContext->work);
     delete asyncContext;
-    asyncContext = nullptr;
 }
 
 bool ParseParaGetIdByUid(napi_env env, napi_callback_info cbInfo, GetIdByUidAsyncContext *asyncContext)
@@ -1123,9 +1090,7 @@ void GetIdByUidCallbackCompletedCB(napi_env env, napi_status status, void *data)
         }
     }
     ProcessCallbackOrPromise(env, asyncContext, errJs, dataJs);
-    napi_delete_async_work(env, asyncContext->work);
     delete asyncContext;
-    asyncContext = nullptr;
 }
 
 void GetBundleIdByUidCallbackCompletedCB(napi_env env, napi_status status, void *data)
@@ -1142,9 +1107,7 @@ void GetBundleIdByUidCallbackCompletedCB(napi_env env, napi_status status, void 
         napi_get_null(env, &dataJs);
     }
     ProcessCallbackOrPromise(env, asyncContext, errJs, dataJs);
-    napi_delete_async_work(env, asyncContext->work);
     delete asyncContext;
-    asyncContext = nullptr;
 }
 
 void GetIdByDomainCallbackCompletedCB(napi_env env, napi_status status, void *data)
@@ -1165,9 +1128,7 @@ void GetIdByDomainCallbackCompletedCB(napi_env env, napi_status status, void *da
         }
     }
     ProcessCallbackOrPromise(env, asyncContext, errJs, dataJs);
-    napi_delete_async_work(env, asyncContext->work);
     delete asyncContext;
-    asyncContext = nullptr;
 }
 
 bool ParseParaSetPhoto(napi_env env, napi_callback_info cbInfo, SetOAPhotoAsyncContext *asyncContext)
@@ -1222,9 +1183,7 @@ void SetPhotoCompletedCB(napi_env env, napi_status status, void *data)
         napi_get_null(env, &dataJs);
     }
     ProcessCallbackOrPromise(env, asyncContext, errJs, dataJs);
-    napi_delete_async_work(env, asyncContext->work);
     delete asyncContext;
-    asyncContext = nullptr;
 }
 
 bool ParseParaQueryMaxNum(napi_env env, napi_callback_info cbInfo, QueryMaxNumAsyncContext *asyncContext)
@@ -1254,9 +1213,7 @@ void QueryMaxNumCompletedCB(napi_env env, napi_status status, void *data)
         napi_get_null(env, &dataJs);
     }
     ProcessCallbackOrPromise(env, asyncContext, errJs, dataJs);
-    napi_delete_async_work(env, asyncContext->work);
     delete asyncContext;
-    asyncContext = nullptr;
 }
 
 bool ParseParaIsActived(napi_env env, napi_callback_info cbInfo, IsActivedAsyncContext *asyncContext)
@@ -1293,9 +1250,7 @@ void IsActivedCompletedCB(napi_env env, napi_status status, void *data)
         }
     }
     ProcessCallbackOrPromise(env, asyncContext, errJs, dataJs);
-    napi_delete_async_work(env, asyncContext->work);
     delete asyncContext;
-    asyncContext = nullptr;
 }
 
 bool ParseParaIsEnable(napi_env env, napi_callback_info cbInfo, IsConEnableAsyncContext *asyncContext)
@@ -1363,9 +1318,7 @@ void IsEnableCompletedCB(napi_env env, napi_status status, void *data)
         }
     }
     ProcessCallbackOrPromise(env, asyncContext, errJs, dataJs);
-    napi_delete_async_work(env, asyncContext->work);
     delete asyncContext;
-    asyncContext = nullptr;
 }
 
 bool ParseParaGetType(napi_env env, napi_callback_info cbInfo, GetTypeAsyncContext *asyncContext)
@@ -1395,9 +1348,7 @@ void GetTypeCompletedCB(napi_env env, napi_status status, void *data)
         napi_get_null(env, &dataJs);
     }
     ProcessCallbackOrPromise(env, asyncContext, errJs, dataJs);
-    napi_delete_async_work(env, asyncContext->work);
     delete asyncContext;
-    asyncContext = nullptr;
 }
 
 bool ParseParaIsMultiEn(napi_env env, napi_callback_info cbInfo, IsMultiEnAsyncContext *asyncContext)
@@ -1431,9 +1382,7 @@ void IsMultiEnCompletedCB(napi_env env, napi_status status, void *data)
         }
     }
     ProcessCallbackOrPromise(env, asyncContext, errJs, dataJs);
-    napi_delete_async_work(env, asyncContext->work);
     delete asyncContext;
-    asyncContext = nullptr;
 }
 
 static bool ParseParaIsVerifiedWithOneParam(
@@ -1534,9 +1483,7 @@ void IsVerifiedCompletedCB(napi_env env, napi_status status, void *data)
         }
     }
     ProcessCallbackOrPromise(env, asyncContext, errJs, dataJs);
-    napi_delete_async_work(env, asyncContext->work);
     delete asyncContext;
-    asyncContext = nullptr;
 }
 
 bool ParseParaSerialNumId(napi_env env, napi_callback_info cbInfo, GetSerialNumIdCBInfo *asyncContext)
@@ -1587,9 +1534,7 @@ void SerialNumIdCompletedCB(napi_env env, napi_status status, void *data)
         }
     }
     ProcessCallbackOrPromise(env, asyncContext, errJs, dataJs);
-    napi_delete_async_work(env, asyncContext->work);
     delete asyncContext;
-    asyncContext = nullptr;
 }
 
 bool ParseParaGetSerialNum(napi_env env, napi_callback_info cbInfo, GetSerialNumForOAInfo *asyncContext)
@@ -1624,9 +1569,7 @@ void GetSerialNumCompletedCB(napi_env env, napi_status status, void *data)
         }
     }
     ProcessCallbackOrPromise(env, asyncContext, errJs, dataJs);
-    napi_delete_async_work(env, asyncContext->work);
     delete asyncContext;
-    asyncContext = nullptr;
 }
 
 bool ParseParaIsTestOA(napi_env env, napi_callback_info cbInfo, IsTestOAInfo *asyncContext)
