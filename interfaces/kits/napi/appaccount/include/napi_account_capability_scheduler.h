@@ -21,6 +21,8 @@
 #include <string>
 #include <uv.h>
 
+#include "ability_context.h"
+#include "ability.h"
 #include "account_error_no.h"
 #include "app_account_authorization_extension_callback_stub.h"
 #include "app_account_common.h"
@@ -44,6 +46,8 @@ struct ExecuteRequestAsyncContext : public CommonAsyncContext {
     AsyncCallbackError businessError;
     AAFwk::WantParams parameters;
     napi_ref requestRef = nullptr;
+    napi_value thisVar = nullptr;
+    std::shared_ptr<AbilityRuntime::AbilityContext> abilityContext = nullptr;
 };
 
 class NapiAccountCapabilityProvider {
@@ -104,13 +108,36 @@ public:
 private:
     static napi_value JsConstructor(napi_env env, napi_callback_info cbInfo);
     static napi_value ExecuteRequest(napi_env env, napi_callback_info cbInfo);
+    static napi_value SetPresentationContext(napi_env env, napi_callback_info cbInfo);
+};
+
+class AccountCapabilityScheduler {
+public:
+    AccountCapabilityScheduler(napi_env env);
+
+public:
+    napi_env env_;
+    std::shared_ptr<AbilityRuntime::AbilityContext> abilityContext_ = nullptr;
+};
+
+struct JsAbilityResult : public CommonAsyncContext {
+    JsAbilityResult(){};
+    JsAbilityResult(napi_env napiEnv);
+    int resultCode = -1;
+    AAFwk::Want want;
+    bool isInner = false;
 };
 
 class NapiExecuteRequestCallback : public AppAccountAuthorizationExtensionCallbackStub {
 public:
-    NapiExecuteRequestCallback(napi_env env, napi_ref callbackRef, napi_deferred deferred, napi_ref requestRef);
+    NapiExecuteRequestCallback(napi_env env, napi_ref callbackRef, napi_deferred deferred, napi_ref requestRef,
+        std::shared_ptr<AbilityRuntime::AbilityContext> abilityContext);
     ~NapiExecuteRequestCallback();
     void OnResult(const AsyncCallbackError &businessError, const AAFwk::WantParams &parameters) override;
+    void OnRequestRedirected(const AAFwk::Want &request) override;
+
+private:
+    Ability *GetJsAbility(napi_env env);
 
 private:
     AccountJsKit::ThreadLockInfo lockInfo_;
@@ -118,6 +145,8 @@ private:
     napi_ref callbackRef_ = nullptr;
     napi_deferred deferred_ = nullptr;
     napi_ref requestRef_ = nullptr;
+    napi_value jsScheduler_;
+    std::shared_ptr<AbilityRuntime::AbilityContext> abilityContext_;
 };
 }  // namespace AccountJsKit
 }  // namespace OHOS

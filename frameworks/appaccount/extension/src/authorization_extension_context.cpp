@@ -13,7 +13,7 @@
  * limitations under the License.
  */
 
-#include "authentication_extension_context.h"
+#include "authorization_extension_context.h"
 
 #include "ability_connection.h"
 #include "ability_manager_client.h"
@@ -24,11 +24,25 @@ namespace OHOS {
 namespace AbilityRuntime {
 const size_t AuthorizationExtensionContext::CONTEXT_TYPE_ID(
     std::hash<const char *>{}("AuthorizationExtensionContext"));
-int AuthorizationExtensionContext::ILLEGAL_REQUEST_CODE(-1);
 
-ErrCode AuthorizationExtensionContext::StartModalDialogForResult(const AAFwk::Want &want) const
+ErrCode AuthorizationExtensionContext::ConnectAbility(
+    const AAFwk::Want &want, const sptr<AbilityConnectCallback> &connectCallback) const
 {
-    return ERR_OK;
+    ErrCode ret =
+        ConnectionManager::GetInstance().ConnectAbility(token_, want, connectCallback);
+    ACCOUNT_LOGI("AuthorizationExtensionContext::ConnectAbility ErrorCode = %{public}d", ret);
+    return ret;
+}
+
+ErrCode AuthorizationExtensionContext::DisconnectAbility(
+    const AAFwk::Want &want, const sptr<AbilityConnectCallback> &connectCallback) const
+{
+    ErrCode ret =
+        ConnectionManager::GetInstance().DisconnectAbility(token_, want.GetElement(), connectCallback);
+    if (ret != ERR_OK) {
+        ACCOUNT_LOGE("%{public}s end DisconnectAbility error, ret=%{public}d", __func__, ret);
+    }
+    return ret;
 }
 } // namespace AbilityRuntime
 } // namespace OHOS

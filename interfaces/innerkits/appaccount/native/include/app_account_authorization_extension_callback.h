@@ -25,6 +25,7 @@ namespace AccountSA {
 class AppAccountAuthorizationExtensionCallback {
 public:
     virtual void OnResult(const AsyncCallbackError &businessData, const AAFwk::WantParams &parameters) = 0;
+    virtual void OnRequestRedirected(const AAFwk::Want& request) = 0;
 };
 } // namespace AccountSA
 } // namespace OHOS
