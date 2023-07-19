@@ -42,6 +42,7 @@
         "bundle_framework",
         "common_event_service",
         "c_utils",
+        "eventhandler",
         "kv_store",
         "hicollie",
         "hilog",

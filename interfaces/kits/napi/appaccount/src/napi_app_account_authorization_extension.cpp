@@ -27,6 +27,7 @@
 #include "napi/native_node_api.h"
 #include "napi_account_common.h"
 #include "napi_account_error.h"
+#include "napi_app_account_authorization_extension_context.h"
 #include "napi_common_want.h"
 #include "napi_remote_object.h"
 #include "js_extension_common.h"
@@ -119,6 +120,26 @@ static bool GetExtentionCallbackCommonParam(napi_env env, napi_callback_info cbI
     return true;
 }
 
+static bool GetRequestRedirectedParam(napi_env env, napi_callback_info cbInfo,
+    JsAppAuthorizationExtensionParam **param, napi_value *businessData)
+{
+    size_t argc = ARGC_ONE;
+    napi_value argv[ARGC_ONE] = {nullptr};
+    void *data = nullptr;
+    NAPI_CALL_BASE(env, napi_get_cb_info(env, cbInfo, &argc, argv, nullptr, &data), false);
+    if (argc < ARGC_ONE) {
+        ACCOUNT_LOGE("the number of argument should be at least 1");
+        return false;
+    }
+    *param = reinterpret_cast<JsAppAuthorizationExtensionParam *>(data);
+    if ((*param == nullptr) || ((*param)->callback == nullptr)) {
+        ACCOUNT_LOGE("native callback is nullptr");
+        return false;
+    }
+    *businessData = argv[0];
+    return true;
+}
+
 static bool InitAuthorizationExtensionExecEnv(napi_env env, uv_loop_s **loop, uv_work_t **work,
     JsAppAuthorizationExtensionParam **param, ThreadLockInfo *lockInfo)
 {
@@ -157,6 +178,46 @@ static napi_value CreateExtensionAsyncCallback(
         return nullptr;
     }
     return napiCallback;
+}
+
+static napi_value CreateExtensionRequestRedirected(
+    napi_env env, napi_callback callback, JsAppAuthorizationExtensionParam *param)
+{
+    napi_value napiRequestRedirected = nullptr;
+    napi_status status =
+        napi_create_function(env, "callback", NAPI_AUTO_LENGTH, callback, param, &napiRequestRedirected);
+    if (status != napi_ok) {
+        ACCOUNT_LOGE("failed to create js function");
+        return nullptr;
+    }
+    status = napi_wrap(
+        env, napiRequestRedirected, param,
+        [](napi_env env, void *data, void *hint) { delete reinterpret_cast<JsAppAuthorizationExtensionParam *>(data); },
+        nullptr, nullptr);
+    if (status != napi_ok) {
+        ACCOUNT_LOGE("failed to wrap callback with JsAppAuthorizationExtensionParam");
+        return nullptr;
+    }
+    return napiRequestRedirected;
+}
+
+static napi_value OnRequestRedirected(napi_env env, napi_callback_info cbInfo)
+{
+    JsAppAuthorizationExtensionParam *param = nullptr;
+    napi_value businessData = nullptr;
+    if (!GetRequestRedirectedParam(env, cbInfo, &param, &businessData)) {
+        AccountNapiThrow(env, ERR_JS_PARAMETER_ERROR, true);
+        return nullptr;
+    }
+    AAFwk::Want want;
+    if (!AppExecFwk::UnwrapWant(env, businessData, want)) {
+        ACCOUNT_LOGE("parse want failed");
+        AccountNapiThrow(env, ERR_JS_PARAMETER_ERROR, true);
+        return nullptr;
+    }
+
+    param->callback->OnRequestRedirected(want);
+    return nullptr;
 }
 
 static napi_value OnResultCallback(napi_env env, napi_callback_info cbInfo)
@@ -204,7 +265,9 @@ static napi_value CreateAuthorizationCallback(napi_env env, JsAppAuthorizationEx
     napi_value authorizationCallback = nullptr;
     NAPI_CALL(env, napi_create_object(env, &authorizationCallback));
     napi_value napiCallback = CreateExtensionAsyncCallback(env, OnResultCallback, param);
+    napi_value napiOnRequestRedirected = CreateExtensionRequestRedirected(env, OnRequestRedirected, param);
     NAPI_CALL(env, napi_set_named_property(env, authorizationCallback, "onResult", napiCallback));
+    NAPI_CALL(env, napi_set_named_property(env, authorizationCallback, "onRequestRedirected", napiOnRequestRedirected));
     return authorizationCallback;
 }
 
@@ -223,6 +286,32 @@ JsAuthorizationExtension::~JsAuthorizationExtension()
     jsRuntime_.FreeNativeReference(std::move(jsObj_));
 }
 
+NativeValue *AttachAuthorizationExtensionContext(NativeEngine *engine, void *value, void *)
+{
+    if (value == nullptr) {
+        ACCOUNT_LOGE("invalid parameter.");
+        return nullptr;
+    }
+    auto ptr = reinterpret_cast<std::weak_ptr<AuthorizationExtensionContext> *>(value)->lock();
+    if (ptr == nullptr) {
+        ACCOUNT_LOGE("invalid context.");
+        return nullptr;
+    }
+    NativeValue *object = CreateJsAuthorizationExtensionContext(*engine, ptr);
+    auto contextObj = JsRuntime::LoadSystemModuleByEngine(engine,
+        "AuthorizationExtensionContext", &object, 1)->Get();
+    NativeObject *nObject = ConvertNativeValueTo<NativeObject>(contextObj);
+    nObject->ConvertToNativeBindingObject(engine, DetachCallbackFunc, AttachAuthorizationExtensionContext,
+        value, nullptr);
+    auto workContext = new (std::nothrow) std::weak_ptr<AuthorizationExtensionContext>(ptr);
+    nObject->SetNativePointer(workContext,
+        [](NativeEngine *, void *data, void *) {
+            ACCOUNT_LOGI("Finalizer for weak_ptr service extension context is called");
+            delete static_cast<std::weak_ptr<AuthorizationExtensionContext> *>(data);
+        }, nullptr);
+    return contextObj;
+}
+
 void JsAuthorizationExtension::Init(const std::shared_ptr<AbilityLocalRecord> &record,
     const std::shared_ptr<OHOSApplication> &application, std::shared_ptr<AbilityHandler> &handler,
     const sptr<IRemoteObject> &token)
@@ -238,6 +327,7 @@ void JsAuthorizationExtension::Init(const std::shared_ptr<AbilityLocalRecord> &r
     std::string moduleName(Extension::abilityInfo_->moduleName);
     moduleName.append("::").append(Extension::abilityInfo_->name);
     HandleScope handleScope(jsRuntime_);
+    auto& engine = jsRuntime_.GetNativeEngine();
 
     jsObj_ = jsRuntime_.LoadModule(moduleName, srcPath, Extension::abilityInfo_->hapPath,
         Extension::abilityInfo_->compileMode == CompileMode::ES_MODULE);
@@ -245,6 +335,45 @@ void JsAuthorizationExtension::Init(const std::shared_ptr<AbilityLocalRecord> &r
         ACCOUNT_LOGE("Failed to get jsObj_");
         return;
     }
+
+    NativeObject *obj = ConvertNativeValueTo<NativeObject>(jsObj_->Get());
+    if (obj == nullptr) {
+        ACCOUNT_LOGE("Failed to get JsAuthorizationExtension object");
+        return;
+    }
+
+    BindContext(engine, obj);
+}
+
+void JsAuthorizationExtension::BindContext(NativeEngine& engine, NativeObject* obj)
+{
+    auto context = GetContext();
+    if (context == nullptr) {
+        ACCOUNT_LOGE("Failed to get context");
+        return;
+    }
+    NativeValue *contextObj = CreateJsAuthorizationExtensionContext(engine, context);
+    auto shellContextRef =
+        jsRuntime_.LoadSystemModule("account.appAccount.AuthorizationExtensionContext", &contextObj, ARGC_ONE);
+    contextObj = shellContextRef->Get();
+    NativeObject *nativeObj = ConvertNativeValueTo<NativeObject>(contextObj);
+    if (nativeObj == nullptr) {
+        ACCOUNT_LOGE("Failed to get context native object");
+        return;
+    }
+    auto workContext = new (std::nothrow) std::weak_ptr<AuthorizationExtensionContext>(context);
+    nativeObj->ConvertToNativeBindingObject(&engine, DetachCallbackFunc, AttachAuthorizationExtensionContext,
+        workContext, nullptr);
+    context->Bind(jsRuntime_, shellContextRef.release());
+    obj->SetProperty("context", contextObj);
+
+    nativeObj->SetNativePointer(workContext,
+        [](NativeEngine*, void* data, void*) {
+            ACCOUNT_LOGI("Finalizer for weak_ptr service extension context is called");
+            delete static_cast<std::weak_ptr<AuthorizationExtensionContext>*>(data);
+        }, nullptr);
+
+    ACCOUNT_LOGI("JsAuthorizationExtension::Init end.");
 }
 
 void JsAuthorizationExtension::OnStart(const AAFwk::Want &want)
