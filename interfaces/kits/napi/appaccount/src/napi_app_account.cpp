@@ -162,13 +162,8 @@ napi_value NapiAppAccount::CreateAppAccountManager(napi_env env, napi_callback_i
 
 napi_value NapiAppAccount::AddAccount(napi_env env, napi_callback_info cbInfo)
 {
-    auto *asyncContext = new (std::nothrow) AppAccountAsyncContext();
-    if (asyncContext == nullptr) {
-        ACCOUNT_LOGE("insufficient memory for asyncContext!");
-        return NapiGetNull(env);
-    }
-    asyncContext->env = env;
-    ParseContextWithExInfo(env, cbInfo, asyncContext);
+    auto asyncContext = std::make_unique<AppAccountAsyncContext>(env);
+    ParseContextWithExInfo(env, cbInfo, asyncContext.get());
     napi_value result = nullptr;
     if (asyncContext->callbackRef == nullptr) {
         napi_create_promise(env, &asyncContext->deferred, &result);
@@ -188,26 +183,20 @@ napi_value NapiAppAccount::AddAccount(napi_env env, napi_callback_info cbInfo)
             AppAccountAsyncContext *asyncContext = reinterpret_cast<AppAccountAsyncContext *>(data);
             ProcessCallbackOrPromise(env, asyncContext,
                 GetErrorCodeValue(env, ConvertToJSErrCodeV8(asyncContext->errCode)), NapiGetNull(env));
-            napi_delete_async_work(env, asyncContext->work);
             delete asyncContext;
-            asyncContext = nullptr;
         },
-        reinterpret_cast<void *>(asyncContext),
+        reinterpret_cast<void *>(asyncContext.get()),
         &asyncContext->work);
     napi_queue_async_work(env, asyncContext->work);
+    asyncContext.release();
     return result;
 }
 
 napi_value NapiAppAccount::CreateAccount(napi_env env, napi_callback_info cbInfo)
 {
-    auto *context = new (std::nothrow) CreateAccountContext(env);
-    if (context == nullptr) {
-        ACCOUNT_LOGE("insufficient memory for asyncContext!");
-        return NapiGetNull(env);
-    }
-    if (!ParseContextForCreateAccount(env, cbInfo, context)) {
+    auto context = std::make_unique<CreateAccountContext>(env);
+    if (!ParseContextForCreateAccount(env, cbInfo, context.get())) {
         napi_throw(env, GenerateBusinessError(env, ERR_JS_PARAMETER_ERROR, context->errMsg));
-        delete context;
         return NapiGetNull(env);
     }
     napi_value result = nullptr;
@@ -227,30 +216,23 @@ napi_value NapiAppAccount::CreateAccount(napi_env env, napi_callback_info cbInfo
             CreateAccountContext *context = reinterpret_cast<CreateAccountContext *>(data);
             ProcessCallbackOrPromise(env, context,
                 GenerateBusinessError(env, context->errCode), NapiGetNull(env));
-            napi_delete_async_work(env, context->work);
             delete context;
-            context = nullptr;
-        }, reinterpret_cast<void *>(context), &context->work);
+        }, reinterpret_cast<void *>(context.get()), &context->work);
     napi_queue_async_work(env, context->work);
+    context.release();
     return result;
 }
 
 napi_value NapiAppAccount::CreateAccountImplicitly(napi_env env, napi_callback_info cbInfo)
 {
-    auto *context = new (std::nothrow) CreateAccountImplicitlyContext(env);
-    if (context == nullptr) {
-        ACCOUNT_LOGE("insufficient memory for context!");
-        return NapiGetNull(env);
-    }
-    if (!ParseContextForCreateAccountImplicitly(env, cbInfo, context)) {
+    auto context = std::make_unique<CreateAccountImplicitlyContext>(env);
+    if (!ParseContextForCreateAccountImplicitly(env, cbInfo, context.get())) {
         napi_throw(env, GenerateBusinessError(env, ERR_JS_PARAMETER_ERROR, context->errMsg));
-        delete context;
         return NapiGetNull(env);
     }
     context->appAccountMgrCb = new (std::nothrow) AppAccountManagerCallback(env, context->callback);
     if (context->appAccountMgrCb == nullptr) {
         ACCOUNT_LOGE("insufficient memory for AppAccountManagerCallback!");
-        delete context;
         return NapiGetNull(env);
     }
     napi_value resourceName = nullptr;
@@ -268,25 +250,19 @@ napi_value NapiAppAccount::CreateAccountImplicitly(napi_env env, napi_callback_i
             if ((context->errCode != 0) && (context->appAccountMgrCb != nullptr)) {
                 context->appAccountMgrCb->OnResult(context->errCode, errResult);
             }
-            napi_delete_async_work(env, context->work);
             delete context;
-            context = nullptr;
-        }, reinterpret_cast<void *>(context), &context->work);
+        }, reinterpret_cast<void *>(context.get()), &context->work);
     napi_queue_async_work(env, context->work);
+    context.release();
     return NapiGetNull(env);
 }
 
 napi_value NapiAppAccount::AddAccountImplicitly(napi_env env, napi_callback_info cbInfo)
 {
-    auto *asyncContext = new (std::nothrow) OAuthAsyncContext(env);
-    if (asyncContext == nullptr) {
-        ACCOUNT_LOGE("insufficient memory for asyncContext!");
-        return NapiGetNull(env);
-    }
-    ParseContextForAuthenticate(env, cbInfo, asyncContext, ARGS_SIZE_FOUR);
+    auto asyncContext = std::make_unique<OAuthAsyncContext>(env);
+    ParseContextForAuthenticate(env, cbInfo, asyncContext.get(), ARGS_SIZE_FOUR);
     if (asyncContext->appAccountMgrCb == nullptr) {
         ACCOUNT_LOGE("insufficient memory for AppAccountManagerCallback!");
-        delete asyncContext;
         return NapiGetNull(env);
     }
     napi_value resourceName = nullptr;
@@ -307,13 +283,11 @@ napi_value NapiAppAccount::AddAccountImplicitly(napi_env env, napi_callback_info
                 if ((asyncContext->errCode != 0) && (asyncContext->appAccountMgrCb != nullptr)) {
                     asyncContext->appAccountMgrCb->OnResult(asyncContext->errCode, errResult);
                 }
-                napi_delete_async_work(env, asyncContext->work);
                 delete asyncContext;
-                asyncContext = nullptr;
             },
-            reinterpret_cast<void *>(asyncContext),
-            &asyncContext->work));
+            reinterpret_cast<void *>(asyncContext.get()), &asyncContext->work));
     NAPI_CALL(env, napi_queue_async_work(env, asyncContext->work));
+    asyncContext.release();
     return NapiGetNull(env);
 }
 
@@ -329,18 +303,11 @@ napi_value NapiAppAccount::RemoveAccount(napi_env env, napi_callback_info cbInfo
 
 napi_value NapiAppAccount::RemoveAccountInternal(napi_env env, napi_callback_info cbInfo, bool isThrowable)
 {
-    auto *asyncContext = new (std::nothrow) AppAccountAsyncContext();
-    if (asyncContext == nullptr) {
-        ACCOUNT_LOGE("insufficient memory for asyncContext!");
-        return NapiGetNull(env);
-    }
-    asyncContext->env = env;
-    asyncContext->throwErr = isThrowable;
+    auto asyncContext = std::make_unique<AppAccountAsyncContext>(env, isThrowable);
     std::vector<PropertyType> propertyList = { PropertyType::NAME };
     napi_value result = nullptr;
-    if ((!ParseContextForAppAccount(env, cbInfo, asyncContext, propertyList, &result)) && isThrowable) {
+    if ((!ParseContextForAppAccount(env, cbInfo, asyncContext.get(), propertyList, &result)) && isThrowable) {
         napi_throw(env, GenerateBusinessError(env, ERR_JS_PARAMETER_ERROR, asyncContext->errMsg));
-        delete asyncContext;
         return NapiGetNull(env);
     }
     napi_value resource = nullptr;
@@ -358,27 +325,21 @@ napi_value NapiAppAccount::RemoveAccountInternal(napi_env env, napi_callback_inf
             napi_value err = asyncContext->throwErr ? GenerateBusinessError(env, asyncContext->errCode) :
                 GetErrorCodeValue(env, ConvertToJSErrCodeV8(asyncContext->errCode));
             ProcessCallbackOrPromise(env, asyncContext, err, NapiGetNull(env));
-            napi_delete_async_work(env, asyncContext->work);
             delete asyncContext;
-            asyncContext = nullptr;
         },
-        reinterpret_cast<void *>(asyncContext),
+        reinterpret_cast<void *>(asyncContext.get()),
         &asyncContext->work);
     napi_queue_async_work(env, asyncContext->work);
+    asyncContext.release();
     return result;
 }
 
 napi_value NapiAppAccount::DisableAppAccess(napi_env env, napi_callback_info cbInfo)
 {
-    auto *asyncContext = new (std::nothrow) AppAccountAsyncContext();
-    if (asyncContext == nullptr) {
-        ACCOUNT_LOGE("insufficient memory for asyncContext!");
-        return NapiGetNull(env);
-    }
-    asyncContext->env = env;
+    auto asyncContext = std::make_unique<AppAccountAsyncContext>(env);
     std::vector<PropertyType> propertyList = {PropertyType::NAME, PropertyType::BUNDLE_NAME};
     napi_value result = nullptr;
-    ParseContextForAppAccount(env, cbInfo, asyncContext, propertyList, &result);
+    ParseContextForAppAccount(env, cbInfo, asyncContext.get(), propertyList, &result);
 
     napi_value resource = nullptr;
     napi_create_string_utf8(env, "DisableAppAccess", NAPI_AUTO_LENGTH, &resource);
@@ -393,27 +354,21 @@ napi_value NapiAppAccount::DisableAppAccess(napi_env env, napi_callback_info cbI
             AppAccountAsyncContext *asyncContext = reinterpret_cast<AppAccountAsyncContext *>(data);
             ProcessCallbackOrPromise(env, asyncContext,
                 GetErrorCodeValue(env, ConvertToJSErrCodeV8(asyncContext->errCode)), NapiGetNull(env));
-            napi_delete_async_work(env, asyncContext->work);
             delete asyncContext;
-            asyncContext = nullptr;
         },
-        reinterpret_cast<void *>(asyncContext),
+        reinterpret_cast<void *>(asyncContext.get()),
         &asyncContext->work);
     napi_queue_async_work(env, asyncContext->work);
+    asyncContext.release();
     return result;
 }
 
 napi_value NapiAppAccount::EnableAppAccess(napi_env env, napi_callback_info cbInfo)
 {
-    auto *asyncContext = new (std::nothrow) AppAccountAsyncContext();
-    if (asyncContext == nullptr) {
-        ACCOUNT_LOGE("insufficient memory for asyncContext!");
-        return NapiGetNull(env);
-    }
-    asyncContext->env = env;
+    auto asyncContext = std::make_unique<AppAccountAsyncContext>(env);
     std::vector<PropertyType> propertyList = {PropertyType::NAME, PropertyType::BUNDLE_NAME};
     napi_value result = nullptr;
-    ParseContextForAppAccount(env, cbInfo, asyncContext, propertyList, &result);
+    ParseContextForAppAccount(env, cbInfo, asyncContext.get(), propertyList, &result);
 
     napi_value resource = nullptr;
     napi_create_string_utf8(env, "EnableAppAccess", NAPI_AUTO_LENGTH, &resource);
@@ -429,30 +384,23 @@ napi_value NapiAppAccount::EnableAppAccess(napi_env env, napi_callback_info cbIn
             AppAccountAsyncContext *asyncContext = reinterpret_cast<AppAccountAsyncContext *>(data);
             ProcessCallbackOrPromise(env, asyncContext,
                 GetErrorCodeValue(env, ConvertToJSErrCodeV8(asyncContext->errCode)), NapiGetNull(env));
-            napi_delete_async_work(env, asyncContext->work);
             delete asyncContext;
-            asyncContext = nullptr;
         },
-        reinterpret_cast<void *>(asyncContext),
+        reinterpret_cast<void *>(asyncContext.get()),
         &asyncContext->work);
     napi_queue_async_work(env, asyncContext->work);
+    asyncContext.release();
     return result;
 }
 
 napi_value NapiAppAccount::SetAppAccess(napi_env env, napi_callback_info cbInfo)
 {
-    auto *context = new (std::nothrow) AppAccountAsyncContext();
-    if (context == nullptr) {
-        ACCOUNT_LOGE("insufficient memory for asyncContext!");
-        return NapiGetNull(env);
-    }
-    context->env = env;
+    auto context = std::make_unique<AppAccountAsyncContext>(env);
     std::vector<PropertyType> propertyList = {
         PropertyType::NAME, PropertyType::BUNDLE_NAME, PropertyType::IS_ACCESSIBLE};
     napi_value result = nullptr;
-    if (!ParseContextForAppAccount(env, cbInfo, context, propertyList, &result)) {
+    if (!ParseContextForAppAccount(env, cbInfo, context.get(), propertyList, &result)) {
         napi_throw(env, GenerateBusinessError(env, ERR_JS_PARAMETER_ERROR, context->errMsg));
-        delete context;
         return NapiGetNull(env);
     }
 
@@ -468,11 +416,10 @@ napi_value NapiAppAccount::SetAppAccess(napi_env env, napi_callback_info cbInfo)
             AppAccountAsyncContext *context = reinterpret_cast<AppAccountAsyncContext *>(data);
             ProcessCallbackOrPromise(env, context,
                 GenerateBusinessError(env, context->errCode), NapiGetNull(env));
-            napi_delete_async_work(env, context->work);
             delete context;
-            context = nullptr;
-        }, reinterpret_cast<void *>(context), &context->work);
+        }, reinterpret_cast<void *>(context.get()), &context->work);
     napi_queue_async_work(env, context->work);
+    context.release();
     return result;
 }
 
@@ -488,18 +435,11 @@ napi_value NapiAppAccount::CheckDataSyncEnabled(napi_env env, napi_callback_info
 
 napi_value NapiAppAccount::CheckDataSyncEnabledInternal(napi_env env, napi_callback_info cbInfo, bool isThrowable)
 {
-    auto *asyncContext = new (std::nothrow) AppAccountAsyncContext();
-    if (asyncContext == nullptr) {
-        ACCOUNT_LOGE("insufficient memory for asyncContext!");
-        return NapiGetNull(env);
-    }
-    asyncContext->env = env;
-    asyncContext->throwErr = isThrowable;
+    auto asyncContext = std::make_unique<AppAccountAsyncContext>(env, isThrowable);
     std::vector<PropertyType> propertyList = { PropertyType::NAME };
     napi_value result = nullptr;
-    if ((!ParseContextForAppAccount(env, cbInfo, asyncContext, propertyList, &result)) && isThrowable) {
+    if ((!ParseContextForAppAccount(env, cbInfo, asyncContext.get(), propertyList, &result)) && isThrowable) {
         napi_throw(env, GenerateBusinessError(env, ERR_JS_PARAMETER_ERROR, asyncContext->errMsg));
-        delete asyncContext;
         return NapiGetNull(env);
     }
 
@@ -521,13 +461,12 @@ napi_value NapiAppAccount::CheckDataSyncEnabledInternal(napi_env env, napi_callb
             napi_value err = asyncContext->throwErr ? GenerateBusinessError(env, asyncContext->errCode) :
                 GetErrorCodeValue(env, ConvertToJSErrCodeV8(asyncContext->errCode));
             ProcessCallbackOrPromise(env, asyncContext, err, boolVal);
-            napi_delete_async_work(env, asyncContext->work);
             delete asyncContext;
-            asyncContext = nullptr;
         },
-        reinterpret_cast<void *>(asyncContext),
+        reinterpret_cast<void *>(asyncContext.get()),
         &asyncContext->work);
     napi_queue_async_work(env, asyncContext->work);
+    asyncContext.release();
     return result;
 }
 
@@ -543,26 +482,18 @@ napi_value NapiAppAccount::SetCredential(napi_env env, napi_callback_info cbInfo
 
 napi_value NapiAppAccount::SetCredentialInternal(napi_env env, napi_callback_info cbInfo, bool isThrowable)
 {
-    auto *asyncContext = new (std::nothrow) AppAccountAsyncContext();
-    if (asyncContext == nullptr) {
-        ACCOUNT_LOGE("insufficient memory for asyncContext!");
-        return NapiGetNull(env);
-    }
-    asyncContext->env = env;
-    asyncContext->throwErr = isThrowable;
+    auto context = std::make_unique<AppAccountAsyncContext>(env, isThrowable);
     std::vector<PropertyType> propertyList = {
         PropertyType::NAME, PropertyType::CREDENTIAL_TYPE, PropertyType::CREDENTIAL };
     napi_value result = nullptr;
-    if ((!ParseContextForAppAccount(env, cbInfo, asyncContext, propertyList, &result)) && isThrowable) {
-        napi_throw(env, GenerateBusinessError(env, ERR_JS_PARAMETER_ERROR, asyncContext->errMsg));
-        delete asyncContext;
+    if ((!ParseContextForAppAccount(env, cbInfo, context.get(), propertyList, &result)) && isThrowable) {
+        napi_throw(env, GenerateBusinessError(env, ERR_JS_PARAMETER_ERROR, context->errMsg));
         return NapiGetNull(env);
     }
 
     napi_value resource = nullptr;
-    napi_create_string_utf8(env, "SetAccountCredential", NAPI_AUTO_LENGTH, &resource);
-
-    napi_create_async_work(env, nullptr, resource,
+    NAPI_CALL(env, napi_create_string_utf8(env, "SetAccountCredential", NAPI_AUTO_LENGTH, &resource));
+    NAPI_CALL(env, napi_create_async_work(env, nullptr, resource,
         [](napi_env env, void *data) {
             AppAccountAsyncContext *asyncContext = reinterpret_cast<AppAccountAsyncContext *>(data);
             if ((!asyncContext->throwErr) && (!CheckSpecialCharacters(asyncContext->name))) {
@@ -577,34 +508,23 @@ napi_value NapiAppAccount::SetCredentialInternal(napi_env env, napi_callback_inf
             napi_value err = asyncContext->throwErr ? GenerateBusinessError(env, asyncContext->errCode) :
                 GetErrorCodeValue(env, ConvertToJSErrCodeV8(asyncContext->errCode));
             ProcessCallbackOrPromise(env, asyncContext, err, NapiGetNull(env));
-            napi_delete_async_work(env, asyncContext->work);
             delete asyncContext;
-            asyncContext = nullptr;
         },
-        reinterpret_cast<void *>(asyncContext),
-        &asyncContext->work);
-    napi_queue_async_work(env, asyncContext->work);
+        reinterpret_cast<void *>(context.get()), &context->work));
+    NAPI_CALL(env, napi_queue_async_work(env, context->work));
+    context.release();
     return result;
 }
 
 napi_value NapiAppAccount::SetAccountExtraInfo(napi_env env, napi_callback_info cbInfo)
 {
-    auto *asyncContext = new (std::nothrow) AppAccountAsyncContext();
-    if (asyncContext == nullptr) {
-        ACCOUNT_LOGE("insufficient memory for asyncContext!");
-        return NapiGetNull(env);
-    }
-    asyncContext->env = env;
+    auto asyncContext = std::make_unique<AppAccountAsyncContext>(env);
     std::vector<PropertyType> propertyList = { PropertyType::NAME, PropertyType::EXTRA_INFO };
     napi_value result = nullptr;
-    ParseContextForAppAccount(env, cbInfo, asyncContext, propertyList, &result);
-
+    ParseContextForAppAccount(env, cbInfo, asyncContext.get(), propertyList, &result);
     napi_value resource = nullptr;
-    napi_create_string_utf8(env, "SetAccountExtraInfo", NAPI_AUTO_LENGTH, &resource);
-
-    napi_create_async_work(env,
-        nullptr,
-        resource,
+    NAPI_CALL(env, napi_create_string_utf8(env, "SetAccountExtraInfo", NAPI_AUTO_LENGTH, &resource));
+    NAPI_CALL(env, napi_create_async_work(env, nullptr, resource,
         [](napi_env env, void *data) {
             AppAccountAsyncContext *asyncContext = reinterpret_cast<AppAccountAsyncContext *>(data);
             asyncContext->errCode = AppAccountManager::SetAccountExtraInfo(
@@ -614,13 +534,11 @@ napi_value NapiAppAccount::SetAccountExtraInfo(napi_env env, napi_callback_info 
             AppAccountAsyncContext *asyncContext = reinterpret_cast<AppAccountAsyncContext *>(data);
             ProcessCallbackOrPromise(env, asyncContext,
                 GetErrorCodeValue(env, ConvertToJSErrCodeV8(asyncContext->errCode)), NapiGetNull(env));
-            napi_delete_async_work(env, asyncContext->work);
             delete asyncContext;
-            asyncContext = nullptr;
         },
-        reinterpret_cast<void *>(asyncContext),
-        &asyncContext->work);
-    napi_queue_async_work(env, asyncContext->work);
+        reinterpret_cast<void *>(asyncContext.get()), &asyncContext->work));
+    NAPI_CALL(env, napi_queue_async_work(env, asyncContext->work));
+    asyncContext.release();
     return result;
 }
 
@@ -636,18 +554,11 @@ napi_value NapiAppAccount::SetDataSyncEnabled(napi_env env, napi_callback_info c
 
 napi_value NapiAppAccount::SetDataSyncEnabledInternal(napi_env env, napi_callback_info cbInfo, bool isThrowable)
 {
-    auto *asyncContext = new (std::nothrow) AppAccountAsyncContext();
-    if (asyncContext == nullptr) {
-        ACCOUNT_LOGE("insufficient memory for asyncContext!");
-        return NapiGetNull(env);
-    }
-    asyncContext->env = env;
-    asyncContext->throwErr = isThrowable;
+    auto asyncContext = std::make_unique<AppAccountAsyncContext>(env, isThrowable);
     std::vector<PropertyType> propertyList = { PropertyType::NAME, PropertyType::IS_ENABLE };
     napi_value result = nullptr;
-    if ((!ParseContextForAppAccount(env, cbInfo, asyncContext, propertyList, &result)) && isThrowable) {
+    if ((!ParseContextForAppAccount(env, cbInfo, asyncContext.get(), propertyList, &result)) && isThrowable) {
         napi_throw(env, GenerateBusinessError(env, ERR_JS_PARAMETER_ERROR, asyncContext->errMsg));
-        delete asyncContext;
         return NapiGetNull(env);
     }
 
@@ -669,13 +580,11 @@ napi_value NapiAppAccount::SetDataSyncEnabledInternal(napi_env env, napi_callbac
             napi_value err = asyncContext->throwErr ? GenerateBusinessError(env, asyncContext->errCode) :
                 GetErrorCodeValue(env, ConvertToJSErrCodeV8(asyncContext->errCode));
             ProcessCallbackOrPromise(env, asyncContext, err, NapiGetNull(env));
-            napi_delete_async_work(env, asyncContext->work);
             delete asyncContext;
-            asyncContext = nullptr;
         },
-        reinterpret_cast<void *>(asyncContext),
-        &asyncContext->work);
+        reinterpret_cast<void *>(asyncContext.get()), &asyncContext->work);
     napi_queue_async_work(env, asyncContext->work);
+    asyncContext.release();
     return result;
 }
 
@@ -691,18 +600,11 @@ napi_value NapiAppAccount::SetCustomData(napi_env env, napi_callback_info cbInfo
 
 napi_value NapiAppAccount::SetCustomDataInternal(napi_env env, napi_callback_info cbInfo, bool isThrowable)
 {
-    auto *asyncContext = new (std::nothrow) AppAccountAsyncContext();
-    if (asyncContext == nullptr) {
-        ACCOUNT_LOGE("insufficient memory for asyncContext!");
-        return NapiGetNull(env);
-    }
-    asyncContext->env = env;
-    asyncContext->throwErr = isThrowable;
+    auto asyncContext = std::make_unique<AppAccountAsyncContext>(env, isThrowable);
     std::vector<PropertyType> propertyList = { PropertyType::NAME, PropertyType::KEY, PropertyType::VALUE };
     napi_value result = nullptr;
-    if ((!ParseContextForAppAccount(env, cbInfo, asyncContext, propertyList, &result)) && isThrowable) {
+    if ((!ParseContextForAppAccount(env, cbInfo, asyncContext.get(), propertyList, &result)) && isThrowable) {
         napi_throw(env, GenerateBusinessError(env, ERR_JS_PARAMETER_ERROR, asyncContext->errMsg));
-        delete asyncContext;
         return NapiGetNull(env);
     }
 
@@ -724,11 +626,10 @@ napi_value NapiAppAccount::SetCustomDataInternal(napi_env env, napi_callback_inf
             napi_value err = asyncContext->throwErr ? GenerateBusinessError(env, asyncContext->errCode) :
                 GetErrorCodeValue(env, ConvertToJSErrCodeV8(asyncContext->errCode));
             ProcessCallbackOrPromise(env, asyncContext, err, NapiGetNull(env));
-            napi_delete_async_work(env, asyncContext->work);
             delete asyncContext;
-            asyncContext = nullptr;
-        }, reinterpret_cast<void *>(asyncContext), &asyncContext->work);
+        }, reinterpret_cast<void *>(asyncContext.get()), &asyncContext->work);
     napi_queue_async_work(env, asyncContext->work);
+    asyncContext.release();
     return result;
 }
 
@@ -739,16 +640,9 @@ napi_value NapiAppAccount::GetAllAccessibleAccounts(napi_env env, napi_callback_
 
 napi_value NapiAppAccount::GetAllAccessibleAccountsInternal(napi_env env, napi_callback_info cbInfo, bool isThrowable)
 {
-    auto *asyncContext = new (std::nothrow) GetAccountsAsyncContext();
-    if (asyncContext == nullptr) {
-        ACCOUNT_LOGE("insufficient memory for asyncContext!");
-        return NapiGetNull(env);
-    }
-    asyncContext->env = env;
-    asyncContext->throwErr = isThrowable;
-    if ((!ParseContextCBArray(env, cbInfo, asyncContext)) && isThrowable) {
+    auto asyncContext = std::make_unique<GetAccountsAsyncContext>(env, isThrowable);
+    if ((!ParseContextCBArray(env, cbInfo, asyncContext.get())) && isThrowable) {
         napi_throw(env, GenerateBusinessError(env, ERR_JS_PARAMETER_ERROR, asyncContext->errMsg));
-        delete asyncContext;
         return NapiGetNull(env);
     }
 
@@ -780,13 +674,12 @@ napi_value NapiAppAccount::GetAllAccessibleAccountsInternal(napi_env env, napi_c
             napi_value err = asyncContext->throwErr ? GenerateBusinessError(env, asyncContext->errCode) :
                 GetErrorCodeValue(env, ConvertToJSErrCodeV8(asyncContext->errCode));
             ProcessCallbackOrPromise(env, asyncContext, err, arrVal);
-            napi_delete_async_work(env, asyncContext->work);
             delete asyncContext;
-            asyncContext = nullptr;
         },
-        reinterpret_cast<void *>(asyncContext),
+        reinterpret_cast<void *>(asyncContext.get()),
         &asyncContext->work);
     napi_queue_async_work(env, asyncContext->work);
+    asyncContext.release();
     return result;
 }
 
@@ -813,16 +706,9 @@ napi_value NapiAppAccount::GetAccountsByOwner(napi_env env, napi_callback_info c
 
 napi_value NapiAppAccount::GetAccountsByOwnerInternal(napi_env env, napi_callback_info cbInfo, bool isThrowable)
 {
-    auto *asyncContext = new (std::nothrow) GetAccountsAsyncContext();
-    if (asyncContext == nullptr) {
-        ACCOUNT_LOGE("insufficient memory for asyncContext!");
-        return NapiGetNull(env);
-    }
-    asyncContext->env = env;
-    asyncContext->throwErr = isThrowable;
-    if ((!ParseContextWithStrCBArray(env, cbInfo, asyncContext)) && isThrowable) {
+    auto asyncContext = std::make_unique<GetAccountsAsyncContext>(env, isThrowable);
+    if ((!ParseContextWithStrCBArray(env, cbInfo, asyncContext.get())) && isThrowable) {
         napi_throw(env, GenerateBusinessError(env, ERR_JS_PARAMETER_ERROR, asyncContext->errMsg));
-        delete asyncContext;
         return NapiGetNull(env);
     }
 
@@ -842,14 +728,12 @@ napi_value NapiAppAccount::GetAccountsByOwnerInternal(napi_env env, napi_callbac
             if (!asyncContext->throwErr) {
                 asyncContext->errCode =
                     AppAccountManager::GetAllAccounts(asyncContext->owner, asyncContext->appAccounts);
-                return;
-            }
-            if (!asyncContext->owner.empty()) {
+            } else if (asyncContext->owner.empty()) {
+                asyncContext->errCode = ERR_ACCOUNT_COMMON_INVALID_PARAMETER;
+            } else {
                 asyncContext->errCode =
                     AppAccountManager::QueryAllAccessibleAccounts(asyncContext->owner, asyncContext->appAccounts);
-                return;
             }
-            asyncContext->errCode = ERR_ACCOUNT_COMMON_INVALID_PARAMETER;
         },
         [](napi_env env, napi_status status, void *data) {
             GetAccountsAsyncContext *asyncContext = reinterpret_cast<GetAccountsAsyncContext *>(data);
@@ -858,11 +742,10 @@ napi_value NapiAppAccount::GetAccountsByOwnerInternal(napi_env env, napi_callbac
             napi_value err = asyncContext->throwErr ? GenerateBusinessError(env, asyncContext->errCode) :
                 GetErrorCodeValue(env, ConvertToJSErrCodeV8(asyncContext->errCode));
             ProcessCallbackOrPromise(env, asyncContext, err, arrVal);
-            napi_delete_async_work(env, asyncContext->work);
             delete asyncContext;
-            asyncContext = nullptr;
-        }, reinterpret_cast<void *>(asyncContext), &asyncContext->work);
+        }, reinterpret_cast<void *>(asyncContext.get()), &asyncContext->work);
     napi_queue_async_work(env, asyncContext->work);
+    asyncContext.release();
     return result;
 }
 
@@ -878,27 +761,18 @@ napi_value NapiAppAccount::GetCredential(napi_env env, napi_callback_info cbInfo
 
 napi_value NapiAppAccount::GetCredentialInternal(napi_env env, napi_callback_info cbInfo, bool isThrowable)
 {
-    auto *asyncContext = new (std::nothrow) AppAccountAsyncContext();
-    if (asyncContext == nullptr) {
-        ACCOUNT_LOGE("insufficient memory for asyncContext!");
-        return NapiGetNull(env);
-    }
-    asyncContext->env = env;
-    asyncContext->throwErr = isThrowable;
+    auto asyncContext = std::make_unique<AppAccountAsyncContext>(env, isThrowable);
     std::vector<PropertyType> propertyList = { PropertyType::NAME, PropertyType::CREDENTIAL_TYPE };
     napi_value result = nullptr;
-    if ((!ParseContextForAppAccount(env, cbInfo, asyncContext, propertyList, &result)) && isThrowable) {
+    if ((!ParseContextForAppAccount(env, cbInfo, asyncContext.get(), propertyList, &result)) && isThrowable) {
         napi_throw(env, GenerateBusinessError(env, ERR_JS_PARAMETER_ERROR, asyncContext->errMsg));
-        delete asyncContext;
         return NapiGetNull(env);
     }
 
     napi_value resource = nullptr;
     napi_create_string_utf8(env, "GetAccountCredential", NAPI_AUTO_LENGTH, &resource);
 
-    napi_create_async_work(env,
-        nullptr,
-        resource,
+    napi_create_async_work(env, nullptr, resource,
         [](napi_env env, void *data) {
             AppAccountAsyncContext *asyncContext = reinterpret_cast<AppAccountAsyncContext *>(data);
             asyncContext->errCode = AppAccountManager::GetAccountCredential(
@@ -911,27 +785,20 @@ napi_value NapiAppAccount::GetCredentialInternal(napi_env env, napi_callback_inf
             napi_value err = asyncContext->throwErr ? GenerateBusinessError(env, asyncContext->errCode) :
                 GetErrorCodeValue(env, ConvertToJSErrCodeV8(asyncContext->errCode));
             ProcessCallbackOrPromise(env, asyncContext, err, strVal);
-            napi_delete_async_work(env, asyncContext->work);
             delete asyncContext;
-            asyncContext = nullptr;
         },
-        reinterpret_cast<void *>(asyncContext),
-        &asyncContext->work);
+        reinterpret_cast<void *>(asyncContext.get()), &asyncContext->work);
     napi_queue_async_work(env, asyncContext->work);
+    asyncContext.release();
     return result;
 }
 
 napi_value NapiAppAccount::GetAccountExtraInfo(napi_env env, napi_callback_info cbInfo)
 {
-    auto *asyncContext = new (std::nothrow) AppAccountAsyncContext();
-    if (asyncContext == nullptr) {
-        ACCOUNT_LOGE("insufficient memory for asyncContext!");
-        return NapiGetNull(env);
-    }
-    asyncContext->env = env;
+    auto asyncContext = std::make_unique<AppAccountAsyncContext>(env);
     std::vector<PropertyType> propertyList = { PropertyType::NAME };
     napi_value result = nullptr;
-    ParseContextForAppAccount(env, cbInfo, asyncContext, propertyList, &result);
+    ParseContextForAppAccount(env, cbInfo, asyncContext.get(), propertyList, &result);
 
     napi_value resource = nullptr;
     napi_create_string_utf8(env, "GetAccountExtraInfo", NAPI_AUTO_LENGTH, &resource);
@@ -950,13 +817,12 @@ napi_value NapiAppAccount::GetAccountExtraInfo(napi_env env, napi_callback_info 
             napi_create_string_utf8(env, asyncContext->extraInfo.c_str(), NAPI_AUTO_LENGTH, &strVal);
             ProcessCallbackOrPromise(env, asyncContext,
                 GetErrorCodeValue(env, ConvertToJSErrCodeV8(asyncContext->errCode)), strVal);
-            napi_delete_async_work(env, asyncContext->work);
             delete asyncContext;
-            asyncContext = nullptr;
         },
-        reinterpret_cast<void *>(asyncContext),
+        reinterpret_cast<void *>(asyncContext.get()),
         &asyncContext->work);
     napi_queue_async_work(env, asyncContext->work);
+    asyncContext.release();
     return result;
 }
 
@@ -972,18 +838,11 @@ napi_value NapiAppAccount::GetCustomData(napi_env env, napi_callback_info cbInfo
 
 napi_value NapiAppAccount::GetCustomDataInternal(napi_env env, napi_callback_info cbInfo, bool isThrowable)
 {
-    auto *asyncContext = new (std::nothrow) AppAccountAsyncContext();
-    if (asyncContext == nullptr) {
-        ACCOUNT_LOGE("insufficient memory for asyncContext!");
-        return NapiGetNull(env);
-    }
-    asyncContext->env = env;
-    asyncContext->throwErr = isThrowable;
+    auto asyncContext = std::make_unique<AppAccountAsyncContext>(env, isThrowable);
     std::vector<PropertyType> propertyList = { PropertyType::NAME, PropertyType::KEY };
     napi_value result = nullptr;
-    if ((!ParseContextForAppAccount(env, cbInfo, asyncContext, propertyList, &result)) && isThrowable) {
+    if ((!ParseContextForAppAccount(env, cbInfo, asyncContext.get(), propertyList, &result)) && isThrowable) {
         napi_throw(env, GenerateBusinessError(env, ERR_JS_PARAMETER_ERROR, asyncContext->errMsg));
-        delete asyncContext;
         return NapiGetNull(env);
     }
 
@@ -1004,19 +863,18 @@ napi_value NapiAppAccount::GetCustomDataInternal(napi_env env, napi_callback_inf
             napi_value err = asyncContext->throwErr ? GenerateBusinessError(env, asyncContext->errCode) :
                 GetErrorCodeValue(env, ConvertToJSErrCodeV8(asyncContext->errCode));
             ProcessCallbackOrPromise(env, asyncContext, err, strVal);
-            napi_delete_async_work(env, asyncContext->work);
             delete asyncContext;
-            asyncContext = nullptr;
         },
-        reinterpret_cast<void *>(asyncContext),
+        reinterpret_cast<void *>(asyncContext.get()),
         &asyncContext->work);
     napi_queue_async_work(env, asyncContext->work);
+    asyncContext.release();
     return result;
 }
 
 napi_value NapiAppAccount::GetAssociatedDataSync(napi_env env, napi_callback_info cbInfo)
 {
-    AppAccountAsyncContext asyncContext;
+    AppAccountAsyncContext asyncContext(env);
     std::vector<PropertyType> propertyList = { PropertyType::NAME, PropertyType::KEY };
     napi_value res = nullptr;
     if (!ParseContextForAppAccount(env, cbInfo, &asyncContext, propertyList, &res)) {
@@ -1063,27 +921,20 @@ void AuthInternalCompletedCB(napi_env env, napi_status status, void *data)
     if ((asyncContext->errCode != 0) && (asyncContext->appAccountMgrCb != nullptr)) {
         asyncContext->appAccountMgrCb->OnResult(asyncContext->errCode, errResult);
     }
-    napi_delete_async_work(env, asyncContext->work);
     delete asyncContext;
-    asyncContext = nullptr;
 }
 
 napi_value NapiAppAccount::AuthInternal(napi_env env, napi_callback_info cbInfo, bool isThrowable)
 {
-    auto *asyncContext = new (std::nothrow) OAuthAsyncContext(env, isThrowable);
-    if (asyncContext == nullptr) {
-        ACCOUNT_LOGE("insufficient memory for asyncContext!");
-        return NapiGetNull(env);
-    }
+    auto asyncContext = std::make_unique<OAuthAsyncContext>(env, isThrowable);
     if (isThrowable) {
-        if (!ParseContextForAuth(env, cbInfo, asyncContext)) {
+        if (!ParseContextForAuth(env, cbInfo, asyncContext.get())) {
             napi_throw(env, GenerateBusinessError(env, ERR_JS_PARAMETER_ERROR, asyncContext->errMsg));
-            delete asyncContext;
             return NapiGetNull(env);
         }
         asyncContext->options.SetParam(Constants::API_V9, true);
     } else {
-        ParseContextForAuthenticate(env, cbInfo, asyncContext, ARGS_SIZE_FIVE);
+        ParseContextForAuthenticate(env, cbInfo, asyncContext.get(), ARGS_SIZE_FIVE);
     }
     napi_value result = nullptr;
     if (asyncContext->appAccountMgrCb == nullptr) {
@@ -1096,9 +947,10 @@ napi_value NapiAppAccount::AuthInternal(napi_env env, napi_callback_info cbInfo,
     NAPI_CALL(env, napi_create_async_work(env, nullptr, resourceName,
         AuthInternalExecuteCB,
         AuthInternalCompletedCB,
-        reinterpret_cast<void *>(asyncContext),
+        reinterpret_cast<void *>(asyncContext.get()),
         &asyncContext->work));
     NAPI_CALL(env, napi_queue_async_work(env, asyncContext->work));
+    asyncContext.release();
     return NapiGetNull(env);
 }
 
@@ -1114,16 +966,11 @@ napi_value NapiAppAccount::GetAuthToken(napi_env env, napi_callback_info cbInfo)
 
 napi_value NapiAppAccount::GetAuthTokenInternal(napi_env env, napi_callback_info cbInfo, bool isThrowable)
 {
-    auto *asyncContext = new (std::nothrow) OAuthAsyncContext(env, isThrowable);
-    if (asyncContext == nullptr) {
-        ACCOUNT_LOGE("insufficient memory for asyncContext!");
-        return NapiGetNull(env);
-    }
+    auto asyncContext = std::make_unique<OAuthAsyncContext>(env, isThrowable);
     std::vector<PropertyType> propertyList = { PropertyType::NAME, PropertyType::OWNER, PropertyType::AUTH_TYPE };
     napi_value result = nullptr;
-    if ((!ParseContextForOAuth(env, cbInfo, asyncContext, propertyList, &result)) && isThrowable) {
+    if ((!ParseContextForOAuth(env, cbInfo, asyncContext.get(), propertyList, &result)) && isThrowable) {
         napi_throw(env, GenerateBusinessError(env, ERR_JS_PARAMETER_ERROR, asyncContext->errMsg));
-        delete asyncContext;
         return NapiGetNull(env);
     }
 
@@ -1147,13 +994,12 @@ napi_value NapiAppAccount::GetAuthTokenInternal(napi_env env, napi_callback_info
             napi_value err = asyncContext->throwErr ? GenerateBusinessError(env, asyncContext->errCode) :
                 GetErrorCodeValue(env, ConvertToJSErrCodeV8(asyncContext->errCode));
             ProcessCallbackOrPromise(env, asyncContext, err, strVal);
-            napi_delete_async_work(env, asyncContext->work);
             delete asyncContext;
-            asyncContext = nullptr;
         },
-        reinterpret_cast<void *>(asyncContext),
+        reinterpret_cast<void *>(asyncContext.get()),
         &asyncContext->work);
     napi_queue_async_work(env, asyncContext->work);
+    asyncContext.release();
     return result;
 }
 
@@ -1169,16 +1015,11 @@ napi_value NapiAppAccount::SetAuthToken(napi_env env, napi_callback_info cbInfo)
 
 napi_value NapiAppAccount::SetAuthTokenInternal(napi_env env, napi_callback_info cbInfo, bool isThrowable)
 {
-    auto *asyncContext = new (std::nothrow) OAuthAsyncContext(env, isThrowable);
-    if (asyncContext == nullptr) {
-        ACCOUNT_LOGE("insufficient memory for asyncContext!");
-        return NapiGetNull(env);
-    }
+    auto asyncContext = std::make_unique<OAuthAsyncContext>(env, isThrowable);
     std::vector<PropertyType> propertyList = { PropertyType::NAME, PropertyType::AUTH_TYPE, PropertyType::TOKEN };
     napi_value result = nullptr;
-    if ((!ParseContextForOAuth(env, cbInfo, asyncContext, propertyList, &result)) && isThrowable) {
+    if ((!ParseContextForOAuth(env, cbInfo, asyncContext.get(), propertyList, &result)) && isThrowable) {
         napi_throw(env, GenerateBusinessError(env, ERR_JS_PARAMETER_ERROR, asyncContext->errMsg));
-        delete asyncContext;
         return NapiGetNull(env);
     }
     napi_value resource = nullptr;
@@ -1198,13 +1039,12 @@ napi_value NapiAppAccount::SetAuthTokenInternal(napi_env env, napi_callback_info
             napi_value err = asyncContext->throwErr ? GenerateBusinessError(env, asyncContext->errCode) :
                 GetErrorCodeValue(env, ConvertToJSErrCodeV8(asyncContext->errCode));
             ProcessCallbackOrPromise(env, asyncContext, err, NapiGetNull(env));
-            napi_delete_async_work(env, asyncContext->work);
             delete asyncContext;
-            asyncContext = nullptr;
         },
-        reinterpret_cast<void *>(asyncContext),
+        reinterpret_cast<void *>(asyncContext.get()),
         &asyncContext->work);
     napi_queue_async_work(env, asyncContext->work);
+    asyncContext.release();
     return result;
 }
 
@@ -1220,17 +1060,12 @@ napi_value NapiAppAccount::DeleteAuthToken(napi_env env, napi_callback_info cbIn
 
 napi_value NapiAppAccount::DeleteAuthTokenInternal(napi_env env, napi_callback_info cbInfo, bool isThrowable)
 {
-    auto *asyncContext = new (std::nothrow) OAuthAsyncContext(env, isThrowable);
-    if (asyncContext == nullptr) {
-        ACCOUNT_LOGE("insufficient memory for asyncContext!");
-        return NapiGetNull(env);
-    }
+    auto asyncContext = std::make_unique<OAuthAsyncContext>(env, isThrowable);
     std::vector<PropertyType> propertyList = {
         PropertyType::NAME, PropertyType::OWNER, PropertyType::AUTH_TYPE, PropertyType::TOKEN };
     napi_value result = nullptr;
-    if ((!ParseContextForOAuth(env, cbInfo, asyncContext, propertyList, &result)) && isThrowable) {
+    if ((!ParseContextForOAuth(env, cbInfo, asyncContext.get(), propertyList, &result)) && isThrowable) {
         napi_throw(env, GenerateBusinessError(env, ERR_JS_PARAMETER_ERROR, asyncContext->errMsg));
-        delete asyncContext;
         return NapiGetNull(env);
     }
     napi_value resource = nullptr;
@@ -1252,13 +1087,11 @@ napi_value NapiAppAccount::DeleteAuthTokenInternal(napi_env env, napi_callback_i
                 napi_value err = asyncContext->throwErr ? GenerateBusinessError(env, asyncContext->errCode) :
                     GetErrorCodeValue(env, ConvertToJSErrCodeV8(asyncContext->errCode));
                 ProcessCallbackOrPromise(env, asyncContext, err, NapiGetNull(env));
-                napi_delete_async_work(env, asyncContext->work);
                 delete asyncContext;
-                asyncContext = nullptr;
             },
-            reinterpret_cast<void *>(asyncContext),
-            &asyncContext->work));
+            reinterpret_cast<void *>(asyncContext.get()), &asyncContext->work));
     NAPI_CALL(env, napi_queue_async_work(env, asyncContext->work));
+    asyncContext.release();
     return result;
 }
 
@@ -1274,17 +1107,12 @@ napi_value NapiAppAccount::SetAuthTokenVisibility(napi_env env, napi_callback_in
 
 napi_value NapiAppAccount::SetAuthTokenVisibilityInternal(napi_env env, napi_callback_info cbInfo, bool isThrowable)
 {
-    auto *asyncContext = new (std::nothrow) OAuthAsyncContext(env, isThrowable);
-    if (asyncContext == nullptr) {
-        ACCOUNT_LOGE("insufficient memory for asyncContext!");
-        return NapiGetNull(env);
-    }
+    auto asyncContext = std::make_unique<OAuthAsyncContext>(env, isThrowable);
     std::vector<PropertyType> propertyList = {
         PropertyType::NAME, PropertyType::AUTH_TYPE, PropertyType::BUNDLE_NAME, PropertyType::IS_VISIBLE };
     napi_value result = nullptr;
-    if ((!ParseContextForOAuth(env, cbInfo, asyncContext, propertyList, &result)) && isThrowable) {
+    if ((!ParseContextForOAuth(env, cbInfo, asyncContext.get(), propertyList, &result)) && isThrowable) {
         napi_throw(env, GenerateBusinessError(env, ERR_JS_PARAMETER_ERROR, asyncContext->errMsg));
-        delete asyncContext;
         return NapiGetNull(env);
     }
     napi_value resource = nullptr;
@@ -1308,13 +1136,12 @@ napi_value NapiAppAccount::SetAuthTokenVisibilityInternal(napi_env env, napi_cal
                 napi_value err = asyncContext->throwErr ? GenerateBusinessError(env, asyncContext->errCode) :
                     GetErrorCodeValue(env, ConvertToJSErrCodeV8(asyncContext->errCode));
                 ProcessCallbackOrPromise(env, asyncContext, err, NapiGetNull(env));
-                napi_delete_async_work(env, asyncContext->work);
                 delete asyncContext;
-                asyncContext = nullptr;
             },
-            reinterpret_cast<void *>(asyncContext),
+            reinterpret_cast<void *>(asyncContext.get()),
             &asyncContext->work));
     NAPI_CALL(env, napi_queue_async_work(env, asyncContext->work));
+    asyncContext.release();
     return result;
 }
 
@@ -1348,32 +1175,26 @@ static void CheckAuthTokenVisibilityCompleteCB(napi_env env, napi_status status,
     napi_value err = asyncContext->throwErr ? GenerateBusinessError(env, asyncContext->errCode) :
         GetErrorCodeValue(env, ConvertToJSErrCodeV8(asyncContext->errCode));
     ProcessCallbackOrPromise(env, asyncContext, err, boolVal);
-    napi_delete_async_work(env, asyncContext->work);
     delete asyncContext;
-    asyncContext = nullptr;
 }
 
 napi_value NapiAppAccount::CheckAuthTokenVisibilityInternal(napi_env env, napi_callback_info cbInfo, bool isThrowable)
 {
-    auto *asyncContext = new (std::nothrow) OAuthAsyncContext(env, isThrowable);
-    if (asyncContext == nullptr) {
-        ACCOUNT_LOGE("insufficient memory for asyncContext!");
-        return NapiGetNull(env);
-    }
+    auto asyncContext = std::make_unique<OAuthAsyncContext>(env, isThrowable);
     std::vector<PropertyType> propertyList = {
         PropertyType::NAME, PropertyType::AUTH_TYPE, PropertyType::BUNDLE_NAME };
     napi_value result = nullptr;
-    if ((!ParseContextForOAuth(env, cbInfo, asyncContext, propertyList, &result)) && isThrowable) {
+    if ((!ParseContextForOAuth(env, cbInfo, asyncContext.get(), propertyList, &result)) && isThrowable) {
         napi_throw(env, GenerateBusinessError(env, ERR_JS_PARAMETER_ERROR, asyncContext->errMsg));
-        delete asyncContext;
         return NapiGetNull(env);
     }
     napi_value resource = nullptr;
     NAPI_CALL(env, napi_create_string_utf8(env, "CheckOAuthTokenVisibility", NAPI_AUTO_LENGTH, &resource));
     NAPI_CALL(env, napi_create_async_work(env, nullptr, resource,
         CheckAuthTokenVisibilityExecuteCB, CheckAuthTokenVisibilityCompleteCB,
-        reinterpret_cast<void *>(asyncContext), &asyncContext->work));
+        reinterpret_cast<void *>(asyncContext.get()), &asyncContext->work));
     NAPI_CALL(env, napi_queue_async_work(env, asyncContext->work));
+    asyncContext.release();
     return result;
 }
 
@@ -1389,16 +1210,11 @@ napi_value NapiAppAccount::QueryAuthenticatorInfo(napi_env env, napi_callback_in
 
 napi_value NapiAppAccount::QueryAuthenticatorInfoInternal(napi_env env, napi_callback_info cbInfo, bool isThrowable)
 {
-    auto *asyncContext = new (std::nothrow) OAuthAsyncContext(env, isThrowable);
-    if (asyncContext == nullptr) {
-        ACCOUNT_LOGE("insufficient memory for asyncContext!");
-        return NapiGetNull(env);
-    }
+    auto asyncContext = std::make_unique<OAuthAsyncContext>(env, isThrowable);
     std::vector<PropertyType> propertyList = { PropertyType::OWNER };
     napi_value result = nullptr;
-    if ((!ParseContextForOAuth(env, cbInfo, asyncContext, propertyList, &result)) && isThrowable) {
+    if ((!ParseContextForOAuth(env, cbInfo, asyncContext.get(), propertyList, &result)) && isThrowable) {
         napi_throw(env, GenerateBusinessError(env, ERR_JS_PARAMETER_ERROR, asyncContext->errMsg));
-        delete asyncContext;
         return NapiGetNull(env);
     }
 
@@ -1421,13 +1237,12 @@ napi_value NapiAppAccount::QueryAuthenticatorInfoInternal(napi_env env, napi_cal
                 napi_value err = asyncContext->throwErr ? GenerateBusinessError(env, asyncContext->errCode) :
                     GetErrorCodeValue(env, ConvertToJSErrCodeV8(asyncContext->errCode));
                 ProcessCallbackOrPromise(env, asyncContext, err, result);
-                napi_delete_async_work(env, asyncContext->work);
                 delete asyncContext;
-                asyncContext = nullptr;
             },
-            reinterpret_cast<void *>(asyncContext),
+            reinterpret_cast<void *>(asyncContext.get()),
             &asyncContext->work));
     NAPI_CALL(env, napi_queue_async_work(env, asyncContext->work));
+    asyncContext.release();
     return result;
 }
 
@@ -1443,16 +1258,11 @@ napi_value NapiAppAccount::GetAllAuthTokens(napi_env env, napi_callback_info cbI
 
 napi_value NapiAppAccount::GetAllAuthTokensInternal(napi_env env, napi_callback_info cbInfo, bool isThrowable)
 {
-    auto *asyncContext = new (std::nothrow) OAuthAsyncContext(env, isThrowable);
-    if (asyncContext == nullptr) {
-        ACCOUNT_LOGE("insufficient memory for asyncContext!");
-        return NapiGetNull(env);
-    }
+    auto asyncContext = std::make_unique<OAuthAsyncContext>(env, isThrowable);
     std::vector<PropertyType> propertyList = { PropertyType::NAME, PropertyType::OWNER };
     napi_value result = nullptr;
-    if ((!ParseContextForOAuth(env, cbInfo, asyncContext, propertyList, &result)) && isThrowable) {
+    if ((!ParseContextForOAuth(env, cbInfo, asyncContext.get(), propertyList, &result)) && isThrowable) {
         napi_throw(env, GenerateBusinessError(env, ERR_JS_PARAMETER_ERROR, asyncContext->errMsg));
-        delete asyncContext;
         return NapiGetNull(env);
     }
 
@@ -1475,13 +1285,12 @@ napi_value NapiAppAccount::GetAllAuthTokensInternal(napi_env env, napi_callback_
                 napi_value err = asyncContext->throwErr ? GenerateBusinessError(env, asyncContext->errCode) :
                     GetErrorCodeValue(env, ConvertToJSErrCodeV8(asyncContext->errCode));
                 ProcessCallbackOrPromise(env, asyncContext, err, arrVal);
-                napi_delete_async_work(env, asyncContext->work);
                 delete asyncContext;
-                asyncContext = nullptr;
             },
-            reinterpret_cast<void *>(asyncContext),
+            reinterpret_cast<void *>(asyncContext.get()),
             &asyncContext->work));
     NAPI_CALL(env, napi_queue_async_work(env, asyncContext->work));
+    asyncContext.release();
     return result;
 }
 
@@ -1497,16 +1306,11 @@ napi_value NapiAppAccount::GetAuthList(napi_env env, napi_callback_info cbInfo)
 
 napi_value NapiAppAccount::GetAuthListInternal(napi_env env, napi_callback_info cbInfo, bool isThrowable)
 {
-    auto *asyncContext = new (std::nothrow) OAuthAsyncContext(env, isThrowable);
-    if (asyncContext == nullptr) {
-        ACCOUNT_LOGE("insufficient memory for asyncContext!");
-        return NapiGetNull(env);
-    }
+    auto asyncContext = std::make_unique<OAuthAsyncContext>(env, isThrowable);
     std::vector<PropertyType> propertyList = { PropertyType::NAME, PropertyType::AUTH_TYPE };
     napi_value result = nullptr;
-    if ((!ParseContextForOAuth(env, cbInfo, asyncContext, propertyList, &result)) && isThrowable) {
+    if ((!ParseContextForOAuth(env, cbInfo, asyncContext.get(), propertyList, &result)) && isThrowable) {
         napi_throw(env, GenerateBusinessError(env, ERR_JS_PARAMETER_ERROR, asyncContext->errMsg));
-        delete asyncContext;
         return NapiGetNull(env);
     }
 
@@ -1532,13 +1336,12 @@ napi_value NapiAppAccount::GetAuthListInternal(napi_env env, napi_callback_info 
                 napi_value err = asyncContext->throwErr ? GenerateBusinessError(env, asyncContext->errCode) :
                     GetErrorCodeValue(env, ConvertToJSErrCodeV8(asyncContext->errCode));
                 ProcessCallbackOrPromise(env, asyncContext, err, arrVal);
-                napi_delete_async_work(env, asyncContext->work);
                 delete asyncContext;
-                asyncContext = nullptr;
             },
-            reinterpret_cast<void *>(asyncContext),
+            reinterpret_cast<void *>(asyncContext.get()),
             &asyncContext->work));
     NAPI_CALL(env, napi_queue_async_work(env, asyncContext->work));
+    asyncContext.release();
     return result;
 }
 
@@ -1554,16 +1357,11 @@ napi_value NapiAppAccount::GetAuthCallback(napi_env env, napi_callback_info cbIn
 
 napi_value NapiAppAccount::GetAuthCallbackInternal(napi_env env, napi_callback_info cbInfo, bool isThrowable)
 {
-    auto *asyncContext = new (std::nothrow) OAuthAsyncContext(env, isThrowable);
-    if (asyncContext == nullptr) {
-        ACCOUNT_LOGE("insufficient memory for asyncContext!");
-        return NapiGetNull(env);
-    }
+    auto asyncContext = std::make_unique<OAuthAsyncContext>(env, isThrowable);
     std::vector<PropertyType> propertyList = { PropertyType::SESSION_ID };
     napi_value result = nullptr;
-    if ((!ParseContextForOAuth(env, cbInfo, asyncContext, propertyList, &result)) && isThrowable) {
+    if ((!ParseContextForOAuth(env, cbInfo, asyncContext.get(), propertyList, &result)) && isThrowable) {
         napi_throw(env, GenerateBusinessError(env, ERR_JS_PARAMETER_ERROR, asyncContext->errMsg));
-        delete asyncContext;
         return NapiGetNull(env);
     }
 
@@ -1585,29 +1383,22 @@ napi_value NapiAppAccount::GetAuthCallbackInternal(napi_env env, napi_callback_i
                 napi_value err = asyncContext->throwErr ? GenerateBusinessError(env, asyncContext->errCode) :
                     GetErrorCodeValue(env, ConvertToJSErrCodeV8(asyncContext->errCode));
                 ProcessCallbackOrPromise(env, asyncContext, err, result);
-                napi_delete_async_work(env, asyncContext->work);
                 delete asyncContext;
-                asyncContext = nullptr;
             },
-            reinterpret_cast<void *>(asyncContext),
+            reinterpret_cast<void *>(asyncContext.get()),
             &asyncContext->work));
     NAPI_CALL(env, napi_queue_async_work(env, asyncContext->work));
+    asyncContext.release();
     return result;
 }
 
 napi_value NapiAppAccount::CheckAppAccess(napi_env env, napi_callback_info cbInfo)
 {
-    auto *context = new (std::nothrow) AppAccountAsyncContext();
-    if (context == nullptr) {
-        ACCOUNT_LOGE("insufficient memory for context!");
-        return NapiGetNull(env);
-    }
-    context->env = env;
+    auto context = std::make_unique<AppAccountAsyncContext>(env);
     std::vector<PropertyType> propertyList = { PropertyType::NAME, PropertyType::BUNDLE_NAME };
     napi_value result = nullptr;
-    if (!ParseContextForAppAccount(env, cbInfo, context, propertyList, &result)) {
+    if (!ParseContextForAppAccount(env, cbInfo, context.get(), propertyList, &result)) {
         napi_throw(env, GenerateBusinessError(env, ERR_JS_PARAMETER_ERROR, context->errMsg));
-        delete context;
         return NapiGetNull(env);
     }
 
@@ -1626,13 +1417,12 @@ napi_value NapiAppAccount::CheckAppAccess(napi_env env, napi_callback_info cbInf
             napi_value boolVal = nullptr;
             napi_get_boolean(env, context->isAccessible, &boolVal);
             ProcessCallbackOrPromise(env, context, GenerateBusinessError(env, context->errCode), boolVal);
-            napi_delete_async_work(env, context->work);
             delete context;
-            context = nullptr;
         },
-        reinterpret_cast<void *>(context),
+        reinterpret_cast<void *>(context.get()),
         &context->work));
     NAPI_CALL(env, napi_queue_async_work(env, context->work));
+    context.release();
     return result;
 }
 
@@ -1648,19 +1438,12 @@ napi_value NapiAppAccount::DeleteCredential(napi_env env, napi_callback_info cbI
 
 napi_value NapiAppAccount::DeleteCredentialInternal(napi_env env, napi_callback_info cbInfo, bool isThrowable)
 {
-    napi_value result = NapiGetNull(env);
-    auto *context = new (std::nothrow) AppAccountAsyncContext();
-    if (context == nullptr) {
-        ACCOUNT_LOGE("insufficient memory for context!");
-        return result;
-    }
-    context->env = env;
-    context->throwErr = isThrowable;
+    auto context = std::make_unique<AppAccountAsyncContext>(env, isThrowable);
     std::vector<PropertyType> propertyList = { PropertyType::NAME, PropertyType::CREDENTIAL_TYPE };
-    if ((!ParseContextForAppAccount(env, cbInfo, context, propertyList, &result)) && isThrowable) {
+    napi_value result = nullptr;
+    if ((!ParseContextForAppAccount(env, cbInfo, context.get(), propertyList, &result)) && isThrowable) {
         napi_throw(env, GenerateBusinessError(env, ERR_JS_PARAMETER_ERROR, context->errMsg));
-        delete context;
-        return result;
+        return NapiGetNull(env);
     }
 
     napi_value resource = nullptr;
@@ -1680,25 +1463,18 @@ napi_value NapiAppAccount::DeleteCredentialInternal(napi_env env, napi_callback_
                 napi_get_undefined(env, &ret);
                 ProcessCallbackOrPromise(env, context, GenerateBusinessError(env, context->errCode), ret);
             }
-            napi_delete_async_work(env, context->work);
             delete context;
-            context = nullptr;
-        }, reinterpret_cast<void *>(context), &context->work);
+        }, reinterpret_cast<void *>(context.get()), &context->work);
     napi_queue_async_work(env, context->work);
+    context.release();
     return result;
 }
 
 napi_value NapiAppAccount::CheckAccountLabels(napi_env env, napi_callback_info cbInfo)
 {
-    auto context = new (std::nothrow) CheckAccountLabelsContext();
-    if (context == nullptr) {
-        ACCOUNT_LOGE("insufficient memory for context!");
-        return NapiGetNull(env);
-    }
-    context->env = env;
-    if (!ParseContextForCheckAccountLabels(env, cbInfo, context)) {
+    auto context = std::make_unique<CheckAccountLabelsContext>(env);
+    if (!ParseContextForCheckAccountLabels(env, cbInfo, context.get())) {
         napi_throw(env, GenerateBusinessError(env, ERR_JS_PARAMETER_ERROR, context->errMsg));
-        delete context;
         return NapiGetNull(env);
     }
     napi_value result = nullptr;
@@ -1715,7 +1491,7 @@ napi_value NapiAppAccount::CheckAccountLabels(napi_env env, napi_callback_info c
         [](napi_env env, void *data) {
             auto context = reinterpret_cast<CheckAccountLabelsContext *>(data);
             sptr<AuthenticatorAsyncCallback> callback = new (std::nothrow) AuthenticatorAsyncCallback(
-                *context, CheckAccountLabelsOnResultWork);
+                context->env, context->callbackRef, context->deferred, CheckAccountLabelsOnResultWork);
             if (callback == nullptr) {
                 ACCOUNT_LOGE("failed to create AuthenticatorAsyncCallback for insufficient memory");
                 context->errCode = ERR_ACCOUNT_COMMON_INSUFFICIENT_MEMORY_ERROR;
@@ -1728,27 +1504,22 @@ napi_value NapiAppAccount::CheckAccountLabels(napi_env env, napi_callback_info c
             auto context = reinterpret_cast<CheckAccountLabelsContext *>(data);
             if (context->errCode != ERR_OK) {
                 ProcessCallbackOrPromise(env, context, GenerateBusinessError(env, context->errCode), NapiGetNull(env));
+            } else {
+                context->callbackRef = nullptr;
             }
-            napi_delete_async_work(env, context->work);
             delete context;
-            context = nullptr;
         },
-        reinterpret_cast<void *>(context), &context->work));
+        reinterpret_cast<void *>(context.get()), &context->work));
     NAPI_CALL(env, napi_queue_async_work(env, context->work));
+    context.release();
     return result;
 }
 
 napi_value NapiAppAccount::SelectAccountsByOptions(napi_env env, napi_callback_info cbInfo)
 {
-    auto *context = new (std::nothrow) SelectAccountsContext();
-    if (context == nullptr) {
-        ACCOUNT_LOGE("insufficient memory for context!");
-        return NapiGetNull(env);
-    }
-    context->env = env;
-    if (!ParseContextForSelectAccount(env, cbInfo, context)) {
+    auto context = std::make_unique<SelectAccountsContext>(env);
+    if (!ParseContextForSelectAccount(env, cbInfo, context.get())) {
         napi_throw(env, GenerateBusinessError(env, ERR_JS_PARAMETER_ERROR, context->errMsg));
-        delete context;
         return NapiGetNull(env);
     }
     napi_value result = nullptr;
@@ -1765,7 +1536,7 @@ napi_value NapiAppAccount::SelectAccountsByOptions(napi_env env, napi_callback_i
         [](napi_env env, void *data) {
             auto context = reinterpret_cast<SelectAccountsContext *>(data);
             sptr<AuthenticatorAsyncCallback> callback = new (std::nothrow) AuthenticatorAsyncCallback(
-                *context, SelectAccountsOnResultWork);
+                context->env, context->callbackRef, context->deferred, SelectAccountsOnResultWork);
             if (callback == nullptr) {
                 ACCOUNT_LOGD("failed to create AuthenticatorAsyncCallback for insufficient memory");
                 context->errCode = ERR_ACCOUNT_COMMON_INSUFFICIENT_MEMORY_ERROR;
@@ -1778,27 +1549,22 @@ napi_value NapiAppAccount::SelectAccountsByOptions(napi_env env, napi_callback_i
             auto context = reinterpret_cast<SelectAccountsContext *>(data);
             if (context->errCode != ERR_OK) {
                 ProcessCallbackOrPromise(env, context, GenerateBusinessError(env, context->errCode), NapiGetNull(env));
+            } else {
+                context->callbackRef = nullptr;
             }
-            napi_delete_async_work(env, context->work);
             delete context;
-            context = nullptr;
         },
-        reinterpret_cast<void *>(context), &context->work));
+        reinterpret_cast<void *>(context.get()), &context->work));
     NAPI_CALL(env, napi_queue_async_work(env, context->work));
+    context.release();
     return result;
 }
 
 napi_value NapiAppAccount::VerifyCredential(napi_env env, napi_callback_info cbInfo)
 {
-    auto *context = new (std::nothrow) VerifyCredentialContext();
-    if (context == nullptr) {
-        ACCOUNT_LOGE("insufficient memory for context!");
-        return NapiGetNull(env);
-    }
-    context->env = env;
-    if (!ParseContextForVerifyCredential(env, cbInfo, context)) {
+    auto context = std::make_unique<VerifyCredentialContext>(env);
+    if (!ParseContextForVerifyCredential(env, cbInfo, context.get())) {
         napi_throw(env, GenerateBusinessError(env, ERR_JS_PARAMETER_ERROR, context->errMsg));
-        delete context;
         return NapiGetNull(env);
     }
     context->appAccountMgrCb = new (std::nothrow) AppAccountManagerCallback(env, context->callback);
@@ -1806,7 +1572,6 @@ napi_value NapiAppAccount::VerifyCredential(napi_env env, napi_callback_info cbI
         ACCOUNT_LOGD("failed to create AppAccountManagerCallback for insufficient memory");
         AAFwk::WantParams result;
         ProcessOnResultCallback(env, context->callback, ERR_JS_SYSTEM_SERVICE_EXCEPTION, result);
-        delete context;
         return NapiGetNull(env);
     }
     napi_value resource = nullptr;
@@ -1820,22 +1585,17 @@ napi_value NapiAppAccount::VerifyCredential(napi_env env, napi_callback_info cbI
                 context->name, context->owner, context->options, context->appAccountMgrCb);
             context->errCode = ConvertToJSErrCode(errCode);
         },
-        VerifyCredCompleteCB, reinterpret_cast<void *>(context), &context->work));
+        VerifyCredCompleteCB, reinterpret_cast<void *>(context.get()), &context->work));
     NAPI_CALL(env, napi_queue_async_work(env, context->work));
+    context.release();
     return NapiGetNull(env);
 }
 
 napi_value NapiAppAccount::SetAuthenticatorProperties(napi_env env, napi_callback_info cbInfo)
 {
-    auto *context = new (std::nothrow) SetPropertiesContext();
-    if (context == nullptr) {
-        ACCOUNT_LOGE("insufficient memory for context!");
-        return NapiGetNull(env);
-    }
-    context->env = env;
-    if (!ParseContextForSetProperties(env, cbInfo, context)) {
+    auto context = std::make_unique<SetPropertiesContext>(env);
+    if (!ParseContextForSetProperties(env, cbInfo, context.get())) {
         napi_throw(env, GenerateBusinessError(env, ERR_JS_PARAMETER_ERROR, context->errMsg));
-        delete context;
         return NapiGetNull(env);
     }
     context->appAccountMgrCb = new (std::nothrow) AppAccountManagerCallback(env, context->callback);
@@ -1843,7 +1603,6 @@ napi_value NapiAppAccount::SetAuthenticatorProperties(napi_env env, napi_callbac
         ACCOUNT_LOGD("failed to create AppAccountManagerCallback for insufficient memory");
         AAFwk::WantParams result;
         ProcessOnResultCallback(env, context->callback, ERR_JS_SYSTEM_SERVICE_EXCEPTION, result);
-        delete context;
         return NapiGetNull(env);
     }
     napi_value resource = nullptr;
@@ -1863,13 +1622,12 @@ napi_value NapiAppAccount::SetAuthenticatorProperties(napi_env env, napi_callbac
                 AAFwk::Want errResult;
                 context->appAccountMgrCb->OnResult(context->errCode, errResult);
             }
-            napi_delete_async_work(env, context->work);
             delete context;
-            context = nullptr;
         },
-        reinterpret_cast<void *>(context),
+        reinterpret_cast<void *>(context.get()),
         &context->work));
     NAPI_CALL(env, napi_queue_async_work(env, context->work));
+    context.release();
     return NapiGetNull(env);
 }
 
@@ -1887,26 +1645,13 @@ static bool IsExitSubscribe(napi_env env, AsyncContextForSubscribe *context)
     return false;
 }
 
-static void DeleteSubscribeContext(napi_env env, AsyncContextForSubscribe *context)
-{
-    if (context->callbackRef != nullptr) {
-        napi_delete_reference(env, context->callbackRef);
-    }
-    delete context;
-}
-
 napi_value NapiAppAccount::Subscribe(napi_env env, napi_callback_info cbInfo)
 {
-    AsyncContextForSubscribe *context = new (std::nothrow) AsyncContextForSubscribe(env);
-    if (context == nullptr) {
-        ACCOUNT_LOGE("asyncContextForOn is null");
-        return NapiGetNull(env);
-    }
-    if (!ParseParametersBySubscribe(env, cbInfo, context)) {
+    auto context = std::make_unique<AsyncContextForSubscribe>(env);
+    if (!ParseParametersBySubscribe(env, cbInfo, context.get())) {
         if (context->type != TYPE_CHANGE) {
             napi_throw(env, GenerateBusinessError(env, context->errCode, context->errMsg));
         }
-        DeleteSubscribeContext(env, context);
         return NapiGetNull(env);
     }
     if (context->appAccountManager == nullptr) {
@@ -1914,31 +1659,27 @@ napi_value NapiAppAccount::Subscribe(napi_env env, napi_callback_info cbInfo)
             napi_throw(env, GenerateBusinessError(env, ERR_JS_SYSTEM_SERVICE_EXCEPTION,
                 std::string("system service exception")));
         }
-        DeleteSubscribeContext(env, context);
         return NapiGetNull(env);
     }
     AppAccountSubscribeInfo subscribeInfo(context->owners);
     context->subscriber = std::make_shared<SubscriberPtr>(subscribeInfo);
     if (context->subscriber == nullptr) {
         ACCOUNT_LOGE("fail to create subscriber");
-        DeleteSubscribeContext(env, context);
         return NapiGetNull(env);
     }
     context->subscriber->SetEnv(env);
     context->subscriber->SetCallbackRef(context->callbackRef);
-    {
-        std::lock_guard<std::mutex> lock(g_lockForAppAccountSubscribers);
-        if (IsExitSubscribe(env, context)) {
-            DeleteSubscribeContext(env, context);
-            return NapiGetNull(env);
-        }
-        g_AppAccountSubscribers[context->appAccountManager].emplace_back(context);
+    std::lock_guard<std::mutex> lock(g_lockForAppAccountSubscribers);
+    if (IsExitSubscribe(env, context.get())) {
+        return NapiGetNull(env);
     }
     ErrCode errCode = AppAccountManager::SubscribeAppAccount(context->subscriber);
     if ((errCode != ERR_OK) && (context->type != TYPE_CHANGE)) {
-        DeleteSubscribeContext(env, context);
         napi_throw(env, GenerateBusinessError(env, errCode));
+        return NapiGetNull(env);
     }
+    g_AppAccountSubscribers[context->appAccountManager].emplace_back(context.get());
+    context.release();
     return NapiGetNull(env);
 }
 
@@ -1959,7 +1700,6 @@ static void UnsubscribeSync(napi_env env, const AsyncContextForUnsubscribe *cont
             napi_throw(env, GenerateBusinessError(env, errCode));
             return;
         }
-        napi_delete_reference(env, subscribe->second[index]->callbackRef);
         delete subscribe->second[index];
         if (context->callbackRef != nullptr) {
             subscribe->second.erase(subscribe->second.begin() + index);
@@ -1968,9 +1708,6 @@ static void UnsubscribeSync(napi_env env, const AsyncContextForUnsubscribe *cont
     }
     if ((context->callbackRef == nullptr) || (subscribe->second.empty())) {
         g_AppAccountSubscribers.erase(subscribe);
-    }
-    if (context->callbackRef != nullptr) {
-        napi_delete_reference(env, context->callbackRef);
     }
 }
 

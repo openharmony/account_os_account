@@ -85,43 +85,6 @@ int32_t AccountIAMConvertToJSErrCode(int32_t errCode)
     return AccountIAMConvertOtherToJSErrCode(errCode);
 }
 
-static void ReleaseWorkAndCallback(napi_env env, napi_async_work work, napi_ref callbackRef)
-{
-    if (env == nullptr) {
-        return;
-    }
-    if (work != nullptr) {
-        napi_delete_async_work(env, work);
-    }
-    if (callbackRef != nullptr) {
-        napi_delete_reference(env, callbackRef);
-    }
-}
-
-IAMAsyncContext::IAMAsyncContext(napi_env napiEnv) : CommonAsyncContext(napiEnv)
-{}
-
-IAMAsyncContext::~IAMAsyncContext()
-{
-    ReleaseWorkAndCallback(env, work, callbackRef);
-    work = nullptr;
-    callbackRef = nullptr;
-}
-
-GetPropertyContext::~GetPropertyContext()
-{
-    ReleaseWorkAndCallback(env, work, callbackRef);
-    work = nullptr;
-    callbackRef = nullptr;
-}
-
-SetPropertyContext::~SetPropertyContext()
-{
-    ReleaseWorkAndCallback(env, work, callbackRef);
-    work = nullptr;
-    callbackRef = nullptr;
-}
-
 #ifdef HAS_USER_AUTH_PART
 NapiIDMCallback::NapiIDMCallback(napi_env env, const JsIAMCallback &callback) : env_(env), callback_(callback)
 {}
@@ -858,6 +821,7 @@ static void OnGetDataWork(uv_work_t* work, int status)
     GetInputerInstance(context.get(), &argv[PARAM_ONE]);
     ACCOUNT_LOGI("call js function");
     NapiCallVoidFunction(context->env, argv, ARG_SIZE_TWO, context->callbackRef);
+    context->callbackRef = nullptr;
     std::unique_lock<std::mutex> lock(context->lockInfo->mutex);
     context->lockInfo->count--;
     context->lockInfo->condition.notify_all();
@@ -904,6 +868,7 @@ void NapiGetDataCallback::OnGetData(int32_t authSubType, const std::shared_ptr<A
     ACCOUNT_LOGI("create get data work finish");
     if (errCode != 0) {
         ACCOUNT_LOGE("failed to uv_queue_work, errCode: %{public}d", errCode);
+        context->callbackRef = nullptr;
         return;
     }
     lockInfo_.count++;
@@ -918,8 +883,6 @@ void CallbackAsyncOrPromise(napi_env env, CommonAsyncContext *context, napi_valu
         napi_value argv[ARG_SIZE_TWO] = {errJs, dataJs};
         ACCOUNT_LOGI("call js function");
         NapiCallVoidFunction(env, argv, ARG_SIZE_TWO, context->callbackRef);
-        napi_delete_reference(env, context->callbackRef);
-        context->callbackRef = nullptr;
     } else {
         if (context->errCode == ERR_OK) {
             napi_resolve_deferred(env, context->deferred, dataJs);

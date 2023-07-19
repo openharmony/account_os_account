@@ -48,9 +48,6 @@ std::map<AppAccountManager *, std::vector<AsyncContextForSubscribe *>> g_AppAcco
 SubscriberPtr::SubscriberPtr(const AppAccountSubscribeInfo &subscribeInfo) : AppAccountSubscriber(subscribeInfo)
 {}
 
-SubscriberPtr::~SubscriberPtr()
-{}
-
 void UvQueueWorkOnAppAccountsChanged(uv_work_t *work, int status)
 {
     std::unique_ptr<uv_work_t> workPtr(work);
@@ -182,8 +179,8 @@ void SelectAccountsOnResultWork(uv_work_t *work, int status)
 }
 
 AuthenticatorAsyncCallback::AuthenticatorAsyncCallback(
-    const CommonAsyncContext &context, uv_after_work_cb workCb)
-    : context_(context), workCb_(workCb)
+    napi_env env, napi_ref ref, napi_deferred deferred, uv_after_work_cb workCb)
+    : env_(env), callbackRef_(ref), deferred_(deferred), workCb_(workCb)
 {}
 
 AuthenticatorAsyncCallback::~AuthenticatorAsyncCallback()
@@ -201,18 +198,21 @@ void AuthenticatorAsyncCallback::OnResult(int32_t resultCode, const AAFwk::Want 
     uv_loop_s *loop = nullptr;
     uv_work_t *work = nullptr;
     AuthenticatorCallbackParam *param = nullptr;
-    if (!InitAuthenticatorWorkEnv(context_.env, &loop, &work, &param)) {
+    if (!InitAuthenticatorWorkEnv(env_, &loop, &work, &param)) {
         ACCOUNT_LOGE("failed to init work environment");
         return;
     }
-    param->context = context_;
+    param->context.env = env_;
+    param->context.callbackRef = callbackRef_;
+    param->context.deferred = deferred_;
     param->context.errCode = resultCode;
     param->result = result;
     work->data = param;
     if (uv_queue_work(loop, work, [](uv_work_t *work) {}, workCb_) == ERR_OK) {
         return;
     }
-    ReleaseNapiRefAsync(context_.env, context_.callbackRef);
+    param->context.callbackRef = nullptr;
+    ReleaseNapiRefAsync(env_, callbackRef_);
     delete param;
     delete work;
 }
@@ -891,12 +891,6 @@ void UnsubscribeCallbackCompletedCB(napi_env env, napi_status status, void *data
         NapiCallVoidFunction(env, results, ARGS_SIZE_ONE, asyncContextForOff->callbackRef);
     }
 
-    if (asyncContextForOff->callbackRef != nullptr) {
-        napi_delete_reference(env, asyncContextForOff->callbackRef);
-    }
-
-    napi_delete_async_work(env, asyncContextForOff->work);
-
     {
         std::lock_guard<std::mutex> lock(g_lockForAppAccountSubscribers);
         ACCOUNT_LOGD("Erase before g_AppAccountSubscribers.size = %{public}zu", g_AppAccountSubscribers.size());
@@ -904,7 +898,6 @@ void UnsubscribeCallbackCompletedCB(napi_env env, napi_status status, void *data
         auto subscribe = g_AppAccountSubscribers.find(asyncContextForOff->appAccountManager);
         if (subscribe != g_AppAccountSubscribers.end()) {
             for (auto offCBInfo : subscribe->second) {
-                napi_delete_reference(env, offCBInfo->callbackRef);
                 delete offCBInfo;
             }
             g_AppAccountSubscribers.erase(subscribe);
@@ -912,7 +905,6 @@ void UnsubscribeCallbackCompletedCB(napi_env env, napi_status status, void *data
         ACCOUNT_LOGD("Erase end g_AppAccountSubscribers.size = %{public}zu", g_AppAccountSubscribers.size());
     }
     delete asyncContextForOff;
-    asyncContextForOff = nullptr;
 }
 
 bool ParseVerifyCredentialOptions(napi_env env, napi_value object, VerifyCredentialOptions &options)
@@ -1253,9 +1245,7 @@ void VerifyCredCompleteCB(napi_env env, napi_status status, void *data)
         AAFwk::Want errResult;
         context->appAccountMgrCb->OnResult(context->errCode, errResult);
     }
-    napi_delete_async_work(env, context->work);
     delete context;
-    context = nullptr;
 }
 
 void ProcessOnResultCallback(
