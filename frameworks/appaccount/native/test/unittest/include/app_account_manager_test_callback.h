@@ -34,6 +34,8 @@ class MockAppAccountAuthorizationExtensionCallbackStub final
 public:
     MOCK_METHOD2(
         OnResult, void(const AccountSA::AsyncCallbackError &businessError, const AAFwk::WantParams &parameters));
+    void OnRequestRedirected(const AAFwk::Want &request)
+    {}
 };
 }  // namespace AccountTest
 }  // OHOS
