@@ -121,6 +121,7 @@ struct AuthorizationRequest {
     AuthorizationRequest(const int32_t &callingUid, const AAFwk::WantParams &parameters,
         const sptr<IAppAccountAuthorizationExtensionCallback> &callback);
     int32_t callerUid = -1;
+    bool isEnableContext = false;
     AAFwk::WantParams parameters;
     sptr<IAppAccountAuthorizationExtensionCallback> callback = nullptr;
 };
