@@ -744,7 +744,7 @@ ErrCode OsAccountProxy::SendRequest(OsAccountInterfaceCode code, MessageParcel &
     sptr<IRemoteObject> remote = Remote();
     if (remote == nullptr) {
         ACCOUNT_LOGE("remote is nullptr, code = %{public}d", code);
-        return ERR_OSACCOUNT_KIT_REMOTE_IS_NULLPTR;
+        return ERR_ACCOUNT_COMMON_NULL_PTR_ERROR;
     }
 
     MessageOption option(MessageOption::TF_SYNC);

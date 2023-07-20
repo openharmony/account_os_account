@@ -249,7 +249,7 @@ std::int32_t AccountProxy::QueryDeviceAccountId(std::int32_t &accountId)
     MessageParcel reply;
     auto ret = SendRequest(AccountMgrInterfaceCode::QUERY_DEVICE_ACCOUNT_ID, data, reply);
     if (ret != ERR_NONE) {
-        return ERR_ACCOUNT_ZIDL_ACCOUNT_SEND_REQUEST_ERROR;
+        return ret;
     }
     accountId = reply.ReadInt32();
     return ERR_OK;

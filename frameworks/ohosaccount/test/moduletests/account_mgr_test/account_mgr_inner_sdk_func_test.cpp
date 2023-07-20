@@ -345,7 +345,7 @@ HWTEST_F(AccountMgrInnerSdkFuncTest, SetOhosAccountInfo005, TestSize.Level0)
     }
 
     auto ret = OhosAccountKits::GetInstance().SetOhosAccountInfo(accountInfo, g_eventLogin);
-    EXPECT_EQ(ret, ERR_OHOSACCOUNT_KIT_INVALID_PARAMETER);
+    EXPECT_EQ(ret, ERR_ACCOUNT_COMMON_INVALID_PARAMETER);
     ret = OhosAccountKits::GetInstance().GetOhosAccountInfo(accountInfoget);
     EXPECT_EQ(ret, ERR_OK);
     EXPECT_EQ(accountInfoget.uid_, DEFAULT_OHOS_ACCOUNT_UID);
@@ -378,7 +378,7 @@ HWTEST_F(AccountMgrInnerSdkFuncTest, SetOhosAccountInfo006, TestSize.Level0)
 
 
     auto ret = OhosAccountKits::GetInstance().SetOhosAccountInfo(accountInfo, g_eventLogin);
-    EXPECT_EQ(ret, ERR_OHOSACCOUNT_KIT_INVALID_PARAMETER);
+    EXPECT_EQ(ret, ERR_ACCOUNT_COMMON_INVALID_PARAMETER);
     ret = OhosAccountKits::GetInstance().GetOhosAccountInfo(accountInfoget);
     EXPECT_EQ(ret, ERR_OK);
     EXPECT_EQ(accountInfoget.uid_, DEFAULT_OHOS_ACCOUNT_UID);
