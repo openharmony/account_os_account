@@ -69,7 +69,7 @@ static ErrCode ReadAvatarData(MessageParcel &data, std::string &avatarStr)
     }
     if ((avatarSize - 1 > AVATAR_MAX_SIZE) || (avatarSize - 1 < 0)) {
         ACCOUNT_LOGE("avatarSize is invalid");
-        return ERR_OHOSACCOUNT_KIT_INVALID_PARAMETER;
+        return ERR_ACCOUNT_COMMON_INVALID_PARAMETER;
     }
     const char *avatar = reinterpret_cast<const char *>(data.ReadRawData(avatarSize));
     if (avatar == nullptr) {

@@ -717,7 +717,7 @@ HWTEST_F(InnerAppAccountManagerTest, AppAccount_SubscribeAppAccount_001, TestSiz
     // subscribe app account
     ErrCode result = innerManagerPtr_->SubscribeAppAccount(subscribeInfo, nullptr, UID, STRING_OWNER, 0);
 
-    EXPECT_EQ(result, ERR_APPACCOUNT_SERVICE_EVENT_LISTENER_IS_NULLPTR);
+    EXPECT_EQ(result, ERR_ACCOUNT_COMMON_NULL_PTR_ERROR);
 }
 
 /**
@@ -757,7 +757,7 @@ HWTEST_F(InnerAppAccountManagerTest, AppAccount_UnsubscribeAppAccount_001, TestS
     // unsubscribe app account
     ErrCode result = innerManagerPtr_->UnsubscribeAppAccount(nullptr);
 
-    EXPECT_EQ(result, ERR_APPACCOUNT_SERVICE_EVENT_LISTENER_IS_NULLPTR);
+    EXPECT_EQ(result, ERR_ACCOUNT_COMMON_NULL_PTR_ERROR);
 }
 
 /**

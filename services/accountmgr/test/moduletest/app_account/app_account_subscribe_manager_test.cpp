@@ -67,7 +67,7 @@ HWTEST_F(AppAccountSubscribeManagerTest, SubscribeAppAccount_0100, TestSize.Leve
     ACCOUNT_LOGI("AppAccountSubscribeManager_SubscribeAppAccount_0100");
     ErrCode ret = AppAccountSubscribeManager::GetInstance().SubscribeAppAccount(
         nullptr, nullptr, TEST_UID, TEST_BUNDLE_NAME, TEST_APP_INDEX);
-    EXPECT_EQ(ret, ERR_APPACCOUNT_SERVICE_SUBSCRIBE_INFO_PTR_IS_NULLPTR);
+    EXPECT_EQ(ret, ERR_ACCOUNT_COMMON_NULL_PTR_ERROR);
 
     // check eventListener is nullptr.
     std::vector<std::string> owners;
@@ -78,7 +78,7 @@ HWTEST_F(AppAccountSubscribeManagerTest, SubscribeAppAccount_0100, TestSize.Leve
     auto subscribeInfoPtr = std::make_shared<AppAccountSubscribeInfo>(subscribeInfo);
     ret = AppAccountSubscribeManager::GetInstance().SubscribeAppAccount(
         subscribeInfoPtr, nullptr, TEST_UID, TEST_BUNDLE_NAME, TEST_APP_INDEX);
-    EXPECT_EQ(ret, ERR_APPACCOUNT_SERVICE_EVENT_LISTENER_IS_NULLPTR);
+    EXPECT_EQ(ret, ERR_ACCOUNT_COMMON_NULL_PTR_ERROR);
     ACCOUNT_LOGI("end AppAccountSubscribeManager_SubscribeAppAccount_0100");
 }
 
@@ -93,7 +93,7 @@ HWTEST_F(AppAccountSubscribeManagerTest, UnsubscribeAppAccount_0100, TestSize.Le
     ACCOUNT_LOGI("AppAccountSubscribeManager_UnsubscribeAppAccount_0100");
 
     ErrCode ret = AppAccountSubscribeManager::GetInstance().UnsubscribeAppAccount(nullptr);
-    EXPECT_EQ(ret, ERR_APPACCOUNT_SERVICE_EVENT_LISTENER_IS_NULLPTR);
+    EXPECT_EQ(ret, ERR_ACCOUNT_COMMON_NULL_PTR_ERROR);
 }
 
 /**
@@ -108,7 +108,7 @@ HWTEST_F(AppAccountSubscribeManagerTest, CheckAppAccess_0100, TestSize.Level1)
     // check subscribeInfoPtr is nullptr.
     ErrCode ret = AppAccountSubscribeManager::GetInstance().CheckAppAccess(
         nullptr, TEST_UID, TEST_BUNDLE_NAME, TEST_APP_INDEX);
-    EXPECT_EQ(ret, ERR_APPACCOUNT_SERVICE_SUBSCRIBE_INFO_PTR_IS_NULLPTR);
+    EXPECT_EQ(ret, ERR_ACCOUNT_COMMON_NULL_PTR_ERROR);
 }
 
 /**
@@ -171,7 +171,7 @@ HWTEST_F(AppAccountSubscribeManagerTest, InsertSubscribeRecord_0100, TestSize.Le
     // check subscribeRecordPtr is nullptr.
     owners.emplace_back(TEST_BUNDLE_NAME);
     ret = AppAccountSubscribeManager::GetInstance().InsertSubscribeRecord(owners, nullptr);
-    EXPECT_EQ(ret, ERR_APPACCOUNT_SERVICE_SUBSCRIBE_RECORD_PTR_IS_NULLPTR);
+    EXPECT_EQ(ret, ERR_ACCOUNT_COMMON_NULL_PTR_ERROR);
 }
 
 /**
@@ -185,7 +185,7 @@ HWTEST_F(AppAccountSubscribeManagerTest, RemoveSubscribeRecord_0100, TestSize.Le
     ACCOUNT_LOGI("AppAccountSubscribeManager_RemoveSubscribeRecord_0100");
     // check eventListener is nullptr.
     ErrCode ret = AppAccountSubscribeManager::GetInstance().RemoveSubscribeRecord(nullptr);
-    EXPECT_EQ(ret, ERR_APPACCOUNT_SERVICE_EVENT_LISTENER_IS_NULLPTR);
+    EXPECT_EQ(ret, ERR_ACCOUNT_COMMON_NULL_PTR_ERROR);
 }
 
 /**
@@ -203,5 +203,5 @@ HWTEST_F(AppAccountSubscribeManagerTest, GetAccessibleAccountsBySubscribeInfo_01
     std::vector<AppAccountInfo> appAccounts;
     ErrCode ret = AppAccountSubscribeManager::GetInstance().
         GetAccessibleAccountsBySubscribeInfo(nullptr, accessibleAccounts, appAccounts);
-    EXPECT_EQ(ret, ERR_APPACCOUNT_SERVICE_SUBSCRIBE_INFO_PTR_IS_NULLPTR);
+    EXPECT_EQ(ret, ERR_ACCOUNT_COMMON_NULL_PTR_ERROR);
 }

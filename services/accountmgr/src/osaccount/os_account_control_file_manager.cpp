@@ -788,7 +788,7 @@ ErrCode OsAccountControlFileManager::GetAccountListFromFile(Json &accountListJso
         accountList);
     if (errCode != ERR_OK) {
         ACCOUNT_LOGE("GetFileContentByPath failed! error code %{public}d.", errCode);
-        return ERR_OSACCOUNT_SERVICE_CONTROL_GET_ACCOUNT_LIST_ERROR;
+        return errCode;
     }
     accountListJson = Json::parse(accountList, nullptr, false);
     ACCOUNT_LOGD("end");
@@ -923,7 +923,7 @@ ErrCode OsAccountControlFileManager::IsFromSpecificOAConstraintsList(const int32
     ErrCode errCode = osAccountFileOperator_->GetSpecificOAConstraintsList(id, constraintsList);
     if (errCode != ERR_OK) {
         ACCOUNT_LOGE("GetSpecificOAConstraintsList failed! error code %{public}d.", errCode);
-        return ERR_OSACCOUNT_SERVICE_CONTROL_GET_ACCOUNT_LIST_ERROR;
+        return errCode;
     }
 
     if (std::find(constraintsList.begin(), constraintsList.end(), constraint) != constraintsList.end()) {

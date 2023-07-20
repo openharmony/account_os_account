@@ -159,10 +159,10 @@ HWTEST_F(OsAccountCoverageTest, SubscribeOsAccount_0001, TestSize.Level1)
     ASSERT_NE(nullptr, subscribeInfoPtr);
 
     ErrCode result = OsAccountSubscribeManager::GetInstance().SubscribeOsAccount(nullptr, listener);
-    EXPECT_EQ(result, ERR_APPACCOUNT_SERVICE_SUBSCRIBE_INFO_PTR_IS_NULLPTR);
+    EXPECT_EQ(result, ERR_ACCOUNT_COMMON_NULL_PTR_ERROR);
 
     result = OsAccountSubscribeManager::GetInstance().SubscribeOsAccount(subscribeInfoPtr, nullptr);
-    EXPECT_EQ(result, ERR_APPACCOUNT_SERVICE_EVENT_LISTENER_IS_NULLPTR);
+    EXPECT_EQ(result, ERR_ACCOUNT_COMMON_NULL_PTR_ERROR);
 }
 
 /**
@@ -174,7 +174,7 @@ HWTEST_F(OsAccountCoverageTest, SubscribeOsAccount_0001, TestSize.Level1)
 HWTEST_F(OsAccountCoverageTest, UnsubscribeOsAccount_0001, TestSize.Level1)
 {
     ErrCode result = OsAccountSubscribeManager::GetInstance().UnsubscribeOsAccount(nullptr);
-    EXPECT_EQ(result, ERR_APPACCOUNT_SERVICE_EVENT_LISTENER_IS_NULLPTR);
+    EXPECT_EQ(result, ERR_ACCOUNT_COMMON_NULL_PTR_ERROR);
 }
 
 /**
@@ -186,7 +186,7 @@ HWTEST_F(OsAccountCoverageTest, UnsubscribeOsAccount_0001, TestSize.Level1)
 HWTEST_F(OsAccountCoverageTest, InsertSubscribeRecord_0001, TestSize.Level1)
 {
     ErrCode result = OsAccountSubscribeManager::GetInstance().InsertSubscribeRecord(nullptr);
-    EXPECT_EQ(result, ERR_APPACCOUNT_SERVICE_SUBSCRIBE_RECORD_PTR_IS_NULLPTR);
+    EXPECT_EQ(result, ERR_ACCOUNT_COMMON_NULL_PTR_ERROR);
 }
 
 /**
@@ -198,7 +198,7 @@ HWTEST_F(OsAccountCoverageTest, InsertSubscribeRecord_0001, TestSize.Level1)
 HWTEST_F(OsAccountCoverageTest, RemoveSubscribeRecord_0001, TestSize.Level1)
 {
     ErrCode result = OsAccountSubscribeManager::GetInstance().RemoveSubscribeRecord(nullptr);
-    EXPECT_EQ(result, ERR_APPACCOUNT_SERVICE_EVENT_LISTENER_IS_NULLPTR);
+    EXPECT_EQ(result, ERR_ACCOUNT_COMMON_NULL_PTR_ERROR);
 }
 }  // namespace AccountSA
 }  // namespace OHOS

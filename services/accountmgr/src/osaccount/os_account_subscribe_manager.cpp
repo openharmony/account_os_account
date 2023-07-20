@@ -42,17 +42,17 @@ ErrCode OsAccountSubscribeManager::SubscribeOsAccount(
 {
     if (subscribeInfoPtr == nullptr) {
         ACCOUNT_LOGE("subscribeInfoPtr is nullptr");
-        return ERR_APPACCOUNT_SERVICE_SUBSCRIBE_INFO_PTR_IS_NULLPTR;
+        return ERR_ACCOUNT_COMMON_NULL_PTR_ERROR;
     }
 
     if (eventListener == nullptr) {
         ACCOUNT_LOGE("eventListener is nullptr");
-        return ERR_APPACCOUNT_SERVICE_EVENT_LISTENER_IS_NULLPTR;
+        return ERR_ACCOUNT_COMMON_NULL_PTR_ERROR;
     }
     auto subscribeRecordPtr = std::make_shared<OsSubscribeRecord>(subscribeInfoPtr, eventListener);
     if (subscribeRecordPtr == nullptr) {
         ACCOUNT_LOGE("subscribeRecordPtr is nullptr");
-        return ERR_APPACCOUNT_SERVICE_SUBSCRIBE_RECORD_PTR_IS_NULLPTR;
+        return ERR_ACCOUNT_COMMON_NULL_PTR_ERROR;
     }
     if (subscribeDeathRecipient_ != nullptr) {
         eventListener->AddDeathRecipient(subscribeDeathRecipient_);
@@ -66,7 +66,7 @@ ErrCode OsAccountSubscribeManager::UnsubscribeOsAccount(const sptr<IRemoteObject
 {
     if (eventListener == nullptr) {
         ACCOUNT_LOGE("eventListener is nullptr");
-        return ERR_APPACCOUNT_SERVICE_EVENT_LISTENER_IS_NULLPTR;
+        return ERR_ACCOUNT_COMMON_NULL_PTR_ERROR;
     }
 
     if (subscribeDeathRecipient_ != nullptr) {
@@ -80,7 +80,7 @@ ErrCode OsAccountSubscribeManager::InsertSubscribeRecord(const OsSubscribeRecord
 {
     if (subscribeRecordPtr == nullptr) {
         ACCOUNT_LOGE("subscribeRecordPtr is nullptr");
-        return ERR_APPACCOUNT_SERVICE_SUBSCRIBE_RECORD_PTR_IS_NULLPTR;
+        return ERR_ACCOUNT_COMMON_NULL_PTR_ERROR;
     }
 
     std::lock_guard<std::mutex> lock(subscribeRecordMutex_);
@@ -94,7 +94,7 @@ ErrCode OsAccountSubscribeManager::RemoveSubscribeRecord(const sptr<IRemoteObjec
 {
     if (eventListener == nullptr) {
         ACCOUNT_LOGE("eventListener is nullptr");
-        return ERR_APPACCOUNT_SERVICE_EVENT_LISTENER_IS_NULLPTR;
+        return ERR_ACCOUNT_COMMON_NULL_PTR_ERROR;
     }
 
     std::lock_guard<std::mutex> lock(subscribeRecordMutex_);

@@ -77,7 +77,7 @@ ErrCode AppAccountDataStorage::AddAccountInfoIntoDataStorage(AppAccountInfo &app
     ErrCode result = AddAccountInfo(appAccountInfo);
     if (result != ERR_OK) {
         ACCOUNT_LOGE("failed to add account info, result = %{public}d", result);
-        return ERR_APPACCOUNT_SERVICE_ADD_ACCOUNT_INFO;
+        return result;
     }
 
     return ERR_OK;
@@ -88,7 +88,7 @@ ErrCode AppAccountDataStorage::SaveAccountInfoIntoDataStorage(AppAccountInfo &ap
     ErrCode result = SaveAccountInfo(appAccountInfo);
     if (result != ERR_OK) {
         ACCOUNT_LOGE("failed to save account info, result = %{public}d", result);
-        return ERR_APPACCOUNT_SERVICE_SAVE_ACCOUNT_INFO;
+        return result;
     }
 
     return ERR_OK;

@@ -95,7 +95,7 @@ int32_t OsAccountConvertToJSErrCode(int32_t errCode)
             return ERR_JS_ACCOUNT_RESTRICTED;
         case ERR_OSACCOUNT_KIT_NO_SPECIFIED_SUBSCRIBER_HAS_BEEN_REGISTERED:
             return ERR_JS_LISTENER_NOT_REGISTERED;
-        case ERR_OSACCOUNT_SERVICE_PERMISSION_DENIED:
+        case ERR_ACCOUNT_COMMON_PERMISSION_DENIED:
             return ERR_JS_PERMISSION_DENIED;
         default:
             return ERR_JS_SYSTEM_SERVICE_EXCEPTION;
@@ -116,7 +116,7 @@ static int32_t DomainAccountConvertToJSErrCode(int32_t errCode)
 
 static bool IsAppAccountKitError(int32_t errCode)
 {
-    return (errCode >= ERR_APPACCOUNT_KIT_GET_SYSTEM_ABILITY_MANAGER &&
+    return (errCode >= ERR_APPACCOUNT_KIT_GET_APP_ACCOUNT_SERVICE &&
         errCode <= ERR_APPACCOUNT_KIT_READ_PARCELABLE_VECTOR_ACCOUNT_INFO);
 }
 

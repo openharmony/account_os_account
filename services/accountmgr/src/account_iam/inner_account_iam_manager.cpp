@@ -465,16 +465,16 @@ ErrCode InnerAccountIAMManager::GetStorageManagerProxy()
     auto remote = systemAbilityManager->GetSystemAbility(STORAGE_MANAGER_MANAGER_ID);
     if (remote == nullptr) {
         ACCOUNT_LOGE("failed to get STORAGE_MANAGER_MANAGER_ID service");
-        return ERR_ACCOUNT_IAM_SERVICE_REMOTE_IS_NULLPTR;
+        return ERR_ACCOUNT_COMMON_GET_SYSTEM_ABILITY;
     }
     storageMgrProxy_ = iface_cast<StorageManager::IStorageManager>(remote);
     if (storageMgrProxy_ == nullptr) {
         ACCOUNT_LOGE("failed to get STORAGE_MANAGER_MANAGER_ID proxy");
-        return ERR_ACCOUNT_IAM_SERVICE_REMOTE_IS_NULLPTR;
+        return ERR_ACCOUNT_COMMON_GET_SYSTEM_ABILITY;
     }
     return ERR_OK;
 #else
-    return ERR_ACCOUNT_IAM_SERVICE_REMOTE_IS_NULLPTR;
+    return ERR_ACCOUNT_COMMON_GET_SYSTEM_ABILITY;
 #endif
 }
 }  // namespace AccountSA

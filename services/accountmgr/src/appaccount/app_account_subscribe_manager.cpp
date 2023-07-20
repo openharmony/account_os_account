@@ -47,12 +47,12 @@ ErrCode AppAccountSubscribeManager::SubscribeAppAccount(
 {
     if (subscribeInfoPtr == nullptr) {
         ACCOUNT_LOGE("subscribeInfoPtr is nullptr");
-        return ERR_APPACCOUNT_SERVICE_SUBSCRIBE_INFO_PTR_IS_NULLPTR;
+        return ERR_ACCOUNT_COMMON_NULL_PTR_ERROR;
     }
 
     if (eventListener == nullptr) {
         ACCOUNT_LOGE("eventListener is nullptr");
-        return ERR_APPACCOUNT_SERVICE_EVENT_LISTENER_IS_NULLPTR;
+        return ERR_ACCOUNT_COMMON_NULL_PTR_ERROR;
     }
 
     std::vector<std::string> owners;
@@ -75,7 +75,7 @@ ErrCode AppAccountSubscribeManager::SubscribeAppAccount(
     auto subscribeRecordPtr = std::make_shared<AppAccountSubscribeRecord>();
     if (subscribeRecordPtr == nullptr) {
         ACCOUNT_LOGE("subscribeRecordPtr is nullptr");
-        return ERR_APPACCOUNT_SERVICE_SUBSCRIBE_RECORD_PTR_IS_NULLPTR;
+        return ERR_ACCOUNT_COMMON_NULL_PTR_ERROR;
     }
 
     subscribeRecordPtr->subscribeInfoPtr = subscribeInfoPtr;
@@ -94,7 +94,7 @@ ErrCode AppAccountSubscribeManager::UnsubscribeAppAccount(const sptr<IRemoteObje
 {
     if (eventListener == nullptr) {
         ACCOUNT_LOGE("eventListener is nullptr");
-        return ERR_APPACCOUNT_SERVICE_EVENT_LISTENER_IS_NULLPTR;
+        return ERR_ACCOUNT_COMMON_NULL_PTR_ERROR;
     }
 
     if (subscribeDeathRecipient_ != nullptr) {
@@ -143,7 +143,7 @@ ErrCode AppAccountSubscribeManager::CheckAppAccess(const std::shared_ptr<AppAcco
 {
     if (subscribeInfoPtr == nullptr) {
         ACCOUNT_LOGE("subscribeInfoPtr is nullptr");
-        return ERR_APPACCOUNT_SERVICE_SUBSCRIBE_INFO_PTR_IS_NULLPTR;
+        return ERR_ACCOUNT_COMMON_NULL_PTR_ERROR;
     }
 
     std::vector<std::string> owners;
@@ -198,7 +198,7 @@ ErrCode AppAccountSubscribeManager::InsertSubscribeRecord(
 
     if (subscribeRecordPtr == nullptr) {
         ACCOUNT_LOGE("subscribeRecordPtr is nullptr");
-        return ERR_APPACCOUNT_SERVICE_SUBSCRIBE_RECORD_PTR_IS_NULLPTR;
+        return ERR_ACCOUNT_COMMON_NULL_PTR_ERROR;
     }
 
     std::lock_guard<std::mutex> lock(subscribeRecordMutex_);
@@ -223,7 +223,7 @@ ErrCode AppAccountSubscribeManager::RemoveSubscribeRecord(const sptr<IRemoteObje
 {
     if (eventListener == nullptr) {
         ACCOUNT_LOGE("eventListener is nullptr");
-        return ERR_APPACCOUNT_SERVICE_EVENT_LISTENER_IS_NULLPTR;
+        return ERR_ACCOUNT_COMMON_NULL_PTR_ERROR;
     }
 
     std::lock_guard<std::mutex> lock(subscribeRecordMutex_);
@@ -325,7 +325,7 @@ ErrCode AppAccountSubscribeManager::GetAccessibleAccountsBySubscribeInfo(
 {
     if (subscribeInfoPtr == nullptr) {
         ACCOUNT_LOGE("subscribeInfoPtr is nullptr");
-        return ERR_APPACCOUNT_SERVICE_SUBSCRIBE_INFO_PTR_IS_NULLPTR;
+        return ERR_ACCOUNT_COMMON_NULL_PTR_ERROR;
     }
 
     appAccounts.clear();
