@@ -247,10 +247,10 @@ ErrCode AppAccountManager::SetAuthenticatorProperties(const std::string &owner,
     return AppAccount::GetInstance().SetAuthenticatorProperties(owner, options, callback);
 }
 
-ErrCode AppAccountManager::ExecuteRequest(
-    const AccountCapabilityRequest &request, const sptr<IAppAccountAuthorizationExtensionCallback> &callback)
+ErrCode AppAccountManager::ExecuteRequest(const bool &isEnableContext, const AccountCapabilityRequest &request,
+    const sptr<IAppAccountAuthorizationExtensionCallback> &callback)
 {
-    return AppAccount::GetInstance().ExecuteRequest(request, callback);
+    return AppAccount::GetInstance().ExecuteRequest(isEnableContext, request, callback);
 }
 
 ErrCode AppAccountManager::SubscribeAppAccount(const std::shared_ptr<AppAccountSubscriber> &subscriber)

@@ -506,8 +506,8 @@ public:
     static ErrCode SetAuthenticatorProperties(const std::string &owner,
         const SetPropertiesOptions &options, const sptr<IAppAccountAuthenticatorCallback> &callback);
 
-    static ErrCode ExecuteRequest(
-        const AccountCapabilityRequest &request, const sptr<IAppAccountAuthorizationExtensionCallback> &callback);
+    static ErrCode ExecuteRequest(const bool &isEnableContext, const AccountCapabilityRequest &request,
+        const sptr<IAppAccountAuthorizationExtensionCallback> &callback);
     /**
      * @brief Subscribes to the change events of accounts of the specified owners.
      * <p>

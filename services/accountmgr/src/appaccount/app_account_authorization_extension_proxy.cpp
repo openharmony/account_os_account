@@ -50,6 +50,10 @@ ErrCode AppAccountAuthorizationExtensionProxy::SendRequest(
 
 static ErrCode WriteRequest(MessageParcel &data, const AuthorizationRequest &request)
 {
+    if (!data.WriteInt32(request.isEnableContext)) {
+        ACCOUNT_LOGE("failed to write request isEnableContext");
+        return ERR_ACCOUNT_COMMON_WRITE_PARCEL_ERROR;
+    }
     if (!data.WriteInt32(request.callerUid)) {
         ACCOUNT_LOGE("failed to write request callerUid");
         return ERR_ACCOUNT_COMMON_WRITE_PARCEL_ERROR;
