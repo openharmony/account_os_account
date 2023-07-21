@@ -47,7 +47,9 @@ ohos_shared_library("appaccount") {
 
   public_configs = [ ":appaccount_kit_config" ]
   sources = [
+    "${ability_runtime_path}/frameworks/native/ability/native/ability_business_error/ability_business_error.cpp",
     "${app_account_extension_path}/src/authorization_extension.cpp",
+    "${app_account_extension_path}/src/authorization_extension_context.cpp",
     "src/napi_account_capability_scheduler.cpp",
     "src/napi_app_account.cpp",
     "src/napi_app_account_authenticator.cpp",
@@ -76,8 +78,11 @@ ohos_shared_library("appaccount") {
     "ability_runtime:extensionkit_native",
     "ability_runtime:napi_base_context",
     "ability_runtime:runtime",
+    "ability_runtime:service_extension",
+    "ability_runtime:ui_extension",
     "ace_engine:ace_uicontent",
     "c_utils:utils",
+    "eventhandler:libeventhandler",
     "hilog:libhilog",
     "ipc:ipc_napi_common",
     "ipc:ipc_single",
