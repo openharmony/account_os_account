@@ -52,8 +52,11 @@ config("app_account_innerkits_public_config") {
 
 ohos_shared_library("app_account_innerkits") {
   sources = [
+    "${ability_runtime_path}/frameworks/native/ability/native/ability_business_error/ability_business_error.cpp",
     "${app_account_extension_path}/src/authorization_extension.cpp",
+    "${app_account_extension_path}/src/authorization_extension_context.cpp",
     "${app_account_kits_path}/src/napi_app_account_authorization_extension.cpp",
+    "${os_account_path}/interfaces/kits/napi/appaccount/src/napi_app_account_authorization_extension_context.cpp",
     "src/app_account.cpp",
     "src/app_account_authenticator_callback_proxy.cpp",
     "src/app_account_authenticator_callback_stub.cpp",
@@ -101,8 +104,11 @@ ohos_shared_library("app_account_innerkits") {
     "ability_runtime:abilitykit_native",
     "ability_runtime:app_context",
     "ability_runtime:runtime",
+    "ability_runtime:service_extension",
+    "ability_runtime:ui_extension",
     "ace_engine:ace_uicontent",
     "c_utils:utils",
+    "eventhandler:libeventhandler",
     "hilog:libhilog",
     "ipc:ipc_single",
     "napi:ace_napi",
