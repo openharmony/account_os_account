@@ -49,6 +49,7 @@ ohos_fuzztest("ProcHasDomainAccountStubFuzzTest") {
   ]
 
   deps = [
+    "${domain_account_framework_path}:domain_account_innerkits",
     "${os_account_path}/frameworks/appaccount/native:app_account_innerkits",
     "${os_account_path}/frameworks/common:libaccount_common",
     "${os_account_path}/services/accountmgr:accountmgr",
