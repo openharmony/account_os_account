@@ -155,6 +155,7 @@ public:
 private:
     napi_env env_;
     JsIAMCallback callback_;
+    std::mutex mutex_;
 };
 
 class NapiGetInfoCallback : public AccountSA::GetCredInfoCallback {
@@ -179,6 +180,7 @@ public:
 private:
     napi_env env_;
     JsIAMCallback callback_;
+    std::mutex mutex_;
 };
 
 class NapiGetPropCallback : public AccountSA::GetSetPropCallback {
