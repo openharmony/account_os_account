@@ -20,6 +20,7 @@
 #include <sstream>
 #include <sys/types.h>
 #include "account_event_provider.h"
+#include "account_event_subscribe.h"
 #include "account_helper_data.h"
 #include "account_info.h"
 #include "account_log_wrapper.h"
@@ -274,6 +275,7 @@ bool OhosAccountManager::LoginOhosAccount(
     currAccountInfo.ohosAccountInfo_.uid_ = ohosAccountUid;
     currAccountInfo.ohosAccountInfo_.status_ = ACCOUNT_STATE_LOGIN;
     currAccountInfo.bindTime_ = std::time(nullptr);
+    currAccountInfo.ohosAccountInfo_.callingUid_ = IPCSkeleton::GetCallingUid();
 
     if (!SaveOhosAccountInfo(currAccountInfo)) {
         ACCOUNT_LOGE("SaveOhosAccountInfo failed! userId %{public}d.", userId);
@@ -284,12 +286,14 @@ bool OhosAccountManager::LoginOhosAccount(
     if (!isPubLoginEvent) {
         AccountEventProvider::EventPublish(EventFwk::CommonEventSupport::COMMON_EVENT_USER_INFO_UPDATED,
             userId, nullptr);
+        (void)CreateCommonEventSubscribe();
         return true;
     }
     AccountEventProvider::EventPublish(EventFwk::CommonEventSupport::COMMON_EVENT_HWID_LOGIN, userId, nullptr);
 #else  // HAS_CES_PART
     ACCOUNT_LOGI("No common event part, publish nothing!");
 #endif // HAS_CES_PART
+    (void)CreateCommonEventSubscribe();
     ACCOUNT_LOGI("LoginOhosAccount success! userId %{public}d", userId);
     return true;
 }
@@ -481,6 +485,37 @@ bool OhosAccountManager::OnInitialize()
     isInit_ = true;
     return true;
 }
+
+#ifdef HAS_CES_PART
+bool OhosAccountManager::CreateCommonEventSubscribe()
+{
+    if (accountEventSubscribe_ == nullptr) {
+        AccountCommonEventCallback callback = {
+            std::bind(&OhosAccountManager::OnPackageRemoved, this, std::placeholders::_1)};
+        accountEventSubscribe_ = std::make_shared<AccountEventSubscriber>(callback);
+        if (!accountEventSubscribe_->CreateEventSubscribe()) {
+            ACCOUNT_LOGE("CreateEventSubscribe is failed");
+            return false;
+        }
+    }
+    return true;
+}
+
+void OhosAccountManager::OnPackageRemoved(const std::int32_t callingUid)
+{
+    std::vector<OsAccountInfo> osAccountInfos;
+    (void)IInnerOsAccountManager::GetInstance().QueryAllCreatedOsAccounts(osAccountInfos);
+    for (const auto &info : osAccountInfos) {
+        AccountInfo accountInfo;
+        (void)GetAccountInfoByUserId(info.GetLocalId(), accountInfo);
+        if (accountInfo.ohosAccountInfo_.callingUid_ == callingUid) {
+            (void)ClearOhosAccount(accountInfo);
+            AccountEventProvider::EventPublish(
+                EventFwk::CommonEventSupport::COMMON_EVENT_HWID_LOGOUT, info.GetLocalId(), nullptr);
+        }
+    }
+}
+#endif // HAS_CES_PART
 
 /**
  * Handle device account switch event.

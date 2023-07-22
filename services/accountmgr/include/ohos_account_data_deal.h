@@ -44,6 +44,7 @@ private:
     ErrCode SaveAccountInfo(const AccountInfo &accountInfo) const;
     ErrCode GetAccountInfo(AccountInfo &accountInfo, const int32_t userId);
     ErrCode ParseJsonFromFile(const std::string &filePath, nlohmann::json &jsonData, int32_t userId);
+    ErrCode GetAccountInfoFromJson(AccountInfo &accountInfo, const int32_t userId);
 };
 }  // namespace AccountSA
 }  // namespace OHOS

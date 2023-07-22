@@ -19,8 +19,12 @@
 #include <map>
 #include <mutex>
 #include <string>
+#ifdef HAS_CES_PART
+#include "account_event_subscribe.h"
+#endif // HAS_CES_PART
 #include "account_info.h"
 #include "account_state_machine.h"
+#include "iinner_os_account_manager.h"
 #include "ohos_account_data_deal.h"
 
 namespace OHOS {
@@ -206,6 +210,11 @@ private:
      * event function map
      */
     std::map<std::string, OhosAccountEventFunc> eventFuncMap_;
+#ifdef HAS_CES_PART
+    void OnPackageRemoved(const std::int32_t callingUid);
+    bool CreateCommonEventSubscribe();
+    std::shared_ptr<AccountEventSubscriber> accountEventSubscribe_{};
+#endif // HAS_CES_PART
 };
 }  // namespace AccountSA
 }  // namespace OHOS
