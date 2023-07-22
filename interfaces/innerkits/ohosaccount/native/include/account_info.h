@@ -75,12 +75,14 @@ const std::string DEFAULT_OHOS_ACCOUNT_NAME = "ohosAnonymousName"; // default na
 const std::string DEFAULT_OHOS_ACCOUNT_UID = "ohosAnonymousUid"; // default UID
 constexpr std::int32_t UID_TRANSFORM_DIVISOR = 200000; // local account id = uid / UID_TRANSFORM_DIVISOR
 constexpr std::int32_t MAIN_OS_ACCOUNT_LOCAL_ID = 100; // main os account local id = 100
+constexpr std::int32_t DEFAULT_CALLING_UID = -1; // main os account local id = 100
 
 class OhosAccountInfo {
 public:
     std::string name_;
     std::string uid_;
     std::int32_t status_;
+    std::int32_t callingUid_ = DEFAULT_CALLING_UID;
     std::string nickname_;
     std::string avatar_;
     AAFwk::Want scalableData_;
@@ -175,6 +177,7 @@ public:
         ohosAccountInfo_.nickname_ = "";
         ohosAccountInfo_.avatar_ = "";
         ohosAccountInfo_.scalableData_ = {};
+        ohosAccountInfo_.callingUid_ = DEFAULT_CALLING_UID;
         ohosAccountInfo_.SetRawUid("");
         digest_.clear();
         bindTime_ = 0;
