@@ -78,7 +78,6 @@ struct CreateOAAsyncContext : public CommonAsyncContext {
 };
 
 struct CreateOAForDomainAsyncContext : public CommonAsyncContext {
-    ~CreateOAForDomainAsyncContext();
     OsAccountType type;
     DomainAccountInfo domainInfo;
     OsAccountInfo osAccountInfos;
@@ -188,7 +187,6 @@ struct IsMainOAInfo : public CommonAsyncContext {
 
 struct SubscribeCBInfo : public CommonAsyncContext {
     SubscribeCBInfo(napi_env napiEnv) : CommonAsyncContext(napiEnv) {};
-    ~SubscribeCBInfo();
     OS_ACCOUNT_SUBSCRIBE_TYPE osSubscribeType = OS_ACCOUNT_SUBSCRIBE_TYPE::INVALID_TYPE;
     std::string name;
     OsAccountManager *osManager = nullptr;
@@ -203,7 +201,6 @@ struct SubscriberOAWorker : public CommonAsyncContext {
 
 struct UnsubscribeCBInfo : public CommonAsyncContext {
     UnsubscribeCBInfo(napi_env napiEnv) : CommonAsyncContext(napiEnv){};
-    ~UnsubscribeCBInfo();
     OS_ACCOUNT_SUBSCRIBE_TYPE osSubscribeType = OS_ACCOUNT_SUBSCRIBE_TYPE::INVALID_TYPE;
     std::string name;
     OsAccountManager *osManager = nullptr;

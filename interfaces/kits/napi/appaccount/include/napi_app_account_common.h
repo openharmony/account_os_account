@@ -54,7 +54,6 @@ extern std::map<AppAccountManager *, std::vector<AsyncContextForSubscribe *>> g_
 class SubscriberPtr : public AppAccountSubscriber {
 public:
     explicit SubscriberPtr(const AppAccountSubscribeInfo &subscribeInfo);
-    ~SubscriberPtr() override;
 
     void OnAccountsChanged(const std::vector<AppAccountInfo> &accounts) override;
 
@@ -67,6 +66,7 @@ private:
 };
 
 struct AppAccountAsyncContext : public CommonAsyncContext {
+    AppAccountAsyncContext(napi_env napiEnv, bool isThrowable = false) : CommonAsyncContext(napiEnv, isThrowable) {};
     std::string name;
     std::string owner;
     std::string extraInfo;
@@ -105,6 +105,7 @@ struct OAuthAsyncContext : public CommonAsyncContext {
 };
 
 struct VerifyCredentialContext : public CommonAsyncContext {
+    VerifyCredentialContext(napi_env env, bool throwAble = false) : CommonAsyncContext(env, throwAble) {};
     std::string name;
     std::string owner;
     VerifyCredentialOptions options;
@@ -113,6 +114,7 @@ struct VerifyCredentialContext : public CommonAsyncContext {
 };
 
 struct SetPropertiesContext : public CommonAsyncContext {
+    SetPropertiesContext(napi_env env, bool throwAble = false) : CommonAsyncContext(env, throwAble) {};
     std::string owner;
     SetPropertiesOptions options;
     sptr<IAppAccountAuthenticatorCallback> appAccountMgrCb = nullptr;
@@ -138,12 +140,14 @@ typedef enum PropertyType {
 } PropertyType;
 
 struct SelectAccountsContext : public CommonAsyncContext {
+    SelectAccountsContext(napi_env napiEnv) : CommonAsyncContext(napiEnv) {};
     SelectAccountsOptions options;
     std::vector<AppAccountInfo> appAccountInfos;
     sptr<IAppAccountAuthenticatorCallback> appAccountMgrCb = nullptr;
 };
 
 struct CheckAccountLabelsContext : public CommonAsyncContext {
+    CheckAccountLabelsContext(napi_env napiEnv) : CommonAsyncContext(napiEnv) {};
     std::string name;
     std::string owner;
     std::vector<std::string> labels;
@@ -151,12 +155,12 @@ struct CheckAccountLabelsContext : public CommonAsyncContext {
 };
 
 struct GetAccountsAsyncContext : public CommonAsyncContext {
+    GetAccountsAsyncContext(napi_env napiEnv, bool isThrowable) : CommonAsyncContext(napiEnv, isThrowable) {};
     std::string owner;
     std::vector<AppAccountInfo> appAccounts;
 };
 
 struct CreateAccountContext : public CommonAsyncContext {
-public:
     explicit CreateAccountContext(napi_env napiEnv) : CommonAsyncContext(napiEnv) {};
     std::string name;
     CreateAccountOptions options;
@@ -206,7 +210,7 @@ struct AuthenticatorCallbackParam : public CommonAsyncContext {
 
 class AuthenticatorAsyncCallback : public AppAccountAuthenticatorCallbackStub {
 public:
-    explicit AuthenticatorAsyncCallback(const CommonAsyncContext &context, uv_after_work_cb workCb);
+    explicit AuthenticatorAsyncCallback(napi_env env, napi_ref ref, napi_deferred deferred, uv_after_work_cb workCb);
     ~AuthenticatorAsyncCallback();
 
     void OnResult(int32_t resultCode, const AAFwk::Want &result) override;
@@ -216,8 +220,10 @@ public:
 private:
     std::mutex mutex_;
     bool isDone = false;
-    CommonAsyncContext context_;
-    uv_after_work_cb workCb_;
+    napi_env env_ = nullptr;
+    napi_ref callbackRef_ = nullptr;
+    napi_deferred deferred_ = nullptr;
+    uv_after_work_cb workCb_ = nullptr;
 };
 
 class AppAccountManagerCallback : public AppAccountAuthenticatorCallbackStub {

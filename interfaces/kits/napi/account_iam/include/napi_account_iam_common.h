@@ -67,12 +67,6 @@ enum IAMResultCode : int32_t {
 
 int32_t AccountIAMConvertToJSErrCode(int32_t errCode);
 
-struct IAMAsyncContext : public CommonAsyncContext {
-    explicit IAMAsyncContext(napi_env napiEnv);
-    virtual ~IAMAsyncContext();
-    bool throwErr = true;
-};
-
 struct JsIAMCallback {
     napi_ref onResult = nullptr;
     napi_ref onAcquireInfo = nullptr;
@@ -110,8 +104,9 @@ struct AuthContext {
     std::shared_ptr<AccountSA::IDMCallback> callback;
 };
 
-struct IDMContext : public IAMAsyncContext {
-    explicit IDMContext(napi_env napiEnv) : IAMAsyncContext(napiEnv) {};
+struct IDMContext : public CommonAsyncContext {
+    IDMContext(napi_env napiEnv) : CommonAsyncContext(napiEnv) {};
+    bool throwErr = true;
     std::vector<uint8_t> challenge;
     uint64_t credentialId = 0;
     std::vector<uint8_t> token;
@@ -127,7 +122,6 @@ struct GetAuthInfoContext : public CommonAsyncContext {
 
 struct GetPropertyContext : public CommonAsyncContext {
     explicit GetPropertyContext(napi_env napiEnv) : CommonAsyncContext(napiEnv) {};
-    virtual ~GetPropertyContext();
     AccountSA::GetPropertyRequest request;
     int32_t result = 0;
     int32_t authSubType = 0;
@@ -139,7 +133,6 @@ struct GetPropertyContext : public CommonAsyncContext {
 
 struct SetPropertyContext : public CommonAsyncContext {
     explicit SetPropertyContext(napi_env napiEnv) : CommonAsyncContext(napiEnv) {};
-    virtual ~SetPropertyContext();
     AccountSA::SetPropertyRequest request;
     int32_t result = 0;
 };

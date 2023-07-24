@@ -45,7 +45,6 @@ struct CallbackParam {
     int32_t resultCode;
     AAFwk::WantParams result;
     AAFwk::Want request;
-    napi_ref callbackRef;
     NapiAppAccountAuthenticatorCallback *callback;
 };
 }  // namespace AccountJsKit

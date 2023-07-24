@@ -179,17 +179,11 @@ void SetEnumProperty(napi_env env, napi_value dstObj, const int objValue, const 
 
 napi_value QueryOsAccountById(napi_env env, napi_callback_info cbInfo)
 {
-    QueryOAByIdAsyncContext *queryOAByIdCB = new (std::nothrow) QueryOAByIdAsyncContext();
-    if (queryOAByIdCB == nullptr) {
-        ACCOUNT_LOGE("insufficient memory for queryOAByIdCB!");
-        return WrapVoidToJS(env);
-    }
+    auto queryOAByIdCB = std::make_unique<QueryOAByIdAsyncContext>();
     queryOAByIdCB->env = env;
-    queryOAByIdCB->callbackRef = nullptr;
     queryOAByIdCB->throwErr = true;
 
-    if (!ParseParaQueryOAByIdCB(env, cbInfo, queryOAByIdCB)) {
-        delete queryOAByIdCB;
+    if (!ParseParaQueryOAByIdCB(env, cbInfo, queryOAByIdCB.get())) {
         return nullptr;
     }
 
@@ -208,26 +202,21 @@ napi_value QueryOsAccountById(napi_env env, napi_callback_info cbInfo)
         resource,
         QueryOAByIdExecuteCB,
         QueryOAByIdCallbackCompletedCB,
-        reinterpret_cast<void *>(queryOAByIdCB),
+        reinterpret_cast<void *>(queryOAByIdCB.get()),
         &queryOAByIdCB->work);
 
     napi_queue_async_work(env, queryOAByIdCB->work);
+    queryOAByIdCB.release();
     return result;
 }
 
 napi_value RemoveOsAccount(napi_env env, napi_callback_info cbInfo)
 {
-    RemoveOAAsyncContext *removeOACB = new (std::nothrow) RemoveOAAsyncContext();
-    if (removeOACB == nullptr) {
-        ACCOUNT_LOGE("insufficient memory for removeOACB!");
-        return WrapVoidToJS(env);
-    }
+    auto removeOACB = std::make_unique<RemoveOAAsyncContext>();
     removeOACB->env = env;
-    removeOACB->callbackRef = nullptr;
     removeOACB->throwErr = true;
 
-    if (!ParseParaRemoveOACB(env, cbInfo, removeOACB)) {
-        delete removeOACB;
+    if (!ParseParaRemoveOACB(env, cbInfo, removeOACB.get())) {
         return nullptr;
     }
 
@@ -242,25 +231,20 @@ napi_value RemoveOsAccount(napi_env env, napi_callback_info cbInfo)
     napi_create_string_utf8(env, "RemoveOsAccount", NAPI_AUTO_LENGTH, &resource);
 
     napi_create_async_work(env, nullptr, resource, RemoveOAExecuteCB, RemoveOACallbackCompletedCB,
-        reinterpret_cast<void *>(removeOACB), &removeOACB->work);
+        reinterpret_cast<void *>(removeOACB.get()), &removeOACB->work);
 
     napi_queue_async_work(env, removeOACB->work);
+    removeOACB.release();
     return result;
 }
 
 napi_value SetOsAccountName(napi_env env, napi_callback_info cbInfo)
 {
-    SetOANameAsyncContext *setOANameCB = new (std::nothrow) SetOANameAsyncContext();
-    if (setOANameCB == nullptr) {
-        ACCOUNT_LOGE("insufficient memory for setOANameCB!");
-        return WrapVoidToJS(env);
-    }
+    auto setOANameCB = std::make_unique<SetOANameAsyncContext>();
     setOANameCB->env = env;
-    setOANameCB->callbackRef = nullptr;
     setOANameCB->throwErr = true;
 
-    if (!ParseParaSetOAName(env, cbInfo, setOANameCB)) {
-        delete setOANameCB;
+    if (!ParseParaSetOAName(env, cbInfo, setOANameCB.get())) {
         return nullptr;
     }
 
@@ -279,26 +263,21 @@ napi_value SetOsAccountName(napi_env env, napi_callback_info cbInfo)
         resource,
         SetOANameExecuteCB,
         SetOANameCallbackCompletedCB,
-        reinterpret_cast<void *>(setOANameCB),
+        reinterpret_cast<void *>(setOANameCB.get()),
         &setOANameCB->work);
 
     napi_queue_async_work(env, setOANameCB->work);
+    setOANameCB.release();
     return result;
 }
 
 napi_value SetOsAccountConstraints(napi_env env, napi_callback_info cbInfo)
 {
-    SetOAConsAsyncContext *setOAConsCB = new (std::nothrow) SetOAConsAsyncContext();
-    if (setOAConsCB == nullptr) {
-        ACCOUNT_LOGE("insufficient memory for setOAConsCB!");
-        return WrapVoidToJS(env);
-    }
+    auto setOAConsCB = std::make_unique<SetOAConsAsyncContext>();
     setOAConsCB->env = env;
-    setOAConsCB->callbackRef = nullptr;
     setOAConsCB->throwErr = true;
 
-    if (!ParseParaSetOAConstraints(env, cbInfo, setOAConsCB)) {
-        delete setOAConsCB;
+    if (!ParseParaSetOAConstraints(env, cbInfo, setOAConsCB.get())) {
         return nullptr;
     }
 
@@ -317,26 +296,21 @@ napi_value SetOsAccountConstraints(napi_env env, napi_callback_info cbInfo)
         resource,
         SetOAConsExecuteCB,
         SetOAConsCallbackCompletedCB,
-        reinterpret_cast<void *>(setOAConsCB),
+        reinterpret_cast<void *>(setOAConsCB.get()),
         &setOAConsCB->work);
 
     napi_queue_async_work(env, setOAConsCB->work);
+    setOAConsCB.release();
     return result;
 }
 
 napi_value ActivateOsAccount(napi_env env, napi_callback_info cbInfo)
 {
-    ActivateOAAsyncContext *activeOACB = new (std::nothrow) ActivateOAAsyncContext();
-    if (activeOACB == nullptr) {
-        ACCOUNT_LOGE("insufficient memory for activeOACB!");
-        return WrapVoidToJS(env);
-    }
+    auto activeOACB = std::make_unique<ActivateOAAsyncContext>();
     activeOACB->env = env;
-    activeOACB->callbackRef = nullptr;
     activeOACB->throwErr = true;
 
-    if (!ParseParaActiveOA(env, cbInfo, activeOACB)) {
-        delete activeOACB;
+    if (!ParseParaActiveOA(env, cbInfo, activeOACB.get())) {
         return nullptr;
     }
 
@@ -355,26 +329,21 @@ napi_value ActivateOsAccount(napi_env env, napi_callback_info cbInfo)
         resource,
         ActivateOAExecuteCB,
         ActivateOACallbackCompletedCB,
-        reinterpret_cast<void *>(activeOACB),
+        reinterpret_cast<void *>(activeOACB.get()),
         &activeOACB->work);
 
     napi_queue_async_work(env, activeOACB->work);
+    activeOACB.release();
     return result;
 }
 
 napi_value CreateOsAccount(napi_env env, napi_callback_info cbInfo)
 {
-    CreateOAAsyncContext *createOACB = new (std::nothrow) CreateOAAsyncContext();
-    if (createOACB == nullptr) {
-        ACCOUNT_LOGE("insufficient memory for createOACB!");
-        return WrapVoidToJS(env);
-    }
+    auto createOACB = std::make_unique<CreateOAAsyncContext>();
     createOACB->env = env;
-    createOACB->callbackRef = nullptr;
     createOACB->throwErr = true;
 
-    if (!ParseParaCreateOA(env, cbInfo, createOACB)) {
-        delete createOACB;
+    if (!ParseParaCreateOA(env, cbInfo, createOACB.get())) {
         return nullptr;
     }
 
@@ -389,25 +358,20 @@ napi_value CreateOsAccount(napi_env env, napi_callback_info cbInfo)
     napi_create_string_utf8(env, "CreateOsAccount", NAPI_AUTO_LENGTH, &resource);
 
     napi_create_async_work(env, nullptr, resource, CreateOAExecuteCB, CreateOACallbackCompletedCB,
-        reinterpret_cast<void *>(createOACB), &createOACB->work);
+        reinterpret_cast<void *>(createOACB.get()), &createOACB->work);
 
     napi_queue_async_work(env, createOACB->work);
+    createOACB.release();
     return result;
 }
 
 napi_value CreateOsAccountForDomain(napi_env env, napi_callback_info cbInfo)
 {
-    CreateOAForDomainAsyncContext *createOAForDomainCB = new (std::nothrow) CreateOAForDomainAsyncContext();
-    if (createOAForDomainCB == nullptr) {
-        ACCOUNT_LOGE("insufficient memory for createOAForDomainCB!");
-        return WrapVoidToJS(env);
-    }
+    auto createOAForDomainCB = std::make_unique<CreateOAForDomainAsyncContext>();
     createOAForDomainCB->env = env;
-    createOAForDomainCB->callbackRef = nullptr;
     createOAForDomainCB->throwErr = true;
 
-    if (!ParseParaCreateOAForDomain(env, cbInfo, createOAForDomainCB)) {
-        delete createOAForDomainCB;
+    if (!ParseParaCreateOAForDomain(env, cbInfo, createOAForDomainCB.get())) {
         return nullptr;
     }
 
@@ -422,9 +386,10 @@ napi_value CreateOsAccountForDomain(napi_env env, napi_callback_info cbInfo)
     napi_create_string_utf8(env, "CreateOsAccountForDomain", NAPI_AUTO_LENGTH, &resource);
 
     napi_create_async_work(env, nullptr, resource, CreateOAForDomainExecuteCB, CreateOAForDomainCompletedCB,
-        createOAForDomainCB, &createOAForDomainCB->work);
+        createOAForDomainCB.get(), &createOAForDomainCB->work);
 
     napi_queue_async_work(env, createOAForDomainCB->work);
+    createOAForDomainCB.release();
     return result;
 }
 
@@ -440,17 +405,11 @@ napi_value GetCreatedOsAccountsCount(napi_env env, napi_callback_info cbInfo)
 
 napi_value GetCreatedOsAccountsCountInner(napi_env env, napi_callback_info cbInfo, bool throwErr)
 {
-    GetOACountAsyncContext *getOACount = new (std::nothrow) GetOACountAsyncContext();
-    if (getOACount == nullptr) {
-        ACCOUNT_LOGE("insufficient memory for getOACount!");
-        return WrapVoidToJS(env);
-    }
+    auto getOACount = std::make_unique<GetOACountAsyncContext>();
     getOACount->env = env;
-    getOACount->callbackRef = nullptr;
     getOACount->throwErr = throwErr;
 
-    if (!ParseParaGetOACount(env, cbInfo, getOACount) && throwErr) {
-        delete getOACount;
+    if (!ParseParaGetOACount(env, cbInfo, getOACount.get()) && throwErr) {
         return nullptr;
     }
 
@@ -469,10 +428,11 @@ napi_value GetCreatedOsAccountsCountInner(napi_env env, napi_callback_info cbInf
         resource,
         GetOACountExecuteCB,
         GetOACountCallbackCompletedCB,
-        reinterpret_cast<void *>(getOACount),
+        reinterpret_cast<void *>(getOACount.get()),
         &getOACount->work);
 
     napi_queue_async_work(env, getOACount->work);
+    getOACount.release();
     return result;
 }
 
@@ -488,17 +448,11 @@ napi_value GetDistributedVirtualDeviceId(napi_env env, napi_callback_info cbInfo
 
 napi_value GetDistributedVirtualDeviceIdInner(napi_env env, napi_callback_info cbInfo, bool throwErr)
 {
-    DbDeviceIdAsyncContext *dbDeviceId = new (std::nothrow) DbDeviceIdAsyncContext();
-    if (dbDeviceId == nullptr) {
-        ACCOUNT_LOGE("insufficient memory for DbDeviceId!");
-        return WrapVoidToJS(env);
-    }
+    auto dbDeviceId = std::make_unique<DbDeviceIdAsyncContext>();
     dbDeviceId->env = env;
-    dbDeviceId->callbackRef = nullptr;
     dbDeviceId->throwErr = throwErr;
 
-    if (!ParseParaDbDeviceId(env, cbInfo, dbDeviceId) && throwErr) {
-        delete dbDeviceId;
+    if (!ParseParaDbDeviceId(env, cbInfo, dbDeviceId.get()) && throwErr) {
         return nullptr;
     }
 
@@ -517,10 +471,11 @@ napi_value GetDistributedVirtualDeviceIdInner(napi_env env, napi_callback_info c
         resource,
         DbDeviceIdExecuteCB,
         DbDeviceIdCallbackCompletedCB,
-        reinterpret_cast<void *>(dbDeviceId),
+        reinterpret_cast<void *>(dbDeviceId.get()),
         &dbDeviceId->work);
 
     napi_queue_async_work(env, dbDeviceId->work);
+    dbDeviceId.release();
     return result;
 }
 
@@ -536,17 +491,11 @@ napi_value GetOsAccountAllConstraints(napi_env env, napi_callback_info cbInfo)
 
 napi_value GetOsAccountAllConstraintsInner(napi_env env, napi_callback_info cbInfo, bool throwErr)
 {
-    GetAllConsAsyncContext *getAllConsCB = new (std::nothrow) GetAllConsAsyncContext();
-    if (getAllConsCB == nullptr) {
-        ACCOUNT_LOGE("insufficient memory for getAllConsCB!");
-        return WrapVoidToJS(env);
-    }
+    auto getAllConsCB = std::make_unique<GetAllConsAsyncContext>();
     getAllConsCB->env = env;
-    getAllConsCB->callbackRef = nullptr;
     getAllConsCB->throwErr = throwErr;
 
-    if (!ParseParaGetAllCons(env, cbInfo, getAllConsCB) && throwErr) {
-        delete getAllConsCB;
+    if (!ParseParaGetAllCons(env, cbInfo, getAllConsCB.get()) && throwErr) {
         return nullptr;
     }
 
@@ -565,10 +514,11 @@ napi_value GetOsAccountAllConstraintsInner(napi_env env, napi_callback_info cbIn
         resource,
         GetAllConsExecuteCB,
         GetAllConsCallbackCompletedCB,
-        reinterpret_cast<void *>(getAllConsCB),
+        reinterpret_cast<void *>(getAllConsCB.get()),
         &getAllConsCB->work);
 
     napi_queue_async_work(env, getAllConsCB->work);
+    getAllConsCB.release();
     return result;
 }
 
@@ -584,17 +534,11 @@ napi_value GetOsAccountLocalIdFromProcess(napi_env env, napi_callback_info cbInf
 
 napi_value GetOsAccountLocalIdFromProcessInner(napi_env env, napi_callback_info cbInfo, bool throwErr)
 {
-    GetIdAsyncContext *getIdCB = new (std::nothrow) GetIdAsyncContext();
-    if (getIdCB == nullptr) {
-        ACCOUNT_LOGE("insufficient memory for getIdCB!");
-        return WrapVoidToJS(env);
-    }
+    auto getIdCB = std::make_unique<GetIdAsyncContext>();
     getIdCB->env = env;
-    getIdCB->callbackRef = nullptr;
     getIdCB->throwErr = throwErr;
 
-    if (!ParseParaProcessId(env, cbInfo, getIdCB) && throwErr) {
-        delete getIdCB;
+    if (!ParseParaProcessId(env, cbInfo, getIdCB.get()) && throwErr) {
         return nullptr;
     }
 
@@ -613,26 +557,21 @@ napi_value GetOsAccountLocalIdFromProcessInner(napi_env env, napi_callback_info 
         resource,
         GetProcessIdExecuteCB,
         GetProcessIdCallbackCompletedCB,
-        reinterpret_cast<void *>(getIdCB),
+        reinterpret_cast<void *>(getIdCB.get()),
         &getIdCB->work);
 
     napi_queue_async_work(env, getIdCB->work);
+    getIdCB.release();
     return result;
 }
 
 napi_value QueryAllCreatedOsAccounts(napi_env env, napi_callback_info cbInfo)
 {
-    QueryCreateOAAsyncContext *queryAllOA = new (std::nothrow) QueryCreateOAAsyncContext();
-    if (queryAllOA == nullptr) {
-        ACCOUNT_LOGE("insufficient memory for queryAllOA!");
-        return WrapVoidToJS(env);
-    }
+    auto queryAllOA = std::make_unique<QueryCreateOAAsyncContext>();
     queryAllOA->env = env;
-    queryAllOA->callbackRef = nullptr;
     queryAllOA->throwErr = true;
 
-    if (!ParseQueryAllCreateOA(env, cbInfo, queryAllOA)) {
-        delete queryAllOA;
+    if (!ParseQueryAllCreateOA(env, cbInfo, queryAllOA.get())) {
         return nullptr;
     }
 
@@ -651,26 +590,21 @@ napi_value QueryAllCreatedOsAccounts(napi_env env, napi_callback_info cbInfo)
         resource,
         QueryCreateOAExecuteCB,
         QueryCreateOACallbackCompletedCB,
-        reinterpret_cast<void *>(queryAllOA),
+        reinterpret_cast<void *>(queryAllOA.get()),
         &queryAllOA->work);
 
     napi_queue_async_work(env, queryAllOA->work);
+    queryAllOA.release();
     return result;
 }
 
 napi_value QueryOsAccountConstraintSourceTypes(napi_env env, napi_callback_info cbInfo)
 {
-    QueryOAConstraintSrcTypeContext *queryConstraintSource = new (std::nothrow) QueryOAConstraintSrcTypeContext();
-    if (queryConstraintSource == nullptr) {
-        ACCOUNT_LOGE("queryConstraintSource == nullptr");
-        return WrapVoidToJS(env);
-    }
+    auto queryConstraintSource = std::make_unique<QueryOAConstraintSrcTypeContext>();
     queryConstraintSource->env = env;
-    queryConstraintSource->callbackRef = nullptr;
     queryConstraintSource->throwErr = true;
 
-    if (!ParseQueryOAConstraintSrcTypes(env, cbInfo, queryConstraintSource)) {
-        delete queryConstraintSource;
+    if (!ParseQueryOAConstraintSrcTypes(env, cbInfo, queryConstraintSource.get())) {
         return nullptr;
     }
 
@@ -689,10 +623,11 @@ napi_value QueryOsAccountConstraintSourceTypes(napi_env env, napi_callback_info 
         resource,
         QueryOAContSrcTypeExecuteCB,
         QueryOAContSrcTypeCallbackCompletedCB,
-        reinterpret_cast<void *>(queryConstraintSource),
+        reinterpret_cast<void *>(queryConstraintSource.get()),
         &queryConstraintSource->work);
 
     napi_queue_async_work(env, queryConstraintSource->work);
+    queryConstraintSource.release();
     return result;
 }
 
@@ -708,17 +643,11 @@ napi_value QueryActivatedOsAccountIds(napi_env env, napi_callback_info cbInfo)
 
 napi_value QueryActivatedOsAccountIdsInner(napi_env env, napi_callback_info cbInfo, bool throwErr)
 {
-    QueryActiveIdsAsyncContext *queryActiveIds = new (std::nothrow) QueryActiveIdsAsyncContext();
-    if (queryActiveIds == nullptr) {
-        ACCOUNT_LOGE("insufficient memory for queryActiveIds!");
-        return WrapVoidToJS(env);
-    }
+    auto queryActiveIds = std::make_unique<QueryActiveIdsAsyncContext>();
     queryActiveIds->env = env;
-    queryActiveIds->callbackRef = nullptr;
     queryActiveIds->throwErr = throwErr;
 
-    if (!ParseQueryActiveIds(env, cbInfo, queryActiveIds) && throwErr) {
-        delete queryActiveIds;
+    if (!ParseQueryActiveIds(env, cbInfo, queryActiveIds.get()) && throwErr) {
         return nullptr;
     }
 
@@ -737,26 +666,21 @@ napi_value QueryActivatedOsAccountIdsInner(napi_env env, napi_callback_info cbIn
         resource,
         QueryActiveIdsExecuteCB,
         QueryActiveIdsCallbackCompletedCB,
-        reinterpret_cast<void *>(queryActiveIds),
+        reinterpret_cast<void *>(queryActiveIds.get()),
         &queryActiveIds->work);
 
     napi_queue_async_work(env, queryActiveIds->work);
+    queryActiveIds.release();
     return result;
 }
 
 napi_value GetOsAccountProfilePhoto(napi_env env, napi_callback_info cbInfo)
 {
-    GetOAPhotoAsyncContext *getPhoto = new (std::nothrow) GetOAPhotoAsyncContext();
-    if (getPhoto == nullptr) {
-        ACCOUNT_LOGE("insufficient memory for queryAllOA!");
-        return WrapVoidToJS(env);
-    }
+    auto getPhoto = std::make_unique<GetOAPhotoAsyncContext>();
     getPhoto->env = env;
-    getPhoto->callbackRef = nullptr;
     getPhoto->throwErr = true;
 
-    if (!ParseParaGetPhoto(env, cbInfo, getPhoto)) {
-        delete getPhoto;
+    if (!ParseParaGetPhoto(env, cbInfo, getPhoto.get())) {
         return nullptr;
     }
 
@@ -771,9 +695,10 @@ napi_value GetOsAccountProfilePhoto(napi_env env, napi_callback_info cbInfo)
     napi_create_string_utf8(env, "GetOsAccountProfilePhoto", NAPI_AUTO_LENGTH, &resource);
 
     napi_create_async_work(env, nullptr, resource, GetOAPhotoExecuteCB, GetOAPhotoCallbackCompletedCB,
-        reinterpret_cast<void *>(getPhoto), &getPhoto->work);
+        reinterpret_cast<void *>(getPhoto.get()), &getPhoto->work);
 
     napi_queue_async_work(env, getPhoto->work);
+    getPhoto.release();
     return result;
 }
 
@@ -789,17 +714,11 @@ napi_value QueryCurrentOsAccount(napi_env env, napi_callback_info cbInfo)
 
 napi_value QueryCurrentOsAccountInner(napi_env env, napi_callback_info cbInfo, bool throwErr)
 {
-    CurrentOAAsyncContext *currentOA = new (std::nothrow) CurrentOAAsyncContext();
-    if (currentOA == nullptr) {
-        ACCOUNT_LOGE("insufficient memory for currentOA!");
-        return WrapVoidToJS(env);
-    }
+    auto currentOA = std::make_unique<CurrentOAAsyncContext>();
     currentOA->env = env;
-    currentOA->callbackRef = nullptr;
     currentOA->throwErr = throwErr;
 
-    if (!ParseParaCurrentOA(env, cbInfo, currentOA) && throwErr) {
-        delete currentOA;
+    if (!ParseParaCurrentOA(env, cbInfo, currentOA.get()) && throwErr) {
         return nullptr;
     }
 
@@ -818,10 +737,11 @@ napi_value QueryCurrentOsAccountInner(napi_env env, napi_callback_info cbInfo, b
         resource,
         QueryCurrentOAExecuteCB,
         QueryCurrentOACallbackCompletedCB,
-        reinterpret_cast<void *>(currentOA),
+        reinterpret_cast<void *>(currentOA.get()),
         &currentOA->work);
 
     napi_queue_async_work(env, currentOA->work);
+    currentOA.release();
     return result;
 }
 
@@ -837,17 +757,11 @@ napi_value GetOsAccountLocalIdFromUid(napi_env env, napi_callback_info cbInfo)
 
 napi_value GetOsAccountLocalIdFromUidInner(napi_env env, napi_callback_info cbInfo, bool throwErr)
 {
-    GetIdByUidAsyncContext *idByUid = new (std::nothrow) GetIdByUidAsyncContext();
-    if (idByUid == nullptr) {
-        ACCOUNT_LOGE("insufficient memory for idByUid!");
-        return WrapVoidToJS(env);
-    }
+    auto idByUid = std::make_unique<GetIdByUidAsyncContext>();
     idByUid->env = env;
-    idByUid->callbackRef = nullptr;
     idByUid->throwErr = throwErr;
 
-    if (!ParseParaGetIdByUid(env, cbInfo, idByUid) && throwErr) {
-        delete idByUid;
+    if (!ParseParaGetIdByUid(env, cbInfo, idByUid.get()) && throwErr) {
         return nullptr;
     }
 
@@ -862,25 +776,20 @@ napi_value GetOsAccountLocalIdFromUidInner(napi_env env, napi_callback_info cbIn
     napi_create_string_utf8(env, "GetOsAccountLocalIdFromUidInner", NAPI_AUTO_LENGTH, &resource);
 
     napi_create_async_work(env, nullptr, resource, GetIdByUidExecuteCB, GetIdByUidCallbackCompletedCB,
-        reinterpret_cast<void *>(idByUid), &idByUid->work);
+        reinterpret_cast<void *>(idByUid.get()), &idByUid->work);
 
     napi_queue_async_work(env, idByUid->work);
+    idByUid.release();
     return result;
 }
 
 napi_value GetBundleIdFromUid(napi_env env, napi_callback_info cbInfo)
 {
-    GetIdByUidAsyncContext *bundleIdByUid = new (std::nothrow) GetIdByUidAsyncContext();
-    if (bundleIdByUid == nullptr) {
-        ACCOUNT_LOGE("insufficient memory for bundleIdByUid!");
-        return WrapVoidToJS(env);
-    }
+    auto bundleIdByUid = std::make_unique<GetIdByUidAsyncContext>();
     bundleIdByUid->env = env;
-    bundleIdByUid->callbackRef = nullptr;
     bundleIdByUid->throwErr = true;
 
-    if (!ParseParaGetIdByUid(env, cbInfo, bundleIdByUid)) {
-        delete bundleIdByUid;
+    if (!ParseParaGetIdByUid(env, cbInfo, bundleIdByUid.get())) {
         return nullptr;
     }
 
@@ -897,10 +806,11 @@ napi_value GetBundleIdFromUid(napi_env env, napi_callback_info cbInfo)
     napi_create_async_work(env, nullptr, resource,
         GetBundleIdByUidExecuteCB,
         GetBundleIdByUidCallbackCompletedCB,
-        reinterpret_cast<void *>(bundleIdByUid),
+        reinterpret_cast<void *>(bundleIdByUid.get()),
         &bundleIdByUid->work);
 
     napi_queue_async_work(env, bundleIdByUid->work);
+    bundleIdByUid.release();
     return result;
 }
 
@@ -916,17 +826,11 @@ napi_value GetOsAccountLocalIdFromDomain(napi_env env, napi_callback_info cbInfo
 
 napi_value GetOsAccountLocalIdFromDomainInner(napi_env env, napi_callback_info cbInfo, bool throwErr)
 {
-    GetIdByDomainAsyncContext *idByDomain = new (std::nothrow) GetIdByDomainAsyncContext();
-    if (idByDomain == nullptr) {
-        ACCOUNT_LOGE("insufficient memory for idByDomain!");
-        return WrapVoidToJS(env);
-    }
+    auto idByDomain = std::make_unique<GetIdByDomainAsyncContext>();
     idByDomain->env = env;
-    idByDomain->callbackRef = nullptr;
     idByDomain->throwErr = throwErr;
 
-    if (!ParseParaGetIdByDomain(env, cbInfo, idByDomain) && throwErr) {
-        delete idByDomain;
+    if (!ParseParaGetIdByDomain(env, cbInfo, idByDomain.get()) && throwErr) {
         return nullptr;
     }
 
@@ -941,25 +845,20 @@ napi_value GetOsAccountLocalIdFromDomainInner(napi_env env, napi_callback_info c
     napi_create_string_utf8(env, "GetOsAccountLocalIdFromDomainInner", NAPI_AUTO_LENGTH, &resource);
 
     napi_create_async_work(env, nullptr, resource, GetIdByDomainExecuteCB, GetIdByDomainCallbackCompletedCB,
-        reinterpret_cast<void *>(idByDomain), &idByDomain->work);
+        reinterpret_cast<void *>(idByDomain.get()), &idByDomain->work);
 
     napi_queue_async_work(env, idByDomain->work);
+    idByDomain.release();
     return result;
 }
 
 napi_value SetOsAccountProfilePhoto(napi_env env, napi_callback_info cbInfo)
 {
-    SetOAPhotoAsyncContext *setPhoto = new (std::nothrow) SetOAPhotoAsyncContext();
-    if (setPhoto == nullptr) {
-        ACCOUNT_LOGE("insufficient memory for setPhoto!");
-        return WrapVoidToJS(env);
-    }
+    auto setPhoto = std::make_unique<SetOAPhotoAsyncContext>();
     setPhoto->env = env;
-    setPhoto->callbackRef = nullptr;
     setPhoto->throwErr = true;
 
-    if (!ParseParaSetPhoto(env, cbInfo, setPhoto)) {
-        delete setPhoto;
+    if (!ParseParaSetPhoto(env, cbInfo, setPhoto.get())) {
         return nullptr;
     }
 
@@ -974,25 +873,20 @@ napi_value SetOsAccountProfilePhoto(napi_env env, napi_callback_info cbInfo)
     napi_create_string_utf8(env, "SetOsAccountProfilePhoto", NAPI_AUTO_LENGTH, &resource);
 
     napi_create_async_work(env, nullptr, resource, SetPhotoExecuteCB, SetPhotoCompletedCB,
-        reinterpret_cast<void *>(setPhoto), &setPhoto->work);
+        reinterpret_cast<void *>(setPhoto.get()), &setPhoto->work);
 
     napi_queue_async_work(env, setPhoto->work);
+    setPhoto.release();
     return result;
 }
 
 napi_value QueryMaxOsAccountNumber(napi_env env, napi_callback_info cbInfo)
 {
-    QueryMaxNumAsyncContext *maxNum = new (std::nothrow) QueryMaxNumAsyncContext();
-    if (maxNum == nullptr) {
-        ACCOUNT_LOGE("insufficient memory for maxNum!");
-        return WrapVoidToJS(env);
-    }
+    auto maxNum = std::make_unique<QueryMaxNumAsyncContext>();
     maxNum->env = env;
-    maxNum->callbackRef = nullptr;
     maxNum->throwErr = true;
 
-    if (!ParseParaQueryMaxNum(env, cbInfo, maxNum)) {
-        delete maxNum;
+    if (!ParseParaQueryMaxNum(env, cbInfo, maxNum.get())) {
         return nullptr;
     }
 
@@ -1007,25 +901,20 @@ napi_value QueryMaxOsAccountNumber(napi_env env, napi_callback_info cbInfo)
     napi_create_string_utf8(env, "QueryMaxOsAccountNumber", NAPI_AUTO_LENGTH, &resource);
 
     napi_create_async_work(env, nullptr, resource, QueryMaxNumExecuteCB, QueryMaxNumCompletedCB,
-        reinterpret_cast<void *>(maxNum), &maxNum->work);
+        reinterpret_cast<void *>(maxNum.get()), &maxNum->work);
 
     napi_queue_async_work(env, maxNum->work);
+    maxNum.release();
     return result;
 }
 
 napi_value InnerIsOsAccountActived(napi_env env, napi_callback_info cbInfo, bool throwErr)
 {
-    IsActivedAsyncContext *isActived = new (std::nothrow) IsActivedAsyncContext();
-    if (isActived == nullptr) {
-        ACCOUNT_LOGE("insufficient memory for isActived!");
-        return WrapVoidToJS(env);
-    }
+    auto isActived = std::make_unique<IsActivedAsyncContext>();
     isActived->env = env;
-    isActived->callbackRef = nullptr;
     isActived->throwErr = throwErr;
 
-    if (!ParseParaIsActived(env, cbInfo, isActived) && throwErr) {
-        delete isActived;
+    if (!ParseParaIsActived(env, cbInfo, isActived.get()) && throwErr) {
         return nullptr;
     }
 
@@ -1040,9 +929,10 @@ napi_value InnerIsOsAccountActived(napi_env env, napi_callback_info cbInfo, bool
     napi_create_string_utf8(env, "IsOsAccountActived", NAPI_AUTO_LENGTH, &resource);
 
     napi_create_async_work(env, nullptr, resource, IsActivedExecuteCB, IsActivedCompletedCB,
-        reinterpret_cast<void *>(isActived), &isActived->work);
+        reinterpret_cast<void *>(isActived.get()), &isActived->work);
 
     napi_queue_async_work(env, isActived->work);
+    isActived.release();
     return result;
 }
 
@@ -1058,17 +948,11 @@ napi_value IsOsAccountActived(napi_env env, napi_callback_info cbInfo)
 
 napi_value InnerIsOsAccountConstraintEnable(napi_env env, napi_callback_info cbInfo, bool throwErr)
 {
-    IsConEnableAsyncContext *isEnable = new (std::nothrow) IsConEnableAsyncContext();
-    if (isEnable == nullptr) {
-        ACCOUNT_LOGE("insufficient memory for isEnable!");
-        return WrapVoidToJS(env);
-    }
+    auto isEnable = std::make_unique<IsConEnableAsyncContext>();
     isEnable->env = env;
-    isEnable->callbackRef = nullptr;
     isEnable->throwErr = throwErr;
 
-    if (!ParseParaIsEnable(env, cbInfo, isEnable) && throwErr) {
-        delete isEnable;
+    if (!ParseParaIsEnable(env, cbInfo, isEnable.get()) && throwErr) {
         return nullptr;
     }
 
@@ -1083,9 +967,10 @@ napi_value InnerIsOsAccountConstraintEnable(napi_env env, napi_callback_info cbI
     napi_create_string_utf8(env, "IsOsAccountConstraintEnable", NAPI_AUTO_LENGTH, &resource);
 
     napi_create_async_work(env, nullptr, resource, IsEnableExecuteCB, IsEnableCompletedCB,
-        reinterpret_cast<void *>(isEnable), &isEnable->work);
+        reinterpret_cast<void *>(isEnable.get()), &isEnable->work);
 
     napi_queue_async_work(env, isEnable->work);
+    isEnable.release();
     return result;
 }
 
@@ -1111,17 +996,11 @@ napi_value GetOsAccountTypeFromProcess(napi_env env, napi_callback_info cbInfo)
 
 napi_value GetOsAccountTypeFromProcessInner(napi_env env, napi_callback_info cbInfo, bool throwErr)
 {
-    GetTypeAsyncContext *getType = new (std::nothrow) GetTypeAsyncContext();
-    if (getType == nullptr) {
-        ACCOUNT_LOGE("insufficient memory for getType!");
-        return WrapVoidToJS(env);
-    }
+    auto getType = std::make_unique<GetTypeAsyncContext>();
     getType->env = env;
-    getType->callbackRef = nullptr;
     getType->throwErr = throwErr;
 
-    if (!ParseParaGetType(env, cbInfo, getType) && throwErr) {
-        delete getType;
+    if (!ParseParaGetType(env, cbInfo, getType.get()) && throwErr) {
         return nullptr;
     }
 
@@ -1136,9 +1015,10 @@ napi_value GetOsAccountTypeFromProcessInner(napi_env env, napi_callback_info cbI
     napi_create_string_utf8(env, "GetOsAccountTypeFromProcessInner", NAPI_AUTO_LENGTH, &resource);
 
     napi_create_async_work(env, nullptr, resource, GetTypeExecuteCB, GetTypeCompletedCB,
-        reinterpret_cast<void *>(getType), &getType->work);
+        reinterpret_cast<void *>(getType.get()), &getType->work);
 
     napi_queue_async_work(env, getType->work);
+    getType.release();
     return result;
 }
 
@@ -1154,17 +1034,11 @@ napi_value CheckMultiOsAccountEnabled(napi_env env, napi_callback_info cbInfo)
 
 napi_value InnerIsMultiOsAccountEnable(napi_env env, napi_callback_info cbInfo, bool throwErr)
 {
-    IsMultiEnAsyncContext *multiEn = new (std::nothrow) IsMultiEnAsyncContext();
-    if (multiEn == nullptr) {
-        ACCOUNT_LOGE("insufficient memory for multiEn!");
-        return WrapVoidToJS(env);
-    }
+    auto multiEn = std::make_unique<IsMultiEnAsyncContext>();
     multiEn->env = env;
-    multiEn->callbackRef = nullptr;
     multiEn->throwErr = throwErr;
 
-    if (!ParseParaIsMultiEn(env, cbInfo, multiEn) && throwErr) {
-        delete multiEn;
+    if (!ParseParaIsMultiEn(env, cbInfo, multiEn.get()) && throwErr) {
         return nullptr;
     }
 
@@ -1179,25 +1053,20 @@ napi_value InnerIsMultiOsAccountEnable(napi_env env, napi_callback_info cbInfo, 
     napi_create_string_utf8(env, "IsMultiOsAccountEnable", NAPI_AUTO_LENGTH, &resource);
 
     napi_create_async_work(env, nullptr, resource, IsMultiEnExecuteCB, IsMultiEnCompletedCB,
-        reinterpret_cast<void *>(multiEn), &multiEn->work);
+        reinterpret_cast<void *>(multiEn.get()), &multiEn->work);
 
     napi_queue_async_work(env, multiEn->work);
+    multiEn.release();
     return result;
 }
 
 napi_value InnerIsOsAccountVerified(napi_env env, napi_callback_info cbInfo, bool throwErr)
 {
-    IsVerifiedAsyncContext *isVerified = new (std::nothrow) IsVerifiedAsyncContext();
-    if (isVerified == nullptr) {
-        ACCOUNT_LOGE("insufficient memory for isVerified!");
-        return WrapVoidToJS(env);
-    }
+    auto isVerified = std::make_unique<IsVerifiedAsyncContext>();
     isVerified->env = env;
-    isVerified->callbackRef = nullptr;
     isVerified->throwErr = throwErr;
 
-    if (!ParseParaIsVerified(env, cbInfo, isVerified) && throwErr) {
-        delete isVerified;
+    if (!ParseParaIsVerified(env, cbInfo, isVerified.get()) && throwErr) {
         return nullptr;
     }
 
@@ -1212,9 +1081,10 @@ napi_value InnerIsOsAccountVerified(napi_env env, napi_callback_info cbInfo, boo
     napi_create_string_utf8(env, "IsOsAccountVerified", NAPI_AUTO_LENGTH, &resource);
 
     napi_create_async_work(env, nullptr, resource, IsVerifiedExecuteCB, IsVerifiedCompletedCB,
-        reinterpret_cast<void *>(isVerified), &isVerified->work);
+        reinterpret_cast<void *>(isVerified.get()), &isVerified->work);
 
     napi_queue_async_work(env, isVerified->work);
+    isVerified.release();
     return result;
 }
 
@@ -1240,17 +1110,11 @@ napi_value GetOsAccountLocalIdBySerialNumber(napi_env env, napi_callback_info cb
 
 napi_value GetOsAccountLocalIdBySerialNumberInner(napi_env env, napi_callback_info cbInfo, bool throwErr)
 {
-    GetSerialNumIdCBInfo *serialNumId = new (std::nothrow) GetSerialNumIdCBInfo();
-    if (serialNumId == nullptr) {
-        ACCOUNT_LOGE("insufficient memory for serialNumId!");
-        return WrapVoidToJS(env);
-    }
+    auto serialNumId = std::make_unique<GetSerialNumIdCBInfo>();
     serialNumId->env = env;
-    serialNumId->callbackRef = nullptr;
     serialNumId->throwErr = throwErr;
 
-    if (!ParseParaSerialNumId(env, cbInfo, serialNumId) && throwErr) {
-        delete serialNumId;
+    if (!ParseParaSerialNumId(env, cbInfo, serialNumId.get()) && throwErr) {
         return nullptr;
     }
 
@@ -1265,9 +1129,10 @@ napi_value GetOsAccountLocalIdBySerialNumberInner(napi_env env, napi_callback_in
     napi_create_string_utf8(env, "GetOsAccountLocalIdBySerialNumberInner", NAPI_AUTO_LENGTH, &resource);
 
     napi_create_async_work(env, nullptr, resource, SerialNumIdExecuteCB, SerialNumIdCompletedCB,
-        reinterpret_cast<void *>(serialNumId), &serialNumId->work);
+        reinterpret_cast<void *>(serialNumId.get()), &serialNumId->work);
 
     napi_queue_async_work(env, serialNumId->work);
+    serialNumId.release();
     return result;
 }
 
@@ -1283,17 +1148,11 @@ napi_value GetSerialNumberByOsAccountLocalId(napi_env env, napi_callback_info cb
 
 napi_value GetSerialNumberByOsAccountLocalIdInner(napi_env env, napi_callback_info cbInfo, bool throwErr)
 {
-    GetSerialNumForOAInfo *getSerialNum = new (std::nothrow) GetSerialNumForOAInfo();
-    if (getSerialNum == nullptr) {
-        ACCOUNT_LOGE("insufficient memory for getSerialNum!");
-        return WrapVoidToJS(env);
-    }
+    auto getSerialNum = std::make_unique<GetSerialNumForOAInfo>();
     getSerialNum->env = env;
-    getSerialNum->callbackRef = nullptr;
     getSerialNum->throwErr = throwErr;
 
-    if (!ParseParaGetSerialNum(env, cbInfo, getSerialNum) && throwErr) {
-        delete getSerialNum;
+    if (!ParseParaGetSerialNum(env, cbInfo, getSerialNum.get()) && throwErr) {
         return nullptr;
     }
 
@@ -1312,10 +1171,11 @@ napi_value GetSerialNumberByOsAccountLocalIdInner(napi_env env, napi_callback_in
         resource,
         GetSerialNumExecuteCB,
         GetSerialNumCompletedCB,
-        reinterpret_cast<void *>(getSerialNum),
+        reinterpret_cast<void *>(getSerialNum.get()),
         &getSerialNum->work);
 
     napi_queue_async_work(env, getSerialNum->work);
+    getSerialNum.release();
     return result;
 }
 
@@ -1331,17 +1191,11 @@ napi_value CheckOsAccountTestable(napi_env env, napi_callback_info cbInfo)
 
 napi_value InnerIsTestOsAccount(napi_env env, napi_callback_info cbInfo, bool throwErr)
 {
-    IsTestOAInfo *isTest = new (std::nothrow) IsTestOAInfo();
-    if (isTest == nullptr) {
-        ACCOUNT_LOGE("insufficient memory for isTest!");
-        return WrapVoidToJS(env);
-    }
+    auto isTest = std::make_unique<IsTestOAInfo>();
     isTest->env = env;
-    isTest->callbackRef = nullptr;
     isTest->throwErr = throwErr;
 
-    if (!ParseParaIsTestOA(env, cbInfo, isTest) && throwErr) {
-        delete isTest;
+    if (!ParseParaIsTestOA(env, cbInfo, isTest.get()) && throwErr) {
         return nullptr;
     }
 
@@ -1368,30 +1222,22 @@ napi_value InnerIsTestOsAccount(napi_env env, napi_callback_info cbInfo, bool th
             result[PARAMZERO] = GenerateBusinessSuccess(env, isTest->throwErr);
             napi_get_boolean(env, isTest->isTestOsAccount, &result[PARAMONE]);
             ProcessCallbackOrPromise(env, isTest, result[PARAMZERO], result[PARAMONE]);
-            napi_delete_async_work(env, isTest->work);
             delete isTest;
-            isTest = nullptr;
         },
-        reinterpret_cast<void *>(isTest),
+        reinterpret_cast<void *>(isTest.get()),
         &isTest->work);
-
     napi_queue_async_work(env, isTest->work);
+    isTest.release();
     return result;
 }
 
 napi_value IsMainOsAccount(napi_env env, napi_callback_info cbInfo)
 {
-    IsMainOAInfo *isMain = new (std::nothrow) IsMainOAInfo();
-    if (isMain == nullptr) {
-        ACCOUNT_LOGE("insufficient memory for isMain!");
-        return WrapVoidToJS(env);
-    }
+    auto isMain = std::make_unique<IsMainOAInfo>();
     isMain->env = env;
-    isMain->callbackRef = nullptr;
     isMain->throwErr = true;
 
-    if (!ParseParaIsMainOA(env, cbInfo, isMain)) {
-        delete isMain;
+    if (!ParseParaIsMainOA(env, cbInfo, isMain.get())) {
         return nullptr;
     }
 
@@ -1421,14 +1267,13 @@ napi_value IsMainOsAccount(napi_env env, napi_callback_info cbInfo)
             result[PARAMZERO] = GenerateBusinessError(env, isMain->errCode);
             napi_get_boolean(env, isMain->isMainOsAccount, &result[PARAMONE]);
             ProcessCallbackOrPromise(env, isMain, result[PARAMZERO], result[PARAMONE]);
-            napi_delete_async_work(env, isMain->work);
             delete isMain;
-            isMain = nullptr;
         },
-        reinterpret_cast<void *>(isMain),
+        reinterpret_cast<void *>(isMain.get()),
         &isMain->work);
 
     napi_queue_async_work(env, isMain->work);
+    isMain.release();
     return result;
 }
 
@@ -1448,22 +1293,6 @@ static bool IsSubscribeInMap(napi_env env, SubscribeCBInfo *subscribeCBInfo)
         it++;
     }
     return false;
-}
-
-SubscribeCBInfo::~SubscribeCBInfo()
-{
-    if ((env != nullptr) && (callbackRef != nullptr)) {
-        napi_delete_reference(env, callbackRef);
-        callbackRef = nullptr;
-    }
-}
-
-CreateOAForDomainAsyncContext::~CreateOAForDomainAsyncContext()
-{
-    if (callbackRef != nullptr) {
-        ReleaseNapiRefAsync(env, callbackRef);
-        callbackRef = nullptr;
-    }
 }
 
 napi_value Subscribe(napi_env env, napi_callback_info cbInfo)
@@ -1514,14 +1343,6 @@ SubscriberPtr::SubscriberPtr(const OsAccountSubscribeInfo &subscribeInfo) : OsAc
 
 SubscriberPtr::~SubscriberPtr()
 {}
-
-UnsubscribeCBInfo::~UnsubscribeCBInfo()
-{
-    if ((env != nullptr) && (callbackRef != nullptr)) {
-        napi_delete_reference(env, callbackRef);
-        callbackRef = nullptr;
-    }
-}
 
 void SubscriberPtr::OnAccountsChanged(const int &id)
 {
