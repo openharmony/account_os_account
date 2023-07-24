@@ -386,10 +386,6 @@ ExecuteRequestAsyncContext::~ExecuteRequestAsyncContext()
         napi_delete_reference(env, requestRef);
         requestRef = nullptr;
     }
-    if (callbackRef != nullptr) {
-        napi_delete_reference(env, callbackRef);
-        callbackRef = nullptr;
-    }
 }
 
 static napi_value CreateNapiErrData(napi_env env, const AsyncCallbackError &businessError)
@@ -734,20 +730,14 @@ static void ExecuteRequestCB(napi_env env, void *data)
 
 static void ExecuteRequestCompletedCB(napi_env env, napi_status status, void *data)
 {
-    ExecuteRequestAsyncContext *asyncContext = reinterpret_cast<ExecuteRequestAsyncContext *>(data);
-    napi_delete_async_work(env, asyncContext->work);
-    delete asyncContext;
+    delete reinterpret_cast<ExecuteRequestAsyncContext *>(data);
 }
 
 napi_value NapiAccountCapabilityScheduler::ExecuteRequest(napi_env env, napi_callback_info cbInfo)
 {
-    ExecuteRequestAsyncContext *executeRequestCB = new (std::nothrow) ExecuteRequestAsyncContext(env);
-    if (executeRequestCB == nullptr) {
-        ACCOUNT_LOGE("insufficient memory for HasDomainAccountCB!");
-        return nullptr;
-    }
-    std::unique_ptr<ExecuteRequestAsyncContext> contextPtr(executeRequestCB);
-    RETURN_IF_NEED_THROW_ERROR(env, ParseParamForExecuteRequest(env, cbInfo, executeRequestCB), "parse params failed");
+    auto executeRequestCB = std::make_unique<ExecuteRequestAsyncContext>(env);
+    RETURN_IF_NEED_THROW_ERROR(
+        env, ParseParamForExecuteRequest(env, cbInfo, executeRequestCB.get()), "parse params failed");
 
     napi_value result = nullptr;
     if (executeRequestCB->callbackRef == nullptr) {
@@ -760,10 +750,10 @@ napi_value NapiAccountCapabilityScheduler::ExecuteRequest(napi_env env, napi_cal
         resource,
         ExecuteRequestCB,
         ExecuteRequestCompletedCB,
-        reinterpret_cast<void *>(executeRequestCB),
+        reinterpret_cast<void *>(executeRequestCB.get()),
         &executeRequestCB->work));
     NAPI_CALL(env, napi_queue_async_work(env, executeRequestCB->work));
-    contextPtr.release();
+    executeRequestCB.release();
     return result;
 }
 

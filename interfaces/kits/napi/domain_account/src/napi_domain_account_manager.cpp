@@ -525,11 +525,6 @@ static void GetAuthStatusInfoWork(uv_work_t *work, int status)
     napi_close_handle_scope(param->env, scope);
 }
 
-JsDomainPluginParam::JsDomainPluginParam(napi_env napiEnv)
-{
-    env = napiEnv;
-}
-
 NapiDomainAccountPlugin::NapiDomainAccountPlugin(napi_env env, const JsDomainPlugin &jsPlugin)
     : env_(env), jsPlugin_(jsPlugin)
 {}
@@ -1006,15 +1001,8 @@ static bool ParseContextForAuth(napi_env env, napi_callback_info cbInfo, JsDomai
         ACCOUNT_LOGE("get credential failed");
         return false;
     }
-    napi_ref callbackRef = nullptr;
-    if (!GetNamedJsFunction(env, argv[index++], "onResult", callbackRef)) {
+    if (!GetNamedJsFunction(env, argv[index++], "onResult", authContext.callbackRef)) {
         ACCOUNT_LOGE("get callback failed");
-        return false;
-    }
-    authContext.callbackRef = callbackRef;
-    authContext.authCallback = std::make_shared<NapiDomainAccountCallback>(env, callbackRef);
-    if (authContext.authCallback == nullptr) {
-        ACCOUNT_LOGE("failed to create NapiUserAuthCallback");
         return false;
     }
     return true;
@@ -1022,27 +1010,12 @@ static bool ParseContextForAuth(napi_env env, napi_callback_info cbInfo, JsDomai
 
 void AuthCompletedCallback(napi_env env, napi_status status, void *data)
 {
-    JsDomainPluginParam *param = reinterpret_cast<JsDomainPluginParam *>(data);
-    napi_delete_async_work(env, param->work);
-    if (param->errCode != ERR_OK) {
-        napi_value argv[ARG_SIZE_TWO] = {nullptr};
-        napi_create_int32(param->env, ConvertToJSErrCode(param->errCode), &argv[0]);
-        AccountSA::DomainAuthResult emptyResult;
-        argv[1] = CreateAuthResult(param->env, emptyResult.token,
-            emptyResult.authStatusInfo.remainingTimes, emptyResult.authStatusInfo.freezingTime);
-        NapiCallVoidFunction(param->env, argv, ARG_SIZE_TWO, param->callbackRef);
-    }
-    delete param;
+    delete reinterpret_cast<JsDomainPluginParam *>(data);
 }
 
 napi_value NapiDomainAccountManager::Auth(napi_env env, napi_callback_info cbInfo)
 {
-    JsDomainPluginParam *authContext = new (std::nothrow) JsDomainPluginParam(env);
-    if (authContext == nullptr) {
-        ACCOUNT_LOGE("insufficient memory for authContext!");
-        return nullptr;
-    }
-    std::unique_ptr<JsDomainPluginParam> authContextPtr(authContext);
+    auto authContext = std::make_unique<JsDomainPluginParam>(env);
     if (!ParseContextForAuth(env, cbInfo, *authContext)) {
         AccountNapiThrow(env, ERR_JS_PARAMETER_ERROR, true);
         return nullptr;
@@ -1052,16 +1025,19 @@ napi_value NapiDomainAccountManager::Auth(napi_env env, napi_callback_info cbInf
     NAPI_CALL(env, napi_create_async_work(env, nullptr, resource,
         [](napi_env env, void *data) {
             JsDomainPluginParam *param = reinterpret_cast<JsDomainPluginParam *>(data);
+            auto callback = std::make_shared<NapiDomainAccountCallback>(env, param->callbackRef);
+            param->callbackRef = nullptr;
             param->errCode = DomainAccountClient::GetInstance().Auth(
-                param->domainAccountInfo, param->authData, param->authCallback);
-            if (param->errCode == ERR_OK) {
-                param->authCallback = nullptr;
+                param->domainAccountInfo, param->authData, callback);
+            if (param->errCode != ERR_OK) {
+                AccountSA::DomainAuthResult emptyResult;
+                callback->OnResult(ConvertToJSErrCode(param->errCode), emptyResult);
             }
         },
         AuthCompletedCallback,
-        reinterpret_cast<void *>(authContext), &authContext->work));
+        reinterpret_cast<void *>(authContext.get()), &authContext->work));
     NAPI_CALL(env, napi_queue_async_work(env, authContext->work));
-    authContextPtr.release();
+    authContext.release();
     return nullptr;
 }
 
@@ -1075,8 +1051,7 @@ static bool ParseContextForAuthWithPopup(
         ACCOUNT_LOGE("need input at least one parameter, but got %{public}zu", argc);
         return false;
     }
-    napi_ref callbackRef = nullptr;
-    if (!GetNamedJsFunction(env, argv[argc - 1], "onResult", callbackRef)) {
+    if (!GetNamedJsFunction(env, argv[argc - 1], "onResult", authWithPopupContext.callbackRef)) {
         ACCOUNT_LOGE("get callback failed");
         return false;
     }
@@ -1092,12 +1067,6 @@ static bool ParseContextForAuthWithPopup(
             }
         }
     }
-    authWithPopupContext.callbackRef = callbackRef;
-    authWithPopupContext.authCallback = std::make_shared<NapiDomainAccountCallback>(env, callbackRef);
-    if (authWithPopupContext.authCallback == nullptr) {
-        ACCOUNT_LOGE("failed to create NapiUserAuthCallback");
-        return false;
-    }
     return true;
 }
 
@@ -1112,12 +1081,12 @@ static void GetAccessTokenExecuteCB(napi_env env, void *data)
         std::vector<uint8_t> accessToken;
         callback->OnResult(asyncContext->errCode, accessToken);
     }
+    asyncContext->callbackRef = nullptr;
 }
 
 static void GetAccessTokenCompleteCB(napi_env env, napi_status status, void *data)
 {
-    auto *asyncContext = reinterpret_cast<GetAccessTokenAsyncContext *>(data);
-    napi_delete_async_work(env, asyncContext->work);
+    delete reinterpret_cast<GetAccessTokenAsyncContext *>(data);
 }
 
 static void GetAccessTokenCompleteWork(uv_work_t *work, int status)
@@ -1146,12 +1115,7 @@ static void GetAccessTokenCompleteWork(uv_work_t *work, int status)
 
 napi_value NapiDomainAccountManager::AuthWithPopup(napi_env env, napi_callback_info cbInfo)
 {
-    JsDomainPluginParam *authWithPopupContext = new (std::nothrow) JsDomainPluginParam(env);
-    if (authWithPopupContext == nullptr) {
-        ACCOUNT_LOGE("insufficient memory for authWithPopupContext!");
-        return nullptr;
-    }
-    std::unique_ptr<JsDomainPluginParam> authContextPtr(authWithPopupContext);
+    auto authWithPopupContext = std::make_unique<JsDomainPluginParam>(env);
     if (!ParseContextForAuthWithPopup(env, cbInfo, *authWithPopupContext)) {
         AccountNapiThrow(env, ERR_JS_PARAMETER_ERROR, true);
         return nullptr;
@@ -1161,24 +1125,19 @@ napi_value NapiDomainAccountManager::AuthWithPopup(napi_env env, napi_callback_i
     NAPI_CALL(env, napi_create_async_work(env, nullptr, resource,
         [](napi_env env, void *data) {
             JsDomainPluginParam *param = reinterpret_cast<JsDomainPluginParam *>(data);
-            param->errCode = DomainAccountClient::GetInstance().AuthWithPopup(param->userId, param->authCallback);
-            if (param->errCode == ERR_OK) {
-                param->authCallback = nullptr;
+            auto callback = std::make_shared<NapiDomainAccountCallback>(env, param->callbackRef);
+            param->callbackRef = nullptr;
+            param->errCode = DomainAccountClient::GetInstance().AuthWithPopup(param->userId, callback);
+            if (param->errCode != ERR_OK) {
+                AccountSA::DomainAuthResult emptyResult;
+                callback->OnResult(ConvertToJSErrCode(param->errCode), emptyResult);
             }
         },
         AuthCompletedCallback,
-        reinterpret_cast<void *>(authWithPopupContext), &authWithPopupContext->work));
+        reinterpret_cast<void *>(authWithPopupContext.get()), &authWithPopupContext->work));
     NAPI_CALL(env, napi_queue_async_work(env, authWithPopupContext->work));
-    authContextPtr.release();
+    authWithPopupContext.release();
     return nullptr;
-}
-
-HasDomainAccountAsyncContext::~HasDomainAccountAsyncContext()
-{
-    if (callbackRef != nullptr) {
-        NAPI_CALL_RETURN_VOID(env, napi_delete_reference(env, callbackRef));
-        callbackRef = nullptr;
-    }
 }
 
 static void HasDomainAccountCompletedWork(uv_work_t *work, int status)
@@ -1218,7 +1177,7 @@ void NapiHasDomainInfoCallback::OnResult(const int32_t errCode, Parcel &parcel)
         ACCOUNT_LOGE("failed to init domain plugin execution environment");
         return;
     }
-    auto *asyncContext = new (std::nothrow) HasDomainAccountAsyncContext();
+    auto *asyncContext = new (std::nothrow) HasDomainAccountAsyncContext(env_);
     if (asyncContext == nullptr) {
         delete work;
         return;
@@ -1227,7 +1186,6 @@ void NapiHasDomainInfoCallback::OnResult(const int32_t errCode, Parcel &parcel)
         parcel.ReadBool(asyncContext->isHasDomainAccount);
     }
     asyncContext->errCode = errCode;
-    asyncContext->env = env_;
     asyncContext->callbackRef = callbackRef_;
     asyncContext->deferred = deferred_;
     work->data = reinterpret_cast<void *>(asyncContext);
@@ -1241,14 +1199,6 @@ void NapiHasDomainInfoCallback::OnResult(const int32_t errCode, Parcel &parcel)
     }
     callbackRef_ = nullptr;
     deferred_ = nullptr;
-}
-
-GetAccessTokenAsyncContext::~GetAccessTokenAsyncContext()
-{
-    if (callbackRef != nullptr) {
-        NAPI_CALL_RETURN_VOID(env, napi_delete_reference(env, callbackRef));
-        callbackRef = nullptr;
-    }
 }
 
 NapiGetAccessTokenCallback::NapiGetAccessTokenCallback(napi_env env, napi_ref callbackRef, napi_deferred deferred)
@@ -1268,13 +1218,12 @@ void NapiGetAccessTokenCallback::OnResult(const int32_t errCode, const std::vect
         ACCOUNT_LOGE("failed to init domain plugin execution environment");
         return;
     }
-    auto *asyncContext = new (std::nothrow) GetAccessTokenAsyncContext();
+    auto *asyncContext = new (std::nothrow) GetAccessTokenAsyncContext(env_);
     if (asyncContext == nullptr) {
         delete work;
         return;
     }
     asyncContext->errCode = errCode;
-    asyncContext->env = env_;
     asyncContext->accessToken = accessToken;
     asyncContext->callbackRef = callbackRef_;
     asyncContext->deferred = deferred_;
@@ -1293,8 +1242,7 @@ void NapiGetAccessTokenCallback::OnResult(const int32_t errCode, const std::vect
 
 static void HasDomainAccountCompleteCB(napi_env env, napi_status status, void *data)
 {
-    auto *asyncContext = reinterpret_cast<HasDomainAccountAsyncContext *>(data);
-    napi_delete_async_work(env, asyncContext->work);
+    delete reinterpret_cast<HasDomainAccountAsyncContext *>(data);
 }
 
 static void HasDomainAccountExecuteCB(napi_env env, void *data)
@@ -1306,6 +1254,7 @@ static void HasDomainAccountExecuteCB(napi_env env, void *data)
         Parcel emptyParcel;
         callback->OnResult(asyncContext->errCode, emptyParcel);
     }
+    asyncContext->callbackRef = nullptr;
 }
 
 static void UpdateAccountTokenExecuteCB(napi_env env, void *data)
@@ -1326,26 +1275,19 @@ static void UpdateAccountTokenCompletedCB(napi_env env, napi_status status, void
         napi_get_null(asyncContext->env, &dataJs);
     }
     ProcessCallbackOrPromise(env, asyncContext, errJs, dataJs);
-    napi_delete_async_work(env, asyncContext->work);
     delete asyncContext;
 }
 
 napi_value NapiDomainAccountManager::UpdateAccountToken(napi_env env, napi_callback_info cbInfo)
 {
-    UpdateAccountTokenAsyncContext *updateAccountTokenCB = new (std::nothrow) UpdateAccountTokenAsyncContext();
-    if (updateAccountTokenCB == nullptr) {
-        ACCOUNT_LOGE("insufficient memory for HasDomainAccountCB!");
-        return nullptr;
-    }
-    std::unique_ptr<UpdateAccountTokenAsyncContext> contextPtr(updateAccountTokenCB);
-    updateAccountTokenCB->env = env;
-    if (!ParseParamForUpdateAccountToken(env, cbInfo, updateAccountTokenCB)) {
+    auto context = std::make_unique<UpdateAccountTokenAsyncContext>(env);
+    if (!ParseParamForUpdateAccountToken(env, cbInfo, context.get())) {
         AccountNapiThrow(env, ERR_JS_PARAMETER_ERROR, true);
         return nullptr;
     }
     napi_value result = nullptr;
-    if (updateAccountTokenCB->callbackRef == nullptr) {
-        NAPI_CALL(env, napi_create_promise(env, &updateAccountTokenCB->deferred, &result));
+    if (context->callbackRef == nullptr) {
+        NAPI_CALL(env, napi_create_promise(env, &context->deferred, &result));
     }
     napi_value resource = nullptr;
     NAPI_CALL(env, napi_create_string_utf8(env, "updateAccountToken", NAPI_AUTO_LENGTH, &resource));
@@ -1354,60 +1296,44 @@ napi_value NapiDomainAccountManager::UpdateAccountToken(napi_env env, napi_callb
         resource,
         UpdateAccountTokenExecuteCB,
         UpdateAccountTokenCompletedCB,
-        reinterpret_cast<void *>(updateAccountTokenCB),
-        &updateAccountTokenCB->work));
-    NAPI_CALL(env, napi_queue_async_work(env, updateAccountTokenCB->work));
-    contextPtr.release();
+        reinterpret_cast<void *>(context.get()),
+        &context->work));
+    NAPI_CALL(env, napi_queue_async_work(env, context->work));
+    context.release();
     return result;
 }
 
 napi_value NapiDomainAccountManager::GetAccessToken(napi_env env, napi_callback_info cbInfo)
 {
-    GetAccessTokenAsyncContext *getAccessTokenCB = new (std::nothrow) GetAccessTokenAsyncContext();
-    if (getAccessTokenCB == nullptr) {
-        ACCOUNT_LOGE("insufficient memory for getAccessTokenCB!");
-        return nullptr;
-    }
-    std::unique_ptr<GetAccessTokenAsyncContext> contextPtr(getAccessTokenCB);
-    getAccessTokenCB->env = env;
-    if (!ParseParamForGetAccessToken(env, cbInfo, getAccessTokenCB)) {
+    auto context = std::make_unique<GetAccessTokenAsyncContext>(env);
+    if (!ParseParamForGetAccessToken(env, cbInfo, context.get())) {
         AccountNapiThrow(env, ERR_JS_PARAMETER_ERROR, true);
         return nullptr;
     }
     napi_value result = nullptr;
-    if (getAccessTokenCB->callbackRef == nullptr) {
-        NAPI_CALL(env, napi_create_promise(env, &getAccessTokenCB->deferred, &result));
+    if (context->callbackRef == nullptr) {
+        NAPI_CALL(env, napi_create_promise(env, &context->deferred, &result));
     }
     napi_value resource = nullptr;
     NAPI_CALL(env, napi_create_string_utf8(env, "getAccessToken", NAPI_AUTO_LENGTH, &resource));
-    NAPI_CALL(env, napi_create_async_work(env,
-        nullptr,
-        resource,
-        GetAccessTokenExecuteCB,
-        GetAccessTokenCompleteCB,
-        reinterpret_cast<void *>(getAccessTokenCB),
-        &getAccessTokenCB->work));
-    NAPI_CALL(env, napi_queue_async_work(env, getAccessTokenCB->work));
-    contextPtr.release();
+    NAPI_CALL(env, napi_create_async_work(env, nullptr, resource,
+        GetAccessTokenExecuteCB, GetAccessTokenCompleteCB,
+        reinterpret_cast<void *>(context.get()), &context->work));
+    NAPI_CALL(env, napi_queue_async_work(env, context->work));
+    context.release();
     return result;
 }
 
 napi_value NapiDomainAccountManager::HasAccount(napi_env env, napi_callback_info cbInfo)
 {
-    HasDomainAccountAsyncContext *hasDomainAccountCB = new (std::nothrow) HasDomainAccountAsyncContext();
-    if (hasDomainAccountCB == nullptr) {
-        ACCOUNT_LOGE("insufficient memory for HasDomainAccountCB!");
-        return nullptr;
-    }
-    std::unique_ptr<HasDomainAccountAsyncContext> contextPtr(hasDomainAccountCB);
-    hasDomainAccountCB->env = env;
-    if (!ParseParamForHasDomainAccount(env, cbInfo, hasDomainAccountCB)) {
+    auto context = std::make_unique<HasDomainAccountAsyncContext>(env);
+    if (!ParseParamForHasDomainAccount(env, cbInfo, context.get())) {
         AccountNapiThrow(env, ERR_JS_PARAMETER_ERROR, true);
         return nullptr;
     }
     napi_value result = nullptr;
-    if (hasDomainAccountCB->callbackRef == nullptr) {
-        NAPI_CALL(env, napi_create_promise(env, &hasDomainAccountCB->deferred, &result));
+    if (context->callbackRef == nullptr) {
+        NAPI_CALL(env, napi_create_promise(env, &context->deferred, &result));
     }
     napi_value resource = nullptr;
     NAPI_CALL(env, napi_create_string_utf8(env, "hasAccount", NAPI_AUTO_LENGTH, &resource));
@@ -1416,10 +1342,10 @@ napi_value NapiDomainAccountManager::HasAccount(napi_env env, napi_callback_info
         resource,
         HasDomainAccountExecuteCB,
         HasDomainAccountCompleteCB,
-        reinterpret_cast<void *>(hasDomainAccountCB),
-        &hasDomainAccountCB->work));
-    NAPI_CALL(env, napi_queue_async_work(env, hasDomainAccountCB->work));
-    contextPtr.release();
+        reinterpret_cast<void *>(context.get()),
+        &context->work));
+    NAPI_CALL(env, napi_queue_async_work(env, context->work));
+    context.release();
     return result;
 }
 }  // namespace AccountJsKit
