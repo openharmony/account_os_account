@@ -36,6 +36,7 @@ ohos_unittest("account_mgr_test") {
   sources = [
     "${os_account_dfx_path}/hitrace_adapter/hitrace_adapter.cpp",
     "${services_path}/accountmgr/src/account_event_provider.cpp",
+    "${services_path}/accountmgr/src/account_event_subscribe.cpp",
     "${services_path}/accountmgr/src/account_mgr_service.cpp",
     "${services_path}/accountmgr/src/ohos_account_data_deal.cpp",
     "${services_path}/accountmgr/src/ohos_account_manager.cpp",

@@ -187,6 +187,7 @@ ohos_shared_library("accountmgr") {
     "${os_account_dfx_path}/hisysevent_adapter/hisysevent_adapter.cpp",
     "${os_account_dfx_path}/hitrace_adapter/hitrace_adapter.cpp",
     "src/account_event_provider.cpp",
+    "src/account_event_subscribe.cpp",
     "src/account_helper_data.cpp",
     "src/account_info_report.cpp",
     "src/account_mgr_service.cpp",
