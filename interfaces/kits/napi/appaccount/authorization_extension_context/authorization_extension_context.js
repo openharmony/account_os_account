@@ -13,26 +13,26 @@
  * limitations under the License.
  */
 
-const ExtensionContext = requireNapi("application.ExtensionContext");
+const ExtensionContext = requireNapi('application.ExtensionContext');
 
 class AuthenticationExtensionContext extends ExtensionContext {
-    constructor(obj) {
-        super(obj);
-        this.extensionAbilityInfo = obj.extensionAbilityInfo
-    }
+  constructor(obj) {
+    super(obj);
+    this.extensionAbilityInfo = obj.extensionAbilityInfo;
+  }
 
-    startAbilityForResult(want, options, callback) {
-        console.log('startAbilityForResult');
-        return this.__context_impl__.startAbilityForResult(want, options, callback);
-    }
-    connectServiceExtensionAbility(want, options) {
-        console.log('connectServiceExtensionAbility');
-        return this.__context_impl__.connectServiceExtensionAbility(want, options);
-    }
-    disconnectServiceExtensionAbility(connection, callback) {
-        console.log('disconnectServiceExtensionAbility');
-        return this.__context_impl__.disconnectServiceExtensionAbility(connection, callback);
-    }
+  startAbilityForResult(want, options, callback) {
+    console.log('startAbilityForResult');
+    return this.__context_impl__.startAbilityForResult(want, options, callback);
+  }
+  connectServiceExtensionAbility(want, options) {
+    console.log('connectServiceExtensionAbility');
+    return this.__context_impl__.connectServiceExtensionAbility(want, options);
+  }
+  disconnectServiceExtensionAbility(connection, callback) {
+    console.log('disconnectServiceExtensionAbility');
+    return this.__context_impl__.disconnectServiceExtensionAbility(connection, callback);
+  }
 }
 
-export default AuthenticationExtensionContext
+export default AuthenticationExtensionContext;
