@@ -36,6 +36,7 @@ const std::string DATADEAL_JSON_KEY_OHOSACCOUNT_NAME = "account_name";
 const std::string DATADEAL_JSON_KEY_OHOSACCOUNT_RAW_UID = "raw_uid";
 const std::string DATADEAL_JSON_KEY_OHOSACCOUNT_UID = "open_id";
 const std::string DATADEAL_JSON_KEY_OHOSACCOUNT_STATUS = "bind_status";
+const std::string DATADEAL_JSON_KEY_OHOSACCOUNT_CALLINGUID = "calling_uid";
 const std::string DATADEAL_JSON_KEY_OHOSACCOUNT_NICKNAME = "account_nickname";
 const std::string DATADEAL_JSON_KEY_OHOSACCOUNT_AVATAR = "account_avatar";
 const std::string DATADEAL_JSON_KEY_OHOSACCOUNT_SCALABLEDATA = "account_scalableData";
@@ -111,6 +112,7 @@ ErrCode OhosAccountDataDeal::SaveAccountInfo(const AccountInfo &accountInfo) con
         {DATADEAL_JSON_KEY_OHOSACCOUNT_RAW_UID, accountInfo.ohosAccountInfo_.GetRawUid()},
         {DATADEAL_JSON_KEY_OHOSACCOUNT_UID, accountInfo.ohosAccountInfo_.uid_},
         {DATADEAL_JSON_KEY_OHOSACCOUNT_STATUS, accountInfo.ohosAccountInfo_.status_},
+        {DATADEAL_JSON_KEY_OHOSACCOUNT_CALLINGUID, accountInfo.ohosAccountInfo_.callingUid_},
         {DATADEAL_JSON_KEY_OHOSACCOUNT_NICKNAME, accountInfo.ohosAccountInfo_.nickname_},
         {DATADEAL_JSON_KEY_OHOSACCOUNT_AVATAR, accountInfo.ohosAccountInfo_.avatar_},
         {DATADEAL_JSON_KEY_OHOSACCOUNT_SCALABLEDATA, scalableDataStr}
@@ -171,22 +173,8 @@ ErrCode OhosAccountDataDeal::ParseJsonFromFile(const std::string &filePath, nloh
     return ERR_OK;
 }
 
-ErrCode OhosAccountDataDeal::GetAccountInfo(AccountInfo &accountInfo, const int32_t userId)
+ErrCode OhosAccountDataDeal::GetAccountInfoFromJson(AccountInfo &accountInfo, const int32_t userId)
 {
-    std::string configFile = configFileDir_ + std::to_string(userId) + ACCOUNT_CFG_FILE_NAME;
-    if (!FileExists(configFile)) {
-        ACCOUNT_LOGI("file %{public}s not exist, create!", configFile.c_str());
-        BuildJsonFileFromScratch(userId); // create default config file for first login
-#ifdef WITH_SELINUX
-        Restorecon(configFile.c_str());
-#endif // WITH_SELINUX
-    }
-    std::lock_guard<std::mutex> lock(mutex_);
-    ErrCode ret = ParseJsonFromFile(configFile, jsonData_, userId);
-    if (ret != ERR_OK) {
-        return ret;
-    }
-
     const auto &jsonObjectEnd = jsonData_.end();
     if (jsonData_.find(DATADEAL_JSON_KEY_BIND_TIME) != jsonObjectEnd) {
         accountInfo.bindTime_ = jsonData_.at(DATADEAL_JSON_KEY_BIND_TIME).get<std::time_t>();
@@ -207,6 +195,11 @@ ErrCode OhosAccountDataDeal::GetAccountInfo(AccountInfo &accountInfo, const int3
 
     if (jsonData_.find(DATADEAL_JSON_KEY_OHOSACCOUNT_STATUS) != jsonObjectEnd) {
         accountInfo.ohosAccountInfo_.status_ = jsonData_.at(DATADEAL_JSON_KEY_OHOSACCOUNT_STATUS).get<int32_t>();
+    }
+
+    if (jsonData_.find(DATADEAL_JSON_KEY_OHOSACCOUNT_CALLINGUID) != jsonObjectEnd) {
+        accountInfo.ohosAccountInfo_.callingUid_ =
+            jsonData_.at(DATADEAL_JSON_KEY_OHOSACCOUNT_CALLINGUID).get<int32_t>();
     }
 
     if (jsonData_.find(DATADEAL_JSON_KEY_OHOSACCOUNT_NICKNAME) != jsonObjectEnd) {
@@ -230,6 +223,24 @@ ErrCode OhosAccountDataDeal::GetAccountInfo(AccountInfo &accountInfo, const int3
     return ERR_OK;
 }
 
+ErrCode OhosAccountDataDeal::GetAccountInfo(AccountInfo &accountInfo, const int32_t userId)
+{
+    std::string configFile = configFileDir_ + std::to_string(userId) + ACCOUNT_CFG_FILE_NAME;
+    if (!FileExists(configFile)) {
+        ACCOUNT_LOGI("file %{public}s not exist, create!", configFile.c_str());
+        BuildJsonFileFromScratch(userId); // create default config file for first login
+#ifdef WITH_SELINUX
+        Restorecon(configFile.c_str());
+#endif // WITH_SELINUX
+    }
+    std::lock_guard<std::mutex> lock(mutex_);
+    ErrCode ret = ParseJsonFromFile(configFile, jsonData_, userId);
+    if (ret != ERR_OK) {
+        return ret;
+    }
+    return GetAccountInfoFromJson(accountInfo, userId);
+}
+
 void OhosAccountDataDeal::BuildJsonFileFromScratch(int32_t userId) const
 {
     AccountInfo accountInfo;
@@ -238,6 +249,7 @@ void OhosAccountDataDeal::BuildJsonFileFromScratch(int32_t userId) const
     accountInfo.ohosAccountInfo_.uid_ = DEFAULT_OHOS_ACCOUNT_UID;
     accountInfo.ohosAccountInfo_.name_ = DEFAULT_OHOS_ACCOUNT_NAME;
     accountInfo.ohosAccountInfo_.status_ = ACCOUNT_STATE_UNBOUND;
+    accountInfo.ohosAccountInfo_.callingUid_ = DEFAULT_CALLING_UID;
     accountInfo.digest_ = "";
     accountInfo.ohosAccountInfo_.SetRawUid(DEFAULT_OHOS_ACCOUNT_UID);
     SaveAccountInfo(accountInfo);
