@@ -19,6 +19,7 @@
 #include "account_log_wrapper.h"
 #define private public
 #include "app_account_authorization_extension_callback.h"
+#include "app_account_authorization_extension_callback_client.h"
 #include "app_account_authorization_extension_callback_service.h"
 #include "app_account_authorization_extension_proxy.h"
 #include "app_account_authorization_extension_service.h"
@@ -246,4 +247,63 @@ HWTEST_F(AppAccountExtensionModuleTest, AppAccountAuthorizationExtensionCallback
     MessageParcel reply;
     MessageOption option;
     EXPECT_EQ(callbackServicePtr_->OnRemoteRequest(0, data, reply, option), ERR_ACCOUNT_COMMON_CHECK_DESCRIPTOR_ERROR);
+}
+
+/**
+ * @tc.name: OnRequestRedirected_001
+ * @tc.desc: test OnRequestRedirected callback client cov
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(AppAccountExtensionModuleTest, OnRequestRedirected_001, TestSize.Level1)
+{
+    auto callbackClient = new (std::nothrow) AppAccountAuthorizationExtensionCallbackClient(callbackProxyPtr_);
+    ASSERT_NE(callbackClient, nullptr);
+    AAFwk::Want request;
+    callbackClient->OnRequestRedirected(request);
+    EXPECT_NE(callbackClient->proxy_, nullptr);
+}
+
+/**
+ * @tc.name: OnRequestRedirected_002
+ * @tc.desc: test OnRequestRedirected callback stub cov
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(AppAccountExtensionModuleTest, OnRequestRedirected_002, TestSize.Level1)
+{
+    MessageParcel data;
+    MessageParcel reply;
+    MessageOption option;
+    EXPECT_EQ(callbackServicePtr_->OnRemoteRequest(1, data, reply, option), ERR_ACCOUNT_COMMON_CHECK_DESCRIPTOR_ERROR);
+}
+
+/**
+ * @tc.name: OnRequestRedirected_003
+ * @tc.desc: test OnRequestRedirected callback stub cov
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(AppAccountExtensionModuleTest, OnRequestRedirected_003, TestSize.Level1)
+{
+    MessageParcel data;
+    MessageParcel reply;
+    AAFwk::Want request;
+    EXPECT_EQ(data.WriteParcelable(&request), true);
+    EXPECT_EQ(callbackServicePtr_->ProcOnRequestRedirected(data, reply), ERR_NONE);
+}
+
+/**
+ * @tc.name: OnRequestRedirected_004
+ * @tc.desc: test OnRequestRedirected callback stub cov
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(AppAccountExtensionModuleTest, OnRequestRedirected_004, TestSize.Level1)
+{
+    auto callbackClient = new (std::nothrow) AppAccountAuthorizationExtensionCallbackClient(nullptr);
+    ASSERT_NE(callbackClient, nullptr);
+    AAFwk::Want request;
+    callbackClient->OnRequestRedirected(request);
+    EXPECT_EQ(callbackClient->proxy_, nullptr);
 }

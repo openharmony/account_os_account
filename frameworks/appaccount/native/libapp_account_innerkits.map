@@ -181,6 +181,7 @@
         "OHOS::AccountSA::AppAccountAuthorizationExtensionStub::~AppAccountAuthorizationExtensionStub()";
         "non-virtual thunk to OHOS::AccountSA::AppAccountAuthorizationExtensionStub::~AppAccountAuthorizationExtensionStub()";
         "virtual thunk to OHOS::AccountSA::AppAccountAuthorizationExtensionStub::~AppAccountAuthorizationExtensionStub()";
+        "OHOS::AccountSA::AppAccountAuthorizationExtensionCallbackStub::ProcOnRequestRedirected(OHOS::MessageParcel&, OHOS::MessageParcel&)";
     };
   local:
     *;
