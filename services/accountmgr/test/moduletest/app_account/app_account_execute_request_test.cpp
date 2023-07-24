@@ -79,7 +79,7 @@ void MockAppAccountAuthorizationExtensionCallbackStub::OnResult(
     return;
 }
 
-void MockAppAccountAuthorizationExtensionCallbackStub::OnRequestRedirected(const AAFwk::Want &reques)
+void MockAppAccountAuthorizationExtensionCallbackStub::OnRequestRedirected(const AAFwk::Want &request)
 {}
 
 class AppAccountManagerServiceModuleTest : public testing::Test {

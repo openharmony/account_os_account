@@ -72,7 +72,7 @@ public:
 private:
     std::weak_ptr<AuthorizationExtensionContext> context_;
 
-    bool CheckOnDisconnectAbilityParam(NativeEngine &engine, NativeCallbackInfo &info, int64_t &connectId) const
+    static bool CheckOnDisconnectAbilityParam(NativeEngine &engine, NativeCallbackInfo &info, int64_t &connectId)
     {
         // Check input connection is number type
         if (!AppExecFwk::UnwrapInt64FromJS2(
@@ -83,7 +83,7 @@ private:
         return true;
     }
 
-    bool CheckWantParam(NativeEngine &engine, NativeValue *value, AAFwk::Want &want) const
+    static bool CheckWantParam(NativeEngine &engine, NativeValue *value, AAFwk::Want &want)
     {
         if (!OHOS::AppExecFwk::UnwrapWant(
             reinterpret_cast<napi_env>(&engine), reinterpret_cast<napi_value>(value), want)) {
@@ -94,7 +94,7 @@ private:
     }
 
     bool CheckConnectionParam(NativeEngine &engine, NativeValue *value, sptr<JSServiceExtensionConnection> &connection,
-        AAFwk::Want &want) const
+        const AAFwk::Want &want) const
     {
         if (ConvertNativeValueTo<NativeObject>(value) == nullptr) {
             ACCOUNT_LOGE("Failed to get connection object");
@@ -129,7 +129,7 @@ private:
         return;
     }
 
-    bool UnWrapWant(NativeEngine &engine, NativeValue *argv, AAFwk::Want &want)
+    static bool UnWrapWant(NativeEngine &engine, NativeValue *argv, AAFwk::Want &want)
     {
         if (argv == nullptr) {
             ACCOUNT_LOGE("UnWrapWant argv == nullptr!");
