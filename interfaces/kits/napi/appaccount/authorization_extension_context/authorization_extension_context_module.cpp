@@ -44,8 +44,8 @@ extern "C" __attribute__((visibility("default"))) void NAPI_account_appAccount_A
 }
 
 // ability_context JS register
-extern "C" __attribute__((visibility("default")))
-void NAPI_account_appAccount_AuthorizationExtensionContext_GetABCCode(const char **buf, int *buflen)
+extern "C" __attribute__((visibility("default"))) void
+NAPI_account_appAccount_AuthorizationExtensionContext_GetABCCode(const char **buf, int *buflen)
 {
     if (buf != nullptr) {
         *buf = _binary_authorization_extension_context_abc_start;
