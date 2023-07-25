@@ -18,13 +18,29 @@
 #include <memory>
 #include <string>
 #include <vector>
-
+#include "account_log_wrapper.h"
+#include "domain_account_callback_stub.h"
 #include "domain_account_common.h"
 #include "domain_account_manager_service.h"
 #include "idomain_account.h"
 
 using namespace std;
+using namespace OHOS;
 using namespace OHOS::AccountSA;
+class TestHasDomainInfoCallback : public DomainAccountCallbackStub {
+public:
+    TestHasDomainInfoCallback() {};
+    virtual ~TestHasDomainInfoCallback();
+    void OnResult(const int32_t errCode, Parcel &parcel) override;
+};
+
+TestHasDomainInfoCallback::~TestHasDomainInfoCallback()
+{}
+
+void TestHasDomainInfoCallback::OnResult(const int32_t errCode, Parcel &parcel)
+{
+    return;
+}
 
 namespace OHOS {
 namespace {
@@ -53,6 +69,16 @@ const std::u16string ACCOUNT_TOKEN = u"ohos.accountfwk.IDomainAccount";
             return false;
         }
 
+        auto testCallback = new TestHasDomainInfoCallback();
+
+        if (testCallback == nullptr) {
+            ACCOUNT_LOGI("AppAccountStub ProcHasDomainAccount testCallback is null");
+            return false;
+        }
+
+        if (!dataTemp.WriteRemoteObject(testCallback->AsObject())) {
+            return false;
+        }
         MessageParcel reply;
         MessageOption option;
         uint32_t code = static_cast<uint32_t>(DomainAccountInterfaceCode::DOMAIN_HAS_DOMAIN_ACCOUNT);

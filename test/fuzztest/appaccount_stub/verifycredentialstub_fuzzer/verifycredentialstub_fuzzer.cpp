@@ -18,30 +18,18 @@
 #include <vector>
 
 #include "account_log_wrapper.h"
+#include "app_account_authenticator_callback_stub.h"
 #include "app_account_manager_service.h"
 #include "iapp_account.h"
 
 using namespace std;
 using namespace OHOS::AccountSA;
 
-class MockAuthenticatorCallback : public OHOS::AccountSA::IAppAccountAuthenticatorCallback {
+class MockAuthenticatorCallback final : public AppAccountAuthenticatorCallbackStub {
 public:
-    void OnResult(int32_t resultCode, const OHOS::AAFwk::Want& result) override
-    {
-        return;
-    }
-    void OnRequestRedirected(OHOS::AAFwk::Want& request) override
-    {
-        return;
-    }
-    void OnRequestContinued() override
-    {
-        return;
-    }
-    OHOS::sptr<OHOS::IRemoteObject> AsObject() override
-    {
-        return nullptr;
-    }
+    void OnResult(int32_t resultCode, const OHOS::AAFwk::Want &result) {}
+    void OnRequestRedirected(OHOS::AAFwk::Want &request) {}
+    void OnRequestContinued() {}
 };
 
 namespace OHOS {
@@ -58,6 +46,11 @@ bool VerifyCredentialStubFuzzTest(const uint8_t* data, size_t size)
     options.credentialType = testValue;
     options.credential = testValue;
     sptr<MockAuthenticatorCallback> callback = new (std::nothrow) MockAuthenticatorCallback();
+
+    if (callback == nullptr) {
+        ACCOUNT_LOGI("AppAccountStub VerifyCredential callback is null");
+        return false;
+    }
     
     MessageParcel dataTemp;
     if (!dataTemp.WriteInterfaceToken(APPACCOUNT_TOKEN)) {
