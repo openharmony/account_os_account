@@ -874,17 +874,21 @@ napi_value NapiAppAccount::GetCustomDataInternal(napi_env env, napi_callback_inf
 
 napi_value NapiAppAccount::GetAssociatedDataSync(napi_env env, napi_callback_info cbInfo)
 {
-    AppAccountAsyncContext asyncContext(env);
-    std::vector<PropertyType> propertyList = { PropertyType::NAME, PropertyType::KEY };
-    napi_value res = nullptr;
-    if (!ParseContextForAppAccount(env, cbInfo, &asyncContext, propertyList, &res)) {
-        napi_throw(env, GenerateBusinessError(env, ERR_JS_PARAMETER_ERROR, asyncContext.errMsg));
-        return NapiGetNull(env);
+    size_t argc = ARGS_SIZE_TWO;
+    napi_value argv[ARGS_SIZE_TWO] = {0};
+    napi_get_cb_info(env, cbInfo, &argc, argv, nullptr, nullptr);
+    std::string name;
+    std::string key;
+    if ((argc < ARGS_SIZE_TWO) || (!GetStringProperty(env, argv[0], name)) ||
+        (!GetStringProperty(env, argv[1], key))) {
+        napi_throw(env, GenerateBusinessError(env, ERR_JS_PARAMETER_ERROR));
+        return nullptr;
     }
+    std::string value;
+    ErrCode errCode = AppAccountManager::GetAssociatedData(name, key, value);
     napi_value result = nullptr;
-    ErrCode errCode = AppAccountManager::GetAssociatedData(asyncContext.name, asyncContext.key, asyncContext.value);
     if (errCode == ERR_OK) {
-        NAPI_CALL(env, napi_create_string_utf8(env, asyncContext.value.c_str(), NAPI_AUTO_LENGTH, &result));
+        NAPI_CALL(env, napi_create_string_utf8(env, value.c_str(), NAPI_AUTO_LENGTH, &result));
     } else {
         napi_throw(env, GenerateBusinessError(env, errCode));
     }
