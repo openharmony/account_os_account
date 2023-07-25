@@ -244,7 +244,7 @@ ErrCode OsAccountDatabaseOperator::GetAccountListFromStoreID(
 
     if (errCode != ERR_OK) {
         ACCOUNT_LOGE("Get account list info from database failed! storeID %{public}s.", storeID.c_str());
-        return ERR_OSACCOUNT_SERVICE_CONTROL_GET_ACCOUNT_LIST_ERROR;
+        return errCode;
     }
     accountListJson = Json::parse(accountList, nullptr, false);
     return ERR_OK;

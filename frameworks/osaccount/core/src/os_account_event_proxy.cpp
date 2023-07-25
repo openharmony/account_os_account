@@ -53,14 +53,14 @@ ErrCode OsAccountEventProxy::SendRequest(OsAccountEventInterfaceCode code, Messa
     sptr<IRemoteObject> remote = Remote();
     if (remote == nullptr) {
         ACCOUNT_LOGE("remote is nullptr, code = %{public}d", code);
-        return ERR_OSACCOUNT_KIT_REMOTE_IS_NULLPTR;
+        return ERR_ACCOUNT_COMMON_NULL_PTR_ERROR;
     }
 
     MessageOption option(MessageOption::TF_SYNC);
     int32_t result = remote->SendRequest(static_cast<uint32_t>(code), data, reply, option);
     if (result != ERR_OK) {
         ACCOUNT_LOGE("failed to SendRequest, code = %{public}d, result = %{public}d", code, result);
-        return ERR_OSACCOUNT_KIT_SEND_REQUEST_ERROR;
+        return result;
     }
 
     return ERR_OK;

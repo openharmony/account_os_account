@@ -307,7 +307,7 @@ HWTEST_F(OsAccountManagerServiceModuleTest, OsAccountManagerServiceModuleTest007
     g_accountFileOperator->DeleteDirOrFile(Constants::ACCOUNT_LIST_FILE_JSON_PATH);
     OsAccountInfo osAccountInfoOne;
     ErrCode errCode = osAccountManagerService_->CreateOsAccount(STRING_TEST_NAME, INT_TEST_TYPE, osAccountInfoOne);
-    EXPECT_EQ(errCode, ERR_OSACCOUNT_SERVICE_INNER_GET_SERIAL_NUMBER_ERROR);
+    EXPECT_NE(errCode, ERR_OK);
 
     // restore file content
     g_accountFileOperator->InputFileByPathAndContent(Constants::ACCOUNT_LIST_FILE_JSON_PATH, fileContext);
@@ -1689,7 +1689,7 @@ HWTEST_F(OsAccountManagerServiceModuleTest, OsAccountManagerServiceModuleTest086
 {
     setuid(TEST_UID);
     OsAccountInfo osAccountInfo;
-    EXPECT_EQ(ERR_OSACCOUNT_SERVICE_PERMISSION_DENIED,
+    EXPECT_EQ(ERR_ACCOUNT_COMMON_PERMISSION_DENIED,
         osAccountManagerService_->CreateOsAccount(STRING_TEST_NAME, INT_TEST_TYPE, osAccountInfo));
 }
 
@@ -1706,7 +1706,7 @@ HWTEST_F(OsAccountManagerServiceModuleTest, OsAccountManagerServiceModuleTest087
     OsAccountType type = NORMAL;
     DomainAccountInfo domainInfo(STRING_DOMAIN_VALID, STRING_DOMAIN_ACCOUNT_NAME_VALID);
     OsAccountInfo osAccountInfo;
-    EXPECT_EQ(ERR_OSACCOUNT_SERVICE_PERMISSION_DENIED,
+    EXPECT_EQ(ERR_ACCOUNT_COMMON_PERMISSION_DENIED,
         osAccountManagerService_->CreateOsAccountForDomain(type, domainInfo, osAccountInfo));
 }
 #endif // DOMAIN_ACCOUNT_TEST_CASE
@@ -1721,7 +1721,7 @@ HWTEST_F(OsAccountManagerServiceModuleTest, OsAccountManagerServiceModuleTest088
 {
     setuid(TEST_UID);
     int id = MAIN_ACCOUNT_ID + 1;
-    EXPECT_EQ(ERR_OSACCOUNT_SERVICE_PERMISSION_DENIED,
+    EXPECT_EQ(ERR_ACCOUNT_COMMON_PERMISSION_DENIED,
         osAccountManagerService_->RemoveOsAccount(id));
 }
 
@@ -1735,7 +1735,7 @@ HWTEST_F(OsAccountManagerServiceModuleTest, OsAccountManagerServiceModuleTest089
 {
     setuid(TEST_UID);
     bool isOsAccountActived;
-    EXPECT_EQ(ERR_OSACCOUNT_SERVICE_PERMISSION_DENIED,
+    EXPECT_EQ(ERR_ACCOUNT_COMMON_PERMISSION_DENIED,
         osAccountManagerService_->IsOsAccountActived(MAIN_ACCOUNT_ID, isOsAccountActived));
 }
 
@@ -1749,7 +1749,7 @@ HWTEST_F(OsAccountManagerServiceModuleTest, OsAccountManagerServiceModuleTest090
 {
     setuid(TEST_UID);
     bool isOsAccountActived;
-    EXPECT_EQ(ERR_OSACCOUNT_SERVICE_PERMISSION_DENIED,
+    EXPECT_EQ(ERR_ACCOUNT_COMMON_PERMISSION_DENIED,
         osAccountManagerService_->IsOsAccountConstraintEnable(MAIN_ACCOUNT_ID, CONSTANT_PRINT, isOsAccountActived));
 }
 
@@ -1763,7 +1763,7 @@ HWTEST_F(OsAccountManagerServiceModuleTest, OsAccountManagerServiceModuleTest091
 {
     setuid(TEST_UID);
     bool isVerified;
-    EXPECT_EQ(ERR_OSACCOUNT_SERVICE_PERMISSION_DENIED,
+    EXPECT_EQ(ERR_ACCOUNT_COMMON_PERMISSION_DENIED,
         osAccountManagerService_->IsOsAccountVerified(MAIN_ACCOUNT_ID, isVerified));
 }
 
@@ -1777,7 +1777,7 @@ HWTEST_F(OsAccountManagerServiceModuleTest, OsAccountManagerServiceModuleTest092
 {
     setuid(TEST_UID);
     unsigned int osAccountsCount;
-    EXPECT_EQ(ERR_OSACCOUNT_SERVICE_PERMISSION_DENIED,
+    EXPECT_EQ(ERR_ACCOUNT_COMMON_PERMISSION_DENIED,
         osAccountManagerService_->GetCreatedOsAccountsCount(osAccountsCount));
 }
 
@@ -1791,7 +1791,7 @@ HWTEST_F(OsAccountManagerServiceModuleTest, OsAccountManagerServiceModuleTest093
 {
     setuid(TEST_UID);
     bool isMainOsAccount;
-    EXPECT_EQ(ERR_OSACCOUNT_SERVICE_PERMISSION_DENIED,
+    EXPECT_EQ(ERR_ACCOUNT_COMMON_PERMISSION_DENIED,
         osAccountManagerService_->IsMainOsAccount(isMainOsAccount));
 }
 
@@ -1806,7 +1806,7 @@ HWTEST_F(OsAccountManagerServiceModuleTest, OsAccountManagerServiceModuleTest094
     setuid(TEST_UID);
     DomainAccountInfo domainInfo(STRING_DOMAIN_VALID, STRING_DOMAIN_ACCOUNT_NAME_VALID);
     int id;
-    EXPECT_EQ(ERR_OSACCOUNT_SERVICE_PERMISSION_DENIED,
+    EXPECT_EQ(ERR_ACCOUNT_COMMON_PERMISSION_DENIED,
         osAccountManagerService_->GetOsAccountLocalIdFromDomain(domainInfo, id));
 }
 
@@ -1820,7 +1820,7 @@ HWTEST_F(OsAccountManagerServiceModuleTest, OsAccountManagerServiceModuleTest095
 {
     setuid(TEST_UID);
     std::vector<std::string> constraints;
-    EXPECT_EQ(ERR_OSACCOUNT_SERVICE_PERMISSION_DENIED,
+    EXPECT_EQ(ERR_ACCOUNT_COMMON_PERMISSION_DENIED,
         osAccountManagerService_->GetOsAccountAllConstraints(MAIN_ACCOUNT_ID, constraints));
 }
 
@@ -1834,7 +1834,7 @@ HWTEST_F(OsAccountManagerServiceModuleTest, OsAccountManagerServiceModuleTest096
 {
     setuid(TEST_UID);
     std::vector<OsAccountInfo> osAccountInfos;
-    EXPECT_EQ(ERR_OSACCOUNT_SERVICE_PERMISSION_DENIED,
+    EXPECT_EQ(ERR_ACCOUNT_COMMON_PERMISSION_DENIED,
         osAccountManagerService_->QueryAllCreatedOsAccounts(osAccountInfos));
 }
 
@@ -1848,7 +1848,7 @@ HWTEST_F(OsAccountManagerServiceModuleTest, OsAccountManagerServiceModuleTest097
 {
     setuid(TEST_UID);
     OsAccountInfo osAccountInfo;
-    EXPECT_EQ(ERR_OSACCOUNT_SERVICE_PERMISSION_DENIED,
+    EXPECT_EQ(ERR_ACCOUNT_COMMON_PERMISSION_DENIED,
         osAccountManagerService_->QueryCurrentOsAccount(osAccountInfo));
 }
 
@@ -1862,7 +1862,7 @@ HWTEST_F(OsAccountManagerServiceModuleTest, OsAccountManagerServiceModuleTest098
 {
     setuid(TEST_UID);
     OsAccountInfo osAccountInfo;
-    EXPECT_EQ(ERR_OSACCOUNT_SERVICE_PERMISSION_DENIED,
+    EXPECT_EQ(ERR_ACCOUNT_COMMON_PERMISSION_DENIED,
         osAccountManagerService_->QueryOsAccountById(MAIN_ACCOUNT_ID, osAccountInfo));
 }
 
@@ -1876,7 +1876,7 @@ HWTEST_F(OsAccountManagerServiceModuleTest, OsAccountManagerServiceModuleTest099
 {
     setuid(TEST_UID);
     std::string photo;
-    EXPECT_EQ(ERR_OSACCOUNT_SERVICE_PERMISSION_DENIED,
+    EXPECT_EQ(ERR_ACCOUNT_COMMON_PERMISSION_DENIED,
         osAccountManagerService_->GetOsAccountProfilePhoto(MAIN_ACCOUNT_ID, photo));
 }
 
@@ -1889,7 +1889,7 @@ HWTEST_F(OsAccountManagerServiceModuleTest, OsAccountManagerServiceModuleTest099
 HWTEST_F(OsAccountManagerServiceModuleTest, OsAccountManagerServiceModuleTest100, TestSize.Level1)
 {
     setuid(TEST_UID);
-    EXPECT_EQ(ERR_OSACCOUNT_SERVICE_PERMISSION_DENIED,
+    EXPECT_EQ(ERR_ACCOUNT_COMMON_PERMISSION_DENIED,
         osAccountManagerService_->SetOsAccountName(MAIN_ACCOUNT_ID, STRING_NAME));
 }
 
@@ -1902,7 +1902,7 @@ HWTEST_F(OsAccountManagerServiceModuleTest, OsAccountManagerServiceModuleTest100
 HWTEST_F(OsAccountManagerServiceModuleTest, OsAccountManagerServiceModuleTest101, TestSize.Level1)
 {
     setuid(TEST_UID);
-    EXPECT_EQ(ERR_OSACCOUNT_SERVICE_PERMISSION_DENIED,
+    EXPECT_EQ(ERR_ACCOUNT_COMMON_PERMISSION_DENIED,
         osAccountManagerService_->SetOsAccountConstraints(MAIN_ACCOUNT_ID, CONSTANTS_VECTOR, true));
 }
 
@@ -1915,7 +1915,7 @@ HWTEST_F(OsAccountManagerServiceModuleTest, OsAccountManagerServiceModuleTest101
 HWTEST_F(OsAccountManagerServiceModuleTest, OsAccountManagerServiceModuleTest102, TestSize.Level1)
 {
     setuid(TEST_UID);
-    EXPECT_EQ(ERR_OSACCOUNT_SERVICE_PERMISSION_DENIED,
+    EXPECT_EQ(ERR_ACCOUNT_COMMON_PERMISSION_DENIED,
         osAccountManagerService_->SetOsAccountProfilePhoto(MAIN_ACCOUNT_ID, PHOTO_IMG));
 }
 
@@ -1928,7 +1928,7 @@ HWTEST_F(OsAccountManagerServiceModuleTest, OsAccountManagerServiceModuleTest102
 HWTEST_F(OsAccountManagerServiceModuleTest, OsAccountManagerServiceModuleTest103, TestSize.Level1)
 {
     setuid(TEST_UID);
-    EXPECT_EQ(ERR_OSACCOUNT_SERVICE_PERMISSION_DENIED,
+    EXPECT_EQ(ERR_ACCOUNT_COMMON_PERMISSION_DENIED,
         osAccountManagerService_->ActivateOsAccount(MAIN_ACCOUNT_ID));
 }
 
@@ -1943,7 +1943,7 @@ HWTEST_F(OsAccountManagerServiceModuleTest, OsAccountManagerServiceModuleTest104
     setuid(TEST_UID);
     OsAccountSubscribeInfo subscribeInfo;
     sptr<IRemoteObject> eventListener = nullptr;
-    EXPECT_EQ(ERR_OSACCOUNT_SERVICE_PERMISSION_DENIED,
+    EXPECT_EQ(ERR_ACCOUNT_COMMON_PERMISSION_DENIED,
         osAccountManagerService_->SubscribeOsAccount(subscribeInfo, eventListener));
 }
 
@@ -1957,7 +1957,7 @@ HWTEST_F(OsAccountManagerServiceModuleTest, OsAccountManagerServiceModuleTest105
 {
     setuid(TEST_UID);
     sptr<IRemoteObject> eventListener = nullptr;
-    EXPECT_EQ(ERR_OSACCOUNT_SERVICE_PERMISSION_DENIED,
+    EXPECT_EQ(ERR_ACCOUNT_COMMON_PERMISSION_DENIED,
         osAccountManagerService_->UnsubscribeOsAccount(eventListener));
 }
 
@@ -1970,7 +1970,7 @@ HWTEST_F(OsAccountManagerServiceModuleTest, OsAccountManagerServiceModuleTest105
 HWTEST_F(OsAccountManagerServiceModuleTest, OsAccountManagerServiceModuleTest106, TestSize.Level1)
 {
     setuid(TEST_UID);
-    EXPECT_EQ(ERR_OSACCOUNT_SERVICE_PERMISSION_DENIED,
+    EXPECT_EQ(ERR_ACCOUNT_COMMON_PERMISSION_DENIED,
         osAccountManagerService_->SetCurrentOsAccountIsVerified(true));
 }
 
@@ -1983,7 +1983,7 @@ HWTEST_F(OsAccountManagerServiceModuleTest, OsAccountManagerServiceModuleTest106
 HWTEST_F(OsAccountManagerServiceModuleTest, OsAccountManagerServiceModuleTest107, TestSize.Level1)
 {
     setuid(TEST_UID);
-    EXPECT_EQ(ERR_OSACCOUNT_SERVICE_PERMISSION_DENIED,
+    EXPECT_EQ(ERR_ACCOUNT_COMMON_PERMISSION_DENIED,
         osAccountManagerService_->SetOsAccountIsVerified(MAIN_ACCOUNT_ID, true));
 }
 
@@ -1998,7 +1998,7 @@ HWTEST_F(OsAccountManagerServiceModuleTest, OsAccountManagerServiceModuleTest108
     setuid(TEST_UID);
     int id = MAIN_ACCOUNT_ID;
     std::vector<std::string> state;
-    EXPECT_EQ(ERR_OSACCOUNT_SERVICE_PERMISSION_DENIED,
+    EXPECT_EQ(ERR_ACCOUNT_COMMON_PERMISSION_DENIED,
         osAccountManagerService_->DumpState(id, state));
 }
 
@@ -2012,7 +2012,7 @@ HWTEST_F(OsAccountManagerServiceModuleTest, OsAccountManagerServiceModuleTest109
 {
     setuid(TEST_UID);
     int createdOsAccountNum;
-    EXPECT_EQ(ERR_OSACCOUNT_SERVICE_PERMISSION_DENIED,
+    EXPECT_EQ(ERR_ACCOUNT_COMMON_PERMISSION_DENIED,
         osAccountManagerService_->GetCreatedOsAccountNumFromDatabase(STORE_ID, createdOsAccountNum));
 }
 
@@ -2026,7 +2026,7 @@ HWTEST_F(OsAccountManagerServiceModuleTest, OsAccountManagerServiceModuleTest110
 {
     setuid(TEST_UID);
     OsAccountInfo osAccountInfo;
-    EXPECT_EQ(ERR_OSACCOUNT_SERVICE_PERMISSION_DENIED,
+    EXPECT_EQ(ERR_ACCOUNT_COMMON_PERMISSION_DENIED,
         osAccountManagerService_->GetOsAccountFromDatabase(STORE_ID, MAIN_ACCOUNT_ID, osAccountInfo));
 }
 
@@ -2040,7 +2040,7 @@ HWTEST_F(OsAccountManagerServiceModuleTest, OsAccountManagerServiceModuleTest111
 {
     setuid(TEST_UID);
     std::vector<OsAccountInfo> osAccountList;
-    EXPECT_EQ(ERR_OSACCOUNT_SERVICE_PERMISSION_DENIED,
+    EXPECT_EQ(ERR_ACCOUNT_COMMON_PERMISSION_DENIED,
         osAccountManagerService_->GetOsAccountListFromDatabase(STORE_ID, osAccountList));
 }
 
@@ -2054,7 +2054,7 @@ HWTEST_F(OsAccountManagerServiceModuleTest, OsAccountManagerServiceModuleTest112
 {
     setuid(TEST_UID);
     std::vector<ConstraintSourceTypeInfo> constraintSourceTypeInfos;
-    EXPECT_EQ(ERR_OSACCOUNT_SERVICE_PERMISSION_DENIED, osAccountManagerService_->QueryOsAccountConstraintSourceTypes(
+    EXPECT_EQ(ERR_ACCOUNT_COMMON_PERMISSION_DENIED, osAccountManagerService_->QueryOsAccountConstraintSourceTypes(
             MAIN_ACCOUNT_ID, CONSTANT_WIFI, constraintSourceTypeInfos));
 }
 
@@ -2067,7 +2067,7 @@ HWTEST_F(OsAccountManagerServiceModuleTest, OsAccountManagerServiceModuleTest112
 HWTEST_F(OsAccountManagerServiceModuleTest, OsAccountManagerServiceModuleTest113, TestSize.Level1)
 {
     setuid(TEST_UID);
-    EXPECT_EQ(ERR_OSACCOUNT_SERVICE_PERMISSION_DENIED,
+    EXPECT_EQ(ERR_ACCOUNT_COMMON_PERMISSION_DENIED,
         osAccountManagerService_->SetGlobalOsAccountConstraints(CONSTANTS_VECTOR, true, MAIN_ACCOUNT_ID, true));
 }
 
@@ -2080,7 +2080,7 @@ HWTEST_F(OsAccountManagerServiceModuleTest, OsAccountManagerServiceModuleTest113
 HWTEST_F(OsAccountManagerServiceModuleTest, OsAccountManagerServiceModuleTest114, TestSize.Level1)
 {
     setuid(TEST_UID);
-    EXPECT_EQ(ERR_OSACCOUNT_SERVICE_PERMISSION_DENIED, osAccountManagerService_->SetSpecificOsAccountConstraints(
+    EXPECT_EQ(ERR_ACCOUNT_COMMON_PERMISSION_DENIED, osAccountManagerService_->SetSpecificOsAccountConstraints(
         CONSTANTS_VECTOR, false, MAIN_ACCOUNT_ID, MAIN_ACCOUNT_ID, false));
 }
 
@@ -2093,7 +2093,7 @@ HWTEST_F(OsAccountManagerServiceModuleTest, OsAccountManagerServiceModuleTest114
 HWTEST_F(OsAccountManagerServiceModuleTest, OsAccountManagerServiceModuleTest115, TestSize.Level1)
 {
     setuid(TEST_UID);
-    EXPECT_EQ(ERR_OSACCOUNT_SERVICE_PERMISSION_DENIED,
+    EXPECT_EQ(ERR_ACCOUNT_COMMON_PERMISSION_DENIED,
         osAccountManagerService_->SetDefaultActivatedOsAccount(MAIN_ACCOUNT_ID));
 }
 
@@ -2107,7 +2107,7 @@ HWTEST_F(OsAccountManagerServiceModuleTest, OsAccountManagerServiceModuleTest116
 {
     setuid(TEST_UID);
     int id;
-    EXPECT_NE(ERR_OSACCOUNT_SERVICE_PERMISSION_DENIED,
+    EXPECT_NE(ERR_ACCOUNT_COMMON_PERMISSION_DENIED,
         osAccountManagerService_->GetDefaultActivatedOsAccount(id));
     EXPECT_EQ(id, MAIN_ACCOUNT_ID);
 }
@@ -2148,7 +2148,7 @@ HWTEST_F(OsAccountManagerServiceModuleTest, OsAccountManagerServiceModuleTest119
     setuid(ACCOUNT_UID);
     DomainAccountInfo domainInfo;
     EXPECT_EQ(osAccountManagerService_->CreateOsAccountForDomain(OsAccountType::NORMAL, domainInfo, nullptr),
-        ERR_OSACCOUNT_SERVICE_PERMISSION_DENIED);
+        ERR_ACCOUNT_COMMON_PERMISSION_DENIED);
     setuid(ROOT_UID);
 }
 

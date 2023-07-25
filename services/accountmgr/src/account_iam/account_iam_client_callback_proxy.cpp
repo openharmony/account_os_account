@@ -31,7 +31,7 @@ static ErrCode SendRequestFunc(
     int32_t result = remote->SendRequest(code, data, reply, option);
     if (result != ERR_OK) {
         ACCOUNT_LOGE("failed to SendRequest, code = %{public}d, result = %{public}d", code, result);
-        return ERR_ACCOUNT_IAM_KIT_SEND_REQUEST;
+        return result;
     }
     return ERR_OK;
 }

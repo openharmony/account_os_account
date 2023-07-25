@@ -463,7 +463,7 @@ ErrCode AppAccountControlManager::SetOAuthToken(const AuthenticatorSessionReques
     result = SaveAccountInfoIntoDataStorage(appAccountInfo, dataStoragePtr, request.callerUid);
     if (result != ERR_OK) {
         ACCOUNT_LOGE("failed to save account info into data storage, result %{public}d.", result);
-        return ERR_APPACCOUNT_SERVICE_SAVE_ACCOUNT_INFO;
+        return result;
     }
     return ERR_OK;
 }
@@ -504,7 +504,7 @@ ErrCode AppAccountControlManager::DeleteOAuthToken(
     ret = SaveAccountInfoIntoDataStorage(appAccountInfo, dataStoragePtr, request.callerUid);
     if (ret != ERR_OK) {
         ACCOUNT_LOGE("failed to save account info into data storage, result %{public}d.", ret);
-        return ERR_APPACCOUNT_SERVICE_SAVE_ACCOUNT_INFO;
+        return ret;
     }
     return ERR_OK;
 }
@@ -530,7 +530,7 @@ ErrCode AppAccountControlManager::SetOAuthTokenVisibility(
     ret = SaveAccountInfoIntoDataStorage(appAccountInfo, dataStoragePtr, request.callerUid);
     if (ret != ERR_OK) {
         ACCOUNT_LOGE("failed to save account info into data storage, result %{public}d.", ret);
-        return ERR_APPACCOUNT_SERVICE_SAVE_ACCOUNT_INFO;
+        return ret;
     }
     return ERR_OK;
 }
@@ -800,7 +800,7 @@ ErrCode AppAccountControlManager::OnPackageRemoved(
     if (result != ERR_OK) {
         ACCOUNT_LOGE("failed to get accounts by owner, result %{public}d, bundleName = %{public}s",
             result, bundleName.c_str());
-        return ERR_APPACCOUNT_SERVICE_GET_ACCOUNT_INFO_BY_OWNER;
+        return result;
     }
     AppAccountInfo appAccountInfo;
     for (auto account : accounts) {
@@ -899,7 +899,7 @@ ErrCode AppAccountControlManager::GetAllAccountsFromDataStorage(const std::strin
     if (result != ERR_OK) {
         ACCOUNT_LOGE("failed to get accounts by owner, result = %{public}d, owner = %{public}s",
             result, owner.c_str());
-        return ERR_APPACCOUNT_SERVICE_GET_ACCOUNT_INFO_BY_OWNER;
+        return result;
     }
 
     std::transform(accounts.begin(), accounts.end(), std::back_inserter(appAccounts),
@@ -1013,7 +1013,7 @@ ErrCode AppAccountControlManager::AddAccountInfoIntoDataStorage(
     if (result != ERR_OK) {
         ACCOUNT_LOGE("failed to get accounts by owner, result %{public}d, owner = %{public}s",
             result, owner.c_str());
-        return ERR_APPACCOUNT_SERVICE_GET_ACCOUNT_INFO_BY_OWNER;
+        return result;
     }
 
     if (accounts.size() >= ACCOUNT_MAX_SIZE) {
@@ -1080,13 +1080,13 @@ ErrCode AppAccountControlManager::SaveAccountInfoIntoDataStorage(
             result = dataStorageSyncPtr->AddAccountInfo(appAccountInfo);
             if (result != ERR_OK) {
                 ACCOUNT_LOGE("failed to add account info, result = %{public}d", result);
-                return ERR_APPACCOUNT_SERVICE_ADD_ACCOUNT_INFO;
+                return result;
             }
         } else {
             result = dataStorageSyncPtr->SaveAccountInfo(appAccountInfo);
             if (result != ERR_OK) {
                 ACCOUNT_LOGE("failed to save account info, result = %{public}d", result);
-                return ERR_APPACCOUNT_SERVICE_SAVE_ACCOUNT_INFO;
+                return result;
             }
         }
     }

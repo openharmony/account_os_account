@@ -106,7 +106,7 @@ std::int32_t OhosAccountKitsImpl::SetOhosAccountInfo(
     }
     if (!ohosAccountInfo.IsValid()) {
         ACCOUNT_LOGE("OhosAccountInfo check failed");
-        return ERR_OHOSACCOUNT_KIT_INVALID_PARAMETER;
+        return ERR_ACCOUNT_COMMON_INVALID_PARAMETER;
     }
     return accountProxy->SetOhosAccountInfo(ohosAccountInfo, eventStr);
 }
@@ -121,7 +121,7 @@ ErrCode OhosAccountKitsImpl::SetOhosAccountInfoByUserId(
     }
     if (!ohosAccountInfo.IsValid()) {
         ACCOUNT_LOGE("OhosAccountInfo check failed");
-        return ERR_OHOSACCOUNT_KIT_INVALID_PARAMETER;
+        return ERR_ACCOUNT_COMMON_INVALID_PARAMETER;
     }
     return accountProxy->SetOhosAccountInfoByUserId(userId, ohosAccountInfo, eventStr);
 }

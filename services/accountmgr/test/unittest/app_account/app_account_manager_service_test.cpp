@@ -128,7 +128,7 @@ HWTEST_F(
     // subscribe app account
     ErrCode result = appAccountProxy_->SubscribeAppAccount(subscribeInfo, nullptr);
 
-    EXPECT_EQ(result, ERR_APPACCOUNT_SERVICE_EVENT_LISTENER_IS_NULLPTR);
+    EXPECT_EQ(result, ERR_ACCOUNT_COMMON_NULL_PTR_ERROR);
 }
 
 /**
@@ -143,5 +143,5 @@ HWTEST_F(
     // unsubscribe app account
     ErrCode result = appAccountProxy_->UnsubscribeAppAccount(nullptr);
 
-    EXPECT_EQ(result, ERR_APPACCOUNT_SERVICE_EVENT_LISTENER_IS_NULLPTR);
+    EXPECT_EQ(result, ERR_ACCOUNT_COMMON_NULL_PTR_ERROR);
 }
