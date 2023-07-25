@@ -16,14 +16,44 @@
 #include "getavailablestatusstub_fuzzer.h"
 #include <string>
 #include <vector>
-#include "account_log_wrapper.h"
+
+#include "access_token.h"
+#include "access_token_error.h"
+#include "accesstoken_kit.h"
 #include "account_iam_service.h"
+#include "account_log_wrapper.h"
 #include "iaccount_iam.h"
+#include "nativetoken_kit.h"
+#include "token_setproc.h"
 
 using namespace std;
 using namespace OHOS::AccountSA;
+using namespace OHOS::Security::AccessToken;
 namespace OHOS {
 const std::u16string IAMACCOUNT_TOKEN = u"ohos.accountfwk.IAccountIAM";
+
+void NativeTokenGet()
+{
+    uint64_t tokenId;
+    const char **perms = new const char *[1];
+    
+    perms[0] = "ohos.permission.ACCESS_USER_AUTH_INTERNAL";
+
+    NativeTokenInfoParams infoInstance = {
+        .dcapsNum = 0,
+        .permsNum = 1,
+        .aclsNum = 0,
+        .perms = perms,
+        .acls = nullptr,
+        .aplStr = "system_core",
+    };
+    infoInstance.processName = "GET_AVAILABLE_STATUS";
+    tokenId = GetAccessTokenId(&infoInstance);
+    SetSelfTokenID(tokenId);
+    AccessTokenKit::ReloadNativeTokenInfo();
+    delete [] perms;
+}
+
 bool GetAvailableStatusStubFuzzTest(const uint8_t *data, size_t size)
 {
     if ((data == nullptr) || (size == 0)) {
@@ -44,6 +74,8 @@ bool GetAvailableStatusStubFuzzTest(const uint8_t *data, size_t size)
     if (!dataTemp.WriteUint32(authTrustLevel)) {
         return false;
     }
+
+    NativeTokenGet();
 
     MessageParcel reply;
     MessageOption option;
