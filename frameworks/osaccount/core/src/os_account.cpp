@@ -497,7 +497,7 @@ ErrCode OsAccount::SubscribeOsAccount(const std::shared_ptr<OsAccountSubscriber>
 {
     if (subscriber == nullptr) {
         ACCOUNT_LOGE("subscriber is nullptr");
-        return ERR_OSACCOUNT_KIT_SUBSCRIBER_IS_NULLPTR;
+        return ERR_ACCOUNT_COMMON_NULL_PTR_ERROR;
     }
 
     OsAccountSubscribeInfo subscribeInfo;
@@ -657,7 +657,7 @@ ErrCode OsAccount::GetOsAccountProxy()
                 systemAbilityManager->GetSystemAbility(SUBSYS_ACCOUNT_SYS_ABILITY_ID_BEGIN);
             if (!remoteObject) {
                 ACCOUNT_LOGE("failed to get account system ability");
-                return ERR_OSACCOUNT_KIT_GET_ACCOUNT_SYSTEM_ABILITY_ERROR;
+                return ERR_ACCOUNT_COMMON_GET_SYSTEM_ABILITY;
             }
 
             sptr<IAccount> accountProxy = iface_cast<AccountProxy>(remoteObject);

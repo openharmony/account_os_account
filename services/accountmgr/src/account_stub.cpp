@@ -97,7 +97,7 @@ std::int32_t AccountStub::InnerUpdateOhosAccountInfo(MessageParcel &data, Messag
     }
     if (!reply.WriteInt32(ret)) {
         ACCOUNT_LOGE("Write result data failed");
-        ret = ERR_ACCOUNT_ZIDL_WRITE_RESULT_ERROR;
+        ret = ERR_ACCOUNT_COMMON_WRITE_PARCEL_ERROR;
     }
     return ret;
 }
@@ -111,7 +111,7 @@ std::int32_t AccountStub::InnerSetOhosAccountInfo(int32_t userId, MessageParcel 
     }
     if (!info.IsValid()) {
         ACCOUNT_LOGE("Check OhosAccountInfo failed");
-        return ERR_OHOSACCOUNT_KIT_INVALID_PARAMETER;
+        return ERR_ACCOUNT_COMMON_INVALID_PARAMETER;
     }
     // ignore the real account name
     const std::string eventStr = Str16ToStr8(data.ReadString16());
@@ -126,7 +126,7 @@ std::int32_t AccountStub::InnerSetOhosAccountInfo(int32_t userId, MessageParcel 
     }
     if (!reply.WriteInt32(ret)) {
         ACCOUNT_LOGE("Write result data failed");
-        ret = ERR_ACCOUNT_ZIDL_WRITE_RESULT_ERROR;
+        ret = ERR_ACCOUNT_COMMON_WRITE_PARCEL_ERROR;
     }
     return ret;
 }
@@ -198,15 +198,15 @@ std::int32_t AccountStub::InnerQueryOhosAccountInfo(MessageParcel &data, Message
     std::string id = info.second.uid_;
     if (!reply.WriteString16(Str8ToStr16(name))) {
         ACCOUNT_LOGE("Write name data failed");
-        return ERR_ACCOUNT_ZIDL_WRITE_NAME_ERROR;
+        return ERR_ACCOUNT_COMMON_WRITE_PARCEL_ERROR;
     }
     if (!reply.WriteString16(Str8ToStr16(id))) {
         ACCOUNT_LOGE("Write id data failed");
-        return ERR_ACCOUNT_ZIDL_WRITE_UID_ERROR;
+        return ERR_ACCOUNT_COMMON_WRITE_PARCEL_ERROR;
     }
     if (!reply.WriteInt32(info.second.status_)) {
         ACCOUNT_LOGE("Write status data failed");
-        return ERR_ACCOUNT_ZIDL_WRITE_ACCOUNT_STATUS_ERROR;
+        return ERR_ACCOUNT_COMMON_WRITE_PARCEL_ERROR;
     }
     return ERR_OK;
 }
@@ -317,15 +317,15 @@ std::int32_t AccountStub::CmdQueryOhosAccountInfoByUserId(MessageParcel &data, M
     std::string id = info.second.uid_;
     if (!reply.WriteString16(Str8ToStr16(name))) {
         ACCOUNT_LOGE("Write name data failed! userId %{public}d.", userId);
-        return ERR_ACCOUNT_ZIDL_WRITE_NAME_ERROR;
+        return ERR_ACCOUNT_COMMON_WRITE_PARCEL_ERROR;
     }
     if (!reply.WriteString16(Str8ToStr16(id))) {
         ACCOUNT_LOGE("Write id data failed! userId %{public}d.", userId);
-        return ERR_ACCOUNT_ZIDL_WRITE_UID_ERROR;
+        return ERR_ACCOUNT_COMMON_WRITE_PARCEL_ERROR;
     }
     if (!reply.WriteInt32(info.second.status_)) {
         ACCOUNT_LOGE("Write status data failed! userId %{public}d.", userId);
-        return ERR_ACCOUNT_ZIDL_WRITE_ACCOUNT_STATUS_ERROR;
+        return ERR_ACCOUNT_COMMON_WRITE_PARCEL_ERROR;
     }
     return ERR_OK;
 }
@@ -340,11 +340,11 @@ std::int32_t AccountStub::CmdQueryOhosQuitTips(MessageParcel &data, MessageParce
 
     if (!reply.WriteString16(Str8ToStr16(OHOS_ACCOUNT_QUIT_TIPS_TITLE))) {
         ACCOUNT_LOGE("Write quit tips title failed");
-        return ERR_ACCOUNT_ZIDL_WRITE_RESULT_ERROR;
+        return ERR_ACCOUNT_COMMON_WRITE_PARCEL_ERROR;
     }
     if (!reply.WriteString16(Str8ToStr16(OHOS_ACCOUNT_QUIT_TIPS_CONTENT))) {
         ACCOUNT_LOGE("Write quit tips content failed");
-        return ERR_ACCOUNT_ZIDL_WRITE_RESULT_ERROR;
+        return ERR_ACCOUNT_COMMON_WRITE_PARCEL_ERROR;
     }
 
     return ERR_OK;
@@ -361,7 +361,7 @@ std::int32_t AccountStub::CmdQueryDeviceAccountId(MessageParcel &data, MessagePa
 
     if (!reply.WriteInt32(id)) {
         ACCOUNT_LOGE("Write result data failed");
-        return ERR_ACCOUNT_ZIDL_WRITE_RESULT_ERROR;
+        return ERR_ACCOUNT_COMMON_WRITE_PARCEL_ERROR;
     }
     return ERR_OK;
 }
@@ -371,7 +371,7 @@ std::int32_t AccountStub::CmdGetAppAccountService(MessageParcel &data, MessagePa
     auto remoteObject = GetAppAccountService();
     if (!reply.WriteRemoteObject(remoteObject)) {
         ACCOUNT_LOGE("Write result data failed");
-        return ERR_ACCOUNT_ZIDL_WRITE_RESULT_ERROR;
+        return ERR_ACCOUNT_COMMON_WRITE_PARCEL_ERROR;
     }
 
     return ERR_OK;
@@ -381,7 +381,7 @@ std::int32_t AccountStub::CmdGetOsAccountService(MessageParcel &data, MessagePar
     auto remoteObject = GetOsAccountService();
     if (!reply.WriteRemoteObject(remoteObject)) {
         ACCOUNT_LOGE("Write result data failed");
-        return ERR_ACCOUNT_ZIDL_WRITE_RESULT_ERROR;
+        return ERR_ACCOUNT_COMMON_WRITE_PARCEL_ERROR;
     }
 
     return ERR_OK;
@@ -392,7 +392,7 @@ std::int32_t AccountStub::CmdGetAccountIAMService(MessageParcel &data, MessagePa
     auto remoteObject = GetAccountIAMService();
     if (!reply.WriteRemoteObject(remoteObject)) {
         ACCOUNT_LOGE("Write result data failed");
-        return ERR_ACCOUNT_ZIDL_WRITE_RESULT_ERROR;
+        return ERR_ACCOUNT_COMMON_WRITE_PARCEL_ERROR;
     }
 
     return ERR_OK;

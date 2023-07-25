@@ -197,7 +197,7 @@ HWTEST_F(AppAccountManagerSubscribeTest, AppAccountManagerSubscribe_SubscribeApp
     ASSERT_NE(appAccountSubscribeManagerPtr, nullptr);
 
     ErrCode result = appAccountSubscribeManagerPtr->SubscribeAppAccount(nullptr, nullptr, UID, BUNDLE_NAME, APP_INDEX);
-    EXPECT_EQ(result, ERR_APPACCOUNT_SERVICE_SUBSCRIBE_INFO_PTR_IS_NULLPTR);
+    EXPECT_EQ(result, ERR_ACCOUNT_COMMON_NULL_PTR_ERROR);
 }
 
 
@@ -212,7 +212,7 @@ HWTEST_F(AppAccountManagerSubscribeTest, AppAccountManagerSubscribe_CheckAppAcce
     ASSERT_NE(appAccountSubscribeManagerPtr, nullptr);
 
     ErrCode result = appAccountSubscribeManagerPtr->CheckAppAccess(nullptr, UID, BUNDLE_NAME, APP_INDEX);
-    EXPECT_EQ(result, ERR_APPACCOUNT_SERVICE_SUBSCRIBE_INFO_PTR_IS_NULLPTR);
+    EXPECT_EQ(result, ERR_ACCOUNT_COMMON_NULL_PTR_ERROR);
 }
 
 /**
@@ -235,7 +235,7 @@ HWTEST_F(AppAccountManagerSubscribeTest, AppAccountManagerSubscribe_InsertSubscr
 
     owners.emplace_back(STRING_OWNER);
     result = appAccountSubscribeManagerPtr->InsertSubscribeRecord(owners, nullptr);
-    EXPECT_EQ(result, ERR_APPACCOUNT_SERVICE_SUBSCRIBE_RECORD_PTR_IS_NULLPTR);
+    EXPECT_EQ(result, ERR_ACCOUNT_COMMON_NULL_PTR_ERROR);
 }
 
 /**
@@ -248,7 +248,7 @@ HWTEST_F(AppAccountManagerSubscribeTest, AppAccountManagerSubscribe_RemoveSubscr
 {
     ASSERT_NE(appAccountSubscribeManagerPtr, nullptr);
     ErrCode result = appAccountSubscribeManagerPtr->RemoveSubscribeRecord(nullptr);
-    EXPECT_EQ(result, ERR_APPACCOUNT_SERVICE_EVENT_LISTENER_IS_NULLPTR);
+    EXPECT_EQ(result, ERR_ACCOUNT_COMMON_NULL_PTR_ERROR);
 }
 
 /**
@@ -264,5 +264,5 @@ HWTEST_F(AppAccountManagerSubscribeTest, AppAccountManagerSubscribe_GetAccessibl
     std::vector<AppAccountInfo> appAccounts;
     ErrCode result =
         appAccountSubscribeManagerPtr->GetAccessibleAccountsBySubscribeInfo(nullptr, accessibleAccounts, appAccounts);
-    EXPECT_EQ(result, ERR_APPACCOUNT_SERVICE_SUBSCRIBE_INFO_PTR_IS_NULLPTR);
+    EXPECT_EQ(result, ERR_ACCOUNT_COMMON_NULL_PTR_ERROR);
 }
