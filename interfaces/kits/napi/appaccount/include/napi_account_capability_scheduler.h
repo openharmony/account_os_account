@@ -29,6 +29,7 @@
 #include "iremote_object.h"
 #include "napi/native_api.h"
 #include "napi_account_common.h"
+#include "ui_content.h"
 
 namespace OHOS {
 namespace AccountJsKit {
@@ -48,6 +49,7 @@ struct ExecuteRequestAsyncContext : public CommonAsyncContext {
     napi_ref requestRef = nullptr;
     napi_value thisVar = nullptr;
     std::shared_ptr<AbilityRuntime::AbilityContext> abilityContext = nullptr;
+    Ace::UIContent *UIContent = nullptr;
 };
 
 class NapiAccountCapabilityProvider {
@@ -118,26 +120,41 @@ public:
 public:
     napi_env env_;
     std::shared_ptr<AbilityRuntime::AbilityContext> abilityContext_ = nullptr;
+    Ace::UIContent *UIContent_ = nullptr;
 };
 
 struct JsAbilityResult : public CommonAsyncContext {
     JsAbilityResult(){};
     JsAbilityResult(napi_env napiEnv);
-    int resultCode = -1;
     AAFwk::Want want;
     bool isInner = false;
+    Ace::UIContent *UIContent = nullptr;
+    int32_t sessionId = 0;
+};
+
+struct ExecuteRequestCallbackParam {
+    ExecuteRequestCallbackParam() {};
+    std::shared_ptr<AbilityRuntime::AbilityContext> abilityContext = nullptr;
+    Ace::UIContent *UIContent = nullptr;
 };
 
 class NapiExecuteRequestCallback : public AppAccountAuthorizationExtensionCallbackStub {
 public:
     NapiExecuteRequestCallback(napi_env env, napi_ref callbackRef, napi_deferred deferred, napi_ref requestRef,
-        std::shared_ptr<AbilityRuntime::AbilityContext> abilityContext);
+        const ExecuteRequestCallbackParam &param);
     ~NapiExecuteRequestCallback();
     void OnResult(const AsyncCallbackError &businessError, const AAFwk::WantParams &parameters) override;
     void OnRequestRedirected(const AAFwk::Want &request) override;
 
 private:
     Ability *GetJsAbility(napi_env env);
+    void OnRelease(int32_t releaseCode);
+    void OnResultForModal(int32_t resultCode, const AAFwk::Want& result);
+    void OnReceive(const AAFwk::WantParams& receive);
+    void OnError(int32_t code, const std::string& name, const std::string& message);
+    void CreateAbility(const AAFwk::Want &request);
+    bool InitRequestCallbackExeEnv(
+        int32_t resultCode, uv_loop_s **loop, uv_work_t **work, JsAbilityResult **asyncContext);
 
 private:
     AccountJsKit::ThreadLockInfo lockInfo_;
@@ -146,7 +163,9 @@ private:
     napi_deferred deferred_ = nullptr;
     napi_ref requestRef_ = nullptr;
     napi_value jsScheduler_;
-    std::shared_ptr<AbilityRuntime::AbilityContext> abilityContext_;
+    std::shared_ptr<AbilityRuntime::AbilityContext> abilityContext_ = nullptr;
+    Ace::UIContent *UIContent_ = nullptr;
+    int32_t sessionId_ = 0;
 };
 }  // namespace AccountJsKit
 }  // namespace OHOS

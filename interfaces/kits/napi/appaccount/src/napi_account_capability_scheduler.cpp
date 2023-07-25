@@ -20,12 +20,12 @@
 #include "ability_manager_client.h"
 #include "account_log_wrapper.h"
 #include "app_account_manager.h"
+#include "modal_ui_extension_callbacks.h"
 #include "napi/native_api.h"
 #include "napi/native_node_api.h"
 #include "napi_account_error.h"
 #include "napi_base_context.h"
 #include "napi_common.h"
-#include "ui_content.h"
 #include "want.h"
 
 namespace OHOS {
@@ -43,10 +43,12 @@ using OHOS::AppExecFwk::AbilityContext;
     }
 
 namespace {
+const int32_t CREATE_ABILITY = 1;
 const size_t ARG_SIZE_ONE = 1;
 const size_t ARG_SIZE_TWO = 2;
 const std::string CLASS_NAME_REQUEST = "AccountCapabilityRequest";
 const std::string CLASS_NAME_RESPONSE = "AccountCapabilityResponse";
+const std::string DISABLE_MODAL = "DisableModal";
 static thread_local napi_ref g_requestConstructor = nullptr;
 static thread_local napi_ref g_authorizationProviderConstructor = nullptr;
 static thread_local napi_ref g_providerConstructor = nullptr;
@@ -453,9 +455,9 @@ static void ExecuteRequestCompletedWork(uv_work_t *work, int status)
 }
 
 NapiExecuteRequestCallback::NapiExecuteRequestCallback(napi_env env, napi_ref callbackRef, napi_deferred deferred,
-    napi_ref requestRef, std::shared_ptr<AbilityRuntime::AbilityContext> abilityContext)
+    napi_ref requestRef, const ExecuteRequestCallbackParam &param)
     : env_(env), callbackRef_(callbackRef), deferred_(deferred), requestRef_(requestRef),
-    abilityContext_(abilityContext)
+    abilityContext_(param.abilityContext), UIContent_(param.UIContent)
 {}
 
 NapiExecuteRequestCallback::~NapiExecuteRequestCallback()
@@ -522,10 +524,9 @@ static void OnRequestRedirectedWork(uv_work_t *work, int status)
     JsAbilityResult *asyncContext = reinterpret_cast<JsAbilityResult *>(work->data);
     napi_value errJs = nullptr;
     napi_value dataJs = nullptr;
-    asyncContext->errCode = asyncContext->resultCode;
     WantParams params = asyncContext->want.GetParams();
     params.Remove("moduleName");
-    if (asyncContext->resultCode != 0) {
+    if (asyncContext->errCode != 0) {
         errJs = AppExecFwk::WrapWantParams(asyncContext->env, params);
     } else {
         dataJs = AppExecFwk::WrapWantParams(asyncContext->env, params);
@@ -538,7 +539,141 @@ static void OnRequestRedirectedWork(uv_work_t *work, int status)
 AccountCapabilityScheduler::AccountCapabilityScheduler(napi_env env) : env_(env)
 {}
 
-void NapiExecuteRequestCallback::OnRequestRedirected(const AAFwk::Want &request)
+static void ReleaseOrErrorCommonWork(uv_work_t *work, int status)
+{
+    std::unique_ptr<uv_work_t> workPtr(work);
+    napi_handle_scope scope = nullptr;
+    if (!InitUvWorkCallbackEnv(work, scope)) {
+        return;
+    }
+    JsAbilityResult *asyncContext = reinterpret_cast<JsAbilityResult *>(work->data);
+    napi_value errJs = nullptr;
+    napi_value dataJs = nullptr;
+    if (asyncContext->errCode != ERR_OK) {
+        errJs = GenerateBusinessError(asyncContext->env, ERR_JS_SYSTEM_SERVICE_EXCEPTION);
+    }
+    ReturnCallbackOrPromise(asyncContext->env, asyncContext, errJs, dataJs);
+    napi_close_handle_scope(asyncContext->env, scope);
+    if (asyncContext->UIContent == nullptr) {
+        ACCOUNT_LOGE("UIContent_ is nullptr");
+        delete asyncContext;
+        return;
+    }
+    asyncContext->UIContent->CloseModalUIExtension(asyncContext->sessionId);
+    delete asyncContext;
+}
+
+static void OnResultForModalWork(uv_work_t *work, int status)
+{
+    std::unique_ptr<uv_work_t> workPtr(work);
+    napi_handle_scope scope = nullptr;
+    if (!InitUvWorkCallbackEnv(work, scope)) {
+        return;
+    }
+    JsAbilityResult *asyncContext = reinterpret_cast<JsAbilityResult *>(work->data);
+    napi_value errJs = nullptr;
+    napi_value dataJs = nullptr;
+    if (asyncContext->errCode != ERR_OK) {
+        errJs = GenerateBusinessError(asyncContext->env, ERR_JS_SYSTEM_SERVICE_EXCEPTION);
+    } else {
+        dataJs = AppExecFwk::WrapWant(asyncContext->env, asyncContext->want);
+    }
+    ReturnCallbackOrPromise(asyncContext->env, asyncContext, errJs, dataJs);
+    napi_close_handle_scope(asyncContext->env, scope);
+    asyncContext->callbackRef = nullptr;
+    delete asyncContext;
+}
+
+bool NapiExecuteRequestCallback::InitRequestCallbackExeEnv(
+    int32_t resultCode, uv_loop_s **loop, uv_work_t **work, JsAbilityResult **asyncContext)
+{
+    if (!CreateExecEnv(this->env_, loop, work)) {
+        return false;
+    }
+    *asyncContext = new (std::nothrow) JsAbilityResult(this->env_);
+    if (*asyncContext == nullptr) {
+        ACCOUNT_LOGE("failed to new JsAbilityResult");
+        delete *work;
+        return false;
+    }
+    (*asyncContext)->errCode = resultCode;
+    (*asyncContext)->callbackRef = callbackRef_;
+    (*asyncContext)->deferred = deferred_;
+    (*asyncContext)->UIContent = UIContent_;
+    (*asyncContext)->sessionId = sessionId_;
+    return true;
+}
+
+void NapiExecuteRequestCallback::OnRelease(int32_t releaseCode)
+{
+    ACCOUNT_LOGI("OnRelease enter");
+    if (releaseCode == 0) {
+        if (UIContent_ != nullptr) {
+            UIContent_->CloseModalUIExtension(sessionId_);
+        }
+        napi_delete_reference(env_, callbackRef_);
+        return;
+    }
+    uv_loop_s *loop = nullptr;
+    uv_work_t *work = nullptr;
+    JsAbilityResult *asyncContext = nullptr;
+    if (!InitRequestCallbackExeEnv(releaseCode, &loop, &work, &asyncContext)) {
+        return;
+    }
+    work->data = reinterpret_cast<void *>(asyncContext);
+    int errCode = uv_queue_work(
+        loop, work, [](uv_work_t *work) {}, ReleaseOrErrorCommonWork);
+    if (errCode != 0) {
+        ACCOUNT_LOGE("failed to uv_queue_work, errCode: %{public}d", errCode);
+        delete work;
+        delete asyncContext;
+    }
+}
+
+void NapiExecuteRequestCallback::OnResultForModal(int32_t resultCode, const AAFwk::Want &result)
+{
+    ACCOUNT_LOGI("OnResultForModal enter");
+    uv_loop_s *loop = nullptr;
+    uv_work_t *work = nullptr;
+    JsAbilityResult *asyncContext = nullptr;
+    if (!InitRequestCallbackExeEnv(resultCode, &loop, &work, &asyncContext)) {
+        return;
+    }
+    asyncContext->want = result;
+    work->data = reinterpret_cast<void *>(asyncContext);
+    int errCode = uv_queue_work(
+        loop, work, [](uv_work_t *work) {}, OnResultForModalWork);
+    if (errCode != 0) {
+        ACCOUNT_LOGE("failed to uv_queue_work, errCode: %{public}d", errCode);
+        delete work;
+        asyncContext->callbackRef = nullptr;
+        delete asyncContext;
+    }
+}
+
+void NapiExecuteRequestCallback::OnReceive(const AAFwk::WantParams &receive)
+{}
+
+void NapiExecuteRequestCallback::OnError(int32_t code, const std::string &name, const std::string &message)
+{
+    ACCOUNT_LOGI("OnError enter");
+    uv_loop_s *loop = nullptr;
+    uv_work_t *work = nullptr;
+    JsAbilityResult *asyncContext = nullptr;
+    if (!InitRequestCallbackExeEnv(code, &loop, &work, &asyncContext)) {
+        return;
+    }
+    work->data = reinterpret_cast<void *>(asyncContext);
+    int errCode = uv_queue_work(
+        loop, work, [](uv_work_t *work) {}, ReleaseOrErrorCommonWork);
+    if (errCode != 0) {
+        ACCOUNT_LOGE("failed to uv_queue_work, errCode: %{public}d", errCode);
+        delete work;
+        delete asyncContext;
+    }
+}
+
+void NapiExecuteRequestCallback::CreateAbility(const AAFwk::Want &request)
 {
     if (abilityContext_ == nullptr) {
         ACCOUNT_LOGE("abilityContext_ is nullptr");
@@ -555,7 +690,7 @@ void NapiExecuteRequestCallback::OnRequestRedirected(const AAFwk::Want &request)
             delete work;
             return;
         }
-        asyncContext->resultCode = resultCode;
+        asyncContext->errCode = resultCode;
         asyncContext->want = want;
         asyncContext->isInner = isInner;
         asyncContext->callbackRef = callbackRef_;
@@ -577,6 +712,29 @@ void NapiExecuteRequestCallback::OnRequestRedirected(const AAFwk::Want &request)
         task(ERR_JS_SYSTEM_SERVICE_EXCEPTION, want, true);
         return;
     }
+}
+
+void NapiExecuteRequestCallback::OnRequestRedirected(const AAFwk::Want &request)
+{
+    WantParams param = request.GetParams();
+    int flag = param.GetIntParam(DISABLE_MODAL, 0);
+    if (flag == CREATE_ABILITY) {
+        CreateAbility(request);
+        return;
+    }
+    Ace::ModalUIExtensionCallbacks callback = {
+        std::bind(&NapiExecuteRequestCallback::OnRelease, this, std::placeholders::_1),
+        std::bind(&NapiExecuteRequestCallback::OnResultForModal, this, std::placeholders::_1, std::placeholders::_2),
+        std::bind(&NapiExecuteRequestCallback::OnReceive, this, std::placeholders::_1),
+        std::bind(&NapiExecuteRequestCallback::OnError, this, std::placeholders::_1, std::placeholders::_2,
+            std::placeholders::_3),
+    };
+    if (UIContent_ == nullptr) {
+        ACCOUNT_LOGE("UIContent_ is nullptr");
+        OnRelease(ERR_JS_SYSTEM_SERVICE_EXCEPTION);
+        return;
+    }
+    this->sessionId_ = UIContent_->CreateModalUIExtension(request, callback);
 }
 
 napi_value NapiAccountCapabilityScheduler::Init(napi_env env, napi_value exports)
@@ -696,6 +854,7 @@ static bool ParseParamForExecuteRequest(
         return false;
     }
     asyncContext->abilityContext = nativeObject->abilityContext_;
+    asyncContext->UIContent = nativeObject->UIContent_;
 
     if (!ParseRequestObject(env, argv[0], asyncContext->accountRequest)) {
         ACCOUNT_LOGE("get request failed");
@@ -710,13 +869,16 @@ static bool ParseParamForExecuteRequest(
 static void ExecuteRequestCB(napi_env env, void *data)
 {
     ExecuteRequestAsyncContext *asyncContext = reinterpret_cast<ExecuteRequestAsyncContext *>(data);
+    ExecuteRequestCallbackParam param;
+    param.abilityContext = asyncContext->abilityContext;
+    param.UIContent = asyncContext->UIContent;
     sptr<NapiExecuteRequestCallback> callback = new (std::nothrow) NapiExecuteRequestCallback(
-        env, asyncContext->callbackRef, asyncContext->deferred, asyncContext->requestRef, asyncContext->abilityContext);
+        env, asyncContext->callbackRef, asyncContext->deferred, asyncContext->requestRef, param);
     NAPI_ASSERT_RETURN_VOID(env, callback != nullptr, "failed to create napi callback");
     asyncContext->requestRef = nullptr;
     asyncContext->callbackRef = nullptr;
     bool isEnableContext = false;
-    if (asyncContext->abilityContext != nullptr) {
+    if (asyncContext->UIContent != nullptr) {
         isEnableContext = true;
     }
     asyncContext->errCode = AppAccountManager::ExecuteRequest(isEnableContext, asyncContext->accountRequest, callback);
@@ -758,7 +920,7 @@ napi_value NapiAccountCapabilityScheduler::ExecuteRequest(napi_env env, napi_cal
 }
 
 static bool GetAbilityContext(const napi_env &env, const napi_value &value,
-    std::shared_ptr<AbilityRuntime::AbilityContext> &abilityContext)
+    std::shared_ptr<AbilityRuntime::AbilityContext> &abilityContext, Ace::UIContent **UIContent)
 {
     bool stageMode = false;
     napi_status status = OHOS::AbilityRuntime::IsStageContext(env, value, stageMode);
@@ -774,6 +936,11 @@ static bool GetAbilityContext(const napi_env &env, const napi_value &value,
     abilityContext = AbilityRuntime::Context::ConvertTo<AbilityRuntime::AbilityContext>(context);
     if (abilityContext == nullptr) {
         ACCOUNT_LOGE("get stage model ability context failed");
+        return false;
+    }
+    *UIContent = abilityContext->GetUIContent();
+    if (*UIContent == nullptr) {
+        ACCOUNT_LOGE("UIContent is nullptr");
         return false;
     }
     return true;
@@ -793,7 +960,8 @@ static bool ParseParamForSetUIContext(napi_env env, napi_callback_info cbInfo)
         return false;
     }
     std::shared_ptr<AbilityRuntime::AbilityContext> abilityContext;
-    if (!GetAbilityContext(env, argv[0], abilityContext)) {
+    Ace::UIContent *UIContent;
+    if (!GetAbilityContext(env, argv[0], abilityContext, &UIContent)) {
         ACCOUNT_LOGE("GetAbilityContext failed");
         return false;
     }
@@ -804,6 +972,7 @@ static bool ParseParamForSetUIContext(napi_env env, napi_callback_info cbInfo)
         return false;
     }
     nativeObject->abilityContext_ = abilityContext;
+    nativeObject->UIContent_ = UIContent;
     return true;
 }
 
