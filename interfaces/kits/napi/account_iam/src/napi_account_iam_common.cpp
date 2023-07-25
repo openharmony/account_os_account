@@ -110,11 +110,16 @@ static void OnIDMResultWork(uv_work_t* work, int status)
     napi_set_named_property(param->env, argv[PARAM_ONE], "credentialId", credentialId);
     ACCOUNT_LOGI("call js function");
     NapiCallVoidFunction(param->env, argv, ARG_SIZE_TWO, param->callback.onResult);
+    napi_delete_reference(param->env, param->callback.onResult);
     napi_close_handle_scope(param->env, scope);
 }
 
 void NapiIDMCallback::OnResult(int32_t result, const Attributes &extraInfo)
 {
+    std::lock_guard<std::mutex> lock(mutex_);
+    if (callback_.onResult == nullptr) {
+        return;
+    }
     std::unique_ptr<uv_work_t> work = std::make_unique<uv_work_t>();
     std::unique_ptr<IDMCallbackParam> param = std::make_unique<IDMCallbackParam>(env_);
     uv_loop_s *loop = nullptr;
@@ -129,6 +134,7 @@ void NapiIDMCallback::OnResult(int32_t result, const Attributes &extraInfo)
     work->data = reinterpret_cast<void *>(param.get());
     NAPI_CALL_RETURN_VOID(env_, uv_queue_work(loop, work.get(), [] (uv_work_t *work) {}, OnIDMResultWork));
     ACCOUNT_LOGI("create idm result work finish");
+    callback_.onResult = nullptr;
     work.release();
     param.release();
 }
@@ -405,6 +411,7 @@ static void OnUserAuthResultWork(uv_work_t *work, int status)
     argv[PARAM_ONE] = CreateAuthResult(param->env, param->token, param->remainTimes, param->freezingTime);
     ACCOUNT_LOGI("call js function");
     NapiCallVoidFunction(param->env, argv, ARG_SIZE_TWO, param->callback.onResult);
+    napi_delete_reference(param->env, param->callback.onResult);
     napi_close_handle_scope(param->env, scope);
 }
 
@@ -436,6 +443,10 @@ NapiUserAuthCallback::~NapiUserAuthCallback()
 
 void NapiUserAuthCallback::OnResult(int32_t result, const Attributes &extraInfo)
 {
+    std::lock_guard<std::mutex> lock(mutex_);
+    if (callback_.onResult == nullptr) {
+        return;
+    }
     std::unique_ptr<uv_work_t> work = std::make_unique<uv_work_t>();
     std::unique_ptr<AuthCallbackParam> param = std::make_unique<AuthCallbackParam>(env_);
     uv_loop_s *loop = nullptr;
@@ -452,6 +463,7 @@ void NapiUserAuthCallback::OnResult(int32_t result, const Attributes &extraInfo)
     work->data = reinterpret_cast<void *>(param.get());
     NAPI_CALL_RETURN_VOID(env_, uv_queue_work(loop, work.get(), [] (uv_work_t *work) {}, OnUserAuthResultWork));
     ACCOUNT_LOGI("create user auth result work finish");
+    callback_.onResult = nullptr;
     work.release();
     param.release();
 }
