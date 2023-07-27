@@ -98,7 +98,7 @@ public:
         const std::vector<std::string> &labels, const sptr<IAppAccountAuthenticatorCallback> &callback) = 0;
     virtual ErrCode SetAuthenticatorProperties(const std::string &owner, const SetPropertiesOptions &options,
         const sptr<IAppAccountAuthenticatorCallback> &callback) = 0;
-    virtual ErrCode ExecuteRequest(const bool &isEnableContext, const AccountCapabilityRequest &request,
+    virtual ErrCode ExecuteRequest(const AccountCapabilityRequest &request,
         const sptr<IAppAccountAuthorizationExtensionCallback> &callback) = 0;
 
     virtual ErrCode SubscribeAppAccount(
