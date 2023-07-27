@@ -458,7 +458,7 @@ ErrCode AppAccount::QueryAllAccessibleAccounts(
     return appAccountProxy_->QueryAllAccessibleAccounts(owner, appAccounts);
 }
 
-ErrCode AppAccount::ExecuteRequest(const bool &isEnableContext, const AccountCapabilityRequest &request,
+ErrCode AppAccount::ExecuteRequest(const AccountCapabilityRequest &request,
     const sptr<IAppAccountAuthorizationExtensionCallback> &callback)
 {
     if (request.bundleName.size() == 0) {
@@ -466,7 +466,7 @@ ErrCode AppAccount::ExecuteRequest(const bool &isEnableContext, const AccountCap
         return ERR_ACCOUNT_COMMON_INVALID_PARAMETER;
     }
     RETURN_IF_PROXY_IS_NULLPTR();
-    return appAccountProxy_->ExecuteRequest(isEnableContext, request, callback);
+    return appAccountProxy_->ExecuteRequest(request, callback);
 }
 
 ErrCode AppAccount::SubscribeAppAccount(const std::shared_ptr<AppAccountSubscriber> &subscriber)

@@ -363,7 +363,7 @@ ErrCode MockAppAccountStub::SetAuthenticatorProperties(const std::string &owner,
     return ERR_OK;
 }
 
-ErrCode MockAppAccountStub::ExecuteRequest(const bool &isEnableContext, const AccountCapabilityRequest &request,
+ErrCode MockAppAccountStub::ExecuteRequest(const AccountCapabilityRequest &request,
     const sptr<IAppAccountAuthorizationExtensionCallback> &callback)
 {
     ACCOUNT_LOGD("mock enter");
