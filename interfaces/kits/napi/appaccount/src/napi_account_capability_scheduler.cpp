@@ -43,7 +43,8 @@ using OHOS::AppExecFwk::AbilityContext;
     }
 
 namespace {
-const int32_t CREATE_ABILITY = 1;
+const int32_t CREATE_MODAL = 1;
+const int32_t DEFAULT_RESULT = -1;
 const size_t ARG_SIZE_ONE = 1;
 const size_t ARG_SIZE_TWO = 2;
 const std::string CLASS_NAME_REQUEST = "AccountCapabilityRequest";
@@ -55,6 +56,8 @@ static thread_local napi_ref g_providerConstructor = nullptr;
 static thread_local napi_ref g_responsConstructor = nullptr;
 static thread_local napi_value g_responsePrototype = nullptr;
 static bool g_initCompleted = false;
+static int32_t g_requestId = 0;
+std::mutex g_lockRequestId;
 }
 
 NapiAccountCapabilityProvider::NapiAccountCapabilityProvider(napi_env env, AccountCapabilityType type)
@@ -457,7 +460,7 @@ static void ExecuteRequestCompletedWork(uv_work_t *work, int status)
 NapiExecuteRequestCallback::NapiExecuteRequestCallback(napi_env env, napi_ref callbackRef, napi_deferred deferred,
     napi_ref requestRef, const ExecuteRequestCallbackParam &param)
     : env_(env), callbackRef_(callbackRef), deferred_(deferred), requestRef_(requestRef),
-    abilityContext_(param.abilityContext), UIContent_(param.UIContent)
+    abilityContext_(param.abilityContext), UIContent_(param.UIContent), requestId_(param.requestId)
 {}
 
 NapiExecuteRequestCallback::~NapiExecuteRequestCallback()
@@ -499,7 +502,7 @@ void NapiExecuteRequestCallback::OnResult(const AsyncCallbackError &businessErro
     callbackRef_ = nullptr;
     requestRef_ = nullptr;
     deferred_ = nullptr;
-    int resultCode = uv_queue_work(
+    int32_t resultCode = uv_queue_work(
         loop, work, [](uv_work_t *work) {}, ExecuteRequestCompletedWork);
     if (resultCode != 0) {
         ACCOUNT_LOGE("failed to uv_queue_work, errCode: %{public}d", resultCode);
@@ -527,7 +530,11 @@ static void OnRequestRedirectedWork(uv_work_t *work, int status)
     WantParams params = asyncContext->want.GetParams();
     params.Remove("moduleName");
     if (asyncContext->errCode != 0) {
-        errJs = AppExecFwk::WrapWantParams(asyncContext->env, params);
+        if (asyncContext->errCode == DEFAULT_RESULT) {
+            errJs = GenerateBusinessError(asyncContext->env, ERR_JS_SYSTEM_SERVICE_EXCEPTION);
+        } else {
+            errJs = AppExecFwk::WrapWantParams(asyncContext->env, params);
+        }
     } else {
         dataJs = AppExecFwk::WrapWantParams(asyncContext->env, params);
     }
@@ -621,7 +628,7 @@ void NapiExecuteRequestCallback::OnRelease(int32_t releaseCode)
         return;
     }
     work->data = reinterpret_cast<void *>(asyncContext);
-    int errCode = uv_queue_work(
+    int32_t errCode = uv_queue_work(
         loop, work, [](uv_work_t *work) {}, ReleaseOrErrorCommonWork);
     if (errCode != 0) {
         ACCOUNT_LOGE("failed to uv_queue_work, errCode: %{public}d", errCode);
@@ -641,7 +648,7 @@ void NapiExecuteRequestCallback::OnResultForModal(int32_t resultCode, const AAFw
     }
     asyncContext->want = result;
     work->data = reinterpret_cast<void *>(asyncContext);
-    int errCode = uv_queue_work(
+    int32_t errCode = uv_queue_work(
         loop, work, [](uv_work_t *work) {}, OnResultForModalWork);
     if (errCode != 0) {
         ACCOUNT_LOGE("failed to uv_queue_work, errCode: %{public}d", errCode);
@@ -664,7 +671,7 @@ void NapiExecuteRequestCallback::OnError(int32_t code, const std::string &name, 
         return;
     }
     work->data = reinterpret_cast<void *>(asyncContext);
-    int errCode = uv_queue_work(
+    int32_t errCode = uv_queue_work(
         loop, work, [](uv_work_t *work) {}, ReleaseOrErrorCommonWork);
     if (errCode != 0) {
         ACCOUNT_LOGE("failed to uv_queue_work, errCode: %{public}d", errCode);
@@ -679,7 +686,7 @@ void NapiExecuteRequestCallback::CreateAbility(const AAFwk::Want &request)
         ACCOUNT_LOGE("abilityContext_ is nullptr");
         return;
     }
-    AbilityRuntime::RuntimeTask task = [this](int resultCode, const AAFwk::Want &want, bool isInner) {
+    AbilityRuntime::RuntimeTask task = [this](int32_t resultCode, const AAFwk::Want &want, bool isInner) {
         uv_loop_s *loop = nullptr;
         uv_work_t *work = nullptr;
         if (!CreateExecEnv(this->env_, &loop, &work)) {
@@ -696,7 +703,7 @@ void NapiExecuteRequestCallback::CreateAbility(const AAFwk::Want &request)
         asyncContext->callbackRef = callbackRef_;
         asyncContext->deferred = deferred_;
         work->data = reinterpret_cast<void *>(asyncContext);
-        int errCode = uv_queue_work(
+        int32_t errCode = uv_queue_work(
             loop, work, [](uv_work_t *work) {}, OnRequestRedirectedWork);
         if (errCode != 0) {
             ACCOUNT_LOGE("failed to uv_queue_work, errCode: %{public}d", errCode);
@@ -705,7 +712,7 @@ void NapiExecuteRequestCallback::CreateAbility(const AAFwk::Want &request)
             return;
         }
     };
-    ErrCode err = abilityContext_->StartAbilityForResult(request, 0, std::move(task));
+    ErrCode err = abilityContext_->StartAbilityForResult(request, requestId_, std::move(task));
     if ((err != ERR_OK) && (err != AAFwk::START_ABILITY_WAITING)) {
         ACCOUNT_LOGE("StartAbilityForResult. ret=%{public}d", err);
         AAFwk::Want want;
@@ -717,8 +724,8 @@ void NapiExecuteRequestCallback::CreateAbility(const AAFwk::Want &request)
 void NapiExecuteRequestCallback::OnRequestRedirected(const AAFwk::Want &request)
 {
     WantParams param = request.GetParams();
-    int flag = param.GetIntParam(DISABLE_MODAL, 0);
-    if (flag == CREATE_ABILITY) {
+    int32_t flag = param.GetIntParam(DISABLE_MODAL, 0);
+    if (flag != CREATE_MODAL) {
         CreateAbility(request);
         return;
     }
@@ -872,16 +879,19 @@ static void ExecuteRequestCB(napi_env env, void *data)
     ExecuteRequestCallbackParam param;
     param.abilityContext = asyncContext->abilityContext;
     param.UIContent = asyncContext->UIContent;
+    {
+        std::lock_guard<std::mutex> lock(g_lockRequestId);
+        param.requestId = g_requestId++;
+    }
     sptr<NapiExecuteRequestCallback> callback = new (std::nothrow) NapiExecuteRequestCallback(
         env, asyncContext->callbackRef, asyncContext->deferred, asyncContext->requestRef, param);
     NAPI_ASSERT_RETURN_VOID(env, callback != nullptr, "failed to create napi callback");
     asyncContext->requestRef = nullptr;
     asyncContext->callbackRef = nullptr;
-    bool isEnableContext = false;
     if (asyncContext->UIContent != nullptr) {
-        isEnableContext = true;
+        asyncContext->accountRequest.isEnableContext = true;
     }
-    asyncContext->errCode = AppAccountManager::ExecuteRequest(isEnableContext, asyncContext->accountRequest, callback);
+    asyncContext->errCode = AppAccountManager::ExecuteRequest(asyncContext->accountRequest, callback);
     if (asyncContext->errCode != ERR_OK) {
         AAFwk::WantParams parameters;
         AsyncCallbackError businessError;

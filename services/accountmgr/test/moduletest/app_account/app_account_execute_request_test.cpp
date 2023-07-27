@@ -119,7 +119,7 @@ HWTEST_F(AppAccountManagerServiceModuleTest, AppAccountManagerService_ExecuteReq
     request.bundleName = STRING_NORMAL_BUNDLENAME;
     request.abilityName = STRING_ABILITY_NAME;
     EXPECT_CALL(*testCallback, OnResult(_, _)).Times(testing::Exactly(1));
-    ErrCode result = g_accountManagerService->ExecuteRequest(false, request, callback);
+    ErrCode result = g_accountManagerService->ExecuteRequest(request, callback);
     EXPECT_EQ(result, ERR_OK);
 }
 
@@ -139,7 +139,7 @@ HWTEST_F(AppAccountManagerServiceModuleTest, AppAccountManagerService_ExecuteReq
     request.bundleName = STRING_NORMAL_BUNDLENAME;
     request.abilityName = "";
     EXPECT_CALL(*testCallback, OnResult(_, _)).Times(testing::Exactly(1));
-    ErrCode result = g_accountManagerService->ExecuteRequest(false, request, callback);
+    ErrCode result = g_accountManagerService->ExecuteRequest(request, callback);
     EXPECT_EQ(result, ERR_OK);
 }
 
@@ -158,7 +158,7 @@ HWTEST_F(AppAccountManagerServiceModuleTest, AppAccountManagerService_ExecuteReq
     AccountCapabilityRequest request;
     request.bundleName = STRING_OWNER;
     request.abilityName = STRING_ABILITY_INVALID_NAME;
-    ErrCode result = g_accountManagerService->ExecuteRequest(false, request, callback);
+    ErrCode result = g_accountManagerService->ExecuteRequest(request, callback);
     EXPECT_EQ(result, ERR_ACCOUNT_COMMON_INVALID_PARAMETER);
 }
 
@@ -177,7 +177,7 @@ HWTEST_F(AppAccountManagerServiceModuleTest, AppAccountManagerService_ExecuteReq
     AccountCapabilityRequest request;
     request.bundleName = STRING_OWNER;
     request.abilityName = STRING_ABILITY_NAME_WITH_NO_INFO;
-    ErrCode result = g_accountManagerService->ExecuteRequest(false, request, callback);
+    ErrCode result = g_accountManagerService->ExecuteRequest(request, callback);
     EXPECT_EQ(result, ERR_ACCOUNT_COMMON_INVALID_PARAMETER);
 }
 
@@ -196,7 +196,7 @@ HWTEST_F(AppAccountManagerServiceModuleTest, AppAccountManagerService_ExecuteReq
     AccountCapabilityRequest request;
     request.bundleName = STRING_BUNDLE_NAME_NOT_INSTALLED;
     request.abilityName = "";
-    ErrCode result = g_accountManagerService->ExecuteRequest(false, request, callback);
+    ErrCode result = g_accountManagerService->ExecuteRequest(request, callback);
     EXPECT_EQ(result, ERR_ACCOUNT_COMMON_INVALID_PARAMETER);
 }
 
@@ -215,7 +215,7 @@ HWTEST_F(AppAccountManagerServiceModuleTest, AppAccountManagerService_ExecuteReq
     AccountCapabilityRequest request;
     request.bundleName = STRING_BUNDLEINFO_WITH_NO_VALID_EXTENSION;
     request.abilityName = "";
-    ErrCode result = g_accountManagerService->ExecuteRequest(false, request, callback);
+    ErrCode result = g_accountManagerService->ExecuteRequest(request, callback);
     EXPECT_EQ(result, ERR_ACCOUNT_COMMON_INVALID_PARAMETER);
 }
 
@@ -234,7 +234,7 @@ HWTEST_F(AppAccountManagerServiceModuleTest, AppAccountManagerService_ExecuteReq
     AccountCapabilityRequest request;
     request.bundleName = STRING_BUNDLEINFO_WITH_NO_VALID_TYPE_EXTENSION;
     request.abilityName = "";
-    ErrCode result = g_accountManagerService->ExecuteRequest(false, request, callback);
+    ErrCode result = g_accountManagerService->ExecuteRequest(request, callback);
     EXPECT_EQ(result, ERR_ACCOUNT_COMMON_INVALID_PARAMETER);
 }
 
@@ -253,7 +253,7 @@ HWTEST_F(AppAccountManagerServiceModuleTest, AppAccountManagerService_ExecuteReq
     AccountCapabilityRequest request;
     request.bundleName = STRING_BUNDLEINFO_WITH_MULTIPLE_VALID_EXTENSION;
     request.abilityName = "";
-    ErrCode result = g_accountManagerService->ExecuteRequest(false, request, callback);
+    ErrCode result = g_accountManagerService->ExecuteRequest(request, callback);
     EXPECT_EQ(result, ERR_ACCOUNT_COMMON_INVALID_PARAMETER);
 }
 
@@ -272,7 +272,7 @@ HWTEST_F(AppAccountManagerServiceModuleTest, AppAccountManagerService_ExecuteReq
     AccountCapabilityRequest request;
     request.bundleName = STRING_NORMAL_BUNDLENAME;
     request.abilityName = STRING_ABILITY_NAME_WITH_CONNECT_FAILED;
-    ErrCode result = g_accountManagerService->ExecuteRequest(false, request, callback);
+    ErrCode result = g_accountManagerService->ExecuteRequest(request, callback);
     EXPECT_EQ(result, ERR_JS_SYSTEM_SERVICE_EXCEPTION);
 }
 
@@ -292,7 +292,7 @@ HWTEST_F(AppAccountManagerServiceModuleTest, AppAccountManagerService_ExecuteReq
     request.bundleName = STRING_NORMAL_BUNDLENAME;
     request.abilityName = STRING_ABILITY_NAME_WITH_NO_PROXY;
     EXPECT_CALL(*testCallback, OnResult(ERR_JS_SYSTEM_SERVICE_EXCEPTION, _)).Times(testing::Exactly(1));
-    ErrCode result = g_accountManagerService->ExecuteRequest(false, request, callback);
+    ErrCode result = g_accountManagerService->ExecuteRequest(request, callback);
     EXPECT_EQ(result, ERR_OK);
 }
 
@@ -316,6 +316,6 @@ HWTEST_F(AppAccountManagerServiceModuleTest, AppAccountManagerService_ExecuteReq
     testParameters.SetParam("keyStr", OHOS::AAFwk::String::Box(testValue));
     request.parameters = testParameters;
     EXPECT_CALL(*testCallback, OnResult(ERR_JS_SYSTEM_SERVICE_EXCEPTION, _)).Times(testing::Exactly(1));
-    ErrCode result = g_accountManagerService->ExecuteRequest(false, request, callback);
+    ErrCode result = g_accountManagerService->ExecuteRequest(request, callback);
     EXPECT_EQ(result, ERR_OK);
 }

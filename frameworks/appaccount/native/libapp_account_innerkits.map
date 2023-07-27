@@ -171,7 +171,7 @@
         "OHOS::AccountSA::AppAccountAuthorizationExtensionCallbackStub::AppAccountAuthorizationExtensionCallbackStub()";
         "OHOS::AccountSA::AppAccountAuthorizationExtensionCallbackStub::~AppAccountAuthorizationExtensionCallbackStub()";
         "OHOS::AccountSA::AppAccountAuthorizationExtensionCallbackStub::OnRemoteRequest(unsigned int, OHOS::MessageParcel&, OHOS::MessageParcel&, OHOS::MessageOption&)";
-        "OHOS::AccountSA::AppAccountManager::ExecuteRequest(bool const&, OHOS::AccountSA::AccountCapabilityRequest const&, OHOS::sptr<OHOS::AccountSA::IAppAccountAuthorizationExtensionCallback> const&)";
+        "OHOS::AccountSA::AppAccountManager::ExecuteRequest(OHOS::AccountSA::AccountCapabilityRequest const&, OHOS::sptr<OHOS::AccountSA::IAppAccountAuthorizationExtensionCallback> const&)";
         "OHOS::AccountSA::AppAccountAuthorizationExtensionCallbackService::AppAccountAuthorizationExtensionCallbackService(std::__h::shared_ptr<OHOS::AccountSA::AppAccountAuthorizationExtensionCallback> const&)";
         "OHOS::AccountSA::AppAccountAuthorizationExtensionStub::AppAccountAuthorizationExtensionStub()";
         "OHOS::AccountSA::AppAccountAuthorizationExtensionStub::~AppAccountAuthorizationExtensionStub()";

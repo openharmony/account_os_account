@@ -136,6 +136,7 @@ struct ExecuteRequestCallbackParam {
     ExecuteRequestCallbackParam() {};
     std::shared_ptr<AbilityRuntime::AbilityContext> abilityContext = nullptr;
     Ace::UIContent *UIContent = nullptr;
+    int32_t requestId = -1;
 };
 
 class NapiExecuteRequestCallback : public AppAccountAuthorizationExtensionCallbackStub {
@@ -166,6 +167,7 @@ private:
     std::shared_ptr<AbilityRuntime::AbilityContext> abilityContext_ = nullptr;
     Ace::UIContent *UIContent_ = nullptr;
     int32_t sessionId_ = 0;
+    int32_t requestId_ = -1;
 };
 }  // namespace AccountJsKit
 }  // namespace OHOS
