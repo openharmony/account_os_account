@@ -110,6 +110,7 @@ public:
 private:
     AppAccount() = default;
     ~AppAccount() = default;
+    DISALLOW_COPY_AND_MOVE(AppAccount);
     ErrCode CheckParameters(const std::string &name, const std::string &extraInfo = "");
     ErrCode CheckSpecialCharacters(const std::string &name);
     ErrCode CheckTokenVisibilityParam(

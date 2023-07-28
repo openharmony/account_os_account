@@ -25,18 +25,6 @@ using namespace OHOS::Security::AccessToken;
 
 namespace OHOS {
 namespace AccountSA {
-const std::string AccountPermissionManager::DISTRIBUTED_DATASYNC = "ohos.permission.DISTRIBUTED_DATASYNC";
-const std::string AccountPermissionManager::GET_ALL_APP_ACCOUNTS = "ohos.permission.GET_ALL_APP_ACCOUNTS";
-const std::string AccountPermissionManager::MANAGE_LOCAL_ACCOUNTS = "ohos.permission.MANAGE_LOCAL_ACCOUNTS";
-const std::string AccountPermissionManager::GET_LOCAL_ACCOUNTS = "ohos.permission.GET_LOCAL_ACCOUNTS";
-const std::string AccountPermissionManager::INTERACT_ACROSS_LOCAL_ACCOUNTS_EXTENSION =
-    "ohos.permission.INTERACT_ACROSS_LOCAL_ACCOUNTS_EXTENSION";
-const std::string AccountPermissionManager::INTERACT_ACROSS_LOCAL_ACCOUNTS =
-    "ohos.permission.INTERACT_ACROSS_LOCAL_ACCOUNTS";
-const std::string AccountPermissionManager::ACCESS_USER_AUTH_INTERNAL = "ohos.permission.ACCESS_USER_AUTH_INTERNAL";
-const std::string AccountPermissionManager::MANAGE_USER_IDM = "ohos.permission.MANAGE_USER_IDM";
-const std::string AccountPermissionManager::USE_USER_IDM = "ohos.permission.USE_USER_IDM";
-
 ErrCode AccountPermissionManager::VerifyPermission(const std::string &permissionName)
 {
     AccessTokenID callingToken = IPCSkeleton::GetCallingTokenID();

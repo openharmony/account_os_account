@@ -25,16 +25,6 @@ class AccountPermissionManager {
 public:
     static ErrCode VerifyPermission(const std::string &permissionName);
     static ErrCode CheckSystemApp(bool isCallStub = true);
-
-    static const std::string DISTRIBUTED_DATASYNC;
-    static const std::string GET_ALL_APP_ACCOUNTS;
-    static const std::string MANAGE_LOCAL_ACCOUNTS;
-    static const std::string GET_LOCAL_ACCOUNTS;
-    static const std::string INTERACT_ACROSS_LOCAL_ACCOUNTS_EXTENSION;
-    static const std::string INTERACT_ACROSS_LOCAL_ACCOUNTS;
-    static const std::string ACCESS_USER_AUTH_INTERNAL;
-    static const std::string MANAGE_USER_IDM;
-    static const std::string USE_USER_IDM;
 };
 }  // namespace AccountSA
 }  // namespace OHOS

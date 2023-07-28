@@ -86,6 +86,7 @@ public:
 private:
     OsAccount() = default;
     ~OsAccount() = default;
+    DISALLOW_COPY_AND_MOVE(OsAccount);
     ErrCode GetOsAccountProxy();
     ErrCode CreateOsAccountEventListener(
         const std::shared_ptr<OsAccountSubscriber> &subscriber, sptr<IRemoteObject> &osAccountEventListener);

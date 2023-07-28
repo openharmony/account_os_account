@@ -23,16 +23,10 @@
 
 namespace OHOS {
 namespace AccountSA {
-std::shared_ptr<BundleManagerAdapter> BundleManagerAdapter::instance_ = nullptr;
-std::mutex BundleManagerAdapter::instanceMutex_;
-
-std::shared_ptr<BundleManagerAdapter> BundleManagerAdapter::GetInstance()
+BundleManagerAdapter *BundleManagerAdapter::GetInstance()
 {
-    std::lock_guard<std::mutex> lock(instanceMutex_);
-    if (instance_ == nullptr) {
-        instance_ = std::make_shared<BundleManagerAdapter>();
-    }
-    return instance_;
+    static BundleManagerAdapter *instance = new (std::nothrow) BundleManagerAdapter();
+    return instance;
 }
 
 BundleManagerAdapter::BundleManagerAdapter()

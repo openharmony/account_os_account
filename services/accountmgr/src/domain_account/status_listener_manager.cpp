@@ -37,8 +37,8 @@ static const int INVALID_USERID = -1;
 
 StatusListenerManager& StatusListenerManager::GetInstance()
 {
-    static StatusListenerManager instance;
-    return instance;
+    static StatusListenerManager *instance = new (std::nothrow) StatusListenerManager();
+    return *instance;
 }
 
 StatusListenerManager::StatusListenerManager() : listenerDeathRecipient_(sptr<IRemoteObject::DeathRecipient>(

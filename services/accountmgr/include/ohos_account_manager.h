@@ -149,6 +149,8 @@ public:
 private:
     bool isInit_ = false;
     OhosAccountManager();
+    DISALLOW_COPY_AND_MOVE(OhosAccountManager);
+    
     /**
      * Account state machine.
      */

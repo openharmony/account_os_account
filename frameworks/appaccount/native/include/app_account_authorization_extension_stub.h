@@ -36,7 +36,7 @@ private:
     ErrCode ProcStartAuthorization(MessageParcel &data, MessageParcel &reply);
 
 private:
-    static const std::map<uint32_t, MessageProcFunction> messageProcMap_;
+    std::map<uint32_t, MessageProcFunction> messageProcMap_;
 
     DISALLOW_COPY_AND_MOVE(AppAccountAuthorizationExtensionStub);
 };

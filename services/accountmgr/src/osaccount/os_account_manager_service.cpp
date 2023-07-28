@@ -38,6 +38,13 @@ const std::string CONSTANT_SET_ICON = "constraint.os.account.set.icon";
 const std::int32_t ROOT_UID = 0;
 const std::string DEFAULT_ANON_STR = "**********";
 const size_t INTERCEPT_HEAD_PART_LEN_FOR_NAME = 1;
+
+const std::string MANAGE_LOCAL_ACCOUNTS = "ohos.permission.MANAGE_LOCAL_ACCOUNTS";
+const std::string GET_LOCAL_ACCOUNTS = "ohos.permission.GET_LOCAL_ACCOUNTS";
+const std::string INTERACT_ACROSS_LOCAL_ACCOUNTS_EXTENSION =
+    "ohos.permission.INTERACT_ACROSS_LOCAL_ACCOUNTS_EXTENSION";
+const std::string INTERACT_ACROSS_LOCAL_ACCOUNTS = "ohos.permission.INTERACT_ACROSS_LOCAL_ACCOUNTS";
+
 std::string AnonymizeNameStr(const std::string& nameStr)
 {
     if (nameStr.empty()) {
@@ -83,7 +90,7 @@ ErrCode OsAccountManagerService::CreateOsAccount(
     }
 
     // permission check
-    if ((!PermissionCheck(AccountPermissionManager::MANAGE_LOCAL_ACCOUNTS, CONSTANT_CREATE)) ||
+    if ((!PermissionCheck(MANAGE_LOCAL_ACCOUNTS, CONSTANT_CREATE)) ||
         (!PermissionCheck("", CONSTANT_CREATE_DIRECTLY))) {
         ACCOUNT_LOGE("account manager service, permission denied!");
         return ERR_ACCOUNT_COMMON_PERMISSION_DENIED;
@@ -127,7 +134,7 @@ ErrCode OsAccountManagerService::CreateOsAccountForDomain(const OsAccountType &t
     }
 
     // permission check
-    if (!PermissionCheck(AccountPermissionManager::MANAGE_LOCAL_ACCOUNTS, CONSTANT_CREATE)) {
+    if (!PermissionCheck(MANAGE_LOCAL_ACCOUNTS, CONSTANT_CREATE)) {
         ACCOUNT_LOGE("account manager service, permission denied!");
         return ERR_ACCOUNT_COMMON_PERMISSION_DENIED;
     }
@@ -169,7 +176,7 @@ ErrCode OsAccountManagerService::RemoveOsAccount(const int id)
     }
 
     // permission check
-    if (!PermissionCheck(AccountPermissionManager::MANAGE_LOCAL_ACCOUNTS, CONSTANT_REMOVE)) {
+    if (!PermissionCheck(MANAGE_LOCAL_ACCOUNTS, CONSTANT_REMOVE)) {
         ACCOUNT_LOGE("account manager service, permission denied!");
         return ERR_ACCOUNT_COMMON_PERMISSION_DENIED;
     }
@@ -196,8 +203,7 @@ ErrCode OsAccountManagerService::IsOsAccountActived(const int id, bool &isOsAcco
     }
 
     // check other account state, check permission first
-    if (!PermissionCheck(AccountPermissionManager::MANAGE_LOCAL_ACCOUNTS, "") &&
-        !PermissionCheck(AccountPermissionManager::INTERACT_ACROSS_LOCAL_ACCOUNTS, "")) {
+    if (!PermissionCheck(MANAGE_LOCAL_ACCOUNTS, "") && !PermissionCheck(INTERACT_ACROSS_LOCAL_ACCOUNTS, "")) {
         ACCOUNT_LOGE("account manager service, permission denied!");
         return ERR_ACCOUNT_COMMON_PERMISSION_DENIED;
     }
@@ -213,7 +219,7 @@ ErrCode OsAccountManagerService::IsOsAccountConstraintEnable(
         return res;
     }
     // permission check
-    if (!PermissionCheck(AccountPermissionManager::MANAGE_LOCAL_ACCOUNTS, "")) {
+    if (!PermissionCheck(MANAGE_LOCAL_ACCOUNTS, "")) {
         ACCOUNT_LOGE("account manager service, permission denied!");
         return ERR_ACCOUNT_COMMON_PERMISSION_DENIED;
     }
@@ -229,8 +235,7 @@ ErrCode OsAccountManagerService::CheckOsAccountConstraintEnabled(
         return res;
     }
     // permission check
-    if (!PermissionCheck(AccountPermissionManager::MANAGE_LOCAL_ACCOUNTS, "") &&
-        !PermissionCheck(AccountPermissionManager::INTERACT_ACROSS_LOCAL_ACCOUNTS, "")) {
+    if (!PermissionCheck(MANAGE_LOCAL_ACCOUNTS, "") && !PermissionCheck(INTERACT_ACROSS_LOCAL_ACCOUNTS, "")) {
         ACCOUNT_LOGE("account manager service, permission denied!");
         return ERR_ACCOUNT_COMMON_PERMISSION_DENIED;
     }
@@ -251,8 +256,7 @@ ErrCode OsAccountManagerService::IsOsAccountVerified(const int id, bool &isVerif
     }
 
     // check other account state, check permission first
-    if (!PermissionCheck(AccountPermissionManager::MANAGE_LOCAL_ACCOUNTS, "") &&
-        !PermissionCheck(AccountPermissionManager::INTERACT_ACROSS_LOCAL_ACCOUNTS, "")) {
+    if (!PermissionCheck(MANAGE_LOCAL_ACCOUNTS, "") && !PermissionCheck(INTERACT_ACROSS_LOCAL_ACCOUNTS, "")) {
         ACCOUNT_LOGE("account manager service, permission denied!");
         return ERR_ACCOUNT_COMMON_PERMISSION_DENIED;
     }
@@ -263,7 +267,7 @@ ErrCode OsAccountManagerService::IsOsAccountVerified(const int id, bool &isVerif
 ErrCode OsAccountManagerService::GetCreatedOsAccountsCount(unsigned int &osAccountsCount)
 {
     // permission check
-    if (!PermissionCheck(AccountPermissionManager::MANAGE_LOCAL_ACCOUNTS, "")) {
+    if (!PermissionCheck(MANAGE_LOCAL_ACCOUNTS, "")) {
         ACCOUNT_LOGE("account manager service, permission denied!");
         return ERR_ACCOUNT_COMMON_PERMISSION_DENIED;
     }
@@ -281,7 +285,7 @@ ErrCode OsAccountManagerService::GetOsAccountLocalIdFromProcess(int &id)
 ErrCode OsAccountManagerService::IsMainOsAccount(bool &isMainOsAccount)
 {
     // permission check
-    if (!PermissionCheck(AccountPermissionManager::MANAGE_LOCAL_ACCOUNTS, "")) {
+    if (!PermissionCheck(MANAGE_LOCAL_ACCOUNTS, "")) {
         ACCOUNT_LOGW("account manager service, permission denied!");
         return ERR_ACCOUNT_COMMON_PERMISSION_DENIED;
     }
@@ -303,7 +307,7 @@ ErrCode OsAccountManagerService::GetOsAccountLocalIdFromDomain(const DomainAccou
         return ERR_ACCOUNT_COMMON_INVALID_PARAMETER;
     }
     // permission check
-    if (!PermissionCheck(AccountPermissionManager::MANAGE_LOCAL_ACCOUNTS, "")) {
+    if (!PermissionCheck(MANAGE_LOCAL_ACCOUNTS, "")) {
         ACCOUNT_LOGE("account manager service, permission denied!");
         return ERR_ACCOUNT_COMMON_PERMISSION_DENIED;
     }
@@ -323,7 +327,7 @@ ErrCode OsAccountManagerService::GetOsAccountAllConstraints(const int id, std::v
         return res;
     }
     // permission check
-    if (!PermissionCheck(AccountPermissionManager::MANAGE_LOCAL_ACCOUNTS, "")) {
+    if (!PermissionCheck(MANAGE_LOCAL_ACCOUNTS, "")) {
         ACCOUNT_LOGE("account manager service, permission denied!");
         return ERR_ACCOUNT_COMMON_PERMISSION_DENIED;
     }
@@ -334,7 +338,7 @@ ErrCode OsAccountManagerService::GetOsAccountAllConstraints(const int id, std::v
 ErrCode OsAccountManagerService::QueryAllCreatedOsAccounts(std::vector<OsAccountInfo> &osAccountInfos)
 {
     // permission check
-    if (!PermissionCheck(AccountPermissionManager::MANAGE_LOCAL_ACCOUNTS, "")) {
+    if (!PermissionCheck(MANAGE_LOCAL_ACCOUNTS, "")) {
         ACCOUNT_LOGE("account manager service, permission denied!");
         return ERR_ACCOUNT_COMMON_PERMISSION_DENIED;
     }
@@ -345,8 +349,7 @@ ErrCode OsAccountManagerService::QueryAllCreatedOsAccounts(std::vector<OsAccount
 ErrCode OsAccountManagerService::QueryCurrentOsAccount(OsAccountInfo &osAccountInfo)
 {
     // permission check
-    if (!PermissionCheck(AccountPermissionManager::MANAGE_LOCAL_ACCOUNTS, "") &&
-        (!PermissionCheck(AccountPermissionManager::GET_LOCAL_ACCOUNTS, ""))) {
+    if (!PermissionCheck(MANAGE_LOCAL_ACCOUNTS, "") && (!PermissionCheck(GET_LOCAL_ACCOUNTS, ""))) {
         ACCOUNT_LOGE("account manager service, permission denied!");
         return ERR_ACCOUNT_COMMON_PERMISSION_DENIED;
     }
@@ -363,8 +366,8 @@ ErrCode OsAccountManagerService::QueryOsAccountById(const int id, OsAccountInfo 
         return res;
     }
     // permission check
-    if (!PermissionCheck(AccountPermissionManager::MANAGE_LOCAL_ACCOUNTS, "") &&
-        !PermissionCheck(AccountPermissionManager::INTERACT_ACROSS_LOCAL_ACCOUNTS_EXTENSION, "")) {
+    if (!PermissionCheck(MANAGE_LOCAL_ACCOUNTS, "") &&
+        !PermissionCheck(INTERACT_ACROSS_LOCAL_ACCOUNTS_EXTENSION, "")) {
         ACCOUNT_LOGE("account manager service, permission denied!");
         return ERR_ACCOUNT_COMMON_PERMISSION_DENIED;
     }
@@ -391,7 +394,7 @@ ErrCode OsAccountManagerService::GetOsAccountProfilePhoto(const int id, std::str
     }
 
     // get other account photo, check permission first
-    if (!PermissionCheck(AccountPermissionManager::MANAGE_LOCAL_ACCOUNTS, "")) {
+    if (!PermissionCheck(MANAGE_LOCAL_ACCOUNTS, "")) {
         ACCOUNT_LOGE("account manager service, permission denied!");
         return ERR_ACCOUNT_COMMON_PERMISSION_DENIED;
     }
@@ -421,7 +424,7 @@ ErrCode OsAccountManagerService::SetOsAccountName(const int id, const std::strin
     }
 
     // permission check
-    if (!PermissionCheck(AccountPermissionManager::MANAGE_LOCAL_ACCOUNTS, "")) {
+    if (!PermissionCheck(MANAGE_LOCAL_ACCOUNTS, "")) {
         ACCOUNT_LOGE("account manager service, permission denied!");
         return ERR_ACCOUNT_COMMON_PERMISSION_DENIED;
     }
@@ -438,7 +441,7 @@ ErrCode OsAccountManagerService::SetOsAccountConstraints(
     }
 
     // permission check
-    if (!PermissionCheck(AccountPermissionManager::MANAGE_LOCAL_ACCOUNTS, "")) {
+    if (!PermissionCheck(MANAGE_LOCAL_ACCOUNTS, "")) {
         ACCOUNT_LOGE("account manager service, permission denied!");
         return ERR_ACCOUNT_COMMON_PERMISSION_DENIED;
     }
@@ -462,7 +465,7 @@ ErrCode OsAccountManagerService::SetOsAccountProfilePhoto(const int id, const st
         return ERR_ACCOUNT_COMMON_INVALID_PARAMETER;
     }
     // permission check
-    if (!PermissionCheck(AccountPermissionManager::MANAGE_LOCAL_ACCOUNTS, CONSTANT_SET_ICON)) {
+    if (!PermissionCheck(MANAGE_LOCAL_ACCOUNTS, CONSTANT_SET_ICON)) {
         ACCOUNT_LOGE("account manager service, permission denied!");
         return ERR_ACCOUNT_COMMON_PERMISSION_DENIED;
     }
@@ -479,7 +482,7 @@ ErrCode OsAccountManagerService::ActivateOsAccount(const int id)
     }
 
     // permission check
-    if (!PermissionCheck(AccountPermissionManager::INTERACT_ACROSS_LOCAL_ACCOUNTS_EXTENSION, CONSTANT_START)) {
+    if (!PermissionCheck(INTERACT_ACROSS_LOCAL_ACCOUNTS_EXTENSION, CONSTANT_START)) {
         ACCOUNT_LOGE("account manager service, permission denied!");
         return ERR_ACCOUNT_COMMON_PERMISSION_DENIED;
     }
@@ -501,7 +504,7 @@ ErrCode OsAccountManagerService::SubscribeOsAccount(
     const OsAccountSubscribeInfo &subscribeInfo, const sptr<IRemoteObject> &eventListener)
 {
     // permission check
-    if (!PermissionCheck(AccountPermissionManager::INTERACT_ACROSS_LOCAL_ACCOUNTS_EXTENSION, "")) {
+    if (!PermissionCheck(INTERACT_ACROSS_LOCAL_ACCOUNTS_EXTENSION, "")) {
         ACCOUNT_LOGE("account manager service, permission denied!");
         return ERR_ACCOUNT_COMMON_PERMISSION_DENIED;
     }
@@ -512,7 +515,7 @@ ErrCode OsAccountManagerService::SubscribeOsAccount(
 ErrCode OsAccountManagerService::UnsubscribeOsAccount(const sptr<IRemoteObject> &eventListener)
 {
     // permission check
-    if (!PermissionCheck(AccountPermissionManager::INTERACT_ACROSS_LOCAL_ACCOUNTS_EXTENSION, "")) {
+    if (!PermissionCheck(INTERACT_ACROSS_LOCAL_ACCOUNTS_EXTENSION, "")) {
         ACCOUNT_LOGE("account manager service, permission denied!");
         return ERR_ACCOUNT_COMMON_PERMISSION_DENIED;
     }
@@ -553,7 +556,7 @@ ErrCode OsAccountManagerService::IsOsAccountCompleted(const int id, bool &isOsAc
 ErrCode OsAccountManagerService::SetCurrentOsAccountIsVerified(const bool isVerified)
 {
     // permission check
-    if (!PermissionCheck(AccountPermissionManager::MANAGE_LOCAL_ACCOUNTS, "")) {
+    if (!PermissionCheck(MANAGE_LOCAL_ACCOUNTS, "")) {
         ACCOUNT_LOGE("account manager service, permission denied!");
         return ERR_ACCOUNT_COMMON_PERMISSION_DENIED;
     }
@@ -577,7 +580,7 @@ ErrCode OsAccountManagerService::SetOsAccountIsVerified(const int id, const bool
     }
 
     // permission check
-    if (!PermissionCheck(AccountPermissionManager::MANAGE_LOCAL_ACCOUNTS, "")) {
+    if (!PermissionCheck(MANAGE_LOCAL_ACCOUNTS, "")) {
         ACCOUNT_LOGE("account manager service, permission denied!");
         return ERR_ACCOUNT_COMMON_PERMISSION_DENIED;
     }
@@ -590,7 +593,7 @@ ErrCode OsAccountManagerService::DumpState(const int &id, std::vector<std::strin
     state.clear();
 
     // permission check
-    if (!PermissionCheck(AccountPermissionManager::MANAGE_LOCAL_ACCOUNTS, "")) {
+    if (!PermissionCheck(MANAGE_LOCAL_ACCOUNTS, "")) {
         ACCOUNT_LOGE("account manager service, permission denied!");
         return ERR_ACCOUNT_COMMON_PERMISSION_DENIED;
     }
@@ -634,7 +637,7 @@ ErrCode OsAccountManagerService::GetCreatedOsAccountNumFromDatabase(const std::s
     int &createdOsAccountNum)
 {
     // permission check
-    if (!PermissionCheck(AccountPermissionManager::MANAGE_LOCAL_ACCOUNTS, "")) {
+    if (!PermissionCheck(MANAGE_LOCAL_ACCOUNTS, "")) {
         ACCOUNT_LOGE("account manager service, permission denied!");
         return ERR_ACCOUNT_COMMON_PERMISSION_DENIED;
     }
@@ -664,7 +667,7 @@ ErrCode OsAccountManagerService::GetOsAccountFromDatabase(const std::string& sto
     const int id, OsAccountInfo &osAccountInfo)
 {
     // permission check
-    if (!PermissionCheck(AccountPermissionManager::MANAGE_LOCAL_ACCOUNTS, "")) {
+    if (!PermissionCheck(MANAGE_LOCAL_ACCOUNTS, "")) {
         ACCOUNT_LOGE("account manager service, permission denied!");
         return ERR_ACCOUNT_COMMON_PERMISSION_DENIED;
     }
@@ -676,7 +679,7 @@ ErrCode OsAccountManagerService::GetOsAccountListFromDatabase(const std::string&
     std::vector<OsAccountInfo> &osAccountList)
 {
     // permission check
-    if (!PermissionCheck(AccountPermissionManager::MANAGE_LOCAL_ACCOUNTS, "")) {
+    if (!PermissionCheck(MANAGE_LOCAL_ACCOUNTS, "")) {
         ACCOUNT_LOGE("account manager service, permission denied!");
         return ERR_ACCOUNT_COMMON_PERMISSION_DENIED;
     }
@@ -747,7 +750,7 @@ ErrCode OsAccountManagerService::QueryOsAccountConstraintSourceTypes(const int32
     }
 
     // permission check
-    if (!PermissionCheck(AccountPermissionManager::MANAGE_LOCAL_ACCOUNTS, "")) {
+    if (!PermissionCheck(MANAGE_LOCAL_ACCOUNTS, "")) {
         ACCOUNT_LOGE("account manager service, permission denied!");
         return ERR_ACCOUNT_COMMON_PERMISSION_DENIED;
     }
@@ -759,7 +762,7 @@ ErrCode OsAccountManagerService::SetGlobalOsAccountConstraints(const std::vector
     const bool enable, const int32_t enforcerId, const bool isDeviceOwner)
 {
     // permission check
-    if (!PermissionCheck(AccountPermissionManager::MANAGE_LOCAL_ACCOUNTS, "")) {
+    if (!PermissionCheck(MANAGE_LOCAL_ACCOUNTS, "")) {
         ACCOUNT_LOGE("account manager service, permission denied!");
         return ERR_ACCOUNT_COMMON_PERMISSION_DENIED;
     }
@@ -771,7 +774,7 @@ ErrCode OsAccountManagerService::SetSpecificOsAccountConstraints(const std::vect
     const bool enable, const int32_t targetId, const int32_t enforcerId, const bool isDeviceOwner)
 {
     // permission check
-    if (!PermissionCheck(AccountPermissionManager::MANAGE_LOCAL_ACCOUNTS, "")) {
+    if (!PermissionCheck(MANAGE_LOCAL_ACCOUNTS, "")) {
         ACCOUNT_LOGE("account manager service, permission denied!");
         return ERR_ACCOUNT_COMMON_PERMISSION_DENIED;
     }
@@ -794,7 +797,7 @@ ErrCode OsAccountManagerService::SetDefaultActivatedOsAccount(const int32_t id)
     }
 
     // permission check
-    if (!PermissionCheck(AccountPermissionManager::MANAGE_LOCAL_ACCOUNTS, "")) {
+    if (!PermissionCheck(MANAGE_LOCAL_ACCOUNTS, "")) {
         ACCOUNT_LOGE("account manager service, permission denied!");
         return ERR_ACCOUNT_COMMON_PERMISSION_DENIED;
     }

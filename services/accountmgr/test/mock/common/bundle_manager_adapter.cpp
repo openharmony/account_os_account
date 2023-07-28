@@ -31,16 +31,10 @@ const std::string STRING_ABILITY_NAME_WITH_CONNECT_FAILED = "com.example.MainAbi
 const std::string STRING_ABILITY_NAME_WITH_NO_PROXY = "com.example.MainAbilityWithNoProxy";
 }  // namespace
 
-std::shared_ptr<BundleManagerAdapter> BundleManagerAdapter::instance_ = nullptr;
-std::mutex BundleManagerAdapter::mockInstanceMutex_;
-
-std::shared_ptr<BundleManagerAdapter> BundleManagerAdapter::GetInstance()
+BundleManagerAdapter *BundleManagerAdapter::GetInstance()
 {
-    std::lock_guard<std::mutex> lock(mockInstanceMutex_);
-    if (instance_ == nullptr) {
-        instance_ = std::make_shared<BundleManagerAdapter>();
-    }
-    return instance_;
+    static BundleManagerAdapter *instance = new (std::nothrow) BundleManagerAdapter();
+    return instance;
 }
 
 BundleManagerAdapter::BundleManagerAdapter()

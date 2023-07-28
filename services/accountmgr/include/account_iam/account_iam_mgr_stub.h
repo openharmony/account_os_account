@@ -37,7 +37,7 @@ public:
     int OnRemoteRequest(
         uint32_t code, MessageParcel &data, MessageParcel &reply, MessageOption &option) override;
 
-private:
+public:
     ErrCode ProcOpenSession(MessageParcel &data, MessageParcel &reply);
     ErrCode ProcCloseSession(MessageParcel &data, MessageParcel &reply);
     ErrCode ProcAddCredential(MessageParcel &data, MessageParcel &reply);
@@ -57,7 +57,7 @@ private:
     bool CheckPermission(const std::string &permission);
 
 private:
-    static const std::map<uint32_t, AccountIAMMessageProc> messageProcMap_;
+    std::map<uint32_t, AccountIAMMessageProc> messageProcMap_;
     DISALLOW_COPY_AND_MOVE(AccountIAMMgrStub);
 };
 }  // namespace AccountSA

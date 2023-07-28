@@ -20,13 +20,8 @@
 
 namespace OHOS {
 namespace AccountSA {
-AppAccountAuthenticatorStub::AppAccountAuthenticatorStub()
-{}
-
-AppAccountAuthenticatorStub::~AppAccountAuthenticatorStub()
-{}
-
-const std::map<uint32_t, AppAccountAuthenticatorStub::MessageProcFunction> AppAccountAuthenticatorStub::funcMap_ = {
+namespace {
+std::map<uint32_t, AppAccountAuthenticatorStub::MessageProcFunction> funcMap = {
     {
         static_cast<uint32_t>(AppAccountAuthenticatorInterfaceCode::ADD_ACCOUNT_IMPLICITLY),
         &AppAccountAuthenticatorStub::ProcAddAccountImplicitly,
@@ -60,6 +55,15 @@ const std::map<uint32_t, AppAccountAuthenticatorStub::MessageProcFunction> AppAc
         &AppAccountAuthenticatorStub::ProcAuth,
     }
 };
+}
+
+AppAccountAuthenticatorStub::AppAccountAuthenticatorStub()
+{
+    funcMap_ = funcMap;
+}
+
+AppAccountAuthenticatorStub::~AppAccountAuthenticatorStub()
+{}
 
 int AppAccountAuthenticatorStub::OnRemoteRequest(
     uint32_t code, MessageParcel &data, MessageParcel &reply, MessageOption &option)

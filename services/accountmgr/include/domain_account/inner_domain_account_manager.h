@@ -66,6 +66,9 @@ public:
     ErrCode GetDomainAccountInfoByUserId(int32_t userId, DomainAccountInfo &domainInfo);
 
 private:
+    InnerDomainAccountManager();
+    ~InnerDomainAccountManager();
+    DISALLOW_COPY_AND_MOVE(InnerDomainAccountManager);
     void StartIsAccountTokenValid(const sptr<IDomainAccountPlugin> &plugin, const AccountSA::DomainAccountInfo &info,
         const std::vector<uint8_t> &token, const sptr<IDomainAccountCallback> &callback);
     void StartGetDomainAccountInfo(const sptr<IDomainAccountPlugin> &plugin, const std::string &domain,
