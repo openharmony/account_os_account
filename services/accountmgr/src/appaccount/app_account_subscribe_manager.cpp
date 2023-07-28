@@ -56,10 +56,7 @@ ErrCode AppAccountSubscribeManager::SubscribeAppAccount(
     }
 
     std::vector<std::string> owners;
-    if (subscribeInfoPtr->GetOwners(owners) != ERR_OK) {
-        ACCOUNT_LOGE("failed to get owners");
-        return ERR_APPACCOUNT_SERVICE_GET_OWNERS;
-    }
+    subscribeInfoPtr->GetOwners(owners);
 
     if (owners.size() == 0) {
         ACCOUNT_LOGE("owners size is 0");
@@ -147,11 +144,7 @@ ErrCode AppAccountSubscribeManager::CheckAppAccess(const std::shared_ptr<AppAcco
     }
 
     std::vector<std::string> owners;
-    ErrCode result = subscribeInfoPtr->GetOwners(owners);
-    if (result != ERR_OK) {
-        ACCOUNT_LOGE("failed to get owners, result %{public}d.", result);
-        return ERR_APPACCOUNT_SERVICE_GET_OWNERS;
-    }
+    subscribeInfoPtr->GetOwners(owners);
     auto dataStoragePtr = AppAccountControlManager::GetInstance().GetDataStorage(uid);
     if (dataStoragePtr == nullptr) {
         ACCOUNT_LOGE("dataStoragePtr is nullptr");
@@ -331,11 +324,7 @@ ErrCode AppAccountSubscribeManager::GetAccessibleAccountsBySubscribeInfo(
     appAccounts.clear();
 
     std::vector<std::string> owners;
-    ErrCode result = subscribeInfoPtr->GetOwners(owners);
-    if (result != ERR_OK) {
-        ACCOUNT_LOGE("failed to get owners");
-        return ERR_APPACCOUNT_SERVICE_GET_OWNERS;
-    }
+    subscribeInfoPtr->GetOwners(owners);
 
     for (auto accessibleAccount : accessibleAccounts) {
         std::string name;
