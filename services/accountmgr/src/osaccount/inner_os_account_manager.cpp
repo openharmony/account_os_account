@@ -49,8 +49,8 @@ IInnerOsAccountManager::IInnerOsAccountManager() : subscribeManager_(OsAccountSu
 
 IInnerOsAccountManager &IInnerOsAccountManager::GetInstance()
 {
-    static IInnerOsAccountManager instance;
-    return instance;
+    static IInnerOsAccountManager *instance = new (std::nothrow) IInnerOsAccountManager();
+    return *instance;
 }
 
 void IInnerOsAccountManager::SetOsAccountControl(std::shared_ptr<IOsAccountControl> ptr)

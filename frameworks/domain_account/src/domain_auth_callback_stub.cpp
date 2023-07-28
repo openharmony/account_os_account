@@ -26,13 +26,6 @@ DomainAuthCallbackStub::DomainAuthCallbackStub()
 DomainAuthCallbackStub::~DomainAuthCallbackStub()
 {}
 
-const std::map<uint32_t, DomainAuthCallbackStub::DomainAuthCallbackStubFunc> DomainAuthCallbackStub::stubFuncMap_ = {
-    {
-        IDomainAuthCallback::Message::DOMAIN_AUTH_ON_RESULT,
-        &DomainAuthCallbackStub::ProcOnResult
-    }
-};
-
 int32_t DomainAuthCallbackStub::OnRemoteRequest(
     std::uint32_t code, MessageParcel &data, MessageParcel &reply, MessageOption &option)
 {
@@ -41,9 +34,11 @@ int32_t DomainAuthCallbackStub::OnRemoteRequest(
         ACCOUNT_LOGE("check descriptor failed! code %{public}u.", code);
         return ERR_ACCOUNT_COMMON_CHECK_DESCRIPTOR_ERROR;
     }
-    const auto &itFunc = stubFuncMap_.find(code);
-    if (itFunc != stubFuncMap_.end()) {
-        return (this->*(itFunc->second))(data, reply);
+    switch (code) {
+        case IDomainAuthCallback::Message::DOMAIN_AUTH_ON_RESULT:
+            return ProcOnResult(data, reply);
+        default:
+            break;
     }
     ACCOUNT_LOGW("remote request unhandled: %{public}d", code);
     return IPCObjectStub::OnRemoteRequest(code, data, reply, option);

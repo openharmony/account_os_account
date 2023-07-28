@@ -32,8 +32,6 @@ const std::string STRING_ABILITY_NAME_WITH_CONNECT_FAILED = "com.example.MainAbi
 const std::string STRING_ABILITY_NAME_WITH_NO_PROXY = "com.example.MainAbilityWithNoProxy";
 } // namespace
 using namespace AAFwk;
-std::shared_ptr<AbilityManagerAdapter> AbilityManagerAdapter::instance_ = nullptr;
-std::mutex AbilityManagerAdapter::mockInstanceMutex_;
 
 class MockAppAccountAuthorizationExtensionService final : public AppAccountAuthorizationExtensionStub {
 public:
@@ -51,13 +49,10 @@ public:
     }
 };
 
-std::shared_ptr<AbilityManagerAdapter> AbilityManagerAdapter::GetInstance()
+AbilityManagerAdapter *AbilityManagerAdapter::GetInstance()
 {
-    std::lock_guard<std::mutex> lock(mockInstanceMutex_);
-    if (instance_ == nullptr) {
-        instance_ = std::make_shared<AbilityManagerAdapter>();
-    }
-    return instance_;
+    static AbilityManagerAdapter *instance = new (std::nothrow) AbilityManagerAdapter();
+    return instance;
 }
 
 AbilityManagerAdapter::AbilityManagerAdapter()

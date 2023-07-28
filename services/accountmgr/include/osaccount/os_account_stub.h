@@ -34,7 +34,7 @@ public:
     int OnRemoteRequest(
         uint32_t code, MessageParcel &data, MessageParcel &reply, MessageOption &option) override;
 
-private:
+public:
     ErrCode ProcCreateOsAccount(MessageParcel &data, MessageParcel &reply);
     ErrCode ProcCreateOsAccountForDomain(MessageParcel &data, MessageParcel &reply);
     ErrCode ProcRemoveOsAccount(MessageParcel &data, MessageParcel &reply);
@@ -90,7 +90,7 @@ private:
     bool WriteParcelableVector(const std::vector<T> &parcelableVector, MessageParcel &data);
     template<typename T>
     bool ReadParcelableVector(std::vector<T> &parcelableInfos, MessageParcel &data);
-    static const std::map<uint32_t, OsAccountMessageProc> messageProcMap_;
+    std::map<uint32_t, OsAccountMessageProc> messageProcMap_;
     DISALLOW_COPY_AND_MOVE(OsAccountStub);
     ErrCode ProcCheckOsAccountConstraintEnabled(uint32_t code, MessageParcel &data, MessageParcel &reply);
 };

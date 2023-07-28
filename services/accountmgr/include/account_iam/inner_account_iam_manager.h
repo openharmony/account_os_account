@@ -76,6 +76,7 @@ public:
 private:
     InnerAccountIAMManager();
     ~InnerAccountIAMManager() = default;
+    DISALLOW_COPY_AND_MOVE(InnerAccountIAMManager);
     ErrCode UpdateStorageKey(int32_t userId, uint64_t secureUid, const std::vector<uint8_t> &token,
         const std::vector<uint8_t> &oldSecret, const std::vector<uint8_t> &newSecret);
     ErrCode GetStorageManagerProxy();

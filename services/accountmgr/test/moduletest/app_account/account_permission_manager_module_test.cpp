@@ -50,6 +50,7 @@ void AccountPermissionManagerModuleTest::TearDown(void)
  */
 HWTEST_F(AccountPermissionManagerModuleTest, AccountPermissionManager_VerifyPermission_0100, TestSize.Level0)
 {
-    ErrCode result = AccountPermissionManager::VerifyPermission(AccountPermissionManager::DISTRIBUTED_DATASYNC);
+    const std::string DISTRIBUTED_DATASYNC = "ohos.permission.DISTRIBUTED_DATASYNC";
+    ErrCode result = AccountPermissionManager::VerifyPermission(DISTRIBUTED_DATASYNC);
     EXPECT_EQ(result, ERR_ACCOUNT_COMMON_PERMISSION_DENIED);
 }

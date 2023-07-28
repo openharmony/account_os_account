@@ -24,13 +24,13 @@
 
 namespace OHOS {
 namespace AccountSA {
-DomainAccountStub::DomainAccountStub()
-{}
+namespace {
+const std::string MANAGE_LOCAL_ACCOUNTS = "ohos.permission.MANAGE_LOCAL_ACCOUNTS";
+const std::string GET_LOCAL_ACCOUNTS = "ohos.permission.GET_LOCAL_ACCOUNTS";
+const std::string ACCESS_USER_AUTH_INTERNAL = "ohos.permission.ACCESS_USER_AUTH_INTERNAL";
+}
 
-DomainAccountStub::~DomainAccountStub()
-{}
-
-const std::map<DomainAccountInterfaceCode, DomainAccountStub::DomainAccountStubFunc> DomainAccountStub::stubFuncMap_ = {
+const std::map<DomainAccountInterfaceCode, DomainAccountStub::DomainAccountStubFunc> stubFuncMap = {
     {
         DomainAccountInterfaceCode::REGISTER_PLUGIN,
         &DomainAccountStub::ProcRegisterPlugin
@@ -84,6 +84,14 @@ const std::map<DomainAccountInterfaceCode, DomainAccountStub::DomainAccountStubF
         &DomainAccountStub::ProcRegisterAccountStatusListenerByInfo
     }
 };
+
+DomainAccountStub::DomainAccountStub()
+{
+    stubFuncMap_ = stubFuncMap;
+}
+
+DomainAccountStub::~DomainAccountStub()
+{}
 
 int32_t DomainAccountStub::OnRemoteRequest(
     uint32_t code, MessageParcel &data, MessageParcel &reply, MessageOption &option)
@@ -380,27 +388,27 @@ ErrCode DomainAccountStub::CheckPermission(DomainAccountInterfaceCode code, int3
         case DomainAccountInterfaceCode::UNREGISTER_PLUGIN:
         case DomainAccountInterfaceCode::DOMAIN_HAS_DOMAIN_ACCOUNT:
         case DomainAccountInterfaceCode::DOMAIN_UPDATE_ACCOUNT_TOKEN:
-            permissionName = AccountPermissionManager::MANAGE_LOCAL_ACCOUNTS;
+            permissionName = MANAGE_LOCAL_ACCOUNTS;
             break;
         case DomainAccountInterfaceCode::DOMAIN_ACCOUNT_STATUS_ENQUIRY:
         case DomainAccountInterfaceCode::DOMAIN_ACCOUNT_STATUS_LISTENER_REGISTER:
         case DomainAccountInterfaceCode::DOMAIN_ACCOUNT_STATUS_LISTENER_UNREGISTER:
         case DomainAccountInterfaceCode::DOMAIN_ACCOUNT_STATUS_LISTENER_UNREGISTER_BY_INFO:
         case DomainAccountInterfaceCode::DOMAIN_ACCOUNT_STATUS_LISTENER_REGISTER_BY_INFO:
-            permissionName = AccountPermissionManager::GET_LOCAL_ACCOUNTS;
+            permissionName = GET_LOCAL_ACCOUNTS;
             break;
         case DomainAccountInterfaceCode::DOMAIN_AUTH:
         case DomainAccountInterfaceCode::DOMAIN_AUTH_USER:
         case DomainAccountInterfaceCode::DOMAIN_AUTH_WITH_POPUP:
-            permissionName = AccountPermissionManager::ACCESS_USER_AUTH_INTERNAL;
+            permissionName = ACCESS_USER_AUTH_INTERNAL;
             break;
         default:
             break;
     }
     if (code == DomainAccountInterfaceCode::DOMAIN_GET_ACCESS_TOKEN) {
-        errCode = AccountPermissionManager::VerifyPermission(AccountPermissionManager::MANAGE_LOCAL_ACCOUNTS);
+        errCode = AccountPermissionManager::VerifyPermission(MANAGE_LOCAL_ACCOUNTS);
         if (errCode != ERR_OK) {
-            return AccountPermissionManager::VerifyPermission(AccountPermissionManager::GET_LOCAL_ACCOUNTS);
+            return AccountPermissionManager::VerifyPermission(GET_LOCAL_ACCOUNTS);
         }
         return ERR_OK;
     }

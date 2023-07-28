@@ -33,8 +33,8 @@ OsAccountSubscribeManager::OsAccountSubscribeManager()
 
 OsAccountSubscribeManager &OsAccountSubscribeManager::GetInstance()
 {
-    static OsAccountSubscribeManager instance;
-    return instance;
+    static OsAccountSubscribeManager *instance = new (std::nothrow) OsAccountSubscribeManager();
+    return *instance;
 }
 
 ErrCode OsAccountSubscribeManager::SubscribeOsAccount(

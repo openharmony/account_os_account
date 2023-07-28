@@ -23,14 +23,8 @@
 
 namespace OHOS {
 namespace AccountSA {
-DomainAccountPluginStub::DomainAccountPluginStub()
-{}
-
-DomainAccountPluginStub::~DomainAccountPluginStub()
-{}
-
 const std::map<DomainAccountPluginInterfaceCode, DomainAccountPluginStub::MessageProcFunction>
-    DomainAccountPluginStub::messageProcMap_ = {
+    messageProcMap = {
     {
         DomainAccountPluginInterfaceCode::DOMAIN_PLUGIN_AUTH,
         &DomainAccountPluginStub::ProcAuthCommonInterface
@@ -60,6 +54,14 @@ const std::map<DomainAccountPluginInterfaceCode, DomainAccountPluginStub::Messag
         &DomainAccountPluginStub::ProcGetAccessToken
     }
 };
+
+DomainAccountPluginStub::DomainAccountPluginStub()
+{
+    messageProcMap_ = messageProcMap;
+}
+
+DomainAccountPluginStub::~DomainAccountPluginStub()
+{}
 
 int DomainAccountPluginStub::OnRemoteRequest(
     uint32_t code, MessageParcel &data, MessageParcel &reply, MessageOption &option)

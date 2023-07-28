@@ -33,9 +33,6 @@ public:
 
 private:
     ErrCode ProcOnResult(MessageParcel &data, MessageParcel &reply);
-
-private:
-    static const std::map<uint32_t, DomainAuthCallbackStubFunc> stubFuncMap_;
 };
 }  // namespace AccountSA
 }  // namespace OHOS

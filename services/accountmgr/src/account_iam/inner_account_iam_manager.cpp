@@ -44,8 +44,8 @@ InnerAccountIAMManager::InnerAccountIAMManager()
 
 InnerAccountIAMManager &InnerAccountIAMManager::GetInstance()
 {
-    static InnerAccountIAMManager instance;
-    return instance;
+    static InnerAccountIAMManager *instance = new (std::nothrow) InnerAccountIAMManager();
+    return *instance;
 }
 
 void InnerAccountIAMManager::OpenSession(int32_t userId, std::vector<uint8_t> &challenge)

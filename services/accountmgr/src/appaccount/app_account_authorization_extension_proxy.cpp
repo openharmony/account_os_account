@@ -82,7 +82,7 @@ ErrCode AppAccountAuthorizationExtensionProxy::StartAuthorization(const Authoriz
     }
     MessageParcel reply;
     return SendRequest(
-        AppAccountAuthorizationExtensionInterfaceCode::APP_AUTHORIZATION_EXTENSION_START_AUTHENTICATION, data, reply);
+        AppAccountAuthorizationExtensionInterfaceCode::START_AUTHENTICATION, data, reply);
 }
 }  // namespace AccountSA
 }  // namespace OHOS

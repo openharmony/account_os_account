@@ -29,10 +29,13 @@
 namespace OHOS {
 namespace AccountSA {
 class BundleManagerAdapter {
-public:
+private:
     BundleManagerAdapter();
     virtual ~BundleManagerAdapter();
-    static std::shared_ptr<BundleManagerAdapter> GetInstance();
+    DISALLOW_COPY_AND_MOVE(BundleManagerAdapter);
+
+public:
+    static BundleManagerAdapter* GetInstance();
 
     ErrCode GetNameForUid(const int uid, std::string &bundleName);
     bool GetBundleInfo(const std::string &bundleName, const AppExecFwk::BundleFlag flag,
@@ -58,8 +61,6 @@ private:
         DISALLOW_COPY_AND_MOVE(BundleMgrDeathRecipient);
     };
     void ResetProxy(const wptr<IRemoteObject>& remote);
-    static std::mutex instanceMutex_;
-    static std::shared_ptr<BundleManagerAdapter> instance_;
     std::mutex proxyMutex_;
     sptr<AppExecFwk::IBundleMgr> proxy_;
     sptr<IRemoteObject::DeathRecipient> deathRecipient_;

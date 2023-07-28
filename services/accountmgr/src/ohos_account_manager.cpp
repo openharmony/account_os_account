@@ -444,8 +444,8 @@ void OhosAccountManager::BuildEventsMapper()
 
 OhosAccountManager &OhosAccountManager::GetInstance()
 {
-    static OhosAccountManager instance;
-    return instance;
+    static OhosAccountManager *instance = new (std::nothrow) OhosAccountManager();
+    return *instance;
 }
 
 OhosAccountManager::OhosAccountManager()

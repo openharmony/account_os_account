@@ -67,9 +67,7 @@ void AppAccountAuthorizationExtensionCallbackProxy::OnResult(
         ACCOUNT_LOGE("failed to write request parameters");
         return;
     }
-    ErrCode result = SendRequest(
-        AppAccountAuthorizationExtensionCallbackInterfaceCode::APP_ACCOUNT_AUTHORIZATION_EXTENSION_CALLBACK_ON_RESULT,
-        data);
+    ErrCode result = SendRequest(AppAccountAuthorizationExtensionCallbackInterfaceCode::ON_RESULT, data);
     if (result != ERR_OK) {
         ACCOUNT_LOGE("failed to send request, error code: %{public}d", result);
     }
@@ -86,8 +84,7 @@ void AppAccountAuthorizationExtensionCallbackProxy::OnRequestRedirected(const AA
         ACCOUNT_LOGE("failed to write request");
         return;
     }
-    ErrCode result = SendRequest(AppAccountAuthorizationExtensionCallbackInterfaceCode::
-        APP_ACCOUNT_AUTHORIZATION_EXTENSION_CALLBACK_ON_REQUEST_REDIRECTED, data);
+    ErrCode result = SendRequest(AppAccountAuthorizationExtensionCallbackInterfaceCode::ON_REQUEST_REDIRECTED, data);
     if (result != ERR_OK) {
         ACCOUNT_LOGE("failed to send request, error code: %{public}d", result);
     }
