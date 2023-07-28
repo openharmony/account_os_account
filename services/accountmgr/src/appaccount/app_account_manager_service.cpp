@@ -782,11 +782,7 @@ ErrCode AppAccountManagerService::SubscribeAppAccount(
     }
 
     std::vector<std::string> owners;
-    if (subscribeInfo.GetOwners(owners) != ERR_OK) {
-        ACCOUNT_LOGE("failed to get owners");
-        return ERR_APPACCOUNT_SERVICE_GET_OWNERS;
-    }
-
+    subscribeInfo.GetOwners(owners);
     if (owners.size() == 0) {
         ACCOUNT_LOGE("owners size is 0");
         return ERR_APPACCOUNT_SERVICE_OWNERS_SIZE_IS_ZERO;

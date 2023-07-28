@@ -63,7 +63,7 @@ ErrCode OsAccountInterface::SendToAMSAccountStart(OsAccountInfo &osAccountInfo)
         ReportOsAccountOperationFail(osAccountInfo.GetLocalId(), Constants::OPERATION_ACTIVATE, code,
             "AbilityManagerAdapter StartUser failed!");
         FinishTraceAdapter();
-        return ERR_OSACCOUNT_SERVICE_INTERFACE_TO_AM_ACCOUNT_START_ERROR;
+        return code;
     }
     ACCOUNT_LOGI("end, succeed!");
     FinishTraceAdapter();
@@ -88,7 +88,7 @@ ErrCode OsAccountInterface::SendToAMSAccountStop(OsAccountInfo &osAccountInfo)
         ReportOsAccountOperationFail(osAccountInfo.GetLocalId(), Constants::OPERATION_STOP, code,
             "AbilityManagerService StopUser failed!");
         FinishTraceAdapter();
-        return ERR_OSACCOUNT_SERVICE_INTERFACE_TO_AM_ACCOUNT_START_ERROR;
+        return code;
     }
     struct tm startTime = {0};
     struct tm nowTime = {0};

@@ -1026,7 +1026,7 @@ ErrCode AppAccountProxy::CheckAccountLabels(const std::string &name, const std::
     }
     if (!data.WriteStringVector(labels)) {
         ACCOUNT_LOGE("failed to write string vector for labels");
-        return ERR_APPACCOUNT_KIT_WRITE_STRING_VECTOR;
+        return ERR_ACCOUNT_COMMON_WRITE_PARCEL_ERROR;
     }
     if ((callback != nullptr) && (!data.WriteRemoteObject(callback->AsObject()))) {
         ACCOUNT_LOGE("failed to write string for callback");
