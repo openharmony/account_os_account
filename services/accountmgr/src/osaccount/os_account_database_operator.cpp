@@ -259,7 +259,7 @@ ErrCode OsAccountDatabaseOperator::SaveAccountListToDatabase(const Json &account
     ErrCode errCode = accountDataStorage_->PutValueToKvStore(Constants::ACCOUNT_LIST, accountListJson.dump());
     if (errCode != ERR_OK) {
         ACCOUNT_LOGE("Save or Add config info to database failed! errCode %{public}d.", errCode);
-        return ERR_OSACCOUNT_SERVICE_CONTROL_SET_ACCOUNT_LIST_ERROR;
+        return errCode;
     }
     ACCOUNT_LOGD("save or add account list info to database succeed!");
     return ERR_OK;
