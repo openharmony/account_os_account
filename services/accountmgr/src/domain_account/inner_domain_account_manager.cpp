@@ -41,10 +41,13 @@ const char THREAD_GET_ACCESS_TOKEN[] = "getAccessToken";
 const char THREAD_IS_ACCOUNT_VALID[] = "isAccountTokenValid";
 }
 
+InnerDomainAccountManager::InnerDomainAccountManager()
+{}
+
 InnerDomainAccountManager &InnerDomainAccountManager::GetInstance()
 {
-    static InnerDomainAccountManager instance;
-    return instance;
+    static InnerDomainAccountManager *instance = new (std::nothrow) InnerDomainAccountManager();
+    return *instance;
 }
 
 InnerDomainAuthCallback::InnerDomainAuthCallback(int32_t userId, const sptr<IDomainAuthCallback> &callback)

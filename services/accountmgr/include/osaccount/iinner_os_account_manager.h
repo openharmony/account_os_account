@@ -95,6 +95,7 @@ public:
 private:
     IInnerOsAccountManager();
     ~IInnerOsAccountManager() = default;
+    DISALLOW_COPY_AND_MOVE(IInnerOsAccountManager);
     void SetOsAccountControl(std::shared_ptr<IOsAccountControl> ptr);
     void StartAccount();
     void RestartActiveAccount();

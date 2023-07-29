@@ -37,10 +37,6 @@ public:
     ErrCode SaveAccountInfoIntoDataStorage(AppAccountInfo &appAccountInfo);
     ErrCode DeleteAccountInfoFromDataStorage(AppAccountInfo &appAccountInfo);
 
-public:
-    static const std::string DATA_STORAGE_SUFFIX;
-    static const std::string AUTHORIZED_ACCOUNTS;
-
 private:
     void SaveEntries(std::vector<OHOS::DistributedKv::Entry> allEntries,
         std::map<std::string, std::shared_ptr<IAccountInfo>> &infos) override;

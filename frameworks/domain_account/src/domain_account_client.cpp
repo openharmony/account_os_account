@@ -31,8 +31,8 @@ namespace OHOS {
 namespace AccountSA {
 DomainAccountClient &DomainAccountClient::GetInstance()
 {
-    static DomainAccountClient instance;
-    return instance;
+    static DomainAccountClient *instance = new (std::nothrow) DomainAccountClient();
+    return *instance;
 }
 
 ErrCode DomainAccountClient::RegisterPlugin(const std::shared_ptr<DomainAccountPlugin> &plugin)

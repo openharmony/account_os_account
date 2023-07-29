@@ -24,16 +24,6 @@ namespace AccountSA {
 namespace {
 constexpr uint32_t MAX_VEC_SIZE = 1024;
 }
-const std::map<uint32_t, IDMCallbackStub::MessageProcFunction> IDMCallbackStub::messageProcMap_ = {
-    {
-        static_cast<uint32_t>(IDMCallbackInterfaceCode::ON_ACQUIRE_INFO),
-        &IDMCallbackStub::ProcOnAcquireInfo
-    },
-    {
-        static_cast<uint32_t>(IDMCallbackInterfaceCode::ON_RESULT),
-        &IDMCallbackStub::ProcOnResult
-    }
-};
 
 int IDMCallbackStub::OnRemoteRequest(
     uint32_t code, MessageParcel &data, MessageParcel &reply, MessageOption &option)
@@ -44,9 +34,13 @@ int IDMCallbackStub::OnRemoteRequest(
         ACCOUNT_LOGE("check IDMCallbackStub descriptor failed! code %{public}u.", code);
         return ERR_ACCOUNT_COMMON_CHECK_DESCRIPTOR_ERROR;
     }
-    const auto &itFunc = messageProcMap_.find(code);
-    if (itFunc != messageProcMap_.end()) {
-        return (this->*(itFunc->second))(data, reply);
+    switch (code) {
+        case static_cast<uint32_t>(IDMCallbackInterfaceCode::ON_ACQUIRE_INFO):
+            return ProcOnAcquireInfo(data, reply);
+        case static_cast<uint32_t>(IDMCallbackInterfaceCode::ON_RESULT):
+            return ProcOnResult(data, reply);
+        default:
+            break;
     }
     ACCOUNT_LOGW("remote request unhandled: %{public}d", code);
     return IPCObjectStub::OnRemoteRequest(code, data, reply, option);
@@ -91,14 +85,6 @@ ErrCode IDMCallbackStub::ProcOnResult(MessageParcel &data, MessageParcel &reply)
     return ERR_OK;
 }
 
-const std::map<uint32_t, GetCredInfoCallbackStub::MessageProcFunction>
-    GetCredInfoCallbackStub::messageProcMap_ = {
-    {
-        static_cast<uint32_t>(GetCredInfoCallbackInterfaceCode::ON_CREDENTIAL_INFO),
-        &GetCredInfoCallbackStub::ProcOnCredentialInfo
-    }
-};
-
 int GetCredInfoCallbackStub::OnRemoteRequest(
     uint32_t code, MessageParcel &data, MessageParcel &reply, MessageOption &option)
 {
@@ -108,9 +94,11 @@ int GetCredInfoCallbackStub::OnRemoteRequest(
         ACCOUNT_LOGE("check GetCredInfoCallbackStub descriptor failed! code %{public}u.", code);
         return ERR_ACCOUNT_COMMON_CHECK_DESCRIPTOR_ERROR;
     }
-    const auto &itFunc = messageProcMap_.find(code);
-    if (itFunc != messageProcMap_.end()) {
-        return (this->*(itFunc->second))(data, reply);
+    switch (code) {
+        case static_cast<uint32_t>(GetCredInfoCallbackInterfaceCode::ON_CREDENTIAL_INFO):
+            return ProcOnCredentialInfo(data, reply);
+        default:
+            break;
     }
     ACCOUNT_LOGW("remote request unhandled: %{public}d", code);
     return IPCObjectStub::OnRemoteRequest(code, data, reply, option);
@@ -156,13 +144,6 @@ ErrCode GetCredInfoCallbackStub::ProcOnCredentialInfo(MessageParcel &data, Messa
     return ERR_OK;
 }
 
-const std::map<uint32_t, GetSetPropCallbackStub::MessageProcFunction> GetSetPropCallbackStub::messageProcMap_ = {
-    {
-        static_cast<uint32_t>(GetSetPropCallbackInterfaceCode::ON_RESULT),
-        &GetSetPropCallbackStub::ProcOnResult
-    }
-};
-
 int GetSetPropCallbackStub::OnRemoteRequest(
     uint32_t code, MessageParcel &data, MessageParcel &reply, MessageOption &option)
 {
@@ -172,9 +153,11 @@ int GetSetPropCallbackStub::OnRemoteRequest(
         ACCOUNT_LOGE("check GetSetPropCallbackStub descriptor failed! code %{public}u.", code);
         return ERR_ACCOUNT_COMMON_CHECK_DESCRIPTOR_ERROR;
     }
-    const auto &itFunc = messageProcMap_.find(code);
-    if (itFunc != messageProcMap_.end()) {
-        return (this->*(itFunc->second))(data, reply);
+    switch (code) {
+        case static_cast<uint32_t>(GetSetPropCallbackInterfaceCode::ON_RESULT):
+            return ProcOnResult(data, reply);
+        default:
+            break;
     }
     ACCOUNT_LOGW("remote request unhandled: %{public}d", code);
     return IPCObjectStub::OnRemoteRequest(code, data, reply, option);

@@ -47,8 +47,8 @@ static ErrCode CheckLocalId(int localId)
 
 OsAccount &OsAccount::GetInstance()
 {
-    static OsAccount instance;
-    return instance;
+    static OsAccount *instance = new (std::nothrow) OsAccount();
+    return *instance;
 }
 
 ErrCode OsAccount::CreateOsAccount(const std::string &name, const OsAccountType &type, OsAccountInfo &osAccountInfo)

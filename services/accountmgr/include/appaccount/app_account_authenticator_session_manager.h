@@ -71,6 +71,7 @@ public:
 private:
     AppAccountAuthenticatorSessionManager() = default;
     ~AppAccountAuthenticatorSessionManager();
+    DISALLOW_COPY_AND_MOVE(AppAccountAuthenticatorSessionManager);
     void RegisterApplicationStateObserver();
     void UnregisterApplicationStateObserver();
 

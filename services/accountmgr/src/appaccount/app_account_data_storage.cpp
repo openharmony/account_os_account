@@ -20,8 +20,9 @@
 
 namespace OHOS {
 namespace AccountSA {
-const std::string AppAccountDataStorage::DATA_STORAGE_SUFFIX = "_sync";
-const std::string AppAccountDataStorage::AUTHORIZED_ACCOUNTS = "authorizedAccounts";
+namespace {
+const std::string AUTHORIZED_ACCOUNTS = "authorizedAccounts";
+}
 
 AppAccountDataStorage::AppAccountDataStorage(const std::string &storeId, const bool &autoSync)
     : AccountDataStorage(Constants::APP_ACCOUNT_APP_ID, storeId, autoSync)

@@ -22,7 +22,7 @@
 #endif // HICOLLIE_ENABLE
 namespace OHOS {
 namespace AccountSA {
-const std::map<uint32_t, OsAccountStub::OsAccountMessageProc> OsAccountStub::messageProcMap_ = {
+const std::map<uint32_t, OsAccountStub::OsAccountMessageProc> messageProcMap = {
     {
         static_cast<uint32_t>(OsAccountInterfaceCode::CREATE_OS_ACCOUNT),
         {
@@ -323,7 +323,9 @@ const std::map<uint32_t, OsAccountStub::OsAccountMessageProc> OsAccountStub::mes
 };
 
 OsAccountStub::OsAccountStub()
-{}
+{
+    messageProcMap_ = messageProcMap;
+}
 
 OsAccountStub::~OsAccountStub()
 {}

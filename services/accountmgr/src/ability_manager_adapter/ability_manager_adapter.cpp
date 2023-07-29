@@ -27,16 +27,10 @@ namespace {
 const std::u16string ABILITY_MGR_DESCRIPTOR = u"ohos.aafwk.AbilityManager";
 }
 using namespace AAFwk;
-std::shared_ptr<AbilityManagerAdapter> AbilityManagerAdapter::instance_ = nullptr;
-std::mutex AbilityManagerAdapter::instanceMutex_;
-
-std::shared_ptr<AbilityManagerAdapter> AbilityManagerAdapter::GetInstance()
+AbilityManagerAdapter *AbilityManagerAdapter::GetInstance()
 {
-    std::lock_guard<std::mutex> lock(instanceMutex_);
-    if (instance_ == nullptr) {
-        instance_ = std::make_shared<AbilityManagerAdapter>();
-    }
-    return instance_;
+    static AbilityManagerAdapter *instance = new (std::nothrow) AbilityManagerAdapter();
+    return instance;
 }
 
 AbilityManagerAdapter::AbilityManagerAdapter()

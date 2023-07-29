@@ -298,3 +298,22 @@ HWTEST_F(OhosAccountManagerTest, OhosAccountManagerTest012, TestSize.Level0)
     EXPECT_EQ(OhosAccountManager::GetInstance().CheckOhosAccountCanBind(curOhosAccountInfo, newOhosAccountInfo, "test"),
         false);
 }
+
+/**
+ * @tc.name: OhosAccountManagerTest_013
+ * @tc.desc: test class AccountInfo 'operator=='
+ * @tc.type: FUNC
+ * @tc.require:
+*/
+HWTEST_F(OhosAccountManagerTest, OhosAccountManagerTest_013, TestSize.Level0)
+{
+    AccountInfo accountInfoSrc;
+    OhosAccountInfo ohosAccountInfo;
+    ohosAccountInfo.uid_ = ACCOUNT_UID;
+    accountInfoSrc.ohosAccountInfo_ = ohosAccountInfo;
+    
+    AccountInfo accountInfoTar;
+    accountInfoTar.ohosAccountInfo_ = ohosAccountInfo;
+    bool ret = (accountInfoSrc == accountInfoTar);
+    EXPECT_EQ(ret, true);
+}

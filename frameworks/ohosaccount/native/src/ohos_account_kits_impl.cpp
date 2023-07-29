@@ -25,8 +25,8 @@ namespace OHOS {
 namespace AccountSA {
 OhosAccountKitsImpl &OhosAccountKitsImpl::GetInstance()
 {
-    static OhosAccountKitsImpl instance;
-    return instance;
+    static OhosAccountKitsImpl *instance = new (std::nothrow) OhosAccountKitsImpl();
+    return *instance;
 }
 
 void OhosAccountKitsImpl::ResetService(const wptr<IRemoteObject>& remote)
