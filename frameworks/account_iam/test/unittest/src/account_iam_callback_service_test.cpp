@@ -233,7 +233,6 @@ HWTEST_F(AccountIAMCallbackServiceTest, IAMInputerData_OnSetData_0100, TestSize.
 {
     auto iamInputerData = new (std::nothrow) IAMInputerData(100, nullptr);
     std::vector<uint8_t> data = {1, 2, 3, 4};
-    iamInputerData->ResetInnerInputerData(nullptr);
     iamInputerData->OnSetData(0, data);
     EXPECT_EQ(iamInputerData->innerInputerData_, nullptr);
 }
