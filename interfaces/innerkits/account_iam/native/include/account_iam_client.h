@@ -273,6 +273,7 @@ public:
 private:
     AccountIAMClient() = default;
     ~AccountIAMClient() = default;
+    DISALLOW_COPY_AND_MOVE(AccountIAMClient);
     class AccountIAMDeathRecipient : public IRemoteObject::DeathRecipient {
     public:
         AccountIAMDeathRecipient() = default;

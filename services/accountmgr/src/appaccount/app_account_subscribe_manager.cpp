@@ -37,8 +37,8 @@ AppAccountSubscribeManager::AppAccountSubscribeManager()
 
 AppAccountSubscribeManager &AppAccountSubscribeManager::GetInstance()
 {
-    static AppAccountSubscribeManager instance;
-    return instance;
+    static AppAccountSubscribeManager *instance = new (std::nothrow) AppAccountSubscribeManager();
+    return *instance;
 }
 
 ErrCode AppAccountSubscribeManager::SubscribeAppAccount(

@@ -25,19 +25,13 @@
 namespace OHOS {
 namespace AccountSA {
 AppAccountAuthorizationExtensionStub::AppAccountAuthorizationExtensionStub()
-{}
+{
+    messageProcMap_[static_cast<uint32_t>(AppAccountAuthorizationExtensionInterfaceCode::START_AUTHENTICATION)] =
+        &AppAccountAuthorizationExtensionStub::ProcStartAuthorization;
+}
 
 AppAccountAuthorizationExtensionStub::~AppAccountAuthorizationExtensionStub()
 {}
-
-const std::map<std::uint32_t, AppAccountAuthorizationExtensionStub::MessageProcFunction>
-    AppAccountAuthorizationExtensionStub::messageProcMap_ = {
-    {
-        static_cast<uint32_t>(
-            AppAccountAuthorizationExtensionInterfaceCode::APP_AUTHORIZATION_EXTENSION_START_AUTHENTICATION),
-        &AppAccountAuthorizationExtensionStub::ProcStartAuthorization
-    }
-};
 
 int AppAccountAuthorizationExtensionStub::OnRemoteRequest(
     uint32_t code, MessageParcel &data, MessageParcel &reply, MessageOption &option)

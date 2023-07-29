@@ -126,6 +126,7 @@ public:
 private:
     DomainAccountClient() = default;
     ~DomainAccountClient() = default;
+    DISALLOW_COPY_AND_MOVE(DomainAccountClient);
 
 public:
     class DomainAccountListenerRecord {

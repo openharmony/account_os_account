@@ -34,10 +34,6 @@ public:
 private:
     ErrCode ProcOnResult(MessageParcel &data, MessageParcel &reply);
     ErrCode ProcOnRequestRedirected(MessageParcel &data, MessageParcel &reply);
-
-private:
-    static const std::map<AppAccountAuthorizationExtensionCallbackInterfaceCode, AuthorizationExtensionCallbackStubFunc>
-        stubFuncMap_;
 };
 } // namespace AccountSA
 } // namespace OHOS

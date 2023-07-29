@@ -26,7 +26,7 @@ namespace OHOS {
 namespace AccountSA {
 class IDMCallbackService : public IDMCallbackStub {
 public:
-    explicit IDMCallbackService(int32_t userId, const std::shared_ptr<IDMCallback> &callback);
+    IDMCallbackService(int32_t userId, const std::shared_ptr<IDMCallback> &callback);
     void OnAcquireInfo(int32_t module, uint32_t acquireInfo, const Attributes &extraInfo) override;
     void OnResult(int32_t result, const Attributes &extraInfo) override;
 

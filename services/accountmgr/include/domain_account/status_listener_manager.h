@@ -27,11 +27,13 @@
 namespace OHOS {
 namespace AccountSA {
 class StatusListenerManager {
-public:
+private:
     virtual ~StatusListenerManager();
     StatusListenerManager();
-    static StatusListenerManager& GetInstance();
+    DISALLOW_COPY_AND_MOVE(StatusListenerManager);
 
+public:
+    static StatusListenerManager& GetInstance();
     ErrCode InsertListenerToRecords(
         const std::string &domain, const std::string &accountName, const sptr<IRemoteObject> &listener);
     ErrCode InsertListenerToRecords(const sptr<IRemoteObject> &listener);

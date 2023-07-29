@@ -55,7 +55,7 @@ namespace AccountSA {
         return ERR_NONE;                                                                                        \
     }                                                                                                           \
 
-const std::map<uint32_t, AppAccountStub::MessageProcFunction> AppAccountStub::messageProcMap_ = {
+const std::map<uint32_t, AppAccountStub::MessageProcFunction> messageProcMap = {
     {
         static_cast<uint32_t>(AppAccountInterfaceCode::ADD_ACCOUNT),
         &AppAccountStub::ProcAddAccount,
@@ -231,7 +231,9 @@ const std::map<uint32_t, AppAccountStub::MessageProcFunction> AppAccountStub::me
 };
 
 AppAccountStub::AppAccountStub()
-{}
+{
+    messageProcMap_ = messageProcMap;
+}
 
 AppAccountStub::~AppAccountStub()
 {}

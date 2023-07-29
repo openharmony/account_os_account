@@ -29,10 +29,11 @@ class AccountStub;
 using AccountStubFunc = std::int32_t (AccountStub::*)(MessageParcel &data, MessageParcel &reply);
 class AccountStub : public IRemoteStub<IAccount>, public IAccountContext {
 public:
+    AccountStub();
     virtual std::int32_t OnRemoteRequest(
         std::uint32_t code, MessageParcel &data, MessageParcel &reply, MessageOption &option) override;
 
-private:
+public:
     std::int32_t InnerUpdateOhosAccountInfo(MessageParcel &data, MessageParcel &reply);
     std::int32_t CmdUpdateOhosAccountInfo(MessageParcel &data, MessageParcel &reply);
     std::int32_t InnerSetOhosAccountInfo(int32_t userId, MessageParcel &data, MessageParcel &reply);
@@ -56,7 +57,7 @@ private:
     bool CheckCallerForTrustList();
 
 private:
-    static const std::map<AccountMgrInterfaceCode, AccountStubFunc> stubFuncMap_;
+    std::map<AccountMgrInterfaceCode, AccountStubFunc> stubFuncMap_;
 };
 }  // namespace AccountSA
 }  // namespace OHOS

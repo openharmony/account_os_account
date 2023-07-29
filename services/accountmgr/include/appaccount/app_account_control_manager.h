@@ -108,6 +108,7 @@ public:
 private:
     AppAccountControlManager() = default;
     ~AppAccountControlManager() = default;
+    DISALLOW_COPY_AND_MOVE(AppAccountControlManager);
     bool RegisterApplicationStateObserver();
     void UnregisterApplicationStateObserver();
     void PopDataFromAssociatedDataCache();

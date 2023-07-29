@@ -37,6 +37,7 @@ public:
 private:
     AppAccountSubscribeManager();
     ~AppAccountSubscribeManager() = default;
+    DISALLOW_COPY_AND_MOVE(AppAccountSubscribeManager);
     ErrCode GetStoreId(const uid_t &uid, std::string &storeId);
 
     std::vector<AppAccountSubscribeRecordPtr> GetSubscribeRecords(const std::string &owner);

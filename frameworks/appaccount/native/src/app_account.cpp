@@ -56,8 +56,8 @@ namespace AccountSA {
 
 AppAccount &AppAccount::GetInstance()
 {
-    static AppAccount instance;
-    return instance;
+    static AppAccount *instance = new (std::nothrow) AppAccount();
+    return *instance;
 }
 
 ErrCode AppAccount::AddAccount(const std::string &name, const std::string &extraInfo)

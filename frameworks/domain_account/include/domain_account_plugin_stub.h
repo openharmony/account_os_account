@@ -31,7 +31,7 @@ public:
     int OnRemoteRequest(
         uint32_t code, MessageParcel &data, MessageParcel &reply, MessageOption &option) override;
 
-private:
+public:
     ErrCode ProcGetAuthStatusInfo(MessageParcel &data, MessageParcel &reply);
     ErrCode ProcAuthCommonInterface(MessageParcel &data, MessageParcel &reply);
     ErrCode ProcGetDomainAccountInfo(MessageParcel &data, MessageParcel &reply);
@@ -41,7 +41,7 @@ private:
     ErrCode ProcGetAccessToken(MessageParcel &data, MessageParcel &reply);
 
 private:
-    static const std::map<DomainAccountPluginInterfaceCode, MessageProcFunction> messageProcMap_;
+    std::map<DomainAccountPluginInterfaceCode, MessageProcFunction> messageProcMap_;
 
     DISALLOW_COPY_AND_MOVE(DomainAccountPluginStub);
 };
