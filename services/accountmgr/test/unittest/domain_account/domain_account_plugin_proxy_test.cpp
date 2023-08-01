@@ -120,7 +120,8 @@ HWTEST_F(DomainAccountPluginProxyTest, DomainAccountPluginProxyTest_GetAuthStatu
 HWTEST_F(DomainAccountPluginProxyTest, DomainAccountPluginProxyTest_GetAuthStatusInfo_002, TestSize.Level0)
 {
     DomainAccountInfo info;
-    sptr<DomainAccountCallbackService> callbackService = new (std::nothrow) DomainAccountCallbackService(nullptr);
+    std::shared_ptr<DomainAccountCallback> callback = nullptr;
+    sptr<DomainAccountCallbackService> callbackService = new (std::nothrow) DomainAccountCallbackService(callback);
     EXPECT_NE(callbackService, nullptr);
     EXPECT_NE(pluginProxy_->GetAuthStatusInfo(info, callbackService), ERR_OK);
 }
@@ -210,7 +211,8 @@ HWTEST_F(DomainAccountPluginProxyTest, DomainAccountPluginProxyTest_DomainHasDom
  */
 HWTEST_F(DomainAccountPluginProxyTest, DomainAccountPluginProxyTest_DomainHasDomainInfoCallback_002, TestSize.Level0)
 {
-    sptr<DomainAccountCallbackService> callbackService = new (std::nothrow) DomainAccountCallbackService(nullptr);
+    std::shared_ptr<DomainAccountCallback> callback = nullptr;
+    sptr<DomainAccountCallbackService> callbackService = new (std::nothrow) DomainAccountCallbackService(callback);
     EXPECT_NE(callbackService, nullptr);
     auto callbackWrapper = std::make_shared<DomainHasDomainInfoCallback>(callbackService, "test", "name");
     Parcel parcel;
@@ -228,7 +230,8 @@ HWTEST_F(DomainAccountPluginProxyTest, DomainAccountPluginProxyTest_DomainHasDom
  */
 HWTEST_F(DomainAccountPluginProxyTest, DomainAccountPluginProxyTest_DomainHasDomainInfoCallback_003, TestSize.Level0)
 {
-    sptr<DomainAccountCallbackService> callbackService = new (std::nothrow) DomainAccountCallbackService(nullptr);
+    std::shared_ptr<DomainAccountCallback> callback = nullptr;
+    sptr<DomainAccountCallbackService> callbackService = new (std::nothrow) DomainAccountCallbackService(callback);
     EXPECT_NE(callbackService, nullptr);
     auto callbackWrapper = std::make_shared<DomainHasDomainInfoCallback>(callbackService, "test", "test");
     Parcel parcel;

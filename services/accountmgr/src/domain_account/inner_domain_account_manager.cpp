@@ -327,6 +327,18 @@ ErrCode InnerDomainAccountManager::StartGetAccessToken(const sptr<IDomainAccount
         OnResultForGetAccessToken(ERR_DOMAIN_ACCOUNT_SERVICE_PLUGIN_NOT_EXIST, callback);
         return ERR_DOMAIN_ACCOUNT_SERVICE_PLUGIN_NOT_EXIST;
     }
+    DomainAccountCallbackFunc callbackFunc = [&callback](const int32_t errCode, Parcel &parcel) {
+        if (callback != nullptr) {
+            callback->OnResult(errCode, parcel);
+        }
+    };
+    sptr<DomainAccountCallbackService> callbackService =
+        new (std::nothrow) DomainAccountCallbackService(callbackFunc);
+    if (callbackService == nullptr) {
+        ACCOUNT_LOGE("make shared DomainAccountCallbackService failed");
+        OnResultForGetAccessToken(ERR_DOMAIN_ACCOUNT_SERVICE_PLUGIN_NOT_EXIST, callback);
+        return ERR_ACCOUNT_COMMON_INSUFFICIENT_MEMORY_ERROR;
+    }
     ErrCode result = plugin->GetAccessToken(info, accountToken, option, callback);
     if (result != ERR_OK) {
         ACCOUNT_LOGE("failed to get access token, errCode: %{public}d", result);

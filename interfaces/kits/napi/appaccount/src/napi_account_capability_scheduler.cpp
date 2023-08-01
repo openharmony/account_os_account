@@ -530,7 +530,7 @@ static void OnRequestRedirectedWork(uv_work_t *work, int status)
     WantParams params = asyncContext->want.GetParams();
     params.Remove("moduleName");
     if (asyncContext->errCode != 0) {
-        if (asyncContext->errCode == DEFAULT_RESULT) {
+        if ((asyncContext->errCode == DEFAULT_RESULT) || (asyncContext->errCode == ERR_JS_SYSTEM_SERVICE_EXCEPTION)) {
             errJs = GenerateBusinessError(asyncContext->env, ERR_JS_SYSTEM_SERVICE_EXCEPTION);
         } else {
             errJs = AppExecFwk::WrapWantParams(asyncContext->env, params);
@@ -618,7 +618,6 @@ void NapiExecuteRequestCallback::OnRelease(int32_t releaseCode)
         if (UIContent_ != nullptr) {
             UIContent_->CloseModalUIExtension(sessionId_);
         }
-        napi_delete_reference(env_, callbackRef_);
         return;
     }
     uv_loop_s *loop = nullptr;
