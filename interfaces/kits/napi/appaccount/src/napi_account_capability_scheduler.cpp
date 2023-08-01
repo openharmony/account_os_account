@@ -580,10 +580,16 @@ static void OnResultForModalWork(uv_work_t *work, int status)
     JsAbilityResult *asyncContext = reinterpret_cast<JsAbilityResult *>(work->data);
     napi_value errJs = nullptr;
     napi_value dataJs = nullptr;
-    if (asyncContext->errCode != ERR_OK) {
-        errJs = GenerateBusinessError(asyncContext->env, ERR_JS_SYSTEM_SERVICE_EXCEPTION);
+    WantParams params = asyncContext->want.GetParams();
+    params.Remove("moduleName");
+    if (asyncContext->errCode != 0) {
+        if (asyncContext->errCode == DEFAULT_RESULT) {
+            errJs = GenerateBusinessError(asyncContext->env, ERR_JS_SYSTEM_SERVICE_EXCEPTION);
+        } else {
+            errJs = AppExecFwk::WrapWantParams(asyncContext->env, params);
+        }
     } else {
-        dataJs = AppExecFwk::WrapWant(asyncContext->env, asyncContext->want);
+        dataJs = AppExecFwk::WrapWantParams(asyncContext->env, params);
     }
     ReturnCallbackOrPromise(asyncContext->env, asyncContext, errJs, dataJs);
     napi_close_handle_scope(asyncContext->env, scope);
