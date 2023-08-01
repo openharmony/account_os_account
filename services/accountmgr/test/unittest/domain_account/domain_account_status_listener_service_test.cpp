@@ -69,7 +69,8 @@ HWTEST_F(DomainAccountStatusListenerManagerTest, DomainAccountStatusListenerMana
 HWTEST_F(DomainAccountStatusListenerManagerTest, DomainAccountStatusListenerManagerTest_InsertListenerToRecords_002,
     TestSize.Level0)
 {
-    auto callback = new (std::nothrow) DomainAccountCallbackService(nullptr);
+    std::shared_ptr<DomainAccountCallback> callbackPtr = nullptr;
+    auto callback = new (std::nothrow) DomainAccountCallbackService(callbackPtr);
     EXPECT_NE(callback, nullptr);
     StatusListenerManager::GetInstance().listenerAll_.insert(callback->AsObject());
     EXPECT_EQ(StatusListenerManager::GetInstance().InsertListenerToRecords(callback), ERR_OK);
@@ -97,7 +98,8 @@ HWTEST_F(DomainAccountStatusListenerManagerTest, DomainAccountStatusListenerMana
 HWTEST_F(DomainAccountStatusListenerManagerTest, DomainAccountStatusListenerManagerTest_InsertListenerToRecords_004,
     TestSize.Level0)
 {
-    auto callback = new (std::nothrow) DomainAccountCallbackService(nullptr);
+    std::shared_ptr<DomainAccountCallback> callbackPtr = nullptr;
+    auto callback = new (std::nothrow) DomainAccountCallbackService(callbackPtr);
     EXPECT_NE(callback, nullptr);
     std::set<std::string> set;
     set.insert("test&test");
