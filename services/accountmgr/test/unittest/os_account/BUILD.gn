@@ -15,7 +15,7 @@ import("//build/ohos.gni")
 import("//build/test.gni")
 import("../../../../../os_account.gni")
 
-module_output_path = "os_account/services/accountmgr"
+module_output_path = "os_account/services/os_account"
 
 config("os_account_control_file_manager_test_config") {
   include_dirs = [
@@ -31,8 +31,6 @@ config("os_account_control_file_manager_test_config") {
 
 ohos_unittest("OsAccountControlFileManagerTest") {
   module_out_path = module_output_path
-  resource_config_file =
-      "${os_account_path}/test/resource/accountmgrservice/ohos_test.xml"
 
   sources = [ "os_account_control_file_manager_test.cpp" ]
   configs = [
@@ -73,8 +71,6 @@ config("os_account_data_storage_test_config") {
 
 ohos_unittest("OsAccountDataStorageTest") {
   module_out_path = module_output_path
-  resource_config_file =
-      "${os_account_path}/test/resource/accountmgrservice/ohos_test.xml"
 
   sources = [ "os_account_data_storage_test.cpp" ]
   configs = [
@@ -144,8 +140,6 @@ config("os_account_subscribe_death_recipient_test_config") {
 
 ohos_unittest("OsAccountSubscribeDeathRecipientTest") {
   module_out_path = module_output_path
-  resource_config_file =
-      "${os_account_path}/test/resource/accountmgrservice/ohos_test.xml"
 
   sources = [
     "${services_path}/accountmgr/test/mock/src/mock_account_mgr_service.cpp",
@@ -194,8 +188,6 @@ config("os_account_amgr_test_config") {
 ohos_unittest("OsAccountInnerAccmgrCovTest") {
   cflags_cc = []
   module_out_path = module_output_path
-  resource_config_file =
-      "${os_account_path}/test/resource/accountmgrservice/ohos_test.xml"
 
   sources = [
     "os_account_inner_account_mgr_cov.cpp",
@@ -251,8 +243,6 @@ config("os_account_amgr_mock_config") {
 
 ohos_unittest("OsAccountInnerAccmgrMockTest") {
   module_out_path = module_output_path
-  resource_config_file =
-      "${os_account_path}/test/resource/accountmgrservice/ohos_test.xml"
 
   sources = [
     "${services_path}/accountmgr/test/mock/os_account/os_account_interface.cpp",
