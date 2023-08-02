@@ -29,6 +29,7 @@
 #include "common_event_subscribe_info.h"
 #include "matching_skills.h"
 #endif // HAS_CES_PART
+#include "os_account_manager.h"
 using namespace testing::ext;
 using namespace OHOS;
 using namespace OHOS::AccountSA;
@@ -47,8 +48,9 @@ const std::string OVERSIZE_NAME =
 std::string g_eventLogin = OHOS_ACCOUNT_EVENT_LOGIN;
 std::string g_eventLogout = OHOS_ACCOUNT_EVENT_LOGOUT;
 std::string g_eventTokenInvalid = OHOS_ACCOUNT_EVENT_TOKEN_INVALID;
+const std::string STRING_TEST_NAME = "test_account_name";
 const int DELAY_FOR_OPERATION = 250;
-const int ACCOUNT_UID = 100;
+const int ACCOUNT_UID = 101;
 const int ROOT_UID = 100;
 
 std::string GetAccountEventStr(const std::map<std::string, std::string> &accountEventMap,
@@ -194,6 +196,8 @@ HWTEST_F(OhosAccountManagerTest, OhosAccountManagerTest005, TestSize.Level0)
  */
 HWTEST_F(OhosAccountManagerTest, OhosAccountManagerTest006, TestSize.Level0)
 {
+    OsAccountInfo osAccountInfoOne;
+    EXPECT_EQ(OsAccountManager::CreateOsAccount(STRING_TEST_NAME, OsAccountType::NORMAL, osAccountInfoOne), ERR_OK);
     setuid(ACCOUNT_UID * UID_TRANSFORM_DIVISOR);
     // create common event subscribe
     EventFwk::MatchingSkills matchingSkills;
