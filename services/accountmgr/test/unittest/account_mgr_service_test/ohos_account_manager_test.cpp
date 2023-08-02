@@ -50,8 +50,7 @@ std::string g_eventLogout = OHOS_ACCOUNT_EVENT_LOGOUT;
 std::string g_eventTokenInvalid = OHOS_ACCOUNT_EVENT_TOKEN_INVALID;
 const std::string STRING_TEST_NAME = "test_account_name";
 const int DELAY_FOR_OPERATION = 250;
-const int ACCOUNT_UID = 101;
-const int ROOT_UID = 100;
+const int ACCOUNT_UID = 100;
 
 std::string GetAccountEventStr(const std::map<std::string, std::string> &accountEventMap,
     const std::string &eventKey, const std::string &defaultValue)
@@ -198,7 +197,7 @@ HWTEST_F(OhosAccountManagerTest, OhosAccountManagerTest006, TestSize.Level0)
 {
     OsAccountInfo osAccountInfoOne;
     EXPECT_EQ(OsAccountManager::CreateOsAccount(STRING_TEST_NAME, OsAccountType::NORMAL, osAccountInfoOne), ERR_OK);
-    setuid(ACCOUNT_UID * UID_TRANSFORM_DIVISOR);
+    EXPECT_EQ(OsAccountManager::ActivateOsAccount(osAccountInfoOne.GetLocalId()), ERR_OK);
     // create common event subscribe
     EventFwk::MatchingSkills matchingSkills;
     matchingSkills.AddEvent(EventFwk::CommonEventSupport::COMMON_EVENT_USER_INFO_UPDATED);
@@ -213,20 +212,20 @@ HWTEST_F(OhosAccountManagerTest, OhosAccountManagerTest006, TestSize.Level0)
     AccountInfo curAccountInfo;
     curAccountInfo.ohosAccountInfo_.name_ = "name";
     curAccountInfo.ohosAccountInfo_.uid_ = "test";
-    bool ret =
-        OhosAccountManager::GetInstance().LoginOhosAccount(ACCOUNT_UID, curAccountInfo.ohosAccountInfo_, g_eventLogin);
+    bool ret = OhosAccountManager::GetInstance().LoginOhosAccount(
+        osAccountInfoOne.GetLocalId(), curAccountInfo.ohosAccountInfo_, g_eventLogin);
     ASSERT_EQ(ret, true);
     std::this_thread::sleep_for(std::chrono::milliseconds(DELAY_FOR_OPERATION));
     ASSERT_EQ(subscriberPtr->GetStatusLoginFirst(), true);
-    ret =
-        OhosAccountManager::GetInstance().LoginOhosAccount(ACCOUNT_UID, curAccountInfo.ohosAccountInfo_, g_eventLogin);
+    ret = OhosAccountManager::GetInstance().LoginOhosAccount(
+        osAccountInfoOne.GetLocalId(), curAccountInfo.ohosAccountInfo_, g_eventLogin);
     ASSERT_EQ(ret, true);
     std::this_thread::sleep_for(std::chrono::milliseconds(DELAY_FOR_OPERATION));
     ASSERT_EQ(subscriberPtr->GetStatusLoginSecond(), true);
     ret = OhosAccountManager::GetInstance().LogoutOhosAccount(
-        ACCOUNT_UID, curAccountInfo.ohosAccountInfo_, g_eventLogout);
+        osAccountInfoOne.GetLocalId(), curAccountInfo.ohosAccountInfo_, g_eventLogout);
     EXPECT_EQ(true, ret);
-    setuid(ROOT_UID);
+    EXPECT_EQ(OsAccountManager::RemoveOsAccount(osAccountInfoOne.GetLocalId()), ERR_OK);
 }
 
 /**
