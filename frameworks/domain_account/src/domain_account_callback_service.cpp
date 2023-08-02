@@ -23,16 +23,21 @@ DomainAccountCallbackService::DomainAccountCallbackService(
     : innerCallback_(callback)
 {}
 
+DomainAccountCallbackService::DomainAccountCallbackService(const DomainAccountCallbackFunc &callback)
+    : callback_(callback)
+{}
+
 DomainAccountCallbackService::~DomainAccountCallbackService()
 {}
 
 void DomainAccountCallbackService::OnResult(const int32_t errCode, Parcel &parcel)
 {
-    if (innerCallback_ == nullptr) {
-        ACCOUNT_LOGE("DomainAccountCallbackService innerCallback is nullptr");
-        return;
+    if (innerCallback_ != nullptr) {
+        innerCallback_->OnResult(errCode, parcel);
     }
-    return innerCallback_->OnResult(errCode, parcel);
+    if (callback_ != nullptr) {
+        callback_(errCode, parcel);
+    }
 }
 }  // namespace AccountSA
 }  // namespace OHOS
