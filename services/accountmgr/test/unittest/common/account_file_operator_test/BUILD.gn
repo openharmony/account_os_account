@@ -13,62 +13,50 @@
 
 import("//build/ohos.gni")
 import("//build/test.gni")
-import("../../../../../os_account.gni")
+import("../../../../../../os_account.gni")
 
-module_output_path = "os_account/services/accountmgr"
+module_output_path = "os_account/services/common"
 
-config("accountmgr_data_deal_test_config") {
+config("account_file_operator_test_config") {
   include_dirs = [
-    "./include",
-    "${app_account_core_path}/include",
-    "${app_account_interfaces_native_path}/include",
-    "${common_path}/log/include",
-    "${common_path}/account_error/include",
-    "${os_account_dfx_path}/hisysevent_adapter",
     "${services_path}/accountmgr/include",
-    "//third_party/json/include",
+    "${services_path}/accountmgr/include/osaccount",
+    "${common_path}/log/include",
+    "${common_path}/perf_stat/include",
+    "${common_path}/account_error/include",
     "${innerkits_path}/include",
+    "//third_party/json/include",
   ]
 }
 
-ohos_unittest("AccountSADataDealTest") {
+ohos_unittest("AccountFileOperatorTest") {
   module_out_path = module_output_path
-  cflags_cc = []
-  resource_config_file =
-      "${os_account_path}/test/resource/accountmgrservice/ohos_test.xml"
 
-  sources = [
-    "${common_path}/log/src/account_log_wrapper.cpp",
-    "${os_account_dfx_path}/hisysevent_adapter/hisysevent_adapter.cpp",
-    "${services_path}/accountmgr/src/ohos_account_data_deal.cpp",
-  ]
-
-  sources += [ "ohos_account_data_deal_test.cpp" ]
+  sources = [ "account_file_operator_test.cpp" ]
 
   configs = [
-    ":accountmgr_data_deal_test_config",
+    ":account_file_operator_test_config",
     "${services_path}/accountmgr/test:accountmgr_test_config",
   ]
 
   deps = [
+    "${common_path}:libaccount_common",
+    "${os_account_innerkits_native_path}:os_account_innerkits",
+    "${services_path}/accountmgr:accountmgr",
     "//third_party/googletest:gmock_main",
     "//third_party/googletest:gtest_main",
   ]
 
   external_deps = [
-    "ability_base:want",
     "c_utils:utils",
     "hilog:libhilog",
+    "kv_store:distributeddata_inner",
   ]
-  if (has_hiviewdfx_hisysevent_part) {
-    cflags_cc += [ "-DHAS_HISYSEVENT_PART" ]
-    external_deps += [ "hisysevent:libhisysevent" ]
-  }
   part_name = "os_account"
 }
 
 group("unittest") {
   testonly = true
 
-  deps = [ ":AccountSADataDealTest" ]
+  deps = [ ":AccountFileOperatorTest" ]
 }

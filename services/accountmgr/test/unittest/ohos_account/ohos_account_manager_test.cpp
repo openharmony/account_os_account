@@ -18,7 +18,6 @@
 #define private public
 #include "ohos_account_manager.h"
 #undef private
-#include "accesstoken_kit.h"
 #include "account_helper_data.h"
 #include "account_info.h"
 #include "account_log_wrapper.h"

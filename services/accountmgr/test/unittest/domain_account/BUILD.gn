@@ -15,7 +15,7 @@ import("//build/ohos.gni")
 import("//build/test.gni")
 import("../../../../../os_account.gni")
 
-module_output_path = "os_account/services/accountmgr"
+module_output_path = "os_account/services/domain_account"
 
 config("domain_account_service_config_unittest") {
   visibility = [ ":*" ]
@@ -55,8 +55,6 @@ config("domain_account_amgr_mock_config") {
 ohos_unittest("DomainAccountInnerServiceCovTest") {
   cflags_cc = []
   module_out_path = module_output_path
-  resource_config_file =
-      "${os_account_path}/test/resource/accountmgrservice/ohos_test.xml"
 
   sources = [
     "${domain_account_framework_path}/test/moduletest/src/mock_domain_plugin.cpp",

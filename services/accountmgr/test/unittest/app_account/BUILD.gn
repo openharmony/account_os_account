@@ -40,35 +40,6 @@ config("app_account_service_config_unittest") {
   ]
 }
 
-ohos_unittest("account_permission_manager_test") {
-  module_out_path = module_output_path
-
-  sources = [
-    "${app_account_services_path}/test/mock/app_account/accesstoken_kit.cpp",
-    "${common_path}/utils/src/account_permission_manager.cpp",
-    "account_permission_manager_test.cpp",
-  ]
-
-  configs = [
-    ":app_account_service_config_mock",
-    ":app_account_service_config_unittest",
-  ]
-
-  deps = [
-    "${common_path}:libaccount_common",
-    "//third_party/googletest:gmock_main",
-    "//third_party/googletest:gtest_main",
-  ]
-
-  external_deps = [
-    "access_token:libaccesstoken_sdk",
-    "access_token:libtoken_setproc",
-    "c_utils:utils",
-    "hilog:libhilog",
-    "ipc:ipc_single",
-  ]
-}
-
 ohos_unittest("app_account_data_storage_test") {
   module_out_path = module_output_path
 
@@ -231,7 +202,6 @@ group("unittest") {
   testonly = true
 
   deps = [
-    ":account_permission_manager_test",
     ":app_account_data_storage_test",
     ":app_account_info_test",
     ":app_account_manager_service_test",
