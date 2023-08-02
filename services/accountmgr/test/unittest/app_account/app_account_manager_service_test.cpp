@@ -46,7 +46,7 @@ public:
 void AppAccountManagerServiceTest::SetUpTestCase(void)
 {
     g_servicePtr = new (std::nothrow) AppAccountManagerService();
-    ASSERT_NE(g_servicePtr ,nullptr);
+    ASSERT_NE(g_servicePtr, nullptr);
     auto mockInnerManagerPtr = std::make_shared<MockInnerAppAccountManager>();
     g_servicePtr->innerManager_ = mockInnerManagerPtr;
 
