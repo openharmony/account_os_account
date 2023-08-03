@@ -50,8 +50,7 @@ void CheckAndCreateDomainAccountCallback::OnResult(int32_t errCode, Parcel &parc
         ACCOUNT_LOGE("domainAccountInfo unmarshalling error");
         return innerCallback_->OnResult(ERR_JS_SYSTEM_SERVICE_EXCEPTION, resultParcel);
     }
-    if ((domainAccountInfo_.accountName_ != domainAccountInfo->accountName_)
-        || (domainAccountInfo_.domain_ != domainAccountInfo->domain_)) {
+    if ((domainAccountInfo->accountName_.empty()) || (domainAccountInfo->domain_.empty())) {
         ACCOUNT_LOGE("domain account not found");
         return innerCallback_->OnResult(ERR_JS_ACCOUNT_NOT_FOUND, resultParcel);
     }
