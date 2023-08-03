@@ -789,7 +789,6 @@ group("moduletest") {
   testonly = true
 
   deps = [
-    ":account_permission_manager_module_test",
     ":app_account_authenticate_test",
     ":app_account_authenticator_callback_test",
     ":app_account_authenticator_session_manager_module_test",
@@ -805,6 +804,5 @@ group("moduletest") {
     ":app_account_manager_service_sync_module_test",
     ":app_account_subscribe_manager_test",
     ":at_not_mock_app_account_manager_service_module_test",
-    ":bundle_manager_adapter_module_test",
   ]
 }
