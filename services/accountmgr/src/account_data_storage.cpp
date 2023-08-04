@@ -22,13 +22,20 @@ namespace OHOS {
 namespace AccountSA {
 const int32_t MAX_TIMES = 10;
 const int32_t SLEEP_INTERVAL = 100 * 1000;
-const std::string KVSTORE_BASE_DIR = "/data/service/el1/public/database/";
+const std::string KV_STORE_EL1_BASE_DIR = "/data/service/el1/public/database/";
+const std::string KV_STORE_EL2_BASE_DIR = "/data/service/el2/public/database/";
 
-AccountDataStorage::AccountDataStorage(const std::string &appId, const std::string &storeId, const bool &autoSync)
+AccountDataStorage::AccountDataStorage(const std::string &appId, const std::string &storeId,
+    const AccountDataStorageOptions &options)
 {
     appId_.appId = appId;
     storeId_.storeId = storeId;
-    autoSync_ = autoSync;
+    options_ = options;
+    if (options_.area == DistributedKv::EL1) {
+        baseDir_ = KV_STORE_EL1_BASE_DIR + appId;
+    } else {
+        baseDir_ = KV_STORE_EL2_BASE_DIR + appId;
+    }
 }
 
 AccountDataStorage::~AccountDataStorage()
@@ -52,11 +59,12 @@ OHOS::DistributedKv::Status AccountDataStorage::GetKvStore()
     OHOS::DistributedKv::Options options = {
         .createIfMissing = true,
         .encrypt = false,
-        .autoSync = autoSync_,
-        .syncable = autoSync_,
-        .area = OHOS::DistributedKv::EL1,
+        .autoSync = options_.autoSync,
+        .syncable = options_.autoSync,
+        .securityLevel = options_.securityLevel,
+        .area = options_.area,
         .kvStoreType = OHOS::DistributedKv::KvStoreType::SINGLE_VERSION,
-        .baseDir = KVSTORE_BASE_DIR + appId_.appId,
+        .baseDir = baseDir_,
     };
 
     OHOS::DistributedKv::Status status = dataManager_.GetSingleKvStore(options, appId_, storeId_, kvStorePtr_);
@@ -208,8 +216,7 @@ ErrCode AccountDataStorage::DeleteKvStore()
         std::lock_guard<std::mutex> lock(kvStorePtrMutex_);
         dataManager_.CloseKvStore(this->appId_, this->storeId_);
         kvStorePtr_ = nullptr;
-        std::string baseDir = KVSTORE_BASE_DIR + this->appId_.appId;
-        status = dataManager_.DeleteKvStore(this->appId_, this->storeId_, baseDir);
+        status = dataManager_.DeleteKvStore(this->appId_, this->storeId_, baseDir_);
     }
     if (status != OHOS::DistributedKv::Status::SUCCESS) {
         ACCOUNT_LOGE("error, status = %{public}d", status);

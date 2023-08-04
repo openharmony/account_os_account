@@ -37,6 +37,7 @@ const std::string STRING_ACCOUNT_ID = "0";
 const std::string STRING_STORE_ID = STRING_ACCOUNT_ID;
 constexpr std::size_t SIZE_ZERO = 0;
 constexpr std::size_t SIZE_ONE = 1;
+AccountDataStorageOptions gOptions;
 }  // namespace
 
 class AppAccountDataStorageTest : public testing::Test {
@@ -59,6 +60,9 @@ void AppAccountDataStorageTest::TearDownTestCase(void)
 void AppAccountDataStorageTest::SetUp(void)
 {
     GTEST_LOG_(INFO) << "SetUp enter!";
+    gOptions.autoSync = false;
+    gOptions.securityLevel = DistributedKv::SecurityLevel::S1;
+    gOptions.area = DistributedKv::EL1;
     ClearDataStorage();
 }
 
@@ -67,7 +71,7 @@ void AppAccountDataStorageTest::TearDown(void)
 
 void AppAccountDataStorageTest::ClearDataStorage(void)
 {
-    auto dataStoragePtr = std::make_shared<AppAccountDataStorage>(STRING_STORE_ID);
+    auto dataStoragePtr = std::make_shared<AppAccountDataStorage>(STRING_STORE_ID, gOptions);
     std::map<std::string, std::shared_ptr<IAccountInfo>> accounts;
     ErrCode result = dataStoragePtr->LoadAllData(accounts);
     if (!accounts.empty()) {
@@ -89,7 +93,7 @@ HWTEST_F(AppAccountDataStorageTest, AppAccountDataStorage_AddAccountInfo_0100, T
 {
     ACCOUNT_LOGI("AppAccountDataStorage_AddAccountInfo_0100");
 
-    auto dataStoragePtr = std::make_shared<AppAccountDataStorage>(STRING_STORE_ID);
+    auto dataStoragePtr = std::make_shared<AppAccountDataStorage>(STRING_STORE_ID, gOptions);
     EXPECT_NE(dataStoragePtr, nullptr);
 
     std::map<std::string, std::shared_ptr<IAccountInfo>> accounts;
@@ -147,7 +151,7 @@ HWTEST_F(AppAccountDataStorageTest, AppAccountDataStorage_SaveAccountInfo_0100, 
 {
     ACCOUNT_LOGI("AppAccountDataStorage_SaveAccountInfo_0100");
 
-    auto dataStoragePtr = std::make_shared<AppAccountDataStorage>(STRING_STORE_ID);
+    auto dataStoragePtr = std::make_shared<AppAccountDataStorage>(STRING_STORE_ID, gOptions);
     EXPECT_NE(dataStoragePtr, nullptr);
 
     std::map<std::string, std::shared_ptr<IAccountInfo>> accounts;
@@ -201,7 +205,7 @@ HWTEST_F(AppAccountDataStorageTest, AppAccountDataStorage_DeleteAccount_0100, Te
 {
     ACCOUNT_LOGI("AppAccountDataStorage_DeleteAccount_0100");
 
-    auto dataStoragePtr = std::make_shared<AppAccountDataStorage>(STRING_STORE_ID);
+    auto dataStoragePtr = std::make_shared<AppAccountDataStorage>(STRING_STORE_ID, gOptions);
     EXPECT_NE(dataStoragePtr, nullptr);
 
     std::map<std::string, std::shared_ptr<IAccountInfo>> accounts;
