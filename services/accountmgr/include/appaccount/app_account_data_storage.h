@@ -24,7 +24,7 @@ namespace AccountSA {
 class AppAccountDataStorage : public AccountDataStorage {
 public:
     AppAccountDataStorage() = delete;
-    explicit AppAccountDataStorage(const std::string &storeId, const bool &autoSync = false);
+    AppAccountDataStorage(const std::string &storeId, const AccountDataStorageOptions &options);
     ~AppAccountDataStorage() override = default;
 
     Json GetAccessibleAccountsFromAuthorizedAccounts(const std::string &authorizedAccounts,
