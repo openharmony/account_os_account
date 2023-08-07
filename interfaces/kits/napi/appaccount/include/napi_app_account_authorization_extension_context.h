@@ -23,7 +23,6 @@
 #include "authorization_extension_context.h"
 #include "native_engine/native_engine.h"
 #include "native_engine/native_value.h"
-#include "js_service_extension_context.h"
 
 namespace OHOS {
 namespace AbilityRuntime {
@@ -34,11 +33,41 @@ class JSAuthorizationExtensionConnection : public AbilityConnectCallback {
 public:
     explicit JSAuthorizationExtensionConnection(NativeEngine &engine);
     ~JSAuthorizationExtensionConnection();
+    void OnAbilityConnectDone(
+        const AppExecFwk::ElementName &element, const sptr<IRemoteObject> &remoteObject, int resultCode) override;
+    void OnAbilityDisconnectDone(const AppExecFwk::ElementName &element, int resultCode) override;
+    void HandleOnAbilityConnectDone(
+        const AppExecFwk::ElementName &element, const sptr<IRemoteObject> &remoteObject, int resultCode);
+    void HandleOnAbilityDisconnectDone(const AppExecFwk::ElementName &element, int resultCode);
     void CallJsFailed(int32_t errorCode);
+    void RemoveConnectionObject();
+    void SetJsConnectionObject(NativeValue* jsConnectionObject);
+    int64_t GetConnectionId();
+    void SetConnectionId(int64_t id);
 
 private:
     NativeEngine &engine_;
+    std::unique_ptr<NativeReference> jsConnectionObject_ = nullptr;
+    int64_t connectionId_ = -1;
 };
+struct ConnectionKey {
+    AAFwk::Want want;
+    int64_t id;
+};
+
+struct key_compare {
+    bool operator()(const ConnectionKey &key1, const ConnectionKey &key2) const
+    {
+        if (key1.id < key2.id) {
+            return true;
+        }
+        return false;
+    }
+};
+
+static std::map<ConnectionKey, sptr<JSAuthorizationExtensionConnection>, key_compare> connects_;
+static int64_t serialNumber_ = 0;
+static std::shared_ptr<AppExecFwk::EventHandler> handler_ = nullptr;
 } // namespace AbilityRuntime
 } // namespace OHOS
 #endif // ABILITY_RUNTIME_JS_AUTHENTICATION_EXTENSION_CONTEXT_H
