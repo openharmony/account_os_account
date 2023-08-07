@@ -570,6 +570,15 @@ static void ReleaseOrErrorCommonWork(uv_work_t *work, int status)
     delete asyncContext;
 }
 
+static bool CheckParamCode(const WantParams &params)
+{
+    int resultCode = params.GetIntParam("code", DEFAULT_RESULT);
+    if (resultCode != DEFAULT_RESULT) {
+        return true;
+    }
+    return false;
+}
+
 static void OnResultForModalWork(uv_work_t *work, int status)
 {
     std::unique_ptr<uv_work_t> workPtr(work);
@@ -583,7 +592,7 @@ static void OnResultForModalWork(uv_work_t *work, int status)
     WantParams params = asyncContext->want.GetParams();
     params.Remove("moduleName");
     if (asyncContext->errCode != 0) {
-        if (asyncContext->errCode == DEFAULT_RESULT) {
+        if (!CheckParamCode(params)) {
             errJs = GenerateBusinessError(asyncContext->env, ERR_JS_SYSTEM_SERVICE_EXCEPTION);
         } else {
             errJs = AppExecFwk::WrapWantParams(asyncContext->env, params);
