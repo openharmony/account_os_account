@@ -290,6 +290,8 @@ bool OhosAccountManager::LoginOhosAccount(
         return true;
     }
     AccountEventProvider::EventPublish(EventFwk::CommonEventSupport::COMMON_EVENT_HWID_LOGIN, userId, nullptr);
+    AccountEventProvider::EventPublish(
+        EventFwk::CommonEventSupport::COMMON_EVENT_DISTRIBUTED_ACCOUNT_LOGIN, userId, nullptr);
 #else  // HAS_CES_PART
     ACCOUNT_LOGI("No common event part, publish nothing!");
 #endif // HAS_CES_PART
@@ -332,6 +334,8 @@ bool OhosAccountManager::LogoutOhosAccount(
 
 #ifdef HAS_CES_PART
     AccountEventProvider::EventPublish(EventFwk::CommonEventSupport::COMMON_EVENT_HWID_LOGOUT, userId, nullptr);
+    AccountEventProvider::EventPublish(
+        EventFwk::CommonEventSupport::COMMON_EVENT_DISTRIBUTED_ACCOUNT_LOGOUT, userId, nullptr);
 #else  // HAS_CES_PART
     ACCOUNT_LOGI("No common event part! Publish nothing!");
 #endif // HAS_CES_PART
@@ -371,6 +375,8 @@ bool OhosAccountManager::LogoffOhosAccount(
     }
 #ifdef HAS_CES_PART
     AccountEventProvider::EventPublish(EventFwk::CommonEventSupport::COMMON_EVENT_HWID_LOGOFF, userId, nullptr);
+    AccountEventProvider::EventPublish(
+        EventFwk::CommonEventSupport::COMMON_EVENT_DISTRIBUTED_ACCOUNT_LOGOFF, userId, nullptr);
 #else  // HAS_CES_PART
     ACCOUNT_LOGI("No common event part, publish nothing for logoff!");
 #endif // HAS_CES_PART
@@ -412,6 +418,8 @@ bool OhosAccountManager::HandleOhosAccountTokenInvalidEvent(
 #ifdef HAS_CES_PART
     AccountEventProvider::EventPublish(EventFwk::CommonEventSupport::COMMON_EVENT_HWID_TOKEN_INVALID,
         userId, nullptr);
+    AccountEventProvider::EventPublish(
+        EventFwk::CommonEventSupport::COMMON_EVENT_DISTRIBUTED_ACCOUNT_TOKEN_INVALID, userId, nullptr);
 #else  // HAS_CES_PART
     ACCOUNT_LOGI("No common event part, publish nothing for token invalid event.");
 #endif // HAS_CES_PART
@@ -512,6 +520,8 @@ void OhosAccountManager::OnPackageRemoved(const std::int32_t callingUid)
             (void)ClearOhosAccount(accountInfo);
             AccountEventProvider::EventPublish(
                 EventFwk::CommonEventSupport::COMMON_EVENT_HWID_LOGOUT, info.GetLocalId(), nullptr);
+            AccountEventProvider::EventPublish(
+                EventFwk::CommonEventSupport::COMMON_EVENT_DISTRIBUTED_ACCOUNT_LOGOUT, info.GetLocalId(), nullptr);
         }
     }
 }
