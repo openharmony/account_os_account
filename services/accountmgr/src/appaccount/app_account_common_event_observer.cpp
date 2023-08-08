@@ -33,6 +33,8 @@ namespace AccountSA {
 #ifdef HAS_CES_PART
 namespace {
 const char THREAD_COMMON_EVENT[] = "commonEvent";
+constexpr int32_t DELAY_FOR_TIME_INTERVAL = 1 * 1000;
+constexpr int32_t MAX_TRY_TIMES = 10;
 }
 
 AppAccountCommonEventObserver::AppAccountCommonEventObserver(const CommonEventCallback &callback)
