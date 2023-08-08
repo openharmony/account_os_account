@@ -64,5 +64,8 @@ HWTEST_F(AccountEventProviderTest, AccountEventProviderTest001, TestSize.Level0)
     bool ret = AccountEventProvider::EventPublish(
         EventFwk::CommonEventSupport::COMMON_EVENT_HWID_LOGOFF, DEFAULT_USER_ID, nullptr);
     EXPECT_EQ(true, ret);
+    ret = AccountEventProvider::EventPublish(
+        EventFwk::CommonEventSupport::COMMON_EVENT_DISTRIBUTED_ACCOUNT_LOGOFF, DEFAULT_USER_ID, nullptr);
+    EXPECT_EQ(true, ret);
 #endif // HAS_CES_PART
 }
