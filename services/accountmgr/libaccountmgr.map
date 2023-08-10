@@ -228,6 +228,7 @@
         "OHOS::AccountSA::AccountStub::AccountStub()";
         "vtable for OHOS::AccountSA::OsAccountStopUserCallback";
         "vtable for OHOS::AccountSA::OsAccountSubscribeDeathRecipient";
+        "VTT for OHOS::AccountSA::SessionServerDeathRecipient";
         "vtable for OHOS::AccountSA::SessionServerDeathRecipient";
         "VTT for OHOS::AccountSA::OsAccountStopUserCallback";
         "VTT for OHOS::AccountSA::SessionAppStateObserver";
