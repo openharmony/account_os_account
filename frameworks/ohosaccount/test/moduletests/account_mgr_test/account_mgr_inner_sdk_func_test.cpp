@@ -297,30 +297,24 @@ HWTEST_F(AccountMgrInnerSdkFuncTest, SetOhosAccountInfo004, TestSize.Level0)
     accountInfo.avatar_ = TEST_AVATAR;
     accountInfo.scalableData_.SetParam(KEY_ACCOUNT_INFO_SCALABLEDATA, 123);
 
-    auto ret = OhosAccountKits::GetInstance().SetOhosAccountInfo(accountInfo, g_eventLogin);
-    EXPECT_EQ(ret, ERR_OK);
-    ret = OhosAccountKits::GetInstance().GetOhosAccountInfo(accountInfoget);
-    EXPECT_EQ(ret, ERR_OK);
+    EXPECT_EQ(OhosAccountKits::GetInstance().SetOhosAccountInfo(accountInfo, g_eventLogin), ERR_OK);
+    EXPECT_EQ(OhosAccountKits::GetInstance().GetOhosAccountInfo(accountInfoget), ERR_OK);
     EXPECT_EQ(accountInfoget.uid_, TEST_EXPECTED_UID);
     EXPECT_EQ(accountInfoget.nickname_, TEST_NICKNAME);
     EXPECT_EQ(accountInfoget.avatar_, TEST_AVATAR);
     EXPECT_EQ(accountInfoget.scalableData_.GetStringParam(KEY_ACCOUNT_INFO_SCALABLEDATA),
         accountInfo.scalableData_.GetStringParam(KEY_ACCOUNT_INFO_SCALABLEDATA));
 
-    ret = OhosAccountKits::GetInstance().SetOhosAccountInfo(accountInfo, g_eventTokenInvalid);
-    EXPECT_EQ(ret, ERR_OK);
-    ret = OhosAccountKits::GetInstance().GetOhosAccountInfo(accountInfoget);
-    EXPECT_EQ(ret, ERR_OK);
+    EXPECT_EQ(OhosAccountKits::GetInstance().SetOhosAccountInfo(accountInfo, g_eventTokenInvalid), ERR_OK);
+    EXPECT_EQ(OhosAccountKits::GetInstance().GetOhosAccountInfo(accountInfoget), ERR_OK);
     EXPECT_EQ(accountInfoget.uid_, TEST_EXPECTED_UID);
     EXPECT_EQ(accountInfoget.nickname_, TEST_NICKNAME);
     EXPECT_EQ(accountInfoget.avatar_, TEST_AVATAR);
     EXPECT_EQ(accountInfoget.scalableData_.GetStringParam(KEY_ACCOUNT_INFO_SCALABLEDATA),
         accountInfo.scalableData_.GetStringParam(KEY_ACCOUNT_INFO_SCALABLEDATA));
 
-    ret = OhosAccountKits::GetInstance().SetOhosAccountInfo(accountInfo, g_eventLogin);
-    EXPECT_EQ(ret, ERR_OK);
-    ret = OhosAccountKits::GetInstance().GetOhosAccountInfo(accountInfoget);
-    EXPECT_EQ(ret, ERR_OK);
+    EXPECT_EQ(OhosAccountKits::GetInstance().SetOhosAccountInfo(accountInfo, g_eventLogin), ERR_OK);
+    EXPECT_EQ(OhosAccountKits::GetInstance().GetOhosAccountInfo(accountInfoget), ERR_OK);
     EXPECT_EQ(accountInfoget.uid_, TEST_EXPECTED_UID);
     EXPECT_EQ(accountInfoget.name_, TEST_ACCOUNT_NAME);
     EXPECT_EQ(accountInfoget.status_, ACCOUNT_STATE_LOGIN);
@@ -329,10 +323,8 @@ HWTEST_F(AccountMgrInnerSdkFuncTest, SetOhosAccountInfo004, TestSize.Level0)
     EXPECT_EQ(accountInfoget.scalableData_.GetStringParam(KEY_ACCOUNT_INFO_SCALABLEDATA),
         accountInfo.scalableData_.GetStringParam(KEY_ACCOUNT_INFO_SCALABLEDATA));
 
-    ret = OhosAccountKits::GetInstance().SetOhosAccountInfo(accountInfo, g_eventLogoff);
-    EXPECT_EQ(ret, ERR_OK);
-    ret = OhosAccountKits::GetInstance().GetOhosAccountInfo(accountInfoget);
-    EXPECT_EQ(ret, ERR_OK);
+    EXPECT_EQ(OhosAccountKits::GetInstance().SetOhosAccountInfo(accountInfo, g_eventLogoff), ERR_OK);
+    EXPECT_EQ(OhosAccountKits::GetInstance().GetOhosAccountInfo(accountInfoget), ERR_OK);
     EXPECT_EQ(accountInfoget.uid_, DEFAULT_OHOS_ACCOUNT_UID);
     EXPECT_EQ(accountInfoget.name_, DEFAULT_OHOS_ACCOUNT_NAME);
     EXPECT_EQ(accountInfoget.status_, ACCOUNT_STATE_UNBOUND);
