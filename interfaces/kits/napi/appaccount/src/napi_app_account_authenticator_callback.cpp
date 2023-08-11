@@ -146,7 +146,7 @@ napi_value NapiAppAccountAuthenticatorCallback::JsOnResult(napi_env env, napi_ca
             },
             OnAuthenticatorWorkComplete,
             reinterpret_cast<void *>(param), &param->work));
-    NAPI_CALL(env, napi_queue_async_work(env, param->work));
+    NAPI_CALL(env, napi_queue_async_work_with_qos(env, param->work, napi_qos_default));
     return NapiGetNull(env);
 }
 
@@ -177,7 +177,7 @@ napi_value NapiAppAccountAuthenticatorCallback::JsOnRequestRedirected(napi_env e
             },
             OnAuthenticatorWorkComplete,
             reinterpret_cast<void *>(param), &param->work));
-    NAPI_CALL(env, napi_queue_async_work(env, param->work));
+    NAPI_CALL(env, napi_queue_async_work_with_qos(env, param->work, napi_qos_default));
     return NapiGetNull(env);
 }
 
@@ -208,7 +208,7 @@ napi_value NapiAppAccountAuthenticatorCallback::JsOnRequestContinued(napi_env en
             OnAuthenticatorWorkComplete,
             reinterpret_cast<void *>(param),
             &param->work));
-    NAPI_CALL(env, napi_queue_async_work(env, param->work));
+    NAPI_CALL(env, napi_queue_async_work_with_qos(env, param->work, napi_qos_default));
     return NapiGetNull(env);
 }
 
