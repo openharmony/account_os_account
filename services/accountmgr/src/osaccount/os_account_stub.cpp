@@ -17,6 +17,8 @@
 #include "account_permission_manager.h"
 #include "account_constants.h"
 #include "idomain_account_callback.h"
+#include "ipc_skeleton.h"
+#include "memory_guard.h"
 #ifdef HICOLLIE_ENABLE
 #include "xcollie/xcollie.h"
 #endif // HICOLLIE_ENABLE
@@ -332,6 +334,8 @@ OsAccountStub::~OsAccountStub()
 
 int OsAccountStub::OnRemoteRequest(uint32_t code, MessageParcel &data, MessageParcel &reply, MessageOption &option)
 {
+    ACCOUNT_LOGD("Received stub message: %{public}d, callingUid: %{public}d", code, IPCSkeleton::GetCallingUid());
+    MemoryGuard cacheGuard;
     if (data.ReadInterfaceToken() != GetDescriptor()) {
         ACCOUNT_LOGE("check descriptor failed! code %{public}u.", code);
         return ERR_ACCOUNT_COMMON_CHECK_DESCRIPTOR_ERROR;
