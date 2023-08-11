@@ -45,6 +45,7 @@ ohos_shared_library("libaccount_common") {
     "log/src/account_log_wrapper.cpp",
     "perf_stat/src/perf_stat.cpp",
     "utils/src/account_permission_manager.cpp",
+    "utils/src/memory_guard.cpp",
   ]
 
   cflags = [ "-pipe" ]
@@ -61,6 +62,12 @@ ohos_shared_library("libaccount_common") {
     "ACCOUNT_LOG_TAG = \"AccountCommonFwk\"",
     "LOG_DOMAIN = 0xD001B00",
   ]
+
+  if (use_musl) {
+    if (use_jemalloc && use_jemalloc_dfx_intf) {
+      defines += [ "CONFIG_USE_JEMALLOC_DFX_INTF" ]
+    }
+  }
 
   public_configs = [ ":account_common_config" ]
 
