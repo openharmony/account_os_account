@@ -29,6 +29,7 @@
 #include "if_system_ability_manager.h"
 #include "ipc_skeleton.h"
 #include "iservice_registry.h"
+#include "memory_guard.h"
 #include "ohos_account_kits.h"
 #include "account_constants.h"
 #ifdef HICOLLIE_ENABLE
@@ -412,6 +413,7 @@ std::int32_t AccountStub::CmdGetDomainAccountService(MessageParcel &data, Messag
 std::int32_t AccountStub::OnRemoteRequest(
     std::uint32_t code, MessageParcel &data, MessageParcel &reply, MessageOption &option)
 {
+    MemoryGuard cacheGuard;
     if (!IsServiceStarted()) {
         ACCOUNT_LOGE("account mgr not ready");
         return ERR_ACCOUNT_ZIDL_MGR_NOT_READY_ERROR;
