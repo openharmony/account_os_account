@@ -129,7 +129,7 @@ ErrCode NapiAppAccountAuthenticator::AddAccountImplicitly(
     param->options = options;
     param->callback = callback;
     work->data = reinterpret_cast<void *>(param);
-    uv_queue_work(loop, work, [](uv_work_t *work) {}, AddAccountImplicitlyWork);
+    uv_queue_work_with_qos(loop, work, [](uv_work_t *work) {}, AddAccountImplicitlyWork, uv_qos_default);
     return ERR_OK;
 }
 
@@ -152,7 +152,7 @@ ErrCode NapiAppAccountAuthenticator::Authenticate(const std::string &name, const
     param->options = options;
     param->callback = callback;
     work->data = reinterpret_cast<void *>(param);
-    uv_queue_work(loop, work, [](uv_work_t *work) {}, AuthenticateWork);
+    uv_queue_work_with_qos(loop, work, [](uv_work_t *work) {}, AuthenticateWork, uv_qos_user_initiated);
     return ERR_OK;
 }
 
@@ -173,7 +173,7 @@ ErrCode NapiAppAccountAuthenticator::CreateAccountImplicitly(
     param->createOptions = options;
     param->callback = callback;
     work->data = reinterpret_cast<void *>(param);
-    uv_queue_work(loop, work, [](uv_work_t *work) {}, CreateAccountImplicitlyWork);
+    uv_queue_work_with_qos(loop, work, [](uv_work_t *work) {}, CreateAccountImplicitlyWork, uv_qos_default);
     return ERR_OK;
 }
 
@@ -195,7 +195,7 @@ ErrCode NapiAppAccountAuthenticator::Auth(const std::string &name, const std::st
     param->options = options;
     param->callback = callback;
     work->data = reinterpret_cast<void *>(param);
-    uv_queue_work(loop, work, [](uv_work_t *work) {}, AuthWork);
+    uv_queue_work_with_qos(loop, work, [](uv_work_t *work) {}, AuthWork, uv_qos_user_initiated);
     return ERR_OK;
 }
 
@@ -216,7 +216,7 @@ ErrCode NapiAppAccountAuthenticator::VerifyCredential(
     param->name = name;
     param->callback = callback;
     work->data = reinterpret_cast<void *>(param);
-    uv_queue_work(loop, work, [](uv_work_t *work) {}, VerifyCredentialWork);
+    uv_queue_work_with_qos(loop, work, [](uv_work_t *work) {}, VerifyCredentialWork, uv_qos_default);
     return ERR_OK;
 }
 
@@ -236,7 +236,7 @@ ErrCode NapiAppAccountAuthenticator::SetProperties(
     param->setPropOptions = options;
     param->callback = callback;
     work->data = reinterpret_cast<void *>(param);
-    uv_queue_work(loop, work, [](uv_work_t *work) {}, SetPropertiesWork);
+    uv_queue_work_with_qos(loop, work, [](uv_work_t *work) {}, SetPropertiesWork, uv_qos_default);
     return ERR_OK;
 }
 
@@ -257,7 +257,7 @@ ErrCode NapiAppAccountAuthenticator::CheckAccountLabels(
     param->name = name;
     param->callback = callback;
     work->data = reinterpret_cast<void *>(param);
-    uv_queue_work(loop, work, [](uv_work_t *work) {}, CheckAccountLabelsWork);
+    uv_queue_work_with_qos(loop, work, [](uv_work_t *work) {}, CheckAccountLabelsWork, uv_qos_default);
     return ERR_OK;
 }
 
@@ -276,7 +276,7 @@ ErrCode NapiAppAccountAuthenticator::IsAccountRemovable(const std::string &name,
     param->name = name;
     param->callback = callback;
     work->data = reinterpret_cast<void *>(param);
-    uv_queue_work(loop, work, [](uv_work_t *work) {}, IsAccountRemovableWork);
+    uv_queue_work_with_qos(loop, work, [](uv_work_t *work) {}, IsAccountRemovableWork, uv_qos_default);
     return ERR_OK;
 }
 

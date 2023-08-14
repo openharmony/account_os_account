@@ -502,10 +502,10 @@ void NapiExecuteRequestCallback::OnResult(const AsyncCallbackError &businessErro
     callbackRef_ = nullptr;
     requestRef_ = nullptr;
     deferred_ = nullptr;
-    int32_t resultCode = uv_queue_work(
-        loop, work, [](uv_work_t *work) {}, ExecuteRequestCompletedWork);
+    int32_t resultCode = uv_queue_work_with_qos(
+        loop, work, [](uv_work_t *work) {}, ExecuteRequestCompletedWork, uv_qos_default);
     if (resultCode != 0) {
-        ACCOUNT_LOGE("failed to uv_queue_work, errCode: %{public}d", resultCode);
+        ACCOUNT_LOGE("failed to uv_queue_work_with_qos, errCode: %{public}d", resultCode);
         delete asyncContext;
         delete work;
         return;
@@ -642,10 +642,10 @@ void NapiExecuteRequestCallback::OnRelease(int32_t releaseCode)
         return;
     }
     work->data = reinterpret_cast<void *>(asyncContext);
-    int32_t errCode = uv_queue_work(
-        loop, work, [](uv_work_t *work) {}, ReleaseOrErrorCommonWork);
+    int32_t errCode = uv_queue_work_with_qos(
+        loop, work, [](uv_work_t *work) {}, ReleaseOrErrorCommonWork, uv_qos_default);
     if (errCode != 0) {
-        ACCOUNT_LOGE("failed to uv_queue_work, errCode: %{public}d", errCode);
+        ACCOUNT_LOGE("failed to uv_queue_work_with_qos, errCode: %{public}d", errCode);
         delete work;
         delete asyncContext;
     }
@@ -662,10 +662,10 @@ void NapiExecuteRequestCallback::OnResultForModal(int32_t resultCode, const AAFw
     }
     asyncContext->want = result;
     work->data = reinterpret_cast<void *>(asyncContext);
-    int32_t errCode = uv_queue_work(
-        loop, work, [](uv_work_t *work) {}, OnResultForModalWork);
+    int32_t errCode = uv_queue_work_with_qos(
+        loop, work, [](uv_work_t *work) {}, OnResultForModalWork, uv_qos_default);
     if (errCode != 0) {
-        ACCOUNT_LOGE("failed to uv_queue_work, errCode: %{public}d", errCode);
+        ACCOUNT_LOGE("failed to uv_queue_work_with_qos, errCode: %{public}d", errCode);
         delete work;
         asyncContext->callbackRef = nullptr;
         delete asyncContext;
@@ -685,10 +685,10 @@ void NapiExecuteRequestCallback::OnError(int32_t code, const std::string &name, 
         return;
     }
     work->data = reinterpret_cast<void *>(asyncContext);
-    int32_t errCode = uv_queue_work(
-        loop, work, [](uv_work_t *work) {}, ReleaseOrErrorCommonWork);
+    int32_t errCode = uv_queue_work_with_qos(
+        loop, work, [](uv_work_t *work) {}, ReleaseOrErrorCommonWork, uv_qos_default);
     if (errCode != 0) {
-        ACCOUNT_LOGE("failed to uv_queue_work, errCode: %{public}d", errCode);
+        ACCOUNT_LOGE("failed to uv_queue_work_with_qos, errCode: %{public}d", errCode);
         delete work;
         delete asyncContext;
     }
@@ -717,10 +717,10 @@ void NapiExecuteRequestCallback::CreateAbility(const AAFwk::Want &request)
         asyncContext->callbackRef = callbackRef_;
         asyncContext->deferred = deferred_;
         work->data = reinterpret_cast<void *>(asyncContext);
-        int32_t errCode = uv_queue_work(
-            loop, work, [](uv_work_t *work) {}, OnRequestRedirectedWork);
+        int32_t errCode = uv_queue_work_with_qos(
+            loop, work, [](uv_work_t *work) {}, OnRequestRedirectedWork, uv_qos_default);
         if (errCode != 0) {
-            ACCOUNT_LOGE("failed to uv_queue_work, errCode: %{public}d", errCode);
+            ACCOUNT_LOGE("failed to uv_queue_work_with_qos, errCode: %{public}d", errCode);
             delete work;
             delete asyncContext;
             return;
@@ -938,7 +938,7 @@ napi_value NapiAccountCapabilityScheduler::ExecuteRequest(napi_env env, napi_cal
         ExecuteRequestCompletedCB,
         reinterpret_cast<void *>(executeRequestCB.get()),
         &executeRequestCB->work));
-    NAPI_CALL(env, napi_queue_async_work(env, executeRequestCB->work));
+    NAPI_CALL(env, napi_queue_async_work_with_qos(env, executeRequestCB->work, napi_qos_default));
     executeRequestCB.release();
     return result;
 }
