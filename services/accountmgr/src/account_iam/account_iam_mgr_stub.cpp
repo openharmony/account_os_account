@@ -20,6 +20,7 @@
 #include "account_permission_manager.h"
 #include "iaccount_iam_callback.h"
 #include "ipc_skeleton.h"
+#include "memory_guard.h"
 #include "token_setproc.h"
 
 namespace OHOS {
@@ -142,6 +143,7 @@ std::int32_t AccountIAMMgrStub::OnRemoteRequest(
     std::uint32_t code, MessageParcel &data, MessageParcel &reply, MessageOption &option)
 {
     ACCOUNT_LOGD("Received stub message: %{public}d, callingPid: %{public}d", code, IPCSkeleton::GetCallingPid());
+    MemoryGuard cacheGuard;
     Security::AccessToken::AccessTokenID tokenCaller = IPCSkeleton::GetCallingTokenID();
     int result = SetFirstCallerTokenID(tokenCaller);
     ACCOUNT_LOGD("SetFirstCallerTokenID result: %{public}d", result);
