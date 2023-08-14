@@ -121,47 +121,47 @@ void MockDomainPlugin::GetAuthStatusInfo(
 }
 
 void MockDomainPlugin::GetDomainAccountInfo(
-    const std::string &domain, const std::string &accountName, const std::shared_ptr<DomainAccountCallback> &callback)
+    const GetDomainAccountInfoOptions &options, const std::shared_ptr<DomainAccountCallback> &callback)
 {
     DomainAccountInfo info;
     Parcel parcel;
-    if (accountName == ACCOUNT_NAME) {
-        info.accountName_ = accountName;
-        info.domain_ = domain;
+    if (options.accountInfo.accountName_ == ACCOUNT_NAME) {
+        info.accountName_ = options.accountInfo.accountName_;
+        info.domain_ = options.accountInfo.domain_;
         info.accountId_ = "222";
         info.Marshalling(parcel);
         callback->OnResult(0, parcel);
     }
-    if (accountName == STRING_NAME) {
-        info.accountName_ = accountName;
-        info.domain_ = domain;
+    if (options.accountInfo.accountName_ == STRING_NAME) {
+        info.accountName_ = options.accountInfo.accountName_;
+        info.domain_ = options.accountInfo.domain_;
         info.accountId_ = "555";
         info.Marshalling(parcel);
         callback->OnResult(0, parcel);
     }
-    if (accountName == STRING_NAME_NEW) {
-        info.accountName_ = accountName;
-        info.domain_ = domain;
+    if (options.accountInfo.accountName_ == STRING_NAME_NEW) {
+        info.accountName_ = options.accountInfo.accountName_;
+        info.domain_ = options.accountInfo.domain_;
         info.accountId_ = "444";
         info.Marshalling(parcel);
         callback->OnResult(0, parcel);
     }
-    if (accountName == VALID_ACCOUNT_NAME) {
-        info.accountName_ = accountName;
-        info.domain_ = domain;
+    if (options.accountInfo.accountName_ == VALID_ACCOUNT_NAME) {
+        info.accountName_ = options.accountInfo.accountName_;
+        info.domain_ = options.accountInfo.domain_;
         info.accountId_ = "3333";
         info.Marshalling(parcel);
         callback->OnResult(0, parcel);
     }
-    if (accountName == STRING_NAME_BIND_INVALID) {
-        info.accountName_ = accountName;
-        info.domain_ = domain;
+    if (options.accountInfo.accountName_ == STRING_NAME_BIND_INVALID) {
+        info.accountName_ = options.accountInfo.accountName_;
+        info.domain_ = options.accountInfo.domain_;
         info.accountId_ = "666";
         info.Marshalling(parcel);
         callback->OnResult(0, parcel);
     }
-    if (accountName == STRING_NAME_INVALID) {
-        info.accountName_ = accountName;
+    if (options.accountInfo.accountName_ == STRING_NAME_INVALID) {
+        info.accountName_ = options.accountInfo.accountName_;
         info.Marshalling(parcel);
         callback->OnResult(INVALID_CODE, parcel);
     }
