@@ -34,8 +34,8 @@ public:
     ErrCode AuthWithToken(const DomainAccountInfo &info, const std::vector<uint8_t> &token,
         const sptr<IDomainAuthCallback> &callback) override;
     ErrCode GetAuthStatusInfo(const DomainAccountInfo &info, const sptr<IDomainAccountCallback> &callback) override;
-    ErrCode GetDomainAccountInfo(const std::string &domain, const std::string &accountName,
-        const sptr<IDomainAccountCallback> &callback) override;
+    ErrCode GetDomainAccountInfo(
+        const GetDomainAccountInfoOptions &options, const sptr<IDomainAccountCallback> &callback) override;
     ErrCode OnAccountBound(const DomainAccountInfo &info, const int32_t localId,
         const sptr<IDomainAccountCallback> &callback) override;
     ErrCode OnAccountUnBound(const DomainAccountInfo &info,

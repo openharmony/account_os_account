@@ -165,6 +165,7 @@ enum class DomainAccountInterfaceCode : uint32_t {
     DOMAIN_ACCOUNT_STATUS_LISTENER_UNREGISTER = 10,
     DOMAIN_ACCOUNT_STATUS_LISTENER_REGISTER_BY_INFO = 11,
     DOMAIN_ACCOUNT_STATUS_LISTENER_UNREGISTER_BY_INFO = 12,
+    DOMAIN_GET_ACCOUNT_INFO,
 };
 
 enum class DomainAccountPluginInterfaceCode : int32_t {

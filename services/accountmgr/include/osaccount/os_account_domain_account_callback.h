@@ -18,12 +18,13 @@
 
 #include "domain_account_common.h"
 #include "domain_account_callback.h"
+#include "domain_account_callback_stub.h"
 #include "idomain_account_callback.h"
 #include "os_account_info.h"
 
 namespace OHOS {
 namespace AccountSA {
-class CheckAndCreateDomainAccountCallback final : public DomainAccountCallback {
+class CheckAndCreateDomainAccountCallback final : public DomainAccountCallbackStub {
 public:
     CheckAndCreateDomainAccountCallback(const OsAccountType &type, const DomainAccountInfo &domainAccountInfo_,
         const sptr<IDomainAccountCallback> &callback);

@@ -78,6 +78,15 @@ public:
     static GetAccessTokenOptions *Unmarshalling(Parcel &parcel);
 };
 
+struct GetDomainAccountInfoOptions : public Parcelable {
+    DomainAccountInfo accountInfo;
+    int32_t callingUid = -1;
+
+    bool ReadFromParcel(Parcel &parcel);
+    bool Marshalling(Parcel &parcel) const override;
+    static GetDomainAccountInfoOptions *Unmarshalling(Parcel &parcel);
+};
+
 struct AuthStatusInfo : public Parcelable {
     int32_t remainingTimes = -1;  // -1 indicates the invalid value
     int32_t freezingTime = -1;  // -1 indicates the invalid value
