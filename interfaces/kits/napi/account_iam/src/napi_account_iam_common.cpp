@@ -132,7 +132,8 @@ void NapiIDMCallback::OnResult(int32_t result, const Attributes &extraInfo)
     extraInfo.GetUint64Value(Attributes::AttributeKey::ATTR_CREDENTIAL_ID, param->credentialId);
     param->callback = callback_;
     work->data = reinterpret_cast<void *>(param.get());
-    NAPI_CALL_RETURN_VOID(env_, uv_queue_work(loop, work.get(), [] (uv_work_t *work) {}, OnIDMResultWork));
+    NAPI_CALL_RETURN_VOID(env_, uv_queue_work_with_qos(
+        loop, work.get(), [] (uv_work_t *work) {}, OnIDMResultWork, uv_qos_default));
     ACCOUNT_LOGI("create idm result work finish");
     callback_.onResult = nullptr;
     work.release();
@@ -172,7 +173,8 @@ void NapiIDMCallback::OnAcquireInfo(int32_t module, uint32_t acquireInfo, const 
     param->acquire = acquireInfo;
     extraInfo.GetUint8ArrayValue(Attributes::AttributeKey::ATTR_EXTRA_INFO, param->extraInfo);
     work->data = reinterpret_cast<void *>(param.get());
-    NAPI_CALL_RETURN_VOID(env_, uv_queue_work(loop, work.get(), [] (uv_work_t *work) { }, OnAcquireInfoWork));
+    NAPI_CALL_RETURN_VOID(env_, uv_queue_work_with_qos(
+        loop, work.get(), [] (uv_work_t *work) { }, OnAcquireInfoWork, uv_qos_default));
     ACCOUNT_LOGI("create acquire info work finish");
     work.release();
     param.release();
@@ -461,7 +463,8 @@ void NapiUserAuthCallback::OnResult(int32_t result, const Attributes &extraInfo)
     extraInfo.GetInt32Value(Attributes::AttributeKey::ATTR_FREEZING_TIME, param->freezingTime);
     param->callback = callback_;
     work->data = reinterpret_cast<void *>(param.get());
-    NAPI_CALL_RETURN_VOID(env_, uv_queue_work(loop, work.get(), [] (uv_work_t *work) {}, OnUserAuthResultWork));
+    NAPI_CALL_RETURN_VOID(env_, uv_queue_work_with_qos(
+        loop, work.get(), [] (uv_work_t *work) {}, OnUserAuthResultWork, uv_qos_user_initiated));
     ACCOUNT_LOGI("create user auth result work finish");
     callback_.onResult = nullptr;
     work.release();
@@ -483,7 +486,8 @@ void NapiUserAuthCallback::OnAcquireInfo(int32_t module, uint32_t acquireInfo, c
     extraInfo.GetUint8ArrayValue(Attributes::AttributeKey::ATTR_EXTRA_INFO, param->extraInfo);
     param->callback = callback_;
     work->data = reinterpret_cast<void *>(param.get());
-    NAPI_CALL_RETURN_VOID(env_, uv_queue_work(loop, work.get(), [] (uv_work_t *work) {}, OnUserAuthAcquireInfoWork));
+    NAPI_CALL_RETURN_VOID(env_, uv_queue_work_with_qos(
+        loop, work.get(), [] (uv_work_t *work) {}, OnUserAuthAcquireInfoWork, uv_qos_default));
     ACCOUNT_LOGI("create user auth acquire info work finish");
     work.release();
     param.release();
@@ -534,7 +538,7 @@ void NapiGetInfoCallback::OnCredentialInfo(int32_t result, const std::vector<Acc
     context->errCode = result;
     context->credInfo = infoList;
     work->data = reinterpret_cast<void *>(context.get());
-    ErrCode ret = uv_queue_work(loop, work.get(), [] (uv_work_t *work) {}, OnGetInfoWork);
+    ErrCode ret = uv_queue_work_with_qos(loop, work.get(), [] (uv_work_t *work) {}, OnGetInfoWork, uv_qos_default);
     if (ret != ERR_OK) {
         ReleaseNapiRefAsync(env_, callbackRef_);
         return;
@@ -639,7 +643,8 @@ void NapiGetPropCallback::OnResult(int32_t result, const UserIam::UserAuth::Attr
     context->result = result;
     context->request = request_;
     work->data = reinterpret_cast<void *>(context.get());
-    ErrCode ret = uv_queue_work(loop, work.get(), [] (uv_work_t *work) {}, OnGetPropertyWork);
+    ErrCode ret = uv_queue_work_with_qos(
+        loop, work.get(), [] (uv_work_t *work) {}, OnGetPropertyWork, uv_qos_default);
     ACCOUNT_LOGI("create get property work finish");
     if (ret != ERR_OK) {
         context->callbackRef = nullptr;
@@ -707,7 +712,8 @@ void NapiSetPropCallback::OnResult(int32_t result, const UserIam::UserAuth::Attr
     context->errCode = ERR_OK;
     context->result = result;
     work->data = reinterpret_cast<void *>(context.get());
-    ErrCode ret = uv_queue_work(loop, work.get(), [] (uv_work_t *work) {}, OnSetPropertyWork);
+    ErrCode ret = uv_queue_work_with_qos(
+        loop, work.get(), [] (uv_work_t *work) {}, OnSetPropertyWork, uv_qos_default);
     ACCOUNT_LOGI("create set property work finish");
     if (ret != ERR_OK) {
         context->callbackRef = nullptr;
@@ -876,10 +882,10 @@ void NapiGetDataCallback::OnGetData(int32_t authSubType, const std::shared_ptr<A
     context->inputerData = inputerData;
     context->lockInfo = &lockInfo_;
     work->data = reinterpret_cast<void *>(context.get());
-    int errCode = uv_queue_work(loop, work.get(), [] (uv_work_t *work) {}, OnGetDataWork);
+    int errCode = uv_queue_work_with_qos(loop, work.get(), [] (uv_work_t *work) {}, OnGetDataWork, uv_qos_default);
     ACCOUNT_LOGI("create get data work finish");
     if (errCode != 0) {
-        ACCOUNT_LOGE("failed to uv_queue_work, errCode: %{public}d", errCode);
+        ACCOUNT_LOGE("failed to uv_queue_work_with_qos, errCode: %{public}d", errCode);
         context->callbackRef = nullptr;
         return;
     }

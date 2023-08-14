@@ -434,7 +434,7 @@ JSAuthorizationExtensionConnection::~JSAuthorizationExtensionConnection()
         return;
     }
     work->data = reinterpret_cast<void *>(jsConnectionObject_.release());
-    int ret = uv_queue_work(
+    int ret = uv_queue_work_with_qos(
         loop, work, [](uv_work_t *work) {},
         [](uv_work_t *work, int status) {
             if (work == nullptr) {
@@ -449,7 +449,7 @@ JSAuthorizationExtensionConnection::~JSAuthorizationExtensionConnection()
             work->data = nullptr;
             delete work;
             work = nullptr;
-        });
+        }, uv_qos_user_initiated);
     if (ret != 0) {
         delete reinterpret_cast<NativeReference *>(work->data);
         work->data = nullptr;

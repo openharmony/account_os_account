@@ -446,10 +446,10 @@ void JsAuthorizationExtension::StartAuthorization(const AccountSA::Authorization
     param->authorizationExtension = extension;
     param->isEnableContext = request.isEnableContext;
 
-    int errCode = uv_queue_work(
-        loop, work, [](uv_work_t *work) {}, StartAuthorizationWork);
+    int errCode = uv_queue_work_with_qos(
+        loop, work, [](uv_work_t *work) {}, StartAuthorizationWork, uv_qos_user_initiated);
     if (errCode != 0) {
-        ACCOUNT_LOGE("failed to uv_queue_work, errCode: %{public}d", errCode);
+        ACCOUNT_LOGE("failed to uv_queue_work_with_qos, errCode: %{public}d", errCode);
         delete work;
         delete param;
         return;

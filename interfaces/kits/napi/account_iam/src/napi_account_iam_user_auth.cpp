@@ -175,7 +175,7 @@ napi_value NapiAccountIAMUserAuth::GetProperty(napi_env env, napi_callback_info 
             delete reinterpret_cast<GetPropertyContext *>(data);
         },
         reinterpret_cast<void *>(context), &context->work));
-    NAPI_CALL(env, napi_queue_async_work(env, context->work));
+    NAPI_CALL(env, napi_queue_async_work_with_qos(env, context->work, napi_qos_default));
     contextPtr.release();
     return result;
 }
@@ -206,7 +206,7 @@ napi_value NapiAccountIAMUserAuth::SetProperty(napi_env env, napi_callback_info 
             delete reinterpret_cast<SetPropertyContext *>(data);
         },
         reinterpret_cast<void *>(context), &context->work));
-    NAPI_CALL(env, napi_queue_async_work(env, context->work));
+    NAPI_CALL(env, napi_queue_async_work_with_qos(env, context->work, napi_qos_default));
     contextPtr.release();
     return result;
 }
