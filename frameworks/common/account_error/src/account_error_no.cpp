@@ -108,6 +108,8 @@ static int32_t DomainAccountConvertToJSErrCode(int32_t errCode)
             return ERR_JS_DOMAIN_PLUGIN_ALREADY_REGISTERED;
         case ERR_DOMAIN_ACCOUNT_SERVICE_NOT_DOMAIN_ACCOUNT:
             return ERR_JS_ACCOUNT_NOT_FOUND;
+        case ERR_DOMAIN_ACCOUNT_SERVICE_PLUGIN_NOT_EXIST:
+            return ERR_JS_CAPABILITY_NOT_SUPPORTED;
         default:
             return ERR_JS_SYSTEM_SERVICE_EXCEPTION;
     }

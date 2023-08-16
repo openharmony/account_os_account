@@ -282,7 +282,7 @@ ErrCode InnerDomainAccountManager::UpdateAccountToken(const DomainAccountInfo &i
 {
     if (plugin_ == nullptr) {
         ACCOUNT_LOGE("plugin is not exit!");
-        return ERR_DOMAIN_ACCOUNT_SERVICE_PLUGIN_NOT_EXIT;
+        return ERR_DOMAIN_ACCOUNT_SERVICE_PLUGIN_NOT_EXIST;
     }
     int32_t callingUid = IPCSkeleton::GetCallingUid();
     if (callingUid != callingUid_) {
