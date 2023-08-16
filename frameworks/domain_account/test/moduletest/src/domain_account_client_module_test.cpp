@@ -1033,7 +1033,7 @@ HWTEST_F(DomainAccountClientModuleTest, DomainAccountClientModuleTest_UpdateAcco
     DomainAccountClient::GetInstance().UnregisterPlugin();
     std::vector<uint8_t> token = {1};
     EXPECT_EQ(DomainAccountClient::GetInstance().UpdateAccountToken(domainInfo, token),
-        ERR_DOMAIN_ACCOUNT_SERVICE_PLUGIN_NOT_EXIT);
+        ERR_DOMAIN_ACCOUNT_SERVICE_PLUGIN_NOT_EXIST);
 }
 
 /**
