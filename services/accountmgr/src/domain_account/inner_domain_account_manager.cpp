@@ -102,7 +102,8 @@ ErrCode InnerDomainAccountManager::RegisterPlugin(const sptr<IDomainAccountPlugi
         return ERR_DOMAIN_ACCOUNT_SERVICE_PLUGIN_ALREADY_EXIST;
     }
     auto deathRecipient = GetDeathRecipient();
-    if ((deathRecipient == nullptr) || (!plugin->AsObject()->AddDeathRecipient(deathRecipient))) {
+    if ((plugin->AsObject()->IsProxyObject()) &&
+        ((deathRecipient == nullptr) || (!plugin->AsObject()->AddDeathRecipient(deathRecipient)))) {
         ACCOUNT_LOGE("failed to add death recipient for plugin");
         return ERR_ACCOUNT_COMMON_ADD_DEATH_RECIPIENT;
     }

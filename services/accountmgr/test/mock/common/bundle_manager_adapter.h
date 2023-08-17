@@ -34,6 +34,8 @@ public:
     static BundleManagerAdapter* GetInstance();
 
     ErrCode GetNameForUid(const int uid, std::string &bundleName);
+    ErrCode CreateNewUser(int32_t userId);
+    ErrCode RemoveUser(int32_t userId);
     bool GetBundleInfo(const std::string &bundleName, const AppExecFwk::BundleFlag flag,
         AppExecFwk::BundleInfo &bundleInfo, int32_t userId);
     int GetUidByBundleName(const std::string &bundleName, const int userId);
