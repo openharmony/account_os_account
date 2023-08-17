@@ -13,6 +13,7 @@
 
 import("//build/ohos.gni")
 import("os_account.gni")
+import("services/accountmgr/os_account_service.gni")
 
 group("account_build_unittest") {
   testonly = true
