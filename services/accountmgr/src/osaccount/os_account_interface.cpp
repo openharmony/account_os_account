@@ -49,8 +49,10 @@
 namespace OHOS {
 namespace AccountSA {
 namespace {
+#ifdef HAS_STORAGE_PART
 constexpr uint32_t CRYPTO_FLAG_EL1 = 1;
 constexpr uint32_t CRYPTO_FLAG_EL2 = 2;
+#endif
 }
 
 ErrCode OsAccountInterface::SendToAMSAccountStart(OsAccountInfo &osAccountInfo)
