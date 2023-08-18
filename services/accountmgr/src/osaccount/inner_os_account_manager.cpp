@@ -30,12 +30,16 @@
 #include "os_account_subscribe_manager.h"
 #include "parameter.h"
 #include "parcel.h"
+#include <pthread.h>
+#include <thread>
 
 namespace OHOS {
 namespace AccountSA {
 namespace {
 const std::string CONSTRAINT_CREATE_ACCOUNT_DIRECTLY = "constraint.os.account.create.directly";
 const std::string ACCOUNT_READY_EVENT = "bootevent.account.ready";
+const char WATCH_START_USER[] = "watch.start.user";
+constexpr std::int32_t DELAY_FOR_ACCOUNT_BOOT_EVENT_READY = 5000;
 }
 
 IInnerOsAccountManager::IInnerOsAccountManager() : subscribeManager_(OsAccountSubscribeManager::GetInstance())
@@ -126,6 +130,10 @@ void IInnerOsAccountManager::StartAccount()
         osAccountControl_->SetDefaultActivatedOsAccount(Constants::START_USER_ID);
         defaultActivatedId_ = Constants::START_USER_ID;
     }
+    auto task = std::bind(&IInnerOsAccountManager::WatchStartUser, this, osAccountInfo.GetLocalId());
+    std::thread taskThread(task);
+    pthread_setname_np(taskThread.native_handle(), WATCH_START_USER);
+    taskThread.detach();
     if (!osAccountInfo.GetIsCreateCompleted()) {
         if (SendMsgForAccountCreate(osAccountInfo) != ERR_OK) {
             return;
@@ -1132,6 +1140,18 @@ ErrCode IInnerOsAccountManager::ActivateOsAccount(const int id)
     }
     ACCOUNT_LOGI("IInnerOsAccountManager ActivateOsAccount end");
     return ERR_OK;
+}
+
+void IInnerOsAccountManager::WatchStartUser(std::int32_t id)
+{
+    std::this_thread::sleep_for(std::chrono::milliseconds(DELAY_FOR_ACCOUNT_BOOT_EVENT_READY));
+    OsAccountInfo osAccountInfo;
+    osAccountControl_->GetOsAccountInfoById(id, osAccountInfo);
+    if (!osAccountInfo.GetIsActived()) {
+        ReportOsAccountOperationFail(
+            id, Constants::OPERATION_ACTIVATE, ERR_ACCOUNT_COMMON_OPERATION_TIMEOUT, "account activation timed out!");
+    }
+    SetParameter(ACCOUNT_READY_EVENT.c_str(), "true");
 }
 
 ErrCode IInnerOsAccountManager::SendMsgForAccountActivate(OsAccountInfo &osAccountInfo)
