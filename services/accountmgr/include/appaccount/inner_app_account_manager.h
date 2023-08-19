@@ -19,6 +19,7 @@
 #include "ability_connect_callback_stub.h"
 #include "app_account_authenticator_manager.h"
 #include "app_account_authenticator_session_manager.h"
+#include "app_account_authorization_extension_callback.h"
 #include "app_account_control_manager.h"
 #include "app_account_subscribe_manager.h"
 
@@ -114,7 +115,8 @@ private:
 
 class RequestConnection : public AAFwk::AbilityConnectionStub {
 public:
-    RequestConnection(const int32_t &uid, const AuthorizationRequest &request);
+    RequestConnection(const int32_t &uid, const AuthorizationRequest &request,
+        const sptr<IAppAccountAuthorizationExtensionCallback> &callback);
     ~RequestConnection() override;
 
     void OnAbilityConnectDone(
@@ -124,6 +126,19 @@ public:
 private:
     int32_t uid_;
     AuthorizationRequest request_;
+    const sptr<IAppAccountAuthorizationExtensionCallback> innerCallback_ = nullptr;
+};
+
+class ExecuteRequestCallback final : public AppAccountAuthorizationExtensionCallback {
+public:
+    ExecuteRequestCallback(const AuthorizationRequest &request);
+    void OnResult(const AsyncCallbackError &businessData, const AAFwk::WantParams &parameters) override;
+    void OnRequestRedirected(const AAFwk::Want &request) override;
+    void SetConnectPtr(const sptr<RequestConnection> &connect);
+
+private:
+    AuthorizationRequest request_;
+    sptr<RequestConnection> conn_ = nullptr;
 };
 }  // namespace AccountSA
 }  // namespace OHOS

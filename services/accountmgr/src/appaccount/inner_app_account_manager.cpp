@@ -21,6 +21,7 @@
 #include "app_account_authenticator_session.h"
 #include "app_account_control_manager.h"
 #include "app_account_subscribe_manager.h"
+#include "app_account_authorization_extension_callback_service.h"
 #include "app_account_authorization_extension_stub.h"
 #include "bundle_manager_adapter.h"
 
@@ -228,8 +229,9 @@ ErrCode InnerAppAccountManager::Authenticate(const AuthenticatorSessionRequest &
     return sessionManager_.Authenticate(request);
 }
 
-RequestConnection::RequestConnection(const int32_t &uid, const AuthorizationRequest &request)
-    :uid_(uid), request_(request)
+RequestConnection::RequestConnection(const int32_t &uid, const AuthorizationRequest &request,
+    const sptr<IAppAccountAuthorizationExtensionCallback> &callback)
+    : uid_(uid), request_(request), innerCallback_(callback)
 {}
 
 RequestConnection::~RequestConnection()
@@ -245,20 +247,47 @@ void RequestConnection::OnAbilityConnectDone(
         ACCOUNT_LOGE("failed to cast app account authenticator proxy, callerUid = %{public}d", uid_);
         AsyncCallbackError businessError;
         businessError.code = ERR_JS_SYSTEM_SERVICE_EXCEPTION;
-        request_.callback->OnResult(businessError, errResult);
+        innerCallback_->OnResult(businessError, errResult);
         return;
     }
     resultCode = authenticationProxy_->StartAuthorization(request_);
     if (resultCode != ERR_OK) {
         AsyncCallbackError businessError;
         businessError.code = ERR_JS_SYSTEM_SERVICE_EXCEPTION;
-        request_.callback->OnResult(businessError, errResult);
+        innerCallback_->OnResult(businessError, errResult);
     }
     return;
 }
 
 void RequestConnection::OnAbilityDisconnectDone(const AppExecFwk::ElementName &element, int resultCode)
+{
+    ACCOUNT_LOGE("OnAbilityDisconnectDone resultCode is %{public}d", resultCode);
+}
+
+ExecuteRequestCallback::ExecuteRequestCallback(const AuthorizationRequest &request) : request_(request)
 {}
+
+void ExecuteRequestCallback::OnResult(const AsyncCallbackError &businessData, const AAFwk::WantParams &parameters)
+{
+    ACCOUNT_LOGE("ExecuteRequestCallback OnResult enter");
+    AuthorizationRequest request;
+    ErrCode result = AbilityManagerAdapter::GetInstance()->DisconnectAbility(conn_);
+    ACCOUNT_LOGE("ExecuteRequestCallback OnResult result is %{public}d", result);
+    request_.callback->OnResult(businessData, parameters);
+}
+
+void ExecuteRequestCallback::OnRequestRedirected(const AAFwk::Want &request)
+{
+    ACCOUNT_LOGE("ExecuteRequestCallback OnRequestRedirected enter");
+    ErrCode result = AbilityManagerAdapter::GetInstance()->DisconnectAbility(conn_);
+    ACCOUNT_LOGE("ExecuteRequestCallback OnRequestRedirected %{public}d", result);
+    request_.callback->OnRequestRedirected(request);
+}
+
+void ExecuteRequestCallback::SetConnectPtr(const sptr<RequestConnection> &connect)
+{
+    conn_ = connect;
+}
 
 ErrCode InnerAppAccountManager::ExecuteRequest(
     AuthorizationRequest &request, const std::string &bundleName,
@@ -266,7 +295,16 @@ ErrCode InnerAppAccountManager::ExecuteRequest(
 {
     AAFwk::Want want;
     want.SetElementName(bundleName, extensionInfo.name);
-    sptr<RequestConnection> conn_ = new (std::nothrow) RequestConnection(request.callerUid, request);
+    auto callbackCur = request.callback;
+    std::shared_ptr<ExecuteRequestCallback> callbackPtr = std::make_shared<ExecuteRequestCallback>(request);
+    sptr<IAppAccountAuthorizationExtensionCallback> callbackService =
+        new (std::nothrow) AppAccountAuthorizationExtensionCallbackService(callbackPtr);
+    if (callbackService == nullptr) {
+        ACCOUNT_LOGE("failed to create callbackService");
+        return ERR_JS_SYSTEM_SERVICE_EXCEPTION;
+    }
+    request.callback = callbackService;
+    sptr<RequestConnection> conn_ = new (std::nothrow) RequestConnection(request.callerUid, request, callbackCur);
     if (conn_ == nullptr) {
         ACCOUNT_LOGE("failed to create connect callback");
         return ERR_JS_SYSTEM_SERVICE_EXCEPTION;
@@ -277,6 +315,7 @@ ErrCode InnerAppAccountManager::ExecuteRequest(
         ACCOUNT_LOGE("failed to connect ability");
         return ERR_JS_SYSTEM_SERVICE_EXCEPTION;
     }
+    callbackPtr->SetConnectPtr(conn_);
     return ERR_OK;
 }
 
