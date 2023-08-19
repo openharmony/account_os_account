@@ -119,7 +119,7 @@
         "OHOS::AccountSA::AccountMgrService::GetCallingUserID()";
         "OHOS::AccountSA::AccountHelperData::GetBundleNameTrustList()";
         "OHOS::AccountSA::IDMAuthCallback::IDMAuthCallback(unsigned int, OHOS::UserIam::UserAuth::CredentialParameters const&, int, OHOS::UserIam::UserAuth::Attributes const&, OHOS::sptr<OHOS::AccountSA::IIDMCallback> const&)";
-        "OHOS::AccountSA::IInnerOsAccountManager::AddLocalIdToOperating(int)";
+        "OHOS::AccountSA::IInnerOsAccountManager::CheckAndAddLocalIdOperating(int)";
         "OHOS::AccountSA::IInnerOsAccountManager::CleanGarbageAccounts()";
         "OHOS::AccountSA::IInnerOsAccountManager::CreateBaseAdminAccount()";
         "OHOS::AccountSA::IInnerOsAccountManager::CreateBaseStandardAccount()";

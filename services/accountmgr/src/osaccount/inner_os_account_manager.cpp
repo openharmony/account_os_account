@@ -395,11 +395,10 @@ ErrCode IInnerOsAccountManager::RemoveOsAccountOperate(const int id, OsAccountIn
 ErrCode IInnerOsAccountManager::RemoveOsAccount(const int id)
 {
     ACCOUNT_LOGI("RemoveOsAccount delete id is %{public}d", id);
-    if (IsLocalIdInOperating(id)) {
+    if (!CheckAndAddLocalIdOperating(id)) {
         ACCOUNT_LOGE("the %{public}d already in operating", id);
         return ERR_OSACCOUNT_SERVICE_INNER_ACCOUNT_OPERATING_ERROR;
     }
-    AddLocalIdToOperating(id);
 #ifndef ENABLE_MULTIPLE_ACTIVE_ACCOUNTS
     if (IsOsAccountIDInActiveList(id)) {
         ACCOUNT_LOGI("RemoveOsAccount started account to inactive, account id : %{public}d.", id);
@@ -1088,11 +1087,10 @@ ErrCode IInnerOsAccountManager::DeActivateOsAccount(const int id)
 
 ErrCode IInnerOsAccountManager::ActivateOsAccount(const int id)
 {
-    if (IsLocalIdInOperating(id)) {
+    if (!CheckAndAddLocalIdOperating(id)) {
         ACCOUNT_LOGE("the %{public}d already in operating", id);
         return ERR_OSACCOUNT_SERVICE_INNER_ACCOUNT_OPERATING_ERROR;
     }
-    AddLocalIdToOperating(id);
     if (IsOsAccountIDInActiveList(id)) {
         RemoveLocalIdToOperating(id);
         ACCOUNT_LOGE("account is %{public}d already active", id);
@@ -1199,11 +1197,10 @@ ErrCode IInnerOsAccountManager::StopOsAccount(const int id)
         return ERR_OSACCOUNT_SERVICE_INNER_ACCOUNT_STOP_ACTIVE_ERROR;
     }
 
-    if (IsLocalIdInOperating(id)) {
+    if (!CheckAndAddLocalIdOperating(id)) {
         ACCOUNT_LOGW("the %{public}d already in operating", id);
         return ERR_OSACCOUNT_SERVICE_INNER_ACCOUNT_OPERATING_ERROR;
     }
-    AddLocalIdToOperating(id);
     if (!IsOsAccountIDInActiveList(id)) {
         RemoveLocalIdToOperating(id);
         ACCOUNT_LOGW("account is %{public}d already stop", id);
@@ -1442,12 +1439,6 @@ ErrCode IInnerOsAccountManager::GetOsAccountListFromDatabase(const std::string& 
     return osAccountControl_->GetOsAccountListFromDatabase(storeID, osAccountList);
 }
 
-void IInnerOsAccountManager::AddLocalIdToOperating(int32_t localId)
-{
-    std::lock_guard<std::mutex> lock(operatingMutex_);
-    operatingId_.push_back(localId);
-}
-
 void IInnerOsAccountManager::RemoveLocalIdToOperating(int32_t localId)
 {
     std::lock_guard<std::mutex> lock(operatingMutex_);
@@ -1457,10 +1448,14 @@ void IInnerOsAccountManager::RemoveLocalIdToOperating(int32_t localId)
     }
 }
 
-bool IInnerOsAccountManager::IsLocalIdInOperating(int32_t localId)
+bool IInnerOsAccountManager::CheckAndAddLocalIdOperating(int32_t localId)
 {
     std::lock_guard<std::mutex> lock(operatingMutex_);
-    return std::find(operatingId_.begin(), operatingId_.end(), localId) != operatingId_.end();
+    if (std::find(operatingId_.begin(), operatingId_.end(), localId) != operatingId_.end()) {
+        return false;
+    }
+    operatingId_.push_back(localId);
+    return true;
 }
 
 ErrCode IInnerOsAccountManager::QueryActiveOsAccountIds(std::vector<int32_t>& ids)
