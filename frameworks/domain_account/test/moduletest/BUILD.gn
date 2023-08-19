@@ -133,6 +133,7 @@ ohos_moduletest("domain_account_frameworks_module_mock_test") {
     "ability_runtime:wantagent_innerkits",
     "access_token:libaccesstoken_sdk",
     "access_token:libtoken_setproc",
+    "access_token:libtokenid_sdk",
     "bundle_framework:appexecfwk_base",
     "c_utils:utils",
     "hilog:libhilog",
