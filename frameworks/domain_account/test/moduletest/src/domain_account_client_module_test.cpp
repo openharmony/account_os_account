@@ -22,9 +22,14 @@
 #include "account_log_wrapper.h"
 #include "account_permission_manager.h"
 #include "domain_account_callback_service.h"
+#ifdef BUNDLE_ADAPTER_MOCK
+#include "domain_account_manager_service.h"
+#include "domain_account_proxy.h"
+#endif
 #define private public
 #include "domain_account_client.h"
 #include "inner_domain_account_manager.h"
+#include "os_account.h"
 #undef private
 #include "ipc_skeleton.h"
 #include "mock_domain_auth_callback.h"
@@ -34,6 +39,10 @@
 #include "mock_domain_get_access_token_callback.h"
 #include "mock_domain_plugin.h"
 #include "os_account_manager.h"
+#ifdef BUNDLE_ADAPTER_MOCK
+#include "os_account_manager_service.h"
+#include "os_account_proxy.h"
+#endif
 #include "token_setproc.h"
 
 using namespace testing;
@@ -83,6 +92,16 @@ public:
 void DomainAccountClientModuleTest::SetUpTestCase(void)
 {
     GTEST_LOG_(INFO) << "SetUpTestCase enter";
+#ifdef BUNDLE_ADAPTER_MOCK
+    auto servicePtr = new (std::nothrow) DomainAccountManagerService();
+    ASSERT_NE(servicePtr, nullptr);
+    DomainAccountClient::GetInstance().proxy_ = new (std::nothrow) DomainAccountProxy(servicePtr->AsObject());
+    ASSERT_NE(DomainAccountClient::GetInstance().proxy_, nullptr);
+    auto osAccountService = new (std::nothrow) OsAccountManagerService();
+    ASSERT_NE(osAccountService, nullptr);
+    OsAccount::GetInstance().osAccountProxy_ = new (std::nothrow) OsAccountProxy(osAccountService->AsObject());
+    ASSERT_NE(OsAccount::GetInstance().osAccountProxy_, nullptr);
+#endif
 }
 
 void DomainAccountClientModuleTest::TearDownTestCase(void)
@@ -94,6 +113,9 @@ void DomainAccountClientModuleTest::SetUp(void)
 {
     DomainAccountClient::GetInstance().UnregisterPlugin();
     DomainAccountClient::GetInstance().RegisterPlugin(g_plugin);
+#ifdef BUNDLE_ADAPTER_MOCK
+    setuid(ROOT_UID);
+#endif
 }
 
 void DomainAccountClientModuleTest::TearDown(void)
@@ -1033,7 +1055,7 @@ HWTEST_F(DomainAccountClientModuleTest, DomainAccountClientModuleTest_UpdateAcco
     DomainAccountClient::GetInstance().UnregisterPlugin();
     std::vector<uint8_t> token = {1};
     EXPECT_EQ(DomainAccountClient::GetInstance().UpdateAccountToken(domainInfo, token),
-        ERR_DOMAIN_ACCOUNT_SERVICE_PLUGIN_NOT_EXIT);
+        ERR_DOMAIN_ACCOUNT_SERVICE_PLUGIN_NOT_EXIST);
 }
 
 /**

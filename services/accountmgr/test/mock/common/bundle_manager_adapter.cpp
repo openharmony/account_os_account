@@ -47,6 +47,18 @@ BundleManagerAdapter::~BundleManagerAdapter()
     ACCOUNT_LOGI("destroy BundleManagerAdapter mock");
 }
 
+ErrCode BundleManagerAdapter::CreateNewUser(int32_t userId)
+{
+    ACCOUNT_LOGI("CreateNewUser mock");
+    return ERR_OK;
+}
+
+ErrCode BundleManagerAdapter::RemoveUser(int32_t userId)
+{
+    ACCOUNT_LOGI("RemoveUser mock");
+    return ERR_OK;
+}
+
 ErrCode BundleManagerAdapter::GetNameForUid(const int uid, std::string &bundleName)
 {
     ACCOUNT_LOGI("mock enter, uid = %{public}d", uid);

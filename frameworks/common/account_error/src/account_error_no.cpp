@@ -63,8 +63,7 @@ int32_t AppAccountConvertToJSErrCode(int32_t errCode)
         errCode == ERR_APPACCOUNT_SERVICE_GET_BUNDLE_INFO ||
         errCode == ERR_APPACCOUNT_SERVICE_DISABLE_APP_ACCESS_NOT_EXISTED) {
         return ERR_JS_APPLICATION_NOT_EXIST;
-    } else if (errCode == ERR_APPACCOUNT_SERVICE_AUTHENTICATOR_MANAGER_PTR_IS_NULLPTR ||
-        errCode == ERR_APPACCOUNT_SERVICE_OAUTH_SERVICE_EXCEPTION) {
+    } else if (errCode == ERR_APPACCOUNT_SERVICE_OAUTH_SERVICE_EXCEPTION) {
         return ERR_JS_ACCOUNT_AUTHENTICATOR_SERVICE_EXCEPTION;
     } else {
         return AppAccountConvertOtherJSErrCode(errCode);
@@ -109,6 +108,8 @@ static int32_t DomainAccountConvertToJSErrCode(int32_t errCode)
             return ERR_JS_DOMAIN_PLUGIN_ALREADY_REGISTERED;
         case ERR_DOMAIN_ACCOUNT_SERVICE_NOT_DOMAIN_ACCOUNT:
             return ERR_JS_ACCOUNT_NOT_FOUND;
+        case ERR_DOMAIN_ACCOUNT_SERVICE_PLUGIN_NOT_EXIST:
+            return ERR_JS_CAPABILITY_NOT_SUPPORTED;
         default:
             return ERR_JS_SYSTEM_SERVICE_EXCEPTION;
     }

@@ -21,14 +21,17 @@
 
 namespace OHOS {
 namespace AccountSA {
+using DomainAccountCallbackFunc = std::function<void(const int32_t, Parcel &)>;
 class DomainAccountCallbackService : public DomainAccountCallbackStub {
 public:
     DomainAccountCallbackService(const std::shared_ptr<DomainAccountCallback> &callback);
+    DomainAccountCallbackService(const DomainAccountCallbackFunc &callback);
     ~DomainAccountCallbackService() override;
     void OnResult(const int32_t errCode, Parcel &parcel) override;
 
 private:
     std::shared_ptr<DomainAccountCallback> innerCallback_;
+    DomainAccountCallbackFunc callback_;
     DISALLOW_COPY_AND_MOVE(DomainAccountCallbackService);
 };
 }  // namespace AccountSA

@@ -24,8 +24,8 @@ namespace {
 const std::string AUTHORIZED_ACCOUNTS = "authorizedAccounts";
 }
 
-AppAccountDataStorage::AppAccountDataStorage(const std::string &storeId, const bool &autoSync)
-    : AccountDataStorage(Constants::APP_ACCOUNT_APP_ID, storeId, autoSync)
+AppAccountDataStorage::AppAccountDataStorage(const std::string &storeId, const AccountDataStorageOptions &options)
+    : AccountDataStorage(Constants::APP_ACCOUNT_APP_ID, storeId, options)
 {}
 
 Json AppAccountDataStorage::GetAccessibleAccountsFromAuthorizedAccounts(const std::string &authorizedAccounts,

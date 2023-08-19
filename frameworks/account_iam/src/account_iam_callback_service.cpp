@@ -132,21 +132,9 @@ void IAMInputerData::OnSetData(int32_t authSubType, std::vector<uint8_t> data)
     AccountIAMClient::GetInstance().SetCredential(userId_, data);
 }
 
-void IAMInputerData::ResetInnerInputerData(const std::shared_ptr<IInputerData> &inputerData)
-{
-    innerInputerData_ = inputerData;
-}
-
 IAMInputer::IAMInputer(int32_t userId, const std::shared_ptr<IInputer> &inputer)
     : userId_(userId), innerInputer_(inputer)
-{
-    auto iamInputerData = new (std::nothrow) IAMInputerData(userId, nullptr);
-    if (iamInputerData == nullptr) {
-        ACCOUNT_LOGE("failed to create IAMInputerData");
-        return;
-    }
-    inputerData_.reset(iamInputerData);
-}
+{}
 
 IAMInputer::~IAMInputer()
 {}
@@ -162,17 +150,12 @@ void IAMInputer::OnGetData(int32_t authSubType, std::shared_ptr<IInputerData> in
         authSubType = AccountIAMClient::GetInstance().GetAuthSubType(userId_);
     }
     if (state < AFTER_ADD_CRED) {
-        if (inputerData_ == nullptr) {
-            ACCOUNT_LOGE("inputerData_ is nullptr");
-            return;
-        }
-        inputerData_->ResetInnerInputerData(inputerData);
         if (innerInputer_ == nullptr) {
-            ACCOUNT_LOGE("innnerInputer_ is nullptr");
-            inputerData_->ResetInnerInputerData(nullptr);
+            ACCOUNT_LOGE("innerInputer_ is nullptr");
             return;
         }
-        innerInputer_->OnGetData(authSubType, inputerData_);
+        auto iamInputerData = std::make_shared<IAMInputerData>(userId_, inputerData);
+        innerInputer_->OnGetData(authSubType, iamInputerData);
         return;
     }
     CredentialItem credItem;

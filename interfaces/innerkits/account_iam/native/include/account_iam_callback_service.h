@@ -81,7 +81,6 @@ public:
     IAMInputerData(int32_t userId, const std::shared_ptr<IInputerData> &inputerData);
     ~IAMInputerData() override;
     void OnSetData(int32_t authSubType, std::vector<uint8_t> data) override;
-    void ResetInnerInputerData(const std::shared_ptr<IInputerData> &inputerData);
 
 private:
     int32_t userId_;

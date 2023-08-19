@@ -76,7 +76,8 @@ ErrCode AbilityManagerAdapter::DisconnectAbility(const sptr<AAFwk::IAbilityConne
         return ERR_INVALID_VALUE;
     }
 
-    error = abms->SendRequest(IAbilityManager::DISCONNECT_ABILITY, data, reply, option);
+    error = abms->SendRequest(
+        static_cast<uint32_t>(AbilityManagerInterfaceCode::DISCONNECT_ABILITY), data, reply, option);
     if (error != NO_ERROR) {
         ACCOUNT_LOGE("Send request error: %{public}d", error);
         return error;
@@ -134,7 +135,7 @@ ErrCode AbilityManagerAdapter::StartUser(int32_t accountId)
         ACCOUNT_LOGE("StartUser:WriteInt32 fail.");
         return ERR_INVALID_VALUE;
     }
-    error = abms->SendRequest(IAbilityManager::START_USER, data, reply, option);
+    error = abms->SendRequest(static_cast<uint32_t>(AbilityManagerInterfaceCode::START_USER), data, reply, option);
     if (error != NO_ERROR) {
         ACCOUNT_LOGE("StartUser:SendRequest error: %{public}d", error);
         return error;
@@ -173,7 +174,7 @@ ErrCode AbilityManagerAdapter::StopUser(int32_t accountId, const sptr<AAFwk::ISt
             return ERR_INVALID_VALUE;
         }
     }
-    error = abms->SendRequest(IAbilityManager::STOP_USER, data, reply, option);
+    error = abms->SendRequest(static_cast<uint32_t>(AbilityManagerInterfaceCode::STOP_USER), data, reply, option);
     if (error != NO_ERROR) {
         ACCOUNT_LOGE("StopUser:SendRequest error: %{public}d", error);
         return error;
@@ -193,12 +194,10 @@ ErrCode AbilityManagerAdapter::DoConnectAbility(const sptr<IRemoteObject> proxy,
         ACCOUNT_LOGE("connect ability fail, proxy or connect is nullptr");
         return ERR_INVALID_VALUE;
     }
-
     if (!data.WriteInterfaceToken(ABILITY_MGR_DESCRIPTOR)) {
         ACCOUNT_LOGE("write interface token failed.");
         return INNER_ERR;
     }
-
     if (!data.WriteParcelable(&want)) {
         ACCOUNT_LOGE("want write failed.");
         return ERR_INVALID_VALUE;
@@ -208,28 +207,25 @@ ErrCode AbilityManagerAdapter::DoConnectAbility(const sptr<IRemoteObject> proxy,
             ACCOUNT_LOGE("flag and connect write failed.");
             return ERR_INVALID_VALUE;
         }
-    } else {
-        if (!data.WriteBool(false)) {
-            ACCOUNT_LOGE("flag write failed.");
-            return ERR_INVALID_VALUE;
-        }
+    } else if (!data.WriteBool(false)) {
+        ACCOUNT_LOGE("flag write failed.");
+        return ERR_INVALID_VALUE;
     }
     if (callerToken) {
         if (!data.WriteBool(true) || !data.WriteRemoteObject(callerToken)) {
             ACCOUNT_LOGE("flag and callerToken write failed.");
             return ERR_INVALID_VALUE;
         }
-    } else {
-        if (!data.WriteBool(false)) {
-            ACCOUNT_LOGE("flag write failed.");
-            return ERR_INVALID_VALUE;
-        }
+    } else if (!data.WriteBool(false)) {
+        ACCOUNT_LOGE("flag write failed.");
+        return ERR_INVALID_VALUE;
     }
     if (!data.WriteInt32(userId)) {
         ACCOUNT_LOGE("userId write failed.");
         return INNER_ERR;
     }
-    error = proxy->SendRequest(IAbilityManager::CONNECT_ABILITY, data, reply, option);
+    error = proxy->SendRequest(
+        static_cast<uint32_t>(AbilityManagerInterfaceCode::CONNECT_ABILITY), data, reply, option);
     if (error != NO_ERROR) {
         ACCOUNT_LOGE("Send request error: %{public}d", error);
         return error;
