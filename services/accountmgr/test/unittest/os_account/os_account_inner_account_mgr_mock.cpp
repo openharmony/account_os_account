@@ -161,17 +161,17 @@ HWTEST_F(OsAccountInnerAccmgrCoverageTest, OsAccountInnerAccmgrCoverageTest005, 
 HWTEST_F(OsAccountInnerAccmgrCoverageTest, OsAccountInnerAccmgrCoverageTest007, TestSize.Level1)
 {
     bool ret = false;
-    innerMgrService_->AddLocalIdToOperating(TEST_USER_ID10);
-    ret = innerMgrService_->IsLocalIdInOperating(TEST_USER_ID10);
+    innerMgrService_->CheckAndAddLocalIdOperating(TEST_USER_ID10);
+    ret = innerMgrService_->CheckAndAddLocalIdOperating(TEST_USER_ID10);
+    EXPECT_EQ(ret, false);
+
+    innerMgrService_->RemoveLocalIdToOperating(TEST_USER_ID10);
+    ret = innerMgrService_->CheckAndAddLocalIdOperating(TEST_USER_ID10);
     EXPECT_EQ(ret, true);
 
     innerMgrService_->RemoveLocalIdToOperating(TEST_USER_ID10);
-    ret = innerMgrService_->IsLocalIdInOperating(TEST_USER_ID10);
-    EXPECT_EQ(ret, false);
-
-    innerMgrService_->RemoveLocalIdToOperating(TEST_USER_ID10);
-    ret = innerMgrService_->IsLocalIdInOperating(TEST_USER_ID10);
-    EXPECT_EQ(ret, false);
+    ret = innerMgrService_->CheckAndAddLocalIdOperating(TEST_USER_ID10);
+    EXPECT_EQ(ret, true);
 }
 
 /*
@@ -430,7 +430,7 @@ HWTEST_F(OsAccountInnerAccmgrCoverageTest, OsAccountInnerAccmgrCoverageTest013, 
         .WillRepeatedly(testing::Return(0));
 
     int32_t id = 0;
-    innerMgrService_->AddLocalIdToOperating(id);
+    innerMgrService_->CheckAndAddLocalIdOperating(id);
     ret = innerMgrService_->RemoveOsAccount(id);
     innerMgrService_->RemoveLocalIdToOperating(id);
     EXPECT_EQ(ret, ERR_OSACCOUNT_SERVICE_INNER_ACCOUNT_OPERATING_ERROR);
@@ -821,7 +821,7 @@ HWTEST_F(OsAccountInnerAccmgrCoverageTest, OsAccountInnerAccmgrCoverageTest026, 
     int id = TEST_USER_ID100;
     std::string photo = "";
 
-    innerMgrService_->AddLocalIdToOperating(id);
+    innerMgrService_->CheckAndAddLocalIdOperating(id);
     ErrCode ret = innerMgrService_->ActivateOsAccount(id);
     EXPECT_EQ(ret, ERR_OSACCOUNT_SERVICE_INNER_ACCOUNT_OPERATING_ERROR);
     innerMgrService_->RemoveLocalIdToOperating(id);

@@ -110,9 +110,8 @@ private:
     ErrCode SendMsgForAccountActivate(OsAccountInfo &osAccountInfo);
     ErrCode SendMsgForAccountStop(OsAccountInfo &osAccountInfo);
     ErrCode SendMsgForAccountRemove(OsAccountInfo &osAccountInfo);
-    void AddLocalIdToOperating(int32_t localId);
     void RemoveLocalIdToOperating(int32_t localId);
-    bool IsLocalIdInOperating(int32_t localId);
+    bool CheckAndAddLocalIdOperating(int32_t localId);
     void CleanGarbageAccounts();
     ErrCode DealWithDeviceOwnerId(const bool isDeviceOwner, const int32_t localId);
     void CheckAndRefreshLocalIdRecord(const int id);
