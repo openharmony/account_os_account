@@ -110,6 +110,7 @@ ohos_shared_library("app_account_innerkits") {
     "c_utils:utils",
     "eventhandler:libeventhandler",
     "hilog:libhilog",
+    "ipc:ipc_napi_common",
     "ipc:ipc_single",
     "napi:ace_napi",
     "samgr:samgr_proxy",

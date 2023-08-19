@@ -502,10 +502,10 @@ void NapiExecuteRequestCallback::OnResult(const AsyncCallbackError &businessErro
     callbackRef_ = nullptr;
     requestRef_ = nullptr;
     deferred_ = nullptr;
-    int32_t resultCode = uv_queue_work(
-        loop, work, [](uv_work_t *work) {}, ExecuteRequestCompletedWork);
+    int32_t resultCode = uv_queue_work_with_qos(
+        loop, work, [](uv_work_t *work) {}, ExecuteRequestCompletedWork, uv_qos_default);
     if (resultCode != 0) {
-        ACCOUNT_LOGE("failed to uv_queue_work, errCode: %{public}d", resultCode);
+        ACCOUNT_LOGE("failed to uv_queue_work_with_qos, errCode: %{public}d", resultCode);
         delete asyncContext;
         delete work;
         return;
@@ -530,7 +530,7 @@ static void OnRequestRedirectedWork(uv_work_t *work, int status)
     WantParams params = asyncContext->want.GetParams();
     params.Remove("moduleName");
     if (asyncContext->errCode != 0) {
-        if (asyncContext->errCode == DEFAULT_RESULT) {
+        if ((asyncContext->errCode == DEFAULT_RESULT) || (asyncContext->errCode == ERR_JS_SYSTEM_SERVICE_EXCEPTION)) {
             errJs = GenerateBusinessError(asyncContext->env, ERR_JS_SYSTEM_SERVICE_EXCEPTION);
         } else {
             errJs = AppExecFwk::WrapWantParams(asyncContext->env, params);
@@ -570,6 +570,15 @@ static void ReleaseOrErrorCommonWork(uv_work_t *work, int status)
     delete asyncContext;
 }
 
+static bool CheckParamCode(const WantParams &params)
+{
+    int resultCode = params.GetIntParam("code", DEFAULT_RESULT);
+    if (resultCode != DEFAULT_RESULT) {
+        return true;
+    }
+    return false;
+}
+
 static void OnResultForModalWork(uv_work_t *work, int status)
 {
     std::unique_ptr<uv_work_t> workPtr(work);
@@ -580,10 +589,16 @@ static void OnResultForModalWork(uv_work_t *work, int status)
     JsAbilityResult *asyncContext = reinterpret_cast<JsAbilityResult *>(work->data);
     napi_value errJs = nullptr;
     napi_value dataJs = nullptr;
-    if (asyncContext->errCode != ERR_OK) {
-        errJs = GenerateBusinessError(asyncContext->env, ERR_JS_SYSTEM_SERVICE_EXCEPTION);
+    WantParams params = asyncContext->want.GetParams();
+    params.Remove("moduleName");
+    if (asyncContext->errCode != 0) {
+        if (!CheckParamCode(params)) {
+            errJs = GenerateBusinessError(asyncContext->env, ERR_JS_SYSTEM_SERVICE_EXCEPTION);
+        } else {
+            errJs = AppExecFwk::WrapWantParams(asyncContext->env, params);
+        }
     } else {
-        dataJs = AppExecFwk::WrapWant(asyncContext->env, asyncContext->want);
+        dataJs = AppExecFwk::WrapWantParams(asyncContext->env, params);
     }
     ReturnCallbackOrPromise(asyncContext->env, asyncContext, errJs, dataJs);
     napi_close_handle_scope(asyncContext->env, scope);
@@ -618,7 +633,6 @@ void NapiExecuteRequestCallback::OnRelease(int32_t releaseCode)
         if (UIContent_ != nullptr) {
             UIContent_->CloseModalUIExtension(sessionId_);
         }
-        napi_delete_reference(env_, callbackRef_);
         return;
     }
     uv_loop_s *loop = nullptr;
@@ -628,10 +642,10 @@ void NapiExecuteRequestCallback::OnRelease(int32_t releaseCode)
         return;
     }
     work->data = reinterpret_cast<void *>(asyncContext);
-    int32_t errCode = uv_queue_work(
-        loop, work, [](uv_work_t *work) {}, ReleaseOrErrorCommonWork);
+    int32_t errCode = uv_queue_work_with_qos(
+        loop, work, [](uv_work_t *work) {}, ReleaseOrErrorCommonWork, uv_qos_default);
     if (errCode != 0) {
-        ACCOUNT_LOGE("failed to uv_queue_work, errCode: %{public}d", errCode);
+        ACCOUNT_LOGE("failed to uv_queue_work_with_qos, errCode: %{public}d", errCode);
         delete work;
         delete asyncContext;
     }
@@ -648,10 +662,10 @@ void NapiExecuteRequestCallback::OnResultForModal(int32_t resultCode, const AAFw
     }
     asyncContext->want = result;
     work->data = reinterpret_cast<void *>(asyncContext);
-    int32_t errCode = uv_queue_work(
-        loop, work, [](uv_work_t *work) {}, OnResultForModalWork);
+    int32_t errCode = uv_queue_work_with_qos(
+        loop, work, [](uv_work_t *work) {}, OnResultForModalWork, uv_qos_default);
     if (errCode != 0) {
-        ACCOUNT_LOGE("failed to uv_queue_work, errCode: %{public}d", errCode);
+        ACCOUNT_LOGE("failed to uv_queue_work_with_qos, errCode: %{public}d", errCode);
         delete work;
         asyncContext->callbackRef = nullptr;
         delete asyncContext;
@@ -671,10 +685,10 @@ void NapiExecuteRequestCallback::OnError(int32_t code, const std::string &name, 
         return;
     }
     work->data = reinterpret_cast<void *>(asyncContext);
-    int32_t errCode = uv_queue_work(
-        loop, work, [](uv_work_t *work) {}, ReleaseOrErrorCommonWork);
+    int32_t errCode = uv_queue_work_with_qos(
+        loop, work, [](uv_work_t *work) {}, ReleaseOrErrorCommonWork, uv_qos_default);
     if (errCode != 0) {
-        ACCOUNT_LOGE("failed to uv_queue_work, errCode: %{public}d", errCode);
+        ACCOUNT_LOGE("failed to uv_queue_work_with_qos, errCode: %{public}d", errCode);
         delete work;
         delete asyncContext;
     }
@@ -703,10 +717,10 @@ void NapiExecuteRequestCallback::CreateAbility(const AAFwk::Want &request)
         asyncContext->callbackRef = callbackRef_;
         asyncContext->deferred = deferred_;
         work->data = reinterpret_cast<void *>(asyncContext);
-        int32_t errCode = uv_queue_work(
-            loop, work, [](uv_work_t *work) {}, OnRequestRedirectedWork);
+        int32_t errCode = uv_queue_work_with_qos(
+            loop, work, [](uv_work_t *work) {}, OnRequestRedirectedWork, uv_qos_default);
         if (errCode != 0) {
-            ACCOUNT_LOGE("failed to uv_queue_work, errCode: %{public}d", errCode);
+            ACCOUNT_LOGE("failed to uv_queue_work_with_qos, errCode: %{public}d", errCode);
             delete work;
             delete asyncContext;
             return;
@@ -924,7 +938,7 @@ napi_value NapiAccountCapabilityScheduler::ExecuteRequest(napi_env env, napi_cal
         ExecuteRequestCompletedCB,
         reinterpret_cast<void *>(executeRequestCB.get()),
         &executeRequestCB->work));
-    NAPI_CALL(env, napi_queue_async_work(env, executeRequestCB->work));
+    NAPI_CALL(env, napi_queue_async_work_with_qos(env, executeRequestCB->work, napi_qos_default));
     executeRequestCB.release();
     return result;
 }

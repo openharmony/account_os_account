@@ -1,0 +1,102 @@
+# Copyright (c) 2023 Huawei Device Co., Ltd.
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#     http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
+import("//build/test.gni")
+import("../../../../../os_account.gni")
+
+module_output_path = "os_account/services/common"
+
+config("app_account_service_config_mock") {
+  include_dirs = [
+    "//third_party/googletest/googlemock/include",
+    "${app_account_services_path}/test/mock/app_account",
+    "${app_account_services_path}/test/mock/common",
+    "${app_account_innerkits_native_path}/include",
+  ]
+}
+
+config("app_account_service_config_unittest") {
+  visibility = [ ":*" ]
+
+  include_dirs = []
+
+  cflags = []
+  if (target_cpu == "arm") {
+    cflags += [ "-DBINDER_IPC_32BIT" ]
+  }
+
+  defines = [
+    "ACCOUNT_LOG_TAG = \"AccountCommonMTest\"",
+    "LOG_DOMAIN = 0xD001B00",
+  ]
+}
+
+ohos_moduletest("account_permission_manager_module_test") {
+  module_out_path = module_output_path
+
+  sources = [ "account_permission_manager_module_test.cpp" ]
+
+  deps = [
+    "${common_path}:libaccount_common",
+    "//third_party/googletest:gmock_main",
+    "//third_party/googletest:gtest_main",
+  ]
+
+  external_deps = [
+    "access_token:libaccesstoken_sdk",
+    "access_token:libtoken_setproc",
+    "c_utils:utils",
+    "hilog:libhilog",
+    "ipc:ipc_single",
+  ]
+}
+
+ohos_moduletest("bundle_manager_adapter_module_test") {
+  module_out_path = module_output_path
+  include_dirs =
+      [ "${services_path}/accountmgr/include/bundle_manager_adapter" ]
+  sources = [
+    "${services_path}/accountmgr/src/bundle_manager_adapter/bundle_manager_adapter_proxy.cpp",
+    "bundle_manager_adapter_module_test.cpp",
+  ]
+
+  configs = [ ":app_account_service_config_unittest" ]
+
+  deps = [
+    "${app_account_services_path}:accountmgr",
+    "${common_path}:libaccount_common",
+    "${innerkits_native_path}:libaccountkits",
+    "//third_party/googletest:gtest_main",
+  ]
+
+  external_deps = [
+    "ability_base:want",
+    "ability_runtime:app_manager",
+    "ability_runtime:wantagent_innerkits",
+    "bundle_framework:appexecfwk_base",
+    "bundle_framework:appexecfwk_core",
+    "c_utils:utils",
+    "hilog:libhilog",
+    "ipc:ipc_single",
+    "samgr:samgr_proxy",
+  ]
+}
+
+group("moduletest") {
+  testonly = true
+
+  deps = [
+    ":account_permission_manager_module_test",
+    ":bundle_manager_adapter_module_test",
+  ]
+}

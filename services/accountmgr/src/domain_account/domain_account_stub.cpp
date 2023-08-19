@@ -21,6 +21,7 @@
 #include "domain_account_callback_proxy.h"
 #include "domain_auth_callback_proxy.h"
 #include "ipc_skeleton.h"
+#include "memory_guard.h"
 
 namespace OHOS {
 namespace AccountSA {
@@ -101,6 +102,7 @@ DomainAccountStub::~DomainAccountStub()
 int32_t DomainAccountStub::OnRemoteRequest(
     uint32_t code, MessageParcel &data, MessageParcel &reply, MessageOption &option)
 {
+    MemoryGuard cacheGuard;
     int32_t uid = IPCSkeleton::GetCallingUid();
     ACCOUNT_LOGD("Received stub message: %{public}d, callingUid: %{public}d", code, uid);
     ErrCode errCode = CheckPermission(static_cast<DomainAccountInterfaceCode>(code), uid);

@@ -12,7 +12,7 @@
 # limitations under the License.
 
 import("//build/ohos.gni")
-import("../../os_account.gni")
+import("os_account_service.gni")
 
 ohos_prebuilt_etc("accountmgr.init") {
   source = "accountmgr.cfg"
@@ -186,37 +186,8 @@ ohos_shared_library("accountmgr") {
     "${os_account_dfx_path}/hidumper_adapter/account_dump_helper.cpp",
     "${os_account_dfx_path}/hisysevent_adapter/hisysevent_adapter.cpp",
     "${os_account_dfx_path}/hitrace_adapter/hitrace_adapter.cpp",
-    "src/account_event_provider.cpp",
-    "src/account_event_subscribe.cpp",
-    "src/account_helper_data.cpp",
-    "src/account_info_report.cpp",
-    "src/account_mgr_service.cpp",
-    "src/account_state_machine.cpp",
-    "src/account_stub.cpp",
-    "src/domain_account/domain_account_manager_service.cpp",
-    "src/domain_account/domain_account_plugin_death_recipient.cpp",
-    "src/domain_account/domain_account_plugin_proxy.cpp",
-    "src/domain_account/domain_account_stub.cpp",
-    "src/domain_account/domain_has_domain_info_callback.cpp",
-    "src/domain_account/inner_domain_account_manager.cpp",
-    "src/domain_account/status_listener_death_recipient.cpp",
-    "src/domain_account/status_listener_manager.cpp",
-    "src/ohos_account_data_deal.cpp",
-    "src/ohos_account_manager.cpp",
-    "src/osaccount/inner_os_account_manager.cpp",
-    "src/osaccount/os_account_control_file_manager.cpp",
-    "src/osaccount/os_account_delete_user_idm_callback.cpp",
-    "src/osaccount/os_account_domain_account_callback.cpp",
-    "src/osaccount/os_account_file_operator.cpp",
-    "src/osaccount/os_account_interface.cpp",
-    "src/osaccount/os_account_manager_service.cpp",
-    "src/osaccount/os_account_photo_operator.cpp",
-    "src/osaccount/os_account_stop_user_callback.cpp",
-    "src/osaccount/os_account_stub.cpp",
-    "src/osaccount/os_account_subscribe_death_recipient.cpp",
-    "src/osaccount/os_account_subscribe_manager.cpp",
   ]
-
+  sources += account_service_sources
   sources += ability_manager_sources
   sources += bundle_manager_sources
 

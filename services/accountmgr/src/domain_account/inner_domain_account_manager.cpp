@@ -102,7 +102,8 @@ ErrCode InnerDomainAccountManager::RegisterPlugin(const sptr<IDomainAccountPlugi
         return ERR_DOMAIN_ACCOUNT_SERVICE_PLUGIN_ALREADY_EXIST;
     }
     auto deathRecipient = GetDeathRecipient();
-    if ((deathRecipient == nullptr) || (!plugin->AsObject()->AddDeathRecipient(deathRecipient))) {
+    if ((plugin->AsObject()->IsProxyObject()) &&
+        ((deathRecipient == nullptr) || (!plugin->AsObject()->AddDeathRecipient(deathRecipient)))) {
         ACCOUNT_LOGE("failed to add death recipient for plugin");
         return ERR_ACCOUNT_COMMON_ADD_DEATH_RECIPIENT;
     }
@@ -282,7 +283,7 @@ ErrCode InnerDomainAccountManager::UpdateAccountToken(const DomainAccountInfo &i
 {
     if (plugin_ == nullptr) {
         ACCOUNT_LOGE("plugin is not exit!");
-        return ERR_DOMAIN_ACCOUNT_SERVICE_PLUGIN_NOT_EXIT;
+        return ERR_DOMAIN_ACCOUNT_SERVICE_PLUGIN_NOT_EXIST;
     }
     int32_t callingUid = IPCSkeleton::GetCallingUid();
     if (callingUid != callingUid_) {
@@ -326,6 +327,18 @@ ErrCode InnerDomainAccountManager::StartGetAccessToken(const sptr<IDomainAccount
         ACCOUNT_LOGE("plugin is nullptr");
         OnResultForGetAccessToken(ERR_DOMAIN_ACCOUNT_SERVICE_PLUGIN_NOT_EXIST, callback);
         return ERR_DOMAIN_ACCOUNT_SERVICE_PLUGIN_NOT_EXIST;
+    }
+    DomainAccountCallbackFunc callbackFunc = [&callback](const int32_t errCode, Parcel &parcel) {
+        if (callback != nullptr) {
+            callback->OnResult(errCode, parcel);
+        }
+    };
+    sptr<DomainAccountCallbackService> callbackService =
+        new (std::nothrow) DomainAccountCallbackService(callbackFunc);
+    if (callbackService == nullptr) {
+        ACCOUNT_LOGE("make shared DomainAccountCallbackService failed");
+        OnResultForGetAccessToken(ERR_DOMAIN_ACCOUNT_SERVICE_PLUGIN_NOT_EXIST, callback);
+        return ERR_ACCOUNT_COMMON_INSUFFICIENT_MEMORY_ERROR;
     }
     ErrCode result = plugin->GetAccessToken(info, accountToken, option, callback);
     if (result != ERR_OK) {

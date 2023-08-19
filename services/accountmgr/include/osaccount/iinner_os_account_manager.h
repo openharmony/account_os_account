@@ -124,6 +124,7 @@ private:
     void CopyFromActiveList(std::vector<int32_t>& idList);
     void RefreshActiveList(int32_t newId);
     bool CheckDomainAccountBound(const std::vector<OsAccountInfo> &osAccountInfos, const DomainAccountInfo &info);
+    void WatchStartUser(std::int32_t id);
 
 private:
     std::shared_ptr<IOsAccountControl> osAccountControl_;

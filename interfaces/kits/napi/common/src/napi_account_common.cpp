@@ -43,9 +43,11 @@ CommonAsyncContext::~CommonAsyncContext()
     }
     if (callbackRef != nullptr) {
         napi_delete_reference(env, callbackRef);
+        callbackRef = nullptr;
     }
     if (work != nullptr) {
         napi_delete_async_work(env, work);
+        work = nullptr;
     }
 }
 
@@ -416,7 +418,7 @@ void ReleaseNapiRefArray(napi_env env, const std::vector<napi_ref> &napiRefVec)
     context->env = env;
     context->napiRefVec = napiRefVec;
     work->data = reinterpret_cast<void *>(context.get());
-    NAPI_CALL_RETURN_VOID(env, uv_queue_work(loop, work.get(), [] (uv_work_t *work) {},
+    NAPI_CALL_RETURN_VOID(env, uv_queue_work_with_qos(loop, work.get(), [] (uv_work_t *work) {},
         [] (uv_work_t *work, int status) {
             if (work == nullptr) {
                 ACCOUNT_LOGE("work is nullptr");
@@ -435,7 +437,7 @@ void ReleaseNapiRefArray(napi_env env, const std::vector<napi_ref> &napiRefVec)
             }
             delete context;
             delete work;
-        }));
+        }, uv_qos_default));
     context.release();
     work.release();
 }

@@ -79,7 +79,7 @@ ErrCode AccountFileOperator::InputFileByPathAndContent(const std::string &path, 
         ErrCode errCode = CreateDir(str);
         if (errCode != ERR_OK) {
             ACCOUNT_LOGE("failed to create dir, str = %{public}s errCode %{public}d.", str.c_str(), errCode);
-            return ERR_OSACCOUNT_SERVICE_FILE_FIND_DIR_ERROR;
+            return errCode;
         }
     }
     FILE *fp = fopen(path.c_str(), "wb");

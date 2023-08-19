@@ -385,7 +385,8 @@ ErrCode AppAccountControlManager::GetAccountCredential(const std::string &name, 
 {
     AppAccountInfo appAccountInfo(name, appAccountCallingInfo.bundleName);
     appAccountInfo.SetAppIndex(appAccountCallingInfo.appIndex);
-    std::shared_ptr<AppAccountDataStorage> dataStoragePtr = GetDataStorage(appAccountCallingInfo.callingUid);
+    std::shared_ptr<AppAccountDataStorage> dataStoragePtr =
+        GetDataStorage(appAccountCallingInfo.callingUid, false, DistributedKv::SecurityLevel::S4);
     ErrCode result = GetAccountInfoFromDataStorage(appAccountInfo, dataStoragePtr);
     if (result != ERR_OK) {
         ACCOUNT_LOGE("failed to get account info from data storage, result %{public}d.", result);
@@ -404,7 +405,8 @@ ErrCode AppAccountControlManager::GetAccountCredential(const std::string &name, 
 ErrCode AppAccountControlManager::SetAccountCredential(const std::string &name, const std::string &credentialType,
     const std::string &credential, const AppAccountCallingInfo &appAccountCallingInfo, bool isDelete)
 {
-    std::shared_ptr<AppAccountDataStorage> dataStoragePtr = GetDataStorage(appAccountCallingInfo.callingUid);
+    std::shared_ptr<AppAccountDataStorage> dataStoragePtr =
+        GetDataStorage(appAccountCallingInfo.callingUid, false, DistributedKv::SecurityLevel::S4);
     AppAccountInfo appAccountInfo(name, appAccountCallingInfo.bundleName);
     appAccountInfo.SetAppIndex(appAccountCallingInfo.appIndex);
     ErrCode result = GetAccountInfoFromDataStorage(appAccountInfo, dataStoragePtr);
@@ -433,7 +435,8 @@ ErrCode AppAccountControlManager::GetOAuthToken(
 {
     AppAccountInfo appAccountInfo(request.name, request.owner);
     appAccountInfo.SetAppIndex(request.appIndex);
-    std::shared_ptr<AppAccountDataStorage> dataStoragePtr = GetDataStorage(request.callerUid);
+    std::shared_ptr<AppAccountDataStorage> dataStoragePtr =
+        GetDataStorage(request.callerUid, false, DistributedKv::SecurityLevel::S4);
     ErrCode result = GetAccountInfoFromDataStorage(appAccountInfo, dataStoragePtr);
     if (result != ERR_OK) {
         ACCOUNT_LOGE("failed to get account info from data storage, result %{public}d.", result);
@@ -454,7 +457,8 @@ ErrCode AppAccountControlManager::SetOAuthToken(const AuthenticatorSessionReques
     std::lock_guard<std::mutex> lock(mutex_);
     AppAccountInfo appAccountInfo(request.name, request.callerBundleName);
     appAccountInfo.SetAppIndex(request.appIndex);
-    std::shared_ptr<AppAccountDataStorage> dataStoragePtr = GetDataStorage(request.callerUid);
+    std::shared_ptr<AppAccountDataStorage> dataStoragePtr =
+        GetDataStorage(request.callerUid, false, DistributedKv::SecurityLevel::S4);
     ErrCode result = GetAccountInfoFromDataStorage(appAccountInfo, dataStoragePtr);
     if (result != ERR_OK) {
         ACCOUNT_LOGE("failed to get account info from data storage, result %{public}d.", result);
@@ -958,7 +962,7 @@ ErrCode AppAccountControlManager::GetAllAccessibleAccountsFromDataStorage(
 }
 
 std::shared_ptr<AppAccountDataStorage> AppAccountControlManager::GetDataStorageByUserId(
-    int32_t userId, const bool &autoSync)
+    int32_t userId, const bool &autoSync, DistributedKv::SecurityLevel securityLevel)
 {
     std::string storeId = std::to_string(userId);
     if (autoSync == true) {
@@ -969,14 +973,18 @@ std::shared_ptr<AppAccountDataStorage> AppAccountControlManager::GetDataStorageB
     if (it != storePtrMap_.end()) {
         return it->second;
     }
-    auto storePtr = std::make_shared<AppAccountDataStorage>(storeId, autoSync);
+    AccountDataStorageOptions options;
+    options.autoSync = autoSync;
+    options.securityLevel = securityLevel;
+    auto storePtr = std::make_shared<AppAccountDataStorage>(storeId, options);
     storePtrMap_.emplace(storeId, storePtr);
     return storePtr;
 }
 
-std::shared_ptr<AppAccountDataStorage> AppAccountControlManager::GetDataStorage(const uid_t &uid, const bool &autoSync)
+std::shared_ptr<AppAccountDataStorage> AppAccountControlManager::GetDataStorage(
+    const uid_t &uid, const bool &autoSync, DistributedKv::SecurityLevel securityLevel)
 {
-    return GetDataStorageByUserId(uid / UID_TRANSFORM_DIVISOR, autoSync);
+    return GetDataStorageByUserId(uid / UID_TRANSFORM_DIVISOR, autoSync, securityLevel);
 }
 
 bool AppAccountControlManager::NeedSyncDataStorage(const AppAccountInfo &appAccountInfo)
