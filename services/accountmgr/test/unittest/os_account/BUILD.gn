@@ -115,6 +115,7 @@ ohos_unittest("os_account_domain_account_callback_test") {
   ]
 
   external_deps = [
+    "ability_base:want",
     "c_utils:utils",
     "hilog:libhilog",
     "ipc:ipc_single",

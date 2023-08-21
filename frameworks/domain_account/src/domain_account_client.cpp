@@ -195,6 +195,22 @@ ErrCode DomainAccountClient::GetAccountStatus(const DomainAccountInfo &info, Dom
     return proxy->GetAccountStatus(info, status);
 }
 
+ErrCode DomainAccountClient::GetDomainAccountInfo(
+    const DomainAccountInfo &info, const std::shared_ptr<DomainAccountCallback> &callback)
+{
+    if (callback == nullptr) {
+        ACCOUNT_LOGE("callback is nullptr");
+        return ERR_ACCOUNT_COMMON_INVALID_PARAMETER;
+    }
+    sptr<DomainAccountCallbackService> callbackService = new (std::nothrow) DomainAccountCallbackService(callback);
+    auto proxy = GetDomainAccountProxy();
+    if (proxy == nullptr) {
+        ACCOUNT_LOGE("failed to get domain account proxy");
+        return ERR_ACCOUNT_COMMON_GET_PROXY;
+    }
+    return proxy->GetDomainAccountInfo(info, callbackService);
+}
+
 ErrCode DomainAccountClient::RegisterAccountStatusListener(
     const DomainAccountInfo &info, const std::shared_ptr<DomainAccountStatusListener> &listener)
 {

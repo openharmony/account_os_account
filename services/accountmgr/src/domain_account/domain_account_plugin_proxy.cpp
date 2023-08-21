@@ -169,19 +169,15 @@ ErrCode DomainAccountPluginProxy::GetAuthStatusInfo(
 }
 
 ErrCode DomainAccountPluginProxy::GetDomainAccountInfo(
-    const std::string &domain, const std::string &accountName, const sptr<IDomainAccountCallback> &callback)
+    const GetDomainAccountInfoOptions &options, const sptr<IDomainAccountCallback> &callback)
 {
     MessageParcel data;
     if (!data.WriteInterfaceToken(GetDescriptor())) {
         ACCOUNT_LOGE("fail to write descriptor");
         return ERR_ACCOUNT_COMMON_WRITE_PARCEL_ERROR;
     }
-    if (!data.WriteString(domain)) {
-        ACCOUNT_LOGE("fail to write name");
-        return ERR_ACCOUNT_COMMON_WRITE_PARCEL_ERROR;
-    }
-    if (!data.WriteString(accountName)) {
-        ACCOUNT_LOGE("fail to write accountName");
+    if (!data.WriteParcelable(&options)) {
+        ACCOUNT_LOGE("failed to write option");
         return ERR_ACCOUNT_COMMON_WRITE_PARCEL_ERROR;
     }
     if ((callback == nullptr) || (!data.WriteRemoteObject(callback->AsObject()))) {
