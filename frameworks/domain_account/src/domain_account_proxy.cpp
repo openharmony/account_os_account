@@ -411,5 +411,34 @@ ErrCode DomainAccountProxy::GetAccessToken(
     }
     return result;
 }
+
+ErrCode DomainAccountProxy::GetDomainAccountInfo(
+    const DomainAccountInfo &info, const sptr<IDomainAccountCallback> &callback)
+{
+    MessageParcel data;
+    if (!data.WriteInterfaceToken(GetDescriptor())) {
+        ACCOUNT_LOGE("fail to write descriptor");
+        return ERR_ACCOUNT_COMMON_WRITE_PARCEL_ERROR;
+    }
+    if (!data.WriteParcelable(&info)) {
+        ACCOUNT_LOGE("fail to write accountInfo");
+        return ERR_ACCOUNT_COMMON_WRITE_PARCEL_ERROR;
+    }
+    if ((callback == nullptr) || (!data.WriteRemoteObject(callback->AsObject()))) {
+        ACCOUNT_LOGE("fail to write callback");
+        return ERR_ACCOUNT_COMMON_WRITE_PARCEL_ERROR;
+    }
+    MessageParcel reply;
+    ErrCode result = SendRequest(DomainAccountInterfaceCode::DOMAIN_GET_ACCOUNT_INFO, data, reply);
+    if (result != ERR_OK) {
+        ACCOUNT_LOGE("fail to send request, error: %{public}d", result);
+        return result;
+    }
+    if (!reply.ReadInt32(result)) {
+        ACCOUNT_LOGE("fail to read result");
+        return ERR_ACCOUNT_COMMON_READ_PARCEL_ERROR;
+    }
+    return result;
+}
 } // namespace AccountSA
 } // namespace OHOS

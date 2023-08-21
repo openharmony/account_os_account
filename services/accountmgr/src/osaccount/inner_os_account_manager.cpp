@@ -336,13 +336,13 @@ ErrCode IInnerOsAccountManager::CreateOsAccountForDomain(
         ACCOUNT_LOGE("plugin is not available");
         return ERR_DOMAIN_ACCOUNT_SERVICE_PLUGIN_NOT_EXIST;
     }
-    auto callbackWrapper = std::make_shared<CheckAndCreateDomainAccountCallback>(type, domainInfo, callback);
+    sptr<CheckAndCreateDomainAccountCallback> callbackWrapper =
+        new (std::nothrow) CheckAndCreateDomainAccountCallback(type, domainInfo, callback);
     if (callbackWrapper == nullptr) {
         ACCOUNT_LOGE("new DomainCreateDomainCallback failed");
         return ERR_ACCOUNT_COMMON_INSUFFICIENT_MEMORY_ERROR;
     }
-    return InnerDomainAccountManager::GetInstance().GetDomainAccountInfo(
-        domainInfo.domain_, domainInfo.accountName_, callbackWrapper);
+    return InnerDomainAccountManager::GetInstance().GetDomainAccountInfo(domainInfo, callbackWrapper);
 }
 
 void IInnerOsAccountManager::CheckAndRefreshLocalIdRecord(const int id)

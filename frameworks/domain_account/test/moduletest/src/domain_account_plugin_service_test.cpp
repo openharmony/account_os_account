@@ -162,7 +162,8 @@ HWTEST_F(DomainPluginServiceModuleTest, DomainPluginStubModuleTest_GetAuthStatus
  */
 HWTEST_F(DomainPluginServiceModuleTest, DomainPluginStubModuleTest_GetDomainAccountInfo_001, TestSize.Level0)
 {
-    EXPECT_EQ(pluginServie_->GetDomainAccountInfo("test", "test", nullptr), ERR_ACCOUNT_COMMON_NULL_PTR_ERROR);
+    GetDomainAccountInfoOptions options;
+    EXPECT_EQ(pluginServie_->GetDomainAccountInfo(options, nullptr), ERR_ACCOUNT_COMMON_NULL_PTR_ERROR);
 }
 
 /**

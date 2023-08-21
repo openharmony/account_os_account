@@ -32,7 +32,7 @@ public:
         const std::shared_ptr<AccountSA::DomainAuthCallback> &callback) override;
     void GetAuthStatusInfo(const DomainAccountInfo &info,
         const std::shared_ptr<DomainAccountCallback> &callback) override;
-    void GetDomainAccountInfo(const std::string &domain, const std::string &accountName,
+    virtual void GetDomainAccountInfo(const GetDomainAccountInfoOptions &options,
         const std::shared_ptr<DomainAccountCallback> &callback) override;
     void OnAccountBound(const DomainAccountInfo &info, const int32_t localId,
         const std::shared_ptr<DomainAccountCallback> &callback) override;
