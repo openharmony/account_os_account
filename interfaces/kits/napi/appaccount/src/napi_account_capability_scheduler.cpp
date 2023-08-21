@@ -423,16 +423,6 @@ static void ExecuteRequestCompletedWork(uv_work_t *work, int status)
         napi_value requestRef = nullptr;
         napi_get_reference_value(asyncContext->env, asyncContext->requestRef, &requestRef);
 
-        // set readonly request property
-        napi_property_descriptor descriptors[] = {
-            { "request", nullptr, 0, 0, 0, requestRef, napi_enumerable, 0 },
-        };
-        napi_status statusRet = napi_define_properties(
-            asyncContext->env, dataJs, sizeof(descriptors) / sizeof(descriptors[0]), descriptors);
-        if (statusRet != napi_ok) {
-            ACCOUNT_LOGE("failed to set request property");
-        }
-
         napi_value constructor = nullptr;
         napi_get_reference_value(asyncContext->env, g_responsConstructor, &constructor);
         napi_value responseInstance = nullptr;
@@ -442,7 +432,7 @@ static void ExecuteRequestCompletedWork(uv_work_t *work, int status)
         }
         napi_get_prototype(asyncContext->env, responseInstance, &g_responsePrototype);
         // set dataJs extends baseResponse
-        statusRet = napi_set_named_property(asyncContext->env, dataJs, "__proto__", g_responsePrototype);
+        napi_status statusRet = napi_set_named_property(asyncContext->env, dataJs, "__proto__", g_responsePrototype);
         if (statusRet != napi_ok) {
             ACCOUNT_LOGE("failed to set __proto__ property");
         }
