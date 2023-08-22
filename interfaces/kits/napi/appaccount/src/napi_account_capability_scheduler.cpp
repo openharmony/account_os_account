@@ -20,7 +20,7 @@
 #include "ability_manager_client.h"
 #include "account_log_wrapper.h"
 #include "app_account_manager.h"
-#include "modal_ui_extension_callbacks.h"
+#include "modal_ui_extension_config.h"
 #include "napi/native_api.h"
 #include "napi/native_node_api.h"
 #include "napi_account_error.h"
@@ -745,7 +745,9 @@ void NapiExecuteRequestCallback::OnRequestRedirected(const AAFwk::Want &request)
         OnRelease(ERR_JS_SYSTEM_SERVICE_EXCEPTION);
         return;
     }
-    this->sessionId_ = UIContent_->CreateModalUIExtension(request, callback);
+    Ace::ModalUIExtensionConfig config;
+    config.isProhibitBack = true;
+    this->sessionId_ = UIContent_->CreateModalUIExtension(request, callback, config);
 }
 
 napi_value NapiAccountCapabilityScheduler::Init(napi_env env, napi_value exports)
