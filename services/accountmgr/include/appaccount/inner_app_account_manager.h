@@ -115,30 +115,17 @@ private:
 
 class RequestConnection : public AAFwk::AbilityConnectionStub {
 public:
-    RequestConnection(const int32_t &uid, const AuthorizationRequest &request,
-        const sptr<IAppAccountAuthorizationExtensionCallback> &callback);
+    RequestConnection(const int32_t &uid, const AuthorizationRequest &request);
     ~RequestConnection() override;
 
     void OnAbilityConnectDone(
         const AppExecFwk::ElementName &element, const sptr<IRemoteObject> &remoteObject, int32_t resultCode) override;
     void OnAbilityDisconnectDone(const AppExecFwk::ElementName &element, int resultCode) override;
+    void SetCallbackService(const sptr<IAppAccountAuthorizationExtensionCallback> &callbackService);
 
 private:
     int32_t uid_;
     AuthorizationRequest request_;
-    const sptr<IAppAccountAuthorizationExtensionCallback> innerCallback_ = nullptr;
-};
-
-class ExecuteRequestCallback final : public AppAccountAuthorizationExtensionCallback {
-public:
-    ExecuteRequestCallback(const AuthorizationRequest &request);
-    void OnResult(const AsyncCallbackError &businessData, const AAFwk::WantParams &parameters) override;
-    void OnRequestRedirected(const AAFwk::Want &request) override;
-    void SetConnectPtr(const sptr<RequestConnection> &connect);
-
-private:
-    AuthorizationRequest request_;
-    sptr<RequestConnection> conn_ = nullptr;
 };
 }  // namespace AccountSA
 }  // namespace OHOS

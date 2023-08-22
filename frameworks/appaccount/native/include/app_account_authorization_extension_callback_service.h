@@ -21,16 +21,20 @@
 
 namespace OHOS {
 namespace AccountSA {
+using AuthorizationExtensionOnResultCallbackFunc =
+    std::function<void(const AsyncCallbackError &, const AAFwk::WantParams &)>;
+using AuthorizationExtensionOnRequestRedirectedCallbackFunc = std::function<void(const AAFwk::Want &)>;
 class AppAccountAuthorizationExtensionCallbackService : public AppAccountAuthorizationExtensionCallbackStub {
 public:
-    AppAccountAuthorizationExtensionCallbackService(
-        const std::shared_ptr<AppAccountAuthorizationExtensionCallback>& callback);
+    AppAccountAuthorizationExtensionCallbackService(const AuthorizationExtensionOnResultCallbackFunc &onResultCallback,
+        const AuthorizationExtensionOnRequestRedirectedCallbackFunc &onRequestRedirectedCallback);
     ~AppAccountAuthorizationExtensionCallbackService() override;
     void OnResult(const AsyncCallbackError &businessError, const AAFwk::WantParams &parameters) override;
     void OnRequestRedirected(const AAFwk::Want &request) override;
 
 private:
-    std::shared_ptr<AppAccountAuthorizationExtensionCallback> innerCallback_;
+    AuthorizationExtensionOnResultCallbackFunc onResultCallback_;
+    AuthorizationExtensionOnRequestRedirectedCallbackFunc onRequestRedirectedCallback_;
     DISALLOW_COPY_AND_MOVE(AppAccountAuthorizationExtensionCallbackService);
 };
 }  // namespace AccountSA
