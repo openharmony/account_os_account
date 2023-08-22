@@ -2081,3 +2081,82 @@ HWTEST_F(DomainAccountClientModuleTest, ResetDomainAccountProxy_001, TestSize.Le
     DomainAccountClient::GetInstance().ResetDomainAccountProxy(remote);
     EXPECT_EQ(DomainAccountClient::GetInstance().proxy_, nullptr);
 }
+
+/**
+ * @tc.name: DomainAccountClientModuleTest_GetDomainAccountInfo_001
+ * @tc.desc: GetDomainAccountInfo falied with not get domain info.
+ * @tc.type: FUNC
+ * @tc.require: issueI7TJZR
+ */
+HWTEST_F(DomainAccountClientModuleTest, DomainAccountClientModuleTest_GetDomainAccountInfo_001, TestSize.Level0)
+{
+    DomainAccountInfo info;
+    info.accountName_ = STRING_NAME_INVALID;
+    info.domain_ = STRING_DOMAIN;
+    info.accountId_ = STRING_ACCOUNTID;
+    auto callback = std::make_shared<MockGetDomainAccountInfoCallback>();
+    ASSERT_NE(callback, nullptr);
+    EXPECT_CALL(*callback, OnResult(INVALID_CODE, _)).Times(Exactly(1));
+    auto testCallback = std::make_shared<TestGetDomainAccountInfoCallback>(callback);
+    ASSERT_NE(testCallback, nullptr);
+    EXPECT_EQ(DomainAccountClient::GetInstance().GetDomainAccountInfo(info, testCallback), ERR_OK);
+}
+
+/**`
+ * @tc.name: DomainAccountClientModuleTest_GetDomainAccountInfo_002
+ * @tc.desc: GetDomainAccountInfo successfully.
+ * @tc.type: FUNC
+ * @tc.require: issueI7TJZR
+ */
+HWTEST_F(DomainAccountClientModuleTest, DomainAccountClientModuleTest_GetDomainAccountInfo_002, TestSize.Level0)
+{
+    DomainAccountInfo info;
+    info.accountName_ = STRING_NAME;
+    info.domain_ = STRING_DOMAIN;
+    info.accountId_ = STRING_ACCOUNTID;
+    auto callback = std::make_shared<MockGetDomainAccountInfoCallback>();
+    ASSERT_NE(callback, nullptr);
+    EXPECT_CALL(*callback, OnResult(ERR_OK, _)).Times(Exactly(1));
+    auto testCallback = std::make_shared<TestGetDomainAccountInfoCallback>(callback);
+    ASSERT_NE(testCallback, nullptr);
+    EXPECT_EQ(DomainAccountClient::GetInstance().GetDomainAccountInfo(info, testCallback), ERR_OK);
+}
+
+/**
+ * @tc.name: DomainAccountClientModuleTest_GetDomainAccountInfo_003
+ * @tc.desc: GetDomainAccountInfo falied with not register plugin.
+ * @tc.type: FUNC
+ * @tc.require: issueI7TJZR
+ */
+HWTEST_F(DomainAccountClientModuleTest, DomainAccountClientModuleTest_GetDomainAccountInfo_003, TestSize.Level0)
+{
+    DomainAccountClient::GetInstance().UnregisterPlugin();
+    DomainAccountInfo info;
+    info.accountName_ = STRING_NAME;
+    info.domain_ = STRING_DOMAIN;
+    info.accountId_ = STRING_ACCOUNTID;
+    auto callback = std::make_shared<MockGetDomainAccountInfoCallback>();
+    ASSERT_NE(callback, nullptr);
+    auto testCallback = std::make_shared<TestGetDomainAccountInfoCallback>(callback);
+    ASSERT_NE(testCallback, nullptr);
+    EXPECT_CALL(*callback, OnResult(ERR_DOMAIN_ACCOUNT_SERVICE_PLUGIN_NOT_EXIST, _)).Times(Exactly(1));
+    EXPECT_EQ(DomainAccountClient::GetInstance().GetDomainAccountInfo(info, testCallback), ERR_OK);
+}
+
+/**
+ * @tc.name: DomainAccountClientModuleTest_GetDomainAccountInfo_004
+ * @tc.desc: GetDomainAccountInfo callback is nullptr.
+ * @tc.type: FUNC
+ * @tc.require: issueI7TJZR
+ */
+HWTEST_F(DomainAccountClientModuleTest, DomainAccountClientModuleTest_GetDomainAccountInfo_004, TestSize.Level0)
+{
+    DomainAccountClient::GetInstance().UnregisterPlugin();
+    DomainAccountInfo info;
+    info.accountName_ = STRING_NAME;
+    info.domain_ = STRING_DOMAIN;
+    info.accountId_ = STRING_ACCOUNTID;
+    std::shared_ptr<DomainAccountCallback> callback = nullptr;
+    EXPECT_EQ(DomainAccountClient::GetInstance().GetDomainAccountInfo(info, callback),
+        ERR_ACCOUNT_COMMON_INVALID_PARAMETER);
+}
