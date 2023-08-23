@@ -32,8 +32,10 @@
 namespace OHOS {
 namespace AccountSA {
 namespace {
+#ifdef HAS_CES_PART
 static const int INVALID_USERID = -1;
-}
+#endif // HAS_CES_PART
+} // namespace
 
 StatusListenerManager& StatusListenerManager::GetInstance()
 {
