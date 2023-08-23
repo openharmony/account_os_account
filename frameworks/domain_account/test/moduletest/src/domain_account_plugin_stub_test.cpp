@@ -124,7 +124,8 @@ HWTEST_F(DomainPluginStubModuleTest, DomainPluginStubModuleTest_ProcGetAuthStatu
     info.accountName_ = "test";
     info.domain_ = "china";
     EXPECT_EQ(data.WriteParcelable(&info), true);
-    sptr<DomainAccountCallbackService> callbackService = new (std::nothrow) DomainAccountCallbackService(nullptr);
+    std::shared_ptr<DomainAccountCallback> callback = nullptr;
+    sptr<DomainAccountCallbackService> callbackService = new (std::nothrow) DomainAccountCallbackService(callback);
     ASSERT_NE(callbackService, nullptr);
     EXPECT_EQ(data.WriteRemoteObject(callbackService->AsObject()), true);
     EXPECT_EQ(pluginServie_->ProcGetAuthStatusInfo(data, reply), ERR_NONE);

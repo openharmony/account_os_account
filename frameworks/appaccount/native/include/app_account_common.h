@@ -129,6 +129,7 @@ struct AuthorizationRequest {
 struct AccountCapabilityRequest : public Parcelable {
     std::string bundleName;
     std::string abilityName;
+    bool isEnableContext = false;
     AAFwk::WantParams parameters;
     bool ReadFromParcel(Parcel &parcel);
     bool Marshalling(Parcel &parcel) const override;

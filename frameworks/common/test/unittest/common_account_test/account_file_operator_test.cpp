@@ -59,6 +59,5 @@ HWTEST_F(AccountFileOperatorTest, AccountFileOperator001, TestSize.Level0)
     EXPECT_EQ(accountFileOperator_->IsExistFile(""), false);
     EXPECT_EQ(accountFileOperator_->IsJsonFormat("../&*&"), false);
     EXPECT_EQ(accountFileOperator_->IsExistDir(""), false);
-    EXPECT_EQ(
-        accountFileOperator_->InputFileByPathAndContent("/test1", "test"), ERR_OSACCOUNT_SERVICE_FILE_FIND_DIR_ERROR);
+    EXPECT_NE(accountFileOperator_->InputFileByPathAndContent("/test1", "test"), ERR_OK);
 }

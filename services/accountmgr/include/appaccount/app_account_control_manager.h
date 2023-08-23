@@ -101,13 +101,15 @@ public:
     ErrCode GetAllAccessibleAccountsFromDataStorage(std::vector<AppAccountInfo> &appAccounts,
         const std::string &bundleName, const std::shared_ptr<AppAccountDataStorage> &dataStoragePtr,
         const uint32_t &appIndex);
-    std::shared_ptr<AppAccountDataStorage> GetDataStorage(const uid_t &uid, const bool &autoSync = false);
+    std::shared_ptr<AppAccountDataStorage> GetDataStorage(const uid_t &uid, const bool &autoSync = false,
+        DistributedKv::SecurityLevel securityLevel = DistributedKv::SecurityLevel::S1);
 
     void OnAbilityStateChanged(const AppExecFwk::AbilityStateData &abilityStateData);
 
 private:
     AppAccountControlManager() = default;
     ~AppAccountControlManager() = default;
+    DISALLOW_COPY_AND_MOVE(AppAccountControlManager);
     bool RegisterApplicationStateObserver();
     void UnregisterApplicationStateObserver();
     void PopDataFromAssociatedDataCache();
@@ -115,7 +117,8 @@ private:
     void RemoveAssociatedDataCacheByAccount(const uid_t &uid, const std::string &name);
     ErrCode GetAssociatedDataFromStorage(const std::string &name, const std::string &key, std::string &value,
         const uid_t &uid, const uint32_t &appIndex);
-    std::shared_ptr<AppAccountDataStorage> GetDataStorageByUserId(int32_t userId, const bool &autoSync = false);
+    std::shared_ptr<AppAccountDataStorage> GetDataStorageByUserId(int32_t userId, const bool &autoSync = false,
+        DistributedKv::SecurityLevel securityLevel = DistributedKv::SecurityLevel::S1);
     bool NeedSyncDataStorage(const AppAccountInfo &appAccountInfo);
     ErrCode GetAccountInfoFromDataStorage(
         AppAccountInfo &appAccountInfo, std::shared_ptr<AppAccountDataStorage> &dataStoragePtr);

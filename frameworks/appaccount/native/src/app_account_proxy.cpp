@@ -1026,7 +1026,7 @@ ErrCode AppAccountProxy::CheckAccountLabels(const std::string &name, const std::
     }
     if (!data.WriteStringVector(labels)) {
         ACCOUNT_LOGE("failed to write string vector for labels");
-        return ERR_APPACCOUNT_KIT_WRITE_STRING_VECTOR;
+        return ERR_ACCOUNT_COMMON_WRITE_PARCEL_ERROR;
     }
     if ((callback != nullptr) && (!data.WriteRemoteObject(callback->AsObject()))) {
         ACCOUNT_LOGE("failed to write string for callback");
@@ -1070,17 +1070,13 @@ ErrCode AppAccountProxy::SetAuthenticatorProperties(const std::string &owner,
     return reply.ReadInt32();
 }
 
-ErrCode AppAccountProxy::ExecuteRequest(const bool &isEnableContext,
+ErrCode AppAccountProxy::ExecuteRequest(
     const AccountCapabilityRequest &request, const sptr<IAppAccountAuthorizationExtensionCallback> &callback)
 {
     MessageParcel data;
     if (!data.WriteInterfaceToken(GetDescriptor())) {
         ACCOUNT_LOGE("failed to write descriptor!");
         return ERR_ACCOUNT_COMMON_WRITE_DESCRIPTOR_ERROR;
-    }
-    if (!data.WriteBool(isEnableContext)) {
-        ACCOUNT_LOGE("failed to write bool for isEnableContext");
-        return ERR_ACCOUNT_COMMON_WRITE_PARCEL_ERROR;
     }
     if (!data.WriteParcelable(&request)) {
         ACCOUNT_LOGE("failed to write string for request");

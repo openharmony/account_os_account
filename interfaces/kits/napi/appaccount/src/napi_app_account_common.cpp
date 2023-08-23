@@ -106,7 +106,7 @@ void SubscriberPtr::OnAccountsChanged(const std::vector<AppAccountInfo> &account
 
     work->data = reinterpret_cast<void *>(subscriberAccountsWorker);
 
-    uv_queue_work(loop, work, [](uv_work_t *work) {}, UvQueueWorkOnAppAccountsChanged);
+    uv_queue_work_with_qos(loop, work, [](uv_work_t *work) {}, UvQueueWorkOnAppAccountsChanged, uv_qos_default);
 }
 
 void SubscriberPtr::SetEnv(const napi_env &env)
@@ -208,7 +208,7 @@ void AuthenticatorAsyncCallback::OnResult(int32_t resultCode, const AAFwk::Want 
     param->context.errCode = resultCode;
     param->result = result;
     work->data = param;
-    if (uv_queue_work(loop, work, [](uv_work_t *work) {}, workCb_) == ERR_OK) {
+    if (uv_queue_work_with_qos(loop, work, [](uv_work_t *work) {}, workCb_, uv_qos_default) == ERR_OK) {
         return;
     }
     param->context.callbackRef = nullptr;
@@ -287,7 +287,7 @@ void AppAccountManagerCallback::OnResult(int32_t resultCode, const AAFwk::Want &
     param->result = result;
     param->callback = callback_;
     work->data = reinterpret_cast<void *>(param);
-    uv_queue_work(loop, work, [](uv_work_t *work) {}, UvQueueWorkOnResult);
+    uv_queue_work_with_qos(loop, work, [](uv_work_t *work) {}, UvQueueWorkOnResult, uv_qos_default);
 }
 
 void AppAccountManagerCallback::OnRequestRedirected(AAFwk::Want &request)
@@ -302,7 +302,7 @@ void AppAccountManagerCallback::OnRequestRedirected(AAFwk::Want &request)
     param->request = request;
     param->callback = callback_;
     work->data = reinterpret_cast<void *>(param);
-    uv_queue_work(loop, work, [](uv_work_t *work) {}, UvQueueWorkOnRequestRedirected);
+    uv_queue_work_with_qos(loop, work, [](uv_work_t *work) {}, UvQueueWorkOnRequestRedirected, uv_qos_default);
 }
 
 void AppAccountManagerCallback::OnRequestContinued()
@@ -316,7 +316,7 @@ void AppAccountManagerCallback::OnRequestContinued()
     }
     param->callback = callback_;
     work->data = reinterpret_cast<void *>(param);
-    uv_queue_work(loop, work, [](uv_work_t *work) {}, UvQueueWorkOnRequestContinued);
+    uv_queue_work_with_qos(loop, work, [](uv_work_t *work) {}, UvQueueWorkOnRequestContinued, uv_qos_default);
 }
 
 bool InitAuthenticatorWorkEnv(napi_env env, uv_loop_s **loop, uv_work_t **work,

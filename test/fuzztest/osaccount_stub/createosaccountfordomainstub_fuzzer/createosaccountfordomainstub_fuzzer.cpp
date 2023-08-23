@@ -48,8 +48,8 @@ bool CreateOsAccountForDomainStubFuzzTest(const uint8_t *data, size_t size)
     if (!datas.WriteParcelable(&domainInfo)) {
         return false;
     }
-
-    sptr<DomainAccountCallbackService> callbackService = new (std::nothrow) DomainAccountCallbackService(nullptr);
+    std::shared_ptr<DomainAccountCallback> callbackPtr = nullptr;
+    sptr<DomainAccountCallbackService> callbackService = new (std::nothrow) DomainAccountCallbackService(callbackPtr);
     if ((callbackService == nullptr) || (!datas.WriteRemoteObject(callbackService->AsObject()))) {
         return false;
     }

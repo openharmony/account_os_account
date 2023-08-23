@@ -45,6 +45,7 @@ public:
     ErrCode UpdateAccountToken(const DomainAccountInfo &info, const std::vector<uint8_t> &token) override;
     ErrCode GetAccessToken(const DomainAccountInfo &info, const AAFwk::WantParams &parameters,
         const sptr<IDomainAccountCallback> &callback) override;
+    ErrCode GetDomainAccountInfo(const DomainAccountInfo &info, const sptr<IDomainAccountCallback> &callback) override;
 
 private:
     std::mutex mutex_;

@@ -30,6 +30,9 @@ namespace {
 const std::string STRING_NAME = "name";
 const std::string STRING_EXTRA_INFO = "extra_info";
 const std::string STRING_OWNER = "com.example.owner";
+sptr<IRemoteObject> g_appAccountManagerService;
+sptr<IAppAccount> g_appAccountProxy;
+sptr<AppAccountManagerService> g_servicePtr;
 }  // namespace
 
 class AppAccountManagerServiceTest : public testing::Test {
@@ -38,13 +41,18 @@ public:
     static void TearDownTestCase(void);
     void SetUp(void) override;
     void TearDown(void) override;
-
-    sptr<IRemoteObject> appAccountManagerService_;
-    sptr<IAppAccount> appAccountProxy_;
 };
 
 void AppAccountManagerServiceTest::SetUpTestCase(void)
-{}
+{
+    g_servicePtr = new (std::nothrow) AppAccountManagerService();
+    ASSERT_NE(g_servicePtr, nullptr);
+    auto mockInnerManagerPtr = std::make_shared<MockInnerAppAccountManager>();
+    g_servicePtr->innerManager_ = mockInnerManagerPtr;
+
+    g_appAccountManagerService = g_servicePtr->AsObject();
+    g_appAccountProxy = iface_cast<IAppAccount>(g_appAccountManagerService);
+}
 
 void AppAccountManagerServiceTest::TearDownTestCase(void)
 {
@@ -52,17 +60,7 @@ void AppAccountManagerServiceTest::TearDownTestCase(void)
 }
 
 void AppAccountManagerServiceTest::SetUp(void)
-{
-    auto servicePtr = new (std::nothrow) AppAccountManagerService();
-    if (servicePtr == nullptr) {
-        return;
-    }
-    auto mockInnerManagerPtr = std::make_shared<MockInnerAppAccountManager>();
-    servicePtr->innerManager_ = mockInnerManagerPtr;
-
-    appAccountManagerService_ = servicePtr->AsObject();
-    appAccountProxy_ = iface_cast<IAppAccount>(appAccountManagerService_);
-}
+{}
 
 void AppAccountManagerServiceTest::TearDown(void)
 {}
@@ -75,7 +73,7 @@ void AppAccountManagerServiceTest::TearDown(void)
  */
 HWTEST_F(AppAccountManagerServiceTest, AppAccountManagerService_AddAccount_0100, TestSize.Level1)
 {
-    ErrCode result = appAccountProxy_->AddAccount(STRING_NAME, STRING_EXTRA_INFO);
+    ErrCode result = g_appAccountProxy->AddAccount(STRING_NAME, STRING_EXTRA_INFO);
 
     EXPECT_EQ(result, ERR_OK);
 }
@@ -88,7 +86,7 @@ HWTEST_F(AppAccountManagerServiceTest, AppAccountManagerService_AddAccount_0100,
  */
 HWTEST_F(AppAccountManagerServiceTest, AppAccountManagerService_DeleteAccount_0100, TestSize.Level1)
 {
-    ErrCode result = appAccountProxy_->DeleteAccount(STRING_NAME);
+    ErrCode result = g_appAccountProxy->DeleteAccount(STRING_NAME);
 
     EXPECT_EQ(result, ERR_OK);
 }
@@ -102,9 +100,9 @@ HWTEST_F(AppAccountManagerServiceTest, AppAccountManagerService_DeleteAccount_01
 HWTEST_F(AppAccountManagerServiceTest, AppAccountManagerService_CreateAccount_0100, TestSize.Level1)
 {
     CreateAccountOptions option;
-    ErrCode result = appAccountProxy_->CreateAccount(STRING_NAME, option);
+    ErrCode result = g_appAccountProxy->CreateAccount(STRING_NAME, option);
     EXPECT_EQ(result, ERR_OK);
-    result = appAccountProxy_->DeleteAccount(STRING_NAME);
+    result = g_appAccountProxy->DeleteAccount(STRING_NAME);
     EXPECT_EQ(result, ERR_OK);
 }
 
@@ -126,7 +124,7 @@ HWTEST_F(
     subscribeInfo.SetOwners(owners);
 
     // subscribe app account
-    ErrCode result = appAccountProxy_->SubscribeAppAccount(subscribeInfo, nullptr);
+    ErrCode result = g_appAccountProxy->SubscribeAppAccount(subscribeInfo, nullptr);
 
     EXPECT_EQ(result, ERR_ACCOUNT_COMMON_NULL_PTR_ERROR);
 }
@@ -141,7 +139,7 @@ HWTEST_F(
     AppAccountManagerServiceTest, AppAccountManagerService_UnsubscribeAppAccount_0100, TestSize.Level1)
 {
     // unsubscribe app account
-    ErrCode result = appAccountProxy_->UnsubscribeAppAccount(nullptr);
+    ErrCode result = g_appAccountProxy->UnsubscribeAppAccount(nullptr);
 
     EXPECT_EQ(result, ERR_ACCOUNT_COMMON_NULL_PTR_ERROR);
 }

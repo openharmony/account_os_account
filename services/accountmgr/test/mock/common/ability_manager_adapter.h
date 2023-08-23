@@ -30,10 +30,13 @@ using namespace AAFwk;
  * AbilityManagerAdapter is used to access ability manager services.
  */
 class AbilityManagerAdapter {
-public:
+private:
     AbilityManagerAdapter();
     virtual ~AbilityManagerAdapter();
-    static std::shared_ptr<AbilityManagerAdapter> GetInstance();
+    DISALLOW_COPY_AND_MOVE(AbilityManagerAdapter);
+
+public:
+    static AbilityManagerAdapter* GetInstance();
 
     /**
      * ConnectAbility, connect session with service ability.
@@ -73,10 +76,6 @@ public:
      * @return Returns ERR_OK on success, others on failure.
      */
     ErrCode StopUser(int32_t accountId, const sptr<IStopUserCallback> &callback);
-
-private:
-    static std::mutex mockInstanceMutex_;
-    static std::shared_ptr<AbilityManagerAdapter> instance_;
 };
 }  // namespace AAFwk
 }  // namespace OHOS

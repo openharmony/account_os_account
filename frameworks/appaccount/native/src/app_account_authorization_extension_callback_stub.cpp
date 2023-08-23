@@ -30,21 +30,6 @@ AppAccountAuthorizationExtensionCallbackStub::AppAccountAuthorizationExtensionCa
 AppAccountAuthorizationExtensionCallbackStub::~AppAccountAuthorizationExtensionCallbackStub()
 {}
 
-const std::map<AppAccountAuthorizationExtensionCallbackInterfaceCode,
-    AppAccountAuthorizationExtensionCallbackStub::AuthorizationExtensionCallbackStubFunc>
-    AppAccountAuthorizationExtensionCallbackStub::stubFuncMap_ = {
-        {
-            AppAccountAuthorizationExtensionCallbackInterfaceCode::
-                APP_ACCOUNT_AUTHORIZATION_EXTENSION_CALLBACK_ON_RESULT,
-            &AppAccountAuthorizationExtensionCallbackStub::ProcOnResult,
-        },
-        {
-            AppAccountAuthorizationExtensionCallbackInterfaceCode::
-                APP_ACCOUNT_AUTHORIZATION_EXTENSION_CALLBACK_ON_REQUEST_REDIRECTED,
-            &AppAccountAuthorizationExtensionCallbackStub::ProcOnRequestRedirected,
-        }
-    };
-
 int32_t AppAccountAuthorizationExtensionCallbackStub::OnRemoteRequest(
     std::uint32_t code, MessageParcel &data, MessageParcel &reply, MessageOption &option)
 {
@@ -52,9 +37,13 @@ int32_t AppAccountAuthorizationExtensionCallbackStub::OnRemoteRequest(
         ACCOUNT_LOGE("check descriptor failed!");
         return ERR_ACCOUNT_COMMON_CHECK_DESCRIPTOR_ERROR;
     }
-    const auto &itFunc = stubFuncMap_.find(static_cast<AppAccountAuthorizationExtensionCallbackInterfaceCode>(code));
-    if (itFunc != stubFuncMap_.end()) {
-        return (this->*(itFunc->second))(data, reply);
+    switch (code) {
+        case static_cast<uint32_t>(AppAccountAuthorizationExtensionCallbackInterfaceCode::ON_RESULT):
+            return ProcOnResult(data, reply);
+        case static_cast<uint32_t>(AppAccountAuthorizationExtensionCallbackInterfaceCode::ON_REQUEST_REDIRECTED):
+            return ProcOnRequestRedirected(data, reply);
+        default:
+            break;
     }
     ACCOUNT_LOGW("remote request unhandled: %{public}d", code);
     return IPCObjectStub::OnRemoteRequest(code, data, reply, option);

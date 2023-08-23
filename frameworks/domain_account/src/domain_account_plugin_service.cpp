@@ -137,7 +137,7 @@ ErrCode DomainAccountPluginService::GetAuthStatusInfo(
 }
 
 ErrCode DomainAccountPluginService::GetDomainAccountInfo(
-    const std::string &domain, const std::string &accountName, const sptr<IDomainAccountCallback> &callback)
+    const GetDomainAccountInfoOptions &options, const sptr<IDomainAccountCallback> &callback)
 {
     DomainAccountCallbackClient *callbackClient = nullptr;
     ErrCode errCode = CheckAndInitExecEnv(callback, &callbackClient);
@@ -145,7 +145,7 @@ ErrCode DomainAccountPluginService::GetDomainAccountInfo(
         return errCode;
     }
     std::shared_ptr<DomainAccountCallbackClient> callbackPtr(callbackClient);
-    innerPlugin_->GetDomainAccountInfo(domain, accountName, callbackPtr);
+    innerPlugin_->GetDomainAccountInfo(options, callbackPtr);
     return ERR_OK;
 }
 

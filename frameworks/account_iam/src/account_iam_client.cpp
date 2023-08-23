@@ -37,8 +37,8 @@ const std::string PERMISSION_ACCESS_USER_AUTH_INTERNAL = "ohos.permission.ACCESS
 
 AccountIAMClient &AccountIAMClient::GetInstance()
 {
-    static AccountIAMClient instance;
-    return instance;
+    static AccountIAMClient *instance = new (std::nothrow) AccountIAMClient();
+    return *instance;
 }
 
 int32_t AccountIAMClient::OpenSession(int32_t userId, std::vector<uint8_t> &challenge)

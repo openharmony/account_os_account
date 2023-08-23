@@ -94,7 +94,7 @@ public:
         const std::vector<std::string> &labels, const sptr<IAppAccountAuthenticatorCallback> &callback) override;
     ErrCode SetAuthenticatorProperties(const std::string &owner, const SetPropertiesOptions &options,
         const sptr<IAppAccountAuthenticatorCallback> &callback) override;
-    ErrCode ExecuteRequest(const bool &isEnableContext, const AccountCapabilityRequest &request,
+    ErrCode ExecuteRequest(const AccountCapabilityRequest &request,
         const sptr<IAppAccountAuthorizationExtensionCallback> &callback) override;
 
     ErrCode SubscribeAppAccount(

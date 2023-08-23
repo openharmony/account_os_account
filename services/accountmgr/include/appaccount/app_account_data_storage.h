@@ -24,7 +24,7 @@ namespace AccountSA {
 class AppAccountDataStorage : public AccountDataStorage {
 public:
     AppAccountDataStorage() = delete;
-    explicit AppAccountDataStorage(const std::string &storeId, const bool &autoSync = false);
+    AppAccountDataStorage(const std::string &storeId, const AccountDataStorageOptions &options);
     ~AppAccountDataStorage() override = default;
 
     Json GetAccessibleAccountsFromAuthorizedAccounts(const std::string &authorizedAccounts,
@@ -36,10 +36,6 @@ public:
     ErrCode AddAccountInfoIntoDataStorage(AppAccountInfo &appAccountInfo);
     ErrCode SaveAccountInfoIntoDataStorage(AppAccountInfo &appAccountInfo);
     ErrCode DeleteAccountInfoFromDataStorage(AppAccountInfo &appAccountInfo);
-
-public:
-    static const std::string DATA_STORAGE_SUFFIX;
-    static const std::string AUTHORIZED_ACCOUNTS;
 
 private:
     void SaveEntries(std::vector<OHOS::DistributedKv::Entry> allEntries,

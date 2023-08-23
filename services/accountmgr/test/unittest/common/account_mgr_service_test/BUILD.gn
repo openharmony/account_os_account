@@ -13,9 +13,9 @@
 
 import("//build/ohos.gni")
 import("//build/test.gni")
-import("../../../../../os_account.gni")
+import("../../../../../../os_account.gni")
 
-module_output_path = "os_account/services/accountmgr"
+module_output_path = "os_account/services/common"
 
 config("bundle_manager_config") {
   include_dirs = [
@@ -43,7 +43,6 @@ ohos_unittest("account_mgr_test") {
     "account_dump_helper_test.cpp",
     "account_mgr_service_test.cpp",
     "account_state_machine_test.cpp",
-    "ohos_account_manager_test.cpp",
   ]
 
   sources += bundle_manager_sources
@@ -67,6 +66,7 @@ ohos_unittest("account_mgr_test") {
     "ability_base:want",
     "ability_runtime:app_manager",
     "access_token:libaccesstoken_sdk",
+    "access_token:libtokenid_sdk",
     "bundle_framework:appexecfwk_base",
     "c_utils:utils",
     "hilog:libhilog",

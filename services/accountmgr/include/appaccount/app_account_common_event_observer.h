@@ -41,10 +41,6 @@ private:
     std::shared_ptr<AppAccountCommonEventSubscriber> subscriber_ = nullptr;
     CommonEventCallback callback_;
     std::int32_t counter_;
-
-    static constexpr std::int32_t DELAY_FOR_COMMON_EVENT_SERVICE = 5 * 1000;  // 5s
-    static constexpr std::int32_t DELAY_FOR_TIME_INTERVAL = 1 * 1000;         // 1s
-    static constexpr std::int32_t MAX_TRY_TIMES = 10;
 };
 #endif // HAS_CES_PART
 }  // namespace AccountSA

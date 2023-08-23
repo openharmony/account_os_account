@@ -363,7 +363,7 @@ ErrCode MockAppAccountStub::SetAuthenticatorProperties(const std::string &owner,
     return ERR_OK;
 }
 
-ErrCode MockAppAccountStub::ExecuteRequest(const bool &isEnableContext, const AccountCapabilityRequest &request,
+ErrCode MockAppAccountStub::ExecuteRequest(const AccountCapabilityRequest &request,
     const sptr<IAppAccountAuthorizationExtensionCallback> &callback)
 {
     ACCOUNT_LOGD("mock enter");
@@ -377,13 +377,7 @@ ErrCode MockAppAccountStub::SubscribeAppAccount(
     ACCOUNT_LOGI("mock enter");
 
     std::vector<std::string> owners;
-    ErrCode result = subscribeInfo.GetOwners(owners);
-
-    ACCOUNT_LOGI("mock result = %{public}d", result);
-    if (result != ERR_OK) {
-        ACCOUNT_LOGE("mock failed to get owners");
-        return ERR_APPACCOUNT_SERVICE_GET_OWNERS;
-    }
+    subscribeInfo.GetOwners(owners);
 
     ACCOUNT_LOGI("mock owners.size() = %{public}zu", owners.size());
     if (owners.size() == 0) {

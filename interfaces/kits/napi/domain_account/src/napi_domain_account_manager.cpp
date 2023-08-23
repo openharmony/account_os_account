@@ -285,14 +285,37 @@ static napi_value GetDomainAccountInfoCallback(napi_env env, napi_callback_info 
         AccountNapiThrow(env, ERR_JS_INVALID_PARAMETER, true);
         return nullptr;
     }
+    AAFwk::WantParams getAccountInfoParams;
+    if (!AppExecFwk::UnwrapWantParams(env, businessData, getAccountInfoParams)) {
+        ACCOUNT_LOGE("unwrapWantParams failed");
+        return nullptr;
+    }
     Parcel parcel;
-    if (!info.Marshalling(parcel)) {
+    if (!getAccountInfoParams.Marshalling(parcel)) {
         ACCOUNT_LOGE("info Marshalling failed");
         AccountNapiThrow(env, ERR_JS_SYSTEM_SERVICE_EXCEPTION, true);
         return nullptr;
     }
     param->callback->OnResult(error.code, parcel);
     return nullptr;
+}
+
+static napi_value CreatePluginAccountInfoOptions(const JsDomainPluginParam *param)
+{
+    napi_value napiOptions = nullptr;
+    NAPI_CALL(param->env, napi_create_object(param->env, &napiOptions));
+    napi_value napiName = nullptr;
+    NAPI_CALL(param->env, napi_create_string_utf8(
+        param->env, param->domainAccountInfo.accountName_.c_str(), NAPI_AUTO_LENGTH, &napiName));
+    NAPI_CALL(param->env, napi_set_named_property(param->env, napiOptions, "accountName", napiName));
+    napi_value napiDomain = nullptr;
+    NAPI_CALL(param->env,
+        napi_create_string_utf8(param->env, param->domainAccountInfo.domain_.c_str(), NAPI_AUTO_LENGTH, &napiDomain));
+    NAPI_CALL(param->env, napi_set_named_property(param->env, napiOptions, "domain", napiDomain));
+    napi_value napiCallingUid = nullptr;
+    NAPI_CALL(param->env, napi_create_int32(param->env, param->callingUid, &napiCallingUid));
+    NAPI_CALL(param->env, napi_set_named_property(param->env, napiOptions, "callerUid", napiCallingUid));
+    return napiOptions;
 }
 
 static void GetDomainAccountInfoWork(uv_work_t *work, int status)
@@ -303,13 +326,10 @@ static void GetDomainAccountInfoWork(uv_work_t *work, int status)
         return;
     }
     JsDomainPluginParam *param = reinterpret_cast<JsDomainPluginParam *>(work->data);
-    napi_value napiName = nullptr;
-    napi_create_string_utf8(param->env, param->domainAccountInfo.accountName_.c_str(), NAPI_AUTO_LENGTH, &napiName);
-    napi_value napiDomain = nullptr;
-    napi_create_string_utf8(param->env, param->domainAccountInfo.domain_.c_str(), NAPI_AUTO_LENGTH, &napiDomain);
     napi_value napiCallback = CreatePluginAsyncCallback(param->env, GetDomainAccountInfoCallback, param);
-    napi_value argv[] = {napiDomain, napiName, napiCallback};
-    NapiCallVoidFunction(param->env, argv, ARG_SIZE_THREE, param->func);
+    napi_value getDomainAccountInfoPLuginOptions = CreatePluginAccountInfoOptions(param);
+    napi_value argv[] = {getDomainAccountInfoPLuginOptions, napiCallback};
+    NapiCallVoidFunction(param->env, argv, ARG_SIZE_TWO, param->func);
     std::unique_lock<std::mutex> lock(param->lockInfo->mutex);
     param->lockInfo->count--;
     param->lockInfo->condition.notify_all();
@@ -618,9 +638,9 @@ void NapiDomainAccountPlugin::AuthCommon(AccountSA::AuthMode authMode, const Acc
     param->domainAccountInfo = info;
     param->authMode = authMode;
     param->authData = authData;
-    int errCode = uv_queue_work(loop, work, [](uv_work_t *work) {}, AuthCommonWork);
+    int errCode = uv_queue_work_with_qos(loop, work, [](uv_work_t *work) {}, AuthCommonWork, uv_qos_user_initiated);
     if (errCode != 0) {
-        ACCOUNT_LOGE("failed to uv_queue_work, errCode: %{public}d", errCode);
+        ACCOUNT_LOGE("failed to uv_queue_work_with_qos, errCode: %{public}d", errCode);
         delete param;
         delete work;
         return;
@@ -668,9 +688,10 @@ void NapiDomainAccountPlugin::GetAuthStatusInfo(
     param->func = jsPlugin_.getAuthStatusInfo;
     param->domainAccountInfo = info;
     param->callback = callback;
-    int errCode = uv_queue_work(loop, work, [](uv_work_t *work) {}, GetAuthStatusInfoWork);
+    int errCode = uv_queue_work_with_qos(
+        loop, work, [](uv_work_t *work) {}, GetAuthStatusInfoWork, uv_qos_default);
     if (errCode != 0) {
-        ACCOUNT_LOGE("failed to uv_queue_work, errCode: %{public}d", errCode);
+        ACCOUNT_LOGE("failed to uv_queue_work_with_qos, errCode: %{public}d", errCode);
         delete param;
         delete work;
         return;
@@ -701,9 +722,9 @@ void NapiDomainAccountPlugin::OnAccountBound(const DomainAccountInfo &info, cons
     param->func = jsPlugin_.onAccountBound;
     param->callback = callback;
     param->userId = localId;
-    int errCode = uv_queue_work(loop, work, [](uv_work_t *work) {}, OnAccountBoundWork);
+    int errCode = uv_queue_work_with_qos(loop, work, [](uv_work_t *work) {}, OnAccountBoundWork, uv_qos_default);
     if (errCode != 0) {
-        ACCOUNT_LOGE("failed to uv_queue_work, errCode: %{public}d", errCode);
+        ACCOUNT_LOGE("failed to uv_queue_work_with_qos, errCode: %{public}d", errCode);
         delete work;
         delete param;
         return;
@@ -733,10 +754,10 @@ void NapiDomainAccountPlugin::OnAccountUnBound(const DomainAccountInfo &info,
     param->domainAccountInfo = info;
     param->func = jsPlugin_.onAccountUnbound;
     param->callback = callback;
-    int errCode = uv_queue_work(
-        loop, work, [](uv_work_t *work) {}, OnAccountUnBoundWork);
+    int errCode = uv_queue_work_with_qos(
+        loop, work, [](uv_work_t *work) {}, OnAccountUnBoundWork, uv_qos_default);
     if (errCode != 0) {
-        ACCOUNT_LOGE("failed to uv_queue_work, errCode: %{public}d", errCode);
+        ACCOUNT_LOGE("failed to uv_queue_work_with_qos, errCode: %{public}d", errCode);
         delete work;
         delete param;
         return;
@@ -744,7 +765,7 @@ void NapiDomainAccountPlugin::OnAccountUnBound(const DomainAccountInfo &info,
     lockInfo_.count++;
 }
 
-void NapiDomainAccountPlugin::GetDomainAccountInfo(const std::string &domain, const std::string &accountName,
+void NapiDomainAccountPlugin::GetDomainAccountInfo(const GetDomainAccountInfoOptions &options,
     const std::shared_ptr<AccountSA::DomainAccountCallback> &callback)
 {
     std::unique_lock<std::mutex> lock(lockInfo_.mutex);
@@ -763,14 +784,14 @@ void NapiDomainAccountPlugin::GetDomainAccountInfo(const std::string &domain, co
         ACCOUNT_LOGE("failed to init domain plugin execution environment");
         return;
     }
-    param->domainAccountInfo.accountName_ = accountName;
-    param->domainAccountInfo.domain_ = domain;
+    param->domainAccountInfo = options.accountInfo;
+    param->callingUid = options.callingUid;
     param->callback = callback;
     param->func = jsPlugin_.getDomainAccountInfo;
-    int errCode = uv_queue_work(
-        loop, work, [](uv_work_t *work) {}, GetDomainAccountInfoWork);
+    int errCode = uv_queue_work_with_qos(
+        loop, work, [](uv_work_t *work) {}, GetDomainAccountInfoWork, uv_qos_default);
     if (errCode != 0) {
-        ACCOUNT_LOGE("failed to uv_queue_work, errCode: %{public}d", errCode);
+        ACCOUNT_LOGE("failed to uv_queue_work_with_qos, errCode: %{public}d", errCode);
         delete work;
         delete param;
         return;
@@ -801,10 +822,10 @@ void NapiDomainAccountPlugin::IsAccountTokenValid(const DomainAccountInfo &info,
     param->authData = token;
     param->domainAccountInfo = info;
     param->func = jsPlugin_.isAccountTokenValid;
-    int errCode = uv_queue_work(
-        loop, work, [](uv_work_t *work) {}, IsUserTokenValidWork);
+    int errCode = uv_queue_work_with_qos(
+        loop, work, [](uv_work_t *work) {}, IsUserTokenValidWork, uv_qos_default);
     if (errCode != 0) {
-        ACCOUNT_LOGE("failed to uv_queue_work, errCode: %{public}d", errCode);
+        ACCOUNT_LOGE("failed to uv_queue_work_with_qos, errCode: %{public}d", errCode);
         delete work;
         delete param;
         return;
@@ -837,10 +858,10 @@ void NapiDomainAccountPlugin::GetAccessToken(const AccountSA::DomainAccountInfo 
     param->authData = accountToken;
     param->option = option;
     param->func = jsPlugin_.getAccessToken;
-    int errCode = uv_queue_work(
-        loop, work, [](uv_work_t *work) {}, GetAccessTokenWork);
+    int errCode = uv_queue_work_with_qos(
+        loop, work, [](uv_work_t *work) {}, GetAccessTokenWork, uv_qos_default);
     if (errCode != 0) {
-        ACCOUNT_LOGE("failed to uv_queue_work, errCode: %{public}d", errCode);
+        ACCOUNT_LOGE("failed to uv_queue_work_with_qos, errCode: %{public}d", errCode);
         delete work;
         delete param;
         return;
@@ -858,6 +879,7 @@ napi_value NapiDomainAccountManager::Init(napi_env env, napi_value exports)
         DECLARE_NAPI_STATIC_FUNCTION("hasAccount", HasAccount),
         DECLARE_NAPI_STATIC_FUNCTION("updateAccountToken", UpdateAccountToken),
         DECLARE_NAPI_STATIC_FUNCTION("getAccessToken", GetAccessToken),
+        DECLARE_NAPI_STATIC_FUNCTION("getAccountInfo", GetDomainAccountInfo),
         DECLARE_NAPI_FUNCTION("registerPlugin", RegisterPlugin),
         DECLARE_NAPI_FUNCTION("unregisterPlugin", UnregisterPlugin),
         DECLARE_NAPI_FUNCTION("hasAccount", HasAccount),
@@ -1036,7 +1058,7 @@ napi_value NapiDomainAccountManager::Auth(napi_env env, napi_callback_info cbInf
         },
         AuthCompletedCallback,
         reinterpret_cast<void *>(authContext.get()), &authContext->work));
-    NAPI_CALL(env, napi_queue_async_work(env, authContext->work));
+    NAPI_CALL(env, napi_queue_async_work_with_qos(env, authContext->work, napi_qos_user_initiated));
     authContext.release();
     return nullptr;
 }
@@ -1135,7 +1157,7 @@ napi_value NapiDomainAccountManager::AuthWithPopup(napi_env env, napi_callback_i
         },
         AuthCompletedCallback,
         reinterpret_cast<void *>(authWithPopupContext.get()), &authWithPopupContext->work));
-    NAPI_CALL(env, napi_queue_async_work(env, authWithPopupContext->work));
+    NAPI_CALL(env, napi_queue_async_work_with_qos(env, authWithPopupContext->work, napi_qos_user_initiated));
     authWithPopupContext.release();
     return nullptr;
 }
@@ -1189,10 +1211,10 @@ void NapiHasDomainInfoCallback::OnResult(const int32_t errCode, Parcel &parcel)
     asyncContext->callbackRef = callbackRef_;
     asyncContext->deferred = deferred_;
     work->data = reinterpret_cast<void *>(asyncContext);
-    int resultCode = uv_queue_work(
-        loop, work, [](uv_work_t *work) {}, HasDomainAccountCompletedWork);
+    int resultCode = uv_queue_work_with_qos(
+        loop, work, [](uv_work_t *work) {}, HasDomainAccountCompletedWork, uv_qos_default);
     if (resultCode != 0) {
-        ACCOUNT_LOGE("failed to uv_queue_work, errCode: %{public}d", errCode);
+        ACCOUNT_LOGE("failed to uv_queue_work_with_qos, errCode: %{public}d", errCode);
         delete asyncContext;
         delete work;
         return;
@@ -1228,10 +1250,10 @@ void NapiGetAccessTokenCallback::OnResult(const int32_t errCode, const std::vect
     asyncContext->callbackRef = callbackRef_;
     asyncContext->deferred = deferred_;
     work->data = reinterpret_cast<void *>(asyncContext);
-    int resultCode = uv_queue_work(
-        loop, work, [](uv_work_t *work) {}, GetAccessTokenCompleteWork);
+    int resultCode = uv_queue_work_with_qos(
+        loop, work, [](uv_work_t *work) {}, GetAccessTokenCompleteWork, uv_qos_default);
     if (resultCode != 0) {
-        ACCOUNT_LOGE("failed to uv_queue_work, errCode: %{public}d", errCode);
+        ACCOUNT_LOGE("failed to uv_queue_work_with_qos, errCode: %{public}d", errCode);
         delete asyncContext;
         delete work;
         return;
@@ -1298,7 +1320,7 @@ napi_value NapiDomainAccountManager::UpdateAccountToken(napi_env env, napi_callb
         UpdateAccountTokenCompletedCB,
         reinterpret_cast<void *>(context.get()),
         &context->work));
-    NAPI_CALL(env, napi_queue_async_work(env, context->work));
+    NAPI_CALL(env, napi_queue_async_work_with_qos(env, context->work, napi_qos_default));
     context.release();
     return result;
 }
@@ -1319,7 +1341,7 @@ napi_value NapiDomainAccountManager::GetAccessToken(napi_env env, napi_callback_
     NAPI_CALL(env, napi_create_async_work(env, nullptr, resource,
         GetAccessTokenExecuteCB, GetAccessTokenCompleteCB,
         reinterpret_cast<void *>(context.get()), &context->work));
-    NAPI_CALL(env, napi_queue_async_work(env, context->work));
+    NAPI_CALL(env, napi_queue_async_work_with_qos(env, context->work, napi_qos_default));
     context.release();
     return result;
 }
@@ -1344,6 +1366,156 @@ napi_value NapiDomainAccountManager::HasAccount(napi_env env, napi_callback_info
         HasDomainAccountCompleteCB,
         reinterpret_cast<void *>(context.get()),
         &context->work));
+    NAPI_CALL(env, napi_queue_async_work_with_qos(env, context->work, napi_qos_default));
+    context.release();
+    return result;
+}
+
+static bool ParseGetDomainAccountInfoOptions(napi_env env, napi_value object, DomainAccountInfo &info)
+{
+    if (!GetStringPropertyByKey(env, object, "accountName", info.accountName_)) {
+        ACCOUNT_LOGE("get domainInfo's accountName failed");
+        return false;
+    }
+    bool hasProp = false;
+    napi_has_named_property(env, object, "domain", &hasProp);
+    if (hasProp) {
+        napi_value value = nullptr;
+        napi_get_named_property(env, object, "domain", &value);
+        napi_valuetype valueType = napi_undefined;
+        napi_typeof(env, value, &valueType);
+        if ((valueType == napi_undefined) || (valueType == napi_null)) {
+            ACCOUNT_LOGI("the accountId is undefined or null");
+        } else if (!GetStringPropertyByKey(env, object, "domain", info.domain_)) {
+            ACCOUNT_LOGE("get domainInfo's domain failed");
+            return false;
+        }
+    }
+    return true;
+}
+
+static bool ParseParamForGetAccountInfo(
+    napi_env env, napi_callback_info cbInfo, GetAccountInfoAsyncContext *asyncContext)
+{
+    size_t argc = ARG_SIZE_TWO;
+    napi_value argv[ARG_SIZE_TWO] = {0};
+    napi_get_cb_info(env, cbInfo, &argc, argv, nullptr, nullptr);
+    if (argc < ARG_SIZE_ONE) {
+        ACCOUNT_LOGE("the parameter of number should be at least two");
+        return false;
+    }
+    if (argc == ARG_SIZE_TWO) {
+        if (!GetCallbackProperty(env, argv[argc - 1], asyncContext->callbackRef, 1)) {
+            ACCOUNT_LOGE("Get callbackRef failed");
+            return false;
+        }
+    }
+    if (!ParseGetDomainAccountInfoOptions(env, argv[0], asyncContext->domainInfo)) {
+        ACCOUNT_LOGE("get domainInfo failed");
+        return false;
+    }
+    return true;
+}
+
+static void GetAccountInfoCompleteWork(uv_work_t *work, int status)
+{
+    std::unique_ptr<uv_work_t> workPtr(work);
+    napi_handle_scope scope = nullptr;
+    if (!InitUvWorkCallbackEnv(work, scope)) {
+        if ((work != nullptr) && (work->data != nullptr)) {
+            delete reinterpret_cast<GetAccountInfoAsyncContext *>(work->data);
+        }
+        return;
+    }
+    GetAccountInfoAsyncContext *asyncContext = reinterpret_cast<GetAccountInfoAsyncContext *>(work->data);
+    napi_value errJs = nullptr;
+    napi_value dataJs = nullptr;
+    if (asyncContext->errCode == ERR_OK) {
+        dataJs = AppExecFwk::WrapWantParams(asyncContext->env, asyncContext->getAccountInfoParams);
+    } else {
+        errJs = GenerateBusinessError(asyncContext->env, asyncContext->errCode);
+    }
+    ReturnCallbackOrPromise(asyncContext->env, asyncContext, errJs, dataJs);
+    napi_close_handle_scope(asyncContext->env, scope);
+    delete asyncContext;
+}
+
+NapiGetAccountInfoCallback::NapiGetAccountInfoCallback(napi_env env, napi_ref callbackRef, napi_deferred deferred)
+    : env_(env), callbackRef_(callbackRef), deferred_(deferred)
+{}
+
+void NapiGetAccountInfoCallback::OnResult(const int32_t errCode, Parcel &parcel)
+{
+    std::unique_lock<std::mutex> lock(lockInfo_.mutex);
+    if ((callbackRef_ == nullptr) && (deferred_ == nullptr)) {
+        ACCOUNT_LOGE("js callback is nullptr");
+        return;
+    }
+    uv_loop_s *loop = nullptr;
+    uv_work_t *work = nullptr;
+    if (!CreateExecEnv(env_, &loop, &work)) {
+        ACCOUNT_LOGE("failed to init domain plugin execution environment");
+        return;
+    }
+    auto *asyncContext = new (std::nothrow) GetAccountInfoAsyncContext(env_);
+    if (asyncContext == nullptr) {
+        delete work;
+        return;
+    }
+    if (errCode == ERR_OK) {
+        std::shared_ptr<AAFwk::WantParams> parameters(AAFwk::WantParams::Unmarshalling(parcel));
+        asyncContext->getAccountInfoParams = *parameters;
+    }
+    asyncContext->errCode = errCode;
+    asyncContext->callbackRef = callbackRef_;
+    asyncContext->deferred = deferred_;
+    work->data = reinterpret_cast<void *>(asyncContext);
+    int resultCode = uv_queue_work(
+        loop, work, [](uv_work_t *work) {}, GetAccountInfoCompleteWork);
+    if (resultCode != 0) {
+        ACCOUNT_LOGE("failed to uv_queue_work, errCode: %{public}d", errCode);
+        delete asyncContext;
+        delete work;
+        return;
+    }
+    callbackRef_ = nullptr;
+    deferred_ = nullptr;
+}
+
+static void GetAccountInfoExecuteCB(napi_env env, void *data)
+{
+    GetAccountInfoAsyncContext *asyncContext = reinterpret_cast<GetAccountInfoAsyncContext *>(data);
+    auto callback =
+        std::make_shared<NapiGetAccountInfoCallback>(env, asyncContext->callbackRef, asyncContext->deferred);
+    asyncContext->errCode = DomainAccountClient::GetInstance().GetDomainAccountInfo(asyncContext->domainInfo, callback);
+    if (asyncContext->errCode != ERR_OK) {
+        Parcel emptyParcel;
+        callback->OnResult(asyncContext->errCode, emptyParcel);
+    }
+    asyncContext->callbackRef = nullptr;
+}
+
+static void GetAccountInfoCompleteCB(napi_env env, napi_status status, void *data)
+{
+    delete reinterpret_cast<GetAccountInfoAsyncContext *>(data);
+}
+
+napi_value NapiDomainAccountManager::GetDomainAccountInfo(napi_env env, napi_callback_info cbInfo)
+{
+    auto context = std::make_unique<GetAccountInfoAsyncContext>(env);
+    if (!ParseParamForGetAccountInfo(env, cbInfo, context.get())) {
+        AccountNapiThrow(env, ERR_JS_PARAMETER_ERROR, true);
+        return nullptr;
+    }
+    napi_value result = nullptr;
+    if (context->callbackRef == nullptr) {
+        NAPI_CALL(env, napi_create_promise(env, &context->deferred, &result));
+    }
+    napi_value resource = nullptr;
+    NAPI_CALL(env, napi_create_string_utf8(env, "getAccountInfo", NAPI_AUTO_LENGTH, &resource));
+    NAPI_CALL(env, napi_create_async_work(env, nullptr, resource,
+        GetAccountInfoExecuteCB, GetAccountInfoCompleteCB,
+        reinterpret_cast<void *>(context.get()), &context->work));
     NAPI_CALL(env, napi_queue_async_work(env, context->work));
     context.release();
     return result;

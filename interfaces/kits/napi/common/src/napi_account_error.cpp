@@ -67,6 +67,7 @@ static const std::unordered_map<uint32_t, std::string> g_errorStringMap = {
     {ERR_JS_AUTH_TYPE_NOT_FOUND, "Application account auth type not found, please use existed auth type"},
     {ERR_JS_PERMISSION_DENIED, "Permission denied"},
     {ERR_JS_PLUGIN_NETWORK_EXCEPTION, "Network exception"},
+    {ERR_JS_CAPABILITY_NOT_SUPPORTED, "capability not supported"},
 };
 
 napi_value GenerateBusinessError(napi_env env, int32_t jsErrCode, const std::string &jsErrMsg)

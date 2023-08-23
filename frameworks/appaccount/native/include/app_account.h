@@ -99,7 +99,7 @@ public:
         const std::vector<std::string> &labels, const sptr<IAppAccountAuthenticatorCallback> &callback);
     ErrCode SetAuthenticatorProperties(const std::string &owner,
         const SetPropertiesOptions &options, const sptr<IAppAccountAuthenticatorCallback> &callback);
-    ErrCode ExecuteRequest(const bool &isEnableContext, const AccountCapabilityRequest &request,
+    ErrCode ExecuteRequest(const AccountCapabilityRequest &request,
         const sptr<IAppAccountAuthorizationExtensionCallback> &callback);
 
     ErrCode SubscribeAppAccount(const std::shared_ptr<AppAccountSubscriber> &subscriber);
@@ -110,6 +110,7 @@ public:
 private:
     AppAccount() = default;
     ~AppAccount() = default;
+    DISALLOW_COPY_AND_MOVE(AppAccount);
     ErrCode CheckParameters(const std::string &name, const std::string &extraInfo = "");
     ErrCode CheckSpecialCharacters(const std::string &name);
     ErrCode CheckTokenVisibilityParam(

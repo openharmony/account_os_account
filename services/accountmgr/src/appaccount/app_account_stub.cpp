@@ -55,7 +55,7 @@ namespace AccountSA {
         return ERR_NONE;                                                                                        \
     }                                                                                                           \
 
-const std::map<uint32_t, AppAccountStub::MessageProcFunction> AppAccountStub::messageProcMap_ = {
+const std::map<uint32_t, AppAccountStub::MessageProcFunction> messageProcMap = {
     {
         static_cast<uint32_t>(AppAccountInterfaceCode::ADD_ACCOUNT),
         &AppAccountStub::ProcAddAccount,
@@ -231,7 +231,9 @@ const std::map<uint32_t, AppAccountStub::MessageProcFunction> AppAccountStub::me
 };
 
 AppAccountStub::AppAccountStub()
-{}
+{
+    messageProcMap_ = messageProcMap;
+}
 
 AppAccountStub::~AppAccountStub()
 {}
@@ -992,11 +994,6 @@ ErrCode AppAccountStub::ProcSetAuthenticatorProperties(uint32_t code, MessagePar
 
 ErrCode AppAccountStub::ProcExecuteRequest(uint32_t code, MessageParcel &data, MessageParcel &reply)
 {
-    bool isEnableContext = false;
-    if (!data.ReadBool(isEnableContext)) {
-        ACCOUNT_LOGE("fail to read isEnableContext");
-        return ERR_ACCOUNT_COMMON_READ_PARCEL_ERROR;
-    }
     std::shared_ptr<AccountCapabilityRequest> request(data.ReadParcelable<AccountCapabilityRequest>());
     auto callback = iface_cast<IAppAccountAuthorizationExtensionCallback>(data.ReadRemoteObject());
     ErrCode result = ERR_OK;
@@ -1004,7 +1001,7 @@ ErrCode AppAccountStub::ProcExecuteRequest(uint32_t code, MessageParcel &data, M
         ACCOUNT_LOGE("invalid parameters");
         result = ERR_ACCOUNT_COMMON_INVALID_PARAMETER;
     } else {
-        result = ExecuteRequest(isEnableContext, *request, callback);
+        result = ExecuteRequest(*request, callback);
     }
     if (!reply.WriteInt32(result)) {
         ACCOUNT_LOGE("failed to write reply");

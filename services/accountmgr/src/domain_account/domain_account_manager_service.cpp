@@ -89,6 +89,12 @@ ErrCode DomainAccountManagerService::GetAccountStatus(const DomainAccountInfo &i
     return InnerDomainAccountManager::GetInstance().GetAccountStatus(info, status);
 }
 
+ErrCode DomainAccountManagerService::GetDomainAccountInfo(
+    const DomainAccountInfo &info, const sptr<IDomainAccountCallback> &callback)
+{
+    return InnerDomainAccountManager::GetInstance().GetDomainAccountInfo(info, callback);
+}
+
 ErrCode DomainAccountManagerService::RegisterAccountStatusListener(const sptr<IDomainAccountCallback> &listener)
 {
     return InnerDomainAccountManager::GetInstance().RegisterAccountStatusListener(listener);

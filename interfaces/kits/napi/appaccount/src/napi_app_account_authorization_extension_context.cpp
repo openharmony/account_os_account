@@ -43,6 +43,22 @@ constexpr int32_t ERROR_CODE_ONE = 1;
 constexpr int32_t ERROR_CODE_TWO = 2;
 constexpr size_t ARGC_ONE = 1;
 constexpr size_t ARGC_TWO = 2;
+static std::shared_ptr<AppExecFwk::EventHandler> g_handler = nullptr;
+static std::map<ConnectionKey, sptr<JSAuthorizationExtensionConnection>, key_compare> g_connects;
+
+void RemoveConnection(int64_t connectId)
+{
+    auto item = std::find_if(
+        g_connects.begin(), g_connects.end(), [&connectId](const auto &obj) { return connectId == obj.first.id; });
+    if (item != g_connects.end()) {
+        if (item->second) {
+            item->second->RemoveConnectionObject();
+        }
+        g_connects.erase(item);
+    } else {
+        ACCOUNT_LOGD("remove conn ability not exist");
+    }
+}
 
 class JsAuthorizationExtensionContext final {
 public:
@@ -93,8 +109,8 @@ private:
         return true;
     }
 
-    bool CheckConnectionParam(NativeEngine &engine, NativeValue *value, sptr<JSServiceExtensionConnection> &connection,
-        const AAFwk::Want &want) const
+    bool CheckConnectionParam(NativeEngine &engine, NativeValue *value,
+        sptr<JSAuthorizationExtensionConnection> &connection, const AAFwk::Want &want) const
     {
         if (ConvertNativeValueTo<NativeObject>(value) == nullptr) {
             ACCOUNT_LOGE("Failed to get connection object");
@@ -115,10 +131,10 @@ private:
     }
 
     void FindConnection(NativeEngine &engine, NativeCallbackInfo &info, AAFwk::Want &want,
-        sptr<JSServiceExtensionConnection> &connection, int64_t &connectId) const
+        sptr<JSAuthorizationExtensionConnection> &connection, int64_t &connectId) const
     {
         auto item = std::find_if(connects_.begin(), connects_.end(),
-            [&connectId](const std::map<ConnectionKey, sptr<JSServiceExtensionConnection>>::value_type &obj) {
+            [&connectId](const std::map<ConnectionKey, sptr<JSAuthorizationExtensionConnection>>::value_type &obj) {
                 return connectId == obj.first.id;
             });
         if (item != connects_.end()) {
@@ -148,7 +164,8 @@ private:
         }
         // Unwrap want and connection
         AAFwk::Want want;
-        sptr<JSServiceExtensionConnection> connection = new JSServiceExtensionConnection(engine);
+        sptr<JSAuthorizationExtensionConnection> connection =
+            new (std::nothrow) JSAuthorizationExtensionConnection(engine);
         if ((connection == nullptr) || (!CheckWantParam(engine, info.argv[0], want)) ||
             (!CheckConnectionParam(engine, info.argv[1], connection, want))) {
             ThrowError(engine, AbilityErrorCode::ERROR_CODE_INVALID_PARAM);
@@ -161,12 +178,14 @@ private:
                 if (!context) {
                     ACCOUNT_LOGE("context is released");
                     task.Reject(engine, CreateJsError(engine, ERROR_CODE_ONE, "Context is released"));
+                    RemoveConnection(connectId);
                     return;
                 }
                 auto innerErrorCode = context->ConnectAbility(want, connection);
                 int32_t errCode = static_cast<int32_t>(AbilityRuntime::GetJsErrorCodeByNativeError(innerErrorCode));
                 if (errCode != 0) {
                     connection->CallJsFailed(errCode);
+                    RemoveConnection(connectId);
                 }
                 task.Resolve(engine, engine.CreateUndefined());
             };
@@ -191,7 +210,7 @@ private:
         }
 
         AAFwk::Want want;
-        sptr<JSServiceExtensionConnection> connection = nullptr;
+        sptr<JSAuthorizationExtensionConnection> connection = nullptr;
         FindConnection(engine, info, want, connection, connectId);
         // begin disconnect
         AsyncTask::CompleteCallback complete =
@@ -239,7 +258,7 @@ NativeValue *CreateJsAuthorizationExtensionContext(
     object->SetNativePointer(jsContext.release(), JsAuthorizationExtensionContext::Finalizer, nullptr);
 
     // make handler
-    handler_ = std::make_shared<AppExecFwk::EventHandler>(AppExecFwk::EventRunner::GetMainEventRunner());
+    g_handler = std::make_shared<AppExecFwk::EventHandler>(AppExecFwk::EventRunner::GetMainEventRunner());
 
     const char *moduleName = "JsAuthorizationExtensionContext";
     BindNativeFunction(
@@ -249,9 +268,199 @@ NativeValue *CreateJsAuthorizationExtensionContext(
     return objValue;
 }
 
+void JSAuthorizationExtensionConnection::OnAbilityConnectDone(
+    const AppExecFwk::ElementName &element, const sptr<IRemoteObject> &remoteObject, int resultCode)
+{
+    ACCOUNT_LOGI("OnAbilityConnectDone, resultCode:%{public}d", resultCode);
+    if (g_handler == nullptr) {
+        ACCOUNT_LOGI("g_handler nullptr");
+        return;
+    }
+    wptr<JSAuthorizationExtensionConnection> connection = this;
+    auto task = [connection, element, remoteObject, resultCode]() {
+        sptr<JSAuthorizationExtensionConnection> connectionSptr = connection.promote();
+        if (!connectionSptr) {
+            ACCOUNT_LOGI("connectionSptr nullptr");
+            return;
+        }
+        connectionSptr->HandleOnAbilityConnectDone(element, remoteObject, resultCode);
+    };
+    g_handler->PostTask(task, "OnAbilityConnectDone");
+}
+
+void JSAuthorizationExtensionConnection::HandleOnAbilityConnectDone(
+    const AppExecFwk::ElementName &element, const sptr<IRemoteObject> &remoteObject, int resultCode)
+{
+    ACCOUNT_LOGI("HandleOnAbilityConnectDone, resultCode:%{public}d", resultCode);
+    // wrap ElementName
+    napi_value napiElementName = OHOS::AppExecFwk::WrapElementName(reinterpret_cast<napi_env>(&engine_), element);
+    NativeValue *nativeElementName = reinterpret_cast<NativeValue *>(napiElementName);
+
+    // wrap RemoteObject
+    napi_value napiRemoteObject =
+        NAPI_ohos_rpc_CreateJsRemoteObject(reinterpret_cast<napi_env>(&engine_), remoteObject);
+    NativeValue *nativeRemoteObject = reinterpret_cast<NativeValue *>(napiRemoteObject);
+    NativeValue *argv[] = {nativeElementName, nativeRemoteObject};
+    if (jsConnectionObject_ == nullptr) {
+        ACCOUNT_LOGE("jsConnectionObject_ nullptr");
+        return;
+    }
+    NativeValue *value = jsConnectionObject_->Get();
+    NativeObject *obj = ConvertNativeValueTo<NativeObject>(value);
+    if (obj == nullptr) {
+        ACCOUNT_LOGE("Failed to get object");
+        return;
+    }
+    NativeValue *methodOnConnect = obj->GetProperty("onConnect");
+    if (methodOnConnect == nullptr) {
+        ACCOUNT_LOGE("Failed to get onConnect from object");
+        return;
+    }
+    engine_.CallFunction(value, methodOnConnect, argv, ARGC_TWO);
+}
+
+void JSAuthorizationExtensionConnection::OnAbilityDisconnectDone(const AppExecFwk::ElementName &element, int resultCode)
+{
+    if (g_handler == nullptr) {
+        ACCOUNT_LOGI("g_handler nullptr");
+        return;
+    }
+    wptr<JSAuthorizationExtensionConnection> connection = this;
+    auto task = [connection, element, resultCode]() {
+        sptr<JSAuthorizationExtensionConnection> connectionSptr = connection.promote();
+        if (!connectionSptr) {
+            ACCOUNT_LOGI("connectionSptr nullptr");
+            return;
+        }
+        connectionSptr->HandleOnAbilityDisconnectDone(element, resultCode);
+    };
+    g_handler->PostTask(task, "OnAbilityDisconnectDone");
+}
+
+void JSAuthorizationExtensionConnection::HandleOnAbilityDisconnectDone(
+    const AppExecFwk::ElementName &element, int resultCode)
+{
+    ACCOUNT_LOGI("HandleOnAbilityDisconnectDone, resultCode:%{public}d", resultCode);
+    napi_value napiElementName = OHOS::AppExecFwk::WrapElementName(reinterpret_cast<napi_env>(&engine_), element);
+    NativeValue *nativeElementName = reinterpret_cast<NativeValue *>(napiElementName);
+    NativeValue *argv[] = {nativeElementName};
+    if (jsConnectionObject_ == nullptr) {
+        ACCOUNT_LOGE("jsConnectionObject_ nullptr");
+        return;
+    }
+    NativeValue *value = jsConnectionObject_->Get();
+    NativeObject *obj = ConvertNativeValueTo<NativeObject>(value);
+    if (obj == nullptr) {
+        ACCOUNT_LOGE("Failed to get object");
+        return;
+    }
+
+    NativeValue *method = obj->GetProperty("onDisconnect");
+    if (method == nullptr) {
+        ACCOUNT_LOGE("Failed to get onDisconnect from object");
+        return;
+    }
+
+    // release connect
+    ACCOUNT_LOGD("OnAbilityDisconnectDone g_connects.size:%{public}zu", g_connects.size());
+    std::string bundleName = element.GetBundleName();
+    std::string abilityName = element.GetAbilityName();
+    auto item = std::find_if(
+        g_connects.begin(), g_connects.end(), [bundleName, abilityName, connectionId = connectionId_](const auto &obj) {
+            return (bundleName == obj.first.want.GetBundle()) &&
+                   (abilityName == obj.first.want.GetElement().GetAbilityName()) && connectionId == obj.first.id;
+        });
+    if (item != g_connects.end()) {
+        // match bundlename && abilityname
+        g_connects.erase(item);
+        ACCOUNT_LOGD("OnAbilityDisconnectDone erase g_connects.size:%{public}zu", g_connects.size());
+    }
+    engine_.CallFunction(value, method, argv, ARGC_ONE);
+}
+
+void JSAuthorizationExtensionConnection::CallJsFailed(int32_t errorCode)
+{
+    if (jsConnectionObject_ == nullptr) {
+        ACCOUNT_LOGE("jsConnectionObject_ nullptr");
+        return;
+    }
+    NativeValue *value = jsConnectionObject_->Get();
+    NativeObject *obj = ConvertNativeValueTo<NativeObject>(value);
+    if (obj == nullptr) {
+        ACCOUNT_LOGE("Failed to get object");
+        return;
+    }
+
+    NativeValue *method = obj->GetProperty("onFailed");
+    if (method == nullptr) {
+        ACCOUNT_LOGE("Failed to get onFailed from object");
+        return;
+    }
+    NativeValue *argv[] = {engine_.CreateNumber(errorCode)};
+    engine_.CallFunction(value, method, argv, ARGC_ONE);
+}
+
+int64_t JSAuthorizationExtensionConnection::GetConnectionId()
+{
+    return connectionId_;
+}
+
 JSAuthorizationExtensionConnection::JSAuthorizationExtensionConnection(NativeEngine &engine) : engine_(engine)
 {}
 
-JSAuthorizationExtensionConnection::~JSAuthorizationExtensionConnection() = default;
+void JSAuthorizationExtensionConnection::SetConnectionId(int64_t id)
+{
+    connectionId_ = id;
+}
+
+void JSAuthorizationExtensionConnection::SetJsConnectionObject(NativeValue* jsConnectionObject)
+{
+    jsConnectionObject_ = std::unique_ptr<NativeReference>(engine_.CreateReference(jsConnectionObject, 1));
+}
+
+JSAuthorizationExtensionConnection::~JSAuthorizationExtensionConnection()
+{
+    if (jsConnectionObject_ == nullptr) {
+        return;
+    }
+
+    uv_loop_t *loop = engine_.GetUVLoop();
+    if (loop == nullptr) {
+        return;
+    }
+
+    uv_work_t *work = new (std::nothrow) uv_work_t;
+    if (work == nullptr) {
+        return;
+    }
+    work->data = reinterpret_cast<void *>(jsConnectionObject_.release());
+    int ret = uv_queue_work_with_qos(
+        loop, work, [](uv_work_t *work) {},
+        [](uv_work_t *work, int status) {
+            if (work == nullptr) {
+                return;
+            }
+            if (work->data == nullptr) {
+                delete work;
+                work = nullptr;
+                return;
+            }
+            delete reinterpret_cast<NativeReference *>(work->data);
+            work->data = nullptr;
+            delete work;
+            work = nullptr;
+        }, uv_qos_user_initiated);
+    if (ret != 0) {
+        delete reinterpret_cast<NativeReference *>(work->data);
+        work->data = nullptr;
+        delete work;
+        work = nullptr;
+    }
+}
+
+void JSAuthorizationExtensionConnection::RemoveConnectionObject()
+{
+    jsConnectionObject_.reset();
+}
 } // namespace AbilityRuntime
 } // namespace OHOS

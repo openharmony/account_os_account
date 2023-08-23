@@ -234,7 +234,8 @@ bool CreateAccountImplicitlyOptions::ReadFromParcel(Parcel &parcel)
 
 bool AccountCapabilityRequest::Marshalling(Parcel &parcel) const
 {
-    return parcel.WriteString(bundleName) && parcel.WriteString(abilityName) && parcel.WriteParcelable(&parameters);
+    return parcel.WriteBool(isEnableContext) && parcel.WriteString(bundleName) && parcel.WriteString(abilityName) &&
+           parcel.WriteParcelable(&parameters);
 }
 
 AccountCapabilityRequest *AccountCapabilityRequest::Unmarshalling(Parcel &parcel)
@@ -250,7 +251,7 @@ AccountCapabilityRequest *AccountCapabilityRequest::Unmarshalling(Parcel &parcel
 
 bool AccountCapabilityRequest::ReadFromParcel(Parcel &parcel)
 {
-    if ((!parcel.ReadString(bundleName)) || (!parcel.ReadString(abilityName))) {
+    if ((!parcel.ReadBool(isEnableContext)) || (!parcel.ReadString(bundleName)) || (!parcel.ReadString(abilityName))) {
         return false;
     }
     sptr<AAFwk::WantParams> paramsPtr = parcel.ReadParcelable<AAFwk::WantParams>();

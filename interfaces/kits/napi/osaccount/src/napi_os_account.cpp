@@ -205,7 +205,7 @@ napi_value QueryOsAccountById(napi_env env, napi_callback_info cbInfo)
         reinterpret_cast<void *>(queryOAByIdCB.get()),
         &queryOAByIdCB->work);
 
-    napi_queue_async_work(env, queryOAByIdCB->work);
+    napi_queue_async_work_with_qos(env, queryOAByIdCB->work, napi_qos_default);
     queryOAByIdCB.release();
     return result;
 }
@@ -233,7 +233,7 @@ napi_value RemoveOsAccount(napi_env env, napi_callback_info cbInfo)
     napi_create_async_work(env, nullptr, resource, RemoveOAExecuteCB, RemoveOACallbackCompletedCB,
         reinterpret_cast<void *>(removeOACB.get()), &removeOACB->work);
 
-    napi_queue_async_work(env, removeOACB->work);
+    napi_queue_async_work_with_qos(env, removeOACB->work, napi_qos_default);
     removeOACB.release();
     return result;
 }
@@ -266,7 +266,7 @@ napi_value SetOsAccountName(napi_env env, napi_callback_info cbInfo)
         reinterpret_cast<void *>(setOANameCB.get()),
         &setOANameCB->work);
 
-    napi_queue_async_work(env, setOANameCB->work);
+    napi_queue_async_work_with_qos(env, setOANameCB->work, napi_qos_default);
     setOANameCB.release();
     return result;
 }
@@ -299,7 +299,7 @@ napi_value SetOsAccountConstraints(napi_env env, napi_callback_info cbInfo)
         reinterpret_cast<void *>(setOAConsCB.get()),
         &setOAConsCB->work);
 
-    napi_queue_async_work(env, setOAConsCB->work);
+    napi_queue_async_work_with_qos(env, setOAConsCB->work, napi_qos_default);
     setOAConsCB.release();
     return result;
 }
@@ -332,7 +332,7 @@ napi_value ActivateOsAccount(napi_env env, napi_callback_info cbInfo)
         reinterpret_cast<void *>(activeOACB.get()),
         &activeOACB->work);
 
-    napi_queue_async_work(env, activeOACB->work);
+    napi_queue_async_work_with_qos(env, activeOACB->work, napi_qos_default);
     activeOACB.release();
     return result;
 }
@@ -360,7 +360,7 @@ napi_value CreateOsAccount(napi_env env, napi_callback_info cbInfo)
     napi_create_async_work(env, nullptr, resource, CreateOAExecuteCB, CreateOACallbackCompletedCB,
         reinterpret_cast<void *>(createOACB.get()), &createOACB->work);
 
-    napi_queue_async_work(env, createOACB->work);
+    napi_queue_async_work_with_qos(env, createOACB->work, napi_qos_default);
     createOACB.release();
     return result;
 }
@@ -388,7 +388,7 @@ napi_value CreateOsAccountForDomain(napi_env env, napi_callback_info cbInfo)
     napi_create_async_work(env, nullptr, resource, CreateOAForDomainExecuteCB, CreateOAForDomainCompletedCB,
         createOAForDomainCB.get(), &createOAForDomainCB->work);
 
-    napi_queue_async_work(env, createOAForDomainCB->work);
+    napi_queue_async_work_with_qos(env, createOAForDomainCB->work, napi_qos_default);
     createOAForDomainCB.release();
     return result;
 }
@@ -431,7 +431,7 @@ napi_value GetCreatedOsAccountsCountInner(napi_env env, napi_callback_info cbInf
         reinterpret_cast<void *>(getOACount.get()),
         &getOACount->work);
 
-    napi_queue_async_work(env, getOACount->work);
+    napi_queue_async_work_with_qos(env, getOACount->work, napi_qos_default);
     getOACount.release();
     return result;
 }
@@ -474,7 +474,7 @@ napi_value GetDistributedVirtualDeviceIdInner(napi_env env, napi_callback_info c
         reinterpret_cast<void *>(dbDeviceId.get()),
         &dbDeviceId->work);
 
-    napi_queue_async_work(env, dbDeviceId->work);
+    napi_queue_async_work_with_qos(env, dbDeviceId->work, napi_qos_default);
     dbDeviceId.release();
     return result;
 }
@@ -517,7 +517,7 @@ napi_value GetOsAccountAllConstraintsInner(napi_env env, napi_callback_info cbIn
         reinterpret_cast<void *>(getAllConsCB.get()),
         &getAllConsCB->work);
 
-    napi_queue_async_work(env, getAllConsCB->work);
+    napi_queue_async_work_with_qos(env, getAllConsCB->work, napi_qos_default);
     getAllConsCB.release();
     return result;
 }
@@ -560,7 +560,7 @@ napi_value GetOsAccountLocalIdFromProcessInner(napi_env env, napi_callback_info 
         reinterpret_cast<void *>(getIdCB.get()),
         &getIdCB->work);
 
-    napi_queue_async_work(env, getIdCB->work);
+    napi_queue_async_work_with_qos(env, getIdCB->work, napi_qos_default);
     getIdCB.release();
     return result;
 }
@@ -593,7 +593,7 @@ napi_value QueryAllCreatedOsAccounts(napi_env env, napi_callback_info cbInfo)
         reinterpret_cast<void *>(queryAllOA.get()),
         &queryAllOA->work);
 
-    napi_queue_async_work(env, queryAllOA->work);
+    napi_queue_async_work_with_qos(env, queryAllOA->work, napi_qos_default);
     queryAllOA.release();
     return result;
 }
@@ -626,7 +626,7 @@ napi_value QueryOsAccountConstraintSourceTypes(napi_env env, napi_callback_info 
         reinterpret_cast<void *>(queryConstraintSource.get()),
         &queryConstraintSource->work);
 
-    napi_queue_async_work(env, queryConstraintSource->work);
+    napi_queue_async_work_with_qos(env, queryConstraintSource->work, napi_qos_default);
     queryConstraintSource.release();
     return result;
 }
@@ -669,7 +669,7 @@ napi_value QueryActivatedOsAccountIdsInner(napi_env env, napi_callback_info cbIn
         reinterpret_cast<void *>(queryActiveIds.get()),
         &queryActiveIds->work);
 
-    napi_queue_async_work(env, queryActiveIds->work);
+    napi_queue_async_work_with_qos(env, queryActiveIds->work, napi_qos_default);
     queryActiveIds.release();
     return result;
 }
@@ -697,7 +697,7 @@ napi_value GetOsAccountProfilePhoto(napi_env env, napi_callback_info cbInfo)
     napi_create_async_work(env, nullptr, resource, GetOAPhotoExecuteCB, GetOAPhotoCallbackCompletedCB,
         reinterpret_cast<void *>(getPhoto.get()), &getPhoto->work);
 
-    napi_queue_async_work(env, getPhoto->work);
+    napi_queue_async_work_with_qos(env, getPhoto->work, napi_qos_default);
     getPhoto.release();
     return result;
 }
@@ -740,7 +740,7 @@ napi_value QueryCurrentOsAccountInner(napi_env env, napi_callback_info cbInfo, b
         reinterpret_cast<void *>(currentOA.get()),
         &currentOA->work);
 
-    napi_queue_async_work(env, currentOA->work);
+    napi_queue_async_work_with_qos(env, currentOA->work, napi_qos_default);
     currentOA.release();
     return result;
 }
@@ -778,7 +778,7 @@ napi_value GetOsAccountLocalIdFromUidInner(napi_env env, napi_callback_info cbIn
     napi_create_async_work(env, nullptr, resource, GetIdByUidExecuteCB, GetIdByUidCallbackCompletedCB,
         reinterpret_cast<void *>(idByUid.get()), &idByUid->work);
 
-    napi_queue_async_work(env, idByUid->work);
+    napi_queue_async_work_with_qos(env, idByUid->work, napi_qos_default);
     idByUid.release();
     return result;
 }
@@ -809,7 +809,7 @@ napi_value GetBundleIdFromUid(napi_env env, napi_callback_info cbInfo)
         reinterpret_cast<void *>(bundleIdByUid.get()),
         &bundleIdByUid->work);
 
-    napi_queue_async_work(env, bundleIdByUid->work);
+    napi_queue_async_work_with_qos(env, bundleIdByUid->work, napi_qos_default);
     bundleIdByUid.release();
     return result;
 }
@@ -847,7 +847,7 @@ napi_value GetOsAccountLocalIdFromDomainInner(napi_env env, napi_callback_info c
     napi_create_async_work(env, nullptr, resource, GetIdByDomainExecuteCB, GetIdByDomainCallbackCompletedCB,
         reinterpret_cast<void *>(idByDomain.get()), &idByDomain->work);
 
-    napi_queue_async_work(env, idByDomain->work);
+    napi_queue_async_work_with_qos(env, idByDomain->work, napi_qos_default);
     idByDomain.release();
     return result;
 }
@@ -875,7 +875,7 @@ napi_value SetOsAccountProfilePhoto(napi_env env, napi_callback_info cbInfo)
     napi_create_async_work(env, nullptr, resource, SetPhotoExecuteCB, SetPhotoCompletedCB,
         reinterpret_cast<void *>(setPhoto.get()), &setPhoto->work);
 
-    napi_queue_async_work(env, setPhoto->work);
+    napi_queue_async_work_with_qos(env, setPhoto->work, napi_qos_default);
     setPhoto.release();
     return result;
 }
@@ -903,7 +903,7 @@ napi_value QueryMaxOsAccountNumber(napi_env env, napi_callback_info cbInfo)
     napi_create_async_work(env, nullptr, resource, QueryMaxNumExecuteCB, QueryMaxNumCompletedCB,
         reinterpret_cast<void *>(maxNum.get()), &maxNum->work);
 
-    napi_queue_async_work(env, maxNum->work);
+    napi_queue_async_work_with_qos(env, maxNum->work, napi_qos_default);
     maxNum.release();
     return result;
 }
@@ -931,7 +931,7 @@ napi_value InnerIsOsAccountActived(napi_env env, napi_callback_info cbInfo, bool
     napi_create_async_work(env, nullptr, resource, IsActivedExecuteCB, IsActivedCompletedCB,
         reinterpret_cast<void *>(isActived.get()), &isActived->work);
 
-    napi_queue_async_work(env, isActived->work);
+    napi_queue_async_work_with_qos(env, isActived->work, napi_qos_default);
     isActived.release();
     return result;
 }
@@ -969,7 +969,7 @@ napi_value InnerIsOsAccountConstraintEnable(napi_env env, napi_callback_info cbI
     napi_create_async_work(env, nullptr, resource, IsEnableExecuteCB, IsEnableCompletedCB,
         reinterpret_cast<void *>(isEnable.get()), &isEnable->work);
 
-    napi_queue_async_work(env, isEnable->work);
+    napi_queue_async_work_with_qos(env, isEnable->work, napi_qos_default);
     isEnable.release();
     return result;
 }
@@ -1017,7 +1017,7 @@ napi_value GetOsAccountTypeFromProcessInner(napi_env env, napi_callback_info cbI
     napi_create_async_work(env, nullptr, resource, GetTypeExecuteCB, GetTypeCompletedCB,
         reinterpret_cast<void *>(getType.get()), &getType->work);
 
-    napi_queue_async_work(env, getType->work);
+    napi_queue_async_work_with_qos(env, getType->work, napi_qos_default);
     getType.release();
     return result;
 }
@@ -1055,7 +1055,7 @@ napi_value InnerIsMultiOsAccountEnable(napi_env env, napi_callback_info cbInfo, 
     napi_create_async_work(env, nullptr, resource, IsMultiEnExecuteCB, IsMultiEnCompletedCB,
         reinterpret_cast<void *>(multiEn.get()), &multiEn->work);
 
-    napi_queue_async_work(env, multiEn->work);
+    napi_queue_async_work_with_qos(env, multiEn->work, napi_qos_default);
     multiEn.release();
     return result;
 }
@@ -1083,7 +1083,7 @@ napi_value InnerIsOsAccountVerified(napi_env env, napi_callback_info cbInfo, boo
     napi_create_async_work(env, nullptr, resource, IsVerifiedExecuteCB, IsVerifiedCompletedCB,
         reinterpret_cast<void *>(isVerified.get()), &isVerified->work);
 
-    napi_queue_async_work(env, isVerified->work);
+    napi_queue_async_work_with_qos(env, isVerified->work, napi_qos_default);
     isVerified.release();
     return result;
 }
@@ -1131,7 +1131,7 @@ napi_value GetOsAccountLocalIdBySerialNumberInner(napi_env env, napi_callback_in
     napi_create_async_work(env, nullptr, resource, SerialNumIdExecuteCB, SerialNumIdCompletedCB,
         reinterpret_cast<void *>(serialNumId.get()), &serialNumId->work);
 
-    napi_queue_async_work(env, serialNumId->work);
+    napi_queue_async_work_with_qos(env, serialNumId->work, napi_qos_default);
     serialNumId.release();
     return result;
 }
@@ -1174,7 +1174,7 @@ napi_value GetSerialNumberByOsAccountLocalIdInner(napi_env env, napi_callback_in
         reinterpret_cast<void *>(getSerialNum.get()),
         &getSerialNum->work);
 
-    napi_queue_async_work(env, getSerialNum->work);
+    napi_queue_async_work_with_qos(env, getSerialNum->work, napi_qos_default);
     getSerialNum.release();
     return result;
 }
@@ -1226,7 +1226,7 @@ napi_value InnerIsTestOsAccount(napi_env env, napi_callback_info cbInfo, bool th
         },
         reinterpret_cast<void *>(isTest.get()),
         &isTest->work);
-    napi_queue_async_work(env, isTest->work);
+    napi_queue_async_work_with_qos(env, isTest->work, napi_qos_default);
     isTest.release();
     return result;
 }
@@ -1272,7 +1272,7 @@ napi_value IsMainOsAccount(napi_env env, napi_callback_info cbInfo)
         reinterpret_cast<void *>(isMain.get()),
         &isMain->work);
 
-    napi_queue_async_work(env, isMain->work);
+    napi_queue_async_work_with_qos(env, isMain->work, napi_qos_default);
     isMain.release();
     return result;
 }
@@ -1371,7 +1371,7 @@ void SubscriberPtr::OnAccountsChanged(const int &id)
     subscriberOAWorker->ref = ref_;
     subscriberOAWorker->subscriber = this;
     work->data = reinterpret_cast<void *>(subscriberOAWorker);
-    uv_queue_work(loop, work, [](uv_work_t *work) {}, UvQueueWorkOnAccountsChanged);
+    uv_queue_work_with_qos(loop, work, [](uv_work_t *work) {}, UvQueueWorkOnAccountsChanged, uv_qos_default);
 }
 
 void UvQueueWorkOnAccountsChanged(uv_work_t *work, int status)

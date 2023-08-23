@@ -165,6 +165,7 @@ enum class DomainAccountInterfaceCode : uint32_t {
     DOMAIN_ACCOUNT_STATUS_LISTENER_UNREGISTER = 10,
     DOMAIN_ACCOUNT_STATUS_LISTENER_REGISTER_BY_INFO = 11,
     DOMAIN_ACCOUNT_STATUS_LISTENER_UNREGISTER_BY_INFO = 12,
+    DOMAIN_GET_ACCOUNT_INFO,
 };
 
 enum class DomainAccountPluginInterfaceCode : int32_t {
@@ -186,8 +187,8 @@ enum class OsAccountEventInterfaceCode : uint32_t {
 };
 
 enum class AppAccountAuthorizationExtensionCallbackInterfaceCode : uint32_t {
-    APP_ACCOUNT_AUTHORIZATION_EXTENSION_CALLBACK_ON_RESULT = 0,
-    APP_ACCOUNT_AUTHORIZATION_EXTENSION_CALLBACK_ON_REQUEST_REDIRECTED,
+    ON_RESULT = 0,
+    ON_REQUEST_REDIRECTED,
 };
 
 enum class AppAccountAuthenticatorCallbackInterfaceCode : uint32_t {
@@ -212,7 +213,7 @@ enum class AppAccountAuthenticatorInterfaceCode : uint32_t {
 };
 
 enum class AppAccountAuthorizationExtensionInterfaceCode : uint32_t {
-    APP_AUTHORIZATION_EXTENSION_START_AUTHENTICATION = 0,
+    START_AUTHENTICATION = 0,
 };
 
 enum class AccountIAMCallbackInterfaceCode : uint32_t {

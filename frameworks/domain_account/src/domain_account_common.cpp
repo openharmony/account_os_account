@@ -143,6 +143,50 @@ GetAccessTokenOptions *GetAccessTokenOptions::Unmarshalling(Parcel &parcel)
     return getAccessTokenOptions;
 }
 
+bool GetDomainAccountInfoOptions::ReadFromParcel(Parcel &parcel)
+{
+    std::shared_ptr<DomainAccountInfo> infoPtr(parcel.ReadParcelable<DomainAccountInfo>());
+    if (infoPtr == nullptr) {
+        ACCOUNT_LOGE("failed to read authStatusInfo");
+        return false;
+    }
+    accountInfo = *infoPtr;
+    if (!parcel.ReadInt32(callingUid)) {
+        ACCOUNT_LOGE("failed to read callingUid");
+        return false;
+    }
+    return true;
+}
+
+bool GetDomainAccountInfoOptions::Marshalling(Parcel &parcel) const
+{
+    if (!parcel.WriteParcelable(&accountInfo)) {
+        ACCOUNT_LOGE("failed to write authStatusInfo");
+        return false;
+    }
+    if (!parcel.WriteInt32(callingUid)) {
+        ACCOUNT_LOGE("failed to read write callingUid");
+        return false;
+    }
+    return true;
+}
+
+GetDomainAccountInfoOptions *GetDomainAccountInfoOptions::Unmarshalling(Parcel &parcel)
+{
+    GetDomainAccountInfoOptions *getAccountInfoOptions = new (std::nothrow) GetDomainAccountInfoOptions();
+    if (getAccountInfoOptions == nullptr) {
+        return nullptr;
+    }
+
+    if (!getAccountInfoOptions->ReadFromParcel(parcel)) {
+        ACCOUNT_LOGE("failed to read from parcel");
+        delete getAccountInfoOptions;
+        getAccountInfoOptions = nullptr;
+    }
+
+    return getAccountInfoOptions;
+}
+
 bool AuthStatusInfo::ReadFromParcel(Parcel &parcel)
 {
     if (!parcel.ReadInt32(remainingTimes)) {
