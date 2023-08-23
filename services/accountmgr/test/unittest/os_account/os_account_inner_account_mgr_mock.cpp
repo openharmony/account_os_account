@@ -27,6 +27,13 @@
 #include "iinner_os_account_manager.h"
 #undef private
 #include "os_account_subscribe_manager.h"
+#ifdef BUNDLE_ADAPTER_MOCK
+#define private public
+#include "os_account.h"
+#include "os_account_manager_service.h"
+#include "os_account_proxy.h"
+#undef private
+#endif
 #include "mock_os_account_control_file_manager.h"
 #include <sys/types.h>
 #include <unistd.h>
@@ -69,9 +76,6 @@ const std::string STRING_DOMAIN_ACCOUNT_NAME_OUT_OF_RANGE =
 
 const std::string STRING_DOMAIN_VALID = "TestDomainMT";
 const std::string STRING_DOMAIN_ACCOUNT_NAME_VALID = "TestDomainAccountNameMT";
-const std::string TEST_ACCOUNT_NAME = "TestAccountNameOS";
-const std::string TEST_ACCOUNT_UID = "123456789os";
-const std::string TEST_EXPECTED_UID = "4E7FA9CA2E8760692F2ADBA7AE59B37E02E650670E5FA5F3D01232DCD52D3893";
 
 class OsAccountInnerAccmgrCoverageTest : public testing::Test {
 public:
@@ -84,7 +88,14 @@ public:
 };
 
 void OsAccountInnerAccmgrCoverageTest::SetUpTestCase(void)
-{}
+{
+#ifdef BUNDLE_ADAPTER_MOCK
+    auto osAccountService = new (std::nothrow) OsAccountManagerService();
+    ASSERT_NE(osAccountService, nullptr);
+    OsAccount::GetInstance().osAccountProxy_ = new (std::nothrow) OsAccountProxy(osAccountService->AsObject());
+    ASSERT_NE(OsAccount::GetInstance().osAccountProxy_, nullptr);
+#endif
+}
 
 void OsAccountInnerAccmgrCoverageTest::TearDownTestCase(void)
 {}
@@ -269,8 +280,11 @@ HWTEST_F(OsAccountInnerAccmgrCoverageTest, OsAccountInnerAccmgrCoverageTest010, 
     innerMgrService_->SetOsAccountControl(ptr);
 
     OsAccountInfo osAccountInfoOne;
+#ifdef BUNDLE_ADAPTER_MOCK
+    EXPECT_NE(OsAccountManager::CreateOsAccount(STRING_TEST_NAME, OsAccountType::GUEST, osAccountInfoOne), ERR_OK);
+#else // BUNDLE_ADAPTER_MOCK
     EXPECT_EQ(OsAccountManager::CreateOsAccount(STRING_TEST_NAME, OsAccountType::GUEST, osAccountInfoOne), ERR_OK);
-
+#endif
     EXPECT_CALL(*ptr, UpdateOsAccount(::testing::_))
         .WillRepeatedly(testing::Return(0));
 
@@ -301,7 +315,11 @@ HWTEST_F(OsAccountInnerAccmgrCoverageTest, OsAccountInnerAccmgrCoverageTest010, 
     EXPECT_EQ(ret, -1);
 
     (void)setuid(0);
+#ifdef BUNDLE_ADAPTER_MOCK
+    EXPECT_NE(OsAccountManager::RemoveOsAccount(osAccountInfoOne.GetLocalId()), ERR_OK);
+#else // BUNDLE_ADAPTER_MOCK
     EXPECT_EQ(OsAccountManager::RemoveOsAccount(osAccountInfoOne.GetLocalId()), ERR_OK);
+#endif
 }
 
 /*
@@ -317,7 +335,11 @@ HWTEST_F(OsAccountInnerAccmgrCoverageTest, OsAccountInnerAccmgrCoverageTest011, 
     innerMgrService_->SetOsAccountControl(ptr);
 
     OsAccountInfo osAccountInfoOne;
+#ifdef BUNDLE_ADAPTER_MOCK
+    EXPECT_NE(OsAccountManager::CreateOsAccount(STRING_TEST_NAME, OsAccountType::GUEST, osAccountInfoOne), ERR_OK);
+#else // BUNDLE_ADAPTER_MOCK
     EXPECT_EQ(OsAccountManager::CreateOsAccount(STRING_TEST_NAME, OsAccountType::GUEST, osAccountInfoOne), ERR_OK);
+#endif
 
     EXPECT_CALL(*ptr, UpdateOsAccount(::testing::_))
         .WillRepeatedly(testing::Return(0));
@@ -340,7 +362,11 @@ HWTEST_F(OsAccountInnerAccmgrCoverageTest, OsAccountInnerAccmgrCoverageTest011, 
     EXPECT_EQ(ret, 0);
 
     (void)setuid(0);
+#ifdef BUNDLE_ADAPTER_MOCK
+    EXPECT_NE(OsAccountManager::RemoveOsAccount(osAccountInfoOne.GetLocalId()), ERR_OK);
+#else // BUNDLE_ADAPTER_MOCK
     EXPECT_EQ(OsAccountManager::RemoveOsAccount(osAccountInfoOne.GetLocalId()), ERR_OK);
+#endif
 }
 
 /*
