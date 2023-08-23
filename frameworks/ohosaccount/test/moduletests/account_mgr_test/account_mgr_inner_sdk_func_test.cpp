@@ -21,14 +21,29 @@
 #include <vector>
 
 #include "account_error_no.h"
+#ifdef BUNDLE_ADAPTER_MOCK
+#define private public
+#include "account_mgr_service.h"
+#undef private
+#endif
 #include "account_proxy.h"
 #include "account_info.h"
 #include "iaccount.h"
 #include "if_system_ability_manager.h"
 #include "iservice_registry.h"
 #include "ohos_account_constants.h"
+#define private public
 #include "ohos_account_kits.h"
+#undef private
 #include "os_account_manager.h"
+#ifdef BUNDLE_ADAPTER_MOCK
+#define private public
+#include "ohos_account_kits_impl.h"
+#include "os_account.h"
+#include "os_account_manager_service.h"
+#include "os_account_proxy.h"
+#undef private
+#endif
 #include "system_ability_definition.h"
 
 using namespace testing::ext;
@@ -70,7 +85,19 @@ public:
 };
 
 void AccountMgrInnerSdkFuncTest::SetUpTestCase(void)
-{}
+{
+#ifdef BUNDLE_ADAPTER_MOCK
+    auto servicePtr = new (std::nothrow) AccountMgrService();
+    ASSERT_NE(servicePtr, nullptr);
+    servicePtr->state_ = STATE_RUNNING;
+    OhosAccountKitsImpl::GetInstance().accountProxy_ = new (std::nothrow) AccountProxy(servicePtr->AsObject());
+    ASSERT_NE(OhosAccountKitsImpl::GetInstance().accountProxy_, nullptr);
+    auto osAccountService = new (std::nothrow) OsAccountManagerService();
+    ASSERT_NE(osAccountService, nullptr);
+    OsAccount::GetInstance().osAccountProxy_ = new (std::nothrow) OsAccountProxy(osAccountService->AsObject());
+    ASSERT_NE(OsAccount::GetInstance().osAccountProxy_, nullptr);
+#endif
+}
 
 void AccountMgrInnerSdkFuncTest::TearDownTestCase(void)
 {}
@@ -103,7 +130,11 @@ HWTEST_F(AccountMgrInnerSdkFuncTest, GetDeviceAccountIdTest, TestSize.Level0)
 HWTEST_F(AccountMgrInnerSdkFuncTest, GetOhosAccountInfoTest, TestSize.Level0)
 {
     auto ret = OhosAccountKits::GetInstance().QueryOhosAccountInfo();
+    #ifdef BUNDLE_ADAPTER_MOCK
+    EXPECT_EQ(false, ret.first);
+    #else // BUNDLE_ADAPTER_MOCK
     EXPECT_EQ(true, ret.first);
+    #endif
 }
 
 /**
