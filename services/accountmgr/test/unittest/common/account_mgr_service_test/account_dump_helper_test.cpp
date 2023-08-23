@@ -76,9 +76,6 @@ void AccountDumpHelperTest::SetUp()
         std::cout << "AccountDumpHelperTest, error! osAccount_ is nullptr!" << std::endl;
     }
     accountDumpHelper_ = std::make_unique<AccountDumpHelper>(osAccount_);
-    if (accountDumpHelper_ == nullptr) {
-        std::cout << "AccountDumpHelperTest, error! accountDumpHelper_ is nullptr!" << std::endl;
-    }
 }
 
 void AccountDumpHelperTest::TearDown()
