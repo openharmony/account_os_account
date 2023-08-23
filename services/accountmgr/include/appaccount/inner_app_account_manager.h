@@ -19,6 +19,7 @@
 #include "ability_connect_callback_stub.h"
 #include "app_account_authenticator_manager.h"
 #include "app_account_authenticator_session_manager.h"
+#include "app_account_authorization_extension_callback.h"
 #include "app_account_control_manager.h"
 #include "app_account_subscribe_manager.h"
 
@@ -120,6 +121,7 @@ public:
     void OnAbilityConnectDone(
         const AppExecFwk::ElementName &element, const sptr<IRemoteObject> &remoteObject, int32_t resultCode) override;
     void OnAbilityDisconnectDone(const AppExecFwk::ElementName &element, int resultCode) override;
+    void SetCallbackService(const sptr<IAppAccountAuthorizationExtensionCallback> &callbackService);
 
 private:
     int32_t uid_;
