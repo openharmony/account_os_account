@@ -29,6 +29,13 @@
 #include "account_file_operator.h"
 #undef private
 #include "os_account_constants.h"
+#ifdef BUNDLE_ADAPTER_MOCK
+#define private public
+#include "os_account.h"
+#include "os_account_manager_service.h"
+#include "os_account_proxy.h"
+#undef private
+#endif
 #include "parameter.h"
 #include "system_ability.h"
 #include "system_ability_definition.h"
@@ -272,6 +279,12 @@ void OsAccountManagerModuleTest::SetUpTestCase(void)
     }
     GTEST_LOG_(INFO) << "SetUpTestCase finished, waitCnt " << waitCnt;
     g_selfTokenID = IPCSkeleton::GetSelfTokenID();
+#ifdef BUNDLE_ADAPTER_MOCK
+    auto osAccountService = new (std::nothrow) OsAccountManagerService();
+    ASSERT_NE(osAccountService, nullptr);
+    OsAccount::GetInstance().osAccountProxy_ = new (std::nothrow) OsAccountProxy(osAccountService->AsObject());
+    ASSERT_NE(OsAccount::GetInstance().osAccountProxy_, nullptr);
+#endif
 }
 
 void OsAccountManagerModuleTest::TearDownTestCase(void)
@@ -1739,8 +1752,12 @@ HWTEST_F(OsAccountManagerModuleTest, OsAccountManagerModuleTest079, TestSize.Lev
 HWTEST_F(OsAccountManagerModuleTest, OsAccountManagerModuleTest080, TestSize.Level1)
 {
     int createdOsAccountNum = -1;
+    #ifdef BUNDLE_ADAPTER_MOCK
+    EXPECT_NE(OsAccountManager::GetCreatedOsAccountNumFromDatabase("", createdOsAccountNum), ERR_OK);
+    #else // BUNDLE_ADAPTER_MOCK
     EXPECT_EQ(OsAccountManager::GetCreatedOsAccountNumFromDatabase("", createdOsAccountNum), ERR_OK);
     EXPECT_NE(createdOsAccountNum, -1);
+    #endif
 }
 
 /**
@@ -1765,8 +1782,12 @@ HWTEST_F(OsAccountManagerModuleTest, OsAccountManagerModuleTest081, TestSize.Lev
 HWTEST_F(OsAccountManagerModuleTest, OsAccountManagerModuleTest082, TestSize.Level1)
 {
     int64_t serialNumber = -1;
+    #ifdef BUNDLE_ADAPTER_MOCK
+    EXPECT_NE(OsAccountManager::GetSerialNumberFromDatabase("", serialNumber), ERR_OK);
+    #else // BUNDLE_ADAPTER_MOCK
     EXPECT_EQ(OsAccountManager::GetSerialNumberFromDatabase("", serialNumber), ERR_OK);
     EXPECT_NE(serialNumber, -1);
+    #endif
 }
 
 /**
@@ -1791,8 +1812,12 @@ HWTEST_F(OsAccountManagerModuleTest, OsAccountManagerModuleTest083, TestSize.Lev
 HWTEST_F(OsAccountManagerModuleTest, OsAccountManagerModuleTest084, TestSize.Level1)
 {
     int maxAllowCreateId = -1;
+    #ifdef BUNDLE_ADAPTER_MOCK
+    EXPECT_NE(OsAccountManager::GetMaxAllowCreateIdFromDatabase("", maxAllowCreateId), ERR_OK);
+    #else // BUNDLE_ADAPTER_MOCK
     EXPECT_EQ(OsAccountManager::GetMaxAllowCreateIdFromDatabase("", maxAllowCreateId), ERR_OK);
     EXPECT_NE(maxAllowCreateId, -1);
+    #endif
 }
 
 /**
@@ -1817,8 +1842,12 @@ HWTEST_F(OsAccountManagerModuleTest, OsAccountManagerModuleTest085, TestSize.Lev
 HWTEST_F(OsAccountManagerModuleTest, OsAccountManagerModuleTest086, TestSize.Level1)
 {
     std::vector<OsAccountInfo> osAccountList;
+    #ifdef BUNDLE_ADAPTER_MOCK
+    EXPECT_NE(OsAccountManager::GetOsAccountListFromDatabase("", osAccountList), ERR_OK);
+    #else // BUNDLE_ADAPTER_MOCK
     EXPECT_EQ(OsAccountManager::GetOsAccountListFromDatabase("", osAccountList), ERR_OK);
     EXPECT_NE(osAccountList.size(), 0);
+    #endif
 }
 
 /**
@@ -1830,8 +1859,12 @@ HWTEST_F(OsAccountManagerModuleTest, OsAccountManagerModuleTest086, TestSize.Lev
 HWTEST_F(OsAccountManagerModuleTest, OsAccountManagerModuleTest087, TestSize.Level1)
 {
     std::vector<OsAccountInfo> osAccountList;
+    #ifdef BUNDLE_ADAPTER_MOCK
+    EXPECT_NE(OsAccountManager::GetOsAccountListFromDatabase("ERROR_STORE_ID", osAccountList), ERR_OK);
+    #else // BUNDLE_ADAPTER_MOCK
     EXPECT_EQ(OsAccountManager::GetOsAccountListFromDatabase("ERROR_STORE_ID", osAccountList), ERR_OK);
     EXPECT_EQ(osAccountList.size(), 0);
+    #endif
 }
 
 /**
@@ -2021,8 +2054,11 @@ HWTEST_F(OsAccountManagerModuleTest, OsAccountManagerModuleTest098, TestSize.Lev
 HWTEST_F(OsAccountManagerModuleTest, OsAccountManagerModuleTest099, TestSize.Level1)
 {
     OsAccountInfo osAccountInfo;
-    EXPECT_EQ(ERR_OK,
-        OsAccountManager::GetOsAccountFromDatabase("", MAIN_ACCOUNT_ID, osAccountInfo));
+#ifdef BUNDLE_ADAPTER_MOCK
+    EXPECT_NE(ERR_OK, OsAccountManager::GetOsAccountFromDatabase("", MAIN_ACCOUNT_ID, osAccountInfo));
+#else // BUNDLE_ADAPTER_MOCK
+    EXPECT_EQ(ERR_OK, OsAccountManager::GetOsAccountFromDatabase("", MAIN_ACCOUNT_ID, osAccountInfo));
+#endif
 }
 
 /**

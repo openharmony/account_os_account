@@ -64,6 +64,13 @@ void OsAccountInterface::SendToCESAccountSwitched(OsAccountInfo &osAccountInfo)
     ACCOUNT_LOGI("mock OsAccountInterface SendToCESAccountSwitched start");
 }
 
+void OsAccountInterface::PublishCommonEvent(
+    const OsAccountInfo &osAccountInfo, const std::string &commonEvent, const std::string &operation)
+{
+    ACCOUNT_LOGI("mock OsAccountInterface PublishCommonEvent start");
+    return;
+}
+
 ErrCode OsAccountInterface::SendToStorageAccountCreate(OsAccountInfo &osAccountInfo)
 {
     ACCOUNT_LOGI("mock OsAccountInterface SendToStorageAccountCreate start");
