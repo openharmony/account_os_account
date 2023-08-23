@@ -19,8 +19,9 @@
 namespace OHOS {
 namespace AccountSA {
 AppAccountAuthorizationExtensionCallbackService::AppAccountAuthorizationExtensionCallbackService(
-    const std::shared_ptr<AppAccountAuthorizationExtensionCallback>& callback)
-    : innerCallback_(callback)
+    const AuthorizationExtensionOnResultCallbackFunc &onResultCallback,
+    const AuthorizationExtensionOnRequestRedirectedCallbackFunc &onRequestRedirectedCallback)
+    : onResultCallback_(onResultCallback), onRequestRedirectedCallback_(onRequestRedirectedCallback)
 {}
 
 AppAccountAuthorizationExtensionCallbackService::~AppAccountAuthorizationExtensionCallbackService()
@@ -29,20 +30,20 @@ AppAccountAuthorizationExtensionCallbackService::~AppAccountAuthorizationExtensi
 void AppAccountAuthorizationExtensionCallbackService::OnResult(
     const AsyncCallbackError &businessError, const AAFwk::WantParams &parameters)
 {
-    if (innerCallback_ == nullptr) {
-        ACCOUNT_LOGE("innerCallback is nullptr");
+    if (onResultCallback_ == nullptr) {
+        ACCOUNT_LOGE("onResultCallback_ is nullptr");
         return;
     }
-    return innerCallback_->OnResult(businessError, parameters);
+    return onResultCallback_(businessError, parameters);
 }
 
-void AppAccountAuthorizationExtensionCallbackService::OnRequestRedirected(const AAFwk::Want& request)
+void AppAccountAuthorizationExtensionCallbackService::OnRequestRedirected(const AAFwk::Want &request)
 {
-    if (innerCallback_ == nullptr) {
-        ACCOUNT_LOGE("innerCallback is nullptr");
+    if (onRequestRedirectedCallback_ == nullptr) {
+        ACCOUNT_LOGE("onRequestRedirectedCallback_ is nullptr");
         return;
     }
-    return innerCallback_->OnRequestRedirected(request);
+    return onRequestRedirectedCallback_(request);
 }
 } // namespace AccountSA
 } // namespace OHOS

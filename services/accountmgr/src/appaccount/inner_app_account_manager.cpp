@@ -21,6 +21,7 @@
 #include "app_account_authenticator_session.h"
 #include "app_account_control_manager.h"
 #include "app_account_subscribe_manager.h"
+#include "app_account_authorization_extension_callback_service.h"
 #include "app_account_authorization_extension_stub.h"
 #include "bundle_manager_adapter.h"
 
@@ -229,7 +230,7 @@ ErrCode InnerAppAccountManager::Authenticate(const AuthenticatorSessionRequest &
 }
 
 RequestConnection::RequestConnection(const int32_t &uid, const AuthorizationRequest &request)
-    :uid_(uid), request_(request)
+    : uid_(uid), request_(request)
 {}
 
 RequestConnection::~RequestConnection()
@@ -260,6 +261,11 @@ void RequestConnection::OnAbilityConnectDone(
 void RequestConnection::OnAbilityDisconnectDone(const AppExecFwk::ElementName &element, int resultCode)
 {}
 
+void RequestConnection::SetCallbackService(const sptr<IAppAccountAuthorizationExtensionCallback> &callbackService)
+{
+    request_.callback = callbackService;
+}
+
 ErrCode InnerAppAccountManager::ExecuteRequest(
     AuthorizationRequest &request, const std::string &bundleName,
     const std::string &abilityName, const AppExecFwk::ExtensionAbilityInfo &extensionInfo)
@@ -271,6 +277,28 @@ ErrCode InnerAppAccountManager::ExecuteRequest(
         ACCOUNT_LOGE("failed to create connect callback");
         return ERR_JS_SYSTEM_SERVICE_EXCEPTION;
     }
+    AuthorizationExtensionOnResultCallbackFunc onResultFunc =
+        [request, conn_](const AsyncCallbackError &businessError, const AAFwk::WantParams &parameters) {
+            AbilityManagerAdapter::GetInstance()->DisconnectAbility(conn_);
+            if (request.callback != nullptr) {
+                request.callback->OnResult(businessError, parameters);
+            }
+        };
+    AuthorizationExtensionOnRequestRedirectedCallbackFunc onRequestRedirectedFunc =
+    [request, conn_](const AAFwk::Want &result) {
+        AbilityManagerAdapter::GetInstance()->DisconnectAbility(conn_);
+        if (request.callback != nullptr) {
+            ACCOUNT_LOGE("onRequestRedirectedFunc enter");
+            request.callback->OnRequestRedirected(result);
+        }
+    };
+    sptr<IAppAccountAuthorizationExtensionCallback> callbackService =
+        new (std::nothrow) AppAccountAuthorizationExtensionCallbackService(onResultFunc, onRequestRedirectedFunc);
+    if (callbackService == nullptr) {
+        ACCOUNT_LOGE("failed to create callbackService");
+        return ERR_JS_SYSTEM_SERVICE_EXCEPTION;
+    }
+    conn_->SetCallbackService(callbackService);
     int32_t userId = request.callerUid / UID_TRANSFORM_DIVISOR;
     ErrCode errCode = AbilityManagerAdapter::GetInstance()->ConnectAbility(want, conn_, nullptr, userId);
     if (errCode != ERR_OK) {

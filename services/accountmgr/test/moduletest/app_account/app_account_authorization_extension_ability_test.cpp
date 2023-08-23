@@ -103,7 +103,13 @@ private:
 static void InitRequestCallback(
     const std::shared_ptr<TestAppAccountAuthorizationExtensionCallback> &callback, AuthorizationRequest &request)
 {
-    request.callback = new (std::nothrow) AppAccountAuthorizationExtensionCallbackService(callback);
+    AuthorizationExtensionOnResultCallbackFunc onResultFunc =
+    [callback](const AsyncCallbackError &businessError, const AAFwk::WantParams &parameters) {
+        EXPECT_NE(callback, nullptr);
+        callback->OnResult(businessError, parameters);
+    };
+    AuthorizationExtensionOnRequestRedirectedCallbackFunc onRequestRedirectedFunc;
+    request.callback = new (std::nothrow) AppAccountAuthorizationExtensionCallbackService(onResultFunc, onRequestRedirectedFunc);
     EXPECT_NE(request.callback, nullptr);
 }
 
@@ -128,7 +134,10 @@ void AppAccountExtensionModuleTest::TearDownTestCase(void)
 
 void AppAccountExtensionModuleTest::SetUp(void)
 {
-    callbackServicePtr_ = new (std::nothrow) AppAccountAuthorizationExtensionCallbackService(nullptr);
+    AuthorizationExtensionOnResultCallbackFunc onResultFunc;
+    AuthorizationExtensionOnRequestRedirectedCallbackFunc onRequestRedirectedFunc;
+    callbackServicePtr_ =
+        new (std::nothrow) AppAccountAuthorizationExtensionCallbackService(onResultFunc, onRequestRedirectedFunc);
     ASSERT_NE(callbackServicePtr_, nullptr);
     MockService_ = callbackServicePtr_->AsObject();
     callbackProxyPtr_ = new (std::nothrow) AppAccountAuthorizationExtensionCallbackProxy(MockService_);
