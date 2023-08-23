@@ -55,9 +55,10 @@ void NapiCreateDomainCallback::OnResult(const int32_t errCode, Parcel &parcel)
     asyncContext->callbackRef = callbackRef_;
     asyncContext->deferred = deferred_;
     work->data = reinterpret_cast<void *>(asyncContext);
-    int resultCode = uv_queue_work(loop, work, [](uv_work_t *work) {}, CreateOAForDomainCallbackCompletedWork);
+    int resultCode = uv_queue_work_with_qos(
+        loop, work, [](uv_work_t *work) {}, CreateOAForDomainCallbackCompletedWork, uv_qos_default);
     if (resultCode != 0) {
-        ACCOUNT_LOGE("failed to uv_queue_work, errCode: %{public}d", errCode);
+        ACCOUNT_LOGE("failed to uv_queue_work_with_qos, errCode: %{public}d", errCode);
         delete asyncContext;
         delete work;
         return;

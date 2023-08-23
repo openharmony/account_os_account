@@ -25,10 +25,17 @@
 
 namespace OHOS {
 namespace AccountSA {
+struct AccountDataStorageOptions {
+    bool autoSync = false;
+    DistributedKv::SecurityLevel securityLevel = DistributedKv::SecurityLevel::S1;
+    OHOS::DistributedKv::Area area = OHOS::DistributedKv::EL1;
+    std::string baseDir;
+};
+
 class AccountDataStorage {
 public:
     AccountDataStorage() = delete;
-    AccountDataStorage(const std::string &appId, const std::string &storeId, const bool &autoSync);
+    AccountDataStorage(const std::string &appId, const std::string &storeId, const AccountDataStorageOptions &options);
     virtual ~AccountDataStorage();
     ErrCode LoadAllData(std::map<std::string, std::shared_ptr<IAccountInfo>> &infos);
     ErrCode AddAccountInfo(const IAccountInfo &iAccountInfo);
@@ -48,13 +55,14 @@ protected:
     OHOS::DistributedKv::Status GetEntries(
         std::string subId, std::vector<OHOS::DistributedKv::Entry> &allEntries) const;
     OHOS::DistributedKv::Status GetKvStore();
+    bool CheckKvStore();
     OHOS::DistributedKv::DistributedKvDataManager dataManager_;
     std::shared_ptr<OHOS::DistributedKv::SingleKvStore> kvStorePtr_;
     mutable std::mutex kvStorePtrMutex_;
-    bool CheckKvStore();
     OHOS::DistributedKv::AppId appId_;
     OHOS::DistributedKv::StoreId storeId_;
-    bool autoSync_;
+    AccountDataStorageOptions options_;
+    std::string baseDir_;
 };
 }  // namespace AccountSA
 }  // namespace OHOS

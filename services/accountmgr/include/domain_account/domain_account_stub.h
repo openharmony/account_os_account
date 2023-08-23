@@ -31,7 +31,7 @@ public:
     int32_t OnRemoteRequest(
         uint32_t code, MessageParcel &data, MessageParcel &reply, MessageOption &option) override;
 
-private:
+public:
     ErrCode CheckPermission(DomainAccountInterfaceCode code, int32_t uid);
     ErrCode ProcRegisterPlugin(MessageParcel &data, MessageParcel &reply);
     ErrCode ProcUnregisterPlugin(MessageParcel &data, MessageParcel &reply);
@@ -42,13 +42,14 @@ private:
     ErrCode ProcHasDomainAccount(MessageParcel &data, MessageParcel &reply);
     ErrCode ProcUpdateAccountToken(MessageParcel &data, MessageParcel &reply);
     ErrCode ProcGetDomainAccessToken(MessageParcel &data, MessageParcel &reply);
+    ErrCode ProcGetDomainAccountInfo(MessageParcel &data, MessageParcel &reply);
     ErrCode ProcUnregisterAccountStatusListener(MessageParcel &data, MessageParcel &reply);
     ErrCode ProcRegisterAccountStatusListener(MessageParcel &data, MessageParcel &reply);
     ErrCode ProcUnregisterAccountStatusListenerByInfo(MessageParcel &data, MessageParcel &reply);
     ErrCode ProcRegisterAccountStatusListenerByInfo(MessageParcel &data, MessageParcel &reply);
 
 private:
-    static const std::map<DomainAccountInterfaceCode, DomainAccountStubFunc> stubFuncMap_;
+    std::map<DomainAccountInterfaceCode, DomainAccountStubFunc> stubFuncMap_;
 };
 }  // namespace AccountSA
 }  // namespace OHOS

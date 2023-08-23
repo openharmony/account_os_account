@@ -195,11 +195,10 @@ HWTEST_F(DomainAccountManagerInnerServiceTest, DomainAccountManagerInnerServiceT
  */
 HWTEST_F(DomainAccountManagerInnerServiceTest, DomainAccountManagerInnerServiceTest009, TestSize.Level1)
 {
-    DomainAccountInfo domainInfo;
-    domainInfo.accountName_ = TEST_DOMAIN_ACCOUNT_NAME;
-    domainInfo.domain_ = TEST_DOMAIN;
-    domainInfo.accountId_ = TEST_ACCOUNT_ID;
-    EXPECT_EQ(InnerDomainAccountManager::GetInstance().StartHasDomainAccount(nullptr, domainInfo, nullptr),
+    GetDomainAccountInfoOptions options;
+    options.accountInfo.accountName_ = TEST_DOMAIN_ACCOUNT_NAME;
+    options.accountInfo.domain_ = TEST_DOMAIN;
+    EXPECT_EQ(InnerDomainAccountManager::GetInstance().StartHasDomainAccount(nullptr, options, nullptr),
         ERR_ACCOUNT_COMMON_INVALID_PARAMETER);
 }
 
@@ -256,8 +255,10 @@ HWTEST_F(DomainAccountManagerInnerServiceTest, DomainAccountManagerInnerServiceT
     EXPECT_CALL(*callback, OnResult(ERR_DOMAIN_ACCOUNT_SERVICE_PLUGIN_NOT_EXIST, _)).Times(Exactly(1));
     sptr<MockDomainAccountCallbackStub> testCallback = new (std::nothrow) MockDomainAccountCallbackStub(callback);
     ASSERT_NE(testCallback, nullptr);
-    InnerDomainAccountManager::GetInstance().StartGetDomainAccountInfo(
-        nullptr, TEST_DOMAIN, TEST_DOMAIN_ACCOUNT_NAME, testCallback);
+    GetDomainAccountInfoOptions options;
+    options.accountInfo.domain_ = TEST_DOMAIN;
+    options.accountInfo.accountName_ = TEST_DOMAIN_ACCOUNT_NAME;
+    InnerDomainAccountManager::GetInstance().StartGetDomainAccountInfo(nullptr, options, testCallback);
 }
 
 /**
@@ -341,8 +342,8 @@ HWTEST_F(DomainAccountManagerInnerServiceTest, DomainAccountManagerInnerServiceT
  */
 HWTEST_F(DomainAccountManagerInnerServiceTest, DomainAccountManagerInnerServiceTest018, TestSize.Level1)
 {
-    DomainAccountInfo info;
-    ASSERT_EQ(InnerDomainAccountManager::GetInstance().StartHasDomainAccount(nullptr, info, nullptr),
+    GetDomainAccountInfoOptions options;
+    ASSERT_EQ(InnerDomainAccountManager::GetInstance().StartHasDomainAccount(nullptr, options, nullptr),
         ERR_ACCOUNT_COMMON_INVALID_PARAMETER);
 }
 
@@ -372,14 +373,15 @@ HWTEST_F(DomainAccountManagerInnerServiceTest, DomainAccountManagerInnerServiceT
  */
 HWTEST_F(DomainAccountManagerInnerServiceTest, DomainAccountManagerInnerServiceTest020, TestSize.Level1)
 {
-    std::string domain = "test";
-    std::string accountName = "test";
+    GetDomainAccountInfoOptions options;
+    options.accountInfo.accountName_ = "test";
+    options.accountInfo.domain_ = "test";
     auto callback = std::make_shared<MockDomainAccountCallback>();
     ASSERT_NE(callback, nullptr);
     EXPECT_CALL(*callback, OnResult(ERR_DOMAIN_ACCOUNT_SERVICE_PLUGIN_NOT_EXIST, _)).Times(Exactly(1));
     sptr<MockDomainAccountCallbackStub> testCallback = new (std::nothrow) MockDomainAccountCallbackStub(callback);
     ASSERT_NE(testCallback, nullptr);
-    InnerDomainAccountManager::GetInstance().StartGetDomainAccountInfo(nullptr, domain, accountName, testCallback);
+    InnerDomainAccountManager::GetInstance().StartGetDomainAccountInfo(nullptr, options, testCallback);
 }
 
 /**

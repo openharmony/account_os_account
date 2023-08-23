@@ -20,17 +20,18 @@
 #include "account_permission_manager.h"
 #include "iaccount_iam_callback.h"
 #include "ipc_skeleton.h"
+#include "memory_guard.h"
 #include "token_setproc.h"
 
 namespace OHOS {
 namespace AccountSA {
-AccountIAMMgrStub::AccountIAMMgrStub()
-{}
+namespace {
+const std::string ACCESS_USER_AUTH_INTERNAL = "ohos.permission.ACCESS_USER_AUTH_INTERNAL";
+const std::string MANAGE_USER_IDM = "ohos.permission.MANAGE_USER_IDM";
+const std::string USE_USER_IDM = "ohos.permission.USE_USER_IDM";
+}
 
-AccountIAMMgrStub::~AccountIAMMgrStub()
-{}
-
-const std::map<uint32_t, AccountIAMMgrStub::AccountIAMMessageProc> AccountIAMMgrStub::messageProcMap_ = {
+const std::map<uint32_t, AccountIAMMgrStub::AccountIAMMessageProc> messageProcMap = {
     {
         static_cast<uint32_t>(AccountIAMInterfaceCode::OPEN_SESSION),
         {
@@ -130,10 +131,19 @@ const std::map<uint32_t, AccountIAMMgrStub::AccountIAMMessageProc> AccountIAMMgr
     }
 };
 
+AccountIAMMgrStub::AccountIAMMgrStub()
+{
+    messageProcMap_ = messageProcMap;
+}
+
+AccountIAMMgrStub::~AccountIAMMgrStub()
+{}
+
 std::int32_t AccountIAMMgrStub::OnRemoteRequest(
     std::uint32_t code, MessageParcel &data, MessageParcel &reply, MessageOption &option)
 {
     ACCOUNT_LOGD("Received stub message: %{public}d, callingPid: %{public}d", code, IPCSkeleton::GetCallingPid());
+    MemoryGuard cacheGuard;
     Security::AccessToken::AccessTokenID tokenCaller = IPCSkeleton::GetCallingTokenID();
     int result = SetFirstCallerTokenID(tokenCaller);
     ACCOUNT_LOGD("SetFirstCallerTokenID result: %{public}d", result);
@@ -158,7 +168,7 @@ std::int32_t AccountIAMMgrStub::OnRemoteRequest(
 
 ErrCode AccountIAMMgrStub::ProcOpenSession(MessageParcel &data, MessageParcel &reply)
 {
-    if (!CheckPermission(AccountPermissionManager::MANAGE_USER_IDM)) {
+    if (!CheckPermission(MANAGE_USER_IDM)) {
         return ERR_ACCOUNT_COMMON_PERMISSION_DENIED;
     }
     int32_t userId;
@@ -183,7 +193,7 @@ ErrCode AccountIAMMgrStub::ProcOpenSession(MessageParcel &data, MessageParcel &r
 
 ErrCode AccountIAMMgrStub::ProcCloseSession(MessageParcel &data, MessageParcel &reply)
 {
-    if (!CheckPermission(AccountPermissionManager::MANAGE_USER_IDM)) {
+    if (!CheckPermission(MANAGE_USER_IDM)) {
         return ERR_ACCOUNT_COMMON_PERMISSION_DENIED;
     }
     int32_t userId;
@@ -214,7 +224,7 @@ ErrCode AccountIAMMgrStub::ReadUserIdAndAuthType(MessageParcel &data, int32_t &u
 
 ErrCode AccountIAMMgrStub::AddOrUpdateCredential(MessageParcel &data, MessageParcel &reply, bool isAdd)
 {
-    if (!CheckPermission(AccountPermissionManager::MANAGE_USER_IDM)) {
+    if (!CheckPermission(MANAGE_USER_IDM)) {
         return ERR_ACCOUNT_COMMON_PERMISSION_DENIED;
     }
     int32_t userId;
@@ -260,7 +270,7 @@ ErrCode AccountIAMMgrStub::ProcUpdateCredential(MessageParcel &data, MessageParc
 
 ErrCode AccountIAMMgrStub::ProcDelCred(MessageParcel &data, MessageParcel &reply)
 {
-    if (!CheckPermission(AccountPermissionManager::MANAGE_USER_IDM)) {
+    if (!CheckPermission(MANAGE_USER_IDM)) {
         return ERR_ACCOUNT_COMMON_PERMISSION_DENIED;
     }
     int32_t userId;
@@ -289,7 +299,7 @@ ErrCode AccountIAMMgrStub::ProcDelCred(MessageParcel &data, MessageParcel &reply
 
 ErrCode AccountIAMMgrStub::ProcDelUser(MessageParcel &data, MessageParcel &reply)
 {
-    if (!CheckPermission(AccountPermissionManager::MANAGE_USER_IDM)) {
+    if (!CheckPermission(MANAGE_USER_IDM)) {
         return ERR_ACCOUNT_COMMON_PERMISSION_DENIED;
     }
     int32_t userId;
@@ -313,7 +323,7 @@ ErrCode AccountIAMMgrStub::ProcDelUser(MessageParcel &data, MessageParcel &reply
 
 ErrCode AccountIAMMgrStub::ProcCancel(MessageParcel &data, MessageParcel &reply)
 {
-    if (!CheckPermission(AccountPermissionManager::MANAGE_USER_IDM)) {
+    if (!CheckPermission(MANAGE_USER_IDM)) {
         return ERR_ACCOUNT_COMMON_PERMISSION_DENIED;
     }
     int32_t userId;
@@ -331,7 +341,7 @@ ErrCode AccountIAMMgrStub::ProcCancel(MessageParcel &data, MessageParcel &reply)
 
 ErrCode AccountIAMMgrStub::ProcGetCredentialInfo(MessageParcel &data, MessageParcel &reply)
 {
-    if (!CheckPermission(AccountPermissionManager::USE_USER_IDM)) {
+    if (!CheckPermission(USE_USER_IDM)) {
         return ERR_ACCOUNT_COMMON_PERMISSION_DENIED;
     }
     int32_t userId;
@@ -355,7 +365,7 @@ ErrCode AccountIAMMgrStub::ProcGetCredentialInfo(MessageParcel &data, MessagePar
 
 ErrCode AccountIAMMgrStub::ProcAuthUser(MessageParcel &data, MessageParcel &reply)
 {
-    if (!CheckPermission(AccountPermissionManager::ACCESS_USER_AUTH_INTERNAL)) {
+    if (!CheckPermission(ACCESS_USER_AUTH_INTERNAL)) {
         return ERR_ACCOUNT_COMMON_PERMISSION_DENIED;
     }
     int32_t userId;
@@ -400,7 +410,7 @@ ErrCode AccountIAMMgrStub::ProcAuthUser(MessageParcel &data, MessageParcel &repl
 
 ErrCode AccountIAMMgrStub::ProcCancelAuth(MessageParcel &data, MessageParcel &reply)
 {
-    if (!CheckPermission(AccountPermissionManager::ACCESS_USER_AUTH_INTERNAL)) {
+    if (!CheckPermission(ACCESS_USER_AUTH_INTERNAL)) {
         return ERR_ACCOUNT_COMMON_PERMISSION_DENIED;
     }
     uint64_t contextId;
@@ -418,7 +428,7 @@ ErrCode AccountIAMMgrStub::ProcCancelAuth(MessageParcel &data, MessageParcel &re
 
 ErrCode AccountIAMMgrStub::ProcGetAvailableStatus(MessageParcel &data, MessageParcel &reply)
 {
-    if (!CheckPermission(AccountPermissionManager::ACCESS_USER_AUTH_INTERNAL)) {
+    if (!CheckPermission(ACCESS_USER_AUTH_INTERNAL)) {
         return ERR_ACCOUNT_COMMON_PERMISSION_DENIED;
     }
     int32_t authType;
@@ -449,7 +459,7 @@ ErrCode AccountIAMMgrStub::ProcGetAvailableStatus(MessageParcel &data, MessagePa
 
 ErrCode AccountIAMMgrStub::ProcGetProperty(MessageParcel &data, MessageParcel &reply)
 {
-    if (!CheckPermission(AccountPermissionManager::ACCESS_USER_AUTH_INTERNAL)) {
+    if (!CheckPermission(ACCESS_USER_AUTH_INTERNAL)) {
         return ERR_ACCOUNT_COMMON_PERMISSION_DENIED;
     }
     int32_t userId;
@@ -478,7 +488,7 @@ ErrCode AccountIAMMgrStub::ProcGetProperty(MessageParcel &data, MessageParcel &r
 
 ErrCode AccountIAMMgrStub::ProcSetProperty(MessageParcel &data, MessageParcel &reply)
 {
-    if (!CheckPermission(AccountPermissionManager::ACCESS_USER_AUTH_INTERNAL)) {
+    if (!CheckPermission(ACCESS_USER_AUTH_INTERNAL)) {
         return ERR_ACCOUNT_COMMON_PERMISSION_DENIED;
     }
     int32_t userId;

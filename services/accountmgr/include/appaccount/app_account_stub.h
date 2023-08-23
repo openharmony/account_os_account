@@ -30,7 +30,7 @@ public:
     int OnRemoteRequest(
         uint32_t code, MessageParcel &data, MessageParcel &reply, MessageOption &option) override;
 
-private:
+public:
     template<typename T>
     bool WriteParcelableVector(const std::vector<T> &parcelableVector, MessageParcel &data);
     template<typename T>
@@ -73,7 +73,7 @@ private:
     ErrCode ProcExecuteRequest(uint32_t code, MessageParcel &data, MessageParcel &reply);
 
 private:
-    static const std::map<uint32_t, MessageProcFunction> messageProcMap_;
+    std::map<uint32_t, MessageProcFunction> messageProcMap_;
 
     DISALLOW_COPY_AND_MOVE(AppAccountStub);
 };

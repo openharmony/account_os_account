@@ -23,14 +23,8 @@
 
 namespace OHOS {
 namespace AccountSA {
-DomainAccountPluginStub::DomainAccountPluginStub()
-{}
-
-DomainAccountPluginStub::~DomainAccountPluginStub()
-{}
-
 const std::map<DomainAccountPluginInterfaceCode, DomainAccountPluginStub::MessageProcFunction>
-    DomainAccountPluginStub::messageProcMap_ = {
+    messageProcMap = {
     {
         DomainAccountPluginInterfaceCode::DOMAIN_PLUGIN_AUTH,
         &DomainAccountPluginStub::ProcAuthCommonInterface
@@ -60,6 +54,14 @@ const std::map<DomainAccountPluginInterfaceCode, DomainAccountPluginStub::Messag
         &DomainAccountPluginStub::ProcGetAccessToken
     }
 };
+
+DomainAccountPluginStub::DomainAccountPluginStub()
+{
+    messageProcMap_ = messageProcMap;
+}
+
+DomainAccountPluginStub::~DomainAccountPluginStub()
+{}
 
 int DomainAccountPluginStub::OnRemoteRequest(
     uint32_t code, MessageParcel &data, MessageParcel &reply, MessageOption &option)
@@ -204,14 +206,9 @@ ErrCode DomainAccountPluginStub::ProcGetAccessToken(MessageParcel &data, Message
 
 ErrCode DomainAccountPluginStub::ProcGetDomainAccountInfo(MessageParcel &data, MessageParcel &reply)
 {
-    std::string domain;
-    if (!data.ReadString(domain)) {
-        ACCOUNT_LOGE("failed to read domain account name");
-        return ERR_ACCOUNT_COMMON_READ_PARCEL_ERROR;
-    }
-    std::string accountName;
-    if (!data.ReadString(accountName)) {
-        ACCOUNT_LOGE("failed to read domain");
+    std::shared_ptr<GetDomainAccountInfoOptions> options(data.ReadParcelable<GetDomainAccountInfoOptions>());
+    if (options == nullptr) {
+        ACCOUNT_LOGE("failed to read option");
         return ERR_ACCOUNT_COMMON_READ_PARCEL_ERROR;
     }
     auto callback = iface_cast<IDomainAccountCallback>(data.ReadRemoteObject());
@@ -219,7 +216,7 @@ ErrCode DomainAccountPluginStub::ProcGetDomainAccountInfo(MessageParcel &data, M
         ACCOUNT_LOGE("failed to read callback");
         return ERR_ACCOUNT_COMMON_READ_PARCEL_ERROR;
     }
-    ErrCode result = GetDomainAccountInfo(domain, accountName, callback);
+    ErrCode result = GetDomainAccountInfo(*options, callback);
     if (!reply.WriteInt32(result)) {
         ACCOUNT_LOGE("failed to write result");
         return ERR_ACCOUNT_COMMON_WRITE_PARCEL_ERROR;

@@ -30,6 +30,8 @@
         "OHOS::AccountSA::AccountMgrService::Init()";
         "OHOS::AccountSA::AccountStateMachine::Clean()";
         "OHOS::AccountSA::OhosAccountManager::GetInstance()";
+        "OHOS::AccountSA::AccountEventSubscriber::AccountEventSubscriber(OHOS::AccountSA::AccountCommonEventCallback const&)";
+        "OHOS::AccountSA::AccountEventSubscriber::CreateEventSubscribe()";
         "OHOS::AccountSA::AccountStateMachine::OnInitialize()";
         "OHOS::AccountSA::AccountStateMachine::StateChangeProcess(int)";
         "OHOS::AccountSA::DomainAccountManagerService::DomainAccountManagerService()";
@@ -79,7 +81,7 @@
         "OHOS::AccountSA::AppAccountControlManager::GetAllAccessibleAccountsFromDataStorage(std::__h::vector<OHOS::AccountSA::AppAccountInfo, std::__h::allocator<OHOS::AccountSA::AppAccountInfo>>&, std::__h::basic_string<char, std::__h::char_traits<char>, std::__h::allocator<char>> const&, std::__h::shared_ptr<OHOS::AccountSA::AppAccountDataStorage> const&, unsigned int const&)";
         "OHOS::AccountSA::AppAccountControlManager::GetAllAccountsFromDataStorage(std::__h::basic_string<char, std::__h::char_traits<char>, std::__h::allocator<char>> const&, std::__h::vector<OHOS::AccountSA::AppAccountInfo, std::__h::allocator<OHOS::AccountSA::AppAccountInfo>>&, std::__h::basic_string<char, std::__h::char_traits<char>, std::__h::allocator<char>> const&, std::__h::shared_ptr<OHOS::AccountSA::AppAccountDataStorage> const&)";
         "OHOS::AccountSA::AppAccountControlManager::GetAllOAuthTokens(OHOS::AccountSA::AuthenticatorSessionRequest const&, std::__h::vector<OHOS::AccountSA::OAuthTokenInfo, std::__h::allocator<OHOS::AccountSA::OAuthTokenInfo>>&)";
-        "OHOS::AccountSA::AppAccountControlManager::GetDataStorage(unsigned int const&, bool const&)";
+        "OHOS::AccountSA::AppAccountControlManager::GetDataStorage(unsigned int const&, bool const&, OHOS::DistributedKv::SecurityLevel)";
         "OHOS::AccountSA::AppAccountControlManager::NeedSyncDataStorage(OHOS::AccountSA::AppAccountInfo const&)";
         "OHOS::AccountSA::AppAccountControlManager::OnAbilityStateChanged(OHOS::AppExecFwk::AbilityStateData const&)";
         "OHOS::AccountSA::AppAccountControlManager::RemoveAuthorizedAccount(std::__h::basic_string<char, std::__h::char_traits<char>, std::__h::allocator<char>> const&, OHOS::AccountSA::AppAccountInfo&, std::__h::shared_ptr<OHOS::AccountSA::AppAccountDataStorage> const&, unsigned int const&)";
@@ -91,7 +93,7 @@
         "OHOS::AccountSA::AppAccountControlManager::PopDataFromAssociatedDataCache()";
         "OHOS::AccountSA::AppAccountControlManager::SelectAccountsByOptions(const SelectAccountsOptions &options, const sptr<IAppAccountAuthenticatorCallback> &callback, const uid_t &uid, const std::string &bundleName, const uint32_t &appIndex)";
         "OHOS::AccountSA::AppAccountDataStorage::AddAccountInfoIntoDataStorage(OHOS::AccountSA::AppAccountInfo&)";
-        "OHOS::AccountSA::AppAccountDataStorage::AppAccountDataStorage(std::__h::basic_string<char, std::__h::char_traits<char>, std::__h::allocator<char>> const&, bool const&)";
+        "OHOS::AccountSA::AppAccountDataStorage::AppAccountDataStorage(std::__h::basic_string<char, std::__h::char_traits<char>, std::__h::allocator<char>> const&, OHOS::AccountSA::AccountDataStorageOptions const&)";
         "OHOS::AccountSA::AppAccountDataStorage::AUTHORIZED_ACCOUNTS";
         "OHOS::AccountSA::AppAccountDataStorage::GetAccessibleAccountsFromDataStorage(std::__h::basic_string<char, std::__h::char_traits<char>, std::__h::allocator<char>> const&, std::__h::vector<std::__h::basic_string<char, std::__h::char_traits<char>, std::__h::allocator<char>>, std::__h::allocator<std::__h::basic_string<char, std::__h::char_traits<char>, std::__h::allocator<char>>>>&)";
         "OHOS::AccountSA::AppAccountManagerService::AppAccountManagerService()";
@@ -223,8 +225,10 @@
         "OHOS::AccountSA::SetPropCallbackWrapper::SetPropCallbackWrapper(OHOS::sptr<OHOS::AccountSA::IGetSetPropCallback> const&)";
         "OHOS::AccountSA::UpdateCredCallback::UpdateCredCallback(unsigned int, OHOS::UserIam::UserAuth::CredentialParameters const&, OHOS::sptr<OHOS::AccountSA::IIDMCallback> const&)";
         "vtable for OHOS::AccountSA::AccountStub";
+        "OHOS::AccountSA::AccountStub::AccountStub()";
         "vtable for OHOS::AccountSA::OsAccountStopUserCallback";
         "vtable for OHOS::AccountSA::OsAccountSubscribeDeathRecipient";
+        "VTT for OHOS::AccountSA::SessionServerDeathRecipient";
         "vtable for OHOS::AccountSA::SessionServerDeathRecipient";
         "VTT for OHOS::AccountSA::OsAccountStopUserCallback";
         "VTT for OHOS::AccountSA::SessionAppStateObserver";
@@ -257,6 +261,7 @@
         "OHOS::AccountSA::InnerDomainAccountManager::RegisterAccountStatusListener(OHOS::AccountSA::DomainAccountInfo const&, OHOS::sptr<OHOS::AccountSA::IDomainAccountCallback> const&)";
         "OHOS::AccountSA::InnerDomainAccountManager::UnregisterAccountStatusListener(OHOS::AccountSA::DomainAccountInfo const&, OHOS::sptr<OHOS::AccountSA::IDomainAccountCallback> const&)";
         "OHOS::AccountSA::InnerDomainAccountManager::UnregisterAccountStatusListener(OHOS::sptr<OHOS::AccountSA::IDomainAccountCallback> const&)";
+        "OHOS::AccountSA::InnerDomainAccountManager::GetDomainAccountInfo(OHOS::AccountSA::DomainAccountInfo const&, OHOS::sptr<OHOS::AccountSA::IDomainAccountCallback> const&)";
         "OHOS::AccountSA::DomainAccountStub::OnRemoteRequest(unsigned int, OHOS::MessageParcel&, OHOS::MessageParcel&, OHOS::MessageOption&)";
         "OHOS::AccountSA::DomainAccountInfo::DomainAccountInfo()";
         "VTT for OHOS::AccountSA::DomainAccountInfo";

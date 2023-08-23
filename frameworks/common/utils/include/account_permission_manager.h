@@ -13,8 +13,8 @@
  * limitations under the License.
  */
 
-#ifndef OS_ACCOUNT_SERVICES_ACCOUNTMGR_INCLUDE_ACCOUNT_PERMISSION_MANAGER_H
-#define OS_ACCOUNT_SERVICES_ACCOUNTMGR_INCLUDE_ACCOUNT_PERMISSION_MANAGER_H
+#ifndef OS_ACCOUNT_FRAMEWORK_COMMON_UTILS_INCLUDE_ACCOUNT_PERMISSION_MANAGER_H
+#define OS_ACCOUNT_FRAMEWORK_COMMON_UTILS_INCLUDE_ACCOUNT_PERMISSION_MANAGER_H
 
 #include <string>
 #include "account_error_no.h"
@@ -25,18 +25,7 @@ class AccountPermissionManager {
 public:
     static ErrCode VerifyPermission(const std::string &permissionName);
     static ErrCode CheckSystemApp(bool isCallStub = true);
-
-    static const std::string DISTRIBUTED_DATASYNC;
-    static const std::string GET_ALL_APP_ACCOUNTS;
-    static const std::string MANAGE_LOCAL_ACCOUNTS;
-    static const std::string GET_LOCAL_ACCOUNTS;
-    static const std::string INTERACT_ACROSS_LOCAL_ACCOUNTS_EXTENSION;
-    static const std::string INTERACT_ACROSS_LOCAL_ACCOUNTS;
-    static const std::string ACCESS_USER_AUTH_INTERNAL;
-    static const std::string MANAGE_USER_IDM;
-    static const std::string USE_USER_IDM;
 };
 }  // namespace AccountSA
 }  // namespace OHOS
-
-#endif  // OS_ACCOUNT_SERVICES_ACCOUNTMGR_INCLUDE_ACCOUNT_PERMISSION_MANAGER_H
+#endif  // OS_ACCOUNT_FRAMEWORK_COMMON_UTILS_INCLUDE_ACCOUNT_PERMISSION_MANAGER_H

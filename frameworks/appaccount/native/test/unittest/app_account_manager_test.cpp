@@ -2166,7 +2166,7 @@ HWTEST_F(AppAccountManagerTest, AppAccountManager_UnsubscribeAppAccount_0100, Te
 HWTEST_F(AppAccountManagerTest, AppAccountManager_ExecuteRequest_0100, TestSize.Level1)
 {
     AccountCapabilityRequest request;
-    ErrCode result = AppAccountManager::ExecuteRequest(false, request, nullptr);
+    ErrCode result = AppAccountManager::ExecuteRequest(request, nullptr);
     EXPECT_EQ(result, ERR_ACCOUNT_COMMON_INVALID_PARAMETER);
 }
 
@@ -2183,7 +2183,7 @@ HWTEST_F(AppAccountManagerTest, AppAccountManager_ExecuteRequest_0200, TestSize.
     sptr<IAppAccountAuthorizationExtensionCallback> callback =
         new (std::nothrow) MockAppAccountAuthorizationExtensionCallbackStub();
     ASSERT_NE(callback, nullptr);
-    ErrCode result = AppAccountManager::ExecuteRequest(false, request, callback);
+    ErrCode result = AppAccountManager::ExecuteRequest(request, callback);
     EXPECT_EQ(result, ERR_ACCOUNT_COMMON_INVALID_PARAMETER);
 }
 
@@ -2201,6 +2201,6 @@ HWTEST_F(AppAccountManagerTest, AppAccountManager_ExecuteRequest_0300, TestSize.
     sptr<IAppAccountAuthorizationExtensionCallback> callback =
         new (std::nothrow) MockAppAccountAuthorizationExtensionCallbackStub();
     ASSERT_NE(callback, nullptr);
-    ErrCode result = AppAccountManager::ExecuteRequest(false, request, callback);
+    ErrCode result = AppAccountManager::ExecuteRequest(request, callback);
     EXPECT_EQ(result, ERR_APPACCOUNT_SERVICE_GET_BUNDLE_NAME);
 }

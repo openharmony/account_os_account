@@ -44,8 +44,7 @@ public:
     ErrCode UpdateAccountToken(const DomainAccountInfo &info, const std::vector<uint8_t> &token);
     ErrCode GetAccessToken(const DomainAccountInfo &info, const AAFwk::WantParams &parameters,
         const sptr<IDomainAccountCallback> &callback);
-    ErrCode GetDomainAccountInfo(const std::string &domain, const std::string &accountName,
-        const std::shared_ptr<DomainAccountCallback> &callback);
+    ErrCode GetDomainAccountInfo(const DomainAccountInfo &info, const sptr<IDomainAccountCallback> &callback);
     ErrCode OnAccountBound(const DomainAccountInfo &info, const int32_t localId,
         const std::shared_ptr<DomainAccountCallback> &callback);
     ErrCode IsAccountTokenValid(const AccountSA::DomainAccountInfo &info, const std::vector<uint8_t> &token,
@@ -66,10 +65,13 @@ public:
     ErrCode GetDomainAccountInfoByUserId(int32_t userId, DomainAccountInfo &domainInfo);
 
 private:
+    InnerDomainAccountManager();
+    ~InnerDomainAccountManager();
+    DISALLOW_COPY_AND_MOVE(InnerDomainAccountManager);
     void StartIsAccountTokenValid(const sptr<IDomainAccountPlugin> &plugin, const AccountSA::DomainAccountInfo &info,
         const std::vector<uint8_t> &token, const sptr<IDomainAccountCallback> &callback);
-    void StartGetDomainAccountInfo(const sptr<IDomainAccountPlugin> &plugin, const std::string &domain,
-        const std::string &accountName, const sptr<IDomainAccountCallback> &callback);
+    void StartGetDomainAccountInfo(const sptr<IDomainAccountPlugin> &plugin,
+        const GetDomainAccountInfoOptions &options, const sptr<IDomainAccountCallback> &callback);
     void StartOnAccountUnBound(const sptr<IDomainAccountPlugin> &plugin, const DomainAccountInfo &info,
         const sptr<IDomainAccountCallback> &callback);
     void StartOnAccountBound(const sptr<IDomainAccountPlugin> &plugin, const DomainAccountInfo &info,
@@ -77,7 +79,7 @@ private:
     ErrCode StartGetAccessToken(const sptr<IDomainAccountPlugin> &plugin, const std::vector<uint8_t> &accountToken,
         const DomainAccountInfo &info, const GetAccessTokenOptions &option,
         const sptr<IDomainAccountCallback> &callback);
-    ErrCode StartHasDomainAccount(const sptr<IDomainAccountPlugin> &plugin, const DomainAccountInfo &info,
+    ErrCode StartHasDomainAccount(const sptr<IDomainAccountPlugin> &plugin, const GetDomainAccountInfoOptions &options,
         const sptr<IDomainAccountCallback> &callback);
     ErrCode StartAuth(const sptr<IDomainAccountPlugin> &plugin, const DomainAccountInfo &info,
         const std::vector<uint8_t> &password, const sptr<IDomainAuthCallback> &callback, AuthMode authMode);

@@ -369,7 +369,7 @@ napi_value NapiDistributedAccount::QueryOhosAccountInfo(napi_env env, napi_callb
         QueryOhosAccountInfoExecuteCB,
         QueryOhosAccountInfoCompletedCB,
         reinterpret_cast<void *>(asyncContext), &asyncContext->work));
-    NAPI_CALL(env, napi_queue_async_work(env, asyncContext->work));
+    NAPI_CALL(env, napi_queue_async_work_with_qos(env, asyncContext->work, napi_qos_default));
     contextPtr.release();
     return result;
 }

@@ -187,7 +187,7 @@ napi_value NapiAppAccount::AddAccount(napi_env env, napi_callback_info cbInfo)
         },
         reinterpret_cast<void *>(asyncContext.get()),
         &asyncContext->work);
-    napi_queue_async_work(env, asyncContext->work);
+    napi_queue_async_work_with_qos(env, asyncContext->work, napi_qos_default);
     asyncContext.release();
     return result;
 }
@@ -218,7 +218,7 @@ napi_value NapiAppAccount::CreateAccount(napi_env env, napi_callback_info cbInfo
                 GenerateBusinessError(env, context->errCode), NapiGetNull(env));
             delete context;
         }, reinterpret_cast<void *>(context.get()), &context->work);
-    napi_queue_async_work(env, context->work);
+    napi_queue_async_work_with_qos(env, context->work, napi_qos_default);
     context.release();
     return result;
 }
@@ -252,7 +252,7 @@ napi_value NapiAppAccount::CreateAccountImplicitly(napi_env env, napi_callback_i
             }
             delete context;
         }, reinterpret_cast<void *>(context.get()), &context->work);
-    napi_queue_async_work(env, context->work);
+    napi_queue_async_work_with_qos(env, context->work, napi_qos_default);
     context.release();
     return NapiGetNull(env);
 }
@@ -286,7 +286,7 @@ napi_value NapiAppAccount::AddAccountImplicitly(napi_env env, napi_callback_info
                 delete asyncContext;
             },
             reinterpret_cast<void *>(asyncContext.get()), &asyncContext->work));
-    NAPI_CALL(env, napi_queue_async_work(env, asyncContext->work));
+    NAPI_CALL(env, napi_queue_async_work_with_qos(env, asyncContext->work, napi_qos_default));
     asyncContext.release();
     return NapiGetNull(env);
 }
@@ -329,7 +329,7 @@ napi_value NapiAppAccount::RemoveAccountInternal(napi_env env, napi_callback_inf
         },
         reinterpret_cast<void *>(asyncContext.get()),
         &asyncContext->work);
-    napi_queue_async_work(env, asyncContext->work);
+    napi_queue_async_work_with_qos(env, asyncContext->work, napi_qos_default);
     asyncContext.release();
     return result;
 }
@@ -358,7 +358,7 @@ napi_value NapiAppAccount::DisableAppAccess(napi_env env, napi_callback_info cbI
         },
         reinterpret_cast<void *>(asyncContext.get()),
         &asyncContext->work);
-    napi_queue_async_work(env, asyncContext->work);
+    napi_queue_async_work_with_qos(env, asyncContext->work, napi_qos_default);
     asyncContext.release();
     return result;
 }
@@ -388,7 +388,7 @@ napi_value NapiAppAccount::EnableAppAccess(napi_env env, napi_callback_info cbIn
         },
         reinterpret_cast<void *>(asyncContext.get()),
         &asyncContext->work);
-    napi_queue_async_work(env, asyncContext->work);
+    napi_queue_async_work_with_qos(env, asyncContext->work, napi_qos_default);
     asyncContext.release();
     return result;
 }
@@ -418,7 +418,7 @@ napi_value NapiAppAccount::SetAppAccess(napi_env env, napi_callback_info cbInfo)
                 GenerateBusinessError(env, context->errCode), NapiGetNull(env));
             delete context;
         }, reinterpret_cast<void *>(context.get()), &context->work);
-    napi_queue_async_work(env, context->work);
+    napi_queue_async_work_with_qos(env, context->work, napi_qos_default);
     context.release();
     return result;
 }
@@ -465,7 +465,7 @@ napi_value NapiAppAccount::CheckDataSyncEnabledInternal(napi_env env, napi_callb
         },
         reinterpret_cast<void *>(asyncContext.get()),
         &asyncContext->work);
-    napi_queue_async_work(env, asyncContext->work);
+    napi_queue_async_work_with_qos(env, asyncContext->work, napi_qos_default);
     asyncContext.release();
     return result;
 }
@@ -511,7 +511,7 @@ napi_value NapiAppAccount::SetCredentialInternal(napi_env env, napi_callback_inf
             delete asyncContext;
         },
         reinterpret_cast<void *>(context.get()), &context->work));
-    NAPI_CALL(env, napi_queue_async_work(env, context->work));
+    NAPI_CALL(env, napi_queue_async_work_with_qos(env, context->work, napi_qos_default));
     context.release();
     return result;
 }
@@ -537,7 +537,7 @@ napi_value NapiAppAccount::SetAccountExtraInfo(napi_env env, napi_callback_info 
             delete asyncContext;
         },
         reinterpret_cast<void *>(asyncContext.get()), &asyncContext->work));
-    NAPI_CALL(env, napi_queue_async_work(env, asyncContext->work));
+    NAPI_CALL(env, napi_queue_async_work_with_qos(env, asyncContext->work, napi_qos_default));
     asyncContext.release();
     return result;
 }
@@ -583,7 +583,7 @@ napi_value NapiAppAccount::SetDataSyncEnabledInternal(napi_env env, napi_callbac
             delete asyncContext;
         },
         reinterpret_cast<void *>(asyncContext.get()), &asyncContext->work);
-    napi_queue_async_work(env, asyncContext->work);
+    napi_queue_async_work_with_qos(env, asyncContext->work, napi_qos_default);
     asyncContext.release();
     return result;
 }
@@ -628,7 +628,7 @@ napi_value NapiAppAccount::SetCustomDataInternal(napi_env env, napi_callback_inf
             ProcessCallbackOrPromise(env, asyncContext, err, NapiGetNull(env));
             delete asyncContext;
         }, reinterpret_cast<void *>(asyncContext.get()), &asyncContext->work);
-    napi_queue_async_work(env, asyncContext->work);
+    napi_queue_async_work_with_qos(env, asyncContext->work, napi_qos_default);
     asyncContext.release();
     return result;
 }
@@ -678,7 +678,7 @@ napi_value NapiAppAccount::GetAllAccessibleAccountsInternal(napi_env env, napi_c
         },
         reinterpret_cast<void *>(asyncContext.get()),
         &asyncContext->work);
-    napi_queue_async_work(env, asyncContext->work);
+    napi_queue_async_work_with_qos(env, asyncContext->work, napi_qos_default);
     asyncContext.release();
     return result;
 }
@@ -744,7 +744,7 @@ napi_value NapiAppAccount::GetAccountsByOwnerInternal(napi_env env, napi_callbac
             ProcessCallbackOrPromise(env, asyncContext, err, arrVal);
             delete asyncContext;
         }, reinterpret_cast<void *>(asyncContext.get()), &asyncContext->work);
-    napi_queue_async_work(env, asyncContext->work);
+    napi_queue_async_work_with_qos(env, asyncContext->work, napi_qos_default);
     asyncContext.release();
     return result;
 }
@@ -788,7 +788,7 @@ napi_value NapiAppAccount::GetCredentialInternal(napi_env env, napi_callback_inf
             delete asyncContext;
         },
         reinterpret_cast<void *>(asyncContext.get()), &asyncContext->work);
-    napi_queue_async_work(env, asyncContext->work);
+    napi_queue_async_work_with_qos(env, asyncContext->work, napi_qos_default);
     asyncContext.release();
     return result;
 }
@@ -821,7 +821,7 @@ napi_value NapiAppAccount::GetAccountExtraInfo(napi_env env, napi_callback_info 
         },
         reinterpret_cast<void *>(asyncContext.get()),
         &asyncContext->work);
-    napi_queue_async_work(env, asyncContext->work);
+    napi_queue_async_work_with_qos(env, asyncContext->work, napi_qos_default);
     asyncContext.release();
     return result;
 }
@@ -867,7 +867,7 @@ napi_value NapiAppAccount::GetCustomDataInternal(napi_env env, napi_callback_inf
         },
         reinterpret_cast<void *>(asyncContext.get()),
         &asyncContext->work);
-    napi_queue_async_work(env, asyncContext->work);
+    napi_queue_async_work_with_qos(env, asyncContext->work, napi_qos_default);
     asyncContext.release();
     return result;
 }
@@ -953,7 +953,7 @@ napi_value NapiAppAccount::AuthInternal(napi_env env, napi_callback_info cbInfo,
         AuthInternalCompletedCB,
         reinterpret_cast<void *>(asyncContext.get()),
         &asyncContext->work));
-    NAPI_CALL(env, napi_queue_async_work(env, asyncContext->work));
+    NAPI_CALL(env, napi_queue_async_work_with_qos(env, asyncContext->work, napi_qos_user_initiated));
     asyncContext.release();
     return NapiGetNull(env);
 }
@@ -1002,7 +1002,7 @@ napi_value NapiAppAccount::GetAuthTokenInternal(napi_env env, napi_callback_info
         },
         reinterpret_cast<void *>(asyncContext.get()),
         &asyncContext->work);
-    napi_queue_async_work(env, asyncContext->work);
+    napi_queue_async_work_with_qos(env, asyncContext->work, napi_qos_default);
     asyncContext.release();
     return result;
 }
@@ -1047,7 +1047,7 @@ napi_value NapiAppAccount::SetAuthTokenInternal(napi_env env, napi_callback_info
         },
         reinterpret_cast<void *>(asyncContext.get()),
         &asyncContext->work);
-    napi_queue_async_work(env, asyncContext->work);
+    napi_queue_async_work_with_qos(env, asyncContext->work, napi_qos_default);
     asyncContext.release();
     return result;
 }
@@ -1094,7 +1094,7 @@ napi_value NapiAppAccount::DeleteAuthTokenInternal(napi_env env, napi_callback_i
                 delete asyncContext;
             },
             reinterpret_cast<void *>(asyncContext.get()), &asyncContext->work));
-    NAPI_CALL(env, napi_queue_async_work(env, asyncContext->work));
+    NAPI_CALL(env, napi_queue_async_work_with_qos(env, asyncContext->work, napi_qos_default));
     asyncContext.release();
     return result;
 }
@@ -1144,7 +1144,7 @@ napi_value NapiAppAccount::SetAuthTokenVisibilityInternal(napi_env env, napi_cal
             },
             reinterpret_cast<void *>(asyncContext.get()),
             &asyncContext->work));
-    NAPI_CALL(env, napi_queue_async_work(env, asyncContext->work));
+    NAPI_CALL(env, napi_queue_async_work_with_qos(env, asyncContext->work, napi_qos_default));
     asyncContext.release();
     return result;
 }
@@ -1197,7 +1197,7 @@ napi_value NapiAppAccount::CheckAuthTokenVisibilityInternal(napi_env env, napi_c
     NAPI_CALL(env, napi_create_async_work(env, nullptr, resource,
         CheckAuthTokenVisibilityExecuteCB, CheckAuthTokenVisibilityCompleteCB,
         reinterpret_cast<void *>(asyncContext.get()), &asyncContext->work));
-    NAPI_CALL(env, napi_queue_async_work(env, asyncContext->work));
+    NAPI_CALL(env, napi_queue_async_work_with_qos(env, asyncContext->work, napi_qos_default));
     asyncContext.release();
     return result;
 }
@@ -1245,7 +1245,7 @@ napi_value NapiAppAccount::QueryAuthenticatorInfoInternal(napi_env env, napi_cal
             },
             reinterpret_cast<void *>(asyncContext.get()),
             &asyncContext->work));
-    NAPI_CALL(env, napi_queue_async_work(env, asyncContext->work));
+    NAPI_CALL(env, napi_queue_async_work_with_qos(env, asyncContext->work, napi_qos_default));
     asyncContext.release();
     return result;
 }
@@ -1293,7 +1293,7 @@ napi_value NapiAppAccount::GetAllAuthTokensInternal(napi_env env, napi_callback_
             },
             reinterpret_cast<void *>(asyncContext.get()),
             &asyncContext->work));
-    NAPI_CALL(env, napi_queue_async_work(env, asyncContext->work));
+    NAPI_CALL(env, napi_queue_async_work_with_qos(env, asyncContext->work, napi_qos_default));
     asyncContext.release();
     return result;
 }
@@ -1344,7 +1344,7 @@ napi_value NapiAppAccount::GetAuthListInternal(napi_env env, napi_callback_info 
             },
             reinterpret_cast<void *>(asyncContext.get()),
             &asyncContext->work));
-    NAPI_CALL(env, napi_queue_async_work(env, asyncContext->work));
+    NAPI_CALL(env, napi_queue_async_work_with_qos(env, asyncContext->work, napi_qos_default));
     asyncContext.release();
     return result;
 }
@@ -1391,7 +1391,7 @@ napi_value NapiAppAccount::GetAuthCallbackInternal(napi_env env, napi_callback_i
             },
             reinterpret_cast<void *>(asyncContext.get()),
             &asyncContext->work));
-    NAPI_CALL(env, napi_queue_async_work(env, asyncContext->work));
+    NAPI_CALL(env, napi_queue_async_work_with_qos(env, asyncContext->work, napi_qos_default));
     asyncContext.release();
     return result;
 }
@@ -1425,7 +1425,7 @@ napi_value NapiAppAccount::CheckAppAccess(napi_env env, napi_callback_info cbInf
         },
         reinterpret_cast<void *>(context.get()),
         &context->work));
-    NAPI_CALL(env, napi_queue_async_work(env, context->work));
+    NAPI_CALL(env, napi_queue_async_work_with_qos(env, context->work, napi_qos_default));
     context.release();
     return result;
 }
@@ -1469,7 +1469,7 @@ napi_value NapiAppAccount::DeleteCredentialInternal(napi_env env, napi_callback_
             }
             delete context;
         }, reinterpret_cast<void *>(context.get()), &context->work);
-    napi_queue_async_work(env, context->work);
+    napi_queue_async_work_with_qos(env, context->work, napi_qos_default);
     context.release();
     return result;
 }
@@ -1514,7 +1514,7 @@ napi_value NapiAppAccount::CheckAccountLabels(napi_env env, napi_callback_info c
             delete context;
         },
         reinterpret_cast<void *>(context.get()), &context->work));
-    NAPI_CALL(env, napi_queue_async_work(env, context->work));
+    NAPI_CALL(env, napi_queue_async_work_with_qos(env, context->work, napi_qos_default));
     context.release();
     return result;
 }
@@ -1559,7 +1559,7 @@ napi_value NapiAppAccount::SelectAccountsByOptions(napi_env env, napi_callback_i
             delete context;
         },
         reinterpret_cast<void *>(context.get()), &context->work));
-    NAPI_CALL(env, napi_queue_async_work(env, context->work));
+    NAPI_CALL(env, napi_queue_async_work_with_qos(env, context->work, napi_qos_default));
     context.release();
     return result;
 }
@@ -1590,7 +1590,7 @@ napi_value NapiAppAccount::VerifyCredential(napi_env env, napi_callback_info cbI
             context->errCode = ConvertToJSErrCode(errCode);
         },
         VerifyCredCompleteCB, reinterpret_cast<void *>(context.get()), &context->work));
-    NAPI_CALL(env, napi_queue_async_work(env, context->work));
+    NAPI_CALL(env, napi_queue_async_work_with_qos(env, context->work, napi_qos_default));
     context.release();
     return NapiGetNull(env);
 }
@@ -1630,7 +1630,7 @@ napi_value NapiAppAccount::SetAuthenticatorProperties(napi_env env, napi_callbac
         },
         reinterpret_cast<void *>(context.get()),
         &context->work));
-    NAPI_CALL(env, napi_queue_async_work(env, context->work));
+    NAPI_CALL(env, napi_queue_async_work_with_qos(env, context->work, napi_qos_default));
     context.release();
     return NapiGetNull(env);
 }
@@ -1744,7 +1744,7 @@ napi_value NapiAppAccount::Unsubscribe(napi_env env, napi_callback_info cbInfo)
 
         napi_create_async_work(env, nullptr, resourceName, UnsubscribeExecuteCB, UnsubscribeCallbackCompletedCB,
             reinterpret_cast<void *>(context), &context->work);
-        napi_queue_async_work(env, context->work);
+        napi_queue_async_work_with_qos(env, context->work, napi_qos_default);
     } else {
         UnsubscribeSync(env, context);
         delete context;

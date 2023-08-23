@@ -25,12 +25,17 @@
 namespace OHOS {
 namespace AccountSA {
 class BundleManagerAdapter {
-public:
+private:
     BundleManagerAdapter();
     virtual ~BundleManagerAdapter();
-    static std::shared_ptr<BundleManagerAdapter> GetInstance();
+    DISALLOW_COPY_AND_MOVE(BundleManagerAdapter);
+
+public:
+    static BundleManagerAdapter* GetInstance();
 
     ErrCode GetNameForUid(const int uid, std::string &bundleName);
+    ErrCode CreateNewUser(int32_t userId);
+    ErrCode RemoveUser(int32_t userId);
     bool GetBundleInfo(const std::string &bundleName, const AppExecFwk::BundleFlag flag,
         AppExecFwk::BundleInfo &bundleInfo, int32_t userId);
     int GetUidByBundleName(const std::string &bundleName, const int userId);
@@ -40,10 +45,6 @@ public:
         const int32_t &userId, std::vector<AppExecFwk::ExtensionAbilityInfo> &extensionInfos);
     bool QueryExtensionAbilityInfos(const AAFwk::Want &want, const AppExecFwk::ExtensionAbilityType &extensionType,
         const int32_t &flag, const int32_t &userId, std::vector<AppExecFwk::ExtensionAbilityInfo> &extensionInfos);
-
-private:
-    static std::mutex mockInstanceMutex_;
-    static std::shared_ptr<BundleManagerAdapter> instance_;
 };
 }  // namespace AccountSA
 }  // namespace OHOS

@@ -36,12 +36,17 @@ void DomainHasDomainInfoCallback::OnResult(const int32_t errCode, Parcel &parcel
         parcelResult.WriteBool(false);
         return innerCallback_->OnResult(errCode, parcelResult);
     }
-    std::shared_ptr<DomainAccountInfo> info(DomainAccountInfo::Unmarshalling(parcel));
-    if (info == nullptr) {
+    std::shared_ptr<AAFwk::WantParams> parameters(AAFwk::WantParams::Unmarshalling(parcel));
+    if (parameters == nullptr) {
+        ACCOUNT_LOGE("parameters unmarshalling error");
         parcelResult.WriteBool(false);
         return innerCallback_->OnResult(ERR_ACCOUNT_COMMON_INSUFFICIENT_MEMORY_ERROR, parcelResult);
     }
-    if ((info->domain_ != domain_) || (info->accountName_ != accountName_)) {
+    DomainAccountInfo info;
+    info.accountName_ = parameters->GetStringParam("accountName");
+    info.domain_ = parameters->GetStringParam("domain");
+    info.accountId_ = parameters->GetStringParam("accountId");
+    if ((info.domain_ != domain_) || (info.accountName_ != accountName_)) {
         parcelResult.WriteBool(false);
         return innerCallback_->OnResult(errCode, parcelResult);
     }

@@ -29,7 +29,7 @@ public:
     int OnRemoteRequest(
         uint32_t code, MessageParcel &data, MessageParcel &reply, MessageOption &option) override;
 
-private:
+public:
     ErrCode ProcAddAccountImplicitly(MessageParcel &data, MessageParcel &reply);
     ErrCode ProcAuthenticate(MessageParcel &data, MessageParcel &reply);
     ErrCode ProcVerifyCredential(MessageParcel &data, MessageParcel &reply);
@@ -40,7 +40,7 @@ private:
     ErrCode ProcAuth(MessageParcel &data, MessageParcel &reply);
 
 private:
-    static const std::map<uint32_t, MessageProcFunction> funcMap_;
+    std::map<uint32_t, MessageProcFunction> funcMap_;
     DISALLOW_COPY_AND_MOVE(AppAccountAuthenticatorStub);
 };
 }  // namespace AccountSA

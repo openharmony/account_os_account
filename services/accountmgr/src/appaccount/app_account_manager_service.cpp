@@ -25,6 +25,8 @@ namespace OHOS {
 namespace AccountSA {
 namespace {
 constexpr int32_t UID_TRANSFORM_DIVISOR = 200000;  // local account id = uid / UID_TRANSFORM_DIVISOR
+const std::string DISTRIBUTED_DATASYNC = "ohos.permission.DISTRIBUTED_DATASYNC";
+const std::string GET_ALL_APP_ACCOUNTS = "ohos.permission.GET_ALL_APP_ACCOUNTS";
 }
 
 AppAccountManagerService::AppAccountManagerService()
@@ -233,7 +235,7 @@ ErrCode AppAccountManagerService::CheckAppAccountSyncEnable(const std::string &n
     int32_t callingUid = -1;
     std::string bundleName;
     uint32_t appIndex;
-    ErrCode ret = GetBundleNameAndCheckPerm(callingUid, bundleName, AccountPermissionManager::DISTRIBUTED_DATASYNC);
+    ErrCode ret = GetBundleNameAndCheckPerm(callingUid, bundleName, DISTRIBUTED_DATASYNC);
     if (ret != ERR_OK) {
         return ret;
     }
@@ -251,7 +253,7 @@ ErrCode AppAccountManagerService::SetAppAccountSyncEnable(const std::string &nam
     int32_t callingUid = -1;
     std::string bundleName;
     uint32_t appIndex;
-    ErrCode ret = GetBundleNameAndCheckPerm(callingUid, bundleName, AccountPermissionManager::DISTRIBUTED_DATASYNC);
+    ErrCode ret = GetBundleNameAndCheckPerm(callingUid, bundleName, DISTRIBUTED_DATASYNC);
     if (ret != ERR_OK) {
         return ret;
     }
@@ -554,11 +556,9 @@ ErrCode AppAccountManagerService::GetAllAccounts(const std::string &owner, std::
         return ret;
     }
     if ((owner != bundleName) &&
-        (AccountPermissionManager::VerifyPermission(AccountPermissionManager::GET_ALL_APP_ACCOUNTS) != ERR_OK)) {
-        ACCOUNT_LOGE("failed to verify permission for %{public}s",
-            AccountPermissionManager::GET_ALL_APP_ACCOUNTS.c_str());
-        ReportPermissionFail(callingUid, IPCSkeleton::GetCallingPid(),
-            AccountPermissionManager::GET_ALL_APP_ACCOUNTS);
+        (AccountPermissionManager::VerifyPermission(GET_ALL_APP_ACCOUNTS) != ERR_OK)) {
+        ACCOUNT_LOGE("failed to verify permission for %{public}s", GET_ALL_APP_ACCOUNTS.c_str());
+        ReportPermissionFail(callingUid, IPCSkeleton::GetCallingPid(), GET_ALL_APP_ACCOUNTS);
         return ERR_ACCOUNT_COMMON_PERMISSION_DENIED;
     }
 
@@ -578,7 +578,7 @@ ErrCode AppAccountManagerService::GetAllAccessibleAccounts(std::vector<AppAccoun
     int32_t callingUid = -1;
     std::string bundleName;
     uint32_t appIndex;
-    ErrCode ret = GetBundleNameAndCheckPerm(callingUid, bundleName, AccountPermissionManager::GET_ALL_APP_ACCOUNTS);
+    ErrCode ret = GetBundleNameAndCheckPerm(callingUid, bundleName, GET_ALL_APP_ACCOUNTS);
     if (ret != ERR_OK) {
         return ret;
     }
@@ -744,7 +744,7 @@ static bool QueryAbilityInfo(const std::string &bundleName, const std::string &a
     return true;
 }
 
-ErrCode AppAccountManagerService::ExecuteRequest(const bool &isEnableContext, const AccountCapabilityRequest &request,
+ErrCode AppAccountManagerService::ExecuteRequest(const AccountCapabilityRequest &request,
     const sptr<IAppAccountAuthorizationExtensionCallback> &callback)
 {
     AuthorizationRequest innerRequest;
@@ -755,7 +755,7 @@ ErrCode AppAccountManagerService::ExecuteRequest(const bool &isEnableContext, co
         return result;
     }
     innerRequest.parameters = request.parameters;
-    innerRequest.isEnableContext = isEnableContext;
+    innerRequest.isEnableContext = request.isEnableContext;
     innerRequest.callback = callback;
     if (innerRequest.callback == nullptr) {
         return ERR_JS_SYSTEM_SERVICE_EXCEPTION;
@@ -782,11 +782,7 @@ ErrCode AppAccountManagerService::SubscribeAppAccount(
     }
 
     std::vector<std::string> owners;
-    if (subscribeInfo.GetOwners(owners) != ERR_OK) {
-        ACCOUNT_LOGE("failed to get owners");
-        return ERR_APPACCOUNT_SERVICE_GET_OWNERS;
-    }
-
+    subscribeInfo.GetOwners(owners);
     if (owners.size() == 0) {
         ACCOUNT_LOGE("owners size is 0");
         return ERR_APPACCOUNT_SERVICE_OWNERS_SIZE_IS_ZERO;

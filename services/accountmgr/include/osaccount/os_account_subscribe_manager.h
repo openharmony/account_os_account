@@ -37,6 +37,7 @@ public:
 private:
     OsAccountSubscribeManager();
     ~OsAccountSubscribeManager() = default;
+    DISALLOW_COPY_AND_MOVE(OsAccountSubscribeManager);
     ErrCode InsertSubscribeRecord(const OsSubscribeRecordPtr &subscribeRecordPtr);
     ErrCode RemoveSubscribeRecord(const sptr<IRemoteObject> &eventListener);
     ErrCode Publish(const int id, OS_ACCOUNT_SUBSCRIBE_TYPE subscribeType, uint32_t& sendCnt);

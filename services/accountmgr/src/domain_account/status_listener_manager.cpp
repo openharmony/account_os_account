@@ -37,8 +37,8 @@ static const int INVALID_USERID = -1;
 
 StatusListenerManager& StatusListenerManager::GetInstance()
 {
-    static StatusListenerManager instance;
-    return instance;
+    static StatusListenerManager *instance = new (std::nothrow) StatusListenerManager();
+    return *instance;
 }
 
 StatusListenerManager::StatusListenerManager() : listenerDeathRecipient_(sptr<IRemoteObject::DeathRecipient>(
@@ -66,7 +66,8 @@ ErrCode StatusListenerManager::InsertListenerToRecords(const sptr<IRemoteObject>
         ACCOUNT_LOGI("listener is already exist");
         return ERR_OK;
     }
-    if ((listenerDeathRecipient_ != nullptr) && (!listener->AddDeathRecipient(listenerDeathRecipient_))) {
+    if ((listener->IsProxyObject()) && (listenerDeathRecipient_ != nullptr) &&
+        (!listener->AddDeathRecipient(listenerDeathRecipient_))) {
         ACCOUNT_LOGE("AddDeathRecipient failed");
         return ERR_ACCOUNT_COMMON_ADD_DEATH_RECIPIENT;
     }
@@ -92,7 +93,8 @@ ErrCode StatusListenerManager::InsertListenerToRecords(
         listenerIt->second.insert(domainAccountStr);
         accountToListener_[domainAccountStr].insert(listener);
     } else {
-        if ((listenerDeathRecipient_ != nullptr) && (!listener->AddDeathRecipient(listenerDeathRecipient_))) {
+        if ((listener->IsProxyObject()) && (listenerDeathRecipient_ != nullptr) &&
+            (!listener->AddDeathRecipient(listenerDeathRecipient_))) {
             ACCOUNT_LOGE("AddDeathRecipient failed");
             return ERR_ACCOUNT_COMMON_ADD_DEATH_RECIPIENT;
         }
@@ -125,7 +127,7 @@ ErrCode StatusListenerManager::RemoveListenerByListener(const sptr<IRemoteObject
     if (listenerToAllIt != listenerAll_.end()) {
         listenerAll_.erase(listenerToAllIt);
     }
-    if (listenerDeathRecipient_ != nullptr) {
+    if ((listener->IsProxyObject()) && (listenerDeathRecipient_ != nullptr)) {
         listener->RemoveDeathRecipient(listenerDeathRecipient_);
     }
     return ERR_OK;
@@ -143,7 +145,7 @@ ErrCode StatusListenerManager::RemoveListenerByInfoAndListener(
     std::string domainAccountStr = GetDomainAccountStr(domain, accountName);
     listenerToAccountIt->second.erase(domainAccountStr);
     accountToListener_[domainAccountStr].erase(listener);
-    if (listenerDeathRecipient_ != nullptr) {
+    if ((listener->IsProxyObject()) && (listenerDeathRecipient_ != nullptr)) {
         listener->RemoveDeathRecipient(listenerDeathRecipient_);
     }
     return ERR_OK;

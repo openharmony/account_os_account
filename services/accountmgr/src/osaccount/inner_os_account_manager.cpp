@@ -28,12 +28,18 @@
 #include "os_account_control_file_manager.h"
 #include "os_account_domain_account_callback.h"
 #include "os_account_subscribe_manager.h"
+#include "parameter.h"
 #include "parcel.h"
+#include <pthread.h>
+#include <thread>
 
 namespace OHOS {
 namespace AccountSA {
 namespace {
 const std::string CONSTRAINT_CREATE_ACCOUNT_DIRECTLY = "constraint.os.account.create.directly";
+const std::string ACCOUNT_READY_EVENT = "bootevent.account.ready";
+const char WATCH_START_USER[] = "watch.start.user";
+constexpr std::int32_t DELAY_FOR_ACCOUNT_BOOT_EVENT_READY = 5000;
 }
 
 IInnerOsAccountManager::IInnerOsAccountManager() : subscribeManager_(OsAccountSubscribeManager::GetInstance())
@@ -49,8 +55,8 @@ IInnerOsAccountManager::IInnerOsAccountManager() : subscribeManager_(OsAccountSu
 
 IInnerOsAccountManager &IInnerOsAccountManager::GetInstance()
 {
-    static IInnerOsAccountManager instance;
-    return instance;
+    static IInnerOsAccountManager *instance = new (std::nothrow) IInnerOsAccountManager();
+    return *instance;
 }
 
 void IInnerOsAccountManager::SetOsAccountControl(std::shared_ptr<IOsAccountControl> ptr)
@@ -124,6 +130,10 @@ void IInnerOsAccountManager::StartAccount()
         osAccountControl_->SetDefaultActivatedOsAccount(Constants::START_USER_ID);
         defaultActivatedId_ = Constants::START_USER_ID;
     }
+    auto task = std::bind(&IInnerOsAccountManager::WatchStartUser, this, osAccountInfo.GetLocalId());
+    std::thread taskThread(task);
+    pthread_setname_np(taskThread.native_handle(), WATCH_START_USER);
+    taskThread.detach();
     if (!osAccountInfo.GetIsCreateCompleted()) {
         if (SendMsgForAccountCreate(osAccountInfo) != ERR_OK) {
             return;
@@ -326,13 +336,13 @@ ErrCode IInnerOsAccountManager::CreateOsAccountForDomain(
         ACCOUNT_LOGE("plugin is not available");
         return ERR_DOMAIN_ACCOUNT_SERVICE_PLUGIN_NOT_EXIST;
     }
-    auto callbackWrapper = std::make_shared<CheckAndCreateDomainAccountCallback>(type, domainInfo, callback);
+    sptr<CheckAndCreateDomainAccountCallback> callbackWrapper =
+        new (std::nothrow) CheckAndCreateDomainAccountCallback(type, domainInfo, callback);
     if (callbackWrapper == nullptr) {
         ACCOUNT_LOGE("new DomainCreateDomainCallback failed");
         return ERR_ACCOUNT_COMMON_INSUFFICIENT_MEMORY_ERROR;
     }
-    return InnerDomainAccountManager::GetInstance().GetDomainAccountInfo(
-        domainInfo.domain_, domainInfo.accountName_, callbackWrapper);
+    return InnerDomainAccountManager::GetInstance().GetDomainAccountInfo(domainInfo, callbackWrapper);
 }
 
 void IInnerOsAccountManager::CheckAndRefreshLocalIdRecord(const int id)
@@ -373,6 +383,8 @@ ErrCode IInnerOsAccountManager::RemoveOsAccountOperate(const int id, OsAccountIn
     if (ohosInfo.ohosAccountInfo_.name_ != DEFAULT_OHOS_ACCOUNT_NAME) {
 #ifdef HAS_CES_PART
         AccountEventProvider::EventPublish(EventFwk::CommonEventSupport::COMMON_EVENT_HWID_LOGOUT, id, nullptr);
+        AccountEventProvider::EventPublish(
+            EventFwk::CommonEventSupport::COMMON_EVENT_DISTRIBUTED_ACCOUNT_LOGOUT, id, nullptr);
 #else  // HAS_CES_PART
         ACCOUNT_LOGI("No common event part! Publish nothing!");
 #endif // HAS_CES_PART
@@ -1130,6 +1142,18 @@ ErrCode IInnerOsAccountManager::ActivateOsAccount(const int id)
     return ERR_OK;
 }
 
+void IInnerOsAccountManager::WatchStartUser(std::int32_t id)
+{
+    std::this_thread::sleep_for(std::chrono::milliseconds(DELAY_FOR_ACCOUNT_BOOT_EVENT_READY));
+    OsAccountInfo osAccountInfo;
+    osAccountControl_->GetOsAccountInfoById(id, osAccountInfo);
+    if (!osAccountInfo.GetIsActived()) {
+        ReportOsAccountOperationFail(
+            id, Constants::OPERATION_ACTIVATE, ERR_ACCOUNT_COMMON_OPERATION_TIMEOUT, "account activation timed out!");
+    }
+    SetParameter(ACCOUNT_READY_EVENT.c_str(), "true");
+}
+
 ErrCode IInnerOsAccountManager::SendMsgForAccountActivate(OsAccountInfo &osAccountInfo)
 {
     ErrCode errCode = OsAccountInterface::SendToStorageAccountStart(osAccountInfo);
@@ -1156,6 +1180,7 @@ ErrCode IInnerOsAccountManager::SendMsgForAccountActivate(OsAccountInfo &osAccou
         return ERR_OSACCOUNT_SERVICE_INNER_UPDATE_ACCOUNT_ERROR;
     }
     RefreshActiveList(osAccountInfo.GetLocalId());
+    SetParameter(ACCOUNT_READY_EVENT.c_str(), "true");
     OsAccountInterface::SendToCESAccountSwitched(osAccountInfo);
     ACCOUNT_LOGI("SendMsgForAccountActivate ok");
     return errCode;

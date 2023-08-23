@@ -37,6 +37,7 @@ const std::string STRING_EMPTY = "";
 const std::string STRING_OWNER = "com.example.owner";
 const std::string APP_INDEX = "0";
 const std::string HYPHEN = "#";
+const std::string AUTHORIZED_ACCOUNTS = "authorizedAccounts";
 
 constexpr std::int32_t UID = 10000;
 constexpr std::int32_t WAIT_FOR_EXIT = 1000;
@@ -599,7 +600,7 @@ HWTEST_F(AppAccountManagerServiceSyncModuleTest, AppAccountManagerServiceSync_En
         ASSERT_NE(dataStoragePtr, nullptr);
 
         std::string authorizedAccounts;
-        result = dataStoragePtr->GetValueFromKvStore(AppAccountDataStorage::AUTHORIZED_ACCOUNTS, authorizedAccounts);
+        result = dataStoragePtr->GetValueFromKvStore(AUTHORIZED_ACCOUNTS, authorizedAccounts);
         ASSERT_EQ(result, ERR_OK);
 
         auto jsonObject = Json::parse(authorizedAccounts, nullptr, false);
@@ -619,7 +620,7 @@ HWTEST_F(AppAccountManagerServiceSyncModuleTest, AppAccountManagerServiceSync_En
         ASSERT_NE(dataStoragePtr, nullptr);
 
         std::string authorizedAccounts;
-        result = dataStoragePtr->GetValueFromKvStore(AppAccountDataStorage::AUTHORIZED_ACCOUNTS, authorizedAccounts);
+        result = dataStoragePtr->GetValueFromKvStore(AUTHORIZED_ACCOUNTS, authorizedAccounts);
         ASSERT_EQ(result, ERR_OK);
 
         auto jsonObject = Json::parse(authorizedAccounts, nullptr, false);
@@ -668,7 +669,7 @@ HWTEST_F(AppAccountManagerServiceSyncModuleTest, AppAccountManagerServiceSync_En
         ASSERT_NE(dataStoragePtr, nullptr);
 
         std::string authorizedAccounts;
-        result = dataStoragePtr->GetValueFromKvStore(AppAccountDataStorage::AUTHORIZED_ACCOUNTS,
+        result = dataStoragePtr->GetValueFromKvStore(AUTHORIZED_ACCOUNTS,
             authorizedAccounts);
         ASSERT_EQ(result, ERR_OK);
 
@@ -689,7 +690,7 @@ HWTEST_F(AppAccountManagerServiceSyncModuleTest, AppAccountManagerServiceSync_En
         ASSERT_NE(dataStoragePtr, nullptr);
 
         std::string authorizedAccounts;
-        result = dataStoragePtr->GetValueFromKvStore(AppAccountDataStorage::AUTHORIZED_ACCOUNTS,
+        result = dataStoragePtr->GetValueFromKvStore(AUTHORIZED_ACCOUNTS,
             authorizedAccounts);
         ASSERT_EQ(result, ERR_OK);
 
@@ -739,7 +740,7 @@ HWTEST_F(AppAccountManagerServiceSyncModuleTest, AppAccountManagerServiceSync_Di
         ASSERT_NE(dataStoragePtr, nullptr);
 
         std::string authorizedAccounts;
-        result = dataStoragePtr->GetValueFromKvStore(AppAccountDataStorage::AUTHORIZED_ACCOUNTS,
+        result = dataStoragePtr->GetValueFromKvStore(AUTHORIZED_ACCOUNTS,
             authorizedAccounts);
         ASSERT_EQ(result, ERR_OK);
 
@@ -755,7 +756,7 @@ HWTEST_F(AppAccountManagerServiceSyncModuleTest, AppAccountManagerServiceSync_Di
         ASSERT_NE(dataStoragePtr, nullptr);
 
         std::string authorizedAccounts;
-        result = dataStoragePtr->GetValueFromKvStore(AppAccountDataStorage::AUTHORIZED_ACCOUNTS,
+        result = dataStoragePtr->GetValueFromKvStore(AUTHORIZED_ACCOUNTS,
             authorizedAccounts);
         ASSERT_EQ(result, ERR_OK);
 

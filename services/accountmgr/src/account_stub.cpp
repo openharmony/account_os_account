@@ -29,6 +29,7 @@
 #include "if_system_ability_manager.h"
 #include "ipc_skeleton.h"
 #include "iservice_registry.h"
+#include "memory_guard.h"
 #include "ohos_account_kits.h"
 #include "account_constants.h"
 #ifdef HICOLLIE_ENABLE
@@ -55,24 +56,25 @@ constexpr std::int32_t DSOFTBUS_UID = 1024;
 constexpr std::int32_t DSOFTBUS_UID = 5533;
 #endif
 }  // namespace
-const std::map<AccountMgrInterfaceCode, AccountStubFunc> AccountStub::stubFuncMap_{
-    std::make_pair(AccountMgrInterfaceCode::UPDATE_OHOS_ACCOUNT_INFO, &AccountStub::CmdUpdateOhosAccountInfo),
-    std::make_pair(AccountMgrInterfaceCode::SET_OHOS_ACCOUNT_INFO, &AccountStub::CmdSetOhosAccountInfo),
-    std::make_pair(AccountMgrInterfaceCode::SET_OHOS_ACCOUNT_INFO_BY_USER_ID,
-        &AccountStub::CmdSetOhosAccountInfoByUserId),
-    std::make_pair(AccountMgrInterfaceCode::QUERY_OHOS_ACCOUNT_INFO, &AccountStub::CmdQueryOhosAccountInfo),
-    std::make_pair(AccountMgrInterfaceCode::GET_OHOS_ACCOUNT_INFO, &AccountStub::CmdGetOhosAccountInfo),
-    std::make_pair(AccountMgrInterfaceCode::QUERY_OHOS_ACCOUNT_QUIT_TIPS, &AccountStub::CmdQueryOhosQuitTips),
-    std::make_pair(AccountMgrInterfaceCode::QUERY_OHOS_ACCOUNT_INFO_BY_USER_ID,
-        &AccountStub::CmdQueryOhosAccountInfoByUserId),
-    std::make_pair(AccountMgrInterfaceCode::GET_OHOS_ACCOUNT_INFO_BY_USER_ID,
-        &AccountStub::CmdGetOhosAccountInfoByUserId),
-    std::make_pair(AccountMgrInterfaceCode::QUERY_DEVICE_ACCOUNT_ID, &AccountStub::CmdQueryDeviceAccountId),
-    std::make_pair(AccountMgrInterfaceCode::GET_APP_ACCOUNT_SERVICE, &AccountStub::CmdGetAppAccountService),
-    std::make_pair(AccountMgrInterfaceCode::GET_OS_ACCOUNT_SERVICE, &AccountStub::CmdGetOsAccountService),
-    std::make_pair(AccountMgrInterfaceCode::GET_ACCOUNT_IAM_SERVICE, &AccountStub::CmdGetAccountIAMService),
-    std::make_pair(AccountMgrInterfaceCode::GET_DOMAIN_ACCOUNT_SERVICE, &AccountStub::CmdGetDomainAccountService),
-};
+AccountStub::AccountStub()
+{
+    stubFuncMap_[AccountMgrInterfaceCode::UPDATE_OHOS_ACCOUNT_INFO] = &AccountStub::CmdUpdateOhosAccountInfo;
+    stubFuncMap_[AccountMgrInterfaceCode::SET_OHOS_ACCOUNT_INFO] = &AccountStub::CmdSetOhosAccountInfo;
+    stubFuncMap_[AccountMgrInterfaceCode::SET_OHOS_ACCOUNT_INFO_BY_USER_ID] =
+        &AccountStub::CmdSetOhosAccountInfoByUserId;
+    stubFuncMap_[AccountMgrInterfaceCode::QUERY_OHOS_ACCOUNT_INFO] = &AccountStub::CmdQueryOhosAccountInfo;
+    stubFuncMap_[AccountMgrInterfaceCode::GET_OHOS_ACCOUNT_INFO] = &AccountStub::CmdGetOhosAccountInfo;
+    stubFuncMap_[AccountMgrInterfaceCode::QUERY_OHOS_ACCOUNT_QUIT_TIPS] = &AccountStub::CmdQueryOhosQuitTips;
+    stubFuncMap_[AccountMgrInterfaceCode::QUERY_OHOS_ACCOUNT_INFO_BY_USER_ID] =
+        &AccountStub::CmdQueryOhosAccountInfoByUserId;
+    stubFuncMap_[AccountMgrInterfaceCode::GET_OHOS_ACCOUNT_INFO_BY_USER_ID] =
+        &AccountStub::CmdGetOhosAccountInfoByUserId;
+    stubFuncMap_[AccountMgrInterfaceCode::QUERY_DEVICE_ACCOUNT_ID] = &AccountStub::CmdQueryDeviceAccountId;
+    stubFuncMap_[AccountMgrInterfaceCode::GET_APP_ACCOUNT_SERVICE] = &AccountStub::CmdGetAppAccountService;
+    stubFuncMap_[AccountMgrInterfaceCode::GET_OS_ACCOUNT_SERVICE] = &AccountStub::CmdGetOsAccountService;
+    stubFuncMap_[AccountMgrInterfaceCode::GET_ACCOUNT_IAM_SERVICE] = &AccountStub::CmdGetAccountIAMService;
+    stubFuncMap_[AccountMgrInterfaceCode::GET_DOMAIN_ACCOUNT_SERVICE] = &AccountStub::CmdGetDomainAccountService;
+}
 
 std::int32_t AccountStub::InnerUpdateOhosAccountInfo(MessageParcel &data, MessageParcel &reply)
 {
@@ -411,6 +413,7 @@ std::int32_t AccountStub::CmdGetDomainAccountService(MessageParcel &data, Messag
 std::int32_t AccountStub::OnRemoteRequest(
     std::uint32_t code, MessageParcel &data, MessageParcel &reply, MessageOption &option)
 {
+    MemoryGuard cacheGuard;
     if (!IsServiceStarted()) {
         ACCOUNT_LOGE("account mgr not ready");
         return ERR_ACCOUNT_ZIDL_MGR_NOT_READY_ERROR;

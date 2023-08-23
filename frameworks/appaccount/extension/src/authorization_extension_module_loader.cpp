@@ -20,7 +20,7 @@
 
 using namespace OHOS::AccountSA;
 namespace {
-const std::map<std::string, std::string> g_params = {{"type", "19"}, {"name", "AppAccountAuthorizationExtension"}};
+const std::map<std::string, std::string> g_params = {{"type", "258"}, {"name", "AppAccountAuthorizationExtension"}};
 }
 namespace OHOS::AbilityRuntime {
 AuthorizationExtensionModuleLoader::AuthorizationExtensionModuleLoader() = default;

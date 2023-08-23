@@ -116,6 +116,7 @@ public:
     ErrCode GetAccessToken(const DomainAccountInfo &info, const AAFwk::WantParams &parameters,
         const std::shared_ptr<GetAccessTokenCallback> &callback);
     ErrCode GetAccountStatus(const DomainAccountInfo &info, DomainAccountStatus &status);
+    ErrCode GetDomainAccountInfo(const DomainAccountInfo &info, const std::shared_ptr<DomainAccountCallback> &callback);
     ErrCode RegisterAccountStatusListener(
         const DomainAccountInfo &info, const std::shared_ptr<DomainAccountStatusListener> &listener);
     ErrCode RegisterAccountStatusListener(const std::shared_ptr<DomainAccountStatusListener> &listener);
@@ -126,6 +127,7 @@ public:
 private:
     DomainAccountClient() = default;
     ~DomainAccountClient() = default;
+    DISALLOW_COPY_AND_MOVE(DomainAccountClient);
 
 public:
     class DomainAccountListenerRecord {

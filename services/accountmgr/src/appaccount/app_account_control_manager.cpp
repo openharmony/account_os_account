@@ -32,10 +32,15 @@
 
 namespace OHOS {
 namespace AccountSA {
+namespace {
+const std::string GET_ALL_APP_ACCOUNTS = "ohos.permission.GET_ALL_APP_ACCOUNTS";
+const std::string DATA_STORAGE_SUFFIX = "_sync";
+const std::string AUTHORIZED_ACCOUNTS = "authorizedAccounts";
+}
 AppAccountControlManager &AppAccountControlManager::GetInstance()
 {
-    static AppAccountControlManager instance;
-    return instance;
+    static AppAccountControlManager *instance = new (std::nothrow) AppAccountControlManager();
+    return *instance;
 }
 
 ErrCode AppAccountControlManager::AddAccount(const std::string &name, const std::string &extraInfo, const uid_t &uid,
@@ -380,7 +385,8 @@ ErrCode AppAccountControlManager::GetAccountCredential(const std::string &name, 
 {
     AppAccountInfo appAccountInfo(name, appAccountCallingInfo.bundleName);
     appAccountInfo.SetAppIndex(appAccountCallingInfo.appIndex);
-    std::shared_ptr<AppAccountDataStorage> dataStoragePtr = GetDataStorage(appAccountCallingInfo.callingUid);
+    std::shared_ptr<AppAccountDataStorage> dataStoragePtr =
+        GetDataStorage(appAccountCallingInfo.callingUid, false, DistributedKv::SecurityLevel::S4);
     ErrCode result = GetAccountInfoFromDataStorage(appAccountInfo, dataStoragePtr);
     if (result != ERR_OK) {
         ACCOUNT_LOGE("failed to get account info from data storage, result %{public}d.", result);
@@ -399,7 +405,8 @@ ErrCode AppAccountControlManager::GetAccountCredential(const std::string &name, 
 ErrCode AppAccountControlManager::SetAccountCredential(const std::string &name, const std::string &credentialType,
     const std::string &credential, const AppAccountCallingInfo &appAccountCallingInfo, bool isDelete)
 {
-    std::shared_ptr<AppAccountDataStorage> dataStoragePtr = GetDataStorage(appAccountCallingInfo.callingUid);
+    std::shared_ptr<AppAccountDataStorage> dataStoragePtr =
+        GetDataStorage(appAccountCallingInfo.callingUid, false, DistributedKv::SecurityLevel::S4);
     AppAccountInfo appAccountInfo(name, appAccountCallingInfo.bundleName);
     appAccountInfo.SetAppIndex(appAccountCallingInfo.appIndex);
     ErrCode result = GetAccountInfoFromDataStorage(appAccountInfo, dataStoragePtr);
@@ -428,7 +435,8 @@ ErrCode AppAccountControlManager::GetOAuthToken(
 {
     AppAccountInfo appAccountInfo(request.name, request.owner);
     appAccountInfo.SetAppIndex(request.appIndex);
-    std::shared_ptr<AppAccountDataStorage> dataStoragePtr = GetDataStorage(request.callerUid);
+    std::shared_ptr<AppAccountDataStorage> dataStoragePtr =
+        GetDataStorage(request.callerUid, false, DistributedKv::SecurityLevel::S4);
     ErrCode result = GetAccountInfoFromDataStorage(appAccountInfo, dataStoragePtr);
     if (result != ERR_OK) {
         ACCOUNT_LOGE("failed to get account info from data storage, result %{public}d.", result);
@@ -449,7 +457,8 @@ ErrCode AppAccountControlManager::SetOAuthToken(const AuthenticatorSessionReques
     std::lock_guard<std::mutex> lock(mutex_);
     AppAccountInfo appAccountInfo(request.name, request.callerBundleName);
     appAccountInfo.SetAppIndex(request.appIndex);
-    std::shared_ptr<AppAccountDataStorage> dataStoragePtr = GetDataStorage(request.callerUid);
+    std::shared_ptr<AppAccountDataStorage> dataStoragePtr =
+        GetDataStorage(request.callerUid, false, DistributedKv::SecurityLevel::S4);
     ErrCode result = GetAccountInfoFromDataStorage(appAccountInfo, dataStoragePtr);
     if (result != ERR_OK) {
         ACCOUNT_LOGE("failed to get account info from data storage, result %{public}d.", result);
@@ -609,7 +618,7 @@ ErrCode AppAccountControlManager::GetAllAccounts(const std::string &owner, std::
         ACCOUNT_LOGE("dataStoragePtr is nullptr");
         return ERR_APPACCOUNT_SERVICE_DATA_STORAGE_PTR_IS_NULLPTR;
     }
-    ErrCode result = AccountPermissionManager::VerifyPermission(AccountPermissionManager::GET_ALL_APP_ACCOUNTS);
+    ErrCode result = AccountPermissionManager::VerifyPermission(GET_ALL_APP_ACCOUNTS);
     if ((bundleName == owner) || (result == ERR_OK)) {
         std::string key = owner + Constants::HYPHEN + std::to_string(appIndex);
         result = GetAllAccountsFromDataStorage(key, appAccounts, owner, dataStoragePtr);
@@ -650,7 +659,7 @@ static ErrCode LoadAllAppAccounts(const std::shared_ptr<OHOS::AccountSA::AppAcco
         return result;
     }
     for (auto it = infos.begin(); it != infos.end(); ++it) {
-        if (it->first == AppAccountDataStorage::AUTHORIZED_ACCOUNTS) {
+        if (it->first == AUTHORIZED_ACCOUNTS) {
             continue;
         }
         AppAccountInfo curAppInfo = *(std::static_pointer_cast<AppAccountInfo>(it->second));
@@ -669,7 +678,7 @@ ErrCode AppAccountControlManager::GetAllAccessibleAccounts(std::vector<AppAccoun
         ACCOUNT_LOGE("dataStoragePtr is nullptr");
         return ERR_APPACCOUNT_SERVICE_DATA_STORAGE_PTR_IS_NULLPTR;
     }
-    ErrCode result = AccountPermissionManager::VerifyPermission(AccountPermissionManager::GET_ALL_APP_ACCOUNTS);
+    ErrCode result = AccountPermissionManager::VerifyPermission(GET_ALL_APP_ACCOUNTS);
     if (result == ERR_OK) {
         return LoadAllAppAccounts(dataStoragePtr, appAccounts);
     }
@@ -831,7 +840,7 @@ ErrCode AppAccountControlManager::OnPackageRemoved(
 ErrCode AppAccountControlManager::OnUserRemoved(int32_t userId)
 {
     std::string storeId = std::to_string(userId);
-    std::string syncStoreId = storeId + AppAccountDataStorage::DATA_STORAGE_SUFFIX;
+    std::string syncStoreId = storeId + DATA_STORAGE_SUFFIX;
     std::lock_guard<std::mutex> lock(storePtrMutex_);
     storePtrMap_.erase(storeId);
     storePtrMap_.erase(syncStoreId);
@@ -953,25 +962,29 @@ ErrCode AppAccountControlManager::GetAllAccessibleAccountsFromDataStorage(
 }
 
 std::shared_ptr<AppAccountDataStorage> AppAccountControlManager::GetDataStorageByUserId(
-    int32_t userId, const bool &autoSync)
+    int32_t userId, const bool &autoSync, DistributedKv::SecurityLevel securityLevel)
 {
     std::string storeId = std::to_string(userId);
     if (autoSync == true) {
-        storeId = storeId + AppAccountDataStorage::DATA_STORAGE_SUFFIX;
+        storeId = storeId + DATA_STORAGE_SUFFIX;
     }
     std::lock_guard<std::mutex> lock(storePtrMutex_);
     auto it = storePtrMap_.find(storeId);
     if (it != storePtrMap_.end()) {
         return it->second;
     }
-    auto storePtr = std::make_shared<AppAccountDataStorage>(storeId, autoSync);
+    AccountDataStorageOptions options;
+    options.autoSync = autoSync;
+    options.securityLevel = securityLevel;
+    auto storePtr = std::make_shared<AppAccountDataStorage>(storeId, options);
     storePtrMap_.emplace(storeId, storePtr);
     return storePtr;
 }
 
-std::shared_ptr<AppAccountDataStorage> AppAccountControlManager::GetDataStorage(const uid_t &uid, const bool &autoSync)
+std::shared_ptr<AppAccountDataStorage> AppAccountControlManager::GetDataStorage(
+    const uid_t &uid, const bool &autoSync, DistributedKv::SecurityLevel securityLevel)
 {
-    return GetDataStorageByUserId(uid / UID_TRANSFORM_DIVISOR, autoSync);
+    return GetDataStorageByUserId(uid / UID_TRANSFORM_DIVISOR, autoSync, securityLevel);
 }
 
 bool AppAccountControlManager::NeedSyncDataStorage(const AppAccountInfo &appAccountInfo)
@@ -1218,7 +1231,7 @@ ErrCode AppAccountControlManager::SaveAuthorizedAccountIntoDataStorage(const std
     }
 
     std::string authorizedAccounts;
-    ErrCode result = dataStoragePtr->GetValueFromKvStore(AppAccountDataStorage::AUTHORIZED_ACCOUNTS,
+    ErrCode result = dataStoragePtr->GetValueFromKvStore(AUTHORIZED_ACCOUNTS,
         authorizedAccounts);
     if (result != ERR_OK) {
         ACCOUNT_LOGE("failed to get config by id from data storage, result %{public}d.", result);
@@ -1247,7 +1260,7 @@ ErrCode AppAccountControlManager::SaveAuthorizedAccountIntoDataStorage(const std
         return ERR_ACCOUNT_COMMON_DUMP_JSON_ERROR;
     }
 
-    result = dataStoragePtr->PutValueToKvStore(AppAccountDataStorage::AUTHORIZED_ACCOUNTS, authorizedAccounts);
+    result = dataStoragePtr->PutValueToKvStore(AUTHORIZED_ACCOUNTS, authorizedAccounts);
     if (result != ERR_OK) {
         ACCOUNT_LOGE("PutValueToKvStore failed! result %{public}d.", result);
     }
@@ -1263,7 +1276,7 @@ ErrCode AppAccountControlManager::RemoveAuthorizedAccountFromDataStorage(const s
     }
 
     std::string authorizedAccounts;
-    ErrCode result = dataStoragePtr->GetValueFromKvStore(AppAccountDataStorage::AUTHORIZED_ACCOUNTS,
+    ErrCode result = dataStoragePtr->GetValueFromKvStore(AUTHORIZED_ACCOUNTS,
         authorizedAccounts);
     if (result != ERR_OK) {
         ACCOUNT_LOGE("failed to get config by id from data storage, result %{public}d.", result);
@@ -1292,7 +1305,7 @@ ErrCode AppAccountControlManager::RemoveAuthorizedAccountFromDataStorage(const s
         return ERR_ACCOUNT_COMMON_DUMP_JSON_ERROR;
     }
 
-    result = dataStoragePtr->PutValueToKvStore(AppAccountDataStorage::AUTHORIZED_ACCOUNTS, authorizedAccounts);
+    result = dataStoragePtr->PutValueToKvStore(AUTHORIZED_ACCOUNTS, authorizedAccounts);
     if (result != ERR_OK) {
         ACCOUNT_LOGE("failed to save config info, result %{public}d.", result);
         return result;

@@ -13,9 +13,9 @@
 
 import("//build/ohos.gni")
 import("//build/test.gni")
-import("../../../../../os_account.gni")
+import("../../../../../../os_account.gni")
 
-module_output_path = "os_account/services/accountmgr"
+module_output_path = "os_account/services/common"
 
 config("accountmgr_event_provider_test_config") {
   include_dirs = [

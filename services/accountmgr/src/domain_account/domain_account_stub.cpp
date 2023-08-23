@@ -21,16 +21,18 @@
 #include "domain_account_callback_proxy.h"
 #include "domain_auth_callback_proxy.h"
 #include "ipc_skeleton.h"
+#include "memory_guard.h"
 
 namespace OHOS {
 namespace AccountSA {
-DomainAccountStub::DomainAccountStub()
-{}
+namespace {
+const std::string MANAGE_LOCAL_ACCOUNTS = "ohos.permission.MANAGE_LOCAL_ACCOUNTS";
+const std::string GET_LOCAL_ACCOUNTS = "ohos.permission.GET_LOCAL_ACCOUNTS";
+const std::string ACCESS_USER_AUTH_INTERNAL = "ohos.permission.ACCESS_USER_AUTH_INTERNAL";
+const std::string GET_DOMAIN_ACCOUNTS = "ohos.permission.GET_DOMAIN_ACCOUNTS";
+}
 
-DomainAccountStub::~DomainAccountStub()
-{}
-
-const std::map<DomainAccountInterfaceCode, DomainAccountStub::DomainAccountStubFunc> DomainAccountStub::stubFuncMap_ = {
+const std::map<DomainAccountInterfaceCode, DomainAccountStub::DomainAccountStubFunc> stubFuncMap = {
     {
         DomainAccountInterfaceCode::REGISTER_PLUGIN,
         &DomainAccountStub::ProcRegisterPlugin
@@ -82,12 +84,25 @@ const std::map<DomainAccountInterfaceCode, DomainAccountStub::DomainAccountStubF
     {
         DomainAccountInterfaceCode::DOMAIN_ACCOUNT_STATUS_LISTENER_REGISTER_BY_INFO,
         &DomainAccountStub::ProcRegisterAccountStatusListenerByInfo
-    }
+    },
+    {
+        DomainAccountInterfaceCode::DOMAIN_GET_ACCOUNT_INFO,
+        &DomainAccountStub::ProcGetDomainAccountInfo
+    },
 };
+
+DomainAccountStub::DomainAccountStub()
+{
+    stubFuncMap_ = stubFuncMap;
+}
+
+DomainAccountStub::~DomainAccountStub()
+{}
 
 int32_t DomainAccountStub::OnRemoteRequest(
     uint32_t code, MessageParcel &data, MessageParcel &reply, MessageOption &option)
 {
+    MemoryGuard cacheGuard;
     int32_t uid = IPCSkeleton::GetCallingUid();
     ACCOUNT_LOGD("Received stub message: %{public}d, callingUid: %{public}d", code, uid);
     ErrCode errCode = CheckPermission(static_cast<DomainAccountInterfaceCode>(code), uid);
@@ -214,6 +229,26 @@ ErrCode DomainAccountStub::ProcGetAccountStatus(MessageParcel &data, MessageParc
     }
     if (!reply.WriteInt32(status)) {
         ACCOUNT_LOGE("failed to write status");
+        return IPC_STUB_WRITE_PARCEL_ERR;
+    }
+    return ERR_NONE;
+}
+
+ErrCode DomainAccountStub::ProcGetDomainAccountInfo(MessageParcel &data, MessageParcel &reply)
+{
+    std::shared_ptr<DomainAccountInfo> info(data.ReadParcelable<DomainAccountInfo>());
+    if (info == nullptr) {
+        ACCOUNT_LOGE("failed to read domain account info");
+        return ERR_ACCOUNT_COMMON_READ_PARCEL_ERROR;
+    }
+    auto callback = iface_cast<IDomainAccountCallback>(data.ReadRemoteObject());
+    if (callback == nullptr) {
+        ACCOUNT_LOGE("failed to read domain callback");
+        return ERR_ACCOUNT_COMMON_READ_PARCEL_ERROR;
+    }
+    ErrCode result = GetDomainAccountInfo(*info, callback);
+    if (!reply.WriteInt32(result)) {
+        ACCOUNT_LOGE("failed to write reply, result %{public}d.", result);
         return IPC_STUB_WRITE_PARCEL_ERR;
     }
     return ERR_NONE;
@@ -380,27 +415,30 @@ ErrCode DomainAccountStub::CheckPermission(DomainAccountInterfaceCode code, int3
         case DomainAccountInterfaceCode::UNREGISTER_PLUGIN:
         case DomainAccountInterfaceCode::DOMAIN_HAS_DOMAIN_ACCOUNT:
         case DomainAccountInterfaceCode::DOMAIN_UPDATE_ACCOUNT_TOKEN:
-            permissionName = AccountPermissionManager::MANAGE_LOCAL_ACCOUNTS;
+            permissionName = MANAGE_LOCAL_ACCOUNTS;
             break;
         case DomainAccountInterfaceCode::DOMAIN_ACCOUNT_STATUS_ENQUIRY:
         case DomainAccountInterfaceCode::DOMAIN_ACCOUNT_STATUS_LISTENER_REGISTER:
         case DomainAccountInterfaceCode::DOMAIN_ACCOUNT_STATUS_LISTENER_UNREGISTER:
         case DomainAccountInterfaceCode::DOMAIN_ACCOUNT_STATUS_LISTENER_UNREGISTER_BY_INFO:
         case DomainAccountInterfaceCode::DOMAIN_ACCOUNT_STATUS_LISTENER_REGISTER_BY_INFO:
-            permissionName = AccountPermissionManager::GET_LOCAL_ACCOUNTS;
+            permissionName = GET_LOCAL_ACCOUNTS;
             break;
         case DomainAccountInterfaceCode::DOMAIN_AUTH:
         case DomainAccountInterfaceCode::DOMAIN_AUTH_USER:
         case DomainAccountInterfaceCode::DOMAIN_AUTH_WITH_POPUP:
-            permissionName = AccountPermissionManager::ACCESS_USER_AUTH_INTERNAL;
+            permissionName = ACCESS_USER_AUTH_INTERNAL;
+            break;
+        case DomainAccountInterfaceCode::DOMAIN_GET_ACCOUNT_INFO:
+            permissionName = GET_DOMAIN_ACCOUNTS;
             break;
         default:
             break;
     }
     if (code == DomainAccountInterfaceCode::DOMAIN_GET_ACCESS_TOKEN) {
-        errCode = AccountPermissionManager::VerifyPermission(AccountPermissionManager::MANAGE_LOCAL_ACCOUNTS);
+        errCode = AccountPermissionManager::VerifyPermission(MANAGE_LOCAL_ACCOUNTS);
         if (errCode != ERR_OK) {
-            return AccountPermissionManager::VerifyPermission(AccountPermissionManager::GET_LOCAL_ACCOUNTS);
+            return AccountPermissionManager::VerifyPermission(GET_LOCAL_ACCOUNTS);
         }
         return ERR_OK;
     }

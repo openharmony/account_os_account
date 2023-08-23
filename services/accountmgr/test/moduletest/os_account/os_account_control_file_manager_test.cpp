@@ -31,7 +31,6 @@ using namespace AccountSA;
 
 namespace {
 const std::string STRING_TEST_NAME = "name";
-std::shared_ptr<OsAccountControlFileManager> g_osAccountControlFileManager = nullptr;
 }  // namespace
 
 class OsAccountControlFileManagerTest : public testing::Test {
@@ -43,9 +42,7 @@ public:
 };
 
 void OsAccountControlFileManagerTest::SetUpTestCase(void)
-{
-    g_osAccountControlFileManager = std::make_shared<OsAccountControlFileManager>();
-}
+{}
 
 void OsAccountControlFileManagerTest::TearDownTestCase(void)
 {}

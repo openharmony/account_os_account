@@ -30,10 +30,13 @@ using namespace AAFwk;
  * AbilityManagerAdapter is used to access ability manager services.
  */
 class AbilityManagerAdapter {
-public:
+private:
     AbilityManagerAdapter();
     virtual ~AbilityManagerAdapter();
-    static std::shared_ptr<AbilityManagerAdapter> GetInstance();
+    DISALLOW_COPY_AND_MOVE(AbilityManagerAdapter);
+
+public:
+    static AbilityManagerAdapter* GetInstance();
 
     /**
      * ConnectAbility, connect session with service ability.
@@ -95,8 +98,6 @@ private:
     sptr<IRemoteObject> GetAbilityManager();
     void ResetProxy(const wptr<IRemoteObject>& remote);
 
-    static std::mutex instanceMutex_;
-    static std::shared_ptr<AbilityManagerAdapter> instance_;
     std::mutex proxyMutex_;
     sptr<IRemoteObject> proxy_;
     sptr<IRemoteObject::DeathRecipient> deathRecipient_;

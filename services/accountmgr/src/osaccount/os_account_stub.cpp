@@ -17,12 +17,14 @@
 #include "account_permission_manager.h"
 #include "account_constants.h"
 #include "idomain_account_callback.h"
+#include "ipc_skeleton.h"
+#include "memory_guard.h"
 #ifdef HICOLLIE_ENABLE
 #include "xcollie/xcollie.h"
 #endif // HICOLLIE_ENABLE
 namespace OHOS {
 namespace AccountSA {
-const std::map<uint32_t, OsAccountStub::OsAccountMessageProc> OsAccountStub::messageProcMap_ = {
+const std::map<uint32_t, OsAccountStub::OsAccountMessageProc> messageProcMap = {
     {
         static_cast<uint32_t>(OsAccountInterfaceCode::CREATE_OS_ACCOUNT),
         {
@@ -323,13 +325,17 @@ const std::map<uint32_t, OsAccountStub::OsAccountMessageProc> OsAccountStub::mes
 };
 
 OsAccountStub::OsAccountStub()
-{}
+{
+    messageProcMap_ = messageProcMap;
+}
 
 OsAccountStub::~OsAccountStub()
 {}
 
 int OsAccountStub::OnRemoteRequest(uint32_t code, MessageParcel &data, MessageParcel &reply, MessageOption &option)
 {
+    ACCOUNT_LOGD("Received stub message: %{public}d, callingUid: %{public}d", code, IPCSkeleton::GetCallingUid());
+    MemoryGuard cacheGuard;
     if (data.ReadInterfaceToken() != GetDescriptor()) {
         ACCOUNT_LOGE("check descriptor failed! code %{public}u.", code);
         return ERR_ACCOUNT_COMMON_CHECK_DESCRIPTOR_ERROR;
@@ -508,7 +514,7 @@ ErrCode OsAccountStub::ProcSetOsAccountConstraints(MessageParcel &data, MessageP
     bool stringVectorReadSuccess = data.ReadStringVector(&constraints);
     if (!stringVectorReadSuccess) {
         ACCOUNT_LOGE("failed to read StringVector for constraints");
-        return ERR_OSACCOUNT_KIT_READ_STRING_VECTOR_CONSTRAINTS_ERROR;
+        return ERR_ACCOUNT_COMMON_READ_PARCEL_ERROR;
     }
     bool enable = data.ReadBool();
     ErrCode result = SetOsAccountConstraints(localId, constraints, enable);
@@ -1203,7 +1209,7 @@ ErrCode OsAccountStub::ProcSetGlobalOsAccountConstraints(MessageParcel &data, Me
     bool stringVectorReadSucess = data.ReadStringVector(&constraints);
     if (!stringVectorReadSucess) {
         ACCOUNT_LOGE("failed to read StringVector for constraints");
-        return ERR_OSACCOUNT_KIT_READ_STRING_VECTOR_CONSTRAINTS_ERROR;
+        return ERR_ACCOUNT_COMMON_READ_PARCEL_ERROR;
     }
     bool enable = data.ReadBool();
     int enforcerId = data.ReadInt32();
@@ -1257,7 +1263,7 @@ ErrCode OsAccountStub::ProcSetSpecificOsAccountConstraints(MessageParcel &data, 
     bool stringVectorReadSucess = data.ReadStringVector(&constraints);
     if (!stringVectorReadSucess) {
         ACCOUNT_LOGE("failed to read StringVector for constraints");
-        return ERR_OSACCOUNT_KIT_READ_STRING_VECTOR_CONSTRAINTS_ERROR;
+        return ERR_ACCOUNT_COMMON_READ_PARCEL_ERROR;
     }
     bool enable = data.ReadBool();
     int targetId = data.ReadInt32();

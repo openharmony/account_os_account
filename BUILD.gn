@@ -13,6 +13,7 @@
 
 import("//build/ohos.gni")
 import("os_account.gni")
+import("services/accountmgr/os_account_service.gni")
 
 group("account_build_unittest") {
   testonly = true
@@ -46,6 +47,7 @@ group("account_build_moduletest") {
     "${os_account_path}/frameworks/domain_account/test/moduletest:moduletest",
     "${os_account_path}/frameworks/ohosaccount/test:moduletest",
     "${os_account_path}/frameworks/osaccount/native/test/moduletest:moduletest",
+    "${os_account_path}/services/accountmgr/test/moduletest/common:moduletest",
     "${os_account_path}/services/accountmgr/test/moduletest/os_account:moduletest",
     "${os_account_path}/tools:moduletest",
   ]
