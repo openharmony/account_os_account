@@ -19,6 +19,7 @@
 #include <memory>
 #include <mutex>
 #include "ios_account_control.h"
+#include "os_account_constants.h"
 #ifdef HAS_KV_STORE_PART
 #include "os_account_database_operator.h"
 #endif
@@ -82,7 +83,8 @@ public:
     ErrCode GetDefaultActivatedOsAccount(int32_t &id) override;
 
 private:
-    ErrCode UpdateAccountList(const std::string& idStr, bool isAdd);
+    int GetNextLocalId(const std::vector<std::string> &accountIdList);
+    ErrCode UpdateAccountList(const std::string &idStr, bool isAdd);
     ErrCode GetAccountListFromFile(Json& accountListJson);
     ErrCode SaveAccountListToFile(const Json& accountListJson);
     ErrCode SaveAccountListToFileAndDataBase(const Json& accountListJson);
@@ -91,6 +93,7 @@ private:
     void BuildAndSaveBaseOAConstraintsJsonFile();
     void BuildAndSaveGlobalOAConstraintsJsonFile();
     void BuildAndSaveSpecificOAConstraintsJsonFile();
+    void GetNextLocalId(int &id, const std::vector<std::string> &accountIdList, const int nextLocalId);
     void GlobalConstraintsDataOperate(const std::string& idStr,
         const std::vector<std::string>& ConstraintStr, bool isAdd, Json &globalOAConstraintsJson);
     void SpecificConstraintsDataOperate(const std::string& idStr, const std::string& targetIdStr,
@@ -112,9 +115,11 @@ private:
 #ifdef HAS_KV_STORE_PART
     std::shared_ptr<OsAccountDatabaseOperator> osAccountDataBaseOperator_;
 #endif
+    std::int32_t nextLocalId_ = Constants::START_USER_ID;
     std::shared_ptr<OsAccountFileOperator> osAccountFileOperator_;
     std::shared_ptr<OsAccountPhotoOperator> osAccountPhotoOperator_;
     std::mutex accountListFileLock_;
+    std::mutex operatingIdMutex_;
     std::mutex baseOAConstraintsFileLock_;
     std::mutex globalOAConstraintsFileLock_;
     std::mutex specificOAConstraintsFileLock_;
