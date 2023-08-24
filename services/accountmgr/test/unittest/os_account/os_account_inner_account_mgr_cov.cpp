@@ -181,17 +181,17 @@ HWTEST_F(OsAccountInnerAccmgrCoverageTest, OsAccountInnerAccmgrCoverageTest005, 
 HWTEST_F(OsAccountInnerAccmgrCoverageTest, OsAccountInnerAccmgrCoverageTest007, TestSize.Level1)
 {
     bool ret = false;
-    innerMgrService_->AddLocalIdToOperating(TEST_USER_ID10);
-    ret = innerMgrService_->IsLocalIdInOperating(TEST_USER_ID10);
+    innerMgrService_->CheckAndAddLocalIdOperating(TEST_USER_ID10);
+    ret = innerMgrService_->CheckAndAddLocalIdOperating(TEST_USER_ID10);
+    EXPECT_EQ(ret, false);
+
+    innerMgrService_->RemoveLocalIdToOperating(TEST_USER_ID10);
+    ret = innerMgrService_->CheckAndAddLocalIdOperating(TEST_USER_ID10);
     EXPECT_EQ(ret, true);
 
     innerMgrService_->RemoveLocalIdToOperating(TEST_USER_ID10);
-    ret = innerMgrService_->IsLocalIdInOperating(TEST_USER_ID10);
-    EXPECT_EQ(ret, false);
-
-    innerMgrService_->RemoveLocalIdToOperating(TEST_USER_ID10);
-    ret = innerMgrService_->IsLocalIdInOperating(TEST_USER_ID10);
-    EXPECT_EQ(ret, false);
+    ret = innerMgrService_->CheckAndAddLocalIdOperating(TEST_USER_ID10);
+    EXPECT_EQ(ret, true);
 }
 
 /*

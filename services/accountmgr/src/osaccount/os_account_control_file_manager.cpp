@@ -26,6 +26,7 @@
 namespace OHOS {
 namespace AccountSA {
 const std::string DEFAULT_ACTIVATED_ACCOUNT_ID = "DefaultActivatedAccountID";
+const int32_t MAX_LOCAL_ID = 10736; // int32 max value reduce 200000 be divisible by 200000
 
 bool GetValidAccountID(const std::string& dirName, std::int32_t& accountID)
 {
@@ -91,6 +92,18 @@ void OsAccountControlFileManager::Init()
 #ifdef WITH_SELINUX
         Restorecon(Constants::SPECIFIC_OSACCOUNT_CONSTRAINTS_JSON_PATH.c_str());
 #endif // WITH_SELINUX
+    }
+    Json accountListJson;
+    ErrCode result = GetAccountListFromFile(accountListJson);
+    if (result != ERR_OK) {
+        return;
+    }
+    auto jsonEnd = accountListJson.end();
+    std::vector<std::string> accountIdList;
+    OHOS::AccountSA::GetDataByType<std::vector<std::string>>(
+        accountListJson, jsonEnd, Constants::ACCOUNT_LIST, accountIdList, OHOS::AccountSA::JsonType::ARRAY);
+    if (!accountIdList.empty()) {
+        nextLocalId_ = atoi(accountIdList[accountIdList.size() - 1].c_str()) + 1;
     }
     ACCOUNT_LOGI("OsAccountControlFileManager Init end");
 }
@@ -731,6 +744,22 @@ ErrCode OsAccountControlFileManager::GetSerialNumber(int64_t &serialNumber)
     return ERR_OK;
 }
 
+int OsAccountControlFileManager::GetNextLocalId(const std::vector<std::string> &accountIdList)
+{
+    std::lock_guard<std::mutex> lock(operatingIdMutex_);
+    do {
+        if (nextLocalId_ > MAX_LOCAL_ID) {
+            nextLocalId_ = Constants::START_USER_ID;
+        }
+        if (std::find(accountIdList.begin(), accountIdList.end(), std::to_string(nextLocalId_)) ==
+            accountIdList.end()) {
+            break;
+        }
+        nextLocalId_++;
+    } while (true);
+    return nextLocalId_;
+}
+
 ErrCode OsAccountControlFileManager::GetAllowCreateId(int &id)
 {
     Json accountListJson;
@@ -739,26 +768,16 @@ ErrCode OsAccountControlFileManager::GetAllowCreateId(int &id)
         ACCOUNT_LOGE("GetAllowCreateId get accountList error");
         return result;
     }
-    int countCreatedNum = 0;
     auto jsonEnd = accountListJson.end();
-    OHOS::AccountSA::GetDataByType<int>(
-        accountListJson, jsonEnd, Constants::COUNT_ACCOUNT_NUM, countCreatedNum, OHOS::AccountSA::JsonType::NUMBER);
-    if (countCreatedNum >= Constants::MAX_USER_ID - Constants::START_USER_ID) {
-        ACCOUNT_LOGE("GetAllowCreateId cannot create more account error");
-        return ERR_OSACCOUNT_SERVICE_CONTROL_MAX_CAN_CREATE_ERROR;
-    }
     std::vector<std::string> accountIdList;
     OHOS::AccountSA::GetDataByType<std::vector<std::string>>(
         accountListJson, jsonEnd, Constants::ACCOUNT_LIST, accountIdList, OHOS::AccountSA::JsonType::ARRAY);
-    id = Constants::START_USER_ID + 1;
-    while (std::find(accountIdList.begin(), accountIdList.end(), std::to_string(id)) != accountIdList.end() &&
-           id != Constants::MAX_USER_ID + 1) {
-        id++;
+    if (accountIdList.size() >= Constants::MAX_USER_ID) {
+        ACCOUNT_LOGE("GetAllowCreateId cannot create more account error");
+        return ERR_OSACCOUNT_SERVICE_CONTROL_MAX_CAN_CREATE_ERROR;
     }
-    if (id == Constants::MAX_USER_ID + 1) {
-        id = -1;
-        return ERR_OSACCOUNT_SERVICE_CONTROL_SELECT_CAN_USE_ID_ERROR;
-    }
+    id = GetNextLocalId(accountIdList);
+    nextLocalId_++;
     return ERR_OK;
 }
 

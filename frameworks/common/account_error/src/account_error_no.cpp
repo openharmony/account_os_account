@@ -96,6 +96,8 @@ int32_t OsAccountConvertToJSErrCode(int32_t errCode)
             return ERR_JS_LISTENER_NOT_REGISTERED;
         case ERR_ACCOUNT_COMMON_PERMISSION_DENIED:
             return ERR_JS_PERMISSION_DENIED;
+        case ERR_OSACCOUNT_SERVICE_INNER_ACCOUNT_OPERATING_ERROR:
+            return ERR_JS_ACCOUNT_SERVICE_BUSY;
         default:
             return ERR_JS_SYSTEM_SERVICE_EXCEPTION;
     }
