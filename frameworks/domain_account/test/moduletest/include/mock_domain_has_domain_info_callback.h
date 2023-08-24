@@ -38,6 +38,21 @@ private:
     std::shared_ptr<MockDomainHasDomainInfoCallback> callback_;
     bool hasDomainInfo_ = false;
 };
+
+class MockGetDomainAccountInfoCallback {
+public:
+    MOCK_METHOD2(OnResult, void(const int32_t errCode, Parcel &parcel));
+};
+
+class TestGetDomainAccountInfoCallback : public DomainAccountCallback {
+public:
+    TestGetDomainAccountInfoCallback(const std::shared_ptr<MockGetDomainAccountInfoCallback> &callback);
+    virtual ~TestGetDomainAccountInfoCallback();
+    void OnResult(const int32_t errCode, Parcel &parcel) override;
+
+private:
+    std::shared_ptr<MockGetDomainAccountInfoCallback> callback_;
+};
 }  // AccountSA
 }  // OHOS
 #endif  // OS_ACCOUNT_FRAMEWORKS_DOMAIN_ACCOUNT_TEST_INCLUDE_MOCK_DOMAIN_HAS_DOMAIN_INFO_CALLBACK_H
