@@ -109,7 +109,8 @@ static void InitRequestCallback(
         callback->OnResult(businessError, parameters);
     };
     AuthorizationExtensionOnRequestRedirectedCallbackFunc onRequestRedirectedFunc;
-    request.callback = new (std::nothrow) AppAccountAuthorizationExtensionCallbackService(onResultFunc, onRequestRedirectedFunc);
+    request.callback = new (std::nothrow) AppAccountAuthorizationExtensionCallbackService(
+        onResultFunc, onRequestRedirectedFunc);
     EXPECT_NE(request.callback, nullptr);
 }
 
