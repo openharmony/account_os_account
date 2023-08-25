@@ -18,6 +18,7 @@
 #include <dirent.h>
 #include <dlfcn.h>
 #include <iomanip>
+#include <sstream>
 #include <mbedtls/aes.h>
 #include <mbedtls/cipher.h>
 #include <mbedtls/pkcs5.h>
@@ -38,6 +39,7 @@
 #endif // HAS_CES_PART
 #include "hisysevent_adapter.h"
 #include "ipc_skeleton.h"
+#include "mbedtls/sha256.h"
 #include "system_ability_definition.h"
 #include "tokenid_kit.h"
 
@@ -55,6 +57,7 @@ constexpr std::int32_t MAX_RETRY_TIMES = 2; // give another chance when json fil
 constexpr std::uint32_t MAX_NAME_LENGTH = 256;
 constexpr std::uint32_t MAX_UID_LENGTH = 512;
 constexpr std::uint32_t HASH_LENGTH = 32;
+constexpr std::uint32_t WIDTH_FOR_HEX = 2;
 constexpr std::uint32_t OHOS_ACCOUNT_UDID_LENGTH = HASH_LENGTH * 2;
 const std::string KEY_ACCOUNT_EVENT_LOGIN = "LOGIN";
 const std::string KEY_ACCOUNT_EVENT_LOGOUT = "LOGOUT";
@@ -88,6 +91,27 @@ bool GetCallerBundleName(std::string &bundleName)
     return true;
 }
 
+std::string ReturnOhosUdidWithSha256(const std::string &uid)
+{
+    unsigned char hash[HASH_LENGTH] = {0};
+    mbedtls_sha256_context context;
+    mbedtls_sha256_init(&context);
+    mbedtls_sha256_starts(&context, 0);
+
+    std::string plainStr = uid;
+    mbedtls_sha256_update(&context, reinterpret_cast<const unsigned char *>(plainStr.c_str()), plainStr.length());
+    mbedtls_sha256_finish(&context, hash);
+    mbedtls_sha256_free(&context);
+
+    std::stringstream ss;
+    for (std::uint32_t i = 0; i < HASH_LENGTH; ++i) {
+        ss << std::hex << std::uppercase << std::setw(WIDTH_FOR_HEX) << std::setfill('0') << std::uint16_t(hash[i]);
+    }
+    std::string ohosUidStr;
+    ss >> ohosUidStr;
+    return ohosUidStr;
+}
+
 std::string GenerateOhosUdidWithSha256(const std::string &name, const std::string &uid)
 {
     if (name.empty() || name.length() > MAX_NAME_LENGTH) {
@@ -104,6 +128,9 @@ std::string GenerateOhosUdidWithSha256(const std::string &name, const std::strin
     if (!GetCallerBundleName(bundleName)) {
         ACCOUNT_LOGE("GetCallerBundleName failed");
         return std::string("");
+    }
+    if (bundleName.empty()) {
+        return ReturnOhosUdidWithSha256(uid);
     }
     unsigned char newId[OUTPUT_LENGTH_IN_BYTES + 1] = {};
     mbedtls_md_context_t md_context;
