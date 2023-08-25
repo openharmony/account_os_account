@@ -196,5 +196,35 @@ sptr<IRemoteObject> OhosAccountKitsImpl::GetDomainAccountService()
     }
     return accountProxy->GetDomainAccountService();
 }
+
+sptr<IRemoteObject> OhosAccountKitsImpl::GetOsAccountService()
+{
+    auto accountProxy = GetService();
+    if (accountProxy == nullptr) {
+        ACCOUNT_LOGE("Get proxy failed");
+        return nullptr;
+    }
+    return accountProxy->GetOsAccountService();
+}
+
+sptr<IRemoteObject> OhosAccountKitsImpl::GetAppAccountService()
+{
+    auto accountProxy = GetService();
+    if (accountProxy == nullptr) {
+        ACCOUNT_LOGE("Get proxy failed");
+        return nullptr;
+    }
+    return accountProxy->GetAppAccountService();
+}
+
+sptr<IRemoteObject> OhosAccountKitsImpl::GetAccountIAMService()
+{
+    auto accountProxy = GetService();
+    if (accountProxy == nullptr) {
+        ACCOUNT_LOGE("Get proxy failed");
+        return nullptr;
+    }
+    return accountProxy->GetAccountIAMService();
+}
 } // namespace AccountSA
 } // namespace OHOS

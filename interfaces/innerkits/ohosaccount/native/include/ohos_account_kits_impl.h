@@ -39,7 +39,10 @@ public:
     std::pair<bool, OhosAccountInfo> QueryOhosAccountInfoByUserId(std::int32_t userId) final;
     ErrCode QueryDeviceAccountId(std::int32_t& accountId) final;
     std::int32_t GetDeviceAccountIdByUID(std::int32_t& uid) final;
+    sptr<IRemoteObject> GetOsAccountService();
     sptr<IRemoteObject> GetDomainAccountService();
+    sptr<IRemoteObject> GetAppAccountService();
+    sptr<IRemoteObject> GetAccountIAMService();
 
 private:
     OhosAccountKitsImpl() = default;
