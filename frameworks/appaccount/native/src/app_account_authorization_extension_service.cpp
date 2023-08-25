@@ -21,38 +21,25 @@
 namespace OHOS {
 namespace AccountSA {
 AppAccountAuthorizationExtensionService::AppAccountAuthorizationExtensionService(
-    const std::shared_ptr<AccountJsKit::JsAuthorizationExtension> &extension)
-    : innerExtension_(extension)
+    const AuthorizationExtensionServiceFunc &func)
+    : func_(func)
 {}
 
 AppAccountAuthorizationExtensionService::~AppAccountAuthorizationExtensionService()
 {}
 
-ErrCode AppAccountAuthorizationExtensionService::CheckAndInitExecEnv(
-    const sptr<IAppAccountAuthorizationExtensionCallback> &callback,
-    AppAccountAuthorizationExtensionCallbackClient **callbackClient)
-{
-    if (innerExtension_ == nullptr) {
-        ACCOUNT_LOGE("innerExtension_ is nullptr");
-        return ERR_ACCOUNT_COMMON_NULL_PTR_ERROR;
-    }
-    *callbackClient = new (std::nothrow) AppAccountAuthorizationExtensionCallbackClient(callback);
-    if (*callbackClient == nullptr) {
-        ACCOUNT_LOGE("failed to create app account authorization extension callback client");
-        return ERR_ACCOUNT_COMMON_INSUFFICIENT_MEMORY_ERROR;
-    }
-    return ERR_OK;
-}
-
 ErrCode AppAccountAuthorizationExtensionService::StartAuthorization(const AuthorizationRequest &request)
 {
-    AppAccountAuthorizationExtensionCallbackClient *callbackClient = nullptr;
-    ErrCode errCode = CheckAndInitExecEnv(request.callback, &callbackClient);
-    if (errCode != ERR_OK) {
-        return errCode;
+    if (func_ == nullptr) {
+        ACCOUNT_LOGE("func_ is nullptr");
+        return ERR_ACCOUNT_COMMON_NULL_PTR_ERROR;
     }
-    std::shared_ptr<AppAccountAuthorizationExtensionCallbackClient> callbackPtr(callbackClient);
-    innerExtension_->StartAuthorization(request, callbackPtr, innerExtension_);
+    if (request.callback == nullptr) {
+        ACCOUNT_LOGE("callback is nullptr");
+        return ERR_ACCOUNT_COMMON_NULL_PTR_ERROR;
+    }
+    auto callback = std::make_shared<AppAccountAuthorizationExtensionCallbackClient>(request.callback);
+    func_(request, callback);
     return ERR_OK;
 }
 }  // namespace AccountSA

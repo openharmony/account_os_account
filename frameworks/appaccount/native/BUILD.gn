@@ -46,6 +46,7 @@ config("app_account_innerkits_public_config") {
     "${os_account_path}/interfaces/innerkits/appaccount/native/include",
     "${account_napi_common_path}/include",
     "${app_account_kits_path}/include",
+    "${os_account_path}/frameworks/common/include",
     "include",
   ]
 }
@@ -53,10 +54,6 @@ config("app_account_innerkits_public_config") {
 ohos_shared_library("app_account_innerkits") {
   sources = [
     "${ability_runtime_path}/frameworks/native/ability/native/ability_business_error/ability_business_error.cpp",
-    "${app_account_extension_path}/src/authorization_extension.cpp",
-    "${app_account_extension_path}/src/authorization_extension_context.cpp",
-    "${app_account_kits_path}/src/napi_app_account_authorization_extension.cpp",
-    "${os_account_path}/interfaces/kits/napi/appaccount/src/napi_app_account_authorization_extension_context.cpp",
     "src/app_account.cpp",
     "src/app_account_authenticator_callback_proxy.cpp",
     "src/app_account_authenticator_callback_stub.cpp",
