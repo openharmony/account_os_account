@@ -283,7 +283,7 @@ private:
     private:
         DISALLOW_COPY_AND_MOVE(AccountIAMDeathRecipient);
     };
-    ErrCode GetAccountIAMProxy();
+    sptr<IAccountIAM> GetAccountIAMProxy();
     void ResetAccountIAMProxy(const wptr<IRemoteObject>& remote);
     bool GetCurrentUserId(int32_t &userId);
     uint64_t StartDomainAuth(int32_t userId, const std::shared_ptr<IDMCallback> &callback);

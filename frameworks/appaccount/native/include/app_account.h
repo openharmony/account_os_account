@@ -116,14 +116,14 @@ private:
     ErrCode CheckTokenVisibilityParam(
         const std::string &name, const std::string &authType, const std::string &bundleName);
 
-    ErrCode GetAppAccountProxy();
+    sptr<IAppAccount> GetAppAccountProxy();
     ErrCode CreateAppAccountEventListener(
         const std::shared_ptr<AppAccountSubscriber> &subscriber, sptr<IRemoteObject> &appAccountEventListener);
 
 private:
     std::mutex mutex_;
     std::mutex eventListenersMutex_;
-    sptr<IAppAccount> appAccountProxy_;
+    sptr<IAppAccount> proxy_;
     std::map<std::shared_ptr<AppAccountSubscriber>, sptr<AppAccountEventListener>> eventListeners_;
     sptr<IRemoteObject::DeathRecipient> deathRecipient_;
 };

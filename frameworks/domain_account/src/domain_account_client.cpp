@@ -368,7 +368,7 @@ sptr<IDomainAccount> DomainAccountClient::GetDomainAccountProxy()
         return nullptr;
     }
     if (!object->AddDeathRecipient(deathRecipient_)) {
-        ACCOUNT_LOGE("failed to add app account death recipient");
+        ACCOUNT_LOGE("failed to add domain account death recipient");
         deathRecipient_ = nullptr;
         return nullptr;
     }
