@@ -40,7 +40,7 @@
         "OHOS::AccountSA::AppAccountInfo::AppAccountInfo()";
         "OHOS::AccountSA::AuthorizationRequest::AuthorizationRequest()";
         "OHOS::AbilityRuntime::JsAuthorizationExtension::StartAuthorizationWork(uv_work_s*, int)";
-        "OHOS::AccountSA::AppAccountAuthorizationExtensionService::AppAccountAuthorizationExtensionService(std::__h::shared_ptr<OHOS::AccountJsKit::JsAuthorizationExtension> const&)";
+        "OHOS::AccountSA::AppAccountAuthorizationExtensionService::AppAccountAuthorizationExtensionService(std::__h::function<void (OHOS::AccountSA::AuthorizationRequest const&, std::__h::shared_ptr<OHOS::AccountSA::AppAccountAuthorizationExtensionCallbackClient> const&)> const&)";
         "OHOS::AccountSA::AppAccountAuthorizationExtensionCallbackProxy::AppAccountAuthorizationExtensionCallbackProxy(OHOS::sptr<OHOS::IRemoteObject> const&)";
         "OHOS::AccountSA::AppAccountInfo::GetName(std::__h::basic_string<char, std::__h::char_traits<char>, std::__h::allocator<char>>&) const";
         "OHOS::AccountSA::AppAccountInfo::GetOwner(std::__h::basic_string<char, std::__h::char_traits<char>, std::__h::allocator<char>>&)";
