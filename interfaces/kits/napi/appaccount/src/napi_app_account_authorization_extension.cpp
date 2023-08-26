@@ -468,8 +468,13 @@ sptr<IRemoteObject> JsAuthorizationExtension::OnConnect(const OHOS::AAFwk::Want&
     if (providerRemoteObject_ == nullptr) {
         std::shared_ptr<JsAuthorizationExtension> authorizationExtension =
             std::static_pointer_cast<JsAuthorizationExtension>(shared_from_this());
+        AuthorizationExtensionServiceFunc func = [authorizationExtension] (
+            const AccountSA::AuthorizationRequest &request,
+            const std::shared_ptr<AccountSA::AppAccountAuthorizationExtensionCallbackClient> &callbackPtr) {
+            authorizationExtension->StartAuthorization(request, callbackPtr, authorizationExtension);
+        };
         sptr<AppAccountAuthorizationExtensionService> providerService =
-            new (std::nothrow) AppAccountAuthorizationExtensionService(authorizationExtension);
+            new (std::nothrow) AppAccountAuthorizationExtensionService(func);
         if (providerService == nullptr) {
             ACCOUNT_LOGE("providerService is nullptr");
             return nullptr;
