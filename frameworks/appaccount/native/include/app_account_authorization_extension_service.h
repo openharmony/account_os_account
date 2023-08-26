@@ -21,22 +21,21 @@
 #include "app_account_common.h"
 #include "app_account_authorization_extension_callback_client.h"
 #include "app_account_authorization_extension_stub.h"
-#include "napi_app_account_authorization_extension.h"
 #include "want.h"
 
 namespace OHOS {
 namespace AccountSA {
+using AuthorizationExtensionServiceFunc = std::function<void(const AccountSA::AuthorizationRequest &,
+    const std::shared_ptr<AccountSA::AppAccountAuthorizationExtensionCallbackClient> &)>;
+
 class AppAccountAuthorizationExtensionService : public AppAccountAuthorizationExtensionStub {
 public:
-    explicit AppAccountAuthorizationExtensionService(
-        const std::shared_ptr<AccountJsKit::JsAuthorizationExtension> &extension);
+    AppAccountAuthorizationExtensionService(const AuthorizationExtensionServiceFunc &func);
     ~AppAccountAuthorizationExtensionService() override;
     ErrCode StartAuthorization(const AuthorizationRequest &request) override;
 
 private:
-    ErrCode CheckAndInitExecEnv(const sptr<IAppAccountAuthorizationExtensionCallback> &callback,
-        AppAccountAuthorizationExtensionCallbackClient **callbackClient);
-    std::shared_ptr<AccountJsKit::JsAuthorizationExtension> innerExtension_;
+    AuthorizationExtensionServiceFunc func_;
     DISALLOW_COPY_AND_MOVE(AppAccountAuthorizationExtensionService);
 };
 }  // namespace AccountSA
