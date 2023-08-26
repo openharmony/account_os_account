@@ -272,6 +272,7 @@ static bool ParseParamForGetAccessToken(
 
 static napi_value GetDomainAccountInfoCallback(napi_env env, napi_callback_info cbInfo)
 {
+    ACCOUNT_LOGI("GetDomainAccountInfoCallback enter");
     JsDomainPluginParam *param = nullptr;
     BusinessError error;
     napi_value businessData = nullptr;
@@ -341,6 +342,7 @@ static void GetDomainAccountInfoWork(uv_work_t *work, int status)
 
 static napi_value OnAccountBoundCallback(napi_env env, napi_callback_info cbInfo)
 {
+    ACCOUNT_LOGI("OnAccountBoundCallback enter");
     JsDomainPluginParam *param = nullptr;
     BusinessError error;
     napi_value businessData = nullptr;
@@ -408,6 +410,7 @@ static void OnAccountUnBoundWork(uv_work_t *work, int status)
 
 static napi_value GetAuthStatusInfoCallback(napi_env env, napi_callback_info cbInfo)
 {
+    ACCOUNT_LOGI("GetAuthStatusInfoCallback enter");
     JsDomainPluginParam *param = nullptr;
     BusinessError error;
     napi_value businessData = nullptr;
@@ -433,6 +436,7 @@ static napi_value GetAuthStatusInfoCallback(napi_env env, napi_callback_info cbI
 
 static napi_value GetAccessTokenCallback(napi_env env, napi_callback_info cbInfo)
 {
+    ACCOUNT_LOGI("GetAccessTokenCallback enter");
     JsDomainPluginParam *param = nullptr;
     BusinessError error;
     napi_value businessData = nullptr;
@@ -458,6 +462,7 @@ static napi_value GetAccessTokenCallback(napi_env env, napi_callback_info cbInfo
 
 static napi_value IsUserTokenValidCallback(napi_env env, napi_callback_info cbInfo)
 {
+    ACCOUNT_LOGI("IsUserTokenValidCallback enter");
     JsDomainPluginParam *param = nullptr;
     BusinessError error;
     napi_value businessData = nullptr;
