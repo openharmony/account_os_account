@@ -94,8 +94,8 @@ void AccountMgrInnerSdkFuncTest::SetUpTestCase(void)
     ASSERT_NE(OhosAccountKitsImpl::GetInstance().accountProxy_, nullptr);
     auto osAccountService = new (std::nothrow) OsAccountManagerService();
     ASSERT_NE(osAccountService, nullptr);
-    OsAccount::GetInstance().osAccountProxy_ = new (std::nothrow) OsAccountProxy(osAccountService->AsObject());
-    ASSERT_NE(OsAccount::GetInstance().osAccountProxy_, nullptr);
+    OsAccount::GetInstance().proxy_ = new (std::nothrow) OsAccountProxy(osAccountService->AsObject());
+    ASSERT_NE(OsAccount::GetInstance().proxy_, nullptr);
 #endif
 }
 
