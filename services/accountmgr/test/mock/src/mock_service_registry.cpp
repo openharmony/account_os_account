@@ -138,6 +138,12 @@ int32_t SystemAbilityManagerProxy::AddSystemProcess(
     return ERR_INVALID_VALUE;
 }
 
+int32_t SystemAbilityManagerProxy::GetSystemProcessInfo(
+    int32_t systemAbilityId, SystemProcessInfo& systemProcessInfo)
+{
+    return ERR_INVALID_VALUE;
+}
+
 int32_t SystemAbilityManagerProxy::GetRunningSystemProcess(std::list<SystemProcessInfo>& systemProcessInfos)
 {
     return ERR_INVALID_VALUE;
