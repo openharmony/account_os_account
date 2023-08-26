@@ -267,13 +267,17 @@ napi_value QueryCurrentOsAccount(napi_env env, napi_callback_info cbInfo);
 
 napi_value QueryCurrentOsAccountInner(napi_env env, napi_callback_info cbInfo, bool throwErr);
 
-napi_value QueryOsAccountLocalIdFromUid(napi_env env, napi_callback_info cbInfo);
-
 napi_value GetOsAccountLocalIdFromUid(napi_env env, napi_callback_info cbInfo);
+
+napi_value GetOsAccountLocalIdForUid(napi_env env, napi_callback_info cbInfo);
+
+napi_value GetOsAccountLocalIdForUidSync(napi_env env, napi_callback_info cbInfo);
 
 napi_value GetOsAccountLocalIdFromUidInner(napi_env env, napi_callback_info cbInfo, bool throwErr);
 
 napi_value GetBundleIdFromUid(napi_env env, napi_callback_info cbInfo);
+
+napi_value GetBundleIdForUidSync(napi_env env, napi_callback_info cbInfo);
 
 napi_value GetOsAccountLocalIdFromDomain(napi_env env, napi_callback_info cbInfo);
 
