@@ -667,7 +667,7 @@ void NapiExecuteRequestCallback::OnReceive(const AAFwk::WantParams &receive)
 
 void NapiExecuteRequestCallback::OnError(int32_t code, const std::string &name, const std::string &message)
 {
-    ACCOUNT_LOGI("OnError enter");
+    ACCOUNT_LOGI("OnError enter, name is %{public}s, message is %{public}s", name.c_str(), message.c_str());
     uv_loop_s *loop = nullptr;
     uv_work_t *work = nullptr;
     JsAbilityResult *asyncContext = nullptr;
