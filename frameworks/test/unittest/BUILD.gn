@@ -50,10 +50,8 @@ ohos_unittest("account_proxy_mock_test") {
     "${os_account_core_path}/src/os_account_event_stub.cpp",
     "${os_account_innerkits_native_path}/src/os_account_manager.cpp",
     "${os_account_innerkits_native_path}/src/os_account_subscriber.cpp",
-    "account_appaccount_proxy_mock_test.cpp",
     "account_iam_proxy_mock_test.cpp",
     "account_ohosaccount_proxy_mock_test.cpp",
-    "account_osaccount_proxy_mock_test.cpp",
     "mock/iservice_registry.cpp",
   ]
 
