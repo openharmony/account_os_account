@@ -22,10 +22,9 @@
 #include "account_proxy.h"
 #include "account_permission_manager.h"
 #include "ipc_skeleton.h"
-#include "iservice_registry.h"
+#include "ohos_account_kits_impl.h"
 #include "os_account_manager.h"
 #include "pinauth_register.h"
-#include "system_ability_definition.h"
 
 namespace OHOS {
 namespace AccountSA {
@@ -43,18 +42,20 @@ AccountIAMClient &AccountIAMClient::GetInstance()
 
 int32_t AccountIAMClient::OpenSession(int32_t userId, std::vector<uint8_t> &challenge)
 {
-    if (GetAccountIAMProxy() != ERR_OK) {
+    auto proxy = GetAccountIAMProxy();
+    if (proxy == nullptr) {
         return ERR_ACCOUNT_COMMON_GET_PROXY;
     }
-    return proxy_->OpenSession(userId, challenge);
+    return proxy->OpenSession(userId, challenge);
 }
 
 int32_t AccountIAMClient::CloseSession(int32_t userId)
 {
-    if (GetAccountIAMProxy() != ERR_OK) {
+    auto proxy = GetAccountIAMProxy();
+    if (proxy == nullptr) {
         return ERR_ACCOUNT_COMMON_GET_PROXY;
     }
-    return proxy_->CloseSession(userId);
+    return proxy->CloseSession(userId);
 }
 
 void AccountIAMClient::AddCredential(
@@ -65,7 +66,8 @@ void AccountIAMClient::AddCredential(
         return;
     }
     Attributes emptyResult;
-    if (GetAccountIAMProxy() != ERR_OK) {
+    auto proxy = GetAccountIAMProxy();
+    if (proxy == nullptr) {
         callback->OnResult(ERR_ACCOUNT_COMMON_GET_PROXY, emptyResult);
         return;
     }
@@ -78,7 +80,7 @@ void AccountIAMClient::AddCredential(
         SetAuthSubType(userId, static_cast<int32_t>(credInfo.pinType.value_or(PinSubType::PIN_MAX)));
     }
     sptr<IIDMCallback> wrapper = new (std::nothrow) IDMCallbackService(userId, callback);
-    proxy_->AddCredential(userId, credInfo, wrapper);
+    proxy->AddCredential(userId, credInfo, wrapper);
 }
 
 void AccountIAMClient::UpdateCredential(
@@ -89,7 +91,8 @@ void AccountIAMClient::UpdateCredential(
         return;
     }
     Attributes emptyResult;
-    if (GetAccountIAMProxy() != ERR_OK) {
+    auto proxy = GetAccountIAMProxy();
+    if (proxy == nullptr) {
         callback->OnResult(ERR_ACCOUNT_COMMON_GET_PROXY, emptyResult);
         return;
     }
@@ -102,7 +105,7 @@ void AccountIAMClient::UpdateCredential(
         SetAuthSubType(userId, static_cast<int32_t>(credInfo.pinType.value_or(PinSubType::PIN_MAX)));
     }
     sptr<IIDMCallback> wrapper = new (std::nothrow) IDMCallbackService(userId, callback);
-    proxy_->UpdateCredential(userId, credInfo, wrapper);
+    proxy->UpdateCredential(userId, credInfo, wrapper);
 }
 
 void AccountIAMClient::DelCred(int32_t userId, uint64_t credentialId, const std::vector<uint8_t> &authToken,
@@ -113,7 +116,8 @@ void AccountIAMClient::DelCred(int32_t userId, uint64_t credentialId, const std:
         return;
     }
     Attributes emptyResult;
-    if (GetAccountIAMProxy() != ERR_OK) {
+    auto proxy = GetAccountIAMProxy();
+    if (proxy == nullptr) {
         callback->OnResult(ERR_ACCOUNT_COMMON_GET_PROXY, emptyResult);
         return;
     }
@@ -122,7 +126,7 @@ void AccountIAMClient::DelCred(int32_t userId, uint64_t credentialId, const std:
         return;
     }
     sptr<IIDMCallback> wrapper = new (std::nothrow) IDMCallbackService(userId, callback);
-    proxy_->DelCred(userId, credentialId, authToken, wrapper);
+    proxy->DelCred(userId, credentialId, authToken, wrapper);
 }
 
 void AccountIAMClient::DelUser(
@@ -133,7 +137,8 @@ void AccountIAMClient::DelUser(
         return;
     }
     Attributes emptyResult;
-    if (GetAccountIAMProxy() != ERR_OK) {
+    auto proxy = GetAccountIAMProxy();
+    if (proxy == nullptr) {
         callback->OnResult(ERR_ACCOUNT_COMMON_GET_PROXY, emptyResult);
         return;
     }
@@ -142,17 +147,18 @@ void AccountIAMClient::DelUser(
         return;
     }
     sptr<IIDMCallback> wrapper = new (std::nothrow) IDMCallbackService(userId, callback);
-    proxy_->DelUser(userId, authToken, wrapper);
+    proxy->DelUser(userId, authToken, wrapper);
 }
 
 int32_t AccountIAMClient::GetCredentialInfo(
     int32_t userId, AuthType authType, const std::shared_ptr<GetCredInfoCallback> &callback)
 {
-    if (GetAccountIAMProxy() != ERR_OK) {
+    auto proxy = GetAccountIAMProxy();
+    if (proxy == nullptr) {
         return ERR_ACCOUNT_COMMON_GET_PROXY;
     }
     sptr<IGetCredInfoCallback> wrapper = new (std::nothrow) GetCredInfoCallbackService(callback);
-    ErrCode result = proxy_->GetCredentialInfo(userId, authType, wrapper);
+    ErrCode result = proxy->GetCredentialInfo(userId, authType, wrapper);
     if ((result != ERR_OK) && (callback != nullptr)) {
         std::vector<CredentialInfo> infoList;
         callback->OnCredentialInfo(result, infoList);
@@ -162,10 +168,11 @@ int32_t AccountIAMClient::GetCredentialInfo(
 
 int32_t AccountIAMClient::Cancel(int32_t userId)
 {
-    if (GetAccountIAMProxy() != ERR_OK) {
+    auto proxy = GetAccountIAMProxy();
+    if (proxy == nullptr) {
         return ERR_ACCOUNT_COMMON_GET_PROXY;
     }
-    return proxy_->Cancel(userId);
+    return proxy->Cancel(userId);
 }
 
 uint64_t AccountIAMClient::StartDomainAuth(int32_t userId, const std::shared_ptr<IDMCallback> &callback)
@@ -202,7 +209,8 @@ uint64_t AccountIAMClient::AuthUser(
         ACCOUNT_LOGE("callback is nullptr");
         return contextId;
     }
-    if (GetAccountIAMProxy() != ERR_OK) {
+    auto proxy = GetAccountIAMProxy();
+    if (proxy == nullptr) {
         return contextId;
     }
     if ((userId == 0) && (!GetCurrentUserId(userId))) {
@@ -216,7 +224,7 @@ uint64_t AccountIAMClient::AuthUser(
     authParam.challenge = challenge;
     authParam.authType = authType;
     authParam.authTrustLevel = authTrustLevel;
-    ErrCode result = proxy_->AuthUser(userId, authParam, wrapper, contextId);
+    ErrCode result = proxy->AuthUser(userId, authParam, wrapper, contextId);
     if (result != ERR_OK) {
         Attributes emptyResult;
         callback->OnResult(result, emptyResult);
@@ -226,15 +234,17 @@ uint64_t AccountIAMClient::AuthUser(
 
 int32_t AccountIAMClient::CancelAuth(uint64_t contextId)
 {
-    if (GetAccountIAMProxy() != ERR_OK) {
+    auto proxy = GetAccountIAMProxy();
+    if (proxy == nullptr) {
         return ERR_ACCOUNT_COMMON_GET_PROXY;
     }
-    return proxy_->CancelAuth(contextId);
+    return proxy->CancelAuth(contextId);
 }
 
 int32_t AccountIAMClient::GetAvailableStatus(AuthType authType, AuthTrustLevel authTrustLevel, int32_t &status)
 {
-    if (GetAccountIAMProxy() != ERR_OK) {
+    auto proxy = GetAccountIAMProxy();
+    if (proxy == nullptr) {
         return ERR_ACCOUNT_COMMON_GET_PROXY;
     }
     if (authTrustLevel < UserIam::UserAuth::ATL1 || authTrustLevel > UserIam::UserAuth::ATL4) {
@@ -245,7 +255,7 @@ int32_t AccountIAMClient::GetAvailableStatus(AuthType authType, AuthTrustLevel a
         ACCOUNT_LOGE("authType is not in correct range");
         return ERR_ACCOUNT_COMMON_INVALID_PARAMETER;
     }
-    return proxy_->GetAvailableStatus(authType, authTrustLevel, status);
+    return proxy->GetAvailableStatus(authType, authTrustLevel, status);
 }
 
 void AccountIAMClient::GetProperty(
@@ -256,12 +266,13 @@ void AccountIAMClient::GetProperty(
         return;
     }
     Attributes emptyResult;
-    if (GetAccountIAMProxy() != ERR_OK) {
+    auto proxy = GetAccountIAMProxy();
+    if (proxy == nullptr) {
         callback->OnResult(ERR_ACCOUNT_COMMON_GET_PROXY, emptyResult);
         return;
     }
     sptr<IGetSetPropCallback> wrapper = new (std::nothrow) GetSetPropCallbackService(callback);
-    proxy_->GetProperty(userId, request, wrapper);
+    proxy->GetProperty(userId, request, wrapper);
 }
 
 void AccountIAMClient::SetProperty(
@@ -272,12 +283,13 @@ void AccountIAMClient::SetProperty(
         return;
     }
     Attributes emptyResult;
-    if (GetAccountIAMProxy() != ERR_OK) {
+    auto proxy = GetAccountIAMProxy();
+    if (proxy == nullptr) {
         callback->OnResult(ERR_ACCOUNT_COMMON_GET_PROXY, emptyResult);
         return;
     }
     sptr<IGetSetPropCallback> wrapper = new (std::nothrow) GetSetPropCallbackService(callback);
-    proxy_->SetProperty(userId, request, wrapper);
+    proxy->SetProperty(userId, request, wrapper);
 }
 
 ErrCode AccountIAMClient::RegisterPINInputer(const std::shared_ptr<IInputer> &inputer)
@@ -397,10 +409,11 @@ ErrCode AccountIAMClient::UnregisterDomainInputer()
 
 IAMState AccountIAMClient::GetAccountState(int32_t userId)
 {
-    if (GetAccountIAMProxy() != ERR_OK) {
+    auto proxy = GetAccountIAMProxy();
+    if (proxy == nullptr) {
         return IDLE;
     }
-    return proxy_->GetAccountState(userId);
+    return proxy->GetAccountState(userId);
 }
 
 void AccountIAMClient::GetCredential(int32_t userId, CredentialItem &credItem)
@@ -488,45 +501,32 @@ void AccountIAMClient::AccountIAMDeathRecipient::OnRemoteDied(const wptr<IRemote
     AccountIAMClient::GetInstance().ResetAccountIAMProxy(remote);
 }
 
-ErrCode AccountIAMClient::GetAccountIAMProxy()
+sptr<IAccountIAM> AccountIAMClient::GetAccountIAMProxy()
 {
     std::lock_guard<std::mutex> lock(mutex_);
     if (proxy_ != nullptr) {
-        return ERR_OK;
+        return proxy_;
     }
-    sptr<ISystemAbilityManager> saMgr =
-        SystemAbilityManagerClient::GetInstance().GetSystemAbilityManager();
-    if (saMgr == nullptr) {
-        ACCOUNT_LOGE("failed to get system ability manager");
-        return ERR_ACCOUNT_COMMON_GET_SYSTEM_ABILITY_MANAGER;
-    }
-    sptr<IRemoteObject> remoteObject = saMgr->GetSystemAbility(SUBSYS_ACCOUNT_SYS_ABILITY_ID_BEGIN);
-    if (remoteObject == nullptr) {
-        ACCOUNT_LOGE("failed to get account system ability");
-        return ERR_ACCOUNT_COMMON_GET_SYSTEM_ABILITY;
-    }
-    sptr<IAccount> accountProxy = iface_cast<AccountProxy>(remoteObject);
-    if (accountProxy == nullptr) {
-        ACCOUNT_LOGE("failed to cast account proxy");
-        return ERR_ACCOUNT_COMMON_GET_PROXY;
-    }
-    proxy_ = iface_cast<IAccountIAM>(accountProxy->GetAccountIAMService());
-    if ((proxy_ == nullptr) || (proxy_->AsObject() == nullptr)) {
-        ACCOUNT_LOGE("failed to cast account iam proxy");
-        return ERR_ACCOUNT_COMMON_GET_PROXY;
+    sptr<IRemoteObject> object = OhosAccountKitsImpl::GetInstance().GetAccountIAMService();
+    if (object == nullptr) {
+        ACCOUNT_LOGE("failed to get account iam service");
+        return nullptr;
     }
     deathRecipient_ = new (std::nothrow) AccountIAMDeathRecipient();
     if (deathRecipient_ == nullptr) {
         ACCOUNT_LOGE("failed to create account iam death recipient");
-        proxy_ = nullptr;
-        return ERR_ACCOUNT_COMMON_CREATE_DEATH_RECIPIENT;
+        return nullptr;
     }
-    if (!proxy_->AsObject()->AddDeathRecipient(deathRecipient_)) {
+    if (!object->AddDeathRecipient(deathRecipient_)) {
         ACCOUNT_LOGE("failed to add account iam death recipient");
-        proxy_ = nullptr;
-        return ERR_ACCOUNT_COMMON_ADD_DEATH_RECIPIENT;
+        deathRecipient_ = nullptr;
+        return nullptr;
     }
-    return ERR_OK;
+    proxy_ = iface_cast<IAccountIAM>(object);
+    if (proxy_ == nullptr) {
+        ACCOUNT_LOGE("failed to get account iam proxy");
+    }
+    return proxy_;
 }
 }  // namespace AccountSA
 }  // namespace OHOS

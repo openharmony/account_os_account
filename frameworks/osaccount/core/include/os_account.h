@@ -87,13 +87,13 @@ private:
     OsAccount() = default;
     ~OsAccount() = default;
     DISALLOW_COPY_AND_MOVE(OsAccount);
-    ErrCode GetOsAccountProxy();
+    sptr<IOsAccount> GetOsAccountProxy();
     ErrCode CreateOsAccountEventListener(
         const std::shared_ptr<OsAccountSubscriber> &subscriber, sptr<IRemoteObject> &osAccountEventListener);
 
 private:
     std::mutex mutex_;
-    sptr<IOsAccount> osAccountProxy_;
+    sptr<IOsAccount> proxy_;
     std::mutex eventListenersMutex_;
     std::map<std::shared_ptr<OsAccountSubscriber>, sptr<OsAccountEventListener>> eventListeners_;
     sptr<IRemoteObject::DeathRecipient> deathRecipient_;

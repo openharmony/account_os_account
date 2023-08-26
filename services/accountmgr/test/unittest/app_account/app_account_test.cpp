@@ -104,7 +104,7 @@ void AppAccountTest::SetUp(void)
     auto mockProxy = iface_cast<IAppAccount>(MakeMockObjects());
 
     // add the mock proxy
-    AppAccount::GetInstance().appAccountProxy_ = mockProxy;
+    AppAccount::GetInstance().proxy_ = mockProxy;
 }
 
 void AppAccountTest::TearDown(void)
@@ -390,10 +390,10 @@ HWTEST_F(AppAccountTest, AppAccount_GetAppAccountProxy_0100, TestSize.Level1)
     ACCOUNT_LOGI("AppAccount_GetAppAccountProxy_0100");
 
     // get app account proxy
-    ErrCode result = AppAccount::GetInstance().GetAppAccountProxy();
+    auto proxy = AppAccount::GetInstance().GetAppAccountProxy();
 
-    EXPECT_EQ(result, ERR_OK);
-    EXPECT_NE(AppAccount::GetInstance().appAccountProxy_, nullptr);
+    EXPECT_NE(proxy, nullptr);
+    EXPECT_NE(AppAccount::GetInstance().proxy_, nullptr);
 }
 
 /**
@@ -407,15 +407,16 @@ HWTEST_F(AppAccountTest, AppAccount_ResetAppAccountProxy_0100, TestSize.Level1)
     ACCOUNT_LOGI("AppAccount_ResetAppAccountProxy_0100");
 
     // get app account proxy
-    ErrCode result = AppAccount::GetInstance().GetAppAccountProxy();
-    EXPECT_EQ(result, ERR_OK);
-    EXPECT_NE(AppAccount::GetInstance().appAccountProxy_, nullptr);
+    sptr<IAppAccount> proxy = AppAccount::GetInstance().GetAppAccountProxy();
+    EXPECT_NE(AppAccount::GetInstance().proxy_, nullptr);
+    EXPECT_NE(proxy, nullptr);
+    EXPECT_NE(AppAccount::GetInstance().proxy_, nullptr);
 
     // reset app account proxy
-    result = AppAccount::GetInstance().ResetAppAccountProxy();
+    ErrCode result = AppAccount::GetInstance().ResetAppAccountProxy();
 
     EXPECT_EQ(result, ERR_OK);
-    EXPECT_EQ(AppAccount::GetInstance().appAccountProxy_, nullptr);
+    EXPECT_EQ(AppAccount::GetInstance().proxy_, nullptr);
 }
 
 /**

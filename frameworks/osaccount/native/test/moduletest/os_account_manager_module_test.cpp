@@ -282,8 +282,8 @@ void OsAccountManagerModuleTest::SetUpTestCase(void)
 #ifdef BUNDLE_ADAPTER_MOCK
     auto osAccountService = new (std::nothrow) OsAccountManagerService();
     ASSERT_NE(osAccountService, nullptr);
-    OsAccount::GetInstance().osAccountProxy_ = new (std::nothrow) OsAccountProxy(osAccountService->AsObject());
-    ASSERT_NE(OsAccount::GetInstance().osAccountProxy_, nullptr);
+    OsAccount::GetInstance().proxy_ = new (std::nothrow) OsAccountProxy(osAccountService->AsObject());
+    ASSERT_NE(OsAccount::GetInstance().proxy_, nullptr);
 #endif
 }
 
