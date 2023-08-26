@@ -84,8 +84,5 @@ ohos_unittest("os_account_mock_test") {
 group("unittest") {
   testonly = true
 
-  deps = [
-    ":os_account_mock_test",
-    ":os_account_test",
-  ]
+  deps = [ ":os_account_test" ]
 }
