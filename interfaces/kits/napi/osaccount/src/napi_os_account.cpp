@@ -16,6 +16,7 @@
 #include "napi_os_account.h"
 #include "napi_account_error.h"
 #include "napi_os_account_common.h"
+#include "napi/native_common.h"
 
 using namespace OHOS::AccountSA;
 
@@ -57,10 +58,11 @@ static napi_property_descriptor g_osAccountProperties[] = {
     DECLARE_NAPI_FUNCTION("queryCurrentOsAccount", QueryCurrentOsAccount),
     DECLARE_NAPI_FUNCTION("getCurrentOsAccount", GetCurrentOsAccount),
     DECLARE_NAPI_FUNCTION("getOsAccountLocalIdFromUid", GetOsAccountLocalIdFromUid),
-    DECLARE_NAPI_FUNCTION("queryOsAccountLocalIdFromUid", QueryOsAccountLocalIdFromUid),
-    DECLARE_NAPI_FUNCTION("getOsAccountLocalIdForUid", QueryOsAccountLocalIdFromUid),
+    DECLARE_NAPI_FUNCTION("getOsAccountLocalIdForUid", GetOsAccountLocalIdForUid),
+    DECLARE_NAPI_FUNCTION("getOsAccountLocalIdForUidSync", GetOsAccountLocalIdForUidSync),
     DECLARE_NAPI_FUNCTION("getBundleIdFromUid", GetBundleIdFromUid),
     DECLARE_NAPI_FUNCTION("getBundleIdForUid", GetBundleIdFromUid),
+    DECLARE_NAPI_FUNCTION("getBundleIdForUidSync", GetBundleIdForUidSync),
     DECLARE_NAPI_FUNCTION("getOsAccountLocalIdFromDomain", GetOsAccountLocalIdFromDomain),
     DECLARE_NAPI_FUNCTION("queryOsAccountLocalIdFromDomain", QueryOsAccountLocalIdFromDomain),
     DECLARE_NAPI_FUNCTION("getOsAccountLocalIdForDomain", QueryOsAccountLocalIdFromDomain),
@@ -745,16 +747,6 @@ napi_value QueryCurrentOsAccountInner(napi_env env, napi_callback_info cbInfo, b
     return result;
 }
 
-napi_value QueryOsAccountLocalIdFromUid(napi_env env, napi_callback_info cbInfo)
-{
-    return GetOsAccountLocalIdFromUidInner(env, cbInfo, true);
-}
-
-napi_value GetOsAccountLocalIdFromUid(napi_env env, napi_callback_info cbInfo)
-{
-    return GetOsAccountLocalIdFromUidInner(env, cbInfo, false);
-}
-
 napi_value GetOsAccountLocalIdFromUidInner(napi_env env, napi_callback_info cbInfo, bool throwErr)
 {
     auto idByUid = std::make_unique<GetIdByUidAsyncContext>();
@@ -781,6 +773,47 @@ napi_value GetOsAccountLocalIdFromUidInner(napi_env env, napi_callback_info cbIn
     napi_queue_async_work_with_qos(env, idByUid->work, napi_qos_default);
     idByUid.release();
     return result;
+}
+
+napi_value GetOsAccountLocalIdFromUid(napi_env env, napi_callback_info cbInfo)
+{
+    return GetOsAccountLocalIdFromUidInner(env, cbInfo, false);
+}
+
+napi_value GetOsAccountLocalIdForUid(napi_env env, napi_callback_info cbInfo)
+{
+    return GetOsAccountLocalIdFromUidInner(env, cbInfo, true);
+}
+
+static ErrCode ParseUidFromCbInfo(napi_env env, napi_callback_info cbInfo, int32_t &uid)
+{
+    size_t argc = ARGS_SIZE_ONE;
+    napi_value argv[ARGS_SIZE_ONE] = {0};
+    napi_get_cb_info(env, cbInfo, &argc, argv, nullptr, nullptr);
+    if ((argc <= 0) || (!GetIntProperty(env, argv[0], uid))) {
+        ACCOUNT_LOGE("failed to parse uid");
+        return ERR_JS_PARAMETER_ERROR;
+    }
+    return ERR_OK;
+}
+
+napi_value GetOsAccountLocalIdForUidSync(napi_env env, napi_callback_info cbInfo)
+{
+    napi_value napiValue = nullptr;
+    int32_t uid = 0;
+    ErrCode errCode = ParseUidFromCbInfo(env, cbInfo, uid);
+    if (errCode != ERR_OK) {
+        AccountNapiThrow(env, errCode);
+        return napiValue;
+    }
+    int32_t localId = 0;
+    errCode = OsAccountManager::GetOsAccountLocalIdFromUid(uid, localId);
+    if (errCode != ERR_OK) {
+        AccountNapiThrow(env, errCode);
+        return napiValue;
+    }
+    NAPI_CALL(env, napi_create_int32(env, localId, &napiValue));
+    return napiValue;
 }
 
 napi_value GetBundleIdFromUid(napi_env env, napi_callback_info cbInfo)
@@ -812,6 +845,25 @@ napi_value GetBundleIdFromUid(napi_env env, napi_callback_info cbInfo)
     napi_queue_async_work_with_qos(env, bundleIdByUid->work, napi_qos_default);
     bundleIdByUid.release();
     return result;
+}
+
+napi_value GetBundleIdForUidSync(napi_env env, napi_callback_info cbInfo)
+{
+    napi_value retValue = nullptr;
+    int32_t uid = 0;
+    ErrCode errCode = ParseUidFromCbInfo(env, cbInfo, uid);
+    if (errCode != ERR_OK) {
+        AccountNapiThrow(env, errCode);
+        return retValue;
+    }
+    int32_t bundleId = 0;
+    errCode = OsAccountManager::GetBundleIdFromUid(uid, bundleId);
+    if (errCode != ERR_OK) {
+        AccountNapiThrow(env, errCode);
+        return retValue;
+    }
+    NAPI_CALL(env, napi_create_int32(env, bundleId, &retValue));
+    return retValue;
 }
 
 napi_value QueryOsAccountLocalIdFromDomain(napi_env env, napi_callback_info cbInfo)
