@@ -202,8 +202,8 @@ HWTEST_F(AccountIAMCallbackServiceTest, DomainAuthCallbackAdapter_OnResult_0100,
 {
     std::shared_ptr<DomainAuthCallbackAdapter> domainAuthCallbackAdapter =
         std::make_shared<DomainAuthCallbackAdapter>(nullptr);
-    DomainAuthResult result;
-    domainAuthCallbackAdapter->OnResult(0, result);
+    Parcel emptyParcel;
+    domainAuthCallbackAdapter->OnResult(0, emptyParcel);
     std::string cmd = "hilog -x | grep 'AccountIAMFwk'";
     std::string cmdRes = RunCommand(cmd);
     ASSERT_TRUE(cmdRes.find("callback is nullptr") != std::string::npos);

@@ -42,7 +42,7 @@
 #include "domain_account_callback.h"
 #include "domain_account_plugin.h"
 #include "domain_account_status_listener.h"
-#include "domain_auth_callback_service.h"
+#include "domain_account_callback_service.h"
 #include "get_access_token_callback.h"
 #include "idomain_account.h"
 #include "want.h"
@@ -82,7 +82,7 @@ public:
      * @return error code, see account_error_no.h
      */
     ErrCode Auth(const DomainAccountInfo &info, const std::vector<uint8_t> &password,
-        const std::shared_ptr<DomainAuthCallback> &callback);
+        const std::shared_ptr<DomainAccountCallback> &callback);
 
     /**
      * @brief Authenticates a domain account bound with the specified userId with a credential.
@@ -93,7 +93,7 @@ public:
      * @return error code, see account_error_no.h
      */
     ErrCode AuthUser(int32_t userId, const std::vector<uint8_t> &password,
-        const std::shared_ptr<DomainAuthCallback> &callback);
+        const std::shared_ptr<DomainAccountCallback> &callback);
 
     /**
      * @brief Authenticates the domain account bound to the specified OS account with a popup.
@@ -102,7 +102,7 @@ public:
      * @param callback - Indicates the callback for getting the authentication result.
      * @return error code, see account_error_no.h
      */
-    ErrCode AuthWithPopup(int32_t userId, const std::shared_ptr<DomainAuthCallback> &callback);
+    ErrCode AuthWithPopup(int32_t userId, const std::shared_ptr<DomainAccountCallback> &callback);
 
     /**
      * @brief Checks whether the specified domain account exists.
@@ -151,8 +151,8 @@ private:
     };
     sptr<IDomainAccount> GetDomainAccountProxy();
     void ResetDomainAccountProxy(const wptr<IRemoteObject> &remote);
-    ErrCode AuthProxyInit(const std::shared_ptr<DomainAuthCallback> &callback,
-        sptr<DomainAuthCallbackService> &callbackService, sptr<IDomainAccount> &proxy);
+    ErrCode AuthProxyInit(const std::shared_ptr<DomainAccountCallback> &callback,
+        sptr<DomainAccountCallbackService> &callbackService, sptr<IDomainAccount> &proxy);
 
 private:
     std::mutex mutex_;

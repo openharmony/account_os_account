@@ -2036,8 +2036,8 @@ HWTEST_F(DomainAccountClientModuleTest, UnregisterAccountStatusListener_002, Tes
  */
 HWTEST_F(DomainAccountClientModuleTest, AuthProxyInit_001, TestSize.Level0)
 {
-    std::shared_ptr<DomainAuthCallback> callback = nullptr;
-    sptr<DomainAuthCallbackService> callbackService;
+    std::shared_ptr<DomainAccountCallback> callback = nullptr;
+    sptr<DomainAccountCallbackService> callbackService;
     sptr<IDomainAccount> proxy;
 
     EXPECT_EQ(DomainAccountClient::GetInstance().AuthProxyInit(callback, callbackService, proxy),
@@ -2057,7 +2057,7 @@ HWTEST_F(DomainAccountClientModuleTest, AuthProxyInit_002, TestSize.Level0)
     EXPECT_CALL(*callback, OnResult(0, _)).Times(Exactly(0));
     auto testCallback = std::make_shared<TestDomainAuthCallback>(callback);
     ASSERT_NE(testCallback, nullptr);
-    sptr<DomainAuthCallbackService> callbackService = nullptr;
+    sptr<DomainAccountCallbackService> callbackService = nullptr;
     sptr<IDomainAccount> proxy = nullptr;
 
     EXPECT_EQ(DomainAccountClient::GetInstance().AuthProxyInit(testCallback, callbackService, proxy), ERR_OK);

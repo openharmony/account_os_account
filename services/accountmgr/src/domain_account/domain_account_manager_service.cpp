@@ -60,13 +60,13 @@ ErrCode DomainAccountManagerService::UpdateAccountToken(
 }
 
 ErrCode DomainAccountManagerService::Auth(const DomainAccountInfo &info, const std::vector<uint8_t> &password,
-    const sptr<IDomainAuthCallback> &callback)
+    const sptr<IDomainAccountCallback> &callback)
 {
     return InnerDomainAccountManager::GetInstance().Auth(info, password, callback);
 }
 
 ErrCode DomainAccountManagerService::AuthUser(int32_t userId, const std::vector<uint8_t> &password,
-    const sptr<IDomainAuthCallback> &callback)
+    const sptr<IDomainAccountCallback> &callback)
 {
     if (userId < START_USER_ID) {
         ACCOUNT_LOGE("invalid userId");
@@ -75,7 +75,7 @@ ErrCode DomainAccountManagerService::AuthUser(int32_t userId, const std::vector<
     return InnerDomainAccountManager::GetInstance().AuthUser(userId, password, callback);
 }
 
-ErrCode DomainAccountManagerService::AuthWithPopup(int32_t userId, const sptr<IDomainAuthCallback> &callback)
+ErrCode DomainAccountManagerService::AuthWithPopup(int32_t userId, const sptr<IDomainAccountCallback> &callback)
 {
     if (userId < 0) {
         ACCOUNT_LOGE("invalid userId");

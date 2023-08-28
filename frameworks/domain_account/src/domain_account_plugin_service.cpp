@@ -16,7 +16,6 @@
 #include "domain_account_plugin_service.h"
 
 #include "account_log_wrapper.h"
-#include "domain_auth_callback_client.h"
 
 namespace OHOS {
 namespace AccountSA {
@@ -43,13 +42,13 @@ ErrCode DomainAccountPluginService::CheckAndInitExecEnv(const sptr<IDomainAccoun
 }
 
 ErrCode DomainAccountPluginService::AuthCommonInterface(const DomainAccountInfo &info,
-    const std::vector<uint8_t> &authData, const sptr<IDomainAuthCallback> &callback, AuthMode authMode)
+    const std::vector<uint8_t> &authData, const sptr<IDomainAccountCallback> &callback, AuthMode authMode)
 {
     if (innerPlugin_ == nullptr) {
         ACCOUNT_LOGE("innerPlugin_ is nullptr");
         return ERR_ACCOUNT_COMMON_NULL_PTR_ERROR;
     }
-    auto callbackClient = std::make_shared<DomainAuthCallbackClient>(callback);
+    auto callbackClient = std::make_shared<DomainAccountCallbackClient>(callback);
     if (callbackClient == nullptr) {
         ACCOUNT_LOGE("failed to create DomainAuthCallbackClient");
         return ERR_ACCOUNT_COMMON_INSUFFICIENT_MEMORY_ERROR;
@@ -76,19 +75,19 @@ ErrCode DomainAccountPluginService::AuthCommonInterface(const DomainAccountInfo 
 }
 
 ErrCode DomainAccountPluginService::Auth(const DomainAccountInfo &info, const std::vector<uint8_t> &password,
-    const sptr<IDomainAuthCallback> &callback)
+    const sptr<IDomainAccountCallback> &callback)
 {
     return AuthCommonInterface(info, password, callback, AUTH_WITH_CREDENTIAL_MODE);
 }
 
 ErrCode DomainAccountPluginService::AuthWithPopup(
-    const DomainAccountInfo &info, const sptr<IDomainAuthCallback> &callback)
+    const DomainAccountInfo &info, const sptr<IDomainAccountCallback> &callback)
 {
     return AuthCommonInterface(info, {}, callback, AUTH_WITH_POPUP_MODE);
 }
 
 ErrCode DomainAccountPluginService::AuthWithToken(
-    const DomainAccountInfo &info, const std::vector<uint8_t> &token, const sptr<IDomainAuthCallback> &callback)
+    const DomainAccountInfo &info, const std::vector<uint8_t> &token, const sptr<IDomainAccountCallback> &callback)
 {
     return AuthCommonInterface(info, token, callback, AUTH_WITH_TOKEN_MODE);
 }

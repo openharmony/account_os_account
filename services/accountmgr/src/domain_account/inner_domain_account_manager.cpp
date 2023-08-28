@@ -19,7 +19,6 @@
 #include "account_info_report.h"
 #include "account_log_wrapper.h"
 #include "domain_account_plugin_death_recipient.h"
-#include "domain_auth_callback_proxy.h"
 #include "domain_account_callback_service.h"
 #include "domain_has_domain_info_callback.h"
 #include "idomain_account_callback.h"
@@ -50,24 +49,29 @@ InnerDomainAccountManager &InnerDomainAccountManager::GetInstance()
     return *instance;
 }
 
-InnerDomainAuthCallback::InnerDomainAuthCallback(int32_t userId, const sptr<IDomainAuthCallback> &callback)
+InnerDomainAuthCallback::InnerDomainAuthCallback(int32_t userId, const sptr<IDomainAccountCallback> &callback)
     : userId_(userId), callback_(callback)
 {}
 
 InnerDomainAuthCallback::~InnerDomainAuthCallback()
 {}
 
-void InnerDomainAuthCallback::OnResult(int32_t resultCode, const DomainAuthResult &result)
+void InnerDomainAuthCallback::OnResult(const int32_t errCode, Parcel &parcel)
 {
-    if ((resultCode == ERR_OK) && (userId_ != 0)) {
+    std::shared_ptr<DomainAuthResult> authResult(DomainAuthResult::Unmarshalling(parcel));
+    if (authResult == nullptr) {
+        ACCOUNT_LOGE ("authResult is nullptr");
+        return;
+    }
+    if ((errCode == ERR_OK) && (userId_ != 0)) {
 #ifdef FILE_ENCRYPTION_EL1_FEATURE
         int32_t errCode = InnerAccountIAMManager::GetInstance().ActivateUserKey(userId_, {}, {});
         if (errCode != 0) {
             ACCOUNT_LOGE("failed to activate user key");
             DomainAuthResult errResult;
-            errResult.authStatusInfo = result.authStatusInfo;
+            errResult.authStatusInfo = (*authResult).authStatusInfo;
             if (callback_ == nullptr) {
-                ACCOUNT_LOGI("no callback needs to executed");
+                ACCOUNT_LOGI("callback_ is nullptr");
                 return;
             }
             return callback_->OnResult(ERR_JS_SYSTEM_SERVICE_EXCEPTION, errResult);
@@ -76,18 +80,23 @@ void InnerDomainAuthCallback::OnResult(int32_t resultCode, const DomainAuthResul
             (void)IInnerOsAccountManager::GetInstance().SetOsAccountIsVerified(userId_, true);
         }
 #endif // FILE_ENCRYPTION_EL1_FEATURE
-        InnerDomainAccountManager::GetInstance().InsertTokenToMap(userId_, result.token);
+        InnerDomainAccountManager::GetInstance().InsertTokenToMap(userId_, (*authResult).token);
         DomainAccountInfo domainInfo;
         InnerDomainAccountManager::GetInstance().GetDomainAccountInfoByUserId(userId_, domainInfo);
         InnerDomainAccountManager::GetInstance().NotifyDomainAccountEvent(
             userId_, DomainAccountEvent::LOG_IN, DomainAccountStatus::LOG_END, domainInfo);
     }
-    if (callback_ == nullptr) {
-        ACCOUNT_LOGI("no callback needs to executed");
+    Parcel resultParcel;
+    if (!(*authResult).Marshalling(resultParcel)) {
+        ACCOUNT_LOGE("authResult Marshalling failed");
         return;
     }
-    AccountInfoReport::ReportSecurityInfo("", userId_, ReportEvent::EVENT_LOGIN, resultCode);
-    return callback_->OnResult(resultCode, result);
+    AccountInfoReport::ReportSecurityInfo("", userId_, ReportEvent::EVENT_LOGIN, errCode);
+    if (callback_ == nullptr) {
+        ACCOUNT_LOGI("callback_ is nullptr");
+        return;
+    }
+    return callback_->OnResult(errCode, resultParcel);
 }
 
 ErrCode InnerDomainAccountManager::RegisterPlugin(const sptr<IDomainAccountPlugin> &plugin)
@@ -124,16 +133,21 @@ void InnerDomainAccountManager::UnregisterPlugin()
 }
 
 ErrCode InnerDomainAccountManager::StartAuth(const sptr<IDomainAccountPlugin> &plugin, const DomainAccountInfo &info,
-    const std::vector<uint8_t> &authData, const sptr<IDomainAuthCallback> &callback, AuthMode authMode)
+    const std::vector<uint8_t> &authData, const sptr<IDomainAccountCallback> &callback, AuthMode authMode)
 {
     if (callback == nullptr) {
         ACCOUNT_LOGE("invalid callback, cannot return result to client");
         return ERR_ACCOUNT_COMMON_INVALID_PARAMETER;
     }
-    DomainAuthResult emptyResult = {};
+    Parcel emptyParcel;
+    AccountSA::DomainAuthResult emptyResult;
+    if (!emptyResult.Marshalling(emptyParcel)) {
+        ACCOUNT_LOGE("authResult Marshalling failed");
+        return ERR_ACCOUNT_COMMON_INSUFFICIENT_MEMORY_ERROR;
+    }
     if (plugin == nullptr) {
         ACCOUNT_LOGE("plugin is not exixt");
-        callback->OnResult(ConvertToJSErrCode(ERR_DOMAIN_ACCOUNT_SERVICE_PLUGIN_NOT_EXIST), emptyResult);
+        callback->OnResult(ConvertToJSErrCode(ERR_DOMAIN_ACCOUNT_SERVICE_PLUGIN_NOT_EXIST), emptyParcel);
         return ERR_ACCOUNT_COMMON_INVALID_PARAMETER;
     }
     ErrCode errCode = ERR_ACCOUNT_COMMON_INVALID_PARAMETER;
@@ -152,7 +166,7 @@ ErrCode InnerDomainAccountManager::StartAuth(const sptr<IDomainAccountPlugin> &p
     }
     if (errCode != ERR_OK) {
         ACCOUNT_LOGE("failed to auth domain account, errCode: %{public}d", errCode);
-        callback->OnResult(ConvertToJSErrCode(errCode), emptyResult);
+        callback->OnResult(ConvertToJSErrCode(errCode), emptyParcel);
         return errCode;
     }
     return ERR_OK;
@@ -175,10 +189,10 @@ ErrCode InnerDomainAccountManager::GetDomainAccountInfoByUserId(int32_t userId, 
 }
 
 ErrCode InnerDomainAccountManager::Auth(const DomainAccountInfo &info, const std::vector<uint8_t> &password,
-    const sptr<IDomainAuthCallback> &callback)
+    const sptr<IDomainAccountCallback> &callback)
 {
     int32_t userId = -1;
-    sptr<IDomainAuthCallback> innerCallback = callback;
+    sptr<IDomainAccountCallback> innerCallback = callback;
     IInnerOsAccountManager::GetInstance().GetOsAccountLocalIdFromDomain(info, userId);
     if (userId >= 0) {
         innerCallback = new (std::nothrow) InnerDomainAuthCallback(userId, callback);
@@ -196,7 +210,7 @@ ErrCode InnerDomainAccountManager::Auth(const DomainAccountInfo &info, const std
 }
 
 ErrCode InnerDomainAccountManager::InnerAuth(int32_t userId, const std::vector<uint8_t> &authData,
-    const sptr<IDomainAuthCallback> &callback, AuthMode authMode)
+    const sptr<IDomainAccountCallback> &callback, AuthMode authMode)
 {
     DomainAccountInfo domainInfo;
     ErrCode errCode = GetDomainAccountInfoByUserId(userId, domainInfo);
@@ -217,12 +231,12 @@ ErrCode InnerDomainAccountManager::InnerAuth(int32_t userId, const std::vector<u
 }
 
 ErrCode InnerDomainAccountManager::AuthUser(int32_t userId, const std::vector<uint8_t> &password,
-    const sptr<IDomainAuthCallback> &callback)
+    const sptr<IDomainAccountCallback> &callback)
 {
     return InnerAuth(userId, password, callback, AUTH_WITH_CREDENTIAL_MODE);
 }
 
-ErrCode InnerDomainAccountManager::AuthWithPopup(int32_t userId, const sptr<IDomainAuthCallback> &callback)
+ErrCode InnerDomainAccountManager::AuthWithPopup(int32_t userId, const sptr<IDomainAccountCallback> &callback)
 {
     if (userId == 0) {
         std::vector<int32_t> userIds;

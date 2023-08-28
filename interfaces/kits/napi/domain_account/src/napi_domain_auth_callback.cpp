@@ -30,14 +30,14 @@ const size_t ARGS_SIZE_TWO = 2;
 }
 using namespace AccountSA;
 
-NapiDomainAuthCallback::NapiDomainAuthCallback(const std::shared_ptr<DomainAuthCallback> &callback)
+NapiDomainAuthCallback::NapiDomainAuthCallback(const std::shared_ptr<DomainAccountCallback> &callback)
     : callback_(callback)
 {}
 
 NapiDomainAuthCallback::~NapiDomainAuthCallback()
 {}
 
-std::shared_ptr<DomainAuthCallback> NapiDomainAuthCallback::GetDomainAuthCallback()
+std::shared_ptr<DomainAccountCallback> NapiDomainAuthCallback::GetDomainAuthCallback()
 {
     return callback_;
 }
@@ -148,7 +148,12 @@ napi_value NapiDomainAuthCallback::JsOnResult(napi_env env, napi_callback_info c
                 ACCOUNT_LOGE("callback is nullptr");
                 return;
             }
-            param->callback->OnResult(param->errCode, param->authResult);
+            Parcel parcel;
+            if (!param->authResult.Marshalling(parcel)) {
+                ACCOUNT_LOGE("authResult Marshalling failed");
+                return;
+            }
+            param->callback->OnResult(param->errCode, parcel);
         },
         [](napi_env env, napi_status status, void *data) {
             delete reinterpret_cast<CallbackParam *>(data);
@@ -203,7 +208,7 @@ static void DomainAuthResultWork(uv_work_t *work, int status)
     delete param;
 }
 
-void NapiDomainAccountCallback::OnResult(int32_t resultCode, const AccountSA::DomainAuthResult &result)
+void NapiDomainAccountCallback::OnResult(const int32_t errCode, Parcel &parcel)
 {
     std::unique_lock<std::mutex> lock(lockInfo_.mutex);
     if (lockInfo_.count < 0) {
@@ -219,8 +224,13 @@ void NapiDomainAccountCallback::OnResult(int32_t resultCode, const AccountSA::Do
         return;
     }
     param->lockInfo = &lockInfo_;
-    param->errCode = resultCode;
-    param->authResult = result;
+    param->errCode = errCode;
+    std::shared_ptr<DomainAuthResult> authResult(DomainAuthResult::Unmarshalling(parcel));
+    if (authResult == nullptr) {
+        ACCOUNT_LOGE("authResult is nullptr");
+        return;
+    }
+    param->authResult = (*authResult);
     param->callbackRef = callbackRef_;
     work->data = reinterpret_cast<void *>(param.get());
     ErrCode ret = uv_queue_work_with_qos(

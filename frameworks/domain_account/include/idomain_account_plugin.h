@@ -21,7 +21,6 @@
 #include "accountmgr_service_ipc_interface_code.h"
 #include "domain_account_common.h"
 #include "idomain_account_callback.h"
-#include "idomain_auth_callback.h"
 #include "want.h"
 
 namespace OHOS {
@@ -31,10 +30,10 @@ public:
     DECLARE_INTERFACE_DESCRIPTOR(u"ohos.accountfwk.IDomainAccountPlugin");
 
     virtual ErrCode Auth(const DomainAccountInfo &info, const std::vector<uint8_t> &password,
-        const sptr<IDomainAuthCallback> &callback) = 0;
-    virtual ErrCode AuthWithPopup(const DomainAccountInfo &info, const sptr<IDomainAuthCallback> &callback) = 0;
+        const sptr<IDomainAccountCallback> &callback) = 0;
+    virtual ErrCode AuthWithPopup(const DomainAccountInfo &info, const sptr<IDomainAccountCallback> &callback) = 0;
     virtual ErrCode AuthWithToken(const DomainAccountInfo &info, const std::vector<uint8_t> &token,
-        const sptr<IDomainAuthCallback> &callback) = 0;
+        const sptr<IDomainAccountCallback> &callback) = 0;
     virtual ErrCode GetAuthStatusInfo(const DomainAccountInfo &info,
         const sptr<IDomainAccountCallback> &callback) = 0;
     virtual ErrCode GetDomainAccountInfo(

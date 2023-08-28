@@ -62,7 +62,7 @@ static ErrCode WriteCommonData(MessageParcel &data, const std::u16string &descri
 }
 
 ErrCode DomainAccountPluginProxy::AuthCommonInterface(const DomainAccountInfo &info,
-    const std::vector<uint8_t> &authData, const sptr<IDomainAuthCallback> &callback, AuthMode authMode)
+    const std::vector<uint8_t> &authData, const sptr<IDomainAccountCallback> &callback, AuthMode authMode)
 {
     MessageParcel data;
     ErrCode result = WriteCommonData(data, GetDescriptor(), info);
@@ -110,7 +110,7 @@ ErrCode DomainAccountPluginProxy::IsAccountTokenValid(
 }
 
 ErrCode DomainAccountPluginProxy::Auth(const DomainAccountInfo &info, const std::vector<uint8_t> &password,
-    const sptr<IDomainAuthCallback> &callback)
+    const sptr<IDomainAccountCallback> &callback)
 {
     return AuthCommonInterface(info, password, callback, AUTH_WITH_CREDENTIAL_MODE);
 }
@@ -141,13 +141,13 @@ ErrCode DomainAccountPluginProxy::GetAccessToken(const DomainAccountInfo &domain
 }
 
 ErrCode DomainAccountPluginProxy::AuthWithPopup(
-    const DomainAccountInfo &info, const sptr<IDomainAuthCallback> &callback)
+    const DomainAccountInfo &info, const sptr<IDomainAccountCallback> &callback)
 {
     return AuthCommonInterface(info, {}, callback, AUTH_WITH_POPUP_MODE);
 }
 
 ErrCode DomainAccountPluginProxy::AuthWithToken(const DomainAccountInfo &info, const std::vector<uint8_t> &token,
-    const sptr<IDomainAuthCallback> &callback)
+    const sptr<IDomainAccountCallback> &callback)
 {
     return AuthCommonInterface(info, token, callback, AUTH_WITH_TOKEN_MODE);
 }

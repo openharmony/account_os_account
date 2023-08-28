@@ -253,9 +253,9 @@
         "OHOS::AccountSA::InnerDomainAccountManager::HasDomainAccount(OHOS::AccountSA::DomainAccountInfo const&, OHOS::sptr<OHOS::AccountSA::IDomainAccountCallback> const&)";
         "OHOS::AccountSA::InnerDomainAccountManager::GetAccessToken(OHOS::AccountSA::DomainAccountInfo const&, OHOS::AAFwk::WantParams const&, OHOS::sptr<OHOS::AccountSA::IDomainAccountCallback> const&)";
         "OHOS::AccountSA::InnerDomainAccountManager::UpdateAccountToken(OHOS::AccountSA::DomainAccountInfo const&, std::__h::vector<unsigned char, std::__h::allocator<unsigned char>> const&)";
-        "OHOS::AccountSA::InnerDomainAccountManager::Auth(OHOS::AccountSA::DomainAccountInfo const&, std::__h::vector<unsigned char, std::__h::allocator<unsigned char>> const&, OHOS::sptr<OHOS::AccountSA::IDomainAuthCallback> const&)";
+        "OHOS::AccountSA::InnerDomainAccountManager::Auth(OHOS::AccountSA::DomainAccountInfo const&, std::__h::vector<unsigned char, std::__h::allocator<unsigned char>> const&, OHOS::sptr<OHOS::AccountSA::IDomainAccountCallback> const&)";
         "OHOS::AccountSA::InnerDomainAccountManager::AuthUser(int, std::__h::vector<unsigned char, std::__h::allocator<unsigned char>> const&, OHOS::sptr<OHOS::AccountSA::IDomainAuthCallback> const&)";
-        "OHOS::AccountSA::InnerDomainAccountManager::AuthWithPopup(int, OHOS::sptr<OHOS::AccountSA::IDomainAuthCallback> const&)";
+        "OHOS::AccountSA::InnerDomainAccountManager::AuthWithPopup(int, OHOS::sptr<OHOS::AccountSA::IDomainAccountCallback> const&)";
         "OHOS::AccountSA::InnerDomainAccountManager::GetAccountStatus(OHOS::AccountSA::DomainAccountInfo const&, OHOS::AccountSA::DomainAccountStatus&)";
         "OHOS::AccountSA::InnerDomainAccountManager::RegisterAccountStatusListener(OHOS::sptr<OHOS::AccountSA::IDomainAccountCallback> const&)";
         "OHOS::AccountSA::InnerDomainAccountManager::RegisterAccountStatusListener(OHOS::AccountSA::DomainAccountInfo const&, OHOS::sptr<OHOS::AccountSA::IDomainAccountCallback> const&)";
@@ -275,6 +275,7 @@
         "OHOS::AccountSA::AccountIAMMgrStub::~AccountIAMMgrStub()";
         "non-virtual thunk to OHOS::AccountSA::AccountIAMMgrStub::~AccountIAMMgrStub()";
         "virtual thunk to OHOS::AccountSA::AccountIAMMgrStub::~AccountIAMMgrStub()";
+        "OHOS::AccountSA::InnerDomainAccountManager::AuthUser(int, std::__h::vector<unsigned char, std::__h::allocator<unsigned char>> const&, OHOS::sptr<OHOS::AccountSA::IDomainAccountCallback> const&)";
     };
   local:
     *;

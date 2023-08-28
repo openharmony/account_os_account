@@ -254,7 +254,7 @@ ErrCode DomainAccountProxy::UnregisterAccountStatusListener(
 }
 
 ErrCode DomainAccountProxy::Auth(
-    const DomainAccountInfo &info, const std::vector<uint8_t> &password, const sptr<IDomainAuthCallback> &callback)
+    const DomainAccountInfo &info, const std::vector<uint8_t> &password, const sptr<IDomainAccountCallback> &callback)
 {
     MessageParcel data;
     if (!data.WriteInterfaceToken(GetDescriptor())) {
@@ -291,7 +291,7 @@ ErrCode DomainAccountProxy::Auth(
 }
 
 ErrCode DomainAccountProxy::AuthUser(
-    int32_t userId, const std::vector<uint8_t> &password, const sptr<IDomainAuthCallback> &callback)
+    int32_t userId, const std::vector<uint8_t> &password, const sptr<IDomainAccountCallback> &callback)
 {
     MessageParcel data;
     if (!data.WriteInterfaceToken(GetDescriptor())) {
@@ -323,7 +323,7 @@ ErrCode DomainAccountProxy::AuthUser(
     return result;
 }
 
-ErrCode DomainAccountProxy::AuthWithPopup(int32_t userId, const sptr<IDomainAuthCallback> &callback)
+ErrCode DomainAccountProxy::AuthWithPopup(int32_t userId, const sptr<IDomainAccountCallback> &callback)
 {
     MessageParcel data;
     if (!data.WriteInterfaceToken(GetDescriptor())) {
