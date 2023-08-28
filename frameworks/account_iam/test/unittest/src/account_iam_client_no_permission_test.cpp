@@ -17,8 +17,14 @@
 #include "accesstoken_kit.h"
 #define private public
 #include "account_iam_callback_service.h"
-#undef private
 #include "account_iam_client.h"
+#undef private
+#ifdef PROXY_MOCK
+#define private public
+#include "account_iam_service.h"
+#include "account_iam_mgr_proxy.h"
+#undef private
+#endif
 #include "account_log_wrapper.h"
 #include "token_setproc.h"
 
@@ -89,7 +95,14 @@ public:
 };
 
 void AccountIAMClientNoPermissionTest::SetUpTestCase(void)
-{}
+{
+#ifdef PROXY_MOCK
+    sptr<IAccountIAM> service = new (std::nothrow) AccountIAMService();
+    ASSERT_NE(service, nullptr);
+    AccountIAMClient::GetInstance().proxy_ = new (std::nothrow) AccountIAMMgrProxy(service->AsObject());
+    ASSERT_NE(AccountIAMClient::GetInstance().proxy_, nullptr);
+#endif
+}
 
 void AccountIAMClientNoPermissionTest::TearDownTestCase(void)
 {}

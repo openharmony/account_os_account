@@ -22,7 +22,11 @@
 #include "app_account_subscribe_info.h"
 #define private public
 #include "app_account.h"
+#ifdef PROXY_MOCK
+#include "app_account_manager_service.h"
+#include "app_account_proxy.h"
 #undef private
+#endif
 #include "singleton.h"
 
 using namespace testing::ext;
@@ -203,7 +207,14 @@ public:
 };
 
 void AppAccountManagerTest::SetUpTestCase(void)
-{}
+{
+#ifdef PROXY_MOCK
+    sptr<IAppAccount> appAccountService = new (std::nothrow) AppAccountManagerService();
+    ASSERT_NE(appAccountService, nullptr);
+    AppAccount::GetInstance().proxy_ = new (std::nothrow) AppAccountProxy(appAccountService->AsObject());
+    ASSERT_NE(AppAccount::GetInstance().proxy_, nullptr);
+#endif
+}
 
 void AppAccountManagerTest::TearDownTestCase(void)
 {}
@@ -1839,7 +1850,11 @@ HWTEST_F(AppAccountManagerTest, AppAccountManager_GetAuthenticatorCallback_0100,
     EXPECT_EQ(result, ERR_ACCOUNT_COMMON_INVALID_PARAMETER);
 
     result = AppAccountManager::GetAuthenticatorCallback(STRING_SESSION_ID, callback);
+#ifdef PROXY_MOCK
+    EXPECT_NE(result, ERR_APPACCOUNT_SERVICE_GET_BUNDLE_NAME);
+#else // BUNDLE_ADAPTER_MOCK
     EXPECT_EQ(result, ERR_APPACCOUNT_SERVICE_GET_BUNDLE_NAME);
+#endif
 }
 
 /**
