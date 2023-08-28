@@ -65,7 +65,7 @@ public:
     virtual void GetAuthStatusInfo(const DomainAccountInfo &info,
         const std::shared_ptr<DomainAccountCallback> &callback) = 0;
 
-    virtual void GetDomainAccountInfo(const std::string &domain, const std::string &accountName,
+    virtual void GetDomainAccountInfo(const GetDomainAccountInfoOptions &options,
         const std::shared_ptr<DomainAccountCallback> &callback) = 0;
 
     virtual void OnAccountBound(const DomainAccountInfo &info, const int32_t localId,
