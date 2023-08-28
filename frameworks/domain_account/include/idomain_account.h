@@ -39,10 +39,10 @@ public:
         const DomainAccountInfo &info, const sptr<IDomainAccountCallback> &listener) = 0;
     virtual ErrCode UnregisterAccountStatusListener(const sptr<IDomainAccountCallback> &listener) = 0;
     virtual ErrCode Auth(const DomainAccountInfo &info, const std::vector<uint8_t> &password,
-        const sptr<IDomainAuthCallback> &callback) = 0;
+        const sptr<IDomainAccountCallback> &callback) = 0;
     virtual ErrCode AuthUser(int32_t userId, const std::vector<uint8_t> &password,
-        const sptr<IDomainAuthCallback> &callback) = 0;
-    virtual ErrCode AuthWithPopup(int32_t userId, const sptr<IDomainAuthCallback> &callback) = 0;
+        const sptr<IDomainAccountCallback> &callback) = 0;
+    virtual ErrCode AuthWithPopup(int32_t userId, const sptr<IDomainAccountCallback> &callback) = 0;
     virtual ErrCode HasDomainAccount(const DomainAccountInfo &info, const sptr<IDomainAccountCallback> &callback) = 0;
     virtual ErrCode UpdateAccountToken(const DomainAccountInfo &info, const std::vector<uint8_t> &token) = 0;
     virtual ErrCode GetAccessToken(const DomainAccountInfo &info, const AAFwk::WantParams &parameters,

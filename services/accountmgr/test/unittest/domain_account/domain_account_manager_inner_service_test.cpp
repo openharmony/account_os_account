@@ -20,8 +20,7 @@
 #define private public
 #include "domain_account_plugin_death_recipient.h"
 #include "domain_account_plugin_service.h"
-#include "domain_auth_callback_proxy.h"
-#include "domain_auth_callback_service.h"
+#include "domain_account_callback_service.h"
 #include "domain_has_domain_info_callback.h"
 #include "inner_domain_account_manager.h"
 #undef private
@@ -154,7 +153,7 @@ HWTEST_F(DomainAccountManagerInnerServiceTest, DomainAccountManagerInnerServiceT
     domainInfo.accountId_ = TEST_ACCOUNT_ID;
     sptr<IDomainAccountPlugin> testPlugin = new (std::nothrow) DomainAccountPluginService(nullptr);
     ASSERT_NE(testPlugin, nullptr);
-    sptr<IDomainAuthCallback> innerCallback = new (std::nothrow) InnerDomainAuthCallback(MAIN_ACCOUNT_ID, nullptr);
+    sptr<IDomainAccountCallback> innerCallback = new (std::nothrow) InnerDomainAuthCallback(MAIN_ACCOUNT_ID, nullptr);
     ASSERT_NE(innerCallback, nullptr);
     EXPECT_EQ(InnerDomainAccountManager::GetInstance().StartAuth(testPlugin,
         domainInfo, TEST_TOKEN, innerCallback, AUTH_MODE_END), ERR_ACCOUNT_COMMON_INVALID_PARAMETER);
@@ -455,7 +454,8 @@ HWTEST_F(DomainAccountManagerInnerServiceTest, DomainAccountManagerInnerServiceT
     domainInfo.domain_ = TEST_DOMAIN;
     domainInfo.accountId_ = TEST_ACCOUNT_ID;
     std::vector<uint8_t> authData;
-    sptr<DomainAuthCallbackService> callbackService = new (std::nothrow) DomainAuthCallbackService(nullptr);
+    std::shared_ptr<DomainAccountCallback> callback = nullptr;
+    sptr<DomainAccountCallbackService> callbackService = new (std::nothrow) DomainAccountCallbackService(callback);
     ASSERT_NE(callbackService, nullptr);
     sptr<DomainAccountPluginService> pluginService = new (std::nothrow) DomainAccountPluginService(g_plugin);
     ASSERT_NE(pluginService, nullptr);

@@ -21,8 +21,7 @@
 #include "domain_account_plugin_death_recipient.h"
 #include "domain_account_plugin_proxy.h"
 #include "domain_account_callback.h"
-#include "domain_auth_callback.h"
-#include "domain_auth_callback_stub.h"
+#include "domain_account_callback_stub.h"
 #include "os_account_info.h"
 #include "want.h"
 
@@ -34,10 +33,10 @@ public:
     ErrCode RegisterPlugin(const sptr<IDomainAccountPlugin> &plugin);
     void UnregisterPlugin();
     ErrCode Auth(const DomainAccountInfo &info, const std::vector<uint8_t> &password,
-        const sptr<IDomainAuthCallback> &callback);
+        const sptr<IDomainAccountCallback> &callback);
     ErrCode AuthUser(int32_t userId, const std::vector<uint8_t> &password,
-        const sptr<IDomainAuthCallback> &callback);
-    ErrCode AuthWithPopup(int32_t userId, const sptr<IDomainAuthCallback> &callback);
+        const sptr<IDomainAccountCallback> &callback);
+    ErrCode AuthWithPopup(int32_t userId, const sptr<IDomainAccountCallback> &callback);
     ErrCode AuthWithToken(int32_t userId, const std::vector<uint8_t> &token);
     ErrCode GetAuthStatusInfo(const DomainAccountInfo &info, const std::shared_ptr<DomainAccountCallback> &callback);
     ErrCode HasDomainAccount(const DomainAccountInfo &info, const sptr<IDomainAccountCallback> &callback);
@@ -82,10 +81,10 @@ private:
     ErrCode StartHasDomainAccount(const sptr<IDomainAccountPlugin> &plugin, const GetDomainAccountInfoOptions &options,
         const sptr<IDomainAccountCallback> &callback);
     ErrCode StartAuth(const sptr<IDomainAccountPlugin> &plugin, const DomainAccountInfo &info,
-        const std::vector<uint8_t> &password, const sptr<IDomainAuthCallback> &callback, AuthMode authMode);
+        const std::vector<uint8_t> &password, const sptr<IDomainAccountCallback> &callback, AuthMode authMode);
     sptr<IRemoteObject::DeathRecipient> GetDeathRecipient();
     ErrCode InnerAuth(int32_t userId, const std::vector<uint8_t> &authData,
-        const sptr<IDomainAuthCallback> &callback, AuthMode authMode);
+        const sptr<IDomainAccountCallback> &callback, AuthMode authMode);
     ErrCode CheckUserToken(const std::vector<uint8_t> &token, bool &isValid, int32_t userId);
 
 private:
@@ -110,15 +109,15 @@ private:
     bool threadInSleep_ = true;
 };
 
-class InnerDomainAuthCallback final: public DomainAuthCallbackStub {
+class InnerDomainAuthCallback final: public DomainAccountCallbackStub {
 public:
-    InnerDomainAuthCallback(int32_t userId, const sptr<IDomainAuthCallback> &callback);
+    InnerDomainAuthCallback(int32_t userId, const sptr<IDomainAccountCallback> &callback);
     virtual ~InnerDomainAuthCallback();
-    void OnResult(int32_t resultCode, const DomainAuthResult &result) override;
+    void OnResult(const int32_t errCode, Parcel &parcel) override;
 
 private:
     int32_t userId_;
-    sptr<IDomainAuthCallback> callback_;
+    sptr<IDomainAccountCallback> callback_;
 };
 }  // namespace AccountSA
 }  // namespace OHOS

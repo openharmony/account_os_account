@@ -19,7 +19,6 @@
 #define private public
 #include "domain_account_callback_service.h"
 #include "domain_account_plugin_service.h"
-#include "domain_auth_callback_service.h"
 #undef private
 #include "mock_domain_plugin.h"
 #include "want.h"

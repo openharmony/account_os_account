@@ -24,7 +24,6 @@
 #include "domain_account_proxy.h"
 #include "domain_account_status_listener.h"
 #include "domain_account_status_listener_service.h"
-#include "domain_auth_callback_service.h"
 #include "ohos_account_kits_impl.h"
 
 namespace OHOS {
@@ -64,16 +63,16 @@ ErrCode DomainAccountClient::UnregisterPlugin()
     return proxy->UnregisterPlugin();
 }
 
-ErrCode DomainAccountClient::AuthProxyInit(const std::shared_ptr<DomainAuthCallback> &callback,
-    sptr<DomainAuthCallbackService> &callbackService, sptr<IDomainAccount> &proxy)
+ErrCode DomainAccountClient::AuthProxyInit(const std::shared_ptr<DomainAccountCallback> &callback,
+    sptr<DomainAccountCallbackService> &callbackService, sptr<IDomainAccount> &proxy)
 {
     if (callback == nullptr) {
         ACCOUNT_LOGE("callback is nullptr");
         return ERR_ACCOUNT_COMMON_INVALID_PARAMETER;
     }
-    callbackService = new (std::nothrow) DomainAuthCallbackService(callback);
+    callbackService = new (std::nothrow) DomainAccountCallbackService(callback);
     if (callbackService == nullptr) {
-        ACCOUNT_LOGE("failed to create DomainAuthCallbackService");
+        ACCOUNT_LOGE("failed to create DomainAccountCallbackService");
         return ERR_ACCOUNT_COMMON_INSUFFICIENT_MEMORY_ERROR;
     }
     proxy = GetDomainAccountProxy();
@@ -126,9 +125,9 @@ ErrCode DomainAccountClient::HasAccount(
 }
 
 ErrCode DomainAccountClient::Auth(const DomainAccountInfo &info, const std::vector<uint8_t> &password,
-    const std::shared_ptr<DomainAuthCallback> &callback)
+    const std::shared_ptr<DomainAccountCallback> &callback)
 {
-    sptr<DomainAuthCallbackService> callbackService = nullptr;
+    sptr<DomainAccountCallbackService> callbackService = nullptr;
     sptr<IDomainAccount> proxy = nullptr;
     ErrCode result = AuthProxyInit(callback, callbackService, proxy);
     if (result != ERR_OK) {
@@ -138,9 +137,9 @@ ErrCode DomainAccountClient::Auth(const DomainAccountInfo &info, const std::vect
 }
 
 ErrCode DomainAccountClient::AuthUser(int32_t userId, const std::vector<uint8_t> &password,
-    const std::shared_ptr<DomainAuthCallback> &callback)
+    const std::shared_ptr<DomainAccountCallback> &callback)
 {
-    sptr<DomainAuthCallbackService> callbackService = nullptr;
+    sptr<DomainAccountCallbackService> callbackService = nullptr;
     sptr<IDomainAccount> proxy = nullptr;
     ErrCode result = AuthProxyInit(callback, callbackService, proxy);
     if (result != ERR_OK) {
@@ -149,9 +148,9 @@ ErrCode DomainAccountClient::AuthUser(int32_t userId, const std::vector<uint8_t>
     return proxy->AuthUser(userId, password, callbackService);
 }
 
-ErrCode DomainAccountClient::AuthWithPopup(int32_t userId, const std::shared_ptr<DomainAuthCallback> &callback)
+ErrCode DomainAccountClient::AuthWithPopup(int32_t userId, const std::shared_ptr<DomainAccountCallback> &callback)
 {
-    sptr<DomainAuthCallbackService> callbackService = nullptr;
+    sptr<DomainAccountCallbackService> callbackService = nullptr;
     sptr<IDomainAccount> proxy = nullptr;
     ErrCode result = AuthProxyInit(callback, callbackService, proxy);
     if (result != ERR_OK) {

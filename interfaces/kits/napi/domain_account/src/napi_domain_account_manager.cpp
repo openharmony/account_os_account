@@ -135,7 +135,7 @@ static napi_value CreateNapiGetAccessTokenOptions(const JsDomainPluginParam *par
 }
 
 static napi_value CreateNapiDomainAuthCallback(
-    napi_env env, const std::shared_ptr<DomainAuthCallback> &nativeCallback)
+    napi_env env, const std::shared_ptr<DomainAccountCallback> &nativeCallback)
 {
     napi_value napiCallback = nullptr;
     napi_value global = nullptr;
@@ -596,7 +596,7 @@ static void AuthCommonWork(uv_work_t *work, int status)
     if (param->authMode != AUTH_WITH_POPUP_MODE) {
         argv[argc++] = CreateUint8Array(param->env, param->authData.data(), param->authData.size());
     }
-    argv[argc++] = CreateNapiDomainAuthCallback(param->env, param->authCallback);
+    argv[argc++] = CreateNapiDomainAuthCallback(param->env, param->callback);
     NapiCallVoidFunction(param->env, argv, argc, param->func);
     std::unique_lock<std::mutex> lock(param->lockInfo->mutex);
     param->lockInfo->count--;
@@ -606,7 +606,7 @@ static void AuthCommonWork(uv_work_t *work, int status)
 }
 
 void NapiDomainAccountPlugin::AuthCommon(AccountSA::AuthMode authMode, const AccountSA::DomainAccountInfo &info,
-    const std::vector<uint8_t> &authData, const std::shared_ptr<AccountSA::DomainAuthCallback> &callback)
+    const std::vector<uint8_t> &authData, const std::shared_ptr<AccountSA::DomainAccountCallback> &callback)
 {
     std::unique_lock<std::mutex> lock(lockInfo_.mutex);
     if (lockInfo_.count < 0) {
@@ -639,7 +639,7 @@ void NapiDomainAccountPlugin::AuthCommon(AccountSA::AuthMode authMode, const Acc
         delete param;
         return;
     }
-    param->authCallback = callback;
+    param->callback = callback;
     param->domainAccountInfo = info;
     param->authMode = authMode;
     param->authData = authData;
@@ -654,19 +654,19 @@ void NapiDomainAccountPlugin::AuthCommon(AccountSA::AuthMode authMode, const Acc
 }
 
 void NapiDomainAccountPlugin::Auth(const DomainAccountInfo &info, const std::vector<uint8_t> &credential,
-    const std::shared_ptr<DomainAuthCallback> &callback)
+    const std::shared_ptr<DomainAccountCallback> &callback)
 {
     AuthCommon(AUTH_WITH_CREDENTIAL_MODE, info, credential, callback);
 }
 
 void NapiDomainAccountPlugin::AuthWithPopup(
-    const DomainAccountInfo &info, const std::shared_ptr<DomainAuthCallback> &callback)
+    const DomainAccountInfo &info, const std::shared_ptr<DomainAccountCallback> &callback)
 {
     AuthCommon(AUTH_WITH_POPUP_MODE, info, {}, callback);
 }
 
 void NapiDomainAccountPlugin::AuthWithToken(const DomainAccountInfo &info, const std::vector<uint8_t> &token,
-    const std::shared_ptr<DomainAuthCallback> &callback)
+    const std::shared_ptr<DomainAccountCallback> &callback)
 {
     AuthCommon(AUTH_WITH_TOKEN_MODE, info, token, callback);
 }
@@ -1057,8 +1057,13 @@ napi_value NapiDomainAccountManager::Auth(napi_env env, napi_callback_info cbInf
             param->errCode = DomainAccountClient::GetInstance().Auth(
                 param->domainAccountInfo, param->authData, callback);
             if (param->errCode != ERR_OK) {
+                Parcel emptyParcel;
                 AccountSA::DomainAuthResult emptyResult;
-                callback->OnResult(ConvertToJSErrCode(param->errCode), emptyResult);
+                if (!emptyResult.Marshalling(emptyParcel)) {
+                    ACCOUNT_LOGE("authResult Marshalling failed");
+                    return;
+                }
+                callback->OnResult(ConvertToJSErrCode(param->errCode), emptyParcel);
             }
         },
         AuthCompletedCallback,
@@ -1156,8 +1161,13 @@ napi_value NapiDomainAccountManager::AuthWithPopup(napi_env env, napi_callback_i
             param->callbackRef = nullptr;
             param->errCode = DomainAccountClient::GetInstance().AuthWithPopup(param->userId, callback);
             if (param->errCode != ERR_OK) {
+                Parcel emptyParcel;
                 AccountSA::DomainAuthResult emptyResult;
-                callback->OnResult(ConvertToJSErrCode(param->errCode), emptyResult);
+                if (!emptyResult.Marshalling(emptyParcel)) {
+                    ACCOUNT_LOGE("authResult Marshalling failed");
+                    return;
+                }
+                callback->OnResult(ConvertToJSErrCode(param->errCode), emptyParcel);
             }
         },
         AuthCompletedCallback,
