@@ -22,6 +22,11 @@
 #include "account_log_wrapper.h"
 #include "account_iam_callback_stub.h"
 #include "account_iam_callback_service.h"
+#ifdef PROXY_MOCK
+#define private public
+#include "account_iam_service.h"
+#undef private
+#endif
 #include "account_iam_mgr_proxy.h"
 #include "token_setproc.h"
 #include "iam_common_defines.h"
@@ -175,6 +180,12 @@ void AccountIAMClientTest::SetUpTestCase(void)
     AccessTokenID tokenId = AccessTokenKit::GetNativeTokenId("accountmgr");
     SetSelfTokenID(tokenId);
     g_selfTokenID = tokenId;
+#ifdef PROXY_MOCK
+    sptr<IAccountIAM> service = new (std::nothrow) AccountIAMService();
+    ASSERT_NE(service, nullptr);
+    AccountIAMClient::GetInstance().proxy_ = new (std::nothrow) AccountIAMMgrProxy(service->AsObject());
+    ASSERT_NE(AccountIAMClient::GetInstance().proxy_, nullptr);
+#endif
 }
 
 void AccountIAMClientTest::TearDownTestCase(void)
@@ -196,7 +207,11 @@ HWTEST_F(AccountIAMClientTest, AccountIAMClient_OpenSession_0100, TestSize.Level
 {
     std::vector<uint8_t> challenge;
     AccountIAMClient::GetInstance().OpenSession(0, challenge);
+#ifdef PROXY_MOCK
+    EXPECT_FALSE(challenge.size() != 0);
+#else // BUNDLE_ADAPTER_MOCK
     EXPECT_TRUE(challenge.size() != 0);
+#endif
     AccountIAMClient::GetInstance().CloseSession(0);
 }
 
