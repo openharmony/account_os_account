@@ -10,17 +10,5 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-group("fuzztest") {
-  testonly = true
 
-  deps = [
-    # deps file
-    "procauthstub_fuzzer:ProcAuthStubFuzzTest",
-    "procauthuserstub_fuzzer:ProcAuthUserStubFuzzTest",
-    "procauthwithpopupstub_fuzzer:ProcAuthWithPopupStubFuzzTest",
-    "procgetdomainaccountinfostub_fuzzer:ProcGetDomainAccountInfoStubFuzzTest",
-    "prochasdomainaccountstub_fuzzer:ProcHasDomainAccountStubFuzzTest",
-    "procregisterpluginstub_fuzzer:ProcRegisterPluginStubFuzzTest",
-    "procunregisterpluginstub_fuzzer:ProcUnregisterPluginStubFuzzTest",
-  ]
-}
+FUZZ
