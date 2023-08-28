@@ -18,7 +18,9 @@
 #include <string>
 #include <vector>
 
+#define private public
 #include "account_mgr_service.h"
+#undef private
 #include "iaccount.h"
 
 using namespace std;
@@ -44,6 +46,7 @@ const std::u16string ACCOUNT_TOKEN = u"ohos.accountfwk.IAccount";
         MessageParcel reply;
         MessageOption option;
         uint32_t code = static_cast<uint32_t>(AccountMgrInterfaceCode::QUERY_OHOS_ACCOUNT_INFO_BY_USER_ID);
+        DelayedRefSingleton<AccountMgrService>::GetInstance().Init();
         DelayedRefSingleton<AccountMgrService>::GetInstance().OnRemoteRequest(code, dataTemp, reply, option);
 
         return true;
