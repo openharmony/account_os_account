@@ -30,23 +30,24 @@ namespace OHOS {
 namespace {
 const std::u16string ACCOUNT_TOKEN = u"ohos.accountfwk.IAccount";
 }
-    bool CmdQueryDeviceAccountIdStubFuzzTest(const uint8_t* data, size_t size)
-    {
-        if ((data == nullptr) || (size == 0)) {
-            return false;
-        }
-        MessageParcel dataTemp;
-        if (!dataTemp.WriteInterfaceToken(ACCOUNT_TOKEN)) {
-            return false;
-        }
-        MessageParcel reply;
-        MessageOption option;
-        uint32_t code = static_cast<uint32_t>(AccountMgrInterfaceCode::QUERY_DEVICE_ACCOUNT_ID);
-        DelayedRefSingleton<AccountMgrService>::GetInstance().Init();
-        DelayedRefSingleton<AccountMgrService>::GetInstance().OnRemoteRequest(code, dataTemp, reply, option);
 
-        return true;
+bool CmdQueryDeviceAccountIdStubFuzzTest(const uint8_t* data, size_t size)
+{
+    if ((data == nullptr) || (size == 0)) {
+        return false;
     }
+    MessageParcel dataTemp;
+    if (!dataTemp.WriteInterfaceToken(ACCOUNT_TOKEN)) {
+        return false;
+    }
+    MessageParcel reply;
+    MessageOption option;
+    uint32_t code = static_cast<uint32_t>(AccountMgrInterfaceCode::QUERY_DEVICE_ACCOUNT_ID);
+    DelayedRefSingleton<AccountMgrService>::GetInstance().state_ = ServiceRunningState::STATE_RUNNING;
+    DelayedRefSingleton<AccountMgrService>::GetInstance().OnRemoteRequest(code, dataTemp, reply, option);
+
+    return true;
+}
 }
 
 /* Fuzzer entry point */
