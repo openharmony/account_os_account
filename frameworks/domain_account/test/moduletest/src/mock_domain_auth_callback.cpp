@@ -31,7 +31,7 @@ TestDomainAuthCallback::TestDomainAuthCallback(const std::shared_ptr<MockDomainA
 TestDomainAuthCallback::~TestDomainAuthCallback()
 {}
 
-void TestDomainAuthCallback::OnResult(int32_t resultCode, const DomainAuthResult &result)
+void TestDomainAuthCallback::OnResult(const int32_t errCode, Parcel &parcel)
 {
     ACCOUNT_LOGI("TestDomainAuthCallback");
     if (callback_ == nullptr) {
@@ -48,7 +48,8 @@ void TestDomainAuthCallback::OnResult(int32_t resultCode, const DomainAuthResult
         }
         ACCOUNT_LOGI("removeOsAccount successfully, localId: %{public}d", localId);
     }
-    callback_->OnResult(resultCode, result);
+    std::shared_ptr<DomainAuthResult> authResult(DomainAuthResult::Unmarshalling(parcel));
+    callback_->OnResult(errCode, (*authResult));
 }
 
 void TestDomainAuthCallback::SetOsAccountInfo(const OsAccountInfo &accountInfo)

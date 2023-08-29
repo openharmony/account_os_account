@@ -59,10 +59,6 @@ ohos_shared_library("domain_account_innerkits") {
     "src/domain_account_plugin_stub.cpp",
     "src/domain_account_proxy.cpp",
     "src/domain_account_status_listener_service.cpp",
-    "src/domain_auth_callback_client.cpp",
-    "src/domain_auth_callback_proxy.cpp",
-    "src/domain_auth_callback_service.cpp",
-    "src/domain_auth_callback_stub.cpp",
   ]
 
   configs = [ ":domain_account_innnerkits_config" ]

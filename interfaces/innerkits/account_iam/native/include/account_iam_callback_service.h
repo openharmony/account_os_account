@@ -20,7 +20,7 @@
 #include "account_iam_client_callback.h"
 #include "account_iam_info.h"
 #include "domain_account_common.h"
-#include "domain_auth_callback.h"
+#include "domain_account_callback.h"
 
 namespace OHOS {
 namespace AccountSA {
@@ -56,10 +56,10 @@ private:
     DISALLOW_COPY_AND_MOVE(GetSetPropCallbackService);
 };
 
-class DomainAuthCallbackAdapter final : public DomainAuthCallback {
+class DomainAuthCallbackAdapter final : public DomainAccountCallback {
 public:
     explicit DomainAuthCallbackAdapter(const std::shared_ptr<IDMCallback> &callback);
-    void OnResult(int32_t resultCode, const DomainAuthResult &result) override;
+    void OnResult(const int32_t errCode, Parcel &parcel) override;
 
 private:
     std::shared_ptr<IDMCallback> callback_;

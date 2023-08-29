@@ -19,8 +19,8 @@
 #include <vector>
 
 #include "domain_account_manager_service.h"
-#include "domain_auth_callback.h"
-#include "domain_auth_callback_service.h"
+#include "domain_account_callback.h"
+#include "domain_account_callback_service.h"
 #include "idomain_account.h"
 
 using namespace std;
@@ -30,11 +30,11 @@ namespace OHOS {
 namespace {
 const std::u16string ACCOUNT_TOKEN = u"ohos.accountfwk.IDomainAccount";
 
-class TestDomainAuthCallback : public OHOS::AccountSA::DomainAuthCallback {
+class TestDomainAuthCallback : public OHOS::AccountSA::DomainAccountCallback {
 public:
     TestDomainAuthCallback() = default;
     virtual ~TestDomainAuthCallback() = default;
-    void OnResult(int32_t resultCode, const OHOS::AccountSA::DomainAuthResult &result) override
+    void OnResult(const int32_t errCode, Parcel &parcel) override
     {}
 };
 }
@@ -48,7 +48,7 @@ public:
         int32_t userId = static_cast<int32_t>(size);
 
         auto callbackPtr = std::make_shared<TestDomainAuthCallback>();
-        sptr<IDomainAuthCallback> callback = new (std::nothrow) DomainAuthCallbackService(callbackPtr);
+        sptr<IDomainAccountCallback> callback = new (std::nothrow) DomainAccountCallbackService(callbackPtr);
 
         MessageParcel dataTemp;
 

@@ -42,21 +42,23 @@ MockDomainPlugin::~MockDomainPlugin()
 {}
 
 void MockDomainPlugin::AuthCommonInterface(const DomainAccountInfo &info, const std::vector<uint8_t> &authData,
-    const std::shared_ptr<DomainAuthCallback> &callback, AuthMode authMode)
+    const std::shared_ptr<DomainAccountCallback> &callback, AuthMode authMode)
 {
-    ACCOUNT_LOGI("start, accountName: %{public}s, domain: %{public}s",
-        info.accountName_.c_str(), info.domain_.c_str());
     if (callback == nullptr) {
         ACCOUNT_LOGE("callback is nullptr");
         return;
     }
-    DomainAuthResult result = {};
+    Parcel emptyParcel;
+    AccountSA::DomainAuthResult emptyResult;
+    if (!emptyResult.Marshalling(emptyParcel)) {
+        return;
+    }
     if ((info.domain_ == STRING_DOMAIN_NEW)) {
-        callback->OnResult(0, result);
+        callback->OnResult(0, emptyParcel);
         return;
     }
     if ((info.domain_ != VALID_DOMAIN) || (info.accountName_ != VALID_ACCOUNT_NAME)) {
-        callback->OnResult(1, result);
+        callback->OnResult(1, emptyParcel);
         return;
     }
     bool isCorrect = true;
@@ -80,27 +82,31 @@ void MockDomainPlugin::AuthCommonInterface(const DomainAccountInfo &info, const 
         remainingTimes_ = remainingTimes_ > 0 ? remainingTimes_ - 1 : 0;
         freezingTime_ = remainingTimes_ > 0 ? 0 : DEFAULT_FREEZING_TIME;
     }
+    AccountSA::DomainAuthResult result;
     result.authStatusInfo.remainingTimes = remainingTimes_;
     result.authStatusInfo.freezingTime = freezingTime_;
     result.token = TOKEN;
-
-    callback->OnResult(!isCorrect, result);
+    Parcel resultParcel;
+    if (!result.Marshalling(resultParcel)) {
+        return;
+    }
+    callback->OnResult(!isCorrect, resultParcel);
 }
 
 void MockDomainPlugin::Auth(const DomainAccountInfo &info, const std::vector<uint8_t> &password,
-    const std::shared_ptr<DomainAuthCallback> &callback)
+    const std::shared_ptr<DomainAccountCallback> &callback)
 {
     AuthCommonInterface(info, password, callback, AUTH_WITH_CREDENTIAL_MODE);
 }
 
 void MockDomainPlugin::AuthWithPopup(
-    const DomainAccountInfo &info, const std::shared_ptr<DomainAuthCallback> &callback)
+    const DomainAccountInfo &info, const std::shared_ptr<DomainAccountCallback> &callback)
 {
     AuthCommonInterface(info, {}, callback, AUTH_WITH_POPUP_MODE);
 }
 
 void MockDomainPlugin::AuthWithToken(const DomainAccountInfo &info, const std::vector<uint8_t> &token,
-    const std::shared_ptr<DomainAuthCallback> &callback)
+    const std::shared_ptr<DomainAccountCallback> &callback)
 {
     AuthCommonInterface(info, token, callback, AUTH_WITH_TOKEN_MODE);
 }

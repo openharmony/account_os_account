@@ -19,7 +19,7 @@
 #include "domain_account_callback_service.h"
 #include "domain_account_plugin_proxy.h"
 #include "domain_account_plugin_service.h"
-#include "domain_auth_callback_service.h"
+#include "domain_account_callback_service.h"
 #include "domain_has_domain_info_callback.h"
 #undef private
 #include "parcel.h"
@@ -148,7 +148,8 @@ HWTEST_F(DomainAccountPluginProxyTest, DomainAccountPluginProxyTest_AuthWithToke
 HWTEST_F(DomainAccountPluginProxyTest, DomainAccountPluginProxyTest_AuthWithToken_002, TestSize.Level0)
 {
     DomainAccountInfo info;
-    sptr<DomainAuthCallbackService> callbackService = new (std::nothrow) DomainAuthCallbackService(nullptr);
+    std::shared_ptr<DomainAccountCallback> callback = nullptr;
+    sptr<DomainAccountCallbackService> callbackService = new (std::nothrow) DomainAccountCallbackService(callback);
     EXPECT_NE(callbackService, nullptr);
     std::vector<uint8_t> token;
     EXPECT_NE(pluginProxy_->AuthWithToken(info, token, callbackService), ERR_OK);

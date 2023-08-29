@@ -29,10 +29,10 @@ public:
     explicit DomainAccountPluginProxy(const sptr<IRemoteObject> &object);
     ~DomainAccountPluginProxy() override;
     ErrCode Auth(const DomainAccountInfo &info, const std::vector<uint8_t> &password,
-        const sptr<IDomainAuthCallback> &callback) override;
-    ErrCode AuthWithPopup(const DomainAccountInfo &info, const sptr<IDomainAuthCallback> &callback) override;
+        const sptr<IDomainAccountCallback> &callback) override;
+    ErrCode AuthWithPopup(const DomainAccountInfo &info, const sptr<IDomainAccountCallback> &callback) override;
     ErrCode AuthWithToken(const DomainAccountInfo &info, const std::vector<uint8_t> &token,
-        const sptr<IDomainAuthCallback> &callback) override;
+        const sptr<IDomainAccountCallback> &callback) override;
     ErrCode GetAuthStatusInfo(const DomainAccountInfo &info, const sptr<IDomainAccountCallback> &callback) override;
     ErrCode GetDomainAccountInfo(
         const GetDomainAccountInfoOptions &options, const sptr<IDomainAccountCallback> &callback) override;
@@ -48,7 +48,7 @@ public:
 private:
     ErrCode SendRequest(DomainAccountPluginInterfaceCode code, MessageParcel &data, MessageParcel &reply);
     ErrCode AuthCommonInterface(const DomainAccountInfo &info, const std::vector<uint8_t> &password,
-        const sptr<IDomainAuthCallback> &callback, AuthMode authMode);
+        const sptr<IDomainAccountCallback> &callback, AuthMode authMode);
 
 private:
     static inline BrokerDelegator<DomainAccountPluginProxy> delegator_;

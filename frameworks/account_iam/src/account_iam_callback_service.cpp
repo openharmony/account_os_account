@@ -75,17 +75,22 @@ DomainAuthCallbackAdapter::DomainAuthCallbackAdapter(
     const std::shared_ptr<IDMCallback> &callback) : callback_(callback)
 {}
 
-void DomainAuthCallbackAdapter::OnResult(int32_t resultCode, const DomainAuthResult &result)
+void DomainAuthCallbackAdapter::OnResult(const int32_t errCode, Parcel &parcel)
 {
     if (callback_ == nullptr) {
         ACCOUNT_LOGE("callback is nullptr");
         return;
     }
+    std::shared_ptr<DomainAuthResult> authResult(DomainAuthResult::Unmarshalling(parcel));
+    if (authResult == nullptr) {
+        ACCOUNT_LOGE("authResult is nullptr");
+        return;
+    }
     Attributes attr;
-    attr.SetUint8ArrayValue(Attributes::AttributeKey::ATTR_SIGNATURE, result.token);
-    attr.SetInt32Value(Attributes::AttributeKey::ATTR_REMAIN_TIMES, result.authStatusInfo.remainingTimes);
-    attr.SetInt32Value(Attributes::AttributeKey::ATTR_FREEZING_TIME, result.authStatusInfo.freezingTime);
-    callback_->OnResult(resultCode, attr);
+    attr.SetUint8ArrayValue(Attributes::AttributeKey::ATTR_SIGNATURE, (*authResult).token);
+    attr.SetInt32Value(Attributes::AttributeKey::ATTR_REMAIN_TIMES, (*authResult).authStatusInfo.remainingTimes);
+    attr.SetInt32Value(Attributes::AttributeKey::ATTR_FREEZING_TIME, (*authResult).authStatusInfo.freezingTime);
+    callback_->OnResult(errCode, attr);
 }
 
 DomainCredentialRecipient::DomainCredentialRecipient(int32_t userId, const std::shared_ptr<IDMCallback> &callback)
@@ -109,8 +114,13 @@ void DomainCredentialRecipient::OnSetData(int32_t authSubType, std::vector<uint8
     }
     ErrCode errCode = DomainAccountClient::GetInstance().AuthUser(userId_, data, callback);
     if (errCode != ERR_OK) {
-        DomainAuthResult result;
-        callback->OnResult(errCode, result);
+        Parcel emptyParcel;
+        AccountSA::DomainAuthResult emptyResult;
+        if (!emptyResult.Marshalling(emptyParcel)) {
+            ACCOUNT_LOGE("authResult Marshalling failed");
+            return;
+        }
+        callback->OnResult(errCode, emptyParcel);
     }
 }
 

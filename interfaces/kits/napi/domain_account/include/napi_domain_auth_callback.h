@@ -17,7 +17,7 @@
 #define OS_ACCOUNT_INTERFACES_KITS_NAPI_APPACCOUNT_INCLUDE_NAPI_DOMAIN_AUTH_CALLBACK_H
 
 #include "domain_account_common.h"
-#include "domain_auth_callback.h"
+#include "domain_account_callback.h"
 #include "napi_account_common.h"
 #include "napi/native_api.h"
 
@@ -25,31 +25,31 @@ namespace OHOS {
 namespace AccountJsKit {
 class NapiDomainAuthCallback {
 public:
-    explicit NapiDomainAuthCallback(const std::shared_ptr<AccountSA::DomainAuthCallback> &callback);
+    explicit NapiDomainAuthCallback(const std::shared_ptr<AccountSA::DomainAccountCallback> &callback);
     ~NapiDomainAuthCallback();
-    std::shared_ptr<AccountSA::DomainAuthCallback> GetDomainAuthCallback();
+    std::shared_ptr<AccountSA::DomainAccountCallback> GetDomainAuthCallback();
     static napi_value Init(napi_env env, napi_value exports);
 
 private:
     static napi_value JsOnResult(napi_env env, napi_callback_info cbInfo);
     static napi_value JsConstructor(napi_env env, napi_callback_info cbInfo);
 private:
-    std::shared_ptr<AccountSA::DomainAuthCallback> callback_;
+    std::shared_ptr<AccountSA::DomainAccountCallback> callback_;
 };
 
 struct CallbackParam : public CommonAsyncContext {
     CallbackParam(napi_env napiEnv) : CommonAsyncContext(napiEnv) {};
-    std::shared_ptr<AccountSA::DomainAuthCallback> callback = nullptr;
+    std::shared_ptr<AccountSA::DomainAccountCallback> callback = nullptr;
     AccountSA::DomainAuthResult authResult;
     ThreadLockInfo *lockInfo = nullptr;
 };
 
-class NapiDomainAccountCallback final: public AccountSA::DomainAuthCallback {
+class NapiDomainAccountCallback final: public AccountSA::DomainAccountCallback {
 public:
     NapiDomainAccountCallback(napi_env env, napi_ref callback);
     ~NapiDomainAccountCallback();
 
-    void OnResult(int32_t resultCode, const AccountSA::DomainAuthResult &result) override;
+    void OnResult(const int32_t errCode, Parcel &parcel) override;
 private:
     napi_env env_;
     napi_ref callbackRef_;
