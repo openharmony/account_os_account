@@ -201,11 +201,7 @@ bool BundleManagerAdapterProxy::GetBundleInfo(
         ACCOUNT_LOGE("fail to GetBundleInfo due to write userId fail");
         return false;
     }
-    if (!GetBigParcelableInfo<BundleInfo>(BundleMgrInterfaceCode::GET_BUNDLE_INFO, data, bundleInfo)) {
-        ACCOUNT_LOGE("fail to GetBundleInfo from server");
-        return false;
-    }
-    return true;
+    return GetParcelInfo<BundleInfo>(BundleMgrInterfaceCode::GET_BUNDLE_INFO, data, bundleInfo);
 }
 
 int BundleManagerAdapterProxy::GetUidByBundleName(const std::string &bundleName, const int userId)
@@ -375,6 +371,72 @@ bool BundleManagerAdapterProxy::QueryExtensionAbilityInfos(const Want &want, con
         ACCOUNT_LOGE("fail to obtain extensionInfos");
         return false;
     }
+    return true;
+}
+
+bool BundleManagerAdapterProxy::GetData(void *&buffer, size_t size, const void *data)
+{
+    if (data == nullptr) {
+        ACCOUNT_LOGE("GetData failed duo to null data");
+        return false;
+    }
+    if (size == 0) {
+        ACCOUNT_LOGE("GetData failed duo to zero size");
+        return false;
+    }
+    buffer = malloc(size);
+    if (buffer == nullptr) {
+        ACCOUNT_LOGE("GetData failed duo to malloc buffer failed");
+        return false;
+    }
+    if (memcpy_s(buffer, size, data, size) != EOK) {
+        free(buffer);
+        ACCOUNT_LOGE("GetData failed duo to memcpy_s failed");
+        return false;
+    }
+    return true;
+}
+
+template<typename T>
+bool BundleManagerAdapterProxy::GetParcelInfo(BundleMgrInterfaceCode code, MessageParcel &data, T &parcelInfo)
+{
+    MessageParcel reply;
+    if (!SendTransactCmd(code, data, reply)) {
+        ACCOUNT_LOGE("SendTransactCmd failed");
+        return false;
+    }
+
+    ErrCode ret = reply.ReadInt32();
+    if (ret != ERR_OK) {
+        ACCOUNT_LOGE("reply result failed , ret = %{public}d", ret);
+        return false;
+    }
+
+    return InnerGetParcelInfo<T>(reply, parcelInfo);
+}
+
+template<typename T>
+bool BundleManagerAdapterProxy::InnerGetParcelInfo(MessageParcel &reply, T &parcelInfo)
+{
+    size_t dataSize = reply.ReadInt32();
+    void *buffer = nullptr;
+    if (!GetData(buffer, dataSize, reply.ReadRawData(dataSize))) {
+        ACCOUNT_LOGE("GetData failed");
+        return false;
+    }
+
+    MessageParcel tmpParcel;
+    if (!tmpParcel.ParseFrom(reinterpret_cast<uintptr_t>(buffer), dataSize)) {
+        ACCOUNT_LOGE("ParseFrom failed");
+        return false;
+    }
+
+    std::unique_ptr<T> info(tmpParcel.ReadParcelable<T>());
+    if (info == nullptr) {
+        ACCOUNT_LOGE("ReadParcelableInfo failed");
+        return false;
+    }
+    parcelInfo = *info;
     return true;
 }
 
