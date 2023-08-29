@@ -176,7 +176,7 @@ void StatusListenerManager::DomainAccountEventParcel(const DomainAccountEventDat
 
 void StatusListenerManager::NotifyEventAsync(const DomainAccountEventData &report)
 {
-    ACCOUNT_LOGI("report.event %{public}d", report.event);
+    ACCOUNT_LOGI("report.event %{public}d, report.status %{public}d", report.event, report.status);
 #ifdef HAS_CES_PART
     AccountEventProvider::EventPublish(
         EventFwk::CommonEventSupport::COMMON_EVENT_DOMAIN_ACCOUNT_STATUS_CHANGED, INVALID_USERID, &report);

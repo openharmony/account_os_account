@@ -45,7 +45,6 @@ ohos_fuzztest("ProcAuthStubFuzzTest") {
   sources = [
     "${app_account_services_path}/src/domain_account/domain_account_manager_service.cpp",
     "${app_account_services_path}/src/domain_account/domain_account_stub.cpp",
-    "${domain_account_framework_path}/src/domain_auth_callback_service.cpp",
     "procauthstub_fuzzer.cpp",
   ]
 

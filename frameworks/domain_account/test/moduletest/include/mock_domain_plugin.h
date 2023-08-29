@@ -25,11 +25,11 @@ public:
     MockDomainPlugin();
     virtual ~MockDomainPlugin();
     void Auth(const DomainAccountInfo &info, const std::vector<uint8_t> &password,
-        const std::shared_ptr<DomainAuthCallback> &callback) override;
+        const std::shared_ptr<DomainAccountCallback> &callback) override;
     void AuthWithPopup(const AccountSA::DomainAccountInfo &info,
-        const std::shared_ptr<AccountSA::DomainAuthCallback> &callback) override;
+        const std::shared_ptr<AccountSA::DomainAccountCallback> &callback) override;
     void AuthWithToken(const AccountSA::DomainAccountInfo &info, const std::vector<uint8_t> &token,
-        const std::shared_ptr<AccountSA::DomainAuthCallback> &callback) override;
+        const std::shared_ptr<AccountSA::DomainAccountCallback> &callback) override;
     void GetAuthStatusInfo(const DomainAccountInfo &info,
         const std::shared_ptr<DomainAccountCallback> &callback) override;
     virtual void GetDomainAccountInfo(const GetDomainAccountInfoOptions &options,
@@ -45,7 +45,7 @@ public:
 
 private:
     void AuthCommonInterface(const DomainAccountInfo &info, const std::vector<uint8_t> &authData,
-        const std::shared_ptr<DomainAuthCallback> &callback, AuthMode authMode);
+        const std::shared_ptr<DomainAccountCallback> &callback, AuthMode authMode);
 
 private:
     int32_t remainingTimes_;

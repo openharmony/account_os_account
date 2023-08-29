@@ -28,14 +28,18 @@ TestDomainAuthCallbackForListener::TestDomainAuthCallbackForListener(
 TestDomainAuthCallbackForListener::~TestDomainAuthCallbackForListener()
 {}
 
-void TestDomainAuthCallbackForListener::OnResult(int32_t resultCode, const DomainAuthResult &result)
+void TestDomainAuthCallbackForListener::OnResult(const int32_t errCode, Parcel &parcel)
 {
     ACCOUNT_LOGI("TestDomainAuthCallbackForListener");
     if (callback_ == nullptr) {
         ACCOUNT_LOGE("callback is nullptr");
         return;
     }
-    callback_->OnResult(resultCode, result);
+    std::shared_ptr<DomainAuthResult> authResult(DomainAuthResult::Unmarshalling(parcel));
+    if (authResult == nullptr) {
+        return;
+    }
+    callback_->OnResult(errCode, *authResult);
 }
 
 void TestDomainAuthCallbackForListener::SetOsAccountInfo(const OsAccountInfo &accountInfo)

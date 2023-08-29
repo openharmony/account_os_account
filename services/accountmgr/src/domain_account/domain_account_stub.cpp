@@ -19,7 +19,6 @@
 #include "account_log_wrapper.h"
 #include "account_permission_manager.h"
 #include "domain_account_callback_proxy.h"
-#include "domain_auth_callback_proxy.h"
 #include "ipc_skeleton.h"
 #include "memory_guard.h"
 
@@ -199,7 +198,7 @@ ErrCode DomainAccountStub::ProcAuth(MessageParcel &data, MessageParcel &reply)
         ACCOUNT_LOGE("fail to read password");
         return ERR_ACCOUNT_COMMON_READ_PARCEL_ERROR;
     }
-    auto callback = iface_cast<IDomainAuthCallback>(data.ReadRemoteObject());
+    auto callback = iface_cast<IDomainAccountCallback>(data.ReadRemoteObject());
     ErrCode result = ERR_ACCOUNT_COMMON_INVALID_PARAMETER;
     if (callback == nullptr) {
         ACCOUNT_LOGE("callback is nullptr");
@@ -338,7 +337,7 @@ ErrCode DomainAccountStub::ProcAuthUser(MessageParcel &data, MessageParcel &repl
         ACCOUNT_LOGE("fail to read password");
         return ERR_ACCOUNT_COMMON_READ_PARCEL_ERROR;
     }
-    auto callback = iface_cast<IDomainAuthCallback>(data.ReadRemoteObject());
+    auto callback = iface_cast<IDomainAccountCallback>(data.ReadRemoteObject());
     ErrCode result = ERR_ACCOUNT_COMMON_INVALID_PARAMETER;
     if (callback == nullptr) {
         ACCOUNT_LOGE("callback is nullptr");
@@ -360,7 +359,7 @@ ErrCode DomainAccountStub::ProcAuthWithPopup(MessageParcel &data, MessageParcel 
         ACCOUNT_LOGE("fail to read userId");
         return ERR_ACCOUNT_COMMON_READ_PARCEL_ERROR;
     }
-    auto callback = iface_cast<IDomainAuthCallback>(data.ReadRemoteObject());
+    auto callback = iface_cast<IDomainAccountCallback>(data.ReadRemoteObject());
     ErrCode result = ERR_ACCOUNT_COMMON_INVALID_PARAMETER;
     if (callback == nullptr) {
         ACCOUNT_LOGE("callback is nullptr");

@@ -18,7 +18,6 @@
 
 #include "domain_account_common.h"
 #include "domain_account_callback.h"
-#include "domain_auth_callback.h"
 #include "want.h"
 
 namespace OHOS {
@@ -34,7 +33,7 @@ public:
      * @param callback Indicates the result callback.
     */
     virtual void Auth(const DomainAccountInfo &info, const std::vector<uint8_t> &password,
-        const std::shared_ptr<DomainAuthCallback> &callback) = 0;
+        const std::shared_ptr<DomainAccountCallback> &callback) = 0;
 
     /**
      * Authenticates the specified domain account with a popup.
@@ -42,7 +41,8 @@ public:
      * @param info Indicates the domain account information, including accountName and domain.
      * @param callback Indicates the result callback.
     */
-    virtual void AuthWithPopup(const DomainAccountInfo &info, const std::shared_ptr<DomainAuthCallback> &callback) = 0;
+    virtual void AuthWithPopup(
+        const DomainAccountInfo &info, const std::shared_ptr<DomainAccountCallback> &callback) = 0;
 
     /**
      * Authenticates the specified domain account with an authorization token.
@@ -52,7 +52,7 @@ public:
      * @param callback Indicates the result callback.
     */
     virtual void AuthWithToken(const DomainAccountInfo &info, const std::vector<uint8_t> &token,
-        const std::shared_ptr<DomainAuthCallback> &callback) = 0;
+        const std::shared_ptr<DomainAccountCallback> &callback) = 0;
 
     /**
      * Gets the authentication property of the specified domain account,

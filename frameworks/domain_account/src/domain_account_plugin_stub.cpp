@@ -91,7 +91,7 @@ ErrCode DomainAccountPluginStub::ProcAuthCommonInterface(MessageParcel &data, Me
         ACCOUNT_LOGE("failed to read password");
         return ERR_ACCOUNT_COMMON_READ_PARCEL_ERROR;
     }
-    sptr<IDomainAuthCallback> callbackProxy = iface_cast<IDomainAuthCallback>(data.ReadRemoteObject());
+    sptr<IDomainAccountCallback> callbackProxy = iface_cast<IDomainAccountCallback>(data.ReadRemoteObject());
     int32_t mode = -1;
     if (!data.ReadInt32(mode)) {
         ACCOUNT_LOGE("failed to read authMode");

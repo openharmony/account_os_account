@@ -20,7 +20,6 @@
 #include "domain_account_callback_service.h"
 #include "domain_account_plugin_service.h"
 #include "domain_account_plugin_stub.h"
-#include "domain_auth_callback_service.h"
 #undef private
 #include "parcel.h"
 #include "want.h"
@@ -103,7 +102,8 @@ HWTEST_F(DomainPluginStubModuleTest, DomainPluginStubModuleTest_ProcAuthCommonIn
     EXPECT_EQ(data.WriteParcelable(&info), true);
     std::vector<uint8_t> authData;
     EXPECT_EQ(data.WriteUInt8Vector(authData), true);
-    sptr<DomainAuthCallbackService> callbackService = new (std::nothrow) DomainAuthCallbackService(nullptr);
+    std::shared_ptr<DomainAccountCallback> callback = nullptr;
+    sptr<DomainAccountCallbackService> callbackService = new (std::nothrow) DomainAccountCallbackService(callback);
     ASSERT_NE(callbackService, nullptr);
     EXPECT_EQ(data.WriteRemoteObject(callbackService->AsObject()), true);
     EXPECT_EQ(data.WriteInt32(AUTH_WITH_TOKEN_MODE), true);

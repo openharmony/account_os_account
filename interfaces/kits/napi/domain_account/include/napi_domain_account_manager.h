@@ -19,7 +19,6 @@
 #include "domain_account_callback.h"
 #include "domain_account_common.h"
 #include "domain_account_plugin.h"
-#include "domain_auth_callback.h"
 #include "get_access_token_callback.h"
 #include "napi/native_api.h"
 #include "napi_account_common.h"
@@ -71,7 +70,6 @@ struct JsDomainPluginParam : public CommonAsyncContext {
     JsDomainPluginParam(napi_env napiEnv) : CommonAsyncContext(napiEnv) {};
     napi_ref func = nullptr;
     AccountSA::DomainAccountInfo domainAccountInfo;
-    std::shared_ptr<AccountSA::DomainAuthCallback> authCallback = nullptr;
     std::shared_ptr<AccountSA::DomainAccountCallback> callback = nullptr;
     AccountSA::GetAccessTokenOptions option;
     ThreadLockInfo *lockInfo = nullptr;
@@ -89,11 +87,11 @@ public:
     NapiDomainAccountPlugin(napi_env env, const JsDomainPlugin &jsPlugin);
     ~NapiDomainAccountPlugin();
     void Auth(const AccountSA::DomainAccountInfo &info, const std::vector<uint8_t> &credential,
-        const std::shared_ptr<AccountSA::DomainAuthCallback> &callback) override;
+        const std::shared_ptr<AccountSA::DomainAccountCallback> &callback) override;
     void AuthWithPopup(const AccountSA::DomainAccountInfo &info,
-        const std::shared_ptr<AccountSA::DomainAuthCallback> &callback) override;
+        const std::shared_ptr<AccountSA::DomainAccountCallback> &callback) override;
     void AuthWithToken(const AccountSA::DomainAccountInfo &info, const std::vector<uint8_t> &token,
-        const std::shared_ptr<AccountSA::DomainAuthCallback> &callback) override;
+        const std::shared_ptr<AccountSA::DomainAccountCallback> &callback) override;
     void GetAuthStatusInfo(const AccountSA::DomainAccountInfo &info,
         const std::shared_ptr<AccountSA::DomainAccountCallback> &callback) override;
     void GetDomainAccountInfo(const AccountSA::GetDomainAccountInfoOptions &options,
@@ -110,7 +108,7 @@ public:
 
 private:
     void AuthCommon(AccountSA::AuthMode authMode, const AccountSA::DomainAccountInfo &info,
-        const std::vector<uint8_t> &authData, const std::shared_ptr<AccountSA::DomainAuthCallback> &callback);
+        const std::vector<uint8_t> &authData, const std::shared_ptr<AccountSA::DomainAccountCallback> &callback);
 
 private:
     napi_env env_;

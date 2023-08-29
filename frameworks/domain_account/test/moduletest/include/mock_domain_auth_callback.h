@@ -17,7 +17,7 @@
 #define OS_ACCOUNT_FRAMEWORKS_DOMAIN_ACCOUNT_TEST_INCLUDE_MOCK_DOMAIN_AUTH_CALLBACK_H
 
 #include <gmock/gmock.h>
-#include "domain_auth_callback.h"
+#include "domain_account_callback.h"
 #include "os_account_info.h"
 
 namespace OHOS {
@@ -27,11 +27,11 @@ public:
     MOCK_METHOD2(OnResult, void(int32_t resultCode, const DomainAuthResult &result));
 };
 
-class TestDomainAuthCallback : public DomainAuthCallback {
+class TestDomainAuthCallback : public DomainAccountCallback {
 public:
     TestDomainAuthCallback(const std::shared_ptr<MockDomainAuthCallback> &callback);
     virtual ~TestDomainAuthCallback();
-    void OnResult(int32_t resultCode, const DomainAuthResult &result) override;
+    void OnResult(const int32_t errCode, Parcel &parcel) override;
     void SetOsAccountInfo(const OsAccountInfo &info);
 
 private:
