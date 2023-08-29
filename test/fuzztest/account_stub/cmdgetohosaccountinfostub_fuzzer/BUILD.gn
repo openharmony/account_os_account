@@ -51,6 +51,7 @@ ohos_fuzztest("CmdGetOhosAccountInfoStubFuzzTest") {
     "${os_account_path}/frameworks/common:libaccount_common",
     "${os_account_path}/services/accountmgr:accountmgr",
     "${os_account_path}/services/accountmgr/src/appaccount:app_account_service_core",
+    "//third_party/selinux:libselinux",
   ]
 
   external_deps = [
