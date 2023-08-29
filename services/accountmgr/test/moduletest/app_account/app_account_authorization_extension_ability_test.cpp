@@ -26,8 +26,6 @@
 #include "app_account_authorization_extension_stub.h"
 #undef private
 #include "app_account_common.h"
-#include "authorization_extension.h"
-#include "napi_app_account_authorization_extension.h"
 #include "js_runtime.h"
 #include "want.h"
 
@@ -66,19 +64,6 @@ void TestAppAccountAuthorizationExtensionCallback::OnResult(
 
 void TestAppAccountAuthorizationExtensionCallback::OnRequestRedirected(const AAFwk::Want &request)
 {}
-
-class MockJsAuthorizationExtension final : public OHOS::AbilityRuntime::AuthorizationExtension {
-public:
-    void StartAuthorization(
-        const std::shared_ptr<AccountSA::AppAccountAuthorizationExtensionCallbackClient> &callbackPtr)
-    {
-        AAFwk::WantParams parameters;
-        EXPECT_NE(callbackPtr, nullptr);
-        AsyncCallbackError businessError;
-        callbackPtr->OnResult(businessError, parameters);
-        return;
-    }
-};
 
 class AppAccountExtensionModuleTest : public testing::Test {
 public:
