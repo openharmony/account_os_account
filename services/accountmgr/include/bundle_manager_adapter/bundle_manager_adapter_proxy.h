@@ -163,6 +163,13 @@ private:
         MessageParcel &reply, std::vector<T> &parcelableInfos);
 
     bool SendData(void *&buffer, size_t size, const void *data);
+    bool GetData(void *&buffer, size_t size, const void *data);
+
+    template <typename T>
+    bool GetParcelInfo(BundleMgrInterfaceCode code, MessageParcel &data, T &parcelInfo);
+
+    template <typename T>
+    bool InnerGetParcelInfo(MessageParcel &reply, T &parcelInfo);
 
     static inline BrokerDelegator<BundleManagerAdapterProxy> delegator_;
 };
