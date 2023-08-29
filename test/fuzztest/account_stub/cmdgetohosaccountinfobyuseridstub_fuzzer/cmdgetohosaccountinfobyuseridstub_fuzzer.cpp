@@ -30,27 +30,28 @@ namespace OHOS {
 namespace {
 const std::u16string ACCOUNT_TOKEN = u"ohos.accountfwk.IAccount";
 }
-    bool CmdGetOhosAccountInfoByUserIdStubFuzzTest(const uint8_t* data, size_t size)
-    {
-        if ((data == nullptr) || (size == 0)) {
-            return false;
-        }
-        MessageParcel dataTemp;
-        int32_t userId = static_cast<int32_t>(size);
-        if (!dataTemp.WriteInterfaceToken(ACCOUNT_TOKEN)) {
-            return false;
-        }
-        if (!dataTemp.WriteInt32(userId)) {
-            return false;
-        }
-        MessageParcel reply;
-        MessageOption option;
-        uint32_t code = static_cast<uint32_t>(AccountMgrInterfaceCode::GET_OHOS_ACCOUNT_INFO_BY_USER_ID);
-        DelayedRefSingleton<AccountMgrService>::GetInstance().Init();
-        DelayedRefSingleton<AccountMgrService>::GetInstance().OnRemoteRequest(code, dataTemp, reply, option);
 
-        return true;
+bool CmdGetOhosAccountInfoByUserIdStubFuzzTest(const uint8_t* data, size_t size)
+{
+    if ((data == nullptr) || (size == 0)) {
+        return false;
     }
+    MessageParcel dataTemp;
+    int32_t userId = static_cast<int32_t>(size);
+    if (!dataTemp.WriteInterfaceToken(ACCOUNT_TOKEN)) {
+        return false;
+    }
+    if (!dataTemp.WriteInt32(userId)) {
+        return false;
+    }
+    MessageParcel reply;
+    MessageOption option;
+    uint32_t code = static_cast<uint32_t>(AccountMgrInterfaceCode::GET_OHOS_ACCOUNT_INFO_BY_USER_ID);
+    DelayedRefSingleton<AccountMgrService>::GetInstance().state_ = ServiceRunningState::STATE_RUNNING;
+    DelayedRefSingleton<AccountMgrService>::GetInstance().OnRemoteRequest(code, dataTemp, reply, option);
+
+    return true;
+}
 }
 
 /* Fuzzer entry point */
