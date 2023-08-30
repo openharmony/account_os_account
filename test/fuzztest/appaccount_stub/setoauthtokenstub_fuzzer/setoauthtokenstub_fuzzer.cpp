@@ -29,19 +29,19 @@ bool SetOAuthTokenStubFuzzTest(const uint8_t* data, size_t size)
     if ((data == nullptr) || (size == 0)) {
         return false;
     }
+    std::string name(reinterpret_cast<const char*>(data), size);
+    std::string token(reinterpret_cast<const char*>(data), size);
+    std::string authType(reinterpret_cast<const char*>(data), size);
     MessageParcel dataTemp;
     if (!dataTemp.WriteInterfaceToken(APPACCOUNT_TOKEN)) {
         return false;
     }
-    std::string name(reinterpret_cast<const char*>(data), size);
     if (!dataTemp.WriteString(name)) {
         return false;
     }
-    std::string token(reinterpret_cast<const char*>(data), size);
     if (!dataTemp.WriteString(token)) {
         return false;
     }
-    std::string authType(reinterpret_cast<const char*>(data), size);
     if (!dataTemp.WriteString(authType)) {
         return false;
     }

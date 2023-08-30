@@ -28,16 +28,9 @@ namespace OHOS {
 const std::u16string IOS_ACCOUNT_DESCRIPTOR = u"ohos.accountfwk.IOsAccount";
 bool CheckOsAccountConstraintEnabledStubFuzzTest(const uint8_t *data, size_t size)
 {
-    if ((data == nullptr) || (size == 0)) {
-        return false;
-    }
-
-    int id = static_cast<int>(size);
-
     MessageParcel datas;
-    datas.WriteInterfaceToken(IOS_ACCOUNT_DESCRIPTOR);
-
-    if (!datas.WriteInt32(id)) {
+    if ((data == nullptr) || (size == 0) || (!datas.WriteInterfaceToken(IOS_ACCOUNT_DESCRIPTOR)) ||
+        (!datas.WriteInt32(static_cast<int32_t>(size)))) {
         return false;
     }
 
@@ -46,15 +39,13 @@ bool CheckOsAccountConstraintEnabledStubFuzzTest(const uint8_t *data, size_t siz
         return false;
     }
 
-    uint32_t code = static_cast<uint32_t>(OsAccountInterfaceCode::CHECK_OS_ACCOUNT_CONSTRAINT_ENABLED);
-
     MessageParcel reply;
     MessageOption option;
 
     auto osAccountManagerService_ = std::make_shared<OsAccountManagerService>();
 
     osAccountManagerService_ ->OnRemoteRequest(
-        code, datas, reply, option);
+        static_cast<int32_t>(OsAccountInterfaceCode::CHECK_OS_ACCOUNT_CONSTRAINT_ENABLED), datas, reply, option);
 
     return true;
 }
