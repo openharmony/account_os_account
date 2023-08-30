@@ -80,7 +80,6 @@ ohos_moduletest("app_account_authorization_extension_ability_test") {
     "${app_account_services_path}/include",
   ]
   sources = [
-    "${app_account_kits_path}/src/napi_app_account_authorization_extension.cpp",
     "${app_account_services_path}/src/appaccount/app_account_authorization_extension_proxy.cpp",
     "app_account_authorization_extension_ability_test.cpp",
   ]
@@ -89,7 +88,6 @@ ohos_moduletest("app_account_authorization_extension_ability_test") {
 
   deps = [
     "${account_napi_common_path}:account_napi_common",
-    "${app_account_extension_path}:authorization_extension",
     "${app_account_innerkits_native_path}:app_account_innerkits",
     "${app_account_services_path}:accountmgr",
     "${common_path}:libaccount_common",
@@ -337,7 +335,6 @@ ohos_moduletest("app_account_authenticator_session_module_test") {
   configs = [ ":app_account_service_config_unittest" ]
 
   deps = [
-    "${app_account_extension_path}:authorization_extension",
     "${app_account_innerkits_native_path}:app_account_innerkits",
     "${app_account_services_path}:accountmgr",
     "${app_account_services_path}/src/appaccount:app_account_service_core",
@@ -709,7 +706,6 @@ ohos_moduletest("app_account_authenticator_session_manager_module_test") {
   configs = [ ":app_account_service_config_unittest" ]
 
   deps = [
-    "${app_account_extension_path}:authorization_extension",
     "${app_account_innerkits_native_path}:app_account_innerkits",
     "${app_account_services_path}:accountmgr",
     "${app_account_services_path}/src/appaccount:app_account_service_core",
