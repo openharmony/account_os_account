@@ -47,6 +47,8 @@ public:
     virtual ErrCode UpdateAccountToken(const DomainAccountInfo &info, const std::vector<uint8_t> &token) = 0;
     virtual ErrCode GetAccessToken(const DomainAccountInfo &info, const AAFwk::WantParams &parameters,
         const sptr<IDomainAccountCallback> &callback) = 0;
+    virtual ErrCode GetDomainAccountInfo(
+        const DomainAccountInfo &Info, const sptr<IDomainAccountCallback> &callback) = 0;
 };
 }  // namespace AccountSA
 }  // namespace OHOS

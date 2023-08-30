@@ -61,6 +61,12 @@ struct GetAccessTokenAsyncContext : public CommonAsyncContext {
     std::vector<uint8_t> accessToken;
 };
 
+struct GetAccountInfoAsyncContext : public CommonAsyncContext {
+    GetAccountInfoAsyncContext(napi_env napiEnv) : CommonAsyncContext(napiEnv) {};
+    AccountSA::DomainAccountInfo domainInfo;
+    AAFwk::WantParams getAccountInfoParams;
+};
+
 struct JsDomainPluginParam : public CommonAsyncContext {
     JsDomainPluginParam(napi_env napiEnv) : CommonAsyncContext(napiEnv) {};
     napi_ref func = nullptr;
@@ -75,6 +81,7 @@ struct JsDomainPluginParam : public CommonAsyncContext {
     std::string accountId = "";
     int32_t remainingTimes = INVALID_PARAMETER;
     int32_t freezingTime = INVALID_PARAMETER;
+    int32_t callingUid = INVALID_PARAMETER;
 };
 
 class NapiDomainAccountPlugin final: public AccountSA::DomainAccountPlugin {
@@ -89,7 +96,7 @@ public:
         const std::shared_ptr<AccountSA::DomainAuthCallback> &callback) override;
     void GetAuthStatusInfo(const AccountSA::DomainAccountInfo &info,
         const std::shared_ptr<AccountSA::DomainAccountCallback> &callback) override;
-    void GetDomainAccountInfo(const std::string &domain, const std::string &accountName,
+    void GetDomainAccountInfo(const AccountSA::GetDomainAccountInfoOptions &options,
         const std::shared_ptr<AccountSA::DomainAccountCallback> &callback) override;
     void OnAccountBound(const AccountSA::DomainAccountInfo &info, const int32_t localId,
         const std::shared_ptr<AccountSA::DomainAccountCallback> &callback) override;
@@ -135,6 +142,18 @@ private:
     napi_deferred deferred_ = nullptr;
 };
 
+class NapiGetAccountInfoCallback final : public AccountSA::DomainAccountCallback {
+public:
+    NapiGetAccountInfoCallback(napi_env env, napi_ref callbackRef, napi_deferred deferred);
+    void OnResult(const int32_t errCode, Parcel &parcel) override;
+
+private:
+    AccountJsKit::ThreadLockInfo lockInfo_;
+    napi_env env_ = nullptr;
+    napi_ref callbackRef_ = nullptr;
+    napi_deferred deferred_ = nullptr;
+};
+
 class NapiDomainAccountManager {
 public:
     static napi_value Init(napi_env env, napi_value exports);
@@ -148,6 +167,7 @@ private:
     static napi_value HasAccount(napi_env env, napi_callback_info cbInfo);
     static napi_value UpdateAccountToken(napi_env env, napi_callback_info cbInfo);
     static napi_value GetAccessToken(napi_env env, napi_callback_info cbInfo);
+    static napi_value GetDomainAccountInfo(napi_env env, napi_callback_info cbInfo);
 };
 }  // namespace AccountJsKit
 }  // namespace OHOS

@@ -540,7 +540,7 @@ bool InnerDomainAccountManager::IsPluginAvailable()
 }
 
 ErrCode InnerDomainAccountManager::StartHasDomainAccount(const sptr<IDomainAccountPlugin> &plugin,
-    const DomainAccountInfo &info, const sptr<IDomainAccountCallback> &callback)
+    const GetDomainAccountInfoOptions &options, const sptr<IDomainAccountCallback> &callback)
 {
     if (callback == nullptr) {
         ACCOUNT_LOGE("invalid callback");
@@ -551,7 +551,8 @@ ErrCode InnerDomainAccountManager::StartHasDomainAccount(const sptr<IDomainAccou
         ErrorOnResult(ERR_DOMAIN_ACCOUNT_SERVICE_PLUGIN_NOT_EXIST, callback);
         return ERR_DOMAIN_ACCOUNT_SERVICE_PLUGIN_NOT_EXIST;
     }
-    auto callbackWrapper = std::make_shared<DomainHasDomainInfoCallback>(callback, info.domain_, info.accountName_);
+    auto callbackWrapper = std::make_shared<DomainHasDomainInfoCallback>(
+        callback, options.accountInfo.domain_, options.accountInfo.accountName_);
     if (callbackWrapper == nullptr) {
         ACCOUNT_LOGE("make shared DomainHasDomainInfoCallback failed");
         ErrorOnResult(ERR_ACCOUNT_COMMON_INSUFFICIENT_MEMORY_ERROR, callback);
@@ -564,7 +565,7 @@ ErrCode InnerDomainAccountManager::StartHasDomainAccount(const sptr<IDomainAccou
         ErrorOnResult(ERR_ACCOUNT_COMMON_INSUFFICIENT_MEMORY_ERROR, callback);
         return ERR_ACCOUNT_COMMON_INSUFFICIENT_MEMORY_ERROR;
     }
-    ErrCode result = plugin->GetDomainAccountInfo(info.domain_, info.accountName_, callbackService);
+    ErrCode result = plugin->GetDomainAccountInfo(options, callbackService);
     if (result != ERR_OK) {
         ACCOUNT_LOGE("failed to get domain account, errCode: %{public}d", result);
         ErrorOnResult(result, callback);
@@ -576,8 +577,12 @@ ErrCode InnerDomainAccountManager::StartHasDomainAccount(const sptr<IDomainAccou
 ErrCode InnerDomainAccountManager::HasDomainAccount(
     const DomainAccountInfo &info, const sptr<IDomainAccountCallback> &callback)
 {
+    int32_t callingUid = IPCSkeleton::GetCallingUid();
+    GetDomainAccountInfoOptions options;
+    options.accountInfo = info;
+    options.callingUid = callingUid;
     auto task =
-        std::bind(&InnerDomainAccountManager::StartHasDomainAccount, this, plugin_, info, callback);
+        std::bind(&InnerDomainAccountManager::StartHasDomainAccount, this, plugin_, options, callback);
     std::thread taskThread(task);
     pthread_setname_np(taskThread.native_handle(), THREAD_HAS_ACCOUNT);
     taskThread.detach();
@@ -637,13 +642,13 @@ ErrCode InnerDomainAccountManager::OnAccountUnBound(const DomainAccountInfo &inf
 }
 
 void InnerDomainAccountManager::StartGetDomainAccountInfo(const sptr<IDomainAccountPlugin> &plugin,
-    const std::string &domain, const std::string &accountName, const sptr<IDomainAccountCallback> &callback)
+    const GetDomainAccountInfoOptions &options, const sptr<IDomainAccountCallback> &callback)
 {
     if (plugin == nullptr) {
         ACCOUNT_LOGE("plugin not exists");
         return ErrorOnResult(ERR_DOMAIN_ACCOUNT_SERVICE_PLUGIN_NOT_EXIST, callback);
     }
-    ErrCode errCode = plugin->GetDomainAccountInfo(domain, accountName, callback);
+    ErrCode errCode = plugin->GetDomainAccountInfo(options, callback);
     if (errCode != ERR_OK) {
         ACCOUNT_LOGE("failed to get domain account, errCode: %{public}d", errCode);
         ErrorOnResult(errCode, callback);
@@ -651,15 +656,14 @@ void InnerDomainAccountManager::StartGetDomainAccountInfo(const sptr<IDomainAcco
 }
 
 ErrCode InnerDomainAccountManager::GetDomainAccountInfo(
-    const std::string &domain, const std::string &accountName, const std::shared_ptr<DomainAccountCallback> &callback)
+    const DomainAccountInfo &info, const sptr<IDomainAccountCallback> &callback)
 {
-    sptr<DomainAccountCallbackService> callbackService = new (std::nothrow) DomainAccountCallbackService(callback);
-    if (callbackService == nullptr) {
-        ACCOUNT_LOGE("make shared DomainAccountCallbackService failed");
-        return ERR_ACCOUNT_COMMON_INSUFFICIENT_MEMORY_ERROR;
-    }
+    int32_t callingUid = IPCSkeleton::GetCallingUid();
+    GetDomainAccountInfoOptions options;
+    options.accountInfo = info;
+    options.callingUid = callingUid;
     auto task = std::bind(
-        &InnerDomainAccountManager::StartGetDomainAccountInfo, this, plugin_, domain, accountName, callbackService);
+        &InnerDomainAccountManager::StartGetDomainAccountInfo, this, plugin_, options, callback);
     std::thread taskThread(task);
     pthread_setname_np(taskThread.native_handle(), THREAD_GET_ACCOUNT);
     taskThread.detach();
