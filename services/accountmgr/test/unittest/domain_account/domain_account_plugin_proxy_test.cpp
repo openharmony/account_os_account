@@ -162,7 +162,8 @@ HWTEST_F(DomainAccountPluginProxyTest, DomainAccountPluginProxyTest_AuthWithToke
  */
 HWTEST_F(DomainAccountPluginProxyTest, DomainAccountPluginProxyTest_GetDomainAccountInfo_001, TestSize.Level0)
 {
-    EXPECT_EQ(pluginProxy_->GetDomainAccountInfo("info", "info", nullptr), ERR_ACCOUNT_COMMON_WRITE_PARCEL_ERROR);
+    GetDomainAccountInfoOptions options;
+    EXPECT_EQ(pluginProxy_->GetDomainAccountInfo(options, nullptr), ERR_ACCOUNT_COMMON_WRITE_PARCEL_ERROR);
 }
 
 /**

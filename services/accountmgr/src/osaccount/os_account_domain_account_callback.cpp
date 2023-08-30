@@ -45,16 +45,20 @@ void CheckAndCreateDomainAccountCallback::OnResult(int32_t errCode, Parcel &parc
         ACCOUNT_LOGE("check domain account failed");
         return innerCallback_->OnResult(errCode, resultParcel);
     }
-    std::shared_ptr<DomainAccountInfo> domainAccountInfo(DomainAccountInfo::Unmarshalling(parcel));
-    if (domainAccountInfo == nullptr) {
-        ACCOUNT_LOGE("domainAccountInfo unmarshalling error");
+    std::shared_ptr<AAFwk::WantParams> parameters(AAFwk::WantParams::Unmarshalling(parcel));
+    if (parameters == nullptr) {
+        ACCOUNT_LOGE("parameters unmarshalling error");
         return innerCallback_->OnResult(ERR_JS_SYSTEM_SERVICE_EXCEPTION, resultParcel);
     }
-    if ((domainAccountInfo->accountName_.empty()) || (domainAccountInfo->domain_.empty())) {
+    DomainAccountInfo domainAccountInfo;
+    domainAccountInfo.accountName_ = parameters->GetStringParam("accountName");
+    domainAccountInfo.domain_ = parameters->GetStringParam("domain");
+    domainAccountInfo.accountId_ = parameters->GetStringParam("accountId");
+    if ((domainAccountInfo.accountName_.empty()) || (domainAccountInfo.domain_.empty())) {
         ACCOUNT_LOGE("domain account not found");
         return innerCallback_->OnResult(ERR_JS_ACCOUNT_NOT_FOUND, resultParcel);
     }
-    errCode = IInnerOsAccountManager::GetInstance().BindDomainAccount(type_, *domainAccountInfo, innerCallback_);
+    errCode = IInnerOsAccountManager::GetInstance().BindDomainAccount(type_, domainAccountInfo, innerCallback_);
     if (errCode != ERR_OK) {
         return innerCallback_->OnResult(errCode, resultParcel);
     }
