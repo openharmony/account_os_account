@@ -41,15 +41,13 @@ bool SetCurrentOsAccountIsVerifiedStubFuzzTest(const uint8_t *data, size_t size)
         return false;
     }
 
-    uint32_t code = static_cast<uint32_t>(OsAccountInterfaceCode::SET_CURRENT_OS_ACCOUNT_IS_VERIFIED);
-
     MessageParcel reply;
     MessageOption option;
 
     auto osAccountManagerService_ = std::make_shared<OsAccountManagerService>();
 
     osAccountManagerService_ ->OnRemoteRequest(
-        code, datas, reply, option);
+        static_cast<int32_t>(OsAccountInterfaceCode::SET_CURRENT_OS_ACCOUNT_IS_VERIFIED), datas, reply, option);
 
     return true;
 }

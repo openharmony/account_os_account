@@ -30,19 +30,19 @@ bool CreateAccountStubFuzzTest(const uint8_t* data, size_t size)
     if ((data == nullptr) || (size == 0)) {
         return false;
     }
-    MessageParcel dataTemp;
-    if (!dataTemp.WriteInterfaceToken(APPACCOUNT_TOKEN)) {
-        return false;
-    }
     std::string name(reinterpret_cast<const char*>(data), size);
-    if (!dataTemp.WriteString(name)) {
-        return false;
-    }
-    
     CreateAccountOptions options;
     std::string testKey(reinterpret_cast<const char*>(data), size);
     std::string testValue(reinterpret_cast<const char*>(data), size);
     options.customData.emplace(testKey, testValue);
+    MessageParcel dataTemp;
+    if (!dataTemp.WriteInterfaceToken(APPACCOUNT_TOKEN)) {
+        return false;
+    }
+    if (!dataTemp.WriteString(name)) {
+        return false;
+    }
+    
     if (!dataTemp.WriteParcelable(&options)) {
         return false;
     }

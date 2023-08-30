@@ -45,15 +45,13 @@ bool GetOsAccountLocalIdFromDomainStubFuzzTest(const uint8_t *data, size_t size)
         return false;
     }
 
-    uint32_t code = static_cast<uint32_t>(OsAccountInterfaceCode::GET_OS_ACCOUNT_LOCAL_ID_FROM_DOMAIN);
-
     MessageParcel reply;
     MessageOption option;
 
     auto osAccountManagerService_ = std::make_shared<OsAccountManagerService>();
 
-    osAccountManagerService_ ->OnRemoteRequest(
-        code, datas, reply, option);
+    osAccountManagerService_->OnRemoteRequest(
+        static_cast<int32_t>(OsAccountInterfaceCode::GET_OS_ACCOUNT_LOCAL_ID_FROM_DOMAIN), datas, reply, option);
 
     return true;
 }
