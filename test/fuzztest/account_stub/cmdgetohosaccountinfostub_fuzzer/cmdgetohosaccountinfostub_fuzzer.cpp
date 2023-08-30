@@ -30,7 +30,7 @@ using namespace OHOS::AccountSA;
 namespace OHOS {
 namespace {
 const std::u16string ACCOUNT_TOKEN = u"ohos.accountfwk.IAccount";
-static pthread_once_t FC_ONCE = PTHREAD_ONCE_INIT;
+static pthread_once_t g_fcOnce = PTHREAD_ONCE_INIT;
 }
 
 static int SelinuxLog(int logLevel, const char *fmt, ...)
@@ -49,7 +49,7 @@ static void SelinuxSetCallback()
 
 bool CmdGetOhosAccountInfoStubFuzzTest(const uint8_t* data, size_t size)
 {
-    __selinux_once(FC_ONCE, SelinuxSetCallback);
+    __selinux_once(g_fcOnce, SelinuxSetCallback);
     if ((data == nullptr) || (size == 0)) {
         return false;
     }
