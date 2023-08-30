@@ -14,6 +14,9 @@
  */
 
 #include <gtest/gtest.h>
+#ifdef PROXY_MOCK
+#include <thread>
+#endif
 
 #include "account_error_no.h"
 #include "account_log_wrapper.h"
@@ -63,7 +66,9 @@ constexpr int32_t ALLOWED_ARRAY_MAX_SIZE = 1024;
 constexpr int32_t CREDENTIAL_TYPE_MAX_SIZE = 1024;
 constexpr int32_t CREDENTIAL_MAX_SIZE = 1024;
 const bool SYNC_ENABLE_FALSE = false;
-
+#ifdef PROXY_MOCK
+const int32_t SLEEP_TIME = 2000;
+#endif
 constexpr std::size_t SIZE_ZERO = 0;
 }  // namespace
 
@@ -106,7 +111,11 @@ void AppAccountManagerTest::TearDownTestCase(void)
 {}
 
 void AppAccountManagerTest::SetUp(void)
-{}
+{
+#ifdef PROXY_MOCK
+    std::this_thread::sleep_for(std::chrono::milliseconds(SLEEP_TIME));
+#endif
+}
 
 void AppAccountManagerTest::TearDown(void)
 {}
