@@ -65,8 +65,8 @@ void InnerDomainAuthCallback::OnResult(const int32_t errCode, Parcel &parcel)
     }
     if ((errCode == ERR_OK) && (userId_ != 0)) {
 #ifdef FILE_ENCRYPTION_EL1_FEATURE
-        int32_t errCode = InnerAccountIAMManager::GetInstance().ActivateUserKey(userId_, {}, {});
-        if (errCode != 0) {
+        int32_t result = InnerAccountIAMManager::GetInstance().ActivateUserKey(userId_, {}, {});
+        if (result != 0) {
             ACCOUNT_LOGE("failed to activate user key");
             DomainAuthResult errResult;
             errResult.authStatusInfo = (*authResult).authStatusInfo;
@@ -74,7 +74,12 @@ void InnerDomainAuthCallback::OnResult(const int32_t errCode, Parcel &parcel)
                 ACCOUNT_LOGI("callback_ is nullptr");
                 return;
             }
-            return callback_->OnResult(ERR_JS_SYSTEM_SERVICE_EXCEPTION, errResult);
+            Parcel resultParcel;
+            if (!errResult.Marshalling(resultParcel)) {
+                ACCOUNT_LOGE("authResult Marshalling failed");
+                return;
+            }
+            return callback_->OnResult(ERR_JS_SYSTEM_SERVICE_EXCEPTION, resultParcel);
         } else {
             ACCOUNT_LOGI("activate user key success");
             (void)IInnerOsAccountManager::GetInstance().SetOsAccountIsVerified(userId_, true);
