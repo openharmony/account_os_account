@@ -17,6 +17,7 @@
 
 #include <string>
 #include <vector>
+#include "src/callbacks.h"
 
 #define private public
 #include "account_mgr_service.h"
@@ -29,24 +30,41 @@ using namespace OHOS::AccountSA;
 namespace OHOS {
 namespace {
 const std::u16string ACCOUNT_TOKEN = u"ohos.accountfwk.IAccount";
+static pthread_once_t FC_ONCE = PTHREAD_ONCE_INIT;
 }
-    bool CmdGetOhosAccountInfoStubFuzzTest(const uint8_t* data, size_t size)
-    {
-        if ((data == nullptr) || (size == 0)) {
-            return false;
-        }
-        MessageParcel dataTemp;
-        if (!dataTemp.WriteInterfaceToken(ACCOUNT_TOKEN)) {
-            return false;
-        }
-        MessageParcel reply;
-        MessageOption option;
-        uint32_t code = static_cast<uint32_t>(AccountMgrInterfaceCode::GET_OHOS_ACCOUNT_INFO);
-        DelayedRefSingleton<AccountMgrService>::GetInstance().Init();
-        DelayedRefSingleton<AccountMgrService>::GetInstance().OnRemoteRequest(code, dataTemp, reply, option);
 
-        return true;
+static int SelinuxLog(int logLevel, const char *fmt, ...)
+{
+    (void)logLevel;
+    (void)fmt;
+    return 0;
+}
+
+static void SelinuxSetCallback()
+{
+    union selinux_callback cb;
+    cb.func_log = SelinuxLog;
+    selinux_set_callback(SELINUX_CB_LOG, cb);
+}
+
+bool CmdGetOhosAccountInfoStubFuzzTest(const uint8_t* data, size_t size)
+{
+    __selinux_once(FC_ONCE, SelinuxSetCallback);
+    if ((data == nullptr) || (size == 0)) {
+        return false;
     }
+    MessageParcel dataTemp;
+    if (!dataTemp.WriteInterfaceToken(ACCOUNT_TOKEN)) {
+        return false;
+    }
+    MessageParcel reply;
+    MessageOption option;
+    uint32_t code = static_cast<uint32_t>(AccountMgrInterfaceCode::GET_OHOS_ACCOUNT_INFO);
+    DelayedRefSingleton<AccountMgrService>::GetInstance().state_ = ServiceRunningState::STATE_RUNNING;
+    DelayedRefSingleton<AccountMgrService>::GetInstance().OnRemoteRequest(code, dataTemp, reply, option);
+
+    return true;
+}
 }
 
 /* Fuzzer entry point */
