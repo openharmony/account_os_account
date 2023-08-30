@@ -30,20 +30,14 @@ bool SetOAuthTokenVisibilityStubFuzzTest(const uint8_t* data, size_t size)
     if ((data == nullptr) || (size == 0)) {
         return false;
     }
+    std::string name(reinterpret_cast<const char*>(data), size);
+    std::string authType(reinterpret_cast<const char*>(data), size);
+    std::string bundleName(reinterpret_cast<const char*>(data), size);
     MessageParcel dataTemp;
     if (!dataTemp.WriteInterfaceToken(APPACCOUNT_TOKEN)) {
         return false;
     }
-    std::string name(reinterpret_cast<const char*>(data), size);
-    if (!dataTemp.WriteString(name)) {
-        return false;
-    }
-    std::string authType(reinterpret_cast<const char*>(data), size);
-    if (!dataTemp.WriteString(authType)) {
-        return false;
-    }
-    std::string bundleName(reinterpret_cast<const char*>(data), size);
-    if (!dataTemp.WriteString(bundleName)) {
+    if (!dataTemp.WriteString(name) || !dataTemp.WriteString(authType) || !dataTemp.WriteString(bundleName)) {
         return false;
     }
     MessageParcel reply;

@@ -28,27 +28,19 @@ namespace OHOS {
 const std::u16string IOS_ACCOUNT_DESCRIPTOR = u"ohos.accountfwk.IOsAccount";
 bool SetDefaultActivatedOsAccountStubFuzzTest(const uint8_t *data, size_t size)
 {
-    if ((data == nullptr) || (size == 0)) {
-        return false;
-    }
-
     MessageParcel datas;
-    datas.WriteInterfaceToken(IOS_ACCOUNT_DESCRIPTOR);
-
-    int id = static_cast<int>(size);
-    if (!datas.WriteInt32(id)) {
+    if ((data == nullptr) || (size == 0) || (!datas.WriteInterfaceToken(IOS_ACCOUNT_DESCRIPTOR)) ||
+        (!datas.WriteInt32(static_cast<int32_t>(size)))) {
         return false;
     }
-
-    uint32_t code = static_cast<uint32_t>(OsAccountInterfaceCode::SET_DEFAULT_ACTIVATED_OS_ACCOUNT);
 
     MessageParcel reply;
     MessageOption option;
 
     auto osAccountManagerService_ = std::make_shared<OsAccountManagerService>();
 
-    osAccountManagerService_ ->OnRemoteRequest(
-        code, datas, reply, option);
+    osAccountManagerService_->OnRemoteRequest(
+        static_cast<int32_t>(OsAccountInterfaceCode::SET_DEFAULT_ACTIVATED_OS_ACCOUNT), datas, reply, option);
 
     return true;
 }
