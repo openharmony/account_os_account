@@ -28,20 +28,11 @@ namespace OHOS {
 const std::u16string IOS_ACCOUNT_DESCRIPTOR = u"ohos.accountfwk.IOsAccount";
 bool RemoveOsAccountStubFuzzTest(const uint8_t *data, size_t size)
 {
-    if ((data == nullptr) || (size == 0)) {
-        return false;
-    }
-
-    int testId = static_cast<int>(size);
-
     MessageParcel datas;
-    datas.WriteInterfaceToken(IOS_ACCOUNT_DESCRIPTOR);
-
-    if (!datas.WriteInt32(testId)) {
+    if ((data == nullptr) || (size == 0) || (!datas.WriteInterfaceToken(IOS_ACCOUNT_DESCRIPTOR)) ||
+        (!datas.WriteInt32(static_cast<int32_t>(size)))) {
         return false;
     }
-
-    uint32_t code = static_cast<uint32_t>(OsAccountInterfaceCode::REMOVE_OS_ACCOUNT);
 
     MessageParcel reply;
     MessageOption option;
@@ -49,7 +40,7 @@ bool RemoveOsAccountStubFuzzTest(const uint8_t *data, size_t size)
     auto osAccountManagerService_ = std::make_shared<OsAccountManagerService>();
 
     osAccountManagerService_ ->OnRemoteRequest(
-        code, datas, reply, option);
+        static_cast<int32_t>(OsAccountInterfaceCode::REMOVE_OS_ACCOUNT), datas, reply, option);
 
     return true;
 }

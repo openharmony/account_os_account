@@ -52,15 +52,13 @@ bool UnSubscribeOsAccountStubFuzzTest(const uint8_t *data, size_t size)
         return false;
     }
 
-    uint32_t code = static_cast<uint32_t>(OsAccountInterfaceCode::UNSUBSCRIBE_OS_ACCOUNT);
-
     MessageParcel reply;
     MessageOption option;
 
     auto osAccountManagerService_ = std::make_shared<OsAccountManagerService>();
 
     osAccountManagerService_ ->OnRemoteRequest(
-        code, datas, reply, option);
+        static_cast<int32_t>(OsAccountInterfaceCode::UNSUBSCRIBE_OS_ACCOUNT), datas, reply, option);
 
     return true;
 }
