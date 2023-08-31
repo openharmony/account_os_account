@@ -475,27 +475,39 @@ bool ParseContextWithExInfo(napi_env env, napi_callback_info cbInfo, AppAccountA
 {
     size_t argc = ARGS_SIZE_THREE;
     napi_value argv[ARGS_SIZE_THREE] = {0};
+    napi_valuetype valueType = napi_undefined;
     napi_get_cb_info(env, cbInfo, &argc, argv, nullptr, nullptr);
     if (argc < ARGS_SIZE_ONE) {
         asyncContext->errMsg = "the number of parameters should be at least 1";
         return false;
     }
-    for (size_t i = 0; i < argc; i++) {
-        napi_valuetype valueType = napi_undefined;
-        napi_typeof(env, argv[i], &valueType);
-        if (i == 0 && valueType == napi_string) {
-            GetStringProperty(env, argv[i], asyncContext->name);
-        } else if (i == 1 && valueType == napi_string) {
-            GetStringProperty(env, argv[i], asyncContext->extraInfo);
-        } else if (i == 1 && valueType == napi_function) {
-            napi_create_reference(env, argv[i], 1, &asyncContext->callbackRef);
-            break;
-        } else if (i == PARAMTWO && valueType == napi_function) {
-            napi_create_reference(env, argv[i], 1, &asyncContext->callbackRef);
-            break;
+    if (!GetStringProperty(env, argv[0], asyncContext->name)) {
+        ACCOUNT_LOGE("the name is not a string");
+        asyncContext->errMsg = "the name is not a string";
+        return false;
+    }
+    if (argc > PARAMTWO) {
+        if (!GetCallbackProperty(env, argv[PARAMTWO], asyncContext->callbackRef, 1)) {
+            ACCOUNT_LOGE("Get callbackRef failed");
+            return false;
+        }
+    }
+    if (argc > ARGS_SIZE_ONE) {
+        napi_typeof(env, argv[1], &valueType);
+        if (valueType == napi_string) {
+            if (!GetStringProperty(env, argv[1], asyncContext->extraInfo)) {
+                asyncContext->errMsg = "the extraInfo is not a string";
+                return false;
+            }
+        } else if (valueType == napi_function) {
+            if (!GetCallbackProperty(env, argv[1], asyncContext->callbackRef, 1)) {
+                ACCOUNT_LOGE("Get callbackRef failed");
+                return false;
+            }
+            return true;
         } else {
             ACCOUNT_LOGE("Type matching failed");
-            asyncContext->errMsg = "the type of param " + std::to_string(i) + " is incorrect";
+            asyncContext->errMsg = "the type of param 2 is incorrect";
             return false;
         }
     }
@@ -758,26 +770,8 @@ bool ParseContextWithStrCBArray(napi_env env, napi_callback_info cbInfo, GetAcco
     return true;
 }
 
-bool ParseParametersBySubscribe(const napi_env &env, napi_callback_info cbInfo, AsyncContextForSubscribe *context)
+bool GetArrayProperty(const napi_env &env, napi_value *argv, AsyncContextForSubscribe *context)
 {
-    size_t argc = SUBSCRIBE_MAX_PARA;
-    napi_value argv[SUBSCRIBE_MAX_PARA] = {nullptr};
-    napi_value thisVar = nullptr;
-    napi_get_cb_info(env, cbInfo, &argc, argv, &thisVar, nullptr);
-    context->errCode = ERR_JS_PARAMETER_ERROR;
-    if (argc != SUBSCRIBE_MAX_PARA) {
-        context->errMsg = "the number of parameters should be 3";
-        return false;
-    }
-    if (!GetStringProperty(env, argv[0], context->type)) {
-        context->errMsg = "the type is not a string";
-        return false;
-    }
-    if ((context->type != "change") && (context->type != "accountChange")) {
-        context->errMsg = "the type is invalid";
-        context->errCode = ERR_JS_INVALID_PARAMETER;
-        return false;
-    }
     bool isArray = false;
     napi_is_array(env, argv[1], &isArray);
     if (!isArray) {
@@ -800,6 +794,33 @@ bool ParseParametersBySubscribe(const napi_env &env, napi_callback_info cbInfo, 
             return false;
         }
         context->owners.emplace_back(owner);
+    }
+    return true;
+}
+
+bool ParseParametersBySubscribe(const napi_env &env, napi_callback_info cbInfo, AsyncContextForSubscribe *context)
+{
+    size_t argc = SUBSCRIBE_MAX_PARA;
+    napi_value argv[SUBSCRIBE_MAX_PARA] = {nullptr};
+    napi_value thisVar = nullptr;
+    napi_get_cb_info(env, cbInfo, &argc, argv, &thisVar, nullptr);
+    context->errCode = ERR_JS_PARAMETER_ERROR;
+    if (argc != SUBSCRIBE_MAX_PARA) {
+        context->errMsg = "the number of parameters should be 3";
+        return false;
+    }
+    if (!GetStringProperty(env, argv[0], context->type)) {
+        context->errMsg = "the type is not a string";
+        return false;
+    }
+    if ((context->type != "change") && (context->type != "accountChange")) {
+        context->errMsg = "the type is invalid";
+        context->errCode = ERR_JS_INVALID_PARAMETER;
+        return false;
+    }
+    if (!GetArrayProperty(env, argv, context)) {
+        context->errMsg = "the type is not a array";
+        return false;
     }
     if (!GetCallbackProperty(env, argv[PARAMTWO], context->callbackRef, 1)) {
         context->errMsg = "the callback is not a function";
@@ -1365,38 +1386,43 @@ bool ParseContextForCreateAccount(napi_env env, napi_callback_info cbInfo, Creat
 {
     size_t argc = ARGS_SIZE_THREE;
     napi_value argv[ARGS_SIZE_THREE] = {0};
+    napi_valuetype valueType = napi_undefined;
     napi_get_cb_info(env, cbInfo, &argc, argv, nullptr, nullptr);
     if (argc < ARGS_SIZE_ONE) {
         context->errMsg = "the number of parameters should be at least 1";
         return false;
     }
     if (!GetStringProperty(env, argv[0], context->name)) {
+        ACCOUNT_LOGE("the name is not a string");
         context->errMsg = "the name is not a string";
         return false;
     }
-    for (size_t i = 1; i < argc; i++) {
-        napi_valuetype valueType = napi_undefined;
-        napi_typeof(env, argv[i], &valueType);
-        if (i == 1 && valueType == napi_object) {
-            if (!ParseCreateAccountOptions(env, argv[i], context->options)) {
+    if (argc > PARAMTWO) {
+        if (!GetCallbackProperty(env, argv[PARAMTWO], context->callbackRef, 1)) {
+            ACCOUNT_LOGE("Get callbackRef failed");
+            return false;
+        }
+    }
+    if (argc > ARGS_SIZE_ONE) {
+        napi_typeof(env, argv[1], &valueType);
+        if (valueType == napi_object) {
+            if (!ParseCreateAccountOptions(env, argv[1], context->options)) {
+                ACCOUNT_LOGE("the type of param 1 is incorrect");
                 context->errMsg = "the type of options is not CreateAccountOptions";
                 return false;
             }
-        } else if (i == 1 && valueType == napi_function) {
-            napi_create_reference(env, argv[i], 1, &context->callbackRef);
-            break;
-        } else if ((i == 1) && ((valueType == napi_undefined) || (valueType == napi_null))) {
+        } else if (valueType == napi_function) {
+            if (!GetCallbackProperty(env, argv[1], context->callbackRef, 1)) {
+                ACCOUNT_LOGE("Get callbackRef failed");
+                return false;
+            }
+            return true;
+        } else if ((valueType == napi_undefined) || (valueType == napi_null)) {
             ACCOUNT_LOGI("the param'1 is undefined or null");
-            continue;
-        } else if (i == PARAMTWO && valueType == napi_function) {
-            napi_create_reference(env, argv[i], 1, &context->callbackRef);
-            break;
-        } else if ((i == PARAMTWO) && ((valueType == napi_undefined) || (valueType == napi_null))) {
-            ACCOUNT_LOGI("the param'2 is undefined or null");
-            break;
+            return true;
         } else {
             ACCOUNT_LOGE("Type matching failed");
-            context->errMsg = "the type of param " + std::to_string(i) + " is incorrect";
+            context->errMsg = "the type of param 2 is incorrect";
             return false;
         }
     }

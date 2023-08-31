@@ -172,59 +172,27 @@ static bool ParseInfoAndEvent(napi_env env, napi_value argv, DistributedAccountA
     return true;
 }
 
-static bool ParseUpdateOhosAccountInfoWithTwoArgs(
-    napi_env env, napi_value *argv, DistributedAccountAsyncContext *asyncContext, const int32_t size)
+bool ParseUpdateOhosAccountInfoAsyncContext(
+    napi_env env, napi_callback_info cbInfo, DistributedAccountAsyncContext *asyncContext)
 {
-    if (size != PARAM_TWO) {
-        ACCOUNT_LOGE("argv size is not two");
+    size_t argc = PARAM_TWO;
+    napi_value argv[PARAM_TWO] = {nullptr};
+    napi_get_cb_info(env, cbInfo, &argc, argv, nullptr, nullptr);
+    if (argc < PARAM_ONE) {
+        ACCOUNT_LOGE("paramter should be at least one");
         return false;
     }
-    napi_valuetype valueType = napi_undefined;
-    napi_typeof(env, argv[PARAM_ONE], &valueType);
-    if (valueType == napi_object) {
-        if (!GetIntProperty(env, argv[PARAM_ZERO], asyncContext->localId)) {
-            ACCOUNT_LOGE("Get localId failed");
-            return false;
-        }
-        asyncContext->withLocalId = true;
-        return ParseInfoAndEvent(env, argv[PARAM_ONE], asyncContext);
+    if (!(ParseInfoAndEvent(env, argv[PARAM_ZERO], asyncContext))) {
+        ACCOUNT_LOGE("Failed to get account info");
+        return false;
     }
-    if (valueType == napi_function) {
+    if (argc > PARAM_ONE) {
         if (!GetCallbackProperty(env, argv[PARAM_ONE], asyncContext->callbackRef, PARAM_ONE)) {
             ACCOUNT_LOGE("Failed to get callback property");
             return false;
         }
-        return ParseInfoAndEvent(env, argv[PARAM_ZERO], asyncContext);
     }
-    return false;
-}
-
-bool ParseUpdateOhosAccountInfoAsyncContext(
-    napi_env env, napi_callback_info cbInfo, DistributedAccountAsyncContext *asyncContext)
-{
-    size_t argc = PARAM_THREE;
-    napi_value argv[PARAM_THREE] = {nullptr};
-    napi_get_cb_info(env, cbInfo, &argc, argv, nullptr, nullptr);
-    if (argc == PARAM_ZERO) {
-        ACCOUNT_LOGE("paramter should be at least one");
-        return false;
-    }
-    if (argc == PARAM_ONE) {
-        return ParseInfoAndEvent(env, argv[PARAM_ZERO], asyncContext);
-    }
-    if (argc == PARAM_TWO) {
-        return ParseUpdateOhosAccountInfoWithTwoArgs(env, argv, asyncContext, PARAM_TWO);
-    }
-    if (!GetCallbackProperty(env, argv[PARAM_TWO], asyncContext->callbackRef, PARAM_ONE)) {
-        ACCOUNT_LOGE("Failed to get callback property");
-        return false;
-    }
-    if (!GetIntProperty(env, argv[PARAM_ZERO], asyncContext->localId)) {
-        ACCOUNT_LOGE("Get localId failed");
-        return false;
-    }
-    asyncContext->withLocalId = true;
-    return ParseInfoAndEvent(env, argv[PARAM_ONE], asyncContext);
+    return true;
 }
 
 void ProcessCallbackOrPromise(
@@ -304,7 +272,7 @@ napi_value NapiDistributedAccount::Init(napi_env env, napi_value exports)
         DECLARE_NAPI_FUNCTION("updateOsAccountDistributedInfo", UpdateOsAccountDistributedInfo),
         DECLARE_NAPI_FUNCTION("setOsAccountDistributedInfo", SetOsAccountDistributedInfo),
         DECLARE_NAPI_FUNCTION("getOsAccountDistributedInfoByLocalId", GetOsAccountDistributedInfo),
-        DECLARE_NAPI_FUNCTION("setOsAccountDistributedInfoByLocalId", SetOsAccountDistributedInfo),
+        DECLARE_NAPI_FUNCTION("setOsAccountDistributedInfoByLocalId", SetOsAccountDistributedInfoByLocalId),
     };
     napi_value cons = nullptr;
     napi_define_class(env, DISTRIBUTED_ACCOUNT_CLASS_NAME.c_str(), DISTRIBUTED_ACCOUNT_CLASS_NAME.size(),
@@ -453,6 +421,69 @@ static void UpdateOhosAccountInfoCompletedCB(napi_env env, napi_status status, v
     delete asyncContext;
 }
 
+napi_value NapiDistributedAccount::SetOhosAccountInfo(napi_env env, DistributedAccountAsyncContext *asyncContext)
+{
+    napi_value result = nullptr;
+    if (asyncContext->callbackRef == nullptr) {
+        NAPI_CALL(env, napi_create_promise(env, &asyncContext->deferred, &result));
+    }
+    napi_value resource = nullptr;
+    napi_create_string_utf8(env, "SetOhosAccountInfo", NAPI_AUTO_LENGTH, &resource);
+    NAPI_CALL(env, napi_create_async_work(env,
+        nullptr,
+        resource,
+        UpdateOhosAccountInfoExecuteCB,
+        UpdateOhosAccountInfoCompletedCB,
+        reinterpret_cast<void *>(asyncContext), &asyncContext->work));
+    NAPI_CALL(env, napi_queue_async_work_with_qos(env, asyncContext->work, napi_qos_default));
+    return result;
+}
+
+bool ParseSetOsAccountDistributedInfoByLocalId(
+    napi_env env, napi_callback_info cbInfo, DistributedAccountAsyncContext *asyncContext)
+{
+    size_t argc = PARAM_THREE;
+    napi_value argv[PARAM_THREE] = {nullptr};
+    napi_get_cb_info(env, cbInfo, &argc, argv, nullptr, nullptr);
+    if (argc < PARAM_ONE) {
+        ACCOUNT_LOGE("paramter should be at least one");
+        return false;
+    }
+    if (!GetIntProperty(env, argv[PARAM_ZERO], asyncContext->localId)) {
+        ACCOUNT_LOGE("Get localId failed");
+        return false;
+    }
+    if (!(ParseInfoAndEvent(env, argv[PARAM_ONE], asyncContext))) {
+        ACCOUNT_LOGE("Failed to get account info");
+        return false;
+    }
+    if (argc > PARAM_TWO) {
+        if (!GetCallbackProperty(env, argv[PARAM_TWO], asyncContext->callbackRef, 1)) {
+            ACCOUNT_LOGE("Failed to get callback property");
+            return false;
+        }
+    }
+    return true;
+}
+
+napi_value NapiDistributedAccount::SetOsAccountDistributedInfoByLocalId(napi_env env, napi_callback_info cbInfo)
+{
+    auto *asyncContext = new (std::nothrow) DistributedAccountAsyncContext(env);
+    if (asyncContext == nullptr) {
+        ACCOUNT_LOGE("insufficient memory for asyncContext!");
+        return nullptr;
+    }
+    asyncContext->throwErr = true;
+    std::unique_ptr<DistributedAccountAsyncContext> contextPtr(asyncContext);
+    if (!ParseSetOsAccountDistributedInfoByLocalId(env, cbInfo, asyncContext)) {
+        AccountNapiThrow(env, ERR_JS_PARAMETER_ERROR, true);
+        return nullptr;
+    }
+    napi_value result = SetOhosAccountInfo(env, asyncContext);
+    contextPtr.release();
+    return result;
+}
+
 napi_value NapiDistributedAccount::UpdateOhosAccountInfo(napi_env env, napi_callback_info cbInfo, bool throwErr)
 {
     auto *asyncContext = new (std::nothrow) DistributedAccountAsyncContext(env);
@@ -466,19 +497,7 @@ napi_value NapiDistributedAccount::UpdateOhosAccountInfo(napi_env env, napi_call
         AccountNapiThrow(env, ERR_JS_PARAMETER_ERROR, true);
         return nullptr;
     }
-    napi_value result = nullptr;
-    if (asyncContext->callbackRef == nullptr) {
-        NAPI_CALL(env, napi_create_promise(env, &asyncContext->deferred, &result));
-    }
-    napi_value resource = nullptr;
-    napi_create_string_utf8(env, "UpdateOhosAccountInfo", NAPI_AUTO_LENGTH, &resource);
-    NAPI_CALL(env, napi_create_async_work(env,
-        nullptr,
-        resource,
-        UpdateOhosAccountInfoExecuteCB,
-        UpdateOhosAccountInfoCompletedCB,
-        reinterpret_cast<void *>(asyncContext), &asyncContext->work));
-    NAPI_CALL(env, napi_queue_async_work_with_qos(env, asyncContext->work, napi_qos_default));
+    napi_value result = SetOhosAccountInfo(env, asyncContext);
     contextPtr.release();
     return result;
 }
