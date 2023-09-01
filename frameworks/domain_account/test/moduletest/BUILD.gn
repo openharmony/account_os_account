@@ -238,7 +238,6 @@ group("moduletest") {
   deps = [
     ":domain_account_common_module_test",
     ":domain_account_frameworks_module_mock_test",
-    ":domain_account_frameworks_module_test",
     ":domain_account_plugin_service_test",
     ":domain_account_plugin_stub_test",
   ]
