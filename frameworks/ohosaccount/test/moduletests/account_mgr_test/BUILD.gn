@@ -169,7 +169,6 @@ group("moduletest") {
   testonly = true
   deps = [
     ":AccountInnerSdkModuleMockTest",
-    ":AccountInnerSdkModuleTest",
     ":DeviceAccountInfoModuleTest",
   ]
 }

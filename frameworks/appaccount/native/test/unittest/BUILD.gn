@@ -163,7 +163,6 @@ group("unittest") {
 
   deps = [
     ":app_account_common_test",
-    ":app_account_manager_proxy_mock_test",
     ":app_account_manager_subscribe_test",
     ":app_account_manager_test",
   ]

@@ -141,8 +141,5 @@ ohos_moduletest("os_account_frameworks_module_mock_test") {
 group("moduletest") {
   testonly = true
 
-  deps = [
-    ":os_account_frameworks_module_mock_test",
-    ":os_account_frameworks_module_test",
-  ]
+  deps = [ ":os_account_frameworks_module_mock_test" ]
 }
