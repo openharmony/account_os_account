@@ -217,6 +217,29 @@ public:
     }
 };
 
+static void Wait()
+{
+    // record start time
+    struct tm startTime = {0};
+    EXPECT_EQ(GetSystemCurrentTime(&startTime), true);
+
+    // record current time
+    struct tm doingTime = {0};
+
+    int64_t seconds = 0;
+    while (!g_mtx.try_lock()) {
+        // get current time and compare it with the start time
+        EXPECT_EQ(GetSystemCurrentTime(&doingTime), true);
+        seconds = GetSecondsBetween(startTime, doingTime);
+        if (seconds >= TIME_OUT_SECONDS_LIMIT) {
+            break;
+        }
+    }
+
+    // the subscriber should receive the event within 5 seconds
+    EXPECT_LT(seconds, TIME_OUT_SECONDS_LIMIT);
+}
+
 /**
  * @tc.name: AppAccountManagerServiceSubscribe_SubscribeAppAccount_0100
  * @tc.desc: Subscribe app accounts with valid data.
@@ -264,25 +287,7 @@ HWTEST_F(AppAccountManagerServiceSubscribeModuleTest, AppAccountManagerServiceSu
     result = appAccountManagerServicePtr_->SetAccountExtraInfo(STRING_NAME, STRING_EXTRA_INFO);
     EXPECT_EQ(result, ERR_OK);
 
-    // record start time
-    struct tm startTime = {0};
-    EXPECT_EQ(GetSystemCurrentTime(&startTime), true);
-
-    // record current time
-    struct tm doingTime = {0};
-
-    int64_t seconds = 0;
-    while (!g_mtx.try_lock()) {
-        // get current time and compare it with the start time
-        EXPECT_EQ(GetSystemCurrentTime(&doingTime), true);
-        seconds = GetSecondsBetween(startTime, doingTime);
-        if (seconds >= TIME_OUT_SECONDS_LIMIT) {
-            break;
-        }
-    }
-
-    // the subscriber should receive the event within 5 seconds
-    EXPECT_LT(seconds, TIME_OUT_SECONDS_LIMIT);
+    Wait();
 
     // unsubscribe app account
     result = appAccountManagerServicePtr_->UnsubscribeAppAccount(appAccountEventListener);
@@ -294,43 +299,6 @@ HWTEST_F(AppAccountManagerServiceSubscribeModuleTest, AppAccountManagerServiceSu
 
     // unlock the mutex
     g_mtx.unlock();
-}
-
-/**
- * @tc.name: AppAccountManagerServiceSubscribe_SubscribeAppAccount_0200
- * @tc.desc: Subscribe app accounts with valid data.
- * @tc.type: FUNC
- * @tc.require: SR000GGVFT
- */
-HWTEST_F(AppAccountManagerServiceSubscribeModuleTest, AppAccountManagerServiceSubscribe_SubscribeAppAccount_0200,
-    TestSize.Level1)
-{
-    ACCOUNT_LOGI("AppAccountManagerServiceSubscribe_SubscribeAppAccount_0200");
-
-    // make owners
-    std::vector<std::string> owners;
-    owners.emplace_back(STRING_OWNER);
-
-    // make subscribe info
-    AppAccountSubscribeInfo subscribeInfo(owners);
-
-    // make a subscriber
-    auto subscriberTestPtr = std::make_shared<AppAccountSubscriberTest>(subscribeInfo);
-
-    // make an event listener
-    sptr<IRemoteObject> appAccountEventListener = nullptr;
-
-    ErrCode subscribeState = AppAccount::GetInstance().CreateAppAccountEventListener(
-        subscriberTestPtr, appAccountEventListener);
-    EXPECT_EQ(subscribeState, AppAccount::INITIAL_SUBSCRIPTION);
-
-    // subscribe app account
-    ErrCode result = appAccountManagerServicePtr_->SubscribeAppAccount(subscribeInfo, appAccountEventListener);
-    EXPECT_EQ(result, ERR_OK);
-
-    // unsubscribe app account
-    result = appAccountManagerServicePtr_->UnsubscribeAppAccount(appAccountEventListener);
-    EXPECT_EQ(result, ERR_OK);
 }
 
 /**
@@ -426,25 +394,7 @@ HWTEST_F(AppAccountManagerServiceSubscribeModuleTest, AppAccountManagerServiceSu
         STRING_EXTRA_INFO, UID, STRING_BUNDLE_NAME, 0);
     EXPECT_EQ(result, ERR_OK);
 
-    // record start time
-    struct tm startTime = {0};
-    EXPECT_EQ(GetSystemCurrentTime(&startTime), true);
-
-    // record current time
-    struct tm doingTime = {0};
-
-    int64_t seconds = 0;
-    while (!g_mtx.try_lock()) {
-        // get current time and compare it with the start time
-        EXPECT_EQ(GetSystemCurrentTime(&doingTime), true);
-        seconds = GetSecondsBetween(startTime, doingTime);
-        if (seconds >= TIME_OUT_SECONDS_LIMIT) {
-            break;
-        }
-    }
-
-    // the subscriber should receive the event within 5 seconds
-    EXPECT_LT(seconds, TIME_OUT_SECONDS_LIMIT);
+    Wait();
 
     // unsubscribe app account
     result = appAccountManagerServicePtr_->UnsubscribeAppAccount(appAccountEventListener);
@@ -517,25 +467,7 @@ HWTEST_F(AppAccountManagerServiceSubscribeModuleTest, AppAccountManagerServiceSu
         STRING_EXTRA_INFO, UID, STRING_BUNDLE_NAME, 0);
     EXPECT_EQ(result, ERR_OK);
 
-    // record start time
-    struct tm startTime = {0};
-    EXPECT_EQ(GetSystemCurrentTime(&startTime), true);
-
-    // record current time
-    struct tm doingTime = {0};
-
-    int64_t seconds = 0;
-    while (!g_mtx.try_lock()) {
-        // get current time and compare it with the start time
-        EXPECT_EQ(GetSystemCurrentTime(&doingTime), true);
-        seconds = GetSecondsBetween(startTime, doingTime);
-        if (seconds >= TIME_OUT_SECONDS_LIMIT) {
-            break;
-        }
-    }
-
-    // the subscriber should receive the event within 5 seconds
-    EXPECT_LT(seconds, TIME_OUT_SECONDS_LIMIT);
+    Wait();
 
     // unsubscribe app account
     result = appAccountManagerServicePtr_->UnsubscribeAppAccount(appAccountEventListener);
@@ -605,25 +537,7 @@ HWTEST_F(AppAccountManagerServiceSubscribeModuleTest, AppAccountManagerServiceSu
         STRING_EXTRA_INFO, UID, STRING_BUNDLE_NAME, 0);
     EXPECT_EQ(result, ERR_OK);
 
-    // record start time
-    struct tm startTime = {0};
-    EXPECT_EQ(GetSystemCurrentTime(&startTime), true);
-
-    // record current time
-    struct tm doingTime = {0};
-
-    int64_t seconds = 0;
-    while (!g_mtx.try_lock()) {
-        // get current time and compare it with the start time
-        EXPECT_EQ(GetSystemCurrentTime(&doingTime), true);
-        seconds = GetSecondsBetween(startTime, doingTime);
-        if (seconds >= TIME_OUT_SECONDS_LIMIT) {
-            break;
-        }
-    }
-
-    // the subscriber should receive the event within 5 seconds
-    EXPECT_LT(seconds, TIME_OUT_SECONDS_LIMIT);
+    Wait();
 
     // unsubscribe app account
     result = appAccountManagerServicePtr_->UnsubscribeAppAccount(appAccountEventListener);
@@ -696,25 +610,7 @@ HWTEST_F(AppAccountManagerServiceSubscribeModuleTest, AppAccountManagerServiceSu
     result = appAccountManagerServicePtr_->SetAccountExtraInfo(STRING_NAME, STRING_EXTRA_INFO);
     EXPECT_EQ(result, ERR_OK);
 
-    // record start time
-    struct tm startTime = {0};
-    EXPECT_EQ(GetSystemCurrentTime(&startTime), true);
-
-    // record current time
-    struct tm doingTime = {0};
-
-    int64_t seconds = 0;
-    while (!g_mtx.try_lock()) {
-        // get current time and compare it with the start time
-        EXPECT_EQ(GetSystemCurrentTime(&doingTime), true);
-        seconds = GetSecondsBetween(startTime, doingTime);
-        if (seconds >= TIME_OUT_SECONDS_LIMIT) {
-            break;
-        }
-    }
-
-    // the subscriber should receive the event within 5 seconds
-    EXPECT_LT(seconds, TIME_OUT_SECONDS_LIMIT);
+    Wait();
 
     // unsubscribe app account
     result = appAccountManagerServicePtr_->UnsubscribeAppAccount(appAccountEventListener);

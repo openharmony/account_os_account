@@ -410,6 +410,19 @@ bool OsAccountStub::ReadParcelableVector(std::vector<T> &parcelableInfos, Messag
     return true;
 }
 
+static ErrCode WriteResultWithOsAccountInfo(MessageParcel &reply, int32_t result, const OsAccountInfo &info)
+{
+    if (!reply.WriteInt32(result)) {
+        ACCOUNT_LOGE("failed to write result");
+        return IPC_STUB_WRITE_PARCEL_ERR;
+    }
+    if (!reply.WriteParcelable(&info)) {
+        ACCOUNT_LOGE("failed to write os account info");
+        return IPC_STUB_WRITE_PARCEL_ERR;
+    }
+    return ERR_NONE;
+}
+
 ErrCode OsAccountStub::ProcCreateOsAccount(MessageParcel &data, MessageParcel &reply)
 {
     std::string name = data.ReadString();
@@ -421,15 +434,7 @@ ErrCode OsAccountStub::ProcCreateOsAccount(MessageParcel &data, MessageParcel &r
     OsAccountType type = static_cast<OsAccountType>(data.ReadInt32());
     OsAccountInfo osAccountInfo;
     ErrCode result = CreateOsAccount(name, type, osAccountInfo);
-    if (!reply.WriteInt32(result)) {
-        ACCOUNT_LOGE("failed to write reply, result %{public}d.", result);
-        return IPC_STUB_WRITE_PARCEL_ERR;
-    }
-    if (!reply.WriteParcelable(&osAccountInfo)) {
-        ACCOUNT_LOGE("failed to write reply");
-        return IPC_STUB_WRITE_PARCEL_ERR;
-    }
-    return ERR_NONE;
+    return WriteResultWithOsAccountInfo(reply, result, osAccountInfo);
 }
 
 ErrCode OsAccountStub::ProcCreateOsAccountForDomain(MessageParcel &data, MessageParcel &reply)
@@ -460,15 +465,7 @@ ErrCode OsAccountStub::ProcCreateOsAccountForDomain(MessageParcel &data, Message
         return ERR_ACCOUNT_COMMON_READ_PARCEL_ERROR;
     }
     ErrCode result = CreateOsAccountForDomain(type, *info, callback);
-    if (!reply.WriteInt32(result)) {
-        ACCOUNT_LOGE("failed to write reply, result %{public}d.", result);
-        return IPC_STUB_WRITE_PARCEL_ERR;
-    }
-    if (!reply.WriteParcelable(&osAccountInfo)) {
-        ACCOUNT_LOGE("failed to write reply");
-        return IPC_STUB_WRITE_PARCEL_ERR;
-    }
-    return ERR_NONE;
+    return WriteResultWithOsAccountInfo(reply, result, osAccountInfo);
 }
 
 ErrCode OsAccountStub::ProcRemoveOsAccount(MessageParcel &data, MessageParcel &reply)
@@ -550,30 +547,14 @@ ErrCode OsAccountStub::ProcQueryOsAccountById(MessageParcel &data, MessageParcel
     }
     OsAccountInfo osAccountInfo = OsAccountInfo();
     ErrCode result = QueryOsAccountById(localId, osAccountInfo);
-    if (!reply.WriteInt32(result)) {
-        ACCOUNT_LOGE("failed to write reply, result %{public}d.", result);
-        return IPC_STUB_WRITE_PARCEL_ERR;
-    }
-    if (!reply.WriteParcelable(&osAccountInfo)) {
-        ACCOUNT_LOGE("failed to write reply");
-        return IPC_STUB_WRITE_PARCEL_ERR;
-    }
-    return ERR_NONE;
+    return WriteResultWithOsAccountInfo(reply, result, osAccountInfo);
 }
 
 ErrCode OsAccountStub::ProcQueryCurrentOsAccount(MessageParcel &data, MessageParcel &reply)
 {
     OsAccountInfo osAccountInfo = OsAccountInfo();
     ErrCode result = QueryCurrentOsAccount(osAccountInfo);
-    if (!reply.WriteInt32(result)) {
-        ACCOUNT_LOGE("failed to write reply, result %{public}d.", result);
-        return IPC_STUB_WRITE_PARCEL_ERR;
-    }
-    if (!reply.WriteParcelable(&osAccountInfo)) {
-        ACCOUNT_LOGE("failed to write reply");
-        return IPC_STUB_WRITE_PARCEL_ERR;
-    }
-    return ERR_NONE;
+    return WriteResultWithOsAccountInfo(reply, result, osAccountInfo);
 }
 
 ErrCode OsAccountStub::ProcQueryAllCreatedOsAccounts(MessageParcel &data, MessageParcel &reply)
@@ -1131,15 +1112,7 @@ ErrCode OsAccountStub::ProcGetOsAccountFromDatabase(MessageParcel &data, Message
     int id = data.ReadInt32();
     OsAccountInfo osAccountInfo;
     ErrCode result = GetOsAccountFromDatabase(storeID, id, osAccountInfo);
-    if (!reply.WriteInt32(result)) {
-        ACCOUNT_LOGE("failed to write reply, result %{public}d.", result);
-        return IPC_STUB_WRITE_PARCEL_ERR;
-    }
-    if (!reply.WriteParcelable(&osAccountInfo)) {
-        ACCOUNT_LOGE("failed to write reply");
-        return IPC_STUB_WRITE_PARCEL_ERR;
-    }
-    return ERR_NONE;
+    return WriteResultWithOsAccountInfo(reply, result, osAccountInfo);
 }
 
 ErrCode OsAccountStub::ProcGetOsAccountListFromDatabase(MessageParcel &data, MessageParcel &reply)

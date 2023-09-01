@@ -481,12 +481,11 @@ ErrCode AppAccountStub::ProcSetAppAccess(uint32_t code, MessageParcel &data, Mes
         bool isAccessible = data.ReadBool();
         result = SetAppAccess(name, authorizedApp, isAccessible);
     } else {
-        ACCOUNT_LOGE("stub code is invalid");
         return IPC_INVOKER_ERR;
     }
 
     if (!reply.WriteInt32(result)) {
-        ACCOUNT_LOGE("failed to write reply");
+        ACCOUNT_LOGE("failed to write result");
         return IPC_STUB_WRITE_PARCEL_ERR;
     }
     return ERR_NONE;
@@ -678,12 +677,11 @@ ErrCode AppAccountStub::ProcDeleteAuthToken(uint32_t code, MessageParcel &data, 
     } else if (code == static_cast<uint32_t>(AppAccountInterfaceCode::DELETE_AUTH_TOKEN)) {
         result = DeleteAuthToken(name, owner, authType, token);
     } else {
-        ACCOUNT_LOGE("stub code is invalid");
         return IPC_INVOKER_ERR;
     }
-     
+
     if (!reply.WriteInt32(result)) {
-        ACCOUNT_LOGE("failed to write reply");
+        ACCOUNT_LOGE("failed to write result");
         return IPC_STUB_WRITE_PARCEL_ERR;
     }
     return ERR_NONE;
@@ -706,12 +704,11 @@ ErrCode AppAccountStub::ProcSetAuthTokenVisibility(uint32_t code, MessageParcel 
     } else if (code == static_cast<uint32_t>(AppAccountInterfaceCode::SET_AUTH_TOKEN_VISIBILITY)) {
         result = SetAuthTokenVisibility(name, authType, bundleName, isVisible);
     } else {
-        ACCOUNT_LOGE("stub code is invalid");
         return IPC_INVOKER_ERR;
     }
 
     if (!reply.WriteInt32(result)) {
-        ACCOUNT_LOGE("failed to write reply");
+        ACCOUNT_LOGE("failed to write result");
         return IPC_STUB_WRITE_PARCEL_ERR;
     }
     return ERR_NONE;
@@ -835,7 +832,7 @@ ErrCode AppAccountStub::ProcGetAllAccounts(uint32_t code, MessageParcel &data, M
         return IPC_STUB_WRITE_PARCEL_ERR;
     }
     if (!WriteParcelableVector(appAccounts, reply)) {
-        ACCOUNT_LOGE("failed to write vector<AppAccount> for appAccounts");
+        ACCOUNT_LOGE("failed to write accounts");
         return IPC_STUB_WRITE_PARCEL_ERR;
     }
     return ERR_NONE;
@@ -852,15 +849,14 @@ ErrCode AppAccountStub::ProcGetAllAccessibleAccounts(uint32_t code, MessageParce
         RETURN_IF_STRING_IS_OVERSIZE(owner, Constants::OWNER_MAX_SIZE, "owner is or oversize", reply);
         result = QueryAllAccessibleAccounts(owner, appAccounts);
     } else {
-        ACCOUNT_LOGE("stub code is invalid");
         return IPC_INVOKER_ERR;
     }
     if (!reply.WriteInt32(result)) {
-        ACCOUNT_LOGE("failed to write reply");
+        ACCOUNT_LOGE("failed to write result");
         return IPC_STUB_WRITE_PARCEL_ERR;
     }
     if (!WriteParcelableVector(appAccounts, reply)) {
-        ACCOUNT_LOGE("failed to write vector<AppAccount> for appAccounts");
+        ACCOUNT_LOGE("failed to write accessible accounts");
         return IPC_STUB_WRITE_PARCEL_ERR;
     }
     return ERR_NONE;
