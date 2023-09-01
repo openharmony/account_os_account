@@ -35,12 +35,12 @@ ErrCode OsAccountProxy::CreateOsAccount(
     }
 
     if (!data.WriteString(name)) {
-        ACCOUNT_LOGE("failed to write string for name");
+        ACCOUNT_LOGE("failed to write os account name");
         return ERR_ACCOUNT_COMMON_WRITE_PARCEL_ERROR;
     }
 
     if (!data.WriteInt32(type)) {
-        ACCOUNT_LOGE("failed to write account type.");
+        ACCOUNT_LOGE("failed to write os account type");
         return ERR_ACCOUNT_COMMON_WRITE_PARCEL_ERROR;
     }
     ErrCode result = SendRequest(OsAccountInterfaceCode::CREATE_OS_ACCOUNT, data, reply);
@@ -511,7 +511,7 @@ ErrCode OsAccountProxy::SetOsAccountConstraints(
         return ERR_ACCOUNT_COMMON_WRITE_DESCRIPTOR_ERROR;
     }
     if (!data.WriteInt32(id)) {
-        ACCOUNT_LOGE("failed to write int for id");
+        ACCOUNT_LOGE("failed to write id for setting constraints");
         return ERR_ACCOUNT_COMMON_WRITE_PARCEL_ERROR;
     }
     if (!data.WriteStringVector(constraints)) {
@@ -546,7 +546,7 @@ ErrCode OsAccountProxy::SetOsAccountProfilePhoto(const int id, const std::string
         return ERR_ACCOUNT_COMMON_WRITE_DESCRIPTOR_ERROR;
     }
     if (!data.WriteInt32(id)) {
-        ACCOUNT_LOGE("failed to write int for id");
+        ACCOUNT_LOGE("failed to write id for setting photo");
         return ERR_ACCOUNT_COMMON_WRITE_PARCEL_ERROR;
     }
     if (!data.WriteString(photo)) {
@@ -750,7 +750,7 @@ ErrCode OsAccountProxy::SendRequest(OsAccountInterfaceCode code, MessageParcel &
     MessageOption option(MessageOption::TF_SYNC);
     int32_t result = remote->SendRequest(static_cast<uint32_t>(code), data, reply, option);
     if (result != ERR_OK) {
-        ACCOUNT_LOGE("failed to SendRequest, code = %{public}d, result = %{public}d", code, result);
+        ACCOUNT_LOGE("failed to send os account request, code = %{public}d, result = %{public}d", code, result);
     }
 
     return result;
@@ -832,7 +832,7 @@ ErrCode OsAccountProxy::SetOsAccountIsVerified(const int id, const bool isVerifi
         return ERR_ACCOUNT_COMMON_WRITE_DESCRIPTOR_ERROR;
     }
     if (!data.WriteInt32(id)) {
-        ACCOUNT_LOGE("failed to write int for id");
+        ACCOUNT_LOGE("failed to write id for setting verified status");
         return ERR_ACCOUNT_COMMON_WRITE_PARCEL_ERROR;
     }
     if (!data.WriteBool(isVerified)) {
@@ -888,7 +888,7 @@ ErrCode OsAccountProxy::GetCreatedOsAccountNumFromDatabase(const std::string& st
     }
 
     if (!data.WriteString(storeID)) {
-        ACCOUNT_LOGE("failed to write string for storeID");
+        ACCOUNT_LOGE("failed to write storeID for getting created os account");
         return ERR_ACCOUNT_COMMON_WRITE_PARCEL_ERROR;
     }
     ErrCode result = SendRequest(OsAccountInterfaceCode::GET_CREATED_OS_ACCOUNT_NUM_FROM_DATABASE, data, reply);
@@ -917,7 +917,7 @@ ErrCode OsAccountProxy::GetSerialNumberFromDatabase(const std::string& storeID, 
     }
 
     if (!data.WriteString(storeID)) {
-        ACCOUNT_LOGE("failed to write string for storeID");
+        ACCOUNT_LOGE("failed to write storeID for getting serial number from database");
         return ERR_ACCOUNT_COMMON_WRITE_PARCEL_ERROR;
     }
     ErrCode result = SendRequest(OsAccountInterfaceCode::GET_SERIAL_NUM_FROM_DATABASE, data, reply);
@@ -976,7 +976,7 @@ ErrCode OsAccountProxy::GetOsAccountFromDatabase(const std::string& storeID,
     }
 
     if (!data.WriteString(storeID)) {
-        ACCOUNT_LOGE("failed to write string for storeID");
+        ACCOUNT_LOGE("failed to write storeID for getting os account form database");
         return ERR_ACCOUNT_COMMON_WRITE_PARCEL_ERROR;
     }
     if (!data.WriteInt32(id)) {
@@ -1016,7 +1016,7 @@ ErrCode OsAccountProxy::GetOsAccountListFromDatabase(const std::string& storeID,
     }
 
     if (!data.WriteString(storeID)) {
-        ACCOUNT_LOGE("failed to write string for storeID");
+        ACCOUNT_LOGE("failed to write storeID for getting os account list from database");
         return ERR_ACCOUNT_COMMON_WRITE_PARCEL_ERROR;
     }
     ErrCode result = SendRequest(OsAccountInterfaceCode::GET_OS_ACCOUNT_LIST_FROM_DATABASE, data, reply);
@@ -1074,7 +1074,7 @@ ErrCode OsAccountProxy::QueryOsAccountConstraintSourceTypes(const int32_t id,
         return ERR_ACCOUNT_COMMON_WRITE_DESCRIPTOR_ERROR;
     }
     if (!data.WriteInt32(id)) {
-        ACCOUNT_LOGE("failed to write int for id");
+        ACCOUNT_LOGE("failed to write id for setting constraint source types");
         return ERR_ACCOUNT_COMMON_WRITE_PARCEL_ERROR;
     }
     if (!data.WriteString(constraint)) {
@@ -1199,7 +1199,7 @@ ErrCode OsAccountProxy::SetDefaultActivatedOsAccount(const int32_t id)
         return ERR_ACCOUNT_COMMON_WRITE_PARCEL_ERROR;
     }
     if (!data.WriteInt32(id)) {
-        ACCOUNT_LOGE("failed to write int for id");
+        ACCOUNT_LOGE("failed to write id for setting default activated os account");
         return ERR_ACCOUNT_COMMON_WRITE_PARCEL_ERROR;
     }
     MessageParcel reply;

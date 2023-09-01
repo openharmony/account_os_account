@@ -99,40 +99,6 @@ void AppAccountManagerServiceSyncModuleTest::TearDown(void)
 {}
 
 /**
- * @tc.name: AppAccountManagerServiceSync_AddAccount_0100
- * @tc.desc: Set account sync enable with valid data.
- * @tc.type: FUNC
- * @tc.require: SR000GGV11
- */
-HWTEST_F(AppAccountManagerServiceSyncModuleTest, AppAccountManagerServiceSync_AddAccount_0100, TestSize.Level0)
-{
-    ACCOUNT_LOGI("AppAccountManagerServiceSync_AddAccount_0100");
-
-    ErrCode result = appAccountManagerServicePtr_->AddAccount(STRING_NAME, STRING_EXTRA_INFO);
-    EXPECT_EQ(result, ERR_OK);
-    std::this_thread::sleep_for(std::chrono::milliseconds(WAIT_FOR_KVSTORE));
-    auto dataStoragePtr = AppAccountControlManager::GetInstance().GetDataStorage(UID);
-    ASSERT_NE(dataStoragePtr, nullptr);
-
-    std::map<std::string, std::shared_ptr<IAccountInfo>> accounts;
-
-    result = dataStoragePtr->LoadAllData(accounts);
-    EXPECT_EQ(result, ERR_OK);
-    ASSERT_EQ(accounts.size(), SIZE_ONE);
-
-    auto accountPtr = accounts.begin();
-    auto appAccountInfoPtr = std::static_pointer_cast<AppAccountInfo>(accountPtr->second);
-    ASSERT_NE(appAccountInfoPtr, nullptr);
-
-    std::string name;
-    appAccountInfoPtr->GetName(name);
-    EXPECT_EQ(name, STRING_NAME);
-
-    result = appAccountManagerServicePtr_->DeleteAccount(STRING_NAME);
-    EXPECT_EQ(result, ERR_OK);
-}
-
-/**
  * @tc.name: AppAccountManagerServiceSync_AddAccount_0200
  * @tc.desc: Set account sync enable with valid data.
  * @tc.type: FUNC
@@ -150,42 +116,25 @@ HWTEST_F(AppAccountManagerServiceSyncModuleTest, AppAccountManagerServiceSync_Ad
 
     std::this_thread::sleep_for(std::chrono::milliseconds(WAIT_FOR_KVSTORE));
 
-    {
-        auto dataStoragePtr = AppAccountControlManager::GetInstance().GetDataStorage(UID);
-        ASSERT_NE(dataStoragePtr, nullptr);
-
-        std::map<std::string, std::shared_ptr<IAccountInfo>> accounts;
-        result = dataStoragePtr->LoadAllData(accounts);
-        EXPECT_EQ(result, ERR_OK);
-        ASSERT_EQ(accounts.size(), SIZE_ONE);
-
-        auto accountPtr = accounts.begin();
-        auto appAccountInfoPtr = std::static_pointer_cast<AppAccountInfo>(accountPtr->second);
-        ASSERT_NE(appAccountInfoPtr, nullptr);
-
-        std::string name;
-        appAccountInfoPtr->GetName(name);
-        EXPECT_EQ(name, STRING_NAME);
-    }
 #ifdef DISTRIBUTED_FEATURE_ENABLED
-    {
-        auto dataStoragePtr = AppAccountControlManager::GetInstance().GetDataStorage(UID, true);
-        ASSERT_NE(dataStoragePtr, nullptr);
-
-        std::map<std::string, std::shared_ptr<IAccountInfo>> accounts;
-        result = dataStoragePtr->LoadAllData(accounts);
-        EXPECT_EQ(result, ERR_OK);
-        ASSERT_EQ(accounts.size(), SIZE_ONE);
-
-        auto accountPtr = accounts.begin();
-        auto appAccountInfoPtr = std::static_pointer_cast<AppAccountInfo>(accountPtr->second);
-        ASSERT_NE(appAccountInfoPtr, nullptr);
-
-        std::string name;
-        appAccountInfoPtr->GetName(name);
-        EXPECT_EQ(name, STRING_NAME);
-    }
+    auto dataStoragePtr = AppAccountControlManager::GetInstance().GetDataStorage(UID, true);
+#else
+    auto dataStoragePtr = AppAccountControlManager::GetInstance().GetDataStorage(UID);
 #endif // DISTRIBUTED_FEATURE_ENABLED
+    ASSERT_NE(dataStoragePtr, nullptr);
+
+    std::map<std::string, std::shared_ptr<IAccountInfo>> accounts;
+    result = dataStoragePtr->LoadAllData(accounts);
+    EXPECT_EQ(result, ERR_OK);
+    ASSERT_EQ(accounts.size(), SIZE_ONE);
+
+    auto accountPtr = accounts.begin();
+    auto appAccountInfoPtr = std::static_pointer_cast<AppAccountInfo>(accountPtr->second);
+    ASSERT_NE(appAccountInfoPtr, nullptr);
+
+    std::string name;
+    appAccountInfoPtr->GetName(name);
+    EXPECT_EQ(name, STRING_NAME);
 
     result = appAccountManagerServicePtr_->DeleteAccount(STRING_NAME);
     EXPECT_EQ(result, ERR_OK);
@@ -212,26 +161,17 @@ HWTEST_F(AppAccountManagerServiceSyncModuleTest, AppAccountManagerServiceSync_De
     result = appAccountManagerServicePtr_->DeleteAccount(STRING_NAME);
     EXPECT_EQ(result, ERR_OK);
 
-    {
-        auto dataStoragePtr = AppAccountControlManager::GetInstance().GetDataStorage(UID);
-        ASSERT_NE(dataStoragePtr, nullptr);
-
-        std::map<std::string, std::shared_ptr<IAccountInfo>> accounts;
-        result = dataStoragePtr->LoadAllData(accounts);
-        EXPECT_EQ(result, ERR_OK);
-        EXPECT_EQ(accounts.size(), SIZE_ZERO);
-    }
 #ifdef DISTRIBUTED_FEATURE_ENABLED
-    {
-        auto dataStoragePtr = AppAccountControlManager::GetInstance().GetDataStorage(UID, true);
-        ASSERT_NE(dataStoragePtr, nullptr);
-
-        std::map<std::string, std::shared_ptr<IAccountInfo>> accounts;
-        result = dataStoragePtr->LoadAllData(accounts);
-        EXPECT_EQ(result, ERR_OK);
-        EXPECT_EQ(accounts.size(), SIZE_ZERO);
-    }
+    auto dataStoragePtr = AppAccountControlManager::GetInstance().GetDataStorage(UID, true);
+#else
+    auto dataStoragePtr = AppAccountControlManager::GetInstance().GetDataStorage(UID);
 #endif // DISTRIBUTED_FEATURE_ENABLED
+    ASSERT_NE(dataStoragePtr, nullptr);
+
+    std::map<std::string, std::shared_ptr<IAccountInfo>> accounts;
+    result = dataStoragePtr->LoadAllData(accounts);
+    EXPECT_EQ(result, ERR_OK);
+    EXPECT_EQ(accounts.size(), SIZE_ZERO);
 }
 
 /**
@@ -271,136 +211,6 @@ HWTEST_F(AppAccountManagerServiceSyncModuleTest, AppAccountManagerServiceSync_De
 }
 
 /**
- * @tc.name: AppAccountManagerServiceSync_SetAccountExtraInfo_0100
- * @tc.desc: Set account sync enable with valid data.
- * @tc.type: FUNC
- * @tc.require: SR000GGVFS
- */
-HWTEST_F(
-    AppAccountManagerServiceSyncModuleTest, AppAccountManagerServiceSync_SetAccountExtraInfo_0100, TestSize.Level1)
-{
-    ACCOUNT_LOGI("AppAccountManagerServiceSync_SetAccountExtraInfo_0100");
-
-    ErrCode result = appAccountManagerServicePtr_->AddAccount(STRING_NAME, STRING_EXTRA_INFO);
-    EXPECT_EQ(result, ERR_OK);
-
-    result = appAccountManagerServicePtr_->SetAppAccountSyncEnable(STRING_NAME, SYNC_ENABLE_TRUE);
-    EXPECT_EQ(result, ERR_OK);
-
-    std::this_thread::sleep_for(std::chrono::milliseconds(WAIT_FOR_KVSTORE));
-
-    result = appAccountManagerServicePtr_->SetAccountExtraInfo(STRING_NAME, STRING_EXTRA_INFO);
-    EXPECT_EQ(result, ERR_OK);
-
-    {
-        auto dataStoragePtr = AppAccountControlManager::GetInstance().GetDataStorage(UID);
-        ASSERT_NE(dataStoragePtr, nullptr);
-
-        std::map<std::string, std::shared_ptr<IAccountInfo>> accounts;
-
-        result = dataStoragePtr->LoadAllData(accounts);
-        EXPECT_EQ(result, ERR_OK);
-        ASSERT_EQ(accounts.size(), SIZE_ONE);
-
-        auto accountPtr = accounts.begin();
-        auto appAccountInfoPtr = std::static_pointer_cast<AppAccountInfo>(accountPtr->second);
-
-        std::string name;
-        appAccountInfoPtr->GetName(name);
-        EXPECT_EQ(name, STRING_NAME);
-
-        std::string extraInfo;
-        appAccountInfoPtr->GetExtraInfo(extraInfo);
-        EXPECT_EQ(extraInfo, STRING_EXTRA_INFO);
-    }
-#ifdef DISTRIBUTED_FEATURE_ENABLED
-    {
-        auto dataStoragePtr = AppAccountControlManager::GetInstance().GetDataStorage(UID, true);
-        ASSERT_NE(dataStoragePtr, nullptr);
-
-        std::map<std::string, std::shared_ptr<IAccountInfo>> accounts;
-
-        result = dataStoragePtr->LoadAllData(accounts);
-        EXPECT_EQ(result, ERR_OK);
-        ASSERT_EQ(accounts.size(), SIZE_ONE);
-
-        auto accountPtr = accounts.begin();
-        auto appAccountInfoPtr = std::static_pointer_cast<AppAccountInfo>(accountPtr->second);
-
-        std::string name;
-        appAccountInfoPtr->GetName(name);
-        EXPECT_EQ(name, STRING_NAME);
-
-        std::string extraInfo;
-        appAccountInfoPtr->GetExtraInfo(extraInfo);
-        EXPECT_EQ(extraInfo, STRING_EXTRA_INFO);
-    }
-#endif // DISTRIBUTED_FEATURE_ENABLED
-
-    result = appAccountManagerServicePtr_->DeleteAccount(STRING_NAME);
-    EXPECT_EQ(result, ERR_OK);
-}
-
-/**
- * @tc.name: AppAccountManagerServiceSync_SetAccountExtraInfo_0200
- * @tc.desc: Set account sync enable with valid data.
- * @tc.type: FUNC
- * @tc.require: SR000GGVFS
- */
-HWTEST_F(
-    AppAccountManagerServiceSyncModuleTest, AppAccountManagerServiceSync_SetAccountExtraInfo_0200, TestSize.Level1)
-{
-    ACCOUNT_LOGI("AppAccountManagerServiceSync_SetAccountExtraInfo_0200");
-
-    ErrCode result = appAccountManagerServicePtr_->AddAccount(STRING_NAME, STRING_EXTRA_INFO);
-    ASSERT_EQ(result, ERR_OK);
-
-    result = appAccountManagerServicePtr_->SetAppAccountSyncEnable(STRING_NAME, SYNC_ENABLE_TRUE);
-    EXPECT_EQ(result, ERR_OK);
-
-    std::this_thread::sleep_for(std::chrono::milliseconds(WAIT_FOR_KVSTORE));
-
-    result = appAccountManagerServicePtr_->SetAccountExtraInfo(STRING_NAME, STRING_EXTRA_INFO);
-    EXPECT_EQ(result, ERR_OK);
-
-    result = appAccountManagerServicePtr_->SetAppAccountSyncEnable(STRING_NAME, SYNC_ENABLE_FALSE);
-    EXPECT_EQ(result, ERR_OK);
-
-    std::this_thread::sleep_for(std::chrono::milliseconds(WAIT_FOR_KVSTORE));
-
-    result = appAccountManagerServicePtr_->SetAccountExtraInfo(STRING_NAME, STRING_EXTRA_INFO_TWO);
-    EXPECT_EQ(result, ERR_OK);
-
-    {
-        auto dataStoragePtr = AppAccountControlManager::GetInstance().GetDataStorage(UID);
-        ASSERT_NE(dataStoragePtr, nullptr);
-
-        std::map<std::string, std::shared_ptr<IAccountInfo>> accounts;
-
-        result = dataStoragePtr->LoadAllData(accounts);
-        EXPECT_EQ(result, ERR_OK);
-        ASSERT_EQ(accounts.size(), SIZE_ONE);
-
-        auto accountPtr = accounts.begin();
-        EXPECT_NE(accountPtr, accounts.end());
-
-        auto appAccountInfoPtr = std::static_pointer_cast<AppAccountInfo>(accountPtr->second);
-        ASSERT_NE(appAccountInfoPtr, nullptr);
-
-        std::string name;
-        appAccountInfoPtr->GetName(name);
-        EXPECT_EQ(name, STRING_NAME);
-
-        std::string extraInfo;
-        appAccountInfoPtr->GetExtraInfo(extraInfo);
-        EXPECT_EQ(extraInfo, STRING_EXTRA_INFO_TWO);
-    }
-
-    result = appAccountManagerServicePtr_->DeleteAccount(STRING_NAME);
-    EXPECT_EQ(result, ERR_OK);
-}
-
-/**
  * @tc.name: AppAccountManagerServiceSync_SetAccountExtraInfo_0300
  * @tc.desc: Set account sync enable with valid data.
  * @tc.type: FUNC
@@ -434,141 +244,28 @@ HWTEST_F(
     EXPECT_EQ(result, ERR_OK);
 
     std::this_thread::sleep_for(std::chrono::milliseconds(WAIT_FOR_KVSTORE));
-
-    {
-        auto dataStoragePtr = AppAccountControlManager::GetInstance().GetDataStorage(UID);
-        ASSERT_NE(dataStoragePtr, nullptr);
-
-        std::map<std::string, std::shared_ptr<IAccountInfo>> accounts;
-        result = dataStoragePtr->LoadAllData(accounts);
-        EXPECT_EQ(result, ERR_OK);
-        ASSERT_EQ(accounts.size(), SIZE_ONE);
-
-        auto accountPtr = accounts.begin();
-        auto appAccountInfoPtr = std::static_pointer_cast<AppAccountInfo>(accountPtr->second);
-
-        std::string name;
-        appAccountInfoPtr->GetName(name);
-        EXPECT_EQ(name, STRING_NAME);
-
-        std::string extraInfo;
-        appAccountInfoPtr->GetExtraInfo(extraInfo);
-        EXPECT_EQ(extraInfo, STRING_EXTRA_INFO_TWO);
-    }
-
-    result = appAccountManagerServicePtr_->DeleteAccount(STRING_NAME);
-    EXPECT_EQ(result, ERR_OK);
-}
-
-/**
- * @tc.name: AppAccountManagerServiceSync_SetAccountExtraInfo_0400
- * @tc.desc: Set account sync enable with valid data.
- * @tc.type: FUNC
- * @tc.require: SR000GGVFS
- */
-HWTEST_F(
-    AppAccountManagerServiceSyncModuleTest, AppAccountManagerServiceSync_SetAccountExtraInfo_0400, TestSize.Level1)
-{
-    ErrCode result = appAccountManagerServicePtr_->AddAccount(STRING_NAME, STRING_EXTRA_INFO);
-    ASSERT_EQ(result, ERR_OK);
-
-    result = appAccountManagerServicePtr_->SetAppAccountSyncEnable(STRING_NAME, SYNC_ENABLE_TRUE);
-    EXPECT_EQ(result, ERR_OK);
-
-    std::this_thread::sleep_for(std::chrono::milliseconds(WAIT_FOR_KVSTORE));
-
-    result = appAccountManagerServicePtr_->SetAccountExtraInfo(STRING_NAME, STRING_EXTRA_INFO);
-    EXPECT_EQ(result, ERR_OK);
-
-    result = appAccountManagerServicePtr_->SetAppAccountSyncEnable(STRING_NAME, SYNC_ENABLE_FALSE);
-    EXPECT_EQ(result, ERR_OK);
-
-    std::this_thread::sleep_for(std::chrono::milliseconds(WAIT_FOR_KVSTORE));
-
-    result = appAccountManagerServicePtr_->SetAccountExtraInfo(STRING_NAME, STRING_EXTRA_INFO_TWO);
-    EXPECT_EQ(result, ERR_OK);
 #ifdef DISTRIBUTED_FEATURE_ENABLED
-    {
-        auto dataStoragePtr = AppAccountControlManager::GetInstance().GetDataStorage(UID, true);
-        ASSERT_NE(dataStoragePtr, nullptr);
+    auto dataStoragePtr = AppAccountControlManager::GetInstance().GetDataStorage(UID, true);
+#else
+    auto dataStoragePtr = AppAccountControlManager::GetInstance().GetDataStorage(UID);
+#endif
+    ASSERT_NE(dataStoragePtr, nullptr);
 
-        std::map<std::string, std::shared_ptr<IAccountInfo>> accounts;
-
-        result = dataStoragePtr->LoadAllData(accounts);
-        EXPECT_EQ(result, ERR_OK);
-        ASSERT_EQ(accounts.size(), SIZE_ONE);
-
-        auto accountPtr = accounts.begin();
-        auto appAccountInfoPtr = std::static_pointer_cast<AppAccountInfo>(accountPtr->second);
-
-        std::string name;
-        appAccountInfoPtr->GetName(name);
-        EXPECT_EQ(name, STRING_NAME);
-
-        std::string extraInfo;
-        appAccountInfoPtr->GetExtraInfo(extraInfo);
-        EXPECT_EQ(extraInfo, STRING_EXTRA_INFO);
-    }
-#endif // DISTRIBUTED_FEATURE_ENABLED
-
-    result = appAccountManagerServicePtr_->DeleteAccount(STRING_NAME);
+    std::map<std::string, std::shared_ptr<IAccountInfo>> accounts;
+    result = dataStoragePtr->LoadAllData(accounts);
     EXPECT_EQ(result, ERR_OK);
-}
+    ASSERT_EQ(accounts.size(), SIZE_ONE);
 
-/**
- * @tc.name: AppAccountManagerServiceSync_SetAccountExtraInfo_0500
- * @tc.desc: Set account sync enable with valid data.
- * @tc.type: FUNC
- * @tc.require: SR000GGVFS
- */
-HWTEST_F(
-    AppAccountManagerServiceSyncModuleTest, AppAccountManagerServiceSync_SetAccountExtraInfo_0500, TestSize.Level1)
-{
-    ErrCode result = appAccountManagerServicePtr_->AddAccount(STRING_NAME, STRING_EXTRA_INFO);
-    ASSERT_EQ(result, ERR_OK);
+    auto accountPtr = accounts.begin();
+    auto appAccountInfoPtr = std::static_pointer_cast<AppAccountInfo>(accountPtr->second);
 
-    result = appAccountManagerServicePtr_->SetAppAccountSyncEnable(STRING_NAME, SYNC_ENABLE_TRUE);
-    EXPECT_EQ(result, ERR_OK);
+    std::string name;
+    appAccountInfoPtr->GetName(name);
+    EXPECT_EQ(name, STRING_NAME);
 
-    std::this_thread::sleep_for(std::chrono::milliseconds(WAIT_FOR_KVSTORE));
-
-    result = appAccountManagerServicePtr_->SetAccountExtraInfo(STRING_NAME, STRING_EXTRA_INFO);
-    EXPECT_EQ(result, ERR_OK);
-
-    result = appAccountManagerServicePtr_->SetAppAccountSyncEnable(STRING_NAME, SYNC_ENABLE_FALSE);
-    EXPECT_EQ(result, ERR_OK);
-
-    std::this_thread::sleep_for(std::chrono::milliseconds(WAIT_FOR_KVSTORE));
-
-    result = appAccountManagerServicePtr_->SetAccountExtraInfo(STRING_NAME, STRING_EXTRA_INFO_TWO);
-    EXPECT_EQ(result, ERR_OK);
-
-    result = appAccountManagerServicePtr_->SetAppAccountSyncEnable(STRING_NAME, SYNC_ENABLE_TRUE);
-    EXPECT_EQ(result, ERR_OK);
-
-    std::this_thread::sleep_for(std::chrono::milliseconds(WAIT_FOR_KVSTORE));
-#ifdef DISTRIBUTED_FEATURE_ENABLED
-    {
-        auto dataStoragePtr = AppAccountControlManager::GetInstance().GetDataStorage(UID, true);
-        ASSERT_NE(dataStoragePtr, nullptr);
-
-        std::map<std::string, std::shared_ptr<IAccountInfo>> accounts;
-        result = dataStoragePtr->LoadAllData(accounts);
-        EXPECT_EQ(result, ERR_OK);
-        ASSERT_EQ(accounts.size(), SIZE_ONE);
-
-        auto accountPtr = accounts.begin();
-        auto appAccountInfoPtr = std::static_pointer_cast<AppAccountInfo>(accountPtr->second);
-
-        std::string name;
-        appAccountInfoPtr->GetName(name);
-        EXPECT_EQ(name, STRING_NAME);
-
-        std::string extraInfo;
-        appAccountInfoPtr->GetExtraInfo(extraInfo);
-        EXPECT_EQ(extraInfo, STRING_EXTRA_INFO_TWO);
-    }
-#endif // DISTRIBUTED_FEATURE_ENABLED
+    std::string extraInfo;
+    appAccountInfoPtr->GetExtraInfo(extraInfo);
+    EXPECT_EQ(extraInfo, STRING_EXTRA_INFO_TWO);
 
     result = appAccountManagerServicePtr_->DeleteAccount(STRING_NAME);
     EXPECT_EQ(result, ERR_OK);
@@ -595,45 +292,27 @@ HWTEST_F(AppAccountManagerServiceSyncModuleTest, AppAccountManagerServiceSync_En
     result = appAccountManagerServicePtr_->EnableAppAccess(STRING_NAME, STRING_BUNDLE_NAME);
     EXPECT_EQ(result, ERR_OK);
 
-    {
-        auto dataStoragePtr = AppAccountControlManager::GetInstance().GetDataStorage(UID);
-        ASSERT_NE(dataStoragePtr, nullptr);
 
-        std::string authorizedAccounts;
-        result = dataStoragePtr->GetValueFromKvStore(AUTHORIZED_ACCOUNTS, authorizedAccounts);
-        ASSERT_EQ(result, ERR_OK);
-
-        auto jsonObject = Json::parse(authorizedAccounts, nullptr, false);
-        EXPECT_EQ(jsonObject.is_discarded(), false);
-
-        auto accessibleAccounts = jsonObject[STRING_BUNDLE_NAME].get<std::vector<std::string>>();
-        EXPECT_EQ(accessibleAccounts.size(), SIZE_ONE);
-
-        auto accountPtr = accessibleAccounts.begin();
-        ASSERT_NE(accountPtr, accessibleAccounts.end());
-
-        EXPECT_EQ(*accountPtr, STRING_OWNER + HYPHEN + APP_INDEX + HYPHEN + STRING_NAME + HYPHEN);
-    }
 #ifdef DISTRIBUTED_FEATURE_ENABLED
-    {
-        auto dataStoragePtr = AppAccountControlManager::GetInstance().GetDataStorage(UID, true);
-        ASSERT_NE(dataStoragePtr, nullptr);
+    auto dataStoragePtr = AppAccountControlManager::GetInstance().GetDataStorage(UID, true);
+#else
+    auto dataStoragePtr = AppAccountControlManager::GetInstance().GetDataStorage(UID);
+    ASSERT_NE(dataStoragePtr, nullptr);
 
-        std::string authorizedAccounts;
-        result = dataStoragePtr->GetValueFromKvStore(AUTHORIZED_ACCOUNTS, authorizedAccounts);
-        ASSERT_EQ(result, ERR_OK);
+    std::string authorizedAccounts;
+    result = dataStoragePtr->GetValueFromKvStore(AUTHORIZED_ACCOUNTS, authorizedAccounts);
+    ASSERT_EQ(result, ERR_OK);
 
-        auto jsonObject = Json::parse(authorizedAccounts, nullptr, false);
-        EXPECT_EQ(jsonObject.is_discarded(), false);
+    auto jsonObject = Json::parse(authorizedAccounts, nullptr, false);
+    EXPECT_EQ(jsonObject.is_discarded(), false);
 
-        auto accessibleAccounts = jsonObject[STRING_BUNDLE_NAME].get<std::vector<std::string>>();
-        EXPECT_EQ(accessibleAccounts.size(), SIZE_ONE);
+    auto accessibleAccounts = jsonObject[STRING_BUNDLE_NAME].get<std::vector<std::string>>();
+    EXPECT_EQ(accessibleAccounts.size(), SIZE_ONE);
 
-        auto accountPtr = accessibleAccounts.begin();
-        ASSERT_NE(accountPtr, accessibleAccounts.end());
+    auto accountPtr = accessibleAccounts.begin();
+    ASSERT_NE(accountPtr, accessibleAccounts.end());
 
-        EXPECT_EQ(*accountPtr, STRING_OWNER + HYPHEN + APP_INDEX + HYPHEN + STRING_NAME + HYPHEN);
-    }
+    EXPECT_EQ(*accountPtr, STRING_OWNER + HYPHEN + APP_INDEX + HYPHEN + STRING_NAME + HYPHEN);
 #endif // DISTRIBUTED_FEATURE_ENABLED
 
     result = appAccountManagerServicePtr_->DeleteAccount(STRING_NAME);

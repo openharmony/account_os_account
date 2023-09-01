@@ -196,7 +196,7 @@ HWTEST_F(OsAccountInnerAccmgrCoverageTest, OsAccountInnerAccmgrCoverageTest007, 
 
 /*
  * @tc.name: OsAccountInnerAccmgrCoverageTest008
- * @tc.desc: Test SetOsAccountName set local name publish common event.
+ * @tc.desc: Test SetOsAccountName set local name, photo publish common event.
  * @tc.type: FUNC
  * @tc.require: issuesI66BFB
  */
@@ -226,36 +226,7 @@ HWTEST_F(OsAccountInnerAccmgrCoverageTest, OsAccountInnerAccmgrCoverageTest008, 
     errCode = innerMgrService_->SetOsAccountName(localID, ACCOUNT_SET_NAME);
     ASSERT_EQ(errCode, ERR_OK);
     ASSERT_EQ(subscriberPtr->GetStatus(), false);
-    errCode = innerMgrService_->RemoveOsAccount(localID);
-    ASSERT_EQ(errCode, ERR_OK);
-    result = EventFwk::CommonEventManager::UnSubscribeCommonEvent(subscriberPtr);
-    ASSERT_EQ(result, true);
-}
-
-/*
- * @tc.name: OsAccountInnerAccmgrCoverageTest009
- * @tc.desc: Test SetOsAccountProfilePhoto set photo publish common event.
- * @tc.type: FUNC
- * @tc.require:
- */
-HWTEST_F(OsAccountInnerAccmgrCoverageTest, OsAccountInnerAccmgrCoverageTest009, TestSize.Level1)
-{
-    // create common event subscribe
-    setuid(ACCOUNT_UID);
-    EventFwk::MatchingSkills matchingSkills;
-    matchingSkills.AddEvent(EventFwk::CommonEventSupport::COMMON_EVENT_USER_INFO_UPDATED);
-    EventFwk::CommonEventSubscribeInfo subscribeInfo(matchingSkills);
-    std::shared_ptr<AccountCommonEventSubscriber> subscriberPtr =
-        std::make_shared<AccountCommonEventSubscriber>(subscribeInfo);
-    ASSERT_NE(subscriberPtr, nullptr);
-    bool result = EventFwk::CommonEventManager::SubscribeCommonEvent(subscriberPtr);
-    ASSERT_EQ(result, true);
-
-    OsAccountInfo osAccountInfo;
-    int errCode = innerMgrService_->CreateOsAccount(ACCOUNT_NAME, OsAccountType::NORMAL, osAccountInfo);
-    subscriberPtr->localId_ = osAccountInfo.GetLocalId();
-    ASSERT_EQ(errCode, ERR_OK);
-    int localID = osAccountInfo.GetLocalId();
+    subscriberPtr->ResetStatus();
     errCode = innerMgrService_->SetOsAccountProfilePhoto(localID, ACCOUNT_PHOTO);
     ASSERT_EQ(errCode, ERR_OK);
     std::this_thread::sleep_for(std::chrono::milliseconds(DELAY_FOR_OPERATION));

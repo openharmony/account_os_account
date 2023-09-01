@@ -51,11 +51,11 @@ const uint64_t TEST_CONTEXT_ID = 122;
 const std::vector<uint8_t> TEST_CHALLENGE = {1, 2, 3, 4};
 
 static PermissionDef INFO_MANAGER_TEST_PERM_DEF1 = {
-    .permissionName = "open the door",
-    .bundleName = "osaccount_test",
+    .permissionName = "ohos.permission.open_door",
+    .bundleName = "account_iam_client_test",
     .grantMode = 1,
     .availableLevel = APL_NORMAL,
-    .provisionEnable = false,
+    .provisionEnable = true,
     .distributedSceneEnable = false,
     .label = "label",
     .labelId = 1,
@@ -64,11 +64,11 @@ static PermissionDef INFO_MANAGER_TEST_PERM_DEF1 = {
 };
 
 static PermissionDef INFO_MANAGER_TEST_PERM_DEF2 = {
-    .permissionName = "break the door",
-    .bundleName = "osaccount_test",
+    .permissionName = "ohos.permission.break_door",
+    .bundleName = "account_iam_client_test",
     .grantMode = 1,
     .availableLevel = APL_NORMAL,
-    .provisionEnable = false,
+    .provisionEnable = true,
     .distributedSceneEnable = false,
     .label = "label",
     .labelId = 1,
@@ -77,7 +77,7 @@ static PermissionDef INFO_MANAGER_TEST_PERM_DEF2 = {
 };
 
 static PermissionStateFull INFO_MANAGER_TEST_STATE1 = {
-    .permissionName = "open the door",
+    .permissionName = "ohos.permission.open_door",
     .isGeneral = true,
     .resDeviceID = {"local"},
     .grantStatus = {1},
@@ -85,34 +85,34 @@ static PermissionStateFull INFO_MANAGER_TEST_STATE1 = {
 };
 
 static PermissionStateFull INFO_MANAGER_TEST_STATE2 = {
-    .permissionName = "break the door",
-    .isGeneral = false,
-    .resDeviceID = {"device 1", "device 2"},
+    .permissionName = "ohos.permission.open_door",
+    .isGeneral = true,
+    .resDeviceID = {"device 0", "device 1"},
     .grantStatus = {1, 3},
     .grantFlags = {1, 2}
 };
 
 static HapPolicyParams INFO_MANAGER_TEST_POLICY_PRAMS = {
     .apl = APL_NORMAL,
-    .domain = "test.domain",
+    .domain = "account_iam",
     .permList = {INFO_MANAGER_TEST_PERM_DEF1, INFO_MANAGER_TEST_PERM_DEF2},
     .permStateList = {INFO_MANAGER_TEST_STATE1, INFO_MANAGER_TEST_STATE2}
 };
 
 HapInfoParams infoManagerTestNormalInfoParms = {
     .userID = 1,
-    .bundleName = "osaccount_test",
+    .bundleName = "account_iam_client_test",
     .instIndex = 0,
-    .appIDDesc = "testtesttesttest",
+    .appIDDesc = "test",
     .apiVersion = DEFAULT_API_VERSION,
     .isSystemApp = false
 };
 
 HapInfoParams infoManagerTestSystemInfoParms = {
     .userID = 1,
-    .bundleName = "osaccount_test",
+    .bundleName = "account_iam_client_test",
     .instIndex = 0,
-    .appIDDesc = "testtesttesttest",
+    .appIDDesc = "test",
     .apiVersion = DEFAULT_API_VERSION,
     .isSystemApp = true
 };

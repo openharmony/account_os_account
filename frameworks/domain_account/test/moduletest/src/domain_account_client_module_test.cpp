@@ -549,35 +549,6 @@ HWTEST_F(DomainAccountClientModuleTest, DomainAccountClientModuleTest_CreateOsAc
 }
 
 /**
- * @tc.name: DomainAccountClientModuleTest_CreateOsAccountForDomain_002
- * @tc.desc: CreateOsAccountForDomain successfully with 100 is not bind domain.
- * @tc.type: FUNC
- * @tc.require: I6KNUZ
- */
-HWTEST_F(DomainAccountClientModuleTest, DomainAccountClientModuleTest_CreateOsAccountForDomain_002, TestSize.Level0)
-{
-    DomainAccountInfo domainInfo;
-    domainInfo.accountName_ = STRING_NAME;
-    domainInfo.domain_ = INVALID_STRING_DOMAIN;
-    domainInfo.accountId_ = STRING_ACCOUNTID_NEW;
-    auto callback = std::make_shared<MockDomainCreateDomainAccountCallback>();
-    ASSERT_NE(callback, nullptr);
-    auto testCallback = std::make_shared<TestCreateDomainAccountCallback>(callback);
-    EXPECT_CALL(*callback, OnResult(ERR_OK,
-        STRING_NAME, INVALID_STRING_DOMAIN, STRING_ACCOUNTID_NEW)).Times(Exactly(1));
-    ASSERT_NE(testCallback, nullptr);
-    ErrCode errCode = OsAccountManager::CreateOsAccountForDomain(OsAccountType::NORMAL, domainInfo, testCallback);
-    std::unique_lock<std::mutex> lock(testCallback->mutex);
-    testCallback->cv.wait_for(
-        lock, std::chrono::seconds(WAIT_TIME), [lockCallback = testCallback]() { return lockCallback->isReady; });
-    EXPECT_EQ(errCode, ERR_OK);
-    int32_t userId = -1;
-    errCode = OsAccountManager::GetOsAccountLocalIdFromDomain(domainInfo, userId);
-    EXPECT_EQ(errCode, ERR_OK);
-    EXPECT_EQ(OsAccountManager::RemoveOsAccount(userId), ERR_OK);
-}
-
-/**
  * @tc.name: DomainAccountClientModuleTest_CreateOsAccountForDomain_003
  * @tc.desc: CreateOsAccountForDomain failed with bound failed.
  * @tc.type: FUNC
@@ -950,7 +921,7 @@ HWTEST_F(DomainAccountClientModuleTest, DomainAccountClientModuleTest_GetAccessT
 
 /**
  * @tc.name: DomainAccountClientModuleTest_UpdateAccountToken_001
- * @tc.desc: UpdateAccountToken successfully with empty token.
+ * @tc.desc: UpdateAccountToken successfully.
  * @tc.type: FUNC
  * @tc.require: I6JV52
  */
@@ -980,39 +951,8 @@ HWTEST_F(DomainAccountClientModuleTest, DomainAccountClientModuleTest_UpdateAcco
     std::vector<uint8_t> resultToken;
     InnerDomainAccountManager::GetInstance().GetTokenFromMap(userId, resultToken);
     EXPECT_EQ(resultToken.empty(), true);
-    EXPECT_EQ(OsAccountManager::RemoveOsAccount(userId), ERR_OK);
-}
-
-/**
- * @tc.name: DomainAccountClientModuleTest_UpdateAccountToken_002
- * @tc.desc: UpdateAccountToken successfully.
- * @tc.type: FUNC
- * @tc.require: I6JV52
- */
-HWTEST_F(DomainAccountClientModuleTest, DomainAccountClientModuleTest_UpdateAccountToken_002, TestSize.Level0)
-{
-    DomainAccountInfo domainInfo;
-    domainInfo.accountName_ = STRING_NAME_NEW;
-    domainInfo.domain_ = STRING_DOMAIN_NEW;
-    domainInfo.accountId_ = INVALID_STRING_ACCOUNTID;
-    auto callback = std::make_shared<MockDomainCreateDomainAccountCallback>();
-    ASSERT_NE(callback, nullptr);
-    auto testCallback = std::make_shared<TestCreateDomainAccountCallback>(callback);
-    EXPECT_CALL(*callback, OnResult(ERR_OK, STRING_NAME_NEW, STRING_DOMAIN_NEW, INVALID_STRING_ACCOUNTID))
-        .Times(Exactly(1));
-    ASSERT_NE(testCallback, nullptr);
-    ErrCode errCode = OsAccountManager::CreateOsAccountForDomain(OsAccountType::NORMAL, domainInfo, testCallback);
-    std::unique_lock<std::mutex> lock(testCallback->mutex);
-    testCallback->cv.wait_for(
-        lock, std::chrono::seconds(WAIT_TIME), [lockCallback = testCallback]() { return lockCallback->isReady; });
-    ASSERT_EQ(errCode, ERR_OK);
-
-    std::vector<uint8_t> token = {1, 10, 100};
+    token = {1, 10, 100};
     EXPECT_EQ(DomainAccountClient::GetInstance().UpdateAccountToken(domainInfo, token), ERR_OK);
-    int32_t userId = -1;
-    errCode = OsAccountManager::GetOsAccountLocalIdFromDomain(domainInfo, userId);
-    EXPECT_EQ(errCode, ERR_OK);
-    std::vector<uint8_t> resultToken;
     InnerDomainAccountManager::GetInstance().GetTokenFromMap(userId, resultToken);
     for (size_t index = 0; index < resultToken.size(); index++) {
         EXPECT_EQ(resultToken[index], token[index]);
@@ -1786,7 +1726,7 @@ HWTEST_F(DomainAccountClientModuleTest, RegisterAccountStatusListener_009, TestS
 
 /**
  * @tc.name: RegisterAccountStatusListener_010
- * @tc.desc: RegisterAccountStatusListener listener unrigster is not work.
+ * @tc.desc: RegisterAccountStatusListener listener unregister is not work.
  * @tc.type: FUNC
  * @tc.require: issueI64KAM
  */

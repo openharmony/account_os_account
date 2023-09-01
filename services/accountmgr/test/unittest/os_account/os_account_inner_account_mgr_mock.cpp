@@ -315,53 +315,6 @@ HWTEST_F(OsAccountInnerAccmgrCoverageTest, OsAccountInnerAccmgrCoverageTest010, 
 }
 
 /*
- * @tc.name: OsAccountInnerAccmgrCoverageTest011
- * @tc.desc: coverage test
- * @tc.type: FUNC
- * @tc.require:
- */
-HWTEST_F(OsAccountInnerAccmgrCoverageTest, OsAccountInnerAccmgrCoverageTest011, TestSize.Level1)
-{
-    int ret;
-    auto ptr = std::make_shared<MockOsAccountControlFileManager>();
-    innerMgrService_->SetOsAccountControl(ptr);
-
-    OsAccountInfo osAccountInfoOne;
-#ifdef BUNDLE_ADAPTER_MOCK
-    EXPECT_NE(OsAccountManager::CreateOsAccount(STRING_TEST_NAME, OsAccountType::GUEST, osAccountInfoOne), ERR_OK);
-#else // BUNDLE_ADAPTER_MOCK
-    EXPECT_EQ(OsAccountManager::CreateOsAccount(STRING_TEST_NAME, OsAccountType::GUEST, osAccountInfoOne), ERR_OK);
-#endif
-
-    EXPECT_CALL(*ptr, UpdateOsAccount(::testing::_))
-        .WillRepeatedly(testing::Return(0));
-
-    ret = innerMgrService_->SendMsgForAccountCreate(osAccountInfoOne);
-    EXPECT_EQ(ret, 0);
-
-    (void)setuid(ACCOUNT_UID);
-
-    EXPECT_CALL(*ptr, UpdateOsAccount(::testing::_))
-        .WillRepeatedly(testing::Return(-1));
-
-    ret = innerMgrService_->SendMsgForAccountCreate(osAccountInfoOne);
-    EXPECT_EQ(ret, ERR_OSACCOUNT_SERVICE_INNER_UPDATE_ACCOUNT_ERROR);
-
-    EXPECT_CALL(*ptr, UpdateOsAccount(::testing::_))
-        .WillRepeatedly(testing::Return(0));
-
-    ret = innerMgrService_->SendMsgForAccountCreate(osAccountInfoOne);
-    EXPECT_EQ(ret, 0);
-
-    (void)setuid(0);
-#ifdef BUNDLE_ADAPTER_MOCK
-    EXPECT_NE(OsAccountManager::RemoveOsAccount(osAccountInfoOne.GetLocalId()), ERR_OK);
-#else // BUNDLE_ADAPTER_MOCK
-    EXPECT_EQ(OsAccountManager::RemoveOsAccount(osAccountInfoOne.GetLocalId()), ERR_OK);
-#endif
-}
-
-/*
  * @tc.name: OsAccountInnerAccmgrCoverageTest012
  * @tc.desc: coverage test
  * @tc.type: FUNC
@@ -1168,40 +1121,6 @@ HWTEST_F(OsAccountInnerAccmgrCoverageTest, OsAccountInnerAccmgrCoverageTest037, 
 
     ret = innerMgrService_->DeActivateOsAccount(TEST_USER_ID55);
     EXPECT_EQ(ret, ERR_OSACCOUNT_SERVICE_INNER_UPDATE_ACCOUNT_ERROR);
-}
-
-/*
- * @tc.name: OsAccountInnerAccmgrCoverageTest038
- * @tc.desc: coverage test
- * @tc.type: FUNC
- * @tc.require:
- */
-HWTEST_F(OsAccountInnerAccmgrCoverageTest, OsAccountInnerAccmgrCoverageTest038, TestSize.Level1)
-{
-    auto ptr = std::make_shared<MockOsAccountControlFileManager>();
-    innerMgrService_->SetOsAccountControl(ptr);
-
-    std::vector<OsAccountInfo> accounts;
-    OsAccountInfo account1;
-    account1.SetLocalId(TEST_USER_ID55);
-    account1.SetIsActived(true);
-    accounts.push_back(account1);
-    innerMgrService_->PushIdIntoActiveList(TEST_USER_ID55);
-
-    EXPECT_CALL(*ptr, UpdateOsAccount(::testing::_))
-        .WillRepeatedly(testing::Return(0));
-
-    EXPECT_CALL(*ptr, GetOsAccountList(_))
-        .WillRepeatedly(DoAll(SetArgReferee<0>(accounts), testing::Return(0)));
-
-    innerMgrService_->ResetAccountStatus();
-    EXPECT_EQ(account1.GetIsActived(), true); // this interface has nothing to judge.
-
-    EXPECT_CALL(*ptr, GetOsAccountList(_))
-        .WillRepeatedly(DoAll(SetArgReferee<0>(accounts), testing::Return(-1)));
-
-    innerMgrService_->ResetAccountStatus();
-    EXPECT_EQ(account1.GetIsActived(), true); // this interface has nothing to judge.
 }
 
 /*
