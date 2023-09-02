@@ -223,12 +223,12 @@ static bool ParseParamForUpdateAccountToken(
     napi_value argv[ARG_SIZE_THREE] = {0};
     napi_get_cb_info(env, cbInfo, &argc, argv, nullptr, nullptr);
     if (argc < ARG_SIZE_TWO) {
-        ACCOUNT_LOGE("the parameter of number should be at least two");
+        ACCOUNT_LOGE("the parameter number for updating account token should be at least two");
         return false;
     }
     if (argc == ARG_SIZE_THREE) {
         if (!GetCallbackProperty(env, argv[argc - 1], asyncContext->callbackRef, 1)) {
-            ACCOUNT_LOGE("Get callbackRef failed");
+            ACCOUNT_LOGE("failed to get callbackRef for updating account token");
             return false;
         }
     }
@@ -250,12 +250,12 @@ static bool ParseParamForGetAccessToken(
     napi_value argv[ARG_SIZE_THREE] = {0};
     napi_get_cb_info(env, cbInfo, &argc, argv, nullptr, nullptr);
     if (argc < ARG_SIZE_TWO) {
-        ACCOUNT_LOGE("the parameter of number should be at least two");
+        ACCOUNT_LOGE("the parameter number for getting access token should be at least two");
         return false;
     }
     if (argc == ARG_SIZE_THREE) {
         if (!GetCallbackProperty(env, argv[argc - 1], asyncContext->callbackRef, 1)) {
-            ACCOUNT_LOGE("Get callbackRef failed");
+            ACCOUNT_LOGE("failed to get callbackRef for getting access token");
             return false;
         }
     }

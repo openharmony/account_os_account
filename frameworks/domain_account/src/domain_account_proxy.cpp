@@ -34,7 +34,16 @@ ErrCode DomainAccountProxy::SendRequest(DomainAccountInterfaceCode code, Message
         return ERR_ACCOUNT_COMMON_NULL_PTR_ERROR;
     }
     MessageOption option(MessageOption::TF_SYNC);
-    return remote->SendRequest(static_cast<uint32_t>(code), data, reply, option);
+    ErrCode result = remote->SendRequest(static_cast<uint32_t>(code), data, reply, option);
+    if (result != ERR_OK) {
+        ACCOUNT_LOGE("failed to send domain account request, error code: %{public}d.", result);
+        return result;
+    }
+    if (!reply.ReadInt32(result)) {
+        ACCOUNT_LOGE("fail to read result");
+        return ERR_ACCOUNT_COMMON_READ_PARCEL_ERROR;
+    }
+    return result;
 }
 
 ErrCode DomainAccountProxy::HasDomainAccount(
@@ -54,16 +63,7 @@ ErrCode DomainAccountProxy::HasDomainAccount(
         return ERR_ACCOUNT_COMMON_WRITE_PARCEL_ERROR;
     }
     MessageParcel reply;
-    ErrCode result = SendRequest(DomainAccountInterfaceCode::DOMAIN_HAS_DOMAIN_ACCOUNT, data, reply);
-    if (result != ERR_OK) {
-        ACCOUNT_LOGE("SendRequest err, result %{public}d.", result);
-        return result;
-    }
-    if (!reply.ReadInt32(result)) {
-        ACCOUNT_LOGE("fail to read result");
-        return ERR_ACCOUNT_COMMON_READ_PARCEL_ERROR;
-    }
-    return result;
+    return SendRequest(DomainAccountInterfaceCode::DOMAIN_HAS_DOMAIN_ACCOUNT, data, reply);
 }
 
 ErrCode DomainAccountProxy::RegisterPlugin(const sptr<IDomainAccountPlugin> &plugin)
@@ -78,15 +78,7 @@ ErrCode DomainAccountProxy::RegisterPlugin(const sptr<IDomainAccountPlugin> &plu
         return ERR_ACCOUNT_COMMON_WRITE_PARCEL_ERROR;
     }
     MessageParcel reply;
-    ErrCode result = SendRequest(DomainAccountInterfaceCode::REGISTER_PLUGIN, data, reply);
-    if (result != ERR_OK) {
-        return result;
-    }
-    if (!reply.ReadInt32(result)) {
-        ACCOUNT_LOGE("fail to read result");
-        return ERR_ACCOUNT_COMMON_READ_PARCEL_ERROR;
-    }
-    return result;
+    return SendRequest(DomainAccountInterfaceCode::REGISTER_PLUGIN, data, reply);
 }
 
 ErrCode DomainAccountProxy::UnregisterPlugin()
@@ -97,15 +89,7 @@ ErrCode DomainAccountProxy::UnregisterPlugin()
         return ERR_ACCOUNT_COMMON_WRITE_PARCEL_ERROR;
     }
     MessageParcel reply;
-    ErrCode result = SendRequest(DomainAccountInterfaceCode::UNREGISTER_PLUGIN, data, reply);
-    if (result != ERR_OK) {
-        return result;
-    }
-    if (!reply.ReadInt32(result)) {
-        ACCOUNT_LOGE("fail to read result");
-        return ERR_ACCOUNT_COMMON_READ_PARCEL_ERROR;
-    }
-    return result;
+    return SendRequest(DomainAccountInterfaceCode::UNREGISTER_PLUGIN, data, reply);
 }
 
 ErrCode DomainAccountProxy::GetAccountStatus(const DomainAccountInfo &info, DomainAccountStatus &status)
@@ -122,14 +106,6 @@ ErrCode DomainAccountProxy::GetAccountStatus(const DomainAccountInfo &info, Doma
 
     MessageParcel reply;
     ErrCode result = SendRequest(DomainAccountInterfaceCode::DOMAIN_ACCOUNT_STATUS_ENQUIRY, data, reply);
-    if (result != ERR_OK) {
-        ACCOUNT_LOGE("fail to send request, error: %{public}d", result);
-        return result;
-    }
-    if (!reply.ReadInt32(result)) {
-        ACCOUNT_LOGE("fail to read result");
-        return ERR_ACCOUNT_COMMON_READ_PARCEL_ERROR;
-    }
     if (result != ERR_OK) {
         ACCOUNT_LOGE("fail to read result");
         return result;
@@ -152,7 +128,7 @@ ErrCode DomainAccountProxy::RegisterAccountStatusListener(
         return ERR_ACCOUNT_COMMON_WRITE_DESCRIPTOR_ERROR;
     }
     if (!data.WriteParcelable(&info)) {
-        ACCOUNT_LOGE("fail to write parcelable");
+        ACCOUNT_LOGE("fail to write domain account info for registering listener");
         return ERR_ACCOUNT_COMMON_WRITE_PARCEL_ERROR;
     }
     if ((listener == nullptr) || (!data.WriteRemoteObject(listener->AsObject()))) {
@@ -160,17 +136,7 @@ ErrCode DomainAccountProxy::RegisterAccountStatusListener(
         return ERR_ACCOUNT_COMMON_WRITE_PARCEL_ERROR;
     }
     MessageParcel reply;
-    ErrCode result =
-        SendRequest(DomainAccountInterfaceCode::DOMAIN_ACCOUNT_STATUS_LISTENER_REGISTER_BY_INFO, data, reply);
-    if (result != ERR_OK) {
-        ACCOUNT_LOGE("SendRequest err, result %{public}d.", result);
-        return result;
-    }
-    if (!reply.ReadInt32(result)) {
-        ACCOUNT_LOGE("fail to read result");
-        return ERR_ACCOUNT_COMMON_READ_PARCEL_ERROR;
-    }
-    return result;
+    return SendRequest(DomainAccountInterfaceCode::DOMAIN_ACCOUNT_STATUS_LISTENER_REGISTER_BY_INFO, data, reply);
 }
 
 ErrCode DomainAccountProxy::RegisterAccountStatusListener(const sptr<IDomainAccountCallback> &listener)
@@ -185,16 +151,7 @@ ErrCode DomainAccountProxy::RegisterAccountStatusListener(const sptr<IDomainAcco
         return ERR_ACCOUNT_COMMON_WRITE_PARCEL_ERROR;
     }
     MessageParcel reply;
-    ErrCode result = SendRequest(DomainAccountInterfaceCode::DOMAIN_ACCOUNT_STATUS_LISTENER_REGISTER, data, reply);
-    if (result != ERR_OK) {
-        ACCOUNT_LOGE("SendRequest err, result %{public}d.", result);
-        return result;
-    }
-    if (!reply.ReadInt32(result)) {
-        ACCOUNT_LOGE("fail to read result");
-        return ERR_ACCOUNT_COMMON_READ_PARCEL_ERROR;
-    }
-    return result;
+    return SendRequest(DomainAccountInterfaceCode::DOMAIN_ACCOUNT_STATUS_LISTENER_REGISTER, data, reply);
 }
 
 ErrCode DomainAccountProxy::UnregisterAccountStatusListener(const sptr<IDomainAccountCallback> &listener)
@@ -210,16 +167,7 @@ ErrCode DomainAccountProxy::UnregisterAccountStatusListener(const sptr<IDomainAc
     }
 
     MessageParcel reply;
-    ErrCode result = SendRequest(DomainAccountInterfaceCode::DOMAIN_ACCOUNT_STATUS_LISTENER_UNREGISTER, data, reply);
-    if (result != ERR_OK) {
-        ACCOUNT_LOGE("SendRequest err, result %{public}d.", result);
-        return result;
-    }
-    if (!reply.ReadInt32(result)) {
-        ACCOUNT_LOGE("fail to read result");
-        return ERR_ACCOUNT_COMMON_READ_PARCEL_ERROR;
-    }
-    return result;
+    return SendRequest(DomainAccountInterfaceCode::DOMAIN_ACCOUNT_STATUS_LISTENER_UNREGISTER, data, reply);
 }
 
 ErrCode DomainAccountProxy::UnregisterAccountStatusListener(
@@ -231,7 +179,7 @@ ErrCode DomainAccountProxy::UnregisterAccountStatusListener(
         return ERR_ACCOUNT_COMMON_WRITE_DESCRIPTOR_ERROR;
     }
     if (!data.WriteParcelable(&info)) {
-        ACCOUNT_LOGE("fail to write parcelable");
+        ACCOUNT_LOGE("fail to write domain account info for unregistering listener");
         return ERR_ACCOUNT_COMMON_WRITE_PARCEL_ERROR;
     }
     if ((listener == nullptr) || (!data.WriteRemoteObject(listener->AsObject()))) {
@@ -240,17 +188,7 @@ ErrCode DomainAccountProxy::UnregisterAccountStatusListener(
     }
 
     MessageParcel reply;
-    ErrCode result =
-        SendRequest(DomainAccountInterfaceCode::DOMAIN_ACCOUNT_STATUS_LISTENER_UNREGISTER_BY_INFO, data, reply);
-    if (result != ERR_OK) {
-        ACCOUNT_LOGE("SendRequest err, result %{public}d.", result);
-        return result;
-    }
-    if (!reply.ReadInt32(result)) {
-        ACCOUNT_LOGE("fail to read result");
-        return ERR_ACCOUNT_COMMON_READ_PARCEL_ERROR;
-    }
-    return result;
+    return SendRequest(DomainAccountInterfaceCode::DOMAIN_ACCOUNT_STATUS_LISTENER_UNREGISTER_BY_INFO, data, reply);
 }
 
 ErrCode DomainAccountProxy::Auth(
@@ -278,16 +216,7 @@ ErrCode DomainAccountProxy::Auth(
         return ERR_ACCOUNT_COMMON_WRITE_PARCEL_ERROR;
     }
     MessageParcel reply;
-    ErrCode result = SendRequest(DomainAccountInterfaceCode::DOMAIN_AUTH, data, reply);
-    if (result != ERR_OK) {
-        ACCOUNT_LOGE("fail to send request, error: %{public}d", result);
-        return result;
-    }
-    if (!reply.ReadInt32(result)) {
-        ACCOUNT_LOGE("fail to read result");
-        return ERR_ACCOUNT_COMMON_READ_PARCEL_ERROR;
-    }
-    return result;
+    return SendRequest(DomainAccountInterfaceCode::DOMAIN_AUTH, data, reply);
 }
 
 ErrCode DomainAccountProxy::AuthUser(
@@ -299,7 +228,7 @@ ErrCode DomainAccountProxy::AuthUser(
         return ERR_ACCOUNT_COMMON_WRITE_PARCEL_ERROR;
     }
     if (!data.WriteInt32(userId)) {
-        ACCOUNT_LOGE("fail to write userId");
+        ACCOUNT_LOGE("fail to write userId for authUser");
         return ERR_ACCOUNT_COMMON_WRITE_PARCEL_ERROR;
     }
     if (!data.WriteUInt8Vector(password)) {
@@ -311,16 +240,7 @@ ErrCode DomainAccountProxy::AuthUser(
         return ERR_ACCOUNT_COMMON_WRITE_PARCEL_ERROR;
     }
     MessageParcel reply;
-    ErrCode result = SendRequest(DomainAccountInterfaceCode::DOMAIN_AUTH_USER, data, reply);
-    if (result != ERR_OK) {
-        ACCOUNT_LOGE("fail to send request, error: %{public}d", result);
-        return result;
-    }
-    if (!reply.ReadInt32(result)) {
-        ACCOUNT_LOGE("fail to read result");
-        return ERR_ACCOUNT_COMMON_READ_PARCEL_ERROR;
-    }
-    return result;
+    return SendRequest(DomainAccountInterfaceCode::DOMAIN_AUTH_USER, data, reply);
 }
 
 ErrCode DomainAccountProxy::AuthWithPopup(int32_t userId, const sptr<IDomainAccountCallback> &callback)
@@ -331,7 +251,7 @@ ErrCode DomainAccountProxy::AuthWithPopup(int32_t userId, const sptr<IDomainAcco
         return ERR_ACCOUNT_COMMON_WRITE_PARCEL_ERROR;
     }
     if (!data.WriteInt32(userId)) {
-        ACCOUNT_LOGE("fail to write userId");
+        ACCOUNT_LOGE("fail to write userId for authWithPopup");
         return ERR_ACCOUNT_COMMON_WRITE_PARCEL_ERROR;
     }
     if ((callback == nullptr) || (!data.WriteRemoteObject(callback->AsObject()))) {
@@ -339,16 +259,7 @@ ErrCode DomainAccountProxy::AuthWithPopup(int32_t userId, const sptr<IDomainAcco
         return ERR_ACCOUNT_COMMON_WRITE_PARCEL_ERROR;
     }
     MessageParcel reply;
-    ErrCode result = SendRequest(DomainAccountInterfaceCode::DOMAIN_AUTH_WITH_POPUP, data, reply);
-    if (result != ERR_OK) {
-        ACCOUNT_LOGE("fail to send request, error: %{public}d", result);
-        return result;
-    }
-    if (!reply.ReadInt32(result)) {
-        ACCOUNT_LOGE("fail to read result");
-        return ERR_ACCOUNT_COMMON_READ_PARCEL_ERROR;
-    }
-    return result;
+    return SendRequest(DomainAccountInterfaceCode::DOMAIN_AUTH_WITH_POPUP, data, reply);
 }
 
 ErrCode DomainAccountProxy::UpdateAccountToken(const DomainAccountInfo &info, const std::vector<uint8_t> &token)
@@ -367,16 +278,7 @@ ErrCode DomainAccountProxy::UpdateAccountToken(const DomainAccountInfo &info, co
         return ERR_ACCOUNT_COMMON_WRITE_PARCEL_ERROR;
     }
     MessageParcel reply;
-    ErrCode result = SendRequest(DomainAccountInterfaceCode::DOMAIN_UPDATE_ACCOUNT_TOKEN, data, reply);
-    if (result != ERR_OK) {
-        ACCOUNT_LOGE("fail to send request, error: %{public}d", result);
-        return result;
-    }
-    if (!reply.ReadInt32(result)) {
-        ACCOUNT_LOGE("fail to read result");
-        return ERR_ACCOUNT_COMMON_READ_PARCEL_ERROR;
-    }
-    return result;
+    return SendRequest(DomainAccountInterfaceCode::DOMAIN_UPDATE_ACCOUNT_TOKEN, data, reply);
 }
 
 ErrCode DomainAccountProxy::GetAccessToken(
@@ -400,16 +302,7 @@ ErrCode DomainAccountProxy::GetAccessToken(
         return ERR_ACCOUNT_COMMON_WRITE_PARCEL_ERROR;
     }
     MessageParcel reply;
-    ErrCode result = SendRequest(DomainAccountInterfaceCode::DOMAIN_GET_ACCESS_TOKEN, data, reply);
-    if (result != ERR_OK) {
-        ACCOUNT_LOGE("fail to send request, error: %{public}d", result);
-        return result;
-    }
-    if (!reply.ReadInt32(result)) {
-        ACCOUNT_LOGE("fail to read result");
-        return ERR_ACCOUNT_COMMON_READ_PARCEL_ERROR;
-    }
-    return result;
+    return SendRequest(DomainAccountInterfaceCode::DOMAIN_GET_ACCESS_TOKEN, data, reply);
 }
 
 ErrCode DomainAccountProxy::GetDomainAccountInfo(
@@ -429,16 +322,7 @@ ErrCode DomainAccountProxy::GetDomainAccountInfo(
         return ERR_ACCOUNT_COMMON_WRITE_PARCEL_ERROR;
     }
     MessageParcel reply;
-    ErrCode result = SendRequest(DomainAccountInterfaceCode::DOMAIN_GET_ACCOUNT_INFO, data, reply);
-    if (result != ERR_OK) {
-        ACCOUNT_LOGE("fail to send request, error: %{public}d", result);
-        return result;
-    }
-    if (!reply.ReadInt32(result)) {
-        ACCOUNT_LOGE("fail to read result");
-        return ERR_ACCOUNT_COMMON_READ_PARCEL_ERROR;
-    }
-    return result;
+    return SendRequest(DomainAccountInterfaceCode::DOMAIN_GET_ACCOUNT_INFO, data, reply);
 }
 } // namespace AccountSA
 } // namespace OHOS

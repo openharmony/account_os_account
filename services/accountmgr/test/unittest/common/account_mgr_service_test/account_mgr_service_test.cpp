@@ -148,12 +148,9 @@ HWTEST_F(AccountMgrServiceTest, AccountMgrServiceOhosLoginTest001, TestSize.Leve
     // status check
     testInfo = accountMgr->QueryOhosAccountInfo();
     EXPECT_EQ(true, testInfo.first);
-    ret = (testInfo.second.uid_ == DEFAULT_OHOS_ACCOUNT_UID);
-    EXPECT_EQ(true, ret);
-    ret = (testInfo.second.name_ == DEFAULT_OHOS_ACCOUNT_NAME);
-    EXPECT_EQ(true, ret);
-    ret = (testInfo.second.status_ == ACCOUNT_STATE_UNBOUND);
-    EXPECT_EQ(true, ret);
+    EXPECT_EQ(testInfo.second.uid_, DEFAULT_OHOS_ACCOUNT_UID);
+    EXPECT_EQ(testInfo.second.name_, DEFAULT_OHOS_ACCOUNT_NAME);
+    EXPECT_EQ(testInfo.second.status_, ACCOUNT_STATE_UNBOUND);
 }
 
 /**
@@ -196,12 +193,9 @@ HWTEST_F(AccountMgrServiceTest, AccountMgrServiceOhosLoginTest002, TestSize.Leve
     // status check
     testInfo = accountMgr->QueryOhosAccountInfo();
     EXPECT_EQ(true, testInfo.first);
-    ret = (testInfo.second.uid_ == DEFAULT_OHOS_ACCOUNT_UID);
-    EXPECT_EQ(true, ret);
-    ret = (testInfo.second.name_ == DEFAULT_OHOS_ACCOUNT_NAME);
-    EXPECT_EQ(true, ret);
-    ret = (testInfo.second.status_ == ACCOUNT_STATE_UNBOUND);
-    EXPECT_EQ(true, ret);
+    EXPECT_EQ(testInfo.second.uid_, DEFAULT_OHOS_ACCOUNT_UID);
+    EXPECT_EQ(testInfo.second.name_, DEFAULT_OHOS_ACCOUNT_NAME);
+    EXPECT_EQ(testInfo.second.status_, ACCOUNT_STATE_UNBOUND);
 }
 
 /**
@@ -237,12 +231,9 @@ HWTEST_F(AccountMgrServiceTest, AccountMgrServiceOhosLogoffTest001, TestSize.Lev
     // status check
     testInfo = accountMgr->QueryOhosAccountInfo();
     EXPECT_EQ(true, testInfo.first);
-    ret = (testInfo.second.uid_ == DEFAULT_OHOS_ACCOUNT_UID);
-    EXPECT_EQ(true, ret);
-    ret = (testInfo.second.name_ == DEFAULT_OHOS_ACCOUNT_NAME);
-    EXPECT_EQ(true, ret);
-    ret = (testInfo.second.status_ == ACCOUNT_STATE_UNBOUND);
-    EXPECT_EQ(true, ret);
+    EXPECT_EQ(testInfo.second.uid_, DEFAULT_OHOS_ACCOUNT_UID);
+    EXPECT_EQ(testInfo.second.name_, DEFAULT_OHOS_ACCOUNT_NAME);
+    EXPECT_EQ(testInfo.second.status_, ACCOUNT_STATE_UNBOUND);
 }
 
 /**
@@ -305,12 +296,9 @@ HWTEST_F(AccountMgrServiceTest, AccountMgrServiceOhosTokenInvalidTest001, TestSi
     // status check
     testInfo = accountMgr->QueryOhosAccountInfo();
     EXPECT_EQ(true, testInfo.first);
-    ret = (testInfo.second.uid_ == DEFAULT_OHOS_ACCOUNT_UID);
-    EXPECT_EQ(true, ret);
-    ret = (testInfo.second.name_ == DEFAULT_OHOS_ACCOUNT_NAME);
-    EXPECT_EQ(true, ret);
-    ret = (testInfo.second.status_ == ACCOUNT_STATE_UNBOUND);
-    EXPECT_EQ(true, ret);
+    EXPECT_EQ(testInfo.second.uid_, DEFAULT_OHOS_ACCOUNT_UID);
+    EXPECT_EQ(testInfo.second.name_, DEFAULT_OHOS_ACCOUNT_NAME);
+    EXPECT_EQ(testInfo.second.status_, ACCOUNT_STATE_UNBOUND);
 }
 
 /**

@@ -304,7 +304,7 @@ bool ParseParaSetOAName(napi_env env, napi_callback_info cbInfo, SetOANameAsyncC
 
     if (argc == ARGS_SIZE_THREE) {
         if (!GetCallbackProperty(env, argv[argc - 1], asyncContext->callbackRef, 1)) {
-            ACCOUNT_LOGE("Get callbackRef failed");
+            ACCOUNT_LOGE("Get SetOAName callbackRef failed");
             std::string errMsg = "The type of arg " + std::to_string(argc) + " must be function";
             AccountNapiThrow(env, ERR_JS_PARAMETER_ERROR, errMsg, asyncContext->throwErr);
             return false;
@@ -459,7 +459,7 @@ bool ParseParaCreateOA(napi_env env, napi_callback_info cbInfo, CreateOAAsyncCon
 
     if (argc == ARGS_SIZE_THREE) {
         if (!GetCallbackProperty(env, argv[argc - 1], asyncContext->callbackRef, 1)) {
-            ACCOUNT_LOGE("Get callbackRef failed");
+            ACCOUNT_LOGE("Get CreateOA callbackRef failed");
             std::string errMsg = "The type of arg " + std::to_string(argc) + " must be function";
             AccountNapiThrow(env, ERR_JS_PARAMETER_ERROR, errMsg, asyncContext->throwErr);
             return false;
@@ -521,7 +521,7 @@ bool ParseParaCreateOAForDomain(napi_env env, napi_callback_info cbInfo,
 
     if (argc == ARGS_SIZE_THREE) {
         if (!GetCallbackProperty(env, argv[argc - 1], asyncContext->callbackRef, 1)) {
-            ACCOUNT_LOGE("Get callbackRef failed");
+            ACCOUNT_LOGE("Get CreateOAForDomain callbackRef failed");
             std::string errMsg = "The type of arg " + std::to_string(argc) + " must be function";
             AccountNapiThrow(env, ERR_JS_PARAMETER_ERROR, errMsg, asyncContext->throwErr);
             return false;

@@ -39,19 +39,19 @@ ErrCode AppAccountAuthenticatorProxy::AddAccountImplicitly(const std::string &au
     }
 
     if (!data.WriteString(authType)) {
-        ACCOUNT_LOGE("failed to write WriteString authType");
+        ACCOUNT_LOGE("failed to write authType");
         return ERR_ACCOUNT_COMMON_WRITE_PARCEL_ERROR;
     }
     if (!data.WriteString(callerBundleName)) {
-        ACCOUNT_LOGE("failed to write WriteString callerBundleName");
+        ACCOUNT_LOGE("failed to write callerBundleName");
         return ERR_ACCOUNT_COMMON_WRITE_PARCEL_ERROR;
     }
     if (!data.WriteParcelable(&options)) {
-        ACCOUNT_LOGE("failed to write WriteString options");
+        ACCOUNT_LOGE("failed to write options");
         return ERR_ACCOUNT_COMMON_WRITE_PARCEL_ERROR;
     }
     if (!data.WriteRemoteObject(callback)) {
-        ACCOUNT_LOGE("failed to write WriteString callback");
+        ACCOUNT_LOGE("failed to write callback");
         return ERR_ACCOUNT_COMMON_WRITE_PARCEL_ERROR;
     }
     ErrCode result = SendRequest(AppAccountAuthenticatorInterfaceCode::ADD_ACCOUNT_IMPLICITLY, data, reply);
@@ -73,23 +73,23 @@ ErrCode AppAccountAuthenticatorProxy::Authenticate(const std::string &name, cons
     }
 
     if (!data.WriteString(name)) {
-        ACCOUNT_LOGE("failed to write WriteString name");
+        ACCOUNT_LOGE("failed to write name");
         return ERR_ACCOUNT_COMMON_WRITE_PARCEL_ERROR;
     }
     if (!data.WriteString(authType)) {
-        ACCOUNT_LOGE("failed to write WriteString authType");
+        ACCOUNT_LOGE("failed to write authType for authentication");
         return ERR_ACCOUNT_COMMON_WRITE_PARCEL_ERROR;
     }
     if (!data.WriteString(callerBundleName)) {
-        ACCOUNT_LOGE("failed to write WriteString callerBundleName");
+        ACCOUNT_LOGE("failed to write callerBundleName for authentication");
         return ERR_ACCOUNT_COMMON_WRITE_PARCEL_ERROR;
     }
     if (!data.WriteParcelable(&options)) {
-        ACCOUNT_LOGE("failed to write WriteString options");
+        ACCOUNT_LOGE("failed to write options for authentication");
         return ERR_ACCOUNT_COMMON_WRITE_PARCEL_ERROR;
     }
     if (!data.WriteRemoteObject(callback)) {
-        ACCOUNT_LOGE("failed to write WriteString callback");
+        ACCOUNT_LOGE("failed to write callback for authentication");
         return ERR_ACCOUNT_COMMON_WRITE_PARCEL_ERROR;
     }
     ErrCode result = SendRequest(AppAccountAuthenticatorInterfaceCode::AUTHENTICATE, data, reply);

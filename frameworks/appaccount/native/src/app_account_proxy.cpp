@@ -165,7 +165,7 @@ ErrCode AppAccountProxy::DeleteAccount(const std::string &name)
     }
 
     if (!data.WriteString(name)) {
-        ACCOUNT_LOGE("failed to write string for name");
+        ACCOUNT_LOGE("failed to write name for deleting account");
         return ERR_ACCOUNT_COMMON_WRITE_PARCEL_ERROR;
     }
 
@@ -190,7 +190,7 @@ ErrCode AppAccountProxy::GetAccountExtraInfo(const std::string &name, std::strin
     }
 
     if (!data.WriteString(name)) {
-        ACCOUNT_LOGE("failed to write string for name");
+        ACCOUNT_LOGE("failed to write name for getting extra info");
         return ERR_ACCOUNT_COMMON_WRITE_PARCEL_ERROR;
     }
 
@@ -267,7 +267,7 @@ ErrCode AppAccountProxy::CheckAppAccountSyncEnable(const std::string &name, bool
     }
 
     if (!data.WriteString(name)) {
-        ACCOUNT_LOGE("failed to write string for name");
+        ACCOUNT_LOGE("failed to write name for checking account sync flag");
         return ERR_ACCOUNT_COMMON_WRITE_PARCEL_ERROR;
     }
 
@@ -293,7 +293,7 @@ ErrCode AppAccountProxy::SetAppAccountSyncEnable(const std::string &name, const 
     }
 
     if (!data.WriteString(name)) {
-        ACCOUNT_LOGE("failed to write string for name");
+        ACCOUNT_LOGE("failed to write name for enabling account sync flag");
         return ERR_ACCOUNT_COMMON_WRITE_PARCEL_ERROR;
     }
 
@@ -334,7 +334,7 @@ ErrCode AppAccountProxy::SetAssociatedData(const std::string &name, const std::s
     }
 
     if (!data.WriteString(name)) {
-        ACCOUNT_LOGE("failed to write string for name");
+        ACCOUNT_LOGE("failed to write name for set associated data");
         return ERR_ACCOUNT_COMMON_WRITE_PARCEL_ERROR;
     }
 
@@ -382,7 +382,7 @@ ErrCode AppAccountProxy::SetAccountCredential(
     }
 
     if (!data.WriteString(name)) {
-        ACCOUNT_LOGE("failed to write string for name");
+        ACCOUNT_LOGE("failed to write name for setting account credential");
         return ERR_ACCOUNT_COMMON_WRITE_PARCEL_ERROR;
     }
 
@@ -418,15 +418,15 @@ ErrCode AppAccountProxy::Authenticate(const std::string &name, const std::string
     }
 
     if (!data.WriteString(name)) {
-        ACCOUNT_LOGE("failed to write string for name");
+        ACCOUNT_LOGE("failed to write name");
         return ERR_ACCOUNT_COMMON_WRITE_PARCEL_ERROR;
     }
     if (!data.WriteString(owner)) {
-        ACCOUNT_LOGE("failed to write string for owner");
+        ACCOUNT_LOGE("failed to write owner");
         return ERR_ACCOUNT_COMMON_WRITE_PARCEL_ERROR;
     }
     if (!data.WriteString(authType)) {
-        ACCOUNT_LOGE("failed to write string for authType");
+        ACCOUNT_LOGE("failed to write authType");
         return ERR_ACCOUNT_COMMON_WRITE_PARCEL_ERROR;
     }
     if (!data.WriteParcelable(&options)) {
@@ -522,7 +522,7 @@ ErrCode AppAccountProxy::SetOAuthToken(
     }
 
     if (!data.WriteString(name)) {
-        ACCOUNT_LOGE("failed to write string for name");
+        ACCOUNT_LOGE("failed to write name for setting oauth token");
         return ERR_ACCOUNT_COMMON_WRITE_PARCEL_ERROR;
     }
     if (!data.WriteString(authType)) {
@@ -1050,11 +1050,11 @@ ErrCode AppAccountProxy::SetAuthenticatorProperties(const std::string &owner,
         return ERR_ACCOUNT_COMMON_WRITE_DESCRIPTOR_ERROR;
     }
     if (!data.WriteString(owner)) {
-        ACCOUNT_LOGE("failed to write string for owner");
+        ACCOUNT_LOGE("failed to write authenticator owner");
         return ERR_ACCOUNT_COMMON_WRITE_PARCEL_ERROR;
     }
     if (!data.WriteParcelable(&options)) {
-        ACCOUNT_LOGE("failed to write string for options");
+        ACCOUNT_LOGE("failed to write options");
         return ERR_ACCOUNT_COMMON_WRITE_PARCEL_ERROR;
     }
     if ((callback != nullptr) && (!data.WriteRemoteObject(callback->AsObject()))) {
@@ -1166,7 +1166,7 @@ ErrCode AppAccountProxy::SendRequest(AppAccountInterfaceCode code, MessageParcel
     MessageOption option(MessageOption::TF_SYNC);
     int32_t result = remote->SendRequest(static_cast<uint32_t>(code), data, reply, option);
     if (result != ERR_OK) {
-        ACCOUNT_LOGE("failed to SendRequest, code = %{public}d, result = %{public}d", code, result);
+        ACCOUNT_LOGE("failed to send app account request, code = %{public}d, result = %{public}d", code, result);
         return ERR_APPACCOUNT_KIT_SEND_REQUEST;
     }
 
