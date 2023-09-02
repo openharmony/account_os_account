@@ -1279,7 +1279,7 @@ ErrCode AppAccountControlManager::RemoveAuthorizedAccountFromDataStorage(const s
     ErrCode result = dataStoragePtr->GetValueFromKvStore(AUTHORIZED_ACCOUNTS,
         authorizedAccounts);
     if (result != ERR_OK) {
-        ACCOUNT_LOGE("failed to get config by id from data storage, result %{public}d.", result);
+        ACCOUNT_LOGE("failed to get authorized accounts from data storage, result %{public}d.", result);
     }
 
     std::vector<std::string> accessibleAccounts;

@@ -62,7 +62,7 @@ void AccountIAMClient::AddCredential(
     int32_t userId, const CredentialParameters& credInfo, const std::shared_ptr<IDMCallback> &callback)
 {
     if (callback == nullptr) {
-        ACCOUNT_LOGE("callback is nullptr");
+        ACCOUNT_LOGE("the callback for adding credential is nullptr");
         return;
     }
     Attributes emptyResult;
@@ -87,7 +87,7 @@ void AccountIAMClient::UpdateCredential(
     int32_t userId, const CredentialParameters& credInfo, const std::shared_ptr<IDMCallback> &callback)
 {
     if (callback == nullptr) {
-        ACCOUNT_LOGE("callback is nullptr");
+        ACCOUNT_LOGE("the callback for updating credential is nullptr");
         return;
     }
     Attributes emptyResult;
@@ -112,7 +112,7 @@ void AccountIAMClient::DelCred(int32_t userId, uint64_t credentialId, const std:
     const std::shared_ptr<IDMCallback>& callback)
 {
     if (callback == nullptr) {
-        ACCOUNT_LOGE("callback is nullptr");
+        ACCOUNT_LOGE("the callback for deleting credential is nullptr");
         return;
     }
     Attributes emptyResult;
@@ -133,7 +133,7 @@ void AccountIAMClient::DelUser(
     int32_t userId, const std::vector<uint8_t> &authToken, const std::shared_ptr<IDMCallback> &callback)
 {
     if (callback == nullptr) {
-        ACCOUNT_LOGE("callback is nullptr");
+        ACCOUNT_LOGE("the callback for deleting user is nullptr");
         return;
     }
     Attributes emptyResult;
@@ -262,7 +262,7 @@ void AccountIAMClient::GetProperty(
     int32_t userId, const GetPropertyRequest &request, const std::shared_ptr<GetSetPropCallback> &callback)
 {
     if (callback == nullptr) {
-        ACCOUNT_LOGE("callback is nullptr");
+        ACCOUNT_LOGE("the callback for getting property is nullptr");
         return;
     }
     Attributes emptyResult;
@@ -279,7 +279,7 @@ void AccountIAMClient::SetProperty(
     int32_t userId, const SetPropertyRequest &request, const std::shared_ptr<GetSetPropCallback> &callback)
 {
     if (callback == nullptr) {
-        ACCOUNT_LOGE("callback is nullptr");
+        ACCOUNT_LOGE("the callback for setting property is nullptr");
         return;
     }
     Attributes emptyResult;

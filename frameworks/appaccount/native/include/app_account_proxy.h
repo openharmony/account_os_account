@@ -46,8 +46,7 @@ public:
     ErrCode SetAppAccountSyncEnable(const std::string &name, const bool &syncEnable) override;
 
     ErrCode GetAssociatedData(const std::string &name, const std::string &key, std::string &value) override;
-    ErrCode SetAssociatedData(
-        const std::string &name, const std::string &key, const std::string &value) override;
+    ErrCode SetAssociatedData(const std::string &name, const std::string &key, const std::string &value) override;
 
     ErrCode GetAccountCredential(
         const std::string &name, const std::string &credentialType, std::string &credential) override;
