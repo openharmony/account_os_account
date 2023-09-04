@@ -22,6 +22,7 @@
 #include "ios_account_subscribe.h"
 #include "singleton.h"
 
+
 namespace OHOS {
 namespace AccountSA {
 class OsAccountSubscribeManager : public IOsAccountSubscribe {
@@ -30,8 +31,7 @@ public:
     ErrCode SubscribeOsAccount(const std::shared_ptr<OsAccountSubscribeInfo> &subscribeInfoPtr,
         const sptr<IRemoteObject> &eventListener) override;
     ErrCode UnsubscribeOsAccount(const sptr<IRemoteObject> &eventListener) override;
-    ErrCode PublishActivatedOsAccount(const int id) override;
-    ErrCode PublishActivatingOsAccount(const int id) override;
+    ErrCode Publish(const int id, OS_ACCOUNT_SUBSCRIBE_TYPE subscribeType) override;
     bool OnAccountsChanged(const OsSubscribeRecordPtr &osSubscribeRecordPtr, const int id);
 
 private:
@@ -40,7 +40,6 @@ private:
     DISALLOW_COPY_AND_MOVE(OsAccountSubscribeManager);
     ErrCode InsertSubscribeRecord(const OsSubscribeRecordPtr &subscribeRecordPtr);
     ErrCode RemoveSubscribeRecord(const sptr<IRemoteObject> &eventListener);
-    ErrCode Publish(const int id, OS_ACCOUNT_SUBSCRIBE_TYPE subscribeType, uint32_t& sendCnt);
 
 private:
     std::mutex mutex_;

@@ -35,6 +35,7 @@
 #include "os_account_constants.h"
 #include "os_account_delete_user_idm_callback.h"
 #include "os_account_stop_user_callback.h"
+#include "os_account_subscribe_manager.h"
 #ifdef HAS_STORAGE_PART
 #include "storage_manager_proxy.h"
 #endif
@@ -45,6 +46,7 @@
 #ifdef HAS_CES_PART
 #include "want.h"
 #endif // HAS_CES_PART
+
 
 namespace OHOS {
 namespace AccountSA {
@@ -346,8 +348,7 @@ ErrCode OsAccountInterface::SendToStorageAccountStart(OsAccountInfo &osAccountIn
     if (!systemAbilityManager) {
         ACCOUNT_LOGE("failed to get system ability mgr.");
         ReportOsAccountOperationFail(osAccountInfo.GetLocalId(), Constants::OPERATION_ACTIVATE,
-            ERR_ACCOUNT_COMMON_GET_SYSTEM_ABILITY_MANAGER,
-            "GetSystemAbilityManager for storage failed!");
+            ERR_ACCOUNT_COMMON_GET_SYSTEM_ABILITY_MANAGER, "GetSystemAbilityManager for storage failed!");
         return ERR_ACCOUNT_COMMON_GET_SYSTEM_ABILITY_MANAGER;
     }
     auto remote = systemAbilityManager->CheckSystemAbility(STORAGE_MANAGER_MANAGER_ID);
@@ -383,6 +384,8 @@ ErrCode OsAccountInterface::SendToStorageAccountStart(OsAccountInfo &osAccountIn
         osAccountInfo.SetIsVerified(true);
         PublishCommonEvent(osAccountInfo, OHOS::EventFwk::CommonEventSupport::COMMON_EVENT_USER_UNLOCKED,
             Constants::OPERATION_UNLOCK);
+        OsAccountSubscribeManager::GetInstance().Publish(osAccountInfo.GetLocalId(),
+            OS_ACCOUNT_SUBSCRIBE_TYPE::UNLOCKED);
     }
     ACCOUNT_LOGI("end, succeed!");
     return ERR_OK;
