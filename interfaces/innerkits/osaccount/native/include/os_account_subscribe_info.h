@@ -25,6 +25,9 @@ typedef enum {
     INVALID_TYPE = -1,
     ACTIVED = 0,
     ACTIVATING,
+    UNLOCKED,
+    CREATED,
+    REMOVED,
 } OS_ACCOUNT_SUBSCRIBE_TYPE;
 class OsAccountSubscribeInfo : public Parcelable {
 public:
