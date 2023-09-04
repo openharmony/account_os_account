@@ -110,19 +110,6 @@ ErrCode OsAccountSubscribeManager::RemoveSubscribeRecord(const sptr<IRemoteObjec
     return ERR_OK;
 }
 
-ErrCode OsAccountSubscribeManager::PublishActivatedOsAccount(const int id)
-{
-    uint32_t sendCnt = 0;
-    ErrCode ret = Publish(id, OS_ACCOUNT_SUBSCRIBE_TYPE::ACTIVED, sendCnt);
-    if (ret != ERR_OK) {
-        ACCOUNT_LOGE("PublishActivatedOsAccount failed! id %{public}d, ret %{public}d.", id, ret);
-        return ret;
-    }
-
-    ACCOUNT_LOGI("PublishActivatedOsAccount succeed! id %{public}d, sendCnt %{public}u.", id, sendCnt);
-    return ERR_OK;
-}
-
 bool OsAccountSubscribeManager::OnAccountsChanged(const OsSubscribeRecordPtr &osSubscribeRecordPtr, const int id)
 {
     auto osAccountEventProxy = iface_cast<IOsAccountEvent>(osSubscribeRecordPtr->eventListener_);
@@ -134,22 +121,10 @@ bool OsAccountSubscribeManager::OnAccountsChanged(const OsSubscribeRecordPtr &os
     return true;
 }
 
-ErrCode OsAccountSubscribeManager::PublishActivatingOsAccount(const int id)
-{
-    uint32_t sendCnt = 0;
-    ErrCode ret = Publish(id, OS_ACCOUNT_SUBSCRIBE_TYPE::ACTIVATING, sendCnt);
-    if (ret != ERR_OK) {
-        ACCOUNT_LOGE("PublishActivatingOsAccount failed! id %{public}d, ret %{public}d.", id, ret);
-        return ret;
-    }
-
-    ACCOUNT_LOGI("PublishActivatingOsAccount succeed! id %{public}d, sendCnt %{public}u.", id, sendCnt);
-    return ERR_OK;
-}
-
-ErrCode OsAccountSubscribeManager::Publish(const int id, OS_ACCOUNT_SUBSCRIBE_TYPE subscribeType, uint32_t& sendCnt)
+ErrCode OsAccountSubscribeManager::Publish(const int id, OS_ACCOUNT_SUBSCRIBE_TYPE subscribeType)
 {
     std::lock_guard<std::mutex> lock(subscribeRecordMutex_);
+    uint32_t sendCnt = 0;
     for (auto it = subscribeRecords_.begin(); it != subscribeRecords_.end(); ++it) {
         if ((*it)->subscribeInfoPtr_ == nullptr) {
             ACCOUNT_LOGE("subscribeInfoPtr_ is null, id %{public}d.", id);
@@ -165,6 +140,9 @@ ErrCode OsAccountSubscribeManager::Publish(const int id, OS_ACCOUNT_SUBSCRIBE_TY
             ++sendCnt;
         }
     }
+
+    ACCOUNT_LOGI("Publish OsAccountEvent %{public}d succeed! id %{public}d, sendCnt %{public}u.",
+        subscribeType, id, sendCnt);
     return ERR_OK;
 }
 }  // namespace AccountSA

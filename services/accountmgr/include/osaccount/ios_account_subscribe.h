@@ -40,8 +40,7 @@ public:
     virtual ErrCode SubscribeOsAccount(
         const std::shared_ptr<OsAccountSubscribeInfo> &subscribeInfoPtr, const sptr<IRemoteObject> &eventListener) = 0;
     virtual ErrCode UnsubscribeOsAccount(const sptr<IRemoteObject> &eventListener) = 0;
-    virtual ErrCode PublishActivatedOsAccount(const int id) = 0;
-    virtual ErrCode PublishActivatingOsAccount(const int id) = 0;
+    virtual ErrCode Publish(const int id, OS_ACCOUNT_SUBSCRIBE_TYPE subscribeType) = 0;
 };
 }  // namespace AccountSA
 }  // namespace OHOS
