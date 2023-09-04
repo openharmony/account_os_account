@@ -99,7 +99,7 @@ int32_t SystemAbilityManagerProxy::UnSubscribeSystemAbility(int32_t systemAbilit
     return ERR_INVALID_VALUE;
 }
 
-sptr<IRemoteObject> LoadSystemAbility(int32_t systemAbilityId, int32_t timeout)
+sptr<IRemoteObject> SystemAbilityManagerProxy::LoadSystemAbility(int32_t systemAbilityId, int32_t timeout)
 {
     return nullptr;
 }
