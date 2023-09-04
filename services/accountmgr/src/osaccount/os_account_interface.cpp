@@ -365,12 +365,13 @@ ErrCode OsAccountInterface::SendToStorageAccountStart(OsAccountInfo &osAccountIn
     }
     StartTraceAdapter("StorageManager PrepareStartUser");
     int localId = osAccountInfo.GetLocalId();
-    std::vector<uint8_t> emptyData;
-    int err = proxy->ActiveUserKey(localId, emptyData, emptyData);
-    if ((err == 0) && !osAccountInfo.GetIsVerified()) {
-        isUserUnlocked = true;
+    if ((!osAccountInfo.GetIsVerified()) && (!osAccountInfo.GetIsCreateSecret())) {
+        std::vector<uint8_t> emptyData;
+        if (proxy->ActiveUserKey(localId, emptyData, emptyData) == 0) {
+            isUserUnlocked = true;
+        }
     }
-    err = proxy->PrepareStartUser(localId);
+    int32_t err = proxy->PrepareStartUser(localId);
     if (err != 0) {
         ReportOsAccountOperationFail(osAccountInfo.GetLocalId(), Constants::OPERATION_ACTIVATE,
             err, "Storage PrepareStartUser failed!");
@@ -378,7 +379,7 @@ ErrCode OsAccountInterface::SendToStorageAccountStart(OsAccountInfo &osAccountIn
     ACCOUNT_LOGI("end, Storage PrepareStartUser ret %{public}d.", err);
     FinishTraceAdapter();
 #else
-    isUserUnlocked = osAccountInfo.GetIsVerified() ? false : true;
+    isUserUnlocked = !osAccountInfo.GetIsVerified();
 #endif
     if (isUserUnlocked) {
         osAccountInfo.SetIsVerified(true);

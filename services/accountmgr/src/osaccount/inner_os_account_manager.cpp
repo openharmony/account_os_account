@@ -1351,6 +1351,17 @@ ErrCode IInnerOsAccountManager::SetOsAccountIsVerified(const int id, const bool 
     return ERR_OK;
 }
 
+ErrCode IInnerOsAccountManager::GetOsAccountIsCreateSecret(const int id, bool &isCreateSecret)
+{
+    isCreateSecret = false;
+    OsAccountInfo osAccountInfo;
+    ErrCode errCode = osAccountControl_->GetOsAccountInfoById(id, osAccountInfo);
+    if (errCode == ERR_OK) {
+        isCreateSecret = osAccountInfo.GetIsCreateSecret();
+    }
+    return errCode;
+}
+
 ErrCode IInnerOsAccountManager::SetOsAccountIsCreateSecret(const int id, const bool isCreateSecret)
 {
     OsAccountInfo osAccountInfo;
