@@ -143,7 +143,7 @@ void IInnerOsAccountManager::StartAccount()
     if (SendMsgForAccountActivate(osAccountInfo) != ERR_OK) {
         return;
     }
-    subscribeManager_.PublishActivatedOsAccount(osAccountInfo.GetLocalId());
+    subscribeManager_.Publish(osAccountInfo.GetLocalId(), OS_ACCOUNT_SUBSCRIBE_TYPE::ACTIVED);
     ACCOUNT_LOGI("OsAccountAccountMgr send to storage and am for start success");
 }
 
@@ -253,6 +253,7 @@ ErrCode IInnerOsAccountManager::SendMsgForAccountCreate(OsAccountInfo &osAccount
     }
     ReportOsAccountLifeCycle(osAccountInfo.GetLocalId(), Constants::OPERATION_CREATE);
     OsAccountInterface::SendToCESAccountCreate(osAccountInfo);
+    subscribeManager_.Publish(osAccountInfo.GetLocalId(), OS_ACCOUNT_SUBSCRIBE_TYPE::CREATED);
     ACCOUNT_LOGI("OsAccountAccountMgr send to storage and bm for start success");
     return ERR_OK;
 }
@@ -389,6 +390,7 @@ ErrCode IInnerOsAccountManager::RemoveOsAccountOperate(const int id, OsAccountIn
         ACCOUNT_LOGI("No common event part! Publish nothing!");
 #endif // HAS_CES_PART
     }
+    subscribeManager_.Publish(id, OS_ACCOUNT_SUBSCRIBE_TYPE::REMOVED);
     return errCode;
 }
 
@@ -1121,14 +1123,14 @@ ErrCode IInnerOsAccountManager::ActivateOsAccount(const int id)
     }
 
     // activate
-    subscribeManager_.PublishActivatingOsAccount(id);
+    subscribeManager_.Publish(id, OS_ACCOUNT_SUBSCRIBE_TYPE::ACTIVATING);
     errCode = SendMsgForAccountActivate(osAccountInfo);
     if (errCode != ERR_OK) {
         RemoveLocalIdToOperating(id);
         return errCode;
     }
     RemoveLocalIdToOperating(id);
-    subscribeManager_.PublishActivatedOsAccount(id);
+    subscribeManager_.Publish(id, OS_ACCOUNT_SUBSCRIBE_TYPE::ACTIVED);
 
     DomainAccountInfo domainInfo;
     osAccountInfo.GetDomainInfo(domainInfo);
@@ -1336,6 +1338,7 @@ ErrCode IInnerOsAccountManager::SetOsAccountIsVerified(const int id, const bool 
     if (isVerified && !osAccountInfo.GetIsVerified()) {
         OsAccountInterface::PublishCommonEvent(osAccountInfo,
             OHOS::EventFwk::CommonEventSupport::COMMON_EVENT_USER_UNLOCKED, Constants::OPERATION_UNLOCK);
+        subscribeManager_.Publish(id, OS_ACCOUNT_SUBSCRIBE_TYPE::UNLOCKED);
     }
 
     osAccountInfo.SetIsVerified(isVerified);

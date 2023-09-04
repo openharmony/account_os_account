@@ -152,6 +152,8 @@ config("os_account_manager_service_subscribe_test_config") {
     "${common_path}/perf_stat/include",
     "${common_path}/account_error/include",
     "${innerkits_path}/include",
+    "${account_iam_interfaces_native_path}/include",
+    "${account_iam_framework_path}/test/unittest/include",
     "//third_party/json/include",
   ]
 }
@@ -171,6 +173,8 @@ ohos_moduletest("os_account_manager_service_subscribe_module_test") {
   ]
 
   deps = [
+    "${account_iam_framework_path}:account_iam_innerkits",
+    "${account_iam_framework_path}/test/unittest:account_iam_client_test",
     "${common_path}:libaccount_common",
     "${os_account_innerkits_native_path}:os_account_innerkits",
     "${services_path}/accountmgr:accountmgr",
@@ -182,6 +186,8 @@ ohos_moduletest("os_account_manager_service_subscribe_module_test") {
     "ability_base:want",
     "ability_runtime:ability_manager",
     "ability_runtime:app_manager",
+    "access_token:libaccesstoken_sdk",
+    "access_token:libtoken_setproc",
     "bundle_framework:appexecfwk_base",
     "bundle_framework:appexecfwk_core",
     "c_utils:utils",
@@ -190,6 +196,18 @@ ohos_moduletest("os_account_manager_service_subscribe_module_test") {
     "kv_store:distributeddata_inner",
   ]
   part_name = "os_account"
+
+  cflags_cc = []
+
+  if (has_pin_auth_part) {
+    cflags_cc += [ "-DHAS_PIN_AUTH_PART" ]
+    external_deps += [ "pin_auth:pinauth_framework" ]
+  }
+
+  if (has_user_auth_part) {
+    cflags_cc += [ "-DHAS_USER_AUTH_PART" ]
+    external_deps += [ "user_auth_framework:userauth_client" ]
+  }
 }
 
 ohos_moduletest("os_account_control_file_manager_test") {
