@@ -934,7 +934,7 @@ void QueryOAContSrcTypeForResult(napi_env env, const std::vector<ConstraintSourc
         napi_value valToJs = nullptr;
         napi_create_int32(env, item.typeInfo, &valToJs);
 
-        napi_set_named_property(env, objTypeInfo, "ConstraintSourceType", valToJs);
+        napi_set_named_property(env, objTypeInfo, "type", valToJs);
         napi_set_element(env, result, index, objTypeInfo);
         index++;
     }
