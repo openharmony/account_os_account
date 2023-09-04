@@ -159,22 +159,17 @@ void IAMInputer::OnGetData(int32_t authSubType, std::shared_ptr<IInputerData> in
     if (authSubType == 0) {
         authSubType = AccountIAMClient::GetInstance().GetAuthSubType(userId_);
     }
-    if (state < AFTER_ADD_CRED) {
-        if (innerInputer_ == nullptr) {
-            ACCOUNT_LOGE("innerInputer_ is nullptr");
-            return;
-        }
-        auto iamInputerData = std::make_shared<IAMInputerData>(userId_, inputerData);
-        innerInputer_->OnGetData(authSubType, iamInputerData);
-        return;
-    }
-    CredentialItem credItem;
-    AccountIAMClient::GetInstance().GetCredential(userId_, credItem);
-    if (state == ROLL_BACK_UPDATE_CRED) {
-        inputerData->OnSetData(authSubType, credItem.oldCredential);
-    } else {
+    if (state >= AFTER_ADD_CRED) {
+        CredentialItem credItem;
+        AccountIAMClient::GetInstance().GetCredential(userId_, credItem);
         inputerData->OnSetData(authSubType, credItem.credential);
     }
+    if (innerInputer_ == nullptr) {
+        ACCOUNT_LOGE("innerInputer_ is nullptr");
+        return;
+    }
+    auto iamInputerData = std::make_shared<IAMInputerData>(userId_, inputerData);
+    innerInputer_->OnGetData(authSubType, iamInputerData);
 }
 
 void IAMInputer::ResetInnerInputer(const std::shared_ptr<IInputer> &inputer)

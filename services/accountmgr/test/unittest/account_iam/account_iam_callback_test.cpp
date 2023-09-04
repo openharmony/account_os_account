@@ -198,60 +198,6 @@ HWTEST_F(AccountIamCallbackTest, AuthCallback_OnAcquireInfo_0200, TestSize.Level
 }
 
 /**
- * @tc.name: IDMAuthCallback_OnResult_0100
- * @tc.desc: OnResult with nullptr.
- * @tc.type: FUNC
- * @tc.require:
- */
-HWTEST_F(AccountIamCallbackTest, IDMAuthCallback_OnResult_0100, TestSize.Level0)
-{
-    CredentialParameters credInfo = {};
-    Attributes extraInfo;
-    auto idmAuthCallback = std::make_shared<IDMAuthCallback>(TEST_USER_ID, credInfo, 0, extraInfo, nullptr);
-    EXPECT_TRUE(idmAuthCallback->idmCallback_ == nullptr);
-    idmAuthCallback->OnResult(0, extraInfo);
-}
-
-/**
- * @tc.name: IDMAuthCallback_OnResult_0200
- * @tc.desc: OnResult with not nullptr.
- * @tc.type: FUNC
- * @tc.require:
- */
-HWTEST_F(AccountIamCallbackTest, IDMAuthCallback_OnResult_0200, TestSize.Level0)
-{
-    sptr<MockIIDMCallback> callback = new (std::nothrow) MockIIDMCallback();
-    CredentialParameters credInfo = {};
-    Attributes extraInfo;
-    auto idmAuthCallback = std::make_shared<IDMAuthCallback>(TEST_USER_ID, credInfo, 0, extraInfo, callback);
-    EXPECT_TRUE(idmAuthCallback->idmCallback_ != nullptr);
-    int32_t errCode = 0;
-    idmAuthCallback->OnResult(errCode, extraInfo);
-    EXPECT_EQ(0, callback->result_);
-    errCode = 10;
-    idmAuthCallback->OnResult(errCode, extraInfo);
-    EXPECT_EQ(ResultCode::FAIL, callback->result_);
-}
-
-/**
- * @tc.name: IDMAuthCallback_OnAcquireInfo_0100
- * @tc.desc: OnAcquireInfo with not nullptr.
- * @tc.type: FUNC
- * @tc.require:
- */
-HWTEST_F(AccountIamCallbackTest, IDMAuthCallback_OnAcquireInfo_0100, TestSize.Level0)
-{
-    sptr<MockIIDMCallback> callback = new (std::nothrow) MockIIDMCallback();
-    CredentialParameters credInfo = {};
-    Attributes extraInfo;
-    auto idmAuthCallback = std::make_shared<IDMAuthCallback>(TEST_USER_ID, credInfo, 0, extraInfo, callback);
-    EXPECT_TRUE(idmAuthCallback->idmCallback_ != nullptr);
-    idmAuthCallback->OnAcquireInfo(TEST_MODULE, TEST_MODULE, extraInfo);
-    EXPECT_EQ(0, callback->module_);
-    EXPECT_EQ(0, callback->acquireInfo_);
-}
-
-/**
  * @tc.name: AddCredCallback_OnResult_0100
  * @tc.desc: OnResult with nullptr.
  * @tc.type: FUNC
@@ -359,31 +305,6 @@ HWTEST_F(AccountIamCallbackTest, UpdateCredCallback_OnResult_0100, TestSize.Leve
 }
 
 /**
- * @tc.name: UpdateCredCallback_OnResult_0200
- * @tc.desc: OnResult with PIN.
- * @tc.type: FUNC
- * @tc.require:
- */
-HWTEST_F(AccountIamCallbackTest, UpdateCredCallback_OnResult_0200, TestSize.Level0)
-{
-    sptr<MockIIDMCallback> callback = new (std::nothrow) MockIIDMCallback();
-    CredentialParameters credInfo = {};
-    credInfo.authType = AuthType::PIN;
-    Attributes extraInfo;
-    auto updateCredCallback = std::make_shared<UpdateCredCallback>(TEST_USER_ID, credInfo, callback);
-    EXPECT_TRUE(updateCredCallback->innerCallback_ != nullptr);
-    IAMState state = InnerAccountIAMManager::GetInstance().GetState(TEST_USER_ID);
-    InnerAccountIAMManager::GetInstance().SetState(TEST_USER_ID, ROLL_BACK_UPDATE_CRED);
-    int32_t errCode = 0;
-    updateCredCallback->OnResult(errCode, extraInfo);
-    EXPECT_EQ(ResultCode::FAIL, callback->result_);
-    errCode = 10;
-    updateCredCallback->OnResult(errCode, extraInfo);
-    EXPECT_EQ(errCode, callback->result_);
-    InnerAccountIAMManager::GetInstance().SetState(TEST_USER_ID, state);
-}
-
-/**
  * @tc.name: UpdateCredCallback_OnResult_0300
  * @tc.desc: OnResult with not PIN.
  * @tc.type: FUNC
@@ -405,28 +326,6 @@ HWTEST_F(AccountIamCallbackTest, UpdateCredCallback_OnResult_0300, TestSize.Leve
     errCode = 10;
     updateCredCallback->OnResult(errCode, extraInfo);
     EXPECT_EQ(errCode, callback->result_);
-    InnerAccountIAMManager::GetInstance().SetState(TEST_USER_ID, state);
-}
-
-/**
- * @tc.name: UpdateCredCallback_OnResult_0400
- * @tc.desc: OnResult roll back credential failed.
- * @tc.type: FUNC
- * @tc.require:
- */
-HWTEST_F(AccountIamCallbackTest, UpdateCredCallback_OnResult_0400, TestSize.Level0)
-{
-    sptr<MockIIDMCallback> callback = new (std::nothrow) MockIIDMCallback();
-    CredentialParameters credInfo = {};
-    credInfo.authType = AuthType::FACE;
-    Attributes extraInfo;
-    auto updateCredCallback = std::make_shared<UpdateCredCallback>(TEST_USER_ID, credInfo, callback);
-    EXPECT_TRUE(updateCredCallback->innerCallback_ != nullptr);
-    IAMState state = InnerAccountIAMManager::GetInstance().GetState(TEST_USER_ID);
-    InnerAccountIAMManager::GetInstance().SetState(TEST_USER_ID, ROLL_BACK_UPDATE_CRED);
-    int32_t errCode = 10;
-    updateCredCallback->OnResult(errCode, extraInfo);
-    EXPECT_EQ(ResultCode::FAIL, callback->result_);
     InnerAccountIAMManager::GetInstance().SetState(TEST_USER_ID, state);
 }
 
@@ -473,33 +372,9 @@ HWTEST_F(AccountIamCallbackTest, DelCredCallback_OnResult_0100, TestSize.Level0)
 {
     Attributes extraInfo;
     std::vector<uint8_t> authToken;
-    auto delCredCallback = std::make_shared<DelCredCallback>(TEST_USER_ID, 0, authToken, nullptr);
+    auto delCredCallback = std::make_shared<DelCredCallback>(TEST_USER_ID, authToken, nullptr);
     EXPECT_TRUE(delCredCallback->innerCallback_ == nullptr);
     delCredCallback->OnResult(0, extraInfo);
-}
-
-/**
- * @tc.name: DelCredCallback_OnResult_0200
- * @tc.desc: OnResult with PIN.
- * @tc.type: FUNC
- * @tc.require:
- */
-HWTEST_F(AccountIamCallbackTest, DelCredCallback_OnResult_0200, TestSize.Level0)
-{
-    sptr<MockIIDMCallback> callback = new (std::nothrow) MockIIDMCallback();
-    Attributes extraInfo;
-    std::vector<uint8_t> authToken;
-    auto delCredCallback = std::make_shared<DelCredCallback>(TEST_USER_ID, 0, authToken, callback);
-    EXPECT_TRUE(delCredCallback->innerCallback_ != nullptr);
-    IAMState state = InnerAccountIAMManager::GetInstance().GetState(TEST_USER_ID);
-    InnerAccountIAMManager::GetInstance().SetState(TEST_USER_ID, ROLL_BACK_ADD_CRED);
-    int32_t errCode = 0;
-    delCredCallback->OnResult(errCode, extraInfo);
-    EXPECT_EQ(ResultCode::FAIL, callback->result_);
-    errCode = 10;
-    delCredCallback->OnResult(errCode, extraInfo);
-    EXPECT_EQ(errCode, callback->result_);
-    InnerAccountIAMManager::GetInstance().SetState(TEST_USER_ID, state);
 }
 
 /**
@@ -513,7 +388,7 @@ HWTEST_F(AccountIamCallbackTest, DelCredCallback_OnResult_0300, TestSize.Level0)
     sptr<MockIIDMCallback> callback = new (std::nothrow) MockIIDMCallback();
     Attributes extraInfo;
     std::vector<uint8_t> authToken;
-    auto delCredCallback = std::make_shared<DelCredCallback>(TEST_USER_ID, 0, authToken, callback);
+    auto delCredCallback = std::make_shared<DelCredCallback>(TEST_USER_ID, authToken, callback);
     EXPECT_TRUE(delCredCallback->innerCallback_ != nullptr);
     IAMState state = InnerAccountIAMManager::GetInstance().GetState(TEST_USER_ID);
     InnerAccountIAMManager::GetInstance().SetState(TEST_USER_ID, IDLE);
@@ -527,27 +402,6 @@ HWTEST_F(AccountIamCallbackTest, DelCredCallback_OnResult_0300, TestSize.Level0)
 }
 
 /**
- * @tc.name: DelCredCallback_OnResult_0400
- * @tc.desc: OnResult roll back credential failed.
- * @tc.type: FUNC
- * @tc.require:
- */
-HWTEST_F(AccountIamCallbackTest, DelCredCallback_OnResult_0400, TestSize.Level0)
-{
-    sptr<MockIIDMCallback> callback = new (std::nothrow) MockIIDMCallback();
-    Attributes extraInfo;
-    std::vector<uint8_t> authToken;
-    auto delCredCallback = std::make_shared<DelCredCallback>(TEST_USER_ID, 0, authToken, callback);
-    EXPECT_TRUE(delCredCallback->innerCallback_ != nullptr);
-    IAMState state = InnerAccountIAMManager::GetInstance().GetState(TEST_USER_ID);
-    InnerAccountIAMManager::GetInstance().SetState(TEST_USER_ID, ROLL_BACK_ADD_CRED);
-    int32_t errCode = 10;
-    delCredCallback->OnResult(errCode, extraInfo);
-    EXPECT_EQ(ResultCode::FAIL, callback->result_);
-    InnerAccountIAMManager::GetInstance().SetState(TEST_USER_ID, state);
-}
-
-/**
  * @tc.name: DelCredCallback_OnAcquireInfo_0100
  * @tc.desc: OnAcquireInfo with nullptr.
  * @tc.type: FUNC
@@ -557,7 +411,7 @@ HWTEST_F(AccountIamCallbackTest, DelCredCallback_OnAcquireInfo_0100, TestSize.Le
 {
     Attributes extraInfo;
     std::vector<uint8_t> authToken;
-    auto delCredCallback = std::make_shared<DelCredCallback>(TEST_USER_ID, 0, authToken, nullptr);
+    auto delCredCallback = std::make_shared<DelCredCallback>(TEST_USER_ID, authToken, nullptr);
     EXPECT_TRUE(delCredCallback->innerCallback_ == nullptr);
     delCredCallback->OnAcquireInfo(0, 0, extraInfo);
 }
@@ -573,7 +427,7 @@ HWTEST_F(AccountIamCallbackTest, DelCredCallback_OnAcquireInfo_0200, TestSize.Le
     sptr<MockIIDMCallback> callback = new (std::nothrow) MockIIDMCallback();
     Attributes extraInfo;
     std::vector<uint8_t> authToken;
-    auto delCredCallback = std::make_shared<DelCredCallback>(TEST_USER_ID, 0, authToken, callback);
+    auto delCredCallback = std::make_shared<DelCredCallback>(TEST_USER_ID, authToken, callback);
     EXPECT_TRUE(delCredCallback->innerCallback_ != nullptr);
     delCredCallback->OnAcquireInfo(TEST_MODULE, TEST_ACQUIRE_INFO, extraInfo);
     EXPECT_EQ(TEST_MODULE, callback->module_);
