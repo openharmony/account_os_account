@@ -82,6 +82,7 @@ OsAccountManagerService::~OsAccountManagerService()
 ErrCode OsAccountManagerService::CreateOsAccount(
     const std::string &name, const OsAccountType &type, OsAccountInfo &osAccountInfo)
 {
+#ifdef ENABLE_MULTIPLE_OS_ACCOUNTS
     bool isMultiOsAccountEnable = false;
     innerManager_.IsMultiOsAccountEnable(isMultiOsAccountEnable);
     if (!isMultiOsAccountEnable) {
@@ -121,12 +122,17 @@ ErrCode OsAccountManagerService::CreateOsAccount(
         return ERR_OSACCOUNT_SERVICE_MANAGER_CREATE_OSACCOUNT_TYPE_ERROR;
     }
     return innerManager_.CreateOsAccount(name, type, osAccountInfo);
+#else
+    ACCOUNT_LOGW("multiple os accounts feature not enabled");
+    return ERR_OSACCOUNT_SERVICE_MANAGER_NOT_ENABLE_MULTI_ERROR;
+#endif // ENABLE_MULTIPLE_OS_ACCOUNTS
 }
 
 ErrCode OsAccountManagerService::CreateOsAccountForDomain(const OsAccountType &type,
     const DomainAccountInfo &domainInfo, const sptr<IDomainAccountCallback> &callback)
 {
     ACCOUNT_LOGI("start");
+#ifdef ENABLE_MULTIPLE_OS_ACCOUNTS
     bool isMultiOsAccountEnable = false;
     innerManager_.IsMultiOsAccountEnable(isMultiOsAccountEnable);
     if (!isMultiOsAccountEnable) {
@@ -161,6 +167,10 @@ ErrCode OsAccountManagerService::CreateOsAccountForDomain(const OsAccountType &t
         return ERR_OSACCOUNT_SERVICE_MANAGER_CREATE_OSACCOUNT_TYPE_ERROR;
     }
     return innerManager_.CreateOsAccountForDomain(type, domainInfo, callback);
+#else
+    ACCOUNT_LOGW("multiple os accounts feature not enabled");
+    return ERR_OSACCOUNT_SERVICE_MANAGER_NOT_ENABLE_MULTI_ERROR;
+#endif // ENABLE_MULTIPLE_OS_ACCOUNTS
 }
 
 ErrCode OsAccountManagerService::RemoveOsAccount(const int id)
@@ -317,7 +327,12 @@ ErrCode OsAccountManagerService::GetOsAccountLocalIdFromDomain(const DomainAccou
 
 ErrCode OsAccountManagerService::QueryMaxOsAccountNumber(int &maxOsAccountNumber)
 {
+#ifdef ENABLE_MULTIPLE_OS_ACCOUNTS
     return innerManager_.QueryMaxOsAccountNumber(maxOsAccountNumber);
+#else
+    maxOsAccountNumber = 0;
+    return ERR_OK;
+#endif // ENABLE_MULTIPLE_OS_ACCOUNTS
 }
 
 ErrCode OsAccountManagerService::GetOsAccountAllConstraints(const int id, std::vector<std::string> &constraints)
@@ -404,7 +419,12 @@ ErrCode OsAccountManagerService::GetOsAccountProfilePhoto(const int id, std::str
 
 ErrCode OsAccountManagerService::IsMultiOsAccountEnable(bool &isMultiOsAccountEnable)
 {
+#ifdef ENABLE_MULTIPLE_OS_ACCOUNTS
     return innerManager_.IsMultiOsAccountEnable(isMultiOsAccountEnable);
+#else
+    isMultiOsAccountEnable = false;
+    return ERR_OK;
+#endif // ENABLE_MULTIPLE_OS_ACCOUNTS
 }
 
 ErrCode OsAccountManagerService::SetOsAccountName(const int id, const std::string &name)
@@ -660,7 +680,12 @@ ErrCode OsAccountManagerService::GetSerialNumberFromDatabase(const std::string& 
 
 ErrCode OsAccountManagerService::GetMaxAllowCreateIdFromDatabase(const std::string& storeID, int &id)
 {
+#ifdef ENABLE_MULTIPLE_OS_ACCOUNTS
     return innerManager_.GetMaxAllowCreateIdFromDatabase(storeID, id);
+#else
+    id = Constants::START_USER_ID;
+    return ERR_OK;
+#endif // ENABLE_MULTIPLE_OS_ACCOUNTS
 }
 
 ErrCode OsAccountManagerService::GetOsAccountFromDatabase(const std::string& storeID,
