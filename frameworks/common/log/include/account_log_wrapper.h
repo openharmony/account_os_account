@@ -21,6 +21,12 @@
 
 namespace OHOS {
 namespace AccountSA {
+#ifdef __FILE_NAME__
+#define LOG_FILE_NAME __FILE_NAME__
+#else
+#define LOG_FILE_NAME (__builtin_strrchr(__FILE__, '/') ? __builtin_strrchr(__FILE__, '/') + 1 : __FILE__)
+#endif
+
 enum class AccountLogLevel { DEBUG = 0, INFO, WARN, ERROR, FATAL };
 constexpr OHOS::HiviewDFX::HiLogLabel ACCOUNT_LABEL = {LOG_CORE, LOG_DOMAIN, ACCOUNT_LOG_TAG};
 
@@ -44,16 +50,12 @@ private:
     static AccountLogLevel level_;
 };
 
-#define ACCOUNT_LOGD(fmt, ...) \
-    OHOS::HiviewDFX::HiLog::Debug(ACCOUNT_LABEL, "[%{public}s:%{public}d]:" fmt, __FUNCTION__, __LINE__, ##__VA_ARGS__)
-#define ACCOUNT_LOGI(fmt, ...) \
-    OHOS::HiviewDFX::HiLog::Info(ACCOUNT_LABEL, "[%{public}s:%{public}d]:" fmt, __FUNCTION__, __LINE__, ##__VA_ARGS__)
-#define ACCOUNT_LOGW(fmt, ...) \
-    OHOS::HiviewDFX::HiLog::Warn(ACCOUNT_LABEL, "[%{public}s:%{public}d]:" fmt, __FUNCTION__, __LINE__, ##__VA_ARGS__)
-#define ACCOUNT_LOGE(fmt, ...) \
-    OHOS::HiviewDFX::HiLog::Error(ACCOUNT_LABEL, "[%{public}s:%{public}d]:" fmt, __FUNCTION__, __LINE__, ##__VA_ARGS__)
-#define ACCOUNT_LOGF(fmt, ...) \
-    OHOS::HiviewDFX::HiLog::Fatal(ACCOUNT_LABEL, "[%{public}s:%{public}d]:" fmt, __FUNCTION__, __LINE__, ##__VA_ARGS__)
+#define ARGS(fmt, ...) "[%{public}s@%{public}s:%{public}d] " fmt, __FUNCTION__, LOG_FILE_NAME, __LINE__, ##__VA_ARGS__
+#define ACCOUNT_LOGD(...) OHOS::HiviewDFX::HiLog::Debug(ACCOUNT_LABEL, ARGS(__VA_ARGS__))
+#define ACCOUNT_LOGI(...) OHOS::HiviewDFX::HiLog::Info(ACCOUNT_LABEL, ARGS(__VA_ARGS__))
+#define ACCOUNT_LOGW(...) OHOS::HiviewDFX::HiLog::Warn(ACCOUNT_LABEL, ARGS(__VA_ARGS__))
+#define ACCOUNT_LOGE(...) OHOS::HiviewDFX::HiLog::Error(ACCOUNT_LABEL, ARGS(__VA_ARGS__))
+#define ACCOUNT_LOGF(...) OHOS::HiviewDFX::HiLog::Fatal(ACCOUNT_LABEL, ARGS(__VA_ARGS__))
 }  // namespace AccountSA
 }  // namespace OHOS
 

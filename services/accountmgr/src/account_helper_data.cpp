@@ -80,7 +80,7 @@ std::map<std::string, std::string> AccountHelperData::GetAccountEventMap()
         return result;
     }
 
-    if (jsonData.find(KEY_ACCOUNT_EVENT_MAP) != jsonData.end()) {
+    if ((jsonData.find(KEY_ACCOUNT_EVENT_MAP) != jsonData.end()) && (jsonData.at(KEY_ACCOUNT_EVENT_MAP).is_array())) {
         result = jsonData.at(KEY_ACCOUNT_EVENT_MAP).get<std::map<std::string, std::string>>();
     }
 

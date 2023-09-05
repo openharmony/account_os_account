@@ -305,6 +305,8 @@ HWTEST_F(AppAccountManagerServiceSyncModuleTest, AppAccountManagerServiceSync_En
 
     auto jsonObject = Json::parse(authorizedAccounts, nullptr, false);
     EXPECT_EQ(jsonObject.is_discarded(), false);
+    EXPECT_NE(jsonObject.find(STRING_BUNDLE_NAME), jsonObject.end());
+    EXPECT_TRUE(jsonObject.at(STRING_BUNDLE_NAME).is_array());
 
     auto accessibleAccounts = jsonObject[STRING_BUNDLE_NAME].get<std::vector<std::string>>();
     EXPECT_EQ(accessibleAccounts.size(), SIZE_ONE);
@@ -343,48 +345,30 @@ HWTEST_F(AppAccountManagerServiceSyncModuleTest, AppAccountManagerServiceSync_En
     result = appAccountManagerServicePtr_->EnableAppAccess(STRING_NAME, STRING_BUNDLE_NAME);
     EXPECT_EQ(result, ERR_APPACCOUNT_SERVICE_ENABLE_APP_ACCESS_ALREADY_EXISTS);
 
-    {
-        auto dataStoragePtr = AppAccountControlManager::GetInstance().GetDataStorage(UID);
-        ASSERT_NE(dataStoragePtr, nullptr);
-
-        std::string authorizedAccounts;
-        result = dataStoragePtr->GetValueFromKvStore(AUTHORIZED_ACCOUNTS,
-            authorizedAccounts);
-        ASSERT_EQ(result, ERR_OK);
-
-        auto jsonObject = Json::parse(authorizedAccounts, nullptr, false);
-        EXPECT_EQ(jsonObject.is_discarded(), false);
-
-        auto accessibleAccounts = jsonObject[STRING_BUNDLE_NAME].get<std::vector<std::string>>();
-        EXPECT_EQ(accessibleAccounts.size(), SIZE_ONE);
-
-        auto accountPtr = accessibleAccounts.begin();
-        ASSERT_NE(accountPtr, accessibleAccounts.end());
-
-        EXPECT_EQ(*accountPtr, STRING_OWNER + HYPHEN + APP_INDEX + HYPHEN + STRING_NAME + HYPHEN);
-    }
 #ifdef DISTRIBUTED_FEATURE_ENABLED
-    {
-        auto dataStoragePtr = AppAccountControlManager::GetInstance().GetDataStorage(UID, true);
-        ASSERT_NE(dataStoragePtr, nullptr);
-
-        std::string authorizedAccounts;
-        result = dataStoragePtr->GetValueFromKvStore(AUTHORIZED_ACCOUNTS,
-            authorizedAccounts);
-        ASSERT_EQ(result, ERR_OK);
-
-        auto jsonObject = Json::parse(authorizedAccounts, nullptr, false);
-        EXPECT_EQ(jsonObject.is_discarded(), false);
-
-        auto accessibleAccounts = jsonObject[STRING_BUNDLE_NAME].get<std::vector<std::string>>();
-        EXPECT_EQ(accessibleAccounts.size(), SIZE_ONE);
-
-        auto accountPtr = accessibleAccounts.begin();
-        ASSERT_NE(accountPtr, accessibleAccounts.end());
-
-        EXPECT_EQ(*accountPtr, STRING_OWNER + HYPHEN + APP_INDEX + HYPHEN + STRING_NAME + HYPHEN);
-    }
+    auto dataStoragePtr = AppAccountControlManager::GetInstance().GetDataStorage(UID, true);
+#else
+    auto dataStoragePtr = AppAccountControlManager::GetInstance().GetDataStorage(UID);
 #endif // DISTRIBUTED_FEATURE_ENABLED
+    ASSERT_NE(dataStoragePtr, nullptr);
+
+    std::string authorizedAccounts;
+    result = dataStoragePtr->GetValueFromKvStore(AUTHORIZED_ACCOUNTS,
+        authorizedAccounts);
+    ASSERT_EQ(result, ERR_OK);
+
+    auto jsonObject = Json::parse(authorizedAccounts, nullptr, false);
+    EXPECT_EQ(jsonObject.is_discarded(), false);
+    EXPECT_NE(jsonObject.find(STRING_BUNDLE_NAME), jsonObject.end());
+    EXPECT_TRUE(jsonObject.at(STRING_BUNDLE_NAME).is_array());
+
+    auto accessibleAccounts = jsonObject[STRING_BUNDLE_NAME].get<std::vector<std::string>>();
+    EXPECT_EQ(accessibleAccounts.size(), SIZE_ONE);
+
+    auto accountPtr = accessibleAccounts.begin();
+    ASSERT_NE(accountPtr, accessibleAccounts.end());
+
+    EXPECT_EQ(*accountPtr, STRING_OWNER + HYPHEN + APP_INDEX + HYPHEN + STRING_NAME + HYPHEN);
 
     result = appAccountManagerServicePtr_->DeleteAccount(STRING_NAME);
     EXPECT_EQ(result, ERR_OK);
@@ -414,38 +398,25 @@ HWTEST_F(AppAccountManagerServiceSyncModuleTest, AppAccountManagerServiceSync_Di
     result = appAccountManagerServicePtr_->DisableAppAccess(STRING_NAME, STRING_BUNDLE_NAME);
     EXPECT_EQ(result, ERR_OK);
 
-    {
-        auto dataStoragePtr = AppAccountControlManager::GetInstance().GetDataStorage(UID);
-        ASSERT_NE(dataStoragePtr, nullptr);
-
-        std::string authorizedAccounts;
-        result = dataStoragePtr->GetValueFromKvStore(AUTHORIZED_ACCOUNTS,
-            authorizedAccounts);
-        ASSERT_EQ(result, ERR_OK);
-
-        auto jsonObject = Json::parse(authorizedAccounts, nullptr, false);
-        EXPECT_EQ(jsonObject.is_discarded(), false);
-
-        auto accessibleAccounts = jsonObject[STRING_BUNDLE_NAME].get<std::vector<std::string>>();
-        EXPECT_EQ(accessibleAccounts.size(), SIZE_ZERO);
-    }
 #ifdef DISTRIBUTED_FEATURE_ENABLED
-    {
-        auto dataStoragePtr = AppAccountControlManager::GetInstance().GetDataStorage(UID, true);
-        ASSERT_NE(dataStoragePtr, nullptr);
-
-        std::string authorizedAccounts;
-        result = dataStoragePtr->GetValueFromKvStore(AUTHORIZED_ACCOUNTS,
-            authorizedAccounts);
-        ASSERT_EQ(result, ERR_OK);
-
-        auto jsonObject = Json::parse(authorizedAccounts, nullptr, false);
-        EXPECT_EQ(jsonObject.is_discarded(), false);
-
-        auto accessibleAccounts = jsonObject[STRING_BUNDLE_NAME].get<std::vector<std::string>>();
-        EXPECT_EQ(accessibleAccounts.size(), SIZE_ZERO);
-    }
+    auto dataStoragePtr = AppAccountControlManager::GetInstance().GetDataStorage(UID, true);
+#else
+    auto dataStoragePtr = AppAccountControlManager::GetInstance().GetDataStorage(UID);
 #endif // DISTRIBUTED_FEATURE_ENABLED
+    ASSERT_NE(dataStoragePtr, nullptr);
+
+    std::string authorizedAccounts;
+    result = dataStoragePtr->GetValueFromKvStore(AUTHORIZED_ACCOUNTS,
+        authorizedAccounts);
+    ASSERT_EQ(result, ERR_OK);
+
+    auto jsonObject = Json::parse(authorizedAccounts, nullptr, false);
+    EXPECT_EQ(jsonObject.is_discarded(), false);
+    EXPECT_NE(jsonObject.find(STRING_BUNDLE_NAME), jsonObject.end());
+    EXPECT_TRUE(jsonObject.at(STRING_BUNDLE_NAME).is_array());
+
+    auto accessibleAccounts = jsonObject[STRING_BUNDLE_NAME].get<std::vector<std::string>>();
+    EXPECT_EQ(accessibleAccounts.size(), SIZE_ZERO);
 
     result = appAccountManagerServicePtr_->DeleteAccount(STRING_NAME);
     EXPECT_EQ(result, ERR_OK);
