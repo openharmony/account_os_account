@@ -176,42 +176,51 @@ ErrCode OhosAccountDataDeal::ParseJsonFromFile(const std::string &filePath, nloh
 ErrCode OhosAccountDataDeal::GetAccountInfoFromJson(AccountInfo &accountInfo, const int32_t userId)
 {
     const auto &jsonObjectEnd = jsonData_.end();
-    if (jsonData_.find(DATADEAL_JSON_KEY_BIND_TIME) != jsonObjectEnd) {
+    if ((jsonData_.find(DATADEAL_JSON_KEY_BIND_TIME) != jsonObjectEnd) &&
+        (jsonData_.at(DATADEAL_JSON_KEY_BIND_TIME).is_number())) {
         accountInfo.bindTime_ = jsonData_.at(DATADEAL_JSON_KEY_BIND_TIME).get<std::time_t>();
     }
 
-    if (jsonData_.find(DATADEAL_JSON_KEY_OHOSACCOUNT_NAME) != jsonObjectEnd) {
+    if ((jsonData_.find(DATADEAL_JSON_KEY_OHOSACCOUNT_NAME) != jsonObjectEnd) &&
+        (jsonData_.at(DATADEAL_JSON_KEY_OHOSACCOUNT_NAME).is_string())) {
         accountInfo.ohosAccountInfo_.name_ = jsonData_.at(DATADEAL_JSON_KEY_OHOSACCOUNT_NAME).get<std::string>();
     }
 
-    if (jsonData_.find(DATADEAL_JSON_KEY_OHOSACCOUNT_RAW_UID) != jsonObjectEnd) {
+    if ((jsonData_.find(DATADEAL_JSON_KEY_OHOSACCOUNT_RAW_UID) != jsonObjectEnd) &&
+        (jsonData_.at(DATADEAL_JSON_KEY_OHOSACCOUNT_RAW_UID).is_string())) {
         std::string rawUid = jsonData_.at(DATADEAL_JSON_KEY_OHOSACCOUNT_RAW_UID).get<std::string>();
         accountInfo.ohosAccountInfo_.SetRawUid(rawUid);
     }
 
-    if (jsonData_.find(DATADEAL_JSON_KEY_OHOSACCOUNT_UID) != jsonObjectEnd) {
+    if ((jsonData_.find(DATADEAL_JSON_KEY_OHOSACCOUNT_UID) != jsonObjectEnd) &&
+        (jsonData_.at(DATADEAL_JSON_KEY_OHOSACCOUNT_UID).is_string())) {
         accountInfo.ohosAccountInfo_.uid_ = jsonData_.at(DATADEAL_JSON_KEY_OHOSACCOUNT_UID).get<std::string>();
     }
 
-    if (jsonData_.find(DATADEAL_JSON_KEY_OHOSACCOUNT_STATUS) != jsonObjectEnd) {
+    if ((jsonData_.find(DATADEAL_JSON_KEY_OHOSACCOUNT_STATUS) != jsonObjectEnd) &&
+        (jsonData_.at(DATADEAL_JSON_KEY_OHOSACCOUNT_STATUS).is_number())) {
         accountInfo.ohosAccountInfo_.status_ = jsonData_.at(DATADEAL_JSON_KEY_OHOSACCOUNT_STATUS).get<int32_t>();
     }
 
-    if (jsonData_.find(DATADEAL_JSON_KEY_OHOSACCOUNT_CALLINGUID) != jsonObjectEnd) {
+    if ((jsonData_.find(DATADEAL_JSON_KEY_OHOSACCOUNT_CALLINGUID) != jsonObjectEnd) &&
+        (jsonData_.at(DATADEAL_JSON_KEY_OHOSACCOUNT_CALLINGUID).is_number())) {
         accountInfo.ohosAccountInfo_.callingUid_ =
             jsonData_.at(DATADEAL_JSON_KEY_OHOSACCOUNT_CALLINGUID).get<int32_t>();
     }
 
-    if (jsonData_.find(DATADEAL_JSON_KEY_OHOSACCOUNT_NICKNAME) != jsonObjectEnd) {
+    if ((jsonData_.find(DATADEAL_JSON_KEY_OHOSACCOUNT_NICKNAME) != jsonObjectEnd) &&
+        (jsonData_.at(DATADEAL_JSON_KEY_OHOSACCOUNT_NICKNAME).is_string())) {
         accountInfo.ohosAccountInfo_.nickname_ =
             jsonData_.at(DATADEAL_JSON_KEY_OHOSACCOUNT_NICKNAME).get<std::string>();
     }
 
-    if (jsonData_.find(DATADEAL_JSON_KEY_OHOSACCOUNT_AVATAR) != jsonObjectEnd) {
+    if ((jsonData_.find(DATADEAL_JSON_KEY_OHOSACCOUNT_AVATAR) != jsonObjectEnd) &&
+        (jsonData_.at(DATADEAL_JSON_KEY_OHOSACCOUNT_AVATAR).is_string())) {
         accountInfo.ohosAccountInfo_.avatar_ = jsonData_.at(DATADEAL_JSON_KEY_OHOSACCOUNT_AVATAR).get<std::string>();
     }
 
-    if (jsonData_.find(DATADEAL_JSON_KEY_OHOSACCOUNT_SCALABLEDATA) != jsonObjectEnd) {
+    if ((jsonData_.find(DATADEAL_JSON_KEY_OHOSACCOUNT_SCALABLEDATA) != jsonObjectEnd) &&
+        (jsonData_.at(DATADEAL_JSON_KEY_OHOSACCOUNT_SCALABLEDATA).is_string())) {
         auto scalableDataJson = jsonData_.at(DATADEAL_JSON_KEY_OHOSACCOUNT_SCALABLEDATA).get<std::string>();
         sptr<AAFwk::Want> want = AAFwk::Want::FromString(scalableDataJson);
         if (want == nullptr) {
