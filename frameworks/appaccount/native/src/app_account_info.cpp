@@ -516,13 +516,13 @@ void AppAccountInfo::ParseTokenInfosFromJson(const Json &jsonObject)
     oauthTokens_.clear();
     for (auto it = jsonObject.begin(); it != jsonObject.end(); ++it) {
         OAuthTokenInfo tokenInfo;
-        if (it->find(OAUTH_TOKEN) != it->end()) {
+        if (it->find(OAUTH_TOKEN) != it->end() && it->at(OAUTH_TOKEN).is_string()) {
             it->at(OAUTH_TOKEN).get_to(tokenInfo.token);
         }
-        if (it->find(OAUTH_TYPE) != it->end()) {
+        if (it->find(OAUTH_TYPE) != it->end() && it->at(OAUTH_TYPE).is_string()) {
             it->at(OAUTH_TYPE).get_to(tokenInfo.authType);
         }
-        if (it->find(OAUTH_AUTH_LIST) != it->end()) {
+        if (it->find(OAUTH_AUTH_LIST) != it->end() && it->at(OAUTH_AUTH_LIST).is_array()) {
             it->at(OAUTH_AUTH_LIST).get_to(tokenInfo.authList);
         }
         oauthTokens_.emplace(tokenInfo.authType, tokenInfo);
