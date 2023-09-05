@@ -174,6 +174,10 @@ ohos_shared_library("accountmgr") {
     cflags += [ "-DFILE_ENCRYPTION_EL1_FEATURE" ]
   }
 
+  if (os_account_enable_multiple_os_accounts) {
+    cflags += [ "-DENABLE_MULTIPLE_OS_ACCOUNTS" ]
+  }
+
   sources = [
     "${common_path}/utils/src/account_permission_manager.cpp",
     "${domain_account_framework_path}/src/domain_account_callback_proxy.cpp",
