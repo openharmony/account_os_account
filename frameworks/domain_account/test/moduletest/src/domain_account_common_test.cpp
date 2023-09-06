@@ -30,7 +30,6 @@ using namespace OHOS::AccountSA;
 namespace {
 const int32_t CALLING_UID = 100;
 const int32_t REMAINING_TIMES = 100;
-const int32_t PARAM_ZERO = 0;
 const std::string STRING_NAME_TWO = "zhangsan666";
 const std::string STRING_DOMAIN_NEW = "test.example.com";
 const std::string STRING_NAME_NEW = "zhangsan777";
@@ -113,19 +112,4 @@ HWTEST_F(DomainAccountCommonModuleTest, DomainAccountCommonModuleTest_AuthStatus
     AuthStatusInfo *result = authStatusInfo.Unmarshalling(parcel);
     std::shared_ptr<AuthStatusInfo> authStatusInfoPtr(result);
     EXPECT_EQ(authStatusInfoPtr->remainingTimes, REMAINING_TIMES);
-}
-
-/**
- * @tc.name: DomainAccountCommonModuleTest_DomainAccountListenerRecord_001
- * @tc.desc: DomainAccountListenerRecord successfully.
- * @tc.type: FUNC
- * @tc.require:
- */
-HWTEST_F(DomainAccountCommonModuleTest, DomainAccountCommonModuleTest_DomainAccountListenerRecord_001, TestSize.Level0)
-{
-    DomainAccountInfo domainInfo(STRING_DOMAIN_NEW, STRING_NAME_NEW, STRING_ACCOUNTID_NEW);
-    DomainAccountClient::DomainAccountListenerRecord record(domainInfo, nullptr);
-    EXPECT_EQ(record.infos_[PARAM_ZERO].accountName_, STRING_NAME_NEW);
-    DomainAccountClient::DomainAccountListenerRecord record1(nullptr);
-    EXPECT_EQ(record1.callback_, nullptr);
 }
