@@ -86,23 +86,17 @@ void AuthCallback::OnAcquireInfo(int32_t module, uint32_t acquireInfo, const Att
     innerCallback_->OnAcquireInfo(module, acquireInfo, extraInfo);
 }
 
-IDMAuthCallback::IDMAuthCallback(uint32_t userId, const CredentialParameters &credInfo,
-    int32_t oldResult, const Attributes &reqResult, const sptr<IIDMCallback> &idmCallback)
-    : userId_(userId), credInfo_(credInfo), oldResult_(oldResult), idmCallback_(idmCallback)
+IDMAuthCallback::IDMAuthCallback(uint32_t userId, const Attributes &extraInfo)
+    : userId_(userId)
 {
-    reqResult.GetUint64Value(Attributes::AttributeKey::ATTR_CREDENTIAL_ID, credentialId_);
-    reqResult.GetUint64Value(Attributes::AttributeKey::ATTR_SEC_USER_ID, secureUid_);
-    reqResult_.SetUint64Value(Attributes::AttributeKey::ATTR_CREDENTIAL_ID, credentialId_);
+    extraInfo.GetUint64Value(Attributes::AttributeKey::ATTR_CREDENTIAL_ID, credentialId_);
+    extraInfo.GetUint64Value(Attributes::AttributeKey::ATTR_SEC_USER_ID, secureUid_);
 }
 
 void IDMAuthCallback::OnResult(int32_t result, const Attributes &extraInfo)
 {
-    if (idmCallback_ == nullptr) {
-        ACCOUNT_LOGE("inner callback is nullptr");
-        return;
-    }
     if (result != 0) {
-        idmCallback_->OnResult(ResultCode::FAIL, reqResult_);
+        ACCOUNT_LOGE("fail to update user key for authentication failure");
         InnerAccountIAMManager::GetInstance().SetState(userId_, AFTER_OPEN_SESSION);
         return;
     }
@@ -114,24 +108,6 @@ void IDMAuthCallback::OnResult(int32_t result, const Attributes &extraInfo)
         userId_, secureUid_, credentialId_, token, secret);
     if (updateKeyResult == 0) {
         InnerAccountIAMManager::GetInstance().SetState(userId_, AFTER_OPEN_SESSION);
-        idmCallback_->OnResult(oldResult_, reqResult_);
-        return;
-    }
-    IAMState state = InnerAccountIAMManager::GetInstance().GetState(userId_);
-    if (state == AFTER_ADD_CRED) {
-        ACCOUNT_LOGE("failed to unlock user key, delete the added credential");
-        InnerAccountIAMManager::GetInstance().SetState(userId_, ROLL_BACK_ADD_CRED);
-        auto delCallback = std::make_shared<DelCredCallback>(userId_, credentialId_, token, idmCallback_);
-        UserIDMClient::GetInstance().DeleteCredential(userId_, credentialId_, token, delCallback);
-    } else if (state == AFTER_UPDATE_CRED) {
-        ACCOUNT_LOGE("failed to unlock user key, restore the old credential");
-        InnerAccountIAMManager::GetInstance().SetState(userId_, ROLL_BACK_UPDATE_CRED);
-        credInfo_.token = token;
-        auto updateCallback = std::make_shared<UpdateCredCallback>(userId_, credInfo_, idmCallback_);
-        UserIDMClient::GetInstance().UpdateCredential(0, credInfo_, updateCallback);
-    } else {
-        InnerAccountIAMManager::GetInstance().SetState(userId_, AFTER_OPEN_SESSION);
-        idmCallback_->OnResult(oldResult_, reqResult_);
     }
 }
 
@@ -151,9 +127,9 @@ void AddCredCallback::OnResult(int32_t result, const Attributes &extraInfo)
         ACCOUNT_LOGE("inner callback is nullptr");
         return;
     }
+    innerCallback_->OnResult(result, extraInfo);
     if (result != 0 || credInfo_.authType != AuthType::PIN) {
         ACCOUNT_LOGE("failed to add credential, result = %{public}d", result);
-        innerCallback_->OnResult(result, extraInfo);
         InnerAccountIAMManager::GetInstance().SetState(userId_, AFTER_OPEN_SESSION);
         return;
     }
@@ -162,7 +138,7 @@ void AddCredCallback::OnResult(int32_t result, const Attributes &extraInfo)
     InnerAccountIAMManager::GetInstance().SetState(userId_, AFTER_ADD_CRED);
     std::vector<uint8_t> challenge;
     InnerAccountIAMManager::GetInstance().GetChallenge(userId_, challenge);
-    auto callback = std::make_shared<IDMAuthCallback>(userId_, credInfo_, result, extraInfo, innerCallback_);
+    auto callback = std::make_shared<IDMAuthCallback>(userId_, extraInfo);
     UserAuthClient::GetInstance().BeginAuthentication(
         userId_, challenge, AuthType::PIN, AuthTrustLevel::ATL4, callback);
 }
@@ -187,26 +163,16 @@ void UpdateCredCallback::OnResult(int32_t result, const Attributes &extraInfo)
         ACCOUNT_LOGE("inner callback is nullptr");
         return;
     }
-    IAMState state = InnerAccountIAMManager::GetInstance().GetState(userId_);
-    if (state == ROLL_BACK_UPDATE_CRED) {
-        if (result != 0) {
-            ACCOUNT_LOGE("roll back credential failed");
-        }
-        InnerAccountIAMManager::GetInstance().SetState(userId_, AFTER_OPEN_SESSION);
-        Attributes errResult;
-        innerCallback_->OnResult(ResultCode::FAIL, errResult);
-        return;
-    }
+    innerCallback_->OnResult(result, extraInfo);
     if (result != 0 || credInfo_.authType != AuthType::PIN) {
         ACCOUNT_LOGE("failed to update credential");
-        innerCallback_->OnResult(result, extraInfo);
         InnerAccountIAMManager::GetInstance().SetState(userId_, AFTER_OPEN_SESSION);
         return;
     }
     InnerAccountIAMManager::GetInstance().SetState(userId_, AFTER_UPDATE_CRED);
     std::vector<uint8_t> challenge;
     InnerAccountIAMManager::GetInstance().GetChallenge(userId_, challenge);
-    auto callback = std::make_shared<IDMAuthCallback>(userId_, credInfo_, result, extraInfo, innerCallback_);
+    auto callback = std::make_shared<IDMAuthCallback>(userId_, extraInfo);
     UserAuthClient::GetInstance().BeginAuthentication(
         userId_, challenge, AuthType::PIN, AuthTrustLevel::ATL4, callback);
 }
@@ -220,9 +186,9 @@ void UpdateCredCallback::OnAcquireInfo(int32_t module, uint32_t acquireInfo, con
     innerCallback_->OnAcquireInfo(module, acquireInfo, extraInfo);
 }
 
-DelCredCallback::DelCredCallback(int32_t userId, uint64_t credentialId, const std::vector<uint8_t> &authToken,
+DelCredCallback::DelCredCallback(int32_t userId, const std::vector<uint8_t> &authToken,
     const sptr<IIDMCallback> &callback)
-    : userId_(userId), credentialId_(credentialId), authToken_(authToken), innerCallback_(callback)
+    : userId_(userId), authToken_(authToken), innerCallback_(callback)
 {}
 
 void DelCredCallback::OnResult(int32_t result, const Attributes &extraInfo)
@@ -231,21 +197,10 @@ void DelCredCallback::OnResult(int32_t result, const Attributes &extraInfo)
         ACCOUNT_LOGE("innerCallback_ is nullptr");
         return;
     }
-    IAMState state = InnerAccountIAMManager::GetInstance().GetState(userId_);
-    if (state == ROLL_BACK_ADD_CRED) {
-        if (result != 0) {
-            ACCOUNT_LOGE("roll back credential failed");
-        }
-        InnerAccountIAMManager::GetInstance().SetState(userId_, AFTER_OPEN_SESSION);
-        Attributes errResult;
-        innerCallback_->OnResult(ResultCode::FAIL, errResult);
-        return;
-    }
-    if (result != 0) {
-        InnerAccountIAMManager::GetInstance().RestoreUserKey(userId_, credentialId_, authToken_);
+    if (result == 0) {
+        (void)IInnerOsAccountManager::GetInstance().SetOsAccountIsCreateSecret(userId_, false);
     }
     InnerAccountIAMManager::GetInstance().SetState(userId_, AFTER_OPEN_SESSION);
-    (void)IInnerOsAccountManager::GetInstance().SetOsAccountIsCreateSecret(userId_, false);
     innerCallback_->OnResult(result, extraInfo);
 }
 

@@ -26,7 +26,7 @@ namespace OHOS {
 namespace AccountSA {
 class AuthCallback : public AuthenticationCallback {
 public:
-    explicit AuthCallback(uint32_t userId, AuthType authType, const sptr<IIDMCallback> &callback);
+    AuthCallback(uint32_t userId, AuthType authType, const sptr<IIDMCallback> &callback);
     virtual ~AuthCallback() = default;
 
     void OnAcquireInfo(int32_t module, uint32_t acquireInfo, const Attributes &extraInfo) override;
@@ -40,26 +40,21 @@ private:
 
 class IDMAuthCallback : public AuthenticationCallback {
 public:
-    explicit IDMAuthCallback(uint32_t userId, const CredentialParameters &credInfo,
-        int32_t oldResult, const Attributes &reqResult, const sptr<IIDMCallback> &idmCallback);
+    IDMAuthCallback(uint32_t userId, const Attributes &extraInfo);
     virtual ~IDMAuthCallback() = default;
 
     void OnResult(int32_t result, const Attributes &extraInfo) override;
     void OnAcquireInfo(int32_t module, uint32_t acquireInfo, const Attributes &extraInfo) override;
 
 private:
-    uint32_t userId_;
-    CredentialParameters credInfo_;
-    int32_t oldResult_;
-    Attributes reqResult_;
-    sptr<IIDMCallback> idmCallback_ = nullptr;
+    uint32_t userId_ = 0;
     uint64_t credentialId_ = 0;
     uint64_t secureUid_ = 0;
 };
 
 class AddCredCallback : public UserIdmClientCallback {
 public:
-    explicit AddCredCallback(uint32_t userId, const CredentialParameters &credInfo,
+    AddCredCallback(uint32_t userId, const CredentialParameters &credInfo,
         const sptr<IIDMCallback> &callback);
     virtual ~AddCredCallback() = default;
 
@@ -74,7 +69,7 @@ private:
 
 class UpdateCredCallback : public UserIdmClientCallback {
 public:
-    explicit UpdateCredCallback(uint32_t userId, const CredentialParameters &credInfo,
+    UpdateCredCallback(uint32_t userId, const CredentialParameters &credInfo,
         const sptr<IIDMCallback> &callback);
     virtual ~UpdateCredCallback() = default;
 
@@ -90,8 +85,7 @@ private:
 
 class DelCredCallback : public UserIdmClientCallback {
 public:
-    explicit DelCredCallback(int32_t userId, uint64_t credentialId, const std::vector<uint8_t> &authToken,
-        const sptr<IIDMCallback> &callback);
+    DelCredCallback(int32_t userId, const std::vector<uint8_t> &authToken, const sptr<IIDMCallback> &callback);
     virtual ~DelCredCallback() = default;
 
     void OnResult(int32_t result, const Attributes &extraInfo) override;
@@ -99,15 +93,13 @@ public:
 
 private:
     int32_t userId_;
-    uint64_t credentialId_;
     std::vector<uint8_t> authToken_;
     const sptr<IIDMCallback> innerCallback_ = nullptr;
 };
 
 class GetCredInfoCallbackWrapper : public GetCredentialInfoCallback {
 public:
-    explicit GetCredInfoCallbackWrapper(
-        int32_t userId, int32_t authType, const sptr<IGetCredInfoCallback> &callback);
+    GetCredInfoCallbackWrapper(int32_t userId, int32_t authType, const sptr<IGetCredInfoCallback> &callback);
     virtual ~GetCredInfoCallbackWrapper() = default;
 
     void OnCredentialInfo(const std::vector<CredentialInfo> &infoList) override;
@@ -120,7 +112,7 @@ private:
 
 class GetPropCallbackWrapper : public GetPropCallback {
 public:
-    explicit GetPropCallbackWrapper(const sptr<IGetSetPropCallback> &callback);
+    GetPropCallbackWrapper(const sptr<IGetSetPropCallback> &callback);
     virtual ~GetPropCallbackWrapper() = default;
 
     void OnResult(int32_t result, const Attributes &extraInfo) override;
@@ -131,7 +123,7 @@ private:
 
 class SetPropCallbackWrapper : public SetPropCallback {
 public:
-    explicit SetPropCallbackWrapper(const sptr<IGetSetPropCallback> &callback);
+    SetPropCallbackWrapper(const sptr<IGetSetPropCallback> &callback);
     virtual ~SetPropCallbackWrapper() = default;
 
     void OnResult(int32_t result, const Attributes &extraInfo) override;
@@ -142,8 +134,7 @@ private:
 
 class GetDomainAuthStatusInfoCallback final : public DomainAccountCallback {
 public:
-    explicit GetDomainAuthStatusInfoCallback(
-        const GetPropertyRequest &request, const sptr<IGetSetPropCallback> &callback);
+    GetDomainAuthStatusInfoCallback(const GetPropertyRequest &request, const sptr<IGetSetPropCallback> &callback);
 
     void OnResult(int32_t result, Parcel &parcel) override;
 
