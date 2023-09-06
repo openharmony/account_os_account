@@ -86,13 +86,19 @@ void InnerAccountIAMManager::UpdateCredential(
         ACCOUNT_LOGE("callback is nullptr");
         return;
     }
+    Attributes emptyResult;
     if (credInfo.token.empty()) {
         ACCOUNT_LOGE("token is empty");
-        Attributes emptyResult;
         callback->OnResult(ResultCode::INVALID_PARAMETERS, emptyResult);
         return;
     }
-    auto idmCallback = std::make_shared<UpdateCredCallback>(userId, credInfo, callback);
+    std::vector<uint8_t> secret;
+    ErrCode result = RemoveUserKey(userId, credInfo.token);
+    if (result != ERR_OK) {
+        callback->OnResult(result, emptyResult);
+        return;
+    }
+    auto idmCallback = std::make_shared<AddCredCallback>(userId, credInfo, callback);
     UserIDMClient::GetInstance().UpdateCredential(userId, credInfo, idmCallback);
 }
 
@@ -115,7 +121,7 @@ void InnerAccountIAMManager::DelCred(
         callback->OnResult(result, emptyResult);
         return;
     }
-    auto idmCallback = std::make_shared<DelCredCallback>(userId, credentialId, authToken, callback);
+    auto idmCallback = std::make_shared<DelCredCallback>(userId, authToken, callback);
     UserIDMClient::GetInstance().DeleteCredential(userId, credentialId, authToken, idmCallback);
 }
 
@@ -137,13 +143,34 @@ void InnerAccountIAMManager::DelUser(
         callback->OnResult(result, errResult);
         return;
     }
-    auto idmCallback = std::make_shared<DelCredCallback>(userId, 0, authToken, callback);
+    auto idmCallback = std::make_shared<DelCredCallback>(userId, authToken, callback);
     UserIDMClient::GetInstance().DeleteUser(userId, authToken, idmCallback);
+}
+
+static bool IsNonPINAllowed(int32_t userId)
+{
+    bool isVerified = false;
+    (void) IInnerOsAccountManager::GetInstance().IsOsAccountVerified(userId, isVerified);
+    if (isVerified) {
+        return true;
+    }
+
+    bool isCreateSecret = false;
+    (void) IInnerOsAccountManager::GetInstance().GetOsAccountIsCreateSecret(userId, isCreateSecret);
+    return !isCreateSecret;
 }
 
 void InnerAccountIAMManager::GetCredentialInfo(
     int32_t userId, AuthType authType, const sptr<IGetCredInfoCallback> &callback)
 {
+    if (!IsNonPINAllowed(userId)) {
+        if ((authType != AuthType::PIN) && (authType != AuthType::ALL)) {
+            ACCOUNT_LOGD("unsupported auth type");
+            std::vector<CredentialInfo> infoList;
+            return callback->OnCredentialInfo(infoList);
+        }
+        authType = AuthType::PIN;
+    }
     if (static_cast<int32_t>(authType) == static_cast<int32_t>(IAMAuthType::DOMAIN)) {
         std::vector<CredentialInfo> infoList;
         if (CheckDomainAuthAvailable(userId)) {
@@ -169,6 +196,10 @@ int32_t InnerAccountIAMManager::AuthUser(
     if (callback == nullptr) {
         ACCOUNT_LOGE("callback is nullptr");
         return ERR_ACCOUNT_COMMON_NULL_PTR_ERROR;
+    }
+    if ((authParam.authType != AuthType::PIN) && (!IsNonPINAllowed(userId))) {
+        ACCOUNT_LOGE("unsupported auth type");
+        return ERR_ACCOUNT_IAM_UNSUPPORTED_AUTH_TYPE;
     }
     auto userAuthCallback = std::make_shared<AuthCallback>(userId, authParam.authType, callback);
     contextId = UserAuthClient::GetInstance().BeginAuthentication(
@@ -241,6 +272,12 @@ void InnerAccountIAMManager::GetProperty(
         ACCOUNT_LOGE("callback is nullptr");
         return;
     }
+    Attributes attributes;
+    if ((request.authType != AuthType::PIN) && (!IsNonPINAllowed(userId))) {
+        ACCOUNT_LOGE("unsupported auth type");
+        callback->OnResult(ERR_ACCOUNT_IAM_UNSUPPORTED_AUTH_TYPE, attributes);
+        return;
+    }
     if (static_cast<int32_t>(request.authType) != static_cast<int32_t>(IAMAuthType::DOMAIN)) {
         auto getCallback = std::make_shared<GetPropCallbackWrapper>(callback);
         UserAuthClient::GetInstance().GetProperty(userId, request, getCallback);
@@ -248,7 +285,6 @@ void InnerAccountIAMManager::GetProperty(
     }
     ErrCode result = GetDomainAuthStatusInfo(userId, request, callback);
     if (result != ERR_OK) {
-        Attributes attributes;
         callback->OnResult(result, attributes);
     }
 }
