@@ -1341,7 +1341,7 @@ HWTEST_F(DomainAccountClientModuleTest, RegisterAccountStatusListener_001, TestS
     domainInfo.domain_ = STRING_DOMAIN;
     domainInfo.accountId_ = STRING_ACCOUNTID;
     auto listener = std::make_shared<ListenerLogIn>();
-    EXPECT_EQ(DomainAccountClient::GetInstance().RegisterAccountStatusListener(domainInfo, listener),
+    EXPECT_EQ(DomainAccountClient::GetInstance().RegisterAccountStatusListener(listener),
         ERR_ACCOUNT_COMMON_PERMISSION_DENIED);
     setuid(ROOT_UID);
 }
@@ -1360,7 +1360,6 @@ HWTEST_F(DomainAccountClientModuleTest, UnregisterAccountStatusListener_001, Tes
     domainInfo.accountId_ = STRING_ACCOUNTID;
     auto listener = std::make_shared<ListenerLogIn>();
     EXPECT_EQ(DomainAccountClient::GetInstance().UnregisterAccountStatusListener(listener), ERR_OK);
-    EXPECT_EQ(DomainAccountClient::GetInstance().UnregisterAccountStatusListener(domainInfo, listener), ERR_OK);
 }
 
 /**
@@ -1376,47 +1375,8 @@ HWTEST_F(DomainAccountClientModuleTest, RegisterAccountStatusListener_002, TestS
     domainInfo.domain_ = "";
     domainInfo.accountId_ = "";
     auto listener = std::make_shared<ListenerLogIn>();
-    EXPECT_EQ(DomainAccountClient::GetInstance().RegisterAccountStatusListener(domainInfo, listener),
-        ERR_DOMAIN_ACCOUNT_SERVICE_NOT_DOMAIN_ACCOUNT);
-}
-
-/**
- * @tc.name: RegisterAccountStatusListener_003
- * @tc.desc: RegisterAccountStatusListener repeat.
- * @tc.type: FUNC
- * @tc.require: issueI64KAM
- */
-HWTEST_F(DomainAccountClientModuleTest, RegisterAccountStatusListener_003, TestSize.Level0)
-{
-    DomainAccountInfo domainInfo;
-    domainInfo.accountName_ = STRING_NAME_TWO;
-    domainInfo.domain_ = STRING_DOMAIN_NEW;
-    domainInfo.accountId_ = INVALID_STRING_ACCOUNTID;
-
-    auto callback = std::make_shared<MockDomainCreateDomainAccountCallback>();
-    ASSERT_NE(callback, nullptr);
-    auto testCallback = std::make_shared<TestCreateDomainAccountCallback>(callback);
-    EXPECT_CALL(*callback, OnResult(ERR_OK, domainInfo.accountName_, domainInfo.domain_, _)).Times(Exactly(1));
-    ASSERT_NE(testCallback, nullptr);
-    ErrCode errCode = OsAccountManager::CreateOsAccountForDomain(OsAccountType::NORMAL, domainInfo, testCallback);
-    std::unique_lock<std::mutex> lock(testCallback->mutex);
-    testCallback->cv.wait_for(
-        lock, std::chrono::seconds(WAIT_TIME), [lockCallback = testCallback]() { return lockCallback->isReady; });
-    EXPECT_EQ(errCode, ERR_OK);
-
-    auto listener = std::make_shared<ListenerLogIn>();
-    EXPECT_EQ(DomainAccountClient::GetInstance().RegisterAccountStatusListener(domainInfo, listener), ERR_OK);
-
-    EXPECT_EQ(DomainAccountClient::GetInstance().RegisterAccountStatusListener(domainInfo, listener), ERR_OK);
-
-    EXPECT_EQ(DomainAccountClient::GetInstance().UnregisterAccountStatusListener(listener), ERR_OK);
-    EXPECT_EQ(DomainAccountClient::GetInstance().RegisterAccountStatusListener(listener), ERR_OK);
     EXPECT_EQ(DomainAccountClient::GetInstance().RegisterAccountStatusListener(listener), ERR_OK);
     EXPECT_EQ(DomainAccountClient::GetInstance().UnregisterAccountStatusListener(listener), ERR_OK);
-    int32_t userId = -1;
-    errCode = OsAccountManager::GetOsAccountLocalIdFromDomain(domainInfo, userId);
-    EXPECT_EQ(errCode, ERR_OK);
-    EXPECT_EQ(OsAccountManager::RemoveOsAccount(userId), ERR_OK);
 }
 
 void CreateDomainAccount(const DomainAccountInfo domainInfo)
@@ -1446,16 +1406,10 @@ HWTEST_F(DomainAccountClientModuleTest, RegisterAccountStatusListener_004, TestS
 
     DomainAccountInfo domainInfo1(STRING_DOMAIN_NEW, STRING_NAME_NEW, STRING_ACCOUNTID_NEW);
     CreateDomainAccount(domainInfo1);
-
-    auto listener1 = std::make_shared<ListenerLogInBackGround>();
-    EXPECT_EQ(DomainAccountClient::GetInstance().RegisterAccountStatusListener(domainInfo, listener1), ERR_OK);
-    EXPECT_EQ(DomainAccountClient::GetInstance().RegisterAccountStatusListener(domainInfo, listener1), ERR_OK);
-    auto listener2 = std::make_shared<ListenerLogInBackGround>();
-    EXPECT_EQ(DomainAccountClient::GetInstance().RegisterAccountStatusListener(domainInfo, listener2), ERR_OK);
-    EXPECT_EQ(DomainAccountClient::GetInstance().RegisterAccountStatusListener(domainInfo1, listener1), ERR_OK);
     auto listener3 = std::make_shared<ListenerLogInBackGround>();
     EXPECT_EQ(DomainAccountClient::GetInstance().RegisterAccountStatusListener(listener3), ERR_OK);
     EXPECT_EQ(DomainAccountClient::GetInstance().RegisterAccountStatusListener(listener3), ERR_OK);
+    std::this_thread::sleep_for(std::chrono::milliseconds(20 * SLEEP_TIME));
 
     auto authCallback = std::make_shared<MockDomainAuthCallbackForListener>();
     ASSERT_NE(authCallback, nullptr);
@@ -1471,15 +1425,9 @@ HWTEST_F(DomainAccountClientModuleTest, RegisterAccountStatusListener_004, TestS
     EXPECT_EQ(DomainAccountClient::GetInstance().AuthUser(userId1, DEFAULT_TOKEN, testAuthCallback), ERR_OK);
     std::this_thread::sleep_for(std::chrono::milliseconds(SLEEP_TIME));
 
-    EXPECT_EQ(listener1->visited, true);
-    EXPECT_EQ(listener2->visited, true);
     EXPECT_EQ(listener3->visited, true);
-    EXPECT_EQ(listener1->visitedTwice, true);
     EXPECT_EQ(listener3->visitedTwice, true);
-    EXPECT_EQ(DomainAccountClient::GetInstance().UnregisterAccountStatusListener(listener1), ERR_OK);
-    EXPECT_EQ(DomainAccountClient::GetInstance().UnregisterAccountStatusListener(listener2), ERR_OK);
     EXPECT_EQ(DomainAccountClient::GetInstance().UnregisterAccountStatusListener(listener3), ERR_OK);
-    EXPECT_EQ(DomainAccountClient::GetInstance().UnregisterAccountStatusListener(listener1), ERR_OK);
     std::this_thread::sleep_for(std::chrono::milliseconds(SLEEP_TIME));
 
     EXPECT_EQ(OsAccountManager::RemoveOsAccount(userId), ERR_OK);
@@ -1500,11 +1448,6 @@ HWTEST_F(DomainAccountClientModuleTest, RegisterAccountStatusListener_005, TestS
     DomainAccountInfo domainInfo1(STRING_DOMAIN_NEW, STRING_NAME_NEW, STRING_ACCOUNTID_NEW);
     CreateDomainAccount(domainInfo1);
 
-    auto listener1 = std::make_shared<ListenerLogIn>();
-    EXPECT_EQ(DomainAccountClient::GetInstance().RegisterAccountStatusListener(domainInfo, listener1), ERR_OK);
-    auto listener2 = std::make_shared<ListenerLogIn>();
-    EXPECT_EQ(DomainAccountClient::GetInstance().RegisterAccountStatusListener(domainInfo, listener2), ERR_OK);
-    EXPECT_EQ(DomainAccountClient::GetInstance().RegisterAccountStatusListener(domainInfo1, listener1), ERR_OK);
     auto listener3 = std::make_shared<ListenerLogIn>();
     EXPECT_EQ(DomainAccountClient::GetInstance().RegisterAccountStatusListener(listener3), ERR_OK);
     int32_t userId;
@@ -1524,13 +1467,8 @@ HWTEST_F(DomainAccountClientModuleTest, RegisterAccountStatusListener_005, TestS
     EXPECT_EQ(DomainAccountClient::GetInstance().AuthUser(userId1, DEFAULT_TOKEN, testAuthCallback), ERR_OK);
     std::this_thread::sleep_for(std::chrono::milliseconds(SLEEP_TIME));
 
-    EXPECT_EQ(listener1->visited, true);
-    EXPECT_EQ(listener2->visited, true);
     EXPECT_EQ(listener3->visited, true);
-    EXPECT_EQ(listener1->visitedTwice, true);
     EXPECT_EQ(listener3->visitedTwice, true);
-    EXPECT_EQ(DomainAccountClient::GetInstance().UnregisterAccountStatusListener(listener1), ERR_OK);
-    EXPECT_EQ(DomainAccountClient::GetInstance().UnregisterAccountStatusListener(listener2), ERR_OK);
     EXPECT_EQ(DomainAccountClient::GetInstance().UnregisterAccountStatusListener(listener3), ERR_OK);
     EXPECT_EQ(OsAccountManager::RemoveOsAccount(userId), ERR_OK);
     EXPECT_EQ(OsAccountManager::RemoveOsAccount(userId1), ERR_OK);
@@ -1549,12 +1487,6 @@ HWTEST_F(DomainAccountClientModuleTest, RegisterAccountStatusListener_006, TestS
 
     DomainAccountInfo domainInfo1(STRING_DOMAIN_NEW, STRING_NAME_NEW, STRING_ACCOUNTID_NEW);
     CreateDomainAccount(domainInfo1);
-
-    auto listener1 = std::make_shared<ListenerLogUpdate>();
-    EXPECT_EQ(DomainAccountClient::GetInstance().RegisterAccountStatusListener(domainInfo, listener1), ERR_OK);
-    auto listener2 = std::make_shared<ListenerLogUpdate>();
-    EXPECT_EQ(DomainAccountClient::GetInstance().RegisterAccountStatusListener(domainInfo, listener2), ERR_OK);
-    EXPECT_EQ(DomainAccountClient::GetInstance().RegisterAccountStatusListener(domainInfo1, listener1), ERR_OK);
     auto listener3 = std::make_shared<ListenerLogUpdate>();
     EXPECT_EQ(DomainAccountClient::GetInstance().RegisterAccountStatusListener(listener3), ERR_OK);
     int32_t userId = -1;
@@ -1572,13 +1504,8 @@ HWTEST_F(DomainAccountClientModuleTest, RegisterAccountStatusListener_006, TestS
     resultToken.clear();
     InnerDomainAccountManager::GetInstance().GetTokenFromMap(userId, resultToken);
     std::this_thread::sleep_for(std::chrono::milliseconds(SLEEP_TIME));
-    EXPECT_EQ(listener1->visited, true);
-    EXPECT_EQ(listener2->visited, true);
     EXPECT_EQ(listener3->visited, true);
-    EXPECT_EQ(listener1->visitedTwice, true);
     EXPECT_EQ(listener3->visitedTwice, true);
-    EXPECT_EQ(DomainAccountClient::GetInstance().UnregisterAccountStatusListener(listener1), ERR_OK);
-    EXPECT_EQ(DomainAccountClient::GetInstance().UnregisterAccountStatusListener(listener2), ERR_OK);
     EXPECT_EQ(DomainAccountClient::GetInstance().UnregisterAccountStatusListener(listener3), ERR_OK);
     EXPECT_EQ(OsAccountManager::RemoveOsAccount(userId), ERR_OK);
     InnerDomainAccountManager::GetInstance().GetTokenFromMap(userId, resultToken);
@@ -1601,11 +1528,6 @@ HWTEST_F(DomainAccountClientModuleTest, RegisterAccountStatusListener_007, TestS
     DomainAccountInfo domainInfo1(STRING_DOMAIN_NEW, STRING_NAME_NEW, STRING_ACCOUNTID_NEW);
     CreateDomainAccount(domainInfo1);
 
-    auto listener1 = std::make_shared<ListenerLogUpdateBackGround>();
-    EXPECT_EQ(DomainAccountClient::GetInstance().RegisterAccountStatusListener(domainInfo, listener1), ERR_OK);
-    auto listener2 = std::make_shared<ListenerLogUpdateBackGround>();
-    EXPECT_EQ(DomainAccountClient::GetInstance().RegisterAccountStatusListener(domainInfo, listener2), ERR_OK);
-    EXPECT_EQ(DomainAccountClient::GetInstance().RegisterAccountStatusListener(domainInfo1, listener1), ERR_OK);
     auto listener3 = std::make_shared<ListenerLogUpdateBackGround>();
     EXPECT_EQ(DomainAccountClient::GetInstance().RegisterAccountStatusListener(listener3), ERR_OK);
 
@@ -1618,13 +1540,8 @@ HWTEST_F(DomainAccountClientModuleTest, RegisterAccountStatusListener_007, TestS
     EXPECT_EQ(DomainAccountClient::GetInstance().UpdateAccountToken(domainInfo1, token), ERR_OK);
     std::this_thread::sleep_for(std::chrono::milliseconds(SLEEP_TIME));
     EXPECT_EQ(OsAccountManager::GetOsAccountLocalIdFromDomain(domainInfo1, userId), ERR_OK);
-    EXPECT_EQ(listener1->visited, true);
-    EXPECT_EQ(listener2->visited, true);
     EXPECT_EQ(listener3->visited, true);
-    EXPECT_EQ(listener1->visitedTwice, true);
     EXPECT_EQ(listener3->visitedTwice, true);
-    EXPECT_EQ(DomainAccountClient::GetInstance().UnregisterAccountStatusListener(listener1), ERR_OK);
-    EXPECT_EQ(DomainAccountClient::GetInstance().UnregisterAccountStatusListener(listener2), ERR_OK);
     EXPECT_EQ(DomainAccountClient::GetInstance().UnregisterAccountStatusListener(listener3), ERR_OK);
     EXPECT_EQ(OsAccountManager::RemoveOsAccount(userId), ERR_OK);
     InnerDomainAccountManager::GetInstance().GetTokenFromMap(userId, resultToken);
@@ -1647,11 +1564,6 @@ HWTEST_F(DomainAccountClientModuleTest, RegisterAccountStatusListener_008, TestS
     DomainAccountInfo domainInfo1(STRING_DOMAIN_NEW, STRING_NAME_NEW, STRING_ACCOUNTID_NEW);
     CreateDomainAccount(domainInfo1);
 
-    auto listener1 = std::make_shared<ListenerLogInvalid>();
-    EXPECT_EQ(DomainAccountClient::GetInstance().RegisterAccountStatusListener(domainInfo, listener1), ERR_OK);
-    auto listener2 = std::make_shared<ListenerLogInvalid>();
-    EXPECT_EQ(DomainAccountClient::GetInstance().RegisterAccountStatusListener(domainInfo, listener2), ERR_OK);
-    EXPECT_EQ(DomainAccountClient::GetInstance().RegisterAccountStatusListener(domainInfo1, listener1), ERR_OK);
     auto listener3 = std::make_shared<ListenerLogInvalid>();
     EXPECT_EQ(DomainAccountClient::GetInstance().RegisterAccountStatusListener(listener3), ERR_OK);
 
@@ -1664,15 +1576,9 @@ HWTEST_F(DomainAccountClientModuleTest, RegisterAccountStatusListener_008, TestS
     EXPECT_EQ(OsAccountManager::GetOsAccountLocalIdFromDomain(domainInfo1, userId), ERR_OK);
     std::this_thread::sleep_for(std::chrono::milliseconds(SLEEP_TIME));
 
-    EXPECT_EQ(listener1->visited, true);
-    EXPECT_EQ(listener2->visited, true);
     EXPECT_EQ(listener3->visited, true);
-    EXPECT_EQ(listener1->visitedTwice, true);
     EXPECT_EQ(listener3->visitedTwice, true);
-    EXPECT_EQ(DomainAccountClient::GetInstance().UnregisterAccountStatusListener(listener1), ERR_OK);
-    EXPECT_EQ(DomainAccountClient::GetInstance().UnregisterAccountStatusListener(listener2), ERR_OK);
     EXPECT_EQ(DomainAccountClient::GetInstance().UnregisterAccountStatusListener(listener3), ERR_OK);
-    EXPECT_EQ(DomainAccountClient::GetInstance().UnregisterAccountStatusListener(listener1), ERR_OK);
     EXPECT_EQ(OsAccountManager::RemoveOsAccount(userId), ERR_OK);
     EXPECT_EQ(OsAccountManager::GetOsAccountLocalIdFromDomain(domainInfo, userId), ERR_OK);
     EXPECT_EQ(OsAccountManager::RemoveOsAccount(userId), ERR_OK);
@@ -1692,251 +1598,21 @@ HWTEST_F(DomainAccountClientModuleTest, RegisterAccountStatusListener_009, TestS
     DomainAccountInfo domainInfo1(STRING_DOMAIN_NEW, STRING_NAME_NEW, STRING_ACCOUNTID_NEW);
     CreateDomainAccount(domainInfo1);
 
-    auto listener1 = std::make_shared<ListenerLogOut>();
-    EXPECT_EQ(DomainAccountClient::GetInstance().RegisterAccountStatusListener(domainInfo, listener1), ERR_OK);
-    auto listener2 = std::make_shared<ListenerLogOut>();
-    EXPECT_EQ(DomainAccountClient::GetInstance().RegisterAccountStatusListener(domainInfo, listener2), ERR_OK);
-    EXPECT_EQ(DomainAccountClient::GetInstance().RegisterAccountStatusListener(domainInfo1, listener1), ERR_OK);
     auto listener3 = std::make_shared<ListenerLogOut>();
     EXPECT_EQ(DomainAccountClient::GetInstance().RegisterAccountStatusListener(listener3), ERR_OK);
 
     int32_t userId;
     EXPECT_EQ(OsAccountManager::GetOsAccountLocalIdFromDomain(domainInfo, userId), ERR_OK);
-    EXPECT_EQ(listener1->visited, false);
-    EXPECT_EQ(listener2->visited, false);
     EXPECT_EQ(listener3->visited, false);
-    EXPECT_EQ(listener1->visitedTwice, false);
     EXPECT_EQ(listener3->visitedTwice, false);
     EXPECT_EQ(OsAccountManager::RemoveOsAccount(userId), ERR_OK);
     std::this_thread::sleep_for(std::chrono::milliseconds(SLEEP_TIME));
     EXPECT_EQ(OsAccountManager::GetOsAccountLocalIdFromDomain(domainInfo1, userId), ERR_OK);
     EXPECT_EQ(OsAccountManager::RemoveOsAccount(userId), ERR_OK);
     std::this_thread::sleep_for(std::chrono::milliseconds(SLEEP_TIME));
-    EXPECT_EQ(listener1->visited, true);
-    EXPECT_EQ(listener2->visited, true);
     EXPECT_EQ(listener3->visited, true);
-    EXPECT_EQ(listener1->visitedTwice, true);
     EXPECT_EQ(listener3->visitedTwice, true);
-    EXPECT_EQ(DomainAccountClient::GetInstance().UnregisterAccountStatusListener(listener1), ERR_OK);
-    EXPECT_EQ(DomainAccountClient::GetInstance().UnregisterAccountStatusListener(listener2), ERR_OK);
     EXPECT_EQ(DomainAccountClient::GetInstance().UnregisterAccountStatusListener(listener3), ERR_OK);
-    EXPECT_EQ(DomainAccountClient::GetInstance().UnregisterAccountStatusListener(listener2), ERR_OK);
-    EXPECT_EQ(DomainAccountClient::GetInstance().UnregisterAccountStatusListener(listener1), ERR_OK);
-}
-
-/**
- * @tc.name: RegisterAccountStatusListener_010
- * @tc.desc: RegisterAccountStatusListener listener unregister is not work.
- * @tc.type: FUNC
- * @tc.require: issueI64KAM
- */
-HWTEST_F(DomainAccountClientModuleTest, RegisterAccountStatusListener_010, TestSize.Level0)
-{
-    DomainAccountInfo domainInfo(STRING_DOMAIN_NEW, STRING_NAME_TWO, INVALID_STRING_ACCOUNTID);
-    CreateDomainAccount(domainInfo);
-
-    DomainAccountInfo domainInfo1(STRING_DOMAIN_NEW, STRING_NAME_NEW, STRING_ACCOUNTID_NEW);
-    CreateDomainAccount(domainInfo1);
-
-    auto listener1 = std::make_shared<ListenerLogOut>();
-    EXPECT_EQ(DomainAccountClient::GetInstance().RegisterAccountStatusListener(domainInfo, listener1), ERR_OK);
-    auto listener2 = std::make_shared<ListenerLogOut>();
-    EXPECT_EQ(DomainAccountClient::GetInstance().RegisterAccountStatusListener(domainInfo, listener2), ERR_OK);
-    EXPECT_EQ(DomainAccountClient::GetInstance().RegisterAccountStatusListener(domainInfo1, listener1), ERR_OK);
-    EXPECT_EQ(DomainAccountClient::GetInstance().UnregisterAccountStatusListener(listener1), ERR_OK);
-
-    int32_t userId;
-    EXPECT_EQ(OsAccountManager::GetOsAccountLocalIdFromDomain(domainInfo, userId), ERR_OK);
-    EXPECT_EQ(listener1->visited, false);
-    EXPECT_EQ(listener2->visited, false);
-    EXPECT_EQ(listener1->visitedTwice, false);
-    EXPECT_EQ(OsAccountManager::RemoveOsAccount(userId), ERR_OK);
-    std::this_thread::sleep_for(std::chrono::milliseconds(SLEEP_TIME));
-    EXPECT_EQ(OsAccountManager::GetOsAccountLocalIdFromDomain(domainInfo1, userId), ERR_OK);
-    EXPECT_EQ(OsAccountManager::RemoveOsAccount(userId), ERR_OK);
-    std::this_thread::sleep_for(std::chrono::milliseconds(SLEEP_TIME));
-    EXPECT_EQ(listener1->visited, false);
-    EXPECT_EQ(listener2->visited, true);
-    EXPECT_EQ(listener1->visitedTwice, false);
-    EXPECT_EQ(DomainAccountClient::GetInstance().UnregisterAccountStatusListener(listener2), ERR_OK);
-    EXPECT_EQ(DomainAccountClient::GetInstance().UnregisterAccountStatusListener(listener2), ERR_OK);
-    EXPECT_EQ(DomainAccountClient::GetInstance().UnregisterAccountStatusListener(listener1), ERR_OK);
-}
-
-/**
- * @tc.name: RegisterAccountStatusListener_011
- * @tc.desc: RegisterAccountStatusListener listener unrigster is not work.
- * @tc.type: FUNC
- * @tc.require: issueI64KAM
- */
-HWTEST_F(DomainAccountClientModuleTest, RegisterAccountStatusListener_011, TestSize.Level0)
-{
-    DomainAccountInfo domainInfo(STRING_DOMAIN_NEW, STRING_NAME_TWO, INVALID_STRING_ACCOUNTID);
-    CreateDomainAccount(domainInfo);
-
-    DomainAccountInfo domainInfo1(STRING_DOMAIN_NEW, STRING_NAME_NEW, STRING_ACCOUNTID_NEW);
-    CreateDomainAccount(domainInfo1);
-
-    auto listener1 = std::make_shared<ListenerLogOut>();
-    EXPECT_EQ(DomainAccountClient::GetInstance().RegisterAccountStatusListener(domainInfo, listener1), ERR_OK);
-    auto listener2 = std::make_shared<ListenerLogOut>();
-    EXPECT_EQ(DomainAccountClient::GetInstance().RegisterAccountStatusListener(domainInfo, listener2), ERR_OK);
-    EXPECT_EQ(DomainAccountClient::GetInstance().RegisterAccountStatusListener(domainInfo1, listener1), ERR_OK);
-    EXPECT_EQ(DomainAccountClient::GetInstance().UnregisterAccountStatusListener(listener2), ERR_OK);
-
-    int32_t userId;
-    EXPECT_EQ(OsAccountManager::GetOsAccountLocalIdFromDomain(domainInfo, userId), ERR_OK);
-    EXPECT_EQ(listener1->visited, false);
-    EXPECT_EQ(listener2->visited, false);
-    EXPECT_EQ(listener1->visitedTwice, false);
-    EXPECT_EQ(listener2->visitedTwice, false);
-    EXPECT_EQ(OsAccountManager::RemoveOsAccount(userId), ERR_OK);
-    std::this_thread::sleep_for(std::chrono::milliseconds(SLEEP_TIME));
-    EXPECT_EQ(OsAccountManager::GetOsAccountLocalIdFromDomain(domainInfo1, userId), ERR_OK);
-    EXPECT_EQ(OsAccountManager::RemoveOsAccount(userId), ERR_OK);
-    std::this_thread::sleep_for(std::chrono::milliseconds(SLEEP_TIME));
-    EXPECT_EQ(listener1->visited, true);
-    EXPECT_EQ(listener2->visited, false);
-    EXPECT_EQ(listener1->visitedTwice, true);
-    EXPECT_EQ(listener2->visitedTwice, false);
-    EXPECT_EQ(DomainAccountClient::GetInstance().UnregisterAccountStatusListener(listener2), ERR_OK);
-    EXPECT_EQ(DomainAccountClient::GetInstance().UnregisterAccountStatusListener(listener1), ERR_OK);
-}
-
-/**
- * @tc.name: RegisterAccountStatusListener_012
- * @tc.desc: RegisterAccountStatusListener listener unrigster is not work.
- * @tc.type: FUNC
- * @tc.require: issueI64KAM
- */
-HWTEST_F(DomainAccountClientModuleTest, RegisterAccountStatusListener_012, TestSize.Level0)
-{
-    DomainAccountInfo domainInfo(STRING_DOMAIN_NEW, STRING_NAME_TWO, INVALID_STRING_ACCOUNTID);
-    CreateDomainAccount(domainInfo);
-
-    DomainAccountInfo domainInfo1(STRING_DOMAIN_NEW, STRING_NAME_NEW, STRING_ACCOUNTID_NEW);
-    CreateDomainAccount(domainInfo1);
-
-    auto listener1 = std::make_shared<ListenerLogOut>();
-    EXPECT_EQ(DomainAccountClient::GetInstance().RegisterAccountStatusListener(domainInfo, listener1), ERR_OK);
-    auto listener2 = std::make_shared<ListenerLogOut>();
-    EXPECT_EQ(DomainAccountClient::GetInstance().RegisterAccountStatusListener(domainInfo, listener2), ERR_OK);
-    EXPECT_EQ(DomainAccountClient::GetInstance().RegisterAccountStatusListener(domainInfo1, listener1), ERR_OK);
-    EXPECT_EQ(DomainAccountClient::GetInstance().UnregisterAccountStatusListener(domainInfo1, listener1), ERR_OK);
-
-    int32_t userId;
-    EXPECT_EQ(OsAccountManager::GetOsAccountLocalIdFromDomain(domainInfo, userId), ERR_OK);
-    EXPECT_EQ(listener1->visited, false);
-    EXPECT_EQ(listener2->visited, false);
-    EXPECT_EQ(listener1->visitedTwice, false);
-    EXPECT_EQ(OsAccountManager::RemoveOsAccount(userId), ERR_OK);
-    std::this_thread::sleep_for(std::chrono::milliseconds(SLEEP_TIME));
-    EXPECT_EQ(OsAccountManager::GetOsAccountLocalIdFromDomain(domainInfo1, userId), ERR_OK);
-    EXPECT_EQ(OsAccountManager::RemoveOsAccount(userId), ERR_OK);
-    std::this_thread::sleep_for(std::chrono::milliseconds(SLEEP_TIME));
-    EXPECT_EQ(listener1->visited, true);
-    EXPECT_EQ(listener2->visited, true);
-    EXPECT_EQ(listener1->visitedTwice, false);
-    EXPECT_EQ(listener2->visitedTwice, false);
-    EXPECT_EQ(DomainAccountClient::GetInstance().UnregisterAccountStatusListener(listener2), ERR_OK);
-    EXPECT_EQ(DomainAccountClient::GetInstance().UnregisterAccountStatusListener(listener1), ERR_OK);
-}
-
-/**
- * @tc.name: RegisterAccountStatusListener_013
- * @tc.desc: RegisterAccountStatusListener unrigster listener is not work.
- * @tc.type: FUNC
- * @tc.require: issueI64KAM
- */
-HWTEST_F(DomainAccountClientModuleTest, RegisterAccountStatusListener_013, TestSize.Level0)
-{
-    DomainAccountInfo domainInfo(STRING_DOMAIN_NEW, STRING_NAME_TWO, INVALID_STRING_ACCOUNTID);
-    CreateDomainAccount(domainInfo);
-
-    DomainAccountInfo domainInfo1(STRING_DOMAIN_NEW, STRING_NAME_NEW, STRING_ACCOUNTID_NEW);
-    CreateDomainAccount(domainInfo1);
-
-    auto listener1 = std::make_shared<ListenerLogOut>();
-    EXPECT_EQ(DomainAccountClient::GetInstance().RegisterAccountStatusListener(domainInfo, listener1), ERR_OK);
-    auto listener2 = std::make_shared<ListenerLogOut>();
-    EXPECT_EQ(DomainAccountClient::GetInstance().RegisterAccountStatusListener(domainInfo, listener2), ERR_OK);
-    EXPECT_EQ(DomainAccountClient::GetInstance().RegisterAccountStatusListener(domainInfo1, listener1), ERR_OK);
-    EXPECT_EQ(DomainAccountClient::GetInstance().UnregisterAccountStatusListener(domainInfo, listener2), ERR_OK);
-    auto listener3 = std::make_shared<ListenerLogOut>();
-    EXPECT_EQ(DomainAccountClient::GetInstance().RegisterAccountStatusListener(listener3), ERR_OK);
-    EXPECT_EQ(DomainAccountClient::GetInstance().UnregisterAccountStatusListener(listener3), ERR_OK);
-
-    int32_t userId;
-    EXPECT_EQ(OsAccountManager::GetOsAccountLocalIdFromDomain(domainInfo, userId), ERR_OK);
-    EXPECT_EQ(listener1->visited, false);
-    EXPECT_EQ(listener2->visited, false);
-    EXPECT_EQ(listener3->visited, false);
-    EXPECT_EQ(listener1->visitedTwice, false);
-    EXPECT_EQ(listener2->visitedTwice, false);
-    EXPECT_EQ(listener3->visitedTwice, false);
-    EXPECT_EQ(OsAccountManager::RemoveOsAccount(userId), ERR_OK);
-    std::this_thread::sleep_for(std::chrono::milliseconds(SLEEP_TIME));
-    EXPECT_EQ(OsAccountManager::GetOsAccountLocalIdFromDomain(domainInfo1, userId), ERR_OK);
-    EXPECT_EQ(OsAccountManager::RemoveOsAccount(userId), ERR_OK);
-    std::this_thread::sleep_for(std::chrono::milliseconds(SLEEP_TIME));
-    EXPECT_EQ(listener1->visited, true);
-    EXPECT_EQ(listener2->visited, false);
-    EXPECT_EQ(listener3->visited, false);
-    EXPECT_EQ(listener1->visitedTwice, true);
-    EXPECT_EQ(listener2->visitedTwice, false);
-    EXPECT_EQ(listener3->visitedTwice, false);
-    EXPECT_EQ(DomainAccountClient::GetInstance().UnregisterAccountStatusListener(listener1), ERR_OK);
-    EXPECT_EQ(DomainAccountClient::GetInstance().UnregisterAccountStatusListener(listener2), ERR_OK);
-    EXPECT_EQ(DomainAccountClient::GetInstance().UnregisterAccountStatusListener(listener1), ERR_OK);
-}
-
-/**
- * @tc.name: RegisterAccountStatusListener_014
- * @tc.desc: RegisterAccountStatusListener only recieve one event.
- * @tc.type: FUNC
- * @tc.require: issueI64KAM
- */
-HWTEST_F(DomainAccountClientModuleTest, RegisterAccountStatusListener_014, TestSize.Level0)
-{
-    DomainAccountInfo domainInfo(STRING_DOMAIN_NEW, STRING_NAME_TWO, INVALID_STRING_ACCOUNTID);
-    CreateDomainAccount(domainInfo);
-    std::this_thread::sleep_for(std::chrono::milliseconds(SLEEP_TIME));
-
-    DomainAccountInfo domainInfo1(STRING_DOMAIN_NEW, STRING_NAME_NEW, STRING_ACCOUNTID_NEW);
-    CreateDomainAccount(domainInfo1);
-    std::this_thread::sleep_for(std::chrono::milliseconds(SLEEP_TIME));
-
-    auto listener1 = std::make_shared<ListenerLogOut>();
-    EXPECT_EQ(DomainAccountClient::GetInstance().RegisterAccountStatusListener(domainInfo, listener1), ERR_OK);
-    auto listener2 = std::make_shared<ListenerLogOut>();
-    EXPECT_EQ(DomainAccountClient::GetInstance().RegisterAccountStatusListener(domainInfo, listener2), ERR_OK);
-    EXPECT_EQ(DomainAccountClient::GetInstance().RegisterAccountStatusListener(domainInfo1, listener1), ERR_OK);
-    auto listener3 = std::make_shared<ListenerLogOut>();
-    EXPECT_EQ(DomainAccountClient::GetInstance().RegisterAccountStatusListener(listener3), ERR_OK);
-    EXPECT_EQ(DomainAccountClient::GetInstance().UnregisterAccountStatusListener(listener3), ERR_OK);
-
-    int32_t userId;
-    EXPECT_EQ(OsAccountManager::GetOsAccountLocalIdFromDomain(domainInfo, userId), ERR_OK);
-    EXPECT_EQ(listener1->visited, false);
-    EXPECT_EQ(listener2->visited, false);
-    EXPECT_EQ(listener3->visited, false);
-    EXPECT_EQ(listener1->visitedTwice, false);
-    EXPECT_EQ(listener2->visitedTwice, false);
-    EXPECT_EQ(listener3->visitedTwice, false);
-    EXPECT_EQ(OsAccountManager::RemoveOsAccount(userId), ERR_OK);
-    std::this_thread::sleep_for(std::chrono::milliseconds(SLEEP_TIME));
-    EXPECT_EQ(listener1->visited, true);
-    EXPECT_EQ(listener2->visited, true);
-    EXPECT_EQ(listener3->visited, false);
-    EXPECT_EQ(listener1->visitedTwice, false);
-    EXPECT_EQ(listener2->visitedTwice, false);
-    EXPECT_EQ(listener3->visitedTwice, false);
-    EXPECT_EQ(DomainAccountClient::GetInstance().UnregisterAccountStatusListener(listener1), ERR_OK);
-    EXPECT_EQ(DomainAccountClient::GetInstance().UnregisterAccountStatusListener(listener2), ERR_OK);
-    EXPECT_EQ(DomainAccountClient::GetInstance().UnregisterAccountStatusListener(listener2), ERR_OK);
-    EXPECT_EQ(DomainAccountClient::GetInstance().UnregisterAccountStatusListener(listener1), ERR_OK);
-    EXPECT_EQ(OsAccountManager::GetOsAccountLocalIdFromDomain(domainInfo1, userId), ERR_OK);
-    EXPECT_EQ(OsAccountManager::RemoveOsAccount(userId), ERR_OK);
 }
 
 /**
@@ -1945,7 +1621,7 @@ HWTEST_F(DomainAccountClientModuleTest, RegisterAccountStatusListener_014, TestS
  * @tc.type: FUNC
  * @tc.require:
  */
-HWTEST_F(DomainAccountClientModuleTest, RegisterAccountStatusListener_015, TestSize.Level0)
+HWTEST_F(DomainAccountClientModuleTest, RegisterAccountStatusListener_010, TestSize.Level0)
 {
     std::shared_ptr<DomainAccountStatusListener> listener = nullptr;
     EXPECT_EQ(DomainAccountClient::GetInstance().RegisterAccountStatusListener(listener),
@@ -1963,8 +1639,6 @@ HWTEST_F(DomainAccountClientModuleTest, UnregisterAccountStatusListener_002, Tes
     DomainAccountInfo domainInfo;
     std::shared_ptr<DomainAccountStatusListener> listener = nullptr;
     EXPECT_EQ(DomainAccountClient::GetInstance().UnregisterAccountStatusListener(listener),
-        ERR_ACCOUNT_COMMON_INVALID_PARAMETER);
-    EXPECT_EQ(DomainAccountClient::GetInstance().UnregisterAccountStatusListener(domainInfo, listener),
         ERR_ACCOUNT_COMMON_INVALID_PARAMETER);
 }
 

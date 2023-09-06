@@ -31,11 +31,7 @@ public:
     ErrCode UnregisterPlugin() override;
     ErrCode GetAccountStatus(
         const DomainAccountInfo &info, DomainAccountStatus &status) override;
-    ErrCode RegisterAccountStatusListener(
-        const DomainAccountInfo &info, const sptr<IDomainAccountCallback> &listener) override;
     ErrCode RegisterAccountStatusListener(const sptr<IDomainAccountCallback> &listener) override;
-    ErrCode UnregisterAccountStatusListener(
-        const DomainAccountInfo &info, const sptr<IDomainAccountCallback> &listener) override;
     ErrCode UnregisterAccountStatusListener(const sptr<IDomainAccountCallback> &listener) override;
     ErrCode Auth(const DomainAccountInfo &info, const std::vector<uint8_t> &password,
         const sptr<IDomainAccountCallback> &callback) override;

@@ -49,13 +49,7 @@ StatusListenerManager::StatusListenerManager() : listenerDeathRecipient_(sptr<IR
 }
 
 StatusListenerManager::~StatusListenerManager()
-{
-}
-
-std::string StatusListenerManager::GetDomainAccountStr(const std::string &domain, const std::string &accountName) const
-{
-    return domain + "&" + accountName;
-}
+{}
 
 ErrCode StatusListenerManager::InsertListenerToRecords(const sptr<IRemoteObject> &listener)
 {
@@ -77,76 +71,13 @@ ErrCode StatusListenerManager::InsertListenerToRecords(const sptr<IRemoteObject>
     return ERR_OK;
 }
 
-ErrCode StatusListenerManager::InsertListenerToRecords(
-    const std::string &domain, const std::string &accountName, const sptr<IRemoteObject> &listener)
-{
-    if (listener == nullptr) {
-        ACCOUNT_LOGE("listener is nullptr");
-        return ERR_ACCOUNT_COMMON_NULL_PTR_ERROR;
-    }
-    std::lock_guard<std::mutex> lock(mutex_);
-    std::string domainAccountStr = GetDomainAccountStr(domain, accountName);
-    auto listenerIt = listenerToAccount_.find(listener);
-    if (listenerIt != listenerToAccount_.end()) {
-        if (listenerIt->second.find(domainAccountStr) != listenerIt->second.end()) {
-            ACCOUNT_LOGI("listener is already exist");
-            return ERR_OK;
-        }
-        listenerIt->second.insert(domainAccountStr);
-        accountToListener_[domainAccountStr].insert(listener);
-    } else {
-        if ((listener->IsProxyObject()) && (listenerDeathRecipient_ != nullptr) &&
-            (!listener->AddDeathRecipient(listenerDeathRecipient_))) {
-            ACCOUNT_LOGE("AddDeathRecipient failed");
-            return ERR_ACCOUNT_COMMON_ADD_DEATH_RECIPIENT;
-        }
-        std::set<std::string> domainSet;
-        domainSet.insert(domainAccountStr);
-        listenerToAccount_.emplace(listener, domainSet);
-    }
-    auto accountToListenerIt = accountToListener_.find(domainAccountStr);
-    if (accountToListenerIt != accountToListener_.end()) {
-        accountToListener_[domainAccountStr].insert(listener);
-    } else {
-        std::set<sptr<IRemoteObject>> listenerSet;
-        listenerSet.insert(listener);
-        accountToListener_.emplace(domainAccountStr, listenerSet);
-    }
-    return ERR_OK;
-}
-
 ErrCode StatusListenerManager::RemoveListenerByListener(const sptr<IRemoteObject> &listener)
 {
     std::lock_guard<std::mutex> lock(mutex_);
-    auto listenerToAccountIt = listenerToAccount_.find(listener);
-    if (listenerToAccountIt != listenerToAccount_.end()) {
-        for (auto domainAccount : listenerToAccountIt->second) {
-            accountToListener_[domainAccount].erase(listener);
-        }
-        listenerToAccount_.erase(listenerToAccountIt);
-    }
     auto listenerToAllIt = listenerAll_.find(listener);
     if (listenerToAllIt != listenerAll_.end()) {
         listenerAll_.erase(listenerToAllIt);
     }
-    if ((listener->IsProxyObject()) && (listenerDeathRecipient_ != nullptr)) {
-        listener->RemoveDeathRecipient(listenerDeathRecipient_);
-    }
-    return ERR_OK;
-}
-
-ErrCode StatusListenerManager::RemoveListenerByInfoAndListener(
-    const std::string &domain, const std::string &accountName, const sptr<IRemoteObject> &listener)
-{
-    std::lock_guard<std::mutex> lock(mutex_);
-    auto listenerToAccountIt = listenerToAccount_.find(listener);
-    if (listenerToAccountIt == listenerToAccount_.end()) {
-        ACCOUNT_LOGE("listener is not exist");
-        return ERR_OK;
-    }
-    std::string domainAccountStr = GetDomainAccountStr(domain, accountName);
-    listenerToAccountIt->second.erase(domainAccountStr);
-    accountToListener_[domainAccountStr].erase(listener);
     if ((listener->IsProxyObject()) && (listenerDeathRecipient_ != nullptr)) {
         listener->RemoveDeathRecipient(listenerDeathRecipient_);
     }
@@ -183,27 +114,9 @@ void StatusListenerManager::NotifyEventAsync(const DomainAccountEventData &repor
 #else  // HAS_CES_PART
     ACCOUNT_LOGI("No common event part! Publish nothing!");
 #endif // HAS_CES_PART
-
-    std::string domainAccountStr =
-        GetDomainAccountStr(report.domainAccountInfo.domain_, report.domainAccountInfo.accountName_);
     std::lock_guard<std::mutex> lock(mutex_);
     for (auto record : listenerAll_) {
         auto callback = iface_cast<IDomainAccountCallback>(record);
-        if (callback == nullptr) {
-            ACCOUNT_LOGE("callback is nullptr!");
-            continue;
-        }
-        Parcel parcel;
-        DomainAccountEventParcel(report, parcel);
-        callback->OnResult(ERR_OK, parcel);
-    }
-    auto domainSet = accountToListener_.find(domainAccountStr);
-    if (domainSet == accountToListener_.end()) {
-        ACCOUNT_LOGI("not exist listenter");
-        return;
-    }
-    for (auto listener : domainSet->second) {
-        auto callback = iface_cast<IDomainAccountCallback>(listener);
         if (callback == nullptr) {
             ACCOUNT_LOGE("callback is nullptr!");
             continue;

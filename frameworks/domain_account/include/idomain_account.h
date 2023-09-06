@@ -32,11 +32,7 @@ public:
     virtual ErrCode RegisterPlugin(const sptr<IDomainAccountPlugin> &plugin) = 0;
     virtual ErrCode UnregisterPlugin() = 0;
     virtual ErrCode GetAccountStatus(const DomainAccountInfo &info, DomainAccountStatus &status) = 0;
-    virtual ErrCode RegisterAccountStatusListener(
-        const DomainAccountInfo &info, const sptr<IDomainAccountCallback> &listener) = 0;
     virtual ErrCode RegisterAccountStatusListener(const sptr<IDomainAccountCallback> &listener) = 0;
-    virtual ErrCode UnregisterAccountStatusListener(
-        const DomainAccountInfo &info, const sptr<IDomainAccountCallback> &listener) = 0;
     virtual ErrCode UnregisterAccountStatusListener(const sptr<IDomainAccountCallback> &listener) = 0;
     virtual ErrCode Auth(const DomainAccountInfo &info, const std::vector<uint8_t> &password,
         const sptr<IDomainAccountCallback> &callback) = 0;
