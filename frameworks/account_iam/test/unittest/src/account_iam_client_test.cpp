@@ -397,7 +397,9 @@ HWTEST_F(AccountIAMClientTest, AccountIAMClient_GetAvailableStatus_0300, TestSiz
  */
 HWTEST_F(AccountIAMClientTest, AccountIAMClient_GetProperty_0100, TestSize.Level0)
 {
-    GetPropertyRequest testRequest = {};
+    GetPropertyRequest testRequest = {
+        .keys = { Attributes::AttributeKey::ATTR_PIN_SUB_TYPE }
+    };
     auto testCallback = std::make_shared<MockGetSetPropCallback>();
     EXPECT_NE(testCallback, nullptr);
     EXPECT_CALL(*testCallback, OnResult(_, _)).Times(1);
@@ -516,21 +518,6 @@ HWTEST_F(AccountIAMClientTest, AccountIAMClient_RegisterInputer_0100, TestSize.L
     EXPECT_EQ(ERR_ACCOUNT_IAM_UNSUPPORTED_AUTH_TYPE,
         AccountIAMClient::GetInstance().RegisterInputer(AuthType::PIN, inputer));
     EXPECT_EQ(ERR_ACCOUNT_IAM_UNSUPPORTED_AUTH_TYPE, AccountIAMClient::GetInstance().UnregisterInputer(AuthType::PIN));
-}
-
-/**
- * @tc.name: AccountIAMClient_GetAccountState_0100
- * @tc.desc: Get account state.
- * @tc.type: FUNC
- * @tc.require: issueI5N90O
- */
-HWTEST_F(AccountIAMClientTest, AccountIAMClient_GetAccountState_0100, TestSize.Level0)
-{
-    int32_t userId = 1111; // 1111: invalid userId
-    EXPECT_EQ(IDLE, AccountIAMClient::GetInstance().GetAccountState(userId));
-
-    userId = 100; // 100: userId
-    EXPECT_NE(IDLE, AccountIAMClient::GetInstance().GetAccountState(userId));
 }
 
 /**

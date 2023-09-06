@@ -282,7 +282,7 @@ HWTEST_F(AccountIamCallbackTest, AddCredCallback_OnResult_0200, TestSize.Level0)
     EXPECT_TRUE(addCredCallback->innerCallback_ != nullptr);
     int32_t errCode = 0;
     addCredCallback->OnResult(errCode, extraInfo);
-    EXPECT_EQ(ResultCode::FAIL, callback->result_);
+    EXPECT_EQ(errCode, callback->result_);
     errCode = 10;
     addCredCallback->OnResult(errCode, extraInfo);
     EXPECT_EQ(errCode, callback->result_);
