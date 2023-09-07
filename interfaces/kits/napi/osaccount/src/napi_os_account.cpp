@@ -790,7 +790,7 @@ static ErrCode ParseUidFromCbInfo(napi_env env, napi_callback_info cbInfo, int32
     size_t argc = ARGS_SIZE_ONE;
     napi_value argv[ARGS_SIZE_ONE] = {0};
     napi_get_cb_info(env, cbInfo, &argc, argv, nullptr, nullptr);
-    if ((argc <= 0) || (!GetIntProperty(env, argv[0], uid))) {
+    if ((argc == 0) || (!GetIntProperty(env, argv[0], uid))) {
         ACCOUNT_LOGE("failed to parse uid");
         return ERR_JS_PARAMETER_ERROR;
     }
