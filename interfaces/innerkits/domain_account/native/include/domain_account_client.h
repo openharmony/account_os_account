@@ -42,13 +42,12 @@
 #include "account_error_no.h"
 #include "domain_account_callback.h"
 #include "domain_account_plugin.h"
-#include "domain_account_plugin_service.h"
+#include "idomain_account_plugin.h"
 #include "domain_account_status_listener.h"
-#include "domain_account_status_listener_service.h"
+#include "domain_account_status_listener_manager.h"
 #include "domain_account_callback_service.h"
 #include "get_access_token_callback.h"
 #include "idomain_account.h"
- #include "system_ability_status_change_stub.h"
 #include "want.h"
 
 namespace OHOS {
@@ -123,12 +122,13 @@ public:
     ErrCode GetDomainAccountInfo(const DomainAccountInfo &info, const std::shared_ptr<DomainAccountCallback> &callback);
     ErrCode RegisterAccountStatusListener(const std::shared_ptr<DomainAccountStatusListener> &listener);
     ErrCode UnregisterAccountStatusListener(const std::shared_ptr<DomainAccountStatusListener> &listener);
+    friend std::function<void(int32_t, const std::string &)> callbackFunc();
 
 private:
-    void RestoreListenerRecords();
-    void RestorePlugin();
     DomainAccountClient();
     ~DomainAccountClient() = default;
+    void RestoreListenerRecords();
+    void RestorePlugin();
     DISALLOW_COPY_AND_MOVE(DomainAccountClient);
 
 private:
@@ -141,13 +141,6 @@ private:
     private:
         DISALLOW_COPY_AND_MOVE(DomainAccountDeathRecipient);
     };
-    class SystemAbilityStatusChangeListener : public OHOS::SystemAbilityStatusChangeStub {
-    public:
-        SystemAbilityStatusChangeListener() = default;
-        ~SystemAbilityStatusChangeListener() = default;
-        void OnAddSystemAbility(int32_t systemAbilityId, const std::string &deviceId) override;
-        void OnRemoveSystemAbility(int32_t systemAbilityId, const std::string &deviceId) override;
-    };
     sptr<IDomainAccount> GetDomainAccountProxy();
     void ResetDomainAccountProxy(const wptr<IRemoteObject> &remote);
     ErrCode AuthProxyInit(const std::shared_ptr<DomainAccountCallback> &callback,
@@ -157,9 +150,8 @@ private:
     std::mutex mutex_;
     std::mutex recordMutex_;
     sptr<IDomainAccount> proxy_ = nullptr;
-    sptr<ISystemAbilityStatusChange> statusChangeListener_ = nullptr;
     sptr<DomainAccountDeathRecipient> deathRecipient_ = nullptr;
-    sptr<DomainAccountPluginService> pluginService_ = nullptr;
+    sptr<IDomainAccountPlugin> pluginService_ = nullptr;
     sptr<IDomainAccountCallback> callback_ = nullptr;
     std::shared_ptr<DomainAccountStatusListenerManager> listenerManager_ = nullptr;
 };

@@ -18,8 +18,7 @@
 #include "account_log_wrapper.h"
 #include "account_proxy.h"
 #include "if_system_ability_manager.h"
-#include "iservice_registry.h"
-#include "system_ability_definition.h"
+#include "system_ability_status_change_listener.h"
 
 namespace OHOS {
 namespace AccountSA {
@@ -185,6 +184,27 @@ std::int32_t OhosAccountKitsImpl::GetDeviceAccountIdByUID(std::int32_t& uid)
 {
     std::int32_t accountID = uid / UID_TRANSFORM_DIVISOR;
     return accountID;
+}
+
+ErrCode OhosAccountKitsImpl::SubscribeSystemAbility(const DomainAccountSubscribeSACallbackFunc& callbackFunc)
+{
+    sptr<ISystemAbilityStatusChange> statusChangeListener =
+        new (std::nothrow) SystemAbilityStatusChangeListener(callbackFunc);
+    if (statusChangeListener == nullptr) {
+        ACCOUNT_LOGE("statusChangeListener is nullptr");
+        return ERR_ACCOUNT_COMMON_NULL_PTR_ERROR;
+    }
+    auto samgrProxy = SystemAbilityManagerClient::GetInstance().GetSystemAbilityManager();
+    if (samgrProxy == NULL) {
+        ACCOUNT_LOGE("samgrProxy is NULL");
+        return ERR_ACCOUNT_COMMON_NULL_PTR_ERROR;
+    }
+    int32_t ret = samgrProxy->SubscribeSystemAbility(SUBSYS_ACCOUNT_SYS_ABILITY_ID_BEGIN, statusChangeListener);
+    if (ret != ERR_OK) {
+        ACCOUNT_LOGE("SubscribeSystemAbility is failed");
+        return ret;
+    }
+    return ERR_OK;
 }
 
 sptr<IRemoteObject> OhosAccountKitsImpl::GetDomainAccountService()

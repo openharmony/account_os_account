@@ -23,6 +23,7 @@
 
 namespace OHOS {
 namespace AccountSA {
+using DomainAccountSubscribeSACallbackFunc = std::function<void(int32_t, const std::string)>;
 class OhosAccountKitsImpl final : public OhosAccountKits {
 public:
     DISALLOW_COPY_AND_MOVE(OhosAccountKitsImpl);
@@ -39,6 +40,7 @@ public:
     std::pair<bool, OhosAccountInfo> QueryOhosAccountInfoByUserId(std::int32_t userId) final;
     ErrCode QueryDeviceAccountId(std::int32_t& accountId) final;
     std::int32_t GetDeviceAccountIdByUID(std::int32_t& uid) final;
+    ErrCode SubscribeSystemAbility(const DomainAccountSubscribeSACallbackFunc& callbackFunc);
     sptr<IRemoteObject> GetOsAccountService();
     sptr<IRemoteObject> GetDomainAccountService();
     sptr<IRemoteObject> GetAppAccountService();
