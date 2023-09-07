@@ -64,27 +64,6 @@ void InnerDomainAuthCallback::OnResult(const int32_t errCode, Parcel &parcel)
         return;
     }
     if ((errCode == ERR_OK) && (userId_ != 0)) {
-#ifdef FILE_ENCRYPTION_EL1_FEATURE
-        int32_t result = InnerAccountIAMManager::GetInstance().ActivateUserKey(userId_, {}, {});
-        if (result != 0) {
-            ACCOUNT_LOGE("failed to activate user key");
-            DomainAuthResult errResult;
-            errResult.authStatusInfo = (*authResult).authStatusInfo;
-            if (callback_ == nullptr) {
-                ACCOUNT_LOGI("callback_ is nullptr");
-                return;
-            }
-            Parcel resultParcel;
-            if (!errResult.Marshalling(resultParcel)) {
-                ACCOUNT_LOGE("authResult Marshalling failed");
-                return;
-            }
-            return callback_->OnResult(ERR_JS_SYSTEM_SERVICE_EXCEPTION, resultParcel);
-        } else {
-            ACCOUNT_LOGI("activate user key success");
-            (void)IInnerOsAccountManager::GetInstance().SetOsAccountIsVerified(userId_, true);
-        }
-#endif // FILE_ENCRYPTION_EL1_FEATURE
         InnerDomainAccountManager::GetInstance().InsertTokenToMap(userId_, (*authResult).token);
         DomainAccountInfo domainInfo;
         InnerDomainAccountManager::GetInstance().GetDomainAccountInfoByUserId(userId_, domainInfo);
@@ -238,6 +217,18 @@ ErrCode InnerDomainAccountManager::InnerAuth(int32_t userId, const std::vector<u
 ErrCode InnerDomainAccountManager::AuthUser(int32_t userId, const std::vector<uint8_t> &password,
     const sptr<IDomainAccountCallback> &callback)
 {
+    bool isVerified = false;
+    (void) IInnerOsAccountManager::GetInstance().IsOsAccountVerified(userId, isVerified);
+    if (isVerified) {
+        return InnerAuth(userId, password, callback, AUTH_WITH_CREDENTIAL_MODE);
+    }
+
+    bool isCreateSecret = false;
+    (void) IInnerOsAccountManager::GetInstance().GetOsAccountIsCreateSecret(userId, isCreateSecret);
+    if (isCreateSecret) {
+        ACCOUNT_LOGE("unsupported auth type");
+        return ERR_ACCOUNT_IAM_UNSUPPORTED_AUTH_TYPE;
+    }
     return InnerAuth(userId, password, callback, AUTH_WITH_CREDENTIAL_MODE);
 }
 
