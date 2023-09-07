@@ -1409,7 +1409,6 @@ HWTEST_F(DomainAccountClientModuleTest, RegisterAccountStatusListener_004, TestS
     auto listener3 = std::make_shared<ListenerLogInBackGround>();
     EXPECT_EQ(DomainAccountClient::GetInstance().RegisterAccountStatusListener(listener3), ERR_OK);
     EXPECT_EQ(DomainAccountClient::GetInstance().RegisterAccountStatusListener(listener3), ERR_OK);
-    std::this_thread::sleep_for(std::chrono::milliseconds(20 * SLEEP_TIME));
 
     auto authCallback = std::make_shared<MockDomainAuthCallbackForListener>();
     ASSERT_NE(authCallback, nullptr);

@@ -23,8 +23,7 @@
 #include "domain_account_plugin_service.h"
 #include "domain_account_proxy.h"
 #include "domain_account_status_listener.h"
-#include "domain_account_status_listener_service.h"
-#include "iservice_registry.h"
+#include "domain_account_status_listener_manager.h"
 #include "ohos_account_kits_impl.h"
 #include "system_ability_definition.h"
 
@@ -36,37 +35,20 @@ DomainAccountClient &DomainAccountClient::GetInstance()
     return *instance;
 }
 
+std::function<void(int32_t, const std::string &)> callbackFunc()
+{
+    return [](int32_t systemAbilityId, const std::string &deviceId) {
+        if (systemAbilityId == SUBSYS_ACCOUNT_SYS_ABILITY_ID_BEGIN) {
+            DomainAccountClient::GetInstance().RestoreListenerRecords();
+            DomainAccountClient::GetInstance().RestorePlugin();
+        }
+    };
+}
+
 DomainAccountClient::DomainAccountClient()
 {
-    statusChangeListener_ = new (std::nothrow) SystemAbilityStatusChangeListener();
-    if (statusChangeListener_ == nullptr) {
-        ACCOUNT_LOGE("statusChangeListener_ is nullptr");
-        return;
-    }
-    auto samgrProxy = SystemAbilityManagerClient::GetInstance().GetSystemAbilityManager();
-    if (samgrProxy == NULL) {
-        ACCOUNT_LOGE("samgrProxy is NULL");
-        return;
-    }
-    int32_t ret = samgrProxy->SubscribeSystemAbility(SUBSYS_ACCOUNT_SYS_ABILITY_ID_BEGIN, statusChangeListener_);
-    if (ret != ERR_OK) {
-        ACCOUNT_LOGE("SubscribeSystemAbility is failed");
-        return;
-    }
+    (void)OhosAccountKitsImpl::GetInstance().SubscribeSystemAbility(callbackFunc());
 }
-
-void DomainAccountClient::SystemAbilityStatusChangeListener::OnAddSystemAbility(
-    int32_t systemAbilityId, const std::string &deviceId)
-{
-    if (systemAbilityId == SUBSYS_ACCOUNT_SYS_ABILITY_ID_BEGIN) {
-        DomainAccountClient::GetInstance().RestoreListenerRecords();
-        DomainAccountClient::GetInstance().RestorePlugin();
-    }
-}
-
-void DomainAccountClient::SystemAbilityStatusChangeListener::OnRemoveSystemAbility(
-    int32_t systemAbilityId, const std::string &deviceId)
-{}
 
 ErrCode DomainAccountClient::RegisterPlugin(const std::shared_ptr<DomainAccountPlugin> &plugin)
 {

@@ -24,6 +24,8 @@
         "OHOS::AccountSA::OhosAccountKitsImpl::GetAccountIAMService()";
         "OHOS::AccountSA::WriteOhosAccountInfo(OHOS::MessageParcel&, OHOS::AccountSA::OhosAccountInfo const&)";
         "OHOS::AccountSA::ReadOhosAccountInfo(OHOS::MessageParcel&, OHOS::AccountSA::OhosAccountInfo&)";
+        "OHOS::AccountSA::SystemAbilityStatusChangeListener::SystemAbilityStatusChangeListener(std::__h::function<void (int, std::__h::basic_string<char, std::__h::char_traits<char>, std::__h::allocator<char>>)> const&)";
+        "OHOS::AccountSA::OhosAccountKitsImpl::SubscribeSystemAbility(std::__h::function<void (int, std::__h::basic_string<char, std::__h::char_traits<char>, std::__h::allocator<char>>)> const&)";
     };
   local:
     *;

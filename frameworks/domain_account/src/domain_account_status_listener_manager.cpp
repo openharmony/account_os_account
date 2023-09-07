@@ -13,7 +13,7 @@
  * limitations under the License.
  */
 
-#include "domain_account_status_listener_service.h"
+#include "domain_account_status_listener_manager.h"
 #include "account_error_no.h"
 #include "account_log_wrapper.h"
 
@@ -55,10 +55,6 @@ void DomainAccountStatusListenerManager::OnResult(const int32_t errCode, Parcel 
     }
     report.userId = userId;
     for (auto listener : listenerAll_) {
-        if (listener == nullptr) {
-            ACCOUNT_LOGE("innerCallback is nullptr");
-            continue;
-        }
         listener->OnStatusChanged(report);
     }
 }
