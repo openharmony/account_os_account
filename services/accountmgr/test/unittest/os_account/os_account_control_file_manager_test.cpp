@@ -75,6 +75,7 @@ const std::string STRING_ERR_PHOTO =
     "xFpssN5bwwXwPilDIZ0klLxSq2vWLAIWACMjBeilQNo6j9ni50R9U8U6lF400m18Q30sTMLnxC1758CxqrO8EesXXzBgiiV5SQPlCgHnNSfI5f"
     "1+"
     "av33Q5L3rdP68nb7mfWlFFFaCP//Z";
+const std::shared_ptr<OsAccountControlFileManager> g_controlManager = std::make_shared<OsAccountControlFileManager>();
 }  // namespace
 class OsAccountControlFileManagerTest : public testing::Test {
 public:
@@ -84,21 +85,20 @@ public:
     void TearDown();
 
 public:
-    std::shared_ptr<OsAccountControlFileManager> osAccountControlManager_;
     std::string storeID_ = "os_account_info";
 };
 
 void OsAccountControlFileManagerTest::SetUpTestCase(void)
-{}
+{
+    ASSERT_NE(g_controlManager, nullptr);
+    g_controlManager->Init();
+}
 
 void OsAccountControlFileManagerTest::TearDownTestCase(void)
 {}
 
 void OsAccountControlFileManagerTest::SetUp(void)
-{
-    osAccountControlManager_ = std::make_shared<OsAccountControlFileManager>();
-    osAccountControlManager_->Init();
-}
+{}
 
 void OsAccountControlFileManagerTest::TearDown(void)
 {}
@@ -117,7 +117,7 @@ static int RenameFile(const std::string &src, const std::string &des)
 HWTEST_F(OsAccountControlFileManagerTest, OsAccountControlFileManagerTest001, TestSize.Level1)
 {
     std::vector<OsAccountInfo> osAccountInfos;
-    EXPECT_EQ(osAccountControlManager_->GetOsAccountList(osAccountInfos), ERR_OK);
+    EXPECT_EQ(g_controlManager->GetOsAccountList(osAccountInfos), ERR_OK);
     const unsigned int size = 0;
     EXPECT_NE(osAccountInfos.size(), size);
 }
@@ -131,7 +131,7 @@ HWTEST_F(OsAccountControlFileManagerTest, OsAccountControlFileManagerTest001, Te
 HWTEST_F(OsAccountControlFileManagerTest, OsAccountControlFileManagerTest002, TestSize.Level0)
 {
     OsAccountInfo osAccountInfo;
-    EXPECT_EQ(osAccountControlManager_->GetOsAccountInfoById(Constants::START_USER_ID, osAccountInfo), ERR_OK);
+    EXPECT_EQ(g_controlManager->GetOsAccountInfoById(Constants::START_USER_ID, osAccountInfo), ERR_OK);
     EXPECT_NE(osAccountInfo.GetLocalName().empty(), true);
 }
 
@@ -145,7 +145,7 @@ HWTEST_F(OsAccountControlFileManagerTest, OsAccountControlFileManagerTest003, Te
 {
     OsAccountInfo osAccountInfo;
     int id = Constants::MAX_USER_ID + 1;
-    EXPECT_NE(osAccountControlManager_->GetOsAccountInfoById(id, osAccountInfo), ERR_OK);
+    EXPECT_NE(g_controlManager->GetOsAccountInfoById(id, osAccountInfo), ERR_OK);
 }
 
 /**
@@ -157,7 +157,7 @@ HWTEST_F(OsAccountControlFileManagerTest, OsAccountControlFileManagerTest003, Te
 HWTEST_F(OsAccountControlFileManagerTest, OsAccountControlFileManagerTest004, TestSize.Level1)
 {
     std::vector<std::string> constraints;
-    EXPECT_EQ(osAccountControlManager_->GetConstraintsByType(OsAccountType::ADMIN, constraints), ERR_OK);
+    EXPECT_EQ(g_controlManager->GetConstraintsByType(OsAccountType::ADMIN, constraints), ERR_OK);
     const unsigned int size = 0;
     EXPECT_NE(size, constraints.size());
 }
@@ -171,7 +171,7 @@ HWTEST_F(OsAccountControlFileManagerTest, OsAccountControlFileManagerTest004, Te
 HWTEST_F(OsAccountControlFileManagerTest, OsAccountControlFileManagerTest005, TestSize.Level1)
 {
     std::vector<std::string> constraints;
-    EXPECT_EQ(osAccountControlManager_->GetConstraintsByType(OsAccountType::GUEST, constraints), ERR_OK);
+    EXPECT_EQ(g_controlManager->GetConstraintsByType(OsAccountType::GUEST, constraints), ERR_OK);
 }
 
 /**
@@ -184,8 +184,8 @@ HWTEST_F(OsAccountControlFileManagerTest, OsAccountControlFileManagerTest006, Te
 {
     int64_t serialNumber1;
     int64_t serialNumber2;
-    EXPECT_EQ(osAccountControlManager_->GetSerialNumber(serialNumber1), ERR_OK);
-    EXPECT_EQ(osAccountControlManager_->GetSerialNumber(serialNumber2), ERR_OK);
+    EXPECT_EQ(g_controlManager->GetSerialNumber(serialNumber1), ERR_OK);
+    EXPECT_EQ(g_controlManager->GetSerialNumber(serialNumber2), ERR_OK);
     EXPECT_EQ(serialNumber1 + 1, serialNumber2);
 }
 
@@ -198,7 +198,7 @@ HWTEST_F(OsAccountControlFileManagerTest, OsAccountControlFileManagerTest006, Te
 HWTEST_F(OsAccountControlFileManagerTest, OsAccountControlFileManagerTest007, TestSize.Level1)
 {
     bool isOsAccountExists = false;
-    EXPECT_EQ(osAccountControlManager_->IsOsAccountExists(Constants::START_USER_ID, isOsAccountExists), ERR_OK);
+    EXPECT_EQ(g_controlManager->IsOsAccountExists(Constants::START_USER_ID, isOsAccountExists), ERR_OK);
     EXPECT_EQ(isOsAccountExists, true);
 }
 
@@ -212,7 +212,7 @@ HWTEST_F(OsAccountControlFileManagerTest, OsAccountControlFileManagerTest008, Te
 {
     bool isOsAccountExists = true;
     int id = Constants::MAX_USER_ID + 1;
-    EXPECT_EQ(osAccountControlManager_->IsOsAccountExists(id, isOsAccountExists), ERR_OK);
+    EXPECT_EQ(g_controlManager->IsOsAccountExists(id, isOsAccountExists), ERR_OK);
     EXPECT_EQ(isOsAccountExists, false);
 }
 
@@ -225,7 +225,7 @@ HWTEST_F(OsAccountControlFileManagerTest, OsAccountControlFileManagerTest008, Te
 HWTEST_F(OsAccountControlFileManagerTest, OsAccountControlFileManagerTest009, TestSize.Level1)
 {
     int maxCreatedOsAccountNum = 0;
-    EXPECT_EQ(osAccountControlManager_->GetMaxCreatedOsAccountNum(maxCreatedOsAccountNum), ERR_OK);
+    EXPECT_EQ(g_controlManager->GetMaxCreatedOsAccountNum(maxCreatedOsAccountNum), ERR_OK);
     EXPECT_NE(maxCreatedOsAccountNum, 0);
 }
 
@@ -238,10 +238,10 @@ HWTEST_F(OsAccountControlFileManagerTest, OsAccountControlFileManagerTest009, Te
 HWTEST_F(OsAccountControlFileManagerTest, OsAccountControlFileManagerTest010, TestSize.Level1)
 {
     int id = 0;
-    EXPECT_EQ(osAccountControlManager_->GetAllowCreateId(id), ERR_OK);
+    EXPECT_EQ(g_controlManager->GetAllowCreateId(id), ERR_OK);
     EXPECT_NE(id, 0);
     bool isOsAccountExists = true;
-    EXPECT_EQ(osAccountControlManager_->IsOsAccountExists(id, isOsAccountExists), ERR_OK);
+    EXPECT_EQ(g_controlManager->IsOsAccountExists(id, isOsAccountExists), ERR_OK);
     EXPECT_EQ(isOsAccountExists, false);
 }
 
@@ -254,13 +254,13 @@ HWTEST_F(OsAccountControlFileManagerTest, OsAccountControlFileManagerTest010, Te
 HWTEST_F(OsAccountControlFileManagerTest, OsAccountControlFileManagerTest011, TestSize.Level1)
 {
     int id = 0;
-    osAccountControlManager_->GetAllowCreateId(id);
+    g_controlManager->GetAllowCreateId(id);
     OsAccountInfo osAccountInfo(id, STRING_TEST_USER_NAME, OS_ACCOUNT_TYPE, STRING_TEST_USER_SHELLNUMBER);
-    EXPECT_EQ(osAccountControlManager_->InsertOsAccount(osAccountInfo), ERR_OK);
+    EXPECT_EQ(g_controlManager->InsertOsAccount(osAccountInfo), ERR_OK);
     bool isOsAccountExists = false;
-    EXPECT_EQ(osAccountControlManager_->IsOsAccountExists(id, isOsAccountExists), ERR_OK);
+    EXPECT_EQ(g_controlManager->IsOsAccountExists(id, isOsAccountExists), ERR_OK);
     EXPECT_NE(isOsAccountExists, false);
-    osAccountControlManager_->DelOsAccount(id);
+    g_controlManager->DelOsAccount(id);
 }
 
 /**
@@ -273,7 +273,7 @@ HWTEST_F(OsAccountControlFileManagerTest, OsAccountControlFileManagerTest012, Te
 {
     OsAccountInfo osAccountInfo(
         INT_TEST_ERR_USER_ID, STRING_TEST_USER_NAME, OS_ACCOUNT_TYPE, STRING_TEST_USER_SHELLNUMBER);
-    EXPECT_EQ(osAccountControlManager_->InsertOsAccount(osAccountInfo),
+    EXPECT_EQ(g_controlManager->InsertOsAccount(osAccountInfo),
         ERR_OSACCOUNT_SERVICE_CONTROL_ID_CANNOT_CREATE_ERROR);
 }
 
@@ -287,7 +287,7 @@ HWTEST_F(OsAccountControlFileManagerTest, OsAccountControlFileManagerTest013, Te
 {
     OsAccountInfo osAccountInfo(
         Constants::START_USER_ID, STRING_TEST_USER_NAME, OS_ACCOUNT_TYPE, STRING_TEST_USER_SHELLNUMBER);
-    EXPECT_EQ(osAccountControlManager_->InsertOsAccount(osAccountInfo),
+    EXPECT_EQ(g_controlManager->InsertOsAccount(osAccountInfo),
         ERR_OSACCOUNT_SERVICE_CONTROL_INSERT_FILE_EXISTS_ERROR);
 }
 
@@ -300,13 +300,13 @@ HWTEST_F(OsAccountControlFileManagerTest, OsAccountControlFileManagerTest013, Te
 HWTEST_F(OsAccountControlFileManagerTest, OsAccountControlFileManagerTest014, TestSize.Level0)
 {
     int id = 0;
-    osAccountControlManager_->GetAllowCreateId(id);
+    g_controlManager->GetAllowCreateId(id);
     OsAccountInfo osAccountInfo(id, STRING_TEST_USER_NAME, OS_ACCOUNT_TYPE, STRING_TEST_USER_SHELLNUMBER);
-    EXPECT_EQ(osAccountControlManager_->InsertOsAccount(osAccountInfo), ERR_OK);
+    EXPECT_EQ(g_controlManager->InsertOsAccount(osAccountInfo), ERR_OK);
     OsAccountInfo osAccountInfoTwo;
-    osAccountControlManager_->GetOsAccountInfoById(id, osAccountInfoTwo);
+    g_controlManager->GetOsAccountInfoById(id, osAccountInfoTwo);
     EXPECT_EQ(osAccountInfoTwo.GetLocalName(), STRING_TEST_USER_NAME);
-    EXPECT_EQ(osAccountControlManager_->DelOsAccount(id), ERR_OK);
+    EXPECT_EQ(g_controlManager->DelOsAccount(id), ERR_OK);
 }
 
 /**
@@ -318,7 +318,7 @@ HWTEST_F(OsAccountControlFileManagerTest, OsAccountControlFileManagerTest014, Te
 HWTEST_F(OsAccountControlFileManagerTest, OsAccountControlFileManagerTest015, TestSize.Level1)
 {
     int id = Constants::ADMIN_LOCAL_ID;
-    EXPECT_NE(osAccountControlManager_->DelOsAccount(id), ERR_OK);
+    EXPECT_NE(g_controlManager->DelOsAccount(id), ERR_OK);
 }
 
 /**
@@ -330,7 +330,7 @@ HWTEST_F(OsAccountControlFileManagerTest, OsAccountControlFileManagerTest015, Te
 HWTEST_F(OsAccountControlFileManagerTest, OsAccountControlFileManagerTest016, TestSize.Level1)
 {
     int id = Constants::START_USER_ID;
-    EXPECT_NE(osAccountControlManager_->DelOsAccount(id), ERR_OK);
+    EXPECT_NE(g_controlManager->DelOsAccount(id), ERR_OK);
 }
 
 /**
@@ -342,15 +342,15 @@ HWTEST_F(OsAccountControlFileManagerTest, OsAccountControlFileManagerTest016, Te
 HWTEST_F(OsAccountControlFileManagerTest, OsAccountControlFileManagerTest017, TestSize.Level0)
 {
     int id = 0;
-    osAccountControlManager_->GetAllowCreateId(id);
+    g_controlManager->GetAllowCreateId(id);
     OsAccountInfo osAccountInfo(id, STRING_TEST_USER_NAME, OS_ACCOUNT_TYPE, STRING_TEST_USER_SHELLNUMBER);
-    osAccountControlManager_->InsertOsAccount(osAccountInfo);
+    g_controlManager->InsertOsAccount(osAccountInfo);
     osAccountInfo.SetLocalName(STRING_TEST_USER_NAME_TWO);
-    EXPECT_EQ(osAccountControlManager_->UpdateOsAccount(osAccountInfo), ERR_OK);
+    EXPECT_EQ(g_controlManager->UpdateOsAccount(osAccountInfo), ERR_OK);
     OsAccountInfo osAccountInfoTwo;
-    osAccountControlManager_->GetOsAccountInfoById(id, osAccountInfoTwo);
+    g_controlManager->GetOsAccountInfoById(id, osAccountInfoTwo);
     EXPECT_EQ(osAccountInfoTwo.GetLocalName(), STRING_TEST_USER_NAME_TWO);
-    osAccountControlManager_->DelOsAccount(id);
+    g_controlManager->DelOsAccount(id);
 }
 
 /**
@@ -362,14 +362,14 @@ HWTEST_F(OsAccountControlFileManagerTest, OsAccountControlFileManagerTest017, Te
 HWTEST_F(OsAccountControlFileManagerTest, OsAccountControlFileManagerTest018, TestSize.Level1)
 {
     int id = 0;
-    osAccountControlManager_->GetAllowCreateId(id);
+    g_controlManager->GetAllowCreateId(id);
     OsAccountInfo osAccountInfo(id, STRING_TEST_USER_NAME, OS_ACCOUNT_TYPE, STRING_TEST_USER_SHELLNUMBER);
-    osAccountControlManager_->InsertOsAccount(osAccountInfo);
-    EXPECT_EQ(osAccountControlManager_->SetPhotoById(id, STRING_PHOTO), ERR_OK);
+    g_controlManager->InsertOsAccount(osAccountInfo);
+    EXPECT_EQ(g_controlManager->SetPhotoById(id, STRING_PHOTO), ERR_OK);
     std::string photo = Constants::USER_PHOTO_FILE_JPG_NAME;
-    EXPECT_EQ(osAccountControlManager_->GetPhotoById(id, photo), ERR_OK);
+    EXPECT_EQ(g_controlManager->GetPhotoById(id, photo), ERR_OK);
     EXPECT_EQ(photo, STRING_PHOTO);
-    osAccountControlManager_->DelOsAccount(id);
+    g_controlManager->DelOsAccount(id);
 }
 
 /**
@@ -381,11 +381,11 @@ HWTEST_F(OsAccountControlFileManagerTest, OsAccountControlFileManagerTest018, Te
 HWTEST_F(OsAccountControlFileManagerTest, OsAccountControlFileManagerTest019, TestSize.Level1)
 {
     int id = 0;
-    osAccountControlManager_->GetAllowCreateId(id);
+    g_controlManager->GetAllowCreateId(id);
     OsAccountInfo osAccountInfo(id, STRING_TEST_USER_NAME, OS_ACCOUNT_TYPE, STRING_TEST_USER_SHELLNUMBER);
-    osAccountControlManager_->InsertOsAccount(osAccountInfo);
-    EXPECT_NE(osAccountControlManager_->SetPhotoById(id, STRING_ERR_PHOTO), ERR_OK);
-    osAccountControlManager_->DelOsAccount(id);
+    g_controlManager->InsertOsAccount(osAccountInfo);
+    EXPECT_NE(g_controlManager->SetPhotoById(id, STRING_ERR_PHOTO), ERR_OK);
+    g_controlManager->DelOsAccount(id);
 }
 
 /**
@@ -397,23 +397,23 @@ HWTEST_F(OsAccountControlFileManagerTest, OsAccountControlFileManagerTest019, Te
 HWTEST_F(OsAccountControlFileManagerTest, OsAccountControlFileManagerTest020, TestSize.Level1)
 {
     int createdOsAccountNum = -1;
-    ErrCode ret = osAccountControlManager_->GetCreatedOsAccountNumFromDatabase(storeID_, createdOsAccountNum);
+    ErrCode ret = g_controlManager->GetCreatedOsAccountNumFromDatabase(storeID_, createdOsAccountNum);
     EXPECT_EQ(ret, ERR_OK);
     EXPECT_NE(createdOsAccountNum, 0);
     EXPECT_NE(createdOsAccountNum, -1);
 
     int64_t serialNumber = -1;
-    ret = osAccountControlManager_->GetSerialNumberFromDatabase(storeID_, serialNumber);
+    ret = g_controlManager->GetSerialNumberFromDatabase(storeID_, serialNumber);
     EXPECT_EQ(ret, ERR_OK);
     EXPECT_NE(serialNumber, -1);
 
     int id = -1;
-    ret = osAccountControlManager_->GetMaxAllowCreateIdFromDatabase(storeID_, id);
+    ret = g_controlManager->GetMaxAllowCreateIdFromDatabase(storeID_, id);
     EXPECT_EQ(ret, ERR_OK);
     EXPECT_EQ(id, Constants::MAX_USER_ID);
 
     std::vector<OsAccountInfo> osAccountList;
-    ret = osAccountControlManager_->GetOsAccountListFromDatabase(storeID_, osAccountList);
+    ret = g_controlManager->GetOsAccountListFromDatabase(storeID_, osAccountList);
     EXPECT_EQ(ret, ERR_OK);
 
     for (uint32_t i = 0; i < osAccountList.size(); ++i) {
@@ -422,7 +422,7 @@ HWTEST_F(OsAccountControlFileManagerTest, OsAccountControlFileManagerTest020, Te
         EXPECT_EQ(checkIdValid, true);
 
         OsAccountInfo curOsAccountInfo;
-        ret = osAccountControlManager_->GetOsAccountFromDatabase(storeID_, curID, curOsAccountInfo);
+        ret = g_controlManager->GetOsAccountFromDatabase(storeID_, curID, curOsAccountInfo);
         EXPECT_EQ(ret, ERR_OK);
         EXPECT_EQ(curID, curOsAccountInfo.GetLocalId());
     }
@@ -437,41 +437,41 @@ HWTEST_F(OsAccountControlFileManagerTest, OsAccountControlFileManagerTest020, Te
 HWTEST_F(OsAccountControlFileManagerTest, OsAccountControlFileManagerTest021, TestSize.Level1)
 {
     int createdOsAccountNum = -1;
-    ErrCode ret = osAccountControlManager_->GetCreatedOsAccountNumFromDatabase(storeID_, createdOsAccountNum);
+    ErrCode ret = g_controlManager->GetCreatedOsAccountNumFromDatabase(storeID_, createdOsAccountNum);
     EXPECT_EQ(ret, ERR_OK);
     EXPECT_NE(createdOsAccountNum, -1);
 
     int createdOsAccountNumByDefault = -1;
-    ret = osAccountControlManager_->GetCreatedOsAccountNumFromDatabase(std::string(""), createdOsAccountNumByDefault);
+    ret = g_controlManager->GetCreatedOsAccountNumFromDatabase(std::string(""), createdOsAccountNumByDefault);
     EXPECT_EQ(ret, ERR_OK);
     EXPECT_EQ(createdOsAccountNum, createdOsAccountNumByDefault);
 
     int64_t serialNumber = -1;
-    ret = osAccountControlManager_->GetSerialNumberFromDatabase(storeID_, serialNumber);
+    ret = g_controlManager->GetSerialNumberFromDatabase(storeID_, serialNumber);
     EXPECT_EQ(ret, ERR_OK);
     EXPECT_NE(serialNumber, -1);
 
     int64_t serialNumberByDefault = -1;
-    ret = osAccountControlManager_->GetSerialNumberFromDatabase(std::string(""), serialNumberByDefault);
+    ret = g_controlManager->GetSerialNumberFromDatabase(std::string(""), serialNumberByDefault);
     EXPECT_EQ(ret, ERR_OK);
     EXPECT_EQ(serialNumber, serialNumberByDefault);
 
     int id = -1;
-    ret = osAccountControlManager_->GetMaxAllowCreateIdFromDatabase(storeID_, id);
+    ret = g_controlManager->GetMaxAllowCreateIdFromDatabase(storeID_, id);
     EXPECT_EQ(ret, ERR_OK);
     EXPECT_EQ(id, Constants::MAX_USER_ID);
 
     int idByDefault = -1;
-    ret = osAccountControlManager_->GetMaxAllowCreateIdFromDatabase(std::string(""), idByDefault);
+    ret = g_controlManager->GetMaxAllowCreateIdFromDatabase(std::string(""), idByDefault);
     EXPECT_EQ(ret, ERR_OK);
     EXPECT_EQ(id, idByDefault);
 
     std::vector<OsAccountInfo> osAccountList;
-    ret = osAccountControlManager_->GetOsAccountListFromDatabase(storeID_, osAccountList);
+    ret = g_controlManager->GetOsAccountListFromDatabase(storeID_, osAccountList);
     EXPECT_EQ(ret, ERR_OK);
 
     std::vector<OsAccountInfo> osAccountListByDefault;
-    ret = osAccountControlManager_->GetOsAccountListFromDatabase(std::string(""), osAccountListByDefault);
+    ret = g_controlManager->GetOsAccountListFromDatabase(std::string(""), osAccountListByDefault);
     EXPECT_EQ(ret, ERR_OK);
     EXPECT_EQ(osAccountListByDefault.size(), osAccountList.size());
 
@@ -526,7 +526,7 @@ HWTEST_F(OsAccountControlFileManagerTest, IsFromBaseOAConstraintsList_001, TestS
     bool isExist;
     RenameFile(Constants::BASE_OSACCOUNT_CONSTRAINTS_JSON_PATH,
         Constants::BASE_OSACCOUNT_CONSTRAINTS_JSON_PATH + "_blk");
-    ErrCode ret = osAccountControlManager_->IsFromBaseOAConstraintsList(
+    ErrCode ret = g_controlManager->IsFromBaseOAConstraintsList(
         INT_TEST_ERR_USER_ID, "invalid_constraint", isExist);
     EXPECT_NE(ret, ERR_OK);
     RenameFile(Constants::BASE_OSACCOUNT_CONSTRAINTS_JSON_PATH + "_blk",
@@ -542,7 +542,7 @@ HWTEST_F(OsAccountControlFileManagerTest, IsFromBaseOAConstraintsList_001, TestS
 HWTEST_F(OsAccountControlFileManagerTest, IsFromBaseOAConstraintsList_002, TestSize.Level1)
 {
     bool isExist;
-    ErrCode ret = osAccountControlManager_->IsFromBaseOAConstraintsList(
+    ErrCode ret = g_controlManager->IsFromBaseOAConstraintsList(
         100, "constraint.wifi", isExist);
     EXPECT_EQ(ret, ERR_OK);
     EXPECT_EQ(isExist, true);
@@ -559,8 +559,8 @@ HWTEST_F(OsAccountControlFileManagerTest, IsFromBaseOAConstraintsList_003, TestS
     bool isExist;
     RenameFile(Constants::BASE_OSACCOUNT_CONSTRAINTS_JSON_PATH,
         Constants::BASE_OSACCOUNT_CONSTRAINTS_JSON_PATH + "_blk");
-    osAccountControlManager_->BuildAndSaveBaseOAConstraintsJsonFile();
-    ErrCode ret = osAccountControlManager_->IsFromBaseOAConstraintsList(
+    g_controlManager->BuildAndSaveBaseOAConstraintsJsonFile();
+    ErrCode ret = g_controlManager->IsFromBaseOAConstraintsList(
         100, "constraint.wifi", isExist);
     EXPECT_EQ(ret, ERR_OK);
     EXPECT_EQ(isExist, true);
@@ -578,7 +578,7 @@ HWTEST_F(OsAccountControlFileManagerTest, RemoveOAConstraintsInfo_001, TestSize.
 {
     RenameFile(Constants::BASE_OSACCOUNT_CONSTRAINTS_JSON_PATH,
         Constants::BASE_OSACCOUNT_CONSTRAINTS_JSON_PATH + "_blk");
-    ErrCode ret = osAccountControlManager_->RemoveOAConstraintsInfo(INT_TEST_ERR_USER_ID);
+    ErrCode ret = g_controlManager->RemoveOAConstraintsInfo(INT_TEST_ERR_USER_ID);
     EXPECT_NE(ret, ERR_OK);
     RenameFile(Constants::BASE_OSACCOUNT_CONSTRAINTS_JSON_PATH + "_blk",
         Constants::BASE_OSACCOUNT_CONSTRAINTS_JSON_PATH);
@@ -595,7 +595,7 @@ HWTEST_F(OsAccountControlFileManagerTest, IsFromGlobalOAConstraintsList_001, Tes
     std::vector<ConstraintSourceTypeInfo> globalSourceList;
     RenameFile(Constants::GLOBAL_OSACCOUNT_CONSTRAINTS_JSON_PATH,
         Constants::GLOBAL_OSACCOUNT_CONSTRAINTS_JSON_PATH + "_blk");
-    ErrCode ret = osAccountControlManager_->IsFromGlobalOAConstraintsList(
+    ErrCode ret = g_controlManager->IsFromGlobalOAConstraintsList(
         INT_TEST_ERR_USER_ID, 0, "invalid_constraint", globalSourceList);
     EXPECT_NE(ret, ERR_OK);
     RenameFile(Constants::GLOBAL_OSACCOUNT_CONSTRAINTS_JSON_PATH + "_blk",
@@ -613,7 +613,7 @@ HWTEST_F(OsAccountControlFileManagerTest, IsFromSpecificOAConstraintsList_001, T
     std::vector<ConstraintSourceTypeInfo> specificSourceList;
     RenameFile(Constants::SPECIFIC_OSACCOUNT_CONSTRAINTS_JSON_PATH,
         Constants::SPECIFIC_OSACCOUNT_CONSTRAINTS_JSON_PATH + "_blk");
-    ErrCode ret = osAccountControlManager_->IsFromSpecificOAConstraintsList(
+    ErrCode ret = g_controlManager->IsFromSpecificOAConstraintsList(
         INT_TEST_ERR_USER_ID, 0, "invalid_constraint", specificSourceList);
     EXPECT_NE(ret, ERR_OK);
     RenameFile(Constants::SPECIFIC_OSACCOUNT_CONSTRAINTS_JSON_PATH + "_blk",
@@ -628,9 +628,9 @@ HWTEST_F(OsAccountControlFileManagerTest, IsFromSpecificOAConstraintsList_001, T
  */
 HWTEST_F(OsAccountControlFileManagerTest, OsAccountControlFileManagerCovTest023, TestSize.Level1)
 {
-    osAccountControlManager_->RecoverAccountListJsonFile();
+    g_controlManager->RecoverAccountListJsonFile();
     bool ret = false;
-    ret = osAccountControlManager_->accountFileOperator_->IsJsonFileReady(Constants::ACCOUNT_LIST_FILE_JSON_PATH);
+    ret = g_controlManager->accountFileOperator_->IsJsonFileReady(Constants::ACCOUNT_LIST_FILE_JSON_PATH);
     EXPECT_EQ(ret, true);
 }
 
@@ -642,9 +642,9 @@ HWTEST_F(OsAccountControlFileManagerTest, OsAccountControlFileManagerCovTest023,
  */
 HWTEST_F(OsAccountControlFileManagerTest, OsAccountControlFileManagerCovTest024, TestSize.Level1)
 {
-    osAccountControlManager_->BuildAndSaveBaseOAConstraintsJsonFile();
+    g_controlManager->BuildAndSaveBaseOAConstraintsJsonFile();
     bool ret = false;
-    ret = osAccountControlManager_->accountFileOperator_
+    ret = g_controlManager->accountFileOperator_
         ->IsJsonFileReady(Constants::BASE_OSACCOUNT_CONSTRAINTS_JSON_PATH);
     EXPECT_EQ(ret, true);
 }
@@ -657,9 +657,9 @@ HWTEST_F(OsAccountControlFileManagerTest, OsAccountControlFileManagerCovTest024,
  */
 HWTEST_F(OsAccountControlFileManagerTest, OsAccountControlFileManagerCovTest025, TestSize.Level1)
 {
-    osAccountControlManager_->BuildAndSaveGlobalOAConstraintsJsonFile();
+    g_controlManager->BuildAndSaveGlobalOAConstraintsJsonFile();
     bool ret = false;
-    ret = osAccountControlManager_->accountFileOperator_
+    ret = g_controlManager->accountFileOperator_
         ->IsJsonFileReady(Constants::GLOBAL_OSACCOUNT_CONSTRAINTS_JSON_PATH);
     EXPECT_EQ(ret, true);
 }
@@ -672,40 +672,11 @@ HWTEST_F(OsAccountControlFileManagerTest, OsAccountControlFileManagerCovTest025,
  */
 HWTEST_F(OsAccountControlFileManagerTest, OsAccountControlFileManagerCovTest026, TestSize.Level1)
 {
-    osAccountControlManager_->BuildAndSaveSpecificOAConstraintsJsonFile();
+    g_controlManager->BuildAndSaveSpecificOAConstraintsJsonFile();
     bool ret = false;
-    ret = osAccountControlManager_->accountFileOperator_
+    ret = g_controlManager->accountFileOperator_
         ->IsJsonFileReady(Constants::SPECIFIC_OSACCOUNT_CONSTRAINTS_JSON_PATH);
     EXPECT_EQ(ret, true);
-}
-
-/**
- * @tc.name: OsAccountControlFileManagerCovTest027
- * @tc.desc: coverage osAccountControlManager
- * @tc.type: FUNC
- * @tc.require:
- */
-HWTEST_F(OsAccountControlFileManagerTest, OsAccountControlFileManagerCovTest027, TestSize.Level1)
-{
-    std::vector<std::string> constants;
-    std::shared_ptr<OsAccountControlFileManager>  osAccountControlManager =
-        std::make_shared<OsAccountControlFileManager>();
-    ErrCode ret = osAccountControlManager->GetConstraintsByType(OsAccountType::ADMIN, constants);
-    EXPECT_EQ(ret, ERR_OSACCOUNT_SERVICE_OS_FILE_GET_CONFIG_ERROR);
-    bool isMultiAccount;
-    ret = osAccountControlManager->GetIsMultiOsAccountEnable(isMultiAccount);
-    EXPECT_EQ(ret, ERR_OSACCOUNT_SERVICE_OS_FILE_GET_CONFIG_ERROR);
-    bool isAllowedCreateAdmin;
-    ret = osAccountControlManager->IsAllowedCreateAdmin(isAllowedCreateAdmin);
-    EXPECT_EQ(ret, ERR_OSACCOUNT_SERVICE_OS_FILE_GET_CONFIG_ERROR);
-    std::vector<std::string> constraints;
-    bool isExists;
-    bool isOverSize;
-    ret = osAccountControlManager->CheckConstraintsList(constraints, isExists, isOverSize);
-    EXPECT_EQ(ret, ERR_OSACCOUNT_SERVICE_OS_FILE_GET_CONSTRAINTS_LITS_ERROR);
-    EXPECT_EQ(isExists, true);
-    EXPECT_EQ(isOverSize, false);
-
 }
 
 /**
@@ -717,8 +688,7 @@ HWTEST_F(OsAccountControlFileManagerTest, OsAccountControlFileManagerCovTest027,
 HWTEST_F(OsAccountControlFileManagerTest, OsAccountControlFileManagerCovTest028, TestSize.Level1)
 {
     std::vector<std::string> constants;
-    osAccountControlManager_->Init();
-    ErrCode ret = osAccountControlManager_->GetConstraintsByType(static_cast<OsAccountType>(INVALID_TYPE), constants);
+    ErrCode ret = g_controlManager->GetConstraintsByType(static_cast<OsAccountType>(INVALID_TYPE), constants);
     EXPECT_EQ(ret, ERR_OSACCOUNT_SERVICE_CONTROL_GET_TYPE_ERROR);
 }
 
@@ -732,7 +702,7 @@ HWTEST_F(OsAccountControlFileManagerTest, OsAccountControlFileManagerCovTest029,
 {
     std::string idStr = "";
     std::vector<std::string> ConstraintStr = {};
-    ErrCode ret = osAccountControlManager_->UpdateBaseOAConstraints(idStr, ConstraintStr, false);
+    ErrCode ret = g_controlManager->UpdateBaseOAConstraints(idStr, ConstraintStr, false);
     EXPECT_EQ(ret, ERR_OK);
 }
 
@@ -746,7 +716,7 @@ HWTEST_F(OsAccountControlFileManagerTest, OsAccountControlFileManagerCovTest030,
 {
     int id = 0;
     std::string photo;
-    ErrCode ret = osAccountControlManager_->GetPhotoById(id, photo);
+    ErrCode ret = g_controlManager->GetPhotoById(id, photo);
     EXPECT_EQ(ret, ERR_OSACCOUNT_SERVICE_FILE_FIND_FILE_ERROR);
 }
 }  // namespace AccountSA

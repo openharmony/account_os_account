@@ -377,7 +377,7 @@ HWTEST_F(DomainAccountClientModuleTest, DomainAccountClientModuleTest_AuthUser_0
     std::vector<uint8_t> resultToken;
     InnerDomainAccountManager::GetInstance().GetTokenFromMap(userId, resultToken);
     for (size_t index = 0; index < resultToken.size(); index++) {
-        EXPECT_EQ(resultToken[index], DEFAULT_TOKEN[index]);
+        EXPECT_EQ(resultToken[index], TOKEN[index]);
     }
     EXPECT_EQ(OsAccountManager::RemoveOsAccount(userId), ERR_OK);
 }
