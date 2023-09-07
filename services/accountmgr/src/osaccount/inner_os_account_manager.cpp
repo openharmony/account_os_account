@@ -296,8 +296,12 @@ ErrCode IInnerOsAccountManager::BindDomainAccount(const OsAccountType &type, con
         ACCOUNT_LOGE("the domain account is already bound");
         return ERR_OSACCOUNT_SERVICE_INNER_DOMAIN_ALREADY_BIND_ERROR;
     }
+#ifdef ENABLE_MULTIPLE_OS_ACCOUNTS
     bool isEnabled = false;
     (void)IsOsAccountConstraintEnable(Constants::START_USER_ID, CONSTRAINT_CREATE_ACCOUNT_DIRECTLY, isEnabled);
+#else
+    bool isEnabled = true;
+#endif // ENABLE_MULTIPLE_OS_ACCOUNTS
     std::string osAccountName = domainAccountInfo.domain_ + "/" + domainAccountInfo.accountName_;
     OsAccountInfo osAccountInfo;
     if (isEnabled && (osAccountInfos.size() == 1) && (osAccountInfos[0].GetLocalId() == Constants::START_USER_ID)) {
@@ -310,10 +314,15 @@ ErrCode IInnerOsAccountManager::BindDomainAccount(const OsAccountType &type, con
         }
     }
     if (osAccountInfo.GetLocalId() != Constants::START_USER_ID) {
+#ifdef ENABLE_MULTIPLE_OS_ACCOUNTS
         ErrCode errCode = PrepareOsAccountInfo(osAccountName, type, domainAccountInfo, osAccountInfo);
         if (errCode != ERR_OK) {
             return errCode;
         }
+#else
+        ACCOUNT_LOGW("multiple os accounts feature not enabled");
+        return ERR_OSACCOUNT_SERVICE_MANAGER_NOT_ENABLE_MULTI_ERROR;
+#endif // ENABLE_MULTIPLE_OS_ACCOUNTS
     }
     auto callbackWrapper = std::make_shared<BindDomainAccountCallback>(domainAccountInfo, osAccountInfo, callback);
     if (callbackWrapper == nullptr) {
@@ -594,11 +603,15 @@ ErrCode IInnerOsAccountManager::GetCreatedOsAccountsCount(unsigned int &createdO
 
 ErrCode IInnerOsAccountManager::QueryMaxOsAccountNumber(int &maxOsAccountNumber)
 {
+#ifdef ENABLE_MULTIPLE_OS_ACCOUNTS
     ErrCode errCode = osAccountControl_->GetMaxCreatedOsAccountNum(maxOsAccountNumber);
     if (errCode != ERR_OK) {
         ACCOUNT_LOGE("get max created osaccount num error, errCode %{public}d.", errCode);
         return errCode;
     }
+#else
+    maxOsAccountNumber = 0;
+#endif // ENABLE_MULTIPLE_OS_ACCOUNTS
     return ERR_OK;
 }
 
@@ -932,11 +945,15 @@ ErrCode IInnerOsAccountManager::GetOsAccountProfilePhoto(const int id, std::stri
 
 ErrCode IInnerOsAccountManager::IsMultiOsAccountEnable(bool &isMultiOsAccountEnable)
 {
+#ifdef ENABLE_MULTIPLE_OS_ACCOUNTS
     ErrCode errCode = osAccountControl_->GetIsMultiOsAccountEnable(isMultiOsAccountEnable);
     if (errCode != ERR_OK) {
         ACCOUNT_LOGE("GetIsMultiOsAccountEnable error, errCode %{public}d.", errCode);
         return errCode;
     }
+#else
+    isMultiOsAccountEnable = false;
+#endif // ENABLE_MULTIPLE_OS_ACCOUNTS
     return ERR_OK;
 }
 
@@ -1438,7 +1455,12 @@ ErrCode IInnerOsAccountManager::GetSerialNumberFromDatabase(const std::string& s
 
 ErrCode IInnerOsAccountManager::GetMaxAllowCreateIdFromDatabase(const std::string& storeID, int &id)
 {
+#ifdef ENABLE_MULTIPLE_OS_ACCOUNTS
     return osAccountControl_->GetMaxAllowCreateIdFromDatabase(storeID, id);
+#else
+    id = Constants::START_USER_ID;
+    return ERR_OK;
+#endif // ENABLE_MULTIPLE_OS_ACCOUNTS
 }
 
 ErrCode IInnerOsAccountManager::GetOsAccountFromDatabase(const std::string& storeID, const int id,
