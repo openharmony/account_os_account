@@ -371,14 +371,41 @@ HWTEST_F(AccountIamManagerTest, UpdateCredential001, TestSize.Level0)
 
 /**
  * @tc.name: Cancel001
- * @tc.desc: Cancel.
+ * @tc.desc: Cancel with .
  * @tc.type: FUNC
  * @tc.require:
  */
 HWTEST_F(AccountIamManagerTest, Cancel001, TestSize.Level0)
 {
+    InnerAccountIAMManager::GetInstance().SetState(TEST_USER_ID, AFTER_OPEN_SESSION);
     int32_t ret = InnerAccountIAMManager::GetInstance().Cancel(TEST_USER_ID);
     EXPECT_NE(ret, 0);
+}
+
+/**
+ * @tc.name: Cancel002
+ * @tc.desc: Cancel after add credential.
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(AccountIamManagerTest, Cancel002, TestSize.Level0)
+{
+    InnerAccountIAMManager::GetInstance().SetState(TEST_USER_ID, AFTER_ADD_CRED);
+    int32_t ret = InnerAccountIAMManager::GetInstance().Cancel(TEST_USER_ID);
+    EXPECT_EQ(ret, ResultCode::GENERAL_ERROR);
+}
+
+/**
+ * @tc.name: Cancel003
+ * @tc.desc: Cancel with invalid user id.
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(AccountIamManagerTest, Cancel003, TestSize.Level0)
+{
+    InnerAccountIAMManager::GetInstance().SetState(TEST_USER_ID, AFTER_ADD_CRED);
+    int32_t ret = InnerAccountIAMManager::GetInstance().Cancel(TEST_USER_ID);
+    EXPECT_EQ(ret, ResultCode::GENERAL_ERROR);
 }
 
 /**
@@ -541,13 +568,6 @@ HWTEST_F(AccountIamManagerTest, UpdateUserKey001, TestSize.Level2)
     int32_t res =
         innerIamMgr_.UpdateUserKey(TEST_USER_ID, 0, testCreId, testAuthToken, testSecret);
     EXPECT_EQ(g_fscryptEnable ? -2 : 0, res);
-    uint64_t testNewCreId = 222;
-    std::vector<uint8_t> testNewSecret;
-    EXPECT_EQ(ERR_OK,
-        innerIamMgr_.UpdateUserKey(TEST_USER_ID, 0, testCreId, testAuthToken, testNewSecret));
-    EXPECT_EQ(ERR_OK,
-        innerIamMgr_.UpdateUserKey(
-            TEST_USER_ID, 0, testNewCreId, testAuthToken, testNewSecret));
     innerIamMgr_.storageMgrProxy_ = nullptr;
 }
 
@@ -569,37 +589,6 @@ HWTEST_F(AccountIamManagerTest, RemoveUserKey001, TestSize.Level2)
     int32_t res = innerIamMgr_.RemoveUserKey(TEST_OTHER_ID, testAuthToken);
     EXPECT_EQ(g_fscryptEnable ? -2 : 0, res);
     EXPECT_EQ(ERR_OK, innerIamMgr_.RemoveUserKey(userId, testAuthToken));
-    innerIamMgr_.storageMgrProxy_ = nullptr;
-}
-
-/**
- * @tc.name: RestoreUserKey001
- * @tc.desc: RestoreUserKey.
- * @tc.type: FUNC
- * @tc.require:
- */
-HWTEST_F(AccountIamManagerTest, RestoreUserKey001, TestSize.Level2)
-{
-    int32_t userId = 2222;
-    uint64_t testOldCreId = 111;
-    std::vector<uint8_t> testAuthToken = {1, 2, 3, 4};
-    std::vector<uint8_t> testSecret = {1, 2, 3, 4};
-    auto &innerIamMgr_ = InnerAccountIAMManager::GetInstance();
-    sptr<MockStorageMgrProxy> ptr = new (std::nothrow) MockStorageMgrProxy();
-    ASSERT_NE(ptr, nullptr);
-    innerIamMgr_.storageMgrProxy_ = ptr;
-
-    int32_t res =
-        innerIamMgr_.UpdateUserKey(TEST_USER_ID, 0, testOldCreId, testAuthToken, testSecret);
-    EXPECT_EQ(g_fscryptEnable ? -2 : 0, res);
-
-    uint64_t testNewCreId = 222;
-    EXPECT_NE(ERR_OK, innerIamMgr_.RestoreUserKey(userId, 0, {}));
-    EXPECT_EQ(ERR_OK, innerIamMgr_.RestoreUserKey(userId, testNewCreId, testAuthToken));
-    res = innerIamMgr_.RestoreUserKey(TEST_OTHER_ID, 0, testAuthToken);
-    EXPECT_EQ(g_fscryptEnable ? -2 : 0, res);
-    EXPECT_EQ(ERR_OK, innerIamMgr_.RestoreUserKey(TEST_USER_ID, testNewCreId, testAuthToken));
-    EXPECT_EQ(ERR_OK, innerIamMgr_.RestoreUserKey(TEST_USER_ID, testOldCreId, testAuthToken));
     innerIamMgr_.storageMgrProxy_ = nullptr;
 }
 }  // namespace AccountTest

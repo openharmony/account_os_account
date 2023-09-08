@@ -165,7 +165,7 @@ void InnerAccountIAMManager::GetCredentialInfo(
 {
     if (!IsNonPINAllowed(userId)) {
         if ((authType != AuthType::PIN) && (authType != AuthType::ALL)) {
-            ACCOUNT_LOGD("unsupported auth type");
+            ACCOUNT_LOGD("unsupported auth type: %{public}d", authType);
             std::vector<CredentialInfo> infoList;
             return callback->OnCredentialInfo(infoList);
         }
@@ -187,6 +187,11 @@ void InnerAccountIAMManager::GetCredentialInfo(
 
 int32_t InnerAccountIAMManager::Cancel(int32_t userId)
 {
+    std::lock_guard<std::mutex> lock(mutex_);
+    auto it = userStateMap_.find(userId);
+    if ((it == userStateMap_.end()) || (it->second >= AFTER_ADD_CRED)) {
+        return ResultCode::GENERAL_ERROR;
+    }
     return UserIDMClient::GetInstance().Cancel(userId);
 }
 
@@ -198,7 +203,7 @@ int32_t InnerAccountIAMManager::AuthUser(
         return ERR_ACCOUNT_COMMON_NULL_PTR_ERROR;
     }
     if ((authParam.authType != AuthType::PIN) && (!IsNonPINAllowed(userId))) {
-        ACCOUNT_LOGE("unsupported auth type");
+        ACCOUNT_LOGE("unsupported auth type: %{public}d", authParam.authType);
         return ERR_ACCOUNT_IAM_UNSUPPORTED_AUTH_TYPE;
     }
     auto userAuthCallback = std::make_shared<AuthCallback>(userId, authParam.authType, callback);
@@ -274,7 +279,7 @@ void InnerAccountIAMManager::GetProperty(
     }
     Attributes attributes;
     if ((request.authType != AuthType::PIN) && (!IsNonPINAllowed(userId))) {
-        ACCOUNT_LOGE("unsupported auth type");
+        ACCOUNT_LOGE("unsupported auth type: %{public}d", request.authType);
         callback->OnResult(ERR_ACCOUNT_IAM_UNSUPPORTED_AUTH_TYPE, attributes);
         return;
     }
@@ -422,16 +427,11 @@ ErrCode InnerAccountIAMManager::UpdateUserKey(int32_t userId, uint64_t secureUid
     if (it != credInfoMap_.end()) {
         oldCredInfo = it->second;
     }
-    if (newSecret.empty() && credentialId != oldCredInfo.credentialId) {
-        ACCOUNT_LOGE("the key do not need to be removed");
-        return ERR_OK;
-    }
     result = UpdateStorageKey(userId, secureUid, token, oldCredInfo.secret, newSecret);
     if (result != ERR_OK) {
         return result;
     }
     credInfoMap_[userId] = {
-        .credentialId = credentialId,
         .oldSecureUid = oldCredInfo.secureUid,
         .secureUid = secureUid,
         .oldSecret = oldCredInfo.secret,
@@ -459,30 +459,6 @@ ErrCode InnerAccountIAMManager::RemoveUserKey(int32_t userId, const std::vector<
         .secureUid = 0,
         .oldSecret = oldCredInfo.secret,
         .secret = newSecret
-    };
-    return result;
-}
-
-ErrCode InnerAccountIAMManager::RestoreUserKey(int32_t userId, uint64_t credentialId,
-    const std::vector<uint8_t> &token)
-{
-    ErrCode result = ERR_OK;
-    AccountCredentialInfo credInfo;
-    std::lock_guard<std::mutex> lock(mutex_);
-    auto it = credInfoMap_.find(userId);
-    if (it != credInfoMap_.end()) {
-        credInfo = it->second;
-    }
-    if (credentialId != 0 && credInfo.credentialId != credentialId) {
-        return ERR_OK;
-    }
-    result = UpdateStorageKey(userId, credInfo.oldSecureUid, token, credInfo.secret, credInfo.oldSecret);
-    if (result != ERR_OK) {
-        return result;
-    }
-    credInfoMap_[userId] = {
-        .secureUid = credInfo.oldSecureUid,
-        .secret = credInfo.oldSecret
     };
     return result;
 }
