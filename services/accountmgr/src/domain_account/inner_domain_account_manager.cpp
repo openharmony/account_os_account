@@ -151,7 +151,7 @@ ErrCode InnerDomainAccountManager::StartAuth(const sptr<IDomainAccountPlugin> &p
         return ERR_ACCOUNT_COMMON_INSUFFICIENT_MEMORY_ERROR;
     }
     if (plugin == nullptr) {
-        ACCOUNT_LOGE("plugin is not exixt");
+        ACCOUNT_LOGE("plugin not exists");
         callback->OnResult(ConvertToJSErrCode(ERR_DOMAIN_ACCOUNT_SERVICE_PLUGIN_NOT_EXIST), emptyParcel);
         return ERR_ACCOUNT_COMMON_INVALID_PARAMETER;
     }

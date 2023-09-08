@@ -99,15 +99,22 @@ HWTEST_F(AccountIAMCallbackServiceTest, IDMCallbackService_OnAcquireInfo_0200, T
 
 /**
  * @tc.name: IDMCallbackService_OnResult_0100
- * @tc.desc: OnResult with nullptr.
+ * @tc.desc: OnResult test.
  * @tc.type: FUNC
  * @tc.require:
  */
 HWTEST_F(AccountIAMCallbackServiceTest, IDMCallbackService_OnResult_0100, TestSize.Level0)
 {
-    sptr<IDMCallbackService> wrapper = new (std::nothrow) IDMCallbackService(TEST_USER_ID, nullptr);
-    EXPECT_TRUE(wrapper->callback_ == nullptr);
+    auto testCallback = std::make_shared<MockIDMCallback>();
+    EXPECT_NE(testCallback, nullptr);
+    EXPECT_CALL(*testCallback, OnResult(0, _)).Times(Exactly(1));
+    sptr<IDMCallbackService> wrapper = new (std::nothrow) IDMCallbackService(TEST_USER_ID, testCallback);
+    ASSERT_NE(wrapper, nullptr);
     Attributes extraInfo;
+    wrapper->OnResult(0, extraInfo);
+    EXPECT_CALL(*testCallback, OnResult(1, _)).Times(Exactly(1));
+    wrapper->OnResult(1, extraInfo);
+    wrapper->callback_ = nullptr;
     wrapper->OnResult(0, extraInfo);
 }
 
