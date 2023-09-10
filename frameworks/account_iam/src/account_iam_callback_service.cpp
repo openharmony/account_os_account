@@ -41,8 +41,10 @@ void IDMCallbackService::OnResult(int32_t result, const Attributes &extraInfo)
         ACCOUNT_LOGE("callback is nullptr");
         return;
     }
+    if (result != 0) {
+        ACCOUNT_LOGE("idm operation failure, localId: %{public}d", userId_);
+    }
     callback_->OnResult(result, extraInfo);
-    AccountIAMClient::GetInstance().ClearCredential(userId_);
 }
 
 GetCredInfoCallbackService::GetCredInfoCallbackService(const std::shared_ptr<GetCredInfoCallback> &callback)
@@ -163,6 +165,8 @@ void IAMInputer::OnGetData(int32_t authSubType, std::shared_ptr<IInputerData> in
         CredentialItem credItem;
         AccountIAMClient::GetInstance().GetCredential(userId_, credItem);
         inputerData->OnSetData(authSubType, credItem.credential);
+        AccountIAMClient::GetInstance().ClearCredential(userId_);
+        return;
     }
     if (innerInputer_ == nullptr) {
         ACCOUNT_LOGE("innerInputer_ is nullptr");

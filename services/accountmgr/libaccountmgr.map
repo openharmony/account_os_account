@@ -222,7 +222,6 @@
         "OHOS::AccountSA::SessionServerDeathRecipient::OnRemoteDied(OHOS::wptr<OHOS::IRemoteObject> const&)";
         "OHOS::AccountSA::SessionServerDeathRecipient::SessionServerDeathRecipient(std::__h::basic_string<char, std::__h::char_traits<char>, std::__h::allocator<char>> const&)";
         "OHOS::AccountSA::SetPropCallbackWrapper::SetPropCallbackWrapper(OHOS::sptr<OHOS::AccountSA::IGetSetPropCallback> const&)";
-        "OHOS::AccountSA::UpdateCredCallback::UpdateCredCallback(unsigned int, OHOS::UserIam::UserAuth::CredentialParameters const&, OHOS::sptr<OHOS::AccountSA::IIDMCallback> const&)";
         "vtable for OHOS::AccountSA::AccountStub";
         "OHOS::AccountSA::AccountStub::AccountStub()";
         "vtable for OHOS::AccountSA::OsAccountStopUserCallback";
