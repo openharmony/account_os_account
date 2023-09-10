@@ -170,10 +170,6 @@ ohos_shared_library("accountmgr") {
     cflags += [ "-DDISTRIBUTED_FEATURE_ENABLED" ]
   }
 
-  if (!os_account_file_encryption_el1_feature) {
-    cflags += [ "-DFILE_ENCRYPTION_EL1_FEATURE" ]
-  }
-
   if (os_account_enable_multiple_os_accounts) {
     cflags += [ "-DENABLE_MULTIPLE_OS_ACCOUNTS" ]
   }
