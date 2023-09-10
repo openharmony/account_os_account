@@ -15,6 +15,7 @@
 
 #include "account_iam_callback.h"
 
+#include <securec.h>
 #include "account_info_report.h"
 #include "account_log_wrapper.h"
 #include "iinner_os_account_manager.h"
@@ -28,9 +29,58 @@ namespace AccountSA {
 using UserIDMClient = UserIam::UserAuth::UserIdmClient;
 using UserAuthClient = UserIam::UserAuth::UserAuthClient;
 
+RestoreFileKeyCallback::RestoreFileKeyCallback(uint32_t userId, const Attributes& attributes)
+{
+    userId_ = userId;
+    attributes.GetUint8ArrayValue(Attributes::ATTR_SIGNATURE, token_);
+    attributes.GetUint8ArrayValue(Attributes::ATTR_ROOT_SECRET, secret_);
+}
+
+RestoreFileKeyCallback::~RestoreFileKeyCallback()
+{
+    (void)memset_s(token_.data(), token_.size(), 0, token_.size());
+    (void)memset_s(secret_.data(), secret_.size(), 0, secret_.size());
+}
+
+void RestoreFileKeyCallback::OnSecUserInfo(const UserIam::UserAuth::SecUserInfo &info)
+{
+    ErrCode ret = InnerAccountIAMManager::GetInstance().UpdateUserKey(userId_, info.secureUid, 0, token_, secret_);
+    if (ret != ERR_OK) {
+        ACCOUNT_LOGE("failed to restore user key");
+    } else {
+        ACCOUNT_LOGI("restore user key successfully");
+    }
+}
+
 AuthCallback::AuthCallback(uint32_t userId, AuthType authType, const sptr<IIDMCallback> &callback)
     : userId_(userId), authType_(authType), innerCallback_(callback)
 {}
+
+ErrCode AuthCallback::HandleAuthResult(const Attributes &extraInfo)
+{
+    std::vector<uint8_t> token;
+    if (authType_ != static_cast<AuthType>(IAMAuthType::DOMAIN)) {
+        // domain account authentication
+        extraInfo.GetUint8ArrayValue(Attributes::ATTR_SIGNATURE, token);
+        InnerDomainAccountManager::GetInstance().AuthWithToken(userId_, token);
+    }
+    if (authType_ != AuthType::PIN) {
+        return ERR_OK;
+    }
+    (void)IInnerOsAccountManager::GetInstance().IsOsAccountVerified(userId_, isAccountVerified_);
+    if (isAccountVerified_) {
+        return ERR_OK;
+    }
+    // file decryption
+    std::vector<uint8_t> secret;
+    extraInfo.GetUint8ArrayValue(Attributes::ATTR_ROOT_SECRET, secret);
+    ErrCode ret = InnerAccountIAMManager::GetInstance().ActivateUserKey(userId_, token, secret);
+    if (ret != 0) {
+        ACCOUNT_LOGE("failed to activate user key");
+    }
+    (void)IInnerOsAccountManager::GetInstance().SetOsAccountIsVerified(userId_, true);
+    return ret;
+}
 
 void AuthCallback::OnResult(int32_t result, const Attributes &extraInfo)
 {
@@ -40,27 +90,11 @@ void AuthCallback::OnResult(int32_t result, const Attributes &extraInfo)
         return;
     }
     if (result != 0) {
-        ACCOUNT_LOGI("auth failed and return result");
+        ACCOUNT_LOGE("authentication failed");
         innerCallback_->OnResult(result, extraInfo);
-        AccountInfoReport::ReportSecurityInfo("", userId_, ReportEvent::EVENT_LOGIN, -1); // -1:fail
-        return;
+        return AccountInfoReport::ReportSecurityInfo("", userId_, ReportEvent::EVENT_LOGIN, result);
     }
-    std::vector<uint8_t> token;
-    extraInfo.GetUint8ArrayValue(Attributes::ATTR_SIGNATURE, token);
-    if (authType_ != static_cast<AuthType>(IAMAuthType::DOMAIN)) {
-        InnerDomainAccountManager::GetInstance().AuthWithToken(userId_, token);
-    }
-    if (authType_ != AuthType::PIN) {
-        innerCallback_->OnResult(result, extraInfo);
-        AccountInfoReport::ReportSecurityInfo("", userId_, ReportEvent::EVENT_LOGIN, 0); // 0:success
-        return;
-    }
-    std::vector<uint8_t> secret;
-    extraInfo.GetUint8ArrayValue(Attributes::ATTR_ROOT_SECRET, secret);
-    int32_t activeResult =
-        InnerAccountIAMManager::GetInstance().ActivateUserKey(userId_, token, secret);
-    if (activeResult != 0) {
-        ACCOUNT_LOGE("failed to activate user key");
+    if (HandleAuthResult(extraInfo) != ERR_OK) {
         int32_t remainTimes = 0;
         int32_t freezingTime = 0;
         extraInfo.GetInt32Value(Attributes::AttributeKey::ATTR_REMAIN_TIMES, remainTimes);
@@ -69,12 +103,14 @@ void AuthCallback::OnResult(int32_t result, const Attributes &extraInfo)
         errInfo.SetInt32Value(Attributes::AttributeKey::ATTR_REMAIN_TIMES, remainTimes);
         errInfo.SetInt32Value(Attributes::AttributeKey::ATTR_FREEZING_TIME, freezingTime);
         innerCallback_->OnResult(ResultCode::FAIL, errInfo);
-    } else {
-        ACCOUNT_LOGI("activate user key success");
-        innerCallback_->OnResult(result, extraInfo);
-        (void)IInnerOsAccountManager::GetInstance().SetOsAccountIsVerified(userId_, true);
+        return AccountInfoReport::ReportSecurityInfo("", userId_, ReportEvent::EVENT_LOGIN, ResultCode::FAIL);
     }
-    AccountInfoReport::ReportSecurityInfo("", userId_, ReportEvent::EVENT_LOGIN, 0); // 0:success
+    innerCallback_->OnResult(result, extraInfo);
+    AccountInfoReport::ReportSecurityInfo("", userId_, ReportEvent::EVENT_LOGIN, result);
+    if (!isAccountVerified_) {
+        auto getSecUidCallback = std::make_shared<RestoreFileKeyCallback>(userId_, extraInfo);
+        UserIDMClient::GetInstance().GetSecUserInfo(userId_, getSecUidCallback);
+    }
 }
 
 void AuthCallback::OnAcquireInfo(int32_t module, uint32_t acquireInfo, const Attributes &extraInfo)
@@ -96,7 +132,7 @@ IDMAuthCallback::IDMAuthCallback(uint32_t userId, const Attributes &extraInfo)
 void IDMAuthCallback::OnResult(int32_t result, const Attributes &extraInfo)
 {
     if (result != 0) {
-        ACCOUNT_LOGE("fail to update user key for authentication failure");
+        ACCOUNT_LOGE("fail to update user key for authentication failure, error code: %{public}d", result);
         InnerAccountIAMManager::GetInstance().SetState(userId_, AFTER_OPEN_SESSION);
         return;
     }
@@ -104,11 +140,8 @@ void IDMAuthCallback::OnResult(int32_t result, const Attributes &extraInfo)
     std::vector<uint8_t> secret;
     extraInfo.GetUint8ArrayValue(Attributes::ATTR_SIGNATURE, token);
     extraInfo.GetUint8ArrayValue(Attributes::ATTR_ROOT_SECRET, secret);
-    int32_t updateKeyResult = InnerAccountIAMManager::GetInstance().UpdateUserKey(
-        userId_, secureUid_, credentialId_, token, secret);
-    if (updateKeyResult == 0) {
-        InnerAccountIAMManager::GetInstance().SetState(userId_, AFTER_OPEN_SESSION);
-    }
+    (void) InnerAccountIAMManager::GetInstance().UpdateUserKey(userId_, secureUid_, credentialId_, token, secret);
+    InnerAccountIAMManager::GetInstance().SetState(userId_, AFTER_OPEN_SESSION);
 }
 
 void IDMAuthCallback::OnAcquireInfo(int32_t module, uint32_t acquireInfo, const Attributes &extraInfo)
@@ -123,61 +156,28 @@ AddCredCallback::AddCredCallback(uint32_t userId, const CredentialParameters &cr
 
 void AddCredCallback::OnResult(int32_t result, const Attributes &extraInfo)
 {
+    if (result != 0) {
+        ACCOUNT_LOGE("fail to add credential, authType: %{public}d", credInfo_.authType);
+        InnerAccountIAMManager::GetInstance().SetState(userId_, AFTER_OPEN_SESSION);
+    } else if (credInfo_.authType != AuthType::PIN) {
+        InnerAccountIAMManager::GetInstance().SetState(userId_, AFTER_OPEN_SESSION);
+    } else {
+        InnerAccountIAMManager::GetInstance().SetState(userId_, AFTER_ADD_CRED);
+        (void)IInnerOsAccountManager::GetInstance().SetOsAccountIsCreateSecret(userId_, true);
+        std::vector<uint8_t> challenge;
+        InnerAccountIAMManager::GetInstance().GetChallenge(userId_, challenge);
+        auto callback = std::make_shared<IDMAuthCallback>(userId_, extraInfo);
+        UserAuthClient::GetInstance().BeginAuthentication(
+            userId_, challenge, AuthType::PIN, AuthTrustLevel::ATL4, callback);
+    }
     if (innerCallback_ == nullptr) {
         ACCOUNT_LOGE("inner callback is nullptr");
         return;
     }
     innerCallback_->OnResult(result, extraInfo);
-    if (result != 0 || credInfo_.authType != AuthType::PIN) {
-        ACCOUNT_LOGE("failed to add credential, result = %{public}d", result);
-        InnerAccountIAMManager::GetInstance().SetState(userId_, AFTER_OPEN_SESSION);
-        return;
-    }
-
-    (void)IInnerOsAccountManager::GetInstance().SetOsAccountIsCreateSecret(userId_, true);
-    InnerAccountIAMManager::GetInstance().SetState(userId_, AFTER_ADD_CRED);
-    std::vector<uint8_t> challenge;
-    InnerAccountIAMManager::GetInstance().GetChallenge(userId_, challenge);
-    auto callback = std::make_shared<IDMAuthCallback>(userId_, extraInfo);
-    UserAuthClient::GetInstance().BeginAuthentication(
-        userId_, challenge, AuthType::PIN, AuthTrustLevel::ATL4, callback);
 }
 
 void AddCredCallback::OnAcquireInfo(int32_t module, uint32_t acquireInfo, const Attributes &extraInfo)
-{
-    if (innerCallback_ == nullptr) {
-        ACCOUNT_LOGE("innerCallback_ is nullptr");
-        return;
-    }
-    innerCallback_->OnAcquireInfo(module, acquireInfo, extraInfo);
-}
-
-UpdateCredCallback::UpdateCredCallback(
-    uint32_t userId, const CredentialParameters &credInfo, const sptr<IIDMCallback> &callback)
-    : userId_(userId), credInfo_(credInfo), innerCallback_(callback)
-{}
-
-void UpdateCredCallback::OnResult(int32_t result, const Attributes &extraInfo)
-{
-    if (innerCallback_ == nullptr) {
-        ACCOUNT_LOGE("inner callback is nullptr");
-        return;
-    }
-    innerCallback_->OnResult(result, extraInfo);
-    if (result != 0 || credInfo_.authType != AuthType::PIN) {
-        ACCOUNT_LOGE("failed to update credential");
-        InnerAccountIAMManager::GetInstance().SetState(userId_, AFTER_OPEN_SESSION);
-        return;
-    }
-    InnerAccountIAMManager::GetInstance().SetState(userId_, AFTER_UPDATE_CRED);
-    std::vector<uint8_t> challenge;
-    InnerAccountIAMManager::GetInstance().GetChallenge(userId_, challenge);
-    auto callback = std::make_shared<IDMAuthCallback>(userId_, extraInfo);
-    UserAuthClient::GetInstance().BeginAuthentication(
-        userId_, challenge, AuthType::PIN, AuthTrustLevel::ATL4, callback);
-}
-
-void UpdateCredCallback::OnAcquireInfo(int32_t module, uint32_t acquireInfo, const Attributes &extraInfo)
 {
     if (innerCallback_ == nullptr) {
         ACCOUNT_LOGE("innerCallback_ is nullptr");
