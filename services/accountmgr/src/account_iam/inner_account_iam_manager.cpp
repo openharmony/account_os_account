@@ -92,7 +92,6 @@ void InnerAccountIAMManager::UpdateCredential(
         callback->OnResult(ResultCode::INVALID_PARAMETERS, emptyResult);
         return;
     }
-    std::vector<uint8_t> secret;
     ErrCode result = RemoveUserKey(userId, credInfo.token);
     if (result != ERR_OK) {
         callback->OnResult(result, emptyResult);

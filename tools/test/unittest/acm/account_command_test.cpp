@@ -26,7 +26,7 @@ using namespace OHOS::AAFwk;
 using namespace OHOS::AccountSA;
 
 namespace {
-const std::string HELP_MSG_UNKNOWN_OPTION = "error: unknown option.";
+const std::string HELP_MSG_UNKNOWN_OPTION = "fail: unknown option.";
 }  // namespace
 class AccountCommandTest : public testing::Test {
 public:
