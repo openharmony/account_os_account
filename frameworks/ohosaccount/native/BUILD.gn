@@ -36,6 +36,7 @@ ohos_shared_library("libaccountkits") {
     "src/account_proxy.cpp",
     "src/ohos_account_kits.cpp",
     "src/ohos_account_kits_impl.cpp",
+    "src/system_ability_status_change_listener.cpp",
   ]
 
   cflags = [ "-pipe" ]

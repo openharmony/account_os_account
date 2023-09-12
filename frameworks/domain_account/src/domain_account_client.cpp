@@ -23,8 +23,9 @@
 #include "domain_account_plugin_service.h"
 #include "domain_account_proxy.h"
 #include "domain_account_status_listener.h"
-#include "domain_account_status_listener_service.h"
+#include "domain_account_status_listener_manager.h"
 #include "ohos_account_kits_impl.h"
+#include "system_ability_definition.h"
 
 namespace OHOS {
 namespace AccountSA {
@@ -32,6 +33,21 @@ DomainAccountClient &DomainAccountClient::GetInstance()
 {
     static DomainAccountClient *instance = new (std::nothrow) DomainAccountClient();
     return *instance;
+}
+
+std::function<void(int32_t, const std::string &)> callbackFunc()
+{
+    return [](int32_t systemAbilityId, const std::string &deviceId) {
+        if (systemAbilityId == SUBSYS_ACCOUNT_SYS_ABILITY_ID_BEGIN) {
+            DomainAccountClient::GetInstance().RestoreListenerRecords();
+            DomainAccountClient::GetInstance().RestorePlugin();
+        }
+    };
+}
+
+DomainAccountClient::DomainAccountClient()
+{
+    (void)OhosAccountKitsImpl::GetInstance().SubscribeSystemAbility(callbackFunc());
 }
 
 ErrCode DomainAccountClient::RegisterPlugin(const std::shared_ptr<DomainAccountPlugin> &plugin)
@@ -50,7 +66,11 @@ ErrCode DomainAccountClient::RegisterPlugin(const std::shared_ptr<DomainAccountP
         ACCOUNT_LOGE("failed to get domain account proxy");
         return ERR_ACCOUNT_COMMON_GET_PROXY;
     }
-    return proxy->RegisterPlugin(pluginService);
+    ErrCode result = proxy->RegisterPlugin(pluginService);
+    if (result == ERR_OK) {
+        pluginService_ = pluginService;
+    }
+    return result;
 }
 
 ErrCode DomainAccountClient::UnregisterPlugin()
@@ -210,45 +230,6 @@ ErrCode DomainAccountClient::GetDomainAccountInfo(
     return proxy->GetDomainAccountInfo(info, callbackService);
 }
 
-ErrCode DomainAccountClient::RegisterAccountStatusListener(
-    const DomainAccountInfo &info, const std::shared_ptr<DomainAccountStatusListener> &listener)
-{
-    if (listener == nullptr) {
-        ACCOUNT_LOGE("callback is nullptr");
-        return ERR_ACCOUNT_COMMON_INVALID_PARAMETER;
-    }
-    std::lock_guard<std::mutex> lock(recordMutex_);
-    auto recordIter = listenerRecords_.find(listener);
-    sptr<IDomainAccountCallback> callback = nullptr;
-    if (recordIter == listenerRecords_.end()) {
-        std::shared_ptr<DomainAccountStatusListenerService> listenerService =
-            std::make_shared<DomainAccountStatusListenerService>(listener);
-        callback = new (std::nothrow) DomainAccountCallbackService(listenerService);
-        if (callback == nullptr) {
-            ACCOUNT_LOGE("failed to check domain account callback service");
-            return ERR_ACCOUNT_COMMON_INSUFFICIENT_MEMORY_ERROR;
-        }
-    } else {
-        callback = recordIter->second.callback_;
-    }
-    auto proxy = GetDomainAccountProxy();
-    if (proxy == nullptr) {
-        ACCOUNT_LOGE("failed to get domain account proxy");
-        return ERR_ACCOUNT_COMMON_GET_PROXY;
-    }
-    ErrCode result = proxy->RegisterAccountStatusListener(info, callback);
-    if (result != ERR_OK) {
-        ACCOUNT_LOGE("RegisterAccountStatusListener failed, error is %{public}d", result);
-        return result;
-    }
-    if (recordIter == listenerRecords_.end()) {
-        listenerRecords_.emplace(listener, DomainAccountClient::DomainAccountListenerRecord(info, callback));
-    } else {
-        recordIter->second.infos_.emplace_back(info);
-    }
-    return result;
-}
-
 ErrCode DomainAccountClient::RegisterAccountStatusListener(const std::shared_ptr<DomainAccountStatusListener> &listener)
 {
     if (listener == nullptr) {
@@ -256,27 +237,28 @@ ErrCode DomainAccountClient::RegisterAccountStatusListener(const std::shared_ptr
         return ERR_ACCOUNT_COMMON_INVALID_PARAMETER;
     }
     std::lock_guard<std::mutex> lock(recordMutex_);
-    auto recordIt = listenerRecords_.find(listener);
-    if (recordIt != listenerRecords_.end()) {
-        ACCOUNT_LOGI("listener already exist");
+    if (listenerManager_ == nullptr) {
+        listenerManager_ = std::make_shared<DomainAccountStatusListenerManager>();
+    }
+    if (!listenerManager_->IsRecordEmpty()) {
+        listenerManager_->InsertRecord(listener);
         return ERR_OK;
     }
-    std::shared_ptr<DomainAccountStatusListenerService> listenerService =
-        std::make_shared<DomainAccountStatusListenerService>(listener);
-
-    sptr<IDomainAccountCallback> callback = new (std::nothrow) DomainAccountCallbackService(listenerService);
-    if (callback == nullptr) {
-        ACCOUNT_LOGE("failed to check domain account callback service");
-        return ERR_ACCOUNT_COMMON_INSUFFICIENT_MEMORY_ERROR;
+    if (callback_ == nullptr) {
+        callback_ = new (std::nothrow) DomainAccountCallbackService(listenerManager_);
+        if (callback_ == nullptr) {
+            ACCOUNT_LOGE("failed to check domain account callback service");
+            return ERR_ACCOUNT_COMMON_INSUFFICIENT_MEMORY_ERROR;
+        }
     }
     auto proxy = GetDomainAccountProxy();
     if (proxy == nullptr) {
         ACCOUNT_LOGE("failed to get domain account proxy");
         return ERR_ACCOUNT_COMMON_GET_PROXY;
     }
-    ErrCode result = proxy->RegisterAccountStatusListener(callback);
+    ErrCode result = proxy->RegisterAccountStatusListener(callback_);
     if (result == ERR_OK) {
-        listenerRecords_.emplace(listener, DomainAccountClient::DomainAccountListenerRecord(callback));
+        listenerManager_->InsertRecord(listener);
     }
     return result;
 }
@@ -289,56 +271,57 @@ ErrCode DomainAccountClient::UnregisterAccountStatusListener(
         return ERR_ACCOUNT_COMMON_INVALID_PARAMETER;
     }
     std::lock_guard<std::mutex> lock(recordMutex_);
-    auto recordIt = listenerRecords_.find(listener);
-    if (recordIt == listenerRecords_.end()) {
-        ACCOUNT_LOGI("listener not register");
-        return ERR_OK;
+    if (listenerManager_ == nullptr) {
+        ACCOUNT_LOGE("listenerManager_ is nullptr");
+        return ERR_ACCOUNT_COMMON_NULL_PTR_ERROR;
     }
     auto proxy = GetDomainAccountProxy();
     if (proxy == nullptr) {
         ACCOUNT_LOGE("failed to get domain account proxy");
         return ERR_ACCOUNT_COMMON_GET_PROXY;
     }
-    ErrCode result = proxy->UnregisterAccountStatusListener(recordIt->second.callback_);
-    if (result == ERR_OK) {
-        listenerRecords_.erase(recordIt);
-    }
-    return result;
-}
-
-ErrCode DomainAccountClient::UnregisterAccountStatusListener(
-    const DomainAccountInfo &info, const std::shared_ptr<DomainAccountStatusListener> &listener)
-{
-    if (listener == nullptr) {
-        ACCOUNT_LOGE("callback is nullptr");
-        return ERR_ACCOUNT_COMMON_INVALID_PARAMETER;
-    }
-    auto proxy = GetDomainAccountProxy();
-    if (proxy == nullptr) {
-        ACCOUNT_LOGE("failed to get domain account proxy");
-        return ERR_ACCOUNT_COMMON_GET_PROXY;
-    }
-    std::lock_guard<std::mutex> lock(recordMutex_);
-    auto recordIt = listenerRecords_.find(listener);
-    if (recordIt == listenerRecords_.end()) {
-        ACCOUNT_LOGI("listener not exist");
+    listenerManager_->RemoveRecord(listener);
+    if (!listenerManager_->IsRecordEmpty()) {
         return ERR_OK;
     }
-    ErrCode result = proxy->UnregisterAccountStatusListener(info, recordIt->second.callback_);
+    ErrCode result = proxy->UnregisterAccountStatusListener(callback_);
     if (result != ERR_OK) {
+        listenerManager_->InsertRecord(listener);
         return result;
     }
-    for (auto it = recordIt->second.infos_.begin(); it != recordIt->second.infos_.end(); ++it) {
-        if ((info.accountId_ == it->accountId_) ||
-            ((info.accountName_ == it->accountName_) && (info.domain_ == it->domain_))) {
-            recordIt->second.infos_.erase(it);
-            if (recordIt->second.infos_.empty()) {
-                listenerRecords_.erase(recordIt);
-            }
-            break;
-        }
+    return ERR_OK;
+}
+
+void DomainAccountClient::RestoreListenerRecords()
+{
+    if (listenerManager_ == nullptr) {
+        ACCOUNT_LOGI("listenerManager_ is nullptr");
+        return;
     }
-    return result;
+    sptr<IDomainAccount> proxy = GetDomainAccountProxy();
+    if (proxy == nullptr) {
+        ACCOUNT_LOGE("proxy is nullptr");
+        return;
+    }
+    std::set<std::shared_ptr<DomainAccountStatusListener>> listenerAllRecords;
+    listenerAllRecords = listenerManager_->GetListenerAllRecords();
+    if (!listenerAllRecords.empty()) {
+        (void)proxy->RegisterAccountStatusListener(callback_);
+    }
+}
+
+void DomainAccountClient::RestorePlugin()
+{
+    if (pluginService_ == nullptr) {
+        ACCOUNT_LOGI("pluginService_ is nullptr");
+        return;
+    }
+    sptr<IDomainAccount> proxy = GetDomainAccountProxy();
+    if (proxy == nullptr) {
+        ACCOUNT_LOGE("proxy is nullptr");
+        return;
+    }
+    (void)proxy->RegisterPlugin(pluginService_);
 }
 
 void DomainAccountClient::DomainAccountDeathRecipient::OnRemoteDied(const wptr<IRemoteObject> &remote)

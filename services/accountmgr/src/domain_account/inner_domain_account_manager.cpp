@@ -488,30 +488,6 @@ ErrCode InnerDomainAccountManager::RegisterAccountStatusListener(const sptr<IDom
     return StatusListenerManager::GetInstance().InsertListenerToRecords(listener->AsObject());
 }
 
-ErrCode InnerDomainAccountManager::RegisterAccountStatusListener(
-    const DomainAccountInfo &info, const sptr<IDomainAccountCallback> &listener)
-{
-    int32_t userId = 0;
-    ErrCode res = IInnerOsAccountManager::GetInstance().GetOsAccountLocalIdFromDomain(info, userId);
-    if (res != ERR_OK) {
-        return res;
-    }
-    return StatusListenerManager::GetInstance().InsertListenerToRecords(
-        info.domain_, info.accountName_, listener->AsObject());
-}
-
-ErrCode InnerDomainAccountManager::UnregisterAccountStatusListener(
-    const DomainAccountInfo &info, const sptr<IDomainAccountCallback> &listener)
-{
-    int32_t userId = 0;
-    ErrCode res = IInnerOsAccountManager::GetInstance().GetOsAccountLocalIdFromDomain(info, userId);
-    if (res != ERR_OK) {
-        return res;
-    }
-    return StatusListenerManager::GetInstance().RemoveListenerByInfoAndListener(
-        info.domain_, info.accountName_, listener->AsObject());
-}
-
 ErrCode InnerDomainAccountManager::UnregisterAccountStatusListener(const sptr<IDomainAccountCallback> &listener)
 {
     // userid may be removed already.

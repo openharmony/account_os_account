@@ -119,26 +119,6 @@ ErrCode DomainAccountProxy::GetAccountStatus(const DomainAccountInfo &info, Doma
     return ERR_OK;
 }
 
-ErrCode DomainAccountProxy::RegisterAccountStatusListener(
-    const DomainAccountInfo &info, const sptr<IDomainAccountCallback> &listener)
-{
-    MessageParcel data;
-    if (!data.WriteInterfaceToken(GetDescriptor())) {
-        ACCOUNT_LOGE("failed to write descriptor!");
-        return ERR_ACCOUNT_COMMON_WRITE_DESCRIPTOR_ERROR;
-    }
-    if (!data.WriteParcelable(&info)) {
-        ACCOUNT_LOGE("fail to write domain account info for registering listener");
-        return ERR_ACCOUNT_COMMON_WRITE_PARCEL_ERROR;
-    }
-    if ((listener == nullptr) || (!data.WriteRemoteObject(listener->AsObject()))) {
-        ACCOUNT_LOGE("fail to write callback");
-        return ERR_ACCOUNT_COMMON_WRITE_PARCEL_ERROR;
-    }
-    MessageParcel reply;
-    return SendRequest(DomainAccountInterfaceCode::DOMAIN_ACCOUNT_STATUS_LISTENER_REGISTER_BY_INFO, data, reply);
-}
-
 ErrCode DomainAccountProxy::RegisterAccountStatusListener(const sptr<IDomainAccountCallback> &listener)
 {
     MessageParcel data;
@@ -168,27 +148,6 @@ ErrCode DomainAccountProxy::UnregisterAccountStatusListener(const sptr<IDomainAc
 
     MessageParcel reply;
     return SendRequest(DomainAccountInterfaceCode::DOMAIN_ACCOUNT_STATUS_LISTENER_UNREGISTER, data, reply);
-}
-
-ErrCode DomainAccountProxy::UnregisterAccountStatusListener(
-    const DomainAccountInfo &info, const sptr<IDomainAccountCallback> &listener)
-{
-    MessageParcel data;
-    if (!data.WriteInterfaceToken(GetDescriptor())) {
-        ACCOUNT_LOGE("failed to write descriptor!");
-        return ERR_ACCOUNT_COMMON_WRITE_DESCRIPTOR_ERROR;
-    }
-    if (!data.WriteParcelable(&info)) {
-        ACCOUNT_LOGE("fail to write domain account info for unregistering listener");
-        return ERR_ACCOUNT_COMMON_WRITE_PARCEL_ERROR;
-    }
-    if ((listener == nullptr) || (!data.WriteRemoteObject(listener->AsObject()))) {
-        ACCOUNT_LOGE("fail to write callback");
-        return ERR_ACCOUNT_COMMON_WRITE_PARCEL_ERROR;
-    }
-
-    MessageParcel reply;
-    return SendRequest(DomainAccountInterfaceCode::DOMAIN_ACCOUNT_STATUS_LISTENER_UNREGISTER_BY_INFO, data, reply);
 }
 
 ErrCode DomainAccountProxy::Auth(

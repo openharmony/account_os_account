@@ -16,19 +16,32 @@
 #ifndef OS_ACCOUNT_SERVICES_DOMAIN_ACCOUNT_INCLUDE_DOMAIN_ACCOUNT_STATUS_LISTENER_SERVICE_H
 #define OS_ACCOUNT_SERVICES_DOMAIN_ACCOUNT_INCLUDE_DOMAIN_ACCOUNT_STATUS_LISTENER_SERVICE_H
 
+#include <map>
+#include <mutex>
+#include <set>
+
 #include "domain_account_callback.h"
 #include "domain_account_status_listener.h"
 
 namespace OHOS {
 namespace AccountSA {
-class DomainAccountStatusListenerService : public DomainAccountCallback {
+class DomainAccountStatusListenerManager : public DomainAccountCallback {
 public:
-    DomainAccountStatusListenerService(const std::shared_ptr<DomainAccountStatusListener> &listener);
-    virtual ~DomainAccountStatusListenerService();
+    DomainAccountStatusListenerManager();
+    virtual ~DomainAccountStatusListenerManager();
     void OnResult(const int32_t errCode, Parcel &parcel) override;
+    void InsertRecord(const std::shared_ptr<DomainAccountStatusListener> &listener);
+    void RemoveRecord(const std::shared_ptr<DomainAccountStatusListener> &listener);
+    bool IsRecordEmpty();
+    std::set<std::string> GetDomainInfoRecords();
+    std::set<std::shared_ptr<DomainAccountStatusListener>> GetListenerAllRecords();
 
 private:
-    std::shared_ptr<DomainAccountStatusListener> listener_;
+    std::string GetDomainAccountStr(const std::string &domain, const std::string &accountName);
+
+private:
+    std::mutex mutex_;
+    std::set<std::shared_ptr<DomainAccountStatusListener>> listenerAll_;
 };
 }  // AccountSA
 }  // OHOS

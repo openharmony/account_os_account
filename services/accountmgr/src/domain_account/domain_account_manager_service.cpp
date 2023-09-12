@@ -100,18 +100,6 @@ ErrCode DomainAccountManagerService::RegisterAccountStatusListener(const sptr<ID
     return InnerDomainAccountManager::GetInstance().RegisterAccountStatusListener(listener);
 }
 
-ErrCode DomainAccountManagerService::RegisterAccountStatusListener(
-    const DomainAccountInfo &info, const sptr<IDomainAccountCallback> &listener)
-{
-    return InnerDomainAccountManager::GetInstance().RegisterAccountStatusListener(info, listener);
-}
-
-ErrCode DomainAccountManagerService::UnregisterAccountStatusListener(
-    const DomainAccountInfo &info, const sptr<IDomainAccountCallback> &listener)
-{
-    return InnerDomainAccountManager::GetInstance().UnregisterAccountStatusListener(info, listener);
-}
-
 ErrCode DomainAccountManagerService::UnregisterAccountStatusListener(const sptr<IDomainAccountCallback> &listener)
 {
     return InnerDomainAccountManager::GetInstance().UnregisterAccountStatusListener(listener);
