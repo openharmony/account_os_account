@@ -38,10 +38,13 @@
 
 #include <map>
 #include <mutex>
+#include <set>
 #include "account_error_no.h"
 #include "domain_account_callback.h"
 #include "domain_account_plugin.h"
+#include "idomain_account_plugin.h"
 #include "domain_account_status_listener.h"
+#include "domain_account_status_listener_manager.h"
 #include "domain_account_callback_service.h"
 #include "get_access_token_callback.h"
 #include "idomain_account.h"
@@ -117,27 +120,16 @@ public:
         const std::shared_ptr<GetAccessTokenCallback> &callback);
     ErrCode GetAccountStatus(const DomainAccountInfo &info, DomainAccountStatus &status);
     ErrCode GetDomainAccountInfo(const DomainAccountInfo &info, const std::shared_ptr<DomainAccountCallback> &callback);
-    ErrCode RegisterAccountStatusListener(
-        const DomainAccountInfo &info, const std::shared_ptr<DomainAccountStatusListener> &listener);
     ErrCode RegisterAccountStatusListener(const std::shared_ptr<DomainAccountStatusListener> &listener);
     ErrCode UnregisterAccountStatusListener(const std::shared_ptr<DomainAccountStatusListener> &listener);
-    ErrCode UnregisterAccountStatusListener(
-        const DomainAccountInfo &info, const std::shared_ptr<DomainAccountStatusListener> &listener);
+    friend std::function<void(int32_t, const std::string &)> callbackFunc();
 
 private:
-    DomainAccountClient() = default;
+    DomainAccountClient();
     ~DomainAccountClient() = default;
+    void RestoreListenerRecords();
+    void RestorePlugin();
     DISALLOW_COPY_AND_MOVE(DomainAccountClient);
-
-public:
-    class DomainAccountListenerRecord {
-    public:
-        DomainAccountListenerRecord(const DomainAccountInfo &info, const sptr<IDomainAccountCallback> &callback)
-            : infos_({info}), callback_(callback){};
-        DomainAccountListenerRecord(const sptr<IDomainAccountCallback> &callback) : infos_({}), callback_(callback){};
-        std::vector<DomainAccountInfo> infos_;
-        sptr<IDomainAccountCallback> callback_;
-    };
 
 private:
     class DomainAccountDeathRecipient : public IRemoteObject::DeathRecipient {
@@ -159,8 +151,9 @@ private:
     std::mutex recordMutex_;
     sptr<IDomainAccount> proxy_ = nullptr;
     sptr<DomainAccountDeathRecipient> deathRecipient_ = nullptr;
-    std::map<std::shared_ptr<DomainAccountStatusListener>, DomainAccountClient::DomainAccountListenerRecord>
-        listenerRecords_;
+    sptr<IDomainAccountPlugin> pluginService_ = nullptr;
+    sptr<IDomainAccountCallback> callback_ = nullptr;
+    std::shared_ptr<DomainAccountStatusListenerManager> listenerManager_ = nullptr;
 };
 }  // namespace AccountSA
 }  // namespace OHOS

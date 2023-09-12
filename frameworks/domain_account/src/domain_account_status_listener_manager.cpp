@@ -13,26 +13,20 @@
  * limitations under the License.
  */
 
-#include "domain_account_status_listener_service.h"
+#include "domain_account_status_listener_manager.h"
 #include "account_error_no.h"
 #include "account_log_wrapper.h"
 
 namespace OHOS {
 namespace AccountSA {
-DomainAccountStatusListenerService::DomainAccountStatusListenerService(
-    const std::shared_ptr<DomainAccountStatusListener> &listener)
-    : listener_(listener)
+DomainAccountStatusListenerManager::DomainAccountStatusListenerManager()
 {}
 
-DomainAccountStatusListenerService::~DomainAccountStatusListenerService()
+DomainAccountStatusListenerManager::~DomainAccountStatusListenerManager()
 {}
 
-void DomainAccountStatusListenerService::OnResult(const int32_t errCode, Parcel &parcel)
+void DomainAccountStatusListenerManager::OnResult(const int32_t errCode, Parcel &parcel)
 {
-    if (listener_ == nullptr) {
-        ACCOUNT_LOGE("innerCallback is nullptr");
-        return;
-    }
     if (errCode != ERR_OK) {
         ACCOUNT_LOGE("OnResult err is %{public}d", errCode);
         return;
@@ -60,9 +54,39 @@ void DomainAccountStatusListenerService::OnResult(const int32_t errCode, Parcel 
         return;
     }
     report.userId = userId;
-    listener_->OnStatusChanged(report);
-    ACCOUNT_LOGI("OnStatusChanged end");
-    return;
+    for (auto listener : listenerAll_) {
+        listener->OnStatusChanged(report);
+    }
+}
+
+void DomainAccountStatusListenerManager::InsertRecord(const std::shared_ptr<DomainAccountStatusListener> &listener)
+{
+    std::lock_guard<std::mutex> lock(mutex_);
+    if (listenerAll_.find(listener) != listenerAll_.end()) {
+        ACCOUNT_LOGI("listener alredy exist");
+        return;
+    }
+    listenerAll_.insert(listener);
+}
+
+void DomainAccountStatusListenerManager::RemoveRecord(const std::shared_ptr<DomainAccountStatusListener> &listener)
+{
+    std::lock_guard<std::mutex> lock(mutex_);
+    auto listenerAllIter = listenerAll_.find(listener);
+    if (listenerAllIter == listenerAll_.end()) {
+        return;
+    }
+    listenerAll_.erase(listenerAllIter);
+}
+
+std::set<std::shared_ptr<DomainAccountStatusListener>> DomainAccountStatusListenerManager::GetListenerAllRecords()
+{
+    return listenerAll_;
+}
+
+bool DomainAccountStatusListenerManager::IsRecordEmpty()
+{
+    return listenerAll_.empty();
 }
 }  // namespace AccountSA
 }  // namespace OHOS
