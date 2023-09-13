@@ -17,11 +17,10 @@ import("../../../../os_account.gni")
 import("//build/config/features.gni")
 import("//build/ohos.gni")
 import("//build/test.gni")
-module_output_path = "os_account/osaccount_stub"
 
 ##############################fuzztest##########################################
 ohos_fuzztest("IsOsAccountActivedStubFuzzTest") {
-  module_out_path = module_output_path
+  module_out_path = fuzz_output_path
 
   fuzz_config_file = "."
   include_dirs = [
