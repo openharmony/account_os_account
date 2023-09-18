@@ -48,7 +48,7 @@ std::string g_eventLogin = OHOS_ACCOUNT_EVENT_LOGIN;
 std::string g_eventLogout = OHOS_ACCOUNT_EVENT_LOGOUT;
 std::string g_eventTokenInvalid = OHOS_ACCOUNT_EVENT_TOKEN_INVALID;
 const std::string STRING_TEST_NAME = "test_account_name";
-const int DELAY_FOR_OPERATION = 250;
+const int DELAY_FOR_OPERATION = 500;
 const int ACCOUNT_UID = 100;
 
 std::string GetAccountEventStr(const std::map<std::string, std::string> &accountEventMap,

@@ -1121,6 +1121,9 @@ HWTEST_F(OsAccountInnerAccmgrCoverageTest, OsAccountInnerAccmgrCoverageTest037, 
 
     ret = innerMgrService_->DeActivateOsAccount(TEST_USER_ID55);
     EXPECT_EQ(ret, ERR_OSACCOUNT_SERVICE_INNER_UPDATE_ACCOUNT_ERROR);
+
+    EXPECT_CALL(*ptr, UpdateOsAccount(::testing::_))
+        .WillRepeatedly(testing::Return(0));
 }
 
 /*
