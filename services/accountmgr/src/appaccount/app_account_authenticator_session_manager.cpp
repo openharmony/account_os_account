@@ -76,7 +76,7 @@ void AppAccountAuthenticatorSessionManager::RegisterApplicationStateObserver()
 void AppAccountAuthenticatorSessionManager::UnregisterApplicationStateObserver()
 {
     if (iAppMgr_) {
-        iAppMgr_->RegisterApplicationStateObserver(appStateObserver_);
+        iAppMgr_->UnregisterApplicationStateObserver(appStateObserver_);
     }
     iAppMgr_ = nullptr;
     appStateObserver_ = nullptr;
