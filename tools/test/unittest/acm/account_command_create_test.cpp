@@ -24,7 +24,7 @@ using namespace OHOS::AAFwk;
 using namespace OHOS::AccountSA;
 
 namespace {
-const std::string HELP_MSG_UNKNOWN_OPTION = "error: unknown option.";
+const std::string HELP_MSG_UNKNOWN_OPTION = "fail: unknown option.";
 
 const std::string STRING_LOCAL_ACCOUNT_NAME = "local_account_name";
 const std::string STRING_TYPE_NORMAL = "normal";
